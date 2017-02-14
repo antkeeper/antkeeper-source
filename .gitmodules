@@ -1,0 +1,6 @@
+[submodule "emergent"]
+	path = lib/emergent
+	url = https://github.com/cjhoward/emergent.git
+[submodule "data"]
+	path = data
+	url = https://gitlab.com/cjhoward/antkeeper-data.git
