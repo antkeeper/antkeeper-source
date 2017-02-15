@@ -19,6 +19,8 @@
 
 #include "application.hpp"
 #include "application-state.hpp"
+#include "model-loader.hpp"
+#include "material-loader.hpp"
 #include "states/splash-state.hpp"
 #include "states/title-state.hpp"
 #include "states/experiment-state.hpp"
@@ -28,9 +30,6 @@
 
 #define OPENGL_VERSION_MAJOR 3
 #define OPENGL_VERSION_MINOR 3
-
-#include "model-loader.hpp"
-#include "material-loader.hpp"
 
 Application::Application(int argc, char* argv[]):
 	state(nullptr),

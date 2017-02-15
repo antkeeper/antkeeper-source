@@ -252,6 +252,10 @@ Model* ModelLoader::load(const std::string& filename)
 		
 	// Allocate model
 	Model* model = new Model();
+	model->setVAO(vao);
+	model->setVBO(vbo);
+	model->setIBO(ibo);
+	model->setVertexFormat(modelData->vertexFormat);
 	model->setBounds(modelData->bounds);
 	
 	// Create model groups

@@ -111,6 +111,7 @@ private:
 	bool loadShader(const RenderOperation& operation);
 	ShaderLoader shaderLoader;
 	std::map<std::size_t, Shader*> shaderCache;
+	Shader* lightingShader;
 	
 	Matrix4 biasMatrix;
 	GLuint shadowMap;

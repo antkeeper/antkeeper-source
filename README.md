@@ -28,11 +28,19 @@ Antkeeper uses the CMake build system for configuration.
 
 	cmake --build .
 
-4. Testing
+## Workflow
+
+### Making Changes
+
+If any changes have been made to the submodules, commit those first. Each submodule can then be updated to their latest commits with the following command:
+
+	git submodule update --recursive --remote
+
+### Testing
 
 	cmake --build . --target run
-
-5. Cleaning
+	
+### Cleaning
 
 First perform a dry run to check what will be deleted:
 
@@ -41,6 +49,10 @@ First perform a dry run to check what will be deleted:
 If there are no issues, clean:
 
 	git clean -d -f -x
+
+### Shipping
+
+
 
 ## License
 

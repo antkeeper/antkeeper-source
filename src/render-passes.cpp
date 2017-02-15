@@ -277,6 +277,7 @@ LightingRenderPass::LightingRenderPass():
 bool LightingRenderPass::load(const RenderContext* renderContext)
 {	
 	// For each render operation
+	/*
 	if (renderContext != nullptr)
 	{
 		const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
@@ -285,6 +286,7 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 			loadShader(operation);
 		}
 	}
+	*/
 	
 	// Load tree shadow
 	if (!treeShadow.load("data/textures/tree-shadow-0.png"))
@@ -320,6 +322,18 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 		return false;
 	}
 	
+	// Load lighting shader
+	shaderLoader.undefine();
+	shaderLoader.define("TEXTURE_COUNT", 0);
+	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
+	shaderLoader.define("VERTEX_NORMAL", EMERGENT_VERTEX_NORMAL);
+	
+	lightingShader = shaderLoader.load("data/shaders/lit-object.glsl");
+	if (!lightingShader)
+	{
+		return false;
+	}
+	
 	time = 0.0f;
 	
 	return true;
@@ -330,6 +344,8 @@ void LightingRenderPass::unload()
 	cappingRenderQueue.clear();
 	clippingRenderPass.unload();
 	cappingRenderPass.unload();
+	delete lightingShader;
+	lightingShader = nullptr;
 	
 	for (auto it = shaderCache.begin(); it != shaderCache.end(); ++it)
 	{
@@ -723,6 +739,36 @@ void LightingRenderPass::render(const RenderContext* renderContext)
 	// Disable clipping
 	glDisable(GL_CLIP_DISTANCE0);
 	*/
+
+	// Enable depth testing
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LEQUAL);
+	
+	// Enable backface culling
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+	// Enable alpha blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	// Bind shader
+	lightingShader->bind();
+	ShaderParameterSet* parameters = lightingShader->getParameters();
+	
+	const Camera& camera = *(renderContext->camera);
+	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
+	
+	// Render operations
+	for (const RenderOperation& operation: *operations)
+	{		
+		const Matrix4& modelMatrix = operation.transform;
+		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
+		parameters->setValue(ShaderParameter::MODEL_VIEW_PROJECTION_MATRIX, modelViewProjectionMatrix);
+		glBindVertexArray(operation.vao);
+		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
+	}
 }
 
 bool LightingRenderPass::loadShader(const RenderOperation& operation)
