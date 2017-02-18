@@ -46,32 +46,26 @@ inline unsigned int UIMaterial::getMaterialFormatID() const
 	return static_cast<unsigned int>(MaterialFormat::UI);
 }
 
+/// @see https://www.marmoset.co/posts/physically-based-rendering-and-you-can-too/
 class PhysicalMaterial: public Material
 {
 public:
 	PhysicalMaterial():
-		colorMap(nullptr),
-		roughnessMap(nullptr),
-		metallicMap(nullptr),
-		specularMap(nullptr),
-		opacityMap(nullptr),
-		normalMap(nullptr)
+		albedoOpacityMap(nullptr),
+		metalnessRoughnessMap(nullptr),
+		normalOcclusionMap(nullptr)
 	{};
 	virtual ~PhysicalMaterial() {};
 	virtual unsigned int getMaterialFormatID() const;
 	
-	Vector3 color;
-	float roughness;
-	float metallic;
-	float specular;
+	Vector3 albedo;
 	float opacity;
+	float metalness;
+	float roughness;
 	
-	Texture* colorMap;
-	Texture* roughnessMap;
-	Texture* metallicMap;
-	Texture* specularMap;
-	Texture* opacityMap;
-	Texture* normalMap;
+	Texture* albedoOpacityMap;
+	Texture* metalnessRoughnessMap;
+	Texture* normalOcclusionMap;
 	
 	bool shadowCaster;
 	bool shadowReceiver;

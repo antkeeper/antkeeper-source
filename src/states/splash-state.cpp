@@ -490,7 +490,7 @@ void SplashState::enter()
 	application->selectMenuItem(application->selectedMenuItemIndex);
 	
 	// Models
-	application->displayModel = application->modelLoader->load("data/models/display.mdl");
+	application->displayModel = application->modelLoader->load("data/models/monkey.mdl");
 	application->antModel = application->modelLoader->load("data/models/worker-ant.mdl");
 	
 	// Model instances

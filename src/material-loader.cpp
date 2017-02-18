@@ -112,51 +112,35 @@ PhysicalMaterial* MaterialLoader::load(const std::string& filename)
 			arguments.push_back(argument);
 		}
 		
-		if (command == "color" && arguments.size() == 3)
+		if (command == "albedo" && arguments.size() == 3)
 		{
-			std::stringstream(arguments[0]) >> material->color.x;
-			std::stringstream(arguments[1]) >> material->color.y;
-			std::stringstream(arguments[2]) >> material->color.z;
-		}
-		else if (command == "roughness" && arguments.size() == 1)
-		{
-			std::stringstream(arguments[0]) >> material->roughness;
-		}
-		else if (command == "metallic" && arguments.size() == 1)
-		{
-			std::stringstream(arguments[0]) >> material->metallic;
-		}
-		else if (command == "specular" && arguments.size() == 1)
-		{
-			std::stringstream(arguments[0]) >> material->specular;
+			std::stringstream(arguments[0]) >> material->albedo.x;
+			std::stringstream(arguments[1]) >> material->albedo.y;
+			std::stringstream(arguments[2]) >> material->albedo.z;
 		}
 		else if (command == "opacity" && arguments.size() == 1)
 		{
 			std::stringstream(arguments[0]) >> material->opacity;
 		}
-		else if (command == "color-map")
+		else if (command == "metalness" && arguments.size() == 1)
 		{
-			material->colorMap = loadTexture(argumentList);
+			std::stringstream(arguments[0]) >> material->metalness;
 		}
-		else if (command == "roughness-map")
+		else if (command == "roughness" && arguments.size() == 1)
 		{
-			material->roughnessMap = loadTexture(argumentList);
+			std::stringstream(arguments[0]) >> material->roughness;
 		}
-		else if (command == "metallic-map")
+		else if (command == "albedo-opacity-map")
 		{
-			material->metallicMap = loadTexture(argumentList);
+			material->albedoOpacityMap = loadTexture(argumentList);
 		}
-		else if (command == "specular-map")
+		else if (command == "metalness-roughness-map")
 		{
-			material->specularMap = loadTexture(argumentList);
+			material->metalnessRoughnessMap = loadTexture(argumentList);
 		}
-		else if (command == "opacity-map")
+		else if (command == "normal-occlusion-map")
 		{
-			material->opacityMap = loadTexture(argumentList);
-		}
-		else if (command == "normal-map")
-		{
-			material->normalMap = loadTexture(argumentList);
+			material->normalOcclusionMap = loadTexture(argumentList);
 		}
 		else if (command[0] != '#')
 		{

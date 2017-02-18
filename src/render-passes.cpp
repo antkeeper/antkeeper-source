@@ -739,6 +739,9 @@ void LightingRenderPass::render(const RenderContext* renderContext)
 	// Disable clipping
 	glDisable(GL_CLIP_DISTANCE0);
 	*/
+	
+	const Camera& camera = *(renderContext->camera);
+	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
 
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -757,15 +760,28 @@ void LightingRenderPass::render(const RenderContext* renderContext)
 	lightingShader->bind();
 	ShaderParameterSet* parameters = lightingShader->getParameters();
 	
-	const Camera& camera = *(renderContext->camera);
-	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
+	int directionalLightCount = 1;
+	Vector3 directionalLightColor[3];
+	Vector3 directionalLightDirection[3];
+	directionalLightColor[0] = Vector3(1);
+	directionalLightDirection[0] = glm::normalize(Vector3(camera.getView() * -Vector4(0, 0, -1, 0)));
+	parameters->setValue(ShaderParameter::DIRECTIONAL_LIGHT_COLOR, 0, &directionalLightColor[0], directionalLightCount);
+	parameters->setValue(ShaderParameter::DIRECTIONAL_LIGHT_DIRECTION, 0, &directionalLightDirection[0], directionalLightCount);
+	
+
 	
 	// Render operations
 	for (const RenderOperation& operation: *operations)
 	{		
 		const Matrix4& modelMatrix = operation.transform;
-		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
+		Matrix4 modelViewMatrix = camera.getView() * modelMatrix;
+		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;	
+		Matrix3 normalModelViewMatrix = glm::transpose(glm::inverse(Matrix3(modelViewMatrix)));
+		
+		parameters->setValue(ShaderParameter::MODEL_VIEW_MATRIX, modelViewMatrix);
 		parameters->setValue(ShaderParameter::MODEL_VIEW_PROJECTION_MATRIX, modelViewProjectionMatrix);
+		parameters->setValue(ShaderParameter::NORMAL_MODEL_VIEW_MATRIX, normalModelViewMatrix);
+		
 		glBindVertexArray(operation.vao);
 		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
 	}

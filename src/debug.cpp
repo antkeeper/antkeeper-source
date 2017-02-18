@@ -30,7 +30,7 @@ LineBatcher::LineBatcher(std::size_t lineCount):
 	range = batch.addRange();
 	range->material = &material;
 	
-	material.color = Vector3(1.0f);
+	material.albedo = Vector3(1.0f);
 }
 
 void LineBatcher::begin()
