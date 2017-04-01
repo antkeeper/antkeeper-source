@@ -340,6 +340,11 @@ Application::Application(int argc, char* argv[]):
 	gameControlProfile->registerControl("camera-zoom-out", &cameraZoomOut);
 	gameControlProfile->registerControl("camera-toggle-nest-view", &cameraToggleNestView);
 	gameControlProfile->registerControl("camera-toggle-overhead-view", &cameraToggleOverheadView);
+	gameControlProfile->registerControl("walk-forward", &walkForward);
+	gameControlProfile->registerControl("walk-back", &walkBack);
+	gameControlProfile->registerControl("turn-left", &turnLeft);
+	gameControlProfile->registerControl("turn-right", &turnRight);
+	
 	cameraMoveForward.bindKey(keyboard, SDL_SCANCODE_W);
 	cameraMoveBack.bindKey(keyboard, SDL_SCANCODE_S);
 	cameraMoveLeft.bindKey(keyboard, SDL_SCANCODE_A);
@@ -350,6 +355,10 @@ Application::Application(int argc, char* argv[]):
 	cameraZoomOut.bindKey(keyboard, SDL_SCANCODE_MINUS);
 	cameraToggleOverheadView.bindKey(keyboard, SDL_SCANCODE_R);
 	cameraToggleNestView.bindKey(keyboard, SDL_SCANCODE_F);
+	walkForward.bindKey(keyboard, SDL_SCANCODE_UP);
+	walkBack.bindKey(keyboard, SDL_SCANCODE_DOWN);
+	turnLeft.bindKey(keyboard, SDL_SCANCODE_LEFT);
+	turnRight.bindKey(keyboard, SDL_SCANCODE_RIGHT);
 	cameraOverheadView = true;
 	cameraNestView = false;
 	
@@ -364,6 +373,7 @@ Application::Application(int argc, char* argv[]):
 	SDL_GL_SwapWindow(window);
 	
 	// Setup loaders
+	textureLoader = new TextureLoader();
 	materialLoader = new MaterialLoader();
 	modelLoader = new ModelLoader();
 	modelLoader->setMaterialLoader(materialLoader);

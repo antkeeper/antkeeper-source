@@ -63,11 +63,13 @@ void SplashState::enter()
 	}
 	delete fontLoader;
 	
-	// Load splash texture
-	application->splashTexture.load("data/textures/splash.png");
-	
-	// Load title texture
-	application->titleTexture.load("data/textures/title.png");
+	// Load splash & title textures
+	application->textureLoader->setGamma(1.0f);
+	application->textureLoader->setCubemap(false);
+	application->textureLoader->setMipmapChain(false);
+	application->textureLoader->setMaxAnisotropy(1.0f);
+	application->splashTexture = application->textureLoader->load("data/textures/galileo_cross.hdr");
+	application->titleTexture = application->textureLoader->load("data/textures/title.png");
 	
 	// Get UI strings
 	std::string pressAnyKeyString;
@@ -121,16 +123,16 @@ void SplashState::enter()
 	
 	application->splashImage = new UIImage();
 	application->splashImage->setAnchor(Anchor::CENTER);
-	application->splashImage->setDimensions(Vector2(application->splashTexture.getWidth(), application->splashTexture.getHeight()));
-	application->splashImage->setTexture(&application->splashTexture);
+	application->splashImage->setDimensions(Vector2(application->splashTexture->getWidth(), application->splashTexture->getHeight()));
+	application->splashImage->setTexture(application->splashTexture);
 	application->splashImage->setVisible(false);
 	application->uiRootElement->addChild(application->splashImage);
 	
 	application->titleImage = new UIImage();
 	application->titleImage->setAnchor(Vector2(0.5f, 0.0f));
-	application->titleImage->setDimensions(Vector2(application->titleTexture.getWidth(), application->titleTexture.getHeight()));
-	application->titleImage->setTranslation(Vector2(0.0f, (int)(application->height * (1.0f / 3.0f) - application->titleTexture.getHeight())));
-	application->titleImage->setTexture(&application->titleTexture);
+	application->titleImage->setDimensions(Vector2(application->titleTexture->getWidth(), application->titleTexture->getHeight()));
+	application->titleImage->setTranslation(Vector2(0.0f, (int)(application->height * (1.0f / 3.0f) - application->titleTexture->getHeight())));
+	application->titleImage->setTexture(application->titleTexture);
 	application->titleImage->setVisible(false);
 	application->uiRootElement->addChild(application->titleImage);
 	
@@ -490,8 +492,8 @@ void SplashState::enter()
 	application->selectMenuItem(application->selectedMenuItemIndex);
 	
 	// Models
-	application->displayModel = application->modelLoader->load("data/models/monkey.mdl");
-	application->antModel = application->modelLoader->load("data/models/worker-ant.mdl");
+	application->displayModel = application->modelLoader->load("data/models/icosphere.mdl");
+	application->antModel = application->modelLoader->load("data/models/agent.mdl");
 	
 	// Model instances
 	application->displayModelInstance = new ModelInstance();

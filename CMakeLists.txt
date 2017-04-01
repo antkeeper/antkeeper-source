@@ -86,8 +86,8 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/render-passes.hpp
 	${EXECUTABLE_SOURCE_DIR}/settings.cpp
 	${EXECUTABLE_SOURCE_DIR}/settings.hpp
-	${EXECUTABLE_SOURCE_DIR}/terrain.cpp
-	${EXECUTABLE_SOURCE_DIR}/terrain.hpp
+	${EXECUTABLE_SOURCE_DIR}/game/terrain.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/terrain.hpp
 	${EXECUTABLE_SOURCE_DIR}/controls.hpp
 	${EXECUTABLE_SOURCE_DIR}/input.cpp
 	${EXECUTABLE_SOURCE_DIR}/input.hpp
@@ -109,10 +109,14 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/ui/tween.hpp
 	${EXECUTABLE_SOURCE_DIR}/ui/tween.cpp
 	${EXECUTABLE_SOURCE_DIR}/render-passes.cpp
-	${EXECUTABLE_SOURCE_DIR}/ant.hpp
-	${EXECUTABLE_SOURCE_DIR}/ant.cpp
-	${EXECUTABLE_SOURCE_DIR}/nest.hpp
-	${EXECUTABLE_SOURCE_DIR}/nest.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/ant.hpp
+	${EXECUTABLE_SOURCE_DIR}/game/ant.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/agent.hpp
+	${EXECUTABLE_SOURCE_DIR}/game/agent.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/nest.hpp
+	${EXECUTABLE_SOURCE_DIR}/game/nest.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/navmesh.hpp
+	${EXECUTABLE_SOURCE_DIR}/game/navmesh.cpp
 	${EXECUTABLE_SOURCE_DIR}/debug.hpp
 	${EXECUTABLE_SOURCE_DIR}/debug.cpp
 	${EXECUTABLE_SOURCE_DIR}/camera-controller.hpp

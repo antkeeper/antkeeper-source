@@ -36,6 +36,7 @@ private:
 	Texture* loadTexture(const std::string& filename);
 	std::map<std::string, Texture*> textureCache;
 	std::map<std::string, PhysicalMaterial*> materialCache;
+	TextureLoader textureLoader;
 };
 
 #endif // MATERIAL_LOADER_HPP

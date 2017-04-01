@@ -23,7 +23,12 @@
 #include <vector>
 
 MaterialLoader::MaterialLoader()
-{}
+{
+	textureLoader.setGamma(1.0f);
+	textureLoader.setCubemap(false);
+	textureLoader.setMipmapChain(false);
+	textureLoader.setMaxAnisotropy(16.0f);
+}
 
 MaterialLoader::~MaterialLoader()
 {
@@ -166,13 +171,13 @@ Texture* MaterialLoader::loadTexture(const std::string& filename)
 		return it->second;
 	}
 	
-	// Load texture
 	std::string fullFilename = std::string("data/textures/") + filename;
-	Texture* texture = new Texture();
-	if (!texture->load(fullFilename))
+	
+	// Load texture
+	Texture* texture = textureLoader.load(fullFilename);
+	if (!texture)
 	{
 		std::cerr << "MaterialLoader::loadTexture(): Failed to load texture file \"" << fullFilename << "\"" << std::endl;
-		delete texture;
 		return nullptr;
 	}
 	

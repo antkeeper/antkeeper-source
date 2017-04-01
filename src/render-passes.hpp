@@ -39,6 +39,9 @@ public:
 	virtual void render(const RenderContext* renderContext);
 	
 private:
+	ShaderParameterSet parameterSet;
+	const ShaderParameter* modelViewProjectionParam;
+	
 	ShaderLoader shaderLoader;
 	Shader* depthShader;
 };
@@ -57,6 +60,11 @@ public:
 	void setClippingPlane(const Plane& plane);
 	
 private:
+	ShaderParameterSet parameterSet;
+	const ShaderParameter* modelParam;
+	const ShaderParameter* modelViewProjectionParam;
+	const ShaderParameter* clippingPlanesParam;
+	
 	ShaderLoader shaderLoader;
 	Shader* shader;
 	Vector4 clippingPlane;
@@ -74,13 +82,18 @@ public:
 	virtual void render(const RenderContext* renderContext);
 	
 private:
+	ShaderParameterSet parameterSet;
+	const ShaderParameter* modelParam;
+	const ShaderParameter* modelViewProjectionParam;
+	const ShaderParameter* horizonTexturesParam;
+	
 	ShaderLoader shaderLoader;
 	Shader* shader;
 	
-	Texture horizonOTexture;
-	Texture horizonATexture;
-	Texture horizonBTexture;
-	Texture horizonCTexture;
+	Texture* horizonOTexture;
+	Texture* horizonATexture;
+	Texture* horizonBTexture;
+	Texture* horizonCTexture;
 };
 
 
@@ -98,6 +111,7 @@ public:
 	
 	inline void setShadowMap(GLuint shadowMap) { this->shadowMap = shadowMap; }
 	inline void setShadowCamera(const Camera* camera) { this->shadowCamera = camera; }
+	inline void setModelLoader(ModelLoader* modelLoader) { this->modelLoader = modelLoader; }
 	
 	inline void setClippingPlanes(const Plane* planes)
 	{
@@ -109,13 +123,32 @@ public:
 	
 private:
 	bool loadShader(const RenderOperation& operation);
+	
+	ShaderParameterSet parameterSet;
+	const ShaderParameter* modelParam;
+	const ShaderParameter* modelViewParam;
+	const ShaderParameter* modelViewProjectionParam;
+	const ShaderParameter* normalModelViewParam;
+	const ShaderParameter* normalModelParam;
+	const ShaderParameter* cameraPositionParam;
+	const ShaderParameter* directionalLightCountParam;
+	const ShaderParameter* directionalLightColorsParam;
+	const ShaderParameter* directionalLightDirectionsParam;
+	const ShaderParameter* albedoOpacityMapParam;
+	const ShaderParameter* metalnessRoughnessMapParam;
+	const ShaderParameter* normalOcclusionMapParam;
+	const ShaderParameter* diffuseCubemapParam;
+	const ShaderParameter* specularCubemapParam;
+	
 	ShaderLoader shaderLoader;
 	std::map<std::size_t, Shader*> shaderCache;
 	Shader* lightingShader;
 	
 	Matrix4 biasMatrix;
 	GLuint shadowMap;
-	Texture treeShadow;
+	Texture* treeShadow;
+	Texture* diffuseCubemap;
+	Texture* specularCubemap;
 	const Camera* shadowCamera;
 	float time;
 	
@@ -128,8 +161,7 @@ private:
 	ClippingRenderPass clippingRenderPass;
 	CappingRenderPass cappingRenderPass;
 	
-	MaterialLoader materialLoader;
-	ModelLoader modelLoader;
+	ModelLoader* modelLoader;
 };
 
 /**
@@ -138,11 +170,15 @@ private:
 class DebugRenderPass: public RenderPass
 {
 public:
+	DebugRenderPass();
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
 	virtual void render(const RenderContext* renderContext);
 	
 private:
+	ShaderParameterSet parameterSet;
+	const ShaderParameter* modelViewProjectionParam;
+	
 	ShaderLoader shaderLoader;
 	Shader* unlitSolidShader;
 	
@@ -159,11 +195,18 @@ private:
 class UIRenderPass: public RenderPass
 {
 public:
+	UIRenderPass();
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
 	virtual void render(const RenderContext* renderContext);
 	
 private:
+	ShaderParameterSet parameterSet;
+	const ShaderParameter* modelViewProjectionParam;
+	const ShaderParameter* textureParam;
+	const ShaderParameter* texcoordOffsetParam;
+	const ShaderParameter* texcoordScaleParam;
+	
 	ShaderLoader shaderLoader;
 	Shader* texturedUIShader;
 	Shader* untexturedUIShader;
@@ -181,6 +224,10 @@ public:
 	virtual void render(const RenderContext* renderContext);
 	
 private:
+	ShaderParameterSet parameterSet;
+	const ShaderParameter* modelViewProjectionParam;
+	const ShaderParameter* bayerTextureParam;
+	
 	ShaderLoader shaderLoader;
 	Shader* shader;
 	GLuint bayerTextureID;

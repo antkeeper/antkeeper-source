@@ -20,6 +20,7 @@
 #include "title-state.hpp"
 #include "experiment-state.hpp"
 #include "../application.hpp"
+#include "../camera-controller.hpp"
 #include <iostream>
 #include <SDL.h>
 
@@ -45,7 +46,7 @@ void TitleState::enter()
 	// Setup screen fade-in transition
 	fadeIn = false;
 	fadeOut = false;
-	
+		
 	/*
 	// Load tunnel texture
 	GLuint tunnelTexture;
@@ -81,6 +82,7 @@ void TitleState::enter()
 	application->lightingPass.setRenderTarget(&application->defaultRenderTarget);
 	application->lightingPass.setShadowMap(0);
 	application->lightingPass.setShadowCamera(&application->camera);
+	application->lightingPass.setModelLoader(application->modelLoader);
 	application->defaultCompositor.addPass(&application->lightingPass);
 	
 	application->camera.lookAt(
@@ -111,7 +113,6 @@ void TitleState::enter()
 	application->scene.getLayer(0)->addObject(lightC);
 
 	application->scene.getLayer(0)->addObject(application->displayModelInstance);
-	application->scene.getLayer(0)->addObject(application->antModelInstance);
 	application->scene.getLayer(0)->addObject(&application->camera);
 	
 	// Load compositor
@@ -130,7 +131,42 @@ void TitleState::enter()
 	application->fadeInTween->start();
 	
 	application->inputManager->addWindowObserver(this);
+	application->mouse->addMouseButtonObserver(this);
 	windowResized(application->width, application->height);
+	
+	// Setup camera controller
+	application->surfaceCam->setCamera(&application->camera);
+	application->surfaceCam->setFocalPoint(Vector3(0.0f));
+	application->surfaceCam->setFocalDistance(10.0f);
+	application->surfaceCam->setElevation(0.0f);
+	application->surfaceCam->setAzimuth(0.0f);
+	application->surfaceCam->setTargetFocalPoint(application->surfaceCam->getFocalPoint());
+	application->surfaceCam->setTargetFocalDistance(application->surfaceCam->getFocalDistance());
+	application->surfaceCam->setTargetElevation(application->surfaceCam->getElevation());
+	application->surfaceCam->setTargetAzimuth(application->surfaceCam->getAzimuth());
+	application->surfaceCam->update(0.0f);
+	
+	// Setup arcball
+	dragging = false;
+	wasDragging = dragging;
+	application->arcball.setCenter(Vector2(application->width * 0.5f, application->height * 0.5f));
+	application->arcball.setRadius(application->height * 0.5f);
+	
+	// Load navmesh
+	
+	navmesh.loadOBJ("data/textures/icosphere.obj");
+	
+	// Setup colony
+	
+	colony.setAntModel(application->antModel);
+	for (int i = 0; i < 20; ++i)
+	{
+		ant = colony.spawn(&navmesh, (*navmesh.getTriangles())[0], normalize_barycentric(Vector3(0.5f)));
+		application->scene.getLayer(0)->addObject(ant->getModelInstance());
+		ant->setState(Ant::State::WANDER);
+	}
+	
+	ant->setState(Ant::State::IDLE);
 	
 	// Start timer
 	stateTime = 0.0f;
@@ -147,6 +183,13 @@ void TitleState::execute()
 			
 	// Add dt to state time
 	stateTime += dt;
+	
+	// Update menu controls
+	application->menuControlProfile->update();
+	application->gameControlProfile->update();
+	
+	// Update input
+	application->inputManager->update();
 	
 	if (substate == 0 || substate == 1)
 	{
@@ -242,23 +285,26 @@ void TitleState::execute()
 		fadeIn = true;
 	}
 	
-	// Update display model
-	Transform transform = application->displayModelInstance->getTransform();
-	transform.translation = Vector3(0, 0.0f, 0);
-	transform.scale = Vector3(0.75f);
-	transform.rotation = glm::angleAxis(stateTime * glm::radians(360.0f) / 60.0f, glm::vec3(0, 1, 0));
-	application->displayModelInstance->setTransform(transform);
+	glm::ivec2 mousePosition = application->mouse->getCurrentPosition();
+	mousePosition.y = application->height - mousePosition.y;
+	if (dragging && !wasDragging)
+	{
+		dragStart = application->arcball.project(Vector2(mousePosition.x, mousePosition.y));
+		dragStartRotation = application->displayModelInstance->getTransform().rotation;
+	}
+	else if (dragging && wasDragging)
+	{
+		Vector3 dragEnd = application->arcball.project(Vector2(mousePosition.x, mousePosition.y));
+		Quaternion rotation = glm::normalize(glm::rotation(dragStart, dragEnd));
+		
+		// Update display model
+		Transform transform = application->displayModelInstance->getTransform();
+		transform.rotation = glm::normalize(rotation * dragStartRotation);
+		application->displayModelInstance->setTransform(transform);
+	}
+	wasDragging = dragging;
 	
-	transform.scale = Vector3(0.25f);
-	transform.translation.y = 0.0f;
-	//application->antModelInstance->setTransform(transform);
 
-	
-	// Update menu controls
-	application->menuControlProfile->update();
-	
-	// Update input
-	application->inputManager->update();
 	
 	// Check if application was closed
 	if (application->inputManager->wasClosed() || application->escape.isTriggered())
@@ -272,6 +318,19 @@ void TitleState::execute()
 	{
 		application->changeFullscreen();
 	}
+	
+	float rotationSpeed = glm::radians(3.0f) * dt / (1.0f / 60.0f);
+	if (application->cameraRotateCW.isTriggered())
+		application->surfaceCam->rotate(-rotationSpeed);
+	if (application->cameraRotateCCW.isTriggered())
+		application->surfaceCam->rotate(rotationSpeed);
+	// Zoom camera
+	float zoomFactor = application->surfaceCam->getFocalDistance() / 20.0f * dt / (1.0f / 60.0f);
+	if (application->cameraZoomIn.isTriggered())
+		application->surfaceCam->zoom(zoomFactor * application->cameraZoomIn.getCurrentValue());
+	if (application->cameraZoomOut.isTriggered())
+		application->surfaceCam->zoom(-zoomFactor * application->cameraZoomOut.getCurrentValue());
+	application->surfaceCam->update(dt);
 		
 	// Navigate menu
 	if (application->menuDown.isTriggered() && !application->menuDown.wasTriggered())
@@ -311,6 +370,30 @@ void TitleState::execute()
 	application->menuSelectorLabel->setTranslation(
 		Vector2(container->getPosition().x - application->menuSelectorLabel->getDimensions().x * 1.5f,
 			container->getPosition().y + lineHeight * 0.5f - application->menuSelectorLabel->getDimensions().y * 0.5f + lineHeight * application->selectedMenuItemIndex));
+	
+	
+	float walkSpeed = 3.0f * dt;
+	float turnSpeed = 4.0f * dt;
+	Vector3 antVelocity = ant->getForward() * walkSpeed;
+	
+	if (application->walkForward.isTriggered())
+	{
+		ant->move(antVelocity);
+	}
+	if (application->walkBack.isTriggered())
+	{
+		ant->move(-antVelocity);
+	}
+	if (application->turnLeft.isTriggered())
+	{
+		ant->turn(turnSpeed);
+	}
+	if (application->turnRight.isTriggered())
+	{
+		ant->turn(-turnSpeed);
+	}
+	
+	colony.update(dt);
 	
 	// Perform tweening
 	application->tweener->update(dt);
@@ -378,4 +461,14 @@ void TitleState::windowResized(int width, int height)
 		(float)application->width / (float)application->height,
 		0.1f,
 		1000.0f);
+}
+
+void TitleState::mouseButtonPressed(int button, int x, int y)
+{
+	dragging = true;
+}
+
+void TitleState::mouseButtonReleased(int button, int x, int y)
+{
+	dragging = false;
 }

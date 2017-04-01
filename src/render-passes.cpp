@@ -23,11 +23,13 @@
 
 ShadowMapRenderPass::ShadowMapRenderPass():
 	depthShader(nullptr)
-{}
+{
+	modelViewProjectionParam = parameterSet.addParameter("modelViewProjection", ShaderParameter::Type::MATRIX_4, 1);
+}
 
 bool ShadowMapRenderPass::load(const RenderContext* renderContext)
 {
-	depthShader = shaderLoader.load("data/shaders/depth-pass.glsl");
+	depthShader = shaderLoader.load("data/shaders/depth-pass.glsl", &parameterSet);
 	if (!depthShader)
 	{
 		return false;
@@ -66,7 +68,6 @@ void ShadowMapRenderPass::render(const RenderContext* renderContext)
 	
 	// Bind shader
 	depthShader->bind();
-	ShaderParameterSet* parameters = depthShader->getParameters();
 
 	const Camera& camera = *(renderContext->camera);
 	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
@@ -89,8 +90,8 @@ void ShadowMapRenderPass::render(const RenderContext* renderContext)
 		}
 		
 		const Matrix4& modelMatrix = operation.transform;
-		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
-		parameters->setValue(ShaderParameter::MODEL_VIEW_PROJECTION_MATRIX, modelViewProjectionMatrix);
+		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;		
+		depthShader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
 		
 		glBindVertexArray(operation.vao);
 		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
@@ -101,14 +102,18 @@ void ShadowMapRenderPass::render(const RenderContext* renderContext)
 
 ClippingRenderPass::ClippingRenderPass():
 	shader(nullptr)
-{}
+{
+	clippingPlanesParam = parameterSet.addParameter("clippingPlanes", ShaderParameter::Type::VECTOR_4, 1);
+	modelParam = parameterSet.addParameter("modelMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+}
 
 bool ClippingRenderPass::load(const RenderContext* renderContext)
 {
 	shaderLoader.undefine();
 	shaderLoader.define("CLIPPING_PLANE_COUNT", 1);
 	
-	shader = shaderLoader.load("data/shaders/clip.glsl");
+	shader = shaderLoader.load("data/shaders/clip.glsl", &parameterSet);
 	if (!shader)
 	{
 		return false;
@@ -133,10 +138,9 @@ void ClippingRenderPass::render(const RenderContext* renderContext)
 	
 	// Bind shader
 	shader->bind();
-	ShaderParameterSet* parameters = shader->getParameters();
 	
 	// Pass clipping planes to shader
-	parameters->setValue(ShaderParameter::CLIPPING_PLANES, clippingPlane);
+	shader->setParameter(clippingPlanesParam, clippingPlane);
 	
 	// Grab render context parameters
 	const Camera& camera = *(renderContext->camera);
@@ -163,8 +167,8 @@ void ClippingRenderPass::render(const RenderContext* renderContext)
 		{			
 			const Matrix4& modelMatrix = operation.transform;
 			Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
-			parameters->setValue(ShaderParameter::MODEL_MATRIX, modelMatrix);
-			parameters->setValue(ShaderParameter::MODEL_VIEW_PROJECTION_MATRIX, modelViewProjectionMatrix);
+			shader->setParameter(modelParam, modelMatrix);
+			shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
 			
 			glBindVertexArray(operation.vao);
 			glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
@@ -185,23 +189,28 @@ void ClippingRenderPass::setClippingPlane(const Plane& plane)
 
 CappingRenderPass::CappingRenderPass():
 	shader(nullptr)
-{}
+{
+	horizonTexturesParam = parameterSet.addParameter("horizonTextures", ShaderParameter::Type::INT, 4);
+	modelParam = parameterSet.addParameter("modelMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+}
 
 bool CappingRenderPass::load(const RenderContext* renderContext)
 {
 	shaderLoader.undefine();
 	shaderLoader.define("TEXTURE_COUNT", 4);
 	
-	shader = shaderLoader.load("data/shaders/soil-profile.glsl");
+	shader = shaderLoader.load("data/shaders/soil-profile.glsl", &parameterSet);
 	if (!shader)
 	{
 		return false;
 	}
 	
-	horizonOTexture.load("data/textures/horizon-o.png");
-	horizonATexture.load("data/textures/horizon-a.png");
-	horizonBTexture.load("data/textures/horizon-b.png");
-	horizonCTexture.load("data/textures/horizon-c.png");
+	TextureLoader textureLoader;
+	horizonOTexture = textureLoader.load("data/textures/horizon-o.png");
+	horizonATexture = textureLoader.load("data/textures/horizon-a.png");
+	horizonBTexture = textureLoader.load("data/textures/horizon-b.png");
+	horizonCTexture = textureLoader.load("data/textures/horizon-c.png");
 	
 	return true;
 }
@@ -211,10 +220,15 @@ void CappingRenderPass::unload()
 	delete shader;
 	shader = nullptr;
 	
-	horizonOTexture.destroy();
-	horizonATexture.destroy();
-	horizonBTexture.destroy();
-	horizonCTexture.destroy();
+	delete horizonOTexture;
+	delete horizonATexture;
+	delete horizonBTexture;
+	delete horizonCTexture;
+	
+	horizonOTexture = nullptr;
+	horizonATexture = nullptr;
+	horizonBTexture = nullptr;
+	horizonCTexture = nullptr;
 }
 
 void CappingRenderPass::render(const RenderContext* renderContext)
@@ -225,22 +239,21 @@ void CappingRenderPass::render(const RenderContext* renderContext)
 	
 	// Bind shader
 	shader->bind();
-	ShaderParameterSet* parameters = shader->getParameters();
 	
 	// Bind texture
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, horizonOTexture.getTextureID());
+	glBindTexture(GL_TEXTURE_2D, horizonOTexture->getTextureID());
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, horizonATexture.getTextureID());
+	glBindTexture(GL_TEXTURE_2D, horizonATexture->getTextureID());
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, horizonBTexture.getTextureID());
+	glBindTexture(GL_TEXTURE_2D, horizonBTexture->getTextureID());
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, horizonCTexture.getTextureID());
+	glBindTexture(GL_TEXTURE_2D, horizonCTexture->getTextureID());
 	
 	// Pass texture units to shader
 	int textureUnits[] = {0, 1, 2, 3};
-	parameters->setValue(ShaderParameter::MATERIAL_TEXTURE, 0, &textureUnits[0], 4);
-		
+	shader->setParameter(horizonTexturesParam, 0, &textureUnits[0], 4);
+	
 	const Camera& camera = *(renderContext->camera);
 	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
 	
@@ -249,8 +262,8 @@ void CappingRenderPass::render(const RenderContext* renderContext)
 	{		
 		const Matrix4& modelMatrix = operation.transform;
 		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
-		parameters->setValue(ShaderParameter::MODEL_MATRIX, modelMatrix);
-		parameters->setValue(ShaderParameter::MODEL_VIEW_PROJECTION_MATRIX, modelViewProjectionMatrix);
+		shader->setParameter(modelParam, modelMatrix);
+		shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
 		
 		glBindVertexArray(operation.vao);
 		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
@@ -262,7 +275,10 @@ void CappingRenderPass::render(const RenderContext* renderContext)
 
 LightingRenderPass::LightingRenderPass():
 	shadowMap(0),
-	shadowCamera(nullptr)
+	shadowCamera(nullptr),
+	modelLoader(nullptr),
+	treeShadow(nullptr),
+	diffuseCubemap(nullptr)
 {
 	// Initialize bias matrix for calculating the model-view-projection-bias matrix (used for shadow map texture coordinate calculation)
 	biasMatrix = Matrix4(
@@ -271,11 +287,24 @@ LightingRenderPass::LightingRenderPass():
 		0.0f, 0.0f, 0.5f, 0.0f,
 		0.5f, 0.5f, 0.5f, 1.0f);
 	
-	modelLoader.setMaterialLoader(&materialLoader);
+	modelParam = parameterSet.addParameter("modelMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	modelViewParam = parameterSet.addParameter("modelViewMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	normalModelViewParam = parameterSet.addParameter("normalModelViewMatrix", ShaderParameter::Type::MATRIX_3, 1);
+	normalModelParam = parameterSet.addParameter("normalModelMatrix", ShaderParameter::Type::MATRIX_3, 1);
+	cameraPositionParam = parameterSet.addParameter("cameraPosition", ShaderParameter::Type::VECTOR_3, 1);
+	directionalLightCountParam = parameterSet.addParameter("directionalLightCount", ShaderParameter::Type::INT, 1);
+	directionalLightColorsParam = parameterSet.addParameter("directionalLightColors", ShaderParameter::Type::VECTOR_3, 1);
+	directionalLightDirectionsParam = parameterSet.addParameter("directionalLightDirections", ShaderParameter::Type::VECTOR_3, 1);
+	albedoOpacityMapParam = parameterSet.addParameter("albedoOpacityMap", ShaderParameter::Type::INT, 1);
+	metalnessRoughnessMapParam = parameterSet.addParameter("metalnessRoughness", ShaderParameter::Type::INT, 1);
+	normalOcclusionMapParam = parameterSet.addParameter("normalOcclusionMap", ShaderParameter::Type::INT, 1);
+	diffuseCubemapParam = parameterSet.addParameter("diffuseCubemap", ShaderParameter::Type::INT, 1);
+	specularCubemapParam = parameterSet.addParameter("specularCubemap", ShaderParameter::Type::INT, 1);
 }
 
 bool LightingRenderPass::load(const RenderContext* renderContext)
-{	
+{
 	// For each render operation
 	/*
 	if (renderContext != nullptr)
@@ -289,13 +318,32 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 	*/
 	
 	// Load tree shadow
-	if (!treeShadow.load("data/textures/tree-shadow-0.png"))
+	TextureLoader textureLoader;
+	treeShadow = textureLoader.load("data/textures/tree-shadow-0.png");
+	if (!treeShadow)
 	{
 		std::cerr << "Failed to load tree shadow" << std::endl;
 	}
 	
+	// Load cubemap
+	textureLoader.setCubemap(true);
+	textureLoader.setMipmapChain(false);
+	diffuseCubemap = textureLoader.load("data/textures/galileo-diffuse.png");
+	if (!diffuseCubemap)
+	{
+		std::cerr << "Failed to load cubemap" << std::endl;
+	}
+	
+	textureLoader.setCubemap(true);
+	textureLoader.setMipmapChain(true);
+	specularCubemap = textureLoader.load("data/textures/galileo-specular_m%02d.png");
+	if (!specularCubemap)
+	{
+		std::cerr << "Failed to load cubemap" << std::endl;
+	}
+		
 	// Load unit plane
-	unitPlaneModel = modelLoader.load("data/models/unit-plane.mdl");
+	unitPlaneModel = modelLoader->load("data/models/unit-plane.mdl");
 	if (!unitPlaneModel)
 	{
 		std::cout << "Failed to load unit plane" << std::endl;
@@ -327,15 +375,16 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 	shaderLoader.define("TEXTURE_COUNT", 0);
 	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
 	shaderLoader.define("VERTEX_NORMAL", EMERGENT_VERTEX_NORMAL);
+	shaderLoader.define("VERTEX_TEXCOORD", EMERGENT_VERTEX_TEXCOORD);
 	
-	lightingShader = shaderLoader.load("data/shaders/lit-object.glsl");
+	lightingShader = shaderLoader.load("data/shaders/lit-object.glsl", &parameterSet);
 	if (!lightingShader)
 	{
 		return false;
 	}
 	
 	time = 0.0f;
-	
+		
 	return true;
 }
 
@@ -352,6 +401,15 @@ void LightingRenderPass::unload()
 		delete it->second;
 	}
 	shaderCache.clear();
+	
+	delete treeShadow;
+	treeShadow = nullptr;
+	
+	delete diffuseCubemap;
+	diffuseCubemap = nullptr;
+	
+	delete specularCubemap;
+	specularCubemap = nullptr;
 }
 
 void LightingRenderPass::render(const RenderContext* renderContext)
@@ -757,30 +815,96 @@ void LightingRenderPass::render(const RenderContext* renderContext)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	// Bind shader
-	lightingShader->bind();
-	ShaderParameterSet* parameters = lightingShader->getParameters();
+	Shader* shader = lightingShader;
+	shader->bind();
+	
+	// Pass texture units to shader
+	shader->setParameter(albedoOpacityMapParam, 0);
+	shader->setParameter(normalOcclusionMapParam, 2);
 	
 	int directionalLightCount = 1;
-	Vector3 directionalLightColor[3];
-	Vector3 directionalLightDirection[3];
-	directionalLightColor[0] = Vector3(1);
-	directionalLightDirection[0] = glm::normalize(Vector3(camera.getView() * -Vector4(0, 0, -1, 0)));
-	parameters->setValue(ShaderParameter::DIRECTIONAL_LIGHT_COLOR, 0, &directionalLightColor[0], directionalLightCount);
-	parameters->setValue(ShaderParameter::DIRECTIONAL_LIGHT_DIRECTION, 0, &directionalLightDirection[0], directionalLightCount);
+	Vector3 directionalLightColors[3];
+	Vector3 directionalLightDirections[3];
+	directionalLightColors[0] = Vector3(1);
+	directionalLightDirections[0] = glm::normalize(Vector3(camera.getView() * -Vector4(0, 0, -1, 0)));
 	
-
+	shader->setParameter(directionalLightCountParam, directionalLightCount);
+	shader->setParameter(directionalLightColorsParam, 0, &directionalLightColors[0], directionalLightCount);
+	shader->setParameter(directionalLightDirectionsParam, 0, &directionalLightDirections[0], directionalLightCount);
+	
+	shader->setParameter(cameraPositionParam, camera.getTranslation());
+	
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, diffuseCubemap->getTextureID());
+	shader->setParameter(diffuseCubemapParam, 3);
+	
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, specularCubemap->getTextureID());
+	shader->setParameter(specularCubemapParam, 4);
+	
+	Texture* albedoOpacityMap = nullptr;
+	Texture* metalnessRoughnessMap = nullptr;
+	Texture* normalOcclusionMap = nullptr;
 	
 	// Render operations
 	for (const RenderOperation& operation: *operations)
-	{		
+	{
+		// Skip render operations with unsupported materials
+		if (operation.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
+		{
+			continue;
+		}
+		const PhysicalMaterial* material = static_cast<const PhysicalMaterial*>(operation.material);
+		
+		// Skip render operations with unsupported vertex formats
+		
+		// Bind albedo-opacity map
+		if (material->albedoOpacityMap != albedoOpacityMap)
+		{
+			albedoOpacityMap = material->albedoOpacityMap;
+			
+			if (albedoOpacityMap != nullptr)
+			{
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, albedoOpacityMap->getTextureID());
+			}
+		}
+		
+		// Bind metalness-roughness map
+		if (material->metalnessRoughnessMap != metalnessRoughnessMap)
+		{
+			metalnessRoughnessMap = material->metalnessRoughnessMap;
+			
+			if (metalnessRoughnessMap != nullptr)
+			{
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, metalnessRoughnessMap->getTextureID());
+			}
+		}
+		
+		// Bind normal-occlusion map
+		if (material->normalOcclusionMap != normalOcclusionMap)
+		{
+			normalOcclusionMap = material->normalOcclusionMap;
+			
+			if (normalOcclusionMap != nullptr)
+			{
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_2D, normalOcclusionMap->getTextureID());
+			}
+		}
+		
 		const Matrix4& modelMatrix = operation.transform;
 		Matrix4 modelViewMatrix = camera.getView() * modelMatrix;
 		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;	
 		Matrix3 normalModelViewMatrix = glm::transpose(glm::inverse(Matrix3(modelViewMatrix)));
+		Matrix3 normalModelMatrix = glm::transpose(glm::inverse(Matrix3(modelMatrix)));
 		
-		parameters->setValue(ShaderParameter::MODEL_VIEW_MATRIX, modelViewMatrix);
-		parameters->setValue(ShaderParameter::MODEL_VIEW_PROJECTION_MATRIX, modelViewProjectionMatrix);
-		parameters->setValue(ShaderParameter::NORMAL_MODEL_VIEW_MATRIX, normalModelViewMatrix);
+		shader->setParameter(modelParam, modelMatrix);
+		shader->setParameter(modelViewParam, modelViewMatrix);
+		shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
+		shader->setParameter(normalModelViewParam, normalModelViewMatrix);
+		shader->setParameter(normalModelParam, normalModelMatrix);
 		
 		glBindVertexArray(operation.vao);
 		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
@@ -853,9 +977,14 @@ bool LightingRenderPass::loadShader(const RenderOperation& operation)
 	return false;
 }
 
+DebugRenderPass::DebugRenderPass()
+{
+	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+}
+
 bool DebugRenderPass::load(const RenderContext* renderContext)
 {
-	unlitSolidShader = shaderLoader.load("data/shaders/unlit-solid.glsl");
+	unlitSolidShader = shaderLoader.load("data/shaders/unlit-solid.glsl", &parameterSet);
 	if (!unlitSolidShader)
 	{
 		return false;
@@ -934,7 +1063,6 @@ void DebugRenderPass::render(const RenderContext* renderContext)
 	
 	// Bind unlit solid shader
 	unlitSolidShader->bind();
-	ShaderParameterSet* parameters = unlitSolidShader->getParameters();
 	
 	// Bind AABB geometry
 	glBindVertexArray(aabbVAO);
@@ -955,10 +1083,18 @@ void DebugRenderPass::render(const RenderContext* renderContext)
 		Matrix4 modelMatrix = glm::translate(translation) * glm::scale(scale);
 		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
 		
-		parameters->setValue(ShaderParameter::MODEL_VIEW_PROJECTION_MATRIX, modelViewProjectionMatrix);
+		unlitSolidShader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
 		
 		glDrawElements(GL_LINES, aabbIndexCount, GL_UNSIGNED_INT, (void*)0);
 	}
+}
+
+UIRenderPass::UIRenderPass()
+{
+	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	textureParam = parameterSet.addParameter("tex", ShaderParameter::Type::INT, 1);
+	texcoordOffsetParam = parameterSet.addParameter("texcoordOffset", ShaderParameter::Type::VECTOR_2, 1);
+	texcoordScaleParam = parameterSet.addParameter("texcoordScale", ShaderParameter::Type::VECTOR_2, 1);
 }
 
 bool UIRenderPass::load(const RenderContext* renderContext)
@@ -969,14 +1105,14 @@ bool UIRenderPass::load(const RenderContext* renderContext)
 	shaderLoader.define("GAMMA_CORRECT");
 	shaderLoader.define("TEXTURE_COUNT", 1);
 	
-	texturedUIShader = shaderLoader.load("data/shaders/ui.glsl");
+	texturedUIShader = shaderLoader.load("data/shaders/ui.glsl", &parameterSet);
 	
 	shaderLoader.undefine();
 	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
 	shaderLoader.define("VERTEX_COLOR", EMERGENT_VERTEX_COLOR);
 	shaderLoader.define("GAMMA_CORRECT");
 	
-	untexturedUIShader = shaderLoader.load("data/shaders/ui.glsl");
+	untexturedUIShader = shaderLoader.load("data/shaders/ui.glsl", &parameterSet);
 	
 	if (!texturedUIShader || !untexturedUIShader)
 	{
@@ -1017,8 +1153,8 @@ void UIRenderPass::render(const RenderContext* renderContext)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	glActiveTexture(GL_TEXTURE0);
-
-	ShaderParameterSet* parameters;
+	
+	Shader* shader = nullptr;
 	
 	// Render operations
 	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
@@ -1034,34 +1170,25 @@ void UIRenderPass::render(const RenderContext* renderContext)
 		
 		if (material->texture != nullptr)
 		{
-			// Bind textured UI shader
-			texturedUIShader->bind();
-			parameters = texturedUIShader->getParameters();
-			parameters->setValue(ShaderParameter::MATERIAL_TEXTURE, 0);
+			shader = texturedUIShader;
+			shader->bind();
+			shader->setParameter(textureParam, 0);
+			shader->setParameter(texcoordOffsetParam, Vector2(0.0f));
+			shader->setParameter(texcoordScaleParam, Vector2(1.0f));
 			
 			glBindTexture(GL_TEXTURE_2D, material->texture->getTextureID());
-			
-			//parameters->setValue(ShaderParameter::TEXCOORD_OFFSET, Vector2(texture->getCoordinateOffset()));
-			//parameters->setValue(ShaderParameter::TEXCOORD_SCALE, Vector2(texture->getCoordinateScale()));
-			
-			parameters->setValue(ShaderParameter::TEXCOORD_OFFSET, Vector2(0.0f));
-			parameters->setValue(ShaderParameter::TEXCOORD_SCALE, Vector2(1.0f));
 		}
 		else
 		{
-			// Bind untextured UI shader
-			untexturedUIShader->bind();
-			parameters = untexturedUIShader->getParameters();
+			shader = untexturedUIShader;
+			shader->bind();
 		}
-		
-		parameters->setValue(ShaderParameter::MATERIAL_DIFFUSE_COLOR, Vector3(1.0f));
-		parameters->setValue(ShaderParameter::MATERIAL_OPACITY, 1.0f);
-		
+				
 		const Matrix4& modelMatrix = operation.transform;
 		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
 		
 		// Pass matrix parameters
-		parameters->setValue(ShaderParameter::MODEL_VIEW_PROJECTION_MATRIX, modelViewProjectionMatrix);
+		shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
 		
 		// Draw geometry
 		glBindVertexArray(operation.vao);
@@ -1071,7 +1198,10 @@ void UIRenderPass::render(const RenderContext* renderContext)
 
 VignetteRenderPass::VignetteRenderPass():
 	shader(nullptr)
-{}
+{
+	bayerTextureParam = parameterSet.addParameter("bayerTexture", ShaderParameter::Type::INT, 1);
+	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+}
 
 bool VignetteRenderPass::load(const RenderContext* renderContext)
 {
@@ -1080,7 +1210,7 @@ bool VignetteRenderPass::load(const RenderContext* renderContext)
 	shaderLoader.define("VERTEX_COLOR", EMERGENT_VERTEX_COLOR);
 	shaderLoader.define("TEXTURE_COUNT", 1);
 	
-	shader = shaderLoader.load("data/shaders/vignette.glsl");
+	shader = shaderLoader.load("data/shaders/vignette.glsl", &parameterSet);
 	if (!shader)
 	{
 		return false;
@@ -1106,7 +1236,6 @@ bool VignetteRenderPass::load(const RenderContext* renderContext)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, 8, 8, 0, GL_RED, GL_UNSIGNED_BYTE, pattern);
-
 	
 	return true;
 }
@@ -1126,14 +1255,13 @@ void VignetteRenderPass::render(const RenderContext* renderContext)
 	
 	// Bind shader
 	shader->bind();
-	ShaderParameterSet* parameters = shader->getParameters();
 	
 	// Bind texture
-	glActiveTexture(0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, bayerTextureID);
 	
 	// Pass texture unit to shader
-	parameters->setValue(ShaderParameter::MATERIAL_TEXTURE, 0);
+	shader->setParameter(bayerTextureParam, 0);
 	
 	const Camera& camera = *(renderContext->camera);
 	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
@@ -1145,7 +1273,7 @@ void VignetteRenderPass::render(const RenderContext* renderContext)
 		
 		const Matrix4& modelMatrix = operation.transform;
 		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
-		parameters->setValue(ShaderParameter::MODEL_VIEW_PROJECTION_MATRIX, modelViewProjectionMatrix);
+		shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
 		
 		glBindVertexArray(operation.vao);
 		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);

@@ -24,7 +24,7 @@
 using namespace Emergent;
 
 #include "mesh.hpp"
-#include "terrain.hpp"
+#include "game/terrain.hpp"
 #include "input.hpp"
 #include "controls.hpp"
 #include "settings.hpp"
@@ -102,7 +102,9 @@ public:
 	Camera camera;
 	Scene scene;
 	BillboardBatch particleBatch;
+	Arcball arcball;
 	
+	TextureLoader* textureLoader;
 	MaterialLoader* materialLoader;
 	ModelLoader* modelLoader;
 	
@@ -158,6 +160,11 @@ public:
 	bool cameraOverheadView;
 	bool cameraNestView;
 	
+	Control walkForward;
+	Control walkBack;
+	Control turnLeft;
+	Control turnRight;
+	
 	// Misc
 	Timer frameTimer;
 	
@@ -167,8 +174,8 @@ public:
 	float fontSizePT;
 	float fontSizePX;
 	Font* menuFont;
-	Texture splashTexture;
-	Texture titleTexture;
+	Texture* splashTexture;
+	Texture* titleTexture;
 	Vector4 selectedColor;
 	Vector4 deselectedColor;
 	UIContainer* uiRootElement;

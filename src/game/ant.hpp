@@ -21,13 +21,19 @@
 #define ANT_HPP
 
 #include <vector>
+#include "navmesh.hpp"
+#include "agent.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
+class Colony;
 class Gait;
 
-class Ant
+/**
+ * An individual ant which belongs to a colony.
+ */
+class Ant: public Agent
 {
 public:
 	/**
@@ -48,27 +54,92 @@ public:
 		R3
 	};
 	
+	enum class State
+	{
+		IDLE,
+		WANDER
+	};
+	
+	/**
+	 * Creates an instance of Ant.
+	 */
+	Ant(Colony* colony);
+	
+	void move(const Vector3& velocity);
+	
+	void turn(float angle);
+	
+	void update(float dt);
+	
+	void setState(Ant::State state);
+	
+	const Colony* getColony() const;
+	Colony* getColony();
+	const Transform& getTransform() const;
+	
+	const ModelInstance* getModelInstance() const;
+	ModelInstance* getModelInstance();
+	
 private:
+	/**
+	 * Calculates the surface normal averaged between the surface normals at each of the ant's grounded feet.
+	 */
+	Vector3 calculateAverageSurfaceNormal() const;
+	
+	void updateTransform();
+	
+	Colony* colony;
+	Ant::State state;
+	
 	Transform transform;
 	ModelInstance modelInstance;
 	Pose* skeletonPose;
 };
 
+inline const Colony* Ant::getColony() const
+{
+	return colony;
+}
+
+inline Colony* Ant::getColony()
+{
+	return colony;
+}
+
+inline const Transform& Ant::getTransform() const
+{
+	return transform;
+}
+
+inline const ModelInstance* Ant::getModelInstance() const
+{
+	return &modelInstance;
+}
+
+inline ModelInstance* Ant::getModelInstance()
+{
+	return &modelInstance;
+}
+
+/**
+ * A colony of ants.
+ */
 class Colony
 {
 public:
-	Ant* spawn();
+	Colony();
 	
+	Ant* spawn(Navmesh* navmesh, Navmesh::Triangle* triangle, const Vector3& position);
+	
+	void update(float dt);
+	
+	void setAntModel(Model* model);
 	const Model* getAntModel() const;
 	Model* getAntModel();
 	
-	const Skeleton* getAntSkeleton() const;
-	Skeleton* getSkeleton();
-
 private:
 	// Rendering
 	Model* antModel;
-	Skeleton* antSkeleton;
 	
 	// Locomotion
 	float walkSpeed;
@@ -80,5 +151,15 @@ private:
 	
 	std::vector<Ant*> ants;
 };
+
+inline const Model* Colony::getAntModel() const
+{
+	return antModel;
+}
+
+inline Model* Colony::getAntModel()
+{
+	return antModel;
+}
 
 #endif // ANT_HPP

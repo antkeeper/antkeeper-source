@@ -23,8 +23,8 @@
 #include "../application-state.hpp"
 #include "../input.hpp"
 #include "../debug.hpp"
-#include "../nest.hpp"
-#include "../terrain.hpp"
+#include "../game/nest.hpp"
+#include "../game/terrain.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;

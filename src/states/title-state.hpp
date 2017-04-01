@@ -23,13 +23,15 @@
 #include "../application-state.hpp"
 #include "../ui/ui.hpp"
 
+#include "../game/ant.hpp"
+
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
 /**
  * Displays the title screen.
  */
-class TitleState: public ApplicationState, public WindowObserver
+class TitleState: public ApplicationState, public WindowObserver, public MouseButtonObserver
 {
 public:
 	TitleState(Application* application);
@@ -39,14 +41,25 @@ public:
 	virtual void execute();
 	virtual void exit();
 	
-	void windowClosed();
-	void windowResized(int width, int height);
+	virtual void windowClosed();
+	virtual void windowResized(int width, int height);
+	virtual void mouseButtonPressed(int button, int x, int y);
+	virtual void mouseButtonReleased(int button, int x, int y);
+	
 private:
 	float stateTime;
 	bool fadeIn;
 	bool fadeOut;
+	bool dragging;
+	bool wasDragging;
+	Vector3 dragStart;
+	Quaternion dragStartRotation;
 	
 	int substate;
+	
+	Colony colony;
+	Ant* ant;
+	Navmesh navmesh;
 };
 
 #endif // TITLE_STATE_HPP
