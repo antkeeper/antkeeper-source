@@ -68,7 +68,7 @@ void SplashState::enter()
 	application->textureLoader->setCubemap(false);
 	application->textureLoader->setMipmapChain(false);
 	application->textureLoader->setMaxAnisotropy(1.0f);
-	application->splashTexture = application->textureLoader->load("data/textures/galileo_cross.hdr");
+	application->splashTexture = application->textureLoader->load("data/textures/splash.png");
 	application->titleTexture = application->textureLoader->load("data/textures/title.png");
 	
 	// Get UI strings
@@ -493,7 +493,7 @@ void SplashState::enter()
 	
 	// Models
 	application->displayModel = application->modelLoader->load("data/models/icosphere.mdl");
-	application->antModel = application->modelLoader->load("data/models/agent.mdl");
+	application->antModel = application->modelLoader->load("data/models/debug-worker.mdl");
 	
 	// Model instances
 	application->displayModelInstance = new ModelInstance();

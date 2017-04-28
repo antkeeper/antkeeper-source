@@ -46,32 +46,35 @@ void TitleState::enter()
 	// Setup screen fade-in transition
 	fadeIn = false;
 	fadeOut = false;
-		
-	/*
-	// Load tunnel texture
-	GLuint tunnelTexture;
-	loadTexture("data/textures/soil-01.png", &tunnelTexture);
-	
-	// Setup triplanar texturing
-	Material* material = (Material*)application->displayModel->getMaterial(0);
-	material->setRoughness(0.75f);
-	material->setDiffuseColor(glm::vec3(1.0f));
-	material->setSpecularColor(glm::vec3(0.001f));
-	material->setOpacity(0.999f);
-	
-	Texture* texture = material->createTexture();
-	texture->setTextureID(tunnelTexture);
-	texture->setCoordinateSource(TextureCoordinateSource::TRIPLANAR_PROJECTION);
-	texture->setCoordinateScale(glm::vec3(1.0f / 2.0f));
-	texture->setDiffuseInfluence(1.0f);
-	*/
-	
 	
 	application->displayModelInstance->setModel(application->displayModel);
 	application->displayModelInstance->setTransform(Transform::getIdentity());
 	
 	application->antModelInstance->setModel(application->antModel);
 	application->antModelInstance->setTransform(Transform::getIdentity());
+	
+	// BG
+	application->bgBatch.resize(1);
+	BillboardBatch::Range* bgRange = application->bgBatch.addRange();
+	bgRange->start = 0;
+	bgRange->length = 1;
+	Billboard* bgBillboard = application->bgBatch.getBillboard(0);
+	bgBillboard->setDimensions(Vector2(1.0f, 1.0f));
+	bgBillboard->setTranslation(Vector3(0.5f, 0.5f, 0.0f));
+	bgBillboard->setTintColor(Vector4(1, 0, 0, 1));
+	application->bgBatch.update();
+	
+	application->vignettePass.setRenderTarget(&application->defaultRenderTarget);
+	application->bgCompositor.addPass(&application->vignettePass);
+	application->bgCompositor.load(nullptr);
+	application->bgCamera.setOrthographic(0, 1.0f, 1.0f, 0, -1.0f, 1.0f);
+	application->bgCamera.lookAt(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
+	application->bgCamera.setCompositor(&application->bgCompositor);
+	application->bgCamera.setCompositeIndex(0);
+	
+	application->bgScene.addLayer();
+	application->bgScene.getLayer(0)->addObject(&application->bgCamera);
+	application->bgScene.getLayer(0)->addObject(&application->bgBatch);
 	
 	// Setup lighting
 	application->sunlight.setColor(glm::vec3(1.0f));
@@ -159,9 +162,16 @@ void TitleState::enter()
 	// Setup colony
 	
 	colony.setAntModel(application->antModel);
-	for (int i = 0; i < 20; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
-		ant = colony.spawn(&navmesh, (*navmesh.getTriangles())[0], normalize_barycentric(Vector3(0.5f)));
+		Navmesh::Triangle* triangle = (*navmesh.getTriangles())[0];
+		
+		ant = colony.spawn(&navmesh, triangle, normalize_barycentric(Vector3(0.5f)));
+		
+		Vector3 forward = glm::normalize(triangle->edge->vertex->position - triangle->edge->next->vertex->position);
+		Vector3 up = triangle->normal;
+		ant->setOrientation(forward, up);
+		
 		application->scene.getLayer(0)->addObject(ant->getModelInstance());
 		ant->setState(Ant::State::WANDER);
 	}
@@ -183,13 +193,6 @@ void TitleState::execute()
 			
 	// Add dt to state time
 	stateTime += dt;
-	
-	// Update menu controls
-	application->menuControlProfile->update();
-	application->gameControlProfile->update();
-	
-	// Update input
-	application->inputManager->update();
 	
 	if (substate == 0 || substate == 1)
 	{
@@ -222,12 +225,12 @@ void TitleState::execute()
 	{
 		InputEvent event;
 		application->inputManager->listen(&event);
-				
+		
 		if (event.type != InputEvent::Type::NONE)
 		{
 			application->menuControlProfile->update();
 			application->inputManager->update();
-			
+						
 			// Check if application was closed
 			if (application->escape.isTriggered())
 			{
@@ -277,6 +280,13 @@ void TitleState::execute()
 			}
 		}
 	}
+	
+	// Update menu controls
+	application->menuControlProfile->update();
+	application->gameControlProfile->update();
+	
+	// Update input
+	application->inputManager->update();
 	
 	// Check state time
 	if (!fadeIn && stateTime >= blankDuration)
@@ -404,6 +414,9 @@ void TitleState::execute()
 	// Clear to black
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	
+	// Render BG
+	application->renderer.render(application->bgScene);
 	
 	// Render scene
 	application->renderer.render(application->scene);

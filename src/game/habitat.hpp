@@ -17,50 +17,32 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TITLE_STATE_HPP
-#define TITLE_STATE_HPP
+#ifndef HABITAT_HPP
+#define HABITAT_HPP
 
-#include "../application-state.hpp"
-#include "../ui/ui.hpp"
-
-#include "../game/ant.hpp"
-#include "../game/colony.hpp"
+#include <vector>
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
-/**
- * Displays the title screen.
- */
-class TitleState: public ApplicationState, public WindowObserver, public MouseButtonObserver
+class Navmesh;
+class Pheromone;
+class Agent;
+
+class Habitat
 {
 public:
-	TitleState(Application* application);
-	virtual ~TitleState();
+	Habitat(const AABB& bounds, int maxOctreeDepth);
+	~Habitat();
 	
-	virtual void enter();
-	virtual void execute();
-	virtual void exit();
-	
-	virtual void windowClosed();
-	virtual void windowResized(int width, int height);
-	virtual void mouseButtonPressed(int button, int x, int y);
-	virtual void mouseButtonReleased(int button, int x, int y);
+	const Octree<Navmesh*>* getObstacleOctree() const;
+	const Octree<Pheromone*>* getPheromoneOctree() const;
+	const Octree<Agent*>* getAgentOctree() const;
 	
 private:
-	float stateTime;
-	bool fadeIn;
-	bool fadeOut;
-	bool dragging;
-	bool wasDragging;
-	Vector3 dragStart;
-	Quaternion dragStartRotation;
-	
-	int substate;
-	
-	Colony colony;
-	Ant* ant;
-	Navmesh navmesh;
+	Octree<Navmesh*>* obstacleOctree;
+	Octree<Pheromone*>* pheromoneOctree;
+	Octree<Agent*>* agentOctree;
 };
 
-#endif // TITLE_STATE_HPP
+#endif // HABITAT_HPP

@@ -193,7 +193,7 @@ void Navmesh::traverse(Navmesh::Triangle* startTriangle, const Vector3& startPos
 	
 	// Set initial velocity
 	Vector3 velocity = startVelocity;
-	
+		
 	// Traverse navmesh
 	float distance = 0.0f;
 	while (distance < maxDistance)
@@ -249,6 +249,15 @@ void Navmesh::traverse(Navmesh::Triangle* startTriangle, const Vector3& startPos
 		
 		// Move to the next triangle
 		step.triangle = step.edge->symmetric->triangle;
+		
+		// Ensure triangle wasn't already visited
+		for (const Step& visited: (*traversal))
+		{
+			if (step.triangle == visited.triangle)
+			{
+				return;
+			}
+		}
 		
 		// Calculate barycentric starting coordinates of the next step
 		step.start = normalize_barycentric(barycentric(cartesianEnd,

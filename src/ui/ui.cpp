@@ -374,11 +374,16 @@ void UIBatcher::batchImage(BillboardBatch* result, const UIImage* image)
 	// Get range
 	BillboardBatch::Range* range = getRange(result, image);
 	
+	// Pixel-perfect
+	//Vector3 translation = Vector3((int)(image->getPosition().x + image->getDimensions().x * 0.5f), (int)(image->getPosition().y + image->getDimensions().y * 0.5f), image->getLayer() * 0.01f);
+	
+	Vector3 translation = Vector3(image->getPosition() + image->getDimensions() * 0.5f, image->getLayer() * 0.01f);
+	
 	// Create billboard
 	std::size_t index = range->start + range->length;
 	Billboard* billboard = result->getBillboard(index);
 	billboard->setDimensions(image->getDimensions());
-	billboard->setTranslation(Vector3(image->getPosition() + image->getDimensions() * 0.5f, image->getLayer() * 0.01f));
+	billboard->setTranslation(translation);
 	billboard->setTextureCoordinates(image->getTextureBounds().getMin(), image->getTextureBounds().getMax());
 	billboard->setTintColor(image->getColor());
 	

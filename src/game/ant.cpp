@@ -18,6 +18,8 @@
  */
 
 #include "ant.hpp"
+#include "colony.hpp"
+#include "pheromone.hpp"
 
 Ant::Ant(Colony* colony):
 	colony(colony),
@@ -61,37 +63,78 @@ void Ant::turn(float angle)
 
 void Ant::update(float dt)
 {
+	float probeLateralOffset = 0.1f;
+	float probeForwardOffset = 0.3f;
+	
+	// Steering
 	if (state == Ant::State::WANDER)
 	{
-		setWanderCircleDistance(3.0f);
-		setWanderCircleRadius(0.25f);
+		setWanderCircleDistance(4.0f);
+		setWanderCircleRadius(0.3f);
 		setWanderRate(glm::radians(90.0f));
+		setSeparationRadius(0.5f);
+		setMaxSpeed(0.025f);
 		
 		// Calculate wander force
 		Vector3 wanderForce = wander(dt);
 		
 		// Setup containment probes
-		float probeLateralOffset = 0.35f;
-		Vector3 forwardProbe = getForward() * 0.5f;
-		Vector3 leftProbe = getForward() * 0.1f - getRight() * probeLateralOffset;
-		Vector3 rightProbe = getForward() * 0.1f + getRight() * probeLateralOffset;
+		Vector3 leftProbe = getForward() * probeForwardOffset - getRight() * probeLateralOffset;
+		Vector3 rightProbe = getForward() * probeForwardOffset + getRight() * probeLateralOffset;
 		
 		// Calculate containment force
-		Vector3 containmentForce = containment(forwardProbe)
-			+ containment(leftProbe)
-			+ containment(rightProbe);
+		Vector3 containmentForce = containment(leftProbe) + containment(rightProbe);
+		
+		// Determine neighbors
+		float neighborhoodSize = 2.0f;
+		AABB neighborhoodAABB(getPosition() - Vector3(neighborhoodSize * 0.5f), getPosition() + Vector3(neighborhoodSize * 0.5f));
+		std::list<Agent*> neighbors;
+		colony->queryAnts(neighborhoodAABB, &neighbors);
+		
+		// Calculate separation force
+		Vector3 separationForce = separation(neighbors);
 		
 		// Calculate velocity
-		Vector3 velocity(0.0f);
+		Vector3 velocity = getVelocity();
 		velocity += wanderForce;
-		velocity += containmentForce;
+		velocity += containmentForce * 0.0025f;
+		velocity += separationForce * 0.01f;
 		velocity = limit(velocity, 0.025f);
+		setVelocity(velocity);
 		
 		setOrientation(glm::normalize(velocity), getUp());
 		
 		// Move ant
 		move(velocity);
 	}
+	else
+	{
+		Vector3 leftProbe = getForward() * probeForwardOffset - getRight() * probeLateralOffset;
+		Vector3 rightProbe = getForward() * probeForwardOffset + getRight() * probeLateralOffset;
+		Vector3 containmentForce = containment(leftProbe) + containment(rightProbe);
+		Vector3 velocity = Vector3(0.0f);
+		velocity += containmentForce;
+		velocity = limit(velocity, 0.025f);
+		setVelocity(velocity);
+		//setOrientation(glm::normalize(velocity), getUp());
+		
+		// Move ant
+		move(velocity);
+	}
+	
+	// Locomotion
+	
+	/*
+	As the ant moves forward, legs in the stance phase are kept grounded via IK. If IK constraints are violated, the swinging legs are grounded
+	and the grounded legs begin swinging.
+	
+	Two poses are loaded from the model file: midswing and touchdown.
+	
+	touchdown is the pose in which all legs are at the end of their swing phases and need to be grounded
+	midswing is the pose in which all legs are at the highest point in their swing phases
+	
+	when a grounded leg enters the swing phases, its current pose is saved as the liftoff pose, then an animation is created using the liftoff pose, midswing pose, and touchdown pose.
+	*/
 	
 	// Update transform
 	transform.translation = getPosition();
@@ -101,38 +144,60 @@ void Ant::update(float dt)
 	modelInstance.setTransform(transform);
 }
 
+Vector3 Ant::forage(const Vector3& leftReceptor, const Vector3& rightReceptor)
+{
+	float leftSignal = 0.0f;
+	float rightSignal = 0.0f;
+	
+	// Detect pheromones with left receptor
+	std::list<Pheromone*> leftPheromones;
+	colony->getPheromoneOctree()->query(AABB(leftReceptor, leftReceptor), &leftPheromones);
+	for (Pheromone* pheromone: leftPheromones)
+	{
+		Vector3 difference = pheromone->getPosition() - rightReceptor;
+		
+		float distanceSquared = glm::dot(difference, difference);
+		if (distanceSquared <= pheromone->getRadiusSquared())
+		{
+			// Calculate attenuated pheromone strength using inverse-square law
+			float strength = pheromone->getStrength() / ((distanceSquared == 0.0f) ? 1.0f : distanceSquared);
+			leftSignal += strength;
+		}
+	}
+	
+	// Detect pheromones with right receptor
+	std::list<Pheromone*> rightPheromones;
+	colony->getPheromoneOctree()->query(AABB(rightReceptor, rightReceptor), &rightPheromones);
+	for (Pheromone* pheromone: rightPheromones)
+	{
+		Vector3 difference = pheromone->getPosition() - rightReceptor;
+		
+		float distanceSquared = glm::dot(difference, difference);
+		if (distanceSquared <= pheromone->getRadiusSquared())
+		{
+			// Calculate attenuated pheromone strength using inverse-square law
+			float strength = pheromone->getStrength() / ((distanceSquared == 0.0f) ? 1.0f : distanceSquared);
+			rightSignal += strength;
+		}
+	}
+	
+	// Add noise
+	const float maxNoise = 0.1f;
+	leftSignal += frand(0.0f, maxNoise);
+	rightSignal += frand(0.0f, maxNoise);
+	
+    if (leftSignal + rightSignal > 0.0f)
+    {
+		const float maxPheromoneTurningAngle = 0.1f;
+		
+		// Use Weber's law (Perna et al.) to calculate turning angle based on pheromone signals
+		float turningAngle = maxPheromoneTurningAngle * ((leftSignal - rightSignal) / (leftSignal + rightSignal));
+    }
+	
+	return Vector3(0.0f);
+}
+
 void Ant::setState(Ant::State state)
 {
 	this->state = state;
-}
-
-Colony::Colony():
-	antModel(nullptr)
-{}
-
-Ant* Colony::spawn(Navmesh* navmesh, Navmesh::Triangle* triangle, const Vector3& position)
-{
-	// Allocate ant
-	Ant* ant = new Ant(this);
-	
-	// Position it on the navmesh
-	ant->setPosition(triangle, position);
-	
-	// Add ant to the colony
-	ants.push_back(ant);
-	
-	return ant;
-}
-
-void Colony::update(float dt)
-{
-	for (Ant* ant: ants)
-	{
-		ant->update(dt);
-	}
-}
-
-void Colony::setAntModel(Model* model)
-{
-	this->antModel = model;
 }

@@ -27,7 +27,8 @@ Agent::Agent():
 	up(0, 1, 0),
 	right(1, 0, 0),
 	rotation(1, 0, 0, 0),
-	wanderDirection(0, 0, -1)
+	wanderDirection(0, 0, -1),
+	velocity(0.0f)
 {}
 
 void Agent::applyForce(const Vector3& force)
@@ -50,27 +51,27 @@ void Agent::updateVelocity()
 Vector3 Agent::wander(float dt)
 {
 	// Calculate center of wander circle
-	Vector3 wanderCircleCenter = forward * wanderCircleDistance;
+	Vector3 wanderCircleCenter = position + forward * wanderCircleDistance;
 	
 	// Calculate wander force
-	Vector3 force = wanderCircleCenter + wanderDirection * wanderCircleRadius;
+	Vector3 target = wanderCircleCenter + wanderDirection * wanderCircleRadius;
 	
 	// Rotate wander direction by a random displacement angle
 	float displacement = frand(-wanderRate * 0.5f, wanderRate * 0.5f);
 	wanderDirection = glm::normalize(glm::angleAxis(displacement, up) * wanderDirection);
 	
-	return force;
+	return seek(target);
 }
 
 Vector3 Agent::seek(const Vector3& target) const
 {
-	Vector3 desiredVelocity = glm::normalize(position - target) * maxSpeed;
+	Vector3 desiredVelocity = glm::normalize(target - position) * maxSpeed;
 	return desiredVelocity - velocity;
 }
 
 Vector3 Agent::flee(const Vector3& target) const
 {
-	Vector3 desiredVelocity = glm::normalize(target - position) * maxSpeed;
+	Vector3 desiredVelocity = glm::normalize(position - target) * maxSpeed;
 	return desiredVelocity - velocity;
 }
 
@@ -92,6 +93,22 @@ Vector3 Agent::containment(const Vector3& probe) const
 		return Vector3(0.0f);
 	}
 	
+	/*
+	// Calculate difference between probe position and position on edge
+	Vector3 end = cartesian(step.end,
+		step.triangle->edge->vertex->position,
+		step.triangle->edge->next->vertex->position,
+		step.triangle->edge->previous->vertex->position);
+	
+	Vector3 difference = probe - end;
+	
+	float depth = 0.0f;
+	if (nonzero(difference))
+	{
+		depth = glm::length(difference);
+	}
+	*/
+	
 	// Calculate edge normal
 	const Vector3& a = step.edge->vertex->position;
 	const Vector3& b = step.edge->next->vertex->position;
@@ -99,7 +116,39 @@ Vector3 Agent::containment(const Vector3& probe) const
 	Vector3 edgeNormal = glm::cross(up, ab);
 	
 	// Calculate reflection vector of forward vector and edge normal
-	Vector3 force = glm::reflect(forward, edgeNormal);
+	//Vector3 reflection = glm::reflect(forward, edgeNormal);
+	
+	/*
+	Vector3 target = cartesian(step.end,
+		step.triangle->edge->vertex->position,
+		step.triangle->edge->next->vertex->position,
+		step.triangle->edge->previous->vertex->position) + reflection * 0.1f;
+	*/
+	
+	//std::cout << "reflection: " << reflection.x << ", " << reflection.y << ", " << reflection.z << std::endl;
+	
+	return edgeNormal;
+}
+
+Vector3 Agent::separation(const std::list<Agent*>& neighbors) const
+{
+	Vector3 force(0.0f);
+	
+	for (Agent* neighbor: neighbors)
+	{
+		Vector3 difference = position - neighbor->position;
+		
+		float distanceSquared = glm::dot(difference, difference);
+		if (distanceSquared > 0.0f && distanceSquared < separationRadiusSquared)
+		{			
+			force += difference * (1.0f / distanceSquared);
+		}
+	}
+	
+	if (nonzero(force))
+	{
+		force = glm::normalize(force);
+	}
 	
 	return force;
 }
@@ -134,6 +183,16 @@ void Agent::setOrientation(const Vector3& newForward, const Vector3& newUp)
 	wanderDirection = glm::normalize(project_on_plane(alignment * wanderDirection, Vector3(0.0f), up));
 }
 
+void Agent::setMaxSpeed(float speed)
+{
+	maxSpeed = speed;
+}
+
+void Agent::setVelocity(const Vector3& velocity)
+{
+	this->velocity = velocity;
+}
+
 void Agent::setWanderCircleDistance(float distance)
 {
 	wanderCircleDistance = distance;
@@ -147,6 +206,12 @@ void Agent::setWanderCircleRadius(float radius)
 void Agent::setWanderRate(float angle)
 {
 	wanderRate = angle;
+}
+
+void Agent::setSeparationRadius(float radius)
+{
+	separationRadius = radius;
+	separationRadiusSquared = separationRadius * separationRadius;
 }
 
 /** EXAMPLE USAGE

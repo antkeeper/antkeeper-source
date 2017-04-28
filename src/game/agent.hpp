@@ -83,12 +83,19 @@ public:
 	
 	Vector3 containment(const Vector3& probe) const;
 	
+	Vector3 separation(const std::list<Agent*>& neighbors) const;
+	
+	Vector3 forage(const Vector3& leftProbe, const Vector3& rightProbe);
+	
+	
 	void setMaxSpeed(float speed);
+	void setVelocity(const Vector3& velocity);
 	void setMaxAcceleration(float acceleration);
 	void setMass(float mass);
 	void setWanderCircleDistance(float distance);
 	void setWanderCircleRadius(float radius);
 	void setWanderRate(float angle);
+	void setSeparationRadius(float radius);
 	
 	/**
 	 * Sets the position of the agent on a navmesh.
@@ -111,7 +118,7 @@ public:
 	// or
 	Vector3 followEdge();
 	Vector3 avoidObstacle(const Obstacle* obstacle);
-	Vector3 separation(const std::vector<const Agent*>* neighbors);
+	
 	Vector3 alignment(const std::vector<const Agent*>* neighbors);
 	Vector3 cohesion(const std::vector<const Agent*>* neighbors);
 	*/
@@ -124,6 +131,8 @@ public:
 	const Vector3& getUp() const;
 	const Vector3& getRight() const;
 	const Quaternion& getRotation() const;
+	
+	const Vector3& getVelocity() const;
 
 private:
 	Navmesh::Triangle* navmeshTriangle;
@@ -148,6 +157,8 @@ private:
 	float wanderCircleRadius;
 	float wanderRate;
 	Vector3 wanderDirection;
+	float separationRadius;
+	float separationRadiusSquared;
 };
 
 inline const Navmesh::Triangle* Agent::getNavmeshTriangle() const
@@ -188,6 +199,11 @@ inline const Vector3& Agent::getRight() const
 inline const Quaternion& Agent::getRotation() const
 {
 	return rotation;
+}
+
+inline const Vector3& Agent::getVelocity() const
+{
+	return velocity;
 }
 
 #endif // AGENT_HPP

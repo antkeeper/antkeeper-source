@@ -113,10 +113,16 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/game/ant.cpp
 	${EXECUTABLE_SOURCE_DIR}/game/agent.hpp
 	${EXECUTABLE_SOURCE_DIR}/game/agent.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/colony.hpp
+	${EXECUTABLE_SOURCE_DIR}/game/colony.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/habitat.hpp
+	${EXECUTABLE_SOURCE_DIR}/game/habitat.cpp
 	${EXECUTABLE_SOURCE_DIR}/game/nest.hpp
 	${EXECUTABLE_SOURCE_DIR}/game/nest.cpp
 	${EXECUTABLE_SOURCE_DIR}/game/navmesh.hpp
 	${EXECUTABLE_SOURCE_DIR}/game/navmesh.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/pheromone.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/pheromone.cpp
 	${EXECUTABLE_SOURCE_DIR}/debug.hpp
 	${EXECUTABLE_SOURCE_DIR}/debug.cpp
 	${EXECUTABLE_SOURCE_DIR}/camera-controller.hpp

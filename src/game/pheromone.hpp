@@ -17,50 +17,55 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TITLE_STATE_HPP
-#define TITLE_STATE_HPP
-
-#include "../application-state.hpp"
-#include "../ui/ui.hpp"
-
-#include "../game/ant.hpp"
-#include "../game/colony.hpp"
+#ifndef PHEROMONE_HPP
+#define PHEROMONE_HPP
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
-/**
- * Displays the title screen.
- */
-class TitleState: public ApplicationState, public WindowObserver, public MouseButtonObserver
+class Pheromone
 {
 public:
-	TitleState(Application* application);
-	virtual ~TitleState();
+	void setPosition(const Vector3& position);
+	void setStrength(float strength);
 	
-	virtual void enter();
-	virtual void execute();
-	virtual void exit();
+	const Vector3& getPosition() const;
+	float getStrength() const;
+	float getRadius() const;
+	float getRadiusSquared() const;
 	
-	virtual void windowClosed();
-	virtual void windowResized(int width, int height);
-	virtual void mouseButtonPressed(int button, int x, int y);
-	virtual void mouseButtonReleased(int button, int x, int y);
+	float getAttenuatedStrength(const Vector3& position) const;
 	
 private:
-	float stateTime;
-	bool fadeIn;
-	bool fadeOut;
-	bool dragging;
-	bool wasDragging;
-	Vector3 dragStart;
-	Quaternion dragStartRotation;
-	
-	int substate;
-	
-	Colony colony;
-	Ant* ant;
-	Navmesh navmesh;
+	Vector3 position;
+	float strength;
+	float radius;
+	float radiusSquared;
 };
 
-#endif // TITLE_STATE_HPP
+inline void Pheromone::setPosition(const Vector3& position)
+{
+	this->position = position;
+}
+
+inline const Vector3& Pheromone::getPosition() const
+{
+	return position;
+}
+
+inline float Pheromone::getStrength() const
+{
+	return strength;
+}
+
+inline float Pheromone::getRadius() const
+{
+	return radius;
+}
+
+inline float Pheromone::getRadiusSquared() const
+{
+	return radiusSquared;
+}
+
+#endif // PHEROMONE_HPP

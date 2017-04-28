@@ -81,6 +81,8 @@ public:
 	ModelInstance* getModelInstance();
 	
 private:
+	Vector3 forage(const Vector3& leftReceptor, const Vector3& rightReceptor);
+	
 	/**
 	 * Calculates the surface normal averaged between the surface normals at each of the ant's grounded feet.
 	 */
@@ -119,47 +121,6 @@ inline const ModelInstance* Ant::getModelInstance() const
 inline ModelInstance* Ant::getModelInstance()
 {
 	return &modelInstance;
-}
-
-/**
- * A colony of ants.
- */
-class Colony
-{
-public:
-	Colony();
-	
-	Ant* spawn(Navmesh* navmesh, Navmesh::Triangle* triangle, const Vector3& position);
-	
-	void update(float dt);
-	
-	void setAntModel(Model* model);
-	const Model* getAntModel() const;
-	Model* getAntModel();
-	
-private:
-	// Rendering
-	Model* antModel;
-	
-	// Locomotion
-	float walkSpeed;
-	float turnSpeed;
-	Gait* tripodGait;
-	Gait* rippleGait;
-	Gait* slowWaveGait;
-	
-	
-	std::vector<Ant*> ants;
-};
-
-inline const Model* Colony::getAntModel() const
-{
-	return antModel;
-}
-
-inline Model* Colony::getAntModel()
-{
-	return antModel;
 }
 
 #endif // ANT_HPP
