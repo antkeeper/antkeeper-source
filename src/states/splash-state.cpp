@@ -105,8 +105,8 @@ void SplashState::enter()
 
 	
 	// Colors
-	application->selectedColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-	application->deselectedColor = Vector4(0.35f, 0.35f, 0.35f, 1.0f);
+	application->selectedColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+	application->deselectedColor = Vector4(0.0f, 0.0f, 0.0f, 0.35f);
 	
 	// Build UI
 	application->uiRootElement = new UIContainer();
@@ -158,7 +158,8 @@ void SplashState::enter()
 	application->menuSelectorLabel = new UILabel();
 	application->menuSelectorLabel->setAnchor(Anchor::TOP_LEFT);
 	application->menuSelectorLabel->setFont(application->menuFont);
-	application->menuSelectorLabel->setText(">");
+	application->menuSelectorLabel->setText("<");
+	application->menuSelectorLabel->setTintColor(application->selectedColor);
 	
 	/*
 	application->menuSelectorLabel = new UIImage();
@@ -351,10 +352,10 @@ void SplashState::enter()
 	application->copyrightFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, application->copyrightImage, std::placeholders::_1));
 	application->tweener->addTween(application->copyrightFadeOutTween);
 	
-	application->anyKeyFadeInTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(1.0f, 1.0f, 1.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	application->anyKeyFadeInTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 	application->anyKeyFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, application->anyKeyLabel, std::placeholders::_1));
 	application->tweener->addTween(application->anyKeyFadeInTween);
-	application->anyKeyFadeOutTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
+	application->anyKeyFadeOutTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
 	application->anyKeyFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, application->anyKeyLabel, std::placeholders::_1));
 	application->tweener->addTween(application->anyKeyFadeOutTween);
 	
@@ -492,16 +493,20 @@ void SplashState::enter()
 	application->selectMenuItem(application->selectedMenuItemIndex);
 	
 	// Models
-	application->displayModel = application->modelLoader->load("data/models/icosphere.mdl");
 	application->antModel = application->modelLoader->load("data/models/debug-worker.mdl");
 	
 	// Model instances
-	application->displayModelInstance = new ModelInstance();
 	application->antModelInstance = new ModelInstance();
 	
 	// Allocate game variables
 	application->surfaceCam = new SurfaceCameraController();
 	application->tunnelCam = new TunnelCameraController();
+	
+	// Load biosphere
+	application->biosphere.load("data/biomes/");
+	
+	// Load campaign
+	application->campaign.load("data/levels/");
 	
 	// Setup screen fade-in transition
 	fadeIn = false;

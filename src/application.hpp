@@ -25,6 +25,8 @@ using namespace Emergent;
 
 #include "mesh.hpp"
 #include "game/terrain.hpp"
+#include "game/level.hpp"
+#include "game/biome.hpp"
 #include "input.hpp"
 #include "controls.hpp"
 #include "settings.hpp"
@@ -96,6 +98,7 @@ public:
 	Compositor shadowCompositor;
 	Camera sunlightCamera;
 	RenderTarget defaultRenderTarget;
+	SoilRenderPass soilPass;
 	LightingRenderPass lightingPass;
 	DebugRenderPass debugPass;
 	Compositor defaultCompositor;
@@ -253,12 +256,13 @@ public:
 	Menu* settingsMenu;
 	
 	// Models
-	Model* displayModel;
 	Model* antModel;
-	ModelInstance* displayModelInstance;
 	ModelInstance* antModelInstance;
 	
 	// Game variables
+	Campaign campaign;
+	Biosphere biosphere;
+	
 	Colony* colony;
 	SurfaceCameraController* surfaceCam;
 	TunnelCameraController* tunnelCam;

@@ -20,6 +20,8 @@
 #ifndef TERRAIN_HPP
 #define TERRAIN_HPP
 
+#include "navmesh.hpp"
+#include "../materials.hpp"
 #include <emergent/emergent.hpp>
 
 using namespace Emergent;
@@ -36,43 +38,94 @@ public:
 	 */
 	void create(int columns, int rows, const Vector3& dimensions);
 	
-	/// Returns the winged-edge mesh representing the terrain surface.
-	const WingedEdge* getSurfaceMesh() const;
+	/// Loads a heightmap
+	bool load(const std::string& filename);
 	
-	/// Returns the winged-edge mesh representing the terrain subsurface.
-	const WingedEdge* getSubsurfaceMesh() const;
+	/// Returns the navmesh representing the terrain surface.
+	const Navmesh* getSurfaceNavmesh() const;
+	
+	/// Returns the navmesh representing the terrain surface.
+	Navmesh* getSurfaceNavmesh();
+	
+	/// Returns the navmesh representing the terrain subsurface.
+	const Navmesh* getSubsurfaceNavmesh() const;
+	
+	/// Returns the navmesh representing the terrain subsurface.
+	Navmesh* getSubsurfaceNavmesh();
 	
 	/// Returns the model representing the terrain surface.
 	const Model* getSurfaceModel() const;
 	
+	/// Returns the model representing the terrain surface.
+	Model* getSurfaceModel();
+	
 	/// Returns the model representing the terrain subsurface.
 	const Model* getSubsurfaceModel() const;
+	
+	/// Returns the model representing the terrain subsurface.
+	Model* getSubsurfaceModel();
 	
 private:
 	void createSurface();
 	void createSubsurface();
 	
+	void calculateSurfaceNormals();
+	
 	int columns;
 	int rows;
 	Vector3 dimensions;
+	
+	// Surface
+	std::size_t surfaceVertexSize;
+	std::size_t surfaceVertexCount;
+	std::size_t surfaceTriangleCount;
+	std::size_t surfaceIndexCount;
+	float* surfaceVertexData;
+	std::uint32_t* surfaceIndexData;
 	std::vector<Vector3> surfaceVertices;
-	std::vector<Vector3> subsurfaceVertices;
 	std::vector<std::size_t> surfaceIndices;
-	std::vector<std::size_t> subsurfaceIndices;
-	WingedEdge surfaceMesh;
-	WingedEdge subsurfaceMesh;
+	GLuint surfaceVAO;
+	GLuint surfaceVBO;
+	GLuint surfaceIBO;
+	PhysicalMaterial surfaceMaterial;
 	Model surfaceModel;
+	Navmesh surfaceNavmesh;
+	
+	// Subsurface
+	std::size_t subsurfaceVertexSize;
+	std::size_t subsurfaceVertexCount;
+	std::size_t subsurfaceTriangleCount;
+	std::size_t subsurfaceIndexCount;
+	float* subsurfaceVertexData;
+	std::uint32_t* subsurfaceIndexData;
+	std::vector<Vector3> subsurfaceVertices;
+	std::vector<std::size_t> subsurfaceIndices;
+	GLuint subsurfaceVAO;
+	GLuint subsurfaceVBO;
+	GLuint subsurfaceIBO;
+	PhysicalMaterial subsurfaceMaterial;
 	Model subsurfaceModel;
+	Navmesh subsurfaceNavmesh;
 };
 
-inline const WingedEdge* Terrain::getSurfaceMesh() const
+inline Navmesh* Terrain::getSurfaceNavmesh()
 {
-	return &surfaceMesh;
+	return &surfaceNavmesh;
 };
 
-inline const WingedEdge* Terrain::getSubsurfaceMesh() const
+inline const Navmesh* Terrain::getSurfaceNavmesh() const
 {
-	return &subsurfaceMesh;
+	return &surfaceNavmesh;
+};
+
+inline Navmesh* Terrain::getSubsurfaceNavmesh()
+{
+	return &subsurfaceNavmesh;
+};
+
+inline const Navmesh* Terrain::getSubsurfaceNavmesh() const
+{
+	return &subsurfaceNavmesh;
 };
 
 inline const Model* Terrain::getSurfaceModel() const
@@ -80,7 +133,17 @@ inline const Model* Terrain::getSurfaceModel() const
 	return &surfaceModel;
 }
 
+inline Model* Terrain::getSurfaceModel()
+{
+	return &surfaceModel;
+}
+
 inline const Model* Terrain::getSubsurfaceModel() const
+{
+	return &subsurfaceModel;
+}
+
+inline Model* Terrain::getSubsurfaceModel()
 {
 	return &subsurfaceModel;
 }

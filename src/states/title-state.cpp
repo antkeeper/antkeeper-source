@@ -47,9 +47,6 @@ void TitleState::enter()
 	fadeIn = false;
 	fadeOut = false;
 	
-	application->displayModelInstance->setModel(application->displayModel);
-	application->displayModelInstance->setTransform(Transform::getIdentity());
-	
 	application->antModelInstance->setModel(application->antModel);
 	application->antModelInstance->setTransform(Transform::getIdentity());
 	
@@ -61,7 +58,7 @@ void TitleState::enter()
 	Billboard* bgBillboard = application->bgBatch.getBillboard(0);
 	bgBillboard->setDimensions(Vector2(1.0f, 1.0f));
 	bgBillboard->setTranslation(Vector3(0.5f, 0.5f, 0.0f));
-	bgBillboard->setTintColor(Vector4(1, 0, 0, 1));
+	bgBillboard->setTintColor(Vector4(1, 1, 1, 1));
 	application->bgBatch.update();
 	
 	application->vignettePass.setRenderTarget(&application->defaultRenderTarget);
@@ -80,6 +77,39 @@ void TitleState::enter()
 	application->sunlight.setColor(glm::vec3(1.0f));
 	application->sunlight.setDirection(glm::normalize(glm::vec3(0.5, -1, -0.5)));
 	
+	const Level* level = &application->campaign.levels[1][1];
+	const Biome* biome = &application->biosphere.biomes[level->biome];
+	
+	// Setup soil pass
+	application->soilPass.setRenderTarget(&application->defaultRenderTarget);
+	TextureLoader textureLoader;
+	
+	/*application->soilPass.setHorizonOTexture(textureLoader.load("data/textures/debug-soil-horizon-o.png"));
+	application->soilPass.setHorizonATexture(textureLoader.load("data/textures/debug-soil-horizon-a.png"));
+	application->soilPass.setHorizonBTexture(textureLoader.load("data/textures/debug-soil-horizon-b.png"));
+	application->soilPass.setHorizonCTexture(textureLoader.load("data/textures/debug-soil-horizon-c.png"));*/
+	
+	
+	application->soilPass.setHorizonOTexture(biome->soilHorizonO);
+	application->soilPass.setHorizonATexture(biome->soilHorizonA);
+	application->soilPass.setHorizonBTexture(biome->soilHorizonB);
+	application->soilPass.setHorizonCTexture(biome->soilHorizonC);
+	application->defaultCompositor.addPass(&application->soilPass);
+	
+	// Create terrain
+	std::string heightmap = std::string("data/textures/") + level->heightmap;
+	
+	terrain.create(255, 255, Vector3(50, 20, 50));
+	terrain.load(heightmap);
+	terrain.getSurfaceModel()->getGroup(0)->material = application->materialLoader->load("data/materials/debug-terrain-surface.mtl");
+	terrainSurface.setModel(terrain.getSurfaceModel());
+	terrainSurface.setTranslation(Vector3(0, 0, 0));
+	
+	terrainSubsurface.setModel(terrain.getSubsurfaceModel());
+	terrainSubsurface.setTranslation(Vector3(0, 0, 0));
+	application->scene.getLayer(0)->addObject(&terrainSurface);
+	application->scene.getLayer(0)->addObject(&terrainSubsurface);
+	navmesh = terrain.getSurfaceNavmesh();
 	
 	// Setup lighting pass
 	application->lightingPass.setRenderTarget(&application->defaultRenderTarget);
@@ -114,8 +144,6 @@ void TitleState::enter()
 	application->scene.getLayer(0)->addObject(lightA);
 	application->scene.getLayer(0)->addObject(lightB);
 	application->scene.getLayer(0)->addObject(lightC);
-
-	application->scene.getLayer(0)->addObject(application->displayModelInstance);
 	application->scene.getLayer(0)->addObject(&application->camera);
 	
 	// Load compositor
@@ -140,9 +168,9 @@ void TitleState::enter()
 	// Setup camera controller
 	application->surfaceCam->setCamera(&application->camera);
 	application->surfaceCam->setFocalPoint(Vector3(0.0f));
-	application->surfaceCam->setFocalDistance(10.0f);
-	application->surfaceCam->setElevation(0.0f);
-	application->surfaceCam->setAzimuth(0.0f);
+	application->surfaceCam->setFocalDistance(300.0f);
+	application->surfaceCam->setElevation(glm::radians(32.5f));
+	application->surfaceCam->setAzimuth(glm::radians(-45.0f));
 	application->surfaceCam->setTargetFocalPoint(application->surfaceCam->getFocalPoint());
 	application->surfaceCam->setTargetFocalDistance(application->surfaceCam->getFocalDistance());
 	application->surfaceCam->setTargetElevation(application->surfaceCam->getElevation());
@@ -154,19 +182,17 @@ void TitleState::enter()
 	wasDragging = dragging;
 	application->arcball.setCenter(Vector2(application->width * 0.5f, application->height * 0.5f));
 	application->arcball.setRadius(application->height * 0.5f);
-	
-	// Load navmesh
-	
-	navmesh.loadOBJ("data/textures/icosphere.obj");
+			
+
 	
 	// Setup colony
 	
 	colony.setAntModel(application->antModel);
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 50; ++i)
 	{
-		Navmesh::Triangle* triangle = (*navmesh.getTriangles())[0];
+		Navmesh::Triangle* triangle = (*navmesh->getTriangles())[0];
 		
-		ant = colony.spawn(&navmesh, triangle, normalize_barycentric(Vector3(0.5f)));
+		ant = colony.spawn(navmesh, triangle, normalize_barycentric(Vector3(0.5f)));
 		
 		Vector3 forward = glm::normalize(triangle->edge->vertex->position - triangle->edge->next->vertex->position);
 		Vector3 up = triangle->normal;
@@ -200,12 +226,6 @@ void TitleState::execute()
 		{
 			application->titleImage->setVisible(true);
 			application->titleFadeInTween->start();
-		}
-		
-		if (stateTime >= copyrightDelay && !application->copyrightImage->isVisible())
-		{
-			//application->copyrightImage->setVisible(true);
-			//application->copyrightFadeInTween->start();
 		}
 		
 		if (stateTime >= pressAnyKeyDelay && !application->anyKeyLabel->isVisible())
@@ -266,8 +286,6 @@ void TitleState::execute()
 					
 					application->titleFadeInTween->stop();
 					application->titleFadeOutTween->start();
-					//application->copyrightFadeInTween->stop();
-					//application->copyrightFadeOutTween->start();
 					application->anyKeyFadeInTween->stop();
 					application->anyKeyFadeOutTween->stop();
 					application->anyKeyLabel->setVisible(false);
@@ -295,6 +313,7 @@ void TitleState::execute()
 		fadeIn = true;
 	}
 	
+	/*
 	glm::ivec2 mousePosition = application->mouse->getCurrentPosition();
 	mousePosition.y = application->height - mousePosition.y;
 	if (dragging && !wasDragging)
@@ -313,7 +332,7 @@ void TitleState::execute()
 		application->displayModelInstance->setTransform(transform);
 	}
 	wasDragging = dragging;
-	
+	*/
 
 	
 	// Check if application was closed
@@ -334,6 +353,23 @@ void TitleState::execute()
 		application->surfaceCam->rotate(-rotationSpeed);
 	if (application->cameraRotateCCW.isTriggered())
 		application->surfaceCam->rotate(rotationSpeed);
+	
+	// Move camera
+	Vector2 movementVector(0.0f);
+	if (application->cameraMoveLeft.isTriggered())
+		movementVector.x -= application->cameraMoveLeft.getCurrentValue();
+	if (application->cameraMoveRight.isTriggered())
+		movementVector.x += application->cameraMoveRight.getCurrentValue();
+	if (application->cameraMoveForward.isTriggered())
+		movementVector.y -= application->cameraMoveForward.getCurrentValue();
+	if (application->cameraMoveBack.isTriggered())
+		movementVector.y += application->cameraMoveBack.getCurrentValue();
+	if (movementVector.x != 0.0f || movementVector.y != 0.0f)
+	{
+		movementVector *= 0.005f * application->surfaceCam->getFocalDistance() * dt / (1.0f / 60.0f);
+		application->surfaceCam->move(movementVector);
+	}
+	
 	// Zoom camera
 	float zoomFactor = application->surfaceCam->getFocalDistance() / 20.0f * dt / (1.0f / 60.0f);
 	if (application->cameraZoomIn.isTriggered())

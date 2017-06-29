@@ -181,12 +181,12 @@ public:
 		Edge* edge;
 	};
 	
-private:
 	/**
 	 * Calculates the faceted surface normals for each triangle.
 	 */
 	void calculateNormals();
 	
+private:
 	/**
 	 * Reads Wavefront OBJ data from an input stream
 	 *

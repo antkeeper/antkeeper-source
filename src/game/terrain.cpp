@@ -12,12 +12,14 @@ void Terrain::create(int columns, int rows, const Vector3& dimensions)
 
 void Terrain::createSurface()
 {
-	std::size_t vertexCount = (columns + 1) * (rows + 1);
-	std::size_t triangleCount = columns * rows * 2;
-	std::size_t indexCount = triangleCount * 3;
-	
-	surfaceVertices.resize(vertexCount);
-	surfaceIndices.resize(indexCount);
+	surfaceVertexSize = 3 + 3 + 2;
+	surfaceVertexCount = (columns + 1) * (rows + 1);
+	surfaceTriangleCount = columns * rows * 2;
+	surfaceIndexCount = surfaceTriangleCount * 3;	
+	surfaceVertexData = new float[surfaceVertexSize * surfaceVertexCount];
+	surfaceIndexData = new std::uint32_t[surfaceIndexCount];
+	surfaceVertices.resize(surfaceVertexCount);
+	surfaceIndices.resize(surfaceIndexCount);
 	
 	// Calculate scale and offset
 	Vector2 scale(dimensions.x / (float)columns, dimensions.z / (float)rows);
@@ -29,11 +31,21 @@ void Terrain::createSurface()
 		for (int j = 0; j <= columns; ++j)
 		{
 			std::size_t index = i * (columns + 1) + j;
-			Vector3* vertex = &surfaceVertices[index];
 			
+			Vector3* vertex = &surfaceVertices[index];
 			vertex->x = (float)j * scale.x + offset.x;
-			vertex->y = rand()%10;
+			vertex->y = 0.0f;
 			vertex->z = (float)i * scale.y + offset.y;
+			
+			float* data = &surfaceVertexData[index * surfaceVertexSize];
+			*(data++) = vertex->x;
+			*(data++) = vertex->y;
+			*(data++) = vertex->z;
+			*(data++) = 0.0f;
+			*(data++) = 1.0f;
+			*(data++) = 0.0f;
+			*(data++) = static_cast<float>(j) / static_cast<float>(columns) * 2.0f;
+			*(data++) = static_cast<float>(i) / static_cast<float>(rows) * 2.0f;
 		}
 	}
 	
@@ -42,42 +54,90 @@ void Terrain::createSurface()
 	{
 		for (int j = 0; j < columns; ++j)
 		{
-			std::size_t a = i * (columns + 1) + j;
-			std::size_t b = (i + 1) * (columns + 1) + j;
-			std::size_t c = i * (columns + 1) + j + 1;
-			std::size_t d = (i + 1) * (columns + 1) + j + 1;
+			unsigned int a = i * (columns + 1) + j;
+			unsigned int b = (i + 1) * (columns + 1) + j;
+			unsigned int c = i * (columns + 1) + j + 1;
+			unsigned int d = (i + 1) * (columns + 1) + j + 1;
 			
 			std::size_t index = (i * columns + j) * 2 * 3;
-			surfaceIndices[index] = a;
-			surfaceIndices[index + 1] = b;
-			surfaceIndices[index + 2] = c;
-			surfaceIndices[index + 3] = c;
-			surfaceIndices[index + 4] = b;
-			surfaceIndices[index + 5] = d;
+			surfaceIndices[index++] = a;
+			surfaceIndices[index++] = b;
+			surfaceIndices[index++] = c;
+			surfaceIndices[index++] = c;
+			surfaceIndices[index++] = b;
+			surfaceIndices[index] = d;
 		}
 	}
 	
-	// Create winged-edge mesh
-	surfaceMesh.create(surfaceVertices, surfaceIndices);
+	// Generate index data
+	for (std::size_t i = 0; i < surfaceIndexCount; ++i)
+	{
+		surfaceIndexData[i] = surfaceIndices[i];
+	}
 	
-	// Create model
-	surfaceModel.create(&surfaceMesh);
+	// Generate navmesh
+	surfaceNavmesh.create(surfaceVertices, surfaceIndices);
+	
+	// Calculate vertex normals
+	calculateSurfaceNormals();
+	
+	// Create and load VAO, VBO, and IBO
+	glGenVertexArrays(1, &surfaceVAO);
+	glBindVertexArray(surfaceVAO);
+	glGenBuffers(1, &surfaceVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, surfaceVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * surfaceVertexSize * surfaceVertexCount, surfaceVertexData, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(EMERGENT_VERTEX_POSITION);
+	glVertexAttribPointer(EMERGENT_VERTEX_POSITION, 3, GL_FLOAT, GL_FALSE, surfaceVertexSize * sizeof(float), (char*)0 + 0 * sizeof(float));
+	glEnableVertexAttribArray(EMERGENT_VERTEX_NORMAL);
+	glVertexAttribPointer(EMERGENT_VERTEX_NORMAL, 3, GL_FLOAT, GL_FALSE, surfaceVertexSize * sizeof(float), (char*)0 + 3 * sizeof(float));
+	glEnableVertexAttribArray(EMERGENT_VERTEX_TEXCOORD);
+	glVertexAttribPointer(EMERGENT_VERTEX_TEXCOORD, 2, GL_FLOAT, GL_FALSE, surfaceVertexSize * sizeof(float), (char*)0 + 6 * sizeof(float));
+	glGenBuffers(1, &surfaceIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surfaceIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(std::uint32_t) * surfaceIndexCount, surfaceIndexData, GL_STATIC_DRAW);
+	
+	// Setup material
+	surfaceMaterial.flags = static_cast<unsigned int>(PhysicalMaterial::Flags::OBJECT);
+	
+	// Setup buffers
+	surfaceModel.setVAO(surfaceVAO);
+	surfaceModel.setVBO(surfaceVBO);
+	surfaceModel.setIBO(surfaceIBO);
+	
+	// Create model group
+	Model::Group* group = new Model::Group();
+	group->name = "default";
+	group->material = &surfaceMaterial;
+	group->indexOffset = 0;
+	group->triangleCount = surfaceTriangleCount;
+	
+	// Add group to the model
+	surfaceModel.addGroup(group);
 }
 
 void Terrain::createSubsurface()
 {
-	std::size_t vertexCount = (columns + 1) * 4 + (rows + 1) * 4;
-	std::size_t triangleCount = columns * 4 + rows * 4 + 2;
-	std::size_t indexCount = triangleCount * 3;
+	subsurfaceVertexSize = 3 + 3 + 2;
+	subsurfaceVertexCount = (columns + 1) * 4 + (rows + 1) * 4;
+	subsurfaceTriangleCount = columns * 4 + rows * 4 + 2;
+	subsurfaceIndexCount = subsurfaceTriangleCount * 3;	
+	subsurfaceVertexData = new float[subsurfaceVertexSize * subsurfaceVertexCount];
+	subsurfaceIndexData = new std::uint32_t[subsurfaceIndexCount];
+	subsurfaceVertices.resize(subsurfaceVertexCount);
+	subsurfaceIndices.resize(subsurfaceIndexCount);
 	
-	subsurfaceVertices.resize(vertexCount);
-	subsurfaceIndices.resize(indexCount);
-	
+	float maxDimension = dimensions.y;
+	float textureScaleX = dimensions.x / maxDimension;
+	float textureScaleY = dimensions.y / maxDimension;
+	float textureScaleZ = dimensions.z / maxDimension;
+		
 	// Calculate floor position
 	float subsurfaceFloor = -dimensions.y;
 	
 	// Calculate vertex positions
 	Vector3* vertex = &subsurfaceVertices[0];
+	float* data = &subsurfaceVertexData[0];
 	
 	// Top row
 	for (int j = 0; j <= columns; ++j)
@@ -85,9 +145,27 @@ void Terrain::createSubsurface()
 		int i = 0;
 		std::size_t surfaceIndex = i * (columns + 1) + j;
 		const Vector3& surfaceVertex = surfaceVertices[surfaceIndex];
+		float u = 1.0f - (static_cast<float>(j) / static_cast<float>(columns)) * textureScaleX;
 		
 		*(vertex++) = surfaceVertex;
+		*(data++) = surfaceVertex.x;
+		*(data++) = surfaceVertex.y;
+		*(data++) = surfaceVertex.z;
+		*(data++) = 0.0f;
+		*(data++) = 0.0f;
+		*(data++) = 1.0f;
+		*(data++) = u;
+		*(data++) = 0.0f;
+		
 		*(vertex++) = Vector3(surfaceVertex.x, subsurfaceFloor, surfaceVertex.z);
+		*(data++) = surfaceVertex.x;
+		*(data++) = subsurfaceFloor;
+		*(data++) = surfaceVertex.z;
+		*(data++) = 0.0f;
+		*(data++) = 0.0f;
+		*(data++) = 1.0f;
+		*(data++) = u;
+		*(data++) = textureScaleY;
 	}
 	
 	// Bottom row
@@ -96,9 +174,27 @@ void Terrain::createSubsurface()
 		int i = rows;
 		std::size_t surfaceIndex = i * (columns + 1) + j;
 		const Vector3& surfaceVertex = surfaceVertices[surfaceIndex];
+		float u = (static_cast<float>(j) / static_cast<float>(columns)) * textureScaleX;
 		
 		*(vertex++) = surfaceVertex;
+		*(data++) = surfaceVertex.x;
+		*(data++) = surfaceVertex.y;
+		*(data++) = surfaceVertex.z;
+		*(data++) = 0.0f;
+		*(data++) = 0.0f;
+		*(data++) = 1.0f;
+		*(data++) = u;
+		*(data++) = 0.0f;
+		
 		*(vertex++) = Vector3(surfaceVertex.x, subsurfaceFloor, surfaceVertex.z);
+		*(data++) = surfaceVertex.x;
+		*(data++) = subsurfaceFloor;
+		*(data++) = surfaceVertex.z;
+		*(data++) = 0.0f;
+		*(data++) = 0.0f;
+		*(data++) = 1.0f;
+		*(data++) = u;
+		*(data++) = textureScaleY;
 	}
 	
 	// Left column
@@ -107,9 +203,27 @@ void Terrain::createSubsurface()
 		int j = 0;
 		std::size_t surfaceIndex = i * (columns + 1) + j;
 		const Vector3& surfaceVertex = surfaceVertices[surfaceIndex];
+		float u = (static_cast<float>(i) / static_cast<float>(rows)) * textureScaleZ;
 		
 		*(vertex++) = surfaceVertex;
+		*(data++) = surfaceVertex.x;
+		*(data++) = surfaceVertex.y;
+		*(data++) = surfaceVertex.z;
+		*(data++) = 0.0f;
+		*(data++) = 0.0f;
+		*(data++) = 1.0f;
+		*(data++) = u;
+		*(data++) = 0.0f;
+		
 		*(vertex++) = Vector3(surfaceVertex.x, subsurfaceFloor, surfaceVertex.z);
+		*(data++) = surfaceVertex.x;
+		*(data++) = subsurfaceFloor;
+		*(data++) = surfaceVertex.z;
+		*(data++) = 0.0f;
+		*(data++) = 0.0f;
+		*(data++) = 1.0f;
+		*(data++) = u;
+		*(data++) = textureScaleY;
 	}
 	
 	// Right column
@@ -118,9 +232,27 @@ void Terrain::createSubsurface()
 		int j = columns;
 		std::size_t surfaceIndex = i * (columns + 1) + j;
 		const Vector3& surfaceVertex = surfaceVertices[surfaceIndex];
-		
+		float u = 1.0f - (static_cast<float>(i) / static_cast<float>(rows)) * textureScaleZ;
+
 		*(vertex++) = surfaceVertex;
+		*(data++) = surfaceVertex.x;
+		*(data++) = surfaceVertex.y;
+		*(data++) = surfaceVertex.z;
+		*(data++) = 0.0f;
+		*(data++) = 0.0f;
+		*(data++) = 1.0f;
+		*(data++) = u;
+		*(data++) = 0.0f;
+		
 		*(vertex++) = Vector3(surfaceVertex.x, subsurfaceFloor, surfaceVertex.z);
+		*(data++) = surfaceVertex.x;
+		*(data++) = subsurfaceFloor;
+		*(data++) = surfaceVertex.z;
+		*(data++) = 0.0f;
+		*(data++) = 0.0f;
+		*(data++) = 1.0f;
+		*(data++) = u;
+		*(data++) = textureScaleY;
 	}
 	
 	// Generate indices
@@ -192,11 +324,176 @@ void Terrain::createSubsurface()
 	(*(index++)) = c;
 	(*(index++)) = d;
 	
-	// Create winged-edge mesh
-	subsurfaceMesh.create(subsurfaceVertices, subsurfaceIndices);
+	// Generate index data
+	for (std::size_t i = 0; i < subsurfaceIndexCount; ++i)
+	{
+		subsurfaceIndexData[i] = subsurfaceIndices[i];
+	}
 	
-	// Create model
-	subsurfaceModel.create(&subsurfaceMesh);
+	// Generate navmesh
+	subsurfaceNavmesh.create(subsurfaceVertices, subsurfaceIndices);
+	
+	// Create and load VAO, VBO, and IBO
+	glGenVertexArrays(1, &subsurfaceVAO);
+	glBindVertexArray(subsurfaceVAO);
+	glGenBuffers(1, &subsurfaceVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, subsurfaceVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * subsurfaceVertexSize * subsurfaceVertexCount, subsurfaceVertexData, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(EMERGENT_VERTEX_POSITION);
+	glVertexAttribPointer(EMERGENT_VERTEX_POSITION, 3, GL_FLOAT, GL_FALSE, subsurfaceVertexSize * sizeof(float), (char*)0 + 0 * sizeof(float));
+	glEnableVertexAttribArray(EMERGENT_VERTEX_NORMAL);
+	glVertexAttribPointer(EMERGENT_VERTEX_NORMAL, 3, GL_FLOAT, GL_FALSE, subsurfaceVertexSize * sizeof(float), (char*)0 + 3 * sizeof(float));
+	glEnableVertexAttribArray(EMERGENT_VERTEX_TEXCOORD);
+	glVertexAttribPointer(EMERGENT_VERTEX_TEXCOORD, 2, GL_FLOAT, GL_FALSE, subsurfaceVertexSize * sizeof(float), (char*)0 + 6 * sizeof(float));
+	glGenBuffers(1, &subsurfaceIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subsurfaceIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(std::uint32_t) * subsurfaceIndexCount, subsurfaceIndexData, GL_STATIC_DRAW);
+	
+	// Setup material
+	subsurfaceMaterial.flags = static_cast<unsigned int>(PhysicalMaterial::Flags::SOIL);
+	
+	// Setup buffers
+	subsurfaceModel.setVAO(subsurfaceVAO);
+	subsurfaceModel.setVBO(subsurfaceVBO);
+	subsurfaceModel.setIBO(subsurfaceIBO);
+	
+	// Create model group
+	Model::Group* group = new Model::Group();
+	group->name = "default";
+	group->material = &subsurfaceMaterial;
+	group->indexOffset = 0;
+	group->triangleCount = subsurfaceTriangleCount;
+	
+	// Add group to the model
+	subsurfaceModel.addGroup(group);
+}
+
+void Terrain::calculateSurfaceNormals()
+{
+	for (std::size_t i = 0; i < surfaceVertexCount; ++i)
+	{
+		const Navmesh::Vertex* vertex = (*surfaceNavmesh.getVertices())[i];
+		
+		Vector3 normal(0.0f);
+		const Navmesh::Edge* start = vertex->edge;
+		const Navmesh::Edge* e = start;
+		do
+		{
+			normal += e->triangle->normal;
+			e = e->previous->symmetric;
+		}
+		while (e != start && e != nullptr);
+		normal = glm::normalize(normal);
+		
+		float* data = &surfaceVertexData[i * surfaceVertexSize];
+		data[3] = normal.x;
+		data[4] = normal.y;
+		data[5] = normal.z;
+	}
+}
+
+bool Terrain::load(const std::string& filename)
+{
+	int width;
+	int height;
+	int channels;
+	
+	stbi_set_flip_vertically_on_load(true);
+	
+	// Load image data
+	unsigned char* pixels = stbi_load(filename.c_str(), &width, &height, &channels, 1);
+	
+	if (width != columns + 1 || height != rows + 1)
+	{
+		// Free loaded image data
+		stbi_image_free(pixels);
+		return false;
+	}
+	
+	// Set surface vertex heights
+	for (int i = 0; i <= rows; ++i)
+	{
+		for (int j = 0; j <= columns; ++j)
+		{
+			std::size_t index = i * (columns + 1) + j;
+			
+			float elevation = (float)pixels[index] / 255.0f * 5.0f;
+			
+			surfaceVertexData[index * surfaceVertexSize + 1] = elevation;
+			surfaceVertices[index].y = elevation;
+			(*surfaceNavmesh.getVertices())[index]->position.y = elevation;
+		}
+	}
+	
+	// Free loaded image data
+	stbi_image_free(pixels);
+	
+	// Set subsurface vertex heights
+	std::size_t subsurfaceIndex = 0;
+	
+	// Top row
+	for (int j = 0; j <= columns; ++j)
+	{
+		int i = 0;
+		std::size_t surfaceIndex = i * (columns + 1) + j;
+		float elevation = surfaceVertices[surfaceIndex].y;
+		
+		subsurfaceVertexData[subsurfaceIndex * subsurfaceVertexSize + 1] = elevation;
+		subsurfaceVertices[subsurfaceIndex].y = elevation;
+		(*subsurfaceNavmesh.getVertices())[subsurfaceIndex]->position.y = elevation;
+		subsurfaceIndex += 2;
+	}
+	// Bottom row
+	for (int j = 0; j <= columns; ++j)
+	{
+		int i = rows;
+		std::size_t surfaceIndex = i * (columns + 1) + j;
+		float elevation = surfaceVertices[surfaceIndex].y;
+		
+		subsurfaceVertexData[subsurfaceIndex * subsurfaceVertexSize + 1] = elevation;
+		subsurfaceVertices[subsurfaceIndex].y = elevation;
+		(*subsurfaceNavmesh.getVertices())[subsurfaceIndex]->position.y = elevation;
+		subsurfaceIndex += 2;
+	}
+	// Left column
+	for (int i = 0; i <= rows; ++i)
+	{
+		int j = 0;
+		std::size_t surfaceIndex = i * (columns + 1) + j;
+		float elevation = surfaceVertices[surfaceIndex].y;
+		
+		subsurfaceVertexData[subsurfaceIndex * subsurfaceVertexSize + 1] = elevation;
+		subsurfaceVertices[subsurfaceIndex].y = elevation;
+		(*subsurfaceNavmesh.getVertices())[subsurfaceIndex]->position.y = elevation;
+		subsurfaceIndex += 2;
+	}
+	// Right column
+	for (int i = 0; i <= rows; ++i)
+	{
+		int j = columns;
+		std::size_t surfaceIndex = i * (columns + 1) + j;
+		float elevation = surfaceVertices[surfaceIndex].y;
+		
+		subsurfaceVertexData[subsurfaceIndex * subsurfaceVertexSize + 1] = elevation;
+		subsurfaceVertices[subsurfaceIndex].y = elevation;
+		(*subsurfaceNavmesh.getVertices())[subsurfaceIndex]->position.y = elevation;
+		subsurfaceIndex += 2;
+	}
+	
+	// Calculate navmesh normals
+	surfaceNavmesh.calculateNormals();
+	subsurfaceNavmesh.calculateNormals();
+	
+	// Calculate vertex normals
+	calculateSurfaceNormals();
+	
+	// Update VBOs
+	glBindBuffer(GL_ARRAY_BUFFER, surfaceVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, surfaceVertexCount * surfaceVertexSize * sizeof(float), surfaceVertexData);
+	glBindBuffer(GL_ARRAY_BUFFER, subsurfaceVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, subsurfaceVertexCount * subsurfaceVertexSize * sizeof(float), subsurfaceVertexData);
+	
+	return true;
 }
 
 struct voxel

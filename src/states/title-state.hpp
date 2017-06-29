@@ -25,6 +25,7 @@
 
 #include "../game/ant.hpp"
 #include "../game/colony.hpp"
+#include "../game/terrain.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
@@ -60,7 +61,10 @@ private:
 	
 	Colony colony;
 	Ant* ant;
-	Navmesh navmesh;
+	Navmesh* navmesh;
+	Terrain terrain;
+	ModelInstance terrainSurface;
+	ModelInstance terrainSubsurface;
 };
 
 #endif // TITLE_STATE_HPP

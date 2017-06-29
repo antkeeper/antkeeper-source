@@ -71,15 +71,30 @@ private:
 };
  
 /**
- * Caps clipped geometry.
+ * Renders soil profiles.
+ *
+ * A soil profile generally of five soil horizons: O, A, B, C, and R.
+ *
+ * Horizon O: Organic
+ * Horizon A: Surface
+ * Horizon B: Subsoil
+ * Horizon C: Substratum
+ * Horizon R: Bedrock
+ *
+ * In this render pass, only the O, A, B, and C horizons are used. 
  */
-class CappingRenderPass: public RenderPass
+class SoilRenderPass: public RenderPass
 {
 public:
-	CappingRenderPass();
+	SoilRenderPass();
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
 	virtual void render(const RenderContext* renderContext);
+	
+	inline void setHorizonOTexture(Texture* texture) { horizonOTexture = texture; }
+	inline void setHorizonATexture(Texture* texture) { horizonATexture = texture; }
+	inline void setHorizonBTexture(Texture* texture) { horizonBTexture = texture; }
+	inline void setHorizonCTexture(Texture* texture) { horizonCTexture = texture; }
 	
 private:
 	ShaderParameterSet parameterSet;
@@ -113,14 +128,6 @@ public:
 	inline void setShadowCamera(const Camera* camera) { this->shadowCamera = camera; }
 	inline void setModelLoader(ModelLoader* modelLoader) { this->modelLoader = modelLoader; }
 	
-	inline void setClippingPlanes(const Plane* planes)
-	{
-		for (int i = 0; i < 5; ++i)
-		{
-			this->clippingPlanes[i] = planes[i];
-		}
-	}
-	
 private:
 	bool loadShader(const RenderOperation& operation);
 	
@@ -151,15 +158,6 @@ private:
 	Texture* specularCubemap;
 	const Camera* shadowCamera;
 	float time;
-	
-	// Cutaway clipping and capping
-	Plane clippingPlanes[5];
-	Model* unitPlaneModel;
-	ModelInstance cappingPlaneInstances[5];
-	RenderQueue cappingRenderQueue;
-	RenderContext cappingRenderContext;
-	ClippingRenderPass clippingRenderPass;
-	CappingRenderPass cappingRenderPass;
 	
 	ModelLoader* modelLoader;
 };

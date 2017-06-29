@@ -121,8 +121,12 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/game/nest.cpp
 	${EXECUTABLE_SOURCE_DIR}/game/navmesh.hpp
 	${EXECUTABLE_SOURCE_DIR}/game/navmesh.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/pheromone.hpp
 	${EXECUTABLE_SOURCE_DIR}/game/pheromone.cpp
-	${EXECUTABLE_SOURCE_DIR}/game/pheromone.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/level.hpp
+	${EXECUTABLE_SOURCE_DIR}/game/level.cpp
+	${EXECUTABLE_SOURCE_DIR}/game/biome.hpp
+	${EXECUTABLE_SOURCE_DIR}/game/biome.cpp
 	${EXECUTABLE_SOURCE_DIR}/debug.hpp
 	${EXECUTABLE_SOURCE_DIR}/debug.cpp
 	${EXECUTABLE_SOURCE_DIR}/camera-controller.hpp

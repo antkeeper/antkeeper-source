@@ -187,36 +187,37 @@ void ClippingRenderPass::setClippingPlane(const Plane& plane)
 	this->clippingPlane = Vector4(plane.getNormal(), plane.getDistance());
 }
 
-CappingRenderPass::CappingRenderPass():
+SoilRenderPass::SoilRenderPass():
 	shader(nullptr)
 {
 	horizonTexturesParam = parameterSet.addParameter("horizonTextures", ShaderParameter::Type::INT, 4);
 	modelParam = parameterSet.addParameter("modelMatrix", ShaderParameter::Type::MATRIX_4, 1);
 	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	
+	horizonOTexture = nullptr;
+	horizonATexture = nullptr;
+	horizonBTexture = nullptr;
+	horizonCTexture = nullptr;
 }
 
-bool CappingRenderPass::load(const RenderContext* renderContext)
+bool SoilRenderPass::load(const RenderContext* renderContext)
 {
-	shaderLoader.undefine();
-	shaderLoader.define("TEXTURE_COUNT", 4);
-	
+	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
+	shaderLoader.define("VERTEX_TEXCOORD", EMERGENT_VERTEX_TEXCOORD);
+	shaderLoader.define("VERTEX_NORMAL", EMERGENT_VERTEX_NORMAL);
 	shader = shaderLoader.load("data/shaders/soil-profile.glsl", &parameterSet);
 	if (!shader)
 	{
 		return false;
 	}
 	
-	TextureLoader textureLoader;
-	horizonOTexture = textureLoader.load("data/textures/horizon-o.png");
-	horizonATexture = textureLoader.load("data/textures/horizon-a.png");
-	horizonBTexture = textureLoader.load("data/textures/horizon-b.png");
-	horizonCTexture = textureLoader.load("data/textures/horizon-c.png");
-	
 	return true;
 }
 
-void CappingRenderPass::unload()
+void SoilRenderPass::unload()
 {
+	shaderLoader.undefine();
+	
 	delete shader;
 	shader = nullptr;
 	
@@ -231,16 +232,12 @@ void CappingRenderPass::unload()
 	horizonCTexture = nullptr;
 }
 
-void CappingRenderPass::render(const RenderContext* renderContext)
+void SoilRenderPass::render(const RenderContext* renderContext)
 {
-	glStencilFunc(GL_NOTEQUAL, 0, ~0);
-	glStencilOp(GL_KEEP, GL_ZERO, GL_ZERO);
-	//glDepthMask(GL_FALSE);
-	
 	// Bind shader
 	shader->bind();
 	
-	// Bind texture
+	// Bind textures
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, horizonOTexture->getTextureID());
 	glActiveTexture(GL_TEXTURE1);
@@ -254,12 +251,32 @@ void CappingRenderPass::render(const RenderContext* renderContext)
 	int textureUnits[] = {0, 1, 2, 3};
 	shader->setParameter(horizonTexturesParam, 0, &textureUnits[0], 4);
 	
+	// Enable depth testing
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LEQUAL);
+	
+	// Enable backface culling
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	
 	const Camera& camera = *(renderContext->camera);
 	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
 	
 	// Render operations
 	for (const RenderOperation& operation: *operations)
-	{		
+	{
+		// Skip render operations with unsupported materials
+		if (operation.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
+		{
+			continue;
+		}	
+		const PhysicalMaterial* material = static_cast<const PhysicalMaterial*>(operation.material);
+		if (!(material->flags & (unsigned int)PhysicalMaterial::Flags::SOIL))
+		{
+			continue;
+		}
+		
 		const Matrix4& modelMatrix = operation.transform;
 		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
 		shader->setParameter(modelParam, modelMatrix);
@@ -268,9 +285,6 @@ void CappingRenderPass::render(const RenderContext* renderContext)
 		glBindVertexArray(operation.vao);
 		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
 	}
-	
-	//glDepthMask(GL_TRUE);
-	glDisable(GL_STENCIL_TEST);
 }
 
 LightingRenderPass::LightingRenderPass():
@@ -305,18 +319,6 @@ LightingRenderPass::LightingRenderPass():
 
 bool LightingRenderPass::load(const RenderContext* renderContext)
 {
-	// For each render operation
-	/*
-	if (renderContext != nullptr)
-	{
-		const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
-		for (const RenderOperation& operation: *operations)
-		{
-			loadShader(operation);
-		}
-	}
-	*/
-	
 	// Load tree shadow
 	TextureLoader textureLoader;
 	treeShadow = textureLoader.load("data/textures/tree-shadow-0.png");
@@ -341,34 +343,6 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 	{
 		std::cerr << "Failed to load cubemap" << std::endl;
 	}
-		
-	// Load unit plane
-	unitPlaneModel = modelLoader->load("data/models/unit-plane.mdl");
-	if (!unitPlaneModel)
-	{
-		std::cout << "Failed to load unit plane" << std::endl;
-	}
-	
-	// Setup capping plane model 
-	for (int i = 0; i < 5; ++i)
-	{
-		cappingPlaneInstances[i].setModel(unitPlaneModel);
-	}
-	
-	// Create capping render context
-	cappingRenderContext.queue = &cappingRenderQueue;
-	
-	// Load clipping render pass
-	if (!clippingRenderPass.load(nullptr))
-	{
-		return false;
-	}
-	
-	// Load capping render pass
-	if (!cappingRenderPass.load(nullptr))
-	{
-		return false;
-	}
 	
 	// Load lighting shader
 	shaderLoader.undefine();
@@ -390,9 +364,6 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 
 void LightingRenderPass::unload()
 {
-	cappingRenderQueue.clear();
-	clippingRenderPass.unload();
-	cappingRenderPass.unload();
 	delete lightingShader;
 	lightingShader = nullptr;
 	
@@ -855,6 +826,10 @@ void LightingRenderPass::render(const RenderContext* renderContext)
 			continue;
 		}
 		const PhysicalMaterial* material = static_cast<const PhysicalMaterial*>(operation.material);
+		if (!(material->flags & (unsigned int)PhysicalMaterial::Flags::OBJECT))
+		{
+			continue;
+		}
 		
 		// Skip render operations with unsupported vertex formats
 		

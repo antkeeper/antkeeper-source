@@ -210,7 +210,6 @@ void ExperimentState::enter()
 
 	
 	objectsLayer->addObject(&application->camera);
-	objectsLayer->addObject(application->displayModelInstance);
 	objectsLayer->addObject(application->antModelInstance);
 	objectsLayer->addObject(application->lineBatcher->getBatch());
 	
@@ -416,6 +415,7 @@ void ExperimentState::execute()
 	Vector3 pick;
 
 	
+	/*
 	if (dragging)
 	{
 		auto result = pickingRay.intersects(*terrain.getSurfaceMesh());
@@ -458,30 +458,13 @@ void ExperimentState::execute()
 		application->clippingPlaneOffsets[2] = Vector3(dragMin.x, -halfWorldSize, 0.0f);
 		application->clippingPlaneOffsets[3] = Vector3(0.0f, -halfWorldSize, dragMax.z);
 	}
-	
+	*/
 	
 	
 	// Calculate clipping planes
 	
 	float halfWorldSize = worldSize * 0.5f;
 	
-	// E, N, W, S, B
-	//application->clippingPlaneOffsets[0] = Vector3(halfWorldSize * 0.5f, -halfWorldSize, 0.0f);
-	//application->clippingPlaneOffsets[1] = Vector3(0.0f, -halfWorldSize, -halfWorldSize * 0.5f);
-	//application->clippingPlaneOffsets[2] = Vector3(-halfWorldSize * 0.5f, -halfWorldSize, 0.0f);
-	//application->clippingPlaneOffsets[3] = Vector3(0.0f, -halfWorldSize, halfWorldSize * 0.5f);
-	application->clippingPlaneOffsets[4] = Vector3(0.0f, -worldSize * 2.0f, 0.0f);
-	application->clippingPlaneNormals[0] = Vector3(1.0f, 0.0f, 0.0f);
-	application->clippingPlaneNormals[1] = Vector3(0.0f, 0.0f, -1.0f);
-	application->clippingPlaneNormals[2] = Vector3(-1.0f, 0.0f, 0.0f);
-	application->clippingPlaneNormals[3] = Vector3(0.0f, 0.0f, 1.0f);
-	application->clippingPlaneNormals[4] = Vector3(0.0f, -1.0f, 0.0f);
-	
-	for (int i = 0; i < 5; ++i)
-	{
-		application->clippingPlanes[i].set(application->clippingPlaneNormals[i], application->clippingPlaneOffsets[i]);
-	}
-	application->lightingPass.setClippingPlanes(&application->clippingPlanes[0]);
 	
 	
 	application->lineBatcher->getBatch()->update();

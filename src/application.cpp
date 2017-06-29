@@ -273,6 +273,11 @@ Application::Application(int argc, char* argv[]):
 		std::cout << "success" << std::endl;
 	}
 	
+	// Clear screen to black
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	SDL_GL_SwapWindow(window);
+	
 	// Get display DPI
 	std::cout << "Getting DPI of display 0... ";
 	if (SDL_GetDisplayDPI(0, &dpi, nullptr, nullptr) != 0)
@@ -313,13 +318,13 @@ Application::Application(int argc, char* argv[]):
 	menuControlProfile->registerControl("toggle_fullscreen", &toggleFullscreen);
 	menuControlProfile->registerControl("escape", &escape);
 	menuLeft.bindKey(keyboard, SDL_SCANCODE_LEFT);
-	menuLeft.bindKey(keyboard, SDL_SCANCODE_A);
+	//menuLeft.bindKey(keyboard, SDL_SCANCODE_A);
 	menuRight.bindKey(keyboard, SDL_SCANCODE_RIGHT);
-	menuRight.bindKey(keyboard, SDL_SCANCODE_D);
+	//menuRight.bindKey(keyboard, SDL_SCANCODE_D);
 	menuUp.bindKey(keyboard, SDL_SCANCODE_UP);
-	menuUp.bindKey(keyboard, SDL_SCANCODE_W);
+	//menuUp.bindKey(keyboard, SDL_SCANCODE_W);
 	menuDown.bindKey(keyboard, SDL_SCANCODE_DOWN);
-	menuDown.bindKey(keyboard, SDL_SCANCODE_S);
+	//menuDown.bindKey(keyboard, SDL_SCANCODE_S);
 	menuSelect.bindKey(keyboard, SDL_SCANCODE_RETURN);
 	menuSelect.bindKey(keyboard, SDL_SCANCODE_SPACE);
 	menuSelect.bindKey(keyboard, SDL_SCANCODE_Z);
@@ -366,11 +371,6 @@ Application::Application(int argc, char* argv[]):
 	splashState = new SplashState(this);
 	titleState = new TitleState(this);
 	experimentState = new ExperimentState(this);
-	
-	// Clear screen to black
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	SDL_GL_SwapWindow(window);
 	
 	// Setup loaders
 	textureLoader = new TextureLoader();

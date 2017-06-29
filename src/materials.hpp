@@ -50,23 +50,30 @@ inline unsigned int UIMaterial::getMaterialFormatID() const
 class PhysicalMaterial: public Material
 {
 public:
+	enum class Flags
+	{
+		OBJECT  = 0x01,
+		TERRAIN = 0x02,
+		SOIL    = 0x04,
+	};
+	
 	PhysicalMaterial():
 		albedoOpacityMap(nullptr),
 		metalnessRoughnessMap(nullptr),
-		normalOcclusionMap(nullptr)
+		normalOcclusionMap(nullptr),
+		flags((unsigned int)Flags::OBJECT)
 	{};
 	virtual ~PhysicalMaterial() {};
 	virtual unsigned int getMaterialFormatID() const;
 	
+	unsigned int flags;
 	Vector3 albedo;
 	float opacity;
 	float metalness;
 	float roughness;
-	
 	Texture* albedoOpacityMap;
 	Texture* metalnessRoughnessMap;
 	Texture* normalOcclusionMap;
-	
 	bool shadowCaster;
 	bool shadowReceiver;
 };
