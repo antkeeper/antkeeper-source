@@ -71,7 +71,8 @@ void Keyboard::release(int scancode)
 Mouse::Mouse(const std::string& name):
 	InputDevice(name),
 	notifyingMotionObservers(false),
-	notifyingButtonObservers(false)
+	notifyingButtonObservers(false),
+	notifyingWheelObservers(false)
 {}
 
 Mouse::~Mouse()
@@ -101,6 +102,18 @@ void Mouse::addMouseButtonObserver(MouseButtonObserver* observer)
 	}
 }
 
+void Mouse::addMouseWheelObserver(MouseWheelObserver* observer)
+{
+	if (notifyingWheelObservers)
+	{
+		additionFlaggedWheelObservers.push_back(observer);
+	}
+	else
+	{
+		wheelObservers.push_back(observer);
+	}
+}
+
 void Mouse::removeMouseMotionObserver(MouseMotionObserver* observer)
 {
 	if (notifyingMotionObservers)
@@ -125,6 +138,18 @@ void Mouse::removeMouseButtonObserver(MouseButtonObserver* observer)
 	}
 }
 
+void Mouse::removeMouseWheelObserver(MouseWheelObserver* observer)
+{
+	if (notifyingWheelObservers)
+	{
+		removalFlaggedWheelObservers.push_back(observer);
+	}
+	else
+	{
+		wheelObservers.remove(observer);
+	}
+}
+
 void Mouse::removeMouseMotionObservers()
 {
 	motionObservers.clear();
@@ -133,6 +158,11 @@ void Mouse::removeMouseMotionObservers()
 void Mouse::removeMouseButtonObservers()
 {
 	buttonObservers.clear();
+}
+
+void Mouse::removeMouseWheelObservers()
+{
+	wheelObservers.clear();
 }
 
 void Mouse::press(int button, int x, int y)
@@ -180,6 +210,20 @@ void Mouse::move(int x, int y)
 	processFlaggedMotionObservers();
 }
 
+void Mouse::scroll(int x, int y)
+{
+	// Notify observers
+	notifyingWheelObservers = true;
+	for (auto observer: wheelObservers)
+	{
+		observer->mouseWheelScrolled(x, y);
+	}
+	notifyingWheelObservers = false;
+	
+	// Process flags
+	processFlaggedWheelObservers();
+}
+
 void Mouse::processFlaggedMotionObservers()
 {
 	// Remove observers which are flagged for removal
@@ -212,6 +256,23 @@ void Mouse::processFlaggedButtonObservers()
 		buttonObservers.push_back(observer);
 	}
 	additionFlaggedButtonObservers.clear();
+}
+
+void Mouse::processFlaggedWheelObservers()
+{
+	// Remove observers which are flagged for removal
+	for (auto observer: removalFlaggedWheelObservers)
+	{
+		wheelObservers.remove(observer);
+	}
+	removalFlaggedWheelObservers.clear();
+	
+	// Add observers which are flagged for addition
+	for (auto observer: additionFlaggedWheelObservers)
+	{
+		wheelObservers.push_back(observer);
+	}
+	additionFlaggedWheelObservers.clear();
 }
 
 Gamepad::Gamepad(const std::string& name):
@@ -452,6 +513,15 @@ void SDLInputManager::update()
 				break;
 			}
 			
+			case SDL_MOUSEWHEEL:
+			{
+				int direction = (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) ? -1 : 1;
+				int x = event.wheel.x * direction;
+				int y = event.wheel.y * direction;
+				mouse->scroll(x, y);
+				break;
+			}
+			
 			case SDL_CONTROLLERBUTTONDOWN:
 			{
 				int instanceID = event.cbutton.which;
@@ -657,6 +727,20 @@ void SDLInputManager::listen(InputEvent* inputEvent)
 		inputEvent->type = InputEvent::Type::MOUSE_BUTTON;
 		inputEvent->mouseButton.first = mouse;
 		inputEvent->mouseButton.second = button;
+		return;
+	}
+	
+	// Check for mouse wheel events
+	eventCount = SDL_PeepEvents(&event, 1, SDL_PEEKEVENT, SDL_MOUSEWHEEL, SDL_MOUSEWHEEL);
+	if (eventCount)
+	{
+		int direction = (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) ? -1 : 1;
+		int x = event.wheel.x * direction;
+		int y = event.wheel.y * direction;
+		inputEvent->type = InputEvent::Type::MOUSE_WHEEL;
+		std::get<0>(inputEvent->mouseWheel) = mouse;
+		std::get<1>(inputEvent->mouseWheel) = x;
+		std::get<2>(inputEvent->mouseWheel) = y;
 		return;
 	}
 	

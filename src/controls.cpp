@@ -38,6 +38,11 @@ void Control::setDeadzone(float value)
 
 void Control::update()
 {
+	if (!boundMouseWheelAxes.empty())
+	{
+		currentValue = 0.0f;
+	}
+	
 	previousValue = currentValue;
 }
 
@@ -53,7 +58,7 @@ bool Control::wasTriggered() const
 
 bool Control::isUnbound() const
 {
-	return (boundKeys.empty() && boundMouseButtons.empty() && boundGamepadButtons.empty() && boundGamepadAxes.empty());
+	return (boundKeys.empty() && boundMouseButtons.empty() && boundMouseWheelAxes.empty() && boundGamepadButtons.empty() && boundGamepadAxes.empty());
 }
 
 void Control::bindKey(Keyboard* keyboard, int scancode)
@@ -90,6 +95,24 @@ void Control::bindMouseButton(Mouse* mouse, int button)
 	if (!observing)
 		mouse->addMouseButtonObserver(static_cast<MouseButtonObserver*>(this));
 	boundMouseButtons.push_back(std::pair<Mouse*, int>(mouse, button));
+}
+
+void Control::bindMouseWheelAxis(Mouse* mouse, MouseWheelAxis axis)
+{
+	// Checking if already observing this mouse
+	bool observing = false;
+	for (auto it: boundMouseWheelAxes)
+	{
+		if (it.first == mouse)
+		{
+			observing = true;
+			break;
+		}
+	}
+	
+	if (!observing)
+		mouse->addMouseWheelObserver(static_cast<MouseWheelObserver*>(this));
+	boundMouseWheelAxes.push_back(std::pair<Mouse*, MouseWheelAxis>(mouse, axis));
 }
 
 void Control::bindGamepadButton(Gamepad* gamepad, int button)
@@ -138,6 +161,27 @@ void Control::bind(const InputEvent& event)
 			bindMouseButton(event.mouseButton.first, event.mouseButton.second);
 			break;
 		
+		case InputEvent::Type::MOUSE_WHEEL:
+		{
+			int x = std::get<1>(event.mouseWheel);
+			int y = std::get<2>(event.mouseWheel);
+			
+			MouseWheelAxis axis;
+			if (x > 0)
+				axis = MouseWheelAxis::POSITIVE_X;
+			else if (x < 0)
+				axis = MouseWheelAxis::NEGATIVE_X;
+			else if (y > 0)
+				axis = MouseWheelAxis::POSITIVE_Y;
+			else if (y < 0)
+				axis = MouseWheelAxis::NEGATIVE_Y;
+			else
+				break;
+			
+			bindMouseWheelAxis(std::get<0>(event.mouseWheel), axis);
+			break;
+		}
+		
 		case InputEvent::Type::GAMEPAD_BUTTON:
 			bindGamepadButton(event.gamepadButton.first, event.gamepadButton.second);
 			break;
@@ -184,6 +228,24 @@ void Control::unbind()
 		{
 			if (it->first == mouse)
 				boundMouseButtons.erase(it++);
+			else
+				++it;
+		}
+	}
+	
+	while (!boundMouseWheelAxes.empty())
+	{
+		// Remove the first bound mouse button and stop observing its mouse
+		Mouse* mouse = boundMouseWheelAxes.front().first;
+		mouse->removeMouseWheelObserver(static_cast<MouseWheelObserver*>(this));
+		boundMouseWheelAxes.pop_front();
+		
+		// Remove other bound mouse buttons which are associated with the mouse
+		auto it = boundMouseWheelAxes.begin();
+		while (it != boundMouseWheelAxes.end())
+		{
+			if (it->first == mouse)
+				boundMouseWheelAxes.erase(it++);
 			else
 				++it;
 		}
@@ -274,6 +336,33 @@ void Control::mouseButtonReleased(int button, int x, int y)
 	}
 }
 
+void Control::mouseWheelScrolled(int x, int y)
+{
+	for (auto it: boundMouseWheelAxes)
+	{
+		if (it.second == MouseWheelAxis::POSITIVE_X && x > 0)
+		{
+			currentValue += x;
+			break;
+		}
+		else if (it.second == MouseWheelAxis::NEGATIVE_X && x < 0)
+		{
+			currentValue -= x;
+			break;
+		}
+		else if (it.second == MouseWheelAxis::POSITIVE_Y && y > 0)
+		{
+			currentValue += y;
+			break;
+		}
+		else if (it.second == MouseWheelAxis::NEGATIVE_Y && y < 0)
+		{
+			currentValue -= y;
+			break;
+		}
+	}
+}
+
 void Control::gamepadButtonPressed(int button)
 {
 	for (auto it: boundGamepadButtons)
@@ -320,6 +409,11 @@ const std::list<std::pair<Mouse*, int>>* Control::getBoundMouseButtons() const
 	return &boundMouseButtons;
 }
 
+const std::list<std::pair<Mouse*, MouseWheelAxis>>* Control::getBoundMouseWheelAxes() const
+{
+	return &boundMouseWheelAxes;
+}
+
 const std::list<std::pair<Gamepad*, int>>* Control::getBoundGamepadButtons() const
 {
 	return &boundGamepadButtons;
@@ -354,6 +448,7 @@ bool ControlProfile::save(const std::string& filename)
 		Control* control = it->second;
 		const std::list<std::pair<Keyboard*, int>>* boundKeys = control->getBoundKeys();
 		const std::list<std::pair<Mouse*, int>>* boundMouseButtons = control->getBoundMouseButtons();
+		const std::list<std::pair<Mouse*, MouseWheelAxis>>* boundMouseWheelAxes = control->getBoundMouseWheelAxes();
 		const std::list<std::pair<Gamepad*, int>>* boundGamepadButtons = control->getBoundGamepadButtons();
 		const std::list<std::tuple<Gamepad*, int, bool>>* boundGamepadAxes = control->getBoundGamepadAxes();
 		
@@ -367,6 +462,24 @@ bool ControlProfile::save(const std::string& filename)
 		{
 			int button = boundMouseButton.second;
 			file << "control\t" << it->first << "\tmouse\tbutton\t" << button << '\n';
+		}
+		
+		for (auto boundMouseWheelAxis: *boundMouseWheelAxes)
+		{
+			MouseWheelAxis axis = boundMouseWheelAxis.second;
+			
+			file << "control\t" << it->first << "\tmouse\twheel\t";
+			if (axis == MouseWheelAxis::POSITIVE_X)
+				file << "+x";
+			else if (axis == MouseWheelAxis::NEGATIVE_X)
+				file << "-x";
+			else if (axis == MouseWheelAxis::POSITIVE_Y)
+				file << "+y";
+			else if (axis == MouseWheelAxis::NEGATIVE_Y)
+				file << "-y";
+			else
+				file << "unknown";
+			file << '\n';
 		}
 		
 		for (auto boundGamepadButton: *boundGamepadButtons)
@@ -462,6 +575,25 @@ bool ControlProfile::load(const std::string& filename)
 					buttonstream >> button;
 					
 					control->bindMouseButton(mouse, button);
+				}
+				else if (tokens[3] == "wheel")
+				{
+					MouseWheelAxis axis;
+					if (tokens[4] == "+x")
+						axis = MouseWheelAxis::POSITIVE_X;
+					else if (tokens[4] == "-x")
+						axis = MouseWheelAxis::NEGATIVE_X;
+					else if (tokens[4] == "+y")
+						axis = MouseWheelAxis::POSITIVE_Y;
+					else if (tokens[4] == "-y")
+						axis = MouseWheelAxis::NEGATIVE_Y;
+					else
+					{
+						std::cerr << "Invalid line \"" << line << "\" in control profile \"" << filename << "\"" << std::endl;
+						continue;
+					}
+					
+					control->bindMouseWheelAxis(mouse, axis);
 				}
 				else
 				{

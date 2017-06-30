@@ -77,39 +77,23 @@ void TitleState::enter()
 	application->sunlight.setColor(glm::vec3(1.0f));
 	application->sunlight.setDirection(glm::normalize(glm::vec3(0.5, -1, -0.5)));
 	
-	const Level* level = &application->campaign.levels[1][1];
-	const Biome* biome = &application->biosphere.biomes[level->biome];
-	
 	// Setup soil pass
 	application->soilPass.setRenderTarget(&application->defaultRenderTarget);
-	TextureLoader textureLoader;
-	
-	/*application->soilPass.setHorizonOTexture(textureLoader.load("data/textures/debug-soil-horizon-o.png"));
-	application->soilPass.setHorizonATexture(textureLoader.load("data/textures/debug-soil-horizon-a.png"));
-	application->soilPass.setHorizonBTexture(textureLoader.load("data/textures/debug-soil-horizon-b.png"));
-	application->soilPass.setHorizonCTexture(textureLoader.load("data/textures/debug-soil-horizon-c.png"));*/
-	
-	
-	application->soilPass.setHorizonOTexture(biome->soilHorizonO);
-	application->soilPass.setHorizonATexture(biome->soilHorizonA);
-	application->soilPass.setHorizonBTexture(biome->soilHorizonB);
-	application->soilPass.setHorizonCTexture(biome->soilHorizonC);
 	application->defaultCompositor.addPass(&application->soilPass);
 	
 	// Create terrain
-	std::string heightmap = std::string("data/textures/") + level->heightmap;
-	
-	terrain.create(255, 255, Vector3(50, 20, 50));
-	terrain.load(heightmap);
-	terrain.getSurfaceModel()->getGroup(0)->material = application->materialLoader->load("data/materials/debug-terrain-surface.mtl");
-	terrainSurface.setModel(terrain.getSurfaceModel());
+	application->terrain.create(255, 255, Vector3(50, 20, 50));
+	application->terrain.getSurfaceModel()->getGroup(0)->material = application->materialLoader->load("data/materials/debug-terrain-surface.mtl");
+	terrainSurface.setModel(application->terrain.getSurfaceModel());
 	terrainSurface.setTranslation(Vector3(0, 0, 0));
-	
-	terrainSubsurface.setModel(terrain.getSubsurfaceModel());
+	terrainSubsurface.setModel(application->terrain.getSubsurfaceModel());
 	terrainSubsurface.setTranslation(Vector3(0, 0, 0));
 	application->scene.getLayer(0)->addObject(&terrainSurface);
 	application->scene.getLayer(0)->addObject(&terrainSubsurface);
-	navmesh = terrain.getSurfaceNavmesh();
+	navmesh = application->terrain.getSurfaceNavmesh();
+	
+	// Load level
+	application->loadLevel();
 	
 	// Setup lighting pass
 	application->lightingPass.setRenderTarget(&application->defaultRenderTarget);
@@ -169,7 +153,7 @@ void TitleState::enter()
 	application->surfaceCam->setCamera(&application->camera);
 	application->surfaceCam->setFocalPoint(Vector3(0.0f));
 	application->surfaceCam->setFocalDistance(300.0f);
-	application->surfaceCam->setElevation(glm::radians(32.5f));
+	application->surfaceCam->setElevation(glm::radians(35.0f));
 	application->surfaceCam->setAzimuth(glm::radians(-45.0f));
 	application->surfaceCam->setTargetFocalPoint(application->surfaceCam->getFocalPoint());
 	application->surfaceCam->setTargetFocalDistance(application->surfaceCam->getFocalDistance());
@@ -371,11 +355,16 @@ void TitleState::execute()
 	}
 	
 	// Zoom camera
-	float zoomFactor = application->surfaceCam->getFocalDistance() / 20.0f * dt / (1.0f / 60.0f);
+	float zoomFactor = application->surfaceCam->getFocalDistance() / 5.0f * dt / (1.0f / 60.0f);
 	if (application->cameraZoomIn.isTriggered())
 		application->surfaceCam->zoom(zoomFactor * application->cameraZoomIn.getCurrentValue());
 	if (application->cameraZoomOut.isTriggered())
 		application->surfaceCam->zoom(-zoomFactor * application->cameraZoomOut.getCurrentValue());
+	
+	float minFocalDistance = 2.0f;
+	float maxFocalDistance = 500.0f;
+	application->surfaceCam->setTargetFocalDistance(std::min(std::max(application->surfaceCam->getTargetFocalDistance(), minFocalDistance), maxFocalDistance));
+	
 	application->surfaceCam->update(dt);
 		
 	// Navigate menu

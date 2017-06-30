@@ -27,6 +27,7 @@ using namespace Emergent;
 #include "game/terrain.hpp"
 #include "game/level.hpp"
 #include "game/biome.hpp"
+#include "game/terrain.hpp"
 #include "input.hpp"
 #include "controls.hpp"
 #include "settings.hpp"
@@ -74,6 +75,11 @@ public:
 	void exitMenu(std::size_t index);
 	void selectMenuItem(std::size_t index);
 	void activateMenuItem(std::size_t index);
+	
+	void selectLevel(std::size_t index);
+	void activateLevel(std::size_t index);
+	
+	void loadLevel();
 	
 private:
 	ApplicationState* state;
@@ -171,14 +177,21 @@ public:
 	// Misc
 	Timer frameTimer;
 	
-	// UI
+	// UI text
 	ParameterDict strings;
 	float dpi;
 	float fontSizePT;
 	float fontSizePX;
 	Font* menuFont;
+	
+	// UI textures
 	Texture* splashTexture;
 	Texture* titleTexture;
+	Texture* levelActiveTexture;
+	Texture* levelInactiveTexture;
+	Texture* levelConnectorTexture;
+	
+	// UI elements
 	Vector4 selectedColor;
 	Vector4 deselectedColor;
 	UIContainer* uiRootElement;
@@ -211,6 +224,10 @@ public:
 	UILabel* pausedSettingsLabel;
 	UILabel* returnToMainMenuLabel;
 	UILabel* quitToDesktopLabel;
+	
+	UIContainer* levelSelectorContainer;
+	UIImage* levelSelections[10];
+	UIImage* levelConnectors[9];
 	
 	BillboardBatch* uiBatch;
 	UIBatcher* uiBatcher;
@@ -254,6 +271,7 @@ public:
 	Menu* challengeMenu;
 	Menu* experimentMenu;
 	Menu* settingsMenu;
+	Menu* levelSelectorMenu;
 	
 	// Models
 	Model* antModel;
@@ -261,7 +279,10 @@ public:
 	
 	// Game variables
 	Campaign campaign;
+	int currentWorld;
+	int currentLevel;
 	Biosphere biosphere;
+	Terrain terrain;
 	
 	Colony* colony;
 	SurfaceCameraController* surfaceCam;

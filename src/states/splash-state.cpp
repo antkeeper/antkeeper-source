@@ -63,13 +63,16 @@ void SplashState::enter()
 	}
 	delete fontLoader;
 	
-	// Load splash & title textures
+	// Load UI textures
 	application->textureLoader->setGamma(1.0f);
 	application->textureLoader->setCubemap(false);
 	application->textureLoader->setMipmapChain(false);
 	application->textureLoader->setMaxAnisotropy(1.0f);
 	application->splashTexture = application->textureLoader->load("data/textures/splash.png");
 	application->titleTexture = application->textureLoader->load("data/textures/title.png");
+	application->levelActiveTexture = application->textureLoader->load("data/textures/ui-level-active.png");
+	application->levelInactiveTexture = application->textureLoader->load("data/textures/ui-level-inactive.png");
+	application->levelConnectorTexture = application->textureLoader->load("data/textures/ui-level-connector.png");
 	
 	// Get UI strings
 	std::string pressAnyKeyString;
@@ -294,6 +297,45 @@ void SplashState::enter()
 	application->quitToDesktopLabel->setTranslation(Vector2(0.0f, application->menuFont->getMetrics().getHeight() * 2));
 	application->pauseMenuContainer->addChild(application->quitToDesktopLabel);
 	
+	// Level selector
+	application->levelSelectorContainer = new UIContainer();
+	application->levelSelectorContainer->setDimensions(Vector2(application->levelActiveTexture->getWidth() * 10 + 48 * 9, application->levelActiveTexture->getHeight()));
+	application->levelSelectorContainer->setAnchor(Vector2(0.5f, 1.0f));
+	application->levelSelectorContainer->setTranslation(Vector2(0.0f, -application->levelActiveTexture->getHeight()));
+	application->levelSelectorContainer->setVisible(true);
+	application->levelSelectorContainer->setActive(true);
+	application->uiRootElement->addChild(application->levelSelectorContainer);
+	
+	for (int i = 0; i < 10; ++i)
+	{
+		application->levelSelections[i] = new UIImage();
+		application->levelSelections[i]->setAnchor(Vector2(0.0f, 0.5f));
+		application->levelSelections[i]->setDimensions(Vector2(application->levelActiveTexture->getWidth(), application->levelActiveTexture->getHeight()));
+		application->levelSelections[i]->setTranslation(Vector2(i * 96.0f, 0.0f));
+		application->levelSelections[i]->setTexture(application->levelInactiveTexture);
+		application->levelSelections[i]->setVisible(true);
+		application->levelSelectorContainer->addChild(application->levelSelections[i]);
+				
+		if (i < 9)
+		{
+			application->levelConnectors[i] = new UIImage();
+			application->levelConnectors[i]->setAnchor(Vector2(0.0f, 0.5f));
+			application->levelConnectors[i]->setDimensions(Vector2(application->levelConnectorTexture->getWidth(), application->levelConnectorTexture->getHeight()));
+			application->levelConnectors[i]->setTranslation(Vector2((i + 1) * 96.0f - 50.0f, 0.0f));
+			application->levelConnectors[i]->setTexture(application->levelConnectorTexture);
+			application->levelConnectors[i]->setVisible(true);
+			application->levelSelectorContainer->addChild(application->levelConnectors[i]);
+		}
+	}
+	
+	application->titleImage = new UIImage();
+	application->titleImage->setAnchor(Vector2(0.5f, 0.0f));
+	application->titleImage->setDimensions(Vector2(application->titleTexture->getWidth(), application->titleTexture->getHeight()));
+	application->titleImage->setTranslation(Vector2(0.0f, (int)(application->height * (1.0f / 3.0f) - application->titleTexture->getHeight())));
+	application->titleImage->setTexture(application->titleTexture);
+	application->titleImage->setVisible(false);
+	application->uiRootElement->addChild(application->titleImage);
+	
 	/*
 	UIContainer* pauseMenuContainer;
 	UILabel* pausedResumeLabel;
@@ -492,6 +534,23 @@ void SplashState::enter()
 	application->selectedMenuItemIndex = 0;
 	application->selectMenuItem(application->selectedMenuItemIndex);
 	
+	
+	
+	application->currentLevel = 0;
+	application->levelSelectorMenu = new Menu();
+	for (int i = 0; i < 10; ++i)
+	{
+		MenuItem* levelSelectionItem = application->levelSelectorMenu->addItem();
+		levelSelectionItem->setSelectedCallback(std::bind(UIImage::setTexture, application->levelSelections[i], application->levelActiveTexture));
+		levelSelectionItem->setDeselectedCallback(std::bind(UIImage::setTexture, application->levelSelections[i], application->levelInactiveTexture));
+		levelSelectionItem->setActivatedCallback(std::bind(Application::loadLevel, application));
+		
+		application->levelSelections[i]->setMouseOverCallback(std::bind(Application::selectLevel, application, levelSelectionItem->getIndex()));
+		application->levelSelections[i]->setMouseMovedCallback(std::bind(Application::selectLevel, application, levelSelectionItem->getIndex()));
+		application->levelSelections[i]->setMousePressedCallback(std::bind(Application::activateLevel, application, levelSelectionItem->getIndex()));
+	}
+	
+	
 	// Models
 	application->antModel = application->modelLoader->load("data/models/debug-worker.mdl");
 	
@@ -507,6 +566,8 @@ void SplashState::enter()
 	
 	// Load campaign
 	application->campaign.load("data/levels/");
+	application->currentWorld = 1;
+	application->currentLevel = 1;
 	
 	// Setup screen fade-in transition
 	fadeIn = false;

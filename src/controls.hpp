@@ -26,9 +26,18 @@
 #include <tuple>
 #include <map>
 
+enum class MouseWheelAxis
+{
+	POSITIVE_X,
+	NEGATIVE_X,
+	POSITIVE_Y,
+	NEGATIVE_Y
+};
+
 class Control:
 	public KeyObserver,
 	public MouseButtonObserver,
+	public MouseWheelObserver,
 	public GamepadButtonObserver,
 	public GamepadAxisObserver
 {
@@ -47,6 +56,7 @@ public:
 	
 	void bindKey(Keyboard* keyboard, int scancode);
 	void bindMouseButton(Mouse* mouse, int button);
+	void bindMouseWheelAxis(Mouse* mouse, MouseWheelAxis axis);
 	void bindGamepadButton(Gamepad* gamepad, int button);
 	void bindGamepadAxis(Gamepad* gamepad, int axis, bool negative);
 	void bind(const InputEvent& event);
@@ -57,12 +67,14 @@ public:
 	virtual void keyReleased(int scancode);
 	virtual void mouseButtonPressed(int button, int x, int y);
 	virtual void mouseButtonReleased(int button, int x, int y);
+	virtual void mouseWheelScrolled(int x, int y);
 	virtual void gamepadButtonPressed(int button);
 	virtual void gamepadButtonReleased(int button);
 	virtual void gamepadAxisMoved(int axis, bool negative, float value);
 	
 	const std::list<std::pair<Keyboard*, int>>* getBoundKeys() const;
 	const std::list<std::pair<Mouse*, int>>* getBoundMouseButtons() const;
+	const std::list<std::pair<Mouse*, MouseWheelAxis>>* getBoundMouseWheelAxes() const;
 	const std::list<std::pair<Gamepad*, int>>* getBoundGamepadButtons() const;
 	const std::list<std::tuple<Gamepad*, int, bool>>* getBoundGamepadAxes() const;
 	
@@ -73,6 +85,7 @@ private:
 	
 	std::list<std::pair<Keyboard*, int>> boundKeys;
 	std::list<std::pair<Mouse*, int>> boundMouseButtons;
+	std::list<std::pair<Mouse*, MouseWheelAxis>> boundMouseWheelAxes;
 	std::list<std::pair<Gamepad*, int>> boundGamepadButtons;
 	std::list<std::tuple<Gamepad*, int, bool>> boundGamepadAxes;
 };

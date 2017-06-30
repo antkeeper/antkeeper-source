@@ -358,6 +358,9 @@ Application::Application(int argc, char* argv[]):
 	cameraRotateCCW.bindKey(keyboard, SDL_SCANCODE_E);
 	cameraZoomIn.bindKey(keyboard, SDL_SCANCODE_EQUALS);
 	cameraZoomOut.bindKey(keyboard, SDL_SCANCODE_MINUS);
+	cameraZoomIn.bindMouseWheelAxis(mouse, MouseWheelAxis::POSITIVE_Y);
+	cameraZoomOut.bindMouseWheelAxis(mouse, MouseWheelAxis::NEGATIVE_Y);
+	
 	cameraToggleOverheadView.bindKey(keyboard, SDL_SCANCODE_R);
 	cameraToggleNestView.bindKey(keyboard, SDL_SCANCODE_F);
 	walkForward.bindKey(keyboard, SDL_SCANCODE_UP);
@@ -599,4 +602,53 @@ void Application::activateMenuItem(std::size_t index)
 	
 	menus[currentMenuIndex]->getItem(index)->deselect();
 	menus[currentMenuIndex]->getItem(index)->activate();
+}
+
+void Application::selectLevel(std::size_t index)
+{
+	if (index > levelSelectorMenu->getItemCount())
+	{
+		std::cout << "Selected invalid level" << std::endl;
+		return;
+	}
+	
+	MenuItem* previousItem = levelSelectorMenu->getItem(currentLevel - 1);
+	previousItem->deselect();
+	
+	currentLevel = index + 1;
+	
+	MenuItem* nextItem = levelSelectorMenu->getItem(currentLevel - 1);
+	nextItem->select();
+}
+
+void Application::activateLevel(std::size_t index)
+{
+	if (index > levelSelectorMenu->getItemCount())
+	{
+		std::cout << "Activated invalid level" << std::endl;
+		return;
+	}
+	
+	//levelSelectorMenu->getItem(currentLevel - 1)->deselect();
+	levelSelectorMenu->getItem(currentLevel - 1)->activate();
+}
+
+void Application::loadLevel()
+{
+	if (currentLevel < 1 || currentLevel >= campaign.levels[currentWorld].size())
+	{
+		std::cout << "Attempted to load invalid level" << std::endl;
+		return;
+	}
+	
+	const Level* level = &campaign.levels[currentWorld][currentLevel];
+	const Biome* biome = &biosphere.biomes[level->biome];
+	
+	soilPass.setHorizonOTexture(biome->soilHorizonO);
+	soilPass.setHorizonATexture(biome->soilHorizonA);
+	soilPass.setHorizonBTexture(biome->soilHorizonB);
+	soilPass.setHorizonCTexture(biome->soilHorizonC);
+	
+	std::string heightmap = std::string("data/textures/") + level->heightmap;
+	terrain.load(heightmap);
 }

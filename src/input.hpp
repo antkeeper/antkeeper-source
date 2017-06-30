@@ -49,6 +49,12 @@ public:
 	virtual void mouseButtonReleased(int button, int x, int y) = 0;
 };
 
+class MouseWheelObserver
+{
+public:
+	virtual void mouseWheelScrolled(int x, int y) = 0;
+};
+
 class GamepadButtonObserver
 {
 public:
@@ -135,14 +141,18 @@ public:
 	
 	void addMouseMotionObserver(MouseMotionObserver* observer);
 	void addMouseButtonObserver(MouseButtonObserver* observer);
+	void addMouseWheelObserver(MouseWheelObserver* observer);
 	void removeMouseMotionObserver(MouseMotionObserver* observer);
 	void removeMouseButtonObserver(MouseButtonObserver* observer);
+	void removeMouseWheelObserver(MouseWheelObserver* observer);
 	void removeMouseMotionObservers();
 	void removeMouseButtonObservers();
+	void removeMouseWheelObservers();
 	
 	void press(int button, int x, int y);
 	void release(int button, int x, int y);
 	void move(int x, int y);
+	void scroll(int x, int y);
 	
 	const glm::ivec2& getCurrentPosition() const;
 	const glm::ivec2& getPreviousPosition() const;
@@ -150,17 +160,22 @@ public:
 private:
 	void processFlaggedMotionObservers();
 	void processFlaggedButtonObservers();
+	void processFlaggedWheelObservers();
 
 	glm::ivec2 currentPosition;
 	glm::ivec2 previousPosition;
 	std::list<MouseMotionObserver*> motionObservers;
 	std::list<MouseButtonObserver*> buttonObservers;
+	std::list<MouseWheelObserver*> wheelObservers;
 	bool notifyingMotionObservers;
 	bool notifyingButtonObservers;
+	bool notifyingWheelObservers;
 	std::list<MouseMotionObserver*> additionFlaggedMotionObservers;
 	std::list<MouseButtonObserver*> additionFlaggedButtonObservers;
+	std::list<MouseWheelObserver*> additionFlaggedWheelObservers;
 	std::list<MouseMotionObserver*> removalFlaggedMotionObservers;
 	std::list<MouseButtonObserver*> removalFlaggedButtonObservers;
+	std::list<MouseWheelObserver*> removalFlaggedWheelObservers;
 };
 
 inline InputDevice::Type Mouse::getType() const
@@ -216,6 +231,7 @@ public:
 		NONE,
 		KEY,
 		MOUSE_BUTTON,
+		MOUSE_WHEEL,
 		GAMEPAD_BUTTON,
 		GAMEPAD_AXIS
 	};
@@ -225,6 +241,7 @@ public:
 	InputEvent::Type type;
 	std::pair<Keyboard*, int> key;
 	std::pair<Mouse*, int> mouseButton;
+	std::tuple<Mouse*, int, int> mouseWheel;
 	std::pair<Gamepad*, int> gamepadButton;
 	std::tuple<Gamepad*, int, int> gamepadAxis;
 };
