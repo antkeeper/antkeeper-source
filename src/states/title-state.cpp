@@ -156,6 +156,8 @@ void TitleState::execute()
 		{
 			application->titleImage->setVisible(true);
 			application->titleFadeInTween->start();
+			application->titleScreenInfoContainer->setVisible(true);
+			application->copyrightFadeInTween->start();
 		}
 		
 		if (stateTime >= pressAnyKeyDelay && !application->anyKeyLabel->isVisible())
@@ -206,6 +208,9 @@ void TitleState::execute()
 					application->titleImage->setTintColor(Vector4(1.0f));
 					application->anyKeyFadeInTween->start();
 					application->anyKeyLabel->setVisible(true);
+					application->copyrightFadeInTween->stop();
+					application->titleScreenInfoContainer->setVisible(true);
+					application->titleScreenInfoContainer->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 0.5f));
 				}
 				else if (substate == 1)
 				{
@@ -216,6 +221,8 @@ void TitleState::execute()
 					application->anyKeyFadeInTween->stop();
 					application->anyKeyFadeOutTween->stop();
 					application->anyKeyLabel->setVisible(false);
+					application->copyrightFadeInTween->stop();
+					application->copyrightFadeOutTween->start();
 					
 					application->antHillZoomInTween->start();
 					
@@ -231,6 +238,10 @@ void TitleState::execute()
 
 void TitleState::exit()
 {
+	application->titleImage->setVisible(false);
+	application->anyKeyLabel->setVisible(false);
+	application->titleScreenInfoContainer->setVisible(false);
+	
 	// Remove objects from scene
 	application->defaultLayer->removeObject(&application->antHillModelInstance);
 	

@@ -17,43 +17,27 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXPERIMENT_STATE_HPP
-#define EXPERIMENT_STATE_HPP
+#ifndef PLAY_STATE_HPP
+#define PLAY_STATE_HPP
 
 #include "../application-state.hpp"
 #include "../input.hpp"
-#include "../debug.hpp"
-#include "../game/nest.hpp"
-#include "../game/terrain.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
-class ExperimentState: public ApplicationState, public WindowObserver, public MouseButtonObserver
+class PlayState: public ApplicationState, public MouseButtonObserver
 {
 public:
-	ExperimentState(Application* application);
-	virtual ~ExperimentState();
+	PlayState(Application* application);
+	virtual ~PlayState();
 	
 	virtual void enter();
 	virtual void execute();
 	virtual void exit();
 	
-	virtual void windowClosed();
-	virtual void windowResized(int width, int height);
 	virtual void mouseButtonPressed(int button, int x, int y);
 	virtual void mouseButtonReleased(int button, int x, int y);
-	
-	void generateNest();
-	
-private:
-	Timer timer;	
-	Nest nest;
-	Terrain terrain;
-	bool dragging;
-	bool oldDragging;
-	Vector3 dragStart;
-	Vector3 dragEnd;
 };
 
-#endif // EXPERIMENT_STATE_HPP
+#endif // PLAY_STATE_HPP

@@ -25,6 +25,7 @@
 #include "states/splash-state.hpp"
 #include "states/title-state.hpp"
 #include "states/main-menu-state.hpp"
+#include "states/play-state.hpp"
 #include "debug.hpp"
 #include "camera-controller.hpp"
 #include <cstdlib>
@@ -316,6 +317,7 @@ Application::Application(int argc, char* argv[]):
 	splashState = new SplashState(this);
 	titleState = new TitleState(this);
 	mainMenuState = new MainMenuState(this);
+	playState = new PlayState(this);
 	
 	// Setup loaders
 	textureLoader = new TextureLoader();
@@ -561,13 +563,21 @@ bool Application::loadScene()
 
 bool Application::loadUI()
 {
-	// Load menu font
-	menuFont = new Font(512, 512);
+	// Load fonts
 	FontLoader* fontLoader = new FontLoader();
+	
+	menuFont = new Font(512, 512);
 	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", fontSizePX, menuFont))
 	{
-		std::cerr << "Failed to load font" << std::endl;
+		std::cerr << "Failed to load menu font" << std::endl;
 	}
+	
+	copyrightFont = new Font(256, 256);
+	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", (int)(fontSizePX * 0.8f + 0.5f), copyrightFont))
+	{
+		std::cerr << "Failed to load copyright font" << std::endl;
+	}
+	
 	delete fontLoader;
 	
 	// Load UI textures
@@ -575,14 +585,16 @@ bool Application::loadUI()
 	textureLoader->setCubemap(false);
 	textureLoader->setMipmapChain(false);
 	textureLoader->setMaxAnisotropy(1.0f);
-	splashTexture = textureLoader->load("data/textures/splash.png");
-	titleTexture = textureLoader->load("data/textures/title.png");
+	splashTexture = textureLoader->load("data/textures/ui-splash.png");
+	titleTexture = textureLoader->load("data/textures/ui-title.png");
 	levelActiveTexture = textureLoader->load("data/textures/ui-level-active.png");
 	levelInactiveTexture = textureLoader->load("data/textures/ui-level-inactive.png");
 	levelConnectorTexture = textureLoader->load("data/textures/ui-level-connector.png");
 	
 	// Get strings
 	std::string pressAnyKeyString;
+	std::string copyrightString;
+	std::string versionString;
 	std::string backString;
 	std::string challengeString;
 	std::string experimentString;
@@ -598,6 +610,8 @@ bool Application::loadUI()
 	std::string returnToMainMenuString;
 	std::string quitToDesktopString;
 	strings.get("press-any-key", &pressAnyKeyString);
+	strings.get("copyright", &copyrightString);
+	strings.get("version", &versionString);
 	strings.get("back", &backString);
 	strings.get("challenge", &challengeString);
 	strings.get("experiment", &experimentString);
@@ -643,26 +657,38 @@ bool Application::loadUI()
 	titleImage = new UIImage();
 	titleImage->setAnchor(Vector2(0.5f, 0.0f));
 	titleImage->setDimensions(Vector2(titleTexture->getWidth(), titleTexture->getHeight()));
-	titleImage->setTranslation(Vector2(0.0f, (int)(height * (1.0f / 3.0f) - titleTexture->getHeight())));
+	titleImage->setTranslation(Vector2(0.0f, (int)(height * (1.0f / 4.0f) - titleTexture->getHeight() * 0.5f)));
 	titleImage->setTexture(titleTexture);
 	titleImage->setVisible(false);
 	uiRootElement->addChild(titleImage);
 	
-	/*
-	copyrightImage = new UIImage();
-	copyrightImage->setAnchor(Vector2(0.5f, 1.0f));
-	copyrightImage->setDimensions(Vector2(copyrightTextureWidth, copyrightTextureHeight));
-	copyrightImage->setTranslation(Vector2(-.5f, (int)(-height * (1.0f / 10.0f) - copyrightTextureHeight * 0.5f)));
-	copyrightImage->setTexture(nullptr);
-	copyrightImage->setVisible(false);
-	uiRootElement->addChild(copyrightImage);
-	*/
+	// Create Title screen info element
+	titleScreenInfoContainer = new UIContainer();
+	titleScreenInfoContainer->setDimensions(Vector2(width, height));
+	titleScreenInfoContainer->setVisible(false);
+	uiRootElement->addChild(titleScreenInfoContainer);
+	
+	// Create copyright element
+	copyrightLabel = new UILabel();
+	copyrightLabel->setAnchor(Vector2(0.0f, 1.0f));
+	copyrightLabel->setFont(copyrightFont);
+	copyrightLabel->setTranslation(Vector2((int)(width * 0.025f), (int)(-height * 0.025f)));
+	copyrightLabel->setText(copyrightString);
+	titleScreenInfoContainer->addChild(copyrightLabel);
+	
+	// Create version element
+	versionLabel = new UILabel();
+	versionLabel->setAnchor(Vector2(1.0f, 1.0f));
+	versionLabel->setFont(copyrightFont);
+	versionLabel->setTranslation(Vector2((int)(-width * 0.025f), (int)(-height * 0.025f)));
+	versionLabel->setText(versionString);
+	titleScreenInfoContainer->addChild(versionLabel);
 	
 	// Create "Press any key" element
 	anyKeyLabel = new UILabel();
 	anyKeyLabel->setAnchor(Vector2(0.5f, 1.0f));
 	anyKeyLabel->setFont(menuFont);
-	anyKeyLabel->setTranslation(Vector2(0.0f, (int)(-height * (1.0f / 3.0f)/* - menuFont->getMetrics().getHeight() * 0.5f*/)));
+	anyKeyLabel->setTranslation(Vector2(0.0f, (int)(-height * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 0.5f)));
 	anyKeyLabel->setText(pressAnyKeyString);
 	anyKeyLabel->setVisible(false);
 	uiRootElement->addChild(anyKeyLabel);
@@ -871,11 +897,11 @@ bool Application::loadUI()
 	tweener->addTween(titleFadeOutTween);
 	
 	// Setup copyright tween
-	copyrightFadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 1.0f, Vector4(1.0f, 1.0f, 1.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-	copyrightFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, copyrightImage, std::placeholders::_1));
+	copyrightFadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 1.0f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 0.5f));
+	copyrightFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, titleScreenInfoContainer, std::placeholders::_1));
 	tweener->addTween(copyrightFadeInTween);
-	copyrightFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.25f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
-	copyrightFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, copyrightImage, std::placeholders::_1));
+	copyrightFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.25f, Vector4(0.0f, 0.0f, 0.0f, 0.5f), Vector4(0.0f, 0.0f, 0.0f, -0.5f));
+	copyrightFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, titleScreenInfoContainer, std::placeholders::_1));
 	tweener->addTween(copyrightFadeOutTween);
 	
 	// Setup "Press any key" tween
@@ -896,7 +922,7 @@ bool Application::loadUI()
 	Vector4 menuFadeOutDeltaColor = Vector4(0.0f, 0.0f, 0.0f, -1.0f);
 	float menuSlideInDuration = 0.35f;
 	Vector2 menuSlideInStartTranslation = Vector2(-64.0f, 0.0f);
-	Vector2 menuSlideInDeltaTranslation = Vector2(128.0f, 0.0f);
+	Vector2 menuSlideInDeltaTranslation = Vector2((int)(64.0f + width / 8.0f), 0.0f);
 	
 	float levelSelectorSlideInDuration = 0.35f;
 	Vector2 levelSelectorSlideInStartTranslation = Vector2(0.0f, levelActiveTexture->getHeight());

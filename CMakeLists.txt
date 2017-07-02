@@ -106,6 +106,8 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/states/title-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/states/main-menu-state.hpp
 	${EXECUTABLE_SOURCE_DIR}/states/main-menu-state.cpp
+	${EXECUTABLE_SOURCE_DIR}/states/play-state.hpp
+	${EXECUTABLE_SOURCE_DIR}/states/play-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/ui/ui.hpp
 	${EXECUTABLE_SOURCE_DIR}/ui/ui.cpp
 	${EXECUTABLE_SOURCE_DIR}/ui/tween.hpp

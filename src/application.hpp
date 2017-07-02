@@ -42,6 +42,7 @@ class LoadingState;
 class SplashState;
 class TitleState;
 class MainMenuState;
+class PlayState;
 class CameraController;
 class SurfaceCameraController;
 class TunnelCameraController;
@@ -129,6 +130,7 @@ public:
 	SplashState* splashState;
 	TitleState* titleState;
 	MainMenuState* mainMenuState;
+	PlayState* playState;
 	
 	// Scene
 	Scene scene;
@@ -213,6 +215,7 @@ public:
 	float fontSizePT;
 	float fontSizePX;
 	Font* menuFont;
+	Font* copyrightFont;
 	
 	// UI textures
 	Texture* splashTexture;
@@ -228,7 +231,11 @@ public:
 	UIImage* blackoutImage;
 	UIImage* splashImage;
 	UIImage* titleImage;
-	UIImage* copyrightImage;
+	
+	UIContainer* titleScreenInfoContainer;
+	UILabel* copyrightLabel;
+	UILabel* versionLabel;
+	
 	UILabel* anyKeyLabel;
 	UILabel* menuSelectorLabel;
 	UIContainer* mainMenuContainer;
