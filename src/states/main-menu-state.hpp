@@ -17,8 +17,8 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SPLASH_STATE_HPP
-#define SPLASH_STATE_HPP
+#ifndef MAIN_MENU_STATE_HPP
+#define MAIN_MENU_STATE_HPP
 
 #include "../application-state.hpp"
 #include "../input.hpp"
@@ -26,18 +26,18 @@
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
-/**
- * Displays a splash screen.
- */
-class SplashState: public ApplicationState
+class MainMenuState: public ApplicationState, public MouseButtonObserver
 {
 public:
-	SplashState(Application* application);
-	virtual ~SplashState();
+	MainMenuState(Application* application);
+	virtual ~MainMenuState();
 	
 	virtual void enter();
 	virtual void execute();
 	virtual void exit();
+	
+	virtual void mouseButtonPressed(int button, int x, int y);
+	virtual void mouseButtonReleased(int button, int x, int y);
 };
 
-#endif // SPLASH_STATE_HPP
+#endif // MAIN_MENU_STATE_HPP

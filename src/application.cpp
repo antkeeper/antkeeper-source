@@ -21,11 +21,15 @@
 #include "application-state.hpp"
 #include "model-loader.hpp"
 #include "material-loader.hpp"
+#include "states/loading-state.hpp"
 #include "states/splash-state.hpp"
 #include "states/title-state.hpp"
-#include "states/experiment-state.hpp"
+#include "states/main-menu-state.hpp"
+#include "debug.hpp"
+#include "camera-controller.hpp"
 #include <cstdlib>
 #include <iostream>
+#include <cstdio>
 #include <SDL.h>
 
 #define OPENGL_VERSION_MAJOR 3
@@ -307,73 +311,11 @@ Application::Application(int argc, char* argv[]):
 	keyboard = (*inputManager->getKeyboards()).front();
 	mouse = (*inputManager->getMice()).front();
 	
-	// Setup menu navigation controls
-	menuControlProfile = new ControlProfile(inputManager);
-	menuControlProfile->registerControl("menu_left", &menuLeft);
-	menuControlProfile->registerControl("menu_right", &menuRight);
-	menuControlProfile->registerControl("menu_up", &menuUp);
-	menuControlProfile->registerControl("menu_down", &menuDown);
-	menuControlProfile->registerControl("menu_select", &menuSelect);
-	menuControlProfile->registerControl("menu_cancel", &menuCancel);
-	menuControlProfile->registerControl("toggle_fullscreen", &toggleFullscreen);
-	menuControlProfile->registerControl("escape", &escape);
-	menuLeft.bindKey(keyboard, SDL_SCANCODE_LEFT);
-	//menuLeft.bindKey(keyboard, SDL_SCANCODE_A);
-	menuRight.bindKey(keyboard, SDL_SCANCODE_RIGHT);
-	//menuRight.bindKey(keyboard, SDL_SCANCODE_D);
-	menuUp.bindKey(keyboard, SDL_SCANCODE_UP);
-	//menuUp.bindKey(keyboard, SDL_SCANCODE_W);
-	menuDown.bindKey(keyboard, SDL_SCANCODE_DOWN);
-	//menuDown.bindKey(keyboard, SDL_SCANCODE_S);
-	menuSelect.bindKey(keyboard, SDL_SCANCODE_RETURN);
-	menuSelect.bindKey(keyboard, SDL_SCANCODE_SPACE);
-	menuSelect.bindKey(keyboard, SDL_SCANCODE_Z);
-	menuCancel.bindKey(keyboard, SDL_SCANCODE_BACKSPACE);
-	menuCancel.bindKey(keyboard, SDL_SCANCODE_X);
-	toggleFullscreen.bindKey(keyboard, SDL_SCANCODE_F11);
-	escape.bindKey(keyboard, SDL_SCANCODE_ESCAPE);
-	
-	// Setup in-game controls
-	gameControlProfile = new ControlProfile(inputManager);
-	gameControlProfile->registerControl("camera-move-forward", &cameraMoveForward);
-	gameControlProfile->registerControl("camera-move-back", &cameraMoveBack);
-	gameControlProfile->registerControl("camera-move-left", &cameraMoveLeft);
-	gameControlProfile->registerControl("camera-move-right", &cameraMoveRight);
-	gameControlProfile->registerControl("camera-rotate-cw", &cameraRotateCW);
-	gameControlProfile->registerControl("camera-rotate-ccw", &cameraRotateCCW);
-	gameControlProfile->registerControl("camera-zoom-in", &cameraZoomIn);
-	gameControlProfile->registerControl("camera-zoom-out", &cameraZoomOut);
-	gameControlProfile->registerControl("camera-toggle-nest-view", &cameraToggleNestView);
-	gameControlProfile->registerControl("camera-toggle-overhead-view", &cameraToggleOverheadView);
-	gameControlProfile->registerControl("walk-forward", &walkForward);
-	gameControlProfile->registerControl("walk-back", &walkBack);
-	gameControlProfile->registerControl("turn-left", &turnLeft);
-	gameControlProfile->registerControl("turn-right", &turnRight);
-	
-	cameraMoveForward.bindKey(keyboard, SDL_SCANCODE_W);
-	cameraMoveBack.bindKey(keyboard, SDL_SCANCODE_S);
-	cameraMoveLeft.bindKey(keyboard, SDL_SCANCODE_A);
-	cameraMoveRight.bindKey(keyboard, SDL_SCANCODE_D);
-	cameraRotateCW.bindKey(keyboard, SDL_SCANCODE_Q);
-	cameraRotateCCW.bindKey(keyboard, SDL_SCANCODE_E);
-	cameraZoomIn.bindKey(keyboard, SDL_SCANCODE_EQUALS);
-	cameraZoomOut.bindKey(keyboard, SDL_SCANCODE_MINUS);
-	cameraZoomIn.bindMouseWheelAxis(mouse, MouseWheelAxis::POSITIVE_Y);
-	cameraZoomOut.bindMouseWheelAxis(mouse, MouseWheelAxis::NEGATIVE_Y);
-	
-	cameraToggleOverheadView.bindKey(keyboard, SDL_SCANCODE_R);
-	cameraToggleNestView.bindKey(keyboard, SDL_SCANCODE_F);
-	walkForward.bindKey(keyboard, SDL_SCANCODE_UP);
-	walkBack.bindKey(keyboard, SDL_SCANCODE_DOWN);
-	turnLeft.bindKey(keyboard, SDL_SCANCODE_LEFT);
-	turnRight.bindKey(keyboard, SDL_SCANCODE_RIGHT);
-	cameraOverheadView = true;
-	cameraNestView = false;
-	
 	// Allocate states
+	loadingState = new LoadingState(this);
 	splashState = new SplashState(this);
 	titleState = new TitleState(this);
-	experimentState = new ExperimentState(this);
+	mainMenuState = new MainMenuState(this);
 	
 	// Setup loaders
 	textureLoader = new TextureLoader();
@@ -381,8 +323,12 @@ Application::Application(int argc, char* argv[]):
 	modelLoader = new ModelLoader();
 	modelLoader->setMaterialLoader(materialLoader);
 	
-	// Enter splash state
-	state = nextState = splashState;
+	// Allocate game variables
+	surfaceCam = new SurfaceCameraController();
+	tunnelCam = new TunnelCameraController();
+	
+	// Enter loading state
+	state = nextState = loadingState;
 	state->enter();
 }
 
@@ -395,20 +341,73 @@ Application::~Application()
 
 int Application::execute()
 {
+	// Start frame timer
+	frameTimer.start();
+	
 	while (state != nullptr)
 	{
-		state->execute();
+		// Calculate delta time (in seconds) then reset frame timer
+		dt = static_cast<float>(frameTimer.microseconds().count()) / 1000000.0f;
+		frameTimer.reset();
 		
+		// If the user tried to close the application
+		if (inputManager->wasClosed() || escape.isTriggered())
+		{
+			// Close the application
+			close(EXIT_SUCCESS);
+		}
+		else
+		{
+			// Execute current state
+			state->execute();
+		}
+		
+		// Check for state change
 		if (nextState != state)
 		{
+			// Exit current state
 			state->exit();
 			
+			// Enter next state (if valid)
 			state = nextState;
 			if (nextState != nullptr)
 			{
 				state->enter();
+				
+				// Reset frame timer to counteract frames eaten by state exit() and enter() functions
+				frameTimer.reset();
 			}
 		}
+		
+		// Update controls
+		menuControlProfile->update();
+		gameControlProfile->update();
+		
+		// Update input
+		inputManager->update();
+		
+		// Check if fullscreen was toggled
+		if (toggleFullscreen.isTriggered() && !toggleFullscreen.wasTriggered())
+		{
+			changeFullscreen();
+		}
+		
+		// Perform tweening
+		tweener->update(dt);
+		
+		// Update UI
+		uiRootElement->update();
+		uiBatcher->batch(uiBatch, uiRootElement);
+		
+		// Clear depth and stencil buffers
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		
+		// Render scene
+		renderer.render(scene);
+		
+		// Swap buffers
+		SDL_GL_SwapWindow(window);
 	}
 	
 	return terminationCode;
@@ -525,6 +524,636 @@ void Application::saveUserSettings()
 	}
 }
 
+bool Application::loadModels()
+{
+	antModel = modelLoader->load("data/models/debug-worker.mdl");
+	antHillModel = modelLoader->load("data/models/ant-hill.mdl");
+	
+	if (!antModel || !antHillModel)
+	{
+		return false;
+	}
+	
+	antModelInstance.setModel(antModel);
+	antModelInstance.setTransform(Transform::getIdentity());	
+	antHillModelInstance.setModel(antHillModel);
+	antHillModelInstance.setRotation(glm::angleAxis(glm::radians(90.0f), Vector3(1, 0, 0)));
+	
+	return true;
+}
+
+bool Application::loadScene()
+{
+	// Create scene layers
+	backgroundLayer = scene.addLayer();
+	defaultLayer = scene.addLayer();
+	uiLayer = scene.addLayer();
+	
+	// Debug
+	lineBatcher = new LineBatcher(4096);
+	BillboardBatch* lineBatch = lineBatcher->getBatch();
+	lineBatch->setAlignment(&camera, BillboardAlignmentMode::CYLINDRICAL);
+	lineBatch->setAlignmentVector(Vector3(1, 0, 0));
+	defaultLayer->addObject(lineBatch);
+	
+	return true;
+}
+
+bool Application::loadUI()
+{
+	// Load menu font
+	menuFont = new Font(512, 512);
+	FontLoader* fontLoader = new FontLoader();
+	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", fontSizePX, menuFont))
+	{
+		std::cerr << "Failed to load font" << std::endl;
+	}
+	delete fontLoader;
+	
+	// Load UI textures
+	textureLoader->setGamma(1.0f);
+	textureLoader->setCubemap(false);
+	textureLoader->setMipmapChain(false);
+	textureLoader->setMaxAnisotropy(1.0f);
+	splashTexture = textureLoader->load("data/textures/splash.png");
+	titleTexture = textureLoader->load("data/textures/title.png");
+	levelActiveTexture = textureLoader->load("data/textures/ui-level-active.png");
+	levelInactiveTexture = textureLoader->load("data/textures/ui-level-inactive.png");
+	levelConnectorTexture = textureLoader->load("data/textures/ui-level-connector.png");
+	
+	// Get strings
+	std::string pressAnyKeyString;
+	std::string backString;
+	std::string challengeString;
+	std::string experimentString;
+	std::string settingsString;
+	std::string quitString;
+	std::string loadString;
+	std::string newString;
+	std::string videoString;
+	std::string audioString;
+	std::string controlsString;
+	std::string gameString;
+	std::string resumeString;
+	std::string returnToMainMenuString;
+	std::string quitToDesktopString;
+	strings.get("press-any-key", &pressAnyKeyString);
+	strings.get("back", &backString);
+	strings.get("challenge", &challengeString);
+	strings.get("experiment", &experimentString);
+	strings.get("settings", &settingsString);
+	strings.get("quit", &quitString);
+	strings.get("load", &loadString);
+	strings.get("new", &newString);
+	strings.get("video", &videoString);
+	strings.get("audio", &audioString);
+	strings.get("controls", &controlsString);
+	strings.get("game", &gameString);
+	strings.get("resume", &resumeString);
+	strings.get("return-to-main-menu", &returnToMainMenuString);
+	strings.get("quit-to-desktop", &quitToDesktopString);
+	
+	// Set colors
+	selectedColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+	deselectedColor = Vector4(0.0f, 0.0f, 0.0f, 0.35f);
+	
+	// Setup root UI element
+	uiRootElement = new UIContainer();
+	uiRootElement->setDimensions(Vector2(width, height));
+	mouse->addMouseMotionObserver(uiRootElement);
+	mouse->addMouseButtonObserver(uiRootElement);
+	
+	// Create blackout element (for screen transitions)
+	blackoutImage = new UIImage();
+	blackoutImage->setDimensions(Vector2(width, height));
+	blackoutImage->setLayerOffset(99);
+	blackoutImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	blackoutImage->setVisible(false);
+	uiRootElement->addChild(blackoutImage);
+	
+	// Create splash screen element
+	splashImage = new UIImage();
+	splashImage->setAnchor(Anchor::CENTER);
+	splashImage->setDimensions(Vector2(splashTexture->getWidth(), splashTexture->getHeight()));
+	splashImage->setTexture(splashTexture);
+	splashImage->setVisible(false);
+	uiRootElement->addChild(splashImage);
+	
+	// Create game title element
+	titleImage = new UIImage();
+	titleImage->setAnchor(Vector2(0.5f, 0.0f));
+	titleImage->setDimensions(Vector2(titleTexture->getWidth(), titleTexture->getHeight()));
+	titleImage->setTranslation(Vector2(0.0f, (int)(height * (1.0f / 3.0f) - titleTexture->getHeight())));
+	titleImage->setTexture(titleTexture);
+	titleImage->setVisible(false);
+	uiRootElement->addChild(titleImage);
+	
+	/*
+	copyrightImage = new UIImage();
+	copyrightImage->setAnchor(Vector2(0.5f, 1.0f));
+	copyrightImage->setDimensions(Vector2(copyrightTextureWidth, copyrightTextureHeight));
+	copyrightImage->setTranslation(Vector2(-.5f, (int)(-height * (1.0f / 10.0f) - copyrightTextureHeight * 0.5f)));
+	copyrightImage->setTexture(nullptr);
+	copyrightImage->setVisible(false);
+	uiRootElement->addChild(copyrightImage);
+	*/
+	
+	// Create "Press any key" element
+	anyKeyLabel = new UILabel();
+	anyKeyLabel->setAnchor(Vector2(0.5f, 1.0f));
+	anyKeyLabel->setFont(menuFont);
+	anyKeyLabel->setTranslation(Vector2(0.0f, (int)(-height * (1.0f / 3.0f)/* - menuFont->getMetrics().getHeight() * 0.5f*/)));
+	anyKeyLabel->setText(pressAnyKeyString);
+	anyKeyLabel->setVisible(false);
+	uiRootElement->addChild(anyKeyLabel);
+	
+	// Create main menu selector element
+	menuSelectorLabel = new UILabel();
+	menuSelectorLabel->setAnchor(Anchor::TOP_LEFT);
+	menuSelectorLabel->setFont(menuFont);
+	menuSelectorLabel->setText("<");
+	menuSelectorLabel->setTintColor(selectedColor);
+	menuSelectorLabel->setVisible(false);
+	uiRootElement->addChild(menuSelectorLabel);
+	
+	// Create main menu elements
+	mainMenuContainer = new UIContainer();
+	mainMenuContainer->setDimensions(Vector2(width, menuFont->getMetrics().getHeight() * 4));
+	mainMenuContainer->setAnchor(Vector2(0.0f, 0.5f));
+	mainMenuContainer->setVisible(false);
+	mainMenuContainer->setActive(false);
+	uiRootElement->addChild(mainMenuContainer);
+	challengeLabel = new UILabel();
+	challengeLabel->setFont(menuFont);
+	challengeLabel->setText(challengeString);
+	challengeLabel->setTintColor(deselectedColor);
+	experimentLabel = new UILabel();
+	experimentLabel->setFont(menuFont);
+	experimentLabel->setText(experimentString);
+	experimentLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight()));
+	experimentLabel->setTintColor(deselectedColor);
+	settingsLabel = new UILabel();
+	settingsLabel->setFont(menuFont);
+	settingsLabel->setText(settingsString);
+	settingsLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 2));
+	settingsLabel->setTintColor(deselectedColor);
+	quitLabel = new UILabel();
+	quitLabel->setFont(menuFont);
+	quitLabel->setText(quitString);
+	quitLabel->setTintColor(deselectedColor);
+	quitLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 3));
+	mainMenuContainer->addChild(challengeLabel);
+	mainMenuContainer->addChild(experimentLabel);
+	mainMenuContainer->addChild(settingsLabel);
+	mainMenuContainer->addChild(quitLabel);
+	
+	// Create challenge menu elements
+	challengeMenuContainer = new UIContainer();
+	challengeMenuContainer->setDimensions(Vector2(width, menuFont->getMetrics().getHeight() * 4));
+	challengeMenuContainer->setAnchor(Vector2(0.0f, 0.5f));
+	challengeMenuContainer->setVisible(false);
+	challengeMenuContainer->setActive(false);
+	uiRootElement->addChild(challengeMenuContainer);
+	
+	// Create experiment menu elements
+	experimentMenuContainer = new UIContainer();
+	experimentMenuContainer->setDimensions(Vector2(width, menuFont->getMetrics().getHeight() * 3));
+	experimentMenuContainer->setAnchor(Vector2(0.0f, 0.5f));
+	experimentMenuContainer->setVisible(false);
+	experimentMenuContainer->setActive(false);
+	uiRootElement->addChild(experimentMenuContainer);
+	loadLabel = new UILabel();
+	loadLabel->setFont(menuFont);
+	loadLabel->setText(loadString);
+	loadLabel->setTintColor(deselectedColor);
+	loadLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 0));
+	experimentMenuContainer->addChild(loadLabel);
+	newLabel = new UILabel();
+	newLabel->setFont(menuFont);
+	newLabel->setText(newString);
+	newLabel->setTintColor(deselectedColor);
+	newLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 1));
+	experimentMenuContainer->addChild(newLabel);
+	experimentBackLabel = new UILabel();
+	experimentBackLabel->setFont(menuFont);
+	experimentBackLabel->setText(backString);
+	experimentBackLabel->setTintColor(deselectedColor);
+	experimentBackLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 2));
+	experimentMenuContainer->addChild(experimentBackLabel);
+	
+	// Create settings menu elements
+	settingsMenuContainer = new UIContainer();
+	settingsMenuContainer->setDimensions(Vector2(width, menuFont->getMetrics().getHeight() * 5));
+	settingsMenuContainer->setAnchor(Vector2(0.0f, 0.5f));
+	settingsMenuContainer->setVisible(false);
+	settingsMenuContainer->setActive(false);
+	uiRootElement->addChild(settingsMenuContainer);
+	videoLabel = new UILabel();
+	videoLabel->setFont(menuFont);
+	videoLabel->setText(videoString);
+	videoLabel->setTintColor(deselectedColor);
+	videoLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 0));
+	settingsMenuContainer->addChild(videoLabel);
+	audioLabel = new UILabel();
+	audioLabel->setFont(menuFont);
+	audioLabel->setText(audioString);
+	audioLabel->setTintColor(deselectedColor);
+	audioLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 1));
+	settingsMenuContainer->addChild(audioLabel);
+	controlsLabel = new UILabel();
+	controlsLabel->setFont(menuFont);
+	controlsLabel->setText(controlsString);
+	controlsLabel->setTintColor(deselectedColor);
+	controlsLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 2));
+	settingsMenuContainer->addChild(controlsLabel);
+	gameLabel = new UILabel();
+	gameLabel->setFont(menuFont);
+	gameLabel->setText(gameString);
+	gameLabel->setTintColor(deselectedColor);
+	gameLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 3));
+	settingsMenuContainer->addChild(gameLabel);
+	settingsBackLabel = new UILabel();
+	settingsBackLabel->setFont(menuFont);
+	settingsBackLabel->setText(backString);
+	settingsBackLabel->setTintColor(deselectedColor);
+	settingsBackLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 4));
+	settingsMenuContainer->addChild(settingsBackLabel);
+	
+	// Create pause menu elements
+	pauseMenuContainer = new UIContainer();
+	pauseMenuContainer->setDimensions(Vector2(width, menuFont->getMetrics().getHeight() * 6));
+	pauseMenuContainer->setAnchor(Anchor::CENTER);
+	pauseMenuContainer->setVisible(false);
+	pauseMenuContainer->setActive(false);
+	uiRootElement->addChild(pauseMenuContainer);
+	pausedResumeLabel = new UILabel();
+	pausedResumeLabel->setFont(menuFont);
+	pausedResumeLabel->setText(resumeString);
+	pausedResumeLabel->setTintColor(deselectedColor);
+	pausedResumeLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 0));
+	pauseMenuContainer->addChild(pausedResumeLabel);
+	returnToMainMenuLabel = new UILabel();
+	returnToMainMenuLabel->setFont(menuFont);
+	returnToMainMenuLabel->setText(returnToMainMenuString);
+	returnToMainMenuLabel->setTintColor(deselectedColor);
+	returnToMainMenuLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 1));
+	pauseMenuContainer->addChild(returnToMainMenuLabel);
+	quitToDesktopLabel = new UILabel();
+	quitToDesktopLabel->setFont(menuFont);
+	quitToDesktopLabel->setText(quitToDesktopString);
+	quitToDesktopLabel->setTintColor(deselectedColor);
+	quitToDesktopLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 2));
+	pauseMenuContainer->addChild(quitToDesktopLabel);
+	
+	// Create level selector elements
+	levelSelectorContainer = new UIContainer();
+	levelSelectorContainer->setDimensions(Vector2(levelActiveTexture->getWidth() * 10 + 48 * 9, levelActiveTexture->getHeight()));
+	levelSelectorContainer->setAnchor(Vector2(0.5f, 1.0f));
+	levelSelectorContainer->setTranslation(Vector2(0.0f, -levelActiveTexture->getHeight()));
+	levelSelectorContainer->setVisible(false);
+	levelSelectorContainer->setActive(false);
+	uiRootElement->addChild(levelSelectorContainer);
+	for (int i = 0; i < 10; ++i)
+	{
+		levelSelections[i] = new UIImage();
+		levelSelections[i]->setAnchor(Vector2(0.0f, 0.5f));
+		levelSelections[i]->setDimensions(Vector2(levelActiveTexture->getWidth(), levelActiveTexture->getHeight()));
+		levelSelections[i]->setTranslation(Vector2(i * 96.0f, 0.0f));
+		levelSelections[i]->setTexture(levelInactiveTexture);
+		levelSelections[i]->setVisible(true);
+		levelSelectorContainer->addChild(levelSelections[i]);
+				
+		if (i < 9)
+		{
+			levelConnectors[i] = new UIImage();
+			levelConnectors[i]->setAnchor(Vector2(0.0f, 0.5f));
+			levelConnectors[i]->setDimensions(Vector2(levelConnectorTexture->getWidth(), levelConnectorTexture->getHeight()));
+			levelConnectors[i]->setTranslation(Vector2((i + 1) * 96.0f - 50.0f, 0.0f));
+			levelConnectors[i]->setTexture(levelConnectorTexture);
+			levelConnectors[i]->setVisible(true);
+			levelSelectorContainer->addChild(levelConnectors[i]);
+		}
+	}
+	
+	// Create tweener
+	tweener = new Tweener();
+	
+	// Setup screen fade in/fade out tween
+	fadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
+	fadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, blackoutImage, std::placeholders::_1));
+	tweener->addTween(fadeInTween);
+	fadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	fadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, blackoutImage, std::placeholders::_1));
+	tweener->addTween(fadeOutTween);
+	
+	// Setup splash screen tween
+	splashFadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 0.5f, Vector4(1.0f, 1.0f, 1.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	splashFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, splashImage, std::placeholders::_1));
+	tweener->addTween(splashFadeInTween);
+	
+	splashHangTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, 1.0f, 0.0f, 1.0f);
+	tweener->addTween(splashHangTween);
+	
+	splashFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.5f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
+	splashFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, splashImage, std::placeholders::_1));
+	tweener->addTween(splashFadeOutTween);
+	
+	splashFadeInTween->setEndCallback(std::bind(TweenBase::start, splashHangTween));
+	splashHangTween->setEndCallback(std::bind(TweenBase::start, splashFadeOutTween));
+	splashFadeOutTween->setEndCallback(std::bind(Application::changeState, this, titleState));
+	
+	// Setup game title tween
+	titleFadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 2.0f, Vector4(1.0f, 1.0f, 1.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	titleFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, titleImage, std::placeholders::_1));
+	tweener->addTween(titleFadeInTween);
+	titleFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.25f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
+	titleFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, titleImage, std::placeholders::_1));
+	tweener->addTween(titleFadeOutTween);
+	
+	// Setup copyright tween
+	copyrightFadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 1.0f, Vector4(1.0f, 1.0f, 1.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	copyrightFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, copyrightImage, std::placeholders::_1));
+	tweener->addTween(copyrightFadeInTween);
+	copyrightFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.25f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
+	copyrightFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, copyrightImage, std::placeholders::_1));
+	tweener->addTween(copyrightFadeOutTween);
+	
+	// Setup "Press any key" tween
+	anyKeyFadeInTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	anyKeyFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, anyKeyLabel, std::placeholders::_1));
+	tweener->addTween(anyKeyFadeInTween);
+	anyKeyFadeOutTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
+	anyKeyFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, anyKeyLabel, std::placeholders::_1));
+	anyKeyFadeInTween->setEndCallback(std::bind(TweenBase::start, anyKeyFadeOutTween));
+	anyKeyFadeOutTween->setEndCallback(std::bind(TweenBase::start, anyKeyFadeInTween));
+	tweener->addTween(anyKeyFadeOutTween);
+	
+	float menuFadeInDuration = 0.15f;
+	Vector4 menuFadeInStartColor = Vector4(1.0f, 1.0f, 1.0f, 0.0f);
+	Vector4 menuFadeInDeltaColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+	float menuFadeOutDuration = 0.15f;
+	Vector4 menuFadeOutStartColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	Vector4 menuFadeOutDeltaColor = Vector4(0.0f, 0.0f, 0.0f, -1.0f);
+	float menuSlideInDuration = 0.35f;
+	Vector2 menuSlideInStartTranslation = Vector2(-64.0f, 0.0f);
+	Vector2 menuSlideInDeltaTranslation = Vector2(128.0f, 0.0f);
+	
+	float levelSelectorSlideInDuration = 0.35f;
+	Vector2 levelSelectorSlideInStartTranslation = Vector2(0.0f, levelActiveTexture->getHeight());
+	Vector2 levelSelectorSlideInDeltaTranslation = Vector2(0.0f, -levelActiveTexture->getHeight() * 2.0f);
+	
+	// Setup main menu tween
+	menuFadeInTween = new Tween<Vector4>(EaseFunction::OUT_QUINT, 0.0f, menuFadeInDuration, menuFadeInStartColor, menuFadeInDeltaColor);
+	tweener->addTween(menuFadeInTween);
+	menuFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_QUINT, 0.0f, menuFadeOutDuration, menuFadeOutStartColor, menuFadeOutDeltaColor);
+	tweener->addTween(menuFadeOutTween);
+	menuSlideInTween = new Tween<Vector2>(EaseFunction::OUT_QUINT, 0.0f, menuSlideInDuration, menuSlideInStartTranslation, menuSlideInDeltaTranslation);
+	tweener->addTween(menuSlideInTween);
+	
+	// Setup level selector tween
+	levelSelectorSlideInTween = new Tween<Vector2>(EaseFunction::OUT_QUINT, 0.0f, levelSelectorSlideInDuration, levelSelectorSlideInStartTranslation, levelSelectorSlideInDeltaTranslation);
+	tweener->addTween(levelSelectorSlideInTween);
+	
+	// Title screen zoom in tween
+	antHillZoomInTween = new Tween<float>(EaseFunction::LINEAR, 0.0f, 2.0f, 50.0f, -49.9f);
+	antHillZoomInTween->setUpdateCallback(std::bind(SurfaceCameraController::setTargetFocalDistance, surfaceCam, std::placeholders::_1));
+	tweener->addTween(antHillZoomInTween);
+	
+	antHillFadeOutTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 2.0f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	antHillFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, blackoutImage, std::placeholders::_1));
+	antHillFadeOutTween->setEndCallback(std::bind(Application::changeState, this, mainMenuState));
+	tweener->addTween(antHillFadeOutTween);
+	
+	// Build menu system
+	selectedMenuItemIndex = 0;
+	mainMenu = new Menu();
+	MenuItem* challengeItem = mainMenu->addItem();
+	challengeItem->setSelectedCallback(std::bind(UIElement::setTintColor, challengeLabel, selectedColor));
+	challengeItem->setDeselectedCallback(std::bind(UIElement::setTintColor, challengeLabel, deselectedColor));
+	challengeItem->setActivatedCallback(std::bind(Application::enterLevelSelection, this));
+	challengeLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, challengeItem->getIndex()));
+	challengeLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, challengeItem->getIndex()));
+	challengeLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, challengeItem->getIndex()));
+	MenuItem* experimentItem = mainMenu->addItem();
+	experimentItem->setSelectedCallback(std::bind(UIElement::setTintColor, experimentLabel, selectedColor));
+	experimentItem->setDeselectedCallback(std::bind(UIElement::setTintColor, experimentLabel, deselectedColor));
+	experimentItem->setActivatedCallback(std::bind(Application::enterMenu, this, 2));
+	experimentLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, experimentItem->getIndex()));
+	experimentLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, experimentItem->getIndex()));
+	experimentLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, experimentItem->getIndex()));
+	MenuItem* settingsItem = mainMenu->addItem();
+	settingsItem->setSelectedCallback(std::bind(UIElement::setTintColor, settingsLabel, selectedColor));
+	settingsItem->setDeselectedCallback(std::bind(UIElement::setTintColor, settingsLabel, deselectedColor));
+	settingsItem->setActivatedCallback(std::bind(Application::enterMenu, this, 3));
+	settingsLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, settingsItem->getIndex()));
+	settingsLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, settingsItem->getIndex()));
+	settingsLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, settingsItem->getIndex()));
+	MenuItem* quitItem = mainMenu->addItem();
+	quitItem->setSelectedCallback(std::bind(UIElement::setTintColor, quitLabel, selectedColor));
+	quitItem->setDeselectedCallback(std::bind(UIElement::setTintColor, quitLabel, deselectedColor));
+	quitItem->setActivatedCallback(std::bind(Application::close, this, EXIT_SUCCESS));
+	quitLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, quitItem->getIndex()));
+	quitLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, quitItem->getIndex()));
+	quitLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, quitItem->getIndex()));
+	
+	experimentMenu = new Menu();
+	MenuItem* loadItem = experimentMenu->addItem();
+	loadItem->setSelectedCallback(std::bind(UIElement::setTintColor, loadLabel, selectedColor));
+	loadItem->setDeselectedCallback(std::bind(UIElement::setTintColor, loadLabel, deselectedColor));
+	loadItem->setActivatedCallback(std::bind(std::printf, "0\n"));
+	loadLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, loadItem->getIndex()));
+	loadLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, loadItem->getIndex()));
+	loadLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, loadItem->getIndex()));
+	MenuItem* newItem = experimentMenu->addItem();
+	newItem->setSelectedCallback(std::bind(UIElement::setTintColor, newLabel, selectedColor));
+	newItem->setDeselectedCallback(std::bind(UIElement::setTintColor, newLabel, deselectedColor));
+	newItem->setActivatedCallback(std::bind(std::printf, "bla\n"));
+	newLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, newItem->getIndex()));
+	newLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, newItem->getIndex()));
+	newLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, newItem->getIndex()));
+	MenuItem* experimentBackItem = experimentMenu->addItem();
+	experimentBackItem->setSelectedCallback(std::bind(UIElement::setTintColor, experimentBackLabel, selectedColor));
+	experimentBackItem->setDeselectedCallback(std::bind(UIElement::setTintColor, experimentBackLabel, deselectedColor));
+	experimentBackItem->setActivatedCallback(std::bind(Application::enterMenu, this, 0));
+	experimentBackLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, experimentBackItem->getIndex()));
+	experimentBackLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, experimentBackItem->getIndex()));
+	experimentBackLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, experimentBackItem->getIndex()));
+	
+	settingsMenu = new Menu();
+	MenuItem* videoItem = settingsMenu->addItem();
+	videoItem->setSelectedCallback(std::bind(UIElement::setTintColor, videoLabel, selectedColor));
+	videoItem->setDeselectedCallback(std::bind(UIElement::setTintColor, videoLabel, deselectedColor));
+	videoItem->setActivatedCallback(std::bind(std::printf, "0\n"));
+	videoLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, videoItem->getIndex()));
+	videoLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, videoItem->getIndex()));
+	videoLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, videoItem->getIndex()));
+	MenuItem* audioItem = settingsMenu->addItem();
+	audioItem->setSelectedCallback(std::bind(UIElement::setTintColor, audioLabel, selectedColor));
+	audioItem->setDeselectedCallback(std::bind(UIElement::setTintColor, audioLabel, deselectedColor));
+	audioItem->setActivatedCallback(std::bind(std::printf, "1\n"));
+	audioLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, audioItem->getIndex()));
+	audioLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, audioItem->getIndex()));
+	audioLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, audioItem->getIndex()));
+	MenuItem* controlsItem = settingsMenu->addItem();
+	controlsItem->setSelectedCallback(std::bind(UIElement::setTintColor, controlsLabel, selectedColor));
+	controlsItem->setDeselectedCallback(std::bind(UIElement::setTintColor, controlsLabel, deselectedColor));
+	controlsItem->setActivatedCallback(std::bind(std::printf, "2\n"));
+	controlsLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, controlsItem->getIndex()));
+	controlsLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, controlsItem->getIndex()));
+	controlsLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, controlsItem->getIndex()));
+	MenuItem* gameItem = settingsMenu->addItem();
+	gameItem->setSelectedCallback(std::bind(UIElement::setTintColor, gameLabel, selectedColor));
+	gameItem->setDeselectedCallback(std::bind(UIElement::setTintColor, gameLabel, deselectedColor));
+	gameItem->setActivatedCallback(std::bind(std::printf, "3\n"));
+	gameLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, gameItem->getIndex()));
+	gameLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, gameItem->getIndex()));
+	gameLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, gameItem->getIndex()));
+	MenuItem* settingsBackItem = settingsMenu->addItem();
+	settingsBackItem->setSelectedCallback(std::bind(UIElement::setTintColor, settingsBackLabel, selectedColor));
+	settingsBackItem->setDeselectedCallback(std::bind(UIElement::setTintColor, settingsBackLabel, deselectedColor));
+	settingsBackItem->setActivatedCallback(std::bind(Application::enterMenu, this, 0));
+	settingsBackLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, settingsBackItem->getIndex()));
+	settingsBackLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, settingsBackItem->getIndex()));
+	settingsBackLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, settingsBackItem->getIndex()));
+	
+	menuCount = 4;
+	menus = new Menu*[menuCount];
+	menus[0] = mainMenu;
+	menus[1] = challengeMenu;
+	menus[2] = experimentMenu;
+	menus[3] = settingsMenu;
+	
+	menuContainers = new UIContainer*[menuCount];
+	menuContainers[0] = mainMenuContainer;
+	menuContainers[1] = challengeMenuContainer;
+	menuContainers[2] = experimentMenuContainer;
+	menuContainers[3] = settingsMenuContainer;
+	
+	currentMenu = mainMenu;
+	currentMenuIndex = 0;
+	selectedMenuItemIndex = 0;
+	selectMenuItem(selectedMenuItemIndex);
+	
+	currentLevel = 0;
+	levelSelectorMenu = new Menu();
+	for (int i = 0; i < 10; ++i)
+	{
+		MenuItem* levelSelectionItem = levelSelectorMenu->addItem();
+		levelSelectionItem->setSelectedCallback(std::bind(UIImage::setTexture, levelSelections[i], levelActiveTexture));
+		levelSelectionItem->setDeselectedCallback(std::bind(UIImage::setTexture, levelSelections[i], levelInactiveTexture));
+		levelSelectionItem->setActivatedCallback(std::bind(Application::loadLevel, this));
+		
+		levelSelections[i]->setMouseOverCallback(std::bind(Application::selectLevel, this, levelSelectionItem->getIndex()));
+		levelSelections[i]->setMouseMovedCallback(std::bind(Application::selectLevel, this, levelSelectionItem->getIndex()));
+		levelSelections[i]->setMousePressedCallback(std::bind(Application::activateLevel, this, levelSelectionItem->getIndex()));
+	}
+	
+	// Setup UI batch
+	uiBatch = new BillboardBatch();
+	uiBatch->resize(256);
+	uiBatcher = new UIBatcher();
+	
+	// Setup UI render pass and compositor
+	uiPass.setRenderTarget(&defaultRenderTarget);
+	uiCompositor.addPass(&uiPass);
+	uiCompositor.load(nullptr);
+	
+	// Setup UI camera
+	uiCamera.lookAt(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
+	uiCamera.setCompositor(&uiCompositor);
+	uiCamera.setCompositeIndex(0);
+	
+	// Setup UI scene
+	uiLayer->addObject(uiBatch);
+	uiLayer->addObject(&uiCamera);
+	
+	defaultRenderTarget.width = width;
+	defaultRenderTarget.height = height;
+	resizeUI();
+	
+	return true;
+}
+
+bool Application::loadControls()
+{
+	// Setup menu navigation controls
+	menuControlProfile = new ControlProfile(inputManager);
+	menuControlProfile->registerControl("menu_left", &menuLeft);
+	menuControlProfile->registerControl("menu_right", &menuRight);
+	menuControlProfile->registerControl("menu_up", &menuUp);
+	menuControlProfile->registerControl("menu_down", &menuDown);
+	menuControlProfile->registerControl("menu_select", &menuSelect);
+	menuControlProfile->registerControl("menu_cancel", &menuCancel);
+	menuControlProfile->registerControl("toggle_fullscreen", &toggleFullscreen);
+	menuControlProfile->registerControl("escape", &escape);
+	menuLeft.bindKey(keyboard, SDL_SCANCODE_LEFT);
+	menuLeft.bindKey(keyboard, SDL_SCANCODE_A);
+	menuRight.bindKey(keyboard, SDL_SCANCODE_RIGHT);
+	menuRight.bindKey(keyboard, SDL_SCANCODE_D);
+	menuUp.bindKey(keyboard, SDL_SCANCODE_UP);
+	menuUp.bindKey(keyboard, SDL_SCANCODE_W);
+	menuDown.bindKey(keyboard, SDL_SCANCODE_DOWN);
+	menuDown.bindKey(keyboard, SDL_SCANCODE_S);
+	menuSelect.bindKey(keyboard, SDL_SCANCODE_RETURN);
+	menuSelect.bindKey(keyboard, SDL_SCANCODE_SPACE);
+	menuSelect.bindKey(keyboard, SDL_SCANCODE_Z);
+	menuCancel.bindKey(keyboard, SDL_SCANCODE_BACKSPACE);
+	menuCancel.bindKey(keyboard, SDL_SCANCODE_X);
+	toggleFullscreen.bindKey(keyboard, SDL_SCANCODE_F11);
+	escape.bindKey(keyboard, SDL_SCANCODE_ESCAPE);
+	
+	// Setup in-game controls
+	gameControlProfile = new ControlProfile(inputManager);
+	gameControlProfile->registerControl("camera-move-forward", &cameraMoveForward);
+	gameControlProfile->registerControl("camera-move-back", &cameraMoveBack);
+	gameControlProfile->registerControl("camera-move-left", &cameraMoveLeft);
+	gameControlProfile->registerControl("camera-move-right", &cameraMoveRight);
+	gameControlProfile->registerControl("camera-rotate-cw", &cameraRotateCW);
+	gameControlProfile->registerControl("camera-rotate-ccw", &cameraRotateCCW);
+	gameControlProfile->registerControl("camera-zoom-in", &cameraZoomIn);
+	gameControlProfile->registerControl("camera-zoom-out", &cameraZoomOut);
+	gameControlProfile->registerControl("camera-toggle-nest-view", &cameraToggleNestView);
+	gameControlProfile->registerControl("camera-toggle-overhead-view", &cameraToggleOverheadView);
+	gameControlProfile->registerControl("walk-forward", &walkForward);
+	gameControlProfile->registerControl("walk-back", &walkBack);
+	gameControlProfile->registerControl("turn-left", &turnLeft);
+	gameControlProfile->registerControl("turn-right", &turnRight);
+	
+	cameraMoveForward.bindKey(keyboard, SDL_SCANCODE_W);
+	cameraMoveBack.bindKey(keyboard, SDL_SCANCODE_S);
+	cameraMoveLeft.bindKey(keyboard, SDL_SCANCODE_A);
+	cameraMoveRight.bindKey(keyboard, SDL_SCANCODE_D);
+	cameraRotateCW.bindKey(keyboard, SDL_SCANCODE_Q);
+	cameraRotateCCW.bindKey(keyboard, SDL_SCANCODE_E);
+	cameraZoomIn.bindKey(keyboard, SDL_SCANCODE_EQUALS);
+	cameraZoomOut.bindKey(keyboard, SDL_SCANCODE_MINUS);
+	cameraZoomIn.bindMouseWheelAxis(mouse, MouseWheelAxis::POSITIVE_Y);
+	cameraZoomOut.bindMouseWheelAxis(mouse, MouseWheelAxis::NEGATIVE_Y);
+	cameraToggleOverheadView.bindKey(keyboard, SDL_SCANCODE_R);
+	cameraToggleNestView.bindKey(keyboard, SDL_SCANCODE_F);
+	walkForward.bindKey(keyboard, SDL_SCANCODE_UP);
+	walkBack.bindKey(keyboard, SDL_SCANCODE_DOWN);
+	turnLeft.bindKey(keyboard, SDL_SCANCODE_LEFT);
+	turnRight.bindKey(keyboard, SDL_SCANCODE_RIGHT);
+	
+	return true;
+}
+
+bool Application::loadGame()
+{
+
+	
+	// Load biosphere
+	biosphere.load("data/biomes/");
+	
+	// Load campaign
+	campaign.load("data/levels/");
+	currentWorld = 1;
+	currentLevel = 1;
+	
+	return true;
+}
+
 void Application::resizeUI()
 {
 	// Adjust UI dimensions
@@ -561,6 +1190,9 @@ void Application::enterMenu(std::size_t index)
 	
 	// Make menu visible
 	menuContainers[currentMenuIndex]->setVisible(true);
+	
+	// Make menu selector visible
+	menuSelectorLabel->setVisible(true);
 }
 
 void Application::exitMenu(std::size_t index)
@@ -573,6 +1205,9 @@ void Application::exitMenu(std::size_t index)
 	menuFadeOutTween->setEndCallback(std::bind(UIElement::setVisible, menuContainers[currentMenuIndex], false));
 	menuFadeOutTween->reset();
 	menuFadeOutTween->start();
+	
+	// Make menu selector invisible
+	menuSelectorLabel->setVisible(false);
 }
 
 void Application::selectMenuItem(std::size_t index)
@@ -602,6 +1237,23 @@ void Application::activateMenuItem(std::size_t index)
 	
 	menus[currentMenuIndex]->getItem(index)->deselect();
 	menus[currentMenuIndex]->getItem(index)->activate();
+}
+
+void Application::enterLevelSelection()
+{
+	exitMenu(0);
+	
+	currentWorld = 1;
+	currentLevel = 1;
+	
+	// Start menu slide-in tween
+	levelSelectorSlideInTween->setUpdateCallback(std::bind(UIElement::setTranslation, levelSelectorContainer, std::placeholders::_1));
+	levelSelectorSlideInTween->reset();
+	levelSelectorSlideInTween->start();
+	
+	// Make menu visible and active
+	levelSelectorContainer->setVisible(true);
+	levelSelectorContainer->setActive(true);
 }
 
 void Application::selectLevel(std::size_t index)

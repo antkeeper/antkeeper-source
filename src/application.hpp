@@ -38,9 +38,10 @@ using namespace Emergent;
 class Menu;
 class ApplicationState;
 class Colony;
+class LoadingState;
 class SplashState;
 class TitleState;
-class ExperimentState;
+class MainMenuState;
 class CameraController;
 class SurfaceCameraController;
 class TunnelCameraController;
@@ -48,6 +49,9 @@ class LineBatcher;
 class ModelLoader;
 class MaterialLoader;
 
+/**
+ * Encapsulates the state of the application.
+ */
 class Application
 {
 public:
@@ -69,6 +73,14 @@ public:
 	void changeFullscreen();
 	void changeVerticalSync();
 	void saveUserSettings();
+	
+	bool loadScene();
+	bool loadUI();
+	bool loadModels();
+	bool loadControls();
+	bool loadGame();
+	
+	
 	void resizeUI();
 	
 	void enterMenu(std::size_t index);
@@ -79,6 +91,8 @@ public:
 	void selectLevel(std::size_t index);
 	void activateLevel(std::size_t index);
 	
+	void enterLevelSelection();
+	
 	void loadLevel();
 	
 private:
@@ -87,47 +101,20 @@ private:
 	int terminationCode;
 	
 public:
+	// SDL
 	SDL_Window* window;
 	SDL_GLContext context;
-	ModelInstance lensToolObject;
-	ModelInstance forcepsToolObject;
-	ModelInstance navigatorObject;
-	DirectionalLight sunlight;
-	DirectionalLight fillLight;
-	DirectionalLight backLight;
-	Spotlight lensHotspot;
-	Spotlight lensFalloff;
-	RenderTarget shadowMapRenderTarget;
-	GLuint shadowFramebuffer;
-	GLuint shadowDepthTexture;
-	ShadowMapRenderPass shadowMapPass;
-	Compositor shadowCompositor;
-	Camera sunlightCamera;
-	RenderTarget defaultRenderTarget;
-	SoilRenderPass soilPass;
-	LightingRenderPass lightingPass;
-	DebugRenderPass debugPass;
-	Compositor defaultCompositor;
-	Camera camera;
-	Scene scene;
-	BillboardBatch particleBatch;
-	Arcball arcball;
 	
-	TextureLoader* textureLoader;
-	MaterialLoader* materialLoader;
-	ModelLoader* modelLoader;
-	
-	
-	Renderer renderer;
-	int toolIndex;
-	
+	// Paths
 	std::string appDataPath;
 	std::string userDataPath;
-	ParameterDict settings;
 	std::string defaultSettingsFilename;
 	std::string userSettingsFilename;
 	
-
+	// Settings
+	ParameterDict settings;
+	
+	// Window
 	bool fullscreen;
 	int fullscreenWidth;
 	int fullscreenHeight;
@@ -136,15 +123,60 @@ public:
 	int swapInterval;
 	int width;
 	int height;
-
+	
+	// State machine
+	LoadingState* loadingState;
+	SplashState* splashState;
+	TitleState* titleState;
+	MainMenuState* mainMenuState;
+	
+	// Scene
+	Scene scene;
+	SceneLayer* backgroundLayer;
+	SceneLayer* defaultLayer;
+	SceneLayer* uiLayer;
+	Camera camera;
+	Camera sunlightCamera;
+	Camera uiCamera;
+	Camera bgCamera;
+	DirectionalLight sunlight;
+	DirectionalLight fillLight;
+	DirectionalLight backLight;
+	Spotlight lensHotspot;
+	Spotlight lensFalloff;
+	ModelInstance lensToolObject;
+	ModelInstance forcepsToolObject;
+	ModelInstance navigatorObject;
+	ModelInstance antModelInstance;
+	ModelInstance antHillModelInstance;
+	
+	// Graphics
+	Renderer renderer;
+	RenderTarget defaultRenderTarget;
+	RenderTarget shadowMapRenderTarget;
+	GLuint shadowFramebuffer;
+	GLuint shadowDepthTexture;
+	ShadowMapRenderPass shadowMapPass;
+	SoilRenderPass soilPass;
+	LightingRenderPass lightingPass;
+	DebugRenderPass debugPass;
+	Compositor shadowCompositor;
+	Compositor defaultCompositor;
+	BillboardBatch* uiBatch;
+	UIBatcher* uiBatcher;
+	UIRenderPass uiPass;
+	Compositor uiCompositor;
+	BillboardBatch bgBatch;
+	Compositor bgCompositor;
+	VignetteRenderPass vignettePass;
+	TextureLoader* textureLoader;
+	MaterialLoader* materialLoader;
+	ModelLoader* modelLoader;
+	
+	// Controls
 	InputManager* inputManager;
 	Keyboard* keyboard;
 	Mouse* mouse;
-	
-	SplashState* splashState;
-	TitleState* titleState;
-	ExperimentState* experimentState;
-	
 	ControlProfile* menuControlProfile;
 	Control menuLeft;
 	Control menuRight;
@@ -154,7 +186,6 @@ public:
 	Control menuCancel;
 	Control toggleFullscreen;
 	Control escape;
-	
 	ControlProfile* gameControlProfile;
 	Control cameraMoveForward;
 	Control cameraMoveBack;
@@ -166,16 +197,15 @@ public:
 	Control cameraZoomOut;
 	Control cameraToggleOverheadView;
 	Control cameraToggleNestView;
-	bool cameraOverheadView;
-	bool cameraNestView;
-	
 	Control walkForward;
 	Control walkBack;
 	Control turnLeft;
 	Control turnRight;
+	Arcball arcball;
 	
 	// Misc
 	Timer frameTimer;
+	float dt;
 	
 	// UI text
 	ParameterDict strings;
@@ -224,29 +254,16 @@ public:
 	UILabel* pausedSettingsLabel;
 	UILabel* returnToMainMenuLabel;
 	UILabel* quitToDesktopLabel;
-	
 	UIContainer* levelSelectorContainer;
 	UIImage* levelSelections[10];
 	UIImage* levelConnectors[9];
-	
-	BillboardBatch* uiBatch;
-	UIBatcher* uiBatcher;
-	UIRenderPass uiPass;
-	Compositor uiCompositor;
-	Camera uiCamera;
-	Scene uiScene;
-	
-	Camera bgCamera;
-	BillboardBatch bgBatch;
-	Compositor bgCompositor;
-	VignetteRenderPass vignettePass;
-	Scene bgScene;
 	
 	// Animation
 	Tweener* tweener;
 	Tween<Vector4>* fadeInTween;
 	Tween<Vector4>* fadeOutTween;
 	Tween<Vector4>* splashFadeInTween;
+	Tween<float>* splashHangTween;
 	Tween<Vector4>* splashFadeOutTween;
 	Tween<Vector4>* titleFadeInTween;
 	Tween<Vector4>* titleFadeOutTween;
@@ -254,10 +271,13 @@ public:
 	Tween<Vector4>* copyrightFadeOutTween;
 	Tween<Vector4>* anyKeyFadeInTween;
 	Tween<Vector4>* anyKeyFadeOutTween;
-	
 	Tween<Vector4>* menuFadeInTween;
 	Tween<Vector4>* menuFadeOutTween;
 	Tween<Vector2>* menuSlideInTween;
+	Tween<Vector2>* levelSelectorSlideInTween;
+	
+	Tween<float>* antHillZoomInTween;
+	Tween<Vector4>* antHillFadeOutTween;
 	
 	// Menus
 	std::size_t menuCount;
@@ -265,7 +285,6 @@ public:
 	int currentMenuIndex;
 	int selectedMenuItemIndex;
 	UIContainer** menuContainers;
-	
 	Menu* currentMenu;
 	Menu* mainMenu;
 	Menu* challengeMenu;
@@ -275,7 +294,7 @@ public:
 	
 	// Models
 	Model* antModel;
-	ModelInstance* antModelInstance;
+	Model* antHillModel;
 	
 	// Game variables
 	Campaign campaign;
@@ -283,15 +302,12 @@ public:
 	int currentLevel;
 	Biosphere biosphere;
 	Terrain terrain;
-	
 	Colony* colony;
 	SurfaceCameraController* surfaceCam;
 	TunnelCameraController* tunnelCam;
-	
-	Plane clippingPlanes[5];
-	Vector3 clippingPlaneNormals[5];
-	Vector3 clippingPlaneOffsets[5];
-	AABB clippingPlaneAABBS[5];
+	bool cameraOverheadView;
+	bool cameraNestView;
+	int toolIndex;
 	
 	// Debug
 	LineBatcher* lineBatcher;

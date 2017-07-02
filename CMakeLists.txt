@@ -98,12 +98,14 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/application-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/application.hpp
 	${EXECUTABLE_SOURCE_DIR}/application.cpp
+	${EXECUTABLE_SOURCE_DIR}/states/loading-state.hpp
+	${EXECUTABLE_SOURCE_DIR}/states/loading-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/states/splash-state.hpp
 	${EXECUTABLE_SOURCE_DIR}/states/splash-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/states/title-state.hpp
 	${EXECUTABLE_SOURCE_DIR}/states/title-state.cpp
-	${EXECUTABLE_SOURCE_DIR}/states/experiment-state.hpp
-	${EXECUTABLE_SOURCE_DIR}/states/experiment-state.cpp
+	${EXECUTABLE_SOURCE_DIR}/states/main-menu-state.hpp
+	${EXECUTABLE_SOURCE_DIR}/states/main-menu-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/ui/ui.hpp
 	${EXECUTABLE_SOURCE_DIR}/ui/ui.cpp
 	${EXECUTABLE_SOURCE_DIR}/ui/tween.hpp

@@ -33,7 +33,7 @@ using namespace Emergent;
 /**
  * Displays the title screen.
  */
-class TitleState: public ApplicationState, public WindowObserver, public MouseButtonObserver
+class TitleState: public ApplicationState, public WindowObserver
 {
 public:
 	TitleState(Application* application);
@@ -45,17 +45,11 @@ public:
 	
 	virtual void windowClosed();
 	virtual void windowResized(int width, int height);
-	virtual void mouseButtonPressed(int button, int x, int y);
-	virtual void mouseButtonReleased(int button, int x, int y);
 	
 private:
 	float stateTime;
 	bool fadeIn;
 	bool fadeOut;
-	bool dragging;
-	bool wasDragging;
-	Vector3 dragStart;
-	Quaternion dragStartRotation;
 	
 	int substate;
 	

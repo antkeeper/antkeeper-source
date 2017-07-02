@@ -17,27 +17,23 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SPLASH_STATE_HPP
-#define SPLASH_STATE_HPP
+#ifndef LOADING_STATE_HPP
+#define LOADING_STATE_HPP
 
 #include "../application-state.hpp"
-#include "../input.hpp"
-
-#include <emergent/emergent.hpp>
-using namespace Emergent;
 
 /**
- * Displays a splash screen.
+ * Loads the application
  */
-class SplashState: public ApplicationState
+class LoadingState: public ApplicationState
 {
 public:
-	SplashState(Application* application);
-	virtual ~SplashState();
+	LoadingState(Application* application);
+	virtual ~LoadingState();
 	
 	virtual void enter();
 	virtual void execute();
 	virtual void exit();
 };
 
-#endif // SPLASH_STATE_HPP
+#endif // LOADING_STATE_HPP
