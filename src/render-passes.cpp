@@ -237,6 +237,11 @@ void SoilRenderPass::render(const RenderContext* renderContext)
 	// Bind shader
 	shader->bind();
 	
+	if (!horizonOTexture || !horizonATexture || !horizonBTexture || !horizonCTexture)
+	{
+		return;
+	}
+	
 	// Bind textures
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, horizonOTexture->getTextureID());

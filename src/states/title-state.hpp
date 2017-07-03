@@ -26,7 +26,6 @@
 #include "../game/ant.hpp"
 #include "../game/colony.hpp"
 
-
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
@@ -49,10 +48,9 @@ public:
 private:
 	float stateTime;
 	bool fadeIn;
-	bool fadeOut;
-	
+	bool fadeOut;	
 	int substate;
-	
+
 	Colony colony;
 	Ant* ant;
 	Navmesh* navmesh;

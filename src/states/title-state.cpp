@@ -45,38 +45,12 @@ void TitleState::enter()
 	fadeIn = false;
 	fadeOut = false;
 	
-	// BG
-	application->bgBatch.resize(1);
-	BillboardBatch::Range* bgRange = application->bgBatch.addRange();
-	bgRange->start = 0;
-	bgRange->length = 1;
-	Billboard* bgBillboard = application->bgBatch.getBillboard(0);
-	bgBillboard->setDimensions(Vector2(1.0f, 1.0f));
-	bgBillboard->setTranslation(Vector3(0.5f, 0.5f, 0.0f));
-	bgBillboard->setTintColor(Vector4(1, 1, 1, 1));
-	application->bgBatch.update();
-	
-	application->vignettePass.setRenderTarget(&application->defaultRenderTarget);
-	application->bgCompositor.addPass(&application->vignettePass);
-	application->bgCompositor.load(nullptr);
-	application->bgCamera.setOrthographic(0, 1.0f, 1.0f, 0, -1.0f, 1.0f);
-	application->bgCamera.lookAt(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
-	application->bgCamera.setCompositor(&application->bgCompositor);
-	application->bgCamera.setCompositeIndex(0);
-	
+
 	application->backgroundLayer->addObject(&application->bgCamera);
 	application->backgroundLayer->addObject(&application->bgBatch);
 	
 	// Title ant hill
 	application->defaultLayer->addObject(&application->antHillModelInstance);
-	
-	// Setup lighting
-	application->sunlight.setColor(glm::vec3(1.0f));
-	application->sunlight.setDirection(glm::normalize(glm::vec3(0.5, -1, -0.5)));
-	
-	// Setup soil pass
-	application->soilPass.setRenderTarget(&application->defaultRenderTarget);
-	application->defaultCompositor.addPass(&application->soilPass);
 	
 	// Create terrain
 	application->terrain.create(255, 255, Vector3(50, 20, 50));
@@ -92,34 +66,7 @@ void TitleState::enter()
 	// Load level
 	application->loadLevel();
 	
-	// Setup lighting pass
-	application->lightingPass.setRenderTarget(&application->defaultRenderTarget);
-	application->lightingPass.setShadowMap(0);
-	application->lightingPass.setShadowCamera(&application->camera);
-	application->lightingPass.setModelLoader(application->modelLoader);
-	application->defaultCompositor.addPass(&application->lightingPass);
-	
-	application->camera.lookAt(
-		glm::vec3(0.0f, 0.0f, 10.0f),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f));
-	
-	application->camera.setCompositor(&application->defaultCompositor);
-	application->camera.setCompositeIndex(0);
-	
-	// Setup scene
-	application->defaultLayer->addObject(&application->camera);
-	
-	// Load compositor
-	RenderQueue renderQueue;
-	const std::list<SceneObject*>* objects = application->defaultLayer->getObjects();
-	for (const SceneObject* object: *objects)
-		renderQueue.queue(object);
-	RenderContext renderContext;
-	renderContext.camera = nullptr;
-	renderContext.layer = application->defaultLayer;
-	renderContext.queue = &renderQueue;
-	application->defaultCompositor.load(&renderContext);
+
 	
 	application->inputManager->addWindowObserver(this);
 	windowResized(application->width, application->height);
@@ -244,6 +191,8 @@ void TitleState::exit()
 	
 	// Remove objects from scene
 	application->defaultLayer->removeObject(&application->antHillModelInstance);
+	application->backgroundLayer->removeObject(&application->bgCamera);
+	application->backgroundLayer->removeObject(&application->bgBatch);
 	
 	application->inputManager->removeWindowObserver(this);
 }

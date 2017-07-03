@@ -142,8 +142,6 @@ public:
 	Camera uiCamera;
 	Camera bgCamera;
 	DirectionalLight sunlight;
-	DirectionalLight fillLight;
-	DirectionalLight backLight;
 	Spotlight lensHotspot;
 	Spotlight lensFalloff;
 	ModelInstance lensToolObject;
@@ -151,6 +149,7 @@ public:
 	ModelInstance navigatorObject;
 	ModelInstance antModelInstance;
 	ModelInstance antHillModelInstance;
+	ModelInstance nestModelInstance;
 	
 	// Graphics
 	Renderer renderer;
@@ -207,6 +206,7 @@ public:
 	
 	// Misc
 	Timer frameTimer;
+	float t;
 	float dt;
 	
 	// UI text
@@ -235,6 +235,8 @@ public:
 	UIContainer* titleScreenInfoContainer;
 	UILabel* copyrightLabel;
 	UILabel* versionLabel;
+	
+	UILabel* frameTimeLabel;
 	
 	UILabel* anyKeyLabel;
 	UILabel* menuSelectorLabel;
@@ -302,6 +304,7 @@ public:
 	// Models
 	Model* antModel;
 	Model* antHillModel;
+	Model* nestModel;
 	
 	// Game variables
 	Campaign campaign;

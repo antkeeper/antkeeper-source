@@ -22,6 +22,7 @@
 
 #include "../application-state.hpp"
 #include "../input.hpp"
+#include "../game/nest.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
@@ -38,6 +39,11 @@ public:
 	
 	virtual void mouseButtonPressed(int button, int x, int y);
 	virtual void mouseButtonReleased(int button, int x, int y);
+	
+private:
+	void generateNest();
+	
+	Nest nest;
 };
 
 #endif // MAIN_MENU_STATE_HPP

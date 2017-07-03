@@ -31,6 +31,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <cstdio>
+#include <sstream>
 #include <SDL.h>
 
 #define OPENGL_VERSION_MAJOR 3
@@ -343,14 +344,27 @@ Application::~Application()
 
 int Application::execute()
 {
+	// Fixed timestep
+	// @see http://gafferongames.com/game-physics/fix-your-timestep/
+	t = 0.0f;
+	dt = 1.0f / 60.0f;
+	float accumulator = 0.0f;
+	
+	int performanceSampleSize = 15;     // Number of frames to sample
+	int performanceSampleFrame = 0;     // Current sample frame
+	float performanceSampleTime = 0.0f; // Current sample time
+	
 	// Start frame timer
 	frameTimer.start();
 	
 	while (state != nullptr)
 	{
-		// Calculate delta time (in seconds) then reset frame timer
-		dt = static_cast<float>(frameTimer.microseconds().count()) / 1000000.0f;
+		// Calculate frame time (in milliseconds) then reset frame timer
+		float frameTime = static_cast<float>(frameTimer.microseconds().count()) / 1000.0f;
 		frameTimer.reset();
+		
+		// Add frame time (in seconds) to accumulator
+		accumulator += frameTime / 1000.0f;
 		
 		// If the user tried to close the application
 		if (inputManager->wasClosed() || escape.isTriggered())
@@ -361,7 +375,16 @@ int Application::execute()
 		else
 		{
 			// Execute current state
-			state->execute();
+			while (accumulator >= dt)
+			{
+				state->execute();
+				
+				// Perform tweening
+				tweener->update(dt);
+				
+				accumulator -= dt;
+				t += dt;
+			}
 		}
 		
 		// Check for state change
@@ -375,6 +398,7 @@ int Application::execute()
 			if (nextState != nullptr)
 			{
 				state->enter();
+				tweener->update(0.0f);
 				
 				// Reset frame timer to counteract frames eaten by state exit() and enter() functions
 				frameTimer.reset();
@@ -394,8 +418,27 @@ int Application::execute()
 			changeFullscreen();
 		}
 		
-		// Perform tweening
-		tweener->update(dt);
+		// Add frame time to performance sample time and increment the frame count
+		performanceSampleTime += frameTime;
+		++performanceSampleFrame;
+		
+		// If performance sample is complete
+		if (performanceSampleFrame >= performanceSampleSize)
+		{
+			// Calculate mean frame time
+			float meanFrameTime = performanceSampleTime / static_cast<float>(performanceSampleSize);
+			
+			// Reset perform sample timers
+			performanceSampleTime = 0.0f;
+			performanceSampleFrame = 0;
+			
+			// Update frame time label
+			std::string frameTimeString;
+			std::stringstream stream;
+			stream << meanFrameTime;
+			stream >> frameTimeString;
+			frameTimeLabel->setText(frameTimeString);
+		}
 		
 		// Update UI
 		uiRootElement->update();
@@ -530,8 +573,9 @@ bool Application::loadModels()
 {
 	antModel = modelLoader->load("data/models/debug-worker.mdl");
 	antHillModel = modelLoader->load("data/models/ant-hill.mdl");
+	nestModel = modelLoader->load("data/models/nest.mdl");
 	
-	if (!antModel || !antHillModel)
+	if (!antModel || !antHillModel || !nestModel)
 	{
 		return false;
 	}
@@ -540,6 +584,7 @@ bool Application::loadModels()
 	antModelInstance.setTransform(Transform::getIdentity());	
 	antHillModelInstance.setModel(antHillModel);
 	antHillModelInstance.setRotation(glm::angleAxis(glm::radians(90.0f), Vector3(1, 0, 0)));
+	nestModelInstance.setModel(nestModel);
 	
 	return true;
 }
@@ -550,6 +595,49 @@ bool Application::loadScene()
 	backgroundLayer = scene.addLayer();
 	defaultLayer = scene.addLayer();
 	uiLayer = scene.addLayer();
+	
+	// BG
+	bgBatch.resize(1);
+	BillboardBatch::Range* bgRange = bgBatch.addRange();
+	bgRange->start = 0;
+	bgRange->length = 1;
+	Billboard* bgBillboard = bgBatch.getBillboard(0);
+	bgBillboard->setDimensions(Vector2(1.0f, 1.0f));
+	bgBillboard->setTranslation(Vector3(0.5f, 0.5f, 0.0f));
+	bgBillboard->setTintColor(Vector4(1, 1, 1, 1));
+	bgBatch.update();
+	
+	vignettePass.setRenderTarget(&defaultRenderTarget);
+	bgCompositor.addPass(&vignettePass);
+	bgCompositor.load(nullptr);
+	bgCamera.setOrthographic(0, 1.0f, 1.0f, 0, -1.0f, 1.0f);
+	bgCamera.lookAt(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
+	bgCamera.setCompositor(&bgCompositor);
+	bgCamera.setCompositeIndex(0);
+	
+	// Setup soil pass
+	soilPass.setRenderTarget(&defaultRenderTarget);
+	defaultCompositor.addPass(&soilPass);
+	
+	// Setup lighting pass
+	lightingPass.setRenderTarget(&defaultRenderTarget);
+	lightingPass.setShadowMap(0);
+	lightingPass.setShadowCamera(&camera);
+	lightingPass.setModelLoader(modelLoader);
+	defaultCompositor.addPass(&lightingPass);
+	
+
+	// Load compositor
+	defaultCompositor.load(nullptr);
+	
+	// Setup camera
+	camera.lookAt(
+	glm::vec3(0.0f, 0.0f, 10.0f),
+	glm::vec3(0.0f, 0.0f, 0.0f),
+	glm::vec3(0.0f, 1.0f, 0.0f));
+	camera.setCompositor(&defaultCompositor);
+	camera.setCompositeIndex(0);
+	defaultLayer->addObject(&camera);
 	
 	// Debug
 	lineBatcher = new LineBatcher(4096);
@@ -628,8 +716,8 @@ bool Application::loadUI()
 	strings.get("quit-to-desktop", &quitToDesktopString);
 	
 	// Set colors
-	selectedColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-	deselectedColor = Vector4(0.0f, 0.0f, 0.0f, 0.35f);
+	selectedColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	deselectedColor = Vector4(1.0f, 1.0f, 1.0f, 0.35f);
 	
 	// Setup root UI element
 	uiRootElement = new UIContainer();
@@ -640,7 +728,7 @@ bool Application::loadUI()
 	// Create blackout element (for screen transitions)
 	blackoutImage = new UIImage();
 	blackoutImage->setDimensions(Vector2(width, height));
-	blackoutImage->setLayerOffset(99);
+	blackoutImage->setLayerOffset(98);
 	blackoutImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 	blackoutImage->setVisible(false);
 	uiRootElement->addChild(blackoutImage);
@@ -683,6 +771,15 @@ bool Application::loadUI()
 	versionLabel->setTranslation(Vector2((int)(-width * 0.025f), (int)(-height * 0.025f)));
 	versionLabel->setText(versionString);
 	titleScreenInfoContainer->addChild(versionLabel);
+	
+	frameTimeLabel = new UILabel();
+	frameTimeLabel->setAnchor(Vector2(0.0f, 0.0f));
+	frameTimeLabel->setLayerOffset(99);
+	frameTimeLabel->setFont(copyrightFont);
+	frameTimeLabel->setTranslation(Vector2(0.0f));
+	frameTimeLabel->setTintColor(Vector4(1.0f, 1.0f, 0.0f, 1.0f));
+	frameTimeLabel->setText("");
+	uiRootElement->addChild(frameTimeLabel);
 	
 	// Create "Press any key" element
 	anyKeyLabel = new UILabel();
