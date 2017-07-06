@@ -126,7 +126,6 @@ public:
 	
 	inline void setShadowMap(GLuint shadowMap) { this->shadowMap = shadowMap; }
 	inline void setShadowCamera(const Camera* camera) { this->shadowCamera = camera; }
-	inline void setModelLoader(ModelLoader* modelLoader) { this->modelLoader = modelLoader; }
 	
 private:
 	bool loadShader(const RenderOperation& operation);
@@ -158,8 +157,6 @@ private:
 	Texture* specularCubemap;
 	const Camera* shadowCamera;
 	float time;
-	
-	ModelLoader* modelLoader;
 };
 
 /**
@@ -172,6 +169,11 @@ public:
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
 	virtual void render(const RenderContext* renderContext);
+	
+	//void setDrawBounds(bool enabled);
+	//void setDrawSkeletons(bool enabled);
+	//void setDrawCameras(bool enabled);
+	//void setDrawLights(bool enabled);
 	
 private:
 	ShaderParameterSet parameterSet;

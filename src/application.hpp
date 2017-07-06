@@ -96,6 +96,9 @@ public:
 	
 	void loadLevel();
 	
+	void pauseSimulation();
+	void unpauseSimulation();
+	
 private:
 	ApplicationState* state;
 	ApplicationState* nextState;
@@ -202,6 +205,7 @@ public:
 	Control walkBack;
 	Control turnLeft;
 	Control turnRight;
+	Control togglePause;
 	Arcball arcball;
 	
 	// Misc
@@ -223,6 +227,8 @@ public:
 	Texture* levelActiveTexture;
 	Texture* levelInactiveTexture;
 	Texture* levelConnectorTexture;
+	Texture* pauseButtonTexture;
+	Texture* playButtonTexture;
 	
 	// UI elements
 	Vector4 selectedColor;
@@ -266,6 +272,8 @@ public:
 	UIContainer* levelSelectorContainer;
 	UIImage* levelSelections[10];
 	UIImage* levelConnectors[9];
+	UIImage* pauseButtonImage;
+	UIImage* playButtonImage;
 	
 	// Animation
 	Tweener* tweener;
@@ -287,6 +295,7 @@ public:
 	
 	Tween<float>* antHillZoomInTween;
 	Tween<Vector4>* antHillFadeOutTween;
+	Tween<Vector4>* playButtonFadeTween;
 	
 	// Menus
 	std::size_t menuCount;
@@ -318,6 +327,7 @@ public:
 	bool cameraOverheadView;
 	bool cameraNestView;
 	int toolIndex;
+	bool simulationPaused;
 	
 	// Debug
 	LineBatcher* lineBatcher;

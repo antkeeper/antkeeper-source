@@ -26,6 +26,7 @@
 #include "states/title-state.hpp"
 #include "states/main-menu-state.hpp"
 #include "states/play-state.hpp"
+#include "game/colony.hpp"
 #include "debug.hpp"
 #include "camera-controller.hpp"
 #include <cstdlib>
@@ -349,6 +350,7 @@ int Application::execute()
 	t = 0.0f;
 	dt = 1.0f / 60.0f;
 	float accumulator = 0.0f;
+	float maxFrameTime = 0.25f;
 	
 	int performanceSampleSize = 15;     // Number of frames to sample
 	int performanceSampleFrame = 0;     // Current sample frame
@@ -364,7 +366,7 @@ int Application::execute()
 		frameTimer.reset();
 		
 		// Add frame time (in seconds) to accumulator
-		accumulator += frameTime / 1000.0f;
+		accumulator += std::min(frameTime / 1000.0f, maxFrameTime);
 		
 		// If the user tried to close the application
 		if (inputManager->wasClosed() || escape.isTriggered())
@@ -433,11 +435,15 @@ int Application::execute()
 			performanceSampleFrame = 0;
 			
 			// Update frame time label
-			std::string frameTimeString;
-			std::stringstream stream;
-			stream << meanFrameTime;
-			stream >> frameTimeString;
-			frameTimeLabel->setText(frameTimeString);
+			if (frameTimeLabel->isVisible())
+			{
+				std::string frameTimeString;
+				std::stringstream stream;
+				stream.precision(2);
+				stream << std::fixed << meanFrameTime;
+				stream >> frameTimeString;
+				frameTimeLabel->setText(frameTimeString);
+			}
 		}
 		
 		// Update UI
@@ -586,6 +592,9 @@ bool Application::loadModels()
 	antHillModelInstance.setRotation(glm::angleAxis(glm::radians(90.0f), Vector3(1, 0, 0)));
 	nestModelInstance.setModel(nestModel);
 	
+	// Create terrain
+	terrain.create(255, 255, Vector3(50, 20, 50));
+	
 	return true;
 }
 
@@ -623,8 +632,11 @@ bool Application::loadScene()
 	lightingPass.setRenderTarget(&defaultRenderTarget);
 	lightingPass.setShadowMap(0);
 	lightingPass.setShadowCamera(&camera);
-	lightingPass.setModelLoader(modelLoader);
 	defaultCompositor.addPass(&lightingPass);
+	
+	// Setup debug pass
+	debugPass.setRenderTarget(&defaultRenderTarget);
+	defaultCompositor.addPass(&debugPass);
 	
 
 	// Load compositor
@@ -678,6 +690,8 @@ bool Application::loadUI()
 	levelActiveTexture = textureLoader->load("data/textures/ui-level-active.png");
 	levelInactiveTexture = textureLoader->load("data/textures/ui-level-inactive.png");
 	levelConnectorTexture = textureLoader->load("data/textures/ui-level-connector.png");
+	pauseButtonTexture = textureLoader->load("data/textures/pause-button.png");
+	playButtonTexture = textureLoader->load("data/textures/play-button.png");
 	
 	// Get strings
 	std::string pressAnyKeyString;
@@ -780,6 +794,10 @@ bool Application::loadUI()
 	frameTimeLabel->setTintColor(Vector4(1.0f, 1.0f, 0.0f, 1.0f));
 	frameTimeLabel->setText("");
 	uiRootElement->addChild(frameTimeLabel);
+	
+	bool frameTimeLabelVisible = false;
+	settings.get("show_frame_time", &frameTimeLabelVisible);
+	frameTimeLabel->setVisible(frameTimeLabelVisible);
 	
 	// Create "Press any key" element
 	anyKeyLabel = new UILabel();
@@ -958,6 +976,25 @@ bool Application::loadUI()
 		}
 	}
 	
+	// Create pause/play button elements
+	pauseButtonImage = new UIImage();
+	pauseButtonImage->setAnchor(Vector2(0.0f, 1.0f));
+	pauseButtonImage->setDimensions(Vector2(pauseButtonTexture->getWidth(), pauseButtonTexture->getHeight()));
+	pauseButtonImage->setTranslation(Vector2(16.0f, -16.0f));
+	pauseButtonImage->setTexture(pauseButtonTexture);
+	pauseButtonImage->setVisible(false);
+	pauseButtonImage->setActive(false);
+	uiRootElement->addChild(pauseButtonImage);
+	
+	playButtonImage = new UIImage();
+	playButtonImage->setAnchor(Vector2(0.0f, 1.0f));
+	playButtonImage->setDimensions(Vector2(playButtonTexture->getWidth(), playButtonTexture->getHeight()));
+	playButtonImage->setTranslation(Vector2(16.0f, -16.0f));
+	playButtonImage->setTexture(playButtonTexture);
+	playButtonImage->setVisible(false);
+	playButtonImage->setActive(false);
+	uiRootElement->addChild(playButtonImage);
+	
 	// Create tweener
 	tweener = new Tweener();
 	
@@ -1046,6 +1083,11 @@ bool Application::loadUI()
 	antHillFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, blackoutImage, std::placeholders::_1));
 	antHillFadeOutTween->setEndCallback(std::bind(Application::changeState, this, mainMenuState));
 	tweener->addTween(antHillFadeOutTween);
+	
+	playButtonFadeTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 1.0f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
+	playButtonFadeTween->setUpdateCallback(std::bind(UIElement::setTintColor, playButtonImage, std::placeholders::_1));
+	playButtonFadeTween->setEndCallback(std::bind(UIElement::setVisible, playButtonImage, false));
+	tweener->addTween(playButtonFadeTween);
 	
 	// Build menu system
 	selectedMenuItemIndex = 0;
@@ -1241,6 +1283,7 @@ bool Application::loadControls()
 	gameControlProfile->registerControl("walk-back", &walkBack);
 	gameControlProfile->registerControl("turn-left", &turnLeft);
 	gameControlProfile->registerControl("turn-right", &turnRight);
+	gameControlProfile->registerControl("toggle-pause", &togglePause);
 	
 	cameraMoveForward.bindKey(keyboard, SDL_SCANCODE_W);
 	cameraMoveBack.bindKey(keyboard, SDL_SCANCODE_S);
@@ -1258,6 +1301,7 @@ bool Application::loadControls()
 	walkBack.bindKey(keyboard, SDL_SCANCODE_DOWN);
 	turnLeft.bindKey(keyboard, SDL_SCANCODE_LEFT);
 	turnRight.bindKey(keyboard, SDL_SCANCODE_RIGHT);
+	togglePause.bindKey(keyboard, SDL_SCANCODE_SPACE);
 	
 	return true;
 }
@@ -1273,6 +1317,11 @@ bool Application::loadGame()
 	campaign.load("data/levels/");
 	currentWorld = 1;
 	currentLevel = 1;
+	simulationPaused = false;
+	
+	// Create colony
+	colony = new Colony();
+	colony->setAntModel(antModel);
 	
 	return true;
 }
@@ -1426,4 +1475,27 @@ void Application::loadLevel()
 	
 	std::string heightmap = std::string("data/textures/") + level->heightmap;
 	terrain.load(heightmap);
+	
+	changeState(playState);
+}
+
+void Application::pauseSimulation()
+{
+	simulationPaused = true;
+	playButtonImage->setVisible(false);
+	playButtonImage->setActive(false);
+	pauseButtonImage->setVisible(true);
+	pauseButtonImage->setActive(true);
+	playButtonFadeTween->stop();
+}
+
+void Application::unpauseSimulation()
+{
+	simulationPaused = false;
+	pauseButtonImage->setVisible(false);
+	pauseButtonImage->setActive(false);
+	playButtonImage->setTintColor(Vector4(1.0f));
+	playButtonImage->setVisible(true);
+	playButtonImage->setActive(true);
+	playButtonFadeTween->start();
 }

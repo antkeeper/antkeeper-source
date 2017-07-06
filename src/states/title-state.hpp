@@ -50,12 +50,6 @@ private:
 	bool fadeIn;
 	bool fadeOut;	
 	int substate;
-
-	Colony colony;
-	Ant* ant;
-	Navmesh* navmesh;
-	ModelInstance terrainSurface;
-	ModelInstance terrainSubsurface;
 };
 
 #endif // TITLE_STATE_HPP

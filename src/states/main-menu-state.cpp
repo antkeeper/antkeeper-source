@@ -277,6 +277,8 @@ void MainMenuState::execute()
 
 void MainMenuState::exit()
 {
+	// Remove nest
+	application->defaultLayer->removeObject(&application->nestModelInstance);
 }
 
 void MainMenuState::mouseButtonPressed(int button, int x, int y)

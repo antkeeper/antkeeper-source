@@ -295,7 +295,6 @@ void SoilRenderPass::render(const RenderContext* renderContext)
 LightingRenderPass::LightingRenderPass():
 	shadowMap(0),
 	shadowCamera(nullptr),
-	modelLoader(nullptr),
 	treeShadow(nullptr),
 	diffuseCubemap(nullptr)
 {
@@ -1021,6 +1020,7 @@ void DebugRenderPass::render(const RenderContext* renderContext)
 {
 	const Camera& camera = *(renderContext->camera);
 
+	/*
 	// Bind framebuffer and setup viewport
 	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
 	glViewport(0, 0, renderTarget->width, renderTarget->height);
@@ -1034,6 +1034,7 @@ void DebugRenderPass::render(const RenderContext* renderContext)
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
+	*/
 	
 	// Disable backface culling
 	glDisable(GL_CULL_FACE);

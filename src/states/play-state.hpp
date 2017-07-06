@@ -38,6 +38,10 @@ public:
 	
 	virtual void mouseButtonPressed(int button, int x, int y);
 	virtual void mouseButtonReleased(int button, int x, int y);
+	
+private:
+	ModelInstance terrainSurface;
+	ModelInstance terrainSubsurface;
 };
 
 #endif // PLAY_STATE_HPP

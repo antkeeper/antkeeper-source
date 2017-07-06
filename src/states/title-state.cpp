@@ -52,22 +52,6 @@ void TitleState::enter()
 	// Title ant hill
 	application->defaultLayer->addObject(&application->antHillModelInstance);
 	
-	// Create terrain
-	application->terrain.create(255, 255, Vector3(50, 20, 50));
-	application->terrain.getSurfaceModel()->getGroup(0)->material = application->materialLoader->load("data/materials/debug-terrain-surface.mtl");
-	terrainSurface.setModel(application->terrain.getSurfaceModel());
-	terrainSurface.setTranslation(Vector3(0, 0, 0));
-	terrainSubsurface.setModel(application->terrain.getSubsurfaceModel());
-	terrainSubsurface.setTranslation(Vector3(0, 0, 0));
-	//application->defaultLayer->addObject(&terrainSurface);
-	//application->defaultLayer->addObject(&terrainSubsurface);
-	navmesh = application->terrain.getSurfaceNavmesh();
-	
-	// Load level
-	application->loadLevel();
-	
-
-	
 	application->inputManager->addWindowObserver(this);
 	windowResized(application->width, application->height);
 	
