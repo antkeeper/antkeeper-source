@@ -22,6 +22,8 @@
 #include "../camera-controller.hpp"
 #include "../game/colony.hpp"
 #include "../game/ant.hpp"
+#include "../ui/toolbar.hpp"
+#include <cmath>
 
 PlayState::PlayState(Application* application):
 	ApplicationState(application)
@@ -41,6 +43,17 @@ void PlayState::enter()
 	application->pauseButtonImage->setActive(false);
 	application->playButtonImage->setVisible(false);
 	application->playButtonImage->setActive(false);
+	application->rectangularPaletteImage->setVisible(true);
+	application->rectangularPaletteImage->setActive(true);
+	application->toolbar->getContainer()->setVisible(true);
+	application->toolbar->getContainer()->setActive(true);
+	
+	// Setup tools
+	application->forcepsClosed = false;
+	
+	// Add background
+	//application->backgroundLayer->addObject(&application->bgCamera);
+	//application->backgroundLayer->addObject(&application->bgBatch);
 	
 	// Create terrain model instances
 	application->terrain.getSurfaceModel()->getGroup(0)->material = application->materialLoader->load("data/materials/debug-terrain-surface.mtl");
@@ -52,6 +65,9 @@ void PlayState::enter()
 	// Add terrain to scene
 	application->defaultLayer->addObject(&terrainSurface);
 	application->defaultLayer->addObject(&terrainSubsurface);
+	
+	// Add forceps to scene
+	application->defaultLayer->addObject(&application->forcepsModelInstance);
 	
 	// Spawn ants
 	Navmesh* navmesh = application->terrain.getSurfaceNavmesh();
@@ -82,15 +98,34 @@ void PlayState::enter()
 	application->surfaceCam->update(0.0f);
 	
 	application->simulationPaused = false;
+	
+	application->mouse->addMouseButtonObserver(this);
 }
 
 void PlayState::execute()
 {
-	// Update colony
-	if (!application->simulationPaused)
+
+	
+
+
+	/*
+	else
 	{
-		application->colony->update(application->dt);
+		Plane plane;
+		plane.set(Vector3(0, 1, 0), Vector3(0.0f));
+		auto result = pickingRay.intersects(plane);
+		pick = pickingRay.extrapolate(std::get<1>(result));
 	}
+	*/
+	
+	static float rotationTime = 0.0f;
+	float iconRotation = std::sin(rotationTime * 3.0f) * glm::radians(10.0f);
+	rotationTime += application->dt;
+	
+	
+	//application->blaImage->setRotation(iconRotation);
+	
+	
 	
 	// Move camera
 	Vector2 movementVector(0.0f);
@@ -111,15 +146,66 @@ void PlayState::execute()
 	}
 	
 	// Zoom camera
-	float zoomFactor = application->surfaceCam->getFocalDistance() / 20.0f * application->dt / (1.0f / 60.0f);
+	float zoomFactor = application->surfaceCam->getFocalDistance() / 10.0f * application->dt / (1.0f / 60.0f);
 	if (application->cameraZoomIn.isTriggered())
 		application->surfaceCam->zoom(zoomFactor * application->cameraZoomIn.getCurrentValue());
 	if (application->cameraZoomOut.isTriggered())
 		application->surfaceCam->zoom(-zoomFactor * application->cameraZoomOut.getCurrentValue());
-	application->surfaceCam->update(application->dt);
+	
+	// Rotate camera
+	if (application->cameraRotateCW.isTriggered() && !application->cameraRotateCW.wasTriggered())
+	{
+		application->surfaceCam->rotate(glm::radians(-45.0f));
+	}
+	if (application->cameraRotateCCW.isTriggered() && !application->cameraRotateCCW.wasTriggered())
+	{
+		application->surfaceCam->rotate(glm::radians(45.0f));
+	}
 	
 	// Update camera
 	application->surfaceCam->update(application->dt);
+	
+	// Picking
+	glm::ivec2 mousePosition = application->mouse->getCurrentPosition();
+	mousePosition.y = application->height - mousePosition.y;
+	Vector4 viewport(0.0f, 0.0f, application->width, application->height);
+	Vector3 mouseNear = application->camera.unproject(Vector3(mousePosition.x, mousePosition.y, 0.0f), viewport);
+	Vector3 mouseFar = application->camera.unproject(Vector3(mousePosition.x, mousePosition.y, 1.0f), viewport);
+	
+	Ray pickingRay;
+	pickingRay.origin = mouseNear;
+	pickingRay.direction = glm::normalize(mouseFar - mouseNear);
+	Vector3 pick;
+	
+	std::list<Navmesh::Triangle*> triangles;
+	application->terrain.getSurfaceOctree()->query(pickingRay, &triangles);
+	
+	auto result = intersects(pickingRay, triangles);
+	if (std::get<0>(result))
+	{
+		pick = pickingRay.extrapolate(std::get<1>(result));
+		
+		std::size_t triangleIndex = std::get<3>(result);
+		const Navmesh::Triangle* triangle = (*application->terrain.getSurfaceNavmesh()->getTriangles())[triangleIndex];
+		
+		float forcepsDistance = (application->forcepsClosed) ? 0.0f : 0.5f;
+		
+		//Quaternion rotation = glm::rotation(Vector3(0, 1, 0), triangle->normal);
+		Quaternion rotation = glm::angleAxis(application->surfaceCam->getAzimuth(), Vector3(0, 1, 0)) *
+			glm::angleAxis(glm::radians(15.0f), Vector3(0, 0, -1));
+		
+		Vector3 translation = pick + rotation * Vector3(0, forcepsDistance, 0);
+		
+		// Set tool position
+		application->forcepsModelInstance.setTranslation(translation);
+		application->forcepsModelInstance.setRotation(rotation);
+	}
+	
+	// Update colony
+	if (!application->simulationPaused)
+	{
+		application->colony->update(application->dt);
+	}
 	
 	// Pause simulation
 	if (application->togglePause.isTriggered() && !application->togglePause.wasTriggered())
@@ -137,12 +223,25 @@ void PlayState::execute()
 
 void PlayState::exit()
 {
+	// Remove background
+	//application->backgroundLayer->removeObject(&application->bgCamera);
+	//application->backgroundLayer->removeObject(&application->bgBatch);
+	
+	application->mouse->removeMouseButtonObserver(this);
 }
 
 void PlayState::mouseButtonPressed(int button, int x, int y)
 {
+	if (button == 1)
+	{
+		application->forcepsClosed = true;
+	}
 }
 
 void PlayState::mouseButtonReleased(int button, int x, int y)
 {
+	if (button == 1)
+	{
+		application->forcepsClosed = false;
+	}
 }

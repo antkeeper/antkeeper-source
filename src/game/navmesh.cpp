@@ -137,6 +137,7 @@ bool Navmesh::create(const std::vector<Vector3>& vertices, const std::vector<std
 	}
 	
 	calculateNormals();
+	calculateBounds();
 	
 	return true;
 }
@@ -378,6 +379,26 @@ void Navmesh::calculateNormals()
 	}
 }
 
+void Navmesh::calculateBounds()
+{
+	Vector3 min(std::numeric_limits<float>::infinity());
+	Vector3 max(-std::numeric_limits<float>::infinity());
+	
+	for (const Navmesh::Vertex* vertex: vertices)
+	{
+		min.x = std::min(min.x, vertex->position.x);
+		min.y = std::min(min.y, vertex->position.y);
+		min.z = std::min(min.z, vertex->position.z);
+		
+		max.x = std::max(max.x, vertex->position.x);
+		max.y = std::max(max.y, vertex->position.y);
+		max.z = std::max(max.z, vertex->position.z);
+	}
+	
+	bounds.setMin(min);
+	bounds.setMax(max);
+}
+
 bool Navmesh::readOBJ(std::istream* stream, const std::string& filename)
 {
 	std::string line;
@@ -552,4 +573,119 @@ void Navmesh::closestPointOnTriangle(const Vector3& p, const Navmesh::Triangle* 
 	float w = vc * denom;
 	*closestPoint = Vector3(1.0f - v - w, v, w);
 	*closestEdge = nullptr;
+}
+
+std::tuple<bool, float, float, float> intersects(const Ray& ray, const Navmesh::Triangle* triangle)
+{
+	return ray.intersects(triangle->edge->vertex->position, triangle->edge->next->vertex->position, triangle->edge->previous->vertex->position);
+}
+
+std::tuple<bool, float, float, std::size_t, std::size_t> intersects(const Ray& ray, const std::list<Navmesh::Triangle*>& triangles)
+{
+	bool intersection = false;
+	float t0 = std::numeric_limits<float>::infinity();
+	float t1 = -std::numeric_limits<float>::infinity();
+	std::size_t index0 = triangles.size();
+	std::size_t index1 = triangles.size();
+	
+	for (const Navmesh::Triangle* triangle: triangles)
+	{
+		auto result = intersects(ray, triangle);
+		
+		if (std::get<0>(result))
+		{
+			intersection = true;
+
+			float t = std::get<1>(result);
+			float cosTheta = glm::dot(ray.direction, triangle->normal);	
+
+			if (cosTheta <= 0.0f)
+			{
+				// Front-facing
+				if (t < t0)
+				{
+					t0 = t;
+					index0 = triangle->index;
+				}
+
+			}
+			else
+			{
+				// Back-facing
+				if (t > t1)
+				{
+					t1 = t;
+					index1 = triangle->index;
+				}
+			}
+		}
+	}
+
+	return std::make_tuple(intersection, t0, t1, index0, index1);
+}
+
+std::tuple<bool, float, float, std::size_t, std::size_t> intersects(const Ray& ray, const Navmesh& mesh)
+{
+	const std::vector<Navmesh::Triangle*>& triangles = *mesh.getTriangles();
+	
+	bool intersection = false;
+	float t0 = std::numeric_limits<float>::infinity();
+	float t1 = -std::numeric_limits<float>::infinity();
+	std::size_t index0 = triangles.size();
+	std::size_t index1 = triangles.size();
+
+	for (std::size_t i = 0; i < triangles.size(); ++i)
+	{
+		const Navmesh::Triangle* triangle = triangles[i];
+		const Vector3& a = triangle->edge->vertex->position;
+		const Vector3& b = triangle->edge->next->vertex->position;
+		const Vector3& c = triangle->edge->previous->vertex->position;
+		
+		auto result = ray.intersects(a, b, c);
+		
+		if (std::get<0>(result))
+		{
+			intersection = true;
+
+			float t = std::get<1>(result);
+			float cosTheta = glm::dot(ray.direction, triangle->normal);	
+
+			if (cosTheta <= 0.0f)
+			{
+				// Front-facing
+				t0 = std::min(t0, t);
+				index0 = i;
+			}
+			else
+			{
+				// Back-facing
+				t1 = std::max(t1, t);
+				index1 = i;
+			}
+		}
+	}
+
+	return std::make_tuple(intersection, t0, t1, index0, index1);
+}
+
+Octree<Navmesh::Triangle*>* Navmesh::createOctree(std::size_t maxDepth)
+{
+	Octree<Navmesh::Triangle*>* result = new Octree<Navmesh::Triangle*>(bounds, maxDepth);
+	
+	for (Navmesh::Triangle* triangle: triangles)
+	{
+		Vector3 min;
+		min.x = std::min(triangle->edge->vertex->position.x, std::min(triangle->edge->next->vertex->position.x, triangle->edge->previous->vertex->position.x));
+		min.y = std::min(triangle->edge->vertex->position.y, std::min(triangle->edge->next->vertex->position.y, triangle->edge->previous->vertex->position.y));
+		min.z = std::min(triangle->edge->vertex->position.z, std::min(triangle->edge->next->vertex->position.z, triangle->edge->previous->vertex->position.z));
+		
+		Vector3 max;
+		max.x = std::max(triangle->edge->vertex->position.x, std::max(triangle->edge->next->vertex->position.x, triangle->edge->previous->vertex->position.x));
+		max.y = std::max(triangle->edge->vertex->position.y, std::max(triangle->edge->next->vertex->position.y, triangle->edge->previous->vertex->position.y));
+		max.z = std::max(triangle->edge->vertex->position.z, std::max(triangle->edge->next->vertex->position.z, triangle->edge->previous->vertex->position.z));
+		
+		result->insert(AABB(min, max), triangle);
+	}
+	
+	return result;
 }

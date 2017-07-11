@@ -34,6 +34,8 @@ bool Biome::load()
 	TextureLoader textureLoader;
 	textureLoader.setCubemap(false);
 	textureLoader.setMipmapChain(false);
+	textureLoader.setWrapS(true);
+	textureLoader.setWrapT(true);
 	
 	// Load soil horizon textures
 	soilHorizonO = textureLoader.load(std::string("data/textures/") + soilHorizonOFilename);
@@ -44,6 +46,10 @@ bool Biome::load()
 	// Load diffuse cubemap
 	textureLoader.setCubemap(true);
 	textureLoader.setMipmapChain(false);
+	textureLoader.setWrapS(false);
+	textureLoader.setWrapT(false);
+	textureLoader.setWrapR(false);
+	
 	std::string diffuseCubemapFilename = std::string("data/textures/") + cubemapName + std::string("-diffuse.png");
 	diffuseCubemap = textureLoader.load(diffuseCubemapFilename);
 	if (!diffuseCubemap)

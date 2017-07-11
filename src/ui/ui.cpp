@@ -33,6 +33,7 @@ UIElement::UIElement():
 	layer(0),
 	origin(0.0f),
 	translation(0.0f),
+	rotation(0.0f),
 	dimensions(0.0f),
 	position(0.0f),
 	bounds(position, position),
@@ -384,6 +385,12 @@ void UIBatcher::batchImage(BillboardBatch* result, const UIImage* image)
 	Billboard* billboard = result->getBillboard(index);
 	billboard->setDimensions(image->getDimensions());
 	billboard->setTranslation(translation);
+	
+	if (image->getRotation() != 0.0f)
+	{
+		billboard->setRotation(glm::angleAxis(image->getRotation(), Vector3(0, 0, -1.0f)));
+	}
+	
 	billboard->setTextureCoordinates(image->getTextureBounds().getMin(), image->getTextureBounds().getMax());
 	billboard->setTintColor(image->getColor());
 	

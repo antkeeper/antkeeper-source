@@ -112,6 +112,8 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/ui/ui.cpp
 	${EXECUTABLE_SOURCE_DIR}/ui/tween.hpp
 	${EXECUTABLE_SOURCE_DIR}/ui/tween.cpp
+	${EXECUTABLE_SOURCE_DIR}/ui/toolbar.hpp
+	${EXECUTABLE_SOURCE_DIR}/ui/toolbar.cpp
 	${EXECUTABLE_SOURCE_DIR}/render-passes.cpp
 	${EXECUTABLE_SOURCE_DIR}/game/ant.hpp
 	${EXECUTABLE_SOURCE_DIR}/game/ant.cpp

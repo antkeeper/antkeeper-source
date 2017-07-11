@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include <emergent/emergent.hpp>
@@ -82,6 +83,11 @@ public:
 	 */
 	static void traverse(Navmesh::Triangle* startTriangle, const Vector3& startPosition, const Vector3& startVelocity, std::vector<Navmesh::Step>* traversal);
 	
+	/**
+	 * Creates an octree of navmesh triangles
+	 */
+	Octree<Navmesh::Triangle*>* createOctree(std::size_t maxDepth);
+	
 	/// Returns a pointer to the navmesh vertices
 	const std::vector<Navmesh::Vertex*>* getVertices() const;
 	
@@ -99,6 +105,9 @@ public:
 	
 	/// @copydoc Navmesh::getTriangles() const
 	std::vector<Navmesh::Triangle*>* getTriangles();
+	
+	/// Returns an AABB which contains this navmesh
+	const AABB& getBounds() const;
 	
 	/**
 	 * Half-edge vertex which contains a pointer to its parent edge, a position vector, and an index.
@@ -186,6 +195,11 @@ public:
 	 */
 	void calculateNormals();
 	
+	/**
+	 * Calculates an AABB which contains the navmesh.
+	 */
+	void calculateBounds();
+	
 private:
 	/**
 	 * Reads Wavefront OBJ data from an input stream
@@ -229,6 +243,7 @@ private:
 	std::vector<Navmesh::Vertex*> vertices;
 	std::vector<Navmesh::Edge*> edges;
 	std::vector<Navmesh::Triangle*> triangles;
+	AABB bounds;
 };
 
 inline const std::vector<Navmesh::Vertex*>* Navmesh::getVertices() const
@@ -260,5 +275,15 @@ inline std::vector<Navmesh::Triangle*>* Navmesh::getTriangles()
 {
 	return &triangles;
 }
+
+inline const AABB& Navmesh::getBounds() const
+{
+	return bounds;
+}
+
+std::tuple<bool, float, float, float> intersects(const Ray& ray, const Navmesh::Triangle* triangle);
+std::tuple<bool, float, float, std::size_t, std::size_t> intersects(const Ray& ray, const std::list<Navmesh::Triangle*>& triangles);
+
+std::tuple<bool, float, float, std::size_t, std::size_t> intersects(const Ray& ray, const Navmesh& mesh);
 
 #endif // NAVMESH_HPP

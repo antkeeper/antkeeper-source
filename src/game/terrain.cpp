@@ -1,5 +1,15 @@
 #include "terrain.hpp"
 
+Terrain::Terrain()
+{
+	surfaceOctree = nullptr;
+}
+
+Terrain::~Terrain()
+{
+	delete surfaceOctree;
+}
+
 void Terrain::create(int columns, int rows, const Vector3& dimensions)
 {
 	this->columns = columns;
@@ -114,6 +124,12 @@ void Terrain::createSurface()
 	
 	// Add group to the model
 	surfaceModel.addGroup(group);
+	
+	// Set model bounds
+	surfaceModel.setBounds(surfaceNavmesh.getBounds());
+	
+	// Calculate octree
+	surfaceOctree = surfaceNavmesh.createOctree(5);
 }
 
 void Terrain::createSubsurface()
@@ -366,6 +382,9 @@ void Terrain::createSubsurface()
 	
 	// Add group to the model
 	subsurfaceModel.addGroup(group);
+	
+	// Set model bounds
+	subsurfaceModel.setBounds(subsurfaceNavmesh.getBounds());
 }
 
 void Terrain::calculateSurfaceNormals()
@@ -484,6 +503,10 @@ bool Terrain::load(const std::string& filename)
 	surfaceNavmesh.calculateNormals();
 	subsurfaceNavmesh.calculateNormals();
 	
+	// Calculate navmesh bounds
+	surfaceNavmesh.calculateBounds();
+	subsurfaceNavmesh.calculateBounds();
+	
 	// Calculate vertex normals
 	calculateSurfaceNormals();
 	
@@ -492,6 +515,14 @@ bool Terrain::load(const std::string& filename)
     glBufferSubData(GL_ARRAY_BUFFER, 0, surfaceVertexCount * surfaceVertexSize * sizeof(float), surfaceVertexData);
 	glBindBuffer(GL_ARRAY_BUFFER, subsurfaceVBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0, subsurfaceVertexCount * subsurfaceVertexSize * sizeof(float), subsurfaceVertexData);
+	
+	// Update bounds
+	surfaceModel.setBounds(surfaceNavmesh.getBounds());
+	subsurfaceModel.setBounds(subsurfaceNavmesh.getBounds());
+	
+	// Calculate octree
+	delete surfaceOctree;
+	surfaceOctree = surfaceNavmesh.createOctree(5);
 	
 	return true;
 }

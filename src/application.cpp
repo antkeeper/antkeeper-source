@@ -27,6 +27,7 @@
 #include "states/main-menu-state.hpp"
 #include "states/play-state.hpp"
 #include "game/colony.hpp"
+#include "ui/toolbar.hpp"
 #include "debug.hpp"
 #include "camera-controller.hpp"
 #include <cstdlib>
@@ -381,6 +382,10 @@ int Application::execute()
 			{
 				state->execute();
 				
+				// Update controls
+				menuControlProfile->update();
+				gameControlProfile->update();
+				
 				// Perform tweening
 				tweener->update(dt);
 				
@@ -407,9 +412,7 @@ int Application::execute()
 			}
 		}
 		
-		// Update controls
-		menuControlProfile->update();
-		gameControlProfile->update();
+
 		
 		// Update input
 		inputManager->update();
@@ -530,6 +533,9 @@ void Application::changeFullscreen()
 	settings.set("fullscreen", fullscreen);
 	saveUserSettings();
 	
+	// Resize UI
+	resizeUI();
+	
 	// Notify window observers
 	inputManager->update();
 }
@@ -580,6 +586,7 @@ bool Application::loadModels()
 	antModel = modelLoader->load("data/models/debug-worker.mdl");
 	antHillModel = modelLoader->load("data/models/ant-hill.mdl");
 	nestModel = modelLoader->load("data/models/nest.mdl");
+	forcepsModel = modelLoader->load("data/models/forceps.mdl");
 	
 	if (!antModel || !antHillModel || !nestModel)
 	{
@@ -591,6 +598,7 @@ bool Application::loadModels()
 	antHillModelInstance.setModel(antHillModel);
 	antHillModelInstance.setRotation(glm::angleAxis(glm::radians(90.0f), Vector3(1, 0, 0)));
 	nestModelInstance.setModel(nestModel);
+	forcepsModelInstance.setModel(forcepsModel);
 	
 	// Create terrain
 	terrain.create(255, 255, Vector3(50, 20, 50));
@@ -685,6 +693,9 @@ bool Application::loadUI()
 	textureLoader->setCubemap(false);
 	textureLoader->setMipmapChain(false);
 	textureLoader->setMaxAnisotropy(1.0f);
+	textureLoader->setWrapS(false);
+	textureLoader->setWrapT(false);
+	
 	splashTexture = textureLoader->load("data/textures/ui-splash.png");
 	titleTexture = textureLoader->load("data/textures/ui-title.png");
 	levelActiveTexture = textureLoader->load("data/textures/ui-level-active.png");
@@ -692,6 +703,17 @@ bool Application::loadUI()
 	levelConnectorTexture = textureLoader->load("data/textures/ui-level-connector.png");
 	pauseButtonTexture = textureLoader->load("data/textures/pause-button.png");
 	playButtonTexture = textureLoader->load("data/textures/play-button.png");
+	rectangularPaletteTexture = textureLoader->load("data/textures/rectangular-palette.png");
+	toolBrushTexture = textureLoader->load("data/textures/tool-brush.png");
+	toolLensTexture = textureLoader->load("data/textures/tool-lens.png");
+	toolForcepsTexture = textureLoader->load("data/textures/tool-forceps.png");
+	toolTrowelTexture = textureLoader->load("data/textures/tool-trowel.png");
+	
+	toolbarTopTexture = textureLoader->load("data/textures/toolbar-top.png");
+	toolbarBottomTexture = textureLoader->load("data/textures/toolbar-bottom.png");
+	toolbarMiddleTexture = textureLoader->load("data/textures/toolbar-middle.png");
+	toolbarButtonRaisedTexture = textureLoader->load("data/textures/toolbar-button-raised.png");
+	toolbarButtonDepressedTexture = textureLoader->load("data/textures/toolbar-button-depressed.png");
 	
 	// Get strings
 	std::string pressAnyKeyString;
@@ -994,6 +1016,31 @@ bool Application::loadUI()
 	playButtonImage->setVisible(false);
 	playButtonImage->setActive(false);
 	uiRootElement->addChild(playButtonImage);
+	
+	rectangularPaletteImage = new UIImage();
+	rectangularPaletteImage->setAnchor(Vector2(0.5f, 1.0f));
+	rectangularPaletteImage->setDimensions(Vector2(rectangularPaletteTexture->getWidth(), rectangularPaletteTexture->getHeight()));
+	rectangularPaletteImage->setTranslation(Vector2(0.0f, -16.0f));
+	rectangularPaletteImage->setTexture(rectangularPaletteTexture);
+	rectangularPaletteImage->setVisible(false);
+	rectangularPaletteImage->setActive(false);
+	uiRootElement->addChild(rectangularPaletteImage);
+	
+	// Create toolbar
+	toolbar = new Toolbar();
+	toolbar->setToolbarTopTexture(toolbarTopTexture);
+	toolbar->setToolbarBottomTexture(toolbarBottomTexture);
+	toolbar->setToolbarMiddleTexture(toolbarMiddleTexture);
+	toolbar->setButtonRaisedTexture(toolbarButtonRaisedTexture);
+	toolbar->setButtonDepressedTexture(toolbarButtonDepressedTexture);
+	toolbar->addButton(toolBrushTexture, std::bind(std::printf, "0\n"), std::bind(std::printf, "0\n"));
+	toolbar->addButton(toolLensTexture, std::bind(std::printf, "1\n"), std::bind(std::printf, "1\n"));
+	toolbar->addButton(toolForcepsTexture, std::bind(SceneObject::setActive, &forcepsModelInstance, true), std::bind(SceneObject::setActive, &forcepsModelInstance, false));
+	toolbar->addButton(toolTrowelTexture, std::bind(std::printf, "3\n"), std::bind(std::printf, "3\n"));
+	toolbar->resize();
+	uiRootElement->addChild(toolbar->getContainer());
+	toolbar->getContainer()->setVisible(false);
+	toolbar->getContainer()->setActive(false);
 	
 	// Create tweener
 	tweener = new Tweener();

@@ -49,6 +49,7 @@ class TunnelCameraController;
 class LineBatcher;
 class ModelLoader;
 class MaterialLoader;
+class Toolbar;
 
 /**
  * Encapsulates the state of the application.
@@ -147,8 +148,7 @@ public:
 	DirectionalLight sunlight;
 	Spotlight lensHotspot;
 	Spotlight lensFalloff;
-	ModelInstance lensToolObject;
-	ModelInstance forcepsToolObject;
+	ModelInstance forcepsModelInstance;
 	ModelInstance navigatorObject;
 	ModelInstance antModelInstance;
 	ModelInstance antHillModelInstance;
@@ -229,6 +229,17 @@ public:
 	Texture* levelConnectorTexture;
 	Texture* pauseButtonTexture;
 	Texture* playButtonTexture;
+	Texture* rectangularPaletteTexture;
+	Texture* toolBrushTexture;
+	Texture* toolLensTexture;
+	Texture* toolForcepsTexture;
+	Texture* toolTrowelTexture;
+	
+	Texture* toolbarTopTexture;
+	Texture* toolbarBottomTexture;
+	Texture* toolbarMiddleTexture;
+	Texture* toolbarButtonRaisedTexture;
+	Texture* toolbarButtonDepressedTexture;
 	
 	// UI elements
 	Vector4 selectedColor;
@@ -274,6 +285,9 @@ public:
 	UIImage* levelConnectors[9];
 	UIImage* pauseButtonImage;
 	UIImage* playButtonImage;
+	UIImage* rectangularPaletteImage;
+	
+	Toolbar* toolbar;
 	
 	// Animation
 	Tweener* tweener;
@@ -314,6 +328,7 @@ public:
 	Model* antModel;
 	Model* antHillModel;
 	Model* nestModel;
+	Model* forcepsModel;
 	
 	// Game variables
 	Campaign campaign;
@@ -328,6 +343,7 @@ public:
 	bool cameraNestView;
 	int toolIndex;
 	bool simulationPaused;
+	bool forcepsClosed;
 	
 	// Debug
 	LineBatcher* lineBatcher;

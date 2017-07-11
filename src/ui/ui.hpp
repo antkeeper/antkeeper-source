@@ -62,6 +62,9 @@ public:
 	/// Sets the translation of the element, relative to its position in its parent element
 	void setTranslation(const Vector2& translation);
 	
+	/// Sets the rotation of the element
+	void setRotation(float angle);
+	
 	/// Sets the dimensions of the element
 	void setDimensions(const Vector2& dimensions);
 	
@@ -112,6 +115,9 @@ public:
 	
 	/// Returns the translation of this element, relative to its parent
 	const Vector2& getTranslation() const;
+	
+	/// Returns the rotation of this element
+	float getRotation() const;
 	
 	/// Returns the dimensions of this element
 	const Vector2& getDimensions() const;
@@ -164,6 +170,7 @@ private:
 	int layer;
 	Vector2 origin;
 	Vector2 translation;
+	float rotation;
 	Vector2 dimensions;
 	Vector2 position;
 	Rect bounds;
@@ -197,6 +204,11 @@ inline void UIElement::setOrigin(const Vector2& origin)
 inline void UIElement::setTranslation(const Vector2& translation)
 {
 	this->translation = translation;
+}
+
+inline void UIElement::setRotation(float angle)
+{
+	this->rotation = angle;
 }
 
 inline void UIElement::setDimensions(const Vector2& dimensions)
@@ -277,6 +289,11 @@ inline const Vector2& UIElement::getOrigin() const
 inline const Vector2& UIElement::getTranslation() const
 {
 	return translation;
+}
+
+inline float UIElement::getRotation() const
+{
+	return rotation;
 }
 
 inline const Vector2& UIElement::getDimensions() const

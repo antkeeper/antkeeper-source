@@ -29,6 +29,9 @@ using namespace Emergent;
 class Terrain
 {
 public:
+	Terrain();
+	~Terrain();
+	
 	/**
 	 * Creates a flat terrain surface.
 	 *
@@ -65,6 +68,8 @@ public:
 	/// Returns the model representing the terrain subsurface.
 	Model* getSubsurfaceModel();
 	
+	const Octree<Navmesh::Triangle*>* getSurfaceOctree() const;
+	
 private:
 	void createSurface();
 	void createSubsurface();
@@ -90,6 +95,7 @@ private:
 	PhysicalMaterial surfaceMaterial;
 	Model surfaceModel;
 	Navmesh surfaceNavmesh;
+	Octree<Navmesh::Triangle*>* surfaceOctree;
 	
 	// Subsurface
 	std::size_t subsurfaceVertexSize;
@@ -146,6 +152,11 @@ inline const Model* Terrain::getSubsurfaceModel() const
 inline Model* Terrain::getSubsurfaceModel()
 {
 	return &subsurfaceModel;
+}
+
+inline const Octree<Navmesh::Triangle*>* Terrain::getSurfaceOctree() const
+{
+	return surfaceOctree;
 }
 
 #endif // TERRAIN_HPP
