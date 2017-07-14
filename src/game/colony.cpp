@@ -24,8 +24,8 @@
 Colony::Colony():
 	antModel(nullptr)
 {
-	antOctree = new Octree<Agent*>(AABB(Vector3(-8.0f), Vector3(8.0f)), 5);
-	pheromoneOctree = new Octree<Pheromone*>(AABB(Vector3(-8.0f), Vector3(8.0f)), 5);
+	antOctree = new Octree<Agent*>(5, AABB(Vector3(-26.0f), Vector3(26.0f)));
+	pheromoneOctree = new Octree<Pheromone*>(5, AABB(Vector3(-26.0f), Vector3(26.0f)));
 }
 
 Colony::~Colony()
@@ -53,7 +53,7 @@ void Colony::update(float dt)
 	antOctree->clear();
 	for (Ant* ant: ants)
 	{
-		antOctree->insert(AABB(ant->getPosition(), ant->getPosition()), ant);
+		antOctree->insert(ant->getModelInstance()->getBounds(), ant);
 	}
 	
 	// Update ants

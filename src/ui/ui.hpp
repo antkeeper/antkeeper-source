@@ -151,9 +151,9 @@ public:
 	
 	void setMouseOverCallback(std::function<void()> callback);
 	void setMouseOutCallback(std::function<void()> callback);
-	void setMouseMovedCallback(std::function<void()> callback);
-	void setMousePressedCallback(std::function<void(int)> callback);
-	void setMouseReleasedCallback(std::function<void(int)> callback);
+	void setMouseMovedCallback(std::function<void(int, int)> callback);
+	void setMousePressedCallback(std::function<void(int, int, int)> callback);
+	void setMouseReleasedCallback(std::function<void(int, int, int)> callback);
 	
 	void mouseMoved(int x, int y);
 	void mouseButtonPressed(int button, int x, int y);
@@ -181,9 +181,9 @@ private:
 	bool mouseOver;
 	std::function<void()> mouseOverCallback;
 	std::function<void()> mouseOutCallback;
-	std::function<void()> mouseMovedCallback;
-	std::function<void(int)> mousePressedCallback;
-	std::function<void(int)> mouseReleasedCallback;
+	std::function<void(int, int)> mouseMovedCallback;
+	std::function<void(int, int, int)> mousePressedCallback;
+	std::function<void(int, int, int)> mouseReleasedCallback;
 };
 
 inline void UIElement::setAnchor(const Vector2& anchor)

@@ -670,7 +670,7 @@ std::tuple<bool, float, float, std::size_t, std::size_t> intersects(const Ray& r
 
 Octree<Navmesh::Triangle*>* Navmesh::createOctree(std::size_t maxDepth)
 {
-	Octree<Navmesh::Triangle*>* result = new Octree<Navmesh::Triangle*>(bounds, maxDepth);
+	Octree<Navmesh::Triangle*>* result = new Octree<Navmesh::Triangle*>(maxDepth, bounds);
 	
 	for (Navmesh::Triangle* triangle: triangles)
 	{

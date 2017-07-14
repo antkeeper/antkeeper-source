@@ -21,9 +21,9 @@
 
 Habitat::Habitat(const AABB& bounds, int maxOctreeDepth)
 {
-	obstacleOctree = new Octree<Navmesh*>(bounds, maxOctreeDepth);
-	pheromoneOctree = new Octree<Pheromone*>(bounds, maxOctreeDepth);
-	agentOctree = new Octree<Agent*>(bounds, maxOctreeDepth);
+	obstacleOctree = new Octree<Navmesh*>(maxOctreeDepth, bounds);
+	pheromoneOctree = new Octree<Pheromone*>(maxOctreeDepth, bounds);
+	agentOctree = new Octree<Agent*>(maxOctreeDepth, bounds);
 }
 
 Habitat::~Habitat()

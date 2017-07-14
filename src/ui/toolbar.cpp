@@ -94,6 +94,7 @@ void Toolbar::addButton(Texture* iconTexture, std::function<void()> pressCallbac
 	
 	UIImage* icon = new UIImage();
 	icon->setTexture(iconTexture);
+	icon->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.30f));
 	icons.push_back(icon);
 	
 	// Add button to toolbar
@@ -124,7 +125,8 @@ void Toolbar::pressButton(std::size_t index)
 	{
 		depressedButtonIndex = index;
 		buttons[index]->setTexture(buttonDepressedTexture);
-		icons[index]->setTranslation(Vector2(2.0f, 2.0f));
+		//icons[index]->setTranslation(Vector2(2.0f, 2.0f));
+		icons[index]->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		
 		pressCallbacks[index]();
 	}
@@ -135,7 +137,8 @@ void Toolbar::releaseButton(std::size_t index)
 	if (index < buttons.size())
 	{
 		buttons[index]->setTexture(buttonRaisedTexture);
-		icons[index]->setTranslation(Vector2(0.0f, 0.0f));
+		//icons[index]->setTranslation(Vector2(0.0f, 0.0f));
+		icons[index]->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.30f));
 		
 		releaseCallbacks[index]();
 	}

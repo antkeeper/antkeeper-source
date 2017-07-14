@@ -50,6 +50,7 @@ class LineBatcher;
 class ModelLoader;
 class MaterialLoader;
 class Toolbar;
+class PieMenu;
 
 /**
  * Encapsulates the state of the application.
@@ -173,6 +174,7 @@ public:
 	BillboardBatch bgBatch;
 	Compositor bgCompositor;
 	VignetteRenderPass vignettePass;
+	SkyboxRenderPass skyboxPass;
 	TextureLoader* textureLoader;
 	MaterialLoader* materialLoader;
 	ModelLoader* modelLoader;
@@ -230,6 +232,7 @@ public:
 	Texture* pauseButtonTexture;
 	Texture* playButtonTexture;
 	Texture* rectangularPaletteTexture;
+	Texture* foodIndicatorTexture;
 	Texture* toolBrushTexture;
 	Texture* toolLensTexture;
 	Texture* toolForcepsTexture;
@@ -240,6 +243,13 @@ public:
 	Texture* toolbarMiddleTexture;
 	Texture* toolbarButtonRaisedTexture;
 	Texture* toolbarButtonDepressedTexture;
+	
+	Texture* arcNorthTexture;
+	Texture* arcEastTexture;
+	Texture* arcSouthTexture;
+	Texture* arcWestTexture;
+	Texture* mouseLeftTexture;
+	Texture* mouseRightTexture;
 	
 	// UI elements
 	Vector4 selectedColor;
@@ -287,7 +297,12 @@ public:
 	UIImage* playButtonImage;
 	UIImage* rectangularPaletteImage;
 	
+	UIImage* foodIndicatorImage;
+	UIImage* contextButtonImage0;
+	UIImage* contextButtonImage1;
+	
 	Toolbar* toolbar;
+	PieMenu* pieMenu;
 	
 	// Animation
 	Tweener* tweener;

@@ -90,7 +90,7 @@ void Ant::update(float dt)
 		AABB neighborhoodAABB(getPosition() - Vector3(neighborhoodSize * 0.5f), getPosition() + Vector3(neighborhoodSize * 0.5f));
 		std::list<Agent*> neighbors;
 		colony->queryAnts(neighborhoodAABB, &neighbors);
-		
+				
 		// Calculate separation force
 		Vector3 separationForce = separation(neighbors);
 		
@@ -107,7 +107,7 @@ void Ant::update(float dt)
 		// Move ant
 		move(velocity);
 	}
-	else
+	else if (state == Ant::State::IDLE)
 	{
 		Vector3 leftProbe = getForward() * probeForwardOffset - getRight() * probeLateralOffset;
 		Vector3 rightProbe = getForward() * probeForwardOffset + getRight() * probeLateralOffset;
@@ -137,11 +137,14 @@ void Ant::update(float dt)
 	*/
 	
 	// Update transform
-	transform.translation = getPosition();
-	transform.rotation = getRotation();
-	
-	// Update model instance
-	modelInstance.setTransform(transform);
+	if (state != Ant::State::DEAD)
+	{
+		transform.translation = getPosition();
+		transform.rotation = getRotation();
+			
+		// Update model instance
+		modelInstance.setTransform(transform);
+	}
 }
 
 Vector3 Ant::forage(const Vector3& leftReceptor, const Vector3& rightReceptor)

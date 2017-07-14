@@ -100,6 +100,8 @@ void PlayState::enter()
 	application->simulationPaused = false;
 	
 	application->mouse->addMouseButtonObserver(this);
+	
+	pickAnt = nullptr;
 }
 
 void PlayState::execute()
@@ -172,10 +174,8 @@ void PlayState::execute()
 	Vector3 mouseNear = application->camera.unproject(Vector3(mousePosition.x, mousePosition.y, 0.0f), viewport);
 	Vector3 mouseFar = application->camera.unproject(Vector3(mousePosition.x, mousePosition.y, 1.0f), viewport);
 	
-	Ray pickingRay;
 	pickingRay.origin = mouseNear;
 	pickingRay.direction = glm::normalize(mouseFar - mouseNear);
-	Vector3 pick;
 	
 	std::list<Navmesh::Triangle*> triangles;
 	application->terrain.getSurfaceOctree()->query(pickingRay, &triangles);
@@ -186,7 +186,7 @@ void PlayState::execute()
 		pick = pickingRay.extrapolate(std::get<1>(result));
 		
 		std::size_t triangleIndex = std::get<3>(result);
-		const Navmesh::Triangle* triangle = (*application->terrain.getSurfaceNavmesh()->getTriangles())[triangleIndex];
+		pickTriangle = (*application->terrain.getSurfaceNavmesh()->getTriangles())[triangleIndex];
 		
 		float forcepsDistance = (application->forcepsClosed) ? 0.0f : 0.5f;
 		
@@ -199,6 +199,11 @@ void PlayState::execute()
 		// Set tool position
 		application->forcepsModelInstance.setTranslation(translation);
 		application->forcepsModelInstance.setRotation(rotation);
+	}
+	
+	if (pickAnt != nullptr)
+	{
+		pickAnt->getModelInstance()->setTranslation(pick);
 	}
 	
 	// Update colony
@@ -235,6 +240,31 @@ void PlayState::mouseButtonPressed(int button, int x, int y)
 	if (button == 1)
 	{
 		application->forcepsClosed = true;
+		
+		Sphere forcepsSphere = Sphere(pick, 0.35f);
+				
+		std::list<Agent*> ants;
+		pickAnt = nullptr;
+		float closestDistance = std::numeric_limits<float>::infinity();
+		
+		application->colony->queryAnts(forcepsSphere, &ants);
+		for (Agent* agent: ants)
+		{
+			Ant* ant = static_cast<Ant*>(agent);
+			
+			Vector3 difference = ant->getPosition() - pick;
+			float distanceSquared = glm::dot(difference, difference);
+			if (distanceSquared < closestDistance)
+			{
+				closestDistance = distanceSquared;
+				pickAnt = ant;
+			}
+		}
+		
+		if (pickAnt != nullptr)
+		{
+			pickAnt->setState(Ant::State::DEAD);
+		}
 	}
 }
 
@@ -243,5 +273,18 @@ void PlayState::mouseButtonReleased(int button, int x, int y)
 	if (button == 1)
 	{
 		application->forcepsClosed = false;
+		
+		if (pickAnt != nullptr)
+		{
+			auto result = intersects(pickingRay, pickTriangle);
+			if (std::get<0>(result))
+			{
+				Vector3 barycentricPosition = Vector3(std::get<2>(result), std::get<3>(result), 1.0f - std::get<2>(result) - std::get<3>(result));
+				pickAnt->setPosition(pickTriangle, barycentricPosition);
+			}
+			
+			pickAnt->setState(Ant::State::WANDER);
+			pickAnt = nullptr;
+		}
 	}
 }

@@ -233,5 +233,35 @@ private:
 	GLuint bayerTextureID;
 };
 
+/**
+ * Renders a skybox
+ */
+class SkyboxRenderPass: public RenderPass
+{
+public:
+	SkyboxRenderPass();
+	
+	inline void setCubemap(Texture* cubemap) { this->cubemap = cubemap; }
+	virtual bool load(const RenderContext* renderContext);
+	virtual void unload();
+	virtual void render(const RenderContext* renderContext);
+	
+private:
+	ShaderParameterSet parameterSet;
+	const ShaderParameter* matrixParam;
+	const ShaderParameter* cubemapParam;
+	
+	ShaderLoader shaderLoader;
+	Shader* shader;
+	Texture* cubemap;
+	
+	int quadVertexCount;
+	int quadIndexCount;
+	GLuint quadVAO;
+	GLuint quadVBO;
+	GLuint quadIBO;
+};
+
+
 
 #endif // RENDER_PASSES_HPP

@@ -113,17 +113,17 @@ void UIElement::setMouseOutCallback(std::function<void()> callback)
 	mouseOutCallback = callback;
 }
 
-void UIElement::setMouseMovedCallback(std::function<void()> callback)
+void UIElement::setMouseMovedCallback(std::function<void(int, int)> callback)
 {
 	mouseMovedCallback = callback;
 }
 
-void UIElement::setMousePressedCallback(std::function<void(int)> callback)
+void UIElement::setMousePressedCallback(std::function<void(int, int, int)> callback)
 {
 	mousePressedCallback = callback;
 }
 
-void UIElement::setMouseReleasedCallback(std::function<void(int)> callback)
+void UIElement::setMouseReleasedCallback(std::function<void(int, int, int)> callback)
 {
 	mouseReleasedCallback = callback;
 }
@@ -148,7 +148,7 @@ void UIElement::mouseMoved(int x, int y)
 		
 		if (mouseMovedCallback)
 		{
-			mouseMovedCallback();
+			mouseMovedCallback(x, y);
 		}
 	}
 	else if (mouseOver)
@@ -177,7 +177,7 @@ void UIElement::mouseButtonPressed(int button, int x, int y)
 	{
 		if (mousePressedCallback)
 		{
-			mousePressedCallback(button);
+			mousePressedCallback(button, x, y);
 		}
 		
 		for (UIElement* child: children)
@@ -198,7 +198,7 @@ void UIElement::mouseButtonReleased(int button, int x, int y)
 	{
 		if (mouseReleasedCallback)
 		{
-			mouseReleasedCallback(button);
+			mouseReleasedCallback(button, x , y);
 		}
 		
 		for (UIElement* child: children)

@@ -22,6 +22,8 @@
 
 #include "../application-state.hpp"
 #include "../input.hpp"
+#include "../game/ant.hpp"
+#include "../game/navmesh.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
@@ -42,6 +44,10 @@ public:
 private:
 	ModelInstance terrainSurface;
 	ModelInstance terrainSubsurface;
+	Vector3 pick;
+	Ray pickingRay;
+	Navmesh::Triangle* pickTriangle;
+	Ant* pickAnt;
 };
 
 #endif // PLAY_STATE_HPP

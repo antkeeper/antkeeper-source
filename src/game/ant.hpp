@@ -57,7 +57,8 @@ public:
 	enum class State
 	{
 		IDLE,
-		WANDER
+		WANDER,
+		DEAD
 	};
 	
 	/**

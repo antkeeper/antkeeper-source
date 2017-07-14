@@ -28,6 +28,7 @@
 #include "states/play-state.hpp"
 #include "game/colony.hpp"
 #include "ui/toolbar.hpp"
+#include "ui/pie-menu.hpp"
 #include "debug.hpp"
 #include "camera-controller.hpp"
 #include <cstdlib>
@@ -632,6 +633,10 @@ bool Application::loadScene()
 	bgCamera.setCompositor(&bgCompositor);
 	bgCamera.setCompositeIndex(0);
 	
+	// Setup skybox pass
+	skyboxPass.setRenderTarget(&defaultRenderTarget);
+	defaultCompositor.addPass(&skyboxPass);
+	
 	// Setup soil pass
 	soilPass.setRenderTarget(&defaultRenderTarget);
 	defaultCompositor.addPass(&soilPass);
@@ -704,6 +709,7 @@ bool Application::loadUI()
 	pauseButtonTexture = textureLoader->load("data/textures/pause-button.png");
 	playButtonTexture = textureLoader->load("data/textures/play-button.png");
 	rectangularPaletteTexture = textureLoader->load("data/textures/rectangular-palette.png");
+	foodIndicatorTexture = textureLoader->load("data/textures/food-indicator.png");
 	toolBrushTexture = textureLoader->load("data/textures/tool-brush.png");
 	toolLensTexture = textureLoader->load("data/textures/tool-lens.png");
 	toolForcepsTexture = textureLoader->load("data/textures/tool-forceps.png");
@@ -714,6 +720,14 @@ bool Application::loadUI()
 	toolbarMiddleTexture = textureLoader->load("data/textures/toolbar-middle.png");
 	toolbarButtonRaisedTexture = textureLoader->load("data/textures/toolbar-button-raised.png");
 	toolbarButtonDepressedTexture = textureLoader->load("data/textures/toolbar-button-depressed.png");
+	
+	arcNorthTexture = textureLoader->load("data/textures/pie-menu-arc-north.png");
+	arcEastTexture = textureLoader->load("data/textures/pie-menu-arc-east.png");
+	arcSouthTexture = textureLoader->load("data/textures/pie-menu-arc-south.png");
+	arcWestTexture = textureLoader->load("data/textures/pie-menu-arc-west.png");
+	
+	mouseLeftTexture = textureLoader->load("data/textures/mouse-left.png");
+	mouseRightTexture = textureLoader->load("data/textures/mouse-right.png");
 	
 	// Get strings
 	std::string pressAnyKeyString;
@@ -754,6 +768,9 @@ bool Application::loadUI()
 	// Set colors
 	selectedColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	deselectedColor = Vector4(1.0f, 1.0f, 1.0f, 0.35f);
+	
+	// Create tweener
+	tweener = new Tweener();
 	
 	// Setup root UI element
 	uiRootElement = new UIContainer();
@@ -1018,13 +1035,27 @@ bool Application::loadUI()
 	uiRootElement->addChild(playButtonImage);
 	
 	rectangularPaletteImage = new UIImage();
-	rectangularPaletteImage->setAnchor(Vector2(0.5f, 1.0f));
+	rectangularPaletteImage->setAnchor(Vector2(0.0f, 1.0f));
 	rectangularPaletteImage->setDimensions(Vector2(rectangularPaletteTexture->getWidth(), rectangularPaletteTexture->getHeight()));
-	rectangularPaletteImage->setTranslation(Vector2(0.0f, -16.0f));
+	rectangularPaletteImage->setTranslation(Vector2(16.0f, -16.0f));
 	rectangularPaletteImage->setTexture(rectangularPaletteTexture);
 	rectangularPaletteImage->setVisible(false);
 	rectangularPaletteImage->setActive(false);
 	uiRootElement->addChild(rectangularPaletteImage);
+	
+	contextButtonImage0 = new UIImage();
+	contextButtonImage0->setAnchor(Vector2(0.5f, 1.0f));
+	contextButtonImage0->setDimensions(Vector2(mouseLeftTexture->getWidth(), mouseLeftTexture->getHeight()));
+	contextButtonImage0->setTranslation(Vector2(0.0f, -16.0f));
+	contextButtonImage0->setTexture(mouseLeftTexture);
+	uiRootElement->addChild(contextButtonImage0);
+	
+	foodIndicatorImage = new UIImage();
+	foodIndicatorImage->setAnchor(Vector2(1.0f, 0.0f));
+	foodIndicatorImage->setDimensions(Vector2(foodIndicatorTexture->getWidth(), foodIndicatorTexture->getHeight()));
+	foodIndicatorImage->setTranslation(Vector2(-16.0f, 16.0f));
+	foodIndicatorImage->setTexture(foodIndicatorTexture);
+	uiRootElement->addChild(foodIndicatorImage);
 	
 	// Create toolbar
 	toolbar = new Toolbar();
@@ -1038,12 +1069,22 @@ bool Application::loadUI()
 	toolbar->addButton(toolForcepsTexture, std::bind(SceneObject::setActive, &forcepsModelInstance, true), std::bind(SceneObject::setActive, &forcepsModelInstance, false));
 	toolbar->addButton(toolTrowelTexture, std::bind(std::printf, "3\n"), std::bind(std::printf, "3\n"));
 	toolbar->resize();
-	uiRootElement->addChild(toolbar->getContainer());
+	//uiRootElement->addChild(toolbar->getContainer());
 	toolbar->getContainer()->setVisible(false);
 	toolbar->getContainer()->setActive(false);
 	
-	// Create tweener
-	tweener = new Tweener();
+	// Create pie menu
+	pieMenu = new PieMenu(tweener);
+	pieMenu->addOption(arcNorthTexture, toolLensTexture, std::bind(std::printf, "0 on\n"), std::bind(std::printf, "0 off\n"));
+	pieMenu->addOption(arcEastTexture, toolForcepsTexture, std::bind(std::printf, "1 on\n"), std::bind(std::printf, "1 off\n"));
+	pieMenu->addOption(arcSouthTexture, toolTrowelTexture, std::bind(std::printf, "2 on\n"), std::bind(std::printf, "2 off\n"));
+	pieMenu->addOption(arcWestTexture, toolBrushTexture, std::bind(std::printf, "3 on\n"), std::bind(std::printf, "3 off\n"));
+	uiRootElement->addChild(pieMenu->getContainer());
+	pieMenu->resize();
+	pieMenu->getContainer()->setVisible(false);
+	pieMenu->getContainer()->setActive(true);
+	
+
 	
 	// Setup screen fade in/fade out tween
 	fadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
@@ -1522,6 +1563,9 @@ void Application::loadLevel()
 	
 	std::string heightmap = std::string("data/textures/") + level->heightmap;
 	terrain.load(heightmap);
+	
+	// Set skybox
+	skyboxPass.setCubemap(biome->specularCubemap);
 	
 	changeState(playState);
 }

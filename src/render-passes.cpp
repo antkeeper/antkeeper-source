@@ -334,7 +334,7 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 	// Load cubemap
 	textureLoader.setCubemap(true);
 	textureLoader.setMipmapChain(false);
-	diffuseCubemap = textureLoader.load("data/textures/galileo-diffuse.png");
+	diffuseCubemap = textureLoader.load("data/textures/campus-diffuse.png");
 	if (!diffuseCubemap)
 	{
 		std::cerr << "Failed to load cubemap" << std::endl;
@@ -342,7 +342,7 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 	
 	textureLoader.setCubemap(true);
 	textureLoader.setMipmapChain(true);
-	specularCubemap = textureLoader.load("data/textures/galileo-specular_m%02d.png");
+	specularCubemap = textureLoader.load("data/textures/campus-specular_m%02d.png");
 	if (!specularCubemap)
 	{
 		std::cerr << "Failed to load cubemap" << std::endl;
@@ -1259,4 +1259,102 @@ void VignetteRenderPass::render(const RenderContext* renderContext)
 		glBindVertexArray(operation.vao);
 		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
 	}
+}
+
+SkyboxRenderPass::SkyboxRenderPass():
+	shader(nullptr),
+	cubemap(nullptr)
+{
+	matrixParam = parameterSet.addParameter("matrix", ShaderParameter::Type::MATRIX_4, 1);
+	cubemapParam = parameterSet.addParameter("cubemap", ShaderParameter::Type::INT, 1);
+}
+
+bool SkyboxRenderPass::load(const RenderContext* renderContext)
+{
+	shaderLoader.undefine();
+	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
+	
+	shader = shaderLoader.load("data/shaders/skybox.glsl", &parameterSet);
+	if (!shader)
+	{
+		return false;
+	}
+	
+	
+	const float quadVertexData[] =
+	{
+		-1.0f,  1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f
+	};
+
+	const std::uint32_t quadIndexData[] =
+	{
+		0, 1, 3,
+		3, 1, 2
+	};
+
+	quadVertexCount = 4;
+	quadIndexCount = 6;
+	
+	// Create AABB geometry
+	glGenVertexArrays(1, &quadVAO);
+	glBindVertexArray(quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * quadVertexCount, quadVertexData, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(EMERGENT_VERTEX_POSITION);
+	glVertexAttribPointer(EMERGENT_VERTEX_POSITION, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (char*)0 + 0*sizeof(float));
+	glGenBuffers(1, &quadIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(std::uint32_t) * quadIndexCount, quadIndexData, GL_STATIC_DRAW);
+	
+	return true;
+}
+
+void SkyboxRenderPass::unload()
+{
+	delete shader;
+	shader = nullptr;
+	
+	glDeleteBuffers(1, &quadIBO);
+	glDeleteBuffers(1, &quadVBO);
+	glDeleteVertexArrays(1, &quadVAO);
+}
+
+void SkyboxRenderPass::render(const RenderContext* renderContext)
+{
+	if (!cubemap)
+	{
+		return;
+	}
+	
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	
+	//glDisable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	
+	// Bind shader
+	shader->bind();
+	
+	// Bind cubemap texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->getTextureID());
+	
+	// Pass texture unit to shader
+	shader->setParameter(cubemapParam, 0);
+	
+	// Calculate matrix
+	const Camera& camera = *(renderContext->camera);
+	Matrix4 modelView = Matrix4(Matrix3(camera.getView()));
+	Matrix4 matrix = glm::inverse(modelView) * glm::inverse(camera.getProjection());
+	
+	// Pass matrix to shader
+	shader->setParameter(matrixParam, matrix);
+	
+	// Render quad
+	glBindVertexArray(quadVAO);
+	glDrawElementsBaseVertex(GL_TRIANGLES, quadIndexCount, GL_UNSIGNED_INT, (void*)0, 0);
 }
