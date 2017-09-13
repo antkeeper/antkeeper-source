@@ -36,13 +36,13 @@ Building on GNU/Linux requires CMake, GCC, G++, and GNU Make. Open a terminal in
 
 Building on Windows requires CMake and Visual Studio 2017. Additionally, [NSIS](http://nsis.sourceforge.net/) is required if you want to build a distributable installer program. In order to correctly build for your target architecture, you must use the `x86 Native Tools Command Prompt` or the `x64 Native Tools Command Prompt` for 32-bit and 64-bit applications, respectively. Then navigate to the project root directory and run the following commands:
 
-	cd build/win64
+	cd build\win64
 	cmake ..\.. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=...
 	cmake --build .
 
 ## Testing
 
-After building, a standalone version of the application will be located somewhere in the `bin` directory, according to the build type, build platform, and version string. This application can be executed with the following command:
+After building, a standalone version of the application will be located somewhere in the `bin` directory according to the build type, build platform, and version string. This application can be executed with the following command:
 
 	cmake --build . --target run
 
