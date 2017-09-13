@@ -20,7 +20,6 @@ CMake is required to configure and build the application. Depending on the targe
 The following arguments may be passed to CMake during configuration:
 
 	-DCMAKE_BUILD_TYPE // [Debug, Release]
-	-DPLATFORM         // [linux32, linux64, win32, win64]
 	-DLANGUAGE         // [en-us, zh-cn]
 	-DSTANDALONE       // [OFF, ON]
 
