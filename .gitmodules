@@ -4,3 +4,6 @@
 [submodule "data"]
 	path = data
 	url = https://gitlab.com/cjhoward/antkeeper-data.git
+[submodule "lib\\SDL2"]
+	path = lib\\SDL2
+	url = https://github.com/cjhoward/SDL2.git
