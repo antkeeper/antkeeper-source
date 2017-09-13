@@ -12,9 +12,9 @@ PieMenu::PieMenu(Tweener* tweener):
 {	
 	// Setup fullscreen container
 	fullscreenContainer.addChild(&croppedContainer);
-	fullscreenContainer.setMouseMovedCallback(std::bind(PieMenu::mouseMoved, this, std::placeholders::_1, std::placeholders::_2));
-	fullscreenContainer.setMousePressedCallback(std::bind(PieMenu::mouseButtonPressed, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-	fullscreenContainer.setMouseReleasedCallback(std::bind(PieMenu::mouseButtonReleased, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+	fullscreenContainer.setMouseMovedCallback(std::bind(&PieMenu::mouseMoved, this, std::placeholders::_1, std::placeholders::_2));
+	fullscreenContainer.setMousePressedCallback(std::bind(&PieMenu::mouseButtonPressed, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+	fullscreenContainer.setMouseReleasedCallback(std::bind(&PieMenu::mouseButtonReleased, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 	
 	// Setup cropped container
 	croppedContainer.addChild(&scalingContainer);
@@ -24,9 +24,9 @@ PieMenu::PieMenu(Tweener* tweener):
 	
 	// Create tweens
 	scaleUpTween = new Tween<float>(EaseFunction::OUT_SINE, 0.0f, 0.1f, 0.0f, 1.0f);
-	scaleUpTween->setUpdateCallback(std::bind(PieMenu::setScale, this, std::placeholders::_1));
+	scaleUpTween->setUpdateCallback(std::bind(&PieMenu::setScale, this, std::placeholders::_1));
 	scaleDownTween = new Tween<float>(EaseFunction::IN_SINE, 0.0f, 0.1f, 1.0f, -1.0f);
-	scaleDownTween->setUpdateCallback(std::bind(PieMenu::setScale, this, std::placeholders::_1));
+	scaleDownTween->setUpdateCallback(std::bind(&PieMenu::setScale, this, std::placeholders::_1));
 	
 	// Add tweens
 	tweener->addTween(scaleUpTween);

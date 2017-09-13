@@ -1,17 +1,32 @@
 
-enum class ToolContext
-{
-	BRUSH_PAINT,
-	LENS_FOCUS,
-	FORCEPS_PINCH,
-	FORCEPS_RELEASE,
-	FORCEPS_PICK_UP,
-	FORCEPS_PUT_DOWN
-};
-
+/**
+ * Abstract base class for tools. Tools are the only way for the user to interact with the world.
+ */
 class Tool
 {
 public:
+	
+	
+	
+private:
+	Vector3 translation;
+};
 
-	ToolContext gatherContext();
+class Forceps: public Tool
+{
+public:
+
+private:
+	void pinch();
+	void release();
+	
+	ModelInstance forcepsModelInstance;
+};
+
+class Brush: public Tool
+{
+public:
+
+private:
+	void paint();
 };

@@ -31,11 +31,12 @@
 #include "ui/pie-menu.hpp"
 #include "debug.hpp"
 #include "camera-controller.hpp"
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <cstdio>
 #include <sstream>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #define OPENGL_VERSION_MAJOR 3
 #define OPENGL_VERSION_MINOR 3
@@ -368,7 +369,7 @@ int Application::execute()
 		frameTimer.reset();
 		
 		// Add frame time (in seconds) to accumulator
-		accumulator += std::min(frameTime / 1000.0f, maxFrameTime);
+		accumulator += std::min<float>(frameTime / 1000.0f, maxFrameTime);
 		
 		// If the user tried to close the application
 		if (inputManager->wasClosed() || escape.isTriggered())
@@ -412,8 +413,6 @@ int Application::execute()
 				frameTimer.reset();
 			}
 		}
-		
-
 		
 		// Update input
 		inputManager->update();
@@ -649,7 +648,7 @@ bool Application::loadScene()
 	
 	// Setup debug pass
 	debugPass.setRenderTarget(&defaultRenderTarget);
-	defaultCompositor.addPass(&debugPass);
+	//defaultCompositor.addPass(&debugPass);
 	
 
 	// Load compositor
@@ -1064,10 +1063,10 @@ bool Application::loadUI()
 	toolbar->setToolbarMiddleTexture(toolbarMiddleTexture);
 	toolbar->setButtonRaisedTexture(toolbarButtonRaisedTexture);
 	toolbar->setButtonDepressedTexture(toolbarButtonDepressedTexture);
-	toolbar->addButton(toolBrushTexture, std::bind(std::printf, "0\n"), std::bind(std::printf, "0\n"));
-	toolbar->addButton(toolLensTexture, std::bind(std::printf, "1\n"), std::bind(std::printf, "1\n"));
-	toolbar->addButton(toolForcepsTexture, std::bind(SceneObject::setActive, &forcepsModelInstance, true), std::bind(SceneObject::setActive, &forcepsModelInstance, false));
-	toolbar->addButton(toolTrowelTexture, std::bind(std::printf, "3\n"), std::bind(std::printf, "3\n"));
+	toolbar->addButton(toolBrushTexture, std::bind(&std::printf, "0\n"), std::bind(&std::printf, "0\n"));
+	toolbar->addButton(toolLensTexture, std::bind(&std::printf, "1\n"), std::bind(&std::printf, "1\n"));
+	toolbar->addButton(toolForcepsTexture, std::bind(&SceneObject::setActive, &forcepsModelInstance, true), std::bind(&SceneObject::setActive, &forcepsModelInstance, false));
+	toolbar->addButton(toolTrowelTexture, std::bind(&std::printf, "3\n"), std::bind(&std::printf, "3\n"));
 	toolbar->resize();
 	//uiRootElement->addChild(toolbar->getContainer());
 	toolbar->getContainer()->setVisible(false);
@@ -1075,10 +1074,10 @@ bool Application::loadUI()
 	
 	// Create pie menu
 	pieMenu = new PieMenu(tweener);
-	pieMenu->addOption(arcNorthTexture, toolLensTexture, std::bind(std::printf, "0 on\n"), std::bind(std::printf, "0 off\n"));
-	pieMenu->addOption(arcEastTexture, toolForcepsTexture, std::bind(std::printf, "1 on\n"), std::bind(std::printf, "1 off\n"));
-	pieMenu->addOption(arcSouthTexture, toolTrowelTexture, std::bind(std::printf, "2 on\n"), std::bind(std::printf, "2 off\n"));
-	pieMenu->addOption(arcWestTexture, toolBrushTexture, std::bind(std::printf, "3 on\n"), std::bind(std::printf, "3 off\n"));
+	pieMenu->addOption(arcNorthTexture, toolLensTexture, std::bind(&std::printf, "0 on\n"), std::bind(&std::printf, "0 off\n"));
+	pieMenu->addOption(arcEastTexture, toolForcepsTexture, std::bind(&std::printf, "1 on\n"), std::bind(&std::printf, "1 off\n"));
+	pieMenu->addOption(arcSouthTexture, toolTrowelTexture, std::bind(&std::printf, "2 on\n"), std::bind(&std::printf, "2 off\n"));
+	pieMenu->addOption(arcWestTexture, toolBrushTexture, std::bind(&std::printf, "3 on\n"), std::bind(&std::printf, "3 off\n"));
 	uiRootElement->addChild(pieMenu->getContainer());
 	pieMenu->resize();
 	pieMenu->getContainer()->setVisible(false);
@@ -1088,52 +1087,52 @@ bool Application::loadUI()
 	
 	// Setup screen fade in/fade out tween
 	fadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
-	fadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, blackoutImage, std::placeholders::_1));
+	fadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, blackoutImage, std::placeholders::_1));
 	tweener->addTween(fadeInTween);
 	fadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-	fadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, blackoutImage, std::placeholders::_1));
+	fadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, blackoutImage, std::placeholders::_1));
 	tweener->addTween(fadeOutTween);
 	
 	// Setup splash screen tween
 	splashFadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 0.5f, Vector4(1.0f, 1.0f, 1.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-	splashFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, splashImage, std::placeholders::_1));
+	splashFadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, splashImage, std::placeholders::_1));
 	tweener->addTween(splashFadeInTween);
 	
 	splashHangTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, 1.0f, 0.0f, 1.0f);
 	tweener->addTween(splashHangTween);
 	
 	splashFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.5f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
-	splashFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, splashImage, std::placeholders::_1));
+	splashFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, splashImage, std::placeholders::_1));
 	tweener->addTween(splashFadeOutTween);
 	
-	splashFadeInTween->setEndCallback(std::bind(TweenBase::start, splashHangTween));
-	splashHangTween->setEndCallback(std::bind(TweenBase::start, splashFadeOutTween));
-	splashFadeOutTween->setEndCallback(std::bind(Application::changeState, this, titleState));
+	splashFadeInTween->setEndCallback(std::bind(&TweenBase::start, splashHangTween));
+	splashHangTween->setEndCallback(std::bind(&TweenBase::start, splashFadeOutTween));
+	splashFadeOutTween->setEndCallback(std::bind(&Application::changeState, this, titleState));
 	
 	// Setup game title tween
 	titleFadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 2.0f, Vector4(1.0f, 1.0f, 1.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-	titleFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, titleImage, std::placeholders::_1));
+	titleFadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, titleImage, std::placeholders::_1));
 	tweener->addTween(titleFadeInTween);
 	titleFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.25f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
-	titleFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, titleImage, std::placeholders::_1));
+	titleFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, titleImage, std::placeholders::_1));
 	tweener->addTween(titleFadeOutTween);
 	
 	// Setup copyright tween
 	copyrightFadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 1.0f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 0.5f));
-	copyrightFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, titleScreenInfoContainer, std::placeholders::_1));
+	copyrightFadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, titleScreenInfoContainer, std::placeholders::_1));
 	tweener->addTween(copyrightFadeInTween);
 	copyrightFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.25f, Vector4(0.0f, 0.0f, 0.0f, 0.5f), Vector4(0.0f, 0.0f, 0.0f, -0.5f));
-	copyrightFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, titleScreenInfoContainer, std::placeholders::_1));
+	copyrightFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, titleScreenInfoContainer, std::placeholders::_1));
 	tweener->addTween(copyrightFadeOutTween);
 	
 	// Setup "Press any key" tween
 	anyKeyFadeInTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-	anyKeyFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, anyKeyLabel, std::placeholders::_1));
+	anyKeyFadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, anyKeyLabel, std::placeholders::_1));
 	tweener->addTween(anyKeyFadeInTween);
 	anyKeyFadeOutTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
-	anyKeyFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, anyKeyLabel, std::placeholders::_1));
-	anyKeyFadeInTween->setEndCallback(std::bind(TweenBase::start, anyKeyFadeOutTween));
-	anyKeyFadeOutTween->setEndCallback(std::bind(TweenBase::start, anyKeyFadeInTween));
+	anyKeyFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, anyKeyLabel, std::placeholders::_1));
+	anyKeyFadeInTween->setEndCallback(std::bind(&TweenBase::start, anyKeyFadeOutTween));
+	anyKeyFadeOutTween->setEndCallback(std::bind(&TweenBase::start, anyKeyFadeInTween));
 	tweener->addTween(anyKeyFadeOutTween);
 	
 	float menuFadeInDuration = 0.15f;
@@ -1164,110 +1163,110 @@ bool Application::loadUI()
 	
 	// Title screen zoom in tween
 	antHillZoomInTween = new Tween<float>(EaseFunction::LINEAR, 0.0f, 2.0f, 50.0f, -49.9f);
-	antHillZoomInTween->setUpdateCallback(std::bind(SurfaceCameraController::setTargetFocalDistance, surfaceCam, std::placeholders::_1));
+	antHillZoomInTween->setUpdateCallback(std::bind(&SurfaceCameraController::setTargetFocalDistance, surfaceCam, std::placeholders::_1));
 	tweener->addTween(antHillZoomInTween);
 	
 	antHillFadeOutTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 2.0f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-	antHillFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, blackoutImage, std::placeholders::_1));
-	antHillFadeOutTween->setEndCallback(std::bind(Application::changeState, this, mainMenuState));
+	antHillFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, blackoutImage, std::placeholders::_1));
+	antHillFadeOutTween->setEndCallback(std::bind(&Application::changeState, this, mainMenuState));
 	tweener->addTween(antHillFadeOutTween);
 	
 	playButtonFadeTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 1.0f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
-	playButtonFadeTween->setUpdateCallback(std::bind(UIElement::setTintColor, playButtonImage, std::placeholders::_1));
-	playButtonFadeTween->setEndCallback(std::bind(UIElement::setVisible, playButtonImage, false));
+	playButtonFadeTween->setUpdateCallback(std::bind(&UIElement::setTintColor, playButtonImage, std::placeholders::_1));
+	playButtonFadeTween->setEndCallback(std::bind(&UIElement::setVisible, playButtonImage, false));
 	tweener->addTween(playButtonFadeTween);
 	
 	// Build menu system
 	selectedMenuItemIndex = 0;
 	mainMenu = new Menu();
 	MenuItem* challengeItem = mainMenu->addItem();
-	challengeItem->setSelectedCallback(std::bind(UIElement::setTintColor, challengeLabel, selectedColor));
-	challengeItem->setDeselectedCallback(std::bind(UIElement::setTintColor, challengeLabel, deselectedColor));
-	challengeItem->setActivatedCallback(std::bind(Application::enterLevelSelection, this));
-	challengeLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, challengeItem->getIndex()));
-	challengeLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, challengeItem->getIndex()));
-	challengeLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, challengeItem->getIndex()));
+	challengeItem->setSelectedCallback(std::bind(&UIElement::setTintColor, challengeLabel, selectedColor));
+	challengeItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, challengeLabel, deselectedColor));
+	challengeItem->setActivatedCallback(std::bind(&Application::enterLevelSelection, this));
+	challengeLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, challengeItem->getIndex()));
+	challengeLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, challengeItem->getIndex()));
+	challengeLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, challengeItem->getIndex()));
 	MenuItem* experimentItem = mainMenu->addItem();
-	experimentItem->setSelectedCallback(std::bind(UIElement::setTintColor, experimentLabel, selectedColor));
-	experimentItem->setDeselectedCallback(std::bind(UIElement::setTintColor, experimentLabel, deselectedColor));
-	experimentItem->setActivatedCallback(std::bind(Application::enterMenu, this, 2));
-	experimentLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, experimentItem->getIndex()));
-	experimentLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, experimentItem->getIndex()));
-	experimentLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, experimentItem->getIndex()));
+	experimentItem->setSelectedCallback(std::bind(&UIElement::setTintColor, experimentLabel, selectedColor));
+	experimentItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, experimentLabel, deselectedColor));
+	experimentItem->setActivatedCallback(std::bind(&Application::enterMenu, this, 2));
+	experimentLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, experimentItem->getIndex()));
+	experimentLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, experimentItem->getIndex()));
+	experimentLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, experimentItem->getIndex()));
 	MenuItem* settingsItem = mainMenu->addItem();
-	settingsItem->setSelectedCallback(std::bind(UIElement::setTintColor, settingsLabel, selectedColor));
-	settingsItem->setDeselectedCallback(std::bind(UIElement::setTintColor, settingsLabel, deselectedColor));
-	settingsItem->setActivatedCallback(std::bind(Application::enterMenu, this, 3));
-	settingsLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, settingsItem->getIndex()));
-	settingsLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, settingsItem->getIndex()));
-	settingsLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, settingsItem->getIndex()));
+	settingsItem->setSelectedCallback(std::bind(&UIElement::setTintColor, settingsLabel, selectedColor));
+	settingsItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, settingsLabel, deselectedColor));
+	settingsItem->setActivatedCallback(std::bind(&Application::enterMenu, this, 3));
+	settingsLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, settingsItem->getIndex()));
+	settingsLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, settingsItem->getIndex()));
+	settingsLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, settingsItem->getIndex()));
 	MenuItem* quitItem = mainMenu->addItem();
-	quitItem->setSelectedCallback(std::bind(UIElement::setTintColor, quitLabel, selectedColor));
-	quitItem->setDeselectedCallback(std::bind(UIElement::setTintColor, quitLabel, deselectedColor));
-	quitItem->setActivatedCallback(std::bind(Application::close, this, EXIT_SUCCESS));
-	quitLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, quitItem->getIndex()));
-	quitLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, quitItem->getIndex()));
-	quitLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, quitItem->getIndex()));
+	quitItem->setSelectedCallback(std::bind(&UIElement::setTintColor, quitLabel, selectedColor));
+	quitItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, quitLabel, deselectedColor));
+	quitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
+	quitLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, quitItem->getIndex()));
+	quitLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, quitItem->getIndex()));
+	quitLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, quitItem->getIndex()));
 	
 	experimentMenu = new Menu();
 	MenuItem* loadItem = experimentMenu->addItem();
-	loadItem->setSelectedCallback(std::bind(UIElement::setTintColor, loadLabel, selectedColor));
-	loadItem->setDeselectedCallback(std::bind(UIElement::setTintColor, loadLabel, deselectedColor));
-	loadItem->setActivatedCallback(std::bind(std::printf, "0\n"));
-	loadLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, loadItem->getIndex()));
-	loadLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, loadItem->getIndex()));
-	loadLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, loadItem->getIndex()));
+	loadItem->setSelectedCallback(std::bind(&UIElement::setTintColor, loadLabel, selectedColor));
+	loadItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, loadLabel, deselectedColor));
+	loadItem->setActivatedCallback(std::bind(&std::printf, "0\n"));
+	loadLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, loadItem->getIndex()));
+	loadLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, loadItem->getIndex()));
+	loadLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, loadItem->getIndex()));
 	MenuItem* newItem = experimentMenu->addItem();
-	newItem->setSelectedCallback(std::bind(UIElement::setTintColor, newLabel, selectedColor));
-	newItem->setDeselectedCallback(std::bind(UIElement::setTintColor, newLabel, deselectedColor));
-	newItem->setActivatedCallback(std::bind(std::printf, "bla\n"));
-	newLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, newItem->getIndex()));
-	newLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, newItem->getIndex()));
-	newLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, newItem->getIndex()));
+	newItem->setSelectedCallback(std::bind(&UIElement::setTintColor, newLabel, selectedColor));
+	newItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, newLabel, deselectedColor));
+	newItem->setActivatedCallback(std::bind(&std::printf, "bla\n"));
+	newLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, newItem->getIndex()));
+	newLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, newItem->getIndex()));
+	newLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, newItem->getIndex()));
 	MenuItem* experimentBackItem = experimentMenu->addItem();
-	experimentBackItem->setSelectedCallback(std::bind(UIElement::setTintColor, experimentBackLabel, selectedColor));
-	experimentBackItem->setDeselectedCallback(std::bind(UIElement::setTintColor, experimentBackLabel, deselectedColor));
-	experimentBackItem->setActivatedCallback(std::bind(Application::enterMenu, this, 0));
-	experimentBackLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, experimentBackItem->getIndex()));
-	experimentBackLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, experimentBackItem->getIndex()));
-	experimentBackLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, experimentBackItem->getIndex()));
+	experimentBackItem->setSelectedCallback(std::bind(&UIElement::setTintColor, experimentBackLabel, selectedColor));
+	experimentBackItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, experimentBackLabel, deselectedColor));
+	experimentBackItem->setActivatedCallback(std::bind(&Application::enterMenu, this, 0));
+	experimentBackLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, experimentBackItem->getIndex()));
+	experimentBackLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, experimentBackItem->getIndex()));
+	experimentBackLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, experimentBackItem->getIndex()));
 	
 	settingsMenu = new Menu();
 	MenuItem* videoItem = settingsMenu->addItem();
-	videoItem->setSelectedCallback(std::bind(UIElement::setTintColor, videoLabel, selectedColor));
-	videoItem->setDeselectedCallback(std::bind(UIElement::setTintColor, videoLabel, deselectedColor));
-	videoItem->setActivatedCallback(std::bind(std::printf, "0\n"));
-	videoLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, videoItem->getIndex()));
-	videoLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, videoItem->getIndex()));
-	videoLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, videoItem->getIndex()));
+	videoItem->setSelectedCallback(std::bind(&UIElement::setTintColor, videoLabel, selectedColor));
+	videoItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, videoLabel, deselectedColor));
+	videoItem->setActivatedCallback(std::bind(&std::printf, "0\n"));
+	videoLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, videoItem->getIndex()));
+	videoLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, videoItem->getIndex()));
+	videoLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, videoItem->getIndex()));
 	MenuItem* audioItem = settingsMenu->addItem();
-	audioItem->setSelectedCallback(std::bind(UIElement::setTintColor, audioLabel, selectedColor));
-	audioItem->setDeselectedCallback(std::bind(UIElement::setTintColor, audioLabel, deselectedColor));
-	audioItem->setActivatedCallback(std::bind(std::printf, "1\n"));
-	audioLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, audioItem->getIndex()));
-	audioLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, audioItem->getIndex()));
-	audioLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, audioItem->getIndex()));
+	audioItem->setSelectedCallback(std::bind(&UIElement::setTintColor, audioLabel, selectedColor));
+	audioItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, audioLabel, deselectedColor));
+	audioItem->setActivatedCallback(std::bind(&std::printf, "1\n"));
+	audioLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, audioItem->getIndex()));
+	audioLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, audioItem->getIndex()));
+	audioLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, audioItem->getIndex()));
 	MenuItem* controlsItem = settingsMenu->addItem();
-	controlsItem->setSelectedCallback(std::bind(UIElement::setTintColor, controlsLabel, selectedColor));
-	controlsItem->setDeselectedCallback(std::bind(UIElement::setTintColor, controlsLabel, deselectedColor));
-	controlsItem->setActivatedCallback(std::bind(std::printf, "2\n"));
-	controlsLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, controlsItem->getIndex()));
-	controlsLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, controlsItem->getIndex()));
-	controlsLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, controlsItem->getIndex()));
+	controlsItem->setSelectedCallback(std::bind(&UIElement::setTintColor, controlsLabel, selectedColor));
+	controlsItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, controlsLabel, deselectedColor));
+	controlsItem->setActivatedCallback(std::bind(&std::printf, "2\n"));
+	controlsLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, controlsItem->getIndex()));
+	controlsLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, controlsItem->getIndex()));
+	controlsLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, controlsItem->getIndex()));
 	MenuItem* gameItem = settingsMenu->addItem();
-	gameItem->setSelectedCallback(std::bind(UIElement::setTintColor, gameLabel, selectedColor));
-	gameItem->setDeselectedCallback(std::bind(UIElement::setTintColor, gameLabel, deselectedColor));
-	gameItem->setActivatedCallback(std::bind(std::printf, "3\n"));
-	gameLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, gameItem->getIndex()));
-	gameLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, gameItem->getIndex()));
-	gameLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, gameItem->getIndex()));
+	gameItem->setSelectedCallback(std::bind(&UIElement::setTintColor, gameLabel, selectedColor));
+	gameItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, gameLabel, deselectedColor));
+	gameItem->setActivatedCallback(std::bind(&std::printf, "3\n"));
+	gameLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, gameItem->getIndex()));
+	gameLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, gameItem->getIndex()));
+	gameLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, gameItem->getIndex()));
 	MenuItem* settingsBackItem = settingsMenu->addItem();
-	settingsBackItem->setSelectedCallback(std::bind(UIElement::setTintColor, settingsBackLabel, selectedColor));
-	settingsBackItem->setDeselectedCallback(std::bind(UIElement::setTintColor, settingsBackLabel, deselectedColor));
-	settingsBackItem->setActivatedCallback(std::bind(Application::enterMenu, this, 0));
-	settingsBackLabel->setMouseOverCallback(std::bind(Application::selectMenuItem, this, settingsBackItem->getIndex()));
-	settingsBackLabel->setMouseMovedCallback(std::bind(Application::selectMenuItem, this, settingsBackItem->getIndex()));
-	settingsBackLabel->setMousePressedCallback(std::bind(Application::activateMenuItem, this, settingsBackItem->getIndex()));
+	settingsBackItem->setSelectedCallback(std::bind(&UIElement::setTintColor, settingsBackLabel, selectedColor));
+	settingsBackItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, settingsBackLabel, deselectedColor));
+	settingsBackItem->setActivatedCallback(std::bind(&Application::enterMenu, this, 0));
+	settingsBackLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, settingsBackItem->getIndex()));
+	settingsBackLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, settingsBackItem->getIndex()));
+	settingsBackLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, settingsBackItem->getIndex()));
 	
 	menuCount = 4;
 	menus = new Menu*[menuCount];
@@ -1292,18 +1291,18 @@ bool Application::loadUI()
 	for (int i = 0; i < 10; ++i)
 	{
 		MenuItem* levelSelectionItem = levelSelectorMenu->addItem();
-		levelSelectionItem->setSelectedCallback(std::bind(UIImage::setTexture, levelSelections[i], levelActiveTexture));
-		levelSelectionItem->setDeselectedCallback(std::bind(UIImage::setTexture, levelSelections[i], levelInactiveTexture));
-		levelSelectionItem->setActivatedCallback(std::bind(Application::loadLevel, this));
+		levelSelectionItem->setSelectedCallback(std::bind(&UIImage::setTexture, levelSelections[i], levelActiveTexture));
+		levelSelectionItem->setDeselectedCallback(std::bind(&UIImage::setTexture, levelSelections[i], levelInactiveTexture));
+		levelSelectionItem->setActivatedCallback(std::bind(&Application::loadLevel, this));
 		
-		levelSelections[i]->setMouseOverCallback(std::bind(Application::selectLevel, this, levelSelectionItem->getIndex()));
-		levelSelections[i]->setMouseMovedCallback(std::bind(Application::selectLevel, this, levelSelectionItem->getIndex()));
-		levelSelections[i]->setMousePressedCallback(std::bind(Application::activateLevel, this, levelSelectionItem->getIndex()));
+		levelSelections[i]->setMouseOverCallback(std::bind(&Application::selectLevel, this, levelSelectionItem->getIndex()));
+		levelSelections[i]->setMouseMovedCallback(std::bind(&Application::selectLevel, this, levelSelectionItem->getIndex()));
+		levelSelections[i]->setMousePressedCallback(std::bind(&Application::activateLevel, this, levelSelectionItem->getIndex()));
 	}
 	
 	// Setup UI batch
 	uiBatch = new BillboardBatch();
-	uiBatch->resize(256);
+	uiBatch->resize(512);
 	uiBatcher = new UIBatcher();
 	
 	// Setup UI render pass and compositor
@@ -1438,13 +1437,13 @@ void Application::enterMenu(std::size_t index)
 	menus[currentMenuIndex]->getItem(selectedMenuItemIndex)->select();
 	
 	// Start menu fade-in tween
-	menuFadeInTween->setUpdateCallback(std::bind(UIElement::setTintColor, menuContainers[currentMenuIndex], std::placeholders::_1));
-	menuFadeInTween->setEndCallback(std::bind(UIElement::setActive, menuContainers[currentMenuIndex], true));
+	menuFadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, menuContainers[currentMenuIndex], std::placeholders::_1));
+	menuFadeInTween->setEndCallback(std::bind(&UIElement::setActive, menuContainers[currentMenuIndex], true));
 	menuFadeInTween->reset();
 	menuFadeInTween->start();
 	
 	// Start menu slide-in tween
-	menuSlideInTween->setUpdateCallback(std::bind(UIElement::setTranslation, menuContainers[currentMenuIndex], std::placeholders::_1));
+	menuSlideInTween->setUpdateCallback(std::bind(&UIElement::setTranslation, menuContainers[currentMenuIndex], std::placeholders::_1));
 	menuSlideInTween->reset();
 	menuSlideInTween->start();
 	
@@ -1461,8 +1460,8 @@ void Application::exitMenu(std::size_t index)
 	menuContainers[currentMenuIndex]->setActive(false);
 	
 	// Fade out previous menu
-	menuFadeOutTween->setUpdateCallback(std::bind(UIElement::setTintColor, menuContainers[currentMenuIndex], std::placeholders::_1));
-	menuFadeOutTween->setEndCallback(std::bind(UIElement::setVisible, menuContainers[currentMenuIndex], false));
+	menuFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, menuContainers[currentMenuIndex], std::placeholders::_1));
+	menuFadeOutTween->setEndCallback(std::bind(&UIElement::setVisible, menuContainers[currentMenuIndex], false));
 	menuFadeOutTween->reset();
 	menuFadeOutTween->start();
 	
@@ -1507,7 +1506,7 @@ void Application::enterLevelSelection()
 	currentLevel = 1;
 	
 	// Start menu slide-in tween
-	levelSelectorSlideInTween->setUpdateCallback(std::bind(UIElement::setTranslation, levelSelectorContainer, std::placeholders::_1));
+	levelSelectorSlideInTween->setUpdateCallback(std::bind(&UIElement::setTranslation, levelSelectorContainer, std::placeholders::_1));
 	levelSelectorSlideInTween->reset();
 	levelSelectorSlideInTween->start();
 	

@@ -22,7 +22,7 @@
 #include "../application.hpp"
 #include "../camera-controller.hpp"
 #include <iostream>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 const float blankDuration = 0.0f;
 const float fadeInDuration = 0.5f;

@@ -27,7 +27,7 @@ using namespace Emergent;
 #include <iostream>
 #include <map>
 #include <list>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 class KeyObserver
 {

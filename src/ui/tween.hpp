@@ -20,6 +20,7 @@
 #ifndef TWEEN_HPP
 #define TWEEN_HPP
 
+#include <algorithm>
 #include <functional>
 #include <list>
 #include <iostream>
@@ -239,7 +240,7 @@ void Tween<T>::update(float dt)
 	oldStopped = stopped;
 	
 	// Add delta time to time and calculate tween value
-	time = std::min(duration, time + dt);
+	time = std::min<float>(duration, time + dt);
 	calculateTweenValue();
 	
 	// Execute update callback

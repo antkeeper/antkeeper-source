@@ -18,7 +18,11 @@
  */
 
 #include "nest.hpp"
+#include <algorithm>
 #include <cmath>
+
+#undef min
+#undef max
 
 Vector3 Shaft::getHelixPosition(float depth) const
 {
@@ -127,7 +131,7 @@ Shaft* Nest::dig(Chamber* parent) const
 	}
 	
 	// Determine potential child count (may be less, according to spacing between chambers)
-	int maxChildCount = std::max(1, random(parameters.minShaftChamberCount, parameters.maxShaftChamberCount));
+	int maxChildCount = std::max<int>(1, random(parameters.minShaftChamberCount, parameters.maxShaftChamberCount));
 	
 	// Generate chambers, starting with final chamber (shaft must end with a chamber)
 	for (float depth = shaft->shaftDepth; depth >= 0.0f;)
@@ -190,15 +194,15 @@ void Nest::free(Shaft* shaft)
 	delete shaft;
 }
 
-inline float Nest::random(float min, float max) const
+inline float Nest::random(float minValue, float maxValue) const
 {
-	std::uniform_real_distribution<float> distribution(min, std::nextafter(max, std::numeric_limits<float>::max()));
+	std::uniform_real_distribution<float> distribution(minValue, std::nextafter(maxValue, std::numeric_limits<float>::max()));
 	return distribution(rng);
 }
 
-inline int Nest::random(int min, int max) const
+inline int Nest::random(int minValue, int maxValue) const
 {
-	std::uniform_int_distribution<int> distribution(min, std::nextafter(max, std::numeric_limits<int>::max()));
+	std::uniform_int_distribution<int> distribution(minValue, std::nextafter(maxValue, std::numeric_limits<int>::max()));
 	return distribution(rng);
 }
 

@@ -166,8 +166,8 @@ private:
 	 */
 	void free(Shaft* shaft);
 	
-	float random(float min, float max) const;
-	int random(int min, int max) const;
+	float random(float minValue, float maxValue) const;
+	int random(int minValue, int maxValue) const;
 	
 	NestParameters parameters;
 	Shaft* root;

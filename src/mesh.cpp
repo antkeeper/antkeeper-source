@@ -18,6 +18,7 @@
  */
 
 #include "mesh.hpp"
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <map>
@@ -385,13 +386,13 @@ std::tuple<bool, float, float, std::size_t, std::size_t> intersects(const glm::v
 			if (cosTheta <= 0.0f)
 			{
 				// Front-facing
-				t0 = std::min(t0, t);
+				t0 = std::min<float>(t0, t);
 				index0 = i;
 			}
 			else
 			{
 				// Back-facing
-				t1 = std::max(t1, t);
+				t1 = std::max<float>(t1, t);
 				index1 = i;
 			}
 		}

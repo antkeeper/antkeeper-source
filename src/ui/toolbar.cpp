@@ -1,4 +1,5 @@
 #include "toolbar.hpp"
+#include <algorithm>
 
 Toolbar::Toolbar():
 	toolbarTopTexture(nullptr),
@@ -44,7 +45,7 @@ void Toolbar::setButtonDepressedTexture(Texture* texture)
 void Toolbar::resize()
 {
 	int toolbarWidth = toolbarMiddleTexture->getWidth();
-	int toolbarHeight = toolbarTopTexture->getHeight() + toolbarBottomTexture->getHeight() + toolbarMiddleTexture->getHeight() * std::max(0, (int)buttons.size() - 1);
+	int toolbarHeight = toolbarTopTexture->getHeight() + toolbarBottomTexture->getHeight() + toolbarMiddleTexture->getHeight() * std::max<int>(0, (int)buttons.size() - 1);
 	float borderSpacing = 8.0f;
 	float buttonOffsetY = ((toolbarTopTexture->getHeight() + toolbarBottomTexture->getHeight()) - buttonRaisedTexture->getHeight()) / 2;
 	
@@ -62,7 +63,7 @@ void Toolbar::resize()
 	toolbarBottomImage.setTranslation(Vector2(0.0f, 0.0f));
 	
 	toolbarMiddleImage.setAnchor(Vector2(0.0f, 0.5f));
-	toolbarMiddleImage.setDimensions(Vector2(toolbarMiddleTexture->getWidth(), toolbarMiddleTexture->getHeight() * std::max(0, (int)buttons.size() - 1)));
+	toolbarMiddleImage.setDimensions(Vector2(toolbarMiddleTexture->getWidth(), toolbarMiddleTexture->getHeight() * std::max<int>(0, (int)buttons.size() - 1)));
 	toolbarMiddleImage.setTranslation(Vector2(0.0f, 0.0f));
 	
 	// Resize buttons and icons
@@ -105,9 +106,9 @@ void Toolbar::addButton(Texture* iconTexture, std::function<void()> pressCallbac
 	
 	// Setup callbacks
 	std::size_t buttonIndex = buttons.size() - 1;
-	//button->setMouseOverCallback(std::bind(Toolbar::selectMenuItem, this, buttonIndex));
-	//button->setMouseMovedCallback(std::bind(Toolbar::selectMenuItem, this, buttonIndex));
-	button->setMousePressedCallback(std::bind(Toolbar::pressButton, this, buttonIndex));
+	//button->setMouseOverCallback(std::bind(&Toolbar::selectMenuItem, this, buttonIndex));
+	//button->setMouseMovedCallback(std::bind(&Toolbar::selectMenuItem, this, buttonIndex));
+	button->setMousePressedCallback(std::bind(&Toolbar::pressButton, this, buttonIndex));
 	
 	pressCallbacks.push_back(pressCallback);
 	releaseCallbacks.push_back(releaseCallback);

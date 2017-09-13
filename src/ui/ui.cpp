@@ -318,8 +318,8 @@ BillboardBatch::Range* UIBatcher::getRange(BillboardBatch* result, const UIEleme
 		if (material->texture != element->getMaterial()->texture)
 		{
 			// Create new range for the element
-			BillboardBatch::Range* precedingRange = range;
 			range = result->addRange();
+			BillboardBatch::Range* precedingRange = result->getRange(result->getRangeCount() - 2);
 			range->material = (Material*)element->getMaterial();
 			range->start = precedingRange->start + precedingRange->length;
 			range->length = 0;

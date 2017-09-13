@@ -18,6 +18,7 @@
  */
 
 #include "navmesh.hpp"
+#include <algorithm>
 #include <fstream>
 #include <map>
 #include <sstream>
@@ -381,22 +382,22 @@ void Navmesh::calculateNormals()
 
 void Navmesh::calculateBounds()
 {
-	Vector3 min(std::numeric_limits<float>::infinity());
-	Vector3 max(-std::numeric_limits<float>::infinity());
+	Vector3 minPoint(std::numeric_limits<float>::infinity());
+	Vector3 maxPoint(-std::numeric_limits<float>::infinity());
 	
 	for (const Navmesh::Vertex* vertex: vertices)
 	{
-		min.x = std::min(min.x, vertex->position.x);
-		min.y = std::min(min.y, vertex->position.y);
-		min.z = std::min(min.z, vertex->position.z);
+		minPoint.x = std::min<float>(minPoint.x, vertex->position.x);
+		minPoint.y = std::min<float>(minPoint.y, vertex->position.y);
+		minPoint.z = std::min<float>(minPoint.z, vertex->position.z);
 		
-		max.x = std::max(max.x, vertex->position.x);
-		max.y = std::max(max.y, vertex->position.y);
-		max.z = std::max(max.z, vertex->position.z);
+		maxPoint.x = std::max<float>(maxPoint.x, vertex->position.x);
+		maxPoint.y = std::max<float>(maxPoint.y, vertex->position.y);
+		maxPoint.z = std::max<float>(maxPoint.z, vertex->position.z);
 	}
 	
-	bounds.setMin(min);
-	bounds.setMax(max);
+	bounds.setMin(minPoint);
+	bounds.setMax(maxPoint);
 }
 
 bool Navmesh::readOBJ(std::istream* stream, const std::string& filename)
@@ -653,13 +654,13 @@ std::tuple<bool, float, float, std::size_t, std::size_t> intersects(const Ray& r
 			if (cosTheta <= 0.0f)
 			{
 				// Front-facing
-				t0 = std::min(t0, t);
+				t0 = std::min<float>(t0, t);
 				index0 = i;
 			}
 			else
 			{
 				// Back-facing
-				t1 = std::max(t1, t);
+				t1 = std::max<float>(t1, t);
 				index1 = i;
 			}
 		}
@@ -675,14 +676,14 @@ Octree<Navmesh::Triangle*>* Navmesh::createOctree(std::size_t maxDepth)
 	for (Navmesh::Triangle* triangle: triangles)
 	{
 		Vector3 min;
-		min.x = std::min(triangle->edge->vertex->position.x, std::min(triangle->edge->next->vertex->position.x, triangle->edge->previous->vertex->position.x));
-		min.y = std::min(triangle->edge->vertex->position.y, std::min(triangle->edge->next->vertex->position.y, triangle->edge->previous->vertex->position.y));
-		min.z = std::min(triangle->edge->vertex->position.z, std::min(triangle->edge->next->vertex->position.z, triangle->edge->previous->vertex->position.z));
+		min.x = std::min<float>(triangle->edge->vertex->position.x, std::min<float>(triangle->edge->next->vertex->position.x, triangle->edge->previous->vertex->position.x));
+		min.y = std::min<float>(triangle->edge->vertex->position.y, std::min<float>(triangle->edge->next->vertex->position.y, triangle->edge->previous->vertex->position.y));
+		min.z = std::min<float>(triangle->edge->vertex->position.z, std::min<float>(triangle->edge->next->vertex->position.z, triangle->edge->previous->vertex->position.z));
 		
 		Vector3 max;
-		max.x = std::max(triangle->edge->vertex->position.x, std::max(triangle->edge->next->vertex->position.x, triangle->edge->previous->vertex->position.x));
-		max.y = std::max(triangle->edge->vertex->position.y, std::max(triangle->edge->next->vertex->position.y, triangle->edge->previous->vertex->position.y));
-		max.z = std::max(triangle->edge->vertex->position.z, std::max(triangle->edge->next->vertex->position.z, triangle->edge->previous->vertex->position.z));
+		max.x = std::max<float>(triangle->edge->vertex->position.x, std::max<float>(triangle->edge->next->vertex->position.x, triangle->edge->previous->vertex->position.x));
+		max.y = std::max<float>(triangle->edge->vertex->position.y, std::max<float>(triangle->edge->next->vertex->position.y, triangle->edge->previous->vertex->position.y));
+		max.z = std::max<float>(triangle->edge->vertex->position.z, std::max<float>(triangle->edge->next->vertex->position.z, triangle->edge->previous->vertex->position.z));
 		
 		result->insert(AABB(min, max), triangle);
 	}
