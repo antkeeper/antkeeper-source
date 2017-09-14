@@ -1,9 +1,9 @@
 [submodule "emergent"]
 	path = lib/emergent
 	url = https://github.com/cjhoward/emergent.git
+[submodule "lib/SDL2"]
+	path = lib/SDL2
+	url = https://github.com/cjhoward/SDL2.git
 [submodule "data"]
 	path = data
 	url = https://gitlab.com/cjhoward/antkeeper-data.git
-[submodule "lib\\SDL2"]
-	path = lib\\SDL2
-	url = https://github.com/cjhoward/SDL2.git
