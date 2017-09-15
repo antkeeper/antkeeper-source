@@ -1,14 +1,8 @@
 #include "biome.hpp"
 #include "../settings.hpp"
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-#include "../windows-dirent.h"
-#else
 #include <dirent.h>
-#endif
-
 #include <iostream>
-
 
 Biome::Biome()
 {}

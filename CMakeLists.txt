@@ -152,6 +152,18 @@ ExternalProject_Add(SDL2-project
 	BINARY_DIR ${SDL2_BUILD_DIR}
 	INSTALL_DIR ${SDL2_INSTALL_DIR})
 
+# Configure, build and install dirent
+set(DIRENT_BUILD_DIR ${PROJECT_BINARY_DIR}/deps/build/dirent)
+set(DIRENT_INSTALL_DIR ${PROJECT_BINARY_DIR}/deps/install/dirent)
+set(DIRENT_INCLUDE_DIR ${DIRENT_INSTALL_DIR}/include)
+ExternalProject_Add(dirent-project
+	SOURCE_DIR ${PROJECT_SOURCE_DIR}/lib/dirent
+	CMAKE_ARGS
+	"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+	"-DCMAKE_INSTALL_PREFIX=${DIRENT_INSTALL_DIR}"
+	BINARY_DIR ${DIRENT_BUILD_DIR}
+	INSTALL_DIR ${DIRENT_INSTALL_DIR})
+
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 
@@ -164,7 +176,6 @@ configure_file(${EXECUTABLE_SOURCE_DIR}/configuration.hpp.in ${EXECUTABLE_SOURCE
 # Collect executable source files
 set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/configuration.hpp
-	${EXECUTABLE_SOURCE_DIR}/windows-dirent.h
 	${EXECUTABLE_SOURCE_DIR}/controls.cpp
 	${EXECUTABLE_SOURCE_DIR}/render-passes.hpp
 	${EXECUTABLE_SOURCE_DIR}/settings.cpp
@@ -259,6 +270,7 @@ set_target_properties(${EXECUTABLE_TARGET} PROPERTIES OUTPUT_NAME ${EXECUTABLE_N
 target_include_directories(${EXECUTABLE_TARGET} PUBLIC
 	${EMERGENT_INCLUDE_DIRS}
 	${SDL2_INCLUDE_DIR}
+	${DIRENT_INCLUDE_DIR}
 	${OPENGL_INCLUDE_DIRS}
 )
 
