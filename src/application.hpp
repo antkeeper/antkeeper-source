@@ -43,6 +43,7 @@ class SplashState;
 class TitleState;
 class MainMenuState;
 class PlayState;
+class LevelSelectState;
 class CameraController;
 class SurfaceCameraController;
 class TunnelCameraController;
@@ -92,11 +93,15 @@ public:
 	void activateMenuItem(std::size_t index);
 	
 	void selectLevel(std::size_t index);
-	void activateLevel(std::size_t index);
+	void selectNextLevel();
+	void selectPreviousLevel();
+	void enterSelectedLevel();
+	
+	//void activateLevel(std::size_t index);
 	
 	void enterLevelSelection();
 	
-	void loadLevel();
+
 	
 	void pauseSimulation();
 	void unpauseSimulation();
@@ -135,6 +140,7 @@ public:
 	SplashState* splashState;
 	TitleState* titleState;
 	MainMenuState* mainMenuState;
+	LevelSelectState* levelSelectState;
 	PlayState* playState;
 	
 	// Scene
@@ -154,6 +160,7 @@ public:
 	ModelInstance antModelInstance;
 	ModelInstance antHillModelInstance;
 	ModelInstance nestModelInstance;
+	ModelInstance levelPlaceholderModelInstances[5];
 	
 	// Graphics
 	Renderer renderer;
@@ -290,9 +297,6 @@ public:
 	UILabel* pausedSettingsLabel;
 	UILabel* returnToMainMenuLabel;
 	UILabel* quitToDesktopLabel;
-	UIContainer* levelSelectorContainer;
-	UIImage* levelSelections[10];
-	UIImage* levelConnectors[9];
 	UIImage* pauseButtonImage;
 	UIImage* playButtonImage;
 	UIImage* rectangularPaletteImage;
@@ -320,11 +324,12 @@ public:
 	Tween<Vector4>* menuFadeInTween;
 	Tween<Vector4>* menuFadeOutTween;
 	Tween<Vector2>* menuSlideInTween;
-	Tween<Vector2>* levelSelectorSlideInTween;
 	
 	Tween<float>* antHillZoomInTween;
 	Tween<Vector4>* antHillFadeOutTween;
 	Tween<Vector4>* playButtonFadeTween;
+	
+	Tween<Vector3>* cameraTranslationTween;
 	
 	// Menus
 	std::size_t menuCount;
@@ -337,20 +342,29 @@ public:
 	Menu* challengeMenu;
 	Menu* experimentMenu;
 	Menu* settingsMenu;
-	Menu* levelSelectorMenu;
 	
 	// Models
 	Model* antModel;
 	Model* antHillModel;
 	Model* nestModel;
 	Model* forcepsModel;
+	Model* levelPlaceholderModel;
 	
 	// Game variables
-	Campaign campaign;
-	int currentWorld;
-	int currentLevel;
 	Biosphere biosphere;
-	Terrain terrain;
+	Campaign campaign;
+	
+	int currentWorldIndex;
+	int currentLevelIndex;
+	
+	int currentPreviewIndex;
+	int previewLevelIndices[5];
+	int oldPreviewLevelIndices[5];
+	Level* previewLevels[5];
+	Level* currentLevel;
+	
+	
+	
 	Colony* colony;
 	SurfaceCameraController* surfaceCam;
 	TunnelCameraController* tunnelCam;

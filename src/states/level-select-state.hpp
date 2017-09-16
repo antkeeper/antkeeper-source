@@ -17,18 +17,26 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONFIGURATION_HPP
-#define CONFIGURATION_HPP
+#ifndef LEVEL_SELECT_STATE_HPP
+#define LEVEL_SELECT_STATE_HPP
 
-#define ANTKEEPER_VERSION_MAJOR @ANTKEEPER_VERSION_MAJOR@
-#define ANTKEEPER_VERSION_MINOR @ANTKEEPER_VERSION_MINOR@
-#define ANTKEEPER_VERSION_PATCH @ANTKEEPER_VERSION_PATCH@
-#define ANTKEEPER_VERSION_STRING "@ANTKEEPER_VERSION@"
-#cmakedefine ANTKEEPER_DEBUG
+#include "../application-state.hpp"
 
-// Terrain dimensions
-const float ANTKEEPER_TERRAIN_WIDTH = 50.0f;
-const float ANTKEEPER_TERRAIN_BASE_HEIGHT = 35.7f;
-const float ANTKEEPER_TERRAIN_DEPTH = 50.0f;
+#include <emergent/emergent.hpp>
+using namespace Emergent;
 
-#endif // CONFIGURATION_HPP
+class LevelSelectState: public ApplicationState
+{
+public:
+	LevelSelectState(Application* application);
+	virtual ~LevelSelectState();
+	
+	virtual void enter();
+	virtual void execute();
+	virtual void exit();
+	
+private:
+	float levelRotation;
+};
+
+#endif // LEVEL_SELECT_STATE_HPP

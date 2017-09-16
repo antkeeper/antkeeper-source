@@ -1,20 +1,21 @@
 #include "level.hpp"
 #include "../settings.hpp"
+#include "../configuration.hpp"
 
 #include <dirent.h>
 #include <iostream>
 #include <sstream>
 
-Level::Level():
-	worldIndex(-1),
-	levelIndex(-1)
+LevelParameterSet::LevelParameterSet()
 {}
 
-Level::~Level()
+LevelParameterSet::~LevelParameterSet()
 {}
 
-bool Level::load()
+bool LevelParameterSet::load(const std::string& filename)
 {
+	this->filename = filename;
+	
 	ParameterDict parameters;
 	if (!parameters.load(filename))
 	{
@@ -24,6 +25,37 @@ bool Level::load()
 	parameters.get("biome", &biome);
 	parameters.get("heightmap", &heightmap);
 	
+	return true;
+}
+
+Level::Level()
+{
+	terrain.create(255, 255, Vector3(ANTKEEPER_TERRAIN_WIDTH, ANTKEEPER_TERRAIN_BASE_HEIGHT, ANTKEEPER_TERRAIN_DEPTH));
+}
+
+Level::~Level()
+{}
+	
+bool Level::load(const LevelParameterSet& params)
+{
+	// Load terrain from heightmap
+	std::string heightmapFilename = std::string("data/textures/") + params.heightmap;
+	if (!terrain.load(heightmapFilename))
+	{
+		std::cerr << "Failed to load terrain from heightmap file \"" << heightmapFilename << "\" for level \"" << params.filename << "\"" << std::endl;
+		return false;
+	}
+	
+	//application->currentLevelTerrain->getSurfaceModel()->getGroup(0)->material = application->materialLoader->load("data/materials/debug-terrain-surface.mtl");
+	
+	// Setup terrain surface model instance
+	terrainSurface.setModel(terrain.getSurfaceModel());
+	terrainSurface.setTranslation(Vector3(0, 0, 0));
+	
+	// Setup terrain subsurface model instance
+	terrainSubsurface.setModel(terrain.getSubsurfaceModel());
+	terrainSubsurface.setTranslation(Vector3(0, 0, 0));
+
 	return true;
 }
 
@@ -72,57 +104,46 @@ bool Campaign::load(const std::string& directory)
 		std::stringstream stream;
 		stream << worldIndexString;
 		stream >> worldIndex;
+		worldIndex -= 1;
 		
 		stream.str(std::string());
 		stream.clear();
 		stream << levelIndexString;
 		stream >> levelIndex;
+		levelIndex -= 1;
 		
 		if (worldIndex < 0 || levelIndex < 0)
 		{
-			std::cout << "Invalid level \"" << filename << "\"" << std::endl;
+			std::cout << "Invalid level parameters file \"" << filename << "\"" << std::endl;
 			continue;
 		}
 		
 		// Resize vector to accommodate maximum world index
-		if (worldIndex >= static_cast<int>(levels.size()))
+		if (worldIndex >= static_cast<int>(levelParameterSets.size()))
 		{
-			levels.resize(worldIndex + 1);
+			levelParameterSets.resize(worldIndex + 1);
 		}
 		
-		// Resize vector to accommodate maximum level index
-		if (levelIndex >= static_cast<int>(levels[worldIndex].size()))
+		// Resize vector to accommodate maximum level file index
+		if (levelIndex >= static_cast<int>(levelParameterSets[worldIndex].size()))
 		{
-			levels[worldIndex].resize(levelIndex + 1);
+			levelParameterSets[worldIndex].resize(levelIndex + 1);
 		}
 		
-		// Add level
-		Level* level = &levels[worldIndex][levelIndex];
-		level->filename = directory + filename;
-		level->worldIndex = worldIndex;
-		level->levelIndex = levelIndex;
+		// Load level parameters
+		LevelParameterSet* levelParams = &levelParameterSets[worldIndex][levelIndex];
+		if (!levelParams->load(directory + filename))
+		{
+			std::cout << "Failed to load parameters for level " << (worldIndex + 1) << "-" << (levelIndex + 1) << std::endl;
+		}
+		else
+		{
+			std::cout << "Loaded level parameters for level " << (worldIndex + 1) << "-" << (levelIndex + 1) << std::endl;
+		}
 	}
 	
 	// Close levels directory
 	closedir(dir);
-	
-	// Load levels
-	for (std::size_t i = ANTKEEPER_FIRST_WORLD_INDEX; i < levels.size(); ++i)
-	{
-		for (std::size_t j = ANTKEEPER_FIRST_LEVEL_INDEX; j < levels[i].size(); ++j)
-		{
-			Level* level = &levels[i][j];
-			
-			if (!level->load())
-			{
-				std::cout << "Failed to load level " << i << "-" << j << std::endl;
-			}
-			else
-			{
-				std::cout << "Loaded level " << i << "-" << j << std::endl;
-			}
-		}
-	}
 	
 	return true;
 }

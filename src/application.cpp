@@ -25,12 +25,14 @@
 #include "states/splash-state.hpp"
 #include "states/title-state.hpp"
 #include "states/main-menu-state.hpp"
+#include "states/level-select-state.hpp"
 #include "states/play-state.hpp"
 #include "game/colony.hpp"
 #include "ui/toolbar.hpp"
 #include "ui/pie-menu.hpp"
 #include "debug.hpp"
 #include "camera-controller.hpp"
+#include "configuration.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -322,6 +324,7 @@ Application::Application(int argc, char* argv[]):
 	splashState = new SplashState(this);
 	titleState = new TitleState(this);
 	mainMenuState = new MainMenuState(this);
+	levelSelectState = new LevelSelectState(this);
 	playState = new PlayState(this);
 	
 	// Setup loaders
@@ -587,8 +590,9 @@ bool Application::loadModels()
 	antHillModel = modelLoader->load("data/models/ant-hill.mdl");
 	nestModel = modelLoader->load("data/models/nest.mdl");
 	forcepsModel = modelLoader->load("data/models/forceps.mdl");
+	levelPlaceholderModel = modelLoader->load("data/models/level-placeholder.mdl");
 	
-	if (!antModel || !antHillModel || !nestModel)
+	if (!antModel || !antHillModel || !nestModel || !forcepsModel)
 	{
 		return false;
 	}
@@ -600,8 +604,10 @@ bool Application::loadModels()
 	nestModelInstance.setModel(nestModel);
 	forcepsModelInstance.setModel(forcepsModel);
 	
-	// Create terrain
-	terrain.create(255, 255, Vector3(50, 20, 50));
+	for (int i = 0; i < 5; ++i)
+	{
+		levelPlaceholderModelInstances[i].setModel(levelPlaceholderModel);
+	}
 	
 	return true;
 }
@@ -984,36 +990,6 @@ bool Application::loadUI()
 	quitToDesktopLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 2));
 	pauseMenuContainer->addChild(quitToDesktopLabel);
 	
-	// Create level selector elements
-	levelSelectorContainer = new UIContainer();
-	levelSelectorContainer->setDimensions(Vector2(levelActiveTexture->getWidth() * 10 + 48 * 9, levelActiveTexture->getHeight()));
-	levelSelectorContainer->setAnchor(Vector2(0.5f, 1.0f));
-	levelSelectorContainer->setTranslation(Vector2(0.0f, -levelActiveTexture->getHeight()));
-	levelSelectorContainer->setVisible(false);
-	levelSelectorContainer->setActive(false);
-	uiRootElement->addChild(levelSelectorContainer);
-	for (int i = 0; i < 10; ++i)
-	{
-		levelSelections[i] = new UIImage();
-		levelSelections[i]->setAnchor(Vector2(0.0f, 0.5f));
-		levelSelections[i]->setDimensions(Vector2(levelActiveTexture->getWidth(), levelActiveTexture->getHeight()));
-		levelSelections[i]->setTranslation(Vector2(i * 96.0f, 0.0f));
-		levelSelections[i]->setTexture(levelInactiveTexture);
-		levelSelections[i]->setVisible(true);
-		levelSelectorContainer->addChild(levelSelections[i]);
-				
-		if (i < 9)
-		{
-			levelConnectors[i] = new UIImage();
-			levelConnectors[i]->setAnchor(Vector2(0.0f, 0.5f));
-			levelConnectors[i]->setDimensions(Vector2(levelConnectorTexture->getWidth(), levelConnectorTexture->getHeight()));
-			levelConnectors[i]->setTranslation(Vector2((i + 1) * 96.0f - 50.0f, 0.0f));
-			levelConnectors[i]->setTexture(levelConnectorTexture);
-			levelConnectors[i]->setVisible(true);
-			levelSelectorContainer->addChild(levelConnectors[i]);
-		}
-	}
-	
 	// Create pause/play button elements
 	pauseButtonImage = new UIImage();
 	pauseButtonImage->setAnchor(Vector2(0.0f, 1.0f));
@@ -1145,10 +1121,6 @@ bool Application::loadUI()
 	Vector2 menuSlideInStartTranslation = Vector2(-64.0f, 0.0f);
 	Vector2 menuSlideInDeltaTranslation = Vector2((int)(64.0f + width / 8.0f), 0.0f);
 	
-	float levelSelectorSlideInDuration = 0.35f;
-	Vector2 levelSelectorSlideInStartTranslation = Vector2(0.0f, levelActiveTexture->getHeight());
-	Vector2 levelSelectorSlideInDeltaTranslation = Vector2(0.0f, -levelActiveTexture->getHeight() * 2.0f);
-	
 	// Setup main menu tween
 	menuFadeInTween = new Tween<Vector4>(EaseFunction::OUT_QUINT, 0.0f, menuFadeInDuration, menuFadeInStartColor, menuFadeInDeltaColor);
 	tweener->addTween(menuFadeInTween);
@@ -1156,10 +1128,6 @@ bool Application::loadUI()
 	tweener->addTween(menuFadeOutTween);
 	menuSlideInTween = new Tween<Vector2>(EaseFunction::OUT_QUINT, 0.0f, menuSlideInDuration, menuSlideInStartTranslation, menuSlideInDeltaTranslation);
 	tweener->addTween(menuSlideInTween);
-	
-	// Setup level selector tween
-	levelSelectorSlideInTween = new Tween<Vector2>(EaseFunction::OUT_QUINT, 0.0f, levelSelectorSlideInDuration, levelSelectorSlideInStartTranslation, levelSelectorSlideInDeltaTranslation);
-	tweener->addTween(levelSelectorSlideInTween);
 	
 	// Title screen zoom in tween
 	antHillZoomInTween = new Tween<float>(EaseFunction::LINEAR, 0.0f, 2.0f, 50.0f, -49.9f);
@@ -1175,6 +1143,10 @@ bool Application::loadUI()
 	playButtonFadeTween->setUpdateCallback(std::bind(&UIElement::setTintColor, playButtonImage, std::placeholders::_1));
 	playButtonFadeTween->setEndCallback(std::bind(&UIElement::setVisible, playButtonImage, false));
 	tweener->addTween(playButtonFadeTween);
+	
+	// Camera translation tween
+	cameraTranslationTween = new Tween<Vector3>(EaseFunction::OUT_CUBIC, 0.0f, 0.0f, Vector3(0.0f), Vector3(0.0f));
+	tweener->addTween(cameraTranslationTween);
 	
 	// Build menu system
 	selectedMenuItemIndex = 0;
@@ -1286,20 +1258,6 @@ bool Application::loadUI()
 	selectedMenuItemIndex = 0;
 	selectMenuItem(selectedMenuItemIndex);
 	
-	currentLevel = 0;
-	levelSelectorMenu = new Menu();
-	for (int i = 0; i < 10; ++i)
-	{
-		MenuItem* levelSelectionItem = levelSelectorMenu->addItem();
-		levelSelectionItem->setSelectedCallback(std::bind(&UIImage::setTexture, levelSelections[i], levelActiveTexture));
-		levelSelectionItem->setDeselectedCallback(std::bind(&UIImage::setTexture, levelSelections[i], levelInactiveTexture));
-		levelSelectionItem->setActivatedCallback(std::bind(&Application::loadLevel, this));
-		
-		levelSelections[i]->setMouseOverCallback(std::bind(&Application::selectLevel, this, levelSelectionItem->getIndex()));
-		levelSelections[i]->setMouseMovedCallback(std::bind(&Application::selectLevel, this, levelSelectionItem->getIndex()));
-		levelSelections[i]->setMousePressedCallback(std::bind(&Application::activateLevel, this, levelSelectionItem->getIndex()));
-	}
-	
 	// Setup UI batch
 	uiBatch = new BillboardBatch();
 	uiBatch->resize(512);
@@ -1395,16 +1353,24 @@ bool Application::loadControls()
 
 bool Application::loadGame()
 {
-
-	
 	// Load biosphere
 	biosphere.load("data/biomes/");
 	
 	// Load campaign
 	campaign.load("data/levels/");
-	currentWorld = 1;
-	currentLevel = 1;
+	currentWorldIndex = 0;
+	currentLevelIndex = 0;
+	for (int i = 0; i < 5; ++i)
+	{
+		previewLevelIndices[i] = oldPreviewLevelIndices[i] = i;
+	}
 	simulationPaused = false;
+	
+	// Allocate levels and initialize pointers
+	for (int i = 0; i < 5; ++i)
+	{
+		previewLevels[i] = new Level();
+	}
 	
 	// Create colony
 	colony = new Colony();
@@ -1502,19 +1468,15 @@ void Application::enterLevelSelection()
 {
 	exitMenu(0);
 	
-	currentWorld = 1;
-	currentLevel = 1;
+	// Reset world and level indices
+	currentWorldIndex = 0;
+	currentLevelIndex = 0;
 	
-	// Start menu slide-in tween
-	levelSelectorSlideInTween->setUpdateCallback(std::bind(&UIElement::setTranslation, levelSelectorContainer, std::placeholders::_1));
-	levelSelectorSlideInTween->reset();
-	levelSelectorSlideInTween->start();
-	
-	// Make menu visible and active
-	levelSelectorContainer->setVisible(true);
-	levelSelectorContainer->setActive(true);
+	// Change to level select state
+	changeState(levelSelectState);
 }
 
+/*
 void Application::selectLevel(std::size_t index)
 {
 	if (index > levelSelectorMenu->getItemCount())
@@ -1543,7 +1505,130 @@ void Application::activateLevel(std::size_t index)
 	//levelSelectorMenu->getItem(currentLevel - 1)->deselect();
 	levelSelectorMenu->getItem(currentLevel - 1)->activate();
 }
+*/
 
+// Level count: 16
+// Max loaded levels: 5
+
+// 0: [ 0]   1    2    3    4
+// 1:   0  [ 1]   2    3    4
+// 2:   0    1  [ 2]   3    4
+
+// 3:   5    1    2  [ 3]   4
+// 4:   5    6    2    3  [ 4]
+// 5: [ 5]   6    7    3    4
+// 6:   5  [ 6]   7    8    4
+// 7:   5    6  [ 7]   8    9
+// 8:  10    6    7  [ 8]   9
+// 9:  10   11    7    8  [ 9]
+//10: [10]  11   12    8    9
+//11:  10  [11]  12   13    9
+//12:  10   11  [12]  13   14
+
+//13:  15   11   12  [13]  14
+//14:  15   11   12   13  [14]
+//15: [15]  11   12   13   14
+
+// pointer index = currentLevel % 5;
+
+
+
+
+
+void Application::selectLevel(std::size_t index)
+{
+	// Set current level
+	currentLevelIndex = static_cast<int>(index);
+	
+	// Calculate index of current loaded level
+	currentPreviewIndex = (currentLevelIndex % 5);
+	
+	// Get total number of levels in the current world
+	int levelCount = campaign.getLevelCount(currentWorldIndex);
+	
+	// Calculate indices of level previews
+	previewLevelIndices[(currentPreviewIndex + 3) % 5] = (currentLevelIndex <= 2) ? ((currentLevelIndex + 3) % 5) : currentLevelIndex - 2;
+	previewLevelIndices[(currentPreviewIndex + 4) % 5] = (currentLevelIndex <= 2) ? ((currentLevelIndex + 4) % 5) : currentLevelIndex - 1;
+	previewLevelIndices[(currentPreviewIndex + 0) % 5] = currentLevelIndex;
+	previewLevelIndices[(currentPreviewIndex + 1) % 5] = (currentLevelIndex >= levelCount - 1) ? (((currentLevelIndex + 1) % (levelCount - 1)) + ((levelCount - 1) - 5)) : currentLevelIndex + 1;
+	previewLevelIndices[(currentPreviewIndex + 2) % 5] = (currentLevelIndex >= levelCount - 2) ? (((currentLevelIndex + 2) % (levelCount - 1)) + ((levelCount - 1) - 5)) : currentLevelIndex + 2;
+	
+	// Load unloaded previews
+	for (int i = 0; i < 5; ++i)
+	{
+		if (oldPreviewLevelIndices[i] != previewLevelIndices[i])
+		{
+			std::cout << "Unloaded level " << oldPreviewLevelIndices[i] << std::endl;
+			std::cout << "Loaded level " << previewLevelIndices[i] << std::endl;
+		}
+	}
+	
+	// Load unloaded previews
+	for (int i = 0; i < 5; ++i)
+	{
+		if (oldPreviewLevelIndices[i] != previewLevelIndices[i])
+		{
+			oldPreviewLevelIndices[i] = previewLevelIndices[i];
+			
+			// Load preview
+		}
+		
+		if (currentPreviewIndex == i)
+		{
+			std::cout << " [" << previewLevelIndices[i] << "] ";
+		}
+		else	
+		{
+			std::cout << "  " << previewLevelIndices[i] << "  ";
+		}
+	}
+	std::cout << std::endl;
+	
+	// Perform tweening
+	for (int i = 0; i < 5; ++i)
+	{
+		levelPlaceholderModelInstances[i].setTranslation(Vector3(4.0f, 0.0f, 0.0f) * static_cast<float>(previewLevelIndices[i]));
+	}
+}
+
+void Application::selectNextLevel()
+{
+	if (currentLevelIndex < campaign.getLevelCount(currentWorldIndex) - 1)
+	{
+		selectLevel(currentLevelIndex + 1);
+		
+		// Setup camera tween
+		cameraTranslationTween->setTime(0.0f);
+		cameraTranslationTween->setDuration(0.125f);
+		cameraTranslationTween->setStartValue(camera.getTranslation());
+		cameraTranslationTween->setDeltaValue(Vector3(4.0f, 0.0f, 0.0f));
+		cameraTranslationTween->setUpdateCallback(std::bind(&SceneObject::setTranslation, &camera, std::placeholders::_1));
+		cameraTranslationTween->start();
+	}
+}
+
+void Application::selectPreviousLevel()
+{
+	if (currentLevelIndex > 0)
+	{
+		selectLevel(currentLevelIndex - 1);
+		
+		// Setup camera tween
+		cameraTranslationTween->setTime(0.0f);
+		cameraTranslationTween->setDuration(0.125f);
+		cameraTranslationTween->setStartValue(camera.getTranslation());
+		cameraTranslationTween->setDeltaValue(Vector3(-4.0f, 0.0f, 0.0f));
+		cameraTranslationTween->setUpdateCallback(std::bind(&SceneObject::setTranslation, &camera, std::placeholders::_1));
+		cameraTranslationTween->start();
+	}
+}
+
+void Application::enterSelectedLevel()
+{
+	
+}
+
+/*
 void Application::loadLevel()
 {
 	if (currentLevel < 1 || currentLevel >= campaign.levels[currentWorld].size())
@@ -1552,8 +1637,8 @@ void Application::loadLevel()
 		return;
 	}
 	
-	const Level* level = &campaign.levels[currentWorld][currentLevel];
-	const Biome* biome = &biosphere.biomes[level->biome];
+	const LevelParameterSet* levelParams = campaign.getLevelParams(currentWorld, currentLevel);
+	const Biome* biome = &biosphere.biomes[levelParams->biome];
 	
 	soilPass.setHorizonOTexture(biome->soilHorizonO);
 	soilPass.setHorizonATexture(biome->soilHorizonA);
@@ -1561,13 +1646,14 @@ void Application::loadLevel()
 	soilPass.setHorizonCTexture(biome->soilHorizonC);
 	
 	std::string heightmap = std::string("data/textures/") + level->heightmap;
-	terrain.load(heightmap);
+	currentLevelTerrain->load(heightmap);
 	
 	// Set skybox
 	skyboxPass.setCubemap(biome->specularCubemap);
 	
-	changeState(playState);
+	//changeState(playState);
 }
+*/
 
 void Application::pauseSimulation()
 {

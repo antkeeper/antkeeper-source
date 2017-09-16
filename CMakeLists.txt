@@ -192,6 +192,8 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/application-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/application.hpp
 	${EXECUTABLE_SOURCE_DIR}/application.cpp
+	${EXECUTABLE_SOURCE_DIR}/states/level-select-state.hpp
+	${EXECUTABLE_SOURCE_DIR}/states/level-select-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/states/loading-state.hpp
 	${EXECUTABLE_SOURCE_DIR}/states/loading-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/states/splash-state.hpp

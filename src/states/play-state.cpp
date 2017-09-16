@@ -34,10 +34,6 @@ PlayState::~PlayState()
 
 void PlayState::enter()
 {
-	// Hide level selector
-	application->levelSelectorContainer->setVisible(false);
-	application->levelSelectorContainer->setActive(false);
-	
 	// Setup HUD
 	application->pauseButtonImage->setVisible(false);
 	application->pauseButtonImage->setActive(false);
@@ -55,22 +51,15 @@ void PlayState::enter()
 	//application->backgroundLayer->addObject(&application->bgCamera);
 	//application->backgroundLayer->addObject(&application->bgBatch);
 	
-	// Create terrain model instances
-	application->terrain.getSurfaceModel()->getGroup(0)->material = application->materialLoader->load("data/materials/debug-terrain-surface.mtl");
-	terrainSurface.setModel(application->terrain.getSurfaceModel());
-	terrainSurface.setTranslation(Vector3(0, 0, 0));
-	terrainSubsurface.setModel(application->terrain.getSubsurfaceModel());
-	terrainSubsurface.setTranslation(Vector3(0, 0, 0));
-	
 	// Add terrain to scene
-	application->defaultLayer->addObject(&terrainSurface);
-	application->defaultLayer->addObject(&terrainSubsurface);
+	application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
+	application->defaultLayer->addObject(&application->currentLevel->terrainSubsurface);
 	
 	// Add forceps to scene
 	application->defaultLayer->addObject(&application->forcepsModelInstance);
 	
 	// Spawn ants
-	Navmesh* navmesh = application->terrain.getSurfaceNavmesh();
+	Navmesh* navmesh = application->currentLevel->terrain.getSurfaceNavmesh();
 	for (int i = 0; i < 50; ++i)
 	{
 		Navmesh::Triangle* triangle = (*navmesh->getTriangles())[0];
@@ -178,7 +167,7 @@ void PlayState::execute()
 	pickingRay.direction = glm::normalize(mouseFar - mouseNear);
 	
 	std::list<Navmesh::Triangle*> triangles;
-	application->terrain.getSurfaceOctree()->query(pickingRay, &triangles);
+	application->currentLevel->terrain.getSurfaceOctree()->query(pickingRay, &triangles);
 	
 	auto result = intersects(pickingRay, triangles);
 	if (std::get<0>(result))
@@ -186,7 +175,7 @@ void PlayState::execute()
 		pick = pickingRay.extrapolate(std::get<1>(result));
 		
 		std::size_t triangleIndex = std::get<3>(result);
-		pickTriangle = (*application->terrain.getSurfaceNavmesh()->getTriangles())[triangleIndex];
+		pickTriangle = (*application->currentLevel->terrain.getSurfaceNavmesh()->getTriangles())[triangleIndex];
 		
 		float forcepsDistance = (application->forcepsClosed) ? 0.0f : 0.5f;
 		
