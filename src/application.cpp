@@ -1023,14 +1023,32 @@ bool Application::loadUI()
 	contextButtonImage0->setDimensions(Vector2(mouseLeftTexture->getWidth(), mouseLeftTexture->getHeight()));
 	contextButtonImage0->setTranslation(Vector2(0.0f, -16.0f));
 	contextButtonImage0->setTexture(mouseLeftTexture);
-	uiRootElement->addChild(contextButtonImage0);
+	//uiRootElement->addChild(contextButtonImage0);
 	
 	foodIndicatorImage = new UIImage();
 	foodIndicatorImage->setAnchor(Vector2(1.0f, 0.0f));
 	foodIndicatorImage->setDimensions(Vector2(foodIndicatorTexture->getWidth(), foodIndicatorTexture->getHeight()));
 	foodIndicatorImage->setTranslation(Vector2(-16.0f, 16.0f));
 	foodIndicatorImage->setTexture(foodIndicatorTexture);
-	uiRootElement->addChild(foodIndicatorImage);
+	//uiRootElement->addChild(foodIndicatorImage);
+	
+	// Create level ID
+	levelIDLabel = new UILabel();
+	levelIDLabel->setAnchor(Vector2(0.5f, 0.0f));
+	levelIDLabel->setFont(menuFont);
+	levelIDLabel->setTranslation(Vector2(0.0f, (int)(height * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 1.5f)));
+	levelIDLabel->setText("");
+	levelIDLabel->setVisible(false);
+	uiRootElement->addChild(levelIDLabel);
+	
+	// Create level name label
+	levelNameLabel = new UILabel();
+	levelNameLabel->setAnchor(Vector2(0.5f, 0.0f));
+	levelNameLabel->setFont(menuFont);
+	levelNameLabel->setTranslation(Vector2(0.0f, (int)(height * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 0.5f)));
+	levelNameLabel->setText("");
+	levelNameLabel->setVisible(false);
+	uiRootElement->addChild(levelNameLabel);
 	
 	// Create toolbar
 	toolbar = new Toolbar();
@@ -1589,6 +1607,20 @@ void Application::selectLevel(std::size_t index)
 	{
 		levelPlaceholderModelInstances[i].setTranslation(Vector3(ANTKEEPER_LEVEL_SPACING, 0.0f, 0.0f) * static_cast<float>(previewLevelIndices[i]));
 	}
+	
+	// Set level ID label
+	std::stringstream stream;
+	stream << (currentWorldIndex + 1) << "-" << (currentLevelIndex + 1);
+	levelIDLabel->setText(stream.str());
+	
+	// Set level name label
+	char levelIDBuffer[6];
+	std::sprintf(levelIDBuffer, "%02d-%02d", currentWorldIndex + 1, currentLevelIndex + 1);
+	std::string levelID(levelIDBuffer);
+	std::string levelName;
+	strings.get(levelIDBuffer, &levelName);
+	std::cout << levelID << std::endl;
+	levelNameLabel->setText(levelName);
 }
 
 void Application::selectNextLevel()

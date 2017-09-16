@@ -18,6 +18,7 @@
  */
 
 #include "level-select-state.hpp"
+#include "main-menu-state.hpp"
 #include "../application.hpp"
 
 LevelSelectState::LevelSelectState(Application* application):
@@ -29,16 +30,19 @@ LevelSelectState::~LevelSelectState()
 
 void LevelSelectState::enter()
 {
+	levelRotation = 0.0f;
 	for (int i = 0; i < 5; ++i)
 	{
 		ModelInstance* instance = &application->levelPlaceholderModelInstances[i];
+		instance->setRotation(glm::angleAxis(levelRotation, Vector3(0, 1, 0)));
 		application->defaultLayer->addObject(instance);
 	}
-	application->camera.lookAt(Vector3(0, 8, 12), Vector3(0, 1, 0), Vector3(0, 1, 0));
+	application->levelIDLabel->setVisible(true);
+	application->levelNameLabel->setVisible(true);
 	
 	application->selectLevel(0);
 	
-	levelRotation = 0.0f;
+	application->camera.lookAt(Vector3(0, 8, 12), Vector3(0, 1, 0), Vector3(0, 1, 0));
 }
 
 void LevelSelectState::execute()
@@ -68,7 +72,7 @@ void LevelSelectState::execute()
 	}
 	else if (application->menuCancel.isTriggered() && !application->menuCancel.wasTriggered())
 	{
-		
+		application->changeState(application->mainMenuState);
 	}
 	
 	// Rotate levels
@@ -82,5 +86,11 @@ void LevelSelectState::execute()
 
 void LevelSelectState::exit()
 {
-
+	for (int i = 0; i < 5; ++i)
+	{
+		ModelInstance* instance = &application->levelPlaceholderModelInstances[i];
+		application->defaultLayer->removeObject(instance);
+	}
+	application->levelIDLabel->setVisible(false);
+	application->levelNameLabel->setVisible(false);
 }

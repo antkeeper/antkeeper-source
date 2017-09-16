@@ -305,6 +305,9 @@ public:
 	UIImage* contextButtonImage0;
 	UIImage* contextButtonImage1;
 	
+	UILabel* levelIDLabel;
+	UILabel* levelNameLabel;
+	
 	Toolbar* toolbar;
 	PieMenu* pieMenu;
 	
