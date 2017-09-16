@@ -31,4 +31,7 @@ const float ANTKEEPER_TERRAIN_WIDTH = 50.0f;
 const float ANTKEEPER_TERRAIN_BASE_HEIGHT = 35.7f;
 const float ANTKEEPER_TERRAIN_DEPTH = 50.0f;
 
+// Level selection
+const float ANTKEEPER_LEVEL_SPACING = 4.5f;
+
 #endif // CONFIGURATION_HPP

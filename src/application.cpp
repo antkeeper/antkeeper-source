@@ -1587,7 +1587,7 @@ void Application::selectLevel(std::size_t index)
 	// Perform tweening
 	for (int i = 0; i < 5; ++i)
 	{
-		levelPlaceholderModelInstances[i].setTranslation(Vector3(4.0f, 0.0f, 0.0f) * static_cast<float>(previewLevelIndices[i]));
+		levelPlaceholderModelInstances[i].setTranslation(Vector3(ANTKEEPER_LEVEL_SPACING, 0.0f, 0.0f) * static_cast<float>(previewLevelIndices[i]));
 	}
 }
 
@@ -1598,10 +1598,11 @@ void Application::selectNextLevel()
 		selectLevel(currentLevelIndex + 1);
 		
 		// Setup camera tween
+		Vector3 difference = Vector3(ANTKEEPER_LEVEL_SPACING * currentLevelIndex, camera.getTranslation().y, camera.getTranslation().z) - camera.getTranslation();
 		cameraTranslationTween->setTime(0.0f);
-		cameraTranslationTween->setDuration(0.125f);
+		cameraTranslationTween->setDuration(0.5f);
 		cameraTranslationTween->setStartValue(camera.getTranslation());
-		cameraTranslationTween->setDeltaValue(Vector3(4.0f, 0.0f, 0.0f));
+		cameraTranslationTween->setDeltaValue(difference);
 		cameraTranslationTween->setUpdateCallback(std::bind(&SceneObject::setTranslation, &camera, std::placeholders::_1));
 		cameraTranslationTween->start();
 	}
@@ -1614,10 +1615,11 @@ void Application::selectPreviousLevel()
 		selectLevel(currentLevelIndex - 1);
 		
 		// Setup camera tween
+		Vector3 difference = Vector3(ANTKEEPER_LEVEL_SPACING * currentLevelIndex, camera.getTranslation().y, camera.getTranslation().z) - camera.getTranslation();
 		cameraTranslationTween->setTime(0.0f);
-		cameraTranslationTween->setDuration(0.125f);
+		cameraTranslationTween->setDuration(0.5f);
 		cameraTranslationTween->setStartValue(camera.getTranslation());
-		cameraTranslationTween->setDeltaValue(Vector3(-4.0f, 0.0f, 0.0f));
+		cameraTranslationTween->setDeltaValue(difference);
 		cameraTranslationTween->setUpdateCallback(std::bind(&SceneObject::setTranslation, &camera, std::placeholders::_1));
 		cameraTranslationTween->start();
 	}

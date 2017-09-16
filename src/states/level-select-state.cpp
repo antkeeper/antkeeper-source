@@ -34,7 +34,7 @@ void LevelSelectState::enter()
 		ModelInstance* instance = &application->levelPlaceholderModelInstances[i];
 		application->defaultLayer->addObject(instance);
 	}
-	application->camera.lookAt(Vector3(0, 10, 20), Vector3(0, 1, 0), Vector3(0, 1, 0));
+	application->camera.lookAt(Vector3(0, 8, 12), Vector3(0, 1, 0), Vector3(0, 1, 0));
 	
 	application->selectLevel(0);
 	
