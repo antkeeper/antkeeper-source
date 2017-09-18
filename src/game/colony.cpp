@@ -20,12 +20,17 @@
 #include "colony.hpp"
 #include "ant.hpp"
 #include "pheromone.hpp"
+#include "../configuration.hpp"
 
 Colony::Colony():
 	antModel(nullptr)
 {
-	antOctree = new Octree<Agent*>(5, AABB(Vector3(-26.0f), Vector3(26.0f)));
-	pheromoneOctree = new Octree<Pheromone*>(5, AABB(Vector3(-26.0f), Vector3(26.0f)));
+	Vector3 octreeMin = Vector3(-ANTKEEPER_TERRAIN_WIDTH, -ANTKEEPER_TERRAIN_BASE_HEIGHT, -ANTKEEPER_TERRAIN_DEPTH) * 0.5f - Vector3(ANTKEEPER_OCTREE_PADDING);
+	Vector3 octreeMax = Vector3( ANTKEEPER_TERRAIN_WIDTH,  ANTKEEPER_TERRAIN_BASE_HEIGHT,  ANTKEEPER_TERRAIN_DEPTH) * 0.5f + Vector3(ANTKEEPER_OCTREE_PADDING);
+	AABB octreeBounds(octreeMin, octreeMax);
+	
+	antOctree = new Octree<Agent*>(5, octreeBounds);
+	pheromoneOctree = new Octree<Pheromone*>(5, octreeBounds);
 }
 
 Colony::~Colony()

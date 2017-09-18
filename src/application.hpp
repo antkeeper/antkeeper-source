@@ -92,6 +92,10 @@ public:
 	void selectMenuItem(std::size_t index);
 	void activateMenuItem(std::size_t index);
 	
+	void selectWorld(std::size_t index);
+	void selectNextWorld();
+	void selectPreviousWorld();
+	
 	void selectLevel(std::size_t index);
 	void selectNextLevel();
 	void selectPreviousLevel();
@@ -160,7 +164,9 @@ public:
 	ModelInstance antModelInstance;
 	ModelInstance antHillModelInstance;
 	ModelInstance nestModelInstance;
-	ModelInstance levelPlaceholderModelInstances[5];
+	ModelInstance previewLevelSurfaces[5];
+	ModelInstance previewLevelSubsurfaces[5];
+	ModelInstance biomeFloorModelInstance;
 	
 	// Graphics
 	Renderer renderer;
@@ -333,6 +339,7 @@ public:
 	Tween<Vector4>* playButtonFadeTween;
 	
 	Tween<Vector3>* cameraTranslationTween;
+	Tween<Vector3>* previewLevelTweens[5];
 	
 	// Menus
 	std::size_t menuCount;
@@ -351,7 +358,7 @@ public:
 	Model* antHillModel;
 	Model* nestModel;
 	Model* forcepsModel;
-	Model* levelPlaceholderModel;
+	Model* biomeFloorModel;
 	
 	// Game variables
 	Biosphere biosphere;

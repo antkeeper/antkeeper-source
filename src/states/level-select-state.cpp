@@ -20,6 +20,7 @@
 #include "level-select-state.hpp"
 #include "main-menu-state.hpp"
 #include "../application.hpp"
+#include "../configuration.hpp"
 
 LevelSelectState::LevelSelectState(Application* application):
 	ApplicationState(application)
@@ -33,16 +34,26 @@ void LevelSelectState::enter()
 	levelRotation = 0.0f;
 	for (int i = 0; i < 5; ++i)
 	{
-		ModelInstance* instance = &application->levelPlaceholderModelInstances[i];
-		instance->setRotation(glm::angleAxis(levelRotation, Vector3(0, 1, 0)));
-		application->defaultLayer->addObject(instance);
+		ModelInstance* surfaceInstance = &application->previewLevelSurfaces[i];
+		ModelInstance* subsurfaceInstance = &application->previewLevelSubsurfaces[i];
+		
+		Quaternion rotation = glm::angleAxis(levelRotation, Vector3(0, 1, 0));
+		surfaceInstance->setRotation(rotation);
+		subsurfaceInstance->setRotation(rotation);
+		
+		application->defaultLayer->addObject(surfaceInstance);
+		application->defaultLayer->addObject(subsurfaceInstance);
 	}
+	application->defaultLayer->addObject(&application->biomeFloorModelInstance);
+	//application->biomeFloorModelInstance.setTranslation(Vector3(0.0f, -ANTKEEPER_TERRAIN_BASE_HEIGHT, 0.0f));
+	
 	application->levelIDLabel->setVisible(true);
 	application->levelNameLabel->setVisible(true);
 	
+	application->selectWorld(0);
 	application->selectLevel(0);
 	
-	application->camera.lookAt(Vector3(0, 8, 12), Vector3(0, 1, 0), Vector3(0, 1, 0));
+	application->camera.lookAt(Vector3(0, 150, 200), Vector3(0, 0, 0), Vector3(0, 1, 0));
 }
 
 void LevelSelectState::execute()
@@ -59,11 +70,11 @@ void LevelSelectState::execute()
 	
 	if (application->menuDown.isTriggered() && !application->menuDown.wasTriggered())
 	{
-		
+		application->selectPreviousWorld();
 	}
 	else if (application->menuUp.isTriggered() && !application->menuUp.wasTriggered())
 	{
-		
+		application->selectNextWorld();
 	}
 	
 	if (application->menuSelect.isTriggered() && !application->menuSelect.wasTriggered())
@@ -79,8 +90,12 @@ void LevelSelectState::execute()
 	levelRotation += glm::radians(5.0f) * application->dt;
 	for (int i = 0; i < 5; ++i)
 	{
-		ModelInstance* instance = &application->levelPlaceholderModelInstances[i];
-		instance->setRotation(glm::angleAxis(levelRotation, Vector3(0, 1, 0)));
+		ModelInstance* surfaceInstance = &application->previewLevelSurfaces[i];
+		ModelInstance* subsurfaceInstance = &application->previewLevelSubsurfaces[i];
+		
+		Quaternion rotation = glm::angleAxis(levelRotation, Vector3(0, 1, 0));
+		//surfaceInstance->setRotation(rotation);
+		//subsurfaceInstance->setRotation(rotation);
 	}
 }
 
@@ -88,8 +103,11 @@ void LevelSelectState::exit()
 {
 	for (int i = 0; i < 5; ++i)
 	{
-		ModelInstance* instance = &application->levelPlaceholderModelInstances[i];
-		application->defaultLayer->removeObject(instance);
+		ModelInstance* surfaceInstance = &application->previewLevelSurfaces[i];
+		ModelInstance* subsurfaceInstance = &application->previewLevelSubsurfaces[i];
+		
+		application->defaultLayer->removeObject(surfaceInstance);
+		application->defaultLayer->removeObject(subsurfaceInstance);
 	}
 	application->levelIDLabel->setVisible(false);
 	application->levelNameLabel->setVisible(false);

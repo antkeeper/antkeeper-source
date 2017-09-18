@@ -590,7 +590,7 @@ bool Application::loadModels()
 	antHillModel = modelLoader->load("data/models/ant-hill.mdl");
 	nestModel = modelLoader->load("data/models/nest.mdl");
 	forcepsModel = modelLoader->load("data/models/forceps.mdl");
-	levelPlaceholderModel = modelLoader->load("data/models/level-placeholder.mdl");
+	biomeFloorModel = modelLoader->load("data/models/desert-floor.mdl");
 	
 	if (!antModel || !antHillModel || !nestModel || !forcepsModel)
 	{
@@ -603,11 +603,7 @@ bool Application::loadModels()
 	antHillModelInstance.setRotation(glm::angleAxis(glm::radians(90.0f), Vector3(1, 0, 0)));
 	nestModelInstance.setModel(nestModel);
 	forcepsModelInstance.setModel(forcepsModel);
-	
-	for (int i = 0; i < 5; ++i)
-	{
-		levelPlaceholderModelInstances[i].setModel(levelPlaceholderModel);
-	}
+	biomeFloorModelInstance.setModel(biomeFloorModel);
 	
 	return true;
 }
@@ -640,7 +636,7 @@ bool Application::loadScene()
 	
 	// Setup skybox pass
 	skyboxPass.setRenderTarget(&defaultRenderTarget);
-	defaultCompositor.addPass(&skyboxPass);
+	//defaultCompositor.addPass(&skyboxPass);
 	
 	// Setup soil pass
 	soilPass.setRenderTarget(&defaultRenderTarget);
@@ -1166,6 +1162,13 @@ bool Application::loadUI()
 	cameraTranslationTween = new Tween<Vector3>(EaseFunction::OUT_CUBIC, 0.0f, 0.0f, Vector3(0.0f), Vector3(0.0f));
 	tweener->addTween(cameraTranslationTween);
 	
+	// Preview level tweens
+	for (int i = 0; i < 5; ++i)
+	{
+		previewLevelTweens[i] = new Tween<Vector3>(EaseFunction::OUT_CUBIC, 0.0f, 0.0f, Vector3(0.0f), Vector3(0.0f));
+		tweener->addTween(previewLevelTweens[i]);
+	}
+	
 	// Build menu system
 	selectedMenuItemIndex = 0;
 	mainMenu = new Menu();
@@ -1380,7 +1383,8 @@ bool Application::loadGame()
 	currentLevelIndex = 0;
 	for (int i = 0; i < 5; ++i)
 	{
-		previewLevelIndices[i] = oldPreviewLevelIndices[i] = i;
+		previewLevelIndices[i] = i;
+		oldPreviewLevelIndices[i] = -1;
 	}
 	simulationPaused = false;
 	
@@ -1389,6 +1393,7 @@ bool Application::loadGame()
 	{
 		previewLevels[i] = new Level();
 	}
+	currentLevel = new Level();
 	
 	// Create colony
 	colony = new Colony();
@@ -1494,64 +1499,42 @@ void Application::enterLevelSelection()
 	changeState(levelSelectState);
 }
 
-/*
-void Application::selectLevel(std::size_t index)
+void Application::selectWorld(std::size_t index)
 {
-	if (index > levelSelectorMenu->getItemCount())
+	// Set current world and level
+	currentWorldIndex = static_cast<int>(index);
+	selectLevel(std::min<int>(campaign.getLevelCount(currentWorldIndex) - 1, currentLevelIndex));
+	
+	// Setup rendering passes
+	const LevelParameterSet* levelParams = campaign.getLevelParams(currentWorldIndex, currentLevelIndex);
+	const Biome* biome = &biosphere.biomes[levelParams->biome];
+	soilPass.setHorizonOTexture(biome->soilHorizonO);
+	soilPass.setHorizonATexture(biome->soilHorizonA);
+	soilPass.setHorizonBTexture(biome->soilHorizonB);
+	soilPass.setHorizonCTexture(biome->soilHorizonC);
+	skyboxPass.setCubemap(biome->specularCubemap);
+	
+	for (int i = 0; i < 5; ++i)
 	{
-		std::cout << "Selected invalid level" << std::endl;
-		return;
+		previewLevels[i]->terrain.getSurfaceModel()->getGroup(0)->material = materialLoader->load("data/materials/debug-terrain-surface.mtl");
 	}
-	
-	MenuItem* previousItem = levelSelectorMenu->getItem(currentLevel - 1);
-	previousItem->deselect();
-	
-	currentLevel = index + 1;
-	
-	MenuItem* nextItem = levelSelectorMenu->getItem(currentLevel - 1);
-	nextItem->select();
 }
 
-void Application::activateLevel(std::size_t index)
+void Application::selectNextWorld()
 {
-	if (index > levelSelectorMenu->getItemCount())
+	if (currentWorldIndex < campaign.getWorldCount() - 1)
 	{
-		std::cout << "Activated invalid level" << std::endl;
-		return;
+		selectWorld(currentWorldIndex + 1);
 	}
-	
-	//levelSelectorMenu->getItem(currentLevel - 1)->deselect();
-	levelSelectorMenu->getItem(currentLevel - 1)->activate();
 }
-*/
 
-// Level count: 16
-// Max loaded levels: 5
-
-// 0: [ 0]   1    2    3    4
-// 1:   0  [ 1]   2    3    4
-// 2:   0    1  [ 2]   3    4
-
-// 3:   5    1    2  [ 3]   4
-// 4:   5    6    2    3  [ 4]
-// 5: [ 5]   6    7    3    4
-// 6:   5  [ 6]   7    8    4
-// 7:   5    6  [ 7]   8    9
-// 8:  10    6    7  [ 8]   9
-// 9:  10   11    7    8  [ 9]
-//10: [10]  11   12    8    9
-//11:  10  [11]  12   13    9
-//12:  10   11  [12]  13   14
-
-//13:  15   11   12  [13]  14
-//14:  15   11   12   13  [14]
-//15: [15]  11   12   13   14
-
-// pointer index = currentLevel % 5;
-
-
-
-
+void Application::selectPreviousWorld()
+{
+	if (currentWorldIndex > 0)
+	{
+		selectWorld(currentWorldIndex - 1);
+	}
+}
 
 void Application::selectLevel(std::size_t index)
 {
@@ -1588,7 +1571,12 @@ void Application::selectLevel(std::size_t index)
 		{
 			oldPreviewLevelIndices[i] = previewLevelIndices[i];
 			
-			// Load preview
+			// Load level preview
+			const LevelParameterSet* params = campaign.getLevelParams(currentWorldIndex, previewLevelIndices[i]);
+			previewLevels[i]->load(*params);
+			
+			previewLevelSurfaces[i].setModel(previewLevels[i]->terrain.getSurfaceModel());
+			previewLevelSubsurfaces[i].setModel(previewLevels[i]->terrain.getSubsurfaceModel());
 		}
 		
 		if (currentPreviewIndex == i)
@@ -1605,7 +1593,24 @@ void Application::selectLevel(std::size_t index)
 	// Perform tweening
 	for (int i = 0; i < 5; ++i)
 	{
-		levelPlaceholderModelInstances[i].setTranslation(Vector3(ANTKEEPER_LEVEL_SPACING, 0.0f, 0.0f) * static_cast<float>(previewLevelIndices[i]));
+		Vector3 translation = Vector3(ANTKEEPER_LEVEL_SPACING, 0.0f, 0.0f) * static_cast<float>(previewLevelIndices[i]);
+		
+		
+		previewLevelSurfaces[i].setTranslation(translation);
+		previewLevelSubsurfaces[i].setTranslation(translation);
+		
+		/*
+		previewLevelTweens[i]->stop();
+		if (currentPreviewIndex != i)
+		{
+			previewLevelTweens[i]->setTime(0.0f);
+			previewLevelTweens[i]->setDuration(0.5f);
+			previewLevelTweens[i]->setStartValue(camera.getTranslation());
+			previewLevelTweens[i]->setDeltaValue(difference);
+			previewLevelTweens[i]->setUpdateCallback(std::bind(&SceneObject::setTranslation, &previewLevelSubsurfaces[i], std::placeholders::_1));
+			previewLevelTweens[i]->start();
+		}
+		*/
 	}
 	
 	// Set level ID label
@@ -1632,7 +1637,7 @@ void Application::selectNextLevel()
 		// Setup camera tween
 		Vector3 difference = Vector3(ANTKEEPER_LEVEL_SPACING * currentLevelIndex, camera.getTranslation().y, camera.getTranslation().z) - camera.getTranslation();
 		cameraTranslationTween->setTime(0.0f);
-		cameraTranslationTween->setDuration(0.5f);
+		cameraTranslationTween->setDuration(1.0f);
 		cameraTranslationTween->setStartValue(camera.getTranslation());
 		cameraTranslationTween->setDeltaValue(difference);
 		cameraTranslationTween->setUpdateCallback(std::bind(&SceneObject::setTranslation, &camera, std::placeholders::_1));
@@ -1649,7 +1654,7 @@ void Application::selectPreviousLevel()
 		// Setup camera tween
 		Vector3 difference = Vector3(ANTKEEPER_LEVEL_SPACING * currentLevelIndex, camera.getTranslation().y, camera.getTranslation().z) - camera.getTranslation();
 		cameraTranslationTween->setTime(0.0f);
-		cameraTranslationTween->setDuration(0.5f);
+		cameraTranslationTween->setDuration(1.0f);
 		cameraTranslationTween->setStartValue(camera.getTranslation());
 		cameraTranslationTween->setDeltaValue(difference);
 		cameraTranslationTween->setUpdateCallback(std::bind(&SceneObject::setTranslation, &camera, std::placeholders::_1));
@@ -1659,7 +1664,13 @@ void Application::selectPreviousLevel()
 
 void Application::enterSelectedLevel()
 {
+	// Load level
+	const LevelParameterSet* levelParams = campaign.getLevelParams(currentWorldIndex, currentLevelIndex);
+	currentLevel->load(*levelParams);
+	currentLevel->terrain.getSurfaceModel()->getGroup(0)->material = materialLoader->load("data/materials/debug-terrain-surface.mtl");
 	
+	// Change state
+	changeState(playState);
 }
 
 /*
