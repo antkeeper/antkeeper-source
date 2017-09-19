@@ -109,6 +109,8 @@ void LevelSelectState::exit()
 		application->defaultLayer->removeObject(surfaceInstance);
 		application->defaultLayer->removeObject(subsurfaceInstance);
 	}
+	application->defaultLayer->removeObject(&application->biomeFloorModelInstance);
+	
 	application->levelIDLabel->setVisible(false);
 	application->levelNameLabel->setVisible(false);
 }

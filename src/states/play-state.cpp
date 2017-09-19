@@ -18,6 +18,7 @@
  */
 
 #include "play-state.hpp"
+#include "level-select-state.hpp"
 #include "../application.hpp"
 #include "../camera-controller.hpp"
 #include "../game/colony.hpp"
@@ -47,13 +48,10 @@ void PlayState::enter()
 	// Setup tools
 	application->forcepsClosed = false;
 	
-	// Add background
-	//application->backgroundLayer->addObject(&application->bgCamera);
-	//application->backgroundLayer->addObject(&application->bgBatch);
-	
 	// Add terrain to scene
 	application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
 	application->defaultLayer->addObject(&application->currentLevel->terrainSubsurface);
+	application->defaultLayer->addObject(&application->biomeFloorModelInstance);
 	
 	// Add forceps to scene
 	application->defaultLayer->addObject(&application->forcepsModelInstance);
@@ -116,7 +114,11 @@ void PlayState::execute()
 	
 	//application->blaImage->setRotation(iconRotation);
 	
-	
+	// Return to level select
+	if (application->menuCancel.isTriggered() && !application->menuCancel.wasTriggered())
+	{
+		application->changeState(application->levelSelectState);
+	}
 	
 	// Move camera
 	Vector2 movementVector(0.0f);
@@ -217,11 +219,29 @@ void PlayState::execute()
 
 void PlayState::exit()
 {
-	// Remove background
-	//application->backgroundLayer->removeObject(&application->bgCamera);
-	//application->backgroundLayer->removeObject(&application->bgBatch);
-	
+	// Remove input observers
 	application->mouse->removeMouseButtonObserver(this);
+	
+	// Clear scene
+	application->defaultLayer->removeObject(&application->currentLevel->terrainSurface);
+	application->defaultLayer->removeObject(&application->currentLevel->terrainSubsurface);
+	application->defaultLayer->removeObject(&application->biomeFloorModelInstance);
+	application->defaultLayer->removeObject(&application->forcepsModelInstance);
+	for (std::size_t i = 0; i < application->colony->getAntCount(); ++i)
+	{
+		Ant* ant = application->colony->getAnt(i);
+		application->defaultLayer->removeObject(ant->getModelInstance());
+	}
+	
+	// Hide HUD
+	application->pauseButtonImage->setVisible(false);
+	application->pauseButtonImage->setActive(false);
+	application->playButtonImage->setVisible(false);
+	application->playButtonImage->setActive(false);
+	application->rectangularPaletteImage->setVisible(false);
+	application->rectangularPaletteImage->setActive(false);
+	application->toolbar->getContainer()->setVisible(false);
+	application->toolbar->getContainer()->setActive(false);
 }
 
 void PlayState::mouseButtonPressed(int button, int x, int y)

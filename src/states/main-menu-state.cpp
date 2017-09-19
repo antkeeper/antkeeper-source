@@ -18,6 +18,7 @@
  */
 
 #include "main-menu-state.hpp"
+#include "title-state.hpp"
 #include "../application.hpp"
 #include "../debug.hpp"
 #include "../camera-controller.hpp"
@@ -235,7 +236,7 @@ void MainMenuState::execute()
 	}
 	else if (application->menuCancel.isTriggered() && !application->menuCancel.wasTriggered())
 	{
-		
+		application->changeState(application->titleState);
 	}
 	
 	float lineHeight = application->menuFont->getMetrics().getHeight();
@@ -277,7 +278,10 @@ void MainMenuState::execute()
 
 void MainMenuState::exit()
 {
-	// Remove nest
+	// Hide UI
+	application->menuSelectorLabel->setVisible(false);
+	
+	// Clear scene
 	application->defaultLayer->removeObject(&application->nestModelInstance);
 }
 

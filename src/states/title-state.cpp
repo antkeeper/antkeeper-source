@@ -169,16 +169,18 @@ void TitleState::execute()
 
 void TitleState::exit()
 {
+	// Remove input observers
+	application->inputManager->removeWindowObserver(this);
+	
+	// Hide UI
 	application->titleImage->setVisible(false);
 	application->anyKeyLabel->setVisible(false);
 	application->titleScreenInfoContainer->setVisible(false);
 	
-	// Remove objects from scene
+	// Remove clear scene
 	application->defaultLayer->removeObject(&application->antHillModelInstance);
 	application->backgroundLayer->removeObject(&application->bgCamera);
 	application->backgroundLayer->removeObject(&application->bgBatch);
-	
-	application->inputManager->removeWindowObserver(this);
 }
 
 void TitleState::windowClosed()

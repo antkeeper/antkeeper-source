@@ -50,6 +50,10 @@ public:
 	
 	void queryAnts(const BoundingVolume& volume, std::list<Agent*>* results) const;
 	
+	std::size_t getAntCount() const;
+	const Ant* getAnt(std::size_t index) const;
+	Ant* getAnt(std::size_t index);
+	
 	
 	const Octree<Agent*>* getAntOctree() const;
 	const Octree<Pheromone*>* getPheromoneOctree() const;
@@ -82,6 +86,22 @@ inline Model* Colony::getAntModel()
 {
 	return antModel;
 }
+
+inline std::size_t Colony::getAntCount() const
+{
+	return ants.size();
+}
+
+inline const Ant* Colony::getAnt(std::size_t index) const
+{
+	return ants[index];
+}
+
+inline Ant* Colony::getAnt(std::size_t index)
+{
+	return ants[index];
+}
+
 
 inline const Octree<Agent*>* Colony::getAntOctree() const
 {
