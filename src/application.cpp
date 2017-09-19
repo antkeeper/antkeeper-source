@@ -1635,12 +1635,12 @@ void Application::selectNextLevel()
 		selectLevel(currentLevelIndex + 1);
 		
 		// Setup camera tween
-		Vector3 difference = Vector3(ANTKEEPER_LEVEL_SPACING * currentLevelIndex, camera.getTranslation().y, camera.getTranslation().z) - camera.getTranslation();
+		Vector3 difference = Vector3(ANTKEEPER_LEVEL_SPACING * currentLevelIndex, surfaceCam->getTargetFocalPoint().y, surfaceCam->getTargetFocalPoint().z) - surfaceCam->getTargetFocalPoint();
 		cameraTranslationTween->setTime(0.0f);
 		cameraTranslationTween->setDuration(1.0f);
-		cameraTranslationTween->setStartValue(camera.getTranslation());
+		cameraTranslationTween->setStartValue(surfaceCam->getTargetFocalPoint());
 		cameraTranslationTween->setDeltaValue(difference);
-		cameraTranslationTween->setUpdateCallback(std::bind(&SceneObject::setTranslation, &camera, std::placeholders::_1));
+		cameraTranslationTween->setUpdateCallback(std::bind(&SurfaceCameraController::setTargetFocalPoint, surfaceCam, std::placeholders::_1));
 		cameraTranslationTween->start();
 	}
 }
@@ -1652,12 +1652,12 @@ void Application::selectPreviousLevel()
 		selectLevel(currentLevelIndex - 1);
 		
 		// Setup camera tween
-		Vector3 difference = Vector3(ANTKEEPER_LEVEL_SPACING * currentLevelIndex, camera.getTranslation().y, camera.getTranslation().z) - camera.getTranslation();
+		Vector3 difference = Vector3(ANTKEEPER_LEVEL_SPACING * currentLevelIndex, surfaceCam->getTargetFocalPoint().y, surfaceCam->getTargetFocalPoint().z) - surfaceCam->getTargetFocalPoint();
 		cameraTranslationTween->setTime(0.0f);
 		cameraTranslationTween->setDuration(1.0f);
-		cameraTranslationTween->setStartValue(camera.getTranslation());
+		cameraTranslationTween->setStartValue(surfaceCam->getTargetFocalPoint());
 		cameraTranslationTween->setDeltaValue(difference);
-		cameraTranslationTween->setUpdateCallback(std::bind(&SceneObject::setTranslation, &camera, std::placeholders::_1));
+		cameraTranslationTween->setUpdateCallback(std::bind(&SurfaceCameraController::setTargetFocalPoint, surfaceCam, std::placeholders::_1));
 		cameraTranslationTween->start();
 	}
 }

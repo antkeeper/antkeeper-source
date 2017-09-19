@@ -54,6 +54,8 @@ public:
 	const Ant* getAnt(std::size_t index) const;
 	Ant* getAnt(std::size_t index);
 	
+	void killAll();
+	
 	
 	const Octree<Agent*>* getAntOctree() const;
 	const Octree<Pheromone*>* getPheromoneOctree() const;

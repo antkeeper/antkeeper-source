@@ -21,6 +21,7 @@
 #include "main-menu-state.hpp"
 #include "../application.hpp"
 #include "../configuration.hpp"
+#include "../camera-controller.hpp"
 
 LevelSelectState::LevelSelectState(Application* application):
 	ApplicationState(application)
@@ -45,7 +46,6 @@ void LevelSelectState::enter()
 		application->defaultLayer->addObject(subsurfaceInstance);
 	}
 	application->defaultLayer->addObject(&application->biomeFloorModelInstance);
-	//application->biomeFloorModelInstance.setTranslation(Vector3(0.0f, -ANTKEEPER_TERRAIN_BASE_HEIGHT, 0.0f));
 	
 	application->levelIDLabel->setVisible(true);
 	application->levelNameLabel->setVisible(true);
@@ -53,7 +53,12 @@ void LevelSelectState::enter()
 	application->selectWorld(0);
 	application->selectLevel(0);
 	
-	application->camera.lookAt(Vector3(0, 150, 200), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	// Setup camera controller
+	application->surfaceCam->setTargetFocalPoint(Vector3(0.0f));
+	application->surfaceCam->setTargetFocalDistance(350.0f);
+	application->surfaceCam->setTargetElevation(glm::radians(85.0f));
+	application->surfaceCam->setTargetAzimuth(0.0f);
+	application->surfaceCam->update(0.0f);
 }
 
 void LevelSelectState::execute()
@@ -97,6 +102,9 @@ void LevelSelectState::execute()
 		//surfaceInstance->setRotation(rotation);
 		//subsurfaceInstance->setRotation(rotation);
 	}
+	
+	// Update camera
+	application->surfaceCam->update(application->dt);
 }
 
 void LevelSelectState::exit()

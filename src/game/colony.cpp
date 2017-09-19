@@ -35,7 +35,9 @@ Colony::Colony():
 
 Colony::~Colony()
 {
+	killAll();
 	delete antOctree;
+	delete pheromoneOctree;
 }
 
 Ant* Colony::spawn(Navmesh* navmesh, Navmesh::Triangle* triangle, const Vector3& position)
@@ -76,4 +78,16 @@ void Colony::setAntModel(Model* model)
 void Colony::queryAnts(const BoundingVolume& volume, std::list<Agent*>* results) const
 {
 	antOctree->query(volume, results);
+}
+
+void Colony::killAll()
+{
+	antOctree->clear();
+	pheromoneOctree->clear();
+	
+	for (Ant* ant: ants)
+	{
+		delete ant;
+	}
+	ants.clear();
 }

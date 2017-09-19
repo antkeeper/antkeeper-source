@@ -182,6 +182,9 @@ void MainMenuState::enter()
 	application->blackoutImage->setVisible(true);
 	application->fadeInTween->start();
 	
+	application->backgroundLayer->addObject(&application->bgCamera);
+	application->backgroundLayer->addObject(&application->bgBatch);
+	
 	// Add nest
 	application->defaultLayer->addObject(&application->nestModelInstance);
 	
@@ -283,6 +286,8 @@ void MainMenuState::exit()
 	
 	// Clear scene
 	application->defaultLayer->removeObject(&application->nestModelInstance);
+	application->backgroundLayer->removeObject(&application->bgCamera);
+	application->backgroundLayer->removeObject(&application->bgBatch);
 }
 
 void MainMenuState::mouseButtonPressed(int button, int x, int y)

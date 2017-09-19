@@ -74,14 +74,14 @@ void PlayState::enter()
 	
 	// Setup camera controller
 	application->surfaceCam->setCamera(&application->camera);
-	application->surfaceCam->setFocalPoint(Vector3(0.0f));
-	application->surfaceCam->setFocalDistance(250.0f);
-	application->surfaceCam->setElevation(glm::radians(35.0f));
-	application->surfaceCam->setAzimuth(glm::radians(-45.0f));
-	application->surfaceCam->setTargetFocalPoint(application->surfaceCam->getFocalPoint());
-	application->surfaceCam->setTargetFocalDistance(application->surfaceCam->getFocalDistance());
-	application->surfaceCam->setTargetElevation(application->surfaceCam->getElevation());
-	application->surfaceCam->setTargetAzimuth(application->surfaceCam->getAzimuth());
+	//application->surfaceCam->setFocalPoint(Vector3(0.0f));
+	//application->surfaceCam->setFocalDistance(250.0f);
+	//application->surfaceCam->setElevation(glm::radians(35.0f));
+	//application->surfaceCam->setAzimuth(glm::radians(-45.0f));
+	application->surfaceCam->setTargetFocalPoint(Vector3(0.0f));
+	application->surfaceCam->setTargetFocalDistance(250.0f);
+	application->surfaceCam->setTargetElevation(glm::radians(35.0f));
+	//application->surfaceCam->setTargetAzimuth(glm::radians(-45.0f));
 	application->surfaceCam->update(0.0f);
 	
 	application->simulationPaused = false;
@@ -232,6 +232,9 @@ void PlayState::exit()
 		Ant* ant = application->colony->getAnt(i);
 		application->defaultLayer->removeObject(ant->getModelInstance());
 	}
+	
+	// Kill all ants
+	application->colony->killAll();
 	
 	// Hide HUD
 	application->pauseButtonImage->setVisible(false);
