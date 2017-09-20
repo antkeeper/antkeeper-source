@@ -131,6 +131,7 @@ private:
 	bool loadShader(const RenderOperation& operation);
 	
 	ShaderParameterSet parameterSet;
+	const ShaderParameter* matrixPaletteParam;
 	const ShaderParameter* modelParam;
 	const ShaderParameter* modelViewParam;
 	const ShaderParameter* modelViewProjectionParam;
@@ -146,9 +147,13 @@ private:
 	const ShaderParameter* diffuseCubemapParam;
 	const ShaderParameter* specularCubemapParam;
 	
+	Shader* unskinnedShader;
+	Shader* skinnedShader;
+	
+	int maxBoneCount;
 	ShaderLoader shaderLoader;
 	std::map<std::size_t, Shader*> shaderCache;
-	Shader* lightingShader;
+	//Shader* lightingShader;
 	
 	Matrix4 biasMatrix;
 	GLuint shadowMap;

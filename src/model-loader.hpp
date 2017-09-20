@@ -63,6 +63,25 @@ private:
 		std::uint32_t* indexData;
 	};
 	
+	struct BoneData
+	{
+		std::string name;
+		std::uint16_t parent;
+		std::uint16_t childCount;
+		std::uint16_t* children;
+		Vector3 translation;
+		Quaternion rotation;
+		float length;
+	};
+	
+	struct SkeletonData
+	{
+		std::uint16_t boneCount;
+		BoneData* boneData;
+	};
+	
+	static void constructBoneHierarchy(Bone* bone, const BoneData* data, std::uint16_t index);
+	
 	MaterialLoader* materialLoader;
 };
 

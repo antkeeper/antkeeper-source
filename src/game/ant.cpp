@@ -25,9 +25,37 @@ Ant::Ant(Colony* colony):
 	colony(colony),
 	state(Ant::State::IDLE),
 	transform(Transform::getIdentity()),
-	skeletonPose(nullptr)
+	pose(nullptr)
 {
+	pose = new Pose(colony->getAntModel()->getSkeleton());
+	for (std::size_t i = 0; i < pose->getSkeleton()->getBoneCount(); ++i)
+	{
+		pose->setRelativeTransform(i, pose->getSkeleton()->getBindPose()->getRelativeTransform(i));
+	}
+	pose->concatenate();
+	
 	modelInstance.setModel(colony->getAntModel());
+	modelInstance.setPose(pose);
+}
+
+Ant::~Ant()
+{
+	delete pose;
+}
+
+void Ant::rotateHead()
+{
+	const Bone* headBone = pose->getSkeleton()->getBone("left-flagellum");
+	if (headBone != nullptr)
+	{
+		std::size_t boneIndex = headBone->getIndex();
+		
+		Transform transform = pose->getRelativeTransform(boneIndex);
+		transform.rotation = glm::normalize(transform.rotation * glm::angleAxis(glm::radians(5.0f), Vector3(0.0f, 1.0f, 0.0f)));
+		
+		pose->setRelativeTransform(boneIndex, transform);
+		pose->concatenate();
+	}
 }
 
 void Ant::move(const Vector3& velocity)

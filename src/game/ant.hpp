@@ -65,6 +65,9 @@ public:
 	 * Creates an instance of Ant.
 	 */
 	Ant(Colony* colony);
+	~Ant();
+	
+	void rotateHead();
 	
 	void move(const Vector3& velocity);
 	
@@ -96,7 +99,7 @@ private:
 	
 	Transform transform;
 	ModelInstance modelInstance;
-	Pose* skeletonPose;
+	Pose* pose;
 };
 
 inline const Colony* Ant::getColony() const

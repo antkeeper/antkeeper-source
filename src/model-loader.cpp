@@ -88,6 +88,7 @@ Model* ModelLoader::load(const std::string& filename)
 	
 	// Allocate model data
 	ModelData* modelData = new ModelData();
+	SkeletonData* skeletonData = nullptr;
 	
 	// Allocate material groups
 	read32(&modelData->groupCount, &bufferOffset);
@@ -166,6 +167,43 @@ Model* ModelLoader::load(const std::string& filename)
 	for (std::size_t i = 0; i < indexCount; ++i)
 	{
 		read32(&modelData->indexData[i], &bufferOffset);
+	}
+	
+	// Read skeleton data
+	if (modelData->vertexFormat & WEIGHTS)
+	{
+		// Allocate skeleton data
+		skeletonData = new SkeletonData();
+		
+		// Read bone count
+		read16(&skeletonData->boneCount, &bufferOffset);
+		
+		// Allocate bones
+		skeletonData->boneData = new BoneData[skeletonData->boneCount];
+		
+		// Read bones
+		for (std::size_t i = 0; i < skeletonData->boneCount; ++i)
+		{
+			BoneData* boneData = &skeletonData->boneData[i];
+			boneData->children = nullptr;
+			
+			readString(&boneData->name, &bufferOffset);
+			read16(&boneData->parent, &bufferOffset);
+			read16(&boneData->childCount, &bufferOffset);
+			boneData->children = new std::uint16_t[boneData->childCount];
+			for (std::size_t j = 0; j < boneData->childCount; ++j)
+			{
+				read16(&boneData->children[j], &bufferOffset);
+			}
+			read32(&boneData->translation.x, &bufferOffset);
+			read32(&boneData->translation.y, &bufferOffset);
+			read32(&boneData->translation.z, &bufferOffset);
+			read32(&boneData->rotation.w, &bufferOffset);
+			read32(&boneData->rotation.x, &bufferOffset);
+			read32(&boneData->rotation.y, &bufferOffset);
+			read32(&boneData->rotation.z, &bufferOffset);
+			read32(&boneData->length, &bufferOffset);
+		}
 	}
 	
 	// Free file data buffer
@@ -294,11 +332,38 @@ Model* ModelLoader::load(const std::string& filename)
 		model->addGroup(modelGroup);
 	}
 	
+	// Create skeleton
+	if (skeletonData != nullptr)
+	{
+		// Allocate skeleton
+		Skeleton* skeleton = new Skeleton();
+		
+		// Construct bone hierarchy from bone data
+		constructBoneHierarchy(skeleton->getRootBone(), skeletonData->boneData, 0);
+		
+		// Calculate bind pose
+		skeleton->calculateBindPose();
+		
+		// Add skeleton to model
+		model->setSkeleton(skeleton);
+	}
+	
 	// Delete model data groups
 	delete[] modelData->groups;
 	
 	// Delete model data
 	delete modelData;
+	
+	// Delete skeleton data
+	if (skeletonData != nullptr)
+	{
+		for (std::size_t i = 0; i < skeletonData->boneCount; ++i)
+		{
+			delete[] skeletonData->boneData[i].children;
+		}
+		delete[] skeletonData->boneData;
+		delete skeletonData;
+	}
 	
 	return model;
 }
@@ -306,4 +371,22 @@ Model* ModelLoader::load(const std::string& filename)
 void ModelLoader::setMaterialLoader(MaterialLoader* materialLoader)
 {
 	this->materialLoader = materialLoader;
+}
+
+void ModelLoader::constructBoneHierarchy(Bone* bone, const BoneData* data, std::uint16_t index)
+{
+	bone->setName(data[index].name);
+	
+	Transform transform;
+	transform.translation = data[index].translation;
+	transform.rotation = data[index].rotation;
+	transform.scale = Vector3(1.0f);
+	
+	bone->setRelativeTransform(transform);
+	bone->setLength(data[index].length);
+	
+	for (std::uint16_t i = 0; i < data[index].childCount; ++i)
+	{
+		constructBoneHierarchy(bone->createChild(), data, data[index].children[i]);
+	}
 }

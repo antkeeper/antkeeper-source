@@ -195,6 +195,7 @@ void PlayState::execute()
 	if (pickAnt != nullptr)
 	{
 		pickAnt->getModelInstance()->setTranslation(pick);
+		pickAnt->rotateHead();
 	}
 	
 	// Update colony

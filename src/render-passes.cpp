@@ -305,6 +305,9 @@ LightingRenderPass::LightingRenderPass():
 		0.0f, 0.0f, 0.5f, 0.0f,
 		0.5f, 0.5f, 0.5f, 1.0f);
 	
+	maxBoneCount = 64;
+	
+	matrixPaletteParam = parameterSet.addParameter("matrixPalette", ShaderParameter::Type::MATRIX_4, maxBoneCount);
 	modelParam = parameterSet.addParameter("modelMatrix", ShaderParameter::Type::MATRIX_4, 1);
 	modelViewParam = parameterSet.addParameter("modelViewMatrix", ShaderParameter::Type::MATRIX_4, 1);
 	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
@@ -315,7 +318,7 @@ LightingRenderPass::LightingRenderPass():
 	directionalLightColorsParam = parameterSet.addParameter("directionalLightColors", ShaderParameter::Type::VECTOR_3, 1);
 	directionalLightDirectionsParam = parameterSet.addParameter("directionalLightDirections", ShaderParameter::Type::VECTOR_3, 1);
 	albedoOpacityMapParam = parameterSet.addParameter("albedoOpacityMap", ShaderParameter::Type::INT, 1);
-	metalnessRoughnessMapParam = parameterSet.addParameter("metalnessRoughness", ShaderParameter::Type::INT, 1);
+	metalnessRoughnessMapParam = parameterSet.addParameter("metalnessRoughnessMap", ShaderParameter::Type::INT, 1);
 	normalOcclusionMapParam = parameterSet.addParameter("normalOcclusionMap", ShaderParameter::Type::INT, 1);
 	diffuseCubemapParam = parameterSet.addParameter("diffuseCubemap", ShaderParameter::Type::INT, 1);
 	specularCubemapParam = parameterSet.addParameter("specularCubemap", ShaderParameter::Type::INT, 1);
@@ -348,15 +351,22 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 		std::cerr << "Failed to load cubemap" << std::endl;
 	}
 	
-	// Load lighting shader
+	// Load unskinned shader
 	shaderLoader.undefine();
 	shaderLoader.define("TEXTURE_COUNT", 0);
 	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
 	shaderLoader.define("VERTEX_NORMAL", EMERGENT_VERTEX_NORMAL);
 	shaderLoader.define("VERTEX_TEXCOORD", EMERGENT_VERTEX_TEXCOORD);
+	unskinnedShader = shaderLoader.load("data/shaders/lit-object.glsl", &parameterSet);
 	
-	lightingShader = shaderLoader.load("data/shaders/lit-object.glsl", &parameterSet);
-	if (!lightingShader)
+	// Load skinned shader
+	shaderLoader.define("SKINNED");
+	shaderLoader.define("MAX_BONE_COUNT", maxBoneCount);
+	shaderLoader.define("VERTEX_BONE_INDICES", EMERGENT_VERTEX_BONE_INDICES);
+	shaderLoader.define("VERTEX_BONE_WEIGHTS", EMERGENT_VERTEX_BONE_WEIGHTS);
+	skinnedShader = shaderLoader.load("data/shaders/lit-object.glsl", &parameterSet);
+	
+	if (!unskinnedShader || !skinnedShader)
 	{
 		return false;
 	}
@@ -368,8 +378,11 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 
 void LightingRenderPass::unload()
 {
-	delete lightingShader;
-	lightingShader = nullptr;
+	delete unskinnedShader;
+	delete skinnedShader;
+	
+	unskinnedShader = nullptr;
+	skinnedShader = nullptr;
 	
 	for (auto it = shaderCache.begin(); it != shaderCache.end(); ++it)
 	{
@@ -789,34 +802,20 @@ void LightingRenderPass::render(const RenderContext* renderContext)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	// Bind shader
-	Shader* shader = lightingShader;
-	shader->bind();
-	
-	// Pass texture units to shader
-	shader->setParameter(albedoOpacityMapParam, 0);
-	shader->setParameter(normalOcclusionMapParam, 2);
 	
 	int directionalLightCount = 1;
 	Vector3 directionalLightColors[3];
 	Vector3 directionalLightDirections[3];
 	directionalLightColors[0] = Vector3(1);
 	directionalLightDirections[0] = glm::normalize(Vector3(camera.getView() * -Vector4(0, 0, -1, 0)));
-	
-	shader->setParameter(directionalLightCountParam, directionalLightCount);
-	shader->setParameter(directionalLightColorsParam, 0, &directionalLightColors[0], directionalLightCount);
-	shader->setParameter(directionalLightDirectionsParam, 0, &directionalLightDirections[0], directionalLightCount);
-	
-	shader->setParameter(cameraPositionParam, camera.getTranslation());
-	
+		
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, diffuseCubemap->getTextureID());
-	shader->setParameter(diffuseCubemapParam, 3);
 	
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, specularCubemap->getTextureID());
-	shader->setParameter(specularCubemapParam, 4);
 	
+	Shader* shader = nullptr;
 	Texture* albedoOpacityMap = nullptr;
 	Texture* metalnessRoughnessMap = nullptr;
 	Texture* normalOcclusionMap = nullptr;
@@ -836,6 +835,43 @@ void LightingRenderPass::render(const RenderContext* renderContext)
 		}
 		
 		// Skip render operations with unsupported vertex formats
+		
+		// Select shader
+		Shader* targetShader = nullptr;
+		if (operation.pose != nullptr)
+		{
+			targetShader = skinnedShader;
+		}
+		else
+		{
+			targetShader = unskinnedShader;
+		}
+		
+		// Switch shader if necessary
+		if (shader != targetShader)
+		{
+			shader = targetShader;
+			
+			// Bind shader
+			shader->bind();
+			
+			// Pass static params
+			shader->setParameter(albedoOpacityMapParam, 0);
+			shader->setParameter(metalnessRoughnessMapParam, 1);
+			shader->setParameter(normalOcclusionMapParam, 2);
+			shader->setParameter(diffuseCubemapParam, 3);
+			shader->setParameter(specularCubemapParam, 4);
+			shader->setParameter(directionalLightCountParam, directionalLightCount);
+			shader->setParameter(directionalLightColorsParam, 0, &directionalLightColors[0], directionalLightCount);
+			shader->setParameter(directionalLightDirectionsParam, 0, &directionalLightDirections[0], directionalLightCount);
+			shader->setParameter(cameraPositionParam, camera.getTranslation());
+		}
+		
+		// Pass matrix palette
+		if (operation.pose != nullptr)
+		{
+			shader->setParameter(matrixPaletteParam, 0, operation.pose->getMatrixPalette(), operation.pose->getSkeleton()->getBoneCount());
+		}
 		
 		// Bind albedo-opacity map
 		if (material->albedoOpacityMap != albedoOpacityMap)
