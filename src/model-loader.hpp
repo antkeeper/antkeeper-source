@@ -74,10 +74,34 @@ private:
 		float length;
 	};
 	
+	struct KeyFrameData
+	{
+		float time;
+		Transform transform;
+	};
+	
+	struct ChannelData
+	{
+		std::uint16_t id;
+		std::uint16_t keyFrameCount;
+		KeyFrameData* keyFrames;
+	};
+	
+	struct AnimationData
+	{
+		std::string name;
+		float startTime;
+		float endTime;
+		std::uint16_t channelCount;
+		ChannelData* channels;
+	};
+	
 	struct SkeletonData
 	{
 		std::uint16_t boneCount;
-		BoneData* boneData;
+		BoneData* bones;
+		std::uint16_t animationCount;
+		AnimationData* animations;
 	};
 	
 	static void constructBoneHierarchy(Bone* bone, const BoneData* data, std::uint16_t index);

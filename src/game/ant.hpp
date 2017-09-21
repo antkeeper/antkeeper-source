@@ -96,6 +96,7 @@ private:
 	
 	Colony* colony;
 	Ant::State state;
+	float animationTime;
 	
 	Transform transform;
 	ModelInstance modelInstance;

@@ -174,35 +174,104 @@ Model* ModelLoader::load(const std::string& filename)
 	{
 		// Allocate skeleton data
 		skeletonData = new SkeletonData();
+		skeletonData->animations = nullptr;
 		
 		// Read bone count
 		read16(&skeletonData->boneCount, &bufferOffset);
 		
 		// Allocate bones
-		skeletonData->boneData = new BoneData[skeletonData->boneCount];
+		skeletonData->bones = new BoneData[skeletonData->boneCount];
 		
 		// Read bones
 		for (std::size_t i = 0; i < skeletonData->boneCount; ++i)
 		{
-			BoneData* boneData = &skeletonData->boneData[i];
-			boneData->children = nullptr;
+			BoneData* bone = &skeletonData->bones[i];
+			bone->children = nullptr;
 			
-			readString(&boneData->name, &bufferOffset);
-			read16(&boneData->parent, &bufferOffset);
-			read16(&boneData->childCount, &bufferOffset);
-			boneData->children = new std::uint16_t[boneData->childCount];
-			for (std::size_t j = 0; j < boneData->childCount; ++j)
+			readString(&bone->name, &bufferOffset);
+			read16(&bone->parent, &bufferOffset);
+			read16(&bone->childCount, &bufferOffset);
+			bone->children = new std::uint16_t[bone->childCount];
+			for (std::size_t j = 0; j < bone->childCount; ++j)
 			{
-				read16(&boneData->children[j], &bufferOffset);
+				read16(&bone->children[j], &bufferOffset);
 			}
-			read32(&boneData->translation.x, &bufferOffset);
-			read32(&boneData->translation.y, &bufferOffset);
-			read32(&boneData->translation.z, &bufferOffset);
-			read32(&boneData->rotation.w, &bufferOffset);
-			read32(&boneData->rotation.x, &bufferOffset);
-			read32(&boneData->rotation.y, &bufferOffset);
-			read32(&boneData->rotation.z, &bufferOffset);
-			read32(&boneData->length, &bufferOffset);
+			read32(&bone->translation.x, &bufferOffset);
+			read32(&bone->translation.y, &bufferOffset);
+			read32(&bone->translation.z, &bufferOffset);
+			read32(&bone->rotation.w, &bufferOffset);
+			read32(&bone->rotation.x, &bufferOffset);
+			read32(&bone->rotation.y, &bufferOffset);
+			read32(&bone->rotation.z, &bufferOffset);
+			read32(&bone->length, &bufferOffset);
+		}
+		
+		// Read animation count
+		read16(&skeletonData->animationCount, &bufferOffset);
+		
+		if (skeletonData->animationCount != 0)
+		{
+			// Allocate animations
+			skeletonData->animations = new AnimationData[skeletonData->animationCount];
+			
+			// Read animations
+			for (std::size_t i = 0; i < skeletonData->animationCount; ++i)
+			{
+				AnimationData* animation = &skeletonData->animations[i];
+				
+				// Read animation name
+				readString(&animation->name, &bufferOffset);
+				
+				// Read time frame
+				read32(&animation->startTime, &bufferOffset);
+				read32(&animation->endTime, &bufferOffset);
+				
+				// Read channel count
+				read16(&animation->channelCount, &bufferOffset);
+				
+				// Allocate channels
+				animation->channels = new ChannelData[animation->channelCount];
+				
+				// Read channels
+				for (std::size_t j = 0; j < animation->channelCount; ++j)
+				{
+					ChannelData* channel = &animation->channels[j];
+					
+					// Read channel ID
+					read16(&channel->id, &bufferOffset);
+					
+					// Read keyframe count
+					read16(&channel->keyFrameCount, &bufferOffset);
+					
+					// Allocate keyframes
+					channel->keyFrames = new KeyFrameData[channel->keyFrameCount];
+					
+					// Read keyframes
+					for (std::size_t k = 0; k < channel->keyFrameCount; ++k)
+					{
+						KeyFrameData* keyFrame = &channel->keyFrames[k];
+						
+						// Read keyframe time
+						read32(&keyFrame->time, &bufferOffset);
+						
+						// Read keyframe translation
+						read32(&keyFrame->transform.translation.x, &bufferOffset);
+						read32(&keyFrame->transform.translation.y, &bufferOffset);
+						read32(&keyFrame->transform.translation.z, &bufferOffset);
+						
+						// Read keyframe rotation
+						read32(&keyFrame->transform.rotation.w, &bufferOffset);
+						read32(&keyFrame->transform.rotation.x, &bufferOffset);
+						read32(&keyFrame->transform.rotation.y, &bufferOffset);
+						read32(&keyFrame->transform.rotation.z, &bufferOffset);
+						
+						// Read keyframe scale
+						read32(&keyFrame->transform.scale.x, &bufferOffset);
+						read32(&keyFrame->transform.scale.y, &bufferOffset);
+						read32(&keyFrame->transform.scale.z, &bufferOffset);
+					}
+				}
+			}
 		}
 	}
 	
@@ -339,10 +408,34 @@ Model* ModelLoader::load(const std::string& filename)
 		Skeleton* skeleton = new Skeleton();
 		
 		// Construct bone hierarchy from bone data
-		constructBoneHierarchy(skeleton->getRootBone(), skeletonData->boneData, 0);
+		constructBoneHierarchy(skeleton->getRootBone(), skeletonData->bones, 0);
 		
 		// Calculate bind pose
 		skeleton->calculateBindPose();
+		
+		// Create animations
+		for (std::size_t i = 0; i < skeletonData->animationCount; ++i)
+		{
+			AnimationData* animationData = &skeletonData->animations[i];
+			Animation* animation = new Animation();
+			animation->setName(animationData->name);
+			animation->setTimeFrame(animationData->startTime, animationData->endTime);
+			
+			for (std::size_t j = 0; j < animationData->channelCount; ++j)
+			{
+				ChannelData* channelData = &animationData->channels[j];
+				AnimationChannel* channel = animation->createChannel(channelData->id);
+				for (std::size_t k = 0; k < channelData->keyFrameCount; ++k)
+				{
+					KeyFrameData* keyFrameData = &channelData->keyFrames[k];
+					KeyFrame* keyFrame = channel->insertKeyFrame(keyFrameData->time);
+					keyFrame->setTransform(keyFrameData->transform);
+				}
+			}
+			
+			// Add animation to skeleton
+			skeleton->addAnimation(animation);
+		}
 		
 		// Add skeleton to model
 		model->setSkeleton(skeleton);
@@ -359,9 +452,22 @@ Model* ModelLoader::load(const std::string& filename)
 	{
 		for (std::size_t i = 0; i < skeletonData->boneCount; ++i)
 		{
-			delete[] skeletonData->boneData[i].children;
+			delete[] skeletonData->bones[i].children;
 		}
-		delete[] skeletonData->boneData;
+		delete[] skeletonData->bones;
+		
+		for (std::size_t i = 0; i < skeletonData->animationCount; ++i)
+		{
+			AnimationData* animation = &skeletonData->animations[i];
+			for (std::size_t j = 0; j < animation->channelCount; ++j)
+			{
+				delete[] animation->channels[j].keyFrames;
+			}
+			
+			delete[] animation->channels;
+		}
+		delete[] skeletonData->animations;
+		
 		delete skeletonData;
 	}
 	

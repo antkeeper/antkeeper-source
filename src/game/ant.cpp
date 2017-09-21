@@ -36,6 +36,8 @@ Ant::Ant(Colony* colony):
 	
 	modelInstance.setModel(colony->getAntModel());
 	modelInstance.setPose(pose);
+	
+	animationTime = 0.0f;
 }
 
 Ant::~Ant()
@@ -45,6 +47,7 @@ Ant::~Ant()
 
 void Ant::rotateHead()
 {
+	/*
 	const Bone* headBone = pose->getSkeleton()->getBone("left-flagellum");
 	if (headBone != nullptr)
 	{
@@ -55,6 +58,28 @@ void Ant::rotateHead()
 		
 		pose->setRelativeTransform(boneIndex, transform);
 		pose->concatenate();
+	}
+	*/
+	
+	const Animation* animation = pose->getSkeleton()->getAnimation("eat");
+	if (animation != nullptr)
+	{
+		for (std::size_t i = 0; i < animation->getChannelCount(); ++i)
+		{
+			const AnimationChannel* channel = animation->getChannel(i);
+			
+			std::size_t boneIndex = channel->getChannelID();
+			Transform transform = channel->interpolateBoundingKeyFrames(animationTime);
+			
+			pose->setRelativeTransform(channel->getChannelID(), transform);
+		}
+		pose->concatenate();
+		
+		animationTime += 0.5f;	
+		if (animationTime > animation->getEndTime())
+		{
+			animationTime = animation->getStartTime();
+		}
 	}
 }
 
