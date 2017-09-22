@@ -20,6 +20,12 @@
 #include "ant.hpp"
 #include "colony.hpp"
 #include "pheromone.hpp"
+#include <cmath>
+
+inline float fwrap(float angle, float limit)
+{
+    return angle - std::floor(angle / limit) * limit;
+}
 
 Ant::Ant(Colony* colony):
 	colony(colony),
@@ -37,7 +43,7 @@ Ant::Ant(Colony* colony):
 	modelInstance.setModel(colony->getAntModel());
 	modelInstance.setPose(pose);
 	
-	animationTime = 0.0f;
+	animationTime = frand(0.0f, 60.0f);
 }
 
 Ant::~Ant()
@@ -61,7 +67,7 @@ void Ant::rotateHead()
 	}
 	*/
 	
-	const Animation* animation = pose->getSkeleton()->getAnimation("eat");
+	const Animation* animation = pose->getSkeleton()->getAnimation("tripod-gait");
 	if (animation != nullptr)
 	{
 		for (std::size_t i = 0; i < animation->getChannelCount(); ++i)
@@ -75,11 +81,13 @@ void Ant::rotateHead()
 		}
 		pose->concatenate();
 		
-		animationTime += 0.5f;	
+		animationTime = fwrap(animationTime + 2.0f, animation->getEndTime());
+		
+		/*
 		if (animationTime > animation->getEndTime())
 		{
 			animationTime = animation->getStartTime();
-		}
+		}*/
 	}
 }
 
@@ -118,6 +126,8 @@ void Ant::update(float dt)
 {
 	float probeLateralOffset = 0.1f;
 	float probeForwardOffset = 0.3f;
+	
+	rotateHead();
 	
 	// Steering
 	if (state == Ant::State::WANDER)

@@ -55,6 +55,15 @@ void PlayState::enter()
 	
 	// Add forceps to scene
 	application->defaultLayer->addObject(&application->forcepsModelInstance);
+	forcepsPose = new Pose(application->forcepsModelInstance.getModel()->getSkeleton());
+	for (std::size_t i = 0; i < forcepsPose->getSkeleton()->getBoneCount(); ++i)
+	{
+		forcepsPose->setRelativeTransform(i, forcepsPose->getSkeleton()->getBindPose()->getRelativeTransform(i));
+	}
+	forcepsPose->concatenate();
+	application->forcepsModelInstance.setPose(forcepsPose);
+	forcepsAnimation = nullptr;
+	forcepsAnimationTime = 0.0f;
 	
 	// Spawn ants
 	Navmesh* navmesh = application->currentLevel->terrain.getSurfaceNavmesh();
@@ -179,7 +188,7 @@ void PlayState::execute()
 		std::size_t triangleIndex = std::get<3>(result);
 		pickTriangle = (*application->currentLevel->terrain.getSurfaceNavmesh()->getTriangles())[triangleIndex];
 		
-		float forcepsDistance = (application->forcepsClosed) ? 0.0f : 0.5f;
+		float forcepsDistance = application->forcepsSwoopTween->getTweenValue();
 		
 		//Quaternion rotation = glm::rotation(Vector3(0, 1, 0), triangle->normal);
 		Quaternion rotation = glm::angleAxis(application->surfaceCam->getAzimuth(), Vector3(0, 1, 0)) *
@@ -190,6 +199,22 @@ void PlayState::execute()
 		// Set tool position
 		application->forcepsModelInstance.setTranslation(translation);
 		application->forcepsModelInstance.setRotation(rotation);
+	}
+	
+	if (forcepsAnimation != nullptr)
+	{
+		for (std::size_t i = 0; i < forcepsAnimation->getChannelCount(); ++i)
+		{
+			const AnimationChannel* channel = forcepsAnimation->getChannel(i);
+			
+			std::size_t boneIndex = channel->getChannelID();
+			Transform transform = channel->interpolateBoundingKeyFrames(forcepsAnimationTime);
+			
+			forcepsPose->setRelativeTransform(channel->getChannelID(), transform);
+		}
+		forcepsPose->concatenate();
+		
+		forcepsAnimationTime += 2.5f;
 	}
 	
 	if (pickAnt != nullptr)
@@ -253,6 +278,14 @@ void PlayState::mouseButtonPressed(int button, int x, int y)
 	if (button == 1)
 	{
 		application->forcepsClosed = true;
+		forcepsAnimation = forcepsPose->getSkeleton()->getAnimation("pinch");
+		forcepsAnimationTime = 0.0f;
+		
+		application->forcepsSwoopTween->setDuration(0.10f);
+		application->forcepsSwoopTween->setStartValue(1.0f);
+		application->forcepsSwoopTween->setDeltaValue(-1.0f);
+		application->forcepsSwoopTween->reset();
+		application->forcepsSwoopTween->start();
 		
 		Sphere forcepsSphere = Sphere(pick, 0.35f);
 				
@@ -286,6 +319,14 @@ void PlayState::mouseButtonReleased(int button, int x, int y)
 	if (button == 1)
 	{
 		application->forcepsClosed = false;
+		forcepsAnimation = forcepsPose->getSkeleton()->getAnimation("release");
+		forcepsAnimationTime = 0.0f;
+		
+		application->forcepsSwoopTween->setDuration(0.10f);
+		application->forcepsSwoopTween->setStartValue(0.0f);
+		application->forcepsSwoopTween->setDeltaValue(1.0f);
+		application->forcepsSwoopTween->reset();
+		application->forcepsSwoopTween->start();
 		
 		if (pickAnt != nullptr)
 		{

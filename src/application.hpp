@@ -340,6 +340,7 @@ public:
 	
 	Tween<Vector3>* cameraTranslationTween;
 	Tween<Vector3>* previewLevelTweens[5];
+	Tween<float>* forcepsSwoopTween;
 	
 	// Menus
 	std::size_t menuCount;

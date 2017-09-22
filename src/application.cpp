@@ -1169,6 +1169,10 @@ bool Application::loadUI()
 		tweener->addTween(previewLevelTweens[i]);
 	}
 	
+	// Tool tweens
+	forcepsSwoopTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, 1.0f, 0.0f, 0.5f);
+	tweener->addTween(forcepsSwoopTween);
+	
 	// Build menu system
 	selectedMenuItemIndex = 0;
 	mainMenu = new Menu();
