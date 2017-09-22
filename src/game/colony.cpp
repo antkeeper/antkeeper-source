@@ -23,7 +23,8 @@
 #include "../configuration.hpp"
 
 Colony::Colony():
-	antModel(nullptr)
+	antModel(nullptr),
+	tripodGaitAnimation(nullptr)
 {
 	Vector3 octreeMin = Vector3(-ANTKEEPER_TERRAIN_WIDTH, -ANTKEEPER_TERRAIN_BASE_HEIGHT, -ANTKEEPER_TERRAIN_DEPTH) * 0.5f - Vector3(ANTKEEPER_OCTREE_PADDING);
 	Vector3 octreeMax = Vector3( ANTKEEPER_TERRAIN_WIDTH,  ANTKEEPER_TERRAIN_BASE_HEIGHT,  ANTKEEPER_TERRAIN_DEPTH) * 0.5f + Vector3(ANTKEEPER_OCTREE_PADDING);
@@ -73,6 +74,13 @@ void Colony::update(float dt)
 void Colony::setAntModel(Model* model)
 {
 	this->antModel = model;
+	
+	// Find tripod gait animation
+	tripodGaitAnimation = model->getSkeleton()->getAnimation("tripod-gait");
+	if (!tripodGaitAnimation)
+	{
+		std::cerr << "Ant tripod gait animation not found" << std::endl;
+	}
 }
 
 void Colony::queryAnts(const BoundingVolume& volume, std::list<Agent*>* results) const

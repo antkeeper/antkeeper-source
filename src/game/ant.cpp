@@ -34,10 +34,7 @@ Ant::Ant(Colony* colony):
 	pose(nullptr)
 {
 	pose = new Pose(colony->getAntModel()->getSkeleton());
-	for (std::size_t i = 0; i < pose->getSkeleton()->getBoneCount(); ++i)
-	{
-		pose->setRelativeTransform(i, pose->getSkeleton()->getBindPose()->getRelativeTransform(i));
-	}
+	pose->reset();
 	pose->concatenate();
 	
 	modelInstance.setModel(colony->getAntModel());
@@ -51,44 +48,18 @@ Ant::~Ant()
 	delete pose;
 }
 
-void Ant::rotateHead()
+void Ant::animate()
 {
-	/*
-	const Bone* headBone = pose->getSkeleton()->getBone("left-flagellum");
-	if (headBone != nullptr)
-	{
-		std::size_t boneIndex = headBone->getIndex();
-		
-		Transform transform = pose->getRelativeTransform(boneIndex);
-		transform.rotation = glm::normalize(transform.rotation * glm::angleAxis(glm::radians(5.0f), Vector3(0.0f, 1.0f, 0.0f)));
-		
-		pose->setRelativeTransform(boneIndex, transform);
-		pose->concatenate();
-	}
-	*/
-	
-	const Animation* animation = pose->getSkeleton()->getAnimation("tripod-gait");
-	if (animation != nullptr)
-	{
-		for (std::size_t i = 0; i < animation->getChannelCount(); ++i)
-		{
-			const AnimationChannel* channel = animation->getChannel(i);
-			
-			std::size_t boneIndex = channel->getChannelID();
-			Transform transform = channel->interpolateBoundingKeyFrames(animationTime);
-			
-			pose->setRelativeTransform(channel->getChannelID(), transform);
-		}
-		pose->concatenate();
-		
-		animationTime = fwrap(animationTime + 2.0f, animation->getEndTime());
-		
-		/*
-		if (animationTime > animation->getEndTime())
-		{
-			animationTime = animation->getStartTime();
-		}*/
-	}
+	colony->getTripodGaitAnimation()->animate(pose, animationTime);
+	pose->concatenate();
+	animationTime = fwrap(animationTime + 2.0f, colony->getTripodGaitAnimation()->getEndTime());
+}
+
+void Ant::suspend(const Vector3& suspensionPoint)
+{
+	transform.translation = suspensionPoint;
+	transform.rotation = getRotation();
+	modelInstance.setTransform(transform);
 }
 
 void Ant::move(const Vector3& velocity)
@@ -127,7 +98,7 @@ void Ant::update(float dt)
 	float probeLateralOffset = 0.1f;
 	float probeForwardOffset = 0.3f;
 	
-	rotateHead();
+	animate();
 	
 	// Steering
 	if (state == Ant::State::WANDER)
@@ -185,6 +156,16 @@ void Ant::update(float dt)
 		move(velocity);
 	}
 	
+	// Update transform
+	if (state == Ant::State::WANDER || state == Ant::State::IDLE)
+	{
+		transform.translation = getPosition();
+		transform.rotation = getRotation();
+			
+		// Update model instance
+		modelInstance.setTransform(transform);
+	}
+	
 	// Locomotion
 	
 	/*
@@ -198,16 +179,6 @@ void Ant::update(float dt)
 	
 	when a grounded leg enters the swing phases, its current pose is saved as the liftoff pose, then an animation is created using the liftoff pose, midswing pose, and touchdown pose.
 	*/
-	
-	// Update transform
-	if (state != Ant::State::DEAD)
-	{
-		transform.translation = getPosition();
-		transform.rotation = getRotation();
-			
-		// Update model instance
-		modelInstance.setTransform(transform);
-	}
 }
 
 Vector3 Ant::forage(const Vector3& leftReceptor, const Vector3& rightReceptor)

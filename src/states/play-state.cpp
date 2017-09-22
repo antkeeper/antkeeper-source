@@ -23,6 +23,7 @@
 #include "../camera-controller.hpp"
 #include "../game/colony.hpp"
 #include "../game/ant.hpp"
+#include "../game/tool.hpp"
 #include "../ui/toolbar.hpp"
 #include <cmath>
 
@@ -46,24 +47,17 @@ void PlayState::enter()
 	application->toolbar->getContainer()->setActive(true);
 	
 	// Setup tools
-	application->forcepsClosed = false;
+	application->forceps->setColony(application->colony);
+	
+	// Add tools to scene
+	application->defaultLayer->addObject(application->forceps->getModelInstance());
 	
 	// Add terrain to scene
 	application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
 	application->defaultLayer->addObject(&application->currentLevel->terrainSubsurface);
 	application->defaultLayer->addObject(&application->biomeFloorModelInstance);
 	
-	// Add forceps to scene
-	application->defaultLayer->addObject(&application->forcepsModelInstance);
-	forcepsPose = new Pose(application->forcepsModelInstance.getModel()->getSkeleton());
-	for (std::size_t i = 0; i < forcepsPose->getSkeleton()->getBoneCount(); ++i)
-	{
-		forcepsPose->setRelativeTransform(i, forcepsPose->getSkeleton()->getBindPose()->getRelativeTransform(i));
-	}
-	forcepsPose->concatenate();
-	application->forcepsModelInstance.setPose(forcepsPose);
-	forcepsAnimation = nullptr;
-	forcepsAnimationTime = 0.0f;
+
 	
 	// Spawn ants
 	Navmesh* navmesh = application->currentLevel->terrain.getSurfaceNavmesh();
@@ -96,8 +90,6 @@ void PlayState::enter()
 	application->simulationPaused = false;
 	
 	application->mouse->addMouseButtonObserver(this);
-	
-	pickAnt = nullptr;
 }
 
 void PlayState::execute()
@@ -188,6 +180,7 @@ void PlayState::execute()
 		std::size_t triangleIndex = std::get<3>(result);
 		pickTriangle = (*application->currentLevel->terrain.getSurfaceNavmesh()->getTriangles())[triangleIndex];
 		
+		/*
 		float forcepsDistance = application->forcepsSwoopTween->getTweenValue();
 		
 		//Quaternion rotation = glm::rotation(Vector3(0, 1, 0), triangle->normal);
@@ -199,29 +192,12 @@ void PlayState::execute()
 		// Set tool position
 		application->forcepsModelInstance.setTranslation(translation);
 		application->forcepsModelInstance.setRotation(rotation);
+		*/
 	}
 	
-	if (forcepsAnimation != nullptr)
-	{
-		for (std::size_t i = 0; i < forcepsAnimation->getChannelCount(); ++i)
-		{
-			const AnimationChannel* channel = forcepsAnimation->getChannel(i);
-			
-			std::size_t boneIndex = channel->getChannelID();
-			Transform transform = channel->interpolateBoundingKeyFrames(forcepsAnimationTime);
-			
-			forcepsPose->setRelativeTransform(channel->getChannelID(), transform);
-		}
-		forcepsPose->concatenate();
-		
-		forcepsAnimationTime += 2.5f;
-	}
-	
-	if (pickAnt != nullptr)
-	{
-		pickAnt->getModelInstance()->setTranslation(pick);
-		pickAnt->rotateHead();
-	}
+	// Update tools
+	application->forceps->setPick(pick);
+	application->forceps->update(application->dt);
 	
 	// Update colony
 	if (!application->simulationPaused)
@@ -252,7 +228,7 @@ void PlayState::exit()
 	application->defaultLayer->removeObject(&application->currentLevel->terrainSurface);
 	application->defaultLayer->removeObject(&application->currentLevel->terrainSubsurface);
 	application->defaultLayer->removeObject(&application->biomeFloorModelInstance);
-	application->defaultLayer->removeObject(&application->forcepsModelInstance);
+	application->defaultLayer->removeObject(application->forceps->getModelInstance());
 	for (std::size_t i = 0; i < application->colony->getAntCount(); ++i)
 	{
 		Ant* ant = application->colony->getAnt(i);
@@ -277,40 +253,7 @@ void PlayState::mouseButtonPressed(int button, int x, int y)
 {
 	if (button == 1)
 	{
-		application->forcepsClosed = true;
-		forcepsAnimation = forcepsPose->getSkeleton()->getAnimation("pinch");
-		forcepsAnimationTime = 0.0f;
-		
-		application->forcepsSwoopTween->setDuration(0.10f);
-		application->forcepsSwoopTween->setStartValue(1.0f);
-		application->forcepsSwoopTween->setDeltaValue(-1.0f);
-		application->forcepsSwoopTween->reset();
-		application->forcepsSwoopTween->start();
-		
-		Sphere forcepsSphere = Sphere(pick, 0.35f);
-				
-		std::list<Agent*> ants;
-		pickAnt = nullptr;
-		float closestDistance = std::numeric_limits<float>::infinity();
-		
-		application->colony->queryAnts(forcepsSphere, &ants);
-		for (Agent* agent: ants)
-		{
-			Ant* ant = static_cast<Ant*>(agent);
-			
-			Vector3 difference = ant->getPosition() - pick;
-			float distanceSquared = glm::dot(difference, difference);
-			if (distanceSquared < closestDistance)
-			{
-				closestDistance = distanceSquared;
-				pickAnt = ant;
-			}
-		}
-		
-		if (pickAnt != nullptr)
-		{
-			pickAnt->setState(Ant::State::DEAD);
-		}
+		application->forceps->pinch();
 	}
 }
 
@@ -318,27 +261,6 @@ void PlayState::mouseButtonReleased(int button, int x, int y)
 {
 	if (button == 1)
 	{
-		application->forcepsClosed = false;
-		forcepsAnimation = forcepsPose->getSkeleton()->getAnimation("release");
-		forcepsAnimationTime = 0.0f;
-		
-		application->forcepsSwoopTween->setDuration(0.10f);
-		application->forcepsSwoopTween->setStartValue(0.0f);
-		application->forcepsSwoopTween->setDeltaValue(1.0f);
-		application->forcepsSwoopTween->reset();
-		application->forcepsSwoopTween->start();
-		
-		if (pickAnt != nullptr)
-		{
-			auto result = intersects(pickingRay, pickTriangle);
-			if (std::get<0>(result))
-			{
-				Vector3 barycentricPosition = Vector3(std::get<2>(result), std::get<3>(result), 1.0f - std::get<2>(result) - std::get<3>(result));
-				pickAnt->setPosition(pickTriangle, barycentricPosition);
-			}
-			
-			pickAnt->setState(Ant::State::WANDER);
-			pickAnt = nullptr;
-		}
+		application->forceps->release();
 	}
 }

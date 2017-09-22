@@ -58,7 +58,8 @@ public:
 	{
 		IDLE,
 		WANDER,
-		DEAD
+		DEAD,
+		SUSPENDED
 	};
 	
 	/**
@@ -67,7 +68,9 @@ public:
 	Ant(Colony* colony);
 	~Ant();
 	
-	void rotateHead();
+	void animate();
+	
+	void suspend(const Vector3& suspensionPoint);
 	
 	void move(const Vector3& velocity);
 	

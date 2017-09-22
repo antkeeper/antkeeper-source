@@ -47,10 +47,6 @@ private:
 	Vector3 pick;
 	Ray pickingRay;
 	Navmesh::Triangle* pickTriangle;
-	Ant* pickAnt;
-	Pose* forcepsPose;
-	float forcepsAnimationTime;
-	const Animation* forcepsAnimation;
 };
 
 #endif // PLAY_STATE_HPP

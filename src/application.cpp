@@ -28,6 +28,7 @@
 #include "states/level-select-state.hpp"
 #include "states/play-state.hpp"
 #include "game/colony.hpp"
+#include "game/tool.hpp"
 #include "ui/toolbar.hpp"
 #include "ui/pie-menu.hpp"
 #include "debug.hpp"
@@ -602,7 +603,6 @@ bool Application::loadModels()
 	antHillModelInstance.setModel(antHillModel);
 	antHillModelInstance.setRotation(glm::angleAxis(glm::radians(90.0f), Vector3(1, 0, 0)));
 	nestModelInstance.setModel(nestModel);
-	forcepsModelInstance.setModel(forcepsModel);
 	biomeFloorModelInstance.setModel(biomeFloorModel);
 	
 	return true;
@@ -988,18 +988,18 @@ bool Application::loadUI()
 	
 	// Create pause/play button elements
 	pauseButtonImage = new UIImage();
-	pauseButtonImage->setAnchor(Vector2(0.0f, 1.0f));
+	pauseButtonImage->setAnchor(Vector2(0.5f, 1.0f));
 	pauseButtonImage->setDimensions(Vector2(pauseButtonTexture->getWidth(), pauseButtonTexture->getHeight()));
-	pauseButtonImage->setTranslation(Vector2(16.0f, -16.0f));
+	pauseButtonImage->setTranslation(Vector2(0.0f, -16.0f));
 	pauseButtonImage->setTexture(pauseButtonTexture);
 	pauseButtonImage->setVisible(false);
 	pauseButtonImage->setActive(false);
 	uiRootElement->addChild(pauseButtonImage);
 	
 	playButtonImage = new UIImage();
-	playButtonImage->setAnchor(Vector2(0.0f, 1.0f));
+	playButtonImage->setAnchor(Vector2(0.5f, 1.0f));
 	playButtonImage->setDimensions(Vector2(playButtonTexture->getWidth(), playButtonTexture->getHeight()));
-	playButtonImage->setTranslation(Vector2(16.0f, -16.0f));
+	playButtonImage->setTranslation(Vector2(0.0f, -16.0f));
 	playButtonImage->setTexture(playButtonTexture);
 	playButtonImage->setVisible(false);
 	playButtonImage->setActive(false);
@@ -1055,7 +1055,7 @@ bool Application::loadUI()
 	toolbar->setButtonDepressedTexture(toolbarButtonDepressedTexture);
 	toolbar->addButton(toolBrushTexture, std::bind(&std::printf, "0\n"), std::bind(&std::printf, "0\n"));
 	toolbar->addButton(toolLensTexture, std::bind(&std::printf, "1\n"), std::bind(&std::printf, "1\n"));
-	toolbar->addButton(toolForcepsTexture, std::bind(&SceneObject::setActive, &forcepsModelInstance, true), std::bind(&SceneObject::setActive, &forcepsModelInstance, false));
+	toolbar->addButton(toolForcepsTexture, std::bind(&std::printf, "2\n"), std::bind(&std::printf, "2\n"));
 	toolbar->addButton(toolTrowelTexture, std::bind(&std::printf, "3\n"), std::bind(&std::printf, "3\n"));
 	toolbar->resize();
 	//uiRootElement->addChild(toolbar->getContainer());
@@ -1402,6 +1402,11 @@ bool Application::loadGame()
 	// Create colony
 	colony = new Colony();
 	colony->setAntModel(antModel);
+	
+	// Create tools
+	forceps = new Forceps(forcepsModel);
+	forceps->setColony(colony);
+	forceps->setCameraController(surfaceCam);
 	
 	return true;
 }

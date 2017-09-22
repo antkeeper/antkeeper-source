@@ -47,6 +47,7 @@ public:
 	void setAntModel(Model* model);
 	const Model* getAntModel() const;
 	Model* getAntModel();
+	const Animation* getTripodGaitAnimation() const;
 	
 	void queryAnts(const BoundingVolume& volume, std::list<Agent*>* results) const;
 	
@@ -63,6 +64,7 @@ public:
 private:
 	// Rendering
 	Model* antModel;
+	const Animation* tripodGaitAnimation;
 	
 	// Locomotion
 	float walkSpeed;
@@ -87,6 +89,11 @@ inline const Model* Colony::getAntModel() const
 inline Model* Colony::getAntModel()
 {
 	return antModel;
+}
+
+inline const Animation* Colony::getTripodGaitAnimation() const
+{
+	return tripodGaitAnimation;
 }
 
 inline std::size_t Colony::getAntCount() const

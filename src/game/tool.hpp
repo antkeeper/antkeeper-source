@@ -1,3 +1,33 @@
+/*
+ * Copyright (C) 2017  Christopher J. Howard
+ *
+ * This file is part of Antkeeper Source Code.
+ *
+ * Antkeeper Source Code is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Antkeeper Source Code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef TOOL_HPP
+#define TOOL_HPP
+
+#include "../ui/tween.hpp"
+
+#include <emergent/emergent.hpp>
+using namespace Emergent;
+
+class Ant;
+class Colony;
+class SurfaceCameraController;
 
 /**
  * Abstract base class for tools. Tools are the only way for the user to interact with the world.
@@ -5,28 +35,141 @@
 class Tool
 {
 public:
-	
-	
-	
-private:
-	Vector3 translation;
+	virtual void update(float dt) = 0;
 };
 
+
+/**
+ * The forceps tool can pick up ants and place them anywhere in the world.
+ */
 class Forceps: public Tool
 {
 public:
-
-private:
+	enum class State
+	{
+		RELEASED,
+		RELEASING,
+		PINCHED,
+		PINCHING
+	};
+	
+	/**
+	 * Creates an instance of Forceps.
+	 *
+	 * @param model Forceps model
+	 */
+	Forceps(const Model* model);
+	
+	/**
+	 * Destroys an instance of Forceps.
+	 */
+	~Forceps();
+	
+	/**
+	 * Updates the forceps.
+	 */
+	virtual void update(float dt);
+	
+	/**
+	 * Pinches the forceps.
+	 */
 	void pinch();
+	
+	/**
+	 * Releases the forceps.
+	 */
 	void release();
 	
-	ModelInstance forcepsModelInstance;
+	/**
+	 * Associates a colony with this forceps.
+	 *
+	 * @param colony Colony with which to associate.
+	 */
+	void setColony(Colony* colony);
+	
+	/**
+	 * Sets the camera.
+	 *
+	 * @param camera Pointer to the camera.
+	 */
+	void setCameraController(const SurfaceCameraController* cameraController);
+	
+	/**
+	 * Sets the picking position.
+	 *
+	 * @param pick Picking position
+	 */
+	void setPick(const Vector3& pick);
+	
+	/**
+	 * Returns the current state of the forceps.
+	 */
+	Forceps::State getState() const;
+	
+	/**
+	 * Returns the suspended ant, if any.
+	 */
+	Ant* getSuspendedAnt() const;
+	
+	/**
+	 * Returns the model instance.
+	 */
+	const ModelInstance* getModelInstance() const;
+	ModelInstance* getModelInstance();
+
+private:
+	Forceps::State state;
+	ModelInstance modelInstance;
+	Pose* pose;
+	const Animation* pinchAnimation;
+	const Animation* releaseAnimation;
+	float animationTime;
+	Tweener* tweener;
+	Tween<float>* descentTween;
+	Tween<float>* ascentTween;
+	Colony* colony;
+	Ant* targetedAnt;
+	Ant* suspendedAnt;
+	const SurfaceCameraController* cameraController;
+	Vector3 pick;
 };
 
+inline Forceps::State Forceps::getState() const
+{
+	return state;
+}
+
+inline Ant* Forceps::getSuspendedAnt() const
+{
+	return suspendedAnt;
+}
+
+inline const ModelInstance* Forceps::getModelInstance() const
+{
+	return &modelInstance;
+}
+
+inline ModelInstance* Forceps::getModelInstance()
+{
+	return &modelInstance;
+}
+
+/**
+ * The lens tool can be used to burn ants.
+ */
+class Lens: public Tool
+{
+public:
+	virtual void update(float dt);
+};
+
+/**
+ * The brush tool can paint pheromones on the terrain.
+ */
 class Brush: public Tool
 {
 public:
-
-private:
-	void paint();
+	virtual void update(float dt);
 };
+
+#endif // TOOL_HPP

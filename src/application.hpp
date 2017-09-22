@@ -52,6 +52,7 @@ class ModelLoader;
 class MaterialLoader;
 class Toolbar;
 class PieMenu;
+class Forceps;
 
 /**
  * Encapsulates the state of the application.
@@ -382,8 +383,8 @@ public:
 	bool cameraOverheadView;
 	bool cameraNestView;
 	int toolIndex;
+	Forceps* forceps;
 	bool simulationPaused;
-	bool forcepsClosed;
 	
 	// Debug
 	LineBatcher* lineBatcher;
