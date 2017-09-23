@@ -124,9 +124,16 @@ private:
 	const Animation* pinchAnimation;
 	const Animation* releaseAnimation;
 	float animationTime;
+	float animationTimeStep;
+	float hoverDistance;
 	Tweener* tweener;
 	Tween<float>* descentTween;
 	Tween<float>* ascentTween;
+	Vector3 translationBottom;
+	Vector3 translationTop;
+	Quaternion rotationTop;
+	Quaternion rotationBottom;
+	bool flipRotation;
 	Colony* colony;
 	Ant* targetedAnt;
 	Ant* suspendedAnt;

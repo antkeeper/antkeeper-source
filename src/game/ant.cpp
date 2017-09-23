@@ -55,10 +55,10 @@ void Ant::animate()
 	animationTime = fwrap(animationTime + 2.0f, colony->getTripodGaitAnimation()->getEndTime());
 }
 
-void Ant::suspend(const Vector3& suspensionPoint)
+void Ant::suspend(const Vector3& suspensionPoint, const Quaternion& suspensionRotation)
 {
 	transform.translation = suspensionPoint;
-	transform.rotation = getRotation();
+	transform.rotation = suspensionRotation;
 	modelInstance.setTransform(transform);
 }
 

@@ -70,7 +70,7 @@ public:
 	
 	void animate();
 	
-	void suspend(const Vector3& suspensionPoint);
+	void suspend(const Vector3& suspensionPoint, const Quaternion& suspensionRotation);
 	
 	void move(const Vector3& velocity);
 	

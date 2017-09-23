@@ -30,10 +30,18 @@ Forceps::Forceps(const Model* model)
 		std::cerr << "Forceps release animation not found" << std::endl;
 	}
 	
+	hoverDistance = 1.0f;
+	
+	// Setup timing
+	float descentDuration = 0.125f;
+	float ascentDuration = 0.125f;
+	float descentFrameCount = descentDuration / (1.0f / 60.0f);
+	animationTimeStep = pinchAnimation->getEndTime() / descentFrameCount;
+	
 	// Allocate tweener and and setup tweens
 	tweener = new Tweener();
-	descentTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, 0.0667f, 1.0f, -1.0f);
-	ascentTween = new Tween<float>(EaseFunction::IN_CUBIC, 0.0f, 0.0667f, 0.0f, 1.0f);
+	descentTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, descentDuration, hoverDistance, -hoverDistance);
+	ascentTween = new Tween<float>(EaseFunction::IN_CUBIC, 0.0f, ascentDuration, 0.0f, hoverDistance);
 	descentTween->setEndCallback(std::bind(&TweenBase::start, ascentTween));
 	tweener->addTween(descentTween);
 	tweener->addTween(ascentTween);
@@ -62,7 +70,7 @@ void Forceps::update(float dt)
 	tweener->update(dt);
 	
 	// Determine distance from pick point
-	float forcepsDistance = descentTween->getStartValue();
+	float forcepsDistance = hoverDistance;
 	if (!ascentTween->isStopped())
 	{
 		forcepsDistance = ascentTween->getTweenValue();
@@ -71,9 +79,10 @@ void Forceps::update(float dt)
 	{
 		forcepsDistance = descentTween->getTweenValue();
 	}
-	
-	Quaternion rotation = glm::angleAxis(cameraController->getAzimuth(), Vector3(0, 1, 0)) *
-		glm::angleAxis(glm::radians(15.0f), Vector3(0, 0, -1));
+		
+	Quaternion alignment = glm::angleAxis(cameraController->getAzimuth(), Vector3(0, 1, 0));
+	Quaternion tilt = glm::angleAxis(glm::radians(15.0f), Vector3(0, 0, -1));
+	Quaternion rotation = glm::normalize(alignment * tilt);
 	Vector3 translation = pick + rotation * Vector3(0, forcepsDistance, 0);
 	
 	// Set tool position
@@ -99,10 +108,53 @@ void Forceps::update(float dt)
 	}
 	else if (state == Forceps::State::PINCHED)
 	{
+		if (!ascentTween->isStopped())
+		{
+			// Calculate interpolation factor
+			float interpolationFactor = (ascentTween->getTweenValue() - ascentTween->getStartValue()) /  ascentTween->getDeltaValue();
+			
+			// Form tilt quaternion
+			//Quaternion tilt = glm::angleAxis(glm::radians(15.0f), Vector3(0, 0, -1));
+			tilt = glm::angleAxis(glm::radians(15.0f), Vector3(0, 0, -1));
+			
+			// Project camera forward onto XZ plane
+			Vector3 cameraForwardXZ = cameraController->getCamera()->getForward();
+			cameraForwardXZ.y = 0.0f;
+			cameraForwardXZ = glm::normalize(cameraForwardXZ);
+			
+			// Form alignment quaternion
+			//Quaternion alignment = glm::rotation(Vector3(0, 0, -1), cameraForwardXZ);
+			alignment = glm::angleAxis(cameraController->getAzimuth(), Vector3(0, 1, 0));
+			
+			// Calculate target rotation at the top of the ascentTween
+			rotationTop = glm::normalize(alignment * tilt);
+			
+			// Interpolate between bottom and top rotations
+			Quaternion interpolatedRotation = glm::normalize(glm::slerp(rotationBottom, rotationTop, interpolationFactor));
+			
+			// Set target translation at the top of the ascent
+			translationTop = pick + rotationTop * Vector3(0, hoverDistance, 0);
+			
+			// Interpolate between bottom and top translations
+			Vector3 interpolatedTranslation = glm::lerp(translationBottom, translationTop, interpolationFactor);
+			
+			// Update model instance transform
+			modelInstance.setTranslation(interpolatedTranslation);	
+			modelInstance.setRotation(interpolatedRotation);
+		}
+		
 		if (suspendedAnt != nullptr)
 		{
+			// Project forceps forward vector onto XZ plane
+			Vector3 forward = glm::normalize(modelInstance.getRotation() * Vector3(0, 0, -1));
+			forward.y = 0.0f;
+			forward = glm::normalize(forward);
+
+			// Calculate suspension quaternion
+			Quaternion suspensionRotation = glm::normalize(glm::rotation(Vector3(0, 0, -1), ((flipRotation) ? -forward : forward)));
+			
 			// Suspend ant
-			suspendedAnt->suspend(modelInstance.getTranslation());
+			suspendedAnt->suspend(modelInstance.getTranslation(), suspensionRotation);
 		}
 	}
 	else if (state == Forceps::State::PINCHING)
@@ -111,8 +163,47 @@ void Forceps::update(float dt)
 		pinchAnimation->animate(pose, animationTime);
 		pose->concatenate();
 		
+		// Rotate to align forceps with ant
+		if (targetedAnt != nullptr)
+		{
+			// Calculate interpolation factor
+			float interpolationFactor = (descentTween->getTweenValue() - descentTween->getStartValue()) /  descentTween->getDeltaValue();
+			
+			// Set target translation at the bottom of the descent
+			translationBottom = targetedAnt->getPosition();
+			
+			// Interpolate between top and bottom translations
+			Vector3 interpolatedTranslation = glm::lerp(translationTop, translationBottom, interpolationFactor);
+			
+			// Project camera forward onto XZ plane
+			Vector3 cameraForwardXZ = cameraController->getCamera()->getForward();
+			cameraForwardXZ.y = 0.0f;
+			cameraForwardXZ = glm::normalize(cameraForwardXZ);
+			
+			// Form tilt quaternion
+			tilt = glm::angleAxis(glm::radians(15.0f), -cameraForwardXZ);
+			
+			// Project ant forward onto XZ plane
+			Vector3 antForwardXZ = targetedAnt->getForward();
+			antForwardXZ.y = 0.0f;
+			antForwardXZ = glm::normalize(antForwardXZ);
+			
+			// Form alignment quaternion
+			alignment = glm::rotation(Vector3(0, 0, -1), (flipRotation) ? antForwardXZ : -antForwardXZ);
+			
+			// Calculate target rotation at the bottom of the descent
+			rotationBottom = glm::normalize(tilt * alignment);
+			
+			// Interpolate between top and bottom rotations
+			Quaternion interpolatedRotation = glm::normalize(glm::slerp(rotationTop, rotationBottom, interpolationFactor));
+			
+			// Update model instance transform
+			modelInstance.setTranslation(interpolatedTranslation);
+			modelInstance.setRotation(interpolatedRotation);
+		}
+		
 		// If pinch animation is finished
-		if (animationTime >= pinchAnimation->getEndTime())
+		if (animationTime >= pinchAnimation->getEndTime() && descentTween->isStopped())
 		{
 			// If an ant was targeted
 			if (targetedAnt != nullptr)
@@ -120,7 +211,7 @@ void Forceps::update(float dt)
 				// Suspend targeted ant
 				suspendedAnt = targetedAnt;
 				suspendedAnt->setState(Ant::State::SUSPENDED);
-				suspendedAnt->suspend(modelInstance.getTranslation());
+				//suspendedAnt->suspend(modelInstance.getTranslation());
 				targetedAnt = nullptr;
 			}
 			
@@ -130,8 +221,7 @@ void Forceps::update(float dt)
 	}
 	
 	// Increment animation time
-	//animationTime += dt;
-	animationTime += 2.5f;
+	animationTime += animationTimeStep;
 }
 
 void Forceps::setColony(Colony* colony)
@@ -178,10 +268,33 @@ void Forceps::pinch()
 				targetedAnt = ant;
 			}
 		}
+		
+		if (targetedAnt != nullptr)
+		{
+			// Start descent tweener
+			descentTween->start();
+			
+			// Save translation & rotation
+			translationTop = modelInstance.getTranslation();
+			rotationTop = modelInstance.getRotation();
+			
+			// Project ant forward onto XZ plane
+			Vector3 antForwardXZ = targetedAnt->getForward();
+			antForwardXZ.y = 0.0f;
+			antForwardXZ = glm::normalize(antForwardXZ);
+			
+			// Project camera forward onto XZ plane
+			Vector3 cameraForwardXZ = cameraController->getCamera()->getForward();
+			cameraForwardXZ.y = 0.0f;
+			cameraForwardXZ = glm::normalize(cameraForwardXZ);
+			
+			// Find angle between ant and camera on XZ plane
+			float angle = std::acos(glm::dot(cameraForwardXZ, antForwardXZ));
+			
+			// Determine direction to rotate
+			flipRotation = (angle > glm::radians(90.0f));
+		}
 	}
-	
-	// Start descent tweener
-	descentTween->start();
 }
 
 void Forceps::release()
@@ -189,6 +302,7 @@ void Forceps::release()
 	// Change state to releasing
 	state = Forceps::State::RELEASING;
 	animationTime = 0.0f;
+	targetedAnt = nullptr;
 	
 	if (suspendedAnt != nullptr)
 	{
