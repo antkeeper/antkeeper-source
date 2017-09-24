@@ -376,3 +376,32 @@ void Lens::update(float dt)
 	modelInstance.setTranslation(translation);
 	modelInstance.setRotation(rotation);
 }
+
+Brush::Brush(const Model* model)
+{
+	// Allocate pose and initialize to bind pose
+	pose = new Pose(model->getSkeleton());
+	pose->reset();
+	pose->concatenate();
+	
+	// Setup model instance
+	modelInstance.setModel(model);
+	modelInstance.setPose(pose);
+	
+	hoverDistance = 0.0f;
+}
+
+Brush::~Brush()
+{
+	delete pose;
+}
+
+void Brush::update(float dt)
+{
+	Quaternion alignment = glm::angleAxis(cameraController->getAzimuth(), Vector3(0, 1, 0));
+	Quaternion rotation = glm::normalize(alignment);
+	Vector3 translation = pick + Vector3(0, hoverDistance, 0);
+	
+	modelInstance.setTranslation(translation);
+	modelInstance.setRotation(rotation);
+}

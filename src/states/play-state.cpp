@@ -25,6 +25,7 @@
 #include "../game/ant.hpp"
 #include "../game/tool.hpp"
 #include "../ui/toolbar.hpp"
+#include "../ui/pie-menu.hpp"
 #include <cmath>
 
 PlayState::PlayState(Application* application):
@@ -52,6 +53,8 @@ void PlayState::enter()
 	// Add tools to scene
 	application->defaultLayer->addObject(application->forceps->getModelInstance());
 	application->defaultLayer->addObject(application->lens->getModelInstance());
+	application->defaultLayer->addObject(application->brush->getModelInstance());
+
 	
 	// Add terrain to scene
 	application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
@@ -89,6 +92,11 @@ void PlayState::enter()
 	application->surfaceCam->update(0.0f);
 	
 	application->simulationPaused = false;
+	
+	// Select forceps tool
+	//application->deselectTool(application->currentTool);
+	//application->selectTool(application->forceps);
+	application->pieMenu->select(1);
 	
 	application->mouse->addMouseButtonObserver(this);
 }

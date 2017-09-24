@@ -55,6 +55,7 @@ class PieMenu;
 class Tool;
 class Forceps;
 class Lens;
+class Brush;
 
 /**
  * Encapsulates the state of the application.
@@ -366,6 +367,7 @@ public:
 	Model* nestModel;
 	Model* forcepsModel;
 	Model* lensModel;
+	Model* brushModel;
 	Model* biomeFloorModel;
 	
 	// Game variables
@@ -392,6 +394,7 @@ public:
 	Tool* currentTool;
 	Forceps* forceps;
 	Lens* lens;
+	Brush* brush;
 	bool simulationPaused;
 	
 	// Debug

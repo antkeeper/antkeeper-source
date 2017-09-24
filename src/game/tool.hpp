@@ -233,7 +233,14 @@ private:
 class Brush: public Tool
 {
 public:
+	Brush(const Model* model);
+	~Brush();
+	
 	virtual void update(float dt);
+	
+private:
+	Pose* pose;
+	float hoverDistance;
 };
 
 #endif // TOOL_HPP

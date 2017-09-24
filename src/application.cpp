@@ -592,9 +592,10 @@ bool Application::loadModels()
 	nestModel = modelLoader->load("data/models/nest.mdl");
 	forcepsModel = modelLoader->load("data/models/forceps.mdl");
 	lensModel = modelLoader->load("data/models/lens.mdl");
+	brushModel = modelLoader->load("data/models/brush.mdl");
 	biomeFloorModel = modelLoader->load("data/models/desert-floor.mdl");
 	
-	if (!antModel || !antHillModel || !nestModel || !forcepsModel || !lensModel)
+	if (!antModel || !antHillModel || !nestModel || !forcepsModel || !lensModel || !brushModel)
 	{
 		return false;
 	}
@@ -1068,7 +1069,7 @@ bool Application::loadUI()
 	pieMenu->addOption(arcNorthTexture, toolLensTexture, std::bind(&Application::selectTool, this, lens), std::bind(&Application::deselectTool, this, lens));
 	pieMenu->addOption(arcEastTexture, toolForcepsTexture, std::bind(&Application::selectTool, this, forceps), std::bind(&Application::deselectTool, this, forceps));
 	pieMenu->addOption(arcSouthTexture, toolTrowelTexture, std::bind(&Application::selectTool, this, nullptr), std::bind(&Application::deselectTool, this, nullptr));
-	pieMenu->addOption(arcWestTexture, toolBrushTexture, std::bind(&Application::selectTool, this, forceps), std::bind(&Application::deselectTool, this, nullptr));
+	pieMenu->addOption(arcWestTexture, toolBrushTexture, std::bind(&Application::selectTool, this, brush), std::bind(&Application::deselectTool, this, brush));
 	uiRootElement->addChild(pieMenu->getContainer());
 	pieMenu->resize();
 	pieMenu->getContainer()->setVisible(false);
@@ -1413,6 +1414,9 @@ bool Application::loadGame()
 	
 	lens = new Lens(lensModel);
 	lens->setCameraController(surfaceCam);
+	
+	brush = new Brush(brushModel);
+	brush->setCameraController(surfaceCam);
 	
 	return true;
 }
