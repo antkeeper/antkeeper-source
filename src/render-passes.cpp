@@ -44,7 +44,7 @@ void ShadowMapRenderPass::unload()
 	depthShader = nullptr;
 }
 
-void ShadowMapRenderPass::render(const RenderContext* renderContext)
+void ShadowMapRenderPass::render(RenderContext* renderContext)
 {
 	// Bind framebuffer and setup viewport
 	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
@@ -128,7 +128,7 @@ void ClippingRenderPass::unload()
 	shader = nullptr;
 }
 
-void ClippingRenderPass::render(const RenderContext* renderContext)
+void ClippingRenderPass::render(RenderContext* renderContext)
 {
 	glEnable(GL_CLIP_DISTANCE0);
 	glEnable(GL_STENCIL_TEST);
@@ -232,7 +232,7 @@ void SoilRenderPass::unload()
 	horizonCTexture = nullptr;
 }
 
-void SoilRenderPass::render(const RenderContext* renderContext)
+void SoilRenderPass::render(RenderContext* renderContext)
 {
 	// Bind shader
 	shader->bind();
@@ -400,7 +400,7 @@ void LightingRenderPass::unload()
 	specularCubemap = nullptr;
 }
 
-void LightingRenderPass::render(const RenderContext* renderContext)
+void LightingRenderPass::render(RenderContext* renderContext)
 {
 	/*
 	time += 1.0f / 60.f;
@@ -787,7 +787,7 @@ void LightingRenderPass::render(const RenderContext* renderContext)
 	*/
 	
 	const Camera& camera = *(renderContext->camera);
-	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
+	std::list<RenderOperation>* operations = renderContext->queue->getOperations();
 
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -819,6 +819,9 @@ void LightingRenderPass::render(const RenderContext* renderContext)
 	Texture* albedoOpacityMap = nullptr;
 	Texture* metalnessRoughnessMap = nullptr;
 	Texture* normalOcclusionMap = nullptr;
+	
+	// Sort operations
+	operations->sort(RenderOpCompare());
 	
 	// Render operations
 	for (const RenderOperation& operation: *operations)
@@ -992,6 +995,54 @@ bool LightingRenderPass::loadShader(const RenderOperation& operation)
 	return false;
 }
 
+bool LightingRenderPass::RenderOpCompare::operator()(const RenderOperation& opA, const RenderOperation& opB) const
+{
+	// Skip render operations with unsupported materials
+	if (opA.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
+	{
+		return false;
+	}
+	else if (opB.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
+	{
+		return true;
+	}
+	
+	// Cast materials
+	const PhysicalMaterial* materialA = static_cast<const PhysicalMaterial*>(opA.material);
+	const PhysicalMaterial* materialB = static_cast<const PhysicalMaterial*>(opB.material);
+	
+	// Determine transparency
+	bool transparentA = materialA->flags & (unsigned int)PhysicalMaterial::Flags::TRANSLUCENT;
+	bool transparentB = materialB->flags & (unsigned int)PhysicalMaterial::Flags::TRANSLUCENT;
+	
+	if (transparentA)
+	{
+		if (transparentB)
+		{
+			// A and B are both transparent, sort by depth
+			return (opA.depth <= opB.depth);
+		}
+		else
+		{
+			// A is transparent, B is opaque. Render B first
+			return false;
+		}
+	}
+	else
+	{
+		if (transparentB)
+		{
+			// A is opaque, B is transparent. Render A first
+			return true;
+		}
+		else
+		{
+			// A and B are both opaque, sort by material
+			return (opA.material < opB.material);
+		}
+	}
+}
+
 DebugRenderPass::DebugRenderPass()
 {
 	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
@@ -1052,7 +1103,7 @@ void DebugRenderPass::unload()
 	glDeleteVertexArrays(1, &aabbVAO);
 }
 
-void DebugRenderPass::render(const RenderContext* renderContext)
+void DebugRenderPass::render(RenderContext* renderContext)
 {
 	const Camera& camera = *(renderContext->camera);
 
@@ -1148,7 +1199,7 @@ void UIRenderPass::unload()
 	untexturedUIShader = nullptr;
 }
 
-void UIRenderPass::render(const RenderContext* renderContext)
+void UIRenderPass::render(RenderContext* renderContext)
 {
 	const Camera& camera = *(renderContext->camera);
 	
@@ -1265,7 +1316,7 @@ void VignetteRenderPass::unload()
 	glDeleteTextures(1, &bayerTextureID);
 }
 
-void VignetteRenderPass::render(const RenderContext* renderContext)
+void VignetteRenderPass::render(RenderContext* renderContext)
 {
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
@@ -1359,7 +1410,7 @@ void SkyboxRenderPass::unload()
 	glDeleteVertexArrays(1, &quadVAO);
 }
 
-void SkyboxRenderPass::render(const RenderContext* renderContext)
+void SkyboxRenderPass::render(RenderContext* renderContext)
 {
 	if (!cubemap)
 	{

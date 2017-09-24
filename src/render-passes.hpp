@@ -36,7 +36,7 @@ public:
 	
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
-	virtual void render(const RenderContext* renderContext);
+	virtual void render(RenderContext* renderContext);
 	
 private:
 	ShaderParameterSet parameterSet;
@@ -55,7 +55,7 @@ public:
 	ClippingRenderPass();
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
-	virtual void render(const RenderContext* renderContext);
+	virtual void render(RenderContext* renderContext);
 	
 	void setClippingPlane(const Plane& plane);
 	
@@ -89,7 +89,7 @@ public:
 	SoilRenderPass();
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
-	virtual void render(const RenderContext* renderContext);
+	virtual void render(RenderContext* renderContext);
 	
 	inline void setHorizonOTexture(Texture* texture) { horizonOTexture = texture; }
 	inline void setHorizonATexture(Texture* texture) { horizonATexture = texture; }
@@ -122,12 +122,19 @@ public:
 	
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
-	virtual void render(const RenderContext* renderContext);
+	virtual void render(RenderContext* renderContext);
 	
 	inline void setShadowMap(GLuint shadowMap) { this->shadowMap = shadowMap; }
 	inline void setShadowCamera(const Camera* camera) { this->shadowCamera = camera; }
 	
 private:
+	class RenderOpCompare
+	{
+	public:
+		// Sort render opations
+		bool operator()(const RenderOperation& opA, const RenderOperation& opB) const;
+	};
+
 	bool loadShader(const RenderOperation& operation);
 	
 	ShaderParameterSet parameterSet;
@@ -173,7 +180,7 @@ public:
 	DebugRenderPass();
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
-	virtual void render(const RenderContext* renderContext);
+	virtual void render(RenderContext* renderContext);
 	
 	//void setDrawBounds(bool enabled);
 	//void setDrawSkeletons(bool enabled);
@@ -203,7 +210,7 @@ public:
 	UIRenderPass();
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
-	virtual void render(const RenderContext* renderContext);
+	virtual void render(RenderContext* renderContext);
 	
 private:
 	ShaderParameterSet parameterSet;
@@ -226,7 +233,7 @@ public:
 	VignetteRenderPass();
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
-	virtual void render(const RenderContext* renderContext);
+	virtual void render(RenderContext* renderContext);
 	
 private:
 	ShaderParameterSet parameterSet;
@@ -249,7 +256,7 @@ public:
 	inline void setCubemap(Texture* cubemap) { this->cubemap = cubemap; }
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
-	virtual void render(const RenderContext* renderContext);
+	virtual void render(RenderContext* renderContext);
 	
 private:
 	ShaderParameterSet parameterSet;

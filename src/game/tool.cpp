@@ -5,6 +5,28 @@
 #include <iostream>
 #include <list>
 
+Tool::Tool():
+	active(false),
+	pick(0.0f),
+	cameraController(nullptr)
+{
+	modelInstance.setActive(active);
+}
+
+Tool::~Tool()
+{}
+
+void Tool::setActive(bool active)
+{
+	this->active = active;
+	modelInstance.setActive(active);
+}
+
+void Tool::setCameraController(const SurfaceCameraController* cameraController)
+{
+	this->cameraController = cameraController;
+}
+
 Forceps::Forceps(const Model* model)
 {
 	// Allocate pose and initialize to bind pose
@@ -229,16 +251,6 @@ void Forceps::setColony(Colony* colony)
 	this->colony = colony;
 }
 
-void Forceps::setCameraController(const SurfaceCameraController* cameraController)
-{
-	this->cameraController = cameraController;
-}
-
-void Forceps::setPick(const Vector3& pick)
-{
-	this->pick = pick;
-}
-
 void Forceps::pinch()
 {
 	// Change state to pinching
@@ -325,4 +337,42 @@ void Forceps::release()
 	descentTween->stop();
 	ascentTween->reset();
 	ascentTween->stop();
+}
+
+Lens::Lens(const Model* model)
+{
+	// Setup model instance
+	modelInstance.setModel(model);
+	
+	hoverDistance = 12.0f;
+}
+
+Lens::~Lens()
+{}
+
+void Lens::update(float dt)
+{
+	/*
+	// Rotate to face camera
+	hoverDistance = 30.0f;
+	Vector3 direction = glm::normalize(cameraController->getCamera()->getTranslation() - pick);
+	//direction = cameraController->getCamera()->getForward();
+	float distance = glm::distance(pick, cameraController->getCamera()->getTranslation());
+	
+	Quaternion alignment = glm::angleAxis(cameraController->getAzimuth() + glm::radians(90.0f), Vector3(0, 1, 0));
+	Quaternion tilt = glm::rotation(Vector3(0, 1, 0), -direction);
+	Quaternion rotation = glm::normalize(tilt * alignment);
+	
+	Vector3 translation = pick + rotation * Vector3(0, -distance + hoverDistance, 0);
+	
+	modelInstance.setTranslation(translation);
+	modelInstance.setRotation(rotation);
+	*/
+	
+	Quaternion alignment = glm::angleAxis(cameraController->getAzimuth() + glm::radians(90.0f), Vector3(0, 1, 0));
+	Quaternion rotation = glm::normalize(alignment);
+	Vector3 translation = pick + Vector3(0, hoverDistance, 0);
+	
+	modelInstance.setTranslation(translation);
+	modelInstance.setRotation(rotation);
 }

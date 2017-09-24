@@ -52,7 +52,9 @@ class ModelLoader;
 class MaterialLoader;
 class Toolbar;
 class PieMenu;
+class Tool;
 class Forceps;
+class Lens;
 
 /**
  * Encapsulates the state of the application.
@@ -105,6 +107,9 @@ public:
 	//void activateLevel(std::size_t index);
 	
 	void enterLevelSelection();
+	
+	void deselectTool(Tool* tool);
+	void selectTool(Tool* tool);
 	
 
 	
@@ -360,6 +365,7 @@ public:
 	Model* antHillModel;
 	Model* nestModel;
 	Model* forcepsModel;
+	Model* lensModel;
 	Model* biomeFloorModel;
 	
 	// Game variables
@@ -383,7 +389,9 @@ public:
 	bool cameraOverheadView;
 	bool cameraNestView;
 	int toolIndex;
+	Tool* currentTool;
 	Forceps* forceps;
+	Lens* lens;
 	bool simulationPaused;
 	
 	// Debug

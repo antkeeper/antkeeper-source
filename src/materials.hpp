@@ -55,6 +55,7 @@ public:
 		OBJECT  = 0x01,
 		TERRAIN = 0x02,
 		SOIL    = 0x04,
+		TRANSLUCENT = 0x08
 	};
 	
 	PhysicalMaterial():

@@ -135,6 +135,16 @@ PhysicalMaterial* MaterialLoader::load(const std::string& filename)
 		{
 			std::stringstream(arguments[0]) >> material->roughness;
 		}
+		else if (command == "translucent" && arguments.size() == 1)
+		{
+			int translucent = 0;
+			std::stringstream(arguments[0]) >> translucent;
+			
+			if (translucent)
+			{
+				material->flags |= static_cast<unsigned int>(PhysicalMaterial::Flags::TRANSLUCENT);
+			}
+		}
 		else if (command == "albedo-opacity-map")
 		{
 			material->albedoOpacityMap = loadTexture(argumentList);

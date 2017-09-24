@@ -35,8 +35,76 @@ class SurfaceCameraController;
 class Tool
 {
 public:
+	/**
+	 * Creates an instance of Tool.
+	 */
+	Tool();
+	
+	/**
+	 * Destroys an instance of Tool.
+	 */
+	virtual ~Tool();
+	
+	/**
+	 * Updates the tool.
+	 *
+	 * @param dt Application timestep.
+	 */
 	virtual void update(float dt) = 0;
+	
+	/**
+	 * Activates or deactivates the tool.
+	 */
+	void setActive(bool active);
+	
+	/**
+	 * Sets the picking position.
+	 *
+	 * @param pick Picking position
+	 */
+	void setPick(const Vector3& pick);
+	
+	/**
+	 * Sets the camera.
+	 *
+	 * @param camera Pointer to the camera.
+	 */
+	void setCameraController(const SurfaceCameraController* cameraController);
+	
+	bool isActive() const;
+	
+	/**
+	 * Returns the model instance.
+	 */
+	const ModelInstance* getModelInstance() const;
+	ModelInstance* getModelInstance();
+	
+protected:
+	ModelInstance modelInstance;
+	bool active;
+	Vector3 pick;
+	const SurfaceCameraController* cameraController;
 };
+
+inline bool Tool::isActive() const
+{
+	return active;
+}
+
+inline void Tool::setPick(const Vector3& pick)
+{
+	this->pick = pick;
+}
+
+inline const ModelInstance* Tool::getModelInstance() const
+{
+	return &modelInstance;
+}
+
+inline ModelInstance* Tool::getModelInstance()
+{
+	return &modelInstance;
+}
 
 
 /**
@@ -67,6 +135,8 @@ public:
 	
 	/**
 	 * Updates the forceps.
+	 *
+	 * @param dt Application timestep.
 	 */
 	virtual void update(float dt);
 	
@@ -88,20 +158,6 @@ public:
 	void setColony(Colony* colony);
 	
 	/**
-	 * Sets the camera.
-	 *
-	 * @param camera Pointer to the camera.
-	 */
-	void setCameraController(const SurfaceCameraController* cameraController);
-	
-	/**
-	 * Sets the picking position.
-	 *
-	 * @param pick Picking position
-	 */
-	void setPick(const Vector3& pick);
-	
-	/**
 	 * Returns the current state of the forceps.
 	 */
 	Forceps::State getState() const;
@@ -110,16 +166,9 @@ public:
 	 * Returns the suspended ant, if any.
 	 */
 	Ant* getSuspendedAnt() const;
-	
-	/**
-	 * Returns the model instance.
-	 */
-	const ModelInstance* getModelInstance() const;
-	ModelInstance* getModelInstance();
 
 private:
 	Forceps::State state;
-	ModelInstance modelInstance;
 	Pose* pose;
 	const Animation* pinchAnimation;
 	const Animation* releaseAnimation;
@@ -137,8 +186,6 @@ private:
 	Colony* colony;
 	Ant* targetedAnt;
 	Ant* suspendedAnt;
-	const SurfaceCameraController* cameraController;
-	Vector3 pick;
 };
 
 inline Forceps::State Forceps::getState() const
@@ -151,23 +198,33 @@ inline Ant* Forceps::getSuspendedAnt() const
 	return suspendedAnt;
 }
 
-inline const ModelInstance* Forceps::getModelInstance() const
-{
-	return &modelInstance;
-}
-
-inline ModelInstance* Forceps::getModelInstance()
-{
-	return &modelInstance;
-}
-
 /**
  * The lens tool can be used to burn ants.
  */
 class Lens: public Tool
 {
 public:
+	/**
+	 * Creates an instance of Lens.
+	 *
+	 * @param model Lens model
+	 */
+	Lens(const Model* model);
+	
+	/**
+	 * Destroys an instance of Lens.
+	 */
+	~Lens();
+	
+	/**
+	 * Updates the lens.
+	 *
+	 * @param dt Application timestep.
+	 */
 	virtual void update(float dt);
+	
+private:
+	float hoverDistance;
 };
 
 /**

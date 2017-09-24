@@ -56,17 +56,6 @@ void LoadingState::enter()
 		std::cout << "success" << std::endl;
 	}
 	
-	std::cout << "Loading UI... ";
-	if (!application->loadUI())
-	{
-		std::cout << "failed" << std::endl;
-		failure = true;
-	}
-	else
-	{
-		std::cout << "success" << std::endl;
-	}
-	
 	std::cout << "Loading models... ";
 	if (!application->loadModels())
 	{
@@ -80,6 +69,17 @@ void LoadingState::enter()
 	
 	std::cout << "Loading game... ";
 	if (!application->loadGame())
+	{
+		std::cout << "failed" << std::endl;
+		failure = true;
+	}
+	else
+	{
+		std::cout << "success" << std::endl;
+	}
+	
+	std::cout << "Loading UI... ";
+	if (!application->loadUI())
 	{
 		std::cout << "failed" << std::endl;
 		failure = true;

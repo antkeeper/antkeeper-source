@@ -51,6 +51,7 @@ void PlayState::enter()
 	
 	// Add tools to scene
 	application->defaultLayer->addObject(application->forceps->getModelInstance());
+	application->defaultLayer->addObject(application->lens->getModelInstance());
 	
 	// Add terrain to scene
 	application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
@@ -196,8 +197,11 @@ void PlayState::execute()
 	}
 	
 	// Update tools
-	application->forceps->setPick(pick);
-	application->forceps->update(application->dt);
+	if (application->currentTool != nullptr)
+	{
+		application->currentTool->setPick(pick);
+		application->currentTool->update(application->dt);
+	}
 	
 	// Update colony
 	if (!application->simulationPaused)
@@ -229,6 +233,7 @@ void PlayState::exit()
 	application->defaultLayer->removeObject(&application->currentLevel->terrainSubsurface);
 	application->defaultLayer->removeObject(&application->biomeFloorModelInstance);
 	application->defaultLayer->removeObject(application->forceps->getModelInstance());
+	application->defaultLayer->removeObject(application->lens->getModelInstance());
 	for (std::size_t i = 0; i < application->colony->getAntCount(); ++i)
 	{
 		Ant* ant = application->colony->getAnt(i);
@@ -251,7 +256,7 @@ void PlayState::exit()
 
 void PlayState::mouseButtonPressed(int button, int x, int y)
 {
-	if (button == 1)
+	if (button == 1 && application->forceps->isActive())
 	{
 		application->forceps->pinch();
 	}
@@ -259,7 +264,7 @@ void PlayState::mouseButtonPressed(int button, int x, int y)
 
 void PlayState::mouseButtonReleased(int button, int x, int y)
 {
-	if (button == 1)
+	if (button == 1 && application->forceps->isActive())
 	{
 		application->forceps->release();
 	}

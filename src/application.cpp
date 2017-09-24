@@ -591,9 +591,10 @@ bool Application::loadModels()
 	antHillModel = modelLoader->load("data/models/ant-hill.mdl");
 	nestModel = modelLoader->load("data/models/nest.mdl");
 	forcepsModel = modelLoader->load("data/models/forceps.mdl");
+	lensModel = modelLoader->load("data/models/lens.mdl");
 	biomeFloorModel = modelLoader->load("data/models/desert-floor.mdl");
 	
-	if (!antModel || !antHillModel || !nestModel || !forcepsModel)
+	if (!antModel || !antHillModel || !nestModel || !forcepsModel || !lensModel)
 	{
 		return false;
 	}
@@ -1064,10 +1065,10 @@ bool Application::loadUI()
 	
 	// Create pie menu
 	pieMenu = new PieMenu(tweener);
-	pieMenu->addOption(arcNorthTexture, toolLensTexture, std::bind(&std::printf, "0 on\n"), std::bind(&std::printf, "0 off\n"));
-	pieMenu->addOption(arcEastTexture, toolForcepsTexture, std::bind(&std::printf, "1 on\n"), std::bind(&std::printf, "1 off\n"));
-	pieMenu->addOption(arcSouthTexture, toolTrowelTexture, std::bind(&std::printf, "2 on\n"), std::bind(&std::printf, "2 off\n"));
-	pieMenu->addOption(arcWestTexture, toolBrushTexture, std::bind(&std::printf, "3 on\n"), std::bind(&std::printf, "3 off\n"));
+	pieMenu->addOption(arcNorthTexture, toolLensTexture, std::bind(&Application::selectTool, this, lens), std::bind(&Application::deselectTool, this, lens));
+	pieMenu->addOption(arcEastTexture, toolForcepsTexture, std::bind(&Application::selectTool, this, forceps), std::bind(&Application::deselectTool, this, forceps));
+	pieMenu->addOption(arcSouthTexture, toolTrowelTexture, std::bind(&Application::selectTool, this, nullptr), std::bind(&Application::deselectTool, this, nullptr));
+	pieMenu->addOption(arcWestTexture, toolBrushTexture, std::bind(&Application::selectTool, this, forceps), std::bind(&Application::deselectTool, this, nullptr));
 	uiRootElement->addChild(pieMenu->getContainer());
 	pieMenu->resize();
 	pieMenu->getContainer()->setVisible(false);
@@ -1403,10 +1404,15 @@ bool Application::loadGame()
 	colony = new Colony();
 	colony->setAntModel(antModel);
 	
+	currentTool = nullptr;
+	
 	// Create tools
 	forceps = new Forceps(forcepsModel);
 	forceps->setColony(colony);
 	forceps->setCameraController(surfaceCam);
+	
+	lens = new Lens(lensModel);
+	lens->setCameraController(surfaceCam);
 	
 	return true;
 }
@@ -1506,6 +1512,25 @@ void Application::enterLevelSelection()
 	
 	// Change to level select state
 	changeState(levelSelectState);
+}
+
+void Application::deselectTool(Tool* tool)
+{
+	if (tool != nullptr)
+	{
+		tool->setActive(false);
+		return;
+	}
+}
+
+void Application::selectTool(Tool* tool)
+{
+	if (tool != nullptr)
+	{
+		tool->setActive(true);
+	}
+	
+	currentTool = tool;
 }
 
 void Application::selectWorld(std::size_t index)
