@@ -178,14 +178,17 @@ public:
 	// Graphics
 	Renderer renderer;
 	RenderTarget defaultRenderTarget;
+	
+	int shadowMapResolution;
+	GLuint shadowMapDepthTexture;
+	GLuint shadowMapFramebuffer;
 	RenderTarget shadowMapRenderTarget;
-	GLuint shadowFramebuffer;
-	GLuint shadowDepthTexture;
 	ShadowMapRenderPass shadowMapPass;
+	Compositor shadowMapCompositor;
+	
 	SoilRenderPass soilPass;
 	LightingRenderPass lightingPass;
 	DebugRenderPass debugPass;
-	Compositor shadowCompositor;
 	Compositor defaultCompositor;
 	BillboardBatch* uiBatch;
 	UIBatcher* uiBatcher;
@@ -271,6 +274,8 @@ public:
 	Texture* mouseLeftTexture;
 	Texture* mouseRightTexture;
 	
+	Texture* depthTexture;
+	
 	// UI elements
 	Vector4 selectedColor;
 	Vector4 deselectedColor;
@@ -317,6 +322,8 @@ public:
 	UIImage* foodIndicatorImage;
 	UIImage* contextButtonImage0;
 	UIImage* contextButtonImage1;
+	
+	UIImage* depthTextureImage;
 	
 	UILabel* levelIDLabel;
 	UILabel* levelNameLabel;

@@ -19,7 +19,10 @@ Tool::~Tool()
 void Tool::setActive(bool active)
 {
 	this->active = active;
-	modelInstance.setActive(active);
+	if (!active)
+	{
+		modelInstance.setActive(active);
+	}
 }
 
 void Tool::setCameraController(const SurfaceCameraController* cameraController)
@@ -88,6 +91,8 @@ Forceps::~Forceps()
 
 void Forceps::update(float dt)
 {
+	modelInstance.setActive(active);
+	
 	// Update tweener
 	tweener->update(dt);
 	
@@ -368,6 +373,7 @@ void Lens::update(float dt)
 	modelInstance.setTranslation(translation);
 	modelInstance.setRotation(rotation);
 	*/
+	modelInstance.setActive(active);
 	
 	Quaternion alignment = glm::angleAxis(cameraController->getAzimuth() + glm::radians(90.0f), Vector3(0, 1, 0));
 	Quaternion rotation = glm::normalize(alignment);
@@ -398,6 +404,8 @@ Brush::~Brush()
 
 void Brush::update(float dt)
 {
+	modelInstance.setActive(active);
+	
 	Quaternion alignment = glm::angleAxis(cameraController->getAzimuth(), Vector3(0, 1, 0));
 	Quaternion rotation = glm::normalize(alignment);
 	Vector3 translation = pick + Vector3(0, hoverDistance, 0);

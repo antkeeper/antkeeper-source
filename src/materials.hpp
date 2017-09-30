@@ -62,7 +62,9 @@ public:
 		albedoOpacityMap(nullptr),
 		metalnessRoughnessMap(nullptr),
 		normalOcclusionMap(nullptr),
-		flags((unsigned int)Flags::OBJECT)
+		flags((unsigned int)Flags::OBJECT),
+		shadowCaster(true),
+		shadowReceiver(true)
 	{};
 	virtual ~PhysicalMaterial() {};
 	virtual unsigned int getMaterialFormatID() const;

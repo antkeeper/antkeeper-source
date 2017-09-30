@@ -41,9 +41,13 @@ public:
 private:
 	ShaderParameterSet parameterSet;
 	const ShaderParameter* modelViewProjectionParam;
+	const ShaderParameter* matrixPaletteParam;
 	
 	ShaderLoader shaderLoader;
-	Shader* depthShader;
+	
+	Shader* unskinnedShader;
+	Shader* skinnedShader;
+	int maxBoneCount;
 };
 
 /**
@@ -144,6 +148,8 @@ private:
 	const ShaderParameter* modelViewProjectionParam;
 	const ShaderParameter* normalModelViewParam;
 	const ShaderParameter* normalModelParam;
+	const ShaderParameter* lightViewProjectionParam;
+	const ShaderParameter* shadowMapParam;
 	const ShaderParameter* cameraPositionParam;
 	const ShaderParameter* directionalLightCountParam;
 	const ShaderParameter* directionalLightColorsParam;

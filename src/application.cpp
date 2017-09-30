@@ -457,10 +457,6 @@ int Application::execute()
 		uiRootElement->update();
 		uiBatcher->batch(uiBatch, uiRootElement);
 		
-		// Clear depth and stencil buffers
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		
 		// Render scene
 		renderer.render(scene);
 		
@@ -636,35 +632,82 @@ bool Application::loadScene()
 	bgCamera.setCompositor(&bgCompositor);
 	bgCamera.setCompositeIndex(0);
 	
+	
+	
+	
+	
+	
+	
+	
+	// Set shadow map resolution
+	shadowMapResolution = 4096;
+	
+	// Generate shadow map framebuffer
+	glGenFramebuffers(1, &shadowMapFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFramebuffer);
+
+	// Generate shadow map depth texture
+	glGenTextures(1, &shadowMapDepthTexture);
+	glBindTexture(GL_TEXTURE_2D, shadowMapDepthTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, shadowMapResolution, shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	
+	// Attach depth texture to framebuffer
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMapDepthTexture, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	
+	// Unbind shadow map depth texture
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	// Setup shadow map render target
+	shadowMapRenderTarget.width = shadowMapResolution;
+	shadowMapRenderTarget.height = shadowMapResolution;
+	shadowMapRenderTarget.framebuffer = shadowMapFramebuffer;
+	
+	// Setup shadow map render pass
+	shadowMapPass.setRenderTarget(&shadowMapRenderTarget);
+	
+	// Setup shadow map compositor
+	shadowMapCompositor.addPass(&shadowMapPass);
+	shadowMapCompositor.load(nullptr);
+	
 	// Setup skybox pass
 	skyboxPass.setRenderTarget(&defaultRenderTarget);
-	//defaultCompositor.addPass(&skyboxPass);
 	
 	// Setup soil pass
 	soilPass.setRenderTarget(&defaultRenderTarget);
-	defaultCompositor.addPass(&soilPass);
 	
 	// Setup lighting pass
 	lightingPass.setRenderTarget(&defaultRenderTarget);
-	lightingPass.setShadowMap(0);
-	lightingPass.setShadowCamera(&camera);
-	defaultCompositor.addPass(&lightingPass);
+	lightingPass.setShadowMap(shadowMapDepthTexture);
+	lightingPass.setShadowCamera(&sunlightCamera);
 	
 	// Setup debug pass
 	debugPass.setRenderTarget(&defaultRenderTarget);
-	//defaultCompositor.addPass(&debugPass);
 	
-
-	// Load compositor
+	//defaultCompositor.addPass(&skyboxPass);
+	defaultCompositor.addPass(&soilPass);
+	defaultCompositor.addPass(&lightingPass);
+	//defaultCompositor.addPass(&debugPass);
 	defaultCompositor.load(nullptr);
 	
+	// Setup sunlight camera
+	sunlightCamera.lookAt(Vector3(0.5f, 2.0f, 2.0f), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	sunlightCamera.setOrthographic(-100.0f, 100.0f, -100.0f, 100.0f, -100.0f, 100.0f);
+	sunlightCamera.setCompositor(&shadowMapCompositor);
+	sunlightCamera.setCompositeIndex(0);
+	defaultLayer->addObject(&sunlightCamera);
+	
 	// Setup camera
-	camera.lookAt(
-	glm::vec3(0.0f, 0.0f, 10.0f),
-	glm::vec3(0.0f, 0.0f, 0.0f),
-	glm::vec3(0.0f, 1.0f, 0.0f));
+	camera.lookAt(Vector3(0.0f, 0.0f, 10.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
 	camera.setCompositor(&defaultCompositor);
-	camera.setCompositeIndex(0);
+	camera.setCompositeIndex(1);
 	defaultLayer->addObject(&camera);
 	
 	// Debug
@@ -731,6 +774,11 @@ bool Application::loadUI()
 	
 	mouseLeftTexture = textureLoader->load("data/textures/mouse-left.png");
 	mouseRightTexture = textureLoader->load("data/textures/mouse-right.png");
+	
+	depthTexture = new Texture();
+	depthTexture->setTextureID(shadowMapDepthTexture);
+	depthTexture->setWidth(shadowMapResolution);
+	depthTexture->setHeight(shadowMapResolution);
 	
 	// Get strings
 	std::string pressAnyKeyString;
@@ -1030,6 +1078,13 @@ bool Application::loadUI()
 	foodIndicatorImage->setTexture(foodIndicatorTexture);
 	//uiRootElement->addChild(foodIndicatorImage);
 	
+	depthTextureImage = new UIImage();
+	depthTextureImage->setAnchor(Vector2(0.0f, 1.0f));
+	depthTextureImage->setDimensions(Vector2(256, 256));
+	depthTextureImage->setTranslation(Vector2(0.0f, 0.0f));
+	depthTextureImage->setTexture(depthTexture);
+	uiRootElement->addChild(depthTextureImage);
+	
 	// Create level ID
 	levelIDLabel = new UILabel();
 	levelIDLabel->setAnchor(Vector2(0.5f, 0.0f));
@@ -1306,6 +1361,7 @@ bool Application::loadUI()
 	
 	defaultRenderTarget.width = width;
 	defaultRenderTarget.height = height;
+	defaultRenderTarget.framebuffer = 0;
 	resizeUI();
 	
 	return true;

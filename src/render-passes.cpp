@@ -22,15 +22,32 @@
 #include <iostream>
 
 ShadowMapRenderPass::ShadowMapRenderPass():
-	depthShader(nullptr)
+	unskinnedShader(nullptr),
+	skinnedShader(nullptr)
 {
-	modelViewProjectionParam = parameterSet.addParameter("modelViewProjection", ShaderParameter::Type::MATRIX_4, 1);
+	maxBoneCount = 64;
+	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	matrixPaletteParam = parameterSet.addParameter("matrixPalette", ShaderParameter::Type::MATRIX_4, maxBoneCount);
 }
 
 bool ShadowMapRenderPass::load(const RenderContext* renderContext)
 {
-	depthShader = shaderLoader.load("data/shaders/depth-pass.glsl", &parameterSet);
-	if (!depthShader)
+	// Load unskinned shader
+	shaderLoader.undefine();
+	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
+	unskinnedShader = shaderLoader.load("data/shaders/depth-pass.glsl", &parameterSet);
+	if (!unskinnedShader)
+	{
+		return false;
+	}
+	
+	// Load skinned shader
+	shaderLoader.define("SKINNED");
+	shaderLoader.define("VERTEX_BONE_INDICES", EMERGENT_VERTEX_BONE_INDICES);
+	shaderLoader.define("VERTEX_BONE_WEIGHTS", EMERGENT_VERTEX_BONE_WEIGHTS);
+	shaderLoader.define("MAX_BONE_COUNT", maxBoneCount);
+	skinnedShader = shaderLoader.load("data/shaders/depth-pass.glsl", &parameterSet);
+	if (!skinnedShader)
 	{
 		return false;
 	}
@@ -40,8 +57,11 @@ bool ShadowMapRenderPass::load(const RenderContext* renderContext)
 
 void ShadowMapRenderPass::unload()
 {
-	delete depthShader;
-	depthShader = nullptr;
+	delete unskinnedShader;
+	unskinnedShader = nullptr;
+	
+	delete skinnedShader;
+	skinnedShader = nullptr;
 }
 
 void ShadowMapRenderPass::render(RenderContext* renderContext)
@@ -51,7 +71,6 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 	glViewport(0, 0, renderTarget->width, renderTarget->height);
 	
 	// Clear the framebuffer depth
-	glClearDepth(1.0);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	// Enable depth testing
@@ -59,43 +78,68 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 	
-	// Enable backface culling
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	// Draw back faces
+	glDisable(GL_CULL_FACE);
 	
 	// Disable alpha blending
 	glDisable(GL_BLEND);
-	
-	// Bind shader
-	depthShader->bind();
 
 	const Camera& camera = *(renderContext->camera);
-	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
+	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();	
+	
+	Shader* shader = nullptr;
 	
 	// Render operations
 	for (const RenderOperation& operation: *operations)
-	{		
+	{
 		// Skip render operations with unsupported materials
 		if (operation.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
 		{
 			continue;
 		}
 		
-		const PhysicalMaterial* material = static_cast<const PhysicalMaterial*>(operation.material);
-		
 		// Skip non shadow casters
+		const PhysicalMaterial* material = static_cast<const PhysicalMaterial*>(operation.material);
 		if (!material->shadowCaster)
 		{
 			continue;
 		}
 		
+		// Select shader
+		Shader* targetShader = nullptr;
+		if (operation.pose != nullptr)
+		{
+			targetShader = skinnedShader;
+		}
+		else
+		{
+			targetShader = unskinnedShader;
+		}
+		
+		// Switch shader if necessary
+		if (shader != targetShader)
+		{
+			shader = targetShader;
+			
+			// Bind shader
+			shader->bind();
+		}
+		
+		// Pass matrix palette
+		if (operation.pose != nullptr)
+		{
+			shader->setParameter(matrixPaletteParam, 0, operation.pose->getMatrixPalette(), operation.pose->getSkeleton()->getBoneCount());
+		}
+		
 		const Matrix4& modelMatrix = operation.transform;
-		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;		
-		depthShader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
+		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
+		shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
 		
 		glBindVertexArray(operation.vao);
 		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
 	}
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 
@@ -234,6 +278,10 @@ void SoilRenderPass::unload()
 
 void SoilRenderPass::render(RenderContext* renderContext)
 {
+	// Bind framebuffer and setup viewport
+	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
+	glViewport(0, 0, renderTarget->width, renderTarget->height);
+	
 	// Bind shader
 	shader->bind();
 	
@@ -313,6 +361,8 @@ LightingRenderPass::LightingRenderPass():
 	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
 	normalModelViewParam = parameterSet.addParameter("normalModelViewMatrix", ShaderParameter::Type::MATRIX_3, 1);
 	normalModelParam = parameterSet.addParameter("normalModelMatrix", ShaderParameter::Type::MATRIX_3, 1);
+	lightViewProjectionParam = parameterSet.addParameter("lightViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	shadowMapParam = parameterSet.addParameter("shadowMap", ShaderParameter::Type::INT, 1);
 	cameraPositionParam = parameterSet.addParameter("cameraPosition", ShaderParameter::Type::VECTOR_3, 1);
 	directionalLightCountParam = parameterSet.addParameter("directionalLightCount", ShaderParameter::Type::INT, 1);
 	directionalLightColorsParam = parameterSet.addParameter("directionalLightColors", ShaderParameter::Type::VECTOR_3, 1);
@@ -789,6 +839,14 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	const Camera& camera = *(renderContext->camera);
 	std::list<RenderOperation>* operations = renderContext->queue->getOperations();
 
+	// Bind framebuffer and setup viewport
+	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
+	glViewport(0, 0, renderTarget->width, renderTarget->height);
+	
+	// Clear depth and stencil buffers
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -808,12 +866,18 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	Vector3 directionalLightDirections[3];
 	directionalLightColors[0] = Vector3(1);
 	directionalLightDirections[0] = glm::normalize(Vector3(camera.getView() * -Vector4(0, 0, -1, 0)));
-		
+	
+	// Calculate the (light-space) view-projection matrix
+	Matrix4 lightViewProjectionMatrix = shadowCamera->getViewProjection();
+	
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, diffuseCubemap->getTextureID());
 	
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, specularCubemap->getTextureID());
+	
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
 	
 	Shader* shader = nullptr;
 	Texture* albedoOpacityMap = nullptr;
@@ -859,11 +923,13 @@ void LightingRenderPass::render(RenderContext* renderContext)
 			shader->bind();
 			
 			// Pass static params
+			shader->setParameter(lightViewProjectionParam, lightViewProjectionMatrix);
 			shader->setParameter(albedoOpacityMapParam, 0);
 			shader->setParameter(metalnessRoughnessMapParam, 1);
 			shader->setParameter(normalOcclusionMapParam, 2);
 			shader->setParameter(diffuseCubemapParam, 3);
 			shader->setParameter(specularCubemapParam, 4);
+			shader->setParameter(shadowMapParam, 5);
 			shader->setParameter(directionalLightCountParam, directionalLightCount);
 			shader->setParameter(directionalLightColorsParam, 0, &directionalLightColors[0], directionalLightCount);
 			shader->setParameter(directionalLightDirectionsParam, 0, &directionalLightDirections[0], directionalLightCount);
@@ -927,6 +993,9 @@ void LightingRenderPass::render(RenderContext* renderContext)
 		glBindVertexArray(operation.vao);
 		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
 	}
+	
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 bool LightingRenderPass::loadShader(const RenderOperation& operation)
@@ -1105,6 +1174,10 @@ void DebugRenderPass::unload()
 
 void DebugRenderPass::render(RenderContext* renderContext)
 {
+	// Bind framebuffer and setup viewport
+	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
+	glViewport(0, 0, renderTarget->width, renderTarget->height);
+	
 	const Camera& camera = *(renderContext->camera);
 
 	/*
