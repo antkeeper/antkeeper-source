@@ -266,7 +266,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PLATFORM_PACKAGE_DIR})
 set(EXECUTABLE_NAME antkeeper)
 set(EXECUTABLE_TARGET ${PACKAGE_BUILD_NAME}-executable)
 add_executable(${EXECUTABLE_TARGET} ${EXECUTABLE_SOURCES})
-add_dependencies(${EXECUTABLE_TARGET} emergent-project SDL2-project)
+add_dependencies(${EXECUTABLE_TARGET} emergent-project SDL2-project dirent-project)
 set_target_properties(${EXECUTABLE_TARGET} PROPERTIES OUTPUT_NAME ${EXECUTABLE_NAME})
 
 # Set include directories
