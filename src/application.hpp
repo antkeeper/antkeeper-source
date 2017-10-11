@@ -283,11 +283,8 @@ public:
 	UIImage* blackoutImage;
 	UIImage* splashImage;
 	UIImage* titleImage;
-	
-	UIContainer* titleScreenInfoContainer;
-	UILabel* copyrightLabel;
-	UILabel* versionLabel;
-	
+	UIImage* darkenImage;
+		
 	UILabel* frameTimeLabel;
 	
 	UILabel* anyKeyLabel;
@@ -340,8 +337,6 @@ public:
 	Tween<Vector4>* splashFadeOutTween;
 	Tween<Vector4>* titleFadeInTween;
 	Tween<Vector4>* titleFadeOutTween;
-	Tween<Vector4>* copyrightFadeInTween;
-	Tween<Vector4>* copyrightFadeOutTween;
 	Tween<Vector4>* anyKeyFadeInTween;
 	Tween<Vector4>* anyKeyFadeOutTween;
 	Tween<Vector4>* menuFadeInTween;
@@ -403,6 +398,9 @@ public:
 	Lens* lens;
 	Brush* brush;
 	bool simulationPaused;
+	
+	Texture* radianceCubemap;
+	Texture* irradianceCubemap;
 	
 	// Debug
 	LineBatcher* lineBatcher;

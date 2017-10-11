@@ -38,6 +38,14 @@ public:
 	virtual void unload();
 	virtual void render(RenderContext* renderContext);
 	
+	inline void setViewCamera(const Camera* camera) { this->viewCamera = camera; }
+	inline void setLightCamera(Camera* camera) { this->lightCamera = camera; }
+	
+	inline int getFrustumSplitCount() const { return frustumSplitCount; }
+	inline const ViewFrustum& getSplitViewFrustum(std::size_t index) const { return splitViewFrustum->getSubfrustum(index); }
+	inline const Matrix4& getCropMatrix(std::size_t index) const { return cropMatrices[index]; }
+	inline const Matrix4& getTileMatrix(std::size_t index) const { return tileMatrices[index]; }
+	
 private:
 	ShaderParameterSet parameterSet;
 	const ShaderParameter* modelViewProjectionParam;
@@ -48,6 +56,16 @@ private:
 	Shader* unskinnedShader;
 	Shader* skinnedShader;
 	int maxBoneCount;
+	
+	int frustumSplitCount;
+	int shadowMapResolution;
+	int croppedShadowMapResolution;
+	Vector4* croppedShadowMapViewports;
+	Matrix4* cropMatrices;
+	Matrix4* tileMatrices;
+	const Camera* viewCamera;
+	Camera* lightCamera;
+	SplitViewFrustum* splitViewFrustum;
 };
 
 /**
@@ -130,6 +148,9 @@ public:
 	
 	inline void setShadowMap(GLuint shadowMap) { this->shadowMap = shadowMap; }
 	inline void setShadowCamera(const Camera* camera) { this->shadowCamera = camera; }
+	inline void setShadowMapPass(const ShadowMapRenderPass* shadowMapPass) { this->shadowMapPass = shadowMapPass; }
+	inline void setDiffuseCubemap(const Texture* cubemap) { this->diffuseCubemap = cubemap; }
+	inline void setSpecularCubemap(const Texture* cubemap) { this->specularCubemap = cubemap; }
 	
 private:
 	class RenderOpCompare
@@ -171,10 +192,11 @@ private:
 	Matrix4 biasMatrix;
 	GLuint shadowMap;
 	Texture* treeShadow;
-	Texture* diffuseCubemap;
-	Texture* specularCubemap;
+	const Texture* diffuseCubemap;
+	const Texture* specularCubemap;
 	const Camera* shadowCamera;
 	float time;
+	const ShadowMapRenderPass* shadowMapPass;
 };
 
 /**

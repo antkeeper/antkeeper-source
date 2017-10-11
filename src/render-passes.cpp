@@ -20,18 +20,66 @@
 #include "render-passes.hpp"
 #include "materials.hpp"
 #include <iostream>
+#include <limits>
 
 ShadowMapRenderPass::ShadowMapRenderPass():
 	unskinnedShader(nullptr),
-	skinnedShader(nullptr)
-{
-	maxBoneCount = 64;
-	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
-	matrixPaletteParam = parameterSet.addParameter("matrixPalette", ShaderParameter::Type::MATRIX_4, maxBoneCount);
-}
+	skinnedShader(nullptr),
+	croppedShadowMapViewports(nullptr),
+	viewCamera(nullptr),
+	splitViewFrustum(nullptr),
+	cropMatrices(nullptr),
+	tileMatrices(nullptr)
+{}
 
 bool ShadowMapRenderPass::load(const RenderContext* renderContext)
 {
+	// Set maximum number of bones for skinned meshes
+	maxBoneCount = 64;
+	
+	// Set number of frustum splits
+	frustumSplitCount = 4;
+	
+	// Create split view frustum
+	splitViewFrustum = new SplitViewFrustum(frustumSplitCount);
+	
+	// Determine resolution of shadow maps
+	shadowMapResolution = 4096;
+	croppedShadowMapResolution = shadowMapResolution >> 1;
+	
+	// Allocate viewports
+	croppedShadowMapViewports = new Vector4[frustumSplitCount];
+	
+	// Setup viewports
+	for (int i = 0; i < frustumSplitCount; ++i)
+	{
+		int x = i % 2;
+		int y = i / 2;
+		
+		Vector4* viewport = &croppedShadowMapViewports[i];
+		(*viewport)[0] = static_cast<float>(x * croppedShadowMapResolution);
+		(*viewport)[1] = static_cast<float>(y * croppedShadowMapResolution);
+		(*viewport)[2] = static_cast<float>(croppedShadowMapResolution);
+		(*viewport)[3] = static_cast<float>(croppedShadowMapResolution);
+	}
+	
+	// Allocate matrices
+	cropMatrices = new Matrix4[frustumSplitCount];
+	tileMatrices = new Matrix4[frustumSplitCount];
+	
+	// Setup tile matrices
+	Matrix4 tileScale = glm::scale(Vector3(0.5f, 0.5f, 1.0f));
+	for (int i = 0; i < frustumSplitCount; ++i)
+	{
+		float x = static_cast<float>(i % 2) * 0.5f;
+		float y = static_cast<float>(i / 2) * 0.5f;
+		tileMatrices[i] = glm::translate(Vector3(x, y, 0.0f)) * tileScale;
+	}
+	
+	// Setup shader parameters
+	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	matrixPaletteParam = parameterSet.addParameter("matrixPalette", ShaderParameter::Type::MATRIX_4, maxBoneCount);
+	
 	// Load unskinned shader
 	shaderLoader.undefine();
 	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
@@ -62,6 +110,20 @@ void ShadowMapRenderPass::unload()
 	
 	delete skinnedShader;
 	skinnedShader = nullptr;
+	
+	delete[] croppedShadowMapViewports;
+	croppedShadowMapViewports = nullptr;
+	
+	delete splitViewFrustum;
+	splitViewFrustum = nullptr;
+	
+	delete[] cropMatrices;
+	cropMatrices = nullptr;
+	
+	delete[] tileMatrices;
+	tileMatrices = nullptr;
+	
+	parameterSet.removeParameters();
 }
 
 void ShadowMapRenderPass::render(RenderContext* renderContext)
@@ -78,66 +140,169 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 	
-	// Draw back faces
+	// Draw front and back faces
 	glDisable(GL_CULL_FACE);
 	
 	// Disable alpha blending
 	glDisable(GL_BLEND);
 
-	const Camera& camera = *(renderContext->camera);
+	//const Camera& lightCamera = *(renderContext->camera);
 	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();	
 	
 	Shader* shader = nullptr;
 	
-	// Render operations
-	for (const RenderOperation& operation: *operations)
+	// Update split view frustum
+	//splitViewFrustum->setMatrices(viewCamera->getView(), viewCamera->getProjection());
+	
+	const ViewFrustum& viewFrustum = viewCamera->getViewFrustum();
+	
+	// Find center of view frustum
+	Vector3 center = Vector3(0.0f);
+	for (std::size_t i = 0; i < viewFrustum.getCornerCount(); ++i)
 	{
-		// Skip render operations with unsupported materials
-		if (operation.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
-		{
-			continue;
-		}
-		
-		// Skip non shadow casters
-		const PhysicalMaterial* material = static_cast<const PhysicalMaterial*>(operation.material);
-		if (!material->shadowCaster)
-		{
-			continue;
-		}
-		
-		// Select shader
-		Shader* targetShader = nullptr;
-		if (operation.pose != nullptr)
-		{
-			targetShader = skinnedShader;
-		}
-		else
-		{
-			targetShader = unskinnedShader;
-		}
-		
-		// Switch shader if necessary
-		if (shader != targetShader)
-		{
-			shader = targetShader;
-			
-			// Bind shader
-			shader->bind();
-		}
-		
-		// Pass matrix palette
-		if (operation.pose != nullptr)
-		{
-			shader->setParameter(matrixPaletteParam, 0, operation.pose->getMatrixPalette(), operation.pose->getSkeleton()->getBoneCount());
-		}
-		
-		const Matrix4& modelMatrix = operation.transform;
-		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
-		shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
-		
-		glBindVertexArray(operation.vao);
-		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
+		center += viewFrustum.getCorner(i);
 	}
+	center = center * 1.0f / static_cast<float>(viewFrustum.getCornerCount());
+	
+	// Position light camera in center of view frustum
+	//lightCamera->lookAt(center, center + lightCamera->getForward(), lightCamera->getUp());
+	
+	// Calculate split distances
+	float clipNear = viewCamera->getClipNear();
+	float clipFar = viewCamera->getClipFar();
+	float* splitDistances = new float[frustumSplitCount + 1];
+	float splitSchemeWeight = 0.5f;
+	
+	for (std::size_t i = 1; i < frustumSplitCount; ++i)
+	{
+		float part = static_cast<float>(i) / static_cast<float>(frustumSplitCount);
+		
+		// Calculate uniform split distance
+		float uniformSplitDistance = clipNear + (clipFar - clipNear) * part;
+		
+		// Calculate logarithmic split distance
+		float logSplitDistance = clipNear * std::pow(clipFar / clipNear, part);
+		
+		
+		// Interpolate between uniform and logarithmic split distances
+		splitDistances[i] = logSplitDistance * splitSchemeWeight + uniformSplitDistance * (1.0f - splitSchemeWeight);
+	}
+	splitDistances[0] = clipNear;
+	splitDistances[frustumSplitCount] = clipFar;
+	
+	// For each frustum split
+	for (int i = 0; i < frustumSplitCount; ++i)
+	{
+		// Calculate crop matrix
+		{
+			ViewFrustum frustumSplit;
+			
+			// Determine near and far distances for this subfrustum
+			float splitNear = splitDistances[0];
+			float splitFar = splitDistances[4];
+			
+			// Calculate subfrustum projection matrix
+			Matrix4 splitProjection = glm::ortho(viewCamera->getClipLeft(), viewCamera->getClipRight(), viewCamera->getClipBottom(), viewCamera->getClipTop(), splitNear, splitFar);
+			
+			// Set subfrustum matrices
+			frustumSplit.setMatrices(viewCamera->getView(), splitProjection);
+			
+			// Create AABB containing the frustum split corners
+			AABB frustumSplitBounds(Vector3(std::numeric_limits<float>::infinity()), Vector3(-std::numeric_limits<float>::infinity()));
+			for (std::size_t j = 0; j < frustumSplit.getCornerCount(); ++j)
+			{
+				frustumSplitBounds.add(frustumSplit.getCorner(j));
+			}
+			
+			// Transform frustum split bounds into light's clip space
+			AABB croppingBounds = frustumSplitBounds.transformed(lightCamera->getViewProjection());
+			Vector3 cropMax = croppingBounds.getMax();
+			Vector3 cropMin = croppingBounds.getMin();
+			//cropMin.z = 0.0f;
+			
+			// Calculate scale
+			Vector3 scale;
+			scale.x = 2.0f / (cropMax.x - cropMin.x);
+			scale.y = 2.0f / (cropMax.y - cropMin.y);
+			scale.z = 1.0f / (cropMax.z - cropMin.z);
+			
+			// Quantize scale
+			//float scaleQuantizer = 64.0f;
+			//scale.x = 1.0f / std::ceil(1.0f / scale.x * scaleQuantizer) * scaleQuantizer;
+			//scale.y = 1.0f / std::ceil(1.0f / scale.y * scaleQuantizer) * scaleQuantizer;
+			
+			// Calculate offset
+			Vector3 offset;
+			offset.x = (cropMax.x + cropMin.x) * scale.x * -0.5f;
+			offset.y = (cropMax.y + cropMin.y) * scale.y * -0.5f;
+			offset.z = -cropMin.z * scale.z;
+
+			// Quantize offset
+			//float halfTextureSize = static_cast<float>(croppedShadowMapResolution) * 0.5f;
+			//offset.x = std::ceil(offset.x * halfTextureSize) / halfTextureSize;
+			//offset.y = std::ceil(offset.y * halfTextureSize) / halfTextureSize;
+			
+			cropMatrices[i] = glm::translate(offset) * glm::scale(scale);
+		}
+		
+		Matrix4 croppedViewProjection = cropMatrices[i] * lightCamera->getViewProjection();
+		
+		// Activate viewport for corresponding cropped shadow map
+		const Vector4& viewport = croppedShadowMapViewports[i];
+		glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+		
+		// Render operations
+		for (const RenderOperation& operation: *operations)
+		{
+			// Skip render operations with unsupported materials
+			if (operation.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
+			{
+				continue;
+			}
+			
+			// Skip non shadow casters
+			const PhysicalMaterial* material = static_cast<const PhysicalMaterial*>(operation.material);
+			if (!material->shadowCaster)
+			{
+				continue;
+			}
+			
+			// Select shader
+			Shader* targetShader = nullptr;
+			if (operation.pose != nullptr)
+			{
+				targetShader = skinnedShader;
+			}
+			else
+			{
+				targetShader = unskinnedShader;
+			}
+			
+			// Switch shader if necessary
+			if (shader != targetShader)
+			{
+				shader = targetShader;
+				
+				// Bind shader
+				shader->bind();
+			}
+			
+			// Pass matrix palette
+			if (operation.pose != nullptr)
+			{
+				shader->setParameter(matrixPaletteParam, 0, operation.pose->getMatrixPalette(), operation.pose->getSkeleton()->getBoneCount());
+			}
+			
+			const Matrix4& modelMatrix = operation.transform;
+			Matrix4 modelViewProjectionMatrix = croppedViewProjection * modelMatrix;
+			shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
+			
+			glBindVertexArray(operation.vao);
+			glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
+		}
+	}
+	
+	delete[] splitDistances;
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -344,14 +509,12 @@ LightingRenderPass::LightingRenderPass():
 	shadowMap(0),
 	shadowCamera(nullptr),
 	treeShadow(nullptr),
-	diffuseCubemap(nullptr)
+	diffuseCubemap(nullptr),
+	specularCubemap(nullptr),
+	shadowMapPass(nullptr)
 {
 	// Initialize bias matrix for calculating the model-view-projection-bias matrix (used for shadow map texture coordinate calculation)
-	biasMatrix = Matrix4(
-		0.5f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.5f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.5f, 1.0f);
+	biasMatrix = glm::translate(Vector3(0.5f)) * glm::scale(Vector3(0.5f));
 	
 	maxBoneCount = 64;
 	
@@ -382,23 +545,6 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 	if (!treeShadow)
 	{
 		std::cerr << "Failed to load tree shadow" << std::endl;
-	}
-	
-	// Load cubemap
-	textureLoader.setCubemap(true);
-	textureLoader.setMipmapChain(false);
-	diffuseCubemap = textureLoader.load("data/textures/campus-diffuse.png");
-	if (!diffuseCubemap)
-	{
-		std::cerr << "Failed to load cubemap" << std::endl;
-	}
-	
-	textureLoader.setCubemap(true);
-	textureLoader.setMipmapChain(true);
-	specularCubemap = textureLoader.load("data/textures/campus-specular_m%02d.png");
-	if (!specularCubemap)
-	{
-		std::cerr << "Failed to load cubemap" << std::endl;
 	}
 	
 	// Load unskinned shader
@@ -843,9 +989,8 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
 	glViewport(0, 0, renderTarget->width, renderTarget->height);
 	
-	// Clear depth and stencil buffers
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// Clear depth buffer
+	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -868,7 +1013,8 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	directionalLightDirections[0] = glm::normalize(Vector3(camera.getView() * -Vector4(0, 0, -1, 0)));
 	
 	// Calculate the (light-space) view-projection matrix
-	Matrix4 lightViewProjectionMatrix = shadowCamera->getViewProjection();
+	Matrix4 lightViewProjectionMatrix = shadowMapPass->getTileMatrix(0) * biasMatrix * shadowMapPass->getCropMatrix(0) * shadowCamera->getViewProjection();
+	//Matrix4 lightViewProjectionMatrix = biasMatrix * shadowCamera->getViewProjection();
 	
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, diffuseCubemap->getTextureID());
@@ -1489,6 +1635,9 @@ void SkyboxRenderPass::render(RenderContext* renderContext)
 	{
 		return;
 	}
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
+	glViewport(0, 0, renderTarget->width, renderTarget->height);
 	
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);

@@ -625,7 +625,7 @@ bool Application::loadScene()
 	bgBatch.update();
 	
 	vignettePass.setRenderTarget(&defaultRenderTarget);
-	bgCompositor.addPass(&vignettePass);
+	//bgCompositor.addPass(&vignettePass);
 	bgCompositor.load(nullptr);
 	bgCamera.setOrthographic(0, 1.0f, 1.0f, 0, -1.0f, 1.0f);
 	bgCamera.lookAt(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
@@ -672,6 +672,8 @@ bool Application::loadScene()
 	
 	// Setup shadow map render pass
 	shadowMapPass.setRenderTarget(&shadowMapRenderTarget);
+	shadowMapPass.setViewCamera(&camera);
+	shadowMapPass.setLightCamera(&sunlightCamera);
 	
 	// Setup shadow map compositor
 	shadowMapCompositor.addPass(&shadowMapPass);
@@ -687,11 +689,12 @@ bool Application::loadScene()
 	lightingPass.setRenderTarget(&defaultRenderTarget);
 	lightingPass.setShadowMap(shadowMapDepthTexture);
 	lightingPass.setShadowCamera(&sunlightCamera);
+	lightingPass.setShadowMapPass(&shadowMapPass);
 	
 	// Setup debug pass
 	debugPass.setRenderTarget(&defaultRenderTarget);
 	
-	//defaultCompositor.addPass(&skyboxPass);
+	defaultCompositor.addPass(&skyboxPass);
 	defaultCompositor.addPass(&soilPass);
 	defaultCompositor.addPass(&lightingPass);
 	//defaultCompositor.addPass(&debugPass);
@@ -699,9 +702,10 @@ bool Application::loadScene()
 	
 	// Setup sunlight camera
 	sunlightCamera.lookAt(Vector3(0.5f, 2.0f, 2.0f), Vector3(0, 0, 0), Vector3(0, 1, 0));
-	sunlightCamera.setOrthographic(-100.0f, 100.0f, -100.0f, 100.0f, -100.0f, 100.0f);
+	sunlightCamera.setOrthographic(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	sunlightCamera.setCompositor(&shadowMapCompositor);
 	sunlightCamera.setCompositeIndex(0);
+	sunlightCamera.setCullingMask(nullptr);
 	defaultLayer->addObject(&sunlightCamera);
 	
 	// Setup camera
@@ -782,8 +786,6 @@ bool Application::loadUI()
 	
 	// Get strings
 	std::string pressAnyKeyString;
-	std::string copyrightString;
-	std::string versionString;
 	std::string backString;
 	std::string challengeString;
 	std::string experimentString;
@@ -799,8 +801,6 @@ bool Application::loadUI()
 	std::string returnToMainMenuString;
 	std::string quitToDesktopString;
 	strings.get("press-any-key", &pressAnyKeyString);
-	strings.get("copyright", &copyrightString);
-	strings.get("version", &versionString);
 	strings.get("back", &backString);
 	strings.get("challenge", &challengeString);
 	strings.get("experiment", &experimentString);
@@ -837,6 +837,14 @@ bool Application::loadUI()
 	blackoutImage->setVisible(false);
 	uiRootElement->addChild(blackoutImage);
 	
+	// Create darken element (for darkening title screen)
+	darkenImage = new UIImage();
+	darkenImage->setDimensions(Vector2(width, height));
+	darkenImage->setLayerOffset(-1);
+	darkenImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 0.15f));
+	darkenImage->setVisible(false);
+	uiRootElement->addChild(darkenImage);
+	
 	// Create splash screen element
 	splashImage = new UIImage();
 	splashImage->setAnchor(Anchor::CENTER);
@@ -853,28 +861,6 @@ bool Application::loadUI()
 	titleImage->setTexture(titleTexture);
 	titleImage->setVisible(false);
 	uiRootElement->addChild(titleImage);
-	
-	// Create Title screen info element
-	titleScreenInfoContainer = new UIContainer();
-	titleScreenInfoContainer->setDimensions(Vector2(width, height));
-	titleScreenInfoContainer->setVisible(false);
-	uiRootElement->addChild(titleScreenInfoContainer);
-	
-	// Create copyright element
-	copyrightLabel = new UILabel();
-	copyrightLabel->setAnchor(Vector2(0.0f, 1.0f));
-	copyrightLabel->setFont(copyrightFont);
-	copyrightLabel->setTranslation(Vector2((int)(width * 0.025f), (int)(-height * 0.025f)));
-	copyrightLabel->setText(copyrightString);
-	titleScreenInfoContainer->addChild(copyrightLabel);
-	
-	// Create version element
-	versionLabel = new UILabel();
-	versionLabel->setAnchor(Vector2(1.0f, 1.0f));
-	versionLabel->setFont(copyrightFont);
-	versionLabel->setTranslation(Vector2((int)(-width * 0.025f), (int)(-height * 0.025f)));
-	versionLabel->setText(versionString);
-	titleScreenInfoContainer->addChild(versionLabel);
 	
 	frameTimeLabel = new UILabel();
 	frameTimeLabel->setAnchor(Vector2(0.0f, 0.0f));
@@ -1164,19 +1150,11 @@ bool Application::loadUI()
 	titleFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, titleImage, std::placeholders::_1));
 	tweener->addTween(titleFadeOutTween);
 	
-	// Setup copyright tween
-	copyrightFadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 1.0f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 0.5f));
-	copyrightFadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, titleScreenInfoContainer, std::placeholders::_1));
-	tweener->addTween(copyrightFadeInTween);
-	copyrightFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.25f, Vector4(0.0f, 0.0f, 0.0f, 0.5f), Vector4(0.0f, 0.0f, 0.0f, -0.5f));
-	copyrightFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, titleScreenInfoContainer, std::placeholders::_1));
-	tweener->addTween(copyrightFadeOutTween);
-	
 	// Setup "Press any key" tween
-	anyKeyFadeInTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	anyKeyFadeInTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(1.0f, 1.0f, 1.0f, 0.0f), Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	anyKeyFadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, anyKeyLabel, std::placeholders::_1));
 	tweener->addTween(anyKeyFadeInTween);
-	anyKeyFadeOutTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
+	anyKeyFadeOutTween = new Tween<Vector4>(EaseFunction::LINEAR, 0.0f, 1.5f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(1.0f, 1.0f, 1.0f, -1.0f));
 	anyKeyFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, anyKeyLabel, std::placeholders::_1));
 	anyKeyFadeInTween->setEndCallback(std::bind(&TweenBase::start, anyKeyFadeOutTween));
 	anyKeyFadeOutTween->setEndCallback(std::bind(&TweenBase::start, anyKeyFadeInTween));
@@ -1474,6 +1452,34 @@ bool Application::loadGame()
 	brush = new Brush(brushModel);
 	brush->setCameraController(surfaceCam);
 	
+	
+	// Load radiance and irradiance cubemaps
+	textureLoader->setCubemap(true);
+	textureLoader->setMipmapChain(true);
+	textureLoader->setWrapS(false);
+	textureLoader->setWrapT(false);
+	textureLoader->setWrapR(false);
+	
+	std::string radianceCubemapFilename = std::string("data/textures/title-screen-sky-radiance-m%02d.hdr");
+	std::string irradianceCubemapFilename = std::string("data/textures/title-screen-sky-irradiance-m%02d.hdr");
+	
+	
+	radianceCubemap = textureLoader->load(radianceCubemapFilename);
+	if (!radianceCubemap)
+	{
+		std::cerr << "Failed to load radiance cubemap \"" << radianceCubemapFilename << "\"" << std::endl;
+	}
+	
+	irradianceCubemap = textureLoader->load(irradianceCubemapFilename);
+	if (!irradianceCubemap)
+	{
+		std::cerr << "Failed to load irradiance cubemap \"" << irradianceCubemapFilename << "\"" << std::endl;
+	}
+	
+	skyboxPass.setCubemap(radianceCubemap);
+	lightingPass.setDiffuseCubemap(irradianceCubemap);
+	lightingPass.setSpecularCubemap(radianceCubemap);
+	
 	return true;
 }
 
@@ -1606,7 +1612,7 @@ void Application::selectWorld(std::size_t index)
 	soilPass.setHorizonATexture(biome->soilHorizonA);
 	soilPass.setHorizonBTexture(biome->soilHorizonB);
 	soilPass.setHorizonCTexture(biome->soilHorizonC);
-	skyboxPass.setCubemap(biome->specularCubemap);
+	//skyboxPass.setCubemap(biome->specularCubemap);
 	
 	for (int i = 0; i < 5; ++i)
 	{

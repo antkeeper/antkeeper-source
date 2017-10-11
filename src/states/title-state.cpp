@@ -29,7 +29,6 @@ const float fadeInDuration = 0.5f;
 const float hangDuration = 1.0f;
 const float fadeOutDuration = 0.5f;
 const float titleDelay = 2.0f;
-const float copyrightDelay = 3.0f;
 const float pressAnyKeyDelay = 5.0f;
 
 TitleState::TitleState(Application* application):
@@ -49,9 +48,6 @@ void TitleState::enter()
 	application->backgroundLayer->addObject(&application->bgCamera);
 	application->backgroundLayer->addObject(&application->bgBatch);
 	
-	// Title ant hill
-	application->defaultLayer->addObject(&application->antHillModelInstance);
-	
 	application->inputManager->addWindowObserver(this);
 	windowResized(application->width, application->height);
 	
@@ -59,13 +55,16 @@ void TitleState::enter()
 	application->surfaceCam->setCamera(&application->camera);
 	application->surfaceCam->setFocalPoint(Vector3(0.0f));
 	application->surfaceCam->setFocalDistance(50.0f);
-	application->surfaceCam->setElevation(glm::radians(0.0f));
-	application->surfaceCam->setAzimuth(glm::radians(0.0f));
+	application->surfaceCam->setElevation(glm::radians(-30.0f));
+	application->surfaceCam->setAzimuth(glm::radians(180.0f));
 	application->surfaceCam->setTargetFocalPoint(application->surfaceCam->getFocalPoint());
 	application->surfaceCam->setTargetFocalDistance(application->surfaceCam->getFocalDistance());
 	application->surfaceCam->setTargetElevation(application->surfaceCam->getElevation());
 	application->surfaceCam->setTargetAzimuth(application->surfaceCam->getAzimuth());
 	application->surfaceCam->update(0.0f);
+	
+	application->darkenImage->setVisible(true);
+
 	
 	// Setup fade-in
 	application->blackoutImage->setVisible(true);
@@ -87,8 +86,6 @@ void TitleState::execute()
 		{
 			application->titleImage->setVisible(true);
 			application->titleFadeInTween->start();
-			application->titleScreenInfoContainer->setVisible(true);
-			application->copyrightFadeInTween->start();
 		}
 		
 		if (stateTime >= pressAnyKeyDelay && !application->anyKeyLabel->isVisible())
@@ -139,9 +136,6 @@ void TitleState::execute()
 					application->titleImage->setTintColor(Vector4(1.0f));
 					application->anyKeyFadeInTween->start();
 					application->anyKeyLabel->setVisible(true);
-					application->copyrightFadeInTween->stop();
-					application->titleScreenInfoContainer->setVisible(true);
-					application->titleScreenInfoContainer->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 0.5f));
 				}
 				else if (substate == 1)
 				{
@@ -152,8 +146,6 @@ void TitleState::execute()
 					application->anyKeyFadeInTween->stop();
 					application->anyKeyFadeOutTween->stop();
 					application->anyKeyLabel->setVisible(false);
-					application->copyrightFadeInTween->stop();
-					application->copyrightFadeOutTween->start();
 					
 					application->antHillZoomInTween->start();
 					
@@ -175,10 +167,10 @@ void TitleState::exit()
 	// Hide UI
 	application->titleImage->setVisible(false);
 	application->anyKeyLabel->setVisible(false);
-	application->titleScreenInfoContainer->setVisible(false);
+	application->darkenImage->setVisible(false);
+
 	
 	// Remove clear scene
-	application->defaultLayer->removeObject(&application->antHillModelInstance);
 	application->backgroundLayer->removeObject(&application->bgCamera);
 	application->backgroundLayer->removeObject(&application->bgBatch);
 }
