@@ -21,7 +21,6 @@
 #include "../application.hpp"
 #include "splash-state.hpp"
 #include "title-state.hpp"
-#include "main-menu-state.hpp"
 
 LoadingState::LoadingState(Application* application):
 	ApplicationState(application)
@@ -31,7 +30,7 @@ LoadingState::~LoadingState()
 {}
 
 void LoadingState::enter()
-{		
+{
 	bool failure = false;
 	
 	std::cout << "Loading controls... ";
@@ -93,6 +92,8 @@ void LoadingState::enter()
 	{
 		application->close(EXIT_FAILURE);
 	}
+	
+	application->splashBackgroundImage->setVisible(true);
 }
 
 void LoadingState::execute()
@@ -101,7 +102,7 @@ void LoadingState::execute()
 	bool skipSplash = false;
 	bool skipTitle = false;
 	application->settings.get("skip_splash", &skipSplash);
-	application->settings.get("skip_title", &skipTitle);
+	//application->settings.get("skip_title", &skipTitle);
 	
 	// Determine next state
 	ApplicationState* nextState = application->splashState;
@@ -109,10 +110,12 @@ void LoadingState::execute()
 	{
 		nextState = application->titleState;
 		
+		/*
 		if (skipTitle)
 		{
 			nextState = application->mainMenuState;
 		}
+		*/
 	}
 	
 	// Change state
@@ -120,4 +123,6 @@ void LoadingState::execute()
 }
 
 void LoadingState::exit()
-{}
+{
+	application->splashBackgroundImage->setVisible(false);
+}

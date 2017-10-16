@@ -18,18 +18,11 @@
  */
 
 #include "title-state.hpp"
-#include "main-menu-state.hpp"
 #include "../application.hpp"
 #include "../camera-controller.hpp"
+#include "../ui/menu.hpp"
 #include <iostream>
 #include <SDL2/SDL.h>
-
-const float blankDuration = 0.0f;
-const float fadeInDuration = 0.5f;
-const float hangDuration = 1.0f;
-const float fadeOutDuration = 0.5f;
-const float titleDelay = 2.0f;
-const float pressAnyKeyDelay = 5.0f;
 
 TitleState::TitleState(Application* application):
 	ApplicationState(application)
@@ -39,12 +32,7 @@ TitleState::~TitleState()
 {}
 
 void TitleState::enter()
-{	
-	// Setup screen fade-in transition
-	fadeIn = false;
-	fadeOut = false;
-	
-
+{
 	application->backgroundLayer->addObject(&application->bgCamera);
 	application->backgroundLayer->addObject(&application->bgBatch);
 	
@@ -63,100 +51,84 @@ void TitleState::enter()
 	application->surfaceCam->setTargetAzimuth(application->surfaceCam->getAzimuth());
 	application->surfaceCam->update(0.0f);
 	
+	// Dim background
 	application->darkenImage->setVisible(true);
+	
+	// Show title
+	application->titleImage->setVisible(true);
 
+	// Open main menu
+	application->openMenu(application->mainMenu);
 	
 	// Setup fade-in
 	application->blackoutImage->setVisible(true);
 	application->fadeInTween->start();
-	
-	// Start timer
-	stateTime = 0.0f;
-	substate = 0;
 }
 
 void TitleState::execute()
 {
-	// Add dt to state time
-	stateTime += application->dt;
-	
-	if (substate == 0 || substate == 1)
+	// Navigate menu
+	if (application->activeMenu != nullptr)
 	{
-		if (stateTime >= titleDelay && !application->titleImage->isVisible())
-		{
-			application->titleImage->setVisible(true);
-			application->titleFadeInTween->start();
-		}
+		MenuItem* selectedItem = application->activeMenu->getSelectedItem();
 		
-		if (stateTime >= pressAnyKeyDelay && !application->anyKeyLabel->isVisible())
+		if (application->menuDown.isTriggered() && !application->menuDown.wasTriggered())
 		{
-			application->anyKeyLabel->setVisible(true);
-			application->anyKeyFadeInTween->start();
-		}
-	}
-	
-	if (substate == 0 && stateTime >= titleDelay && application->titleFadeInTween->isStopped())
-	{
-		substate = 1;
-	}
-	
-	// Listen for fade-in skip and "press any key"
-	if (substate < 2)
-	{
-		InputEvent event;
-		application->inputManager->listen(&event);
-		
-		if (event.type != InputEvent::Type::NONE)
-		{
-			application->menuControlProfile->update();
-			application->inputManager->update();
-						
-			// Check if application was closed
-			if (application->escape.isTriggered())
+			if (selectedItem != nullptr)
 			{
-				application->close(EXIT_SUCCESS);
-				return;
-			}
-			// Check if fullscreen was toggled
-			else if (application->toggleFullscreen.isTriggered() && !application->toggleFullscreen.wasTriggered())
-			{
-				application->changeFullscreen();
-			}
-			else if (!application->menuCancel.isTriggered())
-			{
-				if (substate == 0)
+				if (selectedItem->getIndex() < application->activeMenu->getItemCount() - 1)
 				{
-					// Remove fade-in
-					substate = 1;
-					application->fadeInTween->stop();
-					application->blackoutImage->setTintColor(Vector4(0.0f));
-					application->blackoutImage->setVisible(false);
-					application->titleFadeInTween->stop();
-					application->titleImage->setVisible(true);
-					application->titleImage->setTintColor(Vector4(1.0f));
-					application->anyKeyFadeInTween->start();
-					application->anyKeyLabel->setVisible(true);
+					application->selectMenuItem(selectedItem->getIndex() + 1);
 				}
-				else if (substate == 1)
+				else
 				{
-					// Enter main menu
-					substate = 2;
-					application->titleFadeInTween->stop();
-					application->titleFadeOutTween->start();
-					application->anyKeyFadeInTween->stop();
-					application->anyKeyFadeOutTween->stop();
-					application->anyKeyLabel->setVisible(false);
-					
-					application->antHillZoomInTween->start();
-					
-					application->blackoutImage->setVisible(true);
-					application->antHillFadeOutTween->start();
+					application->selectMenuItem(0);
 				}
 			}
+			else
+			{
+				application->selectMenuItem(0);
+			}
+		}
+		else if (application->menuUp.isTriggered() && !application->menuUp.wasTriggered())
+		{
+			if (selectedItem != nullptr)
+			{
+				if (selectedItem->getIndex() > 0)
+				{
+					application->selectMenuItem(selectedItem->getIndex() - 1);
+				}
+				else
+				{
+					application->selectMenuItem(application->activeMenu->getItemCount() - 1);
+				}
+			}
+			else
+			{
+				application->selectMenuItem(application->activeMenu->getItemCount() - 1);
+			}
+		}
+		
+		if (application->menuSelect.isTriggered() && !application->menuSelect.wasTriggered())
+		{
+			application->activateMenuItem();
 		}
 	}
 	
-	application->surfaceCam->update(application->dt);
+	if (application->escape.isTriggered())
+	{
+		application->close(EXIT_SUCCESS);
+	}
+	
+	
+	// Set selector icon position
+	/*
+	float lineHeight = application->menuFont->getMetrics().getHeight();
+	const UIContainer* container = application->menuContainers[application->currentMenuIndex];
+	application->menuSelectorLabel->setTranslation(
+		Vector2(container->getPosition().x - application->menuSelectorLabel->getDimensions().x * 1.5f,
+			container->getPosition().y + lineHeight * 0.5f - application->menuSelectorLabel->getDimensions().y * 0.5f + lineHeight * application->selectedMenuItemIndex));
+	*/
 }
 
 void TitleState::exit()

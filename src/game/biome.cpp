@@ -39,12 +39,12 @@ bool Biome::load()
 	
 	// Load diffuse cubemap
 	textureLoader.setCubemap(true);
-	textureLoader.setMipmapChain(false);
+	textureLoader.setMipmapChain(true);
 	textureLoader.setWrapS(false);
 	textureLoader.setWrapT(false);
 	textureLoader.setWrapR(false);
 	
-	std::string diffuseCubemapFilename = std::string("data/textures/") + cubemapName + std::string("-diffuse.png");
+	std::string diffuseCubemapFilename = std::string("data/textures/") + cubemapName + std::string("-irradiance-m%02d.hdr");
 	diffuseCubemap = textureLoader.load(diffuseCubemapFilename);
 	if (!diffuseCubemap)
 	{
@@ -52,9 +52,7 @@ bool Biome::load()
 	}
 	
 	// Load specular cubemap
-	textureLoader.setCubemap(true);
-	textureLoader.setMipmapChain(true);
-	std::string specularCubemapFilename = std::string("data/textures/") + cubemapName + std::string("-specular_m%02d.png");
+	std::string specularCubemapFilename = std::string("data/textures/") + cubemapName + std::string("-radiance-m%02d.hdr");
 	specularCubemap = textureLoader.load(specularCubemapFilename);
 	if (!specularCubemap)
 	{

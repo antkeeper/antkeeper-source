@@ -30,6 +30,7 @@ SplashState::~SplashState()
 
 void SplashState::enter()
 {
+	application->splashBackgroundImage->setVisible(true);
 	application->splashImage->setVisible(true);
 	application->splashFadeInTween->start();
 }
@@ -78,5 +79,6 @@ void SplashState::execute()
 void SplashState::exit()
 {
 	// Hide splash screen
+	application->splashBackgroundImage->setVisible(false);
 	application->splashImage->setVisible(false);
 }

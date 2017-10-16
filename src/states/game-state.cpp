@@ -17,31 +17,28 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "play-state.hpp"
-#include "level-select-state.hpp"
+#include "game-state.hpp"
+#include "title-state.hpp"
 #include "../application.hpp"
 #include "../camera-controller.hpp"
 #include "../game/colony.hpp"
 #include "../game/ant.hpp"
 #include "../game/tool.hpp"
 #include "../ui/toolbar.hpp"
+#include "../ui/menu.hpp"
 #include "../ui/pie-menu.hpp"
 #include <cmath>
 
-PlayState::PlayState(Application* application):
+GameState::GameState(Application* application):
 	ApplicationState(application)
 {}
 
-PlayState::~PlayState()
+GameState::~GameState()
 {}
 
-void PlayState::enter()
+void GameState::enter()
 {
 	// Setup HUD
-	application->pauseButtonImage->setVisible(false);
-	application->pauseButtonImage->setActive(false);
-	application->playButtonImage->setVisible(false);
-	application->playButtonImage->setActive(false);
 	application->rectangularPaletteImage->setVisible(true);
 	application->rectangularPaletteImage->setActive(true);
 	application->toolbar->getContainer()->setVisible(true);
@@ -98,12 +95,111 @@ void PlayState::enter()
 	//application->selectTool(application->forceps);
 	application->pieMenu->select(1);
 	
+	// Begin fade-in
+	application->fadeInTween->start();
+	
 	application->mouse->addMouseButtonObserver(this);
 }
 
-void PlayState::execute()
+void GameState::execute()
 {
-
+	// Pause simulation
+	if (application->escape.isTriggered() && !application->escape.wasTriggered())
+	{
+		if (application->simulationPaused)
+		{
+			application->unpauseSimulation();
+		}
+		else
+		{
+			application->pauseSimulation();
+		}		
+	}
+	
+	// Navigate menu
+	if (application->activeMenu != nullptr)
+	{
+		MenuItem* selectedItem = application->activeMenu->getSelectedItem();
+		
+		if (application->menuDown.isTriggered() && !application->menuDown.wasTriggered())
+		{
+			if (selectedItem != nullptr)
+			{
+				if (selectedItem->getIndex() < application->activeMenu->getItemCount() - 1)
+				{
+					application->selectMenuItem(selectedItem->getIndex() + 1);
+				}
+				else
+				{
+					application->selectMenuItem(0);
+				}
+			}
+			else
+			{
+				application->selectMenuItem(0);
+			}
+		}
+		else if (application->menuUp.isTriggered() && !application->menuUp.wasTriggered())
+		{
+			if (selectedItem != nullptr)
+			{
+				if (selectedItem->getIndex() > 0)
+				{
+					application->selectMenuItem(selectedItem->getIndex() - 1);
+				}
+				else
+				{
+					application->selectMenuItem(application->activeMenu->getItemCount() - 1);
+				}
+			}
+			else
+			{
+				application->selectMenuItem(application->activeMenu->getItemCount() - 1);
+			}
+		}
+		
+		if (application->menuSelect.isTriggered() && !application->menuSelect.wasTriggered())
+		{
+			application->activateMenuItem();
+		}
+	} 
+	else
+	{
+		// Move camera
+		Vector2 movementVector(0.0f);
+		if (application->cameraMoveLeft.isTriggered())
+			movementVector.x -= application->cameraMoveLeft.getCurrentValue();
+		if (application->cameraMoveRight.isTriggered())
+			movementVector.x += application->cameraMoveRight.getCurrentValue();
+		if (application->cameraMoveForward.isTriggered())
+			movementVector.y -= application->cameraMoveForward.getCurrentValue();
+		if (application->cameraMoveBack.isTriggered())
+			movementVector.y += application->cameraMoveBack.getCurrentValue();
+		if (movementVector.x != 0.0f || movementVector.y != 0.0f)
+		{
+			movementVector *= 0.005f * application->surfaceCam->getFocalDistance() * application->dt / (1.0f / 60.0f);
+			application->surfaceCam->move(movementVector);
+			
+			Vector3 focal = application->surfaceCam->getFocalPoint();
+		}
+		
+		// Zoom camera
+		float zoomFactor = application->surfaceCam->getFocalDistance() / 10.0f * application->dt / (1.0f / 60.0f);
+		if (application->cameraZoomIn.isTriggered())
+			application->surfaceCam->zoom(zoomFactor * application->cameraZoomIn.getCurrentValue());
+		if (application->cameraZoomOut.isTriggered())
+			application->surfaceCam->zoom(-zoomFactor * application->cameraZoomOut.getCurrentValue());
+		
+		// Rotate camera
+		if (application->cameraRotateCW.isTriggered() && !application->cameraRotateCW.wasTriggered())
+		{
+			application->surfaceCam->rotate(glm::radians(-45.0f));
+		}
+		if (application->cameraRotateCCW.isTriggered() && !application->cameraRotateCCW.wasTriggered())
+		{
+			application->surfaceCam->rotate(glm::radians(45.0f));
+		}
+	}
 	
 
 
@@ -117,53 +213,7 @@ void PlayState::execute()
 	}
 	*/
 	
-	static float rotationTime = 0.0f;
-	float iconRotation = std::sin(rotationTime * 3.0f) * glm::radians(10.0f);
-	rotationTime += application->dt;
-	
-	
-	//application->blaImage->setRotation(iconRotation);
-	
-	// Return to level select
-	if (application->menuCancel.isTriggered() && !application->menuCancel.wasTriggered())
-	{
-		application->changeState(application->levelSelectState);
-	}
-	
-	// Move camera
-	Vector2 movementVector(0.0f);
-	if (application->cameraMoveLeft.isTriggered())
-		movementVector.x -= application->cameraMoveLeft.getCurrentValue();
-	if (application->cameraMoveRight.isTriggered())
-		movementVector.x += application->cameraMoveRight.getCurrentValue();
-	if (application->cameraMoveForward.isTriggered())
-		movementVector.y -= application->cameraMoveForward.getCurrentValue();
-	if (application->cameraMoveBack.isTriggered())
-		movementVector.y += application->cameraMoveBack.getCurrentValue();
-	if (movementVector.x != 0.0f || movementVector.y != 0.0f)
-	{
-		movementVector *= 0.005f * application->surfaceCam->getFocalDistance() * application->dt / (1.0f / 60.0f);
-		application->surfaceCam->move(movementVector);
-		
-		Vector3 focal = application->surfaceCam->getFocalPoint();
-	}
-	
-	// Zoom camera
-	float zoomFactor = application->surfaceCam->getFocalDistance() / 10.0f * application->dt / (1.0f / 60.0f);
-	if (application->cameraZoomIn.isTriggered())
-		application->surfaceCam->zoom(zoomFactor * application->cameraZoomIn.getCurrentValue());
-	if (application->cameraZoomOut.isTriggered())
-		application->surfaceCam->zoom(-zoomFactor * application->cameraZoomOut.getCurrentValue());
-	
-	// Rotate camera
-	if (application->cameraRotateCW.isTriggered() && !application->cameraRotateCW.wasTriggered())
-	{
-		application->surfaceCam->rotate(glm::radians(-45.0f));
-	}
-	if (application->cameraRotateCCW.isTriggered() && !application->cameraRotateCCW.wasTriggered())
-	{
-		application->surfaceCam->rotate(glm::radians(45.0f));
-	}
+
 	
 	// Update camera
 	application->surfaceCam->update(application->dt);
@@ -216,22 +266,9 @@ void PlayState::execute()
 	{
 		application->colony->update(application->dt);
 	}
-	
-	// Pause simulation
-	if (application->togglePause.isTriggered() && !application->togglePause.wasTriggered())
-	{
-		if (application->simulationPaused)
-		{
-			application->unpauseSimulation();
-		}
-		else
-		{
-			application->pauseSimulation();
-		}		
-	}
 }
 
-void PlayState::exit()
+void GameState::exit()
 {
 	// Remove input observers
 	application->mouse->removeMouseButtonObserver(this);
@@ -252,17 +289,13 @@ void PlayState::exit()
 	application->colony->killAll();
 	
 	// Hide HUD
-	application->pauseButtonImage->setVisible(false);
-	application->pauseButtonImage->setActive(false);
-	application->playButtonImage->setVisible(false);
-	application->playButtonImage->setActive(false);
 	application->rectangularPaletteImage->setVisible(false);
 	application->rectangularPaletteImage->setActive(false);
 	application->toolbar->getContainer()->setVisible(false);
 	application->toolbar->getContainer()->setActive(false);
 }
 
-void PlayState::mouseButtonPressed(int button, int x, int y)
+void GameState::mouseButtonPressed(int button, int x, int y)
 {
 	if (button == 1 && application->forceps->isActive())
 	{
@@ -270,7 +303,7 @@ void PlayState::mouseButtonPressed(int button, int x, int y)
 	}
 }
 
-void PlayState::mouseButtonReleased(int button, int x, int y)
+void GameState::mouseButtonReleased(int button, int x, int y)
 {
 	if (button == 1 && application->forceps->isActive())
 	{

@@ -24,11 +24,10 @@
 #include "states/loading-state.hpp"
 #include "states/splash-state.hpp"
 #include "states/title-state.hpp"
-#include "states/main-menu-state.hpp"
-#include "states/level-select-state.hpp"
-#include "states/play-state.hpp"
+#include "states/game-state.hpp"
 #include "game/colony.hpp"
 #include "game/tool.hpp"
+#include "ui/menu.hpp"
 #include "ui/toolbar.hpp"
 #include "ui/pie-menu.hpp"
 #include "debug.hpp"
@@ -152,6 +151,7 @@ Application::Application(int argc, char* argv[]):
 		return;
 	}
 	
+	/*
 	// Check (usable?) display bounds
 	SDL_Rect displayBounds;
 	if (SDL_GetDisplayBounds(0, &displayBounds) != 0)
@@ -160,12 +160,23 @@ Application::Application(int argc, char* argv[]):
 		close(EXIT_FAILURE);
 		return;
 	}
+	*/
+	
+	/*
+	SDL_DisplayMode displayMode;
+	if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0)
+	{
+		std::cerr << "Failed to get display mode: \"" << SDL_GetError() << "\"" << std::endl;
+		close(EXIT_FAILURE);
+		return;
+	}
+	*/
 	
 	// Use display resolution if settings request
 	if (windowedWidth == -1 || windowedHeight == -1)
 	{
-		windowedWidth = displayBounds.w;
-		windowedHeight = displayBounds.h;
+		windowedWidth = displayMode.w;
+		windowedHeight = displayMode.h;
 	}
 	if (fullscreenWidth == -1 || fullscreenHeight == -1)
 	{
@@ -174,7 +185,7 @@ Application::Application(int argc, char* argv[]):
 	}
 	
 	// Determine window parameters
-	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
 	if (fullscreen)
 	{
 		width = fullscreenWidth;
@@ -187,12 +198,17 @@ Application::Application(int argc, char* argv[]):
 		height = windowedHeight;
 	}
 	
+	width = 1920;
+	height = 1080;
+	
 	// Get window title string
 	std::string title;
 	strings.get("title", &title);
 	
 	// Create window
-	std::cout << "Creating a window... ";
+	std::cout << "Creating a " << width << "x" << height;
+	std::cout << ((fullscreen) ? " fullscreen" : " windowed");
+	std::cout << " window... ";
 	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, windowFlags);
 	if (window == nullptr)
 	{
@@ -324,9 +340,7 @@ Application::Application(int argc, char* argv[]):
 	loadingState = new LoadingState(this);
 	splashState = new SplashState(this);
 	titleState = new TitleState(this);
-	mainMenuState = new MainMenuState(this);
-	levelSelectState = new LevelSelectState(this);
-	playState = new PlayState(this);
+	gameState = new GameState(this);
 	
 	// Setup loaders
 	textureLoader = new TextureLoader();
@@ -336,11 +350,12 @@ Application::Application(int argc, char* argv[]):
 	
 	// Allocate game variables
 	surfaceCam = new SurfaceCameraController();
-	tunnelCam = new TunnelCameraController();
 	
 	// Enter loading state
 	state = nextState = loadingState;
 	state->enter();
+	
+	displayDebugInfo = false;
 }
 
 Application::~Application()
@@ -376,7 +391,7 @@ int Application::execute()
 		accumulator += std::min<float>(frameTime / 1000.0f, maxFrameTime);
 		
 		// If the user tried to close the application
-		if (inputManager->wasClosed() || escape.isTriggered())
+		if (inputManager->wasClosed())
 		{
 			// Close the application
 			close(EXIT_SUCCESS);
@@ -425,6 +440,12 @@ int Application::execute()
 		if (toggleFullscreen.isTriggered() && !toggleFullscreen.wasTriggered())
 		{
 			changeFullscreen();
+		}
+		
+		// Check if debug display was toggled
+		if (toggleDebugDisplay.isTriggered() && !toggleDebugDisplay.wasTriggered())
+		{
+			setDisplayDebugInfo(!displayDebugInfo);
 		}
 		
 		// Add frame time to performance sample time and increment the frame count
@@ -682,6 +703,11 @@ bool Application::loadScene()
 	// Setup skybox pass
 	skyboxPass.setRenderTarget(&defaultRenderTarget);
 	
+	// Setup clear depth pass
+	clearDepthPass.setRenderTarget(&defaultRenderTarget);
+	clearDepthPass.setClear(false, true, false);
+	clearDepthPass.setClearDepth(1.0f);
+	
 	// Setup soil pass
 	soilPass.setRenderTarget(&defaultRenderTarget);
 	
@@ -694,6 +720,7 @@ bool Application::loadScene()
 	// Setup debug pass
 	debugPass.setRenderTarget(&defaultRenderTarget);
 	
+	defaultCompositor.addPass(&clearDepthPass);
 	defaultCompositor.addPass(&skyboxPass);
 	defaultCompositor.addPass(&soilPass);
 	defaultCompositor.addPass(&lightingPass);
@@ -730,13 +757,13 @@ bool Application::loadUI()
 	FontLoader* fontLoader = new FontLoader();
 	
 	menuFont = new Font(512, 512);
-	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", fontSizePX, menuFont))
+	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", static_cast<int>(fontSizePX + 0.5f), menuFont))
 	{
 		std::cerr << "Failed to load menu font" << std::endl;
 	}
 	
 	copyrightFont = new Font(256, 256);
-	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", (int)(fontSizePX * 0.8f + 0.5f), copyrightFont))
+	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", static_cast<int>(fontSizePX * 0.8f + 0.5f), copyrightFont))
 	{
 		std::cerr << "Failed to load copyright font" << std::endl;
 	}
@@ -753,11 +780,6 @@ bool Application::loadUI()
 	
 	splashTexture = textureLoader->load("data/textures/ui-splash.png");
 	titleTexture = textureLoader->load("data/textures/ui-title.png");
-	levelActiveTexture = textureLoader->load("data/textures/ui-level-active.png");
-	levelInactiveTexture = textureLoader->load("data/textures/ui-level-inactive.png");
-	levelConnectorTexture = textureLoader->load("data/textures/ui-level-connector.png");
-	pauseButtonTexture = textureLoader->load("data/textures/pause-button.png");
-	playButtonTexture = textureLoader->load("data/textures/play-button.png");
 	rectangularPaletteTexture = textureLoader->load("data/textures/rectangular-palette.png");
 	foodIndicatorTexture = textureLoader->load("data/textures/food-indicator.png");
 	toolBrushTexture = textureLoader->load("data/textures/tool-brush.png");
@@ -787,10 +809,12 @@ bool Application::loadUI()
 	// Get strings
 	std::string pressAnyKeyString;
 	std::string backString;
-	std::string challengeString;
-	std::string experimentString;
-	std::string settingsString;
-	std::string quitString;
+	std::string continueString;
+	std::string newGameString;
+	std::string levelsString;
+	std::string sandboxString;
+	std::string optionsString;
+	std::string exitString;
 	std::string loadString;
 	std::string newString;
 	std::string videoString;
@@ -802,10 +826,12 @@ bool Application::loadUI()
 	std::string quitToDesktopString;
 	strings.get("press-any-key", &pressAnyKeyString);
 	strings.get("back", &backString);
-	strings.get("challenge", &challengeString);
-	strings.get("experiment", &experimentString);
-	strings.get("settings", &settingsString);
-	strings.get("quit", &quitString);
+	strings.get("continue", &continueString);
+	strings.get("new-game", &newGameString);
+	strings.get("levels", &levelsString);
+	strings.get("sandbox", &sandboxString);
+	strings.get("options", &optionsString);
+	strings.get("exit", &exitString);
 	strings.get("load", &loadString);
 	strings.get("new", &newString);
 	strings.get("video", &videoString);
@@ -832,7 +858,7 @@ bool Application::loadUI()
 	// Create blackout element (for screen transitions)
 	blackoutImage = new UIImage();
 	blackoutImage->setDimensions(Vector2(width, height));
-	blackoutImage->setLayerOffset(98);
+	blackoutImage->setLayerOffset(ANTKEEPER_UI_LAYER_BLACKOUT);
 	blackoutImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 	blackoutImage->setVisible(false);
 	uiRootElement->addChild(blackoutImage);
@@ -840,10 +866,18 @@ bool Application::loadUI()
 	// Create darken element (for darkening title screen)
 	darkenImage = new UIImage();
 	darkenImage->setDimensions(Vector2(width, height));
-	darkenImage->setLayerOffset(-1);
-	darkenImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 0.15f));
+	darkenImage->setLayerOffset(ANTKEEPER_UI_LAYER_DARKEN);
+	darkenImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 0.35f));
 	darkenImage->setVisible(false);
 	uiRootElement->addChild(darkenImage);
+	
+	// Create splash screen background element
+	splashBackgroundImage = new UIImage();
+	splashBackgroundImage->setDimensions(Vector2(width, height));
+	splashBackgroundImage->setLayerOffset(-1);
+	splashBackgroundImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	splashBackgroundImage->setVisible(false);
+	uiRootElement->addChild(splashBackgroundImage);
 	
 	// Create splash screen element
 	splashImage = new UIImage();
@@ -860,6 +894,7 @@ bool Application::loadUI()
 	titleImage->setTranslation(Vector2(0.0f, (int)(height * (1.0f / 4.0f) - titleTexture->getHeight() * 0.5f)));
 	titleImage->setTexture(titleTexture);
 	titleImage->setVisible(false);
+	titleImage->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 	uiRootElement->addChild(titleImage);
 	
 	frameTimeLabel = new UILabel();
@@ -869,11 +904,12 @@ bool Application::loadUI()
 	frameTimeLabel->setTranslation(Vector2(0.0f));
 	frameTimeLabel->setTintColor(Vector4(1.0f, 1.0f, 0.0f, 1.0f));
 	frameTimeLabel->setText("");
+	frameTimeLabel->setVisible(false);
 	uiRootElement->addChild(frameTimeLabel);
 	
-	bool frameTimeLabelVisible = false;
-	settings.get("show_frame_time", &frameTimeLabelVisible);
-	frameTimeLabel->setVisible(frameTimeLabelVisible);
+	//bool frameTimeLabelVisible = false;
+	//settings.get("show_frame_time", &frameTimeLabelVisible);
+	//frameTimeLabel->setVisible(frameTimeLabelVisible);
 	
 	// Create "Press any key" element
 	anyKeyLabel = new UILabel();
@@ -884,163 +920,6 @@ bool Application::loadUI()
 	anyKeyLabel->setVisible(false);
 	uiRootElement->addChild(anyKeyLabel);
 	
-	// Create main menu selector element
-	menuSelectorLabel = new UILabel();
-	menuSelectorLabel->setAnchor(Anchor::TOP_LEFT);
-	menuSelectorLabel->setFont(menuFont);
-	menuSelectorLabel->setText("<");
-	menuSelectorLabel->setTintColor(selectedColor);
-	menuSelectorLabel->setVisible(false);
-	uiRootElement->addChild(menuSelectorLabel);
-	
-	// Create main menu elements
-	mainMenuContainer = new UIContainer();
-	mainMenuContainer->setDimensions(Vector2(width, menuFont->getMetrics().getHeight() * 4));
-	mainMenuContainer->setAnchor(Vector2(0.0f, 0.5f));
-	mainMenuContainer->setVisible(false);
-	mainMenuContainer->setActive(false);
-	uiRootElement->addChild(mainMenuContainer);
-	challengeLabel = new UILabel();
-	challengeLabel->setFont(menuFont);
-	challengeLabel->setText(challengeString);
-	challengeLabel->setTintColor(deselectedColor);
-	experimentLabel = new UILabel();
-	experimentLabel->setFont(menuFont);
-	experimentLabel->setText(experimentString);
-	experimentLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight()));
-	experimentLabel->setTintColor(deselectedColor);
-	settingsLabel = new UILabel();
-	settingsLabel->setFont(menuFont);
-	settingsLabel->setText(settingsString);
-	settingsLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 2));
-	settingsLabel->setTintColor(deselectedColor);
-	quitLabel = new UILabel();
-	quitLabel->setFont(menuFont);
-	quitLabel->setText(quitString);
-	quitLabel->setTintColor(deselectedColor);
-	quitLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 3));
-	mainMenuContainer->addChild(challengeLabel);
-	mainMenuContainer->addChild(experimentLabel);
-	mainMenuContainer->addChild(settingsLabel);
-	mainMenuContainer->addChild(quitLabel);
-	
-	// Create challenge menu elements
-	challengeMenuContainer = new UIContainer();
-	challengeMenuContainer->setDimensions(Vector2(width, menuFont->getMetrics().getHeight() * 4));
-	challengeMenuContainer->setAnchor(Vector2(0.0f, 0.5f));
-	challengeMenuContainer->setVisible(false);
-	challengeMenuContainer->setActive(false);
-	uiRootElement->addChild(challengeMenuContainer);
-	
-	// Create experiment menu elements
-	experimentMenuContainer = new UIContainer();
-	experimentMenuContainer->setDimensions(Vector2(width, menuFont->getMetrics().getHeight() * 3));
-	experimentMenuContainer->setAnchor(Vector2(0.0f, 0.5f));
-	experimentMenuContainer->setVisible(false);
-	experimentMenuContainer->setActive(false);
-	uiRootElement->addChild(experimentMenuContainer);
-	loadLabel = new UILabel();
-	loadLabel->setFont(menuFont);
-	loadLabel->setText(loadString);
-	loadLabel->setTintColor(deselectedColor);
-	loadLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 0));
-	experimentMenuContainer->addChild(loadLabel);
-	newLabel = new UILabel();
-	newLabel->setFont(menuFont);
-	newLabel->setText(newString);
-	newLabel->setTintColor(deselectedColor);
-	newLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 1));
-	experimentMenuContainer->addChild(newLabel);
-	experimentBackLabel = new UILabel();
-	experimentBackLabel->setFont(menuFont);
-	experimentBackLabel->setText(backString);
-	experimentBackLabel->setTintColor(deselectedColor);
-	experimentBackLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 2));
-	experimentMenuContainer->addChild(experimentBackLabel);
-	
-	// Create settings menu elements
-	settingsMenuContainer = new UIContainer();
-	settingsMenuContainer->setDimensions(Vector2(width, menuFont->getMetrics().getHeight() * 5));
-	settingsMenuContainer->setAnchor(Vector2(0.0f, 0.5f));
-	settingsMenuContainer->setVisible(false);
-	settingsMenuContainer->setActive(false);
-	uiRootElement->addChild(settingsMenuContainer);
-	videoLabel = new UILabel();
-	videoLabel->setFont(menuFont);
-	videoLabel->setText(videoString);
-	videoLabel->setTintColor(deselectedColor);
-	videoLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 0));
-	settingsMenuContainer->addChild(videoLabel);
-	audioLabel = new UILabel();
-	audioLabel->setFont(menuFont);
-	audioLabel->setText(audioString);
-	audioLabel->setTintColor(deselectedColor);
-	audioLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 1));
-	settingsMenuContainer->addChild(audioLabel);
-	controlsLabel = new UILabel();
-	controlsLabel->setFont(menuFont);
-	controlsLabel->setText(controlsString);
-	controlsLabel->setTintColor(deselectedColor);
-	controlsLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 2));
-	settingsMenuContainer->addChild(controlsLabel);
-	gameLabel = new UILabel();
-	gameLabel->setFont(menuFont);
-	gameLabel->setText(gameString);
-	gameLabel->setTintColor(deselectedColor);
-	gameLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 3));
-	settingsMenuContainer->addChild(gameLabel);
-	settingsBackLabel = new UILabel();
-	settingsBackLabel->setFont(menuFont);
-	settingsBackLabel->setText(backString);
-	settingsBackLabel->setTintColor(deselectedColor);
-	settingsBackLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 4));
-	settingsMenuContainer->addChild(settingsBackLabel);
-	
-	// Create pause menu elements
-	pauseMenuContainer = new UIContainer();
-	pauseMenuContainer->setDimensions(Vector2(width, menuFont->getMetrics().getHeight() * 6));
-	pauseMenuContainer->setAnchor(Anchor::CENTER);
-	pauseMenuContainer->setVisible(false);
-	pauseMenuContainer->setActive(false);
-	uiRootElement->addChild(pauseMenuContainer);
-	pausedResumeLabel = new UILabel();
-	pausedResumeLabel->setFont(menuFont);
-	pausedResumeLabel->setText(resumeString);
-	pausedResumeLabel->setTintColor(deselectedColor);
-	pausedResumeLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 0));
-	pauseMenuContainer->addChild(pausedResumeLabel);
-	returnToMainMenuLabel = new UILabel();
-	returnToMainMenuLabel->setFont(menuFont);
-	returnToMainMenuLabel->setText(returnToMainMenuString);
-	returnToMainMenuLabel->setTintColor(deselectedColor);
-	returnToMainMenuLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 1));
-	pauseMenuContainer->addChild(returnToMainMenuLabel);
-	quitToDesktopLabel = new UILabel();
-	quitToDesktopLabel->setFont(menuFont);
-	quitToDesktopLabel->setText(quitToDesktopString);
-	quitToDesktopLabel->setTintColor(deselectedColor);
-	quitToDesktopLabel->setTranslation(Vector2(0.0f, menuFont->getMetrics().getHeight() * 2));
-	pauseMenuContainer->addChild(quitToDesktopLabel);
-	
-	// Create pause/play button elements
-	pauseButtonImage = new UIImage();
-	pauseButtonImage->setAnchor(Vector2(0.5f, 1.0f));
-	pauseButtonImage->setDimensions(Vector2(pauseButtonTexture->getWidth(), pauseButtonTexture->getHeight()));
-	pauseButtonImage->setTranslation(Vector2(0.0f, -16.0f));
-	pauseButtonImage->setTexture(pauseButtonTexture);
-	pauseButtonImage->setVisible(false);
-	pauseButtonImage->setActive(false);
-	uiRootElement->addChild(pauseButtonImage);
-	
-	playButtonImage = new UIImage();
-	playButtonImage->setAnchor(Vector2(0.5f, 1.0f));
-	playButtonImage->setDimensions(Vector2(playButtonTexture->getWidth(), playButtonTexture->getHeight()));
-	playButtonImage->setTranslation(Vector2(0.0f, -16.0f));
-	playButtonImage->setTexture(playButtonTexture);
-	playButtonImage->setVisible(false);
-	playButtonImage->setActive(false);
-	uiRootElement->addChild(playButtonImage);
-	
 	rectangularPaletteImage = new UIImage();
 	rectangularPaletteImage->setAnchor(Vector2(0.0f, 1.0f));
 	rectangularPaletteImage->setDimensions(Vector2(rectangularPaletteTexture->getWidth(), rectangularPaletteTexture->getHeight()));
@@ -1048,6 +927,7 @@ bool Application::loadUI()
 	rectangularPaletteImage->setTexture(rectangularPaletteTexture);
 	rectangularPaletteImage->setVisible(false);
 	rectangularPaletteImage->setActive(false);
+	rectangularPaletteImage->setLayerOffset(ANTKEEPER_UI_LAYER_HUD);
 	uiRootElement->addChild(rectangularPaletteImage);
 	
 	contextButtonImage0 = new UIImage();
@@ -1069,6 +949,7 @@ bool Application::loadUI()
 	depthTextureImage->setDimensions(Vector2(256, 256));
 	depthTextureImage->setTranslation(Vector2(0.0f, 0.0f));
 	depthTextureImage->setTexture(depthTexture);
+	depthTextureImage->setVisible(false);
 	uiRootElement->addChild(depthTextureImage);
 	
 	// Create level ID
@@ -1101,7 +982,7 @@ bool Application::loadUI()
 	toolbar->addButton(toolForcepsTexture, std::bind(&std::printf, "2\n"), std::bind(&std::printf, "2\n"));
 	toolbar->addButton(toolTrowelTexture, std::bind(&std::printf, "3\n"), std::bind(&std::printf, "3\n"));
 	toolbar->resize();
-	//uiRootElement->addChild(toolbar->getContainer());
+	uiRootElement->addChild(toolbar->getContainer());
 	toolbar->getContainer()->setVisible(false);
 	toolbar->getContainer()->setActive(false);
 	
@@ -1119,10 +1000,10 @@ bool Application::loadUI()
 
 	
 	// Setup screen fade in/fade out tween
-	fadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
+	fadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 2.0f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
 	fadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, blackoutImage, std::placeholders::_1));
 	tweener->addTween(fadeInTween);
-	fadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 1.5f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	fadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 2.0f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 	fadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, blackoutImage, std::placeholders::_1));
 	tweener->addTween(fadeOutTween);
 	
@@ -1178,145 +1059,97 @@ bool Application::loadUI()
 	menuSlideInTween = new Tween<Vector2>(EaseFunction::OUT_QUINT, 0.0f, menuSlideInDuration, menuSlideInStartTranslation, menuSlideInDeltaTranslation);
 	tweener->addTween(menuSlideInTween);
 	
-	// Title screen zoom in tween
-	antHillZoomInTween = new Tween<float>(EaseFunction::LINEAR, 0.0f, 2.0f, 50.0f, -49.9f);
-	antHillZoomInTween->setUpdateCallback(std::bind(&SurfaceCameraController::setTargetFocalDistance, surfaceCam, std::placeholders::_1));
-	tweener->addTween(antHillZoomInTween);
-	
-	antHillFadeOutTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 2.0f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-	antHillFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, blackoutImage, std::placeholders::_1));
-	antHillFadeOutTween->setEndCallback(std::bind(&Application::changeState, this, mainMenuState));
-	tweener->addTween(antHillFadeOutTween);
-	
-	playButtonFadeTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 1.0f, Vector4(1.0f, 1.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
-	playButtonFadeTween->setUpdateCallback(std::bind(&UIElement::setTintColor, playButtonImage, std::placeholders::_1));
-	playButtonFadeTween->setEndCallback(std::bind(&UIElement::setVisible, playButtonImage, false));
-	tweener->addTween(playButtonFadeTween);
-	
 	// Camera translation tween
 	cameraTranslationTween = new Tween<Vector3>(EaseFunction::OUT_CUBIC, 0.0f, 0.0f, Vector3(0.0f), Vector3(0.0f));
 	tweener->addTween(cameraTranslationTween);
-	
-	// Preview level tweens
-	for (int i = 0; i < 5; ++i)
-	{
-		previewLevelTweens[i] = new Tween<Vector3>(EaseFunction::OUT_CUBIC, 0.0f, 0.0f, Vector3(0.0f), Vector3(0.0f));
-		tweener->addTween(previewLevelTweens[i]);
-	}
 	
 	// Tool tweens
 	forcepsSwoopTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, 1.0f, 0.0f, 0.5f);
 	tweener->addTween(forcepsSwoopTween);
 	
 	// Build menu system
-	selectedMenuItemIndex = 0;
+	activeMenu = nullptr;
+	
+	// Allocate menus
 	mainMenu = new Menu();
-	MenuItem* challengeItem = mainMenu->addItem();
-	challengeItem->setSelectedCallback(std::bind(&UIElement::setTintColor, challengeLabel, selectedColor));
-	challengeItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, challengeLabel, deselectedColor));
-	challengeItem->setActivatedCallback(std::bind(&Application::enterLevelSelection, this));
-	challengeLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, challengeItem->getIndex()));
-	challengeLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, challengeItem->getIndex()));
-	challengeLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, challengeItem->getIndex()));
-	MenuItem* experimentItem = mainMenu->addItem();
-	experimentItem->setSelectedCallback(std::bind(&UIElement::setTintColor, experimentLabel, selectedColor));
-	experimentItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, experimentLabel, deselectedColor));
-	experimentItem->setActivatedCallback(std::bind(&Application::enterMenu, this, 2));
-	experimentLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, experimentItem->getIndex()));
-	experimentLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, experimentItem->getIndex()));
-	experimentLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, experimentItem->getIndex()));
-	MenuItem* settingsItem = mainMenu->addItem();
-	settingsItem->setSelectedCallback(std::bind(&UIElement::setTintColor, settingsLabel, selectedColor));
-	settingsItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, settingsLabel, deselectedColor));
-	settingsItem->setActivatedCallback(std::bind(&Application::enterMenu, this, 3));
-	settingsLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, settingsItem->getIndex()));
-	settingsLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, settingsItem->getIndex()));
-	settingsLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, settingsItem->getIndex()));
-	MenuItem* quitItem = mainMenu->addItem();
-	quitItem->setSelectedCallback(std::bind(&UIElement::setTintColor, quitLabel, selectedColor));
-	quitItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, quitLabel, deselectedColor));
-	quitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
-	quitLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, quitItem->getIndex()));
-	quitLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, quitItem->getIndex()));
-	quitLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, quitItem->getIndex()));
+	optionsMenu = new Menu();
+	pauseMenu = new Menu();
 	
-	experimentMenu = new Menu();
-	MenuItem* loadItem = experimentMenu->addItem();
-	loadItem->setSelectedCallback(std::bind(&UIElement::setTintColor, loadLabel, selectedColor));
-	loadItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, loadLabel, deselectedColor));
-	loadItem->setActivatedCallback(std::bind(&std::printf, "0\n"));
-	loadLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, loadItem->getIndex()));
-	loadLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, loadItem->getIndex()));
-	loadLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, loadItem->getIndex()));
-	MenuItem* newItem = experimentMenu->addItem();
-	newItem->setSelectedCallback(std::bind(&UIElement::setTintColor, newLabel, selectedColor));
-	newItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, newLabel, deselectedColor));
-	newItem->setActivatedCallback(std::bind(&std::printf, "bla\n"));
-	newLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, newItem->getIndex()));
-	newLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, newItem->getIndex()));
-	newLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, newItem->getIndex()));
-	MenuItem* experimentBackItem = experimentMenu->addItem();
-	experimentBackItem->setSelectedCallback(std::bind(&UIElement::setTintColor, experimentBackLabel, selectedColor));
-	experimentBackItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, experimentBackLabel, deselectedColor));
-	experimentBackItem->setActivatedCallback(std::bind(&Application::enterMenu, this, 0));
-	experimentBackLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, experimentBackItem->getIndex()));
-	experimentBackLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, experimentBackItem->getIndex()));
-	experimentBackLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, experimentBackItem->getIndex()));
+	// Main menu
+	{	
+		mainMenu->setFont(menuFont);
+		mainMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
+		mainMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
+		mainMenu->setLineSpacing(1.0f);
+		
+		MenuItem* continueItem = mainMenu->addItem();
+		continueItem->setActivatedCallback(std::bind(&Application::continueGame, this));
+		continueItem->setLabel(continueString);
+		
+		MenuItem* newGameItem = mainMenu->addItem();
+		newGameItem->setActivatedCallback(std::bind(&Application::newGame, this));
+		newGameItem->setLabel(newGameString);
+		
+		MenuItem* levelsItem = mainMenu->addItem();
+		levelsItem->setActivatedCallback(std::bind(&std::printf, "0\n"));
+		levelsItem->setLabel(levelsString);
+		
+		MenuItem* sandboxItem = mainMenu->addItem();
+		sandboxItem->setActivatedCallback(std::bind(&std::printf, "1\n"));
+		sandboxItem->setLabel(sandboxString);
+		
+		MenuItem* optionsItem = mainMenu->addItem();
+		optionsItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
+		optionsItem->setLabel(optionsString);
+		
+		MenuItem* exitItem = mainMenu->addItem();
+		exitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
+		exitItem->setLabel(exitString);
+		
+		mainMenu->getUIContainer()->setActive(false);
+		mainMenu->getUIContainer()->setVisible(false);
+		uiRootElement->addChild(mainMenu->getUIContainer());
+	}
 	
-	settingsMenu = new Menu();
-	MenuItem* videoItem = settingsMenu->addItem();
-	videoItem->setSelectedCallback(std::bind(&UIElement::setTintColor, videoLabel, selectedColor));
-	videoItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, videoLabel, deselectedColor));
-	videoItem->setActivatedCallback(std::bind(&std::printf, "0\n"));
-	videoLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, videoItem->getIndex()));
-	videoLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, videoItem->getIndex()));
-	videoLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, videoItem->getIndex()));
-	MenuItem* audioItem = settingsMenu->addItem();
-	audioItem->setSelectedCallback(std::bind(&UIElement::setTintColor, audioLabel, selectedColor));
-	audioItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, audioLabel, deselectedColor));
-	audioItem->setActivatedCallback(std::bind(&std::printf, "1\n"));
-	audioLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, audioItem->getIndex()));
-	audioLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, audioItem->getIndex()));
-	audioLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, audioItem->getIndex()));
-	MenuItem* controlsItem = settingsMenu->addItem();
-	controlsItem->setSelectedCallback(std::bind(&UIElement::setTintColor, controlsLabel, selectedColor));
-	controlsItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, controlsLabel, deselectedColor));
-	controlsItem->setActivatedCallback(std::bind(&std::printf, "2\n"));
-	controlsLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, controlsItem->getIndex()));
-	controlsLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, controlsItem->getIndex()));
-	controlsLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, controlsItem->getIndex()));
-	MenuItem* gameItem = settingsMenu->addItem();
-	gameItem->setSelectedCallback(std::bind(&UIElement::setTintColor, gameLabel, selectedColor));
-	gameItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, gameLabel, deselectedColor));
-	gameItem->setActivatedCallback(std::bind(&std::printf, "3\n"));
-	gameLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, gameItem->getIndex()));
-	gameLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, gameItem->getIndex()));
-	gameLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, gameItem->getIndex()));
-	MenuItem* settingsBackItem = settingsMenu->addItem();
-	settingsBackItem->setSelectedCallback(std::bind(&UIElement::setTintColor, settingsBackLabel, selectedColor));
-	settingsBackItem->setDeselectedCallback(std::bind(&UIElement::setTintColor, settingsBackLabel, deselectedColor));
-	settingsBackItem->setActivatedCallback(std::bind(&Application::enterMenu, this, 0));
-	settingsBackLabel->setMouseOverCallback(std::bind(&Application::selectMenuItem, this, settingsBackItem->getIndex()));
-	settingsBackLabel->setMouseMovedCallback(std::bind(&Application::selectMenuItem, this, settingsBackItem->getIndex()));
-	settingsBackLabel->setMousePressedCallback(std::bind(&Application::activateMenuItem, this, settingsBackItem->getIndex()));
+	// Options menu
+	{
+		optionsMenu->setFont(menuFont);
+		optionsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
+		optionsMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
+		optionsMenu->setLineSpacing(1.0f);
+		
+		MenuItem* backItem = optionsMenu->addItem();
+		backItem->setActivatedCallback(std::bind(&Application::openMenu, this, mainMenu));
+		backItem->setLabel(backString);
+		
+		optionsMenu->getUIContainer()->setActive(false);
+		optionsMenu->getUIContainer()->setVisible(false);
+		uiRootElement->addChild(optionsMenu->getUIContainer());
+	}
 	
-	menuCount = 4;
-	menus = new Menu*[menuCount];
-	menus[0] = mainMenu;
-	menus[1] = challengeMenu;
-	menus[2] = experimentMenu;
-	menus[3] = settingsMenu;
-	
-	menuContainers = new UIContainer*[menuCount];
-	menuContainers[0] = mainMenuContainer;
-	menuContainers[1] = challengeMenuContainer;
-	menuContainers[2] = experimentMenuContainer;
-	menuContainers[3] = settingsMenuContainer;
-	
-	currentMenu = mainMenu;
-	currentMenuIndex = 0;
-	selectedMenuItemIndex = 0;
-	selectMenuItem(selectedMenuItemIndex);
+	// Pause menu
+	{
+		pauseMenu->setFont(menuFont);
+		pauseMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.5f));
+		pauseMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
+		pauseMenu->setLineSpacing(1.0f);
+		
+		MenuItem* resumeItem = pauseMenu->addItem();
+		resumeItem->setActivatedCallback(std::bind(&Application::unpauseSimulation, this));
+		resumeItem->setLabel("Resume");
+		
+		MenuItem* mainMenuItem = pauseMenu->addItem();
+		mainMenuItem->setActivatedCallback(std::bind(&Application::changeState, this, titleState));
+		mainMenuItem->setLabel("Main Menu");
+		
+		MenuItem* desktopItem = pauseMenu->addItem();
+		desktopItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
+		desktopItem->setLabel("Exit to Desktop");
+		
+		pauseMenu->getUIContainer()->setActive(false);
+		pauseMenu->getUIContainer()->setVisible(false);
+		uiRootElement->addChild(pauseMenu->getUIContainer());
+	}
 	
 	// Setup UI batch
 	uiBatch = new BillboardBatch();
@@ -1356,6 +1189,7 @@ bool Application::loadControls()
 	menuControlProfile->registerControl("menu_select", &menuSelect);
 	menuControlProfile->registerControl("menu_cancel", &menuCancel);
 	menuControlProfile->registerControl("toggle_fullscreen", &toggleFullscreen);
+	menuControlProfile->registerControl("toggle_debug_display", &toggleDebugDisplay);
 	menuControlProfile->registerControl("escape", &escape);
 	menuLeft.bindKey(keyboard, SDL_SCANCODE_LEFT);
 	menuLeft.bindKey(keyboard, SDL_SCANCODE_A);
@@ -1371,6 +1205,7 @@ bool Application::loadControls()
 	menuCancel.bindKey(keyboard, SDL_SCANCODE_BACKSPACE);
 	menuCancel.bindKey(keyboard, SDL_SCANCODE_X);
 	toggleFullscreen.bindKey(keyboard, SDL_SCANCODE_F11);
+	toggleDebugDisplay.bindKey(keyboard, SDL_SCANCODE_GRAVE);
 	escape.bindKey(keyboard, SDL_SCANCODE_ESCAPE);
 	
 	// Setup in-game controls
@@ -1421,18 +1256,9 @@ bool Application::loadGame()
 	campaign.load("data/levels/");
 	currentWorldIndex = 0;
 	currentLevelIndex = 0;
-	for (int i = 0; i < 5; ++i)
-	{
-		previewLevelIndices[i] = i;
-		oldPreviewLevelIndices[i] = -1;
-	}
 	simulationPaused = false;
 	
-	// Allocate levels and initialize pointers
-	for (int i = 0; i < 5; ++i)
-	{
-		previewLevels[i] = new Level();
-	}
+	// Allocate level
 	currentLevel = new Level();
 	
 	// Create colony
@@ -1452,33 +1278,8 @@ bool Application::loadGame()
 	brush = new Brush(brushModel);
 	brush->setCameraController(surfaceCam);
 	
-	
-	// Load radiance and irradiance cubemaps
-	textureLoader->setCubemap(true);
-	textureLoader->setMipmapChain(true);
-	textureLoader->setWrapS(false);
-	textureLoader->setWrapT(false);
-	textureLoader->setWrapR(false);
-	
-	std::string radianceCubemapFilename = std::string("data/textures/title-screen-sky-radiance-m%02d.hdr");
-	std::string irradianceCubemapFilename = std::string("data/textures/title-screen-sky-irradiance-m%02d.hdr");
-	
-	
-	radianceCubemap = textureLoader->load(radianceCubemapFilename);
-	if (!radianceCubemap)
-	{
-		std::cerr << "Failed to load radiance cubemap \"" << radianceCubemapFilename << "\"" << std::endl;
-	}
-	
-	irradianceCubemap = textureLoader->load(irradianceCubemapFilename);
-	if (!irradianceCubemap)
-	{
-		std::cerr << "Failed to load irradiance cubemap \"" << irradianceCubemapFilename << "\"" << std::endl;
-	}
-	
-	skyboxPass.setCubemap(radianceCubemap);
-	lightingPass.setDiffuseCubemap(irradianceCubemap);
-	lightingPass.setSpecularCubemap(radianceCubemap);
+	loadWorld(0);
+	loadLevel(0);
 	
 	return true;
 }
@@ -1490,94 +1291,105 @@ void Application::resizeUI()
 	uiRootElement->update();
 	
 	// Adjust UI camera projection
-	uiCamera.setOrthographic(0, width, height, 0, -1.0f, 1.0f);
+	uiCamera.setOrthographic(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
 }
 
-void Application::enterMenu(std::size_t index)
+void Application::openMenu(Menu* menu)
 {
-	if (index != currentMenuIndex)
+	if (activeMenu != nullptr)
 	{
-		exitMenu(currentMenuIndex);
+		closeMenu();
 	}
 	
-	// Select next menu
-	currentMenuIndex = index;
-	selectedMenuItemIndex = 0;
-	currentMenu = menus[currentMenuIndex];
-	menus[currentMenuIndex]->getItem(selectedMenuItemIndex)->select();
+	activeMenu = menu;
+	activeMenu->getUIContainer()->setActive(true);
+	activeMenu->getUIContainer()->setVisible(true);
 	
-	// Start menu fade-in tween
-	menuFadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, menuContainers[currentMenuIndex], std::placeholders::_1));
-	menuFadeInTween->setEndCallback(std::bind(&UIElement::setActive, menuContainers[currentMenuIndex], true));
-	menuFadeInTween->reset();
-	menuFadeInTween->start();
-	
-	// Start menu slide-in tween
-	menuSlideInTween->setUpdateCallback(std::bind(&UIElement::setTranslation, menuContainers[currentMenuIndex], std::placeholders::_1));
-	menuSlideInTween->reset();
-	menuSlideInTween->start();
-	
-	// Make menu visible
-	menuContainers[currentMenuIndex]->setVisible(true);
-	
-	// Make menu selector visible
-	menuSelectorLabel->setVisible(true);
+	if (activeMenu->getSelectedItem() == nullptr)
+	{
+		activeMenu->select(0);
+	}
 }
 
-void Application::exitMenu(std::size_t index)
+void Application::closeMenu()
 {
-	// Deactivate previous menu
-	menuContainers[currentMenuIndex]->setActive(false);
-	
-	// Fade out previous menu
-	menuFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, menuContainers[currentMenuIndex], std::placeholders::_1));
-	menuFadeOutTween->setEndCallback(std::bind(&UIElement::setVisible, menuContainers[currentMenuIndex], false));
-	menuFadeOutTween->reset();
-	menuFadeOutTween->start();
-	
-	// Make menu selector invisible
-	menuSelectorLabel->setVisible(false);
+	if (activeMenu != nullptr)
+	{
+		activeMenu->getUIContainer()->setActive(false);
+		activeMenu->getUIContainer()->setVisible(false);
+		
+		activeMenu = nullptr;
+	}
 }
 
 void Application::selectMenuItem(std::size_t index)
 {
-	if (currentMenu == nullptr || index > currentMenu->getItemCount())
+	if (activeMenu != nullptr)
 	{
-		std::cout << "Selected invalid menu item" << std::endl;
-		return;
+		activeMenu->select(index);
 	}
-	
-	MenuItem* previousItem = currentMenu->getItem(selectedMenuItemIndex);
-	previousItem->deselect();
-	
-	selectedMenuItemIndex = index;
-	
-	MenuItem* nextItem = currentMenu->getItem(selectedMenuItemIndex);
-	nextItem->select();
 }
 
-void Application::activateMenuItem(std::size_t index)
+void Application::activateMenuItem()
 {
-	if (index > menus[currentMenuIndex]->getItemCount())
+	if (activeMenu != nullptr)
 	{
-		std::cout << "Activated invalid menu item" << std::endl;
-		return;
+		activeMenu->activate();
 	}
-	
-	menus[currentMenuIndex]->getItem(index)->deselect();
-	menus[currentMenuIndex]->getItem(index)->activate();
 }
 
-void Application::enterLevelSelection()
+void Application::continueGame()
 {
-	exitMenu(0);
+	closeMenu();
 	
-	// Reset world and level indices
-	currentWorldIndex = 0;
-	currentLevelIndex = 0;
+	int world = 0;
+	int level = 0;
 	
-	// Change to level select state
-	changeState(levelSelectState);
+	settings.get("continue_world", &world);
+	settings.get("continue_level", &level);
+	
+	if (world != currentWorldIndex)
+	{
+		loadWorld(world);
+	}
+	if (level != currentLevelIndex)
+	{
+		loadLevel(level);
+	}
+	
+	changeState(gameState);
+}
+
+void Application::newGame()
+{
+	if (currentWorldIndex != 0 || currentLevelIndex != 0)
+	{
+		// Select first level of the first world
+		currentWorldIndex = 0;
+		currentLevelIndex = 0;
+
+		// Save continue world and level indices
+		settings.set("continue_world", currentWorldIndex);
+		settings.set("continue_level", currentLevelIndex);
+		saveUserSettings();
+		
+		// Begin fade-out
+		fadeOutTween->setEndCallback(std::bind(&Application::changeState, this, gameState));
+		fadeOutTween->reset();
+		fadeOutTween->start();
+	}
+	else
+	{
+		closeMenu();
+
+		// Begin fade-out
+		fadeOutTween->setEndCallback(std::bind(&Application::changeState, this, gameState));
+		fadeOutTween->reset();
+		fadeOutTween->start();
+		
+		// Change state
+		//changeState(gameState);
+	}
 }
 
 void Application::deselectTool(Tool* tool)
@@ -1599,178 +1411,34 @@ void Application::selectTool(Tool* tool)
 	currentTool = tool;
 }
 
-void Application::selectWorld(std::size_t index)
+void Application::loadWorld(std::size_t index)
 {
-	// Set current world and level
-	currentWorldIndex = static_cast<int>(index);
-	selectLevel(std::min<int>(campaign.getLevelCount(currentWorldIndex) - 1, currentLevelIndex));
+	// Set current world
+	currentWorldIndex = index;
+	
+	// Get world biome
+	const LevelParameterSet* levelParams = campaign.getLevelParams(currentWorldIndex, 0);
+	const Biome* biome = &biosphere.biomes[levelParams->biome];
 	
 	// Setup rendering passes
-	const LevelParameterSet* levelParams = campaign.getLevelParams(currentWorldIndex, currentLevelIndex);
-	const Biome* biome = &biosphere.biomes[levelParams->biome];
 	soilPass.setHorizonOTexture(biome->soilHorizonO);
 	soilPass.setHorizonATexture(biome->soilHorizonA);
 	soilPass.setHorizonBTexture(biome->soilHorizonB);
 	soilPass.setHorizonCTexture(biome->soilHorizonC);
-	//skyboxPass.setCubemap(biome->specularCubemap);
-	
-	for (int i = 0; i < 5; ++i)
-	{
-		previewLevels[i]->terrain.getSurfaceModel()->getGroup(0)->material = materialLoader->load("data/materials/debug-terrain-surface.mtl");
-	}
+	lightingPass.setDiffuseCubemap(biome->diffuseCubemap);
+	lightingPass.setSpecularCubemap(biome->specularCubemap);
+	skyboxPass.setCubemap(biome->specularCubemap);
 }
 
-void Application::selectNextWorld()
-{
-	if (currentWorldIndex < campaign.getWorldCount() - 1)
-	{
-		selectWorld(currentWorldIndex + 1);
-	}
-}
-
-void Application::selectPreviousWorld()
-{
-	if (currentWorldIndex > 0)
-	{
-		selectWorld(currentWorldIndex - 1);
-	}
-}
-
-void Application::selectLevel(std::size_t index)
+void Application::loadLevel(std::size_t index)
 {
 	// Set current level
-	currentLevelIndex = static_cast<int>(index);
+	currentLevelIndex = index;
 	
-	// Calculate index of current loaded level
-	currentPreviewIndex = (currentLevelIndex % 5);
-	
-	// Get total number of levels in the current world
-	int levelCount = campaign.getLevelCount(currentWorldIndex);
-	
-	// Calculate indices of level previews
-	previewLevelIndices[(currentPreviewIndex + 3) % 5] = (currentLevelIndex <= 2) ? ((currentLevelIndex + 3) % 5) : currentLevelIndex - 2;
-	previewLevelIndices[(currentPreviewIndex + 4) % 5] = (currentLevelIndex <= 2) ? ((currentLevelIndex + 4) % 5) : currentLevelIndex - 1;
-	previewLevelIndices[(currentPreviewIndex + 0) % 5] = currentLevelIndex;
-	previewLevelIndices[(currentPreviewIndex + 1) % 5] = (currentLevelIndex >= levelCount - 1) ? (((currentLevelIndex + 1) % (levelCount - 1)) + ((levelCount - 1) - 5)) : currentLevelIndex + 1;
-	previewLevelIndices[(currentPreviewIndex + 2) % 5] = (currentLevelIndex >= levelCount - 2) ? (((currentLevelIndex + 2) % (levelCount - 1)) + ((levelCount - 1) - 5)) : currentLevelIndex + 2;
-	
-	// Load unloaded previews
-	for (int i = 0; i < 5; ++i)
-	{
-		if (oldPreviewLevelIndices[i] != previewLevelIndices[i])
-		{
-			std::cout << "Unloaded level " << oldPreviewLevelIndices[i] << std::endl;
-			std::cout << "Loaded level " << previewLevelIndices[i] << std::endl;
-		}
-	}
-	
-	// Load unloaded previews
-	for (int i = 0; i < 5; ++i)
-	{
-		if (oldPreviewLevelIndices[i] != previewLevelIndices[i])
-		{
-			oldPreviewLevelIndices[i] = previewLevelIndices[i];
-			
-			// Load level preview
-			const LevelParameterSet* params = campaign.getLevelParams(currentWorldIndex, previewLevelIndices[i]);
-			previewLevels[i]->load(*params);
-			
-			previewLevelSurfaces[i].setModel(previewLevels[i]->terrain.getSurfaceModel());
-			previewLevelSubsurfaces[i].setModel(previewLevels[i]->terrain.getSubsurfaceModel());
-		}
-		
-		if (currentPreviewIndex == i)
-		{
-			std::cout << " [" << previewLevelIndices[i] << "] ";
-		}
-		else	
-		{
-			std::cout << "  " << previewLevelIndices[i] << "  ";
-		}
-	}
-	std::cout << std::endl;
-	
-	// Perform tweening
-	for (int i = 0; i < 5; ++i)
-	{
-		Vector3 translation = Vector3(ANTKEEPER_LEVEL_SPACING, 0.0f, 0.0f) * static_cast<float>(previewLevelIndices[i]);
-		
-		
-		previewLevelSurfaces[i].setTranslation(translation);
-		previewLevelSubsurfaces[i].setTranslation(translation);
-		
-		/*
-		previewLevelTweens[i]->stop();
-		if (currentPreviewIndex != i)
-		{
-			previewLevelTweens[i]->setTime(0.0f);
-			previewLevelTweens[i]->setDuration(0.5f);
-			previewLevelTweens[i]->setStartValue(camera.getTranslation());
-			previewLevelTweens[i]->setDeltaValue(difference);
-			previewLevelTweens[i]->setUpdateCallback(std::bind(&SceneObject::setTranslation, &previewLevelSubsurfaces[i], std::placeholders::_1));
-			previewLevelTweens[i]->start();
-		}
-		*/
-	}
-	
-	// Set level ID label
-	std::stringstream stream;
-	stream << (currentWorldIndex + 1) << "-" << (currentLevelIndex + 1);
-	levelIDLabel->setText(stream.str());
-	
-	// Set level name label
-	char levelIDBuffer[6];
-	std::sprintf(levelIDBuffer, "%02d-%02d", currentWorldIndex + 1, currentLevelIndex + 1);
-	std::string levelID(levelIDBuffer);
-	std::string levelName;
-	strings.get(levelIDBuffer, &levelName);
-	std::cout << levelID << std::endl;
-	levelNameLabel->setText(levelName);
-}
-
-void Application::selectNextLevel()
-{
-	if (currentLevelIndex < campaign.getLevelCount(currentWorldIndex) - 1)
-	{
-		selectLevel(currentLevelIndex + 1);
-		
-		// Setup camera tween
-		Vector3 difference = Vector3(ANTKEEPER_LEVEL_SPACING * currentLevelIndex, surfaceCam->getTargetFocalPoint().y, surfaceCam->getTargetFocalPoint().z) - surfaceCam->getTargetFocalPoint();
-		cameraTranslationTween->setTime(0.0f);
-		cameraTranslationTween->setDuration(1.0f);
-		cameraTranslationTween->setStartValue(surfaceCam->getTargetFocalPoint());
-		cameraTranslationTween->setDeltaValue(difference);
-		cameraTranslationTween->setUpdateCallback(std::bind(&SurfaceCameraController::setTargetFocalPoint, surfaceCam, std::placeholders::_1));
-		cameraTranslationTween->start();
-	}
-}
-
-void Application::selectPreviousLevel()
-{
-	if (currentLevelIndex > 0)
-	{
-		selectLevel(currentLevelIndex - 1);
-		
-		// Setup camera tween
-		Vector3 difference = Vector3(ANTKEEPER_LEVEL_SPACING * currentLevelIndex, surfaceCam->getTargetFocalPoint().y, surfaceCam->getTargetFocalPoint().z) - surfaceCam->getTargetFocalPoint();
-		cameraTranslationTween->setTime(0.0f);
-		cameraTranslationTween->setDuration(1.0f);
-		cameraTranslationTween->setStartValue(surfaceCam->getTargetFocalPoint());
-		cameraTranslationTween->setDeltaValue(difference);
-		cameraTranslationTween->setUpdateCallback(std::bind(&SurfaceCameraController::setTargetFocalPoint, surfaceCam, std::placeholders::_1));
-		cameraTranslationTween->start();
-	}
-}
-
-void Application::enterSelectedLevel()
-{
 	// Load level
 	const LevelParameterSet* levelParams = campaign.getLevelParams(currentWorldIndex, currentLevelIndex);
 	currentLevel->load(*levelParams);
 	currentLevel->terrain.getSurfaceModel()->getGroup(0)->material = materialLoader->load("data/materials/debug-terrain-surface.mtl");
-	
-	// Change state
-	changeState(playState);
 }
 
 /*
@@ -1803,20 +1471,26 @@ void Application::loadLevel()
 void Application::pauseSimulation()
 {
 	simulationPaused = true;
-	playButtonImage->setVisible(false);
-	playButtonImage->setActive(false);
-	pauseButtonImage->setVisible(true);
-	pauseButtonImage->setActive(true);
-	playButtonFadeTween->stop();
+	
+	darkenImage->setVisible(true);
+	
+	openMenu(pauseMenu);
+	pauseMenu->select(0);
 }
 
 void Application::unpauseSimulation()
 {
 	simulationPaused = false;
-	pauseButtonImage->setVisible(false);
-	pauseButtonImage->setActive(false);
-	playButtonImage->setTintColor(Vector4(1.0f));
-	playButtonImage->setVisible(true);
-	playButtonImage->setActive(true);
-	playButtonFadeTween->start();
+	
+	darkenImage->setVisible(false);
+	
+	closeMenu();
+}
+
+void Application::setDisplayDebugInfo(bool display)
+{
+	displayDebugInfo = display;
+
+	frameTimeLabel->setVisible(displayDebugInfo);
+	depthTextureImage->setVisible(displayDebugInfo);
 }

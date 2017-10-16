@@ -23,9 +23,6 @@
 #include "../application-state.hpp"
 #include "../ui/ui.hpp"
 
-#include "../game/ant.hpp"
-#include "../game/colony.hpp"
-
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
@@ -44,12 +41,6 @@ public:
 	
 	virtual void windowClosed();
 	virtual void windowResized(int width, int height);
-	
-private:
-	float stateTime;
-	bool fadeIn;
-	bool fadeOut;	
-	int substate;
 };
 
 #endif // TITLE_STATE_HPP

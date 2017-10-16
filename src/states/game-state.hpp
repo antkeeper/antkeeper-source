@@ -17,26 +17,36 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LEVEL_SELECT_STATE_HPP
-#define LEVEL_SELECT_STATE_HPP
+#ifndef GAME_STATE_HPP
+#define GAME_STATE_HPP
 
 #include "../application-state.hpp"
+#include "../input.hpp"
+#include "../game/ant.hpp"
+#include "../game/navmesh.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
-class LevelSelectState: public ApplicationState
+class GameState: public ApplicationState, public MouseButtonObserver
 {
 public:
-	LevelSelectState(Application* application);
-	virtual ~LevelSelectState();
+	GameState(Application* application);
+	virtual ~GameState();
 	
 	virtual void enter();
 	virtual void execute();
 	virtual void exit();
 	
+	virtual void mouseButtonPressed(int button, int x, int y);
+	virtual void mouseButtonReleased(int button, int x, int y);
+	
 private:
-	float levelRotation;
+	ModelInstance terrainSurface;
+	ModelInstance terrainSubsurface;
+	Vector3 pick;
+	Ray pickingRay;
+	Navmesh::Triangle* pickTriangle;
 };
 
-#endif // LEVEL_SELECT_STATE_HPP
+#endif // GAME_STATE_HPP

@@ -41,12 +41,9 @@ class Colony;
 class LoadingState;
 class SplashState;
 class TitleState;
-class MainMenuState;
-class PlayState;
-class LevelSelectState;
+class GameState;
 class CameraController;
 class SurfaceCameraController;
-class TunnelCameraController;
 class LineBatcher;
 class ModelLoader;
 class MaterialLoader;
@@ -91,23 +88,15 @@ public:
 	
 	void resizeUI();
 	
-	void enterMenu(std::size_t index);
-	void exitMenu(std::size_t index);
+	void openMenu(Menu* menu);
+	void closeMenu();
 	void selectMenuItem(std::size_t index);
-	void activateMenuItem(std::size_t index);
+	void activateMenuItem();
 	
-	void selectWorld(std::size_t index);
-	void selectNextWorld();
-	void selectPreviousWorld();
-	
-	void selectLevel(std::size_t index);
-	void selectNextLevel();
-	void selectPreviousLevel();
-	void enterSelectedLevel();
-	
-	//void activateLevel(std::size_t index);
-	
-	void enterLevelSelection();
+	void loadWorld(std::size_t index);
+	void loadLevel(std::size_t index);
+	void continueGame();
+	void newGame();
 	
 	void deselectTool(Tool* tool);
 	void selectTool(Tool* tool);
@@ -116,6 +105,8 @@ public:
 	
 	void pauseSimulation();
 	void unpauseSimulation();
+	
+	void setDisplayDebugInfo(bool display);
 	
 private:
 	ApplicationState* state;
@@ -150,9 +141,7 @@ public:
 	LoadingState* loadingState;
 	SplashState* splashState;
 	TitleState* titleState;
-	MainMenuState* mainMenuState;
-	LevelSelectState* levelSelectState;
-	PlayState* playState;
+	GameState* gameState;
 	
 	// Scene
 	Scene scene;
@@ -171,8 +160,6 @@ public:
 	ModelInstance antModelInstance;
 	ModelInstance antHillModelInstance;
 	ModelInstance nestModelInstance;
-	ModelInstance previewLevelSurfaces[5];
-	ModelInstance previewLevelSubsurfaces[5];
 	ModelInstance biomeFloorModelInstance;
 	
 	// Graphics
@@ -186,6 +173,7 @@ public:
 	ShadowMapRenderPass shadowMapPass;
 	Compositor shadowMapCompositor;
 	
+	ClearRenderPass clearDepthPass;
 	SoilRenderPass soilPass;
 	LightingRenderPass lightingPass;
 	DebugRenderPass debugPass;
@@ -214,6 +202,7 @@ public:
 	Control menuSelect;
 	Control menuCancel;
 	Control toggleFullscreen;
+	Control toggleDebugDisplay;
 	Control escape;
 	ControlProfile* gameControlProfile;
 	Control cameraMoveForward;
@@ -249,11 +238,6 @@ public:
 	// UI textures
 	Texture* splashTexture;
 	Texture* titleTexture;
-	Texture* levelActiveTexture;
-	Texture* levelInactiveTexture;
-	Texture* levelConnectorTexture;
-	Texture* pauseButtonTexture;
-	Texture* playButtonTexture;
 	Texture* rectangularPaletteTexture;
 	Texture* foodIndicatorTexture;
 	Texture* toolBrushTexture;
@@ -281,50 +265,19 @@ public:
 	Vector4 deselectedColor;
 	UIContainer* uiRootElement;
 	UIImage* blackoutImage;
+	UIImage* splashBackgroundImage;
 	UIImage* splashImage;
 	UIImage* titleImage;
 	UIImage* darkenImage;
-		
 	UILabel* frameTimeLabel;
-	
-	UILabel* anyKeyLabel;
-	UILabel* menuSelectorLabel;
-	UIContainer* mainMenuContainer;
-	UIContainer* challengeMenuContainer;
-	UIContainer* experimentMenuContainer;
-	UIContainer* settingsMenuContainer;
-	UILabel* challengeLabel;
-	UILabel* experimentLabel;
-	UILabel* settingsLabel;
-	UILabel* quitLabel;
-	UILabel* loadLabel;
-	UILabel* newLabel;
-	UILabel* experimentBackLabel;
-	UILabel* videoLabel;
-	UILabel* audioLabel;
-	UILabel* controlsLabel;
-	UILabel* gameLabel;
-	UILabel* settingsBackLabel;
-	UIContainer* pauseMenuContainer;
-	UILabel* pausedResumeLabel;
-	UILabel* pausedSaveLabel;
-	UILabel* pausedNewLabel;
-	UILabel* pausedSettingsLabel;
-	UILabel* returnToMainMenuLabel;
-	UILabel* quitToDesktopLabel;
-	UIImage* pauseButtonImage;
-	UIImage* playButtonImage;
+	UILabel* anyKeyLabel;	
 	UIImage* rectangularPaletteImage;
-	
 	UIImage* foodIndicatorImage;
 	UIImage* contextButtonImage0;
 	UIImage* contextButtonImage1;
-	
 	UIImage* depthTextureImage;
-	
 	UILabel* levelIDLabel;
 	UILabel* levelNameLabel;
-	
 	Toolbar* toolbar;
 	PieMenu* pieMenu;
 	
@@ -341,27 +294,15 @@ public:
 	Tween<Vector4>* anyKeyFadeOutTween;
 	Tween<Vector4>* menuFadeInTween;
 	Tween<Vector4>* menuFadeOutTween;
-	Tween<Vector2>* menuSlideInTween;
-	
-	Tween<float>* antHillZoomInTween;
-	Tween<Vector4>* antHillFadeOutTween;
-	Tween<Vector4>* playButtonFadeTween;
-	
+	Tween<Vector2>* menuSlideInTween;	
 	Tween<Vector3>* cameraTranslationTween;
-	Tween<Vector3>* previewLevelTweens[5];
 	Tween<float>* forcepsSwoopTween;
 	
 	// Menus
-	std::size_t menuCount;
-	Menu** menus;
-	int currentMenuIndex;
-	int selectedMenuItemIndex;
-	UIContainer** menuContainers;
-	Menu* currentMenu;
+	Menu* activeMenu;
 	Menu* mainMenu;
-	Menu* challengeMenu;
-	Menu* experimentMenu;
-	Menu* settingsMenu;
+	Menu* optionsMenu;
+	Menu* pauseMenu;
 	
 	// Models
 	Model* antModel;
@@ -378,18 +319,10 @@ public:
 	
 	int currentWorldIndex;
 	int currentLevelIndex;
-	
-	int currentPreviewIndex;
-	int previewLevelIndices[5];
-	int oldPreviewLevelIndices[5];
-	Level* previewLevels[5];
 	Level* currentLevel;
-	
-	
 	
 	Colony* colony;
 	SurfaceCameraController* surfaceCam;
-	TunnelCameraController* tunnelCam;
 	bool cameraOverheadView;
 	bool cameraNestView;
 	int toolIndex;
@@ -399,11 +332,9 @@ public:
 	Brush* brush;
 	bool simulationPaused;
 	
-	Texture* radianceCubemap;
-	Texture* irradianceCubemap;
-	
 	// Debug
 	LineBatcher* lineBatcher;
+	bool displayDebugInfo;
 };
 
 #endif // APPLICATION_HPP

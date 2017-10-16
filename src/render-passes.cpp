@@ -22,6 +22,71 @@
 #include <iostream>
 #include <limits>
 
+ClearRenderPass::ClearRenderPass():
+	clearColor(true),
+	clearDepth(true),
+	clearStencil(true),
+	color(0.0f),
+	depth(1.0f),
+	index(0)
+{}
+
+bool ClearRenderPass::load(const RenderContext* renderContext)
+{
+	return true;
+}
+
+void ClearRenderPass::unload()
+{}
+
+void ClearRenderPass::render(RenderContext* renderContext)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
+	
+	GLbitfield mask = 0;
+	if (clearColor)
+	{
+		mask |= GL_COLOR_BUFFER_BIT;
+		glClearColor(color[0], color[1], color[2], color[3]);
+	}
+	
+	if (clearDepth)
+	{
+		mask |= GL_DEPTH_BUFFER_BIT;
+		glClearDepth(depth);
+	}
+	
+	if (clearStencil)
+	{
+		mask |= GL_STENCIL_BUFFER_BIT;
+		glClearStencil(index);
+	}
+	
+	glClear(mask);
+}
+
+void ClearRenderPass::setClear(bool color, bool depth, bool stencil)
+{
+	clearColor = color;
+	clearDepth = depth;
+	clearStencil = stencil;
+}
+
+void ClearRenderPass::setClearColor(const Vector4& color)
+{
+	this->color = color;
+}
+
+void ClearRenderPass::setClearDepth(float depth)
+{
+	this->depth = depth;
+}
+
+void ClearRenderPass::setClearStencil(int index)
+{
+	this->index = index;
+}
+
 ShadowMapRenderPass::ShadowMapRenderPass():
 	unskinnedShader(nullptr),
 	skinnedShader(nullptr),
@@ -989,9 +1054,6 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
 	glViewport(0, 0, renderTarget->width, renderTarget->height);
 	
-	// Clear depth buffer
-	glClear(GL_DEPTH_BUFFER_BIT);
-	
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -1010,7 +1072,7 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	Vector3 directionalLightColors[3];
 	Vector3 directionalLightDirections[3];
 	directionalLightColors[0] = Vector3(1);
-	directionalLightDirections[0] = glm::normalize(Vector3(camera.getView() * -Vector4(0, 0, -1, 0)));
+	directionalLightDirections[0] = glm::normalize(Vector3(camera.getView() * -Vector4(0, -2, -1, 0)));
 	
 	// Calculate the (light-space) view-projection matrix
 	Matrix4 lightViewProjectionMatrix = shadowMapPass->getTileMatrix(0) * biasMatrix * shadowMapPass->getCropMatrix(0) * shadowCamera->getViewProjection();

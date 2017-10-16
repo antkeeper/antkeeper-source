@@ -27,6 +27,31 @@ using namespace Emergent;
 #include "model-loader.hpp"
 
 /**
+ * Clears framebuffers
+ */
+class ClearRenderPass: public RenderPass
+{
+public:
+	ClearRenderPass();
+	virtual bool load(const RenderContext* renderContext);
+	virtual void unload();
+	virtual void render(RenderContext* renderContext);
+	
+	void setClear(bool color, bool depth, bool stencil);
+	void setClearColor(const Vector4& color);
+	void setClearDepth(float depth);
+	void setClearStencil(int index);
+	
+private:
+	bool clearColor;
+	bool clearDepth;
+	bool clearStencil;
+	Vector4 color;
+	float depth;
+	int index;
+};
+
+/**
  * Renders the distance from the view frustum's near clipping plane to scene geometry. The render target should have a depth only framebuffer.
  */
 class ShadowMapRenderPass: public RenderPass

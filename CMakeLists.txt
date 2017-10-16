@@ -192,20 +192,18 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/application-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/application.hpp
 	${EXECUTABLE_SOURCE_DIR}/application.cpp
-	${EXECUTABLE_SOURCE_DIR}/states/level-select-state.hpp
-	${EXECUTABLE_SOURCE_DIR}/states/level-select-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/states/loading-state.hpp
 	${EXECUTABLE_SOURCE_DIR}/states/loading-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/states/splash-state.hpp
 	${EXECUTABLE_SOURCE_DIR}/states/splash-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/states/title-state.hpp
 	${EXECUTABLE_SOURCE_DIR}/states/title-state.cpp
-	${EXECUTABLE_SOURCE_DIR}/states/main-menu-state.hpp
-	${EXECUTABLE_SOURCE_DIR}/states/main-menu-state.cpp
-	${EXECUTABLE_SOURCE_DIR}/states/play-state.hpp
-	${EXECUTABLE_SOURCE_DIR}/states/play-state.cpp
+	${EXECUTABLE_SOURCE_DIR}/states/game-state.hpp
+	${EXECUTABLE_SOURCE_DIR}/states/game-state.cpp
 	${EXECUTABLE_SOURCE_DIR}/ui/ui.hpp
 	${EXECUTABLE_SOURCE_DIR}/ui/ui.cpp
+	${EXECUTABLE_SOURCE_DIR}/ui/menu.hpp
+	${EXECUTABLE_SOURCE_DIR}/ui/menu.cpp
 	${EXECUTABLE_SOURCE_DIR}/ui/tween.hpp
 	${EXECUTABLE_SOURCE_DIR}/ui/tween.cpp
 	${EXECUTABLE_SOURCE_DIR}/ui/toolbar.hpp
@@ -242,8 +240,10 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/material-loader.cpp
 )
 
-# Setup exe icon for windows
+# Setup manifest and exe icon for windows
 if(${PLATFORM} STREQUAL "win32" OR ${PLATFORM} STREQUAL "win64")
+	list(APPEND EXECUTABLE_SOURCES "${EXECUTABLE_SOURCE_DIR}/dpi-aware.manifest")
+	
 	if(EXISTS ${PROJECT_SOURCE_DIR}/data)
 		set(RC_FILES "${PROJECT_SOURCE_DIR}/data/icons/icon.rc")
 		#set(CMAKE_RC_COMPILER_INIT windres)
