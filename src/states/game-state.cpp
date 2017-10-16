@@ -55,8 +55,8 @@ void GameState::enter()
 	
 	// Add terrain to scene
 	application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
-	application->defaultLayer->addObject(&application->currentLevel->terrainSubsurface);
-	application->defaultLayer->addObject(&application->biomeFloorModelInstance);
+	//application->defaultLayer->addObject(&application->currentLevel->terrainSubsurface);
+	//application->defaultLayer->addObject(&application->biomeFloorModelInstance);
 	
 
 	
@@ -94,6 +94,9 @@ void GameState::enter()
 	//application->deselectTool(application->currentTool);
 	//application->selectTool(application->forceps);
 	application->pieMenu->select(1);
+	
+	// Position options menu
+	application->optionsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.5f));
 	
 	// Begin fade-in
 	application->fadeInTween->start();

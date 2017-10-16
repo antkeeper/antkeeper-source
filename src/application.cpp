@@ -198,9 +198,6 @@ Application::Application(int argc, char* argv[]):
 		height = windowedHeight;
 	}
 	
-	width = 1920;
-	height = 1080;
-	
 	// Get window title string
 	std::string title;
 	strings.get("title", &title);
@@ -1069,9 +1066,11 @@ bool Application::loadUI()
 	
 	// Build menu system
 	activeMenu = nullptr;
+	previousActiveMenu = nullptr;
 	
 	// Allocate menus
 	mainMenu = new Menu();
+	levelsMenu = new Menu();
 	optionsMenu = new Menu();
 	pauseMenu = new Menu();
 	
@@ -1091,7 +1090,7 @@ bool Application::loadUI()
 		newGameItem->setLabel(newGameString);
 		
 		MenuItem* levelsItem = mainMenu->addItem();
-		levelsItem->setActivatedCallback(std::bind(&std::printf, "0\n"));
+		levelsItem->setActivatedCallback(std::bind(&Application::openMenu, this, levelsMenu));
 		levelsItem->setLabel(levelsString);
 		
 		MenuItem* sandboxItem = mainMenu->addItem();
@@ -1111,6 +1110,59 @@ bool Application::loadUI()
 		uiRootElement->addChild(mainMenu->getUIContainer());
 	}
 	
+	// Levels menu
+	{
+		levelsMenu->setFont(menuFont);
+		levelsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
+		levelsMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
+		levelsMenu->setLineSpacing(1.0f);
+		
+		for (std::size_t world = 0; world < campaign.getWorldCount(); ++world)
+		{
+			for (std::size_t level = 0; level < campaign.getLevelCount(world); ++level)
+			{
+				// Form level ID string
+				char levelIDBuffer[6];
+				std::sprintf(levelIDBuffer, "%02d-%02d", static_cast<int>(world + 1), static_cast<int>(level + 1));
+				std::string levelID(levelIDBuffer);
+				
+				// Look up level name
+				std::string levelName;
+				strings.get(levelIDBuffer, &levelName);
+				
+				// Create label
+				std::string label = levelID + ": " + levelName;
+				
+				MenuItem* levelItem = levelsMenu->addItem();
+				levelItem->setActivatedCallback
+				(
+					[this, world, level]()
+					{
+						closeMenu();
+						loadWorld(world);
+						loadLevel(level);
+						changeState(gameState);
+					}
+				);
+				levelItem->setLabel(label);
+			}
+		}
+		
+		MenuItem* backItem = levelsMenu->addItem();
+		backItem->setActivatedCallback
+		(
+			[this]()
+			{
+				openMenu(previousActiveMenu);
+			}
+		);
+		backItem->setLabel(backString);
+		
+		levelsMenu->getUIContainer()->setActive(false);
+		levelsMenu->getUIContainer()->setVisible(false);
+		uiRootElement->addChild(levelsMenu->getUIContainer());
+	}
+	
 	// Options menu
 	{
 		optionsMenu->setFont(menuFont);
@@ -1118,8 +1170,20 @@ bool Application::loadUI()
 		optionsMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 		optionsMenu->setLineSpacing(1.0f);
 		
+		MenuItem* resolutionItem = optionsMenu->addItem();
+		resolutionItem->setLabel("Resolution");
+		
+		MenuItem* fullscreenItem = optionsMenu->addItem();
+		fullscreenItem->setLabel("Fullscreen");
+		
 		MenuItem* backItem = optionsMenu->addItem();
-		backItem->setActivatedCallback(std::bind(&Application::openMenu, this, mainMenu));
+		backItem->setActivatedCallback
+		(
+			[this]()
+			{
+				openMenu(previousActiveMenu);
+			}
+		);
 		backItem->setLabel(backString);
 		
 		optionsMenu->getUIContainer()->setActive(false);
@@ -1138,13 +1202,33 @@ bool Application::loadUI()
 		resumeItem->setActivatedCallback(std::bind(&Application::unpauseSimulation, this));
 		resumeItem->setLabel("Resume");
 		
+		MenuItem* levelsItem = pauseMenu->addItem();
+		levelsItem->setActivatedCallback(std::bind(&Application::openMenu, this, levelsMenu));
+		levelsItem->setLabel(levelsString);
+		
+		MenuItem* optionsItem = pauseMenu->addItem();
+		optionsItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
+		optionsItem->setLabel(optionsString);
+		
 		MenuItem* mainMenuItem = pauseMenu->addItem();
-		mainMenuItem->setActivatedCallback(std::bind(&Application::changeState, this, titleState));
+		mainMenuItem->setActivatedCallback
+		(
+			[this]()
+			{
+				// Close pause menu
+				closeMenu();
+				
+				// Begin fade-out to title state
+				fadeOutTween->setEndCallback(std::bind(&Application::changeState, this, titleState));
+				fadeOutTween->reset();
+				fadeOutTween->start();
+			}
+		);
 		mainMenuItem->setLabel("Main Menu");
 		
-		MenuItem* desktopItem = pauseMenu->addItem();
-		desktopItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
-		desktopItem->setLabel("Exit to Desktop");
+		MenuItem* exitItem = pauseMenu->addItem();
+		exitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
+		exitItem->setLabel(exitString);
 		
 		pauseMenu->getUIContainer()->setActive(false);
 		pauseMenu->getUIContainer()->setVisible(false);
@@ -1318,6 +1402,7 @@ void Application::closeMenu()
 		activeMenu->getUIContainer()->setActive(false);
 		activeMenu->getUIContainer()->setVisible(false);
 		
+		previousActiveMenu = activeMenu;
 		activeMenu = nullptr;
 	}
 }
@@ -1362,6 +1447,13 @@ void Application::continueGame()
 
 void Application::newGame()
 {
+	// Close main menu
+	closeMenu();
+	
+	// Begin title fade-out
+	titleFadeOutTween->reset();
+	titleFadeOutTween->start();
+	
 	if (currentWorldIndex != 0 || currentLevelIndex != 0)
 	{
 		// Select first level of the first world
@@ -1380,8 +1472,6 @@ void Application::newGame()
 	}
 	else
 	{
-		closeMenu();
-
 		// Begin fade-out
 		fadeOutTween->setEndCallback(std::bind(&Application::changeState, this, gameState));
 		fadeOutTween->reset();

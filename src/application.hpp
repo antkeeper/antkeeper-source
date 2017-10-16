@@ -300,7 +300,9 @@ public:
 	
 	// Menus
 	Menu* activeMenu;
+	Menu* previousActiveMenu;
 	Menu* mainMenu;
+	Menu* levelsMenu;
 	Menu* optionsMenu;
 	Menu* pauseMenu;
 	

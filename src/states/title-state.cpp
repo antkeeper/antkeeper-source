@@ -56,9 +56,13 @@ void TitleState::enter()
 	
 	// Show title
 	application->titleImage->setVisible(true);
+	application->titleImage->setTintColor(Vector4(1.0f));
 
 	// Open main menu
 	application->openMenu(application->mainMenu);
+	
+	// Position options menu
+	application->optionsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
 	
 	// Setup fade-in
 	application->blackoutImage->setVisible(true);
