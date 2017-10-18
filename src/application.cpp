@@ -1421,12 +1421,23 @@ bool Application::loadGame()
 
 void Application::resizeUI()
 {
+	// Adjust render target dimensions
+	defaultRenderTarget.width = static_cast<int>(resolution.x);
+	defaultRenderTarget.height = static_cast<int>(resolution.y);
+	
 	// Adjust UI dimensions
 	uiRootElement->setDimensions(resolution);
 	uiRootElement->update();
 	
+	darkenImage->setDimensions(resolution);
+	
 	// Adjust UI camera projection
 	uiCamera.setOrthographic(0.0f, resolution.x, resolution.y, 0.0f, -1.0f, 1.0f);
+}
+
+void Application::restringUI()
+{
+	
 }
 
 void Application::openMenu(Menu* menu)

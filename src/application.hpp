@@ -87,6 +87,7 @@ public:
 	
 	
 	void resizeUI();
+	void restringUI();
 	
 	void openMenu(Menu* menu);
 	void closeMenu();
