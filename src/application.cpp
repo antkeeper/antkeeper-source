@@ -39,6 +39,7 @@
 #include <cstdio>
 #include <sstream>
 #include <SDL2/SDL.h>
+#include <dirent.h>
 
 #define OPENGL_VERSION_MAJOR 3
 #define OPENGL_VERSION_MINOR 3
@@ -113,20 +114,6 @@ Application::Application(int argc, char* argv[]):
 	// Get values of required settings
 	settings.get("fullscreen", &fullscreen);
 	settings.get("swap_interval", &swapInterval);
-	
-	// Load strings
-	std::string language;
-	settings.get("language", &language);
-	std::string stringsFile = appDataPath + "strings/" + language + ".txt";
-	std::cout << "Loading strings from \"" << stringsFile << "\"... ";
-	if (!strings.load(stringsFile))
-	{
-		std::cout << "failed" << std::endl;
-	}
-	else
-	{
-		std::cout << "success" << std::endl;
-	}
 
 	// Select OpenGL version
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -334,6 +321,71 @@ Application::Application(int argc, char* argv[]):
 	
 	// Print font size
 	std::cout << "Base font size is " << fontSizePT << "pt (" << fontSizePX << "px)" << std::endl;
+	
+	// Get requested language
+	languageIndex = 0;
+	std::string requestedLanguage;
+	settings.get("language", &requestedLanguage);
+	
+	// Find available languages
+	{
+		std::string stringsDirectory = appDataPath + "strings/";
+		
+		// Open strings directory
+		DIR* dir = opendir(stringsDirectory.c_str());
+		if (dir == nullptr)
+		{
+			std::cout << "Failed to open strings directory \"" << stringsDirectory << "\"" << std::endl;
+			close(EXIT_FAILURE);
+			return;
+		}
+		
+		// Scan directory for .txt files
+		for (struct dirent* entry = readdir(dir); entry != nullptr; entry = readdir(dir))
+		{
+			if (entry->d_type == DT_DIR || *entry->d_name == '.')
+			{
+				continue;
+			}
+			
+			std::string filename = entry->d_name;
+			std::string::size_type delimeter = filename.find_last_of('.');
+			if (delimeter == std::string::npos)
+			{
+				continue;
+			}
+			
+			std::string extension = filename.substr(delimeter + 1);
+			if (extension != "txt")
+			{
+				continue;
+			}
+			
+			// Add language
+			std::string language = filename.substr(0, delimeter);
+			languages.push_back(language);
+			
+			if (language == requestedLanguage)
+			{
+				languageIndex = languages.size() - 1;
+			}
+		}
+		
+		// Close biomes directory
+		closedir(dir);
+	}
+	
+	// Load strings
+	std::string stringsFile = appDataPath + "strings/" + languages[languageIndex] + ".txt";
+	std::cout << "Loading strings from \"" << stringsFile << "\"... ";
+	if (!strings.load(stringsFile))
+	{
+		std::cout << "failed" << std::endl;
+	}
+	else
+	{
+		std::cout << "success" << std::endl;
+	}
 	
 	// Setup input
 	inputManager = new SDLInputManager();
@@ -815,42 +867,6 @@ bool Application::loadUI()
 	depthTexture->setWidth(shadowMapResolution);
 	depthTexture->setHeight(shadowMapResolution);
 	
-	// Get strings
-	std::string pressAnyKeyString;
-	std::string backString;
-	std::string continueString;
-	std::string newGameString;
-	std::string levelsString;
-	std::string sandboxString;
-	std::string optionsString;
-	std::string exitString;
-	std::string loadString;
-	std::string newString;
-	std::string videoString;
-	std::string audioString;
-	std::string controlsString;
-	std::string gameString;
-	std::string resumeString;
-	std::string returnToMainMenuString;
-	std::string quitToDesktopString;
-	strings.get("press-any-key", &pressAnyKeyString);
-	strings.get("back", &backString);
-	strings.get("continue", &continueString);
-	strings.get("new-game", &newGameString);
-	strings.get("levels", &levelsString);
-	strings.get("sandbox", &sandboxString);
-	strings.get("options", &optionsString);
-	strings.get("exit", &exitString);
-	strings.get("load", &loadString);
-	strings.get("new", &newString);
-	strings.get("video", &videoString);
-	strings.get("audio", &audioString);
-	strings.get("controls", &controlsString);
-	strings.get("game", &gameString);
-	strings.get("resume", &resumeString);
-	strings.get("return-to-main-menu", &returnToMainMenuString);
-	strings.get("quit-to-desktop", &quitToDesktopString);
-	
 	// Set colors
 	selectedColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	deselectedColor = Vector4(1.0f, 1.0f, 1.0f, 0.35f);
@@ -925,7 +941,6 @@ bool Application::loadUI()
 	anyKeyLabel->setAnchor(Vector2(0.5f, 1.0f));
 	anyKeyLabel->setFont(menuFont);
 	anyKeyLabel->setTranslation(Vector2(0.0f, (int)(-resolution.y * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 0.5f)));
-	anyKeyLabel->setText(pressAnyKeyString);
 	anyKeyLabel->setVisible(false);
 	uiRootElement->addChild(anyKeyLabel);
 	
@@ -995,8 +1010,6 @@ bool Application::loadUI()
 	pieMenu->resize();
 	pieMenu->getContainer()->setVisible(false);
 	pieMenu->getContainer()->setActive(true);
-	
-
 	
 	// Setup screen fade in/fade out tween
 	fadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 2.0f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
@@ -1083,29 +1096,23 @@ bool Application::loadUI()
 		mainMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 		mainMenu->setLineSpacing(1.0f);
 		
-		MenuItem* continueItem = mainMenu->addItem();
-		continueItem->setActivatedCallback(std::bind(&Application::continueGame, this));
-		continueItem->setName(continueString);
+		mainMenuContinueItem = mainMenu->addItem();
+		mainMenuContinueItem->setActivatedCallback(std::bind(&Application::continueGame, this));
 		
-		MenuItem* levelsItem = mainMenu->addItem();
-		levelsItem->setActivatedCallback(std::bind(&Application::openMenu, this, levelsMenu));
-		levelsItem->setName(levelsString);
+		mainMenuLevelsItem = mainMenu->addItem();
+		mainMenuLevelsItem->setActivatedCallback(std::bind(&Application::openMenu, this, levelsMenu));
 		
-		MenuItem* newGameItem = mainMenu->addItem();
-		newGameItem->setActivatedCallback(std::bind(&Application::newGame, this));
-		newGameItem->setName(newGameString);
+		mainMenuNewGameItem = mainMenu->addItem();
+		mainMenuNewGameItem->setActivatedCallback(std::bind(&Application::newGame, this));
 		
-		MenuItem* sandboxItem = mainMenu->addItem();
-		sandboxItem->setActivatedCallback(std::bind(&std::printf, "1\n"));
-		sandboxItem->setName(sandboxString);
+		mainMenuSandboxItem = mainMenu->addItem();
+		mainMenuSandboxItem->setActivatedCallback(std::bind(&std::printf, "1\n"));
 		
-		MenuItem* optionsItem = mainMenu->addItem();
-		optionsItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
-		optionsItem->setName(optionsString);
+		mainMenuOptionsItem = mainMenu->addItem();
+		mainMenuOptionsItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
 		
-		MenuItem* exitItem = mainMenu->addItem();
-		exitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
-		exitItem->setName(exitString);
+		mainMenuExitItem = mainMenu->addItem();
+		mainMenuExitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
 		
 		mainMenu->getUIContainer()->setActive(false);
 		mainMenu->getUIContainer()->setVisible(false);
@@ -1123,18 +1130,6 @@ bool Application::loadUI()
 		{
 			for (std::size_t level = 0; level < campaign.getLevelCount(world); ++level)
 			{
-				// Form level ID string
-				char levelIDBuffer[6];
-				std::sprintf(levelIDBuffer, "%02d-%02d", static_cast<int>(world + 1), static_cast<int>(level + 1));
-				std::string levelID(levelIDBuffer);
-				
-				// Look up level name
-				std::string levelName;
-				strings.get(levelIDBuffer, &levelName);
-				
-				// Create label
-				std::string label = levelID + ": " + levelName;
-				
 				MenuItem* levelItem = levelsMenu->addItem();
 				levelItem->setActivatedCallback
 				(
@@ -1156,19 +1151,17 @@ bool Application::loadUI()
 						fadeOutTween->start();
 					}
 				);
-				levelItem->setName(label);
 			}
 		}
 		
-		MenuItem* backItem = levelsMenu->addItem();
-		backItem->setActivatedCallback
+		levelsMenuBackItem = levelsMenu->addItem();
+		levelsMenuBackItem->setActivatedCallback
 		(
 			[this]()
 			{
 				openMenu(previousActiveMenu);
 			}
 		);
-		backItem->setName(backString);
 		
 		levelsMenu->getUIContainer()->setActive(false);
 		levelsMenu->getUIContainer()->setVisible(false);
@@ -1183,59 +1176,53 @@ bool Application::loadUI()
 		optionsMenu->setLineSpacing(1.0f);
 		optionsMenu->setColumnMargin(menuFont->getWidth("MM"));
 		
-		MenuItem* windowedResolutionItem = optionsMenu->addItem();
-		windowedResolutionItem->setName("Windowed Resolution");
-		MenuItem* fullscreenResolutionItem = optionsMenu->addItem();
-		fullscreenResolutionItem->setName("Fullscreen Resolution");
+		optionsMenuWindowedResolutionItem = optionsMenu->addItem();
+		optionsMenuFullscreenResolutionItem = optionsMenu->addItem();
 		for (const Vector2& resolution: resolutions)
 		{
-			std::stringstream stream;
-			stream << resolution.x << "x" << resolution.y;
-			
-			windowedResolutionItem->addValue(stream.str());
-			fullscreenResolutionItem->addValue(stream.str());
+			optionsMenuWindowedResolutionItem->addValue();
+			optionsMenuFullscreenResolutionItem->addValue();
 		}
-		windowedResolutionItem->setValueIndex(windowedResolutionIndex);
-		windowedResolutionItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
-		windowedResolutionItem->setValueChangedCallback(std::bind(&Application::selectWindowedResolution, this, std::placeholders::_1));
-		fullscreenResolutionItem->setValueIndex(fullscreenResolutionIndex);
-		fullscreenResolutionItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
-		fullscreenResolutionItem->setValueChangedCallback(std::bind(&Application::selectFullscreenResolution, this, std::placeholders::_1));
+		optionsMenuWindowedResolutionItem->setValueIndex(windowedResolutionIndex);
+		optionsMenuWindowedResolutionItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		optionsMenuWindowedResolutionItem->setValueChangedCallback(std::bind(&Application::selectWindowedResolution, this, std::placeholders::_1));
+		optionsMenuFullscreenResolutionItem->setValueIndex(fullscreenResolutionIndex);
+		optionsMenuFullscreenResolutionItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		optionsMenuFullscreenResolutionItem->setValueChangedCallback(std::bind(&Application::selectFullscreenResolution, this, std::placeholders::_1));
 		
-		MenuItem* fullscreenItem = optionsMenu->addItem();
-		fullscreenItem->setName("Fullscreen");
-		fullscreenItem->addValue("Off");
-		fullscreenItem->addValue("On");
-		fullscreenItem->setValueIndex((fullscreen == 0) ? 0 : 1);
-		fullscreenItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
-		fullscreenItem->setValueChangedCallback(std::bind(&Application::selectFullscreenMode, this, std::placeholders::_1));
+		optionsMenuFullscreenItem = optionsMenu->addItem();
+		optionsMenuFullscreenItem->addValue();
+		optionsMenuFullscreenItem->addValue();
+		optionsMenuFullscreenItem->setValueIndex((fullscreen == 0) ? 0 : 1);
+		optionsMenuFullscreenItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		optionsMenuFullscreenItem->setValueChangedCallback(std::bind(&Application::selectFullscreenMode, this, std::placeholders::_1));
 		
-		MenuItem* vsyncItem = optionsMenu->addItem();
-		vsyncItem->setName("VSync");
-		vsyncItem->addValue("Off");
-		vsyncItem->addValue("On");
-		vsyncItem->setValueIndex((swapInterval == 0) ? 0 : 1);
-		vsyncItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
-		vsyncItem->setValueChangedCallback(std::bind(&Application::selectVSyncMode, this, std::placeholders::_1));
+		optionsMenuVSyncItem = optionsMenu->addItem();
+		optionsMenuVSyncItem->addValue();
+		optionsMenuVSyncItem->addValue();
+		optionsMenuVSyncItem->setValueIndex((swapInterval == 0) ? 0 : 1);
+		optionsMenuVSyncItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		optionsMenuVSyncItem->setValueChangedCallback(std::bind(&Application::selectVSyncMode, this, std::placeholders::_1));
 		
-		MenuItem* languageItem = optionsMenu->addItem();
-		languageItem->setName("Language");
-		languageItem->addValue("English");
-		languageItem->addValue("Chinese");
-		languageItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		optionsMenuLanguageItem = optionsMenu->addItem();
+		for (std::size_t i = 0; i < languages.size(); ++i)
+		{
+			optionsMenuLanguageItem->addValue();
+		}
+		optionsMenuLanguageItem->setValueIndex(languageIndex);
+		optionsMenuLanguageItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		optionsMenuLanguageItem->setValueChangedCallback(std::bind(&Application::selectLanguage, this, std::placeholders::_1));
 		
-		MenuItem* controlsItem = optionsMenu->addItem();
-		controlsItem->setName("Controls");
+		optionsMenuControlsItem = optionsMenu->addItem();
 		
-		MenuItem* backItem = optionsMenu->addItem();
-		backItem->setActivatedCallback
+		optionsMenuBackItem = optionsMenu->addItem();
+		optionsMenuBackItem->setActivatedCallback
 		(
 			[this]()
 			{
 				openMenu(previousActiveMenu);
 			}
 		);
-		backItem->setName(backString);
 		
 		optionsMenu->getUIContainer()->setActive(false);
 		optionsMenu->getUIContainer()->setVisible(false);
@@ -1249,20 +1236,17 @@ bool Application::loadUI()
 		pauseMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 		pauseMenu->setLineSpacing(1.0f);
 		
-		MenuItem* resumeItem = pauseMenu->addItem();
-		resumeItem->setActivatedCallback(std::bind(&Application::unpauseSimulation, this));
-		resumeItem->setName("Resume");
+		pauseMenuResumeItem = pauseMenu->addItem();
+		pauseMenuResumeItem->setActivatedCallback(std::bind(&Application::unpauseSimulation, this));
 		
-		MenuItem* levelsItem = pauseMenu->addItem();
-		levelsItem->setActivatedCallback(std::bind(&Application::openMenu, this, levelsMenu));
-		levelsItem->setName(levelsString);
+		pauseMenuLevelsItem = pauseMenu->addItem();
+		pauseMenuLevelsItem->setActivatedCallback(std::bind(&Application::openMenu, this, levelsMenu));
 		
-		MenuItem* optionsItem = pauseMenu->addItem();
-		optionsItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
-		optionsItem->setName(optionsString);
+		pauseMenuOptionsItem = pauseMenu->addItem();
+		pauseMenuOptionsItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
 		
-		MenuItem* mainMenuItem = pauseMenu->addItem();
-		mainMenuItem->setActivatedCallback
+		pauseMenuMainMenuItem = pauseMenu->addItem();
+		pauseMenuMainMenuItem->setActivatedCallback
 		(
 			[this]()
 			{
@@ -1275,16 +1259,17 @@ bool Application::loadUI()
 				fadeOutTween->start();
 			}
 		);
-		mainMenuItem->setName("Main Menu");
 		
-		MenuItem* exitItem = pauseMenu->addItem();
-		exitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
-		exitItem->setName(exitString);
+		pauseMenuExitItem = pauseMenu->addItem();
+		pauseMenuExitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
 		
 		pauseMenu->getUIContainer()->setActive(false);
 		pauseMenu->getUIContainer()->setVisible(false);
 		uiRootElement->addChild(pauseMenu->getUIContainer());
 	}
+	
+	// Set UI strings
+	restringUI();
 	
 	// Setup UI batch
 	uiBatch = new BillboardBatch();
@@ -1437,7 +1422,116 @@ void Application::resizeUI()
 
 void Application::restringUI()
 {
+	// Get strings
+	std::string pressAnyKeyString;
+	std::string backString;
+	std::string onString;
+	std::string offString;
+	std::string continueString;
+	std::string newGameString;
+	std::string levelsString;
+	std::string sandboxString;
+	std::string optionsString;
+	std::string exitString;
+	std::string windowedResolutionString;
+	std::string fullscreenResolutionString;
+	std::string fullscreenString;
+	std::string verticalSyncString;
+	std::string languageString;
+	std::string controlsString;
+	std::string resumeString;
+	std::string mainMenuString;
 	
+	strings.get("press-any-key", &pressAnyKeyString);
+	strings.get("back", &backString);
+	strings.get("on", &onString);
+	strings.get("off", &offString);
+	strings.get("continue", &continueString);
+	strings.get("new-game", &newGameString);
+	strings.get("levels", &levelsString);
+	strings.get("sandbox", &sandboxString);
+	strings.get("options", &optionsString);
+	strings.get("exit", &exitString);
+	strings.get("windowed-resolution", &windowedResolutionString);
+	strings.get("fullscreen-resolution", &fullscreenResolutionString);
+	strings.get("fullscreen", &fullscreenString);
+	strings.get("vertical-sync", &verticalSyncString);
+	strings.get("language", &languageString);
+	strings.get("controls", &controlsString);
+	strings.get("resume", &resumeString);
+	strings.get("main-menu", &mainMenuString);
+	
+	// Title screen
+	anyKeyLabel->setText(pressAnyKeyString);
+	
+	// Main menu
+	mainMenuContinueItem->setName(continueString);
+	mainMenuLevelsItem->setName(levelsString);
+	mainMenuNewGameItem->setName(newGameString);
+	mainMenuSandboxItem->setName(sandboxString);
+	mainMenuOptionsItem->setName(optionsString);
+	mainMenuExitItem->setName(exitString);
+	
+	// Levels menu
+	std::size_t levelItemIndex = 0;
+	for (std::size_t world = 0; world < campaign.getWorldCount(); ++world)
+	{
+		for (std::size_t level = 0; level < campaign.getLevelCount(world); ++level)
+		{
+			// Look up level name
+			std::string levelName = getLevelName(world, level);
+			
+			// Create label
+			std::stringstream stream;
+			stream << (world + 1) << "-" << (level + 1) << ": " << levelName;
+			
+			// Set item name
+			MenuItem* levelItem = levelsMenu->getItem(levelItemIndex);
+			levelItem->setName(stream.str());
+			
+			++levelItemIndex;
+		}
+	}
+	levelsMenuBackItem->setName(backString);
+	
+	// Options menu
+	optionsMenuWindowedResolutionItem->setName(windowedResolutionString);
+	optionsMenuFullscreenResolutionItem->setName(fullscreenResolutionString);
+	std::size_t resolutionIndex = 0;
+	for (std::size_t i = 0; i < resolutions.size(); ++i)
+	{
+		
+		std::stringstream stream;
+		stream << resolutions[i].x << "x" << resolutions[i].y;
+		
+		optionsMenuWindowedResolutionItem->setValueName(i, stream.str());
+		optionsMenuFullscreenResolutionItem->setValueName(i, stream.str());
+	}
+	optionsMenuFullscreenItem->setName(fullscreenString);
+	optionsMenuFullscreenItem->setValueName(0, offString);
+	optionsMenuFullscreenItem->setValueName(1, onString);
+	optionsMenuVSyncItem->setName(verticalSyncString);
+	optionsMenuVSyncItem->setValueName(0, offString);
+	optionsMenuVSyncItem->setValueName(1, onString);
+	
+	optionsMenuLanguageItem->setName(languageString);
+	for (std::size_t i = 0; i < languages.size(); ++i)
+	{
+		std::string languageName;
+		strings.get(languages[i], &languageName);
+		
+		optionsMenuLanguageItem->setValueName(i, languageName);
+	}
+	
+	optionsMenuControlsItem->setName(controlsString);
+	optionsMenuBackItem->setName(backString);
+	
+	// Pause menu
+	pauseMenuResumeItem->setName(resumeString);
+	pauseMenuLevelsItem->setName(levelsString);
+	pauseMenuOptionsItem->setName(optionsString);
+	pauseMenuMainMenuItem->setName(mainMenuString);
+	pauseMenuExitItem->setName(exitString);
 }
 
 void Application::openMenu(Menu* menu)
@@ -1835,5 +1929,28 @@ void Application::selectVSyncMode(std::size_t index)
 
 void Application::selectLanguage(std::size_t index)
 {
+	// Set language index
+	languageIndex = index;
 	
+	// Clear strings
+	strings.clear();
+	
+	// Load strings
+	std::string stringsFile = appDataPath + "strings/" + languages[languageIndex] + ".txt";
+	std::cout << "Loading strings from \"" << stringsFile << "\"... ";
+	if (!strings.load(stringsFile))
+	{
+		std::cout << "failed" << std::endl;
+	}
+	else
+	{
+		std::cout << "success" << std::endl;
+	}
+	
+	// Save settings
+	settings.set("language", languages[languageIndex]);
+	saveUserSettings();
+	
+	// Restring UI
+	restringUI();
 }

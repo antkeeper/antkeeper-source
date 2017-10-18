@@ -36,6 +36,7 @@ using namespace Emergent;
 #include "ui/tween.hpp"
 
 class Menu;
+class MenuItem;
 class ApplicationState;
 class Colony;
 class LoadingState;
@@ -303,10 +304,33 @@ public:
 	// Menus
 	Menu* activeMenu;
 	Menu* previousActiveMenu;
+	
 	Menu* mainMenu;
+	MenuItem* mainMenuContinueItem;
+	MenuItem* mainMenuLevelsItem;
+	MenuItem* mainMenuNewGameItem;
+	MenuItem* mainMenuSandboxItem;
+	MenuItem* mainMenuOptionsItem;
+	MenuItem* mainMenuExitItem;
+	
 	Menu* levelsMenu;
+	MenuItem* levelsMenuBackItem;
+	
 	Menu* optionsMenu;
+	MenuItem* optionsMenuWindowedResolutionItem;
+	MenuItem* optionsMenuFullscreenResolutionItem;
+	MenuItem* optionsMenuFullscreenItem;
+	MenuItem* optionsMenuVSyncItem;
+	MenuItem* optionsMenuLanguageItem;
+	MenuItem* optionsMenuControlsItem;
+	MenuItem* optionsMenuBackItem;
+	
 	Menu* pauseMenu;
+	MenuItem* pauseMenuResumeItem;
+	MenuItem* pauseMenuLevelsItem;
+	MenuItem* pauseMenuOptionsItem;
+	MenuItem* pauseMenuMainMenuItem;
+	MenuItem* pauseMenuExitItem;
 	
 	// Models
 	Model* antModel;
@@ -349,7 +373,8 @@ public:
 	std::size_t fullscreenResolutionIndex;
 	int* fullscreenModes;
 	int* vsyncModes;
-	std::string* languages;
+	std::vector<std::string> languages;
+	std::size_t languageIndex;
 };
 
 #endif // APPLICATION_HPP

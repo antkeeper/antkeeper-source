@@ -40,8 +40,9 @@ public:
 	void setValueChangedCallback(std::function<void(std::size_t)> callback);
 	
 	void setName(const std::string& text);
-	void addValue(const std::string& text);
+	std::size_t addValue();
 	void removeValues();
+	void setValueName(std::size_t index, const std::string& text);
 	void setValueIndex(std::size_t index);
 	
 	std::size_t getValueCount() const;

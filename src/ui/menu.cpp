@@ -107,11 +107,10 @@ void MenuItem::setName(const std::string& text)
 	parent->resize();
 }
 
-void MenuItem::addValue(const std::string& text)
+std::size_t MenuItem::addValue()
 {
-	values.push_back(text);
-	valueLabel->setText(values[valueIndex]);
-	parent->resize();
+	values.push_back(std::string());
+	return (values.size() - 1);
 }
 
 void MenuItem::removeValues()
@@ -120,6 +119,17 @@ void MenuItem::removeValues()
 	valueIndex = 0;
 	valueLabel->setText(std::string());
 	parent->resize();
+}
+
+void MenuItem::setValueName(std::size_t index, const std::string& text)
+{
+	values[index] = text;
+	
+	if (index == valueIndex)
+	{
+		valueLabel->setText(text);	
+		parent->resize();
+	}
 }
 
 void MenuItem::setValueIndex(std::size_t index)

@@ -77,3 +77,8 @@ bool ParameterDict::save(const std::string& filename)
 	
 	return true;
 }
+
+void ParameterDict::clear()
+{
+	parameters.clear();
+}

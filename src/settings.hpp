@@ -35,6 +35,7 @@ public:
 	
 	bool load(const std::string& filename);
 	bool save(const std::string& filename);
+	void clear();
 
 private:
 	std::map<std::string, std::string> parameters;
