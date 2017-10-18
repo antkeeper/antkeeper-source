@@ -27,18 +27,34 @@ MenuItem::MenuItem(Menu* parent, std::size_t index):
 	index(index),
 	selectedCallback(nullptr),
 	deselectedCallback(nullptr),
-	activatedCallback(nullptr)
-{
-	label = new UILabel();
+	activatedCallback(nullptr),
+	valueChangedCallback(nullptr),
+	valueIndex(0),
+	nameLabel(nullptr),
+	valueLabel(nullptr),
+	rowContainer(nullptr)
 	
-	label->setMouseOverCallback(std::bind(&Menu::select, parent, index));
-	label->setMouseMovedCallback(std::bind(&Menu::select, parent, index));
-	label->setMousePressedCallback(std::bind(&Menu::activate, parent));
+{
+	nameLabel = new UILabel();
+	nameLabel->setAnchor(Vector2(0.0f, 0.0f));
+	
+	valueLabel = new UILabel();
+	valueLabel->setAnchor(Vector2(1.0f, 0.0f));
+	
+	rowContainer = new UIContainer();
+	rowContainer->addChild(nameLabel);
+	rowContainer->addChild(valueLabel);
+	
+	rowContainer->setMouseOverCallback(std::bind(&Menu::select, parent, index));
+	rowContainer->setMouseMovedCallback(std::bind(&Menu::select, parent, index));
+	rowContainer->setMousePressedCallback(std::bind(&Menu::activate, parent));
 }
 
 MenuItem::~MenuItem()
 {
-	delete label;
+	delete nameLabel;
+	delete valueLabel;
+	delete rowContainer;
 }
 
 void MenuItem::select()
@@ -80,10 +96,44 @@ void MenuItem::setActivatedCallback(std::function<void()> callback)
 	this->activatedCallback = callback;
 }
 
-void MenuItem::setLabel(const std::string& text)
+void MenuItem::setValueChangedCallback(std::function<void(std::size_t)> callback)
 {
-	label->setText(text);
+	this->valueChangedCallback = callback;
+}
+
+void MenuItem::setName(const std::string& text)
+{
+	nameLabel->setText(text);
 	parent->resize();
+}
+
+void MenuItem::addValue(const std::string& text)
+{
+	values.push_back(text);
+	valueLabel->setText(values[valueIndex]);
+	parent->resize();
+}
+
+void MenuItem::removeValues()
+{
+	values.clear();
+	valueIndex = 0;
+	valueLabel->setText(std::string());
+	parent->resize();
+}
+
+void MenuItem::setValueIndex(std::size_t index)
+{
+	if (valueIndex != index)
+	{
+		valueIndex = index;
+		valueLabel->setText(values[index]);
+		
+		if (valueChangedCallback != nullptr)
+		{
+			valueChangedCallback(index);
+		}
+	}
 }
 
 bool MenuItem::isSelected() const
@@ -96,7 +146,8 @@ Menu::Menu():
 	enteredCallback(nullptr),
 	exitedCallback(nullptr),
 	font(nullptr),
-	lineSpacing(1.0f)
+	lineSpacing(1.0f),
+	columnMargin(0.0f)
 {
 	container = new UIContainer();
 	resize();
@@ -130,12 +181,16 @@ MenuItem* Menu::addItem()
 	MenuItem* item = new MenuItem(this, items.size());
 	items.push_back(item);
 	
-	// Set item label font
-	item->label->setFont(font);
-	item->label->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.35f));
+	// Set item fonts
+	item->nameLabel->setFont(font);
+	item->valueLabel->setFont(font);
 	
-	// Add item label to UI container
-	container->addChild(item->label);
+	// Set item colors
+	item->nameLabel->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.35f));
+	item->valueLabel->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.35f));
+	
+	// Add item labels to UI container
+	container->addChild(item->rowContainer);
 	
 	// Resize UI container
 	resize();
@@ -147,8 +202,8 @@ void Menu::removeItems()
 {
 	for (MenuItem* item: items)
 	{
-		// Remove label from UI container
-		container->removeChild(item->label);
+		// Remove labels from UI container
+		container->removeChild(item->rowContainer);
 		
 		delete item;
 	}
@@ -172,7 +227,8 @@ void Menu::setFont(Font* font)
 	this->font = font;
 	for (MenuItem* item: items)
 	{
-		item->label->setFont(font);
+		item->nameLabel->setFont(font);
+		item->valueLabel->setFont(font);
 	}
 	
 	resize();
@@ -184,13 +240,20 @@ void Menu::setLineSpacing(float spacing)
 	resize();
 }
 
+void Menu::setColumnMargin(float margin)
+{
+	columnMargin = margin;
+	resize();
+}
+
 void Menu::deselect()
 {
 	if (selectedItem != nullptr)
 	{
 		selectedItem->deselect();
 		
-		selectedItem->label->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.35f));
+		selectedItem->nameLabel->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.35f));
+		selectedItem->valueLabel->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.35f));
 		
 		selectedItem = nullptr;
 	}
@@ -204,7 +267,8 @@ void Menu::select(std::size_t index)
 	item->select();
 	
 	selectedItem = item;
-	selectedItem->label->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	selectedItem->nameLabel->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	selectedItem->valueLabel->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
 void Menu::activate()
@@ -223,14 +287,37 @@ void Menu::resize()
 	}
 	else
 	{
-		Vector2 dimensions(0.0f);
+		// Determine maximum width of menu
+		float menuWidth = 0.0f;
+		
+		// For each menu item
 		for (std::size_t i = 0; i < items.size(); ++i)
 		{
 			const MenuItem* item = items[i];
 			
-			item->label->setTranslation(Vector2(0.0f, static_cast<int>(font->getMetrics().getHeight() * lineSpacing * static_cast<float>(i))));
+			// Calculate width of item name label
+			float nameLabelWidth = item->nameLabel->getDimensions().x;
 			
-			dimensions.x = std::max<float>(dimensions.x, item->label->getDimensions().x);
+			// For each item value
+			for (std::size_t j = 0; j < item->getValueCount(); ++j)
+			{
+				// Calculate width of item value label
+				float valueLabelWidth = font->getWidth(item->getValue(j).c_str());
+				
+				menuWidth = std::max<float>(menuWidth, nameLabelWidth + columnMargin + valueLabelWidth);
+			}
+			menuWidth = std::max<float>(menuWidth, nameLabelWidth);
+		}
+		
+		Vector2 dimensions(menuWidth, 0.0f);
+		for (std::size_t i = 0; i < items.size(); ++i)
+		{
+			const MenuItem* item = items[i];
+			
+			float translationY = static_cast<float>(static_cast<int>(font->getMetrics().getHeight() * lineSpacing * static_cast<float>(i)));
+			
+			item->rowContainer->setDimensions(Vector2(menuWidth, font->getMetrics().getHeight()));
+			item->rowContainer->setTranslation(Vector2(0.0f, translationY));
 			
 			if (!i)
 			{

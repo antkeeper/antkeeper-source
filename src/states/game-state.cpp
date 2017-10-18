@@ -38,6 +38,19 @@ GameState::~GameState()
 
 void GameState::enter()
 {
+	int continueWorld = -1;
+	int continueLevel = -1;
+	application->settings.get("continue_world", &continueWorld);
+	application->settings.get("continue_level", &continueLevel);
+	
+	if (continueWorld != application->currentWorldIndex || continueLevel != application->currentLevelIndex)
+	{
+		// Save continue world and level indices
+		application->settings.set("continue_world", application->currentWorldIndex);
+		application->settings.set("continue_level", application->currentLevelIndex);
+		application->saveUserSettings();
+	}
+	
 	// Setup HUD
 	application->rectangularPaletteImage->setVisible(true);
 	application->rectangularPaletteImage->setActive(true);
@@ -97,6 +110,11 @@ void GameState::enter()
 	
 	// Position options menu
 	application->optionsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.5f));
+	application->levelsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.5f));
+	
+	// Show level name
+	application->levelNameLabel->setText(application->getLevelName(application->currentWorldIndex, application->currentLevelIndex));
+	//application->levelNameLabel->setVisible(true);
 	
 	// Begin fade-in
 	application->fadeInTween->start();
@@ -128,9 +146,9 @@ void GameState::execute()
 		{
 			if (selectedItem != nullptr)
 			{
-				if (selectedItem->getIndex() < application->activeMenu->getItemCount() - 1)
+				if (selectedItem->getItemIndex() < application->activeMenu->getItemCount() - 1)
 				{
-					application->selectMenuItem(selectedItem->getIndex() + 1);
+					application->selectMenuItem(selectedItem->getItemIndex() + 1);
 				}
 				else
 				{
@@ -146,9 +164,9 @@ void GameState::execute()
 		{
 			if (selectedItem != nullptr)
 			{
-				if (selectedItem->getIndex() > 0)
+				if (selectedItem->getItemIndex() > 0)
 				{
-					application->selectMenuItem(selectedItem->getIndex() - 1);
+					application->selectMenuItem(selectedItem->getItemIndex() - 1);
 				}
 				else
 				{
@@ -159,6 +177,15 @@ void GameState::execute()
 			{
 				application->selectMenuItem(application->activeMenu->getItemCount() - 1);
 			}
+		}
+		
+		if (application->menuLeft.isTriggered() && !application->menuLeft.wasTriggered())
+		{
+			application->decrementMenuItem();
+		}
+		else if (application->menuRight.isTriggered() && !application->menuRight.wasTriggered())
+		{
+			application->incrementMenuItem();
 		}
 		
 		if (application->menuSelect.isTriggered() && !application->menuSelect.wasTriggered())
@@ -223,8 +250,8 @@ void GameState::execute()
 	
 	// Picking
 	glm::ivec2 mousePosition = application->mouse->getCurrentPosition();
-	mousePosition.y = application->height - mousePosition.y;
-	Vector4 viewport(0.0f, 0.0f, application->width, application->height);
+	mousePosition.y = application->resolution.y - mousePosition.y;
+	Vector4 viewport(0.0f, 0.0f, application->resolution.x, application->resolution.y);
 	Vector3 mouseNear = application->camera.unproject(Vector3(mousePosition.x, mousePosition.y, 0.0f), viewport);
 	Vector3 mouseFar = application->camera.unproject(Vector3(mousePosition.x, mousePosition.y, 1.0f), viewport);
 	

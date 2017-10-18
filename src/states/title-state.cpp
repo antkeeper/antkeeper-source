@@ -37,7 +37,13 @@ void TitleState::enter()
 	application->backgroundLayer->addObject(&application->bgBatch);
 	
 	application->inputManager->addWindowObserver(this);
-	windowResized(application->width, application->height);
+	windowResized(application->resolution.x, application->resolution.y);
+	
+	application->camera.setPerspective(
+		glm::radians(25.0f),
+		application->resolution.x / application->resolution.y,
+		0.1f,
+		1000.0f);
 	
 	// Setup camera controller
 	application->surfaceCam->setCamera(&application->camera);
@@ -63,6 +69,7 @@ void TitleState::enter()
 	
 	// Position options menu
 	application->optionsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
+	application->levelsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
 	
 	// Setup fade-in
 	application->blackoutImage->setVisible(true);
@@ -80,9 +87,9 @@ void TitleState::execute()
 		{
 			if (selectedItem != nullptr)
 			{
-				if (selectedItem->getIndex() < application->activeMenu->getItemCount() - 1)
+				if (selectedItem->getItemIndex() < application->activeMenu->getItemCount() - 1)
 				{
-					application->selectMenuItem(selectedItem->getIndex() + 1);
+					application->selectMenuItem(selectedItem->getItemIndex() + 1);
 				}
 				else
 				{
@@ -98,9 +105,9 @@ void TitleState::execute()
 		{
 			if (selectedItem != nullptr)
 			{
-				if (selectedItem->getIndex() > 0)
+				if (selectedItem->getItemIndex() > 0)
 				{
-					application->selectMenuItem(selectedItem->getIndex() - 1);
+					application->selectMenuItem(selectedItem->getItemIndex() - 1);
 				}
 				else
 				{
@@ -111,6 +118,15 @@ void TitleState::execute()
 			{
 				application->selectMenuItem(application->activeMenu->getItemCount() - 1);
 			}
+		}
+		
+		if (application->menuLeft.isTriggered() && !application->menuLeft.wasTriggered())
+		{
+			application->decrementMenuItem();
+		}
+		else if (application->menuRight.isTriggered() && !application->menuRight.wasTriggered())
+		{
+			application->incrementMenuItem();
 		}
 		
 		if (application->menuSelect.isTriggered() && !application->menuSelect.wasTriggered())
@@ -158,6 +174,7 @@ void TitleState::windowClosed()
 
 void TitleState::windowResized(int width, int height)
 {
+	/*
 	// Update application dimensions
 	application->width = width;
 	application->height = height;
@@ -185,4 +202,5 @@ void TitleState::windowResized(int width, int height)
 		(float)application->width / (float)application->height,
 		0.1f,
 		1000.0f);
+	*/
 }

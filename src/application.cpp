@@ -43,6 +43,8 @@
 #define OPENGL_VERSION_MAJOR 3
 #define OPENGL_VERSION_MINOR 3
 
+#undef max
+
 Application::Application(int argc, char* argv[]):
 	state(nullptr),
 	nextState(nullptr),
@@ -110,10 +112,6 @@ Application::Application(int argc, char* argv[]):
 	
 	// Get values of required settings
 	settings.get("fullscreen", &fullscreen);
-	settings.get("fullscreen_width", &fullscreenWidth);
-	settings.get("fullscreen_height", &fullscreenHeight);
-	settings.get("windowed_width", &windowedWidth);
-	settings.get("windowed_height", &windowedHeight);
 	settings.get("swap_interval", &swapInterval);
 	
 	// Load strings
@@ -141,61 +139,83 @@ Application::Application(int argc, char* argv[]):
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-	// Check desktop display mode
-	SDL_DisplayMode displayMode;
-	if (SDL_GetDesktopDisplayMode(0, &displayMode) != 0)
+	
+	// Get all possible display modes for the default display
+	int displayModeCount = SDL_GetNumDisplayModes(0);
+	for (int i = displayModeCount - 1; i >= 0; --i)
+	{
+		SDL_DisplayMode displayMode;
+		
+		if (SDL_GetDisplayMode(0, i, &displayMode) != 0)
+		{
+			std::cerr << "Failed to get display mode: \"" << SDL_GetError() << "\"" << std::endl;
+			close(EXIT_FAILURE);
+			return;
+		}
+		
+		resolutions.push_back(Vector2(displayMode.w, displayMode.h));		
+	}
+	
+	// Read requested windowed and fullscreen resolutions from settings
+	Vector2 requestedWindowedResolution;
+	Vector2 requestedFullscreenResolution;
+	settings.get("windowed_width", &requestedWindowedResolution.x);
+	settings.get("windowed_height", &requestedWindowedResolution.y);
+	settings.get("fullscreen_width", &requestedFullscreenResolution.x);
+	settings.get("fullscreen_height", &requestedFullscreenResolution.y);
+	
+	// Determine desktop resolution
+	SDL_DisplayMode desktopDisplayMode;
+	if (SDL_GetDesktopDisplayMode(0, &desktopDisplayMode) != 0)
 	{
 		std::cerr << "Failed to get desktop display mode: \"" << SDL_GetError() << "\"" << std::endl;
 		close(EXIT_FAILURE);
 		return;
 	}
+	Vector2 desktopResolution;
+	desktopResolution.x = static_cast<float>(desktopDisplayMode.w);
+	desktopResolution.y = static_cast<float>(desktopDisplayMode.h);
 	
-	/*
-	// Check (usable?) display bounds
-	SDL_Rect displayBounds;
-	if (SDL_GetDisplayBounds(0, &displayBounds) != 0)
-	{
-		std::cerr << "Failed to get display bounds: \"" << SDL_GetError() << "\"" << std::endl;
-		close(EXIT_FAILURE);
-		return;
-	}
-	*/
+	// Replace requested resolutions of -1 with native resolution
+	requestedWindowedResolution.x = (requestedWindowedResolution.x == -1.0f) ? desktopResolution.x : requestedWindowedResolution.x;
+	requestedWindowedResolution.y = (requestedWindowedResolution.y == -1.0f) ? desktopResolution.y : requestedWindowedResolution.y;
+	requestedFullscreenResolution.x = (requestedFullscreenResolution.x == -1.0f) ? desktopResolution.x : requestedFullscreenResolution.x;
+	requestedFullscreenResolution.y = (requestedFullscreenResolution.y == -1.0f) ? desktopResolution.y : requestedFullscreenResolution.y;
 	
-	/*
-	SDL_DisplayMode displayMode;
-	if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0)
+	// Find indices of closest resolutions to requested windowed and fullscreen resolutions
+	windowedResolutionIndex = 0;
+	fullscreenResolutionIndex = 0;
+	float minWindowedResolutionDistance = std::numeric_limits<float>::max();
+	float minFullscreenResolutionDistance = std::numeric_limits<float>::max();
+	for (std::size_t i = 0; i < resolutions.size(); ++i)
 	{
-		std::cerr << "Failed to get display mode: \"" << SDL_GetError() << "\"" << std::endl;
-		close(EXIT_FAILURE);
-		return;
-	}
-	*/
-	
-	// Use display resolution if settings request
-	if (windowedWidth == -1 || windowedHeight == -1)
-	{
-		windowedWidth = displayMode.w;
-		windowedHeight = displayMode.h;
-	}
-	if (fullscreenWidth == -1 || fullscreenHeight == -1)
-	{
-		fullscreenWidth = displayMode.w;
-		fullscreenHeight = displayMode.h;
+		Vector2 windowedResolutionDifference = resolutions[i] - requestedWindowedResolution;
+		float windowedResolutionDistance = glm::dot(windowedResolutionDifference, windowedResolutionDifference);
+		if (windowedResolutionDistance <= minWindowedResolutionDistance)
+		{
+			minWindowedResolutionDistance = windowedResolutionDistance;
+			windowedResolutionIndex = i;
+		}
+		
+		Vector2 fullscreenResolutionDifference = resolutions[i] - requestedFullscreenResolution;
+		float fullscreenResolutionDistance = glm::dot(fullscreenResolutionDifference, fullscreenResolutionDifference);
+		if (fullscreenResolutionDistance <= minFullscreenResolutionDistance)
+		{
+			minFullscreenResolutionDistance = fullscreenResolutionDistance;
+			fullscreenResolutionIndex = i;
+		}
 	}
 	
-	// Determine window parameters
+	// Determine window parameters and current resolution
 	Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
 	if (fullscreen)
 	{
-		width = fullscreenWidth;
-		height = fullscreenHeight;
+		resolution = resolutions[fullscreenResolutionIndex];
 		windowFlags |= SDL_WINDOW_FULLSCREEN;
 	}
 	else
 	{
-		width = windowedWidth;
-		height = windowedHeight;
+		resolution = resolutions[windowedResolutionIndex];
 	}
 	
 	// Get window title string
@@ -203,10 +223,10 @@ Application::Application(int argc, char* argv[]):
 	strings.get("title", &title);
 	
 	// Create window
-	std::cout << "Creating a " << width << "x" << height;
+	std::cout << "Creating a " << resolution.x << "x" << resolution.y;
 	std::cout << ((fullscreen) ? " fullscreen" : " windowed");
 	std::cout << " window... ";
-	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, windowFlags);
+	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, static_cast<int>(resolution.x), static_cast<int>(resolution.y), windowFlags);
 	if (window == nullptr)
 	{
 		std::cout << "failed: \"" << SDL_GetError() << "\"" << std::endl;
@@ -216,19 +236,6 @@ Application::Application(int argc, char* argv[]):
 	else
 	{
 		std::cout << "success" << std::endl;
-	}
-	
-	// Get actual window size
-	SDL_GetWindowSize(window, &width, &height);
-	if (fullscreen)
-	{
-		fullscreenWidth = width;
-		fullscreenHeight = height;
-	}
-	else
-	{
-		windowedWidth = width;
-		windowedHeight = height;
 	}
 	
 	// Print video driver
@@ -428,6 +435,10 @@ int Application::execute()
 				// Reset frame timer to counteract frames eaten by state exit() and enter() functions
 				frameTimer.reset();
 			}
+			else
+			{
+				break;
+			}
 		}
 		
 		// Update input
@@ -507,10 +518,9 @@ void Application::changeFullscreen()
 	
 	if (fullscreen)
 	{
-		width = fullscreenWidth;
-		height = fullscreenHeight;
+		resolution = resolutions[fullscreenResolutionIndex];
 		
-		SDL_SetWindowSize(window, width, height);
+		SDL_SetWindowSize(window, static_cast<int>(resolution.x), static_cast<int>(resolution.y));
 		if (SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN) != 0)
 		{
 			std::cerr << "Failed to set fullscreen mode: \"" << SDL_GetError() << "\"" << std::endl;
@@ -519,9 +529,8 @@ void Application::changeFullscreen()
 	}
 	else
 	{
-		width = windowedWidth;
-		height = windowedHeight;
-		
+		resolution = resolutions[windowedResolutionIndex];
+			
 		if (SDL_SetWindowFullscreen(window, 0) != 0)
 		{
 			std::cerr << "Failed to set windowed mode: \"" << SDL_GetError() << "\"" << std::endl;
@@ -529,22 +538,19 @@ void Application::changeFullscreen()
 		}
 		else
 		{
-			SDL_SetWindowSize(window, width, height);
+			SDL_SetWindowSize(window, static_cast<int>(resolution.x), static_cast<int>(resolution.y));
 			SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 		}
 	}
 	
-	// Get actual window size
-	SDL_GetWindowSize(window, &width, &height);
-	
 	// Print mode and resolution
 	if (fullscreen)
 	{
-		std::cout << "Changed to fullscreen mode at resolution " << width << "x" << height << std::endl;
+		std::cout << "Changed to fullscreen mode at resolution " << resolution.x << "x" << resolution.y << std::endl;
 	}
 	else
 	{
-		std::cout << "Changed to windowed mode at resolution " << width << "x" << height << std::endl;
+		std::cout << "Changed to windowed mode at resolution " << resolution.x << "x" << resolution.y << std::endl;
 	}
 	
 	// Save settings
@@ -765,6 +771,12 @@ bool Application::loadUI()
 		std::cerr << "Failed to load copyright font" << std::endl;
 	}
 	
+	levelNameFont = new Font(512, 512);
+	if (!fontLoader->load("data/fonts/Vollkorn-Regular.ttf", static_cast<int>(fontSizePX * 2.0f + 0.5f), levelNameFont))
+	{
+		std::cerr << "Failed to load level name font" << std::endl;
+	}
+	
 	delete fontLoader;
 	
 	// Load UI textures
@@ -848,13 +860,13 @@ bool Application::loadUI()
 	
 	// Setup root UI element
 	uiRootElement = new UIContainer();
-	uiRootElement->setDimensions(Vector2(width, height));
+	uiRootElement->setDimensions(resolution);
 	mouse->addMouseMotionObserver(uiRootElement);
 	mouse->addMouseButtonObserver(uiRootElement);
 	
 	// Create blackout element (for screen transitions)
 	blackoutImage = new UIImage();
-	blackoutImage->setDimensions(Vector2(width, height));
+	blackoutImage->setDimensions(resolution);
 	blackoutImage->setLayerOffset(ANTKEEPER_UI_LAYER_BLACKOUT);
 	blackoutImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 	blackoutImage->setVisible(false);
@@ -862,7 +874,7 @@ bool Application::loadUI()
 	
 	// Create darken element (for darkening title screen)
 	darkenImage = new UIImage();
-	darkenImage->setDimensions(Vector2(width, height));
+	darkenImage->setDimensions(resolution);
 	darkenImage->setLayerOffset(ANTKEEPER_UI_LAYER_DARKEN);
 	darkenImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 0.35f));
 	darkenImage->setVisible(false);
@@ -870,7 +882,7 @@ bool Application::loadUI()
 	
 	// Create splash screen background element
 	splashBackgroundImage = new UIImage();
-	splashBackgroundImage->setDimensions(Vector2(width, height));
+	splashBackgroundImage->setDimensions(resolution);
 	splashBackgroundImage->setLayerOffset(-1);
 	splashBackgroundImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 	splashBackgroundImage->setVisible(false);
@@ -888,7 +900,7 @@ bool Application::loadUI()
 	titleImage = new UIImage();
 	titleImage->setAnchor(Vector2(0.5f, 0.0f));
 	titleImage->setDimensions(Vector2(titleTexture->getWidth(), titleTexture->getHeight()));
-	titleImage->setTranslation(Vector2(0.0f, (int)(height * (1.0f / 4.0f) - titleTexture->getHeight() * 0.5f)));
+	titleImage->setTranslation(Vector2(0.0f, (int)(resolution.y * (1.0f / 4.0f) - titleTexture->getHeight() * 0.5f)));
 	titleImage->setTexture(titleTexture);
 	titleImage->setVisible(false);
 	titleImage->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
@@ -912,7 +924,7 @@ bool Application::loadUI()
 	anyKeyLabel = new UILabel();
 	anyKeyLabel->setAnchor(Vector2(0.5f, 1.0f));
 	anyKeyLabel->setFont(menuFont);
-	anyKeyLabel->setTranslation(Vector2(0.0f, (int)(-height * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 0.5f)));
+	anyKeyLabel->setTranslation(Vector2(0.0f, (int)(-resolution.y * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 0.5f)));
 	anyKeyLabel->setText(pressAnyKeyString);
 	anyKeyLabel->setVisible(false);
 	uiRootElement->addChild(anyKeyLabel);
@@ -949,22 +961,12 @@ bool Application::loadUI()
 	depthTextureImage->setVisible(false);
 	uiRootElement->addChild(depthTextureImage);
 	
-	// Create level ID
-	levelIDLabel = new UILabel();
-	levelIDLabel->setAnchor(Vector2(0.5f, 0.0f));
-	levelIDLabel->setFont(menuFont);
-	levelIDLabel->setTranslation(Vector2(0.0f, (int)(height * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 1.5f)));
-	levelIDLabel->setText("");
-	levelIDLabel->setVisible(false);
-	uiRootElement->addChild(levelIDLabel);
-	
 	// Create level name label
 	levelNameLabel = new UILabel();
-	levelNameLabel->setAnchor(Vector2(0.5f, 0.0f));
-	levelNameLabel->setFont(menuFont);
-	levelNameLabel->setTranslation(Vector2(0.0f, (int)(height * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 0.5f)));
-	levelNameLabel->setText("");
+	levelNameLabel->setAnchor(Vector2(0.5f, 0.5f));
+	levelNameLabel->setFont(levelNameFont);
 	levelNameLabel->setVisible(false);
+	levelNameLabel->setLayerOffset(ANTKEEPER_UI_LAYER_HUD);
 	uiRootElement->addChild(levelNameLabel);
 	
 	// Create toolbar
@@ -979,7 +981,7 @@ bool Application::loadUI()
 	toolbar->addButton(toolForcepsTexture, std::bind(&std::printf, "2\n"), std::bind(&std::printf, "2\n"));
 	toolbar->addButton(toolTrowelTexture, std::bind(&std::printf, "3\n"), std::bind(&std::printf, "3\n"));
 	toolbar->resize();
-	uiRootElement->addChild(toolbar->getContainer());
+	//uiRootElement->addChild(toolbar->getContainer());
 	toolbar->getContainer()->setVisible(false);
 	toolbar->getContainer()->setActive(false);
 	
@@ -1046,7 +1048,7 @@ bool Application::loadUI()
 	Vector4 menuFadeOutDeltaColor = Vector4(0.0f, 0.0f, 0.0f, -1.0f);
 	float menuSlideInDuration = 0.35f;
 	Vector2 menuSlideInStartTranslation = Vector2(-64.0f, 0.0f);
-	Vector2 menuSlideInDeltaTranslation = Vector2((int)(64.0f + width / 8.0f), 0.0f);
+	Vector2 menuSlideInDeltaTranslation = Vector2((int)(64.0f + resolution.x / 8.0f), 0.0f);
 	
 	// Setup main menu tween
 	menuFadeInTween = new Tween<Vector4>(EaseFunction::OUT_QUINT, 0.0f, menuFadeInDuration, menuFadeInStartColor, menuFadeInDeltaColor);
@@ -1083,27 +1085,27 @@ bool Application::loadUI()
 		
 		MenuItem* continueItem = mainMenu->addItem();
 		continueItem->setActivatedCallback(std::bind(&Application::continueGame, this));
-		continueItem->setLabel(continueString);
-		
-		MenuItem* newGameItem = mainMenu->addItem();
-		newGameItem->setActivatedCallback(std::bind(&Application::newGame, this));
-		newGameItem->setLabel(newGameString);
+		continueItem->setName(continueString);
 		
 		MenuItem* levelsItem = mainMenu->addItem();
 		levelsItem->setActivatedCallback(std::bind(&Application::openMenu, this, levelsMenu));
-		levelsItem->setLabel(levelsString);
+		levelsItem->setName(levelsString);
+		
+		MenuItem* newGameItem = mainMenu->addItem();
+		newGameItem->setActivatedCallback(std::bind(&Application::newGame, this));
+		newGameItem->setName(newGameString);
 		
 		MenuItem* sandboxItem = mainMenu->addItem();
 		sandboxItem->setActivatedCallback(std::bind(&std::printf, "1\n"));
-		sandboxItem->setLabel(sandboxString);
+		sandboxItem->setName(sandboxString);
 		
 		MenuItem* optionsItem = mainMenu->addItem();
 		optionsItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
-		optionsItem->setLabel(optionsString);
+		optionsItem->setName(optionsString);
 		
 		MenuItem* exitItem = mainMenu->addItem();
 		exitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
-		exitItem->setLabel(exitString);
+		exitItem->setName(exitString);
 		
 		mainMenu->getUIContainer()->setActive(false);
 		mainMenu->getUIContainer()->setVisible(false);
@@ -1138,13 +1140,23 @@ bool Application::loadUI()
 				(
 					[this, world, level]()
 					{
-						closeMenu();
 						loadWorld(world);
 						loadLevel(level);
-						changeState(gameState);
+						
+						// Close levels menu
+						closeMenu();
+						
+						// Begin title fade-out
+						titleFadeOutTween->reset();
+						titleFadeOutTween->start();
+						
+						// Begin fade-out
+						fadeOutTween->setEndCallback(std::bind(&Application::changeState, this, gameState));
+						fadeOutTween->reset();
+						fadeOutTween->start();
 					}
 				);
-				levelItem->setLabel(label);
+				levelItem->setName(label);
 			}
 		}
 		
@@ -1156,7 +1168,7 @@ bool Application::loadUI()
 				openMenu(previousActiveMenu);
 			}
 		);
-		backItem->setLabel(backString);
+		backItem->setName(backString);
 		
 		levelsMenu->getUIContainer()->setActive(false);
 		levelsMenu->getUIContainer()->setVisible(false);
@@ -1169,12 +1181,51 @@ bool Application::loadUI()
 		optionsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
 		optionsMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 		optionsMenu->setLineSpacing(1.0f);
+		optionsMenu->setColumnMargin(menuFont->getWidth("MM"));
 		
-		MenuItem* resolutionItem = optionsMenu->addItem();
-		resolutionItem->setLabel("Resolution");
+		MenuItem* windowedResolutionItem = optionsMenu->addItem();
+		windowedResolutionItem->setName("Windowed Resolution");
+		MenuItem* fullscreenResolutionItem = optionsMenu->addItem();
+		fullscreenResolutionItem->setName("Fullscreen Resolution");
+		for (const Vector2& resolution: resolutions)
+		{
+			std::stringstream stream;
+			stream << resolution.x << "x" << resolution.y;
+			
+			windowedResolutionItem->addValue(stream.str());
+			fullscreenResolutionItem->addValue(stream.str());
+		}
+		windowedResolutionItem->setValueIndex(windowedResolutionIndex);
+		windowedResolutionItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		windowedResolutionItem->setValueChangedCallback(std::bind(&Application::selectWindowedResolution, this, std::placeholders::_1));
+		fullscreenResolutionItem->setValueIndex(fullscreenResolutionIndex);
+		fullscreenResolutionItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		fullscreenResolutionItem->setValueChangedCallback(std::bind(&Application::selectFullscreenResolution, this, std::placeholders::_1));
 		
 		MenuItem* fullscreenItem = optionsMenu->addItem();
-		fullscreenItem->setLabel("Fullscreen");
+		fullscreenItem->setName("Fullscreen");
+		fullscreenItem->addValue("Off");
+		fullscreenItem->addValue("On");
+		fullscreenItem->setValueIndex((fullscreen == 0) ? 0 : 1);
+		fullscreenItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		fullscreenItem->setValueChangedCallback(std::bind(&Application::selectFullscreenMode, this, std::placeholders::_1));
+		
+		MenuItem* vsyncItem = optionsMenu->addItem();
+		vsyncItem->setName("VSync");
+		vsyncItem->addValue("Off");
+		vsyncItem->addValue("On");
+		vsyncItem->setValueIndex((swapInterval == 0) ? 0 : 1);
+		vsyncItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		vsyncItem->setValueChangedCallback(std::bind(&Application::selectVSyncMode, this, std::placeholders::_1));
+		
+		MenuItem* languageItem = optionsMenu->addItem();
+		languageItem->setName("Language");
+		languageItem->addValue("English");
+		languageItem->addValue("Chinese");
+		languageItem->setActivatedCallback(std::bind(&Application::incrementMenuItem, this));
+		
+		MenuItem* controlsItem = optionsMenu->addItem();
+		controlsItem->setName("Controls");
 		
 		MenuItem* backItem = optionsMenu->addItem();
 		backItem->setActivatedCallback
@@ -1184,7 +1235,7 @@ bool Application::loadUI()
 				openMenu(previousActiveMenu);
 			}
 		);
-		backItem->setLabel(backString);
+		backItem->setName(backString);
 		
 		optionsMenu->getUIContainer()->setActive(false);
 		optionsMenu->getUIContainer()->setVisible(false);
@@ -1200,15 +1251,15 @@ bool Application::loadUI()
 		
 		MenuItem* resumeItem = pauseMenu->addItem();
 		resumeItem->setActivatedCallback(std::bind(&Application::unpauseSimulation, this));
-		resumeItem->setLabel("Resume");
+		resumeItem->setName("Resume");
 		
 		MenuItem* levelsItem = pauseMenu->addItem();
 		levelsItem->setActivatedCallback(std::bind(&Application::openMenu, this, levelsMenu));
-		levelsItem->setLabel(levelsString);
+		levelsItem->setName(levelsString);
 		
 		MenuItem* optionsItem = pauseMenu->addItem();
 		optionsItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
-		optionsItem->setLabel(optionsString);
+		optionsItem->setName(optionsString);
 		
 		MenuItem* mainMenuItem = pauseMenu->addItem();
 		mainMenuItem->setActivatedCallback
@@ -1224,11 +1275,11 @@ bool Application::loadUI()
 				fadeOutTween->start();
 			}
 		);
-		mainMenuItem->setLabel("Main Menu");
+		mainMenuItem->setName("Main Menu");
 		
 		MenuItem* exitItem = pauseMenu->addItem();
 		exitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
-		exitItem->setLabel(exitString);
+		exitItem->setName(exitString);
 		
 		pauseMenu->getUIContainer()->setActive(false);
 		pauseMenu->getUIContainer()->setVisible(false);
@@ -1254,8 +1305,8 @@ bool Application::loadUI()
 	uiLayer->addObject(uiBatch);
 	uiLayer->addObject(&uiCamera);
 	
-	defaultRenderTarget.width = width;
-	defaultRenderTarget.height = height;
+	defaultRenderTarget.width = static_cast<int>(resolution.x);
+	defaultRenderTarget.height = static_cast<int>(resolution.y);
 	defaultRenderTarget.framebuffer = 0;
 	resizeUI();
 	
@@ -1371,11 +1422,11 @@ bool Application::loadGame()
 void Application::resizeUI()
 {
 	// Adjust UI dimensions
-	uiRootElement->setDimensions(Vector2(width, height));
+	uiRootElement->setDimensions(resolution);
 	uiRootElement->update();
 	
 	// Adjust UI camera projection
-	uiCamera.setOrthographic(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
+	uiCamera.setOrthographic(0.0f, resolution.x, resolution.y, 0.0f, -1.0f, 1.0f);
 }
 
 void Application::openMenu(Menu* menu)
@@ -1423,6 +1474,43 @@ void Application::activateMenuItem()
 	}
 }
 
+void Application::incrementMenuItem()
+{
+	if (activeMenu != nullptr)
+	{
+		MenuItem* item = activeMenu->getSelectedItem();
+		if (item != nullptr)
+		{
+			if (item->getValueCount() != 0)
+			{
+				item->setValueIndex((item->getValueIndex() + 1) % item->getValueCount());
+			}
+		}
+	}
+}
+
+void Application::decrementMenuItem()
+{
+	if (activeMenu != nullptr)
+	{
+		MenuItem* item = activeMenu->getSelectedItem();
+		if (item != nullptr)
+		{
+			if (item->getValueCount() != 0)
+			{
+				if (!item->getValueIndex())
+				{
+					item->setValueIndex(item->getValueCount() - 1);
+				}
+				else
+				{
+					item->setValueIndex(item->getValueIndex() - 1);
+				}
+			}
+		}
+	}
+}
+
 void Application::continueGame()
 {
 	closeMenu();
@@ -1441,8 +1529,15 @@ void Application::continueGame()
 	{
 		loadLevel(level);
 	}
+
+	// Begin title fade-out
+	titleFadeOutTween->reset();
+	titleFadeOutTween->start();
 	
-	changeState(gameState);
+	// Begin fade-out
+	fadeOutTween->setEndCallback(std::bind(&Application::changeState, this, gameState));
+	fadeOutTween->reset();
+	fadeOutTween->start();
 }
 
 void Application::newGame()
@@ -1459,11 +1554,6 @@ void Application::newGame()
 		// Select first level of the first world
 		currentWorldIndex = 0;
 		currentLevelIndex = 0;
-
-		// Save continue world and level indices
-		settings.set("continue_world", currentWorldIndex);
-		settings.set("continue_level", currentLevelIndex);
-		saveUserSettings();
 		
 		// Begin fade-out
 		fadeOutTween->setEndCallback(std::bind(&Application::changeState, this, gameState));
@@ -1583,4 +1673,156 @@ void Application::setDisplayDebugInfo(bool display)
 
 	frameTimeLabel->setVisible(displayDebugInfo);
 	depthTextureImage->setVisible(displayDebugInfo);
+}
+
+std::string Application::getLevelName(std::size_t world, std::size_t level) const
+{
+	// Form level ID string
+	char levelIDBuffer[6];
+	std::sprintf(levelIDBuffer, "%02d-%02d", static_cast<int>(world + 1), static_cast<int>(level + 1));
+	std::string levelID(levelIDBuffer);
+	
+	// Look up level name
+	std::string levelName;
+	strings.get(levelIDBuffer, &levelName);
+	
+	return levelName;
+}
+
+void Application::selectWindowedResolution(std::size_t index)
+{
+	windowedResolutionIndex = index;
+	
+	if (!fullscreen)
+	{
+		// Select resolution
+		resolution = resolutions[windowedResolutionIndex];
+		
+		// Resize window
+		SDL_SetWindowSize(window, static_cast<int>(resolution.x), static_cast<int>(resolution.y));
+		SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+		
+		// Resize UI
+		resizeUI();
+		
+		// Notify window observers
+		inputManager->update();
+	}
+	
+	// Save settings
+	settings.set("windowed_width", resolutions[windowedResolutionIndex].x);
+	settings.set("windowed_height", resolutions[windowedResolutionIndex].y);
+	saveUserSettings();
+}
+
+void Application::selectFullscreenResolution(std::size_t index)
+{
+	fullscreenResolutionIndex = index;
+	
+	if (fullscreen)
+	{
+		// Select resolution
+		resolution = resolutions[fullscreenResolutionIndex];
+		
+		// Resize window
+		SDL_SetWindowSize(window, static_cast<int>(resolution.x), static_cast<int>(resolution.y));
+		SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+		
+		// Resize UI
+		resizeUI();
+		
+		// Notify window observers
+		inputManager->update();
+	}
+	
+	// Save settings
+	settings.set("fullscreen_width", resolutions[fullscreenResolutionIndex].x);
+	settings.set("fullscreen_height", resolutions[fullscreenResolutionIndex].y);
+	saveUserSettings();
+}
+
+void Application::selectFullscreenMode(std::size_t index)
+{
+	fullscreen = (index == 1);
+	
+	if (fullscreen)
+	{
+		resolution = resolutions[fullscreenResolutionIndex];
+		
+		SDL_SetWindowSize(window, static_cast<int>(resolution.x), static_cast<int>(resolution.y));
+		if (SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN) != 0)
+		{
+			std::cerr << "Failed to set fullscreen mode: \"" << SDL_GetError() << "\"" << std::endl;
+			fullscreen = false;
+		}
+	}
+	else
+	{
+		resolution = resolutions[windowedResolutionIndex];
+			
+		if (SDL_SetWindowFullscreen(window, 0) != 0)
+		{
+			std::cerr << "Failed to set windowed mode: \"" << SDL_GetError() << "\"" << std::endl;
+			fullscreen = true;
+		}
+		else
+		{
+			SDL_SetWindowSize(window, static_cast<int>(resolution.x), static_cast<int>(resolution.y));
+			SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+		}
+	}
+	
+	// Print mode and resolution
+	if (fullscreen)
+	{
+		std::cout << "Changed to fullscreen mode at resolution " << resolution.x << "x" << resolution.y << std::endl;
+	}
+	else
+	{
+		std::cout << "Changed to windowed mode at resolution " << resolution.x << "x" << resolution.y << std::endl;
+	}
+	
+	// Save settings
+	settings.set("fullscreen", fullscreen);
+	saveUserSettings();
+	
+	// Resize UI
+	resizeUI();
+	
+	// Notify window observers
+	inputManager->update();
+}
+
+// index: 0 = off, 1 = on
+void Application::selectVSyncMode(std::size_t index)
+{
+	swapInterval = (index == 0) ? 0 : 1;
+	
+	if (swapInterval == 1)
+	{
+		std::cout << "Enabling vertical sync... ";
+	}
+	else
+	{
+		std::cout << "Disabling vertical sync... ";
+	}
+	
+	if (SDL_GL_SetSwapInterval(swapInterval) != 0)
+	{
+		std::cout << "failed: \"" << SDL_GetError() << "\"" << std::endl;
+		swapInterval = SDL_GL_GetSwapInterval();
+	}
+	else
+	{
+		std::cout << "success" << std::endl;
+	}
+	
+	// Save settings
+	settings.set("swap_interval", swapInterval);
+	saveUserSettings();
+}
+
+void Application::selectLanguage(std::size_t index)
+{
+	
 }

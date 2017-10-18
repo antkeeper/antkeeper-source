@@ -92,6 +92,8 @@ public:
 	void closeMenu();
 	void selectMenuItem(std::size_t index);
 	void activateMenuItem();
+	void incrementMenuItem();
+	void decrementMenuItem();
 	
 	void loadWorld(std::size_t index);
 	void loadLevel(std::size_t index);
@@ -107,6 +109,15 @@ public:
 	void unpauseSimulation();
 	
 	void setDisplayDebugInfo(bool display);
+	
+	std::string getLevelName(std::size_t world, std::size_t level) const;
+	
+	// Options menu functions
+	void selectWindowedResolution(std::size_t index);
+	void selectFullscreenResolution(std::size_t index);
+	void selectFullscreenMode(std::size_t index);
+	void selectVSyncMode(std::size_t index);
+	void selectLanguage(std::size_t index);
 	
 private:
 	ApplicationState* state;
@@ -126,16 +137,6 @@ public:
 	
 	// Settings
 	ParameterDict settings;
-	
-	// Window
-	bool fullscreen;
-	int fullscreenWidth;
-	int fullscreenHeight;
-	int windowedWidth;
-	int windowedHeight;
-	int swapInterval;
-	int width;
-	int height;
 	
 	// State machine
 	LoadingState* loadingState;
@@ -234,6 +235,7 @@ public:
 	float fontSizePX;
 	Font* menuFont;
 	Font* copyrightFont;
+	Font* levelNameFont;
 	
 	// UI textures
 	Texture* splashTexture;
@@ -276,7 +278,6 @@ public:
 	UIImage* contextButtonImage0;
 	UIImage* contextButtonImage1;
 	UIImage* depthTextureImage;
-	UILabel* levelIDLabel;
 	UILabel* levelNameLabel;
 	Toolbar* toolbar;
 	PieMenu* pieMenu;
@@ -337,6 +338,17 @@ public:
 	// Debug
 	LineBatcher* lineBatcher;
 	bool displayDebugInfo;
+	
+	// Options menu values
+	bool fullscreen;
+	int swapInterval;
+	Vector2 resolution;
+	std::vector<Vector2> resolutions;
+	std::size_t windowedResolutionIndex;
+	std::size_t fullscreenResolutionIndex;
+	int* fullscreenModes;
+	int* vsyncModes;
+	std::string* languages;
 };
 
 #endif // APPLICATION_HPP

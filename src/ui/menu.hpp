@@ -38,9 +38,18 @@ public:
 	void setDeselectedCallback(std::function<void()> callback);
 	void setActivatedCallback(std::function<void()> callback);
 	void setValueChangedCallback(std::function<void(std::size_t)> callback);
-	void setLabel(const std::string& text);
 	
-	std::size_t getIndex() const;
+	void setName(const std::string& text);
+	void addValue(const std::string& text);
+	void removeValues();
+	void setValueIndex(std::size_t index);
+	
+	std::size_t getValueCount() const;
+	const std::string& getValue(std::size_t index) const;
+	std::size_t getValueIndex() const;
+	
+	
+	std::size_t getItemIndex() const;
 	bool isSelected() const;
 
 private:
@@ -57,12 +66,32 @@ private:
 	std::function<void()> selectedCallback;
 	std::function<void()> deselectedCallback;
 	std::function<void()> activatedCallback;
-	UILabel* label;
+	std::function<void(std::size_t)> valueChangedCallback;
+	std::vector<std::string> values;
+	std::size_t valueIndex;
+	UILabel* nameLabel;
+	UILabel* valueLabel;
+	UIContainer* rowContainer;
 };
 
-inline std::size_t MenuItem::getIndex() const
+inline std::size_t MenuItem::getItemIndex() const
 {
 	return index;
+}
+
+inline std::size_t MenuItem::getValueCount() const
+{
+	return values.size();
+}
+
+inline const std::string& MenuItem::getValue(std::size_t index) const
+{
+	return values[index];
+}
+
+inline std::size_t MenuItem::getValueIndex() const
+{
+	return valueIndex;
 }
 
 class Menu
@@ -81,6 +110,7 @@ public:
 	void setExitedCallback(std::function<void()> callback);
 	void setFont(Font* font);
 	void setLineSpacing(float spacing);
+	void setColumnMargin(float margin);
 	
 	std::size_t getItemCount();
 	const MenuItem* getItem(std::size_t index) const;
@@ -120,6 +150,7 @@ private:
 	std::function<void()> exitedCallback;
 	Font* font;
 	float lineSpacing;
+	float columnMargin;
 	UIContainer* container;
 };
 
