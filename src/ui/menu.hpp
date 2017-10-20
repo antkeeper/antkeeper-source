@@ -39,14 +39,14 @@ public:
 	void setActivatedCallback(std::function<void()> callback);
 	void setValueChangedCallback(std::function<void(std::size_t)> callback);
 	
-	void setName(const std::string& text);
+	void setName(const std::u32string& text);
 	std::size_t addValue();
 	void removeValues();
-	void setValueName(std::size_t index, const std::string& text);
+	void setValueName(std::size_t index, const std::u32string& text);
 	void setValueIndex(std::size_t index);
 	
 	std::size_t getValueCount() const;
-	const std::string& getValue(std::size_t index) const;
+	const std::u32string& getValue(std::size_t index) const;
 	std::size_t getValueIndex() const;
 	
 	
@@ -68,7 +68,7 @@ private:
 	std::function<void()> deselectedCallback;
 	std::function<void()> activatedCallback;
 	std::function<void(std::size_t)> valueChangedCallback;
-	std::vector<std::string> values;
+	std::vector<std::u32string> values;
 	std::size_t valueIndex;
 	UILabel* nameLabel;
 	UILabel* valueLabel;
@@ -85,7 +85,7 @@ inline std::size_t MenuItem::getValueCount() const
 	return values.size();
 }
 
-inline const std::string& MenuItem::getValue(std::size_t index) const
+inline const std::u32string& MenuItem::getValue(std::size_t index) const
 {
 	return values[index];
 }

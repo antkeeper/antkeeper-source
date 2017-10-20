@@ -112,7 +112,7 @@ public:
 	
 	void setDisplayDebugInfo(bool display);
 	
-	std::string getLevelName(std::size_t world, std::size_t level) const;
+	std::u32string getLevelName(std::size_t world, std::size_t level) const;
 	
 	// Options menu functions
 	void selectWindowedResolution(std::size_t index);

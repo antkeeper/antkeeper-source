@@ -351,17 +351,17 @@ public:
 	virtual UIElement::Type getElementType() const;
 	
 	void setFont(Font* font);
-	void setText(const std::string& text);
+	void setText(const std::u32string& text);
 	
 	const Font* getFont() const;
 	Font* getFont();
-	const std::string& getText() const;
+	const std::u32string& getText() const;
 		
 private:
 	void calculateDimensions();
 
 	Font* font;
-	std::string text;
+	std::u32string text;
 };
 
 inline UIElement::Type UILabel::getElementType() const
@@ -379,7 +379,7 @@ inline Font* UILabel::getFont()
 	return font;
 }
 
-inline const std::string& UILabel::getText() const
+inline const std::u32string& UILabel::getText() const
 {
 	return text;
 }

@@ -222,7 +222,7 @@ void UILabel::setFont(Font* font)
 	calculateDimensions();
 }
 
-void UILabel::setText(const std::string& text)
+void UILabel::setText(const std::u32string& text)
 {
 	this->text = text;
 	calculateDimensions();
@@ -232,7 +232,7 @@ void UILabel::calculateDimensions()
 {
 	if (font != nullptr && !text.empty())
 	{
-		float width = font->getWidth(text.c_str());
+		float width = font->getWidth(text);
 		float height = font->getMetrics().getHeight();
 		setDimensions(Vector2(width, height));
 	}
@@ -363,7 +363,7 @@ void UIBatcher::batchLabel(BillboardBatch* result, const UILabel* label)
 		const Font* font = label->getFont();
 		std::size_t index = range->start + range->length;
 		std::size_t count = 0;
-		font->puts(result, origin, label->getText().c_str(), label->getColor(), index, &count);
+		font->puts(result, origin, label->getText(), label->getColor(), index, &count);
 		
 		// Increment range length
 		range->length += count;

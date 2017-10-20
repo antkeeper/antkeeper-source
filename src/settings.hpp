@@ -20,6 +20,8 @@
 #ifndef SETTINGS_HPP
 #define SETTINGS_HPP
 
+#include <codecvt>
+#include <locale>
 #include <map>
 #include <string>
 #include <sstream>
@@ -36,6 +38,8 @@ public:
 	bool load(const std::string& filename);
 	bool save(const std::string& filename);
 	void clear();
+	
+	const std::map<std::string, std::string>* getParameters() const;
 
 private:
 	std::map<std::string, std::string> parameters;
@@ -69,12 +73,44 @@ inline bool ParameterDict::get<std::string>(const std::string& name, std::string
 	return true;
 }
 
+template <>
+inline bool ParameterDict::get<std::u32string>(const std::string& name, std::u32string* value) const
+{
+	auto it = parameters.find(name);
+	if (it == parameters.end())
+		return false;
+	
+	// Convert UTF-8 string to UTF-32 string
+	#if _MSC_VER >= 1900
+		//std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> convert;
+		//*value = convert.from_bytes(it->second);
+		std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> convert;
+		auto uint32string = convert.from_bytes(it->second);
+		
+		value->resize(uint32string.size());
+		for (std::size_t i = 0; i < uint32string.size(); ++i)
+		{
+			(*value)[i] = static_cast<char32_t>(uint32string[i]);
+		}
+	#else
+		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
+		*value = convert.from_bytes(it->second);
+	#endif
+	
+	return true;
+}
+
 template <typename T>
 void ParameterDict::set(const std::string& name, const T& value)
 {
 	std::stringstream stream;
 	stream << value;
 	parameters[name] = stream.str();
+}
+
+inline const std::map<std::string, std::string>*ParameterDict:: getParameters() const
+{
+	return &parameters;
 }
 
 #endif

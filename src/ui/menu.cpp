@@ -101,7 +101,7 @@ void MenuItem::setValueChangedCallback(std::function<void(std::size_t)> callback
 	this->valueChangedCallback = callback;
 }
 
-void MenuItem::setName(const std::string& text)
+void MenuItem::setName(const std::u32string& text)
 {
 	nameLabel->setText(text);
 	parent->resize();
@@ -109,7 +109,7 @@ void MenuItem::setName(const std::string& text)
 
 std::size_t MenuItem::addValue()
 {
-	values.push_back(std::string());
+	values.push_back(std::u32string());
 	return (values.size() - 1);
 }
 
@@ -117,11 +117,11 @@ void MenuItem::removeValues()
 {
 	values.clear();
 	valueIndex = 0;
-	valueLabel->setText(std::string());
+	valueLabel->setText(std::u32string());
 	parent->resize();
 }
 
-void MenuItem::setValueName(std::size_t index, const std::string& text)
+void MenuItem::setValueName(std::size_t index, const std::u32string& text)
 {
 	values[index] = text;
 	

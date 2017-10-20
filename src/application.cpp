@@ -205,6 +205,71 @@ Application::Application(int argc, char* argv[]):
 		resolution = resolutions[windowedResolutionIndex];
 	}
 	
+	// Get requested language
+	languageIndex = 0;
+	std::string requestedLanguage;
+	settings.get("language", &requestedLanguage);
+	
+	// Find available languages
+	{
+		std::string stringsDirectory = appDataPath + "strings/";
+		
+		// Open strings directory
+		DIR* dir = opendir(stringsDirectory.c_str());
+		if (dir == nullptr)
+		{
+			std::cout << "Failed to open strings directory \"" << stringsDirectory << "\"" << std::endl;
+			close(EXIT_FAILURE);
+			return;
+		}
+		
+		// Scan directory for .txt files
+		for (struct dirent* entry = readdir(dir); entry != nullptr; entry = readdir(dir))
+		{
+			if (entry->d_type == DT_DIR || *entry->d_name == '.')
+			{
+				continue;
+			}
+			
+			std::string filename = entry->d_name;
+			std::string::size_type delimeter = filename.find_last_of('.');
+			if (delimeter == std::string::npos)
+			{
+				continue;
+			}
+			
+			std::string extension = filename.substr(delimeter + 1);
+			if (extension != "txt")
+			{
+				continue;
+			}
+			
+			// Add language
+			std::string language = filename.substr(0, delimeter);
+			languages.push_back(language);
+			
+			if (language == requestedLanguage)
+			{
+				languageIndex = languages.size() - 1;
+			}
+		}
+		
+		// Close biomes directory
+		closedir(dir);
+	}
+	
+	// Load strings
+	std::string stringsFile = appDataPath + "strings/" + languages[languageIndex] + ".txt";
+	std::cout << "Loading strings from \"" << stringsFile << "\"... ";
+	if (!strings.load(stringsFile))
+	{
+		std::cout << "failed" << std::endl;
+	}
+	else
+	{
+		std::cout << "success" << std::endl;
+	}
+	
 	// Get window title string
 	std::string title;
 	strings.get("title", &title);
@@ -321,71 +386,6 @@ Application::Application(int argc, char* argv[]):
 	
 	// Print font size
 	std::cout << "Base font size is " << fontSizePT << "pt (" << fontSizePX << "px)" << std::endl;
-	
-	// Get requested language
-	languageIndex = 0;
-	std::string requestedLanguage;
-	settings.get("language", &requestedLanguage);
-	
-	// Find available languages
-	{
-		std::string stringsDirectory = appDataPath + "strings/";
-		
-		// Open strings directory
-		DIR* dir = opendir(stringsDirectory.c_str());
-		if (dir == nullptr)
-		{
-			std::cout << "Failed to open strings directory \"" << stringsDirectory << "\"" << std::endl;
-			close(EXIT_FAILURE);
-			return;
-		}
-		
-		// Scan directory for .txt files
-		for (struct dirent* entry = readdir(dir); entry != nullptr; entry = readdir(dir))
-		{
-			if (entry->d_type == DT_DIR || *entry->d_name == '.')
-			{
-				continue;
-			}
-			
-			std::string filename = entry->d_name;
-			std::string::size_type delimeter = filename.find_last_of('.');
-			if (delimeter == std::string::npos)
-			{
-				continue;
-			}
-			
-			std::string extension = filename.substr(delimeter + 1);
-			if (extension != "txt")
-			{
-				continue;
-			}
-			
-			// Add language
-			std::string language = filename.substr(0, delimeter);
-			languages.push_back(language);
-			
-			if (language == requestedLanguage)
-			{
-				languageIndex = languages.size() - 1;
-			}
-		}
-		
-		// Close biomes directory
-		closedir(dir);
-	}
-	
-	// Load strings
-	std::string stringsFile = appDataPath + "strings/" + languages[languageIndex] + ".txt";
-	std::cout << "Loading strings from \"" << stringsFile << "\"... ";
-	if (!strings.load(stringsFile))
-	{
-		std::cout << "failed" << std::endl;
-	}
-	else
-	{
-		std::cout << "success" << std::endl;
-	}
 	
 	// Setup input
 	inputManager = new SDLInputManager();
@@ -525,12 +525,14 @@ int Application::execute()
 			// Update frame time label
 			if (frameTimeLabel->isVisible())
 			{
-				std::string frameTimeString;
-				std::stringstream stream;
+				/*
+				std::u32string frameTimeString;
+				std::basic_stringstream<char32_t> stream;
 				stream.precision(2);
 				stream << std::fixed << meanFrameTime;
 				stream >> frameTimeString;
 				frameTimeLabel->setText(frameTimeString);
+				*/
 			}
 		}
 		
@@ -812,19 +814,19 @@ bool Application::loadUI()
 	FontLoader* fontLoader = new FontLoader();
 	
 	menuFont = new Font(512, 512);
-	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", static_cast<int>(fontSizePX + 0.5f), menuFont))
+	if (!fontLoader->load("data/fonts/NotoSansCJKsc-Regular.otf", static_cast<int>(fontSizePX + 0.5f), {UnicodeRange::BASIC_LATIN}, menuFont))
 	{
 		std::cerr << "Failed to load menu font" << std::endl;
 	}
 	
 	copyrightFont = new Font(256, 256);
-	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", static_cast<int>(fontSizePX * 0.8f + 0.5f), copyrightFont))
+	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", static_cast<int>(fontSizePX * 0.8f + 0.5f), {UnicodeRange::BASIC_LATIN}, copyrightFont))
 	{
 		std::cerr << "Failed to load copyright font" << std::endl;
 	}
 	
 	levelNameFont = new Font(512, 512);
-	if (!fontLoader->load("data/fonts/Vollkorn-Regular.ttf", static_cast<int>(fontSizePX * 2.0f + 0.5f), levelNameFont))
+	if (!fontLoader->load("data/fonts/Vollkorn-Regular.ttf", static_cast<int>(fontSizePX * 2.0f + 0.5f), {UnicodeRange::BASIC_LATIN}, levelNameFont))
 	{
 		std::cerr << "Failed to load level name font" << std::endl;
 	}
@@ -925,10 +927,8 @@ bool Application::loadUI()
 	frameTimeLabel = new UILabel();
 	frameTimeLabel->setAnchor(Vector2(0.0f, 0.0f));
 	frameTimeLabel->setLayerOffset(99);
-	frameTimeLabel->setFont(copyrightFont);
 	frameTimeLabel->setTranslation(Vector2(0.0f));
 	frameTimeLabel->setTintColor(Vector4(1.0f, 1.0f, 0.0f, 1.0f));
-	frameTimeLabel->setText("");
 	frameTimeLabel->setVisible(false);
 	uiRootElement->addChild(frameTimeLabel);
 	
@@ -939,7 +939,6 @@ bool Application::loadUI()
 	// Create "Press any key" element
 	anyKeyLabel = new UILabel();
 	anyKeyLabel->setAnchor(Vector2(0.5f, 1.0f));
-	anyKeyLabel->setFont(menuFont);
 	anyKeyLabel->setTranslation(Vector2(0.0f, (int)(-resolution.y * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 0.5f)));
 	anyKeyLabel->setVisible(false);
 	uiRootElement->addChild(anyKeyLabel);
@@ -979,7 +978,6 @@ bool Application::loadUI()
 	// Create level name label
 	levelNameLabel = new UILabel();
 	levelNameLabel->setAnchor(Vector2(0.5f, 0.5f));
-	levelNameLabel->setFont(levelNameFont);
 	levelNameLabel->setVisible(false);
 	levelNameLabel->setLayerOffset(ANTKEEPER_UI_LAYER_HUD);
 	uiRootElement->addChild(levelNameLabel);
@@ -1091,7 +1089,6 @@ bool Application::loadUI()
 	
 	// Main menu
 	{	
-		mainMenu->setFont(menuFont);
 		mainMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
 		mainMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 		mainMenu->setLineSpacing(1.0f);
@@ -1121,7 +1118,6 @@ bool Application::loadUI()
 	
 	// Levels menu
 	{
-		levelsMenu->setFont(menuFont);
 		levelsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
 		levelsMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 		levelsMenu->setLineSpacing(1.0f);
@@ -1170,11 +1166,10 @@ bool Application::loadUI()
 	
 	// Options menu
 	{
-		optionsMenu->setFont(menuFont);
 		optionsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
 		optionsMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 		optionsMenu->setLineSpacing(1.0f);
-		optionsMenu->setColumnMargin(menuFont->getWidth("MM"));
+		optionsMenu->setColumnMargin(menuFont->getWidth(U"MM"));
 		
 		optionsMenuWindowedResolutionItem = optionsMenu->addItem();
 		optionsMenuFullscreenResolutionItem = optionsMenu->addItem();
@@ -1231,7 +1226,6 @@ bool Application::loadUI()
 	
 	// Pause menu
 	{
-		pauseMenu->setFont(menuFont);
 		pauseMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.5f));
 		pauseMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 		pauseMenu->setLineSpacing(1.0f);
@@ -1422,55 +1416,95 @@ void Application::resizeUI()
 
 void Application::restringUI()
 {
-	// Get strings
-	std::string pressAnyKeyString;
-	std::string backString;
-	std::string onString;
-	std::string offString;
-	std::string continueString;
-	std::string newGameString;
-	std::string levelsString;
-	std::string sandboxString;
-	std::string optionsString;
-	std::string exitString;
-	std::string windowedResolutionString;
-	std::string fullscreenResolutionString;
-	std::string fullscreenString;
-	std::string verticalSyncString;
-	std::string languageString;
-	std::string controlsString;
-	std::string resumeString;
-	std::string mainMenuString;
+	// Build map of UTF-8 string names to UTF-32 string values
+	std::map<std::string, std::u32string> stringMap;
+	const std::map<std::string, std::string>* stringParameters = strings.getParameters();
+	for (auto it = stringParameters->begin(); it != stringParameters->end(); ++it)
+	{
+		std::u32string u32value;
+		strings.get(it->first, &stringMap[it->first]);
+	}
 	
-	strings.get("press-any-key", &pressAnyKeyString);
-	strings.get("back", &backString);
-	strings.get("on", &onString);
-	strings.get("off", &offString);
-	strings.get("continue", &continueString);
-	strings.get("new-game", &newGameString);
-	strings.get("levels", &levelsString);
-	strings.get("sandbox", &sandboxString);
-	strings.get("options", &optionsString);
-	strings.get("exit", &exitString);
-	strings.get("windowed-resolution", &windowedResolutionString);
-	strings.get("fullscreen-resolution", &fullscreenResolutionString);
-	strings.get("fullscreen", &fullscreenString);
-	strings.get("vertical-sync", &verticalSyncString);
-	strings.get("language", &languageString);
-	strings.get("controls", &controlsString);
-	strings.get("resume", &resumeString);
-	strings.get("main-menu", &mainMenuString);
+	// Build set of Unicode characters which encompass all strings
+	std::set<char32_t> unicodeSet;
+	for (auto it = stringMap.begin(); it != stringMap.end(); ++it)
+	{
+		for (char32_t charcode: it->second)
+		{
+			unicodeSet.insert(charcode);
+		}
+	}
+	
+	// Insert basic latin Unicode block
+	for (char32_t charcode = UnicodeRange::BASIC_LATIN.start; charcode <= UnicodeRange::BASIC_LATIN.end; ++charcode)
+	{
+		unicodeSet.insert(charcode);
+	}
+	
+	// Transform character set into character ranges
+	std::vector<UnicodeRange> unicodeRanges;
+	for (auto it = unicodeSet.begin(); it != unicodeSet.end(); ++it)
+	{
+		char32_t charcode = *it;
+		unicodeRanges.push_back(UnicodeRange(charcode));
+	}
+	
+	// Delete previously loaded fonts
+	delete menuFont;
+	delete copyrightFont;
+	delete levelNameFont;
+	
+	// Determine fonts for current language
+	std::string menuFontBasename;
+	std::string copyrightFontBasename;
+	std::string levelNameFontBasename;
+	strings.get("menu-font", &menuFontBasename);
+	strings.get("copyright-font", &copyrightFontBasename);
+	strings.get("level-name-font", &levelNameFontBasename);
+	std::string fontsDirectory = appDataPath + "fonts/";
+	
+	// Load fonts with the custom Unicode ranges
+	FontLoader* fontLoader = new FontLoader();
+	
+	menuFont = new Font(512, 512);
+	if (!fontLoader->load(fontsDirectory + menuFontBasename, static_cast<int>(fontSizePX + 0.5f), unicodeRanges, menuFont))
+	{
+		std::cerr << "Failed to load menu font" << std::endl;
+	}
+	
+	copyrightFont = new Font(256, 256);
+	if (!fontLoader->load(fontsDirectory + copyrightFontBasename, static_cast<int>(fontSizePX * 0.8f + 0.5f), unicodeRanges, copyrightFont))
+	{
+		std::cerr << "Failed to load copyright font" << std::endl;
+	}
+	
+	levelNameFont = new Font(512, 512);
+	if (!fontLoader->load(fontsDirectory + levelNameFontBasename, static_cast<int>(fontSizePX * 2.0f + 0.5f), unicodeRanges, levelNameFont))
+	{
+		std::cerr << "Failed to load level name font" << std::endl;
+	}
+	
+	delete fontLoader;
+	
+	// Set fonts
+	levelNameLabel->setFont(levelNameFont);
+	frameTimeLabel->setFont(copyrightFont);
+	anyKeyLabel->setFont(menuFont);
+	mainMenu->setFont(menuFont);
+	levelsMenu->setFont(menuFont);
+	optionsMenu->setFont(menuFont);
+	pauseMenu->setFont(menuFont);
 	
 	// Title screen
-	anyKeyLabel->setText(pressAnyKeyString);
+	anyKeyLabel->setText(stringMap["press-any-key"]);
 	
 	// Main menu
-	mainMenuContinueItem->setName(continueString);
-	mainMenuLevelsItem->setName(levelsString);
-	mainMenuNewGameItem->setName(newGameString);
-	mainMenuSandboxItem->setName(sandboxString);
-	mainMenuOptionsItem->setName(optionsString);
-	mainMenuExitItem->setName(exitString);
+	mainMenuContinueItem->setName(stringMap["continue"]);
+	mainMenuLevelsItem->setName(stringMap["levels"]);
+	mainMenuNewGameItem->setName(stringMap["new-game"]);
+	mainMenuSandboxItem->setName(stringMap["sandbox"]);
+	mainMenuOptionsItem->setName(stringMap["options"]);
+	mainMenuExitItem->setName(stringMap["exit"]);
 	
 	// Levels menu
 	std::size_t levelItemIndex = 0;
@@ -1479,59 +1513,63 @@ void Application::restringUI()
 		for (std::size_t level = 0; level < campaign.getLevelCount(world); ++level)
 		{
 			// Look up level name
-			std::string levelName = getLevelName(world, level);
+			std::u32string levelName = getLevelName(world, level);
 			
 			// Create label
+			/*
+			std::u32string label;
 			std::stringstream stream;
-			stream << (world + 1) << "-" << (level + 1) << ": " << levelName;
+			stream << (world + 1) << "-" << (level + 1) << ": ";
+			label = std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>().from_bytes(stream.str()) + levelName;
+			*/
 			
 			// Set item name
 			MenuItem* levelItem = levelsMenu->getItem(levelItemIndex);
-			levelItem->setName(stream.str());
+			levelItem->setName(levelName);
 			
 			++levelItemIndex;
 		}
 	}
-	levelsMenuBackItem->setName(backString);
+	levelsMenuBackItem->setName(stringMap["back"]);
 	
 	// Options menu
-	optionsMenuWindowedResolutionItem->setName(windowedResolutionString);
-	optionsMenuFullscreenResolutionItem->setName(fullscreenResolutionString);
+	optionsMenuWindowedResolutionItem->setName(stringMap["windowed-resolution"]);
+	optionsMenuFullscreenResolutionItem->setName(stringMap["fullscreen-resolution"]);
 	std::size_t resolutionIndex = 0;
 	for (std::size_t i = 0; i < resolutions.size(); ++i)
 	{
 		
+		std::u32string label;
 		std::stringstream stream;
 		stream << resolutions[i].x << "x" << resolutions[i].y;
+		std::string streamstring = stream.str();
+		label.assign(streamstring.begin(), streamstring.end());
 		
-		optionsMenuWindowedResolutionItem->setValueName(i, stream.str());
-		optionsMenuFullscreenResolutionItem->setValueName(i, stream.str());
+		optionsMenuWindowedResolutionItem->setValueName(i, label);
+		optionsMenuFullscreenResolutionItem->setValueName(i, label);
 	}
-	optionsMenuFullscreenItem->setName(fullscreenString);
-	optionsMenuFullscreenItem->setValueName(0, offString);
-	optionsMenuFullscreenItem->setValueName(1, onString);
-	optionsMenuVSyncItem->setName(verticalSyncString);
-	optionsMenuVSyncItem->setValueName(0, offString);
-	optionsMenuVSyncItem->setValueName(1, onString);
+	optionsMenuFullscreenItem->setName(stringMap["fullscreen"]);
+	optionsMenuFullscreenItem->setValueName(0, stringMap["off"]);
+	optionsMenuFullscreenItem->setValueName(1, stringMap["on"]);
+	optionsMenuVSyncItem->setName(stringMap["vertical-sync"]);
+	optionsMenuVSyncItem->setValueName(0, stringMap["off"]);
+	optionsMenuVSyncItem->setValueName(1, stringMap["on"]);
 	
-	optionsMenuLanguageItem->setName(languageString);
+	optionsMenuLanguageItem->setName(stringMap["language"]);
 	for (std::size_t i = 0; i < languages.size(); ++i)
 	{
-		std::string languageName;
-		strings.get(languages[i], &languageName);
-		
-		optionsMenuLanguageItem->setValueName(i, languageName);
+		optionsMenuLanguageItem->setValueName(i, stringMap[languages[i]]);
 	}
 	
-	optionsMenuControlsItem->setName(controlsString);
-	optionsMenuBackItem->setName(backString);
+	optionsMenuControlsItem->setName(stringMap["controls"]);
+	optionsMenuBackItem->setName(stringMap["back"]);
 	
 	// Pause menu
-	pauseMenuResumeItem->setName(resumeString);
-	pauseMenuLevelsItem->setName(levelsString);
-	pauseMenuOptionsItem->setName(optionsString);
-	pauseMenuMainMenuItem->setName(mainMenuString);
-	pauseMenuExitItem->setName(exitString);
+	pauseMenuResumeItem->setName(stringMap["resume"]);
+	pauseMenuLevelsItem->setName(stringMap["levels"]);
+	pauseMenuOptionsItem->setName(stringMap["options"]);
+	pauseMenuMainMenuItem->setName(stringMap["main-menu"]);
+	pauseMenuExitItem->setName(stringMap["exit"]);
 }
 
 void Application::openMenu(Menu* menu)
@@ -1780,7 +1818,7 @@ void Application::setDisplayDebugInfo(bool display)
 	depthTextureImage->setVisible(displayDebugInfo);
 }
 
-std::string Application::getLevelName(std::size_t world, std::size_t level) const
+std::u32string Application::getLevelName(std::size_t world, std::size_t level) const
 {
 	// Form level ID string
 	char levelIDBuffer[6];
@@ -1788,7 +1826,7 @@ std::string Application::getLevelName(std::size_t world, std::size_t level) cons
 	std::string levelID(levelIDBuffer);
 	
 	// Look up level name
-	std::string levelName;
+	std::u32string levelName;
 	strings.get(levelIDBuffer, &levelName);
 	
 	return levelName;
@@ -1950,6 +1988,11 @@ void Application::selectLanguage(std::size_t index)
 	// Save settings
 	settings.set("language", languages[languageIndex]);
 	saveUserSettings();
+	
+	// Change window title
+	std::string title;
+	strings.get("title", &title);
+	SDL_SetWindowTitle(window, title.c_str());
 	
 	// Restring UI
 	restringUI();
