@@ -157,7 +157,8 @@ Menu::Menu():
 	exitedCallback(nullptr),
 	font(nullptr),
 	lineSpacing(1.0f),
-	columnMargin(0.0f)
+	columnMargin(0.0f),
+	activationDelay(0)
 {
 	container = new UIContainer();
 	resize();
@@ -256,6 +257,14 @@ void Menu::setColumnMargin(float margin)
 	resize();
 }
 
+void Menu::update(float dt)
+{
+	if (activationDelay > 0)
+	{
+		--activationDelay;
+	}
+}
+
 void Menu::deselect()
 {
 	if (selectedItem != nullptr)
@@ -283,9 +292,10 @@ void Menu::select(std::size_t index)
 
 void Menu::activate()
 {
-	if (selectedItem != nullptr)
+	if (selectedItem != nullptr && !activationDelay)
 	{
 		selectedItem->activate();
+		activationDelay = 1;
 	}
 }
 

@@ -121,6 +121,8 @@ public:
 	void selectVSyncMode(std::size_t index);
 	void selectLanguage(std::size_t index);
 	
+	void bindControl(Control* control);
+	
 private:
 	ApplicationState* state;
 	ApplicationState* nextState;
@@ -194,6 +196,7 @@ public:
 	ModelLoader* modelLoader;
 	
 	// Controls
+	Control* bindingControl;
 	InputManager* inputManager;
 	Keyboard* keyboard;
 	Mouse* mouse;
@@ -297,7 +300,7 @@ public:
 	Tween<Vector4>* anyKeyFadeOutTween;
 	Tween<Vector4>* menuFadeInTween;
 	Tween<Vector4>* menuFadeOutTween;
-	Tween<Vector2>* menuSlideInTween;	
+	Tween<float>* menuActivateTween;
 	Tween<Vector3>* cameraTranslationTween;
 	Tween<float>* forcepsSwoopTween;
 	
@@ -324,6 +327,18 @@ public:
 	MenuItem* optionsMenuLanguageItem;
 	MenuItem* optionsMenuControlsItem;
 	MenuItem* optionsMenuBackItem;
+	
+	Menu* controlsMenu;
+	MenuItem* controlsMenuResetToDefaultItem;
+	MenuItem* controlsMenuMoveForwardItem;
+	MenuItem* controlsMenuMoveBackItem;
+	MenuItem* controlsMenuMoveLeftItem;
+	MenuItem* controlsMenuMoveRightItem;
+	MenuItem* controlsMenuBackItem;
+	
+	Menu* graphicsMenu;
+	Menu* audioMenu;
+	Menu* gameplayMenu;
 	
 	Menu* pauseMenu;
 	MenuItem* pauseMenuResumeItem;

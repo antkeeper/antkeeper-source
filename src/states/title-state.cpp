@@ -69,6 +69,7 @@ void TitleState::enter()
 	
 	// Position options menu
 	application->optionsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
+	application->controlsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
 	application->levelsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
 	
 	// Setup fade-in

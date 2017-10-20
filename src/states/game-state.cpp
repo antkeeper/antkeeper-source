@@ -110,6 +110,7 @@ void GameState::enter()
 	
 	// Position options menu
 	application->optionsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.5f));
+	application->controlsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.5f));
 	application->levelsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.5f));
 	
 	// Show level name
@@ -309,6 +310,7 @@ void GameState::exit()
 	application->defaultLayer->removeObject(&application->biomeFloorModelInstance);
 	application->defaultLayer->removeObject(application->forceps->getModelInstance());
 	application->defaultLayer->removeObject(application->lens->getModelInstance());
+	application->defaultLayer->removeObject(application->brush->getModelInstance());
 	for (std::size_t i = 0; i < application->colony->getAntCount(); ++i)
 	{
 		Ant* ant = application->colony->getAnt(i);

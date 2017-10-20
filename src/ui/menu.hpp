@@ -122,6 +122,8 @@ public:
 	const UIContainer* getUIContainer() const;
 	UIContainer* getUIContainer();
 	
+	void update(float dt);
+	
 	/**
 	 * Deselects the currently selected item (if any)
 	 */
@@ -153,6 +155,9 @@ private:
 	float lineSpacing;
 	float columnMargin;
 	UIContainer* container;
+	
+	// Prevents activation of multiple menu items in the same frame
+	int activationDelay;
 };
 
 inline std::size_t Menu::getItemCount()

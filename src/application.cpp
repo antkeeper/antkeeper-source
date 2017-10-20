@@ -391,6 +391,7 @@ Application::Application(int argc, char* argv[]):
 	inputManager = new SDLInputManager();
 	keyboard = (*inputManager->getKeyboards()).front();
 	mouse = (*inputManager->getMice()).front();
+	bindingControl = nullptr;
 	
 	// Allocate states
 	loadingState = new LoadingState(this);
@@ -493,6 +494,38 @@ int Application::execute()
 			}
 		}
 		
+		// Bind controls
+		if (bindingControl != nullptr)
+		{
+			InputEvent event;
+			inputManager->listen(&event);
+			
+			if (event.type != InputEvent::Type::NONE)
+			{
+				bindingControl->bind(event);
+				bindingControl = nullptr;
+				
+				if (activeMenu != nullptr)
+				{
+					MenuItem* item = activeMenu->getSelectedItem();
+					if (item != nullptr)
+					{
+						if (event.type == InputEvent::Type::KEY)
+						{
+							const char* keyName = SDL_GetKeyName(SDL_GetKeyFromScancode(static_cast<SDL_Scancode>(event.key.second)));
+							std::stringstream stream;
+							stream << keyName;
+							std::string streamstring = stream.str();
+							std::u32string label;
+							label.assign(streamstring.begin(), streamstring.end());
+							
+							item->setValueName(item->getValueIndex(), label);
+						}
+					}
+				}
+			}
+		}
+		
 		// Update input
 		inputManager->update();
 		
@@ -537,6 +570,11 @@ int Application::execute()
 		}
 		
 		// Update UI
+		if (activeMenu != nullptr)
+		{
+			activeMenu->update(dt);
+		}
+		
 		uiRootElement->update();
 		uiBatcher->batch(uiBatch, uiRootElement);
 		
@@ -710,13 +748,6 @@ bool Application::loadScene()
 	bgCamera.setCompositor(&bgCompositor);
 	bgCamera.setCompositeIndex(0);
 	
-	
-	
-	
-	
-	
-	
-	
 	// Set shadow map resolution
 	shadowMapResolution = 4096;
 	
@@ -884,7 +915,6 @@ bool Application::loadUI()
 	
 	// Create blackout element (for screen transitions)
 	blackoutImage = new UIImage();
-	blackoutImage->setDimensions(resolution);
 	blackoutImage->setLayerOffset(ANTKEEPER_UI_LAYER_BLACKOUT);
 	blackoutImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 	blackoutImage->setVisible(false);
@@ -892,7 +922,6 @@ bool Application::loadUI()
 	
 	// Create darken element (for darkening title screen)
 	darkenImage = new UIImage();
-	darkenImage->setDimensions(resolution);
 	darkenImage->setLayerOffset(ANTKEEPER_UI_LAYER_DARKEN);
 	darkenImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 0.35f));
 	darkenImage->setVisible(false);
@@ -900,7 +929,6 @@ bool Application::loadUI()
 	
 	// Create splash screen background element
 	splashBackgroundImage = new UIImage();
-	splashBackgroundImage->setDimensions(resolution);
 	splashBackgroundImage->setLayerOffset(-1);
 	splashBackgroundImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 	splashBackgroundImage->setVisible(false);
@@ -908,26 +936,19 @@ bool Application::loadUI()
 	
 	// Create splash screen element
 	splashImage = new UIImage();
-	splashImage->setAnchor(Anchor::CENTER);
-	splashImage->setDimensions(Vector2(splashTexture->getWidth(), splashTexture->getHeight()));
 	splashImage->setTexture(splashTexture);
 	splashImage->setVisible(false);
 	uiRootElement->addChild(splashImage);
 	
 	// Create game title element
 	titleImage = new UIImage();
-	titleImage->setAnchor(Vector2(0.5f, 0.0f));
-	titleImage->setDimensions(Vector2(titleTexture->getWidth(), titleTexture->getHeight()));
-	titleImage->setTranslation(Vector2(0.0f, (int)(resolution.y * (1.0f / 4.0f) - titleTexture->getHeight() * 0.5f)));
 	titleImage->setTexture(titleTexture);
 	titleImage->setVisible(false);
 	titleImage->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 	uiRootElement->addChild(titleImage);
 	
 	frameTimeLabel = new UILabel();
-	frameTimeLabel->setAnchor(Vector2(0.0f, 0.0f));
 	frameTimeLabel->setLayerOffset(99);
-	frameTimeLabel->setTranslation(Vector2(0.0f));
 	frameTimeLabel->setTintColor(Vector4(1.0f, 1.0f, 0.0f, 1.0f));
 	frameTimeLabel->setVisible(false);
 	uiRootElement->addChild(frameTimeLabel);
@@ -938,15 +959,11 @@ bool Application::loadUI()
 	
 	// Create "Press any key" element
 	anyKeyLabel = new UILabel();
-	anyKeyLabel->setAnchor(Vector2(0.5f, 1.0f));
-	anyKeyLabel->setTranslation(Vector2(0.0f, (int)(-resolution.y * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 0.5f)));
+
 	anyKeyLabel->setVisible(false);
 	uiRootElement->addChild(anyKeyLabel);
 	
 	rectangularPaletteImage = new UIImage();
-	rectangularPaletteImage->setAnchor(Vector2(0.0f, 1.0f));
-	rectangularPaletteImage->setDimensions(Vector2(rectangularPaletteTexture->getWidth(), rectangularPaletteTexture->getHeight()));
-	rectangularPaletteImage->setTranslation(Vector2(16.0f, -16.0f));
 	rectangularPaletteImage->setTexture(rectangularPaletteTexture);
 	rectangularPaletteImage->setVisible(false);
 	rectangularPaletteImage->setActive(false);
@@ -954,30 +971,20 @@ bool Application::loadUI()
 	uiRootElement->addChild(rectangularPaletteImage);
 	
 	contextButtonImage0 = new UIImage();
-	contextButtonImage0->setAnchor(Vector2(0.5f, 1.0f));
-	contextButtonImage0->setDimensions(Vector2(mouseLeftTexture->getWidth(), mouseLeftTexture->getHeight()));
-	contextButtonImage0->setTranslation(Vector2(0.0f, -16.0f));
 	contextButtonImage0->setTexture(mouseLeftTexture);
 	//uiRootElement->addChild(contextButtonImage0);
 	
 	foodIndicatorImage = new UIImage();
-	foodIndicatorImage->setAnchor(Vector2(1.0f, 0.0f));
-	foodIndicatorImage->setDimensions(Vector2(foodIndicatorTexture->getWidth(), foodIndicatorTexture->getHeight()));
-	foodIndicatorImage->setTranslation(Vector2(-16.0f, 16.0f));
 	foodIndicatorImage->setTexture(foodIndicatorTexture);
 	//uiRootElement->addChild(foodIndicatorImage);
 	
 	depthTextureImage = new UIImage();
-	depthTextureImage->setAnchor(Vector2(0.0f, 1.0f));
-	depthTextureImage->setDimensions(Vector2(256, 256));
-	depthTextureImage->setTranslation(Vector2(0.0f, 0.0f));
 	depthTextureImage->setTexture(depthTexture);
 	depthTextureImage->setVisible(false);
 	uiRootElement->addChild(depthTextureImage);
 	
 	// Create level name label
 	levelNameLabel = new UILabel();
-	levelNameLabel->setAnchor(Vector2(0.5f, 0.5f));
 	levelNameLabel->setVisible(false);
 	levelNameLabel->setLayerOffset(ANTKEEPER_UI_LAYER_HUD);
 	uiRootElement->addChild(levelNameLabel);
@@ -1051,23 +1058,20 @@ bool Application::loadUI()
 	anyKeyFadeOutTween->setEndCallback(std::bind(&TweenBase::start, anyKeyFadeInTween));
 	tweener->addTween(anyKeyFadeOutTween);
 	
-	float menuFadeInDuration = 0.15f;
+	float menuFadeInDuration = 0.5f;
 	Vector4 menuFadeInStartColor = Vector4(1.0f, 1.0f, 1.0f, 0.0f);
 	Vector4 menuFadeInDeltaColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-	float menuFadeOutDuration = 0.15f;
+	float menuFadeOutDuration = 0.25f;
 	Vector4 menuFadeOutStartColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 	Vector4 menuFadeOutDeltaColor = Vector4(0.0f, 0.0f, 0.0f, -1.0f);
-	float menuSlideInDuration = 0.35f;
-	Vector2 menuSlideInStartTranslation = Vector2(-64.0f, 0.0f);
-	Vector2 menuSlideInDeltaTranslation = Vector2((int)(64.0f + resolution.x / 8.0f), 0.0f);
 	
 	// Setup main menu tween
 	menuFadeInTween = new Tween<Vector4>(EaseFunction::OUT_QUINT, 0.0f, menuFadeInDuration, menuFadeInStartColor, menuFadeInDeltaColor);
 	tweener->addTween(menuFadeInTween);
+	menuActivateTween = new Tween<float>(EaseFunction::OUT_QUINT, 0.0f, 0.01f, 0.0f, 0.0f);
+	tweener->addTween(menuActivateTween);
 	menuFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_QUINT, 0.0f, menuFadeOutDuration, menuFadeOutStartColor, menuFadeOutDeltaColor);
 	tweener->addTween(menuFadeOutTween);
-	menuSlideInTween = new Tween<Vector2>(EaseFunction::OUT_QUINT, 0.0f, menuSlideInDuration, menuSlideInStartTranslation, menuSlideInDeltaTranslation);
-	tweener->addTween(menuSlideInTween);
 	
 	// Camera translation tween
 	cameraTranslationTween = new Tween<Vector3>(EaseFunction::OUT_CUBIC, 0.0f, 0.0f, Vector3(0.0f), Vector3(0.0f));
@@ -1085,6 +1089,7 @@ bool Application::loadUI()
 	mainMenu = new Menu();
 	levelsMenu = new Menu();
 	optionsMenu = new Menu();
+	controlsMenu = new Menu();
 	pauseMenu = new Menu();
 	
 	// Main menu
@@ -1106,7 +1111,14 @@ bool Application::loadUI()
 		mainMenuSandboxItem->setActivatedCallback(std::bind(&std::printf, "1\n"));
 		
 		mainMenuOptionsItem = mainMenu->addItem();
-		mainMenuOptionsItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
+		mainMenuOptionsItem->setActivatedCallback
+		(
+			[this]()
+			{
+				optionsMenuBackItem->setActivatedCallback(std::bind(&Application::openMenu, this, mainMenu));
+				openMenu(optionsMenu);
+			}
+		);
 		
 		mainMenuExitItem = mainMenu->addItem();
 		mainMenuExitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
@@ -1115,7 +1127,7 @@ bool Application::loadUI()
 		mainMenu->getUIContainer()->setVisible(false);
 		uiRootElement->addChild(mainMenu->getUIContainer());
 	}
-	
+		
 	// Levels menu
 	{
 		levelsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
@@ -1209,6 +1221,14 @@ bool Application::loadUI()
 		optionsMenuLanguageItem->setValueChangedCallback(std::bind(&Application::selectLanguage, this, std::placeholders::_1));
 		
 		optionsMenuControlsItem = optionsMenu->addItem();
+		optionsMenuControlsItem->setActivatedCallback
+		(
+			[this]()
+			{
+				controlsMenuBackItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
+				openMenu(controlsMenu);
+			}
+		);
 		
 		optionsMenuBackItem = optionsMenu->addItem();
 		optionsMenuBackItem->setActivatedCallback
@@ -1224,6 +1244,44 @@ bool Application::loadUI()
 		uiRootElement->addChild(optionsMenu->getUIContainer());
 	}
 	
+	// Controls menu
+	{
+		controlsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
+		controlsMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
+		controlsMenu->setLineSpacing(1.0f);
+		controlsMenu->setColumnMargin(menuFont->getWidth(U"MM"));
+		controlsMenu->getUIContainer()->setActive(false);
+		controlsMenu->getUIContainer()->setVisible(false);
+		uiRootElement->addChild(controlsMenu->getUIContainer());
+		
+		controlsMenuResetToDefaultItem = controlsMenu->addItem();
+		
+		controlsMenuMoveForwardItem = controlsMenu->addItem();
+		controlsMenuMoveForwardItem->addValue();
+		controlsMenuMoveForwardItem->setActivatedCallback(std::bind(&Application::bindControl, this, &cameraMoveForward));
+		
+		controlsMenuMoveBackItem = controlsMenu->addItem();
+		controlsMenuMoveBackItem->addValue();
+		controlsMenuMoveBackItem->setActivatedCallback(std::bind(&Application::bindControl, this, &cameraMoveBack));
+		
+		controlsMenuMoveLeftItem = controlsMenu->addItem();
+		controlsMenuMoveLeftItem->addValue();
+		controlsMenuMoveLeftItem->setActivatedCallback(std::bind(&Application::bindControl, this, &cameraMoveLeft));
+		
+		controlsMenuMoveRightItem = controlsMenu->addItem();
+		controlsMenuMoveRightItem->addValue();
+		controlsMenuMoveRightItem->setActivatedCallback(std::bind(&Application::bindControl, this, &cameraMoveRight));
+		
+		controlsMenuBackItem = controlsMenu->addItem();
+		controlsMenuBackItem->setActivatedCallback
+		(
+			[this]()
+			{
+				openMenu(optionsMenu);
+			}
+		);
+	}
+	
 	// Pause menu
 	{
 		pauseMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.5f));
@@ -1237,7 +1295,14 @@ bool Application::loadUI()
 		pauseMenuLevelsItem->setActivatedCallback(std::bind(&Application::openMenu, this, levelsMenu));
 		
 		pauseMenuOptionsItem = pauseMenu->addItem();
-		pauseMenuOptionsItem->setActivatedCallback(std::bind(&Application::openMenu, this, optionsMenu));
+		pauseMenuOptionsItem->setActivatedCallback
+		(
+			[this]()
+			{
+				optionsMenuBackItem->setActivatedCallback(std::bind(&Application::openMenu, this, pauseMenu));
+				openMenu(optionsMenu);
+			}
+		);
 		
 		pauseMenuMainMenuItem = pauseMenu->addItem();
 		pauseMenuMainMenuItem->setActivatedCallback
@@ -1264,6 +1329,7 @@ bool Application::loadUI()
 	
 	// Set UI strings
 	restringUI();
+	resizeUI();
 	
 	// Setup UI batch
 	uiBatch = new BillboardBatch();
@@ -1408,7 +1474,32 @@ void Application::resizeUI()
 	uiRootElement->setDimensions(resolution);
 	uiRootElement->update();
 	
+	// Adjust title
+	titleImage->setAnchor(Vector2(0.5f, 0.0f));
+	titleImage->setDimensions(Vector2(titleTexture->getWidth(), titleTexture->getHeight()));
+	titleImage->setTranslation(Vector2(0.0f, (int)(resolution.y * (1.0f / 4.0f) - titleTexture->getHeight() * 0.5f)));
+	blackoutImage->setDimensions(resolution);
 	darkenImage->setDimensions(resolution);
+	splashBackgroundImage->setDimensions(resolution);
+	splashImage->setAnchor(Anchor::CENTER);
+	splashImage->setDimensions(Vector2(splashTexture->getWidth(), splashTexture->getHeight()));
+	frameTimeLabel->setAnchor(Vector2(0.0f, 0.0f));
+	frameTimeLabel->setTranslation(Vector2(0.0f));
+	anyKeyLabel->setAnchor(Vector2(0.5f, 1.0f));
+	anyKeyLabel->setTranslation(Vector2(0.0f, (int)(-resolution.y * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 0.5f)));
+	rectangularPaletteImage->setAnchor(Vector2(0.0f, 1.0f));
+	rectangularPaletteImage->setDimensions(Vector2(rectangularPaletteTexture->getWidth(), rectangularPaletteTexture->getHeight()));
+	rectangularPaletteImage->setTranslation(Vector2(16.0f, -16.0f));
+	contextButtonImage0->setAnchor(Vector2(0.5f, 1.0f));
+	contextButtonImage0->setDimensions(Vector2(mouseLeftTexture->getWidth(), mouseLeftTexture->getHeight()));
+	contextButtonImage0->setTranslation(Vector2(0.0f, -16.0f));
+	foodIndicatorImage->setAnchor(Vector2(1.0f, 0.0f));
+	foodIndicatorImage->setDimensions(Vector2(foodIndicatorTexture->getWidth(), foodIndicatorTexture->getHeight()));
+	foodIndicatorImage->setTranslation(Vector2(-16.0f, 16.0f));
+	depthTextureImage->setAnchor(Vector2(0.0f, 1.0f));
+	depthTextureImage->setDimensions(Vector2(256, 256));
+	depthTextureImage->setTranslation(Vector2(0.0f, 0.0f));
+	levelNameLabel->setAnchor(Vector2(0.5f, 0.5f));
 	
 	// Adjust UI camera projection
 	uiCamera.setOrthographic(0.0f, resolution.x, resolution.y, 0.0f, -1.0f, 1.0f);
@@ -1493,6 +1584,7 @@ void Application::restringUI()
 	mainMenu->setFont(menuFont);
 	levelsMenu->setFont(menuFont);
 	optionsMenu->setFont(menuFont);
+	controlsMenu->setFont(menuFont);
 	pauseMenu->setFont(menuFont);
 	
 	// Title screen
@@ -1564,6 +1656,18 @@ void Application::restringUI()
 	optionsMenuControlsItem->setName(stringMap["controls"]);
 	optionsMenuBackItem->setName(stringMap["back"]);
 	
+	// Controls menu
+	controlsMenuResetToDefaultItem->setName(stringMap["reset-to-default"]);
+	controlsMenuMoveForwardItem->setName(stringMap["move-forward"]);
+	controlsMenuMoveForwardItem->setValueName(0, U"W");
+	controlsMenuMoveBackItem->setName(stringMap["move-back"]);
+	controlsMenuMoveBackItem->setValueName(0, U"S");
+	controlsMenuMoveLeftItem->setName(stringMap["move-left"]);
+	controlsMenuMoveLeftItem->setValueName(0, U"A");
+	controlsMenuMoveRightItem->setName(stringMap["move-right"]);
+	controlsMenuMoveRightItem->setValueName(0, U"D");
+	controlsMenuBackItem->setName(stringMap["back"]);
+	
 	// Pause menu
 	pauseMenuResumeItem->setName(stringMap["resume"]);
 	pauseMenuLevelsItem->setName(stringMap["levels"]);
@@ -1580,21 +1684,43 @@ void Application::openMenu(Menu* menu)
 	}
 	
 	activeMenu = menu;
-	activeMenu->getUIContainer()->setActive(true);
+	activeMenu->select(0);
 	activeMenu->getUIContainer()->setVisible(true);
-	
+	activeMenu->getUIContainer()->setActive(false);
+	activeMenu->getUIContainer()->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.0f));
+	/*
 	if (activeMenu->getSelectedItem() == nullptr)
 	{
 		activeMenu->select(0);
 	}
+	*/
+	
+	// Delay menu activation
+	menuActivateTween->setEndCallback(std::bind(&UIElement::setActive, activeMenu->getUIContainer(), true));
+	menuActivateTween->reset();
+	menuActivateTween->start();
+	
+	// Begin menu fade-in
+	menuFadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, activeMenu->getUIContainer(), std::placeholders::_1));
+	menuFadeInTween->reset();
+	menuFadeInTween->start();
 }
 
 void Application::closeMenu()
 {
 	if (activeMenu != nullptr)
 	{
+		// Deactivate menu
 		activeMenu->getUIContainer()->setActive(false);
 		activeMenu->getUIContainer()->setVisible(false);
+		
+		// Begin menu fade-out
+		/*
+		menuFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, activeMenu->getUIContainer(), std::placeholders::_1));
+		menuFadeOutTween->setEndCallback(std::bind(&UIElement::setVisible, activeMenu->getUIContainer(), false));
+		menuFadeOutTween->reset();
+		menuFadeOutTween->start();
+		*/
 		
 		previousActiveMenu = activeMenu;
 		activeMenu = nullptr;
@@ -1996,4 +2122,10 @@ void Application::selectLanguage(std::size_t index)
 	
 	// Restring UI
 	restringUI();
+}
+
+void Application::bindControl(Control* control)
+{
+	bindingControl = control;
+	bindingControl->unbind();
 }
