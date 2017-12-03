@@ -87,6 +87,105 @@ void ClearRenderPass::setClearStencil(int index)
 	this->index = index;
 }
 
+BlurRenderPass::BlurRenderPass():
+	textureID(0)
+{
+	textureParam = parameterSet.addParameter("blurTexture", ShaderParameter::Type::INT, 1);
+	resolutionParam = parameterSet.addParameter("resolution", ShaderParameter::Type::VECTOR_2, 1);
+	directionParam = parameterSet.addParameter("direction", ShaderParameter::Type::VECTOR_2, 1);
+}
+
+bool BlurRenderPass::load(const RenderContext* renderContext)
+{
+	// Load shader
+	shaderLoader.undefine();
+	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
+	shader = shaderLoader.load("data/shaders/blur.glsl", &parameterSet);
+	if (!shader)
+	{
+		return false;
+	}
+	
+	const float quadVertexData[] =
+	{
+		-1.0f,  1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f
+	};
+
+	const std::uint32_t quadIndexData[] =
+	{
+		0, 1, 3,
+		3, 1, 2
+	};
+
+	quadVertexCount = 4;
+	quadIndexCount = 6;
+	
+	// Create AABB geometry
+	glGenVertexArrays(1, &quadVAO);
+	glBindVertexArray(quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * quadVertexCount, quadVertexData, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(EMERGENT_VERTEX_POSITION);
+	glVertexAttribPointer(EMERGENT_VERTEX_POSITION, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (char*)0 + 0*sizeof(float));
+	glGenBuffers(1, &quadIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(std::uint32_t) * quadIndexCount, quadIndexData, GL_STATIC_DRAW);
+	
+	return true;
+}
+
+void BlurRenderPass::unload()
+{
+	delete shader;
+	shader = nullptr;
+	
+	glDeleteBuffers(1, &quadIBO);
+	glDeleteBuffers(1, &quadVBO);
+	glDeleteVertexArrays(1, &quadVAO);
+	
+	parameterSet.removeParameters();
+}
+
+void BlurRenderPass::render(RenderContext* renderContext)
+{
+	// Bind framebuffer and setup viewport
+	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
+	glViewport(0, 0, renderTarget->width, renderTarget->height);
+	
+	// Clear the framebuffer
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	// Disable depth testing
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	
+	// Disable culling
+	glDisable(GL_CULL_FACE);
+	
+	// Bind shader
+	shader->bind();
+	
+	// Bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	
+	// Pass texture unit to shader
+	shader->setParameter(textureParam, 0);
+	shader->setParameter(resolutionParam, Vector2(renderTarget->width, renderTarget->height));
+	shader->setParameter(directionParam, direction);
+	
+	// Render quad
+	glBindVertexArray(quadVAO);
+	glDrawElementsBaseVertex(GL_TRIANGLES, quadIndexCount, GL_UNSIGNED_INT, (void*)0, 0);
+	
+	// Unbind texture
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 ShadowMapRenderPass::ShadowMapRenderPass():
 	unskinnedShader(nullptr),
 	skinnedShader(nullptr),
@@ -197,13 +296,13 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
 	glViewport(0, 0, renderTarget->width, renderTarget->height);
 	
-	// Clear the framebuffer depth
-	glClear(GL_DEPTH_BUFFER_BIT);
-	
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
+	
+	// Clear the framebuffer depth
+	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	// Draw front and back faces
 	glDisable(GL_CULL_FACE);

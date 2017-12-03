@@ -40,7 +40,7 @@ void TitleState::enter()
 	windowResized(application->resolution.x, application->resolution.y);
 	
 	application->camera.setPerspective(
-		glm::radians(25.0f),
+		glm::radians(30.0f),
 		application->resolution.x / application->resolution.y,
 		0.1f,
 		1000.0f);
@@ -63,9 +63,13 @@ void TitleState::enter()
 	// Show title
 	application->titleImage->setVisible(true);
 	application->titleImage->setTintColor(Vector4(1.0f));
+	application->copyrightLabel->setVisible(true);
 
-	// Open main menu
-	application->openMenu(application->mainMenu);
+	// Show "Press any key"
+	application->anyKeyLabel->setVisible(true);
+	application->anyKeyLabel->setActive(true);
+	application->anyKeyFadeInTween->reset();
+	application->anyKeyFadeInTween->start();
 	
 	// Position options menu
 	application->optionsMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
@@ -79,60 +83,79 @@ void TitleState::enter()
 
 void TitleState::execute()
 {
-	// Navigate menu
-	if (application->activeMenu != nullptr)
+	if (application->anyKeyLabel->isActive())
 	{
-		MenuItem* selectedItem = application->activeMenu->getSelectedItem();
+		InputEvent event;
+		application->inputManager->listen(&event);
 		
-		if (application->menuDown.isTriggered() && !application->menuDown.wasTriggered())
+		if (event.type != InputEvent::Type::NONE)
 		{
-			if (selectedItem != nullptr)
+			application->anyKeyLabel->setVisible(false);
+			application->anyKeyLabel->setActive(false);
+			application->anyKeyFadeInTween->stop();
+			application->anyKeyFadeOutTween->stop();
+			application->inputManager->update();
+			
+			application->openMenu(application->mainMenu);
+		}
+	}
+	else
+	{
+		// Navigate menu
+		if (application->activeMenu != nullptr)
+		{
+			MenuItem* selectedItem = application->activeMenu->getSelectedItem();
+			
+			if (application->menuDown.isTriggered() && !application->menuDown.wasTriggered())
 			{
-				if (selectedItem->getItemIndex() < application->activeMenu->getItemCount() - 1)
+				if (selectedItem != nullptr)
 				{
-					application->selectMenuItem(selectedItem->getItemIndex() + 1);
+					if (selectedItem->getItemIndex() < application->activeMenu->getItemCount() - 1)
+					{
+						application->selectMenuItem(selectedItem->getItemIndex() + 1);
+					}
+					else
+					{
+						application->selectMenuItem(0);
+					}
 				}
 				else
 				{
 					application->selectMenuItem(0);
 				}
 			}
-			else
+			else if (application->menuUp.isTriggered() && !application->menuUp.wasTriggered())
 			{
-				application->selectMenuItem(0);
-			}
-		}
-		else if (application->menuUp.isTriggered() && !application->menuUp.wasTriggered())
-		{
-			if (selectedItem != nullptr)
-			{
-				if (selectedItem->getItemIndex() > 0)
+				if (selectedItem != nullptr)
 				{
-					application->selectMenuItem(selectedItem->getItemIndex() - 1);
+					if (selectedItem->getItemIndex() > 0)
+					{
+						application->selectMenuItem(selectedItem->getItemIndex() - 1);
+					}
+					else
+					{
+						application->selectMenuItem(application->activeMenu->getItemCount() - 1);
+					}
 				}
 				else
 				{
 					application->selectMenuItem(application->activeMenu->getItemCount() - 1);
 				}
 			}
-			else
+			
+			if (application->menuLeft.isTriggered() && !application->menuLeft.wasTriggered())
 			{
-				application->selectMenuItem(application->activeMenu->getItemCount() - 1);
+				application->decrementMenuItem();
 			}
-		}
-		
-		if (application->menuLeft.isTriggered() && !application->menuLeft.wasTriggered())
-		{
-			application->decrementMenuItem();
-		}
-		else if (application->menuRight.isTriggered() && !application->menuRight.wasTriggered())
-		{
-			application->incrementMenuItem();
-		}
-		
-		if (application->menuSelect.isTriggered() && !application->menuSelect.wasTriggered())
-		{
-			application->activateMenuItem();
+			else if (application->menuRight.isTriggered() && !application->menuRight.wasTriggered())
+			{
+				application->incrementMenuItem();
+			}
+			
+			if (application->menuSelect.isTriggered() && !application->menuSelect.wasTriggered())
+			{
+				application->activateMenuItem();
+			}
 		}
 	}
 	
@@ -159,9 +182,9 @@ void TitleState::exit()
 	
 	// Hide UI
 	application->titleImage->setVisible(false);
+	application->copyrightLabel->setVisible(false);
 	application->anyKeyLabel->setVisible(false);
 	application->darkenImage->setVisible(false);
-
 	
 	// Remove clear scene
 	application->backgroundLayer->removeObject(&application->bgCamera);

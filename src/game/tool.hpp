@@ -223,8 +223,19 @@ public:
 	 */
 	virtual void update(float dt);
 	
+	void focus();
+	void unfocus();
+	
+	void setSunDirection(const Vector3& direction);
+	
 private:
-	float hoverDistance;
+	float unfocusedDistance;
+	float focusedDistance;
+	bool focused;
+	Vector3 sunDirection;
+	Tweener* tweener;
+	Tween<float>* descentTween;
+	Tween<float>* ascentTween;
 };
 
 /**
@@ -238,9 +249,22 @@ public:
 	
 	virtual void update(float dt);
 	
+	void press();
+	void release();
+	
 private:
 	Pose* pose;
 	float hoverDistance;
+	bool descended;
+	Vector3 oldPick;
+	
+	Tweener* tweener;
+	Tween<float>* descentTween;
+	Tween<float>* ascentTween;
+	float tiltAngle;
+	float targetTiltAngle;
+	Vector3 tiltAxis;
+	Vector3 targetTiltAxis;
 };
 
 #endif // TOOL_HPP

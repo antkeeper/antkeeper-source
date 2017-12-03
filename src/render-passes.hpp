@@ -52,6 +52,38 @@ private:
 };
 
 /**
+ * Blurs a texture
+ */
+class BlurRenderPass: public RenderPass
+{
+public:
+	BlurRenderPass();
+	virtual bool load(const RenderContext* renderContext);
+	virtual void unload();
+	virtual void render(RenderContext* renderContext);
+	
+	inline void setTexture(GLuint textureID) { this->textureID = textureID; }
+	inline void setDirection(Vector2 direction) { this->direction = direction; }
+	
+private:
+	ShaderParameterSet parameterSet;
+	const ShaderParameter* textureParam;
+	const ShaderParameter* resolutionParam;
+	const ShaderParameter* directionParam;
+	ShaderLoader shaderLoader;
+	Shader* shader;
+	
+	GLuint textureID;
+	Vector2 direction;
+	
+	int quadVertexCount;
+	int quadIndexCount;
+	GLuint quadVAO;
+	GLuint quadVBO;
+	GLuint quadIBO;
+};
+
+/**
  * Renders the distance from the view frustum's near clipping plane to scene geometry. The render target should have a depth only framebuffer.
  */
 class ShadowMapRenderPass: public RenderPass

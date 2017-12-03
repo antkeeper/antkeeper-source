@@ -558,14 +558,13 @@ int Application::execute()
 			// Update frame time label
 			if (frameTimeLabel->isVisible())
 			{
-				/*
-				std::u32string frameTimeString;
-				std::basic_stringstream<char32_t> stream;
+				std::u32string label;
+				std::stringstream stream;
 				stream.precision(2);
 				stream << std::fixed << meanFrameTime;
-				stream >> frameTimeString;
-				frameTimeLabel->setText(frameTimeString);
-				*/
+				std::string streamstring = stream.str();
+				label.assign(streamstring.begin(), streamstring.end());
+				frameTimeLabel->setText(label);
 			}
 		}
 		
@@ -773,6 +772,7 @@ bool Application::loadScene()
 	
 	// Unbind shadow map depth texture
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	// Setup shadow map render target
 	shadowMapRenderTarget.width = shadowMapResolution;
@@ -788,22 +788,108 @@ bool Application::loadScene()
 	shadowMapCompositor.addPass(&shadowMapPass);
 	shadowMapCompositor.load(nullptr);
 	
+	// Post-processing framebuffers
+	{
+		// Generate color texture
+		glGenTextures(1, &framebufferAColorTexture);
+		glBindTexture(GL_TEXTURE_2D, framebufferAColorTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGB, static_cast<GLsizei>(resolution.x), static_cast<GLsizei>(resolution.y), 0,  GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		
+		// Generate depth texture
+		glGenTextures(1, &framebufferADepthTexture);
+		glBindTexture(GL_TEXTURE_2D, framebufferADepthTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, static_cast<GLsizei>(resolution.x), static_cast<GLsizei>(resolution.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+		
+		// Generate framebuffer
+		glGenFramebuffers(1, &framebufferA);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebufferA);
+
+		// Attach textures to framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferAColorTexture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, framebufferADepthTexture, 0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		//glReadBuffer(GL_COLOR_ATTACHMENT0);
+		
+		// Unbind framebuffer and texture
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
+		// Setup render target
+		framebufferARenderTarget.width = static_cast<int>(resolution.x);
+		framebufferARenderTarget.height = static_cast<int>(resolution.y);
+		framebufferARenderTarget.framebuffer = framebufferA;
+	}
+	
+	{
+		// Generate color texture
+		glGenTextures(1, &framebufferBColorTexture);
+		glBindTexture(GL_TEXTURE_2D, framebufferBColorTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGB, static_cast<GLsizei>(resolution.x), static_cast<GLsizei>(resolution.y), 0,  GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		
+		// Generate framebuffer
+		glGenFramebuffers(1, &framebufferA);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebufferA);
+
+		// Attach textures to framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferBColorTexture, 0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		//glReadBuffer(GL_COLOR_ATTACHMENT0);
+		
+		// Unbind framebuffer and texture
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
+		// Setup render target
+		framebufferBRenderTarget.width = static_cast<int>(resolution.x);
+		framebufferBRenderTarget.height = static_cast<int>(resolution.y);
+		framebufferBRenderTarget.framebuffer = framebufferA;
+	}
+	
 	// Setup skybox pass
-	skyboxPass.setRenderTarget(&defaultRenderTarget);
+	skyboxPass.setRenderTarget(&framebufferARenderTarget);
 	
 	// Setup clear depth pass
-	clearDepthPass.setRenderTarget(&defaultRenderTarget);
+	clearDepthPass.setRenderTarget(&framebufferARenderTarget);
 	clearDepthPass.setClear(false, true, false);
 	clearDepthPass.setClearDepth(1.0f);
 	
 	// Setup soil pass
-	soilPass.setRenderTarget(&defaultRenderTarget);
+	soilPass.setRenderTarget(&framebufferARenderTarget);
 	
 	// Setup lighting pass
-	lightingPass.setRenderTarget(&defaultRenderTarget);
+	lightingPass.setRenderTarget(&framebufferARenderTarget);
 	lightingPass.setShadowMap(shadowMapDepthTexture);
 	lightingPass.setShadowCamera(&sunlightCamera);
 	lightingPass.setShadowMapPass(&shadowMapPass);
+	
+	// Setup blur passes
+	horizontalBlurPass.setRenderTarget(&framebufferBRenderTarget);
+	horizontalBlurPass.setTexture(framebufferAColorTexture);
+	horizontalBlurPass.setDirection(Vector2(0.0f, 0.0f));
+	verticalBlurPass.setRenderTarget(&framebufferARenderTarget);
+	verticalBlurPass.setTexture(framebufferBColorTexture);
+	verticalBlurPass.setDirection(Vector2(0.0f, 0.0f));
+	horizontalBlurPass2.setRenderTarget(&framebufferBRenderTarget);
+	horizontalBlurPass2.setTexture(framebufferAColorTexture);
+	horizontalBlurPass2.setDirection(Vector2(0.0f, 0.0f));
+	verticalBlurPass2.setRenderTarget(&defaultRenderTarget);
+	verticalBlurPass2.setTexture(framebufferBColorTexture);
+	verticalBlurPass2.setDirection(Vector2(0.0f, 0.0f));
+
 	
 	// Setup debug pass
 	debugPass.setRenderTarget(&defaultRenderTarget);
@@ -812,6 +898,10 @@ bool Application::loadScene()
 	defaultCompositor.addPass(&skyboxPass);
 	defaultCompositor.addPass(&soilPass);
 	defaultCompositor.addPass(&lightingPass);
+	defaultCompositor.addPass(&horizontalBlurPass);
+	defaultCompositor.addPass(&verticalBlurPass);
+	defaultCompositor.addPass(&horizontalBlurPass2);
+	defaultCompositor.addPass(&verticalBlurPass2);
 	//defaultCompositor.addPass(&debugPass);
 	defaultCompositor.load(nullptr);
 	
@@ -959,9 +1049,16 @@ bool Application::loadUI()
 	
 	// Create "Press any key" element
 	anyKeyLabel = new UILabel();
-
+	anyKeyLabel->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 	anyKeyLabel->setVisible(false);
 	uiRootElement->addChild(anyKeyLabel);
+	
+	// Create copyright element
+	copyrightLabel = new UILabel();
+	copyrightLabel->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
+	copyrightLabel->setVisible(false);
+	copyrightLabel->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.15f));
+	uiRootElement->addChild(copyrightLabel);
 	
 	rectangularPaletteImage = new UIImage();
 	rectangularPaletteImage->setTexture(rectangularPaletteTexture);
@@ -1017,12 +1114,51 @@ bool Application::loadUI()
 	pieMenu->getContainer()->setActive(true);
 	
 	// Setup screen fade in/fade out tween
-	fadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 2.0f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
+	fadeInTween = new Tween<Vector4>(EaseFunction::IN_QUINT, 0.0f, 2.0f, Vector4(0.0f, 0.0f, 0.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, -1.0f));
 	fadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, blackoutImage, std::placeholders::_1));
 	tweener->addTween(fadeInTween);
-	fadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 2.0f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	fadeOutTween = new Tween<Vector4>(EaseFunction::OUT_QUINT, 0.0f, 2.0f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 	fadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, blackoutImage, std::placeholders::_1));
 	tweener->addTween(fadeOutTween);
+	
+	// Setup darken fade in/fade out tweens
+	darkenFadeInTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.15f, Vector4(0.0f, 0.0f, 0.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 0.4f));
+	darkenFadeInTween->setStartCallback(std::bind(&UIElement::setVisible, darkenImage, true));
+	darkenFadeInTween->setUpdateCallback(std::bind(&UIElement::setTintColor, darkenImage, std::placeholders::_1));
+	tweener->addTween(darkenFadeInTween);
+	darkenFadeOutTween = new Tween<Vector4>(EaseFunction::OUT_CUBIC, 0.0f, 0.15f, Vector4(0.0f, 0.0f, 0.0f, 0.4f), Vector4(0.0f, 0.0f, 0.0f, -0.4f));
+	darkenFadeOutTween->setUpdateCallback(std::bind(&UIElement::setTintColor, darkenImage, std::placeholders::_1));
+	darkenFadeOutTween->setEndCallback(std::bind(&UIElement::setVisible, darkenImage, false));
+	tweener->addTween(darkenFadeOutTween);
+	
+	// Setup blur fade in/fade out tweens
+	blurFadeInTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, 0.15f, 0.0f, 1.0f);
+	blurFadeInTween->setUpdateCallback
+	(
+		[this](float t)
+		{
+			float factor = blurFadeInTween->getTweenValue();
+			horizontalBlurPass.setDirection(Vector2(1.0f, 0.0f) * t);
+			horizontalBlurPass2.setDirection(Vector2(3.0f, 0.0f) * t);
+			verticalBlurPass.setDirection(Vector2(0.0f, 1.0f) * t);
+			verticalBlurPass2.setDirection(Vector2(0.0f, 3.0f) * t);
+		}
+	);
+	tweener->addTween(blurFadeInTween);
+	
+	blurFadeOutTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, 0.15f, 1.0f, -1.0f);
+	blurFadeOutTween->setUpdateCallback
+	(
+		[this](float t)
+		{
+			float factor = blurFadeInTween->getTweenValue();
+			horizontalBlurPass.setDirection(Vector2(1.0f, 0.0f) * t);
+			horizontalBlurPass2.setDirection(Vector2(3.0f, 0.0f) * t);
+			verticalBlurPass.setDirection(Vector2(0.0f, 1.0f) * t);
+			verticalBlurPass2.setDirection(Vector2(0.0f, 3.0f) * t);
+		}
+	);
+	tweener->addTween(blurFadeOutTween);
 	
 	// Setup splash screen tween
 	splashFadeInTween = new Tween<Vector4>(EaseFunction::IN_CUBIC, 0.0f, 0.5f, Vector4(1.0f, 1.0f, 1.0f, 0.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -1097,6 +1233,9 @@ bool Application::loadUI()
 		mainMenu->getUIContainer()->setAnchor(Vector2(0.5f, 0.8f));
 		mainMenu->getUIContainer()->setLayerOffset(ANTKEEPER_UI_LAYER_MENU);
 		mainMenu->setLineSpacing(1.0f);
+		mainMenu->getUIContainer()->setActive(false);
+		mainMenu->getUIContainer()->setVisible(false);
+		uiRootElement->addChild(mainMenu->getUIContainer());
 		
 		mainMenuContinueItem = mainMenu->addItem();
 		mainMenuContinueItem->setActivatedCallback(std::bind(&Application::continueGame, this));
@@ -1122,10 +1261,6 @@ bool Application::loadUI()
 		
 		mainMenuExitItem = mainMenu->addItem();
 		mainMenuExitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
-		
-		mainMenu->getUIContainer()->setActive(false);
-		mainMenu->getUIContainer()->setVisible(false);
-		uiRootElement->addChild(mainMenu->getUIContainer());
 	}
 		
 	// Levels menu
@@ -1454,6 +1589,7 @@ bool Application::loadGame()
 	
 	lens = new Lens(lensModel);
 	lens->setCameraController(surfaceCam);
+	lens->setSunDirection(glm::normalize(-sunlightCamera.getTranslation()));
 	
 	brush = new Brush(brushModel);
 	brush->setCameraController(surfaceCam);
@@ -1487,6 +1623,10 @@ void Application::resizeUI()
 	frameTimeLabel->setTranslation(Vector2(0.0f));
 	anyKeyLabel->setAnchor(Vector2(0.5f, 1.0f));
 	anyKeyLabel->setTranslation(Vector2(0.0f, (int)(-resolution.y * (1.0f / 4.0f) - menuFont->getMetrics().getHeight() * 0.5f)));
+	
+	copyrightLabel->setAnchor(Vector2(0.0f, 1.0f));
+	copyrightLabel->setTranslation(Vector2(resolution.x, -resolution.y) * 0.02f);
+	
 	rectangularPaletteImage->setAnchor(Vector2(0.0f, 1.0f));
 	rectangularPaletteImage->setDimensions(Vector2(rectangularPaletteTexture->getWidth(), rectangularPaletteTexture->getHeight()));
 	rectangularPaletteImage->setTranslation(Vector2(16.0f, -16.0f));
@@ -1581,6 +1721,7 @@ void Application::restringUI()
 	levelNameLabel->setFont(levelNameFont);
 	frameTimeLabel->setFont(copyrightFont);
 	anyKeyLabel->setFont(menuFont);
+	copyrightLabel->setFont(copyrightFont);
 	mainMenu->setFont(menuFont);
 	levelsMenu->setFont(menuFont);
 	optionsMenu->setFont(menuFont);
@@ -1589,6 +1730,7 @@ void Application::restringUI()
 	
 	// Title screen
 	anyKeyLabel->setText(stringMap["press-any-key"]);
+	copyrightLabel->setText(stringMap["copyright"]);
 	
 	// Main menu
 	mainMenuContinueItem->setName(stringMap["continue"]);
@@ -1921,7 +2063,13 @@ void Application::pauseSimulation()
 {
 	simulationPaused = true;
 	
-	darkenImage->setVisible(true);
+	darkenFadeOutTween->stop();
+	darkenFadeInTween->reset();
+	darkenFadeInTween->start();
+	
+	blurFadeOutTween->stop();
+	blurFadeInTween->reset();
+	blurFadeInTween->start();
 	
 	openMenu(pauseMenu);
 	pauseMenu->select(0);
@@ -1931,7 +2079,13 @@ void Application::unpauseSimulation()
 {
 	simulationPaused = false;
 	
-	darkenImage->setVisible(false);
+	darkenFadeInTween->stop();
+	darkenFadeOutTween->reset();
+	darkenFadeOutTween->start();
+	
+	blurFadeInTween->stop();
+	blurFadeOutTween->reset();
+	blurFadeOutTween->start();
 	
 	closeMenu();
 }

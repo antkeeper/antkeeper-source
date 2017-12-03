@@ -75,7 +75,7 @@ void GameState::enter()
 	
 	// Spawn ants
 	Navmesh* navmesh = application->currentLevel->terrain.getSurfaceNavmesh();
-	for (int i = 0; i < 50; ++i)
+	for (int i = 0; i < 200; ++i)
 	{
 		Navmesh::Triangle* triangle = (*navmesh->getTriangles())[0];
 		
@@ -250,51 +250,50 @@ void GameState::execute()
 	application->surfaceCam->update(application->dt);
 	
 	// Picking
-	glm::ivec2 mousePosition = application->mouse->getCurrentPosition();
-	mousePosition.y = application->resolution.y - mousePosition.y;
-	Vector4 viewport(0.0f, 0.0f, application->resolution.x, application->resolution.y);
-	Vector3 mouseNear = application->camera.unproject(Vector3(mousePosition.x, mousePosition.y, 0.0f), viewport);
-	Vector3 mouseFar = application->camera.unproject(Vector3(mousePosition.x, mousePosition.y, 1.0f), viewport);
-	
-	pickingRay.origin = mouseNear;
-	pickingRay.direction = glm::normalize(mouseFar - mouseNear);
-	
-	std::list<Navmesh::Triangle*> triangles;
-	application->currentLevel->terrain.getSurfaceOctree()->query(pickingRay, &triangles);
-	
-	auto result = intersects(pickingRay, triangles);
-	if (std::get<0>(result))
-	{
-		pick = pickingRay.extrapolate(std::get<1>(result));
-		
-		std::size_t triangleIndex = std::get<3>(result);
-		pickTriangle = (*application->currentLevel->terrain.getSurfaceNavmesh()->getTriangles())[triangleIndex];
-		
-		/*
-		float forcepsDistance = application->forcepsSwoopTween->getTweenValue();
-		
-		//Quaternion rotation = glm::rotation(Vector3(0, 1, 0), triangle->normal);
-		Quaternion rotation = glm::angleAxis(application->surfaceCam->getAzimuth(), Vector3(0, 1, 0)) *
-			glm::angleAxis(glm::radians(15.0f), Vector3(0, 0, -1));
-		
-		Vector3 translation = pick + rotation * Vector3(0, forcepsDistance, 0);
-		
-		// Set tool position
-		application->forcepsModelInstance.setTranslation(translation);
-		application->forcepsModelInstance.setRotation(rotation);
-		*/
-	}
-	
-	// Update tools
-	if (application->currentTool != nullptr)
-	{
-		application->currentTool->setPick(pick);
-		application->currentTool->update(application->dt);
-	}
-	
-	// Update colony
 	if (!application->simulationPaused)
 	{
+		glm::ivec2 mousePosition = application->mouse->getCurrentPosition();
+		mousePosition.y = application->resolution.y - mousePosition.y;
+		Vector4 viewport(0.0f, 0.0f, application->resolution.x, application->resolution.y);
+		Vector3 mouseNear = application->camera.unproject(Vector3(mousePosition.x, mousePosition.y, 0.0f), viewport);
+		Vector3 mouseFar = application->camera.unproject(Vector3(mousePosition.x, mousePosition.y, 1.0f), viewport);
+		
+		pickingRay.origin = mouseNear;
+		pickingRay.direction = glm::normalize(mouseFar - mouseNear);
+		
+		std::list<Navmesh::Triangle*> triangles;
+		application->currentLevel->terrain.getSurfaceOctree()->query(pickingRay, &triangles);
+		
+		auto result = intersects(pickingRay, triangles);
+		if (std::get<0>(result))
+		{
+			pick = pickingRay.extrapolate(std::get<1>(result));
+			
+			std::size_t triangleIndex = std::get<3>(result);
+			pickTriangle = (*application->currentLevel->terrain.getSurfaceNavmesh()->getTriangles())[triangleIndex];
+			
+			/*
+			float forcepsDistance = application->forcepsSwoopTween->getTweenValue();
+			
+			//Quaternion rotation = glm::rotation(Vector3(0, 1, 0), triangle->normal);
+			Quaternion rotation = glm::angleAxis(application->surfaceCam->getAzimuth(), Vector3(0, 1, 0)) *
+				glm::angleAxis(glm::radians(15.0f), Vector3(0, 0, -1));
+			
+			Vector3 translation = pick + rotation * Vector3(0, forcepsDistance, 0);
+			
+			// Set tool position
+			application->forcepsModelInstance.setTranslation(translation);
+			application->forcepsModelInstance.setRotation(rotation);
+			*/
+		}
+		
+		// Update tools
+		if (application->currentTool != nullptr)
+		{
+			application->currentTool->setPick(pick);
+			application->currentTool->update(application->dt);
+		}
+		
 		application->colony->update(application->dt);
 	}
 }
@@ -329,16 +328,39 @@ void GameState::exit()
 
 void GameState::mouseButtonPressed(int button, int x, int y)
 {
-	if (button == 1 && application->forceps->isActive())
+	if (button == 1)
 	{
-		application->forceps->pinch();
+		if (application->forceps->isActive())
+		{
+			application->forceps->pinch();
+		}
+		else if (application->brush->isActive())
+		{
+			application->brush->press();
+		}
+		else if (application->lens->isActive())
+		{
+			application->lens->focus();
+		}
 	}
+	
 }
 
 void GameState::mouseButtonReleased(int button, int x, int y)
 {
-	if (button == 1 && application->forceps->isActive())
+	if (button == 1)
 	{
-		application->forceps->release();
+		if (application->forceps->isActive())
+		{
+			application->forceps->release();
+		}
+		else if (application->brush->isActive())
+		{
+			application->brush->release();
+		}
+		else if (application->lens->isActive())
+		{
+			application->lens->unfocus();
+		}
 	}
 }

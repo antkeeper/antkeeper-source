@@ -178,6 +178,16 @@ public:
 	ShadowMapRenderPass shadowMapPass;
 	Compositor shadowMapCompositor;
 	
+	GLuint framebufferAColorTexture;
+	GLuint framebufferADepthTexture;
+	GLuint framebufferA;
+	RenderTarget framebufferARenderTarget;
+	
+	GLuint framebufferBColorTexture;
+	GLuint framebufferBDepthTexture;
+	GLuint framebufferB;
+	RenderTarget framebufferBRenderTarget;
+	
 	ClearRenderPass clearDepthPass;
 	SoilRenderPass soilPass;
 	LightingRenderPass lightingPass;
@@ -194,6 +204,10 @@ public:
 	TextureLoader* textureLoader;
 	MaterialLoader* materialLoader;
 	ModelLoader* modelLoader;
+	BlurRenderPass horizontalBlurPass;
+	BlurRenderPass verticalBlurPass;
+	BlurRenderPass horizontalBlurPass2;
+	BlurRenderPass verticalBlurPass2;
 	
 	// Controls
 	Control* bindingControl;
@@ -277,7 +291,8 @@ public:
 	UIImage* titleImage;
 	UIImage* darkenImage;
 	UILabel* frameTimeLabel;
-	UILabel* anyKeyLabel;	
+	UILabel* anyKeyLabel;
+	UILabel* copyrightLabel;
 	UIImage* rectangularPaletteImage;
 	UIImage* foodIndicatorImage;
 	UIImage* contextButtonImage0;
@@ -291,9 +306,13 @@ public:
 	Tweener* tweener;
 	Tween<Vector4>* fadeInTween;
 	Tween<Vector4>* fadeOutTween;
+	Tween<Vector4>* darkenFadeInTween;
+	Tween<Vector4>* darkenFadeOutTween;
+	Tween<float>* blurFadeInTween;
+	Tween<float>* blurFadeOutTween;
 	Tween<Vector4>* splashFadeInTween;
-	Tween<float>* splashHangTween;
 	Tween<Vector4>* splashFadeOutTween;
+	Tween<float>* splashHangTween;
 	Tween<Vector4>* titleFadeInTween;
 	Tween<Vector4>* titleFadeOutTween;
 	Tween<Vector4>* anyKeyFadeInTween;
@@ -303,6 +322,7 @@ public:
 	Tween<float>* menuActivateTween;
 	Tween<Vector3>* cameraTranslationTween;
 	Tween<float>* forcepsSwoopTween;
+
 	
 	// Menus
 	Menu* activeMenu;

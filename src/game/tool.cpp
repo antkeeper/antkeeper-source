@@ -349,11 +349,36 @@ Lens::Lens(const Model* model)
 	// Setup model instance
 	modelInstance.setModel(model);
 	
-	hoverDistance = 12.0f;
+	unfocusedDistance = 15.0f;
+	focusedDistance = 12.0f;
+	focused = false;
+	sunDirection = Vector3(0, -1, 0);
+	
+	// Setup timing
+	float descentDuration = 0.75f;
+	float ascentDuration = 0.25f;
+	
+	// Allocate tweener and and setup tweens
+	tweener = new Tweener();
+	descentTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, descentDuration, unfocusedDistance, focusedDistance - unfocusedDistance);
+	ascentTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, ascentDuration, focusedDistance, unfocusedDistance - focusedDistance);
+	descentTween->setEndCallback
+	(
+		[this](float t)
+		{
+			focused = true;
+		}
+	);
+	tweener->addTween(descentTween);
+	tweener->addTween(ascentTween);
 }
 
 Lens::~Lens()
-{}
+{
+	delete descentTween;
+	delete ascentTween;
+	delete tweener;
+}
 
 void Lens::update(float dt)
 {
@@ -375,12 +400,46 @@ void Lens::update(float dt)
 	*/
 	modelInstance.setActive(active);
 	
-	Quaternion alignment = glm::angleAxis(cameraController->getAzimuth() + glm::radians(90.0f), Vector3(0, 1, 0));
+	// Update tweener
+	tweener->update(dt);
+	
+	float lensDistance = (focused) ? focusedDistance : unfocusedDistance;
+	if (!ascentTween->isStopped())
+	{
+		lensDistance = ascentTween->getTweenValue();
+	}
+	else if (!descentTween->isStopped())
+	{
+		lensDistance = descentTween->getTweenValue();
+	}
+	
+	//Quaternion alignment = glm::angleAxis(cameraController->getAzimuth() + glm::radians(90.0f), Vector3(0, 1, 0));
+	Quaternion alignment = glm::rotation(Vector3(0, 1, 0), -sunDirection) * glm::angleAxis(glm::radians(90.0f), Vector3(0, 1, 0));
 	Quaternion rotation = glm::normalize(alignment);
-	Vector3 translation = pick + Vector3(0, hoverDistance, 0);
+	Vector3 translation = pick + sunDirection * -lensDistance;
 	
 	modelInstance.setTranslation(translation);
 	modelInstance.setRotation(rotation);
+}
+
+void Lens::focus()
+{
+	ascentTween->stop();
+	descentTween->reset();
+	descentTween->start();
+}
+
+void Lens::unfocus()
+{
+	descentTween->stop();
+	focused = false;
+	ascentTween->reset();
+	ascentTween->start();
+}
+
+void Lens::setSunDirection(const Vector3& direction)
+{
+	sunDirection = direction;
 }
 
 Brush::Brush(const Model* model)
@@ -394,22 +453,106 @@ Brush::Brush(const Model* model)
 	modelInstance.setModel(model);
 	modelInstance.setPose(pose);
 	
-	hoverDistance = 0.0f;
+	hoverDistance = 0.5f;
+	
+	// Setup timing
+	float descentDuration = 0.1f;
+	float ascentDuration = 0.1f;
+	
+	// Allocate tweener and and setup tweens
+	tweener = new Tweener();
+	descentTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, descentDuration, hoverDistance, -hoverDistance);
+	ascentTween = new Tween<float>(EaseFunction::OUT_CUBIC, 0.0f, ascentDuration, 0.0f, hoverDistance);
+	descentTween->setEndCallback
+	(
+		[this](float t)
+		{
+			descended = true;
+		}
+	);
+	tweener->addTween(descentTween);
+	tweener->addTween(ascentTween);
+	descended = false;
+	
+	oldPick = pick;
+	tiltAngle = 0.0f;
+	targetTiltAngle = 0.0f;
+	tiltAxis = Vector3(1.0f, 0.0f, 0.0f);
+	targetTiltAxis = tiltAxis;
 }
 
 Brush::~Brush()
 {
 	delete pose;
+	delete descentTween;
+	delete ascentTween;
+	delete tweener;
 }
 
 void Brush::update(float dt)
 {
 	modelInstance.setActive(active);
 	
+	// Update tweener
+	tweener->update(dt);
+	
+	float brushDistance = (descended) ? 0.0f : hoverDistance;
+	if (!ascentTween->isStopped())
+	{
+		brushDistance = ascentTween->getTweenValue();
+	}
+	else if (!descentTween->isStopped())
+	{
+		brushDistance = descentTween->getTweenValue();
+	}
+	
+	targetTiltAngle = 0.0f;
+	if (descended)
+	{
+		Vector3 difference = pick - oldPick;
+		float distanceSquared = glm::dot(difference, difference);
+		
+		if (distanceSquared > 0.005f)
+		{
+			float maxDistance = 0.25f;
+			float maxTiltAngle = glm::radians(45.0f);
+			float distance = std::sqrt(distanceSquared);
+			float tiltFactor = std::min<float>(maxDistance, distance) / maxDistance;
+			
+			targetTiltAngle = maxTiltAngle * tiltFactor;
+			targetTiltAxis = glm::normalize(Vector3(difference.z, 0.0f, -difference.x));
+		}
+	}
+	
+	float angleInterpolationFactor = 0.1f / (1.0 / 60.0f) * dt;
+	float axisInterpolationFactor = 0.2f / (1.0 / 60.0f) * dt;
+	tiltAngle = glm::mix(tiltAngle, targetTiltAngle, angleInterpolationFactor);
+	tiltAxis = glm::mix(tiltAxis, targetTiltAxis, axisInterpolationFactor);
+	
+	Quaternion tilt = glm::angleAxis(tiltAngle, tiltAxis);
+	
 	Quaternion alignment = glm::angleAxis(cameraController->getAzimuth(), Vector3(0, 1, 0));
-	Quaternion rotation = glm::normalize(alignment);
-	Vector3 translation = pick + Vector3(0, hoverDistance, 0);
+	Quaternion rotation = glm::normalize(tilt);
+	Vector3 translation = pick + Vector3(0, brushDistance, 0);
 	
 	modelInstance.setTranslation(translation);
 	modelInstance.setRotation(rotation);
+	
+	oldPick = pick;
+}
+
+void Brush::press()
+{
+	ascentTween->stop();
+	descentTween->reset();
+	descentTween->start();
+	
+}
+
+void Brush::release()
+{
+	descentTween->stop();
+	descended = false;
+	ascentTween->reset();
+	ascentTween->start();
 }
