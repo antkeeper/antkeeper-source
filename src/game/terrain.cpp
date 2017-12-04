@@ -54,8 +54,8 @@ void Terrain::createSurface()
 			*(data++) = 0.0f;
 			*(data++) = 1.0f;
 			*(data++) = 0.0f;
-			*(data++) = static_cast<float>(j) / static_cast<float>(columns) * 2.0f;
-			*(data++) = static_cast<float>(i) / static_cast<float>(rows) * 2.0f;
+			*(data++) = static_cast<float>(j) / static_cast<float>(columns);
+			*(data++) = static_cast<float>(i) / static_cast<float>(rows);
 		}
 	}
 	

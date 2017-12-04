@@ -30,6 +30,7 @@ class Ant;
 class Agent;
 class Pheromone;
 class Gait;
+class PheromoneMatrix;
 
 /**
  * A colony of ants.
@@ -59,8 +60,13 @@ public:
 	
 	
 	const Octree<Agent*>* getAntOctree() const;
-	const Octree<Pheromone*>* getPheromoneOctree() const;
 	
+	const PheromoneMatrix* getHomingMatrix() const;
+	PheromoneMatrix* getHomingMatrix();
+	
+	const PheromoneMatrix* getRecruitmentMatrix() const;
+	PheromoneMatrix* getRecruitmentMatrix();
+		
 private:
 	// Rendering
 	Model* antModel;
@@ -77,8 +83,8 @@ private:
 	std::vector<Ant*> ants;
 	Octree<Agent*>* antOctree;
 	
-	std::vector<Pheromone*> pheromones;
-	Octree<Pheromone*>* pheromoneOctree;
+	PheromoneMatrix* homingMatrix;
+	PheromoneMatrix* recruitmentMatrix;
 };
 
 inline const Model* Colony::getAntModel() const
@@ -117,9 +123,24 @@ inline const Octree<Agent*>* Colony::getAntOctree() const
 	return antOctree;
 }
 
-inline const Octree<Pheromone*>* Colony::getPheromoneOctree() const
+inline const PheromoneMatrix* Colony::getHomingMatrix() const
 {
-	return pheromoneOctree;
+	return homingMatrix;
+}
+
+inline PheromoneMatrix* Colony::getHomingMatrix()
+{
+	return homingMatrix;
+}
+
+inline const PheromoneMatrix* Colony::getRecruitmentMatrix() const
+{
+	return recruitmentMatrix;
+}
+
+inline PheromoneMatrix* Colony::getRecruitmentMatrix()
+{
+	return recruitmentMatrix;
 }
 
 #endif // COLONY_HPP

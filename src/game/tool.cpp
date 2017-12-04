@@ -1,7 +1,10 @@
 #include "tool.hpp"
 #include "ant.hpp"
 #include "colony.hpp"
+#include "navmesh.hpp"
+#include "pheromone-matrix.hpp"
 #include "../camera-controller.hpp"
+#include "../configuration.hpp"
 #include <iostream>
 #include <list>
 
@@ -256,6 +259,11 @@ void Forceps::setColony(Colony* colony)
 	this->colony = colony;
 }
 
+void Forceps::setNavmesh(Navmesh* navmesh)
+{
+	this->navmesh = navmesh;
+}
+
 void Forceps::pinch()
 {
 	// Change state to pinching
@@ -323,14 +331,22 @@ void Forceps::release()
 	
 	if (suspendedAnt != nullptr)
 	{
-		/*
-		auto result = intersects(pickingRay, pickTriangle);
-		if (std::get<0>(result))
+		Ray pickingRay;
+		pickingRay.origin = pick + Vector3(0, 1, 0);
+		pickingRay.direction = Vector3(0, -1, 0);
+		
+		const std::vector<Navmesh::Triangle*>* navmeshTriangles = navmesh->getTriangles();
+		for (Navmesh::Triangle* triangle: *navmeshTriangles)
 		{
-			Vector3 barycentricPosition = Vector3(std::get<2>(result), std::get<3>(result), 1.0f - std::get<2>(result) - std::get<3>(result));
-			pickAnt->setPosition(pickTriangle, barycentricPosition);
+			auto result = intersects(pickingRay, triangle);
+			if (std::get<0>(result))
+			{
+				Vector3 barycentricPosition = Vector3(std::get<2>(result), std::get<3>(result), 1.0f - std::get<2>(result) - std::get<3>(result));
+				suspendedAnt->setPosition(triangle, barycentricPosition);
+				
+				break;
+			}
 		}
-		*/
 		
 		// Release suspended ant
 		suspendedAnt->setState(Ant::State::WANDER);
@@ -492,6 +508,7 @@ Brush::Brush(const Model* model)
 		[this](float t)
 		{
 			descended = true;
+			paint(Vector2(pick.x, pick.z), BRUSH_RADIUS);
 		}
 	);
 	tweener->addTween(descentTween);
@@ -503,6 +520,8 @@ Brush::Brush(const Model* model)
 	targetTiltAngle = 0.0f;
 	tiltAxis = Vector3(1.0f, 0.0f, 0.0f);
 	targetTiltAxis = tiltAxis;
+	
+	colony = nullptr;
 }
 
 Brush::~Brush()
@@ -536,6 +555,7 @@ void Brush::update(float dt)
 		Vector3 difference = pick - oldPick;
 		float distanceSquared = glm::dot(difference, difference);
 		
+		// Calculate tilt
 		if (distanceSquared > 0.005f)
 		{
 			float maxDistance = 0.25f;
@@ -545,6 +565,34 @@ void Brush::update(float dt)
 			
 			targetTiltAngle = maxTiltAngle * tiltFactor;
 			targetTiltAxis = glm::normalize(Vector3(difference.z, 0.0f, -difference.x));
+		}
+		
+		// Paint pheromones
+		Vector2 difference2D = Vector2(pick.x, pick.z) - Vector2(oldPick.x, oldPick.z);
+		float distance2DSquared = glm::dot(difference2D, difference2D);
+		if (distance2DSquared != 0.0f)
+		{
+			float distance2D = sqrt(distance2DSquared);
+			Vector2 direction2D = difference2D / distance2D;
+			
+			if (distance2D <= BRUSH_RADIUS)
+			{
+				paint(Vector2(pick.x, pick.z), BRUSH_RADIUS);
+			}
+			else
+			{
+				float stepDistance = BRUSH_RADIUS * 0.5f;
+				int stepCount = static_cast<int>(distance2D / stepDistance + 0.5f);
+
+				for (int i = 0; i < stepCount; ++i)
+				{
+					Vector2 circleCenter = Vector2(oldPick.x, oldPick.z) + direction2D * (stepDistance * i);
+					
+					paint(circleCenter, BRUSH_RADIUS);
+				}
+
+				paint(Vector2(pick.x, pick.z), BRUSH_RADIUS);
+			}
 		}
 	}
 	
@@ -562,6 +610,15 @@ void Brush::update(float dt)
 	modelInstance.setTranslation(translation);
 	modelInstance.setRotation(rotation);
 	
+	
+	if (descended)
+	{
+		Vector2 paintPosition = Vector2(pick.x, pick.z);
+		paint(paintPosition, BRUSH_RADIUS);
+		
+
+	}
+	
 	oldPick = pick;
 }
 
@@ -570,7 +627,6 @@ void Brush::press()
 	ascentTween->stop();
 	descentTween->reset();
 	descentTween->start();
-	
 }
 
 void Brush::release()
@@ -579,4 +635,39 @@ void Brush::release()
 	descended = false;
 	ascentTween->reset();
 	ascentTween->start();
+}
+
+void Brush::setColony(Colony* colony)
+{
+	this->colony = colony;
+}
+
+void Brush::paint(const Vector2& position, float radius)
+{
+	if (!colony)
+	{
+		return;
+	}
+	
+	PheromoneMatrix* pheromoneMatrix = colony->getRecruitmentMatrix();
+	
+	float concentration = 1.0f;
+	float radiusSquared = radius * radius;
+	Vector2 cell;
+	Vector2 difference;
+	
+	for (cell.y = position.y - radius; cell.y <= position.y + radius; cell.y += pheromoneMatrix->getCellHeight())
+	{
+		difference.y = cell.y - position.y;
+		
+		for (cell.x = position.x - radius; cell.x <= position.x + radius; cell.x += pheromoneMatrix->getCellWidth())
+		{
+			difference.x = cell.x - position.x;
+			
+			if (glm::dot(difference, difference) <= radiusSquared)
+			{
+				pheromoneMatrix->deposit(cell, concentration);
+			}
+		}
+	}
 }

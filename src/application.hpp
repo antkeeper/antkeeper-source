@@ -186,6 +186,10 @@ public:
 	GLuint framebufferB;
 	RenderTarget framebufferBRenderTarget;
 	
+	GLuint pheromonePBO;
+	GLuint pheromoneTextureID;
+	Texture pheromoneTexture;
+	
 	ClearRenderPass clearDepthPass;
 	SoilRenderPass soilPass;
 	LightingRenderPass lightingPass;

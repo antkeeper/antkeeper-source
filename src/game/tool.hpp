@@ -27,6 +27,7 @@ using namespace Emergent;
 
 class Ant;
 class Colony;
+class Navmesh;
 class SurfaceCameraController;
 
 /**
@@ -156,6 +157,8 @@ public:
 	 */
 	void setColony(Colony* colony);
 	
+	void setNavmesh(Navmesh* navmesh);
+	
 	/**
 	 * Returns the current state of the forceps.
 	 */
@@ -185,6 +188,7 @@ private:
 	Colony* colony;
 	Ant* targetedAnt;
 	Ant* suspendedAnt;
+	Navmesh* navmesh;
 };
 
 inline Forceps::State Forceps::getState() const
@@ -230,6 +234,13 @@ public:
 	void focus();
 	void unfocus();
 	
+	/**
+	 * Associates a colony with this lens.
+	 *
+	 * @param colony Colony with which to associate.
+	 */
+	void setColony(Colony* colony);
+	
 	void setSunDirection(const Vector3& direction);
 	
 	/**
@@ -247,6 +258,7 @@ private:
 	Tweener* tweener;
 	Tween<float>* descentTween;
 	Tween<float>* ascentTween;
+	Colony* colony;
 };
 
 inline const Spotlight* Lens::getSpotlight() const
@@ -273,7 +285,16 @@ public:
 	void press();
 	void release();
 	
+	/**
+	 * Associates a colony with this brush.
+	 *
+	 * @param colony Colony with which to associate.
+	 */
+	void setColony(Colony* colony);
+	
 private:
+	void paint(const Vector2& position, float radius);
+	
 	Pose* pose;
 	float hoverDistance;
 	bool descended;
@@ -286,6 +307,7 @@ private:
 	float targetTiltAngle;
 	Vector3 tiltAxis;
 	Vector3 targetTiltAxis;
+	Colony* colony;
 };
 
 #endif // TOOL_HPP

@@ -19,7 +19,7 @@
 
 #include "colony.hpp"
 #include "ant.hpp"
-#include "pheromone.hpp"
+#include "pheromone-matrix.hpp"
 #include "../configuration.hpp"
 
 Colony::Colony():
@@ -31,14 +31,18 @@ Colony::Colony():
 	AABB octreeBounds(octreeMin, octreeMax);
 	
 	antOctree = new Octree<Agent*>(5, octreeBounds);
-	pheromoneOctree = new Octree<Pheromone*>(5, octreeBounds);
+	
+	// Create pheromone matrices
+	homingMatrix = new PheromoneMatrix(PHEROMONE_MATRIX_COLUMNS, PHEROMONE_MATRIX_ROWS, WORLD_BOUNDS_MIN, WORLD_BOUNDS_MAX);
+	recruitmentMatrix = new PheromoneMatrix(PHEROMONE_MATRIX_COLUMNS, PHEROMONE_MATRIX_ROWS, WORLD_BOUNDS_MIN, WORLD_BOUNDS_MAX);
 }
 
 Colony::~Colony()
 {
 	killAll();
 	delete antOctree;
-	delete pheromoneOctree;
+	delete homingMatrix;
+	delete recruitmentMatrix;
 }
 
 Ant* Colony::spawn(Navmesh* navmesh, Navmesh::Triangle* triangle, const Vector3& position)
@@ -91,7 +95,8 @@ void Colony::queryAnts(const BoundingVolume& volume, std::list<Agent*>* results)
 void Colony::killAll()
 {
 	antOctree->clear();
-	pheromoneOctree->clear();
+	homingMatrix->clear();
+	recruitmentMatrix->clear();
 	
 	for (Ant* ant: ants)
 	{

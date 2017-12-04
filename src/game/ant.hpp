@@ -87,6 +87,16 @@ public:
 	const ModelInstance* getModelInstance() const;
 	ModelInstance* getModelInstance();
 	
+	
+	
+	
+	// Boid functions
+	Vector3 seek(const Vector3& target);
+	Vector3 flee(const Vector3& target);
+	Vector3 wander();
+	Vector3 follow();
+	void applyForce(const Vector3& force);
+	
 private:
 	Vector3 forage(const Vector3& leftReceptor, const Vector3& rightReceptor);
 	
@@ -104,6 +114,17 @@ private:
 	Transform transform;
 	ModelInstance modelInstance;
 	Pose* pose;
+	
+	// Boid variables
+	//Vector3 position;
+	//Quaternion rotation;
+	//Vector3 forward;
+	Vector3 velocity;
+	Vector3 acceleration;
+	Vector3 wanderDirection;
+	float excitement;
+	Vector3 receptorL;
+	Vector3 receptorR;
 };
 
 inline const Colony* Ant::getColony() const

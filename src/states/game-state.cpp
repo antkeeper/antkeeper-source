@@ -24,10 +24,18 @@
 #include "../game/colony.hpp"
 #include "../game/ant.hpp"
 #include "../game/tool.hpp"
+#include "../game/pheromone-matrix.hpp"
 #include "../ui/toolbar.hpp"
 #include "../ui/menu.hpp"
 #include "../ui/pie-menu.hpp"
 #include <cmath>
+
+inline void cmykToRGB(const float* cmyk, float* rgb)
+{
+	rgb[0] = -((cmyk[0] * (1.0f - cmyk[3])) + cmyk[3] - 1.0f);
+	rgb[1] = -((cmyk[1] * (1.0f - cmyk[3])) + cmyk[3] - 1.0f);
+	rgb[2] = -((cmyk[2] * (1.0f - cmyk[3])) + cmyk[3] - 1.0f);
+}
 
 GameState::GameState(Application* application):
 	ApplicationState(application)
@@ -57,8 +65,11 @@ void GameState::enter()
 	application->toolbar->getContainer()->setVisible(true);
 	application->toolbar->getContainer()->setActive(true);
 	
+	Navmesh* navmesh = application->currentLevel->terrain.getSurfaceNavmesh();
+	
 	// Setup tools
 	application->forceps->setColony(application->colony);
+	application->forceps->setNavmesh(navmesh);
 	
 	// Add tools to scene
 	application->defaultLayer->addObject(application->forceps->getModelInstance());
@@ -73,7 +84,6 @@ void GameState::enter()
 	//application->defaultLayer->addObject(&application->biomeFloorModelInstance);
 		
 	// Spawn ants
-	Navmesh* navmesh = application->currentLevel->terrain.getSurfaceNavmesh();
 	for (int i = 0; i < 200; ++i)
 	{
 		Navmesh::Triangle* triangle = (*navmesh->getTriangles())[0];
@@ -242,6 +252,63 @@ void GameState::execute()
 		pick = pickingRay.extrapolate(std::get<1>(result));
 	}
 	*/
+	static bool bla = false;
+	bla = !bla;
+	// Update pheromone texture
+	if (bla)
+	{
+		float cmyk[4];
+		float rgb[3];
+		const float* bufferH = application->colony->getHomingMatrix()->getActiveBuffer();
+		const float* bufferR = application->colony->getRecruitmentMatrix()->getActiveBuffer();
+		
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, application->pheromonePBO);
+		GLubyte* data = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+		GLubyte* channel = data;
+		
+		std::size_t index = 0;
+		for (int y = 0; y < application->pheromoneTexture.getHeight(); ++y)
+		{
+			for (int x = 0; x < application->pheromoneTexture.getWidth(); ++x)
+			{
+				float concentrationH = std::min<float>(1.0f, bufferH[index]) * 0.35f;
+				float concentrationR = std::min<float>(1.0f, bufferR[index]) * 0.35f;
+
+				cmyk[0] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[0] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[0]);
+				cmyk[1] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[1] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[1]);
+				cmyk[2] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[2] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[2]);
+				cmyk[3] = 0.35f;
+				
+				cmykToRGB(cmyk, rgb);
+				
+				GLubyte b = static_cast<GLubyte>(std::min<float>(255.0f, rgb[2] * 255.0f));
+				GLubyte g = static_cast<GLubyte>(std::min<float>(255.0f, rgb[1] * 255.0f));
+				GLubyte r = static_cast<GLubyte>(std::min<float>(255.0f, rgb[0] * 255.0f));
+				
+				*(channel++) = b;
+				*(channel++) = g;
+				*(channel++) = r;
+				*(channel++) = 255;
+				
+				++index;
+			}
+		}
+		
+		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+		
+		glBindTexture(GL_TEXTURE_2D, application->pheromoneTextureID);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, application->pheromoneTexture.getWidth(), application->pheromoneTexture.getHeight(), GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	}
+	
+	application->colony->getHomingMatrix()->evaporate();
+	application->colony->getRecruitmentMatrix()->evaporate();
+	static int frame = 0;
+	if (frame++ % DIFFUSION_FRAME == 0)
+	{
+		application->colony->getHomingMatrix()->diffuse();
+		application->colony->getRecruitmentMatrix()->diffuse();
+	}
 	
 
 	

@@ -26,11 +26,12 @@ Agent::Agent():
 	forward(0, 0, -1),
 	up(0, 1, 0),
 	right(1, 0, 0),
-	rotation(1, 0, 0, 0),
-	wanderDirection(0, 0, -1),
-	velocity(0.0f)
+	rotation(1, 0, 0, 0)
+	//wanderDirection(0, 0, -1),
+	//velocity(0.0f)
 {}
 
+/*
 void Agent::applyForce(const Vector3& force)
 {
 	acceleration += force;
@@ -93,21 +94,19 @@ Vector3 Agent::containment(const Vector3& probe) const
 		return Vector3(0.0f);
 	}
 	
-	/*
 	// Calculate difference between probe position and position on edge
-	Vector3 end = cartesian(step.end,
-		step.triangle->edge->vertex->position,
-		step.triangle->edge->next->vertex->position,
-		step.triangle->edge->previous->vertex->position);
+	//Vector3 end = cartesian(step.end,
+	//	step.triangle->edge->vertex->position,
+	//	step.triangle->edge->next->vertex->position,
+	//	step.triangle->edge->previous->vertex->position);
 	
-	Vector3 difference = probe - end;
+	//Vector3 difference = probe - end;
 	
-	float depth = 0.0f;
-	if (nonzero(difference))
-	{
-		depth = glm::length(difference);
-	}
-	*/
+	//float depth = 0.0f;
+	//if (nonzero(difference))
+	//{
+	//	depth = glm::length(difference);
+	//}
 	
 	// Calculate edge normal
 	const Vector3& a = step.edge->vertex->position;
@@ -118,12 +117,10 @@ Vector3 Agent::containment(const Vector3& probe) const
 	// Calculate reflection vector of forward vector and edge normal
 	//Vector3 reflection = glm::reflect(forward, edgeNormal);
 	
-	/*
-	Vector3 target = cartesian(step.end,
-		step.triangle->edge->vertex->position,
-		step.triangle->edge->next->vertex->position,
-		step.triangle->edge->previous->vertex->position) + reflection * 0.1f;
-	*/
+	//Vector3 target = cartesian(step.end,
+	//	step.triangle->edge->vertex->position,
+	//	step.triangle->edge->next->vertex->position,
+	//	step.triangle->edge->previous->vertex->position) + reflection * 0.1f;
 	
 	//std::cout << "reflection: " << reflection.x << ", " << reflection.y << ", " << reflection.z << std::endl;
 	
@@ -152,6 +149,7 @@ Vector3 Agent::separation(const std::list<Agent*>& neighbors) const
 	
 	return force;
 }
+*/
 
 void Agent::setPosition(Navmesh::Triangle* triangle, const Vector3& position)
 {
@@ -180,9 +178,10 @@ void Agent::setOrientation(const Vector3& newForward, const Vector3& newUp)
 	rotation = glm::normalize(glm::quat_cast(Matrix3(right, up, forward)));
 	
 	// Align wander direction
-	wanderDirection = glm::normalize(project_on_plane(alignment * wanderDirection, Vector3(0.0f), up));
+	//wanderDirection = glm::normalize(project_on_plane(alignment * wanderDirection, Vector3(0.0f), up));
 }
 
+/*
 void Agent::setMaxSpeed(float speed)
 {
 	maxSpeed = speed;
@@ -213,6 +212,7 @@ void Agent::setSeparationRadius(float radius)
 	separationRadius = radius;
 	separationRadiusSquared = separationRadius * separationRadius;
 }
+*/
 
 /** EXAMPLE USAGE
 Vector3 wanderForce = wander(dt) * wanderWeight;

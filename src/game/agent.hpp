@@ -54,40 +54,42 @@ class Agent
 public:
 	Agent();
 	
+	
+	
 	/**
 	 * Adds a force to the agent's acceleration vector.
 	 *
 	 * @param force Acceleration force
 	 */
-	void applyForce(const Vector3& force);
+	//void applyForce(const Vector3& force);
 	
 	/**
 	 * Calculates velocity based on current acceleration vector, then resets acceleration to zero.
 	 */
-	void updateVelocity();
+	//void updateVelocity();
 	
 	/**
 	 * Calculates steering force for the wander behavior.
 	 */
-	Vector3 wander(float dt);
+	//Vector3 wander(float dt);
 	
 	/**
 	 * Calculates steering force for the seek behavior.
 	 */
-	Vector3 seek(const Vector3& target) const;
+	//Vector3 seek(const Vector3& target) const;
 	
 	/**
 	 * Calculates steering force for the flee behavior.
 	 */
-	Vector3 flee(const Vector3& target) const;
+	//Vector3 flee(const Vector3& target) const;
 	
-	Vector3 containment(const Vector3& probe) const;
+	//Vector3 containment(const Vector3& probe) const;
 	
-	Vector3 separation(const std::list<Agent*>& neighbors) const;
+	//Vector3 separation(const std::list<Agent*>& neighbors) const;
 	
-	Vector3 forage(const Vector3& leftProbe, const Vector3& rightProbe);
+	//Vector3 forage(const Vector3& leftProbe, const Vector3& rightProbe);
 	
-	
+	/*
 	void setMaxSpeed(float speed);
 	void setVelocity(const Vector3& velocity);
 	void setMaxAcceleration(float acceleration);
@@ -96,6 +98,7 @@ public:
 	void setWanderCircleRadius(float radius);
 	void setWanderRate(float angle);
 	void setSeparationRadius(float radius);
+	*/
 	
 	/**
 	 * Sets the position of the agent on a navmesh.
@@ -132,7 +135,7 @@ public:
 	const Vector3& getRight() const;
 	const Quaternion& getRotation() const;
 	
-	const Vector3& getVelocity() const;
+	//const Vector3& getVelocity() const;
 
 private:
 	Navmesh::Triangle* navmeshTriangle;
@@ -143,6 +146,7 @@ private:
 	Vector3 right;
 	Quaternion rotation;
 	
+	/*
 	// Limits
 	float maxSpeed;
 	float maxAcceleration;
@@ -159,6 +163,7 @@ private:
 	Vector3 wanderDirection;
 	float separationRadius;
 	float separationRadiusSquared;
+	*/
 };
 
 inline const Navmesh::Triangle* Agent::getNavmeshTriangle() const
@@ -201,9 +206,11 @@ inline const Quaternion& Agent::getRotation() const
 	return rotation;
 }
 
+/*
 inline const Vector3& Agent::getVelocity() const
 {
 	return velocity;
 }
+*/
 
 #endif // AGENT_HPP

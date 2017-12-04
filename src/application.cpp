@@ -26,6 +26,7 @@
 #include "states/title-state.hpp"
 #include "states/game-state.hpp"
 #include "game/colony.hpp"
+#include "game/pheromone-matrix.hpp"
 #include "game/tool.hpp"
 #include "ui/menu.hpp"
 #include "ui/toolbar.hpp"
@@ -456,7 +457,7 @@ int Application::execute()
 		else
 		{
 			// Execute current state
-			while (accumulator >= dt)
+			//while (accumulator >= dt)
 			{
 				state->execute();
 				
@@ -467,8 +468,8 @@ int Application::execute()
 				// Perform tweening
 				tweener->update(dt);
 				
-				accumulator -= dt;
-				t += dt;
+				//accumulator -= dt;
+				//t += dt;
 			}
 		}
 		
@@ -857,6 +858,27 @@ bool Application::loadScene()
 		framebufferBRenderTarget.width = static_cast<int>(resolution.x);
 		framebufferBRenderTarget.height = static_cast<int>(resolution.y);
 		framebufferBRenderTarget.framebuffer = framebufferA;
+	}
+	
+	// Pheromone PBO
+	{
+		glGenBuffers(1, &pheromonePBO);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pheromonePBO);
+		glBufferData(GL_PIXEL_UNPACK_BUFFER, 4 * PHEROMONE_MATRIX_COLUMNS * PHEROMONE_MATRIX_ROWS, nullptr, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		
+		glGenTextures(1, &pheromoneTextureID);
+		glBindTexture(GL_TEXTURE_2D, pheromoneTextureID);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, PHEROMONE_MATRIX_COLUMNS, PHEROMONE_MATRIX_ROWS, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		
+		pheromoneTexture.setWidth(PHEROMONE_MATRIX_COLUMNS);
+		pheromoneTexture.setHeight(PHEROMONE_MATRIX_ROWS);
+		pheromoneTexture.setTextureID(pheromoneTextureID);
 	}
 	
 	// Setup skybox pass
@@ -1592,6 +1614,7 @@ bool Application::loadGame()
 	lens->setSunDirection(glm::normalize(-sunlightCamera.getTranslation()));
 	
 	brush = new Brush(brushModel);
+	brush->setColony(colony);
 	brush->setCameraController(surfaceCam);
 	
 	loadWorld(0);
@@ -2029,7 +2052,11 @@ void Application::loadLevel(std::size_t index)
 	// Load level
 	const LevelParameterSet* levelParams = campaign.getLevelParams(currentWorldIndex, currentLevelIndex);
 	currentLevel->load(*levelParams);
-	currentLevel->terrain.getSurfaceModel()->getGroup(0)->material = materialLoader->load("data/materials/debug-terrain-surface.mtl");
+	
+	PhysicalMaterial* material = materialLoader->load("data/materials/debug-terrain-surface.mtl");
+	material->albedoOpacityMap = &pheromoneTexture;
+	
+	currentLevel->terrain.getSurfaceModel()->getGroup(0)->material = material;
 }
 
 /*
