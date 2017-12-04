@@ -681,6 +681,8 @@ LightingRenderPass::LightingRenderPass():
 	biasMatrix = glm::translate(Vector3(0.5f)) * glm::scale(Vector3(0.5f));
 	
 	maxBoneCount = 64;
+	maxDirectionalLightCount = 1;
+	maxSpotlightCount = 1;
 	
 	matrixPaletteParam = parameterSet.addParameter("matrixPalette", ShaderParameter::Type::MATRIX_4, maxBoneCount);
 	modelParam = parameterSet.addParameter("modelMatrix", ShaderParameter::Type::MATRIX_4, 1);
@@ -692,8 +694,17 @@ LightingRenderPass::LightingRenderPass():
 	shadowMapParam = parameterSet.addParameter("shadowMap", ShaderParameter::Type::INT, 1);
 	cameraPositionParam = parameterSet.addParameter("cameraPosition", ShaderParameter::Type::VECTOR_3, 1);
 	directionalLightCountParam = parameterSet.addParameter("directionalLightCount", ShaderParameter::Type::INT, 1);
-	directionalLightColorsParam = parameterSet.addParameter("directionalLightColors", ShaderParameter::Type::VECTOR_3, 1);
-	directionalLightDirectionsParam = parameterSet.addParameter("directionalLightDirections", ShaderParameter::Type::VECTOR_3, 1);
+	directionalLightColorsParam = parameterSet.addParameter("directionalLightColors", ShaderParameter::Type::VECTOR_3, maxDirectionalLightCount);
+	directionalLightDirectionsParam = parameterSet.addParameter("directionalLightDirections", ShaderParameter::Type::VECTOR_3, maxDirectionalLightCount);
+	
+	spotlightCountParam = parameterSet.addParameter("spotlightCount", ShaderParameter::Type::INT, 1);
+	spotlightColorsParam = parameterSet.addParameter("spotlightColors", ShaderParameter::Type::VECTOR_3, maxSpotlightCount);
+	spotlightPositionsParam = parameterSet.addParameter("spotlightPositions", ShaderParameter::Type::VECTOR_3, maxSpotlightCount);
+	spotlightAttenuationsParam = parameterSet.addParameter("spotlightAttenuations", ShaderParameter::Type::VECTOR_3, maxSpotlightCount);
+	spotlightDirectionsParam = parameterSet.addParameter("spotlightDirections", ShaderParameter::Type::VECTOR_3, maxSpotlightCount);
+	spotlightCutoffsParam = parameterSet.addParameter("spotlightCutoffs", ShaderParameter::Type::FLOAT, maxSpotlightCount);
+	spotlightExponentsParam = parameterSet.addParameter("spotlightExponents", ShaderParameter::Type::FLOAT, maxSpotlightCount);
+	
 	albedoOpacityMapParam = parameterSet.addParameter("albedoOpacityMap", ShaderParameter::Type::INT, 1);
 	metalnessRoughnessMapParam = parameterSet.addParameter("metalnessRoughnessMap", ShaderParameter::Type::INT, 1);
 	normalOcclusionMapParam = parameterSet.addParameter("normalOcclusionMap", ShaderParameter::Type::INT, 1);
@@ -711,8 +722,11 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 		std::cerr << "Failed to load tree shadow" << std::endl;
 	}
 	
-	// Load unskinned shader
 	shaderLoader.undefine();
+	shaderLoader.define("MAX_DIRECTIONAL_LIGHT_COUNT", maxDirectionalLightCount);
+	shaderLoader.define("MAX_SPOTLIGHT_COUNT", maxSpotlightCount);
+	
+	// Load unskinned shader
 	shaderLoader.define("TEXTURE_COUNT", 0);
 	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
 	shaderLoader.define("VERTEX_NORMAL", EMERGENT_VERTEX_NORMAL);
@@ -1167,11 +1181,47 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	
-	int directionalLightCount = 1;
+	
 	Vector3 directionalLightColors[3];
 	Vector3 directionalLightDirections[3];
+	
+	Vector3 spotlightColors[3];
+	Vector3 spotlightPositions[3];
+	Vector3 spotlightAttenuations[3];
+	Vector3 spotlightDirections[3];
+	float spotlightCutoffs[3];
+	float spotlightExponents[3];
+	
+	// Add directional light
+	int directionalLightCount = 1;
 	directionalLightColors[0] = Vector3(1);
 	directionalLightDirections[0] = glm::normalize(Vector3(camera.getView() * -Vector4(0, -2, -1, 0)));
+	
+	// Add spotlights
+	int spotlightCount = 0;
+	const std::list<SceneObject*>* lights = renderContext->layer->getObjects(SceneObjectType::LIGHT);
+	if (lights != nullptr)
+	{
+		for (auto object: *lights)
+		{
+			const Light* light = static_cast<const Light*>(object);
+			LightType lightType = light->getLightType();
+			
+			if (lightType == LightType::SPOTLIGHT && light->isActive())
+			{
+				const Spotlight* spotlight = static_cast<const Spotlight*>(light);
+				
+				spotlightColors[spotlightCount] = spotlight->getScaledColor();
+				spotlightPositions[spotlightCount] = Vector3(camera.getView() * Vector4(spotlight->getTranslation(), 1.0f));
+				spotlightAttenuations[spotlightCount] = spotlight->getAttenuation();
+				spotlightDirections[spotlightCount] = glm::normalize(Vector3(camera.getView() * Vector4(-spotlight->getDirection(), 0.0f)));
+				spotlightCutoffs[spotlightCount] = spotlight->getCutoff();
+				spotlightExponents[spotlightCount] = spotlight->getExponent();
+				
+				++spotlightCount;
+			}
+		}
+	}
 	
 	// Calculate the (light-space) view-projection matrix
 	Matrix4 lightViewProjectionMatrix = shadowMapPass->getTileMatrix(0) * biasMatrix * shadowMapPass->getCropMatrix(0) * shadowCamera->getViewProjection();
@@ -1240,6 +1290,15 @@ void LightingRenderPass::render(RenderContext* renderContext)
 			shader->setParameter(directionalLightCountParam, directionalLightCount);
 			shader->setParameter(directionalLightColorsParam, 0, &directionalLightColors[0], directionalLightCount);
 			shader->setParameter(directionalLightDirectionsParam, 0, &directionalLightDirections[0], directionalLightCount);
+			
+			shader->setParameter(spotlightCountParam, spotlightCount);
+			shader->setParameter(spotlightColorsParam, 0, &spotlightColors[0], spotlightCount);
+			shader->setParameter(spotlightPositionsParam, 0, &spotlightPositions[0], spotlightCount);
+			shader->setParameter(spotlightAttenuationsParam, 0, &spotlightAttenuations[0], spotlightCount);
+			shader->setParameter(spotlightDirectionsParam, 0, &spotlightDirections[0], spotlightCount);
+			shader->setParameter(spotlightCutoffsParam, 0, &spotlightCutoffs[0], spotlightCount);
+			shader->setParameter(spotlightExponentsParam, 0, &spotlightExponents[0], spotlightCount);
+			
 			shader->setParameter(cameraPositionParam, camera.getTranslation());
 		}
 		

@@ -232,6 +232,15 @@ private:
 	const ShaderParameter* directionalLightCountParam;
 	const ShaderParameter* directionalLightColorsParam;
 	const ShaderParameter* directionalLightDirectionsParam;
+	
+	const ShaderParameter* spotlightCountParam;
+	const ShaderParameter* spotlightColorsParam;
+	const ShaderParameter* spotlightPositionsParam;
+	const ShaderParameter* spotlightAttenuationsParam;
+	const ShaderParameter* spotlightDirectionsParam;
+	const ShaderParameter* spotlightCutoffsParam;
+	const ShaderParameter* spotlightExponentsParam;
+	
 	const ShaderParameter* albedoOpacityMapParam;
 	const ShaderParameter* metalnessRoughnessMapParam;
 	const ShaderParameter* normalOcclusionMapParam;
@@ -242,6 +251,8 @@ private:
 	Shader* skinnedShader;
 	
 	int maxBoneCount;
+	int maxDirectionalLightCount;
+	int maxSpotlightCount;
 	ShaderLoader shaderLoader;
 	std::map<std::size_t, Shader*> shaderCache;
 	//Shader* lightingShader;

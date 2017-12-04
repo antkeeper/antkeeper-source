@@ -158,8 +158,6 @@ public:
 	Camera uiCamera;
 	Camera bgCamera;
 	DirectionalLight sunlight;
-	Spotlight lensHotspot;
-	Spotlight lensFalloff;
 	ModelInstance forcepsModelInstance;
 	ModelInstance navigatorObject;
 	ModelInstance antModelInstance;

@@ -349,7 +349,15 @@ Lens::Lens(const Model* model)
 	// Setup model instance
 	modelInstance.setModel(model);
 	
-	unfocusedDistance = 15.0f;
+	// Setup spotlight
+	spotlight.setColor(Vector3(1.0f));
+	spotlight.setIntensity(10000.0f);
+	spotlight.setAttenuation(Vector3(1, 0, 1));
+	spotlight.setCutoff(glm::radians(45.0f));
+	spotlight.setExponent(700.0f);
+	spotlight.setActive(false);
+	
+	unfocusedDistance = 18.0f;
 	focusedDistance = 12.0f;
 	focused = false;
 	sunDirection = Vector3(0, -1, 0);
@@ -399,6 +407,7 @@ void Lens::update(float dt)
 	modelInstance.setRotation(rotation);
 	*/
 	modelInstance.setActive(active);
+	spotlight.setActive(active);
 	
 	// Update tweener
 	tweener->update(dt);
@@ -420,6 +429,21 @@ void Lens::update(float dt)
 	
 	modelInstance.setTranslation(translation);
 	modelInstance.setRotation(rotation);
+	
+	float spotlightDistanceFactor = (1.0 - (lensDistance - focusedDistance) / (unfocusedDistance - focusedDistance)) * 2.0f - 1.0f;
+	
+	spotlight.setTranslation(pick + sunDirection * (-lensDistance + 5.0f * spotlightDistanceFactor));
+	spotlight.setDirection(sunDirection);
+}
+
+void Lens::setActive(bool active)
+{
+	this->active = active;
+	if (!active)
+	{
+		modelInstance.setActive(active);
+		spotlight.setActive(active);
+	}
 }
 
 void Lens::focus()

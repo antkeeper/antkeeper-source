@@ -55,7 +55,7 @@ public:
 	/**
 	 * Activates or deactivates the tool.
 	 */
-	void setActive(bool active);
+	virtual void setActive(bool active);
 	
 	/**
 	 * Sets the picking position.
@@ -105,7 +105,6 @@ inline ModelInstance* Tool::getModelInstance()
 {
 	return &modelInstance;
 }
-
 
 /**
  * The forceps tool can pick up ants and place them anywhere in the world.
@@ -223,12 +222,24 @@ public:
 	 */
 	virtual void update(float dt);
 	
+	/**
+	 * Activates or deactivates the lens.
+	 */
+	virtual void setActive(bool active);
+	
 	void focus();
 	void unfocus();
 	
 	void setSunDirection(const Vector3& direction);
 	
+	/**
+	 * Returns the spotlight.
+	 */
+	const Spotlight* getSpotlight() const;
+	Spotlight* getSpotlight();
+	
 private:
+	Spotlight spotlight;
 	float unfocusedDistance;
 	float focusedDistance;
 	bool focused;
@@ -237,6 +248,16 @@ private:
 	Tween<float>* descentTween;
 	Tween<float>* ascentTween;
 };
+
+inline const Spotlight* Lens::getSpotlight() const
+{
+	return &spotlight;
+}
+
+inline Spotlight* Lens::getSpotlight()
+{
+	return &spotlight;
+}
 
 /**
  * The brush tool can paint pheromones on the terrain.

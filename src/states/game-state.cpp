@@ -63,6 +63,7 @@ void GameState::enter()
 	// Add tools to scene
 	application->defaultLayer->addObject(application->forceps->getModelInstance());
 	application->defaultLayer->addObject(application->lens->getModelInstance());
+	application->defaultLayer->addObject(application->lens->getSpotlight());
 	application->defaultLayer->addObject(application->brush->getModelInstance());
 
 	
@@ -70,9 +71,7 @@ void GameState::enter()
 	application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
 	//application->defaultLayer->addObject(&application->currentLevel->terrainSubsurface);
 	//application->defaultLayer->addObject(&application->biomeFloorModelInstance);
-	
-
-	
+		
 	// Spawn ants
 	Navmesh* navmesh = application->currentLevel->terrain.getSurfaceNavmesh();
 	for (int i = 0; i < 200; ++i)
@@ -309,6 +308,7 @@ void GameState::exit()
 	application->defaultLayer->removeObject(&application->biomeFloorModelInstance);
 	application->defaultLayer->removeObject(application->forceps->getModelInstance());
 	application->defaultLayer->removeObject(application->lens->getModelInstance());
+	application->defaultLayer->removeObject(application->lens->getSpotlight());
 	application->defaultLayer->removeObject(application->brush->getModelInstance());
 	for (std::size_t i = 0; i < application->colony->getAntCount(); ++i)
 	{
