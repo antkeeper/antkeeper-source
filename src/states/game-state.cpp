@@ -79,10 +79,15 @@ void GameState::enter()
 
 	
 	// Add terrain to scene
-	application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
+	//application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
 	//application->defaultLayer->addObject(&application->currentLevel->terrainSubsurface);
-	//application->defaultLayer->addObject(&application->biomeFloorModelInstance);
-		
+	application->defaultLayer->addObject(&application->sidewalkPanelInstance);
+	application->defaultLayer->addObject(&application->sidewalkPanelInstance1);
+	application->defaultLayer->addObject(&application->sidewalkPanelInstance2);
+	application->defaultLayer->addObject(&application->sidewalkPanelInstance3);
+	application->defaultLayer->addObject(&application->sidewalkPanelInstance4);
+	application->defaultLayer->addObject(&application->soilInstance);
+	
 	// Spawn ants
 	for (int i = 0; i < 200; ++i)
 	{
@@ -135,7 +140,7 @@ void GameState::enter()
 void GameState::execute()
 {
 	// Pause simulation
-	if (application->escape.isTriggered() && !application->escape.wasTriggered())
+	if (application->togglePause.isTriggered() && !application->togglePause.wasTriggered())
 	{
 		if (application->simulationPaused)
 		{
@@ -144,6 +149,18 @@ void GameState::execute()
 		else
 		{
 			application->pauseSimulation();
+		}		
+	}
+	// Open pause menu
+	else if (application->togglePauseMenu.isTriggered() && !application->togglePauseMenu.wasTriggered())
+	{
+		if (application->activeMenu == application->pauseMenu)
+		{
+			application->closePauseMenu();
+		}
+		else
+		{
+			application->openPauseMenu();
 		}		
 	}
 	
@@ -252,63 +269,9 @@ void GameState::execute()
 		pick = pickingRay.extrapolate(std::get<1>(result));
 	}
 	*/
-	static bool bla = false;
-	bla = !bla;
-	// Update pheromone texture
-	if (bla)
-	{
-		float cmyk[4];
-		float rgb[3];
-		const float* bufferH = application->colony->getHomingMatrix()->getActiveBuffer();
-		const float* bufferR = application->colony->getRecruitmentMatrix()->getActiveBuffer();
-		
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, application->pheromonePBO);
-		GLubyte* data = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-		GLubyte* channel = data;
-		
-		std::size_t index = 0;
-		for (int y = 0; y < application->pheromoneTexture.getHeight(); ++y)
-		{
-			for (int x = 0; x < application->pheromoneTexture.getWidth(); ++x)
-			{
-				float concentrationH = std::min<float>(1.0f, bufferH[index]) * 0.35f;
-				float concentrationR = std::min<float>(1.0f, bufferR[index]) * 0.35f;
 
-				cmyk[0] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[0] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[0]);
-				cmyk[1] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[1] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[1]);
-				cmyk[2] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[2] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[2]);
-				cmyk[3] = 0.35f;
-				
-				cmykToRGB(cmyk, rgb);
-				
-				GLubyte b = static_cast<GLubyte>(std::min<float>(255.0f, rgb[2] * 255.0f));
-				GLubyte g = static_cast<GLubyte>(std::min<float>(255.0f, rgb[1] * 255.0f));
-				GLubyte r = static_cast<GLubyte>(std::min<float>(255.0f, rgb[0] * 255.0f));
-				
-				*(channel++) = b;
-				*(channel++) = g;
-				*(channel++) = r;
-				*(channel++) = 255;
-				
-				++index;
-			}
-		}
-		
-		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-		
-		glBindTexture(GL_TEXTURE_2D, application->pheromoneTextureID);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, application->pheromoneTexture.getWidth(), application->pheromoneTexture.getHeight(), GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-	}
 	
-	application->colony->getHomingMatrix()->evaporate();
-	application->colony->getRecruitmentMatrix()->evaporate();
-	static int frame = 0;
-	if (frame++ % DIFFUSION_FRAME == 0)
-	{
-		application->colony->getHomingMatrix()->diffuse();
-		application->colony->getRecruitmentMatrix()->diffuse();
-	}
+
 	
 
 	
@@ -360,7 +323,70 @@ void GameState::execute()
 			application->currentTool->update(application->dt);
 		}
 		
-		application->colony->update(application->dt);
+		int iterations = application->fastForward.isTriggered() ? 10 : 1;
+		for (int iteration = 0; iteration < iterations; ++iteration)
+		{
+			application->colony->getHomingMatrix()->evaporate();
+			application->colony->getRecruitmentMatrix()->evaporate();
+			
+			static int frame = 0;
+			if (frame++ % DIFFUSION_FRAME == 0)
+			{
+				application->colony->getHomingMatrix()->diffuse();
+				application->colony->getRecruitmentMatrix()->diffuse();
+			}
+	
+			application->colony->update(application->dt);
+		}
+		
+		static bool bla = false;
+		bla = !bla;
+		// Update pheromone texture
+		if (bla)
+		{
+			float cmyk[4];
+			float rgb[3];
+			const float* bufferH = application->colony->getHomingMatrix()->getActiveBuffer();
+			const float* bufferR = application->colony->getRecruitmentMatrix()->getActiveBuffer();
+			
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, application->pheromonePBO);
+			GLubyte* data = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+			GLubyte* channel = data;
+			
+			std::size_t index = 0;
+			for (int y = 0; y < application->pheromoneTexture.getHeight(); ++y)
+			{
+				for (int x = 0; x < application->pheromoneTexture.getWidth(); ++x)
+				{
+					float concentrationH = std::min<float>(1.0f, bufferH[index]) * 0.35f;
+					float concentrationR = std::min<float>(1.0f, bufferR[index]) * 0.35f;
+
+					cmyk[0] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[0] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[0]);
+					cmyk[1] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[1] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[1]);
+					cmyk[2] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[2] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[2]);
+					cmyk[3] = 0.35f;
+					
+					cmykToRGB(cmyk, rgb);
+					
+					GLubyte b = static_cast<GLubyte>(std::min<float>(255.0f, rgb[2] * 255.0f));
+					GLubyte g = static_cast<GLubyte>(std::min<float>(255.0f, rgb[1] * 255.0f));
+					GLubyte r = static_cast<GLubyte>(std::min<float>(255.0f, rgb[0] * 255.0f));
+					
+					*(channel++) = b;
+					*(channel++) = g;
+					*(channel++) = r;
+					*(channel++) = 255;
+					
+					++index;
+				}
+			}
+			
+			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+			
+			glBindTexture(GL_TEXTURE_2D, application->pheromoneTextureID);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, application->pheromoneTexture.getWidth(), application->pheromoneTexture.getHeight(), GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		}
 	}
 }
 
@@ -370,9 +396,9 @@ void GameState::exit()
 	application->mouse->removeMouseButtonObserver(this);
 	
 	// Clear scene
-	application->defaultLayer->removeObject(&application->currentLevel->terrainSurface);
-	application->defaultLayer->removeObject(&application->currentLevel->terrainSubsurface);
-	application->defaultLayer->removeObject(&application->biomeFloorModelInstance);
+	//application->defaultLayer->removeObject(&application->currentLevel->terrainSurface);
+	//application->defaultLayer->removeObject(&application->currentLevel->terrainSubsurface);
+	application->defaultLayer->removeObject(&application->sidewalkPanelInstance);
 	application->defaultLayer->removeObject(application->forceps->getModelInstance());
 	application->defaultLayer->removeObject(application->lens->getModelInstance());
 	application->defaultLayer->removeObject(application->lens->getSpotlight());

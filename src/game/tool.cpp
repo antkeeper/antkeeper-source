@@ -38,7 +38,6 @@ Forceps::Forceps(const Model* model)
 	// Allocate pose and initialize to bind pose
 	pose = new Pose(model->getSkeleton());
 	pose->reset();
-	pose->concatenate();
 	
 	// Setup model instance
 	modelInstance.setModel(model);
@@ -82,6 +81,10 @@ Forceps::Forceps(const Model* model)
 	suspendedAnt = nullptr;
 	cameraController = nullptr;
 	pick = Vector3(0.0f);
+	
+	// Open forceps
+	pinchAnimation->animate(pose, 0.0f);
+	pose->concatenate();
 }
 
 Forceps::~Forceps()
@@ -370,7 +373,7 @@ Lens::Lens(const Model* model)
 	spotlight.setIntensity(10000.0f);
 	spotlight.setAttenuation(Vector3(1, 0, 1));
 	spotlight.setCutoff(glm::radians(45.0f));
-	spotlight.setExponent(700.0f);
+	spotlight.setExponent(1000.0f);
 	spotlight.setActive(false);
 	
 	unfocusedDistance = 18.0f;
@@ -496,7 +499,7 @@ Brush::Brush(const Model* model)
 	hoverDistance = 0.5f;
 	
 	// Setup timing
-	float descentDuration = 0.1f;
+	float descentDuration = 0.05f;
 	float ascentDuration = 0.1f;
 	
 	// Allocate tweener and and setup tweens

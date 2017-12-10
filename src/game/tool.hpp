@@ -203,6 +203,9 @@ inline Ant* Forceps::getSuspendedAnt() const
 
 /**
  * The lens tool can be used to burn ants.
+ *
+ * @see https://taylorpetrick.com/blog/post/dispersion-opengl
+ * @see https://taylorpetrick.com/portfolio/webgl/lense
  */
 class Lens: public Tool
 {

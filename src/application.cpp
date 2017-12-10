@@ -705,7 +705,8 @@ bool Application::loadModels()
 	forcepsModel = modelLoader->load("data/models/forceps.mdl");
 	lensModel = modelLoader->load("data/models/lens.mdl");
 	brushModel = modelLoader->load("data/models/brush.mdl");
-	biomeFloorModel = modelLoader->load("data/models/desert-floor.mdl");
+	sidewalkPanelModel = modelLoader->load("data/models/sidewalk-panel.mdl");
+	soilModel = modelLoader->load("data/models/soil.mdl");
 	
 	if (!antModel || !antHillModel || !nestModel || !forcepsModel || !lensModel || !brushModel)
 	{
@@ -717,7 +718,21 @@ bool Application::loadModels()
 	antHillModelInstance.setModel(antHillModel);
 	antHillModelInstance.setRotation(glm::angleAxis(glm::radians(90.0f), Vector3(1, 0, 0)));
 	nestModelInstance.setModel(nestModel);
-	biomeFloorModelInstance.setModel(biomeFloorModel);
+	sidewalkPanelInstance.setModel(sidewalkPanelModel);
+	
+	sidewalkPanelInstance1.setModel(sidewalkPanelModel);
+	sidewalkPanelInstance2.setModel(sidewalkPanelModel);
+	sidewalkPanelInstance3.setModel(sidewalkPanelModel);
+	sidewalkPanelInstance4.setModel(sidewalkPanelModel);
+	soilInstance.setModel(soilModel);
+	
+	float offset = 100.5f;
+	sidewalkPanelInstance1.setTranslation(Vector3(-offset, 0.0f, 0.0f));
+	sidewalkPanelInstance2.setTranslation(Vector3(-offset * 2.0f, 0.0f, 0.0f));
+	sidewalkPanelInstance3.setTranslation(Vector3(offset, 0.0f, 0.0f));
+	sidewalkPanelInstance4.setTranslation(Vector3(offset * 2.0f, 0.0f, 0.0f));
+	
+	soilInstance.setTranslation(Vector3(0.0f, -3.0f, 0.0f));
 	
 	return true;
 }
@@ -1446,7 +1461,7 @@ bool Application::loadUI()
 		pauseMenu->setLineSpacing(1.0f);
 		
 		pauseMenuResumeItem = pauseMenu->addItem();
-		pauseMenuResumeItem->setActivatedCallback(std::bind(&Application::unpauseSimulation, this));
+		pauseMenuResumeItem->setActivatedCallback(std::bind(&Application::closePauseMenu, this));
 		
 		pauseMenuLevelsItem = pauseMenu->addItem();
 		pauseMenuLevelsItem->setActivatedCallback(std::bind(&Application::openMenu, this, levelsMenu));
@@ -1562,6 +1577,8 @@ bool Application::loadControls()
 	gameControlProfile->registerControl("turn-left", &turnLeft);
 	gameControlProfile->registerControl("turn-right", &turnRight);
 	gameControlProfile->registerControl("toggle-pause", &togglePause);
+	gameControlProfile->registerControl("toggle-pause-menu", &togglePauseMenu);
+	gameControlProfile->registerControl("fast-forward", &fastForward);
 	
 	cameraMoveForward.bindKey(keyboard, SDL_SCANCODE_W);
 	cameraMoveBack.bindKey(keyboard, SDL_SCANCODE_S);
@@ -1580,6 +1597,8 @@ bool Application::loadControls()
 	turnLeft.bindKey(keyboard, SDL_SCANCODE_LEFT);
 	turnRight.bindKey(keyboard, SDL_SCANCODE_RIGHT);
 	togglePause.bindKey(keyboard, SDL_SCANCODE_SPACE);
+	togglePauseMenu.bindKey(keyboard, SDL_SCANCODE_ESCAPE);
+	fastForward.bindKey(keyboard, SDL_SCANCODE_F);
 	
 	return true;
 }
@@ -2054,7 +2073,7 @@ void Application::loadLevel(std::size_t index)
 	currentLevel->load(*levelParams);
 	
 	PhysicalMaterial* material = materialLoader->load("data/materials/debug-terrain-surface.mtl");
-	material->albedoOpacityMap = &pheromoneTexture;
+	//material->albedoOpacityMap = &pheromoneTexture;
 	
 	currentLevel->terrain.getSurfaceModel()->getGroup(0)->material = material;
 }
@@ -2089,6 +2108,16 @@ void Application::loadLevel()
 void Application::pauseSimulation()
 {
 	simulationPaused = true;
+}
+
+void Application::unpauseSimulation()
+{
+	simulationPaused = false;
+}
+
+void Application::openPauseMenu()
+{
+	simulationPaused = true;
 	
 	darkenFadeOutTween->stop();
 	darkenFadeInTween->reset();
@@ -2102,7 +2131,7 @@ void Application::pauseSimulation()
 	pauseMenu->select(0);
 }
 
-void Application::unpauseSimulation()
+void Application::closePauseMenu()
 {
 	simulationPaused = false;
 	

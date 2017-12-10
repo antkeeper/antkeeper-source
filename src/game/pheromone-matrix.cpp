@@ -48,9 +48,7 @@ PheromoneMatrix::PheromoneMatrix(int columns, int rows, const Vector2& boundsMin
 	}
 	
 	diffusionKernel[0][0] = 0.0083333f; diffusionKernel[0][1] = 0.0166667f; diffusionKernel[0][2] = 0.0083333f;
-	
 	diffusionKernel[1][0] = 0.0166667f; diffusionKernel[1][1] = 0.9f; diffusionKernel[1][2] = 0.0166667f;
-	
 	diffusionKernel[2][0] = 0.0083333f; diffusionKernel[2][1] = 0.0166667f; diffusionKernel[2][2] = 0.0083333f;
 	
 	clear();

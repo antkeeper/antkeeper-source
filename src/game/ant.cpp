@@ -220,76 +220,7 @@ void Ant::update(float dt)
 		// Update model instance
 		modelInstance.setTransform(transform);
 	}
-	
-	// Locomotion
-	
-	/*
-	As the ant moves forward, legs in the stance phase are kept grounded via IK. If IK constraints are violated, the swinging legs are grounded
-	and the grounded legs begin swinging.
-	
-	Two poses are loaded from the model file: midswing and touchdown.
-	
-	touchdown is the pose in which all legs are at the end of their swing phases and need to be grounded
-	midswing is the pose in which all legs are at the highest point in their swing phases
-	
-	when a grounded leg enters the swing phases, its current pose is saved as the liftoff pose, then an animation is created using the liftoff pose, midswing pose, and touchdown pose.
-	*/
 }
-
-/*
-Vector3 Ant::forage(const Vector3& leftReceptor, const Vector3& rightReceptor)
-{
-	float leftSignal = 0.0f;
-	float rightSignal = 0.0f;
-	
-	// Detect pheromones with left receptor
-	std::list<Pheromone*> leftPheromones;
-	colony->getPheromoneOctree()->query(AABB(leftReceptor, leftReceptor), &leftPheromones);
-	for (Pheromone* pheromone: leftPheromones)
-	{
-		Vector3 difference = pheromone->getPosition() - rightReceptor;
-		
-		float distanceSquared = glm::dot(difference, difference);
-		if (distanceSquared <= pheromone->getRadiusSquared())
-		{
-			// Calculate attenuated pheromone strength using inverse-square law
-			float strength = pheromone->getStrength() / ((distanceSquared == 0.0f) ? 1.0f : distanceSquared);
-			leftSignal += strength;
-		}
-	}
-	
-	// Detect pheromones with right receptor
-	std::list<Pheromone*> rightPheromones;
-	colony->getPheromoneOctree()->query(AABB(rightReceptor, rightReceptor), &rightPheromones);
-	for (Pheromone* pheromone: rightPheromones)
-	{
-		Vector3 difference = pheromone->getPosition() - rightReceptor;
-		
-		float distanceSquared = glm::dot(difference, difference);
-		if (distanceSquared <= pheromone->getRadiusSquared())
-		{
-			// Calculate attenuated pheromone strength using inverse-square law
-			float strength = pheromone->getStrength() / ((distanceSquared == 0.0f) ? 1.0f : distanceSquared);
-			rightSignal += strength;
-		}
-	}
-	
-	// Add noise
-	const float maxNoise = 0.1f;
-	leftSignal += frand(0.0f, maxNoise);
-	rightSignal += frand(0.0f, maxNoise);
-	
-    if (leftSignal + rightSignal > 0.0f)
-    {
-		const float maxPheromoneTurningAngle = 0.1f;
-		
-		// Use Weber's law (Perna et al.) to calculate turning angle based on pheromone signals
-		float turningAngle = maxPheromoneTurningAngle * ((leftSignal - rightSignal) / (leftSignal + rightSignal));
-    }
-	
-	return Vector3(0.0f);
-}
-*/
 
 void Ant::setState(Ant::State state)
 {

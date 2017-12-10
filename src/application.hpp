@@ -110,6 +110,9 @@ public:
 	void pauseSimulation();
 	void unpauseSimulation();
 	
+	void openPauseMenu();
+	void closePauseMenu();
+	
 	void setDisplayDebugInfo(bool display);
 	
 	std::u32string getLevelName(std::size_t world, std::size_t level) const;
@@ -163,7 +166,12 @@ public:
 	ModelInstance antModelInstance;
 	ModelInstance antHillModelInstance;
 	ModelInstance nestModelInstance;
-	ModelInstance biomeFloorModelInstance;
+	ModelInstance sidewalkPanelInstance;
+	ModelInstance sidewalkPanelInstance1;
+	ModelInstance sidewalkPanelInstance2;
+	ModelInstance sidewalkPanelInstance3;
+	ModelInstance sidewalkPanelInstance4;
+	ModelInstance soilInstance;
 	
 	// Graphics
 	Renderer renderer;
@@ -242,6 +250,8 @@ public:
 	Control turnLeft;
 	Control turnRight;
 	Control togglePause;
+	Control togglePauseMenu;
+	Control fastForward;
 	Arcball arcball;
 	
 	// Misc
@@ -376,7 +386,8 @@ public:
 	Model* forcepsModel;
 	Model* lensModel;
 	Model* brushModel;
-	Model* biomeFloorModel;
+	Model* sidewalkPanelModel;
+	Model* soilModel;
 	
 	// Game variables
 	Biosphere biosphere;
