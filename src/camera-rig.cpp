@@ -17,25 +17,109 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "camera-controller.hpp"
+#include "camera-rig.hpp"
+#include <algorithm>
+#include <cmath>
 
-CameraController::CameraController():
-	camera(nullptr)
+CameraRig::CameraRig():
+	camera(nullptr),
+	translation(0.0f),
+	rotation(1.0f, 0.0f, 0.0f, 0.0f),
+	forward(0.0f, 0.0f, -1.0f),
+	right(1.0f, 0.0f, 0.0f),
+	up(0.0f, 1.0f, 0.0f)
 {}
 
-SurfaceCameraController::SurfaceCameraController():
+void CameraRig::attachCamera(Camera* camera)
+{
+	this->camera = camera;
+	if (camera != nullptr)
+	{
+		camera->lookAt(translation, translation + forward, up);
+	}
+}
+
+void CameraRig::detachCamera()
+{
+	camera = nullptr;
+}
+
+void CameraRig::setTranslation(const Vector3& translation)
+{
+	this->translation = translation;
+}
+
+void CameraRig::setRotation(const Quaternion& rotation)
+{
+	this->rotation = rotation;
+	
+	// Calculate orthonormal basis
+	forward = glm::normalize(rotation * Vector3(0.0f, 0.0f, -1.0f));
+	up = glm::normalize(rotation * Vector3(0.0f, 1.0f, 0.0f));
+	right = glm::normalize(glm::cross(forward, up));
+}
+
+FreeCam::FreeCam():
+	pitchRotation(1.0f, 0.0f, 0.0f, 0.0f),
+	yawRotation(1.0f, 0.0f, 0.0f, 0.0f),
+	pitch(0.0f),
+	yaw(0.0f)
+{}
+
+FreeCam::~FreeCam()
+{}
+
+void FreeCam::update(float dt)
+{
+	if (getCamera() != nullptr)
+	{
+		getCamera()->lookAt(getTranslation(), getTranslation() + getForward(), getUp());
+	}
+}
+
+void FreeCam::move(const Vector2& velocity)
+{
+	setTranslation(getTranslation() + getForward() * velocity.x + getRight() * velocity.y);
+}
+
+float wrapAngle(float x)
+{
+	x = std::fmod(x + glm::pi<float>(), glm::pi<float>() * 2.0f);
+	if (x < 0.0f)
+	{
+		x += glm::pi<float>() * 2.0f;
+	}
+	
+	return x - glm::pi<float>();
+}
+
+void FreeCam::rotate(float pan, float tilt)
+{
+	pitch = wrapAngle(pitch + tilt);
+	yaw = wrapAngle(yaw + pan);
+	
+	pitch = std::min<float>(std::max<float>(glm::radians(-89.0f), pitch), glm::radians(89.0f));
+	
+	// Form quaternions from pan and tilt angles
+	pitchRotation = glm::angleAxis(pitch,Vector3(1.0f, 0.0f, 0.0f));
+	yawRotation = glm::angleAxis(yaw, Vector3(0.0f, 1.0f, 0.0f));
+	
+	// Rotate camera	
+	setRotation(glm::normalize(yawRotation * pitchRotation));
+}
+
+OrbitCam::OrbitCam():
 	elevationRotation(1, 0, 0, 0),
 	azimuthRotation(1, 0, 0, 0),
-	rotation(1, 0, 0, 0),
 	targetElevationRotation(1, 0, 0, 0),
 	targetAzimuthRotation(1, 0, 0, 0),
 	targetRotation(1, 0, 0, 0)
 {}
 
-SurfaceCameraController::~SurfaceCameraController()
+OrbitCam::~OrbitCam()
 {}
 
-void SurfaceCameraController::update(float dt)
+void OrbitCam::update(float dt)
 {
 	float interpolationFactor = 0.25f / (1.0 / 60.0f) * dt;
 
@@ -54,15 +138,14 @@ void SurfaceCameraController::update(float dt)
 	setAzimuth(glm::mix(azimuth, targetAzimuth, interpolationFactor));
 	
 	// Calculate rotation
-	rotation = azimuthRotation * elevationRotation;
+	setRotation(azimuthRotation * elevationRotation);
 	
 	// Interpolate focal point and focal distance
 	focalPoint = glm::mix(focalPoint, targetFocalPoint, interpolationFactor);
 	focalDistance = glm::mix(focalDistance, targetFocalDistance, interpolationFactor);
 	
 	// Caluclate translation
-	translation = focalPoint + rotation * Vector3(0.0f, 0.0f, focalDistance);
-	
+	setTranslation(focalPoint + getRotation() * Vector3(0.0f, 0.0f, focalDistance));
 	/*
 	// Recalculate azimuth
 	azimuthRotation = rotation;
@@ -80,78 +163,67 @@ void SurfaceCameraController::update(float dt)
 	*/
 	
 	// Update camera
-	if (camera != nullptr)
+	if (getCamera() != nullptr)
 	{
-		camera->lookAt(translation, focalPoint, Vector3(0.0f, 1.0f, 0.0f));
+		getCamera()->lookAt(getTranslation(), getTranslation() + getForward(), getUp());
 	}
 }
 
-void SurfaceCameraController::move(Vector2 direction)
+void OrbitCam::move(Vector2 direction)
 {
 	targetFocalPoint += azimuthRotation * Vector3(direction.x, 0.0f, direction.y);
 }
 
-void SurfaceCameraController::rotate(float angle)
+void OrbitCam::rotate(float angle)
 {
 	setTargetAzimuth(targetAzimuth + angle);
 }
 
-void SurfaceCameraController::zoom(float distance)
+void OrbitCam::zoom(float distance)
 {
 	setTargetFocalDistance(targetFocalDistance - distance);
 }
 
-void SurfaceCameraController::setFocalPoint(const Vector3& point)
+void OrbitCam::setFocalPoint(const Vector3& point)
 {
 	focalPoint = point;
 }
 
-void SurfaceCameraController::setFocalDistance(float distance)
+void OrbitCam::setFocalDistance(float distance)
 {
 	focalDistance = distance;
 }
 
-void SurfaceCameraController::setElevation(float angle)
+void OrbitCam::setElevation(float angle)
 {
 	elevation = angle;
 	elevationRotation = glm::angleAxis(elevation, Vector3(-1.0f, 0.0f, 0.0f));
 }
 
-void SurfaceCameraController::setAzimuth(float angle)
+void OrbitCam::setAzimuth(float angle)
 {
 	azimuth = angle;
 	azimuthRotation = glm::angleAxis(azimuth, Vector3(0.0f, 1.0f, 0.0f));
 }
 
-void SurfaceCameraController::setTargetFocalPoint(const Vector3& point)
+void OrbitCam::setTargetFocalPoint(const Vector3& point)
 {
 	targetFocalPoint = point;
 }
 
-void SurfaceCameraController::setTargetFocalDistance(float distance)
+void OrbitCam::setTargetFocalDistance(float distance)
 {
 	targetFocalDistance = distance;
 }
 
-void SurfaceCameraController::setTargetElevation(float angle)
+void OrbitCam::setTargetElevation(float angle)
 {
 	targetElevation = angle;
 	targetElevationRotation = glm::angleAxis(targetElevation, Vector3(-1.0f, 0.0f, 0.0f));
 }
 
-void SurfaceCameraController::setTargetAzimuth(float angle)
+void OrbitCam::setTargetAzimuth(float angle)
 {
 	targetAzimuth = angle;
 	targetAzimuthRotation = glm::angleAxis(targetAzimuth, Vector3(0.0f, 1.0f, 0.0f));
-}
-
-TunnelCameraController::TunnelCameraController()
-{}
-
-TunnelCameraController::~TunnelCameraController()
-{}
-
-void TunnelCameraController::update(float dt)
-{
-	
 }

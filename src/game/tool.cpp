@@ -3,7 +3,7 @@
 #include "colony.hpp"
 #include "navmesh.hpp"
 #include "pheromone-matrix.hpp"
-#include "../camera-controller.hpp"
+#include "../camera-rig.hpp"
 #include "../configuration.hpp"
 #include <iostream>
 #include <list>
@@ -11,7 +11,7 @@
 Tool::Tool():
 	active(false),
 	pick(0.0f),
-	cameraController(nullptr)
+	orbitCam(nullptr)
 {
 	modelInstance.setActive(active);
 }
@@ -28,9 +28,9 @@ void Tool::setActive(bool active)
 	}
 }
 
-void Tool::setCameraController(const SurfaceCameraController* cameraController)
+void Tool::setOrbitCam(const OrbitCam* orbitCam)
 {
-	this->cameraController = cameraController;
+	this->orbitCam = orbitCam;
 }
 
 Forceps::Forceps(const Model* model)
@@ -79,7 +79,6 @@ Forceps::Forceps(const Model* model)
 	colony = nullptr;
 	targetedAnt = nullptr;
 	suspendedAnt = nullptr;
-	cameraController = nullptr;
 	pick = Vector3(0.0f);
 	
 	// Open forceps
@@ -113,7 +112,7 @@ void Forceps::update(float dt)
 		forcepsDistance = descentTween->getTweenValue();
 	}
 		
-	Quaternion alignment = glm::angleAxis(cameraController->getAzimuth(), Vector3(0, 1, 0));
+	Quaternion alignment = glm::angleAxis(orbitCam->getAzimuth(), Vector3(0, 1, 0));
 	Quaternion tilt = glm::angleAxis(glm::radians(15.0f), Vector3(0, 0, -1));
 	Quaternion rotation = glm::normalize(alignment * tilt);
 	Vector3 translation = pick + rotation * Vector3(0, forcepsDistance, 0);
@@ -151,13 +150,13 @@ void Forceps::update(float dt)
 			tilt = glm::angleAxis(glm::radians(15.0f), Vector3(0, 0, -1));
 			
 			// Project camera forward onto XZ plane
-			Vector3 cameraForwardXZ = cameraController->getCamera()->getForward();
+			Vector3 cameraForwardXZ = orbitCam->getCamera()->getForward();
 			cameraForwardXZ.y = 0.0f;
 			cameraForwardXZ = glm::normalize(cameraForwardXZ);
 			
 			// Form alignment quaternion
 			//Quaternion alignment = glm::rotation(Vector3(0, 0, -1), cameraForwardXZ);
-			alignment = glm::angleAxis(cameraController->getAzimuth(), Vector3(0, 1, 0));
+			alignment = glm::angleAxis(orbitCam->getAzimuth(), Vector3(0, 1, 0));
 			
 			// Calculate target rotation at the top of the ascentTween
 			rotationTop = glm::normalize(alignment * tilt);
@@ -209,7 +208,7 @@ void Forceps::update(float dt)
 			Vector3 interpolatedTranslation = glm::lerp(translationTop, translationBottom, interpolationFactor);
 			
 			// Project camera forward onto XZ plane
-			Vector3 cameraForwardXZ = cameraController->getCamera()->getForward();
+			Vector3 cameraForwardXZ = orbitCam->getCamera()->getForward();
 			cameraForwardXZ.y = 0.0f;
 			cameraForwardXZ = glm::normalize(cameraForwardXZ);
 			
@@ -312,7 +311,7 @@ void Forceps::pinch()
 			antForwardXZ = glm::normalize(antForwardXZ);
 			
 			// Project camera forward onto XZ plane
-			Vector3 cameraForwardXZ = cameraController->getCamera()->getForward();
+			Vector3 cameraForwardXZ = orbitCam->getCamera()->getForward();
 			cameraForwardXZ.y = 0.0f;
 			cameraForwardXZ = glm::normalize(cameraForwardXZ);
 			
@@ -606,7 +605,7 @@ void Brush::update(float dt)
 	
 	Quaternion tilt = glm::angleAxis(tiltAngle, tiltAxis);
 	
-	Quaternion alignment = glm::angleAxis(cameraController->getAzimuth(), Vector3(0, 1, 0));
+	Quaternion alignment = glm::angleAxis(orbitCam->getAzimuth(), Vector3(0, 1, 0));
 	Quaternion rotation = glm::normalize(tilt);
 	Vector3 translation = pick + Vector3(0, brushDistance, 0);
 	

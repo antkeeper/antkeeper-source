@@ -232,8 +232,8 @@ set(EXECUTABLE_SOURCES
 	${EXECUTABLE_SOURCE_DIR}/game/tool.cpp
 	${EXECUTABLE_SOURCE_DIR}/debug.hpp
 	${EXECUTABLE_SOURCE_DIR}/debug.cpp
-	${EXECUTABLE_SOURCE_DIR}/camera-controller.hpp
-	${EXECUTABLE_SOURCE_DIR}/camera-controller.cpp
+	${EXECUTABLE_SOURCE_DIR}/camera-rig.hpp
+	${EXECUTABLE_SOURCE_DIR}/camera-rig.cpp
 	${EXECUTABLE_SOURCE_DIR}/model-loader.hpp
 	${EXECUTABLE_SOURCE_DIR}/model-loader.cpp
 	${EXECUTABLE_SOURCE_DIR}/material-loader.hpp

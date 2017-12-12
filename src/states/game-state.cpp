@@ -20,7 +20,7 @@
 #include "game-state.hpp"
 #include "title-state.hpp"
 #include "../application.hpp"
-#include "../camera-controller.hpp"
+#include "../camera-rig.hpp"
 #include "../game/colony.hpp"
 #include "../game/ant.hpp"
 #include "../game/tool.hpp"
@@ -79,7 +79,8 @@ void GameState::enter()
 
 	
 	// Add terrain to scene
-	//application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
+	application->defaultLayer->addObject(&application->currentLevel->terrainSurface);
+	application->currentLevel->terrainSurface.setTranslation(Vector3(0.0f, 0.01f, 0.0f));
 	//application->defaultLayer->addObject(&application->currentLevel->terrainSubsurface);
 	application->defaultLayer->addObject(&application->sidewalkPanelInstance);
 	application->defaultLayer->addObject(&application->sidewalkPanelInstance1);
@@ -104,16 +105,16 @@ void GameState::enter()
 	}
 	
 	// Setup camera controller
-	application->surfaceCam->setCamera(&application->camera);
-	//application->surfaceCam->setFocalPoint(Vector3(0.0f));
-	//application->surfaceCam->setFocalDistance(250.0f);
-	//application->surfaceCam->setElevation(glm::radians(35.0f));
-	//application->surfaceCam->setAzimuth(glm::radians(-45.0f));
-	application->surfaceCam->setTargetFocalPoint(Vector3(0.0f));
-	application->surfaceCam->setTargetFocalDistance(250.0f);
-	application->surfaceCam->setTargetElevation(glm::radians(35.0f));
-	//application->surfaceCam->setTargetAzimuth(glm::radians(-45.0f));
-	application->surfaceCam->update(0.0f);
+	application->orbitCam->attachCamera(&application->camera);
+	//application->orbitCam->setFocalPoint(Vector3(0.0f));
+	//application->orbitCam->setFocalDistance(250.0f);
+	//application->orbitCam->setElevation(glm::radians(35.0f));
+	//application->orbitCam->setAzimuth(glm::radians(-45.0f));
+	application->orbitCam->setTargetFocalPoint(Vector3(0.0f));
+	application->orbitCam->setTargetFocalDistance(250.0f);
+	application->orbitCam->setTargetElevation(glm::radians(35.0f));
+	//application->orbitCam->setTargetAzimuth(glm::radians(-45.0f));
+	application->orbitCam->update(0.0f);
 	
 	application->simulationPaused = false;
 	
@@ -135,6 +136,7 @@ void GameState::enter()
 	application->fadeInTween->start();
 	
 	application->mouse->addMouseButtonObserver(this);
+	application->mouse->addMouseMotionObserver(this);
 }
 
 void GameState::execute()
@@ -222,61 +224,82 @@ void GameState::execute()
 	} 
 	else
 	{
+		// Select rig
+		if (application->switchRig.isTriggered() && !application->switchRig.wasTriggered())
+		{
+			if (application->activeRig == application->orbitCam)
+			{
+				application->freeCam->setTranslation(application->orbitCam->getTranslation());
+				//application->freeCam->setRotation(application->orbitCam->getRotation());
+				
+				application->orbitCam->detachCamera();
+				application->freeCam->attachCamera(&application->camera);
+				application->activeRig = application->freeCam;
+			}
+			else if (application->activeRig == application->freeCam)
+			{
+				application->freeCam->detachCamera();
+				application->orbitCam->attachCamera(&application->camera);
+				application->activeRig = application->orbitCam;
+			}
+		}
+		
 		// Move camera
-		Vector2 movementVector(0.0f);
-		if (application->cameraMoveLeft.isTriggered())
-			movementVector.x -= application->cameraMoveLeft.getCurrentValue();
-		if (application->cameraMoveRight.isTriggered())
-			movementVector.x += application->cameraMoveRight.getCurrentValue();
-		if (application->cameraMoveForward.isTriggered())
-			movementVector.y -= application->cameraMoveForward.getCurrentValue();
-		if (application->cameraMoveBack.isTriggered())
-			movementVector.y += application->cameraMoveBack.getCurrentValue();
-		if (movementVector.x != 0.0f || movementVector.y != 0.0f)
+		if (application->activeRig == application->orbitCam)
 		{
-			movementVector *= 0.005f * application->surfaceCam->getFocalDistance() * application->dt / (1.0f / 60.0f);
-			application->surfaceCam->move(movementVector);
+			Vector2 movementVector(0.0f);
+			if (application->cameraMoveLeft.isTriggered())
+				movementVector.x -= application->cameraMoveLeft.getCurrentValue();
+			if (application->cameraMoveRight.isTriggered())
+				movementVector.x += application->cameraMoveRight.getCurrentValue();
+			if (application->cameraMoveForward.isTriggered())
+				movementVector.y -= application->cameraMoveForward.getCurrentValue();
+			if (application->cameraMoveBack.isTriggered())
+				movementVector.y += application->cameraMoveBack.getCurrentValue();
+			if (movementVector.x != 0.0f || movementVector.y != 0.0f)
+			{
+				movementVector *= 0.005f * application->orbitCam->getFocalDistance() * application->dt / (1.0f / 60.0f);
+				application->orbitCam->move(movementVector);
+			}
 			
-			Vector3 focal = application->surfaceCam->getFocalPoint();
+			// Zoom camera
+			float zoomFactor = application->orbitCam->getFocalDistance() / 10.0f * application->dt / (1.0f / 60.0f);
+			if (application->cameraZoomIn.isTriggered())
+				application->orbitCam->zoom(zoomFactor * application->cameraZoomIn.getCurrentValue());
+			if (application->cameraZoomOut.isTriggered())
+				application->orbitCam->zoom(-zoomFactor * application->cameraZoomOut.getCurrentValue());
+			
+			// Rotate camera
+			if (application->cameraRotateCW.isTriggered() && !application->cameraRotateCW.wasTriggered())
+			{
+				application->orbitCam->rotate(glm::radians(-45.0f));
+			}
+			if (application->cameraRotateCCW.isTriggered() && !application->cameraRotateCCW.wasTriggered())
+			{
+				application->orbitCam->rotate(glm::radians(45.0f));
+			}
 		}
-		
-		// Zoom camera
-		float zoomFactor = application->surfaceCam->getFocalDistance() / 10.0f * application->dt / (1.0f / 60.0f);
-		if (application->cameraZoomIn.isTriggered())
-			application->surfaceCam->zoom(zoomFactor * application->cameraZoomIn.getCurrentValue());
-		if (application->cameraZoomOut.isTriggered())
-			application->surfaceCam->zoom(-zoomFactor * application->cameraZoomOut.getCurrentValue());
-		
-		// Rotate camera
-		if (application->cameraRotateCW.isTriggered() && !application->cameraRotateCW.wasTriggered())
+		else if (application->activeRig == application->freeCam)
 		{
-			application->surfaceCam->rotate(glm::radians(-45.0f));
-		}
-		if (application->cameraRotateCCW.isTriggered() && !application->cameraRotateCCW.wasTriggered())
-		{
-			application->surfaceCam->rotate(glm::radians(45.0f));
+			Vector2 movementVector(0.0f);
+			if (application->cameraMoveForward.isTriggered())
+				movementVector.x += application->cameraMoveForward.getCurrentValue();
+			if (application->cameraMoveBack.isTriggered())
+				movementVector.x -= application->cameraMoveBack.getCurrentValue();
+			if (application->cameraMoveLeft.isTriggered())
+				movementVector.y -= application->cameraMoveLeft.getCurrentValue();
+			if (application->cameraMoveRight.isTriggered())
+				movementVector.y += application->cameraMoveRight.getCurrentValue();
+			if (movementVector.x != 0.0f || movementVector.y != 0.0f)
+			{
+				movementVector = glm::normalize(movementVector) * 0.15f;
+				application->freeCam->move(movementVector);
+			}
 		}
 	}
 	
-
-
-	/*
-	else
-	{
-		Plane plane;
-		plane.set(Vector3(0, 1, 0), Vector3(0.0f));
-		auto result = pickingRay.intersects(plane);
-		pick = pickingRay.extrapolate(std::get<1>(result));
-	}
-	*/
-
-	
-
-	
-
-	
-	// Update camera
-	application->surfaceCam->update(application->dt);
+	// Update camera rig
+	application->activeRig->update(application->dt);
 	
 	// Picking
 	if (!application->simulationPaused)
@@ -305,7 +328,7 @@ void GameState::execute()
 			float forcepsDistance = application->forcepsSwoopTween->getTweenValue();
 			
 			//Quaternion rotation = glm::rotation(Vector3(0, 1, 0), triangle->normal);
-			Quaternion rotation = glm::angleAxis(application->surfaceCam->getAzimuth(), Vector3(0, 1, 0)) *
+			Quaternion rotation = glm::angleAxis(application->orbitCam->getAzimuth(), Vector3(0, 1, 0)) *
 				glm::angleAxis(glm::radians(15.0f), Vector3(0, 0, -1));
 			
 			Vector3 translation = pick + rotation * Vector3(0, forcepsDistance, 0);
@@ -358,8 +381,8 @@ void GameState::execute()
 			{
 				for (int x = 0; x < application->pheromoneTexture.getWidth(); ++x)
 				{
-					float concentrationH = std::min<float>(1.0f, bufferH[index]) * 0.35f;
-					float concentrationR = std::min<float>(1.0f, bufferR[index]) * 0.35f;
+					float concentrationH = std::min<float>(1.0f, bufferH[index]);
+					float concentrationR = std::min<float>(1.0f, bufferR[index]);
 
 					cmyk[0] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[0] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[0]);
 					cmyk[1] = std::min<float>(1.0f, concentrationH * HOMING_PHEROMONE_COLOR[1] + concentrationR * RECRUITMENT_PHEROMONE_COLOR[1]);
@@ -371,11 +394,12 @@ void GameState::execute()
 					GLubyte b = static_cast<GLubyte>(std::min<float>(255.0f, rgb[2] * 255.0f));
 					GLubyte g = static_cast<GLubyte>(std::min<float>(255.0f, rgb[1] * 255.0f));
 					GLubyte r = static_cast<GLubyte>(std::min<float>(255.0f, rgb[0] * 255.0f));
+					GLubyte a = static_cast<GLubyte>(std::min<float>(255.0f, std::max<float>(concentrationH, concentrationR) * 64.0f));
 					
 					*(channel++) = b;
 					*(channel++) = g;
 					*(channel++) = r;
-					*(channel++) = 255;
+					*(channel++) = a;
 					
 					++index;
 				}
@@ -394,6 +418,7 @@ void GameState::exit()
 {
 	// Remove input observers
 	application->mouse->removeMouseButtonObserver(this);
+	application->mouse->removeMouseMotionObserver(this);
 	
 	// Clear scene
 	//application->defaultLayer->removeObject(&application->currentLevel->terrainSurface);
@@ -435,6 +460,8 @@ void GameState::mouseButtonPressed(int button, int x, int y)
 		{
 			application->lens->focus();
 		}
+		
+		dragging = true;
 	}
 	
 }
@@ -455,5 +482,24 @@ void GameState::mouseButtonReleased(int button, int x, int y)
 		{
 			application->lens->unfocus();
 		}
+		
+		dragging = false;
+	}
+}
+
+void GameState::mouseMoved(int x, int y)
+{
+	oldMousePosition = mousePosition;
+	mousePosition = Vector2(x, y);
+	
+	if (application->activeRig == application->freeCam && dragging)
+	{
+		float rotationScale = glm::radians(180.0f) / application->resolution.y;
+		Vector2 difference = mousePosition - oldMousePosition;
+		
+		float pan = -difference.x * rotationScale;
+		float tilt = -difference.y * rotationScale;
+		
+		application->freeCam->rotate(pan, tilt);
 	}
 }

@@ -43,8 +43,9 @@ class LoadingState;
 class SplashState;
 class TitleState;
 class GameState;
-class CameraController;
-class SurfaceCameraController;
+class CameraRig;
+class OrbitCam;
+class FreeCam;
 class LineBatcher;
 class ModelLoader;
 class MaterialLoader;
@@ -252,6 +253,7 @@ public:
 	Control togglePause;
 	Control togglePauseMenu;
 	Control fastForward;
+	Control switchRig;
 	Arcball arcball;
 	
 	// Misc
@@ -398,7 +400,9 @@ public:
 	Level* currentLevel;
 	
 	Colony* colony;
-	SurfaceCameraController* surfaceCam;
+	OrbitCam* orbitCam;
+	FreeCam* freeCam;
+	CameraRig* activeRig;
 	bool cameraOverheadView;
 	bool cameraNestView;
 	int toolIndex;

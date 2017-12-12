@@ -28,7 +28,7 @@
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
-class GameState: public ApplicationState, public MouseButtonObserver
+class GameState: public ApplicationState, public MouseButtonObserver, public MouseMotionObserver
 {
 public:
 	GameState(Application* application);
@@ -40,6 +40,7 @@ public:
 	
 	virtual void mouseButtonPressed(int button, int x, int y);
 	virtual void mouseButtonReleased(int button, int x, int y);
+	virtual void mouseMoved(int x, int y);
 	
 private:
 	ModelInstance terrainSurface;
@@ -47,6 +48,9 @@ private:
 	Vector3 pick;
 	Ray pickingRay;
 	Navmesh::Triangle* pickTriangle;
+	bool dragging;
+	Vector2 oldMousePosition;
+	Vector2 mousePosition;
 };
 
 #endif // GAME_STATE_HPP

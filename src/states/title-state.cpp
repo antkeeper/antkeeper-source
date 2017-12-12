@@ -19,7 +19,7 @@
 
 #include "title-state.hpp"
 #include "../application.hpp"
-#include "../camera-controller.hpp"
+#include "../camera-rig.hpp"
 #include "../ui/menu.hpp"
 #include <iostream>
 #include <SDL2/SDL.h>
@@ -42,20 +42,20 @@ void TitleState::enter()
 	application->camera.setPerspective(
 		glm::radians(30.0f),
 		application->resolution.x / application->resolution.y,
-		0.1f,
+		0.5f,
 		1000.0f);
 	
 	// Setup camera controller
-	application->surfaceCam->setCamera(&application->camera);
-	application->surfaceCam->setFocalPoint(Vector3(0.0f));
-	application->surfaceCam->setFocalDistance(50.0f);
-	application->surfaceCam->setElevation(glm::radians(-30.0f));
-	application->surfaceCam->setAzimuth(glm::radians(180.0f));
-	application->surfaceCam->setTargetFocalPoint(application->surfaceCam->getFocalPoint());
-	application->surfaceCam->setTargetFocalDistance(application->surfaceCam->getFocalDistance());
-	application->surfaceCam->setTargetElevation(application->surfaceCam->getElevation());
-	application->surfaceCam->setTargetAzimuth(application->surfaceCam->getAzimuth());
-	application->surfaceCam->update(0.0f);
+	application->orbitCam->attachCamera(&application->camera);
+	application->orbitCam->setFocalPoint(Vector3(0.0f));
+	application->orbitCam->setFocalDistance(50.0f);
+	application->orbitCam->setElevation(glm::radians(-30.0f));
+	application->orbitCam->setAzimuth(glm::radians(180.0f));
+	application->orbitCam->setTargetFocalPoint(application->orbitCam->getFocalPoint());
+	application->orbitCam->setTargetFocalDistance(application->orbitCam->getFocalDistance());
+	application->orbitCam->setTargetElevation(application->orbitCam->getElevation());
+	application->orbitCam->setTargetAzimuth(application->orbitCam->getAzimuth());
+	application->orbitCam->update(0.0f);
 	
 	// Dim background
 	application->darkenImage->setVisible(true);

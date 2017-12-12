@@ -32,7 +32,7 @@
 #include "ui/toolbar.hpp"
 #include "ui/pie-menu.hpp"
 #include "debug.hpp"
-#include "camera-controller.hpp"
+#include "camera-rig.hpp"
 #include "configuration.hpp"
 #include <algorithm>
 #include <cstdlib>
@@ -407,7 +407,9 @@ Application::Application(int argc, char* argv[]):
 	modelLoader->setMaterialLoader(materialLoader);
 	
 	// Allocate game variables
-	surfaceCam = new SurfaceCameraController();
+	orbitCam = new OrbitCam();
+	freeCam = new FreeCam();
+	activeRig = orbitCam;
 	
 	// Enter loading state
 	state = nextState = loadingState;
@@ -896,6 +898,9 @@ bool Application::loadScene()
 		pheromoneTexture.setTextureID(pheromoneTextureID);
 	}
 	
+	// Enable seamless cubemap filtering
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	
 	// Setup skybox pass
 	skyboxPass.setRenderTarget(&framebufferARenderTarget);
 	
@@ -933,7 +938,7 @@ bool Application::loadScene()
 	
 	defaultCompositor.addPass(&clearDepthPass);
 	defaultCompositor.addPass(&skyboxPass);
-	defaultCompositor.addPass(&soilPass);
+	//defaultCompositor.addPass(&soilPass);
 	defaultCompositor.addPass(&lightingPass);
 	defaultCompositor.addPass(&horizontalBlurPass);
 	defaultCompositor.addPass(&verticalBlurPass);
@@ -1579,6 +1584,7 @@ bool Application::loadControls()
 	gameControlProfile->registerControl("toggle-pause", &togglePause);
 	gameControlProfile->registerControl("toggle-pause-menu", &togglePauseMenu);
 	gameControlProfile->registerControl("fast-forward", &fastForward);
+	gameControlProfile->registerControl("switch-rig", &switchRig);
 	
 	cameraMoveForward.bindKey(keyboard, SDL_SCANCODE_W);
 	cameraMoveBack.bindKey(keyboard, SDL_SCANCODE_S);
@@ -1599,6 +1605,7 @@ bool Application::loadControls()
 	togglePause.bindKey(keyboard, SDL_SCANCODE_SPACE);
 	togglePauseMenu.bindKey(keyboard, SDL_SCANCODE_ESCAPE);
 	fastForward.bindKey(keyboard, SDL_SCANCODE_F);
+	switchRig.bindKey(keyboard, SDL_SCANCODE_TAB);
 	
 	return true;
 }
@@ -1626,15 +1633,15 @@ bool Application::loadGame()
 	// Create tools
 	forceps = new Forceps(forcepsModel);
 	forceps->setColony(colony);
-	forceps->setCameraController(surfaceCam);
+	forceps->setOrbitCam(orbitCam);
 	
 	lens = new Lens(lensModel);
-	lens->setCameraController(surfaceCam);
+	lens->setOrbitCam(orbitCam);
 	lens->setSunDirection(glm::normalize(-sunlightCamera.getTranslation()));
 	
 	brush = new Brush(brushModel);
 	brush->setColony(colony);
-	brush->setCameraController(surfaceCam);
+	brush->setOrbitCam(orbitCam);
 	
 	loadWorld(0);
 	loadLevel(0);
@@ -2073,7 +2080,9 @@ void Application::loadLevel(std::size_t index)
 	currentLevel->load(*levelParams);
 	
 	PhysicalMaterial* material = materialLoader->load("data/materials/debug-terrain-surface.mtl");
-	//material->albedoOpacityMap = &pheromoneTexture;
+	material->albedoOpacityMap = &pheromoneTexture;
+	material->shadowCaster = false;
+	material->flags |= (unsigned int)PhysicalMaterial::Flags::TRANSLUCENT;
 	
 	currentLevel->terrain.getSurfaceModel()->getGroup(0)->material = material;
 }

@@ -28,7 +28,7 @@ using namespace Emergent;
 class Ant;
 class Colony;
 class Navmesh;
-class SurfaceCameraController;
+class OrbitCam;
 
 /**
  * Abstract base class for tools. Tools are the only way for the user to interact with the world.
@@ -70,7 +70,7 @@ public:
 	 *
 	 * @param camera Pointer to the camera.
 	 */
-	void setCameraController(const SurfaceCameraController* cameraController);
+	void setOrbitCam(const OrbitCam* orbitCam);
 	
 	bool isActive() const;
 	
@@ -84,7 +84,7 @@ protected:
 	ModelInstance modelInstance;
 	bool active;
 	Vector3 pick;
-	const SurfaceCameraController* cameraController;
+	const OrbitCam* orbitCam;
 };
 
 inline bool Tool::isActive() const
