@@ -98,14 +98,18 @@ public:
 	inline void setViewCamera(const Camera* camera) { this->viewCamera = camera; }
 	inline void setLightCamera(Camera* camera) { this->lightCamera = camera; }
 	
-	inline float getSplitDistance(std::size_t index) const { return splitDistances[index]; }
-	inline int getFrustumSplitCount() const { return frustumSplitCount; }
-	
-	inline const ViewFrustum& getSplitViewFrustum(std::size_t index) const { return splitViewFrustum->getSubfrustum(index); }
+	inline const SplitViewFrustum& getSplitViewFrustum() const { return *splitViewFrustum; }
 	inline const Matrix4& getCropMatrix(std::size_t index) const { return cropMatrices[index]; }
 	inline const Matrix4& getTileMatrix(std::size_t index) const { return tileMatrices[index]; }
 	
 private:
+	class RenderOpCompare
+	{
+	public:
+		// Sort render opations
+		bool operator()(const RenderOperation& opA, const RenderOperation& opB) const;
+	};
+	
 	ShaderParameterSet parameterSet;
 	const ShaderParameter* modelViewProjectionParam;
 	const ShaderParameter* matrixPaletteParam;
@@ -116,8 +120,6 @@ private:
 	Shader* skinnedShader;
 	int maxBoneCount;
 	
-	int frustumSplitCount;
-	float* splitDistances;
 	int shadowMapResolution;
 	int croppedShadowMapResolution;
 	Vector4* croppedShadowMapViewports;

@@ -43,7 +43,7 @@ void TitleState::enter()
 		glm::radians(30.0f),
 		application->resolution.x / application->resolution.y,
 		0.5f,
-		1000.0f);
+		500.0f);
 	
 	// Setup camera controller
 	application->orbitCam->attachCamera(&application->camera);

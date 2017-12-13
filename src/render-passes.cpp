@@ -201,24 +201,19 @@ bool ShadowMapRenderPass::load(const RenderContext* renderContext)
 	// Set maximum number of bones for skinned meshes
 	maxBoneCount = 64;
 	
-	// Set number of frustum splits
-	frustumSplitCount = 4;
-	
-	// Create array of split distances
-	splitDistances = new float[frustumSplitCount + 1];
-	
 	// Create split view frustum
-	splitViewFrustum = new SplitViewFrustum(frustumSplitCount);
+	splitViewFrustum = new SplitViewFrustum(4);
+	splitViewFrustum->setSplitSchemeWeight(0.85f);
 	
 	// Determine resolution of shadow maps
 	shadowMapResolution = 4096;
 	croppedShadowMapResolution = shadowMapResolution >> 1;
 	
 	// Allocate viewports
-	croppedShadowMapViewports = new Vector4[frustumSplitCount];
+	croppedShadowMapViewports = new Vector4[splitViewFrustum->getSubfrustumCount()];
 	
 	// Setup viewports
-	for (int i = 0; i < frustumSplitCount; ++i)
+	for (int i = 0; i < splitViewFrustum->getSubfrustumCount(); ++i)
 	{
 		int x = i % 2;
 		int y = i / 2;
@@ -231,12 +226,12 @@ bool ShadowMapRenderPass::load(const RenderContext* renderContext)
 	}
 	
 	// Allocate matrices
-	cropMatrices = new Matrix4[frustumSplitCount];
-	tileMatrices = new Matrix4[frustumSplitCount];
+	cropMatrices = new Matrix4[splitViewFrustum->getSubfrustumCount()];
+	tileMatrices = new Matrix4[splitViewFrustum->getSubfrustumCount()];
 	
 	// Setup tile matrices
 	Matrix4 tileScale = glm::scale(Vector3(0.5f, 0.5f, 1.0f));
-	for (int i = 0; i < frustumSplitCount; ++i)
+	for (int i = 0; i < splitViewFrustum->getSubfrustumCount(); ++i)
 	{
 		float x = static_cast<float>(i % 2) * 0.5f;
 		float y = static_cast<float>(i / 2) * 0.5f;
@@ -281,9 +276,6 @@ void ShadowMapRenderPass::unload()
 	delete[] croppedShadowMapViewports;
 	croppedShadowMapViewports = nullptr;
 	
-	delete[] splitDistances;
-	splitDistances = nullptr;
-	
 	delete splitViewFrustum;
 	splitViewFrustum = nullptr;
 	
@@ -312,133 +304,40 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 	
 	// Draw front and back faces
 	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	
 	// Disable alpha blending
 	glDisable(GL_BLEND);
 
 	//const Camera& lightCamera = *(renderContext->camera);
-	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();	
+	std::list<RenderOperation>* operations = renderContext->queue->getOperations();	
 	
 	Shader* shader = nullptr;
+	GLuint boundVAO = 0;
 	
-	// Update split view frustum
-	//splitViewFrustum->setMatrices(viewCamera->getView(), viewCamera->getProjection());
+	splitViewFrustum->setMatrices(viewCamera->getView(), viewCamera->getProjection());
 	
-	const ViewFrustum& viewFrustum = viewCamera->getViewFrustum();
-	
-	// Find center of view frustum
-	Vector3 center = Vector3(0.0f);
-	for (std::size_t i = 0; i < viewFrustum.getCornerCount(); ++i)
-	{
-		center += viewFrustum.getCorner(i);
-	}
-	center = center * 1.0f / static_cast<float>(viewFrustum.getCornerCount());
-	
-	// Position light camera in center of view frustum
-	//lightCamera->lookAt(center, center + lightCamera->getForward(), Vector3(0, 1, 0));
-	
-	// Calculate split distances
-	float clipNear = viewCamera->getClipNear();
-	float clipFar = viewCamera->getClipFar();
-	float splitSchemeWeight = 0.85f;
-	
-	for (std::size_t i = 1; i < frustumSplitCount; ++i)
-	{
-		float part = static_cast<float>(i) / static_cast<float>(frustumSplitCount);
-		
-		// Calculate uniform split distance
-		float uniformSplitDistance = clipNear + (clipFar - clipNear) * part;
-		
-		// Calculate logarithmic split distance
-		float logSplitDistance = clipNear * std::pow(clipFar / clipNear, part);
-		
-		
-		// Interpolate between uniform and logarithmic split distances
-		splitDistances[i] = logSplitDistance * splitSchemeWeight + uniformSplitDistance * (1.0f - splitSchemeWeight);
-	}
-	splitDistances[0] = clipNear;
-	splitDistances[frustumSplitCount] = clipFar;
+	// Sort operations
+	operations->sort(RenderOpCompare());
 	
 	// For each frustum split
-	for (int i = 0; i < frustumSplitCount; ++i)
+	for (int i = 0; i < splitViewFrustum->getSubfrustumCount(); ++i)
 	{
-		
-		
 		// Calculate crop matrix
 		{
-			ViewFrustum frustumSplit;
+			const ViewFrustum& subfrustum = splitViewFrustum->getSubfrustum(i);
 			
-			// Determine near and far distances for this subfrustum
-			float splitNear = splitDistances[i];
-			float splitFar = splitDistances[i + 1];
-			
-			
-			Matrix4 splitView = viewCamera->getView();
-			
-			// Calculate subfrustum projection matrix
-			Matrix4 splitProjection = glm::ortho(lightCamera->getClipLeft(), lightCamera->getClipRight(), lightCamera->getClipBottom(), lightCamera->getClipTop(), splitNear, splitFar);
-			splitProjection = viewCamera->getProjection();
-			splitProjection[2][2] = -(splitFar + splitNear) / (splitFar - splitNear);
-			splitProjection[3][2] = -(2.0f * splitFar * splitNear) / (splitFar - splitNear);
-			
-			// Set subfrustum matrices
-			frustumSplit.setMatrices(splitView, splitProjection);
-			
-			// Create AABB containing the frustum split corners
-			
-			// Frustum corners in NDC-space
-			Vector3 splitCorners[8] = 
-			{
-				Vector3(-1.0f,  1.0f, -1.0f),
-				Vector3( 1.0f,  1.0f, -1.0f),
-				Vector3(-1.0f, -1.0f, -1.0f),
-				Vector3( 1.0f, -1.0f, -1.0f),
-				Vector3(-1.0f,  1.0f,  1.0f),
-				Vector3( 1.0f,  1.0f,  1.0f),
-				Vector3(-1.0f, -1.0f,  1.0f),
-				Vector3( 1.0f, -1.0f,  1.0f)
-			};
-			
-			Matrix4 splitInverseViewProjection = glm::inverse(frustumSplit.getViewProjectionMatrix());
-			for (int j = 0; j < 8; ++j)
-			{
-				Vector4 transformedCorner = splitInverseViewProjection * Vector4(splitCorners[j], 1.0f);
-				splitCorners[j] = Vector3(transformedCorner) / transformedCorner.w;
-			}
-			
-			AABB frustumSplitBounds(splitCorners[0], splitCorners[0]);
+			// Create AABB containing the subfrustum corners			
+			AABB subfrustumBounds(subfrustum.getCorner(0), subfrustum.getCorner(0));
 			for (std::size_t j = 1; j < 8; ++j)
 			{
-				frustumSplitBounds.add(splitCorners[j]);
+				subfrustumBounds.add(subfrustum.getCorner(j));
 			}
-			
-			AABB croppingBounds(Vector3(std::numeric_limits<float>::infinity()), Vector3(-std::numeric_limits<float>::infinity()));
-			for (int j = 0; j < 8; ++j)
-			{
-				Vector3 minPoint = frustumSplitBounds.getMin();
-				Vector3 maxPoint = frustumSplitBounds.getMax();
-				
-				Vector3 aabbCorners[8] =
-				{
-					minPoint,
-					Vector3(minPoint.x, minPoint.y, maxPoint.z),
-					Vector3(minPoint.x, maxPoint.y, minPoint.z),
-					Vector3(minPoint.x, maxPoint.y, maxPoint.z),
-					Vector3(maxPoint.x, minPoint.y, minPoint.z),
-					Vector3(maxPoint.x, minPoint.y, maxPoint.z),
-					Vector3(maxPoint.x, maxPoint.y, minPoint.z),
-					maxPoint
-				};
-				
-				Vector4 transformedPoint = lightCamera->getViewProjection() * Vector4(aabbCorners[j], 1.0f);
-				croppingBounds.add(Vector3(transformedPoint / transformedPoint.w));
-			}
-			
-			// Transform frustum split bounds into light's clip space
-			//AABB croppingBounds = frustumSplitBounds.transformed(lightCamera->getView());
+
+			// Transform subfrustum bounds into light's clip space
+			AABB croppingBounds = subfrustumBounds.transformed(lightCamera->getViewProjection());
 			Vector3 cropMax = croppingBounds.getMax();
 			Vector3 cropMin = croppingBounds.getMin();
-			//cropMin.z = 0.0f;
 			
 			// Calculate scale
 			Vector3 scale;
@@ -517,12 +416,39 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 			Matrix4 modelViewProjectionMatrix = croppedViewProjection * modelMatrix;
 			shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
 			
-			glBindVertexArray(operation.vao);
+			if (boundVAO != operation.vao)
+			{
+				glBindVertexArray(operation.vao);
+				boundVAO = operation.vao;
+			}
+			
 			glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
 		}
 	}
-	
+		
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+bool ShadowMapRenderPass::RenderOpCompare::operator()(const RenderOperation& opA, const RenderOperation& opB) const
+{
+	// If A is rigged
+	if (opA.pose != nullptr)
+	{
+		// And B is rigged
+		if (opB.pose != nullptr)
+		{
+			// Sort by VAO ID
+			return (opA.vao <= opB.vao);
+		}
+		else
+		{
+			// Render A first
+			return true;
+		}
+	}
+	
+	// Sort by VAO ID
+	return (opA.vao <= opB.vao);
 }
 
 LightingRenderPass::LightingRenderPass():
@@ -1041,10 +967,8 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	Vector4 splitDistances;
 	for (int i = 0; i < 4; ++i)
 	{
-		splitDistances[i] = shadowMapPass->getSplitDistance(i + 1);
+		splitDistances[i] = shadowMapPass->getSplitViewFrustum().getSplitDistance(i + 1);
 	}
-	
-	
 	
 	Vector3 directionalLightColors[3];
 	Vector3 directionalLightDirections[3];
@@ -1107,12 +1031,15 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	glBindTexture(GL_TEXTURE_2D, shadowMap);
 	
 	Shader* shader = nullptr;
+	GLuint boundVAO = 0;
 	Texture* albedoOpacityMap = nullptr;
 	Texture* metalnessRoughnessMap = nullptr;
 	Texture* normalOcclusionMap = nullptr;
 	
 	// Sort operations
 	operations->sort(RenderOpCompare());
+	
+	int switches = 0;
 	
 	// Render operations
 	for (const RenderOperation& operation: *operations)
@@ -1227,12 +1154,17 @@ void LightingRenderPass::render(RenderContext* renderContext)
 		shader->setParameter(normalModelViewParam, normalModelViewMatrix);
 		shader->setParameter(normalModelParam, normalModelMatrix);
 		
-		glBindVertexArray(operation.vao);
+		if (boundVAO != operation.vao)
+		{
+			glBindVertexArray(operation.vao);
+			boundVAO = operation.vao;
+		}
+		
 		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
 	}
 	
 	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);	
 }
 
 bool LightingRenderPass::loadShader(const RenderOperation& operation)
