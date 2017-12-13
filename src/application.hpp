@@ -200,7 +200,6 @@ public:
 	Texture pheromoneTexture;
 	
 	ClearRenderPass clearDepthPass;
-	SoilRenderPass soilPass;
 	LightingRenderPass lightingPass;
 	DebugRenderPass debugPass;
 	Compositor defaultCompositor;

@@ -204,6 +204,9 @@ bool ShadowMapRenderPass::load(const RenderContext* renderContext)
 	// Set number of frustum splits
 	frustumSplitCount = 4;
 	
+	// Create array of split distances
+	splitDistances = new float[frustumSplitCount + 1];
+	
 	// Create split view frustum
 	splitViewFrustum = new SplitViewFrustum(frustumSplitCount);
 	
@@ -278,6 +281,9 @@ void ShadowMapRenderPass::unload()
 	delete[] croppedShadowMapViewports;
 	croppedShadowMapViewports = nullptr;
 	
+	delete[] splitDistances;
+	splitDistances = nullptr;
+	
 	delete splitViewFrustum;
 	splitViewFrustum = nullptr;
 	
@@ -305,7 +311,7 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	// Draw front and back faces
-	glDisable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	
 	// Disable alpha blending
 	glDisable(GL_BLEND);
@@ -329,13 +335,12 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 	center = center * 1.0f / static_cast<float>(viewFrustum.getCornerCount());
 	
 	// Position light camera in center of view frustum
-	//lightCamera->lookAt(center, center + lightCamera->getForward(), lightCamera->getUp());
+	//lightCamera->lookAt(center, center + lightCamera->getForward(), Vector3(0, 1, 0));
 	
 	// Calculate split distances
 	float clipNear = viewCamera->getClipNear();
 	float clipFar = viewCamera->getClipFar();
-	float* splitDistances = new float[frustumSplitCount + 1];
-	float splitSchemeWeight = 0.5f;
+	float splitSchemeWeight = 0.85f;
 	
 	for (std::size_t i = 1; i < frustumSplitCount; ++i)
 	{
@@ -357,29 +362,80 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 	// For each frustum split
 	for (int i = 0; i < frustumSplitCount; ++i)
 	{
+		
+		
 		// Calculate crop matrix
 		{
 			ViewFrustum frustumSplit;
 			
 			// Determine near and far distances for this subfrustum
-			float splitNear = splitDistances[0];
-			float splitFar = splitDistances[4];
+			float splitNear = splitDistances[i];
+			float splitFar = splitDistances[i + 1];
+			
+			
+			Matrix4 splitView = viewCamera->getView();
 			
 			// Calculate subfrustum projection matrix
-			Matrix4 splitProjection = glm::ortho(viewCamera->getClipLeft(), viewCamera->getClipRight(), viewCamera->getClipBottom(), viewCamera->getClipTop(), splitNear, splitFar);
+			Matrix4 splitProjection = glm::ortho(lightCamera->getClipLeft(), lightCamera->getClipRight(), lightCamera->getClipBottom(), lightCamera->getClipTop(), splitNear, splitFar);
+			splitProjection = viewCamera->getProjection();
+			splitProjection[2][2] = -(splitFar + splitNear) / (splitFar - splitNear);
+			splitProjection[3][2] = -(2.0f * splitFar * splitNear) / (splitFar - splitNear);
 			
 			// Set subfrustum matrices
-			frustumSplit.setMatrices(viewCamera->getView(), splitProjection);
+			frustumSplit.setMatrices(splitView, splitProjection);
 			
 			// Create AABB containing the frustum split corners
-			AABB frustumSplitBounds(Vector3(std::numeric_limits<float>::infinity()), Vector3(-std::numeric_limits<float>::infinity()));
-			for (std::size_t j = 0; j < frustumSplit.getCornerCount(); ++j)
+			
+			// Frustum corners in NDC-space
+			Vector3 splitCorners[8] = 
 			{
-				frustumSplitBounds.add(frustumSplit.getCorner(j));
+				Vector3(-1.0f,  1.0f, -1.0f),
+				Vector3( 1.0f,  1.0f, -1.0f),
+				Vector3(-1.0f, -1.0f, -1.0f),
+				Vector3( 1.0f, -1.0f, -1.0f),
+				Vector3(-1.0f,  1.0f,  1.0f),
+				Vector3( 1.0f,  1.0f,  1.0f),
+				Vector3(-1.0f, -1.0f,  1.0f),
+				Vector3( 1.0f, -1.0f,  1.0f)
+			};
+			
+			Matrix4 splitInverseViewProjection = glm::inverse(frustumSplit.getViewProjectionMatrix());
+			for (int j = 0; j < 8; ++j)
+			{
+				Vector4 transformedCorner = splitInverseViewProjection * Vector4(splitCorners[j], 1.0f);
+				splitCorners[j] = Vector3(transformedCorner) / transformedCorner.w;
+			}
+			
+			AABB frustumSplitBounds(splitCorners[0], splitCorners[0]);
+			for (std::size_t j = 1; j < 8; ++j)
+			{
+				frustumSplitBounds.add(splitCorners[j]);
+			}
+			
+			AABB croppingBounds(Vector3(std::numeric_limits<float>::infinity()), Vector3(-std::numeric_limits<float>::infinity()));
+			for (int j = 0; j < 8; ++j)
+			{
+				Vector3 minPoint = frustumSplitBounds.getMin();
+				Vector3 maxPoint = frustumSplitBounds.getMax();
+				
+				Vector3 aabbCorners[8] =
+				{
+					minPoint,
+					Vector3(minPoint.x, minPoint.y, maxPoint.z),
+					Vector3(minPoint.x, maxPoint.y, minPoint.z),
+					Vector3(minPoint.x, maxPoint.y, maxPoint.z),
+					Vector3(maxPoint.x, minPoint.y, minPoint.z),
+					Vector3(maxPoint.x, minPoint.y, maxPoint.z),
+					Vector3(maxPoint.x, maxPoint.y, minPoint.z),
+					maxPoint
+				};
+				
+				Vector4 transformedPoint = lightCamera->getViewProjection() * Vector4(aabbCorners[j], 1.0f);
+				croppingBounds.add(Vector3(transformedPoint / transformedPoint.w));
 			}
 			
 			// Transform frustum split bounds into light's clip space
-			AABB croppingBounds = frustumSplitBounds.transformed(lightCamera->getViewProjection());
+			//AABB croppingBounds = frustumSplitBounds.transformed(lightCamera->getView());
 			Vector3 cropMax = croppingBounds.getMax();
 			Vector3 cropMin = croppingBounds.getMin();
 			//cropMin.z = 0.0f;
@@ -391,9 +447,9 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 			scale.z = 1.0f / (cropMax.z - cropMin.z);
 			
 			// Quantize scale
-			//float scaleQuantizer = 64.0f;
-			//scale.x = 1.0f / std::ceil(1.0f / scale.x * scaleQuantizer) * scaleQuantizer;
-			//scale.y = 1.0f / std::ceil(1.0f / scale.y * scaleQuantizer) * scaleQuantizer;
+			float scaleQuantizer = 64.0f;
+			scale.x = 1.0f / std::ceil(1.0f / scale.x * scaleQuantizer) * scaleQuantizer;
+			scale.y = 1.0f / std::ceil(1.0f / scale.y * scaleQuantizer) * scaleQuantizer;
 			
 			// Calculate offset
 			Vector3 offset;
@@ -402,9 +458,9 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 			offset.z = -cropMin.z * scale.z;
 
 			// Quantize offset
-			//float halfTextureSize = static_cast<float>(croppedShadowMapResolution) * 0.5f;
-			//offset.x = std::ceil(offset.x * halfTextureSize) / halfTextureSize;
-			//offset.y = std::ceil(offset.y * halfTextureSize) / halfTextureSize;
+			float halfTextureSize = static_cast<float>(croppedShadowMapResolution) * 0.5f;
+			offset.x = std::ceil(offset.x * halfTextureSize) / halfTextureSize;
+			offset.y = std::ceil(offset.y * halfTextureSize) / halfTextureSize;
 			
 			cropMatrices[i] = glm::translate(offset) * glm::scale(scale);
 		}
@@ -466,207 +522,7 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 		}
 	}
 	
-	delete[] splitDistances;
-	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-
-
-ClippingRenderPass::ClippingRenderPass():
-	shader(nullptr)
-{
-	clippingPlanesParam = parameterSet.addParameter("clippingPlanes", ShaderParameter::Type::VECTOR_4, 1);
-	modelParam = parameterSet.addParameter("modelMatrix", ShaderParameter::Type::MATRIX_4, 1);
-	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
-}
-
-bool ClippingRenderPass::load(const RenderContext* renderContext)
-{
-	shaderLoader.undefine();
-	shaderLoader.define("CLIPPING_PLANE_COUNT", 1);
-	
-	shader = shaderLoader.load("data/shaders/clip.glsl", &parameterSet);
-	if (!shader)
-	{
-		return false;
-	}
-	
-	return true;
-}
-
-void ClippingRenderPass::unload()
-{
-	delete shader;
-	shader = nullptr;
-}
-
-void ClippingRenderPass::render(RenderContext* renderContext)
-{
-	glEnable(GL_CLIP_DISTANCE0);
-	glEnable(GL_STENCIL_TEST);
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	
-	// Bind shader
-	shader->bind();
-	
-	// Pass clipping planes to shader
-	shader->setParameter(clippingPlanesParam, clippingPlane);
-	
-	// Grab render context parameters
-	const Camera& camera = *(renderContext->camera);
-	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
-	
-	// Two passes
-	for (int i = 0; i < 2; ++i)
-	{
-		if (!i)
-		{
-			// Increment stencil for back faces
-			glStencilFunc(GL_ALWAYS, 0, 0);
-			glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
-			glCullFace(GL_FRONT);
-		}
-		else
-		{
-			// Decrement stencil for front faces
-			glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
-			glCullFace(GL_BACK);
-		}
-		
-		for (const RenderOperation& operation: *operations)
-		{			
-			const Matrix4& modelMatrix = operation.transform;
-			Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
-			shader->setParameter(modelParam, modelMatrix);
-			shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
-			
-			glBindVertexArray(operation.vao);
-			glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
-		}
-	}
-	
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_LESS);
-	glDisable(GL_CLIP_DISTANCE0);
-}
-
-void ClippingRenderPass::setClippingPlane(const Plane& plane)
-{
-	this->clippingPlane = Vector4(plane.getNormal(), plane.getDistance());
-}
-
-SoilRenderPass::SoilRenderPass():
-	shader(nullptr)
-{
-	horizonTexturesParam = parameterSet.addParameter("horizonTextures", ShaderParameter::Type::INT, 4);
-	modelParam = parameterSet.addParameter("modelMatrix", ShaderParameter::Type::MATRIX_4, 1);
-	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
-	
-	horizonOTexture = nullptr;
-	horizonATexture = nullptr;
-	horizonBTexture = nullptr;
-	horizonCTexture = nullptr;
-}
-
-bool SoilRenderPass::load(const RenderContext* renderContext)
-{
-	shaderLoader.define("VERTEX_POSITION", EMERGENT_VERTEX_POSITION);
-	shaderLoader.define("VERTEX_TEXCOORD", EMERGENT_VERTEX_TEXCOORD);
-	shaderLoader.define("VERTEX_NORMAL", EMERGENT_VERTEX_NORMAL);
-	shader = shaderLoader.load("data/shaders/soil-profile.glsl", &parameterSet);
-	if (!shader)
-	{
-		return false;
-	}
-	
-	return true;
-}
-
-void SoilRenderPass::unload()
-{
-	shaderLoader.undefine();
-	
-	delete shader;
-	shader = nullptr;
-	
-	delete horizonOTexture;
-	delete horizonATexture;
-	delete horizonBTexture;
-	delete horizonCTexture;
-	
-	horizonOTexture = nullptr;
-	horizonATexture = nullptr;
-	horizonBTexture = nullptr;
-	horizonCTexture = nullptr;
-}
-
-void SoilRenderPass::render(RenderContext* renderContext)
-{
-	// Bind framebuffer and setup viewport
-	glBindFramebuffer(GL_FRAMEBUFFER, renderTarget->framebuffer);
-	glViewport(0, 0, renderTarget->width, renderTarget->height);
-	
-	// Bind shader
-	shader->bind();
-	
-	if (!horizonOTexture || !horizonATexture || !horizonBTexture || !horizonCTexture)
-	{
-		return;
-	}
-	
-	// Bind textures
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, horizonOTexture->getTextureID());
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, horizonATexture->getTextureID());
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, horizonBTexture->getTextureID());
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, horizonCTexture->getTextureID());
-	
-	// Pass texture units to shader
-	int textureUnits[] = {0, 1, 2, 3};
-	shader->setParameter(horizonTexturesParam, 0, &textureUnits[0], 4);
-	
-	// Enable depth testing
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_LEQUAL);
-	
-	// Enable backface culling
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	
-	const Camera& camera = *(renderContext->camera);
-	const std::list<RenderOperation>* operations = renderContext->queue->getOperations();
-	
-	// Render operations
-	for (const RenderOperation& operation: *operations)
-	{
-		// Skip render operations with unsupported materials
-		if (operation.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
-		{
-			continue;
-		}	
-		const PhysicalMaterial* material = static_cast<const PhysicalMaterial*>(operation.material);
-		if (!(material->flags & (unsigned int)PhysicalMaterial::Flags::SOIL))
-		{
-			continue;
-		}
-		
-		const Matrix4& modelMatrix = operation.transform;
-		Matrix4 modelViewProjectionMatrix = camera.getViewProjection() * modelMatrix;
-		shader->setParameter(modelParam, modelMatrix);
-		shader->setParameter(modelViewProjectionParam, modelViewProjectionMatrix);
-		
-		glBindVertexArray(operation.vao);
-		glDrawElementsBaseVertex(GL_TRIANGLES, operation.triangleCount * 3, GL_UNSIGNED_INT, (void*)0, operation.indexOffset);
-	}
 }
 
 LightingRenderPass::LightingRenderPass():
@@ -690,7 +546,8 @@ LightingRenderPass::LightingRenderPass():
 	modelViewProjectionParam = parameterSet.addParameter("modelViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
 	normalModelViewParam = parameterSet.addParameter("normalModelViewMatrix", ShaderParameter::Type::MATRIX_3, 1);
 	normalModelParam = parameterSet.addParameter("normalModelMatrix", ShaderParameter::Type::MATRIX_3, 1);
-	lightViewProjectionParam = parameterSet.addParameter("lightViewProjectionMatrix", ShaderParameter::Type::MATRIX_4, 1);
+	lightViewProjectionsParam = parameterSet.addParameter("lightViewProjectionMatrices", ShaderParameter::Type::MATRIX_4, 4);
+	splitDistancesParam = parameterSet.addParameter("splitDistances", ShaderParameter::Type::VECTOR_4, 1);
 	shadowMapParam = parameterSet.addParameter("shadowMap", ShaderParameter::Type::INT, 1);
 	cameraPositionParam = parameterSet.addParameter("cameraPosition", ShaderParameter::Type::VECTOR_3, 1);
 	directionalLightCountParam = parameterSet.addParameter("directionalLightCount", ShaderParameter::Type::INT, 1);
@@ -1181,6 +1038,13 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	
+	Vector4 splitDistances;
+	for (int i = 0; i < 4; ++i)
+	{
+		splitDistances[i] = shadowMapPass->getSplitDistance(i + 1);
+	}
+	
+	
 	
 	Vector3 directionalLightColors[3];
 	Vector3 directionalLightDirections[3];
@@ -1224,7 +1088,13 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	}
 	
 	// Calculate the (light-space) view-projection matrix
-	Matrix4 lightViewProjectionMatrix = shadowMapPass->getTileMatrix(0) * biasMatrix * shadowMapPass->getCropMatrix(0) * shadowCamera->getViewProjection();
+	
+	Matrix4 lightViewProjectionMatrices[4];
+	for (int i = 0; i < 4; ++i)
+	{
+		lightViewProjectionMatrices[i] = shadowMapPass->getTileMatrix(i) * biasMatrix * shadowMapPass->getCropMatrix(i) * shadowCamera->getViewProjection();
+	}
+	
 	//Matrix4 lightViewProjectionMatrix = biasMatrix * shadowCamera->getViewProjection();
 	
 	glActiveTexture(GL_TEXTURE3);
@@ -1280,7 +1150,8 @@ void LightingRenderPass::render(RenderContext* renderContext)
 			shader->bind();
 			
 			// Pass static params
-			shader->setParameter(lightViewProjectionParam, lightViewProjectionMatrix);
+			shader->setParameter(lightViewProjectionsParam, 0, &lightViewProjectionMatrices[0], 4);
+			shader->setParameter(splitDistancesParam, splitDistances);
 			shader->setParameter(albedoOpacityMapParam, 0);
 			shader->setParameter(metalnessRoughnessMapParam, 1);
 			shader->setParameter(normalOcclusionMapParam, 2);

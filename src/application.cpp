@@ -909,9 +909,6 @@ bool Application::loadScene()
 	clearDepthPass.setClear(false, true, false);
 	clearDepthPass.setClearDepth(1.0f);
 	
-	// Setup soil pass
-	soilPass.setRenderTarget(&framebufferARenderTarget);
-	
 	// Setup lighting pass
 	lightingPass.setRenderTarget(&framebufferARenderTarget);
 	lightingPass.setShadowMap(shadowMapDepthTexture);
@@ -938,7 +935,6 @@ bool Application::loadScene()
 	
 	defaultCompositor.addPass(&clearDepthPass);
 	defaultCompositor.addPass(&skyboxPass);
-	//defaultCompositor.addPass(&soilPass);
 	defaultCompositor.addPass(&lightingPass);
 	defaultCompositor.addPass(&horizontalBlurPass);
 	defaultCompositor.addPass(&verticalBlurPass);
@@ -948,7 +944,7 @@ bool Application::loadScene()
 	defaultCompositor.load(nullptr);
 	
 	// Setup sunlight camera
-	sunlightCamera.lookAt(Vector3(0.5f, 2.0f, 2.0f), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	sunlightCamera.lookAt(Vector3(0, 0, 0), -Vector3(0.5f, 2.0f, 2.0f), Vector3(0, 1, 0));
 	sunlightCamera.setOrthographic(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	sunlightCamera.setCompositor(&shadowMapCompositor);
 	sunlightCamera.setCompositeIndex(0);
@@ -1637,7 +1633,7 @@ bool Application::loadGame()
 	
 	lens = new Lens(lensModel);
 	lens->setOrbitCam(orbitCam);
-	lens->setSunDirection(glm::normalize(-sunlightCamera.getTranslation()));
+	lens->setSunDirection(glm::normalize(-Vector3(0.5f, 2.0f, 2.0f)));
 	
 	brush = new Brush(brushModel);
 	brush->setColony(colony);
@@ -2061,10 +2057,6 @@ void Application::loadWorld(std::size_t index)
 	const Biome* biome = &biosphere.biomes[levelParams->biome];
 	
 	// Setup rendering passes
-	soilPass.setHorizonOTexture(biome->soilHorizonO);
-	soilPass.setHorizonATexture(biome->soilHorizonA);
-	soilPass.setHorizonBTexture(biome->soilHorizonB);
-	soilPass.setHorizonCTexture(biome->soilHorizonC);
 	lightingPass.setDiffuseCubemap(biome->diffuseCubemap);
 	lightingPass.setSpecularCubemap(biome->specularCubemap);
 	skyboxPass.setCubemap(biome->specularCubemap);

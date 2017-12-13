@@ -98,7 +98,9 @@ public:
 	inline void setViewCamera(const Camera* camera) { this->viewCamera = camera; }
 	inline void setLightCamera(Camera* camera) { this->lightCamera = camera; }
 	
+	inline float getSplitDistance(std::size_t index) const { return splitDistances[index]; }
 	inline int getFrustumSplitCount() const { return frustumSplitCount; }
+	
 	inline const ViewFrustum& getSplitViewFrustum(std::size_t index) const { return splitViewFrustum->getSubfrustum(index); }
 	inline const Matrix4& getCropMatrix(std::size_t index) const { return cropMatrices[index]; }
 	inline const Matrix4& getTileMatrix(std::size_t index) const { return tileMatrices[index]; }
@@ -115,6 +117,7 @@ private:
 	int maxBoneCount;
 	
 	int frustumSplitCount;
+	float* splitDistances;
 	int shadowMapResolution;
 	int croppedShadowMapResolution;
 	Vector4* croppedShadowMapViewports;
@@ -124,72 +127,6 @@ private:
 	Camera* lightCamera;
 	SplitViewFrustum* splitViewFrustum;
 };
-
-/**
- * Writes clipped edges to stencil buffer.
- */
-class ClippingRenderPass: public RenderPass
-{
-public:
-	ClippingRenderPass();
-	virtual bool load(const RenderContext* renderContext);
-	virtual void unload();
-	virtual void render(RenderContext* renderContext);
-	
-	void setClippingPlane(const Plane& plane);
-	
-private:
-	ShaderParameterSet parameterSet;
-	const ShaderParameter* modelParam;
-	const ShaderParameter* modelViewProjectionParam;
-	const ShaderParameter* clippingPlanesParam;
-	
-	ShaderLoader shaderLoader;
-	Shader* shader;
-	Vector4 clippingPlane;
-};
- 
-/**
- * Renders soil profiles.
- *
- * A soil profile generally of five soil horizons: O, A, B, C, and R.
- *
- * Horizon O: Organic
- * Horizon A: Surface
- * Horizon B: Subsoil
- * Horizon C: Substratum
- * Horizon R: Bedrock
- *
- * In this render pass, only the O, A, B, and C horizons are used. 
- */
-class SoilRenderPass: public RenderPass
-{
-public:
-	SoilRenderPass();
-	virtual bool load(const RenderContext* renderContext);
-	virtual void unload();
-	virtual void render(RenderContext* renderContext);
-	
-	inline void setHorizonOTexture(Texture* texture) { horizonOTexture = texture; }
-	inline void setHorizonATexture(Texture* texture) { horizonATexture = texture; }
-	inline void setHorizonBTexture(Texture* texture) { horizonBTexture = texture; }
-	inline void setHorizonCTexture(Texture* texture) { horizonCTexture = texture; }
-	
-private:
-	ShaderParameterSet parameterSet;
-	const ShaderParameter* modelParam;
-	const ShaderParameter* modelViewProjectionParam;
-	const ShaderParameter* horizonTexturesParam;
-	
-	ShaderLoader shaderLoader;
-	Shader* shader;
-	
-	Texture* horizonOTexture;
-	Texture* horizonATexture;
-	Texture* horizonBTexture;
-	Texture* horizonCTexture;
-};
-
 
 /**
  * Renders scene geometry.
@@ -226,7 +163,8 @@ private:
 	const ShaderParameter* modelViewProjectionParam;
 	const ShaderParameter* normalModelViewParam;
 	const ShaderParameter* normalModelParam;
-	const ShaderParameter* lightViewProjectionParam;
+	const ShaderParameter* lightViewProjectionsParam;
+	const ShaderParameter* splitDistancesParam;
 	const ShaderParameter* shadowMapParam;
 	const ShaderParameter* cameraPositionParam;
 	const ShaderParameter* directionalLightCountParam;

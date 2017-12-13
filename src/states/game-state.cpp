@@ -60,8 +60,8 @@ void GameState::enter()
 	}
 	
 	// Setup HUD
-	application->rectangularPaletteImage->setVisible(true);
-	application->rectangularPaletteImage->setActive(true);
+	//application->rectangularPaletteImage->setVisible(true);
+	//application->rectangularPaletteImage->setActive(true);
 	application->toolbar->getContainer()->setVisible(true);
 	application->toolbar->getContainer()->setActive(true);
 	

@@ -227,3 +227,25 @@ void OrbitCam::setTargetAzimuth(float angle)
 	targetAzimuth = angle;
 	targetAzimuthRotation = glm::angleAxis(targetAzimuth, Vector3(0.0f, 1.0f, 0.0f));
 }
+
+ShadowCam::ShadowCam():
+	light(nullptr)
+{}
+
+ShadowCam::~ShadowCam()
+{}
+
+void ShadowCam::setLight(const PunctualLight* light)
+{
+	this->light = light;
+	
+	if (light != nullptr)
+	{
+		
+	}
+}
+
+void ShadowCam::update(float dt)
+{
+	
+}

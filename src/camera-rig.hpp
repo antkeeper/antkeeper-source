@@ -183,7 +183,7 @@ public:
 	float getTargetElevation() const;
 	float getTargetAzimuth() const;
 	const Vector3& getTargetTranslation() const;
-	const glm::quat& getTargetRotation() const;
+	const Quaternion& getTargetRotation() const;
 	
 private:
 	Vector3 focalPoint;
@@ -196,11 +196,11 @@ private:
 	float targetElevation;
 	float targetAzimuth;
 	
-	glm::quat elevationRotation;
-	glm::quat azimuthRotation;
-	glm::quat targetElevationRotation;
-	glm::quat targetAzimuthRotation;
-	glm::quat targetRotation;
+	Quaternion elevationRotation;
+	Quaternion azimuthRotation;
+	Quaternion targetElevationRotation;
+	Quaternion targetAzimuthRotation;
+	Quaternion targetRotation;
 	Vector3 targetTranslation;
 };
 
@@ -249,9 +249,26 @@ inline const Vector3& OrbitCam::getTargetTranslation() const
 	return targetTranslation;
 }
 
-inline const glm::quat& OrbitCam::getTargetRotation() const
+inline const Quaternion& OrbitCam::getTargetRotation() const
 {
 	return targetRotation;
 }
+
+/**
+ * Rig which aligns a camera with a light. Used for rendering shadow maps.
+ */
+class ShadowCam
+{
+public:
+	ShadowCam();
+	virtual ~ShadowCam();
+	
+	void setLight(const PunctualLight* light);
+	
+	void update(float dt);
+	
+private:
+	const PunctualLight* light;
+};
 
 #endif // CAMERA_RIG_HPP
