@@ -25,6 +25,7 @@ using namespace Emergent;
 
 #include "material-loader.hpp"
 #include "model-loader.hpp"
+#include <cstdint>
 
 /**
  * Clears framebuffers
@@ -62,19 +63,26 @@ public:
 	virtual void unload();
 	virtual void render(RenderContext* renderContext);
 	
-	inline void setTexture(GLuint textureID) { this->textureID = textureID; }
-	inline void setDirection(Vector2 direction) { this->direction = direction; }
+	inline void setGammaCorrect(bool gammaCorrect) { this->gammaCorrect = gammaCorrect; }
+	
+	/**
+	 * Sets the texture to blur.
+	 */
+	inline void setTexture(const Texture2D* texture) { textureParam.setValue(texture); }
+	
+	/**
+	 * Sets the direction of the blur.
+	 */
+	inline void setDirection(const Vector2& direction) { directionParam.setValue(direction); }
 	
 private:
-	ShaderParameterSet parameterSet;
-	const ShaderParameter* textureParam;
-	const ShaderParameter* resolutionParam;
-	const ShaderParameter* directionParam;
-	ShaderLoader shaderLoader;
-	Shader* shader;
+	bool gammaCorrect;
 	
-	GLuint textureID;
-	Vector2 direction;
+	Shader shader;
+	std::uint32_t permutation;
+	ShaderTexture2D textureParam;
+	ShaderVector2 resolutionParam;
+	ShaderVector2 directionParam;
 	
 	int quadVertexCount;
 	int quadIndexCount;
@@ -110,16 +118,13 @@ private:
 		bool operator()(const RenderOperation& opA, const RenderOperation& opB) const;
 	};
 	
-	ShaderParameterSet parameterSet;
-	const ShaderParameter* modelViewProjectionParam;
-	const ShaderParameter* matrixPaletteParam;
+	Shader shader;
+	std::uint32_t unskinnedPermutation;
+	std::uint32_t skinnedPermutation;
+	ShaderMatrix4 modelViewProjectionParam;
+	ShaderMatrix4* matrixPaletteParam; // data not used, just getConnectedInput() then pass pose matrix palette pointer directly
 	
-	ShaderLoader shaderLoader;
-	
-	Shader* unskinnedShader;
-	Shader* skinnedShader;
 	int maxBoneCount;
-	
 	int shadowMapResolution;
 	int croppedShadowMapResolution;
 	Vector4* croppedShadowMapViewports;
@@ -142,11 +147,11 @@ public:
 	virtual void unload();
 	virtual void render(RenderContext* renderContext);
 	
-	inline void setShadowMap(GLuint shadowMap) { this->shadowMap = shadowMap; }
+	inline void setShadowMap(const Texture2D* shadowMap) { this->shadowMap = shadowMap; }
 	inline void setShadowCamera(const Camera* camera) { this->shadowCamera = camera; }
 	inline void setShadowMapPass(const ShadowMapRenderPass* shadowMapPass) { this->shadowMapPass = shadowMapPass; }
-	inline void setDiffuseCubemap(const Texture* cubemap) { this->diffuseCubemap = cubemap; }
-	inline void setSpecularCubemap(const Texture* cubemap) { this->specularCubemap = cubemap; }
+	inline void setDiffuseCubemap(const TextureCube* cubemap) { this->diffuseCubemap = cubemap; }
+	inline void setSpecularCubemap(const TextureCube* cubemap) { this->specularCubemap = cubemap; }
 	
 private:
 	class RenderOpCompare
@@ -155,53 +160,61 @@ private:
 		// Sort render opations
 		bool operator()(const RenderOperation& opA, const RenderOperation& opB) const;
 	};
-
-	bool loadShader(const RenderOperation& operation);
 	
-	ShaderParameterSet parameterSet;
-	const ShaderParameter* matrixPaletteParam;
-	const ShaderParameter* modelParam;
-	const ShaderParameter* modelViewParam;
-	const ShaderParameter* modelViewProjectionParam;
-	const ShaderParameter* normalModelViewParam;
-	const ShaderParameter* normalModelParam;
-	const ShaderParameter* lightViewProjectionsParam;
-	const ShaderParameter* splitDistancesParam;
-	const ShaderParameter* shadowMapParam;
-	const ShaderParameter* cameraPositionParam;
-	const ShaderParameter* directionalLightCountParam;
-	const ShaderParameter* directionalLightColorsParam;
-	const ShaderParameter* directionalLightDirectionsParam;
+	struct ParameterSet
+	{
+		ShaderMatrix4* matrixPalette;
+		ShaderMatrix4 modelMatrix;
+		ShaderMatrix4 modelViewMatrix;
+		ShaderMatrix4 modelViewProjectionMatrix;
+		ShaderMatrix3 normalModelViewMatrix;
+		ShaderMatrix3 normalModelMatrix;
+		ShaderMatrix4* lightViewProjectionMatrices;
+		ShaderVector4 splitDistances;
+		ShaderTexture2D shadowMap;
+		ShaderVector3 cameraPosition;
+		
+		ShaderTextureCube diffuseCubemap;
+		ShaderTextureCube specularCubemap;
+		
+		ShaderInt directionalLightCount;
+		ShaderVector3* directionalLightColors;
+		ShaderVector3* directionalLightDirections;
+		
+		ShaderInt spotlightCount;
+		ShaderVector3 spotlightColors;
+		ShaderVector3 spotlightPositions;
+		ShaderVector3 spotlightAttenuations;
+		ShaderVector3 spotlightDirections;
+		ShaderFloat spotlightCutoffs;
+		ShaderFloat spotlightExponents;
+		
+		ShaderTexture2D albedoOpacityMap;
+		ShaderTexture2D metalnessRoughnessMap;
+		ShaderTexture2D normalOcclusionMap;
+		
+		// Material shader parameters (uploaded by material directly)
+		//ShaderTexture2D albedoOpacityMap;
+		//ShaderTexture2D metalnessRoughnessMap;
+		//ShaderTexture2D normalOcclusionMap;
+	};
 	
-	const ShaderParameter* spotlightCountParam;
-	const ShaderParameter* spotlightColorsParam;
-	const ShaderParameter* spotlightPositionsParam;
-	const ShaderParameter* spotlightAttenuationsParam;
-	const ShaderParameter* spotlightDirectionsParam;
-	const ShaderParameter* spotlightCutoffsParam;
-	const ShaderParameter* spotlightExponentsParam;
+	//std::map<Shader* shader, ParameterSet> parameterSets;
 	
-	const ShaderParameter* albedoOpacityMapParam;
-	const ShaderParameter* metalnessRoughnessMapParam;
-	const ShaderParameter* normalOcclusionMapParam;
-	const ShaderParameter* diffuseCubemapParam;
-	const ShaderParameter* specularCubemapParam;
-	
-	Shader* unskinnedShader;
-	Shader* skinnedShader;
+	Shader shader;
+	ParameterSet parameters;
+	std::uint32_t unskinnedPermutation;
+	std::uint32_t skinnedPermutation;
 	
 	int maxBoneCount;
 	int maxDirectionalLightCount;
 	int maxSpotlightCount;
-	ShaderLoader shaderLoader;
-	std::map<std::size_t, Shader*> shaderCache;
-	//Shader* lightingShader;
+	
 	
 	Matrix4 biasMatrix;
-	GLuint shadowMap;
-	Texture* treeShadow;
-	const Texture* diffuseCubemap;
-	const Texture* specularCubemap;
+	const Texture2D* shadowMap;
+	const TextureCube* diffuseCubemap;
+	const TextureCube* specularCubemap;
 	const Camera* shadowCamera;
 	float time;
 	const ShadowMapRenderPass* shadowMapPass;
@@ -224,11 +237,9 @@ public:
 	//void setDrawLights(bool enabled);
 	
 private:
-	ShaderParameterSet parameterSet;
-	const ShaderParameter* modelViewProjectionParam;
-	
-	ShaderLoader shaderLoader;
-	Shader* unlitSolidShader;
+	Shader shader;
+	std::uint32_t permutation;
+	ShaderMatrix4 modelViewProjectionMatrixParam;
 	
 	int aabbVertexCount;
 	int aabbIndexCount;
@@ -249,20 +260,20 @@ public:
 	virtual void render(RenderContext* renderContext);
 	
 private:
-	ShaderParameterSet parameterSet;
-	const ShaderParameter* modelViewProjectionParam;
-	const ShaderParameter* textureParam;
-	const ShaderParameter* texcoordOffsetParam;
-	const ShaderParameter* texcoordScaleParam;
+	Shader shader;
+	std::uint32_t texturedPermutation;
+	std::uint32_t untexturedPermutation;
 	
-	ShaderLoader shaderLoader;
-	Shader* texturedUIShader;
-	Shader* untexturedUIShader;
+	ShaderMatrix4 modelViewProjectionMatrixParam;
+	ShaderTexture2D textureParam;
+	ShaderVector2 textureOffsetParam;
+	ShaderVector2 textureScaleParam;
 };
 
 /**
  * Renders a vignette
  */
+/*
 class VignetteRenderPass: public RenderPass
 {
 public:
@@ -280,6 +291,7 @@ private:
 	Shader* shader;
 	GLuint bayerTextureID;
 };
+*/
 
 /**
  * Renders a skybox
@@ -289,19 +301,17 @@ class SkyboxRenderPass: public RenderPass
 public:
 	SkyboxRenderPass();
 	
-	inline void setCubemap(Texture* cubemap) { this->cubemap = cubemap; }
+	inline void setCubemap(TextureCube* cubemap) { this->cubemap = cubemap; }
 	virtual bool load(const RenderContext* renderContext);
 	virtual void unload();
 	virtual void render(RenderContext* renderContext);
 	
 private:
-	ShaderParameterSet parameterSet;
-	const ShaderParameter* matrixParam;
-	const ShaderParameter* cubemapParam;
-	
-	ShaderLoader shaderLoader;
-	Shader* shader;
-	Texture* cubemap;
+	Shader shader;
+	std::uint32_t permutation;
+	ShaderMatrix4 matrixParam;
+	ShaderTextureCube cubemapParam;
+	TextureCube* cubemap;
 	
 	int quadVertexCount;
 	int quadIndexCount;
@@ -309,7 +319,5 @@ private:
 	GLuint quadVBO;
 	GLuint quadIBO;
 };
-
-
 
 #endif // RENDER_PASSES_HPP

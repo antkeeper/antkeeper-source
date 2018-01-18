@@ -13,15 +13,15 @@ class Toolbar
 public:
 	Toolbar();
 	
-	void setToolbarTopTexture(Texture* texture);
-	void setToolbarBottomTexture(Texture* texture);
-	void setToolbarMiddleTexture(Texture* texture);
-	void setButtonRaisedTexture(Texture* texture);
-	void setButtonDepressedTexture(Texture* texture);
+	void setToolbarTopTexture(Texture2D* texture);
+	void setToolbarBottomTexture(Texture2D* texture);
+	void setToolbarMiddleTexture(Texture2D* texture);
+	void setButtonRaisedTexture(Texture2D* texture);
+	void setButtonDepressedTexture(Texture2D* texture);
 	
 	void resize();
 	
-	void addButton(Texture* iconTexture, std::function<void()> pressCallback, std::function<void()> releaseCallback);
+	void addButton(Texture2D* iconTexture, std::function<void()> pressCallback, std::function<void()> releaseCallback);
 	
 	void pressButton(std::size_t index);
 	void releaseButton(std::size_t index);
@@ -30,11 +30,11 @@ public:
 	UIContainer* getContainer();
 	
 private:
-	Texture* toolbarTopTexture;
-	Texture* toolbarBottomTexture;
-	Texture* toolbarMiddleTexture;
-	Texture* buttonRaisedTexture;
-	Texture* buttonDepressedTexture;
+	Texture2D* toolbarTopTexture;
+	Texture2D* toolbarBottomTexture;
+	Texture2D* toolbarMiddleTexture;
+	Texture2D* buttonRaisedTexture;
+	Texture2D* buttonDepressedTexture;
 	
 	UIContainer toolbarContainer;
 	UIImage toolbarTopImage;

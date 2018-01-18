@@ -16,7 +16,7 @@ public:
 		
 	void resize();
 	
-	void addOption(Texture* backgroundTexture, Texture* iconTexture, std::function<void()> selectedCallback, std::function<void()> deselectedCallback);
+	void addOption(Texture2D* backgroundTexture, Texture2D* iconTexture, std::function<void()> selectedCallback, std::function<void()> deselectedCallback);
 	
 	void select(std::size_t index);
 	void deselect(std::size_t index);

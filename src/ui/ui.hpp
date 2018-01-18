@@ -21,7 +21,6 @@
 #define UI_HPP
 
 #include "../input.hpp"
-#include "../materials.hpp"
 #include <vector>
 #include <functional>
 
@@ -36,6 +35,16 @@ namespace Anchor
 	static const Vector2& BOTTOM_RIGHT = Vector2(1.0f, 1.0f);
 	static const Vector2& CENTER = Vector2(0.5f, 0.5f);
 }
+
+class UIMaterial: public Material
+{
+public:
+	UIMaterial();
+	
+	ShaderTexture2D* texture;
+	ShaderVector2* textureOffset;
+	ShaderVector2* textureScale;
+};
 
 class UIElement: public MouseMotionObserver, public MouseButtonObserver
 {
@@ -391,9 +400,9 @@ public:
 	virtual ~UIImage();
 	
 	virtual UIElement::Type getElementType() const;
-	virtual const Texture* getTexture() const;
+	virtual const Texture2D* getTexture() const;
 	
-	void setTexture(Texture* texture);
+	void setTexture(Texture2D* texture);
 	void setTextureBounds(const Rect& bounds);
 	
 	const Rect& getTextureBounds() const;
@@ -407,14 +416,14 @@ inline UIElement::Type UIImage::getElementType() const
 	return UIElement::Type::IMAGE;
 }
 
-inline const Texture* UIImage::getTexture() const
+inline const Texture2D* UIImage::getTexture() const
 {
-	return material.texture;
+	return material.texture->getValue();
 }
 
-inline void UIImage::setTexture(Texture* texture)
+inline void UIImage::setTexture(Texture2D* texture)
 {
-	material.texture = texture;
+	material.texture->setValue(texture);
 }
 
 inline void UIImage::setTextureBounds(const Rect& bounds)

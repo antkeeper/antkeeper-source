@@ -21,7 +21,6 @@
 #define TERRAIN_HPP
 
 #include "navmesh.hpp"
-#include "../materials.hpp"
 #include <emergent/emergent.hpp>
 
 using namespace Emergent;
@@ -92,7 +91,7 @@ private:
 	GLuint surfaceVAO;
 	GLuint surfaceVBO;
 	GLuint surfaceIBO;
-	PhysicalMaterial surfaceMaterial;
+	//PhysicalMaterial surfaceMaterial;
 	Model surfaceModel;
 	Navmesh surfaceNavmesh;
 	Octree<Navmesh::Triangle*>* surfaceOctree;
@@ -109,7 +108,7 @@ private:
 	GLuint subsurfaceVAO;
 	GLuint subsurfaceVBO;
 	GLuint subsurfaceIBO;
-	PhysicalMaterial subsurfaceMaterial;
+	//PhysicalMaterial subsurfaceMaterial;
 	Model subsurfaceModel;
 	Navmesh subsurfaceNavmesh;
 };

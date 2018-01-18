@@ -410,6 +410,7 @@ void GameState::execute()
 			glBindTexture(GL_TEXTURE_2D, application->pheromoneTextureID);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, application->pheromoneTexture.getWidth(), application->pheromoneTexture.getHeight(), GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+			//glGenerateMipmap(GL_TEXTURE_2D);
 		}
 	}
 }

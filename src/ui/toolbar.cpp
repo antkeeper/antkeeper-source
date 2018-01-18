@@ -14,30 +14,30 @@ Toolbar::Toolbar():
 	toolbarContainer.addChild(&toolbarMiddleImage);
 }
 
-void Toolbar::setToolbarTopTexture(Texture* texture)
+void Toolbar::setToolbarTopTexture(Texture2D* texture)
 {
 	toolbarTopTexture = texture;
 	toolbarTopImage.setTexture(toolbarTopTexture);
 }
 
-void Toolbar::setToolbarBottomTexture(Texture* texture)
+void Toolbar::setToolbarBottomTexture(Texture2D* texture)
 {
 	toolbarBottomTexture = texture;
 	toolbarBottomImage.setTexture(toolbarBottomTexture);
 }
 
-void Toolbar::setToolbarMiddleTexture(Texture* texture)
+void Toolbar::setToolbarMiddleTexture(Texture2D* texture)
 {
 	toolbarMiddleTexture = texture;
 	toolbarMiddleImage.setTexture(toolbarMiddleTexture);
 }
 
-void Toolbar::setButtonRaisedTexture(Texture* texture)
+void Toolbar::setButtonRaisedTexture(Texture2D* texture)
 {
 	buttonRaisedTexture = texture;
 }
 
-void Toolbar::setButtonDepressedTexture(Texture* texture)
+void Toolbar::setButtonDepressedTexture(Texture2D* texture)
 {
 	buttonDepressedTexture = texture;
 }
@@ -81,7 +81,7 @@ void Toolbar::resize()
 	}
 }
 
-void Toolbar::addButton(Texture* iconTexture, std::function<void()> pressCallback, std::function<void()> releaseCallback)
+void Toolbar::addButton(Texture2D* iconTexture, std::function<void()> pressCallback, std::function<void()> releaseCallback)
 {
 	if (depressedButtonIndex == buttons.size())
 	{

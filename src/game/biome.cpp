@@ -26,26 +26,24 @@ bool Biome::load()
 	parameters.get("cubemap", &cubemapName);
 	
 	TextureLoader textureLoader;
-	textureLoader.setCubemap(false);
 	textureLoader.setMipmapChain(false);
 	textureLoader.setWrapS(true);
 	textureLoader.setWrapT(true);
 	
 	// Load soil horizon textures
-	soilHorizonO = textureLoader.load(std::string("data/textures/") + soilHorizonOFilename);
-	soilHorizonA = textureLoader.load(std::string("data/textures/") + soilHorizonAFilename);
-	soilHorizonB = textureLoader.load(std::string("data/textures/") + soilHorizonBFilename);
-	soilHorizonC = textureLoader.load(std::string("data/textures/") + soilHorizonCFilename);
+	soilHorizonO = textureLoader.load2D(std::string("data/textures/") + soilHorizonOFilename);
+	soilHorizonA = textureLoader.load2D(std::string("data/textures/") + soilHorizonAFilename);
+	soilHorizonB = textureLoader.load2D(std::string("data/textures/") + soilHorizonBFilename);
+	soilHorizonC = textureLoader.load2D(std::string("data/textures/") + soilHorizonCFilename);
 	
 	// Load diffuse cubemap
-	textureLoader.setCubemap(true);
 	textureLoader.setMipmapChain(true);
 	textureLoader.setWrapS(false);
 	textureLoader.setWrapT(false);
 	textureLoader.setWrapR(false);
 	
 	std::string diffuseCubemapFilename = std::string("data/textures/") + cubemapName + std::string("-irradiance-m%02d.hdr");
-	diffuseCubemap = textureLoader.load(diffuseCubemapFilename);
+	diffuseCubemap = textureLoader.loadCube(diffuseCubemapFilename);
 	if (!diffuseCubemap)
 	{
 		std::cerr << "Failed to load diffuse cubemap \"" << diffuseCubemapFilename << "\"" << std::endl;
@@ -53,7 +51,7 @@ bool Biome::load()
 	
 	// Load specular cubemap
 	std::string specularCubemapFilename = std::string("data/textures/") + cubemapName + std::string("-radiance-m%02d.hdr");
-	specularCubemap = textureLoader.load(specularCubemapFilename);
+	specularCubemap = textureLoader.loadCube(specularCubemapFilename);
 	if (!specularCubemap)
 	{
 		std::cerr << "Failed to load specular cubemap \"" << specularCubemapFilename << "\"" << std::endl;

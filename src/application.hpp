@@ -154,13 +154,11 @@ public:
 	
 	// Scene
 	Scene scene;
-	SceneLayer* backgroundLayer;
 	SceneLayer* defaultLayer;
 	SceneLayer* uiLayer;
 	Camera camera;
 	Camera sunlightCamera;
 	Camera uiCamera;
-	Camera bgCamera;
 	DirectionalLight sunlight;
 	ModelInstance forcepsModelInstance;
 	ModelInstance navigatorObject;
@@ -179,25 +177,28 @@ public:
 	RenderTarget defaultRenderTarget;
 	
 	int shadowMapResolution;
-	GLuint shadowMapDepthTexture;
+	GLuint shadowMapDepthTextureID;
 	GLuint shadowMapFramebuffer;
 	RenderTarget shadowMapRenderTarget;
 	ShadowMapRenderPass shadowMapPass;
 	Compositor shadowMapCompositor;
+	Texture2D shadowMapDepthTexture;
 	
-	GLuint framebufferAColorTexture;
-	GLuint framebufferADepthTexture;
+	GLuint framebufferAColorTextureID;
+	GLuint framebufferADepthTextureID;
 	GLuint framebufferA;
 	RenderTarget framebufferARenderTarget;
+	Texture2D framebufferAColorTexture;
 	
-	GLuint framebufferBColorTexture;
-	GLuint framebufferBDepthTexture;
+	GLuint framebufferBColorTextureID;
+	GLuint framebufferBDepthTextureID;
 	GLuint framebufferB;
 	RenderTarget framebufferBRenderTarget;
+	Texture2D framebufferBColorTexture;
 	
 	GLuint pheromonePBO;
 	GLuint pheromoneTextureID;
-	Texture pheromoneTexture;
+	Texture2D pheromoneTexture;
 	
 	ClearRenderPass clearDepthPass;
 	LightingRenderPass lightingPass;
@@ -207,9 +208,6 @@ public:
 	UIBatcher* uiBatcher;
 	UIRenderPass uiPass;
 	Compositor uiCompositor;
-	BillboardBatch bgBatch;
-	Compositor bgCompositor;
-	VignetteRenderPass vignettePass;
 	SkyboxRenderPass skyboxPass;
 	TextureLoader* textureLoader;
 	MaterialLoader* materialLoader;
@@ -270,29 +268,29 @@ public:
 	Font* levelNameFont;
 	
 	// UI textures
-	Texture* splashTexture;
-	Texture* titleTexture;
-	Texture* rectangularPaletteTexture;
-	Texture* foodIndicatorTexture;
-	Texture* toolBrushTexture;
-	Texture* toolLensTexture;
-	Texture* toolForcepsTexture;
-	Texture* toolTrowelTexture;
+	Texture2D* splashTexture;
+	Texture2D* titleTexture;
+	Texture2D* rectangularPaletteTexture;
+	Texture2D* foodIndicatorTexture;
+	Texture2D* toolBrushTexture;
+	Texture2D* toolLensTexture;
+	Texture2D* toolForcepsTexture;
+	Texture2D* toolTrowelTexture;
 	
-	Texture* toolbarTopTexture;
-	Texture* toolbarBottomTexture;
-	Texture* toolbarMiddleTexture;
-	Texture* toolbarButtonRaisedTexture;
-	Texture* toolbarButtonDepressedTexture;
+	Texture2D* toolbarTopTexture;
+	Texture2D* toolbarBottomTexture;
+	Texture2D* toolbarMiddleTexture;
+	Texture2D* toolbarButtonRaisedTexture;
+	Texture2D* toolbarButtonDepressedTexture;
 	
-	Texture* arcNorthTexture;
-	Texture* arcEastTexture;
-	Texture* arcSouthTexture;
-	Texture* arcWestTexture;
-	Texture* mouseLeftTexture;
-	Texture* mouseRightTexture;
+	Texture2D* arcNorthTexture;
+	Texture2D* arcEastTexture;
+	Texture2D* arcSouthTexture;
+	Texture2D* arcWestTexture;
+	Texture2D* mouseLeftTexture;
+	Texture2D* mouseRightTexture;
 	
-	Texture* depthTexture;
+	Texture2D* depthTexture;
 	
 	// UI elements
 	Vector4 selectedColor;

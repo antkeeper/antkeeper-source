@@ -120,13 +120,17 @@ Application::Application(int argc, char* argv[]):
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, OPENGL_VERSION_MAJOR);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, OPENGL_VERSION_MINOR);
+	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 	
 	// Set OpenGL buffer attributes
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
 	
 	// Get all possible display modes for the default display
 	int displayModeCount = SDL_GetNumDisplayModes(0);
@@ -701,7 +705,7 @@ void Application::saveUserSettings()
 
 bool Application::loadModels()
 {
-	antModel = modelLoader->load("data/models/debug-worker.mdl");
+	antModel = modelLoader->load("data/models/common-worker-ant.mdl");
 	antHillModel = modelLoader->load("data/models/ant-hill.mdl");
 	nestModel = modelLoader->load("data/models/nest.mdl");
 	forcepsModel = modelLoader->load("data/models/forceps.mdl");
@@ -742,28 +746,8 @@ bool Application::loadModels()
 bool Application::loadScene()
 {
 	// Create scene layers
-	backgroundLayer = scene.addLayer();
 	defaultLayer = scene.addLayer();
 	uiLayer = scene.addLayer();
-	
-	// BG
-	bgBatch.resize(1);
-	BillboardBatch::Range* bgRange = bgBatch.addRange();
-	bgRange->start = 0;
-	bgRange->length = 1;
-	Billboard* bgBillboard = bgBatch.getBillboard(0);
-	bgBillboard->setDimensions(Vector2(1.0f, 1.0f));
-	bgBillboard->setTranslation(Vector3(0.5f, 0.5f, 0.0f));
-	bgBillboard->setTintColor(Vector4(1, 1, 1, 1));
-	bgBatch.update();
-	
-	vignettePass.setRenderTarget(&defaultRenderTarget);
-	//bgCompositor.addPass(&vignettePass);
-	bgCompositor.load(nullptr);
-	bgCamera.setOrthographic(0, 1.0f, 1.0f, 0, -1.0f, 1.0f);
-	bgCamera.lookAt(glm::vec3(0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
-	bgCamera.setCompositor(&bgCompositor);
-	bgCamera.setCompositeIndex(0);
 	
 	// Set shadow map resolution
 	shadowMapResolution = 4096;
@@ -773,9 +757,9 @@ bool Application::loadScene()
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFramebuffer);
 
 	// Generate shadow map depth texture
-	glGenTextures(1, &shadowMapDepthTexture);
-	glBindTexture(GL_TEXTURE_2D, shadowMapDepthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, shadowMapResolution, shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glGenTextures(1, &shadowMapDepthTextureID);
+	glBindTexture(GL_TEXTURE_2D, shadowMapDepthTextureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, shadowMapResolution, shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -784,7 +768,7 @@ bool Application::loadScene()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	
 	// Attach depth texture to framebuffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMapDepthTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMapDepthTextureID, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	
@@ -796,6 +780,11 @@ bool Application::loadScene()
 	shadowMapRenderTarget.width = shadowMapResolution;
 	shadowMapRenderTarget.height = shadowMapResolution;
 	shadowMapRenderTarget.framebuffer = shadowMapFramebuffer;
+	
+	// Setup texture class
+	shadowMapDepthTexture.setTextureID(shadowMapDepthTextureID);
+	shadowMapDepthTexture.setWidth(shadowMapResolution);
+	shadowMapDepthTexture.setHeight(shadowMapResolution);
 	
 	// Setup shadow map render pass
 	shadowMapPass.setRenderTarget(&shadowMapRenderTarget);
@@ -809,8 +798,8 @@ bool Application::loadScene()
 	// Post-processing framebuffers
 	{
 		// Generate color texture
-		glGenTextures(1, &framebufferAColorTexture);
-		glBindTexture(GL_TEXTURE_2D, framebufferAColorTexture);
+		glGenTextures(1, &framebufferAColorTextureID);
+		glBindTexture(GL_TEXTURE_2D, framebufferAColorTextureID);
 		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGB, static_cast<GLsizei>(resolution.x), static_cast<GLsizei>(resolution.y), 0,  GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
@@ -818,8 +807,8 @@ bool Application::loadScene()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		
 		// Generate depth texture
-		glGenTextures(1, &framebufferADepthTexture);
-		glBindTexture(GL_TEXTURE_2D, framebufferADepthTexture);
+		glGenTextures(1, &framebufferADepthTextureID);
+		glBindTexture(GL_TEXTURE_2D, framebufferADepthTextureID);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, static_cast<GLsizei>(resolution.x), static_cast<GLsizei>(resolution.y), 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
@@ -833,8 +822,8 @@ bool Application::loadScene()
 		glBindFramebuffer(GL_FRAMEBUFFER, framebufferA);
 
 		// Attach textures to framebuffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferAColorTexture, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, framebufferADepthTexture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferAColorTextureID, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, framebufferADepthTextureID, 0);
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		//glReadBuffer(GL_COLOR_ATTACHMENT0);
 		
@@ -846,12 +835,17 @@ bool Application::loadScene()
 		framebufferARenderTarget.width = static_cast<int>(resolution.x);
 		framebufferARenderTarget.height = static_cast<int>(resolution.y);
 		framebufferARenderTarget.framebuffer = framebufferA;
+		
+		// Setup texture class
+		framebufferAColorTexture.setTextureID(framebufferAColorTextureID);
+		framebufferAColorTexture.setWidth(static_cast<int>(resolution.x));
+		framebufferAColorTexture.setHeight(static_cast<int>(resolution.y));
 	}
 	
 	{
 		// Generate color texture
-		glGenTextures(1, &framebufferBColorTexture);
-		glBindTexture(GL_TEXTURE_2D, framebufferBColorTexture);
+		glGenTextures(1, &framebufferBColorTextureID);
+		glBindTexture(GL_TEXTURE_2D, framebufferBColorTextureID);
 		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGB, static_cast<GLsizei>(resolution.x), static_cast<GLsizei>(resolution.y), 0,  GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
@@ -859,11 +853,11 @@ bool Application::loadScene()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		
 		// Generate framebuffer
-		glGenFramebuffers(1, &framebufferA);
-		glBindFramebuffer(GL_FRAMEBUFFER, framebufferA);
+		glGenFramebuffers(1, &framebufferB);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebufferB);
 
 		// Attach textures to framebuffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferBColorTexture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferBColorTextureID, 0);
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		//glReadBuffer(GL_COLOR_ATTACHMENT0);
 		
@@ -874,7 +868,12 @@ bool Application::loadScene()
 		// Setup render target
 		framebufferBRenderTarget.width = static_cast<int>(resolution.x);
 		framebufferBRenderTarget.height = static_cast<int>(resolution.y);
-		framebufferBRenderTarget.framebuffer = framebufferA;
+		framebufferBRenderTarget.framebuffer = framebufferB;
+		
+		// Setup texture class
+		framebufferBColorTexture.setTextureID(framebufferBColorTextureID);
+		framebufferBColorTexture.setWidth(static_cast<int>(resolution.x));
+		framebufferBColorTexture.setHeight(static_cast<int>(resolution.y));
 	}
 	
 	// Pheromone PBO
@@ -887,12 +886,13 @@ bool Application::loadScene()
 		glGenTextures(1, &pheromoneTextureID);
 		glBindTexture(GL_TEXTURE_2D, pheromoneTextureID);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, PHEROMONE_MATRIX_COLUMNS, PHEROMONE_MATRIX_ROWS, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		
+		// Setup texture class
 		pheromoneTexture.setWidth(PHEROMONE_MATRIX_COLUMNS);
 		pheromoneTexture.setHeight(PHEROMONE_MATRIX_ROWS);
 		pheromoneTexture.setTextureID(pheromoneTextureID);
@@ -902,32 +902,36 @@ bool Application::loadScene()
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	
 	// Setup skybox pass
-	skyboxPass.setRenderTarget(&framebufferARenderTarget);
+	//skyboxPass.setRenderTarget(&framebufferARenderTarget);
+	skyboxPass.setRenderTarget(&defaultRenderTarget);
 	
 	// Setup clear depth pass
-	clearDepthPass.setRenderTarget(&framebufferARenderTarget);
+	//clearDepthPass.setRenderTarget(&framebufferARenderTarget);
+	clearDepthPass.setRenderTarget(&defaultRenderTarget);
 	clearDepthPass.setClear(false, true, false);
 	clearDepthPass.setClearDepth(1.0f);
 	
 	// Setup lighting pass
-	lightingPass.setRenderTarget(&framebufferARenderTarget);
-	lightingPass.setShadowMap(shadowMapDepthTexture);
+	//lightingPass.setRenderTarget(&framebufferARenderTarget);
+	lightingPass.setRenderTarget(&defaultRenderTarget);
+	lightingPass.setShadowMap(&shadowMapDepthTexture);
 	lightingPass.setShadowCamera(&sunlightCamera);
 	lightingPass.setShadowMapPass(&shadowMapPass);
 	
 	// Setup blur passes
 	horizontalBlurPass.setRenderTarget(&framebufferBRenderTarget);
-	horizontalBlurPass.setTexture(framebufferAColorTexture);
+	horizontalBlurPass.setTexture(&framebufferAColorTexture);
 	horizontalBlurPass.setDirection(Vector2(0.0f, 0.0f));
 	verticalBlurPass.setRenderTarget(&framebufferARenderTarget);
-	verticalBlurPass.setTexture(framebufferBColorTexture);
+	verticalBlurPass.setTexture(&framebufferBColorTexture);
 	verticalBlurPass.setDirection(Vector2(0.0f, 0.0f));
 	horizontalBlurPass2.setRenderTarget(&framebufferBRenderTarget);
-	horizontalBlurPass2.setTexture(framebufferAColorTexture);
+	horizontalBlurPass2.setTexture(&framebufferAColorTexture);
 	horizontalBlurPass2.setDirection(Vector2(0.0f, 0.0f));
 	verticalBlurPass2.setRenderTarget(&defaultRenderTarget);
-	verticalBlurPass2.setTexture(framebufferBColorTexture);
+	verticalBlurPass2.setTexture(&framebufferBColorTexture);
 	verticalBlurPass2.setDirection(Vector2(0.0f, 0.0f));
+	verticalBlurPass2.setGammaCorrect(true);
 
 	
 	// Setup debug pass
@@ -936,10 +940,10 @@ bool Application::loadScene()
 	defaultCompositor.addPass(&clearDepthPass);
 	defaultCompositor.addPass(&skyboxPass);
 	defaultCompositor.addPass(&lightingPass);
-	defaultCompositor.addPass(&horizontalBlurPass);
-	defaultCompositor.addPass(&verticalBlurPass);
-	defaultCompositor.addPass(&horizontalBlurPass2);
-	defaultCompositor.addPass(&verticalBlurPass2);
+	//defaultCompositor.addPass(&horizontalBlurPass);
+	//defaultCompositor.addPass(&verticalBlurPass);
+	//defaultCompositor.addPass(&horizontalBlurPass2);
+	//defaultCompositor.addPass(&verticalBlurPass2);
 	//defaultCompositor.addPass(&debugPass);
 	defaultCompositor.load(nullptr);
 	
@@ -994,39 +998,33 @@ bool Application::loadUI()
 	
 	// Load UI textures
 	textureLoader->setGamma(1.0f);
-	textureLoader->setCubemap(false);
 	textureLoader->setMipmapChain(false);
 	textureLoader->setMaxAnisotropy(1.0f);
 	textureLoader->setWrapS(false);
 	textureLoader->setWrapT(false);
 	
-	splashTexture = textureLoader->load("data/textures/ui-splash.png");
-	titleTexture = textureLoader->load("data/textures/ui-title.png");
-	rectangularPaletteTexture = textureLoader->load("data/textures/rectangular-palette.png");
-	foodIndicatorTexture = textureLoader->load("data/textures/food-indicator.png");
-	toolBrushTexture = textureLoader->load("data/textures/tool-brush.png");
-	toolLensTexture = textureLoader->load("data/textures/tool-lens.png");
-	toolForcepsTexture = textureLoader->load("data/textures/tool-forceps.png");
-	toolTrowelTexture = textureLoader->load("data/textures/tool-trowel.png");
+	splashTexture = textureLoader->load2D("data/textures/ui-splash.png");
+	titleTexture = textureLoader->load2D("data/textures/ui-title.png");
+	rectangularPaletteTexture = textureLoader->load2D("data/textures/rectangular-palette.png");
+	foodIndicatorTexture = textureLoader->load2D("data/textures/food-indicator.png");
+	toolBrushTexture = textureLoader->load2D("data/textures/tool-brush.png");
+	toolLensTexture = textureLoader->load2D("data/textures/tool-lens.png");
+	toolForcepsTexture = textureLoader->load2D("data/textures/tool-forceps.png");
+	toolTrowelTexture = textureLoader->load2D("data/textures/tool-trowel.png");
 	
-	toolbarTopTexture = textureLoader->load("data/textures/toolbar-top.png");
-	toolbarBottomTexture = textureLoader->load("data/textures/toolbar-bottom.png");
-	toolbarMiddleTexture = textureLoader->load("data/textures/toolbar-middle.png");
-	toolbarButtonRaisedTexture = textureLoader->load("data/textures/toolbar-button-raised.png");
-	toolbarButtonDepressedTexture = textureLoader->load("data/textures/toolbar-button-depressed.png");
+	toolbarTopTexture = textureLoader->load2D("data/textures/toolbar-top.png");
+	toolbarBottomTexture = textureLoader->load2D("data/textures/toolbar-bottom.png");
+	toolbarMiddleTexture = textureLoader->load2D("data/textures/toolbar-middle.png");
+	toolbarButtonRaisedTexture = textureLoader->load2D("data/textures/toolbar-button-raised.png");
+	toolbarButtonDepressedTexture = textureLoader->load2D("data/textures/toolbar-button-depressed.png");
 	
-	arcNorthTexture = textureLoader->load("data/textures/pie-menu-arc-north.png");
-	arcEastTexture = textureLoader->load("data/textures/pie-menu-arc-east.png");
-	arcSouthTexture = textureLoader->load("data/textures/pie-menu-arc-south.png");
-	arcWestTexture = textureLoader->load("data/textures/pie-menu-arc-west.png");
+	arcNorthTexture = textureLoader->load2D("data/textures/pie-menu-arc-north.png");
+	arcEastTexture = textureLoader->load2D("data/textures/pie-menu-arc-east.png");
+	arcSouthTexture = textureLoader->load2D("data/textures/pie-menu-arc-south.png");
+	arcWestTexture = textureLoader->load2D("data/textures/pie-menu-arc-west.png");
 	
-	mouseLeftTexture = textureLoader->load("data/textures/mouse-left.png");
-	mouseRightTexture = textureLoader->load("data/textures/mouse-right.png");
-	
-	depthTexture = new Texture();
-	depthTexture->setTextureID(shadowMapDepthTexture);
-	depthTexture->setWidth(shadowMapResolution);
-	depthTexture->setHeight(shadowMapResolution);
+	mouseLeftTexture = textureLoader->load2D("data/textures/mouse-left.png");
+	mouseRightTexture = textureLoader->load2D("data/textures/mouse-right.png");
 	
 	// Set colors
 	selectedColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -1114,9 +1112,9 @@ bool Application::loadUI()
 	//uiRootElement->addChild(foodIndicatorImage);
 	
 	depthTextureImage = new UIImage();
-	depthTextureImage->setTexture(depthTexture);
+	depthTextureImage->setTexture(&shadowMapDepthTexture);
 	depthTextureImage->setVisible(false);
-	uiRootElement->addChild(depthTextureImage);
+	//uiRootElement->addChild(depthTextureImage);
 	
 	// Create level name label
 	levelNameLabel = new UILabel();
@@ -2071,40 +2069,17 @@ void Application::loadLevel(std::size_t index)
 	const LevelParameterSet* levelParams = campaign.getLevelParams(currentWorldIndex, currentLevelIndex);
 	currentLevel->load(*levelParams);
 	
-	PhysicalMaterial* material = materialLoader->load("data/materials/debug-terrain-surface.mtl");
-	material->albedoOpacityMap = &pheromoneTexture;
-	material->shadowCaster = false;
-	material->flags |= (unsigned int)PhysicalMaterial::Flags::TRANSLUCENT;
+	Material* material = materialLoader->load("data/materials/debug-terrain-surface.mtl");
+	ShaderTexture2D* albedoOpacityMap = static_cast<ShaderTexture2D*>(material->getVariable("albedoOpacityMap"));
+	if (albedoOpacityMap != nullptr)
+	{
+		albedoOpacityMap->setValue(&pheromoneTexture);
+	}
+	//material->shadowCaster = false;
+	//material->flags |= (unsigned int)PhysicalMaterial::Flags::TRANSLUCENT;
 	
 	currentLevel->terrain.getSurfaceModel()->getGroup(0)->material = material;
 }
-
-/*
-void Application::loadLevel()
-{
-	if (currentLevel < 1 || currentLevel >= campaign.levels[currentWorld].size())
-	{
-		std::cout << "Attempted to load invalid level" << std::endl;
-		return;
-	}
-	
-	const LevelParameterSet* levelParams = campaign.getLevelParams(currentWorld, currentLevel);
-	const Biome* biome = &biosphere.biomes[levelParams->biome];
-	
-	soilPass.setHorizonOTexture(biome->soilHorizonO);
-	soilPass.setHorizonATexture(biome->soilHorizonA);
-	soilPass.setHorizonBTexture(biome->soilHorizonB);
-	soilPass.setHorizonCTexture(biome->soilHorizonC);
-	
-	std::string heightmap = std::string("data/textures/") + level->heightmap;
-	currentLevelTerrain->load(heightmap);
-	
-	// Set skybox
-	skyboxPass.setCubemap(biome->specularCubemap);
-	
-	//changeState(playState);
-}
-*/
 
 void Application::pauseSimulation()
 {

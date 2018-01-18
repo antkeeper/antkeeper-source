@@ -26,6 +26,17 @@ void menuPrint(Application* application, const std::string& string)
 	std::cout << string << std::endl;
 }
 
+UIMaterial::UIMaterial()
+{
+	texture = addVariable<const Texture2D*>("texture");
+	textureOffset = addVariable<Vector2>("offset");
+	textureScale = addVariable<Vector2>("scale");
+	
+	texture->setValue(nullptr);
+	textureOffset->setValue(Vector2(0.0f));
+	textureScale->setValue(Vector2(1.0f));
+}
+
 UIElement::UIElement():
 	parent(nullptr),
 	anchor(Anchor::TOP_LEFT),
@@ -218,7 +229,7 @@ UILabel::~UILabel()
 void UILabel::setFont(Font* font)
 {
 	this->font = font;
-	material.texture = font->getTexture();
+	material.texture->setValue(font->getTexture());
 	calculateDimensions();
 }
 
@@ -267,7 +278,7 @@ void UIBatcher::batch(BillboardBatch* result, const UIElement* ui)
 			return false;
 		}
 		
-		return (a->getMaterial()->texture < b->getMaterial()->texture);
+		return (a->getMaterial()->texture->getValue() < b->getMaterial()->texture->getValue());
 	});
 	
 	// Clear previous ranges
@@ -315,7 +326,7 @@ BillboardBatch::Range* UIBatcher::getRange(BillboardBatch* result, const UIEleme
 		
 		const UIMaterial* material = static_cast<UIMaterial*>(range->material);
 		
-		if (material->texture != element->getMaterial()->texture)
+		if (material->texture->getValue() != element->getMaterial()->texture->getValue())
 		{
 			// Create new range for the element
 			range = result->addRange();

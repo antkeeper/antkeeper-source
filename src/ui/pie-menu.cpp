@@ -70,7 +70,7 @@ void PieMenu::setScale(float scale)
 	}
 }
 
-void PieMenu::addOption(Texture* backgroundTexture, Texture* iconTexture, std::function<void()> selectedCallback, std::function<void()> deselectedCallback)
+void PieMenu::addOption(Texture2D* backgroundTexture, Texture2D* iconTexture, std::function<void()> selectedCallback, std::function<void()> deselectedCallback)
 {
 	// Allocate new option
 	UIImage* option = new UIImage();

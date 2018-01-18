@@ -28,9 +28,9 @@ LineBatcher::LineBatcher(std::size_t lineCount):
 {
 	batch.resize(lineCount);
 	range = batch.addRange();
-	range->material = &material;
+	range->material = nullptr;//&material;
 	
-	material.albedo = Vector3(1.0f);
+	//material.albedo = Vector3(1.0f);
 }
 
 void LineBatcher::begin()

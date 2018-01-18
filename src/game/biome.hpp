@@ -23,12 +23,12 @@ public:
 	std::string soilHorizonCFilename;
 	std::string cubemapName;
 	
-	Texture* soilHorizonO;
-	Texture* soilHorizonA;
-	Texture* soilHorizonB;
-	Texture* soilHorizonC;
-	Texture* diffuseCubemap;
-	Texture* specularCubemap;
+	Texture2D* soilHorizonO;
+	Texture2D* soilHorizonA;
+	Texture2D* soilHorizonB;
+	Texture2D* soilHorizonC;
+	TextureCube* diffuseCubemap;
+	TextureCube* specularCubemap;
 };
 
 class Biosphere

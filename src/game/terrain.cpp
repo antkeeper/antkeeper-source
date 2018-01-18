@@ -108,7 +108,7 @@ void Terrain::createSurface()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(std::uint32_t) * surfaceIndexCount, surfaceIndexData, GL_STATIC_DRAW);
 	
 	// Setup material
-	surfaceMaterial.flags = static_cast<unsigned int>(PhysicalMaterial::Flags::OBJECT);
+	//surfaceMaterial.flags = static_cast<unsigned int>(PhysicalMaterial::Flags::OBJECT);
 	
 	// Setup buffers
 	surfaceModel.setVAO(surfaceVAO);
@@ -118,7 +118,7 @@ void Terrain::createSurface()
 	// Create model group
 	Model::Group* group = new Model::Group();
 	group->name = "default";
-	group->material = &surfaceMaterial;
+	group->material = nullptr;//&surfaceMaterial;
 	group->indexOffset = 0;
 	group->triangleCount = surfaceTriangleCount;
 	
@@ -366,7 +366,7 @@ void Terrain::createSubsurface()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(std::uint32_t) * subsurfaceIndexCount, subsurfaceIndexData, GL_STATIC_DRAW);
 	
 	// Setup material
-	subsurfaceMaterial.flags = static_cast<unsigned int>(PhysicalMaterial::Flags::SOIL);
+	//subsurfaceMaterial.flags = static_cast<unsigned int>(PhysicalMaterial::Flags::SOIL);
 	
 	// Setup buffers
 	subsurfaceModel.setVAO(subsurfaceVAO);
@@ -376,7 +376,7 @@ void Terrain::createSubsurface()
 	// Create model group
 	Model::Group* group = new Model::Group();
 	group->name = "default";
-	group->material = &subsurfaceMaterial;
+	group->material = nullptr;//&subsurfaceMaterial;
 	group->indexOffset = 0;
 	group->triangleCount = subsurfaceTriangleCount;
 	

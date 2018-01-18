@@ -33,9 +33,6 @@ TitleState::~TitleState()
 
 void TitleState::enter()
 {
-	application->backgroundLayer->addObject(&application->bgCamera);
-	application->backgroundLayer->addObject(&application->bgBatch);
-	
 	application->inputManager->addWindowObserver(this);
 	windowResized(application->resolution.x, application->resolution.y);
 	
@@ -163,16 +160,6 @@ void TitleState::execute()
 	{
 		application->close(EXIT_SUCCESS);
 	}
-	
-	
-	// Set selector icon position
-	/*
-	float lineHeight = application->menuFont->getMetrics().getHeight();
-	const UIContainer* container = application->menuContainers[application->currentMenuIndex];
-	application->menuSelectorLabel->setTranslation(
-		Vector2(container->getPosition().x - application->menuSelectorLabel->getDimensions().x * 1.5f,
-			container->getPosition().y + lineHeight * 0.5f - application->menuSelectorLabel->getDimensions().y * 0.5f + lineHeight * application->selectedMenuItemIndex));
-	*/
 }
 
 void TitleState::exit()
@@ -185,10 +172,6 @@ void TitleState::exit()
 	application->copyrightLabel->setVisible(false);
 	application->anyKeyLabel->setVisible(false);
 	application->darkenImage->setVisible(false);
-	
-	// Remove clear scene
-	application->backgroundLayer->removeObject(&application->bgCamera);
-	application->backgroundLayer->removeObject(&application->bgBatch);
 }
 
 void TitleState::windowClosed()

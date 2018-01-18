@@ -21,7 +21,6 @@
 #define DEBUG_HPP
 
 #include <emergent/emergent.hpp>
-#include "materials.hpp"
 
 using namespace Emergent;
 
@@ -49,7 +48,7 @@ private:
 	BillboardBatch::Range* range;
 	float width;
 	Vector4 color;
-	PhysicalMaterial material;
+	//PhysicalMaterial material;
 };
 
 inline const BillboardBatch* LineBatcher::getBatch() const

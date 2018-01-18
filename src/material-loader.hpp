@@ -20,8 +20,11 @@
 #ifndef MATERIAL_LOADER_HPP
 #define MATERIAL_LOADER_HPP
 
+#include <emergent/emergent.hpp>
+using namespace Emergent;
+
+#include <map>
 #include <string>
-#include "materials.hpp"
 
 class MaterialLoader
 {
@@ -30,12 +33,29 @@ public:
 	~MaterialLoader();
 	
 	void unload();
-	PhysicalMaterial* load(const std::string& filename);
+	
+	Material* load(const std::string& filename);
 	
 private:
-	Texture* loadTexture(const std::string& filename);
-	std::map<std::string, Texture*> textureCache;
-	std::map<std::string, PhysicalMaterial*> materialCache;
+	Shader* loadShader(const std::string& filename);
+	Texture2D* loadTexture2D(const std::string& filename);
+	TextureCube* loadTextureCube(const std::string& filename);
+	
+	bool loadShaderInt(ShaderInt* variable, const std::vector<std::vector<std::string>>& elements);
+	bool loadShaderFloat(ShaderFloat* variable, const std::vector<std::vector<std::string>>& elements);
+	bool loadShaderVector2(ShaderVector2* variable, const std::vector<std::vector<std::string>>& elements);
+	bool loadShaderVector3(ShaderVector3* variable, const std::vector<std::vector<std::string>>& elements);
+	bool loadShaderVector4(ShaderVector4* variable, const std::vector<std::vector<std::string>>& elements);
+	bool loadShaderMatrix3(ShaderMatrix3* variable, const std::vector<std::vector<std::string>>& elements);
+	bool loadShaderMatrix4(ShaderMatrix4* variable, const std::vector<std::vector<std::string>>& elements);
+	bool loadShaderTexture2D(ShaderTexture2D* variable, const std::vector<std::vector<std::string>>& elements);
+	bool loadShaderTextureCube(ShaderTextureCube* variable, const std::vector<std::vector<std::string>>& elements);
+	
+	std::map<std::string, Shader*> shaderCache;
+	std::map<std::string, Texture2D*> texture2DCache;
+	std::map<std::string, TextureCube*> textureCubeCache;
+	std::map<std::string, Material*> materialCache;
+	
 	TextureLoader textureLoader;
 };
 
