@@ -46,7 +46,7 @@ const float WORLD_WIDTH  = 100.0f; // cm
 const float WORLD_HEIGHT = 100.0f; // cm
 const float FRAMES_PER_SECOND = 60.0f;
 const float TIMESTEP = 1.0f / FRAMES_PER_SECOND;
-const float PHEROMONE_MATRIX_RESOLUTION = 5.12f;
+const float PHEROMONE_MATRIX_RESOLUTION = 5.12f; // pheromone cells per cm
 const int PHEROMONE_MATRIX_COLUMNS = (int)(WORLD_WIDTH * PHEROMONE_MATRIX_RESOLUTION);
 const int PHEROMONE_MATRIX_ROWS = (int)(WORLD_HEIGHT * PHEROMONE_MATRIX_RESOLUTION);
 const Vector2 WORLD_BOUNDS_MIN = Vector2(-WORLD_WIDTH * 0.5f, -WORLD_HEIGHT * 0.5f);
@@ -58,5 +58,8 @@ const int DIFFUSION_FRAME = static_cast<int>(FRAMES_PER_SECOND / DIFFUSIONS_PER_
 const float HOMING_PHEROMONE_COLOR[]      = {0.55f, 0.55f, 0.00f, 0.0f}; // CMYK
 const float RECRUITMENT_PHEROMONE_COLOR[] = {0.00f, 0.55f, 0.55f, 0.0f}; // CMYK
 const float ALARM_PHEROMONE_COLOR[]       = {0.00f, 0.00f, 1.00f, 0.0f}; // CMYK
+
+const std::uint64_t MATERIAL_FLAG_TRANSLUCENT            = 0x0000000001;
+const std::uint64_t MATERIAL_FLAG_DISABLE_SHADOW_CASTING = 0x0000000002;
 
 #endif // CONFIGURATION_HPP

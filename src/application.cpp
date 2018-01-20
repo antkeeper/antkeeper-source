@@ -2075,6 +2075,8 @@ void Application::loadLevel(std::size_t index)
 	{
 		albedoOpacityMap->setValue(&pheromoneTexture);
 	}
+	
+	material->setFlags(MATERIAL_FLAG_TRANSLUCENT | MATERIAL_FLAG_DISABLE_SHADOW_CASTING);
 	//material->shadowCaster = false;
 	//material->flags |= (unsigned int)PhysicalMaterial::Flags::TRANSLUCENT;
 	

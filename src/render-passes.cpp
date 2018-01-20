@@ -18,6 +18,7 @@
  */
 
 #include "render-passes.hpp"
+#include "configuration.hpp"
 #include "ui/ui.hpp"
 #include <iostream>
 #include <limits>
@@ -386,26 +387,13 @@ void ShadowMapRenderPass::render(RenderContext* renderContext)
 		// Render operations
 		for (const RenderOperation& operation: *operations)
 		{
-			// Skip render operations with unsupported materials
-			/*
-			if (operation.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
+			// Skip operations with no materials and materials with no shadows
+			if (operation.material == nullptr || (operation.material->getFlags() & MATERIAL_FLAG_DISABLE_SHADOW_CASTING))
 			{
 				continue;
 			}
-			*/
-			
-			// Skip non shadow casters
-			/*
-			const PhysicalMaterial* material = static_cast<const PhysicalMaterial*>(operation.material);
-			if (!material->shadowCaster)
-			{
-				continue;
-			}
-			*/
-			
 			
 			// TODO: Perform culling for subfrustums
-			
 			
 			// Select permutation
 			std::uint32_t targetPermutation = (operation.pose != nullptr) ? skinnedPermutation : unskinnedPermutation;
@@ -585,8 +573,7 @@ void LightingRenderPass::render(RenderContext* renderContext)
 
 	// Enable alpha blending
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_BLEND);
-	
+	glDisable(GL_BLEND);	
 	
 	
 	Vector4 splitDistances;
@@ -658,19 +645,23 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	GLuint boundVAO = 0;
 	
 	// Sort operations
-	//operations->sort(RenderOpCompare());
-	
+	operations->sort(RenderOpCompare());
+		
 	// Render operations
 	for (const RenderOperation& operation: *operations)
 	{
-		/*
-		bool hasTranslucency = material->flags & (unsigned int)PhysicalMaterial::Flags::TRANSLUCENT;
+		// Skip operations without materials
+		if (!operation.material)
+		{
+			continue;
+		}
+		
+		bool hasTranslucency = operation.material->getFlags() & MATERIAL_FLAG_TRANSLUCENT;
 		if (hasTranslucency && !blending)
 		{
 			glEnable(GL_BLEND);
 			blending = true;
 		}
-		*/
 		
 		// Select permutation
 		std::uint32_t targetPermutation = (operation.pose != nullptr) ? skinnedPermutation : unskinnedPermutation;
@@ -738,10 +729,6 @@ void LightingRenderPass::render(RenderContext* renderContext)
 			}
 			operation.material->upload();
 		}
-		else
-		{
-			//std::cerr << "NULL MATERIAL!!!" << std::endl;
-		}
 		
 		if (boundVAO != operation.vao)
 		{
@@ -758,31 +745,21 @@ void LightingRenderPass::render(RenderContext* renderContext)
 
 bool LightingRenderPass::RenderOpCompare::operator()(const RenderOperation& opA, const RenderOperation& opB) const
 {
-	/*
-	// Skip render operations with unsupported materials
-	if (opA.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
-	{
+	if (!opA.material)
 		return false;
-	}
-	else if (opB.material->getMaterialFormatID() != static_cast<unsigned int>(MaterialFormat::PHYSICAL))
-	{
+	else if (!opB.material);
 		return true;
-	}
-	
-	// Cast materials
-	const PhysicalMaterial* materialA = static_cast<const PhysicalMaterial*>(opA.material);
-	const PhysicalMaterial* materialB = static_cast<const PhysicalMaterial*>(opB.material);
 	
 	// Determine transparency
-	bool transparentA = materialA->flags & (unsigned int)PhysicalMaterial::Flags::TRANSLUCENT;
-	bool transparentB = materialB->flags & (unsigned int)PhysicalMaterial::Flags::TRANSLUCENT;
+	bool transparentA = opA.material->getFlags() & MATERIAL_FLAG_TRANSLUCENT;
+	bool transparentB = opB.material->getFlags() & MATERIAL_FLAG_TRANSLUCENT;
 	
 	if (transparentA)
 	{
 		if (transparentB)
 		{
 			// A and B are both transparent, render back to front
-			return (opA.depth <= opB.depth);
+			return (opA.depth >= opB.depth);
 		}
 		else
 		{
@@ -799,15 +776,25 @@ bool LightingRenderPass::RenderOpCompare::operator()(const RenderOperation& opA,
 		}
 		else
 		{
-			// A and B are both opaque, sort by material
-			return (opA.material < opB.material);
-			
-			// A and B are both opaque, render front to back
-			//return (opA.depth > opB.depth);
+			// A and B are both opaque
+			if (opA.material->getShader() == opB.material->getShader())
+			{
+				// A and B have the same shader
+				if (opA.vao == opB.vao)
+				{
+					// A and B have the same VAO, sort by depth
+					return (opA.depth < opB.depth);
+				}
+				else
+				{
+					// Sort by VAO
+					return (opA.vao < opB.vao);
+				}
+			}
 		}
 	}
-	*/
 	
+	// A and B are both opaque and have different shaders, sort by shader
 	return (opA.material->getShader() < opB.material->getShader());
 }
 
