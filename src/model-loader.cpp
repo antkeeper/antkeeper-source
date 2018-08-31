@@ -70,7 +70,7 @@ Model* ModelLoader::load(const std::string& filename)
 	std::ifstream file(filename.c_str(), std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
 	if (!file.is_open())
 	{
-		std::cerr << "ModelLoader::load(): Failed to open model file \"" << filename << "\"" << std::endl;
+		std::cerr << std::string("ModelLoader::load(): Failed to open model file \"") << filename << std::string("\"") << std::endl;
 		return nullptr;
 	}
 	
@@ -383,13 +383,13 @@ Model* ModelLoader::load(const std::string& filename)
 			modelGroup->material = materialLoader->load(materialFilename);
 			if (!modelGroup->material)
 			{
-				std::cerr << "ModelLoader::load(): Failed to load material file \"" << materialFilename << "\" for model file \"" << filename << "\"" << std::endl;
+				std::cerr << std::string("ModelLoader::load(): Failed to load material file \"") << materialFilename << std::string("\" for model file \"") << filename << std::string("\"") << std::endl;
 			}
 		}
 		else
 		{
 			modelGroup->material = nullptr;
-			std::cerr << "ModelLoader::load(): No valid material loader, material file \"" << materialFilename << "\" not loaded" << std::endl;
+			std::cerr << std::string("ModelLoader::load(): No valid material loader, material file \"") << materialFilename << std::string("\" not loaded") << std::endl;
 		}
 		
 		// Setup model group geometry

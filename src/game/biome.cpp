@@ -46,7 +46,7 @@ bool Biome::load()
 	diffuseCubemap = textureLoader.loadCube(diffuseCubemapFilename);
 	if (!diffuseCubemap)
 	{
-		std::cerr << "Failed to load diffuse cubemap \"" << diffuseCubemapFilename << "\"" << std::endl;
+		std::cerr << std::string("Failed to load diffuse cubemap \"") << diffuseCubemapFilename << std::string("\"") << std::endl;
 	}
 	
 	// Load specular cubemap
@@ -54,7 +54,7 @@ bool Biome::load()
 	specularCubemap = textureLoader.loadCube(specularCubemapFilename);
 	if (!specularCubemap)
 	{
-		std::cerr << "Failed to load specular cubemap \"" << specularCubemapFilename << "\"" << std::endl;
+		std::cerr << std::string("Failed to load specular cubemap \"") << specularCubemapFilename << std::string("\"") << std::endl;
 	}
 	
 	return true;
@@ -66,7 +66,7 @@ bool Biosphere::load(const std::string& directory)
 	DIR* dir = opendir(directory.c_str());
 	if (dir == nullptr)
 	{
-		std::cout << "Failed to open biome directory \"" << directory << "\"" << std::endl;
+		std::cout << std::string("Failed to open biome directory \"") << directory << std::string("\"") << std::endl;
 		return false;
 	}
 	
@@ -107,11 +107,11 @@ bool Biosphere::load(const std::string& directory)
 		
 		if (!biome->load())
 		{
-			std::cout << "Failed to load biome \"" << biome->filename << "\"" << std::endl;
+			std::cout << std::string("Failed to load biome \"") << biome->filename << std::string("\"") << std::endl;
 		}
 		else
 		{
-			std::cout << "Loaded biome \"" << biome->filename << "\"" << std::endl;
+			std::cout << std::string("Loaded biome \"") << biome->filename << std::string("\"") << std::endl;
 		}
 	}
 	

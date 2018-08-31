@@ -439,7 +439,7 @@ bool ControlProfile::save(const std::string& filename)
 	std::ofstream file(filename.c_str());
 	if (!file.is_open())
 	{
-		std::cerr << "Failed to open control profile \"" << filename << "\"" << std::endl;
+		std::cerr << std::string("Failed to open control profile \"") << filename << std::string("\"") << std::endl;
 		return false;
 	}
 	
@@ -455,30 +455,30 @@ bool ControlProfile::save(const std::string& filename)
 		for (auto boundKey: *boundKeys)
 		{
 			int key = boundKey.second;
-			file << "control\t" << it->first << "\tkeyboard\tkey\t" << key << '\n';
+			file << std::string("control\t") << it->first << std::string("\tkeyboard\tkey\t") << key << '\n';
 		}
 		
 		for (auto boundMouseButton: *boundMouseButtons)
 		{
 			int button = boundMouseButton.second;
-			file << "control\t" << it->first << "\tmouse\tbutton\t" << button << '\n';
+			file << std::string("control\t") << it->first << std::string("\tmouse\tbutton\t") << button << '\n';
 		}
 		
 		for (auto boundMouseWheelAxis: *boundMouseWheelAxes)
 		{
 			MouseWheelAxis axis = boundMouseWheelAxis.second;
 			
-			file << "control\t" << it->first << "\tmouse\twheel\t";
+			file << std::string("control\t") << it->first << std::string("\tmouse\twheel\t");
 			if (axis == MouseWheelAxis::POSITIVE_X)
-				file << "+x";
+				file << std::string("+x");
 			else if (axis == MouseWheelAxis::NEGATIVE_X)
-				file << "-x";
+				file << std::string("-x");
 			else if (axis == MouseWheelAxis::POSITIVE_Y)
-				file << "+y";
+				file << std::string("+y");
 			else if (axis == MouseWheelAxis::NEGATIVE_Y)
-				file << "-y";
+				file << std::string("-y");
 			else
-				file << "unknown";
+				file << std::string("unknown");
 			file << '\n';
 		}
 		
@@ -486,7 +486,7 @@ bool ControlProfile::save(const std::string& filename)
 		{
 			const std::string& gamepadName = boundGamepadButton.first->getName();
 			int button = boundGamepadButton.second;
-			file << "control\t" << it->first << "\tgamepad\t" << gamepadName << "\tbutton\t" << button << '\n';
+			file << std::string("control\t") << it->first << std::string("\tgamepad\t") << gamepadName << std::string("\tbutton\t") << button << '\n';
 		}
 		
 		for (auto boundGamepadAxis: *boundGamepadAxes)
@@ -497,12 +497,12 @@ bool ControlProfile::save(const std::string& filename)
 			
 			std::stringstream axisstream;
 			if (negative)
-				axisstream << "-";
+				axisstream << std::string("-");
 			else
-				axisstream << "+";
+				axisstream << std::string("+");
 			axisstream << axis;
 			
-			file << "control\t" << it->first << "\tgamepad\t" << gamepadName << "\taxis\t" << axisstream.str() << '\n';
+			file << std::string("control\t") << it->first << std::string("\tgamepad\t") << gamepadName << std::string("\taxis\t") << axisstream.str() << '\n';
 		}
 	}
 	
@@ -517,7 +517,7 @@ bool ControlProfile::load(const std::string& filename)
 	std::ifstream file(filename.c_str());
 	if (!file.is_open())
 	{
-		std::cerr << "Failed to open control profile \"" << filename << "\"" << std::endl;
+		std::cerr << std::string("Failed to open control profile \"") << filename << std::string("\"") << std::endl;
 		return false;
 	}
 	
@@ -541,7 +541,7 @@ bool ControlProfile::load(const std::string& filename)
 			auto it = controls.find(tokens[1]);
 			if (it == controls.end())
 			{
-				std::cerr << "Attempted to load unregistered control \"" << tokens[1] << "\" from control profile \"" << filename << "\"" << std::endl;
+				std::cerr << std::string("Attempted to load unregistered control \"") << tokens[1] << std::string("\" from control profile \"") << filename << std::string("\"") << std::endl;
 				continue;
 			}
 			Control* control = it->second;
@@ -561,7 +561,7 @@ bool ControlProfile::load(const std::string& filename)
 				}
 				else
 				{
-					std::cerr << "Invalid line \"" << line << "\" in control profile \"" << filename << "\"" << std::endl;
+					std::cerr << std::string("Invalid line \"") << line << std::string("\" in control profile \"") << filename << std::string("\"") << std::endl;
 				}
 			}
 			else if (tokens[2] == "mouse")
@@ -589,7 +589,7 @@ bool ControlProfile::load(const std::string& filename)
 						axis = MouseWheelAxis::NEGATIVE_Y;
 					else
 					{
-						std::cerr << "Invalid line \"" << line << "\" in control profile \"" << filename << "\"" << std::endl;
+						std::cerr << std::string("Invalid line \"") << line << std::string("\" in control profile \"") << filename << std::string("\"") << std::endl;
 						continue;
 					}
 					
@@ -597,7 +597,7 @@ bool ControlProfile::load(const std::string& filename)
 				}
 				else
 				{
-					std::cerr << "Invalid line \"" << line << "\" in control profile \"" << filename << "\"" << std::endl;
+					std::cerr << std::string("Invalid line \"") << line << std::string("\" in control profile \"") << filename << std::string("\"") << std::endl;
 					continue;
 				}
 			}
@@ -605,7 +605,7 @@ bool ControlProfile::load(const std::string& filename)
 			{
 				if (tokens.size() != 6)
 				{
-					std::cerr << "Invalid line \"" << line << "\" in control profile \"" << filename << "\"" << std::endl;
+					std::cerr << std::string("Invalid line \"") << line << std::string("\" in control profile \"") << filename << std::string("\"") << std::endl;
 					continue;
 				}
 				
@@ -637,13 +637,13 @@ bool ControlProfile::load(const std::string& filename)
 				}
 				else
 				{
-					std::cerr << "Invalid line \"" << line << "\" in control profile \"" << filename << "\"" << std::endl;
+					std::cerr << std::string("Invalid line \"") << line << std::string("\" in control profile \"") << filename << std::string("\"") << std::endl;
 					continue;
 				}
 			}
 			else
 			{
-				std::cerr << "Unsupported input device \"" << tokens[3] << "\" in control profile \"" << filename << "\"" << std::endl;
+				std::cerr << std::string("Unsupported input device \"") << tokens[3] << std::string("\" in control profile \"") << filename << std::string("\"") << std::endl;
 				continue;
 			}
 		}

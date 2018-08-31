@@ -528,7 +528,7 @@ void SDLInputManager::update()
 				auto it = gamepadMap.find(instanceID);
 				if (it == gamepadMap.end())
 				{
-					std::cerr << "Received event from invalid gamepad" << std::endl;
+					std::cerr << std::string("Received event from invalid gamepad") << std::endl;
 					break;
 				}
 				
@@ -544,7 +544,7 @@ void SDLInputManager::update()
 				auto it = gamepadMap.find(instanceID);
 				if (it == gamepadMap.end())
 				{
-					std::cerr << "Received event from invalid gamepad" << std::endl;
+					std::cerr << std::string("Received event from invalid gamepad") << std::endl;
 					break;
 				}
 				
@@ -560,7 +560,7 @@ void SDLInputManager::update()
 				auto it = gamepadMap.find(instanceID);
 				if (it == gamepadMap.end())
 				{
-					std::cerr << "Received event from invalid gamepad" << std::endl;
+					std::cerr << std::string("Received event from invalid gamepad") << std::endl;
 					break;
 				}
 				
@@ -612,7 +612,7 @@ void SDLInputManager::update()
 							gamepad->setDisconnected(false);
 							reconnected = true;
 							
-							std::cout << "Reconnected gamepad \"" << name << "\" with ID " << instanceID << std::endl;
+							std::cout << std::string("Reconnected gamepad \"") << name << std::string("\" with ID ") << instanceID << std::endl;
 							break;
 						}
 					}
@@ -634,7 +634,7 @@ void SDLInputManager::update()
 						// Connect gamepad
 						gamepad->setDisconnected(false);
 						
-						std::cout << "Connected gamepad \"" << name << "\" with ID " << instanceID << std::endl;
+						std::cout << std::string("Connected gamepad \"") << name << std::string("\" with ID ") << instanceID << std::endl;
 					}
 				}
 				break;
@@ -648,7 +648,7 @@ void SDLInputManager::update()
 				auto mapIt = gamepadMap.find(instanceID);
 				if (mapIt == gamepadMap.end())
 				{
-					std::cerr << "Attempted to remove nonexistent gamepad with ID " << instanceID << std::endl;
+					std::cerr << std::string("Attempted to remove nonexistent gamepad with ID ") << instanceID << std::endl;
 					break;
 				}
 				Gamepad* gamepad = mapIt->second;
@@ -659,7 +659,7 @@ void SDLInputManager::update()
 				// Set disconnected flag
 				gamepad->setDisconnected(true);
 				
-				std::cout << "Disconnected gamepad \"" << gamepad->getName() << "\" with ID " << instanceID << std::endl;
+				std::cout << std::string("Disconnected gamepad \"") << gamepad->getName() << std::string("\" with ID ") << instanceID << std::endl;
 				break;
 			}
 			
@@ -752,7 +752,7 @@ void SDLInputManager::listen(InputEvent* inputEvent)
 		auto it = gamepadMap.find(instanceID);
 		if (it == gamepadMap.end())
 		{
-			std::cerr << "Received event from invalid gamepad" << std::endl;
+			std::cerr << std::string("Received event from invalid gamepad") << std::endl;
 			return;
 		}
 		
@@ -772,7 +772,7 @@ void SDLInputManager::listen(InputEvent* inputEvent)
 		auto it = gamepadMap.find(instanceID);
 		if (it == gamepadMap.end())
 		{
-			std::cerr << "Received event from invalid gamepad" << std::endl;
+			std::cerr << std::string("Received event from invalid gamepad") << std::endl;
 			return;
 		}
 		

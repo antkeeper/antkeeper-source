@@ -29,14 +29,22 @@ bool ParameterDict::load(const std::string& filename)
 	std::ifstream file(filename.c_str());
 	if (!file.is_open())
 	{
-		std::cerr << "Failed to open file \"" << filename << "\"" << std::endl;
+		std::cerr << std::string("Failed to open file \"") << filename << std::string("\"") << std::endl;
 		return false;
 	}
 	
 	// Read file
 	std::string line;
+	std::size_t lineNumber = 0;
 	while (file.good() && std::getline(file, line))
 	{
+		++lineNumber;
+		
+		if (!line.empty() && line[line.size() - 1] == '\r')
+		{
+			line = line.substr(0, line.size() - 1);
+		}
+		
 		// Tokenize line (tab-delimeted)
 		std::vector<std::string> tokens;
 		std::string token;
@@ -49,7 +57,7 @@ bool ParameterDict::load(const std::string& filename)
 		
 		if (tokens.size() != 2)
 		{
-			std::cerr << "Invalid line \"" << line << "\" in file \"" << filename << "\"" << std::endl;
+			std::cerr << std::string("Invalid line \"") << lineNumber << std::string("\" in file \"") << filename << std::string("\"") << std::endl;
 			continue;
 		}
 		
@@ -66,12 +74,12 @@ bool ParameterDict::save(const std::string& filename)
 	std::ofstream file(filename.c_str());
 	if (!file.is_open())
 	{
-		std::cerr << "Failed to open file \"" << filename << "\"" << std::endl;
+		std::cerr << std::string("Failed to open file \"") << filename << std::string("\"") << std::endl;
 		return false;
 	}
 	
 	for (auto it = parameters.begin(); it != parameters.end(); ++it)
-		file << it->first << "\t" << it->second << std::endl;
+		file << it->first << std::string("\t") << it->second << std::endl;
 	
 	file.close();
 	

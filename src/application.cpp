@@ -56,16 +56,16 @@ Application::Application(int argc, char* argv[]):
 	context = nullptr;
 	
 	// Initialize SDL
-	std::cout << "Initializing SDL... ";
+	std::cout << std::string("Initializing SDL... ");
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) < 0)
 	{
-		std::cout << "failed: \"" << SDL_GetError() << "\"" << std::endl;
+		std::cout << std::string("failed: \"") << SDL_GetError() << std::string("\"") << std::endl;
 		close(EXIT_FAILURE);
 		return;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 
 	// Print SDL version strings
@@ -73,43 +73,43 @@ Application::Application(int argc, char* argv[]):
 	SDL_version linked;
 	SDL_VERSION(&compiled);
 	SDL_GetVersion(&linked);
-	std::cout << "Compiled with SDL " << (int)compiled.major << "." << (int)compiled.minor << "." << (int)compiled.patch << std::endl;
-	std::cout << "Linking to SDL " << (int)linked.major << "." << (int)linked.minor << "." << (int)linked.patch << std::endl;
+	std::cout << std::string("Compiled with SDL ") << (int)compiled.major << std::string(".") << (int)compiled.minor << std::string(".") << (int)compiled.patch << std::endl;
+	std::cout << std::string("Linking to SDL ") << (int)linked.major << std::string(".") << (int)linked.minor << std::string(".") << (int)linked.patch << std::endl;
 	
 	// Find app and user data paths
-	appDataPath = std::string(SDL_GetBasePath()) + "data/";
+	appDataPath = std::string(SDL_GetBasePath()) + std::string("data/");
 	userDataPath = SDL_GetPrefPath("cjhoward", "antkeeper");
-	std::cout << "Application data path: \"" << appDataPath << "\"" << std::endl;
-	std::cout << "User data path: \"" << userDataPath << "\"" << std::endl;
+	std::cout << std::string("Application data path: \"") << appDataPath << std::string("\"") << std::endl;
+	std::cout << std::string("User data path: \"") << userDataPath << std::string("\"") << std::endl;
 	
 	// Form pathes to settings files
-	defaultSettingsFilename = appDataPath + "default-settings.txt";
-	userSettingsFilename = userDataPath + "settings.txt";
+	defaultSettingsFilename = appDataPath + std::string("default-settings.txt");
+	userSettingsFilename = userDataPath + std::string("settings.txt");
 
 	// Load default settings
-	std::cout << "Loading default settings from \"" << defaultSettingsFilename << "\"... ";
+	std::cout << std::string("Loading default settings from \"") << defaultSettingsFilename << std::string("\"... ");
 	if (!settings.load(defaultSettingsFilename))
 	{
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 		close(EXIT_FAILURE);
 		return;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	// Load user settings
-	std::cout << "Loading user settings from \"" << userSettingsFilename << "\"... ";
+	std::cout << std::string("Loading user settings from \"") << userSettingsFilename << std::string("\"... ");
 	if (!settings.load(userSettingsFilename))
 	{
 		// Failed, save default settings as user settings
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 		saveUserSettings();
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	// Get values of required settings
@@ -140,7 +140,7 @@ Application::Application(int argc, char* argv[]):
 		
 		if (SDL_GetDisplayMode(0, i, &displayMode) != 0)
 		{
-			std::cerr << "Failed to get display mode: \"" << SDL_GetError() << "\"" << std::endl;
+			std::cerr << std::string("Failed to get display mode: \"") << SDL_GetError() << std::string("\"") << std::endl;
 			close(EXIT_FAILURE);
 			return;
 		}
@@ -160,7 +160,7 @@ Application::Application(int argc, char* argv[]):
 	SDL_DisplayMode desktopDisplayMode;
 	if (SDL_GetDesktopDisplayMode(0, &desktopDisplayMode) != 0)
 	{
-		std::cerr << "Failed to get desktop display mode: \"" << SDL_GetError() << "\"" << std::endl;
+		std::cerr << std::string("Failed to get desktop display mode: \"") << SDL_GetError() << std::string("\"") << std::endl;
 		close(EXIT_FAILURE);
 		return;
 	}
@@ -214,16 +214,15 @@ Application::Application(int argc, char* argv[]):
 	languageIndex = 0;
 	std::string requestedLanguage;
 	settings.get("language", &requestedLanguage);
+	std::string stringsDirectory = appDataPath + std::string("strings/");
 	
 	// Find available languages
 	{
-		std::string stringsDirectory = appDataPath + "strings/";
-		
 		// Open strings directory
 		DIR* dir = opendir(stringsDirectory.c_str());
 		if (dir == nullptr)
 		{
-			std::cout << "Failed to open strings directory \"" << stringsDirectory << "\"" << std::endl;
+			std::cout << std::string("Failed to open strings directory \"") << stringsDirectory << std::string("\"") << std::endl;
 			close(EXIT_FAILURE);
 			return;
 		}
@@ -264,15 +263,15 @@ Application::Application(int argc, char* argv[]):
 	}
 	
 	// Load strings
-	std::string stringsFile = appDataPath + "strings/" + languages[languageIndex] + ".txt";
-	std::cout << "Loading strings from \"" << stringsFile << "\"... ";
+	std::string stringsFile = appDataPath + std::string("strings/") + languages[languageIndex] + std::string(".txt");
+	std::cout << std::string("Loading strings from \"") << stringsFile << std::string("\"... ");
 	if (!strings.load(stringsFile))
 	{
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	// Get window title string
@@ -280,87 +279,87 @@ Application::Application(int argc, char* argv[]):
 	strings.get("title", &title);
 	
 	// Create window
-	std::cout << "Creating a " << resolution.x << "x" << resolution.y;
+	std::cout << std::string("Creating a ") << resolution.x << std::string("x") << resolution.y;
 	std::cout << ((fullscreen) ? " fullscreen" : " windowed");
-	std::cout << " window... ";
+	std::cout << std::string(" window... ");
 	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, static_cast<int>(resolution.x), static_cast<int>(resolution.y), windowFlags);
 	if (window == nullptr)
 	{
-		std::cout << "failed: \"" << SDL_GetError() << "\"" << std::endl;
+		std::cout << std::string("failed: \"") << SDL_GetError() << std::string("\"") << std::endl;
 		close(EXIT_FAILURE);
 		return;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	// Print video driver
 	const char* videoDriver = SDL_GetCurrentVideoDriver();
 	if (!videoDriver)
 	{
-		std::cout << "Unable to determine video driver" << std::endl;
+		std::cout << std::string("Unable to determine video driver") << std::endl;
 	}
 	else
 	{
-		std::cout << "Using video driver \"" << videoDriver << "\"" << std::endl;
+		std::cout << std::string("Using video driver \"") << videoDriver << std::string("\"") << std::endl;
 	}
 	
 	// Create an OpenGL context
-	std::cout << "Creating an OpenGL context... ";
+	std::cout << std::string("Creating an OpenGL context... ");
 	context = SDL_GL_CreateContext(window);
 	if (context == nullptr)
 	{
-		std::cout << "failed: \"" << SDL_GetError() << "\"" << std::endl;
+		std::cout << std::string("failed: \"") << SDL_GetError() << std::string("\"") << std::endl;
 		close(EXIT_FAILURE);
 		return;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 
 	// Initialize GL3W
-	std::cout << "Initializing GL3W... ";
+	std::cout << std::string("Initializing GL3W... ");
 	if (gl3wInit())
 	{
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 		close(EXIT_FAILURE);
 		return;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	// Check if OpenGL version is supported
 	if (!gl3wIsSupported(OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR))
 	{
-		std::cout << "OpenGL " << OPENGL_VERSION_MAJOR << "." << OPENGL_VERSION_MINOR << " not supported" << std::endl;
+		std::cout << std::string("OpenGL ") << OPENGL_VERSION_MAJOR << std::string(".") << OPENGL_VERSION_MINOR << std::string(" not supported") << std::endl;
 		close(EXIT_FAILURE);
 		return;
 	}
 	
 	// Print OpenGL and GLSL version strings
-	std::cout << "Using OpenGL " << glGetString(GL_VERSION) << ", GLSL " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+	std::cout << std::string("Using OpenGL ") << glGetString(GL_VERSION) << std::string(", GLSL ") << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 	
 	// Set swap interval (vsync)
 	if (swapInterval)
 	{
-		std::cout << "Enabling vertical sync... ";
+		std::cout << std::string("Enabling vertical sync... ");
 	}
 	else
 	{
-		std::cout << "Disabling vertical sync... ";
+		std::cout << std::string("Disabling vertical sync... ");
 	}
 	if (SDL_GL_SetSwapInterval(swapInterval) != 0)
 	{
-		std::cout << "failed: \"" << SDL_GetError() << "\"" << std::endl;
+		std::cout << std::string("failed: \"") << SDL_GetError() << std::string("\"") << std::endl;
 		swapInterval = SDL_GL_GetSwapInterval();
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	// Clear screen to black
@@ -369,28 +368,28 @@ Application::Application(int argc, char* argv[]):
 	SDL_GL_SwapWindow(window);
 	
 	// Get display DPI
-	std::cout << "Getting DPI of display 0... ";
+	std::cout << std::string("Getting DPI of display 0... ");
 	if (SDL_GetDisplayDPI(0, &dpi, nullptr, nullptr) != 0)
 	{
-		std::cerr << "failed: \"" << SDL_GetError() << "\"" << std::endl;
+		std::cerr << std::string("failed: \"") << SDL_GetError() << std::string("\"") << std::endl;
 		
-		std::cout << "Reverting to default DPI" << std::endl;
+		std::cout << std::string("Reverting to default DPI") << std::endl;
 		settings.get("default_dpi", &dpi);
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	// Print DPI
-	std::cout << "Rendering at " << dpi << " DPI" << std::endl;
+	std::cout << std::string("Rendering at ") << dpi << std::string(" DPI") << std::endl;
 	
 	// Determine base font size
 	settings.get("font_size", &fontSizePT);
 	fontSizePX = fontSizePT * (1.0f / 72.0f) * dpi;
 	
 	// Print font size
-	std::cout << "Base font size is " << fontSizePT << "pt (" << fontSizePX << "px)" << std::endl;
+	std::cout << std::string("Base font size is ") << fontSizePT << std::string("pt (") << fontSizePX << std::string("px)") << std::endl;
 	
 	// Setup input
 	inputManager = new SDLInputManager();
@@ -621,7 +620,7 @@ void Application::changeFullscreen()
 		SDL_SetWindowSize(window, static_cast<int>(resolution.x), static_cast<int>(resolution.y));
 		if (SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN) != 0)
 		{
-			std::cerr << "Failed to set fullscreen mode: \"" << SDL_GetError() << "\"" << std::endl;
+			std::cerr << std::string("Failed to set fullscreen mode: \"") << SDL_GetError() << std::string("\"") << std::endl;
 			fullscreen = false;
 		}
 	}
@@ -631,7 +630,7 @@ void Application::changeFullscreen()
 			
 		if (SDL_SetWindowFullscreen(window, 0) != 0)
 		{
-			std::cerr << "Failed to set windowed mode: \"" << SDL_GetError() << "\"" << std::endl;
+			std::cerr << std::string("Failed to set windowed mode: \"") << SDL_GetError() << std::string("\"") << std::endl;
 			fullscreen = true;
 		}
 		else
@@ -644,11 +643,11 @@ void Application::changeFullscreen()
 	// Print mode and resolution
 	if (fullscreen)
 	{
-		std::cout << "Changed to fullscreen mode at resolution " << resolution.x << "x" << resolution.y << std::endl;
+		std::cout << std::string("Changed to fullscreen mode at resolution ") << resolution.x << std::string("x") << resolution.y << std::endl;
 	}
 	else
 	{
-		std::cout << "Changed to windowed mode at resolution " << resolution.x << "x" << resolution.y << std::endl;
+		std::cout << std::string("Changed to windowed mode at resolution ") << resolution.x << std::string("x") << resolution.y << std::endl;
 	}
 	
 	// Save settings
@@ -668,21 +667,21 @@ void Application::changeVerticalSync()
 	
 	if (swapInterval == 1)
 	{
-		std::cout << "Enabling vertical sync... ";
+		std::cout << std::string("Enabling vertical sync... ");
 	}
 	else
 	{
-		std::cout << "Disabling vertical sync... ";
+		std::cout << std::string("Disabling vertical sync... ");
 	}
 	
 	if (SDL_GL_SetSwapInterval(swapInterval) != 0)
 	{
-		std::cout << "failed: \"" << SDL_GetError() << "\"" << std::endl;
+		std::cout << std::string("failed: \"") << SDL_GetError() << std::string("\"") << std::endl;
 		swapInterval = SDL_GL_GetSwapInterval();
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	// Save settings
@@ -692,14 +691,14 @@ void Application::changeVerticalSync()
 
 void Application::saveUserSettings()
 {
-	std::cout << "Saving user setttings to \"" << userSettingsFilename << "\"... ";
+	std::cout << std::string("Saving user setttings to \"") << userSettingsFilename << std::string("\"... ");
 	if (!settings.save(userSettingsFilename))
 	{
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 }
 
@@ -975,23 +974,23 @@ bool Application::loadUI()
 {
 	// Load fonts
 	FontLoader* fontLoader = new FontLoader();
-	
+
 	menuFont = new Font(512, 512);
 	if (!fontLoader->load("data/fonts/NotoSansCJKsc-Regular.otf", static_cast<int>(fontSizePX + 0.5f), {UnicodeRange::BASIC_LATIN}, menuFont))
 	{
-		std::cerr << "Failed to load menu font" << std::endl;
+		std::cerr << std::string("Failed to load menu font") << std::endl;
 	}
 	
 	copyrightFont = new Font(256, 256);
 	if (!fontLoader->load("data/fonts/Varela-Regular.ttf", static_cast<int>(fontSizePX * 0.8f + 0.5f), {UnicodeRange::BASIC_LATIN}, copyrightFont))
 	{
-		std::cerr << "Failed to load copyright font" << std::endl;
+		std::cerr << std::string("Failed to load copyright font") << std::endl;
 	}
 	
 	levelNameFont = new Font(512, 512);
 	if (!fontLoader->load("data/fonts/Vollkorn-Regular.ttf", static_cast<int>(fontSizePX * 2.0f + 0.5f), {UnicodeRange::BASIC_LATIN}, levelNameFont))
 	{
-		std::cerr << "Failed to load level name font" << std::endl;
+		std::cerr << std::string("Failed to load level name font") << std::endl;
 	}
 	
 	delete fontLoader;
@@ -1735,7 +1734,7 @@ void Application::restringUI()
 	strings.get("menu-font", &menuFontBasename);
 	strings.get("copyright-font", &copyrightFontBasename);
 	strings.get("level-name-font", &levelNameFontBasename);
-	std::string fontsDirectory = appDataPath + "fonts/";
+	std::string fontsDirectory = appDataPath + std::string("fonts/");
 	
 	// Load fonts with the custom Unicode ranges
 	FontLoader* fontLoader = new FontLoader();
@@ -1743,19 +1742,19 @@ void Application::restringUI()
 	menuFont = new Font(512, 512);
 	if (!fontLoader->load(fontsDirectory + menuFontBasename, static_cast<int>(fontSizePX + 0.5f), unicodeRanges, menuFont))
 	{
-		std::cerr << "Failed to load menu font" << std::endl;
+		std::cerr << std::string("Failed to load menu font") << std::endl;
 	}
 	
 	copyrightFont = new Font(256, 256);
 	if (!fontLoader->load(fontsDirectory + copyrightFontBasename, static_cast<int>(fontSizePX * 0.8f + 0.5f), unicodeRanges, copyrightFont))
 	{
-		std::cerr << "Failed to load copyright font" << std::endl;
+		std::cerr << std::string("Failed to load copyright font") << std::endl;
 	}
 	
 	levelNameFont = new Font(512, 512);
 	if (!fontLoader->load(fontsDirectory + levelNameFontBasename, static_cast<int>(fontSizePX * 2.0f + 0.5f), unicodeRanges, levelNameFont))
 	{
-		std::cerr << "Failed to load level name font" << std::endl;
+		std::cerr << std::string("Failed to load level name font") << std::endl;
 	}
 	
 	delete fontLoader;
@@ -1796,7 +1795,7 @@ void Application::restringUI()
 			/*
 			std::u32string label;
 			std::stringstream stream;
-			stream << (world + 1) << "-" << (level + 1) << ": ";
+			stream << (world + 1) << std::string("-") << (level + 1) << std::string(": ";
 			label = std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>().from_bytes(stream.str()) + levelName;
 			*/
 			
@@ -1818,7 +1817,7 @@ void Application::restringUI()
 		
 		std::u32string label;
 		std::stringstream stream;
-		stream << resolutions[i].x << "x" << resolutions[i].y;
+		stream << resolutions[i].x << std::string("x") << resolutions[i].y;
 		std::string streamstring = stream.str();
 		label.assign(streamstring.begin(), streamstring.end());
 		
@@ -2209,7 +2208,7 @@ void Application::selectFullscreenMode(std::size_t index)
 		SDL_SetWindowSize(window, static_cast<int>(resolution.x), static_cast<int>(resolution.y));
 		if (SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN) != 0)
 		{
-			std::cerr << "Failed to set fullscreen mode: \"" << SDL_GetError() << "\"" << std::endl;
+			std::cerr << std::string("Failed to set fullscreen mode: \"") << SDL_GetError() << std::string("\"") << std::endl;
 			fullscreen = false;
 		}
 	}
@@ -2219,7 +2218,7 @@ void Application::selectFullscreenMode(std::size_t index)
 			
 		if (SDL_SetWindowFullscreen(window, 0) != 0)
 		{
-			std::cerr << "Failed to set windowed mode: \"" << SDL_GetError() << "\"" << std::endl;
+			std::cerr << std::string("Failed to set windowed mode: \"") << SDL_GetError() << std::string("\"") << std::endl;
 			fullscreen = true;
 		}
 		else
@@ -2232,11 +2231,11 @@ void Application::selectFullscreenMode(std::size_t index)
 	// Print mode and resolution
 	if (fullscreen)
 	{
-		std::cout << "Changed to fullscreen mode at resolution " << resolution.x << "x" << resolution.y << std::endl;
+		std::cout << std::string("Changed to fullscreen mode at resolution ") << resolution.x << std::string("x") << resolution.y << std::endl;
 	}
 	else
 	{
-		std::cout << "Changed to windowed mode at resolution " << resolution.x << "x" << resolution.y << std::endl;
+		std::cout << std::string("Changed to windowed mode at resolution ") << resolution.x << std::string("x") << resolution.y << std::endl;
 	}
 	
 	// Save settings
@@ -2257,21 +2256,21 @@ void Application::selectVSyncMode(std::size_t index)
 	
 	if (swapInterval == 1)
 	{
-		std::cout << "Enabling vertical sync... ";
+		std::cout << std::string("Enabling vertical sync... ");
 	}
 	else
 	{
-		std::cout << "Disabling vertical sync... ";
+		std::cout << std::string("Disabling vertical sync... ");
 	}
 	
 	if (SDL_GL_SetSwapInterval(swapInterval) != 0)
 	{
-		std::cout << "failed: \"" << SDL_GetError() << "\"" << std::endl;
+		std::cout << std::string("failed: \"") << SDL_GetError() << std::string("\"") << std::endl;
 		swapInterval = SDL_GL_GetSwapInterval();
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	// Save settings
@@ -2288,15 +2287,15 @@ void Application::selectLanguage(std::size_t index)
 	strings.clear();
 	
 	// Load strings
-	std::string stringsFile = appDataPath + "strings/" + languages[languageIndex] + ".txt";
-	std::cout << "Loading strings from \"" << stringsFile << "\"... ";
+	std::string stringsFile = appDataPath + std::string("strings/") + languages[languageIndex] + std::string(".txt");
+	std::cout << std::string("Loading strings from \"") << stringsFile << std::string("\"... ");
 	if (!strings.load(stringsFile))
 	{
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	// Save settings

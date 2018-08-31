@@ -99,14 +99,14 @@ bool BlurRenderPass::load(const RenderContext* renderContext)
 	// Load shader source
 	if (!shader.loadSource("data/shaders/blur.glsl"))
 	{
-		std::cerr << "BlurRenderPass: failed to load shader source." << std::endl;
+		std::cerr << std::string("BlurRenderPass: failed to load shader source.") << std::endl;
 		return false;
 	}
 	
 	// Generate permutation
 	if (!shader.generatePermutation(permutation))
 	{
-		std::cerr << "BlurRenderPass: failed to generate shader permutation." << std::endl;
+		std::cerr << std::string("BlurRenderPass: failed to generate shader permutation.") << std::endl;
 		return false;
 	}
 	
@@ -118,7 +118,7 @@ bool BlurRenderPass::load(const RenderContext* renderContext)
 		!resolutionParam.isConnected() ||
 		!directionParam.isConnected())
 	{
-		std::cerr << "BlurRenderPass: one or more shader variables were not connected to shader inputs." << std::endl;
+		std::cerr << std::string("BlurRenderPass: one or more shader variables were not connected to shader inputs.") << std::endl;
 		return false;
 	}
 	
@@ -254,14 +254,14 @@ bool ShadowMapRenderPass::load(const RenderContext* renderContext)
 	// Load shader source
 	if (!shader.loadSource("data/shaders/depth-pass.glsl"))
 	{
-		std::cerr << "ShadowMapRenderPass: failed to load shader source." << std::endl;
+		std::cerr << std::string("ShadowMapRenderPass: failed to load shader source.") << std::endl;
 		return false;
 	}
 	
 	// Generate unskinned and skinned permutations
 	if (!shader.generatePermutation(unskinnedPermutation) || !shader.generatePermutation(skinnedPermutation))
 	{
-		std::cerr << "ShadowMapRenderPass: failed to generate shader permutation." << std::endl;
+		std::cerr << std::string("ShadowMapRenderPass: failed to generate shader permutation.") << std::endl;
 		return false;
 	}
 	
@@ -274,7 +274,7 @@ bool ShadowMapRenderPass::load(const RenderContext* renderContext)
 	if (!modelViewProjectionParam.isConnected() ||
 		!matrixPaletteParam->isConnected())
 	{
-		std::cerr << "ShadowMapRenderPass: one or more shader variables were not connected to shader inputs." << std::endl;
+		std::cerr << std::string("ShadowMapRenderPass: one or more shader variables were not connected to shader inputs.") << std::endl;
 		return false;
 	}
 	
@@ -473,7 +473,7 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 	
 	if (!shader.loadSource("data/shaders/standard.glsl"))
 	{
-		std::cerr << "LightingRenderPass: Failed to load shader source." << std::endl;
+		std::cerr << std::string("LightingRenderPass: Failed to load shader source.") << std::endl;
 		return false;
 	}
 	
@@ -498,7 +498,7 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 	// Generate shader permutations
 	if (!shader.generatePermutation(unskinnedPermutation) || !shader.generatePermutation(skinnedPermutation))
 	{
-		std::cerr << "LightingRenderPass: failed to generate shader permutation." << std::endl;
+		std::cerr << std::string("LightingRenderPass: failed to generate shader permutation.") << std::endl;
 		return false;
 	}
 	
@@ -537,7 +537,7 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 		!parameters.diffuseCubemap.isConnected() ||
 		!parameters.specularCubemap.isConnected())
 	{
-		std::cerr << "LightingRenderPass: one or more shader variables were not connected to shader inputs." << std::endl;
+		std::cerr << std::string("LightingRenderPass: one or more shader variables were not connected to shader inputs.") << std::endl;
 	}
 	
 	return true;
@@ -805,7 +805,7 @@ bool DebugRenderPass::load(const RenderContext* renderContext)
 {
 	if (!shader.loadSource("data/shaders/unlit-solid.glsl"))
 	{
-		std::cerr << "DebugRenderPass: Failed to load shader source." << std::endl;
+		std::cerr << std::string("DebugRenderPass: Failed to load shader source.") << std::endl;
 		return false;
 	}
 	
@@ -815,7 +815,7 @@ bool DebugRenderPass::load(const RenderContext* renderContext)
 	// Generate shader permutations
 	if (!shader.generatePermutation(permutation))
 	{
-		std::cerr << "DebugRenderPass: failed to generate shader permutation." << std::endl;
+		std::cerr << std::string("DebugRenderPass: failed to generate shader permutation.") << std::endl;
 		return false;
 	}
 	
@@ -823,7 +823,7 @@ bool DebugRenderPass::load(const RenderContext* renderContext)
 	modelViewProjectionMatrixParam.connect(shader.getInput("modelViewProjectionMatrix"));
 	if (!modelViewProjectionMatrixParam.isConnected())
 	{
-		std::cerr << "DebugRenderPass: one or more shader variables were not connected to shader inputs." << std::endl;
+		std::cerr << std::string("DebugRenderPass: one or more shader variables were not connected to shader inputs.") << std::endl;
 		return false;
 	}
 	
@@ -940,7 +940,7 @@ bool UIRenderPass::load(const RenderContext* renderContext)
 {
 	if (!shader.loadSource("data/shaders/ui.glsl"))
 	{
-		std::cerr << "UIRenderPass: Failed to load shader source." << std::endl;
+		std::cerr << std::string("UIRenderPass: Failed to load shader source.") << std::endl;
 		return false;
 	}
 	
@@ -951,7 +951,7 @@ bool UIRenderPass::load(const RenderContext* renderContext)
 	// Generate shader permutations
 	if (!shader.generatePermutation(untexturedPermutation) || !shader.generatePermutation(texturedPermutation))
 	{
-		std::cerr << "UIRenderPass: failed to generate shader permutation." << std::endl;
+		std::cerr << std::string("UIRenderPass: failed to generate shader permutation.") << std::endl;
 		return false;
 	}
 	
@@ -965,7 +965,7 @@ bool UIRenderPass::load(const RenderContext* renderContext)
 		!textureOffsetParam.isConnected() ||
 		!textureScaleParam.isConnected())
 	{
-		std::cerr << "UIRenderPass: one or more shader variables were not connected to shader inputs." << std::endl;
+		std::cerr << std::string("UIRenderPass: one or more shader variables were not connected to shader inputs.") << std::endl;
 		return false;
 	}
 	
@@ -1143,7 +1143,7 @@ bool SkyboxRenderPass::load(const RenderContext* renderContext)
 {
 	if (!shader.loadSource("data/shaders/skybox.glsl"))
 	{
-		std::cerr << "SkyboxRenderPass: Failed to load shader source." << std::endl;
+		std::cerr << std::string("SkyboxRenderPass: Failed to load shader source.") << std::endl;
 		return false;
 	}
 	
@@ -1153,7 +1153,7 @@ bool SkyboxRenderPass::load(const RenderContext* renderContext)
 	// Generate shader permutations
 	if (!shader.generatePermutation(permutation))
 	{
-		std::cerr << "SkyboxRenderPass: failed to generate shader permutation." << std::endl;
+		std::cerr << std::string("SkyboxRenderPass: failed to generate shader permutation.") << std::endl;
 		return false;
 	}
 	
@@ -1162,7 +1162,7 @@ bool SkyboxRenderPass::load(const RenderContext* renderContext)
 	cubemapParam.connect(shader.getInput("cubemap"));
 	if (!matrixParam.isConnected() || !cubemapParam.isConnected())
 	{
-		std::cerr << "SkyboxRenderPass: one or more shader variables were not connected to shader inputs." << std::endl;
+		std::cerr << std::string("SkyboxRenderPass: one or more shader variables were not connected to shader inputs.") << std::endl;
 		return false;
 	}
 	

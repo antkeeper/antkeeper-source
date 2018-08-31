@@ -73,14 +73,14 @@ Material* MaterialLoader::load(const std::string& filename)
 	std::ifstream file(filename.c_str(), std::ifstream::in);
 	if (!file.is_open())
 	{
-		std::cerr << "MaterialLoader::load(): Failed to open material file \"" << filename << "\"" << std::endl;
+		std::cerr << std::string("MaterialLoader::load(): Failed to open material file \"") << filename << std::string("\"") << std::endl;
 		delete material;
 		return nullptr;
 	}
 	
 	std::string line;
 	std::size_t lineNumber = 0;
-	const std::string whitespace = " \t";
+	const std::string whitespace = " \t\r\n";
 	
 	// Parse lines
 	while (file.good() && std::getline(file, line))
@@ -113,7 +113,7 @@ Material* MaterialLoader::load(const std::string& filename)
 			if (equalsSignPosition == std::string::npos)
 			{
 				// Skip lines with no equals sign
-				std::cerr << "MaterialLoader::load(): Invalid line " << lineNumber << " in \"" << filename << "\"" << std::endl;
+				std::cerr << std::string("MaterialLoader::load(): Invalid line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
 				continue;
 			}
 			
@@ -122,12 +122,12 @@ Material* MaterialLoader::load(const std::string& filename)
 			if (valueStartPosition == std::string::npos)
 			{
 				// Skip lines with no value
-				std::cerr << "MaterialLoader::load(): Invalid line " << lineNumber << " in \"" << filename << "\"" << std::endl;
+				std::cerr << std::string("MaterialLoader::load(): Invalid line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
 				continue;
 			}
 			
 			// Find position the end of the value string
-			std::size_t valueEndPosition = line.find_first_of(" \t;", valueStartPosition);
+			std::size_t valueEndPosition = line.find_first_of(" \t;\r\n", valueStartPosition);
 			
 			// Determine value string
 			std::string valueString;
@@ -147,7 +147,7 @@ Material* MaterialLoader::load(const std::string& filename)
 				Shader* shader = loadShader(valueString);
 				if (!shader)
 				{
-					std::cerr << "MaterialLoader::load(): Failed to load shader \"" << valueString << "\" on line " << lineNumber << " in \"" << filename << "\"" << std::endl;
+					std::cerr << std::string("MaterialLoader::load(): Failed to load shader \"") << valueString << std::string("\" on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
 				}
 				else
 				{
@@ -172,7 +172,7 @@ Material* MaterialLoader::load(const std::string& filename)
 			if (variableNamePosition == std::string::npos)
 			{
 				// Skip lines with no variable name
-				std::cerr << "MaterialLoader::load(): Invalid variable on line " << lineNumber << " in \"" << filename << "\"" << std::endl;
+				std::cerr << std::string("MaterialLoader::load(): Invalid variable on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
 				continue;
 			}
 			
@@ -181,7 +181,7 @@ Material* MaterialLoader::load(const std::string& filename)
 			if (equalsSignPosition == std::string::npos)
 			{
 				// Skip lines with no equals sign
-				std::cerr << "MaterialLoader::load(): Invalid variable on line " << lineNumber << " in \"" << filename << "\"" << std::endl;
+				std::cerr << std::string("MaterialLoader::load(): Invalid variable on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
 				continue;
 			}
 			
@@ -190,7 +190,7 @@ Material* MaterialLoader::load(const std::string& filename)
 			if (variableTypePosition == std::string::npos)
 			{
 				// Skip lines with no variable type definition
-				std::cerr << "MaterialLoader::load(): Invalid variable on line " << lineNumber << " in \"" << filename << "\"" << std::endl;
+				std::cerr << std::string("MaterialLoader::load(): Invalid variable on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
 				continue;
 			}
 			
@@ -200,7 +200,7 @@ Material* MaterialLoader::load(const std::string& filename)
 			if (leftParenthesisCount != rightParenthesisCount || leftParenthesisCount == 0)
 			{
 				// Skip lines with invalid number of parentheses
-				std::cerr << "MaterialLoader::load(): Invalid variable on line " << lineNumber << " in \"" << filename << "\"" << std::endl;
+				std::cerr << std::string("MaterialLoader::load(): Invalid variable on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
 				continue;
 			}
 			
@@ -315,7 +315,7 @@ Material* MaterialLoader::load(const std::string& filename)
 			}
 			
 			// Invalid command
-			std::cerr << "MaterialLoader::load(): Invalid command \"" << command << "\" on line " << lineNumber << " in \"" << filename << "\"" << std::endl;
+			std::cerr << std::string("MaterialLoader::load(): Invalid command \"") << command << std::string("\" on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
 		}
 	}
 	
@@ -337,6 +337,8 @@ Shader* MaterialLoader::loadShader(const std::string& filename)
 	}
 	
 	std::string fullFilename = std::string("data/shaders/") + filename;
+
+	std::cout << std::string("Loading shader \"") << fullFilename << std::string("\"\n");
 	
 	// Load shader
 	Shader* shader = new Shader();
@@ -367,7 +369,7 @@ Texture2D* MaterialLoader::loadTexture2D(const std::string& filename)
 	Texture2D* texture = textureLoader.load2D(fullFilename);
 	if (!texture)
 	{
-		std::cerr << "MaterialLoader::loadTexture2D(): Failed to load texture file \"" << fullFilename << "\"" << std::endl;
+		std::cerr << std::string("MaterialLoader::loadTexture2D(): Failed to load texture file \"") << fullFilename << std::string("\"") << std::endl;
 		return nullptr;
 	}
 	
@@ -392,7 +394,7 @@ TextureCube* MaterialLoader::loadTextureCube(const std::string& filename)
 	TextureCube* texture = textureLoader.loadCube(fullFilename);
 	if (!texture)
 	{
-		std::cerr << "MaterialLoader::loadTextureCube(): Failed to load texture file \"" << fullFilename << "\"" << std::endl;
+		std::cerr << std::string("MaterialLoader::loadTextureCube(): Failed to load texture file \"") << fullFilename << std::string("\"") << std::endl;
 		return nullptr;
 	}
 	
@@ -545,7 +547,7 @@ bool MaterialLoader::loadShaderTexture2D(ShaderTexture2D* variable, const std::v
 		Texture2D* value = loadTexture2D(filename);
 		if (!value)
 		{
-			std::cerr << "MaterialLoader::loadShaderTexture2D(): Failed to load 2D texture \"" << filename << "\"" << std::endl;
+			std::cerr << std::string("MaterialLoader::loadShaderTexture2D(): Failed to load 2D texture \"") << filename << std::string("\"") << std::endl;
 			return false;
 		}
 		
@@ -567,7 +569,7 @@ bool MaterialLoader::loadShaderTextureCube(ShaderTextureCube* variable, const st
 		TextureCube* value = loadTextureCube(filename);
 		if (!value)
 		{
-			std::cerr << "MaterialLoader::loadShaderTextureCube(): Failed to load cube texture \"" << filename << "\"" << std::endl;
+			std::cerr << std::string("MaterialLoader::loadShaderTextureCube(): Failed to load cube texture \"") << filename << std::string("\"") << std::endl;
 			return false;
 		}
 		

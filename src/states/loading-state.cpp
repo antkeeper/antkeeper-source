@@ -33,59 +33,59 @@ void LoadingState::enter()
 {
 	bool failure = false;
 	
-	std::cout << "Loading controls... ";
+	std::cout << std::string("Loading controls... ");
 	if (!application->loadControls())
 	{
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 		failure = true;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
-	std::cout << "Loading scene... ";
+	std::cout << std::string("Loading scene... ");
 	if (!application->loadScene())
 	{
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 		failure = true;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
-	std::cout << "Loading models... ";
+	std::cout << std::string("Loading models... ");
 	if (!application->loadModels())
 	{
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 		failure = true;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
-	std::cout << "Loading game... ";
+	std::cout << std::string("Loading game... ");
 	if (!application->loadGame())
 	{
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 		failure = true;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
-	std::cout << "Loading UI... ";
+	std::cout << std::string("Loading UI... ");
 	if (!application->loadUI())
 	{
-		std::cout << "failed" << std::endl;
+		std::cout << std::string("failed") << std::endl;
 		failure = true;
 	}
 	else
 	{
-		std::cout << "success" << std::endl;
+		std::cout << std::string("success") << std::endl;
 	}
 	
 	if (failure)

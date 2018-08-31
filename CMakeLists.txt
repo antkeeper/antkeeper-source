@@ -130,18 +130,32 @@ set(SDL2main_LIBRARY SDL2main)
 set(SDL2_LIBRARIES
 	${SDL2main_LIBRARY}
 	${SDL2_LIBRARY}
-	dinput8
-	dxguid
-	user32
-	gdi32
-	winmm
-	imm32
-	ole32
-	oleaut32
-	shell32
-	version
-	uuid
 )
+
+if(MSVC)
+	set(SDL2_LIBRARIES
+		${SDL2_LIBRARIES}
+		dinput8
+		dxguid
+		user32
+		gdi32
+		winmm
+		imm32
+		ole32
+		oleaut32
+		shell32
+		version
+		uuid
+	)
+else()
+	set(SDL2_LIBRARIES
+		${SDL2_LIBRARIES}
+		pthread
+		dl
+	)
+endif()
+
+
 ExternalProject_Add(SDL2-project
 	SOURCE_DIR ${PROJECT_SOURCE_DIR}/lib/SDL2
 	CMAKE_ARGS
@@ -242,13 +256,10 @@ set(EXECUTABLE_SOURCES
 
 # Setup manifest and exe icon for windows
 if(${PLATFORM} STREQUAL "win32" OR ${PLATFORM} STREQUAL "win64")
-	list(APPEND EXECUTABLE_SOURCES "${EXECUTABLE_SOURCE_DIR}/dpi-aware.manifest")
+	list(APPEND EXECUTABLE_SOURCES "${EXECUTABLE_SOURCE_DIR}/windows/antkeeper.manifest")
 	
 	if(EXISTS ${PROJECT_SOURCE_DIR}/data)
 		set(RC_FILES "${PROJECT_SOURCE_DIR}/data/icons/icon.rc")
-		#set(CMAKE_RC_COMPILER_INIT windres)
-		#enable_language(RC)
-		#set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <SOURCE> <OBJECT>")
 		set(EXECUTABLE_SOURCES "${EXECUTABLE_SOURCES};${RC_FILES}")
 	endif()
 endif()
@@ -291,11 +302,19 @@ list(APPEND EXECUTABLE_LIBRARIES
 target_link_libraries(${EXECUTABLE_TARGET} ${EXECUTABLE_LIBRARIES})
 
 # Add run target
-add_custom_target(run
-	COMMAND ${EXECUTABLE_TARGET}
-	DEPENDS ${EXECUTABLE_TARGET}
-	WORKING_DIRECTORY ${PLATFORM_PACKAGE_DIR}
-)
+if(${PLATFORM} STREQUAL "linux32" OR ${PLATFORM} STREQUAL "linux64")
+	add_custom_target(run
+		COMMAND optirun "${PLATFORM_PACKAGE_DIR}/${EXECUTABLE_NAME}"
+		DEPENDS ${EXECUTABLE_TARGET}
+		WORKING_DIRECTORY ${PLATFORM_PACKAGE_DIR}
+	)
+else()
+	add_custom_target(run
+		COMMAND ${EXECUTABLE_TARGET}
+		DEPENDS ${EXECUTABLE_TARGET}
+		WORKING_DIRECTORY ${PLATFORM_PACKAGE_DIR}
+	)
+endif()
 
 # Add dist target
 add_custom_target(dist
