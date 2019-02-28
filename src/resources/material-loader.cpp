@@ -179,7 +179,6 @@ static bool loadShaderTextureCube(ResourceManager* resourceManager, ShaderTextur
 {
 	for (int i = 0; i < elements.size(); ++i)
 	{
-<<<<<<< HEAD:src/resources/material-loader.cpp
 		std::string filename;
 		std::stringstream stream;
 		stream << elements[i][0];
@@ -188,11 +187,6 @@ static bool loadShaderTextureCube(ResourceManager* resourceManager, ShaderTextur
 		TextureCube* value = resourceManager->load<TextureCube>(filename);
 		
 		variable->setValue(i, value);
-=======
-		std::cerr << std::string("MaterialLoader::load(): Failed to open material file \"") << filename << std::string("\"") << std::endl;
-		delete material;
-		return nullptr;
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/material-loader.cpp
 	}
 	
 	return true;
@@ -243,32 +237,20 @@ Material* ResourceLoader<Material>::load(ResourceManager* resourceManager, std::
 			std::size_t equalsSignPosition = line.find_first_of("=", commandPosition);
 			if (equalsSignPosition == std::string::npos)
 			{
-<<<<<<< HEAD:src/resources/material-loader.cpp
 				// Line has no equals sign
 				std::stringstream stream;
 				stream << "ResourceLoader<Material>::load(): Invalid line " << lineNumber << ".";
 				throw std::runtime_error(stream.str().c_str());
-=======
-				// Skip lines with no equals sign
-				std::cerr << std::string("MaterialLoader::load(): Invalid line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
-				continue;
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/material-loader.cpp
 			}
 			
 			// Find position of first character in the value string
 			std::size_t valueStartPosition = line.find_first_not_of(whitespace, equalsSignPosition + 1);
 			if (valueStartPosition == std::string::npos)
 			{
-<<<<<<< HEAD:src/resources/material-loader.cpp
 				// Line has no value
 				std::stringstream stream;
 				stream << "ResourceLoader<Material>::load(): Invalid line " << lineNumber << ".";
 				throw std::runtime_error(stream.str().c_str());
-=======
-				// Skip lines with no value
-				std::cerr << std::string("MaterialLoader::load(): Invalid line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
-				continue;
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/material-loader.cpp
 			}
 			
 			// Find position the end of the value string
@@ -292,11 +274,7 @@ Material* ResourceLoader<Material>::load(ResourceManager* resourceManager, std::
 				Shader* shader = nullptr;
 				try
 				{
-<<<<<<< HEAD:src/resources/material-loader.cpp
 					shader = resourceManager->load<Shader>(valueString);
-=======
-					std::cerr << std::string("MaterialLoader::load(): Failed to load shader \"") << valueString << std::string("\" on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/material-loader.cpp
 				}
 				catch (const std::exception& e)
 				{
@@ -324,14 +302,9 @@ Material* ResourceLoader<Material>::load(ResourceManager* resourceManager, std::
 			if (variableNamePosition == std::string::npos)
 			{
 				// Skip lines with no variable name
-<<<<<<< HEAD:src/resources/material-loader.cpp
 				std::stringstream stream;
 				stream << "ResourceLoader<Material>::load(): Invalid variable on line " << lineNumber << ".";
 				throw std::runtime_error(stream.str().c_str());
-=======
-				std::cerr << std::string("MaterialLoader::load(): Invalid variable on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
-				continue;
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/material-loader.cpp
 			}
 			
 			// Find position of equals sign
@@ -339,14 +312,9 @@ Material* ResourceLoader<Material>::load(ResourceManager* resourceManager, std::
 			if (equalsSignPosition == std::string::npos)
 			{
 				// Skip lines with no equals sign
-<<<<<<< HEAD:src/resources/material-loader.cpp
 				std::stringstream stream;
 				stream << "ResourceLoader<Material>::load(): Invalid variable on line " << lineNumber << ".";
 				throw std::runtime_error(stream.str().c_str());
-=======
-				std::cerr << std::string("MaterialLoader::load(): Invalid variable on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
-				continue;
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/material-loader.cpp
 			}
 			
 			// Find position of first character in variable type
@@ -354,14 +322,9 @@ Material* ResourceLoader<Material>::load(ResourceManager* resourceManager, std::
 			if (variableTypePosition == std::string::npos)
 			{
 				// Skip lines with no variable type definition
-<<<<<<< HEAD:src/resources/material-loader.cpp
 				std::stringstream stream;
 				stream << "ResourceLoader<Material>::load(): Invalid variable on line " << lineNumber << ".";
 				throw std::runtime_error(stream.str().c_str());
-=======
-				std::cerr << std::string("MaterialLoader::load(): Invalid variable on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
-				continue;
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/material-loader.cpp
 			}
 			
 			// Count parentheses
@@ -370,14 +333,9 @@ Material* ResourceLoader<Material>::load(ResourceManager* resourceManager, std::
 			if (leftParenthesisCount != rightParenthesisCount || leftParenthesisCount == 0)
 			{
 				// Skip lines with invalid number of parentheses
-<<<<<<< HEAD:src/resources/material-loader.cpp
 				std::stringstream stream;
 				stream << "ResourceLoader<Material>::load(): Invalid variable on line " << lineNumber << ".";
 				throw std::runtime_error(stream.str().c_str());
-=======
-				std::cerr << std::string("MaterialLoader::load(): Invalid variable on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
-				continue;
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/material-loader.cpp
 			}
 			
 			std::string variableName = line.substr(variableNamePosition, line.find_first_of(" \t=", variableNamePosition) - variableNamePosition);
@@ -495,273 +453,12 @@ Material* ResourceLoader<Material>::load(ResourceManager* resourceManager, std::
 			}
 			
 			// Invalid command
-<<<<<<< HEAD:src/resources/material-loader.cpp
 			std::stringstream stream;
 			stream << "ResourceLoader<Material>::load(): Invalid command \"" << command << "\" on line " << lineNumber << ".";
 			throw std::runtime_error(stream.str().c_str());
-=======
-			std::cerr << std::string("MaterialLoader::load(): Invalid command \"") << command << std::string("\" on line ") << lineNumber << std::string(" in \"") << filename << std::string("\"") << std::endl;
-		}
-	}
-	
-	// Close file
-	file.close();
-	
-	// Add material to cache
-	materialCache[filename] = material;
-	
-	return material;
-}
-
-Shader* MaterialLoader::loadShader(const std::string& filename)
-{
-	auto it = shaderCache.find(filename);
-	if (it != shaderCache.end())
-	{
-		return it->second;
-	}
-	
-	std::string fullFilename = std::string("data/shaders/") + filename;
-
-	std::cout << std::string("Loading shader \"") << fullFilename << std::string("\"\n");
-	
-	// Load shader
-	Shader* shader = new Shader();
-	if (!shader->loadSource(fullFilename))
-	{
-		delete shader;
-		return nullptr;
-	}
-	
-	// Add shader to cache
-	shaderCache[filename] = shader;
-	
-	return shader;
-}
-
-Texture2D* MaterialLoader::loadTexture2D(const std::string& filename)
-{
-	// Check if texture exists in cache
-	auto it = texture2DCache.find(filename);
-	if (it != texture2DCache.end())
-	{
-		return it->second;
-	}
-	
-	std::string fullFilename = std::string("data/textures/") + filename;
-	
-	// Load texture
-	Texture2D* texture = textureLoader.load2D(fullFilename);
-	if (!texture)
-	{
-		std::cerr << std::string("MaterialLoader::loadTexture2D(): Failed to load texture file \"") << fullFilename << std::string("\"") << std::endl;
-		return nullptr;
-	}
-	
-	// Add texture to cache
-	texture2DCache[filename] = texture;
-	
-	return texture;
-}
-
-TextureCube* MaterialLoader::loadTextureCube(const std::string& filename)
-{
-	// Check if texture exists in cache
-	auto it = textureCubeCache.find(filename);
-	if (it != textureCubeCache.end())
-	{
-		return it->second;
-	}
-	
-	std::string fullFilename = std::string("data/textures/") + filename;
-	
-	// Load texture
-	TextureCube* texture = textureLoader.loadCube(fullFilename);
-	if (!texture)
-	{
-		std::cerr << std::string("MaterialLoader::loadTextureCube(): Failed to load texture file \"") << fullFilename << std::string("\"") << std::endl;
-		return nullptr;
-	}
-	
-	// Add texture to cache
-	textureCubeCache[filename] = texture;
-	
-	return texture;
-}
-
-bool MaterialLoader::loadShaderInt(ShaderInt* variable, const std::vector<std::vector<std::string>>& elements)
-{
-	for (int i = 0; i < elements.size(); ++i)
-	{
-		int value;
-		std::stringstream stream;
-		stream << elements[i][0];
-		stream >> value;
-		
-		variable->setValue(i, value);
-	}
-	
-	return true;
-}
-
-bool MaterialLoader::loadShaderFloat(ShaderFloat* variable, const std::vector<std::vector<std::string>>& elements)
-{	
-	for (int i = 0; i < elements.size(); ++i)
-	{
-		float value;
-		std::stringstream stream;
-		stream << elements[i][0];
-		stream >> value;
-		
-		variable->setValue(i, value);
-	}
-	
-	return true;
-}
-
-bool MaterialLoader::loadShaderVector2(ShaderVector2* variable, const std::vector<std::vector<std::string>>& elements)
-{
-	for (int i = 0; i < elements.size(); ++i)
-	{
-		Vector2 value;
-		
-		for (int j = 0; j < 2; ++j)
-		{
-			std::stringstream stream;
-			stream << elements[i][j];
-			stream >> value[j];
-		}
-		
-		variable->setValue(i, value);
-	}
-	
-	return true;
-}
-
-bool MaterialLoader::loadShaderVector3(ShaderVector3* variable, const std::vector<std::vector<std::string>>& elements)
-{
-	for (int i = 0; i < elements.size(); ++i)
-	{
-		Vector3 value;
-		
-		for (int j = 0; j < 3; ++j)
-		{
-			std::stringstream stream;
-			stream << elements[i][j];
-			stream >> value[j];
-		}
-		
-		variable->setValue(i, value);
-	}
-	
-	return true;
-}
-
-bool MaterialLoader::loadShaderVector4(ShaderVector4* variable, const std::vector<std::vector<std::string>>& elements)
-{
-	for (int i = 0; i < elements.size(); ++i)
-	{
-		Vector4 value;
-		
-		for (int j = 0; j < 4; ++j)
-		{
-			std::stringstream stream;
-			stream << elements[i][j];
-			stream >> value[j];
-		}
-		
-		variable->setValue(i, value);
-	}
-	
-	return true;
-}
-
-bool MaterialLoader::loadShaderMatrix3(ShaderMatrix3* variable, const std::vector<std::vector<std::string>>& elements)
-{
-	for (int i = 0; i < elements.size(); ++i)
-	{
-		Matrix3 value;
-		
-		for (int j = 0; j < 3; ++j)
-		{
-			for (int k = 0; k < 3; ++k)
-			{
-				std::stringstream stream;
-				stream << elements[i][k * 3 + j];
-				stream >> value[j][k];
-			}
-		}
-		
-		variable->setValue(i, value);
-	}
-	
-	return true;
-}
-
-bool MaterialLoader::loadShaderMatrix4(ShaderMatrix4* variable, const std::vector<std::vector<std::string>>& elements)
-{
-	for (int i = 0; i < elements.size(); ++i)
-	{
-		Matrix4 value;
-		
-		for (int j = 0; j < 4; ++j)
-		{
-			for (int k = 0; k < 4; ++k)
-			{
-				std::stringstream stream;
-				stream << elements[i][k * 4 + j];
-				stream >> value[j][k];
-			}
-		}
-		
-		variable->setValue(i, value);
-	}
-	
-	return true;
-}
-
-bool MaterialLoader::loadShaderTexture2D(ShaderTexture2D* variable, const std::vector<std::vector<std::string>>& elements)
-{
-	for (int i = 0; i < elements.size(); ++i)
-	{
-		std::string filename;
-		std::stringstream stream;
-		stream << elements[i][0];
-		stream >> filename;
-		
-		Texture2D* value = loadTexture2D(filename);
-		if (!value)
-		{
-			std::cerr << std::string("MaterialLoader::loadShaderTexture2D(): Failed to load 2D texture \"") << filename << std::string("\"") << std::endl;
-			return false;
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/material-loader.cpp
 		}
 	}
 	
 	return material;
 }
 
-<<<<<<< HEAD:src/resources/material-loader.cpp
-=======
-bool MaterialLoader::loadShaderTextureCube(ShaderTextureCube* variable, const std::vector<std::vector<std::string>>& elements)
-{
-	for (int i = 0; i < elements.size(); ++i)
-	{
-		std::string filename;
-		std::stringstream stream;
-		stream << elements[i][0];
-		stream >> filename;
-		
-		TextureCube* value = loadTextureCube(filename);
-		if (!value)
-		{
-			std::cerr << std::string("MaterialLoader::loadShaderTextureCube(): Failed to load cube texture \"") << filename << std::string("\"") << std::endl;
-			return false;
-		}
-		
-		variable->setValue(i, value);
-	}
-	
-	return true;
-}
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/material-loader.cpp

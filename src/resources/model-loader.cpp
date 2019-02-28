@@ -148,17 +148,6 @@ inline static void readString(std::string* result, unsigned char** data)
 template <>
 Model* ResourceLoader<Model>::load(ResourceManager* resourceManager, std::istream* is)
 {
-<<<<<<< HEAD:src/resources/model-loader.cpp
-=======
-	// Open file
-	std::ifstream file(filename.c_str(), std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
-	if (!file.is_open())
-	{
-		std::cerr << std::string("ModelLoader::load(): Failed to open model file \"") << filename << std::string("\"") << std::endl;
-		return nullptr;
-	}
-	
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/model-loader.cpp
 	// Allocate file data buffer
 	is->seekg(0, is->end);
 	int filesize = is->tellg();
@@ -512,25 +501,8 @@ Model* ResourceLoader<Model>::load(ResourceManager* resourceManager, std::istrea
 		modelGroup->name = modelDataGroup->materialName;
 		
 		// Load material
-<<<<<<< HEAD:src/resources/model-loader.cpp
 		std::string materialFilename = modelDataGroup->materialName + std::string(".mtl");
 		modelGroup->material = resourceManager->load<Material>(materialFilename);
-=======
-		std::string materialFilename = std::string("data/materials/") + modelDataGroup->materialName + std::string(".mtl");
-		if (materialLoader != nullptr)
-		{
-			modelGroup->material = materialLoader->load(materialFilename);
-			if (!modelGroup->material)
-			{
-				std::cerr << std::string("ModelLoader::load(): Failed to load material file \"") << materialFilename << std::string("\" for model file \"") << filename << std::string("\"") << std::endl;
-			}
-		}
-		else
-		{
-			modelGroup->material = nullptr;
-			std::cerr << std::string("ModelLoader::load(): No valid material loader, material file \"") << materialFilename << std::string("\" not loaded") << std::endl;
-		}
->>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036:src/model-loader.cpp
 		
 		// Setup model group geometry
 		modelGroup->indexOffset = modelDataGroup->indexOffset;
