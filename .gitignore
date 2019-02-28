@@ -1,3 +1,12 @@
+<<<<<<< HEAD
+CMakeFiles
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+bin
+dist
+tags
+=======
 CMakeFiles
 CMakeCache.txt
 cmake_install.cmake
@@ -6,3 +15,4 @@ src/configuration.hpp
 .DS_Store
 *.swo
 *.swp
+>>>>>>> df8405f4e83febb81a5ce8f772bd7f5b9e9b6036

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017  Christopher J. Howard
+ * Copyright (C) 2017-2019  Christopher J. Howard
  *
  * This file is part of Antkeeper Source Code.
  *
@@ -20,24 +20,36 @@
 #ifndef SPLASH_STATE_HPP
 #define SPLASH_STATE_HPP
 
-#include "../application-state.hpp"
-#include "../input.hpp"
+#include "game-state.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
 /**
- * Displays a splash screen.
+ * Displays the splash screen.
  */
-class SplashState: public ApplicationState
+class SplashState:
+	public GameState,
+	public EventHandler<KeyPressedEvent>,
+	public EventHandler<MouseButtonPressedEvent>,
+	public EventHandler<GamepadButtonPressedEvent>
 {
 public:
-	SplashState(Application* application);
+	SplashState(Game* game);
 	virtual ~SplashState();
-	
 	virtual void enter();
 	virtual void execute();
 	virtual void exit();
+
+private:
+	virtual void handleEvent(const KeyPressedEvent& event);
+	virtual void handleEvent(const MouseButtonPressedEvent& event);
+	virtual void handleEvent(const GamepadButtonPressedEvent& event);
+	void skip();
+
+	Animation<float> fadeAnimation;
+	AnimationClip<float> fadeInClip;
+	AnimationClip<float> fadeOutClip;
 };
 
 #endif // SPLASH_STATE_HPP

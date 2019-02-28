@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017  Christopher J. Howard
+ * Copyright (C) 2017-2019  Christopher J. Howard
  *
  * This file is part of Antkeeper Source Code.
  *
@@ -20,12 +20,11 @@
 #ifndef UI_HPP
 #define UI_HPP
 
-#include "../input.hpp"
-#include <vector>
-#include <functional>
-
 #include <emergent/emergent.hpp>
 using namespace Emergent;
+
+#include <vector>
+#include <functional>
 
 namespace Anchor
 {
@@ -46,7 +45,10 @@ public:
 	ShaderVector2* textureScale;
 };
 
-class UIElement: public MouseMotionObserver, public MouseButtonObserver
+class UIElement:
+	public EventHandler<MouseMovedEvent>,
+	public EventHandler<MouseButtonPressedEvent>,
+	public EventHandler<MouseButtonReleasedEvent>
 {
 public:
 	enum class Type
@@ -77,7 +79,7 @@ public:
 	/// Sets the dimensions of the element
 	void setDimensions(const Vector2& dimensions);
 	
-	/// Sets the tint color of the element
+	/// Sets the (sRGB) tint color of the element
 	void setTintColor(const Vector4& color);
 	
 	/// Sets the visibility of the element
@@ -163,10 +165,26 @@ public:
 	void setMouseMovedCallback(std::function<void(int, int)> callback);
 	void setMousePressedCallback(std::function<void(int, int, int)> callback);
 	void setMouseReleasedCallback(std::function<void(int, int, int)> callback);
-	
-	void mouseMoved(int x, int y);
-	void mouseButtonPressed(int button, int x, int y);
-	void mouseButtonReleased(int button, int x, int y);
+
+	virtual void handleEvent(const MouseMovedEvent& event);
+	virtual void handleEvent(const MouseButtonPressedEvent& event);
+	virtual void handleEvent(const MouseButtonReleasedEvent& event);
+
+	void interpolate(float dt);
+	void resetTweens();
+
+	const Tween<Vector2>* getOriginTween() const;
+	Tween<Vector2>* getOriginTween();
+	const Tween<Vector2>* getTranslationTween() const;
+	Tween<Vector2>* getTranslationTween();
+	const Tween<float>* getRotationTween() const;
+	Tween<float>* getRotationTween();
+	const Tween<Vector2>* getDimensionsTween() const;
+	Tween<Vector2>* getDimensionsTween();
+	const Tween<Vector2>* getPositionTween() const;
+	Tween<Vector2>* getPositionTween();
+	const Tween<Vector4>* getTintColorTween() const;
+	Tween<Vector4>* getTintColorTween();
 	
 protected:
 	UIMaterial material;
@@ -177,11 +195,6 @@ private:
 	Vector2 anchor;
 	int layerOffset;
 	int layer;
-	Vector2 origin;
-	Vector2 translation;
-	float rotation;
-	Vector2 dimensions;
-	Vector2 position;
 	Rect bounds;
 	Vector4 tintColor;
 	Vector4 color;
@@ -193,6 +206,19 @@ private:
 	std::function<void(int, int)> mouseMovedCallback;
 	std::function<void(int, int, int)> mousePressedCallback;
 	std::function<void(int, int, int)> mouseReleasedCallback;
+
+	Vector2 origin;
+	Vector2 translation;
+	float rotation;
+	Vector2 dimensions;
+	Vector2 position;
+
+	Tween<Vector2> originTween;
+	Tween<Vector2> translationTween;
+	Tween<float> rotationTween;
+	Tween<Vector2> dimensionsTween;
+	Tween<Vector2> positionTween;
+	Tween<Vector4> tintColorTween;
 };
 
 inline void UIElement::setAnchor(const Vector2& anchor)
@@ -340,6 +366,66 @@ inline bool UIElement::isActive() const
 	return active;
 }
 
+inline const Tween<Vector2>* UIElement::getOriginTween() const
+{
+	return &originTween;
+}
+
+inline Tween<Vector2>* UIElement::getOriginTween()
+{
+	return &originTween;
+}
+
+inline const Tween<Vector2>* UIElement::getTranslationTween() const
+{
+	return &translationTween;
+}
+
+inline Tween<Vector2>* UIElement::getTranslationTween()
+{
+	return &translationTween;
+}
+
+inline const Tween<float>* UIElement::getRotationTween() const
+{
+	return &rotationTween;
+}
+
+inline Tween<float>* UIElement::getRotationTween()
+{
+	return &rotationTween;
+}
+
+inline const Tween<Vector2>* UIElement::getDimensionsTween() const
+{
+	return &dimensionsTween;
+}
+
+inline Tween<Vector2>* UIElement::getDimensionsTween()
+{
+	return &dimensionsTween;
+}
+
+inline const Tween<Vector2>* UIElement::getPositionTween() const
+{
+	return &positionTween;
+}
+
+inline Tween<Vector2>* UIElement::getPositionTween()
+{
+	return &positionTween;
+}
+
+inline const Tween<Vector4>* UIElement::getTintColorTween() const
+{
+	return &tintColorTween;
+}
+
+inline Tween<Vector4>* UIElement::getTintColorTween()
+{
+	return &tintColorTween;
+}
+
 class UIContainer: public UIElement
 {
 public:
@@ -360,17 +446,17 @@ public:
 	virtual UIElement::Type getElementType() const;
 	
 	void setFont(Font* font);
-	void setText(const std::u32string& text);
+	void setText(const std::string& text);
 	
 	const Font* getFont() const;
 	Font* getFont();
-	const std::u32string& getText() const;
+	const std::string& getText() const;
 		
 private:
 	void calculateDimensions();
 
 	Font* font;
-	std::u32string text;
+	std::string text;
 };
 
 inline UIElement::Type UILabel::getElementType() const
@@ -388,7 +474,7 @@ inline Font* UILabel::getFont()
 	return font;
 }
 
-inline const std::u32string& UILabel::getText() const
+inline const std::string& UILabel::getText() const
 {
 	return text;
 }

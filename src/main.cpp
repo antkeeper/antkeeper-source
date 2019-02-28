@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017  Christopher J. Howard
+ * Copyright (C) 2017-2019  Christopher J. Howard
  *
  * This file is part of Antkeeper Source Code.
  *
@@ -17,9 +17,19 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "application.hpp"
+#include "game.hpp"
 
 int main(int argc, char* argv[])
 {
-	return Application(argc, argv).execute();
+	try
+	{
+		return Game(argc, argv).execute();
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Exception caught: \"" << e.what() << "\"" << std::endl;
+	}
+
+	return EXIT_FAILURE;
 }
+

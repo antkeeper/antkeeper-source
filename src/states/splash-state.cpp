@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017  Christopher J. Howard
+ * Copyright (C) 2017-2019  Christopher J. Howard
  *
  * This file is part of Antkeeper Source Code.
  *
@@ -18,11 +18,12 @@
  */
 
 #include "splash-state.hpp"
-#include "../application.hpp"
-#include "title-state.hpp"
+#include "game.hpp"
+#include "sandbox-state.hpp"
+#include "ui/ui.hpp"
 
-SplashState::SplashState(Application* application):
-	ApplicationState(application)
+SplashState::SplashState(Game* game):
+	GameState(game)
 {}
 
 SplashState::~SplashState()
@@ -30,55 +31,121 @@ SplashState::~SplashState()
 
 void SplashState::enter()
 {
-	application->splashBackgroundImage->setVisible(true);
-	application->splashImage->setVisible(true);
-	application->splashFadeInTween->start();
+	AnimationChannel<float>* channel;
+
+	// Construct fade-in animation clip
+	fadeInClip.setInterpolator(lerp<float>);
+	channel = fadeInClip.addChannel(0);
+	channel->insertKeyframe(0.0f, 0.0f);
+	channel->insertKeyframe(0.5f, 0.0f);
+	channel->insertKeyframe(1.25f, 1.0f);
+	channel->insertKeyframe(5.25f, 1.0f);
+
+	// Construct fade-out animation clip
+	fadeOutClip.setInterpolator(lerp<float>);
+	channel = fadeOutClip.addChannel(0);
+	channel->insertKeyframe(0.0f, 1.0f);
+	channel->insertKeyframe(0.75f, 0.0f);
+	channel->insertKeyframe(1.25f, 0.0f);
+
+	// Setup animate callback to change splash screen opacity
+	fadeAnimation.setAnimateCallback
+	(
+		[this](std::size_t id, float opacity)
+		{
+			this->game->splashImage->setTintColor(Vector4(1.0f, 1.0f, 1.0f, opacity));
+		}
+	);
+
+	// Setup end callback to fade-out after fading in
+	fadeAnimation.setEndCallback
+	(
+		[this]()
+		{
+			// Change clip to fade-out
+			this->fadeAnimation.setClip(&fadeOutClip);
+			this->fadeAnimation.setTimeFrame(this->fadeOutClip.getTimeFrame());
+			this->fadeAnimation.rewind();
+			this->fadeAnimation.play();
+
+			// Setup end callback to change to title state after fading out
+			this->fadeAnimation.setEndCallback
+			(
+				[this]()
+				{
+					//this->game->changeState(this->game->titleState);
+					this->game->changeState(this->game->sandboxState);
+				}
+			);
+		}
+	);
+
+	// Setup fade animation to fade-in
+	fadeAnimation.setSpeed(1.0f);
+	fadeAnimation.setLoop(false);
+	fadeAnimation.setClip(&fadeInClip);
+	fadeAnimation.setTimeFrame(fadeInClip.getTimeFrame());
+	
+	// Play the fade animation
+	fadeAnimation.play();
+
+	// Add fade animation to the animator
+	game->getAnimator()->addAnimation(&fadeAnimation);
+
+	// Subscribe this state to input events
+	game->getEventDispatcher()->subscribe<KeyPressedEvent>(this);
+	game->getEventDispatcher()->subscribe<MouseButtonPressedEvent>(this);
+	game->getEventDispatcher()->subscribe<GamepadButtonPressedEvent>(this);
+
+	// Make splash screen visible
+	game->splashBackgroundImage->setVisible(true);
+	game->splashImage->setVisible(true);
+	game->splashImage->setTintColor(Vector4(1.0f, 1.0f, 1.0f, 0.0f));
+	game->splashBackgroundImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	game->splashImage->resetTweens();
+	game->splashBackgroundImage->resetTweens();
+	game->uiRootElement->update();
+
+	// Hide mouse
+	game->mouse->setVisible(false);
 }
 
 void SplashState::execute()
-{
-	// Listen for splash screen skip
-	InputEvent event;
-	application->inputManager->listen(&event);
-	if (event.type != InputEvent::Type::NONE)
-	{
-		// Update control profile and input manager
-		application->menuControlProfile->update();
-		application->inputManager->update();
-		
-		// Check if application was closed
-		if (application->inputManager->wasClosed() || application->escape.isTriggered())
-		{
-			application->close(EXIT_SUCCESS);
-			return;
-		}
-		
-		// Check if fullscreen was toggled
-		else if (application->toggleFullscreen.isTriggered() && !application->toggleFullscreen.wasTriggered())
-		{
-			application->changeFullscreen();
-		}
-		else
-		{
-			// Clear screen
-			glClear(GL_COLOR_BUFFER_BIT);
-			SDL_GL_SwapWindow(application->window);
-			
-			// Stop splash tweens
-			application->splashFadeInTween->stop();
-			application->splashHangTween->stop();
-			application->splashFadeOutTween->stop();
-			
-			// Change to title state
-			application->changeState(application->titleState);
-			return;
-		}
-	}
-}
+{}
 
 void SplashState::exit()
 {
-	// Hide splash screen
-	application->splashBackgroundImage->setVisible(false);
-	application->splashImage->setVisible(false);
+	// Remove fade animation from the animator
+	game->getAnimator()->removeAnimation(&fadeAnimation);
+
+	// Unsubscribe this state from input events
+	game->getEventDispatcher()->unsubscribe<KeyPressedEvent>(this);
+	game->getEventDispatcher()->unsubscribe<MouseButtonPressedEvent>(this);
+	game->getEventDispatcher()->unsubscribe<GamepadButtonPressedEvent>(this);
+
+	// Make splash screen invisible
+	game->splashBackgroundImage->setVisible(false);
+	game->splashImage->setVisible(false);
 }
+
+void SplashState::handleEvent(const KeyPressedEvent& event)
+{
+	skip();
+}
+
+void SplashState::handleEvent(const MouseButtonPressedEvent& event)
+{
+	skip();
+}
+
+void SplashState::handleEvent(const GamepadButtonPressedEvent& event)
+{
+	skip();
+}
+
+void SplashState::skip()
+{
+	game->splashImage->setVisible(false);
+	game->changeState(game->sandboxState);
+}
+

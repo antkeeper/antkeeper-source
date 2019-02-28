@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017  Christopher J. Howard
+ * Copyright (C) 2017-2019  Christopher J. Howard
  *
  * This file is part of Antkeeper Source Code.
  *
@@ -18,13 +18,6 @@
  */
 
 #include "ui.hpp"
-#include "../application.hpp"
-
-// UI callbacks
-void menuPrint(Application* application, const std::string& string)
-{
-	std::cout << string << std::endl;
-}
 
 UIMaterial::UIMaterial()
 {
@@ -42,12 +35,7 @@ UIElement::UIElement():
 	anchor(Anchor::TOP_LEFT),
 	layerOffset(0),
 	layer(0),
-	origin(0.0f),
-	translation(0.0f),
-	rotation(0.0f),
-	dimensions(0.0f),
-	position(0.0f),
-	bounds(position, position),
+	bounds(Vector2(0.0f), Vector2(0.0f)),
 	tintColor(1.0f),
 	color(tintColor),
 	visible(true),
@@ -57,14 +45,27 @@ UIElement::UIElement():
 	mouseOutCallback(nullptr),
 	mouseMovedCallback(nullptr),
 	mousePressedCallback(nullptr),
-	mouseReleasedCallback(nullptr)
+	mouseReleasedCallback(nullptr),
+	origin(0.0f),
+	translation(0.0f),
+	rotation(0.0f),
+	dimensions(0.0f),
+	position(0.0f),
+	originTween(&origin, lerp<Vector2>),
+	translationTween(&translation, lerp<Vector2>),
+	rotationTween(&rotation, lerp<float>),
+	dimensionsTween(&dimensions, lerp<Vector2>),
+	positionTween(&position, lerp<Vector2>),
+	tintColorTween(&tintColor, lerp<Vector4>)
 {}
 
 UIElement::~UIElement()
 {}
 
 void UIElement::update()
-{	
+{
+	resetTweens();
+
 	// Calculate position
 	if (parent != nullptr)
 	{
@@ -139,14 +140,14 @@ void UIElement::setMouseReleasedCallback(std::function<void(int, int, int)> call
 	mouseReleasedCallback = callback;
 }
 
-void UIElement::mouseMoved(int x, int y)
+void UIElement::handleEvent(const MouseMovedEvent& event)
 {
 	if (!active)
 	{
 		return;
 	}
 	
-	if (bounds.contains(Vector2(x, y)))
+	if (bounds.contains(Vector2(event.x, event.y)))
 	{
 		if (!mouseOver)
 		{
@@ -159,7 +160,7 @@ void UIElement::mouseMoved(int x, int y)
 		
 		if (mouseMovedCallback)
 		{
-			mouseMovedCallback(x, y);
+			mouseMovedCallback(event.x, event.y);
 		}
 	}
 	else if (mouseOver)
@@ -173,50 +174,75 @@ void UIElement::mouseMoved(int x, int y)
 	
 	for (UIElement* child: children)
 	{
-		child->mouseMoved(x, y);
+		child->handleEvent(event);
 	}
 }
 
-void UIElement::mouseButtonPressed(int button, int x, int y)
+void UIElement::handleEvent(const MouseButtonPressedEvent& event)
 {
 	if (!active)
 	{
 		return;
 	}
 	
-	if (bounds.contains(Vector2(x, y)))
+	if (bounds.contains(Vector2(event.x, event.y)))
 	{
 		if (mousePressedCallback)
 		{
-			mousePressedCallback(button, x, y);
+			mousePressedCallback(event.button, event.x, event.y);
 		}
 		
 		for (UIElement* child: children)
 		{
-			child->mouseButtonPressed(button, x, y);
+			child->handleEvent(event);
 		}
 	}
 }
 
-void UIElement::mouseButtonReleased(int button, int x, int y)
+void UIElement::handleEvent(const MouseButtonReleasedEvent& event)
 {
 	if (!active)
 	{
 		return;
 	}
 	
-	if (bounds.contains(Vector2(x, y)))
+	if (bounds.contains(Vector2(event.x, event.y)))
 	{
 		if (mouseReleasedCallback)
 		{
-			mouseReleasedCallback(button, x , y);
+			mouseReleasedCallback(event.button, event.x , event.y);
 		}
 		
 		for (UIElement* child: children)
 		{
-			child->mouseButtonReleased(button, x, y);
+			child->handleEvent(event);
 		}
 	}
+}
+
+void UIElement::interpolate(float dt)
+{
+	originTween.interpolate(dt);
+	translationTween.interpolate(dt);
+	rotationTween.interpolate(dt);
+	dimensionsTween.interpolate(dt);
+	positionTween.interpolate(dt);
+	tintColorTween.interpolate(dt);
+
+	for (UIElement* child: children)
+	{
+		child->interpolate(dt);
+	}
+}
+
+void UIElement::resetTweens()
+{
+	originTween.reset();
+	translationTween.reset();
+	rotationTween.reset();
+	dimensionsTween.reset();
+	positionTween.reset();
+	tintColorTween.reset();
 }
 
 UILabel::UILabel():
@@ -233,7 +259,7 @@ void UILabel::setFont(Font* font)
 	calculateDimensions();
 }
 
-void UILabel::setText(const std::u32string& text)
+void UILabel::setText(const std::string& text)
 {
 	this->text = text;
 	calculateDimensions();
@@ -292,7 +318,7 @@ void UIBatcher::batch(BillboardBatch* result, const UIElement* ui)
 	}
 	
 	// Update batch
-	result->update();
+	result->batch();
 }
 
 void UIBatcher::queueElements(std::list<const UIElement*>* elements, const UIElement* element) const
@@ -368,13 +394,19 @@ void UIBatcher::batchLabel(BillboardBatch* result, const UILabel* label)
 		BillboardBatch::Range* range = getRange(result, label);
 		
 		// Pixel-perfect
-		Vector3 origin = Vector3((int)label->getPosition().x, (int)label->getPosition().y, label->getLayer() * 0.01f);
+		//Vector3 origin = Vector3((int)(label->getPosition().x + 0.5f), (int)(label->getPosition().y + 0.5f), label->getLayer() * 0.01f);
+		Vector3 origin = Vector3((int)(label->getPositionTween()->getSubstate().x), (int)(label->getPositionTween()->getSubstate().y), label->getLayer() * 0.01f);
 		
 		// Print billboards
 		const Font* font = label->getFont();
 		std::size_t index = range->start + range->length;
 		std::size_t count = 0;
 		font->puts(result, origin, label->getText(), label->getColor(), index, &count);
+
+		for (std::size_t i = index; i < index + count; ++i)
+		{
+			result->getBillboard(i)->resetTweens();
+		}
 		
 		// Increment range length
 		range->length += count;
@@ -387,23 +419,32 @@ void UIBatcher::batchImage(BillboardBatch* result, const UIImage* image)
 	BillboardBatch::Range* range = getRange(result, image);
 	
 	// Pixel-perfect
-	//Vector3 translation = Vector3((int)(image->getPosition().x + image->getDimensions().x * 0.5f), (int)(image->getPosition().y + image->getDimensions().y * 0.5f), image->getLayer() * 0.01f);
-	
-	Vector3 translation = Vector3(image->getPosition() + image->getDimensions() * 0.5f, image->getLayer() * 0.01f);
+	//Vector2 position = Vector2((int)(image->getPosition().x + 0.5f), (int)(image->getPosition().y + 0.5f));
+	//Vector2 dimensions = Vector2((int)(image->getDimensions().x + 0.5f), (int)(image->getDimensions().y + 0.5f));
+	//Vector3 translation = Vector3(position.x + dimensions.x * 0.5f, position.y + dimensions.y * 0.5f, image->getLayer() * 0.01f);
+
+	Vector2 position = Vector2((int)(image->getPositionTween()->getSubstate().x), (int)(image->getPositionTween()->getSubstate().y));
+	Vector2 dimensions = Vector2((int)(image->getDimensionsTween()->getSubstate().x), (int)(image->getDimensionsTween()->getSubstate().y));
+	Vector3 translation = Vector3(position.x + dimensions.x * 0.5f, position.y + dimensions.y * 0.5f, image->getLayer() * 0.01f);
 	
 	// Create billboard
 	std::size_t index = range->start + range->length;
 	Billboard* billboard = result->getBillboard(index);
-	billboard->setDimensions(image->getDimensions());
+	billboard->setDimensions(dimensions);
 	billboard->setTranslation(translation);
 	
-	if (image->getRotation() != 0.0f)
+	if (image->getRotationTween()->getSubstate() != 0.0f)
 	{
-		billboard->setRotation(glm::angleAxis(image->getRotation(), Vector3(0, 0, -1.0f)));
+		billboard->setRotation(glm::angleAxis(image->getRotationTween()->getSubstate(), Vector3(0, 0, -1.0f)));
+	}
+	else
+	{
+		billboard->setRotation(Quaternion(1, 0, 0, 0));
 	}
 	
 	billboard->setTextureCoordinates(image->getTextureBounds().getMin(), image->getTextureBounds().getMax());
-	billboard->setTintColor(image->getColor());
+	billboard->setTintColor(image->getTintColorTween()->getSubstate());
+	billboard->resetTweens();
 	
 	// Increment range length
 	++(range->length);

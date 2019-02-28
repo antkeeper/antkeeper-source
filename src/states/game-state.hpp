@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017  Christopher J. Howard
+ * Copyright (C) 2017-2019  Christopher J. Howard
  *
  * This file is part of Antkeeper Source Code.
  *
@@ -20,37 +20,30 @@
 #ifndef GAME_STATE_HPP
 #define GAME_STATE_HPP
 
-#include "../application-state.hpp"
-#include "../input.hpp"
-#include "../game/ant.hpp"
-#include "../game/navmesh.hpp"
+class Game;
 
-#include <emergent/emergent.hpp>
-using namespace Emergent;
-
-class GameState: public ApplicationState, public MouseButtonObserver, public MouseMotionObserver
+/**
+ * Abstract base class for game states.
+ */
+class GameState
 {
 public:
-	GameState(Application* application);
+	GameState(Game* game);
+	
 	virtual ~GameState();
 	
-	virtual void enter();
-	virtual void execute();
-	virtual void exit();
+	// Run once when the state is initially entered
+	virtual void enter() = 0;
 	
-	virtual void mouseButtonPressed(int button, int x, int y);
-	virtual void mouseButtonReleased(int button, int x, int y);
-	virtual void mouseMoved(int x, int y);
+	// Run continually while the state is valid
+	virtual void execute() = 0;
 	
-private:
-	ModelInstance terrainSurface;
-	ModelInstance terrainSubsurface;
-	Vector3 pick;
-	Ray pickingRay;
-	Navmesh::Triangle* pickTriangle;
-	bool dragging;
-	Vector2 oldMousePosition;
-	Vector2 mousePosition;
+	// Run once when the state is exited
+	virtual void exit() = 0;
+
+protected:
+	Game* game;
 };
 
 #endif // GAME_STATE_HPP
+
