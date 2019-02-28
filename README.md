@@ -1,6 +1,6 @@
 # Antkeeper Source &middot; [![GitHub license](https://img.shields.io/github/license/cjhoward/antkeeper.svg)](https://github.com/cjhoward/antkeeper/blob/master/COPYING) [![GitHub release](https://img.shields.io/github/release/cjhoward/antkeeper.svg)](https://github.com/cjhoward/antkeeper/releases/)
 
-Antkeeper is an ant colony simulation game for Windows, Mac OS X, and GNU/Linux. This repository contains all of the source code to Antkeeper. The game data, however, is proprietary. You can access the game data by purchasing a copy of Antkeeper at [https://antkeeper.com/]().
+Antkeeper is an ant colony simulation game for Windows, Mac OS X, and GNU/Linux. This repository contains all of the source code to Antkeeper. The game data, however, is proprietary. You can access the game data by purchasing a copy of Antkeeper at [](https://antkeeper.com/).
 
 ## License
 
