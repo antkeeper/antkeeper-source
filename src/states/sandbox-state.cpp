@@ -67,12 +67,13 @@ void SandboxState::enter()
 	game->orbitCam->setTargetAzimuth(azimuth);
 
 	game->freeCam->setTranslation(Vector3(-5, 5.0f, -5.0f));
-	//game->cameraRig = game->freeCam;
+	game->cameraRig = game->freeCam;
 	game->mouse->setRelativeMode(true);
 
 	toolIndex = 0;
 	game->selectTool(toolIndex);
-	game->currentTool->setActive(false);
+	//game->currentTool->setActive(false);
+	game->mouse->warp(game->window, game->w / 2, game->h / 2);
 
 	zoom = 0.5f;
 	noPick = false;
@@ -139,8 +140,6 @@ void SandboxState::execute()
 	{
 		game->orbitCam->rotate(rotationAngle);
 	}
-
-
 	
 	float zoomSpeed = 3.0f * game->timestep;
 	if (game->zoomInControl.isActive())

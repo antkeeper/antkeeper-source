@@ -60,6 +60,98 @@
 #include <stdexcept>
 #include <thread>
 
+template <>
+bool Game::readSetting<std::string>(const std::string& name, std::string* value) const
+{
+	auto it = settingsMap.find(name);
+	if (it == settingsMap.end())
+	{
+		return false;
+	}
+
+	*value = (*settingsTable)[it->second][1];
+
+	return true;
+}
+
+template <>
+bool Game::readSetting<bool>(const std::string& name, bool* value) const
+{
+	auto it = settingsMap.find(name);
+	if (it == settingsMap.end())
+	{
+		return false;
+	}
+
+	const std::string& string = (*settingsTable)[it->second][1];
+	if (string == "true" || string == "on" || string == "1")
+	{
+		*value = true;
+		return true;
+	}
+	else if (string == "false" || string == "off" || string == "0")
+	{
+		*value = false;
+		return true;
+	}
+
+	return false;
+}
+
+template <>
+bool Game::readSetting<int>(const std::string& name, int* value) const
+{
+	auto it = settingsMap.find(name);
+	if (it == settingsMap.end())
+	{
+		return false;
+	}
+
+	std::stringstream stream;
+	stream << (*settingsTable)[it->second][1];
+	stream >> (*value);
+
+	return (!stream.fail());
+}
+
+template <>
+bool Game::readSetting<float>(const std::string& name, float* value) const
+{
+	auto it = settingsMap.find(name);
+	if (it == settingsMap.end())
+	{
+		return false;
+	}
+
+	std::stringstream stream;
+	stream << (*settingsTable)[it->second][1];
+	stream >> (*value);
+
+	return (!stream.fail());
+}
+
+template <>
+bool Game::readSetting<Vector2>(const std::string& name, Vector2* value) const
+{
+	auto it = settingsMap.find(name);
+	if (it == settingsMap.end())
+	{
+		return false;
+	}
+
+	std::stringstream stream;
+	stream << (*settingsTable)[it->second][1];
+	stream >> value->x;
+
+	stream.str(std::string());
+	stream.clear();
+
+	stream << (*settingsTable)[it->second][2];
+	stream >> value->y;
+
+	return (!stream.fail());
+}
+
 Game::Game(int argc, char* argv[]):
 	currentState(nullptr),
 	window(nullptr)
@@ -74,27 +166,10 @@ Game::Game(int argc, char* argv[]):
 		createDirectory(configPath);
 	}
 
-	std::cout << configPath << std::endl;
-
 	// Setup resource manager
 	resourceManager = new ResourceManager();
 	resourceManager->include(dataPath);
 	resourceManager->include(configPath);
-
-	// Read strings file
-	stringTable = resourceManager->load<CSVTable>("strings.csv");
-
-	// Build string map
-	for (int row = 0; row < stringTable->size(); ++row)
-	{
-		stringMap[(*stringTable)[row][0]] = row;
-	}
-
-	// Determine number of languages
-	languageCount = (*stringTable)[0].size() - 1;
-
-	// Set current language to English
-	currentLanguage = 0;
 
 	splashState = new SplashState(this);
 	sandboxState = new SandboxState(this);
@@ -145,8 +220,8 @@ std::string Game::getString(std::size_t languageIndex, const std::string& name) 
 
 void Game::changeLanguage(std::size_t languageIndex)
 {
-	currentLanguage = languageIndex;
-	window->setTitle(getString(getCurrentLanguage(), "title").c_str());
+	this->languageIndex = languageIndex;
+	window->setTitle(getString(getLanguageIndex(), "title").c_str());
 
 	restringUI();
 	resizeUI(w, h);
@@ -165,24 +240,52 @@ void Game::setUpdateRate(double frequency)
 
 void Game::setup()
 {
-	// Initialize default parameters
-	title = getString(currentLanguage, "title");
-	float windowSizeRatio = 3.0f / 4.0f;
+	// Load settings
+	loadSettings();
+
+	// Load strings
+	loadStrings();
+
+	// Determine number of available languages
+	languageCount = (*stringTable)[0].size() - 1;
+	
+	// Match language code with language index
+	languageIndex = 0;
+	CSVRow* languageCodes = &(*stringTable)[0];
+	for (std::size_t i = 1; i < languageCodes->size(); ++i)
+	{
+		if (language == (*languageCodes)[i])
+		{
+			languageIndex = i - 1;
+			break;
+		}
+	}
+
+	// Get display resolution
 	const Display* display = deviceManager->getDisplays()->front();
-	w = std::get<0>(display->getDimensions()) * windowSizeRatio;
-	h = std::get<1>(display->getDimensions()) * windowSizeRatio;
-	w = 1600;
-	h = 900;
-	int x = std::get<0>(display->getPosition()) + std::get<0>(display->getDimensions()) / 2 - w / 2;
-	int y = std::get<1>(display->getPosition()) + std::get<1>(display->getDimensions()) / 2 - h / 2;
-	unsigned int flags = WindowFlag::RESIZABLE;
-	fullscreen = false;
-	bool vsync = true;
-	double maxFrameDuration = 0.25;
-	double stepFrequency = 60.0;
+	int displayWidth = std::get<0>(display->getDimensions());
+	int displayHeight = std::get<1>(display->getDimensions());
+
+	if (fullscreen)
+	{
+		w = static_cast<int>(fullscreenResolution.x);
+		h = static_cast<int>(fullscreenResolution.y);
+	}
+	else
+	{
+		w = static_cast<int>(windowedResolution.x);
+		h = static_cast<int>(windowedResolution.y);
+	}
+
+	// Determine window position
+	int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
+	int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
+
+	// Read title string
+	std::string title = getString(getLanguageIndex(), "title");
 
 	// Create window
-	window = windowManager->createWindow(title.c_str(), x, y, w, h, fullscreen, flags);
+	window = windowManager->createWindow(title.c_str(), x, y, w, h, fullscreen, WindowFlag::RESIZABLE);
 	if (!window)
 	{
 		throw std::runtime_error("Game::Game(): Failed to create window.");
@@ -192,6 +295,8 @@ void Game::setup()
 	window->setVSync(vsync);
 
 	// Setup step scheduler
+	double maxFrameDuration = 0.25;
+	double stepFrequency = 60.0;
 	stepScheduler.setMaxFrameDuration(maxFrameDuration);
 	stepScheduler.setStepFrequency(stepFrequency);
 	timestep = stepScheduler.getStepPeriod();
@@ -199,14 +304,10 @@ void Game::setup()
 	// Setup performance sampling
 	performanceSampler.setSampleSize(15);
 
-	// Get DPI and font size
+	// Get DPI and convert font size to pixels
 	dpi = display->getDPI();
-	fontSizePT = 14;
 	fontSizePX = fontSizePT * (1.0f / 72.0f) * dpi;
 
-	// Create scene
-	scene = new Scene(&stepInterpolator);
-	
 	// Setup control profile
 	keyboard = deviceManager->getKeyboards()->front();
 	mouse = deviceManager->getMice()->front();
@@ -230,7 +331,7 @@ void Game::setup()
 	dragCameraControl.bindMouseButton(mouse, 3);
 	toggleNestViewControl.bindKey(keyboard, Scancode::N);
 	toggleWireframeControl.bindKey(keyboard, Scancode::V);
-	screenshotControl.bindKey(keyboard, Scancode::B);
+	screenshotControl.bindKey(keyboard, Scancode::F12);
 	toggleEditModeControl.bindKey(keyboard, Scancode::TAB);
 	controlProfile.registerControl("close", &closeControl);
 	controlProfile.registerControl("fullscreen", &fullscreenControl);
@@ -250,10 +351,25 @@ void Game::setup()
 	controlProfile.registerControl("screenshot", &screenshotControl);
 	controlProfile.registerControl("toggle-edit-mode", &toggleEditModeControl);
 
+	// Save default control bindings
+	std::string bindingsPath = getConfigPath() + "/bindings/";
+	if (!pathExists(bindingsPath))
+	{
+		createDirectory(bindingsPath);
+	}
+	controlProfile.save(bindingsPath + "default.csv");
+
+	// Load control bindings
+	std::string controlProfileFilename = getConfigPath() + "/bindings/" + controlProfileName + ".csv";
+	controlProfile.load(controlProfileFilename, deviceManager);
+
 	wireframe = false;
 	toggleWireframeControl.setActivatedCallback(std::bind(&Game::toggleWireframe, this));
 	screenshotControl.setActivatedCallback(std::bind(&Game::queueScreenshot, this));
 	screenshotQueued = false;
+
+	// Create scene
+	scene = new Scene(&stepInterpolator);
 
 	TestEvent event1, event2, event3;
 	event1.id = 1;
@@ -754,6 +870,7 @@ void Game::setup()
 	boxSelectionBorderWidth = 2.0f;
 
 	cameraGridColor = Vector4(1, 1, 1, 0.5f);
+	cameraReticleColor = Vector4(1, 1, 1, 0.75f);
 	cameraGridY0Image = new UIImage();
 	cameraGridY0Image->setAnchor(Vector2(0.5f, (1.0f / 3.0f)));
 	cameraGridY0Image->setTintColor(cameraGridColor);
@@ -766,11 +883,17 @@ void Game::setup()
 	cameraGridX1Image = new UIImage();
 	cameraGridX1Image->setAnchor(Vector2((2.0f / 3.0f), 0.5f));
 	cameraGridX1Image->setTintColor(cameraGridColor);
+	cameraReticleImage = new UIImage();
+	cameraReticleImage->setAnchor(Anchor::CENTER);
+	cameraReticleImage->setTintColor(cameraReticleColor);
+	cameraReticleImage->setTexture(hudSpriteSheetTexture);
+	cameraReticleImage->setTextureBounds(normalizeTextureBounds(hudTextureAtlas.getBounds("camera-reticle"), hudTextureAtlasBounds));
 	cameraGridContainer = new UIContainer();
 	cameraGridContainer->addChild(cameraGridY0Image);
 	cameraGridContainer->addChild(cameraGridY1Image);
 	cameraGridContainer->addChild(cameraGridX0Image);
 	cameraGridContainer->addChild(cameraGridX1Image);
+	cameraGridContainer->addChild(cameraReticleImage);
 	cameraGridContainer->setVisible(true);
 	uiRootElement->addChild(cameraGridContainer);
 
@@ -1218,17 +1341,84 @@ void Game::handleEvent(const WindowResizedEvent& event)
 	resizeUI(event.width, event.height);
 }
 
-void Game::handleEvent(const KeyPressedEvent& event)
-{
-	if (event.scancode == Scancode::SPACE)
-	{
-		changeLanguage((getCurrentLanguage() + 1) % getLanguageCount());
-	}
-}
-
 void Game::handleEvent(const TestEvent& event)
 {
 	std::cout << "Event received!!! ID: " << event.id << std::endl;
+}
+
+void Game::resetSettings()
+{
+	// Set default language
+	language = "en-us";
+
+	// Set default resolutions
+	const Display* display = deviceManager->getDisplays()->front();
+	int displayWidth = std::get<0>(display->getDimensions());
+	int displayHeight = std::get<1>(display->getDimensions());
+	float windowedResolutionRatio = 5.0f / 6.0f;
+	windowedResolution = Vector2(displayWidth, displayHeight) * 5.0f / 6.0f;
+	windowedResolution.x = static_cast<int>(windowedResolution.x);
+	windowedResolution.y = static_cast<int>(windowedResolution.y);
+	fullscreenResolution = Vector2(displayWidth, displayHeight);
+
+	// Set default fullscreen mode
+	fullscreen = false;
+
+	// Set default vsync mode
+	vsync = true;
+
+	// Set default font size
+	fontSizePT = 14.0f;
+
+	// Set default control profile name
+	controlProfileName = "default";
+}
+
+void Game::loadSettings()
+{
+	// Reset settings to default values
+	resetSettings();
+
+	// Load settings table
+	try
+	{
+		settingsTable = resourceManager->load<CSVTable>("settings.csv");
+	}
+	catch (const std::exception& e)
+	{
+		settingsTable = new CSVTable();
+	}
+
+	// Build settings map
+	for (std::size_t i = 0; i < settingsTable->size(); ++i)
+	{
+		const CSVRow& row = (*settingsTable)[i];
+		settingsMap[row[0]] = i;
+	}
+
+	// Read settings from table
+	readSetting("language", &language);
+	readSetting("windowed-resolution", &windowedResolution);
+	readSetting("fullscreen-resolution", &fullscreenResolution);
+	readSetting("fullscreen", &fullscreen);
+	readSetting("vsync", &vsync);
+	readSetting("font-size", &fontSizePT);
+	readSetting("control-profile", &controlProfileName);
+}
+
+void Game::saveSettings()
+{}
+
+void Game::loadStrings()
+{
+	// Read strings file
+	stringTable = resourceManager->load<CSVTable>("strings.csv");
+
+	// Build string map
+	for (int row = 0; row < stringTable->size(); ++row)
+	{
+		stringMap[(*stringTable)[row][0]] = row;
+	}
 }
 
 void Game::resizeUI(int w, int h)
@@ -1395,15 +1585,18 @@ void Game::resizeUI(int w, int h)
 	notificationBoxImage->setAnchor(Vector2(0.5f, 0.0f));
 
 	float cameraGridLineWidth = 2.0f;
+	float cameraReticleDiameter = 6.0f;
 	cameraGridContainer->setDimensions(Vector2(w, h));
 	cameraGridY0Image->setDimensions(Vector2(w, cameraGridLineWidth));
 	cameraGridY1Image->setDimensions(Vector2(w, cameraGridLineWidth));
 	cameraGridX0Image->setDimensions(Vector2(cameraGridLineWidth, h));
 	cameraGridX1Image->setDimensions(Vector2(cameraGridLineWidth, h));
+	cameraReticleImage->setDimensions(Vector2(cameraReticleDiameter));
 	cameraGridY0Image->setTranslation(Vector2(0));
 	cameraGridY1Image->setTranslation(Vector2(0));
 	cameraGridX0Image->setTranslation(Vector2(0));
 	cameraGridX1Image->setTranslation(Vector2(0));
+	cameraReticleImage->setTranslation(Vector2(0));
 
 	UIImage* icons[] =
 	{
@@ -1485,6 +1678,7 @@ void Game::queueScreenshot()
 	screenshotQueued = true;
 	cameraFlashImage->setVisible(false);
 	cameraGridContainer->setVisible(false);
+	fpsLabel->setVisible(false);
 
 	soundSystem->scrot();
 }
@@ -1498,7 +1692,7 @@ void Game::screenshot()
 	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
 	// Get game title in current language
-	std::string title = getString(getCurrentLanguage(), "title");
+	std::string title = getString(getLanguageIndex(), "title");
 
 	// Convert title to lowercase
 	std::transform(title.begin(), title.end(), title.begin(), ::tolower);
@@ -1537,6 +1731,7 @@ void Game::screenshot()
 	
 	// Restore camera UI visibility
 	cameraGridContainer->setVisible(true);
+	fpsLabel->setVisible(true);
 }
 
 void Game::boxSelect(float x, float y, float w, float h)
@@ -1550,6 +1745,8 @@ void Game::boxSelect(float x, float y, float w, float h)
 	boxSelectionImageRight->setDimensions(Vector2(boxSelectionBorderWidth, h));
 	boxSelectionContainer->setVisible(true);
 }
+
+
 
 void Game::fadeIn(float duration, const Vector3& color, std::function<void()> callback)
 {
@@ -1717,3 +1914,5 @@ void Game::saveScreenshot(const std::string& filename, unsigned int width, unsig
 
 	delete[] pixels;
 }
+
+

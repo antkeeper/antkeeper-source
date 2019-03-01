@@ -24,6 +24,7 @@
 using namespace Emergent;
 
 #include "entity/entity-id.hpp"
+#include "resources/csv-table.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -113,7 +114,7 @@ public:
 	std::size_t getLanguageCount() const;
 
 	/// Returns the index of the current language.
-	std::size_t getCurrentLanguage() const;
+	std::size_t getLanguageIndex() const;
 
 	void toggleFullscreen();
 	void setUpdateRate(double frequency);
@@ -145,8 +146,13 @@ private:
 	virtual void render();
 	virtual void exit();
 	virtual void handleEvent(const WindowResizedEvent& event);
-	virtual void handleEvent(const KeyPressedEvent& event);
 	virtual void handleEvent(const TestEvent& event);
+
+	void resetSettings();
+	void loadSettings();
+	void saveSettings();
+	void loadStrings();
+
 	void resizeUI(int w, int h);
 	void restringUI();
 	void resizeRenderTargets();
@@ -166,6 +172,10 @@ public:
 
 	void boxSelect(float x, float y, float w, float h);
 
+	template <typename T>
+	bool readSetting(const std::string& name, T* value) const;
+
+
 public:
 	// States
 	GameState* currentState;
@@ -176,19 +186,20 @@ public:
 	std::string dataPath;
 	std::string configPath;
 
+	// Settings
+	CSVTable* settingsTable;
+	std::map<std::string, std::size_t> settingsMap;
+
 	// Localization
 	CSVTable* stringTable;
 	std::map<std::string, std::size_t> stringMap;
 	std::size_t languageCount;
-	std::size_t currentLanguage;
+	std::size_t languageIndex;
 
 	// Window management
 	Window* window;
-	bool fullscreen;
-	std::string title;
 	int w, h;
 	float dpi;
-	float fontSizePT;
 	float fontSizePX;
 
 	// Input
@@ -280,8 +291,10 @@ public:
 	UIImage* cameraGridY1Image;
 	UIImage* cameraGridX0Image;
 	UIImage* cameraGridX1Image;
+	UIImage* cameraReticleImage;
 	UIContainer* cameraGridContainer;
 	Vector4 cameraGridColor;
+	Vector4 cameraReticleColor;
 
 	// Rendering
 	Renderer renderer;
@@ -328,7 +341,6 @@ public:
 	Animation<float> cameraFlashAnimation;
 	AnimationClip<float> cameraFlashClip;
 
-
 	// Assets
 	ResourceManager* resourceManager;
 	Texture2D* splashTexture;
@@ -363,8 +375,19 @@ public:
 
 	EntityID lollipop;
 
-	bool wireframe;
 	bool screenshotQueued;
+
+	// Settings
+	std::string language;
+	Vector2 windowedResolution;
+	Vector2 fullscreenResolution;
+	bool fullscreen;
+	bool vsync;
+	float fontSizePT;
+	std::string controlProfileName;
+
+	// Debugging
+	bool wireframe;
 
 private:
 	static void saveScreenshot(const std::string& filename, unsigned int width, unsigned int height, unsigned char* pixels);
@@ -395,9 +418,9 @@ inline std::size_t Game::getLanguageCount() const
 	return languageCount;
 }
 
-inline std::size_t Game::getCurrentLanguage() const
+inline std::size_t Game::getLanguageIndex() const
 {
-	return currentLanguage;
+	return languageIndex;
 }
 
 #endif // GAME_HPP

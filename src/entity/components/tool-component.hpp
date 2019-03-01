@@ -29,6 +29,7 @@ public:
 	virtual ComponentBase* clone() const;
 	
 	bool active;
+	float hoverDistance;
 };
 
 #endif // TOOL_COMPONENT_HPP

@@ -85,6 +85,7 @@ static ComponentBase* loadToolComponent(const std::vector<std::string>& paramete
 	}
 
 	ToolComponent* component = new ToolComponent();
+	component->active = true;
 	
 	return component;
 }

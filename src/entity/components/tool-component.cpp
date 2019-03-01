@@ -23,6 +23,7 @@ ComponentBase* ToolComponent::clone() const
 {
 	ToolComponent* component = new ToolComponent();
 	component->active = active;
+	component->hoverDistance = hoverDistance;
 	
 	return component;
 }
