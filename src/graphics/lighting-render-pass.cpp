@@ -104,7 +104,7 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	const Vector3& cameraPosition = camera.getTransformTween()->getSubstate().translation;
 
 	// Gather lights
-	const std::list<SceneObject*>* lights = renderContext->layer->getObjects(SceneObjectType::LIGHT);
+	const std::list<SceneObject*>* lights = renderContext->scene->getObjects(SceneObjectType::LIGHT);
 
 	// Gather ambient cubes
 	AmbientCube* ambientCube = nullptr;

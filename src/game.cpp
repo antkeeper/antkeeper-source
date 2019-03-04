@@ -266,8 +266,6 @@ void Game::setup()
 
 	screenshotQueued = false;
 
-	// Create scene
-	scene = new Scene(&stepInterpolator);
 
 	// Load model resources
 	try
@@ -860,8 +858,6 @@ void Game::setup()
 
 	// Setup scene
 	{
-		defaultLayer = scene->addLayer();
-
 		// Setup lighting pass
 		lightingPass = new LightingRenderPass(resourceManager);
 		lightingPass->setRenderTarget(&defaultRenderTarget);
@@ -897,12 +893,12 @@ void Game::setup()
 		camera.lookAt(Vector3(0.0f, 4.0f, 2.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
 		camera.setCompositor(&defaultCompositor);
 		camera.setCompositeIndex(1);
-		defaultLayer->addObject(&camera);
+		worldScene->addObject(&camera);
 
 		// Setup sun
 		sunlight.setDirection(Vector3(0, -1, 0));
 		setTimeOfDay(11.0f);
-		defaultLayer->addObject(&sunlight);
+		worldScene->addObject(&sunlight);
 
 		// Setup sunlight camera
 		sunlightCamera.setOrthographic(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
@@ -910,13 +906,12 @@ void Game::setup()
 		sunlightCamera.setCompositeIndex(0);
 		sunlightCamera.setCullingEnabled(true);
 		sunlightCamera.setCullingMask(&camera.getViewFrustum());
-		defaultLayer->addObject(&sunlightCamera);
+		worldScene->addObject(&sunlightCamera);
 	}
 	
 	// Setup UI scene
-	uiLayer = scene->addLayer();
-	uiLayer->addObject(uiBatch);
-	uiLayer->addObject(&uiCamera);
+	uiScene->addObject(uiBatch);
+	uiScene->addObject(&uiCamera);
 
 	// Setup UI camera
 	uiCamera.lookAt(Vector3(0), Vector3(0, 0, -1), Vector3(0, 1, 0));
@@ -937,8 +932,8 @@ void Game::setup()
 
 	lens = new Lens(lensModel, &animator);
 	lens->setOrbitCam(orbitCam);
-	defaultLayer->addObject(lens->getModelInstance());
-	defaultLayer->addObject(lens->getSpotlight());
+	worldScene->addObject(lens->getModelInstance());
+	worldScene->addObject(lens->getSpotlight());
 	lens->setSunDirection(-sunlightCamera.getForward());
 
 	ModelInstance* modelInstance = lens->getModelInstance();
@@ -952,12 +947,12 @@ void Game::setup()
 	// Forceps
 	forceps = new Forceps(forcepsModel, &animator);
 	forceps->setOrbitCam(orbitCam);
-	defaultLayer->addObject(forceps->getModelInstance());
+	worldScene->addObject(forceps->getModelInstance());
 
 	// Brush
 	brush = new Brush(brushModel, &animator);
 	brush->setOrbitCam(orbitCam);
-	defaultLayer->addObject(brush->getModelInstance());
+	worldScene->addObject(brush->getModelInstance());
 
 	//
 	
@@ -973,7 +968,7 @@ void Game::setup()
 	soundSystem = new SoundSystem(componentManager);
 	collisionSystem = new CollisionSystem(componentManager);
 	cameraSystem = new CameraSystem(componentManager);
-	renderSystem = new RenderSystem(componentManager, defaultLayer);
+	renderSystem = new RenderSystem(componentManager, worldScene);
 	toolSystem = new ToolSystem(componentManager);
 	toolSystem->setPickingCamera(&camera);
 	toolSystem->setPickingViewport(Vector4(0, 0, w, h));
@@ -987,7 +982,7 @@ void Game::setup()
 	particleSystem->setDirection(Vector3(0, 1, 0));
 	lens->setParticleSystem(particleSystem);
 	particleSystem->getBillboardBatch()->setAlignment(&camera, BillboardAlignmentMode::SPHERICAL);
-	defaultLayer->addObject(particleSystem->getBillboardBatch());
+	worldScene->addObject(particleSystem->getBillboardBatch());
 
 
 	// Initialize system manager
@@ -1115,7 +1110,8 @@ void Game::render()
 	particleSystem->getBillboardBatch()->batch();
 
 	// Render scene
-	renderer.render(*scene);
+	renderer.render(*worldScene);
+	renderer.render(*uiScene);
 
 	// Swap window framebuffers
 	window->swapBuffers();
@@ -1209,8 +1205,11 @@ void Game::setupWindow()
 
 void Game::setupGraphics()
 {
-
 	glEnable(GL_MULTISAMPLE);
+
+	// Create scenes
+	worldScene = new Scene(&stepInterpolator);
+	uiScene = new Scene(&stepInterpolator);
 }
 
 void Game::setupUI()

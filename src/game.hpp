@@ -337,9 +337,8 @@ public:
 	RenderTarget silhouetteRenderTarget;
 
 	// Scene
-	Scene* scene;
-	SceneLayer* defaultLayer;
-	SceneLayer* uiLayer;
+	Scene* worldScene;
+	Scene* uiScene;
 	DirectionalLight sunlight;
 	Camera camera;
 	Camera sunlightCamera;

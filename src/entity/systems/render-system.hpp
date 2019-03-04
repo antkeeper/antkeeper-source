@@ -41,7 +41,7 @@ class RenderSystem:
 	public ModelGroup::Observer
 {
 public:
-	RenderSystem(ComponentManager* componentManager, SceneLayer* scene);
+	RenderSystem(ComponentManager* componentManager, Scene* scene);
 	virtual ~RenderSystem();
 	
 	virtual void update(float t, float dt);
@@ -49,7 +49,7 @@ public:
 private:
 	CameraGroup cameraGroup;
 	ModelGroup modelGroup;
-	SceneLayer* scene;
+	Scene* scene;
 
 	virtual void memberRegistered(const CameraGroup::Member* member);
 	virtual void memberUnregistered(const CameraGroup::Member* member);

@@ -100,7 +100,7 @@ void SkyRenderPass::render(RenderContext* renderContext)
 	const Camera& camera = *(renderContext->camera);
 
 	// Get sun light
-	const std::list<SceneObject*>* lights = renderContext->layer->getObjects(SceneObjectType::LIGHT);
+	const std::list<SceneObject*>* lights = renderContext->scene->getObjects(SceneObjectType::LIGHT);
 	DirectionalLight* sun = nullptr;
 	for (SceneObject* object: *lights)
 	{

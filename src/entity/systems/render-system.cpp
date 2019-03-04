@@ -19,7 +19,7 @@
 
 #include "render-system.hpp"
 
-RenderSystem::RenderSystem(ComponentManager* componentManager, SceneLayer* scene):
+RenderSystem::RenderSystem(ComponentManager* componentManager, Scene* scene):
 	System(componentManager),
 	cameraGroup(componentManager),
 	modelGroup(componentManager),
