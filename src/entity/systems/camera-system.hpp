@@ -17,47 +17,37 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TOOL_SYSTEM_HPP
-#define TOOL_SYSTEM_HPP
+#ifndef CAMERA_SYSTEM_HPP
+#define CAMERA_SYSTEM_HPP
 
 #include "../entity-group.hpp"
+#include "../components/camera-component.hpp"
 #include "../components/model-component.hpp"
-#include "../components/tool-component.hpp"
 #include "../components/transform-component.hpp"
 #include "../system.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
-typedef EntityGroup<ModelComponent, ToolComponent, TransformComponent> ToolGroup;
+typedef EntityGroup<CameraComponent, TransformComponent> CameraGroup;
 
-class ToolSystem:
+class CameraSystem:
 	public System,
-	public ToolGroup::Observer,
+	public CameraGroup::Observer,
 	public EventHandler<MouseMovedEvent>
 {
 public:
-	ToolSystem(ComponentManager* componentManager);
-	virtual ~ToolSystem();
+	CameraSystem(ComponentManager* componentManager);
+	virtual ~CameraSystem();
 	
 	virtual void update(float t, float dt);
 
-	void setPickingCamera(const Camera* camera);
-	void setPickingViewport(const Vector4& viewport);
-
 private:
-	void pick();
-	virtual void memberRegistered(const ToolGroup::Member* member);
-	virtual void memberUnregistered(const ToolGroup::Member* member);
+	virtual void memberRegistered(const CameraGroup::Member* member);
+	virtual void memberUnregistered(const CameraGroup::Member* member);
 	virtual void handleEvent(const MouseMovedEvent& event);
-
-	Vector2 mouseScreenPosition;
-	Vector3 mouseWorldPosition;
-	const Camera* pickingCamera;
-	Vector4 pickingViewport;
-	bool picked;
-	ToolGroup toolGroup;
+	CameraGroup cameraGroup;
 };
 
-#endif // TOOL_SYSTEM_HPP
+#endif // CAMERA_SYSTEM_HPP
 

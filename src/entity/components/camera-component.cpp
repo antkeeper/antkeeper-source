@@ -17,23 +17,13 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMPONENT__TYPE_HPP
-#define COMPONENT__TYPE_HPP
+#include "camera-component.hpp"
 
-enum class ComponentType
+ComponentBase* CameraComponent::clone() const
 {
-	ANIMATION,
-	ANT_HILL,
-	BEHAVIOR,
-	CAMERA,
-	COLLISION,
-	LEGGED_LOCOMOTION,
-	MODEL,
-	STEERING,
-	SOUND_SOURCE,
-	TOOL,
-	TRANSFORM
-};
-
-#endif // COMPONENT_TYPE_HPP
+	CameraComponent* component = new CameraComponent();
+	component->camera = camera;
+	
+	return component;
+}
 

@@ -86,7 +86,7 @@ void SandboxState::execute()
 	game->lightingPass->setTime(game->time);
 	bool menuClosed = false;
 
-	if (game->openRadialMenuControl.isActive() && !game->openRadialMenuControl.wasActive())
+	if (game->openToolMenuControl.isActive() && !game->openToolMenuControl.wasActive())
 	{
 		game->radialMenuContainer->setVisible(true);
 		game->hudContainer->setVisible(false);
@@ -95,7 +95,7 @@ void SandboxState::execute()
 		selectorVector = Vector2(0.0f);
 		game->mouse->setRelativeMode(true);
 	}
-	else if (!game->openRadialMenuControl.isActive() && game->openRadialMenuControl.wasActive())
+	else if (!game->openToolMenuControl.isActive() && game->openToolMenuControl.wasActive())
 	{
 		game->radialMenuContainer->setVisible(false);
 		//game->hudContainer->setVisible(true);
@@ -132,11 +132,11 @@ void SandboxState::execute()
 	}
 
 	float rotationAngle = glm::radians(180.0f) * game->timestep;
-	if (game->rotateCCWControl.isActive())
+	if (game->orbitCCWControl.isActive())
 	{
 		game->orbitCam->rotate(-rotationAngle);
 	}
-	if (game->rotateCWControl.isActive())
+	if (game->orbitCWControl.isActive())
 	{
 		game->orbitCam->rotate(rotationAngle);
 	}
@@ -310,11 +310,6 @@ void SandboxState::execute()
 		game->mouse->setRelativeMode(false);
 		game->mouse->warp(game->window, game->w / 2, game->h / 2);
 		noPick = false;
-	}
-
-	if (game->toggleNestViewControl.isActive() && !game->toggleNestViewControl.wasActive())
-	{
-		game->fadeOut(0.5f, Vector3(0.0f), std::bind(&Game::fadeIn, game, 0.5f, Vector3(0.0f), nullptr));
 	}
 }
 

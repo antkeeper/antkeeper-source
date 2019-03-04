@@ -21,10 +21,12 @@
 
 RenderSystem::RenderSystem(ComponentManager* componentManager, SceneLayer* scene):
 	System(componentManager),
-	modelEntityGroup(componentManager),
+	cameraGroup(componentManager),
+	modelGroup(componentManager),
 	scene(scene)
 {
-	modelEntityGroup.addGroupObserver(this);
+	cameraGroup.addGroupObserver(this);
+	modelGroup.addGroupObserver(this);
 }
 
 RenderSystem::~RenderSystem()
@@ -32,8 +34,17 @@ RenderSystem::~RenderSystem()
 
 void RenderSystem::update(float t, float dt)
 {
-	auto members = modelEntityGroup.getMembers();
-	for (const ModelEntityGroup::Member* member: *members)
+	// Update transform of all cameras
+	for (const CameraGroup::Member* member: *cameraGroup.getMembers())
+	{
+		CameraComponent* camera = std::get<0>(member->components);
+		TransformComponent* transform = std::get<1>(member->components);
+
+		camera->camera.setTransform(transform->transform);
+	}
+
+	// Update transform of all model instances
+	for (const ModelGroup::Member* member: *modelGroup.getMembers())
 	{
 		ModelComponent* model = std::get<0>(member->components);
 		TransformComponent* transform = std::get<1>(member->components);
@@ -42,13 +53,25 @@ void RenderSystem::update(float t, float dt)
 	}
 }
 
-void RenderSystem::memberRegistered(const ModelEntityGroup::Member* member)
+void RenderSystem::memberRegistered(const CameraGroup::Member* member)
+{
+	CameraComponent* camera = std::get<0>(member->components);
+	scene->addObject(&camera->camera);
+}
+
+void RenderSystem::memberUnregistered(const CameraGroup::Member* member)
+{
+	CameraComponent* camera = std::get<0>(member->components);
+	scene->removeObject(&camera->camera);
+}
+
+void RenderSystem::memberRegistered(const ModelGroup::Member* member)
 {
 	ModelComponent* model = std::get<0>(member->components);
 	scene->addObject(&model->model);
 }
 
-void RenderSystem::memberUnregistered(const ModelEntityGroup::Member* member)
+void RenderSystem::memberUnregistered(const ModelGroup::Member* member)
 {
 	ModelComponent* model = std::get<0>(member->components);
 	scene->removeObject(&model->model);

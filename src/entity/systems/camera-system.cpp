@@ -17,23 +17,34 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMPONENT__TYPE_HPP
-#define COMPONENT__TYPE_HPP
+#include "camera-system.hpp"
 
-enum class ComponentType
+CameraSystem::CameraSystem(ComponentManager* componentManager):
+	System(componentManager),
+	cameraGroup(componentManager)
 {
-	ANIMATION,
-	ANT_HILL,
-	BEHAVIOR,
-	CAMERA,
-	COLLISION,
-	LEGGED_LOCOMOTION,
-	MODEL,
-	STEERING,
-	SOUND_SOURCE,
-	TOOL,
-	TRANSFORM
-};
+	cameraGroup.addGroupObserver(this);
+}
 
-#endif // COMPONENT_TYPE_HPP
+CameraSystem::~CameraSystem()
+{}
+
+void CameraSystem::update(float t, float dt)
+{
+	auto members = cameraGroup.getMembers();	
+	for (const CameraGroup::Member* member: *members)
+	{
+		CameraComponent* camera = std::get<0>(member->components);
+		TransformComponent* transform = std::get<1>(member->components);
+	}
+}
+
+void CameraSystem::memberRegistered(const CameraGroup::Member* member)
+{}
+
+void CameraSystem::memberUnregistered(const CameraGroup::Member* member)
+{}
+
+void CameraSystem::handleEvent(const MouseMovedEvent& event)
+{}
 

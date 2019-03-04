@@ -21,10 +21,10 @@
 
 ToolSystem::ToolSystem(ComponentManager* componentManager):
 	System(componentManager),
-	tools(componentManager),
+	toolGroup(componentManager),
 	picked(false)
 {
-	tools.addGroupObserver(this);
+	toolGroup.addGroupObserver(this);
 }
 
 ToolSystem::~ToolSystem()
@@ -34,7 +34,7 @@ void ToolSystem::update(float t, float dt)
 {
 	pick();
 
-	auto members = tools.getMembers();	
+	auto members = toolGroup.getMembers();	
 	for (const ToolGroup::Member* member: *members)
 	{
 		ModelComponent* model = std::get<0>(member->components);
@@ -83,7 +83,6 @@ void ToolSystem::pick()
 void ToolSystem::memberRegistered(const ToolGroup::Member* member)
 {
 	ToolComponent* tool = std::get<1>(member->components);
-	tool->active = false;
 }
 
 void ToolSystem::memberUnregistered(const ToolGroup::Member* member)

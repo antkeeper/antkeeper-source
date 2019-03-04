@@ -18,6 +18,7 @@
  */
 
 #include "game.hpp"
+#include "resources/csv-table.hpp"
 #include "states/game-state.hpp"
 #include "states/splash-state.hpp"
 #include "states/sandbox-state.hpp"
@@ -45,6 +46,7 @@
 #include "entity/systems/sound-system.hpp"
 #include "entity/systems/collision-system.hpp"
 #include "entity/systems/render-system.hpp"
+#include "entity/systems/camera-system.hpp"
 #include "entity/systems/tool-system.hpp"
 #include "entity/systems/locomotion-system.hpp"
 #include "entity/systems/behavior-system.hpp"
@@ -243,144 +245,29 @@ void Game::setup()
 	// Load settings
 	loadSettings();
 
-	// Load strings
-	loadStrings();
+	// Setup localization (load strings, select language, ...)
+	setupLocalization();
 
-	// Determine number of available languages
-	languageCount = (*stringTable)[0].size() - 1;
-	
-	// Match language code with language index
-	languageIndex = 0;
-	CSVRow* languageCodes = &(*stringTable)[0];
-	for (std::size_t i = 1; i < languageCodes->size(); ++i)
-	{
-		if (language == (*languageCodes)[i])
-		{
-			languageIndex = i - 1;
-			break;
-		}
-	}
+	setupWindow();
 
-	// Get display resolution
-	const Display* display = deviceManager->getDisplays()->front();
-	int displayWidth = std::get<0>(display->getDimensions());
-	int displayHeight = std::get<1>(display->getDimensions());
+	setupGraphics();
 
-	if (fullscreen)
-	{
-		w = static_cast<int>(fullscreenResolution.x);
-		h = static_cast<int>(fullscreenResolution.y);
-	}
-	else
-	{
-		w = static_cast<int>(windowedResolution.x);
-		h = static_cast<int>(windowedResolution.y);
-	}
+	setupUI();
 
-	// Determine window position
-	int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
-	int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
+	setupControls();
 
-	// Read title string
-	std::string title = getString(getLanguageIndex(), "title");
+	setupGameplay();
 
-	// Create window
-	window = windowManager->createWindow(title.c_str(), x, y, w, h, fullscreen, WindowFlag::RESIZABLE);
-	if (!window)
-	{
-		throw std::runtime_error("Game::Game(): Failed to create window.");
-	}
+	setupDebugging();
 
-	// Set v-sync mode
-	window->setVSync(vsync);
 
-	// Setup step scheduler
-	double maxFrameDuration = 0.25;
-	double stepFrequency = 60.0;
-	stepScheduler.setMaxFrameDuration(maxFrameDuration);
-	stepScheduler.setStepFrequency(stepFrequency);
-	timestep = stepScheduler.getStepPeriod();
 
-	// Setup performance sampling
-	performanceSampler.setSampleSize(15);
 
-	// Get DPI and convert font size to pixels
-	dpi = display->getDPI();
-	fontSizePX = fontSizePT * (1.0f / 72.0f) * dpi;
 
-	// Setup control profile
-	keyboard = deviceManager->getKeyboards()->front();
-	mouse = deviceManager->getMice()->front();
-	closeControl.bindKey(keyboard, Scancode::ESCAPE);
-	closeControl.setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
-	fullscreenControl.bindKey(keyboard, Scancode::F11);
-	fullscreenControl.setActivatedCallback(std::bind(&Game::toggleFullscreen, this));
-	openRadialMenuControl.bindKey(keyboard, Scancode::LSHIFT);
-	moveForwardControl.bindKey(keyboard, Scancode::W);
-	moveBackControl.bindKey(keyboard, Scancode::S);
-	moveLeftControl.bindKey(keyboard, Scancode::A);
-	moveRightControl.bindKey(keyboard, Scancode::D);
-	//rotateCCWControl.bindKey(keyboard, Scancode::Q);
-	//rotateCWControl.bindKey(keyboard, Scancode::E);
-	moveRightControl.bindKey(keyboard, Scancode::D);
-	zoomInControl.bindKey(keyboard, Scancode::EQUALS);
-	zoomInControl.bindMouseWheelAxis(mouse, MouseWheelAxis::POSITIVE_Y);
-	zoomOutControl.bindKey(keyboard, Scancode::MINUS);
-	zoomOutControl.bindMouseWheelAxis(mouse, MouseWheelAxis::NEGATIVE_Y);
-	adjustCameraControl.bindMouseButton(mouse, 2);
-	dragCameraControl.bindMouseButton(mouse, 3);
-	toggleNestViewControl.bindKey(keyboard, Scancode::N);
-	toggleWireframeControl.bindKey(keyboard, Scancode::V);
-	screenshotControl.bindKey(keyboard, Scancode::F12);
-	toggleEditModeControl.bindKey(keyboard, Scancode::TAB);
-	controlProfile.registerControl("close", &closeControl);
-	controlProfile.registerControl("fullscreen", &fullscreenControl);
-	controlProfile.registerControl("open-radial-menu", &openRadialMenuControl);
-	controlProfile.registerControl("move-forward", &moveForwardControl);
-	controlProfile.registerControl("move-back", &moveBackControl);
-	controlProfile.registerControl("move-left", &moveLeftControl);
-	controlProfile.registerControl("move-right", &moveRightControl);
-	controlProfile.registerControl("rotate-ccw", &rotateCCWControl);
-	controlProfile.registerControl("rotate-cw", &rotateCWControl);
-	controlProfile.registerControl("zoom-in", &zoomInControl);
-	controlProfile.registerControl("zoom-out", &zoomOutControl);
-	controlProfile.registerControl("adjust-camera", &adjustCameraControl);
-	controlProfile.registerControl("drag-camera", &dragCameraControl);
-	controlProfile.registerControl("toggle-nest-view", &toggleNestViewControl);
-	controlProfile.registerControl("toggle-wireframe", &toggleWireframeControl);
-	controlProfile.registerControl("screenshot", &screenshotControl);
-	controlProfile.registerControl("toggle-edit-mode", &toggleEditModeControl);
-
-	// Save default control bindings
-	std::string bindingsPath = getConfigPath() + "/bindings/";
-	if (!pathExists(bindingsPath))
-	{
-		createDirectory(bindingsPath);
-	}
-	controlProfile.save(bindingsPath + "default.csv");
-
-	// Load control bindings
-	std::string controlProfileFilename = getConfigPath() + "/bindings/" + controlProfileName + ".csv";
-	controlProfile.load(controlProfileFilename, deviceManager);
-
-	wireframe = false;
-	toggleWireframeControl.setActivatedCallback(std::bind(&Game::toggleWireframe, this));
-	screenshotControl.setActivatedCallback(std::bind(&Game::queueScreenshot, this));
 	screenshotQueued = false;
 
 	// Create scene
 	scene = new Scene(&stepInterpolator);
-
-	TestEvent event1, event2, event3;
-	event1.id = 1;
-	event2.id = 2;
-	event3.id = 3;
-
-
-	eventDispatcher.subscribe<TestEvent>(this);
-	eventDispatcher.schedule(event1, 1.0);
-	eventDispatcher.schedule(event2, 10.0);
-	eventDispatcher.schedule(event3, 1.0);
 
 	// Load model resources
 	try
@@ -470,27 +357,6 @@ void Game::setup()
 
 
 	Shader* shader = resourceManager->load<Shader>("depth-pass.glsl");
-
-	/*
-	VertexFormat format;
-	format.addAttribute<Vector4>(0);
-	format.addAttribute<Vector3>(1);
-	format.addAttribute<Vector3>(2);
-
-	VertexBuffer* vb = graphicsContext->createVertexBuffer(format);
-	vb->resize(1000);
-	vb->setData(bla, 0, 1000);
-
-	IndexBuffer* ib = graphicsContext->createIndexBuffer();
-	ib->resize(300);
-	ib->setData(bla, 0, 300);
-
-	graphicsContext->bind(framebuffer);
-	graphicsContext->bind(shader);
-	graphicsContext->bind(vb);
-	graphicsContext->bind(ib);
-	graphicsContext->draw(100, TRIANGLES);
-	*/
 
 	cameraRig = nullptr;
 	orbitCam = new OrbitCam();
@@ -780,71 +646,7 @@ void Game::setup()
 	antLabelPinHole->setTexture(hudSpriteSheetTexture);
 	antLabelPinHole->setTextureBounds(normalizeTextureBounds(hudTextureAtlas.getBounds("label-pin-hole"), hudTextureAtlasBounds));
 	antLabelContainer->addChild(antLabelPinHole);
-
-	notificationBoxImage = new UIImage();
-	notificationBoxImage->setTexture(hudSpriteSheetTexture);
-	notificationBoxImage->setTextureBounds(normalizeTextureBounds(hudTextureAtlas.getBounds("notification-box"), hudTextureAtlasBounds));
-	notificationBoxImage->setVisible(false);
-	hudContainer->addChild(notificationBoxImage);
-
-	// Construct show notification animation clip
-	notificationCount = 0;
-	AnimationChannel<Vector2>* channel2;
-	showNotificationClip.setInterpolator(easeOutQuint<Vector2>);
-	channel2 = showNotificationClip.addChannel(0);
-	channel2->insertKeyframe(0.0f, Vector2(0.0f, 0.0f));
-	channel2->insertKeyframe(0.5f, Vector2(32.0f, 1.0f));
-	showNotificationAnimation.setClip(&showNotificationClip);
-	showNotificationAnimation.setSpeed(1.0f);
-	showNotificationAnimation.setTimeFrame(showNotificationClip.getTimeFrame());
-	animator.addAnimation(&showNotificationAnimation);
-
-	showNotificationAnimation.setAnimateCallback
-	(
-		[this](std::size_t id, const Vector2& values)
-		{
-			notificationBoxImage->setVisible(true);
-			notificationBoxImage->setTintColor(Vector4(Vector3(1.0f), values.y));
-			//notificationBoxImage->setTranslation(Vector2(0.0f, -32.0f + values.x));
-		}
-	);
-	showNotificationAnimation.setEndCallback
-	(
-		[this]()
-		{
-			hideNotificationAnimation.rewind();
-			hideNotificationAnimation.play();
-		}
-	);
-
-	// Construct hide notification animation clip
-	hideNotificationClip.setInterpolator(easeOutQuint<float>);
-	AnimationChannel<float>* channel;
-	channel = hideNotificationClip.addChannel(0);
-	channel->insertKeyframe(0.0f, 1.0f);
-	channel->insertKeyframe(10.5f, 1.0f);
-	channel->insertKeyframe(12.0f, 0.0f);
-	hideNotificationAnimation.setClip(&hideNotificationClip);
-	hideNotificationAnimation.setSpeed(1.0f);
-	hideNotificationAnimation.setTimeFrame(hideNotificationClip.getTimeFrame());
-	animator.addAnimation(&hideNotificationAnimation);
-	hideNotificationAnimation.setAnimateCallback
-	(
-		[this](std::size_t id, float opacity)
-		{
-			notificationBoxImage->setTintColor(Vector4(Vector3(1.0f), opacity));
-		}
-	);
-	hideNotificationAnimation.setEndCallback
-	(
-		[this]()
-		{
-			notificationBoxImage->setVisible(false);
-			--notificationCount;
-			popNotification();
-		}
-	);
-
+	
 	// Construct box selection
 	boxSelectionImageBackground = new UIImage();
 	boxSelectionImageBackground->setAnchor(Anchor::CENTER);
@@ -911,6 +713,7 @@ void Game::setup()
 
 	// Construct fade-in animation clip
 	fadeInClip.setInterpolator(easeOutCubic<float>);
+	AnimationChannel<float>* channel;
 	channel = fadeInClip.addChannel(0);
 	channel->insertKeyframe(0.0f, 1.0f);
 	channel->insertKeyframe(1.0f, 0.0f);
@@ -1004,10 +807,6 @@ void Game::setup()
 	);
 	animator.addAnimation(&cameraFlashAnimation);
 	
-	// Setup default compositor
-	{
-		defaultCompositor.load(nullptr);
-	}
 
 	// Setup shadow map pass and compositor
 	{
@@ -1160,7 +959,6 @@ void Game::setup()
 	brush->setOrbitCam(orbitCam);
 	defaultLayer->addObject(brush->getModelInstance());
 
-	glEnable(GL_MULTISAMPLE);
 	//
 	
 	performanceSampler.setSampleSize(30);
@@ -1174,6 +972,7 @@ void Game::setup()
 	// Initialize systems
 	soundSystem = new SoundSystem(componentManager);
 	collisionSystem = new CollisionSystem(componentManager);
+	cameraSystem = new CameraSystem(componentManager);
 	renderSystem = new RenderSystem(componentManager, defaultLayer);
 	toolSystem = new ToolSystem(componentManager);
 	toolSystem->setPickingCamera(&camera);
@@ -1200,6 +999,7 @@ void Game::setup()
 	systemManager->addSystem(collisionSystem);
 	systemManager->addSystem(toolSystem);
 	systemManager->addSystem(particleSystem);
+	systemManager->addSystem(cameraSystem);
 	systemManager->addSystem(renderSystem);
 
 	EntityID sidewalkPanel;
@@ -1211,7 +1011,7 @@ void Game::setup()
 	EntityID antNest = createInstanceOf("ant-nest");
 	setTranslation(antNest, Vector3(20, 0, 40));
 
-	lollipop = createInstanceOf("lollipop");
+	EntityID lollipop = createInstanceOf("lollipop");
 	setTranslation(lollipop, Vector3(30.0f, 3.5f * 0.5f, -30.0f));
 	setRotation(lollipop, glm::angleAxis(glm::radians(8.85f), Vector3(1.0f, 0.0f, 0.0f)));
 
@@ -1260,10 +1060,6 @@ void Game::setup()
 	changeState(splashState);
 }
 
-void Game::input()
-{
-}
-
 void Game::update(float t, float dt)
 {
 	this->time = t;
@@ -1283,14 +1079,27 @@ void Game::update(float t, float dt)
 	// Update animations
 	animator.animate(dt);
 
-	std::stringstream stream;
-	stream.precision(2);
-	stream << std::fixed << (performanceSampler.getMeanFrameDuration() * 1000.0f);
-	fpsLabel->setText(stream.str());
+	if (fpsLabel->isVisible())
+	{
+		std::stringstream stream;
+		stream.precision(2);
+		stream << std::fixed << (performanceSampler.getMeanFrameDuration() * 1000.0f);
+		fpsLabel->setText(stream.str());
+	}
 
 	uiRootElement->update();
+}
 
-	controlProfile.update();
+void Game::input()
+{
+	/*
+	if (useToolControl.isActive() && !useToolControl.wasActive())
+	{
+		intentSystem.queueIntent(Intent::USE_TOOL);
+	}
+	*/
+
+	controls.update();
 }
 
 void Game::render()
@@ -1341,9 +1150,217 @@ void Game::handleEvent(const WindowResizedEvent& event)
 	resizeUI(event.width, event.height);
 }
 
-void Game::handleEvent(const TestEvent& event)
+void Game::setupLocalization()
 {
-	std::cout << "Event received!!! ID: " << event.id << std::endl;
+	// Load strings
+	loadStrings();
+
+	// Determine number of available languages
+	languageCount = (*stringTable)[0].size() - 1;
+	
+	// Match language code with language index
+	languageIndex = 0;
+	CSVRow* languageCodes = &(*stringTable)[0];
+	for (std::size_t i = 1; i < languageCodes->size(); ++i)
+	{
+		if (language == (*languageCodes)[i])
+		{
+			languageIndex = i - 1;
+			break;
+		}
+	}
+}
+
+void Game::setupWindow()
+{
+	// Get display resolution
+	const Display* display = deviceManager->getDisplays()->front();
+	int displayWidth = std::get<0>(display->getDimensions());
+	int displayHeight = std::get<1>(display->getDimensions());
+
+	if (fullscreen)
+	{
+		w = static_cast<int>(fullscreenResolution.x);
+		h = static_cast<int>(fullscreenResolution.y);
+	}
+	else
+	{
+		w = static_cast<int>(windowedResolution.x);
+		h = static_cast<int>(windowedResolution.y);
+	}
+
+	// Determine window position
+	int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
+	int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
+
+	// Read title string
+	std::string title = getString(getLanguageIndex(), "title");
+
+	// Create window
+	window = windowManager->createWindow(title.c_str(), x, y, w, h, fullscreen, WindowFlag::RESIZABLE);
+	if (!window)
+	{
+		throw std::runtime_error("Game::Game(): Failed to create window.");
+	}
+
+	// Set v-sync mode
+	window->setVSync(vsync);
+}
+
+void Game::setupGraphics()
+{
+
+	glEnable(GL_MULTISAMPLE);
+}
+
+void Game::setupUI()
+{
+	// Get DPI and convert font size to pixels
+	const Display* display = deviceManager->getDisplays()->front();
+	dpi = display->getDPI();
+	fontSizePX = fontSizePT * (1.0f / 72.0f) * dpi;
+}
+
+void Game::setupControls()
+{
+	// Get keyboard and mouse
+	keyboard = deviceManager->getKeyboards()->front();
+	mouse = deviceManager->getMice()->front();
+
+	// Build the master control set
+	controls.addControl(&toggleFullscreenControl);
+	controls.addControl(&screenshotControl);
+	controls.addControl(&exitControl);
+	controls.addControl(&menuUpControl);
+	controls.addControl(&menuDownControl);
+	controls.addControl(&menuLeftControl);
+	controls.addControl(&menuRightControl);
+	controls.addControl(&menuBackControl);
+	controls.addControl(&moveForwardControl);
+	controls.addControl(&moveBackControl);
+	controls.addControl(&moveLeftControl);
+	controls.addControl(&moveRightControl);
+	controls.addControl(&zoomInControl);
+	controls.addControl(&zoomOutControl);
+	controls.addControl(&orbitCCWControl);
+	controls.addControl(&orbitCWControl);
+	controls.addControl(&adjustCameraControl);
+	controls.addControl(&dragCameraControl);
+	controls.addControl(&openToolMenuControl);
+	controls.addControl(&useToolControl);
+	controls.addControl(&toggleEditModeControl);
+	controls.addControl(&toggleWireframeControl);
+
+	// Build the system control set
+	systemControls.addControl(&exitControl);
+	systemControls.addControl(&toggleFullscreenControl);
+	systemControls.addControl(&screenshotControl);
+
+	// Build the menu control set
+	menuControls.addControl(&menuUpControl);
+	menuControls.addControl(&menuDownControl);
+	menuControls.addControl(&menuLeftControl);
+	menuControls.addControl(&menuRightControl);
+	menuControls.addControl(&menuSelectControl);
+	menuControls.addControl(&menuBackControl);
+
+	// Build the camera control set
+	cameraControls.addControl(&moveForwardControl);
+	cameraControls.addControl(&moveBackControl);
+	cameraControls.addControl(&moveLeftControl);
+	cameraControls.addControl(&moveRightControl);
+	cameraControls.addControl(&zoomInControl);
+	cameraControls.addControl(&zoomOutControl);
+	cameraControls.addControl(&orbitCCWControl);
+	cameraControls.addControl(&orbitCWControl);
+	cameraControls.addControl(&adjustCameraControl);
+	cameraControls.addControl(&dragCameraControl);
+
+	// Build the tool control set
+	toolControls.addControl(&openToolMenuControl);
+	toolControls.addControl(&useToolControl);
+
+	// Build the editor control set
+	editorControls.addControl(&toggleEditModeControl);
+
+	// Setup control callbacks
+	exitControl.setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
+	toggleFullscreenControl.setActivatedCallback(std::bind(&Game::toggleFullscreen, this));
+	screenshotControl.setActivatedCallback(std::bind(&Game::queueScreenshot, this));
+	toggleWireframeControl.setActivatedCallback(std::bind(&Game::toggleWireframe, this));
+
+	// Map controls
+	inputMapper->map(&exitControl, keyboard, Scancode::ESCAPE);
+	inputMapper->map(&toggleFullscreenControl, keyboard, Scancode::F11);
+	inputMapper->map(&screenshotControl, keyboard, Scancode::F12);
+	inputMapper->map(&openToolMenuControl, keyboard, Scancode::LSHIFT);
+	inputMapper->map(&moveForwardControl, keyboard, Scancode::W);
+	inputMapper->map(&moveBackControl, keyboard, Scancode::S);
+	inputMapper->map(&moveLeftControl, keyboard, Scancode::A);
+	inputMapper->map(&moveRightControl, keyboard, Scancode::D);
+	inputMapper->map(&orbitCCWControl, keyboard, Scancode::Q);
+	inputMapper->map(&orbitCWControl, keyboard, Scancode::E);
+	inputMapper->map(&zoomInControl, mouse, MouseWheelAxis::POSITIVE_Y);
+	inputMapper->map(&zoomInControl, keyboard, Scancode::EQUALS);
+	inputMapper->map(&zoomOutControl, mouse, MouseWheelAxis::NEGATIVE_Y);
+	inputMapper->map(&zoomOutControl, keyboard, Scancode::MINUS);
+	inputMapper->map(&adjustCameraControl, mouse, 2);
+	inputMapper->map(&dragCameraControl, mouse, 3);
+	inputMapper->map(&toggleWireframeControl, keyboard, Scancode::V);
+	inputMapper->map(&toggleEditModeControl, keyboard, Scancode::TAB);
+
+	/*
+	controlProfile.registerControl("exit", &exitControl);
+	controlProfile.registerControl("toggle-fullscreen", &toggleFullscreenControl);
+	controlProfile.registerControl("open-tool-menu", &openToolMenuControl);
+	controlProfile.registerControl("move-forward", &moveForwardControl);
+	controlProfile.registerControl("move-back", &moveBackControl);
+	controlProfile.registerControl("move-left", &moveLeftControl);
+	controlProfile.registerControl("move-right", &moveRightControl);
+	controlProfile.registerControl("orbit-ccw", &orbitCCWControl);
+	controlProfile.registerControl("orbit-cw", &orbitCWControl);
+	controlProfile.registerControl("zoom-in", &zoomInControl);
+	controlProfile.registerControl("zoom-out", &zoomOutControl);
+	controlProfile.registerControl("adjust-camera", &adjustCameraControl);
+	controlProfile.registerControl("drag-camera", &dragCameraControl);
+	controlProfile.registerControl("toggle-wireframe", &toggleWireframeControl);
+	controlProfile.registerControl("screenshot", &screenshotControl);
+	controlProfile.registerControl("toggle-edit-mode", &toggleEditModeControl);
+	*/
+
+	/*
+	// Save default control bindings
+	std::string bindingsPath = getConfigPath() + "/bindings/";
+	if (!pathExists(bindingsPath))
+	{
+		createDirectory(bindingsPath);
+	}
+	controlProfile.save(bindingsPath + "default.csv");
+
+	// Load control bindings
+	std::string controlProfileFilename = getConfigPath() + "/bindings/" + controlProfileName + ".csv";
+	controlProfile.load(controlProfileFilename, deviceManager);
+	*/
+
+}
+
+void Game::setupGameplay()
+{
+	// Setup step scheduler
+	double maxFrameDuration = 0.25;
+	double stepFrequency = 60.0;
+	stepScheduler.setMaxFrameDuration(maxFrameDuration);
+	stepScheduler.setStepFrequency(stepFrequency);
+	timestep = stepScheduler.getStepPeriod();
+}
+
+void Game::setupDebugging()
+{
+	// Setup performance sampling
+	performanceSampler.setSampleSize(15);
+
+	// Disable wireframe drawing
+	wireframe = false;
 }
 
 void Game::resetSettings()
@@ -1579,10 +1596,6 @@ void Game::resizeUI(int w, int h)
 	float pinDistance = 20.0f;
 	antTag->setAnchor(Anchor::CENTER);
 	antTag->setDimensions(Vector2(antLabelContainer->getDimensions().x, antPin->getDimensions().y));
-
-	Rect notificationBoxBounds = hudTextureAtlas.getBounds("notification-box");
-	notificationBoxImage->setDimensions(Vector2(notificationBoxBounds.getWidth(), notificationBoxBounds.getHeight()));
-	notificationBoxImage->setAnchor(Vector2(0.5f, 0.0f));
 
 	float cameraGridLineWidth = 2.0f;
 	float cameraReticleDiameter = 6.0f;
@@ -1820,10 +1833,6 @@ void Game::selectTool(int toolIndex)
 		{
 			currentTool->setActive(true);
 		}
-		else
-		{
-			pushNotification("Invalid tool.");
-		}
 	}
 
 	if (1)
@@ -1837,24 +1846,9 @@ void Game::selectTool(int toolIndex)
 	}
 }
 
-void Game::pushNotification(const std::string& text)
+EntityID Game::createInstance()
 {
-	std::cout << text << std::endl;
-	++notificationCount;
-
-	if (notificationCount == 1)
-	{
-		popNotification();
-	}
-}
-
-void Game::popNotification()
-{
-	if (notificationCount > 0)
-	{
-		showNotificationAnimation.rewind();
-		showNotificationAnimation.play();
-	}
+	return entityManager->createEntity();
 }
 
 EntityID Game::createInstanceOf(const std::string& templateName)
@@ -1871,6 +1865,17 @@ EntityID Game::createInstanceOf(const std::string& templateName)
 void Game::destroyInstance(EntityID entity)
 {
 	entityManager->destroyEntity(entity);
+}
+
+void Game::addComponent(EntityID entity, ComponentBase* component)
+{
+	componentManager->addComponent(entity, component);
+}
+
+void Game::removeComponent(EntityID entity, ComponentType type)
+{
+	ComponentBase* component = componentManager->removeComponent(entity, type);
+	delete component;
 }
 
 void Game::setTranslation(EntityID entity, const Vector3& translation)

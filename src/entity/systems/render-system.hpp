@@ -20,6 +20,7 @@
 #ifndef RENDER_SYSTEM_HPP
 #define RENDER_SYSTEM_HPP
 
+#include "../components/camera-component.hpp"
 #include "../components/model-component.hpp"
 #include "../components/transform-component.hpp"
 #include "../entity-group.hpp"
@@ -28,14 +29,16 @@
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
-typedef EntityGroup<ModelComponent, TransformComponent> ModelEntityGroup;
+typedef EntityGroup<CameraComponent, TransformComponent> CameraGroup;
+typedef EntityGroup<ModelComponent, TransformComponent> ModelGroup;
 
 /**
  * Abstract base class for entity systems.
  */
-class RenderSystem: public
-	System,
-	ModelEntityGroup::Observer
+class RenderSystem:
+	public System,
+	public CameraGroup::Observer,
+	public ModelGroup::Observer
 {
 public:
 	RenderSystem(ComponentManager* componentManager, SceneLayer* scene);
@@ -44,11 +47,14 @@ public:
 	virtual void update(float t, float dt);
 
 private:
-	ModelEntityGroup modelEntityGroup;
+	CameraGroup cameraGroup;
+	ModelGroup modelGroup;
 	SceneLayer* scene;
 
-	virtual void memberRegistered(const ModelEntityGroup::Member* member);
-	virtual void memberUnregistered(const ModelEntityGroup::Member* member);
+	virtual void memberRegistered(const CameraGroup::Member* member);
+	virtual void memberUnregistered(const CameraGroup::Member* member);
+	virtual void memberRegistered(const ModelGroup::Member* member);
+	virtual void memberUnregistered(const ModelGroup::Member* member);
 };
 
 #endif // RENDER_SYSTEM_HPP

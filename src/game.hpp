@@ -24,7 +24,6 @@
 using namespace Emergent;
 
 #include "entity/entity-id.hpp"
-#include "resources/csv-table.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -44,7 +43,6 @@ class LightingRenderPass;
 class SilhouetteRenderPass;
 class FinalRenderPass;
 class ResourceManager;
-typedef std::vector<std::vector<std::string>> CSVTable;
 class CameraRig;
 class OrbitCam;
 class FreeCam;
@@ -59,28 +57,17 @@ class SystemManager;
 class SoundSystem;
 class CollisionSystem;
 class RenderSystem;
+class CameraSystem;
 class ToolSystem;
 class BehaviorSystem;
 class SteeringSystem;
 class LocomotionSystem;
-
-class TestEvent: public Event<TestEvent>
-{
-	public:
-		inline EventBase* clone() const
-		{
-			TestEvent* event = new TestEvent();
-			event->id = id;
-			return event;
-		}
-
-		int id;
-};
-
+class ComponentBase;
+enum class ComponentType;
+typedef std::vector<std::vector<std::string>> CSVTable;
 
 class Game:
-	public Application,
-	public EventHandler<TestEvent>
+	public Application
 {
 public:
 	/**
@@ -136,8 +123,6 @@ public:
 	void fadeOut(float duration, const Vector3& color, std::function<void()> callback);
 
 	void selectTool(int toolIndex);
-	void pushNotification(const std::string& text);
-	void popNotification();
 
 private:
 	virtual void setup();
@@ -146,7 +131,14 @@ private:
 	virtual void render();
 	virtual void exit();
 	virtual void handleEvent(const WindowResizedEvent& event);
-	virtual void handleEvent(const TestEvent& event);
+
+	void setupLocalization();
+	void setupWindow();
+	void setupGraphics();
+	void setupUI();
+	void setupControls();
+	void setupGameplay();
+	void setupDebugging();
 
 	void resetSettings();
 	void loadSettings();
@@ -164,8 +156,11 @@ private:
 
 
 public:
+	EntityID createInstance();
 	EntityID createInstanceOf(const std::string& templateName);
 	void destroyInstance(EntityID entity);
+	void addComponent(EntityID entity, ComponentBase* component);
+	void removeComponent(EntityID entity, ComponentType type);
 	void setTranslation(EntityID entity, const Vector3& translation);
 	void setRotation(EntityID entity, const Quaternion& rotation);
 	void setScale(EntityID entity, const Vector3& scale);
@@ -205,24 +200,50 @@ public:
 	// Input
 	Mouse* mouse;
 	Keyboard* keyboard;
-	ControlProfile controlProfile;
-	Control fullscreenControl;
-	Control closeControl;
-	Control openRadialMenuControl;
+
+	// Master control set
+	ControlSet controls;
+
+	// System control set
+	ControlSet systemControls;
+	Control exitControl;
+	Control toggleFullscreenControl;
+	Control screenshotControl;
+	
+	// Menu control set
+	ControlSet menuControls;
+	Control menuUpControl;
+	Control menuDownControl;
+	Control menuLeftControl;
+	Control menuRightControl;
+	Control menuSelectControl;
+	Control menuBackControl;
+
+	// Camera control set
+	ControlSet cameraControls;
 	Control moveForwardControl;
 	Control moveBackControl;
 	Control moveLeftControl;
 	Control moveRightControl;
-	Control rotateCCWControl;
-	Control rotateCWControl;
 	Control zoomInControl;
 	Control zoomOutControl;
+	Control orbitCCWControl;
+	Control orbitCWControl;
 	Control adjustCameraControl;
 	Control dragCameraControl;
-	Control toggleNestViewControl;
-	Control toggleWireframeControl;
-	Control screenshotControl;
+
+	// Tool control set
+	ControlSet toolControls;
+	Control openToolMenuControl;
+	Control useToolControl;
+
+	// Editor control set
+	ControlSet editorControls;
 	Control toggleEditModeControl;
+
+	// Debug control set
+	ControlSet debugControls;
+	Control toggleWireframeControl;
 
 	// Logic
 	float time;
@@ -261,8 +282,6 @@ public:
 	UIImage* radialMenuSelectorImage;
 	UIImage* blackoutImage;
 	UIImage* cameraFlashImage;
-	UIImage* notificationBoxImage;
-	int notificationCount;
 	UIContainer* antTag;
 	UIContainer* antLabelContainer;
 	UILabel* fpsLabel;
@@ -334,10 +353,6 @@ public:
 	AnimationClip<float> fadeOutClip;
 	std::function<void()> fadeInEndCallback;
 	std::function<void()> fadeOutEndCallback;
-	Animation<Vector2> showNotificationAnimation;
-	Animation<float> hideNotificationAnimation;
-	AnimationClip<Vector2> showNotificationClip;
-	AnimationClip<float> hideNotificationClip;
 	Animation<float> cameraFlashAnimation;
 	AnimationClip<float> cameraFlashClip;
 
@@ -367,13 +382,12 @@ public:
 	SystemManager* systemManager;
 	SoundSystem* soundSystem;
 	CollisionSystem* collisionSystem;
+	CameraSystem* cameraSystem;
 	RenderSystem* renderSystem;
 	ToolSystem* toolSystem;
 	BehaviorSystem* behaviorSystem;
 	SteeringSystem* steeringSystem;
 	LocomotionSystem* locomotionSystem;
-
-	EntityID lollipop;
 
 	bool screenshotQueued;
 
