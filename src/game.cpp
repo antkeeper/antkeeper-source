@@ -1443,17 +1443,16 @@ void Game::loadControlProfile()
 		if (deviceType == "keyboard")
 		{
 			const std::string& eventType = row[2];
-			const std::string& scancodeString = row[3];
+			const std::string& scancodeName = row[3];
 
 			// Get scancode from string
-			std::stringstream stream;
-			int scancodeIndex;
-			stream << row[3];
-			stream >> scancodeIndex;
-			Scancode scancode = static_cast<Scancode>(scancodeIndex);
+			Scancode scancode = Keyboard::getScancodeFromName(scancodeName.c_str());
 
 			// Map control
-			inputMapper->map(control, keyboard, scancode);
+			if (scancode != Scancode::UNKNOWN)
+			{
+				inputMapper->map(control, keyboard, scancode);
+			}
 		}
 		else if (deviceType == "mouse")
 		{
@@ -1593,10 +1592,10 @@ void Game::loadControlProfile()
 
 	// Map controls
 	/*
-	inputMapper->map(&exitControl, keyboard, Scancode::ESCAPE);
+	inputMapper->map(&exitControl, keyboard, Scancode::ESC);
 	inputMapper->map(&toggleFullscreenControl, keyboard, Scancode::F11);
 	inputMapper->map(&screenshotControl, keyboard, Scancode::F12);
-	inputMapper->map(&openToolMenuControl, keyboard, Scancode::LSHIFT);
+	inputMapper->map(&openToolMenuControl, keyboard, Scancode::LEFT_SHIFT);
 	inputMapper->map(&moveForwardControl, keyboard, Scancode::W);
 	inputMapper->map(&moveBackControl, keyboard, Scancode::S);
 	inputMapper->map(&moveLeftControl, keyboard, Scancode::A);
@@ -1604,7 +1603,7 @@ void Game::loadControlProfile()
 	inputMapper->map(&orbitCCWControl, keyboard, Scancode::Q);
 	inputMapper->map(&orbitCWControl, keyboard, Scancode::E);
 	inputMapper->map(&zoomInControl, mouse, MouseWheelAxis::POSITIVE_Y);
-	inputMapper->map(&zoomInControl, keyboard, Scancode::EQUALS);
+	inputMapper->map(&zoomInControl, keyboard, Scancode::EQUAL);
 	inputMapper->map(&zoomOutControl, mouse, MouseWheelAxis::NEGATIVE_Y);
 	inputMapper->map(&zoomOutControl, keyboard, Scancode::MINUS);
 	inputMapper->map(&adjustCameraControl, mouse, 2);
@@ -1651,10 +1650,7 @@ void Game::saveControlProfile()
 					row->push_back("keyboard");
 					row->push_back("key");
 
-					std::string scancodeName;
-					std::stringstream stream;
-					stream << static_cast<int>(keyMapping->scancode);
-					stream >> scancodeName;
+					std::string scancodeName = std::string("\"") + std::string(Keyboard::getScancodeName(keyMapping->scancode)) + std::string("\"");
 					row->push_back(scancodeName);
 					break;
 				}
