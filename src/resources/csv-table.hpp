@@ -23,7 +23,8 @@
 #include <string>
 #include <vector>
 
-typedef std::vector<std::string> CSVRow;
+typedef std::string CSVColumn;
+typedef std::vector<CSVColumn> CSVRow;
 typedef std::vector<CSVRow> CSVTable;
 
 #endif // CSV_TABLE_HPP

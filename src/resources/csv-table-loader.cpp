@@ -111,3 +111,29 @@ CSVTable* ResourceLoader<CSVTable>::load(ResourceManager* resourceManager, std::
 	return table;
 }
 
+template <>
+void ResourceLoader<CSVTable>::save(ResourceManager* resourceManager, std::ostream* os, const CSVTable* table)
+{
+	for (std::size_t i = 0; i < table->size(); ++i)
+	{
+		const CSVRow& row = (*table)[i];
+
+		for (std::size_t j = 0; j < row.size(); ++j)
+		{
+			const CSVColumn& column = row[j];
+
+			(*os) << column;
+
+			if (j < row.size() - 1)
+			{
+				(*os) << ",";
+			}
+		}
+
+		if (i < table->size() - 1)
+		{
+			(*os) << std::endl;
+		}
+	}
+}
+

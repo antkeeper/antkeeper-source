@@ -460,7 +460,7 @@ void Game::render()
 
 void Game::exit()
 {
-
+	saveControlProfile();
 }
 
 void Game::handleEvent(const WindowResizedEvent& event)
@@ -1412,13 +1412,6 @@ void Game::loadStrings()
 
 void Game::loadControlProfile()
 {
-	// Create control directory if it doesn't exist
-	std::string controlsPath = getConfigPath() + "/controls/";
-	if (!pathExists(controlsPath))
-	{
-		createDirectory(controlsPath);
-	}
-
 	// Load control profile
 	std::string controlProfilePath = "/controls/" + controlProfileName + ".csv";
 	CSVTable* controlProfile = resourceManager->load<CSVTable>(controlProfilePath);
@@ -1599,6 +1592,7 @@ void Game::loadControlProfile()
 	}
 
 	// Map controls
+	/*
 	inputMapper->map(&exitControl, keyboard, Scancode::ESCAPE);
 	inputMapper->map(&toggleFullscreenControl, keyboard, Scancode::F11);
 	inputMapper->map(&screenshotControl, keyboard, Scancode::F12);
@@ -1617,10 +1611,188 @@ void Game::loadControlProfile()
 	inputMapper->map(&dragCameraControl, mouse, 3);
 	inputMapper->map(&toggleWireframeControl, keyboard, Scancode::V);
 	inputMapper->map(&toggleEditModeControl, keyboard, Scancode::TAB);
+	*/
 }
 
 void Game::saveControlProfile()
-{}
+{
+	// Build control profile CSV table
+	CSVTable* table = new CSVTable();
+	for (auto it = controlNameMap.begin(); it != controlNameMap.end(); ++it)
+	{
+		// Get control name
+		const std::string& controlName = it->first;
+
+		// Get pointer to the control
+		Control* control = it->second;
+
+		// Look up list of mappings for the control
+		const std::list<InputMapping*>* mappings = inputMapper->getMappings(control);
+		if (!mappings)
+		{
+			continue;
+		}
+
+		// For each input mapping
+		for (const InputMapping* mapping: *mappings)
+		{
+			// Add row to the table
+			table->push_back(CSVRow());
+			CSVRow* row = &table->back();
+
+			// Add control name column
+			row->push_back(controlName);
+
+			switch (mapping->getType())
+			{
+				case InputMappingType::KEY:
+				{
+					const KeyMapping* keyMapping = static_cast<const KeyMapping*>(mapping);
+					row->push_back("keyboard");
+					row->push_back("key");
+
+					std::string scancodeName;
+					std::stringstream stream;
+					stream << static_cast<int>(keyMapping->scancode);
+					stream >> scancodeName;
+					row->push_back(scancodeName);
+					break;
+				}
+
+				case InputMappingType::MOUSE_MOTION:
+				{
+					const MouseMotionMapping* mouseMotionMapping = static_cast<const MouseMotionMapping*>(mapping);
+					row->push_back("mouse");
+					row->push_back("motion");
+
+					std::string axisName;
+					if (mouseMotionMapping->axis == MouseMotionAxis::POSITIVE_X)
+					{
+						axisName = "+x";
+					}
+					else if (mouseMotionMapping->axis == MouseMotionAxis::NEGATIVE_X)
+					{
+						axisName = "-x";
+					}
+					else if (mouseMotionMapping->axis == MouseMotionAxis::POSITIVE_Y)
+					{
+						axisName = "+y";
+					}
+					else
+					{
+						axisName = "-y";
+					}
+
+					row->push_back(axisName);
+
+					break;
+				}
+
+				case InputMappingType::MOUSE_WHEEL:
+				{
+					const MouseWheelMapping* mouseWheelMapping = static_cast<const MouseWheelMapping*>(mapping);
+
+					row->push_back("mouse");
+					row->push_back("wheel");
+
+					std::string axisName;
+					if (mouseWheelMapping->axis == MouseWheelAxis::POSITIVE_X)
+					{
+						axisName = "+x";
+					}
+					else if (mouseWheelMapping->axis == MouseWheelAxis::NEGATIVE_X)
+					{
+						axisName = "-x";
+					}
+					else if (mouseWheelMapping->axis == MouseWheelAxis::POSITIVE_Y)
+					{
+						axisName = "+y";
+					}
+					else
+					{
+						axisName = "-y";
+					}
+
+					row->push_back(axisName);
+					break;
+				}
+
+				case InputMappingType::MOUSE_BUTTON:
+				{
+					const MouseButtonMapping* mouseButtonMapping = static_cast<const MouseButtonMapping*>(mapping);
+
+					row->push_back("mouse");
+					row->push_back("button");
+
+					std::string buttonName;
+					std::stringstream stream;
+					stream << static_cast<int>(mouseButtonMapping->button);
+					stream >> buttonName;
+					row->push_back(buttonName);
+					break;
+				}
+
+				case InputMappingType::GAMEPAD_AXIS:
+				{
+					const GamepadAxisMapping* gamepadAxisMapping = static_cast<const GamepadAxisMapping*>(mapping);
+
+					row->push_back("gamepad");
+					row->push_back("axis");
+
+					std::stringstream stream;
+					if (gamepadAxisMapping->negative)
+					{
+						stream << "-";
+					}
+					else
+					{
+						stream << "+";
+					}
+					stream << gamepadAxisMapping->axis;
+
+					std::string axisName;
+					stream >> axisName;
+					row->push_back(axisName);
+					break;
+				}
+
+				case InputMappingType::GAMEPAD_BUTTON:
+				{
+					const GamepadButtonMapping* gamepadButtonMapping = static_cast<const GamepadButtonMapping*>(mapping);
+
+					row->push_back("gamepad");
+					row->push_back("button");
+
+					std::string buttonName;
+					std::stringstream stream;
+					stream << static_cast<int>(gamepadButtonMapping->button);
+					stream >> buttonName;
+					row->push_back(buttonName);
+					break;
+				}
+
+				default:
+					break;
+			}
+		}
+	}
+	
+	// Create controls directory if it doesn't exist
+	std::string controlsPath = getConfigPath() + "/controls/";
+	if (!pathExists(controlsPath))
+	{
+		createDirectory(controlsPath);
+	}
+
+	// Form full path to control profile file
+	std::string controlProfilePath = controlsPath + controlProfileName + ".csv";
+
+	// Save control profile
+	resourceManager->save<CSVTable>(table, controlProfilePath);
+
+	// Free control profile CSV table
+	delete table;
+}
 
 void Game::resizeUI(int w, int h)
 {

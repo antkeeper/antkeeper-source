@@ -68,6 +68,16 @@ public:
 	 */
 	void unload(const std::string& path);
 
+	/**
+	 * Saves the specified resource.
+	 *
+	 * @tparam T Resource type.
+	 * @param resource Pointer to the resource.
+	 * @param path Path to the resource.
+	 */
+	template <typename T>
+	void save(const T* resource, const std::string& path);
+
 private:
 	std::map<std::string, ResourceHandleBase*> resourceCache;
 	std::list<std::string> paths;
@@ -123,7 +133,7 @@ T* ResourceManager::load(const std::string& path)
 
 		if (!opened)
 		{
-			throw std::runtime_error("Unable to open file.");
+			throw std::runtime_error("ResourceManager::load<T>(): Unable to open file \"" + path + "\"");
 		}
 	}
 	catch (const std::exception& e)
@@ -141,6 +151,35 @@ T* ResourceManager::load(const std::string& path)
 	resourceCache[path] = resource;
 
 	return resource->data;
+}
+
+template <typename T>
+void ResourceManager::save(const T* resource, const std::string& path)
+{
+	// Attempt to open file
+	std::ofstream fs;
+	fs.open(path.c_str(), std::ios::out | std::ios::binary);
+
+	// If unable to open file
+	if (!fs.is_open() || !fs.good())
+	{
+		if (fs.is_open())
+		{
+			fs.close();
+		}
+
+		throw std::runtime_error("ResourceManager::save<T>(): Unable to open file \"" + path + "\"");
+	}
+
+	try
+	{
+		ResourceLoader<T>::save(this, &fs, resource);
+	}
+	catch (const std::exception& e)
+	{
+		std::string error = std::string("ResourceManager::load<T>(): Failed to save resource \"") + path + std::string("\": \"") + e.what() + std::string("\"");
+		throw std::runtime_error(error.c_str());
+	}
 }
 
 #endif // RESOURCE_MANAGER_HPP

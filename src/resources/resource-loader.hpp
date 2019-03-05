@@ -21,11 +21,14 @@
 #define RESOURCE_LOADER_HPP
 
 #include <istream>
+#include <ostream>
 
 class ResourceManager;
 
 /**
- * Templated resource class. Different resources types should specialize the constructor and destructor to load and free resource data, respectively.
+ * Templated resource loader.
+ *
+ * @tparam Type of resource which this loader handles.
  */
 template <typename T>
 class ResourceLoader
@@ -33,8 +36,21 @@ class ResourceLoader
 public:
 	/**
 	 * Loads resource data.
+	 *
+	 * @param resourceManager Pointer to a resource manager which will manage this resource.
+	 * @param is Input stream containing the resource data.
+	 * @return Pointer to the loaded resource.
 	 */
 	static T* load(ResourceManager* resourceManager, std::istream* is);
+
+	/**
+	 * Saves resource data.
+	 *
+	 * @param resourceManager Pointer to a resource manager.
+	 * @param os Output stream which will contain the resource data.
+	 * @param resource Pointer to the resource data.
+	 */
+	static void save(ResourceManager* resourceManager, std::ostream* os, const T* resource);
 };
 
 #endif // RESOURCE_LOADER_HPP
