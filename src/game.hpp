@@ -131,19 +131,23 @@ private:
 	virtual void render();
 	virtual void exit();
 	virtual void handleEvent(const WindowResizedEvent& event);
+	virtual void handleEvent(const GamepadConnectedEvent& event);
+	virtual void handleEvent(const GamepadDisconnectedEvent& event);
 
+	void setupDebugging();
 	void setupLocalization();
 	void setupWindow();
 	void setupGraphics();
 	void setupUI();
 	void setupControls();
 	void setupGameplay();
-	void setupDebugging();
 
 	void resetSettings();
 	void loadSettings();
 	void saveSettings();
 	void loadStrings();
+	void loadControlProfile();
+	void saveControlProfile();
 
 	void resizeUI(int w, int h);
 	void restringUI();
@@ -244,6 +248,9 @@ public:
 	// Debug control set
 	ControlSet debugControls;
 	Control toggleWireframeControl;
+
+	// Map of control names
+	std::map<std::string, Control*> controlNameMap;
 
 	// Logic
 	float time;

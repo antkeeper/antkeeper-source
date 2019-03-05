@@ -73,7 +73,7 @@ void SandboxState::enter()
 	toolIndex = 0;
 	game->selectTool(toolIndex);
 	//game->currentTool->setActive(false);
-	game->mouse->warp(game->window, game->w / 2, game->h / 2);
+	//game->mouse->warp(game->window, game->w / 2, game->h / 2);
 
 	zoom = 0.5f;
 	noPick = false;

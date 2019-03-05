@@ -242,27 +242,14 @@ void Game::setUpdateRate(double frequency)
 
 void Game::setup()
 {
-	// Load settings
 	loadSettings();
-
-	// Setup localization (load strings, select language, ...)
-	setupLocalization();
-
-	setupWindow();
-
-	setupGraphics();
-
-	setupUI();
-
-	setupControls();
-
-	setupGameplay();
-
 	setupDebugging();
-
-
-
-
+	setupLocalization();
+	setupWindow();
+	setupGraphics();
+	setupUI();
+	setupControls();
+	setupGameplay();
 
 	screenshotQueued = false;
 
@@ -281,91 +268,339 @@ void Game::setup()
 		close(EXIT_FAILURE);
 	}
 
-	try
+
+
+	time = 0.0f;
+	
+
+	// Tools
+	currentTool = nullptr;
+
+	lens = new Lens(lensModel, &animator);
+	lens->setOrbitCam(orbitCam);
+	worldScene->addObject(lens->getModelInstance());
+	worldScene->addObject(lens->getSpotlight());
+	lens->setSunDirection(-sunlightCamera.getForward());
+
+	ModelInstance* modelInstance = lens->getModelInstance();
+	for (std::size_t i = 0; i < modelInstance->getModel()->getGroupCount(); ++i)
 	{
-		splashTexture = resourceManager->load<Texture2D>("epigraph.png");
-		hudSpriteSheetTexture = resourceManager->load<Texture2D>("hud.png");
+		Material* material = modelInstance->getModel()->getGroup(i)->material->clone();
+		material->setFlags(material->getFlags() | 256);
+		modelInstance->setMaterialSlot(i, material);
+	}
 
-		// Read texture atlas file
-		CSVTable* atlasTable = resourceManager->load<CSVTable>("hud-atlas.csv");
+	// Forceps
+	forceps = new Forceps(forcepsModel, &animator);
+	forceps->setOrbitCam(orbitCam);
+	worldScene->addObject(forceps->getModelInstance());
 
-		// Build texture atlas
-		for (int row = 0; row < atlasTable->size(); ++row)
+	// Brush
+	brush = new Brush(brushModel, &animator);
+	brush->setOrbitCam(orbitCam);
+	worldScene->addObject(brush->getModelInstance());
+
+	// Initialize component manager
+	componentManager = new ComponentManager();
+
+	// Initialize entity manager
+	entityManager = new EntityManager(componentManager);
+
+	// Initialize systems
+	soundSystem = new SoundSystem(componentManager);
+	collisionSystem = new CollisionSystem(componentManager);
+	cameraSystem = new CameraSystem(componentManager);
+	renderSystem = new RenderSystem(componentManager, worldScene);
+	toolSystem = new ToolSystem(componentManager);
+	toolSystem->setPickingCamera(&camera);
+	toolSystem->setPickingViewport(Vector4(0, 0, w, h));
+	eventDispatcher.subscribe<MouseMovedEvent>(toolSystem);
+	behaviorSystem = new BehaviorSystem(componentManager);
+	steeringSystem = new SteeringSystem(componentManager);
+	locomotionSystem = new LocomotionSystem(componentManager);
+	particleSystem = new ParticleSystem(componentManager);
+	particleSystem->resize(1000);
+	particleSystem->setMaterial(smokeMaterial);
+	particleSystem->setDirection(Vector3(0, 1, 0));
+	lens->setParticleSystem(particleSystem);
+	particleSystem->getBillboardBatch()->setAlignment(&camera, BillboardAlignmentMode::SPHERICAL);
+	worldScene->addObject(particleSystem->getBillboardBatch());
+
+
+	// Initialize system manager
+	systemManager = new SystemManager();
+	systemManager->addSystem(soundSystem);
+	systemManager->addSystem(behaviorSystem);
+	systemManager->addSystem(steeringSystem);
+	systemManager->addSystem(locomotionSystem);
+	systemManager->addSystem(collisionSystem);
+	systemManager->addSystem(toolSystem);
+	systemManager->addSystem(particleSystem);
+	systemManager->addSystem(cameraSystem);
+	systemManager->addSystem(renderSystem);
+
+	EntityID sidewalkPanel;
+	sidewalkPanel = createInstanceOf("sidewalk-panel");
+
+	EntityID antHill = createInstanceOf("ant-hill");
+	setTranslation(antHill, Vector3(20, 0, 40));
+
+	EntityID antNest = createInstanceOf("ant-nest");
+	setTranslation(antNest, Vector3(20, 0, 40));
+
+	EntityID lollipop = createInstanceOf("lollipop");
+	setTranslation(lollipop, Vector3(30.0f, 3.5f * 0.5f, -30.0f));
+	setRotation(lollipop, glm::angleAxis(glm::radians(8.85f), Vector3(1.0f, 0.0f, 0.0f)));
+
+	// Load navmesh
+	TriangleMesh* navmesh = resourceManager->load<TriangleMesh>("sidewalk.mesh");
+
+	// Find surface
+	TriangleMesh::Triangle* surface = nullptr;
+	Vector3 barycentricPosition;
+	Ray ray;
+	ray.origin = Vector3(0, 100, 0);
+	ray.direction = Vector3(0, -1, 0);
+	auto intersection = ray.intersects(*navmesh);
+	if (std::get<0>(intersection))
+	{
+		surface = (*navmesh->getTriangles())[std::get<3>(intersection)];
+
+		Vector3 position = ray.extrapolate(std::get<1>(intersection));
+		Vector3 a = surface->edge->vertex->position;
+		Vector3 b = surface->edge->next->vertex->position;
+		Vector3 c = surface->edge->previous->vertex->position;
+
+		barycentricPosition = barycentric(position, a, b, c);
+	}
+
+	for (int i = 0; i < 0; ++i)
+	{
+		EntityID ant = createInstanceOf("worker-ant");
+		setTranslation(ant, Vector3(0.0f, 0, 0.0f));
+
+		BehaviorComponent* behavior = new BehaviorComponent();
+		SteeringComponent* steering = new SteeringComponent();
+		LeggedLocomotionComponent* locomotion = new LeggedLocomotionComponent();
+		componentManager->addComponent(ant, behavior);
+		componentManager->addComponent(ant, steering);
+		componentManager->addComponent(ant, locomotion);
+
+		locomotion->surface = surface;
+		behavior->wanderTriangle = surface;
+		locomotion->barycentricPosition = barycentricPosition;
+	}
+
+	
+	EntityID tool0 = createInstanceOf("lens");
+
+	changeState(splashState);
+}
+
+void Game::update(float t, float dt)
+{
+	this->time = t;
+
+	// Dispatch scheduled events
+	eventDispatcher.update(t);
+
+	// Execute current state
+	if (currentState != nullptr)
+	{
+		currentState->execute();
+	}
+
+	// Update systems
+	systemManager->update(t, dt);
+
+	// Update animations
+	animator.animate(dt);
+
+	if (fpsLabel->isVisible())
+	{
+		std::stringstream stream;
+		stream.precision(2);
+		stream << std::fixed << (performanceSampler.getMeanFrameDuration() * 1000.0f);
+		fpsLabel->setText(stream.str());
+	}
+
+	uiRootElement->update();
+}
+
+void Game::input()
+{
+	controls.update();
+}
+
+void Game::render()
+{
+	// Perform sub-frame interpolation on UI elements
+	uiRootElement->interpolate(stepScheduler.getScheduledSubsteps());
+
+	// Update and batch UI elements
+	uiBatcher->batch(uiBatch, uiRootElement);
+
+	// Perform sub-frame interpolation particles
+	particleSystem->getBillboardBatch()->interpolate(stepScheduler.getScheduledSubsteps());
+	particleSystem->getBillboardBatch()->batch();
+
+	// Render scene
+	renderer.render(*worldScene);
+	renderer.render(*uiScene);
+
+	// Swap window framebuffers
+	window->swapBuffers();
+
+	if (screenshotQueued)
+	{
+		screenshot();
+		screenshotQueued = false;
+	}
+}
+
+void Game::exit()
+{
+
+}
+
+void Game::handleEvent(const WindowResizedEvent& event)
+{
+	w = event.width;
+	h = event.height;
+
+	defaultRenderTarget.width = event.width;
+	defaultRenderTarget.height = event.height;
+	glViewport(0, 0, event.width, event.height);
+
+
+	camera.setPerspective(glm::radians(40.0f), static_cast<float>(w) / static_cast<float>(h), 0.1, 100.0f);
+
+
+	toolSystem->setPickingViewport(Vector4(0, 0, w, h));
+
+	resizeUI(event.width, event.height);
+}
+
+void Game::handleEvent(const GamepadConnectedEvent& event)
+{
+	// Unmap all controls
+	inputMapper->reset();
+
+	// Reload control profile
+	loadControlProfile();
+}
+
+void Game::handleEvent(const GamepadDisconnectedEvent& event)
+{}
+
+void Game::setupDebugging()
+{
+	// Setup performance sampling
+	performanceSampler.setSampleSize(30);
+
+	// Disable wireframe drawing
+	wireframe = false;
+}
+
+void Game::setupLocalization()
+{
+	// Load strings
+	loadStrings();
+
+	// Determine number of available languages
+	languageCount = (*stringTable)[0].size() - 1;
+	
+	// Match language code with language index
+	languageIndex = 0;
+	CSVRow* languageCodes = &(*stringTable)[0];
+	for (std::size_t i = 1; i < languageCodes->size(); ++i)
+	{
+		if (language == (*languageCodes)[i])
 		{
-			std::stringstream ss;
-			float x;
-			float y;
-			float w;
-			float h;
-
-			ss << (*atlasTable)[row][1];
-			ss >> x;
-			ss.str(std::string());
-			ss.clear();
-			ss << (*atlasTable)[row][2];
-			ss >> y;
-			ss.str(std::string());
-			ss.clear();
-			ss << (*atlasTable)[row][3];
-			ss >> w;
-			ss.str(std::string());
-			ss.clear();
-			ss << (*atlasTable)[row][4];
-			ss >> h;
-			ss.str(std::string());
-
-			y = static_cast<float>(hudSpriteSheetTexture->getHeight()) - y - h;
-			x = (int)(x + 0.5f);
-			y = (int)(y + 0.5f);
-			w = (int)(w + 0.5f);
-			h = (int)(h + 0.5f);
-
-			hudTextureAtlas.insert((*atlasTable)[row][0], Rect(Vector2(x, y), Vector2(x + w, y + h)));
+			languageIndex = i - 1;
+			break;
 		}
 	}
-	catch (const std::exception& e)
+}
+
+void Game::setupWindow()
+{
+	// Get display resolution
+	const Display* display = deviceManager->getDisplays()->front();
+	int displayWidth = std::get<0>(display->getDimensions());
+	int displayHeight = std::get<1>(display->getDimensions());
+
+	if (fullscreen)
 	{
-		std::cerr << "Failed to load one or more textures: \"" << e.what() << "\"" << std::endl;
-		close(EXIT_FAILURE);
+		w = static_cast<int>(fullscreenResolution.x);
+		h = static_cast<int>(fullscreenResolution.y);
+	}
+	else
+	{
+		w = static_cast<int>(windowedResolution.x);
+		h = static_cast<int>(windowedResolution.y);
 	}
 
-	// Load font resources
-	try
+	// Determine window position
+	int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
+	int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
+
+	// Read title string
+	std::string title = getString(getLanguageIndex(), "title");
+
+	// Create window
+	window = windowManager->createWindow(title.c_str(), x, y, w, h, fullscreen, WindowFlag::RESIZABLE);
+	if (!window)
 	{
-		//labelTypeface = resourceManager->load<Typeface>("open-sans-regular.ttf");
-		labelTypeface = resourceManager->load<Typeface>("caveat-bold.ttf");
-		labelFont = labelTypeface->createFont(fontSizePX);
-
-		debugTypeface = resourceManager->load<Typeface>("inconsolata-bold.ttf");
-		debugFont = debugTypeface->createFont(fontSizePX);
-		debugTypeface->loadCharset(debugFont, UnicodeRange::BASIC_LATIN);
-
-
-		std::set<char32_t> charset;
-		charset.emplace(U'方');
-		charset.emplace(U'蕴');
-		labelTypeface->loadCharset(labelFont, UnicodeRange::BASIC_LATIN);
-		labelTypeface->loadCharset(labelFont, charset);
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr << "Failed to load one or more fonts: \"" << e.what() << "\"" << std::endl;
-		close(EXIT_FAILURE);
+		throw std::runtime_error("Game::Game(): Failed to create window.");
 	}
 
+	// Set v-sync mode
+	window->setVSync(vsync);
+}
 
-	Shader* shader = resourceManager->load<Shader>("depth-pass.glsl");
+void Game::setupGraphics()
+{
+	// Setup OpenGL
+	glEnable(GL_MULTISAMPLE);
 
-	cameraRig = nullptr;
-	orbitCam = new OrbitCam();
-	orbitCam->attachCamera(&camera);
-	freeCam = new FreeCam();
-	freeCam->attachCamera(&camera);
+	// Setup default render target
+	defaultRenderTarget.width = w;
+	defaultRenderTarget.height = h;
+	defaultRenderTarget.framebuffer = 0;
 
-	silhouetteRenderTarget.width = w;
-	silhouetteRenderTarget.height = h;
+	// Set shadow map resolution
+	shadowMapResolution = 4096;
 
-	// Silhouette framebuffer texture
+	// Setup shadow map framebuffer
+	glGenFramebuffers(1, &shadowMapFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFramebuffer);
+	glGenTextures(1, &shadowMapDepthTextureID);
+	glBindTexture(GL_TEXTURE_2D, shadowMapDepthTextureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, shadowMapResolution, shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMapDepthTextureID, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Setup shadow map render target
+	shadowMapRenderTarget.width = shadowMapResolution;
+	shadowMapRenderTarget.height = shadowMapResolution;
+	shadowMapRenderTarget.framebuffer = shadowMapFramebuffer;
+
+	// Setup shadow map depth texture
+	shadowMapDepthTexture.setTextureID(shadowMapDepthTextureID);
+	shadowMapDepthTexture.setWidth(shadowMapResolution);
+	shadowMapDepthTexture.setHeight(shadowMapResolution);
+
+	// Setup silhouette framebuffer
 	glGenTextures(1, &silhouetteRenderTarget.texture);
 	glBindTexture(GL_TEXTURE_2D, silhouetteRenderTarget.texture);
 	glTexImage2D(GL_TEXTURE_2D, 0,  GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
@@ -373,35 +608,167 @@ void Game::setup()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	
-	// Generate framebuffer
 	glGenFramebuffers(1, &silhouetteRenderTarget.framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, silhouetteRenderTarget.framebuffer);
-
-	// Attach textures to framebuffer
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, silhouetteRenderTarget.texture, 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	glReadBuffer(GL_NONE);
-	
-	// Unbind framebuffer and texture
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// Setup rendering
-	defaultRenderTarget.width = w;
-	defaultRenderTarget.height = h;
-	defaultRenderTarget.framebuffer = 0;
+	// Setup silhouette render target
+	silhouetteRenderTarget.width = w;
+	silhouetteRenderTarget.height = h;
+
+	// Setup shadow map render pass
+	shadowMapPass = new ShadowMapRenderPass(resourceManager);
+	shadowMapPass->setRenderTarget(&shadowMapRenderTarget);
+	shadowMapPass->setViewCamera(&camera);
+	shadowMapPass->setLightCamera(&sunlightCamera);
+		
+	// Setup shadow map compositor
+	shadowMapCompositor.addPass(shadowMapPass);
+	shadowMapCompositor.load(nullptr);
+
+	// Setup clear render pass
 	clearPass = new ClearRenderPass();
 	clearPass->setRenderTarget(&defaultRenderTarget);
 	clearPass->setClear(true, true, false);
 	clearPass->setClearColor(Vector4(0.0f));
 	clearPass->setClearDepth(1.0f);
+
+	// Setup sky render pass
 	skyPass = new SkyRenderPass(resourceManager);
 	skyPass->setRenderTarget(&defaultRenderTarget);
+
+	// Setup lighting pass
+	lightingPass = new LightingRenderPass(resourceManager);
+	lightingPass->setRenderTarget(&defaultRenderTarget);
+	lightingPass->setShadowMapPass(shadowMapPass);
+	lightingPass->setShadowMap(&shadowMapDepthTexture);
+
+	// Setup clear silhouette pass
+	clearSilhouettePass = new ClearRenderPass();
+	clearSilhouettePass->setRenderTarget(&silhouetteRenderTarget);
+	clearSilhouettePass->setClear(true, false, false);
+	clearSilhouettePass->setClearColor(Vector4(0.0f));
+
+	// Setup silhouette pass
+	silhouettePass = new SilhouetteRenderPass(resourceManager);
+	silhouettePass->setRenderTarget(&silhouetteRenderTarget);
+
+	// Setup final pass
+	finalPass = new FinalRenderPass(resourceManager);
+	finalPass->setRenderTarget(&defaultRenderTarget);
+	finalPass->setSilhouetteRenderTarget(&silhouetteRenderTarget);
+
+	// Setup default compositor
+	defaultCompositor.addPass(clearPass);
+	defaultCompositor.addPass(skyPass);
+	defaultCompositor.addPass(lightingPass);
+	defaultCompositor.addPass(clearSilhouettePass);
+	defaultCompositor.addPass(silhouettePass);
+	defaultCompositor.addPass(finalPass);
+	defaultCompositor.load(nullptr);
+
+	// Setup UI render pass
 	uiPass = new UIRenderPass(resourceManager);
 	uiPass->setRenderTarget(&defaultRenderTarget);
+
+	// Setup UI compositor
 	uiCompositor.addPass(uiPass);
 	uiCompositor.load(nullptr);
+
+	// Create scenes
+	worldScene = new Scene(&stepInterpolator);
+	uiScene = new Scene(&stepInterpolator);
+
+	// Setup camera
+	camera.setPerspective(glm::radians(40.0f), static_cast<float>(w) / static_cast<float>(h), 0.1, 100.0f);
+	camera.lookAt(Vector3(0.0f, 4.0f, 2.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
+	camera.setCompositor(&defaultCompositor);
+	camera.setCompositeIndex(1);
+	worldScene->addObject(&camera);
+
+	// Setup sun
+	sunlight.setDirection(Vector3(0, -1, 0));
+	setTimeOfDay(11.0f);
+	worldScene->addObject(&sunlight);
+
+	// Setup sunlight camera
+	sunlightCamera.setOrthographic(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+	sunlightCamera.setCompositor(&shadowMapCompositor);
+	sunlightCamera.setCompositeIndex(0);
+	sunlightCamera.setCullingEnabled(true);
+	sunlightCamera.setCullingMask(&camera.getViewFrustum());
+	worldScene->addObject(&sunlightCamera);
+}
+
+void Game::setupUI()
+{
+	// Get DPI and convert font size to pixels
+	const Display* display = deviceManager->getDisplays()->front();
+	dpi = display->getDPI();
+	fontSizePX = fontSizePT * (1.0f / 72.0f) * dpi;
+
+	// Load label typeface
+	labelTypeface = resourceManager->load<Typeface>("caveat-bold.ttf");
+	labelFont = labelTypeface->createFont(fontSizePX);
+
+	// Load debugging typeface
+	debugTypeface = resourceManager->load<Typeface>("inconsolata-bold.ttf");
+	debugFont = debugTypeface->createFont(fontSizePX);
+	debugTypeface->loadCharset(debugFont, UnicodeRange::BASIC_LATIN);
+
+	// Character set test
+	std::set<char32_t> charset;
+	charset.emplace(U'方');
+	charset.emplace(U'蕴');
+	labelTypeface->loadCharset(labelFont, UnicodeRange::BASIC_LATIN);
+	labelTypeface->loadCharset(labelFont, charset);
+
+	// Load splash screen texture
+	splashTexture = resourceManager->load<Texture2D>("epigraph.png");
+
+	// Load HUD texture
+	hudSpriteSheetTexture = resourceManager->load<Texture2D>("hud.png");
+
+	// Read texture atlas file
+	CSVTable* atlasTable = resourceManager->load<CSVTable>("hud-atlas.csv");
+
+	// Build texture atlas
+	for (int row = 0; row < atlasTable->size(); ++row)
+	{
+		std::stringstream ss;
+		float x;
+		float y;
+		float w;
+		float h;
+
+		ss << (*atlasTable)[row][1];
+		ss >> x;
+		ss.str(std::string());
+		ss.clear();
+		ss << (*atlasTable)[row][2];
+		ss >> y;
+		ss.str(std::string());
+		ss.clear();
+		ss << (*atlasTable)[row][3];
+		ss >> w;
+		ss.str(std::string());
+		ss.clear();
+		ss << (*atlasTable)[row][4];
+		ss >> h;
+		ss.str(std::string());
+
+		y = static_cast<float>(hudSpriteSheetTexture->getHeight()) - y - h;
+		x = (int)(x + 0.5f);
+		y = (int)(y + 0.5f);
+		w = (int)(w + 0.5f);
+		h = (int)(h + 0.5f);
+
+		hudTextureAtlas.insert((*atlasTable)[row][0], Rect(Vector2(x, y), Vector2(x + w, y + h)));
+	}
 
 	// Setup UI batching
 	uiBatch = new BillboardBatch();
@@ -804,111 +1171,7 @@ void Game::setup()
 		}
 	);
 	animator.addAnimation(&cameraFlashAnimation);
-	
 
-	// Setup shadow map pass and compositor
-	{
-		// Set shadow map resolution
-		shadowMapResolution = 4096;
-		
-		// Generate shadow map framebuffer
-		glGenFramebuffers(1, &shadowMapFramebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFramebuffer);
-
-		// Generate shadow map depth texture
-		glGenTextures(1, &shadowMapDepthTextureID);
-		glBindTexture(GL_TEXTURE_2D, shadowMapDepthTextureID);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, shadowMapResolution, shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-		
-		// Attach depth texture to framebuffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMapDepthTextureID, 0);
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
-		
-		// Unbind shadow map depth texture
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		
-		// Setup shadow map render target
-		shadowMapRenderTarget.width = shadowMapResolution;
-		shadowMapRenderTarget.height = shadowMapResolution;
-		shadowMapRenderTarget.framebuffer = shadowMapFramebuffer;
-		
-		// Setup texture class
-		shadowMapDepthTexture.setTextureID(shadowMapDepthTextureID);
-		shadowMapDepthTexture.setWidth(shadowMapResolution);
-		shadowMapDepthTexture.setHeight(shadowMapResolution);
-		
-		// Setup shadow map render pass
-		shadowMapPass = new ShadowMapRenderPass(resourceManager);
-		shadowMapPass->setRenderTarget(&shadowMapRenderTarget);
-		shadowMapPass->setViewCamera(&camera);
-		shadowMapPass->setLightCamera(&sunlightCamera);
-		
-		// Setup shadow map compositor
-		shadowMapCompositor.addPass(shadowMapPass);
-		shadowMapCompositor.load(nullptr);
-	}
-
-	// Setup scene
-	{
-		// Setup lighting pass
-		lightingPass = new LightingRenderPass(resourceManager);
-		lightingPass->setRenderTarget(&defaultRenderTarget);
-		lightingPass->setShadowMapPass(shadowMapPass);
-		lightingPass->setShadowMap(&shadowMapDepthTexture);
-
-		// Setup clear silhouette pass
-		clearSilhouettePass = new ClearRenderPass();
-		clearSilhouettePass->setRenderTarget(&silhouetteRenderTarget);
-		clearSilhouettePass->setClear(true, false, false);
-		clearSilhouettePass->setClearColor(Vector4(0.0f));
-
-		// Setup silhouette pass
-		silhouettePass = new SilhouetteRenderPass(resourceManager);
-		silhouettePass->setRenderTarget(&silhouetteRenderTarget);
-
-		// Setup final pass
-		finalPass = new FinalRenderPass(resourceManager);
-		finalPass->setRenderTarget(&defaultRenderTarget);
-		finalPass->setSilhouetteRenderTarget(&silhouetteRenderTarget);
-
-		// Setup default compositor
-		defaultCompositor.addPass(clearPass);
-		defaultCompositor.addPass(skyPass);
-		defaultCompositor.addPass(lightingPass);
-		defaultCompositor.addPass(clearSilhouettePass);
-		defaultCompositor.addPass(silhouettePass);
-		defaultCompositor.addPass(finalPass);
-		defaultCompositor.load(nullptr);
-
-		// Setup camera
-		camera.setPerspective(glm::radians(40.0f), static_cast<float>(w) / static_cast<float>(h), 0.1, 100.0f);
-		camera.lookAt(Vector3(0.0f, 4.0f, 2.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
-		camera.setCompositor(&defaultCompositor);
-		camera.setCompositeIndex(1);
-		worldScene->addObject(&camera);
-
-		// Setup sun
-		sunlight.setDirection(Vector3(0, -1, 0));
-		setTimeOfDay(11.0f);
-		worldScene->addObject(&sunlight);
-
-		// Setup sunlight camera
-		sunlightCamera.setOrthographic(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-		sunlightCamera.setCompositor(&shadowMapCompositor);
-		sunlightCamera.setCompositeIndex(0);
-		sunlightCamera.setCullingEnabled(true);
-		sunlightCamera.setCullingMask(&camera.getViewFrustum());
-		worldScene->addObject(&sunlightCamera);
-	}
-	
 	// Setup UI scene
 	uiScene->addObject(uiBatch);
 	uiScene->addObject(&uiCamera);
@@ -922,302 +1185,6 @@ void Game::setup()
 	
 	restringUI();
 	resizeUI(w, h);
-
-
-	time = 0.0f;
-	
-
-	// Tools
-	currentTool = nullptr;
-
-	lens = new Lens(lensModel, &animator);
-	lens->setOrbitCam(orbitCam);
-	worldScene->addObject(lens->getModelInstance());
-	worldScene->addObject(lens->getSpotlight());
-	lens->setSunDirection(-sunlightCamera.getForward());
-
-	ModelInstance* modelInstance = lens->getModelInstance();
-	for (std::size_t i = 0; i < modelInstance->getModel()->getGroupCount(); ++i)
-	{
-		Material* material = modelInstance->getModel()->getGroup(i)->material->clone();
-		material->setFlags(material->getFlags() | 256);
-		modelInstance->setMaterialSlot(i, material);
-	}
-
-	// Forceps
-	forceps = new Forceps(forcepsModel, &animator);
-	forceps->setOrbitCam(orbitCam);
-	worldScene->addObject(forceps->getModelInstance());
-
-	// Brush
-	brush = new Brush(brushModel, &animator);
-	brush->setOrbitCam(orbitCam);
-	worldScene->addObject(brush->getModelInstance());
-
-	//
-	
-	performanceSampler.setSampleSize(30);
-
-	// Initialize component manager
-	componentManager = new ComponentManager();
-
-	// Initialize entity manager
-	entityManager = new EntityManager(componentManager);
-
-	// Initialize systems
-	soundSystem = new SoundSystem(componentManager);
-	collisionSystem = new CollisionSystem(componentManager);
-	cameraSystem = new CameraSystem(componentManager);
-	renderSystem = new RenderSystem(componentManager, worldScene);
-	toolSystem = new ToolSystem(componentManager);
-	toolSystem->setPickingCamera(&camera);
-	toolSystem->setPickingViewport(Vector4(0, 0, w, h));
-	eventDispatcher.subscribe<MouseMovedEvent>(toolSystem);
-	behaviorSystem = new BehaviorSystem(componentManager);
-	steeringSystem = new SteeringSystem(componentManager);
-	locomotionSystem = new LocomotionSystem(componentManager);
-	particleSystem = new ParticleSystem(componentManager);
-	particleSystem->resize(1000);
-	particleSystem->setMaterial(smokeMaterial);
-	particleSystem->setDirection(Vector3(0, 1, 0));
-	lens->setParticleSystem(particleSystem);
-	particleSystem->getBillboardBatch()->setAlignment(&camera, BillboardAlignmentMode::SPHERICAL);
-	worldScene->addObject(particleSystem->getBillboardBatch());
-
-
-	// Initialize system manager
-	systemManager = new SystemManager();
-	systemManager->addSystem(soundSystem);
-	systemManager->addSystem(behaviorSystem);
-	systemManager->addSystem(steeringSystem);
-	systemManager->addSystem(locomotionSystem);
-	systemManager->addSystem(collisionSystem);
-	systemManager->addSystem(toolSystem);
-	systemManager->addSystem(particleSystem);
-	systemManager->addSystem(cameraSystem);
-	systemManager->addSystem(renderSystem);
-
-	EntityID sidewalkPanel;
-	sidewalkPanel = createInstanceOf("sidewalk-panel");
-
-	EntityID antHill = createInstanceOf("ant-hill");
-	setTranslation(antHill, Vector3(20, 0, 40));
-
-	EntityID antNest = createInstanceOf("ant-nest");
-	setTranslation(antNest, Vector3(20, 0, 40));
-
-	EntityID lollipop = createInstanceOf("lollipop");
-	setTranslation(lollipop, Vector3(30.0f, 3.5f * 0.5f, -30.0f));
-	setRotation(lollipop, glm::angleAxis(glm::radians(8.85f), Vector3(1.0f, 0.0f, 0.0f)));
-
-	// Load navmesh
-	TriangleMesh* navmesh = resourceManager->load<TriangleMesh>("sidewalk.mesh");
-
-	// Find surface
-	TriangleMesh::Triangle* surface = nullptr;
-	Vector3 barycentricPosition;
-	Ray ray;
-	ray.origin = Vector3(0, 100, 0);
-	ray.direction = Vector3(0, -1, 0);
-	auto intersection = ray.intersects(*navmesh);
-	if (std::get<0>(intersection))
-	{
-		surface = (*navmesh->getTriangles())[std::get<3>(intersection)];
-
-		Vector3 position = ray.extrapolate(std::get<1>(intersection));
-		Vector3 a = surface->edge->vertex->position;
-		Vector3 b = surface->edge->next->vertex->position;
-		Vector3 c = surface->edge->previous->vertex->position;
-
-		barycentricPosition = barycentric(position, a, b, c);
-	}
-
-	for (int i = 0; i < 0; ++i)
-	{
-		EntityID ant = createInstanceOf("worker-ant");
-		setTranslation(ant, Vector3(0.0f, 0, 0.0f));
-
-		BehaviorComponent* behavior = new BehaviorComponent();
-		SteeringComponent* steering = new SteeringComponent();
-		LeggedLocomotionComponent* locomotion = new LeggedLocomotionComponent();
-		componentManager->addComponent(ant, behavior);
-		componentManager->addComponent(ant, steering);
-		componentManager->addComponent(ant, locomotion);
-
-		locomotion->surface = surface;
-		behavior->wanderTriangle = surface;
-		locomotion->barycentricPosition = barycentricPosition;
-	}
-
-	
-	EntityID tool0 = createInstanceOf("lens");
-
-	changeState(splashState);
-}
-
-void Game::update(float t, float dt)
-{
-	this->time = t;
-
-	// Dispatch scheduled events
-	eventDispatcher.update(t);
-
-	// Execute current state
-	if (currentState != nullptr)
-	{
-		currentState->execute();
-	}
-
-	// Update systems
-	systemManager->update(t, dt);
-
-	// Update animations
-	animator.animate(dt);
-
-	if (fpsLabel->isVisible())
-	{
-		std::stringstream stream;
-		stream.precision(2);
-		stream << std::fixed << (performanceSampler.getMeanFrameDuration() * 1000.0f);
-		fpsLabel->setText(stream.str());
-	}
-
-	uiRootElement->update();
-}
-
-void Game::input()
-{
-	/*
-	if (useToolControl.isActive() && !useToolControl.wasActive())
-	{
-		intentSystem.queueIntent(Intent::USE_TOOL);
-	}
-	*/
-
-	controls.update();
-}
-
-void Game::render()
-{
-	// Perform sub-frame interpolation on UI elements
-	uiRootElement->interpolate(stepScheduler.getScheduledSubsteps());
-
-	// Update and batch UI elements
-	uiBatcher->batch(uiBatch, uiRootElement);
-
-	// Perform sub-frame interpolation particles
-	particleSystem->getBillboardBatch()->interpolate(stepScheduler.getScheduledSubsteps());
-	particleSystem->getBillboardBatch()->batch();
-
-	// Render scene
-	renderer.render(*worldScene);
-	renderer.render(*uiScene);
-
-	// Swap window framebuffers
-	window->swapBuffers();
-
-	if (screenshotQueued)
-	{
-		screenshot();
-		screenshotQueued = false;
-	}
-}
-
-void Game::exit()
-{
-
-}
-
-void Game::handleEvent(const WindowResizedEvent& event)
-{
-	w = event.width;
-	h = event.height;
-
-	defaultRenderTarget.width = event.width;
-	defaultRenderTarget.height = event.height;
-	glViewport(0, 0, event.width, event.height);
-
-
-	camera.setPerspective(glm::radians(40.0f), static_cast<float>(w) / static_cast<float>(h), 0.1, 100.0f);
-
-
-	toolSystem->setPickingViewport(Vector4(0, 0, w, h));
-
-	resizeUI(event.width, event.height);
-}
-
-void Game::setupLocalization()
-{
-	// Load strings
-	loadStrings();
-
-	// Determine number of available languages
-	languageCount = (*stringTable)[0].size() - 1;
-	
-	// Match language code with language index
-	languageIndex = 0;
-	CSVRow* languageCodes = &(*stringTable)[0];
-	for (std::size_t i = 1; i < languageCodes->size(); ++i)
-	{
-		if (language == (*languageCodes)[i])
-		{
-			languageIndex = i - 1;
-			break;
-		}
-	}
-}
-
-void Game::setupWindow()
-{
-	// Get display resolution
-	const Display* display = deviceManager->getDisplays()->front();
-	int displayWidth = std::get<0>(display->getDimensions());
-	int displayHeight = std::get<1>(display->getDimensions());
-
-	if (fullscreen)
-	{
-		w = static_cast<int>(fullscreenResolution.x);
-		h = static_cast<int>(fullscreenResolution.y);
-	}
-	else
-	{
-		w = static_cast<int>(windowedResolution.x);
-		h = static_cast<int>(windowedResolution.y);
-	}
-
-	// Determine window position
-	int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
-	int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
-
-	// Read title string
-	std::string title = getString(getLanguageIndex(), "title");
-
-	// Create window
-	window = windowManager->createWindow(title.c_str(), x, y, w, h, fullscreen, WindowFlag::RESIZABLE);
-	if (!window)
-	{
-		throw std::runtime_error("Game::Game(): Failed to create window.");
-	}
-
-	// Set v-sync mode
-	window->setVSync(vsync);
-}
-
-void Game::setupGraphics()
-{
-	glEnable(GL_MULTISAMPLE);
-
-	// Create scenes
-	worldScene = new Scene(&stepInterpolator);
-	uiScene = new Scene(&stepInterpolator);
-}
-
-void Game::setupUI()
-{
-	// Get DPI and convert font size to pixels
-	const Display* display = deviceManager->getDisplays()->front();
-	dpi = display->getDPI();
-	fontSizePX = fontSizePT * (1.0f / 72.0f) * dpi;
 }
 
 void Game::setupControls()
@@ -1227,9 +1194,9 @@ void Game::setupControls()
 	mouse = deviceManager->getMice()->front();
 
 	// Build the master control set
+	controls.addControl(&exitControl);
 	controls.addControl(&toggleFullscreenControl);
 	controls.addControl(&screenshotControl);
-	controls.addControl(&exitControl);
 	controls.addControl(&menuUpControl);
 	controls.addControl(&menuDownControl);
 	controls.addControl(&menuLeftControl);
@@ -1288,26 +1255,33 @@ void Game::setupControls()
 	screenshotControl.setActivatedCallback(std::bind(&Game::queueScreenshot, this));
 	toggleWireframeControl.setActivatedCallback(std::bind(&Game::toggleWireframe, this));
 
-	// Map controls
-	inputMapper->map(&exitControl, keyboard, Scancode::ESCAPE);
-	inputMapper->map(&toggleFullscreenControl, keyboard, Scancode::F11);
-	inputMapper->map(&screenshotControl, keyboard, Scancode::F12);
-	inputMapper->map(&openToolMenuControl, keyboard, Scancode::LSHIFT);
-	inputMapper->map(&moveForwardControl, keyboard, Scancode::W);
-	inputMapper->map(&moveBackControl, keyboard, Scancode::S);
-	inputMapper->map(&moveLeftControl, keyboard, Scancode::A);
-	inputMapper->map(&moveRightControl, keyboard, Scancode::D);
-	inputMapper->map(&orbitCCWControl, keyboard, Scancode::Q);
-	inputMapper->map(&orbitCWControl, keyboard, Scancode::E);
-	inputMapper->map(&zoomInControl, mouse, MouseWheelAxis::POSITIVE_Y);
-	inputMapper->map(&zoomInControl, keyboard, Scancode::EQUALS);
-	inputMapper->map(&zoomOutControl, mouse, MouseWheelAxis::NEGATIVE_Y);
-	inputMapper->map(&zoomOutControl, keyboard, Scancode::MINUS);
-	inputMapper->map(&adjustCameraControl, mouse, 2);
-	inputMapper->map(&dragCameraControl, mouse, 3);
-	inputMapper->map(&toggleWireframeControl, keyboard, Scancode::V);
-	inputMapper->map(&toggleEditModeControl, keyboard, Scancode::TAB);
+	// Build map of control names
+	controlNameMap["exit"] = &exitControl;
+	controlNameMap["toggle-fullscreen"] = &toggleFullscreenControl;
+	controlNameMap["screenshot"] = &screenshotControl;
+	controlNameMap["menu-up"] = &menuUpControl;
+	controlNameMap["menu-down"] = &menuDownControl;
+	controlNameMap["menu-left"] = &menuLeftControl;
+	controlNameMap["menu-right"] = &menuRightControl;
+	controlNameMap["menu-back"] = &menuBackControl;
+	controlNameMap["move-forward"] = &moveForwardControl;
+	controlNameMap["move-back"] = &moveBackControl;
+	controlNameMap["move-left"] = &moveLeftControl;
+	controlNameMap["move-right"] = &moveRightControl;
+	controlNameMap["zoom-in"] = &zoomInControl;
+	controlNameMap["zoom-out"] = &zoomOutControl;
+	controlNameMap["orbit-ccw"] = &orbitCCWControl;
+	controlNameMap["orbit-cw"] = &orbitCWControl;
+	controlNameMap["adjust-camera"] = &adjustCameraControl;
+	controlNameMap["drag-camera"] = &dragCameraControl;
+	controlNameMap["open-tool-menu"] = &openToolMenuControl;
+	controlNameMap["use-tool"] = &useToolControl;
+	controlNameMap["toggle-edit-mode"] = &toggleEditModeControl;
+	controlNameMap["toggle-wireframe"] = &toggleWireframeControl;
 
+	// Load control profile
+	loadControlProfile();
+	
 	/*
 	controlProfile.registerControl("exit", &exitControl);
 	controlProfile.registerControl("toggle-fullscreen", &toggleFullscreenControl);
@@ -1351,15 +1325,14 @@ void Game::setupGameplay()
 	stepScheduler.setMaxFrameDuration(maxFrameDuration);
 	stepScheduler.setStepFrequency(stepFrequency);
 	timestep = stepScheduler.getStepPeriod();
-}
 
-void Game::setupDebugging()
-{
-	// Setup performance sampling
-	performanceSampler.setSampleSize(15);
+	// Setup camera rigs
+	cameraRig = nullptr;
+	orbitCam = new OrbitCam();
+	orbitCam->attachCamera(&camera);
+	freeCam = new FreeCam();
+	freeCam->attachCamera(&camera);
 
-	// Disable wireframe drawing
-	wireframe = false;
 }
 
 void Game::resetSettings()
@@ -1436,6 +1409,218 @@ void Game::loadStrings()
 		stringMap[(*stringTable)[row][0]] = row;
 	}
 }
+
+void Game::loadControlProfile()
+{
+	// Create control directory if it doesn't exist
+	std::string controlsPath = getConfigPath() + "/controls/";
+	if (!pathExists(controlsPath))
+	{
+		createDirectory(controlsPath);
+	}
+
+	// Load control profile
+	std::string controlProfilePath = "/controls/" + controlProfileName + ".csv";
+	CSVTable* controlProfile = resourceManager->load<CSVTable>(controlProfilePath);
+
+	for (const CSVRow& row: *controlProfile)
+	{
+		// Skip empty rows and comments
+		if (row.empty() || row[0].empty() || row[0][0] == '#')
+		{
+			continue;
+		}
+
+		// Get control name
+		const std::string& controlName = row[0];
+
+		// Lookup control in control name map
+		auto it = controlNameMap.find(controlName);
+		if (it == controlNameMap.end())
+		{
+			std::cerr << "Game::loadControlProfile(): Unknown control name \"" << controlName << "\"" << std::endl;
+			continue;
+		}
+
+		// Get pointer to the control
+		Control* control = it->second;
+
+		// Determine type of input mapping
+		const std::string& deviceType = row[1];
+		if (deviceType == "keyboard")
+		{
+			const std::string& eventType = row[2];
+			const std::string& scancodeString = row[3];
+
+			// Get scancode from string
+			std::stringstream stream;
+			int scancodeIndex;
+			stream << row[3];
+			stream >> scancodeIndex;
+			Scancode scancode = static_cast<Scancode>(scancodeIndex);
+
+			// Map control
+			inputMapper->map(control, keyboard, scancode);
+		}
+		else if (deviceType == "mouse")
+		{
+			const std::string& eventType = row[2];
+
+			if (eventType == "motion")
+			{
+				const std::string& axisName = row[3];
+
+				// Get axis from string
+				MouseMotionAxis axis;
+				bool negative = (axisName.find('-') != std::string::npos);
+				if (axisName.find('x') != std::string::npos)
+				{
+					axis = (negative) ? MouseMotionAxis::NEGATIVE_X : MouseMotionAxis::POSITIVE_X;
+				}
+				else if (axisName.find('y') != std::string::npos)
+				{
+					axis = (negative) ? MouseMotionAxis::NEGATIVE_Y : MouseMotionAxis::POSITIVE_Y;
+				}
+				else
+				{
+					std::cerr << "Game::loadControlProfile(): Unknown mouse motion axis \"" << axisName << "\"" << std::endl;
+					continue;
+				}
+
+				// Map control
+				inputMapper->map(control, mouse, axis);
+			}
+			else if (eventType == "wheel")
+			{
+				const std::string& axisName = row[3];
+
+				// Get axis from string
+				MouseWheelAxis axis;
+				bool negative = (axisName.find('-') != std::string::npos);
+				if (axisName.find('x') != std::string::npos)
+				{
+					axis = (negative) ? MouseWheelAxis::NEGATIVE_X : MouseWheelAxis::POSITIVE_X;
+				}
+				else if (axisName.find('y') != std::string::npos)
+				{
+					axis = (negative) ? MouseWheelAxis::NEGATIVE_Y : MouseWheelAxis::POSITIVE_Y;
+				}
+				else
+				{
+					std::cerr << "Game::loadControlProfile(): Unknown mouse wheel axis \"" << axisName << "\"" << std::endl;
+					continue;
+				}
+
+				// Map control
+				inputMapper->map(control, mouse, axis);
+			}
+			else if (eventType == "button")
+			{
+				const std::string& buttonName = row[3];
+
+				// Get button from string
+				int button;
+				std::stringstream stream;
+				stream << buttonName;
+				stream >> button;
+
+				// Map control
+				inputMapper->map(control, mouse, button);
+			}
+			else
+			{
+				std::cerr << "Game::loadControlProfile(): Unknown mouse event type \"" << eventType << "\"" << std::endl;
+				continue;
+			}
+		}
+		else if (deviceType == "gamepad")
+		{
+			const std::string& eventType = row[2];
+			if (eventType == "axis")
+			{
+				std::string axisName = row[3];
+
+				// Determine whether axis is negative or positive
+				bool negative = (axisName.find('-') != std::string::npos);
+
+				// Remove sign from axis name
+				std::size_t plusPosition = axisName.find('+');
+				std::size_t minusPosition = axisName.find('-');
+				if (plusPosition != std::string::npos)
+				{
+					axisName.erase(plusPosition);
+				}
+				else if (minusPosition != std::string::npos)
+				{
+					axisName.erase(minusPosition);
+				}
+
+				// Get axis from string
+				int axis;
+				std::stringstream stream;
+				stream << axisName;
+				stream >> axis;
+
+				// Map control to each gamepad
+				const std::list<Gamepad*>* gamepads = deviceManager->getGamepads();
+				for (Gamepad* gamepad: *gamepads)
+				{
+					inputMapper->map(control, gamepad, axis, negative);
+				}
+			}
+			else if (eventType == "button")
+			{
+				const std::string& buttonName = row[3];
+
+				// Get button from string
+				int button;
+				std::stringstream stream;
+				stream << buttonName;
+				stream >> button;
+
+				// Map control to each gamepad
+				const std::list<Gamepad*>* gamepads = deviceManager->getGamepads();
+				for (Gamepad* gamepad: *gamepads)
+				{
+					inputMapper->map(control, gamepad, button);
+				}
+			}
+			else
+			{
+				std::cerr << "Game::loadControlProfile(): Unknown gamepad event type \"" << eventType << "\"" << std::endl;
+				continue;
+			}
+		}
+		else
+		{
+			std::cerr << "Game::loadControlProfile(): Unknown input device type \"" << deviceType << "\"" << std::endl;
+			continue;
+		}
+	}
+
+	// Map controls
+	inputMapper->map(&exitControl, keyboard, Scancode::ESCAPE);
+	inputMapper->map(&toggleFullscreenControl, keyboard, Scancode::F11);
+	inputMapper->map(&screenshotControl, keyboard, Scancode::F12);
+	inputMapper->map(&openToolMenuControl, keyboard, Scancode::LSHIFT);
+	inputMapper->map(&moveForwardControl, keyboard, Scancode::W);
+	inputMapper->map(&moveBackControl, keyboard, Scancode::S);
+	inputMapper->map(&moveLeftControl, keyboard, Scancode::A);
+	inputMapper->map(&moveRightControl, keyboard, Scancode::D);
+	inputMapper->map(&orbitCCWControl, keyboard, Scancode::Q);
+	inputMapper->map(&orbitCWControl, keyboard, Scancode::E);
+	inputMapper->map(&zoomInControl, mouse, MouseWheelAxis::POSITIVE_Y);
+	inputMapper->map(&zoomInControl, keyboard, Scancode::EQUALS);
+	inputMapper->map(&zoomOutControl, mouse, MouseWheelAxis::NEGATIVE_Y);
+	inputMapper->map(&zoomOutControl, keyboard, Scancode::MINUS);
+	inputMapper->map(&adjustCameraControl, mouse, 2);
+	inputMapper->map(&dragCameraControl, mouse, 3);
+	inputMapper->map(&toggleWireframeControl, keyboard, Scancode::V);
+	inputMapper->map(&toggleEditModeControl, keyboard, Scancode::TAB);
+}
+
+void Game::saveControlProfile()
+{}
 
 void Game::resizeUI(int w, int h)
 {
@@ -1744,6 +1929,11 @@ void Game::screenshot()
 	// Restore camera UI visibility
 	cameraGridContainer->setVisible(true);
 	fpsLabel->setVisible(true);
+
+	// Whiteout screen immediately
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	window->swapBuffers();
 }
 
 void Game::boxSelect(float x, float y, float w, float h)
