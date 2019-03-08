@@ -52,6 +52,7 @@
 #include "entity/systems/behavior-system.hpp"
 #include "entity/systems/steering-system.hpp"
 #include "entity/systems/particle-system.hpp"
+#include "entity/systems/terrain-system.hpp"
 #include "stb/stb_image_write.h"
 #include <algorithm>
 #include <cctype>
@@ -158,20 +159,30 @@ Game::Game(int argc, char* argv[]):
 	currentState(nullptr),
 	window(nullptr)
 {
-	// Get paths
+	// Form resource paths
 	dataPath = getDataPath();
 	configPath = getConfigPath();
+	controlsPath = configPath + "/controls/";
 
-	// Create config path if it doesn't exist
-	if (!pathExists(configPath))
+	// Create nonexistent config directories
+	std::vector<std::string> configPaths;
+	configPaths.push_back(configPath);
+	configPaths.push_back(controlsPath);
+	for (const std::string& path: configPaths)
 	{
-		createDirectory(configPath);
+		if (!pathExists(path))
+		{
+			createDirectory(path);
+		}
 	}
 
 	// Setup resource manager
 	resourceManager = new ResourceManager();
-	resourceManager->include(dataPath);
+
+	// Include resource search paths in order of priority
+	resourceManager->include(controlsPath);
 	resourceManager->include(configPath);
+	resourceManager->include(dataPath);
 
 	splashState = new SplashState(this);
 	sandboxState = new SandboxState(this);
@@ -251,6 +262,10 @@ void Game::setup()
 	setupControls();
 	setupGameplay();
 
+	#if defined(DEBUG)
+		toggleWireframe();
+	#endif // DEBUG
+
 	screenshotQueued = false;
 
 
@@ -318,6 +333,7 @@ void Game::setup()
 	behaviorSystem = new BehaviorSystem(componentManager);
 	steeringSystem = new SteeringSystem(componentManager);
 	locomotionSystem = new LocomotionSystem(componentManager);
+	terrainSystem = new TerrainSystem(componentManager);
 	particleSystem = new ParticleSystem(componentManager);
 	particleSystem->resize(1000);
 	particleSystem->setMaterial(smokeMaterial);
@@ -335,10 +351,12 @@ void Game::setup()
 	systemManager->addSystem(locomotionSystem);
 	systemManager->addSystem(collisionSystem);
 	systemManager->addSystem(toolSystem);
+	systemManager->addSystem(terrainSystem);
 	systemManager->addSystem(particleSystem);
 	systemManager->addSystem(cameraSystem);
 	systemManager->addSystem(renderSystem);
 
+	/*
 	EntityID sidewalkPanel;
 	sidewalkPanel = createInstanceOf("sidewalk-panel");
 
@@ -351,6 +369,7 @@ void Game::setup()
 	EntityID lollipop = createInstanceOf("lollipop");
 	setTranslation(lollipop, Vector3(30.0f, 3.5f * 0.5f, -30.0f));
 	setRotation(lollipop, glm::angleAxis(glm::radians(8.85f), Vector3(1.0f, 0.0f, 0.0f)));
+	*/
 
 	// Load navmesh
 	TriangleMesh* navmesh = resourceManager->load<TriangleMesh>("sidewalk.mesh");
@@ -392,9 +411,11 @@ void Game::setup()
 	}
 
 	
-	EntityID tool0 = createInstanceOf("lens");
+	//EntityID tool0 = createInstanceOf("lens");
+	
+	EntityID patch0 = createInstanceOf("terrain-patch");
 
-	changeState(splashState);
+	changeState(sandboxState);
 }
 
 void Game::update(float t, float dt)
@@ -459,9 +480,7 @@ void Game::render()
 }
 
 void Game::exit()
-{
-	saveControlProfile();
-}
+{}
 
 void Game::handleEvent(const WindowResizedEvent& event)
 {
@@ -484,7 +503,7 @@ void Game::handleEvent(const WindowResizedEvent& event)
 void Game::handleEvent(const GamepadConnectedEvent& event)
 {
 	// Unmap all controls
-	inputMapper->reset();
+	inputRouter->reset();
 
 	// Reload control profile
 	loadControlProfile();
@@ -668,7 +687,7 @@ void Game::setupGraphics()
 	defaultCompositor.addPass(lightingPass);
 	defaultCompositor.addPass(clearSilhouettePass);
 	defaultCompositor.addPass(silhouettePass);
-	defaultCompositor.addPass(finalPass);
+	//defaultCompositor.addPass(finalPass);
 	defaultCompositor.load(nullptr);
 
 	// Setup UI render pass
@@ -1281,40 +1300,12 @@ void Game::setupControls()
 
 	// Load control profile
 	loadControlProfile();
-	
-	/*
-	controlProfile.registerControl("exit", &exitControl);
-	controlProfile.registerControl("toggle-fullscreen", &toggleFullscreenControl);
-	controlProfile.registerControl("open-tool-menu", &openToolMenuControl);
-	controlProfile.registerControl("move-forward", &moveForwardControl);
-	controlProfile.registerControl("move-back", &moveBackControl);
-	controlProfile.registerControl("move-left", &moveLeftControl);
-	controlProfile.registerControl("move-right", &moveRightControl);
-	controlProfile.registerControl("orbit-ccw", &orbitCCWControl);
-	controlProfile.registerControl("orbit-cw", &orbitCWControl);
-	controlProfile.registerControl("zoom-in", &zoomInControl);
-	controlProfile.registerControl("zoom-out", &zoomOutControl);
-	controlProfile.registerControl("adjust-camera", &adjustCameraControl);
-	controlProfile.registerControl("drag-camera", &dragCameraControl);
-	controlProfile.registerControl("toggle-wireframe", &toggleWireframeControl);
-	controlProfile.registerControl("screenshot", &screenshotControl);
-	controlProfile.registerControl("toggle-edit-mode", &toggleEditModeControl);
-	*/
 
-	/*
-	// Save default control bindings
-	std::string bindingsPath = getConfigPath() + "/bindings/";
-	if (!pathExists(bindingsPath))
-	{
-		createDirectory(bindingsPath);
-	}
-	controlProfile.save(bindingsPath + "default.csv");
-
-	// Load control bindings
-	std::string controlProfileFilename = getConfigPath() + "/bindings/" + controlProfileName + ".csv";
-	controlProfile.load(controlProfileFilename, deviceManager);
-	*/
-
+	// Setup input mapper
+	inputMapper = new InputMapper(&eventDispatcher);
+	inputMapper->setCallback(std::bind(&Game::mapInput, this, std::placeholders::_1));
+	inputMapper->setControl(nullptr);
+	inputMapper->setEnabled(false);
 }
 
 void Game::setupGameplay()
@@ -1332,7 +1323,6 @@ void Game::setupGameplay()
 	orbitCam->attachCamera(&camera);
 	freeCam = new FreeCam();
 	freeCam->attachCamera(&camera);
-
 }
 
 void Game::resetSettings()
@@ -1360,7 +1350,7 @@ void Game::resetSettings()
 	fontSizePT = 14.0f;
 
 	// Set default control profile name
-	controlProfileName = "default";
+	controlProfileName = "default-controls";
 }
 
 void Game::loadSettings()
@@ -1413,7 +1403,7 @@ void Game::loadStrings()
 void Game::loadControlProfile()
 {
 	// Load control profile
-	std::string controlProfilePath = "/controls/" + controlProfileName + ".csv";
+	std::string controlProfilePath = controlProfileName + ".csv";
 	CSVTable* controlProfile = resourceManager->load<CSVTable>(controlProfilePath);
 
 	for (const CSVRow& row: *controlProfile)
@@ -1451,7 +1441,7 @@ void Game::loadControlProfile()
 			// Map control
 			if (scancode != Scancode::UNKNOWN)
 			{
-				inputMapper->map(control, keyboard, scancode);
+				inputRouter->addMapping(KeyMapping(control, keyboard, scancode));
 			}
 		}
 		else if (deviceType == "mouse")
@@ -1480,7 +1470,7 @@ void Game::loadControlProfile()
 				}
 
 				// Map control
-				inputMapper->map(control, mouse, axis);
+				inputRouter->addMapping(MouseMotionMapping(control, mouse, axis));
 			}
 			else if (eventType == "wheel")
 			{
@@ -1504,7 +1494,7 @@ void Game::loadControlProfile()
 				}
 
 				// Map control
-				inputMapper->map(control, mouse, axis);
+				inputRouter->addMapping(MouseWheelMapping(control, mouse, axis));
 			}
 			else if (eventType == "button")
 			{
@@ -1517,7 +1507,7 @@ void Game::loadControlProfile()
 				stream >> button;
 
 				// Map control
-				inputMapper->map(control, mouse, button);
+				inputRouter->addMapping(MouseButtonMapping(control, mouse, button));
 			}
 			else
 			{
@@ -1557,7 +1547,7 @@ void Game::loadControlProfile()
 				const std::list<Gamepad*>* gamepads = deviceManager->getGamepads();
 				for (Gamepad* gamepad: *gamepads)
 				{
-					inputMapper->map(control, gamepad, axis, negative);
+					inputRouter->addMapping(GamepadAxisMapping(control, gamepad, axis, negative));
 				}
 			}
 			else if (eventType == "button")
@@ -1574,7 +1564,7 @@ void Game::loadControlProfile()
 				const std::list<Gamepad*>* gamepads = deviceManager->getGamepads();
 				for (Gamepad* gamepad: *gamepads)
 				{
-					inputMapper->map(control, gamepad, button);
+					inputRouter->addMapping(GamepadButtonMapping(control, gamepad, button));
 				}
 			}
 			else
@@ -1589,28 +1579,6 @@ void Game::loadControlProfile()
 			continue;
 		}
 	}
-
-	// Map controls
-	/*
-	inputMapper->map(&exitControl, keyboard, Scancode::ESC);
-	inputMapper->map(&toggleFullscreenControl, keyboard, Scancode::F11);
-	inputMapper->map(&screenshotControl, keyboard, Scancode::F12);
-	inputMapper->map(&openToolMenuControl, keyboard, Scancode::LEFT_SHIFT);
-	inputMapper->map(&moveForwardControl, keyboard, Scancode::W);
-	inputMapper->map(&moveBackControl, keyboard, Scancode::S);
-	inputMapper->map(&moveLeftControl, keyboard, Scancode::A);
-	inputMapper->map(&moveRightControl, keyboard, Scancode::D);
-	inputMapper->map(&orbitCCWControl, keyboard, Scancode::Q);
-	inputMapper->map(&orbitCWControl, keyboard, Scancode::E);
-	inputMapper->map(&zoomInControl, mouse, MouseWheelAxis::POSITIVE_Y);
-	inputMapper->map(&zoomInControl, keyboard, Scancode::EQUAL);
-	inputMapper->map(&zoomOutControl, mouse, MouseWheelAxis::NEGATIVE_Y);
-	inputMapper->map(&zoomOutControl, keyboard, Scancode::MINUS);
-	inputMapper->map(&adjustCameraControl, mouse, 2);
-	inputMapper->map(&dragCameraControl, mouse, 3);
-	inputMapper->map(&toggleWireframeControl, keyboard, Scancode::V);
-	inputMapper->map(&toggleEditModeControl, keyboard, Scancode::TAB);
-	*/
 }
 
 void Game::saveControlProfile()
@@ -1626,7 +1594,7 @@ void Game::saveControlProfile()
 		Control* control = it->second;
 
 		// Look up list of mappings for the control
-		const std::list<InputMapping*>* mappings = inputMapper->getMappings(control);
+		const std::list<InputMapping*>* mappings = inputRouter->getMappings(control);
 		if (!mappings)
 		{
 			continue;
@@ -1771,13 +1739,6 @@ void Game::saveControlProfile()
 					break;
 			}
 		}
-	}
-	
-	// Create controls directory if it doesn't exist
-	std::string controlsPath = getConfigPath() + "/controls/";
-	if (!pathExists(controlsPath))
-	{
-		createDirectory(controlsPath);
 	}
 
 	// Form full path to control profile file
@@ -2104,6 +2065,25 @@ void Game::screenshot()
 	window->swapBuffers();
 }
 
+void Game::mapInput(const InputMapping& mapping)
+{
+	// Skip mouse motion events
+	if (mapping.getType() == InputMappingType::MOUSE_MOTION)
+	{
+		return;
+	}
+
+	// Add input mapping to input router
+	if (mapping.control != nullptr)
+	{
+		inputRouter->addMapping(mapping);
+	}
+
+	// Disable input mapping generation
+	inputMapper->setControl(nullptr);
+	inputMapper->setEnabled(false);
+}
+
 void Game::boxSelect(float x, float y, float w, float h)
 {
 	boxSelectionContainer->setTranslation(Vector2(x, y));
@@ -2115,8 +2095,6 @@ void Game::boxSelect(float x, float y, float w, float h)
 	boxSelectionImageRight->setDimensions(Vector2(boxSelectionBorderWidth, h));
 	boxSelectionContainer->setVisible(true);
 }
-
-
 
 void Game::fadeIn(float duration, const Vector3& color, std::function<void()> callback)
 {

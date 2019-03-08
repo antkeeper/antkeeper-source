@@ -23,6 +23,7 @@
 #include "../entity/components/ant-hill-component.hpp"
 #include "../entity/components/collision-component.hpp"
 #include "../entity/components/model-component.hpp"
+#include "../entity/components/terrain-patch-component.hpp"
 #include "../entity/components/tool-component.hpp"
 #include "../entity/components/transform-component.hpp"
 #include "../entity/entity-template.hpp"
@@ -73,6 +74,30 @@ static ComponentBase* loadModelComponent(ResourceManager* resourceManager, const
 	ModelComponent* component = new ModelComponent();
 	component->model.setModel(model);
 	component->model.setPose(nullptr);
+
+	return component;
+}
+
+static ComponentBase* loadTerrainPatchComponent(const std::vector<std::string>& parameters)
+{
+	if (parameters.size() != 3)
+	{
+		throw std::runtime_error("loadTerrainPatchComponent(): Invalid parameter count.");
+	}
+
+	std::tuple<int, int> position;
+	std::stringstream stream;
+	for (std::size_t i = 1; i < parameters.size(); ++i)
+	{
+		stream << parameters[i];
+		if (i < parameters.size() - 1)
+			stream << ' ';
+	}
+	stream >> std::get<0>(position);
+	stream >> std::get<1>(position);
+
+	TerrainPatchComponent* component = new TerrainPatchComponent();
+	component->position = position;
 
 	return component;
 }
@@ -133,6 +158,7 @@ static ComponentBase* loadComponent(ResourceManager* resourceManager, const std:
 	if (parameters[0] == "ant-hill") return loadAntHillComponent(parameters);
 	if (parameters[0] == "collision") return loadCollisionComponent(resourceManager, parameters);
 	if (parameters[0] == "model") return loadModelComponent(resourceManager, parameters);
+	if (parameters[0] == "terrain-patch") return loadTerrainPatchComponent(parameters);
 	if (parameters[0] == "tool") return loadToolComponent(parameters);
 	if (parameters[0] == "transform") return loadTransformComponent(parameters);
 

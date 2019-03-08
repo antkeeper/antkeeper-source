@@ -17,24 +17,13 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMPONENT__TYPE_HPP
-#define COMPONENT__TYPE_HPP
+#include "terrain-patch-component.hpp"
 
-enum class ComponentType
+ComponentBase* TerrainPatchComponent::clone() const
 {
-	ANIMATION,
-	ANT_HILL,
-	BEHAVIOR,
-	CAMERA,
-	COLLISION,
-	LEGGED_LOCOMOTION,
-	MODEL,
-	STEERING,
-	SOUND_SOURCE,
-	TERRAIN_PATCH,
-	TOOL,
-	TRANSFORM
-};
-
-#endif // COMPONENT_TYPE_HPP
+	TerrainPatchComponent* component = new TerrainPatchComponent();
+	component->position = position;
+	
+	return component;
+}
 

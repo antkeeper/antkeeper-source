@@ -129,6 +129,7 @@ T* ResourceManager::load(const std::string& path)
 			opened = true;
 			data = ResourceLoader<T>::load(this, &fs);
 			fs.close();
+			break;
 		}
 
 		if (!opened)

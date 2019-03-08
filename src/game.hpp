@@ -62,6 +62,7 @@ class ToolSystem;
 class BehaviorSystem;
 class SteeringSystem;
 class LocomotionSystem;
+class TerrainSystem;
 class ComponentBase;
 enum class ComponentType;
 typedef std::vector<std::vector<std::string>> CSVTable;
@@ -155,8 +156,11 @@ private:
 
 	void setTimeOfDay(float time);
 	void toggleWireframe();
-	void screenshot();
 	void queueScreenshot();
+	void screenshot();
+
+	// Callback for the input mapper
+	void mapInput(const InputMapping& mapping);
 
 
 public:
@@ -184,6 +188,7 @@ public:
 	// Paths
 	std::string dataPath;
 	std::string configPath;
+	std::string controlsPath;
 
 	// Settings
 	CSVTable* settingsTable;
@@ -251,6 +256,9 @@ public:
 
 	// Map of control names
 	std::map<std::string, Control*> controlNameMap;
+
+	// Input mapper
+	InputMapper* inputMapper;
 
 	// Logic
 	float time;
@@ -380,7 +388,6 @@ public:
 	Lens* lens;
 	Forceps* forceps;
 	Brush* brush;
-	ParticleSystem* particleSystem;
 
 	// ECS
 	EntityManager* entityManager;
@@ -394,6 +401,8 @@ public:
 	BehaviorSystem* behaviorSystem;
 	SteeringSystem* steeringSystem;
 	LocomotionSystem* locomotionSystem;
+	ParticleSystem* particleSystem;
+	TerrainSystem* terrainSystem;
 
 	bool screenshotQueued;
 

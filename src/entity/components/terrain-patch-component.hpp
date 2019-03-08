@@ -17,24 +17,21 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMPONENT__TYPE_HPP
-#define COMPONENT__TYPE_HPP
+#ifndef TERRAIN_PATCH_COMPONENT_HPP
+#define TERRAIN_PATCH_COMPONENT_HPP
 
-enum class ComponentType
+#include "../component.hpp"
+#include "component-type.hpp"
+#include <tuple>
+
+class TerrainPatchComponent: public Component<ComponentType::TERRAIN_PATCH>
 {
-	ANIMATION,
-	ANT_HILL,
-	BEHAVIOR,
-	CAMERA,
-	COLLISION,
-	LEGGED_LOCOMOTION,
-	MODEL,
-	STEERING,
-	SOUND_SOURCE,
-	TERRAIN_PATCH,
-	TOOL,
-	TRANSFORM
+public:
+	virtual ComponentBase* clone() const;
+	
+	// Position in integer terrain coordinates
+	std::tuple<int, int> position;
 };
 
-#endif // COMPONENT_TYPE_HPP
+#endif // TERRAIN_PATCH_COMPONENT_HPP
 
