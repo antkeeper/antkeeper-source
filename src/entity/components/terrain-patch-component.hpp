@@ -28,6 +28,9 @@ class TerrainPatchComponent: public Component<ComponentType::TERRAIN_PATCH>
 {
 public:
 	virtual ComponentBase* clone() const;
+
+	// Number of terrain mesh subdivisions (at LOD 0)
+	int subdivisions;
 	
 	// Position in integer terrain coordinates
 	std::tuple<int, int> position;

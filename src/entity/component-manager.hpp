@@ -90,6 +90,17 @@ public:
 	 * @return Pointer to the component, or `nullptr` if the specified component was not found.
 	 */
 	ComponentBase* getComponent(EntityID entity, ComponentType type);
+
+	/**
+	 * Returns the specified component of an entity.
+	 *
+	 * @param entity Specifies an entity.
+	 * @tparam type Specifies the component type.
+	 *
+	 * @return Pointer to the component, or `nullptr` if the specified component was not found.
+	 */
+	template <typename T>
+	T* getComponent(EntityID entity);
 	
 	/**
 	 * Returns the component map of the specified entity.
@@ -107,6 +118,20 @@ private:
 	EntityComponentMap entityMap;
 	std::list<ComponentObserver*> componentObservers;
 };
+
+template <typename T>
+T* ComponentManager::getComponent(EntityID entity)
+{
+	ComponentMap& componentMap = entityMap[entity];
+	
+	auto it = componentMap.find(T::TYPE);
+	if (it == componentMap.end())
+	{
+		return nullptr;
+	}
+	
+	return static_cast<T*>(it->second);
+}
 
 inline ComponentMap* ComponentManager::getComponents(EntityID entity)
 {

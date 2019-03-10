@@ -81,6 +81,9 @@ bool LightingRenderPass::load(const RenderContext* renderContext)
 	spotlightCutoffsParam.connect(shader->getInput("spotlightCutoffs"));
 	spotlightExponentsParam.connect(shader->getInput("spotlightExponents"));
 
+	clipNearParam.connect(shader->getInput("clipNear"));
+	clipFarParam.connect(shader->getInput("clipFar"));
+
 	#if defined(DEBUG)
 		wireframeLineWidthParam.connect(shader->getInput("wireframeLineWidth"));
 	#endif
@@ -228,6 +231,8 @@ void LightingRenderPass::render(RenderContext* renderContext)
 	cameraPositionParam.setValue(cameraPosition);
 	shadowMapParam.setValue(shadowMap);
 	timeParam.setValue(time);
+	clipNearParam.setValue(camera.getClipNear());
+	clipFarParam.setValue(camera.getClipFar());
 
 	std::uint32_t permutation = 0xDEADBEEF;
 	bool blending = false;
@@ -283,6 +288,9 @@ void LightingRenderPass::render(RenderContext* renderContext)
 				spotlightCutoffsParam.upload();
 				spotlightExponentsParam.upload();
 			}
+
+			clipNearParam.upload();
+			clipFarParam.upload();
 
 			#if defined(DEBUG)
 				wireframeLineWidthParam.upload();

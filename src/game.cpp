@@ -40,6 +40,7 @@
 #include "entity/component-manager.hpp"
 #include "entity/components/transform-component.hpp"
 #include "entity/components/model-component.hpp"
+#include "entity/components/terrain-patch-component.hpp"
 #include "entity/entity-manager.hpp"
 #include "entity/entity-template.hpp"
 #include "entity/system-manager.hpp"
@@ -334,6 +335,7 @@ void Game::setup()
 	steeringSystem = new SteeringSystem(componentManager);
 	locomotionSystem = new LocomotionSystem(componentManager);
 	terrainSystem = new TerrainSystem(componentManager);
+	terrainSystem->setPatchSize(500.0f);
 	particleSystem = new ParticleSystem(componentManager);
 	particleSystem->resize(1000);
 	particleSystem->setMaterial(smokeMaterial);
@@ -412,8 +414,41 @@ void Game::setup()
 
 	
 	//EntityID tool0 = createInstanceOf("lens");
-	
-	EntityID patch0 = createInstanceOf("terrain-patch");
+
+	int highResolutionDiameter = 3;
+	int mediumResolutionDiameter = highResolutionDiameter + 2;
+	int lowResolutionDiameter = 20;
+
+	float lowResolutionRadius = static_cast<float>(lowResolutionDiameter) / 2.0f;
+	float mediumResolutionRadius = static_cast<float>(mediumResolutionDiameter) / 2.0f;
+	float highResolutionRadius = static_cast<float>(highResolutionDiameter) / 2.0f;
+
+	for (int i = 0; i < lowResolutionDiameter; ++i)
+	{
+		for (int j = 0; j < lowResolutionDiameter; ++j)
+		{
+			EntityID patch;
+
+			int x = i - lowResolutionDiameter / 2;
+			int z = j - lowResolutionDiameter / 2;
+
+
+			if (std::abs(x) < highResolutionRadius && std::abs(z) < highResolutionRadius)
+			{
+				patch = createInstanceOf("terrain-patch-high-resolution");
+			}
+			else if (std::abs(x) < mediumResolutionRadius && std::abs(z) < mediumResolutionRadius)
+			{
+				patch = createInstanceOf("terrain-patch-medium-resolution");
+			}
+			else
+			{
+				patch = createInstanceOf("terrain-patch-low-resolution");
+			}
+
+			setTerrainPatchPosition(patch, {x, z});
+		}
+	}
 
 	changeState(sandboxState);
 }
@@ -421,9 +456,6 @@ void Game::setup()
 void Game::update(float t, float dt)
 {
 	this->time = t;
-
-	// Dispatch scheduled events
-	eventDispatcher.update(t);
 
 	// Execute current state
 	if (currentState != nullptr)
@@ -469,14 +501,14 @@ void Game::render()
 	renderer.render(*worldScene);
 	renderer.render(*uiScene);
 
-	// Swap window framebuffers
-	window->swapBuffers();
-
 	if (screenshotQueued)
 	{
 		screenshot();
 		screenshotQueued = false;
 	}
+
+	// Swap window framebuffers
+	window->swapBuffers();
 }
 
 void Game::exit()
@@ -922,6 +954,11 @@ void Game::setupUI()
 	toolIconCameraImage->setTextureBounds(normalizeTextureBounds(hudTextureAtlas.getBounds("tool-icon-camera"), hudTextureAtlasBounds));
 	radialMenuImage->addChild(toolIconCameraImage);
 
+	toolIconMicrochipImage = new UIImage();
+	toolIconMicrochipImage->setTexture(hudSpriteSheetTexture);
+	toolIconMicrochipImage->setTextureBounds(normalizeTextureBounds(hudTextureAtlas.getBounds("tool-icon-microchip"), hudTextureAtlasBounds));
+	radialMenuImage->addChild(toolIconMicrochipImage);
+
 	toolIconTestTubeImage = new UIImage();
 	toolIconTestTubeImage->setTexture(hudSpriteSheetTexture);
 	toolIconTestTubeImage->setTextureBounds(normalizeTextureBounds(hudTextureAtlas.getBounds("tool-icon-test-tube"), hudTextureAtlasBounds));
@@ -1080,7 +1117,7 @@ void Game::setupUI()
 	cameraGridContainer->addChild(cameraGridX0Image);
 	cameraGridContainer->addChild(cameraGridX1Image);
 	cameraGridContainer->addChild(cameraReticleImage);
-	cameraGridContainer->setVisible(true);
+	cameraGridContainer->setVisible(false);
 	uiRootElement->addChild(cameraGridContainer);
 
 	cameraFlashImage = new UIImage();
@@ -1859,6 +1896,9 @@ void Game::resizeUI(int w, int h)
 	toolIconCameraImage->setDimensions(Vector2(toolIconCameraBounds.getWidth(), toolIconCameraBounds.getHeight()));
 	toolIconCameraImage->setAnchor(Anchor::CENTER);
 
+	Rect toolIconMicrochipBounds = hudTextureAtlas.getBounds("tool-icon-microchip");
+	toolIconMicrochipImage->setDimensions(Vector2(toolIconMicrochipBounds.getWidth(), toolIconMicrochipBounds.getHeight()));
+	toolIconMicrochipImage->setAnchor(Anchor::CENTER);
 
 	Rect toolIconTestTubeBounds = hudTextureAtlas.getBounds("tool-icon-test-tube");
 	toolIconTestTubeImage->setDimensions(Vector2(toolIconTestTubeBounds.getWidth(), toolIconTestTubeBounds.getHeight()));
@@ -1931,7 +1971,7 @@ void Game::resizeUI(int w, int h)
 		toolIconLensImage,
 		nullptr,
 		toolIconForcepsImage,
-		nullptr,
+		toolIconMicrochipImage,
 		toolIconCameraImage,
 		nullptr
 	};
@@ -2015,6 +2055,7 @@ void Game::screenshot()
 
 	// Read pixel data from framebuffer
 	unsigned char* pixels = new unsigned char[w * h * 3];
+	glReadBuffer(GL_BACK);
 	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
 	// Get game title in current language
@@ -2056,13 +2097,12 @@ void Game::screenshot()
 	// Play camera shutter sound
 	
 	// Restore camera UI visibility
-	cameraGridContainer->setVisible(true);
+	//cameraGridContainer->setVisible(true);
 	fpsLabel->setVisible(true);
 
 	// Whiteout screen immediately
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	window->swapBuffers();
 }
 
 void Game::mapInput(const InputMapping& mapping)
@@ -2215,7 +2255,7 @@ void Game::removeComponent(EntityID entity, ComponentType type)
 
 void Game::setTranslation(EntityID entity, const Vector3& translation)
 {
-	TransformComponent* component = static_cast<TransformComponent*>(componentManager->getComponent(entity, ComponentType::TRANSFORM));
+	TransformComponent* component = componentManager->getComponent<TransformComponent>(entity);
 	if (!component)
 	{
 		return;
@@ -2226,7 +2266,7 @@ void Game::setTranslation(EntityID entity, const Vector3& translation)
 
 void Game::setRotation(EntityID entity, const Quaternion& rotation)
 {
-	TransformComponent* component = static_cast<TransformComponent*>(componentManager->getComponent(entity, ComponentType::TRANSFORM));
+	TransformComponent* component = componentManager->getComponent<TransformComponent>(entity);
 	if (!component)
 	{
 		return;
@@ -2237,7 +2277,7 @@ void Game::setRotation(EntityID entity, const Quaternion& rotation)
 
 void Game::setScale(EntityID entity, const Vector3& scale)
 {
-	TransformComponent* component = static_cast<TransformComponent*>(componentManager->getComponent(entity, ComponentType::TRANSFORM));
+	TransformComponent* component = componentManager->getComponent<TransformComponent>(entity);
 	if (!component)
 	{
 		return;
@@ -2246,6 +2286,16 @@ void Game::setScale(EntityID entity, const Vector3& scale)
 	component->transform.scale = scale;
 }
 
+void Game::setTerrainPatchPosition(EntityID entity, const std::tuple<int, int>& position)
+{
+	TerrainPatchComponent* component = componentManager->getComponent<TerrainPatchComponent>(entity);
+	if (!component)
+	{
+		return;
+	}
+
+	component->position = position;
+}
 
 void Game::saveScreenshot(const std::string& filename, unsigned int width, unsigned int height, unsigned char* pixels)
 {

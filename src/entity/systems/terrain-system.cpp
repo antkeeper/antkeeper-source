@@ -27,8 +27,7 @@ TerrainSystem::TerrainSystem(ComponentManager* componentManager):
 {
 	terrainCreationGroup.addGroupObserver(this);
 	terrainGroup.addGroupObserver(this);
-
-	patchSize = 100.0f;
+	patchSize = 1.0f;
 }
 
 TerrainSystem::~TerrainSystem()
@@ -43,7 +42,14 @@ void TerrainSystem::update(float t, float dt)
 		ModelComponent* model = std::get<0>(member->components);
 		TerrainPatchComponent* patch = std::get<1>(member->components);
 		TransformComponent* transform = std::get<2>(member->components);
+
+		transform->transform.translation = Vector3(std::get<0>(patch->position), 0.0f, std::get<1>(patch->position)) * patchSize;
 	}
+}
+
+void TerrainSystem::setPatchSize(float size)
+{
+	patchSize = size;
 }
 
 void TerrainSystem::memberRegistered(const TerrainCreationGroup::Member* member)
@@ -52,7 +58,7 @@ void TerrainSystem::memberRegistered(const TerrainCreationGroup::Member* member)
 	TransformComponent* transform = std::get<1>(member->components);
 
 	// Generate a subdivided plane mesh
-	TriangleMesh* patchMesh = generatePlane(5);
+	TriangleMesh* patchMesh = generatePlane(patch->subdivisions);
 
 	// Generate a model from the subdivided plane
 	Model* patchModel = generateModel(patchMesh);
@@ -63,7 +69,7 @@ void TerrainSystem::memberRegistered(const TerrainCreationGroup::Member* member)
 	componentManager->addComponent(member->entity, model);
 
 	// Set scale of the transform component
-	transform->transform.scale = Vector3(patchSize);
+	transform->transform.scale = Vector3(patchSize, 1.0f, patchSize);
 	transform->transform.translation = Vector3(std::get<0>(patch->position), 0.0f, std::get<1>(patch->position)) * patchSize;
 }
 
@@ -137,51 +143,6 @@ TriangleMesh* TerrainSystem::generatePlane(int subdivisions)
 	}
 
 	return new TriangleMesh(vertices, indices);
-
-	/*
-	// Generate navmesh
-	surfaceNavmesh.create(surfaceVertices, surfaceIndices);
-	
-	// Calculate vertex normals
-	calculateSurfaceNormals();
-	
-	// Create and load VAO, VBO, and IBO
-	glGenVertexArrays(1, &surfaceVAO);
-	glBindVertexArray(surfaceVAO);
-	glGenBuffers(1, &surfaceVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, surfaceVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * surfaceVertexSize * surfaceVertexCount, surfaceVertexData, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(EMERGENT_VERTEX_POSITION);
-	glVertexAttribPointer(EMERGENT_VERTEX_POSITION, 3, GL_FLOAT, GL_FALSE, surfaceVertexSize * sizeof(float), (char*)0 + 0 * sizeof(float));
-	glEnableVertexAttribArray(EMERGENT_VERTEX_NORMAL);
-	glVertexAttribPointer(EMERGENT_VERTEX_NORMAL, 3, GL_FLOAT, GL_FALSE, surfaceVertexSize * sizeof(float), (char*)0 + 3 * sizeof(float));
-	glEnableVertexAttribArray(EMERGENT_VERTEX_TEXCOORD);
-	glVertexAttribPointer(EMERGENT_VERTEX_TEXCOORD, 2, GL_FLOAT, GL_FALSE, surfaceVertexSize * sizeof(float), (char*)0 + 6 * sizeof(float));
-	glGenBuffers(1, &surfaceIBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surfaceIBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(std::uint32_t) * surfaceIndexCount, surfaceIndexData, GL_STATIC_DRAW);
-	
-	// Setup material
-	//surfaceMaterial.flags = static_cast<unsigned int>(PhysicalMaterial::Flags::OBJECT);
-	
-	// Setup buffers
-	surfaceModel.setVAO(surfaceVAO);
-	surfaceModel.setVBO(surfaceVBO);
-	surfaceModel.setIBO(surfaceIBO);
-	
-	// Create model group
-	Model::Group* group = new Model::Group();
-	group->name = "default";
-	group->material = nullptr;//&surfaceMaterial;
-	group->indexOffset = 0;
-	group->triangleCount = surfaceTriangleCount;
-	
-	// Add group to the model
-	surfaceModel.addGroup(group);
-	
-	// Set model bounds
-	surfaceModel.setBounds(surfaceNavmesh.getBounds());
-	*/
 }
 
 Model* TerrainSystem::generateModel(TriangleMesh* mesh)
@@ -335,7 +296,7 @@ Model* TerrainSystem::generateModel(TriangleMesh* mesh)
 	ShaderVariable<float>* roughness = material->addVariable<float>("roughness");
 	ShaderVariable<float>* metalness = material->addVariable<float>("metalness");
 	ShaderVariable<float>* opacity = material->addVariable<float>("opacity");
-	albedo->setValue(Vector3(0.8f));
+	albedo->setValue(Vector3(frand(0.0f, 1.0f), frand(0.0f, 1.0f), frand(0.0, 1.0f)));
 	roughness->setValue(0.5f);
 	metalness->setValue(0.0f);
 	opacity->setValue(1.0f);

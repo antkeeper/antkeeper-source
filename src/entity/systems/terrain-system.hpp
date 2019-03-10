@@ -42,6 +42,8 @@ public:
 	
 	virtual void update(float t, float dt);
 
+	void setPatchSize(float size);
+
 private:
 	virtual void memberRegistered(const TerrainCreationGroup::Member* member);
 	virtual void memberUnregistered(const TerrainCreationGroup::Member* member);

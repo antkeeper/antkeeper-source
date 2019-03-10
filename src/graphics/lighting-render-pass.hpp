@@ -82,6 +82,8 @@ private:
 	ShaderVector3 spotlightDirectionsParam;
 	ShaderFloat spotlightCutoffsParam;
 	ShaderFloat spotlightExponentsParam;
+	ShaderFloat clipNearParam;
+	ShaderFloat clipFarParam;
 
 	#if defined(DEBUG)
 		ShaderFloat wireframeLineWidthParam;

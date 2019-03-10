@@ -22,6 +22,7 @@
 ComponentBase* TerrainPatchComponent::clone() const
 {
 	TerrainPatchComponent* component = new TerrainPatchComponent();
+	component->subdivisions = subdivisions;
 	component->position = position;
 	
 	return component;

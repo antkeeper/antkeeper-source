@@ -80,12 +80,14 @@ static ComponentBase* loadModelComponent(ResourceManager* resourceManager, const
 
 static ComponentBase* loadTerrainPatchComponent(const std::vector<std::string>& parameters)
 {
-	if (parameters.size() != 3)
+	if (parameters.size() != 4)
 	{
 		throw std::runtime_error("loadTerrainPatchComponent(): Invalid parameter count.");
 	}
 
+	int subdivisions;
 	std::tuple<int, int> position;
+	float size;
 	std::stringstream stream;
 	for (std::size_t i = 1; i < parameters.size(); ++i)
 	{
@@ -93,10 +95,12 @@ static ComponentBase* loadTerrainPatchComponent(const std::vector<std::string>& 
 		if (i < parameters.size() - 1)
 			stream << ' ';
 	}
+	stream >> subdivisions;
 	stream >> std::get<0>(position);
 	stream >> std::get<1>(position);
 
 	TerrainPatchComponent* component = new TerrainPatchComponent();
+	component->subdivisions = subdivisions;
 	component->position = position;
 
 	return component;

@@ -172,6 +172,7 @@ public:
 	void setTranslation(EntityID entity, const Vector3& translation);
 	void setRotation(EntityID entity, const Quaternion& rotation);
 	void setScale(EntityID entity, const Vector3& scale);
+	void setTerrainPatchPosition(EntityID entity, const std::tuple<int, int>& position);
 
 	void boxSelect(float x, float y, float w, float h);
 
@@ -283,6 +284,7 @@ public:
 	UIImage* toolIconForcepsImage;
 	UIImage* toolIconSpadeImage;
 	UIImage* toolIconCameraImage;
+	UIImage* toolIconMicrochipImage;
 	UIImage* toolIconTestTubeImage;
 	UIContainer* buttonContainer;
 	UIImage* playButtonBGImage;

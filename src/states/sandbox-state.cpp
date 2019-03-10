@@ -67,13 +67,13 @@ void SandboxState::enter()
 	game->orbitCam->setTargetAzimuth(azimuth);
 
 	game->freeCam->setTranslation(Vector3(-5, 5.0f, -5.0f));
-	game->cameraRig = game->freeCam;
-	game->mouse->setRelativeMode(true);
+	//game->cameraRig = game->freeCam;
+	//game->mouse->setRelativeMode(true);
 
 	toolIndex = 0;
 	game->selectTool(toolIndex);
-	game->currentTool->setActive(false);
-	//game->mouse->warp(game->window, game->w / 2, game->h / 2);
+	//game->currentTool->setActive(false);
+	game->mouse->warp(game->window, game->w / 2, game->h / 2);
 
 	zoom = 0.5f;
 	noPick = false;
@@ -153,7 +153,7 @@ void SandboxState::execute()
 	zoom = std::max<float>(0.0f, std::min<float>(1.0f, zoom));
 
 	float minFocalDistance = 5.0f;
-	float maxFocalDistance = 70.0f;
+	float maxFocalDistance = 200.0f;
 	float logMinFocalDistance = std::log(minFocalDistance);
 	float logMaxFocalDistance = std::log(maxFocalDistance);
 	float logFocalDistance = lerp(logMinFocalDistance, logMaxFocalDistance, 1.0f - zoom);
@@ -167,9 +167,9 @@ void SandboxState::execute()
 	float fov = std::exp(logFOV);
 
 	float minClipNear = 1.0f;
-	float maxClipNear = 10.0f;
-	float minClipFar = 80.0f;
-	float maxClipFar = 350.0f;
+	float maxClipNear = 5.0f;
+	float minClipFar = 100.0f;
+	float maxClipFar = 5000.0f;
 	float logMinClipNear = std::log(minClipNear);
 	float logMaxClipNear = std::log(maxClipNear);
 	float logMinClipFar = std::log(minClipFar);
@@ -179,15 +179,8 @@ void SandboxState::execute()
 	float clipNear = std::exp(logClipNear);
 	float clipFar = std::exp(logClipFar);
 
-	float nearElevation = glm::radians(40.0f);
-	float farElevation = glm::radians(80.0f);
-	float logNearElevation = std::log(nearElevation);
-	float logFarElevation = std::log(farElevation);
-	float logElevation = lerp(logNearElevation, logFarElevation, 1.0f - zoom);
-	float elevation = std::exp(logElevation);
-
-	float minMovementSpeed = 2.5f * game->timestep;
-	float maxMovementSpeed = 40.0f * game->timestep;
+	float minMovementSpeed = 3.5f * game->timestep;
+	float maxMovementSpeed = 100.0f * game->timestep;
 	float logMinMovementSpeed = std::log(minMovementSpeed);
 	float logMaxMovementSpeed = std::log(maxMovementSpeed);
 	float logMovementSpeed = lerp(logMinMovementSpeed, logMaxMovementSpeed, 1.0f - zoom);
@@ -217,11 +210,22 @@ void SandboxState::execute()
 	float logLabelDistance = lerp(logNearLabelDistance, logFarLabelDistance, 1.0f - zoom);
 	float labelDistance = std::exp(logLabelDistance);
 
+	if (game->adjustCameraControl.isActive() && !game->adjustCameraControl.wasActive())
+	{
+		savedMousePosition = game->mouse->getCurrentPosition();
+		game->mouse->setRelativeMode(true);
+	}
+
 	if (!game->radialMenuContainer->isVisible() && !menuClosed)
 	{
 		// Picking
 		Vector3 pick;
 		std::tuple<int, int> mousePosition = game->mouse->getCurrentPosition();
+
+		if (game->adjustCameraControl.isActive() || game->adjustCameraControl.wasActive())
+		{
+			mousePosition = savedMousePosition;
+		}
 
 		std::get<1>(mousePosition) = game->h - std::get<1>(mousePosition);
 		Vector4 viewport(0.0f, 0.0f, game->w, game->h);
@@ -250,26 +254,8 @@ void SandboxState::execute()
 				}
 				game->currentTool->update(game->timestep);
 			}
-
-			if (game->adjustCameraControl.isActive() || game->dragCameraControl.isActive())
-			{
-				noPick = true;
-			}
-			else
-			{
-				noPick = false;
-			}
-
-
-
-			if (game->adjustCameraControl.isActive() && !game->adjustCameraControl.wasActive())
-			{
-				Vector3 focalPoint = pick;
-				game->orbitCam->setTargetFocalPoint(focalPoint);
-				savedMousePosition = game->mouse->getCurrentPosition();
-				game->mouse->setRelativeMode(true);
-			}
-			else if (game->dragCameraControl.isActive())
+			
+			if (game->dragCameraControl.isActive())
 			{
 				if (!game->dragCameraControl.wasActive())
 				{
@@ -308,7 +294,7 @@ void SandboxState::execute()
 	if (!game->adjustCameraControl.isActive() && game->adjustCameraControl.wasActive())
 	{
 		game->mouse->setRelativeMode(false);
-		game->mouse->warp(game->window, game->w / 2, game->h / 2);
+		game->mouse->warp(game->window, std::get<0>(savedMousePosition), std::get<1>(savedMousePosition));
 		noPick = false;
 	}
 }
@@ -377,7 +363,7 @@ void SandboxState::handleEvent(const MouseMovedEvent& event)
 
 		float rotation = glm::radians(22.5f) * rotationFactor * game->timestep;
 
-		float minElevation = glm::radians(-80.0f);
+		float minElevation = glm::radians(4.0f);
 		float maxElevation = glm::radians(80.0f);
 		float elevation = game->orbitCam->getTargetElevation() + elevationFactor * 0.25f * game->timestep;
 		elevation = std::min<float>(maxElevation, std::max<float>(minElevation, elevation));
