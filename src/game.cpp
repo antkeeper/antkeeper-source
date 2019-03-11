@@ -22,7 +22,8 @@
 #include "states/game-state.hpp"
 #include "states/splash-state.hpp"
 #include "states/sandbox-state.hpp"
-#include "paths.hpp"
+#include "filesystem.hpp"
+#include "timestamp.hpp"
 #include "ui/ui.hpp"
 #include "graphics/ui-render-pass.hpp"
 #include "graphics/shadow-map-render-pass.hpp"
@@ -57,9 +58,7 @@
 #include "stb/stb_image_write.h"
 #include <algorithm>
 #include <cctype>
-#include <chrono>
 #include <fstream>
-#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 #include <thread>
@@ -160,10 +159,21 @@ Game::Game(int argc, char* argv[]):
 	currentState(nullptr),
 	window(nullptr)
 {
+	// Determine application name
+	std::string applicationName;
+	#if defined(_WIN32)
+		applicationName = "Antkeeper";
+	#else
+		applicationName = "antkeeper";
+	#endif
+	
 	// Form resource paths
-	dataPath = getDataPath();
-	configPath = getConfigPath();
+	dataPath = getDataPath(applicationName);
+	configPath = getConfigPath(applicationName);
 	controlsPath = configPath + "/controls/";
+	
+	std::cout << "Data path: " << dataPath << std::endl;
+	std::cout << "Config path: " << configPath << std::endl;
 
 	// Create nonexistent config directories
 	std::vector<std::string> configPaths;
@@ -773,8 +783,7 @@ void Game::setupUI()
 
 	// Character set test
 	std::set<char32_t> charset;
-	charset.emplace(U'方');
-	charset.emplace(U'蕴');
+	charset.emplace(U'A');
 	labelTypeface->loadCharset(labelFont, UnicodeRange::BASIC_LATIN);
 	labelTypeface->loadCharset(labelFont, charset);
 
@@ -2064,11 +2073,6 @@ void Game::screenshot()
 	// Convert title to lowercase
 	std::transform(title.begin(), title.end(), title.begin(), ::tolower);
 
-	// Get system time
-	auto now = std::chrono::system_clock::now();
-	std::time_t tt = std::chrono::system_clock::to_time_t(now);
-	std::size_t ms = (std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000).count();
-
 	// Create screenshot directory if it doesn't exist
 	std::string screenshotDirectory = configPath + std::string("/screenshots/");
 	if (!pathExists(screenshotDirectory))
@@ -2077,13 +2081,7 @@ void Game::screenshot()
 	}
 
 	// Build screenshot file name
-	std::stringstream stream;
-	stream << screenshotDirectory;
-	stream << title;
-	stream << std::put_time(std::localtime(&tt), "-%Y%m%d-%H%M%S-");
-	stream << std::setfill('0') << std::setw(3) << ms;
-	stream << ".png";
-	std::string filename = stream.str();
+	std::string filename = screenshotDirectory + title + "-" + timestamp() + ".png";
 
 	// Write screenshot to file in separate thread
 	std::thread screenshotThread(Game::saveScreenshot, filename, w, h, pixels);

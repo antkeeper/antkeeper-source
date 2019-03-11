@@ -1,9 +1,20 @@
+# Prevent in-source builds
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+	message(FATAL_ERROR "In-source builds prohibited. Call cmake from the build directory.")
+endif()
+
 cmake_minimum_required(VERSION 3.7)
 
 # Set compiler flags
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O3 -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+if(CMAKE_COMPILER_IS_GNUCC)
+	set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
+elseif(MSVC)
+	set(CMAKE_CXX_FLAGS "/W3 /MP /MD")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS}")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /Ox")
+endif()
 
 # Include project macro
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/project.cmake)
@@ -29,6 +40,12 @@ file(GLOB_RECURSE SOURCE_FILES
 set(EXECUTABLE_TARGET ${PROJECT_NAME}-executable)
 add_executable(${EXECUTABLE_TARGET} ${SOURCE_FILES})
 set_target_properties(${EXECUTABLE_TARGET} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+
+# Set link flags to show console window on debug builds and hide it on release builds
+if(MSVC)
+	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
+	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:\"mainCRTStartup\"")
+endif(MSVC)
 
 # Set include directories
 target_include_directories(${EXECUTABLE_TARGET}

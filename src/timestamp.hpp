@@ -17,22 +17,14 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PATHS_HPP
-#define PATHS_HPP
+#ifndef TIMESTAMP_HPP
+#define TIMESTAMP_HPP
 
 #include <string>
 
-/// Returns the path to the executable's data
-std::string getDataPath();
+/**
+ * Returns a string containing the current time, formatted as "YYYYMMDD-HHMMSS-mmm".
+ */
+std::string timestamp();
 
-/// Returns the path to the executable's config files
-std::string getConfigPath();
-
-/// Checks if a file or directory exists
-bool pathExists(const std::string& path);
-
-/// Creates a directory
-bool createDirectory(const std::string& path);
-
-#endif // PATHS_HPP
-
+#endif // TIMESTAMP_HPP

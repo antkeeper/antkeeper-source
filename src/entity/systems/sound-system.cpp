@@ -55,7 +55,7 @@ SoundSystem::SoundSystem(ComponentManager* componentManager):
 
 	// Load wav file
 	{
-		const char* filename = "/home/cjhoward/projects/antkeeper/modules/antkeeper-data/sounds/shutter.wav";
+		const char* filename = "shutter.wav";
 		unsigned int channels;
 		unsigned int sampleRate;
 		drwav_uint64 frameCount;
