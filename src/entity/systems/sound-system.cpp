@@ -53,6 +53,7 @@ SoundSystem::SoundSystem(ComponentManager* componentManager):
 
 	alGenBuffers((ALuint)1, &buffer);
 
+	/*
 	// Load wav file
 	{
 		const char* filename = "data/shutter.wav";
@@ -75,6 +76,7 @@ SoundSystem::SoundSystem(ComponentManager* componentManager):
 
 		alBufferData(buffer, format, sampleData, sampleDataSize, sampleRate);
 	}
+	*/
 
 	alSourcei(source, AL_BUFFER, buffer);
 	//alSourcePlay(source);

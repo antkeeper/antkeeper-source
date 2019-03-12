@@ -42,6 +42,13 @@ set(EXECUTABLE_TARGET ${PROJECT_NAME}-executable)
 add_executable(${EXECUTABLE_TARGET} ${SOURCE_FILES})
 set_target_properties(${EXECUTABLE_TARGET} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
+# Add compile definitions
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE DEBUG)
+else()
+	target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE NDEBUG)
+endif()
+
 # Set link flags to show console window on debug builds and hide it on release builds
 if(MSVC)
 	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
