@@ -55,7 +55,7 @@ SoundSystem::SoundSystem(ComponentManager* componentManager):
 
 	// Load wav file
 	{
-		const char* filename = "shutter.wav";
+		const char* filename = "data/shutter.wav";
 		unsigned int channels;
 		unsigned int sampleRate;
 		drwav_uint64 frameCount;

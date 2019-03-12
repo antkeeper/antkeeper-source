@@ -25,7 +25,8 @@ find_package(OpenAL REQUIRED CONFIG)
 
 # Determine dependencies
 set(STATIC_LIBS
-	emergent
+	emergent)
+set(SHARED_LIBS
 	OpenAL::OpenAL)
 
 # Generate configuration header file
@@ -54,7 +55,7 @@ target_include_directories(${EXECUTABLE_TARGET}
 	${PROJECT_BINARY_DIR}/src)
 
 # Link to dependencies
-target_link_libraries(${EXECUTABLE_TARGET} ${STATIC_LIBS})
+target_link_libraries(${EXECUTABLE_TARGET} ${STATIC_LIBS} ${SHARED_LIBS})
 
 # Install executable
 install(TARGETS ${EXECUTABLE_TARGET} DESTINATION bin)

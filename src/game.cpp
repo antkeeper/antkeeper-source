@@ -168,12 +168,9 @@ Game::Game(int argc, char* argv[]):
 	#endif
 	
 	// Form resource paths
-	dataPath = getDataPath(applicationName);
+	dataPath = getDataPath(applicationName) + "data/";
 	configPath = getConfigPath(applicationName);
-	controlsPath = configPath + "/controls/";
-	
-	std::cout << "Data path: " << dataPath << std::endl;
-	std::cout << "Config path: " << configPath << std::endl;
+	controlsPath = configPath + "controls/";
 
 	// Create nonexistent config directories
 	std::vector<std::string> configPaths;
@@ -186,6 +183,16 @@ Game::Game(int argc, char* argv[]):
 			createDirectory(path);
 		}
 	}
+	
+	// Setup logging
+	#if !defined(DEBUG)
+		std::string logFilename = configPath + "log.txt";
+		logFileStream.open(logFilename.c_str());
+		std::cout.rdbuf(logFileStream.rdbuf());
+	#endif
+	
+	std::cout << "Data path: " << dataPath << std::endl;
+	std::cout << "Config path: " << configPath << std::endl;
 
 	// Setup resource manager
 	resourceManager = new ResourceManager();
@@ -2074,7 +2081,7 @@ void Game::screenshot()
 	std::transform(title.begin(), title.end(), title.begin(), ::tolower);
 
 	// Create screenshot directory if it doesn't exist
-	std::string screenshotDirectory = configPath + std::string("/screenshots/");
+	std::string screenshotDirectory = configPath + std::string("screenshots/");
 	if (!pathExists(screenshotDirectory))
 	{
 		createDirectory(screenshotDirectory);

@@ -27,6 +27,7 @@ using namespace Emergent;
 #include <map>
 #include <string>
 #include <vector>
+#include <fstream>
 
 class GameState;
 class SplashState;
@@ -418,6 +419,7 @@ public:
 	std::string controlProfileName;
 
 	// Debugging
+	std::ofstream logFileStream;
 	bool wireframe;
 
 private:
