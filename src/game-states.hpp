@@ -17,15 +17,12 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CSV_TABLE_HPP
-#define CSV_TABLE_HPP
+#ifndef GAME_STATES_HPP
+#define GAME_STATES_HPP
 
-#include <string>
-#include <vector>
+#include <functional>
 
-typedef std::string CSVEntry;
-typedef std::vector<CSVEntry> CSVRow;
-typedef std::vector<CSVRow> CSVTable;
 
-#endif // CSV_TABLE_HPP
+
+#endif // GAME_STATES_HPP
 

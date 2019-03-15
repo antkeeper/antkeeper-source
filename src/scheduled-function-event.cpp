@@ -17,15 +17,13 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CSV_TABLE_HPP
-#define CSV_TABLE_HPP
+#include "scheduled-function-event.hpp"
 
-#include <string>
-#include <vector>
-
-typedef std::string CSVEntry;
-typedef std::vector<CSVEntry> CSVRow;
-typedef std::vector<CSVRow> CSVTable;
-
-#endif // CSV_TABLE_HPP
+EventBase* ScheduledFunctionEvent::clone() const
+{
+	ScheduledFunctionEvent* event = new ScheduledFunctionEvent();
+	event->caller = caller;
+	event->function = function;
+	return event;
+}
 

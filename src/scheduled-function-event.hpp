@@ -17,39 +17,25 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SPLASH_STATE_HPP
-#define SPLASH_STATE_HPP
-
-#include "game-state.hpp"
+#ifndef SCHEDULED_FUNCTION_EVENT_HPP
+#define SCHEDULED_FUNCTION_EVENT_HPP
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
 /**
- * Displays the splash screen.
+ * Event which asks a caller to execute a function when the event is handled.
+ *
+ * @ingroup input
  */
-class SplashState:
-	public GameState,
-	public EventHandler<KeyPressedEvent>,
-	public EventHandler<MouseButtonPressedEvent>,
-	public EventHandler<GamepadButtonPressedEvent>
+class ScheduledFunctionEvent: public Event<ScheduledFunctionEvent>
 {
 public:
-	SplashState(Game* game);
-	virtual ~SplashState();
-	virtual void enter();
-	virtual void execute();
-	virtual void exit();
+	virtual EventBase* clone() const;
 
-private:
-	virtual void handleEvent(const KeyPressedEvent& event);
-	virtual void handleEvent(const MouseButtonPressedEvent& event);
-	virtual void handleEvent(const GamepadButtonPressedEvent& event);
-	void skip();
-
-	Animation<float> fadeAnimation;
-	AnimationClip<float> fadeInClip;
-	AnimationClip<float> fadeOutClip;
+	void* caller;
+	std::function<void()> function;
 };
 
-#endif // SPLASH_STATE_HPP
+#endif // SCHEDULED_FUNCTION_EVENT_HPP
+

@@ -23,7 +23,10 @@
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
+#include "state-machine.hpp"
 #include "entity/entity-id.hpp"
+#include "scheduled-function-event.hpp"
+#include <array>
 #include <map>
 #include <string>
 #include <vector>
@@ -65,11 +68,15 @@ class SteeringSystem;
 class LocomotionSystem;
 class TerrainSystem;
 class ComponentBase;
+class Menu;
+class MenuItem;
 enum class ComponentType;
 typedef std::vector<std::vector<std::string>> CSVTable;
 
 class Game:
-	public Application
+	public Application,
+	public StateMachine,
+	public EventHandler<ScheduledFunctionEvent>
 {
 public:
 	/**
@@ -84,20 +91,21 @@ public:
 	virtual ~Game();
 
 	/**
-	 * Gets a string in the specified language.
+	 * Gets a string in the current language.
 	 *
-	 * @param languageIndex Index of a language.
 	 * @param name Name of the string.
-	 * @return String in the specified language.
+	 * @return String in the current language.
 	 */
-	std::string getString(std::size_t languageIndex, const std::string& name) const;
+	std::string getString(const std::string& name) const;
 
 	/**
 	 * Changes the current language.
 	 *
 	 * @param languageIndex Index of the language to use.
 	 */
-	void changeLanguage(std::size_t languageIndex);
+	void changeLanguage(std::size_t nextLanguageIndex);
+
+	void nextLanguage();
 
 	/// Returns the number of available languages.
 	std::size_t getLanguageCount() const;
@@ -105,7 +113,16 @@ public:
 	/// Returns the index of the current language.
 	std::size_t getLanguageIndex() const;
 
+	void openMenu(Menu* menu, int selectedItemIndex);
+	void closeCurrentMenu();
+	void selectMenuItem(int index, bool tween);
+	void selectNextMenuItem();
+	void selectPreviousMenuItem();
+	void activateMenuItem();
+	void activateLastMenuItem();
+
 	void toggleFullscreen();
+	void toggleVSync();
 	void setUpdateRate(double frequency);
 
 	/**
@@ -123,6 +140,7 @@ public:
 
 	void fadeIn(float duration, const Vector3& color, std::function<void()> callback);
 	void fadeOut(float duration, const Vector3& color, std::function<void()> callback);
+	void stopFade();
 
 	void selectTool(int toolIndex);
 
@@ -135,6 +153,7 @@ private:
 	virtual void handleEvent(const WindowResizedEvent& event);
 	virtual void handleEvent(const GamepadConnectedEvent& event);
 	virtual void handleEvent(const GamepadDisconnectedEvent& event);
+	virtual void handleEvent(const ScheduledFunctionEvent& event);
 
 	void setupDebugging();
 	void setupLocalization();
@@ -148,11 +167,16 @@ private:
 	void loadSettings();
 	void saveSettings();
 	void loadStrings();
-	void loadControlProfile();
-	void saveControlProfile();
+	void loadFonts();
+	void loadControlProfile(const std::string& profileName);
+	void saveControlProfile(const std::string& profileName);
+	std::array<std::string, 3> getInputMappingStrings(const InputMapping* mapping);
+	void remapControl(Control* control);
+	void resetControls();
 
 	void resizeUI(int w, int h);
 	void restringUI();
+	void restringControlMenuItem(MenuItem* item, const std::string& name);
 	void resizeRenderTargets();
 
 	void setTimeOfDay(float time);
@@ -160,9 +184,21 @@ private:
 	void queueScreenshot();
 	void screenshot();
 
+
 	// Callback for the input mapper
 	void mapInput(const InputMapping& mapping);
 
+	// State functions
+	void enterSplashState();
+	void exitSplashState();
+	void enterLoadingState();
+	void exitLoadingState();
+	void enterTitleState();
+	void exitTitleState();
+	void enterPlayState();
+	void exitPlayState();
+
+	void skipSplash();
 
 public:
 	EntityID createInstance();
@@ -182,9 +218,13 @@ public:
 
 
 public:
-	// States
+	// Game states
+	StateMachine::State splashState;
+	StateMachine::State loadingState;
+	StateMachine::State titleState;
+	StateMachine::State playState;
+
 	GameState* currentState;
-	SplashState* splashState;
 	SandboxState* sandboxState;
 
 	// Paths
@@ -219,7 +259,7 @@ public:
 	ControlSet systemControls;
 	Control exitControl;
 	Control toggleFullscreenControl;
-	Control screenshotControl;
+	Control takeScreenshotControl;
 	
 	// Menu control set
 	ControlSet menuControls;
@@ -227,14 +267,14 @@ public:
 	Control menuDownControl;
 	Control menuLeftControl;
 	Control menuRightControl;
-	Control menuSelectControl;
+	Control menuActivateControl;
 	Control menuBackControl;
 
 	// Camera control set
 	ControlSet cameraControls;
 	Control moveForwardControl;
-	Control moveBackControl;
 	Control moveLeftControl;
+	Control moveBackControl;
 	Control moveRightControl;
 	Control zoomInControl;
 	Control zoomOutControl;
@@ -245,7 +285,7 @@ public:
 
 	// Tool control set
 	ControlSet toolControls;
-	Control openToolMenuControl;
+	Control changeToolControl;
 	Control useToolControl;
 
 	// Editor control set
@@ -267,10 +307,10 @@ public:
 	float timestep;
 
 	// UI
-	Typeface* labelTypeface;
-	Font* labelFont;
 	Typeface* debugTypeface;
 	Font* debugFont;
+	Typeface* menuTypeface;
+	Font* menuFont;
 	BillboardBatch* uiBatch;
 	UIBatcher* uiBatcher;
 	UIContainer* uiRootElement;
@@ -333,6 +373,49 @@ public:
 	Vector4 cameraGridColor;
 	Vector4 cameraReticleColor;
 
+
+
+
+	// Menu selection
+	UIImage* menuSelectorImage;
+	Menu* currentMenu;
+	Menu* previousMenu;
+	MenuItem* currentMenuItem;
+	MenuItem* previousMenuItem;
+	int menuItemIndex;
+	Vector4 menuItemActiveColor;
+	Vector4 menuItemInactiveColor;
+
+	// Main menu
+	Menu* mainMenu;
+	MenuItem* mainMenuContinueItem;
+	MenuItem* mainMenuNewGameItem;
+	MenuItem* mainMenuColoniesItem;
+	MenuItem* mainMenuSettingsItem;
+	MenuItem* mainMenuQuitItem;
+
+	// Settings menu
+	Menu* settingsMenu;
+	MenuItem* settingsMenuControlsItem;
+	MenuItem* settingsMenuFullscreenItem;
+	MenuItem* settingsMenuVSyncItem;
+	MenuItem* settingsMenuLanguageItem;
+	MenuItem* settingsMenuBackItem;
+
+	// Controls menu
+	Menu* controlsMenu;
+	MenuItem* controlsMenuMoveForwardItem;
+	MenuItem* controlsMenuMoveLeftItem;
+	MenuItem* controlsMenuMoveBackItem;
+	MenuItem* controlsMenuMoveRightItem;
+	MenuItem* controlsMenuChangeToolItem;
+	MenuItem* controlsMenuUseToolItem;
+	MenuItem* controlsMenuAdjustCameraItem;
+	MenuItem* controlsMenuToggleFullscreenItem;
+	MenuItem* controlsMenuTakeScreenshotItem;
+	MenuItem* controlsMenuResetToDefaultItem;
+	MenuItem* controlsMenuBackItem;
+
 	// Rendering
 	Renderer renderer;
 	RenderTarget defaultRenderTarget;
@@ -364,6 +447,17 @@ public:
 
 	// Animation
 	Animator animator;
+
+	Animation<float> antHillZoomAnimation;
+	AnimationClip<float> antHillZoomClip;
+
+	Animation<float> menuFadeAnimation;
+	AnimationClip<float> menuFadeInClip;
+
+	Animation<float> splashFadeInAnimation;
+	Animation<float> splashFadeOutAnimation;
+	AnimationClip<float> splashFadeInClip;
+	AnimationClip<float> splashFadeOutClip;
 	Animation<float> fadeInAnimation;
 	Animation<float> fadeOutAnimation;
 	AnimationClip<float> fadeInClip;
@@ -372,6 +466,14 @@ public:
 	std::function<void()> fadeOutEndCallback;
 	Animation<float> cameraFlashAnimation;
 	AnimationClip<float> cameraFlashClip;
+	Animation<float> menuSelectorSlideAnimation;
+	AnimationClip<float> menuSelectorSlideClip;
+	Animation<Vector4> menuItemSelectAnimation;
+	AnimationClip<Vector4> menuItemSelectClip;
+	Animation<Vector4> menuItemDeselectAnimation;
+	AnimationClip<Vector4> menuItemDeselectClip;
+
+
 
 	// Assets
 	ResourceManager* resourceManager;
@@ -417,6 +519,7 @@ public:
 	bool vsync;
 	float fontSizePT;
 	std::string controlProfileName;
+	bool toggleFullscreenDisabled;
 
 	// Debugging
 	std::ofstream logFileStream;

@@ -47,7 +47,7 @@ void SandboxState::enter()
 	game->radialMenuContainer->setVisible(false);
 
 	// Show mouse
-	game->mouse->setVisible(false);
+	//game->mouse->setVisible(false);
 
 	game->fadeIn(1.0f, Vector3(0.0f), nullptr);
 
@@ -56,22 +56,8 @@ void SandboxState::enter()
 	float elevation = glm::radians(30.0f);
 	float azimuth = glm::radians(-45.0f);
 
-	game->cameraRig = game->orbitCam;
-	game->orbitCam->setFocalPoint(focalPoint);
-	game->orbitCam->setTargetFocalPoint(focalPoint);
-	game->orbitCam->setFocalDistance(focalDistance);
-	game->orbitCam->setTargetFocalDistance(focalDistance);
-	game->orbitCam->setElevation(elevation);
-	game->orbitCam->setTargetElevation(elevation);
-	game->orbitCam->setAzimuth(azimuth);
-	game->orbitCam->setTargetAzimuth(azimuth);
-
-	game->freeCam->setTranslation(Vector3(-5, 5.0f, -5.0f));
-	//game->cameraRig = game->freeCam;
-	//game->mouse->setRelativeMode(true);
-
 	toolIndex = 0;
-	game->selectTool(toolIndex);
+	//game->selectTool(toolIndex);
 	//game->currentTool->setActive(false);
 	game->mouse->warp(game->window, game->w / 2, game->h / 2);
 
@@ -86,7 +72,7 @@ void SandboxState::execute()
 	game->lightingPass->setTime(game->time);
 	bool menuClosed = false;
 
-	if (game->openToolMenuControl.isActive() && !game->openToolMenuControl.wasActive())
+	if (game->changeToolControl.isActive() && !game->changeToolControl.wasActive())
 	{
 		game->radialMenuContainer->setVisible(true);
 		game->hudContainer->setVisible(false);
@@ -95,7 +81,7 @@ void SandboxState::execute()
 		selectorVector = Vector2(0.0f);
 		game->mouse->setRelativeMode(true);
 	}
-	else if (!game->openToolMenuControl.isActive() && game->openToolMenuControl.wasActive())
+	else if (!game->changeToolControl.isActive() && game->changeToolControl.wasActive())
 	{
 		game->radialMenuContainer->setVisible(false);
 		//game->hudContainer->setVisible(true);
@@ -186,12 +172,14 @@ void SandboxState::execute()
 	float logMovementSpeed = lerp(logMinMovementSpeed, logMaxMovementSpeed, 1.0f - zoom);
 	float movementSpeed = std::exp(logMovementSpeed);
 
+	/*
 	game->orbitCam->setTargetFocalDistance(focalDistance);
 	game->orbitCam->getCamera()->setPerspective(fov, (float)game->w / (float)game->h, clipNear, clipFar);
 	game->orbitCam->move(direction * movementSpeed);
 	game->orbitCam->setFocalPoint(game->orbitCam->getTargetFocalPoint());
 	//game->orbitCam->setTargetElevation(elevation);
 	//
+	*/
 	
 	if (game->cameraRig == game->freeCam)
 	{

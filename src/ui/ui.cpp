@@ -39,7 +39,7 @@ UIElement::UIElement():
 	tintColor(1.0f),
 	color(tintColor),
 	visible(true),
-	active(true),
+	callbacksEnabled(true),
 	mouseOver(false),
 	mouseOverCallback(nullptr),
 	mouseOutCallback(nullptr),
@@ -56,7 +56,8 @@ UIElement::UIElement():
 	rotationTween(&rotation, lerp<float>),
 	dimensionsTween(&dimensions, lerp<Vector2>),
 	positionTween(&position, lerp<Vector2>),
-	tintColorTween(&tintColor, lerp<Vector4>)
+	tintColorTween(&tintColor, lerp<Vector4>),
+	colorTween(&color, lerp<Vector4>)
 {}
 
 UIElement::~UIElement()
@@ -142,7 +143,7 @@ void UIElement::setMouseReleasedCallback(std::function<void(int, int, int)> call
 
 void UIElement::handleEvent(const MouseMovedEvent& event)
 {
-	if (!active)
+	if (!callbacksEnabled)
 	{
 		return;
 	}
@@ -180,7 +181,7 @@ void UIElement::handleEvent(const MouseMovedEvent& event)
 
 void UIElement::handleEvent(const MouseButtonPressedEvent& event)
 {
-	if (!active)
+	if (!callbacksEnabled)
 	{
 		return;
 	}
@@ -201,7 +202,7 @@ void UIElement::handleEvent(const MouseButtonPressedEvent& event)
 
 void UIElement::handleEvent(const MouseButtonReleasedEvent& event)
 {
-	if (!active)
+	if (!callbacksEnabled)
 	{
 		return;
 	}
@@ -228,6 +229,7 @@ void UIElement::interpolate(float dt)
 	dimensionsTween.interpolate(dt);
 	positionTween.interpolate(dt);
 	tintColorTween.interpolate(dt);
+	colorTween.interpolate(dt);
 
 	for (UIElement* child: children)
 	{
@@ -243,6 +245,12 @@ void UIElement::resetTweens()
 	dimensionsTween.reset();
 	positionTween.reset();
 	tintColorTween.reset();
+	colorTween.reset();
+
+	for (UIElement* child: children)
+	{
+		child->resetTweens();
+	}
 }
 
 UILabel::UILabel():
@@ -401,7 +409,7 @@ void UIBatcher::batchLabel(BillboardBatch* result, const UILabel* label)
 		const Font* font = label->getFont();
 		std::size_t index = range->start + range->length;
 		std::size_t count = 0;
-		font->puts(result, origin, label->getText(), label->getColor(), index, &count);
+		font->puts(result, origin, label->getText(), label->getColorTween()->getSubstate(), index, &count);
 
 		for (std::size_t i = index; i < index + count; ++i)
 		{
@@ -443,7 +451,7 @@ void UIBatcher::batchImage(BillboardBatch* result, const UIImage* image)
 	}
 	
 	billboard->setTextureCoordinates(image->getTextureBounds().getMin(), image->getTextureBounds().getMax());
-	billboard->setTintColor(image->getTintColorTween()->getSubstate());
+	billboard->setTintColor(image->getColorTween()->getSubstate());
 	billboard->resetTweens();
 	
 	// Increment range length

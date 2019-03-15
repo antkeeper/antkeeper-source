@@ -86,7 +86,7 @@ public:
 	void setVisible(bool visible);
 	
 	/// Enables or disables callbacks
-	void setActive(bool active);
+	void setCallbacksEnabled(bool enabled);
 	
 	/// Returns the type of this element
 	virtual UIElement::Type getElementType() const = 0;
@@ -148,8 +148,8 @@ public:
 	/// Returns the visibility of this element
 	bool isVisible() const;
 	
-	/// Returns `true` if the element is active (callbacks enabled)
-	bool isActive() const;
+	/// Returns `true` if the element callbacks are enabled
+	bool areCallbacksEnabled() const;
 	
 	/// Calculates the world-space position and bounds of this element and its children
 	virtual void update();
@@ -185,6 +185,9 @@ public:
 	Tween<Vector2>* getPositionTween();
 	const Tween<Vector4>* getTintColorTween() const;
 	Tween<Vector4>* getTintColorTween();
+	const Tween<Vector4>* getColorTween() const;
+	Tween<Vector4>* getColorTween();
+
 	
 protected:
 	UIMaterial material;
@@ -199,7 +202,7 @@ private:
 	Vector4 tintColor;
 	Vector4 color;
 	bool visible;
-	bool active;
+	bool callbacksEnabled;
 	bool mouseOver;
 	std::function<void()> mouseOverCallback;
 	std::function<void()> mouseOutCallback;
@@ -219,6 +222,7 @@ private:
 	Tween<Vector2> dimensionsTween;
 	Tween<Vector2> positionTween;
 	Tween<Vector4> tintColorTween;
+	Tween<Vector4> colorTween;
 };
 
 inline void UIElement::setAnchor(const Vector2& anchor)
@@ -261,9 +265,9 @@ inline void UIElement::setVisible(bool visible)
 	this->visible = visible;
 }
 
-inline void UIElement::setActive(bool active)
+inline void UIElement::setCallbacksEnabled(bool enabled)
 {
-	this->active = active;
+	this->callbacksEnabled = enabled;
 }
 
 inline const UIElement* UIElement::getParent() const
@@ -361,9 +365,9 @@ inline bool UIElement::isVisible() const
 	return visible;
 }
 
-inline bool UIElement::isActive() const
+inline bool UIElement::areCallbacksEnabled() const
 {
-	return active;
+	return callbacksEnabled;
 }
 
 inline const Tween<Vector2>* UIElement::getOriginTween() const
@@ -424,6 +428,16 @@ inline const Tween<Vector4>* UIElement::getTintColorTween() const
 inline Tween<Vector4>* UIElement::getTintColorTween()
 {
 	return &tintColorTween;
+}
+
+inline const Tween<Vector4>* UIElement::getColorTween() const
+{
+	return &colorTween;
+}
+
+inline Tween<Vector4>* UIElement::getColorTween()
+{
+	return &colorTween;
 }
 
 class UIContainer: public UIElement

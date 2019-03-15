@@ -18,9 +18,9 @@
  */
 
 #include "game.hpp"
+#include "game-states.hpp"
 #include "resources/csv-table.hpp"
 #include "states/game-state.hpp"
-#include "states/splash-state.hpp"
 #include "states/sandbox-state.hpp"
 #include "filesystem.hpp"
 #include "timestamp.hpp"
@@ -56,6 +56,7 @@
 #include "entity/systems/particle-system.hpp"
 #include "entity/systems/terrain-system.hpp"
 #include "stb/stb_image_write.h"
+#include "menu.hpp"
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -202,7 +203,10 @@ Game::Game(int argc, char* argv[]):
 	resourceManager->include(configPath);
 	resourceManager->include(dataPath);
 
-	splashState = new SplashState(this);
+	// Subscribe the game to scheduled function events
+	eventDispatcher.subscribe<ScheduledFunctionEvent>(this);
+	toggleFullscreenDisabled = false;
+
 	sandboxState = new SandboxState(this);
 }
 
@@ -228,14 +232,14 @@ void Game::changeState(GameState* state)
 	}
 }
 
-std::string Game::getString(std::size_t languageIndex, const std::string& name) const
+std::string Game::getString(const std::string& name) const
 {
 	std::string value;
 
 	auto it = stringMap.find(name);
 	if (it != stringMap.end())
 	{
-		value = (*stringTable)[it->second][languageIndex + 1];
+		value = (*stringTable)[it->second][languageIndex + 2];
 		if (value.empty())
 		{
 			value = std::string("# EMPTY STRING: ") + name + std::string(" #");
@@ -249,19 +253,235 @@ std::string Game::getString(std::size_t languageIndex, const std::string& name) 
 	return value;
 }
 
-void Game::changeLanguage(std::size_t languageIndex)
+void Game::changeLanguage(std::size_t nextLanguageIndex)
 {
-	this->languageIndex = languageIndex;
-	window->setTitle(getString(getLanguageIndex(), "title").c_str());
+	// Get names of fonts
+	std::string menuFontFilename = getString("menu-font-filename");
 
+	// Unload fonts
+	delete menuFont;
+	resourceManager->unload(menuFontFilename);
+
+	// Change current language index
+	languageIndex = nextLanguageIndex;
+
+	// Reload fonts
+	loadFonts();
+
+	// Set window title
+	window->setTitle(getString("title").c_str());
+
+	// Repopulate UI element strings
 	restringUI();
+
+	// Resize the UI
 	resizeUI(w, h);
+
+	// Reselect menu item
+	if (currentMenuItem)
+	{
+		menuSelectorSlideAnimation.stop();
+		selectMenuItem(menuItemIndex, false);
+
+		uiRootElement->update();
+		currentMenu->getContainer()->resetTweens();
+	}
+}
+
+void Game::nextLanguage()
+{
+	changeLanguage((getLanguageIndex() + 1) % getLanguageCount());
+}
+
+void Game::openMenu(Menu* menu, int selectedItemIndex)
+{
+	if (currentMenu)
+	{
+		closeCurrentMenu();
+	}
+
+	currentMenu = menu;
+	uiRootElement->addChild(currentMenu->getContainer());
+	currentMenu->getContainer()->addChild(menuSelectorImage);
+	currentMenu->getContainer()->setTintColor(Vector4(1.0f));
+	
+	for (MenuItem* item: *currentMenu->getItems())
+	{
+		item->getContainer()->setTintColor(menuItemInactiveColor);
+	}
+	
+	selectMenuItem(selectedItemIndex, false);
+
+	uiRootElement->update();
+	currentMenu->getContainer()->resetTweens();
+}
+
+void Game::closeCurrentMenu()
+{
+	uiRootElement->removeChild(currentMenu->getContainer());
+	currentMenu->getContainer()->removeChild(menuSelectorImage);
+	currentMenu->getContainer()->setTintColor(Vector4(1.0f));
+	for (MenuItem* item: *currentMenu->getItems())
+	{
+		item->getContainer()->setTintColor(menuItemInactiveColor);
+	}
+
+	currentMenu = nullptr;
+	currentMenuItem = nullptr;
+	menuItemIndex = -1;
+
+	menuFadeAnimation.stop();
+	menuSelectorSlideAnimation.stop();
+	menuItemSelectAnimation.stop();
+	menuItemDeselectAnimation.stop();
+
+	previousMenu = currentMenu;
+	currentMenu = nullptr;
+}
+
+void Game::selectMenuItem(int index, bool tween)
+{
+	bool reselected = false;
+
+	if (index != menuItemIndex)
+	{
+		if (menuItemSelectAnimation.isPlaying())
+		{
+			menuItemSelectAnimation.stop();
+			currentMenuItem->getContainer()->setTintColor(menuItemActiveColor);
+		}
+
+		if (menuItemDeselectAnimation.isPlaying())
+		{
+			menuItemDeselectAnimation.stop();
+			previousMenuItem->getContainer()->setTintColor(menuItemInactiveColor);
+		}
+
+		// Save previous menu item
+		previousMenuItem = currentMenuItem;
+
+		// Determine current menu item
+		menuItemIndex = index;
+		currentMenuItem = (*(currentMenu->getItems()))[index];
+	}
+	else
+	{
+		reselected = true;
+	}
+
+	// Determine target position of menu item selector
+	Vector2 itemTranslation = currentMenuItem->getContainer()->getTranslation();
+	Vector2 itemDimensions = currentMenuItem->getContainer()->getDimensions();
+	float spacing = currentMenuItem->getNameLabel()->getFont()->getWidth("A");
+	Vector2 translation;
+	translation.x = itemTranslation.x - menuSelectorImage->getDimensions().x - spacing;
+	translation.y = itemTranslation.y + itemDimensions.y * 0.5f - menuSelectorImage->getDimensions().y * 0.5;
+
+	// Create tween animations
+	if (!reselected && tween && previousMenuItem != nullptr)
+	{
+		float tweenDuration = 0.2f;
+
+		Vector2 oldTranslation = menuSelectorImage->getTranslation();
+		Vector2 newTranslation = translation;
+
+		// Slide animation
+		{
+			menuSelectorSlideClip.removeChannels();
+			AnimationChannel<float>* channel = menuSelectorSlideClip.addChannel(0);
+			channel->insertKeyframe(0.0f, oldTranslation.y);
+			channel->insertKeyframe(tweenDuration, newTranslation.y);
+			menuSelectorSlideAnimation.setTimeFrame(menuSelectorSlideClip.getTimeFrame());
+			menuSelectorSlideAnimation.rewind();
+			menuSelectorSlideAnimation.play();
+		}
+
+		// Color animations
+		{
+			menuItemSelectClip.removeChannels();
+			AnimationChannel<Vector4>* channel = menuItemSelectClip.addChannel(0);
+			channel->insertKeyframe(0.0f, menuItemInactiveColor);
+			channel->insertKeyframe(tweenDuration, menuItemActiveColor);
+			menuItemSelectAnimation.setTimeFrame(menuItemSelectClip.getTimeFrame());
+			menuItemSelectAnimation.rewind();
+			menuItemSelectAnimation.play();
+
+			if (previousMenuItem)
+			{
+				menuItemDeselectClip.removeChannels();
+				channel = menuItemDeselectClip.addChannel(0);
+				channel->insertKeyframe(0.0f, menuItemActiveColor);
+				channel->insertKeyframe(tweenDuration, menuItemInactiveColor);
+				menuItemDeselectAnimation.setTimeFrame(menuItemDeselectClip.getTimeFrame());
+				menuItemDeselectAnimation.rewind();
+				menuItemDeselectAnimation.play();
+			}
+		}
+
+		menuSelectorImage->setTranslation(Vector2(newTranslation.x, oldTranslation.y));
+	}
+	else if (!tween)
+	{
+		menuSelectorImage->setTranslation(translation);
+		currentMenuItem->getContainer()->setTintColor(menuItemActiveColor);
+
+		if (previousMenuItem)
+		{
+			previousMenuItem->getContainer()->setTintColor(menuItemInactiveColor);
+		}
+	}
+}
+
+void Game::selectNextMenuItem()
+{
+	int index = (menuItemIndex + 1) % currentMenu->getItems()->size();
+	selectMenuItem(index, true);
+}
+
+void Game::selectPreviousMenuItem()
+{
+	int index = (menuItemIndex + (currentMenu->getItems()->size() - 1)) % currentMenu->getItems()->size();
+	selectMenuItem(index, true);
+}
+
+void Game::activateMenuItem()
+{
+	currentMenuItem->activate();
+}
+
+void Game::activateLastMenuItem()
+{
+	if (currentMenu)
+	{
+		(*currentMenu->getItems())[currentMenu->getItems()->size() - 1]->activate();
+	}
 }
 
 void Game::toggleFullscreen()
 {
-	fullscreen = !fullscreen;
-	window->setFullscreen(fullscreen);
+	if (!toggleFullscreenDisabled)
+	{
+		fullscreen = !fullscreen;
+		window->setFullscreen(fullscreen);
+		restringUI();
+
+		// Disable fullscreen toggles for 500ms
+		toggleFullscreenDisabled = true;
+		ScheduledFunctionEvent event;
+		event.caller = static_cast<void*>(this);
+		event.function = [this]()
+		{
+			toggleFullscreenDisabled = false;
+		};
+		eventDispatcher.schedule(event, time + 0.5f);
+	}
+}
+
+void Game::toggleVSync()
+{
+	vsync = !vsync;
+	window->setVSync(vsync);
+	restringUI();
 }
 
 void Game::setUpdateRate(double frequency)
@@ -276,13 +496,9 @@ void Game::setup()
 	setupLocalization();
 	setupWindow();
 	setupGraphics();
-	setupUI();
 	setupControls();
+	setupUI();
 	setupGameplay();
-
-	#if defined(DEBUG)
-		toggleWireframe();
-	#endif // DEBUG
 
 	screenshotQueued = false;
 
@@ -315,13 +531,7 @@ void Game::setup()
 	worldScene->addObject(lens->getSpotlight());
 	lens->setSunDirection(-sunlightCamera.getForward());
 
-	ModelInstance* modelInstance = lens->getModelInstance();
-	for (std::size_t i = 0; i < modelInstance->getModel()->getGroupCount(); ++i)
-	{
-		Material* material = modelInstance->getModel()->getGroup(i)->material->clone();
-		material->setFlags(material->getFlags() | 256);
-		modelInstance->setMaterialSlot(i, material);
-	}
+
 
 	// Forceps
 	forceps = new Forceps(forcepsModel, &animator);
@@ -361,7 +571,6 @@ void Game::setup()
 	particleSystem->getBillboardBatch()->setAlignment(&camera, BillboardAlignmentMode::SPHERICAL);
 	worldScene->addObject(particleSystem->getBillboardBatch());
 
-
 	// Initialize system manager
 	systemManager = new SystemManager();
 	systemManager->addSystem(soundSystem);
@@ -374,21 +583,6 @@ void Game::setup()
 	systemManager->addSystem(particleSystem);
 	systemManager->addSystem(cameraSystem);
 	systemManager->addSystem(renderSystem);
-
-	/*
-	EntityID sidewalkPanel;
-	sidewalkPanel = createInstanceOf("sidewalk-panel");
-
-	EntityID antHill = createInstanceOf("ant-hill");
-	setTranslation(antHill, Vector3(20, 0, 40));
-
-	EntityID antNest = createInstanceOf("ant-nest");
-	setTranslation(antNest, Vector3(20, 0, 40));
-
-	EntityID lollipop = createInstanceOf("lollipop");
-	setTranslation(lollipop, Vector3(30.0f, 3.5f * 0.5f, -30.0f));
-	setRotation(lollipop, glm::angleAxis(glm::radians(8.85f), Vector3(1.0f, 0.0f, 0.0f)));
-	*/
 
 	// Load navmesh
 	TriangleMesh* navmesh = resourceManager->load<TriangleMesh>("sidewalk.mesh");
@@ -466,6 +660,31 @@ void Game::setup()
 			setTerrainPatchPosition(patch, {x, z});
 		}
 	}
+
+	// Setup state machine states
+	splashState =
+	{
+		std::bind(&Game::enterSplashState, this),
+		std::bind(&Game::exitSplashState, this)
+	};
+	loadingState =
+	{
+		std::bind(&Game::enterLoadingState, this),
+		std::bind(&Game::exitLoadingState, this)
+	};
+	titleState =
+	{
+		std::bind(&Game::enterTitleState, this),
+		std::bind(&Game::exitTitleState, this)
+	};
+	playState =
+	{
+		std::bind(&Game::enterPlayState, this),
+		std::bind(&Game::exitPlayState, this)
+	};
+
+	// Initialize state machine
+	StateMachine::changeState(&titleState);
 
 	changeState(sandboxState);
 }
@@ -547,6 +766,8 @@ void Game::handleEvent(const WindowResizedEvent& event)
 	toolSystem->setPickingViewport(Vector4(0, 0, w, h));
 
 	resizeUI(event.width, event.height);
+
+	skipSplash();
 }
 
 void Game::handleEvent(const GamepadConnectedEvent& event)
@@ -555,11 +776,19 @@ void Game::handleEvent(const GamepadConnectedEvent& event)
 	inputRouter->reset();
 
 	// Reload control profile
-	loadControlProfile();
+	loadControlProfile(controlProfileName);
 }
 
 void Game::handleEvent(const GamepadDisconnectedEvent& event)
 {}
+
+void Game::handleEvent(const ScheduledFunctionEvent& event)
+{
+	if (event.caller == static_cast<void*>(this))
+	{
+		event.function();
+	}
+}
 
 void Game::setupDebugging()
 {
@@ -576,16 +805,16 @@ void Game::setupLocalization()
 	loadStrings();
 
 	// Determine number of available languages
-	languageCount = (*stringTable)[0].size() - 1;
+	languageCount = (*stringTable)[0].size() - 2;
 	
 	// Match language code with language index
 	languageIndex = 0;
-	CSVRow* languageCodes = &(*stringTable)[0];
-	for (std::size_t i = 1; i < languageCodes->size(); ++i)
+	CSVRow* languageCodes = &(*stringTable)[1];
+	for (std::size_t i = 2; i < languageCodes->size(); ++i)
 	{
 		if (language == (*languageCodes)[i])
 		{
-			languageIndex = i - 1;
+			languageIndex = i - 2;
 			break;
 		}
 	}
@@ -614,7 +843,7 @@ void Game::setupWindow()
 	int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
 
 	// Read title string
-	std::string title = getString(getLanguageIndex(), "title");
+	std::string title = getString("title");
 
 	// Create window
 	window = windowManager->createWindow(title.c_str(), x, y, w, h, fullscreen, WindowFlag::RESIZABLE);
@@ -625,6 +854,11 @@ void Game::setupWindow()
 
 	// Set v-sync mode
 	window->setVSync(vsync);
+
+	debugTypeface = nullptr;
+	debugFont = nullptr;
+	menuTypeface = nullptr;
+	menuFont = nullptr;
 }
 
 void Game::setupGraphics()
@@ -779,20 +1013,8 @@ void Game::setupUI()
 	dpi = display->getDPI();
 	fontSizePX = fontSizePT * (1.0f / 72.0f) * dpi;
 
-	// Load label typeface
-	labelTypeface = resourceManager->load<Typeface>("caveat-bold.ttf");
-	labelFont = labelTypeface->createFont(fontSizePX);
-
-	// Load debugging typeface
-	debugTypeface = resourceManager->load<Typeface>("inconsolata-bold.ttf");
-	debugFont = debugTypeface->createFont(fontSizePX);
-	debugTypeface->loadCharset(debugFont, UnicodeRange::BASIC_LATIN);
-
-	// Character set test
-	std::set<char32_t> charset;
-	charset.emplace(U'A');
-	labelTypeface->loadCharset(labelFont, UnicodeRange::BASIC_LATIN);
-	labelTypeface->loadCharset(labelFont, charset);
+	// Load fonts
+	loadFonts();
 
 	// Load splash screen texture
 	splashTexture = resourceManager->load<Texture2D>("epigraph.png");
@@ -1060,8 +1282,8 @@ void Game::setupUI()
 	antLabelContainer->addChild(antLabelCR);
 
 	antLabel = new UILabel();
-	antLabel->setFont(labelFont);
-	antLabel->setText("Boggy B.");
+	antLabel->setFont(nullptr);
+	antLabel->setText("");
 	antLabel->setTintColor(Vector4(Vector3(0.0f), 1.0f));
 	antLabel->setLayerOffset(1);
 	antLabelContainer->addChild(antLabel);
@@ -1136,6 +1358,7 @@ void Game::setupUI()
 	cameraGridContainer->setVisible(false);
 	uiRootElement->addChild(cameraGridContainer);
 
+
 	cameraFlashImage = new UIImage();
 	cameraFlashImage->setLayerOffset(99);
 	cameraFlashImage->setTintColor(Vector4(1.0f));
@@ -1148,9 +1371,230 @@ void Game::setupUI()
 	blackoutImage->setVisible(false);
 	uiRootElement->addChild(blackoutImage);
 
+	menuItemActiveColor = Vector4(Vector3(0.2f), 1.0f);
+	menuItemInactiveColor = Vector4(Vector3(0.2f), 0.5f);
+
+	menuItemIndex = -1;
+	currentMenu = nullptr;
+	currentMenuItem = nullptr;
+	previousMenuItem = nullptr;
+	previousMenu = nullptr;
+
+
+
+	menuSelectorImage = new UIImage();
+	menuSelectorImage->setAnchor(Anchor::TOP_LEFT);
+	menuSelectorImage->setTexture(hudSpriteSheetTexture);
+	menuSelectorImage->setTextureBounds(normalizeTextureBounds(hudTextureAtlas.getBounds("menu-selector"), hudTextureAtlasBounds));
+	menuSelectorImage->setTintColor(menuItemActiveColor);
+
+	// Build main menu
+	mainMenu = new Menu();
+	mainMenuContinueItem = mainMenu->addItem();
+	mainMenuNewGameItem = mainMenu->addItem();
+	mainMenuColoniesItem = mainMenu->addItem();
+	mainMenuSettingsItem = mainMenu->addItem();
+	mainMenuQuitItem = mainMenu->addItem();
+	
+	// Build settings menu
+	settingsMenu = new Menu();
+	settingsMenuControlsItem = settingsMenu->addItem();
+	settingsMenuFullscreenItem = settingsMenu->addItem();
+	settingsMenuVSyncItem = settingsMenu->addItem();
+	settingsMenuLanguageItem = settingsMenu->addItem();
+	settingsMenuBackItem = settingsMenu->addItem();
+
+	// Build controls menu
+	controlsMenu = new Menu();
+	controlsMenuMoveForwardItem = controlsMenu->addItem();
+	controlsMenuMoveLeftItem = controlsMenu->addItem();
+	controlsMenuMoveBackItem = controlsMenu->addItem();
+	controlsMenuMoveRightItem = controlsMenu->addItem();
+	controlsMenuChangeToolItem = controlsMenu->addItem();
+	controlsMenuUseToolItem = controlsMenu->addItem();
+	controlsMenuAdjustCameraItem = controlsMenu->addItem();
+	controlsMenuToggleFullscreenItem = controlsMenu->addItem();
+	controlsMenuTakeScreenshotItem = controlsMenu->addItem();
+	controlsMenuResetToDefaultItem = controlsMenu->addItem();
+	controlsMenuBackItem = controlsMenu->addItem();
+
+	// Setup main menu callbacks
+	mainMenuSettingsItem->setActivatedCallback(std::bind(&Game::openMenu, this, settingsMenu, 0));
+	mainMenuQuitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
+
+	// Setup settings menu callbacks
+	settingsMenuControlsItem->setActivatedCallback(std::bind(&Game::openMenu, this, controlsMenu, 0));
+	settingsMenuFullscreenItem->setActivatedCallback(std::bind(&Game::toggleFullscreen, this));
+	settingsMenuVSyncItem->setActivatedCallback(std::bind(&Game::toggleVSync, this));
+	settingsMenuLanguageItem->setActivatedCallback(std::bind(&Game::nextLanguage, this));
+	settingsMenuBackItem->setActivatedCallback(std::bind(&Game::openMenu, this, mainMenu, 3));
+
+	// Setup controls menu callbacks
+	controlsMenuMoveForwardItem->setActivatedCallback(std::bind(&Game::remapControl, this, &moveForwardControl)); 
+
+	controlsMenuMoveLeftItem->setActivatedCallback(std::bind(&Game::remapControl, this, &moveLeftControl));
+	controlsMenuMoveBackItem->setActivatedCallback(std::bind(&Game::remapControl, this, &moveBackControl));
+	controlsMenuMoveRightItem->setActivatedCallback(std::bind(&Game::remapControl, this, &moveRightControl));
+	controlsMenuChangeToolItem->setActivatedCallback(std::bind(&Game::remapControl, this, &changeToolControl));
+	controlsMenuUseToolItem->setActivatedCallback(std::bind(&Game::remapControl, this, &useToolControl));
+	controlsMenuAdjustCameraItem->setActivatedCallback(std::bind(&Game::remapControl, this, &adjustCameraControl));
+	controlsMenuToggleFullscreenItem->setActivatedCallback(std::bind(&Game::remapControl, this, &toggleFullscreenControl));
+	controlsMenuTakeScreenshotItem->setActivatedCallback(std::bind(&Game::remapControl, this, &takeScreenshotControl));
+	controlsMenuResetToDefaultItem->setActivatedCallback(std::bind(&Game::resetControls, this));
+	controlsMenuBackItem->setActivatedCallback(std::bind(&Game::openMenu, this, settingsMenu, 0));
+
+	// Setup standard callbacks for all menu items
+	for (std::size_t i = 0; i < mainMenu->getItems()->size(); ++i)
+	{
+		MenuItem* item = (*mainMenu->getItems())[i];
+		item->getContainer()->setTintColor(menuItemInactiveColor);
+		item->getContainer()->setMouseOverCallback(std::bind(&Game::selectMenuItem, this, i, true));
+		item->getContainer()->setMouseMovedCallback(std::bind(&Game::selectMenuItem, this, i, true));
+		item->getContainer()->setMousePressedCallback(std::bind(&Game::activateMenuItem, this));
+	}
+
+	for (std::size_t i = 0; i < settingsMenu->getItems()->size(); ++i)
+	{
+		MenuItem* item = (*settingsMenu->getItems())[i];
+		item->getContainer()->setTintColor(menuItemInactiveColor);
+		item->getContainer()->setMouseOverCallback(std::bind(&Game::selectMenuItem, this, i, true));
+		item->getContainer()->setMouseMovedCallback(std::bind(&Game::selectMenuItem, this, i, true));
+		item->getContainer()->setMousePressedCallback(std::bind(&Game::activateMenuItem, this));
+	}
+
+	for (std::size_t i = 0; i < controlsMenu->getItems()->size(); ++i)
+	{
+		MenuItem* item = (*controlsMenu->getItems())[i];
+		item->getContainer()->setTintColor(menuItemInactiveColor);
+		item->getContainer()->setMouseOverCallback(std::bind(&Game::selectMenuItem, this, i, true));
+		item->getContainer()->setMouseMovedCallback(std::bind(&Game::selectMenuItem, this, i, true));
+		item->getContainer()->setMousePressedCallback(std::bind(&Game::activateMenuItem, this));
+	}
+
+	// Set fonts for all menus
+	mainMenu->setFonts(menuFont);
+	settingsMenu->setFonts(menuFont);
+	controlsMenu->setFonts(menuFont);
+
+	AnimationChannel<float>* channel;
+
+	// Setup splash fade-in animation
+	splashFadeInClip.setInterpolator(easeOutCubic<float>);
+	channel = splashFadeInClip.addChannel(0);
+	channel->insertKeyframe(0.0f, 0.0f);
+	channel->insertKeyframe(1.0f, 1.0f);
+	channel->insertKeyframe(3.0f, 1.0f);
+	splashFadeInAnimation.setClip(&splashFadeInClip);
+	splashFadeInAnimation.setTimeFrame(splashFadeInClip.getTimeFrame());
+	splashFadeInAnimation.setAnimateCallback
+	(
+		[this](std::size_t id, float opacity)
+		{
+			Vector3 color = Vector3(splashImage->getTintColor());
+			splashImage->setTintColor(Vector4(color, opacity));
+		}
+	);
+	splashFadeInAnimation.setEndCallback
+	(
+		[this]()
+		{
+			splashFadeOutAnimation.rewind();
+			splashFadeOutAnimation.play();
+		}
+	);
+
+	// Setup splash fade-out animation
+	splashFadeOutClip.setInterpolator(easeOutCubic<float>);
+	channel = splashFadeOutClip.addChannel(0);
+	channel->insertKeyframe(0.0f, 1.0f);
+	channel->insertKeyframe(1.0f, 0.0f);
+	channel->insertKeyframe(1.5f, 0.0f);
+	splashFadeOutAnimation.setClip(&splashFadeOutClip);
+	splashFadeOutAnimation.setTimeFrame(splashFadeOutClip.getTimeFrame());
+	splashFadeOutAnimation.setAnimateCallback
+	(
+		[this](std::size_t id, float opacity)
+		{
+			Vector3 color = Vector3(splashImage->getTintColor());
+			splashImage->setTintColor(Vector4(color, opacity));
+		}
+	);
+	splashFadeOutAnimation.setEndCallback(std::bind(&StateMachine::changeState, this, &titleState));
+
+	// Ant-hill zoom animation
+	antHillZoomClip.setInterpolator(easeOutCubic<float>);
+	channel = antHillZoomClip.addChannel(0);
+	channel->insertKeyframe(0.0f, 0.0f);
+	channel->insertKeyframe(3.0f, 40.0f);
+	antHillZoomAnimation.setClip(&antHillZoomClip);
+	antHillZoomAnimation.setTimeFrame(antHillZoomClip.getTimeFrame());
+	antHillZoomAnimation.setAnimateCallback
+	(
+		[this](std::size_t id, float distance)
+		{
+			orbitCam->setFocalDistance(distance);
+			orbitCam->setTargetFocalDistance(distance);
+		}
+	);
+
+	// Menu fade animation
+	menuFadeInClip.setInterpolator(easeOutCubic<float>);
+	channel = menuFadeInClip.addChannel(0);
+	channel->insertKeyframe(0.0f, 0.0f);
+	channel->insertKeyframe(3.0f, 0.0f);
+	channel->insertKeyframe(5.0f, 1.0f);
+	menuFadeAnimation.setClip(&menuFadeInClip);
+	menuFadeAnimation.setTimeFrame(menuFadeInClip.getTimeFrame());
+	menuFadeAnimation.setAnimateCallback
+	(
+		[this](std::size_t id, float opacity)
+		{
+			mainMenu->getContainer()->setTintColor(Vector4(opacity));
+		}
+	);
+
+	// Menu selector animation
+	menuSelectorSlideClip.setInterpolator(easeOutCubic<float>);
+	menuSelectorSlideAnimation.setClip(&menuSelectorSlideClip);
+	menuSelectorSlideAnimation.setAnimateCallback
+	(
+		[this](std::size_t id, float offset)
+		{
+			Vector2 translation = menuSelectorImage->getTranslation();
+			translation.y = offset;
+			menuSelectorImage->setTranslation(translation);
+		}
+	);
+
+	animator.addAnimation(&menuSelectorSlideAnimation);
+
+	// Menu item select animation
+	menuItemSelectClip.setInterpolator(easeOutCubic<Vector4>);
+	menuItemSelectAnimation.setClip(&menuItemSelectClip);
+	menuItemSelectAnimation.setAnimateCallback
+	(
+		[this](std::size_t id, const Vector4& color)
+		{
+			currentMenuItem->getContainer()->setTintColor(color);
+		}
+	);
+
+	// Menu item deselect animation
+	menuItemDeselectClip.setInterpolator(easeOutCubic<Vector4>);
+	menuItemDeselectAnimation.setClip(&menuItemDeselectClip);
+	menuItemDeselectAnimation.setAnimateCallback
+	(
+		[this](std::size_t id, const Vector4& color)
+		{
+			previousMenuItem->getContainer()->setTintColor(color);
+		}
+	);
+
+	animator.addAnimation(&menuItemSelectAnimation);
+	animator.addAnimation(&menuItemDeselectAnimation);
+	
 	// Construct fade-in animation clip
 	fadeInClip.setInterpolator(easeOutCubic<float>);
-	AnimationChannel<float>* channel;
 	channel = fadeInClip.addChannel(0);
 	channel->insertKeyframe(0.0f, 1.0f);
 	channel->insertKeyframe(1.0f, 0.0f);
@@ -1268,11 +1712,12 @@ void Game::setupControls()
 	// Build the master control set
 	controls.addControl(&exitControl);
 	controls.addControl(&toggleFullscreenControl);
-	controls.addControl(&screenshotControl);
+	controls.addControl(&takeScreenshotControl);
 	controls.addControl(&menuUpControl);
 	controls.addControl(&menuDownControl);
 	controls.addControl(&menuLeftControl);
 	controls.addControl(&menuRightControl);
+	controls.addControl(&menuActivateControl);
 	controls.addControl(&menuBackControl);
 	controls.addControl(&moveForwardControl);
 	controls.addControl(&moveBackControl);
@@ -1284,7 +1729,7 @@ void Game::setupControls()
 	controls.addControl(&orbitCWControl);
 	controls.addControl(&adjustCameraControl);
 	controls.addControl(&dragCameraControl);
-	controls.addControl(&openToolMenuControl);
+	controls.addControl(&changeToolControl);
 	controls.addControl(&useToolControl);
 	controls.addControl(&toggleEditModeControl);
 	controls.addControl(&toggleWireframeControl);
@@ -1292,14 +1737,14 @@ void Game::setupControls()
 	// Build the system control set
 	systemControls.addControl(&exitControl);
 	systemControls.addControl(&toggleFullscreenControl);
-	systemControls.addControl(&screenshotControl);
+	systemControls.addControl(&takeScreenshotControl);
 
 	// Build the menu control set
 	menuControls.addControl(&menuUpControl);
 	menuControls.addControl(&menuDownControl);
 	menuControls.addControl(&menuLeftControl);
 	menuControls.addControl(&menuRightControl);
-	menuControls.addControl(&menuSelectControl);
+	menuControls.addControl(&menuActivateControl);
 	menuControls.addControl(&menuBackControl);
 
 	// Build the camera control set
@@ -1315,26 +1760,31 @@ void Game::setupControls()
 	cameraControls.addControl(&dragCameraControl);
 
 	// Build the tool control set
-	toolControls.addControl(&openToolMenuControl);
+	toolControls.addControl(&changeToolControl);
 	toolControls.addControl(&useToolControl);
 
 	// Build the editor control set
 	editorControls.addControl(&toggleEditModeControl);
 
 	// Setup control callbacks
+	menuDownControl.setActivatedCallback(std::bind(&Game::selectNextMenuItem, this));
+	menuUpControl.setActivatedCallback(std::bind(&Game::selectPreviousMenuItem, this));
+	menuActivateControl.setActivatedCallback(std::bind(&Game::activateMenuItem, this));
+	menuBackControl.setActivatedCallback(std::bind(&Game::activateLastMenuItem, this));
 	exitControl.setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
 	toggleFullscreenControl.setActivatedCallback(std::bind(&Game::toggleFullscreen, this));
-	screenshotControl.setActivatedCallback(std::bind(&Game::queueScreenshot, this));
+	takeScreenshotControl.setActivatedCallback(std::bind(&Game::queueScreenshot, this));
 	toggleWireframeControl.setActivatedCallback(std::bind(&Game::toggleWireframe, this));
 
 	// Build map of control names
 	controlNameMap["exit"] = &exitControl;
 	controlNameMap["toggle-fullscreen"] = &toggleFullscreenControl;
-	controlNameMap["screenshot"] = &screenshotControl;
+	controlNameMap["take-screenshot"] = &takeScreenshotControl;
 	controlNameMap["menu-up"] = &menuUpControl;
 	controlNameMap["menu-down"] = &menuDownControl;
 	controlNameMap["menu-left"] = &menuLeftControl;
 	controlNameMap["menu-right"] = &menuRightControl;
+	controlNameMap["menu-activate"] = &menuActivateControl;
 	controlNameMap["menu-back"] = &menuBackControl;
 	controlNameMap["move-forward"] = &moveForwardControl;
 	controlNameMap["move-back"] = &moveBackControl;
@@ -1346,13 +1796,21 @@ void Game::setupControls()
 	controlNameMap["orbit-cw"] = &orbitCWControl;
 	controlNameMap["adjust-camera"] = &adjustCameraControl;
 	controlNameMap["drag-camera"] = &dragCameraControl;
-	controlNameMap["open-tool-menu"] = &openToolMenuControl;
+	controlNameMap["change-tool"] = &changeToolControl;
 	controlNameMap["use-tool"] = &useToolControl;
 	controlNameMap["toggle-edit-mode"] = &toggleEditModeControl;
 	controlNameMap["toggle-wireframe"] = &toggleWireframeControl;
 
 	// Load control profile
-	loadControlProfile();
+	if (pathExists(controlsPath + controlProfileName + ".csv"))
+	{
+		loadControlProfile(controlProfileName);
+	}
+	else
+	{
+		loadControlProfile("default-controls");
+		saveControlProfile(controlProfileName);
+	}
 
 	// Setup input mapper
 	inputMapper = new InputMapper(&eventDispatcher);
@@ -1402,8 +1860,8 @@ void Game::resetSettings()
 	// Set default font size
 	fontSizePT = 14.0f;
 
-	// Set default control profile name
-	controlProfileName = "default-controls";
+	// Set control profile name
+	controlProfileName = "controls";
 }
 
 void Game::loadSettings()
@@ -1453,10 +1911,56 @@ void Game::loadStrings()
 	}
 }
 
-void Game::loadControlProfile()
+void Game::loadFonts()
+{
+	// Get filenames of fonts
+	std::string menuFontFilename = getString("menu-font-filename");
+	std::string debugFontFilename = "inconsolata-bold.ttf";
+
+	// Load debugging font
+	if (!debugFont)
+	{
+		debugTypeface = resourceManager->load<Typeface>(debugFontFilename);
+		debugFont = debugTypeface->createFont(fontSizePX);
+		debugTypeface->loadCharset(debugFont, UnicodeRange::BASIC_LATIN);
+	}
+
+	// Load menu typeface
+	menuTypeface = resourceManager->load<Typeface>(menuFontFilename);
+	menuFont = menuTypeface->createFont(fontSizePX * 1.5f);
+	menuTypeface->loadCharset(menuFont, UnicodeRange::BASIC_LATIN);
+
+	// Load menu font typeface
+	menuTypeface = resourceManager->load<Typeface>(menuFontFilename);
+
+	// Create menu font
+	menuFont = menuTypeface->createFont(fontSizePX * 1.5f);
+
+	// Load basic latin character set
+	menuTypeface->loadCharset(menuFont, UnicodeRange::BASIC_LATIN);
+
+	// Build character set for all strings in current language
+	std::set<char32_t> characterSet;
+	for (const CSVRow& row: *stringTable)
+	{
+		// Convert to UTF-8 string to UTF-32
+		std::u32string string = toUTF32(row[languageIndex + 2]);
+
+		// Add each character in the string to the charater set
+		for (char32_t charcode: string)
+		{
+			characterSet.emplace(charcode);
+		}
+	}
+
+	// Load custom character set
+	menuTypeface->loadCharset(menuFont, characterSet);
+}
+
+void Game::loadControlProfile(const std::string& profileName)
 {
 	// Load control profile
-	std::string controlProfilePath = controlProfileName + ".csv";
+	std::string controlProfilePath = profileName + ".csv";
 	CSVTable* controlProfile = resourceManager->load<CSVTable>(controlProfilePath);
 
 	for (const CSVRow& row: *controlProfile)
@@ -1634,7 +2138,7 @@ void Game::loadControlProfile()
 	}
 }
 
-void Game::saveControlProfile()
+void Game::saveControlProfile(const std::string& profileName)
 {
 	// Build control profile CSV table
 	CSVTable* table = new CSVTable();
@@ -1795,13 +2299,162 @@ void Game::saveControlProfile()
 	}
 
 	// Form full path to control profile file
-	std::string controlProfilePath = controlsPath + controlProfileName + ".csv";
+	std::string controlProfilePath = controlsPath + profileName + ".csv";
 
 	// Save control profile
 	resourceManager->save<CSVTable>(table, controlProfilePath);
 
 	// Free control profile CSV table
 	delete table;
+}
+
+std::array<std::string, 3> Game::getInputMappingStrings(const InputMapping* mapping)
+{
+	std::string deviceString;
+	std::string typeString;
+	std::string eventString;
+
+	switch (mapping->getType())
+	{
+		case InputMappingType::KEY:
+		{
+			const KeyMapping* keyMapping = static_cast<const KeyMapping*>(mapping);
+			deviceString = "keyboard";
+			typeString = "key";
+			eventString = std::string(Keyboard::getScancodeName(keyMapping->scancode));
+			break;
+		}
+
+		case InputMappingType::MOUSE_MOTION:
+		{
+			const MouseMotionMapping* mouseMotionMapping = static_cast<const MouseMotionMapping*>(mapping);
+			deviceString = "mouse";
+			eventString = "motion";
+
+			if (mouseMotionMapping->axis == MouseMotionAxis::POSITIVE_X)
+			{
+				eventString = "+x";
+			}
+			else if (mouseMotionMapping->axis == MouseMotionAxis::NEGATIVE_X)
+			{
+				eventString = "-x";
+			}
+			else if (mouseMotionMapping->axis == MouseMotionAxis::POSITIVE_Y)
+			{
+				eventString = "+y";
+			}
+			else
+			{
+				eventString = "-y";
+			}
+
+			break;
+		}
+
+		case InputMappingType::MOUSE_WHEEL:
+		{
+			const MouseWheelMapping* mouseWheelMapping = static_cast<const MouseWheelMapping*>(mapping);
+
+			deviceString = "mouse";
+			typeString = "wheel";
+
+			if (mouseWheelMapping->axis == MouseWheelAxis::POSITIVE_X)
+			{
+				eventString = "+x";
+			}
+			else if (mouseWheelMapping->axis == MouseWheelAxis::NEGATIVE_X)
+			{
+				eventString = "-x";
+			}
+			else if (mouseWheelMapping->axis == MouseWheelAxis::POSITIVE_Y)
+			{
+				eventString = "+y";
+			}
+			else
+			{
+				eventString = "-y";
+			}
+
+			break;
+		}
+
+		case InputMappingType::MOUSE_BUTTON:
+		{
+			const MouseButtonMapping* mouseButtonMapping = static_cast<const MouseButtonMapping*>(mapping);
+			deviceString = "mouse";
+			typeString = "button";
+
+			std::stringstream stream;
+			stream << static_cast<int>(mouseButtonMapping->button);
+			stream >> eventString;
+			break;
+		}
+
+		case InputMappingType::GAMEPAD_AXIS:
+		{
+			const GamepadAxisMapping* gamepadAxisMapping = static_cast<const GamepadAxisMapping*>(mapping);
+			deviceString = "gamepad";
+			typeString = "axis";
+
+			std::stringstream stream;
+			if (gamepadAxisMapping->negative)
+			{
+				stream << "-";
+			}
+			else
+			{
+				stream << "+";
+			}
+			stream << gamepadAxisMapping->axis;
+
+			stream >> eventString;
+			break;
+		}
+
+		case InputMappingType::GAMEPAD_BUTTON:
+		{
+			const GamepadButtonMapping* gamepadButtonMapping = static_cast<const GamepadButtonMapping*>(mapping);
+			deviceString = "gamepad";
+			typeString = "button";
+
+			std::stringstream stream;
+			stream << static_cast<int>(gamepadButtonMapping->button);
+			stream >> eventString;
+			break;
+		}
+
+		default:
+			break;
+	}
+
+	return {deviceString, typeString, eventString};
+}
+
+void Game::remapControl(Control* control)
+{
+	// Remove previously set input mappings for the control
+	inputRouter->removeMappings(control);
+
+	// Start mapping new input
+	inputMapper->setControl(control);
+	inputMapper->setEnabled(true);
+
+	// Restring UI to show control mappings have been removed.
+	restringUI();
+
+	// Disable UI callbacks
+	uiRootElement->setCallbacksEnabled(false);
+
+	// Disable menu control callbacks
+	menuControls.setCallbacksEnabled(false);
+}
+
+void Game::resetControls()
+{
+	inputRouter->reset();
+	loadControlProfile("default-controls");
+	saveControlProfile(controlProfileName);
+	restringUI();
 }
 
 void Game::resizeUI(int w, int h)
@@ -1980,6 +2633,9 @@ void Game::resizeUI(int w, int h)
 	cameraGridX1Image->setTranslation(Vector2(0));
 	cameraReticleImage->setTranslation(Vector2(0));
 
+	Rect menuSelectorBounds = hudTextureAtlas.getBounds("menu-selector");
+	menuSelectorImage->setDimensions(Vector2(menuSelectorBounds.getWidth(), menuSelectorBounds.getHeight()));
+
 	UIImage* icons[] =
 	{
 		toolIconBrushImage,
@@ -2007,11 +2663,168 @@ void Game::resizeUI(int w, int h)
 			icons[i]->setTranslation(translation);
 		}
 	}
+
+	// Main menu size
+	float mainMenuWidth = 0.0f;
+	float mainMenuHeight = 0.0f;
+	float mainMenuSpacing = 0.5f * fontSizePX;
+	float mainMenuPadding = fontSizePX * 4.0f;
+
+	for (const MenuItem* item: *mainMenu->getItems())
+	{
+
+		mainMenuHeight += item->getNameLabel()->getFont()->getMetrics().getHeight();
+		mainMenuHeight += mainMenuSpacing;
+		mainMenuWidth = std::max<float>(mainMenuWidth, item->getNameLabel()->getDimensions().x);
+	}
+	mainMenuHeight -= mainMenuSpacing;
+	mainMenu->getContainer()->setAnchor(Anchor::BOTTOM_RIGHT);
+	mainMenu->resize(mainMenuWidth, mainMenuHeight);
+	mainMenu->getContainer()->setTranslation(Vector2(-mainMenuPadding));
+
+	// Settings menu size
+	float settingsMenuWidth = 0.0f;
+	float settingsMenuHeight = 0.0f;
+	float settingsMenuSpacing = 0.5f * fontSizePX;
+	float settingsMenuPadding = fontSizePX * 4.0f;
+	float settingsMenuValueMargin = fontSizePX * 4.0f;
+
+	for (const MenuItem* item: *settingsMenu->getItems())
+	{
+		settingsMenuHeight += item->getNameLabel()->getFont()->getMetrics().getHeight();
+		settingsMenuHeight += settingsMenuSpacing;
+
+		float itemWidth = item->getNameLabel()->getDimensions().x;
+		if (!item->getValueLabel()->getText().empty())
+		{
+			itemWidth += item->getValueLabel()->getDimensions().x + settingsMenuValueMargin;
+		}
+
+		settingsMenuWidth = std::max<float>(settingsMenuWidth, itemWidth);
+	}
+
+	settingsMenuHeight -= settingsMenuSpacing;
+
+	settingsMenu->getContainer()->setAnchor(Anchor::BOTTOM_RIGHT);
+	settingsMenu->resize(settingsMenuWidth, settingsMenuHeight);
+	settingsMenu->getContainer()->setTranslation(Vector2(-settingsMenuPadding));
+
+	// Controls menu size
+	float controlsMenuWidth = 0.0f;
+	float controlsMenuHeight = 0.0f;
+	float controlsMenuSpacing = 0.5f * fontSizePX;
+	float controlsMenuPadding = fontSizePX * 4.0f;
+	float controlsMenuValueMargin = fontSizePX * 4.0f;
+
+	for (const MenuItem* item: *controlsMenu->getItems())
+	{
+		controlsMenuHeight += item->getNameLabel()->getFont()->getMetrics().getHeight();
+		controlsMenuHeight += controlsMenuSpacing;
+
+		float itemWidth = item->getNameLabel()->getDimensions().x;
+		if (!item->getValueLabel()->getText().empty())
+		{
+			itemWidth += item->getValueLabel()->getDimensions().x + controlsMenuValueMargin;
+		}
+
+		controlsMenuWidth = std::max<float>(controlsMenuWidth, itemWidth);
+	}
+
+	controlsMenuWidth += controlsMenuValueMargin;
+	controlsMenuHeight -= controlsMenuSpacing;
+
+	controlsMenu->getContainer()->setAnchor(Anchor::BOTTOM_RIGHT);
+	controlsMenu->resize(controlsMenuWidth, controlsMenuHeight);
+	controlsMenu->getContainer()->setTranslation(Vector2(-controlsMenuPadding));
 }
 
 void Game::restringUI()
 {
+	// Reset fonts
+	mainMenu->setFonts(menuFont);
+	settingsMenu->setFonts(menuFont);
+	controlsMenu->setFonts(menuFont);
 
+	// Get common strings
+	std::string offString = getString("off");
+	std::string onString = getString("on");
+	std::string backString = getString("back");
+
+	// Main menu strings
+	mainMenuContinueItem->setName(getString("continue"));
+	mainMenuNewGameItem->setName(getString("new-game"));
+	mainMenuColoniesItem->setName(getString("colonies"));
+	mainMenuSettingsItem->setName(getString("settings"));
+	mainMenuQuitItem->setName(getString("quit"));
+
+	// Settings menu strings
+	settingsMenuControlsItem->setName(getString("controls"));
+	settingsMenuControlsItem->setValue(getString("dotdotdot"));
+	settingsMenuFullscreenItem->setName(getString("fullscreen"));
+	settingsMenuFullscreenItem->setValue((fullscreen) ? onString : offString);
+	settingsMenuVSyncItem->setName(getString("v-sync"));
+	settingsMenuVSyncItem->setValue((vsync) ? onString : offString);
+	settingsMenuLanguageItem->setName(getString("language"));
+	settingsMenuLanguageItem->setValue(getString("language-name"));
+	settingsMenuBackItem->setName(backString);
+
+	// Controls menu strings
+	restringControlMenuItem(controlsMenuMoveForwardItem, "move-forward");
+	restringControlMenuItem(controlsMenuMoveLeftItem, "move-left");
+	restringControlMenuItem(controlsMenuMoveBackItem, "move-back");
+	restringControlMenuItem(controlsMenuMoveRightItem, "move-right");
+	restringControlMenuItem(controlsMenuChangeToolItem, "change-tool");
+	restringControlMenuItem(controlsMenuUseToolItem, "use-tool");
+	restringControlMenuItem(controlsMenuAdjustCameraItem, "adjust-camera");
+	restringControlMenuItem(controlsMenuToggleFullscreenItem, "toggle-fullscreen");
+	restringControlMenuItem(controlsMenuTakeScreenshotItem, "take-screenshot");
+	controlsMenuResetToDefaultItem->setName(getString("reset-to-default"));
+	controlsMenuBackItem->setName(backString);
+
+	// Reset menu tweens
+	uiRootElement->update();
+	mainMenu->getContainer()->resetTweens();
+	settingsMenu->getContainer()->resetTweens();
+	controlsMenu->getContainer()->resetTweens();
+}
+
+void Game::restringControlMenuItem(MenuItem* item, const std::string& name)
+{
+	item->setName(getString(name));
+
+	Control* control = controlNameMap.find(name)->second;
+
+	std::string value;
+	const std::list<InputMapping*>* mappings = inputRouter->getMappings(control);
+	if (mappings != nullptr)
+	{
+		std::size_t i = 0;
+		for (const InputMapping* mapping: *mappings)
+		{
+			std::array<std::string, 3> mappingStrings = getInputMappingStrings(mapping);
+
+			// keyboard-key, mouse-button, gamepad-axis, etc.
+			std::string typeName = mappingStrings[0] + "-" + mappingStrings[1];
+			std::string type = getString(typeName);
+
+			if (mapping->getType() != InputMappingType::KEY)
+			{
+				value += type;
+				value += " ";
+			}
+
+			value += mappingStrings[2];
+
+			if (i < mappings->size() - 1)
+			{
+				value += ", ";
+			}
+
+			++i;
+		}
+	}
+
+	item->setValue(value);
 }
 
 void Game::setTimeOfDay(float time)
@@ -2075,7 +2888,7 @@ void Game::screenshot()
 	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
 	// Get game title in current language
-	std::string title = getString(getLanguageIndex(), "title");
+	std::string title = getString("title");
 
 	// Convert title to lowercase
 	std::transform(title.begin(), title.end(), title.begin(), ::tolower);
@@ -2127,6 +2940,120 @@ void Game::mapInput(const InputMapping& mapping)
 	// Disable input mapping generation
 	inputMapper->setControl(nullptr);
 	inputMapper->setEnabled(false);
+
+	// Restring UI
+	restringUI();
+
+	// Schedule callbacks to be enabled in 100ms
+	ScheduledFunctionEvent event;
+	event.caller = static_cast<void*>(this);
+	event.function = [this]()
+	{
+		// Re-enable UI callbacks
+		uiRootElement->setCallbacksEnabled(true);
+
+		// Re-enable menu controls
+		menuControls.setCallbacksEnabled(true);
+	};
+	eventDispatcher.schedule(event, time + 0.1f);
+
+	// Save control profile
+	saveControlProfile(controlProfileName);
+}
+
+void Game::enterSplashState()
+{
+	// Show splash screen
+	splashBackgroundImage->setVisible(true);
+	splashImage->setVisible(true);
+	splashImage->setTintColor({1, 1, 1, 0});
+	splashBackgroundImage->setTintColor({0, 0, 0, 1});
+	splashImage->resetTweens();
+	splashBackgroundImage->resetTweens();
+	uiRootElement->update();
+	
+	// Add splash animations to animator
+	animator.addAnimation(&splashFadeInAnimation);
+	animator.addAnimation(&splashFadeOutAnimation);
+
+	// Play splash fade-in animation
+	splashFadeInAnimation.rewind();
+	splashFadeInAnimation.play();
+}
+
+void Game::exitSplashState()
+{
+	// Hide splash screen 
+	splashImage->setVisible(false);
+	splashBackgroundImage->setVisible(false);
+	uiRootElement->update();
+
+	// Remove splash animations from animator
+	animator.removeAnimation(&splashFadeInAnimation);
+	animator.removeAnimation(&splashFadeOutAnimation);
+}
+
+void Game::enterLoadingState()
+{}
+
+void Game::exitLoadingState()
+{}
+
+void Game::enterTitleState()
+{
+	// Setup scene
+	Vector3 antHillTranslation = {0, 0, 0};
+	EntityID antHill = createInstanceOf("ant-hill");
+	setTranslation(antHill, antHillTranslation);
+
+	// Setup camera
+	cameraRig = orbitCam;
+	orbitCam->setTargetFocalPoint(antHillTranslation);
+	orbitCam->setTargetFocalDistance(0.0f);
+	orbitCam->setTargetElevation(glm::radians(80.0f));
+	orbitCam->setTargetAzimuth(0.0f);
+	orbitCam->setFocalPoint(orbitCam->getTargetFocalPoint());
+	orbitCam->setFocalDistance(orbitCam->getTargetFocalDistance());
+	orbitCam->setElevation(orbitCam->getTargetElevation());
+	orbitCam->setAzimuth(orbitCam->getTargetAzimuth());
+
+	float fov = glm::radians(30.0f);
+	orbitCam->getCamera()->setPerspective(fov, (float)w / (float)h, 1.0f, 1000.0f);
+
+	// Begin fade-in
+	fadeIn(6.0f, {0, 0, 0}, nullptr);
+
+	//
+	animator.addAnimation(&antHillZoomAnimation);
+	antHillZoomAnimation.rewind();
+	antHillZoomAnimation.play();	
+
+	animator.addAnimation(&menuFadeAnimation);
+	menuFadeAnimation.rewind();
+	menuFadeAnimation.play();
+
+	// Select the first menu item
+	openMenu(mainMenu, 0);
+}
+
+void Game::exitTitleState()
+{
+	animator.removeAnimation(&antHillZoomAnimation);
+	animator.removeAnimation(&menuFadeAnimation);
+}
+
+void Game::enterPlayState()
+{}
+
+void Game::exitPlayState()
+{}
+
+void Game::skipSplash()
+{
+	if (StateMachine::getCurrentState() == &splashState)
+	{
+		StateMachine::changeState(&titleState);
+	}
 }
 
 void Game::boxSelect(float x, float y, float w, float h)
@@ -2182,6 +3109,14 @@ void Game::fadeOut(float duration, const Vector3& color, std::function<void()> c
 	fadeOutAnimation.play();
 
 	blackoutImage->resetTweens();
+	uiRootElement->update();
+}
+
+void Game::stopFade()
+{
+	fadeInAnimation.stop();
+	fadeOutAnimation.stop();
+	blackoutImage->setVisible(false);
 	uiRootElement->update();
 }
 

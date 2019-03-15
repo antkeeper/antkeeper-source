@@ -120,7 +120,7 @@ void ResourceLoader<CSVTable>::save(ResourceManager* resourceManager, std::ostre
 
 		for (std::size_t j = 0; j < row.size(); ++j)
 		{
-			const CSVColumn& column = row[j];
+			const CSVEntry& column = row[j];
 
 			(*os) << column;
 

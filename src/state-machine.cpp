@@ -17,15 +17,29 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CSV_TABLE_HPP
-#define CSV_TABLE_HPP
+#include "state-machine.hpp"
 
-#include <string>
-#include <vector>
+StateMachine::StateMachine():
+	previousState(nullptr),
+	currentState(nullptr)
+{}
 
-typedef std::string CSVEntry;
-typedef std::vector<CSVEntry> CSVRow;
-typedef std::vector<CSVRow> CSVTable;
+void StateMachine::changeState(const State* nextState)
+{
+	// Call exit function of current state
+	if (currentState && currentState->back())
+	{
+		currentState->back()();
+	}
 
-#endif // CSV_TABLE_HPP
+	// Change state
+	previousState = currentState;
+	currentState = nextState;
+
+	// Call enter function of next state
+	if (currentState && currentState->front())
+	{
+		currentState->front()();
+	}
+}
 
