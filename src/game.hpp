@@ -173,6 +173,8 @@ private:
 	std::array<std::string, 3> getInputMappingStrings(const InputMapping* mapping);
 	void remapControl(Control* control);
 	void resetControls();
+	// Callback for the input mapper
+	void inputMapped(const InputMapping& mapping);
 
 	void resizeUI(int w, int h);
 	void restringUI();
@@ -183,10 +185,6 @@ private:
 	void toggleWireframe();
 	void queueScreenshot();
 	void screenshot();
-
-
-	// Callback for the input mapper
-	void mapInput(const InputMapping& mapping);
 
 	// State functions
 	void enterSplashState();

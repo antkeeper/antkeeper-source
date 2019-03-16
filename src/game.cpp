@@ -18,7 +18,6 @@
  */
 
 #include "game.hpp"
-#include "game-states.hpp"
 #include "resources/csv-table.hpp"
 #include "states/game-state.hpp"
 #include "states/sandbox-state.hpp"
@@ -1814,7 +1813,7 @@ void Game::setupControls()
 
 	// Setup input mapper
 	inputMapper = new InputMapper(&eventDispatcher);
-	inputMapper->setCallback(std::bind(&Game::mapInput, this, std::placeholders::_1));
+	inputMapper->setCallback(std::bind(&Game::inputMapped, this, std::placeholders::_1));
 	inputMapper->setControl(nullptr);
 	inputMapper->setEnabled(false);
 }
@@ -1870,6 +1869,7 @@ void Game::loadSettings()
 	resetSettings();
 
 	// Load settings table
+	/*
 	try
 	{
 		settingsTable = resourceManager->load<CSVTable>("settings.csv");
@@ -1878,6 +1878,8 @@ void Game::loadSettings()
 	{
 		settingsTable = new CSVTable();
 	}
+	*/
+	settingsTable = new CSVTable();
 
 	// Build settings map
 	for (std::size_t i = 0; i < settingsTable->size(); ++i)
@@ -2759,7 +2761,7 @@ void Game::restringUI()
 
 	// Settings menu strings
 	settingsMenuControlsItem->setName(getString("controls"));
-	settingsMenuControlsItem->setValue(getString("dotdotdot"));
+	settingsMenuControlsItem->setValue(getString("ellipsis"));
 	settingsMenuFullscreenItem->setName(getString("fullscreen"));
 	settingsMenuFullscreenItem->setValue((fullscreen) ? onString : offString);
 	settingsMenuVSyncItem->setName(getString("v-sync"));
@@ -2923,7 +2925,7 @@ void Game::screenshot()
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Game::mapInput(const InputMapping& mapping)
+void Game::inputMapped(const InputMapping& mapping)
 {
 	// Skip mouse motion events
 	if (mapping.getType() == InputMappingType::MOUSE_MOTION)
@@ -3032,7 +3034,7 @@ void Game::enterTitleState()
 	menuFadeAnimation.rewind();
 	menuFadeAnimation.play();
 
-	// Select the first menu item
+	// Open the main menu and select the first menu item
 	openMenu(mainMenu, 0);
 }
 

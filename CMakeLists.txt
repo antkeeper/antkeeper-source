@@ -65,4 +65,18 @@ target_include_directories(${EXECUTABLE_TARGET}
 target_link_libraries(${EXECUTABLE_TARGET} ${STATIC_LIBS} ${SHARED_LIBS})
 
 # Install executable
-install(TARGETS ${EXECUTABLE_TARGET} DESTINATION bin)
+if(PACKAGE_PLATFORM MATCHES "linux")
+	install(TARGETS ${EXECUTABLE_TARGET} DESTINATION bin)
+elseif(PACKAGE_PLATFORM MATCHES "win")
+	# Install executable
+	install(TARGETS ${EXECUTABLE_TARGET} DESTINATION .)
+	
+	# Install OpenAL DLL
+	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		get_target_property(OPENAL_DLL OpenAL::OpenAL IMPORTED_LOCATION_DEBUG)
+	else()
+		get_target_property(OPENAL_DLL OpenAL::OpenAL IMPORTED_LOCATION_RELEASE)
+	endif()
+	
+	install(FILES ${OPENAL_DLL} DESTINATION .)
+endif()
