@@ -18,7 +18,7 @@
  */
 
 #include "game.hpp"
-#include "resources/csv-table.hpp"
+#include "resources/string-table.hpp"
 #include "states/game-state.hpp"
 #include "states/sandbox-state.hpp"
 #include "filesystem.hpp"
@@ -500,6 +500,7 @@ void Game::setup()
 	setupGameplay();
 
 	screenshotQueued = false;
+	paused = false;
 
 
 	// Load model resources
@@ -683,7 +684,11 @@ void Game::setup()
 	};
 
 	// Initialize state machine
-	StateMachine::changeState(&titleState);
+	#if defined(DEBUG)
+		StateMachine::changeState(&titleState);
+	#else
+		StateMachine::changeState(&splashState);
+	#endif
 
 	changeState(sandboxState);
 }
@@ -808,7 +813,7 @@ void Game::setupLocalization()
 	
 	// Match language code with language index
 	languageIndex = 0;
-	CSVRow* languageCodes = &(*stringTable)[1];
+	StringTableRow* languageCodes = &(*stringTable)[1];
 	for (std::size_t i = 2; i < languageCodes->size(); ++i)
 	{
 		if (language == (*languageCodes)[i])
@@ -1016,13 +1021,13 @@ void Game::setupUI()
 	loadFonts();
 
 	// Load splash screen texture
-	splashTexture = resourceManager->load<Texture2D>("epigraph.png");
+	splashTexture = resourceManager->load<Texture2D>("splash.png");
 
 	// Load HUD texture
 	hudSpriteSheetTexture = resourceManager->load<Texture2D>("hud.png");
 
 	// Read texture atlas file
-	CSVTable* atlasTable = resourceManager->load<CSVTable>("hud-atlas.csv");
+	StringTable* atlasTable = resourceManager->load<StringTable>("hud-atlas.csv");
 
 	// Build texture atlas
 	for (int row = 0; row < atlasTable->size(); ++row)
@@ -1412,12 +1417,22 @@ void Game::setupUI()
 	controlsMenuChangeToolItem = controlsMenu->addItem();
 	controlsMenuUseToolItem = controlsMenu->addItem();
 	controlsMenuAdjustCameraItem = controlsMenu->addItem();
+	controlsMenuPauseItem = controlsMenu->addItem();
 	controlsMenuToggleFullscreenItem = controlsMenu->addItem();
 	controlsMenuTakeScreenshotItem = controlsMenu->addItem();
 	controlsMenuResetToDefaultItem = controlsMenu->addItem();
 	controlsMenuBackItem = controlsMenu->addItem();
 
+	// Build pause menu
+	pauseMenu = new Menu();
+	pauseMenuResumeItem = pauseMenu->addItem();
+	pauseMenuSettingsItem = pauseMenu->addItem();
+	pauseMenuMainMenuItem = pauseMenu->addItem();
+	pauseMenuQuitItem = pauseMenu->addItem();
+
 	// Setup main menu callbacks
+	mainMenuContinueItem->setActivatedCallback(std::bind(&Game::continueGame, this));
+	mainMenuNewGameItem->setActivatedCallback(std::bind(&Game::newGame, this));
 	mainMenuSettingsItem->setActivatedCallback(std::bind(&Game::openMenu, this, settingsMenu, 0));
 	mainMenuQuitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
 
@@ -1437,10 +1452,17 @@ void Game::setupUI()
 	controlsMenuChangeToolItem->setActivatedCallback(std::bind(&Game::remapControl, this, &changeToolControl));
 	controlsMenuUseToolItem->setActivatedCallback(std::bind(&Game::remapControl, this, &useToolControl));
 	controlsMenuAdjustCameraItem->setActivatedCallback(std::bind(&Game::remapControl, this, &adjustCameraControl));
+	controlsMenuPauseItem->setActivatedCallback(std::bind(&Game::remapControl, this, &pauseControl));
 	controlsMenuToggleFullscreenItem->setActivatedCallback(std::bind(&Game::remapControl, this, &toggleFullscreenControl));
 	controlsMenuTakeScreenshotItem->setActivatedCallback(std::bind(&Game::remapControl, this, &takeScreenshotControl));
 	controlsMenuResetToDefaultItem->setActivatedCallback(std::bind(&Game::resetControls, this));
 	controlsMenuBackItem->setActivatedCallback(std::bind(&Game::openMenu, this, settingsMenu, 0));
+
+	// Setup pause menu callbacks
+	pauseMenuResumeItem->setActivatedCallback(std::bind(&Game::togglePause, this));
+	pauseMenuSettingsItem->setActivatedCallback(std::bind(&Game::openMenu, this, settingsMenu, 0));
+	pauseMenuMainMenuItem->setActivatedCallback(std::bind(&Game::returnToMainMenu, this));
+	pauseMenuQuitItem->setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
 
 	// Setup standard callbacks for all menu items
 	for (std::size_t i = 0; i < mainMenu->getItems()->size(); ++i)
@@ -1470,10 +1492,20 @@ void Game::setupUI()
 		item->getContainer()->setMousePressedCallback(std::bind(&Game::activateMenuItem, this));
 	}
 
+	for (std::size_t i = 0; i < pauseMenu->getItems()->size(); ++i)
+	{
+		MenuItem* item = (*pauseMenu->getItems())[i];
+		item->getContainer()->setTintColor(menuItemInactiveColor);
+		item->getContainer()->setMouseOverCallback(std::bind(&Game::selectMenuItem, this, i, true));
+		item->getContainer()->setMouseMovedCallback(std::bind(&Game::selectMenuItem, this, i, true));
+		item->getContainer()->setMousePressedCallback(std::bind(&Game::activateMenuItem, this));
+	}
+
 	// Set fonts for all menus
 	mainMenu->setFonts(menuFont);
 	settingsMenu->setFonts(menuFont);
 	controlsMenu->setFonts(menuFont);
+	pauseMenu->setFonts(menuFont);
 
 	AnimationChannel<float>* channel;
 
@@ -1542,6 +1574,11 @@ void Game::setupUI()
 	channel->insertKeyframe(0.0f, 0.0f);
 	channel->insertKeyframe(3.0f, 0.0f);
 	channel->insertKeyframe(5.0f, 1.0f);
+	menuFadeOutClip.setInterpolator(easeOutCubic<float>);
+	channel = menuFadeOutClip.addChannel(0);
+	channel->insertKeyframe(0.0f, 1.0f);
+	channel->insertKeyframe(0.125f, 0.0f);
+
 	menuFadeAnimation.setClip(&menuFadeInClip);
 	menuFadeAnimation.setTimeFrame(menuFadeInClip.getTimeFrame());
 	menuFadeAnimation.setAnimateCallback
@@ -1551,6 +1588,8 @@ void Game::setupUI()
 			mainMenu->getContainer()->setTintColor(Vector4(opacity));
 		}
 	);
+
+	animator.addAnimation(&menuFadeAnimation);
 
 	// Menu selector animation
 	menuSelectorSlideClip.setInterpolator(easeOutCubic<float>);
@@ -1728,6 +1767,7 @@ void Game::setupControls()
 	controls.addControl(&orbitCWControl);
 	controls.addControl(&adjustCameraControl);
 	controls.addControl(&dragCameraControl);
+	controls.addControl(&pauseControl);
 	controls.addControl(&changeToolControl);
 	controls.addControl(&useToolControl);
 	controls.addControl(&toggleEditModeControl);
@@ -1757,6 +1797,7 @@ void Game::setupControls()
 	cameraControls.addControl(&orbitCWControl);
 	cameraControls.addControl(&adjustCameraControl);
 	cameraControls.addControl(&dragCameraControl);
+	cameraControls.addControl(&pauseControl);
 
 	// Build the tool control set
 	toolControls.addControl(&changeToolControl);
@@ -1770,6 +1811,7 @@ void Game::setupControls()
 	menuUpControl.setActivatedCallback(std::bind(&Game::selectPreviousMenuItem, this));
 	menuActivateControl.setActivatedCallback(std::bind(&Game::activateMenuItem, this));
 	menuBackControl.setActivatedCallback(std::bind(&Game::activateLastMenuItem, this));
+	pauseControl.setActivatedCallback(std::bind(&Game::togglePause, this));
 	exitControl.setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
 	toggleFullscreenControl.setActivatedCallback(std::bind(&Game::toggleFullscreen, this));
 	takeScreenshotControl.setActivatedCallback(std::bind(&Game::queueScreenshot, this));
@@ -1795,6 +1837,7 @@ void Game::setupControls()
 	controlNameMap["orbit-cw"] = &orbitCWControl;
 	controlNameMap["adjust-camera"] = &adjustCameraControl;
 	controlNameMap["drag-camera"] = &dragCameraControl;
+	controlNameMap["pause"] = &pauseControl;
 	controlNameMap["change-tool"] = &changeToolControl;
 	controlNameMap["use-tool"] = &useToolControl;
 	controlNameMap["toggle-edit-mode"] = &toggleEditModeControl;
@@ -1828,11 +1871,11 @@ void Game::setupGameplay()
 	timestep = stepScheduler.getStepPeriod();
 
 	// Setup camera rigs
-	cameraRig = nullptr;
 	orbitCam = new OrbitCam();
 	orbitCam->attachCamera(&camera);
 	freeCam = new FreeCam();
 	freeCam->attachCamera(&camera);
+	cameraRig = orbitCam;
 }
 
 void Game::resetSettings()
@@ -1869,22 +1912,19 @@ void Game::loadSettings()
 	resetSettings();
 
 	// Load settings table
-	/*
 	try
 	{
-		settingsTable = resourceManager->load<CSVTable>("settings.csv");
+		settingsTable = resourceManager->load<StringTable>("settings.csv");
 	}
 	catch (const std::exception& e)
 	{
-		settingsTable = new CSVTable();
+		settingsTable = new StringTable();
 	}
-	*/
-	settingsTable = new CSVTable();
 
 	// Build settings map
 	for (std::size_t i = 0; i < settingsTable->size(); ++i)
 	{
-		const CSVRow& row = (*settingsTable)[i];
+		const StringTableRow& row = (*settingsTable)[i];
 		settingsMap[row[0]] = i;
 	}
 
@@ -1899,12 +1939,13 @@ void Game::loadSettings()
 }
 
 void Game::saveSettings()
-{}
+{
+}
 
 void Game::loadStrings()
 {
 	// Read strings file
-	stringTable = resourceManager->load<CSVTable>("strings.csv");
+	stringTable = resourceManager->load<StringTable>("strings.csv");
 
 	// Build string map
 	for (int row = 0; row < stringTable->size(); ++row)
@@ -1943,7 +1984,7 @@ void Game::loadFonts()
 
 	// Build character set for all strings in current language
 	std::set<char32_t> characterSet;
-	for (const CSVRow& row: *stringTable)
+	for (const StringTableRow& row: *stringTable)
 	{
 		// Convert to UTF-8 string to UTF-32
 		std::u32string string = toUTF32(row[languageIndex + 2]);
@@ -1963,9 +2004,9 @@ void Game::loadControlProfile(const std::string& profileName)
 {
 	// Load control profile
 	std::string controlProfilePath = profileName + ".csv";
-	CSVTable* controlProfile = resourceManager->load<CSVTable>(controlProfilePath);
+	StringTable* controlProfile = resourceManager->load<StringTable>(controlProfilePath);
 
-	for (const CSVRow& row: *controlProfile)
+	for (const StringTableRow& row: *controlProfile)
 	{
 		// Skip empty rows and comments
 		if (row.empty() || row[0].empty() || row[0][0] == '#')
@@ -2142,8 +2183,8 @@ void Game::loadControlProfile(const std::string& profileName)
 
 void Game::saveControlProfile(const std::string& profileName)
 {
-	// Build control profile CSV table
-	CSVTable* table = new CSVTable();
+	// Build control profile string table
+	StringTable* table = new StringTable();
 	for (auto it = controlNameMap.begin(); it != controlNameMap.end(); ++it)
 	{
 		// Get control name
@@ -2163,8 +2204,8 @@ void Game::saveControlProfile(const std::string& profileName)
 		for (const InputMapping* mapping: *mappings)
 		{
 			// Add row to the table
-			table->push_back(CSVRow());
-			CSVRow* row = &table->back();
+			table->push_back(StringTableRow());
+			StringTableRow* row = &table->back();
 
 			// Add control name column
 			row->push_back(controlName);
@@ -2304,9 +2345,9 @@ void Game::saveControlProfile(const std::string& profileName)
 	std::string controlProfilePath = controlsPath + profileName + ".csv";
 
 	// Save control profile
-	resourceManager->save<CSVTable>(table, controlProfilePath);
+	resourceManager->save<StringTable>(table, controlProfilePath);
 
-	// Free control profile CSV table
+	// Free control profile string table
 	delete table;
 }
 
@@ -2738,6 +2779,25 @@ void Game::resizeUI(int w, int h)
 	controlsMenu->getContainer()->setAnchor(Anchor::BOTTOM_RIGHT);
 	controlsMenu->resize(controlsMenuWidth, controlsMenuHeight);
 	controlsMenu->getContainer()->setTranslation(Vector2(-controlsMenuPadding));
+
+	// Pause menu size
+	float pauseMenuWidth = 0.0f;
+	float pauseMenuHeight = 0.0f;
+	float pauseMenuSpacing = 0.5f * fontSizePX;
+	float pauseMenuPadding = fontSizePX * 4.0f;
+
+	for (const MenuItem* item: *pauseMenu->getItems())
+	{
+
+		pauseMenuHeight += item->getNameLabel()->getFont()->getMetrics().getHeight();
+		pauseMenuHeight += pauseMenuSpacing;
+		pauseMenuWidth = std::max<float>(pauseMenuWidth, item->getNameLabel()->getDimensions().x);
+	}
+	pauseMenuHeight -= pauseMenuSpacing;
+	pauseMenu->getContainer()->setAnchor(Anchor::BOTTOM_RIGHT);
+	pauseMenu->resize(pauseMenuWidth, pauseMenuHeight);
+	pauseMenu->getContainer()->setTranslation(Vector2(-pauseMenuPadding));
+
 }
 
 void Game::restringUI()
@@ -2746,6 +2806,7 @@ void Game::restringUI()
 	mainMenu->setFonts(menuFont);
 	settingsMenu->setFonts(menuFont);
 	controlsMenu->setFonts(menuFont);
+	pauseMenu->setFonts(menuFont);
 
 	// Get common strings
 	std::string offString = getString("off");
@@ -2778,16 +2839,24 @@ void Game::restringUI()
 	restringControlMenuItem(controlsMenuChangeToolItem, "change-tool");
 	restringControlMenuItem(controlsMenuUseToolItem, "use-tool");
 	restringControlMenuItem(controlsMenuAdjustCameraItem, "adjust-camera");
+	restringControlMenuItem(controlsMenuPauseItem, "pause");
 	restringControlMenuItem(controlsMenuToggleFullscreenItem, "toggle-fullscreen");
 	restringControlMenuItem(controlsMenuTakeScreenshotItem, "take-screenshot");
 	controlsMenuResetToDefaultItem->setName(getString("reset-to-default"));
 	controlsMenuBackItem->setName(backString);
+
+	// Pause menu strings
+	pauseMenuResumeItem->setName(getString("resume"));
+	pauseMenuSettingsItem->setName(getString("settings"));
+	pauseMenuMainMenuItem->setName(getString("main-menu"));
+	pauseMenuQuitItem->setName(getString("quit"));
 
 	// Reset menu tweens
 	uiRootElement->update();
 	mainMenu->getContainer()->resetTweens();
 	settingsMenu->getContainer()->resetTweens();
 	controlsMenu->getContainer()->resetTweens();
+	pauseMenu->getContainer()->resetTweens();
 }
 
 void Game::restringControlMenuItem(MenuItem* item, const std::string& name)
@@ -3030,9 +3099,18 @@ void Game::enterTitleState()
 	antHillZoomAnimation.rewind();
 	antHillZoomAnimation.play();	
 
-	animator.addAnimation(&menuFadeAnimation);
 	menuFadeAnimation.rewind();
 	menuFadeAnimation.play();
+	menuFadeAnimation.setEndCallback(nullptr);
+
+	// Disable play controls
+	cameraControls.setCallbacksEnabled(false);
+
+	// Enable menu controls
+	menuControls.setCallbacksEnabled(true);
+
+	// Change setting menu's back item to return to the main menu
+	settingsMenuBackItem->setActivatedCallback(std::bind(&Game::openMenu, this, mainMenu, 3));
 
 	// Open the main menu and select the first menu item
 	openMenu(mainMenu, 0);
@@ -3041,14 +3119,26 @@ void Game::enterTitleState()
 void Game::exitTitleState()
 {
 	animator.removeAnimation(&antHillZoomAnimation);
-	animator.removeAnimation(&menuFadeAnimation);
 }
 
 void Game::enterPlayState()
-{}
+{
+	// Disable menu controls
+	menuControls.setCallbacksEnabled(false);
+
+	// Disable UI callbacks
+	uiRootElement->setCallbacksEnabled(false);
+
+	// Enable play controls
+	cameraControls.setCallbacksEnabled(true);
+
+	// Change setting menu's back item to return to the pause menu
+	settingsMenuBackItem->setActivatedCallback(std::bind(&Game::openMenu, this, pauseMenu, 1));
+}
 
 void Game::exitPlayState()
-{}
+{
+}
 
 void Game::skipSplash()
 {
@@ -3056,6 +3146,92 @@ void Game::skipSplash()
 	{
 		StateMachine::changeState(&titleState);
 	}
+}
+
+void Game::togglePause()
+{
+	paused = !paused;
+
+	if (paused)
+	{
+		openMenu(pauseMenu, 0);
+
+		// Enable menu controls and UI callbacks
+		uiRootElement->setCallbacksEnabled(true);
+		menuControls.setCallbacksEnabled(true);
+	}
+	else
+	{
+		closeCurrentMenu();
+
+		// Disable menu controls and UI callbacks
+		uiRootElement->setCallbacksEnabled(false);
+		menuControls.setCallbacksEnabled(false);
+	}
+}
+
+void Game::continueGame()
+{
+	// Disable play controls, menu controls, and UI callbacks
+	cameraControls.setCallbacksEnabled(false);
+	menuControls.setCallbacksEnabled(false);
+	uiRootElement->setCallbacksEnabled(false);
+
+	// Start fading out main menu
+	menuFadeAnimation.setClip(&menuFadeOutClip);
+	menuFadeAnimation.setTimeFrame(menuFadeOutClip.getTimeFrame());
+	menuFadeAnimation.rewind();
+	menuFadeAnimation.play();
+
+	// Close menu and enter play state after it fades out
+	menuFadeAnimation.setEndCallback
+	(
+		[this]()
+		{
+			closeCurrentMenu();
+			StateMachine::changeState(&playState);
+		}
+	);
+}
+
+void Game::newGame()
+{
+	// Disable play controls, menu controls, and UI callbacks
+	cameraControls.setCallbacksEnabled(false);
+	menuControls.setCallbacksEnabled(false);
+	uiRootElement->setCallbacksEnabled(false);
+
+	// Start fading out main menu
+	menuFadeAnimation.setClip(&menuFadeOutClip);
+	menuFadeAnimation.setTimeFrame(menuFadeOutClip.getTimeFrame());
+	menuFadeAnimation.rewind();
+	menuFadeAnimation.play();
+
+	// Close menu and enter play state after it fades out
+	menuFadeAnimation.setEndCallback
+	(
+		[this]()
+		{
+			closeCurrentMenu();
+		}
+	);
+
+	// Start to play state
+	fadeOut(3.0f, Vector3(0.0f), std::bind(&StateMachine::changeState, this, &playState));
+}
+
+void Game::returnToMainMenu()
+{
+	// Disable play controls, menu controls, and UI callbacks
+	cameraControls.setCallbacksEnabled(false);
+	menuControls.setCallbacksEnabled(false);
+	uiRootElement->setCallbacksEnabled(false);
+
+	// Close pause menu
+	closeCurrentMenu();
+
+	// Fade to title state
+	fadeOut(3.0f, Vector3(0.0f), std::bind(&StateMachine::changeState, this, &titleState));
 }
 
 void Game::boxSelect(float x, float y, float w, float h)

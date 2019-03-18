@@ -18,9 +18,9 @@
  */
 
 #include "resource-loader.hpp"
-#include "csv-table.hpp"
+#include "string-table.hpp"
 
-static CSVRow parseRow(const std::string& line)
+static StringTableRow parseRow(const std::string& line)
 {
 	std::vector<std::string> row;
 	std::string column;
@@ -92,9 +92,9 @@ static CSVRow parseRow(const std::string& line)
 }
 
 template <>
-CSVTable* ResourceLoader<CSVTable>::load(ResourceManager* resourceManager, std::istream* is)
+StringTable* ResourceLoader<StringTable>::load(ResourceManager* resourceManager, std::istream* is)
 {
-	CSVTable* table = new CSVTable();
+	StringTable* table = new StringTable();
 	std::string line;
 
 	while (!is->eof())
@@ -112,15 +112,15 @@ CSVTable* ResourceLoader<CSVTable>::load(ResourceManager* resourceManager, std::
 }
 
 template <>
-void ResourceLoader<CSVTable>::save(ResourceManager* resourceManager, std::ostream* os, const CSVTable* table)
+void ResourceLoader<StringTable>::save(ResourceManager* resourceManager, std::ostream* os, const StringTable* table)
 {
 	for (std::size_t i = 0; i < table->size(); ++i)
 	{
-		const CSVRow& row = (*table)[i];
+		const StringTableRow& row = (*table)[i];
 
 		for (std::size_t j = 0; j < row.size(); ++j)
 		{
-			const CSVEntry& column = row[j];
+			const std::string& column = row[j];
 
 			(*os) << column;
 

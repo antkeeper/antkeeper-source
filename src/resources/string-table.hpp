@@ -17,15 +17,24 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CSV_TABLE_HPP
-#define CSV_TABLE_HPP
+#ifndef STRING_TABLE_HPP
+#define STRING_TABLE_HPP
 
+#include <map>
 #include <string>
 #include <vector>
 
-typedef std::string CSVEntry;
-typedef std::vector<CSVEntry> CSVRow;
-typedef std::vector<CSVRow> CSVTable;
+typedef std::vector<std::string> StringTableRow;
+typedef std::vector<StringTableRow> StringTable;
 
-#endif // CSV_TABLE_HPP
+typedef std::map<std::string, std::size_t> StringTableIndex;
+
+/**
+ * Creates an index for a string table using strings in the first column as keys.
+ *
+ * @param table Table for which an index will be created.
+ */
+StringTableIndex createIndex(const StringTable& table);
+
+#endif // STRING_TABLE_HPP
 

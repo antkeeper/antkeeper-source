@@ -19,7 +19,7 @@
 
 #include "resource-loader.hpp"
 #include "resource-manager.hpp"
-#include "csv-table.hpp"
+#include "string-table.hpp"
 #include "../entity/components/ant-hill-component.hpp"
 #include "../entity/components/collision-component.hpp"
 #include "../entity/components/model-component.hpp"
@@ -176,8 +176,8 @@ EntityTemplate* ResourceLoader<EntityTemplate>::load(ResourceManager* resourceMa
 	std::list<ComponentBase*> components;
 	EntityTemplate* entityTemplate = nullptr;
 
-	// Load CSV table from input stream
-	CSVTable* table = ResourceLoader<CSVTable>::load(resourceManager, is);
+	// Load string table from input stream
+	StringTable* table = ResourceLoader<StringTable>::load(resourceManager, is);
 
 	// Ensure table is not empty.
 	if (!table || table->empty())
@@ -187,7 +187,7 @@ EntityTemplate* ResourceLoader<EntityTemplate>::load(ResourceManager* resourceMa
 	}
 
 	// Load components from table rows
-	for (const CSVRow& row: *table)
+	for (const StringTableRow& row: *table)
 	{
 		// Skip empty rows and comments
 		if (row.empty() || row[0].empty() || row[0][0] == '#')

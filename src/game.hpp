@@ -71,7 +71,7 @@ class ComponentBase;
 class Menu;
 class MenuItem;
 enum class ComponentType;
-typedef std::vector<std::vector<std::string>> CSVTable;
+typedef std::vector<std::vector<std::string>> StringTable;
 
 class Game:
 	public Application,
@@ -144,6 +144,8 @@ public:
 
 	void selectTool(int toolIndex);
 
+
+
 private:
 	virtual void setup();
 	virtual void input();
@@ -198,6 +200,12 @@ private:
 
 	void skipSplash();
 
+	void togglePause();
+
+	void continueGame();
+	void newGame();
+	void returnToMainMenu();
+
 public:
 	EntityID createInstance();
 	EntityID createInstanceOf(const std::string& templateName);
@@ -231,11 +239,11 @@ public:
 	std::string controlsPath;
 
 	// Settings
-	CSVTable* settingsTable;
+	StringTable* settingsTable;
 	std::map<std::string, std::size_t> settingsMap;
 
 	// Localization
-	CSVTable* stringTable;
+	StringTable* stringTable;
 	std::map<std::string, std::size_t> stringMap;
 	std::size_t languageCount;
 	std::size_t languageIndex;
@@ -280,6 +288,7 @@ public:
 	Control orbitCWControl;
 	Control adjustCameraControl;
 	Control dragCameraControl;
+	Control pauseControl;
 
 	// Tool control set
 	ControlSet toolControls;
@@ -409,10 +418,18 @@ public:
 	MenuItem* controlsMenuChangeToolItem;
 	MenuItem* controlsMenuUseToolItem;
 	MenuItem* controlsMenuAdjustCameraItem;
+	MenuItem* controlsMenuPauseItem;
 	MenuItem* controlsMenuToggleFullscreenItem;
 	MenuItem* controlsMenuTakeScreenshotItem;
 	MenuItem* controlsMenuResetToDefaultItem;
 	MenuItem* controlsMenuBackItem;
+
+	// Pause menu
+	Menu* pauseMenu;
+	MenuItem* pauseMenuResumeItem;
+	MenuItem* pauseMenuSettingsItem;
+	MenuItem* pauseMenuMainMenuItem;
+	MenuItem* pauseMenuQuitItem;
 
 	// Rendering
 	Renderer renderer;
@@ -451,6 +468,7 @@ public:
 
 	Animation<float> menuFadeAnimation;
 	AnimationClip<float> menuFadeInClip;
+	AnimationClip<float> menuFadeOutClip;
 
 	Animation<float> splashFadeInAnimation;
 	Animation<float> splashFadeOutAnimation;
@@ -508,6 +526,7 @@ public:
 	TerrainSystem* terrainSystem;
 
 	bool screenshotQueued;
+	bool paused;
 
 	// Settings
 	std::string language;
