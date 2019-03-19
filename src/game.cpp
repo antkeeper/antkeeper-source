@@ -54,6 +54,7 @@
 #include "entity/systems/steering-system.hpp"
 #include "entity/systems/particle-system.hpp"
 #include "entity/systems/terrain-system.hpp"
+#include "configuration.hpp"
 #include "stb/stb_image_write.h"
 #include "menu.hpp"
 #include <algorithm>
@@ -63,11 +64,13 @@
 #include <stdexcept>
 #include <thread>
 
+#include "debug/console.hpp"
+
 template <>
 bool Game::readSetting<std::string>(const std::string& name, std::string* value) const
 {
-	auto it = settingsMap.find(name);
-	if (it == settingsMap.end())
+	auto it = settingsTableIndex.find(name);
+	if (it == settingsTableIndex.end())
 	{
 		return false;
 	}
@@ -80,8 +83,8 @@ bool Game::readSetting<std::string>(const std::string& name, std::string* value)
 template <>
 bool Game::readSetting<bool>(const std::string& name, bool* value) const
 {
-	auto it = settingsMap.find(name);
-	if (it == settingsMap.end())
+	auto it = settingsTableIndex.find(name);
+	if (it == settingsTableIndex.end())
 	{
 		return false;
 	}
@@ -104,8 +107,8 @@ bool Game::readSetting<bool>(const std::string& name, bool* value) const
 template <>
 bool Game::readSetting<int>(const std::string& name, int* value) const
 {
-	auto it = settingsMap.find(name);
-	if (it == settingsMap.end())
+	auto it = settingsTableIndex.find(name);
+	if (it == settingsTableIndex.end())
 	{
 		return false;
 	}
@@ -120,8 +123,8 @@ bool Game::readSetting<int>(const std::string& name, int* value) const
 template <>
 bool Game::readSetting<float>(const std::string& name, float* value) const
 {
-	auto it = settingsMap.find(name);
-	if (it == settingsMap.end())
+	auto it = settingsTableIndex.find(name);
+	if (it == settingsTableIndex.end())
 	{
 		return false;
 	}
@@ -136,8 +139,8 @@ bool Game::readSetting<float>(const std::string& name, float* value) const
 template <>
 bool Game::readSetting<Vector2>(const std::string& name, Vector2* value) const
 {
-	auto it = settingsMap.find(name);
-	if (it == settingsMap.end())
+	auto it = settingsTableIndex.find(name);
+	if (it == settingsTableIndex.end())
 	{
 		return false;
 	}
@@ -171,11 +174,13 @@ Game::Game(int argc, char* argv[]):
 	dataPath = getDataPath(applicationName) + "data/";
 	configPath = getConfigPath(applicationName);
 	controlsPath = configPath + "controls/";
+	scriptsPath = configPath + "scripts/";
 
 	// Create nonexistent config directories
 	std::vector<std::string> configPaths;
 	configPaths.push_back(configPath);
 	configPaths.push_back(controlsPath);
+	configPaths.push_back(scriptsPath);
 	for (const std::string& path: configPaths)
 	{
 		if (!pathExists(path))
@@ -191,13 +196,11 @@ Game::Game(int argc, char* argv[]):
 		std::cout.rdbuf(logFileStream.rdbuf());
 	#endif
 	
-	std::cout << "Data path: " << dataPath << std::endl;
-	std::cout << "Config path: " << configPath << std::endl;
-
 	// Setup resource manager
 	resourceManager = new ResourceManager();
 
 	// Include resource search paths in order of priority
+	resourceManager->include(scriptsPath);
 	resourceManager->include(controlsPath);
 	resourceManager->include(configPath);
 	resourceManager->include(dataPath);
@@ -207,6 +210,25 @@ Game::Game(int argc, char* argv[]):
 	toggleFullscreenDisabled = false;
 
 	sandboxState = new SandboxState(this);
+
+
+	cli = new CommandInterpreter();
+
+	std::function<void()> exitCommand = std::bind(std::exit, EXIT_SUCCESS);
+	std::function<void(int, float, float, float)> setScaleCommand = [this](int id, float x, float y, float z) {
+		setScale(id, {x, y, z});
+	};
+	std::function<void()> toggleWireframeCommand = std::bind(&Game::toggleWireframe, this);
+	std::function<void(std::string)> shCommand = std::bind(&Game::executeShellScript, this, std::placeholders::_1);
+
+	cli->registerCommand("q", exitCommand);
+	cli->registerCommand("setScale", setScaleCommand);
+	cli->registerCommand("wireframe", toggleWireframeCommand);
+	cli->registerCommand("sh", shCommand);
+
+	// Start CLI thread
+	std::thread cliThread(&Game::interpretCommands, this);
+	cliThread.detach();
 }
 
 Game::~Game()
@@ -235,8 +257,8 @@ std::string Game::getString(const std::string& name) const
 {
 	std::string value;
 
-	auto it = stringMap.find(name);
-	if (it != stringMap.end())
+	auto it = stringTableIndex.find(name);
+	if (it != stringTableIndex.end())
 	{
 		value = (*stringTable)[it->second][languageIndex + 2];
 		if (value.empty())
@@ -1771,7 +1793,6 @@ void Game::setupControls()
 	controls.addControl(&changeToolControl);
 	controls.addControl(&useToolControl);
 	controls.addControl(&toggleEditModeControl);
-	controls.addControl(&toggleWireframeControl);
 
 	// Build the system control set
 	systemControls.addControl(&exitControl);
@@ -1815,7 +1836,6 @@ void Game::setupControls()
 	exitControl.setActivatedCallback(std::bind(&Application::close, this, EXIT_SUCCESS));
 	toggleFullscreenControl.setActivatedCallback(std::bind(&Game::toggleFullscreen, this));
 	takeScreenshotControl.setActivatedCallback(std::bind(&Game::queueScreenshot, this));
-	toggleWireframeControl.setActivatedCallback(std::bind(&Game::toggleWireframe, this));
 
 	// Build map of control names
 	controlNameMap["exit"] = &exitControl;
@@ -1841,7 +1861,6 @@ void Game::setupControls()
 	controlNameMap["change-tool"] = &changeToolControl;
 	controlNameMap["use-tool"] = &useToolControl;
 	controlNameMap["toggle-edit-mode"] = &toggleEditModeControl;
-	controlNameMap["toggle-wireframe"] = &toggleWireframeControl;
 
 	// Load control profile
 	if (pathExists(controlsPath + controlProfileName + ".csv"))
@@ -1921,12 +1940,8 @@ void Game::loadSettings()
 		settingsTable = new StringTable();
 	}
 
-	// Build settings map
-	for (std::size_t i = 0; i < settingsTable->size(); ++i)
-	{
-		const StringTableRow& row = (*settingsTable)[i];
-		settingsMap[row[0]] = i;
-	}
+	// Build settings table index
+	settingsTableIndex = createIndex(*settingsTable);
 
 	// Read settings from table
 	readSetting("language", &language);
@@ -1947,11 +1962,8 @@ void Game::loadStrings()
 	// Read strings file
 	stringTable = resourceManager->load<StringTable>("strings.csv");
 
-	// Build string map
-	for (int row = 0; row < stringTable->size(); ++row)
-	{
-		stringMap[(*stringTable)[row][0]] = row;
-	}
+	// Build string table index
+	stringTableIndex = createIndex(*stringTable);
 }
 
 void Game::loadFonts()
@@ -3075,6 +3087,7 @@ void Game::enterTitleState()
 	// Setup scene
 	Vector3 antHillTranslation = {0, 0, 0};
 	EntityID antHill = createInstanceOf("ant-hill");
+	std::cout << antHill << std::endl;
 	setTranslation(antHill, antHillTranslation);
 
 	// Setup camera
@@ -3232,6 +3245,28 @@ void Game::returnToMainMenu()
 
 	// Fade to title state
 	fadeOut(3.0f, Vector3(0.0f), std::bind(&StateMachine::changeState, this, &titleState));
+}
+
+void Game::interpretCommands()
+{
+	std::cout << "Antkeeper " << VERSION_STRING << std::endl;
+
+	while (1)
+	{
+		std::cout << "> " << std::flush;
+		std::string line;
+		std::getline(std::cin, line);
+
+		auto [name, arguments, call] = cli->interpret(line);
+		if (call)
+		{
+			call();
+		}
+		else
+		{
+			std::cout << "ant: Unknown command " << name << std::endl;
+		}
+	}
 }
 
 void Game::boxSelect(float x, float y, float w, float h)
@@ -3413,6 +3448,37 @@ void Game::setTerrainPatchPosition(EntityID entity, const std::tuple<int, int>& 
 	}
 
 	component->position = position;
+}
+
+void Game::executeShellScript(const std::string& string)
+{
+	TextFile* script = nullptr;
+
+	try
+	{
+		script = resourceManager->load<TextFile>(string);
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Failed to load shell script: \"" << e.what() << "\"" << std::endl;
+		return;
+	}
+
+	for (const std::string& line: *script)
+	{
+		if (!line.empty())
+		{
+			auto [name, arguments, call] = cli->interpret(line);
+			if (call)
+			{
+				call();
+			}
+			else
+			{
+				std::cout << "ant: Unknown command " << name << std::endl;
+			}
+		}
+	}
 }
 
 void Game::saveScreenshot(const std::string& filename, unsigned int width, unsigned int height, unsigned char* pixels)

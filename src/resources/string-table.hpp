@@ -20,14 +20,24 @@
 #ifndef STRING_TABLE_HPP
 #define STRING_TABLE_HPP
 
-#include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
+/**
+ * A single row in a string table.
+ */
 typedef std::vector<std::string> StringTableRow;
+
+/**
+ * A table of strings.
+ */
 typedef std::vector<StringTableRow> StringTable;
 
-typedef std::map<std::string, std::size_t> StringTableIndex;
+/**
+ * An index for finding elements in a string table.
+ */
+typedef std::unordered_map<std::string, std::size_t> StringTableIndex;
 
 /**
  * Creates an index for a string table using strings in the first column as keys.

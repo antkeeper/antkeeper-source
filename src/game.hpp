@@ -26,6 +26,7 @@ using namespace Emergent;
 #include "state-machine.hpp"
 #include "entity/entity-id.hpp"
 #include "scheduled-function-event.hpp"
+#include "resources/string-table.hpp"
 #include <array>
 #include <map>
 #include <string>
@@ -70,8 +71,8 @@ class TerrainSystem;
 class ComponentBase;
 class Menu;
 class MenuItem;
+class CommandInterpreter;
 enum class ComponentType;
-typedef std::vector<std::vector<std::string>> StringTable;
 
 class Game:
 	public Application,
@@ -206,6 +207,8 @@ private:
 	void newGame();
 	void returnToMainMenu();
 
+	void interpretCommands();
+
 public:
 	EntityID createInstance();
 	EntityID createInstanceOf(const std::string& templateName);
@@ -216,6 +219,7 @@ public:
 	void setRotation(EntityID entity, const Quaternion& rotation);
 	void setScale(EntityID entity, const Vector3& scale);
 	void setTerrainPatchPosition(EntityID entity, const std::tuple<int, int>& position);
+	void executeShellScript(const std::string& string);
 
 	void boxSelect(float x, float y, float w, float h);
 
@@ -237,14 +241,15 @@ public:
 	std::string dataPath;
 	std::string configPath;
 	std::string controlsPath;
+	std::string scriptsPath;
 
 	// Settings
 	StringTable* settingsTable;
-	std::map<std::string, std::size_t> settingsMap;
+	StringTableIndex settingsTableIndex;
 
 	// Localization
 	StringTable* stringTable;
-	std::map<std::string, std::size_t> stringMap;
+	StringTableIndex stringTableIndex;
 	std::size_t languageCount;
 	std::size_t languageIndex;
 
@@ -298,10 +303,6 @@ public:
 	// Editor control set
 	ControlSet editorControls;
 	Control toggleEditModeControl;
-
-	// Debug control set
-	ControlSet debugControls;
-	Control toggleWireframeControl;
 
 	// Map of control names
 	std::map<std::string, Control*> controlNameMap;
@@ -539,6 +540,7 @@ public:
 	bool toggleFullscreenDisabled;
 
 	// Debugging
+	CommandInterpreter* cli;
 	std::ofstream logFileStream;
 	bool wireframe;
 

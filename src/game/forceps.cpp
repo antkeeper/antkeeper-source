@@ -52,9 +52,6 @@ Forceps::Forceps(const Model* model, Animator* animator):
 	float pinchSpeed = std::get<1>(pinchClip->getTimeFrame()) / pinchDuration;
 	float releaseSpeed = std::get<1>(releaseClip->getTimeFrame()) / releaseDuration;
 
-	std::cout << std::get<1>(pinchClip->getTimeFrame()) << std::endl;
-	std::cout << std::get<1>(releaseClip->getTimeFrame()) << std::endl;
-
 	// Setup pinch animation callbacks
 	pinchAnimation.setSpeed(pinchSpeed);
 	pinchAnimation.setTimeFrame(pinchClip->getTimeFrame());
