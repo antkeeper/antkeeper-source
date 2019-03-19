@@ -158,7 +158,9 @@ private:
 	virtual void handleEvent(const GamepadDisconnectedEvent& event);
 	virtual void handleEvent(const ScheduledFunctionEvent& event);
 
-	void setupDebugging();
+	#if defined(DEBUG)
+		void setupDebugging();
+	#endif
 	void setupLocalization();
 	void setupWindow();
 	void setupGraphics();
@@ -185,7 +187,6 @@ private:
 	void resizeRenderTargets();
 
 	void setTimeOfDay(float time);
-	void toggleWireframe();
 	void queueScreenshot();
 	void screenshot();
 
@@ -212,6 +213,9 @@ private:
 public:
 	EntityID createInstance();
 	EntityID createInstanceOf(const std::string& templateName);
+	void selectInstance(EntityID entity);
+	void selectNamedInstance(const std::string& instanceName);
+
 	void destroyInstance(EntityID entity);
 	void addComponent(EntityID entity, ComponentBase* component);
 	void removeComponent(EntityID entity, ComponentType type);
@@ -540,9 +544,11 @@ public:
 	bool toggleFullscreenDisabled;
 
 	// Debugging
-	CommandInterpreter* cli;
-	std::ofstream logFileStream;
-	bool wireframe;
+	#if defined(DEBUG)
+		CommandInterpreter* cli;
+		std::map<std::string, std::string> helpStrings;
+		std::ofstream logFileStream;
+	#endif
 
 private:
 	static void saveScreenshot(const std::string& filename, unsigned int width, unsigned int height, unsigned char* pixels);

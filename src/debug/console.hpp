@@ -21,6 +21,8 @@
 #define CONSOLE_HPP
 
 #include <functional>
+#include <map>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -60,6 +62,11 @@ public:
 	template<class... Args>
 	static std::tuple<Args...> parse(const std::vector<std::string>& arguments)
 	{
+		if (arguments.size() != sizeof...(Args))
+		{
+			throw std::invalid_argument("Argument vector size doesn't match function parameter count.");
+		}
+
 		return parse<Args...>(arguments, std::make_index_sequence<sizeof...(Args)>{});
 	}
 
@@ -107,14 +114,35 @@ public:
 	 * @param function Function associated with the command.
 	 */
 	template <class... Args>
-	void registerCommand(const std::string& name, const std::function<void(Args...)>& function);
+	void registerCommand(const std::string& name, const std::function<void(Args...)>& function, const std::string& helpString = std::string());
 	template <class... Args>
 	void registerCommand(const std::string& name, void(*function)(Args...));
 
 	/**
+	 * Sets the value of an interpreter variable.
+	 *
+	 * @param name Interpreter variable name.
+	 * @param value Interpreter variable value.
+	 */
+	void set(const std::string& name, const std::string& value);
+
+	/**
+	 * Unsets an interpreter variable.
+	 *
+	 * @param name Interpreter variable name.
+	 */
+	void unset(const std::string& name);
+
+
+	/**
+	 * Returns the help strings for all commands.
+	 */
+	const std::map<std::string, std::string>& help() const;
+
+	/**
 	 * Interprets a line of text as a function call, returning the interpreted command name, argument vector, and callable function object.
 	 *
-	 * @param line Line of text to be interpreted.
+	 * @param line Line of text to be interpreted. Arguments are delimeted by spaces, with the first argument as the command name. Command names containing the '.' operator will have the post-dot string substituted for its console variable value, then the string will be transposed around the dot, and the dot will be replaced by a space, such that the command "object.setValue 10" would become "setValue x 10" if that console variable "object" was set to "x". Arguments beginning with substitution operator '$' will interpreted as variables and substituted with their values.
 	 */
 	std::tuple<std::string, std::vector<std::string>, std::function<void()>> interpret(const std::string& line);
 
@@ -124,12 +152,15 @@ private:
 
 	// A command name-keyed map of command linkers
 	std::unordered_map<std::string, std::function<std::function<void()>(const std::vector<std::string>&)>> linkers;
+	std::map<std::string, std::string> helpStrings;
+	std::unordered_map<std::string, std::string> variables;
 };
 
 template <class... Args>
-void CommandInterpreter::registerCommand(const std::string& name, const std::function<void(Args...)>& function)
+void CommandInterpreter::registerCommand(const std::string& name, const std::function<void(Args...)>& function, const std::string& helpString)
 {
 	addCommandLinker(name, function, CommandLinker::link<Args...>);
+	helpStrings[name] = helpString;
 }
 
 template <class... Args>

@@ -62,6 +62,25 @@ std::string ArgumentParser<std::string>::parse(const std::string& argument)
 	return argument;
 }
 
+void CommandInterpreter::set(const std::string& name, const std::string& value)
+{
+	variables[name] = value;
+}
+
+void CommandInterpreter::unset(const std::string& name)
+{
+	auto it = variables.find(name);
+	if (it != variables.end())
+	{
+		variables.erase(it);
+	}
+}
+
+const std::map<std::string, std::string>& CommandInterpreter::help() const
+{
+	return helpStrings;
+}
+
 std::tuple<std::string, std::vector<std::string>, std::function<void()>> CommandInterpreter::interpret(const std::string& line)
 {
 	// Split line into arguments
@@ -78,22 +97,48 @@ std::tuple<std::string, std::vector<std::string>, std::function<void()>> Command
 		return {std::string(), std::vector<std::string>(), nullptr};
 	}
 
+	// Perform variable substitution/expansion on '$' operators
+	for (std::string& argument: arguments)
+	{
+		if (!argument.empty() && argument[0] == '$')
+		{
+			std::string variableName = argument.substr(1);
+			std::string variableValue = variables[variableName];
+			argument = variableValue;
+		}
+	}
+
 	// Get command name
-	std::string name = arguments[0];
+	std::string commandName = arguments[0];
 	
 	// Remove command name from arguments
 	arguments.erase(arguments.begin());
 
+	// Check command name for member access operator '.'
+	std::size_t dotOperatorPosition = commandName.find('.');
+	if (dotOperatorPosition != std::string::npos)
+	{
+		// Get variable name and lookup value
+		std::string variableName = commandName.substr(0, dotOperatorPosition);
+		std::string variableValue = variables[variableName];
+
+		// Insert variable value at front of the argument vector
+		arguments.insert(arguments.begin(), variableValue);
+
+		// Remove variable name from command name
+		commandName = commandName.substr(dotOperatorPosition + 1);
+	}
+
 	// Find command linker for this command
-	auto linker = linkers.find(name);
+	auto linker = linkers.find(commandName);
 	if (linker == linkers.end())
 	{
-		return {name, arguments, nullptr};
+		return {commandName, arguments, nullptr};
 	}
 
 	// Link command function and its arguments into a callable object
 	std::function<void()> call = linker->second(arguments);
 
-	return {name, arguments, call};
+	return {commandName, arguments, call};
 }
 

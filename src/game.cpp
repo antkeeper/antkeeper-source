@@ -210,25 +210,6 @@ Game::Game(int argc, char* argv[]):
 	toggleFullscreenDisabled = false;
 
 	sandboxState = new SandboxState(this);
-
-
-	cli = new CommandInterpreter();
-
-	std::function<void()> exitCommand = std::bind(std::exit, EXIT_SUCCESS);
-	std::function<void(int, float, float, float)> setScaleCommand = [this](int id, float x, float y, float z) {
-		setScale(id, {x, y, z});
-	};
-	std::function<void()> toggleWireframeCommand = std::bind(&Game::toggleWireframe, this);
-	std::function<void(std::string)> shCommand = std::bind(&Game::executeShellScript, this, std::placeholders::_1);
-
-	cli->registerCommand("q", exitCommand);
-	cli->registerCommand("setScale", setScaleCommand);
-	cli->registerCommand("wireframe", toggleWireframeCommand);
-	cli->registerCommand("sh", shCommand);
-
-	// Start CLI thread
-	std::thread cliThread(&Game::interpretCommands, this);
-	cliThread.detach();
 }
 
 Game::~Game()
@@ -821,8 +802,54 @@ void Game::setupDebugging()
 	// Setup performance sampling
 	performanceSampler.setSampleSize(30);
 
-	// Disable wireframe drawing
-	wireframe = false;
+	// Create CLI
+	cli = new CommandInterpreter();
+
+	// Register CLI commands
+	std::function<void(std::string, std::string)> setCommand = std::bind(&CommandInterpreter::set, cli, std::placeholders::_1, std::placeholders::_2);
+	std::function<void(std::string)> unsetCommand = std::bind(&CommandInterpreter::unset, cli, std::placeholders::_1);
+	std::function<void()> exitCommand = std::bind(std::exit, EXIT_SUCCESS);
+	std::function<void(int, float, float, float)> setScaleCommand = [this](int id, float x, float y, float z) {
+		setScale(id, {x, y, z});
+	};
+	std::function<void(std::string)> createInstanceOfCommand = std::bind(&Game::createInstanceOf, this, std::placeholders::_1);
+	std::function<void(float)> toggleWireframeCommand = [this](float width){ lightingPass->setWireframeLineWidth(width); };
+	std::function<void(std::string)> shCommand = std::bind(&Game::executeShellScript, this, std::placeholders::_1);
+	std::function<void()> helpCommand = [this]()
+	{
+		auto& helpStrings = cli->help();
+		for (auto it = helpStrings.begin(); it != helpStrings.end(); ++it)
+		{
+			if (it->second.empty())
+			{
+				continue;
+			}
+
+			std::cout << it->second << std::endl;
+		}
+	};
+
+	std::string exitHelp = "exit";
+	std::string setHelp = "set <name> <value>";
+	std::string unsetHelp = "unset <name>";
+	std::string createInstanceOfHelp = "createinstanceof <template name>";
+	std::string setScaleHelp = "setscale <id> <sx> <sy> <sz>";
+	std::string wireframeHelp = "wireframe <width>";
+	std::string shHelp = "sh <filename>";
+
+	cli->registerCommand("exit", exitCommand, exitHelp);
+	cli->registerCommand("set", setCommand, setHelp);
+	cli->registerCommand("unset", setCommand, unsetHelp);
+	cli->registerCommand("createinstanceof", createInstanceOfCommand, createInstanceOfHelp);
+	cli->registerCommand("setscale", setScaleCommand, setScaleHelp);
+	cli->registerCommand("wireframe", toggleWireframeCommand, wireframeHelp);
+	cli->registerCommand("sh", shCommand, shHelp);
+	cli->registerCommand("help", helpCommand);
+
+
+	// Start CLI thread
+	std::thread cliThread(&Game::interpretCommands, this);
+	cliThread.detach();
 }
 
 void Game::setupLocalization()
@@ -2943,14 +2970,6 @@ void Game::setTimeOfDay(float time)
 	sunlightCamera.lookAt(Vector3(0, 0, 0), sunlight.getDirection(), up);
 }
 
-void Game::toggleWireframe()
-{
-	wireframe = !wireframe;
-
-	float width = (wireframe) ? 1.0f : 0.0f;
-	lightingPass->setWireframeLineWidth(width);
-}
-
 void Game::queueScreenshot()
 {
 	screenshotQueued = true;
@@ -3257,14 +3276,49 @@ void Game::interpretCommands()
 		std::string line;
 		std::getline(std::cin, line);
 
-		auto [name, arguments, call] = cli->interpret(line);
-		if (call)
+		bool invalid = false;
+		std::string commandName;
+		std::vector<std::string> arguments;
+		std::function<void()> call;
+
+		try
 		{
-			call();
+			std::tie(commandName, arguments, call) = cli->interpret(line);
+		}
+		catch (const std::invalid_argument& e)
+		{
+			invalid = true;
+		}
+
+		if (!invalid)
+		{
+			if (call)
+			{
+
+				call();
+			}
+			else
+			{
+				if (!commandName.empty())
+				{
+					std::cout << "Unknown command " << commandName << std::endl;
+				}
+			}
 		}
 		else
 		{
-			std::cout << "ant: Unknown command " << name << std::endl;
+			commandName = line.substr(0, line.find(' '));
+
+			auto& helpStrings = cli->help();
+			if (auto it = helpStrings.find(commandName); it != helpStrings.end())
+			{
+				std::cout << "Usage: " << it->second << std::endl;
+			}
+			else
+			{
+				std::cout << commandName << ": Invalid arguments" << std::endl;
+			}
+
 		}
 	}
 }
@@ -3475,7 +3529,7 @@ void Game::executeShellScript(const std::string& string)
 			}
 			else
 			{
-				std::cout << "ant: Unknown command " << name << std::endl;
+				std::cout << "Unknown command " << name << std::endl;
 			}
 		}
 	}
