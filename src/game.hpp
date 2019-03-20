@@ -72,6 +72,7 @@ class ComponentBase;
 class Menu;
 class MenuItem;
 class CommandInterpreter;
+class Logger;
 enum class ComponentType;
 
 class Game:
@@ -212,7 +213,9 @@ private:
 
 public:
 	EntityID createInstance();
+	EntityID createNamedInstance(const std::string& instanceName);
 	EntityID createInstanceOf(const std::string& templateName);
+	EntityID createNamedInstanceOf(const std::string& templateName, const std::string& instanceName);
 	void selectInstance(EntityID entity);
 	void selectNamedInstance(const std::string& instanceName);
 
@@ -223,7 +226,6 @@ public:
 	void setRotation(EntityID entity, const Quaternion& rotation);
 	void setScale(EntityID entity, const Vector3& scale);
 	void setTerrainPatchPosition(EntityID entity, const std::tuple<int, int>& position);
-	void executeShellScript(const std::string& string);
 
 	void boxSelect(float x, float y, float w, float h);
 
@@ -245,7 +247,6 @@ public:
 	std::string dataPath;
 	std::string configPath;
 	std::string controlsPath;
-	std::string scriptsPath;
 
 	// Settings
 	StringTable* settingsTable;
@@ -544,11 +545,9 @@ public:
 	bool toggleFullscreenDisabled;
 
 	// Debugging
-	#if defined(DEBUG)
-		CommandInterpreter* cli;
-		std::map<std::string, std::string> helpStrings;
-		std::ofstream logFileStream;
-	#endif
+	Logger* logger;
+	std::ofstream logFileStream;
+	CommandInterpreter* cli;
 
 private:
 	static void saveScreenshot(const std::string& filename, unsigned int width, unsigned int height, unsigned char* pixels);

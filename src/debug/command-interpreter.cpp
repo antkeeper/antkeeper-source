@@ -17,7 +17,7 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "console.hpp"
+#include "command-interpreter.hpp"
 #include <sstream>
 
 template<>
@@ -64,21 +64,26 @@ std::string ArgumentParser<std::string>::parse(const std::string& argument)
 
 void CommandInterpreter::set(const std::string& name, const std::string& value)
 {
-	variables[name] = value;
+	variableMap[name] = value;
 }
 
 void CommandInterpreter::unset(const std::string& name)
 {
-	auto it = variables.find(name);
-	if (it != variables.end())
+	auto it = variableMap.find(name);
+	if (it != variableMap.end())
 	{
-		variables.erase(it);
+		variableMap.erase(it);
 	}
 }
 
 const std::map<std::string, std::string>& CommandInterpreter::help() const
 {
 	return helpStrings;
+}
+
+const std::map<std::string, std::string>& CommandInterpreter::variables() const
+{
+	return variableMap;
 }
 
 std::tuple<std::string, std::vector<std::string>, std::function<void()>> CommandInterpreter::interpret(const std::string& line)
@@ -103,7 +108,7 @@ std::tuple<std::string, std::vector<std::string>, std::function<void()>> Command
 		if (!argument.empty() && argument[0] == '$')
 		{
 			std::string variableName = argument.substr(1);
-			std::string variableValue = variables[variableName];
+			std::string variableValue = variableMap[variableName];
 			argument = variableValue;
 		}
 	}
@@ -113,21 +118,6 @@ std::tuple<std::string, std::vector<std::string>, std::function<void()>> Command
 	
 	// Remove command name from arguments
 	arguments.erase(arguments.begin());
-
-	// Check command name for member access operator '.'
-	std::size_t dotOperatorPosition = commandName.find('.');
-	if (dotOperatorPosition != std::string::npos)
-	{
-		// Get variable name and lookup value
-		std::string variableName = commandName.substr(0, dotOperatorPosition);
-		std::string variableValue = variables[variableName];
-
-		// Insert variable value at front of the argument vector
-		arguments.insert(arguments.begin(), variableValue);
-
-		// Remove variable name from command name
-		commandName = commandName.substr(dotOperatorPosition + 1);
-	}
 
 	// Find command linker for this command
 	auto linker = linkers.find(commandName);

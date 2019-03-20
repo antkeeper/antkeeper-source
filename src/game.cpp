@@ -64,7 +64,8 @@
 #include <stdexcept>
 #include <thread>
 
-#include "debug/console.hpp"
+#include "debug/command-interpreter.hpp"
+#include "debug/logger.hpp"
 
 template <>
 bool Game::readSetting<std::string>(const std::string& name, std::string* value) const
@@ -174,13 +175,11 @@ Game::Game(int argc, char* argv[]):
 	dataPath = getDataPath(applicationName) + "data/";
 	configPath = getConfigPath(applicationName);
 	controlsPath = configPath + "controls/";
-	scriptsPath = configPath + "scripts/";
 
 	// Create nonexistent config directories
 	std::vector<std::string> configPaths;
 	configPaths.push_back(configPath);
 	configPaths.push_back(controlsPath);
-	configPaths.push_back(scriptsPath);
 	for (const std::string& path: configPaths)
 	{
 		if (!pathExists(path))
@@ -189,18 +188,10 @@ Game::Game(int argc, char* argv[]):
 		}
 	}
 	
-	// Setup logging
-	#if !defined(DEBUG)
-		std::string logFilename = configPath + "log.txt";
-		logFileStream.open(logFilename.c_str());
-		std::cout.rdbuf(logFileStream.rdbuf());
-	#endif
-	
 	// Setup resource manager
 	resourceManager = new ResourceManager();
 
 	// Include resource search paths in order of priority
-	resourceManager->include(scriptsPath);
 	resourceManager->include(controlsPath);
 	resourceManager->include(configPath);
 	resourceManager->include(dataPath);
@@ -505,7 +496,6 @@ void Game::setup()
 	screenshotQueued = false;
 	paused = false;
 
-
 	// Load model resources
 	try
 	{
@@ -516,14 +506,11 @@ void Game::setup()
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Failed to load one or more models: \"" << e.what() << "\"" << std::endl;
+		logger->log("Failed to load one or more models: \"" + std::string(e.what()) + "\"\n");
 		close(EXIT_FAILURE);
 	}
 
-
-
 	time = 0.0f;
-	
 
 	// Tools
 	currentTool = nullptr;
@@ -533,8 +520,6 @@ void Game::setup()
 	worldScene->addObject(lens->getModelInstance());
 	worldScene->addObject(lens->getSpotlight());
 	lens->setSunDirection(-sunlightCamera.getForward());
-
-
 
 	// Forceps
 	forceps = new Forceps(forcepsModel, &animator);
@@ -589,45 +574,6 @@ void Game::setup()
 
 	// Load navmesh
 	TriangleMesh* navmesh = resourceManager->load<TriangleMesh>("sidewalk.mesh");
-
-	// Find surface
-	TriangleMesh::Triangle* surface = nullptr;
-	Vector3 barycentricPosition;
-	Ray ray;
-	ray.origin = Vector3(0, 100, 0);
-	ray.direction = Vector3(0, -1, 0);
-	auto intersection = ray.intersects(*navmesh);
-	if (std::get<0>(intersection))
-	{
-		surface = (*navmesh->getTriangles())[std::get<3>(intersection)];
-
-		Vector3 position = ray.extrapolate(std::get<1>(intersection));
-		Vector3 a = surface->edge->vertex->position;
-		Vector3 b = surface->edge->next->vertex->position;
-		Vector3 c = surface->edge->previous->vertex->position;
-
-		barycentricPosition = barycentric(position, a, b, c);
-	}
-
-	for (int i = 0; i < 0; ++i)
-	{
-		EntityID ant = createInstanceOf("worker-ant");
-		setTranslation(ant, Vector3(0.0f, 0, 0.0f));
-
-		BehaviorComponent* behavior = new BehaviorComponent();
-		SteeringComponent* steering = new SteeringComponent();
-		LeggedLocomotionComponent* locomotion = new LeggedLocomotionComponent();
-		componentManager->addComponent(ant, behavior);
-		componentManager->addComponent(ant, steering);
-		componentManager->addComponent(ant, locomotion);
-
-		locomotion->surface = surface;
-		behavior->wanderTriangle = surface;
-		locomotion->barycentricPosition = barycentricPosition;
-	}
-
-	
-	//EntityID tool0 = createInstanceOf("lens");
 
 	int highResolutionDiameter = 3;
 	int mediumResolutionDiameter = highResolutionDiameter + 2;
@@ -799,8 +745,11 @@ void Game::handleEvent(const ScheduledFunctionEvent& event)
 
 void Game::setupDebugging()
 {
-	// Setup performance sampling
-	performanceSampler.setSampleSize(30);
+	// Setup logging
+	logger = new Logger();
+	std::string logFilename = configPath + "log.txt";
+	logFileStream.open(logFilename.c_str());
+	logger->redirect(&logFileStream);
 
 	// Create CLI
 	cli = new CommandInterpreter();
@@ -812,9 +761,15 @@ void Game::setupDebugging()
 	std::function<void(int, float, float, float)> setScaleCommand = [this](int id, float x, float y, float z) {
 		setScale(id, {x, y, z});
 	};
+	std::function<void(int, float, float, float)> setTranslationCommand = [this](int id, float x, float y, float z) {
+		setTranslation(id, {x, y, z});
+	};
+	std::function<void()> createInstanceCommand = std::bind(&Game::createInstance, this);
+	std::function<void(std::string)> createNamedInstanceCommand = std::bind(&Game::createNamedInstance, this, std::placeholders::_1);
 	std::function<void(std::string)> createInstanceOfCommand = std::bind(&Game::createInstanceOf, this, std::placeholders::_1);
+	std::function<void(std::string, std::string)> createNamedInstanceOfCommand = std::bind(&Game::createNamedInstanceOf, this, std::placeholders::_1, std::placeholders::_2);
+
 	std::function<void(float)> toggleWireframeCommand = [this](float width){ lightingPass->setWireframeLineWidth(width); };
-	std::function<void(std::string)> shCommand = std::bind(&Game::executeShellScript, this, std::placeholders::_1);
 	std::function<void()> helpCommand = [this]()
 	{
 		auto& helpStrings = cli->help();
@@ -828,28 +783,47 @@ void Game::setupDebugging()
 			std::cout << it->second << std::endl;
 		}
 	};
+	std::function<void()> variablesCommand = [this]()
+	{
+		auto& variables = cli->variables();
+		for (auto it = variables.begin(); it != variables.end(); ++it)
+		{
+			std::cout << it->first << "=\"" << it->second << "\"" << std::endl;
+		}
+	};
+
 
 	std::string exitHelp = "exit";
-	std::string setHelp = "set <name> <value>";
-	std::string unsetHelp = "unset <name>";
+	std::string setHelp = "set <variable name> <value>";
+	std::string unsetHelp = "unset <variable name>";
+	std::string createInstanceHelp = "createinstance <template name>";
+	std::string createNamedInstanceHelp = "createnamedinstance <template name> <instance name>";
 	std::string createInstanceOfHelp = "createinstanceof <template name>";
+	std::string createNamedInstanceOfHelp = "createnamedinstanceof <template name> <instance name>";
+	std::string setTranslationHelp = "settranslation <id> <x> <y> <z>";
 	std::string setScaleHelp = "setscale <id> <sx> <sy> <sz>";
 	std::string wireframeHelp = "wireframe <width>";
-	std::string shHelp = "sh <filename>";
+	std::string variablesHelp = "variables";
 
 	cli->registerCommand("exit", exitCommand, exitHelp);
 	cli->registerCommand("set", setCommand, setHelp);
 	cli->registerCommand("unset", setCommand, unsetHelp);
+	cli->registerCommand("createinstance", createInstanceCommand, createInstanceHelp);
+	cli->registerCommand("createnamedinstance", createNamedInstanceCommand, createNamedInstanceHelp);
 	cli->registerCommand("createinstanceof", createInstanceOfCommand, createInstanceOfHelp);
+	cli->registerCommand("createnamedinstanceof", createNamedInstanceOfCommand, createNamedInstanceOfHelp);
 	cli->registerCommand("setscale", setScaleCommand, setScaleHelp);
+	cli->registerCommand("settranslation", setTranslationCommand, setTranslationHelp);
 	cli->registerCommand("wireframe", toggleWireframeCommand, wireframeHelp);
-	cli->registerCommand("sh", shCommand, shHelp);
+	cli->registerCommand("variables", variablesCommand, variablesHelp);
 	cli->registerCommand("help", helpCommand);
-
 
 	// Start CLI thread
 	std::thread cliThread(&Game::interpretCommands, this);
 	cliThread.detach();
+
+	// Setup performance sampling
+	performanceSampler.setSampleSize(30);
 }
 
 void Game::setupLocalization()
@@ -2060,7 +2034,7 @@ void Game::loadControlProfile(const std::string& profileName)
 		auto it = controlNameMap.find(controlName);
 		if (it == controlNameMap.end())
 		{
-			std::cerr << "Game::loadControlProfile(): Unknown control name \"" << controlName << "\"" << std::endl;
+			logger->log("Game::loadControlProfile(): Unknown control name \"" + controlName + "\"\n");
 			continue;
 		}
 
@@ -2104,7 +2078,7 @@ void Game::loadControlProfile(const std::string& profileName)
 				}
 				else
 				{
-					std::cerr << "Game::loadControlProfile(): Unknown mouse motion axis \"" << axisName << "\"" << std::endl;
+					logger->log("Game::loadControlProfile(): Unknown mouse motion axis \"" + axisName + "\"\n");
 					continue;
 				}
 
@@ -2128,7 +2102,7 @@ void Game::loadControlProfile(const std::string& profileName)
 				}
 				else
 				{
-					std::cerr << "Game::loadControlProfile(): Unknown mouse wheel axis \"" << axisName << "\"" << std::endl;
+					logger->log("Game::loadControlProfile(): Unknown mouse wheel axis \"" + axisName + "\"\n");
 					continue;
 				}
 
@@ -2150,7 +2124,7 @@ void Game::loadControlProfile(const std::string& profileName)
 			}
 			else
 			{
-				std::cerr << "Game::loadControlProfile(): Unknown mouse event type \"" << eventType << "\"" << std::endl;
+				logger->log("Game::loadControlProfile(): Unknown mouse event type \"" + eventType + "\"\n");
 				continue;
 			}
 		}
@@ -2208,13 +2182,13 @@ void Game::loadControlProfile(const std::string& profileName)
 			}
 			else
 			{
-				std::cerr << "Game::loadControlProfile(): Unknown gamepad event type \"" << eventType << "\"" << std::endl;
+				logger->log("Game::loadControlProfile(): Unknown gamepad event type \"" + eventType + "\"\n");
 				continue;
 			}
 		}
 		else
 		{
-			std::cerr << "Game::loadControlProfile(): Unknown input device type \"" << deviceType << "\"" << std::endl;
+			logger->log("Game::loadControlProfile(): Unknown input device type \"" + deviceType + "\"\n");
 			continue;
 		}
 	}
@@ -3106,7 +3080,6 @@ void Game::enterTitleState()
 	// Setup scene
 	Vector3 antHillTranslation = {0, 0, 0};
 	EntityID antHill = createInstanceOf("ant-hill");
-	std::cout << antHill << std::endl;
 	setTranslation(antHill, antHillTranslation);
 
 	// Setup camera
@@ -3143,6 +3116,11 @@ void Game::enterTitleState()
 
 	// Change setting menu's back item to return to the main menu
 	settingsMenuBackItem->setActivatedCallback(std::bind(&Game::openMenu, this, mainMenu, 3));
+
+	#if defined(DEBUG)
+		// Add important entity IDs to CLI variables
+		cli->set("anthill", std::to_string(antHill));
+	#endif
 
 	// Open the main menu and select the first menu item
 	openMenu(mainMenu, 0);
@@ -3268,30 +3246,16 @@ void Game::returnToMainMenu()
 
 void Game::interpretCommands()
 {
-	std::cout << "Antkeeper " << VERSION_STRING << std::endl;
-
-	while (1)
+	while (true)
 	{
 		std::cout << "> " << std::flush;
 		std::string line;
 		std::getline(std::cin, line);
 
-		bool invalid = false;
-		std::string commandName;
-		std::vector<std::string> arguments;
-		std::function<void()> call;
-
 		try
 		{
-			std::tie(commandName, arguments, call) = cli->interpret(line);
-		}
-		catch (const std::invalid_argument& e)
-		{
-			invalid = true;
-		}
+			auto [commandName, arguments, call] = cli->interpret(line);
 
-		if (!invalid)
-		{
 			if (call)
 			{
 
@@ -3305,9 +3269,9 @@ void Game::interpretCommands()
 				}
 			}
 		}
-		else
+		catch (const std::invalid_argument& e)
 		{
-			commandName = line.substr(0, line.find(' '));
+			std::string commandName = line.substr(0, line.find(' '));
 
 			auto& helpStrings = cli->help();
 			if (auto it = helpStrings.find(commandName); it != helpStrings.end())
@@ -3318,7 +3282,6 @@ void Game::interpretCommands()
 			{
 				std::cout << commandName << ": Invalid arguments" << std::endl;
 			}
-
 		}
 	}
 }
@@ -3433,6 +3396,13 @@ EntityID Game::createInstance()
 	return entityManager->createEntity();
 }
 
+EntityID Game::createNamedInstance(const std::string& instanceName)
+{
+	EntityID entity = entityManager->createEntity();
+	cli->set(instanceName, std::to_string(entity));
+	return entity;
+}
+
 EntityID Game::createInstanceOf(const std::string& templateName)
 {
 
@@ -3440,6 +3410,18 @@ EntityID Game::createInstanceOf(const std::string& templateName)
 
 	EntityID entity = entityManager->createEntity();
 	entityTemplate->apply(entity, componentManager);
+
+	return entity;
+}
+
+EntityID Game::createNamedInstanceOf(const std::string& templateName, const std::string& instanceName)
+{
+
+	EntityTemplate* entityTemplate = resourceManager->load<EntityTemplate>(templateName + ".ent");
+
+	EntityID entity = entityManager->createEntity();
+	entityTemplate->apply(entity, componentManager);
+	cli->set(instanceName, std::to_string(entity));
 
 	return entity;
 }
@@ -3504,37 +3486,6 @@ void Game::setTerrainPatchPosition(EntityID entity, const std::tuple<int, int>& 
 	component->position = position;
 }
 
-void Game::executeShellScript(const std::string& string)
-{
-	TextFile* script = nullptr;
-
-	try
-	{
-		script = resourceManager->load<TextFile>(string);
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr << "Failed to load shell script: \"" << e.what() << "\"" << std::endl;
-		return;
-	}
-
-	for (const std::string& line: *script)
-	{
-		if (!line.empty())
-		{
-			auto [name, arguments, call] = cli->interpret(line);
-			if (call)
-			{
-				call();
-			}
-			else
-			{
-				std::cout << "Unknown command " << name << std::endl;
-			}
-		}
-	}
-}
-
 void Game::saveScreenshot(const std::string& filename, unsigned int width, unsigned int height, unsigned char* pixels)
 {
 	stbi_flip_vertically_on_write(1);
@@ -3542,5 +3493,4 @@ void Game::saveScreenshot(const std::string& filename, unsigned int width, unsig
 
 	delete[] pixels;
 }
-
 

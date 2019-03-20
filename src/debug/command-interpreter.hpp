@@ -17,8 +17,8 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONSOLE_HPP
-#define CONSOLE_HPP
+#ifndef COMMAND_INTERPRETER_HPP
+#define COMMAND_INTERPRETER_HPP
 
 #include <functional>
 #include <map>
@@ -140,6 +140,12 @@ public:
 	const std::map<std::string, std::string>& help() const;
 
 	/**
+	 * Returns all variables and their values.
+	 */
+	const std::map<std::string, std::string>& variables() const;
+
+
+	/**
 	 * Interprets a line of text as a function call, returning the interpreted command name, argument vector, and callable function object.
 	 *
 	 * @param line Line of text to be interpreted. Arguments are delimeted by spaces, with the first argument as the command name. Command names containing the '.' operator will have the post-dot string substituted for its console variable value, then the string will be transposed around the dot, and the dot will be replaced by a space, such that the command "object.setValue 10" would become "setValue x 10" if that console variable "object" was set to "x". Arguments beginning with substitution operator '$' will interpreted as variables and substituted with their values.
@@ -153,7 +159,7 @@ private:
 	// A command name-keyed map of command linkers
 	std::unordered_map<std::string, std::function<std::function<void()>(const std::vector<std::string>&)>> linkers;
 	std::map<std::string, std::string> helpStrings;
-	std::unordered_map<std::string, std::string> variables;
+	std::map<std::string, std::string> variableMap;
 };
 
 template <class... Args>
@@ -175,5 +181,5 @@ void CommandInterpreter::addCommandLinker(const std::string& name, const Functio
 	linkers[name] = std::bind(linker, function, std::placeholders::_1);
 }
 
-#endif // CONSOLE_HPP
+#endif // COMMAND_INTERPRETER_HPP
 
