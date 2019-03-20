@@ -40,8 +40,29 @@ public:
 	 */
 	void log(const std::string& text);
 
+	void warning(const std::string& text);
+	void error(const std::string& text);
+	void success(const std::string& text);
+
+	void setLogPrefix(const std::string& prefix);
+	void setLogPostfix(const std::string& postfix);
+	void setWarningPrefix(const std::string& prefix);
+	void setWarningPostfix(const std::string& postfix);
+	void setErrorPrefix(const std::string& prefix);
+	void setErrorPostfix(const std::string& postfix);
+	void setSuccessPrefix(const std::string& prefix);
+	void setSuccessPostfix(const std::string& postfix);
+
 private:
 	std::ostream* os;
+	std::string logPrefix;
+	std::string logPostfix;
+	std::string warningPrefix;
+	std::string warningPostfix;
+	std::string errorPrefix;
+	std::string errorPostfix;
+	std::string successPrefix;
+	std::string successPostfix;
 };
 
 #endif // LOGGER_HPP

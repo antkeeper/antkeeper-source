@@ -18,10 +18,19 @@
  */
 
 #include "logger.hpp"
+#include "ansi-escape-codes.hpp"
 #include <iostream>
 
 Logger::Logger():
-	os(&std::cout)
+	os(&std::cout),
+	logPrefix(std::string()),
+	logPostfix("\n"),
+	warningPrefix(ANSI_CODE_YELLOW + std::string("Warning: ")),
+	warningPostfix(ANSI_CODE_RESET),
+	errorPrefix(ANSI_CODE_RED + std::string("Error: ")),
+	errorPostfix(ANSI_CODE_RESET),
+	successPrefix(ANSI_CODE_GREEN + std::string("Success: ")),
+	successPostfix(ANSI_CODE_RESET)
 {}
 
 Logger::~Logger()
@@ -36,8 +45,63 @@ void Logger::log(const std::string& text)
 {
 	if (os)
 	{
-		(*os) << text;
+		(*os) << (logPrefix + text + logPostfix);
 		os->flush();
 	}
+}
+
+void Logger::warning(const std::string& text)
+{
+	log(warningPrefix + text + warningPostfix);
+}
+
+void Logger::error(const std::string& text)
+{
+	log(errorPrefix + text + errorPostfix);
+}
+
+void Logger::success(const std::string& text)
+{
+	log(successPrefix + text + successPostfix);
+}
+
+void Logger::setLogPrefix(const std::string& prefix)
+{
+	logPrefix = prefix;
+}
+
+void Logger::setLogPostfix(const std::string& postfix)
+{
+	logPostfix = postfix;
+}
+
+void Logger::setWarningPrefix(const std::string& prefix)
+{
+	warningPrefix = prefix;
+}
+
+void Logger::setWarningPostfix(const std::string& postfix)
+{
+	warningPostfix = postfix;
+}
+
+void Logger::setErrorPrefix(const std::string& prefix)
+{
+	errorPrefix = prefix;
+}
+
+void Logger::setErrorPostfix(const std::string& postfix)
+{
+	errorPostfix = postfix;
+}
+
+void Logger::setSuccessPrefix(const std::string& prefix)
+{
+	successPrefix = prefix;
+}
+
+void Logger::setSuccessPostfix(const std::string& postfix)
+{
+	successPostfix = postfix;
 }
 

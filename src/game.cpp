@@ -66,6 +66,7 @@
 
 #include "debug/command-interpreter.hpp"
 #include "debug/logger.hpp"
+#include "debug/ansi-escape-codes.hpp"
 
 template <>
 bool Game::readSetting<std::string>(const std::string& name, std::string* value) const
@@ -506,7 +507,7 @@ void Game::setup()
 	}
 	catch (const std::exception& e)
 	{
-		logger->log("Failed to load one or more models: \"" + std::string(e.what()) + "\"\n");
+		logger->error("Failed to load one or more models: \"" + std::string(e.what()) + "\"\n");
 		close(EXIT_FAILURE);
 	}
 
@@ -746,10 +747,45 @@ void Game::handleEvent(const ScheduledFunctionEvent& event)
 void Game::setupDebugging()
 {
 	// Setup logging
-	logger = new Logger();
-	std::string logFilename = configPath + "log.txt";
-	logFileStream.open(logFilename.c_str());
-	logger->redirect(&logFileStream);
+	{
+		logger = new Logger();
+
+		// Style log format
+		std::string logPrefix = std::string();
+		std::string logPostfix = "\n";
+		std::string warningPrefix = "Warning: ";
+		std::string warningPostfix = std::string();
+		std::string errorPrefix = "Error: ";
+		std::string errorPostfix = std::string();
+		std::string successPrefix = std::string();
+		std::string successPostfix = std::string();
+
+		// Enable colored messages on debug builds
+		#if defined(DEBUG)
+			warningPrefix = std::string(ANSI_CODE_BOLD) + std::string(ANSI_CODE_YELLOW) + std::string("Warning: ") + std::string(ANSI_CODE_RESET) + std::string(ANSI_CODE_YELLOW);
+			warningPostfix.append(ANSI_CODE_RESET);
+			errorPrefix = std::string(ANSI_CODE_BOLD) + std::string(ANSI_CODE_RED) + std::string("Error: ") + std::string(ANSI_CODE_RESET) + std::string(ANSI_CODE_RED);
+			errorPostfix.append(ANSI_CODE_RESET);
+			successPrefix.insert(0, ANSI_CODE_GREEN);
+			successPostfix.append(ANSI_CODE_RESET);
+		#endif
+
+		logger->setLogPrefix(logPrefix);
+		logger->setLogPostfix(logPostfix);
+		logger->setWarningPrefix(warningPrefix);
+		logger->setWarningPostfix(warningPostfix);
+		logger->setErrorPrefix(errorPrefix);
+		logger->setErrorPostfix(errorPostfix);
+		logger->setSuccessPrefix(successPrefix);
+		logger->setSuccessPostfix(successPostfix);
+
+		// Redirect logger output to log file on release builds
+		#if !defined(DEBUG)
+			std::string logFilename = configPath + "log.txt";
+			logFileStream.open(logFilename.c_str());
+			logger->redirect(&logFileStream);
+		#endif
+	}
 
 	// Create CLI
 	cli = new CommandInterpreter();
@@ -2034,7 +2070,7 @@ void Game::loadControlProfile(const std::string& profileName)
 		auto it = controlNameMap.find(controlName);
 		if (it == controlNameMap.end())
 		{
-			logger->log("Game::loadControlProfile(): Unknown control name \"" + controlName + "\"\n");
+			logger->warning("Game::loadControlProfile(): Unknown control name \"" + controlName + "\"\n");
 			continue;
 		}
 
@@ -2078,7 +2114,7 @@ void Game::loadControlProfile(const std::string& profileName)
 				}
 				else
 				{
-					logger->log("Game::loadControlProfile(): Unknown mouse motion axis \"" + axisName + "\"\n");
+					logger->warning("Game::loadControlProfile(): Unknown mouse motion axis \"" + axisName + "\"\n");
 					continue;
 				}
 
@@ -2102,7 +2138,7 @@ void Game::loadControlProfile(const std::string& profileName)
 				}
 				else
 				{
-					logger->log("Game::loadControlProfile(): Unknown mouse wheel axis \"" + axisName + "\"\n");
+					logger->warning("Game::loadControlProfile(): Unknown mouse wheel axis \"" + axisName + "\"\n");
 					continue;
 				}
 
@@ -2124,7 +2160,7 @@ void Game::loadControlProfile(const std::string& profileName)
 			}
 			else
 			{
-				logger->log("Game::loadControlProfile(): Unknown mouse event type \"" + eventType + "\"\n");
+				logger->warning("Game::loadControlProfile(): Unknown mouse event type \"" + eventType + "\"\n");
 				continue;
 			}
 		}
@@ -2182,13 +2218,13 @@ void Game::loadControlProfile(const std::string& profileName)
 			}
 			else
 			{
-				logger->log("Game::loadControlProfile(): Unknown gamepad event type \"" + eventType + "\"\n");
+				logger->warning("Game::loadControlProfile(): Unknown gamepad event type \"" + eventType + "\"\n");
 				continue;
 			}
 		}
 		else
 		{
-			logger->log("Game::loadControlProfile(): Unknown input device type \"" + deviceType + "\"\n");
+			logger->warning("Game::loadControlProfile(): Unknown input device type \"" + deviceType + "\"\n");
 			continue;
 		}
 	}
