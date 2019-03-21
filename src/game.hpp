@@ -29,6 +29,7 @@ using namespace Emergent;
 #include "resources/string-table.hpp"
 #include <array>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 #include <fstream>
@@ -98,7 +99,7 @@ public:
 	 * @param name Name of the string.
 	 * @return String in the current language.
 	 */
-	std::string getString(const std::string& name) const;
+	std::string getString(const std::string& name, std::optional<std::size_t> languageIndex = std::nullopt) const;
 
 	/**
 	 * Changes the current language.
@@ -113,7 +114,7 @@ public:
 	std::size_t getLanguageCount() const;
 
 	/// Returns the index of the current language.
-	std::size_t getLanguageIndex() const;
+	std::size_t getCurrentLanguageIndex() const;
 
 	void openMenu(Menu* menu, int selectedItemIndex);
 	void closeCurrentMenu();
@@ -126,6 +127,8 @@ public:
 	void toggleFullscreen();
 	void toggleVSync();
 	void setUpdateRate(double frequency);
+
+	void disableNonSystemControls();
 
 	/**
 	 * Changes the game state.
@@ -192,6 +195,8 @@ private:
 	void screenshot();
 
 	// State functions
+	void enterLanguageSelectState();
+	void exitLanguageSelectState();
 	void enterSplashState();
 	void exitSplashState();
 	void enterLoadingState();
@@ -201,6 +206,7 @@ private:
 	void enterPlayState();
 	void exitPlayState();
 
+	void languageSelected();
 	void skipSplash();
 
 	void togglePause();
@@ -235,6 +241,7 @@ public:
 
 public:
 	// Game states
+	StateMachine::State languageSelectState;
 	StateMachine::State splashState;
 	StateMachine::State loadingState;
 	StateMachine::State titleState;
@@ -249,6 +256,7 @@ public:
 	std::string controlsPath;
 
 	// Settings
+	bool firstRun;
 	StringTable* settingsTable;
 	StringTableIndex settingsTableIndex;
 
@@ -256,7 +264,7 @@ public:
 	StringTable* stringTable;
 	StringTableIndex stringTableIndex;
 	std::size_t languageCount;
-	std::size_t languageIndex;
+	std::size_t currentLanguageIndex;
 
 	// Window management
 	Window* window;
@@ -320,10 +328,9 @@ public:
 	float timestep;
 
 	// UI
-	Typeface* debugTypeface;
 	Font* debugFont;
-	Typeface* menuTypeface;
 	Font* menuFont;
+	std::vector<Font*> languageSelectionFonts;
 	BillboardBatch* uiBatch;
 	UIBatcher* uiBatcher;
 	UIContainer* uiRootElement;
@@ -352,6 +359,7 @@ public:
 	UIImage* radialMenuImage;
 	UIImage* radialMenuSelectorImage;
 	UIImage* blackoutImage;
+	UIImage* languageSelectBGImage;
 	UIImage* cameraFlashImage;
 	UIContainer* antTag;
 	UIContainer* antLabelContainer;
@@ -387,8 +395,6 @@ public:
 	Vector4 cameraReticleColor;
 
 
-
-
 	// Menu selection
 	UIImage* menuSelectorImage;
 	Menu* currentMenu;
@@ -396,8 +402,13 @@ public:
 	MenuItem* currentMenuItem;
 	MenuItem* previousMenuItem;
 	int menuItemIndex;
+	Vector4 standardMenuActiveColor;
+	Vector4 standardMenuInactiveColor;
+	Vector4 languageMenuActiveColor;
+	Vector4 languageMenuInactiveColor;
 	Vector4 menuItemActiveColor;
 	Vector4 menuItemInactiveColor;
+
 
 	// Main menu
 	Menu* mainMenu;
@@ -436,6 +447,9 @@ public:
 	MenuItem* pauseMenuSettingsItem;
 	MenuItem* pauseMenuMainMenuItem;
 	MenuItem* pauseMenuQuitItem;
+
+	Menu* languageMenu;
+	std::vector<MenuItem*> languageMenuItems;
 
 	// Rendering
 	Renderer renderer;
@@ -578,9 +592,9 @@ inline std::size_t Game::getLanguageCount() const
 	return languageCount;
 }
 
-inline std::size_t Game::getLanguageIndex() const
+inline std::size_t Game::getCurrentLanguageIndex() const
 {
-	return languageIndex;
+	return currentLanguageIndex;
 }
 
 #endif // GAME_HPP

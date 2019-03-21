@@ -226,14 +226,19 @@ void Game::changeState(GameState* state)
 	}
 }
 
-std::string Game::getString(const std::string& name) const
+std::string Game::getString(const std::string& name, std::optional<std::size_t> languageIndex) const
 {
 	std::string value;
+
+	if (languageIndex == std::nullopt)
+	{
+		languageIndex = currentLanguageIndex;
+	}
 
 	auto it = stringTableIndex.find(name);
 	if (it != stringTableIndex.end())
 	{
-		value = (*stringTable)[it->second][languageIndex + 2];
+		value = (*stringTable)[it->second][(*languageIndex) + 2];
 		if (value.empty())
 		{
 			value = std::string("# EMPTY STRING: ") + name + std::string(" #");
@@ -257,7 +262,7 @@ void Game::changeLanguage(std::size_t nextLanguageIndex)
 	resourceManager->unload(menuFontFilename);
 
 	// Change current language index
-	languageIndex = nextLanguageIndex;
+	currentLanguageIndex = nextLanguageIndex;
 
 	// Reload fonts
 	loadFonts();
@@ -284,7 +289,7 @@ void Game::changeLanguage(std::size_t nextLanguageIndex)
 
 void Game::nextLanguage()
 {
-	changeLanguage((getLanguageIndex() + 1) % getLanguageCount());
+	changeLanguage((currentLanguageIndex + 1) % languageCount);
 }
 
 void Game::openMenu(Menu* menu, int selectedItemIndex)
@@ -366,7 +371,7 @@ void Game::selectMenuItem(int index, bool tween)
 	// Determine target position of menu item selector
 	Vector2 itemTranslation = currentMenuItem->getContainer()->getTranslation();
 	Vector2 itemDimensions = currentMenuItem->getContainer()->getDimensions();
-	float spacing = currentMenuItem->getNameLabel()->getFont()->getWidth("A");
+	float spacing = fontSizePX;
 	Vector2 translation;
 	translation.x = itemTranslation.x - menuSelectorImage->getDimensions().x - spacing;
 	translation.y = itemTranslation.y + itemDimensions.y * 0.5f - menuSelectorImage->getDimensions().y * 0.5;
@@ -483,10 +488,16 @@ void Game::setUpdateRate(double frequency)
 	stepScheduler.setStepFrequency(frequency);
 }
 
+void Game::disableNonSystemControls()
+{
+	controls.setCallbacksEnabled(false);
+	systemControls.setCallbacksEnabled(true);
+}
+
 void Game::setup()
 {
-	loadSettings();
 	setupDebugging();
+	loadSettings();
 	setupLocalization();
 	setupWindow();
 	setupGraphics();
@@ -612,6 +623,11 @@ void Game::setup()
 	}
 
 	// Setup state machine states
+	languageSelectState =
+	{
+		std::bind(&Game::enterLanguageSelectState, this),
+		std::bind(&Game::exitLanguageSelectState, this)
+	};
 	splashState =
 	{
 		std::bind(&Game::enterSplashState, this),
@@ -634,11 +650,18 @@ void Game::setup()
 	};
 
 	// Initialize state machine
-	#if defined(DEBUG)
-		StateMachine::changeState(&titleState);
-	#else
-		StateMachine::changeState(&splashState);
-	#endif
+	if (firstRun)
+	{
+		StateMachine::changeState(&languageSelectState);
+	}
+	else
+	{
+		#if defined(DEBUG)
+			StateMachine::changeState(&titleState);
+		#else
+			StateMachine::changeState(&splashState);
+		#endif
+	}
 
 	changeState(sandboxState);
 }
@@ -712,7 +735,6 @@ void Game::handleEvent(const WindowResizedEvent& event)
 	defaultRenderTarget.width = event.width;
 	defaultRenderTarget.height = event.height;
 	glViewport(0, 0, event.width, event.height);
-
 
 	camera.setPerspective(glm::radians(40.0f), static_cast<float>(w) / static_cast<float>(h), 0.1, 100.0f);
 
@@ -871,13 +893,13 @@ void Game::setupLocalization()
 	languageCount = (*stringTable)[0].size() - 2;
 	
 	// Match language code with language index
-	languageIndex = 0;
+	currentLanguageIndex = 0;
 	StringTableRow* languageCodes = &(*stringTable)[1];
 	for (std::size_t i = 2; i < languageCodes->size(); ++i)
 	{
 		if (language == (*languageCodes)[i])
 		{
-			languageIndex = i - 2;
+			currentLanguageIndex = i - 2;
 			break;
 		}
 	}
@@ -918,9 +940,7 @@ void Game::setupWindow()
 	// Set v-sync mode
 	window->setVSync(vsync);
 
-	debugTypeface = nullptr;
 	debugFont = nullptr;
-	menuTypeface = nullptr;
 	menuFont = nullptr;
 }
 
@@ -1434,8 +1454,17 @@ void Game::setupUI()
 	blackoutImage->setVisible(false);
 	uiRootElement->addChild(blackoutImage);
 
-	menuItemActiveColor = Vector4(Vector3(0.2f), 1.0f);
-	menuItemInactiveColor = Vector4(Vector3(0.2f), 0.5f);
+	languageSelectBGImage = new UIImage();
+	languageSelectBGImage->setLayerOffset(-1);
+	languageSelectBGImage->setTintColor(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	languageSelectBGImage->setVisible(true);
+
+	standardMenuActiveColor = Vector4(Vector3(0.2f), 1.0f);
+	standardMenuInactiveColor = Vector4(Vector3(0.2f), 0.5f);
+	languageMenuActiveColor = Vector4(Vector3(1.0f), 1.0f);
+	languageMenuInactiveColor = Vector4(Vector3(1.0f), 0.5f);
+	menuItemActiveColor = standardMenuActiveColor;
+	menuItemInactiveColor = standardMenuInactiveColor;
 
 	menuItemIndex = -1;
 	currentMenu = nullptr;
@@ -1488,6 +1517,28 @@ void Game::setupUI()
 	pauseMenuSettingsItem = pauseMenu->addItem();
 	pauseMenuMainMenuItem = pauseMenu->addItem();
 	pauseMenuQuitItem = pauseMenu->addItem();
+
+	// Build language menu
+	languageMenu = new Menu();
+	for (std::size_t i = 0; i < languageCount; ++i)
+	{
+		MenuItem* item = languageMenu->addItem();
+		item->setActivatedCallback
+		(
+			[this, i]()
+			{
+				changeLanguage(i);
+				languageSelected();
+			}
+		);
+
+		item->getContainer()->setTintColor(languageMenuInactiveColor);
+		item->getContainer()->setMouseOverCallback(std::bind(&Game::selectMenuItem, this, i, true));
+		item->getContainer()->setMouseMovedCallback(std::bind(&Game::selectMenuItem, this, i, true));
+		item->getContainer()->setMousePressedCallback(std::bind(&Game::activateMenuItem, this));
+
+		languageMenuItems.push_back(item);
+	}
 
 	// Setup main menu callbacks
 	mainMenuContinueItem->setActivatedCallback(std::bind(&Game::continueGame, this));
@@ -1644,7 +1695,7 @@ void Game::setupUI()
 	(
 		[this](std::size_t id, float opacity)
 		{
-			mainMenu->getContainer()->setTintColor(Vector4(opacity));
+			currentMenu->getContainer()->setTintColor(Vector4(opacity));
 		}
 	);
 
@@ -1906,7 +1957,7 @@ void Game::setupControls()
 	}
 	else
 	{
-		loadControlProfile("default-controls");
+		loadControlProfile("default-keyboard-controls");
 		saveControlProfile(controlProfileName);
 	}
 
@@ -1966,6 +2017,7 @@ void Game::loadSettings()
 {
 	// Reset settings to default values
 	resetSettings();
+	firstRun = false;
 
 	// Load settings table
 	try
@@ -1974,7 +2026,17 @@ void Game::loadSettings()
 	}
 	catch (const std::exception& e)
 	{
-		settingsTable = new StringTable();
+		logger->warning("No user settings found. First run assumed.");
+		firstRun = true;
+
+		try
+		{
+			settingsTable = resourceManager->load<StringTable>("default-settings.csv");
+		}
+		catch (const std::exception& e)
+		{
+			logger->error("Failed to load default settings.");
+		}
 	}
 
 	// Build settings table index
@@ -2005,6 +2067,57 @@ void Game::loadStrings()
 
 void Game::loadFonts()
 {
+	// If the language selection fonts haven't been loaded
+	if (languageSelectionFonts.empty())
+	{
+		// Load one font for each available language
+		for (std::size_t i = 0; i < languageCount; ++i)
+		{
+			// Get language name and font filename for that language
+			std::string languageName = getString("language-name", i);
+			std::string fontFilename = getString("menu-font-filename", i);
+
+			// Check if language has a name
+			if (languageName.empty())
+			{
+				logger->error("Language #" + std::to_string(i) + " has no name string.");
+				languageSelectionFonts.push_back(nullptr);
+				continue;
+			}
+
+			// Check if language has a font filename
+			if (fontFilename.empty())
+			{
+				logger->error("No font for language #" + std::to_string(i) + ".");
+				languageSelectionFonts.push_back(nullptr);
+				continue;
+			}
+
+			// Load typeface for the font
+			Typeface* typeface = resourceManager->load<Typeface>(fontFilename);
+
+			// Create a font at default font size
+			Font* font = typeface->createFont(fontSizePX);
+
+			// Build a character set containing only the characters in the language name
+			std::set<char32_t> characterSet;
+			std::u32string languageNameUTF32 = toUTF32(languageName);
+			for (char32_t charcode: languageNameUTF32)
+			{
+				characterSet.emplace(charcode);
+			}
+
+			// Load glyphs for all characters in the character set
+			typeface->loadCharset(font, characterSet);
+
+			// Unload the typeface
+			resourceManager->unload(fontFilename);
+
+			// Add the font to the language selection fonts
+			languageSelectionFonts.push_back(font);
+		}
+	}
+
 	// Get filenames of fonts
 	std::string menuFontFilename = getString("menu-font-filename");
 	std::string debugFontFilename = "inconsolata-bold.ttf";
@@ -2012,21 +2125,24 @@ void Game::loadFonts()
 	// Load debugging font
 	if (!debugFont)
 	{
-		debugTypeface = resourceManager->load<Typeface>(debugFontFilename);
+		// Load debug font typeface
+		Typeface* debugTypeface = resourceManager->load<Typeface>(debugFontFilename);
+
+		// Create debug font
 		debugFont = debugTypeface->createFont(fontSizePX);
+
+		// Load basic latin characyer set
 		debugTypeface->loadCharset(debugFont, UnicodeRange::BASIC_LATIN);
+
+		// Unload debug font typeface
+		resourceManager->unload(debugFontFilename);
 	}
 
-	// Load menu typeface
-	menuTypeface = resourceManager->load<Typeface>(menuFontFilename);
-	menuFont = menuTypeface->createFont(fontSizePX * 1.5f);
-	menuTypeface->loadCharset(menuFont, UnicodeRange::BASIC_LATIN);
-
 	// Load menu font typeface
-	menuTypeface = resourceManager->load<Typeface>(menuFontFilename);
+	Typeface* menuTypeface = resourceManager->load<Typeface>(menuFontFilename);
 
 	// Create menu font
-	menuFont = menuTypeface->createFont(fontSizePX * 1.5f);
+	menuFont = menuTypeface->createFont(fontSizePX);
 
 	// Load basic latin character set
 	menuTypeface->loadCharset(menuFont, UnicodeRange::BASIC_LATIN);
@@ -2036,7 +2152,7 @@ void Game::loadFonts()
 	for (const StringTableRow& row: *stringTable)
 	{
 		// Convert to UTF-8 string to UTF-32
-		std::u32string string = toUTF32(row[languageIndex + 2]);
+		std::u32string string = toUTF32(row[currentLanguageIndex + 2]);
 
 		// Add each character in the string to the charater set
 		for (char32_t charcode: string)
@@ -2047,6 +2163,9 @@ void Game::loadFonts()
 
 	// Load custom character set
 	menuTypeface->loadCharset(menuFont, characterSet);
+
+	// Unload menu typeface
+	resourceManager->unload(menuFontFilename);
 }
 
 void Game::loadControlProfile(const std::string& profileName)
@@ -2544,7 +2663,7 @@ void Game::remapControl(Control* control)
 void Game::resetControls()
 {
 	inputRouter->reset();
-	loadControlProfile("default-controls");
+	loadControlProfile("default-keyboard-controls");
 	saveControlProfile(controlProfileName);
 	restringUI();
 }
@@ -2574,6 +2693,10 @@ void Game::resizeUI(int w, int h)
 	// Resize blackout image
 	blackoutImage->setDimensions(Vector2(w, h));
 	blackoutImage->setAnchor(Anchor::CENTER);
+
+	// Resize language select background image
+	languageSelectBGImage->setDimensions(Vector2(w, h));
+	languageSelectBGImage->setAnchor(Anchor::CENTER);
 
 	// Resize HUD
 	float hudPadding = 20.0f;
@@ -2847,6 +2970,26 @@ void Game::resizeUI(int w, int h)
 	pauseMenu->resize(pauseMenuWidth, pauseMenuHeight);
 	pauseMenu->getContainer()->setTranslation(Vector2(-pauseMenuPadding));
 
+	// Language menu size
+	float languageMenuWidth = 0.0f;
+	float languageMenuHeight = 0.0f;
+	float languageMenuSpacing = 0.75f * fontSizePX;
+
+	for (const MenuItem* item: *languageMenu->getItems())
+	{
+		Font* font = item->getNameLabel()->getFont();
+		if (font)
+		{
+			float lineHeight = font->getMetrics().getAscender() - font->getMetrics().getDescender();
+			languageMenuHeight += lineHeight + languageMenuSpacing;
+			languageMenuWidth = std::max<float>(languageMenuWidth, item->getNameLabel()->getDimensions().x);
+		}
+
+		item->getNameLabel()->setAnchor(Vector2(0.5f, 0.0f));
+	}
+	languageMenuHeight -= languageMenuSpacing;
+	languageMenu->getContainer()->setAnchor(Anchor::CENTER);
+	languageMenu->resize(languageMenuWidth, languageMenuHeight);
 }
 
 void Game::restringUI()
@@ -2900,12 +3043,19 @@ void Game::restringUI()
 	pauseMenuMainMenuItem->setName(getString("main-menu"));
 	pauseMenuQuitItem->setName(getString("quit"));
 
+	// Language menu strings
+	for (std::size_t i = 0; i < languageCount; ++i)
+	{
+		languageMenuItems[i]->setName(getString("language-name", i));
+	}
+
 	// Reset menu tweens
 	uiRootElement->update();
 	mainMenu->getContainer()->resetTweens();
 	settingsMenu->getContainer()->resetTweens();
 	controlsMenu->getContainer()->resetTweens();
 	pauseMenu->getContainer()->resetTweens();
+	languageMenu->getContainer()->resetTweens();
 }
 
 void Game::restringControlMenuItem(MenuItem* item, const std::string& name)
@@ -3073,117 +3223,16 @@ void Game::inputMapped(const InputMapping& mapping)
 	saveControlProfile(controlProfileName);
 }
 
-void Game::enterSplashState()
+void Game::languageSelected()
 {
-	// Show splash screen
-	splashBackgroundImage->setVisible(true);
-	splashImage->setVisible(true);
-	splashImage->setTintColor({1, 1, 1, 0});
-	splashBackgroundImage->setTintColor({0, 0, 0, 1});
-	splashImage->resetTweens();
-	splashBackgroundImage->resetTweens();
-	uiRootElement->update();
-	
-	// Add splash animations to animator
-	animator.addAnimation(&splashFadeInAnimation);
-	animator.addAnimation(&splashFadeOutAnimation);
-
-	// Play splash fade-in animation
-	splashFadeInAnimation.rewind();
-	splashFadeInAnimation.play();
-}
-
-void Game::exitSplashState()
-{
-	// Hide splash screen 
-	splashImage->setVisible(false);
-	splashBackgroundImage->setVisible(false);
-	uiRootElement->update();
-
-	// Remove splash animations from animator
-	animator.removeAnimation(&splashFadeInAnimation);
-	animator.removeAnimation(&splashFadeOutAnimation);
-}
-
-void Game::enterLoadingState()
-{}
-
-void Game::exitLoadingState()
-{}
-
-void Game::enterTitleState()
-{
-	// Setup scene
-	Vector3 antHillTranslation = {0, 0, 0};
-	EntityID antHill = createInstanceOf("ant-hill");
-	setTranslation(antHill, antHillTranslation);
-
-	// Setup camera
-	cameraRig = orbitCam;
-	orbitCam->setTargetFocalPoint(antHillTranslation);
-	orbitCam->setTargetFocalDistance(0.0f);
-	orbitCam->setTargetElevation(glm::radians(80.0f));
-	orbitCam->setTargetAzimuth(0.0f);
-	orbitCam->setFocalPoint(orbitCam->getTargetFocalPoint());
-	orbitCam->setFocalDistance(orbitCam->getTargetFocalDistance());
-	orbitCam->setElevation(orbitCam->getTargetElevation());
-	orbitCam->setAzimuth(orbitCam->getTargetAzimuth());
-
-	float fov = glm::radians(30.0f);
-	orbitCam->getCamera()->setPerspective(fov, (float)w / (float)h, 1.0f, 1000.0f);
-
-	// Begin fade-in
-	fadeIn(6.0f, {0, 0, 0}, nullptr);
-
-	//
-	animator.addAnimation(&antHillZoomAnimation);
-	antHillZoomAnimation.rewind();
-	antHillZoomAnimation.play();	
-
-	menuFadeAnimation.rewind();
-	menuFadeAnimation.play();
-	menuFadeAnimation.setEndCallback(nullptr);
-
-	// Disable play controls
-	cameraControls.setCallbacksEnabled(false);
-
-	// Enable menu controls
-	menuControls.setCallbacksEnabled(true);
-
-	// Change setting menu's back item to return to the main menu
-	settingsMenuBackItem->setActivatedCallback(std::bind(&Game::openMenu, this, mainMenu, 3));
-
-	#if defined(DEBUG)
-		// Add important entity IDs to CLI variables
-		cli->set("anthill", std::to_string(antHill));
-	#endif
-
-	// Open the main menu and select the first menu item
-	openMenu(mainMenu, 0);
-}
-
-void Game::exitTitleState()
-{
-	animator.removeAnimation(&antHillZoomAnimation);
-}
-
-void Game::enterPlayState()
-{
-	// Disable menu controls
-	menuControls.setCallbacksEnabled(false);
+	// Disable non-system controls
+	disableNonSystemControls();
 
 	// Disable UI callbacks
 	uiRootElement->setCallbacksEnabled(false);
 
-	// Enable play controls
-	cameraControls.setCallbacksEnabled(true);
-
-	// Change setting menu's back item to return to the pause menu
-	settingsMenuBackItem->setActivatedCallback(std::bind(&Game::openMenu, this, pauseMenu, 1));
-}
-
-void Game::exitPlayState()
-{
+	// Begin to fade out
+	fadeOut(0.5f, Vector3(0.0f), std::bind(&StateMachine::changeState, this, &titleState));
 }
 
 void Game::skipSplash()
@@ -3218,9 +3267,10 @@ void Game::togglePause()
 
 void Game::continueGame()
 {
-	// Disable play controls, menu controls, and UI callbacks
-	cameraControls.setCallbacksEnabled(false);
-	menuControls.setCallbacksEnabled(false);
+	// Disable non-system controls
+	disableNonSystemControls();
+
+	// Disable UI callbacks
 	uiRootElement->setCallbacksEnabled(false);
 
 	// Start fading out main menu
@@ -3242,9 +3292,10 @@ void Game::continueGame()
 
 void Game::newGame()
 {
-	// Disable play controls, menu controls, and UI callbacks
-	cameraControls.setCallbacksEnabled(false);
-	menuControls.setCallbacksEnabled(false);
+	// Disable non-system controls
+	disableNonSystemControls();
+
+	// Disable UI callbacks
 	uiRootElement->setCallbacksEnabled(false);
 
 	// Start fading out main menu
@@ -3268,9 +3319,10 @@ void Game::newGame()
 
 void Game::returnToMainMenu()
 {
-	// Disable play controls, menu controls, and UI callbacks
-	cameraControls.setCallbacksEnabled(false);
-	menuControls.setCallbacksEnabled(false);
+	// Disable non-system controls
+	disableNonSystemControls();
+
+	// Disable UI callbacks
 	uiRootElement->setCallbacksEnabled(false);
 
 	// Close pause menu

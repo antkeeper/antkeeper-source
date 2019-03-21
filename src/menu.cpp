@@ -113,14 +113,19 @@ void Menu::resize(int w, int h)
 {
 	container->setDimensions(Vector2(w, h));
 
-	int spacing = h / items.size();
-	int offset = 0;
-
-	for (MenuItem* item: items)
+	for (std::size_t i = 0; i < items.size(); ++i)
 	{
-		item->container->setTranslation(Vector2(0, offset));
-		item->container->setDimensions(Vector2(w, item->getNameLabel()->getFont()->getMetrics().getHeight()));
-		offset += spacing;
+		MenuItem* item = items[i];
+		Font* font = item->getNameLabel()->getFont();
+
+		if (font)
+		{
+			float lineHeight = font->getMetrics().getAscender() - font->getMetrics().getDescender();
+
+			item->container->setTranslation(Vector2(0, 0));
+			item->container->setAnchor(Vector2(0, static_cast<float>(i) / static_cast<float>(items.size() - 1)));
+			item->container->setDimensions(Vector2(w, lineHeight));
+		}
 	}
 }
 
