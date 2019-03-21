@@ -1094,7 +1094,10 @@ void Game::setupUI()
 	// Get DPI and convert font size to pixels
 	const Display* display = deviceManager->getDisplays()->front();
 	dpi = display->getDPI();
-	fontSizePX = fontSizePT * (1.0f / 72.0f) * dpi;
+	fontSizePX = fontSizePT * (1.0f / 96.0f) * dpi;
+	
+	logger->log("Detected display DPI as " + std::to_string(dpi) + ".");
+	logger->log("Fonts size = " + std::to_string(fontSizePT) + " PT = " + std::to_string(fontSizePX) + " PX.");
 
 	// Load fonts
 	loadFonts();

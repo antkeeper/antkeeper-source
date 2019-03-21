@@ -37,6 +37,11 @@ configure_file(${PROJECT_SOURCE_DIR}/src/configuration.hpp.in
 file(GLOB_RECURSE SOURCE_FILES
 	${PROJECT_SOURCE_DIR}/src/*.cpp)
 
+# Make DPI-aware on Windows
+if(MSVC)
+	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/dpi-aware.manifest")
+endif()
+
 # Add executable target
 set(EXECUTABLE_TARGET ${PROJECT_NAME}-executable)
 add_executable(${EXECUTABLE_TARGET} ${SOURCE_FILES})

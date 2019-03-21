@@ -162,9 +162,7 @@ private:
 	virtual void handleEvent(const GamepadDisconnectedEvent& event);
 	virtual void handleEvent(const ScheduledFunctionEvent& event);
 
-	#if defined(DEBUG)
-		void setupDebugging();
-	#endif
+	void setupDebugging();
 	void setupLocalization();
 	void setupWindow();
 	void setupGraphics();
