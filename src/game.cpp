@@ -369,7 +369,7 @@ void Game::selectMenuItem(int index, bool tween)
 	}
 
 	// Determine target position of menu item selector
-	Vector2 itemTranslation = currentMenuItem->getContainer()->getTranslation();
+	Vector2 itemTranslation = currentMenuItem->getContainer()->getPosition() - currentMenu->getContainer()->getPosition();
 	Vector2 itemDimensions = currentMenuItem->getContainer()->getDimensions();
 	float spacing = fontSizePX;
 	Vector2 translation;

@@ -78,7 +78,7 @@ void Game::exitLanguageSelectState()
 	closeCurrentMenu();
 
 	// Show menu item selector
-	menuSelectorImage->setVisible(false);
+	menuSelectorImage->setVisible(true);
 
 	// Set standard menu item colors
 	menuItemActiveColor = standardMenuActiveColor;
