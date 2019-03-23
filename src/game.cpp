@@ -160,6 +160,77 @@ bool Game::readSetting<Vector2>(const std::string& name, Vector2* value) const
 	return (!stream.fail());
 }
 
+template <>
+bool Game::writeSetting<std::string>(const std::string& name, const std::string& value) const
+{
+	auto it = settingsTableIndex.find(name);
+	if (it == settingsTableIndex.end())
+	{
+		return false;
+	}
+
+	(*settingsTable)[it->second][1] = value;
+
+	return true;
+}
+
+template <>
+bool Game::writeSetting<bool>(const std::string& name, const bool& value) const
+{
+	auto it = settingsTableIndex.find(name);
+	if (it == settingsTableIndex.end())
+	{
+		return false;
+	}
+
+	(*settingsTable)[it->second][1] = (value) ? "on" : "off";
+
+	return true;
+}
+
+template <>
+bool Game::writeSetting<int>(const std::string& name, const int& value) const
+{
+	auto it = settingsTableIndex.find(name);
+	if (it == settingsTableIndex.end())
+	{
+		return false;
+	}
+
+	(*settingsTable)[it->second][1] = std::to_string(value);
+
+	return true;
+}
+
+template <>
+bool Game::writeSetting<float>(const std::string& name, const float& value) const
+{
+	auto it = settingsTableIndex.find(name);
+	if (it == settingsTableIndex.end())
+	{
+		return false;
+	}
+
+	(*settingsTable)[it->second][1] = std::to_string(value);
+
+	return true;
+}
+
+template <>
+bool Game::writeSetting<Vector2>(const std::string& name, const Vector2& value) const
+{
+	auto it = settingsTableIndex.find(name);
+	if (it == settingsTableIndex.end())
+	{
+		return false;
+	}
+
+	(*settingsTable)[it->second][1] = std::to_string(value.x);
+	(*settingsTable)[it->second][2] = std::to_string(value.y);
+
+	return true;
+}
+
 Game::Game(int argc, char* argv[]):
 	currentState(nullptr),
 	window(nullptr)
@@ -285,6 +356,10 @@ void Game::changeLanguage(std::size_t nextLanguageIndex)
 		uiRootElement->update();
 		currentMenu->getContainer()->resetTweens();
 	}
+
+	// Save settings
+	language = getString("language-code");
+	saveSettings();
 }
 
 void Game::nextLanguage()
@@ -473,6 +548,9 @@ void Game::toggleFullscreen()
 			toggleFullscreenDisabled = false;
 		};
 		eventDispatcher.schedule(event, time + 0.5f);
+
+		// Save settings
+		saveSettings();
 	}
 }
 
@@ -481,6 +559,9 @@ void Game::toggleVSync()
 	vsync = !vsync;
 	window->setVSync(vsync);
 	restringUI();
+
+	// Save settings
+	saveSettings();
 }
 
 void Game::setUpdateRate(double frequency)
@@ -1097,7 +1178,7 @@ void Game::setupUI()
 	fontSizePX = fontSizePT * (1.0f / 96.0f) * dpi;
 	
 	logger->log("Detected display DPI as " + std::to_string(dpi) + ".");
-	logger->log("Fonts size = " + std::to_string(fontSizePT) + " PT = " + std::to_string(fontSizePX) + " PX.");
+	logger->log("Font size = " + std::to_string(fontSizePT) + " PT = " + std::to_string(fontSizePX) + " PX.");
 
 	// Load fonts
 	loadFonts();
@@ -2057,6 +2138,20 @@ void Game::loadSettings()
 
 void Game::saveSettings()
 {
+	// Update settings table
+	writeSetting("language", language);
+	writeSetting("windowed-resolution", windowedResolution);
+	writeSetting("fullscreen-resolution", fullscreenResolution);
+	writeSetting("fullscreen", fullscreen);
+	writeSetting("vsync", vsync);
+	writeSetting("font-size", fontSizePT);
+	writeSetting("control-profile", controlProfileName);
+
+	// Form full path to control profile file
+	std::string settingsPath = configPath + "settings.csv";
+
+	// Save control profile
+	resourceManager->save<StringTable>(settingsTable, settingsPath);
 }
 
 void Game::loadStrings()

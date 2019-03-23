@@ -236,6 +236,10 @@ public:
 	template <typename T>
 	bool readSetting(const std::string& name, T* value) const;
 
+	template <typename T>
+	bool writeSetting(const std::string& name, const T& value) const;
+
+
 
 public:
 	// Game states
