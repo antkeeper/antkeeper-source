@@ -537,6 +537,24 @@ void Game::toggleFullscreen()
 	{
 		fullscreen = !fullscreen;
 		window->setFullscreen(fullscreen);
+		
+		if (!fullscreen)
+		{
+			const Display* display = deviceManager->getDisplays()->front();
+			int displayWidth = std::get<0>(display->getDimensions());
+			int displayHeight = std::get<1>(display->getDimensions());
+
+			w = static_cast<int>(windowedResolution.x);
+			h = static_cast<int>(windowedResolution.y);
+
+			// Determine window position
+			int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
+			int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
+			
+			window->setDimensions(w, h);
+			window->setPosition(x, y);
+		}
+		
 		restringUI();
 
 		// Disable fullscreen toggles for 500ms

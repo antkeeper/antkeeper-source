@@ -15,4 +15,3 @@ The source code for Antkeeper is licensed under the GNU General Public License, 
 | OpenAL soft      |              | GNU GPL v2.0                |       |
 | stb_image        | Sean Barrett | Public Domain / MIT License | [`stb_image.h`](./src/stb/stb_image.h) |
 | stb_image_writer | Sean Barrett | Public Domain / MIT License | [`stb_image_writer.h`](./src/stb/stb_image_writer.h) |
-
