@@ -3646,6 +3646,17 @@ void Game::removeComponent(EntityID entity, ComponentType type)
 	delete component;
 }
 
+void Game::setTransform(EntityID entity, const Transform& transform)
+{
+	TransformComponent* component = componentManager->getComponent<TransformComponent>(entity);
+	if (!component)
+	{
+		return;
+	}
+
+	component->transform = transform;
+}
+
 void Game::setTranslation(EntityID entity, const Vector3& translation)
 {
 	TransformComponent* component = componentManager->getComponent<TransformComponent>(entity);
@@ -3677,6 +3688,39 @@ void Game::setScale(EntityID entity, const Vector3& scale)
 	}
 
 	component->transform.scale = scale;
+}
+
+void Game::translate(EntityID entity, const Vector3& translation)
+{
+	TransformComponent* component = componentManager->getComponent<TransformComponent>(entity);
+	if (!component)
+	{
+		return;
+	}
+
+	component->transform.translation += translation;
+}
+
+void Game::rotate(EntityID entity, const Quaternion& rotation)
+{
+	TransformComponent* component = componentManager->getComponent<TransformComponent>(entity);
+	if (!component)
+	{
+		return;
+	}
+
+	component->transform.rotation = component->transform.rotation * rotation;
+}
+
+void Game::scale(EntityID entity, const Vector3& scale)
+{
+	TransformComponent* component = componentManager->getComponent<TransformComponent>(entity);
+	if (!component)
+	{
+		return;
+	}
+
+	component->transform.scale *= scale;
 }
 
 void Game::setTerrainPatchPosition(EntityID entity, const std::tuple<int, int>& position)

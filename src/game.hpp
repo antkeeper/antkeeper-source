@@ -226,9 +226,13 @@ public:
 	void destroyInstance(EntityID entity);
 	void addComponent(EntityID entity, ComponentBase* component);
 	void removeComponent(EntityID entity, ComponentType type);
+	void setTransform(EntityID entity, const Transform& transform);
 	void setTranslation(EntityID entity, const Vector3& translation);
 	void setRotation(EntityID entity, const Quaternion& rotation);
 	void setScale(EntityID entity, const Vector3& scale);
+	void translate(EntityID entity, const Vector3& translation);
+	void rotate(EntityID entity, const Quaternion& rotation);
+	void scale(EntityID entity, const Vector3& scale);
 	void setTerrainPatchPosition(EntityID entity, const std::tuple<int, int>& position);
 
 	void boxSelect(float x, float y, float w, float h);
