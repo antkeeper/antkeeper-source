@@ -174,7 +174,6 @@ private:
 	void setupControls();
 	void setupGameplay();
 
-	void resetSettings();
 	void loadSettings();
 	void saveSettings();
 	void loadStrings();
@@ -241,12 +240,6 @@ public:
 
 	void boxSelect(float x, float y, float w, float h);
 
-	template <typename T>
-	bool readSetting(const std::string& name, T* value) const;
-
-	template <typename T>
-	bool writeSetting(const std::string& name, const T& value) const;
-
 public:
 	// Game states
 	StateMachine::State languageSelectState;
@@ -266,8 +259,6 @@ public:
 	// Settings
 	ParameterDict* settings;
 	bool firstRun;
-	StringTable* settingsTable;
-	StringTableIndex settingsTableIndex;
 
 	// Localization
 	StringTable* stringTable;
@@ -554,14 +545,15 @@ public:
 	bool paused;
 
 	// Settings
-	std::string language;
-	Vector2 windowPosition;
-	Vector2 windowResolution;
-	Vector2 fullscreenResolution;
-	bool fullscreen;
-	bool vsync;
-	float fontSizePT;
-	std::string controlProfileName;
+	std::optional<std::string> language;
+	std::optional<int2> windowPosition;
+	std::optional<int2> windowResolution;
+	std::optional<int2> fullscreenResolution;
+	std::optional<bool> fullscreen;
+	std::optional<bool> vsync;
+	std::optional<float> fontSize;
+	std::optional<std::string> controlProfileName;
+
 	bool toggleFullscreenDisabled;
 
 	// Debugging

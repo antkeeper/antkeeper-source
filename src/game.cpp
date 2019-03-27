@@ -68,169 +68,6 @@
 #include "debug/logger.hpp"
 #include "debug/ansi-escape-codes.hpp"
 
-template <>
-bool Game::readSetting<std::string>(const std::string& name, std::string* value) const
-{
-	auto it = settingsTableIndex.find(name);
-	if (it == settingsTableIndex.end())
-	{
-		return false;
-	}
-
-	*value = (*settingsTable)[it->second][1];
-
-	return true;
-}
-
-template <>
-bool Game::readSetting<bool>(const std::string& name, bool* value) const
-{
-	auto it = settingsTableIndex.find(name);
-	if (it == settingsTableIndex.end())
-	{
-		return false;
-	}
-
-	const std::string& string = (*settingsTable)[it->second][1];
-	if (string == "true" || string == "on" || string == "1")
-	{
-		*value = true;
-		return true;
-	}
-	else if (string == "false" || string == "off" || string == "0")
-	{
-		*value = false;
-		return true;
-	}
-
-	return false;
-}
-
-template <>
-bool Game::readSetting<int>(const std::string& name, int* value) const
-{
-	auto it = settingsTableIndex.find(name);
-	if (it == settingsTableIndex.end())
-	{
-		return false;
-	}
-
-	std::stringstream stream;
-	stream << (*settingsTable)[it->second][1];
-	stream >> (*value);
-
-	return (!stream.fail());
-}
-
-template <>
-bool Game::readSetting<float>(const std::string& name, float* value) const
-{
-	auto it = settingsTableIndex.find(name);
-	if (it == settingsTableIndex.end())
-	{
-		return false;
-	}
-
-	std::stringstream stream;
-	stream << (*settingsTable)[it->second][1];
-	stream >> (*value);
-
-	return (!stream.fail());
-}
-
-template <>
-bool Game::readSetting<Vector2>(const std::string& name, Vector2* value) const
-{
-	auto it = settingsTableIndex.find(name);
-	if (it == settingsTableIndex.end())
-	{
-		return false;
-	}
-
-	std::stringstream stream;
-	stream << (*settingsTable)[it->second][1];
-	stream >> value->x;
-
-	stream.str(std::string());
-	stream.clear();
-
-	stream << (*settingsTable)[it->second][2];
-	stream >> value->y;
-
-	return (!stream.fail());
-}
-
-template <>
-bool Game::writeSetting<std::string>(const std::string& name, const std::string& value) const
-{
-	auto it = settingsTableIndex.find(name);
-	if (it == settingsTableIndex.end())
-	{
-		return false;
-	}
-
-	(*settingsTable)[it->second][1] = value;
-
-	return true;
-}
-
-template <>
-bool Game::writeSetting<bool>(const std::string& name, const bool& value) const
-{
-	auto it = settingsTableIndex.find(name);
-	if (it == settingsTableIndex.end())
-	{
-		return false;
-	}
-
-	(*settingsTable)[it->second][1] = (value) ? "on" : "off";
-
-	return true;
-}
-
-template <>
-bool Game::writeSetting<int>(const std::string& name, const int& value) const
-{
-	auto it = settingsTableIndex.find(name);
-	if (it == settingsTableIndex.end())
-	{
-		return false;
-	}
-
-	(*settingsTable)[it->second][1] = std::to_string(value);
-
-	return true;
-}
-
-template <>
-bool Game::writeSetting<float>(const std::string& name, const float& value) const
-{
-	auto it = settingsTableIndex.find(name);
-	if (it == settingsTableIndex.end())
-	{
-		return false;
-	}
-
-	(*settingsTable)[it->second][1] = std::to_string(value);
-
-	return true;
-}
-
-template <>
-bool Game::writeSetting<Vector2>(const std::string& name, const Vector2& value) const
-{
-	auto it = settingsTableIndex.find(name);
-	if (it == settingsTableIndex.end())
-	{
-		return false;
-	}
-
-	(*settingsTable)[it->second][1] = std::to_string(value.x);
-	(*settingsTable)[it->second][2] = std::to_string(value.y);
-
-	return true;
-}
-
 Game::Game(int argc, char* argv[]):
 	currentState(nullptr),
 	window(nullptr)
@@ -535,23 +372,20 @@ void Game::toggleFullscreen()
 {
 	if (!toggleFullscreenDisabled)
 	{
-		fullscreen = !fullscreen;
-		window->setFullscreen(fullscreen);
+		fullscreen = !(*fullscreen);
+		window->setFullscreen(*fullscreen);
 		
-		if (!fullscreen)
+		if (!(*fullscreen))
 		{
 			const Display* display = deviceManager->getDisplays()->front();
 			int displayWidth = std::get<0>(display->getDimensions());
 			int displayHeight = std::get<1>(display->getDimensions());
 
-			w = static_cast<int>(windowResolution.x);
-			h = static_cast<int>(windowResolution.y);
+			w = (*windowResolution)[0];
+			h = (*windowResolution)[1];
 
-			//int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
-			//int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
-			
 			window->setDimensions(w, h);
-			window->setPosition(windowPosition.x, windowPosition.y);
+			window->setPosition((*windowPosition)[0], (*windowPosition)[1]);
 		}
 		
 		restringUI();
@@ -573,8 +407,8 @@ void Game::toggleFullscreen()
 
 void Game::toggleVSync()
 {
-	vsync = !vsync;
-	window->setVSync(vsync);
+	vsync = !(*vsync);
+	window->setVSync(*vsync);
 	restringUI();
 
 	// Save settings
@@ -830,17 +664,15 @@ void Game::handleEvent(const WindowResizedEvent& event)
 	w = event.width;
 	h = event.height;
 
-	if (fullscreen)
+	if (*fullscreen)
 	{
 		logger->log("Resized fullscreen window to " + std::to_string(w) + "x" + std::to_string(h));
-		fullscreenResolution.x = event.width;
-		fullscreenResolution.y = event.height;
+		fullscreenResolution = {event.width, event.height};
 	}
 	else
 	{
 		logger->log("Resized window to " + std::to_string(w) + "x" + std::to_string(h));
-		windowResolution.x = event.width;
-		windowResolution.y = event.height;
+		windowResolution = {event.width, event.height};
 	}
 
 	// Save resolution settings
@@ -866,7 +698,7 @@ void Game::handleEvent(const GamepadConnectedEvent& event)
 	inputRouter->reset();
 
 	// Reload control profile
-	loadControlProfile(controlProfileName);
+	loadControlProfile(*controlProfileName);
 }
 
 void Game::handleEvent(const GamepadDisconnectedEvent& event)
@@ -1010,7 +842,7 @@ void Game::setupLocalization()
 	StringTableRow* languageCodes = &(*stringTable)[1];
 	for (std::size_t i = 2; i < languageCodes->size(); ++i)
 	{
-		if (language == (*languageCodes)[i])
+		if (*language == (*languageCodes)[i])
 		{
 			currentLanguageIndex = i - 2;
 			break;
@@ -1025,35 +857,35 @@ void Game::setupWindow()
 	int displayWidth = std::get<0>(display->getDimensions());
 	int displayHeight = std::get<1>(display->getDimensions());
 
-	// Determine window position
-	int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
-	int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
-
-	if (fullscreen)
+	int x;
+	int y;
+	if (*fullscreen)
 	{
-		w = static_cast<int>(fullscreenResolution.x);
-		h = static_cast<int>(fullscreenResolution.y);
+		w = (*fullscreenResolution)[0];
+		h = (*fullscreenResolution)[1];
+		x = std::get<0>(display->getPosition());
+		y = std::get<1>(display->getPosition());
 	}
 	else
 	{
-		w = static_cast<int>(windowResolution.x);
-		h = static_cast<int>(windowResolution.y);
-		x = static_cast<int>(windowPosition.x);
-		y = static_cast<int>(windowPosition.y);
+		w = (*windowResolution)[0];
+		h = (*windowResolution)[1];
+		x = (*windowPosition)[0];
+		y = (*windowPosition)[1];
 	}
 
 	// Read title string
 	std::string title = getString("title");
 
 	// Create window
-	window = windowManager->createWindow(title.c_str(), x, y, w, h, fullscreen, WindowFlag::RESIZABLE);
+	window = windowManager->createWindow(title.c_str(), x, y, w, h, *fullscreen, WindowFlag::RESIZABLE);
 	if (!window)
 	{
 		throw std::runtime_error("Game::Game(): Failed to create window.");
 	}
 
 	// Set v-sync mode
-	window->setVSync(vsync);
+	window->setVSync(*vsync);
 
 	debugFont = nullptr;
 	menuFont = nullptr;
@@ -1209,10 +1041,10 @@ void Game::setupUI()
 	// Get DPI and convert font size to pixels
 	const Display* display = deviceManager->getDisplays()->front();
 	dpi = display->getDPI();
-	fontSizePX = fontSizePT * (1.0f / 96.0f) * dpi;
+	fontSizePX = (*fontSize) * (1.0f / 96.0f) * dpi;
 	
 	logger->log("Detected display DPI as " + std::to_string(dpi) + ".");
-	logger->log("Font size = " + std::to_string(fontSizePT) + " PT = " + std::to_string(fontSizePX) + " PX.");
+	logger->log("Font size = " + std::to_string(*fontSize) + " PT = " + std::to_string(fontSizePX) + " PX.");
 
 	// Load fonts
 	loadFonts();
@@ -2062,14 +1894,14 @@ void Game::setupControls()
 	controlNameMap["toggle-edit-mode"] = &toggleEditModeControl;
 
 	// Load control profile
-	if (pathExists(controlsPath + controlProfileName + ".csv"))
+	if (pathExists(controlsPath + (*controlProfileName) + ".csv"))
 	{
-		loadControlProfile(controlProfileName);
+		loadControlProfile(*controlProfileName);
 	}
 	else
 	{
 		loadControlProfile("default-keyboard-controls");
-		saveControlProfile(controlProfileName);
+		saveControlProfile(*controlProfileName);
 	}
 
 	// Setup input mapper
@@ -2096,83 +1928,14 @@ void Game::setupGameplay()
 	cameraRig = orbitCam;
 }
 
-void Game::resetSettings()
-{
-	// Set default language
-	language = "en-us";
-
-	// Set default resolutions
-	const Display* display = deviceManager->getDisplays()->front();
-	int displayWidth = std::get<0>(display->getDimensions());
-	int displayHeight = std::get<1>(display->getDimensions());
-	float windowResolutionRatio = 5.0f / 6.0f;
-	windowResolution = Vector2(displayWidth, displayHeight) * 5.0f / 6.0f;
-	windowResolution.x = static_cast<int>(windowResolution.x);
-	windowResolution.y = static_cast<int>(windowResolution.y);
-	fullscreenResolution = Vector2(displayWidth, displayHeight);
-
-	// Set default fullscreen mode
-	fullscreen = false;
-
-	// Set default vsync mode
-	vsync = true;
-
-	// Set default font size
-	fontSizePT = 14.0f;
-
-	// Set control profile name
-	controlProfileName = "controls";
-}
-
 void Game::loadSettings()
 {
-	// Reset settings to default values
-	resetSettings();
 	firstRun = false;
 
+	// Load settings
 	try
 	{
-		settings = resourceManager->load<ParameterDict>("params.csv");
-	}
-	catch (const std::exception& e)
-	{
-
-	}
-
-	std::optional<bool> fs = settings->get<bool>("fullscreen");
-	if (!fs)
-	{
-		logger->log("Fullscreen unset");
-	}
-	else
-	{
-		if (*fs)
-		{
-			logger->log("Fullscreen on");
-		}
-		else
-		{
-
-			logger->log("Fullscreen off");
-		}
-	}
-
-	std::array<int, 3> ints = {5, 7, -89};
-	settings->set<int, 3>("cool", ints);
-
-	std::optional<std::array<int, 3>> arrayOption = settings->get<int, 3>("cool");
-	if (arrayOption != std::nullopt)
-	{
-		for (std::size_t i = 0; i < 3; ++i)
-		{
-			logger->log(std::to_string(i) + ": " + std::to_string((*arrayOption)[i]));
-		}
-	}
-
-	// Load settings table
-	try
-	{
-		settingsTable = resourceManager->load<StringTable>("settings.csv");
+		settings = resourceManager->load<ParameterDict>("settings.csv");
 	}
 	catch (const std::exception& e)
 	{
@@ -2181,45 +1944,93 @@ void Game::loadSettings()
 
 		try
 		{
-			settingsTable = resourceManager->load<StringTable>("default-settings.csv");
+			settings = resourceManager->load<ParameterDict>("default-settings.csv");
 		}
 		catch (const std::exception& e)
 		{
 			logger->error("Failed to load default settings.");
+			settings = new ParameterDict();
 		}
 	}
 
-	// Build settings table index
-	settingsTableIndex = createIndex(*settingsTable);
+	// Read settings
+	language = settings->get<std::string>("language");
+	windowPosition = settings->get<int, 2>("window-position");
+	windowResolution = settings->get<int, 2>("window-resolution");
+	fullscreenResolution = settings->get<int, 2>("window-resolution");
+	fullscreen = settings->get<bool>("fullscreen");
+	vsync = settings->get<bool>("vsync");
+	fontSize = settings->get<float>("font-size");
+	controlProfileName = settings->get<std::string>("control-profile");
 
-	// Read settings from table
-	readSetting("language", &language);
-	readSetting("window-position", &windowPosition);
-	readSetting("window-resolution", &windowResolution);
-	readSetting("fullscreen-resolution", &fullscreenResolution);
-	readSetting("fullscreen", &fullscreen);
-	readSetting("vsync", &vsync);
-	readSetting("font-size", &fontSizePT);
-	readSetting("control-profile", &controlProfileName);
+	// Use default values for unset parameters
+	{
+		if (language == std::nullopt)
+		{
+			language = "en-us";
+		}
+
+		// Get display dimensions
+		const Display* display = deviceManager->getDisplays()->front();
+		int displayWidth = std::get<0>(display->getDimensions());
+		int displayHeight = std::get<1>(display->getDimensions());
+
+		if (windowResolution == std::nullopt)
+		{
+			const float windowResolutionRatio = 5.0f / 6.0f;
+			int windowWidth = static_cast<int>(static_cast<float>(displayWidth) * windowResolutionRatio);
+			int windowHeight = static_cast<int>(static_cast<float>(displayHeight) * windowResolutionRatio);
+
+			windowResolution = {windowWidth, windowHeight};
+		}
+
+		if (windowPosition == std::nullopt)
+		{
+			int windowX = std::get<0>(display->getPosition()) + displayWidth / 2 - (*windowResolution)[0] / 2;
+			int windowY = std::get<1>(display->getPosition()) + displayHeight / 2 - (*windowResolution)[1] / 2;
+
+			windowPosition = {windowX, windowY};
+		}
+
+		if (fullscreen == std::nullopt)
+		{
+			fullscreen = true;
+		}
+
+		if (vsync == std::nullopt)
+		{
+			vsync = true;
+		}
+
+		if (fontSize == std::nullopt)
+		{
+			fontSize = 14.0f;
+		}
+
+		if (controlProfileName == std::nullopt)
+		{
+			controlProfileName = "controls";
+		}
+	}
 }
 
 void Game::saveSettings()
 {
-	// Update settings table
-	writeSetting("language", language);
-	writeSetting("window-position", windowPosition);
-	writeSetting("window-resolution", windowResolution);
-	writeSetting("fullscreen-resolution", fullscreenResolution);
-	writeSetting("fullscreen", fullscreen);
-	writeSetting("vsync", vsync);
-	writeSetting("font-size", fontSizePT);
-	writeSetting("control-profile", controlProfileName);
+	// Update settings
+	settings->set("language", *language);
+	settings->set("window-position", *windowPosition);
+	settings->set("window-resolution", *windowResolution);
+	settings->set("fullscreen-resolution", *fullscreenResolution);
+	settings->set("fullscreen", *fullscreen);
+	settings->set("vsync", *vsync);
+	settings->set("font-size", *fontSize);
+	settings->set("control-profile", *controlProfileName);
 
-	// Form full path to control profile file
+	// Form full path to settings file
 	std::string settingsPath = configPath + "settings.csv";
 
-	// Save control profile
-	resourceManager->save<StringTable>(settingsTable, settingsPath);
+	// Save settings
+	resourceManager->save<ParameterDict>(settings, settingsPath);
 }
 
 void Game::loadStrings()
@@ -2830,7 +2641,7 @@ void Game::resetControls()
 {
 	inputRouter->reset();
 	loadControlProfile("default-keyboard-controls");
-	saveControlProfile(controlProfileName);
+	saveControlProfile(*controlProfileName);
 	restringUI();
 }
 
@@ -3382,7 +3193,7 @@ void Game::inputMapped(const InputMapping& mapping)
 	eventDispatcher.schedule(event, time + 0.1f);
 
 	// Save control profile
-	saveControlProfile(controlProfileName);
+	saveControlProfile(*controlProfileName);
 }
 
 void Game::languageSelected()
