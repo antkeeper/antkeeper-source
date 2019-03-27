@@ -692,6 +692,15 @@ void Game::handleEvent(const WindowResizedEvent& event)
 	skipSplash();
 }
 
+void Game::handleEvent(const WindowMovedEvent& event)
+{
+	if (!(*fullscreen))
+	{
+		windowPosition = {event.x, event.y};
+		saveSettings();
+	}
+}
+
 void Game::handleEvent(const GamepadConnectedEvent& event)
 {
 	// Unmap all controls
@@ -2989,9 +2998,9 @@ void Game::restringUI()
 	settingsMenuControlsItem->setName(getString("controls"));
 	settingsMenuControlsItem->setValue(getString("ellipsis"));
 	settingsMenuFullscreenItem->setName(getString("fullscreen"));
-	settingsMenuFullscreenItem->setValue((fullscreen) ? onString : offString);
+	settingsMenuFullscreenItem->setValue((*fullscreen) ? onString : offString);
 	settingsMenuVSyncItem->setName(getString("v-sync"));
-	settingsMenuVSyncItem->setValue((vsync) ? onString : offString);
+	settingsMenuVSyncItem->setValue((*vsync) ? onString : offString);
 	settingsMenuLanguageItem->setName(getString("language"));
 	settingsMenuLanguageItem->setValue(getString("language-name"));
 	settingsMenuBackItem->setName(backString);

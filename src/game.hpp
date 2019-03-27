@@ -162,6 +162,7 @@ private:
 	virtual void render();
 	virtual void exit();
 	virtual void handleEvent(const WindowResizedEvent& event);
+	virtual void handleEvent(const WindowMovedEvent& event);
 	virtual void handleEvent(const GamepadConnectedEvent& event);
 	virtual void handleEvent(const GamepadDisconnectedEvent& event);
 	virtual void handleEvent(const ScheduledFunctionEvent& event);
