@@ -74,6 +74,7 @@ class Menu;
 class MenuItem;
 class CommandInterpreter;
 class Logger;
+class ParameterDict;
 enum class ComponentType;
 
 class Game:
@@ -148,8 +149,11 @@ public:
 	void stopFade();
 
 	void selectTool(int toolIndex);
-
-
+	
+	/**
+	 * Cycles through the keyboard/mouse and gamepad control profiles.
+	 */
+	void nextControlProfile();
 
 private:
 	virtual void setup();
@@ -243,8 +247,6 @@ public:
 	template <typename T>
 	bool writeSetting(const std::string& name, const T& value) const;
 
-
-
 public:
 	// Game states
 	StateMachine::State languageSelectState;
@@ -262,6 +264,7 @@ public:
 	std::string controlsPath;
 
 	// Settings
+	ParameterDict* settings;
 	bool firstRun;
 	StringTable* settingsTable;
 	StringTableIndex settingsTableIndex;
@@ -400,7 +403,6 @@ public:
 	Vector4 cameraGridColor;
 	Vector4 cameraReticleColor;
 
-
 	// Menu selection
 	UIImage* menuSelectorImage;
 	Menu* currentMenu;
@@ -414,7 +416,6 @@ public:
 	Vector4 languageMenuInactiveColor;
 	Vector4 menuItemActiveColor;
 	Vector4 menuItemInactiveColor;
-
 
 	// Main menu
 	Menu* mainMenu;
@@ -515,8 +516,6 @@ public:
 	Animation<Vector4> menuItemDeselectAnimation;
 	AnimationClip<Vector4> menuItemDeselectClip;
 
-
-
 	// Assets
 	ResourceManager* resourceManager;
 	Texture2D* splashTexture;
@@ -556,7 +555,8 @@ public:
 
 	// Settings
 	std::string language;
-	Vector2 windowedResolution;
+	Vector2 windowPosition;
+	Vector2 windowResolution;
 	Vector2 fullscreenResolution;
 	bool fullscreen;
 	bool vsync;

@@ -55,6 +55,7 @@
 #include "entity/systems/particle-system.hpp"
 #include "entity/systems/terrain-system.hpp"
 #include "configuration.hpp"
+#include "parameter-dict.hpp"
 #include "stb/stb_image_write.h"
 #include "menu.hpp"
 #include <algorithm>
@@ -63,7 +64,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <thread>
-
 #include "debug/command-interpreter.hpp"
 #include "debug/logger.hpp"
 #include "debug/ansi-escape-codes.hpp"
@@ -544,15 +544,14 @@ void Game::toggleFullscreen()
 			int displayWidth = std::get<0>(display->getDimensions());
 			int displayHeight = std::get<1>(display->getDimensions());
 
-			w = static_cast<int>(windowedResolution.x);
-			h = static_cast<int>(windowedResolution.y);
+			w = static_cast<int>(windowResolution.x);
+			h = static_cast<int>(windowResolution.y);
 
-			// Determine window position
-			int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
-			int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
+			//int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
+			//int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
 			
 			window->setDimensions(w, h);
-			window->setPosition(x, y);
+			window->setPosition(windowPosition.x, windowPosition.y);
 		}
 		
 		restringUI();
@@ -831,6 +830,22 @@ void Game::handleEvent(const WindowResizedEvent& event)
 	w = event.width;
 	h = event.height;
 
+	if (fullscreen)
+	{
+		logger->log("Resized fullscreen window to " + std::to_string(w) + "x" + std::to_string(h));
+		fullscreenResolution.x = event.width;
+		fullscreenResolution.y = event.height;
+	}
+	else
+	{
+		logger->log("Resized window to " + std::to_string(w) + "x" + std::to_string(h));
+		windowResolution.x = event.width;
+		windowResolution.y = event.height;
+	}
+
+	// Save resolution settings
+	saveSettings();
+
 	defaultRenderTarget.width = event.width;
 	defaultRenderTarget.height = event.height;
 	glViewport(0, 0, event.width, event.height);
@@ -949,7 +964,6 @@ void Game::setupDebugging()
 		}
 	};
 
-
 	std::string exitHelp = "exit";
 	std::string setHelp = "set <variable name> <value>";
 	std::string unsetHelp = "unset <variable name>";
@@ -1011,6 +1025,10 @@ void Game::setupWindow()
 	int displayWidth = std::get<0>(display->getDimensions());
 	int displayHeight = std::get<1>(display->getDimensions());
 
+	// Determine window position
+	int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
+	int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
+
 	if (fullscreen)
 	{
 		w = static_cast<int>(fullscreenResolution.x);
@@ -1018,13 +1036,11 @@ void Game::setupWindow()
 	}
 	else
 	{
-		w = static_cast<int>(windowedResolution.x);
-		h = static_cast<int>(windowedResolution.y);
+		w = static_cast<int>(windowResolution.x);
+		h = static_cast<int>(windowResolution.y);
+		x = static_cast<int>(windowPosition.x);
+		y = static_cast<int>(windowPosition.y);
 	}
-
-	// Determine window position
-	int x = std::get<0>(display->getPosition()) + displayWidth / 2 - w / 2;
-	int y = std::get<1>(display->getPosition()) + displayHeight / 2 - h / 2;
 
 	// Read title string
 	std::string title = getString("title");
@@ -1279,7 +1295,6 @@ void Game::setupUI()
 	hudContainer = new UIContainer();
 	hudContainer->setVisible(false);
 	uiRootElement->addChild(hudContainer);
-	
 
 	toolIndicatorBGImage = new UIImage();
 	toolIndicatorBGImage->setTexture(hudSpriteSheetTexture);
@@ -1387,7 +1402,6 @@ void Game::setupUI()
 	toolIconTestTubeImage->setTextureBounds(normalizeTextureBounds(hudTextureAtlas.getBounds("tool-icon-test-tube"), hudTextureAtlasBounds));
 	//radialMenuImage->addChild(toolIconTestTubeImage);
 
-
 	antTag = new UIContainer();
 	antTag->setLayerOffset(-10);
 	antTag->setVisible(false);
@@ -1480,7 +1494,6 @@ void Game::setupUI()
 	fpsLabel->setAnchor(Anchor::TOP_LEFT);
 	uiRootElement->addChild(fpsLabel);
 
-
 	antPin = new UIImage();
 	antPin->setTexture(hudSpriteSheetTexture);
 	antPin->setTextureBounds(normalizeTextureBounds(hudTextureAtlas.getBounds("label-pin"), hudTextureAtlasBounds));
@@ -1543,7 +1556,6 @@ void Game::setupUI()
 	cameraGridContainer->setVisible(false);
 	uiRootElement->addChild(cameraGridContainer);
 
-
 	cameraFlashImage = new UIImage();
 	cameraFlashImage->setLayerOffset(99);
 	cameraFlashImage->setTintColor(Vector4(1.0f));
@@ -1573,8 +1585,6 @@ void Game::setupUI()
 	currentMenuItem = nullptr;
 	previousMenuItem = nullptr;
 	previousMenu = nullptr;
-
-
 
 	menuSelectorImage = new UIImage();
 	menuSelectorImage->setAnchor(Anchor::TOP_LEFT);
@@ -1900,7 +1910,6 @@ void Game::setupUI()
 	animator.addAnimation(&fadeInAnimation);
 	animator.addAnimation(&fadeOutAnimation);
 
-
 	// Construct camera flash animation clip
 	cameraFlashClip.setInterpolator(easeOutQuad<float>);
 	channel = cameraFlashClip.addChannel(0);
@@ -2096,10 +2105,10 @@ void Game::resetSettings()
 	const Display* display = deviceManager->getDisplays()->front();
 	int displayWidth = std::get<0>(display->getDimensions());
 	int displayHeight = std::get<1>(display->getDimensions());
-	float windowedResolutionRatio = 5.0f / 6.0f;
-	windowedResolution = Vector2(displayWidth, displayHeight) * 5.0f / 6.0f;
-	windowedResolution.x = static_cast<int>(windowedResolution.x);
-	windowedResolution.y = static_cast<int>(windowedResolution.y);
+	float windowResolutionRatio = 5.0f / 6.0f;
+	windowResolution = Vector2(displayWidth, displayHeight) * 5.0f / 6.0f;
+	windowResolution.x = static_cast<int>(windowResolution.x);
+	windowResolution.y = static_cast<int>(windowResolution.y);
 	fullscreenResolution = Vector2(displayWidth, displayHeight);
 
 	// Set default fullscreen mode
@@ -2120,6 +2129,45 @@ void Game::loadSettings()
 	// Reset settings to default values
 	resetSettings();
 	firstRun = false;
+
+	try
+	{
+		settings = resourceManager->load<ParameterDict>("params.csv");
+	}
+	catch (const std::exception& e)
+	{
+
+	}
+
+	std::optional<bool> fs = settings->get<bool>("fullscreen");
+	if (!fs)
+	{
+		logger->log("Fullscreen unset");
+	}
+	else
+	{
+		if (*fs)
+		{
+			logger->log("Fullscreen on");
+		}
+		else
+		{
+
+			logger->log("Fullscreen off");
+		}
+	}
+
+	std::array<int, 3> ints = {5, 7, -89};
+	settings->set<int, 3>("cool", ints);
+
+	std::optional<std::array<int, 3>> arrayOption = settings->get<int, 3>("cool");
+	if (arrayOption != std::nullopt)
+	{
+		for (std::size_t i = 0; i < 3; ++i)
+		{
+			logger->log(std::to_string(i) + ": " + std::to_string((*arrayOption)[i]));
+		}
+	}
 
 	// Load settings table
 	try
@@ -2146,7 +2194,8 @@ void Game::loadSettings()
 
 	// Read settings from table
 	readSetting("language", &language);
-	readSetting("windowed-resolution", &windowedResolution);
+	readSetting("window-position", &windowPosition);
+	readSetting("window-resolution", &windowResolution);
 	readSetting("fullscreen-resolution", &fullscreenResolution);
 	readSetting("fullscreen", &fullscreen);
 	readSetting("vsync", &vsync);
@@ -2158,7 +2207,8 @@ void Game::saveSettings()
 {
 	// Update settings table
 	writeSetting("language", language);
-	writeSetting("windowed-resolution", windowedResolution);
+	writeSetting("window-position", windowPosition);
+	writeSetting("window-resolution", windowResolution);
 	writeSetting("fullscreen-resolution", fullscreenResolution);
 	writeSetting("fullscreen", fullscreen);
 	writeSetting("vsync", vsync);
@@ -2793,7 +2843,6 @@ void Game::resizeUI(int w, int h)
 	splashBackgroundImage->setDimensions(Vector2(w, h));
 	splashBackgroundImage->setAnchor(Anchor::TOP_LEFT);
 
-
 	// Resize splash screen image
 	splashImage->setAnchor(Anchor::CENTER);
 	splashImage->setDimensions(Vector2(splashTexture->getWidth(), splashTexture->getHeight()));
@@ -2828,7 +2877,6 @@ void Game::resizeUI(int w, int h)
 	toolIndicatorIconImage->setDimensions(Vector2(toolIndicatorIconBounds.getWidth(), toolIndicatorIconBounds.getHeight()));
 	toolIndicatorIconImage->setAnchor(Anchor::CENTER);
 
-	
 	// Buttons
 	Rect playButtonBounds = hudTextureAtlas.getBounds("button-play");
 	Rect fastForwardButtonBounds = hudTextureAtlas.getBounds("button-fast-forward-2x");
@@ -2920,8 +2968,6 @@ void Game::resizeUI(int w, int h)
 
 	antLabelCL->setDimensions(Vector2(labelCornerDimensions.x, antLabel->getDimensions().y - labelCornerDimensions.y * 2.0f + antLabelPadding.y * 2.0f));
 	antLabelCR->setDimensions(Vector2(labelCornerDimensions.x, antLabel->getDimensions().y - labelCornerDimensions.y * 2.0f + antLabelPadding.y * 2.0f));
-
-
 
 	antLabelContainer->setAnchor(Vector2(0.5f, 0.5f));
 	antLabelTL->setAnchor(Anchor::TOP_LEFT);
@@ -3593,6 +3639,11 @@ void Game::selectTool(int toolIndex)
 	{
 		toolIndicatorIconImage->setVisible(false);
 	}
+}
+
+void Game::nextControlProfile()
+{
+	
 }
 
 EntityID Game::createInstance()
