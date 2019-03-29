@@ -74,7 +74,6 @@ class Menu;
 class MenuItem;
 class CommandInterpreter;
 class Logger;
-class ParameterDict;
 enum class ComponentType;
 
 class Game:

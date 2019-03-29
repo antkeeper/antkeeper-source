@@ -20,9 +20,11 @@
 #include "resource-loader.hpp"
 #include "resource-manager.hpp"
 #include "string-table.hpp"
-#include "parameter-dict.hpp"
 #include <sstream>
 #include <stdexcept>
+
+#include <emergent/emergent.hpp>
+using namespace Emergent;
 
 template <>
 ParameterDict* ResourceLoader<ParameterDict>::load(ResourceManager* resourceManager, std::istream* is)
