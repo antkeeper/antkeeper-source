@@ -323,8 +323,8 @@ void SandboxState::handleEvent(const MouseMovedEvent& event)
 			{
 				Vector2 selectorDirection = selectorVector / std::sqrt(lengthSquared);
 
-				float angle = std::atan2(-selectorDirection.y, selectorDirection.x) + twoPi<float>;
-				float sectorAngle = twoPi<float> / 8.0f;
+				float angle = std::atan2(-selectorDirection.y, selectorDirection.x) + two_pi<float>;
+				float sectorAngle = two_pi<float> / 8.0f;
 				int sector = static_cast<int>((angle + sectorAngle * 0.5f) / sectorAngle);
 				game->radialMenuSelectorImage->setRotation(static_cast<float>(sector) * sectorAngle);
 				game->radialMenuImage->setRotation(static_cast<float>(sector) * sectorAngle);

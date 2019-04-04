@@ -372,7 +372,7 @@ void Game::toggleFullscreen()
 	if (!toggleFullscreenDisabled)
 	{
 		fullscreen = !(*fullscreen);
-		window->setFullscreen(*fullscreen);
+		//window->setFullscreen(*fullscreen);
 		
 		if (!(*fullscreen))
 		{
@@ -383,8 +383,25 @@ void Game::toggleFullscreen()
 			w = (*windowResolution)[0];
 			h = (*windowResolution)[1];
 
+			window->setBordered(true);
+			window->setResizable(true);
 			window->setDimensions(w, h);
 			window->setPosition((*windowPosition)[0], (*windowPosition)[1]);
+
+		}
+		else
+		{
+			const Display* display = deviceManager->getDisplays()->front();
+			int displayWidth = std::get<0>(display->getDimensions());
+			int displayHeight = std::get<1>(display->getDimensions());
+
+			w = displayWidth;
+			h = displayHeight;
+
+			window->setBordered(false);
+			window->setResizable(false);
+			window->setPosition(0, 0);
+			window->setDimensions(w, h);
 		}
 		
 		restringUI();
@@ -864,15 +881,17 @@ void Game::setupWindow()
 	const Display* display = deviceManager->getDisplays()->front();
 	int displayWidth = std::get<0>(display->getDimensions());
 	int displayHeight = std::get<1>(display->getDimensions());
+	int flags = 0;
 
 	int x;
 	int y;
 	if (*fullscreen)
 	{
-		w = (*fullscreenResolution)[0];
-		h = (*fullscreenResolution)[1];
+		w = displayWidth;
+		h = displayHeight;
 		x = std::get<0>(display->getPosition());
 		y = std::get<1>(display->getPosition());
+		flags |= WindowFlag::BORDERLESS;
 	}
 	else
 	{
@@ -880,13 +899,14 @@ void Game::setupWindow()
 		h = (*windowResolution)[1];
 		x = (*windowPosition)[0];
 		y = (*windowPosition)[1];
+		flags |= WindowFlag::RESIZABLE;
 	}
 
 	// Read title string
 	std::string title = getString("title");
 
 	// Create window
-	window = windowManager->createWindow(title.c_str(), x, y, w, h, *fullscreen, WindowFlag::RESIZABLE);
+	window = windowManager->createWindow(title.c_str(), x, y, w, h, false, flags);
 	if (!window)
 	{
 		throw std::runtime_error("Game::Game(): Failed to create window.");
