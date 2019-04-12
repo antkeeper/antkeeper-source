@@ -109,6 +109,14 @@ Game::Game(int argc, char* argv[]):
 	toggleFullscreenDisabled = false;
 
 	sandboxState = new SandboxState(this);
+
+	float3x3 m1;
+	float3x3 m2;
+	float3x3 m3 = m1 + m2;
+	float3x3 m4 = m2 - m3;
+
+	float4x4 projection = perspective(radians(45.0f), 3.0f / 4.0f, -1.0f, 1.0f);
+	float4x4 ortho_proj = ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 }
 
 Game::~Game()
@@ -611,7 +619,7 @@ void Game::setup()
 		#endif
 	}
 
-	changeState(sandboxState);
+	//changeState(sandboxState);
 }
 
 void Game::update(float t, float dt)

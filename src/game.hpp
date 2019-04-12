@@ -480,14 +480,11 @@ public:
 
 	// Animation
 	Animator animator;
-
 	Animation<float> antHillZoomAnimation;
 	AnimationClip<float> antHillZoomClip;
-
 	Animation<float> menuFadeAnimation;
 	AnimationClip<float> menuFadeInClip;
 	AnimationClip<float> menuFadeOutClip;
-
 	Animation<float> splashFadeInAnimation;
 	Animation<float> splashFadeOutAnimation;
 	AnimationClip<float> splashFadeInClip;
