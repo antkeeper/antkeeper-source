@@ -509,6 +509,8 @@ void Game::setup()
 	soundSystem = new SoundSystem(componentManager);
 	collisionSystem = new CollisionSystem(componentManager);
 	cameraSystem = new CameraSystem(componentManager);
+	cameraSystem->setCamera(&camera);
+	eventDispatcher.subscribe<MouseMovedEvent>(cameraSystem);
 	renderSystem = new RenderSystem(componentManager, worldScene);
 	toolSystem = new ToolSystem(componentManager);
 	toolSystem->setPickingCamera(&camera);

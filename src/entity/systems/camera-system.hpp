@@ -20,20 +20,14 @@
 #ifndef CAMERA_SYSTEM_HPP
 #define CAMERA_SYSTEM_HPP
 
-#include "../entity-group.hpp"
-#include "../components/camera-component.hpp"
-#include "../components/model-component.hpp"
-#include "../components/transform-component.hpp"
 #include "../system.hpp"
+#include "game/camera-rig.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
-typedef EntityGroup<CameraComponent, TransformComponent> CameraGroup;
-
 class CameraSystem:
 	public System,
-	public CameraGroup::Observer,
 	public EventHandler<MouseMovedEvent>
 {
 public:
@@ -42,11 +36,14 @@ public:
 	
 	virtual void update(float t, float dt);
 
+	void setCamera(Camera* camera);
+
 private:
-	virtual void memberRegistered(const CameraGroup::Member* member);
-	virtual void memberUnregistered(const CameraGroup::Member* member);
 	virtual void handleEvent(const MouseMovedEvent& event);
-	CameraGroup cameraGroup;
+	Camera* camera;
+	CameraRig* rig;
+	OrbitCam orbitCam;
+	FreeCam freeCam;
 };
 
 #endif // CAMERA_SYSTEM_HPP

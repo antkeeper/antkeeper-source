@@ -21,30 +21,30 @@
 
 CameraSystem::CameraSystem(ComponentManager* componentManager):
 	System(componentManager),
-	cameraGroup(componentManager)
-{
-	cameraGroup.addGroupObserver(this);
-}
+	camera(nullptr),
+	rig(&orbitCam)
+{}
 
 CameraSystem::~CameraSystem()
 {}
 
 void CameraSystem::update(float t, float dt)
 {
-	auto members = cameraGroup.getMembers();	
-	for (const CameraGroup::Member* member: *members)
+	if (camera != nullptr)
 	{
-		CameraComponent* camera = std::get<0>(member->components);
-		TransformComponent* transform = std::get<1>(member->components);
+		cameraRig->update(dt);
 	}
 }
 
-void CameraSystem::memberRegistered(const CameraGroup::Member* member)
-{}
-
-void CameraSystem::memberUnregistered(const CameraGroup::Member* member)
-{}
+void CameraSystem::setCamera(Camera* camera)
+{
+	this->camera = camera;
+	orbitCam.attachCamera(&camera);
+	freeCam.attachCamera(&camera);
+}
 
 void CameraSystem::handleEvent(const MouseMovedEvent& event)
-{}
+{
+
+}
 
