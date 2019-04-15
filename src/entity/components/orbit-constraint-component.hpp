@@ -17,34 +17,26 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CAMERA_SYSTEM_HPP
-#define CAMERA_SYSTEM_HPP
+#ifndef ORBIT_CONSTRAINT_COMPONENT_HPP
+#define ORBIT_CONSTRAINT_COMPONENT_HPP
 
-#include "../system.hpp"
-#include "game/camera-rig.hpp"
+#include "../component.hpp"
+#include "component-type.hpp"
+#include "entity/entity-id.hpp"
 
 #include <emergent/emergent.hpp>
 using namespace Emergent;
 
-class CameraSystem:
-	public System,
-	public EventHandler<MouseMovedEvent>
+class OrbitConstraintComponent: public Component<ComponentType::ORBIT_CONSTRAINT>
 {
 public:
-	CameraSystem(ComponentManager* componentManager);
-	virtual ~CameraSystem();
+	virtual ComponentBase* clone() const;
 	
-	virtual void update(float t, float dt);
-
-	void setCamera(Camera* camera);
-
-private:
-	virtual void handleEvent(const MouseMovedEvent& event);
-	Camera* camera;
-	CameraRig* rig;
-	OrbitCam orbitCam;
-	FreeCam freeCam;
+	EntityID target;
+	float distance;
+	float elevation;
+	float azimuth;
 };
 
-#endif // CAMERA_SYSTEM_HPP
+#endif // ORBIT_CONSTRAINT_COMPONENT_HPP
 

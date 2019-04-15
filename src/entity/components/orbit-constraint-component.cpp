@@ -17,25 +17,16 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMPONENT_TYPE_HPP
-#define COMPONENT_TYPE_HPP
+#include "orbit-constraint-component.hpp"
 
-enum class ComponentType
+ComponentBase* OrbitConstraintComponent::clone() const
 {
-	ANIMATION,
-	ANT_HILL,
-	BEHAVIOR,
-	CAMERA,
-	COLLISION,
-	LEGGED_LOCOMOTION,
-	MODEL,
-	ORBIT_CONSTRAINT,
-	STEERING,
-	SOUND_SOURCE,
-	TERRAIN_PATCH,
-	TOOL,
-	TRANSFORM
-};
-
-#endif // COMPONENT_TYPE_HPP
+	OrbitConstraintComponent* component = new OrbitConstraintComponent();
+	component->target = target;
+	component->distance = distance;
+	component->elevation = elevation;
+	component->azimuth = azimuth;
+	
+	return component;
+}
 

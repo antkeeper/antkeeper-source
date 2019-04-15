@@ -17,34 +17,13 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "camera-system.hpp"
+#include "camera-component.hpp"
 
-CameraSystem::CameraSystem(ComponentManager* componentManager):
-	System(componentManager),
-	camera(nullptr),
-	rig(&orbitCam)
-{}
-
-CameraSystem::~CameraSystem()
-{}
-
-void CameraSystem::update(float t, float dt)
+ComponentBase* CameraComponent::clone() const
 {
-	if (camera != nullptr)
-	{
-		cameraRig->update(dt);
-	}
-}
-
-void CameraSystem::setCamera(Camera* camera)
-{
-	this->camera = camera;
-	orbitCam.attachCamera(&camera);
-	freeCam.attachCamera(&camera);
-}
-
-void CameraSystem::handleEvent(const MouseMovedEvent& event)
-{
-
+	CameraComponent* component = new CameraComponent();
+	component->camera = camera;
+	
+	return component;
 }
 

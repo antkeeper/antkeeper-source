@@ -17,25 +17,22 @@
  * along with Antkeeper Source Code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMPONENT_TYPE_HPP
-#define COMPONENT_TYPE_HPP
+#ifndef CAMERA_COMPONENT_HPP
+#define CAMERA_COMPONENT_HPP
 
-enum class ComponentType
+#include "../component.hpp"
+#include "component-type.hpp"
+
+#include <emergent/emergent.hpp>
+using namespace Emergent;
+
+class CameraComponent: public Component<ComponentType::CAMERA>
 {
-	ANIMATION,
-	ANT_HILL,
-	BEHAVIOR,
-	CAMERA,
-	COLLISION,
-	LEGGED_LOCOMOTION,
-	MODEL,
-	ORBIT_CONSTRAINT,
-	STEERING,
-	SOUND_SOURCE,
-	TERRAIN_PATCH,
-	TOOL,
-	TRANSFORM
+public:
+	virtual ComponentBase* clone() const;
+	
+	Camera camera;
 };
 
-#endif // COMPONENT_TYPE_HPP
+#endif // CAMERA_COMPONENT_HPP
 

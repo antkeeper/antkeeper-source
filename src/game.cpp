@@ -47,7 +47,7 @@
 #include "entity/systems/sound-system.hpp"
 #include "entity/systems/collision-system.hpp"
 #include "entity/systems/render-system.hpp"
-#include "entity/systems/camera-system.hpp"
+#include "entity/systems/constraint-system.hpp"
 #include "entity/systems/tool-system.hpp"
 #include "entity/systems/locomotion-system.hpp"
 #include "entity/systems/behavior-system.hpp"
@@ -508,9 +508,7 @@ void Game::setup()
 	// Initialize systems
 	soundSystem = new SoundSystem(componentManager);
 	collisionSystem = new CollisionSystem(componentManager);
-	cameraSystem = new CameraSystem(componentManager);
-	cameraSystem->setCamera(&camera);
-	eventDispatcher.subscribe<MouseMovedEvent>(cameraSystem);
+	constraintSystem = new ConstraintSystem(componentManager);
 	renderSystem = new RenderSystem(componentManager, worldScene);
 	toolSystem = new ToolSystem(componentManager);
 	toolSystem->setPickingCamera(&camera);
@@ -539,7 +537,7 @@ void Game::setup()
 	systemManager->addSystem(toolSystem);
 	systemManager->addSystem(terrainSystem);
 	systemManager->addSystem(particleSystem);
-	systemManager->addSystem(cameraSystem);
+	systemManager->addSystem(constraintSystem);
 	systemManager->addSystem(renderSystem);
 
 	// Load navmesh
@@ -916,7 +914,7 @@ void Game::setupWindow()
 	std::string title = getString("title");
 
 	// Create window
-	window = windowManager->createWindow(title.c_str(), x, y, w, h, false, flags);
+	window = windowManager->createWindow(title.c_str(), x, y, w, h, flags);
 	if (!window)
 	{
 		throw std::runtime_error("Game::Game(): Failed to create window.");

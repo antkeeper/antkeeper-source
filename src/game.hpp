@@ -63,7 +63,7 @@ class SystemManager;
 class SoundSystem;
 class CollisionSystem;
 class RenderSystem;
-class CameraSystem;
+class ConstraintSystem;
 class ToolSystem;
 class BehaviorSystem;
 class SteeringSystem;
@@ -529,7 +529,7 @@ public:
 	SystemManager* systemManager;
 	SoundSystem* soundSystem;
 	CollisionSystem* collisionSystem;
-	CameraSystem* cameraSystem;
+	ConstraintSystem* constraintSystem;
 	RenderSystem* renderSystem;
 	ToolSystem* toolSystem;
 	BehaviorSystem* behaviorSystem;
