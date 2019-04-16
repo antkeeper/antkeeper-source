@@ -31,7 +31,7 @@ class CameraComponent: public Component<ComponentType::CAMERA>
 public:
 	virtual ComponentBase* clone() const;
 	
-	Camera camera;
+	Camera* camera;
 };
 
 #endif // CAMERA_COMPONENT_HPP

@@ -477,6 +477,8 @@ public:
 	Camera camera;
 	Camera sunlightCamera;
 	Camera uiCamera;
+	EntityID focusEntity;
+	EntityID cameraEntity;
 
 	// Animation
 	Animator animator;

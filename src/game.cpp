@@ -39,6 +39,8 @@
 #include "game/brush.hpp"
 #include "entity/component-manager.hpp"
 #include "entity/components/transform-component.hpp"
+#include "entity/components/camera-component.hpp"
+#include "entity/components/orbit-constraint-component.hpp"
 #include "entity/components/model-component.hpp"
 #include "entity/components/terrain-patch-component.hpp"
 #include "entity/entity-manager.hpp"
@@ -539,6 +541,25 @@ void Game::setup()
 	systemManager->addSystem(particleSystem);
 	systemManager->addSystem(constraintSystem);
 	systemManager->addSystem(renderSystem);
+
+	// Create focus entity
+	focusEntity = createInstance();
+	componentManager->addComponent(focusEntity, new TransformComponent());
+	setTranslation(focusEntity, {0, 0, 0});
+
+	// Create camera entity
+	cameraEntity = createInstance();
+	CameraComponent* cameraComponent = new CameraComponent();
+	cameraComponent->camera = &camera;
+	TransformComponent* transformComponent = new TransformComponent();
+	OrbitConstraintComponent* orbitConstraintComponent = new OrbitConstraintComponent();
+	orbitConstraintComponent->target = 0;
+	orbitConstraintComponent->elevation = 0.0f;
+	orbitConstraintComponent->azimuth = 0.0f;
+	orbitConstraintComponent->distance = 0.0f;
+	componentManager->addComponent(cameraEntity, cameraComponent);
+	componentManager->addComponent(cameraEntity, transformComponent);
+	componentManager->addComponent(cameraEntity, orbitConstraintComponent);
 
 	// Load navmesh
 	TriangleMesh* navmesh = resourceManager->load<TriangleMesh>("sidewalk.mesh");

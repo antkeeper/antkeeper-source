@@ -40,7 +40,12 @@ void RenderSystem::update(float t, float dt)
 		CameraComponent* camera = std::get<0>(member->components);
 		TransformComponent* transform = std::get<1>(member->components);
 
-		camera->camera.setTransform(transform->transform);
+		Vector3 forward = glm::normalize(transform->transform.rotation * Vector3(0.0f, 0.0f, -1.0f));
+		Vector3 up = glm::normalize(transform->transform.rotation * Vector3(0.0f, 1.0f, 0.0f));
+		Vector3 right = glm::normalize(glm::cross(forward, up));
+
+		camera->camera->lookAt(transform->transform.translation, transform->transform.translation + forward, up);
+		//camera->camera->setTransform(transform->transform);
 	}
 
 	// Update transform of all model instances
@@ -56,13 +61,13 @@ void RenderSystem::update(float t, float dt)
 void RenderSystem::memberRegistered(const CameraGroup::Member* member)
 {
 	CameraComponent* camera = std::get<0>(member->components);
-	scene->addObject(&camera->camera);
+	scene->addObject(camera->camera);
 }
 
 void RenderSystem::memberUnregistered(const CameraGroup::Member* member)
 {
 	CameraComponent* camera = std::get<0>(member->components);
-	scene->removeObject(&camera->camera);
+	scene->removeObject(camera->camera);
 }
 
 void RenderSystem::memberRegistered(const ModelGroup::Member* member)

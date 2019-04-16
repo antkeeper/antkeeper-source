@@ -22,6 +22,10 @@
 #include "menu.hpp"
 #include "debug/command-interpreter.hpp"
 #include "game/camera-rig.hpp"
+#include "entity/component-manager.hpp"
+#include "entity/components/transform-component.hpp"
+#include "entity/components/camera-component.hpp"
+#include "entity/components/orbit-constraint-component.hpp"
 
 void Game::enterTitleState()
 {
@@ -31,18 +35,14 @@ void Game::enterTitleState()
 	setTranslation(antHill, antHillTranslation);
 
 	// Setup camera
-	cameraRig = orbitCam;
-	orbitCam->setTargetFocalPoint(antHillTranslation);
-	orbitCam->setTargetFocalDistance(0.0f);
-	orbitCam->setTargetElevation(glm::radians(80.0f));
-	orbitCam->setTargetAzimuth(0.0f);
-	orbitCam->setFocalPoint(orbitCam->getTargetFocalPoint());
-	orbitCam->setFocalDistance(orbitCam->getTargetFocalDistance());
-	orbitCam->setElevation(orbitCam->getTargetElevation());
-	orbitCam->setAzimuth(orbitCam->getTargetAzimuth());
-
-	float fov = glm::radians(30.0f);
-	orbitCam->getCamera()->setPerspective(fov, (float)w / (float)h, 1.0f, 1000.0f);
+	float fov = radians(30.0f);
+	CameraComponent* cameraComponent = componentManager->getComponent<CameraComponent>(cameraEntity);
+	cameraComponent->camera->setPerspective(fov, (float)w / (float)h, 1.0f, 1000.0f);
+	OrbitConstraintComponent* orbitConstraintComponent = componentManager->getComponent<OrbitConstraintComponent>(cameraEntity);
+	orbitConstraintComponent->target = focusEntity;
+	orbitConstraintComponent->elevation = radians(45.0f);
+	orbitConstraintComponent->azimuth = 0.0f;
+	orbitConstraintComponent->distance = 40.0f;
 
 	// Begin fade-in
 	fadeIn(6.0f, {0, 0, 0}, nullptr);
