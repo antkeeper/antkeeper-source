@@ -19,8 +19,6 @@
 
 #include "game.hpp"
 #include "resources/string-table.hpp"
-#include "states/game-state.hpp"
-#include "states/sandbox-state.hpp"
 #include "filesystem.hpp"
 #include "timestamp.hpp"
 #include "ui/ui.hpp"
@@ -70,7 +68,6 @@
 #include "debug/ansi-escape-codes.hpp"
 
 Game::Game(int argc, char* argv[]):
-	currentState(nullptr),
 	window(nullptr)
 {
 	// Determine application name
@@ -110,8 +107,6 @@ Game::Game(int argc, char* argv[]):
 	eventDispatcher.subscribe<ScheduledFunctionEvent>(this);
 	toggleFullscreenDisabled = false;
 
-	sandboxState = new SandboxState(this);
-
 	float3x3 m1;
 	float3x3 m2;
 	float3x3 m3 = m1 + m2;
@@ -126,20 +121,6 @@ Game::~Game()
 	if (window)
 	{
 		windowManager->destroyWindow(window);
-	}
-}
-
-void Game::changeState(GameState* state)
-{
-	if (currentState != nullptr)
-	{
-		currentState->exit();
-	}
-
-	currentState = state;
-	if (currentState != nullptr)
-	{
-		currentState->enter();
 	}
 }
 
@@ -639,19 +620,11 @@ void Game::setup()
 			StateMachine::changeState(&splashState);
 		#endif
 	}
-
-	//changeState(sandboxState);
 }
 
 void Game::update(float t, float dt)
 {
 	this->time = t;
-
-	// Execute current state
-	if (currentState != nullptr)
-	{
-		currentState->execute();
-	}
 
 	// Update systems
 	systemManager->update(t, dt);

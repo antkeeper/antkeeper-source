@@ -34,9 +34,6 @@ using namespace Emergent;
 #include <vector>
 #include <fstream>
 
-class GameState;
-class SplashState;
-class SandboxState;
 class UIContainer;
 class UIBatcher;
 class UIImage;
@@ -129,13 +126,6 @@ public:
 	void setUpdateRate(double frequency);
 
 	void disableNonSystemControls();
-
-	/**
-	 * Changes the game state.
-	 *
-	 * @param state New game state.
-	 */
-	void changeState(GameState* state);
 
 	const EventDispatcher* getEventDispatcher() const;
 	EventDispatcher* getEventDispatcher();
@@ -247,9 +237,6 @@ public:
 	StateMachine::State loadingState;
 	StateMachine::State titleState;
 	StateMachine::State playState;
-
-	GameState* currentState;
-	SandboxState* sandboxState;
 
 	// Paths
 	std::string dataPath;
