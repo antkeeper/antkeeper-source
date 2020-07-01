@@ -22,6 +22,9 @@ endif()
 
 # Find dependency packages
 find_package(vmq REQUIRED CONFIG)
+find_package(dr_wav REQUIRED CONFIG)
+find_package(stb REQUIRED CONFIG)
+find_package(glad REQUIRED CONFIG)
 find_package(EnTT REQUIRED CONFIG)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED COMPONENTS SDL2::SDL2-static SDL2::SDL2main CONFIG)
@@ -30,6 +33,9 @@ find_package(OpenAL REQUIRED CONFIG)
 # Determine dependencies
 set(STATIC_LIBS
 	vmq
+	dr_wav
+	stb
+	glad
 	EnTT
 	SDL2::SDL2main)
 set(SHARED_LIBS
@@ -38,25 +44,24 @@ set(SHARED_LIBS
 	OpenAL::OpenAL)
 
 # Generate configuration header file
-configure_file(${PROJECT_SOURCE_DIR}/src/antkeeper/configuration.hpp.in
-	${PROJECT_BINARY_DIR}/src/antkeeper/configuration.hpp)
+configure_file(${PROJECT_SOURCE_DIR}/src/configuration.hpp.in
+	${PROJECT_BINARY_DIR}/src/configuration.hpp)
 
 # Collect source files
 file(GLOB_RECURSE SOURCE_FILES
-	${PROJECT_SOURCE_DIR}/src/*.cpp
-	${PROJECT_SOURCE_DIR}/src/*.c)
+	${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 if(MSVC)
 	# Generate Windows icon resource file
 	set(ICON_FILE "${PROJECT_SOURCE_DIR}/../antkeeper-data/src/icons/antkeeper.ico")
-	configure_file(${PROJECT_SOURCE_DIR}/src/antkeeper/platform/windows/icon.rc.in
-		${PROJECT_BINARY_DIR}/src/antkeeper/platform/windows/icon.rc)
+	configure_file(${PROJECT_SOURCE_DIR}/src/platform/windows/icon.rc.in
+		${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc)
 	
 	# Add executable icon
-	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/antkeeper/platform/windows/icon.rc")
+	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc")
 	
 	# Make DPI-aware on Windows
-	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/antkeeper/platform/windows/dpi-aware.manifest")
+	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/platform/windows/dpi-aware.manifest")
 endif()
 
 # Add executable target
@@ -91,8 +96,7 @@ endif(MSVC)
 target_include_directories(${EXECUTABLE_TARGET}
 	PUBLIC
 		${PROJECT_SOURCE_DIR}/src
-		${PROJECT_SOURCE_DIR}/src/antkeeper
-		${PROJECT_BINARY_DIR}/src/antkeeper)
+		${PROJECT_BINARY_DIR}/src)
 
 # Link to dependencies
 target_link_libraries(${EXECUTABLE_TARGET} ${STATIC_LIBS} ${SHARED_LIBS})
