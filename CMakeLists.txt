@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 
-# Include project macro
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/project.cmake)
+option(VERSION_STRING "Project version string" "0.0.0")
+
+project(antkeeper VERSION ${VERSION_STRING})
 
 # Set compiler flags
 if(CMAKE_COMPILER_IS_GNUCC)

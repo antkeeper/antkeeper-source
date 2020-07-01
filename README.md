@@ -10,7 +10,7 @@ Download the Antkeeper build system, source code, and all dependencies via the [
 
 	git clone --recursive https://github.com/antkeeper/antkeeper-superbuild.git
 
-Detailed configuration and building instructions can be found in the README of the superbuild repository.
+Detailed configuration and build instructions can be found in the [README](https://github.com/antkeeper/antkeeper-superbuild/blob/master/README.md) of the superbuild repository.
 
 ## License
 
