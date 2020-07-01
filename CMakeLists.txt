@@ -1,8 +1,3 @@
-# Prevent in-source builds
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-	message(FATAL_ERROR "In-source builds prohibited. Call cmake from the build directory.")
-endif()
-
 cmake_minimum_required(VERSION 3.7)
 
 # Include project macro
@@ -18,7 +13,6 @@ elseif(MSVC)
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS}")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /Ox")
 endif()
-
 
 # Find dependency packages
 find_package(vmq REQUIRED CONFIG)
