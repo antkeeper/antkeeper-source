@@ -1,0 +1,44 @@
+/*
+ * Copyright (C) 2020  Christopher J. Howard
+ *
+ * This file is part of Antkeeper source code.
+ *
+ * Antkeeper source code is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Antkeeper source code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef ANTKEEPER_CONFIGURATION_HPP
+#define ANTKEEPER_CONFIGURATION_HPP
+
+#include <vmq/vmq.hpp>
+
+using namespace vmq::types;
+
+#define ANTKEEPER_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define ANTKEEPER_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define ANTKEEPER_VERSION_PATCH @PROJECT_VERSION_PATCH@
+#define ANTKEEPER_VERSION_STRING "@PROJECT_VERSION@"
+
+constexpr float3 global_forward = {0.0f, 0.0f, -1.0f};
+constexpr float3 global_up = {0.0f, 1.0f, 0.0f};
+constexpr float3 global_right = {1.0f, 0.0f, 0.0f};
+
+#define MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT 1
+#define MATERIAL_PASS_MAX_POINT_LIGHT_COUNT 1
+#define MATERIAL_PASS_MAX_DIRECTIONAL_LIGHT_COUNT 1
+#define MATERIAL_PASS_MAX_SPOTLIGHT_COUNT 1
+#define TERRAIN_PATCH_SIZE 200.0f
+#define TERRAIN_PATCH_RESOLUTION 4
+#define VEGETATION_PATCH_RESOLUTION 1
+
+#endif // ANTKEEPER_CONFIGURATION_HPP
