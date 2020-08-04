@@ -22,6 +22,18 @@
 
 #include <functional>
 
+class animation_channel_base
+{
+	
+};
+
+template <typename T>
+class animation_channel: public animation_channel_base
+{
+public:
+	void insert_keyframe(float position, const T& value);
+};
+
 class animation_base
 {
 public:
@@ -49,16 +61,4 @@ class skeletal_animation: public animation<int>
 
 };
 
-class animator
-{
-public:
-	/**
-	 * Progresses all active animations by @p dt.
-	 *
-	 * @param dt Delta time by which the animations will be progressed.
-	 */
-	void animate(float dt);
-};
-
 #endif // ANTKEEPER_ANIMATION_HPP
-

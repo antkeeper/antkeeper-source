@@ -70,6 +70,12 @@ void renderer::render(float alpha, const scene& scene) const
 	// Process cameras in order
 	for (const camera* camera: sorted_cameras)
 	{
+		// Skip inactive cameras
+		if (!camera->is_active())
+		{
+			continue;
+		}
+		
 		// Skip cameras with no compositors
 		const compositor* compositor = camera->get_compositor();
 		if (!compositor)

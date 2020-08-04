@@ -62,6 +62,7 @@
 #include "rasterizer/texture-filter.hpp"
 
 // Renderer
+#include "renderer/simple-render-pass.hpp"
 #include "renderer/passes/shadow-map-pass.hpp"
 #include "renderer/passes/sky-pass.hpp"
 #include "renderer/passes/clear-pass.hpp"
@@ -70,6 +71,10 @@
 #include "renderer/passes/final-pass.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "renderer/material-flags.hpp"
+#include "renderer/material-property.hpp"
+
+// Animation
+#include "animation/animator.hpp"
 
 // Scene
 #include "scene/billboard.hpp"
@@ -148,20 +153,21 @@ application::application(int argc, char** argv):
 	{
 		if (!path_exists(path))
 		{
-			logger.log("Creating directory \"" + path + "\"... ");
+			int create_path_task = logger.open_task("Creating directory \"" + path + "\"");
 			if (create_directory(path))
 			{
-				logger.success("success\n");
+				logger.close_task(create_path_task, EXIT_SUCCESS);
 			}
 			else
 			{
-				logger.error("failed\n");
+				logger.close_task(create_path_task, EXIT_FAILURE);
 			}
 		}
 	}
 	
 	// Setup resource manager
 	resource_manager = new ::resource_manager();
+	resource_manager->set_logger(&logger);
 
 	// Include resource search paths in order of priority
 	resource_manager->include(config_path);
@@ -188,26 +194,26 @@ application::application(int argc, char** argv):
 	logger.log("Linking against SDL " + sdl_linked_version_string + "\n");
 
 	// Init SDL
-	logger.log("Initializing SDL... ");
+	int sdl_init_task = logger.open_task("Initializing SDL");
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 	{
-		logger.log("failed\n");
+		logger.close_task(sdl_init_task, EXIT_FAILURE);
 		throw std::runtime_error("Failed to initialize SDL");
 	}
 	else
 	{
-		logger.log("success\n");
+		logger.close_task(sdl_init_task, EXIT_SUCCESS);
 	}
 
 	// Load default OpenGL library
-	logger.log("Loading OpenGL library... ");
+	int load_gl_task = logger.open_task("Loading OpenGL library");
 	if (SDL_GL_LoadLibrary(nullptr) != 0)
 	{
-		logger.log("failed\n");
+		logger.close_task(load_gl_task, EXIT_FAILURE);
 	}
 	else
 	{
-		logger.log("success\n");
+		logger.close_task(load_gl_task, EXIT_SUCCESS);
 	}
 
 	// Set window creation hints
@@ -231,61 +237,71 @@ application::application(int argc, char** argv):
 	int window_width = 1920;
 	int window_height = 1080;
 	fullscreen = true;
+	
+	window_width = 1280;
+	window_height = 720;
+	fullscreen = false;
 	viewport = {0.0f, 0.0f, static_cast<float>(window_width), static_cast<float>(window_height)};
+	
+	int window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
+	if (fullscreen)
+	{
+		window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+	}
 
 	// Create window
-	logger.log("Creating " + std::to_string(window_width) + "x" + std::to_string(window_height) + " window... ");
+	int window_creation_task = logger.open_task("Creating " + std::to_string(window_width) + "x" + std::to_string(window_height) + " window");
 	window = SDL_CreateWindow
 	(
 		"Antkeeper", 
     	SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 	    window_width, window_height,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_FULLSCREEN_DESKTOP
+		window_flags
 	);
 	if (!window)
 	{
-		logger.error("failed\n");
+		logger.close_task(window_creation_task, EXIT_FAILURE);
 		throw std::runtime_error("Failed to create SDL window");
 	}
 	else
 	{
-		logger.success("success\n");
+		logger.close_task(window_creation_task, EXIT_SUCCESS);
 	}
 
 	// Create OpenGL context
-	logger.log("Creating OpenGL 3.3 context... ");
+	int create_gl_context_task = logger.open_task("Creating OpenGL 3.3 context");
 	context = SDL_GL_CreateContext(window);
 	if (!context)
 	{
-		logger.error("failed\n");
+		logger.close_task(create_gl_context_task, EXIT_FAILURE);
 		throw std::runtime_error("Failed to create OpenGL context");
 	}
 	else
 	{
-		logger.success("success\n");
+		logger.close_task(create_gl_context_task, EXIT_SUCCESS);
 	}
 
 	// Load OpenGL functions via GLAD
-	logger.log("Loading OpenGL functions... ");
+	int load_gl_functions_task = logger.open_task("Loading OpenGL functions");
 	if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
 	{
-		logger.error("failed\n");
+		logger.close_task(load_gl_functions_task, EXIT_FAILURE);
 	}
 	else
 	{
-		logger.success("success\n");
+		logger.close_task(load_gl_functions_task, EXIT_SUCCESS);
 	}
 
 	// Set v-sync mode
 	int swap_interval = 1;
-	logger.log((swap_interval) ? "Enabling v-sync... " : "Disabling v-sync... ");
+	int set_vsync_task = logger.open_task((swap_interval) ? "Enabling v-sync" : "Disabling v-sync");
 	if (SDL_GL_SetSwapInterval(swap_interval) != 0)
 	{
-		logger.error("failed\n");
+		logger.close_task(set_vsync_task, EXIT_FAILURE);
 	}
 	else
 	{
-		logger.success("success\n");
+		logger.close_task(set_vsync_task, EXIT_SUCCESS);
 	}
 
 	// Setup rasterizer
@@ -303,27 +319,27 @@ application::application(int argc, char** argv):
 	SDL_ShowCursor(SDL_DISABLE);
 
 	// Init SDL joystick and game controller subsystems
-	logger.log("Initializing SDL Joystick and Game Controller subsystems... ");
+	int init_sdl_subsystems_task = logger.open_task("Initializing SDL Joystick and Game Controller subsystems");
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
 	{
-		logger.log("failed\n");
+		logger.close_task(init_sdl_subsystems_task, EXIT_FAILURE);
 		throw std::runtime_error("Failed to initialize SDL Joystick or Game Controller subsystems");
 	}
 	else
 	{
-		logger.success("success\n");
+		logger.close_task(init_sdl_subsystems_task, EXIT_SUCCESS);
 	}
 
 	// Load SDL game controller mappings
-	logger.log("Loading SDL game controller mappings from database... ");
+	int load_controller_db_task = logger.open_task("Loading SDL game controller mappings from database");
 	std::string gamecontrollerdb_path = data_path + "controls/gamecontrollerdb.txt";
 	if (SDL_GameControllerAddMappingsFromFile(gamecontrollerdb_path.c_str()) == -1)
 	{
-		logger.error("failed\n");
+		logger.close_task(load_controller_db_task, EXIT_FAILURE);
 	}
 	else
 	{
-		logger.success("success\n");
+		logger.close_task(load_controller_db_task, EXIT_SUCCESS);
 	}
 	
 	// Setup billboard VAO
@@ -354,7 +370,6 @@ application::application(int argc, char** argv):
 	
 	// Load fallback material
 	fallback_material = resource_manager->load<material>("fallback.mtl");
-	
 	
 	// Create shadow map depth texture and framebuffer
 	shadow_map_resolution = 4096;
@@ -388,7 +403,7 @@ application::application(int argc, char** argv):
 	framebuffer_bloom = new framebuffer(bloom_width, bloom_height);
 	framebuffer_bloom->attach(framebuffer_attachment_type::color, bloom_texture);
 	
-	// Setup default compositor
+	// Setup overworld passes
 	shadow_map_clear_pass = new ::clear_pass(rasterizer, shadow_map_framebuffer);
 	shadow_map_clear_pass->set_cleared_buffers(false, true, false);
 	shadow_map_pass = new ::shadow_map_pass(rasterizer, shadow_map_framebuffer, resource_manager);
@@ -402,35 +417,65 @@ application::application(int argc, char** argv):
 	material_pass->set_focal_point_tween(&focal_point_tween);
 	material_pass->shadow_map_pass = shadow_map_pass;
 	material_pass->shadow_map = shadow_map_depth_texture;
-	
 	bloom_pass = new ::bloom_pass(rasterizer, framebuffer_bloom, resource_manager);
 	bloom_pass->set_source_texture(framebuffer_hdr_color);
 	bloom_pass->set_brightness_threshold(1.0f);
 	bloom_pass->set_blur_iterations(4);
 	bloom_pass->set_enabled(false);
-	
 	final_pass = new ::final_pass(rasterizer, &rasterizer->get_default_framebuffer(), resource_manager);
 	final_pass->set_color_texture(framebuffer_hdr_color);
 	final_pass->set_bloom_texture(bloom_texture);
 	
-	default_compositor.add_pass(shadow_map_clear_pass);
-	default_compositor.add_pass(shadow_map_pass);
-	default_compositor.add_pass(clear_pass);
-	default_compositor.add_pass(sky_pass);
-	default_compositor.add_pass(material_pass);
-	default_compositor.add_pass(bloom_pass);
-	default_compositor.add_pass(final_pass);
+	// Setup overworld compositor
+	overworld_compositor.add_pass(shadow_map_clear_pass);
+	overworld_compositor.add_pass(shadow_map_pass);
+	overworld_compositor.add_pass(clear_pass);
+	overworld_compositor.add_pass(sky_pass);
+	overworld_compositor.add_pass(material_pass);
+	overworld_compositor.add_pass(bloom_pass);
+	overworld_compositor.add_pass(final_pass);
 	
-	// Setup default camera
-	default_camera.set_perspective(45.0f * vmq::pi<float> / 180.0f, (float)window_width / (float)window_height, 0.1f, 1000.0f);
-	default_camera.set_compositor(&default_compositor);
-	default_camera.set_composite_index(1);
+	// Setup overworld camera
+	overworld_camera.set_perspective(45.0f * vmq::pi<float> / 180.0f, (float)window_width / (float)window_height, 0.1f, 1000.0f);
+	overworld_camera.set_compositor(&overworld_compositor);
+	overworld_camera.set_composite_index(0);
+	overworld_camera.set_active(true);
+	
+	// Setup underworld passes
+	underworld_clear_pass = new ::clear_pass(rasterizer, framebuffer_hdr);
+	underworld_clear_pass->set_cleared_buffers(true, true, false);
+	
+	
+	underworld_material_pass = new ::material_pass(rasterizer, framebuffer_hdr, resource_manager);
+	underworld_material_pass->set_fallback_material(fallback_material);
+	underworld_material_pass->set_time_tween(&time);
+	underworld_material_pass->set_focal_point_tween(&focal_point_tween);
+	
+	shader_program* underworld_final_shader = resource_manager->load<shader_program>("underground-final.glsl");
+	underworld_final_pass = new simple_render_pass(rasterizer, &rasterizer->get_default_framebuffer(), underworld_final_shader);
+	underworld_final_pass->set_time_tween(&time);
+	underground_transition_property = underworld_final_pass->get_material()->add_property<float>("transition");
+	underground_color_texture_property = underworld_final_pass->get_material()->add_property<const texture_2d*>("color_texture");
+	underground_color_texture_property->set_value(framebuffer_hdr_color);
+	
+	// Setup underworld compositor
+	underworld_compositor.add_pass(underworld_clear_pass);
+	underworld_compositor.add_pass(underworld_material_pass);
+	underworld_compositor.add_pass(underworld_final_pass);
+	
+	// Setup underworld camera
+	underworld_camera.set_perspective(45.0f * vmq::pi<float> / 180.0f, (float)window_width / (float)window_height, 0.1f, 1000.0f);
+	underworld_camera.look_at({0, 50, 0}, {0, 0, 0}, {0, 0, -1});
+	underworld_camera.set_compositor(&underworld_compositor);
+	underworld_camera.set_composite_index(0);
+	underworld_camera.set_active(false);
 	
 	// Setup timeline system
 	timeline.set_autoremove(true);
 
 	// Setup animation system
 	// ...
+	animator = new ::animator();
 	
 	// ECS
 	terrain_system = new ::terrain_system(ecs_registry, resource_manager);
@@ -444,7 +489,7 @@ application::application(int argc, char** argv):
 
 	
 	tool_system = new ::tool_system(ecs_registry);
-	tool_system->set_camera(&default_camera);
+	tool_system->set_camera(&overworld_camera);
 	tool_system->set_orbit_cam(&orbit_cam);
 	tool_system->set_viewport(viewport);
 	camera_system = new ::camera_system(ecs_registry);
@@ -479,14 +524,14 @@ application::application(int argc, char** argv):
 	systems.push_back([this](double t, double dt){
 		this->subterrain_light.set_translation(orbit_cam.get_focal_point());
 		this->lantern.set_translation(orbit_cam.get_focal_point());
-		this->spotlight.set_transform(default_camera.get_transform());
+		this->spotlight.set_transform(overworld_camera.get_transform());
 		this->focal_point_tween[1] = orbit_cam.get_focal_point();
 	});
 
 	systems.push_back([this](double t, double dt){ this->ui_system->update(dt); });
 	systems.push_back(std::bind(&tool_system::update, tool_system, std::placeholders::_1, std::placeholders::_2));
 	systems.push_back(std::bind(&model_system::update, model_system, std::placeholders::_1, std::placeholders::_2));
-	systems.push_back([this](double t, double dt){ this->animator.animate(dt); });
+	systems.push_back([this](double t, double dt){ this->animator->animate(dt); });
 	systems.push_back([this](double t, double dt){ this->application_controls.update(); this->menu_controls.update(); this->camera_controls->update(); });
 
 	// Setup FSM states
@@ -533,7 +578,7 @@ application::application(int argc, char** argv):
 	// Setup input event routing
 	input_event_router.set_event_dispatcher(&event_dispatcher);
 	input_mapper.set_event_dispatcher(&event_dispatcher);
-
+	
 	// Setup input devices
 	keyboard.set_event_dispatcher(&event_dispatcher);
 	mouse.set_event_dispatcher(&event_dispatcher);
@@ -553,7 +598,7 @@ application::application(int argc, char** argv):
 	menu_controls.add_control(&menu_back_control);
 	menu_controls.add_control(&menu_select_control);
 
-	orbit_cam.attach(&default_camera);
+	orbit_cam.attach(&overworld_camera);
 	control_system = new ::control_system();
 	control_system->set_orbit_cam(&orbit_cam);
 	control_system->set_viewport(viewport);
@@ -585,14 +630,20 @@ application::application(int argc, char** argv):
 	control_system->get_toggle_view_control()->set_activated_callback(
 		[this]()
 		{
-			this->active_scene->remove_object(&this->default_camera);
-			this->active_scene = (this->active_scene == &this->overworld_scene) ? &this->underworld_scene : &this->overworld_scene;
-			this->active_scene->add_object(&this->default_camera);
-			
 			if (this->active_scene == &this->overworld_scene)
-				this->sky_pass->set_enabled(true);
+			{
+				// Switch to underworld
+				//this->overworld_camera.set_active(false);
+				this->underworld_camera.set_active(true);
+				this->active_scene = &this->underworld_scene;
+			}
 			else
-				this->sky_pass->set_enabled(false);
+			{
+				// Switch to overworld
+				this->underworld_camera.set_active(false);
+				this->overworld_camera.set_active(true);
+				this->active_scene = &this->overworld_scene;
+			}
 		});
 	
 	input_event_router.add_mapping(game_controller_axis_mapping(control_system->get_move_forward_control(), nullptr, game_controller_axis::left_y, true));
@@ -738,32 +789,27 @@ application::application(int argc, char** argv):
 	
 
 	// Setup overworld scene
-	overworld_scene.add_object(&default_camera);
+	overworld_scene.add_object(&overworld_camera);
 	overworld_scene.add_object(&sun_indirect);
 	overworld_scene.add_object(&sun_direct);
 	overworld_scene.add_object(&spotlight);
 	overworld_scene.add_object(&cloud);
 	overworld_scene.add_object(arrow_billboard);
 	
-	underworld_scene.add_object(portal_billboard);
-	
-	model_instance* larva = new model_instance(resource_manager->load<model>("larva.obj"));
-	underworld_scene.add_object(larva);
-	
-	model_instance* samara = new model_instance(resource_manager->load<model>("samara.obj"));
-	samara->set_translation({2, -1, 0});
-	underworld_scene.add_object(samara);
-
-	
 	// Setup underworld scene
+	underworld_scene.add_object(&underworld_camera);
 	underworld_scene.add_object(&underworld_ambient_light);
 	//underworld_scene.add_object(&darkness_volume);
 	underworld_scene.add_object(&lantern);
 	underworld_scene.add_object(&subterrain_light);
+	underworld_scene.add_object(portal_billboard);
+	//model_instance* larva = new model_instance(resource_manager->load<model>("larva.obj"));
+	//underworld_scene.add_object(larva);
+	model_instance* flashlight = new model_instance(resource_manager->load<model>("flashlight.obj"));
+	underworld_scene.add_object(flashlight);
 
-	
+	// Set overworld as active scene
 	active_scene = &overworld_scene;
-	
 }
 
 application::~application()
@@ -785,7 +831,7 @@ void application::close(int status)
 int application::execute()
 {
 	// Enter inital state
-	state_machine.change_state(play_state);
+	state_machine.change_state(splash_state);
 
 	// Perform initial update
 	update(0.0, 0.0);
@@ -833,7 +879,9 @@ void application::render(double alpha)
 	std::cout << performance_sampler.mean_frame_duration() * 1000.0 << std::endl;
 	*/
 	
-	renderer.render(alpha, *active_scene);
+	renderer.render(alpha, overworld_scene);
+	renderer.render(alpha, underworld_scene);
+	//renderer.render(alpha, *active_scene);
 	renderer.render(alpha, *ui_system->get_scene());
 
 	SDL_GL_SwapWindow(window);
@@ -1022,7 +1070,8 @@ void application::window_resized()
 	viewport = {0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)};
 
 	rasterizer->window_resized(width, height);
-	default_camera.set_perspective(default_camera.get_fov(), aspect_ratio, default_camera.get_clip_near(), default_camera.get_clip_far());
+	overworld_camera.set_perspective(overworld_camera.get_fov(), aspect_ratio, overworld_camera.get_clip_near(), overworld_camera.get_clip_far());
+	underworld_camera.set_perspective(underworld_camera.get_fov(), aspect_ratio, underworld_camera.get_clip_near(), underworld_camera.get_clip_far());
 	control_system->set_viewport(viewport);
 	camera_system->set_viewport(viewport);
 	tool_system->set_viewport(viewport);

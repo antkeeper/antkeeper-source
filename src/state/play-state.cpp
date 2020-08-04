@@ -44,7 +44,7 @@ using namespace vmq::operators;
 void enter_play_state(application* app)
 {
 	logger* logger = app->get_logger();
-	logger->log("Entering play state...\n");
+	int enter_state_task = logger->open_task("Entering play state");
 
 
 	resource_manager* resource_manager = app->get_resource_manager();
@@ -138,8 +138,8 @@ void enter_play_state(application* app)
 	ecs_registry.get<ecs::transform_component>(grass_entity_2).transform.rotation = vmq::angle_axis(vmq::radians(120.0f), float3{0, 1, 0});
 	*/
 
-	// Setup camera
-	camera* camera = app->get_camera();
+	// Setup overworld camera
+	camera* camera = app->get_overworld_camera();
 	orbit_cam* orbit_cam = app->get_orbit_cam();
 	orbit_cam->attach(camera);
 	orbit_cam->set_target_focal_point({0, 0, 0});
@@ -227,14 +227,16 @@ void enter_play_state(application* app)
 	control_system->set_nest(nest);
 	orbit_cam->update(0.0f);
 
-	logger->success("Entering play state... success\n");
+	logger->close_task(enter_state_task, EXIT_SUCCESS);
 }
 
 void exit_play_state(application* app)
 {
 	logger* logger = app->get_logger();
 	logger->log("Exiting play state...\n");
+	
+	int exit_state_task = logger->open_task("Exiting play state");
 
-	logger->success("Exiting play state... success\n");
+	logger->close_task(exit_state_task, EXIT_SUCCESS);
 }
 

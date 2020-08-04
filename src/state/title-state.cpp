@@ -19,17 +19,18 @@
 
 #include "application-states.hpp"
 #include "application.hpp"
-#include <iostream>
 
 void enter_title_state(application* app)
 {
 	logger* logger = app->get_logger();
-	logger->log("Entering title state...\n");
+	int task_id = logger->open_task("Entering title state");
 
+	// Get timeline
 	timeline* timeline = app->get_timeline();
+	
+	// Create title sequence
 	float t = timeline->get_position();
-
-	sequence startup_sequence =
+	sequence title_sequence =
 	{
 		{t +  0.0f, [logger](){ logger->log("cue sound fade-in\n"); }},
 		{t +  3.0f, [logger](){ logger->log("cue scene fade-in from black\n"); }},
@@ -37,17 +38,17 @@ void enter_title_state(application* app)
 		{t + 10.0f, [logger](){ logger->log("cue menu fade-in\n"); }}
 	};
 
-	timeline->add_sequence(startup_sequence);
+	// Add title sequence to timeline
+	timeline->add_sequence(title_sequence);
 
-	logger->success("Entering title state... success\n");
+	logger->close_task(task_id, EXIT_SUCCESS);
 }
 
 void exit_title_state(application* app)
 {
 	logger* logger = app->get_logger();
-	logger->log("Exiting title state...\n");
-	
+	int task_id = logger->open_task("Exiting title state");
 
-	logger->success("Exiting title state... success\n");
+	logger->close_task(task_id, EXIT_SUCCESS);
 }
 

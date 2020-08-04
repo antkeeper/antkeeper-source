@@ -22,6 +22,7 @@
 
 #include "resource-handle.hpp"
 #include "resource-loader.hpp"
+#include "debug/logger.hpp"
 #include <fstream>
 #include <list>
 #include <map>
@@ -80,11 +81,14 @@ public:
 	void save(const T* resource, const std::string& path);
 
 	entt::registry& get_archetype_registry();
+	
+	void set_logger(::logger* logger);
 
 private:
 	std::map<std::string, resource_handle_base*> resource_cache;
 	std::list<std::string> paths;
 	entt::registry archetype_registry;
+	::logger* logger;
 };
 
 template <typename T>
@@ -102,6 +106,12 @@ T* resource_manager::load(const std::string& path)
 
 		// Return resource data
 		return resource->data;
+	}
+	
+	int task_id;
+	if (logger)
+	{
+		task_id = logger->open_task("Loading resource \"" + path + "\"");
 	}
 
 	// Resource not found, load resource data
@@ -138,11 +148,21 @@ T* resource_manager::load(const std::string& path)
 
 		if (!opened)
 		{
+			if (logger)
+			{
+				logger->close_task(task_id, EXIT_FAILURE);
+			}
+			
 			throw std::runtime_error("resource_manager::load<T>(): Unable to open file \"" + path + "\"");
 		}
 	}
 	catch (const std::exception& e)
 	{
+		if (logger)
+		{
+			logger->close_task(task_id, EXIT_FAILURE);
+		}
+		
 		std::string error = std::string("resource_manager::load<T>(): Failed to load resource \"") + path + std::string("\": \"") + e.what() + std::string("\"");
 		throw std::runtime_error(error.c_str());
 	}
@@ -154,6 +174,11 @@ T* resource_manager::load(const std::string& path)
 	
 	// Add resource to the cache
 	resource_cache[path] = resource;
+	
+	if (logger)
+	{
+		logger->close_task(task_id, EXIT_SUCCESS);
+	}
 
 	return resource->data;
 }

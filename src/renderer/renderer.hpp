@@ -49,6 +49,12 @@ class renderer
 public:
 	renderer();
 	
+	/**
+	 * Renders a scene.
+	 *
+	 * @param alpha Subframe interpolation factor.
+	 * @parma scene Scene to render.
+	 */
 	void render(float alpha, const scene& scene) const;
 	
 	/**

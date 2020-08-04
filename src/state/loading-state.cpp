@@ -24,9 +24,9 @@
 void enter_loading_state(application* app)
 {
 	logger* logger = app->get_logger();
-	logger->log("Entering loading state...\n");
+	int task_id = logger->open_task("Entering loading state");
 
-	logger->success("Entering loading state... success\n");
+	logger->close_task(task_id, EXIT_SUCCESS);
 
 	app->get_state_machine()->change_state(app->get_title_state());
 }
@@ -34,8 +34,8 @@ void enter_loading_state(application* app)
 void exit_loading_state(application* app)
 {
 	logger* logger = app->get_logger();
-	logger->log("Exiting loading state...\n");
+	int task_id = logger->open_task("Exiting loading state");
 
-	logger->success("Exiting loading state... success\n");
+	logger->close_task(task_id, EXIT_SUCCESS);
 }
 

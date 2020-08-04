@@ -17,7 +17,19 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "animation.hpp"
+#ifndef ANTKEEPER_ANIMATOR_HPP
+#define ANTKEEPER_ANIMATOR_HPP
 
-void animation_base::animate(float dt)
-{}
+class animator
+{
+public:
+	/**
+	 * Progresses all active animations by @p dt.
+	 *
+	 * @param dt Delta time by which the animations will be progressed.
+	 */
+	void animate(float dt);
+};
+
+#endif // ANTKEEPER_ANIMATOR_HPP
+

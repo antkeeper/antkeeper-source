@@ -17,7 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "animation.hpp"
+#include "animator.hpp"
 
-void animation_base::animate(float dt)
-{}
+void animator::animate(float dt)
+{
+
+}
+

@@ -19,32 +19,52 @@
 
 #include "application-states.hpp"
 #include "application.hpp"
+
+#include <functional>
 #include <iostream>
 
 void enter_splash_state(application* app)
 {
-	logger* logger = app->get_logger();
-	logger->log("Entering splash state...\n");
+	logger* logger = app->get_logger();	
+	int task_id = logger->open_task("Entering splash state");
 	
+	auto fade_in = [logger]()
+	{
+		logger->log("cue logo fade-in\n");
+	};
+	
+	auto fade_out = [logger]()
+	{
+		logger->log("cue logo fade-out\n");
+	};
+	
+	auto change_state = [app]()
+	{
+		app->get_state_machine()->change_state(app->get_title_state());
+	};
+	
+	// Get timeline
 	timeline* timeline = app->get_timeline();
-	float t = timeline->get_position();
 
+	// Create splash sequence
+	float t = timeline->get_position();
 	sequence splash_sequence =
 	{
-		{t +  0.0f, [logger](){ logger->log("cue logo fade-in\n"); }},
-		{t +  3.0f, [logger](){ logger->log("cue logo fade-out\n"); }},
-		{t + 8.0f, [app](){ app->get_state_machine()->change_state(app->get_play_state()); }}
+		{t + 0.0f, fade_in},
+		{t + 3.0f, fade_out},
+		{t + 8.0f, change_state}
 	};
 
+	// Add splash sequence to timeline
 	timeline->add_sequence(splash_sequence);
 	
-	logger->success("Entering splash state... success\n");
+	logger->close_task(task_id, EXIT_SUCCESS);
 }
 
 void exit_splash_state(application* app)
 {
 	logger* logger = app->get_logger();
-	logger->log("Exiting splash state...\n");
-	logger->success("Exiting splash state... success\n");
+	int task_id = logger->open_task("Exiting splash state");
+	
+	logger->close_task(task_id, EXIT_SUCCESS);
 }
-

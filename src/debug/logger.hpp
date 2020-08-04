@@ -23,6 +23,7 @@
 #include <list>
 #include <ostream>
 #include <string>
+#include <unordered_map>
 
 class logger
 {
@@ -56,6 +57,22 @@ public:
 
 	void push_prefix(const std::string& prefix);
 	void pop_prefix();
+	
+	/**
+	 * Opens a task and outputs it to the log.
+	 *
+	 * @return Task ID used to close the task later.
+	 */
+	int open_task(const std::string& text);
+	
+	/**
+	 * Closes a task and outputs its status to the log.
+	 *
+	 * @param id ID of the task to close.
+	 * @param status Exit status of the task. A value of `0` or `EXIT_SUCCESS` indicates the task exited successfully. A non-zero exit status indicates the task failed.
+	 * @return `true` if the task was closed, `false` if no task with the specified ID was found.
+	 */
+	bool close_task(int id, int status);
 
 private:
 	std::ostream* os;
@@ -68,6 +85,9 @@ private:
 	std::string success_prefix;
 	std::string success_postfix;
 	std::list<std::string> prefix_stack;
+	int next_task_id;
+	
+	std::unordered_map<int, std::string> tasks;
 };
 
 #endif // ANTKEEPER_LOGGER_HPP

@@ -29,7 +29,8 @@ logger::logger():
 	error_prefix(std::string("Error: ")),
 	error_postfix(std::string()),
 	success_prefix(std::string("Success: ")),
-	success_postfix(std::string())
+	success_postfix(std::string()),
+	next_task_id(0)
 {}
 
 logger::~logger()
@@ -118,5 +119,45 @@ void logger::push_prefix(const std::string& prefix)
 void logger::pop_prefix()
 {
 	prefix_stack.pop_back();
+}
+
+int logger::open_task(const std::string& text)
+{
+	tasks[next_task_id] = text;
+	
+	std::string indent;
+	for (std::size_t i = 0; i < tasks.size() - 1; ++i)
+		indent += "    ";
+	
+	log(indent + text + "...\n");
+	
+	return next_task_id++;
+}
+
+bool logger::close_task(int id, int status)
+{
+	auto it = tasks.find(id);
+	if (it == tasks.end())
+		return false;
+	
+	std::string message = it->second + "... ";
+	
+	
+	std::string indent;
+	for (std::size_t i = 0; i < tasks.size() - 1; ++i)
+		indent += "    ";
+	
+	if (status == EXIT_SUCCESS)
+	{
+		message += "success\n";
+		log(indent + message);
+	}
+	else
+	{
+		message += "failed (" + std::to_string(status) + ")\n";
+		log(indent + message);
+	}
+	
+	tasks.erase(it);
 }
 

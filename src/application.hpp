@@ -61,7 +61,6 @@
 
 // Animation
 #include "animation/timeline.hpp"
-#include "animation/animation.hpp"
 #include "animation/tween.hpp"
 
 // Misc
@@ -93,6 +92,10 @@
 	class sky_pass;
 	class bloom_pass;
 	class final_pass;
+	class simple_render_pass;
+	
+	// Animation
+	class animator;
 
 	// Systems
 	class behavior_system;
@@ -109,6 +112,9 @@
 	class tool_system;
 	class control_system;
 	class ui_system;
+	
+	template <class T>
+	class material_property;
 //}
 
 class application
@@ -149,7 +155,9 @@ public:
 	const fsm::state& get_pause_state() const;
 	timeline* get_timeline();
 	animator* get_animator();
-	camera* get_camera();
+	camera* get_overworld_camera();
+	camera* get_underworld_camera();
+
 	orbit_cam* get_orbit_cam();
 	control_system* get_control_system();
 
@@ -193,7 +201,7 @@ private:
 
 	// Updatable systems
 	timeline timeline;
-	animator animator;
+	animator* animator;
 	std::list<std::function<void(double, double)>> systems;
 	
 	int shadow_map_resolution;
@@ -210,16 +218,8 @@ private:
 	// Rendering
 	rasterizer* rasterizer;
 	material* fallback_material;
-	::clear_pass* clear_pass;
-	::sky_pass* sky_pass;
-	::material_pass* material_pass;
-	compositor default_compositor;
-	::clear_pass* shadow_map_clear_pass;
-	::shadow_map_pass* shadow_map_pass;
-	::bloom_pass* bloom_pass;
-	::final_pass* final_pass;
+
 	
-	camera default_camera;
 	ambient_light sun_indirect;
 	directional_light sun_direct;
 	point_light subterrain_light;
@@ -232,9 +232,29 @@ private:
 	vertex_buffer* billboard_vbo;
 	vertex_array* billboard_vao;
 	::renderer renderer;
-	scene overworld_scene;
-	scene underworld_scene;
 	scene* active_scene;
+	
+	// Overworld
+	scene overworld_scene;
+	camera overworld_camera;
+	::clear_pass* clear_pass;
+	::sky_pass* sky_pass;
+	::material_pass* material_pass;
+	::clear_pass* shadow_map_clear_pass;
+	::shadow_map_pass* shadow_map_pass;
+	::bloom_pass* bloom_pass;
+	::final_pass* final_pass;
+	compositor overworld_compositor;
+	
+	// Underworld
+	scene underworld_scene;
+	camera underworld_camera;
+	::clear_pass* underworld_clear_pass;
+	::material_pass* underworld_material_pass;
+	simple_render_pass* underworld_final_pass;
+	material_property<float>* underground_transition_property;
+	material_property<const texture_2d*>* underground_color_texture_property;
+	compositor underworld_compositor;
 
 	// FSM
 	fsm::machine state_machine;
@@ -354,12 +374,17 @@ inline timeline* application::get_timeline()
 
 inline animator* application::get_animator()
 {
-	return &animator;
+	return animator;
 }
 
-inline camera* application::get_camera()
+inline camera* application::get_overworld_camera()
 {
-	return &default_camera;
+	return &overworld_camera;
+}
+
+inline camera* application::get_underworld_camera()
+{
+	return &underworld_camera;
 }
 
 inline orbit_cam* application::get_orbit_cam()

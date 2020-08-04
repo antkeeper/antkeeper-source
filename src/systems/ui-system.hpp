@@ -58,6 +58,9 @@ private:
 	
 	void open_tool_menu();
 	void close_tool_menu();
+	
+	void open_elevator_menu();
+	void close_elevator_menu();
 
 	::resource_manager* resource_manager;
 	::scene scene;
@@ -68,6 +71,8 @@ private:
 	billboard tool_selector_bg;
 	material modal_bg_material;
 	billboard modal_bg;
+	
+	billboard underground_bg;
 	
 	model_instance energy_symbol;
 	

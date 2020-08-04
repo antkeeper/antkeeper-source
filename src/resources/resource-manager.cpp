@@ -19,7 +19,8 @@
 
 #include "resources/resource-manager.hpp"
 
-resource_manager::resource_manager()
+resource_manager::resource_manager():
+	logger(nullptr)
 {}
 
 resource_manager::~resource_manager()
@@ -53,5 +54,10 @@ void resource_manager::unload(const std::string& path)
 void resource_manager::include(const std::string& path)
 {
 	paths.push_back(path);
+}
+
+void resource_manager::set_logger(::logger* logger)
+{
+	this->logger = logger;
 }
 

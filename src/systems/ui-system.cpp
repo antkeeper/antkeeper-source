@@ -158,3 +158,13 @@ void ui_system::close_tool_menu()
 	scene.remove_object(&tool_selector_bg);
 	scene.remove_object(&tool_selector_ant);
 }
+
+void ui_system::open_elevator_menu()
+{
+	
+}
+
+void ui_system::close_elevator_menu()
+{
+	
+}
