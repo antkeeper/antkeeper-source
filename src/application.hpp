@@ -33,6 +33,7 @@
 // Debug
 #include "debug/logger.hpp"
 #include "debug/performance-sampler.hpp"
+#include "debug/cli.hpp"
 
 // Input
 #include "input/control.hpp"
@@ -145,6 +146,8 @@ public:
 	void close(int status);
 
 	logger* get_logger();
+	cli* get_cli();
+	
 	resource_manager* get_resource_manager();
 	fsm::machine* get_state_machine();
 	const fsm::state& get_loading_state() const;
@@ -184,7 +187,8 @@ private:
 
 	// Debugging
 	std::ofstream log_filestream;
-	logger logger;
+	::logger logger;
+	::cli cli;
 
 	// Paths
 	std::string data_path;
@@ -325,6 +329,11 @@ private:
 inline logger* application::get_logger()
 {
 	return &logger;
+}
+
+inline cli* application::get_cli()
+{
+	return &cli;
 }
 
 inline resource_manager* application::get_resource_manager()

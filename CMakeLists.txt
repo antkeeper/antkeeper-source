@@ -15,7 +15,6 @@ elseif(MSVC)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /Ox")
 endif()
 
-
 # Find dependency packages
 find_package(vmq REQUIRED CONFIG)
 find_package(dr_wav REQUIRED CONFIG)
@@ -25,6 +24,7 @@ find_package(EnTT REQUIRED CONFIG)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED COMPONENTS SDL2::SDL2-static SDL2::SDL2main CONFIG)
 find_package(OpenAL REQUIRED CONFIG)
+
 
 # Determine dependencies
 set(STATIC_LIBS

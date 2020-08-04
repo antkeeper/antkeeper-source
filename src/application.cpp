@@ -39,6 +39,7 @@
 
 // Debug
 #include "debug/ansi-codes.hpp"
+#include "debug/console-commands.hpp"
 
 // Resources
 #include "resources/resource-manager.hpp"
@@ -800,6 +801,14 @@ application::application(int argc, char** argv):
 
 	// Set overworld as active scene
 	active_scene = &overworld_scene;
+	
+	// Setup debug CLI
+	cli.register_command("echo", cc::echo);
+	cli.register_command("exit", std::function<std::string()>(std::bind(&cc::exit, this)));
+	
+	std::string cmd = "echo abc 123";
+	logger.log(cmd + "\n");
+	logger.log(cli.interpret(cmd) + "\n");
 }
 
 application::~application()

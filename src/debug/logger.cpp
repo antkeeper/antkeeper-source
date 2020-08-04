@@ -54,11 +54,6 @@ void logger::log(const std::string& text)
 		
 		for (std::size_t i = 0; i < tasks.size(); ++i)
 			(*os) << indent;
-		
-		for (const std::string& prefix: prefix_stack)
-		{
-			(*os) << prefix;
-		}
 
 		(*os) << (log_prefix + text + log_postfix);
 
@@ -119,16 +114,6 @@ void logger::set_success_prefix(const std::string& prefix)
 void logger::set_success_postfix(const std::string& postfix)
 {
 	success_postfix = postfix;
-}
-
-void logger::push_prefix(const std::string& prefix)
-{
-	prefix_stack.push_back(prefix);
-}
-
-void logger::pop_prefix()
-{
-	prefix_stack.pop_back();
 }
 
 void logger::push_task(const std::string& description)

@@ -32,9 +32,6 @@
 class cli
 {
 public:
-	/// String-wrapped function object
-	typedef std::function<std::string(const std::string&)> command_type;
-
 	/**
 	 * Interprets a command line as a function invocation.
 	 *
@@ -66,6 +63,9 @@ public:
 	void unregister_command(const std::string& name);
 
 private:
+	/// String-wrapped function object
+	typedef std::function<std::string(const std::string&)> command_type;
+	
 	/**
 	 * Parses a single argument from a string stream.
 	 *
@@ -86,20 +86,6 @@ private:
 	std::map<std::string, command_type> commands;
 };
 
-std::string cli::interpret(const std::string& line) const
-{
-	std::istringstream stream(line);
-	std::string command_name;
-	stream >> command_name;
-
-	if (auto it = commands.find(command_name); it != commands.end())
-	{
-		return it->second(line.substr(command_name.length() + 1));
-	}
-
-	return std::string();
-}
-
 template <class T, class... Args>
 void cli::register_command(const std::string& name, const std::function<T(Args...)>& function)
 {
@@ -110,12 +96,6 @@ template <class T, class... Args>
 void cli::register_command(const std::string& name, T (*function)(Args...))
 {
 	commands[name] = wrap(std::function(function));
-}
-
-void cli::unregister_command(const std::string& name)
-{
-	if (auto it = commands.find(name); it != commands.end())
-		commands.erase(it);
 }
 
 template <class T>
@@ -150,4 +130,3 @@ typename cli::command_type cli::wrap(const std::function<T(Args...)>& function)
 }
 
 #endif // ANTKEEPER_CLI_HPP
-

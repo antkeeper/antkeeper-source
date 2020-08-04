@@ -54,9 +54,6 @@ public:
 	void set_error_postfix(const std::string& postfix);
 	void set_success_prefix(const std::string& prefix);
 	void set_success_postfix(const std::string& postfix);
-
-	void push_prefix(const std::string& prefix);
-	void pop_prefix();
 	
 	/**
 	 * Pushes a task onto the stack and outputs it to the log.
@@ -95,9 +92,7 @@ private:
 	std::string error_prefix;
 	std::string error_postfix;
 	std::string success_prefix;
-	std::string success_postfix;
-	std::list<std::string> prefix_stack;
-	
+	std::string success_postfix;	
 	std::stack<std::string> tasks;
 	std::string indent;
 	bool timestamp_enabled;
