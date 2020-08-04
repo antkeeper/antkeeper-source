@@ -44,7 +44,7 @@ using namespace vmq::operators;
 void enter_play_state(application* app)
 {
 	logger* logger = app->get_logger();
-	int enter_state_task = logger->open_task("Entering play state");
+	logger->push_task("Entering play state");
 
 
 	resource_manager* resource_manager = app->get_resource_manager();
@@ -227,16 +227,14 @@ void enter_play_state(application* app)
 	control_system->set_nest(nest);
 	orbit_cam->update(0.0f);
 
-	logger->close_task(enter_state_task, EXIT_SUCCESS);
+	logger->pop_task(EXIT_SUCCESS);
 }
 
 void exit_play_state(application* app)
 {
 	logger* logger = app->get_logger();
-	logger->log("Exiting play state...\n");
+	logger->push_task("Exiting play state");
 	
-	int exit_state_task = logger->open_task("Exiting play state");
-
-	logger->close_task(exit_state_task, EXIT_SUCCESS);
+	logger->pop_task(EXIT_SUCCESS);
 }
 

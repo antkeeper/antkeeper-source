@@ -107,18 +107,8 @@ application::application(int argc, char** argv):
 {
 	// Format log messages
 	logger.set_warning_prefix("Warning: ");
-	logger.set_error_prefix("Error: ");
+	logger.set_error_prefix(std::string());
 	logger.set_success_prefix(std::string());
-	#if defined(DEBUG)
-		#if !defined(_WIN32)
-			logger.set_warning_prefix(std::string(ansi::bold) + std::string(ansi::yellow) + std::string("Warning: ") + std::string(ansi::reset) + std::string(ansi::yellow));
-			logger.set_warning_postfix(ansi::reset);
-			logger.set_error_prefix(std::string(ansi::bold) + std::string(ansi::red) + std::string("Error: ") + std::string(ansi::reset) + std::string(ansi::red));
-			logger.set_error_postfix(ansi::reset);
-			logger.set_success_prefix(ansi::green);
-			logger.set_success_postfix(ansi::reset);
-		#endif
-	#endif
 	
 	// Redirect logger output
 	#if defined(DEBUG)
@@ -153,14 +143,14 @@ application::application(int argc, char** argv):
 	{
 		if (!path_exists(path))
 		{
-			int create_path_task = logger.open_task("Creating directory \"" + path + "\"");
+			logger.push_task("Creating directory \"" + path + "\"");
 			if (create_directory(path))
 			{
-				logger.close_task(create_path_task, EXIT_SUCCESS);
+				logger.pop_task(EXIT_SUCCESS);
 			}
 			else
 			{
-				logger.close_task(create_path_task, EXIT_FAILURE);
+				logger.pop_task(EXIT_FAILURE);
 			}
 		}
 	}
@@ -194,26 +184,26 @@ application::application(int argc, char** argv):
 	logger.log("Linking against SDL " + sdl_linked_version_string + "\n");
 
 	// Init SDL
-	int sdl_init_task = logger.open_task("Initializing SDL");
+	logger.push_task("Initializing SDL");
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 	{
-		logger.close_task(sdl_init_task, EXIT_FAILURE);
+		logger.pop_task(EXIT_FAILURE);
 		throw std::runtime_error("Failed to initialize SDL");
 	}
 	else
 	{
-		logger.close_task(sdl_init_task, EXIT_SUCCESS);
+		logger.pop_task(EXIT_SUCCESS);
 	}
 
 	// Load default OpenGL library
-	int load_gl_task = logger.open_task("Loading OpenGL library");
+	logger.push_task("Loading OpenGL library");
 	if (SDL_GL_LoadLibrary(nullptr) != 0)
 	{
-		logger.close_task(load_gl_task, EXIT_FAILURE);
+		logger.pop_task(EXIT_FAILURE);
 	}
 	else
 	{
-		logger.close_task(load_gl_task, EXIT_SUCCESS);
+		logger.pop_task(EXIT_SUCCESS);
 	}
 
 	// Set window creation hints
@@ -250,7 +240,7 @@ application::application(int argc, char** argv):
 	}
 
 	// Create window
-	int window_creation_task = logger.open_task("Creating " + std::to_string(window_width) + "x" + std::to_string(window_height) + " window");
+	logger.push_task("Creating " + std::to_string(window_width) + "x" + std::to_string(window_height) + " window");
 	window = SDL_CreateWindow
 	(
 		"Antkeeper", 
@@ -260,48 +250,48 @@ application::application(int argc, char** argv):
 	);
 	if (!window)
 	{
-		logger.close_task(window_creation_task, EXIT_FAILURE);
+		logger.pop_task(EXIT_FAILURE);
 		throw std::runtime_error("Failed to create SDL window");
 	}
 	else
 	{
-		logger.close_task(window_creation_task, EXIT_SUCCESS);
+		logger.pop_task(EXIT_SUCCESS);
 	}
 
 	// Create OpenGL context
-	int create_gl_context_task = logger.open_task("Creating OpenGL 3.3 context");
+	logger.push_task("Creating OpenGL 3.3 context");
 	context = SDL_GL_CreateContext(window);
 	if (!context)
 	{
-		logger.close_task(create_gl_context_task, EXIT_FAILURE);
+		logger.pop_task(EXIT_FAILURE);
 		throw std::runtime_error("Failed to create OpenGL context");
 	}
 	else
 	{
-		logger.close_task(create_gl_context_task, EXIT_SUCCESS);
+		logger.pop_task(EXIT_SUCCESS);
 	}
 
 	// Load OpenGL functions via GLAD
-	int load_gl_functions_task = logger.open_task("Loading OpenGL functions");
+	logger.push_task("Loading OpenGL functions");
 	if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
 	{
-		logger.close_task(load_gl_functions_task, EXIT_FAILURE);
+		logger.pop_task(EXIT_FAILURE);
 	}
 	else
 	{
-		logger.close_task(load_gl_functions_task, EXIT_SUCCESS);
+		logger.pop_task(EXIT_SUCCESS);
 	}
 
 	// Set v-sync mode
 	int swap_interval = 1;
-	int set_vsync_task = logger.open_task((swap_interval) ? "Enabling v-sync" : "Disabling v-sync");
+	logger.push_task((swap_interval) ? "Enabling v-sync" : "Disabling v-sync");
 	if (SDL_GL_SetSwapInterval(swap_interval) != 0)
 	{
-		logger.close_task(set_vsync_task, EXIT_FAILURE);
+		logger.pop_task(EXIT_FAILURE);
 	}
 	else
 	{
-		logger.close_task(set_vsync_task, EXIT_SUCCESS);
+		logger.pop_task(EXIT_SUCCESS);
 	}
 
 	// Setup rasterizer
@@ -319,27 +309,27 @@ application::application(int argc, char** argv):
 	SDL_ShowCursor(SDL_DISABLE);
 
 	// Init SDL joystick and game controller subsystems
-	int init_sdl_subsystems_task = logger.open_task("Initializing SDL Joystick and Game Controller subsystems");
+	logger.push_task("Initializing SDL Joystick and Game Controller subsystems");
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
 	{
-		logger.close_task(init_sdl_subsystems_task, EXIT_FAILURE);
+		logger.pop_task(EXIT_FAILURE);
 		throw std::runtime_error("Failed to initialize SDL Joystick or Game Controller subsystems");
 	}
 	else
 	{
-		logger.close_task(init_sdl_subsystems_task, EXIT_SUCCESS);
+		logger.pop_task(EXIT_SUCCESS);
 	}
 
 	// Load SDL game controller mappings
-	int load_controller_db_task = logger.open_task("Loading SDL game controller mappings from database");
+	logger.push_task("Loading SDL game controller mappings from database");
 	std::string gamecontrollerdb_path = data_path + "controls/gamecontrollerdb.txt";
 	if (SDL_GameControllerAddMappingsFromFile(gamecontrollerdb_path.c_str()) == -1)
 	{
-		logger.close_task(load_controller_db_task, EXIT_FAILURE);
+		logger.pop_task(EXIT_FAILURE);
 	}
 	else
 	{
-		logger.close_task(load_controller_db_task, EXIT_SUCCESS);
+		logger.pop_task(EXIT_SUCCESS);
 	}
 	
 	// Setup billboard VAO

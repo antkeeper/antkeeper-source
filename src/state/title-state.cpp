@@ -23,7 +23,7 @@
 void enter_title_state(application* app)
 {
 	logger* logger = app->get_logger();
-	int task_id = logger->open_task("Entering title state");
+	logger->push_task("Entering title state");
 
 	// Get timeline
 	timeline* timeline = app->get_timeline();
@@ -41,14 +41,14 @@ void enter_title_state(application* app)
 	// Add title sequence to timeline
 	timeline->add_sequence(title_sequence);
 
-	logger->close_task(task_id, EXIT_SUCCESS);
+	logger->pop_task(EXIT_SUCCESS);
 }
 
 void exit_title_state(application* app)
 {
 	logger* logger = app->get_logger();
-	int task_id = logger->open_task("Exiting title state");
+	logger->push_task("Exiting title state");
 
-	logger->close_task(task_id, EXIT_SUCCESS);
+	logger->pop_task(EXIT_SUCCESS);
 }
 

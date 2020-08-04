@@ -18,19 +18,21 @@
  */
 
 #include "logger.hpp"
+#include "timestamp.hpp"
 #include <iostream>
 
 logger::logger():
 	os(&std::cout),
 	log_prefix(std::string()),
 	log_postfix(std::string()),
-	warning_prefix(std::string("Warning: ")),
+	warning_prefix(std::string()),
 	warning_postfix(std::string()),
-	error_prefix(std::string("Error: ")),
+	error_prefix(std::string()),
 	error_postfix(std::string()),
-	success_prefix(std::string("Success: ")),
+	success_prefix(std::string()),
 	success_postfix(std::string()),
-	next_task_id(0)
+	indent("|   "),
+	timestamp_enabled(true)
 {}
 
 logger::~logger()
@@ -45,6 +47,14 @@ void logger::log(const std::string& text)
 {
 	if (os)
 	{
+		if (timestamp_enabled)
+		{
+			(*os) << timestamp() << ": ";
+		}
+		
+		for (std::size_t i = 0; i < tasks.size(); ++i)
+			(*os) << indent;
+		
 		for (const std::string& prefix: prefix_stack)
 		{
 			(*os) << prefix;
@@ -121,43 +131,45 @@ void logger::pop_prefix()
 	prefix_stack.pop_back();
 }
 
-int logger::open_task(const std::string& text)
+void logger::push_task(const std::string& description)
 {
-	tasks[next_task_id] = text;
+	std::string message = description + "...\n";
 	
-	std::string indent;
-	for (std::size_t i = 0; i < tasks.size() - 1; ++i)
-		indent += "    ";
+	log(message);
 	
-	log(indent + text + "...\n");
-	
-	return next_task_id++;
+	tasks.push(description);
 }
 
-bool logger::close_task(int id, int status)
+void logger::pop_task(int status)
 {
-	auto it = tasks.find(id);
-	if (it == tasks.end())
-		return false;
+	if (tasks.empty())
+	{
+		return;
+	}
 	
-	std::string message = it->second + "... ";
+	std::string message = tasks.top() + "... ";
 	
-	
-	std::string indent;
-	for (std::size_t i = 0; i < tasks.size() - 1; ++i)
-		indent += "    ";
+	tasks.pop();
 	
 	if (status == EXIT_SUCCESS)
 	{
 		message += "success\n";
-		log(indent + message);
+		log(message);
 	}
 	else
 	{
 		message += "failed (" + std::to_string(status) + ")\n";
-		log(indent + message);
+		error(message);
 	}
-	
-	tasks.erase(it);
+}
+
+void logger::set_indent(const std::string& indent)
+{
+	this->indent = indent;
+}
+
+void logger::set_timestamp(bool enabled)
+{
+	timestamp_enabled = enabled;
 }
 

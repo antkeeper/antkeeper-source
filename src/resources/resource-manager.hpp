@@ -108,10 +108,9 @@ T* resource_manager::load(const std::string& path)
 		return resource->data;
 	}
 	
-	int task_id;
 	if (logger)
 	{
-		task_id = logger->open_task("Loading resource \"" + path + "\"");
+		logger->push_task("Loading resource \"" + path + "\"");
 	}
 
 	// Resource not found, load resource data
@@ -150,7 +149,7 @@ T* resource_manager::load(const std::string& path)
 		{
 			if (logger)
 			{
-				logger->close_task(task_id, EXIT_FAILURE);
+				logger->pop_task(EXIT_FAILURE);
 			}
 			
 			throw std::runtime_error("resource_manager::load<T>(): Unable to open file \"" + path + "\"");
@@ -160,7 +159,7 @@ T* resource_manager::load(const std::string& path)
 	{
 		if (logger)
 		{
-			logger->close_task(task_id, EXIT_FAILURE);
+			logger->pop_task(EXIT_FAILURE);
 		}
 		
 		std::string error = std::string("resource_manager::load<T>(): Failed to load resource \"") + path + std::string("\": \"") + e.what() + std::string("\"");
@@ -177,7 +176,7 @@ T* resource_manager::load(const std::string& path)
 	
 	if (logger)
 	{
-		logger->close_task(task_id, EXIT_SUCCESS);
+		logger->pop_task(EXIT_SUCCESS);
 	}
 
 	return resource->data;

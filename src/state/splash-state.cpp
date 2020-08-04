@@ -26,7 +26,7 @@
 void enter_splash_state(application* app)
 {
 	logger* logger = app->get_logger();	
-	int task_id = logger->open_task("Entering splash state");
+	logger->push_task("Entering splash state");
 	
 	auto fade_in = [logger]()
 	{
@@ -58,13 +58,13 @@ void enter_splash_state(application* app)
 	// Add splash sequence to timeline
 	timeline->add_sequence(splash_sequence);
 	
-	logger->close_task(task_id, EXIT_SUCCESS);
+	logger->pop_task(EXIT_SUCCESS);
 }
 
 void exit_splash_state(application* app)
 {
 	logger* logger = app->get_logger();
-	int task_id = logger->open_task("Exiting splash state");
+	logger->push_task("Exiting splash state");
 	
-	logger->close_task(task_id, EXIT_SUCCESS);
+	logger->pop_task(EXIT_SUCCESS);
 }
