@@ -64,7 +64,15 @@ material& material::operator=(const material& other)
 	return *this;
 }
 
-std::size_t material::upload() const
+void material::update_tweens()
+{
+	for (material_property_base* property: properties)
+	{
+		property->update_tweens();
+	}
+}
+
+std::size_t material::upload(double a) const
 {
 	if (!program)
 	{
@@ -75,7 +83,7 @@ std::size_t material::upload() const
 
 	for (material_property_base* property: properties)
 	{
-		if (!property->upload())
+		if (!property->upload(a))
 		{
 			++failed_upload_count;
 		}

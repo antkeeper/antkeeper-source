@@ -116,6 +116,9 @@
 	
 	template <class T>
 	class material_property;
+	
+	template <class T>
+	class animation;
 //}
 
 class application
@@ -206,6 +209,8 @@ private:
 	// Updatable systems
 	timeline timeline;
 	animator* animator;
+	animation<float>* radial_transition_in;
+	animation<float>* radial_transition_out;
 	std::list<std::function<void(double, double)>> systems;
 	
 	int shadow_map_resolution;

@@ -30,7 +30,7 @@ void enter_title_state(application* app)
 	
 	// Create title sequence
 	float t = timeline->get_position();
-	sequence title_sequence =
+	timeline::sequence title_sequence =
 	{
 		{t +  0.0f, [logger](){ logger->log("cue sound fade-in\n"); }},
 		{t +  3.0f, [logger](){ logger->log("cue scene fade-in from black\n"); }},

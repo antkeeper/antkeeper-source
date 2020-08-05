@@ -75,6 +75,7 @@
 #include "renderer/material-property.hpp"
 
 // Animation
+#include "animation/animation.hpp"
 #include "animation/animator.hpp"
 
 // Scene
@@ -99,6 +100,24 @@
 
 // Entity components
 #include "entity/components/cavity-component.hpp"
+
+template <typename T>
+inline T ease_linear(const T& x, const T& y, double a)
+{
+	return (y - x) * a + x;
+}
+
+template <typename T>
+T ease_in_quad(const T& x, const T& y, double a)
+{
+	return (y - x) * a * a + x;
+}
+
+template <typename T>
+T ease_out_quad(const T& x, const T& y, double a)
+{
+	return -(y - x) * a * (a - 2.0f) + x;
+}
 
 using namespace vmq::operators;
 
@@ -155,6 +174,15 @@ application::application(int argc, char** argv):
 			}
 		}
 	}
+	
+	// Register CLI commands
+	cli.register_command("echo", cc::echo);
+	cli.register_command("exit", std::function<std::string()>(std::bind(&cc::exit, this)));
+	cli.register_command("scrot", std::function<std::string()>(std::bind(&cc::scrot, this)));
+	cli.register_command("cue", std::function<std::string(float, std::string)>(std::bind(&cc::cue, this, std::placeholders::_1, std::placeholders::_2)));
+	//std::string cmd = "cue 20 exit";
+	//logger.log(cmd + "\n");
+	//logger.log(cli.interpret(cmd) + "\n");
 	
 	// Setup resource manager
 	resource_manager = new ::resource_manager();
@@ -229,9 +257,10 @@ application::application(int argc, char** argv):
 	int window_height = 1080;
 	fullscreen = true;
 	
-	window_width = 1280;
-	window_height = 720;
-	fullscreen = false;
+	//window_width = 1280;
+	//window_height = 720;
+	//fullscreen = false;
+	
 	viewport = {0.0f, 0.0f, static_cast<float>(window_width), static_cast<float>(window_height)};
 	
 	int window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN;
@@ -446,8 +475,23 @@ application::application(int argc, char** argv):
 	underworld_final_pass = new simple_render_pass(rasterizer, &rasterizer->get_default_framebuffer(), underworld_final_shader);
 	underworld_final_pass->set_time_tween(&time);
 	underground_transition_property = underworld_final_pass->get_material()->add_property<float>("transition");
+	underground_transition_property->set_value(0.0f);
 	underground_color_texture_property = underworld_final_pass->get_material()->add_property<const texture_2d*>("color_texture");
 	underground_color_texture_property->set_value(framebuffer_hdr_color);
+	underworld_final_pass->get_material()->update_tweens();
+	
+	float radial_transition_time = 0.5f;
+	radial_transition_in = new animation<float>();
+	radial_transition_in->insert_keyframe({0.0f, 0.0f});
+	radial_transition_in->insert_keyframe({radial_transition_time, 1.0f});
+	radial_transition_in->set_frame_callback(std::bind(&material_property<float>::set_val, underground_transition_property, std::placeholders::_1));
+	radial_transition_in->set_interpolator(ease_in_quad<float>);
+	
+	radial_transition_out = new animation<float>();
+	radial_transition_out->insert_keyframe({0.0f, 1.0f});
+	radial_transition_out->insert_keyframe({radial_transition_time, 0.0f});
+	radial_transition_out->set_frame_callback(std::bind(&material_property<float>::set_val, underground_transition_property, std::placeholders::_1));
+	radial_transition_out->set_interpolator(ease_out_quad<float>);
 	
 	// Setup underworld compositor
 	underworld_compositor.add_pass(underworld_clear_pass);
@@ -497,7 +541,7 @@ application::application(int argc, char** argv):
 	model_system = new ::model_system(ecs_registry, overworld_scene);
 
 	// Setup systems
-	systems.push_back([this](double t, double dt){ this->overworld_scene.update_tweens(); this->underworld_scene.update_tweens(); this->ui_system->get_scene()->update_tweens(); focal_point_tween.update(); });
+	systems.push_back([this](double t, double dt){ this->overworld_scene.update_tweens(); this->underworld_scene.update_tweens(); this->ui_system->get_scene()->update_tweens(); focal_point_tween.update(); this->underworld_final_pass->get_material()->update_tweens(); });
 	systems.push_back([this](double t, double dt){ this->translate_sdl_events(); });
 	systems.push_back([this](double t, double dt){ this->event_dispatcher.update(t); });
 	systems.push_back([this](double t, double dt){ this->timeline.advance(dt); });
@@ -627,13 +671,19 @@ application::application(int argc, char** argv):
 				//this->overworld_camera.set_active(false);
 				this->underworld_camera.set_active(true);
 				this->active_scene = &this->underworld_scene;
+				this->animator->remove_animation(this->radial_transition_out);
+				this->animator->add_animation(this->radial_transition_in);
+				this->radial_transition_in->reset();
 			}
 			else
 			{
 				// Switch to overworld
-				this->underworld_camera.set_active(false);
+				//this->underworld_camera.set_active(false);
 				this->overworld_camera.set_active(true);
 				this->active_scene = &this->overworld_scene;
+				this->animator->remove_animation(this->radial_transition_in);
+				this->animator->add_animation(this->radial_transition_out);
+				this->radial_transition_out->reset();
 			}
 		});
 	
@@ -801,14 +851,6 @@ application::application(int argc, char** argv):
 
 	// Set overworld as active scene
 	active_scene = &overworld_scene;
-	
-	// Setup debug CLI
-	cli.register_command("echo", cc::echo);
-	cli.register_command("exit", std::function<std::string()>(std::bind(&cc::exit, this)));
-	
-	std::string cmd = "echo abc 123";
-	logger.log(cmd + "\n");
-	logger.log(cli.interpret(cmd) + "\n");
 }
 
 application::~application()
@@ -830,7 +872,7 @@ void application::close(int status)
 int application::execute()
 {
 	// Enter inital state
-	state_machine.change_state(splash_state);
+	state_machine.change_state(play_state);
 
 	// Perform initial update
 	update(0.0, 0.0);

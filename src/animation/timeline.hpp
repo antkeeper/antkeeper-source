@@ -25,21 +25,17 @@
 #include <tuple>
 
 /**
- * Scheduled function consisting of a time and function object.
- */
-typedef std::tuple<float, std::function<void()>> cue;
-
-/**
- * List of cues.
- */
-typedef std::list<cue> sequence;
-
-/**
  * Timeline which executes cues (scheduled functions) when advanced over their respective positions in time.
  */
 class timeline
 {
 public:
+	/// Scheduled function consisting of a time and function object.
+	typedef std::tuple<float, std::function<void()>> cue;
+
+	/// List of cues.
+	typedef std::list<cue> sequence;
+
 	/**
 	 * Creates a timeline.
 	 */
@@ -119,7 +115,7 @@ public:
 	 * @param end Ending position in time (non-inclusive).
 	 * @return All cues on `[start, end)`.
 	 */
-	sequence get_cues(float start, float end);
+	sequence get_cues(float start, float end) const;
 
 private:
 	std::multiset<cue, std::function<bool(const cue&, const cue&)>> cues;

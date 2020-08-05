@@ -43,7 +43,17 @@ void resource_manager::unload(const std::string& path)
 		// Free the resource if the resource handle is unreferenced
 		if (it->second->reference_count <= 0)
 		{
+			if (logger)
+			{
+				logger->push_task("Unloading resource \"" + path + "\"");
+			}
+			
 			delete it->second;
+			
+			if (logger)
+			{
+				logger->pop_task(EXIT_SUCCESS);
+			}
 		}
 
 		// Remove resource from the cache

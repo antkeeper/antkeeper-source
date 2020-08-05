@@ -65,13 +65,19 @@ public:
 	 * @return Reference to this material.
 	 */
 	material& operator=(const material& other);
+	
+	/**
+	 * Sets state 0 = state 1 for each material property tween.
+	 */
+	void update_tweens();
 
 	/**
 	 * Uploads each material property to the material's shader program.
 	 *
+	 * @param a Interpolation factor. Should be on `[0.0, 1.0]`.
 	 * @return Number of material property uploads which failed.
 	 */
-	std::size_t upload() const;
+	std::size_t upload(double a) const;
 
 	/**
 	 * Sets the material's shader program and reconnects all shader properties to their corresponding shader inputs.

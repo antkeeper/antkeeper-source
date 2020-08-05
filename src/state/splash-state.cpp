@@ -48,7 +48,7 @@ void enter_splash_state(application* app)
 
 	// Create splash sequence
 	float t = timeline->get_position();
-	sequence splash_sequence =
+	timeline::sequence splash_sequence =
 	{
 		{t + 0.0f, fade_in},
 		{t + 3.0f, fade_out},

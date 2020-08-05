@@ -19,6 +19,8 @@
 
 #include "console-commands.hpp"
 #include "application.hpp"
+#include "animation/timeline.hpp"
+#include "debug/cli.hpp"
 
 namespace cc
 {
@@ -32,6 +34,22 @@ std::string exit(application* app)
 {
 	app->close(EXIT_SUCCESS);
 	return std::string();
+}
+
+std::string scrot(application* app)
+{
+	app->take_screenshot();
+	return std::string("screenshot saved");
+}
+
+std::string cue(application* app, float t, std::string command)
+{
+	::timeline* timeline = app->get_timeline();
+	::cli* cli = app->get_cli();
+	
+	timeline->add_cue({timeline->get_position() + t, std::function<void()>(std::bind(&::cli::interpret, cli, command))});
+	
+	return std::string("command \"" + command + "\" will execute in " + std::to_string(t) + " seconds");
 }
 
 } // namespace cc

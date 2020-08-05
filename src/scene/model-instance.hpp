@@ -74,6 +74,8 @@ public:
 	bool is_instanced() const;
 	std::size_t get_instance_count() const;
 	
+	virtual void update_tweens();
+	
 private:
 	void update_bounds();
 	virtual void transformed();

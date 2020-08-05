@@ -18,8 +18,8 @@
  */
 
 #include "scene/billboard.hpp"
+#include "renderer/material.hpp"
 #include "configuration.hpp"
-#include <algorithm>
 
 const aabb<float> billboard::untransformed_bounds = {{-1, -1, -1}, {1, 1, 1}};
 
@@ -62,4 +62,13 @@ void billboard::set_alignment_axis(const float3& axis)
 void billboard::transformed()
 {
 	bounds = aabb<float>::transform(untransformed_bounds, get_transform());
+}
+
+void billboard::update_tweens()
+{
+	scene_object_base::update_tweens();
+	if (material)
+	{
+		material->update_tweens();
+	}
 }

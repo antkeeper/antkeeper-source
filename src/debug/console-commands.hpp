@@ -31,6 +31,10 @@ std::string echo(std::string text);
 
 std::string exit(application* app);
 
+std::string scrot(application* app);
+
+std::string cue(application* app, float t, std::string command);
+
 } // namespace cc
 
 #endif // ANTKEEPER_CONSOLE_COMMANDS_HPP

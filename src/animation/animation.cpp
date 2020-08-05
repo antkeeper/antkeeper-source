@@ -19,5 +19,34 @@
 
 #include "animation.hpp"
 
-void animation_base::animate(float dt)
+animation_base::animation_base():
+	position(0.0f),
+	start_callback(nullptr),
+	end_callback(nullptr),
+	loop_callback(nullptr)
 {}
+
+void animation_base::seek(double t)
+{
+	position = t;
+}
+
+void animation_base::reset()
+{
+	seek(0.0);
+}
+
+void animation_base::set_start_callback(std::function<void()> callback)
+{
+	start_callback = callback;
+}
+	
+void animation_base::set_end_callback(std::function<void()> callback)
+{
+	end_callback = callback;
+}
+	
+void animation_base::set_loop_callback(std::function<void()> callback)
+{
+	loop_callback = callback;
+}

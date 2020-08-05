@@ -19,7 +19,7 @@
 
 #include "timeline.hpp"
 
-auto cue_compare = [](const cue& a, const cue& b)
+auto cue_compare = [](const typename timeline::cue& a, const typename timeline::cue& b)
 {
 	return std::get<0>(a) < std::get<0>(b);
 };
@@ -96,7 +96,7 @@ void timeline::set_autoremove(bool enabled)
 	autoremove = enabled;
 }
 
-sequence timeline::get_cues(float start, float end)
+typename timeline::sequence timeline::get_cues(float start, float end) const
 {
 	sequence s;
 

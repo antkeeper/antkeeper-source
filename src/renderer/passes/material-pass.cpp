@@ -403,7 +403,7 @@ void material_pass::render(render_context* context) const
 			}
 			
 			// Upload material properties to shader
-			active_material->upload();
+			active_material->upload(context->alpha);
 		}
 
 		// Calculate operation-dependent parameters

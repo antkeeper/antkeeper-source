@@ -98,6 +98,11 @@ T* resource_manager::load(const std::string& path)
 	auto it = resource_cache.find(path);
 	if (it != resource_cache.end())
 	{
+		if (logger)
+		{
+			logger->log("Fetched resource \"" + path + "\"\n");
+		}
+		
 		// Resource found
 		resource_handle<T>* resource = static_cast<resource_handle<T>*>(it->second);
 

@@ -61,11 +61,14 @@ public:
 	material* get_material() const;
 	billboard_type get_billboard_type() const;
 	const float3& get_alignment_axis() const;
+	
+	virtual void update_tweens();
 
 private:
 	static const aabb<float> untransformed_bounds;
 	
 	virtual void transformed();
+	
 	
 	aabb<float> bounds;
 	material* material;

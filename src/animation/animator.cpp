@@ -18,9 +18,31 @@
  */
 
 #include "animator.hpp"
+#include "animation/animation.hpp"
 
-void animator::animate(float dt)
+void animator::animate(double dt)
 {
-
+	for (animation_base* animation: animations)
+	{
+		animation->advance(dt);
+	}
 }
 
+void animator::add_animation(animation_base* animation)
+{
+	animations.emplace(animation);
+}
+
+void animator::remove_animation(animation_base* animation)
+{
+	auto it = animations.find(animation);
+	if (it != animations.end())
+	{
+		animations.erase(it);
+	}
+}
+
+void animator::remove_animations()
+{
+	animations.clear();
+}

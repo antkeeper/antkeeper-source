@@ -19,7 +19,7 @@
 
 #include "scene/model-instance.hpp"
 #include "renderer/model.hpp"
-#include <algorithm>
+#include "renderer/material.hpp"
 
 model_instance::model_instance(::model* model):
 	model(nullptr),
@@ -98,4 +98,31 @@ void model_instance::update_bounds()
 void model_instance::transformed()
 {
 	update_bounds();
+}
+
+void model_instance::update_tweens()
+{
+	scene_object_base::update_tweens();
+	
+	// Update model material tweens
+	if (model)
+	{
+		for (model_group* group: *model->get_groups())
+		{
+			material* material = group->get_material();
+			if (material)
+			{
+				material->update_tweens();
+			}
+		}
+	}
+	
+	// Update material override tweens
+	for (::material* material: materials)
+	{
+		if (material)
+		{
+			material->update_tweens();
+		}
+	}
 }

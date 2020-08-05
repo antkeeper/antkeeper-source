@@ -20,6 +20,7 @@
 #ifndef ANTKEEPER_MATERIAL_PROPERTY_HPP
 #define ANTKEEPER_MATERIAL_PROPERTY_HPP
 
+#include "animation/tween.hpp"
 #include "rasterizer/shader-variable-type.hpp"
 #include "rasterizer/shader-input.hpp"
 #include <vmq/vmq.hpp>
@@ -50,13 +51,19 @@ public:
 	 * Disconnects the material property from its shader input.
 	 */
 	void disconnect();
+	
+	/**
+	 * Sets state 0 = state 1.
+	 */
+	virtual void update_tweens() = 0;
 
 	/**
 	 * Uploads the material property to its shader program.
 	 *
+	 * @param a Interpolation factor. Should be on `[0.0, 1.0]`.
 	 * @return `true` if the property was uploaded successfully, `false` otherwise.
 	 */
-	virtual bool upload() const = 0;
+	virtual bool upload(double a) const = 0;
 
 	/**
 	 * Returns the type of data which the property contains.
@@ -107,9 +114,12 @@ public:
 
 	material_property(const material_property<T>&) = delete;
 	material_property<T>& operator=(const material_property<T>&) = delete;
+	
+	/// @copydoc material_property_base::update_tweens()
+	virtual void update_tweens();
 
 	/// @copydoc material_property_base::upload() const
-	virtual bool upload() const;
+	virtual bool upload(double a) const;
 
 	/**
 	 * Sets the value of this property.
@@ -117,6 +127,7 @@ public:
 	 * @param value Value to set.
 	 */
 	void set_value(const T& value);
+	void set_val(const T& value);
 	
 	/**
 	 * Sets the value of a single element in this array property.
@@ -143,7 +154,7 @@ public:
 
 private:
 	std::size_t element_count;
-	T* values;
+	tween<T>* values;
 };
 
 template <class T>
@@ -151,7 +162,7 @@ material_property<T>::material_property(std::size_t element_count):
 	element_count(element_count),
 	values(nullptr)
 {
-	values = new T[element_count];
+	values = new tween<T>[element_count];
 }
 
 template <class T>
@@ -161,7 +172,16 @@ material_property<T>::~material_property()
 }
 
 template <class T>
-bool material_property<T>::upload() const
+void material_property<T>::update_tweens()
+{
+	for (std::size_t i = 0; i < element_count; ++i)
+	{
+		values[i].update();
+	}
+}
+
+template <class T>
+bool material_property<T>::upload(double a) const
 {
 	if (!is_connected())
 	{
@@ -170,24 +190,36 @@ bool material_property<T>::upload() const
 	
 	if (element_count > 1)
 	{
-		return input->upload(0, values, element_count);
+		for (std::size_t i = 0; i < element_count; ++i)
+		{
+			if (!input->upload(i, values[i].interpolate(a)))
+				return false;
+		}
+		
+		return true;
 	}
 	else
 	{
-		return input->upload(values[0]);
+		return input->upload(values[0].interpolate(a));
 	}
 }
 
 template <class T>
 void material_property<T>::set_value(const T& value)
 {
-	values[0] = value;
+	values[0][1] = value;
+}
+
+template <class T>
+void material_property<T>::set_val(const T& value)
+{
+	values[0][1] = value;
 }
 
 template <class T>
 void material_property<T>::set_value(std::size_t index, const T& value)
 {
-	values[index] = value;
+	values[index][1] = value;
 }
 
 template <class T>
@@ -195,7 +227,7 @@ void material_property<T>::set_values(std::size_t index, const T* values, std::s
 {
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		this->values[index + i] = values[i];
+		this->values[index + i][1] = values[i];
 	}
 }
 
@@ -331,7 +363,8 @@ material_property_base* material_property<T>::clone() const
 	material_property<T>* property = new material_property<T>(element_count);
 	for (std::size_t i = 0; i < element_count; ++i)
 	{
-		property->values[i] = values[i];
+		property->values[i][0] = values[i][0];
+		property->values[i][1] = values[i][1];
 	}
 	property->input = input;
 

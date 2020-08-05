@@ -103,7 +103,7 @@ void simple_render_pass::render(render_context* context) const
 	resolution_property->set_value({static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))});
 	
 	// Upload material properties
-	material->upload();
+	material->upload(context->alpha);
 
 	// Draw quad
 	rasterizer->draw_arrays(*quad_vao, drawing_mode::triangles, 0, 6);

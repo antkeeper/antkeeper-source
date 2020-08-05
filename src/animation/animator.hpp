@@ -20,6 +20,10 @@
 #ifndef ANTKEEPER_ANIMATOR_HPP
 #define ANTKEEPER_ANIMATOR_HPP
 
+#include <set>
+
+class animation_base;
+
 class animator
 {
 public:
@@ -28,8 +32,14 @@ public:
 	 *
 	 * @param dt Delta time by which the animations will be progressed.
 	 */
-	void animate(float dt);
+	void animate(double dt);
+	
+	void add_animation(animation_base* animation);
+	void remove_animation(animation_base* animation);
+	void remove_animations();
+	
+private:
+	std::set<animation_base*> animations;
 };
 
 #endif // ANTKEEPER_ANIMATOR_HPP
-

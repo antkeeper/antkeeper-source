@@ -25,6 +25,8 @@
 
 std::string timestamp()
 {
+	const char* time_format = "%y%m%d-%H%M%S-";
+	
 	auto now = std::chrono::system_clock::now();
 	std::time_t tt = std::chrono::system_clock::to_time_t(now);
 	std::size_t ms = (std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000).count();
@@ -33,12 +35,12 @@ std::string timestamp()
 		struct std::tm timeinfo;
 		localtime_s(&timeinfo, &tt);
 		std::stringstream stream;
-		stream << std::put_time(&timeinfo, "%Y%m%d-%H%M%S-");
+		stream << std::put_time(&timeinfo, time_format);
 		stream << std::setfill('0') << std::setw(3) << ms;
 	#else
 		struct std::tm* timeinfo = localtime(&tt);
 		std::stringstream stream;
-		stream << std::put_time(timeinfo, "%Y%m%d-%H%M%S-");
+		stream << std::put_time(timeinfo, time_format);
 		stream << std::setfill('0') << std::setw(3) << ms;
 	#endif
 	
