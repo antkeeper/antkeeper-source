@@ -257,9 +257,9 @@ application::application(int argc, char** argv):
 	int window_height = 1080;
 	fullscreen = true;
 	
-	//window_width = 1280;
-	//window_height = 720;
-	//fullscreen = false;
+	window_width = 1280;
+	window_height = 720;
+	fullscreen = false;
 	
 	viewport = {0.0f, 0.0f, static_cast<float>(window_width), static_cast<float>(window_height)};
 	
@@ -480,18 +480,7 @@ application::application(int argc, char** argv):
 	underground_color_texture_property->set_value(framebuffer_hdr_color);
 	underworld_final_pass->get_material()->update_tweens();
 	
-	float radial_transition_time = 0.5f;
-	radial_transition_in = new animation<float>();
-	radial_transition_in->insert_keyframe({0.0f, 0.0f});
-	radial_transition_in->insert_keyframe({radial_transition_time, 1.0f});
-	radial_transition_in->set_frame_callback(std::bind(&material_property<float>::set_val, underground_transition_property, std::placeholders::_1));
-	radial_transition_in->set_interpolator(ease_in_quad<float>);
-	
-	radial_transition_out = new animation<float>();
-	radial_transition_out->insert_keyframe({0.0f, 1.0f});
-	radial_transition_out->insert_keyframe({radial_transition_time, 0.0f});
-	radial_transition_out->set_frame_callback(std::bind(&material_property<float>::set_val, underground_transition_property, std::placeholders::_1));
-	radial_transition_out->set_interpolator(ease_out_quad<float>);
+
 	
 	// Setup underworld compositor
 	underworld_compositor.add_pass(underworld_clear_pass);
@@ -511,6 +500,23 @@ application::application(int argc, char** argv):
 	// Setup animation system
 	// ...
 	animator = new ::animator();
+	
+	float radial_transition_time = 0.5f;
+	radial_transition_in = new animation<float>();
+	radial_transition_in->insert_keyframe({0.0f, 0.0f});
+	radial_transition_in->insert_keyframe({radial_transition_time, 1.0f});
+	radial_transition_in->set_frame_callback(std::bind(&material_property<float>::set_val, underground_transition_property, std::placeholders::_1));
+	radial_transition_in->set_interpolator(ease_in_quad<float>);
+	radial_transition_in->set_start_callback([this](){this->logger.log("animation started\n");});
+	radial_transition_in->set_end_callback([this](){this->logger.log("animation ended\n");});
+	animator->add_animation(radial_transition_in);
+	
+	radial_transition_out = new animation<float>();
+	radial_transition_out->insert_keyframe({0.0f, 1.0f});
+	radial_transition_out->insert_keyframe({radial_transition_time, 0.0f});
+	radial_transition_out->set_frame_callback(std::bind(&material_property<float>::set_val, underground_transition_property, std::placeholders::_1));
+	radial_transition_out->set_interpolator(ease_out_quad<float>);
+	animator->add_animation(radial_transition_out);
 	
 	// ECS
 	terrain_system = new ::terrain_system(ecs_registry, resource_manager);
@@ -671,9 +677,8 @@ application::application(int argc, char** argv):
 				//this->overworld_camera.set_active(false);
 				this->underworld_camera.set_active(true);
 				this->active_scene = &this->underworld_scene;
-				this->animator->remove_animation(this->radial_transition_out);
-				this->animator->add_animation(this->radial_transition_in);
-				this->radial_transition_in->reset();
+				this->radial_transition_out->stop();
+				this->radial_transition_in->play();
 			}
 			else
 			{
@@ -681,9 +686,8 @@ application::application(int argc, char** argv):
 				//this->underworld_camera.set_active(false);
 				this->overworld_camera.set_active(true);
 				this->active_scene = &this->overworld_scene;
-				this->animator->remove_animation(this->radial_transition_in);
-				this->animator->add_animation(this->radial_transition_out);
-				this->radial_transition_out->reset();
+				this->radial_transition_in->stop();
+				this->radial_transition_out->play();
 			}
 		});
 	

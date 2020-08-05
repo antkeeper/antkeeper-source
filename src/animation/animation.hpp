@@ -47,26 +47,93 @@ public:
 	 */
 	void seek(double t);
 	
-	void reset();
+	/// Sets the animation position to `0.0`.
+	void rewind();
+	
+	/// Enables or disables looping of the animation.
+	void loop(bool enabled);
+	
+	/// Pauses the animation.
+	void pause();
+	
+	/// Plays the animation.
+	void play();
+	
+	/// Stops the animation, rewinds it, and resets the loop count.
+	void stop();
+	
+	/**
+	 * Sets the speed of the animation.
+	 *
+	 * @param speed Speed multiplier.
+	 */
+	void set_speed(double speed);
+	
+	/// Returns `true` if looping of the animation is enabled, `false` otherwise.
+	bool is_looped() const;
+	
+	/// Returns `true` if the animation is paused, `false` otherwise.
+	bool is_paused() const;
+	
+	/// Returns `true` if the animation is stopped, `false` otherwise.
+	bool is_stopped() const;
 	
 	/// Returns the current position in time of the animation.
 	double get_position() const;
 	
-	/// Sets the callback that's executed when the animation is started.
+	/// Returns the current loop count of the animation.
+	int get_loop_count() const;
+	
+	/// Sets the callback that's executed when the animation is started from a stopped state.
 	void set_start_callback(std::function<void()> callback);
 	
-	/// Sets the callback that's executed when the animation ends.
+	/// Sets the callback that's executed when a non-looped animation has finished.
 	void set_end_callback(std::function<void()> callback);
 	
-	/// Sets the callback that's executed when the animation loops.
-	void set_loop_callback(std::function<void()> callback);
+	/**
+	 * Sets the callback that's executed when the animation loops.
+	 *
+	 * @param callback Loop callback function which is passed the current loop count.
+	 */
+	void set_loop_callback(std::function<void(int)> callback);
 	
 protected:
+	bool looped;
+	int loop_count;
+	bool paused;
+	bool stopped;
 	double position;
+	double speed;
+
 	std::function<void()> start_callback;
 	std::function<void()> end_callback;
-	std::function<void()> loop_callback;
+	std::function<void(int)> loop_callback;
 };
+
+inline bool animation_base::is_looped() const
+{
+	return looped;
+}
+
+inline bool animation_base::is_paused() const
+{
+	return paused;
+}
+
+inline bool animation_base::is_stopped() const
+{
+	return stopped;
+}
+
+inline double animation_base::get_position() const
+{
+	return position;
+}
+	
+inline int animation_base::get_loop_count() const
+{
+	return loop_count;
+}
 
 /**
  * Templated keyframe animation class.
@@ -162,16 +229,24 @@ animation<T>::animation():
 template <typename T>
 void animation<T>::advance(double dt)
 {
-	position += dt;
-	
-	if (frame_callback != nullptr && interpolator != nullptr)
+	if (paused || stopped || keyframes.empty())
 	{
-		
-		auto upper_bound = keyframes.upper_bound({position, T()});
-		auto lower_bound = upper_bound;
-		--lower_bound;
-		
-		if (lower_bound != keyframes.end() && upper_bound != keyframes.end())
+		return;
+	}
+	
+	// Advance position by dt
+	position += dt * speed;
+	
+	// Find the following keyframe
+	auto upper_bound = keyframes.upper_bound({position, T()});
+	
+	// Find the preceding keyframe
+	auto lower_bound = upper_bound;
+	--lower_bound;
+	
+	if (upper_bound != keyframes.end())
+	{
+		if (frame_callback != nullptr && interpolator != nullptr)
 		{
 			// Calculate interpolated frame
 			double t0 = std::get<0>(*lower_bound);
@@ -181,6 +256,44 @@ void animation<T>::advance(double dt)
 			
 			// Pass frame to frame callback
 			frame_callback(frame);
+		}
+	}
+	else
+	{
+		if (looped)
+		{
+			++loop_count;
+			
+			// Subtract duration of animation from position
+			position -= std::get<0>(*lower_bound);
+			
+			// Execute loop callback
+			if (loop_callback)
+			{
+				loop_callback(loop_count);
+			}
+			
+			// Call frame callback on looped frame
+			if (frame_callback)
+			{
+				advance(0.0);
+			}
+		}
+		else
+		{
+			// Call frame callback on final keyframe
+			if (frame_callback)
+			{
+				frame_callback(std::get<1>(*lower_bound));
+			}
+			
+			stopped = true;
+			
+			// Call end callback
+			if (end_callback)
+			{
+				end_callback();
+			}
 		}
 	}
 }
