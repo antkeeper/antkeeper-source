@@ -503,19 +503,19 @@ application::application(int argc, char** argv):
 	
 	float radial_transition_time = 0.5f;
 	radial_transition_in = new animation<float>();
-	radial_transition_in->insert_keyframe({0.0f, 0.0f});
-	radial_transition_in->insert_keyframe({radial_transition_time, 1.0f});
-	radial_transition_in->set_frame_callback(std::bind(&material_property<float>::set_val, underground_transition_property, std::placeholders::_1));
+	radial_transition_in->set_frame_callback([this](int channel, float value){this->underground_transition_property->set_value(value);});	
 	radial_transition_in->set_interpolator(ease_in_quad<float>);
-	radial_transition_in->set_start_callback([this](){this->logger.log("animation started\n");});
-	radial_transition_in->set_end_callback([this](){this->logger.log("animation ended\n");});
+	animation<float>::channel* channel = radial_transition_in->add_channel(0);
+	channel->insert_keyframe({0.0f, 0.0f});
+	channel->insert_keyframe({radial_transition_time, 1.0f});
 	animator->add_animation(radial_transition_in);
 	
-	radial_transition_out = new animation<float>();
-	radial_transition_out->insert_keyframe({0.0f, 1.0f});
-	radial_transition_out->insert_keyframe({radial_transition_time, 0.0f});
-	radial_transition_out->set_frame_callback(std::bind(&material_property<float>::set_val, underground_transition_property, std::placeholders::_1));
+	radial_transition_out = new animation<float>();	
+	radial_transition_out->set_frame_callback([this](int channel, float value){this->underground_transition_property->set_value(value);});
 	radial_transition_out->set_interpolator(ease_out_quad<float>);
+	channel = radial_transition_out->add_channel(0);
+	channel->insert_keyframe({0.0f, 1.0f});
+	channel->insert_keyframe({radial_transition_time, 0.0f});
 	animator->add_animation(radial_transition_out);
 	
 	// ECS
