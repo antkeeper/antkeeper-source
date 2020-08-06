@@ -26,6 +26,7 @@
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
+#include <iostream>
 
 /**
  * Abstract base class for animations.
@@ -450,6 +451,19 @@ void animation<T>::advance(double dt)
 		else
 		{	
 			stopped = true;
+			
+			// Call frame callback for end frame
+			if (frame_callback != nullptr)
+			{
+				for (std::size_t i = 0; i < channels.size(); ++i)
+				{
+					auto frames = channels[i].find_keyframes(channels[i].get_duration());
+					if (frames[0] != nullptr)
+					{
+						frame_callback(static_cast<int>(i), std::get<1>(*frames[0]));
+					}
+				}
+			}
 			
 			// Call end callback
 			if (end_callback)
