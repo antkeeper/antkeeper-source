@@ -77,6 +77,8 @@
 // Animation
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
+#include "animation/screen-transition.hpp"
+#include "animation/easings.hpp"
 
 // Scene
 #include "scene/billboard.hpp"
@@ -100,24 +102,6 @@
 
 // Entity components
 #include "entity/components/cavity-component.hpp"
-
-template <typename T>
-inline T ease_linear(const T& x, const T& y, double a)
-{
-	return (y - x) * a + x;
-}
-
-template <typename T>
-T ease_in_quad(const T& x, const T& y, double a)
-{
-	return (y - x) * a * a + x;
-}
-
-template <typename T>
-T ease_out_quad(const T& x, const T& y, double a)
-{
-	return -(y - x) * a * (a - 2.0f) + x;
-}
 
 using namespace vmq::operators;
 
@@ -431,6 +415,7 @@ application::application(int argc, char** argv):
 	clear_pass = new ::clear_pass(rasterizer, framebuffer_hdr);
 	clear_pass->set_cleared_buffers(true, true, false);
 	sky_pass = new ::sky_pass(rasterizer, framebuffer_hdr, resource_manager);
+	sky_pass->set_enabled(false);
 	material_pass = new ::material_pass(rasterizer, framebuffer_hdr, resource_manager);
 	material_pass->set_fallback_material(fallback_material);
 	material_pass->set_time_tween(&time);
@@ -474,8 +459,6 @@ application::application(int argc, char** argv):
 	shader_program* underworld_final_shader = resource_manager->load<shader_program>("underground-final.glsl");
 	underworld_final_pass = new simple_render_pass(rasterizer, &rasterizer->get_default_framebuffer(), underworld_final_shader);
 	underworld_final_pass->set_time_tween(&time);
-	underground_transition_property = underworld_final_pass->get_material()->add_property<float>("transition");
-	underground_transition_property->set_value(0.0f);
 	underground_color_texture_property = underworld_final_pass->get_material()->add_property<const texture_2d*>("color_texture");
 	underground_color_texture_property->set_value(framebuffer_hdr_color);
 	underworld_final_pass->get_material()->update_tweens();
@@ -498,25 +481,7 @@ application::application(int argc, char** argv):
 	timeline.set_autoremove(true);
 
 	// Setup animation system
-	// ...
 	animator = new ::animator();
-	
-	float radial_transition_time = 0.5f;
-	radial_transition_in = new animation<float>();
-	radial_transition_in->set_frame_callback([this](int channel, float value){this->underground_transition_property->set_value(value);});	
-	radial_transition_in->set_interpolator(ease_in_quad<float>);
-	animation<float>::channel* channel = radial_transition_in->add_channel(0);
-	channel->insert_keyframe({0.0f, 0.0f});
-	channel->insert_keyframe({radial_transition_time, 1.0f});
-	animator->add_animation(radial_transition_in);
-	
-	radial_transition_out = new animation<float>();	
-	radial_transition_out->set_frame_callback([this](int channel, float value){this->underground_transition_property->set_value(value);});
-	radial_transition_out->set_interpolator(ease_out_quad<float>);
-	channel = radial_transition_out->add_channel(0);
-	channel->insert_keyframe({0.0f, 1.0f});
-	channel->insert_keyframe({radial_transition_time, 0.0f});
-	animator->add_animation(radial_transition_out);
 	
 	// ECS
 	terrain_system = new ::terrain_system(ecs_registry, resource_manager);
@@ -673,21 +638,33 @@ application::application(int argc, char** argv):
 		{
 			if (this->active_scene == &this->overworld_scene)
 			{
-				// Switch to underworld
-				//this->overworld_camera.set_active(false);
-				this->underworld_camera.set_active(true);
 				this->active_scene = &this->underworld_scene;
-				this->radial_transition_out->stop();
-				this->radial_transition_in->play();
+				this->radial_transition_inner->transition(0.5f, false, ease_in_quad<float, double>);
+				
+				auto switch_cameras = [this]()
+				{
+					this->overworld_camera.set_active(false);
+					this->underworld_camera.set_active(true);
+					this->fade_transition->transition(0.25f, true, ease_out_quad<float, double>);
+				};
+				
+				float t = timeline.get_position();
+				this->timeline.add_cue({t + 0.5f, switch_cameras});
 			}
 			else
 			{
-				// Switch to overworld
-				//this->underworld_camera.set_active(false);
-				this->overworld_camera.set_active(true);
 				this->active_scene = &this->overworld_scene;
-				this->radial_transition_in->stop();
-				this->radial_transition_out->play();
+				this->fade_transition->transition(0.25f, false, ease_out_quad<float, double>);
+				
+				auto switch_cameras = [this]()
+				{
+					this->overworld_camera.set_active(true);
+					this->underworld_camera.set_active(false);
+					this->radial_transition_inner->transition(0.5f, true, ease_out_quad<float, double>);
+				};
+				
+				float t = timeline.get_position();
+				this->timeline.add_cue({t + 0.25f, switch_cameras});
 			}
 		});
 	
@@ -855,6 +832,50 @@ application::application(int argc, char** argv):
 
 	// Set overworld as active scene
 	active_scene = &overworld_scene;
+	
+	// Setup UI
+	const texture_2d* splash_texture = resource_manager->load<texture_2d>("splash.png");
+	auto splash_dimensions = splash_texture->get_dimensions();
+	splash_billboard_material = new material();
+	splash_billboard_material->set_shader_program(resource_manager->load<shader_program>("ui-element-textured.glsl"));
+	splash_billboard_material->add_property<const texture_2d*>("background")->set_value(splash_texture);
+	splash_billboard_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
+	splash_billboard_material->update_tweens();
+	splash_billboard = new billboard();
+	splash_billboard->set_material(splash_billboard_material);
+	splash_billboard->set_scale({(float)std::get<0>(splash_dimensions) * 0.5f, (float)std::get<1>(splash_dimensions) * 0.5f, 1.0f});
+	splash_billboard->set_translation({0.0f, 0.0f, 0.0f});
+	splash_billboard->update_tweens();
+	
+	// Create fade transition
+	fade_transition = new screen_transition();
+	fade_transition->get_material()->set_shader_program(resource_manager->load<shader_program>("fade-transition.glsl"));
+	get_ui_scene()->add_object(fade_transition->get_billboard());
+	animator->add_animation(fade_transition->get_animation());
+	
+	// Create inner radial transition
+	radial_transition_inner = new screen_transition();
+	radial_transition_inner->get_material()->set_shader_program(resource_manager->load<shader_program>("radial-transition-inner.glsl"));
+	get_ui_scene()->add_object(radial_transition_inner->get_billboard());
+	animator->add_animation(radial_transition_inner->get_animation());
+	
+	// Create outer radial transition
+	radial_transition_outer = new screen_transition();
+	radial_transition_outer->get_material()->set_shader_program(resource_manager->load<shader_program>("radial-transition-outer.glsl"));
+	get_ui_scene()->add_object(radial_transition_outer->get_billboard());
+	animator->add_animation(radial_transition_outer->get_animation());
+	
+	// Determine initial state
+	initial_state = &splash_state;
+	std::string no_splash_flag = "--skip-splash";
+	for (int i = 0; i < argc; ++i)
+	{
+		if (no_splash_flag == argv[i])
+		{
+			initial_state = &play_state;
+			break;
+		}
+	}
 }
 
 application::~application()
@@ -876,7 +897,7 @@ void application::close(int status)
 int application::execute()
 {
 	// Enter inital state
-	state_machine.change_state(play_state);
+	state_machine.change_state(*initial_state);
 
 	// Perform initial update
 	update(0.0, 0.0);
@@ -1147,3 +1168,7 @@ void application::save_image(const std::string& filename, int w, int h, const un
 	delete[] pixels;
 }
 
+scene* application::get_ui_scene()
+{
+	return ui_system->get_scene();
+}

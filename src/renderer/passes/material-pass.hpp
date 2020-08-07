@@ -60,6 +60,7 @@ private:
 	struct parameter_set
 	{
 		const shader_input* time;
+		const shader_input* resolution;
 		const shader_input* model;
 		const shader_input* view;
 		const shader_input* projection;

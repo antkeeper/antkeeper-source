@@ -127,7 +127,6 @@ public:
 	 * @param value Value to set.
 	 */
 	void set_value(const T& value);
-	void set_val(const T& value);
 	
 	/**
 	 * Sets the value of a single element in this array property.
@@ -145,6 +144,17 @@ public:
 	 * @param count Number of elements to set.
 	 */
 	void set_values(std::size_t index, const T* values, std::size_t count);
+	
+	/// Returns the value of the first element in this property.
+	const T& get_value() const;
+	
+	/**
+	 * Returns the value of the first element in this property.
+	 *
+	 * @param index Index of an array element.
+	 * @return Value of the element at the specified index.
+	 */
+	const T& get_value(std::size_t index) const;
 
 	/// @copydoc material_property_base::get_data_type() const
 	virtual shader_variable_type get_data_type() const;
@@ -211,12 +221,6 @@ void material_property<T>::set_value(const T& value)
 }
 
 template <class T>
-void material_property<T>::set_val(const T& value)
-{
-	values[0][1] = value;
-}
-
-template <class T>
 void material_property<T>::set_value(std::size_t index, const T& value)
 {
 	values[index][1] = value;
@@ -229,6 +233,18 @@ void material_property<T>::set_values(std::size_t index, const T* values, std::s
 	{
 		this->values[index + i][1] = values[i];
 	}
+}
+
+template <class T>
+inline const T& material_property<T>::get_value() const
+{
+	return values[0][1];
+}
+
+template <class T>
+inline const T& material_property<T>::get_value(std::size_t index) const
+{
+	return values[index][1];
 }
 
 template <>

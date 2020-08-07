@@ -161,6 +161,9 @@ public:
 	/// Creates an animation channel.
 	animation_channel(const animation_channel& other);
 	
+	/// Assigns the contents of another channel to this channel.
+	animation_channel& operator=(const animation_channel& other);
+	
 	/**
 	 * Adds a keyframe to the animation.
 	 *
@@ -231,6 +234,13 @@ animation_channel<T>::animation_channel(const animation_channel& other):
 	id(other.id),
 	keyframes(other.keyframes)
 {}
+
+template <typename T>
+animation_channel<T>& animation_channel<T>::operator=(const animation_channel& other)
+{
+	id = other.id;
+	keyframes = other.keyframes;
+}
 
 template <typename T>
 void animation_channel<T>::insert_keyframe(const keyframe& k)
@@ -367,7 +377,6 @@ public:
 	
 	/// @copydoc animation_base::get_duration() const
 	virtual double get_duration() const;
-	
 
 private:
 	std::unordered_map<int, channel> channels;
@@ -449,9 +458,7 @@ void animation<T>::advance(double dt)
 			}
 		}
 		else
-		{	
-			stopped = true;
-			
+		{
 			// Call frame callback for end frame
 			if (frame_callback != nullptr)
 			{
@@ -464,6 +471,8 @@ void animation<T>::advance(double dt)
 					}
 				}
 			}
+			
+			stopped = true;
 			
 			// Call end callback
 			if (end_callback)

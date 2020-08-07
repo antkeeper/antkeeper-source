@@ -63,6 +63,7 @@
 // Animation
 #include "animation/timeline.hpp"
 #include "animation/tween.hpp"
+#include "animation/animation.hpp"
 
 // Misc
 #include "state/fsm.hpp"
@@ -94,9 +95,14 @@
 	class bloom_pass;
 	class final_pass;
 	class simple_render_pass;
+	template <class T>
+	class material_property;
 	
 	// Animation
 	class animator;
+	template <class T>
+	class animation;
+	class screen_transition;
 
 	// Systems
 	class behavior_system;
@@ -114,11 +120,8 @@
 	class control_system;
 	class ui_system;
 	
-	template <class T>
-	class material_property;
-	
-	template <class T>
-	class animation;
+	// Scene
+	class billboard;
 //}
 
 class application
@@ -171,6 +174,16 @@ public:
 	scene& get_scene();
 
 	void take_screenshot() const;
+	
+	// UI
+	scene* get_ui_scene();
+	billboard* get_splash_billboard();
+	
+	::sky_pass* get_sky_pass();
+	
+	screen_transition* get_fade_transition();
+	screen_transition* get_radial_transition_inner();
+	screen_transition* get_radial_transition_outer();
 
 private:
 	void update(double t, double dt);
@@ -261,7 +274,6 @@ private:
 	::clear_pass* underworld_clear_pass;
 	::material_pass* underworld_material_pass;
 	simple_render_pass* underworld_final_pass;
-	material_property<float>* underground_transition_property;
 	material_property<const texture_2d*>* underground_color_texture_property;
 	compositor underworld_compositor;
 
@@ -273,6 +285,7 @@ private:
 	fsm::state title_state;
 	fsm::state play_state;
 	fsm::state pause_state;
+	fsm::state* initial_state;
 
 	// Frame timing
 	frame_scheduler frame_scheduler;
@@ -326,9 +339,14 @@ private:
 	compositor ui_compositor;
 	::clear_pass* ui_clear_pass;
 	::material_pass* ui_material_pass;
+	billboard* splash_billboard;
+	material* splash_billboard_material;
 	
 	// Animation
 	tween<float3> focal_point_tween;
+	screen_transition* fade_transition;
+	screen_transition* radial_transition_inner;
+	screen_transition* radial_transition_outer;
 };
 
 inline logger* application::get_logger()
@@ -421,5 +439,29 @@ inline scene& application::get_scene()
 	return overworld_scene;
 }
 
-#endif // ANTKEEPER_APPLICATION_HPP
+inline billboard* application::get_splash_billboard()
+{
+	return splash_billboard;
+}
 
+inline sky_pass* application::get_sky_pass()
+{
+	return sky_pass;
+}
+
+inline screen_transition* application::get_fade_transition()
+{
+	return fade_transition;
+}
+
+inline screen_transition* application::get_radial_transition_inner()
+{
+	return radial_transition_inner;
+}
+
+inline screen_transition* application::get_radial_transition_outer()
+{
+	return radial_transition_outer;
+}
+
+#endif // ANTKEEPER_APPLICATION_HPP

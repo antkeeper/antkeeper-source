@@ -19,6 +19,14 @@
 
 #include "application-states.hpp"
 #include "application.hpp"
+#include "scene/billboard.hpp"
+#include "renderer/material.hpp"
+#include "renderer/material-property.hpp"
+#include "animation/animation.hpp"
+#include "animation/animator.hpp"
+#include "animation/easings.hpp"
+#include "animation/screen-transition.hpp"
+#include "renderer/passes/sky-pass.hpp"
 
 #include <functional>
 #include <iostream>
@@ -28,34 +36,40 @@ void enter_splash_state(application* app)
 	logger* logger = app->get_logger();	
 	logger->push_task("Entering splash state");
 	
-	auto fade_in = [logger]()
+	// Disable sky pass
+	app->get_sky_pass()->set_enabled(false);
+	
+	// Add splash billboard to UI scene
+	app->get_ui_scene()->add_object(app->get_splash_billboard());
+	
+	// Setup timing
+	const float splash_fade_in_duration = 0.5f;
+	const float splash_hang_duration = 2.0f;
+	const float splash_fade_out_duration = 0.5f;
+	
+	// Start fade in
+	app->get_fade_transition()->transition(splash_fade_in_duration, true, ease_in_quad<float, double>);
+	
+	// Crate fade out function
+	auto fade_out = [app, splash_fade_out_duration]()
 	{
-		logger->log("cue logo fade-in\n");
+		app->get_fade_transition()->transition(splash_fade_out_duration, false, ease_out_quad<float, double>);
 	};
 	
-	auto fade_out = [logger]()
-	{
-		logger->log("cue logo fade-out\n");
-	};
-	
+	// Create change state function
 	auto change_state = [app]()
 	{
-		app->get_state_machine()->change_state(app->get_title_state());
+		app->get_state_machine()->change_state(app->get_play_state());
 	};
 	
-	// Get timeline
+	// Schedule fade out and change state events
 	timeline* timeline = app->get_timeline();
-
-	// Create splash sequence
 	float t = timeline->get_position();
 	timeline::sequence splash_sequence =
 	{
-		{t + 0.0f, fade_in},
-		{t + 3.0f, fade_out},
-		{t + 8.0f, change_state}
+		{t + splash_fade_in_duration + splash_hang_duration, fade_out},
+		{t + splash_fade_in_duration + splash_hang_duration + splash_fade_out_duration, change_state}
 	};
-
-	// Add splash sequence to timeline
 	timeline->add_sequence(splash_sequence);
 	
 	logger->pop_task(EXIT_SUCCESS);
@@ -65,6 +79,9 @@ void exit_splash_state(application* app)
 {
 	logger* logger = app->get_logger();
 	logger->push_task("Exiting splash state");
+	
+	// Remove splash billboard from UI scene
+	app->get_ui_scene()->remove_object(app->get_splash_billboard());
 	
 	logger->pop_task(EXIT_SUCCESS);
 }

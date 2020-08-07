@@ -54,231 +54,231 @@
 #include <vmq/vmq.hpp>
 #include <cmath>
 
-template <typename T>
-inline T ease_linear(const T& x, const T& y, float a)
+template <typename T, typename S>
+inline T ease_linear(const T& x, const T& y, S a)
 {
 	return (y - x) * a + x;
 }
 
-template <typename T>
-T ease_in_sine(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_sine(const T& x, const T& y, S a)
 {
-	return -(y - x) * std::cos(a * vmq::half_pi<float>) + (y - x) + x;
+	return -(y - x) * std::cos(a * vmq::half_pi<S>) + (y - x) + x;
 }
 
-template <typename T>
-T ease_out_sine(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_out_sine(const T& x, const T& y, S a)
 {
-	return (y - x) * std::sin(a * vmq::half_pi<float>) + x;
+	return (y - x) * std::sin(a * vmq::half_pi<S>) + x;
 }
 
-template <typename T>
-T ease_in_out_sine(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_out_sine(const T& x, const T& y, S a)
 {
-	return -(y - x) * 0.5f * (std::cos(vmq::pi<float> * a) - 1.0f) + x;
+	return -(y - x) * S(0.5) * (std::cos(vmq::pi<S> * a) - S(1.0)) + x;
 }
 
-template <typename T>
-T ease_in_quad(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_quad(const T& x, const T& y, S a)
 {
 	return (y - x) * a * a + x;
 }
 
-template <typename T>
-T ease_out_quad(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_out_quad(const T& x, const T& y, S a)
 {
-	return -(y - x) * a * (a - 2.0f) + x;
+	return -(y - x) * a * (a - S(2.0)) + x;
 }
 
-template <typename T>
-T ease_in_out_quad(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_out_quad(const T& x, const T& y, S a)
 {
-	a *= 2.0f;
-	if (a < 1.0f)
+	a *= S(2.0);
+	if (a < S(1.0))
 	{
-		return (y - x) * 0.5f * a * a + x;
+		return (y - x) * S(0.5) * a * a + x;
 	}
 
-	a -= 1.0f;
-	return -(y - x) * 0.5f * (a * (a - 2.0f) - 1.0f) + x;
+	a -= S(1.0);
+	return -(y - x) * S(0.5) * (a * (a - S(2.0)) - S(1.0)) + x;
 }
 
-template <typename T>
-T ease_in_cubic(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_cubic(const T& x, const T& y, S a)
 {
 	return (y - x) * a * a * a + x;
 }
 
-template <typename T>
-T ease_out_cubic(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_out_cubic(const T& x, const T& y, S a)
 {
-	a -= 1.0f;
-	return (y - x) * (a * a * a + 1.0f) + x;
+	a -= S(1.0);
+	return (y - x) * (a * a * a + S(1.0)) + x;
 }
 
-template <typename T>
-T ease_in_out_cubic(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_out_cubic(const T& x, const T& y, S a)
 {
-	a *= 2.0f;
-	if (a < 1.0f)
+	a *= S(2.0);
+	if (a < S(1.0))
 	{
-		return (y - x) * 0.5f * a * a * a + x;
+		return (y - x) * S(0.5) * a * a * a + x;
 	}
 	
-	a -= 2.0f;
-	return (y - x) * 0.5f * (a * a * a + 2.0f) + x;
+	a -= S(2.0);
+	return (y - x) * S(0.5) * (a * a * a + S(2.0)) + x;
 }
 
-template <typename T>
-T ease_in_quart(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_quart(const T& x, const T& y, S a)
 {
 	return (y - x) * a * a * a * a + x;
 }
 
-template <typename T>
-T ease_out_quart(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_out_quart(const T& x, const T& y, S a)
 {
-	a -= 1.0f;
-	return -(y - x) * (a * a * a * a - 1.0f) + x;
+	a -= S(1.0);
+	return -(y - x) * (a * a * a * a - S(1.0)) + x;
 }
 
-template <typename T>
-T ease_in_out_quart(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_out_quart(const T& x, const T& y, S a)
 {
-	a *= 2.0f;
-	if (a < 1.0f)
+	a *= S(2.0);
+	if (a < S(1.0))
 	{
-		return (y - x) * 0.5f * a * a * a * a + x;
+		return (y - x) * S(0.5) * a * a * a * a + x;
 	}
 	
-	a -= 2.0f;
-	return -(y - x) * 0.5f * (a * a * a * a - 2.0f) + x;
+	a -= S(2.0);
+	return -(y - x) * S(0.5) * (a * a * a * a - S(2.0)) + x;
 }
 
-template <typename T>
-T ease_in_quint(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_quint(const T& x, const T& y, S a)
 {
 	return (y - x) * a * a * a * a * a + x;
 }
 
-template <typename T>
-T ease_out_quint(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_out_quint(const T& x, const T& y, S a)
 {
-	a -= 1.0f;
-	return (y - x) * (a * a * a * a * a + 1.0f) + x;
+	a -= S(1.0);
+	return (y - x) * (a * a * a * a * a + S(1.0)) + x;
 }
 
-template <typename T>
-T ease_in_out_quint(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_out_quint(const T& x, const T& y, S a)
 {
-	a *= 2.0f;
-	if (a < 1.0f)
+	a *= S(2.0);
+	if (a < S(1.0))
 	{
-		return (y - x) * 0.5f * a * a * a * a * a + x;
+		return (y - x) * S(0.5) * a * a * a * a * a + x;
 	}
 	
-	a -= 2.0f;
-	return (y - x) * 0.5f * (a * a * a * a * a + 2.0f) + x;
+	a -= S(2.0);
+	return (y - x) * S(0.5) * (a * a * a * a * a + S(2.0)) + x;
 }
 
-template <typename T>
-T ease_in_expo(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_expo(const T& x, const T& y, S a)
 {
-	if (a == 0.0f)
+	if (a == S(0.0))
 	{
 		return x;
 	}
 
-	return (y - x) * std::pow(2.0f, 10.0f * (a - 1.0f)) + x;
+	return (y - x) * std::pow(S(2.0), S(10.0) * (a - S(1.0))) + x;
 }
 
-template <typename T>
-T ease_out_expo(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_out_expo(const T& x, const T& y, S a)
 {
-	if (a == 1.0f)
+	if (a == S(1.0))
 	{
 		return y;
 	}
 
-	return (y - x) * (-std::pow(2.0f, -10.0f * a) + 1.0f) + x;
+	return (y - x) * (-std::pow(S(2.0), -S(10.0) * a) + S(1.0)) + x;
 }
 
-template <typename T>
-T ease_in_out_expo(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_out_expo(const T& x, const T& y, S a)
 {
-	if (a == 0.0f)
+	if (a == S(0.0))
 	{
 		return x;
 	}
-	else if (a == 1.0f)
+	else if (a == S(1.0))
 	{
 		return y;
 	}
 
-	a *= 2.0f;
-	if (a < 1.0f)
+	a *= S(2.0);
+	if (a < S(1.0))
 	{
-		return (y - x) * 0.5f * std::pow(2.0f, 10.0f * (a - 1.0f)) + x;
+		return (y - x) * S(0.5) * std::pow(S(2.0), S(10.0) * (a - S(1.0))) + x;
 	}
 
-	a -= 1.0f;
-	return (y - x) * 0.5f * (-std::pow(2.0f, -10.0f * a) + 2.0f) + x;
+	a -= S(1.0);
+	return (y - x) * S(0.5) * (-std::pow(S(2.0), -S(10.0) * a) + S(2.0)) + x;
 }
 
-template <typename T>
-T ease_in_circ(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_circ(const T& x, const T& y, S a)
 {
-	return -(y - x) * (std::sqrt(1.0f - a * a) - 1.0f) + x;
+	return -(y - x) * (std::sqrt(S(1.0) - a * a) - S(1.0)) + x;
 }
 
-template <typename T>
-T ease_out_circ(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_out_circ(const T& x, const T& y, S a)
 {
-	a -= 1.0f;
-	return (y - x) * std::sqrt(1.0f - a * a) + x;
+	a -= S(1.0);
+	return (y - x) * std::sqrt(S(1.0) - a * a) + x;
 }
 
-template <typename T>
-T ease_in_out_circ(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_out_circ(const T& x, const T& y, S a)
 {
-	a *= 2.0f;
-	if (a < 1.0f)
+	a *= S(2.0);
+	if (a < S(1.0))
 	{
-		return -(y - x) * 0.5f * (std::sqrt(1.0f - a * a) - 1.0f) + x;
+		return -(y - x) * S(0.5) * (std::sqrt(S(1.0) - a * a) - S(1.0)) + x;
 	}
 	
-	a -= 2.0f;
-	return (y - x) * 0.5f * (std::sqrt(1.0f - a * a) + 1.0f) + x;
+	a -= S(2.0);
+	return (y - x) * S(0.5) * (std::sqrt(S(1.0) - a * a) + S(1.0)) + x;
 }
 
-template <typename T>
-T ease_in_back(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_back(const T& x, const T& y, S a)
 {
-	const float s = 1.70158f;
-	return (y - x) * a * a * ((s + 1.0f) * a - s) + x;
+	const S s = S(1.70158);
+	return (y - x) * a * a * ((s + S(1.0)) * a - s) + x;
 }
 
-template <typename T>
-T ease_out_back(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_out_back(const T& x, const T& y, S a)
 {
-	const float s = 1.70158f;
-	a -= 1.0f;
-	return (y - x) * (a * a * ((s + 1.0f) * a + s) + 1.0f) + x;
+	const S s = S(1.70158);
+	a -= S(1.0);
+	return (y - x) * (a * a * ((s + S(1.0)) * a + s) + S(1.0)) + x;
 }
 
-template <typename T>
-T ease_in_out_back(const T& x, const T& y, float a)
+template <typename T, typename S>
+T ease_in_out_back(const T& x, const T& y, S a)
 {
-	const float s = 1.70158f * 1.525f;
+	const S s = S(1.70158) * S(1.525f);
 
-	a *= 2.0f;
-	if (a < 1.0f)
+	a *= S(2.0);
+	if (a < S(1.0))
 	{
-		return (y - x) * 0.5f * (a * a * ((s + 1.0f) * a - s)) + x;
+		return (y - x) * S(0.5) * (a * a * ((s + S(1.0)) * a - s)) + x;
 	}
 
-	a -= 2.0f;
-	return (y - x) * 0.5f * (a * a * ((s + 1.0f) * a + s) + 2.0f) + x;
+	a -= S(2.0);
+	return (y - x) * S(0.5) * (a * a * ((s + S(1.0)) * a + s) + S(2.0)) + x;
 }
 
 #endif // ANTKEEPER_EASINGS_HPP

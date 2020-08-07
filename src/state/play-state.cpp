@@ -20,10 +20,12 @@
 #include "application-states.hpp"
 #include "configuration.hpp"
 #include "application.hpp"
+#include "animation/screen-transition.hpp"
 #include "scene/model-instance.hpp"
 #include "resources/resource-manager.hpp"
 #include "renderer/model.hpp"
 #include "renderer/material.hpp"
+#include "renderer/passes/sky-pass.hpp"
 #include "systems/control-system.hpp"
 #include "entity/components/model-component.hpp"
 #include "entity/components/transform-component.hpp"
@@ -37,6 +39,7 @@
 #include "math.hpp"
 #include "geometry/mesh-accelerator.hpp"
 #include "behavior/ebt.hpp"
+#include "animation/easings.hpp"
 #include <iostream>
 
 using namespace vmq::operators;
@@ -46,6 +49,8 @@ void enter_play_state(application* app)
 	logger* logger = app->get_logger();
 	logger->push_task("Entering play state");
 
+	// Enable sky pass
+	app->get_sky_pass()->set_enabled(true);
 
 	resource_manager* resource_manager = app->get_resource_manager();
 	entt::registry& ecs_registry = app->get_ecs_registry();
@@ -226,6 +231,9 @@ void enter_play_state(application* app)
 	control_system->update(0.0f);
 	control_system->set_nest(nest);
 	orbit_cam->update(0.0f);
+	
+	// Start fade in
+	app->get_fade_transition()->transition(1.0f, true, ease_in_quad<float, double>);
 
 	logger->pop_task(EXIT_SUCCESS);
 }

@@ -116,6 +116,8 @@ void material_pass::render(render_context* context) const
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
+	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
+	
 	float time = (time_tween) ? time_tween->interpolate(context->alpha) : 0.0f;
 	float3 focal_point = (focal_point_tween) ? focal_point_tween->interpolate(context->alpha) : float3{0, 0, 0};
 	float4x4 view = context->camera->get_view_tween().interpolate(context->alpha);
@@ -356,6 +358,8 @@ void material_pass::render(render_context* context) const
 				// Upload context-dependent shader parameters
 				if (parameters->time)
 					parameters->time->upload(time);
+				if (parameters->resolution)
+					parameters->resolution->upload(resolution);
 				if (parameters->view)
 					parameters->view->upload(view);
 				if (parameters->view_projection)
@@ -452,6 +456,7 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const shad
 
 	// Connect inputs
 	parameters->time = program->get_input("time");
+	parameters->resolution = program->get_input("resolution");
 	parameters->model = program->get_input("model");
 	parameters->view = program->get_input("view");
 	parameters->projection = program->get_input("projection");
