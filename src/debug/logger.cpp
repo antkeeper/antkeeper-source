@@ -23,6 +23,9 @@
 
 logger::logger():
 	os(&std::cout),
+	auto_newline(true),
+	timestamp_enabled(true),
+	indent("|   "),
 	log_prefix(std::string()),
 	log_postfix(std::string()),
 	warning_prefix(std::string()),
@@ -30,9 +33,7 @@ logger::logger():
 	error_prefix(std::string()),
 	error_postfix(std::string()),
 	success_prefix(std::string()),
-	success_postfix(std::string()),
-	indent("|   "),
-	timestamp_enabled(true)
+	success_postfix(std::string())
 {}
 
 logger::~logger()
@@ -47,15 +48,24 @@ void logger::log(const std::string& text)
 {
 	if (os)
 	{
+		// Prepend timestamp
 		if (timestamp_enabled)
 		{
 			(*os) << timestamp() << ": ";
 		}
 		
+		// Prepend indentation
 		for (std::size_t i = 0; i < tasks.size(); ++i)
 			(*os) << indent;
 
+		// Output text
 		(*os) << (log_prefix + text + log_postfix);
+		
+		// Append newline
+		if (auto_newline)
+		{
+			(*os) << "\n";
+		}
 
 		os->flush();
 	}
@@ -74,6 +84,21 @@ void logger::error(const std::string& text)
 void logger::success(const std::string& text)
 {
 	log(success_prefix + text + success_postfix);
+}
+
+void logger::set_auto_newline(bool enabled)
+{
+	auto_newline = enabled;
+}
+
+void logger::set_timestamp(bool enabled)
+{
+	timestamp_enabled = enabled;
+}
+
+void logger::set_indent(const std::string& indent)
+{
+	this->indent = indent;
 }
 
 void logger::set_log_prefix(const std::string& prefix)
@@ -118,7 +143,9 @@ void logger::set_success_postfix(const std::string& postfix)
 
 void logger::push_task(const std::string& description)
 {
-	std::string message = description + "...\n";
+	std::string message = description + "...";
+	if (!auto_newline)
+		message += "\n";
 	
 	log(message);
 	
@@ -138,23 +165,18 @@ void logger::pop_task(int status)
 	
 	if (status == EXIT_SUCCESS)
 	{
-		message += "success\n";
+		message += "success";
+		if (!auto_newline)
+			message += "\n";
+		
 		log(message);
 	}
 	else
 	{
-		message += "failed (" + std::to_string(status) + ")\n";
+		message += "failed (" + std::to_string(status) + ")";
+		if (!auto_newline)
+			message += "\n";
+		
 		error(message);
 	}
 }
-
-void logger::set_indent(const std::string& indent)
-{
-	this->indent = indent;
-}
-
-void logger::set_timestamp(bool enabled)
-{
-	timestamp_enabled = enabled;
-}
-

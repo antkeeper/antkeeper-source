@@ -25,10 +25,16 @@
 #include <stack>
 #include <string>
 
+/**
+ * Logs formatted debug messages to an output stream.
+ */
 class logger
 {
 public:
+	/// Creates a logger.
 	logger();
+	
+	/// Destroys a logger.
 	~logger();
 
 	/**
@@ -46,6 +52,27 @@ public:
 	void error(const std::string& text);
 	void success(const std::string& text);
 
+	/**
+	 * Enables or disables automatic appending of newlines to log messages.
+	 *
+	 * @param enabled `true` if auto newline should be enabled, `false` otherwise.
+	 */
+	void set_auto_newline(bool enabled);
+	
+	/**
+	 * Enables or disables prefixing log messages with a timestamp.
+	 *
+	 * @param enabled `true` if timestamps should be enabled, `false` otherwise.
+	 */
+	void set_timestamp(bool enabled);
+	
+	/**
+	 * Sets the indent string which prefixes subtasks. This string will be repeated according to the level of indentation.
+	 *
+	 * @param indent Indent string.
+	 */
+	void set_indent(const std::string& indent);
+	
 	void set_log_prefix(const std::string& prefix);
 	void set_log_postfix(const std::string& postfix);
 	void set_warning_prefix(const std::string& prefix);
@@ -68,23 +95,12 @@ public:
 	 * @param status Exit status of the task. A value of `0` or `EXIT_SUCCESS` indicates the task exited successfully. A non-zero exit status indicates the task failed.
 	 */
 	void pop_task(int status);
-	
-	/**
-	 * Sets the indent string which prefixes subtasks. This string will be repeated according to the level of indentation.
-	 *
-	 * @param indent Indent string.
-	 */
-	void set_indent(const std::string& indent);
-	
-	/**
-	 * Enables or disables prefixing log messages with a timestamp.
-	 *
-	 * @param enabled `true` if timestamps should be enabled, `false` otherwise.
-	 */
-	void set_timestamp(bool enabled);
 
 private:
 	std::ostream* os;
+	bool auto_newline;
+	bool timestamp_enabled;
+	std::string indent;
 	std::string log_prefix;
 	std::string log_postfix;
 	std::string warning_prefix;
@@ -94,8 +110,6 @@ private:
 	std::string success_prefix;
 	std::string success_postfix;	
 	std::stack<std::string> tasks;
-	std::string indent;
-	bool timestamp_enabled;
 };
 
 #endif // ANTKEEPER_LOGGER_HPP

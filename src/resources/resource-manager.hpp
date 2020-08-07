@@ -100,7 +100,7 @@ T* resource_manager::load(const std::string& path)
 	{
 		if (logger)
 		{
-			logger->log("Fetched resource \"" + path + "\"\n");
+			logger->log("Fetched resource \"" + path + "\"");
 		}
 		
 		// Resource found

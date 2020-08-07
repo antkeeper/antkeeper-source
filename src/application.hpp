@@ -173,7 +173,7 @@ public:
 	entt::registry& get_ecs_registry();
 	scene& get_scene();
 
-	void take_screenshot() const;
+	void take_screenshot();
 	
 	// UI
 	scene* get_ui_scene();

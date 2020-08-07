@@ -134,8 +134,8 @@ application::application(int argc, char** argv):
 	// Form resource paths
 	data_path = get_data_path(application_name) + "data/";
 	config_path = get_config_path(application_name);
-	logger.log("Detected data path as \"" + data_path + "\"\n");
-	logger.log("Detected config path as \"" + config_path + "\"\n");
+	logger.log("Detected data path as \"" + data_path + "\"");
+	logger.log("Detected config path as \"" + config_path + "\"");
 
 	screenshots_path = config_path + "screenshots/";
 
@@ -165,8 +165,8 @@ application::application(int argc, char** argv):
 	cli.register_command("scrot", std::function<std::string()>(std::bind(&cc::scrot, this)));
 	cli.register_command("cue", std::function<std::string(float, std::string)>(std::bind(&cc::cue, this, std::placeholders::_1, std::placeholders::_2)));
 	//std::string cmd = "cue 20 exit";
-	//logger.log(cmd + "\n");
-	//logger.log(cli.interpret(cmd) + "\n");
+	//logger.log(cmd);
+	//logger.log(cli.interpret(cmd));
 	
 	// Setup resource manager
 	resource_manager = new ::resource_manager();
@@ -188,13 +188,13 @@ application::application(int argc, char** argv):
 	SDL_version sdl_compiled_version;
 	SDL_VERSION(&sdl_compiled_version);
 	std::string sdl_compiled_version_string = std::to_string(sdl_compiled_version.major) + "." + std::to_string(sdl_compiled_version.minor) + "." + std::to_string(sdl_compiled_version.patch);
-	logger.log("Compiled against SDL " + sdl_compiled_version_string + "\n");
+	logger.log("Compiled against SDL " + sdl_compiled_version_string);
 
 	// Get SDL linked version
 	SDL_version sdl_linked_version;
 	SDL_GetVersion(&sdl_linked_version);
 	std::string sdl_linked_version_string = std::to_string(sdl_linked_version.major) + "." + std::to_string(sdl_linked_version.minor) + "." + std::to_string(sdl_linked_version.patch);
-	logger.log("Linking against SDL " + sdl_linked_version_string + "\n");
+	logger.log("Linking against SDL " + sdl_linked_version_string);
 
 	// Init SDL
 	logger.push_task("Initializing SDL");
@@ -229,11 +229,11 @@ application::application(int argc, char** argv):
 	SDL_DisplayMode sdl_display_mode;
 	if (SDL_GetDesktopDisplayMode(0, &sdl_display_mode) != 0)
 	{
-		logger.error("Failed to get desktop display mode: \"" + std::string(SDL_GetError()) + "\"\n");
+		logger.error("Failed to get desktop display mode: \"" + std::string(SDL_GetError()) + "\"");
 	}
 	else
 	{
-		logger.log("Detected " + std::to_string(sdl_display_mode.w) + "x" + std::to_string(sdl_display_mode.h) + " display\n");
+		logger.log("Detected " + std::to_string(sdl_display_mode.w) + "x" + std::to_string(sdl_display_mode.h) + " display");
 		display_dimensions = {sdl_display_mode.w, sdl_display_mode.h};
 	}
 
@@ -827,8 +827,14 @@ application::application(int argc, char** argv):
 	underworld_scene.add_object(portal_billboard);
 	//model_instance* larva = new model_instance(resource_manager->load<model>("larva.obj"));
 	//underworld_scene.add_object(larva);
+	
+	quaternion<float> flashlight_rotation = vmq::angle_axis(vmq::half_pi<float>, {0.0f, 1.0f, 0.0f});
 	model_instance* flashlight = new model_instance(resource_manager->load<model>("flashlight.obj"));
+	flashlight->set_rotation(flashlight_rotation);
 	underworld_scene.add_object(flashlight);
+	model_instance* flashlight_light_cone = new model_instance(resource_manager->load<model>("flashlight-light-cone.obj"));
+	flashlight_light_cone->set_rotation(flashlight_rotation);
+	underworld_scene.add_object(flashlight_light_cone);
 
 	// Set overworld as active scene
 	active_scene = &overworld_scene;
@@ -1045,11 +1051,11 @@ void application::translate_sdl_events()
 					std::string controller_name = SDL_GameControllerNameForIndex(sdl_event.cdevice.which);
 					if (sdl_controller)
 					{
-						logger.log("Connected game controller \"" + controller_name + "\"\n");
+						logger.log("Connected game controller \"" + controller_name + "\"");
 					}
 					else
 					{
-						logger.error("Failed to connected game controller \"" + controller_name + "\"\n");
+						logger.error("Failed to connected game controller \"" + controller_name + "\"");
 					}
 				}
 
@@ -1063,7 +1069,7 @@ void application::translate_sdl_events()
 				if (sdl_controller)
 				{
 					SDL_GameControllerClose(sdl_controller);
-					logger.log("Disconnected game controller\n");
+					logger.log("Disconnected game controller");
 				}
 
 				break;
@@ -1144,8 +1150,12 @@ void application::window_resized()
 	ui_system->set_viewport(viewport);
 }
 
-void application::take_screenshot() const
+void application::take_screenshot()
 {
+	std::string filename = screenshots_path + "antkeeper-" + timestamp() + ".png";
+	
+	logger.push_task("Saving screenshot to \"" + filename + "\"");
+	
 	int x = viewport[0];
 	int y = viewport[1];
 	int w = viewport[2];
@@ -1156,9 +1166,10 @@ void application::take_screenshot() const
 	glReadBuffer(GL_BACK);
 	glReadPixels(x, y, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
-	std::string filename = screenshots_path + "antkeeper-" + timestamp() + ".png";
 	std::thread screenshot_thread(application::save_image, filename, w, h, pixels);
 	screenshot_thread.detach();
+	
+	logger.pop_task(EXIT_SUCCESS);
 }
 
 void application::save_image(const std::string& filename, int w, int h, const unsigned char* pixels)
