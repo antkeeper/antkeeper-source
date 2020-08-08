@@ -58,7 +58,6 @@ void enter_play_state(application* app)
 	// Load entity archetypes
 	ecs::archetype* ant_hill_archetype = resource_manager->load<ecs::archetype>("ant-hill.ent");
 	ecs::archetype* maple_tree_archetype = resource_manager->load<ecs::archetype>("maple-tree.ent");
-	ecs::archetype* darkness_volume_archetype = resource_manager->load<ecs::archetype>("darkness-volume.ent");
 	ecs::archetype* nest_archetype = resource_manager->load<ecs::archetype>("harvester-nest.ent");
 	ecs::archetype* samara_archetype = resource_manager->load<ecs::archetype>("samara.ent");
 	ecs::archetype* forceps_archetype = resource_manager->load<ecs::archetype>("forceps.ent");
@@ -100,7 +99,6 @@ void enter_play_state(application* app)
 	placement.ray.direction = {0, -1, 0};
 	ecs_registry.assign<ecs::placement_component>(maple_tree_entity, placement);
 
-	//auto darkness_volume_entity = darkness_volume_archetype->create(ecs_registry);
 	auto nest_entity = nest_archetype->create(ecs_registry);
 
 	int terrain_radius = 2;
@@ -174,12 +172,12 @@ void enter_play_state(application* app)
 	float tunnel_radius = 1.15f;
 	nest->set_tunnel_radius(tunnel_radius);
 	nest::shaft* central_shaft = nest->get_central_shaft();
-	central_shaft->chirality = -1.0f;
+	central_shaft->chirality = 1.0f;
 	central_shaft->rotation = vmq::radians(0.0f);
 	central_shaft->depth = {0.0f, 200.0f};
-	central_shaft->radius = {0.0f, 5.0f};
-	central_shaft->pitch = {4.0f, 8.0f};
-	central_shaft->translation = {{{0.0f, 0.0f}, {40.0f, 26.0f}}};
+	central_shaft->radius = {15.0f, 15.0f};
+	central_shaft->pitch = {40.0f, 40.0f};
+	central_shaft->translation = {{{0.0f, 0.0f}, {0.0f, 0.0f}}};
 	central_shaft->current_depth = 0.0f;
 	for (std::size_t i = 0; i < 4; ++i)
 	{
@@ -194,7 +192,7 @@ void enter_play_state(application* app)
 
 	// Dig nest shafts
 	float shift = 0.1f;
-	for (int i = 0; i < 400; ++i)
+	for (int i = 0; i < 800; ++i)
 	{
 		ecs::cavity_component cavity;
 		cavity.position = nest->extend_shaft(*nest->get_central_shaft());
@@ -205,6 +203,7 @@ void enter_play_state(application* app)
 	}
 
 	// Dig nest chambers
+	/*
 	for (int i = 0; i < central_shaft->chambers.size(); ++i)
 	{
 		for (int j = 0; j < 150; ++j)
@@ -217,8 +216,10 @@ void enter_play_state(application* app)
 			ecs_registry.assign<ecs::cavity_component>(ecs_registry.create(), cavity);
 		}
 	}
+	*/
 	
 	// Place larva in chamber
+	/*
 	{
 		auto larva_entity = larva_archetype->create(ecs_registry);
 		auto& transform = ecs_registry.get<ecs::transform_component>(larva_entity);
@@ -226,6 +227,7 @@ void enter_play_state(application* app)
 		transform.transform.translation = nest->get_shaft_position(*central_shaft, central_shaft->depth[1]);
 		//transform.transform.translation.y -= 1.0f;
 	}
+	*/
 	
 	control_system* control_system = app->get_control_system();
 	control_system->update(0.0f);

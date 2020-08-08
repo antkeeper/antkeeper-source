@@ -42,7 +42,7 @@ float3 nest::extend_shaft(shaft& shaft)
 
 	float dr = frand(dig_radius * 0.75f, dig_radius * 1.25f);
 
-	shaft.current_depth += dr * 0.5f;
+	shaft.current_depth += dr * 0.1f;
 
 	return dig_position;
 }
@@ -75,6 +75,11 @@ float nest::get_shaft_angle(const shaft& shaft, float depth) const
 	float depth_factor = (depth - shaft.depth[0]) / shaft_length;
 	float pitch = ease_linear(shaft.pitch[0], shaft.pitch[1], depth_factor);
 	return shaft.rotation + (depth / pitch) * shaft.chirality * vmq::two_pi<float>;
+}
+
+float nest::get_shaft_depth(const shaft& shaft, float turns) const
+{
+	return shaft.pitch[0] * turns;
 }
 
 float3 nest::get_shaft_position(const shaft& shaft, float depth) const

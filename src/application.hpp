@@ -246,7 +246,6 @@ private:
 	directional_light sun_direct;
 	point_light subterrain_light;
 	ambient_light underworld_ambient_light;
-	model_instance darkness_volume;
 	model_instance lantern;
 	model_instance cloud;
 	model_instance* grass_patches;

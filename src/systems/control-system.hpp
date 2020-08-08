@@ -28,6 +28,7 @@
 
 class orbit_cam;
 class nest;
+class camera;
 
 class control_system:
 	public event_handler<mouse_moved_event>
@@ -40,7 +41,9 @@ public:
 	void set_orbit_cam(orbit_cam* orbit_cam);
 	void set_nest(::nest* nest);
 	void set_tool(model_instance* tool);
+	void set_flashlight(model_instance* flashlight, model_instance* light_cone);
 	void set_viewport(const float4& viewport);
+	void set_underworld_camera(::camera* camera);
 
 	control_set* get_control_set();
 	control* get_move_forward_control();
@@ -100,6 +103,16 @@ private:
 	model_instance* tool;
 	float2 mouse_position;
 	float4 viewport;
+	
+	model_instance* flashlight;
+	model_instance* flashlight_light_cone;
+	camera* underworld_camera;
+	
+	float mouse_angle;
+	float old_mouse_angle;
+	float flashlight_turns;
+	float flashlight_turns_i;
+	float flashlight_turns_f;
 };
 
 inline control_set* control_system::get_control_set()

@@ -10,7 +10,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
 elseif(MSVC)
-	set(CMAKE_CXX_FLAGS "/W3 /MP /MD")
+	set(CMAKE_CXX_FLAGS "/W3 /MP /MT")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS}")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /Ox")
 endif()
@@ -25,7 +25,6 @@ find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED COMPONENTS SDL2::SDL2-static SDL2::SDL2main CONFIG)
 find_package(OpenAL REQUIRED CONFIG)
 
-
 # Determine dependencies
 set(STATIC_LIBS
 	vmq
@@ -33,11 +32,11 @@ set(STATIC_LIBS
 	stb
 	glad
 	EnTT
-	SDL2::SDL2main)
-set(SHARED_LIBS
-	${OPENGL_gl_LIBRARY}
-	SDL2::SDL2
+	SDL2::SDL2-static
+	SDL2::SDL2main
 	OpenAL::OpenAL)
+set(SHARED_LIBS
+	${OPENGL_gl_LIBRARY})
 
 # Generate configuration header file
 configure_file(${PROJECT_SOURCE_DIR}/src/configuration.hpp.in
@@ -84,6 +83,7 @@ endif()
 
 # Set link flags to show console window on debug builds and hide it on release builds
 if(MSVC)
+	#set_target_properties(${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS "/NODEFAULTLIB:libvcruntime.lib")
 	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
 	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:\"mainCRTStartup\"")
 endif(MSVC)
@@ -105,19 +105,19 @@ elseif(PACKAGE_PLATFORM MATCHES "win")
 	install(TARGETS ${EXECUTABLE_TARGET} DESTINATION .)
 
 	# Install SDL2 DLLs
-	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		get_target_property(SDL2_DLL SDL2::SDL2 IMPORTED_LOCATION_DEBUG)
-	else()
-		get_target_property(SDL2_DLL SDL2::SDL2 IMPORTED_LOCATION_RELEASE)
-	endif()
-	install(FILES ${SDL2_DLL} DESTINATION .)
+	#if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	#	get_target_property(SDL2_DLL SDL2::SDL2 IMPORTED_LOCATION_DEBUG)
+	#else()
+	#	get_target_property(SDL2_DLL SDL2::SDL2 IMPORTED_LOCATION_RELEASE)
+	#endif()
+	#install(FILES ${SDL2_DLL} DESTINATION .)
 	
 	# Install OpenAL DLL
-	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		get_target_property(OPENAL_DLL OpenAL::OpenAL IMPORTED_LOCATION_DEBUG)
-	else()
-		get_target_property(OPENAL_DLL OpenAL::OpenAL IMPORTED_LOCATION_RELEASE)
-	endif()
-	install(FILES ${OPENAL_DLL} DESTINATION .)
+	#if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	#	get_target_property(OPENAL_DLL OpenAL::OpenAL IMPORTED_LOCATION_DEBUG)
+	#else()
+	#	get_target_property(OPENAL_DLL OpenAL::OpenAL IMPORTED_LOCATION_RELEASE)
+	#endif()
+	#install(FILES ${OPENAL_DLL} DESTINATION .)
 endif()
 

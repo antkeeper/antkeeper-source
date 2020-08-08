@@ -44,7 +44,11 @@ static inline T log_lerp(const T& x, const T& y, float a)
 
 control_system::control_system():
 	timestep(0.0f),
-	zoom(0.0f)
+	zoom(0.0f),
+	tool(nullptr),
+	flashlight(nullptr),
+	flashlight_light_cone(nullptr),
+	underworld_camera(nullptr)
 {
 	control_set.add_control(&move_forward_control);
 	control_set.add_control(&move_back_control);
@@ -85,6 +89,12 @@ control_system::control_system():
 
 	nest = nullptr;
 	orbit_cam = nullptr;
+	
+	mouse_angle = 0.0f;
+	old_mouse_angle = mouse_angle;
+	flashlight_turns = 0.0f;
+	flashlight_turns_i = 0;
+	flashlight_turns_f = 0.0f;
 }
 
 void control_system::update(float dt)
@@ -208,6 +218,48 @@ void control_system::update(float dt)
 	if (toggle_view_control.is_active() && !toggle_view_control.was_active())
 	{
 	}
+	
+	
+	// Turn flashlight
+	
+	
+	float2 viewport_center = {(viewport[0] + viewport[2]) * 0.5f, (viewport[1] + viewport[3]) * 0.5f};
+	float2 mouse_direction = vmq::normalize(mouse_position - viewport_center);
+	old_mouse_angle = mouse_angle;
+	mouse_angle = std::atan2(-mouse_direction.y, mouse_direction.x);
+	
+	if (mouse_angle - old_mouse_angle != 0.0f)
+	{
+
+		
+		if (mouse_angle - old_mouse_angle <= -vmq::pi<float>)
+			flashlight_turns_i -= 1;
+		else if (mouse_angle - old_mouse_angle >= vmq::pi<float>)
+			flashlight_turns_i += 1;
+		
+		flashlight_turns_f = (mouse_angle) / vmq::two_pi<float>;
+		flashlight_turns = flashlight_turns_i - flashlight_turns_f;
+		
+		if (flashlight && nest)
+		{
+			transform<float> flashlight_transform = vmq::identity_transform<float>;
+			
+			float flashlight_depth = nest->get_shaft_depth(*nest->get_central_shaft(), flashlight_turns);
+			
+			flashlight_transform.translation = {0.0f, -flashlight_depth, 0.0f};
+			flashlight_transform.rotation = vmq::angle_axis(-flashlight_turns * vmq::two_pi<float> + vmq::half_pi<float>, {0, 1, 0});
+			
+			flashlight->set_transform(flashlight_transform);
+			flashlight_light_cone->set_transform(flashlight_transform);
+			
+			if (underworld_camera)
+			{
+				underworld_camera->look_at({0, -flashlight_depth + 50.0f, 0}, {0, -flashlight_depth, 0}, {0, 0, -1});
+			}
+		}
+	}
+	
+
 }
 
 void control_system::set_orbit_cam(::orbit_cam* orbit_cam)
@@ -225,9 +277,20 @@ void control_system::set_tool(model_instance* tool)
 	this->tool = tool;
 }
 
+void control_system::set_flashlight(model_instance* flashlight, model_instance* light_cone)
+{
+	this->flashlight = flashlight;
+	this->flashlight_light_cone = light_cone;
+}
+
 void control_system::set_viewport(const float4& viewport)
 {
 	this->viewport = viewport;
+}
+
+void control_system::set_underworld_camera(::camera* camera)
+{
+	this->underworld_camera = camera;
 }
 
 void control_system::handle_event(const mouse_moved_event& event)

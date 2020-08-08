@@ -60,4 +60,3 @@ void scene_object_base::look_at(const float3& position, const float3& target, co
 
 void scene_object_base::transformed()
 {}
-

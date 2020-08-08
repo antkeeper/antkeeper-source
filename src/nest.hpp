@@ -76,6 +76,8 @@ public:
 
 	float get_shaft_angle(const shaft& shaft, float depth) const;
 	
+	float get_shaft_depth(const shaft& shaft, float turns) const;
+	
 private:
 	float tunnel_radius;
 	shaft central_shaft;

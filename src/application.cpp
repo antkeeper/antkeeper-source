@@ -109,6 +109,19 @@ application::application(int argc, char** argv):
 	closed(false),
 	exit_status(EXIT_SUCCESS)
 {
+	// Determine application name
+	std::string application_name;
+	#if defined(_WIN32)
+		application_name = "Antkeeper";
+	#else
+		application_name = "antkeeper";
+	#endif
+	
+	// Detect resource paths
+	data_path = get_data_path(application_name) + "data/";
+	config_path = get_config_path(application_name);
+	screenshots_path = config_path + "screenshots/";
+	
 	// Format log messages
 	logger.set_warning_prefix("Warning: ");
 	logger.set_error_prefix(std::string());
@@ -118,26 +131,14 @@ application::application(int argc, char** argv):
 	#if defined(DEBUG)
 		logger.redirect(&std::cout);
 	#else
-		std::string log_filename = "log.txt";
+		std::string log_filename = config_path + "log.txt";
 		log_filestream.open(log_filename.c_str());
 		logger.redirect(&log_filestream);
 	#endif
-
-	// Determine application name
-	std::string application_name;
-	#if defined(_WIN32)
-		application_name = "Antkeeper";
-	#else
-		application_name = "antkeeper";
-	#endif
 	
-	// Form resource paths
-	data_path = get_data_path(application_name) + "data/";
-	config_path = get_config_path(application_name);
+	// Log paths
 	logger.log("Detected data path as \"" + data_path + "\"");
 	logger.log("Detected config path as \"" + config_path + "\"");
-
-	screenshots_path = config_path + "screenshots/";
 
 	// Create nonexistent config directories
 	std::vector<std::string> config_paths;
@@ -241,9 +242,11 @@ application::application(int argc, char** argv):
 	int window_height = 1080;
 	fullscreen = true;
 	
+	
 	window_width = 1280;
 	window_height = 720;
 	fullscreen = false;
+	
 	
 	viewport = {0.0f, 0.0f, static_cast<float>(window_width), static_cast<float>(window_height)};
 	
@@ -320,7 +323,7 @@ application::application(int argc, char** argv):
 	SDL_GL_SwapWindow(window);
 
 	// Hide cursor
-	SDL_ShowCursor(SDL_DISABLE);
+	//SDL_ShowCursor(SDL_DISABLE);
 
 	// Init SDL joystick and game controller subsystems
 	logger.push_task("Initializing SDL Joystick and Game Controller subsystems");
@@ -608,6 +611,7 @@ application::application(int argc, char** argv):
 	control_system = new ::control_system();
 	control_system->set_orbit_cam(&orbit_cam);
 	control_system->set_viewport(viewport);
+	control_system->set_underworld_camera(&underworld_camera);
 	event_dispatcher.subscribe<mouse_moved_event>(control_system);
 	event_dispatcher.subscribe<mouse_moved_event>(camera_system);
 	event_dispatcher.subscribe<mouse_moved_event>(tool_system);
@@ -758,8 +762,6 @@ application::application(int argc, char** argv):
 	underworld_ambient_light.set_intensity(0.15f);
 	underworld_ambient_light.update_tweens();
 	
-	// Darkness
-	darkness_volume.set_model(resource_manager->load<model>("darkness-volume.obj"));
 	lantern.set_model(resource_manager->load<model>("lantern.obj"));
 	
 	// Cloud
@@ -821,8 +823,7 @@ application::application(int argc, char** argv):
 	// Setup underworld scene
 	underworld_scene.add_object(&underworld_camera);
 	underworld_scene.add_object(&underworld_ambient_light);
-	//underworld_scene.add_object(&darkness_volume);
-	underworld_scene.add_object(&lantern);
+	//underworld_scene.add_object(&lantern);
 	underworld_scene.add_object(&subterrain_light);
 	underworld_scene.add_object(portal_billboard);
 	//model_instance* larva = new model_instance(resource_manager->load<model>("larva.obj"));
@@ -835,6 +836,8 @@ application::application(int argc, char** argv):
 	model_instance* flashlight_light_cone = new model_instance(resource_manager->load<model>("flashlight-light-cone.obj"));
 	flashlight_light_cone->set_rotation(flashlight_rotation);
 	underworld_scene.add_object(flashlight_light_cone);
+	
+	control_system->set_flashlight(flashlight, flashlight_light_cone);
 
 	// Set overworld as active scene
 	active_scene = &overworld_scene;
