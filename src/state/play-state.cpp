@@ -34,6 +34,8 @@
 #include "entity/components/cavity-component.hpp"
 #include "entity/components/tool-component.hpp"
 #include "entity/components/placement-component.hpp"
+#include "entity/components/copy-transform-component.hpp"
+#include "entity/components/copy-translation-component.hpp"
 #include "entity/archetype.hpp"
 #include "nest.hpp"
 #include "math.hpp"
@@ -162,6 +164,18 @@ void enter_play_state(application* app)
 	ecs::tool_component forceps_tool_component;
 	forceps_tool_component.active = true;
 	ecs_registry.assign<ecs::tool_component>(forceps_entity, forceps_tool_component);
+	
+	
+	// Add copy transform constraint to ant-hill
+	ecs::copy_translation_component constraint;
+	constraint.target = forceps_entity;
+	constraint.use_x = true;
+	constraint.use_y = true;
+	constraint.use_z = true;
+	constraint.invert_x = true;
+	constraint.invert_y = false;
+	constraint.invert_z = true;
+	ecs_registry.assign<ecs::copy_translation_component>(ant_hill_entity, constraint);
 
 	app->get_scene().update_tweens();
 

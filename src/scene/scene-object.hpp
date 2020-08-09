@@ -36,7 +36,7 @@ using vmq::transform;
 class scene_object_base
 {
 public:
-	/// Returns the type ID for this scene_object type.
+	/// Returns the type ID for this scene object type.
 	virtual const std::size_t get_object_type_id() const = 0;
 
 	/**
@@ -220,7 +220,7 @@ template <class T>
 class scene_object: public scene_object_base
 {
 public:
-	/// Unique type ID for this scene_object type.
+	/// Unique type ID for this scene object type.
 	static const std::atomic<std::size_t> object_type_id;
 
 	virtual const std::size_t get_object_type_id() const final;

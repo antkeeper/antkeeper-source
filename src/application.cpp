@@ -100,6 +100,7 @@
 #include "systems/tool-system.hpp"
 #include "systems/control-system.hpp"
 #include "systems/ui-system.hpp"
+#include "systems/constraint-system.hpp"
 #include <dirent.h>
 
 // Entity components
@@ -570,6 +571,7 @@ application::application(int argc, char** argv):
 	placement_system = new ::placement_system(ecs_registry);
 	behavior_system = new ::behavior_system(ecs_registry);
 	locomotion_system = new ::locomotion_system(ecs_registry);
+	constraint_system = new ::constraint_system(ecs_registry);
 	model_system = new ::model_system(ecs_registry, overworld_scene);
 
 	// Setup systems
@@ -588,15 +590,15 @@ application::application(int argc, char** argv):
 	systems.push_back(std::bind(&behavior_system::update, behavior_system, std::placeholders::_1, std::placeholders::_2));
 	systems.push_back(std::bind(&locomotion_system::update, locomotion_system, std::placeholders::_1, std::placeholders::_2));
 	systems.push_back([this](double t, double dt){ this->control_system->update(dt); });
+	systems.push_back(std::bind(&tool_system::update, tool_system, std::placeholders::_1, std::placeholders::_2));
+	systems.push_back(std::bind(&constraint_system::update, constraint_system, std::placeholders::_1, std::placeholders::_2));
 	systems.push_back([this](double t, double dt){
 		this->subterrain_light.set_translation(orbit_cam.get_focal_point());
 		this->lantern.set_translation(orbit_cam.get_focal_point());
 		this->spotlight.set_transform(overworld_camera.get_transform());
 		this->focal_point_tween[1] = orbit_cam.get_focal_point();
 	});
-
 	systems.push_back([this](double t, double dt){ this->ui_system->update(dt); });
-	systems.push_back(std::bind(&tool_system::update, tool_system, std::placeholders::_1, std::placeholders::_2));
 	systems.push_back(std::bind(&model_system::update, model_system, std::placeholders::_1, std::placeholders::_2));
 	systems.push_back([this](double t, double dt){ this->animator->animate(dt); });
 	systems.push_back([this](double t, double dt){ this->application_controls.update(); this->menu_controls.update(); this->camera_controls->update(); });

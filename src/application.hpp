@@ -118,6 +118,7 @@
 	class vegetation_system;
 	class tool_system;
 	class control_system;
+	class constraint_system;
 	class ui_system;
 	
 	// Scene
@@ -335,6 +336,7 @@ private:
 	terrain_system* terrain_system;
 	vegetation_system* vegetation_system;
 	tool_system* tool_system;
+	constraint_system* constraint_system;
 	
 	// UI
 	ui_system* ui_system;

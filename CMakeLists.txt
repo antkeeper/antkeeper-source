@@ -15,7 +15,6 @@ find_package(SDL2 REQUIRED COMPONENTS SDL2::SDL2-static SDL2::SDL2main CONFIG)
 find_package(OpenAL REQUIRED CONFIG)
 find_library(physfs REQUIRED NAMES physfs-static PATHS "${CMAKE_PREFIX_PATH}/lib")
 
-
 # Determine dependencies
 set(STATIC_LIBS
 	vmq
