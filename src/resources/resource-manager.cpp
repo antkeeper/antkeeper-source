@@ -31,10 +31,10 @@ resource_manager::~resource_manager()
 	}
 }
 
-void resource_manager::unload(const std::string& path)
+void resource_manager::unload(const std::string& name)
 {
 	// Check if resource is in the cache
-	auto it = resource_cache.find(path);
+	auto it = resource_cache.find(name);
 	if (it != resource_cache.end())
 	{
 		// Decrement the resource handle reference count
@@ -45,7 +45,7 @@ void resource_manager::unload(const std::string& path)
 		{
 			if (logger)
 			{
-				logger->push_task("Unloading resource \"" + path + "\"");
+				logger->push_task("Unloading resource \"" + name + "\"");
 			}
 			
 			delete it->second;
@@ -61,13 +61,12 @@ void resource_manager::unload(const std::string& path)
 	}
 }
 
-void resource_manager::include(const std::string& path)
+void resource_manager::include(const std::string& search_path)
 {
-	paths.push_back(path);
+	search_paths.push_back(search_path);
 }
 
 void resource_manager::set_logger(::logger* logger)
 {
 	this->logger = logger;
 }
-

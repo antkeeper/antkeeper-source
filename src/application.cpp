@@ -36,6 +36,7 @@
 #include <glad/glad.h>
 #include <SDL2/SDL.h>
 #include "stb/stb_image_write.h"
+#include <physfs.h>
 
 // Debug
 #include "debug/ansi-codes.hpp"
@@ -99,6 +100,7 @@
 #include "systems/tool-system.hpp"
 #include "systems/control-system.hpp"
 #include "systems/ui-system.hpp"
+#include <dirent.h>
 
 // Entity components
 #include "entity/components/cavity-component.hpp"
@@ -109,6 +111,11 @@ application::application(int argc, char** argv):
 	closed(false),
 	exit_status(EXIT_SUCCESS)
 {
+	// Format log messages
+	logger.set_warning_prefix("Warning: ");
+	logger.set_error_prefix(std::string());
+	logger.set_success_prefix(std::string());
+	
 	// Determine application name
 	std::string application_name;
 	#if defined(_WIN32)
@@ -119,30 +126,21 @@ application::application(int argc, char** argv):
 	
 	// Detect resource paths
 	data_path = get_data_path(application_name) + "data/";
+	data_package_path = get_data_path(application_name) + "data.zip";
 	config_path = get_config_path(application_name);
+	mods_path = config_path + "mods/";
+	saves_path = config_path + "saves/";
 	screenshots_path = config_path + "screenshots/";
 	
-	// Format log messages
-	logger.set_warning_prefix("Warning: ");
-	logger.set_error_prefix(std::string());
-	logger.set_success_prefix(std::string());
-	
-	// Redirect logger output
-	#if defined(DEBUG)
-		logger.redirect(&std::cout);
-	#else
-		std::string log_filename = config_path + "log.txt";
-		log_filestream.open(log_filename.c_str());
-		logger.redirect(&log_filestream);
-	#endif
-	
-	// Log paths
+	// Log resource paths
 	logger.log("Detected data path as \"" + data_path + "\"");
 	logger.log("Detected config path as \"" + config_path + "\"");
-
+	
 	// Create nonexistent config directories
 	std::vector<std::string> config_paths;
 	config_paths.push_back(config_path);
+	config_paths.push_back(mods_path);
+	config_paths.push_back(saves_path);
 	config_paths.push_back(screenshots_path);
 	for (const std::string& path: config_paths)
 	{
@@ -160,30 +158,90 @@ application::application(int argc, char** argv):
 		}
 	}
 	
-	// Register CLI commands
-	cli.register_command("echo", cc::echo);
-	cli.register_command("exit", std::function<std::string()>(std::bind(&cc::exit, this)));
-	cli.register_command("scrot", std::function<std::string()>(std::bind(&cc::scrot, this)));
-	cli.register_command("cue", std::function<std::string(float, std::string)>(std::bind(&cc::cue, this, std::placeholders::_1, std::placeholders::_2)));
-	//std::string cmd = "cue 20 exit";
-	//logger.log(cmd);
-	//logger.log(cli.interpret(cmd));
+	// Redirect logger output to log file on non-debug builds
+	#if defined(NDEBUG)
+		std::string log_filename = config_path + "log.txt";
+		log_filestream.open(log_filename.c_str());
+		logger.redirect(&log_filestream);
+	#endif
+	
+	// Init PhysicsFS
+	logger.push_task("Initializing PhysicsFS");
+	if (!PHYSFS_init(argv[0]))
+	{
+		logger.error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		logger.pop_task(EXIT_FAILURE);
+	}
+	else
+	{
+		logger.pop_task(EXIT_SUCCESS);
+	}
+	
+	// Mount mods
+	struct dirent **files = nullptr;
+	int n = scandir (mods_path.c_str(), &files, NULL, alphasort);
+	if (n >= 0)
+	{
+		for (int i = 0; i < n; ++i)
+		{
+			struct dirent* file = files[i];
+			
+			switch (file->d_type)
+			{
+				case DT_REG:
+				case DT_DIR:
+				{
+					std::string mod_name = file->d_name;
+					
+					// Skip hidden files and directories
+					if (mod_name.front() == '.')
+						break;
+					
+					std::string mod_path = mods_path + mod_name;
+					logger.push_task("Mounting mod \"" + mod_path + "\"");
+					if (!PHYSFS_mount(mod_path.c_str(), nullptr, 1))
+					{
+						logger.error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+						logger.pop_task(EXIT_FAILURE);
+					}
+					else
+					{
+						logger.pop_task(EXIT_SUCCESS);
+					}
+					
+					break;
+				}
+				
+				default:
+					break;
+			}
+		}
+	}
+	
+	// Mount data package
+	logger.push_task("Mounting data package \"" + data_package_path + "\"");
+	if (!PHYSFS_mount(data_package_path.c_str(), nullptr, 1))
+	{
+		logger.error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		logger.pop_task(EXIT_FAILURE);
+	}
+	else
+	{
+		logger.pop_task(EXIT_SUCCESS);
+	}
 	
 	// Setup resource manager
 	resource_manager = new ::resource_manager();
 	resource_manager->set_logger(&logger);
 
 	// Include resource search paths in order of priority
-	resource_manager->include(config_path);
-	resource_manager->include(data_path);
-	resource_manager->include(data_path + "/shaders/include/");
-	resource_manager->include(data_path + "/shaders/src/");
-	resource_manager->include(data_path + "/models/");
-	resource_manager->include(data_path + "/textures/");
-	resource_manager->include(data_path + "/materials/");
-	resource_manager->include(data_path + "/entities/");
-	resource_manager->include(data_path + "/behaviors/");
-	resource_manager->include(data_path + "/controls/");
+	resource_manager->include("/shaders/");
+	resource_manager->include("/models/");
+	resource_manager->include("/textures/");
+	resource_manager->include("/materials/");
+	resource_manager->include("/entities/");
+	resource_manager->include("/behaviors/");
+	resource_manager->include("/controls/");
 
 	// Get SDL compiled version
 	SDL_version sdl_compiled_version;
@@ -300,7 +358,7 @@ application::application(int argc, char** argv):
 	}
 
 	// Set v-sync mode
-	int swap_interval = 1;
+	int swap_interval = 0;
 	logger.push_task((swap_interval) ? "Enabling v-sync" : "Disabling v-sync");
 	if (SDL_GL_SetSwapInterval(swap_interval) != 0)
 	{
@@ -759,7 +817,7 @@ application::application(int argc, char** argv):
 	spotlight.set_active(false);
 	
 	underworld_ambient_light.set_color({1, 1, 1});
-	underworld_ambient_light.set_intensity(0.15f);
+	underworld_ambient_light.set_intensity(0.1f);
 	underworld_ambient_light.update_tweens();
 	
 	lantern.set_model(resource_manager->load<model>("lantern.obj"));
@@ -824,8 +882,8 @@ application::application(int argc, char** argv):
 	underworld_scene.add_object(&underworld_camera);
 	underworld_scene.add_object(&underworld_ambient_light);
 	//underworld_scene.add_object(&lantern);
-	underworld_scene.add_object(&subterrain_light);
-	underworld_scene.add_object(portal_billboard);
+	//underworld_scene.add_object(&subterrain_light);
+	//underworld_scene.add_object(portal_billboard);
 	//model_instance* larva = new model_instance(resource_manager->load<model>("larva.obj"));
 	//underworld_scene.add_object(larva);
 	
@@ -874,9 +932,19 @@ application::application(int argc, char** argv):
 	get_ui_scene()->add_object(radial_transition_outer->get_billboard());
 	animator->add_animation(radial_transition_outer->get_animation());
 	
+	// Register CLI commands
+	cli.register_command("echo", cc::echo);
+	cli.register_command("exit", std::function<std::string()>(std::bind(&cc::exit, this)));
+	cli.register_command("scrot", std::function<std::string()>(std::bind(&cc::scrot, this)));
+	cli.register_command("cue", std::function<std::string(float, std::string)>(std::bind(&cc::cue, this, std::placeholders::_1, std::placeholders::_2)));
+	//std::string cmd = "cue 20 exit";
+	//logger.log(cmd);
+	//logger.log(cli.interpret(cmd));
+	
+	// Determine initial state
 	// Determine initial state
 	initial_state = &splash_state;
-	std::string no_splash_flag = "--skip-splash";
+	std::string no_splash_flag = "--no-splash";
 	for (int i = 0; i < argc; ++i)
 	{
 		if (no_splash_flag == argv[i])
@@ -889,6 +957,18 @@ application::application(int argc, char** argv):
 
 application::~application()
 {
+	// Deinit PhysicsFS
+	logger.push_task("Deinitializing PhysicsFS");
+	if (!PHYSFS_deinit())
+	{
+		logger.error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		logger.pop_task(EXIT_FAILURE);
+	}
+	else
+	{
+		logger.pop_task(EXIT_SUCCESS);
+	}
+	
 	// Destroy the SDL window
 	SDL_DestroyWindow(window);
 

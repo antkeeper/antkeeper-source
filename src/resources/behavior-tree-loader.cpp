@@ -27,6 +27,7 @@
 #include <iostream>
 #include <type_traits>
 #include <sstream>
+#include <physfs.h>
 
 template <class T>
 void parse_argument(T& value, const std::string& string)
@@ -141,10 +142,16 @@ static void load_node_children(ebt::composite_node* node, const nlohmann::json& 
 }
 
 template <>
-ebt::node* resource_loader<ebt::node>::load(resource_manager* resource_manager, std::istream* is)
+ebt::node* resource_loader<ebt::node>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
-	nlohmann::json json;
-	(*is) >> json;
+	// Read file into buffer
+	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));
+	std::string buffer;
+	buffer.resize(size);
+	PHYSFS_readBytes(file, &buffer[0], size);
+	
+	// Parse json from file buffer
+	nlohmann::json json = nlohmann::json::parse(buffer);
 
 	if (json.size() != 1)
 	{

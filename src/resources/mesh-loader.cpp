@@ -22,16 +22,20 @@
 #include "geometry/mesh-functions.hpp"
 #include <sstream>
 #include <stdexcept>
+#include <physfs.h>
 
 template <>
-mesh* resource_loader<mesh>::load(resource_manager* resource_manager, std::istream* is)
+mesh* resource_loader<mesh>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	std::string line;
 	std::vector<float3> vertices;
 	std::vector<std::array<std::uint_fast32_t, 3>> triangles;
 
-	while (is->good() && std::getline(*is, line))
+	while (!PHYSFS_eof(file))
 	{
+		// Read line
+		physfs_getline(file, line);
+		
 		// Tokenize line
 		std::vector<std::string> tokens;
 		std::string token;

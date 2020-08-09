@@ -172,25 +172,10 @@ static std::string generate_source_buffer(const std::vector<std::string>& source
 }
 
 template <>
-shader_program* resource_loader<shader_program>::load(resource_manager* resource_manager, std::istream* is)
+shader_program* resource_loader<shader_program>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
-	// Allocate shader source
-	text_file* source = new text_file();
-
-	// Read input stream into source
-	while (!is->eof())
-	{
-		// For each line in input stream
-		std::string line;
-		std::getline(*is, line);
-		if (is->bad() || is->fail())
-		{
-			break;
-		}
-
-		// Add line to the source
-		source->push_back(line);
-	}
+	// Load shader source
+	text_file* source = resource_loader<text_file>::load(resource_manager, file);
 
 	// Handle `#pragma include` directives
 	handle_includes(source, resource_manager);

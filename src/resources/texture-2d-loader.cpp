@@ -25,10 +25,10 @@
 #include <sstream>
 
 template <>
-texture_2d* resource_loader<texture_2d>::load(resource_manager* resource_manager, std::istream* is)
+texture_2d* resource_loader<texture_2d>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	// Load image
-	::image* image = resource_loader<::image>::load(resource_manager, is);
+	::image* image = resource_loader<::image>::load(resource_manager, file);
 
 	// Determine pixel type
 	pixel_type type = (image->is_hdr()) ? pixel_type::float_32 : pixel_type::uint_8;
@@ -67,4 +67,3 @@ texture_2d* resource_loader<texture_2d>::load(resource_manager* resource_manager
 
 	return texture;
 }
-

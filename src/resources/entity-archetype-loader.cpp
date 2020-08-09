@@ -169,12 +169,12 @@ static bool load_component(archetype& archetype, resource_manager& resource_mana
 }
 
 template <>
-archetype* resource_loader<archetype>::load(resource_manager* resource_manager, std::istream* is)
+archetype* resource_loader<archetype>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	ecs::archetype* archetype = new ecs::archetype(resource_manager->get_archetype_registry());
 
 	// Load string table from input stream
-	string_table* table = resource_loader<string_table>::load(resource_manager, is);
+	string_table* table = resource_loader<string_table>::load(resource_manager, file);
 
 	// Ensure table is not empty.
 	if (!table || table->empty())

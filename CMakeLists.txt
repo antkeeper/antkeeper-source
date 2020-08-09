@@ -4,17 +4,6 @@ option(VERSION_STRING "Project version string" "0.0.0")
 
 project(antkeeper VERSION ${VERSION_STRING} LANGUAGES CXX)
 
-# Set compiler flags
-if(CMAKE_COMPILER_IS_GNUCC)
-	set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
-elseif(MSVC)
-	set(CMAKE_CXX_FLAGS "/W3 /MP /MT")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS}")
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /Ox")
-endif()
-
 # Find dependency packages
 find_package(vmq REQUIRED CONFIG)
 find_package(dr_wav REQUIRED CONFIG)
@@ -24,6 +13,8 @@ find_package(EnTT REQUIRED CONFIG)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED COMPONENTS SDL2::SDL2-static SDL2::SDL2main CONFIG)
 find_package(OpenAL REQUIRED CONFIG)
+find_library(physfs REQUIRED NAMES physfs-static PATHS "${CMAKE_PREFIX_PATH}/lib")
+
 
 # Determine dependencies
 set(STATIC_LIBS
@@ -34,7 +25,8 @@ set(STATIC_LIBS
 	EnTT
 	SDL2::SDL2-static
 	SDL2::SDL2main
-	OpenAL::OpenAL)
+	OpenAL::OpenAL
+	${physfs})
 set(SHARED_LIBS
 	${OPENGL_gl_LIBRARY})
 

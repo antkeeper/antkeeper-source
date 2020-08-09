@@ -21,9 +21,11 @@
 #include "stb/stb_image.h"
 #include "resources/image.hpp"
 #include <cstring>
+#include <stdexcept>
+#include <physfs.h>
 
 template <>
-image* resource_loader<image>::load(resource_manager* resource_manager, std::istream* is)
+image* resource_loader<image>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	unsigned char* buffer;
 	int size;
@@ -34,11 +36,9 @@ image* resource_loader<image>::load(resource_manager* resource_manager, std::ist
 	void* pixels;
 
 	// Read input stream into buffer
-	is->seekg(0, is->end);
-	size = static_cast<int>(is->tellg());
+	size = static_cast<int>(PHYSFS_fileLength(file));
 	buffer = new unsigned char[size];
-	is->seekg(0, is->beg);
-	is->read(reinterpret_cast<char*>(&buffer[0]), size);
+	PHYSFS_readBytes(file, buffer, size);
 
 	// Determine if image is in an HDR format
 	hdr = (stbi_is_hdr_from_memory(buffer, size) != 0);

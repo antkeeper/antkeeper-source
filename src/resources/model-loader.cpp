@@ -26,6 +26,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <limits>
+#include <physfs.h>
 #include <vmq/vmq.hpp>
 
 using namespace vmq::types;
@@ -46,7 +47,7 @@ static const float3 barycentric_coords[3] =
 };
 
 template <>
-model* resource_loader<model>::load(resource_manager* resource_manager, std::istream* is)
+model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	std::string line;
 	std::vector<float3> positions;
@@ -61,8 +62,11 @@ model* resource_loader<model>::load(resource_manager* resource_manager, std::ist
 		{-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()}
 	};
 
-	while (is->good() && std::getline(*is, line))
+	while (!PHYSFS_eof(file))
 	{
+		// Read line
+		physfs_getline(file, line);
+		
 		// Tokenize line
 		std::vector<std::string> tokens;
 		std::string token;

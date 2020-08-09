@@ -378,10 +378,10 @@ static bool load_material_property(material* material, const string_table_row& r
 }
 
 template <>
-material* resource_loader<material>::load(resource_manager* resource_manager, std::istream* is)
+material* resource_loader<material>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	// Load string table from input stream
-	string_table* table = resource_loader<string_table>::load(resource_manager, is);
+	string_table* table = resource_loader<string_table>::load(resource_manager, file);
 
 	// Ensure table is not empty.
 	if (!table || table->empty())

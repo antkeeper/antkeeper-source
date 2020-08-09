@@ -208,7 +208,10 @@ private:
 
 	// Paths
 	std::string data_path;
+	std::string data_package_path;
 	std::string config_path;
+	std::string mods_path;
+	std::string saves_path;
 	std::string screenshots_path;
 
 	// Resources

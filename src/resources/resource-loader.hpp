@@ -20,10 +20,10 @@
 #ifndef RESOURCE_LOADER_HPP
 #define RESOURCE_LOADER_HPP
 
-#include <istream>
-#include <ostream>
+#include <string>
 
 class resource_manager;
+struct PHYSFS_File;
 
 /**
  * Templated resource loader.
@@ -38,20 +38,22 @@ public:
 	 * Loads resource data.
 	 *
 	 * @param resourceManager Pointer to a resource manager which will manage this resource.
-	 * @param is Input stream containing the resource data.
+	 * @param file PhysicsFS file handle.
 	 * @return Pointer to the loaded resource.
 	 */
-	static T* load(resource_manager* resourceManager, std::istream* is);
+	static T* load(resource_manager* resourceManager, PHYSFS_File* file);
 
 	/**
 	 * Saves resource data.
 	 *
 	 * @param resourceManager Pointer to a resource manager.
-	 * @param os Output stream which will contain the resource data.
+	 * @param file PhysicsFS file handle.
 	 * @param resource Pointer to the resource data.
 	 */
-	static void save(resource_manager* resourceManager, std::ostream* os, const T* resource);
+	static void save(resource_manager* resourceManager, PHYSFS_File* file, const T* resource);
 };
 
-#endif // RESOURCE_LOADER_HPP
+/// getline function for PhysicsFS file handles
+void physfs_getline(PHYSFS_File* file, std::string& line);
 
+#endif // RESOURCE_LOADER_HPP

@@ -17,21 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "resources/resource-loader.hpp"
-#include "resources/text-file.hpp"
+#include "resource-loader.hpp"
 #include <physfs.h>
 
-template <>
-text_file* resource_loader<text_file>::load(resource_manager* resource_manager, PHYSFS_File* file)
+void physfs_getline(PHYSFS_File* file, std::string& line)
 {
-	text_file* text = new text_file();
-	std::string line;
+	PHYSFS_sint64 bytes;
+	char c;
 	
-	while (!PHYSFS_eof(file))
+	line.clear();
+	
+	do
 	{
-		physfs_getline(file, line);
-		text->push_back(line);
+		bytes = PHYSFS_readBytes(file, &c, 1);
+		
+		if (bytes != 1 || c == '\n')
+			break;
+		
+		if (c == '\r')
+			continue;
+		
+		line.append(1, c);
 	}
-
-	return text;
+	while (!PHYSFS_eof(file));
 }

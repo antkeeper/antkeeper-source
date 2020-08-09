@@ -19,6 +19,7 @@
 
 #include "resource-loader.hpp"
 #include "string-table.hpp"
+#include <physfs.h>
 
 static string_table_row parse_row(const std::string& line)
 {
@@ -92,19 +93,14 @@ static string_table_row parse_row(const std::string& line)
 }
 
 template <>
-string_table* resource_loader<string_table>::load(resource_manager* resource_manager, std::istream* is)
+string_table* resource_loader<string_table>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	string_table* table = new string_table();
 	std::string line;
 
-	while (!is->eof())
+	while (!PHYSFS_eof(file))
 	{
-		std::getline(*is, line);
-		if (is->bad() || is->fail())
-		{
-			break;
-		}
-
+		physfs_getline(file, line);
 		table->push_back(parse_row(line));
 	}
 
@@ -112,8 +108,11 @@ string_table* resource_loader<string_table>::load(resource_manager* resource_man
 }
 
 template <>
-void resource_loader<string_table>::save(resource_manager* resource_manager, std::ostream* os, const string_table* table)
+void resource_loader<string_table>::save(resource_manager* resource_manager, PHYSFS_File* file, const string_table* table)
 {
+	const char* delimeter = ",";
+	const char* newline = "\n";
+	
 	for (std::size_t i = 0; i < table->size(); ++i)
 	{
 		const string_table_row& row = (*table)[i];
@@ -121,19 +120,18 @@ void resource_loader<string_table>::save(resource_manager* resource_manager, std
 		for (std::size_t j = 0; j < row.size(); ++j)
 		{
 			const std::string& column = row[j];
-
-			(*os) << column;
+			
+			PHYSFS_writeBytes(file, column.data(), column.length());
 
 			if (j < row.size() - 1)
 			{
-				(*os) << ",";
+				PHYSFS_writeBytes(file, delimeter, 1);
 			}
 		}
 
 		if (i < table->size() - 1)
 		{
-			(*os) << std::endl;
+			PHYSFS_writeBytes(file, newline, 1);
 		}
 	}
 }
-
