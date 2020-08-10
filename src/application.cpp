@@ -20,9 +20,7 @@
 #include "application.hpp"
 #include "configuration.hpp"
 #include "state/application-states.hpp"
-#include "filesystem.hpp"
 #include "math.hpp"
-#include "timestamp.hpp"
 
 // STL
 #include <cstdlib>
@@ -79,7 +77,7 @@
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
 #include "animation/screen-transition.hpp"
-#include "animation/easings.hpp"
+#include "animation/ease.hpp"
 
 // Scene
 #include "scene/billboard.hpp"
@@ -105,6 +103,10 @@
 
 // Entity components
 #include "entity/components/cavity-component.hpp"
+
+// Utilities
+#include "utility/paths.hpp"
+#include "utility/timestamp.hpp"
 
 using namespace vmq::operators;
 
@@ -703,13 +705,13 @@ application::application(int argc, char** argv):
 			if (this->active_scene == &this->overworld_scene)
 			{
 				this->active_scene = &this->underworld_scene;
-				this->radial_transition_inner->transition(0.5f, false, ease_in_quad<float, double>);
+				this->radial_transition_inner->transition(0.5f, false, ease<float, double>::in_quad);
 				
 				auto switch_cameras = [this]()
 				{
 					this->overworld_camera.set_active(false);
 					this->underworld_camera.set_active(true);
-					this->fade_transition->transition(0.25f, true, ease_out_quad<float, double>);
+					this->fade_transition->transition(0.25f, true, ease<float, double>::out_quad);
 				};
 				
 				float t = timeline.get_position();
@@ -718,13 +720,13 @@ application::application(int argc, char** argv):
 			else
 			{
 				this->active_scene = &this->overworld_scene;
-				this->fade_transition->transition(0.25f, false, ease_out_quad<float, double>);
+				this->fade_transition->transition(0.25f, false, ease<float, double>::out_quad);
 				
 				auto switch_cameras = [this]()
 				{
 					this->overworld_camera.set_active(true);
 					this->underworld_camera.set_active(false);
-					this->radial_transition_inner->transition(0.5f, true, ease_out_quad<float, double>);
+					this->radial_transition_inner->transition(0.5f, true, ease<float, double>::out_quad);
 				};
 				
 				float t = timeline.get_position();

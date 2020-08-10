@@ -20,14 +20,20 @@
 #ifndef ANTKEEPER_ECS_NEST_COMPONENT_HPP
 #define ANTKEEPER_ECS_NEST_COMPONENT_HPP
 
+#include <vector>
+#include <entt/entt.hpp>
+
 namespace ecs {
 
 struct nest_component
 {
-	int bla;
+	std::vector<entt::entity> chambers;
+	float helix_radius;
+	float helix_pitch;
+	float helix_chirality;
+	float helix_turns;
 };
 
 } // namespace ecs
 
 #endif // ANTKEEPER_ECS_NEST_COMPONENT_HPP
-

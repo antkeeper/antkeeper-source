@@ -29,6 +29,10 @@ struct chamber_component
 {
 	entt::entity nest;
 	float depth;
+	float outer_radius;
+	float inner_radius;
+	float inner_sector_angle;
+	float tile_radius;
 	std::unordered_set<std::array<int, 2>> tiles;
 }
 

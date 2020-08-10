@@ -22,25 +22,11 @@
 #include "orbit-cam.hpp"
 #include "scene/camera.hpp"
 #include "geometry/intersection.hpp"
-#include "animation/easings.hpp"
+#include "animation/ease.hpp"
 #include "nest.hpp"
 #include <vmq/vmq.hpp>
 
 using namespace vmq::operators;
-
-template <class T>
-static inline T lerp(const T& x, const T& y, float a)
-{
-	return x * (1.0f - a) + y * a;
-}
-
-template <class T>
-static inline T log_lerp(const T& x, const T& y, float a)
-{
-	T log_x = std::log(x);
-	T log_y = std::log(y);
-	return std::exp(lerp(log_x, log_y, a));
-}
 
 control_system::control_system():
 	timestep(0.0f),
@@ -112,15 +98,15 @@ void control_system::update(float dt)
 		zoom -= zoom_speed * dt * zoom_out_control.get_current_value();
 	zoom = std::max<float>(0.0f, std::min<float>(1.0f, zoom));
 
-	float focal_distance = log_lerp(near_focal_distance, far_focal_distance, 1.0f - zoom);
+	float focal_distance = ease<float>::log(near_focal_distance, far_focal_distance, 1.0f - zoom);
 
-	float fov = log_lerp(near_fov, far_fov, 1.0f - zoom);
+	float fov = ease<float>::log(near_fov, far_fov, 1.0f - zoom);
 
 	//float elevation_factor = (orbit_cam->get_target_elevation() - min_elevation) / max_elevation;
-	//fov = log_lerp(near_fov, far_fov, elevation_factor);
-	float clip_near = log_lerp(near_clip_near, far_clip_near, 1.0f - zoom);
-	float clip_far = log_lerp(near_clip_far, far_clip_far, 1.0f - zoom);
-	float movement_speed = log_lerp(near_movement_speed * dt, far_movement_speed * dt, 1.0f - zoom);
+	//fov = ease<float>::log(near_fov, far_fov, elevation_factor);
+	float clip_near = ease<float>::log(near_clip_near, far_clip_near, 1.0f - zoom);
+	float clip_far = ease<float>::log(near_clip_far, far_clip_far, 1.0f - zoom);
+	float movement_speed = ease<float>::log(near_movement_speed * dt, far_movement_speed * dt, 1.0f - zoom);
 
 	orbit_cam->set_target_focal_distance(focal_distance);
 	orbit_cam->get_camera()->set_perspective(fov, orbit_cam->get_camera()->get_aspect_ratio(), clip_near, clip_far);

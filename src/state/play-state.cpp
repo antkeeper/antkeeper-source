@@ -41,7 +41,7 @@
 #include "math.hpp"
 #include "geometry/mesh-accelerator.hpp"
 #include "behavior/ebt.hpp"
-#include "animation/easings.hpp"
+#include "animation/ease.hpp"
 #include <iostream>
 
 using namespace vmq::operators;
@@ -249,7 +249,7 @@ void enter_play_state(application* app)
 	orbit_cam->update(0.0f);
 	
 	// Start fade in
-	app->get_fade_transition()->transition(1.0f, true, ease_in_quad<float, double>);
+	app->get_fade_transition()->transition(1.0f, true, ease<float>::in_quad);
 
 	logger->pop_task(EXIT_SUCCESS);
 }

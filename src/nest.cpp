@@ -18,18 +18,8 @@
  */
 
 #include "nest.hpp"
-#include "animation/easings.hpp"
-#include "marching-cubes.hpp"
-#include "geometry/mesh-functions.hpp"
-#include "sdf.hpp"
-#include <functional>
-#include <iostream>
-#include <map>
-#include <vector>
-
+#include "animation/ease.hpp"
 #include "math.hpp"
-#include <functional>
-#include <limits>
 
 nest::nest()
 {
@@ -73,7 +63,7 @@ float nest::get_shaft_angle(const shaft& shaft, float depth) const
 {
 	float shaft_length = shaft.depth[1] - shaft.depth[0];
 	float depth_factor = (depth - shaft.depth[0]) / shaft_length;
-	float pitch = ease_linear(shaft.pitch[0], shaft.pitch[1], depth_factor);
+	float pitch = ease<float>::linear(shaft.pitch[0], shaft.pitch[1], depth_factor);
 	return shaft.rotation + (depth / pitch) * shaft.chirality * vmq::two_pi<float>;
 }
 
@@ -87,10 +77,10 @@ float3 nest::get_shaft_position(const shaft& shaft, float depth) const
 	float shaft_length = shaft.depth[1] - shaft.depth[0];
 	float depth_factor = (depth - shaft.depth[0]) / shaft_length;
 
-	float pitch = ease_linear(shaft.pitch[0], shaft.pitch[1], depth_factor);
-	float radius = ease_out_expo(shaft.radius[0], shaft.radius[1], depth_factor);
-	float translation_x = ease_linear(shaft.translation[0][0], shaft.translation[1][0], depth_factor);
-	float translation_z = ease_linear(shaft.translation[0][1], shaft.translation[1][1], depth_factor);
+	float pitch = ease<float>::linear(shaft.pitch[0], shaft.pitch[1], depth_factor);
+	float radius = ease<float>::out_expo(shaft.radius[0], shaft.radius[1], depth_factor);
+	float translation_x = ease<float>::linear(shaft.translation[0][0], shaft.translation[1][0], depth_factor);
+	float translation_z = ease<float>::linear(shaft.translation[0][1], shaft.translation[1][1], depth_factor);
 	float angle = shaft.rotation + (depth / pitch) * shaft.chirality  * vmq::two_pi<float>;
 
 	float3 position;

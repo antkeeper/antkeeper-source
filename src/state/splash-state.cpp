@@ -24,7 +24,7 @@
 #include "renderer/material-property.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
-#include "animation/easings.hpp"
+#include "animation/ease.hpp"
 #include "animation/screen-transition.hpp"
 #include "renderer/passes/sky-pass.hpp"
 
@@ -48,12 +48,12 @@ void enter_splash_state(application* app)
 	const float splash_fade_out_duration = 0.5f;
 	
 	// Start fade in
-	app->get_fade_transition()->transition(splash_fade_in_duration, true, ease_in_quad<float, double>);
+	app->get_fade_transition()->transition(splash_fade_in_duration, true, ease<float>::in_quad);
 	
 	// Crate fade out function
 	auto fade_out = [app, splash_fade_out_duration]()
 	{
-		app->get_fade_transition()->transition(splash_fade_out_duration, false, ease_out_quad<float, double>);
+		app->get_fade_transition()->transition(splash_fade_out_duration, false, ease<float>::out_quad);
 	};
 	
 	// Create change state function

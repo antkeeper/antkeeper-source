@@ -18,7 +18,7 @@
  */
 
 #include "logger.hpp"
-#include "timestamp.hpp"
+#include "utility/timestamp.hpp"
 #include <iostream>
 
 logger::logger():

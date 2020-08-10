@@ -61,13 +61,13 @@
 #include "scene/model-instance.hpp"
 
 // Animation
+#include "animation/frame-scheduler.hpp"
 #include "animation/timeline.hpp"
 #include "animation/tween.hpp"
 #include "animation/animation.hpp"
 
 // Misc
 #include "state/fsm.hpp"
-#include "frame-scheduler.hpp"
 #include "pheromone-matrix.hpp"
 #include "orbit-cam.hpp"
 

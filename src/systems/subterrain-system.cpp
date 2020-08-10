@@ -28,7 +28,7 @@
 #include "rasterizer/drawing-mode.hpp"
 #include "rasterizer/vertex-buffer.hpp"
 #include "resources/resource-manager.hpp"
-#include "marching-cubes.hpp"
+#include "geometry/marching-cubes.hpp"
 #include "geometry/intersection.hpp"
 #include "scene/scene.hpp"
 #include "scene/model-instance.hpp"

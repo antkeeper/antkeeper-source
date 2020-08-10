@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_FILESYSTEM_HPP
-#define ANTKEEPER_FILESYSTEM_HPP
+#ifndef ANTKEEPER_PATHS_HPP
+#define ANTKEEPER_PATHS_HPP
 
 #include <string>
 
@@ -57,5 +57,5 @@ bool path_exists(const std::string& path);
 /// Creates a directory
 bool create_directory(const std::string& path);
 
-#endif // ANTKEEPER_FILESYSTEM_HPP
+#endif // ANTKEEPER_PATHS_HPP
 

@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "filesystem.hpp"
+#include "paths.hpp"
 #include <cstdlib>
 #include <limits.h>
 #include <stdexcept>
