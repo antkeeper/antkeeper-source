@@ -33,7 +33,7 @@ status print(context& context, const std::string& text)
 
 status print_eid(context& context)
 {
-	std::cout << context.entity << std::endl;
+	std::cout << static_cast<std::size_t>(context.entity) << std::endl;
 	return status::success;
 }
 

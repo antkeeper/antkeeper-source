@@ -187,6 +187,10 @@ public:
 	screen_transition* get_radial_transition_outer();
 
 private:
+	void setup_fsm();
+	void parse_options(int argc, char** argv);
+	
+
 	void update(double t, double dt);
 	void render(double alpha);
 	void translate_sdl_events();
@@ -196,6 +200,7 @@ private:
 	static void save_image(const std::string& filename, int w, int h, const unsigned char* pixels);
 
 	bool fullscreen;
+	bool vsync;
 	std::tuple<int, int> saved_mouse_position;
 	std::tuple<int, int> window_dimensions;
 	std::tuple<int, int> window_position;
@@ -351,6 +356,12 @@ private:
 	screen_transition* fade_transition;
 	screen_transition* radial_transition_inner;
 	screen_transition* radial_transition_outer;
+	
+	// Entities
+	entt::entity forceps_entity;
+	entt::entity lens_entity;
+	entt::entity brush_entity;
+	entt::entity flashlight_entity;
 };
 
 inline logger* application::get_logger()

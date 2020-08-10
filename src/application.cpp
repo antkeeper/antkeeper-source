@@ -29,12 +29,14 @@
 #include <thread>
 #include <string>
 #include <iomanip>
+#include <filesystem>
 
 // External
 #include <glad/glad.h>
 #include <SDL2/SDL.h>
 #include "stb/stb_image_write.h"
 #include <physfs.h>
+#include <cxxopts.hpp>
 
 // Debug
 #include "debug/ansi-codes.hpp"
@@ -112,8 +114,9 @@ using namespace vmq::operators;
 
 application::application(int argc, char** argv):
 	closed(false),
-	exit_status(EXIT_SUCCESS)
-{
+	exit_status(EXIT_SUCCESS),
+	initial_state(nullptr)
+{	
 	// Format log messages
 	logger.set_warning_prefix("Warning: ");
 	logger.set_error_prefix(std::string());
@@ -128,8 +131,8 @@ application::application(int argc, char** argv):
 	#endif
 	
 	// Detect resource paths
-	data_path = get_data_path(application_name) + "data/";
-	data_package_path = get_data_path(application_name) + "data.zip";
+	data_path = get_data_path(application_name);
+	data_package_path = data_path + "data.zip";
 	config_path = get_config_path(application_name);
 	mods_path = config_path + "mods/";
 	saves_path = config_path + "saves/";
@@ -167,6 +170,17 @@ application::application(int argc, char** argv):
 		log_filestream.open(log_filename.c_str());
 		logger.redirect(&log_filestream);
 	#endif
+	
+	// Setup FSM
+	setup_fsm();
+	
+	// Load configuration
+	//load_config();
+	fullscreen = true;
+	vsync = false;
+	
+	// Parse command line options
+	parse_options(argc, argv);
 	
 	// Init PhysicsFS
 	logger.push_task("Initializing PhysicsFS");
@@ -299,15 +313,14 @@ application::application(int argc, char** argv):
 		display_dimensions = {sdl_display_mode.w, sdl_display_mode.h};
 	}
 
-	int window_width = 1920;
-	int window_height = 1080;
-	fullscreen = true;
+	int window_width = sdl_display_mode.w;
+	int window_height = sdl_display_mode.h;	
 	
-	
-	window_width = 1280;
-	window_height = 720;
-	fullscreen = false;
-	
+	if (!fullscreen)
+	{
+		window_width = 1280;
+		window_height = 720;
+	}	
 	
 	viewport = {0.0f, 0.0f, static_cast<float>(window_width), static_cast<float>(window_height)};
 	
@@ -361,7 +374,7 @@ application::application(int argc, char** argv):
 	}
 
 	// Set v-sync mode
-	int swap_interval = 0;
+	int swap_interval = (vsync) ? 1 : 0;
 	logger.push_task((swap_interval) ? "Enabling v-sync" : "Disabling v-sync");
 	if (SDL_GL_SetSwapInterval(swap_interval) != 0)
 	{
@@ -607,38 +620,6 @@ application::application(int argc, char** argv):
 	systems.push_back(std::bind(&render_system::update, render_system, std::placeholders::_1, std::placeholders::_2));
 	systems.push_back([this](double t, double dt){ this->animator->animate(dt); });
 	systems.push_back([this](double t, double dt){ this->application_controls.update(); this->menu_controls.update(); this->camera_controls->update(); });
-
-	// Setup FSM states
-	loading_state =
-	{
-		std::function<void()>(std::bind(enter_loading_state, this)),
-		std::function<void()>(std::bind(exit_loading_state, this))
-	};
-	language_select_state =
-	{
-		std::function<void()>(std::bind(enter_language_select_state, this)),
-		std::function<void()>(std::bind(exit_language_select_state, this))
-	};
-	splash_state =
-	{
-		std::function<void()>(std::bind(enter_splash_state, this)),
-		std::function<void()>(std::bind(exit_splash_state, this))
-	};
-	title_state =
-	{
-		std::function<void()>(std::bind(enter_title_state, this)),
-		std::function<void()>(std::bind(exit_title_state, this))
-	};
-	play_state =
-	{
-		std::function<void()>(std::bind(enter_play_state, this)),
-		std::function<void()>(std::bind(exit_play_state, this))
-	};
-	pause_state =
-	{
-		std::function<void()>(std::bind(enter_pause_state, this)),
-		std::function<void()>(std::bind(exit_pause_state, this))
-	};
 
 	// Setup frame timing
 	frame_scheduler.set_update_callback(std::bind(&application::update, this, std::placeholders::_1, std::placeholders::_2));
@@ -950,19 +931,6 @@ application::application(int argc, char** argv):
 	//std::string cmd = "cue 20 exit";
 	//logger.log(cmd);
 	//logger.log(cli.interpret(cmd));
-	
-	// Determine initial state
-	// Determine initial state
-	initial_state = &splash_state;
-	std::string no_splash_flag = "--no-splash";
-	for (int i = 0; i < argc; ++i)
-	{
-		if (no_splash_flag == argv[i])
-		{
-			initial_state = &play_state;
-			break;
-		}
-	}
 }
 
 application::~application()
@@ -1022,6 +990,145 @@ int application::execute()
 	state_machine.change_state({nullptr, nullptr});
 
 	return exit_status;
+}
+
+void application::setup_fsm()
+{
+	loading_state =
+	{
+		std::function<void()>(std::bind(enter_loading_state, this)),
+		std::function<void()>(std::bind(exit_loading_state, this))
+	};
+	
+	language_select_state =
+	{
+		std::function<void()>(std::bind(enter_language_select_state, this)),
+		std::function<void()>(std::bind(exit_language_select_state, this))
+	};
+	
+	splash_state =
+	{
+		std::function<void()>(std::bind(enter_splash_state, this)),
+		std::function<void()>(std::bind(exit_splash_state, this))
+	};
+	
+	title_state =
+	{
+		std::function<void()>(std::bind(enter_title_state, this)),
+		std::function<void()>(std::bind(exit_title_state, this))
+	};
+	
+	play_state =
+	{
+		std::function<void()>(std::bind(enter_play_state, this)),
+		std::function<void()>(std::bind(exit_play_state, this))
+	};
+	
+	pause_state =
+	{
+		std::function<void()>(std::bind(enter_pause_state, this)),
+		std::function<void()>(std::bind(exit_pause_state, this))
+	};
+	
+	initial_state = &splash_state;
+}
+
+void application::parse_options(int argc, char** argv)
+{
+	cxxopts::Options options("Antkeeper", "Ant colony simulation game");
+	
+	options.add_options()
+		("q,quick-start", "Skips splash screen")
+		("c,continue", "Continues from last save")
+		("n,new-game", "Starts a new game")
+		("r,reset", "Restores all settings to default")
+		("f,fullscreen", "Starts in fullscreen mode")
+		("w,windowed", "Starts in windowed mode")
+		("v,vsync", "Enables or disables v-sync", cxxopts::value<int>())
+		("d,data", "Specifies the data package path", cxxopts::value<std::string>())
+		;
+	
+	logger.push_task("Parsing command line options");
+	
+	try
+	{
+		auto result = options.parse(argc, argv);
+		
+		// --quick-start
+		if (result.count("quick-start"))
+		{
+			logger.log("Skipping splash screen");
+			initial_state = &play_state;
+		}
+		
+		// --continue
+		if (result.count("continue"))
+		{
+			logger.log("Continuing from last save");
+		}
+		
+		// --new-game
+		if (result.count("new-game"))
+		{
+			logger.log("Starting a new game");
+		}
+		
+		// --reset
+		if (result.count("reset"))
+		{
+			logger.log("Restoring all settings to default");
+		}
+		
+		// --fullscreen
+		if (result.count("fullscreen"))
+		{
+			logger.log("Starting in fullscreen mode");
+			fullscreen = true;
+		}
+		
+		// --windowed
+		if (result.count("windowed"))
+		{
+			logger.log("Starting in windowed mode");
+			fullscreen = false;
+		}
+		
+		// --vsync
+		if (result.count("vsync"))
+		{
+			if (result["vsync"].as<int>())
+			{
+				logger.log("Turning on v-sync");
+				vsync = true;
+			}
+			else
+			{
+				logger.log("Turning off v-sync");
+				vsync = false;
+			}
+		}
+		
+		// --data
+		if (result.count("data"))
+		{
+			data_package_path = result["data"].as<std::string>();
+			
+			if (std::filesystem::path(data_package_path).is_relative())
+			{
+				data_package_path = data_path + data_package_path;
+			}
+			
+			logger.log("Set alternative data package path \"" + data_package_path + "\"");
+		}
+	}
+	catch (const std::exception& e)
+	{
+		logger.error("Exception caught: \"" + std::string(e.what()) + "\"");
+		logger.pop_task(EXIT_FAILURE);
+		return;
+	}
+	
+	logger.pop_task(EXIT_SUCCESS);
 }
 
 void application::update(double t, double dt)

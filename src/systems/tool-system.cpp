@@ -54,6 +54,7 @@ void tool_system::update(double t, double dt)
 	bool intersection = false;
 	float3 pick;
 
+	// Cast ray from cursor to collision components to find closest intersection
 	registry.view<transform_component, collision_component>().each(
 		[&](auto entity, auto& transform, auto& collision)
 		{
@@ -69,6 +70,7 @@ void tool_system::update(double t, double dt)
 				return;
 			}
 
+			// Narrow phase mesh test
 			auto mesh_result = collision.mesh_accelerator.query_nearest(transformed_ray);
 			if (mesh_result)
 			{
@@ -79,20 +81,6 @@ void tool_system::update(double t, double dt)
 					pick = picking_ray.extrapolate(a);
 				}
 			}
-
-			/*
-			// Narrow phase mesh test
-			auto mesh_result = ray_mesh_intersection(transformed_ray, *collision.mesh);
-			if (std::get<0>(mesh_result))
-			{
-				intersection = true;
-				if (std::get<1>(mesh_result) < a)
-				{
-					a = std::get<1>(mesh_result);
-					pick = picking_ray.extrapolate(a);
-				}
-			}
-			*/
 		});
 	
 	const float3& camera_position = camera->get_translation();
@@ -110,7 +98,7 @@ void tool_system::update(double t, double dt)
 			pick_angle = -pick_angle;
 	}
 
-
+	// Move active tools to intersection location
 	registry.view<tool_component, transform_component>().each(
 		[&](auto entity, auto& tool, auto& transform)
 		{

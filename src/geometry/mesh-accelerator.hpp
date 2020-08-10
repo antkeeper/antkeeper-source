@@ -21,7 +21,7 @@
 #define ANTKEEPER_MESH_ACCELERATOR_HPP
 
 #include "mesh.hpp"
-#include "octree.hpp"
+#include "geometry/octree.hpp"
 #include "geometry/aabb.hpp"
 #include "intersection.hpp"
 #include <list>
