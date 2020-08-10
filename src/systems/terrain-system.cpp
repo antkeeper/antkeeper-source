@@ -325,6 +325,7 @@ void terrain_system::on_terrain_construct(entt::registry& registry, entt::entity
 	model_component model;
 	model.model = terrain_model;
 	model.instance_count = 0;
+	model.layers = 1;
 	registry.assign_or_replace<model_component>(entity, model);
 
 	// Assign the entity a transform component

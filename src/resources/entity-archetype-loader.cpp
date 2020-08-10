@@ -87,6 +87,7 @@ static bool load_model_component(archetype& archetype, resource_manager& resourc
 	model_component component;
 	component.model = resource_manager.load<model>(filename);
 	component.instance_count = 0;
+	component.layers = 1;
 	if (!component.model)
 	{
 		std::string message = std::string("load_model_component(): Failed to load model \"") + filename + std::string("\"");

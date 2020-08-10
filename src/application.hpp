@@ -109,7 +109,7 @@
 	class camera_system;
 	class collision_system;
 	class locomotion_system;
-	class model_system;
+	class render_system;
 	class nest_system;
 	class placement_system;
 	class samara_system;
@@ -328,7 +328,7 @@ private:
 	camera_system* camera_system;
 	collision_system* collision_system;
 	locomotion_system* locomotion_system;
-	model_system* model_system;
+	render_system* render_system;
 	nest_system* nest_system;
 	placement_system* placement_system;
 	samara_system* samara_system;

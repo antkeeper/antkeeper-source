@@ -17,20 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MODEL_SYSTEM_HPP
-#define ANTKEEPER_MODEL_SYSTEM_HPP
+#ifndef ANTKEEPER_RENDER_SYSTEM_HPP
+#define ANTKEEPER_RENDER_SYSTEM_HPP
 
 #include "entity-system.hpp"
 #include "scene/scene.hpp"
 #include "scene/model-instance.hpp"
 #include "entity/components/model-component.hpp"
 #include <unordered_map>
+#include <vector>
 
-class model_system: public entity_system
+class render_system: public entity_system
 {
 public:
-	model_system(entt::registry& registry, ::scene& scene);
+	render_system(entt::registry& registry);
 	virtual void update(double t, double dt);
+	
+	void add_layer(::scene* layer);
+	void remove_layers();
 
 private:	
 	void update_model_and_materials(entt::entity entity, ecs::model_component& model);
@@ -39,9 +43,9 @@ private:
 	void on_model_replace(entt::registry& registry, entt::entity entity, ecs::model_component& model);
 	void on_model_destroy(entt::registry& registry, entt::entity entity);
 
-	::scene& scene;
+	std::vector<scene*> layers;
 	std::unordered_map<entt::entity, model_instance*> model_instances;
 };
 
-#endif // ANTKEEPER_MODEL_SYSTEM_HPP
+#endif // ANTKEEPER_RENDER_SYSTEM_HPP
 

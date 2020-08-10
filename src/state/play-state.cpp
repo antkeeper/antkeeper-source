@@ -37,6 +37,7 @@
 #include "entity/components/copy-transform-component.hpp"
 #include "entity/components/copy-translation-component.hpp"
 #include "entity/archetype.hpp"
+#include "entity/entity-commands.hpp"
 #include "nest.hpp"
 #include "math.hpp"
 #include "geometry/mesh-accelerator.hpp"
@@ -65,7 +66,16 @@ void enter_play_state(application* app)
 	ecs::archetype* forceps_archetype = resource_manager->load<ecs::archetype>("forceps.ent");
 	ecs::archetype* larva_archetype = resource_manager->load<ecs::archetype>("larva.ent");
 	ecs::archetype* pebble_archetype = resource_manager->load<ecs::archetype>("pebble.ent");
+	
+	ecs::archetype* flashlight_archetype = resource_manager->load<ecs::archetype>("flashlight.ent");
+	ecs::archetype* flashlight_light_cone_archetype = resource_manager->load<ecs::archetype>("flashlight-light-cone.ent");
 
+	// Create flashlight + light cone compund entity
+	auto flashlight = flashlight_archetype->create(ecs_registry);
+	auto flashlight_light_cone = flashlight_light_cone_archetype->create(ecs_registry);
+	ecs::bind_transform(ecs_registry, flashlight_light_cone, flashlight);
+	ecs::assign_render_layers(ecs_registry, flashlight, 2);
+	ecs::assign_render_layers(ecs_registry, flashlight_light_cone, 2);
 
 
 	ecs::placement_component placement;
@@ -164,18 +174,6 @@ void enter_play_state(application* app)
 	ecs::tool_component forceps_tool_component;
 	forceps_tool_component.active = true;
 	ecs_registry.assign<ecs::tool_component>(forceps_entity, forceps_tool_component);
-	
-	
-	// Add copy transform constraint to ant-hill
-	ecs::copy_translation_component constraint;
-	constraint.target = forceps_entity;
-	constraint.use_x = true;
-	constraint.use_y = true;
-	constraint.use_z = true;
-	constraint.invert_x = true;
-	constraint.invert_y = false;
-	constraint.invert_z = true;
-	ecs_registry.assign<ecs::copy_translation_component>(ant_hill_entity, constraint);
 
 	app->get_scene().update_tweens();
 
@@ -233,15 +231,15 @@ void enter_play_state(application* app)
 	*/
 	
 	// Place larva in chamber
-	/*
 	{
-		auto larva_entity = larva_archetype->create(ecs_registry);
-		auto& transform = ecs_registry.get<ecs::transform_component>(larva_entity);
-		transform.transform = vmq::identity_transform<float>;
-		transform.transform.translation = nest->get_shaft_position(*central_shaft, central_shaft->depth[1]);
+		auto larva = larva_archetype->create(ecs_registry);
+		ecs::assign_render_layers(ecs_registry, larva, 1);
+		//ecs::warp_to(ecs_registry, larva, {0, -20, 0});
+		//auto& transform = ecs_registry.get<ecs::transform_component>(larva_entity);
+		//transform.transform = vmq::identity_transform<float>;
+		//transform.transform.translation = nest->get_shaft_position(*central_shaft, central_shaft->depth[1]);
 		//transform.transform.translation.y -= 1.0f;
 	}
-	*/
 	
 	control_system* control_system = app->get_control_system();
 	control_system->update(0.0f);

@@ -88,7 +88,7 @@
 #include "systems/camera-system.hpp"
 #include "systems/collision-system.hpp"
 #include "systems/locomotion-system.hpp"
-#include "systems/model-system.hpp"
+#include "systems/render-system.hpp"
 #include "systems/nest-system.hpp"
 #include "systems/placement-system.hpp"
 #include "systems/samara-system.hpp"
@@ -574,7 +574,10 @@ application::application(int argc, char** argv):
 	behavior_system = new ::behavior_system(ecs_registry);
 	locomotion_system = new ::locomotion_system(ecs_registry);
 	constraint_system = new ::constraint_system(ecs_registry);
-	model_system = new ::model_system(ecs_registry, overworld_scene);
+	
+	render_system = new ::render_system(ecs_registry);
+	render_system->add_layer(&overworld_scene);
+	render_system->add_layer(&underworld_scene);
 
 	// Setup systems
 	systems.push_back([this](double t, double dt){ this->overworld_scene.update_tweens(); this->underworld_scene.update_tweens(); this->ui_system->get_scene()->update_tweens(); focal_point_tween.update(); this->underworld_final_pass->get_material()->update_tweens(); });
@@ -601,7 +604,7 @@ application::application(int argc, char** argv):
 		this->focal_point_tween[1] = orbit_cam.get_focal_point();
 	});
 	systems.push_back([this](double t, double dt){ this->ui_system->update(dt); });
-	systems.push_back(std::bind(&model_system::update, model_system, std::placeholders::_1, std::placeholders::_2));
+	systems.push_back(std::bind(&render_system::update, render_system, std::placeholders::_1, std::placeholders::_2));
 	systems.push_back([this](double t, double dt){ this->animator->animate(dt); });
 	systems.push_back([this](double t, double dt){ this->application_controls.update(); this->menu_controls.update(); this->camera_controls->update(); });
 

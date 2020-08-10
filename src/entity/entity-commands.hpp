@@ -17,23 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_MODEL_COMPONENT_HPP
-#define ANTKEEPER_ECS_MODEL_COMPONENT_HPP
+#ifndef ANTKEEPER_ECS_ENTITY_COMMANDS_HPP
+#define ANTKEEPER_ECS_ENTITY_COMMANDS_HPP
 
-#include "renderer/model.hpp"
-#include <unordered_map>
+#include <entt/entt.hpp>
+#include <vmq/vmq.hpp>
+
+using namespace vmq;
 
 namespace ecs {
+	
+void move_to(entt::registry& registry, entt::entity entity, const float3& position);
+void warp_to(entt::registry& registry, entt::entity entity, const float3& position);
 
-struct model_component
-{
-	model* model;
-	std::unordered_map<int, material*> materials;
-	int instance_count;
-	unsigned int layers;
-};
+void assign_render_layers(entt::registry& registry, entt::entity entity, unsigned int layers);
+
+void bind_transform(entt::registry& registry, entt::entity entity, entt::entity target);
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_MODEL_COMPONENT_HPP
+#endif // ANTKEEPER_ECS_ENTITY_COMMANDS_HPP
 
