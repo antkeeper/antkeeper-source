@@ -936,6 +936,9 @@ application::application(int argc, char** argv):
 	get_ui_scene()->add_object(radial_transition_outer->get_billboard());
 	animator->add_animation(radial_transition_outer->get_animation());
 	
+	// Setup tweens
+	focal_point_tween.set_interpolator(ease<float3>::linear);
+	
 	// Register CLI commands
 	cli.register_command("echo", cc::echo);
 	cli.register_command("exit", std::function<std::string()>(std::bind(&cc::exit, this)));
@@ -998,8 +1001,9 @@ int application::execute()
 	// Reset frame scheduler
 	frame_scheduler.reset();
 
-	// Reset time tween
+	// Setup time tween
 	time[0] = time[1] = 0.0;
+	time.set_interpolator(ease<double>::linear);
 
 	// Schedule frames until closed
 	while (!closed)

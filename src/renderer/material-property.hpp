@@ -23,10 +23,12 @@
 #include "animation/tween.hpp"
 #include "rasterizer/shader-variable-type.hpp"
 #include "rasterizer/shader-input.hpp"
+#include "animation/ease.hpp"
 #include <vmq/vmq.hpp>
 #include <cstdlib>
 
 using namespace vmq::types;
+using namespace vmq::operators;
 
 class material;
 class shader_program;
@@ -100,6 +102,12 @@ template <class T>
 class material_property: public material_property_base
 {
 public:
+	typedef tween<T> tween_type;
+	typedef typename tween<T>::interpolator_type interpolator_type;
+	
+	/// Default tween interpolator function for this material property type.
+	static T default_interpolator(const T& x, const T& y, double a);
+	
 	/**
 	 * Creates a material property.
 	 *
@@ -145,6 +153,13 @@ public:
 	 */
 	void set_values(std::size_t index, const T* values, std::size_t count);
 	
+	/**
+	 * Sets the tween interpolator function.
+	 *
+	 * @param interpolator Tween interpolator function.
+	 */
+	void set_tween_interpolator(interpolator_type interpolator);
+	
 	/// Returns the value of the first element in this property.
 	const T& get_value() const;
 	
@@ -167,12 +182,43 @@ private:
 	tween<T>* values;
 };
 
+template <typename T>
+inline T material_property<T>::default_interpolator(const T& x, const T& y, double a)
+{
+	return y;
+}
+
+template <>
+inline float material_property<float>::default_interpolator(const float& x, const float& y, double a)
+{
+	return ease<float, float>::linear(x, y, static_cast<float>(a));
+}
+
+template <>
+inline float2 material_property<float2>::default_interpolator(const float2& x, const float2& y, double a)
+{
+	return ease<float2, float>::linear(x, y, static_cast<float>(a));
+}
+
+template <>
+inline float3 material_property<float3>::default_interpolator(const float3& x, const float3& y, double a)
+{
+	return ease<float3, float>::linear(x, y, static_cast<float>(a));
+}
+
+template <>
+inline float4 material_property<float4>::default_interpolator(const float4& x, const float4& y, double a)
+{
+	return ease<float4, float>::linear(x, y, static_cast<float>(a));
+}
+
 template <class T>
 material_property<T>::material_property(std::size_t element_count):
 	element_count(element_count),
 	values(nullptr)
 {
 	values = new tween<T>[element_count];
+	set_tween_interpolator(default_interpolator);
 }
 
 template <class T>
@@ -232,6 +278,15 @@ void material_property<T>::set_values(std::size_t index, const T* values, std::s
 	for (std::size_t i = 0; i < count; ++i)
 	{
 		this->values[index + i][1] = values[i];
+	}
+}
+
+template <class T>
+void material_property<T>::set_tween_interpolator(interpolator_type interpolator)
+{
+	for (std::size_t i = 0; i < element_count; ++i)
+	{
+		this->values[i].set_interpolator(interpolator);
 	}
 }
 

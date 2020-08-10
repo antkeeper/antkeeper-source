@@ -19,6 +19,7 @@
 
 #include "scene/camera.hpp"
 #include "configuration.hpp"
+#include "animation/ease.hpp"
 
 using namespace vmq::operators;
 
@@ -61,14 +62,14 @@ camera::camera():
 	compositor(nullptr),
 	composite_index(0),
 	orthographic(true),
-	clip_left(-1.0f),
-	clip_right(1.0f),
-	clip_bottom(-1.0f),
-	clip_top(1.0f),
-	clip_near(-1.0f),
-	clip_far(1.0f),
-	fov(vmq::half_pi<float>),
-	aspect_ratio(1.0f),
+	clip_left(-1.0f, ease<float>::linear),
+	clip_right(1.0f, ease<float>::linear),
+	clip_bottom(-1.0f, ease<float>::linear),
+	clip_top(1.0f, ease<float>::linear),
+	clip_near(-1.0f, ease<float>::linear),
+	clip_far(1.0f, ease<float>::linear),
+	fov(vmq::half_pi<float>, ease<float>::linear),
+	aspect_ratio(1.0f, ease<float>::linear),
 	view(vmq::identity4x4<float>, std::bind(&interpolate_view, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
 	projection(vmq::identity4x4<float>, std::bind(&interpolate_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
 	view_projection(vmq::identity4x4<float>, std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))

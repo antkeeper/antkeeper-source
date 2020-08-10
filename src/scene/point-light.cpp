@@ -18,11 +18,12 @@
  */
 
 #include "point-light.hpp"
+#include "animation/ease.hpp"
 
 using namespace vmq::operators;
 
 point_light::point_light():
-	attenuation(float3{1, 0, 0})
+	attenuation(float3{1, 0, 0}, ease<float3>::linear)
 {}
 
 void point_light::set_attenuation(const float3& attenuation)

@@ -19,6 +19,7 @@
 
 #include "spotlight.hpp"
 #include "configuration.hpp"
+#include "animation/ease.hpp"
 #include <cmath>
 
 using namespace vmq::operators;
@@ -32,9 +33,9 @@ static float3 interpolate_direction(const float3& x, const float3& y, float a)
 
 spotlight::spotlight():
 	direction(global_forward, interpolate_direction),
-	attenuation(float3{1, 0, 0}),
-	cutoff(float2{vmq::pi<float>, vmq::pi<float>}),
-	cosine_cutoff(float2{std::cos(vmq::pi<float>), std::cos(vmq::pi<float>)})
+	attenuation(float3{1, 0, 0}, ease<float3>::linear),
+	cutoff(float2{vmq::pi<float>, vmq::pi<float>}, ease<float2>::linear),
+	cosine_cutoff(float2{std::cos(vmq::pi<float>), std::cos(vmq::pi<float>)}, ease<float2>::linear)
 {}
 
 void spotlight::set_attenuation(const float3& attenuation)

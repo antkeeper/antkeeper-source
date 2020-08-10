@@ -18,14 +18,15 @@
  */
 
 #include "scene/light.hpp"
+#include "animation/ease.hpp"
 
 using namespace vmq::operators;
 
 light::light():
 	bounds(get_translation(), 0.0f),
-	color(float3{1.0f, 1.0f, 1.0f}),
-	intensity(1.0f),
-	scaled_color(float3{1.0f, 1.0f, 1.0f})
+	color(float3{1.0f, 1.0f, 1.0f}, ease<float3>::linear),
+	intensity(1.0f, ease<float>::linear),
+	scaled_color(float3{1.0f, 1.0f, 1.0f}, ease<float3>::linear)
 {}
 
 void light::set_color(const float3& color)
