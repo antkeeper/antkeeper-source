@@ -21,8 +21,6 @@
 #include "input/control.hpp"
 #include "resources/resource-manager.hpp"
 
-using namespace vmq::operators;
-
 ui_system::ui_system(::resource_manager* resource_manager):
 	resource_manager(resource_manager),
 	tool_menu_control(nullptr)
@@ -52,7 +50,7 @@ ui_system::ui_system(::resource_manager* resource_manager):
 	// Setup tool selector ant
 	tool_selector_ant.set_model(resource_manager->load<model>("worker-ant.obj"));
 	tool_selector_ant.set_scale({350, 350, 350});
-	tool_selector_ant.set_rotation(vmq::angle_axis(vmq::radians(180.0f), {0, 0, 1}) * vmq::angle_axis(vmq::radians(90.0f), {1, 0, 0}));
+	tool_selector_ant.set_rotation(math::angle_axis(math::radians(180.0f), {0, 0, 1}) * math::angle_axis(math::radians(90.0f), {1, 0, 0}));
 	tool_selector_ant.update_tweens();
 	
 	// Setup energy symbol
@@ -113,9 +111,9 @@ void ui_system::handle_event(const mouse_moved_event& event)
 		float max_length = 200.0f;
 		float selection_threshold = 20.0f;
 		int sector_count = 6;
-		float sector_angle = vmq::two_pi<float> / static_cast<float>(sector_count);
+		float sector_angle = math::two_pi<float> / static_cast<float>(sector_count);
 		
-		float length_squared = vmq::length_squared(tool_selection_vector);
+		float length_squared = math::length_squared(tool_selection_vector);
 		
 		// Select tool if length of selection vector within threshold
 		if (length_squared >= selection_threshold * selection_threshold)
@@ -127,16 +125,16 @@ void ui_system::handle_event(const mouse_moved_event& event)
 			}
 			
 			float2 selection_direction = tool_selection_vector / std::sqrt(length_squared);
-			float selection_angle = std::atan2(-selection_direction.y, selection_direction.x) - vmq::radians(90.0f);
-			selection_angle = (selection_angle >= 0.0f ? selection_angle : (vmq::two_pi<float> + selection_angle));
+			float selection_angle = std::atan2(-selection_direction.y, selection_direction.x) - math::radians(90.0f);
+			selection_angle = (selection_angle >= 0.0f ? selection_angle : (math::two_pi<float> + selection_angle));
 			
 			int sector = static_cast<int>((selection_angle + sector_angle * 0.5f) / sector_angle) % sector_count;
-						
+				
 			float rotation_angle = static_cast<float>(sector) * sector_angle;
-			tool_selector_bg.set_rotation(vmq::angle_axis(rotation_angle, {0, 0, 1}));
+			tool_selector_bg.set_rotation(math::angle_axis(rotation_angle, {0, 0, 1}));
 			tool_selector_bg.update_tweens();	
 
-			tool_selector_ant.set_rotation(vmq::angle_axis(rotation_angle + vmq::radians(180.0f), {0, 0, 1}) * vmq::angle_axis(vmq::radians(90.0f), {1, 0, 0}));
+			tool_selector_ant.set_rotation(math::angle_axis(rotation_angle + math::radians(180.0f), {0, 0, 1}) * math::angle_axis(math::radians(90.0f), {1, 0, 0}));
 		}
 	}
 	

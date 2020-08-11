@@ -25,10 +25,9 @@
 #include "scene/scene.hpp"
 #include "renderer/material.hpp"
 #include "geometry/aabb.hpp"
+#include "utility/fundamental-types.hpp"
 #include <cmath>
 
-using namespace vmq::types;
-using namespace vmq::operators;
 using namespace ecs;
 
 vegetation_system::vegetation_system(entt::registry& registry):
@@ -99,7 +98,7 @@ void vegetation_system::on_terrain_construct(entt::registry& registry, entt::ent
 			
 			// Assign a transform component
 			transform_component transform;
-			transform.transform = vmq::identity_transform<float>;
+			transform.transform = math::identity_transform<float>;
 			transform.transform.translation = float3{vegetation_patch_x, 0.0f, vegetation_patch_z};
 			transform.warp = true;
 			registry.assign_or_replace<transform_component>(vegetation_patch_entity, transform);
@@ -170,7 +169,7 @@ void vegetation_system::on_terrain_construct(entt::registry& registry, entt::ent
 			lod_group->update_tweens();
 			
 			// Add LOD group to scene
-			scene->add_object(lod_group);
+			//scene->add_object(lod_group);
 		}
 	}
 }

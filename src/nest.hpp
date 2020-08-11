@@ -21,12 +21,9 @@
 #define ANTKEEPER_NEST_HPP
 
 #include "geometry/mesh.hpp"
-#include <vmq/vmq.hpp>
+#include "utility/fundamental-types.hpp"
 #include <array>
 #include <vector>
-
-using namespace vmq::types;
-using namespace vmq::operators;
 
 class nest
 {

@@ -24,9 +24,7 @@
 #include "geometry/intersection.hpp"
 #include "animation/ease.hpp"
 #include "nest.hpp"
-#include <vmq/vmq.hpp>
-
-using namespace vmq::operators;
+#include "math/math.hpp"
 
 control_system::control_system():
 	timestep(0.0f),
@@ -60,14 +58,14 @@ control_system::control_system():
 	}
 
 	zoom_speed = 4.0f; //1
-	min_elevation = vmq::radians(-85.0f);
-	max_elevation = vmq::radians(85.0f);
+	min_elevation = math::radians(-85.0f);
+	max_elevation = math::radians(85.0f);
 	near_focal_distance = 2.0f;
 	far_focal_distance = 200.0f;
 	near_movement_speed = 10.0f;
 	far_movement_speed = 80.0f;
-	near_fov = vmq::radians(80.0f);
-	far_fov = vmq::radians(35.0f);
+	near_fov = math::radians(80.0f);
+	far_fov = math::radians(35.0f);
 	near_clip_near = 0.1f;
 	far_clip_near = 5.0f;
 	near_clip_far = 100.0f;
@@ -98,15 +96,15 @@ void control_system::update(float dt)
 		zoom -= zoom_speed * dt * zoom_out_control.get_current_value();
 	zoom = std::max<float>(0.0f, std::min<float>(1.0f, zoom));
 
-	float focal_distance = ease<float>::log(near_focal_distance, far_focal_distance, 1.0f - zoom);
+	float focal_distance = math::log_lerp<float>(near_focal_distance, far_focal_distance, 1.0f - zoom);
 
-	float fov = ease<float>::log(near_fov, far_fov, 1.0f - zoom);
+	float fov = math::log_lerp<float>(near_fov, far_fov, 1.0f - zoom);
 
 	//float elevation_factor = (orbit_cam->get_target_elevation() - min_elevation) / max_elevation;
-	//fov = ease<float>::log(near_fov, far_fov, elevation_factor);
-	float clip_near = ease<float>::log(near_clip_near, far_clip_near, 1.0f - zoom);
-	float clip_far = ease<float>::log(near_clip_far, far_clip_far, 1.0f - zoom);
-	float movement_speed = ease<float>::log(near_movement_speed * dt, far_movement_speed * dt, 1.0f - zoom);
+	//fov = math::log_lerp<float>(near_fov, far_fov, elevation_factor);
+	float clip_near = math::log_lerp<float>(near_clip_near, far_clip_near, 1.0f - zoom);
+	float clip_far = math::log_lerp<float>(near_clip_far, far_clip_far, 1.0f - zoom);
+	float movement_speed = math::log_lerp<float>(near_movement_speed * dt, far_movement_speed * dt, 1.0f - zoom);
 
 	orbit_cam->set_target_focal_distance(focal_distance);
 	orbit_cam->get_camera()->set_perspective(fov, orbit_cam->get_camera()->get_aspect_ratio(), clip_near, clip_far);
@@ -147,13 +145,13 @@ void control_system::update(float dt)
 		movement[1] += move_back_control.get_current_value();
 	
 	const float deadzone = 0.01f;
-	float magnitude_squared = vmq::length_squared(movement);
+	float magnitude_squared = math::length_squared(movement);
 
 	if (magnitude_squared > deadzone)
 	{
 		if (magnitude_squared > 1.0f)
 		{
-			movement = vmq::normalize(movement);
+			movement = math::normalize(movement);
 		}
 
 		orbit_cam->move(movement * movement_speed);
@@ -189,7 +187,7 @@ void control_system::update(float dt)
 
 	float3 pick_near = camera->unproject({mouse_position[0], viewport[3] - mouse_position[1], 0.0f}, viewport);
 	float3 pick_far = camera->unproject({mouse_position[0], viewport[3] - mouse_position[1], 1.0f}, viewport);
-	float3 pick_direction = vmq::normalize(pick_far - pick_near);
+	float3 pick_direction = math::normalize(pick_far - pick_near);
 	ray<float> picking_ray = {pick_near, pick_direction};
 	plane<float> ground_plane = {float3{0, 1, 0}, 0.0f};
 
@@ -210,7 +208,7 @@ void control_system::update(float dt)
 	
 	
 	float2 viewport_center = {(viewport[0] + viewport[2]) * 0.5f, (viewport[1] + viewport[3]) * 0.5f};
-	float2 mouse_direction = vmq::normalize(mouse_position - viewport_center);
+	float2 mouse_direction = math::normalize(mouse_position - viewport_center);
 	old_mouse_angle = mouse_angle;
 	mouse_angle = std::atan2(-mouse_direction.y, mouse_direction.x);
 	
@@ -218,22 +216,22 @@ void control_system::update(float dt)
 	{
 
 		
-		if (mouse_angle - old_mouse_angle <= -vmq::pi<float>)
+		if (mouse_angle - old_mouse_angle <= -math::pi<float>)
 			flashlight_turns_i -= 1;
-		else if (mouse_angle - old_mouse_angle >= vmq::pi<float>)
+		else if (mouse_angle - old_mouse_angle >= math::pi<float>)
 			flashlight_turns_i += 1;
 		
-		flashlight_turns_f = (mouse_angle) / vmq::two_pi<float>;
+		flashlight_turns_f = (mouse_angle) / math::two_pi<float>;
 		flashlight_turns = flashlight_turns_i - flashlight_turns_f;
 		
 		if (flashlight && nest)
 		{
-			transform<float> flashlight_transform = vmq::identity_transform<float>;
+			math::transform<float> flashlight_transform = math::identity_transform<float>;
 			
 			float flashlight_depth = nest->get_shaft_depth(*nest->get_central_shaft(), flashlight_turns);
 			
 			flashlight_transform.translation = {0.0f, -flashlight_depth, 0.0f};
-			flashlight_transform.rotation = vmq::angle_axis(-flashlight_turns * vmq::two_pi<float> + vmq::half_pi<float>, {0, 1, 0});
+			flashlight_transform.rotation = math::angle_axis(-flashlight_turns * math::two_pi<float> + math::half_pi<float>, {0, 1, 0});
 			
 			flashlight->set_transform(flashlight_transform);
 			flashlight_light_cone->set_transform(flashlight_transform);
@@ -298,7 +296,7 @@ void control_system::handle_event(const mouse_moved_event& event)
 			elevation_factor *= -1.0f;
 		}
 
-		float rotation = vmq::radians(22.5f) * rotation_factor * timestep;
+		float rotation = math::radians(22.5f) * rotation_factor * timestep;
 		float elevation = orbit_cam->get_target_elevation() + elevation_factor * 0.25f * timestep;
 		elevation = std::min<float>(max_elevation, std::max<float>(min_elevation, elevation));
 

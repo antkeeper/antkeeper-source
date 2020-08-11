@@ -20,16 +20,14 @@
 #ifndef ANTKEEPER_MESH_ACCELERATOR_HPP
 #define ANTKEEPER_MESH_ACCELERATOR_HPP
 
-#include "mesh.hpp"
+#include "geometry/mesh.hpp"
 #include "geometry/octree.hpp"
 #include "geometry/aabb.hpp"
-#include "intersection.hpp"
+#include "geometry/intersection.hpp"
+#include "utility/fundamental-types.hpp"
 #include <list>
-#include <unordered_map>
 #include <optional>
-#include <vmq/vmq.hpp>
-using namespace vmq::types;
-using namespace vmq::operators;
+#include <unordered_map>
 
 /**
  * Acceleration structure for querying mesh geometry.

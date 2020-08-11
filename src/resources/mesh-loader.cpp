@@ -20,6 +20,7 @@
 #include "resources/resource-loader.hpp"
 #include "geometry/mesh.hpp"
 #include "geometry/mesh-functions.hpp"
+#include "utility/fundamental-types.hpp"
 #include <sstream>
 #include <stdexcept>
 #include <physfs.h>

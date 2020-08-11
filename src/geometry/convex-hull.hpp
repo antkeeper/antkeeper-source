@@ -20,12 +20,12 @@
 #ifndef ANTKEEPER_CONVEX_HULL_HPP
 #define ANTKEEPER_CONVEX_HULL_HPP
 
+#include "bounding-volume.hpp"
+#include "geometry/plane.hpp"
+#include "geometry/sphere.hpp"
+#include "geometry/aabb.hpp"
 #include <cstdlib>
 #include <vector>
-#include "bounding-volume.hpp"
-#include "plane.hpp"
-#include "sphere.hpp"
-#include "aabb.hpp"
 
 /**
  * A plane-bounded convex hull.
@@ -73,7 +73,7 @@ template <class T>
 bool convex_hull<T>::intersects(const sphere<T>& sphere) const
 {
 	for (const plane<T>& plane: planes)
-		if (signed_distance(plane, sphere.center) < -sphere.radius)
+		if (plane.signed_distance(sphere.center) < -sphere.radius)
 			return false;
 	return true;
 }
@@ -87,7 +87,7 @@ bool convex_hull<T>::intersects(const aabb<T>& aabb) const
 		pv.x = (plane.normal.x > T(0)) ? aabb.max_point.x : aabb.min_point.x;
 		pv.y = (plane.normal.y > T(0)) ? aabb.max_point.y : aabb.min_point.y;
 		pv.z = (plane.normal.z > T(0)) ? aabb.max_point.z : aabb.min_point.z;
-		if (signed_distance(plane, pv) < T(0))
+		if (plane.signed_distance(pv) < T(0))
 			return false;
 	}
 	
@@ -98,7 +98,7 @@ template <class T>
 bool convex_hull<T>::contains(const sphere<T>& sphere) const
 {
 	for (const plane<T>& plane: planes)
-		if (signed_distance(plane, sphere.center) < sphere.radius)
+		if (plane.signed_distance(sphere.center) < sphere.radius)
 			return false;
 	return true;
 }
@@ -118,7 +118,7 @@ bool convex_hull<T>::contains(const aabb<T>& aabb) const
 		nv.y = (plane.normal.y < T(0)) ? aabb.max_point.y : aabb.min_point.y;
 		nv.z = (plane.normal.z < T(0)) ? aabb.max_point.z : aabb.min_point.z;
 		
-		if (signed_distance(plane, pv) < T(0) || signed_distance(plane, nv) < T(0))
+		if (plane.signed_distance(pv) < T(0) || plane.signed_distance(nv) < T(0))
 			return false;
 	}
 	
@@ -129,7 +129,7 @@ template <class T>
 bool convex_hull<T>::contains(const vector<T, 3>& point) const
 {
 	for (const plane<T>& plane: planes)
-		if (signed_distance(plane, point) < T(0))
+		if (plane.signed_distance(point) < T(0))
 			return false;
 
 	return true;

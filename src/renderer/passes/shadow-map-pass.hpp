@@ -21,10 +21,7 @@
 #define ANTKEEPER_SHADOW_MAP_PASS_HPP
 
 #include "renderer/render-pass.hpp"
-
-#include <vmq/vmq.hpp>
-
-using namespace vmq::types;
+#include "utility/fundamental-types.hpp"
 
 class shader_program;
 class shader_input;
@@ -86,4 +83,3 @@ inline const float* shadow_map_pass::get_split_distances() const
 }
 
 #endif // ANTKEEPER_SHADOW_MAP_PASS_HPP
-

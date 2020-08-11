@@ -23,6 +23,7 @@
 #include "entity-system.hpp"
 #include "geometry/mesh.hpp"
 #include "geometry/aabb.hpp"
+#include "utility/fundamental-types.hpp"
 #include <unordered_map>
 
 class resource_manager;
@@ -32,8 +33,6 @@ class material;
 struct cube_tree;
 class scene;
 class model_instance;
-
-using namespace vmq::types;
 
 template <std::int64_t Mantissa, std::int64_t Exponent>
 struct epsilon
@@ -49,7 +48,7 @@ typedef epsilon<1, -5> epsilon_1en5;
 template <class Epsilon, class T, std::size_t N>
 struct vector_hasher
 {
-	typedef vmq::vector<T, N> vector_type;
+	typedef math::vector<T, N> vector_type;
 
 	std::size_t operator()(const vector_type& v) const noexcept
 	{
@@ -69,7 +68,7 @@ struct vector_hasher
 template <class Epsilon, class T, std::size_t N>
 struct vector_equals
 {
-	typedef vmq::vector<T, N> vector_type;
+	typedef math::vector<T, N> vector_type;
 
 	bool operator()(const vector_type& a, const vector_type& b) const noexcept
 	{

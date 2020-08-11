@@ -20,10 +20,10 @@
 #ifndef ANTKEEPER_BOUNDING_VOLUME_HPP
 #define ANTKEEPER_BOUNDING_VOLUME_HPP
 
+#include "math/math.hpp"
 #include <stdexcept>
-#include <vmq/vmq.hpp>
 
-using vmq::vector;
+using math::vector;
 
 template <class T>
 struct sphere;
@@ -91,4 +91,3 @@ bool bounding_volume<T>::intersects(const bounding_volume& volume) const
 }
 
 #endif // ANTKEEPER_BOUNDING_VOLUME_HPP
-

@@ -20,9 +20,9 @@
 #ifndef ANTKEEPER_CAMERA_RIG_HPP
 #define ANTKEEPER_CAMERA_RIG_HPP
 
-#include <vmq/vmq.hpp>
-
-using namespace vmq::types;
+#include "math/quaternion-type.hpp"
+#include "math/transform-type.hpp"
+#include "utility/fundamental-types.hpp"
 
 class camera;
 
@@ -32,6 +32,9 @@ class camera;
 class camera_rig
 {
 public:
+	typedef math::quaternion<float> quaternion_type;
+	typedef math::transform<float> transform_type;
+	
 	camera_rig();
 	
 	/**
@@ -61,7 +64,7 @@ public:
 	/**
 	 * Sets the rotation of the camera rig.
 	 */
-	void set_rotation(const vmq::quaternion<float>& rotation);
+	void set_rotation(const quaternion_type& rotation);
 	
 	/**
 	 * Returns the attached camera.
@@ -72,7 +75,7 @@ public:
 	::camera* get_camera();
 	
 	const float3& get_translation() const;
-	const vmq::quaternion<float>& get_rotation() const;
+	const quaternion_type& get_rotation() const;
 	const float3& get_forward() const;
 	const float3& get_right() const;
 	const float3& get_up() const;
@@ -80,7 +83,7 @@ public:
 private:
 	camera* camera;
 	float3 translation;
-	vmq::quaternion<float> rotation;
+	quaternion_type rotation;
 	float3 forward;
 	float3 right;
 	float3 up;
@@ -101,7 +104,7 @@ inline const float3& camera_rig::get_translation() const
 	return translation;
 }
 
-inline const vmq::quaternion<float>& camera_rig::get_rotation() const
+inline const typename camera_rig::quaternion_type& camera_rig::get_rotation() const
 {
 	return rotation;
 }

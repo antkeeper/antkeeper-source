@@ -34,12 +34,9 @@
 #include "geometry/view-frustum.hpp"
 #include "geometry/aabb.hpp"
 #include "configuration.hpp"
-#include <vmq/vmq.hpp>
+#include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
-#include <iostream>
-
-using namespace vmq;
 
 static bool operation_compare(const render_operation& a, const render_operation& b);
 
@@ -74,13 +71,13 @@ shadow_map_pass::shadow_map_pass(::rasterizer* rasterizer, const ::framebuffer* 
 	skinned_model_view_projection_input = skinned_shader_program->get_input("model_view_projection");
 	
 	// Calculate bias-tile matrices
-	float4x4 bias_matrix = vmq::translate(vmq::identity4x4<float>, float3{0.5f, 0.5f, 0.5f}) * vmq::scale(vmq::identity4x4<float>, float3{0.5f, 0.5f, 0.5f});
-	float4x4 tile_scale = vmq::scale(vmq::identity4x4<float>, float3{0.5f, 0.5f, 1.0f});
+	float4x4 bias_matrix = math::translate(math::identity4x4<float>, float3{0.5f, 0.5f, 0.5f}) * math::scale(math::identity4x4<float>, float3{0.5f, 0.5f, 0.5f});
+	float4x4 tile_scale = math::scale(math::identity4x4<float>, float3{0.5f, 0.5f, 1.0f});
 	for (int i = 0; i < 4; ++i)
 	{
 		float x = static_cast<float>(i % 2) * 0.5f;
 		float y = static_cast<float>(i / 2) * 0.5f;
-		float4x4 tile_matrix = vmq::translate(vmq::identity4x4<float>, float3{x, y, 0.0f}) * tile_scale;
+		float4x4 tile_matrix = math::translate(math::identity4x4<float>, float3{x, y, 0.0f}) * tile_scale;
 		bias_tile_matrices[i] = tile_matrix * bias_matrix;
 	}
 }
@@ -151,11 +148,11 @@ void shadow_map_pass::render(render_context* context) const
 	}
 	
 	// Calculate a view-projection matrix from the directional light's transform
-	transform<float> light_transform = light->get_transform_tween().interpolate(context->alpha);
+	math::transform<float> light_transform = light->get_transform_tween().interpolate(context->alpha);
 	float3 forward = light_transform.rotation * global_forward;
 	float3 up = light_transform.rotation * global_up;
-	float4x4 light_view = vmq::look_at(light_transform.translation, light_transform.translation + forward, up);
-	float4x4 light_projection = vmq::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+	float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
+	float4x4 light_projection = math::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	float4x4 light_view_projection = light_projection * light_view;
 	
 	// Get the camera's view matrix
@@ -179,7 +176,7 @@ void shadow_map_pass::render(render_context* context) const
 		// Calculate projection matrix for view camera subfrustum
 		const float subfrustum_near = split_distances[i];
 		const float subfrustum_far = split_distances[i + 1];
-		float4x4 subfrustum_projection = vmq::perspective(camera.get_fov(), camera.get_aspect_ratio(), subfrustum_near, subfrustum_far);
+		float4x4 subfrustum_projection = math::perspective(camera.get_fov(), camera.get_aspect_ratio(), subfrustum_near, subfrustum_far);
 		
 		// Calculate view camera subfrustum
 		view_frustum<float> subfrustum(subfrustum_projection * camera_view);
@@ -222,7 +219,7 @@ void shadow_map_pass::render(render_context* context) const
 		offset.y = std::ceil(offset.y * half_shadow_map_resolution) / half_shadow_map_resolution;
 		
 		// Crop the light view-projection matrix
-		crop_matrix = vmq::translate(vmq::identity4x4<float>, offset) * vmq::scale(vmq::identity4x4<float>, scale);
+		crop_matrix = math::translate(math::identity4x4<float>, offset) * math::scale(math::identity4x4<float>, scale);
 		cropped_view_projection = crop_matrix * light_view_projection;
 		
 		// Calculate shadow matrix

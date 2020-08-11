@@ -20,15 +20,13 @@
 #ifndef ANTKEEPER_SCENE_OBJECT_HPP
 #define ANTKEEPER_SCENE_OBJECT_HPP
 
-#include <atomic>
-#include <cstdlib>
-#include <vmq/vmq.hpp>
 #include "animation/tween.hpp"
 #include "geometry/bounding-volume.hpp"
-
-using namespace vmq::types;
-using vmq::quaternion;
-using vmq::transform;
+#include "math/vector-type.hpp"
+#include "math/quaternion-type.hpp"
+#include "math/transform-type.hpp"
+#include <atomic>
+#include <cstdlib>
 
 /**
  * Internal base class for scene objects.
@@ -36,6 +34,11 @@ using vmq::transform;
 class scene_object_base
 {
 public:
+	typedef math::vector<float, 3> vector_type;
+	typedef math::quaternion<float> quaternion_type;
+	typedef math::transform<float> transform_type;
+	typedef bounding_volume<float> bounding_volume_type;
+	
 	/// Returns the type ID for this scene object type.
 	virtual const std::size_t get_object_type_id() const = 0;
 
@@ -62,32 +65,32 @@ public:
 	/**
 	 *
 	 */
-	void look_at(const float3& position, const float3& target, const float3& up);
+	void look_at(const vector_type& position, const vector_type& target, const vector_type& up);
 
 	/**
 	 * Sets the scene object's transform.
 	 */
-	void set_transform(const transform<float>& transform);
+	void set_transform(const transform_type& transform);
 
 	/**
 	 * Sets the scene object's translation.
 	 */
-	void set_translation(const float3& translation);
+	void set_translation(const vector_type& translation);
 	
 	/**
 	 * Sets the scene object's rotation.
 	 */
-	void set_rotation(const quaternion<float>& rotation);
+	void set_rotation(const quaternion_type& rotation);
 
 	/**
 	 * Sets the scene object's scale.
 	 */
-	void set_scale(const float3& scale);
+	void set_scale(const vector_type& scale);
 	
 	/**
 	 * Sets a culling mask for the object, which will be used for view-frustum culling instead of the object's bounds.
 	 */
-	void set_culling_mask(const bounding_volume<float>* culling_mask);
+	void set_culling_mask(const bounding_volume_type* culling_mask);
 	
 	/// Returns whether the scene object is active.
 	bool is_active() const;
@@ -95,51 +98,54 @@ public:
 	/**
 	 * Returns the transform.
 	 */
-	const transform<float>& get_transform() const;
+	const transform_type& get_transform() const;
 
 	/**
 	 * Returns the transform's translation vector.
 	 */
-	const float3& get_translation() const;
+	const vector_type& get_translation() const;
 
 	/**
 	 * Returns the transform's rotation quaternion.
 	 */
-	const quaternion<float>& get_rotation() const;
+	const quaternion_type& get_rotation() const;
 
 	/**
 	 * Returns the transform's scale vector.
 	 */
-	const float3& get_scale() const;
+	const vector_type& get_scale() const;
 
 	/**
 	 * Returns the transform tween.
 	 */
-	const tween<transform<float>>& get_transform_tween() const;
-	tween<transform<float>>& get_transform_tween();
+	const tween<transform_type>& get_transform_tween() const;
+	tween<transform_type>& get_transform_tween();
 
 	/**
 	 * Returns the bounds of the object.
 	 */
-	virtual const bounding_volume<float>& get_bounds() const = 0;
+	virtual const bounding_volume_type& get_bounds() const = 0;
 	
 	/**
 	 * Returns the culling mask of the object.
 	 */
-	const bounding_volume<float>* get_culling_mask() const;
+	const bounding_volume_type* get_culling_mask() const;
 
 protected:
 	static std::size_t next_object_type_id();
 
 private:
+	/// Interpolates between two transforms.
+	static transform_type interpolate_transforms(const transform_type& x, const transform_type& y, float a);
+	
 	/**
 	 * Called every time the scene object's tranform is changed.
 	 */
 	virtual void transformed();
 
 	bool active;
-	tween<transform<float>> transform;
-	const bounding_volume<float>* culling_mask;
+	tween<transform_type> transform;
+	const bounding_volume_type* culling_mask;
 };
 
 inline void scene_object_base::set_active(bool active)
@@ -147,25 +153,25 @@ inline void scene_object_base::set_active(bool active)
 	this->active = active;
 }
 
-inline void scene_object_base::set_transform(const ::transform<float>& transform)
+inline void scene_object_base::set_transform(const transform_type& transform)
 {
 	this->transform[1] = transform;
 	transformed();
 }
 
-inline void scene_object_base::set_translation(const float3& translation)
+inline void scene_object_base::set_translation(const vector_type& translation)
 {
 	transform[1].translation = translation;
 	transformed();
 }
 
-inline void scene_object_base::set_rotation(const quaternion<float>& rotation)
+inline void scene_object_base::set_rotation(const quaternion_type& rotation)
 {
 	transform[1].rotation = rotation;
 	transformed();
 }
 
-inline void scene_object_base::set_scale(const float3& scale)
+inline void scene_object_base::set_scale(const vector_type& scale)
 {
 	transform[1].scale = scale;
 	transformed();
@@ -176,37 +182,37 @@ inline bool scene_object_base::is_active() const
 	return active;
 }
 
-inline const transform<float>& scene_object_base::get_transform() const
+inline const typename scene_object_base::transform_type& scene_object_base::get_transform() const
 {
 	return transform[1];
 }
 
-inline const float3& scene_object_base::get_translation() const
+inline const typename scene_object_base::vector_type& scene_object_base::get_translation() const
 {
 	return get_transform().translation;
 }
 
-inline const quaternion<float>& scene_object_base::get_rotation() const
+inline const typename scene_object_base::quaternion_type& scene_object_base::get_rotation() const
 {
 	return get_transform().rotation;
 }
 
-inline const float3& scene_object_base::get_scale() const
+inline const typename scene_object_base::vector_type& scene_object_base::get_scale() const
 {
 	return get_transform().scale;
 }
 
-inline const tween<transform<float>>& scene_object_base::get_transform_tween() const
+inline const tween<typename scene_object_base::transform_type>& scene_object_base::get_transform_tween() const
 {
 	return transform;
 }
 
-inline tween<transform<float>>& scene_object_base::get_transform_tween()
+inline tween<typename scene_object_base::transform_type>& scene_object_base::get_transform_tween()
 {
 	return transform;
 }
 
-inline const bounding_volume<float>* scene_object_base::get_culling_mask() const
+inline const typename scene_object_base::bounding_volume_type* scene_object_base::get_culling_mask() const
 {
 	return culling_mask;
 }

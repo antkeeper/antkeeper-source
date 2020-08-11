@@ -20,8 +20,7 @@
 #ifndef ANTKEEPER_ECS_SAMARA_COMPONENT_HPP
 #define ANTKEEPER_ECS_SAMARA_COMPONENT_HPP
 
-#include <vmq/vmq.hpp>
-using namespace vmq::types;
+#include "utility/fundamental-types.hpp"
 
 namespace ecs {
 

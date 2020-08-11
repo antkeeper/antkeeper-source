@@ -45,14 +45,12 @@
 #include "scene/spotlight.hpp"
 #include "scene/scene.hpp"
 #include "configuration.hpp"
-#include <vmq/vmq.hpp>
+#include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
 #include <iostream>
 
 #include "shadow-map-pass.hpp"
-
-using namespace vmq;
 
 static bool operation_compare(const render_operation& a, const render_operation& b);
 
@@ -174,7 +172,7 @@ void material_pass::render(render_context* context) const
 					
 					// Transform position into view-space
 					float3 position = light->get_transform_tween().interpolate(context->alpha).translation;
-					float3 view_space_position = vmq::resize<3>(view * float4{position.x, position.y, position.z, 1.0f});
+					float3 view_space_position = math::resize<3>(view * float4{position.x, position.y, position.z, 1.0f});
 					point_light_positions[point_light_count] = view_space_position;
 					
 					point_light_attenuations[point_light_count] = static_cast<const point_light*>(light)->get_attenuation_tween().interpolate(context->alpha);
@@ -192,7 +190,7 @@ void material_pass::render(render_context* context) const
 					
 					// Transform direction into view-space
 					float3 direction = static_cast<const directional_light*>(light)->get_direction_tween().interpolate(context->alpha);
-					float3 view_space_direction = vmq::normalize(vmq::resize<3>(view * vmq::resize<4>(-direction)));
+					float3 view_space_direction = math::normalize(math::resize<3>(view * math::resize<4>(-direction)));
 					directional_light_directions[directional_light_count] = view_space_direction;
 					
 					++directional_light_count;
@@ -209,14 +207,14 @@ void material_pass::render(render_context* context) const
 					
 					// Transform position into view-space
 					float3 position = light->get_transform_tween().interpolate(context->alpha).translation;
-					float3 view_space_position = vmq::resize<3>(view * float4{position.x, position.y, position.z, 1.0f});
+					float3 view_space_position = math::resize<3>(view * float4{position.x, position.y, position.z, 1.0f});
 					spotlight_positions[spotlight_count] = view_space_position;
 					
 					const ::spotlight* spotlight = static_cast<const ::spotlight*>(light);
 					
 					// Transform direction into view-space
 					float3 direction = spotlight->get_direction_tween().interpolate(context->alpha);
-					float3 view_space_direction = vmq::normalize(vmq::resize<3>(view * vmq::resize<4>(-direction)));
+					float3 view_space_direction = math::normalize(math::resize<3>(view * math::resize<4>(-direction)));
 					spotlight_directions[spotlight_count] = view_space_direction;
 					
 					spotlight_attenuations[spotlight_count] = spotlight->get_attenuation_tween().interpolate(context->alpha);
@@ -414,7 +412,7 @@ void material_pass::render(render_context* context) const
 		model = operation.transform;
 		model_view_projection = view_projection * model;
 		model_view = view * model;
-		normal_model_view = vmq::transpose(vmq::inverse(vmq::resize<3, 3>(model_view)));
+		normal_model_view = math::transpose(math::inverse(math::resize<3, 3>(model_view)));
 
 		// Upload operation-dependent parameters
 		if (parameters->model)

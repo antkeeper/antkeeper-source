@@ -20,24 +20,24 @@
 #ifndef ANTKEEPER_VIEW_FRUSTUM_HPP
 #define ANTKEEPER_VIEW_FRUSTUM_HPP
 
-#include "convex-hull.hpp"
+#include "geometry/convex-hull.hpp"
+#include "math/math.hpp"
 #include <array>
-#include <vmq/vmq.hpp>
-
-using vmq::vector;
-using vmq::matrix;
-using namespace vmq::operators;
 
 template <class T>
 class view_frustum
 {
 public:
+	typedef math::vector<T, 3> vector_type;
+	typedef math::matrix<T, 4, 4> matrix_type;
+	typedef plane<T> plane_type;
+	
 	/**
 	 * Creates a view frustum from a view-projection matrix.
 	 *
 	 * @param view_projection View-projection matrix.
 	 */
-	view_frustum(const matrix<T, 4, 4>& view_projection);
+	view_frustum(const matrix_type& view_projection);
 	
 	/// Creates an uninitialized view frustum.
 	view_frustum();
@@ -47,46 +47,46 @@ public:
 	 *
 	 * @param view_projection View-projection matrix.
 	 */
-	void set_matrix(const matrix<T, 4, 4>& view_projection);
+	void set_matrix(const matrix_type& view_projection);
 	
 	/// Returns a convex hull which describes the bounds of the view frustum.
 	const convex_hull<T>& get_bounds() const;
 	
 	/// Returns the left clipping plane.
-	const plane<T>& get_left() const;
+	const plane_type& get_left() const;
 	
 	/// Returns the right clipping plane.
-	const plane<T>& get_right() const;
+	const plane_type& get_right() const;
 	
 	/// Returns the bottom clipping plane.
-	const plane<T>& get_bottom() const;
+	const plane_type& get_bottom() const;
 	
 	/// Returns the top clipping plane.
-	const plane<T>& get_top() const;
+	const plane_type& get_top() const;
 	
 	/// Returns the near clipping plane.
-	const plane<T>& get_near() const;
+	const plane_type& get_near() const;
 	
 	/// Returns the far clipping plane.
-	const plane<T>& get_far() const;
+	const plane_type& get_far() const;
 	
 	/**
 	 * Returns an array containing the corners of the view frustum bounds.
 	 *
 	 * @return Array containing the corners of the view frustum bounds. Corners are stored in the following order: NTL, NTR, NBL, NBR, FTL, FTR, FBL, FBR; where N is near, F is far, T is top, B is bottom, L is left, and R is right, therefore NTL refers to the corner shared between the near, top, and left clipping planes.
 	 */
-	const std::array<vector<T, 3>, 8>& get_corners() const;
+	const std::array<vector_type, 8>& get_corners() const;
 
 private:
-	void recalculate_planes(const matrix<T, 4, 4>& view_projection);
+	void recalculate_planes(const matrix_type& view_projection);
 	void recalculate_corners();
 	
 	convex_hull<T> bounds;
-	std::array<vector<T, 3>, 8> corners;
+	std::array<vector_type, 8> corners;
 };
 
 template <class T>
-view_frustum<T>::view_frustum(const matrix<T, 4, 4>& view_projection):
+view_frustum<T>::view_frustum(const matrix_type& view_projection):
 	bounds(6)
 {
 	set_matrix(view_projection);
@@ -94,11 +94,11 @@ view_frustum<T>::view_frustum(const matrix<T, 4, 4>& view_projection):
 
 template <class T>
 view_frustum<T>::view_frustum():
-	view_frustum(vmq::identity4x4<T>)
+	view_frustum(math::identity4x4<T>)
 {}
 
 template <class T>
-void view_frustum<T>::set_matrix(const matrix<T, 4, 4>& view_projection)
+void view_frustum<T>::set_matrix(const matrix_type& view_projection)
 {
 	recalculate_planes(view_projection);
 	recalculate_corners();
@@ -111,70 +111,70 @@ inline const convex_hull<T>& view_frustum<T>::get_bounds() const
 }
 
 template <class T>
-inline const plane<T>& view_frustum<T>::get_left() const
+inline const typename view_frustum<T>::plane_type& view_frustum<T>::get_left() const
 {
 	return bounds.planes[0];
 }
 
 template <class T>
-inline const plane<T>& view_frustum<T>::get_right() const
+inline const typename view_frustum<T>::plane_type& view_frustum<T>::get_right() const
 {
 	return bounds.planes[1];
 }
 
 template <class T>
-inline const plane<T>& view_frustum<T>::get_bottom() const
+inline const typename view_frustum<T>::plane_type& view_frustum<T>::get_bottom() const
 {
 	return bounds.planes[2];
 }
 
 template <class T>
-inline const plane<T>& view_frustum<T>::get_top() const
+inline const typename view_frustum<T>::plane_type& view_frustum<T>::get_top() const
 {
 	return bounds.planes[3];
 }
 
 template <class T>
-inline const plane<T>& view_frustum<T>::get_near() const
+inline const typename view_frustum<T>::plane_type& view_frustum<T>::get_near() const
 {
 	return bounds.planes[4];
 }
 
 template <class T>
-inline const plane<T>& view_frustum<T>::get_far() const
+inline const typename view_frustum<T>::plane_type& view_frustum<T>::get_far() const
 {
 	return bounds.planes[5];
 }
 
 template <class T>
-inline const std::array<vector<T, 3>, 8>& view_frustum<T>::get_corners() const
+inline const std::array<typename view_frustum<T>::vector_type, 8>& view_frustum<T>::get_corners() const
 {
 	return corners;
 }
 
 template <class T>
-void view_frustum<T>::recalculate_planes(const matrix<T, 4, 4>& view_projection)
+void view_frustum<T>::recalculate_planes(const matrix_type& view_projection)
 {
-	matrix<T, 4, 4> transpose = vmq::transpose(view_projection);
-	bounds.planes[0] = plane<T>(transpose[3] + transpose[0]);
-	bounds.planes[1] = plane<T>(transpose[3] - transpose[0]);
-	bounds.planes[2] = plane<T>(transpose[3] + transpose[1]);
-	bounds.planes[3] = plane<T>(transpose[3] - transpose[1]);
-	bounds.planes[4] = plane<T>(transpose[3] + transpose[2]);
-	bounds.planes[5] = plane<T>(transpose[3] - transpose[2]);
+	matrix_type transpose = math::transpose(view_projection);
+	bounds.planes[0] = plane_type(transpose[3] + transpose[0]);
+	bounds.planes[1] = plane_type(transpose[3] - transpose[0]);
+	bounds.planes[2] = plane_type(transpose[3] + transpose[1]);
+	bounds.planes[3] = plane_type(transpose[3] - transpose[1]);
+	bounds.planes[4] = plane_type(transpose[3] + transpose[2]);
+	bounds.planes[5] = plane_type(transpose[3] - transpose[2]);
 }
 
 template <class T>
 void view_frustum<T>::recalculate_corners()
 {
-	corners[0] = intersection(get_near(), get_top(), get_left());
-	corners[1] = intersection(get_near(), get_top(), get_right());
-	corners[2] = intersection(get_near(), get_bottom(), get_left());
-	corners[3] = intersection(get_near(), get_bottom(), get_right());
-	corners[4] = intersection(get_far(), get_top(), get_left());
-	corners[5] = intersection(get_far(), get_top(), get_right());
-	corners[6] = intersection(get_far(), get_bottom(), get_left());
-	corners[7] = intersection(get_far(), get_bottom(), get_right());
+	corners[0] = plane_type::intersection(get_near(), get_top(), get_left());
+	corners[1] = plane_type::intersection(get_near(), get_top(), get_right());
+	corners[2] = plane_type::intersection(get_near(), get_bottom(), get_left());
+	corners[3] = plane_type::intersection(get_near(), get_bottom(), get_right());
+	corners[4] = plane_type::intersection(get_far(), get_top(), get_left());
+	corners[5] = plane_type::intersection(get_far(), get_top(), get_right());
+	corners[6] = plane_type::intersection(get_far(), get_bottom(), get_left());
+	corners[7] = plane_type::intersection(get_far(), get_bottom(), get_right());
 }
 
 #endif // ANTKEEPER_VIEW_FRUSTUM_HPP

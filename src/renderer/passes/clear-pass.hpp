@@ -21,9 +21,7 @@
 #define ANTKEEPER_CLEAR_PASS_HPP
 
 #include "renderer/render-pass.hpp"
-#include <vmq/vmq.hpp>
-
-using namespace vmq::types;
+#include "utility/fundamental-types.hpp"
 
 /**
  * Clears the color, depth, or stencil buffer of a render target.

@@ -20,13 +20,13 @@
 #ifndef ANTKEEPER_ECS_TRANSFORM_COMPONENT_HPP
 #define ANTKEEPER_ECS_TRANSFORM_COMPONENT_HPP
 
-#include <vmq/vmq.hpp>
+#include "math/math.hpp"
 
 namespace ecs {
 
 struct transform_component
 {
-	vmq::transform<float> transform;
+	math::transform<float> transform;
 	bool warp;
 };
 

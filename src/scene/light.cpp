@@ -19,14 +19,13 @@
 
 #include "scene/light.hpp"
 #include "animation/ease.hpp"
-
-using namespace vmq::operators;
+#include "math/interpolation.hpp"
 
 light::light():
 	bounds(get_translation(), 0.0f),
-	color(float3{1.0f, 1.0f, 1.0f}, ease<float3>::linear),
-	intensity(1.0f, ease<float>::linear),
-	scaled_color(float3{1.0f, 1.0f, 1.0f}, ease<float3>::linear)
+	color(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
+	intensity(1.0f, math::lerp<float, float>),
+	scaled_color(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>)
 {}
 
 void light::set_color(const float3& color)

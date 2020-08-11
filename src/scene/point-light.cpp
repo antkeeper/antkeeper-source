@@ -18,12 +18,10 @@
  */
 
 #include "point-light.hpp"
-#include "animation/ease.hpp"
-
-using namespace vmq::operators;
+#include "math/interpolation.hpp"
 
 point_light::point_light():
-	attenuation(float3{1, 0, 0}, ease<float3>::linear)
+	attenuation(float3{1, 0, 0}, math::lerp<float3, float>)
 {}
 
 void point_light::set_attenuation(const float3& attenuation)
@@ -36,4 +34,3 @@ void point_light::update_tweens()
 	light::update_tweens();
 	attenuation.update();
 }
-

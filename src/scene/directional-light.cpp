@@ -19,14 +19,13 @@
 
 #include "directional-light.hpp"
 #include "configuration.hpp"
-
-using namespace vmq::operators;
+#include "math/math.hpp"
 
 static float3 interpolate_direction(const float3& x, const float3& y, float a)
 {
-	quaternion<float> q0 = vmq::rotation(global_forward, x);
-	quaternion<float> q1 = vmq::rotation(global_forward, y);
-	return vmq::normalize(vmq::slerp(q0, q1, a) * global_forward);
+	math::quaternion<float> q0 = math::rotation(global_forward, x);
+	math::quaternion<float> q1 = math::rotation(global_forward, y);
+	return math::normalize(math::slerp(q0, q1, a) * global_forward);
 }
 
 directional_light::directional_light():
@@ -41,6 +40,6 @@ void directional_light::update_tweens()
 
 void directional_light::transformed()
 {
-	direction[1] = vmq::normalize(get_transform().rotation * global_forward);
+	direction[1] = math::normalize(get_transform().rotation * global_forward);
 }
 

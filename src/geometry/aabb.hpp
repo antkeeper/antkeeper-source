@@ -22,20 +22,18 @@
 
 #include "bounding-volume.hpp"
 #include "sphere.hpp"
-#include <vmq/vmq.hpp>
-#include <array>
+#include "math/math.hpp"
 #include <limits>
-
-using vmq::vector;
-using vmq::matrix;
-using vmq::transform;
-using namespace vmq::operators;
 
 template <class T>
 struct aabb: public bounding_volume<T>
 {
-	vector<T, 3> min_point;
-	vector<T, 3> max_point;
+	typedef math::vector<T, 3> vector_type;
+	typedef math::matrix<T, 4, 4> matrix_type;
+	typedef math::transform<T> transform_type;
+	
+	vector_type min_point;
+	vector_type max_point;
 	
 	/**
 	 * Transforms an AABB.
@@ -44,7 +42,7 @@ struct aabb: public bounding_volume<T>
 	 * @param t Transform by which the AABB should be transformed.
 	 * @return Transformed AABB.
 	 */
-	static aabb transform(const aabb& a, const ::transform<T>& t);
+	static aabb transform(const aabb& a, const transform_type& t);
 	
 	/**
 	 * Transforms an AABB.
@@ -53,9 +51,9 @@ struct aabb: public bounding_volume<T>
 	 * @param m Matrix by which the AABB should be transformed.
 	 * @return Transformed AABB.
 	 */
-	static aabb transform(const aabb& a, const matrix<T, 4, 4>& m);
+	static aabb transform(const aabb& a, const matrix_type& m);
 	
-	aabb(const vector<T, 3>& min_point, const vector<T, 3>& max_point);
+	aabb(const vector_type& min_point, const vector_type& max_point);
 	aabb();
 	
 	virtual bounding_volume_type get_bounding_volume_type() const;
@@ -63,7 +61,7 @@ struct aabb: public bounding_volume<T>
 	virtual bool intersects(const aabb<T>& aabb) const;
 	virtual bool contains(const sphere<T>& sphere) const;
 	virtual bool contains(const aabb<T>& aabb) const;
-	virtual bool contains(const vector<T, 3>& point) const;
+	virtual bool contains(const vector_type& point) const;
 
 	/**
 	 * Returns the position of the specified corner.
@@ -71,18 +69,18 @@ struct aabb: public bounding_volume<T>
 	 * @param index Index of a corner.
 	 * @return Position of the specified corner.
 	 */
-	vector<T, 3> corner(int index) const noexcept;
+	vector_type corner(int index) const noexcept;
 };
 
 template <class T>
-aabb<T> aabb<T>::transform(const aabb& a, const ::transform<T>& t)
+aabb<T> aabb<T>::transform(const aabb& a, const transform_type& t)
 {
-	vector<T, 3> min_point = {std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity()};
-	vector<T, 3> max_point = {-std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity()};
+	vector_type min_point = {std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity()};
+	vector_type max_point = {-std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity()};
 	
 	for (std::size_t i = 0; i < 8; ++i)
 	{
-		vector<T, 3> transformed_corner = vmq::mul(t, a.corner(i));
+		vector_type transformed_corner = math::mul(t, a.corner(i));
 
 		for (std::size_t j = 0; j < 3; ++j)
 		{
@@ -95,15 +93,15 @@ aabb<T> aabb<T>::transform(const aabb& a, const ::transform<T>& t)
 }
 
 template <class T>
-aabb<T> aabb<T>::transform(const aabb& a, const matrix<T, 4, 4>& m)
+aabb<T> aabb<T>::transform(const aabb& a, const matrix_type& m)
 {
-	vector<T, 3> min_point = {std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity()};
-	vector<T, 3> max_point = {-std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity()};
+	vector_type min_point = {std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity()};
+	vector_type max_point = {-std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity()};
 	
 	for (std::size_t i = 0; i < 8; ++i)
 	{
-		vector<T, 3> corner = a.corner(i);
-		vector<T, 4> transformed_corner = vmq::mul(m, vector<T, 4>{corner.x, corner.y, corner.z, T(1)});
+		vector_type corner = a.corner(i);
+		vector<T, 4> transformed_corner = math::mul(m, vector<T, 4>{corner.x, corner.y, corner.z, T(1)});
 
 		for (std::size_t j = 0; j < 3; ++j)
 		{
@@ -116,7 +114,7 @@ aabb<T> aabb<T>::transform(const aabb& a, const matrix<T, 4, 4>& m)
 }
 
 template <class T>
-aabb<T>::aabb(const vector<T, 3>& min_point, const vector<T, 3>& max_point):
+aabb<T>::aabb(const vector_type& min_point, const vector_type& max_point):
 	min_point(min_point),
 	max_point(max_point)
 {}
@@ -134,7 +132,7 @@ inline bounding_volume_type aabb<T>::get_bounding_volume_type() const
 template <class T>
 bool aabb<T>::intersects(const sphere<T>& sphere) const
 {
-	const vector<T, 3> radius_vector = {sphere.radius, sphere.radius, sphere.radius};
+	const vector_type radius_vector = {sphere.radius, sphere.radius, sphere.radius};
 	return aabb<T>(min_point - radius_vector, max_point + radius_vector).contains(sphere.center);
 }
 
@@ -175,7 +173,7 @@ bool aabb<T>::contains(const aabb<T>& aabb) const
 }
 
 template <class T>
-bool aabb<T>::contains(const vector<T, 3>& point) const
+bool aabb<T>::contains(const vector_type& point) const
 {
 	if (point.x < min_point.x || point.x > max_point.x)
 		return false;
@@ -187,7 +185,7 @@ bool aabb<T>::contains(const vector<T, 3>& point) const
 }
 
 template <class T>
-vector<T, 3> aabb<T>::corner(int index) const noexcept
+typename aabb<T>::vector_type aabb<T>::corner(int index) const noexcept
 {
 	return
 		{

@@ -21,9 +21,7 @@
 #define ANTKEEPER_BLOOM_PASS_HPP
 
 #include "renderer/render-pass.hpp"
-#include <vmq/vmq.hpp>
-
-using namespace vmq::types;
+#include "math/math.hpp"
 
 class shader_program;
 class shader_input;

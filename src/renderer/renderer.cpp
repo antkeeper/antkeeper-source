@@ -27,12 +27,11 @@
 #include "scene/lod-group.hpp"
 #include "renderer/model.hpp"
 #include "rasterizer/drawing-mode.hpp"
+#include "math/math.hpp"
+#include "geometry/projection.hpp"
 #include "configuration.hpp"
-#include "math.hpp"
 #include <functional>
 #include <set>
-
-using namespace vmq::operators;
 
 renderer::renderer()
 {
@@ -166,8 +165,8 @@ void renderer::process_model_instance(render_context& context, const ::model_ins
 		operation.drawing_mode = group->get_drawing_mode();
 		operation.start_index = group->get_start_index();
 		operation.index_count = group->get_index_count();
-		operation.transform = vmq::matrix_cast(model_instance->get_transform_tween().interpolate(context.alpha));
-		operation.depth = signed_distance(context.clip_near, vmq::resize<3>(operation.transform[3]));
+		operation.transform = math::matrix_cast(model_instance->get_transform_tween().interpolate(context.alpha));
+		operation.depth = context.clip_near.signed_distance(math::resize<3>(operation.transform[3]));
 		operation.instance_count = model_instance->get_instance_count();
 
 		context.operations.push_back(operation);
@@ -185,26 +184,26 @@ void renderer::process_billboard(render_context& context, const ::billboard* bil
 	if (!context.camera_culling_volume->intersects(*object_culling_volume))
 		return;
 	
-	transform<float> billboard_transform = billboard->get_transform_tween().interpolate(context.alpha);
+	math::transform<float> billboard_transform = billboard->get_transform_tween().interpolate(context.alpha);
 	billboard_op.material = billboard->get_material();
-	billboard_op.depth = signed_distance(context.clip_near, vmq::resize<3>(billboard_transform.translation));
+	billboard_op.depth = context.clip_near.signed_distance(math::resize<3>(billboard_transform.translation));
 	
 	// Align billboard
 	if (billboard->get_billboard_type() == billboard_type::spherical)
 	{
-		billboard_transform.rotation = vmq::normalize(vmq::look_rotation(context.camera_forward, context.camera_up) * billboard_transform.rotation);
+		billboard_transform.rotation = math::normalize(math::look_rotation(context.camera_forward, context.camera_up) * billboard_transform.rotation);
 	}
 	else if (billboard->get_billboard_type() == billboard_type::cylindrical)
 	{
 		const float3& alignment_axis = billboard->get_alignment_axis();
-		float3 look = vmq::normalize(math::project_on_plane(billboard_transform.translation - context.camera_transform.translation, {0.0f, 0.0f, 0.0f}, alignment_axis));
-		float3 right = vmq::normalize(vmq::cross(alignment_axis, look));
-		look = vmq::cross(right, alignment_axis);
-		float3 up = vmq::cross(look, right);
-		billboard_transform.rotation = vmq::normalize(vmq::look_rotation(look, up) * billboard_transform.rotation);
+		float3 look = math::normalize(project_on_plane(billboard_transform.translation - context.camera_transform.translation, {0.0f, 0.0f, 0.0f}, alignment_axis));
+		float3 right = math::normalize(math::cross(alignment_axis, look));
+		look = math::cross(right, alignment_axis);
+		float3 up = math::cross(look, right);
+		billboard_transform.rotation = math::normalize(math::look_rotation(look, up) * billboard_transform.rotation);
 	}
 	
-	billboard_op.transform = vmq::matrix_cast(billboard_transform);
+	billboard_op.transform = math::matrix_cast(billboard_transform);
 	
 	context.operations.push_back(billboard_op);
 }

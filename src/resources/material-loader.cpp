@@ -24,6 +24,7 @@
 #include "rasterizer/texture-wrapping.hpp"
 #include "rasterizer/texture-filter.hpp"
 #include "rasterizer/texture-2d.hpp"
+#include "utility/fundamental-types.hpp"
 #include "string-table.hpp"
 #include <cctype>
 #include <vector>

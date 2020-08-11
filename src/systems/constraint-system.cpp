@@ -23,9 +23,9 @@
 #include "entity/components/copy-scale-component.hpp"
 #include "entity/components/copy-transform-component.hpp"
 #include "entity/components/transform-component.hpp"
+#include "utility/fundamental-types.hpp"
 
 using namespace ecs;
-using namespace vmq;
 
 constraint_system::constraint_system(entt::registry& registry):
 	entity_system(registry)

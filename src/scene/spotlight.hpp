@@ -21,9 +21,7 @@
 #define ANTKEEPER_SPOTLIGHT_HPP
 
 #include "scene/light.hpp"
-#include <vmq/vmq.hpp>
-
-using namespace vmq::types;
+#include "utility/fundamental-types.hpp"
 
 class spotlight: public light
 {

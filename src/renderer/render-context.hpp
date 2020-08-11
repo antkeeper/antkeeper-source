@@ -23,19 +23,16 @@
 #include "renderer/render-operation.hpp"
 #include "geometry/plane.hpp"
 #include "geometry/bounding-volume.hpp"
-#include <vmq/vmq.hpp>
+#include "utility/fundamental-types.hpp"
 #include <list>
 
 class camera;
 class scene;
 
-using namespace vmq::types;
-using vmq::transform;
-
 struct render_context
 {
 	const camera* camera;
-	transform<float> camera_transform;
+	math::transform<float> camera_transform;
 	float3 camera_forward;
 	float3 camera_up;
 	const bounding_volume<float>* camera_culling_volume;

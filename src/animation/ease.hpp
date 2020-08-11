@@ -51,9 +51,8 @@
 #ifndef ANTKEEPER_EASE_HPP
 #define ANTKEEPER_EASE_HPP
 
-#include <vmq/vmq.hpp>
+#include "math/math.hpp"
 #include <cmath>
-#include <type_traits>
 
 /**
  * Container for templated easing functions.
@@ -62,7 +61,7 @@
  *
  *     value_type operator+(const value_type&, const value_type&);
  *     value_type operator-(const value_type&, const value_type&);
- *     value_type operator*(const value_type&, scalar_type) const;
+ *     value_type operator*(const value_type&, scalar_type);
  *
  * @tparam T Value type.
  * @tparam S Scalar type.
@@ -72,12 +71,6 @@ struct ease
 {
 	typedef T value_type;
 	typedef S scalar_type;
-
-	/// Linearly interpolates between @p x and @p y.
-	static T linear(const T& x, const T& y, S a);
-	
-	/// Logarithmically interpolates between @p x and @p y.
-	static T log(const T& x, const T& y, S a);
 	
 	static T in_sine(const T& x, const T& y, S a);
 	static T out_sine(const T& x, const T& y, S a);
@@ -121,100 +114,87 @@ struct ease
 };
 
 template <typename T, typename S>
-inline T ease<T, S>::linear(const T& x, const T& y, S a)
-{
-	return (y - x) * a + x;
-}
-
-template <typename T, typename S>
-inline T ease<T, S>::log(const T& x, const T& y, S a)
-{
-	//return std::exp(linear(std::log(x), std::log(y), a));
-	return x * std::pow(y / x, a);
-}
-
-template <typename T, typename S>
 T ease<T, S>::in_sine(const T& x, const T& y, S a)
 {
-	return linear(y, x, std::cos(a * vmq::half_pi<S>));
+	return math::lerp(y, x, std::cos(a * math::half_pi<S>));
 }
 
 template <typename T, typename S>
 T ease<T, S>::out_sine(const T& x, const T& y, S a)
 {
-	return linear(x, y, std::sin(a * vmq::half_pi<S>));
+	return math::lerp(x, y, std::sin(a * math::half_pi<S>));
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_out_sine(const T& x, const T& y, S a)
 {
-	return linear(x, y, -(std::cos(a * vmq::pi<S>) - S(1)) * S(0.5));
+	return math::lerp(x, y, -(std::cos(a * math::pi<S>) - S(1)) * S(0.5));
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_quad(const T& x, const T& y, S a)
 {
-	return linear(x, y, a * a);
+	return math::lerp(x, y, a * a);
 }
 
 template <typename T, typename S>
 T ease<T, S>::out_quad(const T& x, const T& y, S a)
 {
-	return linear(x, y, (S(2) - a) * a);
+	return math::lerp(x, y, (S(2) - a) * a);
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_out_quad(const T& x, const T& y, S a)
 {
-	return linear(x, y, (a < S(0.5)) ? S(2) * a * a : -(S(2) * a * a - S(4) * a + S(1)));
+	return math::lerp(x, y, (a < S(0.5)) ? S(2) * a * a : -(S(2) * a * a - S(4) * a + S(1)));
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_cubic(const T& x, const T& y, S a)
 {
-	return linear(x, y, a * a * a);
+	return math::lerp(x, y, a * a * a);
 }
 
 template <typename T, typename S>
 T ease<T, S>::out_cubic(const T& x, const T& y, S a)
 {
-	return linear(x, y, a * ((a - S(3)) * a + S(3)));	
+	return math::lerp(x, y, a * ((a - S(3)) * a + S(3)));	
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_out_cubic(const T& x, const T& y, S a)
 {
-	return linear(x, y, (a < S(0.5)) ? S(4) * a * a * a : S(4) * a * a * a - S(12) * a * a + S(12) * a - 3);
+	return math::lerp(x, y, (a < S(0.5)) ? S(4) * a * a * a : S(4) * a * a * a - S(12) * a * a + S(12) * a - 3);
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_quart(const T& x, const T& y, S a)
 {
-	return linear(x, y, a * a * a * a);
+	return math::lerp(x, y, a * a * a * a);
 }
 
 template <typename T, typename S>
 T ease<T, S>::out_quart(const T& x, const T& y, S a)
 {
-	return linear(x, y, a * (a * ((S(4) - a) * a - S(6)) + S(4)));
+	return math::lerp(x, y, a * (a * ((S(4) - a) * a - S(6)) + S(4)));
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_out_quart(const T& x, const T& y, S a)
 {
-	return linear(x, y, (a < S(0.5)) ? S(8) * a * a * a * a : a * (a * ((S(32) - S(8) * a) * a - S(48)) + S(32)) - S(7));
+	return math::lerp(x, y, (a < S(0.5)) ? S(8) * a * a * a * a : a * (a * ((S(32) - S(8) * a) * a - S(48)) + S(32)) - S(7));
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_quint(const T& x, const T& y, S a)
 {
-	return linear(x, y, a * a * a * a * a);
+	return math::lerp(x, y, a * a * a * a * a);
 }
 
 template <typename T, typename S>
 T ease<T, S>::out_quint(const T& x, const T& y, S a)
 {
-	return linear(x, y, a * (a * (a * ((a - S(5)) * a + S(10)) - S(10)) + S(5)));
+	return math::lerp(x, y, a * (a * (a * ((a - S(5)) * a + S(10)) - S(10)) + S(5)));
 }
 
 template <typename T, typename S>
@@ -222,25 +202,25 @@ T ease<T, S>::in_out_quint(const T& x, const T& y, S a)
 {
 	if (a < S(0.5))
 	{
-		return linear(x, y, S(16) * a * a * a * a * a);
+		return math::lerp(x, y, S(16) * a * a * a * a * a);
 	}
 	else
 	{
 		a = S(2) * (S(1) - a);
-		return linear(x, y, S(0.5) * (S(2) - a * a * a * a * a));
+		return math::lerp(x, y, S(0.5) * (S(2) - a * a * a * a * a));
 	}
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_expo(const T& x, const T& y, S a)
 {
-	return (a == S(0)) ? x : linear(x, y, std::pow(S(1024), a - S(1)));
+	return (a == S(0)) ? x : math::lerp(x, y, std::pow(S(1024), a - S(1)));
 }
 
 template <typename T, typename S>
 T ease<T, S>::out_expo(const T& x, const T& y, S a)
 {
-	return (a == S(1)) ? y : linear(y, x, std::pow(S(2), S(-10) * a));
+	return (a == S(1)) ? y : math::lerp(y, x, std::pow(S(2), S(-10) * a));
 }
 
 template <typename T, typename S>
@@ -255,19 +235,19 @@ T ease<T, S>::in_out_expo(const T& x, const T& y, S a)
 		return y;
 	}
 	
-	return linear(x, y, (a < S(0.5)) ? std::pow(S(2), S(20) * a - S(11)) : S(1) - std::pow(S(2), S(9) - S(20) * a));
+	return math::lerp(x, y, (a < S(0.5)) ? std::pow(S(2), S(20) * a - S(11)) : S(1) - std::pow(S(2), S(9) - S(20) * a));
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_circ(const T& x, const T& y, S a)
 {
-	return linear(y, x, std::sqrt(S(1) - a * a));
+	return math::lerp(y, x, std::sqrt(S(1) - a * a));
 }
 
 template <typename T, typename S>
 T ease<T, S>::out_circ(const T& x, const T& y, S a)
 {
-	return linear(x, y, std::sqrt(-(a - S(2)) * a));
+	return math::lerp(x, y, std::sqrt(-(a - S(2)) * a));
 }
 
 template <typename T, typename S>
@@ -275,11 +255,11 @@ T ease<T, S>::in_out_circ(const T& x, const T& y, S a)
 {
 	if (a < S(0.5))
 	{
-		return linear(x, y, S(0.5) - S(0.5) * std::sqrt(S(1) - S(4) * a * a));
+		return math::lerp(x, y, S(0.5) - S(0.5) * std::sqrt(S(1) - S(4) * a * a));
 	}
 	else
 	{
-		return linear(x, y, S(0.5) * (std::sqrt(S(-4) * (a - S(2)) * a - S(3)) + S(1)));
+		return math::lerp(x, y, S(0.5) * (std::sqrt(S(-4) * (a - S(2)) * a - S(3)) + S(1)));
 	}
 }
 
@@ -287,7 +267,7 @@ template <typename T, typename S>
 T ease<T, S>::in_back(const T& x, const T& y, S a)
 {
 	const S c = S(1.70158);
-	return linear(x, y, a * a * (a * c + a - c));
+	return math::lerp(x, y, a * a * (a * c + a - c));
 }
 
 template <typename T, typename S>
@@ -295,7 +275,7 @@ T ease<T, S>::out_back(const T& x, const T& y, S a)
 {
 	const S c = S(1.70158);
 	a -= S(1);
-	return linear(x, y, a * a * (a * c + a + c) + S(1));
+	return math::lerp(x, y, a * a * (a * c + a + c) + S(1));
 }
 
 template <typename T, typename S>
@@ -305,12 +285,12 @@ T ease<T, S>::in_out_back(const T& x, const T& y, S a)
 	
 	if (a < S(0.5))
 	{
-		return linear(x, y, a * a * (a * (S(4) * c + S(4)) - S(2) * c));
+		return math::lerp(x, y, a * a * (a * (S(4) * c + S(4)) - S(2) * c));
 	}
 	else
 	{
 		S b = S(1) - S(2) * a;
-		return linear(x, y, b * b * (a * c + a - c * S(0.5) - S(1)) + S(1));
+		return math::lerp(x, y, b * b * (a * c + a - c * S(0.5) - S(1)) + S(1));
 	}
 }
 
@@ -326,7 +306,7 @@ T ease<T, S>::in_elastic(const T& x, const T& y, S a)
 		return y;
 	}
 	
-	return linear(x, y, -std::pow(S(1024), a - S(1)) * std::sin(S(20.944) * (a - S(1.075))));
+	return math::lerp(x, y, -std::pow(S(1024), a - S(1)) * std::sin(S(20.944) * (a - S(1.075))));
 }
 
 template <typename T, typename S>
@@ -341,7 +321,7 @@ T ease<T, S>::out_elastic(const T& x, const T& y, S a)
 		return y;
 	}
 	
-	return linear(x, y, std::pow(S(2), S(-10) * a) * std::sin(S(20.944) * (a - S(0.075))) + S(1));
+	return math::lerp(x, y, std::pow(S(2), S(-10) * a) * std::sin(S(20.944) * (a - S(0.075))) + S(1));
 }
 
 template <typename T, typename S>
@@ -358,19 +338,19 @@ T ease<T, S>::in_out_elastic(const T& x, const T& y, S a)
 	
 	if (a < S(0.5))
 	{
-		return linear(x, y, std::pow(S(2), S(20) * a - S(11)) * std::sin(S(15.5334) - S(27.5293) * a));
+		return math::lerp(x, y, std::pow(S(2), S(20) * a - S(11)) * std::sin(S(15.5334) - S(27.5293) * a));
 		
 	}
 	else
 	{
-		return linear(y, x, std::pow(2, S(9) - S(20) * a) * std::sin(S(15.5334) - S(27.5293) * a));
+		return math::lerp(y, x, std::pow(2, S(9) - S(20) * a) * std::sin(S(15.5334) - S(27.5293) * a));
 	}
 }
 
 template <typename T, typename S>
 T ease<T, S>::in_bounce(const T& x, const T& y, S a)
 {
-	return linear(x, y, S(1) - ease<S, S>::out_bounce(S(0), S(1), S(1) - a));
+	return math::lerp(x, y, S(1) - ease<S, S>::out_bounce(S(0), S(1), S(1) - a));
 }
 
 template <typename T, typename S>
@@ -399,7 +379,7 @@ T ease<T, S>::out_bounce(const T& x, const T& y, S a)
 		a = n * a * a + S(0.984375);
 	}
 	
-	return linear(x, y, a);
+	return math::lerp(x, y, a);
 }
 
 template <typename T, typename S>
@@ -407,11 +387,11 @@ T ease<T, S>::in_out_bounce(const T& x, const T& y, S a)
 {
 	if (a < S(0.5))
 	{
-		return linear(x, y, (S(1) - ease<S, S>::out_bounce(S(0), S(1), S(1) - S(2) * a)) * S(0.5));
+		return math::lerp(x, y, (S(1) - ease<S, S>::out_bounce(S(0), S(1), S(1) - S(2) * a)) * S(0.5));
 	}
 	else
 	{
-		return linear(x, y, (S(1) + ease<S, S>::out_bounce(S(0), S(1), S(2) * a - S(1))) * S(0.5));
+		return math::lerp(x, y, (S(1) + ease<S, S>::out_bounce(S(0), S(1), S(2) * a - S(1))) * S(0.5));
 	}
 }
 

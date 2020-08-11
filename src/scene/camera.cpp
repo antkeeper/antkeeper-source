@@ -20,22 +20,22 @@
 #include "scene/camera.hpp"
 #include "configuration.hpp"
 #include "animation/ease.hpp"
-
-using namespace vmq::operators;
+#include "math/constants.hpp"
+#include "math/interpolation.hpp"
 
 static float4x4 interpolate_view(const camera* camera, const float4x4& x, const float4x4& y, float a)
 {
-	transform<float> transform = camera->get_transform_tween().interpolate(a);
+	math::transform<float> transform = camera->get_transform_tween().interpolate(a);
 	float3 forward = transform.rotation * global_forward;
 	float3 up = transform.rotation * global_up;
-	return vmq::look_at(transform.translation, transform.translation + forward, up);
+	return math::look_at(transform.translation, transform.translation + forward, up);
 }
 
 static float4x4 interpolate_projection(const camera* camera, const float4x4& x, const float4x4& y, float a)
 {
 	if (camera->is_orthographic())
 	{
-		return vmq::ortho(
+		return math::ortho(
 			camera->get_clip_left_tween().interpolate(a),
 			camera->get_clip_right_tween().interpolate(a),
 			camera->get_clip_bottom_tween().interpolate(a),
@@ -45,7 +45,7 @@ static float4x4 interpolate_projection(const camera* camera, const float4x4& x, 
 	}
 	else
 	{
-		return vmq::perspective(
+		return math::perspective(
 			camera->get_fov_tween().interpolate(a),
 			camera->get_aspect_ratio_tween().interpolate(a),
 			camera->get_clip_near_tween().interpolate(a),
@@ -62,17 +62,17 @@ camera::camera():
 	compositor(nullptr),
 	composite_index(0),
 	orthographic(true),
-	clip_left(-1.0f, ease<float>::linear),
-	clip_right(1.0f, ease<float>::linear),
-	clip_bottom(-1.0f, ease<float>::linear),
-	clip_top(1.0f, ease<float>::linear),
-	clip_near(-1.0f, ease<float>::linear),
-	clip_far(1.0f, ease<float>::linear),
-	fov(vmq::half_pi<float>, ease<float>::linear),
-	aspect_ratio(1.0f, ease<float>::linear),
-	view(vmq::identity4x4<float>, std::bind(&interpolate_view, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-	projection(vmq::identity4x4<float>, std::bind(&interpolate_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-	view_projection(vmq::identity4x4<float>, std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))
+	clip_left(-1.0f, math::lerp<float, float>),
+	clip_right(1.0f, math::lerp<float, float>),
+	clip_bottom(-1.0f, math::lerp<float, float>),
+	clip_top(1.0f, math::lerp<float, float>),
+	clip_near(-1.0f, math::lerp<float, float>),
+	clip_far(1.0f, math::lerp<float, float>),
+	fov(math::half_pi<float>, math::lerp<float, float>),
+	aspect_ratio(1.0f, math::lerp<float, float>),
+	view(math::identity4x4<float>, std::bind(&interpolate_view, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
+	projection(math::identity4x4<float>, std::bind(&interpolate_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
+	view_projection(math::identity4x4<float>, std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))
 {}
 
 float3 camera::project(const float3& object, const float4& viewport) const
@@ -85,7 +85,7 @@ float3 camera::project(const float3& object, const float4& viewport) const
 	result[0] = result[0] * viewport[2] + viewport[0];
 	result[1] = result[1] * viewport[3] + viewport[1];
 	
-	return vmq::resize<3>(result);
+	return math::resize<3>(result);
 }
 
 float3 camera::unproject(const float3& window, const float4& viewport) const
@@ -96,9 +96,9 @@ float3 camera::unproject(const float3& window, const float4& viewport) const
 	result[2] = window[2] * 2.0f - 1.0f;
 	result[3] = 1.0f;
 	
-	result = vmq::inverse(view_projection[1]) * result;
+	result = math::inverse(view_projection[1]) * result;
 
-	return vmq::resize<3>(result) * (1.0f / result[3]);
+	return math::resize<3>(result) * (1.0f / result[3]);
 }
 
 void camera::set_perspective(float fov, float aspect_ratio, float clip_near, float clip_far)
@@ -110,7 +110,7 @@ void camera::set_perspective(float fov, float aspect_ratio, float clip_near, flo
 	this->clip_near[1] = clip_near;
 	this->clip_far[1] = clip_far;
 
-	projection[1] = vmq::perspective(fov, aspect_ratio, clip_near, clip_far);
+	projection[1] = math::perspective(fov, aspect_ratio, clip_near, clip_far);
 	
 	// Recalculate view-projection matrix
 	view_projection[1] = projection[1] * view[1];
@@ -130,7 +130,7 @@ void camera::set_orthographic(float clip_left, float clip_right, float clip_bott
 	this->clip_near[1] = clip_near;
 	this->clip_far[1] = clip_far;
 
-	projection[1] = vmq::ortho(clip_left, clip_right, clip_bottom, clip_top, clip_near, clip_far);
+	projection[1] = math::ortho(clip_left, clip_right, clip_bottom, clip_top, clip_near, clip_far);
 	
 	// Recalculate view-projection matrix
 	view_projection[1] = projection[1] * view[1];
@@ -170,7 +170,7 @@ void camera::transformed()
 	// Recalculate view and view-projection matrices
 	float3 forward = get_rotation() * global_forward;
 	float3 up = get_rotation() * global_up;
-	view[1] = vmq::look_at(get_translation(), get_translation() + forward, up);
+	view[1] = math::look_at(get_translation(), get_translation() + forward, up);
 	view_projection[1] = projection[1] * view[1];
 	
 	// Recalculate view frustum

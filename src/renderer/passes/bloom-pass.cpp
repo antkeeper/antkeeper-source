@@ -32,11 +32,9 @@
 #include "rasterizer/texture-filter.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "renderer/render-context.hpp"
-#include <vmq/vmq.hpp>
+#include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
-
-using namespace vmq;
 
 bloom_pass::bloom_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),

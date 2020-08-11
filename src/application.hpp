@@ -188,6 +188,7 @@ public:
 
 private:
 	void setup_fsm();
+	void load_config();
 	void parse_options(int argc, char** argv);
 	
 

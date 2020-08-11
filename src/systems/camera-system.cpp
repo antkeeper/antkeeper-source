@@ -25,9 +25,8 @@
 #include "orbit-cam.hpp"
 #include "geometry/mesh.hpp"
 #include "geometry/intersection.hpp"
-#include <vmq/vmq.hpp>
+#include "math/math.hpp"
 
-using namespace vmq::operators;
 using namespace ecs;
 
 camera_system::camera_system(entt::registry& registry):
@@ -74,9 +73,9 @@ void camera_system::update(double t, double dt)
 	registry.view<transform_component, collision_component>().each(
 		[&](auto entity, auto& transform, auto& collision)
 		{
-			vmq::transform<float> inverse_transform = vmq::inverse(transform.transform);
+			math::transform<float> inverse_transform = math::inverse(transform.transform);
 			float3 origin = inverse_transform * pick_origin;
-			float3 direction = vmq::normalize(vmq::conjugate(transform.transform.rotation) * pick_direction);
+			float3 direction = math::normalize(math::conjugate(transform.transform.rotation) * pick_direction);
 			ray<float> transformed_ray = {origin, direction};
 
 			// Broad phase AABB test

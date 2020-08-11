@@ -33,10 +33,8 @@
 #include "renderer/render-context.hpp"
 #include "renderer/material.hpp"
 #include "renderer/material-property.hpp"
-#include <vmq/vmq.hpp>
+#include "math/math.hpp"
 #include <glad/glad.h>
-
-using namespace vmq;
 
 simple_render_pass::simple_render_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, ::shader_program* shader_program):
 	render_pass(rasterizer, framebuffer),

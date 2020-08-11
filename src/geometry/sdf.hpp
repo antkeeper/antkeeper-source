@@ -20,9 +20,8 @@
 #ifndef ANTKEEPER_SDF_HPP
 #define ANTKEEPER_SDF_HPP
 
-#include <vmq/vmq.hpp>
-using namespace vmq::types;
-using namespace vmq::operators;
+#include "utility/fundamental-types.hpp"
+#include <algorithm>
 
 /**
  * Contains signed distance functions.
@@ -36,14 +35,14 @@ inline float3 translate(const float3& sample, const float3& offset)
 
 inline float sphere(const float3& p, float r)
 {
-	return vmq::length(p) - r;
+	return math::length(p) - r;
 }
 
 inline float cylinder(const float3& p, float r, float h)
 {
-	float dx = std::abs(vmq::length(vmq::swizzle<0, 2>(p))) - r;
+	float dx = std::abs(math::length(math::swizzle<0, 2>(p))) - r;
 	float dy = std::abs(p[1]) - h;
-	return std::min<float>(std::max<float>(dx, dy), 0.0f) + vmq::length(float2{std::max<float>(dx, 0.0f), std::max<float>(dy, 0.0f)});
+	return std::min<float>(std::max<float>(dx, dy), 0.0f) + math::length(float2{std::max<float>(dx, 0.0f), std::max<float>(dy, 0.0f)});
 }
 
 inline float op_union(float a, float b)

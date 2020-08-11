@@ -32,14 +32,12 @@
 #include "geometry/intersection.hpp"
 #include "scene/scene.hpp"
 #include "scene/model-instance.hpp"
-#include "math.hpp"
-
-using namespace vmq::operators;
-using namespace ecs;
-
+#include "utility/fundamental-types.hpp"
 #include <array>
 #include <iostream>
 #include <limits>
+
+using namespace ecs;
 
 /**
  * An octree containing cubes for the marching cubes algorithm.
@@ -422,7 +420,7 @@ void subterrain_system::regenerate_subterrain_model()
 				edge = edge->previous->symmetric;
 			}
 			while (edge != start);
-			n = vmq::normalize(n);
+			n = math::normalize(n);
 
 			//float3 n = reinterpret_cast<const float3&>(face_normals[i * 3]);
 
@@ -474,10 +472,10 @@ void subterrain_system::dig(const float3& position, float radius)
 			for (int i = 0; i < 8; ++i)
 			{
 				// For outside normals (also set node initial distance to +infinity)
-				//float distance = vmq::length(node->corners[i] - position) - radius;
+				//float distance = math::length(node->corners[i] - position) - radius;
 				// if (distance < node->distances[i])
 
-				float distance = radius - vmq::length(node.corners[i] - position);
+				float distance = radius - math::length(node.corners[i] - position);
 				if (distance > node.distances[i])
 					node.distances[i] = distance;
 			}

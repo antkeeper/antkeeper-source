@@ -20,22 +20,30 @@
 #ifndef ANTKEEPER_RAY_HPP
 #define ANTKEEPER_RAY_HPP
 
-#include <vmq/vmq.hpp>
-
-using vmq::vector;
-using namespace vmq::operators;
+#include "math/math.hpp"
 
 template <class T>
 struct ray
 {
-	vector<T, 3> origin;
-	vector<T, 3> direction;
+	typedef math::vector<T, 3> vector_type;
+	
+	/// Origin of the ray.
+	vector_type origin;
+	
+	/// Normalized direction vector of the ray.
+	vector_type direction;
 
-	vector<T, 3> extrapolate(T distance) const;
+	/**
+	 * Extrapolates from the ray origin along the ray direction vector.
+	 *
+	 * @param distance Distance to extrapolate.
+	 * @return Extrapolated coordinates.
+	 */
+	vector_type extrapolate(T distance) const;
 };
 
 template <class T>
-inline vector<T, 3> ray<T>::extrapolate(T distance) const
+inline typename ray<T>::vector_type ray<T>::extrapolate(T distance) const
 {
 	return origin + direction * distance;
 }

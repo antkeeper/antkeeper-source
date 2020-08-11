@@ -20,13 +20,11 @@
 #ifndef ANTKEEPER_MESH_FUNCTIONS_HPP
 #define ANTKEEPER_MESH_FUNCTIONS_HPP
 
-#include "mesh.hpp"
-#include <vmq/vmq.hpp>
+#include "geometry/aabb.hpp"
+#include "geometry/mesh.hpp"
+#include "utility/fundamental-types.hpp"
 #include <array>
 #include <vector>
-#include "geometry/aabb.hpp"
-
-using namespace vmq::types;
 
 /**
  * Creates a triangle mesh from a list of vertices and indices.

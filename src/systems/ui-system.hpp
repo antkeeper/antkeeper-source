@@ -29,9 +29,7 @@
 #include "scene/model-instance.hpp"
 #include "scene/billboard.hpp"
 #include "renderer/material.hpp"
-#include <vmq/vmq.hpp>
-
-using namespace vmq::types;
+#include "math/math.hpp"
 
 class control;
 class scene;

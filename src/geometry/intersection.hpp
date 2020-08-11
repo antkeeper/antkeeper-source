@@ -20,16 +20,12 @@
 #ifndef ANTKEEPER_INTERSECTION_HPP
 #define ANTKEEPER_INTERSECTION_HPP
 
+#include "geometry/aabb.hpp"
+#include "geometry/mesh.hpp"
+#include "geometry/plane.hpp"
+#include "geometry/ray.hpp"
+#include "utility/fundamental-types.hpp"
 #include <tuple>
-#include <vmq/vmq.hpp>
-#include "aabb.hpp"
-#include "mesh.hpp"
-#include "plane.hpp"
-#include "ray.hpp"
-
-using namespace vmq::types;
-using namespace vmq::operators;
-
 
 /**
  * Tests for intersection between a ray and a plane.

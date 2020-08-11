@@ -23,12 +23,9 @@
 #include "animation/tween.hpp"
 #include "rasterizer/shader-variable-type.hpp"
 #include "rasterizer/shader-input.hpp"
-#include "animation/ease.hpp"
-#include <vmq/vmq.hpp>
+#include "math/interpolation.hpp"
+#include "utility/fundamental-types.hpp"
 #include <cstdlib>
-
-using namespace vmq::types;
-using namespace vmq::operators;
 
 class material;
 class shader_program;
@@ -191,25 +188,25 @@ inline T material_property<T>::default_interpolator(const T& x, const T& y, doub
 template <>
 inline float material_property<float>::default_interpolator(const float& x, const float& y, double a)
 {
-	return ease<float, float>::linear(x, y, static_cast<float>(a));
+	return math::lerp<float, float>(x, y, static_cast<float>(a));
 }
 
 template <>
 inline float2 material_property<float2>::default_interpolator(const float2& x, const float2& y, double a)
 {
-	return ease<float2, float>::linear(x, y, static_cast<float>(a));
+	return math::lerp<float2, float>(x, y, static_cast<float>(a));
 }
 
 template <>
 inline float3 material_property<float3>::default_interpolator(const float3& x, const float3& y, double a)
 {
-	return ease<float3, float>::linear(x, y, static_cast<float>(a));
+	return math::lerp<float3, float>(x, y, static_cast<float>(a));
 }
 
 template <>
 inline float4 material_property<float4>::default_interpolator(const float4& x, const float4& y, double a)
 {
-	return ease<float4, float>::linear(x, y, static_cast<float>(a));
+	return math::lerp<float4, float>(x, y, static_cast<float>(a));
 }
 
 template <class T>

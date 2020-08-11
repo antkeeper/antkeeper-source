@@ -20,14 +20,13 @@
 #ifndef ANTKEEPER_RENDER_OPERATION_HPP
 #define ANTKEEPER_RENDER_OPERATION_HPP
 
+#include "utility/fundamental-types.hpp"
 #include <cstdlib>
-#include <vmq/vmq.hpp>
 
 class pose;
 class material;
 class vertex_array;
 enum class drawing_mode;
-using namespace vmq::types;
 
 /**
  * Describes a render operation with a single mesh and single material.

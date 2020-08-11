@@ -22,6 +22,7 @@
 
 #include "scene/scene-object.hpp"
 #include "geometry/aabb.hpp"
+#include "utility/fundamental-types.hpp"
 
 class material;
 

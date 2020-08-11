@@ -39,13 +39,11 @@
 #include "entity/archetype.hpp"
 #include "entity/entity-commands.hpp"
 #include "nest.hpp"
-#include "math.hpp"
+#include "math/math.hpp"
+#include "utility/fundamental-types.hpp"
 #include "geometry/mesh-accelerator.hpp"
 #include "behavior/ebt.hpp"
 #include "animation/ease.hpp"
-#include <iostream>
-
-using namespace vmq::operators;
 
 void enter_play_state(application* app)
 {
@@ -92,15 +90,15 @@ void enter_play_state(application* app)
 	
 	for (int i = 0; i < pebble_count; ++i)
 	{
-		float x = frand(-pebble_radius, pebble_radius);
-		float z = frand(-pebble_radius, pebble_radius);
+		float x = math::random(-pebble_radius, pebble_radius);
+		float z = math::random(-pebble_radius, pebble_radius);
 		
 		auto pebble_entity = pebble_archetype->create(ecs_registry);
 		
 		auto& transform = ecs_registry.get<ecs::transform_component>(pebble_entity);
-		transform.transform = vmq::identity_transform<float>;
-		transform.transform.rotation = vmq::angle_axis(frand(0.0f, vmq::two_pi<float>), {0, 1, 0});
-		transform.transform.scale = float3{1, 1, 1} * frand(0.75f, 1.25f);
+		transform.transform = math::identity_transform<float>;
+		transform.transform.rotation = math::angle_axis(math::random(0.0f, math::two_pi<float>), {0, 1, 0});
+		transform.transform.scale = float3{1, 1, 1} * math::random(0.75f, 1.25f);
 		
 		placement.ray.origin = {x, 10000, z};
 		ecs_registry.assign<ecs::placement_component>(pebble_entity, placement);
@@ -133,15 +131,15 @@ void enter_play_state(application* app)
 
 		auto& transform = ecs_registry.get<ecs::transform_component>(samara_entity);
 		float zone = 200.0f;
-		transform.transform = vmq::identity_transform<float>;
-		transform.transform.translation.x = frand(-zone, zone);
-		transform.transform.translation.y = frand(50.0f, 150.0f);
-		transform.transform.translation.z = frand(-zone, zone);
+		transform.transform = math::identity_transform<float>;
+		transform.transform.translation.x = math::random(-zone, zone);
+		transform.transform.translation.y = math::random(50.0f, 150.0f);
+		transform.transform.translation.z = math::random(-zone, zone);
 
 		ecs::samara_component samara_component;
-		samara_component.angle = frand(0.0f, vmq::radians(360.0f));
-		samara_component.direction = vmq::normalize(float3{frand(-1, 1), frand(-1, -5), frand(-1, 1)});
-		samara_component.chirality = (frand(0, 1) < 0.5f) ? -1.0f : 1.0f;
+		samara_component.angle = math::random(0.0f, math::radians(360.0f));
+		samara_component.direction = math::normalize(float3{math::random(-1.0f, 1.0f), math::random(-1.0f, -5.0f), math::random(-1.0f, 1.0f)});
+		samara_component.chirality = (math::random(0.0f, 1.0f) < 0.5f) ? -1.0f : 1.0f;
 
 		ecs_registry.assign_or_replace<ecs::samara_component>(samara_entity, samara_component);
 	}
@@ -150,7 +148,7 @@ void enter_play_state(application* app)
 	ecs::archetype* grass_archetype = resource_manager->load<ecs::archetype>("grassland-grass.ent");
 	auto grass_entity_1 = grass_archetype->create(ecs_registry);
 	auto grass_entity_2 = grass_archetype->create(ecs_registry);
-	ecs_registry.get<ecs::transform_component>(grass_entity_2).transform.rotation = vmq::angle_axis(vmq::radians(120.0f), float3{0, 1, 0});
+	ecs_registry.get<ecs::transform_component>(grass_entity_2).transform.rotation = math::angle_axis(math::radians(120.0f), float3{0, 1, 0});
 	*/
 
 	// Setup overworld camera
@@ -159,7 +157,7 @@ void enter_play_state(application* app)
 	orbit_cam->attach(camera);
 	orbit_cam->set_target_focal_point({0, 0, 0});
 	orbit_cam->set_target_focal_distance(15.0f);
-	orbit_cam->set_target_elevation(vmq::radians(25.0f));
+	orbit_cam->set_target_elevation(math::radians(25.0f));
 	orbit_cam->set_target_azimuth(0.0f);
 	orbit_cam->set_focal_point(orbit_cam->get_target_focal_point());
 	orbit_cam->set_focal_distance(orbit_cam->get_target_focal_distance());
@@ -185,7 +183,7 @@ void enter_play_state(application* app)
 	nest->set_tunnel_radius(tunnel_radius);
 	nest::shaft* central_shaft = nest->get_central_shaft();
 	central_shaft->chirality = 1.0f;
-	central_shaft->rotation = vmq::radians(0.0f);
+	central_shaft->rotation = math::radians(0.0f);
 	central_shaft->depth = {0.0f, 200.0f};
 	central_shaft->radius = {15.0f, 15.0f};
 	central_shaft->pitch = {40.0f, 40.0f};
@@ -196,7 +194,7 @@ void enter_play_state(application* app)
 		nest::chamber chamber;
 		chamber.shaft = central_shaft;
 		chamber.depth = (i + 1) * 50.0f;
-		chamber.rotation = vmq::radians(0.0f);
+		chamber.rotation = math::radians(0.0f);
 		chamber.inner_radius = 4.0f;
 		chamber.outer_radius = 10.0f;
 		central_shaft->chambers.push_back(chamber);
@@ -208,8 +206,8 @@ void enter_play_state(application* app)
 	{
 		ecs::cavity_component cavity;
 		cavity.position = nest->extend_shaft(*nest->get_central_shaft());
-		cavity.position += float3{frand(-shift, shift), frand(-shift, shift), frand(-shift, shift)};
-		cavity.radius = tunnel_radius * frand(1.0f, 1.1f);
+		cavity.position += float3{math::random(-shift, shift), math::random(-shift, shift), math::random(-shift, shift)};
+		cavity.radius = tunnel_radius * math::random(1.0f, 1.1f);
 
 		ecs_registry.assign<ecs::cavity_component>(ecs_registry.create(), cavity);
 	}
@@ -222,8 +220,8 @@ void enter_play_state(application* app)
 		{
 			ecs::cavity_component cavity;
 			cavity.position = nest->expand_chamber(central_shaft->chambers[i]);
-			cavity.position += float3{frand(-shift, shift), frand(-shift, shift), frand(-shift, shift)};
-			cavity.radius = tunnel_radius * frand(1.0f, 1.1f);
+			cavity.position += float3{math::random(-shift, shift), math::random(-shift, shift), math::random(-shift, shift)};
+			cavity.radius = tunnel_radius * math::random(1.0f, 1.1f);
 
 			ecs_registry.assign<ecs::cavity_component>(ecs_registry.create(), cavity);
 		}
@@ -236,7 +234,7 @@ void enter_play_state(application* app)
 		ecs::assign_render_layers(ecs_registry, larva, 1);
 		//ecs::warp_to(ecs_registry, larva, {0, -20, 0});
 		//auto& transform = ecs_registry.get<ecs::transform_component>(larva_entity);
-		//transform.transform = vmq::identity_transform<float>;
+		//transform.transform = math::identity_transform<float>;
 		//transform.transform.translation = nest->get_shaft_position(*central_shaft, central_shaft->depth[1]);
 		//transform.transform.translation.y -= 1.0f;
 	}

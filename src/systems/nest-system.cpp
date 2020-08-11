@@ -19,6 +19,7 @@
 
 #include "nest-system.hpp"
 #include "nest.hpp"
+#include "math/math.hpp"
 
 using namespace ecs;
 
@@ -45,7 +46,7 @@ void nest_system::on_nest_construct(entt::registry& registry, entt::entity entit
 	nest->set_tunnel_radius(1.15f);
 	nest::shaft* central_shaft = nest->get_central_shaft();
 	central_shaft->chirality = -1.0f;
-	central_shaft->rotation = vmq::radians(0.0f);
+	central_shaft->rotation = math::radians(0.0f);
 	central_shaft->depth = {0.0f, 100.0f};
 	central_shaft->current_depth = 0.0f;
 	central_shaft->radius = {0.0f, 5.0f};
@@ -56,7 +57,7 @@ void nest_system::on_nest_construct(entt::registry& registry, entt::entity entit
 		nest::chamber chamber;
 		chamber.shaft = central_shaft;
 		chamber.depth = (i + 1) * 23.0f;
-		chamber.rotation = vmq::radians(0.0f);
+		chamber.rotation = math::radians(0.0f);
 		chamber.inner_radius = 4.0f;
 		chamber.outer_radius = 10.0f;
 		central_shaft->chambers.push_back(chamber);

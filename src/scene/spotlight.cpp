@@ -19,23 +19,21 @@
 
 #include "spotlight.hpp"
 #include "configuration.hpp"
-#include "animation/ease.hpp"
+#include "math/math.hpp"
 #include <cmath>
-
-using namespace vmq::operators;
 
 static float3 interpolate_direction(const float3& x, const float3& y, float a)
 {
-	quaternion<float> q0 = vmq::rotation(global_forward, x);
-	quaternion<float> q1 = vmq::rotation(global_forward, y);
-	return vmq::normalize(vmq::slerp(q0, q1, a) * global_forward);
+	math::quaternion<float> q0 = math::rotation(global_forward, x);
+	math::quaternion<float> q1 = math::rotation(global_forward, y);
+	return math::normalize(math::slerp(q0, q1, a) * global_forward);
 }
 
 spotlight::spotlight():
 	direction(global_forward, interpolate_direction),
-	attenuation(float3{1, 0, 0}, ease<float3>::linear),
-	cutoff(float2{vmq::pi<float>, vmq::pi<float>}, ease<float2>::linear),
-	cosine_cutoff(float2{std::cos(vmq::pi<float>), std::cos(vmq::pi<float>)}, ease<float2>::linear)
+	attenuation(float3{1, 0, 0}, math::lerp<float3, float>),
+	cutoff(float2{math::pi<float>, math::pi<float>}, math::lerp<float2, float>),
+	cosine_cutoff(float2{std::cos(math::pi<float>), std::cos(math::pi<float>)}, math::lerp<float2, float>)
 {}
 
 void spotlight::set_attenuation(const float3& attenuation)
@@ -60,6 +58,6 @@ void spotlight::update_tweens()
 
 void spotlight::transformed()
 {
-	direction[1] = vmq::normalize(get_transform().rotation * global_forward);
+	direction[1] = math::normalize(get_transform().rotation * global_forward);
 }
 

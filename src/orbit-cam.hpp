@@ -56,7 +56,7 @@ public:
 	float get_target_elevation() const;
 	float get_target_azimuth() const;
 	const float3& get_target_translation() const;
-	const vmq::quaternion<float>& get_target_rotation() const;
+	const quaternion_type& get_target_rotation() const;
 	
 private:
 	float3 focal_point;
@@ -69,11 +69,11 @@ private:
 	float target_elevation;
 	float target_azimuth;
 	
-	vmq::quaternion<float> elevation_rotation;
-	vmq::quaternion<float> azimuth_rotation;
-	vmq::quaternion<float> target_elevation_rotation;
-	vmq::quaternion<float> target_azimuth_rotation;
-	vmq::quaternion<float> target_rotation;
+	quaternion_type elevation_rotation;
+	quaternion_type azimuth_rotation;
+	quaternion_type target_elevation_rotation;
+	quaternion_type target_azimuth_rotation;
+	quaternion_type target_rotation;
 	float3 target_translation;
 };
 
@@ -122,7 +122,7 @@ inline const float3& orbit_cam::get_target_translation() const
 	return target_translation;
 }
 
-inline const vmq::quaternion<float>& orbit_cam::get_target_rotation() const
+inline const typename camera_rig::quaternion_type& orbit_cam::get_target_rotation() const
 {
 	return target_rotation;
 }

@@ -21,8 +21,7 @@
 #define ANTKEEPER_ECS_PLACEMENT_COMPONENT_HPP
 
 #include "geometry/mesh.hpp"
-#include <vmq/vmq.hpp>
-using namespace vmq::types;
+#include "utility/fundamental-types.hpp"
 
 namespace ecs {
 

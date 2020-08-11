@@ -20,14 +20,10 @@
 #ifndef ANTKEEPER_CSG_HPP
 #define ANTKEEPER_CSG_HPP
 
+#include "utility/fundamental-types.hpp"
 #include <list>
-#include <vmq/vmq.hpp>
-
 
 namespace csg {
-
-using vmq::float3;
-using vmq::float4;
 
 struct plane
 {

@@ -18,13 +18,8 @@
  */
 
 #include "mesh-functions.hpp"
-#include <vmq/vmq.hpp>
-#include <stdexcept>
+#include "math/math.hpp"
 #include <unordered_map>
-#include <map>
-#include <iostream>
-
-using namespace vmq::operators;
 
 struct edge_hasher
 {
@@ -60,10 +55,6 @@ void create_triangle_mesh(mesh& mesh, const std::vector<float3>& vertices, const
 
 			if (auto it = edge_map.find({start->index, end->index}); it != edge_map.end())
 			{
-				/*
-				if (it->second->face)
-					std::cout << "THIS EDGE ALREADY HAS A FACE!\n" << std::endl;
-				*/
 				loop[j] = it->second;
 			}
 			else
@@ -92,7 +83,7 @@ void calculate_face_normals(float* normals, const mesh& mesh)
 		const float3& b = reinterpret_cast<const float3&>(face.edge->next->vertex->position);
 		const float3& c = reinterpret_cast<const float3&>(face.edge->previous->vertex->position);
 
-		normal = vmq::normalize(vmq::cross(b - a, c - a));
+		normal = math::normalize(math::cross(b - a, c - a));
 	}
 }
 
@@ -118,5 +109,3 @@ aabb<float> calculate_bounds(const mesh& mesh)
 
 	return aabb<float>{bounds_min, bounds_max};
 }
-
-

@@ -41,11 +41,9 @@
 #include "scene/directional-light.hpp"
 #include "scene/scene.hpp"
 #include "scene/billboard.hpp"
-#include <vmq/vmq.hpp>
+#include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
-
-using namespace vmq;
 
 ui_pass::ui_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),

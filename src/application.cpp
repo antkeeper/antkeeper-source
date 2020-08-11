@@ -20,7 +20,6 @@
 #include "application.hpp"
 #include "configuration.hpp"
 #include "state/application-states.hpp"
-#include "math.hpp"
 
 // STL
 #include <cstdlib>
@@ -41,6 +40,9 @@
 // Debug
 #include "debug/ansi-codes.hpp"
 #include "debug/console-commands.hpp"
+
+// Math
+#include "math/math.hpp"
 
 // Resources
 #include "resources/resource-manager.hpp"
@@ -109,8 +111,7 @@
 // Utilities
 #include "utility/paths.hpp"
 #include "utility/timestamp.hpp"
-
-using namespace vmq::operators;
+#include "utility/fundamental-types.hpp"
 
 application::application(int argc, char** argv):
 	closed(false),
@@ -177,7 +178,7 @@ application::application(int argc, char** argv):
 	// Load configuration
 	//load_config();
 	fullscreen = true;
-	vsync = false;
+	vsync = true;
 	
 	// Parse command line options
 	parse_options(argc, argv);
@@ -518,7 +519,7 @@ application::application(int argc, char** argv):
 	overworld_compositor.add_pass(final_pass);
 	
 	// Setup overworld camera
-	overworld_camera.set_perspective(45.0f * vmq::pi<float> / 180.0f, (float)window_width / (float)window_height, 0.1f, 1000.0f);
+	overworld_camera.set_perspective(math::radians<float>(45.0f), (float)window_width / (float)window_height, 0.1f, 1000.0f);
 	overworld_camera.set_compositor(&overworld_compositor);
 	overworld_camera.set_composite_index(0);
 	overworld_camera.set_active(true);
@@ -548,7 +549,7 @@ application::application(int argc, char** argv):
 	underworld_compositor.add_pass(underworld_final_pass);
 	
 	// Setup underworld camera
-	underworld_camera.set_perspective(45.0f * vmq::pi<float> / 180.0f, (float)window_width / (float)window_height, 0.1f, 1000.0f);
+	underworld_camera.set_perspective(math::radians<float>(45.0f), (float)window_width / (float)window_height, 0.1f, 1000.0f);
 	underworld_camera.look_at({0, 50, 0}, {0, 0, 0}, {0, 0, -1});
 	underworld_camera.set_compositor(&underworld_compositor);
 	underworld_camera.set_composite_index(0);
@@ -751,11 +752,11 @@ application::application(int argc, char** argv):
 			ecs::cavity_component cavity;
 			cavity.position =
 			{
-				frand(-r, r),
-				frand(-r * 2, r),
-				frand(-r, r)
+				math::random(-r, r),
+				math::random(-r * 2, r),
+				math::random(-r, r)
 			};
-			cavity.radius = frand(0.75f, 1.25f);
+			cavity.radius = math::random(0.75f, 1.25f);
 
 			ecs_registry.assign<ecs::cavity_component>(ecs_registry.create(), cavity);
 		});
@@ -800,7 +801,7 @@ application::application(int argc, char** argv):
 	spotlight.set_color({1, 1, 1});
 	spotlight.set_intensity(1.0f);
 	spotlight.set_attenuation({1.0f, 0.09f, 0.032f});
-	spotlight.set_cutoff({vmq::radians(15.0f), vmq::radians(30.0f)});
+	spotlight.set_cutoff({math::radians(15.0f), math::radians(30.0f)});
 	spotlight.update_tweens();
 	spotlight.set_active(false);
 	
@@ -875,12 +876,9 @@ application::application(int argc, char** argv):
 	//model_instance* larva = new model_instance(resource_manager->load<model>("larva.obj"));
 	//underworld_scene.add_object(larva);
 	
-	quaternion<float> flashlight_rotation = vmq::angle_axis(vmq::half_pi<float>, {0.0f, 1.0f, 0.0f});
 	model_instance* flashlight = new model_instance(resource_manager->load<model>("flashlight.obj"));
-	flashlight->set_rotation(flashlight_rotation);
 	underworld_scene.add_object(flashlight);
 	model_instance* flashlight_light_cone = new model_instance(resource_manager->load<model>("flashlight-light-cone.obj"));
-	flashlight_light_cone->set_rotation(flashlight_rotation);
 	underworld_scene.add_object(flashlight_light_cone);
 	
 	control_system->set_flashlight(flashlight, flashlight_light_cone);
@@ -921,7 +919,7 @@ application::application(int argc, char** argv):
 	animator->add_animation(radial_transition_outer->get_animation());
 	
 	// Setup tweens
-	focal_point_tween.set_interpolator(ease<float3>::linear);
+	focal_point_tween.set_interpolator(math::lerp<float3, float>);
 	
 	// Register CLI commands
 	cli.register_command("echo", cc::echo);
@@ -974,7 +972,7 @@ int application::execute()
 
 	// Setup time tween
 	time[0] = time[1] = 0.0;
-	time.set_interpolator(ease<double>::linear);
+	time.set_interpolator(math::lerp<double, double>);
 
 	// Schedule frames until closed
 	while (!closed)
@@ -1033,19 +1031,24 @@ void application::setup_fsm()
 	initial_state = &splash_state;
 }
 
+void application::load_config()
+{
+	
+}
+
 void application::parse_options(int argc, char** argv)
 {
 	cxxopts::Options options("Antkeeper", "Ant colony simulation game");
 	
 	options.add_options()
-		("q,quick-start", "Skips splash screen")
-		("c,continue", "Continues from last save")
-		("n,new-game", "Starts a new game")
-		("r,reset", "Restores all settings to default")
+		("c,continue", "Continues from the last save")
+		("d,data", "Sets the data package path", cxxopts::value<std::string>())
 		("f,fullscreen", "Starts in fullscreen mode")
-		("w,windowed", "Starts in windowed mode")
+		("n,new-game", "Starts a new game")
+		("q,quick-start", "Skips to the main menu")
+		("r,reset", "Restores all settings to default")
 		("v,vsync", "Enables or disables v-sync", cxxopts::value<int>())
-		("d,data", "Specifies the data package path", cxxopts::value<std::string>())
+		("w,windowed", "Starts in windowed mode")
 		;
 	
 	logger.push_task("Parsing command line options");
@@ -1054,29 +1057,23 @@ void application::parse_options(int argc, char** argv)
 	{
 		auto result = options.parse(argc, argv);
 		
-		// --quick-start
-		if (result.count("quick-start"))
-		{
-			logger.log("Skipping splash screen");
-			initial_state = &play_state;
-		}
-		
 		// --continue
 		if (result.count("continue"))
 		{
 			logger.log("Continuing from last save");
 		}
 		
-		// --new-game
-		if (result.count("new-game"))
+		// --data
+		if (result.count("data"))
 		{
-			logger.log("Starting a new game");
-		}
-		
-		// --reset
-		if (result.count("reset"))
-		{
-			logger.log("Restoring all settings to default");
+			data_package_path = result["data"].as<std::string>();
+			
+			if (std::filesystem::path(data_package_path).is_relative())
+			{
+				data_package_path = data_path + data_package_path;
+			}
+			
+			logger.log("Set alternative data package path \"" + data_package_path + "\"");
 		}
 		
 		// --fullscreen
@@ -1086,11 +1083,23 @@ void application::parse_options(int argc, char** argv)
 			fullscreen = true;
 		}
 		
-		// --windowed
-		if (result.count("windowed"))
+		// --new-game
+		if (result.count("new-game"))
 		{
-			logger.log("Starting in windowed mode");
-			fullscreen = false;
+			logger.log("Starting a new game");
+		}
+		
+		// --quick-start
+		if (result.count("quick-start"))
+		{
+			logger.log("Skipping splash screen");
+			initial_state = &play_state;
+		}
+		
+		// --reset
+		if (result.count("reset"))
+		{
+			logger.log("Restoring all settings to default");
 		}
 		
 		// --vsync
@@ -1108,17 +1117,11 @@ void application::parse_options(int argc, char** argv)
 			}
 		}
 		
-		// --data
-		if (result.count("data"))
+		// --windowed
+		if (result.count("windowed"))
 		{
-			data_package_path = result["data"].as<std::string>();
-			
-			if (std::filesystem::path(data_package_path).is_relative())
-			{
-				data_package_path = data_path + data_package_path;
-			}
-			
-			logger.log("Set alternative data package path \"" + data_package_path + "\"");
+			logger.log("Starting in windowed mode");
+			fullscreen = false;
 		}
 	}
 	catch (const std::exception& e)

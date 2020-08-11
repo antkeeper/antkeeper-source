@@ -22,10 +22,10 @@
 
 std::tuple<bool, float> ray_plane_intersection(const ray<float>& ray, const plane<float>& plane)
 {
-	float denom = vmq::dot(ray.direction, plane.normal);
+	float denom = math::dot(ray.direction, plane.normal);
 	if (denom != 0.0f)
 	{
-		float t = -(vmq::dot(ray.origin, plane.normal) + plane.distance) / denom;
+		float t = -(math::dot(ray.origin, plane.normal) + plane.distance) / denom;
 		
 		if (t >= 0.0f)
 		{
@@ -43,8 +43,8 @@ std::tuple<bool, float, float, float> ray_triangle_intersection(const ray<float>
 	float3 edge20 = c - a;
 
 	// Calculate determinant
-	float3 pv = vmq::cross(ray.direction, edge20);
-	float det = vmq::dot(edge10, pv);
+	float3 pv = math::cross(ray.direction, edge20);
+	float det = math::dot(edge10, pv);
 
 	if (!det)
 	{
@@ -55,7 +55,7 @@ std::tuple<bool, float, float, float> ray_triangle_intersection(const ray<float>
 
 	// Calculate u
 	float3 tv = ray.origin - a;
-	float u = vmq::dot(tv, pv) * inverse_det;
+	float u = math::dot(tv, pv) * inverse_det;
 	
 	if (u < 0.0f || u > 1.0f)
 	{
@@ -63,8 +63,8 @@ std::tuple<bool, float, float, float> ray_triangle_intersection(const ray<float>
 	}
 
 	// Calculate v
-	float3 qv = vmq::cross(tv, edge10);
-	float v = vmq::dot(ray.direction, qv) * inverse_det;
+	float3 qv = math::cross(tv, edge10);
+	float v = math::dot(ray.direction, qv) * inverse_det;
 
 	if (v < 0.0f || u + v > 1.0f)
 	{
@@ -72,7 +72,7 @@ std::tuple<bool, float, float, float> ray_triangle_intersection(const ray<float>
 	}
 
 	// Calculate t
-	float t = vmq::dot(edge20, qv) * inverse_det;
+	float t = math::dot(edge20, qv) * inverse_det;
 
 	if (t > 0.0f)
 	{

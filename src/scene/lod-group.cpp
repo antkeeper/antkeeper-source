@@ -37,7 +37,7 @@ void lod_group::resize(std::size_t level_count)
 
 std::size_t lod_group::select_lod(const ::camera& camera) const
 {
-	float distance = signed_distance(camera.get_view_frustum().get_near(), get_translation());
+	float distance = camera.get_view_frustum().get_near().signed_distance(get_translation());
 	
 	if (distance < 300.0f)
 		return 0;

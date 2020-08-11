@@ -22,6 +22,7 @@
 #include "entity/components/placement-component.hpp"
 #include "entity/components/transform-component.hpp"
 #include "entity/components/terrain-component.hpp"
+#include "utility/fundamental-types.hpp"
 
 using namespace ecs;
 
@@ -42,9 +43,9 @@ void placement_system::update(double t, double dt)
 				[&](auto entity, auto& transform, auto& collision)
 				{
 					// Transform ray into local space of collision component
-					vmq::transform<float> inverse_transform = vmq::inverse(transform.transform);
+					math::transform<float> inverse_transform = math::inverse(transform.transform);
 					float3 origin = inverse_transform * placement.ray.origin;
-					float3 direction = vmq::normalize(vmq::conjugate(transform.transform.rotation) * placement.ray.direction);
+					float3 direction = math::normalize(math::conjugate(transform.transform.rotation) * placement.ray.direction);
 					ray<float> transformed_ray = {origin, direction};
 
 					// Broad phase AABB test

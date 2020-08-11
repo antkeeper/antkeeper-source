@@ -21,9 +21,7 @@
 #define ANTKEEPER_DIRECTIONAL_LIGHT_HPP
 
 #include "scene/light.hpp"
-#include <vmq/vmq.hpp>
-
-using namespace vmq::types;
+#include "utility/fundamental-types.hpp"
 
 class directional_light: public light
 {

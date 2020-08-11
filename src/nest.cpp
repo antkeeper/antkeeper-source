@@ -18,8 +18,7 @@
  */
 
 #include "nest.hpp"
-#include "animation/ease.hpp"
-#include "math.hpp"
+#include "math/math.hpp"
 
 nest::nest()
 {
@@ -30,7 +29,7 @@ float3 nest::extend_shaft(shaft& shaft)
 {
 	float3 dig_position = get_shaft_position(shaft, shaft.current_depth);
 
-	float dr = frand(dig_radius * 0.75f, dig_radius * 1.25f);
+	float dr = math::random(dig_radius * 0.75f, dig_radius * 1.25f);
 
 	shaft.current_depth += dr * 0.1f;
 
@@ -39,15 +38,15 @@ float3 nest::extend_shaft(shaft& shaft)
 
 float3 nest::expand_chamber(chamber& chamber)
 {
-	float dig_angle = frand(0.0f, vmq::two_pi<float>);
-	float2 dig_direction = vmq::normalize(float2{std::cos(dig_angle), std::sin(dig_angle)});
+	float dig_angle = math::random(0.0f, math::two_pi<float>);
+	float2 dig_direction = math::normalize(float2{std::cos(dig_angle), std::sin(dig_angle)});
 
 	float3 chamber_center = get_shaft_position(*chamber.shaft, chamber.depth);
 	float3 dig_position = chamber_center;
 
-	float dr = frand(dig_radius * 0.75f, dig_radius * 1.25f);
+	float dr = math::random(dig_radius * 0.75f, dig_radius * 1.25f);
 
-	float t = frand(0.0f, 1.0f);
+	float t = math::random(0.0f, 1.0f);
 	dig_position.x += dig_direction.x * (chamber.outer_radius - dr) * t;
 	dig_position.z += dig_direction.y * (chamber.outer_radius - dr) * t;
 
@@ -63,8 +62,8 @@ float nest::get_shaft_angle(const shaft& shaft, float depth) const
 {
 	float shaft_length = shaft.depth[1] - shaft.depth[0];
 	float depth_factor = (depth - shaft.depth[0]) / shaft_length;
-	float pitch = ease<float>::linear(shaft.pitch[0], shaft.pitch[1], depth_factor);
-	return shaft.rotation + (depth / pitch) * shaft.chirality * vmq::two_pi<float>;
+	float pitch = math::lerp<float>(shaft.pitch[0], shaft.pitch[1], depth_factor);
+	return shaft.rotation + (depth / pitch) * shaft.chirality * math::two_pi<float>;
 }
 
 float nest::get_shaft_depth(const shaft& shaft, float turns) const
@@ -77,11 +76,11 @@ float3 nest::get_shaft_position(const shaft& shaft, float depth) const
 	float shaft_length = shaft.depth[1] - shaft.depth[0];
 	float depth_factor = (depth - shaft.depth[0]) / shaft_length;
 
-	float pitch = ease<float>::linear(shaft.pitch[0], shaft.pitch[1], depth_factor);
-	float radius = ease<float>::out_expo(shaft.radius[0], shaft.radius[1], depth_factor);
-	float translation_x = ease<float>::linear(shaft.translation[0][0], shaft.translation[1][0], depth_factor);
-	float translation_z = ease<float>::linear(shaft.translation[0][1], shaft.translation[1][1], depth_factor);
-	float angle = shaft.rotation + (depth / pitch) * shaft.chirality  * vmq::two_pi<float>;
+	float pitch = math::lerp<float>(shaft.pitch[0], shaft.pitch[1], depth_factor);
+	float radius = math::lerp<float>(shaft.radius[0], shaft.radius[1], depth_factor);
+	float translation_x = math::lerp<float>(shaft.translation[0][0], shaft.translation[1][0], depth_factor);
+	float translation_z = math::lerp<float>(shaft.translation[0][1], shaft.translation[1][1], depth_factor);
+	float angle = shaft.rotation + (depth / pitch) * shaft.chirality  * math::two_pi<float>;
 
 	float3 position;
 	position[0] = std::cos(angle) * radius + translation_x;

@@ -20,18 +20,14 @@
 #ifndef ANTKEEPER_ECS_ENTITY_COMMANDS_HPP
 #define ANTKEEPER_ECS_ENTITY_COMMANDS_HPP
 
+#include "utility/fundamental-types.hpp"
 #include <entt/entt.hpp>
-#include <vmq/vmq.hpp>
-
-using namespace vmq;
 
 namespace ecs {
 	
 void move_to(entt::registry& registry, entt::entity entity, const float3& position);
 void warp_to(entt::registry& registry, entt::entity entity, const float3& position);
-
 void assign_render_layers(entt::registry& registry, entt::entity entity, unsigned int layers);
-
 void bind_transform(entt::registry& registry, entt::entity entity, entt::entity target);
 
 } // namespace ecs

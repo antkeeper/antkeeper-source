@@ -22,9 +22,7 @@
 
 #include "renderer/render-pass.hpp"
 #include "animation/tween.hpp"
-#include <vmq/vmq.hpp>
-
-using namespace vmq::types;
+#include "utility/fundamental-types.hpp"
 
 class shader_program;
 class shader_input;

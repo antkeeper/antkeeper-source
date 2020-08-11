@@ -20,93 +20,97 @@
 #ifndef ANTKEEPER_PLANE_HPP
 #define ANTKEEPER_PLANE_HPP
 
-#include <vmq/vmq.hpp>
-
-using vmq::vector;
-using namespace vmq::operators;
+#include "math/math.hpp"
 
 template <class T>
 struct plane
 {
-	vector<T, 3> normal;
+	typedef math::vector<T, 3> vector_type;
+	
+	/// Plane normal vector.
+	vector_type normal;
+	
+	/// Plane distance.
 	T distance;
 	
 	/**
 	 * Creates a plane given a normal vector and distance.
 	 */
-	plane(const vector<T, 3>& normal, T distance);
+	plane(const vector_type& normal, T distance);
 	
 	/**
 	 * Creates a plane given a normal vector and offset vector.
 	 */
-	plane(const vector<T, 3>& normal, const vector<T, 3>& offset);
+	plane(const vector_type& normal, const vector_type& offset);
 	
 	/**
 	 * Creates a plane given three points.
 	 */
-	plane(const vector<T, 3>& a, const vector<T, 3>& b, const vector<T, 3>& c);
+	plane(const vector_type& a, const vector_type& b, const vector_type& c);
 	
 	/**
 	 * Creates a plane given its coefficients.
 	 *
 	 * @param coefficients Vector containing the plane coefficients, A, B, C and D, as x, y, z, and w, respectively.
 	 */
-	plane(const vector<T, 4>& coefficients);
+	plane(const math::vector<T, 4>& coefficients);
 	
 	/// Creates an uninitialized plane.
 	plane() = default;
+	
+	/**
+	 * Calculates the signed distance between a plane and a vector.
+	 *
+	 * @param v Vector.
+	 * @return Signed distance between the plane and vector.
+	 */
+	T signed_distance(const vector_type& v) const;
+	
+	/**
+	 * Calculates the point of intersection between three planes.
+	 */
+	static vector_type intersection(const plane& p0, const plane& p1, const plane& p2);
 };
 
 template <class T>
-inline plane<T>::plane(const vector<T, 3>& normal, T distance):
+inline plane<T>::plane(const vector_type& normal, T distance):
 	normal(normal),
 	distance(distance)
 {}
 
 template <class T>
-plane<T>::plane(const vector<T, 3>& normal, const vector<T, 3>& offset):
+plane<T>::plane(const vector_type& normal, const vector_type& offset):
 	normal(normal),
-	distance(-vmq::dot(normal, offset))
+	distance(-math::dot(normal, offset))
 {}
 
 template <class T>
-plane<T>::plane(const vector<T, 3>& a, const vector<T, 3>& b, const vector<T, 3>& c)
+plane<T>::plane(const vector_type& a, const vector_type& b, const vector_type& c)
 {
-	normal = vmq::normalize(vmq::cross(c - b, a - b));
-	distance = -(vmq::dot(normal, b));
+	normal = math::normalize(math::cross(c - b, a - b));
+	distance = -(math::dot(normal, b));
 }
 
 template <class T>
-plane<T>::plane(const vector<T, 4>& coefficients)
+plane<T>::plane(const math::vector<T, 4>& coefficients)
 {
-	const vector<T, 3> abc = vmq::resize<3>(coefficients);
-	const float inverse_length = T(1) / vmq::length(abc);
+	const vector_type abc = math::resize<3>(coefficients);
+	const float inverse_length = T(1) / math::length(abc);
 	
 	normal = abc * inverse_length;
 	distance = coefficients[3] * inverse_length;
 }
 
-/**
- * Calculates the signed distance between a plane and a vector.
- *
- * @param p Plane.
- * @param v Vector.
- * @return Signed distance between the plane and a vector.
- */
 template <class T>
-inline T signed_distance(const plane<T>& p, const vector<T, 3>& v)
+inline T plane<T>::signed_distance(const vector_type& v) const
 {
-	return p.distance + vmq::dot(p.normal, v);
+	return distance + math::dot(normal, v);
 }
 
-/**
- * Calculates the point of intersection between three planes.
- */
 template <class T>
-vector<T, 3> intersection(const plane<T>& p0, const plane<T>& p1, const plane<T>& p2)
+typename plane<T>::vector_type plane<T>::intersection(const plane& p0, const plane& p1, const plane& p2)
 {
-	return -(p0.distance * vmq::cross(p1.normal, p2.normal) + p1.distance * vmq::cross(p2.normal, p0.normal) + p2.distance * vmq::cross(p0.normal, p1.normal)) / vmq::dot(p0.normal, vmq::cross(p1.normal, p2.normal));
+	return -(p0.distance * math::cross(p1.normal, p2.normal) + p1.distance * math::cross(p2.normal, p0.normal) + p2.distance * math::cross(p0.normal, p1.normal)) / math::dot(p0.normal, math::cross(p1.normal, p2.normal));
 }
 
 #endif // ANTKEEPER_PLANE_HPP
-

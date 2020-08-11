@@ -20,21 +20,20 @@
 #ifndef ANTKEEPER_SPHERE_HPP
 #define ANTKEEPER_SPHERE_HPP
 
-#include "bounding-volume.hpp"
-#include "aabb.hpp"
-#include <vmq/vmq.hpp>
+#include "geometry/bounding-volume.hpp"
+#include "geometry/aabb.hpp"
+#include "math/math.hpp"
 #include <algorithm>
-
-using vmq::vector;
-using namespace vmq::operators;
 
 template <class T>
 struct sphere: public bounding_volume<T>
 {
-	vector<T, 3> center;
+	typedef math::vector<T, 3> vector_type;
+	
+	vector_type center;
 	T radius;
 	
-	sphere(const vector<T, 3>& center, T radius);
+	sphere(const vector_type& center, T radius);
 	sphere();
 	
 	virtual bounding_volume_type get_bounding_volume_type() const;
@@ -42,11 +41,11 @@ struct sphere: public bounding_volume<T>
 	virtual bool intersects(const aabb<T>& aabb) const;
 	virtual bool contains(const sphere<T>& sphere) const;
 	virtual bool contains(const aabb<T>& aabb) const;
-	virtual bool contains(const vector<T, 3>& point) const;
+	virtual bool contains(const vector_type& point) const;
 };
 
 template <class T>
-sphere<T>::sphere(const vector<T, 3>& center, T radius):
+sphere<T>::sphere(const vector_type& center, T radius):
 	center(center),
 	radius(radius)
 {}
@@ -64,9 +63,9 @@ inline bounding_volume_type sphere<T>::get_bounding_volume_type() const
 template <class T>
 bool sphere<T>::intersects(const sphere<T>& sphere) const
 {
-	vector<T, 3> d = center - sphere.center;
+	vector_type d = center - sphere.center;
 	float r = radius + sphere.radius;
-	return (vmq::dot(d, d) <= r * r);
+	return (math::dot(d, d) <= r * r);
 }
 
 template <class T>
@@ -82,8 +81,8 @@ bool sphere<T>::contains(const sphere<T>& sphere) const
 	if (containment_radius < T(0))
 		return false;
 	
-	vector<T, 3> d = center - sphere.center;
-	return (vmq::dot(d, d) <= containment_radius * containment_radius);
+	vector_type d = center - sphere.center;
+	return (math::dot(d, d) <= containment_radius * containment_radius);
 }
 
 template <class T>
@@ -91,8 +90,8 @@ bool sphere<T>::contains(const aabb<T>& aabb) const
 {
 	T distance = T(0);
 	
-	vector<T, 3> a = center - aabb.min_point;
-	vector<T, 3> b = center - aabb.max_point;
+	vector_type a = center - aabb.min_point;
+	vector_type b = center - aabb.max_point;
 	
 	distance += std::max(a.x * a.x, b.x * b.x);
 	distance += std::max(a.y * a.y, b.y * b.y);
@@ -102,10 +101,10 @@ bool sphere<T>::contains(const aabb<T>& aabb) const
 }
 
 template <class T>
-bool sphere<T>::contains(const vector<T, 3>& point) const
+bool sphere<T>::contains(const vector_type& point) const
 {
-	vector<T, 3> d = center - point;
-	return (vmq::dot(d, d) <= radius * radius);
+	vector_type d = center - point;
+	return (math::dot(d, d) <= radius * radius);
 }
 
 #endif // ANTKEEPER_SPHERE_HPP

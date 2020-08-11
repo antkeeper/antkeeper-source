@@ -22,6 +22,7 @@
 
 #include "scene/scene-object.hpp"
 #include "geometry/view-frustum.hpp"
+#include "utility/fundamental-types.hpp"
 
 class compositor;
 

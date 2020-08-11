@@ -30,9 +30,9 @@
 #include "rasterizer/vertex-buffer.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/image.hpp"
+#include "utility/fundamental-types.hpp"
 #include <limits>
 
-using namespace vmq::operators;
 using namespace ecs;
 
 terrain_system::terrain_system(entt::registry& registry, ::resource_manager* resource_manager):
@@ -275,7 +275,7 @@ void terrain_system::update_terrain_model(model* terrain_model, mesh* terrain_me
 				edge = edge->previous->symmetric;
 			}
 			while (edge != start);
-			n = vmq::normalize(n);
+			n = math::normalize(n);
 
 			*(v++) = vertex->position[0];
 			*(v++) = vertex->position[1];
@@ -330,7 +330,7 @@ void terrain_system::on_terrain_construct(entt::registry& registry, entt::entity
 
 	// Assign the entity a transform component
 	transform_component transform;
-	transform.transform = vmq::identity_transform<float>;
+	transform.transform = math::identity_transform<float>;
 	transform.transform.translation = float3{(float)component.x * patch_size, 0.0f, (float)component.z * patch_size};
 	transform.warp = true;
 	registry.assign_or_replace<transform_component>(entity, transform);

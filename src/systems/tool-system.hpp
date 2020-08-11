@@ -23,8 +23,7 @@
 #include "entity-system.hpp"
 #include "event/event-handler.hpp"
 #include "input/input-events.hpp"
-#include <vmq/vmq.hpp>
-using namespace vmq::types;
+#include "utility/fundamental-types.hpp"
 
 class camera;
 class orbit_cam;

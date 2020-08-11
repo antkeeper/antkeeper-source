@@ -22,6 +22,7 @@
 
 #include "scene/scene-object.hpp"
 #include "geometry/sphere.hpp"
+#include "utility/fundamental-types.hpp"
 
 enum class light_type
 {

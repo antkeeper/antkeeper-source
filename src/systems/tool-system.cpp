@@ -25,9 +25,8 @@
 #include "orbit-cam.hpp"
 #include "geometry/mesh.hpp"
 #include "geometry/intersection.hpp"
-#include <vmq/vmq.hpp>
+#include "math/math.hpp"
 
-using namespace vmq::operators;
 using namespace ecs;
 
 tool_system::tool_system(entt::registry& registry):
@@ -47,7 +46,7 @@ void tool_system::update(double t, double dt)
 	float3 pick_near = camera->unproject({mouse_position[0], viewport[3] - mouse_position[1], 0.0f}, viewport);
 	float3 pick_far = camera->unproject({mouse_position[0], viewport[3] - mouse_position[1], 1.0f}, viewport);
 	float3 pick_origin = pick_near;
-	float3 pick_direction = vmq::normalize(pick_far - pick_near);
+	float3 pick_direction = math::normalize(pick_far - pick_near);
 	ray<float> picking_ray = {pick_near, pick_direction};
 
 	float a = std::numeric_limits<float>::infinity();
@@ -58,9 +57,9 @@ void tool_system::update(double t, double dt)
 	registry.view<transform_component, collision_component>().each(
 		[&](auto entity, auto& transform, auto& collision)
 		{
-			vmq::transform<float> inverse_transform = vmq::inverse(transform.transform);
+			math::transform<float> inverse_transform = math::inverse(transform.transform);
 			float3 origin = inverse_transform * pick_origin;
-			float3 direction = vmq::normalize(vmq::conjugate(transform.transform.rotation) * pick_direction);
+			float3 direction = math::normalize(math::conjugate(transform.transform.rotation) * pick_direction);
 			ray<float> transformed_ray = {origin, direction};
 
 			// Broad phase AABB test
@@ -88,13 +87,13 @@ void tool_system::update(double t, double dt)
 	float3 camera_planar_position = float3{camera_position.x, 0, camera_position.z};
 
 	float pick_angle = 0.0f;
-	float3 pick_planar_direction = vmq::normalize(pick_planar_position - camera_planar_position);
+	float3 pick_planar_direction = math::normalize(pick_planar_position - camera_planar_position);
 	float3 camera_planar_focal_point = float3{orbit_cam->get_focal_point().x, 0, orbit_cam->get_focal_point().z};
-	float3 camera_planar_direction = vmq::normalize(camera_planar_focal_point - camera_planar_position);
-	if (std::fabs(vmq::length_squared(camera_planar_direction - pick_planar_direction) > 0.0001f))
+	float3 camera_planar_direction = math::normalize(camera_planar_focal_point - camera_planar_position);
+	if (std::fabs(math::length_squared(camera_planar_direction - pick_planar_direction) > 0.0001f))
 	{
-		pick_angle = std::acos(vmq::dot(camera_planar_direction, pick_planar_direction));
-		if (vmq::dot(vmq::cross(camera_planar_direction, pick_planar_direction), float3{0, 1, 0}) < 0.0f)
+		pick_angle = std::acos(math::dot(camera_planar_direction, pick_planar_direction));
+		if (math::dot(math::cross(camera_planar_direction, pick_planar_direction), float3{0, 1, 0}) < 0.0f)
 			pick_angle = -pick_angle;
 	}
 
@@ -110,7 +109,7 @@ void tool_system::update(double t, double dt)
 				transform.transform.translation = pick;
 			}
 
-			vmq::quaternion<float> rotation = vmq::angle_axis(orbit_cam->get_azimuth() + pick_angle, float3{0, 1, 0});
+			math::quaternion<float> rotation = math::angle_axis(orbit_cam->get_azimuth() + pick_angle, float3{0, 1, 0});
 			transform.transform.rotation = rotation;
 		});
 }
@@ -143,4 +142,3 @@ void tool_system::handle_event(const mouse_moved_event& event)
 		mouse_position[1] = event.y;
 	}
 }
-

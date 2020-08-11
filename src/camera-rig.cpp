@@ -19,16 +19,15 @@
 
 #include "orbit-cam.hpp"
 #include "scene/camera.hpp"
+#include "math/constants.hpp"
 #include "configuration.hpp"
 #include <algorithm>
 #include <cmath>
 
-using namespace vmq::operators;
-
 camera_rig::camera_rig():
 	camera(nullptr),
 	translation{0.0f, 0.0f, 0.0f},
-	rotation(vmq::identity_quaternion<float>),
+	rotation(math::identity_quaternion<float>),
 	forward(global_forward),
 	right(global_right),
 	up(global_up)
@@ -53,7 +52,7 @@ void camera_rig::set_translation(const float3& translation)
 	this->translation = translation;
 }
 
-void camera_rig::set_rotation(const vmq::quaternion<float>& rotation)
+void camera_rig::set_rotation(const quaternion_type& rotation)
 {
 	this->rotation = rotation;
 	
@@ -62,4 +61,3 @@ void camera_rig::set_rotation(const vmq::quaternion<float>& rotation)
 	up = rotation * global_up;
 	right = rotation * global_right;
 }
-

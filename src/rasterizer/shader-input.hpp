@@ -20,14 +20,13 @@
 #ifndef ANTKEEPER_SHADER_INPUT_HPP
 #define ANTKEEPER_SHADER_INPUT_HPP
 
-#include <vmq/vmq.hpp>
+#include "utility/fundamental-types.hpp"
 #include <string>
 
 class shader_program;
 class texture_2d;
 class texture_cube;
 enum class shader_variable_type;
-using namespace vmq::types;
 
 /**
  * Port through which data can be uploaded to shader variables.

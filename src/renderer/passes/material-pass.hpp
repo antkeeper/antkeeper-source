@@ -23,6 +23,7 @@
 #include "renderer/render-pass.hpp"
 #include "renderer/material.hpp"
 #include "animation/tween.hpp"
+#include "utility/fundamental-types.hpp"
 #include <unordered_map>
 
 class camera;

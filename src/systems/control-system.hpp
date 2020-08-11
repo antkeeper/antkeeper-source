@@ -25,6 +25,7 @@
 #include "input/control.hpp"
 #include "input/control-set.hpp"
 #include "scene/model-instance.hpp"
+#include "utility/fundamental-types.hpp"
 
 class orbit_cam;
 class nest;

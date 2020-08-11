@@ -21,6 +21,7 @@
 #define ANTKEEPER_POINT_LIGHT_HPP
 
 #include "scene/light.hpp"
+#include "utility/fundamental-types.hpp"
 
 class point_light: public light
 {

@@ -23,13 +23,11 @@
 #include "renderer/vertex-attributes.hpp"
 #include "rasterizer/vertex-attribute-type.hpp"
 #include "rasterizer/drawing-mode.hpp"
+#include "utility/fundamental-types.hpp"
 #include <sstream>
 #include <stdexcept>
 #include <limits>
 #include <physfs.h>
-#include <vmq/vmq.hpp>
-
-using namespace vmq::types;
 
 struct material_group
 {

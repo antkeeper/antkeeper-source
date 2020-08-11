@@ -18,7 +18,7 @@
  */
 
 #include "pheromone-matrix.hpp"
-#include <vmq/vmq.hpp>
+#include "math/math.hpp"
 
 void convolve(pheromone_matrix* matrix, const float* kernel, int kernel_size)
 {
@@ -75,9 +75,9 @@ void evaporate(pheromone_matrix* matrix, float factor)
 
 void diffuse(pheromone_matrix* matrix)
 {
-	const vmq::matrix<float, 3, 3> diffusion_kernel =
-		vmq::mul(
-			vmq::matrix<float, 3, 3>
+	const math::matrix<float, 3, 3> diffusion_kernel =
+		math::mul(
+			math::matrix<float, 3, 3>
 			{{
 				{1, 2, 1},
 				{2, 4, 2},

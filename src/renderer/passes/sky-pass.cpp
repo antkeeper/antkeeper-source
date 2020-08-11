@@ -37,11 +37,9 @@
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/scene.hpp"
-#include <vmq/vmq.hpp>
+#include "utility/fundamental-types.hpp"
 #include <cmath>
 #include <glad/glad.h>
-
-using namespace vmq;
 
 sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer)
@@ -113,7 +111,7 @@ void sky_pass::render(render_context* context) const
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 
 	float3 sun_direction = {0, 0, -1};
-	float sun_angular_radius = 3.0f * vmq::pi<float> / 180.0f;
+	float sun_angular_radius = math::radians<float>(3.0f);
 	
 	// Find sun direction
 	const std::list<scene_object_base*>* lights = context->scene->get_objects(light::object_type_id);
@@ -129,9 +127,9 @@ void sky_pass::render(render_context* context) const
 	}
 
 	// Calculate matrix
-	float4x4 model_view = vmq::resize<4, 4>(vmq::resize<3, 3>(context->camera->get_view_tween().interpolate(context->alpha)));
-	float4x4 inverse_projection = vmq::inverse(context->camera->get_projection_tween().interpolate(context->alpha));
-	float4x4 matrix = vmq::inverse(model_view) * inverse_projection;
+	float4x4 model_view = math::resize<4, 4>(math::resize<3, 3>(context->camera->get_view_tween().interpolate(context->alpha)));
+	float4x4 inverse_projection = math::inverse(context->camera->get_projection_tween().interpolate(context->alpha));
+	float4x4 matrix = math::inverse(model_view) * inverse_projection;
 
 	// Change shader program
 	rasterizer->use_program(*shader_program);

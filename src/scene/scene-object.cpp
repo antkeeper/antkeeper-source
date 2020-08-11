@@ -18,24 +18,25 @@
  */
 
 #include "scene/scene-object.hpp"
+#include "math/math.hpp"
 
-static transform<float> transform_interpolate(const transform<float>& x, const transform<float>& y, float a)
+typename scene_object_base::transform_type scene_object_base::interpolate_transforms(const transform_type& x, const transform_type& y, float a)
 {
 	return
 		{
-			vmq::lerp(x.translation, y.translation, a),
-			vmq::slerp(x.rotation, y.rotation, a),
-			vmq::lerp(x.scale, y.scale, a),
+			math::lerp(x.translation, y.translation, a),
+			math::slerp(x.rotation, y.rotation, a),
+			math::lerp(x.scale, y.scale, a),
 		};
 }
 
 scene_object_base::scene_object_base():
 	active(true),
-	transform(vmq::identity_transform<float>, transform_interpolate),
+	transform(math::identity_transform<float>, interpolate_transforms),
 	culling_mask(nullptr)
 {}
 
-void scene_object_base::set_culling_mask(const bounding_volume<float>* culling_mask)
+void scene_object_base::set_culling_mask(const bounding_volume_type* culling_mask)
 {
 	this->culling_mask = culling_mask;
 }
@@ -51,10 +52,10 @@ void scene_object_base::update_tweens()
 	transform.update();
 }
 
-void scene_object_base::look_at(const float3& position, const float3& target, const float3& up)
+void scene_object_base::look_at(const vector_type& position, const vector_type& target, const vector_type& up)
 {
 	transform[1].translation = position;
-	transform[1].rotation = vmq::look_rotation(vmq::normalize(vmq::sub(target, position)), up);
+	transform[1].rotation = math::look_rotation(math::normalize(math::sub(target, position)), up);
 	transformed();
 }
 
