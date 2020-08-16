@@ -21,7 +21,6 @@
 #include <cstdlib>
 #include <limits.h>
 #include <stdexcept>
-#include <iostream>
 
 #if defined(_WIN32)
 	#include <Shlobj.h>

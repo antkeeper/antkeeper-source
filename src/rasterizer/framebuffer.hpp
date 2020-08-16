@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_FRAMEBUFFER_HPP
 #define ANTKEEPER_FRAMEBUFFER_HPP
 
-#include <tuple>
+#include <array>
 
 class rasterizer;
 class texture_2d;
@@ -49,7 +49,7 @@ public:
 	 * @param width New width of the framebuffer.
 	 * @param height New height of the framebuffer.
 	 */
-	void resize(int width, int height);
+	void resize(const std::array<int, 2>& dimensions);
 	
 	/**
 	 * Attaches a color, depth, or stencil texture to the framebuffer.
@@ -59,7 +59,7 @@ public:
 	void attach(framebuffer_attachment_type attachment_type, texture_2d* texture);
 	
 	/// Returns the dimensions of the framebuffer, in pixels.
-	const std::tuple<int, int>& get_dimensions() const;
+	const std::array<int, 2>& get_dimensions() const;
 	
 	const texture_2d* get_color_attachment() const;
 	texture_2d* get_color_attachment();
@@ -74,13 +74,13 @@ private:
 	framebuffer();
 
 	unsigned int gl_framebuffer_id;
-	std::tuple<int, int> dimensions;
+	std::array<int, 2> dimensions;
 	texture_2d* color_attachment;
 	texture_2d* depth_attachment;
 	texture_2d* stencil_attachment;
 };
 
-inline const std::tuple<int, int>& framebuffer::get_dimensions() const
+inline const std::array<int, 2>& framebuffer::get_dimensions() const
 {
 	return dimensions;
 }

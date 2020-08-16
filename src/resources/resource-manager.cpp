@@ -19,15 +19,56 @@
 
 #include "resources/resource-manager.hpp"
 
-resource_manager::resource_manager():
-	logger(nullptr)
-{}
+resource_manager::resource_manager(::logger* logger):
+	logger(logger)
+{
+	// Init PhysicsFS
+	logger->push_task("Initializing PhysicsFS");
+	if (!PHYSFS_init(nullptr))
+	{
+		logger->error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		logger->pop_task(EXIT_FAILURE);
+	}
+	else
+	{
+		logger->pop_task(EXIT_SUCCESS);
+	}
+}
 
 resource_manager::~resource_manager()
 {
+	// Delete cached resources
 	for (auto it = resource_cache.begin(); it != resource_cache.end(); ++it)
 	{
 		delete it->second;
+	}
+	
+	// Deinit PhysicsFS
+	logger->push_task("Deinitializing PhysicsFS");
+	if (!PHYSFS_deinit())
+	{
+		logger->error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		logger->pop_task(EXIT_FAILURE);
+	}
+	else
+	{
+		logger->pop_task(EXIT_SUCCESS);
+	}
+}
+
+bool resource_manager::mount(const std::string& path)
+{
+	logger->push_task("Mounting path \"" + path + "\"");
+	if (!PHYSFS_mount(path.c_str(), nullptr, 1))
+	{
+		logger->error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		logger->pop_task(EXIT_FAILURE);
+		return false;
+	}
+	else
+	{
+		logger->pop_task(EXIT_SUCCESS);
+		return true;
 	}
 }
 
@@ -66,7 +107,3 @@ void resource_manager::include(const std::string& search_path)
 	search_paths.push_back(search_path);
 }
 
-void resource_manager::set_logger(::logger* logger)
-{
-	this->logger = logger;
-}

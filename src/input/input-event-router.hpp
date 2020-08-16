@@ -20,7 +20,7 @@
 #ifndef ANTKEEER_INPUT_EVENT_ROUTER_HPP
 #define ANTKEEER_INPUT_EVENT_ROUTER_HPP
 
-#include "input-events.hpp"
+#include "event/input-events.hpp"
 #include "event/event-handler.hpp"
 #include <list>
 #include <map>

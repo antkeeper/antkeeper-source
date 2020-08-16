@@ -48,7 +48,6 @@
 #include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
-#include <iostream>
 
 #include "shadow-map-pass.hpp"
 

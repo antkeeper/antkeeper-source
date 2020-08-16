@@ -95,6 +95,8 @@ public:
 	 * @param status Exit status of the task. A value of `0` or `EXIT_SUCCESS` indicates the task exited successfully. A non-zero exit status indicates the task failed.
 	 */
 	void pop_task(int status);
+	
+	const std::string& get_history() const;
 
 private:
 	std::ostream* os;
@@ -110,7 +112,13 @@ private:
 	std::string success_prefix;
 	std::string success_postfix;	
 	std::stack<std::string> tasks;
+	std::string history;
 };
+
+inline const std::string& logger::get_history() const
+{
+	return history;
+}
 
 #endif // ANTKEEPER_LOGGER_HPP
 

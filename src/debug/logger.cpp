@@ -48,25 +48,33 @@ void logger::log(const std::string& text)
 {
 	if (os)
 	{
+		std::string message = "";
+		
 		// Prepend timestamp
 		if (timestamp_enabled)
 		{
-			(*os) << timestamp() << ": ";
+			message += timestamp();
+			message += ": ";
 		}
 		
 		// Prepend indentation
 		for (std::size_t i = 0; i < tasks.size(); ++i)
-			(*os) << indent;
-
-		// Output text
-		(*os) << (log_prefix + text + log_postfix);
+			message += indent;
+		
+		// Append text
+		message += (log_prefix + text + log_postfix);
 		
 		// Append newline
 		if (auto_newline)
-		{
-			(*os) << "\n";
-		}
-
+			message += "\n";
+		
+		// Add message to log history
+		history += message;
+		
+		// Output message
+		(*os) << message;
+		
+		// Flush output stream
 		os->flush();
 	}
 }

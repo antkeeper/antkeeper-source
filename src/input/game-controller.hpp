@@ -89,7 +89,28 @@ public:
 	 * @param value Normalized degree of movement.
 	 */
 	void move(game_controller_axis axis, float value);
+	
+	/**
+	 * Simulates a game controller being connected.
+	 *
+	 * @param reconnected `true` if the controller is being reconnected, or `false` if the controller is being connected for the first time.
+	 */
+	void connect(bool reconnnected);
+	
+	/// Simulates a game controller being disconnected.
+	void disconnect();
+	
+	/// Returns `true` if the controller is currently connected.
+	bool is_connected() const;
+	
+private:
+	bool connected;
 };
+
+inline bool game_controller::is_connected() const
+{
+	return connected;
+}
 
 #endif // ANTKEEPER_GAME_CONTROLLER_HPP
 

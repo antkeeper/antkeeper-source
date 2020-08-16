@@ -17,10 +17,9 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mesh-accelerator.hpp"
-#include "mesh-functions.hpp"
-#include "morton.hpp"
-#include <iostream>
+#include "geometry/mesh-accelerator.hpp"
+#include "geometry/mesh-functions.hpp"
+#include "geometry/morton.hpp"
 #include <bitset>
 
 mesh_accelerator::mesh_accelerator()
@@ -106,8 +105,6 @@ void mesh_accelerator::query_nearest_recursive(float& nearest_t, ::mesh::face*& 
 		if (auto it = face_map.find(node); it != face_map.end())
 		{
 			const std::list<mesh::face*>& faces = it->second;
-
-			//std::cout << std::bitset<32>(node) << " has " << faces.size() << " faces\n";
 
 			for (mesh::face* face: faces)
 			{

@@ -61,6 +61,36 @@ std::ostream& operator<<(std::ostream& os, const matrix<T, N, M>& m);
 template <class T>
 std::ostream& operator<<(std::ostream& os, const quaternion<T>& q);
 
+/**
+ * Reads the elements of a vector from an input stream, with each element delimeted by a space.
+ *
+ * @param is Input stream.
+ * @param v Vector.
+ * @return Input stream.
+ */
+template <class T, std::size_t N>
+std::istream& operator>>(std::istream& is, vector<T, N>& v);
+
+/**
+ * Reads the elements of a matrix from an input stream, with each element delimeted by a space.
+ *
+ * @param is Input stream.
+ * @param m Matrix.
+ * @return Input stream.
+ */
+template <class T, std::size_t N, std::size_t M>
+std::istream& operator>>(std::istream& is, matrix<T, N, M>& m);
+
+/**
+ * Reads the real and imaginary parts of a quaternion from an input stream, with each number delimeted by a space.
+ *
+ * @param is Input stream.
+ * @param q Quaternion.
+ * @return Input stream.
+ */
+template <class T>
+std::istream& operator>>(std::istream& is, const quaternion<T>& q);
+
 template <class T, std::size_t N>
 std::ostream& operator<<(std::ostream& os, const vector<T, N>& v)
 {
@@ -99,8 +129,41 @@ std::ostream& operator<<(std::ostream& os, const matrix<T, N, M>& m)
 template <class T>
 std::ostream& operator<<(std::ostream& os, const quaternion<T>& q)
 {
-	os << std::get<0>(q) << ' ' << std::get<1>(q)[0] << ' ' << std::get<1>(q)[1] << ' ' << std::get<1>(q)[2];
+	os << q.w << ' ' << q.x << ' ' << q.y << ' ' << q.z;
 	return os;
+}
+
+template <class T, std::size_t N>
+std::istream& operator>>(std::istream& is, vector<T, N>& v)
+{
+	for (std::size_t i = 0; i < N; ++i)
+		is >> v[i];
+
+	return is;
+}
+
+template <class T, std::size_t N, std::size_t M>
+std::istream& operator>>(std::istream& is, matrix<T, N, M>& m)
+{
+	for (std::size_t i = 0; i < N * M; ++i)
+	{
+		std::size_t j = i / M;
+		std::size_t k = i % M;
+		is >> m[j][k];
+	}
+
+	return is;
+}
+
+template <class T>
+std::istream& operator>>(std::istream& is, const quaternion<T>& q)
+{
+	is >> q.w;
+	is >> q.x;
+	is >> q.y;
+	is >> q.z;
+	
+	return is;
 }
 
 /// @}

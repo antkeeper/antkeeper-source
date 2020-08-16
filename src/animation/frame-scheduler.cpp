@@ -82,4 +82,3 @@ void frame_scheduler::tick()
 	frame_duration = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(frame_end - frame_start).count()) / 1000000.0;
 	frame_start = frame_end;
 }
-

@@ -20,118 +20,38 @@
 #ifndef ANTKEEPER_APPLICATION_HPP
 #define ANTKEEPER_APPLICATION_HPP
 
-// STL
-#include <fstream>
+#include <array>
 #include <functional>
 #include <list>
-#include <map>
-#include <string>
-
-// External
-#include <entt/entt.hpp>
-
-// Debug
-#include "debug/logger.hpp"
-#include "debug/performance-sampler.hpp"
-#include "debug/cli.hpp"
-
-// Input
-#include "input/control.hpp"
-#include "input/control-set.hpp"
-#include "input/keyboard.hpp"
-#include "input/mouse.hpp"
-#include "input/game-controller.hpp"
-#include "input/input-event-router.hpp"
-#include "input/input-mapper.hpp"
-
-// Event
-#include "event/event-dispatcher.hpp"
-
-// Renderer
-#include "renderer/compositor.hpp"
-#include "renderer/renderer.hpp"
-
-// Scene
-#include "scene/scene.hpp"
-#include "scene/camera.hpp"
-#include "scene/ambient-light.hpp"
-#include "scene/directional-light.hpp"
-#include "scene/point-light.hpp"
-#include "scene/spotlight.hpp"
-#include "scene/model-instance.hpp"
-
-// Animation
-#include "animation/frame-scheduler.hpp"
-#include "animation/timeline.hpp"
-#include "animation/tween.hpp"
-#include "animation/animation.hpp"
-
-// Misc
-#include "state/fsm.hpp"
-#include "pheromone-matrix.hpp"
-#include "orbit-cam.hpp"
+#include <unordered_map>
 
 // Forward declarations
-//{
-	// SDL
-	typedef struct SDL_Window SDL_Window;
-	typedef void* SDL_GLContext;
-	
-	// Resources
-	class resource_manager;
-	
-	// Rasterizer
-	class rasterizer;
-	class framebuffer;
-	class vertex_buffer;
-	class vertex_array;
-	class texture_2d;
-	
-	// Renderer
-	class clear_pass;
-	class shadow_map_pass;
-	class material_pass;
-	class sky_pass;
-	class bloom_pass;
-	class final_pass;
-	class simple_render_pass;
-	template <class T>
-	class material_property;
-	
-	// Animation
-	class animator;
-	template <class T>
-	class animation;
-	class screen_transition;
+typedef struct SDL_Window SDL_Window;
+typedef void* SDL_GLContext;
+class event_dispatcher;
+class frame_scheduler;
+class game_controller;
+class keyboard;
+class logger;
+class mouse;
+class performance_sampler;
+class rasterizer;
 
-	// Systems
-	class behavior_system;
-	class camera_system;
-	class collision_system;
-	class locomotion_system;
-	class render_system;
-	class nest_system;
-	class placement_system;
-	class samara_system;
-	class subterrain_system;
-	class terrain_system;
-	class vegetation_system;
-	class tool_system;
-	class control_system;
-	class constraint_system;
-	class ui_system;
-	
-	// Scene
-	class billboard;
-//}
-
+/**
+ * 
+ */
 class application
 {
 public:
+	typedef std::array<std::function<void()>, 2> state_type;
+	typedef std::function<int(application*)> bootloader_type;
+	typedef std::function<void(double, double)> update_callback_type;
+	typedef std::function<void(double)> render_callback_type;
+	
 	/**
 	 * Creates and initializes an application.
 	 */
-	application(int argc, char** argv);
+	application();
 	
 	/**
 	 * Destroys an application.
@@ -139,345 +59,211 @@ public:
 	~application();
 
 	/**
-	 * Executes the application, causing it to enter the execution loop until closed.
+	 * Executes the application, causing it to run the bootloader then enter the execution loop until closed.
+	 *
+	 * @param bootloader Function which will be executed immediately before the execution loop is entered. The bootloader will be passed a pointer to this application and should return an exit status code.
 	 *
 	 * @return Exit status code.
 	 */
-	int execute();
-
+	int execute(bootloader_type bootloader);
+	
 	/**
 	 * Requests the application's execution loop to cleanly terminate, and specifies its exit status code.
 	 *
 	 * @param status Status to be returned by application::execute() upon execution loop termination.
 	 */
 	void close(int status);
-
-	logger* get_logger();
-	cli* get_cli();
 	
-	resource_manager* get_resource_manager();
-	fsm::machine* get_state_machine();
-	const fsm::state& get_loading_state() const;
-	const fsm::state& get_language_select_state() const;
-	const fsm::state& get_splash_state() const;
-	const fsm::state& get_title_state() const;
-	const fsm::state& get_play_state() const;
-	const fsm::state& get_pause_state() const;
-	timeline* get_timeline();
-	animator* get_animator();
-	camera* get_overworld_camera();
-	camera* get_underworld_camera();
-
-	orbit_cam* get_orbit_cam();
-	control_system* get_control_system();
-
-	entt::registry& get_ecs_registry();
-	scene& get_scene();
-
+	/**
+	 * Changes the applications state, resulting in the execution of the current state's exit function (if any), followed by the new state's enter function (if any).
+	 *
+	 * @param state A pair of enter and exit functions, respectively, which define the state.
+	 */
+	void change_state(const state_type& state);
+	
+	/**
+	 * Sets the update callback, which is executed at regular intervals until the application is closed. The update callback expects two parameters, the first being the total time in seconds since the application was executed (t), and the second being the time in seconds since the last update (dt). dt will always be a fixed value, and is determined by the user-specified update rate.
+	 *
+	 * @see application::set_update_rate()
+	 */
+	void set_update_callback(const update_callback_type& callback);
+	
+	/**
+	 * Sets the render callback, which is executed as many times as possible between update callbacks. The render callback expects one parameter, alpha, which is always between 0 and 1 and can be used to interpolate between update states.
+	 */
+	void set_render_callback(const render_callback_type& callback);
+	
+	/**
+	 * Sets the frequency with which the update callback should be called.
+	 *
+	 * @param frequency Number of times per second the update callback should be called.
+	 */
+	void set_update_rate(double frequency);
+	
+	/**
+	 * Sets the application window's title.
+	 *
+	 * @param title Window title.
+	 */
+	void set_title(const std::string& title);
+	
+	/**
+	 * Sets the cursor visibility.
+	 *
+	 * @param visible `true` if the cursor should be visible, `false` otherwise.
+	 */
+	void set_cursor_visible(bool visible);
+	
+	/**
+	 * Enables or disables relative mouse mode, in which only relative mouse movement events are generated.
+	 *
+	 * @param enabled `true` if relative mouse mode should be enabled, `false` otherwise.
+	 */
+	void set_relative_mouse_mode(bool enabled);
+	
+	/**
+	 * Resizes the application window.
+	 *
+	 * @param width Width of the window, in pixels.
+	 * @param height Height of the window, in pixels.
+	 */
+	void resize_window(int width, int height);
+	
+	/**
+	 * Puts the application window into either fullscreen or windowed mode.
+	 *
+	 * @param fullscreen `true` if the window should be fullscreen, `false` if it should be windowed.
+	 */
+	void set_fullscreen(bool fullscreen);
+	
+	/**
+	 * Enables or disables v-sync mode.
+	 *
+	 * @param vsync `true` if v-sync should be enabled, `false` otherwise.
+	 */
+	void set_vsync(bool vsync);
+	
 	void take_screenshot();
 	
-	// UI
-	scene* get_ui_scene();
-	billboard* get_splash_billboard();
+	/// Returns the dimensions of the current display.
+	const std::array<int, 2>& get_display_dimensions() const;
 	
-	::sky_pass* get_sky_pass();
+	/// Returns the dimensions of the window.
+	const std::array<int, 2>& get_window_dimensions() const;
 	
-	screen_transition* get_fade_transition();
-	screen_transition* get_radial_transition_inner();
-	screen_transition* get_radial_transition_outer();
+	/// Returns the dimensions of the window's drawable viewport.
+	const std::array<int, 2>& get_viewport_dimensions() const;
+	
+	/// Returns `true` if the window is in fullscreen mode, `false` otherwise.
+	bool is_fullscreen() const;
+	
+	/// Returns the rasterizer for the window.
+	::rasterizer* get_rasterizer();
+	
+	/// Returns the application logger.
+	::logger* get_logger();
+	
+	/// Returns the virtual keyboard.
+	::keyboard* get_keyboard();
+	
+	/// Returns the virtual mouse.
+	::mouse* get_mouse();
+	
+	/// Returns the list of virtual game controllers.
+	const std::list<game_controller*>& get_game_controllers();
+	
+	/// Returns the application's event dispatcher.
+	event_dispatcher* get_event_dispatcher();
 
 private:
-	void setup_fsm();
-	void load_config();
-	void parse_options(int argc, char** argv);
-	
-
 	void update(double t, double dt);
 	void render(double alpha);
+	
 	void translate_sdl_events();
-	void set_relative_mouse_mode(bool enabled);
-	void toggle_fullscreen();
 	void window_resized();
 	static void save_image(const std::string& filename, int w, int h, const unsigned char* pixels);
-
-	bool fullscreen;
-	bool vsync;
-	std::tuple<int, int> saved_mouse_position;
-	std::tuple<int, int> window_dimensions;
-	std::tuple<int, int> window_position;
-	std::tuple<int, int> display_dimensions;
-	float4 viewport;
-
-	// Debugging
-	std::ofstream log_filestream;
-	::logger logger;
-	::cli cli;
-
-	// Paths
-	std::string data_path;
-	std::string data_package_path;
-	std::string config_path;
-	std::string mods_path;
-	std::string saves_path;
-	std::string screenshots_path;
-
-	// Resources
-	resource_manager* resource_manager;
-
-	SDL_Window* window;
-	SDL_GLContext context;
+	
 	bool closed;
 	int exit_status;
+	state_type state;
+	update_callback_type update_callback;
+	render_callback_type render_callback;
+	bool fullscreen;
+	bool vsync;
+	std::array<int, 2> display_dimensions;
+	std::array<int, 2> window_dimensions;
+	std::array<int, 2> viewport_dimensions;
+	std::array<int, 2> mouse_position;
+	double update_rate;
+	logger* logger;
 
-	// Updatable systems
-	timeline timeline;
-	animator* animator;
-	animation<float>* radial_transition_in;
-	animation<float>* radial_transition_out;
-	std::list<std::function<void(double, double)>> systems;
+	SDL_Window* sdl_window;
+	SDL_GLContext sdl_gl_context;
 	
-	int shadow_map_resolution;
-	framebuffer* shadow_map_framebuffer;
-	texture_2d* shadow_map_depth_texture;
-	
-	framebuffer* framebuffer_hdr;
-	texture_2d* framebuffer_hdr_color;
-	texture_2d* framebuffer_hdr_depth;
-	
-	framebuffer* framebuffer_bloom; // General purpose framebuffer A
-	texture_2d* bloom_texture;
-	
-	// Rendering
 	rasterizer* rasterizer;
-	material* fallback_material;
-
 	
-	ambient_light sun_indirect;
-	directional_light sun_direct;
-	point_light subterrain_light;
-	ambient_light underworld_ambient_light;
-	model_instance lantern;
-	model_instance cloud;
-	model_instance* grass_patches;
-	::spotlight spotlight;
-	vertex_buffer* billboard_vbo;
-	vertex_array* billboard_vao;
-	::renderer renderer;
-	scene* active_scene;
-	
-	// Overworld
-	scene overworld_scene;
-	camera overworld_camera;
-	::clear_pass* clear_pass;
-	::sky_pass* sky_pass;
-	::material_pass* material_pass;
-	::clear_pass* shadow_map_clear_pass;
-	::shadow_map_pass* shadow_map_pass;
-	::bloom_pass* bloom_pass;
-	::final_pass* final_pass;
-	compositor overworld_compositor;
-	
-	// Underworld
-	scene underworld_scene;
-	camera underworld_camera;
-	::clear_pass* underworld_clear_pass;
-	::material_pass* underworld_material_pass;
-	simple_render_pass* underworld_final_pass;
-	material_property<const texture_2d*>* underground_color_texture_property;
-	compositor underworld_compositor;
-
-	// FSM
-	fsm::machine state_machine;
-	fsm::state loading_state;
-	fsm::state language_select_state;
-	fsm::state splash_state;
-	fsm::state title_state;
-	fsm::state play_state;
-	fsm::state pause_state;
-	fsm::state* initial_state;
-
 	// Frame timing
-	frame_scheduler frame_scheduler;
-	performance_sampler performance_sampler;
-	tween<double> time;
-
+	frame_scheduler* frame_scheduler;
+	performance_sampler* performance_sampler;
+	
 	// Events
-	event_dispatcher event_dispatcher;
-	input_event_router input_event_router;
-	input_mapper input_mapper;
+	event_dispatcher* event_dispatcher;
 
 	// Input devices
-	keyboard keyboard;
-	mouse mouse;
-	game_controller game_controller;
-
-	// Controls
-	control_set menu_controls;
-	control menu_back_control;
-	control menu_select_control;
-	control_set* camera_controls;
-
-	// System controls
-	control_set application_controls;
-	control toggle_fullscreen_control;
-	control screenshot_control;
-	control dig_control;
-
-	// Game
-	orbit_cam orbit_cam;
-	pheromone_matrix pheromones;
-	control_system* control_system;
-
-	// ECS
-	entt::registry ecs_registry;
-	behavior_system* behavior_system;
-	camera_system* camera_system;
-	collision_system* collision_system;
-	locomotion_system* locomotion_system;
-	render_system* render_system;
-	nest_system* nest_system;
-	placement_system* placement_system;
-	samara_system* samara_system;
-	subterrain_system* subterrain_system;
-	terrain_system* terrain_system;
-	vegetation_system* vegetation_system;
-	tool_system* tool_system;
-	constraint_system* constraint_system;
-	
-	// UI
-	ui_system* ui_system;
-	compositor ui_compositor;
-	::clear_pass* ui_clear_pass;
-	::material_pass* ui_material_pass;
-	billboard* splash_billboard;
-	material* splash_billboard_material;
-	
-	// Animation
-	tween<float3> focal_point_tween;
-	screen_transition* fade_transition;
-	screen_transition* radial_transition_inner;
-	screen_transition* radial_transition_outer;
-	
-	// Entities
-	entt::entity forceps_entity;
-	entt::entity lens_entity;
-	entt::entity brush_entity;
-	entt::entity flashlight_entity;
+	keyboard* keyboard;
+	mouse* mouse;
+	std::list<game_controller*> game_controllers;
+	std::unordered_map<int, game_controller*> game_controller_map;
 };
 
 inline logger* application::get_logger()
 {
-	return &logger;
+	return logger;
 }
 
-inline cli* application::get_cli()
+inline const std::array<int, 2>& application::get_display_dimensions() const
 {
-	return &cli;
+	return display_dimensions;
 }
 
-inline resource_manager* application::get_resource_manager()
+inline const std::array<int, 2>& application::get_window_dimensions() const
 {
-	return resource_manager;
+	return window_dimensions;
 }
 
-inline fsm::machine* application::get_state_machine()
+inline const std::array<int, 2>& application::get_viewport_dimensions() const
 {
-	return &state_machine;
+	return viewport_dimensions;
 }
 
-inline const fsm::state& application::get_loading_state() const
+inline bool application::is_fullscreen() const
 {
-	return loading_state;
+	return fullscreen;
 }
 
-inline const fsm::state& application::get_language_select_state() const
+inline rasterizer* application::get_rasterizer()
 {
-	return language_select_state;
+	return rasterizer;
 }
 
-inline const fsm::state& application::get_splash_state() const
+inline keyboard* application::get_keyboard()
 {
-	return splash_state;
+	return keyboard;
 }
 
-inline const fsm::state& application::get_title_state() const
+inline mouse* application::get_mouse()
 {
-	return title_state;
+	return mouse;
 }
 
-inline const fsm::state& application::get_play_state() const
+inline const std::list<game_controller*>& application::get_game_controllers()
 {
-	return play_state;
+	return game_controllers;
 }
 
-inline const fsm::state& application::get_pause_state() const
+inline event_dispatcher* application::get_event_dispatcher()
 {
-	return pause_state;
-}
-
-inline timeline* application::get_timeline()
-{
-	return &timeline;
-}
-
-inline animator* application::get_animator()
-{
-	return animator;
-}
-
-inline camera* application::get_overworld_camera()
-{
-	return &overworld_camera;
-}
-
-inline camera* application::get_underworld_camera()
-{
-	return &underworld_camera;
-}
-
-inline orbit_cam* application::get_orbit_cam()
-{
-	return &orbit_cam;
-}
-
-inline control_system* application::get_control_system()
-{
-	return control_system;
-}
-
-inline entt::registry& application::get_ecs_registry()
-{
-	return ecs_registry;
-}
-
-inline scene& application::get_scene()
-{
-	return overworld_scene;
-}
-
-inline billboard* application::get_splash_billboard()
-{
-	return splash_billboard;
-}
-
-inline sky_pass* application::get_sky_pass()
-{
-	return sky_pass;
-}
-
-inline screen_transition* application::get_fade_transition()
-{
-	return fade_transition;
-}
-
-inline screen_transition* application::get_radial_transition_inner()
-{
-	return radial_transition_inner;
-}
-
-inline screen_transition* application::get_radial_transition_outer()
-{
-	return radial_transition_outer;
+	return event_dispatcher;
 }
 
 #endif // ANTKEEPER_APPLICATION_HPP

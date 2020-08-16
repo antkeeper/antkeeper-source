@@ -209,7 +209,6 @@ bool shader_input::upload(const float4x4& value) const
 	return true;
 }
 
-#include <iostream>
 bool shader_input::upload(const texture_2d* value) const
 {
 	if (gl_uniform_location == -1)

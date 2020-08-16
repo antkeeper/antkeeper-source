@@ -19,8 +19,8 @@
 
 #include "resource-loader.hpp"
 #include "resource-manager.hpp"
-#include "behavior/ebt.hpp"
-#include "nlohmann/json.hpp"
+#include "game/behavior/ebt.hpp"
+#include <nlohmann/json.hpp>
 #include <functional>
 #include <map>
 #include <stdexcept>

@@ -25,6 +25,8 @@
 
 /**
  * Schedules fixed-timestep update calls and variable timestep render calls.
+ *
+ * @see https://gafferongames.com/post/fix_your_timestep/
  */
 class frame_scheduler
 {

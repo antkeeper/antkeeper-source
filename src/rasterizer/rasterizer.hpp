@@ -45,7 +45,7 @@ public:
 	/**
 	 * This should be called when the window associated with the OpenGL context is resized, and will effectively changed the reported dimensions of the default framebuffer.
 	 */
-	void window_resized(int width, int height);
+	void context_resized(int width, int height);
 	
 	/**
 	 * Sets the active framebuffer.

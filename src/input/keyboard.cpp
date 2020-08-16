@@ -20,7 +20,7 @@
 #include "keyboard.hpp"
 #include "scancode.hpp"
 #include "event/event-dispatcher.hpp"
-#include "input-events.hpp"
+#include "event/input-events.hpp"
 
 const char* keyboard::get_scancode_name(scancode scancode)
 {

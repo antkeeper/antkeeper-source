@@ -18,20 +18,23 @@
  */
 
 #include "application.hpp"
+#include "game/bootloader.hpp"
+#include <functional>
 #include <iostream>
 #include <stdexcept>
 
 int main(int argc, char* argv[])
 {
+	auto wrapped_bootloader = std::bind(bootloader, std::placeholders::_1, argc, argv);
+	
 	try
 	{
-		return application(argc, argv).execute();
+		return application().execute(wrapped_bootloader);
 	}
 	catch (const std::exception& e)
 	{
 		std::cerr << "Unhandled exception: \"" << e.what() << "\"" << std::endl;
 	}
-
+	
 	return EXIT_FAILURE;
 }
-

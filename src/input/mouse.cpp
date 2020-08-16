@@ -18,7 +18,7 @@
  */
 
 #include "mouse.hpp"
-#include "input-events.hpp"
+#include "event/input-events.hpp"
 #include "event/event-dispatcher.hpp"
 
 mouse::mouse()

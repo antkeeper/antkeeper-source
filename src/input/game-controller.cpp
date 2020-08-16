@@ -18,11 +18,12 @@
  */
 
 #include "game-controller.hpp"
-#include "input-events.hpp"
+#include "event/input-events.hpp"
 #include "event/event-dispatcher.hpp"
 #include <cmath>
 
-game_controller::game_controller()
+game_controller::game_controller():
+	connected(true)
 {}
 
 void game_controller::press(game_controller_button button)
@@ -68,3 +69,23 @@ void game_controller::move(game_controller_axis axis, float value)
 	input_device::event_dispatcher->queue(event);
 }
 
+void game_controller::connect(bool reconnected)
+{
+	connected = true;
+	
+	game_controller_connected_event event;
+	event.game_controller = this;
+	event.reconnected = reconnected;
+	
+	input_device::event_dispatcher->queue(event);
+}
+
+void game_controller::disconnect()
+{
+	connected = false;
+	
+	game_controller_disconnected_event event;
+	event.game_controller = this;
+	
+	input_device::event_dispatcher->queue(event);
+}

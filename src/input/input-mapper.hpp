@@ -20,8 +20,8 @@
 #ifndef ANTKEEPER_INPUT_MAPPER_HPP
 #define ANTKEEPER_INPUT_MAPPER_HPP
 
-#include "input-events.hpp"
-#include "input-mapping.hpp"
+#include "input/input-mapping.hpp"
+#include "event/input-events.hpp"
 #include "event/event-handler.hpp"
 #include <functional>
 

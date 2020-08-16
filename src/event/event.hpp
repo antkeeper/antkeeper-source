@@ -67,8 +67,11 @@ public:
 
 	/// Destroys an event
 	virtual ~event() = default;
-
+	
+	/// @copydoc event_base::get_event_type_id() const
 	virtual const std::size_t get_event_type_id() const final;
+	
+	/// @copydoc event_base::clone() const
 	virtual event_base* clone() const = 0;
 };
 

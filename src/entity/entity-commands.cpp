@@ -18,9 +18,9 @@
  */
 
 #include "entity-commands.hpp"
-#include "entity/components/model-component.hpp"
-#include "entity/components/transform-component.hpp"
-#include "entity/components/copy-transform-component.hpp"
+#include "game/components/model-component.hpp"
+#include "game/components/transform-component.hpp"
+#include "game/components/copy-transform-component.hpp"
 
 namespace ecs {
 

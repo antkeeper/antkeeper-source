@@ -67,7 +67,7 @@ rasterizer::~rasterizer()
 	delete default_framebuffer;
 }
 
-void rasterizer::window_resized(int width, int height)
+void rasterizer::context_resized(int width, int height)
 {
 	default_framebuffer->dimensions = {width, height};
 }

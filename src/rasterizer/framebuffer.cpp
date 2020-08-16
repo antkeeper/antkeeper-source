@@ -40,6 +40,7 @@ framebuffer::framebuffer(int width, int height):
 
 framebuffer::framebuffer():
 	gl_framebuffer_id(0),
+	dimensions({0, 0}),
 	color_attachment(nullptr),
 	depth_attachment(nullptr),
 	stencil_attachment(nullptr)
@@ -53,9 +54,9 @@ framebuffer::~framebuffer()
 	}
 }
 
-void framebuffer::resize(int width, int height)
+void framebuffer::resize(const std::array<int, 2>& dimensions)
 {
-	dimensions = {width, height};
+	this->dimensions = dimensions;
 }
 
 void framebuffer::attach(framebuffer_attachment_type attachment_type, texture_2d* texture)

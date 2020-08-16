@@ -40,12 +40,14 @@ public:
 	/**
 	 * Creates a resource manager.
 	 */
-	resource_manager();
+	resource_manager(::logger* logger);
 
 	/**
 	 * Destroys a resource manager and frees all of its resources.
 	 */
 	~resource_manager();
+	
+	bool mount(const std::string& path);
 
 	/**
 	 * Adds a path to be searched when a resource is requested.
@@ -82,14 +84,12 @@ public:
 	void save(const T* resource, const std::string& path);
 
 	entt::registry& get_archetype_registry();
-	
-	void set_logger(::logger* logger);
 
 private:
 	std::map<std::string, resource_handle_base*> resource_cache;
 	std::list<std::string> search_paths;
 	entt::registry archetype_registry;
-	::logger* logger;
+	logger* logger;
 };
 
 template <typename T>

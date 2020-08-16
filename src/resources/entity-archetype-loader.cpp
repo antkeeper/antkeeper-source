@@ -21,14 +21,14 @@
 #include "resource-manager.hpp"
 #include "string-table.hpp"
 #include "renderer/model.hpp"
-#include "entity/components/behavior-component.hpp"
-#include "entity/components/collision-component.hpp"
-#include "entity/components/terrain-component.hpp"
-#include "entity/components/transform-component.hpp"
-#include "entity/components/model-component.hpp"
-#include "entity/components/nest-component.hpp"
+#include "game/components/behavior-component.hpp"
+#include "game/components/collision-component.hpp"
+#include "game/components/terrain-component.hpp"
+#include "game/components/transform-component.hpp"
+#include "game/components/model-component.hpp"
+#include "game/components/nest-component.hpp"
 #include "entity/archetype.hpp"
-#include "behavior/ebt.hpp"
+#include "game/behavior/ebt.hpp"
 #include <sstream>
 #include <stdexcept>
 

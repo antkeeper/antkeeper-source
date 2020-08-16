@@ -26,7 +26,6 @@
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
-#include <iostream>
 
 /**
  * Abstract base class for animations.
