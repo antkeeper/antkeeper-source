@@ -25,13 +25,14 @@
 #include "animation/ease.hpp"
 #include "nest.hpp"
 #include "math/math.hpp"
+#include "game/entity-commands.hpp"
 
-control_system::control_system():
+control_system::control_system(entt::registry& registry):
+	entity_system(registry),
 	timestep(0.0f),
 	zoom(0.0f),
 	tool(nullptr),
-	flashlight(nullptr),
-	flashlight_light_cone(nullptr),
+	flashlight_eid(entt::null),
 	underworld_camera(nullptr)
 {
 	control_set.add_control(&move_forward_control);
@@ -81,7 +82,7 @@ control_system::control_system():
 	flashlight_turns_f = 0.0f;
 }
 
-void control_system::update(float dt)
+void control_system::update(double t, double dt)
 {
 	this->timestep = dt;
 
@@ -224,7 +225,7 @@ void control_system::update(float dt)
 		flashlight_turns_f = (mouse_angle) / math::two_pi<float>;
 		flashlight_turns = flashlight_turns_i - flashlight_turns_f;
 		
-		if (flashlight && nest)
+		if (flashlight_eid != entt::null && nest)
 		{
 			math::transform<float> flashlight_transform = math::identity_transform<float>;
 			
@@ -233,8 +234,7 @@ void control_system::update(float dt)
 			flashlight_transform.translation = {0.0f, -flashlight_depth, 0.0f};
 			flashlight_transform.rotation = math::angle_axis(-flashlight_turns * math::two_pi<float> + math::half_pi<float>, {0, 1, 0});
 			
-			flashlight->set_transform(flashlight_transform);
-			flashlight_light_cone->set_transform(flashlight_transform);
+			ec::set_transform(registry, flashlight_eid, flashlight_transform, false);
 			
 			if (underworld_camera)
 			{
@@ -261,10 +261,9 @@ void control_system::set_tool(model_instance* tool)
 	this->tool = tool;
 }
 
-void control_system::set_flashlight(model_instance* flashlight, model_instance* light_cone)
+void control_system::set_flashlight(entt::entity eid)
 {
-	this->flashlight = flashlight;
-	this->flashlight_light_cone = light_cone;
+	flashlight_eid = eid;
 }
 
 void control_system::set_viewport(const float4& viewport)

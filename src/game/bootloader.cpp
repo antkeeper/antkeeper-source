@@ -362,6 +362,7 @@ void setup_window(game_context* ctx)
 		fullscreen = false;
 	else if (config->has("fullscreen"))
 		fullscreen = (config->get<int>("fullscreen") != 0);
+	
 	app->set_fullscreen(fullscreen);
 	logger->pop_task(EXIT_SUCCESS);
 
@@ -380,6 +381,7 @@ void setup_window(game_context* ctx)
 		if (config->has("windowed_resolution"))
 			resolution = config->get<int2>("windowed_resolution");
 	}
+	
 	app->resize_window(resolution.x, resolution.y);
 	logger->pop_task(EXIT_SUCCESS);
 	
@@ -586,15 +588,6 @@ void setup_scenes(game_context* ctx)
 	ctx->underworld_ambient_light->set_intensity(0.1f);
 	ctx->underworld_ambient_light->update_tweens();
 	
-	// Cloud
-	ctx->cloud = new model_instance();
-	ctx->cloud->set_model(ctx->resource_manager->load<model>("cloud.obj"));
-	ctx->cloud->set_translation({0, 0, 4500});
-	ctx->cloud->set_scale(float3{1, 1, 1} * 100.0f);
-	
-	model_instance* flashlight = new model_instance(ctx->resource_manager->load<model>("flashlight.obj"));
-	model_instance* flashlight_light_cone = new model_instance(ctx->resource_manager->load<model>("flashlight-light-cone.obj"));
-	
 	const texture_2d* splash_texture = ctx->resource_manager->load<texture_2d>("splash.png");
 	auto splash_dimensions = splash_texture->get_dimensions();
 	ctx->splash_billboard_material = new material();
@@ -654,7 +647,6 @@ void setup_scenes(game_context* ctx)
 	ctx->overworld_scene->add_object(ctx->sun_indirect);
 	ctx->overworld_scene->add_object(ctx->sun_direct);
 	//ctx->overworld_scene->add_object(ctx->spotlight);
-	//ctx->overworld_scene->add_object(ctx->cloud);
 	ctx->overworld_scene->add_object(arrow_billboard);
 	
 	// Setup underworld scene
@@ -666,8 +658,6 @@ void setup_scenes(game_context* ctx)
 	//ctx->underworld_scene->add_object(ctx->portal_billboard);
 	//model_instance* larva = new model_instance(ctx->resource_manager->load<model>("larva.obj"));
 	//ctx->underworld_scene->add_object(larva);
-	ctx->underworld_scene->add_object(flashlight_light_cone);
-	ctx->underworld_scene->add_object(flashlight);
 	
 	// Setup UI scene
 	ctx->ui_scene = new scene();
@@ -808,7 +798,7 @@ void setup_systems(game_context* ctx)
 	ctx->render_system->set_renderer(ctx->renderer);
 	
 	// Setup control system
-	ctx->control_system = new ::control_system();
+	ctx->control_system = new ::control_system(*ctx->ecs_registry);
 	ctx->control_system->set_orbit_cam(ctx->orbit_cam);
 	ctx->control_system->set_viewport(viewport);
 	ctx->control_system->set_underworld_camera(ctx->underworld_camera);
@@ -816,6 +806,7 @@ void setup_systems(game_context* ctx)
 	//ctx->control_system->set_flashlight(flashlight, flashlight_light_cone);
 	ctx->control_system->get_adjust_camera_control()->set_activated_callback([ctx](){ ctx->app->set_relative_mouse_mode(true); ctx->tool_system->set_pick(false); });
 	ctx->control_system->get_adjust_camera_control()->set_deactivated_callback([ctx](){ ctx->app->set_relative_mouse_mode(false); ctx->tool_system->set_pick(true); });
+	ctx->control_system->set_flashlight(ctx->flashlight_entity);
 	
 	// Setup UI system
 	ctx->ui_system = new ui_system(ctx->resource_manager);
@@ -846,9 +837,21 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx]()
 		{
-			ctx->app->set_fullscreen(!ctx->app->is_fullscreen());
+			bool fullscreen = !ctx->app->is_fullscreen();
+			
+			ctx->app->set_fullscreen(fullscreen);
+			
+			if (!fullscreen)
+			{
+				int2 resolution = ctx->config->get<int2>("windowed_resolution");
+				ctx->app->resize_window(resolution.x, resolution.y);
+			}
+			
+			ctx->config->set<int>("fullscreen", (fullscreen) ? 1 : 0);
 		}
 	);
+	
+
 	
 	// Create screenshot control
 	ctx->screenshot_control = new control();
@@ -1001,7 +1004,7 @@ void setup_callbacks(game_context* ctx)
 			ctx->camera_system->update(t, dt);
 			ctx->behavior_system->update(t, dt);
 			ctx->locomotion_system->update(t, dt);
-			ctx->control_system->update(dt);
+			ctx->control_system->update(t, dt);
 			ctx->tool_system->update(t, dt);
 			ctx->constraint_system->update(t, dt);
 			

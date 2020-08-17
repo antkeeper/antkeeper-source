@@ -21,16 +21,18 @@
 #define ANTKEEPER_ECS_ENTITY_COMMANDS_HPP
 
 #include "utility/fundamental-types.hpp"
+#include "math/transform-type.hpp"
 #include <entt/entt.hpp>
 
-namespace ecs {
-	
-void move_to(entt::registry& registry, entt::entity entity, const float3& position);
-void warp_to(entt::registry& registry, entt::entity entity, const float3& position);
-void assign_render_layers(entt::registry& registry, entt::entity entity, unsigned int layers);
-void bind_transform(entt::registry& registry, entt::entity entity, entt::entity target);
+namespace ec {
 
-} // namespace ecs
+void move_to(entt::registry& registry, entt::entity eid, const float3& position);
+void warp_to(entt::registry& registry, entt::entity eid, const float3& position);
+void set_transform(entt::registry& registry, entt::entity eid, const math::transform<float>& transform, bool warp = false);
+void assign_render_layers(entt::registry& registry, entt::entity eid, unsigned int layers);
+void bind_transform(entt::registry& registry, entt::entity source_eid, entt::entity target_eid);
+
+} // namespace ec
 
 #endif // ANTKEEPER_ECS_ENTITY_COMMANDS_HPP
 

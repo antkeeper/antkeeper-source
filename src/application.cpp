@@ -121,7 +121,7 @@ application::application():
 		"",
     	SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 	    display_dimensions[0], display_dimensions[1],
-		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN
+		SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN
 	);
 	
 	if (!sdl_window)
@@ -363,10 +363,12 @@ void application::set_fullscreen(bool fullscreen)
 		{
 			SDL_SetWindowBordered(sdl_window, SDL_FALSE);
 			SDL_SetWindowResizable(sdl_window, SDL_FALSE);
+			SDL_SetWindowFullscreen(sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 			resize_window(display_dimensions[0], display_dimensions[1]);
 		}
 		else
 		{
+			SDL_SetWindowFullscreen(sdl_window, 0);
 			SDL_SetWindowBordered(sdl_window, SDL_TRUE);
 			SDL_SetWindowResizable(sdl_window, SDL_TRUE);
 		}
@@ -579,6 +581,8 @@ void application::window_resized()
 	// Update window size and viewport size
 	SDL_GetWindowSize(sdl_window, &window_dimensions[0], &window_dimensions[1]);
 	SDL_GL_GetDrawableSize(sdl_window, &viewport_dimensions[0], &viewport_dimensions[1]);
+	
+	rasterizer->context_resized(viewport_dimensions[0], viewport_dimensions[1]);
 	
 	window_resized_event event;
 	event.w = window_dimensions[0];

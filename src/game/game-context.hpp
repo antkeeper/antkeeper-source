@@ -163,7 +163,6 @@ struct game_context
 	directional_light* sun_direct;
 	point_light* subterrain_light;
 	ambient_light* underworld_ambient_light;
-	model_instance* cloud;
 	spotlight* spotlight;
 	billboard* splash_billboard;
 	

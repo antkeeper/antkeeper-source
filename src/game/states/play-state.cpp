@@ -31,7 +31,7 @@
 #include "game/components/terrain-component.hpp"
 #include "game/components/tool-component.hpp"
 #include "game/components/transform-component.hpp"
-#include "entity/entity-commands.hpp"
+#include "game/entity-commands.hpp"
 #include "game/game-context.hpp"
 #include "game/states/game-states.hpp"
 #include "math/math.hpp"
@@ -70,11 +70,11 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* flashlight_light_cone_archetype = resource_manager->load<ecs::archetype>("flashlight-light-cone.ent");
 
 	// Create flashlight + light cone compund entity
-	auto flashlight = flashlight_archetype->create(ecs_registry);
+	flashlight_archetype->assign(ecs_registry, ctx->flashlight_entity);
 	auto flashlight_light_cone = flashlight_light_cone_archetype->create(ecs_registry);
-	ecs::bind_transform(ecs_registry, flashlight_light_cone, flashlight);
-	ecs::assign_render_layers(ecs_registry, flashlight, 2);
-	ecs::assign_render_layers(ecs_registry, flashlight_light_cone, 2);
+	ec::bind_transform(ecs_registry, flashlight_light_cone, ctx->flashlight_entity);
+	ec::assign_render_layers(ecs_registry, ctx->flashlight_entity, 2);
+	ec::assign_render_layers(ecs_registry, flashlight_light_cone, 2);
 
 
 	ecs::placement_component placement;
@@ -232,7 +232,7 @@ void play_state_enter(game_context* ctx)
 	// Place larva in chamber
 	{
 		auto larva = larva_archetype->create(ecs_registry);
-		ecs::assign_render_layers(ecs_registry, larva, 1);
+		ec::assign_render_layers(ecs_registry, larva, 1);
 		//ecs::warp_to(ecs_registry, larva, {0, -20, 0});
 		//auto& transform = ecs_registry.get<ecs::transform_component>(larva_entity);
 		//transform.transform = math::identity_transform<float>;
@@ -241,7 +241,7 @@ void play_state_enter(game_context* ctx)
 	}
 	
 	control_system* control_system = ctx->control_system;
-	control_system->update(0.0f);
+	control_system->update(0.0, 0.0);
 	control_system->set_nest(nest);
 	orbit_cam->update(0.0f);
 	

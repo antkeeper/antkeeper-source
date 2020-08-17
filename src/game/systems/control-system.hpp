@@ -20,6 +20,7 @@
 #ifndef ANTKEEPER_CONTROL_SYSTEM_HPP
 #define ANTKEEPER_CONTROL_SYSTEM_HPP
 
+#include "game/systems/entity-system.hpp"
 #include "event/event-handler.hpp"
 #include "event/input-events.hpp"
 #include "input/control.hpp"
@@ -32,17 +33,19 @@ class nest;
 class camera;
 
 class control_system:
+	public entity_system,
 	public event_handler<mouse_moved_event>
 {
 public:
-	control_system();
-
-	void update(float dt);
+	control_system(entt::registry& registry);
+	
+	virtual void update(double t, double dt);
 
 	void set_orbit_cam(orbit_cam* orbit_cam);
 	void set_nest(::nest* nest);
 	void set_tool(model_instance* tool);
-	void set_flashlight(model_instance* flashlight, model_instance* light_cone);
+	void set_flashlight(entt::entity eid);
+	
 	void set_viewport(const float4& viewport);
 	void set_underworld_camera(::camera* camera);
 
@@ -105,8 +108,7 @@ private:
 	float2 mouse_position;
 	float4 viewport;
 	
-	model_instance* flashlight;
-	model_instance* flashlight_light_cone;
+	entt::entity flashlight_eid;
 	camera* underworld_camera;
 	
 	float mouse_angle;
