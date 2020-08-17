@@ -96,6 +96,7 @@
 static void parse_options(game_context* ctx, int argc, char** argv);
 static void setup_resources(game_context* ctx);
 static void load_config(game_context* ctx);
+static void load_strings(game_context* ctx);
 static void setup_window(game_context* ctx);
 static void setup_rendering(game_context* ctx);
 static void setup_scenes(game_context* ctx);
@@ -124,6 +125,7 @@ int bootloader(application* app, int argc, char** argv)
 		parse_options(ctx, argc, argv);
 		setup_resources(ctx);
 		load_config(ctx);
+		load_strings(ctx);
 		setup_window(ctx);
 		setup_rendering(ctx);
 		setup_scenes(ctx);
@@ -143,8 +145,11 @@ int bootloader(application* app, int argc, char** argv)
 	
 	logger->pop_task(EXIT_SUCCESS);
 	
-	// Change to splash state
-	app->change_state({std::bind(splash_state_enter, ctx), std::bind(splash_state_exit, ctx)});
+	// Change state
+	if (ctx->option_quick_start.has_value())
+		app->change_state({std::bind(play_state_enter, ctx), std::bind(play_state_exit, ctx)});
+	else
+		app->change_state({std::bind(splash_state_enter, ctx), std::bind(splash_state_exit, ctx)});
 	
 	return EXIT_SUCCESS;
 }
@@ -326,6 +331,7 @@ void setup_resources(game_context* ctx)
 	ctx->resource_manager->include("/entities/");
 	ctx->resource_manager->include("/behaviors/");
 	ctx->resource_manager->include("/controls/");
+	ctx->resource_manager->include("/localization/");
 	ctx->resource_manager->include("/");
 }
 
@@ -345,6 +351,21 @@ void load_config(game_context* ctx)
 	logger->pop_task(EXIT_SUCCESS);
 }
 
+void load_strings(game_context* ctx)
+{
+	logger* logger = ctx->logger;
+	logger->push_task("Loading strings");
+		
+	ctx->string_table = ctx->resource_manager->load<string_table>("strings.csv");
+	
+	build_string_table_map(&ctx->string_table_map, *ctx->string_table);
+	
+	ctx->language_code = ctx->config->get<std::string>("language");
+	ctx->strings = &ctx->string_table_map[ctx->language_code];
+	
+	logger->pop_task(EXIT_SUCCESS);
+}
+
 void setup_window(game_context* ctx)
 {
 	logger* logger = ctx->logger;
@@ -353,7 +374,6 @@ void setup_window(game_context* ctx)
 	application* app = ctx->app;
 	config_file* config = ctx->config;
 	
-	logger->push_task("Setting fullscreen mode");
 	// Set fullscreen or windowed mode
 	bool fullscreen = true;
 	if (ctx->option_fullscreen.has_value())
@@ -362,13 +382,9 @@ void setup_window(game_context* ctx)
 		fullscreen = false;
 	else if (config->has("fullscreen"))
 		fullscreen = (config->get<int>("fullscreen") != 0);
-	
 	app->set_fullscreen(fullscreen);
-	logger->pop_task(EXIT_SUCCESS);
-
 	
 	// Set resolution
-	logger->push_task("Setting resolution");
 	const auto& display_dimensions = ctx->app->get_display_dimensions();
 	int2 resolution = {display_dimensions[0], display_dimensions[1]};
 	if (fullscreen)
@@ -381,9 +397,7 @@ void setup_window(game_context* ctx)
 		if (config->has("windowed_resolution"))
 			resolution = config->get<int2>("windowed_resolution");
 	}
-	
 	app->resize_window(resolution.x, resolution.y);
-	logger->pop_task(EXIT_SUCCESS);
 	
 	// Set v-sync
 	bool vsync = true;
@@ -394,8 +408,7 @@ void setup_window(game_context* ctx)
 	app->set_vsync(vsync);
 	
 	// Set title
-	std::string title = "Antkeeper";
-	app->set_title(title);
+	app->set_title((*ctx->strings)["title"]);
 	
 	logger->pop_task(EXIT_SUCCESS);
 }

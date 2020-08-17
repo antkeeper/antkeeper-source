@@ -39,12 +39,16 @@ typedef std::vector<string_table_row> string_table;
  */
 typedef std::unordered_map<std::string, std::size_t> string_table_index;
 
+typedef std::unordered_map<std::string, std::unordered_map<std::string, std::string>> string_table_map;
+
+void build_string_table_map(string_table_map* map, const string_table& table);
+
 /**
  * Creates an index for a string table using strings in the first column as keys.
  *
  * @param table Table for which an index will be created.
  */
-string_table_index createIndex(const string_table& table);
+string_table_index index_string_table(const string_table& table);
 
 #endif // ANTKEEPER_STRING_TABLE_HPP
 

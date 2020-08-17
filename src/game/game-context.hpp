@@ -21,6 +21,7 @@
 #define ANTKEEPER_GAME_CONTEXT_HPP
 
 #include "utility/fundamental-types.hpp"
+#include "resources/string-table.hpp"
 #include <optional>
 #include <entt/entt.hpp>
 #include <fstream>
@@ -115,6 +116,13 @@ struct game_context
 	
 	// Resources
 	resource_manager* resource_manager;
+	
+	// Localization
+	std::string language_code;
+	int language_index;
+	string_table* string_table;
+	string_table_map string_table_map;
+	std::unordered_map<std::string, std::string>* strings;
 	
 	// Framebuffers
 	framebuffer* shadow_map_framebuffer;

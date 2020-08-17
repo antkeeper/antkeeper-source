@@ -38,7 +38,6 @@
 //#include "utility/timestamp.hpp"
 //#include <thread>
 
-
 application::application():
 	closed(false),
 	exit_status(EXIT_SUCCESS),
@@ -361,10 +360,9 @@ void application::set_fullscreen(bool fullscreen)
 		
 		if (fullscreen)
 		{
-			SDL_SetWindowBordered(sdl_window, SDL_FALSE);
-			SDL_SetWindowResizable(sdl_window, SDL_FALSE);
+			SDL_HideWindow(sdl_window);
 			SDL_SetWindowFullscreen(sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-			resize_window(display_dimensions[0], display_dimensions[1]);
+			SDL_ShowWindow(sdl_window);
 		}
 		else
 		{

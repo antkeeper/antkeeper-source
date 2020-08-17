@@ -19,7 +19,21 @@
 
 #include "resources/string-table.hpp"
 
-string_table_index createIndex(const string_table& table)
+void build_string_table_map(string_table_map* map, const string_table& table)
+{
+	map->clear();
+	
+	for (std::size_t i = 0; i < table.size(); ++i)
+	{
+		for (std::size_t j = 2; j < table[i].size(); ++j)
+		{
+			const std::string& string = table[i][j];
+			(*map)[table[0][j]][table[i][0]] = string.empty() ? "# MISSING STRING #" : string;
+		}
+	}
+}
+
+string_table_index index_string_table(const string_table& table)
 {
 	string_table_index index;
 
@@ -30,4 +44,3 @@ string_table_index createIndex(const string_table& table)
 	
 	return index;
 }
-
