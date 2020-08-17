@@ -31,12 +31,13 @@
 #include "input/mouse.hpp"
 #include "input/game-controller.hpp"
 #include "rasterizer/rasterizer.hpp"
+#include "resources/image.hpp"
 #include <SDL2/SDL.h>
 #include <glad/glad.h>
 #include <stdexcept>
+#include <utility>
+#include <thread>
 #include <stb/stb_image_write.h>
-//#include "utility/timestamp.hpp"
-//#include <thread>
 
 application::application():
 	closed(false),
@@ -297,6 +298,41 @@ void application::change_state(const state_type& next_state)
 	{
 		state[0]();
 	}
+}
+
+std::shared_ptr<image> application::capture_frame() const
+{
+	int w = viewport_dimensions[0];
+	int h = viewport_dimensions[1];
+	
+	std::shared_ptr<image> frame = std::make_shared<image>();
+	frame->format(3, false);
+	frame->resize(w, h);
+
+	// Read pixel data from framebuffer into image
+	unsigned char* pixels = new unsigned char[w * h * 3];
+	glReadBuffer(GL_BACK);
+	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, frame->get_pixels());
+	
+	return std::move(frame);
+}
+
+void application::save_frame(const std::string& path) const
+{
+	logger->push_task("Saving screenshot to \"" + path + "\"");
+	
+	auto frame = capture_frame();
+	
+	std::thread
+	(
+		[frame, path]
+		{
+			stbi_flip_vertically_on_write(1);
+			stbi_write_png(path.c_str(), frame->get_width(), frame->get_height(), frame->get_channels(), frame->get_pixels(), frame->get_width() * frame->get_channels());
+		}
+	).detach();
+	
+	logger->pop_task(EXIT_SUCCESS);
 }
 
 void application::set_update_callback(const update_callback_type& callback)
@@ -597,35 +633,4 @@ void application::window_resized()
 	tool_system->set_viewport(viewport);
 	ui_system->set_viewport(viewport);
 	*/
-}
-
-/*
-void application::take_screenshot()
-{
-	std::string filename = screenshots_path + "antkeeper-" + timestamp() + ".png";
-	
-	logger->push_task("Saving screenshot to \"" + filename + "\"");
-	
-	int x = viewport[0];
-	int y = viewport[1];
-	int w = viewport[2];
-	int h = viewport[3];
-
-	// Read pixel data from framebuffer
-	unsigned char* pixels = new unsigned char[w * h * 3];
-	glReadBuffer(GL_BACK);
-	glReadPixels(x, y, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-
-	std::thread screenshot_thread(application::save_image, filename, w, h, pixels);
-	screenshot_thread.detach();
-	
-	logger->pop_task(EXIT_SUCCESS);
-}
-*/
-
-void application::save_image(const std::string& filename, int w, int h, const unsigned char* pixels)
-{
-	stbi_flip_vertically_on_write(1);
-	stbi_write_png(filename.c_str(), w, h, 3, pixels, w * 3);
-	delete[] pixels;
 }

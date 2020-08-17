@@ -23,6 +23,7 @@
 #include <array>
 #include <functional>
 #include <list>
+#include <memory>
 #include <unordered_map>
 
 // Forward declarations
@@ -36,6 +37,7 @@ class logger;
 class mouse;
 class performance_sampler;
 class rasterizer;
+class image;
 
 /**
  * 
@@ -80,6 +82,20 @@ public:
 	 * @param state A pair of enter and exit functions, respectively, which define the state.
 	 */
 	void change_state(const state_type& state);
+	
+	/**
+	 * Captures a screenshot of last rendered frame.
+	 *
+	 * @return Image containing the captured frame.
+	 */
+	std::shared_ptr<image> capture_frame() const;
+	
+	/**
+	 * Captures a screenshot of last rendered frame.
+	 *
+	 * @return Image containing the captured frame.
+	 */
+	void save_frame(const std::string& path) const;
 	
 	/**
 	 * Sets the update callback, which is executed at regular intervals until the application is closed. The update callback expects two parameters, the first being the total time in seconds since the application was executed (t), and the second being the time in seconds since the last update (dt). dt will always be a fixed value, and is determined by the user-specified update rate.
@@ -143,8 +159,6 @@ public:
 	 */
 	void set_vsync(bool vsync);
 	
-	void take_screenshot();
-	
 	/// Returns the dimensions of the current display.
 	const std::array<int, 2>& get_display_dimensions() const;
 	
@@ -181,7 +195,6 @@ private:
 	
 	void translate_sdl_events();
 	void window_resized();
-	static void save_image(const std::string& filename, int w, int h, const unsigned char* pixels);
 	
 	bool closed;
 	int exit_status;

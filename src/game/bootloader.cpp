@@ -92,6 +92,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include "utility/timestamp.hpp"
 
 static void parse_options(game_context* ctx, int argc, char** argv);
 static void setup_resources(game_context* ctx);
@@ -361,6 +362,15 @@ void load_strings(game_context* ctx)
 	build_string_table_map(&ctx->string_table_map, *ctx->string_table);
 	
 	ctx->language_code = ctx->config->get<std::string>("language");
+	ctx->language_index = -1;
+	for (int i = 2; i < (*ctx->string_table)[0].size(); ++i)
+	{
+		if ((*ctx->string_table)[0][i] == ctx->language_code)
+			ctx->language_index = i;
+	}
+	
+	logger->log("lang index: " + std::to_string(ctx->language_index));
+	
 	ctx->strings = &ctx->string_table_map[ctx->language_code];
 	
 	logger->pop_task(EXIT_SUCCESS);
@@ -864,17 +874,18 @@ void setup_controls(game_context* ctx)
 		}
 	);
 	
-
+	
 	
 	// Create screenshot control
 	ctx->screenshot_control = new control();
-	/*ctx->screenshot_control.set_activated_callback([this]()
-	{
+	ctx->screenshot_control->set_activated_callback
+	(
 		[ctx]()
 		{
-			ctx->app->take_screenshot();
+			std::string path = ctx->screenshots_path + "antkeeper-" + timestamp() + ".png";
+			ctx->app->save_frame(path);
 		}
-	});*/
+	);
 	
 	// Create menu back control
 	ctx->menu_back_control = new control();
