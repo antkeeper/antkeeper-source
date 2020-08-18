@@ -40,6 +40,9 @@ public:
 	control_system(entt::registry& registry);
 	
 	virtual void update(double t, double dt);
+	
+	void set_invert_mouse_x(bool invert);
+	void set_invert_mouse_y(bool invert);
 
 	void set_orbit_cam(orbit_cam* orbit_cam);
 	void set_nest(::nest* nest);

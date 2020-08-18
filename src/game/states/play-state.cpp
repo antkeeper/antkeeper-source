@@ -36,7 +36,6 @@
 #include "game/states/game-states.hpp"
 #include "math/math.hpp"
 #include "nest.hpp"
-#include "orbit-cam.hpp"
 #include "renderer/material.hpp"
 #include "renderer/model.hpp"
 #include "renderer/passes/sky-pass.hpp"
@@ -44,6 +43,7 @@
 #include "scene/model-instance.hpp"
 #include "scene/scene.hpp"
 #include "game/systems/control-system.hpp"
+#include "game/systems/camera-system.hpp"
 #include "utility/fundamental-types.hpp"
 
 void play_state_enter(game_context* ctx)
@@ -152,20 +152,15 @@ void play_state_enter(game_context* ctx)
 	ecs_registry.get<ecs::transform_component>(grass_entity_2).transform.rotation = math::angle_axis(math::radians(120.0f), float3{0, 1, 0});
 	*/
 
-	// Setup overworld camera
-	camera* camera = ctx->overworld_camera;
-	orbit_cam* orbit_cam = ctx->orbit_cam;
-	orbit_cam->attach(camera);
-	orbit_cam->set_target_focal_point({0, 0, 0});
-	orbit_cam->set_target_focal_distance(15.0f);
-	orbit_cam->set_target_elevation(math::radians(25.0f));
-	orbit_cam->set_target_azimuth(0.0f);
-	orbit_cam->set_focal_point(orbit_cam->get_target_focal_point());
-	orbit_cam->set_focal_distance(orbit_cam->get_target_focal_distance());
-	orbit_cam->set_elevation(orbit_cam->get_target_elevation());
-	orbit_cam->set_azimuth(orbit_cam->get_target_azimuth());
-
-
+	// Setup camera
+	ctx->camera_system->set_camera(ctx->overworld_camera);
+	ctx->camera_system->set_azimuth(0.0f);
+	ctx->camera_system->set_elevation(math::radians(45.0f));
+	ctx->camera_system->set_zoom(0.0f);
+	ctx->camera_system->set_focal_distance(2.0f, 200.0f);
+	ctx->camera_system->set_fov(math::radians(80.0f), math::radians(35.0f));
+	ctx->camera_system->set_clip_near(1.0f, 5.0f);
+	ctx->camera_system->set_clip_far(100.0f, 2000.0f);
 
 
 	// Create forceps tool
@@ -243,7 +238,6 @@ void play_state_enter(game_context* ctx)
 	control_system* control_system = ctx->control_system;
 	control_system->update(0.0, 0.0);
 	control_system->set_nest(nest);
-	orbit_cam->update(0.0f);
 	
 	// Start fade in
 	ctx->fade_transition->transition(1.0f, true, ease<float>::in_quad);

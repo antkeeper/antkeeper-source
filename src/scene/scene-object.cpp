@@ -25,7 +25,7 @@ typename scene_object_base::transform_type scene_object_base::interpolate_transf
 	return
 		{
 			math::lerp(x.translation, y.translation, a),
-			math::slerp(x.rotation, y.rotation, a),
+			math::nlerp(x.rotation, y.rotation, a),
 			math::lerp(x.scale, y.scale, a),
 		};
 }

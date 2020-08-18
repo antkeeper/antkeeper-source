@@ -155,6 +155,17 @@ template <class T>
 quaternion<T> negate(const quaternion<T>& x);
 
 /**
+ * Performs normalized linear interpolation between two quaternions.
+ *
+ * @param x First quaternion.
+ * @param y Second quaternion.
+ * @param a Interpolation factor.
+ * @return Interpolated quaternion.
+ */
+template <class T>
+quaternion<T> nlerp(const quaternion<T>& x, const quaternion<T>& y, T a);
+
+/**
  * Normalizes a quaternion.
  */
 template <class T>
@@ -251,10 +262,10 @@ inline quaternion<T> lerp(const quaternion<T>& x, const quaternion<T>& y, T a)
 {
 	return
 		{
-			x.w * (T(1) - a) + y.w * a,
-			x.x * (T(1) - a) + y.x * a,
-			x.y * (T(1) - a) + y.y * a,
-			x.z * (T(1) - a) + y.z * a
+			(y.w - x.w) * a + x.w,
+			(y.x - x.x) * a + x.x,
+			(y.y - x.y) * a + x.y,
+			(y.z - x.z) * a + x.z
 		};
 }
 
@@ -326,6 +337,19 @@ template <class T>
 inline quaternion<T> negate(const quaternion<T>& x)
 {
 	return {-x.w, -x.x, -x.y, -x.z};
+}
+
+template <class T>
+quaternion<T> nlerp(const quaternion<T>& x, const quaternion<T>& y, T a)
+{
+	if (dot(x, y) < T(0))
+	{
+		return normalize(add(mul(x, T(1) - a), mul(y, -a)));
+	}
+	else
+	{
+		return normalize(add(mul(x, T(1) - a), mul(y, a)));
+	}
 }
 
 template <class T>

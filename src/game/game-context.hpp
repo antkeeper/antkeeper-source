@@ -194,6 +194,8 @@ struct game_context
 	control* menu_back_control;
 	control* menu_select_control;
 	control* screenshot_control;
+	control* rotate_ccw_control;
+	control* rotate_cw_control;
 	control* toggle_fullscreen_control;
 
 	// Entities

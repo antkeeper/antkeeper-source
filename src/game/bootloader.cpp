@@ -777,7 +777,6 @@ void setup_systems(game_context* ctx)
 	
 	// Setup camera system
 	ctx->camera_system = new camera_system(*ctx->ecs_registry);
-	ctx->camera_system->set_orbit_cam(ctx->orbit_cam);
 	ctx->camera_system->set_viewport(viewport);
 	
 	// Setup subterrain system
@@ -874,8 +873,6 @@ void setup_controls(game_context* ctx)
 		}
 	);
 	
-	
-	
 	// Create screenshot control
 	ctx->screenshot_control = new control();
 	ctx->screenshot_control->set_activated_callback
@@ -885,6 +882,18 @@ void setup_controls(game_context* ctx)
 			std::string path = ctx->screenshots_path + "antkeeper-" + timestamp() + ".png";
 			ctx->app->save_frame(path);
 		}
+	);
+	
+	// Create rotation controls
+	ctx->rotate_ccw_control = new control();
+	ctx->rotate_ccw_control->set_activated_callback
+	(
+		std::bind(&camera_system::rotate, ctx->camera_system, math::radians(-45.0f))
+	);
+	ctx->rotate_cw_control = new control();
+	ctx->rotate_cw_control->set_activated_callback
+	(
+		std::bind(&camera_system::rotate, ctx->camera_system, math::radians(45.0f))
 	);
 	
 	// Create menu back control
@@ -901,6 +910,8 @@ void setup_controls(game_context* ctx)
 	ctx->application_controls = new control_set();
 	ctx->application_controls->add_control(ctx->toggle_fullscreen_control);
 	ctx->application_controls->add_control(ctx->screenshot_control);
+	ctx->application_controls->add_control(ctx->rotate_ccw_control);
+	ctx->application_controls->add_control(ctx->rotate_cw_control);
 	
 	// Create menu control set
 	ctx->menu_controls = new control_set();
@@ -915,6 +926,8 @@ void setup_controls(game_context* ctx)
 	// Application control mappings
 	ctx->input_event_router->add_mapping(key_mapping(ctx->toggle_fullscreen_control, nullptr, scancode::f11));
 	ctx->input_event_router->add_mapping(key_mapping(ctx->screenshot_control, nullptr, scancode::f12));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->rotate_ccw_control, nullptr, scancode::q));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->rotate_cw_control, nullptr, scancode::e));
 	
 	// Add menu control mappings
 	ctx->input_event_router->add_mapping(key_mapping(ctx->menu_back_control, nullptr, scancode::escape));
@@ -985,6 +998,7 @@ void setup_controls(game_context* ctx)
 	
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->control_system);
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->camera_system);
+	event_dispatcher->subscribe<window_resized_event>(ctx->camera_system);
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->tool_system);
 }
 
@@ -1018,6 +1032,7 @@ void setup_callbacks(game_context* ctx)
 						
 			ctx->timeline->advance(dt);
 			
+			//ctx->control_system->update(t, dt);
 			ctx->terrain_system->update(t, dt);
 			ctx->vegetation_system->update(t, dt);
 			ctx->placement_system->update(t, dt);
@@ -1025,10 +1040,9 @@ void setup_callbacks(game_context* ctx)
 			ctx->subterrain_system->update(t, dt);
 			ctx->collision_system->update(t, dt);
 			ctx->samara_system->update(t, dt);
-			ctx->camera_system->update(t, dt);
 			ctx->behavior_system->update(t, dt);
 			ctx->locomotion_system->update(t, dt);
-			ctx->control_system->update(t, dt);
+			ctx->camera_system->update(t, dt);
 			ctx->tool_system->update(t, dt);
 			ctx->constraint_system->update(t, dt);
 			

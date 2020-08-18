@@ -21,6 +21,7 @@
 #define ANTKEEPER_MATH_ANGLES_HPP
 
 #include "math/constants.hpp"
+#include <cmath>
 
 namespace math {
 
@@ -45,6 +46,24 @@ T degrees(T radians);
 template <class T>
 T radians(T degrees);
 
+/**
+ * Wraps an angle on [-180, 180].
+ *
+ * @param degrees Angle in degrees.
+ * @return Wrapped angle.
+ */
+template <class T>
+T wrap_degrees(T degrees);
+
+/**
+ * Wraps an angle on [-pi, pi].
+ *
+ * @param radians Angle in radians.
+ * @return Wrapped angle.
+ */
+template <class T>
+T wrap_radians(T radians);
+
 template <class T>
 inline T degrees(T radians)
 {
@@ -55,6 +74,18 @@ template <class T>
 inline T radians(T degrees)
 {
 	return degrees * pi<T> / T(180);
+}
+
+template <class T>
+inline T wrap_degrees(T degrees)
+{
+	return std::remainder(degrees, T(360));
+}
+
+template <class T>
+inline T wrap_radians(T radians)
+{
+	return std::remainder(radians, two_pi<T>);
 }
 
 /// @}

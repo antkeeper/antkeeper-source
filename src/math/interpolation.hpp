@@ -20,6 +20,7 @@
 #ifndef ANTKEEPER_MATH_INTERPOLATION_HPP
 #define ANTKEEPER_MATH_INTERPOLATION_HPP
 
+#include "math/constants.hpp"
 #include "math/matrix-type.hpp"
 #include "math/quaternion-type.hpp"
 #include "math/transform-type.hpp"
@@ -47,6 +48,18 @@ template <typename T, typename S = float>
 T lerp(const T& x, const T& y, S a);
 
 /**
+ * Linearly interpolates between two angles, @p x and @p y.
+ *
+ * @tparam T Value type.
+ * @param x Start angle, in radians.
+ * @param y End angle, in radians.
+ * @param a Interpolation ratio.
+ * @return Interpolated angle, in radians.
+ */
+template <typename T>
+T lerp_angle(T x, T y, T a);
+
+/**
  * Logarithmically interpolates between @p x and @p y.
  *
  * @warning Undefined behavior when @p x is zero.
@@ -61,6 +74,13 @@ template <typename T, typename S>
 inline T lerp(const T& x, const T& y, S a)
 {
 	return (y - x) * a + x;
+}
+
+template <typename T>
+T lerp_angle(T x, T y, T a)
+{
+	T shortest_angle = std::remainder((y - x), two_pi<T>);
+	return std::remainder(x + shortest_angle * a, two_pi<T>);
 }
 
 template <typename T, typename S>
