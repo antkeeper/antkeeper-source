@@ -24,7 +24,8 @@ image::image():
 	width(0),
 	height(0),
 	channels(4),
-	pixels(nullptr)
+	pixels(nullptr),
+	size(0)
 {}
 
 image::~image()
@@ -60,13 +61,18 @@ void image::resize(unsigned int width, unsigned int height)
 
 void image::allocate_pixels()
 {
-	if (hdr)
+	size = width * height * channels;
+	
+	if (size != 0)
 	{
-		pixels = new float[width * height * channels];
-	}
-	else
-	{
-		pixels = new unsigned char[width * height * channels];
+		if (hdr)
+		{
+			pixels = new float[size];
+		}
+		else
+		{
+			pixels = new unsigned char[size];
+		}
 	}
 }
 
@@ -84,6 +90,6 @@ void image::free_pixels()
 		}
 
 		pixels = nullptr;
+		size = 0;
 	}
 }
-

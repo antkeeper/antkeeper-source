@@ -20,6 +20,8 @@
 #ifndef ANTKEEPER_IMAGE_HPP
 #define ANTKEEPER_IMAGE_HPP
 
+#include <cstdlib>
+
 /**
  * Stores basic image data.
  */
@@ -65,6 +67,9 @@ public:
 	
 	/// @copydoc image::get_pixels() const
 	void* get_pixels();
+	
+	/// Returns the size of the image, in bytes.
+	std::size_t get_size() const;
 
 private:
 	void allocate_pixels();
@@ -75,6 +80,7 @@ private:
 	unsigned int height;
 	unsigned int channels;
 	void* pixels;
+	std::size_t size;
 };
 
 inline bool image::is_hdr() const
@@ -107,5 +113,9 @@ inline void* image::get_pixels()
 	return pixels;
 }
 
-#endif // ANTKEEPER_IMAGE_HPP
+inline std::size_t image::get_size() const
+{
+	return size;
+}
 
+#endif // ANTKEEPER_IMAGE_HPP
