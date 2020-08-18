@@ -310,7 +310,6 @@ std::shared_ptr<image> application::capture_frame() const
 	frame->resize(w, h);
 
 	// Read pixel data from framebuffer into image
-	unsigned char* pixels = new unsigned char[w * h * 3];
 	glReadBuffer(GL_BACK);
 	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, frame->get_pixels());
 	

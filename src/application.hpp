@@ -84,16 +84,16 @@ public:
 	void change_state(const state_type& state);
 	
 	/**
-	 * Captures a screenshot of last rendered frame.
+	 * Captures a screenshot of the most recently rendered frame.
 	 *
 	 * @return Image containing the captured frame.
 	 */
 	std::shared_ptr<image> capture_frame() const;
 	
 	/**
-	 * Captures a screenshot of last rendered frame.
+	 * Saves a PNG screenshot of the most recently rendered frame.
 	 *
-	 * @return Image containing the captured frame.
+	 * @param path File path to the where the screenshot should be saved.
 	 */
 	void save_frame(const std::string& path) const;
 	
