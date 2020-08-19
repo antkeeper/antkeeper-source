@@ -27,6 +27,7 @@
 #include "utility/fundamental-types.hpp"
 #include "math/quaternion-type.hpp"
 #include "math/transform-type.hpp"
+#include "animation/spring.hpp"
 
 class camera;
 class orbit_cam;
@@ -56,18 +57,32 @@ public:
 	void set_fov(float angle_near, float angle_far);
 	void set_clip_near(float distance_near, float distance_far);
 	void set_clip_far(float distance_near, float distance_far);
+	
+	const spring_constraint<float, float>& get_azimuth_spring() const;
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
 	virtual void handle_event(const window_resized_event& event);
+	
+	void update_focal_distance();
+	void update_fov();
 
 	camera* camera;
 	float4 viewport;
 	float2 mouse_position;
 	
+	spring_constraint<float, float> azimuth_spring;
+	spring_constraint<float, float> elevation_spring;
+	spring_constraint<float, float> focal_distance_spring;
+	spring_constraint<float, float> fov_spring;
+	
+	
 	float azimuth;
 	float elevation;
+	float focal_distance;
 	float zoom_factor;
+	float fov;
+	
 	float focal_distance_near;
 	float focal_distance_far;
 	float fov_near;
@@ -80,6 +95,11 @@ private:
 	quaternion_type elevation_rotation;
 	quaternion_type azimuth_rotation;
 };
+
+inline const spring_constraint<float, float>& camera_system::get_azimuth_spring() const
+{
+	return azimuth_spring;
+}
 
 #endif // ANTKEEPER_CAMERA_SYSTEM_HPP
 

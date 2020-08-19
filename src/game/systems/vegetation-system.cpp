@@ -169,7 +169,7 @@ void vegetation_system::on_terrain_construct(entt::registry& registry, entt::ent
 			lod_group->update_tweens();
 			
 			// Add LOD group to scene
-			//scene->add_object(lod_group);
+			scene->add_object(lod_group);
 		}
 	}
 }

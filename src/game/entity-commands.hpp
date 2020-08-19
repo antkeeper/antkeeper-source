@@ -26,6 +26,7 @@
 
 namespace ec {
 
+void translate(entt::registry& registry, entt::entity eid, const float3& translation);
 void move_to(entt::registry& registry, entt::entity eid, const float3& position);
 void warp_to(entt::registry& registry, entt::entity eid, const float3& position);
 void set_transform(entt::registry& registry, entt::entity eid, const math::transform<float>& transform, bool warp = false);

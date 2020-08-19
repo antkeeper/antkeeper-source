@@ -21,6 +21,24 @@
 #define ANTKEEPER_SPRING_HPP
 
 /**
+ * Contains the variables required for numeric springing.
+ *
+ * @tparam T Value type.
+ * @tparam S Scalar type.
+ *
+ * @see spring()
+ */
+template <typename T, typename S>
+struct spring_constraint
+{
+	T x0; ///< Start value
+	T x1; ///< End value
+	T v;  ///< Velocity
+	S z;  ///< Damping ratio, which can be undamped (z = 0), underdamped (z < 1), critically damped (z = 1), or overdamped (z > 1).
+	S w;  ///< Angular frequency of the oscillation, in radians per second (2pi = 1Hz).
+};
+
+/**
  * Performs numeric, damped springing on a value and velocity.
  *
  * @tparam T Value type.
@@ -36,6 +54,15 @@
 template <typename T, typename S>
 void spring(T& x0, T& v, const T& x1, S z, S w, S dt);
 
+/**
+ * Solves a spring constraint using the spring() function.
+ *
+ * @param[in,out] constraint Spring constraint to be sovled.
+ * @param dt Delta time, in seconds.
+ */
+template <typename T, typename S>
+void solve_spring_constraint(spring_constraint<T, S>& constraint, S dt);
+
 template <typename T, typename S>
 void spring(T& x0, T& v, const T& x1, S z, S w, S dt)
 {
@@ -48,6 +75,12 @@ void spring(T& x0, T& v, const T& x1, S z, S w, S dt)
 	
 	x0 = det_x * inv_det;
 	v = det_v * inv_det;
+}
+
+template <typename T, typename S>
+void solve_spring_constraint(spring_constraint<T, S>& constraint, S dt)
+{
+	spring(constraint.x0, constraint.v, constraint.x1, constraint.z, constraint.w, dt);
 }
 
 #endif // ANTKEEPER_SPRING_HPP

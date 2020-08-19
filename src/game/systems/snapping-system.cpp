@@ -17,35 +17,41 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "placement-system.hpp"
+#include "snapping-system.hpp"
 #include "game/components/collision-component.hpp"
-#include "game/components/placement-component.hpp"
+#include "game/components/snap-component.hpp"
 #include "game/components/transform-component.hpp"
-#include "game/components/terrain-component.hpp"
 #include "utility/fundamental-types.hpp"
 
 using namespace ecs;
 
-placement_system::placement_system(entt::registry& registry):
+snapping_system::snapping_system(entt::registry& registry):
 	entity_system(registry)
 {}
 
-void placement_system::update(double t, double dt)
+void snapping_system::update(double t, double dt)
 {
-	registry.view<transform_component, placement_component>().each(
-		[&](auto entity, auto& transform, auto& placement)
+	registry.view<transform_component, snap_component>().each(
+		[&](auto entity, auto& snap_transform, auto& snap)
 		{
 			bool intersection = false;
 			float a = std::numeric_limits<float>::infinity();
 			float3 pick;
+			
+			ray<float> snap_ray = snap.ray;
+			if (snap.relative)
+			{
+				snap_ray.origin += snap_transform.transform.translation;
+				snap_ray.direction = snap_transform.transform.rotation * snap_ray.direction;
+			}
 
 			registry.view<transform_component, collision_component>().each(
-				[&](auto entity, auto& transform, auto& collision)
+				[&](auto entity, auto& collision_transform, auto& collision)
 				{
 					// Transform ray into local space of collision component
-					math::transform<float> inverse_transform = math::inverse(transform.transform);
-					float3 origin = inverse_transform * placement.ray.origin;
-					float3 direction = math::normalize(math::conjugate(transform.transform.rotation) * placement.ray.direction);
+					math::transform<float> inverse_transform = math::inverse(collision_transform.transform);
+					float3 origin = inverse_transform * snap_ray.origin;
+					float3 direction = math::normalize(math::conjugate(collision_transform.transform.rotation) * snap_ray.direction);
 					ray<float> transformed_ray = {origin, direction};
 
 					// Broad phase AABB test
@@ -55,6 +61,7 @@ void placement_system::update(double t, double dt)
 						return;
 					}
 
+					// Narrow phase mesh test
 					auto mesh_result = collision.mesh_accelerator.query_nearest(transformed_ray);
 					if (mesh_result)
 					{
@@ -62,17 +69,20 @@ void placement_system::update(double t, double dt)
 						if (mesh_result->t < a)
 						{
 							a = mesh_result->t;
-							pick = placement.ray.extrapolate(a);
+							pick = snap_ray.extrapolate(a);
 						}
 					}
 				});
 
 			if (intersection)
 			{
-				transform.transform.translation = pick;
-				transform.warp = true;
-				registry.remove<placement_component>(entity);
+				snap_transform.transform.translation = pick;
+				snap_transform.warp = snap.warp;
+				
+				if (snap.autoremove)
+				{
+					registry.remove<snap_component>(entity);
+				}
 			}
 		});
 }
-

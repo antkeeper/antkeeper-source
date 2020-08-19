@@ -23,6 +23,7 @@
 #include "game/systems/entity-system.hpp"
 #include "event/event-handler.hpp"
 #include "event/input-events.hpp"
+#include "event/window-events.hpp"
 #include "input/control.hpp"
 #include "input/control-set.hpp"
 #include "scene/model-instance.hpp"
@@ -31,10 +32,12 @@
 class orbit_cam;
 class nest;
 class camera;
+class camera_system;
 
 class control_system:
 	public entity_system,
-	public event_handler<mouse_moved_event>
+	public event_handler<mouse_moved_event>,
+	public event_handler<window_resized_event>
 {
 public:
 	control_system(entt::registry& registry);
@@ -45,9 +48,11 @@ public:
 	void set_invert_mouse_y(bool invert);
 
 	void set_orbit_cam(orbit_cam* orbit_cam);
+	void set_camera_system(camera_system* camera_system);
 	void set_nest(::nest* nest);
 	void set_tool(model_instance* tool);
 	void set_flashlight(entt::entity eid);
+	void set_camera_subject(entt::entity eid);
 	
 	void set_viewport(const float4& viewport);
 	void set_underworld_camera(::camera* camera);
@@ -71,6 +76,7 @@ public:
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
+	virtual void handle_event(const window_resized_event& event);
 
 	control_set control_set;
 	control move_forward_control;
@@ -106,12 +112,14 @@ private:
 	float timestep;
 	float zoom;
 	orbit_cam* orbit_cam;
+	camera_system* camera_system;
 	::nest* nest;
 	model_instance* tool;
 	float2 mouse_position;
 	float4 viewport;
 	
 	entt::entity flashlight_eid;
+	entt::entity camera_subject_eid;
 	camera* underworld_camera;
 	
 	float mouse_angle;

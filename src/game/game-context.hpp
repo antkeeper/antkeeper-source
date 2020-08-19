@@ -54,7 +54,7 @@ class material_pass;
 class nest_system;
 class orbit_cam;
 class pheromone_matrix;
-class placement_system;
+class snapping_system;
 class point_light;
 class rasterizer;
 class render_system;
@@ -204,6 +204,7 @@ struct game_context
 	entt::entity flashlight_entity;
 	entt::entity forceps_entity;
 	entt::entity lens_entity;
+	entt::entity focal_point_entity;
 
 	// Systems
 	behavior_system* behavior_system;
@@ -213,7 +214,7 @@ struct game_context
 	control_system* control_system;
 	locomotion_system* locomotion_system;
 	nest_system* nest_system;
-	placement_system* placement_system;
+	snapping_system* snapping_system;
 	render_system* render_system;
 	samara_system* samara_system;
 	subterrain_system* subterrain_system;

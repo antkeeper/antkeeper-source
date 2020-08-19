@@ -26,6 +26,7 @@
 #include "nest.hpp"
 #include "math/math.hpp"
 #include "game/entity-commands.hpp"
+#include "game/systems/camera-system.hpp"
 
 control_system::control_system(entt::registry& registry):
 	entity_system(registry),
@@ -58,7 +59,7 @@ control_system::control_system(entt::registry& registry):
 		control->set_deadzone(0.15f);
 	}
 
-	zoom_speed = 4.0f; //1
+	zoom_speed = 5.0f; //1
 	min_elevation = math::radians(-85.0f);
 	max_elevation = math::radians(85.0f);
 	near_focal_distance = 2.0f;
@@ -82,6 +83,74 @@ control_system::control_system(entt::registry& registry):
 	flashlight_turns_f = 0.0f;
 }
 
+void control_system::update(double t, double dt)
+{
+	// Zoom camera
+	if (zoom_in_control.is_active())
+		camera_system->zoom(zoom_speed * dt);
+	if (zoom_out_control.is_active())
+		camera_system->zoom(-zoom_speed * dt);
+	
+	// Move camera
+	float3 movement{0.0f, 0.0f, 0.0f};
+	if (move_right_control.is_active())
+		movement.x += move_right_control.get_current_value();
+	if (move_left_control.is_active())
+		movement.x -= move_left_control.get_current_value();
+	if (move_forward_control.is_active())
+		movement.z -= move_forward_control.get_current_value();
+	if (move_back_control.is_active())
+		movement.z += move_back_control.get_current_value();
+	
+	if (math::length_squared(movement) != 0.0f)
+	{
+		float max_speed = 100.0f * dt;
+		float speed = std::min<float>(max_speed, math::length(movement * max_speed));
+		movement = math::normalize(movement) * speed;
+		
+		float azimuth = camera_system->get_azimuth_spring().x0;
+		math::quaternion<float> azimuth_rotation = math::angle_axis(azimuth, float3{0.0f, 1.0f, 0.0f});
+		movement = azimuth_rotation * movement;
+		
+		ec::translate(registry, camera_subject_eid, movement);
+	}
+	
+	// Turn flashlight
+	float2 viewport_center = {(viewport[0] + viewport[2]) * 0.5f, (viewport[1] + viewport[3]) * 0.5f};
+	float2 mouse_direction = math::normalize(mouse_position - viewport_center);
+	old_mouse_angle = mouse_angle;
+	mouse_angle = std::atan2(-mouse_direction.y, mouse_direction.x);
+	
+	if (mouse_angle - old_mouse_angle != 0.0f)
+	{
+		if (mouse_angle - old_mouse_angle <= -math::pi<float>)
+			flashlight_turns_i -= 1;
+		else if (mouse_angle - old_mouse_angle >= math::pi<float>)
+			flashlight_turns_i += 1;
+		
+		flashlight_turns_f = (mouse_angle) / math::two_pi<float>;
+		flashlight_turns = flashlight_turns_i - flashlight_turns_f;
+		
+		if (flashlight_eid != entt::null && nest)
+		{
+			math::transform<float> flashlight_transform = math::identity_transform<float>;
+			
+			float flashlight_depth = nest->get_shaft_depth(*nest->get_central_shaft(), flashlight_turns);
+			
+			flashlight_transform.translation = {0.0f, -flashlight_depth, 0.0f};
+			flashlight_transform.rotation = math::angle_axis(-flashlight_turns * math::two_pi<float> + math::half_pi<float>, {0, 1, 0});
+			
+			ec::set_transform(registry, flashlight_eid, flashlight_transform, false);
+			
+			if (underworld_camera)
+			{
+				underworld_camera->look_at({0, -flashlight_depth + 50.0f, 0}, {0, -flashlight_depth, 0}, {0, 0, -1});
+			}
+		}
+	}
+}
+
+/*
 void control_system::update(double t, double dt)
 {
 	this->timestep = dt;
@@ -205,50 +274,18 @@ void control_system::update(double t, double dt)
 	}
 	
 	
-	// Turn flashlight
-	
-	
-	float2 viewport_center = {(viewport[0] + viewport[2]) * 0.5f, (viewport[1] + viewport[3]) * 0.5f};
-	float2 mouse_direction = math::normalize(mouse_position - viewport_center);
-	old_mouse_angle = mouse_angle;
-	mouse_angle = std::atan2(-mouse_direction.y, mouse_direction.x);
-	
-	if (mouse_angle - old_mouse_angle != 0.0f)
-	{
-
-		
-		if (mouse_angle - old_mouse_angle <= -math::pi<float>)
-			flashlight_turns_i -= 1;
-		else if (mouse_angle - old_mouse_angle >= math::pi<float>)
-			flashlight_turns_i += 1;
-		
-		flashlight_turns_f = (mouse_angle) / math::two_pi<float>;
-		flashlight_turns = flashlight_turns_i - flashlight_turns_f;
-		
-		if (flashlight_eid != entt::null && nest)
-		{
-			math::transform<float> flashlight_transform = math::identity_transform<float>;
-			
-			float flashlight_depth = nest->get_shaft_depth(*nest->get_central_shaft(), flashlight_turns);
-			
-			flashlight_transform.translation = {0.0f, -flashlight_depth, 0.0f};
-			flashlight_transform.rotation = math::angle_axis(-flashlight_turns * math::two_pi<float> + math::half_pi<float>, {0, 1, 0});
-			
-			ec::set_transform(registry, flashlight_eid, flashlight_transform, false);
-			
-			if (underworld_camera)
-			{
-				underworld_camera->look_at({0, -flashlight_depth + 50.0f, 0}, {0, -flashlight_depth, 0}, {0, 0, -1});
-			}
-		}
-	}
-	
 
 }
+*/
 
 void control_system::set_orbit_cam(::orbit_cam* orbit_cam)
 {
 	this->orbit_cam = orbit_cam;
+}
+
+void control_system::set_camera_system(::camera_system* camera_system)
+{
+	this->camera_system = camera_system;
 }
 
 void control_system::set_nest(::nest* nest)
@@ -264,6 +301,11 @@ void control_system::set_tool(model_instance* tool)
 void control_system::set_flashlight(entt::entity eid)
 {
 	flashlight_eid = eid;
+}
+
+void control_system::set_camera_subject(entt::entity eid)
+{
+	camera_subject_eid = eid;
 }
 
 void control_system::set_viewport(const float4& viewport)
@@ -309,3 +351,7 @@ void control_system::handle_event(const mouse_moved_event& event)
 	}
 }
 
+void control_system::handle_event(const window_resized_event& event)
+{
+	set_viewport({0.0f, 0.0f, static_cast<float>(event.w), static_cast<float>(event.h)});
+}

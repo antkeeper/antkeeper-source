@@ -159,6 +159,8 @@ public:
 	 */
 	void set_vsync(bool vsync);
 	
+	void set_window_opacity(float opacity);
+	
 	/// Returns the dimensions of the current display.
 	const std::array<int, 2>& get_display_dimensions() const;
 	

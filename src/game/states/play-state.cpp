@@ -26,11 +26,12 @@
 #include "game/components/copy-transform-component.hpp"
 #include "game/components/copy-translation-component.hpp"
 #include "game/components/model-component.hpp"
-#include "game/components/placement-component.hpp"
+#include "game/components/snap-component.hpp"
 #include "game/components/samara-component.hpp"
 #include "game/components/terrain-component.hpp"
 #include "game/components/tool-component.hpp"
 #include "game/components/transform-component.hpp"
+#include "game/components/camera-subject-component.hpp"
 #include "game/entity-commands.hpp"
 #include "game/game-context.hpp"
 #include "game/states/game-states.hpp"
@@ -42,6 +43,7 @@
 #include "resources/resource-manager.hpp"
 #include "scene/model-instance.hpp"
 #include "scene/scene.hpp"
+#include "scene/camera.hpp"
 #include "game/systems/control-system.hpp"
 #include "game/systems/camera-system.hpp"
 #include "utility/fundamental-types.hpp"
@@ -77,12 +79,15 @@ void play_state_enter(game_context* ctx)
 	ec::assign_render_layers(ecs_registry, flashlight_light_cone, 2);
 
 
-	ecs::placement_component placement;
+	ecs::snap_component snap;
+	snap.warp = true;
+	snap.relative = false;
+	snap.autoremove = true;
 
 	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);
-	placement.ray.origin = {0, 10000, 0};
-	placement.ray.direction = {0, -1, 0};
-	ecs_registry.assign<ecs::placement_component>(ant_hill_entity, placement);
+	snap.ray.origin = {0, 10000, 0};
+	snap.ray.direction = {0, -1, 0};
+	ecs_registry.assign<ecs::snap_component>(ant_hill_entity, snap);
 	
 
 	
@@ -101,14 +106,14 @@ void play_state_enter(game_context* ctx)
 		transform.transform.rotation = math::angle_axis(math::random(0.0f, math::two_pi<float>), {0, 1, 0});
 		transform.transform.scale = float3{1, 1, 1} * math::random(0.75f, 1.25f);
 		
-		placement.ray.origin = {x, 10000, z};
-		ecs_registry.assign<ecs::placement_component>(pebble_entity, placement);
+		snap.ray.origin = {x, 10000, z};
+		ecs_registry.assign<ecs::snap_component>(pebble_entity, snap);
 	}
 
 	auto maple_tree_entity = maple_tree_archetype->create(ecs_registry);
-	placement.ray.origin = {300, 10000, 200};
-	placement.ray.direction = {0, -1, 0};
-	ecs_registry.assign<ecs::placement_component>(maple_tree_entity, placement);
+	snap.ray.origin = {300, 10000, 200};
+	snap.ray.direction = {0, -1, 0};
+	ecs_registry.assign<ecs::snap_component>(maple_tree_entity, snap);
 
 	auto nest_entity = nest_archetype->create(ecs_registry);
 
@@ -151,8 +156,24 @@ void play_state_enter(game_context* ctx)
 	auto grass_entity_2 = grass_archetype->create(ecs_registry);
 	ecs_registry.get<ecs::transform_component>(grass_entity_2).transform.rotation = math::angle_axis(math::radians(120.0f), float3{0, 1, 0});
 	*/
+	
+	// Setup camera focal point
+	ecs::transform_component focal_point_transform;
+	focal_point_transform.transform = math::identity_transform<float>;
+	focal_point_transform.warp = true;
+	ecs::camera_subject_component focal_point_subject;
+	ecs::snap_component focal_point_snap;
+	focal_point_snap.ray = {float3{0, 10000, 0}, float3{0, -1, 0}};
+	focal_point_snap.warp = false;
+	focal_point_snap.relative = true;
+	focal_point_snap.autoremove = false;
+	
+	ecs_registry.assign_or_replace<ecs::transform_component>(ctx->focal_point_entity, focal_point_transform);
+	ecs_registry.assign_or_replace<ecs::camera_subject_component>(ctx->focal_point_entity, focal_point_subject);
+	ecs_registry.assign_or_replace<ecs::snap_component>(ctx->focal_point_entity, focal_point_snap);
 
 	// Setup camera
+	ctx->overworld_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
 	ctx->camera_system->set_camera(ctx->overworld_camera);
 	ctx->camera_system->set_azimuth(0.0f);
 	ctx->camera_system->set_elevation(math::radians(45.0f));

@@ -66,7 +66,7 @@
 #include "game/systems/control-system.hpp"
 #include "game/systems/locomotion-system.hpp"
 #include "game/systems/nest-system.hpp"
-#include "game/systems/placement-system.hpp"
+#include "game/systems/snapping-system.hpp"
 #include "game/systems/render-system.hpp"
 #include "game/systems/samara-system.hpp"
 #include "game/systems/subterrain-system.hpp"
@@ -747,6 +747,7 @@ void setup_entities(game_context* ctx)
 	ctx->flashlight_entity = ctx->ecs_registry->create();
 	ctx->forceps_entity = ctx->ecs_registry->create();
 	ctx->lens_entity = ctx->ecs_registry->create();
+	ctx->focal_point_entity = ctx->ecs_registry->create();
 }
 
 void setup_systems(game_context* ctx)
@@ -792,8 +793,8 @@ void setup_systems(game_context* ctx)
 	// Setup samara system
 	ctx->samara_system = new samara_system(*ctx->ecs_registry);
 	
-	// Setup placement system
-	ctx->placement_system = new placement_system(*ctx->ecs_registry);
+	// Setup snapping system
+	ctx->snapping_system = new snapping_system(*ctx->ecs_registry);
 	
 	// Setup behavior system
 	ctx->behavior_system = new behavior_system(*ctx->ecs_registry);
@@ -829,6 +830,8 @@ void setup_systems(game_context* ctx)
 	ctx->control_system->get_adjust_camera_control()->set_activated_callback([ctx](){ ctx->app->set_relative_mouse_mode(true); ctx->tool_system->set_pick(false); });
 	ctx->control_system->get_adjust_camera_control()->set_deactivated_callback([ctx](){ ctx->app->set_relative_mouse_mode(false); ctx->tool_system->set_pick(true); });
 	ctx->control_system->set_flashlight(ctx->flashlight_entity);
+	ctx->control_system->set_camera_subject(ctx->focal_point_entity);
+	ctx->control_system->set_camera_system(ctx->camera_system);
 	
 	// Setup UI system
 	ctx->ui_system = new ui_system(ctx->resource_manager);
@@ -997,6 +1000,7 @@ void setup_controls(game_context* ctx)
 	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_zoom_in_control(), nullptr, game_controller_axis::trigger_right, false));
 	
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->control_system);
+	event_dispatcher->subscribe<window_resized_event>(ctx->control_system);
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->camera_system);
 	event_dispatcher->subscribe<window_resized_event>(ctx->camera_system);
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->tool_system);
@@ -1032,10 +1036,10 @@ void setup_callbacks(game_context* ctx)
 						
 			ctx->timeline->advance(dt);
 			
-			//ctx->control_system->update(t, dt);
+			ctx->control_system->update(t, dt);
 			ctx->terrain_system->update(t, dt);
 			ctx->vegetation_system->update(t, dt);
-			ctx->placement_system->update(t, dt);
+			ctx->snapping_system->update(t, dt);
 			ctx->nest_system->update(t, dt);
 			ctx->subterrain_system->update(t, dt);
 			ctx->collision_system->update(t, dt);

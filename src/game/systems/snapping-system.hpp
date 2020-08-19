@@ -17,18 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PLACEMENT_SYSTEM_HPP
-#define ANTKEEPER_PLACEMENT_SYSTEM_HPP
+#ifndef ANTKEEPER_SNAPPING_SYSTEM_HPP
+#define ANTKEEPER_SNAPPING_SYSTEM_HPP
 
 #include "entity-system.hpp"
 
-class placement_system:
+class snapping_system:
 	public entity_system
 {
 public:
-	placement_system(entt::registry& registry);
+	snapping_system(entt::registry& registry);
 	virtual void update(double t, double dt);
 };
 
-#endif // ANTKEEPER_PLACEMENT_SYSTEM_HPP
+#endif // ANTKEEPER_SNAPPING_SYSTEM_HPP
 

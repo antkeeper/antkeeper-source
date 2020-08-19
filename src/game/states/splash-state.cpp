@@ -34,6 +34,8 @@ void splash_state_enter(game_context* ctx)
 	logger* logger = ctx->logger;	
 	logger->push_task("Entering splash state");
 	
+	//ctx->app->set_window_opacity(0.5f);
+	
 	// Disable sky pass
 	ctx->overworld_sky_pass->set_enabled(false);
 	

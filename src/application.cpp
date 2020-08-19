@@ -417,6 +417,11 @@ void application::set_vsync(bool vsync)
 	}
 }
 
+void application::set_window_opacity(float opacity)
+{
+	SDL_SetWindowOpacity(sdl_window, opacity);
+}
+
 void application::update(double t, double dt)
 {
 	translate_sdl_events();

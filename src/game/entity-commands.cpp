@@ -26,6 +26,15 @@ namespace ec {
 	
 using namespace ecs;
 
+void translate(entt::registry& registry, entt::entity eid, const float3& translation)
+{
+	if (registry.has<transform_component>(eid))
+	{
+		transform_component& transform = registry.get<transform_component>(eid);
+		transform.transform.translation += translation;
+	}
+}
+
 void move_to(entt::registry& registry, entt::entity eid, const float3& position)
 {
 	if (registry.has<transform_component>(eid))

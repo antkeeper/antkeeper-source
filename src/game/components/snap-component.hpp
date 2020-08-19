@@ -17,19 +17,22 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_PLACEMENT_COMPONENT_HPP
-#define ANTKEEPER_ECS_PLACEMENT_COMPONENT_HPP
+#ifndef ANTKEEPER_ECS_SNAP_COMPONENT_HPP
+#define ANTKEEPER_ECS_SNAP_COMPONENT_HPP
 
 #include "geometry/ray.hpp"
 
 namespace ecs {
 
-struct placement_component
+struct snap_component
 {
 	::ray<float> ray;
+	bool relative;
+	bool warp;
+	bool autoremove;
 };
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_PLACEMENT_COMPONENT_HPP
+#endif // ANTKEEPER_ECS_SNAP_COMPONENT_HPP
 
