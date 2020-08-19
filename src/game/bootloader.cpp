@@ -888,12 +888,12 @@ void setup_controls(game_context* ctx)
 	ctx->rotate_ccw_control = new control();
 	ctx->rotate_ccw_control->set_activated_callback
 	(
-		std::bind(&camera_system::rotate, ctx->camera_system, math::radians(-45.0f))
+		std::bind(&camera_system::rotate, ctx->camera_system, math::radians(-90.0f))
 	);
 	ctx->rotate_cw_control = new control();
 	ctx->rotate_cw_control->set_activated_callback
 	(
-		std::bind(&camera_system::rotate, ctx->camera_system, math::radians(45.0f))
+		std::bind(&camera_system::rotate, ctx->camera_system, math::radians(90.0f))
 	);
 	
 	// Create menu back control

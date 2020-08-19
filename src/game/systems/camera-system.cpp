@@ -20,6 +20,7 @@
 #include "camera-system.hpp"
 #include "game/components/camera-subject-component.hpp"
 #include "game/components/transform-component.hpp"
+#include "animation/spring.hpp"
 #include "scene/camera.hpp"
 #include "math/math.hpp"
 #include <cmath>
@@ -69,12 +70,16 @@ void camera_system::update(double t, double dt)
 	float source_azimuth = math::wrap_radians(std::atan2(-xz_direction.y, xz_direction.x) - math::half_pi<float>);
 	float source_elevation = elevation;
 	
-	std::cout << "azimuth: " << math::degrees(azimuth) << "\n";
-	std::cout << "source azimuth: " << math::degrees(source_azimuth) << "\n";
-	
 	float smooth_factor = 0.1f;
 	float smooth_azimuth = math::lerp_angle(source_azimuth, azimuth, smooth_factor);
 	float smooth_elevation = math::lerp_angle(source_elevation, elevation, smooth_factor);
+	
+	
+	smooth_azimuth = source_azimuth;
+	float shortest_angle = math::wrap_radians(azimuth - source_azimuth);
+	static float velocity = 0.0f;
+	spring<float, float>(smooth_azimuth, velocity, smooth_azimuth + shortest_angle, 1.0f, 2.0f * math::two_pi<float>, dt);
+	
 	quaternion_type smooth_azimuth_rotation = math::angle_axis(smooth_azimuth, float3{0.0f, 1.0f, 0.0f});
 	quaternion_type smooth_elevation_rotation = math::angle_axis(smooth_elevation, float3{-1.0f, 0.0f, 0.0f});
 	quaternion_type smooth_rotation = math::normalize(smooth_azimuth_rotation * smooth_elevation_rotation);
