@@ -35,7 +35,19 @@ configure_file(${PROJECT_SOURCE_DIR}/src/configuration.hpp.in
 file(GLOB_RECURSE SOURCE_FILES
 	${PROJECT_SOURCE_DIR}/src/*.cpp)
 
+# Remove platform-specific source files
+set(EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/platform/")
+foreach(TMP_PATH ${SOURCE_FILES})
+	string(FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+		list(REMOVE_ITEM SOURCE_FILES ${TMP_PATH})
+	endif ()
+endforeach(TMP_PATH)
+
 if(MSVC)
+	# Add platform-specific source files
+	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/platform/windows/nvidia.cpp")
+	
 	# Generate Windows icon resource file
 	set(ICON_FILE "${PROJECT_SOURCE_DIR}/../antkeeper-data/src/icons/antkeeper.ico")
 	configure_file(${PROJECT_SOURCE_DIR}/src/platform/windows/icon.rc.in
