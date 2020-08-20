@@ -23,6 +23,7 @@
 #include "entity-system.hpp"
 #include "event/event-handler.hpp"
 #include "event/input-events.hpp"
+#include "event/window-events.hpp"
 #include "utility/fundamental-types.hpp"
 
 class camera;
@@ -30,7 +31,8 @@ class orbit_cam;
 
 class tool_system:
 	public entity_system,
-	public event_handler<mouse_moved_event>
+	public event_handler<mouse_moved_event>,
+	public event_handler<window_resized_event>
 {
 public:
 	tool_system(entt::registry& registry);
@@ -43,6 +45,7 @@ public:
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
+	virtual void handle_event(const window_resized_event& event);
 
 	const camera* camera;
 	const orbit_cam* orbit_cam;
@@ -53,4 +56,3 @@ private:
 };
 
 #endif // ANTKEEPER_TOOL_SYSTEM_HPP
-

@@ -33,25 +33,24 @@ orbit_cam::orbit_cam():
 	clip_near_limits({-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()}),
 	clip_far_limits({-std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()})
 {
-	// Init focal point spring
-	focal_point_spring.v = {0.0f, 0.0f, 0.0f};
+	// Make all springs critically-damped
 	focal_point_spring.z = 1.0f;
-	focal_point_spring.w = 2.0f * math::two_pi<float>;
-	
-	// Init azimuth spring
-	azimuth_spring.v = 0.0f;
 	azimuth_spring.z = 1.0f;
-	azimuth_spring.w = 2.0f * math::two_pi<float>;
-	
-	// Init elevation spring
-	elevation_spring.v = 0.0f;
 	elevation_spring.z = 1.0f;
-	elevation_spring.w = 2.0f * math::two_pi<float>;
-	
-	// Init zoom spring
-	zoom_spring.v = 0.0f;
 	zoom_spring.z = 1.0f;
-	zoom_spring.w = 5.0f * math::two_pi<float>;
+	
+	// Init spring oscillation frequencies to 1 rad/s
+	focal_point_spring.w = math::two_pi<float>;
+	azimuth_spring.w = math::two_pi<float>;
+	elevation_spring.w = math::two_pi<float>;
+	zoom_spring.w = math::two_pi<float>;
+	
+	// Zero spring values and velocities
+	focal_point_spring.x1 = {0.0f, 0.0f, 0.0f};
+	azimuth_spring.x1 = 0.0f;
+	elevation_spring.x1 = 0.0f;
+	zoom_spring.x1 = 0.0f;
+	reset_springs();
 }
 
 orbit_cam::~orbit_cam()
@@ -91,7 +90,6 @@ void orbit_cam::update(float dt)
 	update_transform(transform);
 	
 	// Update camera projection
-	float zoom_factor = 0.0f;
 	update_projection(fov, aspect_ratio, clip_near, clip_far);
 }
 
@@ -117,10 +115,17 @@ void orbit_cam::zoom(float factor)
 
 void orbit_cam::reset_springs()
 {
+	// Reset values
 	focal_point_spring.x0 = focal_point_spring.x1;
 	azimuth_spring.x0 = azimuth_spring.x1;
 	elevation_spring.x0 = elevation_spring.x1;
 	zoom_spring.x0 = zoom_spring.x1;
+	
+	// Reset velocities
+	focal_point_spring.v = {0.0f, 0.0f, 0.0f};
+	azimuth_spring.v = 0.0f;
+	elevation_spring.v = 0.0f;
+	zoom_spring.v = 0.0f;
 }
 
 void orbit_cam::set_aspect_ratio(float ratio)
@@ -196,4 +201,24 @@ void orbit_cam::set_clip_near_limits(const std::array<float, 2>& limits)
 void orbit_cam::set_clip_far_limits(const std::array<float, 2>& limits)
 {
 	clip_far_limits = limits;
+}
+
+void orbit_cam::set_focal_point_oscillation(float frequency)
+{
+	focal_point_spring.w = frequency;
+}
+
+void orbit_cam::set_azimuth_oscillation(float frequency)
+{
+	azimuth_spring.w = frequency;
+}
+
+void orbit_cam::set_elevation_oscillation(float frequency)
+{
+	elevation_spring.w = frequency;
+}
+
+void orbit_cam::set_zoom_oscillation(float frequency)
+{
+	zoom_spring.w = frequency;
 }

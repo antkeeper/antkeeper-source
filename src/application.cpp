@@ -47,6 +47,7 @@ application::application():
 	render_callback(nullptr),
 	fullscreen(true),
 	vsync(true),
+	cursor_visible(true),
 	display_dimensions({0, 0}),
 	window_dimensions({0, 0}),
 	viewport_dimensions({0, 0}),
@@ -358,6 +359,7 @@ void application::set_title(const std::string& title)
 void application::set_cursor_visible(bool visible)
 {
 	SDL_ShowCursor((visible) ? SDL_ENABLE : SDL_DISABLE);
+	cursor_visible = visible;
 }
 
 void application::set_relative_mouse_mode(bool enabled)
@@ -365,13 +367,15 @@ void application::set_relative_mouse_mode(bool enabled)
 	if (enabled)
 	{
 		SDL_GetMouseState(&mouse_position[0], &mouse_position[1]);
+		SDL_ShowCursor(SDL_DISABLE);
+		SDL_SetRelativeMouseMode(SDL_TRUE);
 	}
-
-	SDL_SetRelativeMouseMode((enabled) ? SDL_TRUE : SDL_FALSE);
-
-	if (!enabled)
+	else
 	{
+		SDL_SetRelativeMouseMode(SDL_FALSE);
 		SDL_WarpMouseInWindow(sdl_window, mouse_position[0], mouse_position[1]);
+		if (cursor_visible)
+			SDL_ShowCursor(SDL_ENABLE);
 	}
 }
 

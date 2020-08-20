@@ -838,9 +838,6 @@ void setup_systems(game_context* ctx)
 	ctx->ui_system->set_scene(ctx->ui_scene);
 	ctx->ui_system->set_viewport(viewport);
 	ctx->ui_system->set_tool_menu_control(ctx->control_system->get_tool_menu_control());
-	
-	
-	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->ui_system);
 }
 
 void setup_controls(game_context* ctx)
@@ -999,10 +996,14 @@ void setup_controls(game_context* ctx)
 	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_zoom_in_control(), nullptr, game_controller_axis::trigger_right, false));
 	
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->control_system);
-	event_dispatcher->subscribe<window_resized_event>(ctx->control_system);
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->camera_system);
-	event_dispatcher->subscribe<window_resized_event>(ctx->camera_system);
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->tool_system);
+	event_dispatcher->subscribe<mouse_moved_event>(ctx->ui_system);
+
+	event_dispatcher->subscribe<window_resized_event>(ctx->control_system);
+	event_dispatcher->subscribe<window_resized_event>(ctx->camera_system);
+	event_dispatcher->subscribe<window_resized_event>(ctx->tool_system);	
+	event_dispatcher->subscribe<window_resized_event>(ctx->ui_system);
 }
 
 void setup_cli(game_context* ctx)

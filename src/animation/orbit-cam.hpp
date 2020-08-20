@@ -61,6 +61,11 @@ public:
 	void set_clip_near_limits(const std::array<float, 2>& limits);
 	void set_clip_far_limits(const std::array<float, 2>& limits);
 	
+	void set_focal_point_oscillation(float frequency);
+	void set_azimuth_oscillation(float frequency);
+	void set_elevation_oscillation(float frequency);
+	void set_zoom_oscillation(float frequency);
+	
 	const float3& get_focal_point() const;
 	float get_azimuth() const;
 	float get_elevation() const;

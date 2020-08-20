@@ -145,3 +145,8 @@ void tool_system::handle_event(const mouse_moved_event& event)
 		mouse_position[1] = event.y;
 	}
 }
+
+void tool_system::handle_event(const window_resized_event& event)
+{
+	set_viewport({0.0f, 0.0f, static_cast<float>(event.w), static_cast<float>(event.h)});
+}

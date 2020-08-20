@@ -22,6 +22,7 @@
 
 #include "event/event-handler.hpp"
 #include "event/input-events.hpp"
+#include "event/window-events.hpp"
 #include "scene/scene.hpp"
 #include "scene/camera.hpp"
 #include "scene/directional-light.hpp"
@@ -36,7 +37,8 @@ class scene;
 class resource_manager;
 
 class ui_system:
-	public event_handler<mouse_moved_event>
+	public event_handler<mouse_moved_event>,
+	public event_handler<window_resized_event>
 {
 public:
 	ui_system(::resource_manager* resource_manager);
@@ -51,6 +53,7 @@ public:
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
+	virtual void handle_event(const window_resized_event& event);
 	
 	void update_projection();
 	
@@ -82,4 +85,3 @@ private:
 };
 
 #endif // ANTKEEPER_UI_SYSTEM_HPP
-

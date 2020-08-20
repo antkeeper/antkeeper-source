@@ -45,8 +45,12 @@ camera_system::camera_system(entt::registry& registry):
 	orbit_cam.set_target_elevation(math::radians(45.0f));
 	orbit_cam.set_target_zoom(0.0f);
 	
+	orbit_cam.set_focal_point_oscillation(hz_to_rads(8.0f));
+	orbit_cam.set_azimuth_oscillation(hz_to_rads(2.0f));
+	orbit_cam.set_elevation_oscillation(hz_to_rads(2.0f));
+	orbit_cam.set_zoom_oscillation(hz_to_rads(5.0f));
+	
 	orbit_cam.reset_springs();
-
 }
 
 void camera_system::update(double t, double dt)
@@ -66,8 +70,11 @@ void camera_system::update(double t, double dt)
 	if (subject_count > 1)
 		target_focal_point /= static_cast<float>(subject_count);
 	
+	// Focus at ant's head height off the ground.
 	target_focal_point.y += 0.2f;
 	
+	// Check for collision with environment
+	//...
 	
 	orbit_cam.set_target_focal_point(target_focal_point);
 	orbit_cam.update(static_cast<float>(dt));

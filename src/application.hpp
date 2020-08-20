@@ -205,6 +205,7 @@ private:
 	render_callback_type render_callback;
 	bool fullscreen;
 	bool vsync;
+	bool cursor_visible;
 	std::array<int, 2> display_dimensions;
 	std::array<int, 2> window_dimensions;
 	std::array<int, 2> viewport_dimensions;

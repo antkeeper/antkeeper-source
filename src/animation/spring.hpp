@@ -66,6 +66,24 @@ void spring(T& x0, T& v, const T& x1, S z, S w, S dt);
 template <typename T, typename S>
 void solve_numeric_spring(numeric_spring<T, S>& ns, S dt);
 
+/**
+ * Converts a frequency from hertz to radians per second.
+ *
+ * @param hz Frequency in hertz.
+ * @return Frequency in radians per second.
+ */
+template <typename T>
+T hz_to_rads(T hz);
+
+/**
+ * Converts a frequency from radians per second to hertz.
+ *
+ * @param rads Frequency in radians per second.
+ * @return Frequency in hertz.
+ */
+template <typename T>
+T rads_to_hz(T rads);
+
 template <typename T, typename S>
 void spring(T& x0, T& v, const T& x1, S z, S w, S dt)
 {
@@ -84,6 +102,18 @@ template <typename T, typename S>
 void solve_numeric_spring(numeric_spring<T, S>& ns, S dt)
 {
 	spring(ns.x0, ns.v, ns.x1, ns.z, ns.w, dt);
+}
+
+template <typename T>
+inline T hz_to_rads(T hz)
+{
+	return hz * math::two_pi<T>;
+}
+
+template <typename T>
+inline T rads_to_hz(T rads)
+{
+	return rads / math::two_pi<T>;
 }
 
 #endif // ANTKEEPER_SPRING_HPP
