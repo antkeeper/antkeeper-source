@@ -17,17 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_CAMERA_SUBJECT_COMPONENT_HPP
-#define ANTKEEPER_ECS_CAMERA_SUBJECT_COMPONENT_HPP
+#ifndef ANTKEEPER_ECS_CAMERA_FOLLOW_COMPONENT_HPP
+#define ANTKEEPER_ECS_CAMERA_FOLLOW_COMPONENT_HPP
 
 namespace ecs {
 
-struct camera_subject_component
+struct camera_follow_component
 {
 	
 };
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_CAMERA_SUBJECT_COMPONENT_HPP
+#endif // ANTKEEPER_ECS_CAMERA_FOLLOW_COMPONENT_HPP
 

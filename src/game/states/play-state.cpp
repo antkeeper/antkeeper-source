@@ -31,7 +31,7 @@
 #include "game/components/terrain-component.hpp"
 #include "game/components/tool-component.hpp"
 #include "game/components/transform-component.hpp"
-#include "game/components/camera-subject-component.hpp"
+#include "game/components/camera-follow-component.hpp"
 #include "game/entity-commands.hpp"
 #include "game/game-context.hpp"
 #include "game/states/game-states.hpp"
@@ -48,14 +48,20 @@
 #include "game/systems/camera-system.hpp"
 #include "game/systems/render-system.hpp"
 #include "utility/fundamental-types.hpp"
+#include "utility/gamma.hpp"
 
 void play_state_enter(game_context* ctx)
 {
 	logger* logger = ctx->logger;
 	logger->push_task("Entering play state");
 
-	// Enable sky pass
-	ctx->overworld_sky_pass->set_enabled(true);
+	// Set up sky pass
+	sky_pass* sky_pass = ctx->overworld_sky_pass;
+	sky_pass->set_enabled(true);
+	sky_pass->set_sun_angular_radius(math::radians<float>(3.0f));
+	sky_pass->set_sun_color({2.0f, 2.0f, 2.0f});
+	sky_pass->set_horizon_color(to_linear(float3{81.0f, 162.0f, 219.0f} / 255.0f));
+	sky_pass->set_zenith_color(to_linear(float3{7.0f, 134.0f, 206.0f} / 255.0f));
 
 	resource_manager* resource_manager = ctx->resource_manager;
 	entt::registry& ecs_registry = *ctx->ecs_registry;
@@ -162,7 +168,7 @@ void play_state_enter(game_context* ctx)
 	ecs::transform_component focal_point_transform;
 	focal_point_transform.transform = math::identity_transform<float>;
 	focal_point_transform.warp = true;
-	ecs::camera_subject_component focal_point_subject;
+	ecs::camera_follow_component focal_point_follow;
 	ecs::snap_component focal_point_snap;
 	focal_point_snap.ray = {float3{0, 10000, 0}, float3{0, -1, 0}};
 	focal_point_snap.warp = false;
@@ -170,7 +176,7 @@ void play_state_enter(game_context* ctx)
 	focal_point_snap.autoremove = false;
 	
 	ecs_registry.assign_or_replace<ecs::transform_component>(ctx->focal_point_entity, focal_point_transform);
-	ecs_registry.assign_or_replace<ecs::camera_subject_component>(ctx->focal_point_entity, focal_point_subject);
+	ecs_registry.assign_or_replace<ecs::camera_follow_component>(ctx->focal_point_entity, focal_point_follow);
 	ecs_registry.assign_or_replace<ecs::snap_component>(ctx->focal_point_entity, focal_point_snap);
 
 	// Setup camera

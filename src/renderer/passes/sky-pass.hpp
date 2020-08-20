@@ -21,6 +21,7 @@
 #define ANTKEEPER_SKY_PASS_HPP
 
 #include "renderer/render-pass.hpp"
+#include "utility/fundamental-types.hpp"
 
 class shader_program;
 class shader_input;
@@ -38,20 +39,28 @@ public:
 	sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~sky_pass();
 	virtual void render(render_context* context) const final;
+	
+	void set_sun_angular_radius(float angle);
+	void set_sun_color(const float3& color);
+	void set_horizon_color(const float3& color);
+	void set_zenith_color(const float3& color);
 
 private:
 	shader_program* shader_program;
 	const shader_input* matrix_input;
 	const shader_input* sun_direction_input;
 	const shader_input* sun_angular_radius_input;
-	const shader_input* sky_gradient_input;
-	const shader_input* bayer_matrix_input;
+	const shader_input* sun_color_input;
+	const shader_input* horizon_color_input;
+	const shader_input* zenith_color_input;
 
 	vertex_buffer* quad_vbo;
 	vertex_array* quad_vao;
-	texture_2d* sky_gradient;
-	texture_2d* bayer_matrix;
+
+	float sun_angular_radius;
+	float3 sun_color;
+	float3 horizon_color;
+	float3 zenith_color;
 };
 
 #endif // ANTKEEPER_SKY_PASS_HPP
-

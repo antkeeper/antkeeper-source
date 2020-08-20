@@ -18,7 +18,7 @@
  */
 
 #include "camera-system.hpp"
-#include "game/components/camera-subject-component.hpp"
+#include "game/components/camera-follow-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "scene/camera.hpp"
 #include "math/math.hpp"
@@ -34,7 +34,8 @@ camera_system::camera_system(entt::registry& registry):
 	viewport{0, 0, 0, 0},
 	mouse_position{0, 0}
 {
-	orbit_cam.set_elevation_limits({math::radians(5.0f), math::radians(89.0f)});
+	//orbit_cam.set_elevation_limits({math::radians(5.0f), math::radians(89.0f)});
+	orbit_cam.set_elevation_limits({math::radians(-89.0f), math::radians(89.0f)});
 	orbit_cam.set_focal_distance_limits({2.0f, 200.0f});
 	orbit_cam.set_fov_limits({math::radians(80.0f), math::radians(35.0f)});
 	orbit_cam.set_clip_near_limits({0.1f, 5.0f});
@@ -61,8 +62,8 @@ void camera_system::update(double t, double dt)
 	// Determine target focal point
 	int subject_count = 0;
 	float3 target_focal_point = {0, 0, 0};
-	registry.view<camera_subject_component, transform_component>().each(
-		[&](auto entity, auto& subject, auto& transform)
+	registry.view<camera_follow_component, transform_component>().each(
+		[&](auto entity, auto& follow, auto& transform)
 		{
 			target_focal_point += transform.transform.translation;
 			++subject_count;
