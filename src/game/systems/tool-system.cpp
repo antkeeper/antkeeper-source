@@ -22,7 +22,7 @@
 #include "game/components/tool-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "scene/camera.hpp"
-#include "orbit-cam.hpp"
+#include "animation/orbit-cam.hpp"
 #include "geometry/mesh.hpp"
 #include "geometry/intersection.hpp"
 #include "math/math.hpp"
@@ -35,7 +35,8 @@ tool_system::tool_system(entt::registry& registry):
 	orbit_cam(orbit_cam),
 	viewport{0, 0, 0, 0},
 	mouse_position{0, 0},
-	pick_enabled(true)
+	pick_enabled(true),
+	was_pick_enabled(pick_enabled)
 {}
 
 void tool_system::update(double t, double dt)
@@ -106,12 +107,14 @@ void tool_system::update(double t, double dt)
 
 			if (intersection)
 			{
-				transform.transform.translation = pick;
+			transform.transform.translation = pick + float3{0, 15, 0};
 			}
 
 			math::quaternion<float> rotation = math::angle_axis(orbit_cam->get_azimuth() + pick_angle, float3{0, 1, 0});
 			transform.transform.rotation = rotation;
 		});
+	
+	was_pick_enabled = pick_enabled;
 }
 
 void tool_system::set_camera(const ::camera* camera)
@@ -136,7 +139,7 @@ void tool_system::set_pick(bool enabled)
 
 void tool_system::handle_event(const mouse_moved_event& event)
 {
-	if (pick_enabled)
+	if (pick_enabled && was_pick_enabled)
 	{
 		mouse_position[0] = event.x;
 		mouse_position[1] = event.y;

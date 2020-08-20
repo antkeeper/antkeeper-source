@@ -47,7 +47,7 @@ template <class T>
 T radians(T degrees);
 
 /**
- * Wraps an angle on [-180, 180].
+ * Wraps an angle to [-180, 180].
  *
  * @param degrees Angle in degrees.
  * @return Wrapped angle.
@@ -56,7 +56,7 @@ template <class T>
 T wrap_degrees(T degrees);
 
 /**
- * Wraps an angle on [-pi, pi].
+ * Wraps an angle to [-pi, pi].
  *
  * @param radians Angle in radians.
  * @return Wrapped angle.

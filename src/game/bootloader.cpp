@@ -81,7 +81,6 @@
 #include "input/game-controller.hpp"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
-#include "orbit-cam.hpp"
 #include "pheromone-matrix.hpp"
 #include "configuration.hpp"
 #include "input/scancode.hpp"
@@ -457,10 +456,10 @@ void setup_rendering(game_context* ctx)
 	ctx->shadow_map_framebuffer = new framebuffer(shadow_map_resolution, shadow_map_resolution);
 	ctx->shadow_map_framebuffer->attach(framebuffer_attachment_type::depth, ctx->shadow_map_depth_texture);
 	
-	// Create bloom pingpong framebuffers (32F color, no depth)
+	// Create bloom pingpong framebuffers (16F color, no depth)
 	int bloom_width = viewport_dimensions[0] >> 1;
 	int bloom_height = viewport_dimensions[1] >> 1;
-	ctx->bloom_texture = new texture_2d(bloom_width, bloom_height, pixel_type::float_32, pixel_format::rgb);
+	ctx->bloom_texture = new texture_2d(bloom_width, bloom_height, pixel_type::float_16, pixel_format::rgb);
 	ctx->bloom_texture->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
 	ctx->bloom_texture->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
 	ctx->bloom_texture->set_max_anisotropy(0.0f);
@@ -486,8 +485,8 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_bloom_pass = new bloom_pass(ctx->rasterizer, ctx->framebuffer_bloom, ctx->resource_manager);
 	ctx->overworld_bloom_pass->set_source_texture(ctx->framebuffer_hdr_color);
 	ctx->overworld_bloom_pass->set_brightness_threshold(1.0f);
-	ctx->overworld_bloom_pass->set_blur_iterations(4);
-	ctx->overworld_bloom_pass->set_enabled(false);
+	ctx->overworld_bloom_pass->set_blur_iterations(5);
+	ctx->overworld_bloom_pass->set_enabled(true);
 	ctx->overworld_final_pass = new ::final_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), ctx->resource_manager);
 	ctx->overworld_final_pass->set_color_texture(ctx->framebuffer_hdr_color);
 	ctx->overworld_final_pass->set_bloom_texture(ctx->bloom_texture);
@@ -562,6 +561,10 @@ void setup_scenes(game_context* ctx)
 	// Get default framebuffer
 	const auto& viewport_dimensions = ctx->rasterizer->get_default_framebuffer().get_dimensions();
 	float viewport_aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
+	
+	// Create infinite culling mask
+	float inf = std::numeric_limits<float>::infinity();
+	ctx->no_cull = {{-inf, -inf, -inf}, {inf, inf, inf}};
 	
 	// Setup overworld camera
 	ctx->overworld_camera = new camera();
@@ -755,9 +758,6 @@ void setup_systems(game_context* ctx)
 	const auto& viewport_dimensions = ctx->app->get_viewport_dimensions();
 	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_dimensions[0]), static_cast<float>(viewport_dimensions[1])};
 	
-	ctx->orbit_cam = new orbit_cam();
-	ctx->orbit_cam->attach(ctx->overworld_camera);
-	
 	// Setup terrain system
 	ctx->terrain_system = new ::terrain_system(*ctx->ecs_registry, ctx->resource_manager);
 	ctx->terrain_system->set_patch_size(TERRAIN_PATCH_SIZE);
@@ -770,15 +770,15 @@ void setup_systems(game_context* ctx)
 	ctx->vegetation_system->set_vegetation_model(ctx->resource_manager->load<model>("grass-tuft.obj"));
 	ctx->vegetation_system->set_scene(ctx->overworld_scene);
 	
-	// Setup tool system
-	ctx->tool_system = new tool_system(*ctx->ecs_registry);
-	ctx->tool_system->set_camera(ctx->overworld_camera);
-	ctx->tool_system->set_orbit_cam(ctx->orbit_cam);
-	ctx->tool_system->set_viewport(viewport);
-	
 	// Setup camera system
 	ctx->camera_system = new camera_system(*ctx->ecs_registry);
 	ctx->camera_system->set_viewport(viewport);
+	
+	// Setup tool system
+	ctx->tool_system = new tool_system(*ctx->ecs_registry);
+	ctx->tool_system->set_camera(ctx->overworld_camera);
+	ctx->tool_system->set_orbit_cam(ctx->camera_system->get_orbit_cam());
+	ctx->tool_system->set_viewport(viewport);
 	
 	// Setup subterrain system
 	ctx->subterrain_system = new ::subterrain_system(*ctx->ecs_registry, ctx->resource_manager);
@@ -822,7 +822,6 @@ void setup_systems(game_context* ctx)
 	
 	// Setup control system
 	ctx->control_system = new ::control_system(*ctx->ecs_registry);
-	ctx->control_system->set_orbit_cam(ctx->orbit_cam);
 	ctx->control_system->set_viewport(viewport);
 	ctx->control_system->set_underworld_camera(ctx->underworld_camera);
 	ctx->control_system->set_tool(nullptr);
@@ -891,12 +890,12 @@ void setup_controls(game_context* ctx)
 	ctx->rotate_ccw_control = new control();
 	ctx->rotate_ccw_control->set_activated_callback
 	(
-		std::bind(&camera_system::rotate, ctx->camera_system, math::radians(-90.0f))
+		std::bind(&camera_system::pan, ctx->camera_system, math::radians(-90.0f))
 	);
 	ctx->rotate_cw_control = new control();
 	ctx->rotate_cw_control->set_activated_callback
 	(
-		std::bind(&camera_system::rotate, ctx->camera_system, math::radians(90.0f))
+		std::bind(&camera_system::pan, ctx->camera_system, math::radians(90.0f))
 	);
 	
 	// Create menu back control
@@ -1050,7 +1049,7 @@ void setup_callbacks(game_context* ctx)
 			ctx->tool_system->update(t, dt);
 			ctx->constraint_system->update(t, dt);
 			
-			(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
+			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			
 			ctx->ui_system->update(dt);
 			ctx->render_system->update(t, dt);

@@ -46,6 +46,7 @@
 #include "scene/camera.hpp"
 #include "game/systems/control-system.hpp"
 #include "game/systems/camera-system.hpp"
+#include "game/systems/render-system.hpp"
 #include "utility/fundamental-types.hpp"
 
 void play_state_enter(game_context* ctx)
@@ -64,7 +65,7 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* maple_tree_archetype = resource_manager->load<ecs::archetype>("maple-tree.ent");
 	ecs::archetype* nest_archetype = resource_manager->load<ecs::archetype>("harvester-nest.ent");
 	ecs::archetype* samara_archetype = resource_manager->load<ecs::archetype>("samara.ent");
-	ecs::archetype* forceps_archetype = resource_manager->load<ecs::archetype>("forceps.ent");
+	ecs::archetype* forceps_archetype = resource_manager->load<ecs::archetype>("lens.ent");
 	ecs::archetype* larva_archetype = resource_manager->load<ecs::archetype>("larva.ent");
 	ecs::archetype* pebble_archetype = resource_manager->load<ecs::archetype>("pebble.ent");
 	
@@ -175,13 +176,7 @@ void play_state_enter(game_context* ctx)
 	// Setup camera
 	ctx->overworld_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
 	ctx->camera_system->set_camera(ctx->overworld_camera);
-	ctx->camera_system->set_azimuth(0.0f);
-	ctx->camera_system->set_elevation(math::radians(45.0f));
-	ctx->camera_system->set_zoom(0.0f);
-	ctx->camera_system->set_focal_distance(2.0f, 200.0f);
-	ctx->camera_system->set_fov(math::radians(80.0f), math::radians(35.0f));
-	ctx->camera_system->set_clip_near(1.0f, 5.0f);
-	ctx->camera_system->set_clip_far(100.0f, 2000.0f);
+
 
 
 	// Create forceps tool
@@ -189,6 +184,11 @@ void play_state_enter(game_context* ctx)
 	ecs::tool_component forceps_tool_component;
 	forceps_tool_component.active = true;
 	ecs_registry.assign<ecs::tool_component>(forceps_entity, forceps_tool_component);
+	model_instance* forceps_model_instance = ctx->render_system->get_model_instance(forceps_entity);
+	if (forceps_model_instance)
+	{
+		forceps_model_instance->set_culling_mask(&ctx->no_cull);
+	}
 
 	ctx->overworld_scene->update_tweens();
 

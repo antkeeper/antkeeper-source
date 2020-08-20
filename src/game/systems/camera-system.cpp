@@ -20,9 +20,9 @@
 #include "camera-system.hpp"
 #include "game/components/camera-subject-component.hpp"
 #include "game/components/transform-component.hpp"
-#include "animation/spring.hpp"
 #include "scene/camera.hpp"
 #include "math/math.hpp"
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -34,25 +34,19 @@ camera_system::camera_system(entt::registry& registry):
 	viewport{0, 0, 0, 0},
 	mouse_position{0, 0}
 {
-	// Init azimuth spring constraint
-	azimuth_spring.v = 0.0f;
-	azimuth_spring.z = 1.0f;
-	azimuth_spring.w = 2.0f * math::two_pi<float>;
+	orbit_cam.set_elevation_limits({math::radians(5.0f), math::radians(89.0f)});
+	orbit_cam.set_focal_distance_limits({2.0f, 200.0f});
+	orbit_cam.set_fov_limits({math::radians(80.0f), math::radians(35.0f)});
+	orbit_cam.set_clip_near_limits({0.1f, 5.0f});
+	orbit_cam.set_clip_far_limits({100.0f, 2000.0f});
 	
-	// Init elevation spring constraint
-	elevation_spring.v = 0.0f;
-	elevation_spring.z = 1.0f;
-	elevation_spring.w = 2.0f * math::two_pi<float>;
+	orbit_cam.set_target_focal_point({0.0f, 0.0f, 0.0f});
+	orbit_cam.set_target_azimuth(0.0f);
+	orbit_cam.set_target_elevation(math::radians(45.0f));
+	orbit_cam.set_target_zoom(0.0f);
 	
-	// Init focal distance spring constraint
-	focal_distance_spring.v = 0.0f;
-	focal_distance_spring.z = 1.0f;
-	focal_distance_spring.w = 5.0f * math::two_pi<float>;
-	
-	// Init fov spring constraint
-	fov_spring.v = 0.0f;
-	fov_spring.z = 1.0f;
-	fov_spring.w = 5.0f * math::two_pi<float>;
+	orbit_cam.reset_springs();
+
 }
 
 void camera_system::update(double t, double dt)
@@ -72,124 +66,45 @@ void camera_system::update(double t, double dt)
 	if (subject_count > 1)
 		target_focal_point /= static_cast<float>(subject_count);
 	
-	// Get source transform
-	transform_type source_transform = camera->get_transform();
+	target_focal_point.y += 0.2f;
 	
-	// Solve azimuth spring
-	float2 xz_direction = math::normalize(math::swizzle<0, 2>(target_focal_point) - math::swizzle<0, 2>(source_transform.translation));	
-	azimuth_spring.x0 = math::wrap_radians(std::atan2(-xz_direction.y, xz_direction.x) - math::half_pi<float>);
-	azimuth_spring.x1 = azimuth_spring.x0 + math::wrap_radians(azimuth_spring.x1 - azimuth_spring.x0);
-	solve_spring_constraint<float, float>(azimuth_spring, dt);
 	
-	// Sovle elevation spring
-	elevation_spring.x0 = elevation;
-	elevation_spring.x1 = elevation_spring.x0 + math::wrap_radians(elevation_spring.x1 - elevation_spring.x0);
-	solve_spring_constraint<float, float>(elevation_spring, dt);
-	
-	// Solve focal distance spring
-	focal_distance_spring.x0 = math::length(source_transform.translation - target_focal_point);
-	solve_spring_constraint<float, float>(focal_distance_spring, dt);
-	
-	// Solve FOV spring
-	fov_spring.x0 = camera->get_fov();
-	solve_spring_constraint<float, float>(fov_spring, dt);
-	
-	// Determine camera rotation
-	quaternion_type smooth_azimuth_rotation = math::angle_axis(azimuth_spring.x0, float3{0.0f, 1.0f, 0.0f});
-	quaternion_type smooth_elevation_rotation = math::angle_axis(elevation_spring.x0, float3{-1.0f, 0.0f, 0.0f});
-	quaternion_type smooth_rotation = math::normalize(smooth_azimuth_rotation * smooth_elevation_rotation);
-	
-	// Determine camera view point
-	float3 smooth_view_point = target_focal_point + smooth_rotation * float3{0.0f, 0.0f, focal_distance_spring.x0};
-
-	// Update camera transform
-	transform_type smooth_transform;
-	smooth_transform.translation = smooth_view_point;
-	smooth_transform.rotation = smooth_rotation;
-	smooth_transform.scale = source_transform.scale;
-	camera->set_transform(smooth_transform);
-	
-	// Determine aspect ratio
-	float aspect_ratio = viewport[2] / viewport[3];
-	
-	// Determine clipping planes
-	float clip_near = math::log_lerp<float>(near_clip_far, near_clip_near, zoom_factor);
-	float clip_far = math::log_lerp<float>(far_clip_far, far_clip_near, zoom_factor);
-	
-	// Update camera projection
-	camera->set_perspective(fov_spring.x0, aspect_ratio, clip_near, clip_far);
+	orbit_cam.set_target_focal_point(target_focal_point);
+	orbit_cam.update(static_cast<float>(dt));
 }
 
-void camera_system::rotate(float angle)
+void camera_system::pan(float angle)
 {
-	set_azimuth(azimuth + angle);
+	orbit_cam.pan(angle);
 }
 
 void camera_system::tilt(float angle)
 {
-	set_elevation(elevation + angle);
+	orbit_cam.tilt(angle);
 }
 
 void camera_system::zoom(float factor)
 {
-	set_zoom(zoom_factor + factor);
+	orbit_cam.zoom(factor);
 }
 
 void camera_system::set_camera(::camera* camera)
 {
 	this->camera = camera;
+	if (camera)
+	{
+		orbit_cam.attach(camera);
+	}
+	else
+	{
+		orbit_cam.detach();
+	}
 }
 
 void camera_system::set_viewport(const float4& viewport)
 {
 	this->viewport = viewport;
-}
-
-void camera_system::set_azimuth(float angle)
-{
-	azimuth = math::wrap_radians(angle);
-	azimuth_rotation = math::angle_axis(azimuth, float3{0.0f, 1.0f, 0.0f});
-	azimuth_spring.x1 = azimuth;
-}
-
-void camera_system::set_elevation(float angle)
-{
-	elevation = math::wrap_radians(angle);
-	elevation_rotation = math::angle_axis(elevation, float3{-1.0f, 0.0f, 0.0f});
-	elevation_spring.x1 = elevation;
-}
-
-void camera_system::set_zoom(float factor)
-{
-	this->zoom_factor = std::max<float>(0.0f, std::min<float>(1.0f, factor));
-	update_focal_distance();
-	update_fov();
-}
-
-void camera_system::set_focal_distance(float distance_near, float distance_far)
-{
-	focal_distance_near = distance_near;
-	focal_distance_far = distance_far;
-	update_focal_distance();
-}
-
-void camera_system::set_fov(float angle_near, float angle_far)
-{
-	fov_near = angle_near;
-	fov_far = angle_far;
-	update_fov();
-}
-
-void camera_system::set_clip_near(float distance_near, float distance_far)
-{
-	near_clip_near = distance_near;
-	near_clip_far = distance_far;
-}
-
-void camera_system::set_clip_far(float distance_near, float distance_far)
-{
-	far_clip_near = distance_near;
-	far_clip_far = distance_far;
+	orbit_cam.set_aspect_ratio(viewport[2] / viewport[3]);
 }
 
 void camera_system::handle_event(const mouse_moved_event& event)
@@ -201,16 +116,4 @@ void camera_system::handle_event(const mouse_moved_event& event)
 void camera_system::handle_event(const window_resized_event& event)
 {
 	set_viewport({0.0f, 0.0f, static_cast<float>(event.w), static_cast<float>(event.h)});
-}
-
-void camera_system::update_focal_distance()
-{
-	focal_distance = math::log_lerp<float>(focal_distance_far, focal_distance_near, zoom_factor);
-	focal_distance_spring.x1 = focal_distance;
-}
-
-void camera_system::update_fov()
-{
-	fov = math::log_lerp<float>(fov_far, fov_near, zoom_factor);
-	fov_spring.x1 = fov;
 }

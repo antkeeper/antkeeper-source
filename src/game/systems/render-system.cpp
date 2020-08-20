@@ -78,6 +78,13 @@ void render_system::set_renderer(::renderer* renderer)
 	this->renderer = renderer;
 }
 
+model_instance* render_system::get_model_instance(entt::entity entity)
+{
+	if (auto it = model_instances.find(entity); it != model_instances.end())
+		return it->second;
+	return nullptr;
+}
+
 void render_system::update_model_and_materials(entt::entity entity, model_component& model)
 {
 	if (auto model_it = model_instances.find(entity); model_it != model_instances.end())

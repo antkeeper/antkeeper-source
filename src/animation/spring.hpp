@@ -27,9 +27,10 @@
  * @tparam S Scalar type.
  *
  * @see spring()
+ * @see solve_numeric_spring()
  */
 template <typename T, typename S>
-struct spring_constraint
+struct numeric_spring
 {
 	T x0; ///< Start value
 	T x1; ///< End value
@@ -55,13 +56,15 @@ template <typename T, typename S>
 void spring(T& x0, T& v, const T& x1, S z, S w, S dt);
 
 /**
- * Solves a spring constraint using the spring() function.
+ * Solves a numeric spring using the spring() function.
  *
- * @param[in,out] constraint Spring constraint to be sovled.
+ * @param[in,out] ns Numeric spring to be sovled.
  * @param dt Delta time, in seconds.
+ *
+ * @see spring()
  */
 template <typename T, typename S>
-void solve_spring_constraint(spring_constraint<T, S>& constraint, S dt);
+void solve_numeric_spring(numeric_spring<T, S>& ns, S dt);
 
 template <typename T, typename S>
 void spring(T& x0, T& v, const T& x1, S z, S w, S dt)
@@ -78,9 +81,9 @@ void spring(T& x0, T& v, const T& x1, S z, S w, S dt)
 }
 
 template <typename T, typename S>
-void solve_spring_constraint(spring_constraint<T, S>& constraint, S dt)
+void solve_numeric_spring(numeric_spring<T, S>& ns, S dt)
 {
-	spring(constraint.x0, constraint.v, constraint.x1, constraint.z, constraint.w, dt);
+	spring(ns.x0, ns.v, ns.x1, ns.z, ns.w, dt);
 }
 
 #endif // ANTKEEPER_SPRING_HPP

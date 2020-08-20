@@ -52,27 +52,16 @@ public:
 	void attach(::camera* camera);
 	
 	/**
-	 * Detaches a camera from the rig.
+	 * Detaches the camera from the rig.
 	 */
 	void detach();
 	
-	/**
-	 * Sets the translation of the camera rig.
-	 */
-	void set_translation(const float3& translation);
-	
-	/**
-	 * Sets the rotation of the camera rig.
-	 */
-	void set_rotation(const quaternion_type& rotation);
+
 	
 	/**
 	 * Returns the attached camera.
 	 */
 	const ::camera* get_camera() const;
-	
-	/// @copydoc camera_rig::get_camera() const
-	::camera* get_camera();
 	
 	const float3& get_translation() const;
 	const quaternion_type& get_rotation() const;
@@ -80,10 +69,18 @@ public:
 	const float3& get_right() const;
 	const float3& get_up() const;
 
+protected:
+	/**
+	 * Updates the transform of the camera
+	 */
+	void update_transform(const transform_type& transform);
+	
+	void update_projection(float fov, float aspect_ratio, float clip_near, float clip_far);
+	void update_projection(float clip_left, float clip_right, float clip_bottom, float clip_top, float clip_near, float clip_far);
+
 private:
 	camera* camera;
-	float3 translation;
-	quaternion_type rotation;
+	transform_type transform;
 	float3 forward;
 	float3 right;
 	float3 up;
@@ -94,19 +91,14 @@ inline const camera* camera_rig::get_camera() const
 	return camera;
 }
 
-inline camera* camera_rig::get_camera()
-{
-	return camera;
-}
-
 inline const float3& camera_rig::get_translation() const
 {
-	return translation;
+	return transform.translation;
 }
 
 inline const typename camera_rig::quaternion_type& camera_rig::get_rotation() const
 {
-	return rotation;
+	return transform.rotation;
 }
 
 inline const float3& camera_rig::get_forward() const

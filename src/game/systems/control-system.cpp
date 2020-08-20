@@ -19,7 +19,6 @@
 
 #include "control-system.hpp"
 #include "input/control.hpp"
-#include "orbit-cam.hpp"
 #include "scene/camera.hpp"
 #include "geometry/intersection.hpp"
 #include "animation/ease.hpp"
@@ -27,6 +26,7 @@
 #include "math/math.hpp"
 #include "game/entity-commands.hpp"
 #include "game/systems/camera-system.hpp"
+#include "animation/orbit-cam.hpp"
 
 control_system::control_system(entt::registry& registry):
 	entity_system(registry),
@@ -74,7 +74,6 @@ control_system::control_system(entt::registry& registry):
 	far_clip_far = 2000.0f;
 
 	nest = nullptr;
-	orbit_cam = nullptr;
 	
 	mouse_angle = 0.0f;
 	old_mouse_angle = mouse_angle;
@@ -85,6 +84,8 @@ control_system::control_system(entt::registry& registry):
 
 void control_system::update(double t, double dt)
 {
+	timestep = dt;
+	
 	// Zoom camera
 	if (zoom_in_control.is_active())
 		camera_system->zoom(zoom_speed * dt);
@@ -104,12 +105,15 @@ void control_system::update(double t, double dt)
 	
 	if (math::length_squared(movement) != 0.0f)
 	{
-		float max_speed = 100.0f * dt;
+		std::array<float, 2> speed_limits = {15.0f, 100.0f};
+		
+		float zoom = camera_system->get_orbit_cam()->get_zoom();
+		float max_speed = math::log_lerp(speed_limits[1], speed_limits[0], zoom) * dt;
+		
 		float speed = std::min<float>(max_speed, math::length(movement * max_speed));
 		movement = math::normalize(movement) * speed;
 		
-		float azimuth = camera_system->get_azimuth_spring().x0;
-		math::quaternion<float> azimuth_rotation = math::angle_axis(azimuth, float3{0.0f, 1.0f, 0.0f});
+		const math::quaternion<float>& azimuth_rotation = camera_system->get_orbit_cam()->get_azimuth_rotation();
 		movement = azimuth_rotation * movement;
 		
 		ec::translate(registry, camera_subject_eid, movement);
@@ -148,139 +152,6 @@ void control_system::update(double t, double dt)
 			}
 		}
 	}
-}
-
-/*
-void control_system::update(double t, double dt)
-{
-	this->timestep = dt;
-
-	if (adjust_camera_control.is_active() && !adjust_camera_control.was_active())
-	{
-	}
-
-	// Determine zoom
-	if (zoom_in_control.is_active())
-		zoom += zoom_speed * dt * zoom_in_control.get_current_value();
-	if (zoom_out_control.is_active())
-		zoom -= zoom_speed * dt * zoom_out_control.get_current_value();
-	zoom = std::max<float>(0.0f, std::min<float>(1.0f, zoom));
-
-	float focal_distance = math::log_lerp<float>(near_focal_distance, far_focal_distance, 1.0f - zoom);
-
-	float fov = math::log_lerp<float>(near_fov, far_fov, 1.0f - zoom);
-
-	//float elevation_factor = (orbit_cam->get_target_elevation() - min_elevation) / max_elevation;
-	//fov = math::log_lerp<float>(near_fov, far_fov, elevation_factor);
-	float clip_near = math::log_lerp<float>(near_clip_near, far_clip_near, 1.0f - zoom);
-	float clip_far = math::log_lerp<float>(near_clip_far, far_clip_far, 1.0f - zoom);
-	float movement_speed = math::log_lerp<float>(near_movement_speed * dt, far_movement_speed * dt, 1.0f - zoom);
-
-	orbit_cam->set_target_focal_distance(focal_distance);
-	orbit_cam->get_camera()->set_perspective(fov, orbit_cam->get_camera()->get_aspect_ratio(), clip_near, clip_far);
-
-	const float rotation_speed = 2.0f * dt;
-	float rotation = 0.0f;
-	if (rotate_ccw_control.is_active())
-		rotation += rotate_ccw_control.get_current_value() * rotation_speed;
-	if (rotate_cw_control.is_active())
-		rotation -= rotate_cw_control.get_current_value() * rotation_speed;
-	if (rotation)
-	{
-		orbit_cam->rotate(rotation);
-	}
-
-	const float tilt_speed = 2.0f * dt;
-	float tilt = 0.0f;
-	if (tilt_up_control.is_active())
-		tilt -= tilt_up_control.get_current_value() * tilt_speed;
-	if (tilt_down_control.is_active())
-		tilt += tilt_down_control.get_current_value() * tilt_speed;
-	if (tilt)
-	{
-		orbit_cam->tilt(tilt);
-		float elevation = orbit_cam->get_target_elevation();
-		elevation = std::min<float>(max_elevation, std::max<float>(min_elevation, elevation));
-		orbit_cam->set_target_elevation(elevation);
-	}
-
-	float2 movement{0.0f, 0.0f};
-	if (move_right_control.is_active())
-		movement[0] += move_right_control.get_current_value();
-	if (move_left_control.is_active())
-		movement[0] -= move_left_control.get_current_value();
-	if (move_forward_control.is_active())
-		movement[1] -= move_forward_control.get_current_value();
-	if (move_back_control.is_active())
-		movement[1] += move_back_control.get_current_value();
-	
-	const float deadzone = 0.01f;
-	float magnitude_squared = math::length_squared(movement);
-
-	if (magnitude_squared > deadzone)
-	{
-		if (magnitude_squared > 1.0f)
-		{
-			movement = math::normalize(movement);
-		}
-
-		orbit_cam->move(movement * movement_speed);
-	}
-
-	float ascention = 0.0f;
-	if (ascend_control.is_active())
-		ascention += ascend_control.get_current_value();
-	if (descend_control.is_active())
-		ascention -= descend_control.get_current_value();
-	
-	if (ascention)
-	{
-		float old_depth = -orbit_cam->get_target_focal_point()[1];
-		
-		orbit_cam->set_target_focal_point(orbit_cam->get_target_focal_point() + float3{0.0f, ascention * movement_speed, 0.0f});
-
-		if (nest)
-		{
-			float3 focal_point = orbit_cam->get_target_focal_point();
-			float depth = -focal_point[1];
-			
-			float delta_shaft_angle = nest->get_shaft_angle(*nest->get_central_shaft(), depth) - nest->get_shaft_angle(*nest->get_central_shaft(), old_depth);
-			
-			//orbit_cam->set_target_azimuth(orbit_cam->get_target_azimuth() - delta_shaft_angle);
-			orbit_cam->set_target_focal_point(nest->get_shaft_position(*nest->get_central_shaft(), depth));
-		}
-	}
-
-	orbit_cam->update(dt);
-
-	camera* camera = orbit_cam->get_camera();
-
-	float3 pick_near = camera->unproject({mouse_position[0], viewport[3] - mouse_position[1], 0.0f}, viewport);
-	float3 pick_far = camera->unproject({mouse_position[0], viewport[3] - mouse_position[1], 1.0f}, viewport);
-	float3 pick_direction = math::normalize(pick_far - pick_near);
-	ray<float> picking_ray = {pick_near, pick_direction};
-	plane<float> ground_plane = {float3{0, 1, 0}, 0.0f};
-
-	auto intersection_result = ray_plane_intersection(picking_ray, ground_plane);
-	if (std::get<0>(intersection_result))
-	{
-		float3 pick = picking_ray.extrapolate(std::get<1>(intersection_result));
-		if (tool)
-			tool->set_translation(pick);
-	}
-
-	if (toggle_view_control.is_active() && !toggle_view_control.was_active())
-	{
-	}
-	
-	
-
-}
-*/
-
-void control_system::set_orbit_cam(::orbit_cam* orbit_cam)
-{
-	this->orbit_cam = orbit_cam;
 }
 
 void control_system::set_camera_system(::camera_system* camera_system)
@@ -337,12 +208,12 @@ void control_system::handle_event(const mouse_moved_event& event)
 			elevation_factor *= -1.0f;
 		}
 
-		float rotation = math::radians(22.5f) * rotation_factor * timestep;
-		float elevation = orbit_cam->get_target_elevation() + elevation_factor * 0.25f * timestep;
-		elevation = std::min<float>(max_elevation, std::max<float>(min_elevation, elevation));
-
-		orbit_cam->rotate(rotation);
-		orbit_cam->set_target_elevation(elevation);
+		float rotation = math::radians(15.0f) * rotation_factor * timestep;
+		float tilt = math::radians(15.0f) * elevation_factor * timestep;
+		
+		camera_system->pan(rotation);
+		camera_system->tilt(tilt);
+		
 	}
 	else if (!adjust_camera_control.was_active())
 	{

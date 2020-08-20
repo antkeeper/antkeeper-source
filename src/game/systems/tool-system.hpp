@@ -48,6 +48,7 @@ private:
 	const orbit_cam* orbit_cam;
 	float4 viewport;
 	float2 mouse_position;
+	bool was_pick_enabled;
 	bool pick_enabled;
 };
 

@@ -22,6 +22,7 @@
 
 #include "utility/fundamental-types.hpp"
 #include "resources/string-table.hpp"
+#include "geometry/aabb.hpp"
 #include <optional>
 #include <entt/entt.hpp>
 #include <fstream>
@@ -173,6 +174,7 @@ struct game_context
 	ambient_light* underworld_ambient_light;
 	spotlight* spotlight;
 	billboard* splash_billboard;
+	aabb<float> no_cull;
 	
 	// Animation
 	timeline* timeline;
@@ -227,7 +229,6 @@ struct game_context
 	cli* cli;
 	
 	// Misc
-	orbit_cam* orbit_cam;
 	pheromone_matrix* pheromones;
 };
 

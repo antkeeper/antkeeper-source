@@ -27,7 +27,7 @@
 #include "utility/fundamental-types.hpp"
 #include "math/quaternion-type.hpp"
 #include "math/transform-type.hpp"
-#include "animation/spring.hpp"
+#include "animation/orbit-cam.hpp"
 
 class camera;
 class orbit_cam;
@@ -44,61 +44,35 @@ public:
 	camera_system(entt::registry& registry);
 	virtual void update(double t, double dt);
 	
-	void rotate(float angle);
+	void pan(float angle);
 	void tilt(float angle);
 	void zoom(float factor);
 	
 	void set_camera(::camera* camera);
 	void set_viewport(const float4& viewport);
-	void set_azimuth(float angle);
-	void set_elevation(float angle);
-	void set_zoom(float factor);
-	void set_focal_distance(float distance_near, float distance_far);
-	void set_fov(float angle_near, float angle_far);
-	void set_clip_near(float distance_near, float distance_far);
-	void set_clip_far(float distance_near, float distance_far);
 	
-	const spring_constraint<float, float>& get_azimuth_spring() const;
+	const orbit_cam* get_orbit_cam() const;
+	orbit_cam* get_orbit_cam();
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
 	virtual void handle_event(const window_resized_event& event);
-	
-	void update_focal_distance();
-	void update_fov();
 
 	camera* camera;
 	float4 viewport;
 	float2 mouse_position;
 	
-	spring_constraint<float, float> azimuth_spring;
-	spring_constraint<float, float> elevation_spring;
-	spring_constraint<float, float> focal_distance_spring;
-	spring_constraint<float, float> fov_spring;
-	
-	
-	float azimuth;
-	float elevation;
-	float focal_distance;
-	float zoom_factor;
-	float fov;
-	
-	float focal_distance_near;
-	float focal_distance_far;
-	float fov_near;
-	float fov_far;
-	float near_clip_near;
-	float near_clip_far;
-	float far_clip_near;
-	float far_clip_far;
-	
-	quaternion_type elevation_rotation;
-	quaternion_type azimuth_rotation;
+	orbit_cam orbit_cam;
 };
 
-inline const spring_constraint<float, float>& camera_system::get_azimuth_spring() const
+inline const orbit_cam* camera_system::get_orbit_cam() const
 {
-	return azimuth_spring;
+	return &orbit_cam;
+}
+
+inline orbit_cam* camera_system::get_orbit_cam()
+{
+	return &orbit_cam;
 }
 
 #endif // ANTKEEPER_CAMERA_SYSTEM_HPP

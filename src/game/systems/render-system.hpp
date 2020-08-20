@@ -42,6 +42,8 @@ public:
 	void remove_layers();
 	
 	void set_renderer(::renderer* renderer);
+	
+	model_instance* get_model_instance(entt::entity entity);
 
 private:	
 	void update_model_and_materials(entt::entity entity, ecs::model_component& model);

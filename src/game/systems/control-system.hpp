@@ -29,7 +29,6 @@
 #include "scene/model-instance.hpp"
 #include "utility/fundamental-types.hpp"
 
-class orbit_cam;
 class nest;
 class camera;
 class camera_system;
@@ -47,7 +46,6 @@ public:
 	void set_invert_mouse_x(bool invert);
 	void set_invert_mouse_y(bool invert);
 
-	void set_orbit_cam(orbit_cam* orbit_cam);
 	void set_camera_system(camera_system* camera_system);
 	void set_nest(::nest* nest);
 	void set_tool(model_instance* tool);
@@ -111,7 +109,6 @@ private:
 	
 	float timestep;
 	float zoom;
-	orbit_cam* orbit_cam;
 	camera_system* camera_system;
 	::nest* nest;
 	model_instance* tool;

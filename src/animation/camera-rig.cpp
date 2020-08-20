@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "orbit-cam.hpp"
+#include "animation/camera-rig.hpp"
 #include "scene/camera.hpp"
 #include "math/constants.hpp"
 #include "configuration.hpp"
@@ -26,8 +26,7 @@
 
 camera_rig::camera_rig():
 	camera(nullptr),
-	translation{0.0f, 0.0f, 0.0f},
-	rotation(math::identity_quaternion<float>),
+	transform(math::identity_transform<float>),
 	forward(global_forward),
 	right(global_right),
 	up(global_up)
@@ -38,7 +37,7 @@ void camera_rig::attach(::camera* camera)
 	this->camera = camera;
 	if (camera != nullptr)
 	{
-		camera->look_at(translation, translation + forward, up);
+		camera->set_transform(transform);
 	}
 }
 
@@ -47,17 +46,33 @@ void camera_rig::detach()
 	camera = nullptr;
 }
 
-void camera_rig::set_translation(const float3& translation)
+void camera_rig::update_transform(const transform_type& transform)
 {
-	this->translation = translation;
-}
-
-void camera_rig::set_rotation(const quaternion_type& rotation)
-{
-	this->rotation = rotation;
+	this->transform = transform;
 	
 	// Calculate orthonormal basis
-	forward = rotation * global_forward;
-	up = rotation * global_up;
-	right = rotation * global_right;
+	forward = transform.rotation * global_forward;
+	up = transform.rotation * global_up;
+	right = transform.rotation * global_right;
+	
+	if (camera != nullptr)
+	{
+		camera->set_transform(transform);
+	}
+}
+
+void camera_rig::update_projection(float fov, float aspect_ratio, float clip_near, float clip_far)
+{
+	if (camera != nullptr)
+	{
+		camera->set_perspective(fov, aspect_ratio, clip_near, clip_far);
+	}
+}
+
+void camera_rig::update_projection(float clip_left, float clip_right, float clip_bottom, float clip_top, float clip_near, float clip_far)
+{
+	if (camera != nullptr)
+	{
+		camera->set_orthographic(clip_left, clip_right, clip_bottom, clip_top, clip_near, clip_far);
+	}
 }
