@@ -62,6 +62,8 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_sun_color({2.0f, 2.0f, 2.0f});
 	sky_pass->set_horizon_color(to_linear(float3{81.0f, 162.0f, 219.0f} / 255.0f));
 	sky_pass->set_zenith_color(to_linear(float3{7.0f, 134.0f, 206.0f} / 255.0f));
+	//sky_pass->set_horizon_color(float3{0.002f, 0.158f, 0.250f});
+	//sky_pass->set_zenith_color(float3{0.002f, 0.158f, 0.250f});
 
 	resource_manager* resource_manager = ctx->resource_manager;
 	entt::registry& ecs_registry = *ctx->ecs_registry;
@@ -71,36 +73,44 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* maple_tree_archetype = resource_manager->load<ecs::archetype>("maple-tree.ent");
 	ecs::archetype* nest_archetype = resource_manager->load<ecs::archetype>("harvester-nest.ent");
 	ecs::archetype* samara_archetype = resource_manager->load<ecs::archetype>("samara.ent");
-	ecs::archetype* forceps_archetype = resource_manager->load<ecs::archetype>("lens.ent");
+	ecs::archetype* forceps_archetype = resource_manager->load<ecs::archetype>("forceps.ent");
+	ecs::archetype* lens_archetype = resource_manager->load<ecs::archetype>("lens.ent");
+	ecs::archetype* brush_archetype = resource_manager->load<ecs::archetype>("brush.ent");
 	ecs::archetype* larva_archetype = resource_manager->load<ecs::archetype>("larva.ent");
 	ecs::archetype* pebble_archetype = resource_manager->load<ecs::archetype>("pebble.ent");
-	
 	ecs::archetype* flashlight_archetype = resource_manager->load<ecs::archetype>("flashlight.ent");
 	ecs::archetype* flashlight_light_cone_archetype = resource_manager->load<ecs::archetype>("flashlight-light-cone.ent");
-
-	// Create flashlight + light cone compund entity
+	
+	// Create tools
+	forceps_archetype->assign(ecs_registry, ctx->forceps_entity);
+	lens_archetype->assign(ecs_registry, ctx->lens_entity);
+	brush_archetype->assign(ecs_registry, ctx->brush_entity);
+		
+	// Create flashlight and light cone, bind light cone to flashlight, and move both to underworld scene
 	flashlight_archetype->assign(ecs_registry, ctx->flashlight_entity);
 	auto flashlight_light_cone = flashlight_light_cone_archetype->create(ecs_registry);
 	ec::bind_transform(ecs_registry, flashlight_light_cone, ctx->flashlight_entity);
 	ec::assign_render_layers(ecs_registry, ctx->flashlight_entity, 2);
 	ec::assign_render_layers(ecs_registry, flashlight_light_cone, 2);
+	
+	// Make lens tool's model instance unculled, so its shadow is always visible.
+	model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
+	if (lens_model_instance)
+	{
+		lens_model_instance->set_culling_mask(&ctx->no_cull);
+	}
+	
+	// Activate brush tools
+	auto& active_tool_component = ecs_registry.get<ecs::tool_component>(ctx->lens_entity);
+	active_tool_component.active = true;
 
-
-	ecs::snap_component snap;
-	snap.warp = true;
-	snap.relative = false;
-	snap.autoremove = true;
-
+	// Create ant-hill
 	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);
-	snap.ray.origin = {0, 10000, 0};
-	snap.ray.direction = {0, -1, 0};
-	ecs_registry.assign<ecs::snap_component>(ant_hill_entity, snap);
+	ec::place(ecs_registry, ant_hill_entity, {0, 0});
 	
-
-	
+	// Generate pebbles
 	float pebble_radius = 300.0f;
 	int pebble_count = 100;
-	
 	for (int i = 0; i < pebble_count; ++i)
 	{
 		float x = math::random(-pebble_radius, pebble_radius);
@@ -113,17 +123,17 @@ void play_state_enter(game_context* ctx)
 		transform.transform.rotation = math::angle_axis(math::random(0.0f, math::two_pi<float>), {0, 1, 0});
 		transform.transform.scale = float3{1, 1, 1} * math::random(0.75f, 1.25f);
 		
-		snap.ray.origin = {x, 10000, z};
-		ecs_registry.assign<ecs::snap_component>(pebble_entity, snap);
+		ec::place(ecs_registry, pebble_entity, {x, z});
 	}
 
+	// Create maple tree
 	auto maple_tree_entity = maple_tree_archetype->create(ecs_registry);
-	snap.ray.origin = {300, 10000, 200};
-	snap.ray.direction = {0, -1, 0};
-	ecs_registry.assign<ecs::snap_component>(maple_tree_entity, snap);
+	ec::place(ecs_registry, maple_tree_entity, {300, 200});
 
+	// Creat nest
 	auto nest_entity = nest_archetype->create(ecs_registry);
 
+	// Create terrain
 	int terrain_radius = 2;
 	for (int x = -terrain_radius; x <= terrain_radius; ++x)
 	{
@@ -138,6 +148,7 @@ void play_state_enter(game_context* ctx)
 		}
 	}
 
+	// Create samaras
 	for (int i = 0; i < 15; ++i)
 	{
 		auto samara_entity = samara_archetype->create(ecs_registry);
@@ -156,13 +167,6 @@ void play_state_enter(game_context* ctx)
 
 		ecs_registry.assign_or_replace<ecs::samara_component>(samara_entity, samara_component);
 	}
-
-	/*
-	ecs::archetype* grass_archetype = resource_manager->load<ecs::archetype>("grassland-grass.ent");
-	auto grass_entity_1 = grass_archetype->create(ecs_registry);
-	auto grass_entity_2 = grass_archetype->create(ecs_registry);
-	ecs_registry.get<ecs::transform_component>(grass_entity_2).transform.rotation = math::angle_axis(math::radians(120.0f), float3{0, 1, 0});
-	*/
 	
 	// Setup camera focal point
 	ecs::transform_component focal_point_transform;
@@ -174,7 +178,6 @@ void play_state_enter(game_context* ctx)
 	focal_point_snap.warp = false;
 	focal_point_snap.relative = true;
 	focal_point_snap.autoremove = false;
-	
 	ecs_registry.assign_or_replace<ecs::transform_component>(ctx->focal_point_entity, focal_point_transform);
 	ecs_registry.assign_or_replace<ecs::camera_follow_component>(ctx->focal_point_entity, focal_point_follow);
 	ecs_registry.assign_or_replace<ecs::snap_component>(ctx->focal_point_entity, focal_point_snap);
@@ -184,17 +187,6 @@ void play_state_enter(game_context* ctx)
 	ctx->camera_system->set_camera(ctx->overworld_camera);
 
 
-
-	// Create forceps tool
-	auto forceps_entity = forceps_archetype->create(ecs_registry);
-	ecs::tool_component forceps_tool_component;
-	forceps_tool_component.active = true;
-	ecs_registry.assign<ecs::tool_component>(forceps_entity, forceps_tool_component);
-	model_instance* forceps_model_instance = ctx->render_system->get_model_instance(forceps_entity);
-	if (forceps_model_instance)
-	{
-		forceps_model_instance->set_culling_mask(&ctx->no_cull);
-	}
 
 	ctx->overworld_scene->update_tweens();
 

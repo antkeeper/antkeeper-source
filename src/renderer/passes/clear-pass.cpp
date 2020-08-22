@@ -42,7 +42,7 @@ void clear_pass::render(render_context* context) const
 	if (clear_depth_buffer)
 		glDepthMask(GL_TRUE);
 	if (clear_stencil_buffer)
-		glStencilMask(GL_TRUE);
+		glStencilMask(0xFF);
 	
 	rasterizer->use_framebuffer(*framebuffer);
 

@@ -43,6 +43,7 @@
 #include "renderer/passes/clear-pass.hpp"
 #include "renderer/passes/final-pass.hpp"
 #include "renderer/passes/material-pass.hpp"
+#include "renderer/passes/outline-pass.hpp"
 #include "renderer/passes/shadow-map-pass.hpp"
 #include "renderer/passes/sky-pass.hpp"
 #include "renderer/simple-render-pass.hpp"
@@ -439,13 +440,14 @@ void setup_rendering(game_context* ctx)
 	ctx->framebuffer_hdr_color->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
 	ctx->framebuffer_hdr_color->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
 	ctx->framebuffer_hdr_color->set_max_anisotropy(0.0f);
-	ctx->framebuffer_hdr_depth = new texture_2d(viewport_dimensions[0], viewport_dimensions[1], pixel_type::float_32, pixel_format::d);
+	ctx->framebuffer_hdr_depth = new texture_2d(viewport_dimensions[0], viewport_dimensions[1], pixel_type::uint_32, pixel_format::ds);
 	ctx->framebuffer_hdr_depth->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
 	ctx->framebuffer_hdr_depth->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
 	ctx->framebuffer_hdr_depth->set_max_anisotropy(0.0f);
 	ctx->framebuffer_hdr = new framebuffer(viewport_dimensions[0], viewport_dimensions[1]);
 	ctx->framebuffer_hdr->attach(framebuffer_attachment_type::color, ctx->framebuffer_hdr_color);
 	ctx->framebuffer_hdr->attach(framebuffer_attachment_type::depth, ctx->framebuffer_hdr_depth);
+	ctx->framebuffer_hdr->attach(framebuffer_attachment_type::stencil, ctx->framebuffer_hdr_depth);
 	
 	// Create shadow map framebuffer
 	int shadow_map_resolution = ctx->config->get<int>("shadow_map_resolution");
@@ -475,13 +477,16 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_shadow_map_pass = new shadow_map_pass(ctx->rasterizer, ctx->shadow_map_framebuffer, ctx->resource_manager);
 	ctx->overworld_shadow_map_pass->set_split_scheme_weight(0.75f);
 	ctx->overworld_clear_pass = new clear_pass(ctx->rasterizer, ctx->framebuffer_hdr);
-	ctx->overworld_clear_pass->set_cleared_buffers(true, true, false);
+	ctx->overworld_clear_pass->set_cleared_buffers(false, true, true);
 	ctx->overworld_sky_pass = new sky_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->overworld_sky_pass->set_enabled(false);
 	ctx->overworld_material_pass = new material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->overworld_material_pass->set_fallback_material(ctx->fallback_material);
 	ctx->overworld_material_pass->shadow_map_pass = ctx->overworld_shadow_map_pass;
 	ctx->overworld_material_pass->shadow_map = ctx->shadow_map_depth_texture;
+	ctx->overworld_outline_pass = new outline_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
+	ctx->overworld_outline_pass->set_outline_width(0.25f);
+	ctx->overworld_outline_pass->set_outline_color(float4{1.0f, 1.0f, 1.0f, 1.0f});
 	ctx->overworld_bloom_pass = new bloom_pass(ctx->rasterizer, ctx->framebuffer_bloom, ctx->resource_manager);
 	ctx->overworld_bloom_pass->set_source_texture(ctx->framebuffer_hdr_color);
 	ctx->overworld_bloom_pass->set_brightness_threshold(1.0f);
@@ -496,6 +501,7 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_compositor->add_pass(ctx->overworld_clear_pass);
 	ctx->overworld_compositor->add_pass(ctx->overworld_sky_pass);
 	ctx->overworld_compositor->add_pass(ctx->overworld_material_pass);
+	ctx->overworld_compositor->add_pass(ctx->overworld_outline_pass);
 	ctx->overworld_compositor->add_pass(ctx->overworld_bloom_pass);
 	ctx->overworld_compositor->add_pass(ctx->overworld_final_pass);
 	

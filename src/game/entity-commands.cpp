@@ -21,6 +21,8 @@
 #include "game/components/model-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/copy-transform-component.hpp"
+#include "game/components/snap-component.hpp"
+#include <limits>
 
 namespace ec {
 	
@@ -61,6 +63,17 @@ void set_transform(entt::registry& registry, entt::entity eid, const math::trans
 		component.transform = transform;
 		component.warp = warp;
 	}
+}
+
+void place(entt::registry& registry, entt::entity eid, const float2& translation)
+{
+	snap_component component;
+	component.warp = true;
+	component.relative = false;
+	component.autoremove = true;
+	component.ray.origin = {translation[0], 10000.0f, translation[1]};
+	component.ray.direction = {0.0f, -1.0f, 0.0f};
+	registry.assign_or_replace<snap_component>(eid, component);
 }
 
 void assign_render_layers(entt::registry& registry, entt::entity eid, unsigned int layers)

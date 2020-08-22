@@ -105,9 +105,7 @@ bloom_pass::~bloom_pass()
 }
 
 void bloom_pass::render(render_context* context) const
-{
-	rasterizer->use_framebuffer(*framebuffer);
-	
+{	
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);

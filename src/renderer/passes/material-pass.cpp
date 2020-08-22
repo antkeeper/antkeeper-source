@@ -109,6 +109,8 @@ void material_pass::render(render_context* context) const
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+	glDisable(GL_STENCIL_TEST);
+	glStencilMask(0x00);
 
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
@@ -322,6 +324,22 @@ void material_pass::render(render_context* context) const
 					else
 					{
 						glEnable(GL_DEPTH_TEST);
+					}
+				}
+				
+				if ((material_flags & MATERIAL_FLAG_OUTLINE) != (active_material_flags & MATERIAL_FLAG_OUTLINE))
+				{
+					if (material_flags & MATERIAL_FLAG_OUTLINE)
+					{
+						glEnable(GL_STENCIL_TEST);
+						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
+						glStencilFunc(GL_ALWAYS, 1, 0xFF);
+						glStencilMask(0xFF);
+					}
+					else
+					{
+						glDisable(GL_STENCIL_TEST);
+						glStencilMask(0x00);
 					}
 				}
 

@@ -102,16 +102,22 @@ void tool_system::update(double t, double dt)
 	registry.view<tool_component, transform_component>().each(
 		[&](auto entity, auto& tool, auto& transform)
 		{
+			/*
+			if (registry.has<model_component>(entity))
+			{
+				
+			}*/
+			
 			if (!tool.active)
 				return;
 
 			if (intersection)
 			{
-			transform.transform.translation = pick + float3{0, 15, 0};
+				transform.transform.translation = pick + float3{0, tool.hover_distance, 0};
 			}
 
-			math::quaternion<float> rotation = math::angle_axis(orbit_cam->get_azimuth() + pick_angle, float3{0, 1, 0});
-			transform.transform.rotation = rotation;
+			//math::quaternion<float> rotation = math::angle_axis(orbit_cam->get_azimuth() + pick_angle, float3{0, 1, 0});
+			//transform.transform.rotation = rotation;
 		});
 	
 	was_pick_enabled = pick_enabled;

@@ -27,6 +27,7 @@
 #include "game/components/transform-component.hpp"
 #include "game/components/model-component.hpp"
 #include "game/components/nest-component.hpp"
+#include "game/components/tool-component.hpp"
 #include "entity/archetype.hpp"
 #include "game/behavior/ebt.hpp"
 #include <sstream>
@@ -123,6 +124,22 @@ static bool load_terrain_component(archetype& archetype, const std::vector<std::
 	return true;
 }
 
+static bool load_tool_component(archetype& archetype, const std::vector<std::string>& parameters)
+{	
+	if (parameters.size() != 4)
+	{
+		throw std::runtime_error("load_tool_component(): Invalid parameter count.");
+	}
+
+	tool_component component;
+	component.active = static_cast<bool>(std::stoi(parameters[1]));
+	component.hover_distance = std::stof(parameters[2]);
+	component.heliotropic = static_cast<bool>(std::stoi(parameters[3]));
+	archetype.set<tool_component>(component);
+
+	return true;
+}
+
 static bool load_transform_component(archetype& archetype, const std::vector<std::string>& parameters)
 {
 	if (parameters.size() != 11)
@@ -163,6 +180,7 @@ static bool load_component(archetype& archetype, resource_manager& resource_mana
 	if (parameters[0] == "model") return load_model_component(archetype, resource_manager, parameters);
 	if (parameters[0] == "nest") return load_nest_component(archetype, parameters);
 	if (parameters[0] == "terrain") return load_terrain_component(archetype, parameters);
+	if (parameters[0] == "tool") return load_tool_component(archetype, parameters);
 	if (parameters[0] == "transform") return load_transform_component(archetype, parameters);
 
 	std::string message = std::string("load_component(): Unknown component type \"") + parameters[0] + std::string("\"");

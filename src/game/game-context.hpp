@@ -81,6 +81,7 @@ class model_instance;
 class input_event_router;
 class input_mapper;
 class cli;
+class outline_pass;
 template <typename T> class animation;
 template <typename T> class material_property;
 template <typename T> class tween;
@@ -152,6 +153,7 @@ struct game_context
 	material_pass* overworld_material_pass;
 	material_pass* ui_material_pass;
 	material_pass* underworld_material_pass;
+	outline_pass* overworld_outline_pass;
 	shadow_map_pass* overworld_shadow_map_pass;
 	simple_render_pass* underworld_final_pass;
 	sky_pass* overworld_sky_pass;

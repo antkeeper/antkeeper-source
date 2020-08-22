@@ -25,6 +25,8 @@ namespace ecs {
 struct tool_component
 {
 	bool active;
+	float hover_distance;
+	bool heliotropic;
 };
 
 } // namespace ecs
