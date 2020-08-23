@@ -64,6 +64,7 @@ void outline_pass::render(render_context* context) const
 		glDisable(GL_BLEND);
 	}
 	
+	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	

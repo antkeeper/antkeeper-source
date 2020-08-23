@@ -44,9 +44,11 @@
 #include "scene/model-instance.hpp"
 #include "scene/scene.hpp"
 #include "scene/camera.hpp"
+#include "scene/directional-light.hpp"
 #include "game/systems/control-system.hpp"
 #include "game/systems/camera-system.hpp"
 #include "game/systems/render-system.hpp"
+#include "game/systems/tool-system.hpp"
 #include "utility/fundamental-types.hpp"
 #include "utility/gamma.hpp"
 
@@ -64,6 +66,8 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_zenith_color(to_linear(float3{7.0f, 134.0f, 206.0f} / 255.0f));
 	//sky_pass->set_horizon_color(float3{0.002f, 0.158f, 0.250f});
 	//sky_pass->set_zenith_color(float3{0.002f, 0.158f, 0.250f});
+	
+	ctx->tool_system->set_sun_direction(ctx->sun_direct->get_direction());
 
 	resource_manager* resource_manager = ctx->resource_manager;
 	entt::registry& ecs_registry = *ctx->ecs_registry;
@@ -80,6 +84,7 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* pebble_archetype = resource_manager->load<ecs::archetype>("pebble.ent");
 	ecs::archetype* flashlight_archetype = resource_manager->load<ecs::archetype>("flashlight.ent");
 	ecs::archetype* flashlight_light_cone_archetype = resource_manager->load<ecs::archetype>("flashlight-light-cone.ent");
+	ecs::archetype* lens_light_cone_archetype = resource_manager->load<ecs::archetype>("lens-light-cone.ent");
 	
 	// Create tools
 	forceps_archetype->assign(ecs_registry, ctx->forceps_entity);
@@ -100,9 +105,17 @@ void play_state_enter(game_context* ctx)
 		lens_model_instance->set_culling_mask(&ctx->no_cull);
 	}
 	
-	// Activate brush tools
+	// Create lens light cone and bind to lens
+	auto lens_light_cone = lens_light_cone_archetype->create(ecs_registry);
+	ec::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
+	
+	// Activate lens tool
 	auto& active_tool_component = ecs_registry.get<ecs::tool_component>(ctx->lens_entity);
 	active_tool_component.active = true;
+	
+	// Hide inactive tools
+	ec::assign_render_layers(ecs_registry, ctx->forceps_entity, 0);
+	ec::assign_render_layers(ecs_registry, ctx->brush_entity, 0);
 
 	// Create ant-hill
 	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);

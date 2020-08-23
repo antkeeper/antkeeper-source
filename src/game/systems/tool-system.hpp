@@ -25,6 +25,7 @@
 #include "event/input-events.hpp"
 #include "event/window-events.hpp"
 #include "utility/fundamental-types.hpp"
+#include "animation/spring.hpp"
 
 class camera;
 class orbit_cam;
@@ -42,6 +43,7 @@ public:
 	void set_orbit_cam(const orbit_cam* camera);
 	void set_viewport(const float4& viewport);
 	void set_pick(bool enabled);
+	void set_sun_direction(const float3& direction);
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -53,6 +55,10 @@ private:
 	float2 mouse_position;
 	bool was_pick_enabled;
 	bool pick_enabled;
+	float3 sun_direction;
+	
+	numeric_spring<float, float> hand_angle_spring;
+	numeric_spring<float3, float> pick_spring;
 };
 
 #endif // ANTKEEPER_TOOL_SYSTEM_HPP

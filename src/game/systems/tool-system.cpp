@@ -37,7 +37,19 @@ tool_system::tool_system(entt::registry& registry):
 	mouse_position{0, 0},
 	pick_enabled(true),
 	was_pick_enabled(pick_enabled)
-{}
+{
+	hand_angle_spring.z = 1.0f;
+	hand_angle_spring.w = hz_to_rads(8.0f);
+	hand_angle_spring.x1 = math::pi<float>;
+	hand_angle_spring.x0 = hand_angle_spring.x1;
+	hand_angle_spring.v = 0.0f;
+	
+	pick_spring.z = 1.0f;
+	pick_spring.w = hz_to_rads(30.0f);
+	pick_spring.x1 = {0.0f, 0.0f, 0.0f};
+	pick_spring.x0 = pick_spring.x1;
+	pick_spring.v = {0.0f, 0.0f, 0.0f};
+}
 
 void tool_system::update(double t, double dt)
 {
@@ -79,6 +91,7 @@ void tool_system::update(double t, double dt)
 				{
 					a = mesh_result->t;
 					pick = picking_ray.extrapolate(a);
+					pick_spring.x1 = pick;
 				}
 			}
 		});
@@ -97,6 +110,13 @@ void tool_system::update(double t, double dt)
 		if (math::dot(math::cross(camera_planar_direction, pick_planar_direction), float3{0, 1, 0}) < 0.0f)
 			pick_angle = -pick_angle;
 	}
+	
+	// Determine target hand angle
+	hand_angle_spring.x1 = math::pi<float> - std::min<float>(0.5f, std::max<float>(-0.5f, ((mouse_position[0] / viewport[2]) - 0.5f) * 3.0f)) * math::pi<float>;
+	
+	// Solve springs
+	solve_numeric_spring<float, float>(hand_angle_spring, dt);
+	solve_numeric_spring<float3, float>(pick_spring, dt);
 
 	// Move active tools to intersection location
 	registry.view<tool_component, transform_component>().each(
@@ -113,7 +133,19 @@ void tool_system::update(double t, double dt)
 
 			if (intersection)
 			{
-				transform.transform.translation = pick + float3{0, tool.hover_distance, 0};
+				transform.transform.translation = pick_spring.x0 + float3{0, tool.hover_distance, 0};
+			}
+			
+			if (tool.heliotropic)
+			{
+				math::quaternion<float> solar_rotation = math::rotation(float3{0, -1, 0}, sun_direction);
+				
+				transform.transform.translation = pick_spring.x0 + solar_rotation * float3{0, tool.hover_distance, 0};
+				
+				// Interpolate between left and right hand
+				math::quaternion<float> hand_rotation = math::angle_axis(orbit_cam->get_azimuth() + hand_angle_spring.x0, float3{0, 1, 0});
+				
+				transform.transform.rotation = solar_rotation * hand_rotation;
 			}
 
 			//math::quaternion<float> rotation = math::angle_axis(orbit_cam->get_azimuth() + pick_angle, float3{0, 1, 0});
@@ -141,6 +173,11 @@ void tool_system::set_viewport(const float4& viewport)
 void tool_system::set_pick(bool enabled)
 {
 	pick_enabled = enabled;
+}
+
+void tool_system::set_sun_direction(const float3& direction)
+{
+	sun_direction = direction;
 }
 
 void tool_system::handle_event(const mouse_moved_event& event)
