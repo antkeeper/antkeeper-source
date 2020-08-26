@@ -24,6 +24,7 @@
 #include "scene/scene.hpp"
 #include "scene/model-instance.hpp"
 #include "game/components/model-component.hpp"
+#include "game/components/render-component.hpp"
 #include <unordered_map>
 #include <vector>
 
@@ -47,11 +48,15 @@ public:
 
 private:	
 	void update_model_and_materials(entt::entity entity, ecs::model_component& model);
-
+	
 	void on_model_construct(entt::registry& registry, entt::entity entity, ecs::model_component& model);
 	void on_model_replace(entt::registry& registry, entt::entity entity, ecs::model_component& model);
 	void on_model_destroy(entt::registry& registry, entt::entity entity);
-
+	
+	void on_component_construct(entt::registry& registry, entt::entity entity, ecs::render_component& component);
+	void on_component_replace(entt::registry& registry, entt::entity entity, ecs::render_component& component);
+	void on_component_destroy(entt::registry& registry, entt::entity entity);
+	
 	renderer* renderer;
 	std::vector<scene*> layers;
 	std::unordered_map<entt::entity, model_instance*> model_instances;

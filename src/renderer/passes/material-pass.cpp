@@ -215,7 +215,7 @@ void material_pass::render(render_context* context) const
 					
 					// Transform direction into view-space
 					float3 direction = spotlight->get_direction_tween().interpolate(context->alpha);
-					float3 view_space_direction = math::normalize(math::resize<3>(view * math::resize<4>(-direction)));
+					float3 view_space_direction = math::normalize(math::resize<3>(view * float4{-direction.x, -direction.y, -direction.z, 0.0f}));
 					spotlight_directions[spotlight_count] = view_space_direction;
 					
 					spotlight_attenuations[spotlight_count] = spotlight->get_attenuation_tween().interpolate(context->alpha);

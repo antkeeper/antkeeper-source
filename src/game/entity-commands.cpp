@@ -92,4 +92,15 @@ void bind_transform(entt::registry& registry, entt::entity source_eid, entt::ent
 	registry.assign_or_replace<copy_transform_component>(source_eid, copy_transform);
 }
 
+math::transform<float> get_transform(entt::registry& registry, entt::entity eid)
+{
+	if (registry.has<transform_component>(eid))
+	{
+		const transform_component& component = registry.get<transform_component>(eid);
+		return component.transform;
+	}
+	
+	return math::identity_transform<float>;
+}
+
 } // namespace ec

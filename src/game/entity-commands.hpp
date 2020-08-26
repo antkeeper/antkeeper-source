@@ -33,6 +33,7 @@ void set_transform(entt::registry& registry, entt::entity eid, const math::trans
 void place(entt::registry& registry, entt::entity eid, const float2& translation);
 void assign_render_layers(entt::registry& registry, entt::entity eid, unsigned int layers);
 void bind_transform(entt::registry& registry, entt::entity source_eid, entt::entity target_eid);
+math::transform<float> get_transform(entt::registry& registry, entt::entity eid);
 
 } // namespace ec
 

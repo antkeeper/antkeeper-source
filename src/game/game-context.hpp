@@ -174,9 +174,10 @@ struct game_context
 	directional_light* sun_direct;
 	point_light* subterrain_light;
 	ambient_light* underworld_ambient_light;
-	spotlight* spotlight;
 	billboard* splash_billboard;
 	aabb<float> no_cull;
+	spotlight* lens_spotlight;
+	spotlight* flashlight_spotlight;
 	
 	// Animation
 	timeline* timeline;

@@ -71,6 +71,9 @@ public:
 	control* get_descend_control();
 	control* get_toggle_view_control();
 	control* get_tool_menu_control();
+	control* get_equip_lens_control();
+	control* get_equip_brush_control();
+	control* get_equip_forceps_control();
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -92,6 +95,9 @@ private:
 	control descend_control;
 	control toggle_view_control;
 	control tool_menu_control;
+	control equip_lens_control;
+	control equip_brush_control;
+	control equip_forceps_control;;
 
 	float zoom_speed;
 	float min_elevation;

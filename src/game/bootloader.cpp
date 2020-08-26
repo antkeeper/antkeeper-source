@@ -75,6 +75,7 @@
 #include "game/systems/tool-system.hpp"
 #include "game/systems/ui-system.hpp"
 #include "game/systems/vegetation-system.hpp"
+#include "game/entity-commands.hpp"
 #include "utility/paths.hpp"
 #include "event/event-dispatcher.hpp"
 #include "input/input-event-router.hpp"
@@ -607,18 +608,24 @@ void setup_scenes(game_context* ctx)
 	ctx->subterrain_light->set_attenuation({1.0f, 0.09f, 0.032f});
 	ctx->subterrain_light->update_tweens();
 	
-	ctx->spotlight = new spotlight();
-	ctx->spotlight->set_color({1, 1, 1});
-	ctx->spotlight->set_intensity(1.0f);
-	ctx->spotlight->set_attenuation({1.0f, 0.09f, 0.032f});
-	ctx->spotlight->set_cutoff({math::radians(15.0f), math::radians(30.0f)});
-	ctx->spotlight->update_tweens();
-	ctx->spotlight->set_active(false);
-	
 	ctx->underworld_ambient_light = new ambient_light();
 	ctx->underworld_ambient_light->set_color({1, 1, 1});
 	ctx->underworld_ambient_light->set_intensity(0.1f);
 	ctx->underworld_ambient_light->update_tweens();
+	
+	ctx->lens_spotlight = new spotlight();
+	ctx->lens_spotlight->set_color({1, 1, 1});
+	ctx->lens_spotlight->set_intensity(20.0f);
+	ctx->lens_spotlight->set_attenuation({1.0f, 0.0f, 0.0f});
+	ctx->lens_spotlight->set_cutoff({math::radians(1.25f), math::radians(1.8f)});
+	
+	ctx->flashlight_spotlight = new spotlight();
+	ctx->flashlight_spotlight->set_color({1, 1, 1});
+	ctx->flashlight_spotlight->set_intensity(1.0f);
+	ctx->flashlight_spotlight->set_attenuation({1.0f, 0.0f, 0.0f});
+	ctx->flashlight_spotlight->set_cutoff({math::radians(10.0f), math::radians(19.0f)});
+
+
 	
 	const texture_2d* splash_texture = ctx->resource_manager->load<texture_2d>("splash.png");
 	auto splash_dimensions = splash_texture->get_dimensions();
@@ -694,6 +701,9 @@ void setup_scenes(game_context* ctx)
 	// Setup UI scene
 	ctx->ui_scene = new scene();
 	ctx->ui_scene->add_object(ctx->ui_camera);
+	
+	ctx->overworld_scene->add_object(ctx->lens_spotlight);
+	ctx->underworld_scene->add_object(ctx->flashlight_spotlight);
 	
 	// Set overworld as active scene
 	ctx->active_scene = ctx->overworld_scene;
@@ -893,12 +903,12 @@ void setup_controls(game_context* ctx)
 	ctx->rotate_ccw_control = new control();
 	ctx->rotate_ccw_control->set_activated_callback
 	(
-		std::bind(&camera_system::pan, ctx->camera_system, math::radians(-90.0f))
+		std::bind(&camera_system::pan, ctx->camera_system, math::radians(90.0f))
 	);
 	ctx->rotate_cw_control = new control();
 	ctx->rotate_cw_control->set_activated_callback
 	(
-		std::bind(&camera_system::pan, ctx->camera_system, math::radians(90.0f))
+		std::bind(&camera_system::pan, ctx->camera_system, math::radians(-90.0f))
 	);
 	
 	// Create menu back control
@@ -1057,6 +1067,13 @@ void setup_callbacks(game_context* ctx)
 			ctx->constraint_system->update(t, dt);
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
+			
+			auto xf = ec::get_transform(*ctx->ecs_registry, ctx->lens_entity);
+			ctx->lens_spotlight->look_at(xf.translation, xf.translation + ctx->sun_direct->get_direction(), {0, 1, 0});
+			
+			xf = ec::get_transform(*ctx->ecs_registry, ctx->flashlight_entity);
+			//ctx->flashlight_spotlight->set_transform(xf);
+			ctx->flashlight_spotlight->look_at(xf.translation, xf.translation + xf.rotation * float3{0, 0, 1}, {0, 0, -1});
 			
 			ctx->ui_system->update(dt);
 			ctx->render_system->update(t, dt);
