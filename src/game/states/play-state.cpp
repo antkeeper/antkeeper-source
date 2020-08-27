@@ -91,12 +91,11 @@ void play_state_enter(game_context* ctx)
 	lens_archetype->assign(ecs_registry, ctx->lens_entity);
 	brush_archetype->assign(ecs_registry, ctx->brush_entity);
 		
-	// Create flashlight and light cone, bind light cone to flashlight, and move both to underworld scene
+	// Create flashlight and light cone, set light cone parent to flashlight, and move both to underworld scene
 	flashlight_archetype->assign(ecs_registry, ctx->flashlight_entity);
 	auto flashlight_light_cone = flashlight_light_cone_archetype->create(ecs_registry);
-	ec::bind_transform(ecs_registry, flashlight_light_cone, ctx->flashlight_entity);
+	ec::parent(ecs_registry, flashlight_light_cone, ctx->flashlight_entity);
 	ec::assign_render_layers(ecs_registry, ctx->flashlight_entity, 2);
-	ec::assign_render_layers(ecs_registry, flashlight_light_cone, 2);
 	
 	// Make lens tool's model instance unculled, so its shadow is always visible.
 	model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
@@ -105,9 +104,10 @@ void play_state_enter(game_context* ctx)
 		lens_model_instance->set_culling_mask(&ctx->no_cull);
 	}
 	
-	// Create lens light cone and bind to lens
+	// Create lens light cone and set its parent to lens
 	auto lens_light_cone = lens_light_cone_archetype->create(ecs_registry);
-	ec::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
+	//ec::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
+	ec::parent(ecs_registry, lens_light_cone, ctx->lens_entity);
 	
 	// Activate lens tool
 	auto& active_tool_component = ecs_registry.get<ecs::tool_component>(ctx->lens_entity);
@@ -132,9 +132,9 @@ void play_state_enter(game_context* ctx)
 		auto pebble_entity = pebble_archetype->create(ecs_registry);
 		
 		auto& transform = ecs_registry.get<ecs::transform_component>(pebble_entity);
-		transform.transform = math::identity_transform<float>;
-		transform.transform.rotation = math::angle_axis(math::random(0.0f, math::two_pi<float>), {0, 1, 0});
-		transform.transform.scale = float3{1, 1, 1} * math::random(0.75f, 1.25f);
+		transform.local = math::identity_transform<float>;
+		transform.local.rotation = math::angle_axis(math::random(0.0f, math::two_pi<float>), {0, 1, 0});
+		transform.local.scale = float3{1, 1, 1} * math::random(0.75f, 1.25f);
 		
 		ec::place(ecs_registry, pebble_entity, {x, z});
 	}
@@ -168,10 +168,10 @@ void play_state_enter(game_context* ctx)
 
 		auto& transform = ecs_registry.get<ecs::transform_component>(samara_entity);
 		float zone = 200.0f;
-		transform.transform = math::identity_transform<float>;
-		transform.transform.translation.x = math::random(-zone, zone);
-		transform.transform.translation.y = math::random(50.0f, 150.0f);
-		transform.transform.translation.z = math::random(-zone, zone);
+		transform.local = math::identity_transform<float>;
+		transform.local.translation.x = math::random(-zone, zone);
+		transform.local.translation.y = math::random(50.0f, 150.0f);
+		transform.local.translation.z = math::random(-zone, zone);
 
 		ecs::samara_component samara_component;
 		samara_component.angle = math::random(0.0f, math::radians(360.0f));
@@ -183,7 +183,7 @@ void play_state_enter(game_context* ctx)
 	
 	// Setup camera focal point
 	ecs::transform_component focal_point_transform;
-	focal_point_transform.transform = math::identity_transform<float>;
+	focal_point_transform.local = math::identity_transform<float>;
 	focal_point_transform.warp = true;
 	ecs::camera_follow_component focal_point_follow;
 	ecs::snap_component focal_point_snap;

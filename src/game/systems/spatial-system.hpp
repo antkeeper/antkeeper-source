@@ -17,21 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_TRANSFORM_COMPONENT_HPP
-#define ANTKEEPER_ECS_TRANSFORM_COMPONENT_HPP
+#ifndef ANTKEEPER_SPATIAL_SYSTEM_HPP
+#define ANTKEEPER_SPATIAL_SYSTEM_HPP
 
-#include "math/math.hpp"
+#include "entity-system.hpp"
 
-namespace ecs {
-
-struct transform_component
+class spatial_system:
+	public entity_system
 {
-	math::transform<float> local;
-	math::transform<float> world;
-	bool warp;
+public:
+	spatial_system(entt::registry& registry);
+	virtual void update(double t, double dt);
 };
 
-} // namespace ecs
-
-#endif // ANTKEEPER_ECS_TRANSFORM_COMPONENT_HPP
+#endif // ANTKEEPER_SPATIAL_SYSTEM_HPP
 

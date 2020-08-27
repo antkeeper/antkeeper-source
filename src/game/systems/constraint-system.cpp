@@ -42,13 +42,13 @@ void constraint_system::update(double t, double dt)
 		{
 			if (registry.has<transform_component>(constraint.target))
 			{
-				const float3& target_translation = transforms_view.get(constraint.target).transform.translation;
+				const float3& target_translation = transforms_view.get(constraint.target).world.translation;
 				if (constraint.use_x)
-					transform.transform.translation.x = (constraint.invert_x) ? -target_translation.x : target_translation.x;
+					transform.world.translation.x = (constraint.invert_x) ? -target_translation.x : target_translation.x;
 				if (constraint.use_y)
-					transform.transform.translation.y = (constraint.invert_y) ? -target_translation.y : target_translation.y;
+					transform.world.translation.y = (constraint.invert_y) ? -target_translation.y : target_translation.y;
 				if (constraint.use_z)
-					transform.transform.translation.z = (constraint.invert_z) ? -target_translation.z : target_translation.z;
+					transform.world.translation.z = (constraint.invert_z) ? -target_translation.z : target_translation.z;
 			}
 		}
 	);
@@ -60,7 +60,7 @@ void constraint_system::update(double t, double dt)
 		{
 			if (registry.has<transform_component>(constraint.target))
 			{
-				transform.transform.rotation = transforms_view.get(constraint.target).transform.rotation;
+				transform.world.rotation = transforms_view.get(constraint.target).world.rotation;
 			}
 		}
 	);
@@ -72,13 +72,13 @@ void constraint_system::update(double t, double dt)
 		{
 			if (registry.has<transform_component>(constraint.target))
 			{
-				const float3& target_scale = transforms_view.get(constraint.target).transform.scale;
+				const float3& target_scale = transforms_view.get(constraint.target).world.scale;
 				if (constraint.use_x)
-					transform.transform.scale.x = target_scale.x;
+					transform.world.scale.x = target_scale.x;
 				if (constraint.use_y)
-					transform.transform.scale.y = target_scale.y;
+					transform.world.scale.y = target_scale.y;
 				if (constraint.use_z)
-					transform.transform.scale.z = target_scale.z;
+					transform.world.scale.z = target_scale.z;
 			}
 		}
 	);
@@ -90,7 +90,7 @@ void constraint_system::update(double t, double dt)
 		{
 			if (registry.has<transform_component>(constraint.target))
 			{
-				transform.transform = transforms_view.get(constraint.target).transform;
+				transform.world = transforms_view.get(constraint.target).world;
 			}
 		}
 	);

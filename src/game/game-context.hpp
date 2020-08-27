@@ -74,6 +74,7 @@ class texture_2d;
 class timeline;
 class tool_system;
 class ui_system;
+class spatial_system;
 class vegetation_system;
 class vertex_array;
 class vertex_buffer;
@@ -231,6 +232,7 @@ struct game_context
 	tool_system* tool_system;
 	ui_system* ui_system;
 	vegetation_system* vegetation_system;
+	spatial_system* spatial_system;
 	
 	// Debug
 	cli* cli;

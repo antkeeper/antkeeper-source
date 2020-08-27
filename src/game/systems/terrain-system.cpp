@@ -55,7 +55,7 @@ void terrain_system::update(double t, double dt)
 	registry.view<terrain_component, transform_component>().each(
 		[this](auto entity, auto& terrain, auto& transform)
 		{
-			transform.transform.translation = float3{(float)terrain.x * patch_size, 0.0f, (float)terrain.z * patch_size};
+			transform.local.translation = float3{(float)terrain.x * patch_size, 0.0f, (float)terrain.z * patch_size};
 			transform.warp = true;
 		});
 }
@@ -330,8 +330,8 @@ void terrain_system::on_terrain_construct(entt::registry& registry, entt::entity
 
 	// Assign the entity a transform component
 	transform_component transform;
-	transform.transform = math::identity_transform<float>;
-	transform.transform.translation = float3{(float)component.x * patch_size, 0.0f, (float)component.z * patch_size};
+	transform.local = math::identity_transform<float>;
+	transform.local.translation = float3{(float)component.x * patch_size, 0.0f, (float)component.z * patch_size};
 	transform.warp = true;
 	registry.assign_or_replace<transform_component>(entity, transform);
 }

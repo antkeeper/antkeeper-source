@@ -41,17 +41,17 @@ void snapping_system::update(double t, double dt)
 			ray<float> snap_ray = snap.ray;
 			if (snap.relative)
 			{
-				snap_ray.origin += snap_transform.transform.translation;
-				snap_ray.direction = snap_transform.transform.rotation * snap_ray.direction;
+				snap_ray.origin += snap_transform.local.translation;
+				snap_ray.direction = snap_transform.local.rotation * snap_ray.direction;
 			}
 
 			registry.view<transform_component, collision_component>().each(
 				[&](auto entity, auto& collision_transform, auto& collision)
 				{
 					// Transform ray into local space of collision component
-					math::transform<float> inverse_transform = math::inverse(collision_transform.transform);
+					math::transform<float> inverse_transform = math::inverse(collision_transform.local);
 					float3 origin = inverse_transform * snap_ray.origin;
-					float3 direction = math::normalize(math::conjugate(collision_transform.transform.rotation) * snap_ray.direction);
+					float3 direction = math::normalize(math::conjugate(collision_transform.local.rotation) * snap_ray.direction);
 					ray<float> transformed_ray = {origin, direction};
 
 					// Broad phase AABB test
@@ -76,7 +76,7 @@ void snapping_system::update(double t, double dt)
 
 			if (intersection)
 			{
-				snap_transform.transform.translation = pick;
+				snap_transform.local.translation = pick;
 				snap_transform.warp = snap.warp;
 				
 				if (snap.autoremove)

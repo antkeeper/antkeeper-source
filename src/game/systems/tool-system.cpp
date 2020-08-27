@@ -52,6 +52,7 @@ tool_system::tool_system(entt::registry& registry):
 	pick_spring.v = {0.0f, 0.0f, 0.0f};
 	
 	active_tool = entt::null;
+	warp = true;
 }
 
 void tool_system::update(double t, double dt)
@@ -73,9 +74,9 @@ void tool_system::update(double t, double dt)
 	registry.view<transform_component, collision_component>().each(
 		[&](auto entity, auto& transform, auto& collision)
 		{
-			math::transform<float> inverse_transform = math::inverse(transform.transform);
+			math::transform<float> inverse_transform = math::inverse(transform.local);
 			float3 origin = inverse_transform * pick_origin;
-			float3 direction = math::normalize(math::conjugate(transform.transform.rotation) * pick_direction);
+			float3 direction = math::normalize(math::conjugate(transform.local.rotation) * pick_direction);
 			ray<float> transformed_ray = {origin, direction};
 
 			// Broad phase AABB test
@@ -138,7 +139,7 @@ void tool_system::update(double t, double dt)
 
 			if (intersection)
 			{
-				transform.transform.translation = pick_spring.x0 + float3{0, tool.hover_distance, 0};
+				transform.local.translation = pick_spring.x0 + float3{0, tool.hover_distance, 0};
 			}
 			
 			// Interpolate between left and right hand
@@ -147,13 +148,20 @@ void tool_system::update(double t, double dt)
 			if (tool.heliotropic)
 			{
 				math::quaternion<float> solar_rotation = math::rotation(float3{0, -1, 0}, sun_direction);
-				transform.transform.translation = pick_spring.x0 + solar_rotation * float3{0, tool.hover_distance, 0};
+				transform.local.translation = pick_spring.x0 + solar_rotation * float3{0, tool.hover_distance, 0};
 				
-				transform.transform.rotation = solar_rotation * hand_rotation;
+				transform.local.rotation = solar_rotation * hand_rotation;
 			}
 			else
 			{
-				transform.transform.rotation = hand_rotation;
+				transform.local.rotation = hand_rotation;
+			}
+			
+			if (warp)
+			{
+				transform.warp = true;
+				ec::assign_render_layers(registry, active_tool, 1);
+				warp = false;
 			}
 
 			//math::quaternion<float> rotation = math::angle_axis(orbit_cam->get_azimuth() + pick_angle, float3{0, 1, 0});
@@ -203,8 +211,9 @@ void tool_system::set_active_tool(entt::entity entity)
 	{
 		auto& tool = registry.get<tool_component>(active_tool);
 		tool.active = true;
-		ec::assign_render_layers(registry, active_tool, 1);
 	}
+	
+	warp = true;
 }
 
 

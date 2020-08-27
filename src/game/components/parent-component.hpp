@@ -17,21 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_TRANSFORM_COMPONENT_HPP
-#define ANTKEEPER_ECS_TRANSFORM_COMPONENT_HPP
-
-#include "math/math.hpp"
+#ifndef ANTKEEPER_ECS_PARENT_COMPONENT_HPP
+#define ANTKEEPER_ECS_PARENT_COMPONENT_HPP
 
 namespace ecs {
 
-struct transform_component
+struct parent_component
 {
-	math::transform<float> local;
-	math::transform<float> world;
-	bool warp;
+	entt::entity parent;
 };
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_TRANSFORM_COMPONENT_HPP
-
+#endif // ANTKEEPER_ECS_PARENT_COMPONENT_HPP

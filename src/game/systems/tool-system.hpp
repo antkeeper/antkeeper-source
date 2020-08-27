@@ -61,6 +61,7 @@ private:
 	bool pick_enabled;
 	float3 sun_direction;
 	entt::entity active_tool;
+	bool warp;
 	
 	numeric_spring<float, float> hand_angle_spring;
 	numeric_spring<float3, float> pick_spring;

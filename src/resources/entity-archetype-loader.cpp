@@ -156,16 +156,16 @@ static bool load_transform_component(archetype& archetype, const std::vector<std
 	}
 
 	transform_component component;
-	stream >> component.transform.translation.x;
-	stream >> component.transform.translation.y;
-	stream >> component.transform.translation.z;
-	stream >> component.transform.rotation.w;
-	stream >> component.transform.rotation.x;
-	stream >> component.transform.rotation.y;
-	stream >> component.transform.rotation.z;
-	stream >> component.transform.scale.x;
-	stream >> component.transform.scale.y;
-	stream >> component.transform.scale.z;
+	stream >> component.local.translation.x;
+	stream >> component.local.translation.y;
+	stream >> component.local.translation.z;
+	stream >> component.local.rotation.w;
+	stream >> component.local.rotation.x;
+	stream >> component.local.rotation.y;
+	stream >> component.local.rotation.z;
+	stream >> component.local.scale.x;
+	stream >> component.local.scale.y;
+	stream >> component.local.scale.z;
 	component.warp = true;
 
 	archetype.set<transform_component>(component);

@@ -22,6 +22,7 @@
 #include "game/components/transform-component.hpp"
 #include "game/components/copy-transform-component.hpp"
 #include "game/components/snap-component.hpp"
+#include "game/components/parent-component.hpp"
 #include <limits>
 
 namespace ec {
@@ -33,7 +34,7 @@ void translate(entt::registry& registry, entt::entity eid, const float3& transla
 	if (registry.has<transform_component>(eid))
 	{
 		transform_component& transform = registry.get<transform_component>(eid);
-		transform.transform.translation += translation;
+		transform.local.translation += translation;
 	}
 }
 
@@ -42,7 +43,7 @@ void move_to(entt::registry& registry, entt::entity eid, const float3& position)
 	if (registry.has<transform_component>(eid))
 	{
 		transform_component& transform = registry.get<transform_component>(eid);
-		transform.transform.translation = position;
+		transform.local.translation = position;
 	}
 }
 
@@ -51,6 +52,7 @@ void warp_to(entt::registry& registry, entt::entity eid, const float3& position)
 	if (registry.has<transform_component>(eid))
 	{
 		transform_component& transform = registry.get<transform_component>(eid);
+		transform.local.translation = position;
 		transform.warp = true;
 	}
 }
@@ -60,7 +62,7 @@ void set_transform(entt::registry& registry, entt::entity eid, const math::trans
 	if (registry.has<transform_component>(eid))
 	{
 		transform_component& component = registry.get<transform_component>(eid);
-		component.transform = transform;
+		component.local = transform;
 		component.warp = warp;
 	}
 }
@@ -83,6 +85,14 @@ void assign_render_layers(entt::registry& registry, entt::entity eid, unsigned i
 		model_component model = registry.get<model_component>(eid);
 		model.layers = layers;
 		registry.replace<model_component>(eid, model);
+		
+		// Apply to child layers
+		registry.view<parent_component>().each(
+		[&](auto entity, auto& component)
+		{
+			if (component.parent == eid)
+				assign_render_layers(registry, entity, layers);
+		});
 	}
 }
 
@@ -92,15 +102,33 @@ void bind_transform(entt::registry& registry, entt::entity source_eid, entt::ent
 	registry.assign_or_replace<copy_transform_component>(source_eid, copy_transform);
 }
 
-math::transform<float> get_transform(entt::registry& registry, entt::entity eid)
+math::transform<float> get_local_transform(entt::registry& registry, entt::entity eid)
 {
 	if (registry.has<transform_component>(eid))
 	{
 		const transform_component& component = registry.get<transform_component>(eid);
-		return component.transform;
+		return component.local;
 	}
 	
 	return math::identity_transform<float>;
+}
+
+math::transform<float> get_world_transform(entt::registry& registry, entt::entity eid)
+{
+	if (registry.has<transform_component>(eid))
+	{
+		const transform_component& component = registry.get<transform_component>(eid);
+		return component.world;
+	}
+	
+	return math::identity_transform<float>;
+}
+
+void parent(entt::registry& registry, entt::entity child, entt::entity parent)
+{
+	parent_component component;
+	component.parent = parent;
+	registry.assign_or_replace<parent_component>(child, component);
 }
 
 } // namespace ec

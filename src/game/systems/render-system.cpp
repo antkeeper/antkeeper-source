@@ -40,7 +40,7 @@ void render_system::update(double t, double dt)
 		{
 			model_instance* instance = model_instances[entity];
 
-			instance->set_transform(transform.transform);
+			instance->set_transform(transform.world);
 
 			if (transform.warp)
 			{

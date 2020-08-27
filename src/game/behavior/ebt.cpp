@@ -40,7 +40,7 @@ status print_eid(context& context)
 status warp_to(context& context, float x, float y, float z)
 {
 	auto& transform = context.registry->get<transform_component>(context.entity);
-	transform.transform.translation = {x, y, z};
+	transform.local.translation = {x, y, z};
 	transform.warp = true;
 	return status::success;
 }

@@ -75,6 +75,7 @@
 #include "game/systems/tool-system.hpp"
 #include "game/systems/ui-system.hpp"
 #include "game/systems/vegetation-system.hpp"
+#include "game/systems/spatial-system.hpp"
 #include "game/entity-commands.hpp"
 #include "utility/paths.hpp"
 #include "event/event-dispatcher.hpp"
@@ -818,7 +819,6 @@ void setup_systems(game_context* ctx)
 	
 	// Setup locomotion system
 	ctx->locomotion_system = new locomotion_system(*ctx->ecs_registry);
-	ctx->constraint_system = new constraint_system(*ctx->ecs_registry);
 	
 	// Setup pheromone system
 	ctx->pheromones = new pheromone_matrix();
@@ -829,6 +829,12 @@ void setup_systems(game_context* ctx)
 	ctx->pheromones->buffers[1] = new float[ctx->pheromones->rows * ctx->pheromones->columns];
 	ctx->pheromones->current = 0;
 	//diffuse(ctx->pheromones);
+	
+	// Setup spatial system
+	ctx->spatial_system = new spatial_system(*ctx->ecs_registry);
+	
+	// Setup constraint system
+	ctx->constraint_system = new constraint_system(*ctx->ecs_registry);
 	
 	// Setup render system
 	ctx->render_system = new ::render_system(*ctx->ecs_registry);
@@ -1095,14 +1101,16 @@ void setup_callbacks(game_context* ctx)
 			ctx->locomotion_system->update(t, dt);
 			ctx->camera_system->update(t, dt);
 			ctx->tool_system->update(t, dt);
+			
+			ctx->spatial_system->update(t, dt);
 			ctx->constraint_system->update(t, dt);
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			
-			auto xf = ec::get_transform(*ctx->ecs_registry, ctx->lens_entity);
+			auto xf = ec::get_world_transform(*ctx->ecs_registry, ctx->lens_entity);
 			ctx->lens_spotlight->look_at(xf.translation, xf.translation + ctx->sun_direct->get_direction(), {0, 1, 0});
 			
-			xf = ec::get_transform(*ctx->ecs_registry, ctx->flashlight_entity);
+			xf = ec::get_world_transform(*ctx->ecs_registry, ctx->flashlight_entity);
 			//ctx->flashlight_spotlight->set_transform(xf);
 			ctx->flashlight_spotlight->look_at(xf.translation, xf.translation + xf.rotation * float3{0, 0, 1}, {0, 0, -1});
 			

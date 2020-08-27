@@ -65,7 +65,7 @@ void camera_system::update(double t, double dt)
 	registry.view<camera_follow_component, transform_component>().each(
 		[&](auto entity, auto& follow, auto& transform)
 		{
-			target_focal_point += transform.transform.translation;
+			target_focal_point += transform.local.translation;
 			++subject_count;
 		});
 	if (subject_count > 1)
