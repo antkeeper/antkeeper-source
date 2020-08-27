@@ -80,6 +80,7 @@
 #include "event/event-dispatcher.hpp"
 #include "input/input-event-router.hpp"
 #include "input/input-mapper.hpp"
+#include "input/input-listener.hpp"
 #include "input/game-controller.hpp"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
@@ -868,6 +869,10 @@ void setup_controls(game_context* ctx)
 	ctx->input_mapper = new input_mapper();
 	ctx->input_mapper->set_event_dispatcher(event_dispatcher);
 	
+	// Setup input listener
+	ctx->input_listener = new input_listener();
+	ctx->input_listener->set_event_dispatcher(event_dispatcher);
+	
 	// Create toggle fullscreen control
 	ctx->toggle_fullscreen_control = new control();
 	ctx->toggle_fullscreen_control->set_activated_callback
@@ -1010,6 +1015,32 @@ void setup_controls(game_context* ctx)
 	ctx->input_event_router->add_mapping(game_controller_button_mapping(ctx->control_system->get_descend_control(), nullptr, game_controller_button::a));
 	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_zoom_out_control(), nullptr, game_controller_axis::trigger_left, false));
 	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_zoom_in_control(), nullptr, game_controller_axis::trigger_right, false));
+	
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_forceps_control(), nullptr, scancode::one));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, scancode::two));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_lens_control(), nullptr, scancode::three));
+	
+	ctx->control_system->get_equip_forceps_control()->set_activated_callback
+	(
+		[ctx]()
+		{
+			ctx->tool_system->set_active_tool(ctx->forceps_entity);
+		}
+	);
+	ctx->control_system->get_equip_brush_control()->set_activated_callback
+	(
+		[ctx]()
+		{
+			ctx->tool_system->set_active_tool(ctx->brush_entity);
+		}
+	);
+	ctx->control_system->get_equip_lens_control()->set_activated_callback
+	(
+		[ctx]()
+		{
+			ctx->tool_system->set_active_tool(ctx->lens_entity);
+		}
+	);
 	
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->control_system);
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->camera_system);

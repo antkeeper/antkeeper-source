@@ -426,6 +426,11 @@ void application::set_window_opacity(float opacity)
 	SDL_SetWindowOpacity(sdl_window, opacity);
 }
 
+void application::swap_buffers()
+{
+	SDL_GL_SwapWindow(sdl_window);
+}
+
 void application::update(double t, double dt)
 {
 	translate_sdl_events();

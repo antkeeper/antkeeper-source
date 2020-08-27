@@ -51,6 +51,7 @@ class framebuffer;
 class locomotion_system;
 class logger;
 class material;
+class input_listener;
 class material_pass;
 class nest_system;
 class orbit_cam;
@@ -189,10 +190,13 @@ struct game_context
 	screen_transition* fade_transition;
 	screen_transition* radial_transition_inner;
 	screen_transition* radial_transition_outer;
+	animation<float>* equip_tool_animation;
+	animation<float>* unequip_tool_animation;
 
 	// Controls
 	input_event_router* input_event_router;
 	input_mapper* input_mapper;
+	input_listener* input_listener;
 	control_set* application_controls;
 	control_set* camera_controls;
 	control_set* menu_controls;

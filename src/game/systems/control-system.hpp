@@ -212,5 +212,20 @@ inline control* control_system::get_tool_menu_control()
 	return &tool_menu_control;
 }
 
+inline control* control_system::get_equip_lens_control()
+{
+	return &equip_lens_control;
+}
+
+inline control* control_system::get_equip_brush_control()
+{
+	return &equip_brush_control;
+}
+
+inline control* control_system::get_equip_forceps_control()
+{
+	return &equip_forceps_control;
+}
+
 #endif // ANTKEEPER_CONTROL_SYSTEM_HPP
 

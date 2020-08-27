@@ -23,6 +23,9 @@
 #include "application.hpp"
 #include "debug/logger.hpp"
 #include "game/game-context.hpp"
+#include "input/input-listener.hpp"
+#include "event/input-events.hpp"
+#include "rasterizer/rasterizer.hpp"
 #include "game/states/game-states.hpp"
 #include "renderer/passes/sky-pass.hpp"
 #include "scene/billboard.hpp"
@@ -72,6 +75,25 @@ void splash_state_enter(game_context* ctx)
 	};
 	timeline->add_sequence(splash_sequence);
 	
+	// Set up splash skipper
+	ctx->input_listener->set_callback
+	(
+		[ctx](const event_base& event)
+		{
+			auto id = event.get_event_type_id();
+			if (id != mouse_moved_event::event_type_id && id != mouse_wheel_scrolled_event::event_type_id && id != game_controller_axis_moved_event::event_type_id)
+			{
+				ctx->timeline->clear();
+				ctx->fade_transition->get_animation()->stop();
+				ctx->rasterizer->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+				ctx->rasterizer->clear_framebuffer(true, false, false);
+				ctx->app->swap_buffers();
+				ctx->app->change_state({std::bind(play_state_enter, ctx), std::bind(play_state_exit, ctx)});
+			}
+		}
+	);
+	ctx->input_listener->set_enabled(true);
+	
 	logger->pop_task(EXIT_SUCCESS);
 }
 
@@ -79,6 +101,10 @@ void splash_state_exit(game_context* ctx)
 {
 	logger* logger = ctx->logger;
 	logger->push_task("Exiting splash state");
+	
+	// Disable splash skipper
+	ctx->input_listener->set_enabled(false);
+	ctx->input_listener->set_callback(nullptr);
 	
 	// Remove splash billboard from UI scene
 	ctx->ui_scene->remove_object(ctx->splash_billboard);

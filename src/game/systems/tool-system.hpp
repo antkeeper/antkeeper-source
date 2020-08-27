@@ -44,6 +44,10 @@ public:
 	void set_viewport(const float4& viewport);
 	void set_pick(bool enabled);
 	void set_sun_direction(const float3& direction);
+	
+	void set_active_tool(entt::entity entity);
+	
+	entt::entity get_active_tool() const;
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -56,9 +60,15 @@ private:
 	bool was_pick_enabled;
 	bool pick_enabled;
 	float3 sun_direction;
+	entt::entity active_tool;
 	
 	numeric_spring<float, float> hand_angle_spring;
 	numeric_spring<float3, float> pick_spring;
 };
+
+inline entt::entity tool_system::get_active_tool() const
+{
+	return active_tool;
+}
 
 #endif // ANTKEEPER_TOOL_SYSTEM_HPP

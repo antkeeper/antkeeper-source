@@ -51,6 +51,9 @@ control_system::control_system(entt::registry& registry):
 	control_set.add_control(&descend_control);
 	control_set.add_control(&toggle_view_control);
 	control_set.add_control(&tool_menu_control);
+	control_set.add_control(&equip_lens_control);
+	control_set.add_control(&equip_brush_control);
+	control_set.add_control(&equip_forceps_control);
 	
 	// Set deadzone at 15% for all controls
 	const std::list<control*>* controls = control_set.get_controls();

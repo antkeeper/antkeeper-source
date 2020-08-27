@@ -27,6 +27,7 @@ set(STATIC_LIBS
 set(SHARED_LIBS
 	${OPENGL_gl_LIBRARY})
 
+
 # Generate configuration header file
 configure_file(${PROJECT_SOURCE_DIR}/src/configuration.hpp.in
 	${PROJECT_BINARY_DIR}/src/configuration.hpp)

@@ -26,6 +26,7 @@
 #include "geometry/mesh.hpp"
 #include "geometry/intersection.hpp"
 #include "math/math.hpp"
+#include "game/entity-commands.hpp"
 
 using namespace ecs;
 
@@ -49,6 +50,8 @@ tool_system::tool_system(entt::registry& registry):
 	pick_spring.x1 = {0.0f, 0.0f, 0.0f};
 	pick_spring.x0 = pick_spring.x1;
 	pick_spring.v = {0.0f, 0.0f, 0.0f};
+	
+	active_tool = entt::null;
 }
 
 void tool_system::update(double t, double dt)
@@ -112,7 +115,7 @@ void tool_system::update(double t, double dt)
 	}
 	
 	// Determine target hand angle
-	hand_angle_spring.x1 = math::pi<float> - std::min<float>(0.5f, std::max<float>(-0.5f, ((mouse_position[0] / viewport[2]) - 0.5f) * 3.0f)) * math::pi<float>;
+	hand_angle_spring.x1 = math::pi<float> - std::min<float>(0.5f, std::max<float>(-0.5f, ((mouse_position[0] / viewport[2]) - 0.5f) * 1.0f)) * (math::pi<float> + math::half_pi<float>);
 	
 	// Solve springs
 	solve_numeric_spring<float, float>(hand_angle_spring, dt);
@@ -130,22 +133,27 @@ void tool_system::update(double t, double dt)
 			
 			if (!tool.active)
 				return;
+			
+			active_tool = entity;
 
 			if (intersection)
 			{
 				transform.transform.translation = pick_spring.x0 + float3{0, tool.hover_distance, 0};
 			}
 			
+			// Interpolate between left and right hand
+			math::quaternion<float> hand_rotation = math::angle_axis(orbit_cam->get_azimuth() + hand_angle_spring.x0, float3{0, 1, 0});
+			
 			if (tool.heliotropic)
 			{
 				math::quaternion<float> solar_rotation = math::rotation(float3{0, -1, 0}, sun_direction);
-				
 				transform.transform.translation = pick_spring.x0 + solar_rotation * float3{0, tool.hover_distance, 0};
 				
-				// Interpolate between left and right hand
-				math::quaternion<float> hand_rotation = math::angle_axis(orbit_cam->get_azimuth() + hand_angle_spring.x0, float3{0, 1, 0});
-				
 				transform.transform.rotation = solar_rotation * hand_rotation;
+			}
+			else
+			{
+				transform.transform.rotation = hand_rotation;
 			}
 
 			//math::quaternion<float> rotation = math::angle_axis(orbit_cam->get_azimuth() + pick_angle, float3{0, 1, 0});
@@ -179,6 +187,26 @@ void tool_system::set_sun_direction(const float3& direction)
 {
 	sun_direction = direction;
 }
+
+void tool_system::set_active_tool(entt::entity entity)
+{
+	if (active_tool != entt::null)
+	{
+		auto& tool = registry.get<tool_component>(active_tool);
+		tool.active = false;
+		ec::assign_render_layers(registry, active_tool, 0);
+	}
+	
+	active_tool = entity;
+	
+	if (active_tool != entt::null)
+	{
+		auto& tool = registry.get<tool_component>(active_tool);
+		tool.active = true;
+		ec::assign_render_layers(registry, active_tool, 1);
+	}
+}
+
 
 void tool_system::handle_event(const mouse_moved_event& event)
 {
