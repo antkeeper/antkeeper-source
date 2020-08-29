@@ -109,13 +109,15 @@ void play_state_enter(game_context* ctx)
 	//ec::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
 	ec::parent(ecs_registry, lens_light_cone, ctx->lens_entity);
 	
-	// Activate lens tool
-	auto& active_tool_component = ecs_registry.get<ecs::tool_component>(ctx->lens_entity);
-	active_tool_component.active = true;
+
 	
 	// Hide inactive tools
 	ec::assign_render_layers(ecs_registry, ctx->forceps_entity, 0);
 	ec::assign_render_layers(ecs_registry, ctx->brush_entity, 0);
+	ec::assign_render_layers(ecs_registry, ctx->lens_entity, 0);
+	
+	// Activate lens tool
+	ctx->tool_system->set_active_tool(ctx->lens_entity);
 
 	// Create ant-hill
 	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);

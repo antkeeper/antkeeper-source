@@ -26,6 +26,7 @@
 #include "event/window-events.hpp"
 #include "utility/fundamental-types.hpp"
 #include "animation/spring.hpp"
+#include "animation/animation.hpp"
 
 class camera;
 class orbit_cam;
@@ -47,8 +48,10 @@ public:
 	
 	void set_active_tool(entt::entity entity);
 	
+	void set_tool_active(bool active);
+	
 	entt::entity get_active_tool() const;
-
+	
 private:
 	virtual void handle_event(const mouse_moved_event& event);
 	virtual void handle_event(const window_resized_event& event);
@@ -62,9 +65,15 @@ private:
 	float3 sun_direction;
 	entt::entity active_tool;
 	bool warp;
+	bool tool_active;
+	
 	
 	numeric_spring<float, float> hand_angle_spring;
 	numeric_spring<float3, float> pick_spring;
+	
+	animation<float> descend_animation;
+	animation<float> ascend_animation;
+	float active_tool_distance;
 };
 
 inline entt::entity tool_system::get_active_tool() const

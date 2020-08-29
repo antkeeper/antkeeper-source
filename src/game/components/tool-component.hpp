@@ -25,8 +25,11 @@ namespace ecs {
 struct tool_component
 {
 	bool active;
-	float hover_distance;
+	float idle_distance;
+	float active_distance;
 	bool heliotropic;
+	
+	//float activation_speed;
 };
 
 } // namespace ecs

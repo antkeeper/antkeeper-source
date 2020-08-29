@@ -74,11 +74,12 @@ public:
 	control* get_equip_lens_control();
 	control* get_equip_brush_control();
 	control* get_equip_forceps_control();
+	control* get_use_tool_control();
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
 	virtual void handle_event(const window_resized_event& event);
-
+	
 	control_set control_set;
 	control move_forward_control;
 	control move_back_control;
@@ -97,7 +98,8 @@ private:
 	control tool_menu_control;
 	control equip_lens_control;
 	control equip_brush_control;
-	control equip_forceps_control;;
+	control equip_forceps_control;
+	control use_tool_control;
 
 	float zoom_speed;
 	float min_elevation;
@@ -225,6 +227,11 @@ inline control* control_system::get_equip_brush_control()
 inline control* control_system::get_equip_forceps_control()
 {
 	return &equip_forceps_control;
+}
+
+inline control* control_system::get_use_tool_control()
+{
+	return &use_tool_control;
 }
 
 #endif // ANTKEEPER_CONTROL_SYSTEM_HPP

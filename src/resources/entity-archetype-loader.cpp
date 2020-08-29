@@ -126,15 +126,16 @@ static bool load_terrain_component(archetype& archetype, const std::vector<std::
 
 static bool load_tool_component(archetype& archetype, const std::vector<std::string>& parameters)
 {	
-	if (parameters.size() != 4)
+	if (parameters.size() != 5)
 	{
 		throw std::runtime_error("load_tool_component(): Invalid parameter count.");
 	}
 
 	tool_component component;
 	component.active = static_cast<bool>(std::stoi(parameters[1]));
-	component.hover_distance = std::stof(parameters[2]);
-	component.heliotropic = static_cast<bool>(std::stoi(parameters[3]));
+	component.idle_distance = std::stof(parameters[2]);
+	component.active_distance = std::stof(parameters[3]);
+	component.heliotropic = static_cast<bool>(std::stoi(parameters[4]));
 	archetype.set<tool_component>(component);
 
 	return true;

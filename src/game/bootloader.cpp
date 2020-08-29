@@ -1026,6 +1026,22 @@ void setup_controls(game_context* ctx)
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, scancode::two));
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_lens_control(), nullptr, scancode::three));
 	
+	ctx->input_event_router->add_mapping(mouse_button_mapping(ctx->control_system->get_use_tool_control(), nullptr, 1));
+	ctx->control_system->get_use_tool_control()->set_activated_callback
+	(
+		[ctx]()
+		{
+			ctx->tool_system->set_tool_active(true);
+		}
+	);
+	ctx->control_system->get_use_tool_control()->set_deactivated_callback
+	(
+		[ctx]()
+		{
+			ctx->tool_system->set_tool_active(false);
+		}
+	);
+	
 	ctx->control_system->get_equip_forceps_control()->set_activated_callback
 	(
 		[ctx]()

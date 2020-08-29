@@ -57,6 +57,15 @@ void warp_to(entt::registry& registry, entt::entity eid, const float3& position)
 	}
 }
 
+void set_scale(entt::registry& registry, entt::entity eid, const float3& scale)
+{
+	if (registry.has<transform_component>(eid))
+	{
+		transform_component& transform = registry.get<transform_component>(eid);
+		transform.local.scale = scale;
+	}
+}
+
 void set_transform(entt::registry& registry, entt::entity eid, const math::transform<float>& transform, bool warp)
 {
 	if (registry.has<transform_component>(eid))
