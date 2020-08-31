@@ -81,6 +81,7 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* lens_archetype = resource_manager->load<ecs::archetype>("lens.ent");
 	ecs::archetype* brush_archetype = resource_manager->load<ecs::archetype>("brush.ent");
 	ecs::archetype* marker_archetype = resource_manager->load<ecs::archetype>("marker.ent");
+	ecs::archetype* container_archetype = resource_manager->load<ecs::archetype>("container.ent");
 	ecs::archetype* larva_archetype = resource_manager->load<ecs::archetype>("larva.ent");
 	ecs::archetype* pebble_archetype = resource_manager->load<ecs::archetype>("pebble.ent");
 	ecs::archetype* flashlight_archetype = resource_manager->load<ecs::archetype>("flashlight.ent");
@@ -92,6 +93,7 @@ void play_state_enter(game_context* ctx)
 	lens_archetype->assign(ecs_registry, ctx->lens_entity);
 	brush_archetype->assign(ecs_registry, ctx->brush_entity);
 	marker_archetype->assign(ecs_registry, ctx->marker_entity);
+	container_archetype->assign(ecs_registry, ctx->container_entity);
 		
 	// Create flashlight and light cone, set light cone parent to flashlight, and move both to underworld scene
 	flashlight_archetype->assign(ecs_registry, ctx->flashlight_entity);
@@ -118,6 +120,7 @@ void play_state_enter(game_context* ctx)
 	ec::assign_render_layers(ecs_registry, ctx->brush_entity, 0);
 	ec::assign_render_layers(ecs_registry, ctx->lens_entity, 0);
 	ec::assign_render_layers(ecs_registry, ctx->marker_entity, 0);
+	ec::assign_render_layers(ecs_registry, ctx->container_entity, 0);
 	
 	// Activate lens tool
 	ctx->tool_system->set_active_tool(ctx->lens_entity);

@@ -55,6 +55,7 @@ control_system::control_system(entt::registry& registry):
 	control_set.add_control(&equip_brush_control);
 	control_set.add_control(&equip_forceps_control);
 	control_set.add_control(&equip_marker_control);
+	control_set.add_control(&equip_container_control);
 	control_set.add_control(&use_tool_control);
 	
 	// Set deadzone at 15% for all controls

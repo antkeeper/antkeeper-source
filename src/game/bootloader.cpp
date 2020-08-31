@@ -769,6 +769,7 @@ void setup_entities(game_context* ctx)
 	ctx->forceps_entity = ctx->ecs_registry->create();
 	ctx->lens_entity = ctx->ecs_registry->create();
 	ctx->marker_entity = ctx->ecs_registry->create();
+	ctx->container_entity = ctx->ecs_registry->create();
 	ctx->focal_point_entity = ctx->ecs_registry->create();
 }
 
@@ -1013,6 +1014,7 @@ void setup_controls(game_context* ctx)
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, scancode::two));
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_lens_control(), nullptr, scancode::three));
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_marker_control(), nullptr, scancode::four));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_container_control(), nullptr, scancode::five));
 	
 	ctx->input_event_router->add_mapping(mouse_button_mapping(ctx->control_system->get_use_tool_control(), nullptr, 1));
 	ctx->control_system->get_use_tool_control()->set_activated_callback
@@ -1056,6 +1058,13 @@ void setup_controls(game_context* ctx)
 		[ctx]()
 		{
 			ctx->tool_system->set_active_tool(ctx->marker_entity);
+		}
+	);
+	ctx->control_system->get_equip_container_control()->set_activated_callback
+	(
+		[ctx]()
+		{
+			ctx->tool_system->set_active_tool(ctx->container_entity);
 		}
 	);
 	

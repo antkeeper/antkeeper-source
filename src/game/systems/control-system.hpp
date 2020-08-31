@@ -75,6 +75,7 @@ public:
 	control* get_equip_brush_control();
 	control* get_equip_forceps_control();
 	control* get_equip_marker_control();
+	control* get_equip_container_control();
 	control* get_use_tool_control();
 
 private:
@@ -101,6 +102,7 @@ private:
 	control equip_brush_control;
 	control equip_forceps_control;
 	control equip_marker_control;
+	control equip_container_control;
 	control use_tool_control;
 
 	float zoom_speed;
@@ -235,6 +237,12 @@ inline control* control_system::get_equip_marker_control()
 {
 	return &equip_marker_control;
 }
+
+inline control* control_system::get_equip_container_control()
+{
+	return &equip_container_control;
+}
+
 
 inline control* control_system::get_use_tool_control()
 {

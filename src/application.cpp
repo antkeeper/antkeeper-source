@@ -38,6 +38,8 @@
 #include <utility>
 #include <thread>
 #include <stb/stb_image_write.h>
+#include <iostream>
+#include <iomanip>
 
 application::application():
 	closed(false),
@@ -440,6 +442,17 @@ void application::update(double t, double dt)
 	{
 		update_callback(t, dt);
 	}
+	
+	/*
+	static int frame =  0;
+	if (frame % 60 == 0)
+	{
+		std::cout << std::fixed;
+		std::cout << std::setprecision(2);
+		std::cout << performance_sampler->mean_frame_duration() * 1000.0 << "\n";
+	}
+	++frame;
+	*/
 }
 
 void application::render(double alpha)
@@ -447,7 +460,7 @@ void application::render(double alpha)
 	/*
 	std::cout << std::fixed;
 	std::cout << std::setprecision(2);
-	std::cout << performance_sampler.mean_frame_duration() * 1000.0 << std::endl;
+	std::cout << performance_sampler->mean_frame_duration() * 1000.0 << std::endl;
 	*/
 	
 	if (render_callback)
