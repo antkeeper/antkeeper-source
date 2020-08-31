@@ -327,6 +327,7 @@ void material_pass::render(render_context* context) const
 					}
 				}
 				
+				/*
 				if ((material_flags & MATERIAL_FLAG_OUTLINE) != (active_material_flags & MATERIAL_FLAG_OUTLINE))
 				{
 					if (material_flags & MATERIAL_FLAG_OUTLINE)
@@ -342,7 +343,7 @@ void material_pass::render(render_context* context) const
 						glStencilMask(0x00);
 					}
 				}
-
+				*/
 
 				active_material_flags = material_flags;
 			}

@@ -38,13 +38,18 @@
 
 outline_pass::outline_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
-	outline_shader(nullptr)
+	fill_shader(nullptr),
+	stroke_shader(nullptr)
 {
-	// Load outline shader
-	outline_shader = resource_manager->load<shader_program>("outline-unskinned.glsl");
-	model_view_projection_input = outline_shader->get_input("model_view_projection");
-	outline_width_input = outline_shader->get_input("outline_width");
-	outline_color_input = outline_shader->get_input("outline_color");
+	// Load fill shader
+	fill_shader = resource_manager->load<shader_program>("outline-fill-unskinned.glsl");
+	fill_model_view_projection_input = fill_shader->get_input("model_view_projection");
+	
+	// Load stroke shader
+	stroke_shader = resource_manager->load<shader_program>("outline-stroke-unskinned.glsl");
+	stroke_model_view_projection_input = stroke_shader->get_input("model_view_projection");
+	stroke_width_input = stroke_shader->get_input("width");
+	stroke_color_input = stroke_shader->get_input("color");
 }
 
 outline_pass::~outline_pass()
@@ -54,49 +59,81 @@ void outline_pass::render(render_context* context) const
 {
 	rasterizer->use_framebuffer(*framebuffer);
 	
-	if (outline_color.w < 1.0f)
-	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-	else
-	{
-		glDisable(GL_BLEND);
-	}
-	
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	
-	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-	glStencilMask(0x00);
-
 	// Determine viewport based on framebuffer resolution
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
+	// Get camera matrices
 	float4x4 view = context->camera->get_view_tween().interpolate(context->alpha);
 	float4x4 view_projection = context->camera->get_view_projection_tween().interpolate(context->alpha);
+	
 	float4x4 model_view_projection;
 	
-	// Perform iterative blur subpass
-	rasterizer->use_program(*outline_shader);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glDisable(GL_DEPTH_TEST);
 	
-	outline_width_input->upload(outline_width);
-	outline_color_input->upload(outline_color);
-	
-	// Render outlines
-	for (const render_operation& operation: context->operations)
+	// Render fill
 	{
-		const ::material* material = operation.material;
-		if (!material || !(material->get_flags() & MATERIAL_FLAG_OUTLINE))
-			continue;
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glEnable(GL_STENCIL_TEST);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+		glDisable(GL_BLEND);
 		
-		model_view_projection = view_projection * operation.transform;
-		model_view_projection_input->upload(model_view_projection);
+		// Setup fill shader
+		rasterizer->use_program(*fill_shader);
 		
-		rasterizer->draw_arrays(*operation.vertex_array, operation.drawing_mode, operation.start_index, operation.index_count);
+		// Render fills
+		for (const render_operation& operation: context->operations)
+		{
+			const ::material* material = operation.material;
+			if (!material || !(material->get_flags() & MATERIAL_FLAG_OUTLINE))
+				continue;
+			
+			model_view_projection = view_projection * operation.transform;
+			fill_model_view_projection_input->upload(model_view_projection);
+			
+			rasterizer->draw_arrays(*operation.vertex_array, operation.drawing_mode, operation.start_index, operation.index_count);
+		}
+	}
+	
+	// Render stroke
+	{
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+		if (outline_color.w < 1.0f)
+		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
+		else
+		{
+			glDisable(GL_BLEND);
+		}
+
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		
+		// Setup stroke shader
+		rasterizer->use_program(*stroke_shader);
+		stroke_width_input->upload(outline_width);
+		stroke_color_input->upload(outline_color);
+		
+		// Render strokes
+		for (const render_operation& operation: context->operations)
+		{
+			const ::material* material = operation.material;
+			if (!material || !(material->get_flags() & MATERIAL_FLAG_OUTLINE))
+				continue;
+			
+			model_view_projection = view_projection * operation.transform;
+			stroke_model_view_projection_input->upload(model_view_projection);
+			
+			rasterizer->draw_arrays(*operation.vertex_array, operation.drawing_mode, operation.start_index, operation.index_count);
+		}
 	}
 	
 	glDisable(GL_STENCIL_TEST);

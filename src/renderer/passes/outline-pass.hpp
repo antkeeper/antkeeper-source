@@ -41,10 +41,13 @@ public:
 	void set_outline_color(const float4& color);
 
 private:
-	shader_program* outline_shader;
-	const shader_input* model_view_projection_input;
-	const shader_input* outline_width_input;
-	const shader_input* outline_color_input;
+	shader_program* fill_shader;
+	const shader_input* fill_model_view_projection_input;
+	
+	shader_program* stroke_shader;
+	const shader_input* stroke_model_view_projection_input;
+	const shader_input* stroke_width_input;
+	const shader_input* stroke_color_input;
 	
 	float outline_width;
 	float4 outline_color;
