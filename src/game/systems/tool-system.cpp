@@ -146,7 +146,7 @@ void tool_system::update(double t, double dt)
 	}
 	
 	// Determine target hand angle
-	hand_angle_spring.x1 = math::pi<float> - std::min<float>(0.5f, std::max<float>(-0.5f, ((mouse_position[0] / viewport[2]) - 0.5f) * 1.0f)) * (math::pi<float>);
+	hand_angle_spring.x1 = -std::min<float>(0.5f, std::max<float>(-0.5f, ((mouse_position[0] / viewport[2]) - 0.5f) * 1.0f)) * (math::pi<float>);
 	
 	// Solve springs
 	solve_numeric_spring<float, float>(hand_angle_spring, dt);
@@ -176,7 +176,7 @@ void tool_system::update(double t, double dt)
 			// Interpolate between left and right hand
 			math::quaternion<float> hand_rotation = math::angle_axis(orbit_cam->get_azimuth() + hand_angle_spring.x0, float3{0, 1, 0});
 			
-			math::quaternion<float> tilt_rotation = math::angle_axis(-orbit_cam->get_elevation(), float3{-1.0f, 0.0f, 0.0f});
+			math::quaternion<float> tilt_rotation = math::angle_axis(orbit_cam->get_elevation(), float3{-1.0f, 0.0f, 0.0f});
 						
 			if (tool.heliotropic)
 			{

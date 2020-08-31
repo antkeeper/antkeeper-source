@@ -214,6 +214,7 @@ struct game_context
 	entt::entity lens_entity;
 	entt::entity marker_entity;
 	entt::entity container_entity;
+	entt::entity twig_entity;
 	entt::entity focal_point_entity;
 
 	// Systems

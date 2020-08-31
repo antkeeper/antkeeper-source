@@ -17,7 +17,6 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "animation/frame-scheduler.hpp"
 #include "application.hpp"
 #include "debug/logger.hpp"
