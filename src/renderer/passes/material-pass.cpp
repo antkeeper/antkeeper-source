@@ -513,51 +513,78 @@ bool operation_compare(const render_operation& a, const render_operation& b)
 	else if (!b.material)
 		return true;
 	
-	// Determine transparency
-	bool transparent_a = a.material->get_flags() & MATERIAL_FLAG_TRANSLUCENT;
-	bool transparent_b = b.material->get_flags() & MATERIAL_FLAG_TRANSLUCENT;
+	bool xray_a = a.material->get_flags() & MATERIAL_FLAG_X_RAY;
+	bool xray_b = b.material->get_flags() & MATERIAL_FLAG_X_RAY;
 	
-	if (transparent_a)
+	if (xray_a)
 	{
-		if (transparent_b)
+		if (xray_b)
 		{
-			// A and B are both transparent, render back to front
+			// A and B are both xray, render back to front
 			return (a.depth >= b.depth);
 		}
 		else
 		{
-			// A is transparent, B is opaque. Render B first
+			// A is xray, B is not. Render B first
 			return false;
 		}
 	}
 	else
 	{
-		if (transparent_b)
+		if (xray_b)
 		{
-			// A is opaque, B is transparent. Render A first
+			// A is opaque, B is xray. Render A first
 			return true;
 		}
 		else
 		{
-			// A and B are both opaque
-			if (a.material->get_shader_program() == b.material->get_shader_program())
+			// Determine transparency
+			bool transparent_a = a.material->get_flags() & MATERIAL_FLAG_TRANSLUCENT;
+			bool transparent_b = b.material->get_flags() & MATERIAL_FLAG_TRANSLUCENT;
+			
+			if (transparent_a)
 			{
-				// A and B have the same shader
-				if (a.vertex_array == b.vertex_array)
+				if (transparent_b)
 				{
-					// A and B have the same VAO, render front to back
-					return (a.depth < b.depth);
+					// A and B are both transparent, render back to front
+					return (a.depth >= b.depth);
 				}
 				else
 				{
-					// Sort by VAO
-					return (a.vertex_array < b.vertex_array);
+					// A is transparent, B is opaque. Render B first
+					return false;
 				}
 			}
 			else
 			{
-				// A and B are both opaque and have different shaders, sort by shader
-				return (a.material->get_shader_program() < b.material->get_shader_program());
+				if (transparent_b)
+				{
+					// A is opaque, B is transparent. Render A first
+					return true;
+				}
+				else
+				{
+					// A and B are both opaque
+					if (a.material->get_shader_program() == b.material->get_shader_program())
+					{
+						// A and B have the same shader
+						if (a.vertex_array == b.vertex_array)
+						{
+							// A and B have the same VAO, render front to back
+							return (a.depth < b.depth);
+						}
+						else
+						{
+							// Sort by VAO
+							return (a.vertex_array < b.vertex_array);
+						}
+					}
+					else
+					{
+						// A and B are both opaque and have different shaders, sort by shader
+						return (a.material->get_shader_program() < b.material->get_shader_program());
+					}
+				}
 			}
 		}
 	}

@@ -152,7 +152,8 @@ void tool_system::update(double t, double dt)
 	solve_numeric_spring<float, float>(hand_angle_spring, dt);
 	solve_numeric_spring<float3, float>(pick_spring, dt);
 	
-
+	// Don't use spring for picking
+	pick_spring.x0 = pick_spring.x1;
 
 	// Move active tools to intersection location
 	registry.view<tool_component, transform_component>().each(
@@ -171,24 +172,23 @@ void tool_system::update(double t, double dt)
 			
 			float tool_distance = active_tool_distance;//(tool_active) ? tool.active_distance : tool.idle_distance;
 
-			if (intersection)
-			{
-				transform.local.translation = pick_spring.x0 + float3{0, tool_distance, 0};
-			}
 			
 			// Interpolate between left and right hand
 			math::quaternion<float> hand_rotation = math::angle_axis(orbit_cam->get_azimuth() + hand_angle_spring.x0, float3{0, 1, 0});
 			
+			math::quaternion<float> tilt_rotation = math::angle_axis(-orbit_cam->get_elevation(), float3{-1.0f, 0.0f, 0.0f});
+						
 			if (tool.heliotropic)
 			{
 				math::quaternion<float> solar_rotation = math::rotation(float3{0, -1, 0}, sun_direction);
 				transform.local.translation = pick_spring.x0 + solar_rotation * float3{0, tool_distance, 0};
-				
 				transform.local.rotation = solar_rotation * hand_rotation;
 			}
 			else
 			{
-				transform.local.rotation = hand_rotation;
+				math::quaternion<float> rotation = hand_rotation * tilt_rotation;
+				transform.local.translation = pick_spring.x0 + rotation * float3{0, tool_distance, 0};
+				transform.local.rotation = rotation;
 			}
 			
 			if (warp)

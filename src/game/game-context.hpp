@@ -212,6 +212,7 @@ struct game_context
 	entt::entity flashlight_entity;
 	entt::entity forceps_entity;
 	entt::entity lens_entity;
+	entt::entity marker_entity;
 	entt::entity focal_point_entity;
 
 	// Systems
