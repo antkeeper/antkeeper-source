@@ -910,18 +910,6 @@ void setup_controls(game_context* ctx)
 		}
 	);
 	
-	// Create rotation controls
-	ctx->rotate_ccw_control = new control();
-	ctx->rotate_ccw_control->set_activated_callback
-	(
-		std::bind(&camera_system::pan, ctx->camera_system, math::radians(90.0f))
-	);
-	ctx->rotate_cw_control = new control();
-	ctx->rotate_cw_control->set_activated_callback
-	(
-		std::bind(&camera_system::pan, ctx->camera_system, math::radians(-90.0f))
-	);
-	
 	// Create menu back control
 	ctx->menu_back_control = new control();
 	ctx->menu_back_control->set_activated_callback
@@ -936,8 +924,6 @@ void setup_controls(game_context* ctx)
 	ctx->application_controls = new control_set();
 	ctx->application_controls->add_control(ctx->toggle_fullscreen_control);
 	ctx->application_controls->add_control(ctx->screenshot_control);
-	ctx->application_controls->add_control(ctx->rotate_ccw_control);
-	ctx->application_controls->add_control(ctx->rotate_cw_control);
 	
 	// Create menu control set
 	ctx->menu_controls = new control_set();
@@ -952,8 +938,6 @@ void setup_controls(game_context* ctx)
 	// Application control mappings
 	ctx->input_event_router->add_mapping(key_mapping(ctx->toggle_fullscreen_control, nullptr, scancode::f11));
 	ctx->input_event_router->add_mapping(key_mapping(ctx->screenshot_control, nullptr, scancode::f12));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->rotate_ccw_control, nullptr, scancode::q));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->rotate_cw_control, nullptr, scancode::e));
 	
 	// Add menu control mappings
 	ctx->input_event_router->add_mapping(key_mapping(ctx->menu_back_control, nullptr, scancode::escape));
@@ -1021,6 +1005,8 @@ void setup_controls(game_context* ctx)
 	ctx->input_event_router->add_mapping(game_controller_button_mapping(ctx->control_system->get_descend_control(), nullptr, game_controller_button::a));
 	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_zoom_out_control(), nullptr, game_controller_axis::trigger_left, false));
 	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_zoom_in_control(), nullptr, game_controller_axis::trigger_right, false));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_rotate_ccw_control(), nullptr, scancode::q));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_rotate_cw_control(), nullptr, scancode::e));
 	
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_forceps_control(), nullptr, scancode::one));
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, scancode::two));

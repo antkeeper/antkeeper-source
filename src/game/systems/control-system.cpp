@@ -96,6 +96,13 @@ void control_system::update(double t, double dt)
 	if (zoom_out_control.is_active())
 		camera_system->zoom(-zoom_speed * dt);
 	
+	// Rotate camera
+	const float rotation_speed = math::radians(270.0f);
+	if (rotate_ccw_control.is_active())
+		camera_system->pan(rotation_speed * dt * std::min<float>(1.0f, rotate_ccw_control.get_current_value()));
+	if (rotate_cw_control.is_active())
+		camera_system->pan(-rotation_speed * dt * std::min<float>(1.0f, rotate_cw_control.get_current_value()));
+	
 	// Move camera
 	float3 movement{0.0f, 0.0f, 0.0f};
 	if (move_right_control.is_active())
