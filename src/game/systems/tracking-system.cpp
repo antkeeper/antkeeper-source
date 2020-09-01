@@ -46,11 +46,11 @@ tracking_system::tracking_system(entt::registry& registry, ::event_dispatcher* e
 	registry.on_construct<trackable_component>().connect<&tracking_system::on_component_construct>(this);
 	registry.on_destroy<trackable_component>().connect<&tracking_system::on_component_destroy>(this);
 	
-	// Load tracker material
-	tracker_material = resource_manager->load<material>("tracker.mtl");
-	
 	// Load paint ball model
 	paint_ball_model = resource_manager->load<model>("paint-ball.obj");
+	
+	// Load tracker model
+	tracker_model = resource_manager->load<model>("tracker.obj");
 	
 	// Load paint ball materials
 	paint_ball_materials = new material*[7];
@@ -73,7 +73,7 @@ tracking_system::~tracking_system()
 	event_dispatcher->unsubscribe<tool_released_event>(this);
 	event_dispatcher->unsubscribe<window_resized_event>(this);
 	
-	for (auto it = billboards.begin(); it != billboards.end(); ++it)
+	for (auto it = trackers.begin(); it != trackers.end(); ++it)
 	{
 		delete it->second;
 	}
@@ -84,7 +84,7 @@ tracking_system::~tracking_system()
 
 void tracking_system::update(double t, double dt)
 {
-	for (auto it = billboards.begin(); it != billboards.end(); ++it)
+	for (auto it = trackers.begin(); it != trackers.end(); ++it)
 	{
 		const transform_component& transform = registry.get<transform_component>(it->first);
 		
@@ -116,7 +116,7 @@ void tracking_system::on_component_construct(entt::registry& registry, entt::ent
 
 void tracking_system::on_component_destroy(entt::registry& registry, entt::entity entity)
 {
-	if (auto it = billboards.find(entity); it != billboards.end())
+	if (auto it = trackers.find(entity); it != trackers.end())
 	{
 		// Remove model instance from all layers
 		/*
@@ -127,7 +127,7 @@ void tracking_system::on_component_destroy(entt::registry& registry, entt::entit
 		*/
 		
 		delete it->second;
-		billboards.erase(it);
+		trackers.erase(it);
 	}
 }
 
@@ -141,23 +141,23 @@ void tracking_system::handle_event(const tool_pressed_event& event)
 		
 		if (marker_index > 0)
 		{
-			::billboard* billboard = new ::billboard();
-			billboard->set_material(tracker_material);
-			billboard->set_scale(float3{1, 1, 1});
-			billboard->set_translation(transform.translation);
-			billboard->set_billboard_type(billboard_type::spherical);
-			//billboard->set_alignment_axis({0, 1, 0});
-			billboard->update_tweens();
+			const float tracker_scale = 1.0f;
 			
-			const float paint_ball_scale = 0.393f;
+			// Create tracker model instance
 			model_instance* instance = new model_instance();
-			instance->set_model(paint_ball_model);
-			instance->set_material(0, paint_ball_materials[marker_index - 1]);
+			instance->set_model(tracker_model);
 			instance->set_translation(transform.translation);
-			instance->set_scale(float3{paint_ball_scale, paint_ball_scale, paint_ball_scale});
+			instance->set_scale(float3{tracker_scale, tracker_scale, tracker_scale});
+			
+			// Set tracker paint ball material
+			const model_group* paint_ball_model_group = tracker_model->get_group("paint-ball");
+			if (paint_ball_model_group != nullptr)
+			{
+				instance->set_material(paint_ball_model_group->get_index(), paint_ball_materials[marker_index - 1]);
+			}
+
 			instance->update_tweens();
 			
-			scene->add_object(billboard);
 			scene->add_object(instance);
 		}
 	}

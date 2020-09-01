@@ -27,12 +27,12 @@
 #include "game/events/tool-events.hpp"
 #include <unordered_map>
 
-class billboard;
 class material;
 class event_dispatcher;
 class resource_manager;
 class scene;
 class model;
+class model_instance;
 
 class tracking_system: public entity_system,
 	public event_handler<tool_pressed_event>,
@@ -58,10 +58,10 @@ private:
 	resource_manager* resource_manager;
 	scene* scene;
 	float4 viewport;
-	material* tracker_material;
+	model* tracker_model;
 	model* paint_ball_model;
 	material** paint_ball_materials;
-	std::unordered_map<entt::entity, billboard*> billboards;
+	std::unordered_map<entt::entity, model_instance*> trackers;
 };
 
 #endif // ANTKEEPER_TRACKING_SYSTEM_HPP
