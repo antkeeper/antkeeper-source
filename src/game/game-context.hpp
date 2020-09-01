@@ -84,6 +84,7 @@ class input_event_router;
 class input_mapper;
 class cli;
 class outline_pass;
+class tracking_system;
 template <typename T> class animation;
 template <typename T> class material_property;
 template <typename T> class tween;
@@ -144,6 +145,7 @@ struct game_context
 	vertex_array* billboard_vao;
 	material* fallback_material;
 	material* splash_billboard_material;
+	texture_2d** marker_albedo_textures;
 	
 	// Compositing
 	bloom_pass* overworld_bloom_pass;
@@ -234,6 +236,7 @@ struct game_context
 	ui_system* ui_system;
 	vegetation_system* vegetation_system;
 	spatial_system* spatial_system;
+	tracking_system* tracking_system;
 	
 	// Debug
 	cli* cli;

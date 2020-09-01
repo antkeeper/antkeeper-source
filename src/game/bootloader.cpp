@@ -76,6 +76,8 @@
 #include "game/systems/ui-system.hpp"
 #include "game/systems/vegetation-system.hpp"
 #include "game/systems/spatial-system.hpp"
+#include "game/systems/tracking-system.hpp"
+#include "game/components/marker-component.hpp"
 #include "game/entity-commands.hpp"
 #include "utility/paths.hpp"
 #include "event/event-dispatcher.hpp"
@@ -555,6 +557,24 @@ void setup_rendering(game_context* ctx)
 		ctx->billboard_vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *ctx->billboard_vbo, 3, vertex_attribute_type::float_32, billboard_vertex_stride, sizeof(float) * 5);
 	}
 	
+	// Load marker albedo textures
+	ctx->marker_albedo_textures = new texture_2d*[8];
+	ctx->marker_albedo_textures[0] = ctx->resource_manager->load<texture_2d>("marker-clear-albedo.png");
+	ctx->marker_albedo_textures[1] = ctx->resource_manager->load<texture_2d>("marker-yellow-albedo.png");
+	ctx->marker_albedo_textures[2] = ctx->resource_manager->load<texture_2d>("marker-green-albedo.png");
+	ctx->marker_albedo_textures[3] = ctx->resource_manager->load<texture_2d>("marker-blue-albedo.png");
+	ctx->marker_albedo_textures[4] = ctx->resource_manager->load<texture_2d>("marker-purple-albedo.png");
+	ctx->marker_albedo_textures[5] = ctx->resource_manager->load<texture_2d>("marker-pink-albedo.png");
+	ctx->marker_albedo_textures[6] = ctx->resource_manager->load<texture_2d>("marker-red-albedo.png");
+	ctx->marker_albedo_textures[7] = ctx->resource_manager->load<texture_2d>("marker-orange-albedo.png");
+	for (int i = 0; i < 8; ++i)
+	{
+		texture_2d* texture = ctx->marker_albedo_textures[i];
+		texture->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
+		texture->set_filters(texture_min_filter::nearest, texture_mag_filter::nearest);
+		texture->set_max_anisotropy(0.0f);
+	}
+	
 	// Create renderer
 	ctx->renderer = new renderer();
 	ctx->renderer->set_billboard_vao(ctx->billboard_vao);
@@ -642,31 +662,6 @@ void setup_scenes(game_context* ctx)
 	ctx->splash_billboard->set_translation({0.0f, 0.0f, 0.0f});
 	ctx->splash_billboard->update_tweens();
 	
-	material* billboard_material = new material();
-	billboard_material->set_shader_program(ctx->resource_manager->load<shader_program>("ui-element-textured.glsl"));
-	billboard_material->add_property<const texture_2d*>("background")->set_value(ctx->resource_manager->load<texture_2d>("arrow.png"));
-	billboard_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
-	billboard_material->set_flags(MATERIAL_FLAG_TRANSLUCENT | MATERIAL_FLAG_NOT_SHADOW_CASTER);
-	billboard* arrow_billboard = new billboard();
-	arrow_billboard->set_material(billboard_material);
-	arrow_billboard->set_scale(float3{1, 1, 1} * 2.0f);
-	arrow_billboard->set_translation({0, 10, 0});
-	arrow_billboard->set_billboard_type(billboard_type::cylindrical);
-	arrow_billboard->set_alignment_axis({0, 1, 0});
-	arrow_billboard->update_tweens();
-	
-	billboard_material = new material();
-	billboard_material->set_shader_program(ctx->resource_manager->load<shader_program>("portal-card.glsl"));
-	billboard_material->add_property<float4>("color")->set_value(float4{1, 1, 1, 1});
-	billboard_material->add_property<float2>("range")->set_value(float2{50.0f, 500.0f});
-	billboard_material->set_flags(MATERIAL_FLAG_TRANSLUCENT | MATERIAL_FLAG_NOT_SHADOW_CASTER);
-	billboard* portal_billboard = new billboard();
-	portal_billboard->set_material(billboard_material);
-	portal_billboard->set_scale(float3{1, 1, 1} * 10.0f);
-	portal_billboard->set_translation({0.0f, 0, 0});
-	portal_billboard->set_billboard_type(billboard_type::spherical);
-	portal_billboard->set_alignment_axis({0, 1, 0});
-	portal_billboard->update_tweens();
 	
 	// Create depth debug billboard
 	/*
@@ -688,7 +683,6 @@ void setup_scenes(game_context* ctx)
 	ctx->overworld_scene->add_object(ctx->sun_indirect);
 	ctx->overworld_scene->add_object(ctx->sun_direct);
 	//ctx->overworld_scene->add_object(ctx->spotlight);
-	ctx->overworld_scene->add_object(arrow_billboard);
 	
 	// Setup underworld scene
 	ctx->underworld_scene = new scene();
@@ -776,6 +770,8 @@ void setup_entities(game_context* ctx)
 
 void setup_systems(game_context* ctx)
 {
+	event_dispatcher* event_dispatcher = ctx->app->get_event_dispatcher();
+
 	const auto& viewport_dimensions = ctx->app->get_viewport_dimensions();
 	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_dimensions[0]), static_cast<float>(viewport_dimensions[1])};
 	
@@ -794,9 +790,11 @@ void setup_systems(game_context* ctx)
 	// Setup camera system
 	ctx->camera_system = new camera_system(*ctx->ecs_registry);
 	ctx->camera_system->set_viewport(viewport);
+	event_dispatcher->subscribe<mouse_moved_event>(ctx->camera_system);
+	event_dispatcher->subscribe<window_resized_event>(ctx->camera_system);
 	
 	// Setup tool system
-	ctx->tool_system = new tool_system(*ctx->ecs_registry);
+	ctx->tool_system = new tool_system(*ctx->ecs_registry, event_dispatcher);
 	ctx->tool_system->set_camera(ctx->overworld_camera);
 	ctx->tool_system->set_orbit_cam(ctx->camera_system->get_orbit_cam());
 	ctx->tool_system->set_viewport(viewport);
@@ -839,6 +837,10 @@ void setup_systems(game_context* ctx)
 	// Setup constraint system
 	ctx->constraint_system = new constraint_system(*ctx->ecs_registry);
 	
+	// Setup tracking system
+	ctx->tracking_system = new tracking_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
+	ctx->tracking_system->set_scene(ctx->overworld_scene);
+	
 	// Setup render system
 	ctx->render_system = new ::render_system(*ctx->ecs_registry);
 	ctx->render_system->add_layer(ctx->overworld_scene);
@@ -857,6 +859,8 @@ void setup_systems(game_context* ctx)
 	ctx->control_system->set_flashlight(ctx->flashlight_entity);
 	ctx->control_system->set_camera_subject(ctx->focal_point_entity);
 	ctx->control_system->set_camera_system(ctx->camera_system);
+	event_dispatcher->subscribe<mouse_moved_event>(ctx->control_system);
+	event_dispatcher->subscribe<window_resized_event>(ctx->control_system);
 	
 	// Setup UI system
 	ctx->ui_system = new ui_system(ctx->resource_manager);
@@ -864,6 +868,10 @@ void setup_systems(game_context* ctx)
 	ctx->ui_system->set_scene(ctx->ui_scene);
 	ctx->ui_system->set_viewport(viewport);
 	ctx->ui_system->set_tool_menu_control(ctx->control_system->get_tool_menu_control());
+	event_dispatcher->subscribe<mouse_moved_event>(ctx->ui_system);
+	event_dispatcher->subscribe<window_resized_event>(ctx->ui_system);
+	
+
 }
 
 void setup_controls(game_context* ctx)
@@ -1011,12 +1019,16 @@ void setup_controls(game_context* ctx)
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_rotate_ccw_control(), nullptr, scancode::q));
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_rotate_cw_control(), nullptr, scancode::e));
 	
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_forceps_control(), nullptr, scancode::one));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, scancode::two));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_lens_control(), nullptr, scancode::three));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_marker_control(), nullptr, scancode::four));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_container_control(), nullptr, scancode::five));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_twig_control(), nullptr, scancode::six));
+	
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, scancode::one));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_twig_control(), nullptr, scancode::two));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_forceps_control(), nullptr, scancode::three));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_container_control(), nullptr, scancode::four));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_lens_control(), nullptr, scancode::five));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_marker_control(), nullptr, scancode::six));
+	
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_next_marker_control(), nullptr, scancode::right_brace));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_previous_marker_control(), nullptr, scancode::left_brace));
 	
 	ctx->input_event_router->add_mapping(mouse_button_mapping(ctx->control_system->get_use_tool_control(), nullptr, 1));
 	ctx->control_system->get_use_tool_control()->set_activated_callback
@@ -1077,15 +1089,58 @@ void setup_controls(game_context* ctx)
 		}
 	);
 	
-	event_dispatcher->subscribe<mouse_moved_event>(ctx->control_system);
-	event_dispatcher->subscribe<mouse_moved_event>(ctx->camera_system);
-	event_dispatcher->subscribe<mouse_moved_event>(ctx->tool_system);
-	event_dispatcher->subscribe<mouse_moved_event>(ctx->ui_system);
 
-	event_dispatcher->subscribe<window_resized_event>(ctx->control_system);
-	event_dispatcher->subscribe<window_resized_event>(ctx->camera_system);
-	event_dispatcher->subscribe<window_resized_event>(ctx->tool_system);	
-	event_dispatcher->subscribe<window_resized_event>(ctx->ui_system);
+	
+	ctx->control_system->get_next_marker_control()->set_activated_callback
+	(
+		[ctx]()
+		{
+			auto& marker_component = ctx->ecs_registry->get<ecs::marker_component>(ctx->marker_entity);
+			marker_component.color = (marker_component.color + 1) % 8;			
+			const texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker_component.color];
+			
+			model* marker_model = ctx->render_system->get_model_instance(ctx->marker_entity)->get_model();
+			for (::model_group* group: *marker_model->get_groups())
+			{
+				material_property_base* albedo_property = group->get_material()->get_property("albedo_texture");
+				if (albedo_property)
+				{
+					static_cast<material_property<const texture_2d*>*>(albedo_property)->set_value(marker_albedo_texture);
+				}
+			}
+		}
+	);
+	
+	ctx->control_system->get_previous_marker_control()->set_activated_callback
+	(
+		[ctx]()
+		{
+			auto& marker_component = ctx->ecs_registry->get<ecs::marker_component>(ctx->marker_entity);
+			marker_component.color = (marker_component.color + 7) % 8;			
+			const texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker_component.color];
+			
+			model* marker_model = ctx->render_system->get_model_instance(ctx->marker_entity)->get_model();
+			for (::model_group* group: *marker_model->get_groups())
+			{
+				material_property_base* albedo_property = group->get_material()->get_property("albedo_texture");
+				if (albedo_property)
+				{
+					static_cast<material_property<const texture_2d*>*>(albedo_property)->set_value(marker_albedo_texture);
+				}
+			}
+		}
+	);
+	
+
+	
+	
+	// Make lens tool's model instance unculled, so its shadow is always visible.
+	model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
+	if (lens_model_instance)
+	{
+		lens_model_instance->set_culling_mask(&ctx->no_cull);
+	}
+
 }
 
 void setup_cli(game_context* ctx)
@@ -1133,6 +1188,7 @@ void setup_callbacks(game_context* ctx)
 			
 			ctx->spatial_system->update(t, dt);
 			ctx->constraint_system->update(t, dt);
+			ctx->tracking_system->update(t, dt);
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			

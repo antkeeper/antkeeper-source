@@ -30,6 +30,7 @@
 
 class camera;
 class orbit_cam;
+class event_dispatcher;
 
 class tool_system:
 	public entity_system,
@@ -37,7 +38,8 @@ class tool_system:
 	public event_handler<window_resized_event>
 {
 public:
-	tool_system(entt::registry& registry);
+	tool_system(entt::registry& registry, event_dispatcher* event_dispatcher);
+	virtual ~tool_system();
 	virtual void update(double t, double dt);
 
 	void set_camera(const camera* camera);
@@ -56,6 +58,7 @@ private:
 	virtual void handle_event(const mouse_moved_event& event);
 	virtual void handle_event(const window_resized_event& event);
 
+	event_dispatcher* event_dispatcher;
 	const camera* camera;
 	const orbit_cam* orbit_cam;
 	float4 viewport;

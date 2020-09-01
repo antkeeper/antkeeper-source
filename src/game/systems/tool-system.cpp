@@ -21,6 +21,8 @@
 #include "game/components/collision-component.hpp"
 #include "game/components/tool-component.hpp"
 #include "game/components/transform-component.hpp"
+#include "event/event-dispatcher.hpp"
+#include "game/events/tool-events.hpp"
 #include "scene/camera.hpp"
 #include "animation/orbit-cam.hpp"
 #include "animation/ease.hpp"
@@ -28,12 +30,12 @@
 #include "geometry/intersection.hpp"
 #include "math/math.hpp"
 #include "game/entity-commands.hpp"
-#include <iostream>
 
 using namespace ecs;
 
-tool_system::tool_system(entt::registry& registry):
+tool_system::tool_system(entt::registry& registry, ::event_dispatcher* event_dispatcher):
 	entity_system(registry),
+	event_dispatcher(event_dispatcher),
 	camera(nullptr),
 	orbit_cam(orbit_cam),
 	viewport{0, 0, 0, 0},
@@ -79,6 +81,15 @@ tool_system::tool_system(entt::registry& registry):
 	active_tool_distance = 0.0f;
 	warp = true;
 	tool_active = false;
+	
+	event_dispatcher->subscribe<mouse_moved_event>(this);
+	event_dispatcher->subscribe<window_resized_event>(this);
+}
+
+tool_system::~tool_system()
+{
+	event_dispatcher->unsubscribe<mouse_moved_event>(this);
+	event_dispatcher->unsubscribe<window_resized_event>(this);
 }
 
 void tool_system::update(double t, double dt)
@@ -281,11 +292,21 @@ void tool_system::set_tool_active(bool active)
 	{
 		descend_animation.rewind();
 		descend_animation.play();
+		
+		// Queue tool pressed event
+		tool_pressed_event event;
+		event.entity = active_tool;
+		event_dispatcher->queue(event);
 	}
 	else
 	{
 		ascend_animation.rewind();
 		ascend_animation.play();
+		
+			// Queue tool pressed event
+		tool_released_event event;
+		event.entity = active_tool;
+		event_dispatcher->queue(event);
 	}
 }
 

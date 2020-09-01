@@ -77,6 +77,8 @@ public:
 	control* get_equip_marker_control();
 	control* get_equip_container_control();
 	control* get_equip_twig_control();
+	control* get_next_marker_control();
+	control* get_previous_marker_control();
 	control* get_use_tool_control();
 
 private:
@@ -105,6 +107,8 @@ private:
 	control equip_marker_control;
 	control equip_container_control;
 	control equip_twig_control;
+	control next_marker_control;
+	control previous_marker_control;
 	control use_tool_control;
 
 	float zoom_speed;
@@ -248,6 +252,16 @@ inline control* control_system::get_equip_container_control()
 inline control* control_system::get_equip_twig_control()
 {
 	return &equip_twig_control;
+}
+
+inline control* control_system::get_next_marker_control()
+{
+	return &next_marker_control;
+}
+
+inline control* control_system::get_previous_marker_control()
+{
+	return &previous_marker_control;
 }
 
 inline control* control_system::get_use_tool_control()
