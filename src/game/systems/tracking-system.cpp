@@ -22,18 +22,13 @@
 #include "game/components/marker-component.hpp"
 #include "event/event-dispatcher.hpp"
 #include "resources/resource-manager.hpp"
-#include "scene/billboard.hpp"
 #include "scene/scene.hpp"
 #include "scene/model-instance.hpp"
 #include "math/math.hpp"
 #include "renderer/material.hpp"
-#include "renderer/material-flags.hpp"
 #include "renderer/model.hpp"
-#include "rasterizer/texture-2d.hpp"
-#include "rasterizer/shader-program.hpp"
 #include "utility/fundamental-types.hpp"
 #include "game/entity-commands.hpp"
-#include <iostream>
 
 using namespace ecs;
 
@@ -64,14 +59,12 @@ tracking_system::tracking_system(entt::registry& registry, ::event_dispatcher* e
 	
 	event_dispatcher->subscribe<tool_pressed_event>(this);
 	event_dispatcher->subscribe<tool_released_event>(this);
-	event_dispatcher->subscribe<window_resized_event>(this);
 }
 
 tracking_system::~tracking_system()
 {
 	event_dispatcher->unsubscribe<tool_pressed_event>(this);
 	event_dispatcher->unsubscribe<tool_released_event>(this);
-	event_dispatcher->unsubscribe<window_resized_event>(this);
 	
 	for (auto it = trackers.begin(); it != trackers.end(); ++it)
 	{
@@ -102,11 +95,6 @@ void tracking_system::update(double t, double dt)
 void tracking_system::set_scene(::scene* scene)
 {
 	this->scene = scene;
-}
-
-void tracking_system::set_viewport(const float4& viewport)
-{
-	this->viewport = viewport;
 }
 
 void tracking_system::on_component_construct(entt::registry& registry, entt::entity entity, trackable_component& component)
@@ -166,9 +154,4 @@ void tracking_system::handle_event(const tool_pressed_event& event)
 void tracking_system::handle_event(const tool_released_event& event)
 {
 
-}
-
-void tracking_system::handle_event(const window_resized_event& event)
-{
-	set_viewport({0.0f, 0.0f, static_cast<float>(event.w), static_cast<float>(event.h)});
 }

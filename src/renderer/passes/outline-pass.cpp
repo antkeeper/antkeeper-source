@@ -72,13 +72,13 @@ void outline_pass::render(render_context* context) const
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
 	
 	// Render fill
 	{
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		glEnable(GL_STENCIL_TEST);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilFunc(GL_ALWAYS, 2, 0xFF);
 		glStencilMask(0xFF);
 		glDisable(GL_BLEND);
 		
@@ -113,8 +113,7 @@ void outline_pass::render(render_context* context) const
 			glDisable(GL_BLEND);
 		}
 
-		glEnable(GL_STENCIL_TEST);
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilFunc(GL_NOTEQUAL, 2, 0xFF);
 		glStencilMask(0x00);
 		
 		// Setup stroke shader

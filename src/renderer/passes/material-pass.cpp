@@ -327,6 +327,39 @@ void material_pass::render(render_context* context) const
 					}
 				}
 				
+				if ((material_flags & MATERIAL_FLAG_DECAL_SURFACE) != (active_material_flags & MATERIAL_FLAG_DECAL_SURFACE))
+				{
+					if (material_flags & MATERIAL_FLAG_DECAL_SURFACE)
+					{
+						glEnable(GL_STENCIL_TEST);
+						glStencilFunc(GL_ALWAYS, 1, ~0);
+						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+						glStencilMask(~0);
+					}
+					else
+					{
+						glDisable(GL_STENCIL_TEST);
+						glStencilMask(0);
+					}
+				}
+				
+				if ((material_flags & MATERIAL_FLAG_DECAL) != (active_material_flags & MATERIAL_FLAG_DECAL))
+				{
+					if (material_flags & MATERIAL_FLAG_DECAL)
+					{
+						glDisable(GL_DEPTH_TEST);
+						glEnable(GL_STENCIL_TEST);
+						glStencilFunc(GL_EQUAL, 1, ~0);
+						glStencilMask(0);
+					}
+					else
+					{
+						glEnable(GL_DEPTH_TEST);
+						glDisable(GL_STENCIL_TEST);
+						glStencilMask(0);
+					}
+				}
+				
 				/*
 				if ((material_flags & MATERIAL_FLAG_OUTLINE) != (active_material_flags & MATERIAL_FLAG_OUTLINE))
 				{
@@ -334,7 +367,7 @@ void material_pass::render(render_context* context) const
 					{
 						glEnable(GL_STENCIL_TEST);
 						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
-						glStencilFunc(GL_ALWAYS, 1, 0xFF);
+						glStencilFunc(GL_ALWAYS, 2, 0xFF);
 						glStencilMask(0xFF);
 					}
 					else
@@ -513,6 +546,8 @@ bool operation_compare(const render_operation& a, const render_operation& b)
 		return false;
 	else if (!b.material)
 		return true;
+	
+	
 	
 	bool xray_a = a.material->get_flags() & MATERIAL_FLAG_X_RAY;
 	bool xray_b = b.material->get_flags() & MATERIAL_FLAG_X_RAY;

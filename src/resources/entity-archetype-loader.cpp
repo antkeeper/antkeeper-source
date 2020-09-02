@@ -29,6 +29,7 @@
 #include "game/components/nest-component.hpp"
 #include "game/components/tool-component.hpp"
 #include "game/components/marker-component.hpp"
+#include "game/components/brush-component.hpp"
 #include "entity/archetype.hpp"
 #include "game/behavior/ebt.hpp"
 #include <sstream>
@@ -123,6 +124,20 @@ static bool load_marker_component(archetype& archetype, const std::vector<std::s
 	return true;
 }
 
+static bool load_brush_component(archetype& archetype, const std::vector<std::string>& parameters)
+{
+	if (parameters.size() != 2)
+	{
+		throw std::runtime_error("load_brush_component(): Invalid parameter count.");
+	}
+	
+	brush_component component;
+	component.radius = std::stof(parameters[1]);
+	archetype.set<brush_component>(component);
+	
+	return true;
+}
+
 static bool load_terrain_component(archetype& archetype, const std::vector<std::string>& parameters)
 {
 	if (parameters.size() != 4)
@@ -199,6 +214,7 @@ static bool load_component(archetype& archetype, resource_manager& resource_mana
 	if (parameters[0] == "tool") return load_tool_component(archetype, parameters);
 	if (parameters[0] == "transform") return load_transform_component(archetype, parameters);
 	if (parameters[0] == "marker") return load_marker_component(archetype, parameters);
+	if (parameters[0] == "brush") return load_brush_component(archetype, parameters);
 
 	std::string message = std::string("load_component(): Unknown component type \"") + parameters[0] + std::string("\"");
 	throw std::runtime_error(message);

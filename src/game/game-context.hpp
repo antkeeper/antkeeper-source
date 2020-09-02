@@ -85,6 +85,7 @@ class input_mapper;
 class cli;
 class outline_pass;
 class tracking_system;
+class painting_system;
 template <typename T> class animation;
 template <typename T> class material_property;
 template <typename T> class tween;
@@ -237,6 +238,7 @@ struct game_context
 	vegetation_system* vegetation_system;
 	spatial_system* spatial_system;
 	tracking_system* tracking_system;
+	painting_system* painting_system;
 	
 	// Debug
 	cli* cli;

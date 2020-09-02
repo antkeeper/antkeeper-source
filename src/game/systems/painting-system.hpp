@@ -17,14 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TRACKING_SYSTEM_HPP
-#define ANTKEEPER_TRACKING_SYSTEM_HPP
+#ifndef ANTKEEPER_PAINTING_SYSTEM_HPP
+#define ANTKEEPER_PAINTING_SYSTEM_HPP
 
 #include "entity-system.hpp"
-#include "game/components/trackable-component.hpp"
 #include "event/event-handler.hpp"
 #include "game/events/tool-events.hpp"
-#include <unordered_map>
+#include "utility/fundamental-types.hpp"
+#include <vector>
+#include <optional>
 
 class material;
 class event_dispatcher;
@@ -32,32 +33,52 @@ class resource_manager;
 class scene;
 class model;
 class model_instance;
+class model_group;
+class vertex_buffer;
 
-class tracking_system: public entity_system,
+class painting_system: public entity_system,
 	public event_handler<tool_pressed_event>,
 	public event_handler<tool_released_event>
 {
 public:
-	tracking_system(entt::registry& registry, event_dispatcher* event_dispatcher, resource_manager* resource_manager);
-	virtual ~tracking_system();
+	painting_system(entt::registry& registry, event_dispatcher* event_dispatcher, resource_manager* resource_manager);
+	virtual ~painting_system();
 	virtual void update(double t, double dt);
 	
 	void set_scene(scene* scene);
-	void set_viewport(const float4& viewport);
 	
 private:
-	void on_component_construct(entt::registry& registry, entt::entity entity, ecs::trackable_component& component);
-	void on_component_destroy(entt::registry& registry, entt::entity entity);
 	virtual void handle_event(const tool_pressed_event& event);
 	virtual void handle_event(const tool_released_event& event);
+	
+	std::optional<float3> cast_ray(const float3& position) const;
 	
 	event_dispatcher* event_dispatcher;
 	resource_manager* resource_manager;
 	scene* scene;
-	model* tracker_model;
-	model* paint_ball_model;
-	material** paint_ball_materials;
-	std::unordered_map<entt::entity, model_instance*> trackers;
+	
+	bool painting;
+	entt::entity brush_entity;
+	float3 stroke_start;
+	float3 stroke_end;
+	float min_stroke_length;
+	float min_stroke_length_squared;
+	float stroke_width;
+	int max_stroke_segments;
+	int current_stroke_segment;
+	float max_miter_angle;
+	float3 stroke_bounds_min;
+	float3 stroke_bounds_max;
+	float3 p0;
+	float3 p0a;
+	float3 p0b;
+	
+	model* stroke_model;
+	model_group* stroke_model_group;
+	vertex_buffer* stroke_vbo;
+	bool midstroke;
+	
+	model_instance* stroke_model_instance;
 };
 
-#endif // ANTKEEPER_TRACKING_SYSTEM_HPP
+#endif // ANTKEEPER_PAINTING_SYSTEM_HPP

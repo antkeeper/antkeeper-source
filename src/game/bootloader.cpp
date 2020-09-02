@@ -77,6 +77,7 @@
 #include "game/systems/vegetation-system.hpp"
 #include "game/systems/spatial-system.hpp"
 #include "game/systems/tracking-system.hpp"
+#include "game/systems/painting-system.hpp"
 #include "game/components/marker-component.hpp"
 #include "game/entity-commands.hpp"
 #include "utility/paths.hpp"
@@ -841,6 +842,10 @@ void setup_systems(game_context* ctx)
 	ctx->tracking_system = new tracking_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
 	ctx->tracking_system->set_scene(ctx->overworld_scene);
 	
+	// Setup painting system
+	ctx->painting_system = new painting_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
+	ctx->painting_system->set_scene(ctx->overworld_scene);
+	
 	// Setup render system
 	ctx->render_system = new ::render_system(*ctx->ecs_registry);
 	ctx->render_system->add_layer(ctx->overworld_scene);
@@ -1189,6 +1194,7 @@ void setup_callbacks(game_context* ctx)
 			ctx->spatial_system->update(t, dt);
 			ctx->constraint_system->update(t, dt);
 			ctx->tracking_system->update(t, dt);
+			ctx->painting_system->update(t, dt);
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			

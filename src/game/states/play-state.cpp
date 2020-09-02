@@ -125,8 +125,8 @@ void play_state_enter(game_context* ctx)
 	ec::assign_render_layers(ecs_registry, ctx->container_entity, 0);
 	ec::assign_render_layers(ecs_registry, ctx->twig_entity, 0);
 	
-	// Activate lens tool
-	ctx->tool_system->set_active_tool(ctx->lens_entity);
+	// Activate brush tool
+	ctx->tool_system->set_active_tool(ctx->brush_entity);
 
 	// Create ant-hill
 	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);

@@ -76,8 +76,9 @@ public:
 	
 	virtual void update_tweens();
 	
-private:
 	void update_bounds();
+
+private:
 	virtual void transformed();
 	
 	model* model;
