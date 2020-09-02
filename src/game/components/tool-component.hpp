@@ -28,6 +28,7 @@ struct tool_component
 	float idle_distance;
 	float active_distance;
 	bool heliotropic;
+	float3 cursor;
 	
 	//float activation_speed;
 };

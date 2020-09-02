@@ -67,6 +67,7 @@ private:
 	int max_stroke_segments;
 	int current_stroke_segment;
 	float max_miter_angle;
+	float decal_offset;
 	float3 stroke_bounds_min;
 	float3 stroke_bounds_max;
 	float3 p0;

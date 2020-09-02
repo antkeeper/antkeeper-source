@@ -347,14 +347,22 @@ void material_pass::render(render_context* context) const
 				{
 					if (material_flags & MATERIAL_FLAG_DECAL)
 					{
-						glDisable(GL_DEPTH_TEST);
+						glEnable(GL_DEPTH_TEST);
+						glDepthFunc(GL_LEQUAL);
+						glDepthMask(GL_FALSE);
+						
 						glEnable(GL_STENCIL_TEST);
 						glStencilFunc(GL_EQUAL, 1, ~0);
+						//glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
+						//glStencilMask(~0);
+						glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 						glStencilMask(0);
 					}
 					else
 					{
 						glEnable(GL_DEPTH_TEST);
+						glDepthFunc(GL_LESS);
+						glDepthMask(GL_TRUE);
 						glDisable(GL_STENCIL_TEST);
 						glStencilMask(0);
 					}
@@ -582,8 +590,36 @@ bool operation_compare(const render_operation& a, const render_operation& b)
 			{
 				if (transparent_b)
 				{
-					// A and B are both transparent, render back to front
-					return (a.depth >= b.depth);
+					// Determine decal status
+					bool decal_a = a.material->get_flags() & MATERIAL_FLAG_DECAL;
+					bool decal_b = b.material->get_flags() & MATERIAL_FLAG_DECAL;
+					
+					if (decal_a)
+					{
+						if (decal_b)
+						{
+							// A and B are both transparent decals, render back to front
+							return (a.depth >= b.depth);
+						}
+						else
+						{
+							// A is a transparent decal, B is transparent but not a decal, render A first
+							return true;
+						}
+					}
+					else
+					{
+						if (decal_b)
+						{
+							// A is transparent but not a decal, B is a transparent decal, render B first
+							return false;
+						}
+						else
+						{
+							// A and B are both transparent, but not decals, render back to front
+							return (a.depth >= b.depth);
+						}
+					}
 				}
 				else
 				{

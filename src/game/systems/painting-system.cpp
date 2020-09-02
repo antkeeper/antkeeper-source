@@ -20,6 +20,7 @@
 #include "painting-system.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/brush-component.hpp"
+#include "game/components/tool-component.hpp"
 #include "event/event-dispatcher.hpp"
 #include "resources/resource-manager.hpp"
 #include "scene/scene.hpp"
@@ -49,6 +50,7 @@ painting_system::painting_system(entt::registry& registry, ::event_dispatcher* e
 	event_dispatcher->subscribe<tool_released_event>(this);
 	
 	max_miter_angle = math::radians(135.0f);
+	decal_offset = 0.01f;
 	stroke_width = 1.0f;
 	min_stroke_length = 1.0f;
 	min_stroke_length_squared = min_stroke_length * min_stroke_length;
@@ -93,7 +95,9 @@ void painting_system::update(double t, double dt)
 {
 	if (painting)
 	{
-		auto cast_result = cast_ray(ec::get_world_transform(registry, brush_entity).translation);
+		const tool_component& tool = registry.get<tool_component>(brush_entity);
+		
+		auto cast_result = cast_ray(tool.cursor);
 		if (cast_result.has_value())
 		{
 			float3 p2 = 
@@ -123,10 +127,10 @@ void painting_system::update(double t, double dt)
 				
 				float3 a = p0a;
 				float3 b = p0b;
-				float3 c = p1 - segment_right * stroke_width * 0.5f;
-				float3 d = p1 + segment_right * stroke_width * 0.5f;
-				float3 e = p2 - segment_right * stroke_width * 0.5f;
-				float3 f = p2 + segment_right * stroke_width * 0.5f;
+				float3 c = p1 - segment_right * stroke_width * 0.5f + segment_up * decal_offset;
+				float3 d = p1 + segment_right * stroke_width * 0.5f + segment_up * decal_offset;
+				float3 e = p2 - segment_right * stroke_width * 0.5f + segment_up * decal_offset;
+				float3 f = p2 + segment_right * stroke_width * 0.5f + segment_up * decal_offset;
 				
 				// Adjust c and d
 				bool mitered = false;
@@ -136,8 +140,8 @@ void painting_system::update(double t, double dt)
 					if (angle < max_miter_angle)
 					{
 						mitered = true;
-						c = p1 - float3{miter.x, 0.0f, miter.y} * miter_length * 0.5f;
-						d = p1 + float3{miter.x, 0.0f, miter.y} * miter_length * 0.5f;
+						c = p1 - float3{miter.x, 0.0f, miter.y} * miter_length * 0.5f + segment_up * decal_offset;
+						d = p1 + float3{miter.x, 0.0f, miter.y} * miter_length * 0.5f + segment_up * decal_offset;
 					}
 				}
 				
@@ -201,7 +205,7 @@ void painting_system::handle_event(const tool_pressed_event& event)
 {
 	if (registry.has<brush_component>(event.entity))
 	{
-		auto cast_result = cast_ray(ec::get_world_transform(registry, event.entity).translation);
+		auto cast_result = cast_ray(event.position);
 		
 		if (cast_result.has_value())
 		{

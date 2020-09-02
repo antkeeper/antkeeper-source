@@ -208,6 +208,9 @@ void tool_system::update(double t, double dt)
 				ec::assign_render_layers(registry, active_tool, 1);
 				warp = false;
 			}
+			
+			// Update tool's cursor position
+			tool.cursor = pick_spring.x0;
 
 			//math::quaternion<float> rotation = math::angle_axis(orbit_cam->get_azimuth() + pick_angle, float3{0, 1, 0});
 			//transform.transform.rotation = rotation;
@@ -296,6 +299,7 @@ void tool_system::set_tool_active(bool active)
 		// Queue tool pressed event
 		tool_pressed_event event;
 		event.entity = active_tool;
+		event.position = pick_spring.x0;
 		event_dispatcher->queue(event);
 	}
 	else
@@ -306,6 +310,7 @@ void tool_system::set_tool_active(bool active)
 			// Queue tool pressed event
 		tool_released_event event;
 		event.entity = active_tool;
+		event.position = pick_spring.x0;
 		event_dispatcher->queue(event);
 	}
 }

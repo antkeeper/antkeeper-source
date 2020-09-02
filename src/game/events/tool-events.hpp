@@ -21,6 +21,7 @@
 #define ANTKEEPER_TOOL_EVENTS_HPP
 
 #include "event/event.hpp"
+#include "utility/fundamental-types.hpp"
 #include <entt/entt.hpp>
 
 class tool_pressed_event: public event<tool_pressed_event>
@@ -28,6 +29,7 @@ class tool_pressed_event: public event<tool_pressed_event>
 public:
 	virtual event_base* clone() const;
 	entt::entity entity;
+	float3 position;
 };
 
 class tool_released_event: public event<tool_released_event>
@@ -35,6 +37,7 @@ class tool_released_event: public event<tool_released_event>
 public:
 	virtual event_base* clone() const;
 	entt::entity entity;
+	float3 position;
 };
 
 #endif // ANTKEEPER_TOOL_EVENTS_HPP
