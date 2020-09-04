@@ -170,7 +170,7 @@ octree32::node_type mesh_accelerator::find_node(const float3& point) const
 		static_cast<std::uint32_t>(transformed_point.y),
 		static_cast<std::uint32_t>(transformed_point.z));
 	
-	/// Return max depth node at the determined location
+	// Return max depth node at the determined location
 	return octree32::node(octree32::max_depth, location);
 }
 

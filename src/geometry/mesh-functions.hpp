@@ -44,7 +44,11 @@ void create_triangle_mesh(mesh& mesh, const std::vector<float3>& vertices, const
  */
 void calculate_face_normals(float* normals, const mesh& mesh);
 
+float3 calculate_face_normal(const mesh::face& face);
+
 void calculate_vertex_normals(float* normals, const mesh& mesh);
+
+
 
 /**
  * Calculates the AABB bounds of a mesh.

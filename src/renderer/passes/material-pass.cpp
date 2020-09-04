@@ -353,10 +353,10 @@ void material_pass::render(render_context* context) const
 						
 						glEnable(GL_STENCIL_TEST);
 						glStencilFunc(GL_EQUAL, 1, ~0);
-						//glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
-						//glStencilMask(~0);
-						glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-						glStencilMask(0);
+						glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
+						glStencilMask(~0);
+						//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+						//glStencilMask(0);
 					}
 					else
 					{

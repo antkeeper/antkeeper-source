@@ -87,6 +87,14 @@ void calculate_face_normals(float* normals, const mesh& mesh)
 	}
 }
 
+float3 calculate_face_normal(const mesh::face& face)
+{
+	const float3& a = reinterpret_cast<const float3&>(face.edge->vertex->position);
+	const float3& b = reinterpret_cast<const float3&>(face.edge->next->vertex->position);
+	const float3& c = reinterpret_cast<const float3&>(face.edge->previous->vertex->position);
+	return math::normalize(math::cross(b - a, c - a));
+}
+
 aabb<float> calculate_bounds(const mesh& mesh)
 {
 	float3 bounds_min;

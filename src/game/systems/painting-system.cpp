@@ -35,6 +35,7 @@
 #include "rasterizer/vertex-buffer.hpp"
 #include "rasterizer/vertex-attribute-type.hpp"
 #include "renderer/vertex-attributes.hpp"
+#include "geometry/mesh-functions.hpp"
 #include <limits>
 
 using namespace ecs;
@@ -56,9 +57,9 @@ painting_system::painting_system(entt::registry& registry, ::event_dispatcher* e
 	min_stroke_length_squared = min_stroke_length * min_stroke_length;
 	max_stroke_segments = 4096;
 	current_stroke_segment = 0;
-	std::size_t vertex_size = 4;
-	std::size_t vertex_stride = sizeof(float) * vertex_size;
-	std::size_t vertex_count = max_stroke_segments * 6;
+	vertex_size = 15;
+	vertex_stride = sizeof(float) * vertex_size;
+	vertex_count = max_stroke_segments * 6;
 	
 	// Create stroke model
 	stroke_model = new model();
@@ -69,6 +70,10 @@ painting_system::painting_system(entt::registry& registry, ::event_dispatcher* e
 	stroke_vbo = stroke_model->get_vertex_buffer();
 	stroke_vbo->repurpose(sizeof(float) * vertex_size * vertex_count, nullptr, buffer_usage::dynamic_draw);
 	stroke_model->get_vertex_array()->bind_attribute(VERTEX_POSITION_LOCATION, *stroke_vbo, 4, vertex_attribute_type::float_32, vertex_stride, 0);
+	stroke_model->get_vertex_array()->bind_attribute(VERTEX_NORMAL_LOCATION, *stroke_vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 4);
+	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TEXCOORD_LOCATION, *stroke_vbo, 2, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 7);
+	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TANGENT_LOCATION, *stroke_vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 9);
+	stroke_model->get_vertex_array()->bind_attribute(VERTEX_BITANGENT_LOCATION, *stroke_vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 12);
 	
 	// Create stroke model instance
 	stroke_model_instance = new model_instance();
@@ -100,21 +105,25 @@ void painting_system::update(double t, double dt)
 		auto cast_result = cast_ray(tool.cursor);
 		if (cast_result.has_value())
 		{
-			float3 p2 = 
-			stroke_end = cast_result.value();
+			stroke_end = std::get<0>(cast_result.value());
+			float3 surface_normal = std::get<1>(cast_result.value());
 			
 			float3 segment_difference = stroke_end - stroke_start;
 			float segment_length_squared = math::dot(segment_difference, segment_difference);
 			if (segment_length_squared >= min_stroke_length_squared)
 			{
 				float segment_length = std::sqrt(segment_length_squared);
-
 				
 				float3 segment_forward = segment_difference / segment_length;
-				float3 segment_right = math::normalize(math::cross(segment_forward, float3{0, 1, 0}));
-				float3 segment_up = math::cross(segment_right, segment_forward);				
+				float3 segment_right = math::normalize(math::cross(segment_forward, surface_normal));
+				float3 segment_up = math::cross(segment_right, segment_forward);
 				
-				float3 segment_center = (stroke_start + stroke_end) * 0.5f;
+				float angle = std::acos(math::dot(segment_forward, float3{0, 0, -1}));
+				float3 cross = math::cross(segment_forward, float3{0, 0, -1});
+				if (math::dot(surface_normal, cross) < 0.0f)
+					angle = -angle;
+				
+				math::quaternion<float> tangent_rotation = math::normalize(math::angle_axis(-angle, surface_normal));
 				
 				float3 p1 = stroke_start;
 				float3 p2 = stroke_end;
@@ -145,30 +154,99 @@ void painting_system::update(double t, double dt)
 					}
 				}
 				
-				float4 segment_vertices[12];
-				float w = static_cast<float>(t);
+				const float3 positions[] =
+				{
+					a, b, c,
+					c, b, d,
+					c, d, e,
+					e, d, f
+				};
+				const float w = static_cast<float>(t);
 				
-				segment_vertices[0] = {a.x, a.y, a.z, w};
-				segment_vertices[1] = {b.x, b.y, b.z, w};
-				segment_vertices[2] = {c.x, c.y, c.z, w};
-				segment_vertices[3] = {c.x, c.y, c.z, w};
-				segment_vertices[4] = {b.x, b.y, b.z, w};
-				segment_vertices[5] = {d.x, d.y, d.z, w};
-				segment_vertices[6] = {c.x, c.y, c.z, w};
-				segment_vertices[7] = {d.x, d.y, d.z, w};
-				segment_vertices[8] = {e.x, e.y, e.z, w};
-				segment_vertices[9] = {e.x, e.y, e.z, w};
-				segment_vertices[10] = {d.x, d.y, d.z, w};
-				segment_vertices[11] = {f.x, f.y, f.z, w};
+				float2 texcoords[] =
+				{
+					{0, 0}, {1, 0}, {0, 1},
+					{0, 1}, {1, 0}, {1, 1},
+					{0, 0}, {1, 0}, {0, 1},
+					{0, 1}, {1, 0}, {1, 1},
+				};
 				
-				std::size_t segment_size = sizeof(float) * 4 * 6;
+				float3 tangent_positions[] =
+				{
+					{0, 0, 0}, {1, 0, 0}, {0, 0, 1},
+					{0, 0, 1}, {1, 0, 0}, {1, 0, 1},
+					{0, 0, 0}, {1, 0, 0}, {0, 0, 1},
+					{0, 0, 1}, {1, 0, 0}, {1, 0, 1}
+				};
+				
+				/// @TODO: smooth normals in middle of segment
+				
+				float3 tangents[12];
+				float3 bitangents[12];
+				for (int i = 0; i < 4; ++i)
+				{
+					const float3& a = tangent_positions[i * 3];
+					const float3& b = tangent_positions[i * 3 + 1];
+					const float3& c = tangent_positions[i * 3 + 2];
+					const float2& uva = texcoords[i * 3];
+					const float2& uvb = texcoords[i * 3 + 1];
+					const float2& uvc = texcoords[i * 3 + 2];
+					
+					float3 ba = b - a;
+					float3 ca = c - a;
+					float2 uvba = uvb - uva;
+					float2 uvca = uvc - uva;
+					
+					float f = 1.0f / (uvba.x * uvca.y - uvca.x * uvba.y);
+					float3 tangent = math::normalize((ba * uvca.y - ca * uvba.y) * f);
+					float3 bitangent = math::normalize((ba * -uvca.x + ca * uvba.x) * f);
+					
+					// Rotate tangent and bitangent according to segment rotation
+					tangent = math::normalize(tangent_rotation * tangent);
+					bitangent = math::normalize(tangent_rotation * bitangent);
+					
+					tangents[i * 3] = tangent;
+					tangents[i * 3 + 1] = tangent;
+					tangents[i * 3 + 2] = tangent;
+					
+					bitangents[i * 3] = bitangent;
+					bitangents[i * 3 + 1] = bitangent;
+					bitangents[i * 3 + 2] = bitangent;
+				}
+				
+				float vertex_data[15 * 12];
+				float* v = &vertex_data[0];
+				for (int i = 0; i < 12; ++i)
+				{
+					*(v++) = positions[i].x;
+					*(v++) = positions[i].y;
+					*(v++) = positions[i].z;
+					*(v++) = w;
+
+					*(v++) = surface_normal.x;
+					*(v++) = surface_normal.y;
+					*(v++) = surface_normal.z;
+					
+					*(v++) = texcoords[i].x;
+					*(v++) = texcoords[i].y;
+					
+					*(v++) = tangents[i].x;
+					*(v++) = tangents[i].y;
+					*(v++) = tangents[i].z;
+					
+					*(v++) = bitangents[i].x;
+					*(v++) = bitangents[i].y;
+					*(v++) = bitangents[i].z;
+				}
+				
+				std::size_t segment_size = sizeof(float) * vertex_size * 6;
 				if (mitered)
 				{
-					stroke_vbo->update((current_stroke_segment - 1) * segment_size, segment_size * 2, &segment_vertices[0][0]);
+					stroke_vbo->update((current_stroke_segment - 1) * segment_size, segment_size * 2, &vertex_data[0]);
 				}
 				else
 				{
-					stroke_vbo->update(current_stroke_segment * segment_size, segment_size, &segment_vertices[6][0]);
+					stroke_vbo->update(current_stroke_segment * segment_size, segment_size, &vertex_data[vertex_size * 6]);
 				}
 				
 				++current_stroke_segment;
@@ -211,7 +289,7 @@ void painting_system::handle_event(const tool_pressed_event& event)
 		{
 			brush_entity = event.entity;
 			painting = true;
-			stroke_start = cast_result.value();
+			stroke_start = std::get<0>(cast_result.value());
 			stroke_end = stroke_start;
 			p0 = stroke_start;
 			p0a = p0;
@@ -229,7 +307,7 @@ void painting_system::handle_event(const tool_released_event& event)
 		
 		if (cast_result.has_value())
 		{
-			stroke_end = cast_result.value();
+			stroke_end = std::get<0>(cast_result.value());
 		}
 		
 		brush_entity = entt::null;
@@ -237,9 +315,13 @@ void painting_system::handle_event(const tool_released_event& event)
 	}
 }
 
-std::optional<float3> painting_system::cast_ray(const float3& position) const
+std::optional<std::tuple<float3, float3>> painting_system::cast_ray(const float3& position) const
 {
-	std::optional<float3> result;
+	std::optional<std::tuple<float3, float3>> result;
+	
+	float3 intersection;
+	float3 surface_normal;
+	mesh::face* face = nullptr;
 	
 	ray<float> untransformed_ray = {position + float3{0.0f, 10000.0f, 0.0f}, {0, -1, 0}};
 	float min_distance = std::numeric_limits<float>::infinity();
@@ -267,10 +349,17 @@ std::optional<float3> painting_system::cast_ray(const float3& position) const
 				if (mesh_result->t < min_distance)
 				{
 					min_distance = mesh_result->t;
-					result = untransformed_ray.extrapolate(min_distance);
+					intersection = untransformed_ray.extrapolate(min_distance);
+					face = mesh_result->face;
 				}
 			}
 		});
+	
+	if (face != nullptr)
+	{
+		surface_normal = calculate_face_normal(*face);
+		result = std::make_tuple(intersection, surface_normal);
+	}
 	
 	return result;
 }

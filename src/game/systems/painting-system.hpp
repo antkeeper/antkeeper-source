@@ -51,7 +51,7 @@ private:
 	virtual void handle_event(const tool_pressed_event& event);
 	virtual void handle_event(const tool_released_event& event);
 	
-	std::optional<float3> cast_ray(const float3& position) const;
+	std::optional<std::tuple<float3, float3>> cast_ray(const float3& position) const;
 	
 	event_dispatcher* event_dispatcher;
 	resource_manager* resource_manager;
@@ -73,6 +73,10 @@ private:
 	float3 p0;
 	float3 p0a;
 	float3 p0b;
+	
+	std::size_t vertex_size;
+	std::size_t vertex_stride;
+	std::size_t vertex_count;
 	
 	model* stroke_model;
 	model_group* stroke_model_group;
