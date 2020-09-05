@@ -212,6 +212,11 @@ void play_state_enter(game_context* ctx)
 	ctx->camera_system->set_camera(ctx->overworld_camera);
 
 	auto round_eye = round_eye_archetype->create(ecs_registry);
+	math::transform<float> eye_xf;
+	eye_xf.translation = {50, 0, 0};
+	eye_xf.rotation = math::angle_axis(-math::half_pi<float>, {1, 0, 0});
+	eye_xf.scale = float3{1, 1, 1} * 50.0f;
+	ec::set_transform(ecs_registry, round_eye, eye_xf, true);
 
 	ctx->overworld_scene->update_tweens();
 

@@ -206,16 +206,25 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	// Calculate faceted tangents and bitangents
 	if (has_tangents)
 	{
-		tangents.resize(faces.size());
-		bitangents.resize(faces.size());
+		tangents.resize(positions.size());
+		bitangents.resize(positions.size());
+		for (std::size_t i = 0; i < positions.size(); ++i)
+		{
+			tangents[i] = {0.0f, 0.0f, 0.0f};
+			bitangents[i] = {0.0f, 0.0f, 0.0f};
+		}
 		
 		for (std::size_t i = 0; i < faces.size(); ++i)
 		{
 			const std::vector<std::size_t>& face = faces[i];
 			
-			const float3& a = positions[face[0]];
-			const float3& b = positions[face[3]];
-			const float3& c = positions[face[6]];
+			std::size_t ia = face[0];
+			std::size_t ib = face[3];
+			std::size_t ic = face[6];
+			
+			const float3& a = positions[ia];
+			const float3& b = positions[ib];
+			const float3& c = positions[ic];
 			const float2& uva = uvs[face[1]];
 			const float2& uvb = uvs[face[4]];
 			const float2& uvc = uvs[face[7]];
@@ -226,8 +235,15 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 			float2 uvca = uvc - uva;
 			
 			float f = 1.0f / (uvba.x * uvca.y - uvca.x * uvba.y);
-			tangents[i] = math::normalize((ba * uvca.y - ca * uvba.y) * f);
-			bitangents[i] = math::normalize((ba * -uvca.x + ca * uvba.x) * f);
+			float3 tangent = (ba * uvca.y - ca * uvba.y) * f;
+			float3 bitangent = (ba * -uvca.x + ca * uvba.x) * f;
+			
+			tangents[ia] += tangent;
+			tangents[ib] += tangent;
+			tangents[ic] += tangent;
+			bitangents[ia] += bitangent;
+			bitangents[ib] += bitangent;
+			bitangents[ic] += bitangent;
 		}
 	}
 	
@@ -275,13 +291,14 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 			
 			if (has_tangents)
 			{
-				const float3& normal = normals[face[k - 1]];
-				float3 tangent = tangents[i];
-				float3 bitangent = bitangents[i];
+				const float3& n = normals[face[k - 1]];
+				const float3& t = tangents[face[k - 3]];
+				const float3& b = bitangents[face[k - 3]];
 				
 				// Gram-Schmidt orthogonalize tangent and bitangent
-				tangent = normalize(tangent - normal * dot(normal, tangent));
-				bitangent = normalize(bitangent - normal * dot(normal, bitangent));
+				float3 tangent = math::normalize(t - n * dot(n, t));
+				tangent = (math::dot(math::cross(n, t), b) < 0.0f) ? -tangent : tangent;
+				float3 bitangent = math::cross(n, tangent);
 				
 				*(v++) = tangent.x;
 				*(v++) = tangent.y;
