@@ -253,7 +253,7 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	if (has_normals)
 		vertex_size += 3;
 	if (has_tangents)
-		vertex_size += 6;
+		vertex_size += 4;
 	if (has_barycentric)
 		vertex_size += 3;
 
@@ -297,15 +297,12 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 				
 				// Gram-Schmidt orthogonalize tangent and bitangent
 				float3 tangent = math::normalize(t - n * dot(n, t));
-				tangent = (math::dot(math::cross(n, t), b) < 0.0f) ? -tangent : tangent;
-				float3 bitangent = math::cross(n, tangent);
+				float bitangent_sign = (math::dot(math::cross(n, t), b) < 0.0f) ? -1.0f : 1.0f;
 				
 				*(v++) = tangent.x;
 				*(v++) = tangent.y;
 				*(v++) = tangent.z;
-				*(v++) = bitangent.x;
-				*(v++) = bitangent.y;
-				*(v++) = bitangent.z;
+				*(v++) = bitangent_sign;
 			}
 
 			if (has_barycentric)
@@ -338,10 +335,8 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	}
 	if (has_tangents)
 	{
-		vao->bind_attribute(VERTEX_TANGENT_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
-		offset += 3;
-		vao->bind_attribute(VERTEX_BITANGENT_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
-		offset += 3;
+		vao->bind_attribute(VERTEX_TANGENT_LOCATION, *vbo, 4, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
+		offset += 4;
 	}
 	if (has_barycentric)
 	{
