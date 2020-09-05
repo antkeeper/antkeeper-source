@@ -88,6 +88,7 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* flashlight_archetype = resource_manager->load<ecs::archetype>("flashlight.ent");
 	ecs::archetype* flashlight_light_cone_archetype = resource_manager->load<ecs::archetype>("flashlight-light-cone.ent");
 	ecs::archetype* lens_light_cone_archetype = resource_manager->load<ecs::archetype>("lens-light-cone.ent");
+	ecs::archetype* round_eye_archetype = resource_manager->load<ecs::archetype>("round-eye.ent");
 	
 	// Create tools
 	forceps_archetype->assign(ecs_registry, ctx->forceps_entity);
@@ -210,7 +211,7 @@ void play_state_enter(game_context* ctx)
 	ctx->overworld_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
 	ctx->camera_system->set_camera(ctx->overworld_camera);
 
-
+	auto round_eye = round_eye_archetype->create(ecs_registry);
 
 	ctx->overworld_scene->update_tweens();
 

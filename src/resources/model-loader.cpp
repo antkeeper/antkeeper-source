@@ -51,6 +51,8 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	std::vector<float3> positions;
 	std::vector<float2> uvs;
 	std::vector<float3> normals;
+	std::vector<float3> tangents;
+	std::vector<float3> bitangents;
 	std::vector<std::vector<std::size_t>> faces;
 	std::vector<material_group> material_groups;
 	material_group* current_material_group = nullptr;
@@ -197,13 +199,45 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 
 	bool has_uvs = (!uvs.empty());
 	bool has_normals = (!normals.empty());
-	bool has_barycentric = true;
-
+	bool has_tangents = (has_uvs && has_normals);
+	bool has_barycentric = false;
+	has_barycentric = true;
+	
+	// Calculate faceted tangents and bitangents
+	if (has_tangents)
+	{
+		tangents.resize(faces.size());
+		bitangents.resize(faces.size());
+		
+		for (std::size_t i = 0; i < faces.size(); ++i)
+		{
+			const std::vector<std::size_t>& face = faces[i];
+			
+			const float3& a = positions[face[0]];
+			const float3& b = positions[face[3]];
+			const float3& c = positions[face[6]];
+			const float2& uva = uvs[face[1]];
+			const float2& uvb = uvs[face[4]];
+			const float2& uvc = uvs[face[7]];
+			
+			float3 ba = b - a;
+			float3 ca = c - a;
+			float2 uvba = uvb - uva;
+			float2 uvca = uvc - uva;
+			
+			float f = 1.0f / (uvba.x * uvca.y - uvca.x * uvba.y);
+			tangents[i] = math::normalize((ba * uvca.y - ca * uvba.y) * f);
+			bitangents[i] = math::normalize((ba * -uvca.x + ca * uvba.x) * f);
+		}
+	}
+	
 	std::size_t vertex_size = 3;
 	if (has_uvs)
 		vertex_size += 2;
 	if (has_normals)
 		vertex_size += 3;
+	if (has_tangents)
+		vertex_size += 6;
 	if (has_barycentric)
 		vertex_size += 3;
 
@@ -215,35 +249,53 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	for (std::size_t i = 0; i < faces.size(); ++i)
 	{
 		const std::vector<std::size_t>& face = faces[i];
-
+		
 		std::size_t k = 0;
 		for (std::size_t j = 0; j < 3; ++j)
 		{
 			const float3& position = positions[face[k++]];
-			*(v++) = position[0];
-			*(v++) = position[1];
-			*(v++) = position[2];
+			*(v++) = position.x;
+			*(v++) = position.y;
+			*(v++) = position.z;
 
 			if (has_uvs)
 			{
 				const float2& uv = uvs[face[k++]];
-				*(v++) = uv[0];
-				*(v++) = uv[1];
+				*(v++) = uv.x;
+				*(v++) = uv.y;
 			}
-
+			
 			if (has_normals)
 			{
 				const float3& normal = normals[face[k++]];
-				*(v++) = normal[0];
-				*(v++) = normal[1];
-				*(v++) = normal[2];
+				*(v++) = normal.x;
+				*(v++) = normal.y;
+				*(v++) = normal.z;
+			}
+			
+			if (has_tangents)
+			{
+				const float3& normal = normals[face[k - 1]];
+				float3 tangent = tangents[i];
+				float3 bitangent = bitangents[i];
+				
+				// Gram-Schmidt orthogonalize tangent and bitangent
+				tangent = normalize(tangent - normal * dot(normal, tangent));
+				bitangent = normalize(bitangent - normal * dot(normal, bitangent));
+				
+				*(v++) = tangent.x;
+				*(v++) = tangent.y;
+				*(v++) = tangent.z;
+				*(v++) = bitangent.x;
+				*(v++) = bitangent.y;
+				*(v++) = bitangent.z;
 			}
 
 			if (has_barycentric)
 			{
-				*(v++) = barycentric_coords[j][0];
-				*(v++) = barycentric_coords[j][1];
-				*(v++) = barycentric_coords[j][2];
+				*(v++) = barycentric_coords[j].x;
+				*(v++) = barycentric_coords[j].y;
+				*(v++) = barycentric_coords[j].z;
 			}
 		}
 	}
@@ -265,6 +317,13 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	if (has_normals)
 	{
 		vao->bind_attribute(VERTEX_NORMAL_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
+		offset += 3;
+	}
+	if (has_tangents)
+	{
+		vao->bind_attribute(VERTEX_TANGENT_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
+		offset += 3;
+		vao->bind_attribute(VERTEX_BITANGENT_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
 		offset += 3;
 	}
 	if (has_barycentric)
