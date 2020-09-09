@@ -380,7 +380,7 @@ void subterrain_system::march(::cube_tree* node)
 
 void subterrain_system::regenerate_subterrain_model()
 {
-	float* face_normals = new float[subterrain_mesh->get_faces().size() * 3];
+	float3* face_normals = new float3[subterrain_mesh->get_faces().size()];
 	calculate_face_normals(face_normals, *subterrain_mesh);
 
 	static const float3 barycentric_coords[3] =
@@ -414,7 +414,7 @@ void subterrain_system::regenerate_subterrain_model()
 			{
 				if (edge->face)
 				{
-					n += reinterpret_cast<const float3&>(face_normals[edge->face->index * 3]);
+					n += face_normals[edge->face->index];
 				}
 
 				edge = edge->previous->symmetric;

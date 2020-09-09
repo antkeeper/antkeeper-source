@@ -42,7 +42,7 @@ mesh::~mesh()
 	}
 }
 
-mesh::vertex* mesh::add_vertex(const std::array<float, 3>& position)
+mesh::vertex* mesh::add_vertex(const float3& position)
 {
 	mesh::vertex* vertex = new mesh::vertex();
 	vertex->edge = nullptr;

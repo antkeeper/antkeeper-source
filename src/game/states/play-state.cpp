@@ -141,7 +141,7 @@ void play_state_enter(game_context* ctx)
 		float x = math::random(-pebble_radius, pebble_radius);
 		float z = math::random(-pebble_radius, pebble_radius);
 		
-		auto pebble_entity = pebble_archetype->create(ecs_registry);
+		auto pebble_entity = ant_head_archetype->create(ecs_registry);
 		
 		auto& transform = ecs_registry.get<ecs::transform_component>(pebble_entity);
 		transform.local = math::identity_transform<float>;
@@ -159,7 +159,7 @@ void play_state_enter(game_context* ctx)
 	auto nest_entity = nest_archetype->create(ecs_registry);
 
 	// Create terrain
-	int terrain_radius = 4;
+	int terrain_radius = 2;
 	for (int x = -terrain_radius; x <= terrain_radius; ++x)
 	{
 		for (int z = -terrain_radius; z <= terrain_radius; ++z)
@@ -212,10 +212,7 @@ void play_state_enter(game_context* ctx)
 	ctx->camera_system->set_camera(ctx->overworld_camera);
 
 	auto ant_head = ant_head_archetype->create(ecs_registry);
-	math::transform<float> head_xf = math::identity_transform<float>;
-	head_xf.translation = {50, 0, 0};
-	head_xf.scale = float3{1, 1, 1} * 1.0f;
-	ec::set_transform(ecs_registry, ant_head, head_xf, true);
+	ec::place(ecs_registry, ant_head, {50, 0});
 
 	ctx->overworld_scene->update_tweens();
 
@@ -276,7 +273,7 @@ void play_state_enter(game_context* ctx)
 	{
 		auto larva = larva_archetype->create(ecs_registry);
 		ec::assign_render_layers(ecs_registry, larva, 1);
-		//ecs::warp_to(ecs_registry, larva, {0, -20, 0});
+		ec::warp_to(ecs_registry, larva, {50, 0.1935f, 10});
 		//auto& transform = ecs_registry.get<ecs::transform_component>(larva_entity);
 		//transform.transform = math::identity_transform<float>;
 		//transform.transform.translation = nest->get_shaft_position(*central_shaft, central_shaft->depth[1]);

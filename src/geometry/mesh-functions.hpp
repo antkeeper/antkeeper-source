@@ -39,15 +39,20 @@ void create_triangle_mesh(mesh& mesh, const std::vector<float3>& vertices, const
 /**
  * Calculates normals for each face.
  *
- * @param[out] Array in which normals will be stored. Must be able to hold `3 * face count` floats.
- * @param layer Face layer in which the normals will be stored. Must have three components.
+ * @param[out] Array in which faceted normals will be stored.
  */
-void calculate_face_normals(float* normals, const mesh& mesh);
+void calculate_face_normals(float3* normals, const mesh& mesh);
 
 float3 calculate_face_normal(const mesh::face& face);
 
-void calculate_vertex_normals(float* normals, const mesh& mesh);
-
+/**
+ * Calculates smooth tangents per-vertex.
+ *
+ * @param[out] tangents Array in which vertex tangents will be stored. A bitangent sign is stored in each tangent vector's fourth component.
+ * @param[in] texcoords Array containing vertex texture coordinates.
+ * @param[in] normals Array containing vertex normals.
+ */
+void calculate_vertex_tangents(float4* tangents, const float2* texcoords, const float3* normals, const mesh& mesh);
 
 
 /**

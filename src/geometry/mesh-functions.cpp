@@ -70,29 +70,93 @@ void create_triangle_mesh(mesh& mesh, const std::vector<float3>& vertices, const
 	}
 }
 
-void calculate_face_normals(float* normals, const mesh& mesh)
+void calculate_face_normals(float3* normals, const mesh& mesh)
 {
 	const std::vector<mesh::face*>& faces = mesh.get_faces();
 
 	for (std::size_t i = 0; i < faces.size(); ++i)
 	{
 		const mesh::face& face = *(faces[i]);
-		float3& normal = reinterpret_cast<float3&>(normals[i * 3]);
+		const float3& a = face.edge->vertex->position;
+		const float3& b = face.edge->next->vertex->position;
+		const float3& c = face.edge->previous->vertex->position;
 
-		const float3& a = reinterpret_cast<const float3&>(face.edge->vertex->position);
-		const float3& b = reinterpret_cast<const float3&>(face.edge->next->vertex->position);
-		const float3& c = reinterpret_cast<const float3&>(face.edge->previous->vertex->position);
-
-		normal = math::normalize(math::cross(b - a, c - a));
+		normals[i] = math::normalize(math::cross(b - a, c - a));
 	}
 }
 
 float3 calculate_face_normal(const mesh::face& face)
 {
-	const float3& a = reinterpret_cast<const float3&>(face.edge->vertex->position);
-	const float3& b = reinterpret_cast<const float3&>(face.edge->next->vertex->position);
-	const float3& c = reinterpret_cast<const float3&>(face.edge->previous->vertex->position);
+	const float3& a = face.edge->vertex->position;
+	const float3& b = face.edge->next->vertex->position;
+	const float3& c = face.edge->previous->vertex->position;
 	return math::normalize(math::cross(b - a, c - a));
+}
+
+void calculate_vertex_tangents(float4* tangents, const float2* texcoords, const float3* normals, const mesh& mesh)
+{
+	const std::vector<mesh::face*>& faces = mesh.get_faces();
+	const std::vector<mesh::vertex*>& vertices = mesh.get_vertices();
+	
+	// Allocate tangent and bitangent buffers
+	float3* tangent_buffer = new float3[vertices.size()];
+	float3* bitangent_buffer = new float3[vertices.size()];
+	for (std::size_t i = 0; i < vertices.size(); ++i)
+	{
+		tangent_buffer[i] = {0.0f, 0.0f, 0.0f};
+		bitangent_buffer[i] = {0.0f, 0.0f, 0.0f};
+	}
+	
+	// Accumulate tangents and bitangents
+	for (std::size_t i = 0; i < faces.size(); ++i)
+	{
+		const mesh::face& face = *(faces[i]);
+		std::size_t ia = face.edge->vertex->index;
+		std::size_t ib = face.edge->next->vertex->index;
+		std::size_t ic = face.edge->previous->vertex->index;
+		const float3& a = vertices[ia]->position;
+		const float3& b = vertices[ib]->position;
+		const float3& c = vertices[ic]->position;
+		const float2& uva = texcoords[ia];
+		const float2& uvb = texcoords[ib];
+		const float2& uvc = texcoords[ic];
+
+		float3 ba = b - a;
+		float3 ca = c - a;
+		float2 uvba = uvb - uva;
+		float2 uvca = uvc - uva;
+		
+		float f = 1.0f / (uvba.x * uvca.y - uvca.x * uvba.y);
+		float3 tangent = (ba * uvca.y - ca * uvba.y) * f;
+		float3 bitangent = (ba * -uvca.x + ca * uvba.x) * f;
+		
+		tangent_buffer[ia] += tangent;
+		tangent_buffer[ib] += tangent;
+		tangent_buffer[ic] += tangent;
+		bitangent_buffer[ia] += bitangent;
+		bitangent_buffer[ib] += bitangent;
+		bitangent_buffer[ic] += bitangent;
+	}
+	
+	// Orthogonalize tangents
+	for (std::size_t i = 0; i < vertices.size(); ++i)
+	{
+		const float3& n = normals[i];
+		const float3& t = tangent_buffer[i];
+		const float3& b = bitangent_buffer[i];
+		
+		// Gram-Schmidt orthogonalize tangent
+		float3 tangent = math::normalize(t - n * math::dot(n, t));
+		
+		// Calculate bitangent sign
+		float bitangent_sign = (math::dot(math::cross(n, t), b) < 0.0f) ? -1.0f : 1.0f;
+		
+		tangents[i] = {tangent.x, tangent.y, tangent.z, bitangent_sign};
+	}
+	
+	// Free faceted tangents and bitangents
+	delete[] tangent_buffer;
+	delete[] bitangent_buffer;
 }
 
 aabb<float> calculate_bounds(const mesh& mesh)

@@ -175,7 +175,7 @@ model* terrain_system::generate_terrain_model(mesh* terrain_mesh)
 	vertex_array* vao = terrain_model->get_vertex_array();
 
 	// Resize VBO
-	int vertex_size = 3 + 3 + 3;
+	int vertex_size = 3 + 2 + 3 + 4 + 3;
 	int vertex_stride = vertex_size * sizeof(float);
 	vbo->resize(terrain_mesh->get_faces().size() * 3 * vertex_stride, nullptr);
 
@@ -183,8 +183,12 @@ model* terrain_system::generate_terrain_model(mesh* terrain_mesh)
 	std::size_t offset = 0;
 	vao->bind_attribute(VERTEX_POSITION_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, 0);
 	offset += 3;
+	vao->bind_attribute(VERTEX_TEXCOORD_LOCATION, *vbo, 2, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
+	offset += 2;
 	vao->bind_attribute(VERTEX_NORMAL_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
 	offset += 3;
+	vao->bind_attribute(VERTEX_TANGENT_LOCATION, *vbo, 4, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
+	offset += 4;
 	vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
 	offset += 3;
 	
@@ -223,11 +227,13 @@ void terrain_system::project_terrain_mesh(mesh* terrain_mesh, const terrain_comp
 
 void terrain_system::update_terrain_model(model* terrain_model, mesh* terrain_mesh)
 {
-	aabb<float> bounds =
-	{
-		{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()},
-		{-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()}
-	};
+	const std::vector<mesh::face*>& faces = terrain_mesh->get_faces();
+	const std::vector<mesh::vertex*>& vertices = terrain_mesh->get_vertices();
+
+	aabb<float> bounds = calculate_bounds(*terrain_mesh);
+	float bounds_width = bounds.max_point.x - bounds.min_point.x;
+	float bounds_height = bounds.max_point.y - bounds.min_point.y;
+	float bounds_depth = bounds.max_point.z - bounds.min_point.z;
 	
 	static const float3 barycentric_coords[3] =
 	{
@@ -236,20 +242,56 @@ void terrain_system::update_terrain_model(model* terrain_model, mesh* terrain_me
 		float3{0, 0, 1}
 	};
 
-	int triangle_count = terrain_mesh->get_faces().size();
+	int triangle_count = faces.size();
 	int vertex_count = triangle_count * 3;
-	int vertex_size = 3 + 3 + 3;
+	int vertex_size = 3 + 2 + 3 + 4 + 3;
 
 	// Allocate vertex data
 	float* vertex_data = new float[vertex_size * vertex_count];
 
-	// Allocate face normals
-	float* face_normals = new float[terrain_mesh->get_faces().size() * 3];
+	// Allocate and calculate face normals
+	float3* face_normals = new float3[faces.size()];
 	calculate_face_normals(face_normals, *terrain_mesh);
+	
+	// Allocate and calculate vertex normals
+	float3* vertex_normals = new float3[vertices.size()];
+	for (std::size_t i = 0; i < vertices.size(); ++i)
+	{
+		const mesh::vertex* vertex = vertices[i];
+
+		float3 n = {0, 0, 0};
+		mesh::edge* start = vertex->edge;
+		mesh::edge* edge = start;
+		do
+		{
+			if (edge->face)
+			{
+				n += face_normals[edge->face->index];
+			}
+
+			edge = edge->previous->symmetric;
+		}
+		while (edge != start);
+		n = math::normalize(n);
+		
+		vertex_normals[i] = n;
+	}
+	
+	// Allocate and generate vertex texture coordinates
+	float2* vertex_texcoords = new float2[vertices.size()];
+	for (std::size_t i = 0; i < vertices.size(); ++i)
+	{
+		const mesh::vertex* vertex = vertices[i];
+		vertex_texcoords[i].x = (vertex->position.x - bounds.min_point.x) / bounds_width;
+		vertex_texcoords[i].y = (vertex->position.z - bounds.min_point.z) / bounds_depth;
+	}
+	
+	// Allocate and calculate vertex tangents
+	float4* vertex_tangents = new float4[vertices.size()];
+	calculate_vertex_tangents(vertex_tangents, vertex_texcoords, vertex_normals, *terrain_mesh);
 
 	// Generate vertex data
 	float* v = vertex_data;
-	const std::vector<mesh::face*>& faces = terrain_mesh->get_faces();
 	for (int i = 0; i < triangle_count; ++i)
 	{
 		const mesh::face* triangle = faces[i];
@@ -261,38 +303,31 @@ void terrain_system::update_terrain_model(model* terrain_model, mesh* terrain_me
 		for (int j = 0; j < 3; ++j)
 		{
 			const mesh::vertex* vertex = abc[j];
+			const float3& position = vertex->position;
+			const float2& texcoord = vertex_texcoords[vertex->index];
+			const float3& normal = vertex_normals[vertex->index];
+			const float4& tangent = vertex_tangents[vertex->index];
+			const float3& barycentric = barycentric_coords[j];
 
-			float3 n = {0, 0, 0};
-			mesh::edge* start = vertex->edge;
-			mesh::edge* edge = start;
-			do
-			{
-				if (edge->face)
-				{
-					n += reinterpret_cast<const float3&>(face_normals[edge->face->index * 3]);
-				}
-
-				edge = edge->previous->symmetric;
-			}
-			while (edge != start);
-			n = math::normalize(n);
-
-			*(v++) = vertex->position[0];
-			*(v++) = vertex->position[1];
-			*(v++) = vertex->position[2];
-			*(v++) = n[0];
-			*(v++) = n[1];
-			*(v++) = n[2];
-			*(v++) = barycentric_coords[j][0];
-			*(v++) = barycentric_coords[j][1];
-			*(v++) = barycentric_coords[j][2];
+			*(v++) = position.x;
+			*(v++) = position.y;
+			*(v++) = position.z;
 			
-			// Add position to bounds
-			for (int i = 0; i < 3; ++i)
-			{
-				bounds.min_point[i] = std::min<float>(bounds.min_point[i], vertex->position[i]);
-				bounds.max_point[i] = std::max<float>(bounds.max_point[i], vertex->position[i]);
-			}
+			*(v++) = texcoord.x;
+			*(v++) = texcoord.y;
+			
+			*(v++) = normal.x;
+			*(v++) = normal.y;
+			*(v++) = normal.z;
+			
+			*(v++) = tangent.x;
+			*(v++) = tangent.y;
+			*(v++) = tangent.z;
+			*(v++) = tangent.w;
+			
+			*(v++) = barycentric.x;
+			*(v++) = barycentric.y;
+			*(v++) = barycentric.z;
 		}
 	}
 	
@@ -304,6 +339,9 @@ void terrain_system::update_terrain_model(model* terrain_model, mesh* terrain_me
 
 	// Free vertex data
 	delete[] face_normals;
+	delete[] vertex_normals;
+	delete[] vertex_texcoords;
+	delete[] vertex_tangents;
 	delete[] vertex_data;
 }
 

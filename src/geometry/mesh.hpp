@@ -20,8 +20,8 @@
 #ifndef ANTKEEPER_MESH_HPP
 #define ANTKEEPER_MESH_HPP
 
-#include <array>
 #include <vector>
+#include "utility/fundamental-types.hpp"
 
 /**
  * Half-edge mesh.
@@ -52,7 +52,7 @@ public:
 	 * @param position Position of the vertex.
 	 * @return Pointer to the added vertex.
 	 */
-	mesh::vertex* add_vertex(const std::array<float, 3>& position);
+	mesh::vertex* add_vertex(const float3& position);
 
 	/**
 	 * Adds an edge to the mesh.
@@ -110,7 +110,7 @@ public:
 		mesh::edge* edge;
 		
 		/// Vertex position
-		std::array<float, 3> position;
+		float3 position;
 		
 		/// Index of this vertex
 		std::size_t index;
