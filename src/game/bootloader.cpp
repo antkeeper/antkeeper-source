@@ -490,6 +490,7 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_material_pass->set_fallback_material(ctx->fallback_material);
 	ctx->overworld_material_pass->shadow_map_pass = ctx->overworld_shadow_map_pass;
 	ctx->overworld_material_pass->shadow_map = ctx->shadow_map_depth_texture;
+	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->overworld_material_pass);
 	ctx->overworld_outline_pass = new outline_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->overworld_outline_pass->set_outline_width(0.25f);
 	ctx->overworld_outline_pass->set_outline_color(float4{1.0f, 1.0f, 1.0f, 1.0f});
@@ -516,6 +517,7 @@ void setup_rendering(game_context* ctx)
 	ctx->underworld_clear_pass->set_cleared_buffers(true, true, false);
 	ctx->underworld_material_pass = new material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->underworld_material_pass->set_fallback_material(ctx->fallback_material);
+	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->underworld_material_pass);
 	shader_program* underworld_final_shader = ctx->resource_manager->load<shader_program>("underground-final.glsl");
 	ctx->underworld_final_pass = new simple_render_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), underworld_final_shader);
 	ctx->underground_color_texture_property = ctx->underworld_final_pass->get_material()->add_property<const texture_2d*>("color_texture");
@@ -875,8 +877,6 @@ void setup_systems(game_context* ctx)
 	ctx->ui_system->set_tool_menu_control(ctx->control_system->get_tool_menu_control());
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->ui_system);
 	event_dispatcher->subscribe<window_resized_event>(ctx->ui_system);
-	
-
 }
 
 void setup_controls(game_context* ctx)
@@ -1167,9 +1167,8 @@ void setup_callbacks(game_context* ctx)
 	(
 		[ctx](double t, double dt)
 		{
-			// Update tweens
-			ctx->time_tween->update();
 			(*ctx->time_tween)[1] = t;
+			
 			ctx->overworld_scene->update_tweens();
 			ctx->underworld_scene->update_tweens();
 			ctx->ui_scene->update_tweens();
@@ -1212,6 +1211,9 @@ void setup_callbacks(game_context* ctx)
 			ctx->application_controls->update();
 			ctx->menu_controls->update();
 			ctx->camera_controls->update();
+			
+			// Update tweens
+			ctx->time_tween->update();
 		}
 	);
 	

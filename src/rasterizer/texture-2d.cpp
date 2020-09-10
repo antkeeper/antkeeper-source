@@ -47,7 +47,7 @@ static constexpr GLenum pixel_type_lut[] =
 	GL_FLOAT
 };
 
-static constexpr GLenum internal_format_lut[][8] =
+static constexpr GLenum linear_internal_format_lut[][8] =
 {
 	{GL_NONE, GL_NONE, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT32, GL_NONE, GL_DEPTH_COMPONENT32F},
 	
@@ -60,7 +60,18 @@ static constexpr GLenum internal_format_lut[][8] =
 	{GL_RGB8, GL_RGB8, GL_RGB16, GL_RGB16, GL_RGB32F, GL_RGB32F, GL_RGB16F, GL_RGB32F},
 	{GL_RGBA8, GL_RGBA8, GL_RGBA16, GL_RGBA16, GL_RGBA32F, GL_RGBA32F, GL_RGBA16F, GL_RGBA32F},
 	{GL_RGBA8, GL_RGBA8, GL_RGBA16, GL_RGBA16, GL_RGBA32F, GL_RGBA32F, GL_RGBA16F, GL_RGBA32F}
+};
 
+static constexpr GLenum srgb_internal_format_lut[][8] =
+{
+	{GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8},	
+	{GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8},
+	{GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8},
+	{GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8},
+	{GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8},
+	{GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8, GL_SRGB8},
+	{GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8},
+	{GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8, GL_SRGB8_ALPHA8}
 };
 
 static constexpr GLint swizzle_mask_lut[][4] =
@@ -98,7 +109,7 @@ static constexpr GLenum mag_filter_lut[] =
 	GL_LINEAR
 };
 
-texture_2d::texture_2d(int width, int height, ::pixel_type type, ::pixel_format format, const void* data):
+texture_2d::texture_2d(int width, int height, ::pixel_type type, ::pixel_format format, ::color_space color_space, const void* data):
 	gl_texture_id(0),
 	dimensions({0, 0}),
 	wrapping({texture_wrapping::repeat, texture_wrapping::repeat}),
@@ -106,7 +117,7 @@ texture_2d::texture_2d(int width, int height, ::pixel_type type, ::pixel_format 
 	max_anisotropy(0.0f)
 {
 	glGenTextures(1, &gl_texture_id);
-	resize(width, height, type, format, data);
+	resize(width, height, type, format, color_space, data);
 	set_wrapping(std::get<0>(wrapping), std::get<1>(wrapping));
 	set_filters(std::get<0>(filters), std::get<1>(filters));
 	set_max_anisotropy(max_anisotropy);
@@ -117,13 +128,23 @@ texture_2d::~texture_2d()
 	glDeleteTextures(1, &gl_texture_id);
 }
 
-void texture_2d::resize(int width, int height, ::pixel_type type, ::pixel_format format, const void* data)
+void texture_2d::resize(int width, int height, ::pixel_type type, ::pixel_format format, ::color_space color_space, const void* data)
 {
 	dimensions = {width, height};
 	pixel_type = type;
 	pixel_format = format;
+	this->color_space = color_space;
 
-	GLenum gl_internal_format = internal_format_lut[static_cast<std::size_t>(format)][static_cast<std::size_t>(type)];
+	GLenum gl_internal_format;
+	if (color_space == ::color_space::srgb)
+	{
+		gl_internal_format = srgb_internal_format_lut[static_cast<std::size_t>(format)][static_cast<std::size_t>(type)];
+	}
+	else
+	{
+		gl_internal_format = linear_internal_format_lut[static_cast<std::size_t>(format)][static_cast<std::size_t>(type)];
+	}
+	
 	GLenum gl_format = pixel_format_lut[static_cast<std::size_t>(format)];
 	const GLint* gl_swizzle_mask = swizzle_mask_lut[static_cast<std::size_t>(format)];
 	

@@ -58,9 +58,12 @@ texture_2d* resource_loader<texture_2d>::load(resource_manager* resource_manager
 		delete image;
 		throw std::runtime_error(stream.str().c_str());
 	}
+	
+	// Assume linear color space
+	::color_space color_space = ::color_space::linear;
 
 	// Create texture
-	texture_2d* texture = new texture_2d(image->get_width(), image->get_height(), type, format, image->get_pixels());
+	texture_2d* texture = new texture_2d(image->get_width(), image->get_height(), type, format, color_space, image->get_pixels());
 
 	// Free loaded image
 	delete image;

@@ -57,6 +57,7 @@ material_pass::material_pass(::rasterizer* rasterizer, const ::framebuffer* fram
 	render_pass(rasterizer, framebuffer),
 	fallback_material(nullptr),
 	time_tween(nullptr),
+	mouse_position({0.0f, 0.0f}),
 	focal_point_tween(nullptr),
 	shadow_map_pass(nullptr),
 	shadow_map(nullptr)
@@ -415,6 +416,8 @@ void material_pass::render(render_context* context) const
 				// Upload context-dependent shader parameters
 				if (parameters->time)
 					parameters->time->upload(time);
+				if (parameters->mouse)
+					parameters->mouse->upload(mouse_position);
 				if (parameters->resolution)
 					parameters->resolution->upload(resolution);
 				if (parameters->view)
@@ -513,6 +516,7 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const shad
 
 	// Connect inputs
 	parameters->time = program->get_input("time");
+	parameters->mouse = program->get_input("mouse");
 	parameters->resolution = program->get_input("resolution");
 	parameters->model = program->get_input("model");
 	parameters->view = program->get_input("view");
@@ -548,14 +552,17 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const shad
 	return parameters;
 }
 
+void material_pass::handle_event(const mouse_moved_event& event)
+{
+	mouse_position = {static_cast<float>(event.x), static_cast<float>(event.y)};
+}
+
 bool operation_compare(const render_operation& a, const render_operation& b)
 {
 	if (!a.material)
 		return false;
 	else if (!b.material)
 		return true;
-	
-	
 	
 	bool xray_a = a.material->get_flags() & MATERIAL_FLAG_X_RAY;
 	bool xray_b = b.material->get_flags() & MATERIAL_FLAG_X_RAY;

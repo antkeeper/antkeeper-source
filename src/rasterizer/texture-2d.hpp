@@ -20,7 +20,9 @@
 #ifndef ANTKEEPER_TEXTURE_2D_HPP
 #define ANTKEEPER_TEXTURE_2D_HPP
 
+#include <array>
 #include <tuple>
+#include "rasterizer/color-space.hpp"
 #include "rasterizer/pixel-format.hpp"
 #include "rasterizer/pixel-type.hpp"
 
@@ -38,8 +40,12 @@ class texture_2d
 public:
 	/**
 	 * Creates a 2D texture.
+	 *
+	 * @param color_space Specifies the color space of the pixel data.
+	 *
+	 * @warning If the sRGB color space is specified, pixel data will be stored internally as 8 bits per channel, and automatically converted to linear space before reading.
 	 */
-	texture_2d(int width, int height, ::pixel_type type = ::pixel_type::uint_8, ::pixel_format format = ::pixel_format::rgba, const void* data = nullptr);
+	texture_2d(int width, int height, ::pixel_type type = ::pixel_type::uint_8, ::pixel_format format = ::pixel_format::rgba, ::color_space color_space = ::color_space::linear, const void* data = nullptr);
 	
 	/**
 	 * Destroys a 2D texture.
@@ -48,8 +54,10 @@ public:
 
 	/**
 	 * Resizes the texture.
+	 *
+	 * @warning If the sRGB color space is specified, pixel data will be stored internally as 8 bits per channel, and automatically converted to linear space before reading.
 	 */
-	void resize(int width, int height, ::pixel_type type, ::pixel_format format, const void* data);
+	void resize(int width, int height, ::pixel_type type, ::pixel_format format, ::color_space color_space, const void* data);
 
 	/**
 	 * Sets the texture wrapping modes.
@@ -75,13 +83,16 @@ public:
 	void set_max_anisotropy(float anisotropy);
 
 	/// Returns the dimensions of the texture, in pixels.
-	const std::tuple<int, int>& get_dimensions() const;
+	const std::array<int, 2>& get_dimensions() const;
 	
 	/// Returns the pixel type enumeration.
 	const pixel_type& get_pixel_type() const;
 	
 	/// Returns the pixel format enumeration.
 	const pixel_format& get_pixel_format() const;
+	
+	/// Returns the color space enumeration.
+	const color_space& get_color_space() const;
 
 	/// Returns the wrapping modes of the texture.
 	const std::tuple<texture_wrapping, texture_wrapping> get_wrapping() const;
@@ -89,7 +100,7 @@ public:
 	/// Returns the filtering modes of the texture.
 	const std::tuple<texture_min_filter, texture_mag_filter> get_filters() const;
 
-	/// Returs the maximum anisotropy.
+	/// Returns the maximum anisotropy.
 	float get_max_anisotropy() const;
 
 private:
@@ -97,15 +108,16 @@ private:
 	friend class shader_input;
 
 	unsigned int gl_texture_id;
-	std::tuple<int, int> dimensions;
+	std::array<int, 2> dimensions;
 	::pixel_type pixel_type;
 	::pixel_format pixel_format;
+	::color_space color_space;
 	std::tuple<texture_wrapping, texture_wrapping> wrapping;
 	std::tuple<texture_min_filter, texture_mag_filter> filters;
 	float max_anisotropy;
 };
 
-inline const std::tuple<int, int>& texture_2d::get_dimensions() const
+inline const std::array<int, 2>& texture_2d::get_dimensions() const
 {
 	return dimensions;
 }
@@ -114,10 +126,15 @@ inline const pixel_type& texture_2d::get_pixel_type() const
 {
 	return pixel_type;
 }
-	
+
 inline const pixel_format& texture_2d::get_pixel_format() const
 {
 	return pixel_format;
+}
+
+inline const color_space& texture_2d::get_color_space() const
+{
+	return color_space;
 }
 
 inline const std::tuple<texture_wrapping, texture_wrapping> texture_2d::get_wrapping() const

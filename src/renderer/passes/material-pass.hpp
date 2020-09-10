@@ -24,6 +24,8 @@
 #include "renderer/material.hpp"
 #include "animation/tween.hpp"
 #include "utility/fundamental-types.hpp"
+#include "event/event-handler.hpp"
+#include "event/input-events.hpp"
 #include <unordered_map>
 
 class camera;
@@ -36,7 +38,8 @@ class shadow_map_pass;
 /**
  * Renders scene objects using their material-specified shaders and properties.
  */
-class material_pass: public render_pass
+class material_pass: public render_pass,
+	public event_handler<mouse_moved_event>
 {
 public:
 	material_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager);
@@ -55,12 +58,15 @@ public:
 	const texture_2d* shadow_map;
 	
 private:
+	virtual void handle_event(const mouse_moved_event& event);
+	
 	/**
 	 * Sets of known shader input parameters. Each time a new shader is encountered, a parameter set will be created and its inputs connected to the shader program. A null input indiciates that the shader doesn't have that parameter.
 	 */
 	struct parameter_set
 	{
 		const shader_input* time;
+		const shader_input* mouse;
 		const shader_input* resolution;
 		const shader_input* model;
 		const shader_input* view;
@@ -99,6 +105,7 @@ private:
 	mutable std::unordered_map<const shader_program*, parameter_set*> parameter_sets;
 	const material* fallback_material;
 	const tween<double>* time_tween;
+	float2 mouse_position;
 	const tween<float3>* focal_point_tween;
 	texture_2d* soft_shadows_texture;
 	
