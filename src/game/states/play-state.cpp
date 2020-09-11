@@ -62,8 +62,8 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_enabled(true);
 	sky_pass->set_sun_angular_radius(math::radians<float>(3.0f));
 	sky_pass->set_sun_color({2.0f, 2.0f, 2.0f});
-	sky_pass->set_horizon_color(to_linear(float3{81.0f, 162.0f, 219.0f} / 255.0f));
-	sky_pass->set_zenith_color(to_linear(float3{7.0f, 134.0f, 206.0f} / 255.0f));
+	sky_pass->set_horizon_color({0.02f, 0.242f, 0.356f});
+	sky_pass->set_zenith_color({0.004f, 0.165f, 0.309f});
 	//sky_pass->set_horizon_color(float3{0.002f, 0.158f, 0.250f});
 	//sky_pass->set_zenith_color(float3{0.002f, 0.158f, 0.250f});
 	
