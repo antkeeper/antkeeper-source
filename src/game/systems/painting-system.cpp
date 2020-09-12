@@ -52,7 +52,7 @@ painting_system::painting_system(entt::registry& registry, ::event_dispatcher* e
 	
 	max_miter_angle = math::radians(135.0f);
 	decal_offset = 0.01f;
-	stroke_width = 1.0f;
+	stroke_width = 1.5f;
 	min_stroke_length = 1.0f;
 	min_stroke_length_squared = min_stroke_length * min_stroke_length;
 	max_stroke_segments = 4096;
