@@ -68,7 +68,6 @@ private:
 	camera* camera;
 	ambient_light indirect_light;
 	directional_light direct_light;
-	model_instance tool_selector_ant;
 	billboard tool_selector_bg;
 	material modal_bg_material;
 	billboard modal_bg;

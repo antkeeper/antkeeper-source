@@ -46,12 +46,6 @@ ui_system::ui_system(::resource_manager* resource_manager):
 	tool_selector_bg.set_translation({0, 0, -4.0f});
 	tool_selector_bg.set_scale({270, 270, 270});
 	
-	// Setup tool selector ant
-	tool_selector_ant.set_model(resource_manager->load<model>("worker-ant.obj"));
-	tool_selector_ant.set_scale({350, 350, 350});
-	tool_selector_ant.set_rotation(math::angle_axis(math::radians(180.0f), {0, 0, 1}) * math::angle_axis(math::radians(90.0f), {1, 0, 0}));
-	tool_selector_ant.update_tweens();
-	
 	// Setup energy symbol
 	energy_symbol.set_model(resource_manager->load<model>("energy.obj"));
 	energy_symbol.set_scale({30, 30, 30});
@@ -145,7 +139,6 @@ void ui_system::handle_event(const mouse_moved_event& event)
 			tool_selector_bg.set_rotation(math::angle_axis(rotation_angle, {0, 0, 1}));
 			tool_selector_bg.update_tweens();	
 
-			tool_selector_ant.set_rotation(math::angle_axis(rotation_angle + math::radians(180.0f), {0, 0, 1}) * math::angle_axis(math::radians(90.0f), {1, 0, 0}));
 		}
 	}
 	
@@ -178,7 +171,6 @@ void ui_system::open_tool_menu()
 	{
 		scene->add_object(&modal_bg);
 		scene->add_object(&tool_selector_bg);
-		scene->add_object(&tool_selector_ant);
 	}
 	tool_selection_vector = {0, 0};
 }
@@ -189,7 +181,6 @@ void ui_system::close_tool_menu()
 	{
 		scene->remove_object(&modal_bg);
 		scene->remove_object(&tool_selector_bg);
-		scene->remove_object(&tool_selector_ant);
 	}
 }
 
