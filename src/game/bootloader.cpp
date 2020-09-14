@@ -619,7 +619,7 @@ void setup_scenes(game_context* ctx)
 	
 	// Setup lights
 	ctx->sun_indirect = new ambient_light();
-	ctx->sun_indirect->set_intensity(0.25f);
+	ctx->sun_indirect->set_intensity(0.5f);
 	ctx->sun_indirect->update_tweens();
 	
 	ctx->sun_direct = new directional_light();
