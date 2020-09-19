@@ -180,8 +180,7 @@ void painting_system::update(double t, double dt)
 				
 				/// @TODO: smooth normals in middle of segment
 				
-				float3 tangents[12];
-				float3 bitangents[12];
+				float4 tangents[12];
 				for (int i = 0; i < 4; ++i)
 				{
 					const float3& a = tangent_positions[i * 3];
@@ -204,13 +203,12 @@ void painting_system::update(double t, double dt)
 					tangent = math::normalize(tangent_rotation * tangent);
 					bitangent = math::normalize(tangent_rotation * bitangent);
 					
-					tangents[i * 3] = tangent;
-					tangents[i * 3 + 1] = tangent;
-					tangents[i * 3 + 2] = tangent;
+					// Calculate sign of bitangent
+					float bitangent_sign = (math::dot(math::cross(surface_normal, tangent), bitangent) < 0.0f) ? -1.0f : 1.0f;
 					
-					bitangents[i * 3] = bitangent;
-					bitangents[i * 3 + 1] = bitangent;
-					bitangents[i * 3 + 2] = bitangent;
+					tangents[i * 3] = {tangent.x, tangent.y, tangent.z, bitangent_sign};
+					tangents[i * 3 + 1] = {tangent.x, tangent.y, tangent.z, bitangent_sign};
+					tangents[i * 3 + 2] = {tangent.x, tangent.y, tangent.z, bitangent_sign};
 				}
 				
 				float vertex_data[13 * 12];
@@ -232,7 +230,7 @@ void painting_system::update(double t, double dt)
 					*(v++) = tangents[i].x;
 					*(v++) = tangents[i].y;
 					*(v++) = tangents[i].z;
-					*(v++) = 0.0f;
+					*(v++) = tangents[i].w;
 				}
 				
 				std::size_t segment_size = sizeof(float) * vertex_size * 6;

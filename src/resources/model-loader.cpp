@@ -356,13 +356,6 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 }
 */
 
-static struct attribute_data
-{
-	std::string type;
-	std::size_t size;
-	std::vector<float> data;
-};
-
 template <>
 model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
@@ -518,8 +511,6 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 				group_offset = offset_node.value().get<std::size_t>();
 			if (auto size_node = material_node.value().find("size"); size_node != material_node.value().end())
 				group_size = size_node.value().get<std::size_t>();
-			
-			std::cout << "MATERIAL: " << group_name << std::endl;
 			
 			group_material = resource_manager->load<material>(group_name + ".mtl");
 			
