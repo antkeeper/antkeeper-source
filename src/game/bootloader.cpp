@@ -694,7 +694,7 @@ void setup_scenes(game_context* ctx)
 	//ctx->underworld_scene->add_object(ctx->lantern);
 	//ctx->underworld_scene->add_object(ctx->subterrain_light);
 	//ctx->underworld_scene->add_object(ctx->portal_billboard);
-	//model_instance* larva = new model_instance(ctx->resource_manager->load<model>("larva.obj"));
+	//model_instance* larva = new model_instance(ctx->resource_manager->load<model>("larva.mdl"));
 	//ctx->underworld_scene->add_object(larva);
 	
 	// Setup UI scene
@@ -787,7 +787,7 @@ void setup_systems(game_context* ctx)
 	ctx->vegetation_system->set_terrain_patch_size(TERRAIN_PATCH_SIZE);
 	ctx->vegetation_system->set_vegetation_patch_resolution(VEGETATION_PATCH_RESOLUTION);
 	ctx->vegetation_system->set_vegetation_density(1.0f);
-	ctx->vegetation_system->set_vegetation_model(ctx->resource_manager->load<model>("grass-tuft.obj"));
+	ctx->vegetation_system->set_vegetation_model(ctx->resource_manager->load<model>("grass-tuft.mdl"));
 	ctx->vegetation_system->set_scene(ctx->overworld_scene);
 	
 	// Setup camera system

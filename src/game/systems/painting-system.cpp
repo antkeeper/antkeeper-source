@@ -57,7 +57,7 @@ painting_system::painting_system(entt::registry& registry, ::event_dispatcher* e
 	min_stroke_length_squared = min_stroke_length * min_stroke_length;
 	max_stroke_segments = 4096;
 	current_stroke_segment = 0;
-	vertex_size = 15;
+	vertex_size = 13;
 	vertex_stride = sizeof(float) * vertex_size;
 	vertex_count = max_stroke_segments * 6;
 	
@@ -72,8 +72,7 @@ painting_system::painting_system(entt::registry& registry, ::event_dispatcher* e
 	stroke_model->get_vertex_array()->bind_attribute(VERTEX_POSITION_LOCATION, *stroke_vbo, 4, vertex_attribute_type::float_32, vertex_stride, 0);
 	stroke_model->get_vertex_array()->bind_attribute(VERTEX_NORMAL_LOCATION, *stroke_vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 4);
 	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TEXCOORD_LOCATION, *stroke_vbo, 2, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 7);
-	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TANGENT_LOCATION, *stroke_vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 9);
-	stroke_model->get_vertex_array()->bind_attribute(VERTEX_BITANGENT_LOCATION, *stroke_vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 12);
+	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TANGENT_LOCATION, *stroke_vbo, 4, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 9);
 	
 	// Create stroke model instance
 	stroke_model_instance = new model_instance();
@@ -214,7 +213,7 @@ void painting_system::update(double t, double dt)
 					bitangents[i * 3 + 2] = bitangent;
 				}
 				
-				float vertex_data[15 * 12];
+				float vertex_data[13 * 12];
 				float* v = &vertex_data[0];
 				for (int i = 0; i < 12; ++i)
 				{
@@ -233,10 +232,7 @@ void painting_system::update(double t, double dt)
 					*(v++) = tangents[i].x;
 					*(v++) = tangents[i].y;
 					*(v++) = tangents[i].z;
-					
-					*(v++) = bitangents[i].x;
-					*(v++) = bitangents[i].y;
-					*(v++) = bitangents[i].z;
+					*(v++) = 0.0f;
 				}
 				
 				std::size_t segment_size = sizeof(float) * vertex_size * 6;

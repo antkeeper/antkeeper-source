@@ -42,10 +42,10 @@ tracking_system::tracking_system(entt::registry& registry, ::event_dispatcher* e
 	registry.on_destroy<trackable_component>().connect<&tracking_system::on_component_destroy>(this);
 	
 	// Load paint ball model
-	paint_ball_model = resource_manager->load<model>("paint-ball.obj");
+	paint_ball_model = resource_manager->load<model>("paint-ball.mdl");
 	
 	// Load tracker model
-	tracker_model = resource_manager->load<model>("tracker.obj");
+	tracker_model = resource_manager->load<model>("tracker.mdl");
 	
 	// Load paint ball materials
 	paint_ball_materials = new material*[7];

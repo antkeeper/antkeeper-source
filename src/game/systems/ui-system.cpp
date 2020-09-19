@@ -47,7 +47,7 @@ ui_system::ui_system(::resource_manager* resource_manager):
 	tool_selector_bg.set_scale({270, 270, 270});
 	
 	// Setup energy symbol
-	energy_symbol.set_model(resource_manager->load<model>("energy.obj"));
+	energy_symbol.set_model(resource_manager->load<model>("energy.mdl"));
 	energy_symbol.set_scale({30, 30, 30});
 	energy_symbol.update_tweens();
 	energy_symbol.set_active(false);

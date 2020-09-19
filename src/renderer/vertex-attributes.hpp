@@ -23,29 +23,26 @@
 /// Vertex position (vec3)
 #define VERTEX_POSITION_LOCATION 0
 
-/// Vertex normal (vec3)
-#define VERTEX_NORMAL_LOCATION 1
-
 /// Vertex texture coordinates (vec2)
-#define VERTEX_TEXCOORD_LOCATION 2
+#define VERTEX_TEXCOORD_LOCATION 1
+
+/// Vertex normal (vec3)
+#define VERTEX_NORMAL_LOCATION 2
 
 /// Vertex tangent (vec4)
 #define VERTEX_TANGENT_LOCATION 3
 
-/// Vertex bitangent (vec4)
-#define VERTEX_BITANGENT_LOCATION 4
+/// Vertex color (vec4)
+#define VERTEX_COLOR_LOCATION 4
 
 /// Vertex bone indices (vec4)
-#define VERTEX_BONE_INDICES_LOCATION 5
+#define VERTEX_BONE_INDEX_LOCATION 5
 
 /// Vertex bone weights (vec4)
-#define VERTEX_BONE_WEIGHTS_LOCATION 6
-
-// Vertex color (vec4)
-#define VERTEX_COLOR_LOCATION 7
+#define VERTEX_BONE_WEIGHT_LOCATION 6
 
 /// Vertex barycentric coordinates (vec3)
-#define VERTEX_BARYCENTRIC_LOCATION 8
+#define VERTEX_BARYCENTRIC_LOCATION 7
 
 #endif // ANTKEEPER_VERTEX_ATTRIBUTES_HPP
 

@@ -28,14 +28,8 @@
 #include <stdexcept>
 #include <limits>
 #include <physfs.h>
-
-struct material_group
-{
-	std::string name;
-	material* material;
-	std::size_t start_index;
-	std::size_t index_count;
-};
+#include <iostream>
+#include <nlohmann/json.hpp>
 
 static const float3 barycentric_coords[3] =
 {
@@ -44,6 +38,7 @@ static const float3 barycentric_coords[3] =
 	float3{0, 0, 1}
 };
 
+/*
 template <>
 model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
@@ -359,4 +354,182 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 
 	return model;
 }
+*/
 
+static struct attribute_data
+{
+	std::string type;
+	std::size_t size;
+	std::vector<float> data;
+};
+
+template <>
+model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_File* file)
+{
+	// Read file into buffer
+	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));
+	std::vector<std::uint8_t> buffer(size);
+	PHYSFS_readBytes(file, &buffer.front(), size);
+	
+	// Parse CBOR in file buffer
+	nlohmann::json json = nlohmann::json::from_cbor(buffer);
+	
+	// Find model name
+	std::string model_name;
+	if (auto it = json.find("name"); it != json.end())
+		model_name = it.value();
+	
+	// Load attributes
+	std::unordered_map<std::string, std::tuple<std::size_t, std::vector<float>>> attributes;
+	if (auto attributes_node = json.find("attributes"); attributes_node != json.end())
+	{
+		for (const auto& attribute_node: attributes_node.value().items())
+		{
+			// Look up attribute name
+			std::string attribute_name;
+			if (auto type_node = attribute_node.value().find("name"); type_node != attribute_node.value().end())
+				attribute_name = type_node.value().get<std::string>();
+			
+			// Allocate attribute in attribute map
+			auto& attribute = attributes[attribute_name];
+			std::size_t& attribute_size = std::get<0>(attribute);
+			std::vector<float>& attribute_data = std::get<1>(attribute);
+			
+			// Look up attribute size (per vertex)
+			attribute_size = 0;
+			if (auto size_node = attribute_node.value().find("size"); size_node != attribute_node.value().end())
+				attribute_size = size_node.value().get<std::size_t>();
+			
+			// Look up attribute data
+			if (auto data_node = attribute_node.value().find("data"); data_node != attribute_node.value().end())
+			{
+				// Resize attribute data
+				attribute_data.resize(data_node.value().size());
+				
+				// Fill attribute data
+				float* v = &attribute_data.front();
+				for (const auto& element: data_node.value())
+					*(v++) = element.get<float>();
+			}
+		}
+	}
+	
+	// Load bounds
+	aabb<float> bounds =
+	{
+		{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()},
+		{-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()}
+	};
+	if (auto bounds_node = json.find("bounds"); bounds_node != json.end())
+	{
+		if (auto min_node = bounds_node.value().find("min"); min_node != bounds_node.value().end())
+		{
+			float* v = &bounds.min_point.x;
+			for (const auto& element: min_node.value())
+				*(v++) = element.get<float>();
+		}
+		
+		if (auto max_node = bounds_node.value().find("max"); max_node != bounds_node.value().end())
+		{
+			float* v = &bounds.max_point.x;
+			for (const auto& element: max_node.value())
+				*(v++) = element.get<float>();
+		}
+	}
+	
+	// Allocate a model
+	model* model = new ::model();
+	
+	// Set the model bounds
+	model->set_bounds(bounds);
+	
+	// Calculate vertex size, count, and stride
+	std::size_t vertex_size = 0;
+	std::size_t vertex_count = 0;
+	for (auto it = attributes.begin(); it != attributes.end(); ++it)
+	{
+		vertex_size += std::get<0>(it->second);
+		vertex_count = std::get<1>(it->second).size() / std::get<0>(it->second);
+	}
+	std::size_t vertex_stride = sizeof(float) * vertex_size;
+	
+	// Build interleaved vertex data buffer
+	float* vertex_data = new float[vertex_size * vertex_count];
+	float* v = &vertex_data[0];
+	for (std::size_t i = 0; i < vertex_count; ++i)
+	{
+		for (auto it = attributes.begin(); it != attributes.end(); ++it)
+		{
+			std::size_t attribute_size = std::get<0>(it->second);
+			const float* a = &(std::get<1>(it->second)[i * attribute_size]);
+			
+			for (std::size_t j = 0; j < attribute_size; ++j)
+				*(v++) = *(a++);
+		}
+	}
+	
+	// Resize VBO and upload vertex data
+	vertex_buffer* vbo = model->get_vertex_buffer();
+	vbo->resize(sizeof(float) * vertex_size * vertex_count, vertex_data);
+	
+	// Free interleaved vertex data buffer
+	delete[] vertex_data;
+	
+	// Map attribute names to locations
+	static const std::unordered_map<std::string, unsigned int> attribute_location_map =
+	{
+		{"position", VERTEX_POSITION_LOCATION},
+		{"texcoord", VERTEX_TEXCOORD_LOCATION},
+		{"normal", VERTEX_NORMAL_LOCATION},
+		{"tangent", VERTEX_TANGENT_LOCATION},
+		{"color", VERTEX_COLOR_LOCATION},
+		{"bone_index", VERTEX_BONE_INDEX_LOCATION},
+		{"bone_weight", VERTEX_BONE_WEIGHT_LOCATION},
+		{"barycentric", VERTEX_BARYCENTRIC_LOCATION}
+	};
+	
+	// Bind attributes to VAO
+	vertex_array* vao = model->get_vertex_array();
+	std::size_t offset = 0;
+	for (auto attribute_it = attributes.begin(); attribute_it != attributes.end(); ++attribute_it)
+	{
+		std::string attribute_name = attribute_it->first;
+		std::size_t attribute_size = std::get<0>(attribute_it->second);
+		
+		if (auto location_it = attribute_location_map.find(attribute_name); location_it != attribute_location_map.end())
+			vao->bind_attribute(location_it->second, *vbo, attribute_size, vertex_attribute_type::float_32, vertex_stride, offset);
+		
+		offset += attribute_size * sizeof(float);
+	}
+	
+	// Load materials
+	if (auto materials_node = json.find("materials"); materials_node != json.end())
+	{
+		for (const auto& material_node: materials_node.value().items())
+		{
+			std::string group_name;
+			std::size_t group_offset = 0;
+			std::size_t group_size = 0;
+			material* group_material = nullptr;
+			
+			if (auto name_node = material_node.value().find("name"); name_node != material_node.value().end())
+				group_name = name_node.value().get<std::string>();
+			if (auto offset_node = material_node.value().find("offset"); offset_node != material_node.value().end())
+				group_offset = offset_node.value().get<std::size_t>();
+			if (auto size_node = material_node.value().find("size"); size_node != material_node.value().end())
+				group_size = size_node.value().get<std::size_t>();
+			
+			std::cout << "MATERIAL: " << group_name << std::endl;
+			
+			group_material = resource_manager->load<material>(group_name + ".mtl");
+			
+			model_group* model_group = model->add_group(group_name);
+			model_group->set_drawing_mode(drawing_mode::triangles);
+			model_group->set_start_index(group_offset * 3);
+			model_group->set_index_count(group_size * 3);
+			model_group->set_material(group_material);
+		}
+	}
+	
+	return model;
+}
