@@ -22,6 +22,8 @@
 
 #include "renderer/render-pass.hpp"
 #include "utility/fundamental-types.hpp"
+#include "event/event-handler.hpp"
+#include "event/input-events.hpp"
 
 class shader_program;
 class shader_input;
@@ -33,7 +35,8 @@ class resource_manager;
 /**
  *
  */
-class sky_pass: public render_pass
+class sky_pass: public render_pass,
+	public event_handler<mouse_moved_event>
 {
 public:
 	sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager);
@@ -44,8 +47,11 @@ public:
 	void set_sun_color(const float3& color);
 	void set_horizon_color(const float3& color);
 	void set_zenith_color(const float3& color);
+	void set_sky_palette(const texture_2d* texture);
 
 private:
+	virtual void handle_event(const mouse_moved_event& event);
+
 	shader_program* shader_program;
 	const shader_input* matrix_input;
 	const shader_input* sun_direction_input;
@@ -53,6 +59,9 @@ private:
 	const shader_input* sun_color_input;
 	const shader_input* horizon_color_input;
 	const shader_input* zenith_color_input;
+	const shader_input* sky_palette_input;
+	const shader_input* mouse_input;
+	const shader_input* resolution_input;
 
 	vertex_buffer* quad_vbo;
 	vertex_array* quad_vao;
@@ -61,6 +70,8 @@ private:
 	float3 sun_color;
 	float3 horizon_color;
 	float3 zenith_color;
+	const texture_2d* sky_palette;
+	float2 mouse_position;
 };
 
 #endif // ANTKEEPER_SKY_PASS_HPP

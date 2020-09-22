@@ -42,7 +42,9 @@
 #include <glad/glad.h>
 
 sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
-	render_pass(rasterizer, framebuffer)
+	render_pass(rasterizer, framebuffer),
+	sky_palette(nullptr),
+	mouse_position({0.0f, 0.0f})
 {
 	shader_program = resource_manager->load<::shader_program>("sky.glsl");
 	matrix_input = shader_program->get_input("matrix");
@@ -52,6 +54,9 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 	zenith_color_input = shader_program->get_input("zenith_color");
 	sun_angular_radius_input = shader_program->get_input("sun_angular_radius");
 	sun_color_input = shader_program->get_input("sun_color");
+	sky_palette_input = shader_program->get_input("sky_palette");
+	mouse_input = shader_program->get_input("mouse");
+	resolution_input = shader_program->get_input("resolution");
 
 	const float vertex_data[] =
 	{
@@ -90,6 +95,8 @@ void sky_pass::render(render_context* context) const
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
+	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
+	
 	// Find sun direction
 	float3 sun_direction = {0, 0, -1};
 	const std::list<scene_object_base*>* lights = context->scene->get_objects(light::object_type_id);
@@ -125,6 +132,12 @@ void sky_pass::render(render_context* context) const
 		horizon_color_input->upload(horizon_color);
 	if (zenith_color_input)
 		zenith_color_input->upload(zenith_color);
+	if (sky_palette_input && sky_palette)
+		sky_palette_input->upload(sky_palette);
+	if (mouse_input)
+		mouse_input->upload(mouse_position);
+	if (resolution_input)
+		resolution_input->upload(resolution);
 	
 	// Draw quad
 	rasterizer->draw_arrays(*quad_vao, drawing_mode::triangles, 0, 6);
@@ -148,4 +161,14 @@ void sky_pass::set_horizon_color(const float3& color)
 void sky_pass::set_zenith_color(const float3& color)
 {
 	zenith_color = color;
+}
+
+void sky_pass::set_sky_palette(const texture_2d* texture)
+{
+	sky_palette = texture;
+}
+
+void sky_pass::handle_event(const mouse_moved_event& event)
+{
+	mouse_position = {static_cast<float>(event.x), static_cast<float>(event.y)};
 }

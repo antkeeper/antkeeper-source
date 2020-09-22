@@ -38,6 +38,9 @@
 #include "math/math.hpp"
 #include "nest.hpp"
 #include "renderer/material.hpp"
+#include "rasterizer/texture-2d.hpp"
+#include "rasterizer/texture-filter.hpp"
+#include "rasterizer/texture-wrapping.hpp"
 #include "renderer/model.hpp"
 #include "renderer/passes/sky-pass.hpp"
 #include "resources/resource-manager.hpp"
@@ -88,6 +91,11 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_sun_color(ctx->biome->sun_color * ctx->biome->sun_intensity);
 	sky_pass->set_horizon_color(ctx->biome->horizon_color);
 	sky_pass->set_zenith_color(ctx->biome->zenith_color);
+	
+	texture_2d* sky_palette = ctx->resource_manager->load<texture_2d>("sky-palette.png");
+	sky_palette->set_wrapping(texture_wrapping::repeat, texture_wrapping::clamp);
+	sky_palette->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
+	sky_pass->set_sky_palette(sky_palette);
 	
 	ctx->tool_system->set_sun_direction(ctx->sun_direct->get_direction());
 

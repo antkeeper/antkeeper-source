@@ -492,6 +492,7 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_clear_pass = new clear_pass(ctx->rasterizer, ctx->framebuffer_hdr);
 	ctx->overworld_clear_pass->set_cleared_buffers(false, true, true);
 	ctx->overworld_sky_pass = new sky_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
+	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->overworld_sky_pass);
 	ctx->overworld_sky_pass->set_enabled(false);
 	ctx->overworld_material_pass = new material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->overworld_material_pass->set_fallback_material(ctx->fallback_material);
