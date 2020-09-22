@@ -26,11 +26,16 @@
 template <typename T, std::size_t N>
 math::vector<T, N> to_linear(math::vector<T, N> v)
 {
-	constexpr T gamma = T(2.2);
-	
 	for (std::size_t i = 0; i < N; ++i)
 	{
-		v[i] = pow(v[i], gamma);
+		if (v[i] <= T(0.04045))
+		{
+			v[i] /= T(12.92);
+		}
+		else
+		{
+			v[i] = std::pow((v[i] + T(0.055)) / T(1.055), T(2.4));
+		}
 	}
 	
 	return v;
@@ -39,11 +44,16 @@ math::vector<T, N> to_linear(math::vector<T, N> v)
 template <typename T, std::size_t N>
 math::vector<T, N> to_srgb(math::vector<T, N> v)
 {
-	constexpr T inverse_gamma = T(1) / T(2.2);
-	
 	for (std::size_t i = 0; i < N; ++i)
 	{
-		v[i] = pow(v[i], inverse_gamma);
+		if (v[i] <= T(0.0031308))
+		{
+			v[i] *= T(12.92);
+		}
+		else
+		{
+			v[i] = std::pow(v[i], T(1.0 / 2.4)) * T(1.055) - T(0.055);
+		}
 	}
 	
 	return v;
