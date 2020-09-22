@@ -44,11 +44,14 @@
 #include "scene/model-instance.hpp"
 #include "scene/scene.hpp"
 #include "scene/camera.hpp"
+#include "scene/ambient-light.hpp"
+#include "scene/directional-light.hpp"
 #include "scene/directional-light.hpp"
 #include "game/systems/control-system.hpp"
 #include "game/systems/camera-system.hpp"
 #include "game/systems/render-system.hpp"
 #include "game/systems/tool-system.hpp"
+#include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
 #include "utility/gamma.hpp"
 
@@ -56,16 +59,35 @@ void play_state_enter(game_context* ctx)
 {
 	logger* logger = ctx->logger;
 	logger->push_task("Entering play state");
+	
+	// Load biome
+	if (ctx->option_biome.has_value())
+	{
+		ctx->biome = ctx->resource_manager->load<biome>(ctx->option_biome.value() + ".bio");
+	}
+	else
+	{
+		ctx->biome = ctx->resource_manager->load<biome>("grassland.bio");
+	}
+	
+	// Apply biome parameters to scene
+	ctx->sun_indirect->set_color(ctx->biome->ambient_color);
+	ctx->sun_indirect->set_intensity(ctx->biome->ambient_intensity);
+	
+	math::quaternion<float> sun_azimuth_rotation = math::angle_axis(ctx->biome->sun_azimuth, float3{0, 1, 0});
+	math::quaternion<float> sun_elevation_rotation = math::angle_axis(ctx->biome->sun_elevation, float3{-1, 0, 0});
+	math::quaternion<float> sun_rotation = math::normalize(sun_azimuth_rotation * sun_elevation_rotation);
+	
+	ctx->sun_direct->set_rotation(sun_rotation);
+	ctx->sun_direct->set_color(ctx->biome->sun_color);
+	ctx->sun_direct->set_intensity(ctx->biome->sun_intensity);
 
-	// Set up sky pass
 	sky_pass* sky_pass = ctx->overworld_sky_pass;
 	sky_pass->set_enabled(true);
-	sky_pass->set_sun_angular_radius(math::radians<float>(3.0f));
-	sky_pass->set_sun_color({2.0f, 2.0f, 2.0f});
-	sky_pass->set_horizon_color({0.129, 0.451, 0.549});
-	sky_pass->set_zenith_color({0.0, 0.286, 0.415});
-	//sky_pass->set_horizon_color(float3{0.002f, 0.158f, 0.250f});
-	//sky_pass->set_zenith_color(float3{0.002f, 0.158f, 0.250f});
+	sky_pass->set_sun_angular_radius(ctx->biome->sun_angular_radius);
+	sky_pass->set_sun_color(ctx->biome->sun_color * ctx->biome->sun_intensity);
+	sky_pass->set_horizon_color(ctx->biome->horizon_color);
+	sky_pass->set_zenith_color(ctx->biome->zenith_color);
 	
 	ctx->tool_system->set_sun_direction(ctx->sun_direct->get_direction());
 
@@ -89,6 +111,7 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* flashlight_light_cone_archetype = resource_manager->load<ecs::archetype>("flashlight-light-cone.ent");
 	ecs::archetype* lens_light_cone_archetype = resource_manager->load<ecs::archetype>("lens-light-cone.ent");
 	ecs::archetype* ant_head_archetype = resource_manager->load<ecs::archetype>("ant-head.ent");
+	ecs::archetype* dandelion_plant_archetype = resource_manager->load<ecs::archetype>("dandelion-plant.ent");
 	
 	// Create tools
 	forceps_archetype->assign(ecs_registry, ctx->forceps_entity);
@@ -280,6 +303,9 @@ void play_state_enter(game_context* ctx)
 		//transform.transform.translation.y -= 1.0f;
 	}
 	
+	auto dandelion_plant = dandelion_plant_archetype->create(ecs_registry);
+	ec::place(ecs_registry, dandelion_plant, {55, -30});
+	
 	control_system* control_system = ctx->control_system;
 	control_system->update(0.0, 0.0);
 	control_system->set_nest(nest);
@@ -288,6 +314,9 @@ void play_state_enter(game_context* ctx)
 	ctx->fade_transition->transition(1.0f, true, ease<float>::in_quad);
 
 	logger->pop_task(EXIT_SUCCESS);
+	
+	std::string biome_name = (*ctx->strings)[ctx->biome->name];
+	logger->log("Entered biome \"" + biome_name + "\"");
 }
 
 void play_state_exit(game_context* ctx)

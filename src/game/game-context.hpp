@@ -86,6 +86,7 @@ class cli;
 class outline_pass;
 class tracking_system;
 class painting_system;
+struct biome;
 template <typename T> class animation;
 template <typename T> class material_property;
 template <typename T> class tween;
@@ -100,6 +101,7 @@ struct game_context
 	std::ofstream log_filestream;
 	
 	// Command-line options
+	std::optional<std::string> option_biome;
 	std::optional<bool> option_continue;
 	std::optional<std::string> option_data;
 	std::optional<bool> option_fullscreen;
@@ -239,6 +241,9 @@ struct game_context
 	spatial_system* spatial_system;
 	tracking_system* tracking_system;
 	painting_system* painting_system;
+	
+	// Game
+	biome* biome;
 	
 	// Debug
 	cli* cli;

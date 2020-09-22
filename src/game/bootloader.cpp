@@ -170,6 +170,7 @@ void parse_options(game_context* ctx, int argc, char** argv)
 	{
 		cxxopts::Options options("Antkeeper", "Ant colony simulation game");
 		options.add_options()
+			("b,biome", "Selects the biome to load", cxxopts::value<std::string>())
 			("c,continue", "Continues from the last save")
 			("d,data", "Sets the data package path", cxxopts::value<std::string>())
 			("f,fullscreen", "Starts in fullscreen mode")
@@ -179,6 +180,10 @@ void parse_options(game_context* ctx, int argc, char** argv)
 			("v,vsync", "Enables or disables v-sync", cxxopts::value<int>())
 			("w,windowed", "Starts in windowed mode");
 		auto result = options.parse(argc, argv);
+		
+		// --biome
+		if (result.count("biome"))
+			ctx->option_biome = result["biome"].as<std::string>();
 		
 		// --continue
 		if (result.count("continue"))
@@ -339,6 +344,8 @@ void setup_resources(game_context* ctx)
 	ctx->resource_manager->include("/behaviors/");
 	ctx->resource_manager->include("/controls/");
 	ctx->resource_manager->include("/localization/");
+	ctx->resource_manager->include("/biomes/");
+	ctx->resource_manager->include("/traits/");
 	ctx->resource_manager->include("/");
 }
 
@@ -619,12 +626,11 @@ void setup_scenes(game_context* ctx)
 	
 	// Setup lights
 	ctx->sun_indirect = new ambient_light();
-	ctx->sun_indirect->set_intensity(0.5f);
+	ctx->sun_indirect->set_intensity(0.0f);
 	ctx->sun_indirect->update_tweens();
 	
 	ctx->sun_direct = new directional_light();
-	ctx->sun_direct->look_at({-1.0f, 5.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
-	ctx->sun_direct->set_intensity(1.0f);
+	ctx->sun_direct->set_intensity(0.0f);
 	ctx->sun_direct->update_tweens();
 	
 	ctx->subterrain_light = new point_light();
