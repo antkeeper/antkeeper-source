@@ -54,6 +54,7 @@
 #include "game/systems/camera-system.hpp"
 #include "game/systems/render-system.hpp"
 #include "game/systems/tool-system.hpp"
+#include "game/systems/weather-system.hpp"
 #include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
 #include "utility/gamma.hpp"
@@ -93,11 +94,11 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_zenith_color(ctx->biome->zenith_color);
 	
 	texture_2d* sky_palette = ctx->resource_manager->load<texture_2d>("sky-palette.png");
-	sky_palette->set_wrapping(texture_wrapping::repeat, texture_wrapping::clamp);
-	sky_palette->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
+	sky_palette->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
+	sky_palette->set_filters(texture_min_filter::nearest, texture_mag_filter::nearest);
 	sky_pass->set_sky_palette(sky_palette);
 	
-	ctx->tool_system->set_sun_direction(ctx->sun_direct->get_direction());
+	ctx->weather_system->set_time_of_day(6.0f * 60.0f * 60.0f);
 
 	resource_manager* resource_manager = ctx->resource_manager;
 	entt::registry& ecs_registry = *ctx->ecs_registry;

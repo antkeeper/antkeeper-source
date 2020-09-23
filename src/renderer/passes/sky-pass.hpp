@@ -24,6 +24,7 @@
 #include "utility/fundamental-types.hpp"
 #include "event/event-handler.hpp"
 #include "event/input-events.hpp"
+#include "animation/tween.hpp"
 
 class shader_program;
 class shader_input;
@@ -31,6 +32,7 @@ class vertex_buffer;
 class vertex_array;
 class texture_2d;
 class resource_manager;
+class directional_light;
 
 /**
  *
@@ -47,7 +49,9 @@ public:
 	void set_sun_color(const float3& color);
 	void set_horizon_color(const float3& color);
 	void set_zenith_color(const float3& color);
+	void set_sun_light(const directional_light* direction);
 	void set_sky_palette(const texture_2d* texture);
+	void set_time_tween(const tween<double>* time);
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -62,6 +66,7 @@ private:
 	const shader_input* sky_palette_input;
 	const shader_input* mouse_input;
 	const shader_input* resolution_input;
+	const shader_input* time_input;
 
 	vertex_buffer* quad_vbo;
 	vertex_array* quad_vao;
@@ -70,8 +75,10 @@ private:
 	float3 sun_color;
 	float3 horizon_color;
 	float3 zenith_color;
+	const directional_light* sun_light;
 	const texture_2d* sky_palette;
 	float2 mouse_position;
+	const tween<double>* time_tween;
 };
 
 #endif // ANTKEEPER_SKY_PASS_HPP

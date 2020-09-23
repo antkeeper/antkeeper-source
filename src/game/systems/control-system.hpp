@@ -80,6 +80,8 @@ public:
 	control* get_next_marker_control();
 	control* get_previous_marker_control();
 	control* get_use_tool_control();
+	control* get_fast_forward_control();
+	control* get_rewind_control();
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -110,6 +112,8 @@ private:
 	control next_marker_control;
 	control previous_marker_control;
 	control use_tool_control;
+	control fast_forward_control;
+	control rewind_control;
 
 	float zoom_speed;
 	float min_elevation;
@@ -267,6 +271,16 @@ inline control* control_system::get_previous_marker_control()
 inline control* control_system::get_use_tool_control()
 {
 	return &use_tool_control;
+}
+
+inline control* control_system::get_fast_forward_control()
+{
+	return &fast_forward_control;
+}
+
+inline control* control_system::get_rewind_control()
+{
+	return &rewind_control;
 }
 
 #endif // ANTKEEPER_CONTROL_SYSTEM_HPP

@@ -60,7 +60,8 @@ material_pass::material_pass(::rasterizer* rasterizer, const ::framebuffer* fram
 	mouse_position({0.0f, 0.0f}),
 	focal_point_tween(nullptr),
 	shadow_map_pass(nullptr),
-	shadow_map(nullptr)
+	shadow_map(nullptr),
+	shadow_strength(1.0f)
 {
 	soft_shadows_texture = resource_manager->load<texture_2d>("tree-shadow.png");
 	soft_shadows_texture->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
@@ -464,6 +465,8 @@ void material_pass::render(render_context* context) const
 					parameters->shadow_map_split_distances->upload(shadow_map_split_distances);
 				if (parameters->shadow_map && shadow_map)
 					parameters->shadow_map->upload(shadow_map);
+				if (parameters->shadow_strength)
+					parameters->shadow_strength->upload(shadow_strength);
 			}
 			
 			// Upload material properties to shader
@@ -502,6 +505,11 @@ void material_pass::set_fallback_material(const material* fallback)
 void material_pass::set_time_tween(const tween<double>* time)
 {
 	this->time_tween = time;
+}
+
+void material_pass::set_shadow_strength(float strength)
+{
+	this->shadow_strength = strength;
 }
 
 void material_pass::set_focal_point_tween(const tween<float3>* focal_point)
@@ -545,6 +553,7 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const shad
 	parameters->shadow_map_matrices = program->get_input("shadow_map_matrices");
 	parameters->shadow_map_split_distances = program->get_input("shadow_map_split_distances");
 	parameters->shadow_map = program->get_input("shadow_map");
+	parameters->shadow_strength = program->get_input("shadow_strength");
 
 	// Add parameter set to map of parameter sets
 	parameter_sets[program] = parameters;

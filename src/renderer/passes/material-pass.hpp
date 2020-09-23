@@ -52,6 +52,8 @@ public:
 	/// Sets the time tween, which is interpolated between updates
 	void set_time_tween(const tween<double>* time);
 	
+	void set_shadow_strength(float strength);
+	
 	void set_focal_point_tween(const tween<float3>* focal_point);	
 	
 	const ::shadow_map_pass* shadow_map_pass;
@@ -98,6 +100,7 @@ private:
 		const shader_input* shadow_map_matrices;
 		const shader_input* shadow_map_split_distances;
 		const shader_input* shadow_map;
+		const shader_input* shadow_strength;
 	};
 
 	const parameter_set* load_parameter_set(const shader_program* program) const;
@@ -108,6 +111,7 @@ private:
 	float2 mouse_position;
 	const tween<float3>* focal_point_tween;
 	texture_2d* soft_shadows_texture;
+	float shadow_strength;
 	
 	int max_ambient_light_count;
 	int max_point_light_count;

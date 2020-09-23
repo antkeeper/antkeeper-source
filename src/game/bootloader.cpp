@@ -78,6 +78,7 @@
 #include "game/systems/spatial-system.hpp"
 #include "game/systems/tracking-system.hpp"
 #include "game/systems/painting-system.hpp"
+#include "game/systems/weather-system.hpp"
 #include "game/components/marker-component.hpp"
 #include "game/entity-commands.hpp"
 #include "utility/paths.hpp"
@@ -753,6 +754,7 @@ void setup_animation(game_context* ctx)
 	ctx->focal_point_tween->set_interpolator(math::lerp<float3, float>);
 	
 	// Set material pass tweens
+	ctx->overworld_sky_pass->set_time_tween(ctx->time_tween);
 	ctx->overworld_material_pass->set_time_tween(ctx->time_tween);
 	ctx->overworld_material_pass->set_focal_point_tween(ctx->focal_point_tween);
 	ctx->underworld_material_pass->set_time_tween(ctx->time_tween);
@@ -854,6 +856,18 @@ void setup_systems(game_context* ctx)
 	// Setup painting system
 	ctx->painting_system = new painting_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
 	ctx->painting_system->set_scene(ctx->overworld_scene);
+	
+	// Setup weather system
+	ctx->weather_system = new weather_system(*ctx->ecs_registry);
+	ctx->weather_system->set_ambient_light(ctx->sun_indirect);
+	ctx->weather_system->set_sun_light(ctx->sun_direct);
+	ctx->weather_system->set_sky_pass(ctx->overworld_sky_pass);
+	ctx->weather_system->set_shadow_map_pass(ctx->overworld_shadow_map_pass);
+	ctx->weather_system->set_material_pass(ctx->overworld_material_pass);
+	if (ctx->config->has("time_scale"))
+	{
+		ctx->weather_system->set_time_scale(ctx->config->get<float>("time_scale"));
+	}
 	
 	// Setup render system
 	ctx->render_system = new ::render_system(*ctx->ecs_registry);
@@ -1030,6 +1044,8 @@ void setup_controls(game_context* ctx)
 	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_zoom_in_control(), nullptr, game_controller_axis::trigger_right, false));
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_rotate_ccw_control(), nullptr, scancode::q));
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_rotate_cw_control(), nullptr, scancode::e));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_fast_forward_control(), nullptr, scancode::dot));
+	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_rewind_control(), nullptr, scancode::comma));
 	
 	
 	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, scancode::one));
@@ -1143,8 +1159,36 @@ void setup_controls(game_context* ctx)
 		}
 	);
 	
-
 	
+	float time_scale = ctx->config->get<float>("time_scale");
+	ctx->control_system->get_fast_forward_control()->set_activated_callback
+	(
+		[ctx, time_scale]()
+		{
+			ctx->weather_system->set_time_scale(time_scale * 100.0f);
+		}
+	);
+	ctx->control_system->get_fast_forward_control()->set_deactivated_callback
+	(
+		[ctx, time_scale]()
+		{
+			ctx->weather_system->set_time_scale(time_scale);
+		}
+	);
+	ctx->control_system->get_rewind_control()->set_activated_callback
+	(
+		[ctx, time_scale]()
+		{
+			ctx->weather_system->set_time_scale(time_scale * -100.0f);
+		}
+	);
+	ctx->control_system->get_rewind_control()->set_deactivated_callback
+	(
+		[ctx, time_scale]()
+		{
+			ctx->weather_system->set_time_scale(time_scale);
+		}
+	);
 	
 	// Make lens tool's model instance unculled, so its shadow is always visible.
 	model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
@@ -1201,6 +1245,7 @@ void setup_callbacks(game_context* ctx)
 			ctx->constraint_system->update(t, dt);
 			ctx->tracking_system->update(t, dt);
 			ctx->painting_system->update(t, dt);
+			ctx->weather_system->update(t, dt);
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			

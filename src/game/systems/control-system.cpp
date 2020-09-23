@@ -60,6 +60,8 @@ control_system::control_system(entt::registry& registry):
 	control_set.add_control(&next_marker_control);
 	control_set.add_control(&previous_marker_control);
 	control_set.add_control(&use_tool_control);
+	control_set.add_control(&fast_forward_control);
+	control_set.add_control(&rewind_control);
 	
 	// Set deadzone at 15% for all controls
 	const std::list<control*>* controls = control_set.get_controls();

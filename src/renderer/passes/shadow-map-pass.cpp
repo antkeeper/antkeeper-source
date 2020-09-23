@@ -60,7 +60,8 @@ void shadow_map_pass::distribute_frustum_splits(float* split_distances, std::siz
 
 shadow_map_pass::shadow_map_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
-	split_scheme_weight(0.5f)
+	split_scheme_weight(0.5f),
+	light(nullptr)
 {
 	// Load skinned shader program
 	unskinned_shader_program = resource_manager->load<::shader_program>("depth-unskinned.glsl");
@@ -87,6 +88,12 @@ shadow_map_pass::~shadow_map_pass()
 
 void shadow_map_pass::render(render_context* context) const
 {
+	// Abort if no directional light was set
+	if (!light)
+	{
+		return;
+	}
+	
 	rasterizer->use_framebuffer(*framebuffer);
 	
 	// Disable blending
@@ -102,28 +109,6 @@ void shadow_map_pass::render(render_context* context) const
 	
 	// Get camera
 	const ::camera& camera = *context->camera;
-	
-	// Find the first active directional light
-	const std::list<scene_object_base*>* lights = context->scene->get_objects(light::object_type_id);
-	const ::directional_light* light = nullptr;
-	for (const scene_object_base* object: *lights)
-	{
-		// Skip inactive lights
-		if (!object->is_active())
-			continue;
-		
-		if (static_cast<const ::light*>(object)->get_light_type() == light_type::directional)
-		{
-			light = static_cast<const ::directional_light*>(object);
-			break;
-		}
-	}
-	
-	// Abort if no directional light was found
-	if (!light)
-	{
-		return;
-	}
 	
 	// Calculate distances to the depth clipping planes of each frustum split
 	float clip_near = camera.get_clip_near_tween().interpolate(context->alpha);
@@ -264,6 +249,11 @@ void shadow_map_pass::render(render_context* context) const
 void shadow_map_pass::set_split_scheme_weight(float weight)
 {
 	split_scheme_weight = weight;
+}
+
+void shadow_map_pass::set_light(const directional_light* light)
+{
+	this->light = light;
 }
 
 bool operation_compare(const render_operation& a, const render_operation& b)
