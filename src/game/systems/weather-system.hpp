@@ -65,7 +65,7 @@ private:
 	material_pass* material_pass;
 	const image* sky_palette;
 	const image* shadow_palette;
-	std::array<float4, 4> sky_gradient;
+	std::vector<std::array<float4, 4>> sky_gradients;
 };
 
 #endif // ANTKEEPER_WEATHER_SYSTEM_HPP

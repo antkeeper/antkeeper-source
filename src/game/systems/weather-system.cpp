@@ -133,7 +133,20 @@ void weather_system::set_time_of_day(float t)
 	
 	if (sky_pass)
 	{
-		sky_pass->set_sky_gradient(sky_gradient);
+		float hour = time_of_day / (60.0f * 60.0f);
+		std::size_t gradient_index = static_cast<std::size_t>(hour);
+		
+		const std::array<float4, 4>& gradient0 = sky_gradients[gradient_index];
+		const std::array<float4, 4>& gradient1 = sky_gradients[(gradient_index + 1) % sky_gradients.size()];
+		float t = hour - std::floor(hour);
+		
+		std::array<float4, 4> gradient;
+		for (int i = 0; i < 4; ++i)
+		{
+			gradient[i] = math::lerp(gradient0[i], gradient1[i], t);
+		}
+		
+		sky_pass->set_sky_gradient(gradient);
 	}
 	
 	shadow_light = sun_light;
@@ -160,6 +173,8 @@ void weather_system::set_sky_palette(const ::image* image)
 		
 		for (unsigned int x = 0; x < w; ++x)
 		{
+			std::array<float4, 4> gradient;
+			
 			for (unsigned int y = 0; y < std::min<unsigned int>(4, h); ++y)
 			{
 				unsigned int i = y * w * c + x * c;
@@ -167,8 +182,10 @@ void weather_system::set_sky_palette(const ::image* image)
 				float g = srgb_to_linear(static_cast<float>(pixels[i + 1]) / 255.0f);
 				float b = srgb_to_linear(static_cast<float>(pixels[i + 2]) / 255.0f);
 				
-				sky_gradient[y] = {r, g, b,  static_cast<float>(y) * (1.0f / 3.0f)};
+				gradient[y] = {r, g, b,  static_cast<float>(y) * (1.0f / 3.0f)};
 			}
+			
+			sky_gradients.push_back(gradient);
 		}
 	}
 }
