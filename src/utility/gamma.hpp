@@ -23,40 +23,26 @@
 #include "math/vector-type.hpp"
 #include <cmath>
 
-template <typename T, std::size_t N>
-math::vector<T, N> to_linear(math::vector<T, N> v)
+template <typename T>
+T srgb_to_linear(const T& x)
 {
-	for (std::size_t i = 0; i < N; ++i)
+	if (x <= T(0.04045))
 	{
-		if (v[i] <= T(0.04045))
-		{
-			v[i] /= T(12.92);
-		}
-		else
-		{
-			v[i] = std::pow((v[i] + T(0.055)) / T(1.055), T(2.4));
-		}
+		return x / T(12.92);
 	}
 	
-	return v;
+	return std::pow((x + T(0.055)) / T(1.055), T(2.4));
 }
 
-template <typename T, std::size_t N>
-math::vector<T, N> to_srgb(math::vector<T, N> v)
+template <typename T>
+T linear_to_srgb(const T& x)
 {
-	for (std::size_t i = 0; i < N; ++i)
+	if (x <= T(0.0031308))
 	{
-		if (v[i] <= T(0.0031308))
-		{
-			v[i] *= T(12.92);
-		}
-		else
-		{
-			v[i] = std::pow(v[i], T(1.0 / 2.4)) * T(1.055) - T(0.055);
-		}
+		return x * T(12.92);
 	}
 	
-	return v;
+	return std::pow(x, T(1.0 / 2.4)) * T(1.055) - T(0.055);
 }
 
 #endif // ANTKEEPER_GAMMA_HPP

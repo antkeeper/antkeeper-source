@@ -47,10 +47,10 @@ public:
 	
 	void set_sun_angular_radius(float angle);
 	void set_sun_color(const float3& color);
-	void set_horizon_color(const float3& color);
-	void set_zenith_color(const float3& color);
 	void set_sun_light(const directional_light* direction);
-	void set_sky_palette(const texture_2d* texture);
+	void set_sky_gradient(const std::array<float4, 4>& gradient);
+	
+	
 	void set_time_tween(const tween<double>* time);
 
 private:
@@ -61,9 +61,7 @@ private:
 	const shader_input* sun_direction_input;
 	const shader_input* sun_angular_radius_input;
 	const shader_input* sun_color_input;
-	const shader_input* horizon_color_input;
-	const shader_input* zenith_color_input;
-	const shader_input* sky_palette_input;
+	const shader_input* sky_gradient_input;
 	const shader_input* mouse_input;
 	const shader_input* resolution_input;
 	const shader_input* time_input;
@@ -73,11 +71,10 @@ private:
 
 	float sun_angular_radius;
 	float3 sun_color;
-	float3 horizon_color;
-	float3 zenith_color;
 	const directional_light* sun_light;
 	const texture_2d* sky_palette;
 	float2 mouse_position;
+	std::array<float4, 4> sky_gradient;
 	const tween<double>* time_tween;
 };
 

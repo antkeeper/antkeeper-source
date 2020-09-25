@@ -23,6 +23,7 @@
 #include <string>
 #include "utility/fundamental-types.hpp"
 class material;
+class image;
 
 struct biome
 {
@@ -43,6 +44,8 @@ struct biome
 	float3 zenith_color;
 	float wind_speed;
 	float wind_direction;
+	image* sky_palette;
+	image* shadow_palette;
 	
 	// Traits
 };

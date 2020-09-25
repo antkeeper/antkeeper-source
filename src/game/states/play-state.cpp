@@ -90,14 +90,9 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_enabled(true);
 	sky_pass->set_sun_angular_radius(ctx->biome->sun_angular_radius);
 	sky_pass->set_sun_color(ctx->biome->sun_color * ctx->biome->sun_intensity);
-	sky_pass->set_horizon_color(ctx->biome->horizon_color);
-	sky_pass->set_zenith_color(ctx->biome->zenith_color);
 	
-	texture_2d* sky_palette = ctx->resource_manager->load<texture_2d>("sky-palette.png");
-	sky_palette->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
-	sky_palette->set_filters(texture_min_filter::nearest, texture_mag_filter::nearest);
-	sky_pass->set_sky_palette(sky_palette);
-	
+	ctx->weather_system->set_sky_palette(ctx->biome->sky_palette);
+	ctx->weather_system->set_shadow_palette(ctx->biome->shadow_palette);
 	ctx->weather_system->set_time_of_day(6.0f * 60.0f * 60.0f);
 
 	resource_manager* resource_manager = ctx->resource_manager;

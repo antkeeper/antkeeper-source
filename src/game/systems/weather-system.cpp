@@ -22,7 +22,12 @@
 #include "renderer/passes/sky-pass.hpp"
 #include "renderer/passes/shadow-map-pass.hpp"
 #include "renderer/passes/material-pass.hpp"
+#include "utility/gamma.hpp"
+#include "resources/image.hpp"
 #include <cmath>
+#include <iostream>
+
+static constexpr float seconds_per_day = 24.0f * 60.0f * 60.0f;
 
 weather_system::weather_system(entt::registry& registry):
 	entity_system(registry),
@@ -35,6 +40,8 @@ weather_system::weather_system(entt::registry& registry):
 	material_pass(nullptr),
 	time_of_day(0.0f),
 	time_scale(1.0f),
+	sky_palette(nullptr),
+	shadow_palette(nullptr),
 	sun_direction{0.0f, -1.0f, 0.0f}
 {}
 
@@ -95,11 +102,24 @@ void weather_system::set_material_pass(::material_pass* pass)
 
 void weather_system::set_time_of_day(float t)
 {
-	static constexpr float seconds_per_day = 24.0f * 60.0f * 60.0f;
 	time_of_day = std::fmod(t, seconds_per_day);
 	
-	sun_azimuth = 0.0f;
-	sun_elevation = (time_of_day / seconds_per_day) * math::two_pi<float> - math::half_pi<float>;
+	//sun_azimuth = 0.0f;
+	//sun_elevation = (time_of_day / seconds_per_day) * math::two_pi<float> - math::half_pi<float>;
+	
+	float hour_angle = math::wrap_radians(time_of_day * (math::two_pi<float> / seconds_per_day) - math::pi<float>);
+	float declination = math::radians(0.0f);
+	float latitude = math::radians(0.0f);
+	
+
+	sun_elevation = std::asin(std::sin(declination) * std::sin(latitude) + std::cos(declination) * std::cos(hour_angle) * std::cos(latitude));
+	sun_azimuth = std::acos((std::sin(declination) * std::cos(latitude) - std::cos(declination) * std::cos(hour_angle) * std::sin(latitude)) / std::cos(sun_elevation));
+	if (hour_angle < 0.0f)
+		sun_azimuth = math::two_pi<float> - sun_azimuth;
+	
+	//std::cout << "hour angle: " << math::degrees(hour_angle) << std::endl;
+	//std::cout << "azimuth: " << math::degrees(sun_azimuth) << std::endl;
+	//std::cout << "time: " << (time_of_day / 60.0f / 60.0f) << std::endl;
 	
 	math::quaternion<float> sun_azimuth_rotation = math::angle_axis(sun_azimuth, float3{0, 1, 0});
 	math::quaternion<float> sun_elevation_rotation = math::angle_axis(sun_elevation, float3{-1, 0, 0});
@@ -109,6 +129,11 @@ void weather_system::set_time_of_day(float t)
 	if (sun_light)
 	{
 		sun_light->set_rotation(sun_rotation);
+	}
+	
+	if (sky_pass)
+	{
+		sky_pass->set_sky_gradient(sky_gradient);
 	}
 	
 	shadow_light = sun_light;
@@ -121,4 +146,34 @@ void weather_system::set_time_of_day(float t)
 void weather_system::set_time_scale(float scale)
 {
 	time_scale = scale;
+}
+
+void weather_system::set_sky_palette(const ::image* image)
+{
+	sky_palette = image;
+	if (sky_palette)
+	{
+		unsigned int w = image->get_width();
+		unsigned int h = image->get_height();
+		unsigned int c = image->get_channels();
+		const unsigned char* pixels = static_cast<const unsigned char*>(image->get_pixels());
+		
+		for (unsigned int x = 0; x < w; ++x)
+		{
+			for (unsigned int y = 0; y < std::min<unsigned int>(4, h); ++y)
+			{
+				unsigned int i = y * w * c + x * c;
+				float r = srgb_to_linear(static_cast<float>(pixels[i]) / 255.0f);
+				float g = srgb_to_linear(static_cast<float>(pixels[i + 1]) / 255.0f);
+				float b = srgb_to_linear(static_cast<float>(pixels[i + 2]) / 255.0f);
+				
+				sky_gradient[y] = {r, g, b,  static_cast<float>(y) * (1.0f / 3.0f)};
+			}
+		}
+	}
+}
+
+void weather_system::set_shadow_palette(const ::image* image)
+{
+	shadow_palette = image;
 }

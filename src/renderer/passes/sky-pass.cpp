@@ -43,7 +43,6 @@
 
 sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
-	sky_palette(nullptr),
 	mouse_position({0.0f, 0.0f}),
 	sun_light(nullptr)
 {
@@ -51,11 +50,9 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 	matrix_input = shader_program->get_input("matrix");
 	sun_direction_input = shader_program->get_input("sun_direction");
 	sun_angular_radius_input = shader_program->get_input("sun_angular_radius");
-	horizon_color_input = shader_program->get_input("horizon_color");
-	zenith_color_input = shader_program->get_input("zenith_color");
 	sun_angular_radius_input = shader_program->get_input("sun_angular_radius");
 	sun_color_input = shader_program->get_input("sun_color");
-	sky_palette_input = shader_program->get_input("sky_palette");
+	sky_gradient_input = shader_program->get_input("sky_gradient");
 	mouse_input = shader_program->get_input("mouse");
 	resolution_input = shader_program->get_input("resolution");
 	time_input = shader_program->get_input("time");
@@ -77,6 +74,11 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 	quad_vbo = new vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
 	quad_vao = new vertex_array();
 	quad_vao->bind_attribute(VERTEX_POSITION_LOCATION, *quad_vbo, 3, vertex_attribute_type::float_32, vertex_stride, 0);
+	
+	sky_gradient[0] = {1.0, 0.0f, 0.0f, 0.0f};
+	sky_gradient[1] = {0.0, 1.0f, 0.0f, 0.333f};
+	sky_gradient[2] = {0.0, 0.0f, 1.0f, 0.667f};
+	sky_gradient[3] = {1.0, 1.0f, 0.0f, 1.0f};
 }
 
 sky_pass::~sky_pass()
@@ -123,12 +125,8 @@ void sky_pass::render(render_context* context) const
 		sun_angular_radius_input->upload(sun_angular_radius);
 	if (sun_color_input)
 		sun_color_input->upload(sun_color);
-	if (horizon_color_input)
-		horizon_color_input->upload(horizon_color);
-	if (zenith_color_input)
-		zenith_color_input->upload(zenith_color);
-	if (sky_palette_input && sky_palette)
-		sky_palette_input->upload(sky_palette);
+	if (sky_gradient_input)
+		sky_gradient_input->upload(0, &sky_gradient[0], 4);
 	if (mouse_input)
 		mouse_input->upload(mouse_position);
 	if (resolution_input)
@@ -150,24 +148,14 @@ void sky_pass::set_sun_color(const float3& color)
 	sun_color = color;
 }
 
-void sky_pass::set_horizon_color(const float3& color)
-{
-	horizon_color = color;
-}
-
-void sky_pass::set_zenith_color(const float3& color)
-{
-	zenith_color = color;
-}
-
 void sky_pass::set_sun_light(const directional_light* light)
 {
 	sun_light = light;
 }
 
-void sky_pass::set_sky_palette(const texture_2d* texture)
+void sky_pass::set_sky_gradient(const std::array<float4, 4>& gradient)
 {
-	sky_palette = texture;
+	sky_gradient = gradient;
 }
 
 void sky_pass::set_time_tween(const tween<double>* time)

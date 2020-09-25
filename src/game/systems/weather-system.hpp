@@ -28,6 +28,7 @@ class shadow_map_pass;
 class material_pass;
 class ambient_light;
 class directional_light;
+class image;
 
 class weather_system:
 	public entity_system
@@ -46,6 +47,9 @@ public:
 	void set_time_of_day(float t);
 	void set_time_scale(float scale);
 	
+	void set_sky_palette(const ::image* image);
+	void set_shadow_palette(const ::image* image);
+	
 private:
 	float time_of_day;
 	float time_scale;
@@ -59,6 +63,9 @@ private:
 	sky_pass* sky_pass;
 	shadow_map_pass* shadow_map_pass;
 	material_pass* material_pass;
+	const image* sky_palette;
+	const image* shadow_palette;
+	std::array<float4, 4> sky_gradient;
 };
 
 #endif // ANTKEEPER_WEATHER_SYSTEM_HPP

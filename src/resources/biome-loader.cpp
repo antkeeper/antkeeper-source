@@ -100,6 +100,18 @@ biome* resource_loader<biome>::load(resource_manager* resource_manager, PHYSFS_F
 		load_value(&biome->wind_speed, weather.value(), "wind_speed");
 		load_value(&biome->wind_direction, weather.value(), "wind_direction");
 		biome->wind_direction = math::radians(biome->wind_direction);
+		
+		std::string sky_palette_filename;
+		if (load_value(&sky_palette_filename, weather.value(), "sky_palette"))
+		{
+			biome->sky_palette = resource_manager->load<image>(sky_palette_filename);
+		}
+		
+		std::string shadow_palette_filename;
+		if (load_value(&shadow_palette_filename, weather.value(), "shadow_palette"))
+		{
+			biome->shadow_palette = resource_manager->load<image>(shadow_palette_filename);
+		}
 	}
 
 	return biome;
