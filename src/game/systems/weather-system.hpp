@@ -48,6 +48,8 @@ public:
 	void set_time_scale(float scale);
 	
 	void set_sky_palette(const ::image* image);
+	void set_sun_palette(const ::image* image);
+	void set_ambient_palette(const ::image* image);
 	void set_shadow_palette(const ::image* image);
 	
 private:
@@ -64,7 +66,11 @@ private:
 	shadow_map_pass* shadow_map_pass;
 	material_pass* material_pass;
 	const image* sky_palette;
+	const image* sun_palette;
+	const image* ambient_palette;
 	const image* shadow_palette;
+	std::vector<float3> sun_colors;
+	std::vector<float3> ambient_colors;
 	std::vector<std::array<float4, 4>> sky_gradients;
 };
 

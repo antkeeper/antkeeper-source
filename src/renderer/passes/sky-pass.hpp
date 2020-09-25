@@ -49,6 +49,7 @@ public:
 	void set_sun_color(const float3& color);
 	void set_sun_light(const directional_light* direction);
 	void set_sky_gradient(const std::array<float4, 4>& gradient);
+	void set_time_of_day(float time);
 	
 	
 	void set_time_tween(const tween<double>* time);
@@ -65,6 +66,7 @@ private:
 	const shader_input* mouse_input;
 	const shader_input* resolution_input;
 	const shader_input* time_input;
+	const shader_input* time_of_day_input;
 
 	vertex_buffer* quad_vbo;
 	vertex_array* quad_vao;
@@ -76,6 +78,7 @@ private:
 	float2 mouse_position;
 	std::array<float4, 4> sky_gradient;
 	const tween<double>* time_tween;
+	float time_of_day;
 };
 
 #endif // ANTKEEPER_SKY_PASS_HPP

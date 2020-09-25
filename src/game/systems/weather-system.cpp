@@ -19,6 +19,7 @@
 
 #include "game/systems/weather-system.hpp"
 #include "scene/directional-light.hpp"
+#include "scene/ambient-light.hpp"
 #include "renderer/passes/sky-pass.hpp"
 #include "renderer/passes/shadow-map-pass.hpp"
 #include "renderer/passes/material-pass.hpp"
@@ -134,10 +135,10 @@ void weather_system::set_time_of_day(float t)
 	if (sky_pass)
 	{
 		float hour = time_of_day / (60.0f * 60.0f);
-		std::size_t gradient_index = static_cast<std::size_t>(hour);
+		std::size_t hour_index = static_cast<std::size_t>(hour);
 		
-		const std::array<float4, 4>& gradient0 = sky_gradients[gradient_index];
-		const std::array<float4, 4>& gradient1 = sky_gradients[(gradient_index + 1) % sky_gradients.size()];
+		const std::array<float4, 4>& gradient0 = sky_gradients[hour_index];
+		const std::array<float4, 4>& gradient1 = sky_gradients[(hour_index + 1) % sky_gradients.size()];
 		float t = hour - std::floor(hour);
 		
 		std::array<float4, 4> gradient;
@@ -146,7 +147,19 @@ void weather_system::set_time_of_day(float t)
 			gradient[i] = math::lerp(gradient0[i], gradient1[i], t);
 		}
 		
+		float3 sun_color0 = sun_colors[hour_index];
+		float3 sun_color1 = sun_colors[(hour_index + 1) % sun_colors.size()];
+		float3 sun_color = math::lerp(sun_color0, sun_color1, t);
+		
+		float3 ambient_color0 = ambient_colors[hour_index];
+		float3 ambient_color1 = ambient_colors[(hour_index + 1) % sun_colors.size()];
+		float3 ambient_color = math::lerp(ambient_color0, ambient_color1, t);
+		
+		sun_light->set_color(sun_color);
+		ambient_light->set_color(ambient_color);
+		
 		sky_pass->set_sky_gradient(gradient);
+		sky_pass->set_time_of_day(time_of_day);
 	}
 	
 	shadow_light = sun_light;
@@ -186,6 +199,62 @@ void weather_system::set_sky_palette(const ::image* image)
 			}
 			
 			sky_gradients.push_back(gradient);
+		}
+	}
+}
+
+void weather_system::set_sun_palette(const ::image* image)
+{
+	sun_palette = image;
+	if (sun_palette)
+	{
+		unsigned int w = image->get_width();
+		unsigned int h = image->get_height();
+		unsigned int c = image->get_channels();
+		const unsigned char* pixels = static_cast<const unsigned char*>(image->get_pixels());
+		
+		for (unsigned int x = 0; x < w; ++x)
+		{
+			float3 color;
+			
+			unsigned int y = 0;
+			
+			unsigned int i = y * w * c + x * c;
+			float r = srgb_to_linear(static_cast<float>(pixels[i]) / 255.0f);
+			float g = srgb_to_linear(static_cast<float>(pixels[i + 1]) / 255.0f);
+			float b = srgb_to_linear(static_cast<float>(pixels[i + 2]) / 255.0f);
+				
+			color = {r, g, b};
+			
+			sun_colors.push_back(color);
+		}
+	}
+}
+
+void weather_system::set_ambient_palette(const ::image* image)
+{
+	ambient_palette = image;
+	if (ambient_palette)
+	{
+		unsigned int w = image->get_width();
+		unsigned int h = image->get_height();
+		unsigned int c = image->get_channels();
+		const unsigned char* pixels = static_cast<const unsigned char*>(image->get_pixels());
+		
+		for (unsigned int x = 0; x < w; ++x)
+		{
+			float3 color;
+			
+			unsigned int y = 0;
+			
+			unsigned int i = y * w * c + x * c;
+			float r = srgb_to_linear(static_cast<float>(pixels[i]) / 255.0f);
+			float g = srgb_to_linear(static_cast<float>(pixels[i + 1]) / 255.0f);
+			float b = srgb_to_linear(static_cast<float>(pixels[i + 2]) / 255.0f);
+				
+			color = {r, g, b};
+			
+			ambient_colors.push_back(color);
 		}
 	}
 }

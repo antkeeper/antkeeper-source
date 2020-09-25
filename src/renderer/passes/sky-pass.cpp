@@ -44,7 +44,8 @@
 sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	mouse_position({0.0f, 0.0f}),
-	sun_light(nullptr)
+	sun_light(nullptr),
+	time_of_day(0.0f)
 {
 	shader_program = resource_manager->load<::shader_program>("sky.glsl");
 	matrix_input = shader_program->get_input("matrix");
@@ -56,6 +57,7 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 	mouse_input = shader_program->get_input("mouse");
 	resolution_input = shader_program->get_input("resolution");
 	time_input = shader_program->get_input("time");
+	time_of_day_input = shader_program->get_input("time_of_day");
 
 	const float vertex_data[] =
 	{
@@ -133,6 +135,8 @@ void sky_pass::render(render_context* context) const
 		resolution_input->upload(resolution);
 	if (time_input)
 		time_input->upload(time);
+	if (time_of_day_input)
+		time_of_day_input->upload(time_of_day);
 	
 	// Draw quad
 	rasterizer->draw_arrays(*quad_vao, drawing_mode::triangles, 0, 6);
@@ -156,6 +160,11 @@ void sky_pass::set_sun_light(const directional_light* light)
 void sky_pass::set_sky_gradient(const std::array<float4, 4>& gradient)
 {
 	sky_gradient = gradient;
+}
+
+void sky_pass::set_time_of_day(float time)
+{
+	time_of_day = time;
 }
 
 void sky_pass::set_time_tween(const tween<double>* time)

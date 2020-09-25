@@ -45,6 +45,8 @@ struct biome
 	float wind_speed;
 	float wind_direction;
 	image* sky_palette;
+	image* sun_palette;
+	image* ambient_palette;
 	image* shadow_palette;
 	
 	// Traits

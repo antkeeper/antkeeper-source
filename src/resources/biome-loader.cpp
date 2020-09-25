@@ -107,6 +107,18 @@ biome* resource_loader<biome>::load(resource_manager* resource_manager, PHYSFS_F
 			biome->sky_palette = resource_manager->load<image>(sky_palette_filename);
 		}
 		
+		std::string sun_palette_filename;
+		if (load_value(&sun_palette_filename, weather.value(), "sun_palette"))
+		{
+			biome->sun_palette = resource_manager->load<image>(sun_palette_filename);
+		}
+		
+		std::string ambient_palette_filename;
+		if (load_value(&ambient_palette_filename, weather.value(), "ambient_palette"))
+		{
+			biome->ambient_palette = resource_manager->load<image>(ambient_palette_filename);
+		}
+		
 		std::string shadow_palette_filename;
 		if (load_value(&shadow_palette_filename, weather.value(), "shadow_palette"))
 		{
