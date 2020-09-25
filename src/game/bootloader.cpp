@@ -491,7 +491,7 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_shadow_map_pass = new shadow_map_pass(ctx->rasterizer, ctx->shadow_map_framebuffer, ctx->resource_manager);
 	ctx->overworld_shadow_map_pass->set_split_scheme_weight(0.75f);
 	ctx->overworld_clear_pass = new clear_pass(ctx->rasterizer, ctx->framebuffer_hdr);
-	ctx->overworld_clear_pass->set_cleared_buffers(false, true, true);
+	ctx->overworld_clear_pass->set_cleared_buffers(true, true, true);
 	ctx->overworld_sky_pass = new sky_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->overworld_sky_pass);
 	ctx->overworld_sky_pass->set_enabled(false);
@@ -635,6 +635,10 @@ void setup_scenes(game_context* ctx)
 	ctx->sun_direct->set_intensity(0.0f);
 	ctx->sun_direct->update_tweens();
 	
+	ctx->moon_light = new directional_light();
+	ctx->moon_light->set_intensity(0.0f);
+	ctx->moon_light->update_tweens();
+	
 	ctx->subterrain_light = new point_light();
 	ctx->subterrain_light->set_color({1, 1, 1});
 	ctx->subterrain_light->set_intensity(1.0f);
@@ -693,6 +697,7 @@ void setup_scenes(game_context* ctx)
 	ctx->overworld_scene->add_object(ctx->overworld_camera);
 	ctx->overworld_scene->add_object(ctx->sun_indirect);
 	ctx->overworld_scene->add_object(ctx->sun_direct);
+	ctx->overworld_scene->add_object(ctx->moon_light);
 	//ctx->overworld_scene->add_object(ctx->spotlight);
 	
 	// Setup underworld scene
@@ -861,6 +866,7 @@ void setup_systems(game_context* ctx)
 	ctx->weather_system = new weather_system(*ctx->ecs_registry);
 	ctx->weather_system->set_ambient_light(ctx->sun_indirect);
 	ctx->weather_system->set_sun_light(ctx->sun_direct);
+	ctx->weather_system->set_moon_light(ctx->moon_light);
 	ctx->weather_system->set_sky_pass(ctx->overworld_sky_pass);
 	ctx->weather_system->set_shadow_map_pass(ctx->overworld_shadow_map_pass);
 	ctx->weather_system->set_material_pass(ctx->overworld_material_pass);

@@ -180,6 +180,7 @@ struct game_context
 	camera* ui_camera;
 	ambient_light* sun_indirect;
 	directional_light* sun_direct;
+	directional_light* moon_light;
 	point_light* subterrain_light;
 	ambient_light* underworld_ambient_light;
 	billboard* splash_billboard;

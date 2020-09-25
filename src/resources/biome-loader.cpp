@@ -113,6 +113,12 @@ biome* resource_loader<biome>::load(resource_manager* resource_manager, PHYSFS_F
 			biome->sun_palette = resource_manager->load<image>(sun_palette_filename);
 		}
 		
+		std::string moon_palette_filename;
+		if (load_value(&moon_palette_filename, weather.value(), "moon_palette"))
+		{
+			biome->moon_palette = resource_manager->load<image>(moon_palette_filename);
+		}
+		
 		std::string ambient_palette_filename;
 		if (load_value(&ambient_palette_filename, weather.value(), "ambient_palette"))
 		{

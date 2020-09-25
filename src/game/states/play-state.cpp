@@ -85,15 +85,17 @@ void play_state_enter(game_context* ctx)
 	ctx->sun_direct->set_rotation(sun_rotation);
 	ctx->sun_direct->set_color(ctx->biome->sun_color);
 	ctx->sun_direct->set_intensity(ctx->biome->sun_intensity);
-
+	
 	sky_pass* sky_pass = ctx->overworld_sky_pass;
 	sky_pass->set_enabled(true);
+	sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
 	sky_pass->set_sun_angular_radius(ctx->biome->sun_angular_radius);
 	sky_pass->set_sun_color(ctx->biome->sun_color * ctx->biome->sun_intensity);
 	
 	ctx->weather_system->set_sky_palette(ctx->biome->sky_palette);
 	ctx->weather_system->set_sun_palette(ctx->biome->sun_palette);
 	ctx->weather_system->set_ambient_palette(ctx->biome->ambient_palette);
+	ctx->weather_system->set_moon_palette(ctx->biome->moon_palette);
 	ctx->weather_system->set_shadow_palette(ctx->biome->shadow_palette);
 	ctx->weather_system->set_time_of_day(6.0f * 60.0f * 60.0f);
 

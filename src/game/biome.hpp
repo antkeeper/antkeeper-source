@@ -46,6 +46,7 @@ struct biome
 	float wind_direction;
 	image* sky_palette;
 	image* sun_palette;
+	image* moon_palette;
 	image* ambient_palette;
 	image* shadow_palette;
 	

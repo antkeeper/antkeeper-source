@@ -33,6 +33,8 @@ class vertex_array;
 class texture_2d;
 class resource_manager;
 class directional_light;
+class model;
+enum class drawing_mode;
 
 /**
  *
@@ -45,11 +47,14 @@ public:
 	virtual ~sky_pass();
 	virtual void render(render_context* context) const final;
 	
+	void set_sky_model(const model* model);
 	void set_sun_angular_radius(float angle);
 	void set_sun_color(const float3& color);
-	void set_sun_light(const directional_light* direction);
+	void set_sun_light(const directional_light* light);
+	void set_moon_light(const directional_light* light);
 	void set_sky_gradient(const std::array<float4, 4>& gradient);
 	void set_time_of_day(float time);
+	
 	
 	
 	void set_time_tween(const tween<double>* time);
@@ -58,8 +63,9 @@ private:
 	virtual void handle_event(const mouse_moved_event& event);
 
 	shader_program* shader_program;
-	const shader_input* matrix_input;
+	const shader_input* model_view_projection_input;
 	const shader_input* sun_direction_input;
+	const shader_input* moon_direction_input;
 	const shader_input* sun_angular_radius_input;
 	const shader_input* sun_color_input;
 	const shader_input* sky_gradient_input;
@@ -70,10 +76,17 @@ private:
 
 	vertex_buffer* quad_vbo;
 	vertex_array* quad_vao;
+	
+	const model* sky_model;
+	const vertex_array* sky_model_vao;
+	drawing_mode sky_model_drawing_mode;
+	std::size_t sky_model_start_index;
+	std::size_t sky_model_index_count;
 
 	float sun_angular_radius;
 	float3 sun_color;
 	const directional_light* sun_light;
+	const directional_light* moon_light;
 	const texture_2d* sky_palette;
 	float2 mouse_position;
 	std::array<float4, 4> sky_gradient;

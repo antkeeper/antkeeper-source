@@ -49,6 +49,7 @@ public:
 	
 	void set_sky_palette(const ::image* image);
 	void set_sun_palette(const ::image* image);
+	void set_moon_palette(const ::image* image);
 	void set_ambient_palette(const ::image* image);
 	void set_shadow_palette(const ::image* image);
 	
@@ -67,9 +68,11 @@ private:
 	material_pass* material_pass;
 	const image* sky_palette;
 	const image* sun_palette;
+	const image* moon_palette;
 	const image* ambient_palette;
 	const image* shadow_palette;
 	std::vector<float3> sun_colors;
+	std::vector<float3> moon_colors;
 	std::vector<float3> ambient_colors;
 	std::vector<std::array<float4, 4>> sky_gradients;
 };

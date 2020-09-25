@@ -69,6 +69,11 @@ void weather_system::set_sun_light(directional_light* light)
 void weather_system::set_moon_light(directional_light* light)
 {
 	moon_light = light;
+	
+	if (sky_pass)
+	{
+		sky_pass->set_moon_light(moon_light);
+	}
 }
 
 void weather_system::set_sky_pass(::sky_pass* pass)
@@ -78,6 +83,7 @@ void weather_system::set_sky_pass(::sky_pass* pass)
 	if (sky_pass)
 	{
 		sky_pass->set_sun_light(sun_light);
+		sky_pass->set_moon_light(moon_light);
 	}
 }
 
@@ -102,8 +108,8 @@ void weather_system::set_material_pass(::material_pass* pass)
 }
 
 void weather_system::set_time_of_day(float t)
-{
-	time_of_day = std::fmod(t, seconds_per_day);
+{	
+	time_of_day = std::fmod(seconds_per_day + fmod(t, seconds_per_day), seconds_per_day);
 	
 	//sun_azimuth = 0.0f;
 	//sun_elevation = (time_of_day / seconds_per_day) * math::two_pi<float> - math::half_pi<float>;
@@ -132,6 +138,14 @@ void weather_system::set_time_of_day(float t)
 		sun_light->set_rotation(sun_rotation);
 	}
 	
+	if (moon_light)
+	{
+		math::quaternion<float> moon_azimuth_rotation = math::angle_axis(sun_azimuth, float3{0, 1, 0});
+		math::quaternion<float> moon_elevation_rotation = math::angle_axis(sun_elevation, float3{1, 0, 0});
+		math::quaternion<float> moon_rotation = math::normalize(moon_azimuth_rotation * moon_elevation_rotation);
+		moon_light->set_rotation(moon_rotation);
+	}
+	
 	if (sky_pass)
 	{
 		float hour = time_of_day / (60.0f * 60.0f);
@@ -151,11 +165,19 @@ void weather_system::set_time_of_day(float t)
 		float3 sun_color1 = sun_colors[(hour_index + 1) % sun_colors.size()];
 		float3 sun_color = math::lerp(sun_color0, sun_color1, t);
 		
+		float3 moon_color0 = moon_colors[hour_index];
+		float3 moon_color1 = moon_colors[(hour_index + 1) % moon_colors.size()];
+		float3 moon_color = math::lerp(moon_color0, moon_color1, t);
+		
 		float3 ambient_color0 = ambient_colors[hour_index];
 		float3 ambient_color1 = ambient_colors[(hour_index + 1) % sun_colors.size()];
 		float3 ambient_color = math::lerp(ambient_color0, ambient_color1, t);
 		
 		sun_light->set_color(sun_color);
+		
+		moon_light->set_color(moon_color);
+		moon_light->set_intensity(1.0f);
+		
 		ambient_light->set_color(ambient_color);
 		
 		sky_pass->set_sky_gradient(gradient);
@@ -227,6 +249,34 @@ void weather_system::set_sun_palette(const ::image* image)
 			color = {r, g, b};
 			
 			sun_colors.push_back(color);
+		}
+	}
+}
+
+void weather_system::set_moon_palette(const ::image* image)
+{
+	moon_palette = image;
+	if (moon_palette)
+	{
+		unsigned int w = image->get_width();
+		unsigned int h = image->get_height();
+		unsigned int c = image->get_channels();
+		const unsigned char* pixels = static_cast<const unsigned char*>(image->get_pixels());
+		
+		for (unsigned int x = 0; x < w; ++x)
+		{
+			float3 color;
+			
+			unsigned int y = 0;
+			
+			unsigned int i = y * w * c + x * c;
+			float r = srgb_to_linear(static_cast<float>(pixels[i]) / 255.0f);
+			float g = srgb_to_linear(static_cast<float>(pixels[i + 1]) / 255.0f);
+			float b = srgb_to_linear(static_cast<float>(pixels[i + 2]) / 255.0f);
+				
+			color = {r, g, b};
+			
+			moon_colors.push_back(color);
 		}
 	}
 }
