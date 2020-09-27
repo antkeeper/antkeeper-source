@@ -37,6 +37,8 @@ public:
 	weather_system(entt::registry& registry);
 	virtual void update(double t, double dt);
 	
+	void set_coordinates(const float2& coordinates);
+	
 	void set_ambient_light(ambient_light* light);
 	void set_sun_light(directional_light* light);
 	void set_moon_light(directional_light* light);
@@ -44,7 +46,8 @@ public:
 	void set_shadow_map_pass(::shadow_map_pass* pass);
 	void set_material_pass(::material_pass* pass);
 	
-	void set_time_of_day(float t);
+	/// @param tc Timezone correction, in hours
+	void set_time(int year, int month, int day, int hour, int minute, int second, double tc);
 	void set_time_scale(float scale);
 	
 	void set_sky_palette(const ::image* image);
@@ -54,10 +57,11 @@ public:
 	void set_shadow_palette(const ::image* image);
 	
 private:
-	float time_of_day;
+	double jd;
+	
+	float2 coordinates;
+	
 	float time_scale;
-	float sun_azimuth;
-	float sun_elevation;
 	float3 sun_direction;
 	ambient_light* ambient_light;
 	directional_light* sun_light;
@@ -74,6 +78,7 @@ private:
 	std::vector<float3> sun_colors;
 	std::vector<float3> moon_colors;
 	std::vector<float3> ambient_colors;
+	std::vector<float> shadow_strengths;
 	std::vector<std::array<float4, 4>> sky_gradients;
 };
 

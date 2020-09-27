@@ -70,6 +70,12 @@ biome* resource_loader<biome>::load(resource_manager* resource_manager, PHYSFS_F
 	
 	load_value(&biome->name, json, "name");
 	
+	float2 coordinates;
+	if (load_array(&coordinates.x, 2, json, "coordinates"))
+	{
+		biome->coordinates = {math::radians(coordinates.x), math::radians(coordinates.y)};
+	}
+	
 	if (auto terrain = json.find("terrain"); terrain != json.end())
 	{
 		std::string material_filename;

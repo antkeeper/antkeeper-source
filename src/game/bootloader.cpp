@@ -507,7 +507,7 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_bloom_pass->set_source_texture(ctx->framebuffer_hdr_color);
 	ctx->overworld_bloom_pass->set_brightness_threshold(1.0f);
 	ctx->overworld_bloom_pass->set_blur_iterations(5);
-	ctx->overworld_bloom_pass->set_enabled(true);
+	ctx->overworld_bloom_pass->set_enabled(false);
 	ctx->overworld_final_pass = new ::final_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), ctx->resource_manager);
 	ctx->overworld_final_pass->set_color_texture(ctx->framebuffer_hdr_color);
 	ctx->overworld_final_pass->set_bloom_texture(ctx->bloom_texture);
@@ -1171,7 +1171,7 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * 100.0f);
+			ctx->weather_system->set_time_scale(time_scale * 500.0f);
 		}
 	);
 	ctx->control_system->get_fast_forward_control()->set_deactivated_callback
@@ -1185,7 +1185,7 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * -100.0f);
+			ctx->weather_system->set_time_scale(time_scale * -500.0f);
 		}
 	);
 	ctx->control_system->get_rewind_control()->set_deactivated_callback
