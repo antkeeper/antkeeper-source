@@ -49,7 +49,8 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 	moon_light(nullptr),
 	time_of_day(0.0f),
 	sky_model(nullptr),
-	sky_model_vao(nullptr)
+	sky_model_vao(nullptr),
+	blue_noise_map(nullptr)
 {
 	shader_program = resource_manager->load<::shader_program>("sky.glsl");
 	model_view_projection_input = shader_program->get_input("model_view_projection");
@@ -63,6 +64,7 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 	resolution_input = shader_program->get_input("resolution");
 	time_input = shader_program->get_input("time");
 	time_of_day_input = shader_program->get_input("time_of_day");
+	blue_noise_map_input = shader_program->get_input("blue_noise_map");
 
 	const float vertex_data[] =
 	{
@@ -158,6 +160,8 @@ void sky_pass::render(render_context* context) const
 		time_input->upload(time);
 	if (time_of_day_input)
 		time_of_day_input->upload(time_of_day);
+	if (blue_noise_map_input)
+		blue_noise_map_input->upload(blue_noise_map);
 	
 	// Draw sky model
 	rasterizer->draw_arrays(*sky_model_vao, sky_model_drawing_mode, sky_model_start_index, sky_model_index_count);
@@ -218,6 +222,11 @@ void sky_pass::set_time_of_day(float time)
 void sky_pass::set_time_tween(const tween<double>* time)
 {
 	this->time_tween = time;
+}
+
+void sky_pass::set_blue_noise_map(const texture_2d* texture)
+{
+	blue_noise_map = texture;
 }
 
 void sky_pass::handle_event(const mouse_moved_event& event)

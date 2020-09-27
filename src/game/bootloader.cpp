@@ -482,6 +482,13 @@ void setup_rendering(game_context* ctx)
 	ctx->framebuffer_bloom = new framebuffer(bloom_width, bloom_height);
 	ctx->framebuffer_bloom->attach(framebuffer_attachment_type::color, ctx->bloom_texture);
 	
+	// Load blue noise texture
+	texture_2d* blue_noise_map = ctx->resource_manager->load<texture_2d>("blue-noise.png");
+	blue_noise_map->set_wrapping(texture_wrapping::repeat, texture_wrapping::repeat);
+	blue_noise_map->set_wrapping(texture_wrapping::repeat, texture_wrapping::repeat);
+	blue_noise_map->set_filters(texture_min_filter::nearest, texture_mag_filter::nearest);
+	blue_noise_map->set_filters(texture_min_filter::nearest, texture_mag_filter::nearest);
+	
 	// Load fallback material
 	ctx->fallback_material = ctx->resource_manager->load<material>("fallback.mtl");
 	
@@ -495,6 +502,7 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_sky_pass = new sky_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->overworld_sky_pass);
 	ctx->overworld_sky_pass->set_enabled(false);
+	ctx->overworld_sky_pass->set_blue_noise_map(blue_noise_map);
 	ctx->overworld_material_pass = new material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->overworld_material_pass->set_fallback_material(ctx->fallback_material);
 	ctx->overworld_material_pass->shadow_map_pass = ctx->overworld_shadow_map_pass;

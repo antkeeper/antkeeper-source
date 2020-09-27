@@ -41,7 +41,8 @@ tool_system::tool_system(entt::registry& registry, ::event_dispatcher* event_dis
 	viewport{0, 0, 0, 0},
 	mouse_position{0, 0},
 	pick_enabled(true),
-	was_pick_enabled(pick_enabled)
+	was_pick_enabled(pick_enabled),
+	active_tool(entt::null)
 {
 	hand_angle_spring.z = 1.0f;
 	hand_angle_spring.w = hz_to_rads(8.0f);
@@ -94,6 +95,9 @@ tool_system::~tool_system()
 
 void tool_system::update(double t, double dt)
 {
+	if (active_tool == entt::null)
+		return;
+	
 	// Advance animations
 	ascend_animation.advance(dt);
 	descend_animation.advance(dt);

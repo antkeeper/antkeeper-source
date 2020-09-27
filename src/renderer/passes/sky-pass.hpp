@@ -54,9 +54,7 @@ public:
 	void set_moon_light(const directional_light* light);
 	void set_sky_gradient(const std::array<float4, 4>& gradient);
 	void set_time_of_day(float time);
-	
-	
-	
+	void set_blue_noise_map(const texture_2d* texture);
 	void set_time_tween(const tween<double>* time);
 
 private:
@@ -73,6 +71,7 @@ private:
 	const shader_input* resolution_input;
 	const shader_input* time_input;
 	const shader_input* time_of_day_input;
+	const shader_input* blue_noise_map_input;
 
 	vertex_buffer* quad_vbo;
 	vertex_array* quad_vao;
@@ -87,7 +86,7 @@ private:
 	float3 sun_color;
 	const directional_light* sun_light;
 	const directional_light* moon_light;
-	const texture_2d* sky_palette;
+	const texture_2d* blue_noise_map;
 	float2 mouse_position;
 	std::array<float4, 4> sky_gradient;
 	const tween<double>* time_tween;

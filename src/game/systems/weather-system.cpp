@@ -54,6 +54,8 @@ static double julian_day(int year, int month, int day, double time)
 	return std::floor(365.25 * y) + std::floor(30.6001 * (m + 1.0)) - 15.0 + 1720996.5 + d + time;
 }
 
+/// @see A Physically-Based Night Sky Model
+/// @see http://www.powerfromthesun.net/Book/chapter03/chapter03.html
 void find_sun_ecliptic(double jd, double* longitude, double* latitude, double* distance)
 {
 	const double t = (jd - 2451545.0) / 36525.0;
@@ -118,6 +120,8 @@ void find_moon_ecliptic(double jd, double* longitude, double* latitude, double* 
 		+ 0.000009 * std::cos(d2 - m));
 }
 
+/// @see http://www.stjarnhimlen.se/comp/ppcomp.html
+/// @see http://www.geoastro.de/elevazmoon/basics/index.htm
 void ecliptic_to_equatorial(double longitude, double latitude, double ecl, double* right_ascension, double* declination)
 {
 	double eclip_x = std::cos(longitude) * std::cos(latitude);
@@ -132,6 +136,8 @@ void ecliptic_to_equatorial(double longitude, double latitude, double ecl, doubl
     *declination = std::atan2(equat_z, sqrt(equat_x * equat_x + equat_y * equat_y));
 }
 
+/// @see http://www.stjarnhimlen.se/comp/ppcomp.html
+/// @see http://www.geoastro.de/elevazmoon/basics/index.htm
 void equatorial_to_horizontal(double right_ascension, double declination, double lmst, double latitude, double* azimuth, double* elevation)
 {
 	double hour_angle = lmst - right_ascension;

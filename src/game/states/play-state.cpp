@@ -93,7 +93,7 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_sun_color(ctx->biome->sun_color * ctx->biome->sun_intensity);
 	
 	ctx->weather_system->set_coordinates(ctx->biome->coordinates);
-	ctx->weather_system->set_time(2017, 8, 21, 6, 0, 0, -7.0);
+	ctx->weather_system->set_time(2020, 10, 1, 6, 0, 0, -7.0);
 	ctx->weather_system->set_sky_palette(ctx->biome->sky_palette);
 	ctx->weather_system->set_sun_palette(ctx->biome->sun_palette);
 	ctx->weather_system->set_ambient_palette(ctx->biome->ambient_palette);
