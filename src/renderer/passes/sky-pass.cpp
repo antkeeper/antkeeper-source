@@ -35,8 +35,6 @@
 #include "renderer/model.hpp"
 #include "scene/camera.hpp"
 #include "scene/scene.hpp"
-#include "scene/ambient-light.hpp"
-#include "scene/directional-light.hpp"
 #include "scene/scene.hpp"
 #include "utility/fundamental-types.hpp"
 #include <cmath>
@@ -45,19 +43,14 @@
 sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	mouse_position({0.0f, 0.0f}),
-	sun_light(nullptr),
-	moon_light(nullptr),
 	time_of_day(0.0f),
 	sky_model(nullptr),
 	sky_model_vao(nullptr),
-	blue_noise_map(nullptr)
+	blue_noise_map(nullptr),
+	observer_coordinates{0.0f, 0.0f}
 {
 	shader_program = resource_manager->load<::shader_program>("sky.glsl");
 	model_view_projection_input = shader_program->get_input("model_view_projection");
-	sun_direction_input = shader_program->get_input("sun_direction");
-	moon_direction_input = shader_program->get_input("moon_direction");
-	sun_angular_radius_input = shader_program->get_input("sun_angular_radius");
-	sun_angular_radius_input = shader_program->get_input("sun_angular_radius");
 	sun_color_input = shader_program->get_input("sun_color");
 	sky_gradient_input = shader_program->get_input("sky_gradient");
 	mouse_input = shader_program->get_input("mouse");
@@ -65,7 +58,12 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 	time_input = shader_program->get_input("time");
 	time_of_day_input = shader_program->get_input("time_of_day");
 	blue_noise_map_input = shader_program->get_input("blue_noise_map");
-
+	observer_coordinates_input = shader_program->get_input("observer_coordinates");
+	sun_position_input = shader_program->get_input("sun_position");
+	sun_az_el_input = shader_program->get_input("sun_az_el");
+	moon_position_input = shader_program->get_input("moon_position");
+	moon_az_el_input = shader_program->get_input("moon_az_el");
+	
 	const float vertex_data[] =
 	{
 		-1.0f,  1.0f, 0.0f,
@@ -115,18 +113,6 @@ void sky_pass::render(render_context* context) const
 	float time = (time_tween) ? time_tween->interpolate(context->alpha) : 0.0f;
 	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
-	float3 sun_direction = {0, -1, 0};
-	if (sun_light)
-	{
-		sun_direction = sun_light->get_direction_tween().interpolate(context->alpha);
-	}
-
-	float3 moon_direction = {0, -1, 0};
-	if (moon_light)
-	{
-		moon_direction = moon_light->get_direction_tween().interpolate(context->alpha);
-	}
-	
 	const ::camera& camera = *context->camera;
 	float clip_near = camera.get_clip_near_tween().interpolate(context->alpha);
 	float clip_far = camera.get_clip_far_tween().interpolate(context->alpha);
@@ -142,12 +128,6 @@ void sky_pass::render(render_context* context) const
 	// Upload shader parameters
 	if (model_view_projection_input)
 		model_view_projection_input->upload(model_view_projection);
-	if (sun_direction_input)
-		sun_direction_input->upload(sun_direction);
-	if (moon_direction_input)
-		moon_direction_input->upload(moon_direction);
-	if (sun_angular_radius_input)
-		sun_angular_radius_input->upload(sun_angular_radius);
 	if (sun_color_input)
 		sun_color_input->upload(sun_color);
 	if (sky_gradient_input)
@@ -162,6 +142,17 @@ void sky_pass::render(render_context* context) const
 		time_of_day_input->upload(time_of_day);
 	if (blue_noise_map_input)
 		blue_noise_map_input->upload(blue_noise_map);
+	if (observer_coordinates_input)
+		observer_coordinates_input->upload(observer_coordinates);
+	
+	if (sun_position_input)
+		sun_position_input->upload(sun_position);
+	if (sun_az_el_input)
+		sun_az_el_input->upload(sun_az_el);
+	if (moon_position_input)
+		moon_position_input->upload(moon_position);
+	if (moon_az_el_input)
+		moon_az_el_input->upload(moon_az_el);
 	
 	// Draw sky model
 	rasterizer->draw_arrays(*sky_model_vao, sky_model_drawing_mode, sky_model_start_index, sky_model_index_count);
@@ -189,24 +180,9 @@ void sky_pass::set_sky_model(const model* model)
 	}
 }
 
-void sky_pass::set_sun_angular_radius(float angle)
-{
-	sun_angular_radius = angle;
-}
-
 void sky_pass::set_sun_color(const float3& color)
 {
 	sun_color = color;
-}
-
-void sky_pass::set_sun_light(const directional_light* light)
-{
-	sun_light = light;
-}
-
-void sky_pass::set_moon_light(const directional_light* light)
-{
-	moon_light = light;
 }
 
 void sky_pass::set_sky_gradient(const std::array<float4, 4>& gradient)
@@ -227,6 +203,23 @@ void sky_pass::set_time_tween(const tween<double>* time)
 void sky_pass::set_blue_noise_map(const texture_2d* texture)
 {
 	blue_noise_map = texture;
+}
+
+void sky_pass::set_observer_coordinates(const float2& coordinates)
+{
+	observer_coordinates = coordinates;
+}
+
+void sky_pass::set_sun_coordinates(const float3& position, const float2& az_el)
+{
+	sun_position = position;
+	sun_az_el = az_el;
+}
+
+void sky_pass::set_moon_coordinates(const float3& position, const float2& az_el)
+{
+	moon_position = position;
+	moon_az_el = az_el;
 }
 
 void sky_pass::handle_event(const mouse_moved_event& event)

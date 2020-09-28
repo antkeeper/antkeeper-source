@@ -228,7 +228,7 @@ void weather_system::update(double t, double dt)
 	// Obliquity of the ecliptic
 	double ecl = math::radians<double>(23.4393 - 3.563e-7 * d);
 	
-	// Calculation sun position
+	// Calculation sun coordinates
 	double sun_longitude;
 	double sun_latitude;
 	double sun_distance;
@@ -240,7 +240,7 @@ void weather_system::update(double t, double dt)
 	ecliptic_to_equatorial(sun_longitude, sun_latitude, ecl, &sun_right_ascension, &sun_declination);
 	equatorial_to_horizontal(sun_right_ascension, sun_declination, lmst, latitude, &sun_azimuth, &sun_elevation);
 	
-	// Calculate moon position
+	// Calculate moon coordinates
 	double moon_longitude;
 	double moon_latitude;
 	double moon_distance;
@@ -264,21 +264,25 @@ void weather_system::update(double t, double dt)
 	//std::cout << "eOT: " << eot << std::endl;
 	*/
 
+	float2 sun_az_el = float2{static_cast<float>(sun_azimuth), static_cast<float>(sun_elevation)};
+	math::quaternion<float> sun_azimuth_rotation = math::angle_axis(sun_az_el[0], float3{0, 1, 0});
+	math::quaternion<float> sun_elevation_rotation = math::angle_axis(sun_az_el[1], float3{-1, 0, 0});
+	math::quaternion<float> sun_rotation = math::normalize(sun_azimuth_rotation * sun_elevation_rotation);
+	float3 sun_position = math::normalize(sun_rotation * float3{0, 0, -1});
+	
+	float2 moon_az_el = float2{static_cast<float>(moon_azimuth), static_cast<float>(moon_elevation)};
+	math::quaternion<float> moon_azimuth_rotation = math::angle_axis(moon_az_el[0], float3{0, 1, 0});
+	math::quaternion<float> moon_elevation_rotation = math::angle_axis(moon_az_el[1], float3{-1, 0, 0});
+	math::quaternion<float> moon_rotation = math::normalize(moon_azimuth_rotation * moon_elevation_rotation);
+	float3 moon_position = math::normalize(moon_rotation * float3{0, 0, -1});
 	
 	if (sun_light)
 	{
-		math::quaternion<float> sun_azimuth_rotation = math::angle_axis((float)sun_azimuth, float3{0, 1, 0});
-		math::quaternion<float> sun_elevation_rotation = math::angle_axis((float)sun_elevation, float3{-1, 0, 0});
-		math::quaternion<float> sun_rotation = math::normalize(sun_azimuth_rotation * sun_elevation_rotation);
-		sun_direction = math::normalize(sun_rotation * float3{0, 0, -1});
 		sun_light->set_rotation(sun_rotation);
 	}
 	
 	if (moon_light)
 	{
-		math::quaternion<float> moon_azimuth_rotation = math::angle_axis((float)moon_azimuth, float3{0, 1, 0});
-		math::quaternion<float> moon_elevation_rotation = math::angle_axis((float)moon_elevation, float3{-1, 0, 0});
-		math::quaternion<float> moon_rotation = math::normalize(moon_azimuth_rotation * moon_elevation_rotation);
 		moon_light->set_rotation(moon_rotation);
 	}
 	
@@ -317,6 +321,9 @@ void weather_system::update(double t, double dt)
 		
 		sky_pass->set_sky_gradient(gradient);
 		sky_pass->set_time_of_day(hour * 60.0 * 60.0);
+		sky_pass->set_observer_coordinates(coordinates);
+		sky_pass->set_sun_coordinates(sun_position, sun_az_el);
+		sky_pass->set_moon_coordinates(moon_position, moon_az_el);
 	}
 	
 	shadow_light = sun_light;
@@ -355,32 +362,16 @@ void weather_system::set_ambient_light(::ambient_light* light)
 void weather_system::set_sun_light(directional_light* light)
 {
 	sun_light = light;
-	
-	if (sky_pass)
-	{
-		sky_pass->set_sun_light(sun_light);
-	}
 }
 
 void weather_system::set_moon_light(directional_light* light)
 {
 	moon_light = light;
-	
-	if (sky_pass)
-	{
-		sky_pass->set_moon_light(moon_light);
-	}
 }
 
 void weather_system::set_sky_pass(::sky_pass* pass)
 {
 	sky_pass = pass;
-	
-	if (sky_pass)
-	{
-		sky_pass->set_sun_light(sun_light);
-		sky_pass->set_moon_light(moon_light);
-	}
 }
 
 void weather_system::set_shadow_map_pass(::shadow_map_pass* pass)

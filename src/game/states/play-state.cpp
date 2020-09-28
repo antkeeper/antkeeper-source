@@ -89,7 +89,6 @@ void play_state_enter(game_context* ctx)
 	sky_pass* sky_pass = ctx->overworld_sky_pass;
 	sky_pass->set_enabled(true);
 	sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
-	sky_pass->set_sun_angular_radius(ctx->biome->sun_angular_radius);
 	sky_pass->set_sun_color(ctx->biome->sun_color * ctx->biome->sun_intensity);
 	
 	ctx->weather_system->set_coordinates(ctx->biome->coordinates);
