@@ -1234,6 +1234,7 @@ void setup_callbacks(game_context* ctx)
 		{
 			(*ctx->time_tween)[1] = t;
 			
+			ctx->overworld_sky_pass->update_tweens();
 			ctx->overworld_scene->update_tweens();
 			ctx->underworld_scene->update_tweens();
 			ctx->ui_scene->update_tweens();

@@ -320,10 +320,11 @@ void weather_system::update(double t, double dt)
 		ambient_light->set_color(ambient_color);
 		
 		sky_pass->set_sky_gradient(gradient);
-		sky_pass->set_time_of_day(hour * 60.0 * 60.0);
+		sky_pass->set_time_of_day(static_cast<float>(hour * 60.0 * 60.0));
 		sky_pass->set_observer_coordinates(coordinates);
 		sky_pass->set_sun_coordinates(sun_position, sun_az_el);
 		sky_pass->set_moon_coordinates(moon_position, moon_az_el);
+		sky_pass->set_julian_day(static_cast<float>(jd));
 	}
 	
 	shadow_light = sun_light;

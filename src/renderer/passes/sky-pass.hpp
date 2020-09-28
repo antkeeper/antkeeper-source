@@ -46,12 +46,15 @@ public:
 	virtual ~sky_pass();
 	virtual void render(render_context* context) const final;
 	
+	void update_tweens();
+	
 	void set_sky_model(const model* model);
-	void set_sun_color(const float3& color);
 	void set_sky_gradient(const std::array<float4, 4>& gradient);
 	void set_time_of_day(float time);
 	void set_blue_noise_map(const texture_2d* texture);
 	void set_time_tween(const tween<double>* time);
+	
+	void set_julian_day(float jd);
 	void set_observer_coordinates(const float2& coordinates);
 	void set_sun_coordinates(const float3& position, const float2& az_el);
 	void set_moon_coordinates(const float3& position, const float2& az_el);
@@ -61,7 +64,6 @@ private:
 
 	shader_program* shader_program;
 	const shader_input* model_view_projection_input;
-	const shader_input* sun_color_input;
 	const shader_input* sky_gradient_input;
 	const shader_input* mouse_input;
 	const shader_input* resolution_input;
@@ -73,6 +75,7 @@ private:
 	const shader_input* moon_position_input;
 	const shader_input* moon_az_el_input;
 	const shader_input* blue_noise_map_input;
+	const shader_input* julian_day_input;
 
 	
 	vertex_buffer* quad_vbo;
@@ -84,18 +87,18 @@ private:
 	std::size_t sky_model_start_index;
 	std::size_t sky_model_index_count;
 
-	float sun_angular_radius;
-	float3 sun_color;
 	const texture_2d* blue_noise_map;
 	float2 mouse_position;
 	std::array<float4, 4> sky_gradient;
 	const tween<double>* time_tween;
-	float time_of_day;
 	float2 observer_coordinates;
-	float3 sun_position;
-	float2 sun_az_el;
-	float3 moon_position;
-	float2 moon_az_el;
+	tween<float> time_of_day_tween;
+	
+	tween<float> julian_day_tween;
+	tween<float3> sun_position_tween;
+	tween<float2> sun_az_el_tween;
+	tween<float3> moon_position_tween;
+	tween<float2> moon_az_el_tween;
 };
 
 #endif // ANTKEEPER_SKY_PASS_HPP

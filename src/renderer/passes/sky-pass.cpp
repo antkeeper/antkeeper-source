@@ -43,7 +43,6 @@
 sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	mouse_position({0.0f, 0.0f}),
-	time_of_day(0.0f),
 	sky_model(nullptr),
 	sky_model_vao(nullptr),
 	blue_noise_map(nullptr),
@@ -51,7 +50,6 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 {
 	shader_program = resource_manager->load<::shader_program>("sky.glsl");
 	model_view_projection_input = shader_program->get_input("model_view_projection");
-	sun_color_input = shader_program->get_input("sun_color");
 	sky_gradient_input = shader_program->get_input("sky_gradient");
 	mouse_input = shader_program->get_input("mouse");
 	resolution_input = shader_program->get_input("resolution");
@@ -63,6 +61,7 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 	sun_az_el_input = shader_program->get_input("sun_az_el");
 	moon_position_input = shader_program->get_input("moon_position");
 	moon_az_el_input = shader_program->get_input("moon_az_el");
+	julian_day_input = shader_program->get_input("julian_day");
 	
 	const float vertex_data[] =
 	{
@@ -122,14 +121,20 @@ void sky_pass::render(render_context* context) const
 	float4x4 projection = camera.get_projection_tween().interpolate(context->alpha);
 	float4x4 model_view_projection = projection * model_view;
 	
+	
+	float time_of_day = time_of_day_tween.interpolate(context->alpha);
+	float julian_day = julian_day_tween.interpolate(context->alpha);
+	float3 sun_position = sun_position_tween.interpolate(context->alpha);
+	float2 sun_az_el = sun_az_el_tween.interpolate(context->alpha);
+	float3 moon_position = moon_position_tween.interpolate(context->alpha);
+	float2 moon_az_el = moon_az_el_tween.interpolate(context->alpha);
+	
 	// Change shader program
 	rasterizer->use_program(*shader_program);
 
 	// Upload shader parameters
 	if (model_view_projection_input)
 		model_view_projection_input->upload(model_view_projection);
-	if (sun_color_input)
-		sun_color_input->upload(sun_color);
 	if (sky_gradient_input)
 		sky_gradient_input->upload(0, &sky_gradient[0], 4);
 	if (mouse_input)
@@ -153,6 +158,8 @@ void sky_pass::render(render_context* context) const
 		moon_position_input->upload(moon_position);
 	if (moon_az_el_input)
 		moon_az_el_input->upload(moon_az_el);
+	if (julian_day_input)
+		julian_day_input->upload(julian_day);
 	
 	// Draw sky model
 	rasterizer->draw_arrays(*sky_model_vao, sky_model_drawing_mode, sky_model_start_index, sky_model_index_count);
@@ -180,9 +187,14 @@ void sky_pass::set_sky_model(const model* model)
 	}
 }
 
-void sky_pass::set_sun_color(const float3& color)
+void sky_pass::update_tweens()
 {
-	sun_color = color;
+	julian_day_tween.update();
+	sun_position_tween.update();
+	sun_az_el_tween.update();
+	moon_position_tween.update();
+	moon_az_el_tween.update();
+	time_of_day_tween.update();
 }
 
 void sky_pass::set_sky_gradient(const std::array<float4, 4>& gradient)
@@ -192,7 +204,7 @@ void sky_pass::set_sky_gradient(const std::array<float4, 4>& gradient)
 
 void sky_pass::set_time_of_day(float time)
 {
-	time_of_day = time;
+	time_of_day_tween[1] = time;
 }
 
 void sky_pass::set_time_tween(const tween<double>* time)
@@ -205,6 +217,11 @@ void sky_pass::set_blue_noise_map(const texture_2d* texture)
 	blue_noise_map = texture;
 }
 
+void sky_pass::set_julian_day(float jd)
+{
+	julian_day_tween[1] = jd;
+}
+
 void sky_pass::set_observer_coordinates(const float2& coordinates)
 {
 	observer_coordinates = coordinates;
@@ -212,14 +229,14 @@ void sky_pass::set_observer_coordinates(const float2& coordinates)
 
 void sky_pass::set_sun_coordinates(const float3& position, const float2& az_el)
 {
-	sun_position = position;
-	sun_az_el = az_el;
+	sun_position_tween[1] = position;
+	sun_az_el_tween[1] = az_el;
 }
 
 void sky_pass::set_moon_coordinates(const float3& position, const float2& az_el)
 {
-	moon_position = position;
-	moon_az_el = az_el;
+	moon_position_tween[1] = position;
+	moon_az_el_tween[1] = az_el;
 }
 
 void sky_pass::handle_event(const mouse_moved_event& event)
