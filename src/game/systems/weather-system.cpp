@@ -150,8 +150,8 @@ void equatorial_to_horizontal(double right_ascension, double declination, double
 	double horiz_y = y;
 	double horiz_z = x * std::sin(math::half_pi<double> - latitude) + z * std::cos(math::half_pi<double> - latitude);
 	
-	*azimuth = std::atan2(horiz_y, horiz_x) + math::pi<double>;
-	*elevation = std::atan2(horiz_z, std::sqrt(horiz_x * horiz_x + horiz_y * horiz_y));
+	*azimuth = math::wrap_radians<double>(std::atan2(horiz_y, horiz_x) + math::pi<double>);
+	*elevation = math::wrap_radians<double>(std::atan2(horiz_z, std::sqrt(horiz_x * horiz_x + horiz_y * horiz_y)));
 }
 
 /**
@@ -289,37 +289,39 @@ void weather_system::update(double t, double dt)
 	std::size_t hour_index = static_cast<std::size_t>(hour);
 	float lerp_factor = hour - std::floor(hour);
 	
+	
+	float sun_gradient_position = static_cast<float>(std::max<double>(0.0, ((sun_elevation + math::half_pi<double>) / math::pi<double>)));
+	float moon_gradient_position = static_cast<float>(std::max<double>(0.0, ((moon_elevation + math::half_pi<double>) / math::pi<double>)));
+	float sky_gradient_position = sun_gradient_position;
+	float ambient_gradient_position = sun_gradient_position;
+	
 	if (sky_pass)
 	{
-		const std::array<float4, 4>& gradient0 = sky_gradients[hour_index];
-		const std::array<float4, 4>& gradient1 = sky_gradients[(hour_index + 1) % sky_gradients.size()];
+
 		
-		std::array<float4, 4> gradient;
-		for (int i = 0; i < 4; ++i)
+		//std::cout << "sungrad: " << (sun_gradient_position* static_cast<float>(sky_gradients.size() - 1)) << std::endl;
+		//std::cout << "sunel: " << math::degrees(sun_elevation) << std::endl;
+		
+		std::array<float4, 4> sky_gradient;
 		{
-			gradient[i] = math::lerp(gradient0[i], gradient1[i], lerp_factor);
+			sky_gradient_position *= static_cast<float>(sky_gradients.size() - 1);
+			int index0 = static_cast<int>(sky_gradient_position) % sky_gradients.size();
+			int index1 = (index0 + 1) % sky_gradients.size();
+			sky_gradient_position -= std::floor(sky_gradient_position);
+			for (int i = 0; i < 4; ++i)
+				sky_gradient[i] = math::lerp(sky_gradients[index0][i], sky_gradients[index1][i], sky_gradient_position);
 		}
 		
-		float3 sun_color0 = sun_colors[hour_index];
-		float3 sun_color1 = sun_colors[(hour_index + 1) % sun_colors.size()];
-		float3 sun_color = math::lerp(sun_color0, sun_color1, lerp_factor);
-		
-		float3 moon_color0 = moon_colors[hour_index];
-		float3 moon_color1 = moon_colors[(hour_index + 1) % moon_colors.size()];
-		float3 moon_color = math::lerp(moon_color0, moon_color1, lerp_factor);
-		
-		float3 ambient_color0 = ambient_colors[hour_index];
-		float3 ambient_color1 = ambient_colors[(hour_index + 1) % sun_colors.size()];
-		float3 ambient_color = math::lerp(ambient_color0, ambient_color1, lerp_factor);
+		float3 sun_color = interpolate_gradient(sun_colors, sun_gradient_position);
+		float3 moon_color = interpolate_gradient(moon_colors, moon_gradient_position);
+		float3 ambient_color = interpolate_gradient(ambient_colors, ambient_gradient_position);
 		
 		sun_light->set_color(sun_color);
-		
 		moon_light->set_color(moon_color);
 		moon_light->set_intensity(1.0f);
-		
 		ambient_light->set_color(ambient_color);
 		
-		sky_pass->set_sky_gradient(gradient);
+		sky_pass->set_sky_gradient(sky_gradient);
 		sky_pass->set_time_of_day(static_cast<float>(hour * 60.0 * 60.0));
 		sky_pass->set_observer_coordinates(coordinates);
 		sky_pass->set_sun_coordinates(sun_position, sun_az_el);
@@ -342,10 +344,7 @@ void weather_system::update(double t, double dt)
 	
 	if (material_pass)
 	{
-		float shadow_strength0 = shadow_strengths[hour_index];
-		float shadow_strength1 = shadow_strengths[(hour_index + 1) % shadow_strengths.size()];
-		float shadow_strength = math::lerp(shadow_strength0, shadow_strength1, lerp_factor);
-		
+		float shadow_strength = interpolate_gradient(shadow_strengths, sun_gradient_position);
 		material_pass->set_shadow_strength(shadow_strength);
 	}
 }

@@ -57,10 +57,11 @@ public:
 	void set_shadow_palette(const ::image* image);
 	
 private:
+	template <typename T>
+	static T interpolate_gradient(const std::vector<T>& gradient, float position);
+
 	double jd;
-	
 	float2 coordinates;
-	
 	float time_scale;
 	float3 sun_direction;
 	ambient_light* ambient_light;
@@ -81,5 +82,14 @@ private:
 	std::vector<float> shadow_strengths;
 	std::vector<std::array<float4, 4>> sky_gradients;
 };
+
+template <typename T>
+T weather_system::interpolate_gradient(const std::vector<T>& gradient, float position)
+{
+	position *= static_cast<float>(gradient.size() - 1);
+	int index0 = static_cast<int>(position) % gradient.size();
+	int index1 = (index0 + 1) % gradient.size();
+	return math::lerp<T>(gradient[index0], gradient[index1], position - std::floor(position));
+}
 
 #endif // ANTKEEPER_WEATHER_SYSTEM_HPP
