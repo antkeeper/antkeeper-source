@@ -660,8 +660,8 @@ matrix<T, 4, 4> perspective(T vertical_fov, T aspect_ratio, T z_near, T z_far)
 		{{
 			 {f / aspect_ratio, T(0), T(0), T(0)},
 			 {T(0), f, T(0), T(0)},
-			 {T(0), T(0), (z_near + z_far) / (z_near - z_far), T(-1)},
-			 {T(0), T(0), (T(2) * z_near * z_far) / (z_near - z_far), T(0)}
+			 {T(0), T(0), (z_far + z_near) / (z_near - z_far), T(-1)},
+			 {T(0), T(0), (T(2) * z_far * z_near) / (z_near - z_far), T(0)}
 		}};
 }
 

@@ -40,16 +40,16 @@ static float4x4 interpolate_projection(const camera* camera, const float4x4& x, 
 			camera->get_clip_right_tween().interpolate(a),
 			camera->get_clip_bottom_tween().interpolate(a),
 			camera->get_clip_top_tween().interpolate(a),
-			camera->get_clip_near_tween().interpolate(a),
-			camera->get_clip_far_tween().interpolate(a));
+			camera->get_clip_far_tween().interpolate(a),
+			camera->get_clip_near_tween().interpolate(a));
 	}
 	else
 	{
 		return math::perspective(
 			camera->get_fov_tween().interpolate(a),
 			camera->get_aspect_ratio_tween().interpolate(a),
-			camera->get_clip_near_tween().interpolate(a),
-			camera->get_clip_far_tween().interpolate(a));
+			camera->get_clip_far_tween().interpolate(a),
+			camera->get_clip_near_tween().interpolate(a));
 	}
 }
 
@@ -94,7 +94,8 @@ float3 camera::unproject(const float3& window, const float4& viewport) const
 	result[0] = ((window[0] - viewport[0]) / viewport[2]) * 2.0f - 1.0f;
 	result[1] = ((window[1] - viewport[1]) / viewport[3]) * 2.0f - 1.0f;
 	//result[2] = window[2] * 2.0f - 1.0f; z: [-1, 1]
-	result[2] = window[2]; // z: [0, 1]
+	//result[2] = window[2]; // z: [0, 1]
+	result[2] = 1.0f - window[2]; // z: [1, 0]
 	result[3] = 1.0f;
 	
 	result = math::inverse(view_projection[1]) * result;
@@ -111,7 +112,7 @@ void camera::set_perspective(float fov, float aspect_ratio, float clip_near, flo
 	this->clip_near[1] = clip_near;
 	this->clip_far[1] = clip_far;
 
-	projection[1] = math::perspective_half_z(fov, aspect_ratio, clip_near, clip_far);
+	projection[1] = math::perspective_half_z(fov, aspect_ratio, clip_far, clip_near);
 	
 	// Recalculate view-projection matrix
 	view_projection[1] = projection[1] * view[1];
@@ -131,7 +132,7 @@ void camera::set_orthographic(float clip_left, float clip_right, float clip_bott
 	this->clip_near[1] = clip_near;
 	this->clip_far[1] = clip_far;
 
-	projection[1] = math::ortho(clip_left, clip_right, clip_bottom, clip_top, clip_near, clip_far);
+	projection[1] = math::ortho_half_z(clip_left, clip_right, clip_bottom, clip_top, clip_far, clip_near);
 	
 	// Recalculate view-projection matrix
 	view_projection[1] = projection[1] * view[1];

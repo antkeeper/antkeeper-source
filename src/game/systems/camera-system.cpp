@@ -39,7 +39,7 @@ camera_system::camera_system(entt::registry& registry):
 	orbit_cam.set_focal_distance_limits({2.0f, 200.0f});
 	orbit_cam.set_fov_limits({math::radians(80.0f), math::radians(35.0f)});
 	orbit_cam.set_clip_near_limits({0.1f, 5.0f});
-	orbit_cam.set_clip_far_limits({100.0f, 2000.0f});
+	orbit_cam.set_clip_far_limits({5000.0f, 5000.0f});
 	
 	orbit_cam.set_target_focal_point({0.0f, 0.0f, 0.0f});
 	orbit_cam.set_target_azimuth(0.0f);

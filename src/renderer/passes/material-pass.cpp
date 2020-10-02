@@ -106,9 +106,8 @@ void material_pass::render(render_context* context) const
 	
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
 	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_LESS);
+	glDepthFunc(GL_GREATER);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glDisable(GL_STENCIL_TEST);
@@ -354,7 +353,7 @@ void material_pass::render(render_context* context) const
 					if (material_flags & MATERIAL_FLAG_DECAL)
 					{
 						glEnable(GL_DEPTH_TEST);
-						glDepthFunc(GL_LEQUAL);
+						glDepthFunc(GL_GEQUAL);
 						glDepthMask(GL_FALSE);
 						
 						glEnable(GL_STENCIL_TEST);
@@ -367,7 +366,7 @@ void material_pass::render(render_context* context) const
 					else
 					{
 						glEnable(GL_DEPTH_TEST);
-						glDepthFunc(GL_LESS);
+						glDepthFunc(GL_GREATER);
 						glDepthMask(GL_TRUE);
 						glDisable(GL_STENCIL_TEST);
 						glStencilMask(0);

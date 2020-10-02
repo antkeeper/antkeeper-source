@@ -119,6 +119,7 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* lens_light_cone_archetype = resource_manager->load<ecs::archetype>("lens-light-cone.ent");
 	ecs::archetype* ant_head_archetype = resource_manager->load<ecs::archetype>("ant-head.ent");
 	ecs::archetype* dandelion_plant_archetype = resource_manager->load<ecs::archetype>("dandelion-plant.ent");
+	ecs::archetype* grassland_road_archetype = resource_manager->load<ecs::archetype>("grassland-road.ent");
 	
 	// Create tools
 	forceps_archetype->assign(ecs_registry, ctx->forceps_entity);
@@ -158,6 +159,20 @@ void play_state_enter(game_context* ctx)
 	
 	// Activate brush tool
 	ctx->tool_system->set_active_tool(ctx->brush_entity);
+	
+	// Create background
+	for (int i = 0; i < 4; ++i)
+	{
+		auto road_entity = grassland_road_archetype->create(ecs_registry);
+		auto& transform = ecs_registry.get<ecs::transform_component>(road_entity);
+		
+		math::quaternion<float> rotation = math::angle_axis(math::half_pi<float> * static_cast<float>(i), float3{0, 1, 0});
+		float3 translation = rotation * float3{0, 0, 1600.0f};
+		
+		transform.local = math::identity_transform<float>;
+		transform.local.rotation = rotation;	
+		transform.local.translation = translation;	
+	}
 
 	// Create ant-hill
 	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);
@@ -165,7 +180,7 @@ void play_state_enter(game_context* ctx)
 	
 	// Generate pebbles
 	float pebble_radius = 300.0f;
-	int pebble_count = 100;
+	int pebble_count = 20;
 	for (int i = 0; i < pebble_count; ++i)
 	{
 		float x = math::random(-pebble_radius, pebble_radius);
@@ -189,7 +204,7 @@ void play_state_enter(game_context* ctx)
 	auto nest_entity = nest_archetype->create(ecs_registry);
 
 	// Create terrain
-	int terrain_radius = 2;
+	int terrain_radius = 8;
 	for (int x = -terrain_radius; x <= terrain_radius; ++x)
 	{
 		for (int z = -terrain_radius; z <= terrain_radius; ++z)

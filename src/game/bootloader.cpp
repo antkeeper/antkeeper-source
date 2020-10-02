@@ -495,10 +495,12 @@ void setup_rendering(game_context* ctx)
 	// Setup overworld compositor
 	ctx->overworld_shadow_map_clear_pass = new clear_pass(ctx->rasterizer, ctx->shadow_map_framebuffer);
 	ctx->overworld_shadow_map_clear_pass->set_cleared_buffers(false, true, false);
+	ctx->overworld_shadow_map_clear_pass->set_clear_depth(1.0f);
 	ctx->overworld_shadow_map_pass = new shadow_map_pass(ctx->rasterizer, ctx->shadow_map_framebuffer, ctx->resource_manager);
 	ctx->overworld_shadow_map_pass->set_split_scheme_weight(0.75f);
 	ctx->overworld_clear_pass = new clear_pass(ctx->rasterizer, ctx->framebuffer_hdr);
 	ctx->overworld_clear_pass->set_cleared_buffers(true, true, true);
+	ctx->overworld_clear_pass->set_clear_depth(0.0f);
 	ctx->overworld_sky_pass = new sky_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->overworld_sky_pass);
 	ctx->overworld_sky_pass->set_enabled(false);
@@ -548,6 +550,7 @@ void setup_rendering(game_context* ctx)
 	// Setup UI camera compositor
 	ctx->ui_clear_pass = new clear_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer());
 	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
+	ctx->ui_clear_pass->set_clear_depth(0.0f);
 	ctx->ui_material_pass = new material_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), ctx->resource_manager);
 	ctx->ui_material_pass->set_fallback_material(ctx->fallback_material);
 	ctx->ui_compositor = new compositor();

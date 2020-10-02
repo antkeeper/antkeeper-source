@@ -39,8 +39,8 @@ vegetation_system::vegetation_system(entt::registry& registry):
 	vegetation_density(1.0f),
 	vegetation_model(nullptr)
 {
-	registry.on_construct<terrain_component>().connect<&vegetation_system::on_terrain_construct>(this);
-	registry.on_destroy<terrain_component>().connect<&vegetation_system::on_terrain_destroy>(this);
+	//registry.on_construct<terrain_component>().connect<&vegetation_system::on_terrain_construct>(this);
+	//registry.on_destroy<terrain_component>().connect<&vegetation_system::on_terrain_destroy>(this);
 }
 
 vegetation_system::~vegetation_system()
