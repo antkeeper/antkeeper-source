@@ -454,7 +454,7 @@ void setup_rendering(game_context* ctx)
 	ctx->framebuffer_hdr_color->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
 	ctx->framebuffer_hdr_color->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
 	ctx->framebuffer_hdr_color->set_max_anisotropy(0.0f);
-	ctx->framebuffer_hdr_depth = new texture_2d(viewport_dimensions[0], viewport_dimensions[1], pixel_type::uint_32, pixel_format::ds);
+	ctx->framebuffer_hdr_depth = new texture_2d(viewport_dimensions[0], viewport_dimensions[1], pixel_type::float_32, pixel_format::ds);
 	ctx->framebuffer_hdr_depth->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
 	ctx->framebuffer_hdr_depth->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
 	ctx->framebuffer_hdr_depth->set_max_anisotropy(0.0f);
@@ -1179,7 +1179,7 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * 50.0f);
+			ctx->weather_system->set_time_scale(time_scale * 500.0f);
 		}
 	);
 	ctx->control_system->get_fast_forward_control()->set_deactivated_callback
@@ -1193,7 +1193,7 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * -50.0f);
+			ctx->weather_system->set_time_scale(time_scale * -500.0f);
 		}
 	);
 	ctx->control_system->get_rewind_control()->set_deactivated_callback

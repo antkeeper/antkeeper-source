@@ -113,6 +113,9 @@ void material_pass::render(render_context* context) const
 	glCullFace(GL_BACK);
 	glDisable(GL_STENCIL_TEST);
 	glStencilMask(0x00);
+	
+	// For half-z buffer
+	glDepthRange(-1.0f, 1.0f);
 
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
@@ -128,9 +131,10 @@ void material_pass::render(render_context* context) const
 	float4x4 model;
 	float4x4 model_view;
 	float3x3 normal_model_view;
-	
-
-
+	float2 clip_depth;
+	clip_depth[0] = context->camera->get_clip_near_tween().interpolate(context->alpha);
+	clip_depth[1] = context->camera->get_clip_far_tween().interpolate(context->alpha);
+	float log_depth_coef = 2.0f / std::log2(clip_depth[1] + 1.0f);
 
 
 	int active_material_flags = 0;
@@ -488,6 +492,10 @@ void material_pass::render(render_context* context) const
 			parameters->model_view_projection->upload(model_view_projection);
 		if (parameters->normal_model_view)
 			parameters->normal_model_view->upload(normal_model_view);
+		if (parameters->clip_depth)
+			parameters->clip_depth->upload(clip_depth);
+		if (parameters->log_depth_coef)
+			parameters->log_depth_coef->upload(log_depth_coef);
 
 		// Draw geometry
 		if (operation.instance_count)
@@ -533,6 +541,8 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const shad
 	parameters->view_projection = program->get_input("view_projection");
 	parameters->model_view_projection = program->get_input("model_view_projection");
 	parameters->normal_model_view = program->get_input("normal_model_view");
+	parameters->clip_depth = program->get_input("clip_depth");
+	parameters->log_depth_coef = program->get_input("log_depth_coef");
 	parameters->ambient_light_count = program->get_input("ambient_light_count");
 	parameters->ambient_light_colors = program->get_input("ambient_light_colors");
 	parameters->point_light_count = program->get_input("point_light_count");

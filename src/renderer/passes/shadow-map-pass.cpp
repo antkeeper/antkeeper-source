@@ -107,6 +107,9 @@ void shadow_map_pass::render(render_context* context) const
 	// Disable face culling
 	glDisable(GL_CULL_FACE);
 	
+	// For half-z buffer
+	//glDepthRange(-1.0f, 1.0f);
+	
 	// Get camera
 	const ::camera& camera = *context->camera;
 	
@@ -137,7 +140,7 @@ void shadow_map_pass::render(render_context* context) const
 	float3 forward = light_transform.rotation * global_forward;
 	float3 up = light_transform.rotation * global_up;
 	float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
-	float4x4 light_projection = math::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+	float4x4 light_projection = math::ortho_half_z(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	float4x4 light_view_projection = light_projection * light_view;
 	
 	// Get the camera's view matrix
@@ -161,7 +164,7 @@ void shadow_map_pass::render(render_context* context) const
 		// Calculate projection matrix for view camera subfrustum
 		const float subfrustum_near = split_distances[i];
 		const float subfrustum_far = split_distances[i + 1];
-		float4x4 subfrustum_projection = math::perspective(camera.get_fov(), camera.get_aspect_ratio(), subfrustum_near, subfrustum_far);
+		float4x4 subfrustum_projection = math::perspective_half_z(camera.get_fov(), camera.get_aspect_ratio(), subfrustum_near, subfrustum_far);
 		
 		// Calculate view camera subfrustum
 		view_frustum<float> subfrustum(subfrustum_projection * camera_view);
@@ -186,6 +189,7 @@ void shadow_map_pass::render(render_context* context) const
 		scale.x = 2.0f / (cropping_bounds.max_point.x - cropping_bounds.min_point.x);
 		scale.y = 2.0f / (cropping_bounds.max_point.y - cropping_bounds.min_point.y);
 		scale.z = 1.0f / (cropping_bounds.max_point.z - cropping_bounds.min_point.z);
+		//scale.z = 2.0f / (cropping_bounds.max_point.z - cropping_bounds.min_point.z);
 		
 		// Quantize scale
 		float scale_quantizer = 64.0f;
@@ -197,6 +201,7 @@ void shadow_map_pass::render(render_context* context) const
 		offset.x = (cropping_bounds.max_point.x + cropping_bounds.min_point.x) * scale.x * -0.5f;
 		offset.y = (cropping_bounds.max_point.y + cropping_bounds.min_point.y) * scale.y * -0.5f;
 		offset.z = -cropping_bounds.min_point.z * scale.z;
+		//offset.z = (cropping_bounds.max_point.z + cropping_bounds.min_point.z) * scale.z * -0.5f;
 
 		// Quantize offset
 		float half_shadow_map_resolution = static_cast<float>(shadow_map_resolution) * 0.5f;

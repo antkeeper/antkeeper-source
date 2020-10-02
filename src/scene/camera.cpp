@@ -93,7 +93,8 @@ float3 camera::unproject(const float3& window, const float4& viewport) const
 	float4 result;
 	result[0] = ((window[0] - viewport[0]) / viewport[2]) * 2.0f - 1.0f;
 	result[1] = ((window[1] - viewport[1]) / viewport[3]) * 2.0f - 1.0f;
-	result[2] = window[2] * 2.0f - 1.0f;
+	//result[2] = window[2] * 2.0f - 1.0f; z: [-1, 1]
+	result[2] = window[2]; // z: [0, 1]
 	result[3] = 1.0f;
 	
 	result = math::inverse(view_projection[1]) * result;
@@ -110,7 +111,7 @@ void camera::set_perspective(float fov, float aspect_ratio, float clip_near, flo
 	this->clip_near[1] = clip_near;
 	this->clip_far[1] = clip_far;
 
-	projection[1] = math::perspective(fov, aspect_ratio, clip_near, clip_far);
+	projection[1] = math::perspective_half_z(fov, aspect_ratio, clip_near, clip_far);
 	
 	// Recalculate view-projection matrix
 	view_projection[1] = projection[1] * view[1];

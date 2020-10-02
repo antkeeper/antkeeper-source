@@ -166,7 +166,7 @@ template <class T>
 vector<T, 4> mul(const matrix<T, 4, 4>& m, const vector<T, 4>& v);
 
 /**
- * Creates an orthographic projection matrix.
+ * Creates an orthographic projection matrix which will transform the near and far clipping planes to `[-1, 1]`, respectively.
  *
  * @param left Signed distance to the left clipping plane.
  * @param right Signed distance to the right clipping plane.
@@ -178,6 +178,20 @@ vector<T, 4> mul(const matrix<T, 4, 4>& m, const vector<T, 4>& v);
  */
 template <class T>
 matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far);
+
+/**
+ * Creates an orthographic projection matrix which will transform the near and far clipping planes to `[0, 1]`, respectively.
+ *
+ * @param left Signed distance to the left clipping plane.
+ * @param right Signed distance to the right clipping plane.
+ * @param bottom Signed distance to the bottom clipping plane.
+ * @param top Signed distance to the top clipping plane.
+ * @param z_near Signed distance to the near clipping plane.
+ * @param z_far Signed distance to the far clipping plane.
+ * @return Orthographic projection matrix.
+ */
+template <class T>
+matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far);
 
 /**
  * Calculates the outer product of a pair of vectors.
@@ -197,7 +211,7 @@ template <class T>
 matrix<T, 4, 4> outer_product(const vector<T, 4>& c, const vector<T, 4> r);
 
 /**
- * Creates a perspective projection matrix.
+ * Creates a perspective projection matrix which will transform the near and far clipping planes to `[-1, 1]`, respectively.
  *
  * @param vertical_fov Vertical field of view angle, in radians.
  * @param aspect_ratio Aspect ratio which determines the horizontal field of view.
@@ -207,6 +221,18 @@ matrix<T, 4, 4> outer_product(const vector<T, 4>& c, const vector<T, 4> r);
  */
 template <class T>
 matrix<T, 4, 4> perspective(T vertical_fov, T aspect_ratio, T z_near, T z_far);
+
+/**
+ * Creates a perspective projection matrix which will transform the near and far clipping planes to `[0, 1]`, respectively.
+ *
+ * @param vertical_fov Vertical field of view angle, in radians.
+ * @param aspect_ratio Aspect ratio which determines the horizontal field of view.
+ * @param z_near Distance to the near clipping plane.
+ * @param z_far Distance to the far clipping plane.
+ * @return Perspective projection matrix.
+ */
+template <class T>
+matrix<T, 4, 4> perspective_half_z(T vertical_fov, T aspect_ratio, T z_near, T z_far);
 
 /**
  * Resizes a matrix. Any new elements will be set to `1` if in the diagonal, and `0` otherwise.
@@ -580,6 +606,18 @@ matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far)
 }
 
 template <class T>
+matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far)
+{
+	return
+		{{
+			 {T(2) / (right - left), T(0), T(0), T(0)},
+			 {T(0), T(2) / (top - bottom), T(0), T(0)},
+			 {T(0), T(0), T(-1) / (z_far - z_near), T(0)},
+			 {-((right + left) / (right - left)), -((top + bottom) / (top - bottom)), -z_near / (z_far - z_near), T(1)}
+		}};
+}
+
+template <class T>
 matrix<T, 2, 2> outer_product(const vector<T, 2>& c, const vector<T, 2>& r)
 {
 	return
@@ -622,8 +660,23 @@ matrix<T, 4, 4> perspective(T vertical_fov, T aspect_ratio, T z_near, T z_far)
 		{{
 			 {f / aspect_ratio, T(0), T(0), T(0)},
 			 {T(0), f, T(0), T(0)},
-			 {T(0), T(0), (z_far + z_near) / (z_near - z_far), T(-1)},
+			 {T(0), T(0), (z_near + z_far) / (z_near - z_far), T(-1)},
 			 {T(0), T(0), (T(2) * z_near * z_far) / (z_near - z_far), T(0)}
+		}};
+}
+
+template <class T>
+matrix<T, 4, 4> perspective_half_z(T vertical_fov, T aspect_ratio, T z_near, T z_far)
+{
+	T half_fov = vertical_fov * T(0.5);
+	T f = std::cos(half_fov) / std::sin(half_fov);
+
+	return
+		{{
+			 {f / aspect_ratio, T(0), T(0), T(0)},
+			 {T(0), f, T(0), T(0)},
+			 {T(0), T(0), z_far / (z_near - z_far), T(-1)},
+			 {T(0), T(0), -(z_far * z_near) / (z_far - z_near), T(0)}
 		}};
 }
 

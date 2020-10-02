@@ -77,6 +77,8 @@ private:
 		const shader_input* view_projection;
 		const shader_input* model_view_projection;
 		const shader_input* normal_model_view;
+		const shader_input* clip_depth;
+		const shader_input* log_depth_coef;
 		
 		const shader_input* ambient_light_count;
 		const shader_input* ambient_light_colors;
