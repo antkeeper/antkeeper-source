@@ -90,7 +90,6 @@ void vegetation_system::on_terrain_construct(entt::registry& registry, entt::ent
 		for (int row = 0; row < vegetation_patch_rows; ++row)
 		{
 			// Calculate center of vegetation patch
-
 			
 			/*
 			// Create vegetation patch entity

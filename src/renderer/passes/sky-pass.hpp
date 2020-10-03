@@ -33,6 +33,7 @@ class vertex_array;
 class texture_2d;
 class resource_manager;
 class model;
+class material;
 enum class drawing_mode;
 
 /**
@@ -53,6 +54,7 @@ public:
 	void set_time_of_day(float time);
 	void set_blue_noise_map(const texture_2d* texture);
 	void set_time_tween(const tween<double>* time);
+	void set_moon_model(const model* model);
 	
 	void set_julian_day(float jd);
 	void set_observer_coordinates(const float2& coordinates);
@@ -76,16 +78,25 @@ private:
 	const shader_input* moon_az_el_input;
 	const shader_input* blue_noise_map_input;
 	const shader_input* julian_day_input;
-
 	
-	vertex_buffer* quad_vbo;
-	vertex_array* quad_vao;
+	::shader_program* moon_shader_program;
+	const shader_input* moon_model_view_projection_input;
+	const shader_input* moon_normal_model_input;
+	const shader_input* moon_moon_position_input;
+	const shader_input* moon_sun_position_input;
 	
 	const model* sky_model;
 	const vertex_array* sky_model_vao;
 	drawing_mode sky_model_drawing_mode;
 	std::size_t sky_model_start_index;
 	std::size_t sky_model_index_count;
+	
+	const model* moon_model;
+	const material* moon_material;
+	const vertex_array* moon_model_vao;
+	drawing_mode moon_model_drawing_mode;
+	std::size_t moon_model_start_index;
+	std::size_t moon_model_index_count;
 
 	const texture_2d* blue_noise_map;
 	float2 mouse_position;
