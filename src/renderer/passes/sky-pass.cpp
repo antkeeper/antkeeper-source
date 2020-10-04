@@ -46,12 +46,14 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 	render_pass(rasterizer, framebuffer),
 	mouse_position({0.0f, 0.0f}),
 	sky_model(nullptr),
+	sky_material(nullptr),
 	sky_model_vao(nullptr),
 	moon_model(nullptr),
+	moon_material(nullptr),
 	moon_model_vao(nullptr),
 	moon_shader_program(nullptr),
 	blue_noise_map(nullptr),
-	observer_coordinates{0.0f, 0.0f}
+	observer_location{0.0f, 0.0f, 0.0f}
 {
 	shader_program = resource_manager->load<::shader_program>("sky.glsl");
 	model_view_projection_input = shader_program->get_input("model_view_projection");
@@ -61,12 +63,14 @@ sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, r
 	time_input = shader_program->get_input("time");
 	time_of_day_input = shader_program->get_input("time_of_day");
 	blue_noise_map_input = shader_program->get_input("blue_noise_map");
-	observer_coordinates_input = shader_program->get_input("observer_coordinates");
+	observer_location_input = shader_program->get_input("observer_location");
 	sun_position_input = shader_program->get_input("sun_position");
 	sun_az_el_input = shader_program->get_input("sun_az_el");
 	moon_position_input = shader_program->get_input("moon_position");
 	moon_az_el_input = shader_program->get_input("moon_az_el");
 	julian_day_input = shader_program->get_input("julian_day");
+	cos_moon_angular_radius_input = shader_program->get_input("cos_moon_angular_radius");
+	cos_sun_angular_radius_input = shader_program->get_input("cos_sun_angular_radius");
 	
 	sky_gradient[0] = {1.0, 0.0f, 0.0f, 0.0f};
 	sky_gradient[1] = {0.0, 1.0f, 0.0f, 0.333f};
@@ -106,7 +110,6 @@ void sky_pass::render(render_context* context) const
 	float4x4 projection = camera.get_projection_tween().interpolate(context->alpha);
 	float4x4 model_view_projection = projection * model_view;
 	
-	
 	float time_of_day = time_of_day_tween.interpolate(context->alpha);
 	float julian_day = julian_day_tween.interpolate(context->alpha);
 	float3 sun_position = sun_position_tween.interpolate(context->alpha);
@@ -133,9 +136,8 @@ void sky_pass::render(render_context* context) const
 			time_of_day_input->upload(time_of_day);
 		if (blue_noise_map_input)
 			blue_noise_map_input->upload(blue_noise_map);
-		if (observer_coordinates_input)
-			observer_coordinates_input->upload(observer_coordinates);
-		
+		if (observer_location_input)
+			observer_location_input->upload(observer_location);
 		if (sun_position_input)
 			sun_position_input->upload(sun_position);
 		if (sun_az_el_input)
@@ -146,16 +148,22 @@ void sky_pass::render(render_context* context) const
 			moon_az_el_input->upload(moon_az_el);
 		if (julian_day_input)
 			julian_day_input->upload(julian_day);
+		if (cos_moon_angular_radius_input)
+			cos_moon_angular_radius_input->upload(cos_moon_angular_radius);
+		if (cos_sun_angular_radius_input)
+			cos_sun_angular_radius_input->upload(cos_sun_angular_radius);
 		
+		sky_material->upload(context->alpha);
+
 		rasterizer->draw_arrays(*sky_model_vao, sky_model_drawing_mode, sky_model_start_index, sky_model_index_count);
 	}
 	
 	// Draw moon model
+	if (moon_az_el[1] >= -moon_angular_radius)
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		
-		float moon_angular_radius = math::radians(1.0f);
 		float moon_distance = (clip_near + clip_far) * 0.5f;		
 		float moon_radius = moon_angular_radius * moon_distance;
 		
@@ -189,6 +197,7 @@ void sky_pass::set_sky_model(const model* model)
 		const std::vector<model_group*>& groups = *model->get_groups();
 		for (model_group* group: groups)
 		{
+			sky_material = group->get_material();
 			sky_model_drawing_mode = group->get_drawing_mode();
 			sky_model_start_index = group->get_start_index();
 			sky_model_index_count = group->get_index_count();
@@ -271,9 +280,9 @@ void sky_pass::set_julian_day(float jd)
 	julian_day_tween[1] = jd;
 }
 
-void sky_pass::set_observer_coordinates(const float2& coordinates)
+void sky_pass::set_observer_location(float latitude, float longitude, float altitude)
 {
-	observer_coordinates = coordinates;
+	observer_location = {latitude, longitude, altitude};
 }
 
 void sky_pass::set_sun_coordinates(const float3& position, const float2& az_el)
@@ -286,6 +295,18 @@ void sky_pass::set_moon_coordinates(const float3& position, const float2& az_el)
 {
 	moon_position_tween[1] = position;
 	moon_az_el_tween[1] = az_el;
+}
+
+void sky_pass::set_moon_angular_radius(float radius)
+{
+	moon_angular_radius = radius;
+	cos_moon_angular_radius = std::cos(moon_angular_radius);
+}
+
+void sky_pass::set_sun_angular_radius(float radius)
+{
+	sun_angular_radius = radius;
+	cos_sun_angular_radius = std::cos(sun_angular_radius);
 }
 
 void sky_pass::handle_event(const mouse_moved_event& event)

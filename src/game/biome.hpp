@@ -28,7 +28,9 @@ class image;
 struct biome
 {
 	std::string name;
-	float2 coordinates; // Latitude and longitude, in radians
+	
+	/// Latitude (radians), longitude (radians), altitude (meters)
+	float3 location;
 	
 	// Terrain
 	material* terrain_material;

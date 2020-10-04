@@ -57,9 +57,12 @@ public:
 	void set_moon_model(const model* model);
 	
 	void set_julian_day(float jd);
-	void set_observer_coordinates(const float2& coordinates);
+	void set_observer_location(float latitude, float longitude, float altitude);
 	void set_sun_coordinates(const float3& position, const float2& az_el);
 	void set_moon_coordinates(const float3& position, const float2& az_el);
+	
+	void set_moon_angular_radius(float radius);
+	void set_sun_angular_radius(float radius);
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -71,13 +74,15 @@ private:
 	const shader_input* resolution_input;
 	const shader_input* time_input;
 	const shader_input* time_of_day_input;
-	const shader_input* observer_coordinates_input;
+	const shader_input* observer_location_input;
 	const shader_input* sun_position_input;
 	const shader_input* sun_az_el_input;
 	const shader_input* moon_position_input;
 	const shader_input* moon_az_el_input;
 	const shader_input* blue_noise_map_input;
 	const shader_input* julian_day_input;
+	const shader_input* cos_sun_angular_radius_input;
+	const shader_input* cos_moon_angular_radius_input;
 	
 	::shader_program* moon_shader_program;
 	const shader_input* moon_model_view_projection_input;
@@ -86,6 +91,7 @@ private:
 	const shader_input* moon_sun_position_input;
 	
 	const model* sky_model;
+	const material* sky_material;
 	const vertex_array* sky_model_vao;
 	drawing_mode sky_model_drawing_mode;
 	std::size_t sky_model_start_index;
@@ -102,7 +108,7 @@ private:
 	float2 mouse_position;
 	std::array<float4, 4> sky_gradient;
 	const tween<double>* time_tween;
-	float2 observer_coordinates;
+	float3 observer_location;
 	tween<float> time_of_day_tween;
 	
 	tween<float> julian_day_tween;
@@ -110,6 +116,10 @@ private:
 	tween<float2> sun_az_el_tween;
 	tween<float3> moon_position_tween;
 	tween<float2> moon_az_el_tween;
+	float moon_angular_radius;
+	float cos_moon_angular_radius;
+	float sun_angular_radius;
+	float cos_sun_angular_radius;
 };
 
 #endif // ANTKEEPER_SKY_PASS_HPP

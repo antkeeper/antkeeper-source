@@ -178,7 +178,7 @@ weather_system::weather_system(entt::registry& registry):
 	sky_palette(nullptr),
 	shadow_palette(nullptr),
 	sun_direction{0.0f, -1.0f, 0.0f},
-	coordinates{0.0f, 0.0f},
+	location{0.0f, 0.0f, 0.0f},
 	jd(0.0)
 {}
 
@@ -186,8 +186,8 @@ void weather_system::update(double t, double dt)
 {
 	jd += (dt * time_scale) / seconds_per_day;
 	
-	const float latitude = coordinates[0];
-	const float longitude = coordinates[1];
+	const float latitude = location[0];
+	const float longitude = location[1];
 	
 	// Time correction
 	double tc = longitude / (math::two_pi<double> / 24.0);
@@ -323,7 +323,7 @@ void weather_system::update(double t, double dt)
 		
 		sky_pass->set_sky_gradient(sky_gradient);
 		sky_pass->set_time_of_day(static_cast<float>(hour * 60.0 * 60.0));
-		sky_pass->set_observer_coordinates(coordinates);
+		sky_pass->set_observer_location(location[0], location[1], location[2]);
 		sky_pass->set_sun_coordinates(sun_position, sun_az_el);
 		sky_pass->set_moon_coordinates(moon_position, moon_az_el);
 		sky_pass->set_julian_day(static_cast<float>(jd));
@@ -349,14 +349,14 @@ void weather_system::update(double t, double dt)
 	}
 }
 
-void weather_system::set_coordinates(const float2& coordinates)
+void weather_system::set_location(float latitude, float longitude, float altitude)
 {
-	this->coordinates = coordinates;
+	location = {latitude, longitude, altitude};
 }
 
 void weather_system::set_ambient_light(::ambient_light* light)
 {
-	this->ambient_light = light;
+	ambient_light = light;
 }
 
 void weather_system::set_sun_light(directional_light* light)
@@ -372,6 +372,12 @@ void weather_system::set_moon_light(directional_light* light)
 void weather_system::set_sky_pass(::sky_pass* pass)
 {
 	sky_pass = pass;
+	
+	if (sky_pass)
+	{
+		sky_pass->set_moon_angular_radius(math::radians(1.0f));
+		sky_pass->set_sun_angular_radius(math::radians(1.1f));
+	}
 }
 
 void weather_system::set_shadow_map_pass(::shadow_map_pass* pass)

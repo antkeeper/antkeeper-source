@@ -37,7 +37,13 @@ public:
 	weather_system(entt::registry& registry);
 	virtual void update(double t, double dt);
 	
-	void set_coordinates(const float2& coordinates);
+	/**
+	 *
+	 * @param latitude Latitude, in radians.
+	 * @param longitude Longitude, in radians.
+	 * @param altitude Altitude, in radians.
+	 */
+	void set_location(float latitude, float longitude, float altitude);
 	
 	void set_ambient_light(ambient_light* light);
 	void set_sun_light(directional_light* light);
@@ -61,7 +67,7 @@ private:
 	static T interpolate_gradient(const std::vector<T>& gradient, float position);
 
 	double jd;
-	float2 coordinates;
+	float3 location;
 	float time_scale;
 	float3 sun_direction;
 	ambient_light* ambient_light;

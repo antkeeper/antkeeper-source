@@ -70,10 +70,10 @@ biome* resource_loader<biome>::load(resource_manager* resource_manager, PHYSFS_F
 	
 	load_value(&biome->name, json, "name");
 	
-	float2 coordinates;
-	if (load_array(&coordinates.x, 2, json, "coordinates"))
+	float3 location;
+	if (load_array(&location.x, 3, json, "location"))
 	{
-		biome->coordinates = {math::radians(coordinates.x), math::radians(coordinates.y)};
+		biome->location = {math::radians(location.x), math::radians(location.y), location.z};
 	}
 	
 	if (auto terrain = json.find("terrain"); terrain != json.end())
