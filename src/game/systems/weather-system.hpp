@@ -63,8 +63,8 @@ public:
 	void set_shadow_palette(const ::image* image);
 	
 private:
-	template <typename T>
-	static T interpolate_gradient(const std::vector<T>& gradient, float position);
+	static void load_palette(std::vector<float3>* palette, const ::image* image, unsigned int row);
+	static float3 interpolate_gradient(const std::vector<float3>& gradient, float position);
 
 	double jd;
 	float3 location;
@@ -77,25 +77,12 @@ private:
 	sky_pass* sky_pass;
 	shadow_map_pass* shadow_map_pass;
 	material_pass* material_pass;
-	const image* sky_palette;
-	const image* sun_palette;
-	const image* moon_palette;
-	const image* ambient_palette;
-	const image* shadow_palette;
 	std::vector<float3> sun_colors;
 	std::vector<float3> moon_colors;
 	std::vector<float3> ambient_colors;
-	std::vector<float> shadow_strengths;
-	std::vector<std::array<float4, 4>> sky_gradients;
+	std::vector<float3> shadow_strengths;
+	std::vector<float3> horizon_colors;
+	std::vector<float3> zenith_colors;
 };
-
-template <typename T>
-T weather_system::interpolate_gradient(const std::vector<T>& gradient, float position)
-{
-	position *= static_cast<float>(gradient.size() - 1);
-	int index0 = static_cast<int>(position) % gradient.size();
-	int index1 = (index0 + 1) % gradient.size();
-	return math::lerp<T>(gradient[index0], gradient[index1], position - std::floor(position));
-}
 
 #endif // ANTKEEPER_WEATHER_SYSTEM_HPP

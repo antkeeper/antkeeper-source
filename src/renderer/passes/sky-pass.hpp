@@ -50,7 +50,8 @@ public:
 	void update_tweens();
 	
 	void set_sky_model(const model* model);
-	void set_sky_gradient(const std::array<float4, 4>& gradient);
+	void set_horizon_color(const float3& color);
+	void set_zenith_color(const float3& color);
 	void set_time_of_day(float time);
 	void set_blue_noise_map(const texture_2d* texture);
 	void set_time_tween(const tween<double>* time);
@@ -67,9 +68,10 @@ public:
 private:
 	virtual void handle_event(const mouse_moved_event& event);
 
-	shader_program* shader_program;
+	shader_program* sky_shader_program;
 	const shader_input* model_view_projection_input;
-	const shader_input* sky_gradient_input;
+	const shader_input* horizon_color_input;
+	const shader_input* zenith_color_input;
 	const shader_input* mouse_input;
 	const shader_input* resolution_input;
 	const shader_input* time_input;
@@ -106,7 +108,7 @@ private:
 
 	const texture_2d* blue_noise_map;
 	float2 mouse_position;
-	std::array<float4, 4> sky_gradient;
+
 	const tween<double>* time_tween;
 	float3 observer_location;
 	tween<float> time_of_day_tween;
@@ -116,6 +118,9 @@ private:
 	tween<float2> sun_az_el_tween;
 	tween<float3> moon_position_tween;
 	tween<float2> moon_az_el_tween;
+	tween<float3> horizon_color_tween;
+	tween<float3> zenith_color_tween;
+	
 	float moon_angular_radius;
 	float cos_moon_angular_radius;
 	float sun_angular_radius;

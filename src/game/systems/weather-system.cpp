@@ -175,8 +175,6 @@ weather_system::weather_system(entt::registry& registry):
 	shadow_map_pass(nullptr),
 	material_pass(nullptr),
 	time_scale(1.0f),
-	sky_palette(nullptr),
-	shadow_palette(nullptr),
 	sun_direction{0.0f, -1.0f, 0.0f},
 	location{0.0f, 0.0f, 0.0f},
 	jd(0.0)
@@ -252,18 +250,6 @@ void weather_system::update(double t, double dt)
 	ecliptic_to_equatorial(moon_longitude, moon_latitude, ecl, &moon_right_ascension, &moon_declination);
 	equatorial_to_horizontal(moon_right_ascension, moon_declination, lmst, latitude, &moon_azimuth, &moon_elevation);
 	
-	/*
-	std::cout.precision(10);
-	std::cout << std::fixed;
-	//std::cout << "gmst: " << math::degrees<double>(gmst) << std::endl;
-	std::cout << "JD: " << jd << std::endl;
-	std::cout << "PST: " << pst_time << std::endl;
-	std::cout << "AZ: " << math::degrees(sun_azimuth) << std::endl;
-	std::cout << "EL: " << math::degrees(sun_elevation) << std::endl;
-	std::cout << "DEC: " << math::degrees(sun_declination) << std::endl;
-	//std::cout << "eOT: " << eot << std::endl;
-	*/
-
 	float2 sun_az_el = float2{static_cast<float>(sun_azimuth), static_cast<float>(sun_elevation)};
 	math::quaternion<float> sun_azimuth_rotation = math::angle_axis(sun_az_el[0], float3{0, 1, 0});
 	math::quaternion<float> sun_elevation_rotation = math::angle_axis(sun_az_el[1], float3{-1, 0, 0});
@@ -297,21 +283,8 @@ void weather_system::update(double t, double dt)
 	
 	if (sky_pass)
 	{
-
-		
-		//std::cout << "sungrad: " << (sun_gradient_position* static_cast<float>(sky_gradients.size() - 1)) << std::endl;
-		//std::cout << "sunel: " << math::degrees(sun_elevation) << std::endl;
-		
-		std::array<float4, 4> sky_gradient;
-		{
-			sky_gradient_position *= static_cast<float>(sky_gradients.size() - 1);
-			int index0 = static_cast<int>(sky_gradient_position) % sky_gradients.size();
-			int index1 = (index0 + 1) % sky_gradients.size();
-			sky_gradient_position -= std::floor(sky_gradient_position);
-			for (int i = 0; i < 4; ++i)
-				sky_gradient[i] = math::lerp(sky_gradients[index0][i], sky_gradients[index1][i], sky_gradient_position);
-		}
-		
+		float3 horizon_color = interpolate_gradient(horizon_colors, sun_gradient_position);
+		float3 zenith_color = interpolate_gradient(zenith_colors, sun_gradient_position);
 		float3 sun_color = interpolate_gradient(sun_colors, sun_gradient_position);
 		float3 moon_color = interpolate_gradient(moon_colors, moon_gradient_position);
 		float3 ambient_color = interpolate_gradient(ambient_colors, ambient_gradient_position);
@@ -321,7 +294,8 @@ void weather_system::update(double t, double dt)
 		moon_light->set_intensity(1.0f);
 		ambient_light->set_color(ambient_color);
 		
-		sky_pass->set_sky_gradient(sky_gradient);
+		sky_pass->set_horizon_color(horizon_color);
+		sky_pass->set_zenith_color(zenith_color);
 		sky_pass->set_time_of_day(static_cast<float>(hour * 60.0 * 60.0));
 		sky_pass->set_observer_location(location[0], location[1], location[2]);
 		sky_pass->set_sun_coordinates(sun_position, sun_az_el);
@@ -344,7 +318,7 @@ void weather_system::update(double t, double dt)
 	
 	if (material_pass)
 	{
-		float shadow_strength = interpolate_gradient(shadow_strengths, sun_gradient_position);
+		float shadow_strength = interpolate_gradient(shadow_strengths, sun_gradient_position).x;
 		material_pass->set_shadow_strength(shadow_strength);
 	}
 }
@@ -413,135 +387,75 @@ void weather_system::set_time_scale(float scale)
 
 void weather_system::set_sky_palette(const ::image* image)
 {
-	sky_palette = image;
-	if (sky_palette)
-	{
-		unsigned int w = image->get_width();
-		unsigned int h = image->get_height();
-		unsigned int c = image->get_channels();
-		const unsigned char* pixels = static_cast<const unsigned char*>(image->get_pixels());
-		
-		for (unsigned int x = 0; x < w; ++x)
-		{
-			std::array<float4, 4> gradient;
-			
-			for (unsigned int y = 0; y < std::min<unsigned int>(4, h); ++y)
-			{
-				unsigned int i = y * w * c + x * c;
-				float r = srgb_to_linear(static_cast<float>(pixels[i]) / 255.0f);
-				float g = srgb_to_linear(static_cast<float>(pixels[i + 1]) / 255.0f);
-				float b = srgb_to_linear(static_cast<float>(pixels[i + 2]) / 255.0f);
-				
-				gradient[y] = {r, g, b,  static_cast<float>(y) * (1.0f / 3.0f)};
-			}
-			
-			sky_gradients.push_back(gradient);
-		}
-	}
+	load_palette(&horizon_colors, image, 0);
+	load_palette(&zenith_colors, image, 1);
 }
 
 void weather_system::set_sun_palette(const ::image* image)
 {
-	sun_palette = image;
-	if (sun_palette)
-	{
-		unsigned int w = image->get_width();
-		unsigned int h = image->get_height();
-		unsigned int c = image->get_channels();
-		const unsigned char* pixels = static_cast<const unsigned char*>(image->get_pixels());
-		
-		for (unsigned int x = 0; x < w; ++x)
-		{
-			float3 color;
-			
-			unsigned int y = 0;
-			
-			unsigned int i = y * w * c + x * c;
-			float r = srgb_to_linear(static_cast<float>(pixels[i]) / 255.0f);
-			float g = srgb_to_linear(static_cast<float>(pixels[i + 1]) / 255.0f);
-			float b = srgb_to_linear(static_cast<float>(pixels[i + 2]) / 255.0f);
-				
-			color = {r, g, b};
-			
-			sun_colors.push_back(color);
-		}
-	}
+	load_palette(&sun_colors, image, 0);
 }
 
 void weather_system::set_moon_palette(const ::image* image)
 {
-	moon_palette = image;
-	if (moon_palette)
-	{
-		unsigned int w = image->get_width();
-		unsigned int h = image->get_height();
-		unsigned int c = image->get_channels();
-		const unsigned char* pixels = static_cast<const unsigned char*>(image->get_pixels());
-		
-		for (unsigned int x = 0; x < w; ++x)
-		{
-			float3 color;
-			
-			unsigned int y = 0;
-			
-			unsigned int i = y * w * c + x * c;
-			float r = srgb_to_linear(static_cast<float>(pixels[i]) / 255.0f);
-			float g = srgb_to_linear(static_cast<float>(pixels[i + 1]) / 255.0f);
-			float b = srgb_to_linear(static_cast<float>(pixels[i + 2]) / 255.0f);
-				
-			color = {r, g, b};
-			
-			moon_colors.push_back(color);
-		}
-	}
+	load_palette(&moon_colors, image, 0);
 }
 
 void weather_system::set_ambient_palette(const ::image* image)
 {
-	ambient_palette = image;
-	if (ambient_palette)
-	{
-		unsigned int w = image->get_width();
-		unsigned int h = image->get_height();
-		unsigned int c = image->get_channels();
-		const unsigned char* pixels = static_cast<const unsigned char*>(image->get_pixels());
-		
-		for (unsigned int x = 0; x < w; ++x)
-		{
-			float3 color;
-			
-			unsigned int y = 0;
-			
-			unsigned int i = y * w * c + x * c;
-			float r = srgb_to_linear(static_cast<float>(pixels[i]) / 255.0f);
-			float g = srgb_to_linear(static_cast<float>(pixels[i + 1]) / 255.0f);
-			float b = srgb_to_linear(static_cast<float>(pixels[i + 2]) / 255.0f);
-				
-			color = {r, g, b};
-			
-			ambient_colors.push_back(color);
-		}
-	}
+	load_palette(&ambient_colors, image, 0);
 }
 
 void weather_system::set_shadow_palette(const ::image* image)
 {
-	shadow_palette = image;
-	if (shadow_palette)
+	load_palette(&shadow_strengths, image, 0);
+}
+
+void weather_system::load_palette(std::vector<float3>* palette, const ::image* image, unsigned int row)
+{
+	unsigned int w = image->get_width();
+	unsigned int h = image->get_height();
+	unsigned int c = image->get_channels();
+	unsigned int y = std::min<unsigned int>(row, h - 1);
+	
+	palette->clear();
+	
+	if (image->is_hdr())
 	{
-		unsigned int w = image->get_width();
-		unsigned int h = image->get_height();
-		unsigned int c = image->get_channels();
+		const float* pixels = static_cast<const float*>(image->get_pixels());
+		
+		for (unsigned int x = 0; x < w; ++x)
+		{
+			unsigned int i = y * w * c + x * c;
+			
+			float r = pixels[i];
+			float g = pixels[i + 1];
+			float b = pixels[i + 2];
+			
+			palette->push_back(float3{r, g, b});
+		}
+	}
+	else
+	{
 		const unsigned char* pixels = static_cast<const unsigned char*>(image->get_pixels());
 		
 		for (unsigned int x = 0; x < w; ++x)
-		{		
-			unsigned int y = 0;
-			
+		{
 			unsigned int i = y * w * c + x * c;
-			float r = 1.0f - (static_cast<float>(pixels[i]) / 255.0f);
 			
-			shadow_strengths.push_back(r);
+			float r = srgb_to_linear(static_cast<float>(pixels[i]) / 255.0f);
+			float g = srgb_to_linear(static_cast<float>(pixels[i + 1]) / 255.0f);
+			float b = srgb_to_linear(static_cast<float>(pixels[i + 2]) / 255.0f);
+			
+			palette->push_back(float3{r, g, b});
 		}
 	}
+}
+
+float3 weather_system::interpolate_gradient(const std::vector<float3>& gradient, float position)
+{
+	position *= static_cast<float>(gradient.size() - 1);
+	int index0 = static_cast<int>(position) % gradient.size();
+	int index1 = (index0 + 1) % gradient.size();
+	return math::lerp<float3>(gradient[index0], gradient[index1], position - std::floor(position));
 }
