@@ -25,6 +25,7 @@
 #include "renderer/passes/material-pass.hpp"
 #include "utility/gamma.hpp"
 #include "resources/image.hpp"
+#include "game/astronomy/celestial-coordinates.hpp"
 #include <cmath>
 #include <iostream>
 
@@ -54,31 +55,30 @@ static double julian_day(int year, int month, int day, double time)
 	return std::floor(365.25 * y) + std::floor(30.6001 * (m + 1.0)) - 15.0 + 1720996.5 + d + time;
 }
 
-/// @see A Physically-Based Night Sky Model
-/// @see http://www.powerfromthesun.net/Book/chapter03/chapter03.html
-void find_sun_ecliptic(double jd, double* longitude, double* latitude, double* distance)
+/**
+ * Calculates the ecliptic rectangular geocentric coordinates of the sun, with distance in AU.
+ */
+double3 calculate_sun_ecliptic(double jd)
 {
 	const double t = (jd - 2451545.0) / 36525.0;
 	const double m = 6.24 + 628.302 * t;
 	
-	*longitude = 4.895048 + 628.331951 * t + (0.033417 - 0.000084 * t) * std::sin(m) + 0.000351 * std::sin(m * 2.0);
-	*latitude = 0.0;
-	*distance = 1.000140 - (0.016708 - 0.000042 * t) * std::cos(m) - 0.000141 * std::cos(m * 2.0);
+	const double longitude = 4.895048 + 628.331951 * t + (0.033417 - 0.000084 * t) * std::sin(m) + 0.000351 * std::sin(m * 2.0);
+	const double latitude = 0.0;
+	const double distance = 1.000140 - (0.016708 - 0.000042 * t) * std::cos(m) - 0.000141 * std::cos(m * 2.0);
+	
+	double3 ecliptic;
+	ecliptic.x = distance * std::cos(longitude) * std::cos(latitude);
+	ecliptic.y = distance * std::sin(longitude) * std::cos(latitude);
+	ecliptic.z = distance * std::sin(latitude);
+	
+	return ecliptic;
 }
 
 /**
- * Calculates the ecliptic geocentric coordinates of the moon, given a Julian day.
- *
- * @param[in] jd Julian day.
- * @param[out] longitude Ecliptic longitude of the moon, in radians.
- * @param[out] latitude Ecliptic latitude of the moon, in radians.
- * @param[out] distance Distance to the moon, in Earth radii.
- 
- * @return Array containing the ecliptic longitude and latitude of the moon, in radians.
- *
- * @see A Physically-Based Night Sky Model
+ * Calculates the ecliptic rectangular geocentric coordinates of the moon, with distance in Earth radii.
  */
-void find_moon_ecliptic(double jd, double* longitude, double* latitude, double* distance)
+double3 calculate_moon_ecliptic(double jd)
 {
 	const double t = (jd - 2451545.0) / 36525.0;
 	const double l1 = 3.8104 + 8399.7091 * t;
@@ -88,7 +88,7 @@ void find_moon_ecliptic(double jd, double* longitude, double* latitude, double* 
 	const double d2 = d * 2.0;
 	const double f = 1.6280 + 8433.4663 * t;
 	
-	*longitude = l1
+	const double longitude = l1
 		+ 0.1098 * std::sin(m1)
 		+ 0.0222 * std::sin(d2 - m1)
 		+ 0.0115 * std::sin(d2)
@@ -103,7 +103,7 @@ void find_moon_ecliptic(double jd, double* longitude, double* latitude, double* 
 		- 0.0006 * std::sin(d)
 		- 0.0005 * std::sin(m + m1);
 
-	*latitude = 0.0895 * sin(f)
+	const double latitude = 0.0895 * sin(f)
 		+ 0.0049 * std::sin(m1 + f)
 		+ 0.0048 * std::sin(m1 - f)
 		+ 0.0030 * std::sin(d2 - f)
@@ -111,13 +111,54 @@ void find_moon_ecliptic(double jd, double* longitude, double* latitude, double* 
 		+ 0.0008 * std::sin(d2 - f - m1)
 		+ 0.0006 * std::sin(d2 + f);
 	
-	*distance = 1.0 / (0.016593
+	const double r = 1.0 / (0.016593
 		+ 0.000904 * std::cos(m1)
 		+ 0.000166 * std::cos(d2 - m1)
 		+ 0.000137 * std::cos(d2)
 		+ 0.000049 * std::cos(m1 * 2.0)
 		+ 0.000015 * std::cos(d2 + m1)
 		+ 0.000009 * std::cos(d2 - m));
+	
+	double3 ecliptic;
+	ecliptic.x = r * std::cos(longitude) * std::cos(latitude);
+	ecliptic.y = r * std::sin(longitude) * std::cos(latitude);
+	ecliptic.z = r * std::sin(latitude);
+	
+	return ecliptic;
+}
+
+double3x3 find_moon_ecliptic_rotation(double jd)
+{
+	const double t = (jd - 2451545.0) / 36525.0;
+	const double l1 = 3.8104 + 8399.7091 * t;
+	const double f = 1.6280 + 8433.4663 * t;
+	
+	const double az0 = f + math::pi<double>;
+	const double ax  = 0.026920;
+	const double az1 = l1 - f;
+	
+	double3x3 rz0 =
+	{
+		cos(az0), -sin(az0), 0,
+		sin(az0), cos(az0), 0,
+		0, 0, 1
+	};
+	
+	double3x3 rx =
+	{
+		1, 0, 0,
+		0, cos(ax), -sin(ax),
+		0, sin(ax), cos(ax)
+	};
+	
+	double3x3 rz1 =
+	{
+		cos(az1), -sin(az1), 0,
+		sin(az1), cos(az1), 0,
+		0, 0, 1
+	};
+	
+	return rz0 * rx * rz1;
 }
 
 /// @see http://www.stjarnhimlen.se/comp/ppcomp.html
@@ -154,6 +195,17 @@ void equatorial_to_horizontal(double right_ascension, double declination, double
 	*elevation = math::wrap_radians<double>(std::atan2(horiz_z, std::sqrt(horiz_x * horiz_x + horiz_y * horiz_y)));
 }
 
+
+double3x3 horizontal_to_right_handed()
+{
+	return double3x3
+	{
+		 0.0,  0.0,  1.0,
+		 1.0,  0.0,  0.0,
+		 0.0, -1.0,  0.0
+	};
+}
+
 /**
  * Calculates the Greenwich mean sidereal time (GMST) from a Julian day.
  *
@@ -187,97 +239,72 @@ void weather_system::update(double t, double dt)
 	const float latitude = location[0];
 	const float longitude = location[1];
 	
-	// Time correction
-	double tc = longitude / (math::two_pi<double> / 24.0);
-	
-	//double pst_tc = -7.0;
-	
-	double local_jd = jd + tc / 24.0 - 0.5;
+	// Calculate local mean sidereal time (LMST)
+	double time_correction = longitude / (math::two_pi<double> / 24.0);
+	double local_jd = jd + time_correction / 24.0 - 0.5;
 	double local_time = (local_jd - std::floor(local_jd)) * 24.0;
 	double hour = local_time;
-	
-	
-
-	
-	// Calculate equation of time
-	//float eot_b = (360.0f / 365.0f) * (day_of_year - 81.0f);
-	//float eot = 9.87f * std::sin(eot_b * 2.0f) - 7.53f * std::cos(eot_b) - 1.5f * std::sin(eot_b);
-	
-	// Calculate local mean sidereal time (LST)
-	//double tc = longitude / (math::two_pi<double> / 24.0); // Time correction
-	//double ut = local_time + tc;                           // Universal time
 	double gmst = jd_to_gmst(jd);
 	double lmst = gmst + longitude;
 	
-	// Calculate sun position
-	//float local_solar_time = local_time;// + eot / 60.0f;
-	/*
-	float sun_declination = math::radians(23.45f) * std::sin((math::two_pi<float> / 365.0f) * (284.0f + day_of_year));
-	float sun_hour_angle = math::radians(15.0f) * (local_solar_time - 12.0f);
-	sun_elevation = std::asin(std::sin(sun_declination) * std::sin(latitude) + std::cos(sun_declination) * std::cos(sun_hour_angle) * std::cos(latitude));
-	sun_azimuth = std::acos((std::sin(sun_declination) * std::cos(latitude) - std::cos(sun_declination) * std::cos(sun_hour_angle) * std::sin(latitude)) / std::cos(sun_elevation));
-	if (sun_hour_angle > 0.0f)
-		sun_azimuth = math::two_pi<float> - sun_azimuth;
-	*/
-	
-	// J2000 day
-	double d = jd - 2451545.0;
-	
 	// Obliquity of the ecliptic
-	double ecl = math::radians<double>(23.4393 - 3.563e-7 * d);
+	double ecl = math::radians<double>(23.4393 - 3.563e-7 * (jd - 2451545.0));
 	
-	// Calculation sun coordinates
-	double sun_longitude;
-	double sun_latitude;
-	double sun_distance;
-	double sun_right_ascension;
-	double sun_declination;
-	double sun_azimuth;
-	double sun_elevation;
-	find_sun_ecliptic(jd, &sun_longitude, &sun_latitude, &sun_distance);
-	ecliptic_to_equatorial(sun_longitude, sun_latitude, ecl, &sun_right_ascension, &sun_declination);
-	equatorial_to_horizontal(sun_right_ascension, sun_declination, lmst, latitude, &sun_azimuth, &sun_elevation);
+	// Solar distance in AU
+	//double sr = ...
+	// Apparent radius in degrees
+	//double sradius = 0.2666 / sr;
 	
-	// Calculate moon coordinates
-	double moon_longitude;
-	double moon_latitude;
-	double moon_distance;
-	double moon_right_ascension;
-	double moon_declination;
-	double moon_azimuth;
-	double moon_elevation;
-	find_moon_ecliptic(jd, &moon_longitude, &moon_latitude, &moon_distance);
-	ecliptic_to_equatorial(moon_longitude, moon_latitude, ecl, &moon_right_ascension, &moon_declination);
-	equatorial_to_horizontal(moon_right_ascension, moon_declination, lmst, latitude, &moon_azimuth, &moon_elevation);
+	double3x3 ecliptic_to_horizontal = ast::ecliptic_to_horizontal(ecl, latitude, lmst);
 	
-	float2 sun_az_el = float2{static_cast<float>(sun_azimuth), static_cast<float>(sun_elevation)};
-	math::quaternion<float> sun_azimuth_rotation = math::angle_axis(sun_az_el[0], float3{0, 1, 0});
-	math::quaternion<float> sun_elevation_rotation = math::angle_axis(sun_az_el[1], float3{-1, 0, 0});
-	math::quaternion<float> sun_rotation = math::normalize(sun_azimuth_rotation * sun_elevation_rotation);
-	float3 sun_position = math::normalize(sun_rotation * float3{0, 0, -1});
+	double3 sun_ecliptic = calculate_sun_ecliptic(jd);
+	double3 sun_horizontal = ecliptic_to_horizontal * sun_ecliptic;
+	double3 sun_spherical = ast::rectangular_to_spherical(sun_horizontal);
+	double3 sun_positiond = horizontal_to_right_handed() * sun_horizontal;
+	float2 sun_az_el = {static_cast<float>(sun_spherical.z) - math::pi<float>, static_cast<float>(sun_spherical.y)};
+	float3 sun_position = math::normalize(float3{static_cast<float>(sun_positiond.x), static_cast<float>(sun_positiond.y), static_cast<float>(sun_positiond.z)});
 	
-	float2 moon_az_el = float2{static_cast<float>(moon_azimuth), static_cast<float>(moon_elevation)};
-	math::quaternion<float> moon_azimuth_rotation = math::angle_axis(moon_az_el[0], float3{0, 1, 0});
-	math::quaternion<float> moon_elevation_rotation = math::angle_axis(moon_az_el[1], float3{-1, 0, 0});
-	math::quaternion<float> moon_rotation = math::normalize(moon_azimuth_rotation * moon_elevation_rotation);
-	float3 moon_position = math::normalize(moon_rotation * float3{0, 0, -1});
+	double3 moon_ecliptic = calculate_moon_ecliptic(jd);
+	double3 moon_horizontal = ecliptic_to_horizontal * moon_ecliptic;
+	moon_horizontal.z -= 1.0; // Subtract one earth radius, for position of observer
+	double3 moon_spherical = ast::rectangular_to_spherical(moon_horizontal);
+	double3 moon_positiond = horizontal_to_right_handed() * moon_horizontal;
+	float2 moon_az_el = {static_cast<float>(moon_spherical.z) - math::pi<float>, static_cast<float>(moon_spherical.y)};
+	float3 moon_position = math::normalize(float3{static_cast<float>(moon_positiond.x), static_cast<float>(moon_positiond.y), static_cast<float>(moon_positiond.z)});
+	
+	//std::cout << "new moon: " << math::degrees(moon_az_el[0]) << ", " << math::degrees(moon_az_el[1]) << std::endl;
+	
+	double3x3 moon_rotation_matrix = horizontal_to_right_handed() * ecliptic_to_horizontal;
+	math::quaternion<double> moon_rotationd = math::normalize(math::quaternion_cast(moon_rotation_matrix) * math::angle_axis(math::half_pi<double>, double3{0, 1, 0}) * math::angle_axis(-math::half_pi<double>, double3{0, 0, -1}));
+	math::quaternion<float> moon_rotation =
+	{
+		static_cast<float>(moon_rotationd.w),
+		static_cast<float>(moon_rotationd.x),
+		static_cast<float>(moon_rotationd.y),
+		static_cast<float>(moon_rotationd.z)
+	};
 	
 	if (sun_light)
 	{
-		sun_light->set_rotation(sun_rotation);
+		math::quaternion<float> sun_azimuth_rotation = math::angle_axis(sun_az_el[0], float3{0, 1, 0});
+		math::quaternion<float> sun_elevation_rotation = math::angle_axis(sun_az_el[1], float3{-1, 0, 0});
+		math::quaternion<float> sun_az_el_rotation = math::normalize(sun_azimuth_rotation * sun_elevation_rotation);
+		sun_light->set_rotation(sun_az_el_rotation);
 	}
 	
 	if (moon_light)
 	{
-		moon_light->set_rotation(moon_rotation);
+		math::quaternion<float> moon_azimuth_rotation = math::angle_axis(moon_az_el[0], float3{0, 1, 0});
+		math::quaternion<float> moon_elevation_rotation = math::angle_axis(moon_az_el[1], float3{-1, 0, 0});
+		math::quaternion<float> moon_az_el_rotation = math::normalize(moon_azimuth_rotation * moon_elevation_rotation);
+		moon_light->set_rotation(moon_az_el_rotation);
 	}
 	
 	std::size_t hour_index = static_cast<std::size_t>(hour);
 	float lerp_factor = hour - std::floor(hour);
 	
-	
-	float sun_gradient_position = static_cast<float>(std::max<double>(0.0, ((sun_elevation + math::half_pi<double>) / math::pi<double>)));
-	float moon_gradient_position = static_cast<float>(std::max<double>(0.0, ((moon_elevation + math::half_pi<double>) / math::pi<double>)));
+	float sun_gradient_position = static_cast<float>(std::max<double>(0.0, ((sun_az_el[1] + math::half_pi<double>) / math::pi<double>)));
+	float moon_gradient_position = static_cast<float>(std::max<double>(0.0, ((moon_az_el[1] + math::half_pi<double>) / math::pi<double>)));
 	float sky_gradient_position = sun_gradient_position;
 	float ambient_gradient_position = sun_gradient_position;
 	
@@ -290,9 +317,11 @@ void weather_system::update(double t, double dt)
 		float3 ambient_color = interpolate_gradient(ambient_colors, ambient_gradient_position);
 		
 		sun_light->set_color(sun_color);
+		sun_light->set_intensity(1.0f);
 		moon_light->set_color(moon_color);
 		moon_light->set_intensity(1.0f);
 		ambient_light->set_color(ambient_color);
+		ambient_light->set_intensity(0.5f);
 		
 		sky_pass->set_horizon_color(horizon_color);
 		sky_pass->set_zenith_color(zenith_color);
@@ -301,12 +330,13 @@ void weather_system::update(double t, double dt)
 		sky_pass->set_sun_coordinates(sun_position, sun_az_el);
 		sky_pass->set_moon_coordinates(moon_position, moon_az_el);
 		sky_pass->set_julian_day(static_cast<float>(jd));
+		sky_pass->set_moon_rotation(moon_rotation);
 	}
 	
 	shadow_light = sun_light;
 	if (shadow_map_pass)
 	{
-		if (sun_elevation < 0.0f)
+		if (sun_az_el[1] < 0.0f)
 		{
 			shadow_map_pass->set_light(moon_light);
 		}
@@ -367,11 +397,6 @@ void weather_system::set_shadow_map_pass(::shadow_map_pass* pass)
 void weather_system::set_material_pass(::material_pass* pass)
 {
 	material_pass = pass;
-	
-	if (material_pass)
-	{
-		material_pass->set_shadow_strength(0.75f);
-	}
 }
 
 void weather_system::set_time(int year, int month, int day, int hour, int minute, int second, double tc)

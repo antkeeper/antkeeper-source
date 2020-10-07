@@ -75,24 +75,13 @@ void play_state_enter(game_context* ctx)
 	}
 	
 	// Apply biome parameters to scene
-	ctx->sun_indirect->set_color(ctx->biome->ambient_color);
-	ctx->sun_indirect->set_intensity(ctx->biome->ambient_intensity);
-	
-	math::quaternion<float> sun_azimuth_rotation = math::angle_axis(ctx->biome->sun_azimuth, float3{0, 1, 0});
-	math::quaternion<float> sun_elevation_rotation = math::angle_axis(ctx->biome->sun_elevation, float3{-1, 0, 0});
-	math::quaternion<float> sun_rotation = math::normalize(sun_azimuth_rotation * sun_elevation_rotation);
-	
-	ctx->sun_direct->set_rotation(sun_rotation);
-	ctx->sun_direct->set_color(ctx->biome->sun_color);
-	ctx->sun_direct->set_intensity(ctx->biome->sun_intensity);
-	
 	sky_pass* sky_pass = ctx->overworld_sky_pass;
 	sky_pass->set_enabled(true);
 	sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
 	sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
 	
 	ctx->weather_system->set_location(ctx->biome->location[0], ctx->biome->location[1], ctx->biome->location[2]);
-	ctx->weather_system->set_time(2020, 6, 1, 5, 0, 0, -7.0);
+	ctx->weather_system->set_time(2017, 8, 21, 5, 0, 0, -7.0);
 	ctx->weather_system->set_sky_palette(ctx->biome->sky_palette);
 	ctx->weather_system->set_sun_palette(ctx->biome->sun_palette);
 	ctx->weather_system->set_ambient_palette(ctx->biome->ambient_palette);

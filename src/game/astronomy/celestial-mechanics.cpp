@@ -17,32 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_BIOME_HPP
-#define ANTKEEPER_BIOME_HPP
+#include "celestial-mechanics.hpp"
+#include <cmath>
 
-#include <string>
-#include "utility/fundamental-types.hpp"
-class material;
-class image;
-
-struct biome
+namespace ast
 {
-	std::string name;
-	
-	/// Latitude (radians), longitude (radians), altitude (meters)
-	float3 location;
-	
-	// Terrain
-	material* terrain_material;
-	
-	// Weather
-	image* sky_palette;
-	image* sun_palette;
-	image* moon_palette;
-	image* ambient_palette;
-	image* shadow_palette;
-	
-	// Traits
-};
 
-#endif // ANTKEEPER_BIOME_HPP
+
+
+} // namespace ast

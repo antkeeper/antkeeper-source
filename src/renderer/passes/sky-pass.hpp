@@ -25,6 +25,7 @@
 #include "event/event-handler.hpp"
 #include "event/input-events.hpp"
 #include "animation/tween.hpp"
+#include "math/quaternion-type.hpp"
 
 class shader_program;
 class shader_input;
@@ -61,6 +62,7 @@ public:
 	void set_observer_location(float latitude, float longitude, float altitude);
 	void set_sun_coordinates(const float3& position, const float2& az_el);
 	void set_moon_coordinates(const float3& position, const float2& az_el);
+	void set_moon_rotation(const math::quaternion<float>& rotation);
 	
 	void set_moon_angular_radius(float radius);
 	void set_sun_angular_radius(float radius);
@@ -120,6 +122,8 @@ private:
 	tween<float2> moon_az_el_tween;
 	tween<float3> horizon_color_tween;
 	tween<float3> zenith_color_tween;
+	
+	math::quaternion<float> moon_rotation;
 	
 	float moon_angular_radius;
 	float cos_moon_angular_radius;

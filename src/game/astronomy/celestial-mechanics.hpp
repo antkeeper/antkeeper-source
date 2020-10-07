@@ -17,32 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_BIOME_HPP
-#define ANTKEEPER_BIOME_HPP
+#ifndef ANTKEEPER_CELESTIAL_MECHANICS_HPP
+#define ANTKEEPER_CELESTIAL_MECHANICS_HPP
 
-#include <string>
 #include "utility/fundamental-types.hpp"
-class material;
-class image;
 
-struct biome
+namespace ast
 {
-	std::string name;
-	
-	/// Latitude (radians), longitude (radians), altitude (meters)
-	float3 location;
-	
-	// Terrain
-	material* terrain_material;
-	
-	// Weather
-	image* sky_palette;
-	image* sun_palette;
-	image* moon_palette;
-	image* ambient_palette;
-	image* shadow_palette;
-	
-	// Traits
+
+struct orbital_elements
+{
+	double a; ///< Semi-major axis (km)
+	double e; ///< Eccentricity
+	double w; ///< Argument of periapsis (radians)
+	double m; ///< Mean anomaly (radians)
+	double i; ///< Inclination to the ecliptic (radians)
+	double n; ///< Longitude of the ascending node (radians)
 };
 
-#endif // ANTKEEPER_BIOME_HPP
+//constexpr orbital_elements j2k_orbit_moon = {384400.0, 0.0554, 318.15, 135.275.16, 125.08};
+
+struct orbital_state
+{
+	double3 r; ///< Cartesian position
+	double3 v; ///< Cartesian velocity
+};
+
+} // namespace ast
+
+#endif // ANTKEEPER_CELESTIAL_MECHANICS_HPP

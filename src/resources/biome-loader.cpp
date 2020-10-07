@@ -87,26 +87,6 @@ biome* resource_loader<biome>::load(resource_manager* resource_manager, PHYSFS_F
 	
 	if (auto weather = json.find("weather"); weather != json.end())
 	{
-		load_array(&biome->ambient_color.x, 3, weather.value(), "ambient_color");
-		load_value(&biome->ambient_intensity, weather.value(), "ambient_intensity");
-		
-		
-		load_value(&biome->sun_azimuth, weather.value(), "sun_azimuth");
-		biome->sun_azimuth = math::radians(biome->sun_azimuth);
-		load_value(&biome->sun_elevation, weather.value(), "sun_elevation");
-		biome->sun_elevation = math::radians(biome->sun_elevation);
-		load_array(&biome->sun_color.x, 3, weather.value(), "sun_color");
-		load_value(&biome->sun_intensity, weather.value(), "sun_intensity");
-		load_value(&biome->sun_angular_radius, weather.value(), "sun_angular_radius");
-		biome->sun_angular_radius = math::radians(biome->sun_angular_radius);
-		
-		load_array(&biome->horizon_color.x, 3, weather.value(), "horizon_color");
-		load_array(&biome->zenith_color.x, 3, weather.value(), "zenith_color");
-		
-		load_value(&biome->wind_speed, weather.value(), "wind_speed");
-		load_value(&biome->wind_direction, weather.value(), "wind_direction");
-		biome->wind_direction = math::radians(biome->wind_direction);
-		
 		std::string sky_palette_filename;
 		if (load_value(&sky_palette_filename, weather.value(), "sky_palette"))
 		{

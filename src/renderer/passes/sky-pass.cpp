@@ -147,7 +147,12 @@ void sky_pass::render(render_context* context) const
 		float moon_distance = (clip_near + clip_far) * 0.5f;		
 		float moon_radius = moon_angular_radius * moon_distance;
 		
-		model = math::scale(math::translate(math::identity4x4<float>, moon_position * -moon_distance), float3{moon_radius, moon_radius, moon_radius});
+		math::transform<float> moon_transform;
+		moon_transform.translation = moon_position * -moon_distance;
+		moon_transform.rotation = moon_rotation;
+		moon_transform.scale = {moon_radius, moon_radius, moon_radius};
+		
+		model = math::matrix_cast(moon_transform);		
 		model_view = view * model;
 		model_view_projection = projection * model_view;
 		float3x3 normal_model = math::transpose(math::inverse(math::resize<3, 3>(model)));
@@ -297,6 +302,11 @@ void sky_pass::set_moon_coordinates(const float3& position, const float2& az_el)
 {
 	moon_position_tween[1] = position;
 	moon_az_el_tween[1] = az_el;
+}
+
+void sky_pass::set_moon_rotation(const math::quaternion<float>& rotation)
+{
+	moon_rotation = rotation;
 }
 
 void sky_pass::set_moon_angular_radius(float radius)
