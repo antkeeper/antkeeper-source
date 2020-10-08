@@ -308,6 +308,19 @@ matrix<T, 3, 3> transpose(const matrix<T, 3, 3>& m);
 template <class T>
 matrix<T, 4, 4> transpose(const matrix<T, 4, 4>& m);
 
+/**
+ * Types casts each matrix element and returns a matrix of the casted type.
+ *
+ * @tparam T2 Target matrix element type.
+ * @tparam T1 Source matrix element type.
+ * @tparam N Number of columns.
+ * @tparam M Number of rows.
+ * @param m Matrix to type cast.
+ * @return Type-casted matrix.
+ */
+template <class T2, class T1, std::size_t N, std::size_t M>
+matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m);
+
 template <class T>
 matrix<T, 2, 2> add(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
 {
@@ -839,6 +852,19 @@ matrix<T, 4, 4> transpose(const matrix<T, 4, 4>& m)
 				m[0][3], m[1][3], m[2][3], m[3][3]
 			}
 		}};
+}
+
+/// @private
+template <class T2, class T1, std::size_t N, std::size_t M, std::size_t... I>
+inline matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m, std::index_sequence<I...>)
+{
+	return {type_cast<T2>(m[I])...};
+}
+
+template <class T2, class T1, std::size_t N, std::size_t M>
+matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m)
+{
+	return type_cast<T2>(m, std::make_index_sequence<N>{}); 
 }
 
 /// @}

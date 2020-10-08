@@ -305,6 +305,18 @@ vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y);
 template <std::size_t... Indices, class T, std::size_t N>
 vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& v);
 
+/**
+ * Types casts each vector component and returns a vector of the casted type.
+ *
+ * @tparam T2 Target vector component type.
+ * @tparam T1 Source vector component type.
+ * @tparam N Number of dimensions.
+ * @param v Vector to type cast.
+ * @return Type-casted vector.
+ */
+template <class T2, class T1, std::size_t N>
+vector<T2, N> type_cast(const vector<T1, N>& v);
+
 /// @private
 template <class T, std::size_t N, std::size_t... I>
 inline vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
@@ -617,6 +629,19 @@ template <std::size_t... Indices, class T, std::size_t N>
 inline vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& v)
 {
 	return { v[Indices]... };
+}
+
+/// @private
+template <class T2, class T1, std::size_t N, std::size_t... I>
+inline vector<T2, N> type_cast(const vector<T1, N>& v, std::index_sequence<I...>)
+{
+	return {static_cast<T2>(v[I])...};
+}
+
+template <class T2, class T1, std::size_t N>
+inline vector<T2, N> type_cast(const vector<T1, N>& v)
+{
+	return type_cast<T2>(v, std::make_index_sequence<N>{}); 
 }
 
 /// @}

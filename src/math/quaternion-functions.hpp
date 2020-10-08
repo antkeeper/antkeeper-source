@@ -221,6 +221,17 @@ quaternion<T> sub(const quaternion<T>& x, const quaternion<T>& y);
 template <class T>
 quaternion<T> quaternion_cast(const matrix<T, 3, 3>& m);
 
+/**
+ * Types casts each quaternion component and returns a quaternion of the casted type.
+ *
+ * @tparam T2 Target quaternion component type.
+ * @tparam T1 Source quaternion component type.
+ * @param q Quaternion to type cast.
+ * @return Type-casted quaternion.
+ */
+template <class T2, class T1>
+quaternion<T2> type_cast(const quaternion<T1>& q);
+
 template <class T>
 inline quaternion<T> add(const quaternion<T>& x, const quaternion<T>& y)
 {
@@ -457,6 +468,18 @@ quaternion<T> quaternion_cast(const matrix<T, 3, 3>& m)
 	}
 
 	return {r, i.x, i.y, i.z};
+}
+
+template <class T2, class T1>
+inline quaternion<T2> type_cast(const quaternion<T1>& q)
+{
+	return quaternion<T2>
+	{
+		static_cast<T2>(q.w),
+		static_cast<T2>(q.x),
+		static_cast<T2>(q.y),
+		static_cast<T2>(q.z)
+	};
 }
 
 /// @}
