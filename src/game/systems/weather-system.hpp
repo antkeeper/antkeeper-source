@@ -53,7 +53,7 @@ public:
 	void set_material_pass(::material_pass* pass);
 	
 	/// @param tc Timezone correction, in hours
-	void set_time(int year, int month, int day, int hour, int minute, int second, double tc);
+	void set_time(int year, int month, int day, int hour, int minute, double second, double tc);
 	void set_time_scale(float scale);
 	
 	void set_sky_palette(const ::image* image);

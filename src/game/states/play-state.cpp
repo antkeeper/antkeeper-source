@@ -81,7 +81,7 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
 	
 	ctx->weather_system->set_location(ctx->biome->location[0], ctx->biome->location[1], ctx->biome->location[2]);
-	ctx->weather_system->set_time(2017, 8, 21, 5, 0, 0, -7.0);
+	ctx->weather_system->set_time(2017, 8, 21, 5, 0, 0.0, -7.0);
 	ctx->weather_system->set_sky_palette(ctx->biome->sky_palette);
 	ctx->weather_system->set_sun_palette(ctx->biome->sun_palette);
 	ctx->weather_system->set_ambient_palette(ctx->biome->ambient_palette);
@@ -118,7 +118,7 @@ void play_state_enter(game_context* ctx)
 	marker_archetype->assign(ecs_registry, ctx->marker_entity);
 	container_archetype->assign(ecs_registry, ctx->container_entity);
 	twig_archetype->assign(ecs_registry, ctx->twig_entity);
-		
+	
 	// Create flashlight and light cone, set light cone parent to flashlight, and move both to underworld scene
 	flashlight_archetype->assign(ecs_registry, ctx->flashlight_entity);
 	auto flashlight_light_cone = flashlight_light_cone_archetype->create(ecs_registry);
@@ -137,7 +137,7 @@ void play_state_enter(game_context* ctx)
 	//ec::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
 	ec::parent(ecs_registry, lens_light_cone, ctx->lens_entity);
 	
-
+	
 	
 	// Hide inactive tools
 	ec::assign_render_layers(ecs_registry, ctx->forceps_entity, 0);
@@ -241,19 +241,19 @@ void play_state_enter(game_context* ctx)
 	ecs_registry.assign_or_replace<ecs::transform_component>(ctx->focal_point_entity, focal_point_transform);
 	ecs_registry.assign_or_replace<ecs::camera_follow_component>(ctx->focal_point_entity, focal_point_follow);
 	ecs_registry.assign_or_replace<ecs::snap_component>(ctx->focal_point_entity, focal_point_snap);
-
+	
 	// Setup camera
 	ctx->overworld_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
 	ctx->camera_system->set_camera(ctx->overworld_camera);
-
+	
 	auto ant_head = ant_head_archetype->create(ecs_registry);
 	ec::place(ecs_registry, ant_head, {50, 0});
-
+	
 	ctx->overworld_scene->update_tweens();
-
+	
 	// Allocate a nest
 	nest* nest = new ::nest();
-
+	
 	// Setup initial nest parameters
 	float tunnel_radius = 1.15f;
 	nest->set_tunnel_radius(tunnel_radius);
@@ -275,7 +275,7 @@ void play_state_enter(game_context* ctx)
 		chamber.outer_radius = 10.0f;
 		central_shaft->chambers.push_back(chamber);
 	}
-
+	
 	// Dig nest shafts
 	float shift = 0.1f;
 	for (int i = 0; i < 800; ++i)

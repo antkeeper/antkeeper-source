@@ -25,6 +25,38 @@
 namespace ast
 {
 
+/**
+ * Approximates the obliquity of the ecliptic.
+ *
+ * @param jd Julian date.
+ * @return Obliquity of the ecliptic, in radians.
+ */
+double approx_ecliptic_obliquity(double jd);
+
+/**
+ * Approximates the ecliptic coordinates of the Earth's sun.
+ *
+ * @param jd Julian date.
+ * @return Ecliptic rectangular geocentric coordinates of the Earth's sun, with distance in AU.
+ */
+double3 approx_sun_ecliptic(double jd);
+
+/**
+ * Approximates the ecliptic coordinates of the Earth's moon.
+ *
+ * @param jd Julian date.
+ * @return Ecliptic rectangular geocentric coordinates of the Earth's moon, with distance in Earth radii.
+ */
+double3 approx_moon_ecliptic(double jd);
+
+/**
+ * Approximates the ecliptic rotation of the Earth's moon.
+ *
+ * @param jd Julian date.
+ * @return Rotation matrix representing the moon's rotation in ecliptic space.
+ */
+double3x3 approx_moon_ecliptic_rotation(double jd);
+
 struct orbital_elements
 {
 	double a; ///< Semi-major axis (km)

@@ -58,14 +58,14 @@ double3x3 ecliptic_to_equatorial(double ecl)
 	};
 }
 
-double3x3 ecliptic_to_horizontal(double ecl, double lat, double lst)
+double3x3 ecliptic_to_horizontal(double ecl, double lat, double lmst)
 {
 	const double c_ecl = std::cos(ecl);
 	const double s_ecl = std::sin(ecl);
 	const double c_lat = std::cos(lat);
 	const double s_lat = std::sin(lat);
-	const double c_lst = std::cos(lst);
-	const double s_lst = std::sin(lst);
+	const double c_lst = std::cos(lmst);
+	const double s_lst = std::sin(lmst);
 	
 	return double3x3
 	{
@@ -88,12 +88,12 @@ double3x3 equatorial_to_ecliptic(double ecl)
 	};
 }
 
-double3x3 equatorial_to_horizontal(double lat, double lst)
+double3x3 equatorial_to_horizontal(double lat, double lmst)
 {
 	const double c_lat = std::cos(lat);
 	const double s_lat = std::sin(lat);
-	const double c_lst = std::cos(lst);
-	const double s_lst = std::sin(lst);
+	const double c_lst = std::cos(lmst);
+	const double s_lst = std::sin(lmst);
 	
 	return double3x3
 	{
@@ -103,12 +103,12 @@ double3x3 equatorial_to_horizontal(double lat, double lst)
 	};
 }
 
-double3x3 horizontal_to_equatorial(double lat, double lst)
+double3x3 horizontal_to_equatorial(double lat, double lmst)
 {
 	const double c_lat = std::cos(lat);
 	const double s_lat = std::sin(lat);
-	const double c_lst = std::cos(lst);
-	const double s_lst = std::sin(lst);
+	const double c_lst = std::cos(lmst);
+	const double s_lst = std::sin(lmst);
 	
 	return double3x3
 	{
@@ -118,14 +118,14 @@ double3x3 horizontal_to_equatorial(double lat, double lst)
 	};
 }
 
-double3x3 horizontal_to_ecliptic(double ecl, double lat, double lst)
+double3x3 horizontal_to_ecliptic(double ecl, double lat, double lmst)
 {
 	const double c_ecl = std::cos(ecl);
 	const double s_ecl = std::sin(ecl);
 	const double c_lat = std::cos(lat);
 	const double s_lat = std::sin(lat);
-	const double c_lst = std::cos(lst);
-	const double s_lst = std::sin(lst);
+	const double c_lst = std::cos(lmst);
+	const double s_lst = std::sin(lmst);
 	
 	return double3x3
 	{
