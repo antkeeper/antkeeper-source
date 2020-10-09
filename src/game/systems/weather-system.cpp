@@ -83,11 +83,16 @@ void weather_system::update(double t, double dt)
 	double3 moon_ecliptic = ast::approx_moon_ecliptic(jd);
 	double3 moon_horizontal = ecliptic_to_horizontal * moon_ecliptic;
 	moon_horizontal.z -= 1.0; // Subtract one earth radius, for position of observer
+	
 	double3 moon_spherical = ast::rectangular_to_spherical(moon_horizontal);
 	double3 moon_positiond = ast::horizontal_to_right_handed * moon_horizontal;
-	float2 moon_az_el = {static_cast<float>(moon_spherical.z) - math::pi<float>, static_cast<float>(moon_spherical.y)};
-	float3 moon_position = math::normalize(float3{static_cast<float>(moon_positiond.x), static_cast<float>(moon_positiond.y), static_cast<float>(moon_positiond.z)});
-		
+	float2 moon_az_el = {static_cast<float>(moon_spherical.z) - math::pi<float>, static_cast<float>(moon_spherical.y)};	
+	float3 moon_position = math::normalize(math::type_cast<float>(moon_positiond));
+	
+	//double3 moon_sphericald = ast::rectangular_to_spherical(moon_positiond);
+	//std::cout << "old azel: " << math::degrees(moon_az_el.x) << ", " << math::degrees(moon_az_el.y) << std::endl;
+	//std::cout << "new azel: " << math::degrees(moon_sphericald.z) << ", " << math::degrees(moon_sphericald.y) << std::endl;
+	
 	double3x3 moon_rotation_matrix = ast::horizontal_to_right_handed * ecliptic_to_horizontal;
 	math::quaternion<double> moon_rotationd = math::normalize(math::quaternion_cast(moon_rotation_matrix) * math::angle_axis(math::half_pi<double>, double3{0, 1, 0}) * math::angle_axis(-math::half_pi<double>, double3{0, 0, -1}));
 	math::quaternion<float> moon_rotation =

@@ -70,7 +70,7 @@ double3 approx_moon_ecliptic(double jd)
 		+ 0.0007 * std::sin(m1 - m)
 		- 0.0006 * std::sin(d)
 		- 0.0005 * std::sin(m + m1);
-
+	
 	const double latitude = 0.0895 * sin(f)
 		+ 0.0049 * std::sin(m1 + f)
 		+ 0.0048 * std::sin(m1 - f)
@@ -127,6 +127,74 @@ double3x3 approx_moon_ecliptic_rotation(double jd)
 	};
 	
 	return rz0 * rx * rz1;
+}
+
+double3 solve_kepler(const kepler_orbit& orbit, double t)
+{
+	// Orbital period (Kepler's third law)
+	double pr = std::sqrt(orbit.a * orbit.a * orbit.a);
+	
+	// Mean anomaly
+	double epoch = 0.0;
+	double ma = (math::two_pi<double> * (t - epoch)) / pr;
+	
+	// Semi-minor axis
+	const double b = std::sqrt(1.0 - orbit.ec * orbit.ec);
+	
+	// Trig of orbital elements (can be precalculated?)
+	const double cos_ma = std::cos(ma);
+	const double sin_ma = std::sin(ma);
+	const double cos_om = std::cos(orbit.om);
+	const double sin_om = std::sin(orbit.om);
+	const double cos_i = std::cos(orbit.i);
+	const double sin_i = std::sin(orbit.i);
+	
+	// Eccentric anomaly
+	double ea = ma + orbit.ec * sin_ma * (1.0 + orbit.ec * cos_ma);
+	
+	// Find radial distance (r) and true anomaly (v)
+	double x = orbit.a * (std::cos(ea) - orbit.ec);
+	double y = b * std::sin(ea);
+	double r = std::sqrt(x * x + y * y);
+	double v = std::atan2(y, x);
+	
+	// Convert (r, v) to ecliptic rectangular coordinates
+	double cos_wv = std::cos(orbit.w + v);
+	double sin_wv = std::sin(orbit.w + v);
+	return double3
+	{
+		r * (cos_om * cos_wv - sin_om * sin_wv * cos_i),
+		r * (sin_om * cos_wv + cos_om * sin_wv * cos_i),
+		r * sin_wv * sin_i
+	};
+}
+
+double3 solve_kepler(double a, double ec, double w, double ma, double i, double om)
+{
+	// Semi-minor axis
+	double b = std::sqrt(1.0 - ec * ec);
+	
+	// Eccentric anomaly
+	double ea = ma + ec * std::sin(ma) * (1.0 + ec * std::cos(ma));
+	
+	// Find radial distance (r) and true anomaly (v)
+	double x = a * (std::cos(ea) - ec);
+	double y = b * std::sin(ea);
+	double r = std::sqrt(x * x + y * y);
+	double v = std::atan2(y, x);
+	
+	// Convert (r, v) to ecliptic rectangular coordinates
+	double cos_om = std::cos(om);
+	double sin_om = std::sin(om);
+	double cos_i = std::cos(i);
+	double cos_wv = std::cos(w + v);
+	double sin_wv = std::sin(w + v);
+	return double3
+	{
+		r * (cos_om * cos_wv - sin_om * sin_wv * cos_i),
+		r * (sin_om * cos_wv + cos_om * sin_wv * cos_i),
+		r * sin_wv * std::sin(i)
+	};
 }
 
 } // namespace ast

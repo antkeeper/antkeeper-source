@@ -4,6 +4,7 @@ option(VERSION_STRING "Project version string" "0.0.0")
 
 project(antkeeper VERSION ${VERSION_STRING} LANGUAGES CXX)
 
+
 # Find dependency packages
 find_package(dr_wav REQUIRED CONFIG)
 find_package(stb REQUIRED CONFIG)

@@ -57,23 +57,19 @@ double3 approx_moon_ecliptic(double jd);
  */
 double3x3 approx_moon_ecliptic_rotation(double jd);
 
-struct orbital_elements
+struct kepler_orbit
 {
-	double a; ///< Semi-major axis (km)
-	double e; ///< Eccentricity
-	double w; ///< Argument of periapsis (radians)
-	double m; ///< Mean anomaly (radians)
-	double i; ///< Inclination to the ecliptic (radians)
-	double n; ///< Longitude of the ascending node (radians)
+	double a;  ///< Semi-major axis, a
+	double ec; ///< Eccentricity, e
+	double w;  ///< Argument of periapsis, w (radians)
+	double ma; ///< Mean anomaly, M (radians)
+	double i;  ///< Inclination, i (radians)
+	double om; ///< Longitude of the ascending node, OMEGA (radians)
 };
 
-//constexpr orbital_elements j2k_orbit_moon = {384400.0, 0.0554, 318.15, 135.275.16, 125.08};
+double3 solve_kepler(const kepler_orbit& orbit, double t);
 
-struct orbital_state
-{
-	double3 r; ///< Cartesian position
-	double3 v; ///< Cartesian velocity
-};
+double3 solve_kepler(double a, double ec, double w, double ma, double i, double om);
 
 } // namespace ast
 
