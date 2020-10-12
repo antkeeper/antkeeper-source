@@ -29,12 +29,32 @@ class solar_system:
 public:
 	solar_system(entt::registry& registry);
 	
+	/**
+	 * Scales then adds the timestep `dt` to the current Julian date, then recalculates the positions of celestial bodies.
+	 */
 	virtual void update(double t, double dt);
 	
+	/**
+	 * Sets the current Julian date.
+	 *
+	 * @param jd Julian date.
+	 */
 	void set_julian_date(double jd);
 	
+	/**
+	 * Sets the factor by which the timestep `dt` will be scaled before being added to the current Julian date.
+	 *
+	 * @param scale Factor by which to scale the timestep.
+	 */
 	void set_time_scale(double scale);
 	
+	/**
+	 * Sets the latitude, longitude, and altitude of the observer.
+	 *
+	 * @param latitude Observer latitude, in radians.
+	 * @param longitude Observer longitude, in radians.
+	 * @param altitude Observer altitude, in meters.
+	 */
 	void set_observer_location(double latitude, double longitude, double altitude);
 	
 private:
@@ -49,6 +69,10 @@ private:
 	double3x3 ecliptic_to_horizontal;
 	
 	double3 sun_position;
+	double3 sunlight_direction;
+	
+	double3 moon_position;
+	double3 moonlight_direction;
 };
 
 #endif // ANTKEEPER_SOLAR_SYSTEM_HPP
