@@ -177,7 +177,7 @@ double3 solve_kepler(double a, double ec, double w, double ma, double i, double 
 	// Eccentric anomaly
 	double ea = ma + ec * std::sin(ma) * (1.0 + ec * std::cos(ma));
 	
-	// Find radial distance (r) and true anomaly (v)
+	// Radial distance (r) and true anomaly (v)
 	double x = a * (std::cos(ea) - ec);
 	double y = b * std::sin(ea);
 	double r = std::sqrt(x * x + y * y);

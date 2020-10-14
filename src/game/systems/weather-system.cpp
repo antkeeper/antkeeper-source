@@ -90,7 +90,7 @@ void weather_system::update(double t, double dt)
 	float3 moon_position = math::normalize(math::type_cast<float>(moon_positiond));
 	
 	//double3 moon_sphericald = ast::rectangular_to_spherical(moon_positiond);
-	//std::cout << "old azel: " << math::degrees(moon_az_el.x) << ", " << math::degrees(moon_az_el.y) << std::endl;
+	std::cout << "old azel: " << math::degrees(sun_az_el.x) << ", " << math::degrees(sun_az_el.y) << std::endl;
 	//std::cout << "new azel: " << math::degrees(moon_sphericald.z) << ", " << math::degrees(moon_sphericald.y) << std::endl;
 	
 	double3x3 moon_rotation_matrix = ast::horizontal_to_right_handed * ecliptic_to_horizontal;

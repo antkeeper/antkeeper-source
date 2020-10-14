@@ -23,6 +23,9 @@
 #include "entity-system.hpp"
 #include "utility/fundamental-types.hpp"
 
+/**
+ * 
+ */
 class solar_system:
 	public entity_system
 {

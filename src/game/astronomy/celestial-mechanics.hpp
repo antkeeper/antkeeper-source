@@ -69,6 +69,15 @@ struct kepler_orbit
 
 double3 solve_kepler(const kepler_orbit& orbit, double t);
 
+/**
+ *
+ * @param a Semi-major axis, a.
+ * @param ec Eccentricity, e.
+ * @param w Argument of periapsis, w (radians).
+ * @param ma Mean anomaly, M (radians).
+ * @param i Inclination, i (radians).
+ * @param om Longitude of the ascending node, OMEGA (radians).
+ */
 double3 solve_kepler(double a, double ec, double w, double ma, double i, double om);
 
 } // namespace ast

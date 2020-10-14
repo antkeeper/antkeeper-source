@@ -79,6 +79,7 @@
 #include "game/systems/tracking-system.hpp"
 #include "game/systems/painting-system.hpp"
 #include "game/systems/weather-system.hpp"
+#include "game/systems/solar-system.hpp"
 #include "game/components/marker-component.hpp"
 #include "game/entity-commands.hpp"
 #include "utility/paths.hpp"
@@ -886,6 +887,13 @@ void setup_systems(game_context* ctx)
 		ctx->weather_system->set_time_scale(ctx->config->get<float>("time_scale"));
 	}
 	
+	// Setup solar system
+	ctx->solar_system = new solar_system(*ctx->ecs_registry);
+	if (ctx->config->has("time_scale"))
+	{
+		ctx->solar_system->set_time_scale(ctx->config->get<float>("time_scale"));
+	}
+	
 	// Setup render system
 	ctx->render_system = new ::render_system(*ctx->ecs_registry);
 	ctx->render_system->add_layer(ctx->overworld_scene);
@@ -1183,6 +1191,7 @@ void setup_controls(game_context* ctx)
 		[ctx, time_scale]()
 		{
 			ctx->weather_system->set_time_scale(time_scale * 50.0f);
+			ctx->solar_system->set_time_scale(time_scale * 50.0f);
 		}
 	);
 	ctx->control_system->get_fast_forward_control()->set_deactivated_callback
@@ -1190,6 +1199,7 @@ void setup_controls(game_context* ctx)
 		[ctx, time_scale]()
 		{
 			ctx->weather_system->set_time_scale(time_scale);
+			ctx->solar_system->set_time_scale(time_scale);
 		}
 	);
 	ctx->control_system->get_rewind_control()->set_activated_callback
@@ -1197,6 +1207,7 @@ void setup_controls(game_context* ctx)
 		[ctx, time_scale]()
 		{
 			ctx->weather_system->set_time_scale(time_scale * -50.0f);
+			ctx->solar_system->set_time_scale(time_scale * -50.0f);
 		}
 	);
 	ctx->control_system->get_rewind_control()->set_deactivated_callback
@@ -1204,6 +1215,7 @@ void setup_controls(game_context* ctx)
 		[ctx, time_scale]()
 		{
 			ctx->weather_system->set_time_scale(time_scale);
+			ctx->solar_system->set_time_scale(time_scale);
 		}
 	);
 	
@@ -1264,6 +1276,7 @@ void setup_callbacks(game_context* ctx)
 			ctx->tracking_system->update(t, dt);
 			ctx->painting_system->update(t, dt);
 			ctx->weather_system->update(t, dt);
+			ctx->solar_system->update(t, dt);
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			

@@ -87,6 +87,7 @@ class outline_pass;
 class tracking_system;
 class painting_system;
 class weather_system;
+class solar_system;
 struct biome;
 template <typename T> class animation;
 template <typename T> class material_property;
@@ -244,6 +245,7 @@ struct game_context
 	tracking_system* tracking_system;
 	painting_system* painting_system;
 	weather_system* weather_system;
+	solar_system* solar_system;
 	
 	// Game
 	biome* biome;

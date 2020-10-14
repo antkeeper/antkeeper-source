@@ -55,9 +55,11 @@
 #include "game/systems/render-system.hpp"
 #include "game/systems/tool-system.hpp"
 #include "game/systems/weather-system.hpp"
+#include "game/systems/solar-system.hpp"
 #include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
 #include "utility/gamma.hpp"
+#include "game/astronomy/celestial-time.hpp"
 
 void play_state_enter(game_context* ctx)
 {
@@ -87,6 +89,10 @@ void play_state_enter(game_context* ctx)
 	ctx->weather_system->set_ambient_palette(ctx->biome->ambient_palette);
 	ctx->weather_system->set_moon_palette(ctx->biome->moon_palette);
 	ctx->weather_system->set_shadow_palette(ctx->biome->shadow_palette);
+	
+	ctx->solar_system->set_observer_location(ctx->biome->location[0], ctx->biome->location[1], ctx->biome->location[2]);
+	double jd = ast::ut_to_jd(2017, 6, 1, 5, 0, 0.0) - -7.0 / 24.0;
+	ctx->solar_system->set_julian_date(jd);
 
 	resource_manager* resource_manager = ctx->resource_manager;
 	entt::registry& ecs_registry = *ctx->ecs_registry;

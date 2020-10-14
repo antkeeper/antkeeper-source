@@ -44,28 +44,28 @@ void solar_system::update(double t, double dt)
 	
 	// Update horizontal (topocentric) positions of orbiting bodies
 	registry.view<orbit_component, transform_component>().each(
-		[&](auto entity, auto& orbit, auto& transform)
-		{
-			double a = orbit.a;
-			double ec = orbit.ec;
-			double w = orbit.w;
-			double ma = orbit.ma;
-			double i = orbit.i;
-			double om = orbit.om;
-			
-			double3 ecliptic = ast::solve_kepler(a, ec, w, ma, i, om);
-			double3 horizontal = ecliptic_to_horizontal * ecliptic;
-			
-			// Subtract Earth's radius (in AU), for positon of observer
-			horizontal.z -= 4.25875e-5;
-			
-			// Transform into local right-handed coordinates
-			double3 translation = ast::horizontal_to_right_handed * horizontal;
-			double3x3 rotation = ast::horizontal_to_right_handed * ecliptic_to_horizontal;
-			
-			transform.local.translation = math::type_cast<float>(translation);
-			transform.local.rotation = math::type_cast<float>(math::quaternion_cast(rotation));
-		});
+	[&](auto entity, auto& orbit, auto& transform)
+	{
+		double a = orbit.a;
+		double ec = orbit.ec;
+		double w = orbit.w;
+		double ma = orbit.ma;
+		double i = orbit.i;
+		double om = orbit.om;
+		
+		double3 ecliptic = ast::solve_kepler(a, ec, w, ma, i, om);
+		double3 horizontal = ecliptic_to_horizontal * ecliptic;
+		
+		// Subtract Earth's radius (in AU), for positon of observer
+		horizontal.z -= 4.25875e-5;
+		
+		// Transform into local right-handed coordinates
+		double3 translation = ast::horizontal_to_right_handed * horizontal;
+		double3x3 rotation = ast::horizontal_to_right_handed * ecliptic_to_horizontal;
+		
+		transform.local.translation = math::type_cast<float>(translation);
+		transform.local.rotation = math::type_cast<float>(math::quaternion_cast(rotation));
+	});
 }
 
 void solar_system::set_julian_date(double jd)
