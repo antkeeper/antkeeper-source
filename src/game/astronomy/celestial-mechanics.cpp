@@ -129,72 +129,53 @@ double3x3 approx_moon_ecliptic_rotation(double jd)
 	return rz0 * rx * rz1;
 }
 
-double3 solve_kepler(const kepler_orbit& orbit, double t)
+double solve_kepler(double ec, double ma, double tolerance, std::size_t iterations)
 {
-	// Orbital period (Kepler's third law)
-	double pr = std::sqrt(orbit.a * orbit.a * orbit.a);
+	// Approximate eccentric anomaly, E
+	double ea0 = ma + ec * std::sin(ma) * (1.0 + ec * std::cos(ma));
 	
-	// Mean anomaly
-	double epoch = 0.0;
-	double ma = (math::two_pi<double> * (t - epoch)) / pr;
-	
-	// Semi-minor axis
-	const double b = std::sqrt(1.0 - orbit.ec * orbit.ec);
-	
-	// Trig of orbital elements (can be precalculated?)
-	const double cos_ma = std::cos(ma);
-	const double sin_ma = std::sin(ma);
-	const double cos_om = std::cos(orbit.om);
-	const double sin_om = std::sin(orbit.om);
-	const double cos_i = std::cos(orbit.i);
-	const double sin_i = std::sin(orbit.i);
-	
-	// Eccentric anomaly
-	double ea = ma + orbit.ec * sin_ma * (1.0 + orbit.ec * cos_ma);
-	
-	// Find radial distance (r) and true anomaly (v)
-	double x = orbit.a * (std::cos(ea) - orbit.ec);
-	double y = b * std::sin(ea);
-	double r = std::sqrt(x * x + y * y);
-	double v = std::atan2(y, x);
-	
-	// Convert (r, v) to ecliptic rectangular coordinates
-	double cos_wv = std::cos(orbit.w + v);
-	double sin_wv = std::sin(orbit.w + v);
-	return double3
+	// Iteratively converge ea0 and ea1
+	for (std::size_t i = 0; i < iterations; ++i)
 	{
-		r * (cos_om * cos_wv - sin_om * sin_wv * cos_i),
-		r * (sin_om * cos_wv + cos_om * sin_wv * cos_i),
-		r * sin_wv * sin_i
-	};
+		double ea1 = ea0;
+		ea0 = ea1 - (ea1 - ec * std::sin(ea1) - ma) / (1.0 - ec * std::cos(ea1));
+		if (std::abs(ea1 - ea0) < tolerance)
+			break;
+	}
+	
+	return ea0;
 }
 
-double3 solve_kepler(double a, double ec, double w, double ma, double i, double om)
+orbital_state orbital_elements_to_state(const orbital_elements& elements, double ke_tolerance, std::size_t ke_iterations)
 {
-	// Semi-minor axis
-	double b = std::sqrt(1.0 - ec * ec);
+	orbital_state state;
 	
-	// Eccentric anomaly
-	double ea = ma + ec * std::sin(ma) * (1.0 + ec * std::cos(ma));
+	// Calculate semi-minor axis, b
+	double b = std::sqrt(1.0 - elements.ec * elements.ec);
+	
+	// Solve Kepler's equation for eccentric anomaly, E
+	double ea = solve_kepler(elements.ec, elements.ma, ke_tolerance, ke_iterations);
 	
 	// Radial distance (r) and true anomaly (v)
-	double x = a * (std::cos(ea) - ec);
+	double x = elements.a * (std::cos(ea) - elements.ec);
 	double y = b * std::sin(ea);
 	double r = std::sqrt(x * x + y * y);
 	double v = std::atan2(y, x);
 	
 	// Convert (r, v) to ecliptic rectangular coordinates
-	double cos_om = std::cos(om);
-	double sin_om = std::sin(om);
-	double cos_i = std::cos(i);
-	double cos_wv = std::cos(w + v);
-	double sin_wv = std::sin(w + v);
-	return double3
+	double cos_om = std::cos(elements.om);
+	double sin_om = std::sin(elements.om);
+	double cos_i = std::cos(elements.i);
+	double cos_wv = std::cos(elements.w + v);
+	double sin_wv = std::sin(elements.w + v);
+	state.r =
 	{
 		r * (cos_om * cos_wv - sin_om * sin_wv * cos_i),
 		r * (sin_om * cos_wv + cos_om * sin_wv * cos_i),
-		r * sin_wv * std::sin(i)
+		r * sin_wv * std::sin(elements.i)
 	};
+	
+	return state;
 }
 
 } // namespace ast

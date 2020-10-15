@@ -23,6 +23,7 @@
 #include "game/astronomy/celestial-time.hpp"
 #include "game/components/orbit-component.hpp"
 #include "game/components/transform-component.hpp"
+#include <iostream>
 
 using namespace ecs;
 
@@ -42,10 +43,39 @@ void solar_system::update(double t, double dt)
 	// Add scaled timestep to Julian date
 	set_julian_date(julian_date + (dt * time_scale) / seconds_per_day);
 	
+	
+	const double ke_tolerance = 1e-6;
+	const std::size_t ke_iterations = 10;
+	
+	ast::orbital_elements sun_elements;
+	sun_elements.a = 1.0;
+	sun_elements.ec = 0.016709;
+	sun_elements.w = math::radians(282.9404);
+	sun_elements.ma = math::radians(356.0470);
+	sun_elements.i = math::radians(0.0);
+	sun_elements.om = math::radians(0.0);
+	
+	const double j2k_day = julian_date - 2451545.0;
+	const double j2k_century = (julian_date - 2451545.0) / 36525.0;
+	
+	sun_elements.ec += math::radians(-1.151e-9) * j2k_day;
+	sun_elements.w += math::radians(4.70935e-5) * j2k_day;
+	sun_elements.ma += math::radians(0.9856002585) * j2k_day;
+	
+	
+	ast::orbital_state sun_ecliptic = ast::orbital_elements_to_state(sun_elements, ke_tolerance, ke_iterations);
+	double3 sun_horizontal = ecliptic_to_horizontal * sun_ecliptic.r;
+	sun_horizontal.z -= 4.25875e-5;	
+	double3 sun_spherical = ast::rectangular_to_spherical(sun_horizontal);
+	double2 sun_az_el = {sun_spherical.z - math::pi<double>, sun_spherical.y};	
+	
+	std::cout << "new azel: " << math::degrees(sun_az_el.x) << ", " << math::degrees(sun_az_el.y) << std::endl;
+
 	// Update horizontal (topocentric) positions of orbiting bodies
 	registry.view<orbit_component, transform_component>().each(
 	[&](auto entity, auto& orbit, auto& transform)
 	{
+		/*
 		double a = orbit.a;
 		double ec = orbit.ec;
 		double w = orbit.w;
@@ -65,6 +95,7 @@ void solar_system::update(double t, double dt)
 		
 		transform.local.translation = math::type_cast<float>(translation);
 		transform.local.rotation = math::type_cast<float>(math::quaternion_cast(rotation));
+		*/
 	});
 }
 

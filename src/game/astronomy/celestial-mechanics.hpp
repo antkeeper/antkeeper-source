@@ -26,6 +26,28 @@ namespace ast
 {
 
 /**
+ * Contains six orbital elements which describe a Keplerian orbit.
+ */
+struct orbital_elements
+{
+	double ec; ///< Eccentricity, e
+	double a;  ///< Semi-major axis, a
+	double i;  ///< Inclination, i (radians)
+	double om; ///< Longitude of the ascending node, OMEGA (radians)
+	double w;  ///< Argument of periapsis, w (radians)
+	double ma; ///< Mean anomaly, M (radians)
+};
+
+/**
+ * Orbital state vectors.
+ */
+struct orbital_state
+{
+	double3 r; ///< Cartesian position, r.
+	double3 v; ///< Cartesian velocity, v.
+};
+
+/**
  * Approximates the obliquity of the ecliptic.
  *
  * @param jd Julian date.
@@ -57,28 +79,26 @@ double3 approx_moon_ecliptic(double jd);
  */
 double3x3 approx_moon_ecliptic_rotation(double jd);
 
-struct kepler_orbit
-{
-	double a;  ///< Semi-major axis, a
-	double ec; ///< Eccentricity, e
-	double w;  ///< Argument of periapsis, w (radians)
-	double ma; ///< Mean anomaly, M (radians)
-	double i;  ///< Inclination, i (radians)
-	double om; ///< Longitude of the ascending node, OMEGA (radians)
-};
-
-double3 solve_kepler(const kepler_orbit& orbit, double t);
+/**
+ * Iteratively solves Kepler's equation for eccentric anomaly, E.
+ *
+ * @param ec Eccentricity, e.
+ * @param ma Mean anomaly, M (radians).
+ * @param tolerance Tolerance of solution.
+ * @param iterations Maximum number of iterations.
+ * @return Eccentric anomaly.
+ */
+double solve_kepler(double ec, double ma, double tolerance, std::size_t iterations);
 
 /**
+ * Calculates orbital state vectors from Keplerian orbital elements.
  *
- * @param a Semi-major axis, a.
- * @param ec Eccentricity, e.
- * @param w Argument of periapsis, w (radians).
- * @param ma Mean anomaly, M (radians).
- * @param i Inclination, i (radians).
- * @param om Longitude of the ascending node, OMEGA (radians).
+ * @param elements Orbital elements.
+ * @param ke_tolerance Kepler's equation tolerance.
+ * @param ke_iterations Kepler's equation iterations.
+ * @return Orbital state.
  */
-double3 solve_kepler(double a, double ec, double w, double ma, double i, double om);
+orbital_state orbital_elements_to_state(const orbital_elements& elements, double ke_tolerance, std::size_t ke_iterations);
 
 } // namespace ast
 
