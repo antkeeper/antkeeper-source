@@ -156,7 +156,7 @@ orbital_state orbital_elements_to_state(const orbital_elements& elements, double
 	// Solve Kepler's equation for eccentric anomaly, E
 	double ea = solve_kepler(elements.ec, elements.ma, ke_tolerance, ke_iterations);
 	
-	// Radial distance (r) and true anomaly (v)
+	// Calculate radial distance (r) and true anomaly (v)
 	double x = elements.a * (std::cos(ea) - elements.ec);
 	double y = b * std::sin(ea);
 	double r = std::sqrt(x * x + y * y);

@@ -69,7 +69,7 @@ void solar_system::update(double t, double dt)
 	double3 sun_spherical = ast::rectangular_to_spherical(sun_horizontal);
 	double2 sun_az_el = {sun_spherical.z - math::pi<double>, sun_spherical.y};	
 	
-	std::cout << "new azel: " << math::degrees(sun_az_el.x) << ", " << math::degrees(sun_az_el.y) << std::endl;
+	//std::cout << "new azel: " << math::degrees(sun_az_el.x) << ", " << math::degrees(sun_az_el.y) << std::endl;
 
 	// Update horizontal (topocentric) positions of orbiting bodies
 	registry.view<orbit_component, transform_component>().each(

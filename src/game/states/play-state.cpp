@@ -83,7 +83,7 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
 	
 	ctx->weather_system->set_location(ctx->biome->location[0], ctx->biome->location[1], ctx->biome->location[2]);
-	ctx->weather_system->set_time(2017, 6, 1, 5, 0, 0.0, -7.0);
+	ctx->weather_system->set_time(2017, 6, 1, 5, 0, 0.0, -5.0);
 	ctx->weather_system->set_sky_palette(ctx->biome->sky_palette);
 	ctx->weather_system->set_sun_palette(ctx->biome->sun_palette);
 	ctx->weather_system->set_ambient_palette(ctx->biome->ambient_palette);
@@ -91,7 +91,7 @@ void play_state_enter(game_context* ctx)
 	ctx->weather_system->set_shadow_palette(ctx->biome->shadow_palette);
 	
 	ctx->solar_system->set_observer_location(ctx->biome->location[0], ctx->biome->location[1], ctx->biome->location[2]);
-	double jd = ast::ut_to_jd(2017, 6, 1, 5, 0, 0.0) - -7.0 / 24.0;
+	double jd = ast::ut_to_jd(2017, 6, 1, 5, 0, 0.0) - -5.0 / 24.0;
 	ctx->solar_system->set_julian_date(jd);
 
 	resource_manager* resource_manager = ctx->resource_manager;
@@ -193,14 +193,14 @@ void play_state_enter(game_context* ctx)
 	}
 
 	// Create maple tree
-	auto maple_tree_entity = maple_tree_archetype->create(ecs_registry);
-	ec::place(ecs_registry, maple_tree_entity, {300, 200});
+	//auto maple_tree_entity = maple_tree_archetype->create(ecs_registry);
+	//ec::place(ecs_registry, maple_tree_entity, {300, 200});
 
 	// Creat nest
 	auto nest_entity = nest_archetype->create(ecs_registry);
 
 	// Create terrain
-	int terrain_radius = 8;
+	int terrain_radius = 6;
 	for (int x = -terrain_radius; x <= terrain_radius; ++x)
 	{
 		for (int z = -terrain_radius; z <= terrain_radius; ++z)

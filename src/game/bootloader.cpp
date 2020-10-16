@@ -465,7 +465,11 @@ void setup_rendering(game_context* ctx)
 	ctx->framebuffer_hdr->attach(framebuffer_attachment_type::stencil, ctx->framebuffer_hdr_depth);
 	
 	// Create shadow map framebuffer
-	int shadow_map_resolution = ctx->config->get<int>("shadow_map_resolution");
+	int shadow_map_resolution = 4096;
+	if (ctx->config->has("shadow_map_resolution"))
+	{
+		shadow_map_resolution = ctx->config->get<int>("shadow_map_resolution");
+	}
 	ctx->shadow_map_depth_texture = new texture_2d(shadow_map_resolution, shadow_map_resolution, pixel_type::float_32, pixel_format::d);
 	ctx->shadow_map_depth_texture->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
 	ctx->shadow_map_depth_texture->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
@@ -518,7 +522,7 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_bloom_pass->set_source_texture(ctx->framebuffer_hdr_color);
 	ctx->overworld_bloom_pass->set_brightness_threshold(1.0f);
 	ctx->overworld_bloom_pass->set_blur_iterations(5);
-	ctx->overworld_bloom_pass->set_enabled(false);
+	ctx->overworld_bloom_pass->set_enabled(true);
 	ctx->overworld_final_pass = new ::final_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), ctx->resource_manager);
 	ctx->overworld_final_pass->set_color_texture(ctx->framebuffer_hdr_color);
 	ctx->overworld_final_pass->set_bloom_texture(ctx->bloom_texture);
@@ -882,17 +886,18 @@ void setup_systems(game_context* ctx)
 	ctx->weather_system->set_sky_pass(ctx->overworld_sky_pass);
 	ctx->weather_system->set_shadow_map_pass(ctx->overworld_shadow_map_pass);
 	ctx->weather_system->set_material_pass(ctx->overworld_material_pass);
-	if (ctx->config->has("time_scale"))
-	{
-		ctx->weather_system->set_time_scale(ctx->config->get<float>("time_scale"));
-	}
 	
 	// Setup solar system
 	ctx->solar_system = new solar_system(*ctx->ecs_registry);
+	
+	// Set time scale
+	float time_scale = 60.0f;
 	if (ctx->config->has("time_scale"))
 	{
-		ctx->solar_system->set_time_scale(ctx->config->get<float>("time_scale"));
+		time_scale = ctx->config->get<float>("time_scale");
 	}
+	ctx->weather_system->set_time_scale(time_scale);
+	ctx->solar_system->set_time_scale(time_scale);
 	
 	// Setup render system
 	ctx->render_system = new ::render_system(*ctx->ecs_registry);

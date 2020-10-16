@@ -93,6 +93,9 @@ double solve_kepler(double ec, double ma, double tolerance, std::size_t iteratio
 /**
  * Calculates orbital state vectors from Keplerian orbital elements.
  *
+ * @note Only works for elliptic orbits.
+ * @todo Calculate orbital state velocity.
+ *
  * @param elements Orbital elements.
  * @param ke_tolerance Kepler's equation tolerance.
  * @param ke_iterations Kepler's equation iterations.

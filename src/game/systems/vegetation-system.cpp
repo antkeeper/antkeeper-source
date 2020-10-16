@@ -39,8 +39,8 @@ vegetation_system::vegetation_system(entt::registry& registry):
 	vegetation_density(1.0f),
 	vegetation_model(nullptr)
 {
-	//registry.on_construct<terrain_component>().connect<&vegetation_system::on_terrain_construct>(this);
-	//registry.on_destroy<terrain_component>().connect<&vegetation_system::on_terrain_destroy>(this);
+	registry.on_construct<terrain_component>().connect<&vegetation_system::on_terrain_construct>(this);
+	registry.on_destroy<terrain_component>().connect<&vegetation_system::on_terrain_destroy>(this);
 }
 
 vegetation_system::~vegetation_system()
@@ -88,17 +88,15 @@ void vegetation_system::on_terrain_construct(entt::registry& registry, entt::ent
 	for (int column = 0; column < vegetation_patch_columns; ++column)
 	{
 		for (int row = 0; row < vegetation_patch_rows; ++row)
-		{
-			// Calculate center of vegetation patch
-			
+		{			
 			/*
 			// Create vegetation patch entity
 			auto vegetation_patch_entity = registry.create();
 			
 			// Assign a transform component
 			transform_component transform;
-			transform.transform = math::identity_transform<float>;
-			transform.transform.translation = float3{vegetation_patch_x, 0.0f, vegetation_patch_z};
+			transform.local = math::identity_transform<float>;
+			transform.local.translation = float3{vegetation_patch_x, 0.0f, vegetation_patch_z};
 			transform.warp = true;
 			registry.assign_or_replace<transform_component>(vegetation_patch_entity, transform);
 			

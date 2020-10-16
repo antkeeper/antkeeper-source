@@ -62,11 +62,6 @@ void weather_system::update(double t, double dt)
 	double local_jd = jd + time_correction / 24.0 - 0.5;
 	double local_time = (local_jd - std::floor(local_jd)) * 24.0;
 	
-	// Solar distance in AU
-	//double sr = ...
-	// Apparent radius in degrees
-	//double sradius = 0.2666 / sr;
-	
 	double lmst = ast::jd_to_lmst(jd, longitude);
 	double ecl = ast::approx_ecliptic_obliquity(jd);
 	double3x3 ecliptic_to_horizontal = ast::ecliptic_to_horizontal(ecl, latitude, lmst);
@@ -88,10 +83,6 @@ void weather_system::update(double t, double dt)
 	double3 moon_positiond = ast::horizontal_to_right_handed * moon_horizontal;
 	float2 moon_az_el = {static_cast<float>(moon_spherical.z) - math::pi<float>, static_cast<float>(moon_spherical.y)};	
 	float3 moon_position = math::normalize(math::type_cast<float>(moon_positiond));
-	
-	//double3 moon_sphericald = ast::rectangular_to_spherical(moon_positiond);
-	std::cout << "old azel: " << math::degrees(sun_az_el.x) << ", " << math::degrees(sun_az_el.y) << std::endl;
-	//std::cout << "new azel: " << math::degrees(moon_sphericald.z) << ", " << math::degrees(moon_sphericald.y) << std::endl;
 	
 	double3x3 moon_rotation_matrix = ast::horizontal_to_right_handed * ecliptic_to_horizontal;
 	math::quaternion<double> moon_rotationd = math::normalize(math::quaternion_cast(moon_rotation_matrix) * math::angle_axis(math::half_pi<double>, double3{0, 1, 0}) * math::angle_axis(-math::half_pi<double>, double3{0, 0, -1}));
@@ -126,19 +117,29 @@ void weather_system::update(double t, double dt)
 	
 	if (sky_pass)
 	{
+		if (sun_light)
+		{
+			float3 sun_color = interpolate_gradient(sun_colors, sun_gradient_position);
+			sun_light->set_color(sun_color);
+			sun_light->set_intensity(1.0f);
+		}
+		
+		if (moon_light)
+		{
+			float3 moon_color = interpolate_gradient(moon_colors, moon_gradient_position);
+			moon_light->set_color(moon_color);
+			moon_light->set_intensity(1.0f);
+		}
+		
+		if (ambient_light)
+		{
+			float3 ambient_color = interpolate_gradient(ambient_colors, ambient_gradient_position);
+			ambient_light->set_color(ambient_color);
+			ambient_light->set_intensity(0.5f);
+		}
+		
 		float3 horizon_color = interpolate_gradient(horizon_colors, sun_gradient_position);
 		float3 zenith_color = interpolate_gradient(zenith_colors, sun_gradient_position);
-		float3 sun_color = interpolate_gradient(sun_colors, sun_gradient_position);
-		float3 moon_color = interpolate_gradient(moon_colors, moon_gradient_position);
-		float3 ambient_color = interpolate_gradient(ambient_colors, ambient_gradient_position);
-		
-		sun_light->set_color(sun_color);
-		sun_light->set_intensity(1.0f);
-		moon_light->set_color(moon_color);
-		moon_light->set_intensity(1.0f);
-		ambient_light->set_color(ambient_color);
-		ambient_light->set_intensity(0.5f);
-		
 		sky_pass->set_horizon_color(horizon_color);
 		sky_pass->set_zenith_color(zenith_color);
 		sky_pass->set_time_of_day(static_cast<float>(local_time * 60.0 * 60.0));
@@ -294,6 +295,9 @@ void weather_system::load_palette(std::vector<float3>* palette, const ::image* i
 
 float3 weather_system::interpolate_gradient(const std::vector<float3>& gradient, float position)
 {
+	if (gradient.empty())
+		return float3{0.0f, 0.0f, 0.0f};
+	
 	position *= static_cast<float>(gradient.size() - 1);
 	int index0 = static_cast<int>(position) % gradient.size();
 	int index1 = (index0 + 1) % gradient.size();
