@@ -51,11 +51,11 @@ if(MSVC)
 	
 	# Generate Windows icon resource file
 	set(ICON_FILE "${PROJECT_SOURCE_DIR}/../antkeeper-data/src/icons/antkeeper.ico")
-	configure_file(${PROJECT_SOURCE_DIR}/src/platform/windows/icon.rc.in
-		${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc)
-	
-	# Add executable icon
-	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc")
+	if(EXISTS "${ICON_FILE}")
+		configure_file(${PROJECT_SOURCE_DIR}/src/platform/windows/icon.rc.in
+			${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc)
+		list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc")
+	endif()
 	
 	# Make DPI-aware on Windows
 	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/platform/windows/dpi-aware.manifest")
