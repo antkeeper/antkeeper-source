@@ -91,17 +91,16 @@ double3x3 approx_moon_ecliptic_rotation(double jd);
 double solve_kepler(double ec, double ma, double tolerance, std::size_t iterations);
 
 /**
- * Calculates orbital state vectors from Keplerian orbital elements.
+ * Calculates the ecliptic rectangular orbital position from Keplerian orbital elements.
  *
- * @note Only works for elliptic orbits.
- * @todo Calculate orbital state velocity.
+ * @note Only works for elliptical orbits.
  *
  * @param elements Orbital elements.
  * @param ke_tolerance Kepler's equation tolerance.
  * @param ke_iterations Kepler's equation iterations.
  * @return Orbital state.
  */
-orbital_state orbital_elements_to_state(const orbital_elements& elements, double ke_tolerance, std::size_t ke_iterations);
+double3 orbital_elements_to_ecliptic(const orbital_elements& elements, double ke_tolerance, std::size_t ke_iterations);
 
 } // namespace ast
 

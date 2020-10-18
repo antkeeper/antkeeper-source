@@ -29,7 +29,6 @@
 #include "game/astronomy/celestial-mechanics.hpp"
 #include "game/astronomy/celestial-time.hpp"
 #include <cmath>
-#include <iostream>
 
 static constexpr double hours_per_day = 24.0;
 static constexpr double minutes_per_day = hours_per_day * 60.0;
@@ -74,6 +73,7 @@ void weather_system::update(double t, double dt)
 	double3 sun_positiond = ast::horizontal_to_right_handed * sun_horizontal;
 	float2 sun_az_el = {static_cast<float>(sun_spherical.z) - math::pi<float>, static_cast<float>(sun_spherical.y)};
 	float3 sun_position = math::normalize(float3{static_cast<float>(sun_positiond.x), static_cast<float>(sun_positiond.y), static_cast<float>(sun_positiond.z)});
+	
 	
 	double3 moon_ecliptic = ast::approx_moon_ecliptic(jd);
 	double3 moon_horizontal = ecliptic_to_horizontal * moon_ecliptic;
@@ -219,6 +219,11 @@ void weather_system::set_material_pass(::material_pass* pass)
 void weather_system::set_time(int year, int month, int day, int hour, int minute, double second, double tc)
 {
 	jd = ast::ut_to_jd(year, month, day, hour, minute, second) - tc / 24.0;
+}
+
+void weather_system::set_time(double time)
+{
+	jd = time + 2451545.0;
 }
 
 void weather_system::set_time_scale(float scale)

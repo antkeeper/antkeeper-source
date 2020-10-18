@@ -32,6 +32,7 @@
 #include "game/components/tool-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/camera-follow-component.hpp"
+#include "game/components/orbit-component.hpp"
 #include "game/entity-commands.hpp"
 #include "game/game-context.hpp"
 #include "game/states/game-states.hpp"
@@ -55,11 +56,12 @@
 #include "game/systems/render-system.hpp"
 #include "game/systems/tool-system.hpp"
 #include "game/systems/weather-system.hpp"
-#include "game/systems/solar-system.hpp"
+#include "game/systems/astronomy-system.hpp"
 #include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
 #include "utility/gamma.hpp"
 #include "game/astronomy/celestial-time.hpp"
+#include <iostream>
 
 void play_state_enter(game_context* ctx)
 {
@@ -83,19 +85,77 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
 	
 	ctx->weather_system->set_location(ctx->biome->location[0], ctx->biome->location[1], ctx->biome->location[2]);
-	ctx->weather_system->set_time(2017, 6, 1, 5, 0, 0.0, -5.0);
+	ctx->weather_system->set_time(2000, 1, 1, 12, 0, 0.0, 0.0);
+	ctx->weather_system->set_time(0.0);
 	ctx->weather_system->set_sky_palette(ctx->biome->sky_palette);
 	ctx->weather_system->set_sun_palette(ctx->biome->sun_palette);
 	ctx->weather_system->set_ambient_palette(ctx->biome->ambient_palette);
 	ctx->weather_system->set_moon_palette(ctx->biome->moon_palette);
 	ctx->weather_system->set_shadow_palette(ctx->biome->shadow_palette);
 	
-	ctx->solar_system->set_observer_location(ctx->biome->location[0], ctx->biome->location[1], ctx->biome->location[2]);
-	double jd = ast::ut_to_jd(2017, 6, 1, 5, 0, 0.0) - -5.0 / 24.0;
-	ctx->solar_system->set_julian_date(jd);
+	ctx->astronomy_system->set_observer_location(double3{4.26352e-5, ctx->biome->location[0], ctx->biome->location[1]});
+	ctx->astronomy_system->set_universal_time(0.0);
+	ctx->astronomy_system->set_obliquity(math::radians(23.4393));
+	ctx->astronomy_system->set_axial_rotation_at_epoch(math::radians(280.4606));
+	ctx->astronomy_system->set_axial_rotation_speed(math::radians(360.9856));
 
 	resource_manager* resource_manager = ctx->resource_manager;
 	entt::registry& ecs_registry = *ctx->ecs_registry;
+	
+	
+	// Create sun
+	{
+		ecs::orbit_component sun_orbit;
+		sun_orbit.a = 1.0;
+		sun_orbit.ec = 0.016709;
+		sun_orbit.w = math::radians(282.9404);
+		sun_orbit.ma = math::radians(356.0470);
+		sun_orbit.i = 0.0;
+		sun_orbit.om = 0.0;
+		
+		sun_orbit.d_a = 0.0;
+		sun_orbit.d_ec = -1.151e-9;
+		sun_orbit.d_w = math::radians(4.70935e-5);
+		sun_orbit.d_ma = math::radians(0.9856002585);
+		sun_orbit.d_i = 0.0;
+		sun_orbit.d_om = 0.0;
+		
+		ecs::transform_component sun_transform;
+		sun_transform.local = math::identity_transform<float>;
+		sun_transform.warp = true;
+		
+		auto sun_entity = ecs_registry.create();
+		ecs_registry.assign<ecs::transform_component>(sun_entity, sun_transform);
+		ecs_registry.assign<ecs::orbit_component>(sun_entity, sun_orbit);
+	}
+	
+	// Create moon
+	{
+
+		ecs::orbit_component moon_orbit;
+		
+		moon_orbit.a = 0.00256955529;
+		moon_orbit.ec = 0.0554;
+		moon_orbit.w = math::radians(318.15);
+		moon_orbit.ma = math::radians(135.27);
+		moon_orbit.i = math::radians(5.16);
+		moon_orbit.om = math::radians(125.08);
+		
+		moon_orbit.d_a = 0.0;
+		moon_orbit.d_ec = 0.0;
+		moon_orbit.d_w = math::radians(0.1643573223);
+		moon_orbit.d_ma = math::radians(13.176358);
+		moon_orbit.d_i = 0.0;
+		moon_orbit.d_om = math::radians(-0.0529538083);
+		
+		ecs::transform_component moon_transform;
+		moon_transform.local = math::identity_transform<float>;
+		moon_transform.warp = true;
+		
+		auto moon_entity = ecs_registry.create();
+		ecs_registry.assign<ecs::transform_component>(moon_entity, moon_transform);
+		ecs_registry.assign<ecs::orbit_component>(moon_entity, moon_orbit);
+	}
 
 	// Load entity archetypes
 	ecs::archetype* ant_hill_archetype = resource_manager->load<ecs::archetype>("ant-hill.ent");
