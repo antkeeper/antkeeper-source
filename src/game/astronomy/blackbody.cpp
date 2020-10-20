@@ -47,7 +47,7 @@ double3 blackbody(double t)
 	// CIE XYZ -> linear RGB
     double3 rgb = xyz_to_rgb * xyz;
     
-    // Normalize RGB to preserve chromacity
+    // Normalize RGB to preserve chromaticity
 	return rgb / std::max<double>(rgb.x, std::max<double>(rgb.y, rgb.z));
 }
 
