@@ -18,7 +18,7 @@
  */
 
 #include "blackbody.hpp"
-#include <cmath>
+#include <algorithm>
 
 namespace ast
 {
@@ -31,26 +31,24 @@ static constexpr double3x3 xyz_to_rgb =
 	-0.4985314, 0.0415560, 1.0572252
 };
 
-double3 blackbody(double t, double l)
+double3 blackbody(double t)
 {
-	// Approximate the Planckian locus in CIE 1960 color space
+	// Approximate the Planckian locus in CIE 1960 UCS color space (Krystek's algorithm)
 	double tt = t * t;
     double u = (0.860117757 + 1.54118254e-4 * t + 1.28641212e-7 * tt) / (1.0 + 8.42420235e-4 * t + 7.08145163e-7 * tt);
     double v = (0.317398726 + 4.22806245e-5 * t + 4.20481691e-8 * tt) / (1.0 - 2.89741816e-5 * t + 1.61456053e-7 * tt);
 	
-	// (u, v) -> (x, y)
-	double denom = (u * 2.0 - v * 8.0 + 4.0);
-	double x = u * 3.0 / denom;
-	double y = v * 2.0 / denom;
+	// CIE 1960 UCS -> CIE xyY, Y = 1
+    double2 xyy = double2{3.0 * u, 2.0 * v} / (2.0 * u - 8.0 * v + 4.0);
 	
-	// (x, y) -> CIE XYZ
-	double3 xyz;
-	xyz.y = l;
-	xyz.x = (xyz.y / y) * x;
-	xyz.z = (xyz.y / y) * (1.0 - x - y);
-	
-	/// CIE XYZ -> linear RGB
-	return xyz_to_rgb * xyz;
+	// CIE xyY -> CIE XYZ
+	double3 xyz = {xyy.x / xyy.y, 1.0, (1.0 - xyy.x - xyy.y) / xyy.y};
+    
+	// CIE XYZ -> linear RGB
+    double3 rgb = xyz_to_rgb * xyz;
+    
+    // Normalize RGB to preserve chromacity
+	return rgb / std::max<double>(rgb.x, std::max<double>(rgb.y, rgb.z));
 }
 
 } // namespace ast

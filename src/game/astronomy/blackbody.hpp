@@ -26,16 +26,16 @@ namespace ast
 {
 
 /**
- * Calculates the color of an incandescent black-body.
+ * Calculates the color of an ideal black-body radiator, given its temperature in Kelvin.
  *
  * @param t Temperature, in Kelvin.
- * @param l Luminance value.
- * @return Linear RGB color.
+ * @return Correlated color, in linear RGB space.
  *
  * @see https://en.wikipedia.org/wiki/Planckian_locus
  * @see https://en.wikipedia.org/wiki/CIE_1960_color_space
+ * @see https://google.github.io/filament/Filament.html
  */
-double3 blackbody(double t, double l);
+double3 blackbody(double t);
 
 } // namespace ast
 
