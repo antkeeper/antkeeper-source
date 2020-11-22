@@ -20,66 +20,45 @@
 #ifndef ANTKEEPER_GENETIC_OPERATORS_HPP
 #define ANTKEEPER_GENETIC_OPERATORS_HPP
 
-#include <cstdlib>
-#include <iterator>
-
 namespace dna
 {
 
 /**
- * Performs a genetic crossover on a range of interleaved allele blocks defined by `[first1, last1)`.
+ * Performs a genetic crossover on two blocks of interleaved alleles.
  *
- * @param[in] first1,last1 First range of interleaved allele blocks to crossover. 
- * @param[in] first2 Beginning of the the second range of interleaved allele blocks to crossover.
- * @param[out] d_first Beginning of the destination range.
- * @param[in,out] g A uniform random bit generator.
- * @return Output iterator to the block past the last block crossed over. 
+ * @param a Interleaved allele block of the first parent.
+ * @param b Interleaved allele block of the second parent.
+ * @param g Uniform random bit generator.
+ * @return Interleaved allele block of the new offspring.
  */
-template <class InputIt1, class InputIt2, class OutputIt, class URBG>
-OutputIt crossover(InputIt1 first1, InputIt1 last1, InputIt2 first2, OutputIt d_first, URBG&& g)
+template <class T, class URBG>
+T crossover(T a, T b, URBG&& g)
 {
-	typedef typename std::iterator_traits<OutputIt>::value_type block_t;
-	static constexpr std::size_t bits_per_block = sizeof(block_t) << 3;
+	T c = 0, i = 1;
 	
-	while (first1 != last1)
+	do
 	{
-		block_t block = 0;
-		
-		for (std::size_t i = 0; i < bits_per_block;)
-		{
-			block_t allele1 = ((*first1) >> (i + (g() % 2))) & 1;
-			block_t allele2 = ((*first2) >> (i + (g() % 2))) & 1;
-			
-			block |= allele1 << i++;
-			block |= allele2 << i++;
-		}
-		
-		*d_first++ = block;
-		++first1;
-		++first2;
+		c |= (a >> (g() % 2)) & i;
+		i <<= 1;
+		c |= (b << (g() % 2)) & i;
+		i <<= 1;
 	}
+	while (i);
 	
-	return d_first;
+	return c;
 }
 
 /**
- * Performs a genetic mutation by flipping the bit of a single allele in a range of interleaved allele blocks defined by `[first1, last1)`.
+ * Mutates a single allele in an interleaved allele block.
  *
- * @param[in,out] first,last Range of interleaved allele blocks to mutate. 
- * @param[in,out] g A uniform random bit generator.
- * @return Locus of the mutated allele.
+ * @param x Interleaved allele block to mutate.
+ * @param g Uniform random bit generator.
+ * @return Mutated copy of @p x.
  */
-template <class RandomIt, class URBG>
-typename std::iterator_traits<RandomIt>::difference_type mutate(RandomIt first, RandomIt last, URBG&& g)
+template <class T, class URBG>
+T mutate(T x, URBG&& g)
 {
-	typedef typename std::iterator_traits<RandomIt>::value_type block_t;
-	typedef typename std::iterator_traits<RandomIt>::difference_type diff_t;
-	static constexpr diff_t bits_per_block = sizeof(block_t) << 3;
-	
-	diff_t i = g() % ((last - first) * bits_per_block);
-	first[i / bits_per_block] ^= block_t(1) << (i % bits_per_block);
-	
-	return i;
+	return x ^ (T(1) << (g() % (sizeof(T) << 3)));
 }
 
 } // namespace dna
