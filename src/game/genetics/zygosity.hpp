@@ -20,47 +20,37 @@
 #ifndef ANTKEEPER_ZYGOSITY_HPP
 #define ANTKEEPER_ZYGOSITY_HPP
 
-#include "gene.hpp"
-
 namespace dna
 {
-
-/// A homozygous recessive gene.
-static constexpr gene homozygous_recessive = 0b00;
-
-/// A homozygous dominant gene.
-static constexpr gene homozygous_dominant = 0b11;
 	
-/// Returns `true` if gene @p x is heterozygous, `false` otherwise.
-bool is_heterozygous(gene x);
+/**
+ * Tests a gene for heterozygosity.
+ *
+ * @param x Gene with alleles encoded in the two least significant bits.
+ * @return `true` if the gene is heterozygous, `false` otherwise.
+ */
+template <class T>
+bool is_heterozygous(T x);
 
-/// Returns `true` if gene @p x is homozygous, `false` otherwise.
-bool is_homozygous(gene x);
+/**
+ * Tests a gene for homozygosity.
+ *
+ * @param x Gene with alleles encoded in the two least significant bits.
+ * @return `true` if the gene is homozygous, `false` otherwise.
+ */
+template <class T>
+bool is_homozygous(T x);
 
-/// Returns `true` if gene @p x is homozygous recessive, `false` otherwise.
-bool is_homozygous_recessive(gene x);
-
-/// Returns `true` if gene @p x is homozygous dominant, `false` otherwise.
-bool is_homozygous_dominant(gene x);
-
-inline bool is_heterozygous(gene x)
+template <class T>
+inline bool is_heterozygous<T>(T x)
 {
-	return x - 1 < 2;
+	return x & 1 != (x >> 1) & 1;
 }
 
-inline bool is_homozygous(gene x)
+template <class T>
+inline bool is_homozygous<T>(T x)
 {
-	return (x & 1) == (x >> 1);
-}
-
-inline bool is_homozygous_recessive(gene x)
-{
-	return x == homozygous_recessive;
-}
-
-inline bool is_homozygous_dominant(gene x)
-{
-	return x == homozygous_dominant;
+	return x & 1 == (x >> 1) & 1;
 }
 
 } // namespace dna
