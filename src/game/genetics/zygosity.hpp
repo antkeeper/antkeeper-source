@@ -26,39 +26,39 @@ namespace dna
 {
 
 /// A homozygous recessive gene.
-static constexpr gene homozygous_recessive = {allele::recessive, allele::recessive};
+static constexpr gene homozygous_recessive = 0b00;
 
 /// A homozygous dominant gene.
-static constexpr gene homozygous_dominant = {allele::recessive, allele::recessive};
+static constexpr gene homozygous_dominant = 0b11;
 	
 /// Returns `true` if gene @p x is heterozygous, `false` otherwise.
-bool is_heterozygous(const gene& x);
+bool is_heterozygous(gene x);
 
 /// Returns `true` if gene @p x is homozygous, `false` otherwise.
-bool is_homozygous(const gene& x);
+bool is_homozygous(gene x);
 
 /// Returns `true` if gene @p x is homozygous recessive, `false` otherwise.
-bool is_homozygous_recessive(const gene& x);
+bool is_homozygous_recessive(gene x);
 
 /// Returns `true` if gene @p x is homozygous dominant, `false` otherwise.
-bool is_homozygous_dominant(const gene& x);
+bool is_homozygous_dominant(gene x);
 
-inline bool is_heterozygous(const gene& x)
+inline bool is_heterozygous(gene x)
 {
-	return x[0] != x[1];
+	return x - 1 < 2;
 }
 
-inline bool is_homozygous(const gene& x)
+inline bool is_homozygous(gene x)
 {
-	return x[0] == x[1];
+	return (x & 1) == (x >> 1);
 }
 
-inline bool is_homozygous_recessive(const gene& x)
+inline bool is_homozygous_recessive(gene x)
 {
 	return x == homozygous_recessive;
 }
 
-inline bool is_homozygous_dominant(const gene& x)
+inline bool is_homozygous_dominant(gene x)
 {
 	return x == homozygous_dominant;
 }

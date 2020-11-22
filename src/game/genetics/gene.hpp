@@ -20,13 +20,13 @@
 #ifndef ANTKEEPER_GENE_HPP
 #define ANTKEEPER_GENE_HPP
 
-#include "allele.hpp"
+#include <cstdint>
 
 namespace dna
 {
 
-/// A gene with two alleles.
-typedef std::array<allele, 2> gene;
+/// A 2-bit gene with two alleles.
+typedef std::uint8_t gene;
 
 } // namespace dna
 

@@ -20,17 +20,19 @@
 #ifndef ANTKEEPER_ALLELE_HPP
 #define ANTKEEPER_ALLELE_HPP
 
+#include <cstdint>
+
 namespace dna
 {
 
 /// Enumerates allele types.
-enum class allele: bool
+enum allele: std::uint8_t
 {
 	/// Indicates an allele is recessive.
-	recessive = false,
+	recessive = 0,
 	
 	/// Indicates an allele is dominant.
-	dominant = true
+	dominant = 1
 };
 
 } // namespace dna
