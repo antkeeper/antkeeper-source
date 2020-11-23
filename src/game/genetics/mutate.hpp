@@ -17,25 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_POPCOUNT_HPP
-#define ANTKEEPER_POPCOUNT_HPP
+#ifndef ANTKEEPER_MUTATE_HPP
+#define ANTKEEPER_MUTATE_HPP
 
 namespace dna
 {
 
-/// Returns the number of set bits (*population count*) in @p x. Also known as the *Hamming weight*.
-template <typename T>
-constexpr int popcount(T x) noexcept;
-
-template <typename T>
-inline constexpr int popcount(T x) noexcept
+/**
+ * Mutates a value by flipping a single random bit.
+ *
+ * @param x Value to mutate.
+ * @param g Uniform random bit generator.
+ * @return Mutated copy of @p x.
+ */
+template <class T, class URBG>
+T mutate(T x, URBG&& g)
 {
-	int n;
-	for (n = 0; x; ++n)
-		x &= x - 1;
-	return n;
+	return x ^ (T(1) << (g() % (sizeof(T) << 3)));
 }
 
 } // namespace dna
 
-#endif // ANTKEEPER_POPCOUNT_HPP
+#endif // ANTKEEPER_MUTATE_HPP

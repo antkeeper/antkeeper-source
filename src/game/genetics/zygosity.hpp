@@ -22,7 +22,7 @@
 
 namespace dna
 {
-	
+
 /**
  * Tests a gene for heterozygosity.
  *
@@ -44,13 +44,13 @@ bool is_homozygous(T x);
 template <class T>
 inline bool is_heterozygous<T>(T x)
 {
-	return x & 1 != (x >> 1) & 1;
+	return (x & 1) != (x >> 1);
 }
 
 template <class T>
 inline bool is_homozygous<T>(T x)
 {
-	return x & 1 == (x >> 1) & 1;
+	return (x & 1) == (x >> 1);
 }
 
 } // namespace dna

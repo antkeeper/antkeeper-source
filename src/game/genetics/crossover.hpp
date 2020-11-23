@@ -17,17 +17,37 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GENE_HPP
-#define ANTKEEPER_GENE_HPP
-
-#include <cstdint>
+#ifndef ANTKEEPER_CROSSOVER_HPP
+#define ANTKEEPER_CROSSOVER_HPP
 
 namespace dna
 {
 
-/// A 2-bit gene with two alleles.
-typedef std::uint8_t gene;
+/**
+ * Performs a genetic crossover between two chromosomes.
+ *
+ * @param a Chromosome of the first parent.
+ * @param b Chromosome of the second parent.
+ * @param g Uniform random bit generator.
+ * @return Chromosome of the new offspring.
+ */
+template <class T, class URBG>
+T crossover(T a, T b, URBG&& g)
+{
+	T c = 0, i = 1;
+	
+	do
+	{
+		c |= (a >> (g() % 2)) & i;
+		i <<= 1;
+		c |= (b << (g() % 2)) & i;
+		i <<= 1;
+	}
+	while (i);
+	
+	return c;
+}
 
 } // namespace dna
 
-#endif // ANTKEEPER_GENE_HPP
+#endif // ANTKEEPER_CROSSOVER_HPP
