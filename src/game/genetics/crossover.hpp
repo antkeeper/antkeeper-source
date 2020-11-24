@@ -20,32 +20,53 @@
 #ifndef ANTKEEPER_CROSSOVER_HPP
 #define ANTKEEPER_CROSSOVER_HPP
 
+#include "bit-math.hpp"
+
 namespace dna
 {
 
 /**
- * Performs a genetic crossover between two chromosomes.
+ * Performs a single-point crossover between two values.
  *
- * @param a Chromosome of the first parent.
- * @param b Chromosome of the second parent.
- * @param g Uniform random bit generator.
- * @return Chromosome of the new offspring.
+ * @param a First value.
+ * @param b Second value.
+ * @parma pos Position of the crossover point.
  */
-template <class T, class URBG>
-T crossover(T a, T b, URBG&& g)
+template <class T>
+constexpr T crossover(T a, T b, int pos) noexcept;
+
+/**
+ * Performs an n-point crossover between two values.
+ *
+ * @param a First value.
+ * @param b Second value.
+ * @param mask Bit mask with set bits marking crossover points.
+ */
+template <class T>
+constexpr T crossover_n(T a, T b, T mask) noexcept;
+
+template <class T>
+inline constexpr T crossover(T a, T b, int pos) noexcept
 {
-	T c = 0, i = 1;
+	T mask = (T(1) << pos) - 1;
+	return bit_merge(b, a, mask);
+}
+
+template <class T>
+constexpr T crossover_n(T a, T b, T mask) noexcept
+{
+	T merge = 0, i = 0;
 	
-	do
+	while (mask)
 	{
-		c |= (a >> (g() % 2)) & i;
-		i <<= 1;
-		c |= (b << (g() % 2)) & i;
-		i <<= 1;
+		merge ^= (mask ^ (mask - 1)) >> 1;
+		mask &= mask - 1;
+		i = !i;
 	}
-	while (i);
 	
-	return c;
+	merge ^= ~T(0) * i;
+	
+	return bit_merge<T>(a, b, merge);
 }
 
 } // namespace dna

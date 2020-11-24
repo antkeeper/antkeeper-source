@@ -24,33 +24,33 @@ namespace dna
 {
 
 /**
- * Tests a gene for heterozygosity.
+ * Tests the two least significant bits of a value for equality
  *
- * @param x Gene with alleles encoded in the two least significant bits.
- * @return `true` if the gene is heterozygous, `false` otherwise.
+ * @param x Value to test.
+ * @return `true` if the two least significant bits are equal, `false` otherwise.
  */
 template <class T>
-bool is_heterozygous(T x);
+constexpr bool homozygous(T x) noexcept;
 
 /**
- * Tests a gene for homozygosity.
+ * Tests the two least significant bits of a value for inequality.
  *
- * @param x Gene with alleles encoded in the two least significant bits.
- * @return `true` if the gene is homozygous, `false` otherwise.
+ * @param x Value to test.
+ * @return `true` if the two least significant bits are inequal, `false` otherwise.
  */
 template <class T>
-bool is_homozygous(T x);
+constexpr bool heterozygous(T x) noexcept;
 
 template <class T>
-inline bool is_heterozygous<T>(T x)
+inline constexpr bool homozygous<T>(T x) noexcept
 {
-	return (x & 1) != (x >> 1);
+	return (x & 1) == ((x >> 1) & 1);
 }
 
 template <class T>
-inline bool is_homozygous<T>(T x)
+inline constexpr bool heterozygous<T>(T x) noexcept
 {
-	return (x & 1) == (x >> 1);
+	return (x & 1) != ((x >> 1) & 1);
 }
 
 } // namespace dna

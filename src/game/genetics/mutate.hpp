@@ -24,16 +24,16 @@ namespace dna
 {
 
 /**
- * Mutates a value by flipping a single random bit.
+ * Mutates a value by flipping a single bit.
  *
  * @param x Value to mutate.
- * @param g Uniform random bit generator.
+ * @param i Index of the bit to flip.
  * @return Mutated copy of @p x.
  */
-template <class T, class URBG>
-T mutate(T x, URBG&& g)
+template <class T>
+T mutate(T x, int i)
 {
-	return x ^ (T(1) << (g() % (sizeof(T) << 3)));
+	return x ^ (T(1) << i);
 }
 
 } // namespace dna

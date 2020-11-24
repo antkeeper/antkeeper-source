@@ -52,6 +52,93 @@ constexpr T bit_extract(T x, T mask) noexcept;
 template <typename T>
 constexpr int popcount(T x) noexcept;
 
+/**
+ * Returns the number of differing bits between two values, known as *Hamming distance*.
+ *
+ * @param x First value.
+ * @param y Second value.
+ * @return Hamming distance between @px and @p y.
+ */	
+template <typename T>
+constexpr int hamming_distance(T x, T y) noexcept;
+
+
+template <typename T>
+constexpr T bit_merge(T a, T b, T mask) noexcept
+{
+	return a ^ ((a ^ b) & mask);
+}
+
+template <class T>
+constexpr T bit_pad(T x) noexcept
+{
+	x &= (1 << (sizeof(T) << 2)) - 1;
+	
+	if constexpr(sizeof(T) >= 8)
+		x = (x ^ (x << 16)) & T(0x0000ffff0000ffff);
+	if constexpr(sizeof(T) >= 4)
+		x = (x ^ (x <<  8)) & T(0x00ff00ff00ff00ff);
+	if constexpr(sizeof(T) >= 2)
+		x = (x ^ (x <<  4)) & T(0x0f0f0f0f0f0f0f0f);
+	
+	x = (x ^ (x <<  2)) & T(0x3333333333333333);
+	x = (x ^ (x <<  1)) & T(0x5555555555555555);
+	
+	return x;
+}
+
+template <typename T>
+constexpr T bit_interleave(T a, T b) noexcept
+{
+	return (bit_pad(b) << 1) | bit_pad(a);
+}
+
+template <typename T>
+constexpr T bit_swap_adjacent(T x) noexcept
+{
+	return ((x & T(0xaaaaaaaaaaaaaaaa)) >> 1) | ((x & T(0x5555555555555555)) << 1);
+}
+
+template <typename T>
+constexpr T bit_shuffle_adjacent(T x, T mask) noexcept
+{
+	T y = bit_swap_adjacent(x);
+	return bit_merge(x, y, bit_interleave<T>(mask, mask));
+}
+
+/**
+ * Shuffles the adjacent bits of a value.
+ *
+ * @param x Value to shuffle.
+ * @param g Uniform random bit generator.
+ * @return Value with adjacent bits shuffled.
+ */
+/*
+template <class T, class URBG>
+constexpr T bit_shuffle_adjacent(T x, URBG&& g) noexcept
+{
+	return bit_swap_adjacent(x, static_cast<T>(g()));
+}*/
+
+/**
+ *
+ */
+template <class T, class U>
+U bit_splice(T a, T b, U mask)
+{
+	return bit_deposit(static_cast<U>(a), ~mask) | bit_deposit(static_cast<U>(b), mask);
+}
+
+/**
+ * For an n-bit number with r set bits, there are `n! / ((n - r)! * r!)` permutations.
+ */
+template <class T>
+T next_bit_permutation(T x)
+{
+	T y = (x | (x - 1)) + 1;
+	return y | ((((y & -y) / (x & -x)) >> 1) - 1);  
+}
+
 template <class T>
 constexpr T bit_deposit(T x, T mask) noexcept
 {
@@ -89,6 +176,24 @@ constexpr int popcount(T x) noexcept
 	for (; x; ++n)
 		x &= x - 1;
 	return n;
+}
+
+template <typename T>
+inline constexpr int hamming_distance(T x, T y) noexcept
+{
+	return popcount(x ^ y);
+}
+
+/**
+ *
+ * @param mask Least significant bits indicate whether to inherit the first (0) or second (1) allele from @p a. Most significant bits indicate whether to inherit the first (0) or second (1) allele from @p b.
+ */
+template <class T>
+constexpr T inherit(T a, T b, T mask) noexcept
+{
+	a = bit_shuffle_adjacent<T>(a, mask);
+	b = bit_shuffle_adjacent<T>(b, mask >> (sizeof(T) << 2));
+	return bit_merge<T>(a, b, T(0x5555555555555555));
 }
 
 } // namespace dna
