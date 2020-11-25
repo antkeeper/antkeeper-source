@@ -49,7 +49,7 @@ constexpr T bit_extract(T x, T mask) noexcept;
  * @param x Value to count.
  * @return Number of set bits in @p x.
  */
-template <typename T>
+template <class T>
 constexpr int popcount(T x) noexcept;
 
 /**
@@ -59,18 +59,18 @@ constexpr int popcount(T x) noexcept;
  * @param y Second value.
  * @return Hamming distance between @px and @p y.
  */	
-template <typename T>
+template <class T>
 constexpr int hamming_distance(T x, T y) noexcept;
 
 
-template <typename T>
+template <class T>
 constexpr T bit_merge(T a, T b, T mask) noexcept
 {
 	return a ^ ((a ^ b) & mask);
 }
 
 template <class T>
-constexpr T bit_pad(T x) noexcept
+constexpr T bit_expand(T x) noexcept
 {
 	x &= (1 << (sizeof(T) << 2)) - 1;
 	
@@ -81,25 +81,64 @@ constexpr T bit_pad(T x) noexcept
 	if constexpr(sizeof(T) >= 2)
 		x = (x ^ (x <<  4)) & T(0x0f0f0f0f0f0f0f0f);
 	
-	x = (x ^ (x <<  2)) & T(0x3333333333333333);
-	x = (x ^ (x <<  1)) & T(0x5555555555555555);
+	x = (x ^ (x << 2)) & T(0x3333333333333333);
+	x = (x ^ (x << 1)) & T(0x5555555555555555);
 	
 	return x;
 }
 
-template <typename T>
-constexpr T bit_interleave(T a, T b) noexcept
+template <class T, class U = T>
+constexpr U interleave(T a, T b) noexcept
 {
-	return (bit_pad(b) << 1) | bit_pad(a);
+	return bit_expand<U>(a) | (bit_expand<U>(b) << 1);
 }
 
-template <typename T>
+/**
+ * Returns the parity of a value.
+ *
+ * @param x Value to test.
+ * @return `1` if an odd number of bits are set, `0` otherwise.
+ */
+template <class T>
+constexpr T parity(T x) noexcept
+{
+	if constexpr(sizeof(T) >= 8)
+		x ^= x >> 32;
+	if constexpr(sizeof(T) >= 4)
+		x ^= x >> 16;
+	if constexpr(sizeof(T) >= 2)
+		x ^= x >> 8;
+	
+	x ^= x >> 4;
+	
+	return (0x6996 >> (x & 0xf)) & 1;
+}
+
+template <class T>
+constexpr T deinterleave(T x) noexcept
+{
+	x &= T(0x5555555555555555);
+	
+	x = (x ^ (x >> 1)) & T(0x3333333333333333);
+	x = (x ^ (x >> 2)) & T(0x0f0f0f0f0f0f0f0f);
+	
+	if constexpr(sizeof(T) >= 2)
+		x = (x ^ (x >>  4)) & T(0x00ff00ff00ff00ff);
+	if constexpr(sizeof(T) >= 4)
+		x = (x ^ (x >>  8)) & T(0x0000ffff0000ffff);
+	if constexpr(sizeof(T) >= 8)
+		x = (x ^ (x >> 16)) & T(0x00000000ffffffff);
+	
+	return x;
+}
+
+template <class T>
 constexpr T bit_swap_adjacent(T x) noexcept
 {
 	return ((x & T(0xaaaaaaaaaaaaaaaa)) >> 1) | ((x & T(0x5555555555555555)) << 1);
 }
 
-template <typename T>
+template <class T>
 constexpr T bit_shuffle_adjacent(T x, T mask) noexcept
 {
 	T y = bit_swap_adjacent(x);
@@ -169,7 +208,7 @@ constexpr T bit_extract(T x, T mask) noexcept
 	return result;
 }
 
-template <typename T>
+template <class T>
 constexpr int popcount(T x) noexcept
 {
 	int n = 0;
@@ -178,22 +217,10 @@ constexpr int popcount(T x) noexcept
 	return n;
 }
 
-template <typename T>
+template <class T>
 inline constexpr int hamming_distance(T x, T y) noexcept
 {
 	return popcount(x ^ y);
-}
-
-/**
- *
- * @param mask Least significant bits indicate whether to inherit the first (0) or second (1) allele from @p a. Most significant bits indicate whether to inherit the first (0) or second (1) allele from @p b.
- */
-template <class T>
-constexpr T inherit(T a, T b, T mask) noexcept
-{
-	a = bit_shuffle_adjacent<T>(a, mask);
-	b = bit_shuffle_adjacent<T>(b, mask >> (sizeof(T) << 2));
-	return bit_merge<T>(a, b, T(0x5555555555555555));
 }
 
 } // namespace dna

@@ -17,58 +17,42 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_CROSSOVER_HPP
-#define ANTKEEPER_CROSSOVER_HPP
-
-#include "bit-math.hpp"
+#ifndef ANTKEEPER_ALLELE_HPP
+#define ANTKEEPER_ALLELE_HPP
 
 namespace dna
 {
 
 /**
- * Performs a single-point crossover between two values.
+ * Tests the two least significant bits of a value for equality
  *
- * @param a First value.
- * @param b Second value.
- * @parma pos Position of the crossover point.
+ * @param x Value to test.
+ * @return `true` if the two least significant bits are equal, `false` otherwise.
  */
 template <class T>
-constexpr T crossover(T a, T b, int pos) noexcept;
+constexpr bool homozygous(T x) noexcept;
 
 /**
- * Performs an n-point crossover between two values.
+ * Tests the two least significant bits of a value for inequality.
  *
- * @param a First value.
- * @param b Second value.
- * @param mask Bit mask with set bits marking crossover points.
+ * @param x Value to test.
+ * @return `true` if the two least significant bits are inequal, `false` otherwise.
  */
 template <class T>
-constexpr T crossover_n(T a, T b, T mask) noexcept;
+constexpr bool heterozygous(T x) noexcept;
 
 template <class T>
-inline constexpr T crossover(T a, T b, int pos) noexcept
+inline constexpr bool homozygous<T>(T x) noexcept
 {
-	T mask = (T(1) << pos) - 1;
-	return bit_merge(b, a, mask);
+	return (x & 1) == ((x >> 1) & 1);
 }
 
 template <class T>
-constexpr T crossover_n(T a, T b, T mask) noexcept
+inline constexpr bool heterozygous<T>(T x) noexcept
 {
-	T merge = 0, i = 0;
-	
-	while (mask)
-	{
-		merge ^= (mask ^ (mask - 1)) >> 1;
-		mask &= mask - 1;
-		i = !i;
-	}
-	
-	merge ^= ~T(0) * i;
-	
-	return bit_merge<T>(a, b, merge);
+	return (x & 1) != ((x >> 1) & 1);
 }
 
 } // namespace dna
 
-#endif // ANTKEEPER_CROSSOVER_HPP
+#endif // ANTKEEPER_ALLELE_HPP

@@ -17,42 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ZYGOSITY_HPP
-#define ANTKEEPER_ZYGOSITY_HPP
+#ifndef ANTKEEPER_TRAIT_HPP
+#define ANTKEEPER_TRAIT_HPP
 
 namespace dna
 {
 
-/**
- * Tests the two least significant bits of a value for equality
- *
- * @param x Value to test.
- * @return `true` if the two least significant bits are equal, `false` otherwise.
- */
-template <class T>
-constexpr bool homozygous(T x) noexcept;
-
-/**
- * Tests the two least significant bits of a value for inequality.
- *
- * @param x Value to test.
- * @return `true` if the two least significant bits are inequal, `false` otherwise.
- */
-template <class T>
-constexpr bool heterozygous(T x) noexcept;
-
-template <class T>
-inline constexpr bool homozygous<T>(T x) noexcept
+template <typename T>
+T mendelian_variant(T x)
 {
-	return (x & 1) == ((x >> 1) & 1);
+	return !!x;
 }
 
-template <class T>
-inline constexpr bool heterozygous<T>(T x) noexcept
+template <typename T>
+T nonmendelian_variant(T x)
 {
-	return (x & 1) != ((x >> 1) & 1);
+	return popcount(x);
 }
 
 } // namespace dna
 
-#endif // ANTKEEPER_ZYGOSITY_HPP
+#endif // ANTKEEPER_TRAIT_HPP

@@ -17,25 +17,40 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MUTATE_HPP
-#define ANTKEEPER_MUTATE_HPP
+#ifndef ANTKEEPER_GENE_HPP
+#define ANTKEEPER_GENE_HPP
 
 namespace dna
 {
 
 /**
- * Mutates a value by flipping a single bit.
+ * Isolates a pair of bits and returns them in the two least significant bits.
  *
- * @param x Value to mutate.
- * @param i Index of the bit to flip.
- * @return Mutated copy of @p x.
+ * @param x Diploid chromosome with interleaved alleles.
+ * @param i Index of the pair to isolate.
+ * @return Isolated pair of bits in the two least significant bits.
  */
 template <class T>
-T mutate(T x, int i)
+T isolate(T x, int i)
 {
-	return x ^ (T(1) << i);
+	return (x >> (i << 1)) & 0b11;
+}
+
+/**
+ * Isolates a sequence of genes and returns their alleles in the least significant bits.
+ *
+ * @param x Diploid chromosome with interleaed alleles.
+ * @param i Index of the first gene in the sequence.
+ * @param n Length of the sequence, in genes.
+ * @return Alleles of the sequeuence in the least significant bits.
+ */
+template <class T>
+T isolate_n(T x, int i, int n)
+{
+	T mask = (T(1) << (n << 1)) - 1;
+	return (x >> (i << 1)) & mask;
 }
 
 } // namespace dna
 
-#endif // ANTKEEPER_MUTATE_HPP
+#endif // ANTKEEPER_GENE_HPP
