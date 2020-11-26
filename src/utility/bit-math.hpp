@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_BIT_MATH_HPP
 #define ANTKEEPER_BIT_MATH_HPP
 
-namespace dna
+namespace bit
 {
 
 /**
@@ -31,7 +31,7 @@ namespace dna
  * @return Bits from the least significant bits of @p x in the positions marked by @p mask.
  */
 template <class T>
-constexpr T bit_deposit(T x, T mask) noexcept;
+constexpr T deposit(T x, T mask) noexcept;
 
 /**
  * Reads bits from a value in the positions marked by a mask and returns them in the least significant bits.
@@ -41,7 +41,7 @@ constexpr T bit_deposit(T x, T mask) noexcept;
  * @return Bits of @p x from the positions marked by @p mask in the least significant bits.
  */
 template <class T>
-constexpr T bit_extract(T x, T mask) noexcept;
+constexpr T extract(T x, T mask) noexcept;
 
 /**
  * Returns the number of set bits in a value, known as a *population count* or *Hamming weight*.
@@ -50,7 +50,7 @@ constexpr T bit_extract(T x, T mask) noexcept;
  * @return Number of set bits in @p x.
  */
 template <class T>
-constexpr int popcount(T x) noexcept;
+constexpr int count(T x) noexcept;
 
 /**
  * Returns the number of differing bits between two values, known as *Hamming distance*.
@@ -60,17 +60,16 @@ constexpr int popcount(T x) noexcept;
  * @return Hamming distance between @px and @p y.
  */	
 template <class T>
-constexpr int hamming_distance(T x, T y) noexcept;
-
+constexpr int difference(T x, T y) noexcept;
 
 template <class T>
-constexpr T bit_merge(T a, T b, T mask) noexcept
+constexpr T merge(T a, T b, T mask) noexcept
 {
 	return a ^ ((a ^ b) & mask);
 }
 
 template <class T>
-constexpr T bit_expand(T x) noexcept
+constexpr T expand(T x) noexcept
 {
 	x &= (1 << (sizeof(T) << 2)) - 1;
 	
@@ -88,7 +87,7 @@ constexpr T bit_expand(T x) noexcept
 }
 
 template <class T, class U = T>
-constexpr U interleave(T a, T b) noexcept
+inline constexpr U interleave(T a, T b) noexcept
 {
 	return bit_expand<U>(a) | (bit_expand<U>(b) << 1);
 }
@@ -115,7 +114,7 @@ constexpr T parity(T x) noexcept
 }
 
 template <class T>
-constexpr T deinterleave(T x) noexcept
+constexpr T compress(T x) noexcept
 {
 	x &= T(0x5555555555555555);
 	
@@ -133,46 +132,16 @@ constexpr T deinterleave(T x) noexcept
 }
 
 template <class T>
-constexpr T bit_swap_adjacent(T x) noexcept
+constexpr T swap_adjacent(T x) noexcept
 {
 	return ((x & T(0xaaaaaaaaaaaaaaaa)) >> 1) | ((x & T(0x5555555555555555)) << 1);
-}
-
-template <class T>
-constexpr T bit_shuffle_adjacent(T x, T mask) noexcept
-{
-	T y = bit_swap_adjacent(x);
-	return bit_merge(x, y, bit_interleave<T>(mask, mask));
-}
-
-/**
- * Shuffles the adjacent bits of a value.
- *
- * @param x Value to shuffle.
- * @param g Uniform random bit generator.
- * @return Value with adjacent bits shuffled.
- */
-/*
-template <class T, class URBG>
-constexpr T bit_shuffle_adjacent(T x, URBG&& g) noexcept
-{
-	return bit_swap_adjacent(x, static_cast<T>(g()));
-}*/
-
-/**
- *
- */
-template <class T, class U>
-U bit_splice(T a, T b, U mask)
-{
-	return bit_deposit(static_cast<U>(a), ~mask) | bit_deposit(static_cast<U>(b), mask);
 }
 
 /**
  * For an n-bit number with r set bits, there are `n! / ((n - r)! * r!)` permutations.
  */
 template <class T>
-T next_bit_permutation(T x)
+constexpr T next_permutation(T x) noexcept
 {
 	T y = (x | (x - 1)) + 1;
 	return y | ((((y & -y) / (x & -x)) >> 1) - 1);  
@@ -194,7 +163,7 @@ constexpr T bit_deposit(T x, T mask) noexcept
 }
 
 template <class T>
-constexpr T bit_extract(T x, T mask) noexcept
+constexpr T extract(T x, T mask) noexcept
 {
 	T result = 0;
 	
@@ -209,7 +178,7 @@ constexpr T bit_extract(T x, T mask) noexcept
 }
 
 template <class T>
-constexpr int popcount(T x) noexcept
+constexpr int count(T x) noexcept
 {
 	int n = 0;
 	for (; x; ++n)
@@ -218,11 +187,11 @@ constexpr int popcount(T x) noexcept
 }
 
 template <class T>
-inline constexpr int hamming_distance(T x, T y) noexcept
+inline constexpr int difference(T x, T y) noexcept
 {
-	return popcount(x ^ y);
+	return count(x ^ y);
 }
 
-} // namespace dna
+} // namespace bit
 
 #endif // ANTKEEPER_BIT_MATH_HPP

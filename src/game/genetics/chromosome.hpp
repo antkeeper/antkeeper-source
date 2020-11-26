@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_CHROMOSOME_HPP
 #define ANTKEEPER_CHROMOSOME_HPP
 
-#include "bit-math.hpp"
+#include "utility/bit-math.hpp"
 #include <array>
 
 namespace dna
@@ -35,8 +35,8 @@ namespace dna
 template <class T>
 T segregate(T x)
 {
-	T odd = deinterleave(x);
-	T even = deinterleave(x >> 1);
+	T odd = bit::compress(x);
+	T even = bit::compress(x >> 1);
 	
 	return odd | (even << (sizeof(T) << 2));
 }
@@ -50,7 +50,7 @@ T segregate(T x)
 template <class T>
 T desegregate(T x)
 {
-	return interleave<T>(x, x >> (sizeof(T) << 2));
+	return bit::interleave<T>(x, x >> (sizeof(T) << 2));
 }
 
 /**
@@ -62,26 +62,26 @@ T desegregate(T x)
 template <class T>
 T replicate(T x)
 {
-	x = bit_expand(x);
+	x = bit::expand(x);
 	return x | (x << 1);
 }
 
 /**
- * Performs 
+ * Generates four daughter chromosomes from a 2n/2c chromosome pair.
+ *
+ * @param x Homologous pair of chromosomes.
+ * @param mask Bit mask with set bits marking crossover points.
+ * @return Array of four 1n, 1c chromosomes.
  */
-template <class T>
-std::array<T, 4> meiosis(T x, T mask)
+template <class T, class U = T>	
+std::array<U, 4> meiosis(T x, U mask)
 {
-	x = segregate(x);
-	T xl = x & (sizeof(T) << 2);
-	T xh = x >> (sizeof(T) << 2);
+	U a = bit::compress(x);
+	U b = bit::compress(x >> 1);
+	U c = crossover_n(a, b, mask);
+	U d = crossover_n(b, a, mask);
 	
-	T a = xl;
-	T b = crossover_n(xl, xh, mask);
-	T c = crossover_n(xh, xl, mask);
-	T d = xh;
-	
-	return {a, b, c, d};
+	return {a, c, d, b};
 }
 
 /**
