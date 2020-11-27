@@ -24,7 +24,10 @@ namespace bit
 {
 
 /**
+ * Compresses the even bits of a value into the lower half, then clears the upper half.
  *
+ * @param x Value to compress.
+ * @return Compressed value.
  */
 template <class T>
 constexpr T compress(T x) noexcept;
@@ -71,6 +74,15 @@ template <class T>
 constexpr T deposit(T x, T mask) noexcept;
 
 /**
+ * Interleaves bits of the lower and upper halves of a value.
+ *
+ * @param x Value to desegregate.
+ * @return Value with bits from the upper half of @p x interleaved with bits from the lower half.
+ */
+template <class T>
+constexpr T desegregate(T x) noexcept;
+
+/**
  * Returns the number of differing bits between two values, known as *Hamming distance*.
  *
  * @param x First value.
@@ -79,6 +91,15 @@ constexpr T deposit(T x, T mask) noexcept;
  */	
 template <class T>
 constexpr int difference(T x, T y) noexcept;
+
+/**
+ * Moves bits from the lower half of a value to occupy all even bits, and clears all odd bits.
+ *
+ * @param x Value to expand.
+ * @return Expanded value.
+ */
+template <class T>
+constexpr T expand(T x) noexcept;
 
 /**
  * Reads bits from a value in the positions marked by a mask and returns them in the least significant bits.
@@ -101,13 +122,22 @@ template <class T>
 constexpr T flip(T x, int i) noexcept;
 
 /**
+ * Returns a value with even bits containing the first value's lower half, and odd bits containing the second value's lower half.
  *
+ * @param a First value.
+ * @param b Second value.
+ * @return Value with bits from the lower halves of @p a and @p b interleaved.
  */
 template <class T, class U = T>
 constexpr U interleave(T a, T b) noexcept;
 
 /**
+ * Merges the bits of two values using a bit mask.
  *
+ * @param a First value.
+ * @param b Second value.
+ * @param mask Bit mask with zeros where bits from @p a should be used, and ones where bits from @p b should be used.
+ * @return Merged value.
  */
 template <class T>
 constexpr T merge(T a, T b, T mask) noexcept;
@@ -122,79 +152,22 @@ template <class T>
 constexpr T parity(T x) noexcept;
 
 /**
- *
- */
-template <class T>
-constexpr T swap_adjacent(T x) noexcept;
-
-
-/**
  * Segregates the odd and even bits of a value.
  *
  * @param x Value to segregate.
  * @return Value with even bits of @p x in the lower half, and odd bits in the upper half.
  */
 template <class T>
-T segregate(T x)
-{
-	T odd = bit::compress(x);
-	T even = bit::compress(x >> 1);
-	
-	return odd | (even << (sizeof(T) << 2));
-}
+constexpr T segregate(T x) noexcept;
 
 /**
- * Interleaves bits of the lower and upper halves of a value.
+ * Swaps the each odd bit with its following even bit.
  *
- * @param x Value to desegregate.
- * @return Value with bits from the upper half of @p x interleaved with bits from the lower half.
+ * @param x Value in which adjacent bits should be swap.
+ * @return Copy of @p x with adjacent bits swapped.
  */
 template <class T>
-T desegregate(T x)
-{
-	return bit::interleave<T>(x, x >> (sizeof(T) << 2));
-}
-
-/**
- * Replicates each bit in the lower half of a value.
- *
- * @param x Value to replicate.
- * @return Value of @p x interleaved with itself.
- */
-template <class T>
-T replicate(T x)
-{
-	x = bit::expand(x);
-	return x | (x << 1);
-}
-
-/**
- * Isolates a pair of bits and returns them in the two least significant bits.
- *
- * @param x Diploid chromosome with interleaved alleles.
- * @param i Index of the pair to isolate.
- * @return Isolated pair of bits in the two least significant bits.
- */
-template <class T>
-T isolate(T x, int i)
-{
-	return (x >> (i << 1)) & 0b11;
-}
-
-/**
- * Isolates a sequence of genes and returns their alleles in the least significant bits.
- *
- * @param x Diploid chromosome with interleaed alleles.
- * @param i Index of the first gene in the sequence.
- * @param n Length of the sequence, in genes.
- * @return Alleles of the sequeuence in the least significant bits.
- */
-template <class T>
-T isolate_n(T x, int i, int n)
-{
-	T mask = (T(1) << (n << 1)) - 1;
-	return (x >> (i << 1)) & mask;
-}
+constexpr T swap_adjacent(T x) noexcept;
 
 
 template <class T>
@@ -228,13 +201,13 @@ template <class T>
 inline constexpr T crossover(T a, T b, int i) noexcept
 {
 	T mask = (T(1) << i) - 1;
-	return bit::merge(b, a, mask);
+	return merge(b, a, mask);
 }
 
 template <class T>
 constexpr T crossover_n(T a, T b, T mask) noexcept
 {
-	T merge = ~T(0) * bit::parity(mask);
+	T merge = ~T(0) * parity(mask);
 	
 	while (mask)
 	{
@@ -242,7 +215,13 @@ constexpr T crossover_n(T a, T b, T mask) noexcept
 		mask &= mask - 1;
 	}
 	
-	return bit::merge(a, b, merge);
+	return merge(a, b, merge);
+}
+
+template <class T>
+inline constexpr T desegregate(T x) noexcept
+{
+	return interleave<T>(x, x >> (sizeof(T) << 2));
 }
 
 template <class T>
@@ -264,28 +243,6 @@ constexpr T expand(T x) noexcept
 }
 
 template <class T>
-inline constexpr T flip(T x, int i) noexcept
-{
-	return x ^ (T(1) << i);
-}
-
-template <class T, class U>
-inline constexpr U interleave(T a, T b) noexcept
-{
-	return expand<U>(a) | (expand<U>(b) << 1);
-}
-
-/**
- * For an n-bit number with r set bits, there are `n! / ((n - r)! * r!)` permutations.
- */
-template <class T>
-constexpr T next_permutation(T x) noexcept
-{
-	T y = (x | (x - 1)) + 1;
-	return y | ((((y & -y) / (x & -x)) >> 1) - 1);  
-}
-
-template <class T>
 constexpr T deposit(T x, T mask) noexcept
 {
 	T result = 0;
@@ -298,6 +255,12 @@ constexpr T deposit(T x, T mask) noexcept
 	}
 	
 	return result;
+}
+
+template <class T>
+inline constexpr int difference(T x, T y) noexcept
+{
+	return count(x ^ y);
 }
 
 template <class T>
@@ -316,13 +279,19 @@ constexpr T extract(T x, T mask) noexcept
 }
 
 template <class T>
-inline constexpr int difference(T x, T y) noexcept
+inline constexpr T flip(T x, int i) noexcept
 {
-	return count(x ^ y);
+	return x ^ (T(1) << i);
+}
+
+template <class T, class U>
+inline constexpr U interleave(T a, T b) noexcept
+{
+	return expand<U>(a) | (expand<U>(b) << 1);
 }
 
 template <class T>
-constexpr T merge(T a, T b, T mask) noexcept
+inline constexpr T merge(T a, T b, T mask) noexcept
 {
 	return a ^ ((a ^ b) & mask);
 }
@@ -340,6 +309,15 @@ constexpr T parity(T x) noexcept
 	x ^= x >> 4;
 	
 	return (0x6996 >> (x & 0xf)) & 1;
+}
+
+template <class T>
+constexpr T segregate(T x) noexcept
+{
+	T odd = compress(x);
+	T even = compress(x >> 1);
+	
+	return odd | (even << (sizeof(T) << 2));
 }
 
 template <class T>
