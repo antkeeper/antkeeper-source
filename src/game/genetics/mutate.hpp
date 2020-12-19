@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MUTATE_HPP
-#define ANTKEEPER_MUTATE_HPP
+#ifndef ANTKEEPER_DNA_MUTATE_HPP
+#define ANTKEEPER_DNA_MUTATE_HPP
 
 #include <algorithm>
 #include <iterator>
@@ -80,4 +80,4 @@ void mutate_n(ForwardIt first, ForwardIt last, Size count, UnaryOperation unary_
 
 } // namespace dna
 
-#endif // ANTKEEPER_MUTATE_HPP
+#endif // ANTKEEPER_DNA_MUTATE_HPP

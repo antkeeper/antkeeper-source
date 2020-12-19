@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TRANSLATE_HPP
-#define ANTKEEPER_TRANSLATE_HPP
+#ifndef ANTKEEPER_DNA_TRANSLATE_HPP
+#define ANTKEEPER_DNA_TRANSLATE_HPP
 
 #include <algorithm>
 #include <cstdint>
@@ -27,7 +27,7 @@
 namespace dna
 {
 
-/// Standard genetic code translation table.
+/// DNA translation table for standard genetic code.
 constexpr char* standard_code =
 	"FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"  // Amino acid
 	"---M------**--*----M---------------M----------------------------"  // Start/stop
@@ -202,4 +202,4 @@ OutputIt translate(InputIt1 first, InputIt1 last, InputIt2 t_first, OutputIt d_f
 
 } // namespace dna
 
-#endif // ANTKEEPER_TRANSLATE_HPP
+#endif // ANTKEEPER_DNA_TRANSLATE_HPP

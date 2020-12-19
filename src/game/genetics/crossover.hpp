@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_CROSSOVER_HPP
-#define ANTKEEPER_CROSSOVER_HPP
+#ifndef ANTKEEPER_DNA_CROSSOVER_HPP
+#define ANTKEEPER_DNA_CROSSOVER_HPP
 
 #include <algorithm>
 #include <iterator>
@@ -85,4 +85,4 @@ void crossover_n(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2, Size co
 
 } // namespace dna
 
-#endif // ANTKEEPER_CROSSOVER_HPP
+#endif // ANTKEEPER_DNA_CROSSOVER_HPP

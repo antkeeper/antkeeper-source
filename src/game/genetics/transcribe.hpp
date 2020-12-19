@@ -17,24 +17,42 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TRAIT_HPP
-#define ANTKEEPER_TRAIT_HPP
+#ifndef ANTKEEPER_DNA_TRANSCRIBE_HPP
+#define ANTKEEPER_DNA_TRANSCRIBE_HPP
+
+#include <algorithm>
 
 namespace dna
 {
 
-template <typename T>
-T mendelian_variant(T x)
+/**
+ * Transcribes DNA into RNA, replacing all occurences of `T` with `U`.
+ *
+ * @param first,last Range of DNA bases to transcribe.
+ */
+template <class ForwardIt>
+void transcribe(ForwardIt first, ForwardIt last);
+
+/**
+ * Transcribes RNA back into DNA, replacing all occurences of `U` with `T`.
+ *
+ * @param first,last Range of RNA bases to transcribe.
+ */
+template <class ForwardIt>
+void untranscribe(ForwardIt first, ForwardIt last);
+
+template <class ForwardIt>
+void transcribe(ForwardIt first, ForwardIt last)
 {
-	return !!x;
+	std::replace(first, last, 'T', 'U');
 }
 
-template <typename T>
-T nonmendelian_variant(T x)
+template <class ForwardIt>
+void untranscribe(ForwardIt first, ForwardIt last)
 {
-	return popcount(x);
+	std::replace(first, last, 'U', 'T');
 }
 
 } // namespace dna
 
-#endif // ANTKEEPER_TRAIT_HPP
+#endif // ANTKEEPER_DNA_TRANSCRIBE_HPP
