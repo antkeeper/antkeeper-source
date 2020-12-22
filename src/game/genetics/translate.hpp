@@ -20,181 +20,28 @@
 #ifndef ANTKEEPER_DNA_TRANSLATE_HPP
 #define ANTKEEPER_DNA_TRANSLATE_HPP
 
-#include <algorithm>
-#include <cstdint>
 #include <iterator>
 
-namespace dna
-{
-
-/// DNA translation table for standard genetic code.
-constexpr char* standard_code =
-	"FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"  // Amino acid
-	"---M------**--*----M---------------M----------------------------"  // Start/stop
-	"TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG"  // Base 1
-	"TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG"  // Base 2
-	"TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG"; // Base 3
+namespace dna {
 
 /**
- * Translates codons into amino acids until a stop codon is read or the end of the sequence is reached.
+ * Divides a range into consecutive subranges of @p n elements, then applies the given function to each subrange and stores the result in another range.
  *
- * @param first,last Range of codons to translate.
- * @param t_first Beginning of the translation table.
+ * @param first,last Range of elements to translate.
  * @param d_first Beginning of the destination range.
- * @return Output iterator to the amino acid in the destination range, one past the last amino acid translated.
+ * @param n Number of elements by which to divide the range.
+ * @param binary_op Binary operation function object that will be applied to each subrange of @p n elements.
+ * @return Output iterator to the element past the last element translated. 
  */
-template <class InputIt1, class InputIt2, class OutputIt>
-OutputIt translate(InputIt1 first, InputIt1 last, InputIt2 t_first, OutputIt d_first);
-
-/**
- * Finds the first start codon in a sequence of bases.
- *
- * @param first,last Range of bases to search.
- * @param t_first Beginning of the translation table.
- * @return Iterator to the first base of the first start codon in the sequence, or @p last if no start codon is found.
- */
-template <class ForwardIt1, class ForwardIt2>
-ForwardIt1 find_start(ForwardIt1 first, ForwardIt1 last, ForwardIt2 t_first);
-
-/**
- * Finds the first stop codon in a sequence of codons.
- *
- * @param first,last Range of codons to search.
- * @param t_first Beginning of the translation table.
- * @return Iterator to the first base of the first stop codon in the sequence, or @p last if no stop codon is found.
- */
-template <class ForwardIt1, class ForwardIt2>
-ForwardIt1 find_stop(ForwardIt1 first, ForwardIt1 last, ForwardIt2 t_first);
-
-template <class ForwardIt1, class ForwardIt2>
-ForwardIt1 find_start(ForwardIt1 first, ForwardIt1 last, ForwardIt2 t_first)
+template <class InputIt, class OutputIt, class Size, class BinaryOperation>
+OutputIt translate(InputIt first, InputIt last, OutputIt d_first, Size n, BinaryOperation binary_op)
 {
-	ForwardIt1 second = first;
-	++second;
-	ForwardIt1 third = second;
-	++third;
-	
-	ForwardIt2 start_first = t_first;
-	std::advance(start_first, 64);
-	ForwardIt2 base1_first = start_first;
-	std::advance(base1_first, 64);
-	ForwardIt2 base2_first = base1_first;
-	std::advance(base2_first, 64);
-	ForwardIt2 base3_first = base2_first;
-	std::advance(base3_first, 64);
-	
-	if (first != last && second != last)
+	for (auto length = std::distance(first, last); length >= n; length -= n)
 	{
-		while (third != last)
-		{
-			ForwardIt2 start = start_first;
-			ForwardIt2 base1 = base1_first;
-			ForwardIt2 base2 = base2_first;
-			ForwardIt2 base3 = base3_first;
-			
-			for (std::uint_fast8_t i = 64; i; --i)
-			{
-				if (*start != '-' && *start != '*' && *first == *base1 && *second == *base2 && *third == *base3)
-					return first;
-				
-				++start;
-				++base1;
-				++base2;
-				++base3;
-			}
-			
-			first = second;
-			second = third;
-			++third;
-		}
-	}
-	
-	return last;
-}
-
-template <class ForwardIt1, class ForwardIt2>
-ForwardIt1 find_stop(ForwardIt1 first, ForwardIt1 last, ForwardIt2 t_first)
-{
-	ForwardIt1 second = first;
-	++second;
-	ForwardIt1 third = second;
-	++third;
-	
-	ForwardIt2 base1_first = t_first;
-	std::advance(base1_first, 128);
-	ForwardIt2 base2_first = base1_first;
-	std::advance(base2_first, 64);
-	ForwardIt2 base3_first = base2_first;
-	std::advance(base3_first, 64);
-	
-	while (first != last && second != last && third != last)
-	{
-		ForwardIt2 aa = t_first;
-		ForwardIt2 base1 = base1_first;
-		ForwardIt2 base2 = base2_first;
-		ForwardIt2 base3 = base3_first;
-		
-		for (std::uint_fast8_t i = 64; i; --i)
-		{
-			if (*aa == '*' && *first == *base1 && *second == *base2 && *third == *base3)
-				return first;
-			
-			++aa;
-			++base1;
-			++base2;
-			++base3;
-		}
-		
-		first = ++third;
-		second = ++third;
-		++third;
-	}
-	
-	return last;
-}
-
-template <class InputIt1, class InputIt2, class OutputIt>
-OutputIt translate(InputIt1 first, InputIt1 last, InputIt2 t_first, OutputIt d_first)
-{
-	InputIt1 second = first;
-	++second;
-	InputIt1 third = second;
-	++third;
-	
-	InputIt2 base1_first = t_first;
-	std::advance(base1_first, 128);
-	InputIt2 base2_first = base1_first;
-	std::advance(base2_first, 64);
-	InputIt2 base3_first = base2_first;
-	std::advance(base3_first, 64);
-	
-	while (first != last && second != last && third != last)
-	{
-		InputIt2 aa = t_first;
-		InputIt2 base1 = base1_first;
-		InputIt2 base2 = base2_first;
-		InputIt2 base3 = base3_first;
-		
-		for (std::uint_fast8_t i = 64; i; --i)
-		{
-			if (*first == *base1 && *second == *base2 && *third == *base3)
-			{
-				if (*aa == '*')
-					return d_first;
-				
-				*(d_first++) = *aa;
-				break;
-			}
-			
-			++aa;
-			++base1;
-			++base2;
-			++base3;
-		}
-		
-		first = ++third;
-		second = ++third;
-		++third;
+		InputIt next = first;
+		std::advance(next, n);
+		*(d_first++) = binary_op(first, next);
+		first = next;
 	}
 	
 	return d_first;

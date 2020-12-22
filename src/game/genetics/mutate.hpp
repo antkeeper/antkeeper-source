@@ -24,8 +24,7 @@
 #include <iterator>
 #include <random>
 
-namespace dna
-{
+namespace dna {
 
 /**
  * Applies the given function to a randomly selected element in a range.

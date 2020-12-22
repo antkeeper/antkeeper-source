@@ -24,8 +24,7 @@
 #include <iterator>
 #include <random>
 
-namespace dna
-{
+namespace dna {
 
 /**
  * Exchanges elements between two ranges, starting at a random offset.
