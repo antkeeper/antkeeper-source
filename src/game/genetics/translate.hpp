@@ -34,6 +34,9 @@ namespace dna {
  * @return Output iterator to the element past the last element translated. 
  */
 template <class InputIt, class OutputIt, class Size, class BinaryOperation>
+OutputIt translate(InputIt first, InputIt last, OutputIt d_first, Size n, BinaryOperation binary_op);
+
+template <class InputIt, class OutputIt, class Size, class BinaryOperation>
 OutputIt translate(InputIt first, InputIt last, OutputIt d_first, Size n, BinaryOperation binary_op)
 {
 	for (auto length = std::distance(first, last); length >= n; length -= n)
