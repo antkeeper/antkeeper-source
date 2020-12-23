@@ -17,10 +17,9 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "nucleobase.hpp"
-#include <cstdint>
+#include "base.hpp"
 
-namespace dna {
+namespace genetics {
 namespace base {
 
 /**
@@ -29,9 +28,9 @@ namespace base {
  * @param symbol IUPAC degenerate base symbol.
  * @return Bit mask representing the possible bases represented by the symbol.
  */
-static std::uint8_t decode(char symbol)
+static inline unsigned char decode(char symbol)
 {
-	static constexpr std::uint8_t bases[26] =
+	static constexpr unsigned char bases[25] =
 	{
 		0b0001, // A
 		0b1110, // B
@@ -58,22 +57,19 @@ static std::uint8_t decode(char symbol)
 		0b1001, // W
 		0,      // X
 		0b1010, // Y
-		0,      // Z
 	};
 	
-	return (symbol < 'A' || symbol > 'Z') ? 0 : bases[symbol - 'A'];
+	return (symbol < 'A' || symbol >= 'Z') ? 0 : bases[symbol - 'A'];
 }
 
-char complement_rna(char symbol)
+int compare(char a, char b)
 {
-	static constexpr char* complements = "TVGHZZCDZZMZKNZZZYSAABWZRZ";
-	return (symbol < 'A' || symbol > 'Z') ? 'Z' : complements[symbol - 'A'];
-}
-
-char complement_dna(char symbol)
-{
-	static constexpr char* complements = "UVGHZZCDZZMZKNZZZYSAABWZRZ";
-	return (symbol < 'A' || symbol > 'Z') ? 'Z' : complements[symbol - 'A'];
+	static constexpr int popcount[16] =
+	{
+		0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
+	};
+	
+	return popcount[decode(a) & decode(b)];
 }
 
 char transcribe(char symbol)
@@ -81,11 +77,23 @@ char transcribe(char symbol)
 	return (symbol == 'T') ? 'U' : (symbol == 'U') ? 'T' : symbol;
 }
 
-int compare(char a, char b)
+namespace dna
 {
-	std::uint8_t bases = decode(a) & decode(b);
-	return (bases & 1) + (bases >> 1 & 1) + (bases >> 2 & 1) + (bases >> 3 & 1);
+	char complement(char symbol)
+	{
+		static constexpr char* complements = "UVGHZZCDZZMZKNZZZYSAABWZR";
+		return (symbol < 'A' || symbol >= 'Z') ? 'Z' : complements[symbol - 'A'];
+	}
+}
+
+namespace rna
+{
+	char complement(char symbol)
+	{
+		static constexpr char* complements = "TVGHZZCDZZMZKNZZZYSAABWZR";
+		return (symbol < 'A' || symbol >= 'Z') ? 'Z' : complements[symbol - 'A'];
+	}
 }
 
 } // namespace base
-} // namespace dna
+} // namespace genetics

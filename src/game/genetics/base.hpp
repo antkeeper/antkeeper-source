@@ -17,35 +17,11 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_DNA_NUCLEOBASE_HPP
-#define ANTKEEPER_DNA_NUCLEOBASE_HPP
+#ifndef ANTKEEPER_GENETICS_BASE_HPP
+#define ANTKEEPER_GENETICS_BASE_HPP
 
-namespace dna {
+namespace genetics {
 namespace base {
-
-/**
- * Returns the DNA complement of an IUPAC degenerate base symbol.
- *
- * @param symbol IUPAC degenerate base symbol.
- * @return IUPAC degenerate base symbol of DNA complement.
- */
-char complement_dna(char symbol);
-
-/**
- * Returns the RNA complement of an IUPAC degenerate base symbol.
- *
- * @param symbol IUPAC degenerate base symbol.
- * @return IUPAC degenerate base symbol of RNA complement.
- */
-char complement_rna(char symbol);
-
-/**
- * Transcribes an IUPAC degenerate base symbol between DNA and RNA, swapping `T` for `U` or `U` for `T`.
- *
- * @param symbol IUPAC degenerate base symbol.
- * @return `U` if @p symbol was `T`, `T` if @p symbol was `U`, or `symbol` if @p symbol was neither `T` nor `U`.
- */
-char transcribe(char symbol);
 
 /**
  * Returns the number of bases that are represented by both IUPAC degenerate base symbols.
@@ -56,7 +32,37 @@ char transcribe(char symbol);
  */
 int compare(char a, char b);
 
-} // namespace base
-} // namespace dna
+/**
+ * Transcribes an IUPAC degenerate base symbol between DNA and RNA, swapping `T` for `U` or `U` for `T`.
+ *
+ * @param symbol IUPAC degenerate base symbol.
+ * @return `U` if @p symbol was `T`, `T` if @p symbol was `U`, or `symbol` if @p symbol was neither `T` nor `U`.
+ */
+char transcribe(char symbol);
 
-#endif // ANTKEEPER_DNA_NUCLEOBASE_HPP
+namespace dna
+{
+	/**
+	 * Returns the DNA complement of an IUPAC degenerate base symbol.
+	 *
+	 * @param symbol IUPAC degenerate base symbol.
+	 * @return IUPAC degenerate base symbol of DNA complement.
+	 */
+	char complement(char symbol);
+}
+
+namespace rna
+{
+	/**
+	 * Returns the RNA complement of an IUPAC degenerate base symbol.
+	 *
+	 * @param symbol IUPAC degenerate base symbol.
+	 * @return IUPAC degenerate base symbol of RNA complement.
+	 */
+	char complement(char symbol);	
+}
+
+} // namespace base
+} // namespace genetics
+
+#endif // ANTKEEPER_GENETICS_BASE_HPP
