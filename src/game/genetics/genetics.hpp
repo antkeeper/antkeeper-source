@@ -20,9 +20,12 @@
 #ifndef ANTKEEPER_GENETICS_HPP
 #define ANTKEEPER_GENETICS_HPP
 
+#include "amino-acid.hpp"
 #include "base.hpp"
 #include "codon.hpp"
+#include "matrix.hpp"
 #include "protein.hpp"
 #include "sequence.hpp"
+#include "translation-table.hpp"
 
 #endif // ANTKEEPER_GENETICS_HPP
