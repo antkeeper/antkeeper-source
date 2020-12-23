@@ -81,7 +81,7 @@ namespace dna
 {
 	char complement(char symbol)
 	{
-		static constexpr char* complements = "UVGHZZCDZZMZKNZZZYSAABWZR";
+		static constexpr char* complements = "TVGHZZCDZZMZKNZZZYSAABWZR";
 		return (symbol < 'A' || symbol >= 'Z') ? 'Z' : complements[symbol - 'A'];
 	}
 }
@@ -90,7 +90,7 @@ namespace rna
 {
 	char complement(char symbol)
 	{
-		static constexpr char* complements = "TVGHZZCDZZMZKNZZZYSAABWZR";
+		static constexpr char* complements = "UVGHZZCDZZMZKNZZZYSAABWZR";
 		return (symbol < 'A' || symbol >= 'Z') ? 'Z' : complements[symbol - 'A'];
 	}
 }

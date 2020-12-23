@@ -29,7 +29,7 @@ namespace codon {
  * @param base1 IUPAC base code of first nucleobase, either `U`, `T`, `C`, `A`, or `G`.
  * @param base2 IUPAC base code of second nucleobase, either `U`, `T`, `C`, `A`, or `G`.
  * @param base3 IUPAC base code of third nucleobase, either `U`, `T`, `C`, `A`, or `G`.
- * @param starts String of 64 IUPAC amino acid codes, ordered to match corresponding start codon indices.
+ * @param starts String of 64 IUPAC amino acid codes, in TCAG order.
  * @return `true` if the codon is a start codon, `false` otherwise.
  */
 bool is_start(char base1, char base2, char base3, const char* starts);
@@ -40,7 +40,7 @@ bool is_start(char base1, char base2, char base3, const char* starts);
  * @param base1 IUPAC base code of first nucleobase, either `U`, `T`, `C`, `A`, or `G`.
  * @param base2 IUPAC base code of second nucleobase, either `U`, `T`, `C`, `A`, or `G`.
  * @param base3 IUPAC base code of third nucleobase, either `U`, `T`, `C`, `A`, or `G`.
- * @param aas String of 64 IUPAC amino acid codes, ordered to match corresponding codon indices.
+ * @param aas String of 64 IUPAC amino acid codes, in TCAG order.
  * @return `true` if the codon is a stop codon, `false` otherwise.
  */
 bool is_stop(char base1, char base2, char base3, const char* aas);
@@ -51,7 +51,7 @@ bool is_stop(char base1, char base2, char base3, const char* aas);
  * @param base1 IUPAC base code of first nucleobase, either `U`, `T`, `C`, `A`, or `G`.
  * @param base2 IUPAC base code of second nucleobase, either `U`, `T`, `C`, `A`, or `G`.
  * @param base3 IUPAC base code of third nucleobase, either `U`, `T`, `C`, `A`, or `G`.
- * @param aas String of 64 IUPAC amino acid codes, ordered to match corresponding codon indices.
+ * @param aas String of 64 IUPAC amino acid codes, in TCAG order.
  * @return IUPAC amino acid code of corresponding amino acid, or `-` if an invalid codon was supplied.
  */
 char translate(char base1, char base2, char base3, const char* aas);
