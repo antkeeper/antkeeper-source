@@ -27,10 +27,20 @@ namespace genetics {
 namespace protein {
 
 /**
+ * Returns the percent identity between two proteins.
+ *
+ * @param first1,last1 Range of IUPAC amino acids which constitute the first protein.
+ * @param first2 Beginning of the range of IUPAC amino acids which constitute the second protein.
+ * @return Percent identity between the two proteins.
+ */
+template <class T, class ForwardIt1, class ForwardIt2>
+T identity(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2);
+
+/**
  * Scores two proteins using a substitution matrix.
  *
- * @param first1,last1 Sequence of IUPAC amino acid codes which constitute the first protein.
- * @param first2,last2 Sequence of IUPAC amino acid codes which constitute the second protein.
+ * @param first1,last1 Range of IUPAC amino acid codes which constitute the first protein.
+ * @param first2,last2 Range of IUPAC amino acid codes which constitute the second protein.
  * @param matrix Substitution matrix.
  * @return Score of the two proteins.
  */
@@ -44,6 +54,19 @@ typename std::remove_all_extents<Matrix>::type score(ForwardIt1 first1, ForwardI
 	for (; first1 != last1 && first2 != last2; ++first1, ++first2)
 		result += amino_acid::score(*first1, *first2, matrix);
 	return result;
+}
+
+template <class T, class ForwardIt1, class ForwardIt2>
+T identity(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2)
+{
+	auto length = std::distance(first1, last1);
+	
+	T sum = 0;
+	for (; first1 != last1; ++first1, ++first2)
+		if (*first1 == *first2)
+			++sum;
+	
+	return sum / static_cast<T>(length);
 }
 
 } // namespace protein
