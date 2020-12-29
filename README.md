@@ -1,6 +1,6 @@
 # Antkeeper Source
 
-Antkeeper is an ant colony simulation game currently in development for Windows, Mac OS X, and GNU/Linux. This repository contains all of the source code to Antkeeper.
+Antkeeper is an ant colony simulation game currently in development for Windows, Mac, and Linux. This repository contains all of the source code to Antkeeper.
 
 Head over to [antkeeper.com](https://antkeeper.com/) if you're interested in following the development of the game or purchasing a copy when it's released. Antkeeper is an indie game with a single developer, so feel free to reach out to me personally with any questions, comments, or feedback you may have.
 
