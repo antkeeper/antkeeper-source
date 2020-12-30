@@ -12,6 +12,14 @@ Download the Antkeeper build system, source code, and all dependencies via the [
 
 Detailed configuration and build instructions can be found in the [README](https://antkeeper.com/git/antkeeper/superbuild/src/branch/master/README.md) of the superbuild repository.
 
+## Documentation
+
+Documentation for the source code of the latest version of Antkeeper can be found at <https://antkeeper.com/docs/>.
+
+Alternatively, the following command generates source code documentation using [Doxygen](https://www.doxygen.nl):
+
+    cd docs && doxygen
+
 ## License
 
 Antkeeper source code is licensed under the GNU General Public License, version 3. For more information, see [LICENSE.md](./LICENSE.md).
