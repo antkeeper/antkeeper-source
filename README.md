@@ -6,11 +6,11 @@ Head over to [antkeeper.com](https://antkeeper.com/) if you're interested in fol
 
 ## Building
 
-Download the Antkeeper build system, source code, and all dependencies via the [Antkeeper superbuild](https://antkeeper.com/git/antkeeper/superbuild) repository:
+Download the Antkeeper build system, source code, and all dependencies via the [Antkeeper superbuild](https://git.antkeeper.com/antkeeper/superbuild) repository:
 
-	git clone --recursive https://antkeeper.com/git/antkeeper/superbuild.git
+	git clone --recursive https://git.antkeeper.com/antkeeper/superbuild.git
 
-Detailed configuration and build instructions can be found in the [README](https://antkeeper.com/git/antkeeper/superbuild/src/branch/master/README.md) of the superbuild repository.
+Detailed configuration and build instructions can be found in the [README](https://git.antkeeper.com/antkeeper/superbuild/src/branch/master/README.md) of the superbuild repository.
 
 ## Documentation
 
