@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020  Christopher J. Howard
+ * Copyright (C) 2021  Christopher J. Howard
  *
  * This file is part of Antkeeper source code.
  *
