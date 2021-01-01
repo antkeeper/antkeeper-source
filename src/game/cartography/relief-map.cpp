@@ -74,6 +74,7 @@ mesh* map_elevation(const std::function<float(float, float)>& function, float sc
 		return edge;
 	};
 
+	// Connect vertices with edges and faces
 	const std::vector<mesh::vertex*>& vertices = mesh->get_vertices();
 	for (std::size_t i = 0; i < rows; ++i)
 	{

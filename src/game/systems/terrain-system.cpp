@@ -21,6 +21,7 @@
 #include "game/components/model-component.hpp"
 #include "game/components/collision-component.hpp"
 #include "game/components/transform-component.hpp"
+#include "game/cartography/relief-map.hpp"
 #include "renderer/model.hpp"
 #include "geometry/mesh.hpp"
 #include "geometry/mesh-functions.hpp"
@@ -67,102 +68,12 @@ void terrain_system::set_patch_size(float size)
 
 mesh* terrain_system::generate_terrain_mesh(float size, int subdivisions)
 {
-	// Allocate terrain mesh
-	mesh* terrain_mesh = new mesh();
-
-	// Determine vertex count and placement
-	int columns = static_cast<int>(std::pow(2, subdivisions));
-	int rows = columns;
-	int vertex_count = (columns + 1) * (rows + 1);
-	float vertex_increment = size / static_cast<float>(columns);
-	float radius = size * 0.5f;
-
-	// Generate mesh vertices
-	float3 position = {0.0f, 0.0f, -radius};
-	for (int i = 0; i <= rows; ++i)
+	auto elevation = [](float u, float v) -> float
 	{
-		position[0] = -radius;
-
-		for (int j = 0; j <= columns; ++j)
-		{
-			terrain_mesh->add_vertex(position);
-			position[0] += vertex_increment;
-
-		}
-
-		position[2] += vertex_increment;
-	}
-
-
-	// Function to eliminate duplicate edges
-	std::map<std::array<std::size_t, 2>, mesh::edge*> edge_map;
-	auto add_or_find_edge = [&](mesh::vertex* start, mesh::vertex* end) -> mesh::edge*
-	{
-		mesh::edge* edge;
-		if (auto it = edge_map.find({start->index, end->index}); it != edge_map.end())
-		{
-			edge = it->second;
-		}
-		else
-		{
-			edge = terrain_mesh->add_edge(start, end);
-			edge_map[{start->index, end->index}] = edge;
-			edge_map[{end->index, start->index}] = edge->symmetric;
-		}
-
-		return edge;
+		return 0.0f;
 	};
-
-	const std::vector<mesh::vertex*>& vertices = terrain_mesh->get_vertices();
-	for (int i = 0; i < rows; ++i)
-	{
-		for (int j = 0; j < columns; ++j)
-		{
-			mesh::vertex* a = vertices[i * (columns + 1) + j];
-			mesh::vertex* b = vertices[(i + 1) * (columns + 1) + j];
-			mesh::vertex* c = vertices[i * (columns + 1) + j + 1];
-			mesh::vertex* d = vertices[(i + 1) * (columns + 1) + j + 1];
-
-			// +---+---+
-			// | \ | / |
-			// |---+---|
-			// | / | \ |
-			// +---+---+
-			if ((j % 2) == (i % 2))
-			{
-				mesh::edge* ab = add_or_find_edge(a, b);
-				mesh::edge* bd = add_or_find_edge(b, d);
-				mesh::edge* da = add_or_find_edge(d, a);
-
-				mesh::edge* ca = add_or_find_edge(c, a);
-				mesh::edge* ad = da->symmetric;
-				mesh::edge* dc = add_or_find_edge(d, c);
-
-				// a---c
-				// | \ |
-				// b---d
-				terrain_mesh->add_face({ab, bd, da});
-				terrain_mesh->add_face({ca, ad, dc});
-			}
-			else
-			{
-				mesh::edge* ab = add_or_find_edge(a, b);
-				mesh::edge* bc = add_or_find_edge(b, c);
-				mesh::edge* ca = add_or_find_edge(c, a);
-				mesh::edge* cb = bc->symmetric;
-				mesh::edge* bd = add_or_find_edge(b, d);
-				mesh::edge* dc = add_or_find_edge(d, c);
-
-				// a---c
-				// | / |
-				// b---d
-				terrain_mesh->add_face({ab, bc, ca});
-				terrain_mesh->add_face({cb, bd, dc});
-			}
-		}
-	}
-
-	return terrain_mesh;
+	
+	return cart::map_elevation(elevation, size, subdivisions);
 }
 
 model* terrain_system::generate_terrain_model(mesh* terrain_mesh)
@@ -385,4 +296,3 @@ void terrain_system::on_terrain_destroy(entt::registry& registry, entt::entity e
 	}
 	*/
 }
-

@@ -19,11 +19,10 @@
 
 #include "game/systems/astronomy-system.hpp"
 #include "game/astronomy/celestial-coordinates.hpp"
-#include "game/astronomy/celestial-mechanics.hpp"
-#include "game/astronomy/celestial-time.hpp"
-#include "game/astronomy/astronomical-constants.hpp"
-#include "game/components/orbit-component.hpp"
+#include "game/astronomy/apparent-size.hpp"
+#include "game/components/celestial-body-component.hpp"
 #include "game/components/transform-component.hpp"
+#include "renderer/passes/sky-pass.hpp"
 
 using namespace ecs;
 
@@ -36,49 +35,51 @@ astronomy_system::astronomy_system(entt::registry& registry):
 	observer_location{0.0, 0.0, 0.0},
 	lst(0.0),
 	obliquity(0.0),
-	ke_tolerance(1e-6),
-	ke_iterations(10)
+	sky_pass(nullptr),
+	sun(entt::null),
+	moon(entt::null)
 {}
 
 void astronomy_system::update(double t, double dt)
 {
-	const double dt_days = dt * days_per_timestep;
-	
 	// Add scaled timestep to current time
-	set_universal_time(universal_time + dt_days);
+	set_universal_time(universal_time + dt * days_per_timestep);
 	
-	// Update horizontal (topocentric) positions of orbiting bodies
-	registry.view<orbit_component, transform_component>().each(
-	[&](auto entity, auto& orbit, auto& transform)
+	// Update horizontal (topocentric) positions of intrasolar celestial bodies
+	registry.view<celestial_body_component, transform_component>().each(
+	[&](auto entity, auto& body, auto& transform)
 	{
-		ast::orbital_elements orbital_elements;
-		orbital_elements.a = orbit.a + orbit.d_a * universal_time;
-		orbital_elements.ec = orbit.ec + orbit.d_ec * universal_time;
-		orbital_elements.w = orbit.w + orbit.d_w * universal_time;
-		orbital_elements.ma = math::wrap_radians(orbit.ma + orbit.d_ma * universal_time);
-		orbital_elements.i = orbit.i + orbit.d_i * universal_time;
-		orbital_elements.om = math::wrap_radians(orbit.om + orbit.d_om * universal_time);
-		
-		// Calculate ecliptic orbital position
-		double3 ecliptic = ast::orbital_elements_to_ecliptic(orbital_elements, ke_tolerance, ke_iterations);
-			
 		// Transform orbital position from ecliptic space to horizontal space
-		double3 horizontal = ecliptic_to_horizontal * ecliptic;
+		double3 horizontal = ecliptic_to_horizontal * body.orbital_state.r;
 		
 		// Subtract observer's radial distance (planet radius + observer's altitude)
 		horizontal.z -= observer_location[0];
 		
-		// Calculate azimuth and elevation
+		// Convert rectangular horizontal coordinates to spherical
 		double3 spherical = ast::rectangular_to_spherical(horizontal);
-		double2 az_el = {spherical.z - math::pi<double>, spherical.y};
+		spherical.z -= math::pi<double>;
+		
+		// Find angular radius
+		double angular_radius = ast::find_angular_radius(body.radius, spherical.x);
 		
 		// Transform into local right-handed coordinates
 		double3 translation = ast::horizontal_to_right_handed * horizontal;
 		double3x3 rotation = ast::horizontal_to_right_handed * ecliptic_to_horizontal;
 		
+		// Set local transform of transform component
 		transform.local.translation = math::type_cast<float>(translation);
 		transform.local.rotation = math::type_cast<float>(math::quaternion_cast(rotation));
+		transform.local.scale = math::type_cast<float>(double3{body.radius, body.radius, body.radius});
 	});
+	
+	if (sky_pass)
+	{
+		sky_pass->set_horizon_color({0, 0, 0});
+		sky_pass->set_zenith_color({1, 1, 1});
+		sky_pass->set_time_of_day(static_cast<float>(universal_time * 60.0 * 60.0));
+		//sky_pass->set_observer_location(location[0], location[1], location[2]);
+		sky_pass->set_julian_day(static_cast<float>(universal_time));
+	}
 }
 
 void astronomy_system::set_universal_time(double time)
@@ -113,6 +114,21 @@ void astronomy_system::set_axial_rotation_at_epoch(double angle)
 {
 	axial_rotation_at_epoch = angle;
 	update_axial_rotation();
+}
+
+void astronomy_system::set_sky_pass(::sky_pass* pass)
+{
+	this->sky_pass = pass;
+}
+
+void astronomy_system::set_sun(entt::entity entity)
+{
+	sun = entity;
+}
+
+void astronomy_system::set_moon(entt::entity entity)
+{
+	moon = entity;
 }
 
 void astronomy_system::update_axial_rotation()

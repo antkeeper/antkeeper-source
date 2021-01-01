@@ -17,57 +17,52 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/systems/weather-system.hpp"
-#include "scene/directional-light.hpp"
-#include "scene/ambient-light.hpp"
-#include "renderer/passes/sky-pass.hpp"
-#include "renderer/passes/shadow-map-pass.hpp"
-#include "renderer/passes/material-pass.hpp"
-#include "utility/gamma.hpp"
-#include "resources/image.hpp"
+#include "game/systems/solar-system.hpp"
 #include "game/astronomy/celestial-coordinates.hpp"
 #include "game/astronomy/celestial-mechanics.hpp"
-#include <cmath>
+#include "game/astronomy/astronomical-constants.hpp"
+#include "game/components/celestial-body-component.hpp"
+
+using namespace ecs;
 
 static constexpr double seconds_per_day = 24.0 * 60.0 * 60.0;
 
-weather_system::weather_system(entt::registry& registry):
+solar_system::solar_system(entt::registry& registry):
 	entity_system(registry),
-	sky_pass(nullptr),
-	shadow_map_pass(nullptr),
-	material_pass(nullptr),
 	universal_time(0.0),
-	days_per_timestep(1.0 / seconds_per_day)
+	days_per_timestep(1.0 / seconds_per_day),
+	ke_tolerance(1e-6),
+	ke_iterations(10)
 {}
 
-void weather_system::update(double t, double dt)
+void solar_system::update(double t, double dt)
 {
 	// Add scaled timestep to current time
 	set_universal_time(universal_time + dt * days_per_timestep);
+	
+	// Update orbital state of intrasolar celestial bodies
+	registry.view<celestial_body_component>().each(
+	[&](auto entity, auto& body)
+	{
+		ast::orbital_elements elements = body.orbital_elements;
+		elements.a += body.orbital_rate.a * universal_time;
+		elements.ec += body.orbital_rate.ec * universal_time;
+		elements.w += body.orbital_rate.w * universal_time;
+		elements.ma += body.orbital_rate.ma * universal_time;
+		elements.i += body.orbital_rate.i * universal_time;
+		elements.om += body.orbital_rate.om * universal_time;
+		
+		// Calculate ecliptic orbital position
+		body.orbital_state.r = ast::orbital_elements_to_ecliptic(elements, ke_tolerance, ke_iterations);
+	});
 }
 
-void weather_system::set_sky_pass(::sky_pass* pass)
-{
-	sky_pass = pass;
-}
-
-void weather_system::set_shadow_map_pass(::shadow_map_pass* pass)
-{
-	shadow_map_pass = pass;
-}
-
-void weather_system::set_material_pass(::material_pass* pass)
-{
-	material_pass = pass;
-	material_pass->set_shadow_strength(0.5f);
-}
-
-void weather_system::set_universal_time(double time)
+void solar_system::set_universal_time(double time)
 {
 	universal_time = time;
 }
 
-void weather_system::set_time_scale(double scale)
+void solar_system::set_time_scale(double scale)
 {
 	days_per_timestep = scale / seconds_per_day;
 }

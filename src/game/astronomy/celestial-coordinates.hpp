@@ -54,10 +54,10 @@ double3x3 ecliptic_to_equatorial(double ecl);
  *
  * @param ecl Obliquity of the ecliptic, in radians.
  * @param lat Observer's latitude, in radians.
- * @param lmst Local mean sidereal time.
+ * @param lst Local sidereal time, in radians.
  * @return Transformation matrix.
  */
-double3x3 ecliptic_to_horizontal(double ecl, double lat, double lmst);
+double3x3 ecliptic_to_horizontal(double ecl, double lat, double lst);
 
 /**
  * Produces a matrix which transforms rectangular coordinates from equatorial space to ecliptic space.
@@ -71,29 +71,29 @@ double3x3 equatorial_to_ecliptic(double ecl);
  * Produces a matrix which transforms rectangular coordinates from equatorial space to horizontal space.
  *
  * @param lat Observer's latitude, in radians.
- * @param lmst Local mean sidereal time.
+ * @param lst Local sidereal time, in radians.
  * @return Transformation matrix.
  */
-double3x3 equatorial_to_horizontal(double lat, double lmst);
+double3x3 equatorial_to_horizontal(double lat, double lst);
 
 /**
  * Produces a matrix which transforms rectangular coordinates from horizontal space to equatorial space.
  *
  * @param lat Observer's latitude, in radians.
- * @param lmst Local mean sidereal time.
+ * @param lst Local sidereal time, in radians.
  * @return Transformation matrix.
  */
-double3x3 horizontal_to_equatorial(double lat, double lmst);
+double3x3 horizontal_to_equatorial(double lat, double lst);
 
 /**
  * Produces a matrix which transforms rectangular coordinates from horizontal space to ecliptic space.
  *
  * @param ecl Obliquity of the ecliptic, in radians.
  * @param lat Observer's latitude, in radians.
- * @param lmst Local mean sidereal time.
+ * @param lst Local sidereal time, in radians.
  * @return Transformation matrix.
  */
-double3x3 horizontal_to_ecliptic(double ecl, double lat, double lmst);
+double3x3 horizontal_to_ecliptic(double ecl, double lat, double lst);
 
 /// Matrix which transforms coordinates from horizontal space to a right-handed coordinate system.
 constexpr double3x3 horizontal_to_right_handed =

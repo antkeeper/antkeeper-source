@@ -56,12 +56,18 @@
 #include "game/systems/render-system.hpp"
 #include "game/systems/tool-system.hpp"
 #include "game/systems/weather-system.hpp"
+#include "game/systems/solar-system.hpp"
 #include "game/systems/astronomy-system.hpp"
 #include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
 #include "utility/gamma.hpp"
-#include "game/astronomy/celestial-time.hpp"
+
+#include "utility/bit-math.hpp"
+#include "game/genetics/genetics.hpp"
 #include <iostream>
+#include <bitset>
+#include <ctime>
+
 
 void play_state_enter(game_context* ctx)
 {
@@ -84,14 +90,9 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
 	sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
 	
-	ctx->weather_system->set_location(ctx->biome->location[0], ctx->biome->location[1], ctx->biome->location[2]);
-	ctx->weather_system->set_time(2000, 1, 1, 12, 0, 0.0, 0.0);
-	ctx->weather_system->set_time(0.0);
-	ctx->weather_system->set_sky_palette(ctx->biome->sky_palette);
-	ctx->weather_system->set_sun_palette(ctx->biome->sun_palette);
-	ctx->weather_system->set_ambient_palette(ctx->biome->ambient_palette);
-	ctx->weather_system->set_moon_palette(ctx->biome->moon_palette);
-	ctx->weather_system->set_shadow_palette(ctx->biome->shadow_palette);
+	ctx->weather_system->set_universal_time(0.0);
+	
+	ctx->solar_system->set_universal_time(0.0);
 	
 	ctx->astronomy_system->set_observer_location(double3{4.26352e-5, ctx->biome->location[0], ctx->biome->location[1]});
 	ctx->astronomy_system->set_universal_time(0.0);
@@ -102,23 +103,26 @@ void play_state_enter(game_context* ctx)
 	resource_manager* resource_manager = ctx->resource_manager;
 	entt::registry& ecs_registry = *ctx->ecs_registry;
 	
+	ctx->sun_direct->set_intensity(1.0f);
+	ctx->sun_direct->set_color({1, 1, 1});
+	
 	
 	// Create sun
 	{
 		ecs::orbit_component sun_orbit;
-		sun_orbit.a = 1.0;
-		sun_orbit.ec = 0.016709;
-		sun_orbit.w = math::radians(282.9404);
-		sun_orbit.ma = math::radians(356.0470);
-		sun_orbit.i = 0.0;
-		sun_orbit.om = 0.0;
+		sun_orbit.elements.a = 1.0;
+		sun_orbit.elements.ec = 0.016709;
+		sun_orbit.elements.w = math::radians(282.9404);
+		sun_orbit.elements.ma = math::radians(356.0470);
+		sun_orbit.elements.i = 0.0;
+		sun_orbit.elements.om = 0.0;
 		
-		sun_orbit.d_a = 0.0;
-		sun_orbit.d_ec = -1.151e-9;
-		sun_orbit.d_w = math::radians(4.70935e-5);
-		sun_orbit.d_ma = math::radians(0.9856002585);
-		sun_orbit.d_i = 0.0;
-		sun_orbit.d_om = 0.0;
+		sun_orbit.rate.a = 0.0;
+		sun_orbit.rate.ec = -1.151e-9;
+		sun_orbit.rate.w = math::radians(4.70935e-5);
+		sun_orbit.rate.ma = math::radians(0.9856002585);
+		sun_orbit.rate.i = 0.0;
+		sun_orbit.rate.om = 0.0;
 		
 		ecs::transform_component sun_transform;
 		sun_transform.local = math::identity_transform<float>;
@@ -127,6 +131,8 @@ void play_state_enter(game_context* ctx)
 		auto sun_entity = ecs_registry.create();
 		ecs_registry.assign<ecs::transform_component>(sun_entity, sun_transform);
 		ecs_registry.assign<ecs::orbit_component>(sun_entity, sun_orbit);
+		
+		ctx->astronomy_system->set_sun(sun_entity);
 	}
 	
 	// Create moon
@@ -134,19 +140,19 @@ void play_state_enter(game_context* ctx)
 
 		ecs::orbit_component moon_orbit;
 		
-		moon_orbit.a = 0.00256955529;
-		moon_orbit.ec = 0.0554;
-		moon_orbit.w = math::radians(318.15);
-		moon_orbit.ma = math::radians(135.27);
-		moon_orbit.i = math::radians(5.16);
-		moon_orbit.om = math::radians(125.08);
+		moon_orbit.elements.a = 0.00256955529;
+		moon_orbit.elements.ec = 0.0554;
+		moon_orbit.elements.w = math::radians(318.15);
+		moon_orbit.elements.ma = math::radians(135.27);
+		moon_orbit.elements.i = math::radians(5.16);
+		moon_orbit.elements.om = math::radians(125.08);
 		
-		moon_orbit.d_a = 0.0;
-		moon_orbit.d_ec = 0.0;
-		moon_orbit.d_w = math::radians(0.1643573223);
-		moon_orbit.d_ma = math::radians(13.176358);
-		moon_orbit.d_i = 0.0;
-		moon_orbit.d_om = math::radians(-0.0529538083);
+		moon_orbit.rate.a = 0.0;
+		moon_orbit.rate.ec = 0.0;
+		moon_orbit.rate.w = math::radians(0.1643573223); // Argument of periapsis precession period, P_w
+		moon_orbit.rate.ma = math::radians(13.176358); // Longitude rate, n
+		moon_orbit.rate.i = 0.0;
+		moon_orbit.rate.om = math::radians(-18.6 / 365.2422); // Longitude of the ascending node precession period, P_node
 		
 		ecs::transform_component moon_transform;
 		moon_transform.local = math::identity_transform<float>;
@@ -155,6 +161,8 @@ void play_state_enter(game_context* ctx)
 		auto moon_entity = ecs_registry.create();
 		ecs_registry.assign<ecs::transform_component>(moon_entity, moon_transform);
 		ecs_registry.assign<ecs::orbit_component>(moon_entity, moon_orbit);
+		
+		ctx->astronomy_system->set_moon(moon_entity);
 	}
 
 	// Load entity archetypes
@@ -395,6 +403,61 @@ void play_state_enter(game_context* ctx)
 	
 	std::string biome_name = (*ctx->strings)[ctx->biome->name];
 	logger->log("Entered biome \"" + biome_name + "\"");
+	
+	
+	std::srand(std::time(nullptr));
+	//auto rng = [](){ return std::rand(); };
+	
+	std::random_device rd;
+	std::mt19937 rng(rd());
+	
+	
+	std::string sequence_a = "CCTTGCCCTTTGGGTCGCCCCCCTAG";
+	std::string sequence_b = "ATGTTTCCCGAAGGGTAG";
+	std::string sequence_c = "AAATGCCCCCCCCCCCCCCCCCCCCCCCCCCCTAGAAAAAAAAA";
+	std::string orf_a;
+	std::string protein_a;
+	std::string protein_b;
+	std::string protein_c;
+	
+	
+	std::cout << "sequence a: " << sequence_a << std::endl;
+	genetics::sequence::transcribe(sequence_a.begin(), sequence_a.end(), sequence_a.begin());
+	std::cout << "sequence a: " << sequence_a << std::endl;
+	
+	std::string complement;
+	genetics::sequence::rna::complement(sequence_a.begin(), sequence_a.end(), std::back_inserter(complement));
+	std::cout << "complement: "  << complement << std::endl;
+	
+	auto orf = genetics::sequence::find_orf(sequence_a.begin(), sequence_a.end(), genetics::standard_code);
+	if (orf.start != sequence_a.end())
+	{
+		std::copy(orf.start, orf.stop, std::back_inserter(orf_a));
+		std::cout << "orf      a: " << orf_a << std::endl;
+		
+		genetics::sequence::translate(orf.start, orf.stop, std::back_inserter(protein_a), genetics::standard_code);
+		std::cout << "protein  a: " << protein_a << std::endl;
+	}
+	
+	protein_b = "MFFFFP";
+	protein_c = "MFFFYP";
+	int score;
+
+	std::cout << std::endl;
+	std::cout << "protein_b: " << protein_b << std::endl;
+	std::cout << "protein_c: " << protein_c << std::endl;
+	
+	score = genetics::protein::score(protein_b.begin(), protein_b.end(), protein_c.begin(), genetics::matrix::blosum62<int>);
+	std::cout << "score blosum62: " << score << std::endl;
+	
+	score = genetics::protein::score(protein_b.begin(), protein_b.end(), protein_c.begin(), genetics::matrix::blosum80<int>);
+	std::cout << "score blosum80: " << score << std::endl;
+	
+	
+	std::cout << "identity  : " << genetics::protein::identity<float>(protein_b.begin(), protein_b.end(), protein_c.begin()) << std::endl;
+	std::cout << "similarity62: " << genetics::protein::similarity<float>(protein_b.begin(), protein_b.end(), protein_c.begin(), genetics::matrix::blosum62<int>) << std::endl;
+	std::cout << "similarity80: " << genetics::protein::similarity<float>(protein_b.begin(), protein_b.end(), protein_c.begin(), genetics::matrix::blosum80<int>) << std::endl;
+	
 }
 
 void play_state_exit(game_context* ctx)

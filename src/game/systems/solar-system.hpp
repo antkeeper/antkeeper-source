@@ -17,37 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_WEATHER_SYSTEM_HPP
-#define ANTKEEPER_WEATHER_SYSTEM_HPP
+#ifndef ANTKEEPER_SOLAR_SYSTEM_HPP
+#define ANTKEEPER_SOLAR_SYSTEM_HPP
 
 #include "entity-system.hpp"
 #include "utility/fundamental-types.hpp"
 
-class sky_pass;
-class shadow_map_pass;
-class material_pass;
-class ambient_light;
-class directional_light;
-class image;
-
-class weather_system:
+/**
+ * Updates positions, velocities, and rotations of intrasolar celestial bodies.
+ */
+class solar_system:
 	public entity_system
 {
 public:
-	weather_system(entt::registry& registry);
-	virtual void update(double t, double dt);
+	solar_system(entt::registry& registry);
 	
 	/**
+	 * Scales then adds the timestep `dt` to the current time, then recalculates the positions of celestial bodies.
 	 *
-	 * @param latitude Latitude, in radians.
-	 * @param longitude Longitude, in radians.
-	 * @param altitude Altitude, in radians.
+	 * @param t Time, in seconds.
+	 * @param dt Delta time, in seconds.
 	 */
-	void set_location(float latitude, float longitude, float altitude);
-	
-	void set_sky_pass(::sky_pass* pass);
-	void set_shadow_map_pass(::shadow_map_pass* pass);
-	void set_material_pass(::material_pass* pass);
+	virtual void update(double t, double dt);
 	
 	/**
 	 * Sets the current universal time.
@@ -64,14 +55,10 @@ public:
 	void set_time_scale(double scale);
 	
 private:
-	static void load_palette(std::vector<float3>* palette, const ::image* image, unsigned int row);
-	static float3 interpolate_gradient(const std::vector<float3>& gradient, float position);
-
 	double universal_time;
 	double days_per_timestep;
-	sky_pass* sky_pass;
-	shadow_map_pass* shadow_map_pass;
-	material_pass* material_pass;
+	double ke_tolerance;
+	std::size_t ke_iterations;
 };
 
-#endif // ANTKEEPER_WEATHER_SYSTEM_HPP
+#endif // ANTKEEPER_SOLAR_SYSTEM_HPP

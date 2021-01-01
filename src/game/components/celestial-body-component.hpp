@@ -17,20 +17,39 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
-#define ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
+#ifndef ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
+#define ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
 
 #include "game/astronomy/celestial-mechanics.hpp"
+#include "utility/fundamental-types.hpp"
+#include "math/quaternion-type.hpp"
 
 namespace ecs {
 
-struct orbit_component
+struct celestial_body_component
 {
-	ast::orbital_elements elements;
-	ast::orbital_elements rate;
-	ast::orbital_state state;
+	ast::orbital_elements orbital_elements;
+	ast::orbital_elements orbital_rate;
+	ast::orbital_state orbital_state;
+	
+	double3 position;
+	double3 velocity;
+	double3 acceleration;
+	double mass;
+	double radius;
+	math::quaternion<double> orientation;
+};
+
+struct blackbody_radiator
+{
+	double temperature;
+};
+
+struct diffuse_reflector
+{
+	double albedo;
 };
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
+#endif // ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP

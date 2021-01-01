@@ -24,13 +24,13 @@ namespace ast
 {
 
 /**
- * Calculates the angular radius of a celestial object.
+ * Finds the angular radius of a celestial object, given its radius and distance.
  *
  * @param radius Radius of the celestial object.
  * @param distance Distance to the celestial object.
  * @return Angular radius, in radians.
  */
-double angular_radius(double radius, double distance);
+double find_angular_radius(double radius, double distance);
 
 } // namespace ast
 

@@ -23,7 +23,7 @@
 namespace ast
 {
 
-double angular_radius(double radius, double distance)
+double find_angular_radius(double radius, double distance)
 {
 	return std::asin(radius / distance);
 }

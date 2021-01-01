@@ -23,8 +23,10 @@
 #include "entity-system.hpp"
 #include "utility/fundamental-types.hpp"
 
+class sky_pass;
+
 /**
- * 
+ * Calculates apparent properties of celestial bodies relative to an observer (magnitude, angular radius, horizontal coordinates) and modifies their model component and/or light component to render them accordingly.
  */
 class astronomy_system:
 	public entity_system
@@ -33,7 +35,7 @@ public:
 	astronomy_system(entt::registry& registry);
 	
 	/**
-	 * Scales then adds the timestep `dt` to the current Julian date, then recalculates the positions of celestial bodies.
+	 * Scales then adds the timestep `dt` to the current time, then recalculates the positions of celestial bodies.
 	 *
 	 * @param t Time, in seconds.
 	 * @param dt Delta time, in seconds.
@@ -48,7 +50,7 @@ public:
 	void set_universal_time(double time);
 	
 	/**
-	 * Sets the factor by which the timestep `dt` will be scaled before being added to the current Julian date.
+	 * Sets the factor by which the timestep `dt` will be scaled before being added to the current universal time.
 	 *
 	 * @param scale Factor by which to scale the timestep.
 	 */
@@ -62,6 +64,13 @@ public:
 	void set_observer_location(const double3& location);
 	
 	/**
+	 * Sets the obliquity of the ecliptic, a.k.a. axial tilt.
+	 *
+	 * @param angle Angle between the planet's rotational axis and its orbital axis, in radians.
+	 */
+	void set_obliquity(double angle);
+	
+	/**
 	 * Sets the rotational speed of the observer's planet.
 	 *
 	 * @param speed Rotational speed, in radians per day.
@@ -70,12 +79,10 @@ public:
 	
 	void set_axial_rotation_at_epoch(double angle);
 	
-	/**
-	 * Sets the obliquity of the ecliptic, a.k.a. axial tilt.
-	 *
-	 * @param angle Angle between the planet's rotational axis and its orbital axis, in radians.
-	 */
-	void set_obliquity(double angle);
+	void set_sky_pass(::sky_pass* pass);
+	
+	void set_sun(entt::entity entity);
+	void set_moon(entt::entity entity);
 	
 private:
 	/// Updates the axial rotation angle
@@ -88,16 +95,18 @@ private:
 	void update_ecliptic_to_horizontal();
 	
 	double universal_time;
+	double days_per_timestep;
 	double lst;
 	double axial_rotation_at_epoch;
 	double axial_rotation_speed;
 	double axial_rotation;
-	double days_per_timestep;
 	double3 observer_location;
 	double obliquity;
 	double3x3 ecliptic_to_horizontal;
-	double ke_tolerance;
-	std::size_t ke_iterations;
+	sky_pass* sky_pass;
+	
+	entt::entity sun;
+	entt::entity moon;
 };
 
 #endif // ANTKEEPER_ASTRONOMY_SYSTEM_HPP
