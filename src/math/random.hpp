@@ -25,9 +25,6 @@
 
 namespace math {
 
-/// @addtogroup utility
-/// @{
-
 /**
  * Generates a pseudo-random floating point number on `[start, end)` using std::rand().
  *
@@ -47,8 +44,6 @@ inline T random(T start, T end)
 	constexpr T rand_max_inverse = T(1) / static_cast<T>(RAND_MAX);
     return static_cast<T>(std::rand()) * rand_max_inverse * (end - start) + start;
 }
-
-/// @}
 
 } // namespace math
 

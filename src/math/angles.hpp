@@ -25,9 +25,6 @@
 
 namespace math {
 
-/// @addtogroup utility
-/// @{
-
 /**
  * Converts an angle given in radians to degrees.
  *
@@ -87,8 +84,6 @@ inline T wrap_radians(T radians)
 {
 	return std::remainder(radians, two_pi<T>);
 }
-
-/// @}
 
 } // namespace math
 

@@ -20,6 +20,9 @@
 #ifndef ANTKEEPER_GENETICS_HPP
 #define ANTKEEPER_GENETICS_HPP
 
+/// Genetic algorithms and data types.
+namespace genetic {}
+
 #include "amino-acid.hpp"
 #include "base.hpp"
 #include "codon.hpp"

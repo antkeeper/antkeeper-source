@@ -29,9 +29,6 @@
 
 namespace math {
 
-/// @addtogroup utility
-/// @{
-
 /**
  * Linearly interpolates between @p x and @p y.
  *
@@ -89,8 +86,6 @@ inline T log_lerp(const T& x, const T& y, S a)
 	//return std::exp(linear(std::log(x), std::log(y), a));
 	return x * std::pow(y / x, a);
 }
-
-/// @}
 
 } // namespace math
 

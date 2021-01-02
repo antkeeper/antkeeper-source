@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_MATH_HPP
 #define ANTKEEPER_MATH_HPP
 
-/// Contains mathematical functions and data types.
+/// Mathematical functions and data types.
 namespace math {}
 
 /**

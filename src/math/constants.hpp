@@ -26,9 +26,6 @@
 
 namespace math {
 
-/// @addtogroup utility
-/// @{
-
 /**
  * Pi.
  */
@@ -96,8 +93,6 @@ constexpr transform<T> identity_transform =
 	{T(1), T(0), T(0), T(0)},
 	{T(1), T(1), T(1)}
 };
-
-/// @}
 
 } // namespace math
 
