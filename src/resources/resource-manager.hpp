@@ -40,7 +40,7 @@ public:
 	/**
 	 * Creates a resource manager.
 	 */
-	resource_manager(::logger* logger);
+	resource_manager(debug::logger* logger);
 
 	/**
 	 * Destroys a resource manager and frees all of its resources.
@@ -89,7 +89,7 @@ private:
 	std::map<std::string, resource_handle_base*> resource_cache;
 	std::list<std::string> search_paths;
 	entt::registry archetype_registry;
-	logger* logger;
+	debug::logger* logger;
 };
 
 template <typename T>

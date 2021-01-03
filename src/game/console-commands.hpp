@@ -24,8 +24,7 @@
 
 struct game_context;
 
-namespace cc
-{
+namespace cc {
 
 std::string echo(std::string text);
 

@@ -17,13 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_LOGGER_HPP
-#define ANTKEEPER_LOGGER_HPP
+#ifndef ANTKEEPER_DEBUG_LOGGER_HPP
+#define ANTKEEPER_DEBUG_LOGGER_HPP
 
 #include <list>
 #include <ostream>
 #include <stack>
 #include <string>
+
+namespace debug {
 
 /**
  * Logs formatted debug messages to an output stream.
@@ -120,5 +122,7 @@ inline const std::string& logger::get_history() const
 	return history;
 }
 
-#endif // ANTKEEPER_LOGGER_HPP
+} // namespace debug
+
+#endif // ANTKEEPER_DEBUG_LOGGER_HPP
 

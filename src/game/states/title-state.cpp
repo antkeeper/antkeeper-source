@@ -24,7 +24,7 @@
 
 void title_state_enter(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Entering title state");
 
 	// Get timeline
@@ -48,7 +48,7 @@ void title_state_enter(game_context* ctx)
 
 void title_state_exit(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Exiting title state");
 
 	logger->pop_task(EXIT_SUCCESS);

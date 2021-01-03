@@ -21,6 +21,8 @@
 #include <algorithm>
 #include <numeric>
 
+namespace debug {
+
 performance_sampler::performance_sampler():
 	sample_size(1),
 	sample_index(0)
@@ -59,4 +61,6 @@ double performance_sampler::mean_frame_duration() const
 {
 	return std::accumulate(samples.begin(), samples.end(), 0.0) / static_cast<double>(samples.size());
 }
+
+} // namespace debug
 

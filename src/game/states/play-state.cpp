@@ -71,7 +71,7 @@
 
 void play_state_enter(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Entering play state");
 	
 	// Load biome
@@ -462,7 +462,7 @@ void play_state_enter(game_context* ctx)
 
 void play_state_exit(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Exiting play state");
 	
 	logger->pop_task(EXIT_SUCCESS);

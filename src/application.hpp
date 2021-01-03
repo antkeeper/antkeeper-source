@@ -33,11 +33,15 @@ class event_dispatcher;
 class frame_scheduler;
 class game_controller;
 class keyboard;
-class logger;
 class mouse;
-class performance_sampler;
 class rasterizer;
 class image;
+
+namespace debug
+{
+	class logger;
+	class performance_sampler;
+}
 
 /**
  * 
@@ -179,7 +183,7 @@ public:
 	::rasterizer* get_rasterizer();
 	
 	/// Returns the application logger.
-	::logger* get_logger();
+	debug::logger* get_logger();
 	
 	/// Returns the virtual keyboard.
 	::keyboard* get_keyboard();
@@ -213,7 +217,7 @@ private:
 	std::array<int, 2> viewport_dimensions;
 	std::array<int, 2> mouse_position;
 	double update_rate;
-	logger* logger;
+	debug::logger* logger;
 
 	SDL_Window* sdl_window;
 	SDL_GLContext sdl_gl_context;
@@ -222,7 +226,7 @@ private:
 	
 	// Frame timing
 	frame_scheduler* frame_scheduler;
-	performance_sampler* performance_sampler;
+	debug::performance_sampler* performance_sampler;
 	
 	// Events
 	event_dispatcher* event_dispatcher;
@@ -234,7 +238,7 @@ private:
 	std::unordered_map<int, game_controller*> game_controller_map;
 };
 
-inline logger* application::get_logger()
+inline debug::logger* application::get_logger()
 {
 	return logger;
 }

@@ -17,11 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PERFORMANCE_SAMPLER_HPP
-#define ANTKEEPER_PERFORMANCE_SAMPLER_HPP
+#ifndef ANTKEEPER_DEBUG_PERFORMANCE_SAMPLER_HPP
+#define ANTKEEPER_DEBUG_PERFORMANCE_SAMPLER_HPP
 
 #include <cstdlib>
 #include <vector>
+
+namespace debug {
 
 /**
  * Measures a rolling mean frame duration.
@@ -62,5 +64,6 @@ private:
 	std::size_t sample_index;
 };
 
-#endif // ANTKEEPER_PERFORMANCE_SAMPLER_HPP
+} // namespace debug
 
+#endif // ANTKEEPER_DEBUG_PERFORMANCE_SAMPLER_HPP

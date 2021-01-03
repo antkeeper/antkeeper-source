@@ -59,7 +59,7 @@ application::application():
 	sdl_gl_context(nullptr)
 {
 	// Setup logging
-	logger = new ::logger();
+	logger = new debug::logger();
 	
 	// Get SDL compiled version
 	SDL_version sdl_compiled_version;
@@ -222,7 +222,7 @@ application::application():
 	frame_scheduler->set_max_frame_duration(0.25);
 
 	// Setup performance sampling
-	performance_sampler = new ::performance_sampler();
+	performance_sampler = new debug::performance_sampler();
 	performance_sampler->set_sample_size(15);
 }
 

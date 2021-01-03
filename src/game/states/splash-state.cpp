@@ -34,7 +34,7 @@
 
 void splash_state_enter(game_context* ctx)
 {
-	logger* logger = ctx->logger;	
+	debug::logger* logger = ctx->logger;	
 	logger->push_task("Entering splash state");
 	
 	//ctx->app->set_window_opacity(0.5f);
@@ -99,7 +99,7 @@ void splash_state_enter(game_context* ctx)
 
 void splash_state_exit(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Exiting splash state");
 	
 	// Disable splash skipper

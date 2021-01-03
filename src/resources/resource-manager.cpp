@@ -19,7 +19,7 @@
 
 #include "resources/resource-manager.hpp"
 
-resource_manager::resource_manager(::logger* logger):
+resource_manager::resource_manager(debug::logger* logger):
 	logger(logger)
 {
 	// Init PhysicsFS

@@ -21,6 +21,8 @@
 #include "utility/timestamp.hpp"
 #include <iostream>
 
+namespace debug {
+
 logger::logger():
 	os(&std::cout),
 	auto_newline(true),
@@ -188,3 +190,5 @@ void logger::pop_task(int status)
 		error(message);
 	}
 }
+
+} // namespace debug

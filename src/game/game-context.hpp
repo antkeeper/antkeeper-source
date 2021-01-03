@@ -49,7 +49,6 @@ class directional_light;
 class final_pass;
 class framebuffer;
 class locomotion_system;
-class logger;
 class material;
 class input_listener;
 class material_pass;
@@ -82,7 +81,6 @@ class renderer;
 class model_instance;
 class input_event_router;
 class input_mapper;
-class cli;
 class outline_pass;
 class tracking_system;
 class painting_system;
@@ -94,13 +92,19 @@ template <typename T> class animation;
 template <typename T> class material_property;
 template <typename T> class tween;
 
+namespace debug
+{
+	class cli;
+	class logger;
+}
+
 /**
  * 
  */
 struct game_context
 {
 	application* app;
-	logger* logger;
+	debug::logger* logger;
 	std::ofstream log_filestream;
 	
 	// Command-line options
@@ -253,7 +257,7 @@ struct game_context
 	biome* biome;
 	
 	// Debug
-	cli* cli;
+	debug::cli* cli;
 	
 	// Misc
 	pheromone_matrix* pheromones;

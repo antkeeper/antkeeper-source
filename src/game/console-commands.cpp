@@ -23,8 +23,7 @@
 #include "game/game-context.hpp"
 #include "debug/cli.hpp"
 
-namespace cc
-{
+namespace cc {
 
 std::string echo(std::string text)
 {
@@ -46,9 +45,9 @@ std::string scrot(game_context* ctx)
 std::string cue(game_context* ctx, float t, std::string command)
 {
 	::timeline* timeline = ctx->timeline;
-	::cli* cli = ctx->cli;
+	debug::cli* cli = ctx->cli;
 	
-	timeline->add_cue({timeline->get_position() + t, std::function<void()>(std::bind(&::cli::interpret, cli, command))});
+	timeline->add_cue({timeline->get_position() + t, std::function<void()>(std::bind(&debug::cli::interpret, cli, command))});
 	
 	return std::string("command \"" + command + "\" will execute in " + std::to_string(t) + " seconds");
 }

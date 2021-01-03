@@ -17,14 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_CLI_HPP
-#define ANTKEEPER_CLI_HPP
+#ifndef ANTKEEPER_DEBUG_CLI_HPP
+#define ANTKEEPER_DEBUG_CLI_HPP
 
 #include <functional>
 #include <map>
 #include <sstream>
 #include <string>
 #include <tuple>
+
+namespace debug {
 
 /**
  * Minimal command-line interpreter.
@@ -129,4 +131,6 @@ typename cli::command_type cli::wrap(const std::function<T(Args...)>& function)
 		std::placeholders::_1);
 }
 
-#endif // ANTKEEPER_CLI_HPP
+} // namespace debug
+
+#endif // ANTKEEPER_DEBUG_CLI_HPP

@@ -34,7 +34,7 @@
 
 void map_state_enter(game_context* ctx)
 {
-	logger* logger = ctx->logger;	
+	debug::logger* logger = ctx->logger;	
 	logger->push_task("Entering map state");
 	
 	// Disable sky pass
@@ -48,7 +48,7 @@ void map_state_enter(game_context* ctx)
 
 void map_state_exit(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Exiting map state");
 	
 	logger->pop_task(EXIT_SUCCESS);

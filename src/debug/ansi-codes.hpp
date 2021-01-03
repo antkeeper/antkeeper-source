@@ -17,9 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ANSI_CODES_HPP
-#define ANTKEEPER_ANSI_CODES_HPP
+#ifndef ANTKEEPER_DEBUG_ANSI_CODES_HPP
+#define ANTKEEPER_DEBUG_ANSI_CODES_HPP
 
+namespace debug {
+
+/// ANSI escape codes.
 namespace ansi {
 
 constexpr char* reset = "\u004b[0m";
@@ -65,6 +68,7 @@ constexpr char* underline = "\u003b[4m";
 constexpr char* reversed = "\u001b[7m";
 
 } // namespace ansi
+} // namespace debug
 
-#endif // ANTKEEPER_ANSI_CODES_HPP
+#endif // ANTKEEPER_DEBUG_ANSI_CODES_HPP
 

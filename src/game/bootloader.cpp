@@ -120,7 +120,7 @@ static void setup_callbacks(game_context* ctx);
 int bootloader(application* app, int argc, char** argv)
 {
 	// Get application logger
-	logger* logger = app->get_logger();
+	debug::logger* logger = app->get_logger();
 	
 	logger->push_task("Running application bootloader");
 	
@@ -166,7 +166,7 @@ int bootloader(application* app, int argc, char** argv)
 
 void parse_options(game_context* ctx, int argc, char** argv)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Parsing command line options");
 	
 	try
@@ -232,7 +232,7 @@ void parse_options(game_context* ctx, int argc, char** argv)
 
 void setup_resources(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	
 	// Setup resource manager
 	ctx->resource_manager = new resource_manager(logger);
@@ -354,7 +354,7 @@ void setup_resources(game_context* ctx)
 
 void load_config(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Loading config");
 	
 	// Load config file
@@ -370,7 +370,7 @@ void load_config(game_context* ctx)
 
 void load_strings(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Loading strings");
 		
 	ctx->string_table = ctx->resource_manager->load<string_table>("strings.csv");
@@ -394,7 +394,7 @@ void load_strings(game_context* ctx)
 
 void setup_window(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Setting up window");
 	
 	application* app = ctx->app;
@@ -441,7 +441,7 @@ void setup_window(game_context* ctx)
 
 void setup_rendering(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Setting up rendering");
 	
 	// Get rasterizer from application
@@ -613,7 +613,7 @@ void setup_rendering(game_context* ctx)
 
 void setup_scenes(game_context* ctx)
 {
-	logger* logger = ctx->logger;
+	debug::logger* logger = ctx->logger;
 	logger->push_task("Setting up rendering");
 	
 	// Get default framebuffer
@@ -1242,7 +1242,7 @@ void setup_controls(game_context* ctx)
 
 void setup_cli(game_context* ctx)
 {
-	ctx->cli = new cli();
+	ctx->cli = new debug::cli();
 	ctx->cli->register_command("echo", cc::echo);
 	ctx->cli->register_command("exit", std::function<std::string()>(std::bind(&cc::exit, ctx)));
 	ctx->cli->register_command("scrot", std::function<std::string()>(std::bind(&cc::scrot, ctx)));
