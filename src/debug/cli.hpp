@@ -50,12 +50,12 @@ public:
 	 * @param name Command name.
 	 * @param function Command function.
 	 */
+	/// @{
 	template <class T, class... Args>
 	void register_command(const std::string& name, const std::function<T(Args...)>& function);
-
-	/// @copydoc register_command(const std::string, const std::function<T(Args...)>&)
 	template <class T, class... Args>
 	void register_command(const std::string& name, T (*function)(Args...));
+	/// @}
 
 	/**
 	 * Unregisters a command from the CLI.
