@@ -21,6 +21,8 @@
 #define ANTKEEPER_GENETICS_BASE_HPP
 
 namespace genetics {
+
+/// Functions which operate on IUPAC degenerate base symbols.
 namespace base {
 
 /**
@@ -40,6 +42,7 @@ int compare(char a, char b);
  */
 char transcribe(char symbol);
 
+/// Functions which operate on IUPAC degenerate **DNA** base symbols.
 namespace dna
 {
 	/**
@@ -51,6 +54,7 @@ namespace dna
 	char complement(char symbol);
 }
 
+/// Functions which operate on IUPAC degenerate **RNA** base symbols.
 namespace rna
 {
 	/**

@@ -21,7 +21,23 @@
 #define ANTKEEPER_GENETICS_CODON_HPP
 
 namespace genetics {
+
+/// Functions and structures related to triplets of IUPAC base symbols.
 namespace codon {
+
+/**
+ * Table for translating codons to amino acids.
+ *
+ * @see https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi
+ */
+struct table
+{
+	/// String of 64 IUPAC amino acid base symbols, in TCAG order.
+	const char* aas;
+	
+	/// String of 64 IUPAC amino acid base symbols, in TCAG order, where symbols other than `-` and `*` indicate a start codon and its amino acid.
+	const char* starts;
+};
 
 /**
  * Returns `true` if a codon is a start codon.

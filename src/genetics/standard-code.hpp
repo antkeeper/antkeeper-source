@@ -17,18 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GENETICS_HPP
-#define ANTKEEPER_GENETICS_HPP
+#ifndef ANTKEEPER_GENETICS_STANDARD_CODE_HPP
+#define ANTKEEPER_GENETICS_STANDARD_CODE_HPP
 
-/// Genetic algorithms
-namespace genetics {}
-
-#include "amino-acid.hpp"
-#include "base.hpp"
 #include "codon.hpp"
-#include "matrix.hpp"
-#include "protein.hpp"
-#include "sequence.hpp"
-#include "translation-table.hpp"
 
-#endif // ANTKEEPER_GENETICS_HPP
+namespace genetics {
+
+/**
+ * Codon table for standard genetic code.
+ *
+ * @see https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG1
+ */
+constexpr codon::table standard_code =
+{
+	"FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+	"---M------**--*----M---------------M----------------------------",
+};
+
+} // namespace genetics
+
+#endif // ANTKEEPER_GENETICS_STANDARD_CODE_HPP

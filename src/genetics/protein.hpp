@@ -24,6 +24,8 @@
 #include <type_traits>
 
 namespace genetics {
+
+/// Functions which operate on sequences of IUPAC amino acid symbols.
 namespace protein {
 
 /**

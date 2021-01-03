@@ -22,12 +22,13 @@
 
 #include "base.hpp"
 #include "codon.hpp"
-#include "translation-table.hpp"
 #include <algorithm>
 #include <iterator>
 #include <random>
 
 namespace genetics {
+
+/// Functions and structures related to sequences of IUPAC degenerate base symbols.
 namespace sequence {
 
 /**
@@ -75,7 +76,7 @@ void crossover_n(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2, Size co
  * @return First ORF in the sequence, or `{last, last}` if no ORF was found.
  */
 template <class ForwardIt>
-orf<ForwardIt> find_orf(ForwardIt first, ForwardIt last, const translation_table& table);
+orf<ForwardIt> find_orf(ForwardIt first, ForwardIt last, const codon::table& table);
 
 /**
  * Applies the given function to a randomly selected element in a range.
@@ -129,8 +130,9 @@ OutputIt transcribe(InputIt first, InputIt last, OutputIt d_first);
  * @return Output iterator to the element past the last element translated. 
  */
 template <class InputIt, class OutputIt>
-OutputIt translate(InputIt first, InputIt last, OutputIt d_first, const translation_table& table);
+OutputIt translate(InputIt first, InputIt last, OutputIt d_first, const codon::table& table);
 
+/// Functions which operate on sequences of IUPAC degenerate **DNA** base symbols.
 namespace dna
 {
 	/**
@@ -144,6 +146,7 @@ namespace dna
 	OutputIt complement(InputIt first, InputIt last, OutputIt d_first);
 }
 
+/// Functions which operate on sequences of IUPAC degenerate **RNA** base symbols.
 namespace rna
 {
 	/**
@@ -192,7 +195,7 @@ void crossover_n(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2, Size co
 }
 
 template <class ForwardIt>
-orf<ForwardIt> find_orf(ForwardIt first, ForwardIt last, const translation_table& table)
+orf<ForwardIt> find_orf(ForwardIt first, ForwardIt last, const codon::table& table)
 {
 	ForwardIt second;
 	ForwardIt third;
@@ -307,7 +310,7 @@ inline OutputIt transcribe(InputIt first, InputIt last, OutputIt d_first)
 }
 
 template <class InputIt, class OutputIt>
-OutputIt translate(InputIt first, InputIt last, OutputIt d_first, const translation_table& table)
+OutputIt translate(InputIt first, InputIt last, OutputIt d_first, const codon::table& table)
 {
 	auto length = std::distance(first, last);
 	

@@ -21,6 +21,8 @@
 #define ANTKEEPER_GENETICS_MATRIX_HPP
 
 namespace genetics {
+
+/// Substitution matrix constants.
 namespace matrix {
 
 /**

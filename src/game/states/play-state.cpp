@@ -63,7 +63,7 @@
 #include "utility/gamma.hpp"
 
 #include "utility/bit-math.hpp"
-#include "game/genetics/genetics.hpp"
+#include "genetics/genetics.hpp"
 #include <iostream>
 #include <bitset>
 #include <ctime>
