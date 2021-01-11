@@ -28,10 +28,12 @@
 #include <atomic>
 #include <cstdlib>
 
+namespace scene {
+
 /**
  * Internal base class for scene objects.
  */
-class scene_object_base
+class object_base
 {
 public:
 	typedef math::vector<float, 3> vector_type;
@@ -45,12 +47,12 @@ public:
 	/**
 	 * Creates a scene object base.
 	 */
-	scene_object_base();
+	object_base();
 
 	/**
 	 * Destroys a scene object base.
 	 */
-	virtual ~scene_object_base() = default;
+	virtual ~object_base() = default;
 
 	/**
 	 * Updates all tweens in the scene object.
@@ -148,71 +150,71 @@ private:
 	const bounding_volume_type* culling_mask;
 };
 
-inline void scene_object_base::set_active(bool active)
+inline void object_base::set_active(bool active)
 {
 	this->active = active;
 }
 
-inline void scene_object_base::set_transform(const transform_type& transform)
+inline void object_base::set_transform(const transform_type& transform)
 {
 	this->transform[1] = transform;
 	transformed();
 }
 
-inline void scene_object_base::set_translation(const vector_type& translation)
+inline void object_base::set_translation(const vector_type& translation)
 {
 	transform[1].translation = translation;
 	transformed();
 }
 
-inline void scene_object_base::set_rotation(const quaternion_type& rotation)
+inline void object_base::set_rotation(const quaternion_type& rotation)
 {
 	transform[1].rotation = rotation;
 	transformed();
 }
 
-inline void scene_object_base::set_scale(const vector_type& scale)
+inline void object_base::set_scale(const vector_type& scale)
 {
 	transform[1].scale = scale;
 	transformed();
 }
 
-inline bool scene_object_base::is_active() const
+inline bool object_base::is_active() const
 {
 	return active;
 }
 
-inline const typename scene_object_base::transform_type& scene_object_base::get_transform() const
+inline const typename object_base::transform_type& object_base::get_transform() const
 {
 	return transform[1];
 }
 
-inline const typename scene_object_base::vector_type& scene_object_base::get_translation() const
+inline const typename object_base::vector_type& object_base::get_translation() const
 {
 	return get_transform().translation;
 }
 
-inline const typename scene_object_base::quaternion_type& scene_object_base::get_rotation() const
+inline const typename object_base::quaternion_type& object_base::get_rotation() const
 {
 	return get_transform().rotation;
 }
 
-inline const typename scene_object_base::vector_type& scene_object_base::get_scale() const
+inline const typename object_base::vector_type& object_base::get_scale() const
 {
 	return get_transform().scale;
 }
 
-inline const tween<typename scene_object_base::transform_type>& scene_object_base::get_transform_tween() const
+inline const tween<typename object_base::transform_type>& object_base::get_transform_tween() const
 {
 	return transform;
 }
 
-inline tween<typename scene_object_base::transform_type>& scene_object_base::get_transform_tween()
+inline tween<typename object_base::transform_type>& object_base::get_transform_tween()
 {
 	return transform;
 }
 
-inline const typename scene_object_base::bounding_volume_type* scene_object_base::get_culling_mask() const
+inline const typename object_base::bounding_volume_type* object_base::get_culling_mask() const
 {
 	return culling_mask;
 }
@@ -223,7 +225,7 @@ inline const typename scene_object_base::bounding_volume_type* scene_object_base
  * @tparam T This should be the same class that's inheriting from the scene object, in order to give it a valid type-specific ID.
  */
 template <class T>
-class scene_object: public scene_object_base
+class object: public object_base
 {
 public:
 	/// Unique type ID for this scene object type.
@@ -233,13 +235,15 @@ public:
 };
 
 template <typename T>
-const std::atomic<std::size_t> scene_object<T>::object_type_id{scene_object_base::next_object_type_id()};
+const std::atomic<std::size_t> object<T>::object_type_id{object_base::next_object_type_id()};
 
 template <typename T>
-inline const std::size_t scene_object<T>::get_object_type_id() const
+inline const std::size_t object<T>::get_object_type_id() const
 {
 	return object_type_id;
 }
+
+} // namespace scene
 
 #endif // ANTKEEPER_SCENE_OBJECT_HPP
 

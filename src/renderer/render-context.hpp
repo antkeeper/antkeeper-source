@@ -24,21 +24,20 @@
 #include "geometry/plane.hpp"
 #include "geometry/bounding-volume.hpp"
 #include "utility/fundamental-types.hpp"
+#include "scene/camera.hpp"
+#include "scene/collection.hpp"
 #include <list>
-
-class camera;
-class scene;
 
 struct render_context
 {
-	const camera* camera;
+	const scene::camera* camera;
 	math::transform<float> camera_transform;
 	float3 camera_forward;
 	float3 camera_up;
 	const bounding_volume<float>* camera_culling_volume;
 	plane<float> clip_near;
 	
-	const scene* scene;
+	const scene::collection* collection;
 	std::list<render_operation> operations;
 	float alpha;
 };

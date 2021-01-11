@@ -28,9 +28,9 @@
 #include "input/control-set.hpp"
 #include "scene/model-instance.hpp"
 #include "utility/fundamental-types.hpp"
+#include "scene/camera.hpp"
 
 class nest;
-class camera;
 class camera_system;
 
 class control_system:
@@ -48,12 +48,12 @@ public:
 
 	void set_camera_system(camera_system* camera_system);
 	void set_nest(::nest* nest);
-	void set_tool(model_instance* tool);
+	void set_tool(scene::model_instance* tool);
 	void set_flashlight(entt::entity eid);
 	void set_camera_subject(entt::entity eid);
 	
 	void set_viewport(const float4& viewport);
-	void set_underworld_camera(::camera* camera);
+	void set_underworld_camera(scene::camera* camera);
 
 	control_set* get_control_set();
 	control* get_move_forward_control();
@@ -133,13 +133,13 @@ private:
 	float zoom;
 	camera_system* camera_system;
 	::nest* nest;
-	model_instance* tool;
+	scene::model_instance* tool;
 	float2 mouse_position;
 	float4 viewport;
 	
 	entt::entity flashlight_eid;
 	entt::entity camera_subject_eid;
-	camera* underworld_camera;
+	scene::camera* underworld_camera;
 	
 	float mouse_angle;
 	float old_mouse_angle;

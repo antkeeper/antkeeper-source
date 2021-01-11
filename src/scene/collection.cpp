@@ -17,34 +17,35 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "scene/scene.hpp"
-#include "scene/scene-object.hpp"
-#include "scene/light.hpp"
-#include "scene/camera.hpp"
-#include "scene/model-instance.hpp"
+#include "scene/collection.hpp"
+#include "scene/object.hpp"
 
-void scene::add_object(scene_object_base* object)
+namespace scene {
+
+void collection::add_object(object_base* object)
 {
 	objects.push_back(object);
 	object_map[object->get_object_type_id()].push_back(object);
 }
 
-void scene::remove_object(scene_object_base* object)
+void collection::remove_object(object_base* object)
 {
 	objects.remove(object);
 	object_map[object->get_object_type_id()].remove(object);
 }
 
-void scene::remove_objects()
+void collection::remove_objects()
 {
 	objects.clear();
 	object_map.clear();
 }
 
-void scene::update_tweens()
+void collection::update_tweens()
 {
-	for (scene_object_base* object: objects)
+	for (object_base* object: objects)
 	{
 		object->update_tweens();
 	}
 }
+
+} // namespace scene

@@ -20,7 +20,7 @@
 #include "renderer/renderer.hpp"
 #include "renderer/render-context.hpp"
 #include "renderer/compositor.hpp"
-#include "scene/scene.hpp"
+#include "scene/collection.hpp"
 #include "scene/camera.hpp"
 #include "scene/model-instance.hpp"
 #include "scene/billboard.hpp"
@@ -44,30 +44,30 @@ renderer::renderer()
 	billboard_op.instance_count = 0;
 }
 
-void renderer::render(float alpha, const scene& scene) const
+void renderer::render(float alpha, const scene::collection& collection) const
 {
-	// Get list of all objects in the scene
-	const std::list<scene_object_base*>* objects = scene.get_objects();
+	// Get list of all objects in the collection
+	const std::list<scene::object_base*>* objects = collection.get_objects();
 	
 	// Build list of cameras to be sorted
-	const std::list<scene_object_base*>* cameras = scene.get_objects(camera::object_type_id);
-	std::list<camera*> sorted_cameras;
-	for (scene_object_base* object: *cameras)
+	const std::list<scene::object_base*>* cameras = collection.get_objects(scene::camera::object_type_id);
+	std::list<scene::camera*> sorted_cameras;
+	for (scene::object_base* object: *cameras)
 	{
-		sorted_cameras.push_back(static_cast<camera*>(object));
+		sorted_cameras.push_back(static_cast<scene::camera*>(object));
 	}
 	
 	// Sort cameras according to their respective compositing indices
 	sorted_cameras.sort
 	(
-		[](const camera* a, const camera* b) -> bool
+		[](const scene::camera* a, const scene::camera* b) -> bool
 		{
 			return a->get_composite_index() < b->get_composite_index();
 		}
 	);
 
 	// Process cameras in order
-	for (const camera* camera: sorted_cameras)
+	for (const scene::camera* camera: sorted_cameras)
 	{
 		// Skip inactive cameras
 		if (!camera->is_active())
@@ -89,7 +89,7 @@ void renderer::render(float alpha, const scene& scene) const
 		context.camera_forward = context.camera_transform.rotation * global_forward;
 		context.camera_up = context.camera_transform.rotation * global_up;
 		context.clip_near = camera->get_view_frustum().get_near(); ///< TODO: tween this
-		context.scene = &scene;
+		context.collection = &collection;
 		context.alpha = alpha;
 		
 		// Get camera culling volume
@@ -98,7 +98,7 @@ void renderer::render(float alpha, const scene& scene) const
 			context.camera_culling_volume = &camera->get_bounds();
 		
 		// Generate render operations for each visible scene object
-		for (const scene_object_base* object: *objects)
+		for (const scene::object_base* object: *objects)
 		{
 			// Skip inactive objects
 			if (!object->is_active())
@@ -118,19 +118,19 @@ void renderer::set_billboard_vao(vertex_array* vao)
 	billboard_op.vertex_array = vao;
 }
 
-void renderer::process_object(render_context& context, const scene_object_base* object) const
+void renderer::process_object(render_context& context, const scene::object_base* object) const
 {
 	std::size_t type = object->get_object_type_id();
 	
-	if (type == model_instance::object_type_id)
-		process_model_instance(context, static_cast<const model_instance*>(object));
-	else if (type == billboard::object_type_id)		
-		process_billboard(context, static_cast<const billboard*>(object));
-	else if (type == lod_group::object_type_id)
-		process_lod_group(context, static_cast<const lod_group*>(object));
+	if (type == scene::model_instance::object_type_id)
+		process_model_instance(context, static_cast<const scene::model_instance*>(object));
+	else if (type == scene::billboard::object_type_id)		
+		process_billboard(context, static_cast<const scene::billboard*>(object));
+	else if (type == scene::lod_group::object_type_id)
+		process_lod_group(context, static_cast<const scene::lod_group*>(object));
 }
 
-void renderer::process_model_instance(render_context& context, const ::model_instance* model_instance) const
+void renderer::process_model_instance(render_context& context, const scene::model_instance* model_instance) const
 {
 	const model* model = model_instance->get_model();
 	if (!model)
@@ -173,7 +173,7 @@ void renderer::process_model_instance(render_context& context, const ::model_ins
 	}
 }
 
-void renderer::process_billboard(render_context& context, const ::billboard* billboard) const
+void renderer::process_billboard(render_context& context, const scene::billboard* billboard) const
 {
 	// Get object culling volume
 	const bounding_volume<float>* object_culling_volume = billboard->get_culling_mask();
@@ -189,11 +189,11 @@ void renderer::process_billboard(render_context& context, const ::billboard* bil
 	billboard_op.depth = context.clip_near.signed_distance(math::resize<3>(billboard_transform.translation));
 	
 	// Align billboard
-	if (billboard->get_billboard_type() == billboard_type::spherical)
+	if (billboard->get_billboard_type() == scene::billboard_type::spherical)
 	{
 		billboard_transform.rotation = math::normalize(math::look_rotation(context.camera_forward, context.camera_up) * billboard_transform.rotation);
 	}
-	else if (billboard->get_billboard_type() == billboard_type::cylindrical)
+	else if (billboard->get_billboard_type() == scene::billboard_type::cylindrical)
 	{
 		const float3& alignment_axis = billboard->get_alignment_axis();
 		float3 look = math::normalize(project_on_plane(billboard_transform.translation - context.camera_transform.translation, {0.0f, 0.0f, 0.0f}, alignment_axis));
@@ -208,14 +208,14 @@ void renderer::process_billboard(render_context& context, const ::billboard* bil
 	context.operations.push_back(billboard_op);
 }
 
-void renderer::process_lod_group(render_context& context, const ::lod_group* lod_group) const
+void renderer::process_lod_group(render_context& context, const scene::lod_group* lod_group) const
 {
 	// Select level of detail
 	std::size_t level = lod_group->select_lod(*context.camera);
 	
 	// Process all objects in the group with the selected level of detail
-	const std::list<scene_object_base*>& objects = lod_group->get_objects(level);
-	for (const scene_object_base* object: objects)
+	const std::list<scene::object_base*>& objects = lod_group->get_objects(level);
+	for (const scene::object_base* object: objects)
 	{
 		process_object(context, object);
 	}

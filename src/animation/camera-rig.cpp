@@ -18,7 +18,6 @@
  */
 
 #include "animation/camera-rig.hpp"
-#include "scene/camera.hpp"
 #include "math/constants.hpp"
 #include "configuration.hpp"
 #include <algorithm>
@@ -32,7 +31,7 @@ camera_rig::camera_rig():
 	up(global_up)
 {}
 
-void camera_rig::attach(::camera* camera)
+void camera_rig::attach(scene::camera* camera)
 {
 	this->camera = camera;
 	if (camera != nullptr)

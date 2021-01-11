@@ -17,10 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MODEL_INSTANCE_HPP
-#define ANTKEEPER_MODEL_INSTANCE_HPP
+#ifndef ANTKEEPER_SCENE_MODEL_INSTANCE_HPP
+#define ANTKEEPER_SCENE_MODEL_INSTANCE_HPP
 
-#include "scene/scene-object.hpp"
+#include "scene/object.hpp"
 #include "geometry/aabb.hpp"
 #include <vector>
 
@@ -28,7 +28,9 @@ class material;
 class model;
 class pose;
 
-class model_instance: public scene_object<model_instance>
+namespace scene {
+
+class model_instance: public object<model_instance>
 {
 public:
 	explicit model_instance(model* model);
@@ -129,5 +131,7 @@ inline std::size_t model_instance::get_instance_count() const
 	return instance_count;
 }
 
-#endif // ANTKEEPER_MODEL_INSTANCE_HPP
+} // namespace scene
+
+#endif // ANTKEEPER_SCENE_MODEL_INSTANCE_HPP
 

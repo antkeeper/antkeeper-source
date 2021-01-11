@@ -17,12 +17,14 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_LIGHT_HPP
-#define ANTKEEPER_LIGHT_HPP
+#ifndef ANTKEEPER_SCENE_LIGHT_HPP
+#define ANTKEEPER_SCENE_LIGHT_HPP
 
-#include "scene/scene-object.hpp"
+#include "scene/object.hpp"
 #include "geometry/sphere.hpp"
 #include "utility/fundamental-types.hpp"
+
+namespace scene {
 
 enum class light_type
 {
@@ -32,7 +34,7 @@ enum class light_type
 	spot
 };
 
-class light: public scene_object<light>
+class light: public object<light>
 {
 public:
 	light();
@@ -52,7 +54,7 @@ public:
 	const tween<float>& get_intensity_tween() const;
 	const tween<float3>& get_scaled_color_tween() const;
 
-	/// @copydoc scene_object_base::update_tweens();
+	/// @copydoc object_base::update_tweens();
 	virtual void update_tweens();
 
 private:
@@ -99,5 +101,7 @@ inline const tween<float3>& light::get_scaled_color_tween() const
 	return scaled_color;
 }
 
-#endif // ANTKEEPER_LIGHT_HPP
+} // namespace scene
+
+#endif // ANTKEEPER_SCENE_LIGHT_HPP
 

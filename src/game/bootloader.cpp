@@ -53,12 +53,7 @@
 #include "resources/config-file.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/resource-manager.hpp"
-#include "scene/billboard.hpp"
-#include "scene/model-instance.hpp"
-#include "scene/point-light.hpp"
-#include "scene/directional-light.hpp"
-#include "scene/ambient-light.hpp"
-#include "scene/spotlight.hpp"
+#include "scene/scene.hpp"
 #include "game/states/game-states.hpp"
 #include "game/systems/behavior-system.hpp"
 #include "game/systems/camera-system.hpp"
@@ -625,14 +620,14 @@ void setup_scenes(game_context* ctx)
 	ctx->no_cull = {{-inf, -inf, -inf}, {inf, inf, inf}};
 	
 	// Setup overworld camera
-	ctx->overworld_camera = new camera();
+	ctx->overworld_camera = new scene::camera();
 	ctx->overworld_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
 	ctx->overworld_camera->set_compositor(ctx->overworld_compositor);
 	ctx->overworld_camera->set_composite_index(0);
 	ctx->overworld_camera->set_active(true);
 	
 	// Setup underworld camera
-	ctx->underworld_camera = new camera();
+	ctx->underworld_camera = new scene::camera();
 	ctx->underworld_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
 	ctx->underworld_camera->look_at({0, 50, 0}, {0, 0, 0}, {0, 0, -1});
 	ctx->underworld_camera->set_compositor(ctx->underworld_compositor);
@@ -640,40 +635,40 @@ void setup_scenes(game_context* ctx)
 	ctx->underworld_camera->set_active(false);
 	
 	// Setup UI camera
-	ctx->ui_camera = new camera();
+	ctx->ui_camera = new scene::camera();
 	ctx->ui_camera->set_compositor(ctx->ui_compositor);
 	
 	// Setup lights
-	ctx->sun_indirect = new ambient_light();
+	ctx->sun_indirect = new scene::ambient_light();
 	ctx->sun_indirect->set_intensity(0.0f);
 	ctx->sun_indirect->update_tweens();
 	
-	ctx->sun_direct = new directional_light();
+	ctx->sun_direct = new scene::directional_light();
 	ctx->sun_direct->set_intensity(0.0f);
 	ctx->sun_direct->update_tweens();
 	
-	ctx->moon_light = new directional_light();
+	ctx->moon_light = new scene::directional_light();
 	ctx->moon_light->set_intensity(0.0f);
 	ctx->moon_light->update_tweens();
 	
-	ctx->subterrain_light = new point_light();
+	ctx->subterrain_light = new scene::point_light();
 	ctx->subterrain_light->set_color({1, 1, 1});
 	ctx->subterrain_light->set_intensity(1.0f);
 	ctx->subterrain_light->set_attenuation({1.0f, 0.09f, 0.032f});
 	ctx->subterrain_light->update_tweens();
 	
-	ctx->underworld_ambient_light = new ambient_light();
+	ctx->underworld_ambient_light = new scene::ambient_light();
 	ctx->underworld_ambient_light->set_color({1, 1, 1});
 	ctx->underworld_ambient_light->set_intensity(0.1f);
 	ctx->underworld_ambient_light->update_tweens();
 	
-	ctx->lens_spotlight = new spotlight();
+	ctx->lens_spotlight = new scene::spotlight();
 	ctx->lens_spotlight->set_color({1, 1, 1});
 	ctx->lens_spotlight->set_intensity(20.0f);
 	ctx->lens_spotlight->set_attenuation({1.0f, 0.0f, 0.0f});
 	ctx->lens_spotlight->set_cutoff({math::radians(1.25f), math::radians(1.8f)});
 	
-	ctx->flashlight_spotlight = new spotlight();
+	ctx->flashlight_spotlight = new scene::spotlight();
 	ctx->flashlight_spotlight->set_color({1, 1, 1});
 	ctx->flashlight_spotlight->set_intensity(1.0f);
 	ctx->flashlight_spotlight->set_attenuation({1.0f, 0.0f, 0.0f});
@@ -688,7 +683,7 @@ void setup_scenes(game_context* ctx)
 	ctx->splash_billboard_material->add_property<const texture_2d*>("background")->set_value(splash_texture);
 	ctx->splash_billboard_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
 	ctx->splash_billboard_material->update_tweens();
-	ctx->splash_billboard = new billboard();
+	ctx->splash_billboard = new scene::billboard();
 	ctx->splash_billboard->set_material(ctx->splash_billboard_material);
 	ctx->splash_billboard->set_scale({(float)std::get<0>(splash_dimensions) * 0.5f, (float)std::get<1>(splash_dimensions) * 0.5f, 1.0f});
 	ctx->splash_billboard->set_translation({0.0f, 0.0f, 0.0f});
@@ -710,7 +705,7 @@ void setup_scenes(game_context* ctx)
 	*/
 	
 	// Setup overworld scene
-	ctx->overworld_scene = new scene();
+	ctx->overworld_scene = new scene::collection();
 	ctx->overworld_scene->add_object(ctx->overworld_camera);
 	ctx->overworld_scene->add_object(ctx->sun_indirect);
 	ctx->overworld_scene->add_object(ctx->sun_direct);
@@ -718,17 +713,17 @@ void setup_scenes(game_context* ctx)
 	//ctx->overworld_scene->add_object(ctx->spotlight);
 	
 	// Setup underworld scene
-	ctx->underworld_scene = new scene();
+	ctx->underworld_scene = new scene::collection();
 	ctx->underworld_scene->add_object(ctx->underworld_camera);
 	ctx->underworld_scene->add_object(ctx->underworld_ambient_light);
 	//ctx->underworld_scene->add_object(ctx->lantern);
 	//ctx->underworld_scene->add_object(ctx->subterrain_light);
 	//ctx->underworld_scene->add_object(ctx->portal_billboard);
-	//model_instance* larva = new model_instance(ctx->resource_manager->load<model>("larva.mdl"));
+	//model_instance* larva = new scene::model_instance(ctx->resource_manager->load<model>("larva.mdl"));
 	//ctx->underworld_scene->add_object(larva);
 	
 	// Setup UI scene
-	ctx->ui_scene = new scene();
+	ctx->ui_scene = new scene::collection();
 	ctx->ui_scene->add_object(ctx->ui_camera);
 	
 	ctx->overworld_scene->add_object(ctx->lens_spotlight);
@@ -1232,7 +1227,7 @@ void setup_controls(game_context* ctx)
 	);
 	
 	// Make lens tool's model instance unculled, so its shadow is always visible.
-	model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
+	scene::model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
 	if (lens_model_instance)
 	{
 		lens_model_instance->set_culling_mask(&ctx->no_cull);

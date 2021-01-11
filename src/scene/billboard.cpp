@@ -21,6 +21,8 @@
 #include "renderer/material.hpp"
 #include "configuration.hpp"
 
+namespace scene {
+
 const aabb<float> billboard::untransformed_bounds = {{-1, -1, -1}, {1, 1, 1}};
 
 billboard::billboard():
@@ -66,9 +68,11 @@ void billboard::transformed()
 
 void billboard::update_tweens()
 {
-	scene_object_base::update_tweens();
+	object_base::update_tweens();
 	if (material)
 	{
 		material->update_tweens();
 	}
 }
+
+} // namespace scene

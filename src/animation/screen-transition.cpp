@@ -37,13 +37,13 @@ screen_transition::screen_transition()
 	// Setup animation start callback to show transition billboard
 	animation.set_start_callback
 	(
-		std::bind(&scene_object_base::set_active, &billboard, true)
+		std::bind(&scene::object_base::set_active, &billboard, true)
 	);
 	
 	// Setup animation end callback to hide transition billboard
 	animation.set_end_callback
 	(
-		std::bind(&scene_object_base::set_active, &billboard, false)
+		std::bind(&scene::object_base::set_active, &billboard, false)
 	);
 	
 	// Setup animation frame callback to update transition progress material property

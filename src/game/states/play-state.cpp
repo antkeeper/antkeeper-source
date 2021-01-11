@@ -46,7 +46,7 @@
 #include "renderer/passes/sky-pass.hpp"
 #include "resources/resource-manager.hpp"
 #include "scene/model-instance.hpp"
-#include "scene/scene.hpp"
+#include "scene/collection.hpp"
 #include "scene/camera.hpp"
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
@@ -200,7 +200,7 @@ void play_state_enter(game_context* ctx)
 	ec::assign_render_layers(ecs_registry, ctx->flashlight_entity, 2);
 	
 	// Make lens tool's model instance unculled, so its shadow is always visible.
-	model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
+	scene::model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
 	if (lens_model_instance)
 	{
 		lens_model_instance->set_culling_mask(&ctx->no_cull);

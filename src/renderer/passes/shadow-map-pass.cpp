@@ -28,9 +28,7 @@
 #include "renderer/material.hpp"
 #include "renderer/material-flags.hpp"
 #include "scene/camera.hpp"
-#include "scene/scene.hpp"
 #include "scene/light.hpp"
-#include "scene/directional-light.hpp"
 #include "geometry/view-frustum.hpp"
 #include "geometry/aabb.hpp"
 #include "configuration.hpp"
@@ -111,7 +109,7 @@ void shadow_map_pass::render(render_context* context) const
 	//glDepthRange(-1.0f, 1.0f);
 	
 	// Get camera
-	const ::camera& camera = *context->camera;
+	const scene::camera& camera = *context->camera;
 	
 	// Calculate distances to the depth clipping planes of each frustum split
 	float clip_near = camera.get_clip_near_tween().interpolate(context->alpha);
@@ -256,7 +254,7 @@ void shadow_map_pass::set_split_scheme_weight(float weight)
 	split_scheme_weight = weight;
 }
 
-void shadow_map_pass::set_light(const directional_light* light)
+void shadow_map_pass::set_light(const scene::directional_light* light)
 {
 	this->light = light;
 }

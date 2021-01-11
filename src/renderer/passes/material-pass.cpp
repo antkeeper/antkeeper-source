@@ -38,12 +38,11 @@
 #include "renderer/model.hpp"
 #include "renderer/render-context.hpp"
 #include "scene/camera.hpp"
-#include "scene/scene.hpp"
+#include "scene/collection.hpp"
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/point-light.hpp"
 #include "scene/spotlight.hpp"
-#include "scene/scene.hpp"
 #include "configuration.hpp"
 #include "math/math.hpp"
 #include <cmath>
@@ -148,18 +147,18 @@ void material_pass::render(render_context* context) const
 	spotlight_count = 0;
 	
 	// Collect lights
-	const std::list<scene_object_base*>* lights = context->scene->get_objects(light::object_type_id);
-	for (const scene_object_base* object: *lights)
+	const std::list<scene::object_base*>* lights = context->collection->get_objects(scene::light::object_type_id);
+	for (const scene::object_base* object: *lights)
 	{
 		// Skip inactive lights
 		if (!object->is_active())
 				continue;
 		
-		const ::light* light = static_cast<const ::light*>(object);
+		const scene::light* light = static_cast<const scene::light*>(object);
 		switch (light->get_light_type())
 		{
 			// Add ambient light
-			case light_type::ambient:
+			case scene::light_type::ambient:
 			{
 				if (ambient_light_count < max_ambient_light_count)
 				{
@@ -170,7 +169,7 @@ void material_pass::render(render_context* context) const
 			}
 			
 			// Add point light
-			case light_type::point:
+			case scene::light_type::point:
 			{
 				if (point_light_count < max_point_light_count)
 				{
@@ -181,21 +180,21 @@ void material_pass::render(render_context* context) const
 					float3 view_space_position = math::resize<3>(view * float4{position.x, position.y, position.z, 1.0f});
 					point_light_positions[point_light_count] = view_space_position;
 					
-					point_light_attenuations[point_light_count] = static_cast<const point_light*>(light)->get_attenuation_tween().interpolate(context->alpha);
+					point_light_attenuations[point_light_count] = static_cast<const scene::point_light*>(light)->get_attenuation_tween().interpolate(context->alpha);
 					++point_light_count;
 				}
 				break;
 			}
 			
 			// Add directional light
-			case light_type::directional:
+			case scene::light_type::directional:
 			{
 				if (directional_light_count < max_directional_light_count)
 				{
 					directional_light_colors[directional_light_count] = light->get_scaled_color_tween().interpolate(context->alpha);
 					
 					// Transform direction into view-space
-					float3 direction = static_cast<const directional_light*>(light)->get_direction_tween().interpolate(context->alpha);
+					float3 direction = static_cast<const scene::directional_light*>(light)->get_direction_tween().interpolate(context->alpha);
 					float3 view_space_direction = math::normalize(math::resize<3>(view * math::resize<4>(-direction)));
 					directional_light_directions[directional_light_count] = view_space_direction;
 					
@@ -205,7 +204,7 @@ void material_pass::render(render_context* context) const
 			}
 			
 			// Add spotlight
-			case light_type::spot:
+			case scene::light_type::spot:
 			{
 				if (spotlight_count < max_spotlight_count)
 				{
@@ -216,7 +215,7 @@ void material_pass::render(render_context* context) const
 					float3 view_space_position = math::resize<3>(view * float4{position.x, position.y, position.z, 1.0f});
 					spotlight_positions[spotlight_count] = view_space_position;
 					
-					const ::spotlight* spotlight = static_cast<const ::spotlight*>(light);
+					const scene::spotlight* spotlight = static_cast<const scene::spotlight*>(light);
 					
 					// Transform direction into view-space
 					float3 direction = spotlight->get_direction_tween().interpolate(context->alpha);

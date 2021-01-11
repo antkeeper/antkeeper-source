@@ -23,7 +23,6 @@
 #include "game/components/transform-component.hpp"
 #include "event/event-dispatcher.hpp"
 #include "game/events/tool-events.hpp"
-#include "scene/camera.hpp"
 #include "animation/orbit-cam.hpp"
 #include "animation/ease.hpp"
 #include "geometry/mesh.hpp"
@@ -223,7 +222,7 @@ void tool_system::update(double t, double dt)
 	was_pick_enabled = pick_enabled;
 }
 
-void tool_system::set_camera(const ::camera* camera)
+void tool_system::set_camera(const scene::camera* camera)
 {
 	this->camera = camera;
 }

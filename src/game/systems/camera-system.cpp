@@ -20,11 +20,9 @@
 #include "camera-system.hpp"
 #include "game/components/camera-follow-component.hpp"
 #include "game/components/transform-component.hpp"
-#include "scene/camera.hpp"
 #include "math/math.hpp"
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 
 using namespace ecs;
 
@@ -96,7 +94,7 @@ void camera_system::zoom(float factor)
 	orbit_cam.zoom(factor);
 }
 
-void camera_system::set_camera(::camera* camera)
+void camera_system::set_camera(scene::camera* camera)
 {
 	this->camera = camera;
 	if (camera)

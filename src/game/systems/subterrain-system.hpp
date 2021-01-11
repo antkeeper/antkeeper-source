@@ -23,6 +23,8 @@
 #include "entity-system.hpp"
 #include "geometry/mesh.hpp"
 #include "geometry/aabb.hpp"
+#include "scene/collection.hpp"
+#include "scene/model-instance.hpp"
 #include "utility/fundamental-types.hpp"
 #include <unordered_map>
 
@@ -31,8 +33,6 @@ class model;
 class model_group;
 class material;
 struct cube_tree;
-class scene;
-class model_instance;
 
 template <std::int64_t Mantissa, std::int64_t Exponent>
 struct epsilon
@@ -89,7 +89,7 @@ public:
 	~subterrain_system();
 	virtual void update(double t, double dt);
 	
-	void set_scene(::scene* scene);
+	void set_scene(scene::collection* collection);
 
 private:
 	void regenerate_subterrain_mesh();
@@ -121,8 +121,8 @@ private:
 		vector_hasher<epsilon_1en5, float, 3>,
 		vector_equals<epsilon_1en5, float, 3>> subterrain_vertex_map;
 	
-	::scene* scene;
-	model_instance* subterrain_model_instance;
+	scene::collection* collection;
+	scene::model_instance* subterrain_model_instance;
 };
 
 #endif // ANTKEEPER_SUBTERRAIN_SYSTEM_HPP

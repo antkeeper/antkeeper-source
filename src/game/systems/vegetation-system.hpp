@@ -24,7 +24,11 @@
 #include "game/components/terrain-component.hpp"
 
 class model;
-class scene;
+
+namespace scene
+{
+	class collection;
+}
 
 /**
  * Places vegetation patches on terrain.
@@ -54,7 +58,7 @@ public:
 	
 	void set_vegetation_model(::model* model);
 	
-	void set_scene(::scene* scene);
+	void set_scene(scene::collection* collection);
 
 private:
 	void on_terrain_construct(entt::registry& registry, entt::entity entity, ecs::terrain_component& component);
@@ -66,7 +70,7 @@ private:
 	int vegetation_patch_rows;
 	float vegetation_density;
 	model* vegetation_model;
-	::scene* scene;
+	scene::collection* scene_collection;
 };
 
 #endif // ANTKEEPER_VEGETATION_SYSTEM_HPP

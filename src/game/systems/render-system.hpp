@@ -21,7 +21,7 @@
 #define ANTKEEPER_RENDER_SYSTEM_HPP
 
 #include "entity-system.hpp"
-#include "scene/scene.hpp"
+#include "scene/collection.hpp"
 #include "scene/model-instance.hpp"
 #include "game/components/model-component.hpp"
 #include "game/components/render-component.hpp"
@@ -39,12 +39,12 @@ public:
 	void render(double alpha);
 	
 	
-	void add_layer(::scene* layer);
+	void add_layer(scene::collection* layer);
 	void remove_layers();
 	
 	void set_renderer(::renderer* renderer);
 	
-	model_instance* get_model_instance(entt::entity entity);
+	scene::model_instance* get_model_instance(entt::entity entity);
 
 private:	
 	void update_model_and_materials(entt::entity entity, ecs::model_component& model);
@@ -58,8 +58,8 @@ private:
 	void on_component_destroy(entt::registry& registry, entt::entity entity);
 	
 	renderer* renderer;
-	std::vector<scene*> layers;
-	std::unordered_map<entt::entity, model_instance*> model_instances;
+	std::vector<scene::collection*> layers;
+	std::unordered_map<entt::entity, scene::model_instance*> model_instances;
 };
 
 #endif // ANTKEEPER_RENDER_SYSTEM_HPP

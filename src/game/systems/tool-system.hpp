@@ -27,8 +27,8 @@
 #include "utility/fundamental-types.hpp"
 #include "animation/spring.hpp"
 #include "animation/animation.hpp"
+#include "scene/camera.hpp"
 
-class camera;
 class orbit_cam;
 class event_dispatcher;
 
@@ -42,7 +42,7 @@ public:
 	virtual ~tool_system();
 	virtual void update(double t, double dt);
 
-	void set_camera(const camera* camera);
+	void set_camera(const scene::camera* camera);
 	void set_orbit_cam(const orbit_cam* camera);
 	void set_viewport(const float4& viewport);
 	void set_pick(bool enabled);
@@ -59,7 +59,7 @@ private:
 	virtual void handle_event(const window_resized_event& event);
 
 	event_dispatcher* event_dispatcher;
-	const camera* camera;
+	const scene::camera* camera;
 	const orbit_cam* orbit_cam;
 	float4 viewport;
 	float2 mouse_position;

@@ -25,7 +25,7 @@ ui_system::ui_system(::resource_manager* resource_manager):
 	resource_manager(resource_manager),
 	tool_menu_control(nullptr),
 	camera(nullptr),
-	scene(nullptr)
+	scene_collection(nullptr)
 {
 	// Setup lighting
 	indirect_light.set_intensity(0.25f);
@@ -90,7 +90,7 @@ void ui_system::set_tool_menu_control(control* control)
 	tool_menu_control->set_deactivated_callback(std::bind(&ui_system::close_tool_menu, this));
 }
 
-void ui_system::set_camera(::camera* camera)
+void ui_system::set_camera(scene::camera* camera)
 {
 	this->camera = camera;
 	
@@ -101,9 +101,9 @@ void ui_system::set_camera(::camera* camera)
 	}
 }
 
-void ui_system::set_scene(::scene* scene)
+void ui_system::set_scene(scene::collection* collection)
 {
-	this->scene = scene;
+	this->scene_collection = collection;
 }
 
 void ui_system::handle_event(const mouse_moved_event& event)
@@ -167,20 +167,20 @@ void ui_system::update_projection()
 
 void ui_system::open_tool_menu()
 {
-	if (scene)
+	if (scene_collection)
 	{
-		scene->add_object(&modal_bg);
-		scene->add_object(&tool_selector_bg);
+		scene_collection->add_object(&modal_bg);
+		scene_collection->add_object(&tool_selector_bg);
 	}
 	tool_selection_vector = {0, 0};
 }
 
 void ui_system::close_tool_menu()
 {
-	if (scene)
+	if (scene_collection)
 	{
-		scene->remove_object(&modal_bg);
-		scene->remove_object(&tool_selector_bg);
+		scene_collection->remove_object(&modal_bg);
+		scene_collection->remove_object(&tool_selector_bg);
 	}
 }
 

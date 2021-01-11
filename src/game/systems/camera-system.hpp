@@ -28,8 +28,8 @@
 #include "math/quaternion-type.hpp"
 #include "math/transform-type.hpp"
 #include "animation/orbit-cam.hpp"
+#include "scene/camera.hpp"
 
-class camera;
 class orbit_cam;
 
 class camera_system:
@@ -48,7 +48,7 @@ public:
 	void tilt(float angle);
 	void zoom(float factor);
 	
-	void set_camera(::camera* camera);
+	void set_camera(scene::camera* camera);
 	void set_viewport(const float4& viewport);
 	
 	const orbit_cam* get_orbit_cam() const;
@@ -58,7 +58,7 @@ private:
 	virtual void handle_event(const mouse_moved_event& event);
 	virtual void handle_event(const window_resized_event& event);
 
-	camera* camera;
+	scene::camera* camera;
 	float4 viewport;
 	float2 mouse_position;
 	

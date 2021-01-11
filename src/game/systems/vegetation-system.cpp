@@ -22,7 +22,7 @@
 #include "game/components/transform-component.hpp"
 #include "scene/model-instance.hpp"
 #include "scene/lod-group.hpp"
-#include "scene/scene.hpp"
+#include "scene/collection.hpp"
 #include "renderer/material.hpp"
 #include "geometry/aabb.hpp"
 #include "utility/fundamental-types.hpp"
@@ -73,9 +73,9 @@ void vegetation_system::set_vegetation_model(::model* model)
 	vegetation_model = model;
 }
 
-void vegetation_system::set_scene(::scene* scene)
+void vegetation_system::set_scene(scene::collection* collection)
 {
-	this->scene = scene;
+	this->scene_collection = collection;
 }
 
 void vegetation_system::on_terrain_construct(entt::registry& registry, entt::entity entity, terrain_component& component)
@@ -132,7 +132,7 @@ void vegetation_system::on_terrain_construct(entt::registry& registry, entt::ent
 			static_cast<material_property<int>*>(lod2_material->get_property("instance_multiplier"))->set_value(4);
 			
 			// Create LOD 0
-			model_instance* patch_lod0 = new model_instance();
+			scene::model_instance* patch_lod0 = new scene::model_instance();
 			patch_lod0->set_model(vegetation_model);
 			patch_lod0->set_translation(translation);
 			patch_lod0->set_instanced(true, instance_count_lod0);
@@ -140,7 +140,7 @@ void vegetation_system::on_terrain_construct(entt::registry& registry, entt::ent
 			patch_lod0->update_tweens();
 			
 			// Create LOD 1
-			model_instance* patch_lod1 = new model_instance();
+			scene::model_instance* patch_lod1 = new scene::model_instance();
 			patch_lod1->set_model(vegetation_model);
 			patch_lod1->set_material(0, lod1_material);
 			patch_lod1->set_translation(translation);
@@ -149,7 +149,7 @@ void vegetation_system::on_terrain_construct(entt::registry& registry, entt::ent
 			patch_lod1->update_tweens();
 			
 			// Create LOD 2
-			model_instance* patch_lod2 = new model_instance();
+			scene::model_instance* patch_lod2 = new scene::model_instance();
 			patch_lod2->set_model(vegetation_model);
 			patch_lod2->set_material(0, lod2_material);
 			patch_lod2->set_translation(translation);
@@ -158,7 +158,7 @@ void vegetation_system::on_terrain_construct(entt::registry& registry, entt::ent
 			patch_lod2->update_tweens();
 			
 			// Create LOD group
-			::lod_group* lod_group = new ::lod_group(lod_count);
+			scene::lod_group* lod_group = new scene::lod_group(lod_count);
 			lod_group->add_object(0, patch_lod0);
 			lod_group->add_object(1, patch_lod1);
 			lod_group->add_object(2, patch_lod2);
@@ -166,7 +166,7 @@ void vegetation_system::on_terrain_construct(entt::registry& registry, entt::ent
 			lod_group->update_tweens();
 			
 			// Add LOD group to scene
-			scene->add_object(lod_group);
+			scene_collection->add_object(lod_group);
 		}
 	}
 }

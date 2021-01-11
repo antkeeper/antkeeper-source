@@ -23,12 +23,16 @@
 #include "render-operation.hpp"
 
 struct render_context;
-class scene;
-class scene_object_base;
 class vertex_array;
-class model_instance;
-class billboard;
-class lod_group;
+
+namespace scene
+{
+	class collection;
+	class object_base;
+	class model_instance;
+	class billboard;
+	class lod_group;
+}
 
 /*
 # Pipeline
@@ -50,12 +54,12 @@ public:
 	renderer();
 	
 	/**
-	 * Renders a scene.
+	 * Renders a collection of scene objects.
 	 *
 	 * @param alpha Subframe interpolation factor.
-	 * @parma scene Scene to render.
+	 * @parma collection Collection of scene objects to render.
 	 */
-	void render(float alpha, const scene& scene) const;
+	void render(float alpha, const scene::collection& collection) const;
 	
 	/**
 	 * Sets the VAO to be used when generating render operations for billboards.
@@ -63,10 +67,10 @@ public:
 	void set_billboard_vao(vertex_array* vao);
 	
 private:
-	void process_object(render_context& context, const scene_object_base* object) const;
-	void process_model_instance(render_context& context, const ::model_instance* model_instance) const;
-	void process_billboard(render_context& context, const ::billboard* billboard) const;
-	void process_lod_group(render_context& context, const ::lod_group* lod_group) const;
+	void process_object(render_context& context, const scene::object_base* object) const;
+	void process_model_instance(render_context& context, const scene::model_instance* model_instance) const;
+	void process_billboard(render_context& context, const scene::billboard* billboard) const;
+	void process_lod_group(render_context& context, const scene::lod_group* lod_group) const;
 
 	mutable render_operation billboard_op;
 };

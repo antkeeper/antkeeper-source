@@ -29,13 +29,10 @@
 #include <string>
 
 // Forward declarations
-class ambient_light;
 class animator;
 class application;
 class behavior_system;
-class billboard;
 class bloom_pass;
-class camera;
 class camera_system;
 class clear_pass;
 class collision_system;
@@ -45,7 +42,6 @@ class constraint_system;
 class control;
 class control_set;
 class control_system;
-class directional_light;
 class final_pass;
 class framebuffer;
 class locomotion_system;
@@ -56,17 +52,14 @@ class nest_system;
 class orbit_cam;
 class pheromone_matrix;
 class snapping_system;
-class point_light;
 class rasterizer;
 class render_system;
 class resource_manager;
 class samara_system;
-class scene;
 class screen_transition;
 class shadow_map_pass;
 class simple_render_pass;
 class sky_pass;
-class spotlight;
 class subterrain_system;
 class terrain_system;
 class texture_2d;
@@ -78,7 +71,6 @@ class vegetation_system;
 class vertex_array;
 class vertex_buffer;
 class renderer;
-class model_instance;
 class input_event_router;
 class input_mapper;
 class outline_pass;
@@ -97,6 +89,8 @@ namespace debug
 	class cli;
 	class logger;
 }
+
+#include "scene/scene.hpp"
 
 /**
  * 
@@ -177,22 +171,22 @@ struct game_context
 	compositor* ui_compositor;
 	
 	// Scene
-	scene* active_scene;
-	scene* overworld_scene;
-	scene* underworld_scene;
-	scene* ui_scene;
-	camera* overworld_camera;
-	camera* underworld_camera;
-	camera* ui_camera;
-	ambient_light* sun_indirect;
-	directional_light* sun_direct;
-	directional_light* moon_light;
-	point_light* subterrain_light;
-	ambient_light* underworld_ambient_light;
-	billboard* splash_billboard;
+	scene::collection* active_scene;
+	scene::collection* overworld_scene;
+	scene::collection* underworld_scene;
+	scene::collection* ui_scene;
+	scene::camera* overworld_camera;
+	scene::camera* underworld_camera;
+	scene::camera* ui_camera;
+	scene::ambient_light* sun_indirect;
+	scene::directional_light* sun_direct;
+	scene::directional_light* moon_light;
+	scene::point_light* subterrain_light;
+	scene::ambient_light* underworld_ambient_light;
+	scene::billboard* splash_billboard;
+	scene::spotlight* lens_spotlight;
+	scene::spotlight* flashlight_spotlight;
 	aabb<float> no_cull;
-	spotlight* lens_spotlight;
-	spotlight* flashlight_spotlight;
 	
 	// Animation
 	timeline* timeline;

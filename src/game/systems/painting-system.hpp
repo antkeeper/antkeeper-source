@@ -24,15 +24,15 @@
 #include "event/event-handler.hpp"
 #include "game/events/tool-events.hpp"
 #include "utility/fundamental-types.hpp"
+#include "scene/collection.hpp"
+#include "scene/model-instance.hpp"
 #include <vector>
 #include <optional>
 
 class material;
 class event_dispatcher;
 class resource_manager;
-class scene;
 class model;
-class model_instance;
 class model_group;
 class vertex_buffer;
 
@@ -45,7 +45,7 @@ public:
 	virtual ~painting_system();
 	virtual void update(double t, double dt);
 	
-	void set_scene(scene* scene);
+	void set_scene(scene::collection* collection);
 	
 private:
 	virtual void handle_event(const tool_pressed_event& event);
@@ -55,7 +55,7 @@ private:
 	
 	event_dispatcher* event_dispatcher;
 	resource_manager* resource_manager;
-	scene* scene;
+	scene::collection* scene_collection;
 	
 	bool painting;
 	entt::entity brush_entity;
@@ -83,7 +83,7 @@ private:
 	vertex_buffer* stroke_vbo;
 	bool midstroke;
 	
-	model_instance* stroke_model_instance;
+	scene::model_instance* stroke_model_instance;
 };
 
 #endif // ANTKEEPER_PAINTING_SYSTEM_HPP

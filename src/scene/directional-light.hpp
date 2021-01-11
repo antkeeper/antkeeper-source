@@ -17,11 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_DIRECTIONAL_LIGHT_HPP
-#define ANTKEEPER_DIRECTIONAL_LIGHT_HPP
+#ifndef ANTKEEPER_SCENE_DIRECTIONAL_LIGHT_HPP
+#define ANTKEEPER_SCENE_DIRECTIONAL_LIGHT_HPP
 
 #include "scene/light.hpp"
 #include "utility/fundamental-types.hpp"
+
+namespace scene {
 
 class directional_light: public light
 {
@@ -35,7 +37,7 @@ public:
 
 	const tween<float3>& get_direction_tween() const;
 
-	/// @copydoc scene_object_base::update_tweens();
+	/// @copydoc object_base::update_tweens();
 	virtual void update_tweens();
 
 private:
@@ -59,5 +61,7 @@ inline const tween<float3>& directional_light::get_direction_tween() const
 	return direction;
 }
 
-#endif // ANTKEEPER_DIRECTIONAL_LIGHT_HPP
+} // namespace scene
+
+#endif // ANTKEEPER_SCENE_DIRECTIONAL_LIGHT_HPP
 

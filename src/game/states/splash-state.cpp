@@ -29,7 +29,7 @@
 #include "game/states/game-states.hpp"
 #include "renderer/passes/sky-pass.hpp"
 #include "scene/billboard.hpp"
-#include "scene/scene.hpp"
+#include "scene/collection.hpp"
 #include <functional>
 
 void splash_state_enter(game_context* ctx)

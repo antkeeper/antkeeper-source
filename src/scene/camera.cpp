@@ -23,6 +23,8 @@
 #include "math/constants.hpp"
 #include "math/interpolation.hpp"
 
+namespace scene {
+
 static float4x4 interpolate_view(const camera* camera, const float4x4& x, const float4x4& y, float a)
 {
 	math::transform<float> transform = camera->get_transform_tween().interpolate(a);
@@ -153,7 +155,7 @@ void camera::set_composite_index(int index)
 
 void camera::update_tweens()
 {
-	scene_object_base::update_tweens();
+	object_base::update_tweens();
 	clip_left.update();
 	clip_right.update();
 	clip_bottom.update();
@@ -179,3 +181,4 @@ void camera::transformed()
 	view_frustum.set_matrix(view_projection[1]);
 }
 
+} // namespace scene

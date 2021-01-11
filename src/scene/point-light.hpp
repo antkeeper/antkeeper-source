@@ -17,11 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_POINT_LIGHT_HPP
-#define ANTKEEPER_POINT_LIGHT_HPP
+#ifndef ANTKEEPER_SCENE_POINT_LIGHT_HPP
+#define ANTKEEPER_SCENE_POINT_LIGHT_HPP
 
 #include "scene/light.hpp"
 #include "utility/fundamental-types.hpp"
+
+namespace scene {
 
 class point_light: public light
 {
@@ -44,7 +46,7 @@ public:
 	/// Returns the attenuation tween.
 	const tween<float3>& get_attenuation_tween() const;
 
-	/// @copydoc scene_object_base::update_tweens();
+	/// @copydoc object_base::update_tweens();
 	virtual void update_tweens();
 
 private:
@@ -66,5 +68,7 @@ inline const tween<float3>& point_light::get_attenuation_tween() const
 	return attenuation;
 }
 
-#endif // ANTKEEPER_POINT_LIGHT_HPP
+} // namespace scene
+
+#endif // ANTKEEPER_SCENE_POINT_LIGHT_HPP
 

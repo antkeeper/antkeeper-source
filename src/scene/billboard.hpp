@@ -17,14 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_BILLBOARD_HPP
-#define ANTKEEPER_BILLBOARD_HPP
+#ifndef ANTKEEPER_SCENE_BILLBOARD_HPP
+#define ANTKEEPER_SCENE_BILLBOARD_HPP
 
-#include "scene/scene-object.hpp"
+#include "scene/object.hpp"
 #include "geometry/aabb.hpp"
 #include "utility/fundamental-types.hpp"
 
 class material;
+
+namespace scene {
 
 /// Enumerates billboard types.
 enum class billboard_type
@@ -42,7 +44,7 @@ enum class billboard_type
 /**
  * A 2D unit quad with one material.
  */
-class billboard: public scene_object<billboard>
+class billboard: public object<billboard>
 {
 public:
 	billboard();
@@ -97,5 +99,7 @@ inline const float3& billboard::get_alignment_axis() const
 	return alignment_axis;
 }
 
-#endif // ANTKEEPER_BILLBOARD_HPP
+} // namespace scene
+
+#endif // ANTKEEPER_SCENE_BILLBOARD_HPP
 

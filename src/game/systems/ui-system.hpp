@@ -23,7 +23,7 @@
 #include "event/event-handler.hpp"
 #include "event/input-events.hpp"
 #include "event/window-events.hpp"
-#include "scene/scene.hpp"
+#include "scene/collection.hpp"
 #include "scene/camera.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/ambient-light.hpp"
@@ -33,7 +33,6 @@
 #include "math/math.hpp"
 
 class control;
-class scene;
 class resource_manager;
 
 class ui_system:
@@ -48,8 +47,8 @@ public:
 	void set_viewport(const float4& viewport);
 	void set_tool_menu_control(control* control);
 	
-	void set_camera(::camera* camera);
-	void set_scene(::scene* scene);
+	void set_camera(scene::camera* camera);
+	void set_scene(scene::collection* collection);
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -64,17 +63,17 @@ private:
 	void close_elevator_menu();
 
 	resource_manager* resource_manager;
-	scene* scene;
-	camera* camera;
-	ambient_light indirect_light;
-	directional_light direct_light;
-	billboard tool_selector_bg;
+	scene::collection* scene_collection;
+	scene::camera* camera;
+	scene::ambient_light indirect_light;
+	scene::directional_light direct_light;
+	scene::billboard tool_selector_bg;
 	material modal_bg_material;
-	billboard modal_bg;
+	scene::billboard modal_bg;
 	
-	billboard underground_bg;
+	scene::billboard underground_bg;
 	
-	model_instance energy_symbol;
+	scene::model_instance energy_symbol;
 	
 	float2 mouse_position;
 	float4 viewport;

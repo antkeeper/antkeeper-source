@@ -20,6 +20,8 @@
 #include "scene/lod-group.hpp"
 #include "scene/camera.hpp"
 
+namespace scene {
+
 lod_group::lod_group(std::size_t level_count):
 	bounds(get_translation(), get_translation())
 {
@@ -35,7 +37,7 @@ void lod_group::resize(std::size_t level_count)
 	levels.resize(level_count);
 }
 
-std::size_t lod_group::select_lod(const ::camera& camera) const
+std::size_t lod_group::select_lod(const camera& camera) const
 {
 	float distance = camera.get_view_frustum().get_near().signed_distance(get_translation());
 	
@@ -49,12 +51,12 @@ std::size_t lod_group::select_lod(const ::camera& camera) const
 	return 3;
 }
 
-void lod_group::add_object(std::size_t level, scene_object_base* object)
+void lod_group::add_object(std::size_t level, object_base* object)
 {
 	levels[level].push_back(object);
 }
 
-void lod_group::remove_object(std::size_t level, scene_object_base* object)
+void lod_group::remove_object(std::size_t level, object_base* object)
 {
 	levels[level].remove(object);
 }
@@ -73,3 +75,5 @@ void lod_group::transformed()
 {
 	update_bounds();
 }
+
+} // namespace scene

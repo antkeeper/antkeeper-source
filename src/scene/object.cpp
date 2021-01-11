@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "scene/scene-object.hpp"
+#include "scene/object.hpp"
 #include "math/math.hpp"
 
-typename scene_object_base::transform_type scene_object_base::interpolate_transforms(const transform_type& x, const transform_type& y, float a)
+namespace scene {
+
+typename object_base::transform_type object_base::interpolate_transforms(const transform_type& x, const transform_type& y, float a)
 {
 	return
 		{
@@ -30,34 +32,36 @@ typename scene_object_base::transform_type scene_object_base::interpolate_transf
 		};
 }
 
-scene_object_base::scene_object_base():
+object_base::object_base():
 	active(true),
 	transform(math::identity_transform<float>, interpolate_transforms),
 	culling_mask(nullptr)
 {}
 
-void scene_object_base::set_culling_mask(const bounding_volume_type* culling_mask)
+void object_base::set_culling_mask(const bounding_volume_type* culling_mask)
 {
 	this->culling_mask = culling_mask;
 }
 
-std::size_t scene_object_base::next_object_type_id()
+std::size_t object_base::next_object_type_id()
 {
 	static std::atomic<std::size_t> id{0};
 	return id++;
 }
 
-void scene_object_base::update_tweens()
+void object_base::update_tweens()
 {
 	transform.update();
 }
 
-void scene_object_base::look_at(const vector_type& position, const vector_type& target, const vector_type& up)
+void object_base::look_at(const vector_type& position, const vector_type& target, const vector_type& up)
 {
 	transform[1].translation = position;
 	transform[1].rotation = math::look_rotation(math::normalize(math::sub(target, position)), up);
 	transformed();
 }
 
-void scene_object_base::transformed()
+void object_base::transformed()
 {}
+
+} // namespace scene

@@ -17,11 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SPOTLIGHT_HPP
-#define ANTKEEPER_SPOTLIGHT_HPP
+#ifndef ANTKEEPER_SCENE_SPOTLIGHT_HPP
+#define ANTKEEPER_SCENE_SPOTLIGHT_HPP
 
 #include "scene/light.hpp"
 #include "utility/fundamental-types.hpp"
+
+namespace scene {
 
 class spotlight: public light
 {
@@ -69,7 +71,7 @@ public:
 	/// Returns the cosine cutoff tween.
 	const tween<float2>& get_cosine_cutoff_tween() const;
 
-	/// @copydoc scene_object_base::update_tweens();
+	/// @copydoc object_base::update_tweens();
 	virtual void update_tweens();
 
 private:
@@ -126,5 +128,7 @@ inline const tween<float2>& spotlight::get_cosine_cutoff_tween() const
 	return cosine_cutoff;
 }
 
-#endif // ANTKEEPER_SPOTLIGHT_HPP
+} // namespace scene
+
+#endif // ANTKEEPER_SCENE_SPOTLIGHT_HPP
 

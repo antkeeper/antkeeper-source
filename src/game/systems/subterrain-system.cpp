@@ -30,8 +30,6 @@
 #include "resources/resource-manager.hpp"
 #include "geometry/marching-cubes.hpp"
 #include "geometry/intersection.hpp"
-#include "scene/scene.hpp"
-#include "scene/model-instance.hpp"
 #include "utility/fundamental-types.hpp"
 #include <array>
 #include <limits>
@@ -267,8 +265,8 @@ void subterrain_system::update(double t, double dt)
 		//auto subterrain_entity = registry.create();
 		//registry.assign<model_component>(subterrain_entity, subterrain_model);
 		
-		subterrain_model_instance = new model_instance(subterrain_model);
-		scene->add_object(subterrain_model_instance);
+		subterrain_model_instance = new scene::model_instance(subterrain_model);
+		collection->add_object(subterrain_model_instance);
 	}
 
 	bool digging = false;
@@ -295,9 +293,9 @@ void subterrain_system::update(double t, double dt)
 	}
 }
 
-void subterrain_system::set_scene(::scene* scene)
+void subterrain_system::set_scene(scene::collection* collection)
 {
-	this->scene = scene;
+	this->collection = collection;
 }
 
 void subterrain_system::regenerate_subterrain_mesh()

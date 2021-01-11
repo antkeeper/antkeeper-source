@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_AMBIENT_LIGHT_HPP
-#define ANTKEEPER_AMBIENT_LIGHT_HPP
+#ifndef ANTKEEPER_SCENE_AMBIENT_LIGHT_HPP
+#define ANTKEEPER_SCENE_AMBIENT_LIGHT_HPP
 
 #include "scene/light.hpp"
+
+namespace scene {
 
 class ambient_light: public light
 {
@@ -34,5 +36,7 @@ inline light_type ambient_light::get_light_type() const
 	return light_type::ambient;
 }
 
-#endif // ANTKEEPER_AMBIENT_LIGHT_HPP
+} // namespace scene
+
+#endif // ANTKEEPER_SCENE_AMBIENT_LIGHT_HPP
 

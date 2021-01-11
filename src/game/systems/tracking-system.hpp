@@ -29,9 +29,13 @@
 class material;
 class event_dispatcher;
 class resource_manager;
-class scene;
 class model;
-class model_instance;
+
+namespace scene
+{
+	class collection;
+	class model_instance;
+}
 
 class tracking_system: public entity_system,
 	public event_handler<tool_pressed_event>,
@@ -42,7 +46,7 @@ public:
 	virtual ~tracking_system();
 	virtual void update(double t, double dt);
 	
-	void set_scene(scene* scene);
+	void set_scene(scene::collection* collection);
 	void set_viewport(const float4& viewport);
 	
 private:
@@ -53,11 +57,11 @@ private:
 	
 	event_dispatcher* event_dispatcher;
 	resource_manager* resource_manager;
-	scene* scene;
+	scene::collection* scene_collection;
 	model* tracker_model;
 	model* paint_ball_model;
 	material** paint_ball_materials;
-	std::unordered_map<entt::entity, model_instance*> trackers;
+	std::unordered_map<entt::entity, scene::model_instance*> trackers;
 };
 
 #endif // ANTKEEPER_TRACKING_SYSTEM_HPP

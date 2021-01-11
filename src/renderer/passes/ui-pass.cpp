@@ -36,10 +36,9 @@
 #include "renderer/material-flags.hpp"
 #include "renderer/render-context.hpp"
 #include "scene/camera.hpp"
-#include "scene/scene.hpp"
+#include "scene/collection.hpp"
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
-#include "scene/scene.hpp"
 #include "scene/billboard.hpp"
 #include "math/math.hpp"
 #include <cmath>
@@ -69,7 +68,7 @@ void ui_pass::render(render_context* context) const
 	float4x4 model_view_projection;
 	
 	// Collect billboards
-	std::list<scene_object_base*> billboards = *context->scene->get_objects(billboard::object_type_id);
+	std::list<scene::object_base*> billboards = *context->collection->get_objects(scene::billboard::object_type_id);
 	
 	// Sort billboards
 	

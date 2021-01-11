@@ -22,6 +22,8 @@
 #include "math/math.hpp"
 #include <cmath>
 
+namespace scene {
+
 static float3 interpolate_direction(const float3& x, const float3& y, float a)
 {
 	math::quaternion<float> q0 = math::rotation(global_forward, x);
@@ -61,3 +63,4 @@ void spotlight::transformed()
 	direction[1] = math::normalize(get_transform().rotation * global_forward);
 }
 
+} // namespace scene

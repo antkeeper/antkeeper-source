@@ -17,19 +17,21 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_CAMERA_HPP
-#define ANTKEEPER_CAMERA_HPP
+#ifndef ANTKEEPER_SCENE_CAMERA_HPP
+#define ANTKEEPER_SCENE_CAMERA_HPP
 
-#include "scene/scene-object.hpp"
+#include "scene/object.hpp"
 #include "geometry/view-frustum.hpp"
 #include "utility/fundamental-types.hpp"
 
 class compositor;
 
+namespace scene {
+
 /**
  *
  */
-class camera: public scene_object<camera>
+class camera: public object<camera>
 {
 public:
 	camera();
@@ -117,7 +119,7 @@ public:
 	const tween<float4x4>& get_projection_tween() const;
 	const tween<float4x4>& get_view_projection_tween() const;
 
-	/// @copydoc scene_object_base::update_tweens();
+	/// @copydoc object_base::update_tweens();
 	virtual void update_tweens();
 
 private:
@@ -280,5 +282,7 @@ inline const tween<float4x4>& camera::get_view_projection_tween() const
 	return view_projection;
 }
 
-#endif // ANTKEEPER_CAMERA_HPP
+} // namespace scene
+
+#endif // ANTKEEPER_SCENE_CAMERA_HPP
 

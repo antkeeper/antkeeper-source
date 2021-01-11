@@ -35,19 +35,19 @@ public:
 	
 	void transition(float duration, bool reverse, animation<float>::interpolator_type interpolator);
 	
-	::billboard* get_billboard();
+	scene::billboard* get_billboard();
 	::material* get_material();
 	::animation<float>* get_animation();
 	
 private:
-	::billboard billboard;
+	scene::billboard billboard;
 	::material material;
 	material_property<float>* progress;
 	::animation<float> animation;
 	::animation<float>::channel* channel;
 };
 
-inline billboard* screen_transition::get_billboard()
+inline scene::billboard* screen_transition::get_billboard()
 {
 	return &billboard;
 }

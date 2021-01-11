@@ -17,17 +17,19 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_LOD_GROUP_HPP
-#define ANTKEEPER_LOD_GROUP_HPP
+#ifndef ANTKEEPER_SCENE_LOD_GROUP_HPP
+#define ANTKEEPER_SCENE_LOD_GROUP_HPP
 
-#include "scene/scene-object.hpp"
+#include "scene/object.hpp"
 #include "geometry/aabb.hpp"
 #include <list>
 #include <vector>
 
+namespace scene {
+
 class camera;
 
-class lod_group: public scene_object<lod_group>
+class lod_group: public object<lod_group>
 {
 public:
 	/**
@@ -53,7 +55,7 @@ public:
 	 * @param camera Camera for which the LOD should be selected.
 	 * @return Selected level of detail.
 	 */
-	std::size_t select_lod(const ::camera& camera) const;
+	std::size_t select_lod(const camera& camera) const;
 	
 	/**
 	 * Adds an object to the LOD group.
@@ -61,7 +63,7 @@ public:
 	 * @param level Level of detail of the object to add.
 	 * @param object Object to add.
 	 */
-	void add_object(std::size_t level, scene_object_base* object);
+	void add_object(std::size_t level, object_base* object);
 	
 	/**
 	 * Removes an object from the LOD group.
@@ -69,7 +71,7 @@ public:
 	 * @param level Level of detail of the object to remove.
 	 * @param object Object to remove.
 	 */
-	void remove_object(std::size_t level, scene_object_base* object);
+	void remove_object(std::size_t level, object_base* object);
 	
 	/**
 	 * Removes all objects with the specified level of detail.
@@ -89,14 +91,14 @@ public:
 	 * @param level Level of detail.
 	 * @return List of all objects in the group with the specified detail level.
 	 */
-	const std::list<scene_object_base*>& get_objects(std::size_t level) const;
+	const std::list<object_base*>& get_objects(std::size_t level) const;
 	
 private:
 	void update_bounds();
 	virtual void transformed();
 	
 	aabb<float> bounds;
-	std::vector<std::list<scene_object_base*>> levels;
+	std::vector<std::list<object_base*>> levels;
 };
 
 inline const bounding_volume<float>& lod_group::get_bounds() const
@@ -109,10 +111,12 @@ inline std::size_t lod_group::get_level_count() const
 	return levels.size();
 }
 
-inline const std::list<scene_object_base*>& lod_group::get_objects(std::size_t level) const
+inline const std::list<object_base*>& lod_group::get_objects(std::size_t level) const
 {
 	return levels[level];
 }
 
-#endif // ANTKEEPER_LOD_GROUP_HPP
+} // namespace scene
+
+#endif // ANTKEEPER_SCENE_LOD_GROUP_HPP
 

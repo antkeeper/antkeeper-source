@@ -21,6 +21,8 @@
 #include "renderer/model.hpp"
 #include "renderer/material.hpp"
 
+namespace scene {
+
 model_instance::model_instance(::model* model):
 	model(nullptr),
 	pose(nullptr),
@@ -102,7 +104,7 @@ void model_instance::transformed()
 
 void model_instance::update_tweens()
 {
-	scene_object_base::update_tweens();
+	object_base::update_tweens();
 	
 	// Update model material tweens
 	if (model)
@@ -126,3 +128,5 @@ void model_instance::update_tweens()
 		}
 	}
 }
+
+} // namespace scene

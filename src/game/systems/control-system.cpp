@@ -19,7 +19,6 @@
 
 #include "control-system.hpp"
 #include "input/control.hpp"
-#include "scene/camera.hpp"
 #include "geometry/intersection.hpp"
 #include "animation/ease.hpp"
 #include "nest.hpp"
@@ -182,7 +181,7 @@ void control_system::set_nest(::nest* nest)
 	this->nest = nest;
 }
 
-void control_system::set_tool(model_instance* tool)
+void control_system::set_tool(scene::model_instance* tool)
 {
 	this->tool = tool;
 }
@@ -202,7 +201,7 @@ void control_system::set_viewport(const float4& viewport)
 	this->viewport = viewport;
 }
 
-void control_system::set_underworld_camera(::camera* camera)
+void control_system::set_underworld_camera(scene::camera* camera)
 {
 	this->underworld_camera = camera;
 }

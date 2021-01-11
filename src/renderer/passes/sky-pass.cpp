@@ -35,8 +35,6 @@
 #include "renderer/model.hpp"
 #include "renderer/material.hpp"
 #include "scene/camera.hpp"
-#include "scene/scene.hpp"
-#include "scene/scene.hpp"
 #include "utility/fundamental-types.hpp"
 #include <cmath>
 #include <glad/glad.h>
@@ -76,7 +74,7 @@ void sky_pass::render(render_context* context) const
 	float time = (time_tween) ? time_tween->interpolate(context->alpha) : 0.0f;
 	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
-	const ::camera& camera = *context->camera;
+	const scene::camera& camera = *context->camera;
 	float clip_near = camera.get_clip_near_tween().interpolate(context->alpha);
 	float clip_far = camera.get_clip_far_tween().interpolate(context->alpha);
 	float3 model_scale = float3{1.0f, 1.0f, 1.0f} * (clip_near + clip_far) * 0.5f;

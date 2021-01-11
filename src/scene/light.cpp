@@ -21,6 +21,8 @@
 #include "animation/ease.hpp"
 #include "math/interpolation.hpp"
 
+namespace scene {
+
 light::light():
 	bounds(get_translation(), 0.0f),
 	color(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
@@ -42,7 +44,7 @@ void light::set_intensity(float intensity)
 
 void light::update_tweens()
 {
-	scene_object_base::update_tweens();
+	object_base::update_tweens();
 	color.update();
 	intensity.update();
 	scaled_color.update();
@@ -52,3 +54,5 @@ void light::transformed()
 {
 	bounds = sphere<float>(get_translation(), 0.0f);
 }
+
+} // namespace scene

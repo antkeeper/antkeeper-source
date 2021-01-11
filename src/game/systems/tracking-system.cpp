@@ -22,7 +22,7 @@
 #include "game/components/marker-component.hpp"
 #include "event/event-dispatcher.hpp"
 #include "resources/resource-manager.hpp"
-#include "scene/scene.hpp"
+#include "scene/collection.hpp"
 #include "scene/model-instance.hpp"
 #include "math/math.hpp"
 #include "renderer/material.hpp"
@@ -36,7 +36,7 @@ tracking_system::tracking_system(entt::registry& registry, ::event_dispatcher* e
 	entity_system(registry),
 	event_dispatcher(event_dispatcher),
 	resource_manager(resource_manager),
-	scene(nullptr)
+	scene_collection(nullptr)
 {
 	registry.on_construct<trackable_component>().connect<&tracking_system::on_component_construct>(this);
 	registry.on_destroy<trackable_component>().connect<&tracking_system::on_component_destroy>(this);
@@ -92,9 +92,9 @@ void tracking_system::update(double t, double dt)
 	}
 }
 
-void tracking_system::set_scene(::scene* scene)
+void tracking_system::set_scene(scene::collection* collection)
 {
-	this->scene = scene;
+	this->scene_collection = collection;
 }
 
 void tracking_system::on_component_construct(entt::registry& registry, entt::entity entity, trackable_component& component)
@@ -132,7 +132,7 @@ void tracking_system::handle_event(const tool_pressed_event& event)
 			const float tracker_scale = 1.0f;
 			
 			// Create tracker model instance
-			model_instance* instance = new model_instance();
+			scene::model_instance* instance = new scene::model_instance();
 			instance->set_model(tracker_model);
 			instance->set_translation(transform.translation);
 			instance->set_scale(float3{tracker_scale, tracker_scale, tracker_scale});
@@ -146,7 +146,7 @@ void tracking_system::handle_event(const tool_pressed_event& event)
 
 			instance->update_tweens();
 			
-			scene->add_object(instance);
+			scene_collection->add_object(instance);
 		}
 	}
 }

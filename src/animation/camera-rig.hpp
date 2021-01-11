@@ -22,9 +22,9 @@
 
 #include "math/quaternion-type.hpp"
 #include "math/transform-type.hpp"
+#include "scene/camera.hpp"
 #include "utility/fundamental-types.hpp"
 
-class camera;
 
 /**
  * Abstract base class for camera rigs which control the movement of cameras.
@@ -49,7 +49,7 @@ public:
 	 *
 	 * @param camera Camera to attach.
 	 */
-	void attach(::camera* camera);
+	void attach(scene::camera* camera);
 	
 	/**
 	 * Detaches the camera from the rig.
@@ -61,7 +61,7 @@ public:
 	/**
 	 * Returns the attached camera.
 	 */
-	const ::camera* get_camera() const;
+	const scene::camera* get_camera() const;
 	
 	const float3& get_translation() const;
 	const quaternion_type& get_rotation() const;
@@ -79,14 +79,14 @@ protected:
 	void update_projection(float clip_left, float clip_right, float clip_bottom, float clip_top, float clip_near, float clip_far);
 
 private:
-	camera* camera;
+	scene::camera* camera;
 	transform_type transform;
 	float3 forward;
 	float3 right;
 	float3 up;
 };
 
-inline const camera* camera_rig::get_camera() const
+inline const scene::camera* camera_rig::get_camera() const
 {
 	return camera;
 }

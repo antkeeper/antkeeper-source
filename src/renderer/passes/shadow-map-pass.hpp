@@ -22,12 +22,11 @@
 
 #include "renderer/render-pass.hpp"
 #include "utility/fundamental-types.hpp"
+#include "scene/directional-light.hpp"
 
 class shader_program;
 class shader_input;
-class camera;
 class resource_manager;
-class directional_light;
 
 /**
  *
@@ -46,7 +45,7 @@ public:
 	 */
 	void set_split_scheme_weight(float weight);
 	
-	void set_light(const directional_light* light);
+	void set_light(const scene::directional_light* light);
 	
 	const float4x4* get_shadow_matrices() const;
 	const float* get_split_distances() const;
@@ -73,7 +72,7 @@ private:
 	mutable float4x4 shadow_matrices[4];
 	float4x4 bias_tile_matrices[4];
 	float split_scheme_weight;
-	const directional_light* light;
+	const scene::directional_light* light;
 };
 
 inline const float4x4* shadow_map_pass::get_shadow_matrices() const

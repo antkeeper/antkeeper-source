@@ -23,8 +23,6 @@
 #include "game/components/tool-component.hpp"
 #include "event/event-dispatcher.hpp"
 #include "resources/resource-manager.hpp"
-#include "scene/scene.hpp"
-#include "scene/model-instance.hpp"
 #include "math/math.hpp"
 #include "renderer/material.hpp"
 #include "renderer/model.hpp"
@@ -44,7 +42,7 @@ painting_system::painting_system(entt::registry& registry, ::event_dispatcher* e
 	entity_system(registry),
 	event_dispatcher(event_dispatcher),
 	resource_manager(resource_manager),
-	scene(nullptr),
+	scene_collection(nullptr),
 	painting(false)
 {
 	event_dispatcher->subscribe<tool_pressed_event>(this);
@@ -75,7 +73,7 @@ painting_system::painting_system(entt::registry& registry, ::event_dispatcher* e
 	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TANGENT_LOCATION, *stroke_vbo, 4, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 9);
 	
 	// Create stroke model instance
-	stroke_model_instance = new model_instance();
+	stroke_model_instance = new scene::model_instance();
 	stroke_model_instance->set_model(stroke_model);
 	stroke_model_instance->update_tweens();
 	
@@ -267,10 +265,10 @@ void painting_system::update(double t, double dt)
 	}
 }
 
-void painting_system::set_scene(::scene* scene)
+void painting_system::set_scene(scene::collection* collection)
 {
-	this->scene = scene;
-	scene->add_object(stroke_model_instance);
+	this->scene_collection = collection;
+	scene_collection->add_object(stroke_model_instance);
 }
 
 void painting_system::handle_event(const tool_pressed_event& event)

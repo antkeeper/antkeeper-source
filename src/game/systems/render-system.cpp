@@ -38,7 +38,7 @@ void render_system::update(double t, double dt)
 	(
 		[this](auto entity, auto& transform, auto& model)
 		{
-			model_instance* instance = model_instances[entity];
+			scene::model_instance* instance = model_instances[entity];
 
 			instance->set_transform(transform.world);
 
@@ -56,14 +56,14 @@ void render_system::render(double alpha)
 {
 	if (renderer)
 	{
-		for (const scene* scene: layers)
+		for (const scene::collection* collection: layers)
 		{
-			renderer->render(alpha, *scene);
+			renderer->render(alpha, *collection);
 		}
 	}
 }
 
-void render_system::add_layer(::scene* layer)
+void render_system::add_layer(scene::collection* layer)
 {
 	layers.push_back(layer);
 }
@@ -78,7 +78,7 @@ void render_system::set_renderer(::renderer* renderer)
 	this->renderer = renderer;
 }
 
-model_instance* render_system::get_model_instance(entt::entity entity)
+scene::model_instance* render_system::get_model_instance(entt::entity entity)
 {
 	if (auto it = model_instances.find(entity); it != model_instances.end())
 		return it->second;
@@ -112,7 +112,7 @@ void render_system::update_model_and_materials(entt::entity entity, model_compon
 
 void render_system::on_model_construct(entt::registry& registry, entt::entity entity, model_component& model)
 {
-	::model_instance* model_instance = new ::model_instance();	
+	scene::model_instance* model_instance = new scene::model_instance();	
 	model_instances[entity] = model_instance;
 	update_model_and_materials(entity, model);
 }
