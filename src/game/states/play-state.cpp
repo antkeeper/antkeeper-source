@@ -458,6 +458,7 @@ void play_state_enter(game_context* ctx)
 	std::cout << "similarity62: " << genetics::protein::similarity<float>(protein_b.begin(), protein_b.end(), protein_c.begin(), genetics::matrix::blosum62<int>) << std::endl;
 	std::cout << "similarity80: " << genetics::protein::similarity<float>(protein_b.begin(), protein_b.end(), protein_c.begin(), genetics::matrix::blosum80<int>) << std::endl;
 	
+	
 }
 
 void play_state_exit(game_context* ctx)

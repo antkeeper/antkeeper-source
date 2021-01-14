@@ -20,8 +20,8 @@
 #ifndef ANTKEEPER_BIT_MATH_HPP
 #define ANTKEEPER_BIT_MATH_HPP
 
-namespace bit
-{
+/// Bitwise math
+namespace bit {
 
 /**
  * Compresses the even bits of a value into the lower half, then clears the upper half.

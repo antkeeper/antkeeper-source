@@ -141,7 +141,8 @@ void mesh_accelerator::query_nearest_recursive(float& nearest_t, geom::mesh::fac
 aabb<float> mesh_accelerator::get_node_bounds(octree32::node_type node) const
 {
 	// Decode Morton location of node
-	auto [x, y, z] = morton::decode_3d(octree32::location(node));
+	std::uint32_t x, y, z;
+	morton::decode(octree32::location(node), x, y, z);
 	float3 node_location = float3{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
 
 	// Get node dimensions at node depth
@@ -167,7 +168,7 @@ octree32::node_type mesh_accelerator::find_node(const float3& point) const
 	transformed_point = transformed_point / node_dimensions[octree32::max_depth];
 
 	// Encode transformed point as a Morton location code
-	std::uint32_t location = morton::encode_3d(
+	std::uint32_t location = morton::encode(
 		static_cast<std::uint32_t>(transformed_point.x),
 		static_cast<std::uint32_t>(transformed_point.y),
 		static_cast<std::uint32_t>(transformed_point.z));
