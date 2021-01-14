@@ -17,38 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/behavior/ebt.hpp"
-#include "ecs/components/transform-component.hpp"
-#include <iostream>
+#ifndef ANTKEEPER_ECS_NEST_SYSTEM_HPP
+#define ANTKEEPER_ECS_NEST_SYSTEM_HPP
 
-using namespace ecs;
+#include "entity-system.hpp"
+#include "ecs/components/nest-component.hpp"
 
-namespace ebt {
+class nest;
+class resource_manager;
 
-status print(context& context, const std::string& text)
+namespace ecs {
+
+class nest_system: public entity_system
 {
-	std::cout << text;
-	return status::success;
-}
+public:
+	nest_system(ecs::registry& registry, ::resource_manager* resource_manager);
+	~nest_system();
+	virtual void update(double t, double dt);
 
-status print_eid(context& context)
-{
-	std::cout << static_cast<std::size_t>(context.entity) << std::endl;
-	return status::success;
-}
+private:
+	resource_manager* resource_manager;
 
-status warp_to(context& context, float x, float y, float z)
-{
-	auto& transform = context.registry->get<transform_component>(context.entity);
-	transform.local.translation = {x, y, z};
-	transform.warp = true;
-	return status::success;
-}
+	void on_nest_construct(ecs::registry& registry, ecs::entity entity, ecs::nest_component& component);
+	void on_nest_destroy(ecs::registry& registry, ecs::entity entity);
+};
 
-bool is_carrying_food(const context& context)
-{
-	return false;
-}
+} // namespace ecs
 
-} // namespace ebt
+#endif // ANTKEEPER_ECS_NEST_SYSTEM_HPP
 

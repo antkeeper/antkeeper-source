@@ -55,29 +55,29 @@
 #include "resources/resource-manager.hpp"
 #include "scene/scene.hpp"
 #include "game/states/game-states.hpp"
-#include "game/systems/behavior-system.hpp"
-#include "game/systems/camera-system.hpp"
-#include "game/systems/collision-system.hpp"
-#include "game/systems/constraint-system.hpp"
-#include "game/systems/control-system.hpp"
-#include "game/systems/locomotion-system.hpp"
-#include "game/systems/nest-system.hpp"
-#include "game/systems/snapping-system.hpp"
-#include "game/systems/render-system.hpp"
-#include "game/systems/samara-system.hpp"
-#include "game/systems/subterrain-system.hpp"
-#include "game/systems/terrain-system.hpp"
-#include "game/systems/tool-system.hpp"
-#include "game/systems/ui-system.hpp"
-#include "game/systems/vegetation-system.hpp"
-#include "game/systems/spatial-system.hpp"
-#include "game/systems/tracking-system.hpp"
-#include "game/systems/painting-system.hpp"
-#include "game/systems/weather-system.hpp"
-#include "game/systems/astronomy-system.hpp"
-#include "game/systems/solar-system.hpp"
-#include "game/components/marker-component.hpp"
-#include "game/entity-commands.hpp"
+#include "ecs/systems/behavior-system.hpp"
+#include "ecs/systems/camera-system.hpp"
+#include "ecs/systems/collision-system.hpp"
+#include "ecs/systems/constraint-system.hpp"
+#include "ecs/systems/control-system.hpp"
+#include "ecs/systems/locomotion-system.hpp"
+#include "ecs/systems/nest-system.hpp"
+#include "ecs/systems/snapping-system.hpp"
+#include "ecs/systems/render-system.hpp"
+#include "ecs/systems/samara-system.hpp"
+#include "ecs/systems/subterrain-system.hpp"
+#include "ecs/systems/terrain-system.hpp"
+#include "ecs/systems/tool-system.hpp"
+#include "ecs/systems/ui-system.hpp"
+#include "ecs/systems/vegetation-system.hpp"
+#include "ecs/systems/spatial-system.hpp"
+#include "ecs/systems/tracking-system.hpp"
+#include "ecs/systems/painting-system.hpp"
+#include "ecs/systems/weather-system.hpp"
+#include "ecs/systems/astronomy-system.hpp"
+#include "ecs/systems/solar-system.hpp"
+#include "ecs/components/marker-component.hpp"
+#include "ecs/commands.hpp"
 #include "utility/paths.hpp"
 #include "event/event-dispatcher.hpp"
 #include "input/input-event-router.hpp"
@@ -805,11 +805,11 @@ void setup_systems(game_context* ctx)
 	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_dimensions[0]), static_cast<float>(viewport_dimensions[1])};
 	
 	// Setup terrain system
-	ctx->terrain_system = new ::terrain_system(*ctx->ecs_registry, ctx->resource_manager);
+	ctx->terrain_system = new ecs::terrain_system(*ctx->ecs_registry, ctx->resource_manager);
 	ctx->terrain_system->set_patch_size(TERRAIN_PATCH_SIZE);
 	
 	// Setup vegetation system
-	ctx->vegetation_system = new ::vegetation_system(*ctx->ecs_registry);
+	ctx->vegetation_system = new ecs::vegetation_system(*ctx->ecs_registry);
 	ctx->vegetation_system->set_terrain_patch_size(TERRAIN_PATCH_SIZE);
 	ctx->vegetation_system->set_vegetation_patch_resolution(VEGETATION_PATCH_RESOLUTION);
 	ctx->vegetation_system->set_vegetation_density(1.0f);
@@ -817,38 +817,38 @@ void setup_systems(game_context* ctx)
 	ctx->vegetation_system->set_scene(ctx->overworld_scene);
 	
 	// Setup camera system
-	ctx->camera_system = new camera_system(*ctx->ecs_registry);
+	ctx->camera_system = new ecs::camera_system(*ctx->ecs_registry);
 	ctx->camera_system->set_viewport(viewport);
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->camera_system);
 	event_dispatcher->subscribe<window_resized_event>(ctx->camera_system);
 	
 	// Setup tool system
-	ctx->tool_system = new tool_system(*ctx->ecs_registry, event_dispatcher);
+	ctx->tool_system = new ecs::tool_system(*ctx->ecs_registry, event_dispatcher);
 	ctx->tool_system->set_camera(ctx->overworld_camera);
 	ctx->tool_system->set_orbit_cam(ctx->camera_system->get_orbit_cam());
 	ctx->tool_system->set_viewport(viewport);
 	
 	// Setup subterrain system
-	ctx->subterrain_system = new ::subterrain_system(*ctx->ecs_registry, ctx->resource_manager);
+	ctx->subterrain_system = new ecs::subterrain_system(*ctx->ecs_registry, ctx->resource_manager);
 	ctx->subterrain_system->set_scene(ctx->underworld_scene);
 	
 	// Setup nest system
-	ctx->nest_system = new nest_system(*ctx->ecs_registry, ctx->resource_manager);
+	ctx->nest_system = new ecs::nest_system(*ctx->ecs_registry, ctx->resource_manager);
 	
 	// Setup collision system
-	ctx->collision_system = new collision_system(*ctx->ecs_registry);
+	ctx->collision_system = new ecs::collision_system(*ctx->ecs_registry);
 	
 	// Setup samara system
-	ctx->samara_system = new samara_system(*ctx->ecs_registry);
+	ctx->samara_system = new ecs::samara_system(*ctx->ecs_registry);
 	
 	// Setup snapping system
-	ctx->snapping_system = new snapping_system(*ctx->ecs_registry);
+	ctx->snapping_system = new ecs::snapping_system(*ctx->ecs_registry);
 	
 	// Setup behavior system
-	ctx->behavior_system = new behavior_system(*ctx->ecs_registry);
+	ctx->behavior_system = new ecs::behavior_system(*ctx->ecs_registry);
 	
 	// Setup locomotion system
-	ctx->locomotion_system = new locomotion_system(*ctx->ecs_registry);
+	ctx->locomotion_system = new ecs::locomotion_system(*ctx->ecs_registry);
 	
 	// Setup pheromone system
 	ctx->pheromones = new pheromone_matrix();
@@ -861,30 +861,30 @@ void setup_systems(game_context* ctx)
 	//diffuse(ctx->pheromones);
 	
 	// Setup spatial system
-	ctx->spatial_system = new spatial_system(*ctx->ecs_registry);
+	ctx->spatial_system = new ecs::spatial_system(*ctx->ecs_registry);
 	
 	// Setup constraint system
-	ctx->constraint_system = new constraint_system(*ctx->ecs_registry);
+	ctx->constraint_system = new ecs::constraint_system(*ctx->ecs_registry);
 	
 	// Setup tracking system
-	ctx->tracking_system = new tracking_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
+	ctx->tracking_system = new ecs::tracking_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
 	ctx->tracking_system->set_scene(ctx->overworld_scene);
 	
 	// Setup painting system
-	ctx->painting_system = new painting_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
+	ctx->painting_system = new ecs::painting_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
 	ctx->painting_system->set_scene(ctx->overworld_scene);
 	
 	// Setup weather system
-	ctx->weather_system = new weather_system(*ctx->ecs_registry);
+	ctx->weather_system = new ecs::weather_system(*ctx->ecs_registry);
 	ctx->weather_system->set_sky_pass(ctx->overworld_sky_pass);
 	ctx->weather_system->set_shadow_map_pass(ctx->overworld_shadow_map_pass);
 	ctx->weather_system->set_material_pass(ctx->overworld_material_pass);
 	
 	// Setup solar system
-	ctx->solar_system = new solar_system(*ctx->ecs_registry);
+	ctx->solar_system = new ecs::solar_system(*ctx->ecs_registry);
 	
 	// Setup astronomy system
-	ctx->astronomy_system = new astronomy_system(*ctx->ecs_registry);
+	ctx->astronomy_system = new ecs::astronomy_system(*ctx->ecs_registry);
 	ctx->astronomy_system->set_sky_pass(ctx->overworld_sky_pass);
 	
 	// Set time scale
@@ -898,14 +898,14 @@ void setup_systems(game_context* ctx)
 	ctx->astronomy_system->set_time_scale(time_scale);
 	
 	// Setup render system
-	ctx->render_system = new ::render_system(*ctx->ecs_registry);
+	ctx->render_system = new ecs::render_system(*ctx->ecs_registry);
 	ctx->render_system->add_layer(ctx->overworld_scene);
 	ctx->render_system->add_layer(ctx->underworld_scene);
 	ctx->render_system->add_layer(ctx->ui_scene);
 	ctx->render_system->set_renderer(ctx->renderer);
 	
 	// Setup control system
-	ctx->control_system = new ::control_system(*ctx->ecs_registry);
+	ctx->control_system = new ecs::control_system(*ctx->ecs_registry);
 	ctx->control_system->set_viewport(viewport);
 	ctx->control_system->set_underworld_camera(ctx->underworld_camera);
 	ctx->control_system->set_tool(nullptr);
@@ -919,7 +919,7 @@ void setup_systems(game_context* ctx)
 	event_dispatcher->subscribe<window_resized_event>(ctx->control_system);
 	
 	// Setup UI system
-	ctx->ui_system = new ui_system(ctx->resource_manager);
+	ctx->ui_system = new ecs::ui_system(ctx->resource_manager);
 	ctx->ui_system->set_camera(ctx->ui_camera);
 	ctx->ui_system->set_scene(ctx->ui_scene);
 	ctx->ui_system->set_viewport(viewport);
@@ -1288,10 +1288,10 @@ void setup_callbacks(game_context* ctx)
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			
-			auto xf = ec::get_world_transform(*ctx->ecs_registry, ctx->lens_entity);
+			auto xf = ecs::command::get_world_transform(*ctx->ecs_registry, ctx->lens_entity);
 			ctx->lens_spotlight->look_at(xf.translation, xf.translation + ctx->sun_direct->get_direction(), {0, 1, 0});
 			
-			xf = ec::get_world_transform(*ctx->ecs_registry, ctx->flashlight_entity);
+			xf = ecs::command::get_world_transform(*ctx->ecs_registry, ctx->flashlight_entity);
 			//ctx->flashlight_spotlight->set_transform(xf);
 			ctx->flashlight_spotlight->look_at(xf.translation, xf.translation + xf.rotation * float3{0, 0, 1}, {0, 0, -1});
 			

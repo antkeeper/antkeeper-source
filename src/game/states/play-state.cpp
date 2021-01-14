@@ -21,19 +21,19 @@
 #include "animation/screen-transition.hpp"
 #include "configuration.hpp"
 #include "debug/logger.hpp"
-#include "entity/archetype.hpp"
-#include "game/components/cavity-component.hpp"
-#include "game/components/copy-transform-component.hpp"
-#include "game/components/copy-translation-component.hpp"
-#include "game/components/model-component.hpp"
-#include "game/components/snap-component.hpp"
-#include "game/components/samara-component.hpp"
-#include "game/components/terrain-component.hpp"
-#include "game/components/tool-component.hpp"
-#include "game/components/transform-component.hpp"
-#include "game/components/camera-follow-component.hpp"
-#include "game/components/orbit-component.hpp"
-#include "game/entity-commands.hpp"
+#include "ecs/archetype.hpp"
+#include "ecs/components/cavity-component.hpp"
+#include "ecs/components/copy-transform-component.hpp"
+#include "ecs/components/copy-translation-component.hpp"
+#include "ecs/components/model-component.hpp"
+#include "ecs/components/snap-component.hpp"
+#include "ecs/components/samara-component.hpp"
+#include "ecs/components/terrain-component.hpp"
+#include "ecs/components/tool-component.hpp"
+#include "ecs/components/transform-component.hpp"
+#include "ecs/components/camera-follow-component.hpp"
+#include "ecs/components/orbit-component.hpp"
+#include "ecs/commands.hpp"
 #include "game/game-context.hpp"
 #include "game/states/game-states.hpp"
 #include "math/math.hpp"
@@ -51,13 +51,13 @@
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/directional-light.hpp"
-#include "game/systems/control-system.hpp"
-#include "game/systems/camera-system.hpp"
-#include "game/systems/render-system.hpp"
-#include "game/systems/tool-system.hpp"
-#include "game/systems/weather-system.hpp"
-#include "game/systems/solar-system.hpp"
-#include "game/systems/astronomy-system.hpp"
+#include "ecs/systems/control-system.hpp"
+#include "ecs/systems/camera-system.hpp"
+#include "ecs/systems/render-system.hpp"
+#include "ecs/systems/tool-system.hpp"
+#include "ecs/systems/weather-system.hpp"
+#include "ecs/systems/solar-system.hpp"
+#include "ecs/systems/astronomy-system.hpp"
 #include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
 #include "utility/gamma.hpp"
@@ -196,8 +196,8 @@ void play_state_enter(game_context* ctx)
 	// Create flashlight and light cone, set light cone parent to flashlight, and move both to underworld scene
 	flashlight_archetype->assign(ecs_registry, ctx->flashlight_entity);
 	auto flashlight_light_cone = flashlight_light_cone_archetype->create(ecs_registry);
-	ec::parent(ecs_registry, flashlight_light_cone, ctx->flashlight_entity);
-	ec::assign_render_layers(ecs_registry, ctx->flashlight_entity, 2);
+	ecs::command::parent(ecs_registry, flashlight_light_cone, ctx->flashlight_entity);
+	ecs::command::assign_render_layers(ecs_registry, ctx->flashlight_entity, 2);
 	
 	// Make lens tool's model instance unculled, so its shadow is always visible.
 	scene::model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
@@ -208,18 +208,18 @@ void play_state_enter(game_context* ctx)
 	
 	// Create lens light cone and set its parent to lens
 	auto lens_light_cone = lens_light_cone_archetype->create(ecs_registry);
-	//ec::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
-	ec::parent(ecs_registry, lens_light_cone, ctx->lens_entity);
+	//ecs::command::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
+	ecs::command::parent(ecs_registry, lens_light_cone, ctx->lens_entity);
 	
 	
 	
 	// Hide inactive tools
-	ec::assign_render_layers(ecs_registry, ctx->forceps_entity, 0);
-	ec::assign_render_layers(ecs_registry, ctx->brush_entity, 0);
-	ec::assign_render_layers(ecs_registry, ctx->lens_entity, 0);
-	ec::assign_render_layers(ecs_registry, ctx->marker_entity, 0);
-	ec::assign_render_layers(ecs_registry, ctx->container_entity, 0);
-	ec::assign_render_layers(ecs_registry, ctx->twig_entity, 0);
+	ecs::command::assign_render_layers(ecs_registry, ctx->forceps_entity, 0);
+	ecs::command::assign_render_layers(ecs_registry, ctx->brush_entity, 0);
+	ecs::command::assign_render_layers(ecs_registry, ctx->lens_entity, 0);
+	ecs::command::assign_render_layers(ecs_registry, ctx->marker_entity, 0);
+	ecs::command::assign_render_layers(ecs_registry, ctx->container_entity, 0);
+	ecs::command::assign_render_layers(ecs_registry, ctx->twig_entity, 0);
 	
 	// Activate brush tool
 	ctx->tool_system->set_active_tool(ctx->brush_entity);
@@ -240,7 +240,7 @@ void play_state_enter(game_context* ctx)
 
 	// Create ant-hill
 	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);
-	ec::place(ecs_registry, ant_hill_entity, {0, 0});
+	ecs::command::place(ecs_registry, ant_hill_entity, {0, 0});
 	
 	// Generate pebbles
 	float pebble_radius = 300.0f;
@@ -257,12 +257,12 @@ void play_state_enter(game_context* ctx)
 		transform.local.rotation = math::angle_axis(math::random(0.0f, math::two_pi<float>), {0, 1, 0});
 		transform.local.scale = float3{1, 1, 1} * math::random(0.75f, 1.25f);
 		
-		ec::place(ecs_registry, pebble_entity, {x, z});
+		ecs::command::place(ecs_registry, pebble_entity, {x, z});
 	}
 
 	// Create maple tree
 	//auto maple_tree_entity = maple_tree_archetype->create(ecs_registry);
-	//ec::place(ecs_registry, maple_tree_entity, {300, 200});
+	//ecs::command::place(ecs_registry, maple_tree_entity, {300, 200});
 
 	// Creat nest
 	auto nest_entity = nest_archetype->create(ecs_registry);
@@ -321,7 +321,7 @@ void play_state_enter(game_context* ctx)
 	ctx->camera_system->set_camera(ctx->overworld_camera);
 	
 	auto ant_head = ant_head_archetype->create(ecs_registry);
-	ec::place(ecs_registry, ant_head, {50, 0});
+	ecs::command::place(ecs_registry, ant_head, {50, 0});
 	
 	ctx->overworld_scene->update_tweens();
 	
@@ -381,8 +381,8 @@ void play_state_enter(game_context* ctx)
 	// Place larva in chamber
 	{
 		auto larva = larva_archetype->create(ecs_registry);
-		ec::assign_render_layers(ecs_registry, larva, 1);
-		ec::warp_to(ecs_registry, larva, {50, 0.1935f, 10});
+		ecs::command::assign_render_layers(ecs_registry, larva, 1);
+		ecs::command::warp_to(ecs_registry, larva, {50, 0.1935f, 10});
 		//auto& transform = ecs_registry.get<ecs::transform_component>(larva_entity);
 		//transform.transform = math::identity_transform<float>;
 		//transform.transform.translation = nest->get_shaft_position(*central_shaft, central_shaft->depth[1]);
@@ -390,9 +390,9 @@ void play_state_enter(game_context* ctx)
 	}
 	
 	auto dandelion_plant = dandelion_plant_archetype->create(ecs_registry);
-	ec::place(ecs_registry, dandelion_plant, {55, -30});
+	ecs::command::place(ecs_registry, dandelion_plant, {55, -30});
 	
-	control_system* control_system = ctx->control_system;
+	ecs::control_system* control_system = ctx->control_system;
 	control_system->update(0.0, 0.0);
 	control_system->set_nest(nest);
 	

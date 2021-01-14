@@ -17,38 +17,30 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/behavior/ebt.hpp"
-#include "ecs/components/transform-component.hpp"
-#include <iostream>
+#include "ecs/systems/behavior-system.hpp"
+#include "ecs/components/behavior-component.hpp"
+#include "ecs/entity.hpp"
 
-using namespace ecs;
+namespace ecs {
 
-namespace ebt {
+behavior_system::behavior_system(ecs::registry& registry):
+	entity_system(registry)
+{}
 
-status print(context& context, const std::string& text)
+void behavior_system::update(double t, double dt)
 {
-	std::cout << text;
-	return status::success;
+	ebt::context context;
+	context.registry = &registry;
+
+	registry.view<behavior_component>().each(
+		[&](ecs::entity entity, auto& behavior)
+		{
+			if (behavior.behavior_tree)
+			{
+				context.entity = entity;
+				behavior.behavior_tree->execute(context);
+			}
+		});
 }
 
-status print_eid(context& context)
-{
-	std::cout << static_cast<std::size_t>(context.entity) << std::endl;
-	return status::success;
-}
-
-status warp_to(context& context, float x, float y, float z)
-{
-	auto& transform = context.registry->get<transform_component>(context.entity);
-	transform.local.translation = {x, y, z};
-	transform.warp = true;
-	return status::success;
-}
-
-bool is_carrying_food(const context& context)
-{
-	return false;
-}
-
-} // namespace ebt
-
+} // namespace ecs

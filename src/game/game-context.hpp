@@ -22,6 +22,8 @@
 
 #include "utility/fundamental-types.hpp"
 #include "resources/string-table.hpp"
+#include "ecs/entity.hpp"
+#include "ecs/registry.hpp"
 #include "geometry/aabb.hpp"
 #include <optional>
 #include <entt/entt.hpp>
@@ -31,54 +33,34 @@
 // Forward declarations
 class animator;
 class application;
-class behavior_system;
 class bloom_pass;
-class camera_system;
 class clear_pass;
-class collision_system;
 class compositor;
 class config_file;
-class constraint_system;
 class control;
 class control_set;
-class control_system;
 class final_pass;
 class framebuffer;
-class locomotion_system;
 class material;
 class input_listener;
 class material_pass;
-class nest_system;
 class orbit_cam;
 class pheromone_matrix;
-class snapping_system;
 class rasterizer;
-class render_system;
 class resource_manager;
-class samara_system;
 class screen_transition;
 class shadow_map_pass;
 class simple_render_pass;
 class sky_pass;
-class subterrain_system;
-class terrain_system;
 class texture_2d;
 class timeline;
-class tool_system;
-class ui_system;
-class spatial_system;
-class vegetation_system;
 class vertex_array;
 class vertex_buffer;
 class renderer;
 class input_event_router;
 class input_mapper;
 class outline_pass;
-class tracking_system;
-class painting_system;
-class weather_system;
-class astronomy_system;
-class solar_system;
+
 struct biome;
 template <typename T> class animation;
 template <typename T> class material_property;
@@ -88,6 +70,31 @@ namespace debug
 {
 	class cli;
 	class logger;
+}
+
+namespace ecs
+{
+	class subterrain_system;
+	class terrain_system;
+	class vegetation_system;
+	class tool_system;
+	class ui_system;
+	class spatial_system;
+	class tracking_system;
+	class painting_system;
+	class weather_system;
+	class astronomy_system;
+	class solar_system;
+	class behavior_system;
+	class collision_system;
+	class constraint_system;
+	class locomotion_system;
+	class control_system;
+	class snapping_system;
+	class camera_system;
+	class nest_system;
+	class render_system;
+	class samara_system;
 }
 
 #include "scene/scene.hpp"
@@ -214,38 +221,38 @@ struct game_context
 	control* toggle_fullscreen_control;
 
 	// Entities
-	entt::registry* ecs_registry;
-	entt::entity brush_entity;
-	entt::entity flashlight_entity;
-	entt::entity forceps_entity;
-	entt::entity lens_entity;
-	entt::entity marker_entity;
-	entt::entity container_entity;
-	entt::entity twig_entity;
-	entt::entity focal_point_entity;
+	ecs::registry* ecs_registry;
+	ecs::entity brush_entity;
+	ecs::entity flashlight_entity;
+	ecs::entity forceps_entity;
+	ecs::entity lens_entity;
+	ecs::entity marker_entity;
+	ecs::entity container_entity;
+	ecs::entity twig_entity;
+	ecs::entity focal_point_entity;
 
 	// Systems
-	behavior_system* behavior_system;
-	camera_system* camera_system;
-	collision_system* collision_system;
-	constraint_system* constraint_system;
-	control_system* control_system;
-	locomotion_system* locomotion_system;
-	nest_system* nest_system;
-	snapping_system* snapping_system;
-	render_system* render_system;
-	samara_system* samara_system;
-	subterrain_system* subterrain_system;
-	terrain_system* terrain_system;
-	tool_system* tool_system;
-	ui_system* ui_system;
-	vegetation_system* vegetation_system;
-	spatial_system* spatial_system;
-	tracking_system* tracking_system;
-	painting_system* painting_system;
-	weather_system* weather_system;
-	astronomy_system* astronomy_system;
-	solar_system* solar_system;
+	ecs::behavior_system* behavior_system;
+	ecs::camera_system* camera_system;
+	ecs::collision_system* collision_system;
+	ecs::constraint_system* constraint_system;
+	ecs::control_system* control_system;
+	ecs::locomotion_system* locomotion_system;
+	ecs::nest_system* nest_system;
+	ecs::snapping_system* snapping_system;
+	ecs::render_system* render_system;
+	ecs::samara_system* samara_system;
+	ecs::subterrain_system* subterrain_system;
+	ecs::terrain_system* terrain_system;
+	ecs::tool_system* tool_system;
+	ecs::ui_system* ui_system;
+	ecs::vegetation_system* vegetation_system;
+	ecs::spatial_system* spatial_system;
+	ecs::tracking_system* tracking_system;
+	ecs::painting_system* painting_system;
+	ecs::weather_system* weather_system;
+	ecs::astronomy_system* astronomy_system;
+	ecs::solar_system* solar_system;
 	
 	// Game
 	biome* biome;

@@ -17,38 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/behavior/ebt.hpp"
+#include "locomotion-system.hpp"
+#include "ecs/components/collision-component.hpp"
+#include "ecs/components/locomotion-component.hpp"
 #include "ecs/components/transform-component.hpp"
-#include <iostream>
+#include "ecs/entity.hpp"
 
-using namespace ecs;
+namespace ecs {
 
-namespace ebt {
+locomotion_system::locomotion_system(ecs::registry& registry):
+	entity_system(registry)
+{}
 
-status print(context& context, const std::string& text)
+void locomotion_system::update(double t, double dt)
 {
-	std::cout << text;
-	return status::success;
+	registry.view<transform_component, locomotion_component>().each(
+		[&](ecs::entity entity, auto& transform, auto& locomotion)
+		{
+		});
 }
 
-status print_eid(context& context)
-{
-	std::cout << static_cast<std::size_t>(context.entity) << std::endl;
-	return status::success;
-}
-
-status warp_to(context& context, float x, float y, float z)
-{
-	auto& transform = context.registry->get<transform_component>(context.entity);
-	transform.local.translation = {x, y, z};
-	transform.warp = true;
-	return status::success;
-}
-
-bool is_carrying_food(const context& context)
-{
-	return false;
-}
-
-} // namespace ebt
-
+} // namespace ecs

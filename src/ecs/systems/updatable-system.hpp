@@ -17,38 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/behavior/ebt.hpp"
-#include "ecs/components/transform-component.hpp"
-#include <iostream>
+#ifndef ANTKEEPER_ECS_UPDATABLE_SYSTEM_HPP
+#define ANTKEEPER_ECS_UPDATABLE_SYSTEM_HPP
 
-using namespace ecs;
+namespace ecs {
 
-namespace ebt {
-
-status print(context& context, const std::string& text)
+/**
+ * Abstract base class for updatable systems.
+ */
+class updatable_system
 {
-	std::cout << text;
-	return status::success;
-}
+public:
+	/**
+	 * Perform's a system's update() function.
+	 *
+	 * @param t Total elapsed time, in seconds.
+	 * @param dt Delta time, in seconds.
+	 * @param registry Entity registry.
+	 */
+	virtual void update(double t, double dt) = 0;
+};
 
-status print_eid(context& context)
-{
-	std::cout << static_cast<std::size_t>(context.entity) << std::endl;
-	return status::success;
-}
+} // namespace ecs
 
-status warp_to(context& context, float x, float y, float z)
-{
-	auto& transform = context.registry->get<transform_component>(context.entity);
-	transform.local.translation = {x, y, z};
-	transform.warp = true;
-	return status::success;
-}
-
-bool is_carrying_food(const context& context)
-{
-	return false;
-}
-
-} // namespace ebt
+#endif // ANTKEEPER_ECS_UPDATABLE_SYSTEM_HPP
 

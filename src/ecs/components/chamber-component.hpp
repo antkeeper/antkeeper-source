@@ -17,38 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/behavior/ebt.hpp"
-#include "ecs/components/transform-component.hpp"
-#include <iostream>
+#ifndef ANTKEEPER_ECS_CHAMBER_COMPONENT_HPP
+#define ANTKEEPER_ECS_CHAMBER_COMPONENT_HPP
 
-using namespace ecs;
+#include <array>
+#include <unordered_set>
+#include "ecs/entity.hpp"
 
-namespace ebt {
+namespace ecs {
 
-status print(context& context, const std::string& text)
+struct chamber_component
 {
-	std::cout << text;
-	return status::success;
+	entity nest;
+	float depth;
+	float outer_radius;
+	float inner_radius;
+	float inner_sector_angle;
+	float tile_radius;
+	std::unordered_set<std::array<int, 2>> tiles;
 }
 
-status print_eid(context& context)
-{
-	std::cout << static_cast<std::size_t>(context.entity) << std::endl;
-	return status::success;
-}
+} // namespace ecs
 
-status warp_to(context& context, float x, float y, float z)
-{
-	auto& transform = context.registry->get<transform_component>(context.entity);
-	transform.local.translation = {x, y, z};
-	transform.warp = true;
-	return status::success;
-}
-
-bool is_carrying_food(const context& context)
-{
-	return false;
-}
-
-} // namespace ebt
-
+#endif // ANTKEEPER_ECS_CHAMBER_COMPONENT_HPP
