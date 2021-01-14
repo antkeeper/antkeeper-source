@@ -17,15 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SDF_HPP
-#define ANTKEEPER_SDF_HPP
+#ifndef ANTKEEPER_GEOM_SDF_HPP
+#define ANTKEEPER_GEOM_SDF_HPP
 
 #include "utility/fundamental-types.hpp"
 #include <algorithm>
 
-/**
- * Contains signed distance functions.
- */
+namespace geom {
+
+/// Signed distance functions.
 namespace sdf {
 
 inline float3 translate(const float3& sample, const float3& offset)
@@ -66,6 +66,7 @@ inline float op_round(float d, float r)
 }
 
 } // namespace sdf
+} // namespace geom
 
-#endif // ANTKEEPER_SDF_HPP
+#endif // ANTKEEPER_GEOM_SDF_HPP
 

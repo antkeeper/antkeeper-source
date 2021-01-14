@@ -21,8 +21,8 @@
 #define ANTKEEPER_RENDER_CONTEXT_HPP
 
 #include "renderer/render-operation.hpp"
-#include "geometry/plane.hpp"
-#include "geometry/bounding-volume.hpp"
+#include "geom/plane.hpp"
+#include "geom/bounding-volume.hpp"
 #include "utility/fundamental-types.hpp"
 #include "scene/camera.hpp"
 #include "scene/collection.hpp"
@@ -34,8 +34,8 @@ struct render_context
 	math::transform<float> camera_transform;
 	float3 camera_forward;
 	float3 camera_up;
-	const bounding_volume<float>* camera_culling_volume;
-	plane<float> clip_near;
+	const geom::bounding_volume<float>* camera_culling_volume;
+	geom::plane<float> clip_near;
 	
 	const scene::collection* collection;
 	std::list<render_operation> operations;

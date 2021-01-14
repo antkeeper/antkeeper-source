@@ -19,7 +19,7 @@
 
 #include "control-system.hpp"
 #include "input/control.hpp"
-#include "geometry/intersection.hpp"
+#include "geom/intersection.hpp"
 #include "animation/ease.hpp"
 #include "nest.hpp"
 #include "math/math.hpp"

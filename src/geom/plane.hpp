@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PLANE_HPP
-#define ANTKEEPER_PLANE_HPP
+#ifndef ANTKEEPER_GEOM_PLANE_HPP
+#define ANTKEEPER_GEOM_PLANE_HPP
 
 #include "math/math.hpp"
+
+namespace geom {
 
 template <class T>
 struct plane
@@ -113,4 +115,6 @@ typename plane<T>::vector_type plane<T>::intersection(const plane& p0, const pla
 	return -(p0.distance * math::cross(p1.normal, p2.normal) + p1.distance * math::cross(p2.normal, p0.normal) + p2.distance * math::cross(p0.normal, p1.normal)) / math::dot(p0.normal, math::cross(p1.normal, p2.normal));
 }
 
-#endif // ANTKEEPER_PLANE_HPP
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_PLANE_HPP

@@ -17,14 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_OCTREE_HPP
-#define ANTKEEPER_OCTREE_HPP
+#ifndef ANTKEEPER_GEOM_OCTREE_HPP
+#define ANTKEEPER_GEOM_OCTREE_HPP
 
 #include <cstdint>
 #include <limits>
 #include <type_traits>
 #include <unordered_set>
 #include <stack>
+
+namespace geom {
 
 /**
  * A general purpose (hashed) linear octree. Nodes are integer identifiers and no other data is stored in the octree.
@@ -451,5 +453,7 @@ T octree<T>::clz(T x)
 	#endif
 }
 
-#endif // ANTKEEPER_OCTREE_HPP
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_OCTREE_HPP
 

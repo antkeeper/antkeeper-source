@@ -20,17 +20,17 @@
 #ifndef ANTKEEPER_ECS_COLLISION_COMPONENT_HPP
 #define ANTKEEPER_ECS_COLLISION_COMPONENT_HPP
 
-#include "geometry/aabb.hpp"
-#include "geometry/mesh.hpp"
-#include "geometry/mesh-accelerator.hpp"
+#include "geom/aabb.hpp"
+#include "geom/mesh.hpp"
+#include "geom/mesh-accelerator.hpp"
 
 namespace ecs {
 
 struct collision_component
 {
-	mesh* mesh;
-	aabb<float> bounds;
-	mesh_accelerator mesh_accelerator;
+	geom::mesh* mesh;
+	geom::aabb<float> bounds;
+	geom::mesh_accelerator mesh_accelerator;
 };
 
 } // namespace ecs

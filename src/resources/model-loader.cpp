@@ -408,7 +408,7 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	}
 	
 	// Load bounds
-	aabb<float> bounds =
+	geom::aabb<float> bounds =
 	{
 		{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()},
 		{-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()}

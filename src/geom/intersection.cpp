@@ -20,6 +20,8 @@
 #include "intersection.hpp"
 #include <limits>
 
+namespace geom {
+
 std::tuple<bool, float> ray_plane_intersection(const ray<float>& ray, const plane<float>& plane)
 {
 	float denom = math::dot(ray.direction, plane.normal);
@@ -182,3 +184,4 @@ bool aabb_sphere_intersection(const aabb<float>& aabb, const float3& center, flo
 	return (distance_squared <= (radius * radius));
 }
 
+} // namespace geom

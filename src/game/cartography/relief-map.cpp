@@ -25,10 +25,10 @@
 namespace cart
 {
 
-mesh* map_elevation(const std::function<float(float, float)>& function, float scale, std::size_t subdivisions)
+geom::mesh* map_elevation(const std::function<float(float, float)>& function, float scale, std::size_t subdivisions)
 {
 	// Allocate terrain mesh
-	mesh* mesh = new ::mesh();
+	geom::mesh* mesh = new geom::mesh();
 
 	// Determine vertex count and placement
 	std::size_t columns = static_cast<std::size_t>(std::pow(2, subdivisions));
@@ -56,10 +56,10 @@ mesh* map_elevation(const std::function<float(float, float)>& function, float sc
 	}
 	
 	// Function to eliminate duplicate edges
-	std::map<std::array<std::size_t, 2>, mesh::edge*> edge_map;
-	auto add_or_find_edge = [&](mesh::vertex* start, mesh::vertex* end) -> mesh::edge*
+	std::map<std::array<std::size_t, 2>, geom::mesh::edge*> edge_map;
+	auto add_or_find_edge = [&](geom::mesh::vertex* start, geom::mesh::vertex* end) -> geom::mesh::edge*
 	{
-		mesh::edge* edge;
+		geom::mesh::edge* edge;
 		if (auto it = edge_map.find({start->index, end->index}); it != edge_map.end())
 		{
 			edge = it->second;
@@ -75,15 +75,15 @@ mesh* map_elevation(const std::function<float(float, float)>& function, float sc
 	};
 
 	// Connect vertices with edges and faces
-	const std::vector<mesh::vertex*>& vertices = mesh->get_vertices();
+	const std::vector<geom::mesh::vertex*>& vertices = mesh->get_vertices();
 	for (std::size_t i = 0; i < rows; ++i)
 	{
 		for (std::size_t j = 0; j < columns; ++j)
 		{
-			mesh::vertex* a = vertices[i * (columns + 1) + j];
-			mesh::vertex* b = vertices[(i + 1) * (columns + 1) + j];
-			mesh::vertex* c = vertices[i * (columns + 1) + j + 1];
-			mesh::vertex* d = vertices[(i + 1) * (columns + 1) + j + 1];
+			geom::mesh::vertex* a = vertices[i * (columns + 1) + j];
+			geom::mesh::vertex* b = vertices[(i + 1) * (columns + 1) + j];
+			geom::mesh::vertex* c = vertices[i * (columns + 1) + j + 1];
+			geom::mesh::vertex* d = vertices[(i + 1) * (columns + 1) + j + 1];
 
 			// +---+---+
 			// | \ | / |
@@ -92,13 +92,13 @@ mesh* map_elevation(const std::function<float(float, float)>& function, float sc
 			// +---+---+
 			if ((j % 2) == (i % 2))
 			{
-				mesh::edge* ab = add_or_find_edge(a, b);
-				mesh::edge* bd = add_or_find_edge(b, d);
-				mesh::edge* da = add_or_find_edge(d, a);
+				geom::mesh::edge* ab = add_or_find_edge(a, b);
+				geom::mesh::edge* bd = add_or_find_edge(b, d);
+				geom::mesh::edge* da = add_or_find_edge(d, a);
 
-				mesh::edge* ca = add_or_find_edge(c, a);
-				mesh::edge* ad = da->symmetric;
-				mesh::edge* dc = add_or_find_edge(d, c);
+				geom::mesh::edge* ca = add_or_find_edge(c, a);
+				geom::mesh::edge* ad = da->symmetric;
+				geom::mesh::edge* dc = add_or_find_edge(d, c);
 
 				// a---c
 				// | \ |
@@ -108,12 +108,12 @@ mesh* map_elevation(const std::function<float(float, float)>& function, float sc
 			}
 			else
 			{
-				mesh::edge* ab = add_or_find_edge(a, b);
-				mesh::edge* bc = add_or_find_edge(b, c);
-				mesh::edge* ca = add_or_find_edge(c, a);
-				mesh::edge* cb = bc->symmetric;
-				mesh::edge* bd = add_or_find_edge(b, d);
-				mesh::edge* dc = add_or_find_edge(d, c);
+				geom::mesh::edge* ab = add_or_find_edge(a, b);
+				geom::mesh::edge* bc = add_or_find_edge(b, c);
+				geom::mesh::edge* ca = add_or_find_edge(c, a);
+				geom::mesh::edge* cb = bc->symmetric;
+				geom::mesh::edge* bd = add_or_find_edge(b, d);
+				geom::mesh::edge* dc = add_or_find_edge(d, c);
 
 				// a---c
 				// | / |

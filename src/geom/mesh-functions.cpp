@@ -21,6 +21,8 @@
 #include "math/math.hpp"
 #include <unordered_map>
 
+namespace geom {
+
 struct edge_hasher
 {
 	std::size_t operator()(const std::array<std::size_t, 2>& v) const noexcept
@@ -35,13 +37,13 @@ void create_triangle_mesh(mesh& mesh, const std::vector<float3>& vertices, const
 	for (const auto& vertex: vertices)
 		mesh.add_vertex(vertex);
 
-	std::unordered_map<std::array<std::size_t, 2>, ::mesh::edge*, edge_hasher> edge_map;
+	std::unordered_map<std::array<std::size_t, 2>, geom::mesh::edge*, edge_hasher> edge_map;
 	const std::vector<mesh::vertex*>& mesh_vertices = mesh.get_vertices();
-	std::vector<::mesh::edge*> loop(3);
+	std::vector<geom::mesh::edge*> loop(3);
 
 	for (const auto& triangle: triangles)
 	{
-		::mesh::vertex* triangle_vertices[3] =
+		geom::mesh::vertex* triangle_vertices[3] =
 		{
 			mesh_vertices[triangle[0]],
 			mesh_vertices[triangle[1]],
@@ -50,8 +52,8 @@ void create_triangle_mesh(mesh& mesh, const std::vector<float3>& vertices, const
 
 		for (int j = 0; j < 3; ++j)
 		{
-			::mesh::vertex* start = triangle_vertices[j];
-			::mesh::vertex* end = triangle_vertices[(j + 1) % 3];
+			geom::mesh::vertex* start = triangle_vertices[j];
+			geom::mesh::vertex* end = triangle_vertices[(j + 1) % 3];
 
 			if (auto it = edge_map.find({start->index, end->index}); it != edge_map.end())
 			{
@@ -181,3 +183,5 @@ aabb<float> calculate_bounds(const mesh& mesh)
 
 	return aabb<float>{bounds_min, bounds_max};
 }
+
+} // namespace geom

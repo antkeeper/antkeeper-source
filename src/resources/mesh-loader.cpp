@@ -18,15 +18,15 @@
  */
 
 #include "resources/resource-loader.hpp"
-#include "geometry/mesh.hpp"
-#include "geometry/mesh-functions.hpp"
+#include "geom/mesh.hpp"
+#include "geom/mesh-functions.hpp"
 #include "utility/fundamental-types.hpp"
 #include <sstream>
 #include <stdexcept>
 #include <physfs.h>
 
 template <>
-mesh* resource_loader<mesh>::load(resource_manager* resource_manager, PHYSFS_File* file)
+geom::mesh* resource_loader<geom::mesh>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	std::string line;
 	std::vector<float3> vertices;
@@ -83,8 +83,8 @@ mesh* resource_loader<mesh>::load(resource_manager* resource_manager, PHYSFS_Fil
 		}
 	}
 
-	mesh* mesh = new ::mesh();
-	create_triangle_mesh(*mesh, vertices, triangles);
+	geom::mesh* mesh = new geom::mesh();
+	geom::create_triangle_mesh(*mesh, vertices, triangles);
 
 	return mesh;
 }

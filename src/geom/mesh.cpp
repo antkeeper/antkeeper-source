@@ -20,6 +20,8 @@
 #include "mesh.hpp"
 #include <stdexcept>
 
+namespace geom {
+
 mesh::~mesh()
 {
 	// Deallocate vertices
@@ -330,3 +332,4 @@ bool mesh::make_adjacent(mesh::edge* in, mesh::edge* out)
 	return true;
 }
 
+} // namespace geom

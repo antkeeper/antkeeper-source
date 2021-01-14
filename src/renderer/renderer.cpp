@@ -28,7 +28,7 @@
 #include "renderer/model.hpp"
 #include "rasterizer/drawing-mode.hpp"
 #include "math/math.hpp"
-#include "geometry/projection.hpp"
+#include "geom/projection.hpp"
 #include "configuration.hpp"
 #include <functional>
 #include <set>
@@ -137,7 +137,7 @@ void renderer::process_model_instance(render_context& context, const scene::mode
 		return;
 	
 	// Get object culling volume
-	const bounding_volume<float>* object_culling_volume = model_instance->get_culling_mask();
+	const geom::bounding_volume<float>* object_culling_volume = model_instance->get_culling_mask();
 	if (!object_culling_volume)
 		object_culling_volume = &model_instance->get_bounds();
 	
@@ -176,7 +176,7 @@ void renderer::process_model_instance(render_context& context, const scene::mode
 void renderer::process_billboard(render_context& context, const scene::billboard* billboard) const
 {
 	// Get object culling volume
-	const bounding_volume<float>* object_culling_volume = billboard->get_culling_mask();
+	const geom::bounding_volume<float>* object_culling_volume = billboard->get_culling_mask();
 	if (!object_culling_volume)
 		object_culling_volume = &billboard->get_bounds();
 	
@@ -196,7 +196,7 @@ void renderer::process_billboard(render_context& context, const scene::billboard
 	else if (billboard->get_billboard_type() == scene::billboard_type::cylindrical)
 	{
 		const float3& alignment_axis = billboard->get_alignment_axis();
-		float3 look = math::normalize(project_on_plane(billboard_transform.translation - context.camera_transform.translation, {0.0f, 0.0f, 0.0f}, alignment_axis));
+		float3 look = math::normalize(geom::project_on_plane(billboard_transform.translation - context.camera_transform.translation, {0.0f, 0.0f, 0.0f}, alignment_axis));
 		float3 right = math::normalize(math::cross(alignment_axis, look));
 		look = math::cross(right, alignment_axis);
 		float3 up = math::cross(look, right);

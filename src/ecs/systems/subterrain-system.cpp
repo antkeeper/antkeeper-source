@@ -23,14 +23,14 @@
 #include "ecs/entity.hpp"
 #include "renderer/model.hpp"
 #include "renderer/material.hpp"
-#include "geometry/mesh-functions.hpp"
+#include "geom/mesh-functions.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "rasterizer/vertex-attribute-type.hpp"
 #include "rasterizer/drawing-mode.hpp"
 #include "rasterizer/vertex-buffer.hpp"
 #include "resources/resource-manager.hpp"
-#include "geometry/marching-cubes.hpp"
-#include "geometry/intersection.hpp"
+#include "geom/marching-cubes.hpp"
+#include "geom/intersection.hpp"
 #include "utility/fundamental-types.hpp"
 #include <array>
 #include <limits>
@@ -43,18 +43,18 @@ namespace ecs {
 struct cube_tree
 {
 public:
-	cube_tree(const aabb<float>& bounds, int max_depth);
+	cube_tree(const geom::aabb<float>& bounds, int max_depth);
 	~cube_tree();
 
 	const bool is_leaf() const;
-	const aabb<float>& get_bounds() const;
+	const geom::aabb<float>& get_bounds() const;
 
 	/// Subdivides all nodes intersecting with a region to the max depth.
-	void subdivide_max(const aabb<float>& region);
+	void subdivide_max(const geom::aabb<float>& region);
 
 	/// Fills a list with all leaf nodes that intersect with a region.
-	void query_leaves(std::list<cube_tree*>& nodes, const aabb<float>& region);
-	void visit_leaves(const aabb<float>& region, const std::function<void(cube_tree&)>& f);
+	void query_leaves(std::list<cube_tree*>& nodes, const geom::aabb<float>& region);
+	void visit_leaves(const geom::aabb<float>& region, const std::function<void(cube_tree&)>& f);
 
 	/// Counts then number of nodes in the octree.
 	std::size_t size() const;
@@ -64,18 +64,18 @@ public:
 	float distances[8];
 	const int max_depth;
 	const int depth;
-	const aabb<float> bounds;
+	const geom::aabb<float> bounds;
 
 private:
-	cube_tree(const aabb<float>& bounds, int max_depth, int depth);
+	cube_tree(const geom::aabb<float>& bounds, int max_depth, int depth);
 	void subdivide();
 };
 
-cube_tree::cube_tree(const aabb<float>& bounds, int max_depth):
+cube_tree::cube_tree(const geom::aabb<float>& bounds, int max_depth):
 	cube_tree(bounds, max_depth, 0)
 {}
 
-cube_tree::cube_tree(const aabb<float>& bounds, int max_depth, int depth):
+cube_tree::cube_tree(const geom::aabb<float>& bounds, int max_depth, int depth):
 	bounds(bounds),
 	max_depth(max_depth),
 	depth(depth)
@@ -105,7 +105,7 @@ cube_tree::~cube_tree()
 		delete child;
 }
 
-void cube_tree::subdivide_max(const aabb<float>& region)
+void cube_tree::subdivide_max(const geom::aabb<float>& region)
 {
 	if (depth != max_depth && aabb_aabb_intersection(bounds, region))
 	{
@@ -117,7 +117,7 @@ void cube_tree::subdivide_max(const aabb<float>& region)
 	}
 }
 
-void cube_tree::query_leaves(std::list<cube_tree*>& nodes, const aabb<float>& region)
+void cube_tree::query_leaves(std::list<cube_tree*>& nodes, const geom::aabb<float>& region)
 {
 	if (aabb_aabb_intersection(bounds, region))
 	{
@@ -133,7 +133,7 @@ void cube_tree::query_leaves(std::list<cube_tree*>& nodes, const aabb<float>& re
 	}
 }
 
-void cube_tree::visit_leaves(const aabb<float>& region, const std::function<void(cube_tree&)>& f)
+void cube_tree::visit_leaves(const geom::aabb<float>& region, const std::function<void(cube_tree&)>& f)
 {
 	if (aabb_aabb_intersection(bounds, region))
 	{
@@ -166,7 +166,7 @@ inline const bool cube_tree::is_leaf() const
 	return (children[0] == nullptr);
 }
 
-inline const aabb<float>& cube_tree::get_bounds() const
+inline const geom::aabb<float>& cube_tree::get_bounds() const
 {
 	return bounds;
 }
@@ -177,7 +177,7 @@ void cube_tree::subdivide()
 
 	for (int i = 0; i < 8; ++i)
 	{
-		aabb<float> child_bounds;
+		geom::aabb<float> child_bounds;
 		for (int j = 0; j < 3; ++j)
 		{
 			child_bounds.min_point[j] = std::min<float>(corners[i][j], center[j]);
@@ -247,7 +247,7 @@ subterrain_system::subterrain_system(ecs::registry& registry, ::resource_manager
 	cube_tree = new ecs::cube_tree(subterrain_bounds, octree_depth);
 
 	// Allocate mesh
-	subterrain_mesh = new mesh();
+	subterrain_mesh = new geom::mesh();
 
 	first_run = true;
 }
@@ -302,7 +302,7 @@ void subterrain_system::set_scene(scene::collection* collection)
 void subterrain_system::regenerate_subterrain_mesh()
 {
 	delete subterrain_mesh;
-	subterrain_mesh = new mesh();
+	subterrain_mesh = new geom::mesh();
 	subterrain_vertices.clear();
 	subterrain_triangles.clear();
 	subterrain_vertex_map.clear();
@@ -335,7 +335,7 @@ void subterrain_system::march(ecs::cube_tree* node)
 	}
 
 	// Get node bounds
-	const aabb<float>& bounds = node->get_bounds();
+	const geom::aabb<float>& bounds = node->get_bounds();
 
 	// Polygonize cube
 	float vertex_buffer[12 * 3];
@@ -344,7 +344,7 @@ void subterrain_system::march(ecs::cube_tree* node)
 	std::uint_fast8_t triangle_count;
 	const float* corners = &node->corners[0][0];
 	const float* distances = &node->distances[0];
-	mc::polygonize(vertex_buffer, &vertex_count, triangle_buffer, &triangle_count, corners, distances);
+	geom::mc::polygonize(vertex_buffer, &vertex_count, triangle_buffer, &triangle_count, corners, distances);
 
 	// Remap local vertex buffer indices (0-11) to mesh vertex indices
 	std::uint_fast32_t vertex_remap[12];
@@ -393,22 +393,22 @@ void subterrain_system::regenerate_subterrain_model()
 	float* v = vertex_data;
 	for (std::size_t i = 0; i < subterrain_mesh->get_faces().size(); ++i)
 	{
-		mesh::face* face = subterrain_mesh->get_faces()[i];
-		mesh::edge* ab = face->edge;
-		mesh::edge* bc = face->edge->next;
-		mesh::edge* ca = face->edge->previous;
-		mesh::vertex* a = ab->vertex;
-		mesh::vertex* b = bc->vertex;
-		mesh::vertex* c = ca->vertex;
-		mesh::vertex* vertices[3] = {a, b, c};
+		geom::mesh::face* face = subterrain_mesh->get_faces()[i];
+		geom::mesh::edge* ab = face->edge;
+		geom::mesh::edge* bc = face->edge->next;
+		geom::mesh::edge* ca = face->edge->previous;
+		geom::mesh::vertex* a = ab->vertex;
+		geom::mesh::vertex* b = bc->vertex;
+		geom::mesh::vertex* c = ca->vertex;
+		geom::mesh::vertex* vertices[3] = {a, b, c};
 
 		for (std::size_t j = 0; j < 3; ++j)
 		{
-			mesh::vertex* vertex = vertices[j];
+			geom::mesh::vertex* vertex = vertices[j];
 
 			float3 n = {0, 0, 0};
-			mesh::edge* start = vertex->edge;
-			mesh::edge* edge = start;
+			geom::mesh::edge* start = vertex->edge;
+			geom::mesh::edge* edge = start;
 			do
 			{
 				if (edge->face)
@@ -453,7 +453,7 @@ void subterrain_system::regenerate_subterrain_model()
 void subterrain_system::dig(const float3& position, float radius)
 {
 	// Construct region containing the cavity sphere
-	aabb<float> region = {position, position};
+	geom::aabb<float> region = {position, position};
 	for (int i = 0; i < 3; ++i)
 	{
 		region.min_point[i] -= radius + isosurface_resolution;

@@ -17,11 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MESH_HPP
-#define ANTKEEPER_MESH_HPP
+#ifndef ANTKEEPER_GEOM_MESH_HPP
+#define ANTKEEPER_GEOM_MESH_HPP
 
 #include <vector>
 #include "utility/fundamental-types.hpp"
+
+namespace geom {
 
 /**
  * Half-edge mesh.
@@ -177,5 +179,7 @@ inline const std::vector<mesh::face*>& mesh::get_faces() const
 	return faces;
 }
 
-#endif // ANTKEEPER_MESH_HPP
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_MESH_HPP
 

@@ -17,36 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RAY_HPP
-#define ANTKEEPER_RAY_HPP
+#ifndef ANTKEEPER_GEOM_HPP
+#define ANTKEEPER_GEOM_HPP
 
-#include "math/math.hpp"
+/// Geometry
+namespace geom {}
 
-template <class T>
-struct ray
-{
-	typedef math::vector<T, 3> vector_type;
-	
-	/// Origin of the ray.
-	vector_type origin;
-	
-	/// Normalized direction vector of the ray.
-	vector_type direction;
+#include "aabb.hpp"
+#include "bounding-volume.hpp"
+#include "convex-hull.hpp"
+#include "csg.hpp"
+#include "intersection.hpp"
+#include "marching-cubes.hpp"
+#include "mesh.hpp"
+#include "mesh-accelerator.hpp"
+#include "mesh-functions.hpp"
+#include "morton.hpp"
+#include "octree.hpp"
+#include "plane.hpp"
+#include "projection.hpp"
+#include "ray.hpp"
+#include "sdf.hpp"
+#include "sphere.hpp"
+#include "view-frustum.hpp"
 
-	/**
-	 * Extrapolates from the ray origin along the ray direction vector.
-	 *
-	 * @param distance Distance to extrapolate.
-	 * @return Extrapolated coordinates.
-	 */
-	vector_type extrapolate(T distance) const;
-};
-
-template <class T>
-inline typename ray<T>::vector_type ray<T>::extrapolate(T distance) const
-{
-	return origin + direction * distance;
-}
-
-#endif // ANTKEEPER_RAY_HPP
-
+#endif // ANTKEEPER_GEOM_HPP

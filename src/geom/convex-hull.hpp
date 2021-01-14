@@ -17,15 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_CONVEX_HULL_HPP
-#define ANTKEEPER_CONVEX_HULL_HPP
+#ifndef ANTKEEPER_GEOM_CONVEX_HULL_HPP
+#define ANTKEEPER_GEOM_CONVEX_HULL_HPP
 
 #include "bounding-volume.hpp"
-#include "geometry/plane.hpp"
-#include "geometry/sphere.hpp"
-#include "geometry/aabb.hpp"
+#include "geom/plane.hpp"
+#include "geom/sphere.hpp"
+#include "geom/aabb.hpp"
 #include <cstdlib>
 #include <vector>
+
+namespace geom {
 
 /**
  * A plane-bounded convex hull.
@@ -51,7 +53,7 @@ struct convex_hull: public bounding_volume<T>
 	virtual bool intersects(const aabb<T>& aabb) const;
 	virtual bool contains(const sphere<T>& sphere) const;
 	virtual bool contains(const aabb<T>& aabb) const;
-	virtual bool contains(const vector<T, 3>& point) const;
+	virtual bool contains(const math::vector<T, 3>& point) const;
 };
 
 template <class T>
@@ -81,7 +83,7 @@ bool convex_hull<T>::intersects(const sphere<T>& sphere) const
 template <class T>
 bool convex_hull<T>::intersects(const aabb<T>& aabb) const
 {
-	vector<T, 3> pv;
+	math::vector<T, 3> pv;
 	for (const plane<T>& plane: planes)
 	{	
 		pv.x = (plane.normal.x > T(0)) ? aabb.max_point.x : aabb.min_point.x;
@@ -106,8 +108,8 @@ bool convex_hull<T>::contains(const sphere<T>& sphere) const
 template <class T>
 bool convex_hull<T>::contains(const aabb<T>& aabb) const
 {
-	vector<T, 3> pv;
-	vector<T, 3> nv;
+	math::vector<T, 3> pv;
+	math::vector<T, 3> nv;
 	
 	for (const plane<T>& plane: planes)
 	{
@@ -126,7 +128,7 @@ bool convex_hull<T>::contains(const aabb<T>& aabb) const
 }
 
 template <class T>
-bool convex_hull<T>::contains(const vector<T, 3>& point) const
+bool convex_hull<T>::contains(const math::vector<T, 3>& point) const
 {
 	for (const plane<T>& plane: planes)
 		if (plane.signed_distance(point) < T(0))
@@ -135,5 +137,7 @@ bool convex_hull<T>::contains(const vector<T, 3>& point) const
 	return true;
 }
 
-#endif // ANTKEEPER_CONVEX_HULL_HPP
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_CONVEX_HULL_HPP
 

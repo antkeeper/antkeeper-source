@@ -17,13 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_BOUNDING_VOLUME_HPP
-#define ANTKEEPER_BOUNDING_VOLUME_HPP
+#ifndef ANTKEEPER_GEOM_BOUNDING_VOLUME_HPP
+#define ANTKEEPER_GEOM_BOUNDING_VOLUME_HPP
 
 #include "math/math.hpp"
 #include <stdexcept>
 
-using math::vector;
+namespace geom {
 
 template <class T>
 struct sphere;
@@ -63,7 +63,7 @@ public:
 	virtual bool contains(const aabb<T>& aabb) const = 0;
 	
 	/// Tests whether this bounding volume contains a point.
-	virtual bool contains(const vector<T, 3>& point) const = 0;
+	virtual bool contains(const math::vector<T, 3>& point) const = 0;
 	
 	/// Tests for intersection between this bounding volume and another bounding volume.
 	bool intersects(const bounding_volume& volume) const;
@@ -90,4 +90,6 @@ bool bounding_volume<T>::intersects(const bounding_volume& volume) const
 	}
 }
 
-#endif // ANTKEEPER_BOUNDING_VOLUME_HPP
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_BOUNDING_VOLUME_HPP

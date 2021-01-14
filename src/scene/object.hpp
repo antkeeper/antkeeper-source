@@ -21,7 +21,7 @@
 #define ANTKEEPER_SCENE_OBJECT_HPP
 
 #include "animation/tween.hpp"
-#include "geometry/bounding-volume.hpp"
+#include "geom/bounding-volume.hpp"
 #include "math/vector-type.hpp"
 #include "math/quaternion-type.hpp"
 #include "math/transform-type.hpp"
@@ -39,7 +39,7 @@ public:
 	typedef math::vector<float, 3> vector_type;
 	typedef math::quaternion<float> quaternion_type;
 	typedef math::transform<float> transform_type;
-	typedef bounding_volume<float> bounding_volume_type;
+	typedef geom::bounding_volume<float> bounding_volume_type;
 	
 	/// Returns the type ID for this scene object type.
 	virtual const std::size_t get_object_type_id() const = 0;

@@ -23,8 +23,8 @@
 #include "ecs/components/transform-component.hpp"
 #include "game/cartography/relief-map.hpp"
 #include "renderer/model.hpp"
-#include "geometry/mesh.hpp"
-#include "geometry/mesh-functions.hpp"
+#include "geom/mesh.hpp"
+#include "geom/mesh-functions.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "rasterizer/vertex-attribute-type.hpp"
 #include "rasterizer/drawing-mode.hpp"
@@ -66,7 +66,7 @@ void terrain_system::set_patch_size(float size)
 	patch_size = size;
 }
 
-mesh* terrain_system::generate_terrain_mesh(float size, int subdivisions)
+geom::mesh* terrain_system::generate_terrain_mesh(float size, int subdivisions)
 {
 	auto elevation = [](float u, float v) -> float
 	{
@@ -76,7 +76,7 @@ mesh* terrain_system::generate_terrain_mesh(float size, int subdivisions)
 	return cart::map_elevation(elevation, size, subdivisions);
 }
 
-model* terrain_system::generate_terrain_model(mesh* terrain_mesh)
+model* terrain_system::generate_terrain_model(geom::mesh* terrain_mesh)
 {
 	// Allocate model
 	model* terrain_model = new model();
@@ -113,13 +113,13 @@ model* terrain_system::generate_terrain_model(mesh* terrain_mesh)
 	return terrain_model;
 }
 
-void terrain_system::project_terrain_mesh(mesh* terrain_mesh, const terrain_component& component)
+void terrain_system::project_terrain_mesh(geom::mesh* terrain_mesh, const terrain_component& component)
 {
 	
 	float offset_x = (float)component.x * patch_size;
 	float offset_z = (float)component.z * patch_size;
 
-	for (mesh::vertex* vertex: terrain_mesh->get_vertices())
+	for (geom::mesh::vertex* vertex: terrain_mesh->get_vertices())
 	{
 		int pixel_x = (vertex->position[0] + offset_x + heightmap_size * 0.5f) / heightmap_size * (float)(heightmap->get_width() - 1);
 		int pixel_y = (vertex->position[2] + offset_z + heightmap_size * 0.5f) / heightmap_size * (float)(heightmap->get_height() - 1);
@@ -136,12 +136,12 @@ void terrain_system::project_terrain_mesh(mesh* terrain_mesh, const terrain_comp
 	
 }
 
-void terrain_system::update_terrain_model(model* terrain_model, mesh* terrain_mesh)
+void terrain_system::update_terrain_model(model* terrain_model, geom::mesh* terrain_mesh)
 {
-	const std::vector<mesh::face*>& faces = terrain_mesh->get_faces();
-	const std::vector<mesh::vertex*>& vertices = terrain_mesh->get_vertices();
+	const std::vector<geom::mesh::face*>& faces = terrain_mesh->get_faces();
+	const std::vector<geom::mesh::vertex*>& vertices = terrain_mesh->get_vertices();
 
-	aabb<float> bounds = calculate_bounds(*terrain_mesh);
+	geom::aabb<float> bounds = calculate_bounds(*terrain_mesh);
 	float bounds_width = bounds.max_point.x - bounds.min_point.x;
 	float bounds_height = bounds.max_point.y - bounds.min_point.y;
 	float bounds_depth = bounds.max_point.z - bounds.min_point.z;
@@ -168,11 +168,11 @@ void terrain_system::update_terrain_model(model* terrain_model, mesh* terrain_me
 	float3* vertex_normals = new float3[vertices.size()];
 	for (std::size_t i = 0; i < vertices.size(); ++i)
 	{
-		const mesh::vertex* vertex = vertices[i];
+		const geom::mesh::vertex* vertex = vertices[i];
 
 		float3 n = {0, 0, 0};
-		mesh::edge* start = vertex->edge;
-		mesh::edge* edge = start;
+		geom::mesh::edge* start = vertex->edge;
+		geom::mesh::edge* edge = start;
 		do
 		{
 			if (edge->face)
@@ -192,7 +192,7 @@ void terrain_system::update_terrain_model(model* terrain_model, mesh* terrain_me
 	float2* vertex_texcoords = new float2[vertices.size()];
 	for (std::size_t i = 0; i < vertices.size(); ++i)
 	{
-		const mesh::vertex* vertex = vertices[i];
+		const geom::mesh::vertex* vertex = vertices[i];
 		vertex_texcoords[i].x = (vertex->position.x - bounds.min_point.x) / bounds_width;
 		vertex_texcoords[i].y = (vertex->position.z - bounds.min_point.z) / bounds_depth;
 	}
@@ -205,15 +205,15 @@ void terrain_system::update_terrain_model(model* terrain_model, mesh* terrain_me
 	float* v = vertex_data;
 	for (int i = 0; i < triangle_count; ++i)
 	{
-		const mesh::face* triangle = faces[i];
-		const mesh::vertex* a = triangle->edge->vertex;
-		const mesh::vertex* b = triangle->edge->next->vertex;
-		const mesh::vertex* c = triangle->edge->previous->vertex;
-		const mesh::vertex* abc[] = {a, b, c};
+		const geom::mesh::face* triangle = faces[i];
+		const geom::mesh::vertex* a = triangle->edge->vertex;
+		const geom::mesh::vertex* b = triangle->edge->next->vertex;
+		const geom::mesh::vertex* c = triangle->edge->previous->vertex;
+		const geom::mesh::vertex* abc[] = {a, b, c};
 
 		for (int j = 0; j < 3; ++j)
 		{
-			const mesh::vertex* vertex = abc[j];
+			const geom::mesh::vertex* vertex = abc[j];
 			const float3& position = vertex->position;
 			const float2& texcoord = vertex_texcoords[vertex->index];
 			const float3& normal = vertex_normals[vertex->index];
@@ -258,7 +258,7 @@ void terrain_system::update_terrain_model(model* terrain_model, mesh* terrain_me
 
 void terrain_system::on_terrain_construct(ecs::registry& registry, ecs::entity entity, terrain_component& component)
 {
-	mesh* terrain_mesh = generate_terrain_mesh(patch_size, component.subdivisions);
+	geom::mesh* terrain_mesh = generate_terrain_mesh(patch_size, component.subdivisions);
 	model* terrain_model = generate_terrain_model(terrain_mesh);
 	project_terrain_mesh(terrain_mesh, component);
 	update_terrain_model(terrain_model, terrain_mesh);

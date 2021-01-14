@@ -20,13 +20,13 @@
 #ifndef ANTKEEPER_ECS_SNAP_COMPONENT_HPP
 #define ANTKEEPER_ECS_SNAP_COMPONENT_HPP
 
-#include "geometry/ray.hpp"
+#include "geom/ray.hpp"
 
 namespace ecs {
 
 struct snap_component
 {
-	::ray<float> ray;
+	geom::ray<float> ray;
 	bool relative;
 	bool warp;
 	bool autoremove;

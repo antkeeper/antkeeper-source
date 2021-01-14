@@ -20,14 +20,14 @@
 #ifndef ANTKEEPER_ECS_PLACEMENT_COMPONENT_HPP
 #define ANTKEEPER_ECS_PLACEMENT_COMPONENT_HPP
 
-#include "geometry/mesh.hpp"
+#include "geom/mesh.hpp"
 #include "utility/fundamental-types.hpp"
 
 namespace ecs {
 
 struct locomotion_component
 {
-	const mesh::face* triangle;
+	const geom::mesh::face* triangle;
 	float3 barycentric_position;
 };
 

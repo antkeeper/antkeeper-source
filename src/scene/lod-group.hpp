@@ -21,7 +21,7 @@
 #define ANTKEEPER_SCENE_LOD_GROUP_HPP
 
 #include "scene/object.hpp"
-#include "geometry/aabb.hpp"
+#include "geom/aabb.hpp"
 #include <list>
 #include <vector>
 
@@ -32,6 +32,8 @@ class camera;
 class lod_group: public object<lod_group>
 {
 public:
+	typedef geom::aabb<float> aabb_type;
+	
 	/**
 	 * Creates a LOD group.
 	 *
@@ -80,7 +82,7 @@ public:
 	 */
 	void remove_objects(std::size_t level);
 	
-	virtual const bounding_volume<float>& get_bounds() const;
+	virtual const bounding_volume_type& get_bounds() const;
 	
 	/// Returns the number of detail levels in the group.
 	std::size_t get_level_count() const;
@@ -97,11 +99,11 @@ private:
 	void update_bounds();
 	virtual void transformed();
 	
-	aabb<float> bounds;
+	aabb_type bounds;
 	std::vector<std::list<object_base*>> levels;
 };
 
-inline const bounding_volume<float>& lod_group::get_bounds() const
+inline const typename object_base::bounding_volume_type& lod_group::get_bounds() const
 {
 	return bounds;
 }

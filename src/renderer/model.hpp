@@ -22,7 +22,7 @@
 
 #include "rasterizer/vertex-array.hpp"
 #include "rasterizer/vertex-buffer.hpp"
-#include "geometry/aabb.hpp"
+#include "geom/aabb.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -124,17 +124,19 @@ inline std::size_t model_group::get_index_count() const
 class model
 {
 public:
+	typedef geom::aabb<float> aabb_type;
+	
 	model();
 	~model();
 	
-	void set_bounds(const aabb<float>& bounds);
+	void set_bounds(const aabb_type& bounds);
 
 	model_group* add_group(const std::string& name = std::string());
 
 	bool remove_group(const std::string& name);
 	bool remove_group(model_group* group);
 	
-	const aabb<float>& get_bounds() const;
+	const aabb_type& get_bounds() const;
 
 	const model_group* get_group(const std::string& name) const;
 	model_group* get_group(const std::string& name);
@@ -148,7 +150,7 @@ public:
 	vertex_buffer* get_vertex_buffer();
 
 private:
-	aabb<float> bounds;
+	aabb_type bounds;
 	std::vector<model_group*> groups;
 	std::map<std::string, model_group*> group_map;
 	vertex_array vao;
@@ -156,12 +158,12 @@ private:
 	skeleton* skeleton;
 };
 
-inline void model::set_bounds(const aabb<float>& bounds)
+inline void model::set_bounds(const aabb_type& bounds)
 {
 	this->bounds = bounds;
 }
 
-inline const aabb<float>& model::get_bounds() const
+inline const typename model::aabb_type& model::get_bounds() const
 {
 	return bounds;
 }

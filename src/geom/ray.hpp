@@ -17,30 +17,40 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MORTON_HPP
-#define ANTKEEPER_MORTON_HPP
+#ifndef ANTKEEPER_GEOM_RAY_HPP
+#define ANTKEEPER_GEOM_RAY_HPP
 
-#include <array>
-#include <cstdint>
+#include "math/math.hpp"
 
-/**
- * Contains functions for encoding and decoding Morton location codes.
- */
-namespace morton {
+namespace geom {
 
-/// Encodes 2D coordinates as a 32-bit Morton location code.
-std::uint32_t encode_2d(std::uint32_t x, std::uint32_t y);
+template <class T>
+struct ray
+{
+	typedef math::vector<T, 3> vector_type;
+	
+	/// Origin of the ray.
+	vector_type origin;
+	
+	/// Normalized direction vector of the ray.
+	vector_type direction;
 
-/// Encodes 3D coordinates as a 32-bit Morton location code.
-std::uint32_t encode_3d(std::uint32_t x, std::uint32_t y, std::uint32_t z);
+	/**
+	 * Extrapolates from the ray origin along the ray direction vector.
+	 *
+	 * @param distance Distance to extrapolate.
+	 * @return Extrapolated coordinates.
+	 */
+	vector_type extrapolate(T distance) const;
+};
 
-/// Decodes X and Y coordinates from a 32-bit Morton location code.
-std::array<uint32_t, 2> decode_2d(std::uint32_t code);
+template <class T>
+inline typename ray<T>::vector_type ray<T>::extrapolate(T distance) const
+{
+	return origin + direction * distance;
+}
 
-/// Decodes X, Y, and Z coordinates from a 32-bit Morton location code.
-std::array<uint32_t, 3> decode_3d(std::uint32_t code);
+} // namespace geom
 
-} // namespace morton
-
-#endif // ANTKEEPER_MORTON_HPP
+#endif // ANTKEEPER_GEOM_RAY_HPP
 

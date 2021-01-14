@@ -20,6 +20,7 @@
 #include "marching-cubes.hpp"
 #include <cmath>
 
+namespace geom {
 namespace mc {
 
 static constexpr std::uint_fast8_t vertex_table[12][2] =
@@ -414,4 +415,4 @@ void polygonize(float* vertices, std::uint_fast8_t* vertex_count, std::int_fast8
 }
 
 } // namespace mc
-
+} // namespace geom

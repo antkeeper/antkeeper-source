@@ -39,7 +39,7 @@ void snapping_system::update(double t, double dt)
 			float a = std::numeric_limits<float>::infinity();
 			float3 pick;
 			
-			ray<float> snap_ray = snap.ray;
+			geom::ray<float> snap_ray = snap.ray;
 			if (snap.relative)
 			{
 				snap_ray.origin += snap_transform.local.translation;
@@ -53,10 +53,10 @@ void snapping_system::update(double t, double dt)
 					math::transform<float> inverse_transform = math::inverse(collision_transform.local);
 					float3 origin = inverse_transform * snap_ray.origin;
 					float3 direction = math::normalize(math::conjugate(collision_transform.local.rotation) * snap_ray.direction);
-					ray<float> transformed_ray = {origin, direction};
+					geom::ray<float> transformed_ray = {origin, direction};
 
 					// Broad phase AABB test
-					auto aabb_result = ray_aabb_intersection(transformed_ray, collision.bounds);
+					auto aabb_result = geom::ray_aabb_intersection(transformed_ray, collision.bounds);
 					if (!std::get<0>(aabb_result))
 					{
 						return;

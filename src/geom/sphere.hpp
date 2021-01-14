@@ -17,13 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SPHERE_HPP
-#define ANTKEEPER_SPHERE_HPP
+#ifndef ANTKEEPER_GEOM_SPHERE_HPP
+#define ANTKEEPER_GEOM_SPHERE_HPP
 
-#include "geometry/bounding-volume.hpp"
-#include "geometry/aabb.hpp"
+#include "geom/bounding-volume.hpp"
+#include "geom/aabb.hpp"
 #include "math/math.hpp"
 #include <algorithm>
+
+namespace geom {
 
 template <class T>
 struct sphere: public bounding_volume<T>
@@ -107,5 +109,7 @@ bool sphere<T>::contains(const vector_type& point) const
 	return (math::dot(d, d) <= radius * radius);
 }
 
-#endif // ANTKEEPER_SPHERE_HPP
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_SPHERE_HPP
 

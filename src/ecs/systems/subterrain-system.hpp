@@ -21,8 +21,8 @@
 #define ANTKEEPER_ECS_SUBTERRAIN_SYSTEM_HPP
 
 #include "entity-system.hpp"
-#include "geometry/mesh.hpp"
-#include "geometry/aabb.hpp"
+#include "geom/mesh.hpp"
+#include "geom/aabb.hpp"
 #include "scene/collection.hpp"
 #include "scene/model-instance.hpp"
 #include "utility/fundamental-types.hpp"
@@ -102,7 +102,7 @@ private:
 	float distance(const ecs::cube_tree& node, const float3& sample) const;
 
 	resource_manager* resource_manager;
-	mesh* subterrain_mesh;
+	geom::mesh* subterrain_mesh;
 	model* subterrain_model;
 	material* subterrain_inside_material;
 	material* subterrain_outside_material;
@@ -110,7 +110,7 @@ private:
 	model_group* subterrain_outside_group;
 	int subterrain_model_vertex_size;
 	int subterrain_model_vertex_stride;
-	aabb<float> subterrain_bounds;
+	geom::aabb<float> subterrain_bounds;
 	ecs::cube_tree* cube_tree;
 	std::vector<float3> subterrain_vertices;
 	std::vector<std::array<std::uint_fast32_t, 3>> subterrain_triangles;

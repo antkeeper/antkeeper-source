@@ -25,8 +25,8 @@
 #include "game/events/tool-events.hpp"
 #include "animation/orbit-cam.hpp"
 #include "animation/ease.hpp"
-#include "geometry/mesh.hpp"
-#include "geometry/intersection.hpp"
+#include "geom/mesh.hpp"
+#include "geom/intersection.hpp"
 #include "math/math.hpp"
 #include "ecs/commands.hpp"
 
@@ -108,7 +108,7 @@ void tool_system::update(double t, double dt)
 	float3 pick_far = camera->unproject({mouse_position[0], viewport[3] - mouse_position[1], 1.0f}, viewport);
 	float3 pick_origin = pick_near;
 	float3 pick_direction = math::normalize(pick_far - pick_near);
-	ray<float> picking_ray = {pick_near, pick_direction};
+	geom::ray<float> picking_ray = {pick_near, pick_direction};
 
 	float a = std::numeric_limits<float>::infinity();
 	bool intersection = false;
@@ -121,10 +121,10 @@ void tool_system::update(double t, double dt)
 			math::transform<float> inverse_transform = math::inverse(transform.local);
 			float3 origin = inverse_transform * pick_origin;
 			float3 direction = math::normalize(math::conjugate(transform.local.rotation) * pick_direction);
-			ray<float> transformed_ray = {origin, direction};
+			geom::ray<float> transformed_ray = {origin, direction};
 
 			// Broad phase AABB test
-			auto aabb_result = ray_aabb_intersection(transformed_ray, collision.bounds);
+			auto aabb_result = geom::ray_aabb_intersection(transformed_ray, collision.bounds);
 			if (!std::get<0>(aabb_result))
 			{
 				return;

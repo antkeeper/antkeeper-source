@@ -23,7 +23,7 @@
 
 namespace scene {
 
-const aabb<float> billboard::untransformed_bounds = {{-1, -1, -1}, {1, 1, 1}};
+const typename billboard::aabb_type billboard::untransformed_bounds = {{-1, -1, -1}, {1, 1, 1}};
 
 billboard::billboard():
 	bounds(untransformed_bounds),
@@ -63,7 +63,7 @@ void billboard::set_alignment_axis(const float3& axis)
 
 void billboard::transformed()
 {
-	bounds = aabb<float>::transform(untransformed_bounds, get_transform());
+	bounds = aabb_type::transform(untransformed_bounds, get_transform());
 }
 
 void billboard::update_tweens()

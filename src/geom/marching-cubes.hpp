@@ -17,14 +17,14 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MARCHING_CUBES_HPP
-#define ANTKEEPER_MARCHING_CUBES_HPP
+#ifndef ANTKEEPER_GEOM_MARCHING_CUBES_HPP
+#define ANTKEEPER_GEOM_MARCHING_CUBES_HPP
 
 #include <cstdint>
 
-/**
- * Contains functions and constants related to the Marching Cubes (MC) algorithm.
- */
+namespace geom {
+
+/// Functions and constants related to the marching cubes (MC) algorithm.
 namespace mc {
 
 /**
@@ -53,6 +53,7 @@ constexpr float unit_cube[8][3] =
 };
 
 } // namespace mc
+} // namespace geom
 
-#endif // ANTKEEPER_MARCHING_CUBES_HPP
+#endif // ANTKEEPER_GEOM_MARCHING_CUBES_HPP
 

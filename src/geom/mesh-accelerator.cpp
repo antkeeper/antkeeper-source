@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "geometry/mesh-accelerator.hpp"
-#include "geometry/mesh-functions.hpp"
-#include "geometry/morton.hpp"
+#include "geom/mesh-accelerator.hpp"
+#include "geom/mesh-functions.hpp"
+#include "geom/morton.hpp"
 #include <bitset>
+
+namespace geom {
 
 mesh_accelerator::mesh_accelerator()
 {}
@@ -90,7 +92,7 @@ std::optional<mesh_accelerator::ray_query_result> mesh_accelerator::query_neares
 	return std::nullopt;
 }
 
-void mesh_accelerator::query_nearest_recursive(float& nearest_t, ::mesh::face*& nearest_face, octree32::node_type node, const ray<float>& ray) const
+void mesh_accelerator::query_nearest_recursive(float& nearest_t, geom::mesh::face*& nearest_face, octree32::node_type node, const ray<float>& ray) const
 {
 	// Get node bounds
 	const aabb<float> node_bounds = get_node_bounds(node);
@@ -174,3 +176,4 @@ octree32::node_type mesh_accelerator::find_node(const float3& point) const
 	return octree32::node(octree32::max_depth, location);
 }
 
+} // namespace geom

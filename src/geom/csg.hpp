@@ -17,12 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_CSG_HPP
-#define ANTKEEPER_CSG_HPP
+#ifndef ANTKEEPER_GEOM_CSG_HPP
+#define ANTKEEPER_GEOM_CSG_HPP
 
 #include "utility/fundamental-types.hpp"
 #include <list>
 
+namespace geom {
+
+/// Constructive solid geometry (CSG)
 namespace csg {
 
 struct plane
@@ -79,6 +82,7 @@ solid op_difference(const solid& a, const solid& b);
 solid op_intersect(const solid& a, const solid& b);
 
 } // namespace csg
+} // namespace geom
 
-#endif // ANTKEEPER_CSG_HPP
+#endif // ANTKEEPER_GEOM_CSG_HPP
 

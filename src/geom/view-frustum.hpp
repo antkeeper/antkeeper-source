@@ -17,12 +17,14 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_VIEW_FRUSTUM_HPP
-#define ANTKEEPER_VIEW_FRUSTUM_HPP
+#ifndef ANTKEEPER_GEOM_VIEW_FRUSTUM_HPP
+#define ANTKEEPER_GEOM_VIEW_FRUSTUM_HPP
 
-#include "geometry/convex-hull.hpp"
+#include "geom/convex-hull.hpp"
 #include "math/math.hpp"
 #include <array>
+
+namespace geom {
 
 template <class T>
 class view_frustum
@@ -177,5 +179,7 @@ void view_frustum<T>::recalculate_corners()
 	corners[7] = plane_type::intersection(get_far(), get_bottom(), get_right());
 }
 
-#endif // ANTKEEPER_VIEW_FRUSTUM_HPP
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_VIEW_FRUSTUM_HPP
 

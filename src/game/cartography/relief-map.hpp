@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_RELIEF_MAP_HPP
 #define ANTKEEPER_RELIEF_MAP_HPP
 
-#include "geometry/mesh.hpp"
+#include "geom/mesh.hpp"
 #include <functional>
 
 namespace cart
@@ -32,7 +32,7 @@ namespace cart
  * @param function Function which returns an elevation given UV coordinates on a unit plane.
  * @param subdivisions Number of lines of longitude. Minimum value is 3.
  */
-mesh* map_elevation(const std::function<float(float, float)>& function, float scale, std::size_t subdivisions);
+geom::mesh* map_elevation(const std::function<float(float, float)>& function, float scale, std::size_t subdivisions);
 
 } // namespace cart
 

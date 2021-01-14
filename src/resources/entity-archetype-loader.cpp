@@ -67,7 +67,7 @@ static bool load_collision_component(archetype& archetype, resource_manager& res
 
 	std::string filename = parameters[1];
 	collision_component component;
-	component.mesh = resource_manager.load<mesh>(filename);
+	component.mesh = resource_manager.load<geom::mesh>(filename);
 	if (!component.mesh)
 	{
 		std::string message = std::string("load_collision_component(): Failed to load model \"") + filename + std::string("\"");

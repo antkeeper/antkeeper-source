@@ -21,7 +21,7 @@
 #define ANTKEEPER_SCENE_BILLBOARD_HPP
 
 #include "scene/object.hpp"
-#include "geometry/aabb.hpp"
+#include "geom/aabb.hpp"
 #include "utility/fundamental-types.hpp"
 
 class material;
@@ -47,6 +47,8 @@ enum class billboard_type
 class billboard: public object<billboard>
 {
 public:
+	typedef geom::aabb<float> aabb_type;
+	
 	billboard();
 	billboard(const billboard& other);
 	billboard& operator=(const billboard& other);
@@ -59,7 +61,7 @@ public:
 	/// Sets the axis around which the billboard will be rotated when the alignment is set to billboard_alignment::cylindrical.
 	void set_alignment_axis(const float3& axis);
 	
-	virtual const bounding_volume<float>& get_bounds() const;
+	virtual const bounding_volume_type& get_bounds() const;
 
 	material* get_material() const;
 	billboard_type get_billboard_type() const;
@@ -68,18 +70,18 @@ public:
 	virtual void update_tweens();
 
 private:
-	static const aabb<float> untransformed_bounds;
+	static const aabb_type untransformed_bounds;
 	
 	virtual void transformed();
 	
 	
-	aabb<float> bounds;
+	aabb_type bounds;
 	material* material;
 	billboard_type type;
 	float3 alignment_axis;
 };
 
-inline const bounding_volume<float>& billboard::get_bounds() const
+inline const typename object_base::bounding_volume_type& billboard::get_bounds() const
 {
 	return bounds;
 }

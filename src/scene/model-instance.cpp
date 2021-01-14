@@ -92,7 +92,7 @@ void model_instance::reset_materials()
 void model_instance::update_bounds()
 {
 	if (model)
-		bounds = aabb<float>::transform(model->get_bounds(), get_transform());
+		bounds = aabb_type::transform(model->get_bounds(), get_transform());
 	else
 		bounds = {get_translation(), get_translation()};
 }

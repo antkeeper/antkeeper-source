@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PROJECTION_HPP
-#define ANTKEEPER_PROJECTION_HPP
+#ifndef ANTKEEPER_GEOM_PROJECTION_HPP
+#define ANTKEEPER_GEOM_PROJECTION_HPP
 
 #include "math/math.hpp"
+
+namespace geom {
 
 template <class T>
 math::vector<T, 3> project_on_plane(const math::vector<T, 3>& v, const math::vector<T, 3>& p, const math::vector<T, 3>& n)
@@ -28,4 +30,6 @@ math::vector<T, 3> project_on_plane(const math::vector<T, 3>& v, const math::vec
 	return v - n * math::dot(v - p, n);
 }
 
-#endif // ANTKEEPER_PROJECTION_HPP
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_PROJECTION_HPP

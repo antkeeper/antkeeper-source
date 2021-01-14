@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_NEST_HPP
 #define ANTKEEPER_NEST_HPP
 
-#include "geometry/mesh.hpp"
+#include "geom/mesh.hpp"
 #include "utility/fundamental-types.hpp"
 #include <array>
 #include <vector>

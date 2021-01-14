@@ -17,15 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_INTERSECTION_HPP
-#define ANTKEEPER_INTERSECTION_HPP
+#ifndef ANTKEEPER_GEOM_INTERSECTION_HPP
+#define ANTKEEPER_GEOM_INTERSECTION_HPP
 
-#include "geometry/aabb.hpp"
-#include "geometry/mesh.hpp"
-#include "geometry/plane.hpp"
-#include "geometry/ray.hpp"
+#include "geom/aabb.hpp"
+#include "geom/mesh.hpp"
+#include "geom/plane.hpp"
+#include "geom/ray.hpp"
 #include "utility/fundamental-types.hpp"
 #include <tuple>
+
+namespace geom {
 
 /**
  * Tests for intersection between a ray and a plane.
@@ -46,5 +48,7 @@ bool aabb_sphere_intersection(const aabb<float>& aabb, const float3& center, flo
 
 bool aabb_aabb_intersection(const aabb<float>& a, const aabb<float>& b);
 
-#endif // ANTKEEPER_INTERSECTION_HPP
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_INTERSECTION_HPP
 

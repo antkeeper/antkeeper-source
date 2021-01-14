@@ -24,7 +24,7 @@
 #include "resources/string-table.hpp"
 #include "ecs/entity.hpp"
 #include "ecs/registry.hpp"
-#include "geometry/aabb.hpp"
+#include "geom/aabb.hpp"
 #include <optional>
 #include <entt/entt.hpp>
 #include <fstream>
@@ -193,7 +193,7 @@ struct game_context
 	scene::billboard* splash_billboard;
 	scene::spotlight* lens_spotlight;
 	scene::spotlight* flashlight_spotlight;
-	aabb<float> no_cull;
+	geom::aabb<float> no_cull;
 	
 	// Animation
 	timeline* timeline;

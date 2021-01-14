@@ -17,13 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_AABB_HPP
-#define ANTKEEPER_AABB_HPP
+#ifndef ANTKEEPER_GEOM_AABB_HPP
+#define ANTKEEPER_GEOM_AABB_HPP
 
 #include "bounding-volume.hpp"
 #include "sphere.hpp"
 #include "math/math.hpp"
 #include <limits>
+
+namespace geom {
 
 template <class T>
 struct aabb: public bounding_volume<T>
@@ -101,7 +103,7 @@ aabb<T> aabb<T>::transform(const aabb& a, const matrix_type& m)
 	for (std::size_t i = 0; i < 8; ++i)
 	{
 		vector_type corner = a.corner(i);
-		vector<T, 4> transformed_corner = math::mul(m, vector<T, 4>{corner.x, corner.y, corner.z, T(1)});
+		math::vector<T, 4> transformed_corner = math::mul(m, math::vector<T, 4>{corner.x, corner.y, corner.z, T(1)});
 
 		for (std::size_t j = 0; j < 3; ++j)
 		{
@@ -195,5 +197,7 @@ typename aabb<T>::vector_type aabb<T>::corner(int index) const noexcept
 		};
 }
 
-#endif // ANTKEEPER_AABB_HPP
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_AABB_HPP
 

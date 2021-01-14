@@ -21,7 +21,7 @@
 #define ANTKEEPER_SCENE_CAMERA_HPP
 
 #include "scene/object.hpp"
-#include "geometry/view-frustum.hpp"
+#include "geom/view-frustum.hpp"
 #include "utility/fundamental-types.hpp"
 
 class compositor;
@@ -34,6 +34,8 @@ namespace scene {
 class camera: public object<camera>
 {
 public:
+	typedef geom::view_frustum<float> view_frustum_type;
+	
 	camera();
 
 	/**
@@ -79,7 +81,7 @@ public:
 	void set_compositor(compositor* compositor);
 	void set_composite_index(int index);
 	
-	virtual const bounding_volume<float>& get_bounds() const;
+	virtual const bounding_volume_type& get_bounds() const;
 
 	float is_orthographic() const;
 	float get_clip_left() const;
@@ -101,7 +103,7 @@ public:
 	const float4x4& get_view_projection() const;
 	
 	/// Returns the camera's view frustum.
-	const view_frustum<float>& get_view_frustum() const;
+	const view_frustum_type& get_view_frustum() const;
 
 	const compositor* get_compositor() const;
 	compositor* get_compositor();
@@ -139,10 +141,10 @@ private:
 	tween<float4x4> view;
 	tween<float4x4> projection;
 	tween<float4x4> view_projection;
-	view_frustum<float> view_frustum;
+	view_frustum_type view_frustum;
 };
 
-inline const bounding_volume<float>& camera::get_bounds() const
+inline const typename object_base::bounding_volume_type& camera::get_bounds() const
 {
 	return view_frustum.get_bounds();
 }
@@ -207,7 +209,7 @@ inline const float4x4& camera::get_view_projection() const
 	return view_projection[1];
 }
 
-inline const view_frustum<float>& camera::get_view_frustum() const
+inline const typename camera::view_frustum_type& camera::get_view_frustum() const
 {
 	return view_frustum;
 }

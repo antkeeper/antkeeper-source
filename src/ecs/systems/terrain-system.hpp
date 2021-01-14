@@ -23,10 +23,10 @@
 #include "entity-system.hpp"
 #include "ecs/components/terrain-component.hpp"
 #include "ecs/entity.hpp"
+#include "geom/mesh.hpp"
 
 class terrain;
 class resource_manager;
-class mesh;
 class model;
 class image;
 
@@ -45,10 +45,10 @@ public:
 	void set_patch_size(float size);
 
 private:
-	mesh* generate_terrain_mesh(float size, int subdivisions);
-	model* generate_terrain_model(mesh* terrain_mesh);
-	void project_terrain_mesh(mesh* terrain_mesh, const ecs::terrain_component& component);
-	void update_terrain_model(model* terrain_model, mesh* terrain_mesh);
+	geom::mesh* generate_terrain_mesh(float size, int subdivisions);
+	model* generate_terrain_model(geom::mesh* terrain_mesh);
+	void project_terrain_mesh(geom::mesh* terrain_mesh, const ecs::terrain_component& component);
+	void update_terrain_model(model* terrain_model, geom::mesh* terrain_mesh);
 
 	void on_terrain_construct(ecs::registry& registry, ecs::entity entity, ecs::terrain_component& component);
 	void on_terrain_destroy(ecs::registry& registry, ecs::entity entity);

@@ -33,7 +33,7 @@
 #include "rasterizer/vertex-buffer.hpp"
 #include "rasterizer/vertex-attribute-type.hpp"
 #include "renderer/vertex-attributes.hpp"
-#include "geometry/mesh-functions.hpp"
+#include "geom/mesh-functions.hpp"
 #include <limits>
 
 namespace ecs {
@@ -252,7 +252,7 @@ void painting_system::update(double t, double dt)
 				stroke_bounds_max.x = std::max<float>(stroke_bounds_max.x, std::max<float>(c.x, std::max<float>(d.x, std::max<float>(e.x, f.x))));
 				stroke_bounds_max.y = std::max<float>(stroke_bounds_max.y, std::max<float>(c.y, std::max<float>(d.y, std::max<float>(e.y, f.y))));
 				stroke_bounds_max.z = std::max<float>(stroke_bounds_max.z, std::max<float>(c.z, std::max<float>(d.z, std::max<float>(e.z, f.z))));
-				stroke_model->set_bounds(aabb<float>{stroke_bounds_min, stroke_bounds_max});
+				stroke_model->set_bounds(geom::aabb<float>{stroke_bounds_min, stroke_bounds_max});
 				stroke_model_instance->update_bounds();
 				
 				p0 = stroke_start;
@@ -313,9 +313,9 @@ std::optional<std::tuple<float3, float3>> painting_system::cast_ray(const float3
 	
 	float3 intersection;
 	float3 surface_normal;
-	mesh::face* face = nullptr;
+	geom::mesh::face* face = nullptr;
 	
-	ray<float> untransformed_ray = {position + float3{0.0f, 10000.0f, 0.0f}, {0, -1, 0}};
+	geom::ray<float> untransformed_ray = {position + float3{0.0f, 10000.0f, 0.0f}, {0, -1, 0}};
 	float min_distance = std::numeric_limits<float>::infinity();
 
 	registry.view<transform_component, collision_component>().each(
@@ -325,10 +325,10 @@ std::optional<std::tuple<float3, float3>> painting_system::cast_ray(const float3
 			math::transform<float> inverse_transform = math::inverse(collision_transform.local);
 			float3 origin = inverse_transform * untransformed_ray.origin;
 			float3 direction = math::normalize(math::conjugate(collision_transform.local.rotation) * untransformed_ray.direction);
-			ray<float> transformed_ray = {origin, direction};
+			geom::ray<float> transformed_ray = {origin, direction};
 
 			// Broad phase AABB test
-			auto aabb_result = ray_aabb_intersection(transformed_ray, collision.bounds);
+			auto aabb_result = geom::ray_aabb_intersection(transformed_ray, collision.bounds);
 			if (!std::get<0>(aabb_result))
 			{
 				return;

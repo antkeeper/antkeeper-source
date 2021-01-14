@@ -19,6 +19,7 @@
 
 #include "morton.hpp"
 
+namespace geom {
 namespace morton {
 
 std::uint32_t encode_2d(std::uint32_t x, std::uint32_t y)
@@ -82,4 +83,4 @@ std::array<uint32_t, 3> decode_3d(std::uint32_t code)
 }
 
 } // namespace morton
-
+} // namespace geom

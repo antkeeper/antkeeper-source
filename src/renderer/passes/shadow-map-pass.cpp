@@ -29,8 +29,8 @@
 #include "renderer/material-flags.hpp"
 #include "scene/camera.hpp"
 #include "scene/light.hpp"
-#include "geometry/view-frustum.hpp"
-#include "geometry/aabb.hpp"
+#include "geom/view-frustum.hpp"
+#include "geom/aabb.hpp"
 #include "configuration.hpp"
 #include "math/math.hpp"
 #include <cmath>
@@ -165,11 +165,11 @@ void shadow_map_pass::render(render_context* context) const
 		float4x4 subfrustum_projection = math::perspective_half_z(camera.get_fov(), camera.get_aspect_ratio(), subfrustum_near, subfrustum_far);
 		
 		// Calculate view camera subfrustum
-		view_frustum<float> subfrustum(subfrustum_projection * camera_view);
+		geom::view_frustum<float> subfrustum(subfrustum_projection * camera_view);
 		
 		// Create AABB containing the view camera subfrustum corners
-		const std::array<vector<float, 3>, 8>& subfrustum_corners = subfrustum.get_corners();
-		aabb<float> subfrustum_aabb = {subfrustum_corners[0], subfrustum_corners[0]};
+		const std::array<float3, 8>& subfrustum_corners = subfrustum.get_corners();
+		geom::aabb<float> subfrustum_aabb = {subfrustum_corners[0], subfrustum_corners[0]};
 		for (int j = 1; j < 8; ++j)
 		{
 			for (int k = 0; k < 3; ++k)
@@ -180,7 +180,7 @@ void shadow_map_pass::render(render_context* context) const
 		}
 		
 		// Transform subfrustum AABB into the light clip space
-		aabb<float> cropping_bounds = aabb<float>::transform(subfrustum_aabb, light_view_projection);
+		geom::aabb<float> cropping_bounds = geom::aabb<float>::transform(subfrustum_aabb, light_view_projection);
 	
 		// Calculate scale
 		float3 scale;

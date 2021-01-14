@@ -21,7 +21,7 @@
 #define ANTKEEPER_SCENE_MODEL_INSTANCE_HPP
 
 #include "scene/object.hpp"
-#include "geometry/aabb.hpp"
+#include "geom/aabb.hpp"
 #include <vector>
 
 class material;
@@ -33,6 +33,8 @@ namespace scene {
 class model_instance: public object<model_instance>
 {
 public:
+	typedef geom::aabb<float> aabb_type;
+	
 	explicit model_instance(model* model);
 	model_instance();
 	model_instance(const model_instance& other);
@@ -63,7 +65,7 @@ public:
 	 */
 	void reset_materials();
 	
-	virtual const bounding_volume<float>& get_bounds() const;
+	virtual const bounding_volume_type& get_bounds() const;
 
 	const model* get_model() const;
 	model* get_model();
@@ -86,12 +88,12 @@ private:
 	model* model;
 	pose* pose;
 	std::vector<material*> materials;
-	aabb<float> bounds;
+	aabb_type bounds;
 	bool instanced;
 	std::size_t instance_count;
 };
 
-inline const bounding_volume<float>& model_instance::get_bounds() const
+inline const typename object_base::bounding_volume_type& model_instance::get_bounds() const
 {
 	return bounds;
 }

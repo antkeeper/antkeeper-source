@@ -52,7 +52,7 @@ void light::update_tweens()
 
 void light::transformed()
 {
-	bounds = sphere<float>(get_translation(), 0.0f);
+	bounds = sphere_type(get_translation(), 0.0f);
 }
 
 } // namespace scene

@@ -17,14 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MESH_FUNCTIONS_HPP
-#define ANTKEEPER_MESH_FUNCTIONS_HPP
+#ifndef ANTKEEPER_GEOM_MESH_FUNCTIONS_HPP
+#define ANTKEEPER_GEOM_MESH_FUNCTIONS_HPP
 
-#include "geometry/aabb.hpp"
-#include "geometry/mesh.hpp"
+#include "geom/aabb.hpp"
+#include "geom/mesh.hpp"
 #include "utility/fundamental-types.hpp"
 #include <array>
 #include <vector>
+
+namespace geom {
 
 /**
  * Creates a triangle mesh from a list of vertices and indices.
@@ -54,12 +56,12 @@ float3 calculate_face_normal(const mesh::face& face);
  */
 void calculate_vertex_tangents(float4* tangents, const float2* texcoords, const float3* normals, const mesh& mesh);
 
-
 /**
  * Calculates the AABB bounds of a mesh.
  */
 aabb<float> calculate_bounds(const mesh& mesh);
 
+} // namespace geom
 
-#endif // ANTKEEPER_MESH_FUNCTIONS_HPP
+#endif // ANTKEEPER_GEOM_MESH_FUNCTIONS_HPP
 

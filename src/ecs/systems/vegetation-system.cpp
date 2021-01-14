@@ -24,7 +24,7 @@
 #include "scene/lod-group.hpp"
 #include "scene/collection.hpp"
 #include "renderer/material.hpp"
-#include "geometry/aabb.hpp"
+#include "geom/aabb.hpp"
 #include "utility/fundamental-types.hpp"
 #include <cmath>
 
@@ -113,7 +113,7 @@ void vegetation_system::on_terrain_construct(ecs::registry& registry, ecs::entit
 			float3 translation = {vegetation_patch_x, 0.0f, vegetation_patch_z};
 			
 			// Generate culling mask
-			aabb<float>* culling_mask = new aabb<float>(vegetation_model->get_bounds());
+			geom::aabb<float>* culling_mask = new geom::aabb<float>(vegetation_model->get_bounds());
 			culling_mask->min_point.x = std::min<float>(culling_mask->min_point.x, translation.x - vegetation_patch_size * 0.5f);
 			culling_mask->min_point.z = std::min<float>(culling_mask->min_point.z, translation.z - vegetation_patch_size * 0.5f);
 			culling_mask->max_point.x = std::max<float>(culling_mask->max_point.x, translation.x + vegetation_patch_size * 0.5f);

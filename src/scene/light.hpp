@@ -21,7 +21,7 @@
 #define ANTKEEPER_SCENE_LIGHT_HPP
 
 #include "scene/object.hpp"
-#include "geometry/sphere.hpp"
+#include "geom/sphere.hpp"
 #include "utility/fundamental-types.hpp"
 
 namespace scene {
@@ -37,6 +37,8 @@ enum class light_type
 class light: public object<light>
 {
 public:
+	typedef geom::sphere<float> sphere_type;
+	
 	light();
 
 	virtual light_type get_light_type() const = 0;
@@ -44,7 +46,7 @@ public:
 	void set_color(const float3& color);
 	void set_intensity(float intensity);
 	
-	virtual const bounding_volume<float>& get_bounds() const;
+	virtual const bounding_volume_type& get_bounds() const;
 
 	const float3& get_color() const;
 	float get_intensity() const;
@@ -63,10 +65,10 @@ private:
 	tween<float3> color;
 	tween<float> intensity;
 	tween<float3> scaled_color;
-	sphere<float> bounds;
+	sphere_type bounds;
 };
 
-inline const bounding_volume<float>& light::get_bounds() const
+inline const typename object_base::bounding_volume_type& light::get_bounds() const
 {
 	return bounds;
 }

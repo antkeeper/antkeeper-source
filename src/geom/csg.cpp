@@ -20,6 +20,7 @@
 #include "csg.hpp"
 #include <tuple>
 
+namespace geom {
 namespace csg {
 
 enum class polygon_classification
@@ -112,4 +113,4 @@ bsp_tree::~bsp_tree()
 }
 
 } // namespace csg
-
+} // namespace geom
