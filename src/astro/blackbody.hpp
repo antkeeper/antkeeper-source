@@ -17,15 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "apparent-size.hpp"
-#include <cmath>
+#ifndef ANTKEEPER_ASTRO_BLACKBODY_HPP
+#define ANTKEEPER_ASTRO_BLACKBODY_HPP
 
-namespace ast
+#include "utility/fundamental-types.hpp"
+
+namespace astro
 {
 
-double find_angular_radius(double radius, double distance)
-{
-	return std::asin(radius / distance);
-}
+/**
+ * Calculates the color of an ideal black-body radiator, given its temperature in Kelvin.
+ *
+ * @param t Temperature, in Kelvin.
+ * @return Correlated color, in linear RGB space.
+ *
+ * @see https://en.wikipedia.org/wiki/Planckian_locus
+ * @see https://en.wikipedia.org/wiki/CIE_1960_color_space
+ * @see https://google.github.io/filament/Filament.html
+ */
+double3 blackbody(double t);
 
-} // namespace ast
+} // namespace astro
+
+#endif // ANTKEEPER_ASTRO_BLACKBODY_HPP

@@ -17,12 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_CELESTIAL_MECHANICS_HPP
-#define ANTKEEPER_CELESTIAL_MECHANICS_HPP
+#ifndef ANTKEEPER_ASTRO_ORBIT_HPP
+#define ANTKEEPER_ASTRO_ORBIT_HPP
 
 #include "utility/fundamental-types.hpp"
 
-namespace ast
+namespace astro
 {
 
 /**
@@ -70,6 +70,6 @@ double solve_kepler(double ec, double ma, double tolerance, std::size_t iteratio
  */
 double3 orbital_elements_to_ecliptic(const orbital_elements& elements, double ke_tolerance, std::size_t ke_iterations);
 
-} // namespace ast
+} // namespace astro
 
-#endif // ANTKEEPER_CELESTIAL_MECHANICS_HPP
+#endif // ANTKEEPER_ASTRO_ORBIT_HPP

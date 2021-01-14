@@ -20,7 +20,7 @@
 #include "blackbody.hpp"
 #include <algorithm>
 
-namespace ast
+namespace astro
 {
 
 /// Transforms colors from CIE XYZ to linear RGB
@@ -51,4 +51,4 @@ double3 blackbody(double t)
 	return rgb / std::max<double>(rgb.x, std::max<double>(rgb.y, rgb.z));
 }
 
-} // namespace ast
+} // namespace astro

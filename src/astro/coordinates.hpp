@@ -17,12 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_CELESTIAL_COORDINATES_HPP
-#define ANTKEEPER_CELESTIAL_COORDINATES_HPP
+#ifndef ANTKEEPER_ASTRO_COORDINATES_HPP
+#define ANTKEEPER_ASTRO_COORDINATES_HPP
 
 #include "utility/fundamental-types.hpp"
 
-namespace ast
+namespace astro
 {
 
 /**
@@ -103,6 +103,6 @@ constexpr double3x3 horizontal_to_right_handed =
 	0.0, -1.0, 0.0
 };
 
-} // namespace ast
+} // namespace astro
 
-#endif // ANTKEEPER_CELESTIAL_COORDINATES_HPP
+#endif // ANTKEEPER_ASTRO_COORDINATES_HPP

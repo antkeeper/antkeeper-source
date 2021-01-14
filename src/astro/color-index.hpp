@@ -17,26 +17,22 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_BLACKBODY_HPP
-#define ANTKEEPER_BLACKBODY_HPP
+#ifndef ANTKEEPER_ASTRO_COLOR_INDEX_HPP
+#define ANTKEEPER_ASTRO_COLOR_INDEX_HPP
 
-#include "utility/fundamental-types.hpp"
-
-namespace ast
+namespace astro
 {
 
 /**
- * Calculates the color of an ideal black-body radiator, given its temperature in Kelvin.
+ * Approximates the temperature of a star, given its B-V index.
  *
- * @param t Temperature, in Kelvin.
- * @return Correlated color, in linear RGB space.
+ * @see Ballesteros, F. J. (2012). "New insights into black bodies". EPL 97 (2012) 34008.
  *
- * @see https://en.wikipedia.org/wiki/Planckian_locus
- * @see https://en.wikipedia.org/wiki/CIE_1960_color_space
- * @see https://google.github.io/filament/Filament.html
+ * @param bv B-V index.
+ * @return Temperature, in Kelvin.
  */
-double3 blackbody(double t);
+double bv_to_k(double bv);
 
-} // namespace ast
+} // namespace astro
 
-#endif // ANTKEEPER_BLACKBODY_HPP
+#endif // ANTKEEPER_ASTRO_COLOR_INDEX_HPP

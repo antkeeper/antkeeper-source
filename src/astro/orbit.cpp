@@ -17,11 +17,11 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "celestial-mechanics.hpp"
+#include "orbit.hpp"
 #include "math/angles.hpp"
 #include <cmath>
 
-namespace ast
+namespace astro
 {
 
 double solve_kepler(double ec, double ma, double tolerance, std::size_t iterations)
@@ -75,4 +75,4 @@ double3 orbital_elements_to_ecliptic(const orbital_elements& elements, double ke
 	};
 }
 
-} // namespace ast
+} // namespace astro

@@ -17,10 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "celestial-coordinates.hpp"
+#include "coordinates.hpp"
 #include <cmath>
 
-namespace ast
+namespace astro
 {
 
 double3 rectangular_to_spherical(const double3& rectangular)
@@ -135,4 +135,4 @@ double3x3 horizontal_to_ecliptic(double ecl, double lat, double lst)
 	};
 }
 
-} // namespace ast
+} // namespace astro

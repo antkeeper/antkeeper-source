@@ -17,21 +17,14 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_APPARENT_SIZE_HPP
-#define ANTKEEPER_APPARENT_SIZE_HPP
+#include "color-index.hpp"
 
-namespace ast
+namespace astro
 {
 
-/**
- * Finds the angular radius of a celestial object, given its radius and distance.
- *
- * @param radius Radius of the celestial object.
- * @param distance Distance to the celestial object.
- * @return Angular radius, in radians.
- */
-double find_angular_radius(double radius, double distance);
+double bv_to_k(double bv)
+{
+	return 4600.0 * (1.0 / (0.92 * bv + 1.7) + 1.0 / (0.92 * bv + 0.62));
+}
 
-} // namespace ast
-
-#endif // ANTKEEPER_APPARENT_SIZE_HPP
+} // namespace astro

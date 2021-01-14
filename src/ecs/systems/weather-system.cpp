@@ -25,8 +25,8 @@
 #include "renderer/passes/material-pass.hpp"
 #include "utility/gamma.hpp"
 #include "resources/image.hpp"
-#include "game/astronomy/celestial-coordinates.hpp"
-#include "game/astronomy/celestial-mechanics.hpp"
+#include "astro/coordinates.hpp"
+#include "astro/orbit.hpp"
 #include <cmath>
 
 namespace ecs {

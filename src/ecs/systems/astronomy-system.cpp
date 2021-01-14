@@ -18,8 +18,8 @@
  */
 
 #include "ecs/systems/astronomy-system.hpp"
-#include "game/astronomy/celestial-coordinates.hpp"
-#include "game/astronomy/apparent-size.hpp"
+#include "astro/coordinates.hpp"
+#include "astro/apparent-size.hpp"
 #include "ecs/components/celestial-body-component.hpp"
 #include "ecs/components/transform-component.hpp"
 #include "renderer/passes/sky-pass.hpp"
@@ -56,15 +56,15 @@ void astronomy_system::update(double t, double dt)
 		horizontal.z -= observer_location[0];
 		
 		// Convert rectangular horizontal coordinates to spherical
-		double3 spherical = ast::rectangular_to_spherical(horizontal);
+		double3 spherical = astro::rectangular_to_spherical(horizontal);
 		spherical.z -= math::pi<double>;
 		
 		// Find angular radius
-		double angular_radius = ast::find_angular_radius(body.radius, spherical.x);
+		double angular_radius = astro::find_angular_radius(body.radius, spherical.x);
 		
 		// Transform into local right-handed coordinates
-		double3 translation = ast::horizontal_to_right_handed * horizontal;
-		double3x3 rotation = ast::horizontal_to_right_handed * ecliptic_to_horizontal;
+		double3 translation = astro::horizontal_to_right_handed * horizontal;
+		double3x3 rotation = astro::horizontal_to_right_handed * ecliptic_to_horizontal;
 		
 		// Set local transform of transform component
 		transform.local.translation = math::type_cast<float>(translation);
@@ -145,7 +145,7 @@ void astronomy_system::update_sidereal_time()
 
 void astronomy_system::update_ecliptic_to_horizontal()
 {
-	ecliptic_to_horizontal = ast::ecliptic_to_horizontal(obliquity, observer_location[1], lst);
+	ecliptic_to_horizontal = astro::ecliptic_to_horizontal(obliquity, observer_location[1], lst);
 }
 
 } // namespace ecs

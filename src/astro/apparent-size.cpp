@@ -17,14 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "color-index.hpp"
+#include "apparent-size.hpp"
+#include <cmath>
 
-namespace ast
+namespace astro
 {
 
-double bv_to_k(double bv)
+double find_angular_radius(double radius, double distance)
 {
-	return 4600.0 * (1.0 / (0.92 * bv + 1.7) + 1.0 / (0.92 * bv + 0.62));
+	return std::asin(radius / distance);
 }
 
-} // namespace ast
+} // namespace astro

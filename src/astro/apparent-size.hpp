@@ -17,22 +17,21 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_COLOR_INDEX_HPP
-#define ANTKEEPER_COLOR_INDEX_HPP
+#ifndef ANTKEEPER_ASTRO_APPARENT_SIZE_HPP
+#define ANTKEEPER_ASTRO_APPARENT_SIZE_HPP
 
-namespace ast
+namespace astro
 {
 
 /**
- * Approximates the temperature of a star, given its B-V index.
+ * Finds the angular radius of a celestial object, given its radius and distance.
  *
- * @see Ballesteros, F. J. (2012). "New insights into black bodies". EPL 97 (2012) 34008.
- *
- * @param bv B-V index.
- * @return Temperature, in Kelvin.
+ * @param radius Radius of the celestial object.
+ * @param distance Distance to the celestial object.
+ * @return Angular radius, in radians.
  */
-double bv_to_k(double bv);
+double find_angular_radius(double radius, double distance);
 
-} // namespace ast
+} // namespace astro
 
-#endif // ANTKEEPER_COLOR_INDEX_HPP
+#endif // ANTKEEPER_ASTRO_APPARENT_SIZE_HPP

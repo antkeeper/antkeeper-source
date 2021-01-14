@@ -17,14 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ASTRONOMICAL_CONSTANTS_HPP
-#define ANTKEEPER_ASTRONOMICAL_CONSTANTS_HPP
+#ifndef ANTKEEPER_ASTRO_CONSTANTS_HPP
+#define ANTKEEPER_ASTRO_CONSTANTS_HPP
 
-namespace ast
+namespace astro
 {
 
-static constexpr double km_per_au = 6.68459e-9;
+/// Kilometers per astronomical unit
+template <typename T>
+constexpr T km_per_au = 6.68459e-9;
 
-} // namespace ast
+} // namespace astro
 
-#endif // ANTKEEPER_ASTRONOMICAL_CONSTANTS_HPP
+#endif // ANTKEEPER_ASTRO_CONSTANTS_HPP

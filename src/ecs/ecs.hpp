@@ -24,6 +24,8 @@
 namespace ecs {}
 
 #include "archetype.hpp"
+#include "commands.hpp"
 #include "entity.hpp"
+#include "registry.hpp"
 
 #endif // ANTKEEPER_ECS_HPP
