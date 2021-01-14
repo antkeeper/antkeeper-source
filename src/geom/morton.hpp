@@ -25,7 +25,7 @@
 
 namespace geom {
 
-/// Functions which encode or decode Morton location codes.
+/// Morton location code encoding and decoding functions.
 namespace morton {
 
 /// Encodes 2D coordinates as a 32-bit Morton location code.

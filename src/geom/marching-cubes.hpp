@@ -24,7 +24,7 @@
 
 namespace geom {
 
-/// Functions and constants related to the marching cubes (MC) algorithm.
+/// Marching cubes (MC) algorithm functions and constants.
 namespace mc {
 
 /**
