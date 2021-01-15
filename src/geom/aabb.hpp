@@ -27,6 +27,9 @@
 
 namespace geom {
 
+/**
+ * Axis-aligned bounding box.
+ */
 template <class T>
 struct aabb: public bounding_volume<T>
 {

@@ -24,6 +24,9 @@
 
 namespace geom {
 
+/**
+ * Half of a line proceeding from an initial point.
+ */
 template <class T>
 struct ray
 {

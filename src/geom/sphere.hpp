@@ -27,6 +27,9 @@
 
 namespace geom {
 
+/**
+ * Bounding sphere.
+ */
 template <class T>
 struct sphere: public bounding_volume<T>
 {

@@ -26,6 +26,9 @@
 
 namespace geom {
 
+/**
+ * View frustum.
+ */
 template <class T>
 class view_frustum
 {

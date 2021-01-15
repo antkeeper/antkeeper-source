@@ -24,6 +24,9 @@
 
 namespace geom {
 
+/**
+ * A flat 2-dimensional surface.
+ */
 template <class T>
 struct plane
 {

@@ -20,8 +20,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-// Direct Nvidia Optimus to use high-performance graphics
 extern "C"
 {
+	// Direct Nvidia Optimus to use high-performance graphics
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
