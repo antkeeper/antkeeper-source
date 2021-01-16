@@ -17,39 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "console-commands.hpp"
-#include "application.hpp"
-#include "animation/timeline.hpp"
-#include "game/game-context.hpp"
-#include "debug/cli.hpp"
+#ifndef ANTKEEPER_DEBUG_CONSOLE_COMMANDS_HPP
+#define ANTKEEPER_DEBUG_CONSOLE_COMMANDS_HPP
 
+#include <string>
+
+struct game_context;
+
+namespace debug {
+
+/// Console commands
 namespace cc {
 
-std::string echo(std::string text)
-{
-	return text;
-}
+std::string echo(std::string text);
 
-std::string exit(game_context* ctx)
-{
-	ctx->app->close(EXIT_SUCCESS);
-	return std::string();
-}
+std::string exit(game_context* ctx);
 
-std::string scrot(game_context* ctx)
-{
-	//ctx->app->take_screenshot();
-	return std::string("screenshot saved");
-}
+std::string scrot(game_context* ctx);
 
-std::string cue(game_context* ctx, float t, std::string command)
-{
-	::timeline* timeline = ctx->timeline;
-	debug::cli* cli = ctx->cli;
-	
-	timeline->add_cue({timeline->get_position() + t, std::function<void()>(std::bind(&debug::cli::interpret, cli, command))});
-	
-	return std::string("command \"" + command + "\" will execute in " + std::to_string(t) + " seconds");
-}
+std::string cue(game_context* ctx, float t, std::string command);
 
 } // namespace cc
+} // namespace debug
+
+#endif // ANTKEEPER_DEBUG_CONSOLE_COMMANDS_HPP

@@ -24,7 +24,7 @@
 #include "animation/timeline.hpp"
 #include "application.hpp"
 #include "debug/cli.hpp"
-#include "game/console-commands.hpp"
+#include "debug/console-commands.hpp"
 #include "debug/logger.hpp"
 #include "game/game-context.hpp"
 #include "rasterizer/framebuffer.hpp"
@@ -1238,10 +1238,10 @@ void setup_controls(game_context* ctx)
 void setup_cli(game_context* ctx)
 {
 	ctx->cli = new debug::cli();
-	ctx->cli->register_command("echo", cc::echo);
-	ctx->cli->register_command("exit", std::function<std::string()>(std::bind(&cc::exit, ctx)));
-	ctx->cli->register_command("scrot", std::function<std::string()>(std::bind(&cc::scrot, ctx)));
-	ctx->cli->register_command("cue", std::function<std::string(float, std::string)>(std::bind(&cc::cue, ctx, std::placeholders::_1, std::placeholders::_2)));
+	ctx->cli->register_command("echo", debug::cc::echo);
+	ctx->cli->register_command("exit", std::function<std::string()>(std::bind(&debug::cc::exit, ctx)));
+	ctx->cli->register_command("scrot", std::function<std::string()>(std::bind(&debug::cc::scrot, ctx)));
+	ctx->cli->register_command("cue", std::function<std::string(float, std::string)>(std::bind(&debug::cc::cue, ctx, std::placeholders::_1, std::placeholders::_2)));
 	//std::string cmd = "cue 20 exit";
 	//logger->log(cmd);
 	//logger->log(cli.interpret(cmd));
