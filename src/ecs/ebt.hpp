@@ -17,17 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_EBT_HPP
-#define ANTKEEPER_EBT_HPP
+#ifndef ANTKEEPER_ECS_EBT_HPP
+#define ANTKEEPER_ECS_EBT_HPP
 
-#include "game/behavior/behavior-tree.hpp"
-#include <entt/entt.hpp>
+#include "ai/behavior-tree.hpp"
+#include "ecs/entity.hpp"
+#include "ecs/registry.hpp"
 
-/// Entity Behavior Tree
+namespace ecs {
 
-/**
- * The `ebt` namespace defines Entity Behavior Tree (EBT) nodes and an EBT context, on which EBT nodes operate.
- */
+/// Entity behavior tree (EBT) nodes and context.
 namespace ebt {
 
 /**
@@ -35,22 +34,22 @@ namespace ebt {
  */
 struct context
 {
-	entt::registry* registry;
-	entt::entity entity;
+	ecs::registry* registry;
+	ecs::entity entity;
 };
 
-typedef behavior_tree::status status;
-typedef behavior_tree::node<context> node;
-typedef behavior_tree::leaf_node<context> leaf_node;
-typedef behavior_tree::decorator_node<context> decorator_node;
-typedef behavior_tree::composite_node<context> composite_node;
-typedef behavior_tree::action<context> action;
-typedef behavior_tree::condition<context> condition;
-typedef behavior_tree::inverter<context> inverter;
-typedef behavior_tree::repeater<context> repeater;
-typedef behavior_tree::succeeder<context> succeeder;
-typedef behavior_tree::sequence<context> sequence;
-typedef behavior_tree::selector<context> selector;
+typedef ai::bt::status status;
+typedef ai::bt::node<context> node;
+typedef ai::bt::leaf_node<context> leaf_node;
+typedef ai::bt::decorator_node<context> decorator_node;
+typedef ai::bt::composite_node<context> composite_node;
+typedef ai::bt::action<context> action;
+typedef ai::bt::condition<context> condition;
+typedef ai::bt::inverter<context> inverter;
+typedef ai::bt::repeater<context> repeater;
+typedef ai::bt::succeeder<context> succeeder;
+typedef ai::bt::sequence<context> sequence;
+typedef ai::bt::selector<context> selector;
 
 // Actions
 status print(context& context, const std::string& text);
@@ -61,6 +60,7 @@ status warp_to(context& context, float x, float y, float z);
 bool is_carrying_food(const context& context);
 
 } // namespace ebt
+} // namespace ecs
 
-#endif // ANTKEEPER_EBT_HPP
+#endif // ANTKEEPER_ECS_EBT_HPP
 

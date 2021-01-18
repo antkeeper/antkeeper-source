@@ -17,19 +17,37 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_BEHAVIOR_COMPONENT_HPP
-#define ANTKEEPER_ECS_BEHAVIOR_COMPONENT_HPP
-
 #include "ecs/ebt.hpp"
+#include "ecs/components/transform-component.hpp"
+#include <iostream>
 
 namespace ecs {
+namespace ebt {
 
-struct behavior_component
+status print(context& context, const std::string& text)
 {
-	const ebt::node* behavior_tree;
-};
+	std::cout << text;
+	return status::success;
+}
 
+status print_eid(context& context)
+{
+	std::cout << static_cast<std::size_t>(context.entity) << std::endl;
+	return status::success;
+}
+
+status warp_to(context& context, float x, float y, float z)
+{
+	auto& transform = context.registry->get<transform_component>(context.entity);
+	transform.local.translation = {x, y, z};
+	transform.warp = true;
+	return status::success;
+}
+
+bool is_carrying_food(const context& context)
+{
+	return false;
+}
+
+} // namespace ebt
 } // namespace ecs
-
-#endif // ANTKEEPER_ECS_BEHAVIOR_COMPONENT_HPP
-

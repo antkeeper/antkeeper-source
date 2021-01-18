@@ -17,13 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_BEHAVIOR_TREE_HPP
-#define ANTKEEPER_BEHAVIOR_TREE_HPP
+#ifndef ANTKEEPER_AI_BEHAVIOR_TREE_HPP
+#define ANTKEEPER_AI_BEHAVIOR_TREE_HPP
 
 #include <functional>
 #include <list>
 
-namespace behavior_tree {
+namespace ai {
+
+/// Behavior tree (BT)
+namespace bt {
 
 /// Behavior tree node return status enumerations.
 enum class status
@@ -187,7 +190,7 @@ status selector<T>::execute(context_type& context) const
 	return status::failure;
 }
 
-} // namespace behavior_tree
+} // namespace bt
+} // namespace ai
 
-#endif // ANTKEEPER_BEHAVIOR_TREE_HPP
-
+#endif // ANTKEEPER_AI_BEHAVIOR_TREE_HPP

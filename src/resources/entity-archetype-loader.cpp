@@ -31,7 +31,7 @@
 #include "ecs/components/marker-component.hpp"
 #include "ecs/components/brush-component.hpp"
 #include "ecs/archetype.hpp"
-#include "game/behavior/ebt.hpp"
+#include "ecs/ebt.hpp"
 #include <sstream>
 #include <stdexcept>
 
@@ -46,7 +46,7 @@ static bool load_behavior_component(archetype& archetype, resource_manager& reso
 
 	std::string filename = parameters[1];
 	behavior_component component;
-	component.behavior_tree = resource_manager.load<ebt::node>(filename);
+	component.behavior_tree = resource_manager.load<ecs::ebt::node>(filename);
 	if (!component.behavior_tree)
 	{
 		std::string message = std::string("load_behavior_component(): Failed to load behavior tree \"") + filename + std::string("\"");
