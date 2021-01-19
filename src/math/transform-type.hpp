@@ -25,9 +25,6 @@
 
 namespace math {
 
-/// @addtogroup transform
-/// @{
-
 /**
  * Represents 3D TRS transformation.
  *
@@ -45,8 +42,6 @@ struct transform
 	/// Scale vector
 	vector<T, 3> scale;
 };
-
-/// @}
 
 } // namespace math
 

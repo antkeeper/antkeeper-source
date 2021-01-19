@@ -23,89 +23,75 @@
 #include "math/quaternion-type.hpp"
 #include "math/quaternion-functions.hpp"
 
-namespace math {
-namespace quaternion_operators {
-
-/// @addtogroup quaternion
-/// @{
-
-/// @copydoc add(const quaternion<T>&, const quaternion<T>&)
+/// @copydoc math::add(const math::quaternion<T>&, const math::quaternion<T>&)
 template <class T>
-quaternion<T> operator+(const quaternion<T>& x, const quaternion<T>& y);
+math::quaternion<T> operator+(const math::quaternion<T>& x, const math::quaternion<T>& y);
 
-/// @copydoc div(const quaternion<T>&, T)
+/// @copydoc math::div(const math::quaternion<T>&, T)
 template <class T>
-quaternion<T> operator/(const quaternion<T>& q, T s);
+math::quaternion<T> operator/(const math::quaternion<T>& q, T s);
 
-/// @copydoc mul(const quaternion<T>&, const quaternion<T>&)
+/// @copydoc math::mul(const math::quaternion<T>&, const math::quaternion<T>&)
 template <class T>
-quaternion<T> operator*(const quaternion<T>& x, const quaternion<T>& y);
+math::quaternion<T> operator*(const math::quaternion<T>& x, const math::quaternion<T>& y);
 
-/// @copydoc mul(const quaternion<T>&, T)
+/// @copydoc math::mul(const math::quaternion<T>&, T)
 template <class T>
-quaternion<T> operator*(const quaternion<T>& q, T s);
+math::quaternion<T> operator*(const math::quaternion<T>& q, T s);
 
-/// @copydoc mul(const quaternion<T>&, const vector<T, 3>&)
+/// @copydoc math::mul(const math::quaternion<T>&, const math::vector<T, 3>&)
 template <class T>
-vector<T, 3> operator*(const quaternion<T>& q, const vector<T, 3>& v);
+math::vector<T, 3> operator*(const math::quaternion<T>& q, const math::vector<T, 3>& v);
 
-/// @copydoc sub(const quaternion<T>&, const quaternion<T>&)
+/// @copydoc math::sub(const math::quaternion<T>&, const math::quaternion<T>&)
 template <class T>
-quaternion<T> operator-(const quaternion<T>& x, const quaternion<T>& y);
+math::quaternion<T> operator-(const math::quaternion<T>& x, const math::quaternion<T>& y);
 
-/// @copydoc negate(const quaternion<T>&)
+/// @copydoc math::negate(const math::quaternion<T>&)
 template <class T, std::size_t N>
-quaternion<T> operator-(const quaternion<T>& x);
+math::quaternion<T> operator-(const math::quaternion<T>& x);
 
 template <class T>
-inline quaternion<T> operator+(const quaternion<T>& x, const quaternion<T>& y)
+inline math::quaternion<T> operator+(const math::quaternion<T>& x, const math::quaternion<T>& y)
 {
 	return add(x, y);
 }
 
 template <class T>
-inline quaternion<T> operator/(const quaternion<T>& q, T s)
+inline math::quaternion<T> operator/(const math::quaternion<T>& q, T s)
 {
 	return div(q, s);
 }
 
 template <class T>
-inline quaternion<T> operator*(const quaternion<T>& x, const quaternion<T>& y)
+inline math::quaternion<T> operator*(const math::quaternion<T>& x, const math::quaternion<T>& y)
 {
 	return mul(x, y);
 }
 
 template <class T>
-inline quaternion<T> operator*(const quaternion<T>& q, T s)
+inline math::quaternion<T> operator*(const math::quaternion<T>& q, T s)
 {
 	return mul(q, s);
 }
 
 template <class T>
-inline vector<T, 3> operator*(const quaternion<T>& q, const vector<T, 3>& v)
+inline math::vector<T, 3> operator*(const math::quaternion<T>& q, const math::vector<T, 3>& v)
 {
 	return mul(q, v);
 }
 
 template <class T>
-inline quaternion<T> operator-(const quaternion<T>& x, const quaternion<T>& y)
+inline math::quaternion<T> operator-(const math::quaternion<T>& x, const math::quaternion<T>& y)
 {
 	return sub(x, y);
 }
 
 template <class T, std::size_t N>
-inline quaternion<T> operator-(const quaternion<T>& x)
+inline math::quaternion<T> operator-(const math::quaternion<T>& x)
 {
 	return negate(x);
 }
-
-/// @}
-
-} // namespace quaternion_operators
-} // namespace math
-
-/// Bring quaternion operators into global namespace
-using namespace math::quaternion_operators;
 
 #endif // ANTKEEPER_MATH_QUATERNION_OPERATORS_HPP
 

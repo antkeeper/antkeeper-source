@@ -23,19 +23,13 @@
 #include "math/transform-type.hpp"
 #include "math/transform-functions.hpp"
 
-namespace math {
-namespace transform_operators {
-
-/// @addtogroup transform
-/// @{
-
-/// @copydoc mul(const transform<T>&, const transform<T>&)
+/// @copydoc math::mul(const math::transform<T>&, const math::transform<T>&)
 template <class T>
-transform<T> operator*(const transform<T>& x, const transform<T>& y);
+math::transform<T> operator*(const math::transform<T>& x, const math::transform<T>& y);
 
-/// @copydoc mul(const transform<T>&, const vector<T, 3>&)
+/// @copydoc math::mul(const math::transform<T>&, const math::vector<T, 3>&)
 template <class T>
-vector<T, 3> operator*(const transform<T>& t, const vector<T, 3>& v);
+math::vector<T, 3> operator*(const math::transform<T>& t, const math::vector<T, 3>& v);
 
 /**
  * Multiplies two transforms and stores the result in the first transform.
@@ -45,33 +39,25 @@ vector<T, 3> operator*(const transform<T>& t, const vector<T, 3>& v);
  * @return Reference to the first transform.
  */
 template <class T>
-transform<T>& operator*=(transform<T>& x, const transform<T>& y);
+math::transform<T>& operator*=(math::transform<T>& x, const math::transform<T>& y);
 
 template <class T>
-inline transform<T> operator*(const transform<T>& x, const transform<T>& y)
+inline math::transform<T> operator*(const math::transform<T>& x, const math::transform<T>& y)
 {
 	return mul(x, y);
 }
 
 template <class T>
-inline vector<T, 3> operator*(const transform<T>& t, const vector<T, 3>& v)
+inline math::vector<T, 3> operator*(const math::transform<T>& t, const math::vector<T, 3>& v)
 {
 	return mul(t, v);
 }
 
 template <class T>
-inline transform<T>& operator*=(transform<T>& x, const vector<T, 3>& y)
+inline math::transform<T>& operator*=(math::transform<T>& x, const math::vector<T, 3>& y)
 {
 	return (x = x * y);
 }
-
-/// @}
-
-} // namespace transform_operators
-} // namespace math
-
-// Bring transform operators into global namespace
-using namespace math::transform_operators;
 
 #endif // ANTKEEPER_MATH_TRANSFORM_OPERATORS_HPP
 

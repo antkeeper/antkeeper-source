@@ -28,9 +28,6 @@
 
 namespace math {
 
-/// @addtogroup vector
-/// @{
-
 /**
  * Adds two vectors.
  *
@@ -643,8 +640,6 @@ inline vector<T2, N> type_cast(const vector<T1, N>& v)
 {
 	return type_cast<T2>(v, std::make_index_sequence<N>{}); 
 }
-
-/// @}
 
 } // namespace math
 

@@ -28,9 +28,6 @@
 
 namespace math {
 
-/// @addtogroup quaternion
-/// @{
-
 /**
  * Adds two quaternions.
  *
@@ -481,8 +478,6 @@ inline quaternion<T2> type_cast(const quaternion<T1>& q)
 		static_cast<T2>(q.z)
 	};
 }
-
-/// @}
 
 } // namespace math
 

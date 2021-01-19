@@ -23,43 +23,37 @@
 #include "math/vector-type.hpp"
 #include "math/vector-functions.hpp"
 
-namespace math {
-namespace vector_operators {
-
-/// @addtogroup vector
-/// @{
-
-/// @copydoc add(const vector<T, N>&, const vector<T, N>&)
+/// @copydoc math::add(const math::vector<T, N>&, const math::vector<T, N>&)
 template <class T, std::size_t N>
-vector<T, N> operator+(const vector<T, N>& x, const vector<T, N>& y);
+math::vector<T, N> operator+(const math::vector<T, N>& x, const math::vector<T, N>& y);
 
-/// @copydoc div(const vector<T, N>&, const vector<T, N>&)
+/// @copydoc math::div(const math::vector<T, N>&, const math::vector<T, N>&)
 template <class T, std::size_t N>
-vector<T, N> operator/(const vector<T, N>& x, const vector<T, N>& y);
+math::vector<T, N> operator/(const math::vector<T, N>& x, const math::vector<T, N>& y);
 
-/// @copydoc div(const vector<T, N>&, T)
+/// @copydoc math::div(const math::vector<T, N>&, T)
 template <class T, std::size_t N>
-vector<T, N> operator/(const vector<T, N>& v, T s);
+math::vector<T, N> operator/(const math::vector<T, N>& v, T s);
 
-/// @copydoc mul(const vector<T, N>&, const vector<T, N>&)
+/// @copydoc math::mul(const math::vector<T, N>&, const math::vector<T, N>&)
 template <class T, std::size_t N>
-vector<T, N> operator*(const vector<T, N>& x, const vector<T, N>& y);
+math::vector<T, N> operator*(const math::vector<T, N>& x, const math::vector<T, N>& y);
 
-/// @copydoc mul(const vector<T, N>&, T)
+/// @copydoc math::mul(const math::vector<T, N>&, T)
 template <class T, std::size_t N>
-vector<T, N> operator*(const vector<T, N>& v, T s);
+math::vector<T, N> operator*(const math::vector<T, N>& v, T s);
 
-/// @copydoc mul(const vector<T, N>&, T)
+/// @copydoc math::mul(const math::vector<T, N>&, T)
 template <class T, std::size_t N>
-vector<T, N> operator*(T s, const vector<T, N>& v);
+math::vector<T, N> operator*(T s, const math::vector<T, N>& v);
 
-/// @copydoc negate(const vector<T, N>&)
+/// @copydoc math::negate(const math::vector<T, N>&)
 template <class T, std::size_t N>
-vector<T, N> operator-(const vector<T, N>& x);
+math::vector<T, N> operator-(const math::vector<T, N>& x);
 
-/// @copydoc sub(const vector<T, N>&, const vector<T, N>&)
+/// @copydoc math::sub(const math::vector<T, N>&, const math::vector<T, N>&)
 template <class T, std::size_t N>
-vector<T, N> operator-(const vector<T, N>& x, const vector<T, N>& y);
+math::vector<T, N> operator-(const math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /**
  * Adds two vectors and stores the result in the first vector.
@@ -69,7 +63,7 @@ vector<T, N> operator-(const vector<T, N>& x, const vector<T, N>& y);
  * @return Reference to the first vector.
  */
 template <class T, std::size_t N>
-vector<T, N>& operator+=(vector<T, N>& x, const vector<T, N>& y);
+math::vector<T, N>& operator+=(math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /**
  * Subtracts two vectors and stores the result in the first vector.
@@ -79,7 +73,7 @@ vector<T, N>& operator+=(vector<T, N>& x, const vector<T, N>& y);
  * @return Reference to the first vector.
  */
 template <class T, std::size_t N>
-vector<T, N>& operator-=(vector<T, N>& x, const vector<T, N>& y);
+math::vector<T, N>& operator-=(math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /**
  * Multiplies two vectors and stores the result in the first vector.
@@ -89,7 +83,7 @@ vector<T, N>& operator-=(vector<T, N>& x, const vector<T, N>& y);
  * @return Reference to the first vector.
  */
 template <class T, std::size_t N>
-vector<T, N>& operator*=(vector<T, N>& x, const vector<T, N>& y);
+math::vector<T, N>& operator*=(math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /**
  * Multiplies a vector and a scalar and stores the result in the vector.
@@ -99,7 +93,7 @@ vector<T, N>& operator*=(vector<T, N>& x, const vector<T, N>& y);
  * @return Reference to the vector.
  */
 template <class T, std::size_t N>
-vector<T, N>& operator*=(vector<T, N>& v, T s);
+math::vector<T, N>& operator*=(math::vector<T, N>& v, T s);
 
 /**
  * Divides the first vector by the second vector the result in the first vector.
@@ -109,7 +103,7 @@ vector<T, N>& operator*=(vector<T, N>& v, T s);
  * @return Reference to the first vector.
  */
 template <class T, std::size_t N>
-vector<T, N>& operator/=(vector<T, N>& x, const vector<T, N>& y);
+math::vector<T, N>& operator/=(math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /**
  * Divides a vector by a scalar and stores the result in the vector.
@@ -119,99 +113,91 @@ vector<T, N>& operator/=(vector<T, N>& x, const vector<T, N>& y);
  * @return Reference to the vector.
  */
 template <class T, std::size_t N>
-vector<T, N>& operator/=(vector<T, N>& v, T s);
+math::vector<T, N>& operator/=(math::vector<T, N>& v, T s);
 
 template <class T, std::size_t N>
-inline vector<T, N> operator+(const vector<T, N>& x, const vector<T, N>& y)
+inline math::vector<T, N> operator+(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return add(x, y);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> operator-(const vector<T, N>& x)
+inline math::vector<T, N> operator-(const math::vector<T, N>& x)
 {
 	return negate(x);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> operator-(const vector<T, N>& x, const vector<T, N>& y)
+inline math::vector<T, N> operator-(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return sub(x, y);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> operator*(const vector<T, N>& x, const vector<T, N>& y)
+inline math::vector<T, N> operator*(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return mul(x, y);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> operator*(const vector<T, N>& v, T s)
+inline math::vector<T, N> operator*(const math::vector<T, N>& v, T s)
 {
 	return mul(v, s);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> operator*(T s, const vector<T, N>& v)
+inline math::vector<T, N> operator*(T s, const math::vector<T, N>& v)
 {
 	return mul(v, s);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> operator/(const vector<T, N>& x, const vector<T, N>& y)
+inline math::vector<T, N> operator/(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return div(x, y);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> operator/(const vector<T, N>& v, T s)
+inline math::vector<T, N> operator/(const math::vector<T, N>& v, T s)
 {
 	return div(v, s);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N>& operator+=(vector<T, N>& x, const vector<T, N>& y)
+inline math::vector<T, N>& operator+=(math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return (x = x + y);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N>& operator-=(vector<T, N>& x, const vector<T, N>& y)
+inline math::vector<T, N>& operator-=(math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return (x = x - y);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N>& operator*=(vector<T, N>& x, const vector<T, N>& y)
+inline math::vector<T, N>& operator*=(math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return (x = x * y);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N>& operator*=(vector<T, N>& v, T s)
+inline math::vector<T, N>& operator*=(math::vector<T, N>& v, T s)
 {
 	return (v = v * s);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N>& operator/=(vector<T, N>& x, const vector<T, N>& y)
+inline math::vector<T, N>& operator/=(math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return (x = x * y);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N>& operator/=(vector<T, N>& v, T s)
+inline math::vector<T, N>& operator/=(math::vector<T, N>& v, T s)
 {
 	return (v = v / s);
 }
-
-/// @}
-
-} // namespace vector_operators
-} // namespace math
-
-// Bring vector operators into global namespace
-using namespace math::vector_operators;
 
 #endif // ANTKEEPER_MATH_VECTOR_OPERATORS_HPP
 

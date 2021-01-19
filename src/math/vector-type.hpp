@@ -25,9 +25,6 @@
 
 namespace math {
 
-/// @addtogroup vector
-/// @{
-
 /**
  * An `N`-dimensional Euclidean vector.
  *
@@ -120,10 +117,6 @@ struct vector<T, 4>
 	inline constexpr scalar_type* data() noexcept { return &x; };
 	inline constexpr std::size_t size() const noexcept { return 4; };
 };
-
-static_assert(std::is_trivial<vector<float, 4>>::value);
-
-/// @}
 
 } // namespace math
 

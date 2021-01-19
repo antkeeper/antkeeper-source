@@ -22,9 +22,6 @@
 
 namespace math {
 
-/// @addtogroup quaternion
-/// @{
-
 /**
  * A quaternion type is a tuple made of a scalar (real) part and vector (imaginary) part.
  *
@@ -39,8 +36,6 @@ struct quaternion
 	scalar_type y;
 	scalar_type z;
 };
-
-/// @}
 
 } // namespace math
 

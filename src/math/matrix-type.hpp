@@ -25,9 +25,6 @@
 
 namespace math {
 
-/// @addtogroup matrix
-/// @{
-
 /**
  * An NxM matrix.
  *
@@ -45,8 +42,6 @@ struct matrix
 	inline constexpr row_type& operator[](std::size_t i) noexcept { return columns[i]; }
 	inline constexpr const row_type& operator[](std::size_t i) const noexcept { return columns[i]; }
 };
-
-/// @}
 
 } // namespace math
 

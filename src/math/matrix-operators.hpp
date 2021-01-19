@@ -23,78 +23,64 @@
 #include "math/matrix-type.hpp"
 #include "math/matrix-functions.hpp"
 
-namespace math {
-namespace matrix_operators {
-
-/// @addtogroup matrix
-/// @{
-
-/// @copydoc add(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
+/// @copydoc math::add(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
 template <class T, std::size_t N, std::size_t M>
-matrix<T, N, M> operator+(const matrix<T, N, M>& x, const matrix<T, N, M>& y);
+math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
 
-/// @copydoc mul(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
+/// @copydoc math::mul(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
 template <class T, std::size_t N, std::size_t M>
-matrix<T, N, M> operator*(const matrix<T, N, M>& x, const matrix<T, N, M>& y);
+math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
 
-/// @copydoc mul(const matrix<T, N, M>&, T)
+/// @copydoc math::mul(const math::matrix<T, N, M>&, T)
 template <class T, std::size_t N, std::size_t M>
-matrix<T, N, M> operator*(const matrix<T, N, M>& m, T s);
+math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& m, T s);
 
-/// @copydoc mul(const matrix<T, N, M>&, T)
+/// @copydoc math::mul(const math::matrix<T, N, M>&, T)
 template <class T, std::size_t N, std::size_t M>
-matrix<T, N, M> operator*(T s, const matrix<T, N, M>& m);
+math::matrix<T, N, M> operator*(T s, const math::matrix<T, N, M>& m);
 
-/// @copydoc mul(const matrix<T, 2, 2>&, const vector<T, 2>&)
+/// @copydoc math::mul(const math::matrix<T, 2, 2>&, const math::vector<T, 2>&)
 template <class T, std::size_t N>
-vector<T, N> operator*(const matrix<T, N, N>& m, const vector<T, N>& v);
+math::vector<T, N> operator*(const math::matrix<T, N, N>& m, const math::vector<T, N>& v);
 
-/// @copydoc sub(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
+/// @copydoc math::sub(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
 template <class T, std::size_t N, std::size_t M>
-matrix<T, N, M> operator-(const matrix<T, N, M>& x, const matrix<T, N, M>& y);
+math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
 
 template <class T, std::size_t N, std::size_t M>
-inline matrix<T, N, M> operator+(const matrix<T, N, M>& x, const matrix<T, N, M>& y)
+inline math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
 {
 	return add(x, y);
 }
 
 template <class T, std::size_t N, std::size_t M>
-inline matrix<T, N, M> operator*(const matrix<T, N, M>& x, const matrix<T, N, M>& y)
+inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
 {
 	return mul(x, y);
 }
 
 template <class T, std::size_t N, std::size_t M>
-inline matrix<T, N, M> operator*(const matrix<T, N, M>& m, T s)
+inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& m, T s)
 {
 	return mul(m, s);
 }
 
 template <class T, std::size_t N, std::size_t M>
-inline matrix<T, N, M> operator*(T s, const matrix<T, N, M>& m)
+inline math::matrix<T, N, M> operator*(T s, const math::matrix<T, N, M>& m)
 {
 	return mul(m, s);
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> operator*(const matrix<T, N, N>& m, const vector<T, N>& v)
+inline math::vector<T, N> operator*(const math::matrix<T, N, N>& m, const math::vector<T, N>& v)
 {
 	return mul(m, v);
 }
 
 template <class T, std::size_t N, std::size_t M>
-inline matrix<T, N, M> operator-(const matrix<T, N, M>& x, const matrix<T, N, M>& y)
+inline math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
 {
 	return sub(x, y);
 }
-
-/// @}
-
-} // namespace matrix_operators
-} // namespace math
-
-// Bring matrix operators into global namespace
-using namespace math::matrix_operators;
 
 #endif // ANTKEEPER_MATH_MATRIX_OPERATORS_HPP

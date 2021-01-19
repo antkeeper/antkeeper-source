@@ -27,9 +27,6 @@
 
 namespace math {
 
-/// @addtogroup transform
-/// @{
-
 /**
  * Calculates the inverse of a transform.
  *
@@ -101,8 +98,6 @@ vector<T, 3> mul(const transform<T>& t, const vector<T, 3>& v)
 {
 	return t.translation + (t.rotation * (v * t.scale));
 }
-
-/// @}
 
 } // namespace math
 

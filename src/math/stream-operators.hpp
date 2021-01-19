@@ -25,12 +25,6 @@
 #include "math/quaternion-type.hpp"
 #include <ostream>
 
-namespace math {
-namespace stream_operators {
-
-/// @addtogroup io
-/// @{
-
 /**
  * Writes the elements of a vector to an output stream, with each element delimeted by a space.
  *
@@ -39,7 +33,7 @@ namespace stream_operators {
  * @return Output stream.
  */
 template <class T, std::size_t N>
-std::ostream& operator<<(std::ostream& os, const vector<T, N>& v);
+std::ostream& operator<<(std::ostream& os, const math::vector<T, N>& v);
 
 /**
  * Writes the elements of a matrix to an output stream, with each element delimeted by a space.
@@ -49,7 +43,7 @@ std::ostream& operator<<(std::ostream& os, const vector<T, N>& v);
  * @return Output stream.
  */
 template <class T, std::size_t N, std::size_t M>
-std::ostream& operator<<(std::ostream& os, const matrix<T, N, M>& m);
+std::ostream& operator<<(std::ostream& os, const math::matrix<T, N, M>& m);
 
 /**
  * Writes the real and imaginary parts of a quaternion to an output stream, with each number delimeted by a space.
@@ -59,7 +53,7 @@ std::ostream& operator<<(std::ostream& os, const matrix<T, N, M>& m);
  * @return Output stream.
  */
 template <class T>
-std::ostream& operator<<(std::ostream& os, const quaternion<T>& q);
+std::ostream& operator<<(std::ostream& os, const math::quaternion<T>& q);
 
 /**
  * Reads the elements of a vector from an input stream, with each element delimeted by a space.
@@ -69,7 +63,7 @@ std::ostream& operator<<(std::ostream& os, const quaternion<T>& q);
  * @return Input stream.
  */
 template <class T, std::size_t N>
-std::istream& operator>>(std::istream& is, vector<T, N>& v);
+std::istream& operator>>(std::istream& is, math::vector<T, N>& v);
 
 /**
  * Reads the elements of a matrix from an input stream, with each element delimeted by a space.
@@ -79,7 +73,7 @@ std::istream& operator>>(std::istream& is, vector<T, N>& v);
  * @return Input stream.
  */
 template <class T, std::size_t N, std::size_t M>
-std::istream& operator>>(std::istream& is, matrix<T, N, M>& m);
+std::istream& operator>>(std::istream& is, math::matrix<T, N, M>& m);
 
 /**
  * Reads the real and imaginary parts of a quaternion from an input stream, with each number delimeted by a space.
@@ -89,10 +83,10 @@ std::istream& operator>>(std::istream& is, matrix<T, N, M>& m);
  * @return Input stream.
  */
 template <class T>
-std::istream& operator>>(std::istream& is, const quaternion<T>& q);
+std::istream& operator>>(std::istream& is, const math::quaternion<T>& q);
 
 template <class T, std::size_t N>
-std::ostream& operator<<(std::ostream& os, const vector<T, N>& v)
+std::ostream& operator<<(std::ostream& os, const math::vector<T, N>& v)
 {
 	for (std::size_t i = 0; i < N; ++i)
 	{
@@ -108,7 +102,7 @@ std::ostream& operator<<(std::ostream& os, const vector<T, N>& v)
 }
 
 template <class T, std::size_t N, std::size_t M>
-std::ostream& operator<<(std::ostream& os, const matrix<T, N, M>& m)
+std::ostream& operator<<(std::ostream& os, const math::matrix<T, N, M>& m)
 {
 	for (std::size_t i = 0; i < N; ++i)
 	{
@@ -127,14 +121,14 @@ std::ostream& operator<<(std::ostream& os, const matrix<T, N, M>& m)
 }
 
 template <class T>
-std::ostream& operator<<(std::ostream& os, const quaternion<T>& q)
+std::ostream& operator<<(std::ostream& os, const math::quaternion<T>& q)
 {
 	os << q.w << ' ' << q.x << ' ' << q.y << ' ' << q.z;
 	return os;
 }
 
 template <class T, std::size_t N>
-std::istream& operator>>(std::istream& is, vector<T, N>& v)
+std::istream& operator>>(std::istream& is, math::vector<T, N>& v)
 {
 	for (std::size_t i = 0; i < N; ++i)
 		is >> v[i];
@@ -143,7 +137,7 @@ std::istream& operator>>(std::istream& is, vector<T, N>& v)
 }
 
 template <class T, std::size_t N, std::size_t M>
-std::istream& operator>>(std::istream& is, matrix<T, N, M>& m)
+std::istream& operator>>(std::istream& is, math::matrix<T, N, M>& m)
 {
 	for (std::size_t i = 0; i < N * M; ++i)
 	{
@@ -156,7 +150,7 @@ std::istream& operator>>(std::istream& is, matrix<T, N, M>& m)
 }
 
 template <class T>
-std::istream& operator>>(std::istream& is, const quaternion<T>& q)
+std::istream& operator>>(std::istream& is, const math::quaternion<T>& q)
 {
 	is >> q.w;
 	is >> q.x;
@@ -165,13 +159,5 @@ std::istream& operator>>(std::istream& is, const quaternion<T>& q)
 	
 	return is;
 }
-
-/// @}
-
-} // namespace stream_operators
-} // namespace math
-
-// Bring stream operators into global namespace
-using namespace math::stream_operators;
 
 #endif // ANTKEEPER_MATH_STREAM_OPERATORS_HPP

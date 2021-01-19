@@ -23,54 +23,24 @@
 /// Mathematical functions and data types.
 namespace math {}
 
-/**
- * @defgroup vector Vector
- *
- * Vector type, functions, and operators.
- */
 #include "math/vector-type.hpp"
 #include "math/vector-functions.hpp"
 #include "math/vector-operators.hpp"
 
-/**
- * @defgroup matrix Matrix
- *
- * Matrix type, functions, and operators.
- */
 #include "math/matrix-type.hpp"
 #include "math/matrix-functions.hpp"
 #include "math/matrix-operators.hpp"
 
-/**
- * @defgroup quaternion Quaternion
- *
- * Quaternion type, functions, and operators.
- */
 #include "math/quaternion-type.hpp"
 #include "math/quaternion-functions.hpp"
 #include "math/quaternion-operators.hpp"
 
-/**
- * @defgroup transform Transform
- *
- * TRS transform type, functions, and operators.
- */
 #include "math/transform-type.hpp"
 #include "math/transform-functions.hpp"
 #include "math/transform-operators.hpp"
 
-/**
- * @defgroup io I/O
- *
- * Functions and operators that read/write vectors, matrices, or quaternions from/to streams.
- */
 #include "math/stream-operators.hpp"
 
-/**
- * @defgroup utility Utility constants and functions
- *
- * Commonly used utilities.
- */
 #include "math/angles.hpp"
 #include "math/constants.hpp"
 #include "math/interpolation.hpp"

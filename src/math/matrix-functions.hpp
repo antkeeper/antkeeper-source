@@ -27,9 +27,6 @@
 
 namespace math {
 
-/// @addtogroup matrix
-/// @{
-
 /**
  * Adds two matrices.
  *
@@ -866,8 +863,6 @@ matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m)
 {
 	return type_cast<T2>(m, std::make_index_sequence<N>{}); 
 }
-
-/// @}
 
 } // namespace math
 
