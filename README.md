@@ -14,7 +14,7 @@ Detailed configuration and build instructions can be found in the [README](https
 
 ## Documentation
 
-Documentation for the source code of the latest version of Antkeeper can be found at <https://antkeeper.com/docs/>.
+Documentation for the source code of the latest version of Antkeeper can be found at <https://docs.antkeeper.com/latest/>.
 
 Alternatively, the following command generates source code documentation using [Doxygen](https://www.doxygen.nl):
 
