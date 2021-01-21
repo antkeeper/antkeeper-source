@@ -19,45 +19,45 @@
 
 #include "renderer/passes/bloom-pass.hpp"
 #include "resources/resource-manager.hpp"
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/shader-program.hpp"
-#include "rasterizer/shader-input.hpp"
-#include "rasterizer/vertex-buffer.hpp"
-#include "rasterizer/vertex-array.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/drawing-mode.hpp"
-#include "rasterizer/texture-2d.hpp"
-#include "rasterizer/texture-wrapping.hpp"
-#include "rasterizer/texture-filter.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/drawing-mode.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-wrapping.hpp"
+#include "gl/texture-filter.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "renderer/render-context.hpp"
 #include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
 
-bloom_pass::bloom_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
+bloom_pass::bloom_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	source_texture(nullptr),
 	brightness_threshold(1.0f),
 	blur_iterations(1)
 {
 	// Create clone of framebuffer texture
-	const texture_2d* framebuffer_texture = framebuffer->get_color_attachment();
+	const gl::texture_2d* framebuffer_texture = framebuffer->get_color_attachment();
 	auto dimensions = framebuffer_texture->get_dimensions();
 	auto pixel_type = framebuffer_texture->get_pixel_type();
 	auto pixel_format = framebuffer_texture->get_pixel_format();
 	auto wrapping = framebuffer_texture->get_wrapping();
 	auto filters = framebuffer_texture->get_filters();
 	float max_anisotropy = framebuffer_texture->get_max_anisotropy();
-	cloned_framebuffer_texture = new texture_2d(std::get<0>(dimensions), std::get<1>(dimensions), pixel_type, pixel_format);
+	cloned_framebuffer_texture = new gl::texture_2d(std::get<0>(dimensions), std::get<1>(dimensions), pixel_type, pixel_format);
 	cloned_framebuffer_texture->set_wrapping(std::get<0>(wrapping), std::get<1>(wrapping));
 	cloned_framebuffer_texture->set_filters(std::get<0>(filters), std::get<1>(filters));
 	cloned_framebuffer_texture->set_max_anisotropy(max_anisotropy);
 	
 	// Create clone of framebuffer
-	cloned_framebuffer = new ::framebuffer(std::get<0>(dimensions), std::get<1>(dimensions));
-	cloned_framebuffer->attach(framebuffer_attachment_type::color, cloned_framebuffer_texture);
+	cloned_framebuffer = new gl::framebuffer(std::get<0>(dimensions), std::get<1>(dimensions));
+	cloned_framebuffer->attach(gl::framebuffer_attachment_type::color, cloned_framebuffer_texture);
 	
 	// Setup pingponging
 	pingpong_textures[0] = framebuffer_texture;
@@ -66,13 +66,13 @@ bloom_pass::bloom_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffe
 	pingpong_framebuffers[1] = cloned_framebuffer;	
 	
 	// Load brightness threshold shader
-	threshold_shader = resource_manager->load<shader_program>("brightness-threshold.glsl");
+	threshold_shader = resource_manager->load<gl::shader_program>("brightness-threshold.glsl");
 	threshold_shader_image_input = threshold_shader->get_input("image");
 	threshold_shader_resolution_input = threshold_shader->get_input("resolution");
 	threshold_shader_threshold_input = threshold_shader->get_input("threshold");
 	
 	// Load blur shader
-	blur_shader = resource_manager->load<shader_program>("blur.glsl");
+	blur_shader = resource_manager->load<gl::shader_program>("blur.glsl");
 	blur_shader_image_input = blur_shader->get_input("image");
 	blur_shader_resolution_input = blur_shader->get_input("resolution");
 	blur_shader_direction_input = blur_shader->get_input("direction");
@@ -91,9 +91,9 @@ bloom_pass::bloom_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffe
 	std::size_t vertex_stride = sizeof(float) * vertex_size;
 	std::size_t vertex_count = 6;
 
-	quad_vbo = new vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
-	quad_vao = new vertex_array();
-	quad_vao->bind_attribute(VERTEX_POSITION_LOCATION, *quad_vbo, 3, vertex_attribute_type::float_32, vertex_stride, 0);
+	quad_vbo = new gl::vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
+	quad_vao = new gl::vertex_array();
+	quad_vao->bind_attribute(VERTEX_POSITION_LOCATION, *quad_vbo, 3, gl::vertex_attribute_type::float_32, vertex_stride, 0);
 }
 
 bloom_pass::~bloom_pass()
@@ -123,7 +123,7 @@ void bloom_pass::render(render_context* context) const
 	threshold_shader_image_input->upload(source_texture);
 	threshold_shader_resolution_input->upload(resolution);
 	threshold_shader_threshold_input->upload(brightness_threshold);
-	rasterizer->draw_arrays(*quad_vao, drawing_mode::triangles, 0, 6);
+	rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
 	
 	// Perform iterative blur subpass
 	const float2 direction_horizontal = {1, 0};
@@ -136,17 +136,17 @@ void bloom_pass::render(render_context* context) const
 		rasterizer->use_framebuffer(*pingpong_framebuffers[1]);
 		blur_shader_image_input->upload(pingpong_textures[0]);
 		blur_shader_direction_input->upload(direction_horizontal);
-		rasterizer->draw_arrays(*quad_vao, drawing_mode::triangles, 0, 6);
+		rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
 		
 		// Perform vertical blur
 		rasterizer->use_framebuffer(*pingpong_framebuffers[0]);
 		blur_shader_image_input->upload(pingpong_textures[1]);
 		blur_shader_direction_input->upload(direction_vertical);
-		rasterizer->draw_arrays(*quad_vao, drawing_mode::triangles, 0, 6);
+		rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
 	}
 }
 
-void bloom_pass::set_source_texture(const texture_2d* texture)
+void bloom_pass::set_source_texture(const gl::texture_2d* texture)
 {
 	this->source_texture = texture;
 }

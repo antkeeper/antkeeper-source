@@ -27,12 +27,12 @@
 #include "event/event-handler.hpp"
 #include "event/input-events.hpp"
 #include <unordered_map>
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/texture-2d.hpp"
 
 class camera;
-class shader_program;
-class shader_input;
 class resource_manager;
-class texture_2d;
 class shadow_map_pass;
 
 /**
@@ -42,7 +42,7 @@ class material_pass: public render_pass,
 	public event_handler<mouse_moved_event>
 {
 public:
-	material_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager);
+	material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~material_pass();
 	virtual void render(render_context* context) const final;
 	
@@ -57,7 +57,7 @@ public:
 	void set_focal_point_tween(const tween<float3>* focal_point);	
 	
 	const ::shadow_map_pass* shadow_map_pass;
-	const texture_2d* shadow_map;
+	const gl::texture_2d* shadow_map;
 	
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -67,52 +67,52 @@ private:
 	 */
 	struct parameter_set
 	{
-		const shader_input* time;
-		const shader_input* mouse;
-		const shader_input* resolution;
-		const shader_input* model;
-		const shader_input* view;
-		const shader_input* projection;
-		const shader_input* model_view;
-		const shader_input* view_projection;
-		const shader_input* model_view_projection;
-		const shader_input* normal_model_view;
-		const shader_input* clip_depth;
-		const shader_input* log_depth_coef;
+		const gl::shader_input* time;
+		const gl::shader_input* mouse;
+		const gl::shader_input* resolution;
+		const gl::shader_input* model;
+		const gl::shader_input* view;
+		const gl::shader_input* projection;
+		const gl::shader_input* model_view;
+		const gl::shader_input* view_projection;
+		const gl::shader_input* model_view_projection;
+		const gl::shader_input* normal_model_view;
+		const gl::shader_input* clip_depth;
+		const gl::shader_input* log_depth_coef;
 		
-		const shader_input* ambient_light_count;
-		const shader_input* ambient_light_colors;
-		const shader_input* point_light_count;
-		const shader_input* point_light_colors;
-		const shader_input* point_light_positions;
-		const shader_input* point_light_attenuations;
-		const shader_input* directional_light_count;
-		const shader_input* directional_light_colors;
-		const shader_input* directional_light_directions;
-		const shader_input* spotlight_count;
-		const shader_input* spotlight_colors;
-		const shader_input* spotlight_positions;
-		const shader_input* spotlight_directions;
-		const shader_input* spotlight_attenuations;
-		const shader_input* spotlight_cutoffs;
+		const gl::shader_input* ambient_light_count;
+		const gl::shader_input* ambient_light_colors;
+		const gl::shader_input* point_light_count;
+		const gl::shader_input* point_light_colors;
+		const gl::shader_input* point_light_positions;
+		const gl::shader_input* point_light_attenuations;
+		const gl::shader_input* directional_light_count;
+		const gl::shader_input* directional_light_colors;
+		const gl::shader_input* directional_light_directions;
+		const gl::shader_input* spotlight_count;
+		const gl::shader_input* spotlight_colors;
+		const gl::shader_input* spotlight_positions;
+		const gl::shader_input* spotlight_directions;
+		const gl::shader_input* spotlight_attenuations;
+		const gl::shader_input* spotlight_cutoffs;
 		
-		const shader_input* soft_shadows;
-		const shader_input* focal_point;
+		const gl::shader_input* soft_shadows;
+		const gl::shader_input* focal_point;
 		
-		const shader_input* shadow_map_matrices;
-		const shader_input* shadow_map_split_distances;
-		const shader_input* shadow_map;
-		const shader_input* shadow_strength;
+		const gl::shader_input* shadow_map_matrices;
+		const gl::shader_input* shadow_map_split_distances;
+		const gl::shader_input* shadow_map;
+		const gl::shader_input* shadow_strength;
 	};
 
-	const parameter_set* load_parameter_set(const shader_program* program) const;
+	const parameter_set* load_parameter_set(const gl::shader_program* program) const;
 
-	mutable std::unordered_map<const shader_program*, parameter_set*> parameter_sets;
+	mutable std::unordered_map<const gl::shader_program*, parameter_set*> parameter_sets;
 	const material* fallback_material;
 	const tween<double>* time_tween;
 	float2 mouse_position;
 	const tween<float3>* focal_point_tween;
-	texture_2d* soft_shadows_texture;
+	gl::texture_2d* soft_shadows_texture;
 	float shadow_strength;
 	
 	int max_ambient_light_count;

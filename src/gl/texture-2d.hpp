@@ -17,14 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TEXTURE_2D_HPP
-#define ANTKEEPER_TEXTURE_2D_HPP
+#ifndef ANTKEEPER_GL_TEXTURE_2D_HPP
+#define ANTKEEPER_GL_TEXTURE_2D_HPP
 
 #include <array>
 #include <tuple>
-#include "rasterizer/color-space.hpp"
-#include "rasterizer/pixel-format.hpp"
-#include "rasterizer/pixel-type.hpp"
+#include "gl/color-space.hpp"
+#include "gl/pixel-format.hpp"
+#include "gl/pixel-type.hpp"
+
+namespace gl {
 
 class framebuffer;
 class shader_input;
@@ -45,7 +47,7 @@ public:
 	 *
 	 * @warning If the sRGB color space is specified, pixel data will be stored internally as 8 bits per channel, and automatically converted to linear space before reading.
 	 */
-	texture_2d(int width, int height, ::pixel_type type = ::pixel_type::uint_8, ::pixel_format format = ::pixel_format::rgba, ::color_space color_space = ::color_space::linear, const void* data = nullptr);
+	texture_2d(int width, int height, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const void* data = nullptr);
 	
 	/**
 	 * Destroys a 2D texture.
@@ -57,7 +59,7 @@ public:
 	 *
 	 * @warning If the sRGB color space is specified, pixel data will be stored internally as 8 bits per channel, and automatically converted to linear space before reading.
 	 */
-	void resize(int width, int height, ::pixel_type type, ::pixel_format format, ::color_space color_space, const void* data);
+	void resize(int width, int height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data);
 
 	/**
 	 * Sets the texture wrapping modes.
@@ -65,7 +67,7 @@ public:
 	 * @param wrap_s Wrapping mode for s-coordinates.
 	 * @param wrap_t Wrapping mode for t-coordinates.
 	 */
-	void set_wrapping(texture_wrapping wrap_s, texture_wrapping wrap_t);
+	void set_wrapping(gl::texture_wrapping wrap_s, texture_wrapping wrap_t);
 
 	/**
 	 * Sets the texture filtering modes.
@@ -109,9 +111,9 @@ private:
 
 	unsigned int gl_texture_id;
 	std::array<int, 2> dimensions;
-	::pixel_type pixel_type;
-	::pixel_format pixel_format;
-	::color_space color_space;
+	gl::pixel_type pixel_type;
+	gl::pixel_format pixel_format;
+	gl::color_space color_space;
 	std::tuple<texture_wrapping, texture_wrapping> wrapping;
 	std::tuple<texture_min_filter, texture_mag_filter> filters;
 	float max_anisotropy;
@@ -152,5 +154,7 @@ inline float texture_2d::get_max_anisotropy() const
 	return max_anisotropy;
 }
 
-#endif // ANTKEEPER_TEXTURE_2D_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_TEXTURE_2D_HPP
 

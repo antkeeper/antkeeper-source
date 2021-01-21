@@ -25,6 +25,11 @@
 #include "ecs/entity.hpp"
 #include "ecs/registry.hpp"
 #include "geom/aabb.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
 #include <optional>
 #include <entt/entt.hpp>
 #include <fstream>
@@ -40,22 +45,17 @@ class config_file;
 class control;
 class control_set;
 class final_pass;
-class framebuffer;
 class material;
 class input_listener;
 class material_pass;
 class orbit_cam;
 class pheromone_matrix;
-class rasterizer;
 class resource_manager;
 class screen_transition;
 class shadow_map_pass;
 class simple_render_pass;
 class sky_pass;
-class texture_2d;
 class timeline;
-class vertex_array;
-class vertex_buffer;
 class renderer;
 class input_event_router;
 class input_mapper;
@@ -141,22 +141,22 @@ struct game_context
 	std::unordered_map<std::string, std::string>* strings;
 	
 	// Framebuffers
-	framebuffer* shadow_map_framebuffer;
-	texture_2d* shadow_map_depth_texture;
-	framebuffer* framebuffer_hdr;
-	texture_2d* framebuffer_hdr_color;
-	texture_2d* framebuffer_hdr_depth;
-	framebuffer* framebuffer_bloom; // General purpose framebuffer A
-	texture_2d* bloom_texture;
+	gl::framebuffer* shadow_map_framebuffer;
+	gl::texture_2d* shadow_map_depth_texture;
+	gl::framebuffer* framebuffer_hdr;
+	gl::texture_2d* framebuffer_hdr_color;
+	gl::texture_2d* framebuffer_hdr_depth;
+	gl::framebuffer* framebuffer_bloom; // General purpose framebuffer A
+	gl::texture_2d* bloom_texture;
 	
 	// Rendering
-	rasterizer* rasterizer;
+	gl::rasterizer* rasterizer;
 	renderer* renderer;
-	vertex_buffer* billboard_vbo;
-	vertex_array* billboard_vao;
+	gl::vertex_buffer* billboard_vbo;
+	gl::vertex_array* billboard_vao;
 	material* fallback_material;
 	material* splash_billboard_material;
-	texture_2d** marker_albedo_textures;
+	gl::texture_2d** marker_albedo_textures;
 	
 	// Compositing
 	bloom_pass* overworld_bloom_pass;
@@ -172,7 +172,7 @@ struct game_context
 	shadow_map_pass* overworld_shadow_map_pass;
 	simple_render_pass* underworld_final_pass;
 	sky_pass* overworld_sky_pass;
-	material_property<const texture_2d*>* underground_color_texture_property;
+	material_property<const gl::texture_2d*>* underground_color_texture_property;
 	compositor* overworld_compositor;
 	compositor* underworld_compositor;
 	compositor* ui_compositor;

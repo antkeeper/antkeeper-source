@@ -25,9 +25,9 @@
 #include "renderer/material.hpp"
 #include "geom/mesh-functions.hpp"
 #include "renderer/vertex-attributes.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/drawing-mode.hpp"
-#include "rasterizer/vertex-buffer.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/drawing-mode.hpp"
+#include "gl/vertex-buffer.hpp"
 #include "resources/resource-manager.hpp"
 #include "geom/marching-cubes.hpp"
 #include "geom/intersection.hpp"
@@ -203,14 +203,14 @@ subterrain_system::subterrain_system(ecs::registry& registry, ::resource_manager
 	// Create inside model group
 	subterrain_inside_group = subterrain_model->add_group("inside");
 	subterrain_inside_group->set_material(resource_manager->load<material>("subterrain-inside.mtl"));
-	subterrain_inside_group->set_drawing_mode(drawing_mode::triangles);
+	subterrain_inside_group->set_drawing_mode(gl::drawing_mode::triangles);
 	subterrain_inside_group->set_start_index(0);
 	subterrain_inside_group->set_index_count(0);
 
 	// Create outside model group
 	subterrain_outside_group = subterrain_model->add_group("outside");
 	subterrain_outside_group->set_material(resource_manager->load<material>("subterrain-outside.mtl"));
-	subterrain_outside_group->set_drawing_mode(drawing_mode::triangles);
+	subterrain_outside_group->set_drawing_mode(gl::drawing_mode::triangles);
 	subterrain_outside_group->set_start_index(0);
 	subterrain_outside_group->set_index_count(0);
 
@@ -219,14 +219,14 @@ subterrain_system::subterrain_system(ecs::registry& registry, ::resource_manager
 	subterrain_model_vertex_stride = subterrain_model_vertex_size * sizeof(float);
 	
 	// Bind vertex attributes
-	vertex_buffer* vbo = subterrain_model->get_vertex_buffer();
-	vertex_array* vao = subterrain_model->get_vertex_array();
+	gl::vertex_buffer* vbo = subterrain_model->get_vertex_buffer();
+	gl::vertex_array* vao = subterrain_model->get_vertex_array();
 	std::size_t offset = 0;
-	vao->bind_attribute(VERTEX_POSITION_LOCATION, *vbo, 3, vertex_attribute_type::float_32, subterrain_model_vertex_stride, 0);
+	vao->bind_attribute(VERTEX_POSITION_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, subterrain_model_vertex_stride, 0);
 	offset += 3;
-	vao->bind_attribute(VERTEX_NORMAL_LOCATION, *vbo, 3, vertex_attribute_type::float_32, subterrain_model_vertex_stride, sizeof(float) * offset);
+	vao->bind_attribute(VERTEX_NORMAL_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, subterrain_model_vertex_stride, sizeof(float) * offset);
 	offset += 3;
-	vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *vbo, 3, vertex_attribute_type::float_32, subterrain_model_vertex_stride, sizeof(float) * offset);
+	vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, subterrain_model_vertex_stride, sizeof(float) * offset);
 	offset += 3;
 
 	// Calculate adjusted bounds to fit isosurface resolution
@@ -438,7 +438,7 @@ void subterrain_system::regenerate_subterrain_model()
 	}
 
 	// Resized VBO and upload vertex data
-	vertex_buffer* vbo = subterrain_model->get_vertex_buffer();
+	gl::vertex_buffer* vbo = subterrain_model->get_vertex_buffer();
 	vbo->resize(subterrain_mesh->get_faces().size() * 3 * subterrain_model_vertex_stride, vertex_data);
 
 	// Deallocate vertex data

@@ -17,11 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_VERTEX_BUFFER_HPP
-#define ANTKEEPER_VERTEX_BUFFER_HPP
+#ifndef ANTKEEPER_GL_VERTEX_BUFFER_HPP
+#define ANTKEEPER_GL_VERTEX_BUFFER_HPP
 
 #include <cstdlib>
-#include "rasterizer/buffer-usage.hpp"
+#include "gl/buffer-usage.hpp"
+
+namespace gl {
 
 class vertex_array;
 
@@ -61,5 +63,7 @@ inline buffer_usage vertex_buffer::get_usage() const
 	return usage;
 }
 
-#endif // ANTKEEPER_VERTEX_BUFFER_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_VERTEX_BUFFER_HPP
 

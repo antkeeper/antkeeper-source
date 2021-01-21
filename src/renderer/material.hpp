@@ -21,7 +21,7 @@
 #define ANTKEEPER_MATERIAL_HPP
 
 #include "renderer/material-property.hpp"
-#include "rasterizer/shader-program.hpp"
+#include "gl/shader-program.hpp"
 #include <cstdint>
 #include <cstdlib>
 #include <list>
@@ -39,7 +39,7 @@ public:
 	 *
 	 * @param program Shader program with which to associate this material.
 	 */
-	explicit material(shader_program* program);
+	explicit material(gl::shader_program* program);
 
 	/**
 	 * Creates a material.
@@ -84,7 +84,7 @@ public:
 	 *
 	 * @param program Shader program with which to associate the material.
 	 */
-	void set_shader_program(shader_program* program);
+	void set_shader_program(gl::shader_program* program);
 
 	/**
 	 * Sets the material flags.
@@ -106,7 +106,7 @@ public:
 	/**
 	 * Returns the shader program with which this material is associated.
 	 */
-	shader_program* get_shader_program() const;
+	gl::shader_program* get_shader_program() const;
 
 	/**
 	 * Returns the material flags.
@@ -131,7 +131,7 @@ private:
 	 */
 	std::size_t reconnect_properties();
 
-	shader_program* program;
+	gl::shader_program* program;
 	std::uint32_t flags;
 	std::list<material_property_base*> properties;
 	std::map<std::string, material_property_base*> property_map;
@@ -156,7 +156,7 @@ material_property<T>* material::add_property(const std::string& name, std::size_
 	return property;
 }
 
-inline shader_program* material::get_shader_program() const
+inline gl::shader_program* material::get_shader_program() const
 {
 	return program;
 }

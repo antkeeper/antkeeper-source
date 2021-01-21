@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_VERTEX_ATTRIBUTE_TYPE_HPP
-#define ANTKEEPER_VERTEX_ATTRIBUTE_TYPE_HPP
+#ifndef ANTKEEPER_GL_PIXEL_TYPE_HPP
+#define ANTKEEPER_GL_PIXEL_TYPE_HPP
 
-enum class vertex_attribute_type
+namespace gl {
+
+enum class pixel_type
 {
 	int_8,
 	uint_8,
@@ -29,9 +31,10 @@ enum class vertex_attribute_type
 	int_32,
 	uint_32,
 	float_16,
-	float_32,
-	float_64
+	float_32
 };
 
-#endif // ANTKEEPER_VERTEX_ATTRIBUTE_TYPE_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_PIXEL_TYPE_HPP
 

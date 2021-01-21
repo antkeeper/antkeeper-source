@@ -21,9 +21,9 @@
 #define ANTKEEPER_RENDERER_HPP
 
 #include "render-operation.hpp"
+#include "gl/vertex-array.hpp"
 
 struct render_context;
-class vertex_array;
 
 namespace scene
 {
@@ -64,7 +64,7 @@ public:
 	/**
 	 * Sets the VAO to be used when generating render operations for billboards.
 	 */
-	void set_billboard_vao(vertex_array* vao);
+	void set_billboard_vao(gl::vertex_array* vao);
 	
 private:
 	void process_object(render_context& context, const scene::object_base* object) const;

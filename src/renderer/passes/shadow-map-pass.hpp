@@ -23,9 +23,9 @@
 #include "renderer/render-pass.hpp"
 #include "utility/fundamental-types.hpp"
 #include "scene/directional-light.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
 
-class shader_program;
-class shader_input;
 class resource_manager;
 
 /**
@@ -34,7 +34,7 @@ class resource_manager;
 class shadow_map_pass: public render_pass
 {
 public:
-	shadow_map_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager);
+	shadow_map_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~shadow_map_pass();
 	virtual void render(render_context* context) const final;
 	
@@ -62,11 +62,11 @@ private:
 	 */
 	static void distribute_frustum_splits(float* split_distances, std::size_t split_count, float split_scheme, float near, float far);
 	
-	shader_program* unskinned_shader_program;
-	const shader_input* unskinned_model_view_projection_input;
+	gl::shader_program* unskinned_shader_program;
+	const gl::shader_input* unskinned_model_view_projection_input;
 	
-	shader_program* skinned_shader_program;
-	const shader_input* skinned_model_view_projection_input;
+	gl::shader_program* skinned_shader_program;
+	const gl::shader_input* skinned_model_view_projection_input;
 	
 	mutable float split_distances[5];
 	mutable float4x4 shadow_matrices[4];

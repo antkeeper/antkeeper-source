@@ -23,11 +23,11 @@
 #include "renderer/render-pass.hpp"
 #include "animation/tween.hpp"
 #include "utility/fundamental-types.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
 
-class shader_program;
-class shader_input;
-class vertex_buffer;
-class vertex_array;
 class material;
 template <class T>
 class material_property;
@@ -38,7 +38,7 @@ class material_property;
 class simple_render_pass: public render_pass
 {
 public:
-	simple_render_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, ::shader_program* shader_program);
+	simple_render_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, gl::shader_program* shader_program);
 	virtual ~simple_render_pass();
 	virtual void render(render_context* context) const final;
 	
@@ -48,15 +48,15 @@ public:
 	::material* get_material();
 
 private:
-	shader_program* shader_program;
+	gl::shader_program* shader_program;
 	material* material;
 	material_property<float>* time_property;
 	material_property<float2>* resolution_property;
 	
 	const tween<double>* time_tween;
 	
-	vertex_buffer* quad_vbo;
-	vertex_array* quad_vao;
+	gl::vertex_buffer* quad_vbo;
+	gl::vertex_array* quad_vao;
 };
 
 inline const ::material* simple_render_pass::get_material() const

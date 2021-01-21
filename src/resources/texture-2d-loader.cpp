@@ -19,37 +19,37 @@
 
 #include "resources/resource-loader.hpp"
 #include "resources/image.hpp"
-#include "rasterizer/pixel-type.hpp"
-#include "rasterizer/pixel-format.hpp"
-#include "rasterizer/texture-2d.hpp"
+#include "gl/pixel-type.hpp"
+#include "gl/pixel-format.hpp"
+#include "gl/texture-2d.hpp"
 #include <sstream>
 
 template <>
-texture_2d* resource_loader<texture_2d>::load(resource_manager* resource_manager, PHYSFS_File* file)
+gl::texture_2d* resource_loader<gl::texture_2d>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	// Load image
 	::image* image = resource_loader<::image>::load(resource_manager, file);
 
 	// Determine pixel type
-	pixel_type type = (image->is_hdr()) ? pixel_type::float_32 : pixel_type::uint_8;
+	gl::pixel_type type = (image->is_hdr()) ? gl::pixel_type::float_32 : gl::pixel_type::uint_8;
 
 	// Determine pixel format
-	pixel_format format;
+	gl::pixel_format format;
 	if (image->get_channels() == 1)
 	{
-		format = pixel_format::r;
+		format = gl::pixel_format::r;
 	}
 	else if (image->get_channels() == 2)
 	{
-		format = pixel_format::rg;
+		format = gl::pixel_format::rg;
 	}
 	else if (image->get_channels() == 3)
 	{
-		format = pixel_format::rgb;
+		format = gl::pixel_format::rgb;
 	}
 	else if (image->get_channels() == 4)
 	{
-		format = pixel_format::rgba;
+		format = gl::pixel_format::rgba;
 	}
 	else
 	{
@@ -60,10 +60,10 @@ texture_2d* resource_loader<texture_2d>::load(resource_manager* resource_manager
 	}
 	
 	// Assume linear color space
-	::color_space color_space = ::color_space::linear;
+	gl::color_space color_space = gl::color_space::linear;
 
 	// Create texture
-	texture_2d* texture = new texture_2d(image->get_width(), image->get_height(), type, format, color_space, image->get_pixels());
+	gl::texture_2d* texture = new gl::texture_2d(image->get_width(), image->get_height(), type, format, color_space, image->get_pixels());
 
 	// Free loaded image
 	delete image;

@@ -17,13 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SHADER_PROGRAM_HPP
-#define ANTKEEPER_SHADER_PROGRAM_HPP
+#ifndef ANTKEEPER_GL_SHADER_PROGRAM_HPP
+#define ANTKEEPER_GL_SHADER_PROGRAM_HPP
 
 #include <cstdlib>
 #include <list>
 #include <map>
 #include <string>
+
+namespace gl {
 
 class shader;
 class rasterizer;
@@ -73,5 +75,7 @@ inline const shader_input* shader_program::get_input(const std::string& name) co
 	return it->second;
 }
 
-#endif // ANTKEEPER_SHADER_PROGRAM_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_SHADER_PROGRAM_HPP
 

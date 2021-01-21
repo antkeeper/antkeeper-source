@@ -18,9 +18,9 @@
  */
 
 #include "renderer/material.hpp"
-#include "rasterizer/shader-program.hpp"
+#include "gl/shader-program.hpp"
 
-material::material(shader_program* program):
+material::material(gl::shader_program* program):
 	program(program),
 	flags(0)
 {}
@@ -92,7 +92,7 @@ std::size_t material::upload(double a) const
 	return failed_upload_count;
 }
 
-void material::set_shader_program(shader_program* program)
+void material::set_shader_program(gl::shader_program* program)
 {
 	this->program = program;
 	reconnect_properties();

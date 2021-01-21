@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_FRAMEBUFFER_HPP
-#define ANTKEEPER_FRAMEBUFFER_HPP
+#ifndef ANTKEEPER_GL_FRAMEBUFFER_HPP
+#define ANTKEEPER_GL_FRAMEBUFFER_HPP
 
 #include <array>
+
+namespace gl {
 
 class rasterizer;
 class texture_2d;
@@ -115,6 +117,7 @@ inline texture_2d* framebuffer::get_stencil_attachment()
 	return stencil_attachment;
 }
 
+} // namespace gl
 
-#endif // ANTKEEPER_FRAMEBUFFER_HPP
+#endif // ANTKEEPER_GL_FRAMEBUFFER_HPP
 

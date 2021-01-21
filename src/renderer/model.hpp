@@ -20,8 +20,9 @@
 #ifndef ANTKEEPER_MODEL_HPP
 #define ANTKEEPER_MODEL_HPP
 
-#include "rasterizer/vertex-array.hpp"
-#include "rasterizer/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/drawing-mode.hpp"
 #include "geom/aabb.hpp"
 #include <map>
 #include <string>
@@ -29,9 +30,6 @@
 
 class material;
 class skeleton;
-class vertex_array;
-class vertex_buffer;
-enum class drawing_mode;
 
 /**
  * Part of a model which is associated with exactly one material.
@@ -40,7 +38,7 @@ class model_group
 {
 public:
 	void set_material(material* material);
-	void set_drawing_mode(drawing_mode mode);
+	void set_drawing_mode(gl::drawing_mode mode);
 	void set_start_index(std::size_t index);
 	void set_index_count(std::size_t count);
 
@@ -48,7 +46,7 @@ public:
 	const std::string& get_name() const;
 	const material* get_material() const;
 	material* get_material();
-	drawing_mode get_drawing_mode() const;
+	gl::drawing_mode get_drawing_mode() const;
 	std::size_t get_start_index() const;
 	std::size_t get_index_count() const;
 
@@ -58,7 +56,7 @@ private:
 	std::size_t index;
 	std::string name;
 	material* material;
-	drawing_mode drawing_mode;
+	gl::drawing_mode drawing_mode;
 	std::size_t start_index;
 	std::size_t index_count;
 };
@@ -68,7 +66,7 @@ inline void model_group::set_material(::material* material)
 	this->material = material;
 }
 
-inline void model_group::set_drawing_mode(::drawing_mode mode)
+inline void model_group::set_drawing_mode(gl::drawing_mode mode)
 {
 	this->drawing_mode = mode;
 }
@@ -103,7 +101,7 @@ inline material* model_group::get_material()
 	return material;
 }
 
-inline drawing_mode model_group::get_drawing_mode() const
+inline gl::drawing_mode model_group::get_drawing_mode() const
 {
 	return drawing_mode;
 }
@@ -143,18 +141,18 @@ public:
 
 	const std::vector<model_group*>* get_groups() const;
 
-	const vertex_array* get_vertex_array() const;
-	vertex_array* get_vertex_array();
+	const gl::vertex_array* get_vertex_array() const;
+	gl::vertex_array* get_vertex_array();
 
-	const vertex_buffer* get_vertex_buffer() const;
-	vertex_buffer* get_vertex_buffer();
+	const gl::vertex_buffer* get_vertex_buffer() const;
+	gl::vertex_buffer* get_vertex_buffer();
 
 private:
 	aabb_type bounds;
 	std::vector<model_group*> groups;
 	std::map<std::string, model_group*> group_map;
-	vertex_array vao;
-	vertex_buffer vbo;
+	gl::vertex_array vao;
+	gl::vertex_buffer vbo;
 	skeleton* skeleton;
 };
 
@@ -173,22 +171,22 @@ inline const std::vector<model_group*>* model::get_groups() const
 	return &groups;
 }
 
-inline const vertex_array* model::get_vertex_array() const
+inline const gl::vertex_array* model::get_vertex_array() const
 {
 	return &vao;
 }
 
-inline vertex_array* model::get_vertex_array()
+inline gl::vertex_array* model::get_vertex_array()
 {
 	return &vao;
 }
 
-inline const vertex_buffer* model::get_vertex_buffer() const
+inline const gl::vertex_buffer* model::get_vertex_buffer() const
 {
 	return &vbo;
 }
 
-inline vertex_buffer* model::get_vertex_buffer()
+inline gl::vertex_buffer* model::get_vertex_buffer()
 {
 	return &vbo;
 }

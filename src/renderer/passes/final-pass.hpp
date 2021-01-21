@@ -22,12 +22,12 @@
 
 #include "renderer/render-pass.hpp"
 #include "math/math.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/texture-2d.hpp"
 
-class shader_program;
-class shader_input;
-class vertex_buffer;
-class vertex_array;
-class texture_2d;
 class resource_manager;
 
 /**
@@ -36,23 +36,23 @@ class resource_manager;
 class final_pass: public render_pass
 {
 public:
-	final_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager);
+	final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~final_pass();
 	virtual void render(render_context* context) const final;
 	
-	void set_color_texture(const texture_2d* texture);
-	void set_bloom_texture(const texture_2d* texture);
+	void set_color_texture(const gl::texture_2d* texture);
+	void set_bloom_texture(const gl::texture_2d* texture);
 
 private:
-	shader_program* shader_program;
-	const shader_input* color_texture_input;
-	const shader_input* bloom_texture_input;
-	const shader_input* resolution_input;
-	vertex_buffer* quad_vbo;
-	vertex_array* quad_vao;
+	gl::shader_program* shader_program;
+	const gl::shader_input* color_texture_input;
+	const gl::shader_input* bloom_texture_input;
+	const gl::shader_input* resolution_input;
+	gl::vertex_buffer* quad_vbo;
+	gl::vertex_array* quad_vao;
 	
-	const texture_2d* color_texture;
-	const texture_2d* bloom_texture;
+	const gl::texture_2d* color_texture;
+	const gl::texture_2d* bloom_texture;
 };
 
 #endif // ANTKEEPER_FINAL_PASS_HPP

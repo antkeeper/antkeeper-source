@@ -17,8 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rasterizer/texture-cube.hpp"
+#include "gl/texture-cube.hpp"
 #include <glad/glad.h>
+
+namespace gl {
 
 texture_cube::texture_cube():
 	gl_texture_id(0),
@@ -32,3 +34,4 @@ texture_cube::~texture_cube()
 	glDeleteTextures(1, &gl_texture_id);
 }
 
+} // namespace gl

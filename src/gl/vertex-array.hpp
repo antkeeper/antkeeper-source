@@ -17,15 +17,36 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ELEMENT_ARRAY_TYPE_HPP
-#define ANTKEEPER_ELEMENT_ARRAY_TYPE_HPP
+#ifndef ANTKEEPER_GL_VERTEX_ARRAY_HPP
+#define ANTKEEPER_GL_VERTEX_ARRAY_HPP
 
-enum class element_array_type
+#include <cstdlib>
+
+namespace gl {
+
+class rasterizer;
+class vertex_buffer;
+enum class vertex_attribute_type;
+
+class vertex_array
 {
-	uint_8,
-	uint_16,
-	uint_32
+public:
+	explicit vertex_array();
+	~vertex_array();
+
+	vertex_array(const vertex_array&) = delete;
+	vertex_array& operator=(const vertex_array&) = delete;
+
+	void bind_attribute(unsigned int index, const vertex_buffer& buffer, int size, vertex_attribute_type type, int stride, std::size_t offset);
+	void bind_elements(const vertex_buffer& buffer);
+
+private:
+	friend class rasterizer;
+
+	unsigned int gl_array_id;
 };
 
-#endif // ANTKEEPER_ELEMENT_ARRAY_TYPE_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_VERTEX_ARRAY_HPP
 

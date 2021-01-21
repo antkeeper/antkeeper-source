@@ -21,16 +21,16 @@
 #define ANTKEEPER_MATERIAL_PROPERTY_HPP
 
 #include "animation/tween.hpp"
-#include "rasterizer/shader-variable-type.hpp"
-#include "rasterizer/shader-input.hpp"
+#include "gl/shader-variable-type.hpp"
+#include "gl/shader-input.hpp"
 #include "math/interpolation.hpp"
 #include "utility/fundamental-types.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-cube.hpp"
 #include <cstdlib>
 
 class material;
-class shader_program;
-class texture_2d;
-class texture_cube;
 
 /**
  * Abstract base class for material properties.
@@ -44,7 +44,7 @@ public:
 	 * @param input Shader input to which the material property should be connected.
 	 * @return `true` if the property was connected to the input successfully, `false` otherwise.
 	 */
-	bool connect(const shader_input* input);
+	bool connect(const gl::shader_input* input);
 
 	/**
 	 * Disconnects the material property from its shader input.
@@ -67,7 +67,7 @@ public:
 	/**
 	 * Returns the type of data which the property contains.
 	 */
-	virtual shader_variable_type get_data_type() const = 0;
+	virtual gl::shader_variable_type get_data_type() const = 0;
 
 	/**
 	 * Returns `true` if the material property is connected to a shader input, `false` otherwise.
@@ -82,7 +82,7 @@ public:
 protected:
 	material_property_base();
 
-	const shader_input* input;
+	const gl::shader_input* input;
 };
 
 inline bool material_property_base::is_connected() const
@@ -169,7 +169,7 @@ public:
 	const T& get_value(std::size_t index) const;
 
 	/// @copydoc material_property_base::get_data_type() const
-	virtual shader_variable_type get_data_type() const;
+	virtual gl::shader_variable_type get_data_type() const;
 
 	/// @copydoc material_property_base::clone() const
 	virtual material_property_base* clone() const;
@@ -300,129 +300,129 @@ inline const T& material_property<T>::get_value(std::size_t index) const
 }
 
 template <>
-inline shader_variable_type material_property<bool>::get_data_type() const
+inline gl::shader_variable_type material_property<bool>::get_data_type() const
 {
-	return shader_variable_type::bool1;
+	return gl::shader_variable_type::bool1;
 }
 
 template <>
-inline shader_variable_type material_property<bool2>::get_data_type() const
+inline gl::shader_variable_type material_property<bool2>::get_data_type() const
 {
-	return shader_variable_type::bool2;
+	return gl::shader_variable_type::bool2;
 }
 
 template <>
-inline shader_variable_type material_property<bool3>::get_data_type() const
+inline gl::shader_variable_type material_property<bool3>::get_data_type() const
 {
-	return shader_variable_type::bool3;
+	return gl::shader_variable_type::bool3;
 }
 
 template <>
-inline shader_variable_type material_property<bool4>::get_data_type() const
+inline gl::shader_variable_type material_property<bool4>::get_data_type() const
 {
-	return shader_variable_type::bool4;
+	return gl::shader_variable_type::bool4;
 }
 
 template <>
-inline shader_variable_type material_property<int>::get_data_type() const
+inline gl::shader_variable_type material_property<int>::get_data_type() const
 {
-	return shader_variable_type::int1;
+	return gl::shader_variable_type::int1;
 }
 
 template <>
-inline shader_variable_type material_property<int2>::get_data_type() const
+inline gl::shader_variable_type material_property<int2>::get_data_type() const
 {
-	return shader_variable_type::int2;
+	return gl::shader_variable_type::int2;
 }
 
 template <>
-inline shader_variable_type material_property<int3>::get_data_type() const
+inline gl::shader_variable_type material_property<int3>::get_data_type() const
 {
-	return shader_variable_type::int3;
+	return gl::shader_variable_type::int3;
 }
 
 template <>
-inline shader_variable_type material_property<int4>::get_data_type() const
+inline gl::shader_variable_type material_property<int4>::get_data_type() const
 {
-	return shader_variable_type::int4;
+	return gl::shader_variable_type::int4;
 }
 
 template <>
-inline shader_variable_type material_property<unsigned int>::get_data_type() const
+inline gl::shader_variable_type material_property<unsigned int>::get_data_type() const
 {
-	return shader_variable_type::uint1;
+	return gl::shader_variable_type::uint1;
 }
 
 template <>
-inline shader_variable_type material_property<uint2>::get_data_type() const
+inline gl::shader_variable_type material_property<uint2>::get_data_type() const
 {
-	return shader_variable_type::uint2;
+	return gl::shader_variable_type::uint2;
 }
 
 template <>
-inline shader_variable_type material_property<uint3>::get_data_type() const
+inline gl::shader_variable_type material_property<uint3>::get_data_type() const
 {
-	return shader_variable_type::uint3;
+	return gl::shader_variable_type::uint3;
 }
 
 template <>
-inline shader_variable_type material_property<uint4>::get_data_type() const
+inline gl::shader_variable_type material_property<uint4>::get_data_type() const
 {
-	return shader_variable_type::uint4;
+	return gl::shader_variable_type::uint4;
 }
 
 template <>
-inline shader_variable_type material_property<float>::get_data_type() const
+inline gl::shader_variable_type material_property<float>::get_data_type() const
 {
-	return shader_variable_type::float1;
+	return gl::shader_variable_type::float1;
 }
 
 template <>
-inline shader_variable_type material_property<float2>::get_data_type() const
+inline gl::shader_variable_type material_property<float2>::get_data_type() const
 {
-	return shader_variable_type::float2;
+	return gl::shader_variable_type::float2;
 }
 
 template <>
-inline shader_variable_type material_property<float3>::get_data_type() const
+inline gl::shader_variable_type material_property<float3>::get_data_type() const
 {
-	return shader_variable_type::float3;
+	return gl::shader_variable_type::float3;
 }
 
 template <>
-inline shader_variable_type material_property<float4>::get_data_type() const
+inline gl::shader_variable_type material_property<float4>::get_data_type() const
 {
-	return shader_variable_type::float4;
+	return gl::shader_variable_type::float4;
 }
 
 template <>
-inline shader_variable_type material_property<float2x2>::get_data_type() const
+inline gl::shader_variable_type material_property<float2x2>::get_data_type() const
 {
-	return shader_variable_type::float2x2;
+	return gl::shader_variable_type::float2x2;
 }
 
 template <>
-inline shader_variable_type material_property<float3x3>::get_data_type() const
+inline gl::shader_variable_type material_property<float3x3>::get_data_type() const
 {
-	return shader_variable_type::float3x3;
+	return gl::shader_variable_type::float3x3;
 }
 
 template <>
-inline shader_variable_type material_property<float4x4>::get_data_type() const
+inline gl::shader_variable_type material_property<float4x4>::get_data_type() const
 {
-	return shader_variable_type::float4x4;
+	return gl::shader_variable_type::float4x4;
 }
 
 template <>
-inline shader_variable_type material_property<const texture_2d*>::get_data_type() const
+inline gl::shader_variable_type material_property<const gl::texture_2d*>::get_data_type() const
 {
-	return shader_variable_type::texture_2d;
+	return gl::shader_variable_type::texture_2d;
 }
 
 template <>
-inline shader_variable_type material_property<const texture_cube*>::get_data_type() const
+inline gl::shader_variable_type material_property<const gl::texture_cube*>::get_data_type() const
 {
-	return shader_variable_type::texture_cube;
+	return gl::shader_variable_type::texture_cube;
 }
 
 template <class T>

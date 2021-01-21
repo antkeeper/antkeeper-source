@@ -17,9 +17,11 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/texture-2d.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/texture-2d.hpp"
 #include <glad/glad.h>
+
+namespace gl {
 
 static constexpr GLenum attachment_lut[] =
 {
@@ -86,3 +88,5 @@ void framebuffer::attach(framebuffer_attachment_type attachment_type, texture_2d
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+
+} // namespace gl

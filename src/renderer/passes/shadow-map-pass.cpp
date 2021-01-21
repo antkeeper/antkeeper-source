@@ -19,11 +19,11 @@
 
 #include "renderer/passes/shadow-map-pass.hpp"
 #include "resources/resource-manager.hpp"
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/shader-program.hpp"
-#include "rasterizer/shader-input.hpp"
-#include "rasterizer/drawing-mode.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/drawing-mode.hpp"
 #include "renderer/render-context.hpp"
 #include "renderer/material.hpp"
 #include "renderer/material-flags.hpp"
@@ -56,17 +56,17 @@ void shadow_map_pass::distribute_frustum_splits(float* split_distances, std::siz
 	}
 }
 
-shadow_map_pass::shadow_map_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
+shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	split_scheme_weight(0.5f),
 	light(nullptr)
 {
 	// Load skinned shader program
-	unskinned_shader_program = resource_manager->load<::shader_program>("depth-unskinned.glsl");
+	unskinned_shader_program = resource_manager->load<gl::shader_program>("depth-unskinned.glsl");
 	unskinned_model_view_projection_input = unskinned_shader_program->get_input("model_view_projection");
 	
 	// Load unskinned shader program
-	skinned_shader_program = resource_manager->load<::shader_program>("depth-skinned.glsl");
+	skinned_shader_program = resource_manager->load<gl::shader_program>("depth-skinned.glsl");
 	skinned_model_view_projection_input = skinned_shader_program->get_input("model_view_projection");
 	
 	// Calculate bias-tile matrices
@@ -151,7 +151,7 @@ void shadow_map_pass::render(render_context* context) const
 	// Sort render operations
 	context->operations.sort(operation_compare);
 	
-	shader_program* active_shader_program = nullptr;
+	gl::shader_program* active_shader_program = nullptr;
 	
 	for (int i = 0; i < 4; ++i)
 	{
@@ -223,7 +223,7 @@ void shadow_map_pass::render(render_context* context) const
 			}
 			
 			// Switch shader programs if necessary
-			::shader_program* shader_program = (operation.pose != nullptr) ? skinned_shader_program : unskinned_shader_program;
+			gl::shader_program* shader_program = (operation.pose != nullptr) ? skinned_shader_program : unskinned_shader_program;
 			if (active_shader_program != shader_program)
 			{
 				active_shader_program = shader_program;

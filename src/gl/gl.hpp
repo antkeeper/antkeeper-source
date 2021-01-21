@@ -17,14 +17,31 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_COLOR_SPACE_HPP
-#define ANTKEEPER_COLOR_SPACE_HPP
+#ifndef ANTKEEPER_GL_HPP
+#define ANTKEEPER_GL_HPP
 
-enum class color_space
-{
-	linear, ///< Linear color space
-	srgb ///< sRGB color space
-};
+/// Graphics library (GL) is a cross-platform GPU interface.
+namespace gl {}
 
-#endif // ANTKEEPER_COLOR_SPACE_HPP
+#include "buffer-usage.hpp"
+#include "color-space.hpp"
+#include "drawing-mode.hpp"
+#include "element-array-type.hpp"
+#include "framebuffer.hpp"
+#include "pixel-format.hpp"
+#include "pixel-type.hpp"
+#include "rasterizer.hpp"
+#include "shader.hpp"
+#include "shader-input.hpp"
+#include "shader-program.hpp"
+#include "shader-type.hpp"
+#include "shader-variable-type.hpp"
+#include "texture-2d.hpp"
+#include "texture-cube.hpp"
+#include "texture-filter.hpp"
+#include "texture-wrapping.hpp"
+#include "vertex-array.hpp"
+#include "vertex-attribute-type.hpp"
+#include "vertex-buffer.hpp"
 
+#endif // ANTKEEPER_GL_HPP

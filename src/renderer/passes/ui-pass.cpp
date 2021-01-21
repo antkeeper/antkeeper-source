@@ -19,19 +19,19 @@
 
 #include "renderer/passes/ui-pass.hpp"
 #include "resources/resource-manager.hpp"
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/shader.hpp"
-#include "rasterizer/shader-type.hpp"
-#include "rasterizer/shader-program.hpp"
-#include "rasterizer/shader-input.hpp"
-#include "rasterizer/vertex-buffer.hpp"
-#include "rasterizer/vertex-array.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/drawing-mode.hpp"
-#include "rasterizer/texture-2d.hpp"
-#include "rasterizer/texture-wrapping.hpp"
-#include "rasterizer/texture-filter.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/shader.hpp"
+#include "gl/shader-type.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/drawing-mode.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-wrapping.hpp"
+#include "gl/texture-filter.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "renderer/material-flags.hpp"
 #include "renderer/render-context.hpp"
@@ -44,7 +44,7 @@
 #include <cmath>
 #include <glad/glad.h>
 
-ui_pass::ui_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
+ui_pass::ui_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	time(0.0f)
 {}
@@ -80,7 +80,7 @@ void ui_pass::set_time(float time)
 	this->time = time;
 }
 
-const ui_pass::parameter_set* ui_pass::load_parameter_set(const shader_program* program) const
+const ui_pass::parameter_set* ui_pass::load_parameter_set(const gl::shader_program* program) const
 {
 	// Allocate a new parameter set
 	parameter_set* parameters = new parameter_set();

@@ -17,32 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_VERTEX_ARRAY_HPP
-#define ANTKEEPER_VERTEX_ARRAY_HPP
+#ifndef ANTKEEPER_GL_TEXTURE_FILTER_HPP
+#define ANTKEEPER_GL_TEXTURE_FILTER_HPP
 
-#include <cstdlib>
+namespace gl {
 
-class rasterizer;
-class vertex_buffer;
-enum class vertex_attribute_type;
-
-class vertex_array
+enum class texture_min_filter
 {
-public:
-	explicit vertex_array();
-	~vertex_array();
-
-	vertex_array(const vertex_array&) = delete;
-	vertex_array& operator=(const vertex_array&) = delete;
-
-	void bind_attribute(unsigned int index, const vertex_buffer& buffer, int size, vertex_attribute_type type, int stride, std::size_t offset);
-	void bind_elements(const vertex_buffer& buffer);
-
-private:
-	friend class rasterizer;
-
-	unsigned int gl_array_id;
+	nearest,
+	linear,
+	nearest_mipmap_nearest,
+	linear_mipmap_nearest,
+	nearest_mipmap_linear,
+	linear_mipmap_linear
 };
 
-#endif // ANTKEEPER_VERTEX_ARRAY_HPP
+enum class texture_mag_filter
+{
+	nearest,
+	linear
+};
+
+} // namespace gl
+
+#endif // ANTKEEPER_GL_TEXTURE_FILTER_HPP
 

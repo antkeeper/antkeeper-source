@@ -17,21 +17,43 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_BUFFER_USAGE_HPP
-#define ANTKEEPER_BUFFER_USAGE_HPP
+#ifndef ANTKEEPER_GL_SHADER_HPP
+#define ANTKEEPER_GL_SHADER_HPP
 
-enum class buffer_usage
+#include <cstdlib>
+#include <string>
+
+namespace gl {
+
+enum class shader_type;
+class shader_program;
+
+class shader
 {
-	stream_draw,
-	stream_read,
-	stream_copy,
-	static_draw,
-	static_read,
-	static_copy,
-	dynamic_draw,
-	dynamic_read,
-	dynamic_copy
+public:
+	shader(shader_type type, const std::string& source);
+	~shader();
+
+	shader(const shader&) = delete;
+	shader& operator=(const shader&) = delete;
+
+	shader_type get_type() const;
+
+private:
+	friend class shader_program;
+
+	std::string get_info_log() const;
+
+	unsigned int gl_shader_id;
+	shader_type type;
 };
 
-#endif // ANTKEEPER_BUFFER_USAGE_HPP
+inline shader_type shader::get_type() const
+{
+	return type;
+}
+
+} // namespace gl
+
+#endif // ANTKEEPER_GL_SHADER_HPP
 

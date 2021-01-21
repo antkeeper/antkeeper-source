@@ -25,6 +25,7 @@
 #include <list>
 #include <memory>
 #include <unordered_map>
+#include "gl/rasterizer.hpp"
 
 // Forward declarations
 typedef struct SDL_Window SDL_Window;
@@ -34,7 +35,6 @@ class frame_scheduler;
 class game_controller;
 class keyboard;
 class mouse;
-class rasterizer;
 class image;
 
 namespace debug
@@ -180,7 +180,7 @@ public:
 	bool is_fullscreen() const;
 	
 	/// Returns the rasterizer for the window.
-	::rasterizer* get_rasterizer();
+	gl::rasterizer* get_rasterizer();
 	
 	/// Returns the application logger.
 	debug::logger* get_logger();
@@ -222,7 +222,7 @@ private:
 	SDL_Window* sdl_window;
 	SDL_GLContext sdl_gl_context;
 	
-	rasterizer* rasterizer;
+	gl::rasterizer* rasterizer;
 	
 	// Frame timing
 	frame_scheduler* frame_scheduler;
@@ -263,7 +263,7 @@ inline bool application::is_fullscreen() const
 	return fullscreen;
 }
 
-inline rasterizer* application::get_rasterizer()
+inline gl::rasterizer* application::get_rasterizer()
 {
 	return rasterizer;
 }

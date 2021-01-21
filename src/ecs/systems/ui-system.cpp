@@ -37,7 +37,7 @@ ui_system::ui_system(::resource_manager* resource_manager):
 	direct_light.update_tweens();
 	
 	// Setup modal background
-	modal_bg_material.set_shader_program(resource_manager->load<shader_program>("ui-element-untextured.glsl"));
+	modal_bg_material.set_shader_program(resource_manager->load<gl::shader_program>("ui-element-untextured.glsl"));
 	modal_bg_material.set_flags(1);
 	modal_bg_material.add_property<float4>("tint")->set_value({0, 0, 0, 0.25f});
 	modal_bg.set_material(&modal_bg_material);

@@ -21,12 +21,12 @@
 #define ANTKEEPER_RENDER_OPERATION_HPP
 
 #include "utility/fundamental-types.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/drawing-mode.hpp"
 #include <cstdlib>
 
 class pose;
 class material;
-class vertex_array;
-enum class drawing_mode;
 
 /**
  * Describes a render operation with a single mesh and single material.
@@ -35,8 +35,8 @@ struct render_operation
 {
 	const pose* pose;
 	const material* material;
-	const vertex_array* vertex_array;
-	drawing_mode drawing_mode;
+	const gl::vertex_array* vertex_array;
+	gl::drawing_mode drawing_mode;
 	std::size_t start_index;
 	std::size_t index_count;
 	float4x4 transform;

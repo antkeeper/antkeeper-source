@@ -22,9 +22,9 @@
 
 #include "renderer/render-pass.hpp"
 #include "utility/fundamental-types.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
 
-class shader_program;
-class shader_input;
 class resource_manager;
 
 /**
@@ -33,7 +33,7 @@ class resource_manager;
 class outline_pass: public render_pass
 {
 public:
-	outline_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager);
+	outline_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~outline_pass();
 	virtual void render(render_context* context) const final;
 	
@@ -41,13 +41,13 @@ public:
 	void set_outline_color(const float4& color);
 
 private:
-	shader_program* fill_shader;
-	const shader_input* fill_model_view_projection_input;
+	gl::shader_program* fill_shader;
+	const gl::shader_input* fill_model_view_projection_input;
 	
-	shader_program* stroke_shader;
-	const shader_input* stroke_model_view_projection_input;
-	const shader_input* stroke_width_input;
-	const shader_input* stroke_color_input;
+	gl::shader_program* stroke_shader;
+	const gl::shader_input* stroke_model_view_projection_input;
+	const gl::shader_input* stroke_width_input;
+	const gl::shader_input* stroke_color_input;
 	
 	float outline_width;
 	float4 outline_color;

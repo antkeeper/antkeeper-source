@@ -26,9 +26,9 @@
 #include "geom/mesh.hpp"
 #include "geom/mesh-functions.hpp"
 #include "renderer/vertex-attributes.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/drawing-mode.hpp"
-#include "rasterizer/vertex-buffer.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/drawing-mode.hpp"
+#include "gl/vertex-buffer.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/image.hpp"
 #include "utility/fundamental-types.hpp"
@@ -82,8 +82,8 @@ model* terrain_system::generate_terrain_model(geom::mesh* terrain_mesh)
 	model* terrain_model = new model();
 
 	// Get model's VAO and VBO
-	vertex_buffer* vbo = terrain_model->get_vertex_buffer();
-	vertex_array* vao = terrain_model->get_vertex_array();
+	gl::vertex_buffer* vbo = terrain_model->get_vertex_buffer();
+	gl::vertex_array* vao = terrain_model->get_vertex_array();
 
 	// Resize VBO
 	int vertex_size = 3 + 2 + 3 + 4 + 3;
@@ -92,21 +92,21 @@ model* terrain_system::generate_terrain_model(geom::mesh* terrain_mesh)
 
 	// Bind vertex attributes
 	std::size_t offset = 0;
-	vao->bind_attribute(VERTEX_POSITION_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, 0);
+	vao->bind_attribute(VERTEX_POSITION_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, vertex_stride, 0);
 	offset += 3;
-	vao->bind_attribute(VERTEX_TEXCOORD_LOCATION, *vbo, 2, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
+	vao->bind_attribute(VERTEX_TEXCOORD_LOCATION, *vbo, 2, gl::vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
 	offset += 2;
-	vao->bind_attribute(VERTEX_NORMAL_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
+	vao->bind_attribute(VERTEX_NORMAL_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
 	offset += 3;
-	vao->bind_attribute(VERTEX_TANGENT_LOCATION, *vbo, 4, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
+	vao->bind_attribute(VERTEX_TANGENT_LOCATION, *vbo, 4, gl::vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
 	offset += 4;
-	vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
+	vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, vertex_stride, sizeof(float) * offset);
 	offset += 3;
 	
 	// Create model group
 	model_group* model_group = terrain_model->add_group("terrain");
 	model_group->set_material(resource_manager->load<material>("grassland-terrain.mtl"));
-	model_group->set_drawing_mode(drawing_mode::triangles);
+	model_group->set_drawing_mode(gl::drawing_mode::triangles);
 	model_group->set_start_index(0);
 	model_group->set_index_count(terrain_mesh->get_faces().size() * 3);
 

@@ -22,12 +22,12 @@
 
 #include "renderer/render-pass.hpp"
 #include "math/math.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/texture-2d.hpp"
 
-class shader_program;
-class shader_input;
-class vertex_buffer;
-class vertex_array;
-class texture_2d;
 class resource_manager;
 
 /**
@@ -36,34 +36,34 @@ class resource_manager;
 class bloom_pass: public render_pass
 {
 public:
-	bloom_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager);
+	bloom_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~bloom_pass();
 	virtual void render(render_context* context) const final;
 	
-	void set_source_texture(const texture_2d* texture);
+	void set_source_texture(const gl::texture_2d* texture);
 	void set_brightness_threshold(float threshold);
 	void set_blur_iterations(int iterations);
 
 private:
-	vertex_buffer* quad_vbo;
-	vertex_array* quad_vao;
+	gl::vertex_buffer* quad_vbo;
+	gl::vertex_array* quad_vao;
 	
-	const ::framebuffer* pingpong_framebuffers[2];
-	const texture_2d* pingpong_textures[2];
-	texture_2d* cloned_framebuffer_texture;
-	::framebuffer* cloned_framebuffer;
+	const gl::framebuffer* pingpong_framebuffers[2];
+	const gl::texture_2d* pingpong_textures[2];
+	gl::texture_2d* cloned_framebuffer_texture;
+	gl::framebuffer* cloned_framebuffer;
 	
-	shader_program* threshold_shader;
-	const shader_input* threshold_shader_image_input;
-	const shader_input* threshold_shader_resolution_input;
-	const shader_input* threshold_shader_threshold_input;
+	gl::shader_program* threshold_shader;
+	const gl::shader_input* threshold_shader_image_input;
+	const gl::shader_input* threshold_shader_resolution_input;
+	const gl::shader_input* threshold_shader_threshold_input;
 	
-	shader_program* blur_shader;
-	const shader_input* blur_shader_image_input;
-	const shader_input* blur_shader_resolution_input;
-	const shader_input* blur_shader_direction_input;
+	gl::shader_program* blur_shader;
+	const gl::shader_input* blur_shader_image_input;
+	const gl::shader_input* blur_shader_resolution_input;
+	const gl::shader_input* blur_shader_direction_input;
 	
-	const texture_2d* source_texture;
+	const gl::texture_2d* source_texture;
 	float brightness_threshold;
 	int blur_iterations;
 };

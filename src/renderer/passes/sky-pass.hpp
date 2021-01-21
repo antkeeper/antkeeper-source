@@ -26,16 +26,16 @@
 #include "event/input-events.hpp"
 #include "animation/tween.hpp"
 #include "math/quaternion-type.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/drawing-mode.hpp"
 
-class shader_program;
-class shader_input;
-class vertex_buffer;
-class vertex_array;
-class texture_2d;
 class resource_manager;
 class model;
 class material;
-enum class drawing_mode;
 
 /**
  *
@@ -44,7 +44,7 @@ class sky_pass: public render_pass,
 	public event_handler<mouse_moved_event>
 {
 public:
-	sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager);
+	sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~sky_pass();
 	virtual void render(render_context* context) const final;
 	
@@ -54,7 +54,7 @@ public:
 	void set_horizon_color(const float3& color);
 	void set_zenith_color(const float3& color);
 	void set_time_of_day(float time);
-	void set_blue_noise_map(const texture_2d* texture);
+	void set_blue_noise_map(const gl::texture_2d* texture);
 	void set_time_tween(const tween<double>* time);
 	void set_moon_model(const model* model);
 	
@@ -70,45 +70,45 @@ public:
 private:
 	virtual void handle_event(const mouse_moved_event& event);
 
-	shader_program* sky_shader_program;
-	const shader_input* model_view_projection_input;
-	const shader_input* horizon_color_input;
-	const shader_input* zenith_color_input;
-	const shader_input* mouse_input;
-	const shader_input* resolution_input;
-	const shader_input* time_input;
-	const shader_input* time_of_day_input;
-	const shader_input* observer_location_input;
-	const shader_input* sun_position_input;
-	const shader_input* sun_az_el_input;
-	const shader_input* moon_position_input;
-	const shader_input* moon_az_el_input;
-	const shader_input* blue_noise_map_input;
-	const shader_input* julian_day_input;
-	const shader_input* cos_sun_angular_radius_input;
-	const shader_input* cos_moon_angular_radius_input;
+	gl::shader_program* sky_shader_program;
+	const gl::shader_input* model_view_projection_input;
+	const gl::shader_input* horizon_color_input;
+	const gl::shader_input* zenith_color_input;
+	const gl::shader_input* mouse_input;
+	const gl::shader_input* resolution_input;
+	const gl::shader_input* time_input;
+	const gl::shader_input* time_of_day_input;
+	const gl::shader_input* observer_location_input;
+	const gl::shader_input* sun_position_input;
+	const gl::shader_input* sun_az_el_input;
+	const gl::shader_input* moon_position_input;
+	const gl::shader_input* moon_az_el_input;
+	const gl::shader_input* blue_noise_map_input;
+	const gl::shader_input* julian_day_input;
+	const gl::shader_input* cos_sun_angular_radius_input;
+	const gl::shader_input* cos_moon_angular_radius_input;
 	
-	::shader_program* moon_shader_program;
-	const shader_input* moon_model_view_projection_input;
-	const shader_input* moon_normal_model_input;
-	const shader_input* moon_moon_position_input;
-	const shader_input* moon_sun_position_input;
+	gl::shader_program* moon_shader_program;
+	const gl::shader_input* moon_model_view_projection_input;
+	const gl::shader_input* moon_normal_model_input;
+	const gl::shader_input* moon_moon_position_input;
+	const gl::shader_input* moon_sun_position_input;
 	
 	const model* sky_model;
 	const material* sky_material;
-	const vertex_array* sky_model_vao;
-	drawing_mode sky_model_drawing_mode;
+	const gl::vertex_array* sky_model_vao;
+	gl::drawing_mode sky_model_drawing_mode;
 	std::size_t sky_model_start_index;
 	std::size_t sky_model_index_count;
 	
 	const model* moon_model;
 	const material* moon_material;
-	const vertex_array* moon_model_vao;
-	drawing_mode moon_model_drawing_mode;
+	const gl::vertex_array* moon_model_vao;
+	gl::drawing_mode moon_model_drawing_mode;
 	std::size_t moon_model_start_index;
 	std::size_t moon_model_index_count;
 
-	const texture_2d* blue_noise_map;
+	const gl::texture_2d* blue_noise_map;
 	float2 mouse_position;
 
 	const tween<double>* time_tween;

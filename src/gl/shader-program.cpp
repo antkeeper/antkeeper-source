@@ -17,12 +17,14 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rasterizer/shader-program.hpp"
-#include "rasterizer/shader.hpp"
-#include "rasterizer/shader-variable-type.hpp"
-#include "rasterizer/shader-input.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader.hpp"
+#include "gl/shader-variable-type.hpp"
+#include "gl/shader-input.hpp"
 #include <glad/glad.h>
 #include <stdexcept>
+
+namespace gl {
 
 shader_program::shader_program(const std::list<shader*>& shaders):
 	gl_program_id(0)
@@ -221,3 +223,4 @@ std::string shader_program::get_info_log() const
 	return std::string();
 }
 
+} // namespace gl

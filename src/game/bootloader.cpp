@@ -27,16 +27,16 @@
 #include "debug/console-commands.hpp"
 #include "debug/logger.hpp"
 #include "game/game-context.hpp"
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/pixel-format.hpp"
-#include "rasterizer/pixel-type.hpp"
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/texture-2d.hpp"
-#include "rasterizer/texture-filter.hpp"
-#include "rasterizer/texture-wrapping.hpp"
-#include "rasterizer/vertex-array.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/vertex-buffer.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/pixel-format.hpp"
+#include "gl/pixel-type.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-filter.hpp"
+#include "gl/texture-wrapping.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/vertex-buffer.hpp"
 #include "renderer/material-flags.hpp"
 #include "renderer/material-property.hpp"
 #include "renderer/passes/bloom-pass.hpp"
@@ -443,22 +443,22 @@ void setup_rendering(game_context* ctx)
 	ctx->rasterizer = ctx->app->get_rasterizer();
 	
 	// Get default framebuffer
-	const framebuffer& default_framebuffer = ctx->rasterizer->get_default_framebuffer();
+	const gl::framebuffer& default_framebuffer = ctx->rasterizer->get_default_framebuffer();
 	const auto& viewport_dimensions = default_framebuffer.get_dimensions();
 	
 	// Create HDR framebuffer (32F color, 32F depth)
-	ctx->framebuffer_hdr_color = new texture_2d(viewport_dimensions[0], viewport_dimensions[1], pixel_type::float_32, pixel_format::rgb);
-	ctx->framebuffer_hdr_color->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
-	ctx->framebuffer_hdr_color->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
+	ctx->framebuffer_hdr_color = new gl::texture_2d(viewport_dimensions[0], viewport_dimensions[1], gl::pixel_type::float_32, gl::pixel_format::rgb);
+	ctx->framebuffer_hdr_color->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
+	ctx->framebuffer_hdr_color->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx->framebuffer_hdr_color->set_max_anisotropy(0.0f);
-	ctx->framebuffer_hdr_depth = new texture_2d(viewport_dimensions[0], viewport_dimensions[1], pixel_type::float_32, pixel_format::ds);
-	ctx->framebuffer_hdr_depth->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
-	ctx->framebuffer_hdr_depth->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
+	ctx->framebuffer_hdr_depth = new gl::texture_2d(viewport_dimensions[0], viewport_dimensions[1], gl::pixel_type::float_32, gl::pixel_format::ds);
+	ctx->framebuffer_hdr_depth->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
+	ctx->framebuffer_hdr_depth->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx->framebuffer_hdr_depth->set_max_anisotropy(0.0f);
-	ctx->framebuffer_hdr = new framebuffer(viewport_dimensions[0], viewport_dimensions[1]);
-	ctx->framebuffer_hdr->attach(framebuffer_attachment_type::color, ctx->framebuffer_hdr_color);
-	ctx->framebuffer_hdr->attach(framebuffer_attachment_type::depth, ctx->framebuffer_hdr_depth);
-	ctx->framebuffer_hdr->attach(framebuffer_attachment_type::stencil, ctx->framebuffer_hdr_depth);
+	ctx->framebuffer_hdr = new gl::framebuffer(viewport_dimensions[0], viewport_dimensions[1]);
+	ctx->framebuffer_hdr->attach(gl::framebuffer_attachment_type::color, ctx->framebuffer_hdr_color);
+	ctx->framebuffer_hdr->attach(gl::framebuffer_attachment_type::depth, ctx->framebuffer_hdr_depth);
+	ctx->framebuffer_hdr->attach(gl::framebuffer_attachment_type::stencil, ctx->framebuffer_hdr_depth);
 	
 	// Create shadow map framebuffer
 	int shadow_map_resolution = 4096;
@@ -466,29 +466,29 @@ void setup_rendering(game_context* ctx)
 	{
 		shadow_map_resolution = ctx->config->get<int>("shadow_map_resolution");
 	}
-	ctx->shadow_map_depth_texture = new texture_2d(shadow_map_resolution, shadow_map_resolution, pixel_type::float_32, pixel_format::d);
-	ctx->shadow_map_depth_texture->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
-	ctx->shadow_map_depth_texture->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
+	ctx->shadow_map_depth_texture = new gl::texture_2d(shadow_map_resolution, shadow_map_resolution, gl::pixel_type::float_32, gl::pixel_format::d);
+	ctx->shadow_map_depth_texture->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
+	ctx->shadow_map_depth_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx->shadow_map_depth_texture->set_max_anisotropy(0.0f);
-	ctx->shadow_map_framebuffer = new framebuffer(shadow_map_resolution, shadow_map_resolution);
-	ctx->shadow_map_framebuffer->attach(framebuffer_attachment_type::depth, ctx->shadow_map_depth_texture);
+	ctx->shadow_map_framebuffer = new gl::framebuffer(shadow_map_resolution, shadow_map_resolution);
+	ctx->shadow_map_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx->shadow_map_depth_texture);
 	
 	// Create bloom pingpong framebuffers (16F color, no depth)
 	int bloom_width = viewport_dimensions[0] >> 1;
 	int bloom_height = viewport_dimensions[1] >> 1;
-	ctx->bloom_texture = new texture_2d(bloom_width, bloom_height, pixel_type::float_16, pixel_format::rgb);
-	ctx->bloom_texture->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
-	ctx->bloom_texture->set_filters(texture_min_filter::linear, texture_mag_filter::linear);
+	ctx->bloom_texture = new gl::texture_2d(bloom_width, bloom_height, gl::pixel_type::float_16, gl::pixel_format::rgb);
+	ctx->bloom_texture->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
+	ctx->bloom_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx->bloom_texture->set_max_anisotropy(0.0f);
-	ctx->framebuffer_bloom = new framebuffer(bloom_width, bloom_height);
-	ctx->framebuffer_bloom->attach(framebuffer_attachment_type::color, ctx->bloom_texture);
+	ctx->framebuffer_bloom = new gl::framebuffer(bloom_width, bloom_height);
+	ctx->framebuffer_bloom->attach(gl::framebuffer_attachment_type::color, ctx->bloom_texture);
 	
 	// Load blue noise texture
-	texture_2d* blue_noise_map = ctx->resource_manager->load<texture_2d>("blue-noise.png");
-	blue_noise_map->set_wrapping(texture_wrapping::repeat, texture_wrapping::repeat);
-	blue_noise_map->set_wrapping(texture_wrapping::repeat, texture_wrapping::repeat);
-	blue_noise_map->set_filters(texture_min_filter::nearest, texture_mag_filter::nearest);
-	blue_noise_map->set_filters(texture_min_filter::nearest, texture_mag_filter::nearest);
+	gl::texture_2d* blue_noise_map = ctx->resource_manager->load<gl::texture_2d>("blue-noise.png");
+	blue_noise_map->set_wrapping(gl::texture_wrapping::repeat, gl::texture_wrapping::repeat);
+	blue_noise_map->set_wrapping(gl::texture_wrapping::repeat, gl::texture_wrapping::repeat);
+	blue_noise_map->set_filters(gl::texture_min_filter::nearest, gl::texture_mag_filter::nearest);
+	blue_noise_map->set_filters(gl::texture_min_filter::nearest, gl::texture_mag_filter::nearest);
 	
 	// Load fallback material
 	ctx->fallback_material = ctx->resource_manager->load<material>("fallback.mtl");
@@ -538,9 +538,9 @@ void setup_rendering(game_context* ctx)
 	ctx->underworld_material_pass = new material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->underworld_material_pass->set_fallback_material(ctx->fallback_material);
 	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->underworld_material_pass);
-	shader_program* underworld_final_shader = ctx->resource_manager->load<shader_program>("underground-final.glsl");
+	gl::shader_program* underworld_final_shader = ctx->resource_manager->load<gl::shader_program>("underground-final.glsl");
 	ctx->underworld_final_pass = new simple_render_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), underworld_final_shader);
-	ctx->underground_color_texture_property = ctx->underworld_final_pass->get_material()->add_property<const texture_2d*>("color_texture");
+	ctx->underground_color_texture_property = ctx->underworld_final_pass->get_material()->add_property<const gl::texture_2d*>("color_texture");
 	ctx->underground_color_texture_property->set_value(ctx->framebuffer_hdr_color);
 	ctx->underworld_final_pass->get_material()->update_tweens();
 	ctx->underworld_compositor = new compositor();
@@ -574,28 +574,28 @@ void setup_rendering(game_context* ctx)
 		std::size_t billboard_vertex_stride = sizeof(float) * billboard_vertex_size;
 		std::size_t billboard_vertex_count = 6;
 
-		ctx->billboard_vbo = new vertex_buffer(sizeof(float) * billboard_vertex_size * billboard_vertex_count, billboard_vertex_data);
-		ctx->billboard_vao = new vertex_array();
-		ctx->billboard_vao->bind_attribute(VERTEX_POSITION_LOCATION, *ctx->billboard_vbo, 3, vertex_attribute_type::float_32, billboard_vertex_stride, 0);
-		ctx->billboard_vao->bind_attribute(VERTEX_TEXCOORD_LOCATION, *ctx->billboard_vbo, 2, vertex_attribute_type::float_32, billboard_vertex_stride, sizeof(float) * 3);
-		ctx->billboard_vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *ctx->billboard_vbo, 3, vertex_attribute_type::float_32, billboard_vertex_stride, sizeof(float) * 5);
+		ctx->billboard_vbo = new gl::vertex_buffer(sizeof(float) * billboard_vertex_size * billboard_vertex_count, billboard_vertex_data);
+		ctx->billboard_vao = new gl::vertex_array();
+		ctx->billboard_vao->bind_attribute(VERTEX_POSITION_LOCATION, *ctx->billboard_vbo, 3, gl::vertex_attribute_type::float_32, billboard_vertex_stride, 0);
+		ctx->billboard_vao->bind_attribute(VERTEX_TEXCOORD_LOCATION, *ctx->billboard_vbo, 2, gl::vertex_attribute_type::float_32, billboard_vertex_stride, sizeof(float) * 3);
+		ctx->billboard_vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *ctx->billboard_vbo, 3, gl::vertex_attribute_type::float_32, billboard_vertex_stride, sizeof(float) * 5);
 	}
 	
 	// Load marker albedo textures
-	ctx->marker_albedo_textures = new texture_2d*[8];
-	ctx->marker_albedo_textures[0] = ctx->resource_manager->load<texture_2d>("marker-clear-albedo.png");
-	ctx->marker_albedo_textures[1] = ctx->resource_manager->load<texture_2d>("marker-yellow-albedo.png");
-	ctx->marker_albedo_textures[2] = ctx->resource_manager->load<texture_2d>("marker-green-albedo.png");
-	ctx->marker_albedo_textures[3] = ctx->resource_manager->load<texture_2d>("marker-blue-albedo.png");
-	ctx->marker_albedo_textures[4] = ctx->resource_manager->load<texture_2d>("marker-purple-albedo.png");
-	ctx->marker_albedo_textures[5] = ctx->resource_manager->load<texture_2d>("marker-pink-albedo.png");
-	ctx->marker_albedo_textures[6] = ctx->resource_manager->load<texture_2d>("marker-red-albedo.png");
-	ctx->marker_albedo_textures[7] = ctx->resource_manager->load<texture_2d>("marker-orange-albedo.png");
+	ctx->marker_albedo_textures = new gl::texture_2d*[8];
+	ctx->marker_albedo_textures[0] = ctx->resource_manager->load<gl::texture_2d>("marker-clear-albedo.png");
+	ctx->marker_albedo_textures[1] = ctx->resource_manager->load<gl::texture_2d>("marker-yellow-albedo.png");
+	ctx->marker_albedo_textures[2] = ctx->resource_manager->load<gl::texture_2d>("marker-green-albedo.png");
+	ctx->marker_albedo_textures[3] = ctx->resource_manager->load<gl::texture_2d>("marker-blue-albedo.png");
+	ctx->marker_albedo_textures[4] = ctx->resource_manager->load<gl::texture_2d>("marker-purple-albedo.png");
+	ctx->marker_albedo_textures[5] = ctx->resource_manager->load<gl::texture_2d>("marker-pink-albedo.png");
+	ctx->marker_albedo_textures[6] = ctx->resource_manager->load<gl::texture_2d>("marker-red-albedo.png");
+	ctx->marker_albedo_textures[7] = ctx->resource_manager->load<gl::texture_2d>("marker-orange-albedo.png");
 	for (int i = 0; i < 8; ++i)
 	{
-		texture_2d* texture = ctx->marker_albedo_textures[i];
-		texture->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
-		texture->set_filters(texture_min_filter::nearest, texture_mag_filter::nearest);
+		gl::texture_2d* texture = ctx->marker_albedo_textures[i];
+		texture->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
+		texture->set_filters(gl::texture_min_filter::nearest, gl::texture_mag_filter::nearest);
 		texture->set_max_anisotropy(0.0f);
 	}
 	
@@ -676,11 +676,11 @@ void setup_scenes(game_context* ctx)
 
 
 	
-	const texture_2d* splash_texture = ctx->resource_manager->load<texture_2d>("splash.png");
+	const gl::texture_2d* splash_texture = ctx->resource_manager->load<gl::texture_2d>("splash.png");
 	auto splash_dimensions = splash_texture->get_dimensions();
 	ctx->splash_billboard_material = new material();
-	ctx->splash_billboard_material->set_shader_program(ctx->resource_manager->load<shader_program>("ui-element-textured.glsl"));
-	ctx->splash_billboard_material->add_property<const texture_2d*>("background")->set_value(splash_texture);
+	ctx->splash_billboard_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
+	ctx->splash_billboard_material->add_property<const gl::texture_2d*>("background")->set_value(splash_texture);
 	ctx->splash_billboard_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
 	ctx->splash_billboard_material->update_tweens();
 	ctx->splash_billboard = new scene::billboard();
@@ -693,8 +693,8 @@ void setup_scenes(game_context* ctx)
 	// Create depth debug billboard
 	/*
 	material* depth_debug_material = new material();
-	depth_debug_material->set_shader_program(ctx->resource_manager->load<shader_program>("ui-element-textured.glsl"));
-	depth_debug_material->add_property<const texture_2d*>("background")->set_value(shadow_map_depth_texture);
+	depth_debug_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
+	depth_debug_material->add_property<const gl::texture_2d*>("background")->set_value(shadow_map_depth_texture);
 	depth_debug_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
 	billboard* depth_debug_billboard = new billboard();
 	depth_debug_billboard->set_material(depth_debug_material);
@@ -750,19 +750,19 @@ void setup_animation(game_context* ctx)
 	
 	// Create fade transition
 	ctx->fade_transition = new screen_transition();
-	ctx->fade_transition->get_material()->set_shader_program(ctx->resource_manager->load<shader_program>("fade-transition.glsl"));
+	ctx->fade_transition->get_material()->set_shader_program(ctx->resource_manager->load<gl::shader_program>("fade-transition.glsl"));
 	ctx->ui_scene->add_object(ctx->fade_transition->get_billboard());
 	ctx->animator->add_animation(ctx->fade_transition->get_animation());
 	
 	// Create inner radial transition
 	ctx->radial_transition_inner = new screen_transition();
-	ctx->radial_transition_inner->get_material()->set_shader_program(ctx->resource_manager->load<shader_program>("radial-transition-inner.glsl"));
+	ctx->radial_transition_inner->get_material()->set_shader_program(ctx->resource_manager->load<gl::shader_program>("radial-transition-inner.glsl"));
 	ctx->ui_scene->add_object(ctx->radial_transition_inner->get_billboard());
 	ctx->animator->add_animation(ctx->radial_transition_inner->get_animation());
 	
 	// Create outer radial transition
 	ctx->radial_transition_outer = new screen_transition();
-	ctx->radial_transition_outer->get_material()->set_shader_program(ctx->resource_manager->load<shader_program>("radial-transition-outer.glsl"));
+	ctx->radial_transition_outer->get_material()->set_shader_program(ctx->resource_manager->load<gl::shader_program>("radial-transition-outer.glsl"));
 	ctx->ui_scene->add_object(ctx->radial_transition_outer->get_billboard());
 	ctx->animator->add_animation(ctx->radial_transition_outer->get_animation());
 	
@@ -1153,7 +1153,7 @@ void setup_controls(game_context* ctx)
 		{
 			auto& marker_component = ctx->ecs_registry->get<ecs::marker_component>(ctx->marker_entity);
 			marker_component.color = (marker_component.color + 1) % 8;			
-			const texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker_component.color];
+			const gl::texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker_component.color];
 			
 			model* marker_model = ctx->render_system->get_model_instance(ctx->marker_entity)->get_model();
 			for (::model_group* group: *marker_model->get_groups())
@@ -1161,7 +1161,7 @@ void setup_controls(game_context* ctx)
 				material_property_base* albedo_property = group->get_material()->get_property("albedo_texture");
 				if (albedo_property)
 				{
-					static_cast<material_property<const texture_2d*>*>(albedo_property)->set_value(marker_albedo_texture);
+					static_cast<material_property<const gl::texture_2d*>*>(albedo_property)->set_value(marker_albedo_texture);
 				}
 			}
 		}
@@ -1173,7 +1173,7 @@ void setup_controls(game_context* ctx)
 		{
 			auto& marker_component = ctx->ecs_registry->get<ecs::marker_component>(ctx->marker_entity);
 			marker_component.color = (marker_component.color + 7) % 8;			
-			const texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker_component.color];
+			const gl::texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker_component.color];
 			
 			model* marker_model = ctx->render_system->get_model_instance(ctx->marker_entity)->get_model();
 			for (::model_group* group: *marker_model->get_groups())
@@ -1181,7 +1181,7 @@ void setup_controls(game_context* ctx)
 				material_property_base* albedo_property = group->get_material()->get_property("albedo_texture");
 				if (albedo_property)
 				{
-					static_cast<material_property<const texture_2d*>*>(albedo_property)->set_value(marker_albedo_texture);
+					static_cast<material_property<const gl::texture_2d*>*>(albedo_property)->set_value(marker_albedo_texture);
 				}
 			}
 		}

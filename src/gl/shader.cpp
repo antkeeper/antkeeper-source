@@ -17,9 +17,11 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rasterizer/shader.hpp"
+#include "gl/shader.hpp"
 #include <glad/glad.h>
 #include <stdexcept>
+
+namespace gl {
 
 static constexpr GLenum shader_type_lut[] =
 {
@@ -67,3 +69,4 @@ std::string shader::get_info_log() const
 	return std::string();
 }
 
+} // namespace gl

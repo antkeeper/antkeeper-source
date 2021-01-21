@@ -18,11 +18,11 @@
  */
 
 #include "renderer/passes/clear-pass.hpp"
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/framebuffer.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
 #include <glad/glad.h>
 
-clear_pass::clear_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer):
+clear_pass::clear_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer):
 	render_pass(rasterizer, framebuffer),
 	clear_color_buffer(false),
 	clear_depth_buffer(false),

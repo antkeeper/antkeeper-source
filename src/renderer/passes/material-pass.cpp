@@ -20,19 +20,19 @@
 #include "renderer/passes/material-pass.hpp"
 #include "configuration.hpp"
 #include "resources/resource-manager.hpp"
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/shader.hpp"
-#include "rasterizer/shader-type.hpp"
-#include "rasterizer/shader-program.hpp"
-#include "rasterizer/shader-input.hpp"
-#include "rasterizer/vertex-buffer.hpp"
-#include "rasterizer/vertex-array.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/drawing-mode.hpp"
-#include "rasterizer/texture-2d.hpp"
-#include "rasterizer/texture-wrapping.hpp"
-#include "rasterizer/texture-filter.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/shader.hpp"
+#include "gl/shader-type.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/drawing-mode.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-wrapping.hpp"
+#include "gl/texture-filter.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "renderer/material-flags.hpp"
 #include "renderer/model.hpp"
@@ -52,7 +52,7 @@
 
 static bool operation_compare(const render_operation& a, const render_operation& b);
 
-material_pass::material_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
+material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	fallback_material(nullptr),
 	time_tween(nullptr),
@@ -62,9 +62,9 @@ material_pass::material_pass(::rasterizer* rasterizer, const ::framebuffer* fram
 	shadow_map(nullptr),
 	shadow_strength(1.0f)
 {
-	soft_shadows_texture = resource_manager->load<texture_2d>("tree-shadow.png");
-	soft_shadows_texture->set_wrapping(texture_wrapping::clamp, texture_wrapping::clamp);
-	soft_shadows_texture->set_filters(texture_min_filter::linear_mipmap_linear, texture_mag_filter::linear);
+	soft_shadows_texture = resource_manager->load<gl::texture_2d>("tree-shadow.png");
+	soft_shadows_texture->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
+	soft_shadows_texture->set_filters(gl::texture_min_filter::linear_mipmap_linear, gl::texture_mag_filter::linear);
 	
 	max_ambient_light_count = MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT;
 	max_point_light_count = MATERIAL_PASS_MAX_POINT_LIGHT_COUNT;
@@ -136,7 +136,7 @@ void material_pass::render(render_context* context) const
 
 
 	int active_material_flags = 0;
-	const ::shader_program* active_shader_program = nullptr;
+	const gl::shader_program* active_shader_program = nullptr;
 	const ::material* active_material = nullptr;
 	const parameter_set* parameters = nullptr;
 	
@@ -394,7 +394,7 @@ void material_pass::render(render_context* context) const
 			}
 			
 			// Switch shaders if necessary
-			const ::shader_program* shader_program = active_material->get_shader_program();
+			const gl::shader_program* shader_program = active_material->get_shader_program();
 			if (active_shader_program != shader_program)
 			{
 				active_shader_program = shader_program;
@@ -523,7 +523,7 @@ void material_pass::set_focal_point_tween(const tween<float3>* focal_point)
 	this->focal_point_tween = focal_point;
 }
 
-const material_pass::parameter_set* material_pass::load_parameter_set(const shader_program* program) const
+const material_pass::parameter_set* material_pass::load_parameter_set(const gl::shader_program* program) const
 {
 	// Allocate a new parameter set
 	parameter_set* parameters = new parameter_set();

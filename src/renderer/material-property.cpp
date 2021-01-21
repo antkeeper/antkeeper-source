@@ -18,13 +18,13 @@
  */
 
 #include "renderer/material-property.hpp"
-#include "rasterizer/shader-input.hpp"
+#include "gl/shader-input.hpp"
 
 material_property_base::material_property_base():
 	input(nullptr)
 {}
 
-bool material_property_base::connect(const shader_input* input)
+bool material_property_base::connect(const gl::shader_input* input)
 {
 	if (!input || input->get_data_type() != get_data_type())
 	{

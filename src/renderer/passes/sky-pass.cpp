@@ -19,17 +19,17 @@
 
 #include "renderer/passes/sky-pass.hpp"
 #include "resources/resource-manager.hpp"
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/shader-program.hpp"
-#include "rasterizer/shader-input.hpp"
-#include "rasterizer/vertex-buffer.hpp"
-#include "rasterizer/vertex-array.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/drawing-mode.hpp"
-#include "rasterizer/texture-2d.hpp"
-#include "rasterizer/texture-wrapping.hpp"
-#include "rasterizer/texture-filter.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/drawing-mode.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-wrapping.hpp"
+#include "gl/texture-filter.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "renderer/render-context.hpp"
 #include "renderer/model.hpp"
@@ -40,7 +40,7 @@
 #include <glad/glad.h>
 #include <iostream>
 
-sky_pass::sky_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
+sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	mouse_position({0.0f, 0.0f}),
 	sky_model(nullptr),
@@ -275,7 +275,7 @@ void sky_pass::set_time_tween(const tween<double>* time)
 	this->time_tween = time;
 }
 
-void sky_pass::set_blue_noise_map(const texture_2d* texture)
+void sky_pass::set_blue_noise_map(const gl::texture_2d* texture)
 {
 	blue_noise_map = texture;
 }

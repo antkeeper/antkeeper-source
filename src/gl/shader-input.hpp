@@ -17,11 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SHADER_INPUT_HPP
-#define ANTKEEPER_SHADER_INPUT_HPP
+#ifndef ANTKEEPER_GL_SHADER_INPUT_HPP
+#define ANTKEEPER_GL_SHADER_INPUT_HPP
 
 #include "utility/fundamental-types.hpp"
 #include <string>
+
+namespace gl {
 
 class shader_program;
 class texture_2d;
@@ -186,5 +188,7 @@ inline std::size_t shader_input::get_element_count() const
 	return element_count;
 }
 
-#endif // ANTKEEPER_SHADER_INPUT_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_SHADER_INPUT_HPP
 

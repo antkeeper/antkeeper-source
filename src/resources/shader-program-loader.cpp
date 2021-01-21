@@ -20,9 +20,9 @@
 #include "resources/resource-loader.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/text-file.hpp"
-#include "rasterizer/shader-type.hpp"
-#include "rasterizer/shader.hpp"
-#include "rasterizer/shader-program.hpp"
+#include "gl/shader-type.hpp"
+#include "gl/shader.hpp"
+#include "gl/shader-program.hpp"
 #include <sstream>
 #include <iterator>
 
@@ -104,18 +104,18 @@ static void inject_debug_macro(text_file* source)
 /**
  * Injects a shader type macro definition after the `#version` directive.
  */
-static void inject_shader_type_macro(text_file* source, shader_type type)
+static void inject_shader_type_macro(text_file* source, gl::shader_type type)
 {
 	const char* vertex_macro = "#define _VERTEX";
 	const char* fragment_macro = "#define _FRAGMENT";
 	const char* geometry_macro = "#define _GEOMETRY";
 
 	const char* macro = nullptr;
-	if (type == shader_type::vertex)
+	if (type == gl::shader_type::vertex)
 		macro = vertex_macro;
-	else if (type == shader_type::fragment)
+	else if (type == gl::shader_type::fragment)
 		macro = fragment_macro;
-	else if (type == shader_type::geometry)
+	else if (type == gl::shader_type::geometry)
 		macro = geometry_macro;
 
 	// For each line in the source
@@ -133,9 +133,9 @@ static void inject_shader_type_macro(text_file* source, shader_type type)
 	}
 }
 
-static std::list<shader_type> detect_shader_types(text_file* source)
+static std::list<gl::shader_type> detect_shader_types(text_file* source)
 {
-	std::list<shader_type> types;
+	std::list<gl::shader_type> types;
 
 	// For each line in the source
 	for (std::size_t i = 0; i < source->size(); ++i)
@@ -148,15 +148,15 @@ static std::list<shader_type> detect_shader_types(text_file* source)
 		{
 			if (tokens[1] == "vertex")
 			{
-				types.push_back(shader_type::vertex);
+				types.push_back(gl::shader_type::vertex);
 			}
 			else if (tokens[1] == "fragment")
 			{
-				types.push_back(shader_type::fragment);
+				types.push_back(gl::shader_type::fragment);
 			}
 			else if (tokens[1] == "geometry")
 			{
-				types.push_back(shader_type::geometry);
+				types.push_back(gl::shader_type::geometry);
 			}
 		}
 	}
@@ -172,7 +172,7 @@ static std::string generate_source_buffer(const std::vector<std::string>& source
 }
 
 template <>
-shader_program* resource_loader<shader_program>::load(resource_manager* resource_manager, PHYSFS_File* file)
+gl::shader_program* resource_loader<gl::shader_program>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	// Load shader source
 	text_file* source = resource_loader<text_file>::load(resource_manager, file);
@@ -184,23 +184,23 @@ shader_program* resource_loader<shader_program>::load(resource_manager* resource
 	inject_debug_macro(source);
 
 	// Detect declared shader types via the `#pragma vertex`, `#pragma fragment` and `#pragma geometry` directives
-	std::list<shader_type> shader_types = detect_shader_types(source);
+	std::list<gl::shader_type> shader_types = detect_shader_types(source);
 
 	// Load detected shaders
-	std::list<shader*> shaders;
-	for (shader_type type: shader_types)
+	std::list<gl::shader*> shaders;
+	for (gl::shader_type type: shader_types)
 	{
 		text_file type_source = *source;
 		inject_shader_type_macro(&type_source, type);
 		std::string source_buffer = generate_source_buffer(type_source);
-		shaders.push_back(new shader(type, source_buffer));
+		shaders.push_back(new gl::shader(type, source_buffer));
 	}
 
 	// Create shader program
-	shader_program* program = new shader_program(shaders);
+	gl::shader_program* program = new gl::shader_program(shaders);
 
 	// Delete shaders
-	for (shader* shader: shaders)
+	for (gl::shader* shader: shaders)
 	{
 		delete shader;
 	}

@@ -17,9 +17,11 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rasterizer/vertex-array.hpp"
-#include "rasterizer/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-buffer.hpp"
 #include <glad/glad.h>
+
+namespace gl {
 
 static constexpr GLenum vertex_attribute_type_lut[] =
 {
@@ -61,3 +63,4 @@ void vertex_array::bind_elements(const vertex_buffer& buffer)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.gl_buffer_id);
 }
 
+} // namespace gl

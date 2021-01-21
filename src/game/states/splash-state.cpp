@@ -25,7 +25,7 @@
 #include "game/game-context.hpp"
 #include "input/input-listener.hpp"
 #include "event/input-events.hpp"
-#include "rasterizer/rasterizer.hpp"
+#include "gl/rasterizer.hpp"
 #include "game/states/game-states.hpp"
 #include "renderer/passes/sky-pass.hpp"
 #include "scene/billboard.hpp"

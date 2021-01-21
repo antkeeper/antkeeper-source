@@ -19,29 +19,29 @@
 
 #include "renderer/passes/final-pass.hpp"
 #include "resources/resource-manager.hpp"
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/shader-program.hpp"
-#include "rasterizer/shader-input.hpp"
-#include "rasterizer/vertex-buffer.hpp"
-#include "rasterizer/vertex-array.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/drawing-mode.hpp"
-#include "rasterizer/texture-2d.hpp"
-#include "rasterizer/texture-wrapping.hpp"
-#include "rasterizer/texture-filter.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/drawing-mode.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-wrapping.hpp"
+#include "gl/texture-filter.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "renderer/render-context.hpp"
 #include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
 
-final_pass::final_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
+final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	color_texture(nullptr),
 	bloom_texture(nullptr)
 {
-	shader_program = resource_manager->load<::shader_program>("final.glsl");
+	shader_program = resource_manager->load<gl::shader_program>("final.glsl");
 	color_texture_input = shader_program->get_input("color_texture");
 	bloom_texture_input = shader_program->get_input("bloom_texture");
 	resolution_input = shader_program->get_input("resolution");
@@ -60,9 +60,9 @@ final_pass::final_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffe
 	std::size_t vertex_stride = sizeof(float) * vertex_size;
 	std::size_t vertex_count = 6;
 
-	quad_vbo = new vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
-	quad_vao = new vertex_array();
-	quad_vao->bind_attribute(VERTEX_POSITION_LOCATION, *quad_vbo, 3, vertex_attribute_type::float_32, vertex_stride, 0);
+	quad_vbo = new gl::vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
+	quad_vao = new gl::vertex_array();
+	quad_vao->bind_attribute(VERTEX_POSITION_LOCATION, *quad_vbo, 3, gl::vertex_attribute_type::float_32, vertex_stride, 0);
 }
 
 final_pass::~final_pass()
@@ -95,15 +95,15 @@ void final_pass::render(render_context* context) const
 	resolution_input->upload(resolution);
 
 	// Draw quad
-	rasterizer->draw_arrays(*quad_vao, drawing_mode::triangles, 0, 6);
+	rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
 }
 
-void final_pass::set_color_texture(const texture_2d* texture)
+void final_pass::set_color_texture(const gl::texture_2d* texture)
 {
 	this->color_texture = texture;
 }
 
-void final_pass::set_bloom_texture(const texture_2d* texture)
+void final_pass::set_bloom_texture(const gl::texture_2d* texture)
 {
 	this->bloom_texture = texture;
 }

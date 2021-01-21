@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rasterizer/shader-input.hpp"
-#include "rasterizer/texture-2d.hpp"
-#include "rasterizer/texture-cube.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-cube.hpp"
 #include <glad/glad.h>
+
+namespace gl {
 
 shader_input::shader_input(shader_program* program, std::size_t input_index, int gl_uniform_location, const std::string& name, shader_variable_type data_type, std::size_t element_count, int texture_unit):
 	program(program),
@@ -670,3 +672,4 @@ bool shader_input::upload(std::size_t index, const texture_cube** values, std::s
 	return true;
 }
 
+} // namespace gl

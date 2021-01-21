@@ -17,10 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GL_HPP
-#define ANTKEEPER_GL_HPP
+#ifndef ANTKEEPER_GL_BUFFER_USAGE_HPP
+#define ANTKEEPER_GL_BUFFER_USAGE_HPP
 
-/// Graphics library (GL) provides a cross-platform GPU interface.
-namespace gl {}
+namespace gl {
 
-#endif // ANTKEEPER_GL_HPP
+enum class buffer_usage
+{
+	stream_draw,
+	stream_read,
+	stream_copy,
+	static_draw,
+	static_read,
+	static_copy,
+	dynamic_draw,
+	dynamic_read,
+	dynamic_copy
+};
+
+} // namespace gl
+
+#endif // ANTKEEPER_GL_BUFFER_USAGE_HPP
+

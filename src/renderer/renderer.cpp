@@ -26,7 +26,7 @@
 #include "scene/billboard.hpp"
 #include "scene/lod-group.hpp"
 #include "renderer/model.hpp"
-#include "rasterizer/drawing-mode.hpp"
+#include "gl/drawing-mode.hpp"
 #include "math/math.hpp"
 #include "geom/projection.hpp"
 #include "configuration.hpp"
@@ -37,7 +37,7 @@ renderer::renderer()
 {
 	// Setup billboard render operation
 	billboard_op.pose = nullptr;
-	billboard_op.drawing_mode = drawing_mode::triangles;
+	billboard_op.drawing_mode = gl::drawing_mode::triangles;
 	billboard_op.vertex_array = nullptr;
 	billboard_op.start_index = 0;
 	billboard_op.index_count = 6;
@@ -113,7 +113,7 @@ void renderer::render(float alpha, const scene::collection& collection) const
 	}
 }
 
-void renderer::set_billboard_vao(vertex_array* vao)
+void renderer::set_billboard_vao(gl::vertex_array* vao)
 {
 	billboard_op.vertex_array = vao;
 }

@@ -18,17 +18,17 @@
  */
 
 #include "renderer/simple-render-pass.hpp"
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/shader-program.hpp"
-#include "rasterizer/shader-input.hpp"
-#include "rasterizer/vertex-buffer.hpp"
-#include "rasterizer/vertex-array.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/drawing-mode.hpp"
-#include "rasterizer/texture-2d.hpp"
-#include "rasterizer/texture-wrapping.hpp"
-#include "rasterizer/texture-filter.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/drawing-mode.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-wrapping.hpp"
+#include "gl/texture-filter.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "renderer/render-context.hpp"
 #include "renderer/material.hpp"
@@ -36,7 +36,7 @@
 #include "math/math.hpp"
 #include <glad/glad.h>
 
-simple_render_pass::simple_render_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, ::shader_program* shader_program):
+simple_render_pass::simple_render_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, gl::shader_program* shader_program):
 	render_pass(rasterizer, framebuffer),
 	shader_program(shader_program),
 	time_tween(nullptr)
@@ -62,9 +62,9 @@ simple_render_pass::simple_render_pass(::rasterizer* rasterizer, const ::framebu
 	std::size_t vertex_stride = sizeof(float) * vertex_size;
 	std::size_t vertex_count = 6;
 
-	quad_vbo = new vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
-	quad_vao = new vertex_array();
-	quad_vao->bind_attribute(VERTEX_POSITION_LOCATION, *quad_vbo, 3, vertex_attribute_type::float_32, vertex_stride, 0);
+	quad_vbo = new gl::vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
+	quad_vao = new gl::vertex_array();
+	quad_vao->bind_attribute(VERTEX_POSITION_LOCATION, *quad_vbo, 3, gl::vertex_attribute_type::float_32, vertex_stride, 0);
 }
 
 simple_render_pass::~simple_render_pass()
@@ -104,7 +104,7 @@ void simple_render_pass::render(render_context* context) const
 	material->upload(context->alpha);
 
 	// Draw quad
-	rasterizer->draw_arrays(*quad_vao, drawing_mode::triangles, 0, 6);
+	rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
 }
 
 void simple_render_pass::set_time_tween(const tween<double>* time)

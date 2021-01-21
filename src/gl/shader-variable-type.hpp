@@ -17,21 +17,37 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_BUFFER_USAGE_HPP
-#define ANTKEEPER_BUFFER_USAGE_HPP
+#ifndef ANTKEEPER_GL_SHADER_VARIABLE_TYPE_HPP
+#define ANTKEEPER_GL_SHADER_VARIABLE_TYPE_HPP
 
-enum class buffer_usage
+namespace gl {
+
+enum class shader_variable_type
 {
-	stream_draw,
-	stream_read,
-	stream_copy,
-	static_draw,
-	static_read,
-	static_copy,
-	dynamic_draw,
-	dynamic_read,
-	dynamic_copy
+	bool1,
+	bool2,
+	bool3,
+	bool4,
+	int1,
+	int2,
+	int3,
+	int4,
+	uint1,
+	uint2,
+	uint3,
+	uint4,
+	float1,
+	float2,
+	float3,
+	float4,
+	float2x2,
+	float3x3,
+	float4x4,
+	texture_2d,
+	texture_cube
 };
 
-#endif // ANTKEEPER_BUFFER_USAGE_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_SHADER_VARIABLE_TYPE_HPP
 

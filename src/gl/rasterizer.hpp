@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RASTERIZER_HPP
-#define ANTKEEPER_RASTERIZER_HPP
+#ifndef ANTKEEPER_GL_RASTERIZER_HPP
+#define ANTKEEPER_GL_RASTERIZER_HPP
 
 #include <cstdlib>
+
+namespace gl {
 
 class framebuffer;
 class vertex_array;
@@ -52,7 +54,7 @@ public:
 	 *
 	 * @param framebuffer Framebuffer to use.
 	 */
-	void use_framebuffer(const ::framebuffer& framebuffer);
+	void use_framebuffer(const framebuffer& framebuffer);
 
 	/**
 	 * Sets the color to be used when the color buffer of a framebuffer is cleared.
@@ -133,5 +135,7 @@ inline const framebuffer& rasterizer::get_default_framebuffer() const
 	return *default_framebuffer;
 }
 
-#endif // ANTKEEPER_RASTERIZER_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_RASTERIZER_HPP
 

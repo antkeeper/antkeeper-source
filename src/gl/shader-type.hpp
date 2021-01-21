@@ -17,8 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SHADER_TYPE_HPP
-#define ANTKEEPER_SHADER_TYPE_HPP
+#ifndef ANTKEEPER_GL_SHADER_TYPE_HPP
+#define ANTKEEPER_GL_SHADER_TYPE_HPP
+
+namespace gl {
 
 enum class shader_type
 {
@@ -27,5 +29,7 @@ enum class shader_type
 	geometry
 };
 
-#endif // ANTKEEPER_SHADER_TYPE_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_SHADER_TYPE_HPP
 

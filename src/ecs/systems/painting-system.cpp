@@ -30,8 +30,8 @@
 #include "ecs/commands.hpp"
 #include "ecs/components/collision-component.hpp"
 #include "ecs/components/transform-component.hpp"
-#include "rasterizer/vertex-buffer.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-attribute-type.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "geom/mesh-functions.hpp"
 #include <limits>
@@ -66,11 +66,11 @@ painting_system::painting_system(ecs::registry& registry, ::event_dispatcher* ev
 	
 	// Setup stroke vbo and vao
 	stroke_vbo = stroke_model->get_vertex_buffer();
-	stroke_vbo->repurpose(sizeof(float) * vertex_size * vertex_count, nullptr, buffer_usage::dynamic_draw);
-	stroke_model->get_vertex_array()->bind_attribute(VERTEX_POSITION_LOCATION, *stroke_vbo, 4, vertex_attribute_type::float_32, vertex_stride, 0);
-	stroke_model->get_vertex_array()->bind_attribute(VERTEX_NORMAL_LOCATION, *stroke_vbo, 3, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 4);
-	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TEXCOORD_LOCATION, *stroke_vbo, 2, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 7);
-	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TANGENT_LOCATION, *stroke_vbo, 4, vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 9);
+	stroke_vbo->repurpose(sizeof(float) * vertex_size * vertex_count, nullptr, gl::buffer_usage::dynamic_draw);
+	stroke_model->get_vertex_array()->bind_attribute(VERTEX_POSITION_LOCATION, *stroke_vbo, 4, gl::vertex_attribute_type::float_32, vertex_stride, 0);
+	stroke_model->get_vertex_array()->bind_attribute(VERTEX_NORMAL_LOCATION, *stroke_vbo, 3, gl::vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 4);
+	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TEXCOORD_LOCATION, *stroke_vbo, 2, gl::vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 7);
+	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TANGENT_LOCATION, *stroke_vbo, 4, gl::vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 9);
 	
 	// Create stroke model instance
 	stroke_model_instance = new scene::model_instance();

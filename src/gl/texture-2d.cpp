@@ -17,11 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rasterizer/texture-2d.hpp"
-#include "rasterizer/texture-wrapping.hpp"
-#include "rasterizer/texture-filter.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-wrapping.hpp"
+#include "gl/texture-filter.hpp"
 #include <glad/glad.h>
 #include <algorithm>
+
+namespace gl {
 
 static constexpr GLenum pixel_format_lut[] =
 {
@@ -109,7 +111,7 @@ static constexpr GLenum mag_filter_lut[] =
 	GL_LINEAR
 };
 
-texture_2d::texture_2d(int width, int height, ::pixel_type type, ::pixel_format format, ::color_space color_space, const void* data):
+texture_2d::texture_2d(int width, int height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data):
 	gl_texture_id(0),
 	dimensions({0, 0}),
 	wrapping({texture_wrapping::repeat, texture_wrapping::repeat}),
@@ -128,7 +130,7 @@ texture_2d::~texture_2d()
 	glDeleteTextures(1, &gl_texture_id);
 }
 
-void texture_2d::resize(int width, int height, ::pixel_type type, ::pixel_format format, ::color_space color_space, const void* data)
+void texture_2d::resize(int width, int height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data)
 {
 	dimensions = {width, height};
 	pixel_type = type;
@@ -136,7 +138,7 @@ void texture_2d::resize(int width, int height, ::pixel_type type, ::pixel_format
 	this->color_space = color_space;
 
 	GLenum gl_internal_format;
-	if (color_space == ::color_space::srgb)
+	if (color_space == gl::color_space::srgb)
 	{
 		gl_internal_format = srgb_internal_format_lut[static_cast<std::size_t>(format)][static_cast<std::size_t>(type)];
 	}
@@ -172,7 +174,7 @@ void texture_2d::resize(int width, int height, ::pixel_type type, ::pixel_format
 	}
 }
 
-void texture_2d::set_wrapping(texture_wrapping wrap_s, texture_wrapping wrap_t)
+void texture_2d::set_wrapping(gl::texture_wrapping wrap_s, texture_wrapping wrap_t)
 {
 	wrapping = {wrap_s, wrap_t};
 
@@ -209,3 +211,4 @@ void texture_2d::set_max_anisotropy(float anisotropy)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_max_anisotropy);
 }
 
+} // namespace gl

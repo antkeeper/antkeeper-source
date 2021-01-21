@@ -18,7 +18,6 @@
  */
 
 #include "renderer/model.hpp"
-#include "rasterizer/drawing-mode.hpp"
 
 model::model():
 	bounds({0, 0, 0}, {0, 0, 0})
@@ -46,7 +45,7 @@ model_group* model::add_group(const std::string& name)
 	group->index = groups.size();
 	group->name = name;
 	group->material = nullptr;
-	group->drawing_mode = drawing_mode::triangles;
+	group->drawing_mode = gl::drawing_mode::triangles;
 	group->start_index = 0;
 	group->index_count = 0;
 

@@ -22,12 +22,12 @@
 
 #include "renderer/render-pass.hpp"
 #include "renderer/material.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/texture-2d.hpp"
 #include <unordered_map>
 
-class shader_program;
-class shader_input;
 class resource_manager;
-class texture_2d;
 
 /**
  *
@@ -35,7 +35,7 @@ class texture_2d;
 class ui_pass: public render_pass
 {
 public:
-	ui_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager);
+	ui_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~ui_pass();
 	virtual void render(render_context* context) const final;
 
@@ -47,13 +47,13 @@ private:
 	 */
 	struct parameter_set
 	{
-		const shader_input* time;
-		const shader_input* model_view_projection;
+		const gl::shader_input* time;
+		const gl::shader_input* model_view_projection;
 	};
 
-	const parameter_set* load_parameter_set(const shader_program* program) const;
+	const parameter_set* load_parameter_set(const gl::shader_program* program) const;
 
-	mutable std::unordered_map<const shader_program*, parameter_set*> parameter_sets;
+	mutable std::unordered_map<const gl::shader_program*, parameter_set*> parameter_sets;
 	float time;
 };
 

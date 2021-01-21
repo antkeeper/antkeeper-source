@@ -17,11 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/shader-program.hpp"
-#include "rasterizer/vertex-array.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/vertex-array.hpp"
 #include <glad/glad.h>
+
+namespace gl {
 
 static constexpr GLenum drawing_mode_lut[] =
 {
@@ -72,7 +74,7 @@ void rasterizer::context_resized(int width, int height)
 	default_framebuffer->dimensions = {width, height};
 }
 
-void rasterizer::use_framebuffer(const ::framebuffer& framebuffer)
+void rasterizer::use_framebuffer(const gl::framebuffer& framebuffer)
 {
 	if (bound_framebuffer != &framebuffer)
 	{
@@ -161,3 +163,4 @@ void rasterizer::draw_elements(const vertex_array& vao, drawing_mode mode, std::
 	glDrawElements(gl_mode, static_cast<GLsizei>(count), gl_type, (const GLvoid*)offset);
 }
 
+} // namespace gl

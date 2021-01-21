@@ -17,23 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_DRAWING_MODE_HPP
-#define ANTKEEPER_DRAWING_MODE_HPP
+#ifndef ANTKEEPER_GL_COLOR_SPACE_HPP
+#define ANTKEEPER_GL_COLOR_SPACE_HPP
 
-enum class drawing_mode
+namespace gl {
+
+enum class color_space
 {
-	points,
-	line_strip,
-	line_loop,
-	lines,
-	line_strip_adjacency,
-	lines_adjacency,
-	triangle_strip,
-	triangle_fan,
-	triangles,
-	triangle_strip_adjacency,
-	triangles_adjacency
+	linear, ///< Linear color space
+	srgb ///< sRGB color space
 };
 
-#endif // ANTKEEPER_DRAWING_MODE_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_COLOR_SPACE_HPP
 

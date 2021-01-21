@@ -21,8 +21,8 @@
 #include "resources/resource-manager.hpp"
 #include "renderer/model.hpp"
 #include "renderer/vertex-attributes.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/drawing-mode.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/drawing-mode.hpp"
 #include "utility/fundamental-types.hpp"
 #include <sstream>
 #include <stdexcept>
@@ -462,7 +462,7 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	}
 	
 	// Resize VBO and upload vertex data
-	vertex_buffer* vbo = model->get_vertex_buffer();
+	gl::vertex_buffer* vbo = model->get_vertex_buffer();
 	vbo->resize(sizeof(float) * vertex_size * vertex_count, vertex_data);
 	
 	// Free interleaved vertex data buffer
@@ -482,7 +482,7 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	};
 	
 	// Bind attributes to VAO
-	vertex_array* vao = model->get_vertex_array();
+	gl::vertex_array* vao = model->get_vertex_array();
 	std::size_t offset = 0;
 	for (auto attribute_it = attributes.begin(); attribute_it != attributes.end(); ++attribute_it)
 	{
@@ -490,7 +490,7 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 		std::size_t attribute_size = std::get<0>(attribute_it->second);
 		
 		if (auto location_it = attribute_location_map.find(attribute_name); location_it != attribute_location_map.end())
-			vao->bind_attribute(location_it->second, *vbo, attribute_size, vertex_attribute_type::float_32, vertex_stride, offset);
+			vao->bind_attribute(location_it->second, *vbo, attribute_size, gl::vertex_attribute_type::float_32, vertex_stride, offset);
 		
 		offset += attribute_size * sizeof(float);
 	}
@@ -515,7 +515,7 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 			group_material = resource_manager->load<material>(group_name + ".mtl");
 			
 			model_group* model_group = model->add_group(group_name);
-			model_group->set_drawing_mode(drawing_mode::triangles);
+			model_group->set_drawing_mode(gl::drawing_mode::triangles);
 			model_group->set_start_index(group_offset * 3);
 			model_group->set_index_count(group_size * 3);
 			model_group->set_material(group_material);

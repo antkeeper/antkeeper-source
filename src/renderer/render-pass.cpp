@@ -19,7 +19,7 @@
 
 #include "renderer/render-pass.hpp"
 
-render_pass::render_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer):
+render_pass::render_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer):
 	rasterizer(rasterizer),
 	framebuffer(framebuffer),
 	enabled(true)

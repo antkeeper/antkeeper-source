@@ -29,7 +29,6 @@
 #include "input/keyboard.hpp"
 #include "input/mouse.hpp"
 #include "input/game-controller.hpp"
-#include "rasterizer/rasterizer.hpp"
 #include "resources/image.hpp"
 #include <SDL2/SDL.h>
 #include <glad/glad.h>
@@ -203,7 +202,7 @@ application::application():
 	*/
 	
 	// Setup rasterizer
-	rasterizer = new ::rasterizer();
+	rasterizer = new gl::rasterizer();
 	
 	// Setup events
 	event_dispatcher = new ::event_dispatcher();

@@ -29,7 +29,7 @@
 class clear_pass: public render_pass
 {
 public:
-	clear_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer);
+	clear_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer);
 	virtual ~clear_pass();
 	virtual void render(render_context* context) const final;
 	

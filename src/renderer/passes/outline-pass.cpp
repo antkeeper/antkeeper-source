@@ -19,14 +19,14 @@
 
 #include "renderer/passes/outline-pass.hpp"
 #include "resources/resource-manager.hpp"
-#include "rasterizer/rasterizer.hpp"
-#include "rasterizer/framebuffer.hpp"
-#include "rasterizer/shader-program.hpp"
-#include "rasterizer/shader-input.hpp"
-#include "rasterizer/vertex-buffer.hpp"
-#include "rasterizer/vertex-array.hpp"
-#include "rasterizer/vertex-attribute-type.hpp"
-#include "rasterizer/drawing-mode.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/drawing-mode.hpp"
 #include "renderer/vertex-attributes.hpp"
 #include "renderer/render-context.hpp"
 #include "renderer/material.hpp"
@@ -36,17 +36,17 @@
 #include <cmath>
 #include <glad/glad.h>
 
-outline_pass::outline_pass(::rasterizer* rasterizer, const ::framebuffer* framebuffer, resource_manager* resource_manager):
+outline_pass::outline_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	fill_shader(nullptr),
 	stroke_shader(nullptr)
 {
 	// Load fill shader
-	fill_shader = resource_manager->load<shader_program>("outline-fill-unskinned.glsl");
+	fill_shader = resource_manager->load<gl::shader_program>("outline-fill-unskinned.glsl");
 	fill_model_view_projection_input = fill_shader->get_input("model_view_projection");
 	
 	// Load stroke shader
-	stroke_shader = resource_manager->load<shader_program>("outline-stroke-unskinned.glsl");
+	stroke_shader = resource_manager->load<gl::shader_program>("outline-stroke-unskinned.glsl");
 	stroke_model_view_projection_input = stroke_shader->get_input("model_view_projection");
 	stroke_width_input = stroke_shader->get_input("width");
 	stroke_color_input = stroke_shader->get_input("color");

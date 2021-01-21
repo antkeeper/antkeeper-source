@@ -27,6 +27,7 @@
 #include "utility/fundamental-types.hpp"
 #include "scene/collection.hpp"
 #include "scene/model-instance.hpp"
+#include "gl/vertex-buffer.hpp"
 #include <vector>
 #include <optional>
 
@@ -35,7 +36,6 @@ class event_dispatcher;
 class resource_manager;
 class model;
 class model_group;
-class vertex_buffer;
 
 namespace ecs {
 
@@ -83,7 +83,7 @@ private:
 	
 	model* stroke_model;
 	model_group* stroke_model_group;
-	vertex_buffer* stroke_vbo;
+	gl::vertex_buffer* stroke_vbo;
 	bool midstroke;
 	
 	scene::model_instance* stroke_model_instance;

@@ -17,15 +17,19 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TEXTURE_WRAPPING_HPP
-#define ANTKEEPER_TEXTURE_WRAPPING_HPP
+#ifndef ANTKEEPER_GL_ELEMENT_ARRAY_TYPE_HPP
+#define ANTKEEPER_GL_ELEMENT_ARRAY_TYPE_HPP
 
-enum class texture_wrapping
+namespace gl {
+
+enum class element_array_type
 {
-	clamp,
-	repeat,
-	mirrored_repeat
+	uint_8,
+	uint_16,
+	uint_32
 };
 
-#endif // ANTKEEPER_TEXTURE_WRAPPING_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_ELEMENT_ARRAY_TYPE_HPP
 

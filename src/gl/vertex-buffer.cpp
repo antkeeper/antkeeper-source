@@ -17,8 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rasterizer/vertex-buffer.hpp"
+#include "gl/vertex-buffer.hpp"
 #include <glad/glad.h>
+
+namespace gl {
 
 static constexpr GLenum buffer_usage_lut[] =
 {
@@ -76,3 +78,4 @@ void vertex_buffer::update(int offset, std::size_t size, const void* data)
 	glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
 }
 
+} // namespace gl

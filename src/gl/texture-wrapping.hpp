@@ -17,24 +17,19 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TEXTURE_FILTER_HPP
-#define ANTKEEPER_TEXTURE_FILTER_HPP
+#ifndef ANTKEEPER_GL_TEXTURE_WRAPPING_HPP
+#define ANTKEEPER_GL_TEXTURE_WRAPPING_HPP
 
-enum class texture_min_filter
+namespace gl {
+
+enum class texture_wrapping
 {
-	nearest,
-	linear,
-	nearest_mipmap_nearest,
-	linear_mipmap_nearest,
-	nearest_mipmap_linear,
-	linear_mipmap_linear
+	clamp,
+	repeat,
+	mirrored_repeat
 };
 
-enum class texture_mag_filter
-{
-	nearest,
-	linear
-};
+} // namespace gl
 
-#endif // ANTKEEPER_TEXTURE_FILTER_HPP
+#endif // ANTKEEPER_GL_TEXTURE_WRAPPING_HPP
 

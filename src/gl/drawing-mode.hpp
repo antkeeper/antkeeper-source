@@ -17,39 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SHADER_HPP
-#define ANTKEEPER_SHADER_HPP
+#ifndef ANTKEEPER_GL_DRAWING_MODE_HPP
+#define ANTKEEPER_GL_DRAWING_MODE_HPP
 
-#include <cstdlib>
-#include <string>
+namespace gl {
 
-enum class shader_type;
-class shader_program;
-
-class shader
+enum class drawing_mode
 {
-public:
-	shader(shader_type type, const std::string& source);
-	~shader();
-
-	shader(const shader&) = delete;
-	shader& operator=(const shader&) = delete;
-
-	shader_type get_type() const;
-
-private:
-	friend class shader_program;
-
-	std::string get_info_log() const;
-
-	unsigned int gl_shader_id;
-	shader_type type;
+	points,
+	line_strip,
+	line_loop,
+	lines,
+	line_strip_adjacency,
+	lines_adjacency,
+	triangle_strip,
+	triangle_fan,
+	triangles,
+	triangle_strip_adjacency,
+	triangles_adjacency
 };
 
-inline shader_type shader::get_type() const
-{
-	return type;
-}
+} // namespace gl
 
-#endif // ANTKEEPER_SHADER_HPP
+#endif // ANTKEEPER_GL_DRAWING_MODE_HPP
 

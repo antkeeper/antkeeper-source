@@ -17,33 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SHADER_VARIABLE_TYPE_HPP
-#define ANTKEEPER_SHADER_VARIABLE_TYPE_HPP
+#ifndef ANTKEEPER_GL_VERTEX_ATTRIBUTE_TYPE_HPP
+#define ANTKEEPER_GL_VERTEX_ATTRIBUTE_TYPE_HPP
 
-enum class shader_variable_type
+namespace gl {
+
+enum class vertex_attribute_type
 {
-	bool1,
-	bool2,
-	bool3,
-	bool4,
-	int1,
-	int2,
-	int3,
-	int4,
-	uint1,
-	uint2,
-	uint3,
-	uint4,
-	float1,
-	float2,
-	float3,
-	float4,
-	float2x2,
-	float3x3,
-	float4x4,
-	texture_2d,
-	texture_cube
+	int_8,
+	uint_8,
+	int_16,
+	uint_16,
+	int_32,
+	uint_32,
+	float_16,
+	float_32,
+	float_64
 };
 
-#endif // ANTKEEPER_SHADER_VARIABLE_TYPE_HPP
+} // namespace gl
+
+#endif // ANTKEEPER_GL_VERTEX_ATTRIBUTE_TYPE_HPP
 

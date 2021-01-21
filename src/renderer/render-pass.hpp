@@ -20,8 +20,9 @@
 #ifndef ANTKEEPER_RENDER_PASS_HPP
 #define ANTKEEPER_RENDER_PASS_HPP
 
-class rasterizer;
-class framebuffer;
+#include "gl/rasterizer.hpp"
+#include "gl/framebuffer.hpp"
+
 struct render_context;
 
 /**
@@ -30,7 +31,7 @@ struct render_context;
 class render_pass
 {
 public:
-	render_pass(rasterizer* rasterizer, const framebuffer* framebuffer);
+	render_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer);
 	virtual ~render_pass();
 
 	virtual void render(render_context* context) const = 0;
@@ -39,8 +40,8 @@ public:
 	bool is_enabled() const;
 
 protected:
-	rasterizer* rasterizer;
-	const ::framebuffer* framebuffer;
+	gl::rasterizer* rasterizer;
+	const gl::framebuffer* framebuffer;
 
 private:
 	bool enabled;
