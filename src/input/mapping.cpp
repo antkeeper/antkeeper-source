@@ -17,9 +17,11 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "input-mapping.hpp"
+#include "mapping.hpp"
 
-input_mapping::input_mapping(::control* control):
+namespace input {
+
+mapping::mapping(input::control* control):
 	control(control)
 {}
 
@@ -28,8 +30,8 @@ key_mapping::key_mapping(const key_mapping& mapping)
 	*this = mapping;
 }
 
-key_mapping::key_mapping(::control* control, ::keyboard* keyboard, ::scancode scancode):
-	input_mapping(control),
+key_mapping::key_mapping(input::control* control, input::keyboard* keyboard, input::scancode scancode):
+	mapping(control),
 	keyboard(keyboard),
 	scancode(scancode)
 {}
@@ -47,8 +49,8 @@ mouse_motion_mapping::mouse_motion_mapping(const mouse_motion_mapping& mapping)
 	*this = mapping;
 }
 
-mouse_motion_mapping::mouse_motion_mapping(::control* control, ::mouse* mouse, mouse_motion_axis axis):
-	input_mapping(control),
+mouse_motion_mapping::mouse_motion_mapping(input::control* control, input::mouse* mouse, mouse_motion_axis axis):
+	mapping(control),
 	mouse(mouse),
 	axis(axis)
 {}
@@ -66,8 +68,8 @@ mouse_wheel_mapping::mouse_wheel_mapping(const mouse_wheel_mapping& mapping)
 	*this = mapping;
 }
 
-mouse_wheel_mapping::mouse_wheel_mapping(::control* control, ::mouse* mouse, ::mouse_wheel_axis axis):
-	input_mapping(control),
+mouse_wheel_mapping::mouse_wheel_mapping(input::control* control, input::mouse* mouse, mouse_wheel_axis axis):
+	mapping(control),
 	mouse(mouse),
 	axis(axis)
 {}
@@ -85,8 +87,8 @@ mouse_button_mapping::mouse_button_mapping(const mouse_button_mapping& mapping)
 	*this = mapping;
 }
 
-mouse_button_mapping::mouse_button_mapping(::control* control, ::mouse* mouse, int button):
-	input_mapping(control),
+mouse_button_mapping::mouse_button_mapping(input::control* control, input::mouse* mouse, int button):
+	mapping(control),
 	mouse(mouse),
 	button(button)
 {}
@@ -104,9 +106,9 @@ game_controller_axis_mapping::game_controller_axis_mapping(const game_controller
 	*this = mapping;
 }
 
-game_controller_axis_mapping::game_controller_axis_mapping(::control* control, ::game_controller* game_controller, game_controller_axis axis, bool negative):
-	input_mapping(control),
-	game_controller(game_controller),
+game_controller_axis_mapping::game_controller_axis_mapping(input::control* control, game_controller* controller, game_controller_axis axis, bool negative):
+	mapping(control),
+	controller(controller),
 	axis(axis),
 	negative(negative)
 {}
@@ -114,7 +116,7 @@ game_controller_axis_mapping::game_controller_axis_mapping(::control* control, :
 game_controller_axis_mapping& game_controller_axis_mapping::operator=(const game_controller_axis_mapping& mapping)
 {
 	control = mapping.control;
-	game_controller = mapping.game_controller;
+	controller = mapping.controller;
 	axis = mapping.axis;
 	negative = mapping.negative;
 	return *this;
@@ -125,17 +127,18 @@ game_controller_button_mapping::game_controller_button_mapping(const game_contro
 	*this = mapping;
 }
 
-game_controller_button_mapping::game_controller_button_mapping(::control* control, ::game_controller* game_controller, game_controller_button button):
-	input_mapping(control),
-	game_controller(game_controller),
+game_controller_button_mapping::game_controller_button_mapping(input::control* control, game_controller* controller, game_controller_button button):
+	mapping(control),
+	controller(controller),
 	button(button)
 {}
 
 game_controller_button_mapping& game_controller_button_mapping::operator=(const game_controller_button_mapping& mapping)
 {
 	control = mapping.control;
-	game_controller = mapping.game_controller;
+	controller = mapping.controller;
 	button = mapping.button;
 	return *this;
 }
 
+} // namespace input

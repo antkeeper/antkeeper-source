@@ -18,7 +18,6 @@
  */
 
 #include "ui-system.hpp"
-#include "input/control.hpp"
 #include "resources/resource-manager.hpp"
 
 namespace ecs {
@@ -85,7 +84,7 @@ void ui_system::set_viewport(const float4& viewport)
 	update_projection();
 }
 
-void ui_system::set_tool_menu_control(control* control)
+void ui_system::set_tool_menu_control(input::control* control)
 {
 	tool_menu_control = control;
 	tool_menu_control->set_activated_callback(std::bind(&ui_system::open_tool_menu, this));

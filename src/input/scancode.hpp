@@ -17,8 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SCANCODE_HPP
-#define ANTKEEPER_SCANCODE_HPP
+#ifndef ANTKEEPER_INPUT_SCANCODE_HPP
+#define ANTKEEPER_INPUT_SCANCODE_HPP
+
+namespace input {
 
 /**
  * Enumerates keyboard scancodes.
@@ -273,5 +275,7 @@ enum class scancode
 	audio_fast_forward
 };
 
-#endif // ANTKEEPER_SCANCODE_HPP
+} // namespace input
+
+#endif // ANTKEEPER_INPUT_SCANCODE_HPP
 

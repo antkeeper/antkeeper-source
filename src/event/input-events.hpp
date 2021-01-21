@@ -21,13 +21,10 @@
 #define ANTKEEPER_INPUT_EVENTS_HPP
 
 #include "event/event.hpp"
-
-enum class scancode;
-enum class game_controller_axis;
-enum class game_controller_button;
-class keyboard;
-class mouse;
-class game_controller;
+#include "input/scancode.hpp"
+#include "input/keyboard.hpp"
+#include "input/mouse.hpp"
+#include "input/game-controller.hpp"
 
 /**
  * Input event which indicates a keyboard key has been pressed.
@@ -37,8 +34,8 @@ class key_pressed_event: public event<key_pressed_event>
 public:
 	virtual event_base* clone() const;
 
-	keyboard* keyboard;
-	scancode scancode;
+	input::keyboard* keyboard;
+	input::scancode scancode;
 };
 
 /**
@@ -49,8 +46,8 @@ class key_released_event: public event<key_released_event>
 public:
 	virtual event_base* clone() const;
 
-	keyboard* keyboard;
-	scancode scancode;
+	input::keyboard* keyboard;
+	input::scancode scancode;
 };
 
 /**
@@ -61,7 +58,7 @@ class mouse_moved_event: public event<mouse_moved_event>
 public:
 	virtual event_base* clone() const;
 
-	mouse* mouse;
+	input::mouse* mouse;
 	int x;
 	int y;
 	int dx;
@@ -76,7 +73,7 @@ class mouse_button_pressed_event: public event<mouse_button_pressed_event>
 public:
 	virtual event_base* clone() const;
 
-	mouse* mouse;
+	input::mouse* mouse;
 	int button;
 	int x;
 	int y;
@@ -90,7 +87,7 @@ class mouse_button_released_event: public event<mouse_button_released_event>
 public:
 	virtual event_base* clone() const;
 
-	mouse* mouse;
+	input::mouse* mouse;
 	int button;
 	int x;
 	int y;
@@ -104,7 +101,7 @@ class mouse_wheel_scrolled_event: public event<mouse_wheel_scrolled_event>
 public:
 	virtual event_base* clone() const;
 
-	mouse* mouse;
+	input::mouse* mouse;
 	int x;
 	int y;
 };
@@ -117,7 +114,7 @@ class game_controller_connected_event: public event<game_controller_connected_ev
 public:
 	virtual event_base* clone() const;
 
-	game_controller* game_controller;
+	input::game_controller* controller;
 	bool reconnected;
 };
 
@@ -129,7 +126,7 @@ class game_controller_disconnected_event: public event<game_controller_disconnec
 public:
 	virtual event_base* clone() const;
 
-	game_controller* game_controller;
+	input::game_controller* controller;
 };
 
 /**
@@ -140,8 +137,8 @@ class game_controller_button_pressed_event: public event<game_controller_button_
 public:
 	virtual event_base* clone() const;
 
-	game_controller* game_controller;
-	game_controller_button button;
+	input::game_controller* controller;
+	input::game_controller_button button;
 };
 
 /**
@@ -152,8 +149,8 @@ class game_controller_button_released_event: public event<game_controller_button
 public:
 	virtual event_base* clone() const;
 
-	game_controller* game_controller;
-	game_controller_button button;
+	input::game_controller* controller;
+	input::game_controller_button button;
 };
 
 /**
@@ -164,8 +161,8 @@ class game_controller_axis_moved_event: public event<game_controller_axis_moved_
 public:
 	virtual event_base* clone() const;
 
-	game_controller* game_controller;
-	game_controller_axis axis;
+	input::game_controller* controller;
+	input::game_controller_axis axis;
 	float value;
 };
 

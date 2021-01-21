@@ -17,8 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SDL_GAME_CONTROLLER_TABLES_HPP
-#define ANTKEEPER_SDL_GAME_CONTROLLER_TABLES_HPP
+#ifndef ANTKEEPER_INPUT_SDL_GAME_CONTROLLER_TABLES_HPP
+#define ANTKEEPER_INPUT_SDL_GAME_CONTROLLER_TABLES_HPP
+
+namespace input {
 
 enum class game_controller_button;
 enum class game_controller_axis;
@@ -26,5 +28,7 @@ enum class game_controller_axis;
 extern const game_controller_button sdl_button_table[15];
 extern const game_controller_axis sdl_axis_table[6];
 
-#endif // ANTKEEPER_SDL_GAME_CONTROLLER_TABLES_HPP
+} // namespace input
+
+#endif // ANTKEEPER_INPUT_SDL_GAME_CONTROLLER_TABLES_HPP
 

@@ -65,8 +65,8 @@ control_system::control_system(ecs::registry& registry):
 	control_set.add_control(&rewind_control);
 	
 	// Set deadzone at 15% for all controls
-	const std::list<control*>* controls = control_set.get_controls();
-	for (control* control: *controls)
+	const std::list<input::control*>* controls = control_set.get_controls();
+	for (input::control* control: *controls)
 	{
 		control->set_deadzone(0.15f);
 	}

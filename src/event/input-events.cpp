@@ -78,7 +78,7 @@ event_base* mouse_wheel_scrolled_event::clone() const
 event_base* game_controller_connected_event::clone() const
 {
 	game_controller_connected_event* event = new game_controller_connected_event();
-	event->game_controller = game_controller;
+	event->controller = controller;
 	event->reconnected = reconnected;
 	return event;
 }
@@ -86,14 +86,14 @@ event_base* game_controller_connected_event::clone() const
 event_base* game_controller_disconnected_event::clone() const
 {
 	game_controller_disconnected_event* event = new game_controller_disconnected_event();
-	event->game_controller = game_controller;
+	event->controller = controller;
 	return event;
 }
 
 event_base* game_controller_button_pressed_event::clone() const
 {
 	game_controller_button_pressed_event* event = new game_controller_button_pressed_event();
-	event->game_controller = game_controller;
+	event->controller = controller;
 	event->button = button;
 	return event;
 }
@@ -101,7 +101,7 @@ event_base* game_controller_button_pressed_event::clone() const
 event_base* game_controller_button_released_event::clone() const
 {
 	game_controller_button_released_event* event = new game_controller_button_released_event();
-	event->game_controller = game_controller;
+	event->controller = controller;
 	event->button = button;
 	return event;
 }
@@ -109,7 +109,7 @@ event_base* game_controller_button_released_event::clone() const
 event_base* game_controller_axis_moved_event::clone() const
 {
 	game_controller_axis_moved_event* event = new game_controller_axis_moved_event();
-	event->game_controller = game_controller;
+	event->controller = controller;
 	event->axis = axis;
 	event->value = value;
 	return event;

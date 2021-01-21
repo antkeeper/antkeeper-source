@@ -22,11 +22,12 @@
 
 #include "event/input-events.hpp"
 #include "event/event-handler.hpp"
+#include "event/event-dispatcher.hpp"
 #include <functional>
 
-class event_dispatcher;
+namespace input {
 
-class input_listener:
+class listener:
 	public event_handler<key_pressed_event>,
 	public event_handler<mouse_moved_event>,
 	public event_handler<mouse_wheel_scrolled_event>,
@@ -38,12 +39,12 @@ public:
 	/**
 	 * Creates an input listener.
 	 */
-	input_listener();
+	listener();
 
 	/**
 	 * Destroys an input listener.
 	 */
-	virtual ~input_listener();
+	virtual ~listener();
 
 	/**
 	 * Sets the event dispatcher to which this input event router will subscribe itself.
@@ -82,10 +83,12 @@ private:
 	bool enabled;
 };
 
-inline bool input_listener::is_enabled() const
+inline bool listener::is_enabled() const
 {
 	return enabled;
 }
+
+} // namespace input
 
 #endif // ANTKEEPER_INPUT_LISTENER_HPP
 

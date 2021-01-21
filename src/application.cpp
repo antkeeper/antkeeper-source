@@ -26,9 +26,6 @@
 #include "input/scancode.hpp"
 #include "input/sdl-game-controller-tables.hpp"
 #include "input/sdl-scancode-table.hpp"
-#include "input/keyboard.hpp"
-#include "input/mouse.hpp"
-#include "input/game-controller.hpp"
 #include "resources/image.hpp"
 #include <SDL2/SDL.h>
 #include <glad/glad.h>
@@ -208,9 +205,9 @@ application::application():
 	event_dispatcher = new ::event_dispatcher();
 	
 	// Setup input
-	keyboard = new ::keyboard();
+	keyboard = new input::keyboard();
 	keyboard->set_event_dispatcher(event_dispatcher);
-	mouse = new ::mouse();
+	mouse = new input::mouse();
 	mouse->set_event_dispatcher(event_dispatcher);
 
 	// Setup frame scheduler
@@ -481,10 +478,10 @@ void application::translate_sdl_events()
 			{
 				if (sdl_event.key.repeat == 0)
 				{
-					scancode scancode = scancode::unknown;
+					input::scancode scancode = input::scancode::unknown;
 					if (sdl_event.key.keysym.scancode <= SDL_SCANCODE_APP2)
 					{
-						scancode = sdl_scancode_table[sdl_event.key.keysym.scancode];
+						scancode = input::sdl_scancode_table[sdl_event.key.keysym.scancode];
 					}
 
 					if (sdl_event.type == SDL_KEYDOWN)
@@ -526,7 +523,7 @@ void application::translate_sdl_events()
 				{
 					if (auto it = game_controller_map.find(sdl_event.cdevice.which); it != game_controller_map.end())
 					{
-						game_controller_button button = sdl_button_table[sdl_event.cbutton.button];
+						input::game_controller_button button = input::sdl_button_table[sdl_event.cbutton.button];
 						it->second->press(button);
 					}
 				}
@@ -539,7 +536,7 @@ void application::translate_sdl_events()
 				{
 					if (auto it = game_controller_map.find(sdl_event.cdevice.which); it != game_controller_map.end())
 					{
-						game_controller_button button = sdl_button_table[sdl_event.cbutton.button];
+						input::game_controller_button button = input::sdl_button_table[sdl_event.cbutton.button];
 						it->second->release(button);
 					}
 				}
@@ -552,7 +549,7 @@ void application::translate_sdl_events()
 				{
 					if (auto it = game_controller_map.find(sdl_event.cdevice.which); it != game_controller_map.end())
 					{
-						game_controller_axis axis = sdl_axis_table[sdl_event.caxis.axis];
+						input::game_controller_axis axis = input::sdl_axis_table[sdl_event.caxis.axis];
 						float value = sdl_event.caxis.value;
 						value /= (value < 0.0f) ? 32768.0f : 32767.0f;
 						it->second->move(axis, value);
@@ -580,7 +577,7 @@ void application::translate_sdl_events()
 						{
 							logger->log("Connected game controller \"" + controller_name + "\"");
 							
-							game_controller* controller = new game_controller();
+							input::game_controller* controller = new input::game_controller();
 							controller->set_event_dispatcher(event_dispatcher);
 							game_controllers.push_back(controller);
 							game_controller_map[sdl_event.cdevice.which] = controller;

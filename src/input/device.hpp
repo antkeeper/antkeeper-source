@@ -20,18 +20,18 @@
 #ifndef ANTKEEPER_INPUT_DEVICE_HPP
 #define ANTKEEPER_INPUT_DEVICE_HPP
 
-#include "input-device.hpp"
+#include "event/event-dispatcher.hpp"
 
-class event_dispatcher;
+namespace input {
 
 /**
  * Base class for virtual devices which generate input events.
  */
-class input_device
+class device
 {
 public:
-	input_device();
-	virtual ~input_device() = default;
+	device();
+	virtual ~device() = default;
 
 	void set_event_dispatcher(event_dispatcher* event_dispatcher);
 	const event_dispatcher* get_event_dispatcher() const;
@@ -41,15 +41,17 @@ protected:
 	event_dispatcher* event_dispatcher;
 };
 
-inline const event_dispatcher* input_device::get_event_dispatcher() const
+inline const event_dispatcher* device::get_event_dispatcher() const
 {
 	return event_dispatcher;
 }
 
-inline event_dispatcher* input_device::get_event_dispatcher()
+inline event_dispatcher* device::get_event_dispatcher()
 {
 	return event_dispatcher;
 }
+
+} // namespace input
 
 #endif // ANTKEEPER_INPUT_DEVICE_HPP
 

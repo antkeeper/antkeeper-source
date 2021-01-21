@@ -21,12 +21,14 @@
 #include "event/input-events.hpp"
 #include "event/event-dispatcher.hpp"
 
+namespace input {
+
 mouse::mouse()
 {}
 
 void mouse::press(int button, int x, int y)
 {
-	if (!input_device::event_dispatcher)
+	if (!device::event_dispatcher)
 	{
 		return;
 	}
@@ -37,12 +39,12 @@ void mouse::press(int button, int x, int y)
 	event.x = x;
 	event.y = y;
 
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
 
 void mouse::release(int button, int x, int y)
 {
-	if (!input_device::event_dispatcher)
+	if (!device::event_dispatcher)
 	{
 		return;
 	}
@@ -53,7 +55,7 @@ void mouse::release(int button, int x, int y)
 	event.x = x;
 	event.y = y;
 
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
 
 void mouse::move(int x, int y, int dx, int dy)
@@ -61,7 +63,7 @@ void mouse::move(int x, int y, int dx, int dy)
 	previous_position = current_position;
 	current_position = {x, y};
 
-	if (!input_device::event_dispatcher)
+	if (!device::event_dispatcher)
 	{
 		return;
 	}
@@ -73,12 +75,12 @@ void mouse::move(int x, int y, int dx, int dy)
 	event.dx = dx;
 	event.dy = dy;
 
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
 
 void mouse::scroll(int x, int y)
 {
-	if (!input_device::event_dispatcher)
+	if (!device::event_dispatcher)
 	{
 		return;
 	}
@@ -88,6 +90,7 @@ void mouse::scroll(int x, int y)
 	event.x = x;
 	event.y = y;
 
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
 
+} // namespace input

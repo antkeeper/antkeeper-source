@@ -17,19 +17,21 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_KEYBOARD_HPP
-#define ANTKEEPER_KEYBOARD_HPP
+#ifndef ANTKEEPER_INPUT_KEYBOARD_HPP
+#define ANTKEEPER_INPUT_KEYBOARD_HPP
 
-#include "input-device.hpp"
+#include "device.hpp"
 #include <map>
 #include <string>
+
+namespace input {
 
 enum class scancode;
 
 /**
  * A virtual keyboard which can generate keyboard-related input events and pass them to an event dispatcher.
  */
-class keyboard: public input_device
+class keyboard: public device
 {
 public:
 	/**
@@ -73,5 +75,7 @@ private:
 	static std::map<std::string, scancode> scancode_map;
 };
 
-#endif // ANTKEEPER_KEYBOARD_HPP
+} // namespace input
+
+#endif // ANTKEEPER_INPUT_KEYBOARD_HPP
 

@@ -20,6 +20,8 @@
 #include "sdl-game-controller-tables.hpp"
 #include "game-controller.hpp"
 
+namespace input {
+
 const game_controller_button sdl_button_table[15] =
 {
 	game_controller_button::a, // SDL_CONTROLLER_BUTTON_A,
@@ -49,3 +51,4 @@ const game_controller_axis sdl_axis_table[6] =
 	game_controller_axis::trigger_right, // SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
 };
 
+} // namespace input

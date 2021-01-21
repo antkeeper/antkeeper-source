@@ -17,21 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "input-listener.hpp"
+#include "listener.hpp"
 #include "event/event-dispatcher.hpp"
 
-input_listener::input_listener():
+namespace input {
+
+listener::listener():
 	event_dispatcher(nullptr),
 	callback(nullptr),
 	enabled(false)
 {}
 
-input_listener::~input_listener()
+listener::~listener()
 {
 	set_event_dispatcher(nullptr);
 }
 
-void input_listener::set_event_dispatcher(::event_dispatcher* event_dispatcher)
+void listener::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 {
 	if (this->event_dispatcher)
 	{
@@ -56,17 +58,17 @@ void input_listener::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 	}
 }
 
-void input_listener::set_callback(std::function<void(const event_base&)> callback)
+void listener::set_callback(std::function<void(const event_base&)> callback)
 {
 	this->callback = callback;
 }
 
-void input_listener::set_enabled(bool enabled)
+void listener::set_enabled(bool enabled)
 {
 	this->enabled = enabled;
 }
 
-void input_listener::handle_event(const key_pressed_event& event)
+void listener::handle_event(const key_pressed_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
@@ -76,7 +78,7 @@ void input_listener::handle_event(const key_pressed_event& event)
 	callback(event);
 }
 
-void input_listener::handle_event(const mouse_moved_event& event)
+void listener::handle_event(const mouse_moved_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
@@ -86,7 +88,7 @@ void input_listener::handle_event(const mouse_moved_event& event)
 	callback(event);
 }
 
-void input_listener::handle_event(const mouse_button_pressed_event& event)
+void listener::handle_event(const mouse_button_pressed_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
@@ -96,7 +98,7 @@ void input_listener::handle_event(const mouse_button_pressed_event& event)
 	callback(event);
 }
 
-void input_listener::handle_event(const mouse_wheel_scrolled_event& event)
+void listener::handle_event(const mouse_wheel_scrolled_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
@@ -106,7 +108,7 @@ void input_listener::handle_event(const mouse_wheel_scrolled_event& event)
 	callback(event);
 }
 
-void input_listener::handle_event(const game_controller_button_pressed_event& event)
+void listener::handle_event(const game_controller_button_pressed_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
@@ -116,7 +118,7 @@ void input_listener::handle_event(const game_controller_button_pressed_event& ev
 	callback(event);
 }
 
-void input_listener::handle_event(const game_controller_axis_moved_event& event)
+void listener::handle_event(const game_controller_axis_moved_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
@@ -125,3 +127,5 @@ void input_listener::handle_event(const game_controller_axis_moved_event& event)
 
 	callback(event);
 }
+
+} // namespace input

@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_CONTROL_SET_HPP
-#define ANTKEEPER_CONTROL_SET_HPP
+#ifndef ANTKEEPER_INPUT_CONTROL_SET_HPP
+#define ANTKEEPER_INPUT_CONTROL_SET_HPP
 
 #include <list>
+
+namespace input {
 
 class control;
 
@@ -77,5 +79,7 @@ inline const std::list<control*>* control_set::get_controls() const
 	return &controls;
 }
 
-#endif // ANTKEEPER_CONTROL_SET_HPP
+} // namespace input
+
+#endif // ANTKEEPER_INPUT_CONTROL_SET_HPP
 

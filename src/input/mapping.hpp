@@ -20,6 +20,8 @@
 #ifndef ANTKEEPER_INPUT_MAPPING_HPP
 #define ANTKEEPER_INPUT_MAPPING_HPP
 
+namespace input {
+
 enum class mouse_motion_axis;
 enum class mouse_wheel_axis;
 enum class scancode;
@@ -33,7 +35,7 @@ class game_controller;
 /**
  * Enumerates the supported types of control mappings.
  */
-enum class input_mapping_type
+enum class mapping_type
 {
 	key,
 	mouse_motion,
@@ -46,15 +48,15 @@ enum class input_mapping_type
 /**
  * Abstract base class for input mappings.
  */
-class input_mapping
+class mapping
 {
 public:
-	input_mapping() = default;
-	input_mapping(::control* control);
-	virtual ~input_mapping() = default;
+	mapping() = default;
+	mapping(input::control* control);
+	virtual ~mapping() = default;
 
 	/// Returns this control mapping's type.
-	virtual input_mapping_type get_type() const = 0;
+	virtual mapping_type get_type() const = 0;
 
 	control* control;
 };
@@ -62,112 +64,112 @@ public:
 /**
  * A mapping between a control and a keyboard key.
  */
-class key_mapping: public input_mapping
+class key_mapping: public mapping
 {
 public:
 	key_mapping() = default;
 	key_mapping(const key_mapping& mapping);
-	key_mapping(::control* control, keyboard* keyboard, scancode scancode);
+	key_mapping(input::control* control, input::keyboard* keyboard, scancode scancode);
 	virtual ~key_mapping() = default;
 	key_mapping& operator=(const key_mapping& mapping);
-	virtual input_mapping_type get_type() const;
+	virtual mapping_type get_type() const;
 
-	keyboard* keyboard;
+	input::keyboard* keyboard;
 	scancode scancode;
 };
 
-inline input_mapping_type key_mapping::get_type() const
+inline mapping_type key_mapping::get_type() const
 {
-	return input_mapping_type::key;
+	return mapping_type::key;
 }
 
 /**
  * A mapping between a control and a mouse motion axis.
  */
-class mouse_motion_mapping: public input_mapping
+class mouse_motion_mapping: public mapping
 {
 public:
 	mouse_motion_mapping() = default;
 	mouse_motion_mapping(const mouse_motion_mapping& mapping);
-	mouse_motion_mapping(::control* control, ::mouse* mouse, mouse_motion_axis axis);
+	mouse_motion_mapping(input::control* control, input::mouse* mouse, mouse_motion_axis axis);
 	virtual ~mouse_motion_mapping() = default;
 	mouse_motion_mapping& operator=(const mouse_motion_mapping& mapping);
-	virtual input_mapping_type get_type() const;
+	virtual mapping_type get_type() const;
 
-	mouse* mouse;
+	input::mouse* mouse;
 	mouse_motion_axis axis;
 };
 
-inline input_mapping_type mouse_motion_mapping::get_type() const
+inline mapping_type mouse_motion_mapping::get_type() const
 {
-	return input_mapping_type::mouse_motion;
+	return mapping_type::mouse_motion;
 }
 
 /**
  * A mapping between a control and a mouse wheel axis.
  */
-class mouse_wheel_mapping: public input_mapping
+class mouse_wheel_mapping: public mapping
 {
 public:
 	mouse_wheel_mapping() = default;
 	mouse_wheel_mapping(const mouse_wheel_mapping& mapping);
-	mouse_wheel_mapping(::control* control, mouse* mouse, mouse_wheel_axis axis);
+	mouse_wheel_mapping(input::control* control, input::mouse* mouse, mouse_wheel_axis axis);
 	virtual ~mouse_wheel_mapping() = default;
 	mouse_wheel_mapping& operator=(const mouse_wheel_mapping& mapping);
-	virtual input_mapping_type get_type() const;
+	virtual mapping_type get_type() const;
 
-	mouse* mouse;
+	input::mouse* mouse;
 	mouse_wheel_axis axis;
 };
 
-inline input_mapping_type mouse_wheel_mapping::get_type() const
+inline mapping_type mouse_wheel_mapping::get_type() const
 {
-	return input_mapping_type::mouse_wheel;
+	return mapping_type::mouse_wheel;
 }
 
 /**
  * A mapping between a control and a mouse button.
  */
-class mouse_button_mapping: public input_mapping
+class mouse_button_mapping: public mapping
 {
 public:
 	mouse_button_mapping() = default;
 	mouse_button_mapping(const mouse_button_mapping& mapping);
-	mouse_button_mapping(::control* control, mouse* mouse, int button);
+	mouse_button_mapping(input::control* control, input::mouse* mouse, int button);
 	virtual ~mouse_button_mapping() = default;
 	mouse_button_mapping& operator=(const mouse_button_mapping& mapping);
-	virtual input_mapping_type get_type() const;
+	virtual mapping_type get_type() const;
 
-	mouse* mouse;
+	input::mouse* mouse;
 	int button;
 };
 
-inline input_mapping_type mouse_button_mapping::get_type() const
+inline mapping_type mouse_button_mapping::get_type() const
 {
-	return input_mapping_type::mouse_button;
+	return mapping_type::mouse_button;
 }
 
 /**
  * A mapping between a control and a game controller axis.
  */
-class game_controller_axis_mapping: public input_mapping
+class game_controller_axis_mapping: public mapping
 {
 public:
 	game_controller_axis_mapping() = default;
 	game_controller_axis_mapping(const game_controller_axis_mapping& mapping);
-	game_controller_axis_mapping(::control* control, game_controller* game_controller, game_controller_axis axis, bool negative);
+	game_controller_axis_mapping(input::control* control, game_controller* controller, game_controller_axis axis, bool negative);
 	virtual ~game_controller_axis_mapping() = default;
 	game_controller_axis_mapping& operator=(const game_controller_axis_mapping& mapping);
-	virtual input_mapping_type get_type() const;
+	virtual mapping_type get_type() const;
 
-	game_controller* game_controller;
+	game_controller* controller;
 	game_controller_axis axis;
 	bool negative;
 };
 
-inline input_mapping_type game_controller_axis_mapping::get_type() const
+inline mapping_type game_controller_axis_mapping::get_type() const
 {
-	return input_mapping_type::game_controller_axis;
+	return mapping_type::game_controller_axis;
 }
 
 /**
@@ -175,24 +177,26 @@ inline input_mapping_type game_controller_axis_mapping::get_type() const
  *
  * @ingroup input.
  */
-class game_controller_button_mapping: public input_mapping
+class game_controller_button_mapping: public mapping
 {
 public:
 	game_controller_button_mapping() = default;
 	game_controller_button_mapping(const game_controller_button_mapping& mapping);
-	game_controller_button_mapping(::control* control, game_controller* game_controller, game_controller_button button);
+	game_controller_button_mapping(input::control* control, game_controller* controller, game_controller_button button);
 	virtual ~game_controller_button_mapping() = default;
 	game_controller_button_mapping& operator=(const game_controller_button_mapping& mapping);
-	virtual input_mapping_type get_type() const;
+	virtual mapping_type get_type() const;
 
-	game_controller* game_controller;
+	game_controller* controller;
 	game_controller_button button;
 };
 
-inline input_mapping_type game_controller_button_mapping::get_type() const
+inline mapping_type game_controller_button_mapping::get_type() const
 {
-	return input_mapping_type::game_controller_button;
+	return mapping_type::game_controller_button;
 }
+
+} // namespace input
 
 #endif // ANTKEEPER_INPUT_MAPPING_HPP
 

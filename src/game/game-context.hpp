@@ -30,6 +30,11 @@
 #include "gl/texture-2d.hpp"
 #include "gl/rasterizer.hpp"
 #include "gl/framebuffer.hpp"
+#include "input/control.hpp"
+#include "input/control-set.hpp"
+#include "input/listener.hpp"
+#include "input/mapper.hpp"
+#include "input/event-router.hpp"
 #include <optional>
 #include <entt/entt.hpp>
 #include <fstream>
@@ -42,11 +47,8 @@ class bloom_pass;
 class clear_pass;
 class compositor;
 class config_file;
-class control;
-class control_set;
 class final_pass;
 class material;
-class input_listener;
 class material_pass;
 class orbit_cam;
 class pheromone_matrix;
@@ -57,8 +59,6 @@ class simple_render_pass;
 class sky_pass;
 class timeline;
 class renderer;
-class input_event_router;
-class input_mapper;
 class outline_pass;
 
 struct biome;
@@ -209,16 +209,16 @@ struct game_context
 	animation<float>* unequip_tool_animation;
 
 	// Controls
-	input_event_router* input_event_router;
-	input_mapper* input_mapper;
-	input_listener* input_listener;
-	control_set* application_controls;
-	control_set* camera_controls;
-	control_set* menu_controls;
-	control* menu_back_control;
-	control* menu_select_control;
-	control* screenshot_control;
-	control* toggle_fullscreen_control;
+	input::event_router* input_event_router;
+	input::mapper* input_mapper;
+	input::listener* input_listener;
+	input::control_set* application_controls;
+	input::control_set* camera_controls;
+	input::control_set* menu_controls;
+	input::control* menu_back_control;
+	input::control* menu_select_control;
+	input::control* screenshot_control;
+	input::control* toggle_fullscreen_control;
 
 	// Entities
 	ecs::registry* ecs_registry;

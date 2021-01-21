@@ -22,6 +22,8 @@
 #include "event/event-dispatcher.hpp"
 #include "event/input-events.hpp"
 
+namespace input {
+
 const char* keyboard::get_scancode_name(scancode scancode)
 {
 	return scancode_names[static_cast<std::size_t>(scancode)];
@@ -46,7 +48,7 @@ keyboard::~keyboard()
 
 void keyboard::press(scancode scancode)
 {
-	if (!input_device::event_dispatcher)
+	if (!device::event_dispatcher)
 	{
 		return;
 	}
@@ -55,12 +57,12 @@ void keyboard::press(scancode scancode)
 	event.keyboard = this;
 	event.scancode = scancode;
 
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
 
 void keyboard::release(scancode scancode)
 {
-	if (!input_device::event_dispatcher)
+	if (!device::event_dispatcher)
 	{
 		return;
 	}
@@ -69,7 +71,7 @@ void keyboard::release(scancode scancode)
 	event.keyboard = this;
 	event.scancode = scancode;
 
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
 
 std::map<std::string, scancode> keyboard::build_scancode_map()
@@ -339,3 +341,4 @@ const char* keyboard::scancode_names[] =
 
 std::map<std::string, scancode> keyboard::scancode_map = keyboard::build_scancode_map();
 
+} // namespace input

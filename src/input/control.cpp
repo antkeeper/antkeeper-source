@@ -19,6 +19,8 @@
 
 #include "control.hpp"
 
+namespace input {
+
 control::control():
 	deadzone(0.0f),
 	current_value(0.0f),
@@ -109,3 +111,4 @@ void control::set_value_changed_callback(std::function<void(float)> callback)
 	this->value_changed_callback = callback;
 }
 
+} // namespace input

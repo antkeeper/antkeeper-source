@@ -31,8 +31,8 @@
 #include "scene/billboard.hpp"
 #include "renderer/material.hpp"
 #include "math/math.hpp"
+#include "input/control.hpp"
 
-class control;
 class resource_manager;
 
 namespace ecs {
@@ -47,7 +47,7 @@ public:
 	void update(float dt);
 
 	void set_viewport(const float4& viewport);
-	void set_tool_menu_control(control* control);
+	void set_tool_menu_control(input::control* control);
 	
 	void set_camera(scene::camera* camera);
 	void set_scene(scene::collection* collection);
@@ -81,7 +81,7 @@ private:
 	float4 viewport;
 	float2 viewport_center;
 	float2 tool_selection_vector;
-	control* tool_menu_control;
+	input::control* tool_menu_control;
 };
 
 } // namespace ecs

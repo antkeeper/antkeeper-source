@@ -17,14 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "input-device.hpp"
-#include "event/event-dispatcher.hpp"
+#include "device.hpp"
 
-input_device::input_device():
+namespace input {
+
+device::device():
 	event_dispatcher(nullptr)
 {}
 
-void input_device::set_event_dispatcher(::event_dispatcher* event_dispatcher)
+void device::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 {
 	this->event_dispatcher = event_dispatcher;
 }
+
+} // namespace input

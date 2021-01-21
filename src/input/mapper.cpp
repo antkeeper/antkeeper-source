@@ -17,23 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "input-mapper.hpp"
+#include "mapper.hpp"
 #include "mouse.hpp"
 #include "event/event-dispatcher.hpp"
 
-input_mapper::input_mapper():
+namespace input {
+
+mapper::mapper():
 	event_dispatcher(nullptr),
 	control(nullptr),
 	callback(nullptr),
 	enabled(false)
 {}
 
-input_mapper::~input_mapper()
+mapper::~mapper()
 {
 	set_event_dispatcher(nullptr);
 }
 
-void input_mapper::set_event_dispatcher(::event_dispatcher* event_dispatcher)
+void mapper::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 {
 	if (this->event_dispatcher)
 	{
@@ -58,22 +60,22 @@ void input_mapper::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 	}
 }
 
-void input_mapper::set_control(::control* control)
+void mapper::set_control(input::control* control)
 {
 	this->control = control;
 }
 
-void input_mapper::set_callback(std::function<void(const input_mapping&)> callback)
+void mapper::set_callback(std::function<void(const mapping&)> callback)
 {
 	this->callback = callback;
 }
 
-void input_mapper::set_enabled(bool enabled)
+void mapper::set_enabled(bool enabled)
 {
 	this->enabled = enabled;
 }
 
-void input_mapper::handle_event(const key_pressed_event& event)
+void mapper::handle_event(const key_pressed_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
@@ -83,7 +85,7 @@ void input_mapper::handle_event(const key_pressed_event& event)
 	callback(key_mapping(control, event.keyboard, event.scancode));
 }
 
-void input_mapper::handle_event(const mouse_moved_event& event)
+void mapper::handle_event(const mouse_moved_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
@@ -103,7 +105,7 @@ void input_mapper::handle_event(const mouse_moved_event& event)
 	}
 }
 
-void input_mapper::handle_event(const mouse_button_pressed_event& event)
+void mapper::handle_event(const mouse_button_pressed_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
@@ -113,7 +115,7 @@ void input_mapper::handle_event(const mouse_button_pressed_event& event)
 	callback(mouse_button_mapping(control, event.mouse, event.button));
 }
 
-void input_mapper::handle_event(const mouse_wheel_scrolled_event& event)
+void mapper::handle_event(const mouse_wheel_scrolled_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
@@ -133,23 +135,24 @@ void input_mapper::handle_event(const mouse_wheel_scrolled_event& event)
 	}
 }
 
-void input_mapper::handle_event(const game_controller_button_pressed_event& event)
+void mapper::handle_event(const game_controller_button_pressed_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
 		return;
 	}
 
-	callback(game_controller_button_mapping(control, event.game_controller, event.button));
+	callback(game_controller_button_mapping(control, event.controller, event.button));
 }
 
-void input_mapper::handle_event(const game_controller_axis_moved_event& event)
+void mapper::handle_event(const game_controller_axis_moved_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
 		return;
 	}
 
-	callback(game_controller_axis_mapping(control, event.game_controller, event.axis, (event.value < 0.0f)));
+	callback(game_controller_axis_mapping(control, event.controller, event.axis, (event.value < 0.0f)));
 }
 
+} // namespace input

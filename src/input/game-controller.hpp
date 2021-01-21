@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_CONTROLLER_HPP
-#define ANTKEEPER_GAME_CONTROLLER_HPP
+#ifndef ANTKEEPER_INPUT_GAME_CONTROLLER_HPP
+#define ANTKEEPER_INPUT_GAME_CONTROLLER_HPP
 
-#include "input-device.hpp"
+#include "device.hpp"
+
+namespace input {
 
 enum class game_controller_button
 {
@@ -56,7 +58,7 @@ enum class game_controller_axis
  *
  * @ingroup input
  */
-class game_controller: public input_device
+class game_controller: public device
 {
 public:
 	/**
@@ -112,5 +114,7 @@ inline bool game_controller::is_connected() const
 	return connected;
 }
 
-#endif // ANTKEEPER_GAME_CONTROLLER_HPP
+} // namespace input
+
+#endif // ANTKEEPER_INPUT_GAME_CONTROLLER_HPP
 

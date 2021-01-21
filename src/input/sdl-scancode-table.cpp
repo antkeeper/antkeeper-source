@@ -20,6 +20,8 @@
 #include "sdl-scancode-table.hpp"
 #include "scancode.hpp"
 
+namespace input {
+
 const scancode sdl_scancode_table[287] =
 {
 	scancode::unknown, // SDL_SCANCODE_UNKNOWN = 0,
@@ -311,3 +313,4 @@ const scancode sdl_scancode_table[287] =
 	scancode::audio_fast_forward, // SDL_SCANCODE_AUDIOFASTFORWARD = 286,
 };
 
+} // namespace input

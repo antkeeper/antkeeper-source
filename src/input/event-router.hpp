@@ -22,12 +22,14 @@
 
 #include "event/input-events.hpp"
 #include "event/event-handler.hpp"
+#include "event/event-dispatcher.hpp"
 #include <list>
 #include <map>
 
+namespace input {
+
 class control;
-class event_dispatcher;
-class input_mapping;
+class mapping;
 class key_mapping;
 class mouse_motion_mapping;
 class mouse_wheel_mapping;
@@ -40,7 +42,7 @@ enum class mouse_wheel_axis;
 /**
  * Uses input mappings to route input events to controls.
  */
-class input_event_router:
+class event_router:
 	public event_handler<key_pressed_event>,
 	public event_handler<key_released_event>,
 	public event_handler<mouse_moved_event>,
@@ -55,19 +57,19 @@ public:
 	/**
 	 * Creates an input router and subscribes it to the input events of the specified event dispatcher.
 	 */
-	input_event_router();
+	event_router();
 
 	/**
 	 * Destroys an input router and unsubscribes it from input events.
 	 */
-	~input_event_router();
+	~event_router();
 
 	/**
 	 * Adds an input mapping to the router.
 	 *
 	 * @param mapping Input mapping to add.
 	 */
-	void add_mapping(const input_mapping& mapping);
+	void add_mapping(const mapping& mapping);
 
 
 	/**
@@ -88,7 +90,7 @@ public:
 	void remove_mappings();
 
 	/// Returns a list of mappings for the specified control, or nullptr if the control is unmapped.
-	const std::list<input_mapping*>* get_mappings(control* control) const;
+	const std::list<mapping*>* get_mappings(control* control) const;
 	
 private:
 	virtual void handle_event(const key_pressed_event& event);
@@ -102,7 +104,7 @@ private:
 	virtual void handle_event(const game_controller_button_released_event& event);
 
 	event_dispatcher* event_dispatcher;
-	std::map<control*, std::list<input_mapping*>> controls;
+	std::map<control*, std::list<mapping*>> controls;
 	std::list<key_mapping*> key_mappings;
 	std::list<mouse_motion_mapping*> mouse_motion_mappings;
 	std::list<mouse_wheel_mapping*> mouse_wheel_mappings;
@@ -110,6 +112,8 @@ private:
 	std::list<game_controller_axis_mapping*> game_controller_axis_mappings;
 	std::list<game_controller_button_mapping*> game_controller_button_mappings;
 };
+
+} // namespace input
 
 #endif // ANTKEEER_INPUT_EVENT_ROUTER_HPP
 

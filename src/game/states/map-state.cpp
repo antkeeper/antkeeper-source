@@ -23,7 +23,7 @@
 #include "application.hpp"
 #include "debug/logger.hpp"
 #include "game/game-context.hpp"
-#include "input/input-listener.hpp"
+#include "input/listener.hpp"
 #include "event/input-events.hpp"
 #include "gl/rasterizer.hpp"
 #include "game/states/game-states.hpp"

@@ -22,51 +22,53 @@
 #include "event/event-dispatcher.hpp"
 #include <cmath>
 
+namespace input {
+
 game_controller::game_controller():
 	connected(true)
 {}
 
 void game_controller::press(game_controller_button button)
 {
-	if (!input_device::event_dispatcher)
+	if (!device::event_dispatcher)
 	{
 		return;
 	}
 
 	game_controller_button_pressed_event event;
-	event.game_controller = this;
+	event.controller = this;
 	event.button = button;
 
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
 
 void game_controller::release(game_controller_button button)
 {
-	if (!input_device::event_dispatcher)
+	if (!device::event_dispatcher)
 	{
 		return;
 	}
 
 	game_controller_button_released_event event;
-	event.game_controller = this;
+	event.controller = this;
 	event.button = button;
 
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
 
 void game_controller::move(game_controller_axis axis, float value)
 {
-	if (!input_device::event_dispatcher)
+	if (!device::event_dispatcher)
 	{
 		return;
 	}
 
 	game_controller_axis_moved_event event;
-	event.game_controller = this;
+	event.controller = this;
 	event.axis = axis;
 	event.value = value;
 
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
 
 void game_controller::connect(bool reconnected)
@@ -74,10 +76,10 @@ void game_controller::connect(bool reconnected)
 	connected = true;
 	
 	game_controller_connected_event event;
-	event.game_controller = this;
+	event.controller = this;
 	event.reconnected = reconnected;
 	
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
 
 void game_controller::disconnect()
@@ -85,7 +87,9 @@ void game_controller::disconnect()
 	connected = false;
 	
 	game_controller_disconnected_event event;
-	event.game_controller = this;
+	event.controller = this;
 	
-	input_device::event_dispatcher->queue(event);
+	device::event_dispatcher->queue(event);
 }
+
+} // namespace input

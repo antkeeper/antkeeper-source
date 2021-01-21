@@ -59,65 +59,65 @@ public:
 	void set_viewport(const float4& viewport);
 	void set_underworld_camera(scene::camera* camera);
 
-	control_set* get_control_set();
-	control* get_move_forward_control();
-	control* get_move_back_control();
-	control* get_move_left_control();
-	control* get_move_right_control();
-	control* get_rotate_ccw_control();
-	control* get_rotate_cw_control();
-	control* get_tilt_up_control();
-	control* get_tilt_down_control();
-	control* get_zoom_in_control();
-	control* get_zoom_out_control();
-	control* get_adjust_camera_control();
-	control* get_ascend_control();
-	control* get_descend_control();
-	control* get_toggle_view_control();
-	control* get_tool_menu_control();
-	control* get_equip_lens_control();
-	control* get_equip_brush_control();
-	control* get_equip_forceps_control();
-	control* get_equip_marker_control();
-	control* get_equip_container_control();
-	control* get_equip_twig_control();
-	control* get_next_marker_control();
-	control* get_previous_marker_control();
-	control* get_use_tool_control();
-	control* get_fast_forward_control();
-	control* get_rewind_control();
+	input::control_set* get_control_set();
+	input::control* get_move_forward_control();
+	input::control* get_move_back_control();
+	input::control* get_move_left_control();
+	input::control* get_move_right_control();
+	input::control* get_rotate_ccw_control();
+	input::control* get_rotate_cw_control();
+	input::control* get_tilt_up_control();
+	input::control* get_tilt_down_control();
+	input::control* get_zoom_in_control();
+	input::control* get_zoom_out_control();
+	input::control* get_adjust_camera_control();
+	input::control* get_ascend_control();
+	input::control* get_descend_control();
+	input::control* get_toggle_view_control();
+	input::control* get_tool_menu_control();
+	input::control* get_equip_lens_control();
+	input::control* get_equip_brush_control();
+	input::control* get_equip_forceps_control();
+	input::control* get_equip_marker_control();
+	input::control* get_equip_container_control();
+	input::control* get_equip_twig_control();
+	input::control* get_next_marker_control();
+	input::control* get_previous_marker_control();
+	input::control* get_use_tool_control();
+	input::control* get_fast_forward_control();
+	input::control* get_rewind_control();
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
 	virtual void handle_event(const window_resized_event& event);
 	
-	control_set control_set;
-	control move_forward_control;
-	control move_back_control;
-	control move_left_control;
-	control move_right_control;
-	control rotate_ccw_control;
-	control rotate_cw_control;
-	control tilt_up_control;
-	control tilt_down_control;
-	control zoom_in_control;
-	control zoom_out_control;
-	control adjust_camera_control;
-	control ascend_control;
-	control descend_control;
-	control toggle_view_control;
-	control tool_menu_control;
-	control equip_lens_control;
-	control equip_brush_control;
-	control equip_forceps_control;
-	control equip_marker_control;
-	control equip_container_control;
-	control equip_twig_control;
-	control next_marker_control;
-	control previous_marker_control;
-	control use_tool_control;
-	control fast_forward_control;
-	control rewind_control;
+	input::control_set control_set;
+	input::control move_forward_control;
+	input::control move_back_control;
+	input::control move_left_control;
+	input::control move_right_control;
+	input::control rotate_ccw_control;
+	input::control rotate_cw_control;
+	input::control tilt_up_control;
+	input::control tilt_down_control;
+	input::control zoom_in_control;
+	input::control zoom_out_control;
+	input::control adjust_camera_control;
+	input::control ascend_control;
+	input::control descend_control;
+	input::control toggle_view_control;
+	input::control tool_menu_control;
+	input::control equip_lens_control;
+	input::control equip_brush_control;
+	input::control equip_forceps_control;
+	input::control equip_marker_control;
+	input::control equip_container_control;
+	input::control equip_twig_control;
+	input::control next_marker_control;
+	input::control previous_marker_control;
+	input::control use_tool_control;
+	input::control fast_forward_control;
+	input::control rewind_control;
 
 	float zoom_speed;
 	float min_elevation;
@@ -152,137 +152,137 @@ private:
 	float flashlight_turns_f;
 };
 
-inline control_set* control_system::get_control_set()
+inline input::control_set* control_system::get_control_set()
 {
 	return &control_set;
 }
 
-inline control* control_system::get_move_forward_control()
+inline input::control* control_system::get_move_forward_control()
 {
 	return &move_forward_control;
 }
 
-inline control* control_system::get_move_back_control()
+inline input::control* control_system::get_move_back_control()
 {
 	return &move_back_control;
 }
 
-inline control* control_system::get_move_left_control()
+inline input::control* control_system::get_move_left_control()
 {
 	return &move_left_control;
 }
 
-inline control* control_system::get_move_right_control()
+inline input::control* control_system::get_move_right_control()
 {
 	return &move_right_control;
 }
 
-inline control* control_system::get_rotate_ccw_control()
+inline input::control* control_system::get_rotate_ccw_control()
 {
 	return &rotate_ccw_control;
 }
 
-inline control* control_system::get_rotate_cw_control()
+inline input::control* control_system::get_rotate_cw_control()
 {
 	return &rotate_cw_control;
 }
 
-inline control* control_system::get_tilt_up_control()
+inline input::control* control_system::get_tilt_up_control()
 {
 	return &tilt_up_control;
 }
 
-inline control* control_system::get_tilt_down_control()
+inline input::control* control_system::get_tilt_down_control()
 {
 	return &tilt_down_control;
 }
 
-inline control* control_system::get_zoom_in_control()
+inline input::control* control_system::get_zoom_in_control()
 {
 	return &zoom_in_control;
 }
 
-inline control* control_system::get_zoom_out_control()
+inline input::control* control_system::get_zoom_out_control()
 {
 	return &zoom_out_control;
 }
 
-inline control* control_system::get_adjust_camera_control()
+inline input::control* control_system::get_adjust_camera_control()
 {
 	return &adjust_camera_control;
 }
 
-inline control* control_system::get_ascend_control()
+inline input::control* control_system::get_ascend_control()
 {
 	return &ascend_control;
 }
 
-inline control* control_system::get_descend_control()
+inline input::control* control_system::get_descend_control()
 {
 	return &descend_control;
 }
 
-inline control* control_system::get_toggle_view_control()
+inline input::control* control_system::get_toggle_view_control()
 {
 	return &toggle_view_control;
 }
 
-inline control* control_system::get_tool_menu_control()
+inline input::control* control_system::get_tool_menu_control()
 {
 	return &tool_menu_control;
 }
 
-inline control* control_system::get_equip_lens_control()
+inline input::control* control_system::get_equip_lens_control()
 {
 	return &equip_lens_control;
 }
 
-inline control* control_system::get_equip_brush_control()
+inline input::control* control_system::get_equip_brush_control()
 {
 	return &equip_brush_control;
 }
 
-inline control* control_system::get_equip_forceps_control()
+inline input::control* control_system::get_equip_forceps_control()
 {
 	return &equip_forceps_control;
 }
 
-inline control* control_system::get_equip_marker_control()
+inline input::control* control_system::get_equip_marker_control()
 {
 	return &equip_marker_control;
 }
 
-inline control* control_system::get_equip_container_control()
+inline input::control* control_system::get_equip_container_control()
 {
 	return &equip_container_control;
 }
 
-inline control* control_system::get_equip_twig_control()
+inline input::control* control_system::get_equip_twig_control()
 {
 	return &equip_twig_control;
 }
 
-inline control* control_system::get_next_marker_control()
+inline input::control* control_system::get_next_marker_control()
 {
 	return &next_marker_control;
 }
 
-inline control* control_system::get_previous_marker_control()
+inline input::control* control_system::get_previous_marker_control()
 {
 	return &previous_marker_control;
 }
 
-inline control* control_system::get_use_tool_control()
+inline input::control* control_system::get_use_tool_control()
 {
 	return &use_tool_control;
 }
 
-inline control* control_system::get_fast_forward_control()
+inline input::control* control_system::get_fast_forward_control()
 {
 	return &fast_forward_control;
 }
 
-inline control* control_system::get_rewind_control()
+inline input::control* control_system::get_rewind_control()
 {
 	return &rewind_control;
 }

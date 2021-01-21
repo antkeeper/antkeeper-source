@@ -17,12 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SDL_SCANCODE_TABLE_HPP
-#define ANTKEEPER_SDL_SCANCODE_TABLE_HPP
+#ifndef ANTKEEPER_INPUT_SDL_SCANCODE_TABLE_HPP
+#define ANTKEEPER_INPUT_SDL_SCANCODE_TABLE_HPP
+
+namespace input {
 
 enum class scancode;
 
 extern const scancode sdl_scancode_table[287];
 
-#endif // ANTKEEPER_SDL_SCANCODE_TABLE_HPP
+} // namespace input
+
+#endif // ANTKEEPER_INPUT_SDL_SCANCODE_TABLE_HPP
 

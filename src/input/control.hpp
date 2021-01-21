@@ -17,15 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_CONTROL_HPP
-#define ANTKEEPER_CONTROL_HPP
+#ifndef ANTKEEPER_INPUT_CONTROL_HPP
+#define ANTKEEPER_INPUT_CONTROL_HPP
 
 #include <functional>
 
+namespace input {
+
 /**
  * A control can be bound to multiple types of input events.
- *
- * @ingroup input
  */
 class control
 {
@@ -132,5 +132,7 @@ inline bool control::was_active() const
 	return previous_value > deadzone;
 }
 
-#endif // ANTKEEPER_CONTROL_HPP
+} // namespace input
+
+#endif // ANTKEEPER_INPUT_CONTROL_HPP
 

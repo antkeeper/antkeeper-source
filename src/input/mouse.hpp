@@ -17,11 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MOUSE_HPP
-#define ANTKEEPER_MOUSE_HPP
+#ifndef ANTKEEPER_INPUT_MOUSE_HPP
+#define ANTKEEPER_INPUT_MOUSE_HPP
 
-#include "input-device.hpp"
+#include "device.hpp"
 #include <tuple>
+
+namespace input {
 
 /**
  * Enumerates the mouse motion axes.
@@ -62,7 +64,7 @@ enum class mouse_wheel_axis
 /**
  * A virtual mouse which can generate mouse-related input events and pass them to an event dispatcher.
  */
-class mouse: public input_device
+class mouse: public device
 {
 public:
 	/**
@@ -127,5 +129,7 @@ inline const std::tuple<int, int>& mouse::get_previous_position() const
 	return previous_position;
 }
 
-#endif // ANTKEEPER_MOUSE_HPP
+} // namespace input
+
+#endif // ANTKEEPER_INPUT_MOUSE_HPP
 

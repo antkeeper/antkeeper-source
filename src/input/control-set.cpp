@@ -20,6 +20,8 @@
 #include "control-set.hpp"
 #include "control.hpp"
 
+namespace input {
+
 void control_set::add_control(control* control)
 {
 	controls.push_back(control);
@@ -51,3 +53,4 @@ void control_set::set_callbacks_enabled(bool enabled)
 	}
 }
 
+} // namespace input

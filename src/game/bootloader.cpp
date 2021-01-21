@@ -80,9 +80,9 @@
 #include "ecs/commands.hpp"
 #include "utility/paths.hpp"
 #include "event/event-dispatcher.hpp"
-#include "input/input-event-router.hpp"
-#include "input/input-mapper.hpp"
-#include "input/input-listener.hpp"
+#include "input/event-router.hpp"
+#include "input/mapper.hpp"
+#include "input/listener.hpp"
 #include "input/game-controller.hpp"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
@@ -933,19 +933,19 @@ void setup_controls(game_context* ctx)
 	event_dispatcher* event_dispatcher = ctx->app->get_event_dispatcher();
 	
 	// Setup input event routing
-	ctx->input_event_router = new input_event_router();
+	ctx->input_event_router = new input::event_router();
 	ctx->input_event_router->set_event_dispatcher(event_dispatcher);
 	
 	// Setup input mapper
-	ctx->input_mapper = new input_mapper();
+	ctx->input_mapper = new input::mapper();
 	ctx->input_mapper->set_event_dispatcher(event_dispatcher);
 	
 	// Setup input listener
-	ctx->input_listener = new input_listener();
+	ctx->input_listener = new input::listener();
 	ctx->input_listener->set_event_dispatcher(event_dispatcher);
 	
 	// Create toggle fullscreen control
-	ctx->toggle_fullscreen_control = new control();
+	ctx->toggle_fullscreen_control = new input::control();
 	ctx->toggle_fullscreen_control->set_activated_callback
 	(
 		[ctx]()
@@ -965,7 +965,7 @@ void setup_controls(game_context* ctx)
 	);
 	
 	// Create screenshot control
-	ctx->screenshot_control = new control();
+	ctx->screenshot_control = new input::control();
 	ctx->screenshot_control->set_activated_callback
 	(
 		[ctx]()
@@ -976,22 +976,22 @@ void setup_controls(game_context* ctx)
 	);
 	
 	// Create menu back control
-	ctx->menu_back_control = new control();
+	ctx->menu_back_control = new input::control();
 	ctx->menu_back_control->set_activated_callback
 	(
 		std::bind(&application::close, ctx->app, 0)
 	);
 	
 	// Create menu select control
-	ctx->menu_select_control = new control();
+	ctx->menu_select_control = new input::control();
 	
 	// Create application control set
-	ctx->application_controls = new control_set();
+	ctx->application_controls = new input::control_set();
 	ctx->application_controls->add_control(ctx->toggle_fullscreen_control);
 	ctx->application_controls->add_control(ctx->screenshot_control);
 	
 	// Create menu control set
-	ctx->menu_controls = new control_set();
+	ctx->menu_controls = new input::control_set();
 	ctx->menu_controls->add_control(ctx->menu_back_control);
 	ctx->menu_controls->add_control(ctx->menu_select_control);
 
@@ -1001,21 +1001,21 @@ void setup_controls(game_context* ctx)
 	ctx->camera_controls = ctx->control_system->get_control_set();
 
 	// Application control mappings
-	ctx->input_event_router->add_mapping(key_mapping(ctx->toggle_fullscreen_control, nullptr, scancode::f11));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->screenshot_control, nullptr, scancode::f12));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->toggle_fullscreen_control, nullptr, input::scancode::f11));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->screenshot_control, nullptr, input::scancode::f12));
 	
 	// Add menu control mappings
-	ctx->input_event_router->add_mapping(key_mapping(ctx->menu_back_control, nullptr, scancode::escape));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->menu_back_control, nullptr, scancode::backspace));
-	ctx->input_event_router->add_mapping(game_controller_button_mapping(ctx->menu_back_control, nullptr, game_controller_button::b));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_tool_menu_control(), nullptr, scancode::left_shift));
-	ctx->input_event_router->add_mapping(game_controller_button_mapping(ctx->control_system->get_tool_menu_control(), nullptr, game_controller_button::x));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->menu_select_control, nullptr, scancode::enter));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->menu_select_control, nullptr, scancode::space));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_back_control, nullptr, input::scancode::escape));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_back_control, nullptr, input::scancode::backspace));
+	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->menu_back_control, nullptr, input::game_controller_button::b));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::scancode::left_shift));
+	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::game_controller_button::x));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_select_control, nullptr, input::scancode::enter));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_select_control, nullptr, input::scancode::space));
 	
 	
 	
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_toggle_view_control(), nullptr, scancode::tab));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_toggle_view_control(), nullptr, input::scancode::tab));
 	ctx->control_system->get_toggle_view_control()->set_activated_callback(
 		[ctx]()
 		{
@@ -1051,42 +1051,42 @@ void setup_controls(game_context* ctx)
 			}
 		});
 	
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_move_forward_control(), nullptr, scancode::w));
-	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_move_forward_control(), nullptr, game_controller_axis::left_y, true));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_move_back_control(), nullptr, scancode::s));
-	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_move_back_control(), nullptr, game_controller_axis::left_y, false));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_move_left_control(), nullptr, scancode::a));
-	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_move_left_control(), nullptr, game_controller_axis::left_x, true));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_move_right_control(), nullptr, scancode::d));
-	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_move_right_control(), nullptr, game_controller_axis::left_x, false));
-	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_rotate_ccw_control(), nullptr, game_controller_axis::right_x, false));
-	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_rotate_cw_control(), nullptr, game_controller_axis::right_x, true));
-	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_tilt_up_control(), nullptr, game_controller_axis::right_y, false));
-	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_tilt_down_control(), nullptr, game_controller_axis::right_y, true));
-	ctx->input_event_router->add_mapping(mouse_wheel_mapping(ctx->control_system->get_zoom_in_control(), nullptr, mouse_wheel_axis::positive_y));
-	ctx->input_event_router->add_mapping(mouse_wheel_mapping(ctx->control_system->get_zoom_out_control(), nullptr, mouse_wheel_axis::negative_y));
-	ctx->input_event_router->add_mapping(mouse_button_mapping(ctx->control_system->get_adjust_camera_control(), nullptr, 3));
-	ctx->input_event_router->add_mapping(game_controller_button_mapping(ctx->control_system->get_ascend_control(), nullptr, game_controller_button::y));
-	ctx->input_event_router->add_mapping(game_controller_button_mapping(ctx->control_system->get_descend_control(), nullptr, game_controller_button::a));
-	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_zoom_out_control(), nullptr, game_controller_axis::trigger_left, false));
-	ctx->input_event_router->add_mapping(game_controller_axis_mapping(ctx->control_system->get_zoom_in_control(), nullptr, game_controller_axis::trigger_right, false));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_rotate_ccw_control(), nullptr, scancode::q));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_rotate_cw_control(), nullptr, scancode::e));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_fast_forward_control(), nullptr, scancode::dot));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_rewind_control(), nullptr, scancode::comma));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_move_forward_control(), nullptr, input::scancode::w));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_move_forward_control(), nullptr, input::game_controller_axis::left_y, true));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_move_back_control(), nullptr, input::scancode::s));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_move_back_control(), nullptr, input::game_controller_axis::left_y, false));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_move_left_control(), nullptr, input::scancode::a));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_move_left_control(), nullptr, input::game_controller_axis::left_x, true));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_move_right_control(), nullptr, input::scancode::d));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_move_right_control(), nullptr, input::game_controller_axis::left_x, false));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_rotate_ccw_control(), nullptr, input::game_controller_axis::right_x, false));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_rotate_cw_control(), nullptr, input::game_controller_axis::right_x, true));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_tilt_up_control(), nullptr, input::game_controller_axis::right_y, false));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_tilt_down_control(), nullptr, input::game_controller_axis::right_y, true));
+	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->control_system->get_zoom_in_control(), nullptr, input::mouse_wheel_axis::positive_y));
+	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->control_system->get_zoom_out_control(), nullptr, input::mouse_wheel_axis::negative_y));
+	ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->control_system->get_adjust_camera_control(), nullptr, 3));
+	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->control_system->get_ascend_control(), nullptr, input::game_controller_button::y));
+	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->control_system->get_descend_control(), nullptr, input::game_controller_button::a));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_zoom_out_control(), nullptr, input::game_controller_axis::trigger_left, false));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_zoom_in_control(), nullptr, input::game_controller_axis::trigger_right, false));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_rotate_ccw_control(), nullptr, input::scancode::q));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_rotate_cw_control(), nullptr, input::scancode::e));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_fast_forward_control(), nullptr, input::scancode::dot));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_rewind_control(), nullptr, input::scancode::comma));
 	
 	
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, scancode::one));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_twig_control(), nullptr, scancode::two));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_forceps_control(), nullptr, scancode::three));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_container_control(), nullptr, scancode::four));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_lens_control(), nullptr, scancode::five));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_equip_marker_control(), nullptr, scancode::six));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, input::scancode::one));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_twig_control(), nullptr, input::scancode::two));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_forceps_control(), nullptr, input::scancode::three));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_container_control(), nullptr, input::scancode::four));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_lens_control(), nullptr, input::scancode::five));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_marker_control(), nullptr, input::scancode::six));
 	
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_next_marker_control(), nullptr, scancode::right_brace));
-	ctx->input_event_router->add_mapping(key_mapping(ctx->control_system->get_previous_marker_control(), nullptr, scancode::left_brace));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_next_marker_control(), nullptr, input::scancode::right_brace));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_previous_marker_control(), nullptr, input::scancode::left_brace));
 	
-	ctx->input_event_router->add_mapping(mouse_button_mapping(ctx->control_system->get_use_tool_control(), nullptr, 1));
+	ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->control_system->get_use_tool_control(), nullptr, 1));
 	ctx->control_system->get_use_tool_control()->set_activated_callback
 	(
 		[ctx]()

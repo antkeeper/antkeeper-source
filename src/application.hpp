@@ -26,15 +26,15 @@
 #include <memory>
 #include <unordered_map>
 #include "gl/rasterizer.hpp"
+#include "input/keyboard.hpp"
+#include "input/mouse.hpp"
+#include "input/game-controller.hpp"
 
 // Forward declarations
 typedef struct SDL_Window SDL_Window;
 typedef void* SDL_GLContext;
 class event_dispatcher;
 class frame_scheduler;
-class game_controller;
-class keyboard;
-class mouse;
 class image;
 
 namespace debug
@@ -186,13 +186,13 @@ public:
 	debug::logger* get_logger();
 	
 	/// Returns the virtual keyboard.
-	::keyboard* get_keyboard();
+	input::keyboard* get_keyboard();
 	
 	/// Returns the virtual mouse.
-	::mouse* get_mouse();
+	input::mouse* get_mouse();
 	
 	/// Returns the list of virtual game controllers.
-	const std::list<game_controller*>& get_game_controllers();
+	const std::list<input::game_controller*>& get_game_controllers();
 	
 	/// Returns the application's event dispatcher.
 	event_dispatcher* get_event_dispatcher();
@@ -232,10 +232,10 @@ private:
 	event_dispatcher* event_dispatcher;
 
 	// Input devices
-	keyboard* keyboard;
-	mouse* mouse;
-	std::list<game_controller*> game_controllers;
-	std::unordered_map<int, game_controller*> game_controller_map;
+	input::keyboard* keyboard;
+	input::mouse* mouse;
+	std::list<input::game_controller*> game_controllers;
+	std::unordered_map<int, input::game_controller*> game_controller_map;
 };
 
 inline debug::logger* application::get_logger()
@@ -268,17 +268,17 @@ inline gl::rasterizer* application::get_rasterizer()
 	return rasterizer;
 }
 
-inline keyboard* application::get_keyboard()
+inline input::keyboard* application::get_keyboard()
 {
 	return keyboard;
 }
 
-inline mouse* application::get_mouse()
+inline input::mouse* application::get_mouse()
 {
 	return mouse;
 }
 
-inline const std::list<game_controller*>& application::get_game_controllers()
+inline const std::list<input::game_controller*>& application::get_game_controllers()
 {
 	return game_controllers;
 }
