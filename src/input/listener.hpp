@@ -27,6 +27,9 @@
 
 namespace input {
 
+/**
+ * Listens for all types of input events.
+ */
 class listener:
 	public event_handler<key_pressed_event>,
 	public event_handler<mouse_moved_event>,

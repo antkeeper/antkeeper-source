@@ -33,7 +33,7 @@ listener::~listener()
 	set_event_dispatcher(nullptr);
 }
 
-void listener::set_event_dispatcher(::event_dispatcher* event_dispatcher)
+void listener::set_event_dispatcher(event_dispatcher* event_dispatcher)
 {
 	if (this->event_dispatcher)
 	{
