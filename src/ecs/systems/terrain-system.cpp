@@ -21,7 +21,7 @@
 #include "ecs/components/model-component.hpp"
 #include "ecs/components/collision-component.hpp"
 #include "ecs/components/transform-component.hpp"
-#include "game/cartography/relief-map.hpp"
+#include "cart/relief-map.hpp"
 #include "renderer/model.hpp"
 #include "geom/mesh.hpp"
 #include "geom/mesh-functions.hpp"
