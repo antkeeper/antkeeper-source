@@ -30,29 +30,6 @@
 #include <vector>
 #include <map>
 
-static const std::map<std::string, gl::texture_wrapping> texture_wrapping_map =
-{
-	{"clamp", gl::texture_wrapping::clamp},
-	{"repeat", gl::texture_wrapping::repeat},
-	{"mirrored_repeat", gl::texture_wrapping::mirrored_repeat},
-};
-
-static const std::map<std::string, gl::texture_min_filter> texture_min_filter_map =
-{
-	{"nearest", gl::texture_min_filter::nearest},
-	{"linear", gl::texture_min_filter::linear},
-	{"nearest_mipmap_nearest", gl::texture_min_filter::nearest_mipmap_nearest},
-	{"linear_mipmap_nearest", gl::texture_min_filter::linear_mipmap_nearest},
-	{"nearest_mipmap_linear", gl::texture_min_filter::nearest_mipmap_linear},
-	{"linear_mipmap_linear", gl::texture_min_filter::linear_mipmap_linear}
-};
-
-static const std::map<std::string, gl::texture_mag_filter> texture_mag_filter_map =
-{
-	{"nearest", gl::texture_mag_filter::nearest},
-	{"linear", gl::texture_mag_filter::linear},
-};
-
 static bool load_bool_property(material* material, const string_table_row& row, int vector_size, int array_size)
 {
 	if (row.size() - 4 != vector_size * array_size || vector_size < 1 || vector_size > 4)
@@ -252,7 +229,7 @@ static bool load_float_matrix_property(material* material, const string_table_ro
 
 static bool load_texture_2d_property(material* material, const string_table_row& row, resource_manager* resource_manager, int array_size)
 {
-	if (row.size() - 4 != array_size * 6)
+	if (row.size() - 4 != array_size * 1)
 	{
 		return false;
 	}
@@ -260,37 +237,7 @@ static bool load_texture_2d_property(material* material, const string_table_row&
 	const gl::texture_2d** values = new const gl::texture_2d*[array_size];
 	for (std::size_t i = 0; i < array_size; ++i)
 	{
-		std::size_t offset = 4 + i;
-
-		const std::string& filename = row[offset];
-		gl::texture_wrapping wrap_s = gl::texture_wrapping::clamp;
-		gl::texture_wrapping wrap_t = gl::texture_wrapping::clamp;
-		gl::texture_min_filter min_filter = gl::texture_min_filter::linear_mipmap_linear;
-		gl::texture_mag_filter mag_filter = gl::texture_mag_filter::linear;
-		if (auto it = texture_wrapping_map.find(row[offset + 1]); it != texture_wrapping_map.end())
-		{
-			wrap_s = it->second;
-		}
-		if (auto it = texture_wrapping_map.find(row[offset + 2]); it != texture_wrapping_map.end())
-		{
-			wrap_t = it->second;
-		}
-		if (auto it = texture_min_filter_map.find(row[offset + 3]); it != texture_min_filter_map.end())
-		{
-			min_filter = it->second;
-		}
-		if (auto it = texture_mag_filter_map.find(row[offset + 4]); it != texture_mag_filter_map.end())
-		{
-			mag_filter = it->second;
-		}
-		float max_anisotropy = static_cast<float>(std::stod(row[offset + 5]));
-
-		gl::texture_2d* texture = resource_manager->load<gl::texture_2d>(row[4 + i]);
-		texture->set_wrapping(wrap_s, wrap_t);
-		texture->set_filters(min_filter, mag_filter);
-		texture->set_max_anisotropy(max_anisotropy);
-
-		values[i] = texture;
+		values[i] = resource_manager->load<gl::texture_2d>(row[4 + i]);
 	}
 	
 	material_property<const gl::texture_2d*>* property = material->add_property<const gl::texture_2d*>(row[1], array_size);

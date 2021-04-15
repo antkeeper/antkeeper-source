@@ -336,6 +336,7 @@ void setup_resources(game_context* ctx)
 	// Include resource search paths in order of priority
 	ctx->resource_manager->include("/shaders/");
 	ctx->resource_manager->include("/models/");
+	ctx->resource_manager->include("/images/");
 	ctx->resource_manager->include("/textures/");
 	ctx->resource_manager->include("/materials/");
 	ctx->resource_manager->include("/entities/");
@@ -448,11 +449,11 @@ void setup_rendering(game_context* ctx)
 	
 	// Create HDR framebuffer (32F color, 32F depth)
 	ctx->framebuffer_hdr_color = new gl::texture_2d(viewport_dimensions[0], viewport_dimensions[1], gl::pixel_type::float_32, gl::pixel_format::rgb);
-	ctx->framebuffer_hdr_color->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
+	ctx->framebuffer_hdr_color->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx->framebuffer_hdr_color->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx->framebuffer_hdr_color->set_max_anisotropy(0.0f);
 	ctx->framebuffer_hdr_depth = new gl::texture_2d(viewport_dimensions[0], viewport_dimensions[1], gl::pixel_type::float_32, gl::pixel_format::ds);
-	ctx->framebuffer_hdr_depth->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
+	ctx->framebuffer_hdr_depth->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx->framebuffer_hdr_depth->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx->framebuffer_hdr_depth->set_max_anisotropy(0.0f);
 	ctx->framebuffer_hdr = new gl::framebuffer(viewport_dimensions[0], viewport_dimensions[1]);
@@ -467,7 +468,7 @@ void setup_rendering(game_context* ctx)
 		shadow_map_resolution = ctx->config->get<int>("shadow_map_resolution");
 	}
 	ctx->shadow_map_depth_texture = new gl::texture_2d(shadow_map_resolution, shadow_map_resolution, gl::pixel_type::float_32, gl::pixel_format::d);
-	ctx->shadow_map_depth_texture->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
+	ctx->shadow_map_depth_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx->shadow_map_depth_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx->shadow_map_depth_texture->set_max_anisotropy(0.0f);
 	ctx->shadow_map_framebuffer = new gl::framebuffer(shadow_map_resolution, shadow_map_resolution);
@@ -477,18 +478,14 @@ void setup_rendering(game_context* ctx)
 	int bloom_width = viewport_dimensions[0] >> 1;
 	int bloom_height = viewport_dimensions[1] >> 1;
 	ctx->bloom_texture = new gl::texture_2d(bloom_width, bloom_height, gl::pixel_type::float_16, gl::pixel_format::rgb);
-	ctx->bloom_texture->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
+	ctx->bloom_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx->bloom_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx->bloom_texture->set_max_anisotropy(0.0f);
 	ctx->framebuffer_bloom = new gl::framebuffer(bloom_width, bloom_height);
 	ctx->framebuffer_bloom->attach(gl::framebuffer_attachment_type::color, ctx->bloom_texture);
 	
 	// Load blue noise texture
-	gl::texture_2d* blue_noise_map = ctx->resource_manager->load<gl::texture_2d>("blue-noise.png");
-	blue_noise_map->set_wrapping(gl::texture_wrapping::repeat, gl::texture_wrapping::repeat);
-	blue_noise_map->set_wrapping(gl::texture_wrapping::repeat, gl::texture_wrapping::repeat);
-	blue_noise_map->set_filters(gl::texture_min_filter::nearest, gl::texture_mag_filter::nearest);
-	blue_noise_map->set_filters(gl::texture_min_filter::nearest, gl::texture_mag_filter::nearest);
+	gl::texture_2d* blue_noise_map = ctx->resource_manager->load<gl::texture_2d>("blue-noise.tex");
 	
 	// Load fallback material
 	ctx->fallback_material = ctx->resource_manager->load<material>("fallback.mtl");
@@ -583,21 +580,14 @@ void setup_rendering(game_context* ctx)
 	
 	// Load marker albedo textures
 	ctx->marker_albedo_textures = new gl::texture_2d*[8];
-	ctx->marker_albedo_textures[0] = ctx->resource_manager->load<gl::texture_2d>("marker-clear-albedo.png");
-	ctx->marker_albedo_textures[1] = ctx->resource_manager->load<gl::texture_2d>("marker-yellow-albedo.png");
-	ctx->marker_albedo_textures[2] = ctx->resource_manager->load<gl::texture_2d>("marker-green-albedo.png");
-	ctx->marker_albedo_textures[3] = ctx->resource_manager->load<gl::texture_2d>("marker-blue-albedo.png");
-	ctx->marker_albedo_textures[4] = ctx->resource_manager->load<gl::texture_2d>("marker-purple-albedo.png");
-	ctx->marker_albedo_textures[5] = ctx->resource_manager->load<gl::texture_2d>("marker-pink-albedo.png");
-	ctx->marker_albedo_textures[6] = ctx->resource_manager->load<gl::texture_2d>("marker-red-albedo.png");
-	ctx->marker_albedo_textures[7] = ctx->resource_manager->load<gl::texture_2d>("marker-orange-albedo.png");
-	for (int i = 0; i < 8; ++i)
-	{
-		gl::texture_2d* texture = ctx->marker_albedo_textures[i];
-		texture->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
-		texture->set_filters(gl::texture_min_filter::nearest, gl::texture_mag_filter::nearest);
-		texture->set_max_anisotropy(0.0f);
-	}
+	ctx->marker_albedo_textures[0] = ctx->resource_manager->load<gl::texture_2d>("marker-clear-albedo.tex");
+	ctx->marker_albedo_textures[1] = ctx->resource_manager->load<gl::texture_2d>("marker-yellow-albedo.tex");
+	ctx->marker_albedo_textures[2] = ctx->resource_manager->load<gl::texture_2d>("marker-green-albedo.tex");
+	ctx->marker_albedo_textures[3] = ctx->resource_manager->load<gl::texture_2d>("marker-blue-albedo.tex");
+	ctx->marker_albedo_textures[4] = ctx->resource_manager->load<gl::texture_2d>("marker-purple-albedo.tex");
+	ctx->marker_albedo_textures[5] = ctx->resource_manager->load<gl::texture_2d>("marker-pink-albedo.tex");
+	ctx->marker_albedo_textures[6] = ctx->resource_manager->load<gl::texture_2d>("marker-red-albedo.tex");
+	ctx->marker_albedo_textures[7] = ctx->resource_manager->load<gl::texture_2d>("marker-orange-albedo.tex");
 	
 	// Create renderer
 	ctx->renderer = new renderer();
@@ -668,7 +658,7 @@ void setup_scenes(game_context* ctx)
 
 
 	
-	const gl::texture_2d* splash_texture = ctx->resource_manager->load<gl::texture_2d>("splash.png");
+	const gl::texture_2d* splash_texture = ctx->resource_manager->load<gl::texture_2d>("splash.tex");
 	auto splash_dimensions = splash_texture->get_dimensions();
 	ctx->splash_billboard_material = new material();
 	ctx->splash_billboard_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));

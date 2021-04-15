@@ -62,9 +62,7 @@ material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	shadow_map(nullptr),
 	shadow_strength(1.0f)
 {
-	soft_shadows_texture = resource_manager->load<gl::texture_2d>("tree-shadow.png");
-	soft_shadows_texture->set_wrapping(gl::texture_wrapping::clamp, gl::texture_wrapping::clamp);
-	soft_shadows_texture->set_filters(gl::texture_min_filter::linear_mipmap_linear, gl::texture_mag_filter::linear);
+	soft_shadows_texture = resource_manager->load<gl::texture_2d>("forest-gobo.tex");
 	
 	max_ambient_light_count = MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT;
 	max_point_light_count = MATERIAL_PASS_MAX_POINT_LIGHT_COUNT;

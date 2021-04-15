@@ -44,7 +44,7 @@ static bool load_array(T* value, std::size_t size, const nlohmann::json& json, c
 		std::size_t i = 0;
 		for (auto it = element.value().cbegin(); (it != element.value().cend()) && (i < size); ++it)
 		{
-			*(value++) = it.value().get<float>();
+			*(value++) = it.value().get<T>();
 			++i;
 		}
 		

@@ -24,7 +24,8 @@ namespace gl {
 
 enum class texture_wrapping
 {
-	clamp,
+	clip,
+	extend,
 	repeat,
 	mirrored_repeat
 };
