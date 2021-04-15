@@ -609,7 +609,7 @@ void setup_rendering(game_context* ctx)
 void setup_scenes(game_context* ctx)
 {
 	debug::logger* logger = ctx->logger;
-	logger->push_task("Setting up rendering");
+	logger->push_task("Setting up scenes");
 	
 	// Get default framebuffer
 	const auto& viewport_dimensions = ctx->rasterizer->get_default_framebuffer().get_dimensions();
@@ -639,14 +639,6 @@ void setup_scenes(game_context* ctx)
 	ctx->ui_camera->set_compositor(ctx->ui_compositor);
 	
 	// Setup lights
-	ctx->sun_indirect = new scene::ambient_light();
-	ctx->sun_indirect->set_intensity(0.0f);
-	ctx->sun_indirect->update_tweens();
-	
-	ctx->sun_direct = new scene::directional_light();
-	ctx->sun_direct->set_intensity(0.0f);
-	ctx->sun_direct->update_tweens();
-	
 	ctx->moon_light = new scene::directional_light();
 	ctx->moon_light->set_intensity(0.0f);
 	ctx->moon_light->update_tweens();
@@ -707,9 +699,7 @@ void setup_scenes(game_context* ctx)
 	// Setup overworld scene
 	ctx->overworld_scene = new scene::collection();
 	ctx->overworld_scene->add_object(ctx->overworld_camera);
-	ctx->overworld_scene->add_object(ctx->sun_indirect);
-	ctx->overworld_scene->add_object(ctx->sun_direct);
-	ctx->overworld_scene->add_object(ctx->moon_light);
+	//ctx->overworld_scene->add_object(ctx->moon_light);
 	//ctx->overworld_scene->add_object(ctx->spotlight);
 	
 	// Setup underworld scene
@@ -726,7 +716,7 @@ void setup_scenes(game_context* ctx)
 	ctx->ui_scene = new scene::collection();
 	ctx->ui_scene->add_object(ctx->ui_camera);
 	
-	ctx->overworld_scene->add_object(ctx->lens_spotlight);
+	//ctx->overworld_scene->add_object(ctx->lens_spotlight);
 	ctx->underworld_scene->add_object(ctx->flashlight_spotlight);
 	
 	// Set overworld as active scene
@@ -809,12 +799,12 @@ void setup_systems(game_context* ctx)
 	ctx->terrain_system->set_patch_size(TERRAIN_PATCH_SIZE);
 	
 	// Setup vegetation system
-	ctx->vegetation_system = new ecs::vegetation_system(*ctx->ecs_registry);
-	ctx->vegetation_system->set_terrain_patch_size(TERRAIN_PATCH_SIZE);
-	ctx->vegetation_system->set_vegetation_patch_resolution(VEGETATION_PATCH_RESOLUTION);
-	ctx->vegetation_system->set_vegetation_density(1.0f);
-	ctx->vegetation_system->set_vegetation_model(ctx->resource_manager->load<model>("grass-tuft.mdl"));
-	ctx->vegetation_system->set_scene(ctx->overworld_scene);
+	//ctx->vegetation_system = new ecs::vegetation_system(*ctx->ecs_registry);
+	//ctx->vegetation_system->set_terrain_patch_size(TERRAIN_PATCH_SIZE);
+	//ctx->vegetation_system->set_vegetation_patch_resolution(VEGETATION_PATCH_RESOLUTION);
+	//ctx->vegetation_system->set_vegetation_density(1.0f);
+	//ctx->vegetation_system->set_vegetation_model(ctx->resource_manager->load<model>("grass-tuft.mdl"));
+	//ctx->vegetation_system->set_scene(ctx->overworld_scene);
 	
 	// Setup camera system
 	ctx->camera_system = new ecs::camera_system(*ctx->ecs_registry);
@@ -885,7 +875,6 @@ void setup_systems(game_context* ctx)
 	
 	// Setup astronomy system
 	ctx->astronomy_system = new ecs::astronomy_system(*ctx->ecs_registry);
-	ctx->astronomy_system->set_sky_pass(ctx->overworld_sky_pass);
 	
 	// Set time scale
 	float time_scale = 60.0f;
@@ -1145,8 +1134,6 @@ void setup_controls(game_context* ctx)
 		}
 	);
 	
-
-	
 	ctx->control_system->get_next_marker_control()->set_activated_callback
 	(
 		[ctx]()
@@ -1193,9 +1180,9 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * 50.0f);
-			ctx->solar_system->set_time_scale(time_scale * 50.0f);
-			ctx->astronomy_system->set_time_scale(time_scale * 50.0f);
+			ctx->weather_system->set_time_scale(time_scale * 500.0f);
+			ctx->solar_system->set_time_scale(time_scale * 500.0f);
+			ctx->astronomy_system->set_time_scale(time_scale * 500.0f);
 		}
 	);
 	ctx->control_system->get_fast_forward_control()->set_deactivated_callback
@@ -1211,9 +1198,9 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * -50.0f);
-			ctx->solar_system->set_time_scale(time_scale * -50.0f);
-			ctx->astronomy_system->set_time_scale(time_scale * -50.0f);
+			ctx->weather_system->set_time_scale(time_scale * -500.0f);
+			ctx->solar_system->set_time_scale(time_scale * -500.0f);
+			ctx->astronomy_system->set_time_scale(time_scale * -500.0f);
 		}
 	);
 	ctx->control_system->get_rewind_control()->set_deactivated_callback
@@ -1267,7 +1254,7 @@ void setup_callbacks(game_context* ctx)
 			
 			ctx->control_system->update(t, dt);
 			ctx->terrain_system->update(t, dt);
-			ctx->vegetation_system->update(t, dt);
+			//ctx->vegetation_system->update(t, dt);
 			ctx->snapping_system->update(t, dt);
 			ctx->nest_system->update(t, dt);
 			ctx->subterrain_system->update(t, dt);
@@ -1278,18 +1265,19 @@ void setup_callbacks(game_context* ctx)
 			ctx->camera_system->update(t, dt);
 			ctx->tool_system->update(t, dt);
 			
+			ctx->solar_system->update(t, dt);
+			ctx->astronomy_system->update(t, dt);
 			ctx->spatial_system->update(t, dt);
 			ctx->constraint_system->update(t, dt);
 			ctx->tracking_system->update(t, dt);
 			ctx->painting_system->update(t, dt);
 			ctx->weather_system->update(t, dt);
-			ctx->solar_system->update(t, dt);
-			ctx->astronomy_system->update(t, dt);
+
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			
 			auto xf = ecs::command::get_world_transform(*ctx->ecs_registry, ctx->lens_entity);
-			ctx->lens_spotlight->look_at(xf.translation, xf.translation + ctx->sun_direct->get_direction(), {0, 1, 0});
+			//ctx->lens_spotlight->look_at(xf.translation, xf.translation + ctx->sun_direct->get_direction(), {0, 1, 0});
 			
 			xf = ecs::command::get_world_transform(*ctx->ecs_registry, ctx->flashlight_entity);
 			//ctx->flashlight_spotlight->set_transform(xf);

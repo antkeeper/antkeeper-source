@@ -24,8 +24,6 @@
 #include "ecs/entity.hpp"
 #include "utility/fundamental-types.hpp"
 
-class sky_pass;
-
 namespace ecs {
 
 /**
@@ -80,12 +78,12 @@ public:
 	 */
 	void set_axial_rotation_speed(double speed);
 	
+	/**
+	 * Sets the axial rotation of the observer's planet when the universal time is `0.0`.
+	 *
+	 * @param angle Axial rotation angle, in radians.
+	 */
 	void set_axial_rotation_at_epoch(double angle);
-	
-	void set_sky_pass(::sky_pass* pass);
-	
-	void set_sun(ecs::entity entity);
-	void set_moon(ecs::entity entity);
 	
 private:
 	/// Updates the axial rotation angle
@@ -106,10 +104,6 @@ private:
 	double3 observer_location;
 	double obliquity;
 	double3x3 ecliptic_to_horizontal;
-	sky_pass* sky_pass;
-	
-	entity sun;
-	entity moon;
 };
 
 } // namespace ecs

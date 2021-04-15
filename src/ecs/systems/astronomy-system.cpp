@@ -22,7 +22,6 @@
 #include "astro/apparent-size.hpp"
 #include "ecs/components/celestial-body-component.hpp"
 #include "ecs/components/transform-component.hpp"
-#include "renderer/passes/sky-pass.hpp"
 
 namespace ecs {
 
@@ -35,9 +34,9 @@ astronomy_system::astronomy_system(ecs::registry& registry):
 	observer_location{0.0, 0.0, 0.0},
 	lst(0.0),
 	obliquity(0.0),
-	sky_pass(nullptr),
-	sun(entt::null),
-	moon(entt::null)
+	axial_rotation(0.0),
+	axial_rotation_at_epoch(0.0),
+	axial_rotation_speed(0.0)
 {}
 
 void astronomy_system::update(double t, double dt)
@@ -71,15 +70,6 @@ void astronomy_system::update(double t, double dt)
 		transform.local.rotation = math::type_cast<float>(math::quaternion_cast(rotation));
 		transform.local.scale = math::type_cast<float>(double3{body.radius, body.radius, body.radius});
 	});
-	
-	if (sky_pass)
-	{
-		sky_pass->set_horizon_color({0, 0, 0});
-		sky_pass->set_zenith_color({1, 1, 1});
-		sky_pass->set_time_of_day(static_cast<float>(universal_time * 60.0 * 60.0));
-		//sky_pass->set_observer_location(location[0], location[1], location[2]);
-		sky_pass->set_julian_day(static_cast<float>(universal_time));
-	}
 }
 
 void astronomy_system::set_universal_time(double time)
@@ -108,27 +98,13 @@ void astronomy_system::set_obliquity(double angle)
 void astronomy_system::set_axial_rotation_speed(double speed)
 {
 	axial_rotation_speed = speed;
+	update_axial_rotation();
 }
 
 void astronomy_system::set_axial_rotation_at_epoch(double angle)
 {
 	axial_rotation_at_epoch = angle;
 	update_axial_rotation();
-}
-
-void astronomy_system::set_sky_pass(::sky_pass* pass)
-{
-	this->sky_pass = pass;
-}
-
-void astronomy_system::set_sun(ecs::entity entity)
-{
-	sun = entity;
-}
-
-void astronomy_system::set_moon(ecs::entity entity)
-{
-	moon = entity;
 }
 
 void astronomy_system::update_axial_rotation()

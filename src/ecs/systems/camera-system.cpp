@@ -33,8 +33,8 @@ camera_system::camera_system(ecs::registry& registry):
 	viewport{0, 0, 0, 0},
 	mouse_position{0, 0}
 {
-	orbit_cam.set_elevation_limits({math::radians(5.0f), math::radians(89.0f)});
-	//orbit_cam.set_elevation_limits({math::radians(-89.0f), math::radians(89.0f)});
+	//orbit_cam.set_elevation_limits({math::radians(5.0f), math::radians(89.0f)});
+	orbit_cam.set_elevation_limits({math::radians(-89.0f), math::radians(89.0f)});
 	orbit_cam.set_focal_distance_limits({2.0f, 200.0f});
 	orbit_cam.set_fov_limits({math::radians(80.0f), math::radians(35.0f)});
 	orbit_cam.set_clip_near_limits({0.1f, 5.0f});

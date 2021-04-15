@@ -17,19 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_RENDER_COMPONENT_HPP
-#define ANTKEEPER_ECS_RENDER_COMPONENT_HPP
+#ifndef ANTKEEPER_ECS_LIGHT_COMPONENT_HPP
+#define ANTKEEPER_ECS_LIGHT_COMPONENT_HPP
 
-#include "scene/object.hpp"
+#include "utility/fundamental-types.hpp"
+#include "scene/light.hpp"
 
 namespace ecs {
 
-struct render_component
+struct light_component
 {
-	scene::object_base* object;
-	unsigned int layers;
+	scene::light_type type;
+	float3 color;
+	float intensity;
+	float3 attenuation;
+	float2 cutoff;
 };
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_RENDER_COMPONENT_HPP
+#endif // ANTKEEPER_ECS_LIGHT_COMPONENT_HPP
+

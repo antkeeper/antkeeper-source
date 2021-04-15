@@ -75,8 +75,6 @@ private:
 	
 	scene::billboard underground_bg;
 	
-	scene::model_instance energy_symbol;
-	
 	float2 mouse_position;
 	float4 viewport;
 	float2 viewport_center;

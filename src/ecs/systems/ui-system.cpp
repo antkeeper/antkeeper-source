@@ -47,17 +47,10 @@ ui_system::ui_system(::resource_manager* resource_manager):
 	tool_selector_bg.set_translation({0, 0, -4.0f});
 	tool_selector_bg.set_scale({270, 270, 270});
 	
-	// Setup energy symbol
-	energy_symbol.set_model(resource_manager->load<model>("energy.mdl"));
-	energy_symbol.set_scale({30, 30, 30});
-	energy_symbol.update_tweens();
-	energy_symbol.set_active(false);
-	
 	// Setup scene
 	//scene.add_object(&camera);
 	//scene.add_object(&indirect_light);
 	//scene.add_object(&direct_light);
-	//scene.add_object(&energy_symbol);
 }
 
 void ui_system::update(float dt)
@@ -71,11 +64,6 @@ void ui_system::set_viewport(const float4& viewport)
 	viewport_center[0] = (viewport[2] - viewport[0]) * 0.5f;
 	viewport_center[1] = (viewport[3] - viewport[1]) * 0.5f;
 	
-	
-
-	
-	energy_symbol.set_translation({viewport[2] * 0.25f, 0.0f, 0.0f});
-	energy_symbol.update_tweens();
 	
 	// Resize modal BG
 	modal_bg.set_scale({viewport[2] * 0.5f, viewport[3] * 0.5f, 1.0f});

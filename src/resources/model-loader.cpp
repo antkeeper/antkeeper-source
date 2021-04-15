@@ -512,7 +512,12 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 			if (auto size_node = material_node.value().find("size"); size_node != material_node.value().end())
 				group_size = size_node.value().get<std::size_t>();
 			
-			group_material = resource_manager->load<material>(group_name + ".mtl");
+			// Slugify material filename
+			std::string material_filename = group_name + ".mtl";
+			std::replace(material_filename.begin(), material_filename.end(), '_', '-');
+			
+			// Load material from file
+			group_material = resource_manager->load<material>(material_filename);
 			
 			model_group* model_group = model->add_group(group_name);
 			model_group->set_drawing_mode(gl::drawing_mode::triangles);

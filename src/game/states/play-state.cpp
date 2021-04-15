@@ -33,6 +33,8 @@
 #include "ecs/components/transform-component.hpp"
 #include "ecs/components/camera-follow-component.hpp"
 #include "ecs/components/orbit-component.hpp"
+#include "ecs/components/celestial-body-component.hpp"
+#include "ecs/components/light-component.hpp"
 #include "ecs/commands.hpp"
 #include "game/game-context.hpp"
 #include "game/states/game-states.hpp"
@@ -44,12 +46,12 @@
 #include "gl/texture-wrapping.hpp"
 #include "renderer/model.hpp"
 #include "renderer/passes/sky-pass.hpp"
+#include "renderer/passes/shadow-map-pass.hpp"
 #include "resources/resource-manager.hpp"
 #include "scene/model-instance.hpp"
 #include "scene/collection.hpp"
 #include "scene/camera.hpp"
 #include "scene/ambient-light.hpp"
-#include "scene/directional-light.hpp"
 #include "scene/directional-light.hpp"
 #include "ecs/systems/control-system.hpp"
 #include "ecs/systems/camera-system.hpp"
@@ -81,7 +83,7 @@ void play_state_enter(game_context* ctx)
 	}
 	else
 	{
-		ctx->biome = ctx->resource_manager->load<biome>("grassland.bio");
+		ctx->biome = ctx->resource_manager->load<biome>("forest.bio");
 	}
 	
 	// Apply biome parameters to scene
@@ -89,6 +91,31 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_enabled(true);
 	sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
 	sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
+	
+	sky_pass->set_horizon_color({1.0f, 1.0f, 1.0f});
+	sky_pass->set_zenith_color({0.0f, 0.0f, 0.0f});
+	sky_pass->set_time_of_day(0.0f);
+	sky_pass->set_julian_day(0.0f);
+	sky_pass->set_observer_location(ctx->biome->location[0], ctx->biome->location[1], 0.0f);
+	sky_pass->set_moon_angular_radius(math::radians(1.0f));
+	sky_pass->set_sun_angular_radius(math::radians(1.0f));
+	
+	
+	
+	scene::ambient_light* ambient = new scene::ambient_light();
+	ambient->set_color({1, 1, 1});
+	ambient->set_intensity(0.1f);
+	ambient->update_tweens();
+	ctx->overworld_scene->add_object(ambient);
+	
+	scene::directional_light* sun = new scene::directional_light();
+	sun->set_color({1, 1, 1});
+	sun->set_intensity(4.0f);
+	sun->look_at({0, 1, 1}, {0, 0, 0}, {0, 1, 0});
+	sun->update_tweens();
+	ctx->overworld_scene->add_object(sun);
+	ctx->overworld_shadow_map_pass->set_light(sun);
+	
 	
 	ctx->weather_system->set_universal_time(0.0);
 	
@@ -103,71 +130,9 @@ void play_state_enter(game_context* ctx)
 	resource_manager* resource_manager = ctx->resource_manager;
 	entt::registry& ecs_registry = *ctx->ecs_registry;
 	
-	ctx->sun_direct->set_intensity(1.0f);
-	ctx->sun_direct->set_color({1, 1, 1});
-	
-	
-	// Create sun
-	{
-		ecs::orbit_component sun_orbit;
-		sun_orbit.elements.a = 1.0;
-		sun_orbit.elements.ec = 0.016709;
-		sun_orbit.elements.w = math::radians(282.9404);
-		sun_orbit.elements.ma = math::radians(356.0470);
-		sun_orbit.elements.i = 0.0;
-		sun_orbit.elements.om = 0.0;
-		
-		sun_orbit.rate.a = 0.0;
-		sun_orbit.rate.ec = -1.151e-9;
-		sun_orbit.rate.w = math::radians(4.70935e-5);
-		sun_orbit.rate.ma = math::radians(0.9856002585);
-		sun_orbit.rate.i = 0.0;
-		sun_orbit.rate.om = 0.0;
-		
-		ecs::transform_component sun_transform;
-		sun_transform.local = math::identity_transform<float>;
-		sun_transform.warp = true;
-		
-		auto sun_entity = ecs_registry.create();
-		ecs_registry.assign<ecs::transform_component>(sun_entity, sun_transform);
-		ecs_registry.assign<ecs::orbit_component>(sun_entity, sun_orbit);
-		
-		ctx->astronomy_system->set_sun(sun_entity);
-	}
-	
-	// Create moon
-	{
-
-		ecs::orbit_component moon_orbit;
-		
-		moon_orbit.elements.a = 0.00256955529;
-		moon_orbit.elements.ec = 0.0554;
-		moon_orbit.elements.w = math::radians(318.15);
-		moon_orbit.elements.ma = math::radians(135.27);
-		moon_orbit.elements.i = math::radians(5.16);
-		moon_orbit.elements.om = math::radians(125.08);
-		
-		moon_orbit.rate.a = 0.0;
-		moon_orbit.rate.ec = 0.0;
-		moon_orbit.rate.w = math::radians(0.1643573223); // Argument of periapsis precession period, P_w
-		moon_orbit.rate.ma = math::radians(13.176358); // Longitude rate, n
-		moon_orbit.rate.i = 0.0;
-		moon_orbit.rate.om = math::radians(-18.6 / 365.2422); // Longitude of the ascending node precession period, P_node
-		
-		ecs::transform_component moon_transform;
-		moon_transform.local = math::identity_transform<float>;
-		moon_transform.warp = true;
-		
-		auto moon_entity = ecs_registry.create();
-		ecs_registry.assign<ecs::transform_component>(moon_entity, moon_transform);
-		ecs_registry.assign<ecs::orbit_component>(moon_entity, moon_orbit);
-		
-		ctx->astronomy_system->set_moon(moon_entity);
-	}
 
 	// Load entity archetypes
 	ecs::archetype* ant_hill_archetype = resource_manager->load<ecs::archetype>("ant-hill.ent");
-	ecs::archetype* maple_tree_archetype = resource_manager->load<ecs::archetype>("maple-tree.ent");
 	ecs::archetype* nest_archetype = resource_manager->load<ecs::archetype>("harvester-nest.ent");
 	ecs::archetype* samara_archetype = resource_manager->load<ecs::archetype>("samara.ent");
 	ecs::archetype* forceps_archetype = resource_manager->load<ecs::archetype>("forceps.ent");
@@ -176,14 +141,10 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* marker_archetype = resource_manager->load<ecs::archetype>("marker.ent");
 	ecs::archetype* container_archetype = resource_manager->load<ecs::archetype>("container.ent");
 	ecs::archetype* twig_archetype = resource_manager->load<ecs::archetype>("twig.ent");
-	ecs::archetype* larva_archetype = resource_manager->load<ecs::archetype>("larva.ent");
-	ecs::archetype* pebble_archetype = resource_manager->load<ecs::archetype>("pebble.ent");
+	ecs::archetype* larva_archetype = resource_manager->load<ecs::archetype>("ant-larva.ent");
 	ecs::archetype* flashlight_archetype = resource_manager->load<ecs::archetype>("flashlight.ent");
 	ecs::archetype* flashlight_light_cone_archetype = resource_manager->load<ecs::archetype>("flashlight-light-cone.ent");
 	ecs::archetype* lens_light_cone_archetype = resource_manager->load<ecs::archetype>("lens-light-cone.ent");
-	ecs::archetype* ant_head_archetype = resource_manager->load<ecs::archetype>("ant-head.ent");
-	ecs::archetype* dandelion_plant_archetype = resource_manager->load<ecs::archetype>("dandelion-plant.ent");
-	ecs::archetype* grassland_road_archetype = resource_manager->load<ecs::archetype>("grassland-road.ent");
 	
 	// Create tools
 	forceps_archetype->assign(ecs_registry, ctx->forceps_entity);
@@ -198,6 +159,7 @@ void play_state_enter(game_context* ctx)
 	auto flashlight_light_cone = flashlight_light_cone_archetype->create(ecs_registry);
 	ecs::command::parent(ecs_registry, flashlight_light_cone, ctx->flashlight_entity);
 	ecs::command::assign_render_layers(ecs_registry, ctx->flashlight_entity, 2);
+	ecs::command::assign_render_layers(ecs_registry, flashlight_light_cone, 2);
 	
 	// Make lens tool's model instance unculled, so its shadow is always visible.
 	scene::model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
@@ -211,8 +173,6 @@ void play_state_enter(game_context* ctx)
 	//ecs::command::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
 	ecs::command::parent(ecs_registry, lens_light_cone, ctx->lens_entity);
 	
-	
-	
 	// Hide inactive tools
 	ecs::command::assign_render_layers(ecs_registry, ctx->forceps_entity, 0);
 	ecs::command::assign_render_layers(ecs_registry, ctx->brush_entity, 0);
@@ -223,46 +183,10 @@ void play_state_enter(game_context* ctx)
 	
 	// Activate brush tool
 	ctx->tool_system->set_active_tool(ctx->brush_entity);
-	
-	// Create background
-	for (int i = 0; i < 4; ++i)
-	{
-		auto road_entity = grassland_road_archetype->create(ecs_registry);
-		auto& transform = ecs_registry.get<ecs::transform_component>(road_entity);
-		
-		math::quaternion<float> rotation = math::angle_axis(math::half_pi<float> * static_cast<float>(i), float3{0, 1, 0});
-		float3 translation = rotation * float3{0, 0, 1600.0f};
-		
-		transform.local = math::identity_transform<float>;
-		transform.local.rotation = rotation;	
-		transform.local.translation = translation;	
-	}
 
 	// Create ant-hill
 	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);
 	ecs::command::place(ecs_registry, ant_hill_entity, {0, 0});
-	
-	// Generate pebbles
-	float pebble_radius = 300.0f;
-	int pebble_count = 20;
-	for (int i = 0; i < pebble_count; ++i)
-	{
-		float x = math::random(-pebble_radius, pebble_radius);
-		float z = math::random(-pebble_radius, pebble_radius);
-		
-		auto pebble_entity = ant_head_archetype->create(ecs_registry);
-		
-		auto& transform = ecs_registry.get<ecs::transform_component>(pebble_entity);
-		transform.local = math::identity_transform<float>;
-		transform.local.rotation = math::angle_axis(math::random(0.0f, math::two_pi<float>), {0, 1, 0});
-		transform.local.scale = float3{1, 1, 1} * math::random(0.75f, 1.25f);
-		
-		ecs::command::place(ecs_registry, pebble_entity, {x, z});
-	}
-
-	// Create maple tree
-	//auto maple_tree_entity = maple_tree_archetype->create(ecs_registry);
-	//ecs::command::place(ecs_registry, maple_tree_entity, {300, 200});
 
 	// Creat nest
 	auto nest_entity = nest_archetype->create(ecs_registry);
@@ -319,9 +243,6 @@ void play_state_enter(game_context* ctx)
 	// Setup camera
 	ctx->overworld_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
 	ctx->camera_system->set_camera(ctx->overworld_camera);
-	
-	auto ant_head = ant_head_archetype->create(ecs_registry);
-	ecs::command::place(ecs_registry, ant_head, {50, 0});
 	
 	ctx->overworld_scene->update_tweens();
 	
@@ -388,9 +309,6 @@ void play_state_enter(game_context* ctx)
 		//transform.transform.translation = nest->get_shaft_position(*central_shaft, central_shaft->depth[1]);
 		//transform.transform.translation.y -= 1.0f;
 	}
-	
-	auto dandelion_plant = dandelion_plant_archetype->create(ecs_registry);
-	ecs::command::place(ecs_registry, dandelion_plant, {55, -30});
 	
 	ecs::control_system* control_system = ctx->control_system;
 	control_system->update(0.0, 0.0);

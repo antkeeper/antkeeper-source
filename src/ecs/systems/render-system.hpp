@@ -23,8 +23,9 @@
 #include "entity-system.hpp"
 #include "scene/collection.hpp"
 #include "scene/model-instance.hpp"
+#include "scene/light.hpp"
 #include "ecs/components/model-component.hpp"
-#include "ecs/components/render-component.hpp"
+#include "ecs/components/light-component.hpp"
 #include "ecs/entity.hpp"
 #include <unordered_map>
 #include <vector>
@@ -48,21 +49,24 @@ public:
 	void set_renderer(::renderer* renderer);
 	
 	scene::model_instance* get_model_instance(ecs::entity entity);
+	scene::light* get_light(ecs::entity entity);
 
 private:	
 	void update_model_and_materials(ecs::entity entity, ecs::model_component& model);
+	void update_light(ecs::entity entity, ecs::light_component& component);
 	
 	void on_model_construct(ecs::registry& registry, ecs::entity entity, ecs::model_component& model);
 	void on_model_replace(ecs::registry& registry, ecs::entity entity, ecs::model_component& model);
 	void on_model_destroy(ecs::registry& registry, ecs::entity entity);
 	
-	void on_component_construct(ecs::registry& registry, ecs::entity entity, ecs::render_component& component);
-	void on_component_replace(ecs::registry& registry, ecs::entity entity, ecs::render_component& component);
-	void on_component_destroy(ecs::registry& registry, ecs::entity entity);
+	void on_light_construct(ecs::registry& registry, ecs::entity entity, ecs::light_component& light);
+	void on_light_replace(ecs::registry& registry, ecs::entity entity, ecs::light_component& light);
+	void on_light_destroy(ecs::registry& registry, ecs::entity entity);
 	
 	renderer* renderer;
 	std::vector<scene::collection*> layers;
 	std::unordered_map<entity, scene::model_instance*> model_instances;
+	std::unordered_map<entity, scene::light*> lights;
 };
 
 } // namespace ecs

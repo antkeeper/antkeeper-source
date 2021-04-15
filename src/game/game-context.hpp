@@ -185,8 +185,6 @@ struct game_context
 	scene::camera* overworld_camera;
 	scene::camera* underworld_camera;
 	scene::camera* ui_camera;
-	scene::ambient_light* sun_indirect;
-	scene::directional_light* sun_direct;
 	scene::directional_light* moon_light;
 	scene::point_light* subterrain_light;
 	scene::ambient_light* underworld_ambient_light;
