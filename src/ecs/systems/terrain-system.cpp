@@ -105,7 +105,7 @@ model* terrain_system::generate_terrain_model(geom::mesh* terrain_mesh)
 	
 	// Create model group
 	model_group* model_group = terrain_model->add_group("terrain");
-	model_group->set_material(resource_manager->load<material>("grassland-terrain.mtl"));
+	model_group->set_material(resource_manager->load<material>("forest-terrain.mtl"));
 	model_group->set_drawing_mode(gl::drawing_mode::triangles);
 	model_group->set_start_index(0);
 	model_group->set_index_count(terrain_mesh->get_faces().size() * 3);

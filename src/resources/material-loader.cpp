@@ -17,355 +17,294 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "renderer/material.hpp"
 #include "resource-loader.hpp"
 #include "resource-manager.hpp"
-#include "gl/shader-variable-type.hpp"
-#include "gl/texture-wrapping.hpp"
-#include "gl/texture-filter.hpp"
-#include "gl/texture-2d.hpp"
-#include "utility/fundamental-types.hpp"
-#include "string-table.hpp"
-#include <cctype>
-#include <vector>
-#include <map>
+#include "renderer/material.hpp"
+#include "renderer/material-flags.hpp"
+#include <nlohmann/json.hpp>
+#include <physfs.h>
+#include <utility>
+#include <type_traits>
+#include <string>
 
-static bool load_bool_property(material* material, const string_table_row& row, int vector_size, int array_size)
+template <typename T>
+static bool read_value(T* value, const nlohmann::json& json, const std::string& name)
 {
-	if (row.size() - 4 != vector_size * array_size || vector_size < 1 || vector_size > 4)
+	if (auto element = json.find(name); element != json.end())
 	{
-		return false;
-	}
-
-	std::size_t size = array_size * vector_size;
-	bool* values = new bool[size];
-	for (std::size_t i = 0; i < size; ++i)
-	{
-		values[i] = (std::stoi(row[4 + i]) != 0);
-	}
-
-	if (vector_size == 1)
-	{
-		material_property<bool>* property = material->add_property<bool>(row[1], array_size);
-		property->set_values(0, values, array_size);
-	}
-	else if (vector_size == 2)
-	{
-		material_property<bool2>* property = material->add_property<bool2>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const bool2*>(values), array_size);
-	}
-	else if (vector_size == 3)
-	{
-		material_property<bool3>* property = material->add_property<bool3>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const bool3*>(values), array_size);
-	}
-	else if (vector_size == 4)
-	{
-		material_property<bool4>* property = material->add_property<bool4>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const bool4*>(values), array_size);
-	}
-
-	delete[] values;
-
-	return true;
-}
-
-static bool load_int_property(material* material, const string_table_row& row, int vector_size, int array_size)
-{
-	if (row.size() - 4 != vector_size * array_size || vector_size < 1 || vector_size > 4)
-	{
-		return false;
-	}
-
-	std::size_t size = array_size * vector_size;
-	int* values = new int[size];
-	for (std::size_t i = 0; i < size; ++i)
-	{
-		values[i] = std::stoi(row[4 + i]);
-	}
-
-	if (vector_size == 1)
-	{
-		material_property<int>* property = material->add_property<int>(row[1], array_size);
-		property->set_values(0, values, array_size);
-	}
-	else if (vector_size == 2)
-	{
-		material_property<int2>* property = material->add_property<int2>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const int2*>(values), array_size);
-	}
-	else if (vector_size == 3)
-	{
-		material_property<int3>* property = material->add_property<int3>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const int3*>(values), array_size);
-	}
-	else if (vector_size == 4)
-	{
-		material_property<int4>* property = material->add_property<int4>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const int4*>(values), array_size);
-	}
-
-	delete[] values;
-
-	return true;
-}
-
-static bool load_uint_property(material* material, const string_table_row& row, int vector_size, int array_size)
-{
-	if (row.size() - 4 != vector_size * array_size || vector_size < 1 || vector_size > 4)
-	{
-		return false;
-	}
-
-	std::size_t size = array_size * vector_size;
-	unsigned int* values = new unsigned int[size];
-	for (std::size_t i = 0; i < size; ++i)
-	{
-		values[i] = static_cast<unsigned int>(std::stoul(row[4 + i]));
-	}
-
-	if (vector_size == 1)
-	{
-		material_property<unsigned int>* property = material->add_property<unsigned int>(row[1], array_size);
-		property->set_values(0, values, array_size);
-	}
-	else if (vector_size == 2)
-	{
-		material_property<uint2>* property = material->add_property<uint2>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const uint2*>(values), array_size);
-	}
-	else if (vector_size == 3)
-	{
-		material_property<uint3>* property = material->add_property<uint3>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const uint3*>(values), array_size);
-	}
-	else if (vector_size == 4)
-	{
-		material_property<uint4>* property = material->add_property<uint4>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const uint4*>(values), array_size);
-	}
-
-	delete[] values;
-
-	return true;
-}
-
-static bool load_float_property(material* material, const string_table_row& row, int vector_size, int array_size)
-{
-	if (row.size() - 4 != vector_size * array_size || vector_size < 1 || vector_size > 4)
-	{
-		return false;
-	}
-
-	std::size_t size = array_size * vector_size;
-	float* values = new float[size];
-	for (std::size_t i = 0; i < size; ++i)
-	{
-		values[i] = static_cast<float>(std::stod(row[4 + i]));
-	}
-
-	if (vector_size == 1)
-	{
-		material_property<float>* property = material->add_property<float>(row[1], array_size);
-		property->set_values(0, values, array_size);
-	}
-	else if (vector_size == 2)
-	{
-		material_property<float2>* property = material->add_property<float2>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const float2*>(values), array_size);
-	}
-	else if (vector_size == 3)
-	{
-		material_property<float3>* property = material->add_property<float3>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const float3*>(values), array_size);
-	}
-	else if (vector_size == 4)
-	{
-		material_property<float4>* property = material->add_property<float4>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const float4*>(values), array_size);
-	}
-
-	delete[] values;
-
-	return true;
-}
-
-static bool load_float_matrix_property(material* material, const string_table_row& row, int matrix_columns, int matrix_rows, int array_size)
-{
-	int matrix_size = matrix_columns * matrix_rows;
-
-	if (row.size() - 4 != matrix_size * array_size)
-	{
-		return false;
-	}
-
-	std::size_t size = array_size * matrix_size;
-	float* values = new float[size];
-	for (std::size_t i = 0; i < size; ++i)
-	{
-		values[i] = static_cast<float>(std::stod(row[4 + i]));
-	}
-
-	if (matrix_size == 2*2)
-	{
-		material_property<float2x2>* property = material->add_property<float2x2>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const float2x2*>(values), array_size);
-	}
-	else if (matrix_size == 3*3)
-	{
-		material_property<float3x3>* property = material->add_property<float3x3>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const float3x3*>(values), array_size);
-	}
-	else if (matrix_size == 4*4)
-	{
-		material_property<float4x4>* property = material->add_property<float4x4>(row[1], array_size);
-		property->set_values(0, reinterpret_cast<const float4x4*>(values), array_size);
-	}
-
-	delete[] values;
-
-	return true;
-}
-
-static bool load_texture_2d_property(material* material, const string_table_row& row, resource_manager* resource_manager, int array_size)
-{
-	if (row.size() - 4 != array_size * 1)
-	{
-		return false;
-	}
-
-	const gl::texture_2d** values = new const gl::texture_2d*[array_size];
-	for (std::size_t i = 0; i < array_size; ++i)
-	{
-		values[i] = resource_manager->load<gl::texture_2d>(row[4 + i]);
+		*value = element.value().get<T>();
+		return true;
 	}
 	
-	material_property<const gl::texture_2d*>* property = material->add_property<const gl::texture_2d*>(row[1], array_size);
-	property->set_values(0, values, array_size);
+	return false;
+}
 
-	delete[] values;
-
+static bool load_texture_2d_property(resource_manager* resource_manager, material* material, const std::string& name, const nlohmann::json& json)
+{
+	// If JSON element is an array
+	if (json.is_array())
+	{
+		// Determine size of the array
+		std::size_t array_size = json.size();
+		
+		// Create property
+		material_property<const gl::texture_2d*>* property = material->add_property<const gl::texture_2d*>(name, array_size);
+		
+		// Load textures
+		std::size_t i = 0;
+		for (const auto& element: json)
+		{
+			std::string filename = element.get<std::string>();
+			const gl::texture_2d* texture = resource_manager->load<gl::texture_2d>(filename);
+			property->set_value(i++, texture);
+		}
+	}
+	else
+	{
+		// Create property
+		material_property<const gl::texture_2d*>* property = material->add_property<const gl::texture_2d*>(name);
+		
+		// Load texture
+		std::string filename = json.get<std::string>();
+		const gl::texture_2d* texture = resource_manager->load<gl::texture_2d>(filename);
+		property->set_value(texture);
+	}
+	
 	return true;
 }
 
-static bool load_texture_cube_property(material* material, const string_table_row& row, resource_manager* resource_manager, int array_size)
+static bool load_texture_cube_property(resource_manager* resource_manager, material* material, const std::string& name, const nlohmann::json& json)
 {
 	return false;
 }
 
-static bool load_material_property(material* material, const string_table_row& row, resource_manager* resource_manager)
+template <typename T>
+static bool load_scalar_property(material* material, const std::string& name, const nlohmann::json& json)
 {
-	// Ensure row has at least five columns
-	if (row.size() < 5)
+	// If JSON element is an array
+	if (json.is_array())
 	{
-		return false;
+		// Determine size of the array
+		std::size_t array_size = json.size();
+		
+		// Create property
+		material_property<T>* property = material->add_property<T>(name, array_size);
+		
+		// Set property values
+		std::size_t i = 0;
+		for (const auto& element: json)
+			property->set_value(i++, element.get<T>());
 	}
+	else
+	{
+		// Create property
+		material_property<T>* property = material->add_property<T>(name);
+		
+		// Set property value
+		property->set_value(json.get<T>());
+	}
+	
+	return true;
+}
 
-	const std::string& name = row[1];
-	if (name.empty())
+template <typename T>
+static bool load_vector_property(material* material, const std::string& name, std::size_t vector_size, const nlohmann::json& json)
+{
+	// If JSON element is an array of arrays
+	if (json.is_array() && json.begin().value().is_array())
 	{
-		return false;
+		// Determine size of the array
+		std::size_t array_size = json.size();
+		
+		// Create property
+		material_property<T>* property = material->add_property<T>(name, array_size);
+		
+		// For each vector in the array
+		std::size_t i = 0;
+		for (const auto& vector_element: json)
+		{
+			// Read vector elements
+			T value;
+			std::size_t j = 0;
+			for (const auto& value_element: vector_element)
+				value[j++] = value_element.get<typename T::scalar_type>();
+			
+			// Set property values
+			property->set_value(i++, value);
+		}
 	}
-
-	const std::string& type = row[2];
-	if (type.empty())
+	else
 	{
-		return false;
+		// Create property
+		material_property<T>* property = material->add_property<T>(name);
+		
+		// Read vector elements
+		T value;
+		std::size_t i = 0;
+		for (const auto& value_element: json)
+			value[i++] = value_element.get<typename T::scalar_type>();
+		
+		// Set property values
+		property->set_value(value);
 	}
-
-	int vector_size = 1;
-	if (std::isdigit(type.back()))
-	{
-		vector_size = std::stoi(type.substr(type.size() - 1, 1));
-	}
-
-	int matrix_columns = 0;
-	int matrix_rows = 0;
-	if (type[type.size() - 2] == 'x' && std::isdigit(type[type.size() - 3]) && std::isdigit(type.back()))
-	{
-		matrix_columns = std::stoi(type.substr(type.size() - 3, 1));
-		matrix_rows = std::stoi(type.substr(type.size() - 1, 1));
-	}
-
-	int array_size = std::stoi(row[3]);
-	if (array_size <= 0)
-	{
-		return false;
-	}
-
-	if (type == "bool" || type == "bool2" || type == "bool3" || type == "bool4")
-	{
-		return load_bool_property(material, row, vector_size, array_size);
-	}
-	else if (type == "int" || type == "int2" || type == "int3" || type == "int4")
-	{
-		return load_int_property(material, row, vector_size, array_size);
-	}
-	else if (type == "uint" || type == "uint2" || type == "uint3" || type == "uint4")
-	{
-		return load_uint_property(material, row, vector_size, array_size);
-	}
-	else if (type == "float" || type == "float2" || type == "float3" || type == "float4")
-	{
-		return load_float_property(material, row, vector_size, array_size);
-	}
-	else if (type == "float2x2" || type == "float3x3" || type == "float4x4")
-	{
-		return load_float_matrix_property(material, row, matrix_columns, matrix_rows, array_size);
-	}
-	else if (type == "texture_2d")
-	{
-		return load_texture_2d_property(material, row, resource_manager, array_size);
-	}
-	else if (type == "texture_cube")
-	{
-		return load_texture_cube_property(material, row, resource_manager, array_size);
-	}
-
-	return false;
+	
+	return true;
 }
 
 template <>
 material* resource_loader<material>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
-	// Load string table from input stream
-	string_table* table = resource_loader<string_table>::load(resource_manager, file);
-
-	// Ensure table is not empty.
-	if (!table || table->empty())
-	{
-		delete table;
-		return nullptr;
-	}
-
+	// Read file into buffer
+	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));
+	std::string buffer;
+	buffer.resize(size);
+	PHYSFS_readBytes(file, &buffer[0], size);
+	
+	// Parse json from file buffer
+	nlohmann::json json = nlohmann::json::parse(buffer);
+	
 	// Allocate material
-	::material* material = new ::material();
-
-	// Parse table rows
-	for (const string_table_row& row: *table)
+	material* material = new ::material();
+	
+	// Read shader filename
+	std::string shader_filename;
+	if (read_value(&shader_filename, json, "shader"))
 	{
-		// Skip empty rows and comments
-		if (row.empty() || row[0].empty() || row[0][0] == '#')
+		// Load shader program
+		gl::shader_program* program = resource_manager->load<gl::shader_program>(shader_filename);
+		material->set_shader_program(program);
+	}
+	
+	// Init material flags
+	std::uint32_t flags = 0;
+	
+	// Read blend mode
+	std::string blend_mode;
+	read_value(&blend_mode, json, "blend_mode");
+	if (blend_mode == "alpha_blend")
+		flags |= MATERIAL_FLAG_TRANSLUCENT;
+	else
+		flags |= MATERIAL_FLAG_OPAQUE;
+	
+	// Read shadow mode
+	std::string shadow_mode;
+	read_value(&shadow_mode, json, "shadow_mode");
+	if (shadow_mode == "none")
+		flags |= MATERIAL_FLAG_NOT_SHADOW_CASTER;
+	else
+		flags |= MATERIAL_FLAG_SHADOW_CASTER;
+	
+	// Read cull mode
+	std::string cull_mode;
+	read_value(&cull_mode, json, "cull_mode");
+	if (cull_mode == "none")
+		flags |= MATERIAL_FLAG_FRONT_AND_BACK_FACES;
+	else if (cull_mode == "front")
+		flags |= MATERIAL_FLAG_BACK_FACES;
+	else
+		flags |= MATERIAL_FLAG_FRONT_FACES;
+	
+	// Set material flags
+	material->set_flags(flags);
+	
+	// Read material properties
+	if (auto properties_element = json.find("properties"); properties_element != json.end())
+	{
+		for (const auto& property_element: properties_element.value())
 		{
-			continue;
-		}
-
-		if (row[0] == "shader" && row.size() == 2)
-		{
-			gl::shader_program* program = resource_manager->load<gl::shader_program>(row[1]);
-			material->set_shader_program(program);
-		}
-		else if (row[0] == "flags" && row.size() == 2)
-		{
-			std::uint32_t flags = std::stoi(row[1]);
-			material->set_flags(flags);
-		}
-		else if (row[0] == "property")
-		{
-			load_material_property(material, row, resource_manager);
+			// Read property name
+			std::string name;
+			if (!read_value(&name, property_element, "name"))
+				// Ignore nameless properties
+				continue;
+			
+			// Read property type
+			std::string type;
+			if (!read_value(&type, property_element, "type"))
+				// Ignore typeless properties
+				continue;
+			
+			// Find value element
+			auto value_element = property_element.find("value");
+			if (value_element == property_element.end())
+				// Ignore valueless properties
+				continue;
+			
+			// If property type is a 2D texture
+			if (type == "texture_2d")
+			{
+				load_texture_2d_property(resource_manager, material, name, value_element.value());
+			}
+			// If property type is a cubic texture
+			else if (type == "texture_cube")
+			{
+				load_texture_cube_property(resource_manager, material, name, value_element.value());
+			}
+			// If property type is a matrix
+			else if (type[type.size() - 2] == 'x' &&
+				std::isdigit(type[type.size() - 3]) &&
+				std::isdigit(type.back()))
+			{
+				std::size_t columns = std::stoul(type.substr(type.size() - 3, 1));
+				std::size_t rows = std::stoul(type.substr(type.size() - 1, 1));
+				//load_matrix_property<float>(material, name, columns, rows, value_element.value());
+			}
+			// If property type is a vector
+			else if (std::isdigit(type.back()))
+			{
+				std::size_t size = std::stoul(type.substr(type.size() - 1, 1));
+				
+				if (type.find("float") != std::string::npos)
+				{
+					if (size == 2)
+						load_vector_property<float2>(material, name, size, value_element.value());
+					else if (size == 3)
+						load_vector_property<float3>(material, name, size, value_element.value());
+					else if (size == 4)
+						load_vector_property<float4>(material, name, size, value_element.value());
+				}
+				else if (type.find("uint") != std::string::npos)
+				{
+					if (size == 2)
+						load_vector_property<uint2>(material, name, size, value_element.value());
+					else if (size == 3)
+						load_vector_property<uint3>(material, name, size, value_element.value());
+					else if (size == 4)
+						load_vector_property<uint4>(material, name, size, value_element.value());
+				}
+				else if (type.find("int") != std::string::npos)
+				{
+					if (size == 2)
+						load_vector_property<int2>(material, name, size, value_element.value());
+					else if (size == 3)
+						load_vector_property<int3>(material, name, size, value_element.value());
+					else if (size == 4)
+						load_vector_property<int4>(material, name, size, value_element.value());
+				}
+				else if (type.find("bool") != std::string::npos)
+				{
+					if (size == 2)
+						load_vector_property<bool2>(material, name, size, value_element.value());
+					else if (size == 3)
+						load_vector_property<bool3>(material, name, size, value_element.value());
+					else if (size == 4)
+						load_vector_property<bool4>(material, name, size, value_element.value());
+				}
+			}
+			// If property type is a scalar
+			else
+			{
+				if (type.find("float") != std::string::npos)
+					load_scalar_property<float>(material, name, value_element.value());
+				else if (type.find("uint") != std::string::npos)
+					load_scalar_property<unsigned int>(material, name, value_element.value());
+				else if (type.find("int") != std::string::npos)
+					load_scalar_property<int>(material, name, value_element.value());
+				else if (type.find("bool") != std::string::npos)
+					load_scalar_property<bool>(material, name, value_element.value());
+			}
 		}
 	}
 	
 	return material;
 }
-

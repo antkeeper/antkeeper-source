@@ -96,7 +96,7 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_zenith_color({0.0f, 0.0f, 0.0f});
 	sky_pass->set_time_of_day(0.0f);
 	sky_pass->set_julian_day(0.0f);
-	sky_pass->set_observer_location(ctx->biome->location[0], ctx->biome->location[1], 0.0f);
+	sky_pass->set_observer_location(0.0f, 0.0f, 0.0f);
 	sky_pass->set_moon_angular_radius(math::radians(1.0f));
 	sky_pass->set_sun_angular_radius(math::radians(1.0f));
 	
@@ -104,13 +104,13 @@ void play_state_enter(game_context* ctx)
 	
 	scene::ambient_light* ambient = new scene::ambient_light();
 	ambient->set_color({1, 1, 1});
-	ambient->set_intensity(0.1f);
+	ambient->set_intensity(10.0f);
 	ambient->update_tweens();
 	ctx->overworld_scene->add_object(ambient);
 	
 	scene::directional_light* sun = new scene::directional_light();
 	sun->set_color({1, 1, 1});
-	sun->set_intensity(4.0f);
+	sun->set_intensity(750.0f);
 	sun->look_at({0, 1, 1}, {0, 0, 0}, {0, 1, 0});
 	sun->update_tweens();
 	ctx->overworld_scene->add_object(sun);
