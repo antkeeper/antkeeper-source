@@ -151,6 +151,77 @@ static bool load_vector_property(material* material, const std::string& name, st
 	return true;
 }
 
+template <typename T>
+static bool load_matrix_property(material* material, const std::string& name, std::size_t column_count, std::size_t row_count, const nlohmann::json& json)
+{
+	// If JSON element is an array of arrays of arrays
+	if (json.is_array() && json.begin().value().is_array())
+	{
+		if (json.begin().value().begin().value().is_array())
+		{
+			// Determine size of the array
+			std::size_t array_size = json.size();
+			
+			// Create property
+			material_property<T>* property = material->add_property<T>(name, array_size);
+			
+			// For each matrix in the array
+			std::size_t i = 0;
+			for (const auto& matrix_element: json)
+			{
+				// Read vector elements
+				T value;
+				std::size_t j = 0;
+				for (const auto& column_element: matrix_element)
+				{
+					std::size_t k = 0;
+					for (const auto& row_element: column_element)
+					{
+						value[j][k] = row_element.get<typename T::element_type>();
+						++k;
+					}
+					
+					++j;
+				}
+				
+				// Set property values
+				property->set_value(i, value);
+				
+				++i;
+			}
+			
+			return true;
+		}
+		else
+		{
+			// Create property
+			material_property<T>* property = material->add_property<T>(name);
+			
+			// Read matrix elements
+			T value;
+			std::size_t i = 0;
+			for (const auto& column_element: json)
+			{
+				std::size_t j = 0;
+				for (const auto& row_element: column_element)
+				{
+					value[i][j] = row_element.get<typename T::element_type>();
+					++j;
+				}
+				
+				++i;
+			}
+			
+			// Set property values
+			property->set_value(value);
+			
+			return true;
+		}
+	}
+	
+	return false;
+}
+
 template <>
 material* resource_loader<material>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
@@ -204,6 +275,20 @@ material* resource_loader<material>::load(resource_manager* resource_manager, PH
 	else
 		flags |= MATERIAL_FLAG_FRONT_FACES;
 	
+	// Read depth mode
+	std::string depth_mode;
+	read_value(&depth_mode, json, "depth_mode");
+	if (depth_mode == "in_front")
+		flags |= MATERIAL_FLAG_X_RAY;
+	
+	// Read decal mode
+	std::string decal_mode;
+	read_value(&decal_mode, json, "decal_mode");
+	if (decal_mode == "decal")
+		flags |= MATERIAL_FLAG_DECAL;
+	else if (decal_mode == "surface")
+		flags |= MATERIAL_FLAG_DECAL_SURFACE;
+	
 	// Set material flags
 	material->set_flags(flags);
 	
@@ -247,7 +332,16 @@ material* resource_loader<material>::load(resource_manager* resource_manager, PH
 			{
 				std::size_t columns = std::stoul(type.substr(type.size() - 3, 1));
 				std::size_t rows = std::stoul(type.substr(type.size() - 1, 1));
-				//load_matrix_property<float>(material, name, columns, rows, value_element.value());
+				
+				if (type.find("float") != std::string::npos)
+				{
+					if (size == 2)
+						load_matrix_property<float2x2>(material, name, columns, rows, value_element.value());
+					else if (size == 3)
+						load_matrix_property<float3x3>(material, name, columns, rows, value_element.value());
+					else if (size == 4)
+						load_matrix_property<float4x4>(material, name, columns, rows, value_element.value());
+				}
 			}
 			// If property type is a vector
 			else if (std::isdigit(type.back()))
