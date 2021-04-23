@@ -18,7 +18,6 @@
  */
 
 #include "scene/light.hpp"
-#include "animation/ease.hpp"
 #include "math/interpolation.hpp"
 
 namespace scene {

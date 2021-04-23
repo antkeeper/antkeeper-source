@@ -25,9 +25,13 @@
 
 namespace scene {
 
+/**
+ * Directional cone light source.
+ */
 class spotlight: public light
 {
 public:
+	/// Creates a spotlight.
 	spotlight();
 	
 	/// Returns light_type::spot

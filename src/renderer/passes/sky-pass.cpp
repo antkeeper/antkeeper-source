@@ -285,9 +285,9 @@ void sky_pass::set_julian_day(float jd)
 	julian_day_tween[1] = jd;
 }
 
-void sky_pass::set_observer_location(float latitude, float longitude, float altitude)
+void sky_pass::set_observer_location(float altitude, float latitude, float longitude)
 {
-	observer_location = {latitude, longitude, altitude};
+	observer_location = {altitude, latitude, longitude};
 }
 
 void sky_pass::set_sun_coordinates(const float3& position, const float2& az_el)

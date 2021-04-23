@@ -31,13 +31,31 @@ static float3 interpolate_direction(const float3& x, const float3& y, float a)
 }
 
 directional_light::directional_light():
-	direction(global_forward, interpolate_direction)
+	direction(global_forward, interpolate_direction),
+	light_texture(nullptr),
+	light_texture_opacity(1.0f, math::lerp<float, float>),
+	light_texture_translation({0.0f, 0.0f}, math::lerp<float2, float>),
+	light_texture_rotation(0.0f, math::lerp_angle<float>),
+	light_texture_scale({1.0f, 1.0f}, math::lerp<float2, float>)
 {}
+
+void directional_light::set_light_texture(const gl::texture_2d* texture)
+{
+	light_texture = texture;
+}
 
 void directional_light::update_tweens()
 {
 	light::update_tweens();
 	direction.update();
+	
+	if (light_texture)
+	{
+		light_texture_opacity.update();
+		light_texture_translation.update();
+		light_texture_rotation.update();
+		light_texture_scale.update();
+	}
 }
 
 void directional_light::transformed()

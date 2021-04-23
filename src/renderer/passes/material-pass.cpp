@@ -62,8 +62,6 @@ material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	shadow_map(nullptr),
 	shadow_strength(1.0f)
 {
-	soft_shadows_texture = resource_manager->load<gl::texture_2d>("forest-gobo.tex");
-	
 	max_ambient_light_count = MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT;
 	max_point_light_count = MATERIAL_PASS_MAX_POINT_LIGHT_COUNT;
 	max_directional_light_count = MATERIAL_PASS_MAX_DIRECTIONAL_LIGHT_COUNT;
@@ -75,6 +73,8 @@ material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	point_light_attenuations = new float3[max_point_light_count];
 	directional_light_colors = new float3[max_directional_light_count];
 	directional_light_directions = new float3[max_directional_light_count];
+	directional_light_matrices = new float4x4[max_directional_light_count];
+	directional_light_textures = new const gl::texture_2d*[max_directional_light_count];
 	spotlight_colors = new float3[max_spotlight_count];
 	spotlight_positions = new float3[max_spotlight_count];
 	spotlight_directions = new float3[max_spotlight_count];
@@ -90,6 +90,8 @@ material_pass::~material_pass()
 	delete[] point_light_attenuations;
 	delete[] directional_light_colors;
 	delete[] directional_light_directions;
+	delete[] directional_light_matrices;
+	delete[] directional_light_textures;
 	delete[] spotlight_colors;
 	delete[] spotlight_positions;
 	delete[] spotlight_directions;
@@ -189,12 +191,32 @@ void material_pass::render(render_context* context) const
 			{
 				if (directional_light_count < max_directional_light_count)
 				{
+					const scene::directional_light* directional_light = static_cast<const scene::directional_light*>(light);
+
 					directional_light_colors[directional_light_count] = light->get_scaled_color_tween().interpolate(context->alpha);
 					
 					// Transform direction into view-space
 					float3 direction = static_cast<const scene::directional_light*>(light)->get_direction_tween().interpolate(context->alpha);
 					float3 view_space_direction = math::normalize(math::resize<3>(view * math::resize<4>(-direction)));
 					directional_light_directions[directional_light_count] = view_space_direction;
+					
+					// Calculate a view-projection matrix from the directional light's transform
+					math::transform<float> light_transform = light->get_transform_tween().interpolate(context->alpha);
+					float3 forward = light_transform.rotation * global_forward;
+					float3 up = light_transform.rotation * global_up;
+					
+					float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
+					float4x4 light_projection = math::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+					float4x4 bias = math::translate(math::identity4x4<float>, {0.5f, 0.5f, 0.5f}) * math::scale(math::identity4x4<float>, {0.5f, 0.5f, 0.5f});
+					
+					//float scale_u = 1.0f;
+					//float scale_v = 1.0f;
+					//float4x4 light_projection = math::ortho(-scale_u, scale_u, -scale_v, scale_v, -1.0f, 1.0f);
+					directional_light_matrices[directional_light_count] = bias * light_projection * light_view;
+					
+
+					
+					directional_light_textures[directional_light_count] = directional_light->get_light_texture();
 					
 					++directional_light_count;
 				}
@@ -245,7 +267,7 @@ void material_pass::render(render_context* context) const
 		for (int i = 0; i < 4; ++i)
 			shadow_map_split_distances[i] = shadow_map_pass->get_split_distances()[i + 1];
 	}
-
+	
 	// Sort render operations
 	context->operations.sort(operation_compare);
 
@@ -443,6 +465,10 @@ void material_pass::render(render_context* context) const
 					parameters->directional_light_colors->upload(0, directional_light_colors, directional_light_count);
 				if (parameters->directional_light_directions)
 					parameters->directional_light_directions->upload(0, directional_light_directions, directional_light_count);
+				if (parameters->directional_light_matrices)
+					parameters->directional_light_matrices->upload(0, directional_light_matrices, directional_light_count);
+				if (parameters->directional_light_textures)
+					parameters->directional_light_textures->upload(0, directional_light_textures, directional_light_count);
 				if (parameters->spotlight_count)
 					parameters->spotlight_count->upload(spotlight_count);
 				if (parameters->spotlight_colors)
@@ -455,8 +481,6 @@ void material_pass::render(render_context* context) const
 					parameters->spotlight_attenuations->upload(0, spotlight_attenuations, spotlight_count);
 				if (parameters->spotlight_cutoffs)
 					parameters->spotlight_cutoffs->upload(0, spotlight_cutoffs, spotlight_count);
-				if (parameters->soft_shadows)
-					parameters->soft_shadows->upload(soft_shadows_texture);
 				if (parameters->focal_point)
 					parameters->focal_point->upload(focal_point);
 				if (parameters->shadow_map_matrices)
@@ -548,13 +572,14 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 	parameters->directional_light_count = program->get_input("directional_light_count");
 	parameters->directional_light_colors = program->get_input("directional_light_colors");
 	parameters->directional_light_directions = program->get_input("directional_light_directions");
+	parameters->directional_light_matrices = program->get_input("directional_light_matrices");
+	parameters->directional_light_textures = program->get_input("directional_light_textures");
 	parameters->spotlight_count = program->get_input("spotlight_count");
 	parameters->spotlight_colors = program->get_input("spotlight_colors");
 	parameters->spotlight_positions = program->get_input("spotlight_positions");
 	parameters->spotlight_directions = program->get_input("spotlight_directions");
 	parameters->spotlight_attenuations = program->get_input("spotlight_attenuations");
 	parameters->spotlight_cutoffs = program->get_input("spotlight_cutoffs");
-	parameters->soft_shadows = program->get_input("soft_shadows");
 	parameters->focal_point = program->get_input("focal_point");
 	parameters->shadow_map_matrices = program->get_input("shadow_map_matrices");
 	parameters->shadow_map_split_distances = program->get_input("shadow_map_split_distances");

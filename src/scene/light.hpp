@@ -26,30 +26,60 @@
 
 namespace scene {
 
+/// Light object type enumerations.
 enum class light_type
 {
+	/// Denotes an ambient light.
 	ambient,
+	
+	/// Denotes a directional light.
 	directional,
+	
+	/// Denotes a point light.
 	point,
+	
+	/// Denotes a spot light.
 	spot
 };
 
+/**
+ * Abstract base class for light objects.
+ */
 class light: public object<light>
 {
 public:
 	typedef geom::sphere<float> sphere_type;
 	
+	/// Creates a light.
 	light();
 
+	/// Returns an enumeration denoting the light object type.
 	virtual light_type get_light_type() const = 0;
-
+	
+	/**
+	 * Sets the color of the light.
+	 *
+	 * @param color Scene-linear light color.
+	 */
 	void set_color(const float3& color);
+	
+	/**
+	 * Sets the intensity of the light.
+	 *
+	 * @param intensity Light intensity.
+	 */
 	void set_intensity(float intensity);
 	
+	/// Returns the bounding volume of the light.
 	virtual const bounding_volume_type& get_bounds() const;
-
+	
+	/// Returns the light color.
 	const float3& get_color() const;
+	
+	/// Returns the light intensity.
 	float get_intensity() const;
+	
+	/// Returns the intensity-scaled light color.
 	const float3& get_scaled_color() const;
 
 	const tween<float3>& get_color_tween() const;

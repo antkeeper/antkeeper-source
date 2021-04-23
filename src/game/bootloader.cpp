@@ -865,6 +865,10 @@ void setup_systems(game_context* ctx)
 	
 	// Setup astronomy system
 	ctx->astronomy_system = new ecs::astronomy_system(*ctx->ecs_registry);
+	ctx->astronomy_system->set_obliquity(math::radians<double>(23.4365472133));
+	ctx->astronomy_system->set_axial_rotation_speed(math::radians<double>(360.9856));
+	ctx->astronomy_system->set_axial_rotation_at_epoch(0.0);
+	ctx->astronomy_system->set_sky_pass(ctx->overworld_sky_pass);
 	
 	// Set time scale
 	float time_scale = 60.0f;
@@ -1170,9 +1174,9 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * 500.0f);
-			ctx->solar_system->set_time_scale(time_scale * 500.0f);
-			ctx->astronomy_system->set_time_scale(time_scale * 500.0f);
+			ctx->weather_system->set_time_scale(time_scale * 100.0f);
+			ctx->solar_system->set_time_scale(time_scale * 100.0f);
+			ctx->astronomy_system->set_time_scale(time_scale * 100.0f);
 		}
 	);
 	ctx->control_system->get_fast_forward_control()->set_deactivated_callback
@@ -1188,9 +1192,9 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * -500.0f);
-			ctx->solar_system->set_time_scale(time_scale * -500.0f);
-			ctx->astronomy_system->set_time_scale(time_scale * -500.0f);
+			ctx->weather_system->set_time_scale(time_scale * -100.0f);
+			ctx->solar_system->set_time_scale(time_scale * -100.0f);
+			ctx->astronomy_system->set_time_scale(time_scale * -100.0f);
 		}
 	);
 	ctx->control_system->get_rewind_control()->set_deactivated_callback

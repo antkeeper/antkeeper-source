@@ -21,21 +21,43 @@
 #define ANTKEEPER_SCENE_DIRECTIONAL_LIGHT_HPP
 
 #include "scene/light.hpp"
+#include "gl/texture-2d.hpp"
 #include "utility/fundamental-types.hpp"
 
 namespace scene {
 
+/**
+ * Light source with parallel rays and constant intensity.
+ */
 class directional_light: public light
 {
 public:
+	/// Creates a directional light.
 	directional_light();
 	
-	/// Returns light_type::directional
+	/**
+	 * Sets the light texture, also known as a gobo, cucoloris, or cookie.
+	 *
+	 * @param texture Light texture.
+	 */
+	void set_light_texture(const gl::texture_2d* texture);
+	
+	void set_light_texture_opacity(float opacity);
+	void set_light_texture_translation(const float2& translation);
+	void set_light_texture_rotation(float rotation);
+	void set_light_texture_scale(const float2& scale);
+	
+	/// Returns light_type::directional.
 	virtual light_type get_light_type() const;
 
+	/// Returns the normalized direction vector of the light.
 	const float3& get_direction() const;
-
+	
+	/// Returns the light texture for this light, or `nullptr` if no light texture is set.
+	const gl::texture_2d* get_light_texture() const;
+	
 	const tween<float3>& get_direction_tween() const;
+
 
 	/// @copydoc object_base::update_tweens();
 	virtual void update_tweens();
@@ -44,6 +66,11 @@ private:
 	virtual void transformed();
 
 	tween<float3> direction;
+	const gl::texture_2d* light_texture;
+	tween<float> light_texture_opacity;
+	tween<float2> light_texture_translation;
+	tween<float> light_texture_rotation;
+	tween<float2> light_texture_scale;
 };
 
 inline light_type directional_light::get_light_type() const
@@ -59,6 +86,11 @@ inline const float3& directional_light::get_direction() const
 inline const tween<float3>& directional_light::get_direction_tween() const
 {
 	return direction;
+}
+
+inline const gl::texture_2d* directional_light::get_light_texture() const
+{
+	return light_texture;
 }
 
 } // namespace scene

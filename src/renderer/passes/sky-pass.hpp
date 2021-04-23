@@ -59,7 +59,7 @@ public:
 	void set_moon_model(const model* model);
 	
 	void set_julian_day(float jd);
-	void set_observer_location(float latitude, float longitude, float altitude);
+	void set_observer_location(float altitude, float latitude, float longitude);
 	void set_sun_coordinates(const float3& position, const float2& az_el);
 	void set_moon_coordinates(const float3& position, const float2& az_el);
 	void set_moon_rotation(const math::quaternion<float>& rotation);

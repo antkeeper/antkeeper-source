@@ -22,7 +22,10 @@
 
 #include "entity-system.hpp"
 #include "ecs/entity.hpp"
+#include "scene/directional-light.hpp"
 #include "utility/fundamental-types.hpp"
+
+class sky_pass;
 
 namespace ecs {
 
@@ -85,6 +88,10 @@ public:
 	 */
 	void set_axial_rotation_at_epoch(double angle);
 	
+	void set_sky_pass(sky_pass* pass);
+	
+	void set_sun_light(scene::directional_light* light);
+	
 private:
 	/// Updates the axial rotation angle
 	void update_axial_rotation();
@@ -104,6 +111,8 @@ private:
 	double3 observer_location;
 	double obliquity;
 	double3x3 ecliptic_to_horizontal;
+	sky_pass* sky_pass;
+	scene::directional_light* sun_light;
 };
 
 } // namespace ecs

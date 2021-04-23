@@ -27,7 +27,6 @@
 #include "ecs/components/copy-translation-component.hpp"
 #include "ecs/components/model-component.hpp"
 #include "ecs/components/snap-component.hpp"
-#include "ecs/components/samara-component.hpp"
 #include "ecs/components/terrain-component.hpp"
 #include "ecs/components/tool-component.hpp"
 #include "ecs/components/transform-component.hpp"
@@ -63,6 +62,7 @@
 #include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
 #include "utility/gamma.hpp"
+#include "astro/blackbody.hpp"
 
 #include "utility/bit-math.hpp"
 #include "genetics/genetics.hpp"
@@ -76,14 +76,17 @@ void play_state_enter(game_context* ctx)
 	debug::logger* logger = ctx->logger;
 	logger->push_task("Entering play state");
 	
+	resource_manager* resource_manager = ctx->resource_manager;
+	entt::registry& ecs_registry = *ctx->ecs_registry;
+	
 	// Load biome
 	if (ctx->option_biome.has_value())
 	{
-		ctx->biome = ctx->resource_manager->load<biome>(ctx->option_biome.value() + ".bio");
+		ctx->biome = resource_manager->load<biome>(ctx->option_biome.value() + ".bio");
 	}
 	else
 	{
-		ctx->biome = ctx->resource_manager->load<biome>("forest.bio");
+		ctx->biome = resource_manager->load<biome>("forest.bio");
 	}
 	
 	// Apply biome parameters to scene
@@ -92,13 +95,16 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
 	sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
 	
-	sky_pass->set_horizon_color({1.0f, 1.0f, 1.0f});
+	sky_pass->set_horizon_color({0.1f, 0.1f, 0.1f});
 	sky_pass->set_zenith_color({0.0f, 0.0f, 0.0f});
 	sky_pass->set_time_of_day(0.0f);
 	sky_pass->set_julian_day(0.0f);
-	sky_pass->set_observer_location(0.0f, 0.0f, 0.0f);
+	sky_pass->set_observer_location(4.26352e-5, ctx->biome->location[0], ctx->biome->location[1]);
 	sky_pass->set_moon_angular_radius(math::radians(1.0f));
 	sky_pass->set_sun_angular_radius(math::radians(1.0f));
+	sky_pass->set_sun_coordinates({0, 1, 0}, {0, 3.1415f / 2.0f});
+	sky_pass->set_moon_coordinates({1, 0, 0}, {0, 0});
+	sky_pass->set_moon_rotation(math::identity_quaternion<float>);
 	
 	
 	
@@ -108,10 +114,43 @@ void play_state_enter(game_context* ctx)
 	ambient->update_tweens();
 	ctx->overworld_scene->add_object(ambient);
 	
+	
+
+	// Create sun
+	{
+		ecs::celestial_body_component sun_body;
+		sun_body.orbital_elements.a = 1.0;
+		sun_body.orbital_elements.ec = 0.016709;
+		sun_body.orbital_elements.w = math::radians(282.9404);
+		sun_body.orbital_elements.ma = math::radians(356.0470);
+		sun_body.orbital_elements.i = 0.0;
+		sun_body.orbital_elements.om = 0.0;
+		
+		sun_body.orbital_rate.a = 0.0;
+		sun_body.orbital_rate.ec = -1.151e-9;
+		sun_body.orbital_rate.w = math::radians(4.70935e-5);
+		sun_body.orbital_rate.ma = math::radians(0.9856002585);
+		sun_body.orbital_rate.i = 0.0;
+		sun_body.orbital_rate.om = 0.0;
+		
+		ecs::transform_component sun_transform;
+		sun_transform.local = math::identity_transform<float>;
+		sun_transform.warp = true;
+		
+		auto sun_entity = ecs_registry.create();
+		ecs_registry.assign<ecs::transform_component>(sun_entity, sun_transform);
+		ecs_registry.assign<ecs::celestial_body_component>(sun_entity, sun_body);
+		
+		//ctx->astronomy_system->set_sun(sun_entity);
+	}
+	
 	scene::directional_light* sun = new scene::directional_light();
-	sun->set_color({1, 1, 1});
+	
+	float3 sun_color = math::type_cast<float>(astro::blackbody(6000.0)); // NOTE: this is linear sRGB, should be ACEScg
+	sun->set_color(sun_color);
 	sun->set_intensity(750.0f);
-	sun->look_at({0, 1, 1}, {0, 0, 0}, {0, 1, 0});
+	sun->set_light_texture(resource_manager->load<gl::texture_2d>("forest-gobo.tex"));
+	sun->look_at({2, 1, 0}, {0, 0, 0}, {0, 0, 1});
 	sun->update_tweens();
 	ctx->overworld_scene->add_object(sun);
 	ctx->overworld_shadow_map_pass->set_light(sun);
@@ -126,15 +165,15 @@ void play_state_enter(game_context* ctx)
 	ctx->astronomy_system->set_obliquity(math::radians(23.4393));
 	ctx->astronomy_system->set_axial_rotation_at_epoch(math::radians(280.4606));
 	ctx->astronomy_system->set_axial_rotation_speed(math::radians(360.9856));
+	ctx->astronomy_system->set_sun_light(sun);
 
-	resource_manager* resource_manager = ctx->resource_manager;
-	entt::registry& ecs_registry = *ctx->ecs_registry;
+
 	
 
 	// Load entity archetypes
 	ecs::archetype* ant_hill_archetype = resource_manager->load<ecs::archetype>("ant-hill.ent");
 	ecs::archetype* nest_archetype = resource_manager->load<ecs::archetype>("harvester-nest.ent");
-	ecs::archetype* samara_archetype = resource_manager->load<ecs::archetype>("samara.ent");
+	ecs::archetype* redwood_archetype = resource_manager->load<ecs::archetype>("redwood.ent");
 	ecs::archetype* forceps_archetype = resource_manager->load<ecs::archetype>("forceps.ent");
 	ecs::archetype* lens_archetype = resource_manager->load<ecs::archetype>("lens.ent");
 	ecs::archetype* brush_archetype = resource_manager->load<ecs::archetype>("brush.ent");
@@ -145,6 +184,7 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* flashlight_archetype = resource_manager->load<ecs::archetype>("flashlight.ent");
 	ecs::archetype* flashlight_light_cone_archetype = resource_manager->load<ecs::archetype>("flashlight-light-cone.ent");
 	ecs::archetype* lens_light_cone_archetype = resource_manager->load<ecs::archetype>("lens-light-cone.ent");
+	ecs::archetype* cube_archetype = resource_manager->load<ecs::archetype>("unit-cube.ent");
 	
 	// Create tools
 	forceps_archetype->assign(ecs_registry, ctx->forceps_entity);
@@ -190,7 +230,7 @@ void play_state_enter(game_context* ctx)
 
 	// Creat nest
 	auto nest_entity = nest_archetype->create(ecs_registry);
-
+	
 	// Create terrain
 	int terrain_radius = 6;
 	for (int x = -terrain_radius; x <= terrain_radius; ++x)
@@ -206,25 +246,19 @@ void play_state_enter(game_context* ctx)
 		}
 	}
 
-	// Create samaras
-	for (int i = 0; i < 15; ++i)
+	// Create trees
+	for (int i = 0; i < 30; ++i)
 	{
-		auto samara_entity = samara_archetype->create(ecs_registry);
+		auto redwood = redwood_archetype->create(ecs_registry);
 
-		auto& transform = ecs_registry.get<ecs::transform_component>(samara_entity);
-		float zone = 200.0f;
-		transform.local = math::identity_transform<float>;
-		transform.local.translation.x = math::random(-zone, zone);
-		transform.local.translation.y = math::random(50.0f, 150.0f);
-		transform.local.translation.z = math::random(-zone, zone);
-
-		ecs::samara_component samara_component;
-		samara_component.angle = math::random(0.0f, math::radians(360.0f));
-		samara_component.direction = math::normalize(float3{math::random(-1.0f, 1.0f), math::random(-1.0f, -5.0f), math::random(-1.0f, 1.0f)});
-		samara_component.chirality = (math::random(0.0f, 1.0f) < 0.5f) ? -1.0f : 1.0f;
-
-		ecs_registry.assign_or_replace<ecs::samara_component>(samara_entity, samara_component);
+		auto& transform = ecs_registry.get<ecs::transform_component>(redwood);
+		float zone = 500.0f;
+		ecs::command::place(ecs_registry, redwood, {math::random(-zone, zone), math::random(-zone, zone)});
 	}
+	
+	// Create unit cube
+	auto cube = cube_archetype->create(ecs_registry);
+	ecs::command::place(ecs_registry, cube, {10, 10});
 	
 	// Setup camera focal point
 	ecs::transform_component focal_point_transform;

@@ -25,6 +25,9 @@
 
 namespace scene {
 
+/**
+ * Light source that radiates outward from a point.
+ */
 class point_light: public light
 {
 public:
