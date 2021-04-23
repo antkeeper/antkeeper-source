@@ -61,7 +61,6 @@ void weather_system::set_shadow_map_pass(::shadow_map_pass* pass)
 void weather_system::set_material_pass(::material_pass* pass)
 {
 	material_pass = pass;
-	material_pass->set_shadow_strength(0.5f);
 }
 
 void weather_system::set_universal_time(double time)

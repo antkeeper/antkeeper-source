@@ -52,8 +52,6 @@ public:
 	/// Sets the time tween, which is interpolated between updates
 	void set_time_tween(const tween<double>* time);
 	
-	void set_shadow_strength(float strength);
-	
 	void set_focal_point_tween(const tween<float3>* focal_point);	
 	
 	const ::shadow_map_pass* shadow_map_pass;
@@ -70,12 +68,14 @@ private:
 		const gl::shader_input* time;
 		const gl::shader_input* mouse;
 		const gl::shader_input* resolution;
+		const gl::shader_input* camera_position;
 		const gl::shader_input* model;
 		const gl::shader_input* view;
 		const gl::shader_input* projection;
 		const gl::shader_input* model_view;
 		const gl::shader_input* view_projection;
 		const gl::shader_input* model_view_projection;
+		const gl::shader_input* normal_model;
 		const gl::shader_input* normal_model_view;
 		const gl::shader_input* clip_depth;
 		const gl::shader_input* log_depth_coef;
@@ -89,8 +89,9 @@ private:
 		const gl::shader_input* directional_light_count;
 		const gl::shader_input* directional_light_colors;
 		const gl::shader_input* directional_light_directions;
-		const gl::shader_input* directional_light_matrices;
 		const gl::shader_input* directional_light_textures;
+		const gl::shader_input* directional_light_texture_matrices;
+		const gl::shader_input* directional_light_texture_opacities;
 		const gl::shader_input* spotlight_count;
 		const gl::shader_input* spotlight_colors;
 		const gl::shader_input* spotlight_positions;
@@ -100,10 +101,9 @@ private:
 		
 		const gl::shader_input* focal_point;
 		
-		const gl::shader_input* shadow_map_matrices;
-		const gl::shader_input* shadow_map_split_distances;
-		const gl::shader_input* shadow_map;
-		const gl::shader_input* shadow_strength;
+		const gl::shader_input* shadow_map_directional;
+		const gl::shader_input* shadow_splits_directional;
+		const gl::shader_input* shadow_matrices_directional;
 	};
 
 	const parameter_set* load_parameter_set(const gl::shader_program* program) const;
@@ -113,7 +113,6 @@ private:
 	const tween<double>* time_tween;
 	float2 mouse_position;
 	const tween<float3>* focal_point_tween;
-	float shadow_strength;
 	
 	int max_ambient_light_count;
 	int max_point_light_count;
@@ -131,8 +130,9 @@ private:
 	float3* point_light_attenuations;
 	float3* directional_light_colors;
 	float3* directional_light_directions;
-	float4x4* directional_light_matrices;
 	const gl::texture_2d** directional_light_textures;
+	float4x4* directional_light_texture_matrices;
+	float* directional_light_texture_opacities;
 	float3* spotlight_colors;
 	float3* spotlight_positions;
 	float3* spotlight_directions;

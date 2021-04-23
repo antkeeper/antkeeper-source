@@ -150,6 +150,8 @@ void play_state_enter(game_context* ctx)
 	sun->set_color(sun_color);
 	sun->set_intensity(750.0f);
 	sun->set_light_texture(resource_manager->load<gl::texture_2d>("forest-gobo.tex"));
+	sun->set_light_texture_scale({500, 500});
+	sun->set_light_texture_opacity(0.9f);
 	sun->look_at({2, 1, 0}, {0, 0, 0}, {0, 0, 1});
 	sun->update_tweens();
 	ctx->overworld_scene->add_object(sun);
@@ -205,12 +207,12 @@ void play_state_enter(game_context* ctx)
 	scene::model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
 	if (lens_model_instance)
 	{
-		lens_model_instance->set_culling_mask(&ctx->no_cull);
+		//lens_model_instance->set_culling_mask(&ctx->no_cull);
 	}
 	
 	// Create lens light cone and set its parent to lens
 	auto lens_light_cone = lens_light_cone_archetype->create(ecs_registry);
-	//ecs::command::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
+	ecs::command::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
 	ecs::command::parent(ecs_registry, lens_light_cone, ctx->lens_entity);
 	
 	// Hide inactive tools

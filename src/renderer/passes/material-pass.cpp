@@ -59,8 +59,7 @@ material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	mouse_position({0.0f, 0.0f}),
 	focal_point_tween(nullptr),
 	shadow_map_pass(nullptr),
-	shadow_map(nullptr),
-	shadow_strength(1.0f)
+	shadow_map(nullptr)
 {
 	max_ambient_light_count = MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT;
 	max_point_light_count = MATERIAL_PASS_MAX_POINT_LIGHT_COUNT;
@@ -73,8 +72,10 @@ material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	point_light_attenuations = new float3[max_point_light_count];
 	directional_light_colors = new float3[max_directional_light_count];
 	directional_light_directions = new float3[max_directional_light_count];
-	directional_light_matrices = new float4x4[max_directional_light_count];
 	directional_light_textures = new const gl::texture_2d*[max_directional_light_count];
+	directional_light_texture_matrices = new float4x4[max_directional_light_count];
+	directional_light_texture_opacities = new float[max_directional_light_count];
+	
 	spotlight_colors = new float3[max_spotlight_count];
 	spotlight_positions = new float3[max_spotlight_count];
 	spotlight_directions = new float3[max_spotlight_count];
@@ -90,8 +91,9 @@ material_pass::~material_pass()
 	delete[] point_light_attenuations;
 	delete[] directional_light_colors;
 	delete[] directional_light_directions;
-	delete[] directional_light_matrices;
 	delete[] directional_light_textures;
+	delete[] directional_light_texture_matrices;
+	delete[] directional_light_texture_opacities;
 	delete[] spotlight_colors;
 	delete[] spotlight_positions;
 	delete[] spotlight_directions;
@@ -121,6 +123,7 @@ void material_pass::render(render_context* context) const
 	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
 	float time = (time_tween) ? time_tween->interpolate(context->alpha) : 0.0f;
+	const float3& camera_position = context->camera_transform.translation;
 	float3 focal_point = (focal_point_tween) ? focal_point_tween->interpolate(context->alpha) : float3{0, 0, 0};
 	float4x4 view = context->camera->get_view_tween().interpolate(context->alpha);
 	float4x4 projection = context->camera->get_projection_tween().interpolate(context->alpha);
@@ -128,6 +131,7 @@ void material_pass::render(render_context* context) const
 	float4x4 model_view_projection;
 	float4x4 model;
 	float4x4 model_view;
+	float3x3 normal_model;
 	float3x3 normal_model_view;
 	float2 clip_depth;
 	clip_depth[0] = context->camera->get_clip_near_tween().interpolate(context->alpha);
@@ -175,10 +179,8 @@ void material_pass::render(render_context* context) const
 				{
 					point_light_colors[point_light_count] = light->get_scaled_color_tween().interpolate(context->alpha);
 					
-					// Transform position into view-space
 					float3 position = light->get_transform_tween().interpolate(context->alpha).translation;
-					float3 view_space_position = math::resize<3>(view * float4{position.x, position.y, position.z, 1.0f});
-					point_light_positions[point_light_count] = view_space_position;
+					point_light_positions[point_light_count] = position;
 					
 					point_light_attenuations[point_light_count] = static_cast<const scene::point_light*>(light)->get_attenuation_tween().interpolate(context->alpha);
 					++point_light_count;
@@ -195,28 +197,30 @@ void material_pass::render(render_context* context) const
 
 					directional_light_colors[directional_light_count] = light->get_scaled_color_tween().interpolate(context->alpha);
 					
-					// Transform direction into view-space
 					float3 direction = static_cast<const scene::directional_light*>(light)->get_direction_tween().interpolate(context->alpha);
-					float3 view_space_direction = math::normalize(math::resize<3>(view * math::resize<4>(-direction)));
-					directional_light_directions[directional_light_count] = view_space_direction;
+					directional_light_directions[directional_light_count] = direction;
 					
-					// Calculate a view-projection matrix from the directional light's transform
-					math::transform<float> light_transform = light->get_transform_tween().interpolate(context->alpha);
-					float3 forward = light_transform.rotation * global_forward;
-					float3 up = light_transform.rotation * global_up;
 					
-					float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
-					float4x4 light_projection = math::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-					float4x4 bias = math::translate(math::identity4x4<float>, {0.5f, 0.5f, 0.5f}) * math::scale(math::identity4x4<float>, {0.5f, 0.5f, 0.5f});
-					
-					//float scale_u = 1.0f;
-					//float scale_v = 1.0f;
-					//float4x4 light_projection = math::ortho(-scale_u, scale_u, -scale_v, scale_v, -1.0f, 1.0f);
-					directional_light_matrices[directional_light_count] = bias * light_projection * light_view;
-					
-
-					
-					directional_light_textures[directional_light_count] = directional_light->get_light_texture();
+					if (directional_light->get_light_texture())
+					{
+						directional_light_textures[directional_light_count] = directional_light->get_light_texture();
+						directional_light_texture_opacities[directional_light_count] = directional_light->get_light_texture_opacity_tween().interpolate(context->alpha);
+						
+						math::transform<float> light_transform = light->get_transform_tween().interpolate(context->alpha);
+						float3 forward = light_transform.rotation * global_forward;
+						float3 up = light_transform.rotation * global_up;
+						float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
+						
+						float2 scale = directional_light->get_light_texture_scale_tween().interpolate(context->alpha);
+						float4x4 light_projection = math::ortho(-scale.x, scale.x, -scale.y, scale.y, -1.0f, 1.0f);
+						
+						directional_light_texture_matrices[directional_light_count] = light_projection * light_view;
+					}
+					else
+					{
+						directional_light_textures[directional_light_count] = nullptr;
+						directional_light_texture_opacities[directional_light_count] = 0.0f;
+					}
 					
 					++directional_light_count;
 				}
@@ -228,19 +232,15 @@ void material_pass::render(render_context* context) const
 			{
 				if (spotlight_count < max_spotlight_count)
 				{
+					const scene::spotlight* spotlight = static_cast<const scene::spotlight*>(light);
+
 					spotlight_colors[spotlight_count] = light->get_scaled_color_tween().interpolate(context->alpha);
 					
-					// Transform position into view-space
 					float3 position = light->get_transform_tween().interpolate(context->alpha).translation;
-					float3 view_space_position = math::resize<3>(view * float4{position.x, position.y, position.z, 1.0f});
-					spotlight_positions[spotlight_count] = view_space_position;
+					spotlight_positions[spotlight_count] = position;
 					
-					const scene::spotlight* spotlight = static_cast<const scene::spotlight*>(light);
-					
-					// Transform direction into view-space
 					float3 direction = spotlight->get_direction_tween().interpolate(context->alpha);
-					float3 view_space_direction = math::normalize(math::resize<3>(view * float4{-direction.x, -direction.y, -direction.z, 0.0f}));
-					spotlight_directions[spotlight_count] = view_space_direction;
+					spotlight_directions[spotlight_count] = direction;
 					
 					spotlight_attenuations[spotlight_count] = spotlight->get_attenuation_tween().interpolate(context->alpha);
 					spotlight_cutoffs[spotlight_count] = spotlight->get_cosine_cutoff_tween().interpolate(context->alpha);
@@ -255,17 +255,17 @@ void material_pass::render(render_context* context) const
 		}
 	}
 	
-	float4x4 shadow_map_matrices[4];
-	float4 shadow_map_split_distances;
+	float4x4 shadow_matrices_directional[4];
+	float4 shadow_splits_directional;
 	
 	if (shadow_map_pass)
 	{
 		for (int i = 0; i < 4; ++i)
-			shadow_map_matrices[i] = shadow_map_pass->get_shadow_matrices()[i];
+			shadow_matrices_directional[i] = shadow_map_pass->get_shadow_matrices()[i];
 
 		// Calculate shadow map split distances
 		for (int i = 0; i < 4; ++i)
-			shadow_map_split_distances[i] = shadow_map_pass->get_split_distances()[i + 1];
+			shadow_splits_directional[i] = shadow_map_pass->get_split_distances()[i + 1];
 	}
 	
 	// Sort render operations
@@ -304,7 +304,6 @@ void material_pass::render(render_context* context) const
 					{
 						glEnable(GL_BLEND);
 						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 					}
 					else
 					{
@@ -443,6 +442,8 @@ void material_pass::render(render_context* context) const
 					parameters->mouse->upload(mouse_position);
 				if (parameters->resolution)
 					parameters->resolution->upload(resolution);
+				if (parameters->camera_position)
+					parameters->camera_position->upload(camera_position);
 				if (parameters->view)
 					parameters->view->upload(view);
 				if (parameters->view_projection)
@@ -465,10 +466,14 @@ void material_pass::render(render_context* context) const
 					parameters->directional_light_colors->upload(0, directional_light_colors, directional_light_count);
 				if (parameters->directional_light_directions)
 					parameters->directional_light_directions->upload(0, directional_light_directions, directional_light_count);
-				if (parameters->directional_light_matrices)
-					parameters->directional_light_matrices->upload(0, directional_light_matrices, directional_light_count);
+				
 				if (parameters->directional_light_textures)
 					parameters->directional_light_textures->upload(0, directional_light_textures, directional_light_count);
+				if (parameters->directional_light_texture_matrices)
+					parameters->directional_light_texture_matrices->upload(0, directional_light_texture_matrices, directional_light_count);
+				if (parameters->directional_light_texture_opacities)
+					parameters->directional_light_texture_opacities->upload(0, directional_light_texture_opacities, directional_light_count);
+				
 				if (parameters->spotlight_count)
 					parameters->spotlight_count->upload(spotlight_count);
 				if (parameters->spotlight_colors)
@@ -483,14 +488,13 @@ void material_pass::render(render_context* context) const
 					parameters->spotlight_cutoffs->upload(0, spotlight_cutoffs, spotlight_count);
 				if (parameters->focal_point)
 					parameters->focal_point->upload(focal_point);
-				if (parameters->shadow_map_matrices)
-					parameters->shadow_map_matrices->upload(0, shadow_map_matrices, 4);
-				if (parameters->shadow_map_split_distances)
-					parameters->shadow_map_split_distances->upload(shadow_map_split_distances);
-				if (parameters->shadow_map && shadow_map)
-					parameters->shadow_map->upload(shadow_map);
-				if (parameters->shadow_strength)
-					parameters->shadow_strength->upload(shadow_strength);
+				
+				if (parameters->shadow_map_directional && shadow_map)
+					parameters->shadow_map_directional->upload(shadow_map);
+				if (parameters->shadow_matrices_directional)
+					parameters->shadow_matrices_directional->upload(0, shadow_matrices_directional, 4);
+				if (parameters->shadow_splits_directional)
+					parameters->shadow_splits_directional->upload(shadow_splits_directional);
 			}
 			
 			// Upload material properties to shader
@@ -501,6 +505,7 @@ void material_pass::render(render_context* context) const
 		model = operation.transform;
 		model_view_projection = view_projection * model;
 		model_view = view * model;
+		normal_model = math::transpose(math::inverse(math::resize<3, 3>(model)));
 		normal_model_view = math::transpose(math::inverse(math::resize<3, 3>(model_view)));
 
 		// Upload operation-dependent parameters
@@ -510,6 +515,8 @@ void material_pass::render(render_context* context) const
 			parameters->model_view->upload(model_view);
 		if (parameters->model_view_projection)
 			parameters->model_view_projection->upload(model_view_projection);
+		if (parameters->normal_model)
+			parameters->normal_model->upload(normal_model);
 		if (parameters->normal_model_view)
 			parameters->normal_model_view->upload(normal_model_view);
 		if (parameters->clip_depth)
@@ -535,11 +542,6 @@ void material_pass::set_time_tween(const tween<double>* time)
 	this->time_tween = time;
 }
 
-void material_pass::set_shadow_strength(float strength)
-{
-	this->shadow_strength = strength;
-}
-
 void material_pass::set_focal_point_tween(const tween<float3>* focal_point)
 {
 	this->focal_point_tween = focal_point;
@@ -554,12 +556,14 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 	parameters->time = program->get_input("time");
 	parameters->mouse = program->get_input("mouse");
 	parameters->resolution = program->get_input("resolution");
+	parameters->camera_position = program->get_input("camera_position");
 	parameters->model = program->get_input("model");
 	parameters->view = program->get_input("view");
 	parameters->projection = program->get_input("projection");
 	parameters->model_view = program->get_input("model_view");
 	parameters->view_projection = program->get_input("view_projection");
 	parameters->model_view_projection = program->get_input("model_view_projection");
+	parameters->normal_model = program->get_input("normal_model");
 	parameters->normal_model_view = program->get_input("normal_model_view");
 	parameters->clip_depth = program->get_input("clip_depth");
 	parameters->log_depth_coef = program->get_input("log_depth_coef");
@@ -572,8 +576,9 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 	parameters->directional_light_count = program->get_input("directional_light_count");
 	parameters->directional_light_colors = program->get_input("directional_light_colors");
 	parameters->directional_light_directions = program->get_input("directional_light_directions");
-	parameters->directional_light_matrices = program->get_input("directional_light_matrices");
 	parameters->directional_light_textures = program->get_input("directional_light_textures");
+	parameters->directional_light_texture_matrices = program->get_input("directional_light_texture_matrices");
+	parameters->directional_light_texture_opacities = program->get_input("directional_light_texture_opacities");
 	parameters->spotlight_count = program->get_input("spotlight_count");
 	parameters->spotlight_colors = program->get_input("spotlight_colors");
 	parameters->spotlight_positions = program->get_input("spotlight_positions");
@@ -581,10 +586,9 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 	parameters->spotlight_attenuations = program->get_input("spotlight_attenuations");
 	parameters->spotlight_cutoffs = program->get_input("spotlight_cutoffs");
 	parameters->focal_point = program->get_input("focal_point");
-	parameters->shadow_map_matrices = program->get_input("shadow_map_matrices");
-	parameters->shadow_map_split_distances = program->get_input("shadow_map_split_distances");
-	parameters->shadow_map = program->get_input("shadow_map");
-	parameters->shadow_strength = program->get_input("shadow_strength");
+	parameters->shadow_map_directional = program->get_input("shadow_map_directional");
+	parameters->shadow_splits_directional = program->get_input("shadow_splits_directional");
+	parameters->shadow_matrices_directional = program->get_input("shadow_matrices_directional");
 
 	// Add parameter set to map of parameter sets
 	parameter_sets[program] = parameters;

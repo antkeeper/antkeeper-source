@@ -81,7 +81,7 @@ void astronomy_system::update(double t, double dt)
 			math::quaternion<float> sun_elevation_rotation = math::angle_axis(static_cast<float>(spherical.y), float3{-1, 0, 0});
 			math::quaternion<float> sun_az_el_rotation = math::normalize(sun_azimuth_rotation * sun_elevation_rotation);
 			
-			sun_az_el_rotation = math::angle_axis((float)universal_time * math::two_pi<float>, float3{1, 0, 0});
+			//sun_az_el_rotation = math::angle_axis((float)universal_time * math::two_pi<float>, float3{1, 0, 0});
 			
 			//
 			//sun_light->look_at({0, 0, 0}, {0, -1, 0}, {0, 0, 1});
