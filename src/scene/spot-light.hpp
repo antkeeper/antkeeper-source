@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SCENE_SPOTLIGHT_HPP
-#define ANTKEEPER_SCENE_SPOTLIGHT_HPP
+#ifndef ANTKEEPER_SCENE_SPOT_LIGHT_HPP
+#define ANTKEEPER_SCENE_SPOT_LIGHT_HPP
 
 #include "scene/light.hpp"
 #include "utility/fundamental-types.hpp"
@@ -28,11 +28,11 @@ namespace scene {
 /**
  * Directional cone light source.
  */
-class spotlight: public light
+class spot_light: public light
 {
 public:
-	/// Creates a spotlight.
-	spotlight();
+	/// Creates a spot light.
+	spot_light();
 	
 	/// Returns light_type::spot
 	virtual light_type get_light_type() const;
@@ -45,7 +45,7 @@ public:
 	void set_attenuation(const float3& attenuation);
 	
 	/**
-	 * Sets the spotlight cutoff angles.
+	 * Sets the spot light cutoff angles.
 	 *
 	 * @param cutoff Vector containing the inner and outer cutoff angles, as x and y, respectively.
 	 */
@@ -57,10 +57,10 @@ public:
 	/// Returns the attenuation factors of the light.
 	const float3& get_attenuation() const;
 	
-	/// Returns the spotlight cutoff angles.
+	/// Returns the spot light cutoff angles.
 	const float2& get_cutoff() const;
 	
-	/// Returns the cosine of the spotlight cutoff angles.
+	/// Returns the cosine of the spot light cutoff angles.
 	const float2& get_cosine_cutoff() const;
 	
 	/// Returns the direction tween.
@@ -87,52 +87,52 @@ private:
 	tween<float2> cosine_cutoff;
 };
 
-inline light_type spotlight::get_light_type() const
+inline light_type spot_light::get_light_type() const
 {
 	return light_type::spot;
 }
 
-inline const float3& spotlight::get_direction() const
+inline const float3& spot_light::get_direction() const
 {
 	return direction[1];
 }
 
-inline const float3& spotlight::get_attenuation() const
+inline const float3& spot_light::get_attenuation() const
 {
 	return attenuation[1];
 }
 
-inline const float2& spotlight::get_cutoff() const
+inline const float2& spot_light::get_cutoff() const
 {
 	return cutoff[1];
 }
 
-inline const float2& spotlight::get_cosine_cutoff() const
+inline const float2& spot_light::get_cosine_cutoff() const
 {
 	return cosine_cutoff[1];
 }
 
-inline const tween<float3>& spotlight::get_direction_tween() const
+inline const tween<float3>& spot_light::get_direction_tween() const
 {
 	return direction;
 }
 
-inline const tween<float3>& spotlight::get_attenuation_tween() const
+inline const tween<float3>& spot_light::get_attenuation_tween() const
 {
 	return attenuation;
 }
 
-inline const tween<float2>& spotlight::get_cutoff_tween() const
+inline const tween<float2>& spot_light::get_cutoff_tween() const
 {
 	return cutoff;
 }
 
-inline const tween<float2>& spotlight::get_cosine_cutoff_tween() const
+inline const tween<float2>& spot_light::get_cosine_cutoff_tween() const
 {
 	return cosine_cutoff;
 }
 
 } // namespace scene
 
-#endif // ANTKEEPER_SCENE_SPOTLIGHT_HPP
+#endif // ANTKEEPER_SCENE_SPOT_LIGHT_HPP
 

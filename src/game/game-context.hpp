@@ -189,8 +189,8 @@ struct game_context
 	scene::point_light* subterrain_light;
 	scene::ambient_light* underworld_ambient_light;
 	scene::billboard* splash_billboard;
-	scene::spotlight* lens_spotlight;
-	scene::spotlight* flashlight_spotlight;
+	scene::spot_light* lens_spot_light;
+	scene::spot_light* flashlight_spot_light;
 	geom::aabb<float> no_cull;
 	
 	// Animation

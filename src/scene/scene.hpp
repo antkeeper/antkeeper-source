@@ -33,6 +33,6 @@ namespace scene {}
 #include "model-instance.hpp"
 #include "object.hpp"
 #include "point-light.hpp"
-#include "spotlight.hpp"
+#include "spot-light.hpp"
 
 #endif // ANTKEEPER_SCENE_HPP

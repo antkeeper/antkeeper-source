@@ -644,17 +644,17 @@ void setup_scenes(game_context* ctx)
 	ctx->underworld_ambient_light->set_intensity(0.1f);
 	ctx->underworld_ambient_light->update_tweens();
 	
-	ctx->lens_spotlight = new scene::spotlight();
-	ctx->lens_spotlight->set_color({1, 1, 1});
-	ctx->lens_spotlight->set_intensity(20.0f);
-	ctx->lens_spotlight->set_attenuation({1.0f, 0.0f, 0.0f});
-	ctx->lens_spotlight->set_cutoff({math::radians(1.25f), math::radians(1.8f)});
+	ctx->lens_spot_light = new scene::spot_light();
+	ctx->lens_spot_light->set_color({1, 1, 1});
+	ctx->lens_spot_light->set_intensity(20.0f);
+	ctx->lens_spot_light->set_attenuation({1.0f, 0.0f, 0.0f});
+	ctx->lens_spot_light->set_cutoff({math::radians(1.25f), math::radians(1.8f)});
 	
-	ctx->flashlight_spotlight = new scene::spotlight();
-	ctx->flashlight_spotlight->set_color({1, 1, 1});
-	ctx->flashlight_spotlight->set_intensity(1.0f);
-	ctx->flashlight_spotlight->set_attenuation({1.0f, 0.0f, 0.0f});
-	ctx->flashlight_spotlight->set_cutoff({math::radians(10.0f), math::radians(19.0f)});
+	ctx->flashlight_spot_light = new scene::spot_light();
+	ctx->flashlight_spot_light->set_color({1, 1, 1});
+	ctx->flashlight_spot_light->set_intensity(1.0f);
+	ctx->flashlight_spot_light->set_attenuation({1.0f, 0.0f, 0.0f});
+	ctx->flashlight_spot_light->set_cutoff({math::radians(10.0f), math::radians(19.0f)});
 
 
 	
@@ -690,7 +690,7 @@ void setup_scenes(game_context* ctx)
 	ctx->overworld_scene = new scene::collection();
 	ctx->overworld_scene->add_object(ctx->overworld_camera);
 	//ctx->overworld_scene->add_object(ctx->moon_light);
-	//ctx->overworld_scene->add_object(ctx->spotlight);
+	//ctx->overworld_scene->add_object(ctx->spot_light);
 	
 	// Setup underworld scene
 	ctx->underworld_scene = new scene::collection();
@@ -706,8 +706,8 @@ void setup_scenes(game_context* ctx)
 	ctx->ui_scene = new scene::collection();
 	ctx->ui_scene->add_object(ctx->ui_camera);
 	
-	//ctx->overworld_scene->add_object(ctx->lens_spotlight);
-	ctx->underworld_scene->add_object(ctx->flashlight_spotlight);
+	//ctx->overworld_scene->add_object(ctx->lens_spot_light);
+	ctx->underworld_scene->add_object(ctx->flashlight_spot_light);
 	
 	// Set overworld as active scene
 	ctx->active_scene = ctx->overworld_scene;
@@ -1271,11 +1271,11 @@ void setup_callbacks(game_context* ctx)
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			
 			auto xf = ecs::command::get_world_transform(*ctx->ecs_registry, ctx->lens_entity);
-			//ctx->lens_spotlight->look_at(xf.translation, xf.translation + ctx->sun_direct->get_direction(), {0, 1, 0});
+			//ctx->lens_spot_light->look_at(xf.translation, xf.translation + ctx->sun_direct->get_direction(), {0, 1, 0});
 			
 			xf = ecs::command::get_world_transform(*ctx->ecs_registry, ctx->flashlight_entity);
-			//ctx->flashlight_spotlight->set_transform(xf);
-			ctx->flashlight_spotlight->look_at(xf.translation, xf.translation + xf.rotation * float3{0, 0, 1}, {0, 0, -1});
+			//ctx->flashlight_spot_light->set_transform(xf);
+			ctx->flashlight_spot_light->look_at(xf.translation, xf.translation + xf.rotation * float3{0, 0, 1}, {0, 0, -1});
 			
 			ctx->ui_system->update(dt);
 			ctx->render_system->update(t, dt);

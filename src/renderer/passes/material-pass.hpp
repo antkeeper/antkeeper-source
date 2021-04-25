@@ -92,12 +92,12 @@ private:
 		const gl::shader_input* directional_light_textures;
 		const gl::shader_input* directional_light_texture_matrices;
 		const gl::shader_input* directional_light_texture_opacities;
-		const gl::shader_input* spotlight_count;
-		const gl::shader_input* spotlight_colors;
-		const gl::shader_input* spotlight_positions;
-		const gl::shader_input* spotlight_directions;
-		const gl::shader_input* spotlight_attenuations;
-		const gl::shader_input* spotlight_cutoffs;
+		const gl::shader_input* spot_light_count;
+		const gl::shader_input* spot_light_colors;
+		const gl::shader_input* spot_light_positions;
+		const gl::shader_input* spot_light_directions;
+		const gl::shader_input* spot_light_attenuations;
+		const gl::shader_input* spot_light_cutoffs;
 		
 		const gl::shader_input* focal_point;
 		
@@ -117,12 +117,12 @@ private:
 	int max_ambient_light_count;
 	int max_point_light_count;
 	int max_directional_light_count;
-	int max_spotlight_count;
+	int max_spot_light_count;
 	
 	mutable int ambient_light_count;
 	mutable int point_light_count;
 	mutable int directional_light_count;
-	mutable int spotlight_count;
+	mutable int spot_light_count;
 
 	float3* ambient_light_colors;
 	float3* point_light_colors;
@@ -133,11 +133,11 @@ private:
 	const gl::texture_2d** directional_light_textures;
 	float4x4* directional_light_texture_matrices;
 	float* directional_light_texture_opacities;
-	float3* spotlight_colors;
-	float3* spotlight_positions;
-	float3* spotlight_directions;
-	float3* spotlight_attenuations;
-	float2* spotlight_cutoffs;
+	float3* spot_light_colors;
+	float3* spot_light_positions;
+	float3* spot_light_directions;
+	float3* spot_light_attenuations;
+	float2* spot_light_cutoffs;
 };
 
 #endif // ANTKEEPER_MATERIAL_PASS_HPP

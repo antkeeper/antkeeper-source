@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "spotlight.hpp"
+#include "spot-light.hpp"
 #include "configuration.hpp"
 #include "math/math.hpp"
 #include <cmath>
@@ -31,25 +31,25 @@ static float3 interpolate_direction(const float3& x, const float3& y, float a)
 	return math::normalize(math::slerp(q0, q1, a) * global_forward);
 }
 
-spotlight::spotlight():
+spot_light::spot_light():
 	direction(global_forward, interpolate_direction),
 	attenuation(float3{1, 0, 0}, math::lerp<float3, float>),
 	cutoff(float2{math::pi<float>, math::pi<float>}, math::lerp<float2, float>),
 	cosine_cutoff(float2{std::cos(math::pi<float>), std::cos(math::pi<float>)}, math::lerp<float2, float>)
 {}
 
-void spotlight::set_attenuation(const float3& attenuation)
+void spot_light::set_attenuation(const float3& attenuation)
 {
 	this->attenuation[1] = attenuation;
 }
 
-void spotlight::set_cutoff(const float2& cutoff)
+void spot_light::set_cutoff(const float2& cutoff)
 {
 	this->cutoff[1] = cutoff;
 	this->cosine_cutoff[1] = {std::cos(cutoff.x), std::cos(cutoff.y)};
 }
 
-void spotlight::update_tweens()
+void spot_light::update_tweens()
 {
 	light::update_tweens();
 	direction.update();
@@ -58,7 +58,7 @@ void spotlight::update_tweens()
 	cosine_cutoff.update();
 }
 
-void spotlight::transformed()
+void spot_light::transformed()
 {
 	direction[1] = math::normalize(get_transform().rotation * global_forward);
 }

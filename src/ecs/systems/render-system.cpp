@@ -23,7 +23,7 @@
 #include "scene/point-light.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/ambient-light.hpp"
-#include "scene/spotlight.hpp"
+#include "scene/spot-light.hpp"
 #include <iostream>
 
 namespace ecs {
@@ -163,7 +163,7 @@ void render_system::update_light(ecs::entity entity, ecs::light_component& compo
 			
 			case scene::light_type::spot:
 			{
-				scene::spotlight* spot = static_cast<scene::spotlight*>(light);
+				scene::spot_light* spot = static_cast<scene::spot_light*>(light);
 				spot->set_attenuation(component.attenuation);
 				spot->set_cutoff(component.cutoff);
 				break;
@@ -221,7 +221,7 @@ void render_system::on_light_construct(ecs::registry& registry, ecs::entity enti
 			break;
 		
 		case scene::light_type::spot:
-			light = new scene::spotlight();
+			light = new scene::spot_light();
 			break;
 		
 		default:

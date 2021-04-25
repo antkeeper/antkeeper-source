@@ -42,7 +42,7 @@
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/point-light.hpp"
-#include "scene/spotlight.hpp"
+#include "scene/spot-light.hpp"
 #include "configuration.hpp"
 #include "math/math.hpp"
 #include <cmath>
@@ -64,7 +64,7 @@ material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	max_ambient_light_count = MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT;
 	max_point_light_count = MATERIAL_PASS_MAX_POINT_LIGHT_COUNT;
 	max_directional_light_count = MATERIAL_PASS_MAX_DIRECTIONAL_LIGHT_COUNT;
-	max_spotlight_count = MATERIAL_PASS_MAX_SPOTLIGHT_COUNT;
+	max_spot_light_count = MATERIAL_PASS_MAX_SPOTLIGHT_COUNT;
 	
 	ambient_light_colors = new float3[max_ambient_light_count];
 	point_light_colors = new float3[max_point_light_count];
@@ -76,11 +76,11 @@ material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	directional_light_texture_matrices = new float4x4[max_directional_light_count];
 	directional_light_texture_opacities = new float[max_directional_light_count];
 	
-	spotlight_colors = new float3[max_spotlight_count];
-	spotlight_positions = new float3[max_spotlight_count];
-	spotlight_directions = new float3[max_spotlight_count];
-	spotlight_attenuations = new float3[max_spotlight_count];
-	spotlight_cutoffs = new float2[max_spotlight_count];
+	spot_light_colors = new float3[max_spot_light_count];
+	spot_light_positions = new float3[max_spot_light_count];
+	spot_light_directions = new float3[max_spot_light_count];
+	spot_light_attenuations = new float3[max_spot_light_count];
+	spot_light_cutoffs = new float2[max_spot_light_count];
 }
 
 material_pass::~material_pass()
@@ -94,11 +94,11 @@ material_pass::~material_pass()
 	delete[] directional_light_textures;
 	delete[] directional_light_texture_matrices;
 	delete[] directional_light_texture_opacities;
-	delete[] spotlight_colors;
-	delete[] spotlight_positions;
-	delete[] spotlight_directions;
-	delete[] spotlight_attenuations;
-	delete[] spotlight_cutoffs;
+	delete[] spot_light_colors;
+	delete[] spot_light_positions;
+	delete[] spot_light_directions;
+	delete[] spot_light_attenuations;
+	delete[] spot_light_cutoffs;
 }
 
 void material_pass::render(render_context* context) const
@@ -148,7 +148,7 @@ void material_pass::render(render_context* context) const
 	ambient_light_count = 0;
 	point_light_count = 0;
 	directional_light_count = 0;
-	spotlight_count = 0;
+	spot_light_count = 0;
 	
 	// Collect lights
 	const std::list<scene::object_base*>* lights = context->collection->get_objects(scene::light::object_type_id);
@@ -227,25 +227,25 @@ void material_pass::render(render_context* context) const
 				break;
 			}
 			
-			// Add spotlight
+			// Add spot_light
 			case scene::light_type::spot:
 			{
-				if (spotlight_count < max_spotlight_count)
+				if (spot_light_count < max_spot_light_count)
 				{
-					const scene::spotlight* spotlight = static_cast<const scene::spotlight*>(light);
+					const scene::spot_light* spot_light = static_cast<const scene::spot_light*>(light);
 
-					spotlight_colors[spotlight_count] = light->get_scaled_color_tween().interpolate(context->alpha);
+					spot_light_colors[spot_light_count] = light->get_scaled_color_tween().interpolate(context->alpha);
 					
 					float3 position = light->get_transform_tween().interpolate(context->alpha).translation;
-					spotlight_positions[spotlight_count] = position;
+					spot_light_positions[spot_light_count] = position;
 					
-					float3 direction = spotlight->get_direction_tween().interpolate(context->alpha);
-					spotlight_directions[spotlight_count] = direction;
+					float3 direction = spot_light->get_direction_tween().interpolate(context->alpha);
+					spot_light_directions[spot_light_count] = direction;
 					
-					spotlight_attenuations[spotlight_count] = spotlight->get_attenuation_tween().interpolate(context->alpha);
-					spotlight_cutoffs[spotlight_count] = spotlight->get_cosine_cutoff_tween().interpolate(context->alpha);
+					spot_light_attenuations[spot_light_count] = spot_light->get_attenuation_tween().interpolate(context->alpha);
+					spot_light_cutoffs[spot_light_count] = spot_light->get_cosine_cutoff_tween().interpolate(context->alpha);
 					
-					++spotlight_count;
+					++spot_light_count;
 				}
 				break;
 			}
@@ -474,18 +474,18 @@ void material_pass::render(render_context* context) const
 				if (parameters->directional_light_texture_opacities)
 					parameters->directional_light_texture_opacities->upload(0, directional_light_texture_opacities, directional_light_count);
 				
-				if (parameters->spotlight_count)
-					parameters->spotlight_count->upload(spotlight_count);
-				if (parameters->spotlight_colors)
-					parameters->spotlight_colors->upload(0, spotlight_colors, spotlight_count);
-				if (parameters->spotlight_positions)
-					parameters->spotlight_positions->upload(0, spotlight_positions, spotlight_count);
-				if (parameters->spotlight_directions)
-					parameters->spotlight_directions->upload(0, spotlight_directions, spotlight_count);
-				if (parameters->spotlight_attenuations)
-					parameters->spotlight_attenuations->upload(0, spotlight_attenuations, spotlight_count);
-				if (parameters->spotlight_cutoffs)
-					parameters->spotlight_cutoffs->upload(0, spotlight_cutoffs, spotlight_count);
+				if (parameters->spot_light_count)
+					parameters->spot_light_count->upload(spot_light_count);
+				if (parameters->spot_light_colors)
+					parameters->spot_light_colors->upload(0, spot_light_colors, spot_light_count);
+				if (parameters->spot_light_positions)
+					parameters->spot_light_positions->upload(0, spot_light_positions, spot_light_count);
+				if (parameters->spot_light_directions)
+					parameters->spot_light_directions->upload(0, spot_light_directions, spot_light_count);
+				if (parameters->spot_light_attenuations)
+					parameters->spot_light_attenuations->upload(0, spot_light_attenuations, spot_light_count);
+				if (parameters->spot_light_cutoffs)
+					parameters->spot_light_cutoffs->upload(0, spot_light_cutoffs, spot_light_count);
 				if (parameters->focal_point)
 					parameters->focal_point->upload(focal_point);
 				
@@ -579,12 +579,12 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 	parameters->directional_light_textures = program->get_input("directional_light_textures");
 	parameters->directional_light_texture_matrices = program->get_input("directional_light_texture_matrices");
 	parameters->directional_light_texture_opacities = program->get_input("directional_light_texture_opacities");
-	parameters->spotlight_count = program->get_input("spotlight_count");
-	parameters->spotlight_colors = program->get_input("spotlight_colors");
-	parameters->spotlight_positions = program->get_input("spotlight_positions");
-	parameters->spotlight_directions = program->get_input("spotlight_directions");
-	parameters->spotlight_attenuations = program->get_input("spotlight_attenuations");
-	parameters->spotlight_cutoffs = program->get_input("spotlight_cutoffs");
+	parameters->spot_light_count = program->get_input("spot_light_count");
+	parameters->spot_light_colors = program->get_input("spot_light_colors");
+	parameters->spot_light_positions = program->get_input("spot_light_positions");
+	parameters->spot_light_directions = program->get_input("spot_light_directions");
+	parameters->spot_light_attenuations = program->get_input("spot_light_attenuations");
+	parameters->spot_light_cutoffs = program->get_input("spot_light_cutoffs");
 	parameters->focal_point = program->get_input("focal_point");
 	parameters->shadow_map_directional = program->get_input("shadow_map_directional");
 	parameters->shadow_splits_directional = program->get_input("shadow_splits_directional");
