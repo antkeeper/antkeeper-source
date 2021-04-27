@@ -194,14 +194,16 @@ void shader_program::find_inputs()
 		GLint uniform_location = glGetUniformLocation(gl_program_id, uniform_name);
 		if (uniform_location == -1)
 		{
-			std::string message = std::string("Unable to get location for uniform \"") + std::string(uniform_name) + std::string("\"");
-			throw std::runtime_error(message.c_str());
+			//std::string message = std::string("Unable to get location for uniform \"") + std::string(uniform_name) + std::string("\"");
+			//throw std::runtime_error(message.c_str());
 		}
-		
-		// Create new shader input
-		shader_input* input = new shader_input(this, inputs.size(), uniform_location, input_name, variable_type, uniform_size, texture_unit);
-		input_map[input_name] = input;
-		inputs.push_back(input);
+		else
+		{
+			// Create new shader input
+			shader_input* input = new shader_input(this, inputs.size(), uniform_location, input_name, variable_type, uniform_size, texture_unit);
+			input_map[input_name] = input;
+			inputs.push_back(input);
+		}
 	}
 	
 	// Free uniform name buffer

@@ -115,7 +115,7 @@ std::size_t material::reconnect_properties()
 
 		if (program != nullptr)
 		{
-			if (property->connect(program->get_input(it->first)))
+			if (property->connect(program->get_input("material." + it->first)))
 			{
 				--disconnected_property_count;
 			}

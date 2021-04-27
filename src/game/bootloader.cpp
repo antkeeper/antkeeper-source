@@ -511,6 +511,7 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_outline_pass = new outline_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->overworld_outline_pass->set_outline_width(0.25f);
 	ctx->overworld_outline_pass->set_outline_color(float4{1.0f, 1.0f, 1.0f, 1.0f});
+	ctx->overworld_outline_pass->set_enabled(false);
 	ctx->overworld_bloom_pass = new bloom_pass(ctx->rasterizer, ctx->framebuffer_bloom, ctx->resource_manager);
 	ctx->overworld_bloom_pass->set_source_texture(ctx->framebuffer_hdr_color);
 	ctx->overworld_bloom_pass->set_brightness_threshold(1.0f);

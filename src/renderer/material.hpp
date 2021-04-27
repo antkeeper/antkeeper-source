@@ -150,7 +150,7 @@ material_property<T>* material::add_property(const std::string& name, std::size_
 	// Attempt to connect property to its corresponding shader input
 	if (program)
 	{
-		property->connect(program->get_input(name));
+		property->connect(program->get_input("material." + name));
 	}
 
 	return property;

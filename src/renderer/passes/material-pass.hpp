@@ -69,6 +69,7 @@ private:
 		const gl::shader_input* mouse;
 		const gl::shader_input* resolution;
 		const gl::shader_input* camera_position;
+		const gl::shader_input* camera_exposure;
 		const gl::shader_input* model;
 		const gl::shader_input* view;
 		const gl::shader_input* projection;
