@@ -49,7 +49,7 @@ application::application():
 	window_dimensions({0, 0}),
 	viewport_dimensions({0, 0}),
 	mouse_position({0, 0}),
-	update_rate(60.0),
+	update_rate(5.0),
 	logger(nullptr),
 	sdl_window(nullptr),
 	sdl_gl_context(nullptr)

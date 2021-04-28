@@ -35,6 +35,7 @@
 #include "input/listener.hpp"
 #include "input/mapper.hpp"
 #include "input/event-router.hpp"
+#include "animation/tween.hpp"
 #include <optional>
 #include <entt/entt.hpp>
 #include <fstream>
@@ -64,7 +65,6 @@ class outline_pass;
 struct biome;
 template <typename T> class animation;
 template <typename T> class material_property;
-template <typename T> class tween;
 
 namespace debug
 {

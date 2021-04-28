@@ -25,17 +25,26 @@
 #include <type_traits>
 
 /**
- * Container which stores two states along with an interpolator, for quick and easy tweening.
+ * Container which stores two states along with an interpolator, for quick and easy tween<T, S>ing.
  *
  * @tparam T Value type.
+ * @tparam S Scalar type.
  */
-template <class T>
+template <class T, class S = float>
 class tween
 {
 public:
-	//typedef typename std::remove_pointer<T>::type value_type;
+	static_assert(std::is_scalar<S>::value);
+	
 	typedef T value_type;
-	typedef typename std::decay<std::function<value_type(const T&, const T&, double)>>::type interpolator_type;
+	typedef S scalar_type;
+	typedef typename std::decay<std::function<value_type(const value_type&, const value_type&, scalar_type)>>::type interpolator_type;
+	
+private:
+	/// Throws an error if no interpolator is set.
+	static value_type interpolator_error(const value_type&, const value_type&, scalar_type);
+	
+public:
 	
 	/**
 	 * Creates a tween.
@@ -44,7 +53,7 @@ public:
 	 * @param state1 Initial value of state 1.
 	 * @param interpolator Function used to interpolate between states 0 and 1.
 	 */
-	tween(const T& state0, const T& state1, interpolator_type interpolator = nullptr);
+	tween(const value_type& state0, const value_type& state1, interpolator_type interpolator = tween<T, S>::interpolator_error);
 	
 	/**
 	 * Creates a tween.
@@ -52,25 +61,26 @@ public:
 	 * @param value Initial value of states 0 and 1.
 	 * @param interpolator Function used to interpolate between states 0 and 1.
 	 */
-	explicit tween(const T& value, interpolator_type interpolator = nullptr);
+	explicit tween(const value_type& value, interpolator_type interpolator = tween<T, S>::interpolator_error);
 	
 	/**
 	 * Creates a tween.
-	 *
-	 * @param interpolator Function that will be used to interpolate between states 0 and 1.
 	 */
 	tween();
 
 	/**
 	 * Returns a reference to the specified tween state.
 	 *
-	 * @param state Index of a tween state. Should be either `0` or `1`.
+	 * @param i Index of a tween state. Should be either `0` or `1`.
 	 * @return Reference to the specified tween state.
 	 */
-	const T& operator[](int state) const;
+	const value_type& operator[](int i) const;
 
-	/// @copydoc tween::operator[](int) const
-	T& operator[](int state);
+	/// @copydoc tween<T, S>::operator[](int) const
+	value_type& operator[](int i);
+	
+	/// @copydoc tween<T, S>::interpolate(scalar_type) const
+	value_type operator[](scalar_type a) const;
 
 	/**
 	 * Returns an interpolated state between state 0 and state 1. If no interpolator is set, state 1 will be returned.
@@ -78,7 +88,7 @@ public:
 	 * @param a Interpolation factor on `[0.0, 1.0]`.
 	 * @return Interpolated state, or state 1 if no interpolator is set.
 	 */
-	value_type interpolate(double a) const;
+	value_type interpolate(scalar_type a) const;
 	
 	/**
 	 * Sets the function used to interpolate between states 0 and 1.
@@ -103,70 +113,79 @@ public:
 	void swap();
 
 private:
-	T state0;
-	T state1;
+	value_type states[2];
 	interpolator_type interpolator;
 };
 
-template <class T>
-tween<T>::tween(const T& value, interpolator_type interpolator):
-	state0(value),
-	state1(value),
+template <class T, class S>
+typename tween<T, S>::value_type tween<T, S>::interpolator_error(const value_type&, const value_type&, scalar_type)
+{
+	throw std::runtime_error("tween interpolator not set");
+}
+
+template <class T, class S>
+tween<T, S>::tween(const value_type& value, interpolator_type interpolator):
+	states{value, value},
 	interpolator(interpolator)
 {}
 
-template <class T>
-tween<T>::tween(const T& state0, const T& state1, interpolator_type interpolator):
-	state0(state0),
-	state1(state1),
+template <class T, class S>
+tween<T, S>::tween(const value_type& state0, const value_type& state1, interpolator_type interpolator):
+	states{state0, state1},
 	interpolator(interpolator)
 {}
 
-template <class T>
-tween<T>::tween():
+template <class T, class S>
+tween<T, S>::tween():
 	interpolator(nullptr)
 {}
 
-template <class T>
-inline const T& tween<T>::operator[](int state) const
+template <class T, class S>
+inline const typename tween<T, S>::value_type& tween<T, S>::operator[](int i) const
 {
-	return (state <= 0) ? state0 : state1;
+	return states[i];
 }
 
-template <class T>
-inline T& tween<T>::operator[](int state)
+template <class T, class S>
+inline typename tween<T, S>::value_type& tween<T, S>::operator[](int i)
 {
-	return (state <= 0) ? state0 : state1;
+	return states[i];
 }
 
-template <class T>
-inline typename tween<T>::value_type tween<T>::interpolate(double a) const
+template <class T, class S>
+inline typename tween<T, S>::value_type tween<T, S>::operator[](scalar_type a) const
 {
-	return (interpolator) ? interpolator(state0, state1, a) : state1;
+	return interpolate(a);
 }
 
-template <class T>
-inline void tween<T>::set_interpolator(const interpolator_type& interpolator)
+template <class T, class S>
+inline typename tween<T, S>::value_type tween<T, S>::interpolate(scalar_type a) const
+{
+	return interpolator(states[0], states[1], a);
+}
+
+template <class T, class S>
+inline void tween<T, S>::set_interpolator(const interpolator_type& interpolator)
 {
 	this->interpolator = interpolator;
 }
 
-template <class T>
-inline const typename tween<T>::interpolator_type& tween<T>::get_interpolator() const
+template <class T, class S>
+inline const typename tween<T, S>::interpolator_type& tween<T, S>::get_interpolator() const
 {
 	return interpolator;
 }
 
-template <class T>
-inline void tween<T>::update()
+template <class T, class S>
+inline void tween<T, S>::update()
 {
-	state0 = state1;
+	states[0] = states[1];
 }
 
-template <class T>
-inline void tween<T>::swap()
+template <class T, class S>
+inline void tween<T, S>::swap()
 {
-	std::swap(state0, state1);
+	std::swap(states[0], states[1]);
 }
 
 #endif // ANTKEEPER_TWEEN_HPP

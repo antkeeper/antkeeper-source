@@ -80,7 +80,7 @@ void sky_pass::render(render_context* context) const
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
-	float time = time_tween->interpolate(context->alpha);
+	float time = (*time_tween)[context->alpha];
 	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
 	const scene::camera& camera = *context->camera;

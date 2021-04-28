@@ -70,7 +70,7 @@ T log_lerp(const T& x, const T& y, S a);
 template <typename T, typename S>
 inline T lerp(const T& x, const T& y, S a)
 {
-	return (y - x) * a + x;
+	return x + (y - x) * a;
 }
 
 template <typename T>
