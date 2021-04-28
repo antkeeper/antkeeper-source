@@ -111,10 +111,10 @@ private:
 	const gl::texture_2d* blue_noise_map;
 	float2 mouse_position;
 
-	const tween<double>* time_tween;
 	float3 observer_location;
-	tween<float> time_of_day_tween;
 	
+	const tween<double>* time_tween;
+	tween<float> time_of_day_tween;
 	tween<float> julian_day_tween;
 	tween<float3> sun_position_tween;
 	tween<float2> sun_az_el_tween;

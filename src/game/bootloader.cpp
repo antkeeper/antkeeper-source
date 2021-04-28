@@ -1236,14 +1236,17 @@ void setup_callbacks(game_context* ctx)
 	(
 		[ctx](double t, double dt)
 		{
-			(*ctx->time_tween)[1] = t;
-			
+			// Update tweens
+			ctx->time_tween->update();
 			ctx->overworld_sky_pass->update_tweens();
 			ctx->overworld_scene->update_tweens();
 			ctx->underworld_scene->update_tweens();
 			ctx->ui_scene->update_tweens();
 			ctx->focal_point_tween->update();
 			ctx->underworld_final_pass->get_material()->update_tweens();
+			
+			// Set time tween time
+			(*ctx->time_tween)[1] = t;
 						
 			ctx->timeline->advance(dt);
 			
@@ -1286,8 +1289,7 @@ void setup_callbacks(game_context* ctx)
 			ctx->menu_controls->update();
 			ctx->camera_controls->update();
 			
-			// Update tweens
-			ctx->time_tween->update();
+
 		}
 	);
 	

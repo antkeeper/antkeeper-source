@@ -36,9 +36,9 @@
 #include "renderer/material.hpp"
 #include "scene/camera.hpp"
 #include "utility/fundamental-types.hpp"
+#include "math/interpolation.hpp"
 #include <cmath>
 #include <glad/glad.h>
-#include <iostream>
 
 sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
@@ -52,7 +52,16 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	moon_model_vao(nullptr),
 	moon_shader_program(nullptr),
 	blue_noise_map(nullptr),
-	observer_location{0.0f, 0.0f, 0.0f}
+	observer_location{0.0f, 0.0f, 0.0f},
+	time_tween(nullptr),
+	time_of_day_tween(0.0, math::lerp<float, float>),
+	julian_day_tween(0.0, math::lerp<float, float>),
+	sun_position_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
+	sun_az_el_tween(float2{0.0f, 0.0f}, math::lerp<float2, float>),
+	moon_position_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
+	moon_az_el_tween(float2{0.0f, 0.0f}, math::lerp<float2, float>),
+	horizon_color_tween(float3{0.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
+	zenith_color_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>)
 {}
 
 sky_pass::~sky_pass()
@@ -71,7 +80,7 @@ void sky_pass::render(render_context* context) const
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
-	float time = (time_tween) ? time_tween->interpolate(context->alpha) : 0.0f;
+	float time = time_tween->interpolate(context->alpha);
 	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
 	const scene::camera& camera = *context->camera;

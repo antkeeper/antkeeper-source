@@ -67,6 +67,10 @@ void frame_scheduler::reset()
 
 void frame_scheduler::tick()
 {
+	frame_end = std::chrono::high_resolution_clock::now();
+	frame_duration = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(frame_end - frame_start).count()) / 1000000.0;
+	frame_start = frame_end;
+	
 	accumulator += std::min<double>(max_frame_duration, frame_duration);
 
 	while (accumulator >= update_timestep)
@@ -75,10 +79,6 @@ void frame_scheduler::tick()
 		elapsed_time += update_timestep;
 		accumulator -= update_timestep;
 	}
-
+	
 	render_callback(accumulator * update_rate);
-
-	frame_end = std::chrono::high_resolution_clock::now();
-	frame_duration = static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(frame_end - frame_start).count()) / 1000000.0;
-	frame_start = frame_end;
 }
