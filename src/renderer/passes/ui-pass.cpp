@@ -21,8 +21,6 @@
 #include "resources/resource-manager.hpp"
 #include "gl/rasterizer.hpp"
 #include "gl/framebuffer.hpp"
-#include "gl/shader.hpp"
-#include "gl/shader-type.hpp"
 #include "gl/shader-program.hpp"
 #include "gl/shader-input.hpp"
 #include "gl/vertex-buffer.hpp"

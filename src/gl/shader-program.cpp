@@ -18,7 +18,7 @@
  */
 
 #include "gl/shader-program.hpp"
-#include "gl/shader.hpp"
+#include "gl/shader-object.hpp"
 #include "gl/shader-variable-type.hpp"
 #include "gl/shader-input.hpp"
 #include <glad/glad.h>
@@ -26,12 +26,12 @@
 
 namespace gl {
 
-shader_program::shader_program(const std::list<shader*>& shaders):
+shader_program::shader_program(const std::list<shader_object*>& shaders):
 	gl_program_id(0)
 {
 	gl_program_id = glCreateProgram();
 
-	for (shader* shader: shaders)
+	for (shader_object* shader: shaders)
 	{
 		glAttachShader(gl_program_id, shader->gl_shader_id);
 	}
@@ -45,7 +45,7 @@ shader_program::shader_program(const std::list<shader*>& shaders):
 		throw std::runtime_error(get_info_log().c_str());
 	}
 
-	for (shader* shader: shaders)
+	for (shader_object* shader: shaders)
 	{
 		glDetachShader(gl_program_id, shader->gl_shader_id);
 	}

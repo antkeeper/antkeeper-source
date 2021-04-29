@@ -17,43 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GL_SHADER_HPP
-#define ANTKEEPER_GL_SHADER_HPP
-
-#include <cstdlib>
-#include <string>
+#ifndef ANTKEEPER_GL_SHADER_STAGE_HPP
+#define ANTKEEPER_GL_SHADER_STAGE_HPP
 
 namespace gl {
 
-enum class shader_type;
-class shader_program;
-
-class shader
+/**
+ * Enumerates all supported shader stages.
+ */
+enum class shader_stage
 {
-public:
-	shader(shader_type type, const std::string& source);
-	~shader();
-
-	shader(const shader&) = delete;
-	shader& operator=(const shader&) = delete;
-
-	shader_type get_type() const;
-
-private:
-	friend class shader_program;
-
-	std::string get_info_log() const;
-
-	unsigned int gl_shader_id;
-	shader_type type;
+	/// Indicates a vertex shader stage.
+	vertex,
+	
+	/// Indicates a fragment shader stage.
+	fragment,
+	
+	/// Indicates a geometry shader stage.
+	geometry
 };
-
-inline shader_type shader::get_type() const
-{
-	return type;
-}
 
 } // namespace gl
 
-#endif // ANTKEEPER_GL_SHADER_HPP
+#endif // ANTKEEPER_GL_SHADER_STAGE_HPP
 

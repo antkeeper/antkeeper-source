@@ -27,7 +27,7 @@
 
 namespace gl {
 
-class shader;
+class shader_object;
 class rasterizer;
 class shader_input;
 
@@ -39,7 +39,7 @@ public:
 	 *
 	 * @param shaders List of shaders to be linked to the program. Note that after the shader program has been created, these shaders can be deleted if desired with no effect on the shader program.
 	 */
-	explicit shader_program(const std::list<shader*>& shaders);
+	explicit shader_program(const std::list<shader_object*>& shaders);
 	~shader_program();
 
 	shader_program(const shader_program&) = delete;

@@ -20,10 +20,11 @@
 #include "resources/resource-loader.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/text-file.hpp"
-#include "gl/shader-type.hpp"
-#include "gl/shader.hpp"
+#include "gl/shader-stage.hpp"
+#include "gl/shader-object.hpp"
 #include "gl/shader-program.hpp"
 #include <sstream>
+#include <unordered_set>
 #include <iterator>
 
 /**
@@ -104,18 +105,18 @@ static void inject_debug_macro(text_file* source)
 /**
  * Injects a shader type macro definition after the `#version` directive.
  */
-static void inject_shader_type_macro(text_file* source, gl::shader_type type)
+static void inject_shader_stage_macro(text_file* source, gl::shader_stage stage)
 {
 	const char* vertex_macro = "#define _VERTEX";
 	const char* fragment_macro = "#define _FRAGMENT";
 	const char* geometry_macro = "#define _GEOMETRY";
 
 	const char* macro = nullptr;
-	if (type == gl::shader_type::vertex)
+	if (stage == gl::shader_stage::vertex)
 		macro = vertex_macro;
-	else if (type == gl::shader_type::fragment)
+	else if (stage == gl::shader_stage::fragment)
 		macro = fragment_macro;
-	else if (type == gl::shader_type::geometry)
+	else if (stage == gl::shader_stage::geometry)
 		macro = geometry_macro;
 
 	// For each line in the source
@@ -124,7 +125,7 @@ static void inject_shader_type_macro(text_file* source, gl::shader_type type)
 		// Tokenize line
 		std::vector<std::string> tokens = tokenize((*source)[i]);
 
-		// Inject shader type macro
+		// Inject shader stage macro
 		if (!tokens.empty() && tokens[0] == "#version")
 		{
 			source->insert(source->begin() + i + 1, macro);
@@ -133,9 +134,9 @@ static void inject_shader_type_macro(text_file* source, gl::shader_type type)
 	}
 }
 
-static std::list<gl::shader_type> detect_shader_types(text_file* source)
+static std::unordered_set<gl::shader_stage> detect_shader_stages(text_file* source)
 {
-	std::list<gl::shader_type> types;
+	std::unordered_set<gl::shader_stage> types;
 
 	// For each line in the source
 	for (std::size_t i = 0; i < source->size(); ++i)
@@ -148,15 +149,15 @@ static std::list<gl::shader_type> detect_shader_types(text_file* source)
 		{
 			if (tokens[1] == "vertex")
 			{
-				types.push_back(gl::shader_type::vertex);
+				types.insert(gl::shader_stage::vertex);
 			}
 			else if (tokens[1] == "fragment")
 			{
-				types.push_back(gl::shader_type::fragment);
+				types.insert(gl::shader_stage::fragment);
 			}
 			else if (tokens[1] == "geometry")
 			{
-				types.push_back(gl::shader_type::geometry);
+				types.insert(gl::shader_stage::geometry);
 			}
 		}
 	}
@@ -184,23 +185,28 @@ gl::shader_program* resource_loader<gl::shader_program>::load(resource_manager* 
 	inject_debug_macro(source);
 
 	// Detect declared shader types via the `#pragma vertex`, `#pragma fragment` and `#pragma geometry` directives
-	std::list<gl::shader_type> shader_types = detect_shader_types(source);
-
+	std::unordered_set<gl::shader_stage> shade_stages = detect_shader_stages(source);
+	
 	// Load detected shaders
-	std::list<gl::shader*> shaders;
-	for (gl::shader_type type: shader_types)
+	std::list<gl::shader_object*> shaders;
+	for (gl::shader_stage stage: shade_stages)
 	{
-		text_file type_source = *source;
-		inject_shader_type_macro(&type_source, type);
-		std::string source_buffer = generate_source_buffer(type_source);
-		shaders.push_back(new gl::shader(type, source_buffer));
+		text_file stage_source = *source;
+		inject_shader_stage_macro(&stage_source, stage);
+		std::string source_buffer = generate_source_buffer(stage_source);
+		
+		gl::shader_object* object = new gl::shader_object(stage);
+		object->source(source_buffer.c_str(), source_buffer.length());
+		object->compile();
+		
+		shaders.push_back(object);
 	}
 
 	// Create shader program
 	gl::shader_program* program = new gl::shader_program(shaders);
 
-	// Delete shaders
-	for (gl::shader* shader: shaders)
+	// Delete shaders objects
+	for (gl::shader_object* shader: shaders)
 	{
 		delete shader;
 	}
