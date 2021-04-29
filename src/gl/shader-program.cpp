@@ -26,42 +26,145 @@
 
 namespace gl {
 
-shader_program::shader_program(const std::list<shader_object*>& shaders):
-	gl_program_id(0)
+shader_program::shader_program():
+	gl_program_id(0),
+	linked(false)
 {
+	// Create an OpenGL shader program
 	gl_program_id = glCreateProgram();
-
-	for (shader_object* shader: shaders)
-	{
-		glAttachShader(gl_program_id, shader->gl_shader_id);
-	}
-
-	glLinkProgram(gl_program_id);
 	
-	GLint status;
-	glGetProgramiv(gl_program_id, GL_LINK_STATUS, &status);
-	if (status == GL_FALSE)
+	// Handle OpenGL errors
+	if (!gl_program_id)
 	{
-		throw std::runtime_error(get_info_log().c_str());
+		throw std::runtime_error("An error occurred while creating an OpenGL shader program.");
 	}
-
-	for (shader_object* shader: shaders)
-	{
-		glDetachShader(gl_program_id, shader->gl_shader_id);
-	}
-
-	// Find shader inputs
-	find_inputs();
 }
 
 shader_program::~shader_program()
 {
+	// Delete shader inputs
+	free_inputs();
+	
+	// Detach all shader objects
+	detach_all();
+	
+	// Delete the OpenGL shader program
 	glDeleteProgram(gl_program_id);
+}
 
-	for (shader_input* input: inputs)
+void shader_program::attach(const shader_object* object)
+{
+	if (attached_objects.find(object) != attached_objects.end())
 	{
-		delete input;
+		throw std::runtime_error("Shader object is already attached to the shader program.");
 	}
+	else
+	{
+		// Check that both the OpenGL shader program and OpenGL shader object are valid
+		if (glIsProgram(gl_program_id) != GL_TRUE)
+			throw std::runtime_error("OpenGL shader program is not a valid program object.");
+		if (glIsShader(object->gl_shader_id) != GL_TRUE)
+			throw std::runtime_error("OpenGL shader object is not a valid shader object.");
+		
+		// Attach the OpenGL shader object to the OpenGL shader program
+		glAttachShader(gl_program_id, object->gl_shader_id);
+		
+		// Handle OpenGL errors
+		switch (glGetError())
+		{
+			case GL_INVALID_OPERATION:
+				throw std::runtime_error("OpenGL shader object is already attached to the shader program.");
+				break;
+		}
+		
+		// Add shader object to set of attached objects
+		attached_objects.insert(object);
+	}
+}
+
+void shader_program::detach(const shader_object* object)
+{
+	if (attached_objects.find(object) == attached_objects.end())
+	{
+		throw std::runtime_error("Shader object is not attached to the shader program.");
+	}
+	else
+	{
+		// Check that both the OpenGL shader program and OpenGL shader object are valid
+		if (glIsProgram(gl_program_id) != GL_TRUE)
+			throw std::runtime_error("OpenGL shader program is not a valid program object.");
+		if (glIsShader(object->gl_shader_id) != GL_TRUE)
+			throw std::runtime_error("OpenGL shader object is not a valid shader object.");
+		
+		// Detach the OpenGL shader object from the OpenGL shader program
+		glDetachShader(gl_program_id, object->gl_shader_id);
+		
+		// Handle OpenGL errors
+		switch (glGetError())
+		{
+			case GL_INVALID_OPERATION:
+				throw std::runtime_error("OpenGL shader object is not attached to the shader program.");
+				break;
+		}
+		
+		// Remove shader object from set of attached objects
+		attached_objects.erase(object);
+	}
+}
+
+void shader_program::detach_all()
+{
+	while (!attached_objects.empty())
+		detach(*attached_objects.begin());
+}
+
+bool shader_program::link()
+{
+	// Check that the OpenGL shader program is valid
+	if (glIsProgram(gl_program_id) != GL_TRUE)
+		throw std::runtime_error("OpenGL shader program is not a valid program object.");
+	
+	// Link OpenGL shader program
+	glLinkProgram(gl_program_id);
+	
+	// Handle OpenGL errors
+	switch (glGetError())
+	{
+		case GL_INVALID_OPERATION:
+			throw std::runtime_error("OpenGL shader program is the currently active program object and transform feedback mode is active.");
+			break;
+	}
+	
+	// Get OpenGL shader program linking status
+	GLint gl_link_status;
+	glGetProgramiv(gl_program_id, GL_LINK_STATUS, &gl_link_status);
+	linked = (gl_link_status == GL_TRUE);
+	
+	// Get OpenGL shader program info log length
+	GLint gl_info_log_length;
+	glGetProgramiv(gl_program_id, GL_INFO_LOG_LENGTH, &gl_info_log_length);
+	
+	if (gl_info_log_length > 0)
+	{
+		// Resize string to accommodate OpenGL shader program info log
+		info_log.resize(gl_info_log_length);
+		
+		// Read OpenGL shader program info log into string
+		glGetProgramInfoLog(gl_program_id, gl_info_log_length, &gl_info_log_length, info_log.data());
+		
+		// Remove redundant null terminator from string
+		info_log.pop_back();
+	}
+	else
+	{
+		// Empty info log
+		info_log.clear();
+	}
+	
+	// Find shader inputs
+	find_inputs();
+	
+	return linked;
 }
 
 void shader_program::find_inputs()
@@ -210,19 +313,14 @@ void shader_program::find_inputs()
 	delete[] uniform_name;
 }
 
-std::string shader_program::get_info_log() const
+void shader_program::free_inputs()
 {
-	GLint length;
-	glGetProgramiv(gl_program_id, GL_INFO_LOG_LENGTH, &length);
-
-	if (length > 0)
+	for (shader_input* input: inputs)
 	{
-		std::string log(length, '\0');
-		glGetProgramInfoLog(gl_program_id, length, &length, &log[0]);
-		return log;
+		delete input;
 	}
-
-	return std::string();
+	
+	inputs.clear();
 }
 
 } // namespace gl

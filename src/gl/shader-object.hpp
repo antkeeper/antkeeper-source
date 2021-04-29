@@ -77,7 +77,7 @@ public:
 	/// Returns the shader stage of this shader object.
 	shader_stage get_stage() const;
 	
-	/// Returns the shader object info log, which is updated when the shader is compiled.
+	/// Returns the shader object info log, which is updated when the shader object is compiled.
 	const std::string& get_info_log() const;
 	
 	/// Returns `true` if the shader object has been successfully compiled, `false` otherwise.
@@ -88,12 +88,11 @@ public:
 
 private:
 	friend class shader_program;
-
-
+	
 	unsigned int gl_shader_id;
 	shader_stage stage;
-	bool compiled;
 	std::string info_log;
+	bool compiled;
 };
 
 inline shader_stage shader_object::get_stage() const

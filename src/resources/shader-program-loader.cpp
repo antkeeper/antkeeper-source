@@ -188,7 +188,7 @@ gl::shader_program* resource_loader<gl::shader_program>::load(resource_manager* 
 	std::unordered_set<gl::shader_stage> shade_stages = detect_shader_stages(source);
 	
 	// Load detected shaders
-	std::list<gl::shader_object*> shaders;
+	std::list<gl::shader_object*> objects;
 	for (gl::shader_stage stage: shade_stages)
 	{
 		text_file stage_source = *source;
@@ -199,16 +199,27 @@ gl::shader_program* resource_loader<gl::shader_program>::load(resource_manager* 
 		object->source(source_buffer.c_str(), source_buffer.length());
 		object->compile();
 		
-		shaders.push_back(object);
+		objects.push_back(object);
 	}
 
 	// Create shader program
-	gl::shader_program* program = new gl::shader_program(shaders);
-
-	// Delete shaders objects
-	for (gl::shader_object* shader: shaders)
+	gl::shader_program* program = new gl::shader_program();
+	
+	// Attach shader objects
+	for (gl::shader_object* object: objects)
+		program->attach(object);
+	
+	// Link shader program
+	if (!program->link())
 	{
-		delete shader;
+		throw std::runtime_error("Shader program linking failed: " + program->get_info_log());
+	}
+
+	// Detach and delete shader objects
+	for (gl::shader_object* object: objects)
+	{
+		program->detach(object);
+		delete object;
 	}
 
 	return program;
