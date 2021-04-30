@@ -54,11 +54,12 @@ shader_object::~shader_object()
 	glDeleteShader(gl_shader_id);
 }
 
-void shader_object::source(const char* buffer, std::size_t size)
+void shader_object::source(const std::string& source_code)
 {
 	// Replace OpenGL shader object source code
-	GLint gl_length = size;
-	glShaderSource(gl_shader_id, 1, &buffer, &gl_length);
+	GLint gl_length = static_cast<GLint>(source_code.length());
+	const GLchar* gl_string = source_code.c_str();
+	glShaderSource(gl_shader_id, 1, &gl_string, &gl_length);
 	
 	// Handle OpenGL errors
 	switch (glGetError())

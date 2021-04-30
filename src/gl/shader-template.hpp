@@ -37,7 +37,7 @@ namespace gl {
  * * `#pragma vertex`: Replaced with `#define __VERTEX__` when generating vertex shader objects.
  * * `#pragma fragment`: Replaced with `#define __FRAGMENT__` when generating fragment shader objects.
  * * `#pragma geometry`: Replaced with `#define __GEOMETRY__` when generating geometry shader objects.
- * * `#pragma define <name> <value>`: Will be replaced with `#define <name> <value>` if its definition is passed to the shader template.
+ * * `#pragma define <key> <value>`: Will be replaced with `#define <key> <value>` if its definition is passed to the shader template.
  *
  * @see gl::shader_stage
  * @see gl::shader_object
@@ -66,7 +66,7 @@ public:
 	/**
 	 * Replaces the source code of the shader template.
 	 *
-	 * @param source_code String containing the shader template source code.
+	 * @param source_code String containing shader template source code.
 	 */
 	void source(const std::string& source_code);
 	
@@ -114,11 +114,11 @@ public:
 	bool has_geometry_directive() const;
 	
 	/**
-	 * Returns `true` if the template source contains one or more instance of `#pragma define <name>`.
+	 * Returns `true` if the template source contains one or more instance of `#pragma define <key>`.
 	 *
-	 * @param name Definition name.
+	 * @param key Definition key.
 	 */
-	bool has_define_directive(const std::string& name) const;
+	bool has_define_directive(const std::string& key) const;
 	
 private:
 	void replace_stage_directives(gl::shader_stage stage) const;

@@ -67,7 +67,7 @@ static void handle_includes(text_file* source, resource_manager* resource_manage
 			}
 			else
 			{
-				(*source)[i] = "#error malformed include directive";
+				(*source)[i] = "#error malformed include directive (" + (*source)[i] + ")";
 			}
 		}
 	}

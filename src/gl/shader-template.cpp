@@ -93,7 +93,7 @@ gl::shader_object* shader_template::compile(gl::shader_stage stage, const dictio
 	gl::shader_object* object = new gl::shader_object(stage);
 	
 	// Set shader object source
-	object->source(object_source.c_str(), object_source.length());
+	object->source(object_source);
 	
 	// Compile shader object
 	object->compile();
@@ -214,9 +214,9 @@ bool shader_template::has_geometry_directive() const
 	return !geometry_directives.empty();
 }
 
-bool shader_template::has_define_directive(const std::string& name) const
+bool shader_template::has_define_directive(const std::string& key) const
 {
-	return (define_directives.find(name) != define_directives.end());
+	return (define_directives.find(key) != define_directives.end());
 }
 
 } // namespace gl
