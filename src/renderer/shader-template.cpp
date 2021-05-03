@@ -17,11 +17,9 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gl/shader-template.hpp"
+#include "renderer/shader-template.hpp"
 #include <algorithm>
 #include <sstream>
-
-namespace gl {
 
 shader_template::shader_template(const std::string& source_code)
 {
@@ -218,5 +216,3 @@ bool shader_template::has_define_directive(const std::string& key) const
 {
 	return (define_directives.find(key) != define_directives.end());
 }
-
-} // namespace gl

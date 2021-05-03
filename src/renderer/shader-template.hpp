@@ -27,8 +27,6 @@
 #include <unordered_set>
 #include <vector>
 
-namespace gl {
-
 /**
  * Shader templates can be used to generate multiple shader variants from a single source.
  *
@@ -130,7 +128,5 @@ private:
 	std::unordered_set<std::size_t> geometry_directives;
 	std::multimap<std::string, std::size_t> define_directives;
 };
-
-} // namespace gl
 
 #endif // ANTKEEPER_SHADER_TEMPLATE_HPP

@@ -88,11 +88,12 @@ void astronomy_system::update(double t, double dt)
 			
 			// Set sun color
 			float factor = std::cos(spherical.y);
+			factor = 1.0f - factor * factor;
 			
-			float correlated_temperature = math::lerp(8000.0f, 2000.0f, factor);
+			float correlated_temperature = math::lerp(3000.0f, 8000.0f, factor);
 			float3 correlated_color = math::type_cast<float>(astro::blackbody(correlated_temperature));
 			
-			float intensity = math::lerp(1000.0f, 100.0f, factor);
+			float intensity = math::lerp(100.0f, 1000.0f, factor);
 			
 			sun_light->set_color(correlated_color);
 			sun_light->set_intensity(intensity);

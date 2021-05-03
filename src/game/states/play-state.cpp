@@ -148,10 +148,10 @@ void play_state_enter(game_context* ctx)
 	
 	float3 sun_color = math::type_cast<float>(astro::blackbody(6000.0)); // NOTE: this is linear sRGB, should be ACEScg
 	sun->set_color(sun_color);
-	sun->set_intensity(750.0f);
+	sun->set_intensity(1000.0f);
 	sun->set_light_texture(resource_manager->load<gl::texture_2d>("forest-gobo.tex"));
-	sun->set_light_texture_scale({500, 500});
-	sun->set_light_texture_opacity(0.9f);
+	sun->set_light_texture_scale({2000, 2000});
+	sun->set_light_texture_opacity(0.925f);
 	sun->look_at({2, 1, 0}, {0, 0, 0}, {0, 0, 1});
 	sun->update_tweens();
 	ctx->overworld_scene->add_object(sun);
@@ -187,6 +187,7 @@ void play_state_enter(game_context* ctx)
 	ecs::archetype* flashlight_light_cone_archetype = resource_manager->load<ecs::archetype>("flashlight-light-cone.ent");
 	ecs::archetype* lens_light_cone_archetype = resource_manager->load<ecs::archetype>("lens-light-cone.ent");
 	ecs::archetype* cube_archetype = resource_manager->load<ecs::archetype>("unit-cube.ent");
+	ecs::archetype* color_checker_archetype = resource_manager->load<ecs::archetype>("color-checker.ent");
 	
 	// Create tools
 	forceps_archetype->assign(ecs_registry, ctx->forceps_entity);
@@ -261,6 +262,13 @@ void play_state_enter(game_context* ctx)
 	// Create unit cube
 	auto cube = cube_archetype->create(ecs_registry);
 	ecs::command::place(ecs_registry, cube, {10, 10});
+	
+	// Create color checker
+	auto color_checker = color_checker_archetype->create(ecs_registry);
+	ecs::command::place(ecs_registry, color_checker, {-10, -10});
+	auto& cc_transform = ecs_registry.get<ecs::transform_component>(color_checker);
+	cc_transform.local.scale *= 10.0f;
+	cc_transform.local.rotation = math::angle_axis(math::radians(-90.0f), {1, 0, 0});
 	
 	// Setup camera focal point
 	ecs::transform_component focal_point_transform;
