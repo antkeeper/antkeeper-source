@@ -1059,6 +1059,9 @@ void setup_controls(game_context* ctx)
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_fast_forward_control(), nullptr, input::scancode::dot));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_rewind_control(), nullptr, input::scancode::comma));
 	
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_exposure_increase_control(), nullptr, input::scancode::right_brace));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_exposure_decrease_control(), nullptr, input::scancode::left_brace));
+	
 	
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, input::scancode::one));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_twig_control(), nullptr, input::scancode::two));
@@ -1067,8 +1070,8 @@ void setup_controls(game_context* ctx)
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_lens_control(), nullptr, input::scancode::five));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_marker_control(), nullptr, input::scancode::six));
 	
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_next_marker_control(), nullptr, input::scancode::right_brace));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_previous_marker_control(), nullptr, input::scancode::left_brace));
+	//ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_next_marker_control(), nullptr, input::scancode::right_brace));
+	//ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_previous_marker_control(), nullptr, input::scancode::left_brace));
 	
 	ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->control_system->get_use_tool_control(), nullptr, 1));
 	ctx->control_system->get_use_tool_control()->set_activated_callback

@@ -26,6 +26,7 @@
 #include "ecs/commands.hpp"
 #include "ecs/systems/camera-system.hpp"
 #include "animation/orbit-cam.hpp"
+#include <iostream>
 
 namespace ecs {
 
@@ -63,6 +64,8 @@ control_system::control_system(ecs::registry& registry):
 	control_set.add_control(&use_tool_control);
 	control_set.add_control(&fast_forward_control);
 	control_set.add_control(&rewind_control);
+	control_set.add_control(&exposure_increase_control);
+	control_set.add_control(&exposure_decrease_control);
 	
 	// Set deadzone at 15% for all controls
 	const std::list<input::control*>* controls = control_set.get_controls();
@@ -110,6 +113,23 @@ void control_system::update(double t, double dt)
 		camera_system->pan(rotation_speed * dt * std::min<float>(1.0f, rotate_ccw_control.get_current_value()));
 	if (rotate_cw_control.is_active())
 		camera_system->pan(-rotation_speed * dt * std::min<float>(1.0f, rotate_cw_control.get_current_value()));
+	
+	// Exposure
+	if (camera_system->get_camera())
+	{
+		const float exposure = camera_system->get_camera()->get_exposure();
+		const float exposure_rate = 0.1f;
+		if (exposure_increase_control.is_active())
+		{
+			camera_system->get_camera()->set_exposure(exposure + exposure_rate);
+			std::cout << "exposure: " << (exposure + exposure_rate) << std::endl;
+		}
+		if (exposure_decrease_control.is_active())
+		{
+			camera_system->get_camera()->set_exposure(exposure - exposure_rate);
+			std::cout << "exposure: " << (exposure - exposure_rate) << std::endl;
+		}
+	}
 	
 	// Move camera
 	float3 movement{0.0f, 0.0f, 0.0f};

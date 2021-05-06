@@ -52,6 +52,8 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	moon_model_vao(nullptr),
 	moon_shader_program(nullptr),
 	blue_noise_map(nullptr),
+	sky_gradient(nullptr),
+	sky_gradient2(nullptr),
 	observer_location{0.0f, 0.0f, 0.0f},
 	time_tween(nullptr),
 	time_of_day_tween(0.0, math::lerp<float, float>),
@@ -92,6 +94,7 @@ void sky_pass::render(render_context* context) const
 	float4x4 model_view = view * model;
 	float4x4 projection = camera.get_projection_tween().interpolate(context->alpha);
 	float4x4 model_view_projection = projection * model_view;
+	float exposure = std::exp2(camera.get_exposure_tween().interpolate(context->alpha));
 	
 	float time_of_day = time_of_day_tween.interpolate(context->alpha);
 	float julian_day = julian_day_tween.interpolate(context->alpha);
@@ -123,6 +126,10 @@ void sky_pass::render(render_context* context) const
 			time_of_day_input->upload(time_of_day);
 		if (blue_noise_map_input)
 			blue_noise_map_input->upload(blue_noise_map);
+		if (sky_gradient_input && sky_gradient)
+			sky_gradient_input->upload(sky_gradient);
+		if (sky_gradient2_input && sky_gradient2)
+			sky_gradient2_input->upload(sky_gradient2);
 		if (observer_location_input)
 			observer_location_input->upload(observer_location);
 		if (sun_position_input)
@@ -139,6 +146,8 @@ void sky_pass::render(render_context* context) const
 			cos_moon_angular_radius_input->upload(cos_moon_angular_radius);
 		if (cos_sun_angular_radius_input)
 			cos_sun_angular_radius_input->upload(cos_sun_angular_radius);
+		if (exposure_input)
+			exposure_input->upload(exposure);
 		
 		sky_material->upload(context->alpha);
 
@@ -209,6 +218,8 @@ void sky_pass::set_sky_model(const model* model)
 				time_input = sky_shader_program->get_input("time");
 				time_of_day_input = sky_shader_program->get_input("time_of_day");
 				blue_noise_map_input = sky_shader_program->get_input("blue_noise_map");
+				sky_gradient_input = sky_shader_program->get_input("sky_gradient");
+				sky_gradient2_input = sky_shader_program->get_input("sky_gradient2");
 				observer_location_input = sky_shader_program->get_input("observer_location");
 				sun_position_input = sky_shader_program->get_input("sun_position");
 				sun_az_el_input = sky_shader_program->get_input("sun_az_el");
@@ -217,6 +228,7 @@ void sky_pass::set_sky_model(const model* model)
 				julian_day_input = sky_shader_program->get_input("julian_day");
 				cos_moon_angular_radius_input = sky_shader_program->get_input("cos_moon_angular_radius");
 				cos_sun_angular_radius_input = sky_shader_program->get_input("cos_sun_angular_radius");
+				exposure_input = sky_shader_program->get_input("camera.exposure");
 			}
 		}
 	}
@@ -287,6 +299,12 @@ void sky_pass::set_time_tween(const tween<double>* time)
 void sky_pass::set_blue_noise_map(const gl::texture_2d* texture)
 {
 	blue_noise_map = texture;
+}
+
+void sky_pass::set_sky_gradient(const gl::texture_2d* texture, const gl::texture_2d* texture2)
+{
+	sky_gradient = texture;
+	sky_gradient2 = texture2;
 }
 
 void sky_pass::set_julian_day(float jd)

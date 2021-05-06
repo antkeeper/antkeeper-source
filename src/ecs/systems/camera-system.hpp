@@ -55,6 +55,8 @@ public:
 	
 	const orbit_cam* get_orbit_cam() const;
 	orbit_cam* get_orbit_cam();
+	
+	scene::camera* get_camera();
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -75,6 +77,11 @@ inline const orbit_cam* camera_system::get_orbit_cam() const
 inline orbit_cam* camera_system::get_orbit_cam()
 {
 	return &orbit_cam;
+}
+
+inline scene::camera* camera_system::get_camera()
+{
+	return camera;
 }
 
 } // namespace ecs

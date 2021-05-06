@@ -55,6 +55,7 @@ public:
 	void set_zenith_color(const float3& color);
 	void set_time_of_day(float time);
 	void set_blue_noise_map(const gl::texture_2d* texture);
+	void set_sky_gradient(const gl::texture_2d* texture, const gl::texture_2d* texture2);
 	void set_time_tween(const tween<double>* time);
 	void set_moon_model(const model* model);
 	
@@ -87,6 +88,9 @@ private:
 	const gl::shader_input* julian_day_input;
 	const gl::shader_input* cos_sun_angular_radius_input;
 	const gl::shader_input* cos_moon_angular_radius_input;
+	const gl::shader_input* sky_gradient_input;
+	const gl::shader_input* sky_gradient2_input;
+	const gl::shader_input* exposure_input;
 	
 	gl::shader_program* moon_shader_program;
 	const gl::shader_input* moon_model_view_projection_input;
@@ -109,6 +113,8 @@ private:
 	std::size_t moon_model_index_count;
 
 	const gl::texture_2d* blue_noise_map;
+	const gl::texture_2d* sky_gradient;
+	const gl::texture_2d* sky_gradient2;
 	float2 mouse_position;
 
 	float3 observer_location;

@@ -95,7 +95,7 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
 	sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
 	
-	sky_pass->set_horizon_color({0.1f, 0.1f, 0.1f});
+	sky_pass->set_horizon_color({1.1f, 1.1f, 1.1f});
 	sky_pass->set_zenith_color({0.0f, 0.0f, 0.0f});
 	sky_pass->set_time_of_day(0.0f);
 	sky_pass->set_julian_day(0.0f);
@@ -105,6 +105,7 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_sun_coordinates({0, 1, 0}, {0, 3.1415f / 2.0f});
 	sky_pass->set_moon_coordinates({1, 0, 0}, {0, 0});
 	sky_pass->set_moon_rotation(math::identity_quaternion<float>);
+	sky_pass->set_sky_gradient(resource_manager->load<gl::texture_2d>("sky-gradient.tex"), resource_manager->load<gl::texture_2d>("sky-gradient2.tex"));
 	
 	
 	

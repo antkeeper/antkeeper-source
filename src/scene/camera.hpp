@@ -78,8 +78,16 @@ public:
 	 */
 	void set_orthographic(float clip_left, float clip_right, float clip_bottom, float clip_top, float clip_near, float clip_far);
 
+	/**
+	 * Sets the camera's exposure.
+	 *
+	 * @param exposure Exposure factor.
+	 */
+	void set_exposure(float exposure);
+
 	void set_compositor(compositor* compositor);
 	void set_composite_index(int index);
+	
 	
 	virtual const bounding_volume_type& get_bounds() const;
 
@@ -104,6 +112,9 @@ public:
 	
 	/// Returns the camera's view frustum.
 	const view_frustum_type& get_view_frustum() const;
+	
+	/// Returns the camera's exposure.
+	float get_exposure() const;
 
 	const compositor* get_compositor() const;
 	compositor* get_compositor();
@@ -120,6 +131,7 @@ public:
 	const tween<float4x4>& get_view_tween() const;
 	const tween<float4x4>& get_projection_tween() const;
 	const tween<float4x4>& get_view_projection_tween() const;
+	const tween<float>& get_exposure_tween() const;
 
 	/// @copydoc object_base::update_tweens();
 	virtual void update_tweens();
@@ -141,6 +153,7 @@ private:
 	tween<float4x4> view;
 	tween<float4x4> projection;
 	tween<float4x4> view_projection;
+	tween<float> exposure;
 	view_frustum_type view_frustum;
 };
 
@@ -214,6 +227,12 @@ inline const typename camera::view_frustum_type& camera::get_view_frustum() cons
 	return view_frustum;
 }
 
+inline float camera::get_exposure() const
+{
+	return exposure[1];
+}
+
+
 inline const compositor* camera::get_compositor() const
 {
 	return compositor;
@@ -284,7 +303,11 @@ inline const tween<float4x4>& camera::get_view_projection_tween() const
 	return view_projection;
 }
 
+inline const tween<float>& camera::get_exposure_tween() const
+{
+	return exposure;
+}
+
 } // namespace scene
 
 #endif // ANTKEEPER_SCENE_CAMERA_HPP
-

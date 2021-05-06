@@ -74,7 +74,8 @@ camera::camera():
 	aspect_ratio(1.0f, math::lerp<float, float>),
 	view(math::identity4x4<float>, std::bind(&interpolate_view, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
 	projection(math::identity4x4<float>, std::bind(&interpolate_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-	view_projection(math::identity4x4<float>, std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3))
+	view_projection(math::identity4x4<float>, std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
+	exposure(0.0f, math::lerp<float, float>)
 {}
 
 float3 camera::project(const float3& object, const float4& viewport) const
@@ -143,6 +144,11 @@ void camera::set_orthographic(float clip_left, float clip_right, float clip_bott
 	view_frustum.set_matrix(view_projection[1]);
 }
 
+void camera::set_exposure(float exposure)
+{
+	this->exposure[1] = exposure;
+}
+
 void camera::set_compositor(::compositor* compositor)
 {
 	this->compositor = compositor;
@@ -167,6 +173,7 @@ void camera::update_tweens()
 	view.update();
 	projection.update();
 	view_projection.update();
+	exposure.update();
 }
 
 void camera::transformed()

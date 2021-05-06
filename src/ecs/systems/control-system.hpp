@@ -86,6 +86,8 @@ public:
 	input::control* get_use_tool_control();
 	input::control* get_fast_forward_control();
 	input::control* get_rewind_control();
+	input::control* get_exposure_increase_control();
+	input::control* get_exposure_decrease_control();
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -118,6 +120,8 @@ private:
 	input::control use_tool_control;
 	input::control fast_forward_control;
 	input::control rewind_control;
+	input::control exposure_increase_control;
+	input::control exposure_decrease_control;
 
 	float zoom_speed;
 	float min_elevation;
@@ -285,6 +289,16 @@ inline input::control* control_system::get_fast_forward_control()
 inline input::control* control_system::get_rewind_control()
 {
 	return &rewind_control;
+}
+
+inline input::control* control_system::get_exposure_increase_control()
+{
+	return &exposure_increase_control;
+}
+
+inline input::control* control_system::get_exposure_decrease_control()
+{
+	return &exposure_decrease_control;
 }
 
 } // namespace ecs
