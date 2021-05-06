@@ -29,7 +29,7 @@ namespace astro
  * Calculates the color of an ideal black-body radiator, given its temperature in Kelvin.
  *
  * @param t Temperature, in Kelvin.
- * @return Correlated color, in linear RGB space.
+ * @return Correlated color, in linear sRGB.
  *
  * @see https://en.wikipedia.org/wiki/Planckian_locus
  * @see https://en.wikipedia.org/wiki/CIE_1960_color_space

@@ -29,6 +29,7 @@ namespace astro {}
 #include "color-index.hpp"
 #include "constants.hpp"
 #include "coordinates.hpp"
+#include "illuminance.hpp"
 #include "orbit.hpp"
 
 #endif // ANTKEEPER_ASTRO_HPP

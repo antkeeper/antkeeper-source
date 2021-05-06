@@ -17,22 +17,20 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ASTRO_COLOR_INDEX_HPP
-#define ANTKEEPER_ASTRO_COLOR_INDEX_HPP
+#include "illuminance.hpp"
+#include <cmath>
 
 namespace astro
 {
 
-/**
- * Approximates the temperature of a star, given its B-V index.
- *
- * @param bv B-V index.
- * @return Temperature, in Kelvin.
- *
- * @see Ballesteros, F. J. (2012). "New insights into black bodies". EPL 97 (2012) 34008.
- */
-double bv_to_k(double bv);
+double vmag_to_lux(double mv)
+{
+	return std::pow(10.0, (-14.18 - mv) * 0.4);
+}
+
+double lux_to_vmag(double ev)
+{
+	return -14.18 - 2.5 * std::log(ev);
+}
 
 } // namespace astro
-
-#endif // ANTKEEPER_ASTRO_COLOR_INDEX_HPP

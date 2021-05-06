@@ -17,22 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ASTRO_COLOR_INDEX_HPP
-#define ANTKEEPER_ASTRO_COLOR_INDEX_HPP
+#ifndef ANTKEEPER_ASTRO_ILLUMINANCE_HPP
+#define ANTKEEPER_ASTRO_ILLUMINANCE_HPP
 
 namespace astro
 {
 
 /**
- * Approximates the temperature of a star, given its B-V index.
+ * Converts apparent (visual) magnitude to lux.
  *
- * @param bv B-V index.
- * @return Temperature, in Kelvin.
+ * @param mv Illuminance in apparent magnitude.
+ * @return Illuminance in lux.
  *
- * @see Ballesteros, F. J. (2012). "New insights into black bodies". EPL 97 (2012) 34008.
+ * @see https://en.wikipedia.org/wiki/Illuminance
  */
-double bv_to_k(double bv);
+double vmag_to_lux(double mv);
+
+/**
+ * Converts lux to apparent (visual) magnitude.
+ *
+ * @param ev Illuminance in lux.
+ * @return Illuminance in apparent magnitude.
+ *
+ * @see https://en.wikipedia.org/wiki/Illuminance
+ */
+double lux_to_vmag(double ev);
 
 } // namespace astro
 
-#endif // ANTKEEPER_ASTRO_COLOR_INDEX_HPP
+#endif // ANTKEEPER_ASTRO_ILLUMINANCE_HPP
