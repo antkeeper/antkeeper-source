@@ -520,6 +520,7 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_final_pass = new ::final_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), ctx->resource_manager);
 	ctx->overworld_final_pass->set_color_texture(ctx->framebuffer_hdr_color);
 	ctx->overworld_final_pass->set_bloom_texture(ctx->bloom_texture);
+	ctx->overworld_final_pass->set_blue_noise_texture(blue_noise_map);
 	ctx->overworld_compositor = new compositor();
 	ctx->overworld_compositor->add_pass(ctx->overworld_shadow_map_clear_pass);
 	ctx->overworld_compositor->add_pass(ctx->overworld_shadow_map_pass);
@@ -755,6 +756,7 @@ void setup_animation(game_context* ctx)
 	ctx->overworld_sky_pass->set_time_tween(ctx->time_tween);
 	ctx->overworld_material_pass->set_time_tween(ctx->time_tween);
 	ctx->overworld_material_pass->set_focal_point_tween(ctx->focal_point_tween);
+	ctx->overworld_final_pass->set_time_tween(ctx->time_tween);
 	ctx->underworld_material_pass->set_time_tween(ctx->time_tween);
 	ctx->underworld_material_pass->set_focal_point_tween(ctx->focal_point_tween);
 	ctx->underworld_final_pass->set_time_tween(ctx->time_tween);

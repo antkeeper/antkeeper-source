@@ -39,12 +39,18 @@
 final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	color_texture(nullptr),
-	bloom_texture(nullptr)
+	bloom_texture(nullptr),
+	blue_noise_texture(nullptr),
+	blue_noise_scale(1.0),
+	time_tween(nullptr)
 {
 	shader_program = resource_manager->load<gl::shader_program>("final.glsl");
 	color_texture_input = shader_program->get_input("color_texture");
 	bloom_texture_input = shader_program->get_input("bloom_texture");
+	blue_noise_texture_input = shader_program->get_input("blue_noise_texture");
+	blue_noise_scale_input = shader_program->get_input("blue_noise_scale");
 	resolution_input = shader_program->get_input("resolution");
+	time_input = shader_program->get_input("time");
 
 	const float vertex_data[] =
 	{
@@ -85,14 +91,23 @@ void final_pass::render(render_context* context) const
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
 	float2 resolution = {std::get<0>(viewport), std::get<1>(viewport)};
+	float time = (time_tween) ? (*time_tween)[context->alpha] : 0.0f;
 
 	// Change shader program
 	rasterizer->use_program(*shader_program);
 
 	// Upload shader parameters
 	color_texture_input->upload(color_texture);
-	bloom_texture_input->upload(bloom_texture);
-	resolution_input->upload(resolution);
+	if (bloom_texture && bloom_texture_input)
+		bloom_texture_input->upload(bloom_texture);
+	if (blue_noise_texture && blue_noise_texture_input)
+		blue_noise_texture_input->upload(blue_noise_texture);
+	if (blue_noise_scale_input)
+		blue_noise_scale_input->upload(blue_noise_scale);
+	if (resolution_input)
+		resolution_input->upload(resolution);
+	if (time_input)
+		time_input->upload(time);
 
 	// Draw quad
 	rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
@@ -108,3 +123,13 @@ void final_pass::set_bloom_texture(const gl::texture_2d* texture)
 	this->bloom_texture = texture;
 }
 
+void final_pass::set_blue_noise_texture(const gl::texture_2d* texture)
+{
+	this->blue_noise_texture = texture;
+	blue_noise_scale = 1.0f / static_cast<float>(texture->get_dimensions()[0]);
+}
+
+void final_pass::set_time_tween(const tween<double>* time)
+{
+	this->time_tween = time;
+}

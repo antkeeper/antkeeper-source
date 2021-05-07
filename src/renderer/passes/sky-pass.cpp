@@ -103,7 +103,7 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		catch (const std::exception& e)
 		{}
 			
-		// Convert degrees to radians
+		// Convert right ascension and declination from degrees to radians
 		ra = math::wrap_radians(math::radians(ra));
 		dec = math::wrap_radians(math::radians(dec));
 		
@@ -120,9 +120,14 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		// Transform to ACEScg colorspace
 		double3 color_acescg = srgb_to_acescg(color_srgb);
 		
-		// Scale color by apparent magnitude
-		double intensity = astro::vmag_to_lux(vmag);
-		double3 scaled_color = color_acescg * intensity;
+		// Calculate color luminance
+		double color_luminance = acescg_to_luminance(color_acescg);
+		
+		// Convert apparent magnitude to lux
+		double vmag_lux = astro::vmag_to_lux(vmag);
+		
+		// Normalized color luminance and scale by apparent magnitude
+		double3 scaled_color = color_acescg * ((1.0 / color_luminance) * vmag_lux);
 		
 		// Build vertex
 		*(star_vertex++) = static_cast<float>(rectangular.x);
@@ -157,10 +162,6 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	star_projection_input = star_shader_program->get_input("projection");
 	star_distance_input = star_shader_program->get_input("star_distance");
 	star_exposure_input = star_shader_program->get_input("camera.exposure");
-	
-	std::cout << "vmag_to_lux(-14.2) = " << astro::vmag_to_lux(-14.2) << std::endl;
-	std::cout << "vmag_to_lux(-26.74) = " << astro::vmag_to_lux(-26.74) << std::endl;
-	std::cout << "vmag_to_lux(-1.47) = " << astro::vmag_to_lux(-1.47) << std::endl;
 }
 
 sky_pass::~sky_pass()

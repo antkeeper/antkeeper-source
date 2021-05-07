@@ -27,6 +27,7 @@
 #include "gl/vertex-buffer.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/texture-2d.hpp"
+#include "animation/tween.hpp"
 
 class resource_manager;
 
@@ -42,17 +43,26 @@ public:
 	
 	void set_color_texture(const gl::texture_2d* texture);
 	void set_bloom_texture(const gl::texture_2d* texture);
+	void set_blue_noise_texture(const gl::texture_2d* texture);
+	void set_time_tween(const tween<double>* time);
 
 private:
 	gl::shader_program* shader_program;
 	const gl::shader_input* color_texture_input;
 	const gl::shader_input* bloom_texture_input;
+	const gl::shader_input* blue_noise_texture_input;
+	const gl::shader_input* blue_noise_scale_input;
 	const gl::shader_input* resolution_input;
+	const gl::shader_input* time_input;
 	gl::vertex_buffer* quad_vbo;
 	gl::vertex_array* quad_vao;
 	
 	const gl::texture_2d* color_texture;
 	const gl::texture_2d* bloom_texture;
+	const gl::texture_2d* blue_noise_texture;
+	float blue_noise_scale;
+	
+	const tween<double>* time_tween;
 };
 
 #endif // ANTKEEPER_FINAL_PASS_HPP
