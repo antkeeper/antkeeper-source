@@ -126,6 +126,8 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		// Convert apparent magnitude to lux
 		double vmag_lux = astro::vmag_to_lux(vmag);
 		
+		std::cout << "mag: " << vmag << "; lux: " << vmag_lux << "remag: " << (astro::lux_to_vmag(vmag_lux)) << std::endl;
+		
 		// Normalized color luminance and scale by apparent magnitude
 		double3 scaled_color = color_acescg * ((1.0 / color_luminance) * vmag_lux);
 		

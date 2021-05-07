@@ -30,7 +30,7 @@ double vmag_to_lux(double mv)
 
 double lux_to_vmag(double ev)
 {
-	return -14.18 - 2.5 * std::log(ev);
+	return -14.18 - 2.5 * std::log10(ev);
 }
 
 } // namespace astro
