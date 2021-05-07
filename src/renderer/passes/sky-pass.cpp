@@ -37,6 +37,7 @@
 #include "renderer/material.hpp"
 #include "scene/camera.hpp"
 #include "utility/fundamental-types.hpp"
+#include "utility/aces.hpp"
 #include "math/interpolation.hpp"
 #include "astro/astro.hpp"
 #include <cmath>
@@ -116,9 +117,12 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		// Calculate linear sRGB color from color temperature
 		double3 color_srgb = astro::blackbody(color_temperature);
 		
+		// Transform to ACEScg colorspace
+		double3 color_acescg = srgb_to_acescg(color_srgb);
+		
 		// Scale color by apparent magnitude
 		double intensity = astro::vmag_to_lux(vmag);
-		double3 scaled_color = color_srgb * intensity;
+		double3 scaled_color = color_acescg * intensity;
 		
 		// Build vertex
 		*(star_vertex++) = static_cast<float>(rectangular.x);
@@ -153,6 +157,10 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	star_projection_input = star_shader_program->get_input("projection");
 	star_distance_input = star_shader_program->get_input("star_distance");
 	star_exposure_input = star_shader_program->get_input("camera.exposure");
+	
+	std::cout << "vmag_to_lux(-14.2) = " << astro::vmag_to_lux(-14.2) << std::endl;
+	std::cout << "vmag_to_lux(-26.74) = " << astro::vmag_to_lux(-26.74) << std::endl;
+	std::cout << "vmag_to_lux(-1.47) = " << astro::vmag_to_lux(-1.47) << std::endl;
 }
 
 sky_pass::~sky_pass()

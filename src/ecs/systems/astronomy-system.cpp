@@ -24,6 +24,7 @@
 #include "ecs/components/transform-component.hpp"
 #include "renderer/passes/sky-pass.hpp"
 #include "astro/blackbody.hpp"
+#include "utility/aces.hpp"
 #include <iostream>
 
 namespace ecs {
@@ -88,7 +89,7 @@ void astronomy_system::update(double t, double dt)
 			
 			// Set sun color
 			float correlated_temperature = 3000.0f + std::sin(spherical.y) * 5000.0f;
-			float3 correlated_color = math::type_cast<float>(astro::blackbody(correlated_temperature));
+			float3 correlated_color = math::type_cast<float>(srgb_to_acescg(astro::blackbody(correlated_temperature)));
 			sun_light->set_color(correlated_color);
 
 			// Set sun intensity (in lux)
