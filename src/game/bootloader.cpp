@@ -1178,9 +1178,9 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * 100.0f);
-			ctx->solar_system->set_time_scale(time_scale * 100.0f);
-			ctx->astronomy_system->set_time_scale(time_scale * 100.0f);
+			ctx->weather_system->set_time_scale(time_scale * 500.0f);
+			ctx->solar_system->set_time_scale(time_scale * 500.0f);
+			ctx->astronomy_system->set_time_scale(time_scale * 500.0f);
 		}
 	);
 	ctx->control_system->get_fast_forward_control()->set_deactivated_callback
@@ -1196,9 +1196,9 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * -100.0f);
-			ctx->solar_system->set_time_scale(time_scale * -100.0f);
-			ctx->astronomy_system->set_time_scale(time_scale * -100.0f);
+			ctx->weather_system->set_time_scale(time_scale * -500.0f);
+			ctx->solar_system->set_time_scale(time_scale * -500.0f);
+			ctx->astronomy_system->set_time_scale(time_scale * -500.0f);
 		}
 	);
 	ctx->control_system->get_rewind_control()->set_deactivated_callback

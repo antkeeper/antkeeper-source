@@ -111,7 +111,7 @@ void play_state_enter(game_context* ctx)
 	
 	scene::ambient_light* ambient = new scene::ambient_light();
 	ambient->set_color({1, 1, 1});
-	ambient->set_intensity(10.0f);
+	ambient->set_intensity(0.0f);
 	ambient->update_tweens();
 	ctx->overworld_scene->add_object(ambient);
 	

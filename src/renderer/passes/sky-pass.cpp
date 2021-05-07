@@ -19,6 +19,7 @@
 
 #include "renderer/passes/sky-pass.hpp"
 #include "resources/resource-manager.hpp"
+#include "resources/string-table.hpp"
 #include "gl/rasterizer.hpp"
 #include "gl/framebuffer.hpp"
 #include "gl/shader-program.hpp"
@@ -37,8 +38,11 @@
 #include "scene/camera.hpp"
 #include "utility/fundamental-types.hpp"
 #include "math/interpolation.hpp"
+#include "astro/astro.hpp"
 #include <cmath>
+#include <stdexcept>
 #include <glad/glad.h>
+#include <iostream>
 
 sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
@@ -64,7 +68,92 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	moon_az_el_tween(float2{0.0f, 0.0f}, math::lerp<float2, float>),
 	horizon_color_tween(float3{0.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
 	zenith_color_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>)
-{}
+{
+	// Load star catalog
+	string_table* star_catalog = resource_manager->load<string_table>("stars.csv");
+	
+	// Allocate star catalog vertex data
+	star_count = 0;
+	if (star_catalog->size() > 0)
+		star_count = star_catalog->size() - 1;
+	std::size_t star_vertex_size = 6;
+	std::size_t star_vertex_stride = star_vertex_size * sizeof(float);
+	float* star_vertex_data = new float[star_count * star_vertex_size];
+	float* star_vertex = star_vertex_data;
+	
+	// Build star catalog vertex data
+	for (std::size_t i = 1; i < star_catalog->size(); ++i)
+	{
+		const string_table_row& catalog_row = (*star_catalog)[i];
+		
+		double ra = 0.0;
+		double dec = 0.0;
+		double vmag = 0.0;
+		double bv_color = 0.0;
+		
+		// Parse star catalog entry
+		try
+		{
+			ra = std::stod(catalog_row[1]);
+			dec = std::stod(catalog_row[2]);
+			vmag = std::stod(catalog_row[3]);
+			bv_color = std::stod(catalog_row[4]);
+		}
+		catch (const std::exception& e)
+		{}
+			
+		// Convert degrees to radians
+		ra = math::wrap_radians(math::radians(ra));
+		dec = math::wrap_radians(math::radians(dec));
+		
+		// Transform spherical coordinates to rectangular (Cartesian) coordinates
+		double3 spherical = {1.0, dec, ra};
+		double3 rectangular = astro::spherical_to_rectangular(spherical);
+		
+		// Convert color index to color temperature
+		double color_temperature = astro::bv_to_k(bv_color);
+		
+		// Calculate linear sRGB color from color temperature
+		double3 color_srgb = astro::blackbody(color_temperature);
+		
+		// Scale color by apparent magnitude
+		double intensity = astro::vmag_to_lux(vmag);
+		double3 scaled_color = color_srgb * intensity;
+		
+		// Build vertex
+		*(star_vertex++) = static_cast<float>(rectangular.x);
+		*(star_vertex++) = static_cast<float>(rectangular.y);
+		*(star_vertex++) = static_cast<float>(rectangular.z);
+		*(star_vertex++) = static_cast<float>(scaled_color.x);
+		*(star_vertex++) = static_cast<float>(scaled_color.y);
+		*(star_vertex++) = static_cast<float>(scaled_color.z);
+	}
+	
+	// Unload star catalog
+	resource_manager->unload("stars.csv");
+	
+	// Create star catalog VBO
+	star_catalog_vbo = new gl::vertex_buffer(star_count * star_vertex_stride, star_vertex_data);
+	
+	// Create star catalog VAO
+	star_catalog_vao = new gl::vertex_array();
+	
+	// Bind star catalog vertex attributes
+	std::size_t vao_offset = 0;
+	star_catalog_vao->bind_attribute(VERTEX_POSITION_LOCATION, *star_catalog_vbo, 3, gl::vertex_attribute_type::float_32, star_vertex_stride, 0);
+	vao_offset += 3;
+	star_catalog_vao->bind_attribute(VERTEX_COLOR_LOCATION, *star_catalog_vbo, 3, gl::vertex_attribute_type::float_32, star_vertex_stride, sizeof(float) * vao_offset);
+	
+	// Free star catalog vertex data
+	delete[] star_vertex_data;
+	
+	// Load star shader
+	star_shader_program = resource_manager->load<gl::shader_program>("star.glsl");
+	star_model_view_input = star_shader_program->get_input("model_view");
+	star_projection_input = star_shader_program->get_input("projection");
+	star_distance_input = star_shader_program->get_input("star_distance");
+	star_exposure_input = star_shader_program->get_input("camera.exposure");
+}
 
 sky_pass::~sky_pass()
 {}
@@ -93,6 +182,7 @@ void sky_pass::render(render_context* context) const
 	float4x4 view = math::resize<4, 4>(math::resize<3, 3>(camera.get_view_tween().interpolate(context->alpha)));
 	float4x4 model_view = view * model;
 	float4x4 projection = camera.get_projection_tween().interpolate(context->alpha);
+	float4x4 view_projection = projection * view;
 	float4x4 model_view_projection = projection * model_view;
 	float exposure = std::exp2(camera.get_exposure_tween().interpolate(context->alpha));
 	
@@ -184,6 +274,36 @@ void sky_pass::render(render_context* context) const
 			moon_sun_position_input->upload(sun_position);
 		moon_material->upload(context->alpha);
 		rasterizer->draw_arrays(*moon_model_vao, moon_model_drawing_mode, moon_model_start_index, moon_model_index_count);
+	}
+	
+	// Draw stars
+	{
+		float star_distance = (clip_near + clip_far) * 0.5f;		
+		
+		math::quaternion<float> rotation_y = math::angle_axis(time_of_day / 24.0f * -math::two_pi<float>, {0, 1, 0});
+		math::quaternion<float> rotation_x = math::angle_axis(-math::half_pi<float> + math::radians(30.0f), {1, 0, 0});
+		
+		math::transform<float> star_transform;
+		star_transform.translation = {0.0, 0.0, 0.0};
+		//star_transform.rotation = math::normalize(rotation_x * rotation_y);
+		star_transform.rotation = math::normalize(rotation_x * rotation_y * math::angle_axis(math::radians(-90.0f), {1, 0, 0}));
+		//star_transform.rotation = math::identity_quaternion<float>;
+		star_transform.scale = {star_distance, star_distance, star_distance};
+		
+		model = math::matrix_cast(star_transform);	
+		model_view = view * model;
+		
+		rasterizer->use_program(*star_shader_program);
+		if (star_model_view_input)
+			star_model_view_input->upload(model_view);
+		if (star_projection_input)
+			star_projection_input->upload(projection);
+		if (star_distance_input)
+			star_distance_input->upload(star_distance);
+		if (star_exposure_input)
+			star_exposure_input->upload(exposure);
+		
+		rasterizer->draw_arrays(*star_catalog_vao, gl::drawing_mode::points, 0, star_count);
 	}
 }
 

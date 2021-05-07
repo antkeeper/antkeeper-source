@@ -98,6 +98,15 @@ private:
 	const gl::shader_input* moon_moon_position_input;
 	const gl::shader_input* moon_sun_position_input;
 	
+	gl::vertex_buffer* star_catalog_vbo;
+	gl::vertex_array* star_catalog_vao;
+	gl::shader_program* star_shader_program;
+	const gl::shader_input* star_model_view_input;
+	const gl::shader_input* star_projection_input;
+	const gl::shader_input* star_exposure_input;
+	const gl::shader_input* star_distance_input;
+	std::size_t star_count;
+	
 	const model* sky_model;
 	const material* sky_material;
 	const gl::vertex_array* sky_model_vao;

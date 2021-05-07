@@ -39,9 +39,9 @@ double3 spherical_to_rectangular(const double3& spherical)
 {
 	return double3
 	{
-		spherical[0] * std::sin(spherical[1]) * std::cos(spherical[2]),
-		spherical[0] * std::sin(spherical[1]) * std::sin(spherical[2]),
-		spherical[0] * std::cos(spherical[1]),
+		spherical[0] * std::cos(spherical[1]) * std::cos(spherical[2]),
+		spherical[0] * std::cos(spherical[1]) * std::sin(spherical[2]),
+		spherical[0] * std::sin(spherical[1]),
 	};
 }
 
