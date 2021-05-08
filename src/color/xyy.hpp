@@ -63,12 +63,12 @@ inline T luminance(const math::vector3<T>& x)
 template <class T>
 math::vector2<T> to_ucs(const math::vector3<T>& x)
 {
-	const T inverse_denom = 1.0 / (-2.0 * x[0] + 12.0 * x[1] + 3.0);
+	const T inverse_denom = T(1.0) / (T(-2.0) * x[0] + T(12.0) * x[1] + T(3.0));
 	
 	return math::vector2<T>
 		{
-			(4.0 * x[0]) * inverse_denom,
-			(6.0 * x[1]) * inverse_denom
+			(T(4.0) * x[0]) * inverse_denom,
+			(T(6.0) * x[1]) * inverse_denom
 		};
 }
 
@@ -79,7 +79,7 @@ math::vector3<T> to_xyz(const math::vector3<T>& x)
 		{
 			(x[0] * x[2]) / x[1],
 			x[2],
-			((1.0 - x[0] - x[1]) * x[2]) / x[1]
+			((T(1.0) - x[0] - x[1]) * x[2]) / x[1]
 		};
 }
 

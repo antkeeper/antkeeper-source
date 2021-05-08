@@ -27,6 +27,10 @@ namespace color {
 /// Functions which operate in the ACEScg colorspace.
 namespace acescg {
 
+/// CIE chromaticity coordinates of the ACEScg white point (~D60).
+template <class T>
+constexpr math::vector2<T> whitepoint = {0.32168, 0.33767};
+
 /**
  * Calculates the luminance of an ACEScg color.
  *

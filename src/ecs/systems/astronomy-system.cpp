@@ -23,7 +23,6 @@
 #include "ecs/components/celestial-body-component.hpp"
 #include "ecs/components/transform-component.hpp"
 #include "renderer/passes/sky-pass.hpp"
-#include "astro/blackbody.hpp"
 #include "color/color.hpp"
 #include <iostream>
 
@@ -88,9 +87,11 @@ void astronomy_system::update(double t, double dt)
 			//sun_light->look_at({0, 0, 0}, {0, -1, 0}, {0, 0, 1});
 			
 			// Set sun color
-			float correlated_temperature = 3000.0f + std::sin(spherical.y) * 5000.0f;
-			float3 correlated_color = math::type_cast<float>(color::srgb::to_acescg(astro::blackbody(correlated_temperature)));
-			sun_light->set_color(correlated_color);
+			float cct = 3000.0f + std::sin(spherical.y) * 5000.0f;
+			float3 color_xyz = color::cct::to_xyz(cct);
+			float3 color_acescg = color::xyz::to_acescg(color_xyz);
+			
+			sun_light->set_color(color_acescg);
 
 			// Set sun intensity (in lux)
 			float intensity = std::max(0.0, std::sin(spherical.y) * 108000.0f);

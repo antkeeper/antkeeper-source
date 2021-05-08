@@ -61,7 +61,6 @@
 #include "ecs/systems/astronomy-system.hpp"
 #include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
-#include "astro/blackbody.hpp"
 
 #include "utility/bit-math.hpp"
 #include "genetics/genetics.hpp"
@@ -146,8 +145,8 @@ void play_state_enter(game_context* ctx)
 	
 	scene::directional_light* sun = new scene::directional_light();
 	
-	float3 sun_color = math::type_cast<float>(astro::blackbody(6000.0)); // NOTE: this is linear sRGB, should be ACEScg
-	sun->set_color(sun_color);
+	//float3 sun_color = math::type_cast<float>(astro::blackbody(6000.0)); // NOTE: this is linear sRGB, should be ACEScg
+	//sun->set_color(sun_color);
 	sun->set_intensity(1000.0f);
 	sun->set_light_texture(resource_manager->load<gl::texture_2d>("forest-gobo.tex"));
 	sun->set_light_texture_scale({2000, 2000});

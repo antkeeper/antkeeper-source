@@ -17,22 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ASTRO_COLOR_INDEX_HPP
-#define ANTKEEPER_ASTRO_COLOR_INDEX_HPP
+#ifndef ANTKEEPER_COLOR_INDEX_HPP
+#define ANTKEEPER_COLOR_INDEX_HPP
 
-namespace astro
-{
+namespace color {
+
+/// Functions which operate on color indices.
+namespace index {
 
 /**
  * Approximates the temperature of a star, given its B-V index.
  *
  * @param bv B-V index.
- * @return Temperature, in Kelvin.
+ * @return Correlated color temperature, in Kelvin.
  *
  * @see Ballesteros, F. J. (2012). "New insights into black bodies". EPL 97 (2012) 34008.
  */
-double bv_to_k(double bv);
+template <class T>
+T bv_to_cct(T bv);
 
-} // namespace astro
+template <class T>
+T bv_to_cct(T bv)
+{
+	return T(4600.0) * (T(1.0) / (T(0.92) * bv + T(1.7)) + T(1.0) / (T(0.92) * bv + T(0.62)));
+}
 
-#endif // ANTKEEPER_ASTRO_COLOR_INDEX_HPP
+} // namespace index
+} // namespace color
+
+#endif // ANTKEEPER_COLOR_INDEX_HPP

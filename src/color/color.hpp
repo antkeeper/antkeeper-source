@@ -24,7 +24,11 @@
 namespace color {}
 
 #include "acescg.hpp"
+#include "cct.hpp"
+#include "index.hpp"
 #include "srgb.hpp"
+#include "ucs.hpp"
+#include "xyy.hpp"
 #include "xyz.hpp"
 
 #endif // ANTKEEPER_COLOR_HPP

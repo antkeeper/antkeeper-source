@@ -63,6 +63,29 @@ math::vector3<T> to_srgb(const math::vector3<T>& x);
 template <class T>
 math::vector3<T> to_xyy(const math::vector3<T>& x);
 
+/// Chromatic Adaptation Transforms (CATs).
+namespace cat {
+
+	/**
+	 * Transforms a CIE XYZ color with an ACES (~D60) illuminant to a CIE XYZ color with a D65 illuminant using the Bradford chromatic adaption transform.
+	 *
+	 * @param x CIE XYZ color with an ACES (~D60) illuminant.
+	 * @return CIE XYZ color with a D65 illuminant.
+	 */
+	template <class T>
+	math::vector3<T> aces_to_d65(const math::vector3<T>& x);
+
+	/**
+	 * Transforms a CIE XYZ color with a D65 illuminant to a CIE XYZ color with an ACES (~D60) illuminant using the Bradford chromatic adaption transform.
+	 *
+	 * @param x CIE XYZ color with a D65 illuminant.
+	 * @return CIE XYZ color with an ACES (~D60) illuminant.
+	 */
+	template <class T>
+	math::vector3<T> d65_to_aces(const math::vector3<T>& x);
+
+} // namespace cat
+
 template <class T>
 inline T luminance(const math::vector3<T>& x)
 {
@@ -74,9 +97,9 @@ math::vector3<T> to_acescg(const math::vector3<T>& x)
 {
 	static const math::matrix3<T> xyz_to_acescg
 	{{
-		{ 1.641023379694326 -0.663662858722983  0.011721894328375},
-		{-0.324803294184790  1.615331591657338 -0.008284441996237},
-		{-0.236424695237612, 0.016756347685530, 0.988394858539022}
+		{ 1.641023379694326, -0.663662858722983,  0.011721894328375},
+		{-0.324803294184790,  1.615331591657338, -0.008284441996237},
+		{-0.236424695237612,  0.016756347685530,  0.988394858539022}
 	}};
 	
 	return xyz_to_acescg * x;
@@ -107,6 +130,36 @@ math::vector3<T> to_xyy(const math::vector3<T>& x)
 			x[1]
 		};
 }
+
+namespace cat {
+
+	template <class T>
+	math::vector3<T> aces_to_d65(const math::vector3<T>& x)
+	{
+		static const math::matrix3<T> cat_aces_to_d65
+		{{
+			{ 0.987225397551079, -0.007603864790602,  0.003066041131217},
+			{-0.006114800968213,  1.001874800208719, -0.005084242870792},
+			{ 0.015926393295811,  0.005322023893623,  1.081519155692042}
+		}};
+		
+		return cat_aces_to_d65 * x;
+	}
+
+	template <class T>
+	math::vector3<T> d65_to_aces(const math::vector3<T>& x)
+	{
+		static const math::matrix3<T> cat_d65_to_aces
+		{{
+			{ 1.013033366661459,  0.007703617525351, -0.002835673220262},
+			{ 0.006107049021859,  0.998150224406968,  0.004675010768250},
+			{-0.014947927269674, -0.005025218608126,  0.924644077051100}
+		}};
+		
+		return cat_d65_to_aces * x;
+	}
+
+} // namespace cat
 
 } // namespace xyz
 } // namespace color

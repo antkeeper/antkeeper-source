@@ -112,22 +112,22 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		double3 rectangular = astro::spherical_to_rectangular(spherical);
 		
 		// Convert color index to color temperature
-		double color_temperature = astro::bv_to_k(bv_color);
+		double cct = color::index::bv_to_cct(bv_color);
 		
-		// Calculate linear sRGB color from color temperature
-		double3 color_srgb = astro::blackbody(color_temperature);
+		// Calculate XYZ color from color temperature
+		double3 color_xyz = color::cct::to_xyz(cct);
 		
-		// Transform to ACEScg colorspace
-		double3 color_acescg = color::srgb::to_acescg(color_srgb);
+		// Transform XYZ from (assumed) D65 illuminant to ACES illuminant.
+		//color_xyz = color::xyz::cat::d65_to_aces(color_xyz);
 		
-		// Calculate color luminance
-		double color_luminance = color::acescg::luminance(color_acescg);
+		// Transform XYZ color to ACEScg colorspace
+		double3 color_acescg = color::xyz::to_acescg(color_xyz);
 		
 		// Convert apparent magnitude to lux
 		double vmag_lux = astro::vmag_to_lux(vmag);
 		
 		// Normalized color luminance and scale by apparent magnitude
-		double3 scaled_color = color_acescg * ((1.0 / color_luminance) * vmag_lux);
+		double3 scaled_color = color_acescg * vmag_lux;
 		
 		// Build vertex
 		*(star_vertex++) = static_cast<float>(rectangular.x);

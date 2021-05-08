@@ -24,9 +24,7 @@
 namespace astro {}
 
 #include "apparent-size.hpp"
-#include "blackbody.hpp"
 #include "coordinates.hpp"
-#include "color-index.hpp"
 #include "constants.hpp"
 #include "coordinates.hpp"
 #include "illuminance.hpp"

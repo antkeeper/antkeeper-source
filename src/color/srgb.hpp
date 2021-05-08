@@ -28,6 +28,10 @@ namespace color {
 /// Functions which operate in the sRGB colorspace.
 namespace srgb {
 
+/// CIE chromaticity coordinates of the sRGB white point (D65)
+template <class T>
+constexpr math::vector2<T> whitepoint = {0.31271, 0.32902};
+
 /**
  * Performs the sRGB Electro-Optical Transfer Function (EOTF), also known as the sRGB decoding function.
  *
