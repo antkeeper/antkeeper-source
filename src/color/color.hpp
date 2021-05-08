@@ -17,32 +17,14 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAMMA_HPP
-#define ANTKEEPER_GAMMA_HPP
+#ifndef ANTKEEPER_COLOR_HPP
+#define ANTKEEPER_COLOR_HPP
 
-#include "math/vector-type.hpp"
-#include <cmath>
+/// Color manipulation functions.
+namespace color {}
 
-template <typename T>
-T srgb_to_linear(const T& x)
-{
-	if (x <= T(0.04045))
-	{
-		return x / T(12.92);
-	}
-	
-	return std::pow((x + T(0.055)) / T(1.055), T(2.4));
-}
+#include "acescg.hpp"
+#include "srgb.hpp"
+#include "xyz.hpp"
 
-template <typename T>
-T linear_to_srgb(const T& x)
-{
-	if (x <= T(0.0031308))
-	{
-		return x * T(12.92);
-	}
-	
-	return std::pow(x, T(1.0 / 2.4)) * T(1.055) - T(0.055);
-}
-
-#endif // ANTKEEPER_GAMMA_HPP
+#endif // ANTKEEPER_COLOR_HPP

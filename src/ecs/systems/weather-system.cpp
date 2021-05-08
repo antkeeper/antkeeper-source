@@ -23,10 +23,6 @@
 #include "renderer/passes/sky-pass.hpp"
 #include "renderer/passes/shadow-map-pass.hpp"
 #include "renderer/passes/material-pass.hpp"
-#include "utility/gamma.hpp"
-#include "resources/image.hpp"
-#include "astro/coordinates.hpp"
-#include "astro/orbit.hpp"
 #include <cmath>
 
 namespace ecs {

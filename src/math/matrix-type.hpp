@@ -43,6 +43,18 @@ struct matrix
 	inline constexpr const row_type& operator[](std::size_t i) const noexcept { return columns[i]; }
 };
 
+/// 2x2 matrix.
+template <typename T>
+using matrix2 = matrix<T, 2, 2>;
+
+/// 3x3 matrix.
+template <typename T>
+using matrix3 = matrix<T, 3, 3>;
+
+/// 4x4 matrix.
+template <typename T>
+using matrix4 = matrix<T, 4, 4>;
+
 } // namespace math
 
 #endif // ANTKEEPER_MATH_MATRIX_TYPE_HPP

@@ -118,6 +118,18 @@ struct vector<T, 4>
 	inline constexpr std::size_t size() const noexcept { return 4; };
 };
 
+/// 2D vector.
+template <typename T>
+using vector2 = vector<T, 2>;
+
+/// 3D vector.
+template <typename T>
+using vector3 = vector<T, 3>;
+
+/// 4D vector.
+template <typename T>
+using vector4 = vector<T, 4>;
+
 } // namespace math
 
 #endif // ANTKEEPER_MATH_VECTOR_TYPE_HPP

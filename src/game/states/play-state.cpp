@@ -61,7 +61,6 @@
 #include "ecs/systems/astronomy-system.hpp"
 #include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
-#include "utility/gamma.hpp"
 #include "astro/blackbody.hpp"
 
 #include "utility/bit-math.hpp"

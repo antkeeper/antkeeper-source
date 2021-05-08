@@ -37,7 +37,7 @@
 #include "renderer/material.hpp"
 #include "scene/camera.hpp"
 #include "utility/fundamental-types.hpp"
-#include "utility/aces.hpp"
+#include "color/color.hpp"
 #include "math/interpolation.hpp"
 #include "astro/astro.hpp"
 #include <cmath>
@@ -118,15 +118,13 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		double3 color_srgb = astro::blackbody(color_temperature);
 		
 		// Transform to ACEScg colorspace
-		double3 color_acescg = srgb_to_acescg(color_srgb);
+		double3 color_acescg = color::srgb::to_acescg(color_srgb);
 		
 		// Calculate color luminance
-		double color_luminance = acescg_to_luminance(color_acescg);
+		double color_luminance = color::acescg::luminance(color_acescg);
 		
 		// Convert apparent magnitude to lux
 		double vmag_lux = astro::vmag_to_lux(vmag);
-		
-		std::cout << "mag: " << vmag << "; lux: " << vmag_lux << "remag: " << (astro::lux_to_vmag(vmag_lux)) << std::endl;
 		
 		// Normalized color luminance and scale by apparent magnitude
 		double3 scaled_color = color_acescg * ((1.0 / color_luminance) * vmag_lux);
