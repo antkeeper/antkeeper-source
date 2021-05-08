@@ -54,6 +54,15 @@ math::vector3<T> to_acescg(const math::vector3<T>& x);
 template <class T>
 math::vector3<T> to_srgb(const math::vector3<T>& x);
 
+/**
+ * Transforms a CIE XYZ color into the CIE xyY colorspace.
+ *
+ * @param x CIE XYZ color.
+ * @return CIE xyY color.
+ */
+template <class T>
+math::vector3<T> to_xyy(const math::vector3<T>& x);
+
 template <class T>
 inline T luminance(const math::vector3<T>& x)
 {
@@ -84,6 +93,19 @@ math::vector3<T> to_srgb(const math::vector3<T>& x)
 	}};
 	
 	return xyz_to_srgb * x;
+}
+
+template <class T>
+math::vector3<T> to_xyy(const math::vector3<T>& x)
+{
+	const T sum = x[0] + x[1] + x[2];
+	
+	return math::vector3<T>
+		{
+			x[0] / sum
+			x[1] / sum,
+			x[1]
+		};
 }
 
 } // namespace xyz
