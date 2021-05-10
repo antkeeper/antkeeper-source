@@ -38,7 +38,7 @@ namespace rectangular {
 		 * @param ecl Obliquity of the ecliptic, in radians.
 		 * @return Rotation matrix.
 		 *
-		 * @see coordinates::equatorial
+		 * @see coordinates::rectangular::equatorial
 		 */
 		template <class T>
 		math::matrix3<T> to_equatorial(T ecl);
@@ -50,10 +50,7 @@ namespace rectangular {
 		 * @param ecl Obliquity of the ecliptic, in radians.
 		 * @return Rectangular coordinates in equatorial space.
 		 *
-		 * @note If more than one point is being rotated, it is recommended to use the rotation matrix directly.
-		 *
-		 * @see coordinates::ecliptic::rectangular::to_equatorial(T)
-		 * @see coordinates::equatorial
+		 * @see coordinates::rectangular::equatorial
 		 */
 		template <class T>
 		math::vector3<T> to_equatorial(const math::vector3<T>& v, T ecl);
@@ -66,7 +63,7 @@ namespace rectangular {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Rotation matrix.
 		 *
-		 * @see coordinates::horizontal
+		 * @see coordinates::rectangular::horizontal
 		 */
 		template <class T>
 		math::matrix3<T> to_horizontal(T ecl, T lat, T lst);
@@ -80,10 +77,7 @@ namespace rectangular {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Rectangular coordinates in local horizontal space.
 		 *
-		 * @note If more than one point is being rotated, it is recommended to use the rotation matrix directly.
-		 *
-		 * @see coordinates::ecliptic::rectangular::to_horizontal(T, T, T)
-		 * @see coordinates::horizontal
+		 * @see coordinates::rectangular::horizontal
 		 */
 		template <class T>
 		math::vector3<T> to_horizontal(const math::vector3<T>& v, T ecl, T lat, T lst);
@@ -104,7 +98,7 @@ namespace spherical {
 		 * @param ecl Obliquity of the ecliptic, in radians.
 		 * @return Spherical coordinates in equatorial space, in the ISO order of radial distance, declination (radians), and right ascension (radians).
 		 *
-		 * @see coordinates::equatorial
+		 * @see coordinates::spherical::equatorial
 		 */
 		template <class T>
 		math::vector3<T> to_equatorial(const math::vector3<T>& v, T ecl);
@@ -118,7 +112,7 @@ namespace spherical {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Spherical coordinates in local horizontal space, in the ISO order of radial distance, altitude (radians), and azimuth (radians).
 		 *
-		 * @see coordinates::horizontal
+		 * @see coordinates::spherical::horizontal
 		 */
 		template <class T>
 		math::vector3<T> to_horizontal(const math::vector3<T>& v, T ecl, T lat, T lst);

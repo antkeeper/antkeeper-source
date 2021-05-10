@@ -39,7 +39,7 @@ namespace rectangular {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Rotation matrix.
 		 *
-		 * @see coordinates::equatorial
+		 * @see coordinates::rectangular::equatorial
 		 */
 		template <class T>
 		math::matrix3<T> to_equatorial(T lat, T lst);
@@ -52,7 +52,7 @@ namespace rectangular {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Rectangular coordinates in equatorial space.
 		 *
-		 * @see coordinates::equatorial
+		 * @see coordinates::rectangular::equatorial
 		 */
 		template <class T>
 		math::vector3<T> to_equatorial(const math::vector3<T>& v, T lat, T lst);
@@ -65,7 +65,7 @@ namespace rectangular {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Rotation matrix.
 		 *
-		 * @see coordinates::ecliptic
+		 * @see coordinates::rectangular::ecliptic
 		 */
 		template <class T>
 		math::matrix3<T> to_ecliptic(T ecl, T lat, T lst);
@@ -79,7 +79,7 @@ namespace rectangular {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Rectangular coordinates in ecliptic space.
 		 *
-		 * @see coordinates::ecliptic
+		 * @see coordinates::rectangular::ecliptic
 		 */
 		template <class T>
 		math::vector3<T> to_ecliptic(const math::vector3<T>& v, T ecl, T lat, T lst);
@@ -101,7 +101,7 @@ namespace spherical {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Spherical coordinates in equatorial space, in the ISO order of radial distance, declination (radians), and right ascension (radians).
 		 *
-		 * @see coordinates::equatorial
+		 * @see coordinates::spherical::equatorial
 		 */
 		template <class T>
 		math::vector3<T> to_equatorial(const math::vector3<T>& v, T lat, T lst);
@@ -115,7 +115,7 @@ namespace spherical {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Spherical coordinates in ecliptic space, in the ISO order of radial distance, ecliptic latitude (radians), and ecliptic longitude (radians).
 		 *
-		 * @see coordinates::ecliptic
+		 * @see coordinates::spherical::ecliptic
 		 */
 		template <class T>
 		math::vector3<T> to_ecliptic(const math::vector3<T>& v, T ecl, T lat, T lst);

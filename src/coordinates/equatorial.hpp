@@ -38,7 +38,7 @@ namespace rectangular {
 		 * @param ecl Obliquity of the ecliptic, in radians.
 		 * @return Rotation matrix.
 		 *
-		 * @see coordinates::ecliptic
+		 * @see coordinates::rectangular::ecliptic
 		 */
 		template <class T>
 		math::matrix3<T> to_ecliptic(T ecl);
@@ -50,7 +50,7 @@ namespace rectangular {
 		 * @param ecl Obliquity of the ecliptic, in radians.
 		 * @return Rectangular coordinates in ecliptic space.
 		 *
-		 * @see coordinates::ecliptic
+		 * @see coordinates::rectangular::ecliptic
 		 */
 		template <class T>
 		math::vector3<T> to_ecliptic(const math::vector3<T>& v, T ecl);
@@ -62,7 +62,7 @@ namespace rectangular {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Rotation matrix.
 		 *
-		 * @see coordinates::horizontal
+		 * @see coordinates::rectangular::horizontal
 		 */
 		template <class T>
 		math::matrix3<T> to_horizontal(T lat, T lst);
@@ -75,7 +75,7 @@ namespace rectangular {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Rectangular coordinates in local horizontal space.
 		 *
-		 * @see coordinates::horizontal
+		 * @see coordinates::rectangular::horizontal
 		 */
 		template <class T>
 		math::vector3<T> to_horizontal(const math::vector3<T>& v, T lat, T lst);
@@ -96,7 +96,7 @@ namespace spherical {
 		 * @param ecl Obliquity of the ecliptic, in radians.
 		 * @return Spherical coordinates in ecliptic space, in the ISO order of radial distance, ecliptic latitude (radians), and ecliptic longitude (radians).
 		 *
-		 * @see coordinates::ecliptic
+		 * @see coordinates::spherical::ecliptic
 		 */
 		template <class T>
 		math::vector3<T> to_ecliptic(const math::vector3<T>& v, T ecl);
@@ -109,7 +109,7 @@ namespace spherical {
 		 * @param lst Local sidereal time, in radians.
 		 * @return Spherical coordinates in local horizontal space, in the ISO order of radial distance, altitude (radians), and azimuth (radians).
 		 *
-		 * @see coordinates::horizontal
+		 * @see coordinates::spherical::horizontal
 		 */
 		template <class T>
 		math::vector3<T> to_horizontal(const math::vector3<T>& v, T lat, T lst);
