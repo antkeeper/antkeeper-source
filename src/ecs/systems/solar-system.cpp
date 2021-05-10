@@ -18,7 +18,7 @@
  */
 
 #include "ecs/systems/solar-system.hpp"
-#include "astro/coordinates.hpp"
+#include "coordinates/coordinates.hpp"
 #include "astro/orbit.hpp"
 #include "astro/constants.hpp"
 #include "ecs/components/celestial-body-component.hpp"

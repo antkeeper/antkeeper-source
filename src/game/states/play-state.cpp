@@ -234,7 +234,7 @@ void play_state_enter(game_context* ctx)
 	auto nest_entity = nest_archetype->create(ecs_registry);
 	
 	// Create terrain
-	int terrain_radius = 6;
+	int terrain_radius = 0;//6;
 	for (int x = -terrain_radius; x <= terrain_radius; ++x)
 	{
 		for (int z = -terrain_radius; z <= terrain_radius; ++z)
@@ -249,7 +249,7 @@ void play_state_enter(game_context* ctx)
 	}
 
 	// Create trees
-	for (int i = 0; i < 30; ++i)
+	for (int i = 0; i < 0; ++i)
 	{
 		auto redwood = redwood_archetype->create(ecs_registry);
 

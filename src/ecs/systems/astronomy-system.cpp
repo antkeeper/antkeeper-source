@@ -18,7 +18,7 @@
  */
 
 #include "ecs/systems/astronomy-system.hpp"
-#include "astro/coordinates.hpp"
+#include "coordinates/coordinates.hpp"
 #include "astro/apparent-size.hpp"
 #include "ecs/components/celestial-body-component.hpp"
 #include "ecs/components/transform-component.hpp"
@@ -60,15 +60,21 @@ void astronomy_system::update(double t, double dt)
 		horizontal.z -= observer_location[0];
 		
 		// Convert rectangular horizontal coordinates to spherical
-		double3 spherical = astro::rectangular_to_spherical(horizontal);
-		spherical.z -= math::pi<double>;
+		double3 spherical = coordinates::rectangular::to_spherical(horizontal);
 		
 		// Find angular radius
-		double angular_radius = astro::find_angular_radius(body.radius, spherical.x);
+		double angular_radius = astro::find_angular_radius(body.radius, spherical[0]);
 		
-		// Transform into local right-handed coordinates
-		double3 translation = astro::horizontal_to_right_handed * horizontal;
-		double3x3 rotation = astro::horizontal_to_right_handed * ecliptic_to_horizontal;
+		// Transform into local coordinates
+		const double3x3 horizontal_to_local =
+		{
+			0.0, 0.0, -1.0,
+			1.0, 0.0, 0.0,
+			0.0, 1.0, 0.0
+		};
+		
+		double3 translation = horizontal_to_local * horizontal;
+		double3x3 rotation = horizontal_to_local * ecliptic_to_horizontal;
 		
 		// Set local transform of transform component
 		transform.local.translation = math::type_cast<float>(translation);
@@ -180,7 +186,7 @@ void astronomy_system::update_sidereal_time()
 
 void astronomy_system::update_ecliptic_to_horizontal()
 {
-	ecliptic_to_horizontal = astro::ecliptic_to_horizontal(obliquity, observer_location[1], lst);
+	ecliptic_to_horizontal = coordinates::rectangular::ecliptic::to_horizontal(obliquity, observer_location[1], lst);
 }
 
 } // namespace ecs

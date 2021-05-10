@@ -38,8 +38,9 @@
 #include "scene/camera.hpp"
 #include "utility/fundamental-types.hpp"
 #include "color/color.hpp"
+#include "astro/illuminance.hpp"
 #include "math/interpolation.hpp"
-#include "astro/astro.hpp"
+#include "coordinates/coordinates.hpp"
 #include <cmath>
 #include <stdexcept>
 #include <glad/glad.h>
@@ -107,9 +108,8 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		ra = math::wrap_radians(math::radians(ra));
 		dec = math::wrap_radians(math::radians(dec));
 		
-		// Transform spherical coordinates to rectangular (Cartesian) coordinates
-		double3 spherical = {1.0, dec, ra};
-		double3 rectangular = astro::spherical_to_rectangular(spherical);
+		// Transform spherical equatorial coordinates to rectangular equatorial coordinates
+		double3 position = coordinates::spherical::to_rectangular(double3{1.0, dec, ra});
 		
 		// Convert color index to color temperature
 		double cct = color::index::bv_to_cct(bv_color);
@@ -130,9 +130,9 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		double3 scaled_color = color_acescg * vmag_lux;
 		
 		// Build vertex
-		*(star_vertex++) = static_cast<float>(rectangular.x);
-		*(star_vertex++) = static_cast<float>(rectangular.y);
-		*(star_vertex++) = static_cast<float>(rectangular.z);
+		*(star_vertex++) = static_cast<float>(position.x);
+		*(star_vertex++) = static_cast<float>(position.y);
+		*(star_vertex++) = static_cast<float>(position.z);
 		*(star_vertex++) = static_cast<float>(scaled_color.x);
 		*(star_vertex++) = static_cast<float>(scaled_color.y);
 		*(star_vertex++) = static_cast<float>(scaled_color.z);
@@ -287,19 +287,35 @@ void sky_pass::render(render_context* context) const
 	
 	// Draw stars
 	{
-		float star_distance = (clip_near + clip_far) * 0.5f;		
+		float star_distance = (clip_near + clip_far) * 0.5f;
 		
-		math::quaternion<float> rotation_y = math::angle_axis(time_of_day / 24.0f * -math::two_pi<float>, {0, 1, 0});
-		math::quaternion<float> rotation_x = math::angle_axis(-math::half_pi<float> + math::radians(30.0f), {1, 0, 0});
+		double lat = math::radians(30.0);
+		double lst = time_of_day / 24.0f * math::two_pi<float>;
+		//std::cout << "lst: " << lst << std::endl;
 		
-		math::transform<float> star_transform;
-		star_transform.translation = {0.0, 0.0, 0.0};
+		double3x3 equatorial_to_horizontal = coordinates::rectangular::equatorial::to_horizontal(lat, lst);
+		
+		const double3x3 horizontal_to_local =
+		{
+			0.0, 0.0, -1.0,
+			1.0, 0.0, 0.0,
+			0.0, 1.0, 0.0
+		};
+		
+		double3x3 rotation = horizontal_to_local * equatorial_to_horizontal;
+		//math::quaternion<float> rotation_y = math::angle_axis(time_of_day / 24.0f * -math::two_pi<float>, {0, 1, 0});
+		//math::quaternion<float> rotation_x = math::angle_axis(-math::half_pi<float> + math::radians(30.0f), {1, 0, 0});
+		
+		model = math::type_cast<float>(math::scale(math::resize<4, 4>(rotation), double3{star_distance, star_distance, star_distance}));;
+		
+		//math::transform<float> star_transform;
+		//star_transform.translation = {0.0, 0.0, 0.0};
 		//star_transform.rotation = math::normalize(rotation_x * rotation_y);
-		star_transform.rotation = math::normalize(rotation_x * rotation_y * math::angle_axis(math::radians(-90.0f), {1, 0, 0}));
+		//star_transform.rotation = math::normalize(math::type_cast<float>(math::quaternion_cast(rotation)));
 		//star_transform.rotation = math::identity_quaternion<float>;
-		star_transform.scale = {star_distance, star_distance, star_distance};
+		//star_transform.scale = {star_distance, star_distance, star_distance};
+		//model = math::matrix_cast(star_transform);	
 		
-		model = math::matrix_cast(star_transform);	
 		model_view = view * model;
 		
 		rasterizer->use_program(*star_shader_program);
