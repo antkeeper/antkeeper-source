@@ -88,7 +88,7 @@ namespace rectangular {
 
 namespace spherical {
 
-	/// Spherical equatorial coordinate system.
+	/// Spherical ecliptic coordinate system.
 	namespace ecliptic {
 		
 		/**
