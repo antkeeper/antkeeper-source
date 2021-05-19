@@ -17,14 +17,35 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_HPP
-#define ANTKEEPER_PHYSICS_HPP
+#ifndef ANTKEEPER_PHYSICS_TIME_UT1_HPP
+#define ANTKEEPER_PHYSICS_TIME_UT1_HPP
 
-/// Physics
-namespace physics {}
+#include "math/constants.hpp"
 
-#include "frame.hpp"
-#include "orbit/orbit.hpp"
-#include "time/time.hpp"
+namespace physics {
+namespace time {
 
-#endif // ANTKEEPER_PHYSICS_HPP
+/// Functions which operate on UT1 universal time.
+namespace ut1 {
+
+/**
+ * Calculates the Earth Rotation Angle (ERA) at a given UT1 date.
+ *
+ * @param t J2000 UT1 date.
+ * @return ERA at the given date, in radians.
+ */
+template <class T>
+T era(T t);
+
+template <class T>
+T era(T t)
+{
+	return math::two_pi<T> * (T(0.7790572732640) + T(1.00273781191135448) * t);
+}
+
+} // namespace ut1
+
+} // namespace time
+} // namespace physics
+
+#endif // ANTKEEPER_PHYSICS_TIME_UT1_HPP

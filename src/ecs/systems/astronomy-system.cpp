@@ -24,6 +24,7 @@
 #include "renderer/passes/sky-pass.hpp"
 #include "color/color.hpp"
 #include "physics/orbit/orbit.hpp"
+#include "physics/time/ut1.hpp"
 #include "geom/cartesian.hpp"
 #include <iostream>
 
@@ -122,7 +123,7 @@ void astronomy_system::update(double t, double dt)
 			
 			
 			const double earth_axial_tilt = math::radians(23.45);
-			const double earth_axial_rotation = math::two_pi<double> * (0.7790572732640 + 1.00273781191135448 * universal_time);
+			const double earth_axial_rotation = physics::time::ut1::era(universal_time);
 			const double earth_radius_au = 4.2635e-5;
 			
 			const double observer_altitude = earth_radius_au;

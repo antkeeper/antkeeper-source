@@ -17,14 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_HPP
-#define ANTKEEPER_PHYSICS_HPP
+#ifndef ANTKEEPER_PHYSICS_TIME_HPP
+#define ANTKEEPER_PHYSICS_TIME_HPP
 
-/// Physics
-namespace physics {}
+namespace physics {
 
-#include "frame.hpp"
-#include "orbit/orbit.hpp"
-#include "time/time.hpp"
+/// Time-related functions.
+namespace time {}
 
-#endif // ANTKEEPER_PHYSICS_HPP
+#include "ut1.hpp"
+
+} // namespace physics
+
+#endif // ANTKEEPER_PHYSICS_TIME_HPP
