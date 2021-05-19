@@ -17,18 +17,36 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_COORDINATES_HPP
-#define ANTKEEPER_COORDINATES_HPP
+#ifndef ANTKEEPER_PHYSICS_ORBIT_STATE_HPP
+#define ANTKEEPER_PHYSICS_ORBIT_STATE_HPP
 
 #include "utility/fundamental-types.hpp"
 
-/// Functions for converting between coordinate systems.
-namespace coordinates {}
+namespace physics {
+namespace orbit {
 
-#include "ecliptic.hpp"
-#include "equatorial.hpp"
-#include "horizontal.hpp"
-#include "rectangular.hpp"
-#include "spherical.hpp"
+/**
+ * Pair of orbital state Cartesian position (r) and velocity (v) vectors.
+ *
+ * @tparam T Scalar type.
+ */
+template <class T>
+struct state
+{
+	/// Scalar type.
+	typedef T scalar_type;
+	
+	/// Vector type.
+	typedef math::vector3<T> vector_type;
+	
+	/// Cartesian orbital position vector (r).
+	vector_type r;
+	
+	/// Cartesian orbital velocity vector (v).
+	vector_type v;
+};
 
-#endif // ANTKEEPER_COORDINATES_HPP
+} // namespace orbit
+} // namespace physics
+
+#endif // ANTKEEPER_PHYSICS_ORBIT_STATE_HPP

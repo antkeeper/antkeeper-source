@@ -119,18 +119,18 @@ void play_state_enter(game_context* ctx)
 	{
 		ecs::celestial_body_component sun_body;
 		sun_body.orbital_elements.a = 1.0;
-		sun_body.orbital_elements.ec = 0.016709;
+		sun_body.orbital_elements.e = 0.016709;
 		sun_body.orbital_elements.w = math::radians(282.9404);
-		sun_body.orbital_elements.ma = math::radians(356.0470);
+		sun_body.orbital_elements.ta = math::radians(356.0470);
 		sun_body.orbital_elements.i = 0.0;
-		sun_body.orbital_elements.om = 0.0;
+		sun_body.orbital_elements.raan = 0.0;
 		
 		sun_body.orbital_rate.a = 0.0;
-		sun_body.orbital_rate.ec = -1.151e-9;
+		sun_body.orbital_rate.e = -1.151e-9;
 		sun_body.orbital_rate.w = math::radians(4.70935e-5);
-		sun_body.orbital_rate.ma = math::radians(0.9856002585);
+		sun_body.orbital_rate.ta = math::radians(0.9856002585);
 		sun_body.orbital_rate.i = 0.0;
-		sun_body.orbital_rate.om = 0.0;
+		sun_body.orbital_rate.raan = 0.0;
 		
 		ecs::transform_component sun_transform;
 		sun_transform.local = math::identity_transform<float>;
@@ -161,7 +161,7 @@ void play_state_enter(game_context* ctx)
 	
 	ctx->solar_system->set_universal_time(0.0);
 	
-	ctx->astronomy_system->set_observer_location(double3{4.26352e-5, ctx->biome->location[0], ctx->biome->location[1]});
+	ctx->astronomy_system->set_observer_location(double3{4.26352e-5, math::radians(10.0f), 0.0f});
 	ctx->astronomy_system->set_universal_time(0.0);
 	ctx->astronomy_system->set_obliquity(math::radians(23.4393));
 	ctx->astronomy_system->set_axial_rotation_at_epoch(math::radians(280.4606));
@@ -228,7 +228,7 @@ void play_state_enter(game_context* ctx)
 
 	// Create ant-hill
 	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);
-	ecs::command::place(ecs_registry, ant_hill_entity, {0, 0});
+	ecs::command::place(ecs_registry, ant_hill_entity, {0, -40});
 
 	// Creat nest
 	auto nest_entity = nest_archetype->create(ecs_registry);
@@ -346,7 +346,7 @@ void play_state_enter(game_context* ctx)
 	{
 		auto larva = larva_archetype->create(ecs_registry);
 		ecs::command::assign_render_layers(ecs_registry, larva, 1);
-		ecs::command::warp_to(ecs_registry, larva, {50, 0.1935f, 10});
+		ecs::command::warp_to(ecs_registry, larva, {50, 0.1935f, 0});
 		//auto& transform = ecs_registry.get<ecs::transform_component>(larva_entity);
 		//transform.transform = math::identity_transform<float>;
 		//transform.transform.translation = nest->get_shaft_position(*central_shaft, central_shaft->depth[1]);

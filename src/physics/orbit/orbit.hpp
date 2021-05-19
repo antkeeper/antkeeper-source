@@ -17,39 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
-#define ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
+#ifndef ANTKEEPER_PHYSICS_ORBIT_HPP
+#define ANTKEEPER_PHYSICS_ORBIT_HPP
+
+namespace physics {
+
+/**
+ * Orbital mechanics.
+ *
+ * @see Curtis, H. D. (2005). *Orbital mechanics for engineering students*. Amsterdam: Elsevier Butterworth Heinemann.
+ */
+namespace orbit {}
+
+} // namespace physics
 
 #include "physics/orbit/elements.hpp"
-#include "utility/fundamental-types.hpp"
-#include "math/quaternion-type.hpp"
+#include "physics/orbit/frames.hpp"
+#include "physics/orbit/kepler.hpp"
+#include "physics/orbit/state.hpp"
 
-namespace ecs {
-
-struct celestial_body_component
-{
-	physics::orbit::elements<double> orbital_elements;
-	physics::orbit::elements<double> orbital_rate;
-	physics::orbit::state<double> orbital_state;
-	
-	double3 position;
-	double3 velocity;
-	double3 acceleration;
-	double mass;
-	double radius;
-	math::quaternion<double> orientation;
-};
-
-struct blackbody_radiator
-{
-	double temperature;
-};
-
-struct diffuse_reflector
-{
-	double albedo;
-};
-
-} // namespace ecs
-
-#endif // ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
+#endif // ANTKEEPER_PHYSICS_ORBIT_HPP

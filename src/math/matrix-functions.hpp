@@ -252,6 +252,33 @@ template <class T>
 matrix<T, 4, 4> rotate(const matrix<T, 4, 4>& m, T angle, const vector<T, 3>& axis);
 
 /**
+ * Produces a matrix which rotates Cartesian coordinates about the x-axis by a given angle.
+ *
+ * @param angle Angle of rotation, in radians.
+ * @return Rotation matrix.
+ */
+template <class T>
+matrix3<T> rotate_x(T angle);
+
+/**
+ * Produces a matrix which rotates Cartesian coordinates about the y-axis by a given angle.
+ *
+ * @param angle Angle of rotation, in radians.
+ * @return Rotation matrix.
+ */
+template <class T>
+matrix3<T> rotate_y(T angle);
+
+/**
+ * Produces a matrix which rotates Cartesian coordinates about the z-axis by a given angle.
+ *
+ * @param angle Angle of rotation, in radians.
+ * @return Rotation matrix.
+ */
+template <class T>
+matrix3<T> rotate_z(T angle);
+
+/**
  * Scales a matrix.
  *
  * @param m Matrix to scale.
@@ -732,6 +759,48 @@ matrix<T, 4, 4> rotate(const matrix<T, 4, 4>& m, T angle, const vector<T, 3>& ax
 	rotation[3][3] = T(1);
 
 	return mul(m, rotation);
+}
+
+template <class T>
+matrix3<T> rotate_x(T angle)
+{
+	const T c = std::cos(angle);
+	const T s = std::sin(angle);
+	
+	return matrix3<T>
+	{
+		T(1), T(0), T(0),
+		T(0), c, s,
+		T(0), -s, c
+	};
+}
+
+template <class T>
+matrix3<T> rotate_y(T angle)
+{
+	const T c = std::cos(angle);
+	const T s = std::sin(angle);
+	
+	return matrix3<T>
+	{
+		c, T(0), -s,
+		T(0), T(1), T(0),
+		s, T(0), c
+	};
+}
+
+template <class T>
+matrix3<T> rotate_z(T angle)
+{
+	const T c = std::cos(angle);
+	const T s = std::sin(angle);
+	
+	return matrix3<T>
+	{
+		c, s, T(0),
+		-s, c, T(0),
+		T(0), T(0), T(1)
+	};
 }
 
 template <class T>

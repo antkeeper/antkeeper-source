@@ -18,12 +18,13 @@
  */
 
 #include "ecs/systems/astronomy-system.hpp"
-#include "coordinates/coordinates.hpp"
 #include "astro/apparent-size.hpp"
 #include "ecs/components/celestial-body-component.hpp"
 #include "ecs/components/transform-component.hpp"
 #include "renderer/passes/sky-pass.hpp"
 #include "color/color.hpp"
+#include "physics/orbit/orbit.hpp"
+#include "geom/cartesian.hpp"
 #include <iostream>
 
 namespace ecs {
@@ -49,48 +50,127 @@ void astronomy_system::update(double t, double dt)
 	// Add scaled timestep to current time
 	set_universal_time(universal_time + dt * days_per_timestep);
 	
+	set_universal_time(0.0);
+	
 	// Update horizontal (topocentric) positions of intrasolar celestial bodies
 	registry.view<celestial_body_component, transform_component>().each(
 	[&](ecs::entity entity, auto& body, auto& transform)
 	{
+		double time_correction = observer_location[2] / (math::two_pi<double> / 24.0);
+		double local_jd = universal_time + time_correction / 24.0 - 0.5;
+		double local_time = (local_jd - std::floor(local_jd)) * 24.0;
+		double local_lst = local_time / 24.0f * math::two_pi<float>;
+		
 		// Transform orbital position from ecliptic space to horizontal space
-		double3 horizontal = ecliptic_to_horizontal * body.orbital_state.r;
+		//double3 horizontal = ecliptic_to_horizontal * body.orbital_state.r;
+		double3 horizontal = ecliptic_to_horizontal * double3{1, 0, 0};
 		
 		// Subtract observer's radial distance (planet radius + observer's altitude)
-		horizontal.z -= observer_location[0];
+		//horizontal.z -= observer_location[0];
 		
-		// Convert rectangular horizontal coordinates to spherical
-		double3 spherical = coordinates::rectangular::to_spherical(horizontal);
+		// Convert Cartesian horizontal coordinates to spherical
+		double3 spherical = geom::cartesian::to_spherical(horizontal);
 		
 		// Find angular radius
 		double angular_radius = astro::find_angular_radius(body.radius, spherical[0]);
 		
 		// Transform into local coordinates
-		const double3x3 horizontal_to_local =
-		{
-			0.0, 0.0, -1.0,
-			1.0, 0.0, 0.0,
-			0.0, 1.0, 0.0
-		};
+		const double3x3 horizontal_to_local = math::rotate_x(-math::half_pi<double>) * math::rotate_z(-math::half_pi<double>);
 		
 		double3 translation = horizontal_to_local * horizontal;
 		double3x3 rotation = horizontal_to_local * ecliptic_to_horizontal;
 		
+		
 		// Set local transform of transform component
 		transform.local.translation = math::type_cast<float>(translation);
-		transform.local.rotation = math::type_cast<float>(math::quaternion_cast(rotation));
+		transform.local.rotation = math::normalize(math::type_cast<float>(math::quaternion_cast(rotation)));
 		transform.local.scale = math::type_cast<float>(double3{body.radius, body.radius, body.radius});
 		
 		if (sun_light != nullptr)
 		{
+			const double universal_time_cy = universal_time * 2.7397e-5;
+			const double3 solar_system_barycenter = {0, 0, 0};
+						
+			physics::orbit::elements<double> earth_elements;
+			earth_elements.a = 1.00000261 + 0.00000562 * universal_time_cy;
+			earth_elements.e = 0.01671123 + -0.00004392 * universal_time_cy;
+			
+			earth_elements.i = math::radians(-0.00001531) + math::radians(-0.01294668) * universal_time_cy;
+			earth_elements.raan = 0.0;
+			
+			const double earth_elements_mean_longitude = math::radians(100.46457166) + math::radians(35999.37244981) * universal_time_cy;
+			const double earth_elements_longitude_perihelion = math::radians(102.93768193) + math::radians(0.32327364) * universal_time_cy;
+			
+			earth_elements.w = earth_elements_longitude_perihelion - earth_elements.raan;
+			earth_elements.ta = earth_elements_mean_longitude - earth_elements_longitude_perihelion;
+			
+			
+			// Calculate semi-minor axis, b
+			double b = physics::orbit::derive_semiminor_axis(earth_elements.a, earth_elements.e);
+			
+			// Solve Kepler's equation for eccentric anomaly (E)
+			double ea = physics::orbit::kepler_ea(earth_elements.e, earth_elements.ta, 10, 1e-6);
+			
+			// Calculate radial distance, r; and true anomaly, v
+			double xv = earth_elements.a * (std::cos(ea) - earth_elements.e);
+			double yv = b * std::sin(ea);
+			double r = std::sqrt(xv * xv + yv * yv);
+			double ta = std::atan2(yv, xv);
+			
+			// Position of the body in perifocal space
+			const math::vector3<double> earth_position_pqw = math::quaternion<double>::rotate_z(ta) * math::vector3<double>{r, 0, 0};
+			
+			
+			const double earth_axial_tilt = math::radians(23.45);
+			const double earth_axial_rotation = math::two_pi<double> * (0.7790572732640 + 1.00273781191135448 * universal_time);
+			const double earth_radius_au = 4.2635e-5;
+			
+			const double observer_altitude = earth_radius_au;
+			const double observer_latitude = math::radians(0.0);
+			const double observer_longitude = math::radians(0.0);
+			
+			const physics::frame<double> earth_inertial_to_pqw = physics::orbit::inertial::to_perifocal(solar_system_barycenter, earth_elements.raan, earth_elements.i, earth_elements.w);
+			const math::vector3<double> earth_position_inertial = earth_inertial_to_pqw.inverse() * earth_position_pqw;
+			
+			const math::vector3<double> sun_position_intertial = math::vector3<double>{0, 0, 0};
+			
+			const physics::frame<double> earth_inertial_to_bci = physics::orbit::inertial::to_bci(earth_position_inertial, earth_elements.i, earth_axial_tilt);
+			const physics::frame<double> earth_inertial_to_bcbf = physics::orbit::inertial::to_bcbf(earth_position_inertial, earth_elements.i, earth_axial_tilt, earth_axial_rotation);
+			const physics::frame<double> earth_bcbf_to_topo = physics::orbit::bcbf::to_topocentric(observer_altitude, observer_latitude, observer_longitude);
+			
+			const math::vector3<double> sun_position_earth_bci = earth_inertial_to_bci * sun_position_intertial;
+			const math::vector3<double> sun_position_earth_bcbf = earth_inertial_to_bcbf * sun_position_intertial;
+			const math::vector3<double> sun_position_earth_topo = earth_bcbf_to_topo * sun_position_earth_bcbf;
+			
+			const math::vector3<double> sun_radec = geom::cartesian::to_spherical(sun_position_earth_bci);
+			const math::vector3<double> sun_azel = geom::cartesian::to_spherical(sun_position_earth_topo);
+			
+			const double sun_az = sun_azel.z;
+			const double sun_el = sun_azel.y;
+			
+			double sun_ra = sun_radec.z;
+			const double sun_dec = sun_radec.y;
+			
+			if (sun_ra < 0.0)
+				sun_ra += math::two_pi<double>;
+			
+			std::cout << "ra: " << (sun_ra / math::two_pi<double> * 24.0) << "; dec: " << math::degrees(sun_dec) << std::endl;
+			std::cout << "az: " << math::degrees(math::pi<double> - sun_az) << "; el: " << math::degrees(sun_el) << std::endl;
+			
+			
+			float az = spherical.z;
+			float el = spherical.y;
+			
+			if (az < 0.0f)
+				az += math::two_pi<float>;
+			
+			//std::cout << "local: " << translation << std::endl;
+			//std::cout << "az: " << math::degrees(az) << "; ";
+			//std::cout << "el: " << math::degrees(el) << std::endl;
+			
 			math::quaternion<float> sun_azimuth_rotation = math::angle_axis(static_cast<float>(spherical.z), float3{0, 1, 0});
-			math::quaternion<float> sun_elevation_rotation = math::angle_axis(static_cast<float>(spherical.y), float3{-1, 0, 0});
+			math::quaternion<float> sun_elevation_rotation = math::angle_axis(static_cast<float>(spherical.y), float3{1, 0, 0});
 			math::quaternion<float> sun_az_el_rotation = math::normalize(sun_azimuth_rotation * sun_elevation_rotation);
-			
-			//sun_az_el_rotation = math::angle_axis((float)universal_time * math::two_pi<float>, float3{1, 0, 0});
-			
-			//
-			//sun_light->look_at({0, 0, 0}, {0, -1, 0}, {0, 0, 1});
 			
 			// Set sun color
 			float cct = 3000.0f + std::sin(spherical.y) * 5000.0f;
@@ -104,14 +184,16 @@ void astronomy_system::update(double t, double dt)
 			sun_light->set_intensity(intensity);
 			
 			
-			sun_light->set_translation({0, 500, 0});
-			//sun_light->set_rotation(math::look_rotation(math::normalize(transform.local.translation), {0, 1, 0}));
-			sun_light->set_rotation(sun_az_el_rotation);
+			//sun_light->set_translation({0, 500, 0});
+			sun_light->set_translation(transform.local.translation);
+			//sun_light->set_rotation(transform.local.rotation);
+			//sun_light->set_rotation(sun_az_el_rotation);
 			//sun_light->set_rotation(sun_elevation_rotation);
+			sun_light->set_rotation(math::look_rotation(math::normalize(-transform.local.translation), {0, 0, -1}));
 			
 			if (this->sky_pass)
 			{
-				this->sky_pass->set_sun_coordinates(sun_az_el_rotation * float3{0, 0, -1}, {static_cast<float>(spherical.z), static_cast<float>(spherical.y)});
+				this->sky_pass->set_sun_coordinates(transform.local.rotation * float3{0, 0, -1}, {static_cast<float>(spherical.z), static_cast<float>(spherical.y)});
 			}
 		}
 	});
@@ -186,7 +268,7 @@ void astronomy_system::update_sidereal_time()
 
 void astronomy_system::update_ecliptic_to_horizontal()
 {
-	ecliptic_to_horizontal = coordinates::rectangular::ecliptic::to_horizontal(obliquity, observer_location[1], lst);
+	//ecliptic_to_horizontal = coordinates::rectangular::ecliptic::to_horizontal(obliquity, observer_location[1], lst);
 }
 
 } // namespace ecs

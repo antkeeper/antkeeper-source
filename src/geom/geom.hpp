@@ -26,6 +26,7 @@ namespace geom {}
 #include "aabb.hpp"
 #include "bounding-volume.hpp"
 #include "convex-hull.hpp"
+#include "cartesian.hpp"
 #include "csg.hpp"
 #include "intersection.hpp"
 #include "marching-cubes.hpp"
@@ -39,6 +40,7 @@ namespace geom {}
 #include "ray.hpp"
 #include "sdf.hpp"
 #include "sphere.hpp"
+#include "spherical.hpp"
 #include "view-frustum.hpp"
 
 #endif // ANTKEEPER_GEOM_HPP

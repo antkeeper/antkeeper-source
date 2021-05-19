@@ -40,7 +40,8 @@
 #include "color/color.hpp"
 #include "astro/illuminance.hpp"
 #include "math/interpolation.hpp"
-#include "coordinates/coordinates.hpp"
+#include "geom/cartesian.hpp"
+#include "geom/spherical.hpp"
 #include <cmath>
 #include <stdexcept>
 #include <glad/glad.h>
@@ -103,13 +104,13 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		}
 		catch (const std::exception& e)
 		{}
-			
+		
 		// Convert right ascension and declination from degrees to radians
 		ra = math::wrap_radians(math::radians(ra));
 		dec = math::wrap_radians(math::radians(dec));
 		
 		// Transform spherical equatorial coordinates to rectangular equatorial coordinates
-		double3 position = coordinates::spherical::to_rectangular(double3{1.0, dec, ra});
+		double3 position = geom::spherical::to_cartesian(double3{1.0, dec, ra});
 		
 		// Convert color index to color temperature
 		double cct = color::index::bv_to_cct(bv_color);
@@ -289,24 +290,19 @@ void sky_pass::render(render_context* context) const
 	{
 		float star_distance = (clip_near + clip_far) * 0.5f;
 		
-		double lat = math::radians(30.0);
+		double lat = math::radians(1.0);
 		double lst = time_of_day / 24.0f * math::two_pi<float>;
 		//std::cout << "lst: " << lst << std::endl;
 		
+		/*
 		double3x3 equatorial_to_horizontal = coordinates::rectangular::equatorial::to_horizontal(lat, lst);
 		
-		const double3x3 horizontal_to_local =
-		{
-			0.0, 0.0, -1.0,
-			1.0, 0.0, 0.0,
-			0.0, 1.0, 0.0
-		};
+		const double3x3 horizontal_to_local = coordinates::rectangular::rotate_x(-math::half_pi<double>) * coordinates::rectangular::rotate_z(-math::half_pi<double>);
 		
 		double3x3 rotation = horizontal_to_local * equatorial_to_horizontal;
-		//math::quaternion<float> rotation_y = math::angle_axis(time_of_day / 24.0f * -math::two_pi<float>, {0, 1, 0});
-		//math::quaternion<float> rotation_x = math::angle_axis(-math::half_pi<float> + math::radians(30.0f), {1, 0, 0});
 		
 		model = math::type_cast<float>(math::scale(math::resize<4, 4>(rotation), double3{star_distance, star_distance, star_distance}));;
+		*/
 		
 		//math::transform<float> star_transform;
 		//star_transform.translation = {0.0, 0.0, 0.0};

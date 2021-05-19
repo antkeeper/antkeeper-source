@@ -17,42 +17,42 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_COORDINATES_SPHERICAL_HPP
-#define ANTKEEPER_COORDINATES_SPHERICAL_HPP
+#ifndef ANTKEEPER_GEOM_CARTESIAN_HPP
+#define ANTKEEPER_GEOM_CARTESIAN_HPP
 
 #include "utility/fundamental-types.hpp"
 #include <cmath>
 
-namespace coordinates {
+namespace geom {
 
-/// Spherical coordinate systems.
-namespace spherical {
+/// Functions which operate on Cartesian (rectangular) coordinates.
+namespace cartesian {
 
 /**
- * Converts spherical coordinates to rectangular coordinates.
+ * Converts Cartesian (rectangular) coordinates to spherical coordinates.
  *
- * @param v Spherical coordinates, in the ISO order of radial distance, polar angle (radians), and azimuthal angle (radians).
- * @return Rectangular coordinates.
+ * @param v Cartesian coordinates.
+ * @return Spherical coordinates, in the ISO order of radial distance, polar angle (radians), and azimuthal angle (radians).
  *
- * @see coordinates::rectangular
+ * @see geom::coordinates::spherical
  */
 template <class T>
-math::vector3<T> to_rectangular(const math::vector3<T>& v);
+math::vector3<T> to_spherical(const math::vector3<T>& v);
 
 template <class T>
-math::vector3<T> to_rectangular(const math::vector3<T>& v)
+math::vector3<T> to_spherical(const math::vector3<T>& v)
 {
-	const T x = v[0] * std::cos(v[1]);
+	const T xx_yy = v.x * v.x + v.y * v.y;
 	
 	return math::vector3<T>
 	{
-		x * std::cos(v[2]),
-		x * std::sin(v[2]),
-		v[0] * std::sin(v[1]),
+		std::sqrt(xx_yy + v.z * v.z),
+		std::atan2(v.z, std::sqrt(xx_yy)),
+		std::atan2(v.y, v.x)
 	};
 }
 
-} // namespace spherical
-} // namespace coordinates
+} // namespace cartesian
+} // namespace geom
 
-#endif // ANTKEEPER_COORDINATES_SPHERICAL_HPP
+#endif // ANTKEEPER_GEOM_CARTESIAN_HPP

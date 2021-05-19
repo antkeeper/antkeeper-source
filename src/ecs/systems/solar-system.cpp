@@ -18,9 +18,6 @@
  */
 
 #include "ecs/systems/solar-system.hpp"
-#include "coordinates/coordinates.hpp"
-#include "astro/orbit.hpp"
-#include "astro/constants.hpp"
 #include "ecs/components/celestial-body-component.hpp"
 #include "ecs/entity.hpp"
 
@@ -45,16 +42,16 @@ void solar_system::update(double t, double dt)
 	registry.view<celestial_body_component>().each(
 	[&](ecs::entity entity, auto& body)
 	{
-		astro::orbital_elements elements = body.orbital_elements;
+		auto elements = body.orbital_elements;
 		elements.a += body.orbital_rate.a * universal_time;
-		elements.ec += body.orbital_rate.ec * universal_time;
+		elements.e += body.orbital_rate.e * universal_time;
 		elements.w += body.orbital_rate.w * universal_time;
-		elements.ma += body.orbital_rate.ma * universal_time;
+		elements.ta += body.orbital_rate.ta * universal_time;
 		elements.i += body.orbital_rate.i * universal_time;
-		elements.om += body.orbital_rate.om * universal_time;
+		elements.raan += body.orbital_rate.raan * universal_time;
 		
 		// Calculate ecliptic orbital position
-		body.orbital_state.r = astro::orbital_elements_to_ecliptic(elements, ke_tolerance, ke_iterations);
+		//body.orbital_state.r = astro::orbital_elements_to_ecliptic(elements, ke_tolerance, ke_iterations);
 	});
 }
 

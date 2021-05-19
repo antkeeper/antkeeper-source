@@ -20,6 +20,8 @@
 #ifndef ANTKEEPER_MATH_QUATERNION_TYPE_HPP
 #define ANTKEEPER_MATH_QUATERNION_TYPE_HPP
 
+#include <cmath>
+
 namespace math {
 
 /**
@@ -35,9 +37,59 @@ struct quaternion
 	scalar_type x;
 	scalar_type y;
 	scalar_type z;
+	
+	/// Returns the rotation identity quaternion.
+	static constexpr quaternion identity();
+	
+	/**
+	 * Returns a quaternion representing a rotation about the x-axis.
+	 *
+	 * @param angle Angle of rotation, in radians.
+	 * @return Quaternion representing an x-axis rotation.
+	 */
+	static quaternion rotate_x(scalar_type angle);
+	
+	/**
+	 * Returns a quaternion representing a rotation about the y-axis.
+	 *
+	 * @param angle Angle of rotation, in radians.
+	 * @return Quaternion representing an y-axis rotation.
+	 */
+	static quaternion rotate_y(scalar_type angle);
+	
+	/**
+	 * Returns a quaternion representing a rotation about the z-axis.
+	 *
+	 * @param angle Angle of rotation, in radians.
+	 * @return Quaternion representing an z-axis rotation.
+	 */
+	static quaternion rotate_z(scalar_type angle);
 };
+
+template <class T>
+constexpr quaternion<T> quaternion<T>::identity()
+{
+	return {T(1), T(0), T(0), T(0)};
+};
+
+template <class T>
+quaternion<T> quaternion<T>::rotate_x(scalar_type angle)
+{
+	return {std::cos(angle * T(0.5)), std::sin(angle * T(0.5)), T(0), T(0)};
+}
+
+template <class T>
+quaternion<T> quaternion<T>::rotate_y(scalar_type angle)
+{
+	return {std::cos(angle * T(0.5)), T(0), std::sin(angle * T(0.5)), T(0)};
+}
+
+template <class T>
+quaternion<T> quaternion<T>::rotate_z(scalar_type angle)
+{
+	return {std::cos(angle * T(0.5)), T(0), T(0), std::sin(angle * T(0.5))};
+}
 
 } // namespace math
 
 #endif // ANTKEEPER_MATH_QUATERNION_TYPE_HPP
-

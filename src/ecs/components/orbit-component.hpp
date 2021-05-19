@@ -20,15 +20,15 @@
 #ifndef ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
 #define ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
 
-#include "astro/orbit.hpp"
+#include "physics/orbit/elements.hpp"
 
 namespace ecs {
 
 struct orbit_component
 {
-	astro::orbital_elements elements;
-	astro::orbital_elements rate;
-	astro::orbital_state state;
+	physics::orbit::elements<double> elements;
+	physics::orbit::elements<double> rate;
+	physics::orbit::elements<double> state;
 };
 
 } // namespace ecs
