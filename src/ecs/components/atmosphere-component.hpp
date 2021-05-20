@@ -17,20 +17,21 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
-#define ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
-
-#include "physics/orbit/elements.hpp"
-#include "physics/orbit/state.hpp"
+#ifndef ANTKEEPER_ECS_ATMOSPHERE_COMPONENT_HPP
+#define ANTKEEPER_ECS_ATMOSPHERE_COMPONENT_HPP
 
 namespace ecs {
 
-struct orbit_component
+/// Atmosphere
+struct atmosphere_component
 {
-	physics::orbit::elements<double> elements;
-	physics::orbit::state<double> state;
+	/// Rayleigh scale height
+	double scale_rayleigh;
+	
+	/// Mie scale height
+	double scale_mie;
 };
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
+#endif // ANTKEEPER_ECS_ATMOSPHERE_COMPONENT_HPP

@@ -42,6 +42,7 @@
 #include "math/interpolation.hpp"
 #include "geom/cartesian.hpp"
 #include "geom/spherical.hpp"
+#include "physics/orbit/orbit.hpp"
 #include <cmath>
 #include <stdexcept>
 #include <glad/glad.h>
@@ -65,12 +66,11 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	time_tween(nullptr),
 	time_of_day_tween(0.0, math::lerp<float, float>),
 	julian_day_tween(0.0, math::lerp<float, float>),
-	sun_position_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
-	sun_az_el_tween(float2{0.0f, 0.0f}, math::lerp<float2, float>),
-	moon_position_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
-	moon_az_el_tween(float2{0.0f, 0.0f}, math::lerp<float2, float>),
 	horizon_color_tween(float3{0.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
-	zenith_color_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>)
+	zenith_color_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
+	topocentric_frame_translation({0, 0, 0}, math::lerp<float3, float>),
+	topocentric_frame_rotation(math::quaternion<float>::identity(), math::nlerp<float>),
+	sun_object(nullptr)
 {
 	// Load star catalog
 	string_table* star_catalog = resource_manager->load<string_table>("stars.csv");
@@ -110,7 +110,11 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		dec = math::wrap_radians(math::radians(dec));
 		
 		// Transform spherical equatorial coordinates to rectangular equatorial coordinates
-		double3 position = geom::spherical::to_cartesian(double3{1.0, dec, ra});
+		double3 position_bci = geom::spherical::to_cartesian(double3{1.0, dec, ra});
+		
+		// Transform coordinates from equatorial space to inertial space
+		physics::frame<double> bci_to_inertial = physics::orbit::inertial::to_bci({0, 0, 0}, 0.0, math::radians(23.4393)).inverse();
+		double3 position_inertial = bci_to_inertial * position_bci;
 		
 		// Convert color index to color temperature
 		double cct = color::index::bv_to_cct(bv_color);
@@ -131,9 +135,9 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		double3 scaled_color = color_acescg * vmag_lux;
 		
 		// Build vertex
-		*(star_vertex++) = static_cast<float>(position.x);
-		*(star_vertex++) = static_cast<float>(position.y);
-		*(star_vertex++) = static_cast<float>(position.z);
+		*(star_vertex++) = static_cast<float>(position_inertial.x);
+		*(star_vertex++) = static_cast<float>(position_inertial.y);
+		*(star_vertex++) = static_cast<float>(position_inertial.z);
 		*(star_vertex++) = static_cast<float>(scaled_color.x);
 		*(star_vertex++) = static_cast<float>(scaled_color.y);
 		*(star_vertex++) = static_cast<float>(scaled_color.z);
@@ -198,12 +202,25 @@ void sky_pass::render(render_context* context) const
 	
 	float time_of_day = time_of_day_tween.interpolate(context->alpha);
 	float julian_day = julian_day_tween.interpolate(context->alpha);
-	float3 sun_position = sun_position_tween.interpolate(context->alpha);
-	float2 sun_az_el = sun_az_el_tween.interpolate(context->alpha);
-	float3 moon_position = moon_position_tween.interpolate(context->alpha);
-	float2 moon_az_el = moon_az_el_tween.interpolate(context->alpha);
 	float3 horizon_color = horizon_color_tween.interpolate(context->alpha);
 	float3 zenith_color = zenith_color_tween.interpolate(context->alpha);
+	
+	// Construct tweened inertial to topocentric frame
+	physics::frame<float> topocentric_frame =
+	{
+		topocentric_frame_translation.interpolate(context->alpha),
+		topocentric_frame_rotation.interpolate(context->alpha)
+	};
+	
+	// Get topocentric space sun position
+	float3 sun_position = {0, 0, 0};
+	if (sun_object != nullptr)
+	{
+		sun_position = math::normalize(sun_object->get_transform_tween().interpolate(context->alpha).translation);
+	}
+	
+	// Get topocentric space moon position
+	float3 moon_position = {0, 0, 0};
 	
 	// Draw sky model
 	{
@@ -234,12 +251,8 @@ void sky_pass::render(render_context* context) const
 			observer_location_input->upload(observer_location);
 		if (sun_position_input)
 			sun_position_input->upload(sun_position);
-		if (sun_az_el_input)
-			sun_az_el_input->upload(sun_az_el);
 		if (moon_position_input)
 			moon_position_input->upload(moon_position);
-		if (moon_az_el_input)
-			moon_az_el_input->upload(moon_az_el);
 		if (julian_day_input)
 			julian_day_input->upload(julian_day);
 		if (cos_moon_angular_radius_input)
@@ -255,7 +268,7 @@ void sky_pass::render(render_context* context) const
 	}
 	
 	// Draw moon model
-	if (moon_az_el[1] >= -moon_angular_radius)
+	if (moon_position.y >= -moon_angular_radius)
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -265,7 +278,7 @@ void sky_pass::render(render_context* context) const
 		
 		math::transform<float> moon_transform;
 		moon_transform.translation = moon_position * -moon_distance;
-		moon_transform.rotation = moon_rotation;
+		moon_transform.rotation = math::quaternion<float>::identity();
 		moon_transform.scale = {moon_radius, moon_radius, moon_radius};
 		
 		model = math::matrix_cast(moon_transform);		
@@ -310,7 +323,10 @@ void sky_pass::render(render_context* context) const
 		//star_transform.rotation = math::normalize(math::type_cast<float>(math::quaternion_cast(rotation)));
 		//star_transform.rotation = math::identity_quaternion<float>;
 		//star_transform.scale = {star_distance, star_distance, star_distance};
-		//model = math::matrix_cast(star_transform);	
+		//model = math::matrix_cast(star_transform);
+		
+		model = topocentric_frame.matrix();
+		model = math::scale(model, {star_distance, star_distance, star_distance});
 		
 		model_view = view * model;
 		
@@ -363,9 +379,7 @@ void sky_pass::set_sky_model(const model* model)
 				sky_gradient2_input = sky_shader_program->get_input("sky_gradient2");
 				observer_location_input = sky_shader_program->get_input("observer_location");
 				sun_position_input = sky_shader_program->get_input("sun_position");
-				sun_az_el_input = sky_shader_program->get_input("sun_az_el");
 				moon_position_input = sky_shader_program->get_input("moon_position");
-				moon_az_el_input = sky_shader_program->get_input("moon_az_el");
 				julian_day_input = sky_shader_program->get_input("julian_day");
 				cos_moon_angular_radius_input = sky_shader_program->get_input("cos_moon_angular_radius");
 				cos_sun_angular_radius_input = sky_shader_program->get_input("cos_sun_angular_radius");
@@ -418,13 +432,11 @@ void sky_pass::set_moon_model(const model* model)
 void sky_pass::update_tweens()
 {
 	julian_day_tween.update();
-	sun_position_tween.update();
-	sun_az_el_tween.update();
-	moon_position_tween.update();
-	moon_az_el_tween.update();
 	time_of_day_tween.update();
 	horizon_color_tween.update();
 	zenith_color_tween.update();
+	topocentric_frame_translation.update();
+	topocentric_frame_rotation.update();
 }
 
 void sky_pass::set_time_of_day(float time)
@@ -458,23 +470,6 @@ void sky_pass::set_observer_location(float altitude, float latitude, float longi
 	observer_location = {altitude, latitude, longitude};
 }
 
-void sky_pass::set_sun_coordinates(const float3& position, const float2& az_el)
-{
-	sun_position_tween[1] = position;
-	sun_az_el_tween[1] = az_el;
-}
-
-void sky_pass::set_moon_coordinates(const float3& position, const float2& az_el)
-{
-	moon_position_tween[1] = position;
-	moon_az_el_tween[1] = az_el;
-}
-
-void sky_pass::set_moon_rotation(const math::quaternion<float>& rotation)
-{
-	moon_rotation = rotation;
-}
-
 void sky_pass::set_moon_angular_radius(float radius)
 {
 	moon_angular_radius = radius;
@@ -485,6 +480,17 @@ void sky_pass::set_sun_angular_radius(float radius)
 {
 	sun_angular_radius = radius;
 	cos_sun_angular_radius = std::cos(sun_angular_radius);
+}
+
+void sky_pass::set_topocentric_frame(const physics::frame<float>& frame)
+{
+	topocentric_frame_translation[1] = frame.translation;
+	topocentric_frame_rotation[1] = frame.rotation;
+}
+
+void sky_pass::set_sun_object(const scene::object_base* object)
+{
+	sun_object = object;
 }
 
 void sky_pass::set_horizon_color(const float3& color)

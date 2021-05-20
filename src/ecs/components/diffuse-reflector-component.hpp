@@ -17,20 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
-#define ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
-
-#include "physics/orbit/elements.hpp"
-#include "physics/orbit/state.hpp"
+#ifndef ANTKEEPER_ECS_DIFFUSE_REFLECTOR_COMPONENT_HPP
+#define ANTKEEPER_ECS_DIFFUSE_REFLECTOR_COMPONENT_HPP
 
 namespace ecs {
 
-struct orbit_component
+struct diffuse_reflector_component
 {
-	physics::orbit::elements<double> elements;
-	physics::orbit::state<double> state;
+	double albedo;
 };
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_ORBIT_COMPONENT_HPP
+#endif // ANTKEEPER_ECS_DIFFUSE_REFLECTOR_COMPONENT_HPP

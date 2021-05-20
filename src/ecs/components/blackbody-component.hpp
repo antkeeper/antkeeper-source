@@ -17,39 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
-#define ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
-
-#include "physics/orbit/elements.hpp"
-#include "utility/fundamental-types.hpp"
-#include "math/quaternion-type.hpp"
+#ifndef ANTKEEPER_ECS_BLACKBODY_COMPONENT_HPP
+#define ANTKEEPER_ECS_BLACKBODY_COMPONENT_HPP
 
 namespace ecs {
 
-struct celestial_body_component
+/// Blackbody radiator
+struct blackbody_component
 {
-	physics::orbit::elements<double> orbital_elements;
-	physics::orbit::elements<double> orbital_rate;
-	physics::orbit::state<double> orbital_state;
-	
-	double3 position;
-	double3 velocity;
-	double3 acceleration;
-	double mass;
-	double radius;
-	math::quaternion<double> orientation;
-};
-
-struct blackbody_radiator
-{
+	/// Effective temperature, in Kelvin.
 	double temperature;
-};
-
-struct diffuse_reflector
-{
-	double albedo;
 };
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
+#endif // ANTKEEPER_ECS_BLACKBODY_COMPONENT_HPP

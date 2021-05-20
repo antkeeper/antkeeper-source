@@ -24,8 +24,8 @@
 #include "ecs/entity.hpp"
 #include "scene/directional-light.hpp"
 #include "utility/fundamental-types.hpp"
-
-class sky_pass;
+#include "physics/frame.hpp"
+#include "renderer/passes/sky-pass.hpp"
 
 namespace ecs {
 
@@ -61,58 +61,45 @@ public:
 	void set_time_scale(double scale);
 	
 	/**
-	 * Sets the location of the observer.
+	 * Sets the reference body, from which observations are taking place.
 	 *
-	 * @param location Spherical coordinates of the observer, in the ISO order of radial distance, polar angle (radians), and azimuthal angle (radians).
+	 * @param entity Entity of the reference body.
+	 */
+	void set_reference_body(ecs::entity entity);
+	
+	/**
+	 * Sets the axial tilt of the reference body.
+	 *
+	 * @param angle Angle between the reference body's rotational axis and its orbital axis, in radians.
+	 */
+	void set_reference_body_axial_tilt(double angle);
+	
+	/**
+	 * Sets the location of the observer using spherical coordinates in BCBF space.
+	 *
+	 * @param location Spherical coordinates of the observer, in reference body BCBF space, in the ISO order of radial distance, polar angle (radians), and azimuthal angle (radians).
 	 */
 	void set_observer_location(const double3& location);
 	
-	/**
-	 * Sets the obliquity of the ecliptic, a.k.a. axial tilt.
-	 *
-	 * @param angle Angle between the planet's rotational axis and its orbital axis, in radians.
-	 */
-	void set_obliquity(double angle);
-	
-	/**
-	 * Sets the rotational speed of the observer's planet.
-	 *
-	 * @param speed Rotational speed, in radians per day.
-	 */
-	void set_axial_rotation_speed(double speed);
-	
-	/**
-	 * Sets the axial rotation of the observer's planet when the universal time is `0.0`.
-	 *
-	 * @param angle Axial rotation angle, in radians.
-	 */
-	void set_axial_rotation_at_epoch(double angle);
+	void set_sun_light(scene::directional_light* light);
 	
 	void set_sky_pass(sky_pass* pass);
 	
-	void set_sun_light(scene::directional_light* light);
-	
 private:
-	/// Updates the axial rotation angle
-	void update_axial_rotation();
-	
-	/// Updates the local sidereal time (LST) and dependent variables
-	void update_sidereal_time();
-	
-	/// Updates the ecliptic-to-horizontal transformation matrix
-	void update_ecliptic_to_horizontal();
-	
 	double universal_time;
-	double days_per_timestep;
-	double lst;
-	double axial_rotation_at_epoch;
-	double axial_rotation_speed;
-	double axial_rotation;
+	double time_scale;
+	ecs::entity reference_body;
+	double reference_body_axial_tilt;
+	double reference_body_axial_rotation;
 	double3 observer_location;
-	double obliquity;
-	double3x3 ecliptic_to_horizontal;
-	sky_pass* sky_pass;
 	scene::directional_light* sun_light;
+	sky_pass* sky_pass;
+	
+	physics::frame<double> inertial_to_bcbf;
+	physics::frame<double> bcbf_to_topocentric;
+	physics::frame<double> inertial_to_topocentric;
+	physics::frame<double> sez_to_ezs;
+	physics::frame<double> ezs_to_sez;
 };
 
 } // namespace ecs

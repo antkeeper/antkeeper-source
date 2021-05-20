@@ -17,39 +17,30 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_WEATHER_SYSTEM_HPP
-#define ANTKEEPER_ECS_WEATHER_SYSTEM_HPP
+#ifndef ANTKEEPER_ECS_SOLAR_SYSTEM_HPP
+#define ANTKEEPER_ECS_SOLAR_SYSTEM_HPP
 
 #include "entity-system.hpp"
 #include "utility/fundamental-types.hpp"
 
-class sky_pass;
-class shadow_map_pass;
-class material_pass;
-class ambient_light;
-class directional_light;
-class image;
-
 namespace ecs {
 
-class weather_system:
+/**
+ * Updates the Cartesian position and velocity of orbiting bodies given their Keplerian orbital elements and the current time.
+ */
+class orbit_system:
 	public entity_system
 {
 public:
-	weather_system(ecs::registry& registry);
-	virtual void update(double t, double dt);
+	orbit_system(ecs::registry& registry);
 	
 	/**
+	 * Scales then adds the timestep `dt` to the current time, then recalculates the positions of orbiting bodies.
 	 *
-	 * @param latitude Latitude, in radians.
-	 * @param longitude Longitude, in radians.
-	 * @param altitude Altitude, in radians.
+	 * @param t Time, in seconds.
+	 * @param dt Delta time, in seconds.
 	 */
-	void set_location(float latitude, float longitude, float altitude);
-	
-	void set_sky_pass(::sky_pass* pass);
-	void set_shadow_map_pass(::shadow_map_pass* pass);
-	void set_material_pass(::material_pass* pass);
+	virtual void update(double t, double dt);
 	
 	/**
 	 * Sets the current universal time.
@@ -66,16 +57,12 @@ public:
 	void set_time_scale(double scale);
 	
 private:
-	static void load_palette(std::vector<float3>* palette, const ::image* image, unsigned int row);
-	static float3 interpolate_gradient(const std::vector<float3>& gradient, float position);
-
 	double universal_time;
-	double days_per_timestep;
-	sky_pass* sky_pass;
-	shadow_map_pass* shadow_map_pass;
-	material_pass* material_pass;
+	double time_scale;
+	std::size_t ke_iterations;
+	double ke_tolerance;
 };
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_WEATHER_SYSTEM_HPP
+#endif // ANTKEEPER_ECS_SOLAR_SYSTEM_HPP

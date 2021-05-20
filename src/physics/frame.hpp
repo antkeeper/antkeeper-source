@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_PHYSICS_FRAME_HPP
 #define ANTKEEPER_PHYSICS_FRAME_HPP
 
-#include "utility/fundamental-types.hpp"
+#include "math/math.hpp"
 #include <cmath>
 
 namespace physics {
@@ -112,8 +112,8 @@ frame<T> frame<T>::transform(const frame& f) const
 {
 	return frame
 	{
-		transform(f.translation),
-		math::normalize(rotation * f.rotation)
+		f.transform(translation),
+		math::normalize(f.rotation * rotation)
 	};
 }
 

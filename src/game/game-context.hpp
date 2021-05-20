@@ -82,9 +82,8 @@ namespace ecs
 	class spatial_system;
 	class tracking_system;
 	class painting_system;
-	class weather_system;
 	class astronomy_system;
-	class solar_system;
+	class orbit_system;
 	class behavior_system;
 	class collision_system;
 	class constraint_system;
@@ -248,9 +247,8 @@ struct game_context
 	ecs::spatial_system* spatial_system;
 	ecs::tracking_system* tracking_system;
 	ecs::painting_system* painting_system;
-	ecs::weather_system* weather_system;
 	ecs::astronomy_system* astronomy_system;
-	ecs::solar_system* solar_system;
+	ecs::orbit_system* orbit_system;
 	
 	// Game
 	biome* biome;

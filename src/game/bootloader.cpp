@@ -73,9 +73,8 @@
 #include "ecs/systems/spatial-system.hpp"
 #include "ecs/systems/tracking-system.hpp"
 #include "ecs/systems/painting-system.hpp"
-#include "ecs/systems/weather-system.hpp"
 #include "ecs/systems/astronomy-system.hpp"
-#include "ecs/systems/solar-system.hpp"
+#include "ecs/systems/orbit-system.hpp"
 #include "ecs/components/marker-component.hpp"
 #include "ecs/commands.hpp"
 #include "utility/paths.hpp"
@@ -97,6 +96,8 @@
 #include <string>
 #include <vector>
 #include "utility/timestamp.hpp"
+
+static constexpr double seconds_per_day = 24.0 * 60.0 * 60.0;
 
 static void parse_options(game_context* ctx, int argc, char** argv);
 static void setup_resources(game_context* ctx);
@@ -857,21 +858,11 @@ void setup_systems(game_context* ctx)
 	ctx->painting_system = new ecs::painting_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
 	ctx->painting_system->set_scene(ctx->overworld_scene);
 	
-	// Setup weather system
-	ctx->weather_system = new ecs::weather_system(*ctx->ecs_registry);
-	ctx->weather_system->set_sky_pass(ctx->overworld_sky_pass);
-	ctx->weather_system->set_shadow_map_pass(ctx->overworld_shadow_map_pass);
-	ctx->weather_system->set_material_pass(ctx->overworld_material_pass);
-	
 	// Setup solar system
-	ctx->solar_system = new ecs::solar_system(*ctx->ecs_registry);
+	ctx->orbit_system = new ecs::orbit_system(*ctx->ecs_registry);
 	
 	// Setup astronomy system
 	ctx->astronomy_system = new ecs::astronomy_system(*ctx->ecs_registry);
-	ctx->astronomy_system->set_obliquity(math::radians<double>(23.4365472133));
-	ctx->astronomy_system->set_axial_rotation_speed(math::radians<double>(360.9856));
-	ctx->astronomy_system->set_axial_rotation_at_epoch(0.0);
-	ctx->astronomy_system->set_sky_pass(ctx->overworld_sky_pass);
 	
 	// Set time scale
 	float time_scale = 60.0f;
@@ -879,9 +870,9 @@ void setup_systems(game_context* ctx)
 	{
 		time_scale = ctx->config->get<float>("time_scale");
 	}
-	ctx->weather_system->set_time_scale(time_scale);
-	ctx->solar_system->set_time_scale(time_scale);
-	ctx->astronomy_system->set_time_scale(time_scale);
+	
+	ctx->orbit_system->set_time_scale(time_scale / seconds_per_day);
+	ctx->astronomy_system->set_time_scale(time_scale / seconds_per_day);
 	
 	// Setup render system
 	ctx->render_system = new ecs::render_system(*ctx->ecs_registry);
@@ -1180,36 +1171,32 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * 100.0f);
-			ctx->solar_system->set_time_scale(time_scale * 100.0f);
-			ctx->astronomy_system->set_time_scale(time_scale * 100.0f);
+			ctx->orbit_system->set_time_scale(time_scale * 100.0f / seconds_per_day);
+			ctx->astronomy_system->set_time_scale(time_scale * 100.0f / seconds_per_day);
 		}
 	);
 	ctx->control_system->get_fast_forward_control()->set_deactivated_callback
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale);
-			ctx->solar_system->set_time_scale(time_scale);
-			ctx->astronomy_system->set_time_scale(time_scale);
+			ctx->orbit_system->set_time_scale(time_scale / seconds_per_day);
+			ctx->astronomy_system->set_time_scale(time_scale / seconds_per_day);
 		}
 	);
 	ctx->control_system->get_rewind_control()->set_activated_callback
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale * -100.0f);
-			ctx->solar_system->set_time_scale(time_scale * -100.0f);
-			ctx->astronomy_system->set_time_scale(time_scale * -100.0f);
+			ctx->orbit_system->set_time_scale(time_scale * -100.0f / seconds_per_day);
+			ctx->astronomy_system->set_time_scale(time_scale * -100.0f / seconds_per_day);
 		}
 	);
 	ctx->control_system->get_rewind_control()->set_deactivated_callback
 	(
 		[ctx, time_scale]()
 		{
-			ctx->weather_system->set_time_scale(time_scale);
-			ctx->solar_system->set_time_scale(time_scale);
-			ctx->astronomy_system->set_time_scale(time_scale);
+			ctx->orbit_system->set_time_scale(time_scale / seconds_per_day);
+			ctx->astronomy_system->set_time_scale(time_scale / seconds_per_day);
 		}
 	);
 	
@@ -1268,13 +1255,12 @@ void setup_callbacks(game_context* ctx)
 			ctx->camera_system->update(t, dt);
 			ctx->tool_system->update(t, dt);
 			
-			ctx->solar_system->update(t, dt);
+			ctx->orbit_system->update(t, dt);
 			ctx->astronomy_system->update(t, dt);
 			ctx->spatial_system->update(t, dt);
 			ctx->constraint_system->update(t, dt);
 			ctx->tracking_system->update(t, dt);
 			ctx->painting_system->update(t, dt);
-			ctx->weather_system->update(t, dt);
 
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();

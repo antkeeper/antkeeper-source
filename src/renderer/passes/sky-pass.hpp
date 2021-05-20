@@ -32,6 +32,8 @@
 #include "gl/vertex-array.hpp"
 #include "gl/texture-2d.hpp"
 #include "gl/drawing-mode.hpp"
+#include "physics/frame.hpp"
+#include "scene/object.hpp"
 
 class resource_manager;
 class model;
@@ -61,12 +63,12 @@ public:
 	
 	void set_julian_day(float jd);
 	void set_observer_location(float altitude, float latitude, float longitude);
-	void set_sun_coordinates(const float3& position, const float2& az_el);
-	void set_moon_coordinates(const float3& position, const float2& az_el);
-	void set_moon_rotation(const math::quaternion<float>& rotation);
 	
 	void set_moon_angular_radius(float radius);
 	void set_sun_angular_radius(float radius);
+	
+	void set_topocentric_frame(const physics::frame<float>& frame);
+	void set_sun_object(const scene::object_base* object);
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -81,9 +83,7 @@ private:
 	const gl::shader_input* time_of_day_input;
 	const gl::shader_input* observer_location_input;
 	const gl::shader_input* sun_position_input;
-	const gl::shader_input* sun_az_el_input;
 	const gl::shader_input* moon_position_input;
-	const gl::shader_input* moon_az_el_input;
 	const gl::shader_input* blue_noise_map_input;
 	const gl::shader_input* julian_day_input;
 	const gl::shader_input* cos_sun_angular_radius_input;
@@ -131,19 +131,18 @@ private:
 	const tween<double>* time_tween;
 	tween<float> time_of_day_tween;
 	tween<float> julian_day_tween;
-	tween<float3> sun_position_tween;
-	tween<float2> sun_az_el_tween;
-	tween<float3> moon_position_tween;
-	tween<float2> moon_az_el_tween;
 	tween<float3> horizon_color_tween;
 	tween<float3> zenith_color_tween;
 	
-	math::quaternion<float> moon_rotation;
+	tween<float3> topocentric_frame_translation;
+	tween<math::quaternion<float>> topocentric_frame_rotation;
 	
 	float moon_angular_radius;
 	float cos_moon_angular_radius;
 	float sun_angular_radius;
 	float cos_sun_angular_radius;
+	
+	const scene::object_base* sun_object;
 };
 
 #endif // ANTKEEPER_SKY_PASS_HPP
