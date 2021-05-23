@@ -65,7 +65,7 @@ constexpr T stefan_boltzmann = T(5.670374419184429453970996731889230875840122970
 template <class T>
 constexpr T speed_of_light = T(299792458);
 
-} // namespace constant
+} // namespace constants
 
 } // namespace physics
 
