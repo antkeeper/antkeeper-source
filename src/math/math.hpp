@@ -43,6 +43,7 @@ namespace math {}
 
 #include "math/angles.hpp"
 #include "math/constants.hpp"
+#include "math/quadrature.hpp"
 #include "math/interpolation.hpp"
 #include "math/random.hpp"
 

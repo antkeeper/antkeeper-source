@@ -86,6 +86,15 @@ public:
 	void set_sky_pass(sky_pass* pass);
 	
 private:
+	/**
+	 * Calculates the luminous flux of a spherical blackbody in vacuum using the CIE 1931 standard observer photopic luminosity function.
+	 *
+	 * @param t Temperature of the blackbody, in kelvin.
+	 * @param r Radius of the blackbody, in meters.
+	 * @return Luminous flux, in lumens.
+	 */
+	static double blackbody_luminous_flux(double t, double r);
+	
 	double universal_time;
 	double time_scale;
 	ecs::entity reference_body;

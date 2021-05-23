@@ -23,13 +23,59 @@
 #include "ecs/components/blackbody-component.hpp"
 #include "ecs/components/atmosphere-component.hpp"
 #include "ecs/components/transform-component.hpp"
+#include "geom/intersection.hpp"
 #include "color/color.hpp"
 #include "physics/orbit/orbit.hpp"
 #include "physics/time/ut1.hpp"
+#include "physics/light/blackbody.hpp"
+#include "physics/light/photometry.hpp"
+#include "physics/light/luminosity.hpp"
 #include "geom/cartesian.hpp"
 #include <iostream>
 
 namespace ecs {
+
+/**
+ * Calculates the optical depth between two points.
+ *
+ * @param start Start point.
+ * @param end End point.
+ * @param sample_count Number of samples to take between the start and end points.
+ * @param scale_height Scale height of the atmospheric particles to measure.
+ */
+template <class T>
+T transmittance(math::vector3<T> start, math::vector3<T> end, std::size_t sample_count, T scale_height)
+{
+	const T inverse_scale_height = T(1) / -scale_height;
+	
+	math::vector3<T> direction = end - start;
+	T distance = length(direction);
+	direction /= distance;
+	
+	// Calculate the distance between each sample point
+	T step_distance = distance / T(sample_count);
+	
+	// Sum the atmospheric particle densities at each sample point
+	T total_density = 0.0;
+	math::vector3<T> sample_point = start;
+	for (std::size_t i = 0; i < sample_count; ++i)
+	{
+		// Determine altitude of sample point
+		T altitude = length(sample_point);
+		
+		// Calculate atmospheric particle density at sample altitude
+		T density = exp(altitude * inverse_scale_height);
+		
+		// Add density to the total density
+		total_density += density;
+		
+		// Advance to next sample point
+		sample_point += direction * step_distance;
+	}
+	
+	// Scale the total density by the step distance
+	return total_density * step_distance;
+}
 
 astronomy_system::astronomy_system(ecs::registry& registry):
 	entity_system(registry),
@@ -118,16 +164,75 @@ void astronomy_system::update(double t, double dt)
 		
 		//std::cout << "el: " << math::degrees(sun_az_el.y) << "; az: " << math::degrees(sun_az_el.z) << std::endl;
 		
-		// Calculate sun color
-		float cct = 3000.0f + std::sin(sun_az_el.y) * 5000.0f;
-		float3 color_xyz = color::cct::to_xyz(cct);
-		float3 color_acescg = color::xyz::to_acescg(color_xyz);
-		sun_light->set_color(color_acescg);
-
-		// Calculate sun intensity (in lux)
-		const float illuminance_zenith = 108000.0f;
-		float illuminance = std::max(0.0, std::sin(sun_az_el.y) * illuminance_zenith);
-		sun_light->set_intensity(illuminance);
+		// If the reference body has an atmosphere
+		if (registry.has<ecs::atmosphere_component>(reference_body))
+		{
+			// Get the atmosphere component of the reference body
+			const auto& atmosphere = registry.get<ecs::atmosphere_component>(reference_body);
+			
+			const double meters_per_au = 1.496e+11;
+			const double earth_radius_au = 4.26352e-5;
+			const double earth_radius_m = earth_radius_au * meters_per_au;
+			const double observer_altitude_m = (observer_location[0] - earth_radius_au) * meters_per_au;
+			
+			// Altitude of observer in meters			
+			geom::ray<double> sample_ray;
+			sample_ray.origin = {0, observer_altitude_m, 0};
+			sample_ray.direction = math::normalize(sun_position_topocentric);
+			
+			geom::sphere<double> exosphere;
+			exosphere.center = {0, -earth_radius_m, 0};
+			exosphere.radius = atmosphere.exosphere_radius;
+			
+			auto intersection_result = geom::ray_sphere_intersection(sample_ray, exosphere);
+			
+			if (std::get<0>(intersection_result))
+			{
+				double3 sample_start = sample_ray.origin;
+				double3 sample_end = sample_ray.extrapolate(std::get<2>(intersection_result));
+				
+				double transmittance_rayleigh = transmittance(sample_start, sample_end, 16, atmosphere.rayleigh_scale_height);
+				double transmittance_mie = transmittance(sample_start, sample_end, 16, atmosphere.mie_scale_height);
+				
+				// Calculate attenuation due to atmospheric scattering
+				double3 scattering_attenuation =
+					atmosphere.rayleigh_scattering_coefficients * transmittance_rayleigh +
+					atmosphere.mie_scattering_coefficients * transmittance_mie;
+				scattering_attenuation.x = std::exp(-scattering_attenuation.x);
+				scattering_attenuation.y = std::exp(-scattering_attenuation.y);
+				scattering_attenuation.z = std::exp(-scattering_attenuation.z);
+				
+				double scattering_mean = (scattering_attenuation.x + scattering_attenuation.y + scattering_attenuation.z) / 3.0;
+				
+				const double sun_temperature = 5777.0;
+				const double sun_radius = 6.957e+8;
+				const double sun_surface_area = 4.0 * math::pi<double> * sun_radius * sun_radius;
+				
+				// Calculate distance attenuation
+				double sun_distance_m = math::length(sun_position_topocentric) * meters_per_au;
+				double distance_attenuation = 1.0 / (sun_distance_m * sun_distance_m);
+				
+				double sun_luminous_flux = blackbody_luminous_flux(sun_temperature, sun_radius);
+				double sun_luminous_intensity = sun_luminous_flux / (4.0 * math::pi<double>);
+				double sun_illuminance = sun_luminous_intensity / (sun_distance_m * sun_distance_m);
+				
+				std::cout << "distance atten: " << distance_attenuation << std::endl;
+				std::cout << "scatter atten: " << scattering_attenuation << std::endl;
+				
+				std::cout << "luminous flux: " << sun_luminous_flux << std::endl;
+				std::cout << "luminous intensity: " << sun_luminous_intensity << std::endl;
+				std::cout << "illuminance: " << sun_illuminance * scattering_mean << std::endl;
+				
+				
+				// Calculate sun color
+				double3 color_xyz = color::cct::to_xyz(sun_temperature);
+				double3 color_acescg = color::xyz::to_acescg(color_xyz);
+				
+				sun_light->set_color(math::type_cast<float>(color_acescg * scattering_attenuation));
+				
+				sun_light->set_intensity(sun_illuminance);
+			}
+		}
 	}
 	
 	if (sky_pass != nullptr)
@@ -200,6 +305,42 @@ void astronomy_system::set_sun_light(scene::directional_light* light)
 void astronomy_system::set_sky_pass(::sky_pass* pass)
 {
 	this->sky_pass = pass;
+}
+
+double astronomy_system::blackbody_luminous_flux(double t, double r)
+{
+	// Blackbody spectral power distribution function
+	auto spd = [t](double x) -> double
+	{
+		// Convert nanometers to meters
+		x *= double(1e-9);
+		
+		return physics::light::blackbody::spectral_radiance<double>(t, x, physics::constants::speed_of_light<double>);
+	};
+	
+	// Luminous efficiency function (photopic)
+	auto lef = [](double x) -> double
+	{
+		return physics::light::luminosity::photopic<double>(x);
+	};
+	
+	// Construct range of spectral sample points
+	std::vector<double> samples(10000);
+	std::iota(samples.begin(), samples.end(), 10);
+	
+	// Calculate luminous efficiency
+	const double efficiency = physics::light::luminous_efficiency<double>(spd, lef, samples.begin(), samples.end());
+	
+	// Calculate surface area of spherical blackbody
+	const double a = double(4) * math::pi<double> * r * r;
+	
+	// Calculate radiant flux
+	const double radiant_flux = physics::light::blackbody::radiant_flux(t, a);
+	
+	// Convert radiant flux to luminous flux
+	const double luminous_flux = physics::light::watts_to_lumens<double>(radiant_flux, efficiency);
+	
+	return luminous_flux;
 }
 
 } // namespace ecs

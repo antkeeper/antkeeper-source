@@ -24,6 +24,7 @@
 #include "geom/mesh.hpp"
 #include "geom/plane.hpp"
 #include "geom/ray.hpp"
+#include "geom/sphere.hpp"
 #include "utility/fundamental-types.hpp"
 #include <tuple>
 
@@ -43,6 +44,25 @@ std::tuple<bool, float, float, float> ray_triangle_intersection(const ray<float>
 std::tuple<bool, float, float> ray_aabb_intersection(const ray<float>& ray, const aabb<float>& aabb);
 
 std::tuple<bool, float, float, std::size_t, std::size_t> ray_mesh_intersection(const ray<float>& ray, const mesh& mesh);
+
+/**
+ * Ray-sphere intersection test.
+ */
+template <class T>
+std::tuple<bool, T, T> ray_sphere_intersection(const ray<T>& ray, const sphere<T>& sphere)
+{
+    const auto d = ray.origin - sphere.center;
+    const T b = math::dot(d, ray.direction);
+	const T c = math::dot(d, d) - sphere.radius * sphere.radius;
+	T h = b * b - c;
+	
+	if (h < T(0))
+		return {false, T(0), T(0)};
+	
+	h = std::sqrt(h);
+	
+	return {true, -b - h, -b + h};
+}
 
 bool aabb_sphere_intersection(const aabb<float>& aabb, const float3& center, float radius);
 

@@ -17,32 +17,19 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_ATMOSPHERE_COMPONENT_HPP
-#define ANTKEEPER_ECS_ATMOSPHERE_COMPONENT_HPP
+#ifndef ANTKEEPER_PHYSICS_LIGHT_HPP
+#define ANTKEEPER_PHYSICS_LIGHT_HPP
 
-#include "utility/fundamental-types.hpp"
+namespace physics {
 
-namespace ecs {
+/// Light-related functions.
+namespace light {}
 
-/// Atmosphere
-struct atmosphere_component
-{
-	/// Radius of the outer atmosphere, in meters.
-	double exosphere_radius;
-	
-	/// Rayleigh scale height
-	double rayleigh_scale_height;
-	
-	/// Mie scale height
-	double mie_scale_height;
-	
-	/// Rayleigh scattering coefficients
-	double3 rayleigh_scattering_coefficients;
-	
-	/// Mie scattering coefficients
-	double3 mie_scattering_coefficients;
-};
+} // namespace physics
 
-} // namespace ecs
+#include "blackbody.hpp"
+#include "luminosity.hpp"
+#include "phase.hpp"
+#include "photometry.hpp"
 
-#endif // ANTKEEPER_ECS_ATMOSPHERE_COMPONENT_HPP
+#endif // ANTKEEPER_PHYSICS_LIGHT_HPP

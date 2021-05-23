@@ -33,6 +33,7 @@
 #include "ecs/components/camera-follow-component.hpp"
 #include "ecs/components/orbit-component.hpp"
 #include "ecs/components/blackbody-component.hpp"
+#include "ecs/components/atmosphere-component.hpp"
 #include "ecs/components/light-component.hpp"
 #include "ecs/commands.hpp"
 #include "game/game-context.hpp"
@@ -136,11 +137,20 @@ void play_state_enter(game_context* ctx)
 		orbit.elements.w = longitude_periapsis - orbit.elements.raan;
 		orbit.elements.ta = math::radians(100.46457166) - longitude_periapsis;
 		
+		const double earth_radius_m = 6378e3;
+		ecs::atmosphere_component atmosphere;
+		atmosphere.exosphere_radius = earth_radius_m + 100e3;
+		atmosphere.rayleigh_scale_height = 8000.0;
+		atmosphere.mie_scale_height = 1200.0;
+		atmosphere.rayleigh_scattering_coefficients = {5.8e-6, 1.35e-5, 3.31e-5};
+		atmosphere.mie_scattering_coefficients = {2e-6, 2e-6, 2e-6};
+		
 		ecs::transform_component transform;
 		transform.local = math::identity_transform<float>;
 		transform.warp = true;
 		
 		ecs_registry.assign<ecs::orbit_component>(earth_entity, orbit);
+		ecs_registry.assign<ecs::atmosphere_component>(earth_entity, atmosphere);
 		ecs_registry.assign<ecs::transform_component>(earth_entity, transform);
 	}
 	
