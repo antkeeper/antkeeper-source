@@ -25,8 +25,8 @@ namespace physics {
 /// Time-related functions.
 namespace time {}
 
-#include "ut1.hpp"
-
 } // namespace physics
+
+#include "ut1.hpp"
 
 #endif // ANTKEEPER_PHYSICS_TIME_HPP
