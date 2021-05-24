@@ -60,6 +60,7 @@ typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::val
 {
 	typedef typename std::iterator_traits<InputIt>::value_type input_type;
 	typedef typename std::invoke_result<UnaryOp, input_type>::type output_type;
+	typedef decltype(*last - *first) difference_type;
 	
 	if (first == last)
 		return output_type(0);
@@ -72,12 +73,11 @@ typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::val
 	if (second == last)
 		return f_a;
 	
+	difference_type h = *second - *first;
+	output_type f_b = f(*first + h / difference_type(2));
 	output_type f_c = f(*second);
 	
-	input_type h = *second - *first;
-	output_type f_b = f(*first + h / input_type(2));
-	
-	output_type sum = ((f_a + f_b * input_type(4) + f_c) / input_type(6)) * h;
+	output_type sum = (f_a + f_b * difference_type(4) + f_c) * h;
 	
 	for (first = second++; second != last; first = second++)
 	{
@@ -85,12 +85,12 @@ typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::val
 		
 		f_a = f_c;
 		f_c = f(*second);
-		f_b = f(*first + h / input_type(2));
+		f_b = f(*first + h / difference_type(2));
 		
-		sum += ((f_a + f_b * input_type(4) + f_c) / input_type(6)) * h;
+		sum += (f_a + f_b * difference_type(4) + f_c) * h;
 	}
 	
-	return sum;
+	return sum / difference_type(6);
 }
 
 template<class UnaryOp, class InputIt>
@@ -99,6 +99,7 @@ typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::val
 {
 	typedef typename std::iterator_traits<InputIt>::value_type input_type;
 	typedef typename std::invoke_result<UnaryOp, input_type>::type output_type;
+	typedef decltype(*last - *first) difference_type;
 	
 	if (first == last)
 		return output_type(0);
@@ -112,16 +113,16 @@ typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::val
 		return f_a;
 	
 	output_type f_b = f(*second);
-	output_type sum = ((f_a + f_b) / input_type(2)) * (*second - *first);
+	output_type sum = (f_a + f_b) * (*second - *first);
 	
 	for (first = second++; second != last; first = second++)
 	{
 		f_a = f_b;
 		f_b = f(*second);
-		sum += ((f_a + f_b) / input_type(2)) * (*second - *first);
+		sum += (f_a + f_b) * (*second - *first);
 	}
 	
-	return sum;
+	return sum / difference_type(2);
 }
 
 } // namespace quadrature
