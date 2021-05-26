@@ -26,17 +26,33 @@ namespace physics {
 namespace constants {
 
 /**
+ * Avogadro number (N).
+ *
+ * @see https://physics.nist.gov/cgi-bin/cuu/Value?na
+ */
+template <class T>
+constexpr T avogadro = T(6.02214076e+23);
+
+/**
  * Boltzmann constant (k), in joule per kelvin.
  *
- * @see https://physics.nist.gov/cgi-bin/cuu/Value?k|search_for=universal_in!
+ * @see https://physics.nist.gov/cgi-bin/cuu/Value?k
  */
 template <class T>
 constexpr T boltzmann = T(1.380649e-23);
 
 /**
+ * Molar gas constant (R), in joule per kelvin per mole.
+ *
+ * @see https://en.wikipedia.org/wiki/Gas_constant
+ */
+template <class T>
+constexpr T gas = T(8.31446261815324);
+
+/**
  * Gravitational constant (G), in cubic meter per second squared per kilogram.
  *
- * @see https://physics.nist.gov/cgi-bin/cuu/Value?G|search_for=universal_in!
+ * @see https://physics.nist.gov/cgi-bin/cuu/Value?G
  */
 template <class T>
 constexpr T gravitational = T(6.67430e-11);
@@ -44,7 +60,7 @@ constexpr T gravitational = T(6.67430e-11);
 /**
  * Planck constant (h), in joule per hertz.
  *
- * @see https://physics.nist.gov/cgi-bin/cuu/Value?h|search_for=universal_in!
+ * @see https://physics.nist.gov/cgi-bin/cuu/Value?h
  */
 template <class T>
 constexpr T planck = T(6.62607015e-34);
@@ -60,7 +76,7 @@ constexpr T stefan_boltzmann = T(5.670374419184429453970996731889230875840122970
 /**
  * Speed of light in vacuum (c), in meters per second.
  *
- * @see https://physics.nist.gov/cgi-bin/cuu/Value?c|search_for=universal_in!
+ * @see https://physics.nist.gov/cgi-bin/cuu/Value?c
  */
 template <class T>
 constexpr T speed_of_light = T(299792458);

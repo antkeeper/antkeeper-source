@@ -43,6 +43,7 @@
 #include "geom/cartesian.hpp"
 #include "geom/spherical.hpp"
 #include "physics/orbit/orbit.hpp"
+#include "physics/light/photometry.hpp"
 #include <cmath>
 #include <stdexcept>
 #include <glad/glad.h>
@@ -68,6 +69,7 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	julian_day_tween(0.0, math::lerp<float, float>),
 	horizon_color_tween(float3{0.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
 	zenith_color_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
+	sun_color_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
 	topocentric_frame_translation({0, 0, 0}, math::lerp<float3, float>),
 	topocentric_frame_rotation(math::quaternion<float>::identity(), math::nlerp<float>),
 	sun_object(nullptr)
@@ -122,17 +124,17 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		// Calculate XYZ color from color temperature
 		double3 color_xyz = color::cct::to_xyz(cct);
 		
-		// Transform XYZ from (assumed) D65 illuminant to ACES illuminant.
-		//color_xyz = color::xyz::cat::d65_to_aces(color_xyz);
-		
 		// Transform XYZ color to ACEScg colorspace
 		double3 color_acescg = color::xyz::to_acescg(color_xyz);
 		
-		// Convert apparent magnitude to lux
+		// Convert apparent magnitude to irradiance W/m2
 		double vmag_lux = astro::vmag_to_lux(vmag);
 		
-		// Normalized color luminance and scale by apparent magnitude
-		double3 scaled_color = color_acescg * vmag_lux;
+		// Convert irradiance to illuminance (using luminous efficiency of sun)
+		double illuminance = physics::light::watts_to_lumens<double>(vmag_lux, 0.13);
+		
+		// Scale color by illuminance
+		double3 scaled_color = color_acescg * illuminance;
 		
 		// Build vertex
 		*(star_vertex++) = static_cast<float>(position_inertial.x);
@@ -204,6 +206,8 @@ void sky_pass::render(render_context* context) const
 	float julian_day = julian_day_tween.interpolate(context->alpha);
 	float3 horizon_color = horizon_color_tween.interpolate(context->alpha);
 	float3 zenith_color = zenith_color_tween.interpolate(context->alpha);
+	float3 sun_color = sun_color_tween.interpolate(context->alpha);
+	
 	
 	// Construct tweened inertial to topocentric frame
 	physics::frame<float> topocentric_frame =
@@ -233,6 +237,8 @@ void sky_pass::render(render_context* context) const
 			horizon_color_input->upload(horizon_color);
 		if (zenith_color_input)
 			zenith_color_input->upload(zenith_color);
+		if (sun_color_input)
+			sun_color_input->upload(sun_color);
 		if (mouse_input)
 			mouse_input->upload(mouse_position);
 		if (resolution_input)
@@ -267,11 +273,14 @@ void sky_pass::render(render_context* context) const
 		rasterizer->draw_arrays(*sky_model_vao, sky_model_drawing_mode, sky_model_start_index, sky_model_index_count);
 	}
 	
+	glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glBlendFunc(GL_ONE, GL_ONE);
+	
 	// Draw moon model
 	if (moon_position.y >= -moon_angular_radius)
 	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
 		
 		float moon_distance = (clip_near + clip_far) * 0.5f;		
 		float moon_radius = moon_angular_radius * moon_distance;
@@ -370,6 +379,7 @@ void sky_pass::set_sky_model(const model* model)
 				model_view_projection_input = sky_shader_program->get_input("model_view_projection");
 				horizon_color_input = sky_shader_program->get_input("horizon_color");
 				zenith_color_input = sky_shader_program->get_input("zenith_color");
+				sun_color_input = sky_shader_program->get_input("sun_color");
 				mouse_input = sky_shader_program->get_input("mouse");
 				resolution_input = sky_shader_program->get_input("resolution");
 				time_input = sky_shader_program->get_input("time");
@@ -437,6 +447,7 @@ void sky_pass::update_tweens()
 	zenith_color_tween.update();
 	topocentric_frame_translation.update();
 	topocentric_frame_rotation.update();
+	sun_color_tween.update();
 }
 
 void sky_pass::set_time_of_day(float time)
@@ -501,6 +512,11 @@ void sky_pass::set_horizon_color(const float3& color)
 void sky_pass::set_zenith_color(const float3& color)
 {
 	zenith_color_tween[1] = color;
+}
+
+void sky_pass::set_sun_color(const float3& color)
+{
+	sun_color_tween[1] = color;
 }
 
 void sky_pass::handle_event(const mouse_moved_event& event)

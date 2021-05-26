@@ -45,8 +45,8 @@ T luminous_efficiency(UnaryOp1 spd, UnaryOp2 lef, InputIt first, InputIt last)
 		return spd(x) * lef(x);
 	};
 	
-	const T num = math::quadrature::trapezoid(spd_lef, first, last);
-	const T den = math::quadrature::trapezoid(spd, first, last);
+	const T num = math::quadrature::simpson(spd_lef, first, last);
+	const T den = math::quadrature::simpson(spd, first, last);
 	
 	return num / den;
 }

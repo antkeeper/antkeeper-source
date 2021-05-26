@@ -17,33 +17,34 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_BLACKBODY_COMPONENT_HPP
-#define ANTKEEPER_ECS_BLACKBODY_COMPONENT_HPP
+#ifndef ANTKEEPER_PHYSICS_ATMOSPHERE_HPP
+#define ANTKEEPER_PHYSICS_ATMOSPHERE_HPP
 
-namespace ecs {
+#include "physics/constants.hpp"
+#include <cmath>
 
-/// Blackbody radiator
-struct blackbody_component
+namespace physics {
+
+/// Atmosphere-related functions.
+namespace atmosphere {
+
+/**
+ * Calculates the density of exponentially-distributed atmospheric particles at a given altitude.
+ *
+ * @param d0 Density at sea level.
+ * @param z Height above sea level.
+ * @param sh Scale height of the particle type.
+ * @return Particle density at altitude.
+ *
+ * @see https://en.wikipedia.org/wiki/Scale_height
+ */
+T density(T d0, T z, T sh)
 {
-	/// Effective temperature, in Kelvin.
-	double temperature;
-	
-	/// Blackbody radius, in meters.
-	double radius;
-	
-	/// (Dependent) Blackbody radiant flux, in watts.
-	double radiant_flux;
-	
-	/// (Dependent) Blackbody luminous flux, in lumens.
-	double luminous_flux;
-	
-	/// (Dependent) Blackbody luminous intensity, in lumens per steradian.
-	double luminous_intensity;
-	
-	/// (Dependent) ACEScg color
-	double3 color;
-};
+	return d0 * std::exp(-z / sh);
+}
 
-} // namespace ecs
+} // namespace atmosphere
 
-#endif // ANTKEEPER_ECS_BLACKBODY_COMPONENT_HPP
+} // namespace physics
+
+#endif // ANTKEEPER_PHYSICS_ATMOSPHERE_HPP

@@ -27,19 +27,19 @@ namespace ecs {
 /// Atmosphere
 struct atmosphere_component
 {
-	/// Radius of the outer atmosphere, in meters.
-	double exosphere_radius;
+	/// Altitude of the outer atmosphere, in meters.
+	double exosphere_altitude;
 	
-	/// Rayleigh scale height
+	/// Rayleigh scale height, in meters.
 	double rayleigh_scale_height;
 	
-	/// Mie scale height
+	/// Mie scale height, in meters.
 	double mie_scale_height;
 	
-	/// Rayleigh scattering coefficients
+	/// (Dependent) Rayleigh scattering coefficients
 	double3 rayleigh_scattering_coefficients;
 	
-	/// Mie scattering coefficients
+	/// (Dependent) Mie scattering coefficients
 	double3 mie_scattering_coefficients;
 };
 

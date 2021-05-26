@@ -114,7 +114,8 @@ void play_state_enter(game_context* ctx)
 		orbit.elements.ta = math::radians(0.0);
 		
 		ecs::blackbody_component blackbody;
-		blackbody.temperature = 5772.0;
+		blackbody.temperature = 5777.0;
+		blackbody.radius = 6.957e+8;
 		
 		ecs::transform_component transform;
 		transform.local = math::identity_transform<float>;
@@ -139,11 +140,9 @@ void play_state_enter(game_context* ctx)
 		
 		const double earth_radius_m = 6378e3;
 		ecs::atmosphere_component atmosphere;
-		atmosphere.exosphere_radius = earth_radius_m + 100e3;
+		atmosphere.exosphere_altitude = 80e3;
 		atmosphere.rayleigh_scale_height = 8000.0;
 		atmosphere.mie_scale_height = 1200.0;
-		atmosphere.rayleigh_scattering_coefficients = {5.8e-6, 1.35e-5, 3.31e-5};
-		atmosphere.mie_scattering_coefficients = {2e-6, 2e-6, 2e-6};
 		
 		ecs::transform_component transform;
 		transform.local = math::identity_transform<float>;

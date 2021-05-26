@@ -26,11 +26,13 @@
 #include "utility/fundamental-types.hpp"
 #include "physics/frame.hpp"
 #include "renderer/passes/sky-pass.hpp"
+#include "ecs/components/blackbody-component.hpp"
+#include "ecs/components/atmosphere-component.hpp"
 
 namespace ecs {
 
 /**
- * Calculates apparent properties of celestial bodies relative to an observer (magnitude, angular radius, horizontal coordinates) and modifies their model component and/or light component to render them accordingly.
+ * Calculates apparent properties of celestial bodies relative to an observer.
  */
 class astronomy_system:
 	public entity_system
@@ -86,14 +88,12 @@ public:
 	void set_sky_pass(sky_pass* pass);
 	
 private:
-	/**
-	 * Calculates the luminous flux of a spherical blackbody in vacuum using the CIE 1931 standard observer photopic luminosity function.
-	 *
-	 * @param t Temperature of the blackbody, in kelvin.
-	 * @param r Radius of the blackbody, in meters.
-	 * @return Luminous flux, in lumens.
-	 */
-	static double blackbody_luminous_flux(double t, double r);
+	void on_blackbody_construct(ecs::registry& registry, ecs::entity entity, ecs::blackbody_component& blackbody);
+	void on_blackbody_replace(ecs::registry& registry, ecs::entity entity, ecs::blackbody_component& blackbody);
+	
+	void on_atmosphere_construct(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere);
+	void on_atmosphere_replace(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere);
+
 	
 	double universal_time;
 	double time_scale;

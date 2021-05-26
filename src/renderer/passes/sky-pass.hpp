@@ -55,6 +55,7 @@ public:
 	void set_sky_model(const model* model);
 	void set_horizon_color(const float3& color);
 	void set_zenith_color(const float3& color);
+	void set_sun_color(const float3& color);
 	void set_time_of_day(float time);
 	void set_blue_noise_map(const gl::texture_2d* texture);
 	void set_sky_gradient(const gl::texture_2d* texture, const gl::texture_2d* texture2);
@@ -91,6 +92,7 @@ private:
 	const gl::shader_input* sky_gradient_input;
 	const gl::shader_input* sky_gradient2_input;
 	const gl::shader_input* exposure_input;
+	const gl::shader_input* sun_color_input;
 	
 	gl::shader_program* moon_shader_program;
 	const gl::shader_input* moon_model_view_projection_input;
@@ -133,6 +135,7 @@ private:
 	tween<float> julian_day_tween;
 	tween<float3> horizon_color_tween;
 	tween<float3> zenith_color_tween;
+	tween<float3> sun_color_tween;
 	
 	tween<float3> topocentric_frame_translation;
 	tween<math::quaternion<float>> topocentric_frame_rotation;
