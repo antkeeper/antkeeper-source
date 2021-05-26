@@ -30,6 +30,15 @@ namespace light {
 namespace phase {
 
 /**
+ * Cornette-Shanks phase function.
+ *
+ * @param mu Cosine of the angle between the light and view directions.
+ * @param g Asymmetry factor, on [-1, 1]. Positive values cause forward scattering, negative values cause back scattering.
+ */
+template <class T>
+T cornette_shanks(T mu, T g);
+
+/**
  * Henyey–Greenstein phase function.
  *
  * @param mu Cosine of the angle between the light and view directions.
@@ -56,6 +65,16 @@ constexpr T isotropic()
  */
 template <class T>
 T rayleigh(T mu);
+
+template <class T>
+T cornette_shanks(T mu, T g)
+{
+	const T k = T(3) / (T(8) * math::pi<T>);
+	const T gg = g * g;
+	const T num = (T(1) - gg) * (T(1) + mu * mu);
+	const T den = (T(2) + gg) * std::pow(T(1) + gg - T(2) * g * mu, T(1.5));
+	return k * num / den;
+}
 
 template <class T>
 T henyey_greenstein(T mu, T g)

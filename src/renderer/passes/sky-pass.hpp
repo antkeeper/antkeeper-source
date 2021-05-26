@@ -53,46 +53,39 @@ public:
 	void update_tweens();
 	
 	void set_sky_model(const model* model);
-	void set_horizon_color(const float3& color);
-	void set_zenith_color(const float3& color);
-	void set_sun_color(const float3& color);
-	void set_time_of_day(float time);
-	void set_blue_noise_map(const gl::texture_2d* texture);
-	void set_sky_gradient(const gl::texture_2d* texture, const gl::texture_2d* texture2);
 	void set_time_tween(const tween<double>* time);
 	void set_moon_model(const model* model);
 	
-	void set_julian_day(float jd);
-	void set_observer_location(float altitude, float latitude, float longitude);
-	
-	void set_moon_angular_radius(float radius);
-	void set_sun_angular_radius(float radius);
-	
 	void set_topocentric_frame(const physics::frame<float>& frame);
-	void set_sun_object(const scene::object_base* object);
+	
+	void set_sun_position(const float3& position);
+	void set_sun_color(const float3& color);
+	void set_sun_angular_radius(float radius);
+	void set_observer_altitude(float altitude);
+	void set_scale_heights(float rayleigh, float mie);
+	void set_scattering_coefficients(const float3& r, const float3& m);
+	void set_mie_asymmetry(float g);
+	void set_atmosphere_radii(float inner, float outer);
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
 
 	gl::shader_program* sky_shader_program;
 	const gl::shader_input* model_view_projection_input;
-	const gl::shader_input* horizon_color_input;
-	const gl::shader_input* zenith_color_input;
 	const gl::shader_input* mouse_input;
 	const gl::shader_input* resolution_input;
 	const gl::shader_input* time_input;
-	const gl::shader_input* time_of_day_input;
-	const gl::shader_input* observer_location_input;
-	const gl::shader_input* sun_position_input;
-	const gl::shader_input* moon_position_input;
-	const gl::shader_input* blue_noise_map_input;
-	const gl::shader_input* julian_day_input;
-	const gl::shader_input* cos_sun_angular_radius_input;
-	const gl::shader_input* cos_moon_angular_radius_input;
-	const gl::shader_input* sky_gradient_input;
-	const gl::shader_input* sky_gradient2_input;
 	const gl::shader_input* exposure_input;
+	
+	const gl::shader_input* observer_altitude_input;
+	const gl::shader_input* sun_direction_input;
 	const gl::shader_input* sun_color_input;
+	const gl::shader_input* cos_sun_angular_radius_input;
+	const gl::shader_input* scale_height_rm_input;
+	const gl::shader_input* rayleigh_scattering_input;
+	const gl::shader_input* mie_scattering_input;
+	const gl::shader_input* mie_asymmetry_input;
+	const gl::shader_input* atmosphere_radii_input;
 	
 	gl::shader_program* moon_shader_program;
 	const gl::shader_input* moon_model_view_projection_input;
@@ -127,25 +120,20 @@ private:
 	const gl::texture_2d* sky_gradient;
 	const gl::texture_2d* sky_gradient2;
 	float2 mouse_position;
-
-	float3 observer_location;
 	
 	const tween<double>* time_tween;
-	tween<float> time_of_day_tween;
-	tween<float> julian_day_tween;
-	tween<float3> horizon_color_tween;
-	tween<float3> zenith_color_tween;
+	tween<float> observer_altitude_tween;
+	tween<float3> sun_position_tween;
 	tween<float3> sun_color_tween;
-	
 	tween<float3> topocentric_frame_translation;
 	tween<math::quaternion<float>> topocentric_frame_rotation;
 	
-	float moon_angular_radius;
-	float cos_moon_angular_radius;
-	float sun_angular_radius;
 	float cos_sun_angular_radius;
-	
-	const scene::object_base* sun_object;
+	float2 scale_height_rm;
+	float3 rayleigh_scattering;
+	float3 mie_scattering;
+	float2 mie_asymmetry;
+	float3 atmosphere_radii;
 };
 
 #endif // ANTKEEPER_SKY_PASS_HPP

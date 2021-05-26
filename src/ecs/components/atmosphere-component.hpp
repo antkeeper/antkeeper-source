@@ -30,17 +30,29 @@ struct atmosphere_component
 	/// Altitude of the outer atmosphere, in meters.
 	double exosphere_altitude;
 	
+	/// Atmospheric index of refraction at sea level.
+	double index_of_refraction;
+	
+	/// Molecular density of Rayleigh particles at sea level.
+	double rayleigh_density;
+	
+	/// Molecular density of Mie particles at sea level.
+	double mie_density;
+	
 	/// Rayleigh scale height, in meters.
 	double rayleigh_scale_height;
 	
 	/// Mie scale height, in meters.
 	double mie_scale_height;
 	
-	/// (Dependent) Rayleigh scattering coefficients
-	double3 rayleigh_scattering_coefficients;
+	/// Mie phase function asymmetry factor.
+	double mie_asymmetry;
 	
-	/// (Dependent) Mie scattering coefficients
-	double3 mie_scattering_coefficients;
+	/// (Dependent) Rayleigh scattering coefficients at sea level.
+	double3 rayleigh_scattering;
+	
+	/// (Dependent) Mie scattering coefficients at sea level.
+	double3 mie_scattering;
 };
 
 } // namespace ecs

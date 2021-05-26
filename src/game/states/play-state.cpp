@@ -93,15 +93,6 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
 	sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
 	
-	sky_pass->set_horizon_color({1.1f, 1.1f, 1.1f});
-	sky_pass->set_zenith_color({0.0f, 0.0f, 0.0f});
-	sky_pass->set_time_of_day(0.0f);
-	sky_pass->set_julian_day(0.0f);
-	sky_pass->set_observer_location(4.26352e-5, ctx->biome->location[0], ctx->biome->location[1]);
-	sky_pass->set_moon_angular_radius(math::radians(1.0f));
-	sky_pass->set_sun_angular_radius(math::radians(1.0f));
-	sky_pass->set_sky_gradient(resource_manager->load<gl::texture_2d>("sky-gradient.tex"), resource_manager->load<gl::texture_2d>("sky-gradient2.tex"));
-	
 	// Create sun
 	auto sun_entity = ecs_registry.create();
 	{
@@ -130,7 +121,7 @@ void play_state_enter(game_context* ctx)
 	auto earth_entity = ecs_registry.create();
 	{
 		ecs::orbit_component orbit;
-		orbit.elements.a = 1.00000261;
+		orbit.elements.a = 1.496e+11;
 		orbit.elements.e = 0.01671123;
 		orbit.elements.i = math::radians(-0.00001531);
 		orbit.elements.raan = math::radians(0.0);
@@ -138,11 +129,16 @@ void play_state_enter(game_context* ctx)
 		orbit.elements.w = longitude_periapsis - orbit.elements.raan;
 		orbit.elements.ta = math::radians(100.46457166) - longitude_periapsis;
 		
-		const double earth_radius_m = 6378e3;
 		ecs::atmosphere_component atmosphere;
-		atmosphere.exosphere_altitude = 80e3;
+		atmosphere.exosphere_altitude = 100e3;
+		
+		atmosphere.index_of_refraction = 1.0003;
+		atmosphere.rayleigh_density = 2.545e25;
+		atmosphere.mie_density = 14.8875;
+		
 		atmosphere.rayleigh_scale_height = 8000.0;
 		atmosphere.mie_scale_height = 1200.0;
+		atmosphere.mie_asymmetry = 0.8;
 		
 		ecs::transform_component transform;
 		transform.local = math::identity_transform<float>;
@@ -160,12 +156,12 @@ void play_state_enter(game_context* ctx)
 	ctx->overworld_scene->add_object(ambient);
 	
 	scene::directional_light* sun = new scene::directional_light();
-	sun->set_intensity(1000.0f);
-	sun->set_light_texture(resource_manager->load<gl::texture_2d>("forest-gobo.tex"));
-	sun->set_light_texture_scale({2000, 2000});
-	sun->set_light_texture_opacity(0.925f);
-	sun->look_at({2, 1, 0}, {0, 0, 0}, {0, 0, 1});
-	sun->update_tweens();
+	//sun->set_intensity(1000.0f);
+	//sun->set_light_texture(resource_manager->load<gl::texture_2d>("forest-gobo.tex"));
+	//sun->set_light_texture_scale({2000, 2000});
+	//sun->set_light_texture_opacity(0.925f);
+	//sun->look_at({2, 1, 0}, {0, 0, 0}, {0, 0, 1});
+	//sun->update_tweens();
 	ctx->overworld_scene->add_object(sun);
 	ctx->overworld_shadow_map_pass->set_light(sun);
 	
@@ -175,10 +171,9 @@ void play_state_enter(game_context* ctx)
 	ctx->orbit_system->set_universal_time(universal_time);
 	
 	// Set astronomy system observation parameters
-	const double earth_radius_au = 4.2635e-5;
 	ctx->astronomy_system->set_reference_body(earth_entity);
 	ctx->astronomy_system->set_reference_body_axial_tilt(math::radians(23.4393));
-	ctx->astronomy_system->set_observer_location(double3{4.26352e-5, math::radians(0.0f), math::radians(0.0f)});
+	ctx->astronomy_system->set_observer_location(double3{6.3781e6, math::radians(0.0f), math::radians(0.0f)});
 	ctx->astronomy_system->set_sun_light(sun);
 	ctx->astronomy_system->set_sky_pass(ctx->overworld_sky_pass);
 

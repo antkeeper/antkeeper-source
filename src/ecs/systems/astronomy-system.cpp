@@ -30,44 +30,11 @@
 #include "physics/light/blackbody.hpp"
 #include "physics/light/photometry.hpp"
 #include "physics/light/luminosity.hpp"
+#include "physics/atmosphere.hpp"
 #include "geom/cartesian.hpp"
 #include <iostream>
 
 namespace ecs {
-
-/**
- * Approximates the density of exponentially-distributed atmospheric particles between two points using the trapezoidal rule.
- *
- * @param a Start point.
- * @param b End point.
- * @param r Radius of the planet.
- * @param sh Scale height of the atmospheric particles.
- * @param n Number of samples.
- */
-template <class T>
-T optical_depth(const math::vector3<T>& a, const math::vector3<T>& b, T r, T sh, std::size_t n)
-{
-	T inverse_sh = T(-1) / sh;
-	
-	T h = math::length(b - a) / T(n);
-	
-	math::vector3<T> dy = (b - a) / T(n);
-	math::vector3<T> y = a + dy;
-	
-	T f_x = std::exp((length(a) - r) * inverse_sh);
-	T f_y = std::exp((length(y) - r) * inverse_sh);
-	T sum = (f_x + f_y);
-	
-	for (std::size_t i = 1; i < n; ++i)
-	{
-		f_x = f_y;
-		y += dy;
-		f_y = std::exp((length(y) - r) * inverse_sh);
-		sum += (f_x + f_y);
-	}
-	
-	return sum / T(2) * h;
-}
 
 template <class T>
 math::vector3<T> transmittance(T depth_r, T depth_m, T depth_o, const math::vector3<T>& beta_r, const math::vector3<T>& beta_m)
@@ -83,16 +50,6 @@ math::vector3<T> transmittance(T depth_r, T depth_m, T depth_o, const math::vect
 	
 	return t;
 }
-
-double calc_beta_r(double wavelength, double ior, double density)
-{
-	double wavelength2 = wavelength * wavelength;
-	double ior2m1 = ior * ior - 1.0;
-	double num = 8.0 * (math::pi<double> * math::pi<double> * math::pi<double>) * ior2m1 * ior2m1;
-	double den = 3.0 * density * (wavelength2 * wavelength2);
-	return num / den;
-}
-
 
 astronomy_system::astronomy_system(ecs::registry& registry):
 	entity_system(registry),
@@ -153,10 +110,12 @@ void astronomy_system::update(double t, double dt)
 		transform.local.translation = math::type_cast<float>(r_topocentric);
 	});
 	
+	const double earth_radius = 6.3781e6;
+	
 	// Update blackbody lighting
 	registry.view<blackbody_component, orbit_component>().each(
 	[&](ecs::entity entity, auto& blackbody, auto& orbit)
-	{		
+	{
 		// Calculate blackbody inertial basis
 		double3 blackbody_forward_inertial = math::normalize(reference_orbit.state.r - orbit.state.r);
 		double3 blackbody_up_inertial = {0, 0, 1};
@@ -167,8 +126,7 @@ void astronomy_system::update(double t, double dt)
 		double3 blackbody_up_topocentric = inertial_to_topocentric.rotation * blackbody_up_inertial;
 		
 		// Calculate distance from observer to blackbody
-		const double meters_per_au = 1.496e+11;
-		double blackbody_distance = math::length(blackbody_position_topocentric) * meters_per_au;
+		double blackbody_distance = math::length(blackbody_position_topocentric);
 		
 		// Calculate blackbody illuminance according to distance
 		double blackbody_illuminance = blackbody.luminous_intensity / (blackbody_distance * blackbody_distance);
@@ -181,17 +139,14 @@ void astronomy_system::update(double t, double dt)
 		{
 			const ecs::atmosphere_component& atmosphere = this->registry.get<ecs::atmosphere_component>(reference_body);
 			
-			const double earth_radius_au = 4.26352e-5;
-			const double earth_radius_m = earth_radius_au * meters_per_au;
-			
 			// Altitude of observer in meters	
 			geom::ray<double> sample_ray;
-			sample_ray.origin = {0, observer_location[0] * meters_per_au, 0};
+			sample_ray.origin = {0, observer_location[0], 0};
 			sample_ray.direction = math::normalize(blackbody_position_topocentric);
 			
 			geom::sphere<double> exosphere;
 			exosphere.center = {0, 0, 0};
-			exosphere.radius = earth_radius_m + atmosphere.exosphere_altitude;
+			exosphere.radius = earth_radius + atmosphere.exosphere_altitude;
 			
 			auto intersection_result = geom::ray_sphere_intersection(sample_ray, exosphere);
 			
@@ -200,11 +155,11 @@ void astronomy_system::update(double t, double dt)
 				double3 sample_start = sample_ray.origin;
 				double3 sample_end = sample_ray.extrapolate(std::get<2>(intersection_result));
 				
-				double optical_depth_r = optical_depth(sample_start, sample_end, earth_radius_m, atmosphere.rayleigh_scale_height, 32);
-				double optical_depth_k = optical_depth(sample_start, sample_end, earth_radius_m, atmosphere.mie_scale_height, 32);
+				double optical_depth_r = physics::atmosphere::optical_depth(sample_start, sample_end, earth_radius, atmosphere.rayleigh_scale_height, 32);
+				double optical_depth_k = physics::atmosphere::optical_depth(sample_start, sample_end, earth_radius, atmosphere.mie_scale_height, 32);
 				double optical_depth_o = 0.0;
 				
-				double3 attenuation = transmittance(optical_depth_r, optical_depth_k, optical_depth_o, atmosphere.rayleigh_scattering_coefficients, atmosphere.mie_scattering_coefficients);
+				double3 attenuation = transmittance(optical_depth_r, optical_depth_k, optical_depth_o, atmosphere.rayleigh_scattering, atmosphere.mie_scattering);
 				
 				// Attenuate blackbody color
 				blackbody_color *= attenuation;
@@ -214,7 +169,7 @@ void astronomy_system::update(double t, double dt)
 		if (sun_light != nullptr)
 		{
 			// Update blackbody light transform
-			sun_light->set_translation(math::type_cast<float>(blackbody_position_topocentric));
+			sun_light->set_translation(math::normalize(math::type_cast<float>(blackbody_position_topocentric)));
 			sun_light->set_rotation
 			(
 				math::look_rotation
@@ -228,11 +183,14 @@ void astronomy_system::update(double t, double dt)
 			sun_light->set_color(math::type_cast<float>(blackbody_color));	
 			sun_light->set_intensity(static_cast<float>(blackbody_illuminance));
 			
-			// Pass blackbody params to sky pas
+			// Upload blackbody params to sky pass
 			if (this->sky_pass)
 			{
-				this->sky_pass->set_sun_object(sun_light);
+				this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_topocentric));
 				this->sky_pass->set_sun_color(math::type_cast<float>(blackbody.color * blackbody_illuminance));
+				
+				float angular_radius = 2.0 * std::atan2(2.0 * blackbody.radius, 2.0 * blackbody_distance);
+				this->sky_pass->set_sun_angular_radius(angular_radius);
 			}
 		}
 	});
@@ -240,6 +198,7 @@ void astronomy_system::update(double t, double dt)
 	// Update sky pass topocentric frame
 	if (sky_pass != nullptr)
 	{
+		// Upload topocentric frame to sky pass
 		sky_pass->set_topocentric_frame
 		(
 			physics::frame<float>
@@ -248,6 +207,21 @@ void astronomy_system::update(double t, double dt)
 				math::type_cast<float>(inertial_to_topocentric.rotation)
 			}
 		);
+		
+		// Upload observer altitude to sky pass
+		float observer_altitude = observer_location[0] - earth_radius;
+		sky_pass->set_observer_altitude(observer_altitude);
+		
+		// Upload atmosphere params to sky pass
+		if (this->registry.has<ecs::atmosphere_component>(reference_body))
+		{
+			const ecs::atmosphere_component& atmosphere = this->registry.get<ecs::atmosphere_component>(reference_body);
+			
+			sky_pass->set_scale_heights(atmosphere.rayleigh_scale_height, atmosphere.mie_scale_height);
+			sky_pass->set_scattering_coefficients(math::type_cast<float>(atmosphere.rayleigh_scattering), math::type_cast<float>(atmosphere.mie_scattering));
+			sky_pass->set_mie_asymmetry(atmosphere.mie_asymmetry);
+			sky_pass->set_atmosphere_radii(earth_radius, earth_radius + atmosphere.exosphere_altitude);
+		}
 	}
 }
 
@@ -361,23 +335,29 @@ void astronomy_system::on_atmosphere_construct(ecs::registry& registry, ecs::ent
 
 void astronomy_system::on_atmosphere_replace(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere)
 {
+	// Calculate polarization factors
+	const double rayleigh_polarization = physics::atmosphere::polarization(atmosphere.index_of_refraction, atmosphere.rayleigh_density);
+	const double mie_polarization = physics::atmosphere::polarization(atmosphere.index_of_refraction, atmosphere.mie_density);
+	
 	// ACEScg wavelengths determined by matching wavelengths to XYZ, transforming XYZ to ACEScg, then selecting the max wavelengths for R, G, and B.
-	const double3 acescg_wavelengths_nm = {600.0, 540.0, 450.0};
-	const double3 acescg_wavelengths_m = acescg_wavelengths_nm * 1.0e-9;
+	const double3 acescg_wavelengths = {600.0e-9, 540.0e-9, 450.0e-9};
 	
 	// Calculate Rayleigh scattering coefficients
-	const double air_ior = 1.0003;
-	const double molecular_density = 2.545e25;
-	double3 beta_r;
-	atmosphere.rayleigh_scattering_coefficients =
+	atmosphere.rayleigh_scattering =
 	{
-		calc_beta_r(acescg_wavelengths_m.x, air_ior, molecular_density),
-		calc_beta_r(acescg_wavelengths_m.y, air_ior, molecular_density),
-		calc_beta_r(acescg_wavelengths_m.z, air_ior, molecular_density)
+		physics::atmosphere::scatter_rayleigh(acescg_wavelengths.x, atmosphere.rayleigh_density, rayleigh_polarization),
+		physics::atmosphere::scatter_rayleigh(acescg_wavelengths.y, atmosphere.rayleigh_density, rayleigh_polarization),
+		physics::atmosphere::scatter_rayleigh(acescg_wavelengths.z, atmosphere.rayleigh_density, rayleigh_polarization)
 	};
 	
 	// Calculate Mie scattering coefficients
-	atmosphere.mie_scattering_coefficients = {2.0e-6, 2.0e-6, 2.0e-6};
+	const double mie_scattering = physics::atmosphere::scatter_mie(atmosphere.mie_density, mie_polarization);
+	atmosphere.mie_scattering = 
+	{
+		mie_scattering,
+		mie_scattering,
+		mie_scattering
+	};
 }
 
 } // namespace ecs
