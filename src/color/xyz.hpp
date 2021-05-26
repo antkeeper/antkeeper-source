@@ -164,7 +164,7 @@ T match_x(T lambda)
 	
 	const T x0 = T( 0.362) * std::exp(T(-0.5) * t0 * t0);
 	const T x1 = T( 1.056) * std::exp(T(-0.5) * t1 * t1);
-	const T x2 = T(-0.056) * std::exp(T(-0.5) * t2 * t2);
+	const T x2 = T(-0.065) * std::exp(T(-0.5) * t2 * t2);
 	
 	return x0 + x1 + x2;
 }
