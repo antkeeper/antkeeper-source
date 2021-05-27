@@ -48,8 +48,8 @@ T density(T d0, T z, T sh)
 /**
  * Calculates a particle polarization factor used in computing scattering coefficients.
  *
- * @param ior Atmospheric index of refraction at sea level.
- * @param density Molecular density at sea level.
+ * @param ior Atmospheric index of refraction.
+ * @param density Molecular density.
  * @return Polarization factor.
  *
  * @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.

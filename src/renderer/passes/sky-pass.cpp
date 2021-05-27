@@ -234,8 +234,8 @@ void sky_pass::render(render_context* context) const
 			observer_altitude_input->upload(observer_altitude);
 		if (sun_direction_input)
 			sun_direction_input->upload(sun_direction);
-		if (cos_sun_angular_radius_input)
-			cos_sun_angular_radius_input->upload(cos_sun_angular_radius);
+		if (sun_angular_radius_input)
+			sun_angular_radius_input->upload(sun_angular_radius);
 		if (sun_color_input)
 			sun_color_input->upload(sun_color);
 		if (scale_height_rm_input)
@@ -347,7 +347,7 @@ void sky_pass::set_sky_model(const model* model)
 				observer_altitude_input = sky_shader_program->get_input("observer_altitude");
 				sun_direction_input = sky_shader_program->get_input("sun_direction");
 				sun_color_input = sky_shader_program->get_input("sun_color");
-				cos_sun_angular_radius_input = sky_shader_program->get_input("cos_sun_angular_radius");
+				sun_angular_radius_input = sky_shader_program->get_input("sun_angular_radius");
 				scale_height_rm_input = sky_shader_program->get_input("scale_height_rm");
 				rayleigh_scattering_input = sky_shader_program->get_input("rayleigh_scattering");
 				mie_scattering_input = sky_shader_program->get_input("mie_scattering");
@@ -430,7 +430,7 @@ void sky_pass::set_sun_color(const float3& color)
 
 void sky_pass::set_sun_angular_radius(float radius)
 {
-	cos_sun_angular_radius = std::cos(radius);
+	sun_angular_radius = radius;
 }
 
 void sky_pass::set_observer_altitude(float altitude)

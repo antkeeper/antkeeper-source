@@ -80,7 +80,7 @@ private:
 	const gl::shader_input* observer_altitude_input;
 	const gl::shader_input* sun_direction_input;
 	const gl::shader_input* sun_color_input;
-	const gl::shader_input* cos_sun_angular_radius_input;
+	const gl::shader_input* sun_angular_radius_input;
 	const gl::shader_input* scale_height_rm_input;
 	const gl::shader_input* rayleigh_scattering_input;
 	const gl::shader_input* mie_scattering_input;
@@ -128,7 +128,7 @@ private:
 	tween<float3> topocentric_frame_translation;
 	tween<math::quaternion<float>> topocentric_frame_rotation;
 	
-	float cos_sun_angular_radius;
+	float sun_angular_radius;
 	float2 scale_height_rm;
 	float3 rayleigh_scattering;
 	float3 mie_scattering;

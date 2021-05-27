@@ -189,8 +189,8 @@ void astronomy_system::update(double t, double dt)
 				this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_topocentric));
 				this->sky_pass->set_sun_color(math::type_cast<float>(blackbody.color * blackbody_illuminance));
 				
-				float angular_radius = 2.0 * std::atan2(2.0 * blackbody.radius, 2.0 * blackbody_distance);
-				this->sky_pass->set_sun_angular_radius(angular_radius);
+				double blackbody_angular_radius = std::asin((blackbody.radius * 2.0) / (blackbody_distance * 2.0));
+				this->sky_pass->set_sun_angular_radius(static_cast<float>(blackbody_angular_radius));
 			}
 		}
 	});
