@@ -22,13 +22,14 @@
 
 #include "math/constants.hpp"
 #include "physics/constants.hpp"
-#include "physics/planck.hpp"
 
 namespace physics {
 namespace light {
 
 /**
  * Blackbody radiation functions.
+ *
+ * @see https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law
  */
 namespace blackbody {
 
@@ -37,9 +38,6 @@ namespace blackbody {
  *
  * @param t Temperature of the blackbody, in kelvin.
  * @return Radiant exitance of the blackbody, in watt per square meter.
- *
- * @see https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law
- * @see https://en.wikipedia.org/wiki/Radiant_exitance
  */
 template <class T>
 T radiant_exitance(T t);
@@ -49,25 +47,66 @@ T radiant_exitance(T t);
  *
  * @param t Temperature of the blackbody, in kelvin.
  * @param a Surface area of the blackbody, in square meters.
- * @return Radiant power of the blackbody, in watts.
- *
- * @see https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law
+ * @return Radiant flux of the blackbody, in watt.
  */
 template <class T>
 T radiant_flux(T t, T a);
 
 /**
- * Calculates the spectral radiance of a blackbody at a given wavelength.
+ * Calculates the radiant intensity of a blackbody.
+ *
+ * @param t Temperature of the blackbody, in kelvin.
+ * @param a Surface area of the blackbody, in square meters.
+ * @return Radiant intensity of the blackbody, in watt per steradian.
+ */
+template <class T>
+T radiant_intensity(T t, T a);
+
+/**
+ * Calculates the spectral exitance of a blackbody for the given wavelength.
+ *
+ * @param t Temperature of the blackbody, in kelvin.
+ * @param lambda Wavelength of light, in meters.
+ * @param c Speed of light in medium.
+ * @return Spectral exitance, in watt per square meter, per meter.
+ */
+template <class T>
+T spectral_exitance(T t, T lambda, T c = constants::speed_of_light<T>);
+
+/**
+ * Calculates the spectral flux of a blackbody for the given wavelength.
+ *
+ * @param t Temperature of the blackbody, in kelvin.
+ * @param a Surface area of the blackbody, in square meters.
+ * @param lambda Wavelength of light, in meters.
+ * @param c Speed of light in medium.
+ * @return Spectral flux of the blackbody, in watt per meter.
+ */
+template <class T>
+T spectral_flux(T t, T a, T lambda, T c  = constants::speed_of_light<T>);
+
+/**
+ * Calculates the spectral intensity of a blackbody for the given wavelength.
+ *
+ * @param t Temperature of the blackbody, in kelvin.
+ * @param a Surface area of the blackbody, in square meters.
+ * @param lambda Wavelength of light, in meters.
+ * @param c Speed of light in medium.
+ * @return Spectral intensity of the blackbody for the given wavelength, in watt per steradian per meter.
+ */
+template <class T>
+T spectral_intensity(T t, T a, T lambda, T c  = constants::speed_of_light<T>);
+
+/**
+ * Calculates the spectral radiance of a blackbody for the given wavelength.
  *
  * @param t Temperature of the blackbody, in kelvin.
  * @param lambda Wavelength of light, in meters.
  * @param c Speed of light in medium.
  * @return Spectral radiance, in watt per steradian per square meter per meter.
- *
- * @see physics::planck::wavelength
  */
 template <class T>
-constexpr auto spectral_radiance = planck::wavelength<T>;
+T spectral_radiance(T t, T lambda, T c = constants::speed_of_light<T>);
 
 template <class T>
 T radiant_exitance(T t)
@@ -80,6 +119,54 @@ template <class T>
 T radiant_flux(T t, T a)
 {
 	return a * radiant_exitance(t);
+}
+
+template <class T>
+T radiant_intensity(T t, T a)
+{
+	return radiant_flux(t, a) / (T(4) * math::pi<T>);
+}
+
+template <class T>
+T spectral_exitance(T t, T lambda, T c)
+{
+	const T hc = constants::planck<T> * c;
+	const T lambda2 = lambda * lambda;
+	
+	// First radiation constant (c1)
+	const T c1 = T(2) * math::pi<T> * hc * c;
+	
+	// Second radiation constant (c2)
+	const T c2 = hc / constants::boltzmann<T>;
+	
+	return (c1 / (lambda2 * lambda2 * lambda)) / std::expm1(c2 / (lambda * t));
+}
+
+template <class T>
+T spectral_flux(T t, T a, T lambda, T c)
+{
+	return a * spectral_exitance(t, lambda, c);
+}
+
+template <class T>
+T spectral_intensity(T t, T a, T lambda, T c)
+{
+	return spectral_flux(t, a, lambda, c) / (T(4) * math::pi<T>);
+}
+
+template <class T>
+T spectral_radiance(T t, T lambda, T c)
+{
+	const T hc = constants::planck<T> * c;
+	const T lambda2 = lambda * lambda;
+	
+	// First radiation constant (c1L)
+	const T c1l = T(2) * hc * c;
+	
+	// Second radiation constant (c2)
+	const T c2 = hc / constants::boltzmann<T>;
+	
+	return (c1l / (lambda2 * lambda2 * lambda)) / std::expm1(c2 / (lambda * t));
 }
 
 } // namespace blackbody

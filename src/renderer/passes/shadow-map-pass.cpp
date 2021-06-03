@@ -103,7 +103,8 @@ void shadow_map_pass::render(render_context* context) const
 	glDepthMask(GL_TRUE);
 	
 	// Disable face culling
-	glDisable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
 	
 	// For half-z buffer
 	//glDepthRange(-1.0f, 1.0f);

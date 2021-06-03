@@ -31,5 +31,6 @@ namespace light {}
 #include "luminosity.hpp"
 #include "phase.hpp"
 #include "photometry.hpp"
+#include "refraction.hpp"
 
 #endif // ANTKEEPER_PHYSICS_LIGHT_HPP

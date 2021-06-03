@@ -69,7 +69,7 @@ T rayleigh(T mu);
 template <class T>
 T cornette_shanks(T mu, T g)
 {
-	const T k = T(3) / (T(8) * math::pi<T>);
+	static const T k = T(3) / (T(8) * math::pi<T>);
 	const T gg = g * g;
 	const T num = (T(1) - gg) * (T(1) + mu * mu);
 	const T den = (T(2) + gg) * std::pow(T(1) + gg - T(2) * g * mu, T(1.5));
@@ -86,7 +86,8 @@ T henyey_greenstein(T mu, T g)
 template <class T>
 T rayleigh(T mu)
 {
-	return (T(1) + mu * mu) * (T(3) / (T(16) * math::pi<T>));
+	static const T k = T(3) / (T(16) * math::pi<T>);
+	return k * (1.0 + mu * mu);
 }
 
 } // namespace phase

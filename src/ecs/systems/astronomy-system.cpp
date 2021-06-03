@@ -30,7 +30,9 @@
 #include "physics/light/blackbody.hpp"
 #include "physics/light/photometry.hpp"
 #include "physics/light/luminosity.hpp"
+#include "physics/light/refraction.hpp"
 #include "physics/atmosphere.hpp"
+#include "math/quadrature.hpp"
 #include "geom/cartesian.hpp"
 #include <iostream>
 
@@ -40,7 +42,7 @@ template <class T>
 math::vector3<T> transmittance(T depth_r, T depth_m, T depth_o, const math::vector3<T>& beta_r, const math::vector3<T>& beta_m)
 {
 	math::vector3<T> transmittance_r = beta_r * depth_r;
-	math::vector3<T> transmittance_m = beta_m * depth_m;
+	math::vector3<T> transmittance_m = beta_m * 1.1 * depth_m;
 	math::vector3<T> transmittance_o = {0, 0, 0};
 	
 	math::vector3<T> t = transmittance_r + transmittance_m + transmittance_o;
@@ -61,6 +63,10 @@ astronomy_system::astronomy_system(ecs::registry& registry):
 	sun_light(nullptr),
 	sky_pass(nullptr)
 {
+	// RGB wavelengths determined by matching wavelengths to XYZ, transforming XYZ to ACEScg, then selecting the max wavelengths for R, G, and B.
+	rgb_wavelengths_nm = {602.224, 541.069, 448.143};
+	rgb_wavelengths_m = rgb_wavelengths_nm * 1e-9;
+	
 	registry.on_construct<ecs::blackbody_component>().connect<&astronomy_system::on_blackbody_construct>(this);
 	registry.on_replace<ecs::blackbody_component>().connect<&astronomy_system::on_blackbody_replace>(this);
 	
@@ -128,13 +134,13 @@ void astronomy_system::update(double t, double dt)
 		// Calculate distance from observer to blackbody
 		double blackbody_distance = math::length(blackbody_position_topocentric);
 		
-		// Calculate blackbody illuminance according to distance
-		double blackbody_illuminance = blackbody.luminous_intensity / (blackbody_distance * blackbody_distance);
+		// Calculate blackbody distance attenuation
+		double distance_attenuation = 1.0 / (blackbody_distance * blackbody_distance);
 		
-		// Get blackbody color
-		double3 blackbody_color = blackbody.color;
+		// Init atmospheric transmittance
+		double3 atmospheric_transmittance = {1.0, 1.0, 1.0};
 		
-		// Get atmosphere component of reference body, if any
+		// Get atmosphere component of reference body (if any)
 		if (this->registry.has<ecs::atmosphere_component>(reference_body))
 		{
 			const ecs::atmosphere_component& atmosphere = this->registry.get<ecs::atmosphere_component>(reference_body);
@@ -159,10 +165,7 @@ void astronomy_system::update(double t, double dt)
 				double optical_depth_k = physics::atmosphere::optical_depth(sample_start, sample_end, earth_radius, atmosphere.mie_scale_height, 32);
 				double optical_depth_o = 0.0;
 				
-				double3 attenuation = transmittance(optical_depth_r, optical_depth_k, optical_depth_o, atmosphere.rayleigh_scattering, atmosphere.mie_scattering);
-				
-				// Attenuate blackbody color
-				blackbody_color *= attenuation;
+				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_k, optical_depth_o, atmosphere.rayleigh_scattering, atmosphere.mie_scattering);
 			}
 		}
 		
@@ -180,14 +183,14 @@ void astronomy_system::update(double t, double dt)
 			);
 			
 			// Update blackbody light color and intensity
-			sun_light->set_color(math::type_cast<float>(blackbody_color));	
-			sun_light->set_intensity(static_cast<float>(blackbody_illuminance));
+			sun_light->set_color(math::type_cast<float>(blackbody.luminous_intensity * atmospheric_transmittance));	
+			sun_light->set_intensity(static_cast<float>(distance_attenuation));
 			
 			// Upload blackbody params to sky pass
 			if (this->sky_pass)
 			{
 				this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_topocentric));
-				this->sky_pass->set_sun_color(math::type_cast<float>(blackbody.color * blackbody_illuminance));
+				this->sky_pass->set_sun_color(math::type_cast<float>(blackbody.luminous_intensity * distance_attenuation));
 				
 				double blackbody_angular_radius = std::asin((blackbody.radius * 2.0) / (blackbody_distance * 2.0));
 				this->sky_pass->set_sun_angular_radius(static_cast<float>(blackbody_angular_radius));
@@ -219,7 +222,7 @@ void astronomy_system::update(double t, double dt)
 			
 			sky_pass->set_scale_heights(atmosphere.rayleigh_scale_height, atmosphere.mie_scale_height);
 			sky_pass->set_scattering_coefficients(math::type_cast<float>(atmosphere.rayleigh_scattering), math::type_cast<float>(atmosphere.mie_scattering));
-			sky_pass->set_mie_asymmetry(atmosphere.mie_asymmetry);
+			sky_pass->set_mie_anisotropy(atmosphere.mie_anisotropy);
 			sky_pass->set_atmosphere_radii(earth_radius, earth_radius + atmosphere.exosphere_altitude);
 		}
 	}
@@ -289,43 +292,31 @@ void astronomy_system::on_blackbody_construct(ecs::registry& registry, ecs::enti
 
 void astronomy_system::on_blackbody_replace(ecs::registry& registry, ecs::entity entity, ecs::blackbody_component& blackbody)
 {
-	// Calculate surface area of spherical blackbody
-	const double surface_area = double(4) * math::pi<double> * blackbody.radius * blackbody.radius;
+	// Calculate the surface area of a spherical blackbody
+	const double surface_area = 4.0 * math::pi<double> * blackbody.radius * blackbody.radius;
 	
-	// Calculate radiant flux
-	blackbody.radiant_flux = physics::light::blackbody::radiant_flux(blackbody.temperature, surface_area);
-	
-	// Blackbody spectral power distribution function
-	auto spd = [blackbody](double x) -> double
+	// Construct a lambda function which calculates the blackbody's RGB luminous intensity of a given wavelength
+	auto rgb_luminous_intensity = [blackbody, surface_area](double wavelength_nm) -> double3
 	{
-		// Convert nanometers to meters
-		x *= double(1e-9);
+		// Convert wavelength from nanometers to meters
+		const double wavelength_m = wavelength_nm * 1e-9;
 		
-		return physics::light::blackbody::spectral_radiance<double>(blackbody.temperature, x, physics::constants::speed_of_light<double>);
+		// Calculate the spectral intensity of the wavelength
+		const double spectral_intensity = physics::light::blackbody::spectral_intensity<double>(blackbody.temperature, surface_area, wavelength_m);
+		
+		// Calculate the ACEScg color of the wavelength using CIE color matching functions
+		double3 spectral_color = color::xyz::to_acescg(color::xyz::match(wavelength_nm));
+		
+		// Scale the spectral color by spectral intensity
+		return spectral_color * spectral_intensity * 1e-9 * physics::light::max_luminous_efficacy<double>;
 	};
 	
-	// Luminous efficiency function (photopic)
-	auto lef = [](double x) -> double
-	{
-		return physics::light::luminosity::photopic<double>(x);
-	};
+	// Construct a range of sample wavelengths in the visible spectrum
+	std::vector<double> samples(780 - 280);
+	std::iota(samples.begin(), samples.end(), 280);
 	
-	// Construct range of spectral sample points
-	std::vector<double> samples(10000);
-	std::iota(samples.begin(), samples.end(), 10);
-	
-	// Calculate luminous efficiency
-	const double efficiency = physics::light::luminous_efficiency<double>(spd, lef, samples.begin(), samples.end());
-	
-	// Convert radiant flux to luminous flux
-	blackbody.luminous_flux = physics::light::watts_to_lumens<double>(blackbody.radiant_flux, efficiency);
-	
-	// Calculate luminous intensity from luminous flux
-	blackbody.luminous_intensity = blackbody.luminous_flux / (4.0 * math::pi<double>);
-	
-	// Calculate blackbody color from temperature
-	double3 color_xyz = color::cct::to_xyz(blackbody.temperature);
-	blackbody.color = color::xyz::to_acescg(color_xyz);
+	// Integrate the blackbody RGB luminous intensity over wavelengths in the visible spectrum
+	blackbody.luminous_intensity = math::quadrature::simpson(rgb_luminous_intensity, samples.begin(), samples.end());
 }
 
 void astronomy_system::on_atmosphere_construct(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere)
@@ -339,19 +330,16 @@ void astronomy_system::on_atmosphere_replace(ecs::registry& registry, ecs::entit
 	const double rayleigh_polarization = physics::atmosphere::polarization(atmosphere.index_of_refraction, atmosphere.rayleigh_density);
 	const double mie_polarization = physics::atmosphere::polarization(atmosphere.index_of_refraction, atmosphere.mie_density);
 	
-	// ACEScg wavelengths determined by matching wavelengths to XYZ, transforming XYZ to ACEScg, then selecting the max wavelengths for R, G, and B.
-	const double3 acescg_wavelengths = {600.0e-9, 540.0e-9, 450.0e-9};
-	
 	// Calculate Rayleigh scattering coefficients
 	atmosphere.rayleigh_scattering =
 	{
-		physics::atmosphere::scatter_rayleigh(acescg_wavelengths.x, atmosphere.rayleigh_density, rayleigh_polarization),
-		physics::atmosphere::scatter_rayleigh(acescg_wavelengths.y, atmosphere.rayleigh_density, rayleigh_polarization),
-		physics::atmosphere::scatter_rayleigh(acescg_wavelengths.z, atmosphere.rayleigh_density, rayleigh_polarization)
+		physics::atmosphere::scattering_rayleigh(rgb_wavelengths_m.x, atmosphere.rayleigh_density, rayleigh_polarization),
+		physics::atmosphere::scattering_rayleigh(rgb_wavelengths_m.y, atmosphere.rayleigh_density, rayleigh_polarization),
+		physics::atmosphere::scattering_rayleigh(rgb_wavelengths_m.z, atmosphere.rayleigh_density, rayleigh_polarization)
 	};
 	
 	// Calculate Mie scattering coefficients
-	const double mie_scattering = physics::atmosphere::scatter_mie(atmosphere.mie_density, mie_polarization);
+	const double mie_scattering = physics::atmosphere::scattering_mie(atmosphere.mie_density, mie_polarization);
 	atmosphere.mie_scattering = 
 	{
 		mie_scattering,

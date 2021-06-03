@@ -292,6 +292,9 @@ void tool_system::set_active_tool(ecs::entity entity)
 
 void tool_system::set_tool_active(bool active)
 {
+	if (active_tool == entt::null)
+		return;
+	
 	tool_active = active;
 	
 	if (active)

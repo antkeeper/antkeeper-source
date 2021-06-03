@@ -64,7 +64,7 @@ public:
 	void set_observer_altitude(float altitude);
 	void set_scale_heights(float rayleigh, float mie);
 	void set_scattering_coefficients(const float3& r, const float3& m);
-	void set_mie_asymmetry(float g);
+	void set_mie_anisotropy(float g);
 	void set_atmosphere_radii(float inner, float outer);
 
 private:
@@ -84,7 +84,7 @@ private:
 	const gl::shader_input* scale_height_rm_input;
 	const gl::shader_input* rayleigh_scattering_input;
 	const gl::shader_input* mie_scattering_input;
-	const gl::shader_input* mie_asymmetry_input;
+	const gl::shader_input* mie_anisotropy_input;
 	const gl::shader_input* atmosphere_radii_input;
 	
 	gl::shader_program* moon_shader_program;
@@ -132,7 +132,7 @@ private:
 	float2 scale_height_rm;
 	float3 rayleigh_scattering;
 	float3 mie_scattering;
-	float2 mie_asymmetry;
+	float2 mie_anisotropy;
 	float3 atmosphere_radii;
 };
 

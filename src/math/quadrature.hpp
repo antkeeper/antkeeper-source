@@ -63,7 +63,7 @@ typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::val
 	typedef decltype(*last - *first) difference_type;
 	
 	if (first == last)
-		return output_type(0);
+		return output_type{0};
 	
 	output_type f_a = f(*first);
 	
@@ -102,7 +102,7 @@ typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::val
 	typedef decltype(*last - *first) difference_type;
 	
 	if (first == last)
-		return output_type(0);
+		return output_type{0};
 	
 	output_type f_a = f(*first);
 	

@@ -31,17 +31,8 @@ struct blackbody_component
 	/// Blackbody radius, in meters.
 	double radius;
 	
-	/// (Dependent) Blackbody radiant flux, in watts.
-	double radiant_flux;
-	
-	/// (Dependent) Blackbody luminous flux, in lumens.
-	double luminous_flux;
-	
-	/// (Dependent) Blackbody luminous intensity, in lumens per steradian.
-	double luminous_intensity;
-	
-	/// (Dependent) ACEScg color
-	double3 color;
+	/// (Dependent) RGB luminous intensity, in candela.
+	double3 luminous_intensity;
 };
 
 } // namespace ecs

@@ -45,8 +45,8 @@ struct atmosphere_component
 	/// Mie scale height, in meters.
 	double mie_scale_height;
 	
-	/// Mie phase function asymmetry factor.
-	double mie_asymmetry;
+	/// Mie phase function anisotropy factor.
+	double mie_anisotropy;
 	
 	/// (Dependent) Rayleigh scattering coefficients at sea level.
 	double3 rayleigh_scattering;

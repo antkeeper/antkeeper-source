@@ -46,19 +46,20 @@ T density(T d0, T z, T sh)
 }
 
 /**
- * Calculates a particle polarization factor used in computing scattering coefficients.
+ * Calculates a particle polarizability factor used in computing scattering coefficients.
  *
  * @param ior Atmospheric index of refraction.
  * @param density Molecular density.
  * @return Polarization factor.
  *
  * @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
+ * @see Real-Time Spectral Scattering in Large-Scale Natural Participating Media.
  */
 template <class T>
 T polarization(T ior, T density)
 {
-	const T ior2 = ior * ior;
-	const T num = T(2) * math::pi<T> * math::pi<T> * ((ior2 - T(1.0)) * (ior2 - T(1.0)));
+	const T ior2m1 = ior * ior - T(1.0);
+	const T num = T(2) * math::pi<T> * math::pi<T> * ior2m1 * ior2m1;
 	const T den = T(3) * density * density;
 	return num / den;
 }
@@ -73,9 +74,10 @@ T polarization(T ior, T density)
  * @see atmosphere::polarization
  *
  * @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
+ * @see Real-Time Spectral Scattering in Large-Scale Natural Participating Media.
  */
 template <class T>
-T scatter_rayleigh(T wavelength, T density, T polarization)
+T scattering_rayleigh(T wavelength, T density, T polarization)
 {
 	const T wavelength2 = wavelength * wavelength;
 	return T(4) * math::pi<T> * density / (wavelength2 * wavelength2) * polarization;
@@ -90,24 +92,25 @@ T scatter_rayleigh(T wavelength, T density, T polarization)
  * @see atmosphere::polarization
  *
  * @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
+ * @see Real-Time Spectral Scattering in Large-Scale Natural Participating Media.
  */
 template <class T>
-T scatter_mie(T density, T polarization)
+T scattering_mie(T density, T polarization)
 {
 	return T(4) * math::pi<T> * density * polarization;
 }
 
 /**
- * Calculates an extinction coefficient given a scattering coefficient and an absorbtion coefficient.
+ * Calculates attenuation due to extinction (absorption + out-scattering).
  *
- * @param s Scattering coefficient.
- * @param a Absorbtion coefficient.
- * @return Extinction coefficient.
+ * @param ec Extinction coefficient (absorption coefficient + scattering coefficient).
+ * @param s Scale factor.
+ * @return Attenuation factor.
  */
 template <class T>
-T extinction(T s, T a)
+T extinction(T ec, T s)
 {
-	return s + a;
+	return std::exp(-(ec * s));
 }
 
 /**

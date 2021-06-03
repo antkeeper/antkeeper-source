@@ -26,6 +26,10 @@
 namespace physics {
 namespace light {
 
+/// Maximum luminous efficacy of an ideal monochromatic source, in lumen per watt.
+template <class T>
+constexpr T max_luminous_efficacy = T(683.002);
+
 /**
  * Calculates the luminous efficiency of a light source.
  *
@@ -60,20 +64,20 @@ T luminous_efficiency(UnaryOp1 spd, UnaryOp2 lef, InputIt first, InputIt last)
 template <class T>
 T luminous_efficacy(T efficiency)
 {
-	return T(683.002) * efficiency;
+	return max_luminous_efficacy<T> * efficiency;
 }
 
 /**
  * Converts watts (radiant flux) to lumens (luminous flux).
  *
- * @param radient_flux Radiance flux, in watts.
+ * @param radiant_flux Radiant flux, in watts.
  * @param efficiency Luminous efficiency, on `[0, 1]`.
  * @return Luminous flux, in lumens.
  */
 template <class T>
-T watts_to_lumens(T radient_flux, T efficiency)
+T watts_to_lumens(T radiant_flux, T efficiency)
 {
-	return radient_flux * luminous_efficacy(efficiency);
+	return radiant_flux * luminous_efficacy(efficiency);
 }
 
 } // namespace light

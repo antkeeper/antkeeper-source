@@ -122,14 +122,14 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		// Transform XYZ color to ACEScg colorspace
 		double3 color_acescg = color::xyz::to_acescg(color_xyz);
 		
-		// Convert apparent magnitude to irradiance W/m2
-		double vmag_lux = astro::vmag_to_lux(vmag);
+		// Convert apparent magnitude to irradiance (W/m^2)
+		double vmag_irradiance = std::pow(10.0, 0.4 * (-vmag - 19.0 + 0.4));
 		
-		// Convert irradiance to illuminance (using luminous efficiency of sun)
-		double illuminance = physics::light::watts_to_lumens<double>(vmag_lux, 0.13);
+		// Convert irradiance to illuminance
+		double vmag_illuminance = vmag_irradiance * (683.0 * 0.14);
 		
 		// Scale color by illuminance
-		double3 scaled_color = color_acescg * illuminance;
+		double3 scaled_color = color_acescg * vmag_illuminance;
 		
 		// Build vertex
 		*(star_vertex++) = static_cast<float>(position_inertial.x);
@@ -244,8 +244,8 @@ void sky_pass::render(render_context* context) const
 			rayleigh_scattering_input->upload(rayleigh_scattering);
 		if (mie_scattering_input)
 			mie_scattering_input->upload(mie_scattering);
-		if (mie_asymmetry_input)
-			mie_asymmetry_input->upload(mie_asymmetry);
+		if (mie_anisotropy_input)
+			mie_anisotropy_input->upload(mie_anisotropy);
 		if (atmosphere_radii_input)
 			atmosphere_radii_input->upload(atmosphere_radii);
 		
@@ -351,7 +351,7 @@ void sky_pass::set_sky_model(const model* model)
 				scale_height_rm_input = sky_shader_program->get_input("scale_height_rm");
 				rayleigh_scattering_input = sky_shader_program->get_input("rayleigh_scattering");
 				mie_scattering_input = sky_shader_program->get_input("mie_scattering");
-				mie_asymmetry_input = sky_shader_program->get_input("mie_asymmetry");
+				mie_anisotropy_input = sky_shader_program->get_input("mie_anisotropy");
 				atmosphere_radii_input = sky_shader_program->get_input("atmosphere_radii");
 			}
 		}
@@ -449,9 +449,9 @@ void sky_pass::set_scattering_coefficients(const float3& r, const float3& m)
 	mie_scattering = m;
 }
 
-void sky_pass::set_mie_asymmetry(float g)
+void sky_pass::set_mie_anisotropy(float g)
 {
-	mie_asymmetry = {g, g * g};
+	mie_anisotropy = {g, g * g};
 }
 
 void sky_pass::set_atmosphere_radii(float inner, float outer)

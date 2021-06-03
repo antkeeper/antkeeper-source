@@ -130,15 +130,15 @@ void play_state_enter(game_context* ctx)
 		orbit.elements.ta = math::radians(100.46457166) - longitude_periapsis;
 		
 		ecs::atmosphere_component atmosphere;
-		atmosphere.exosphere_altitude = 100e3;
+		atmosphere.exosphere_altitude = 65e3;
 		
-		atmosphere.index_of_refraction = 1.0003;
+		atmosphere.index_of_refraction = 1.000293;
 		atmosphere.rayleigh_density = 2.545e25;
 		atmosphere.mie_density = 14.8875;
 		
 		atmosphere.rayleigh_scale_height = 8000.0;
 		atmosphere.mie_scale_height = 1200.0;
-		atmosphere.mie_asymmetry = 0.8;
+		atmosphere.mie_anisotropy = 0.8;
 		
 		ecs::transform_component transform;
 		transform.local = math::identity_transform<float>;
@@ -230,7 +230,7 @@ void play_state_enter(game_context* ctx)
 	ecs::command::assign_render_layers(ecs_registry, ctx->twig_entity, 0);
 	
 	// Activate brush tool
-	ctx->tool_system->set_active_tool(ctx->brush_entity);
+	//ctx->tool_system->set_active_tool(ctx->brush_entity);
 
 	// Create ant-hill
 	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);
@@ -291,6 +291,7 @@ void play_state_enter(game_context* ctx)
 	
 	// Setup camera
 	ctx->overworld_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
+	ctx->overworld_camera->set_exposure(-14.5f);
 	ctx->camera_system->set_camera(ctx->overworld_camera);
 	
 	ctx->overworld_scene->update_tweens();

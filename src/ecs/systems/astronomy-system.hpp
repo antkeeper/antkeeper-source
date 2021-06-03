@@ -109,6 +109,9 @@ private:
 	physics::frame<double> inertial_to_topocentric;
 	physics::frame<double> sez_to_ezs;
 	physics::frame<double> ezs_to_sez;
+	
+	double3 rgb_wavelengths_nm;
+	double3 rgb_wavelengths_m;
 };
 
 } // namespace ecs
