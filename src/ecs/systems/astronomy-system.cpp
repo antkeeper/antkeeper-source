@@ -57,9 +57,27 @@ astronomy_system::astronomy_system(ecs::registry& registry):
 	reference_orbit(nullptr),
 	reference_body(nullptr),
 	reference_atmosphere(nullptr),
+	observer_location{0, 0, 0},
 	sun_light(nullptr),
 	sky_pass(nullptr)
-{}
+{
+	// Construct reference frame which transforms coordinates from SEZ to EZS
+	sez_to_ezs = physics::frame<double>
+	{
+		{0, 0, 0},
+		math::normalize
+		(
+			math::quaternion<double>::rotate_x(-math::half_pi<double>) *
+				math::quaternion<double>::rotate_z(-math::half_pi<double>)
+		)
+	};
+	
+	// Construct reference frame which transforms coordinates from EZS to SEZ
+	ezs_to_sez = sez_to_ezs.inverse();
+	
+	registry.on_construct<ecs::celestial_body_component>().connect<&astronomy_system::on_celestial_body_construct>(this);
+	registry.on_replace<ecs::celestial_body_component>().connect<&astronomy_system::on_celestial_body_replace>(this);
+}
 
 void astronomy_system::update(double t, double dt)
 {
@@ -110,7 +128,7 @@ void astronomy_system::update(double t, double dt)
 		double3 blackbody_up_topocentric = inertial_to_topocentric.rotation * blackbody_up_inertial;
 		
 		// Calculate distance from observer to blackbody
-		double blackbody_distance = math::length(blackbody_position_topocentric);
+		double blackbody_distance = math::length(blackbody_position_topocentric) - celestial_body.radius;
 		
 		// Calculate blackbody distance attenuation
 		double distance_attenuation = 1.0 / (blackbody_distance * blackbody_distance);
@@ -123,7 +141,7 @@ void astronomy_system::update(double t, double dt)
 		{
 			// Altitude of observer in meters	
 			geom::ray<double> sample_ray;
-			sample_ray.origin = {0, observer_location[0], 0};
+			sample_ray.origin = {0, reference_body->radius + observer_location[0], 0};
 			sample_ray.direction = math::normalize(blackbody_position_topocentric);
 			
 			geom::sphere<double> exosphere;
@@ -188,8 +206,7 @@ void astronomy_system::update(double t, double dt)
 		);
 		
 		// Upload observer altitude to sky pass
-		float observer_altitude = observer_location[0] - reference_body->radius;
-		sky_pass->set_observer_altitude(observer_altitude);
+		sky_pass->set_observer_altitude(observer_location[0]);
 		
 		// Upload atmosphere params to sky pass
 		if (reference_atmosphere)
@@ -230,33 +247,14 @@ void astronomy_system::set_reference_body(ecs::entity entity)
 		if (registry.has<ecs::atmosphere_component>(reference_entity))
 			reference_atmosphere = &registry.get<ecs::atmosphere_component>(reference_entity);
 	}
+	
+	update_bcbf_to_topocentric();
 }
 
 void astronomy_system::set_observer_location(const double3& location)
 {
 	observer_location = location;
-	
-	// Construct reference frame which transforms coordinates from SEZ to EZS
-	sez_to_ezs = physics::frame<double>
-	{
-		{0, 0, 0},
-		math::normalize
-		(
-			math::quaternion<double>::rotate_x(-math::half_pi<double>) *
-				math::quaternion<double>::rotate_z(-math::half_pi<double>)
-		)
-	};
-	
-	// Construct reference frame which transforms coordinates from EZS to SEZ
-	ezs_to_sez = sez_to_ezs.inverse();
-	
-	// Construct reference frame which transforms coordinates from BCBF space to topocentric space
-	bcbf_to_topocentric = physics::orbit::bcbf::to_topocentric
-	(
-		observer_location[0], // Radial distance
-		observer_location[1], // Latitude
-		observer_location[2]  // Longitude
-	) * sez_to_ezs;
+	update_bcbf_to_topocentric();
 }
 
 void astronomy_system::set_sun_light(scene::directional_light* light)
@@ -267,6 +265,36 @@ void astronomy_system::set_sun_light(scene::directional_light* light)
 void astronomy_system::set_sky_pass(::sky_pass* pass)
 {
 	this->sky_pass = pass;
+}
+
+void astronomy_system::on_celestial_body_construct(ecs::registry& registry, ecs::entity entity, ecs::celestial_body_component& celestial_body)
+{
+	if (entity == reference_entity)
+		update_bcbf_to_topocentric();
+}
+
+void astronomy_system::on_celestial_body_replace(ecs::registry& registry, ecs::entity entity, ecs::celestial_body_component& celestial_body)
+{
+	if (entity == reference_entity)
+		update_bcbf_to_topocentric();
+}
+
+void astronomy_system::update_bcbf_to_topocentric()
+{
+	double radial_distance = observer_location[0];
+	
+	if (reference_body)
+	{
+		radial_distance += reference_body->radius;
+	}
+	
+	// Construct reference frame which transforms coordinates from BCBF space to topocentric space
+	bcbf_to_topocentric = physics::orbit::bcbf::to_topocentric
+	(
+		radial_distance,
+		observer_location[1],
+		observer_location[2]
+	) * sez_to_ezs;
 }
 
 } // namespace ecs

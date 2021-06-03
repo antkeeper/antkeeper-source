@@ -184,7 +184,7 @@ void play_state_enter(game_context* ctx)
 	
 	// Set astronomy system observation parameters
 	ctx->astronomy_system->set_reference_body(earth_entity);
-	ctx->astronomy_system->set_observer_location(double3{6.3781e6, math::radians(0.0f), math::radians(0.0f)});
+	ctx->astronomy_system->set_observer_location(double3{0.0, math::radians(0.0f), math::radians(0.0f)});
 	ctx->astronomy_system->set_sun_light(sun);
 	ctx->astronomy_system->set_sky_pass(ctx->overworld_sky_pass);
 

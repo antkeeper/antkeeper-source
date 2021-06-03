@@ -73,7 +73,7 @@ public:
 	/**
 	 * Sets the location of the observer using spherical coordinates in BCBF space.
 	 *
-	 * @param location Spherical coordinates of the observer, in reference body BCBF space, in the ISO order of radial distance, polar angle (radians), and azimuthal angle (radians).
+	 * @param location Spherical coordinates of the observer, in reference body BCBF space, in the ISO order of altitude (meters), latitude (radians), and longitude (radians).
 	 */
 	void set_observer_location(const double3& location);
 	
@@ -82,6 +82,11 @@ public:
 	void set_sky_pass(sky_pass* pass);
 	
 private:
+	void on_celestial_body_construct(ecs::registry& registry, ecs::entity entity, ecs::celestial_body_component& celestial_body);
+	void on_celestial_body_replace(ecs::registry& registry, ecs::entity entity, ecs::celestial_body_component& celestial_body);
+	
+	void update_bcbf_to_topocentric();
+
 	double universal_time;
 	double time_scale;
 	
