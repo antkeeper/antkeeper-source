@@ -19,20 +19,16 @@
 
 #include "ecs/systems/astronomy-system.hpp"
 #include "astro/apparent-size.hpp"
-#include "ecs/components/orbit-component.hpp"
 #include "ecs/components/blackbody-component.hpp"
-#include "ecs/components/atmosphere-component.hpp"
 #include "ecs/components/transform-component.hpp"
 #include "geom/intersection.hpp"
 #include "color/color.hpp"
 #include "physics/orbit/orbit.hpp"
 #include "physics/time/ut1.hpp"
-#include "physics/light/blackbody.hpp"
 #include "physics/light/photometry.hpp"
 #include "physics/light/luminosity.hpp"
 #include "physics/light/refraction.hpp"
 #include "physics/atmosphere.hpp"
-#include "math/quadrature.hpp"
 #include "geom/cartesian.hpp"
 #include <iostream>
 
@@ -57,18 +53,16 @@ astronomy_system::astronomy_system(ecs::registry& registry):
 	entity_system(registry),
 	universal_time(0.0),
 	time_scale(1.0),
-	reference_body(entt::null),
-	reference_body_axial_tilt(0.0),
-	reference_body_axial_rotation(0.0),
+	reference_entity(entt::null),
+	reference_orbit(nullptr),
+	reference_body(nullptr),
+	reference_atmosphere(nullptr),
 	sun_light(nullptr),
 	sky_pass(nullptr)
 {
 	// RGB wavelengths determined by matching wavelengths to XYZ, transforming XYZ to ACEScg, then selecting the max wavelengths for R, G, and B.
 	rgb_wavelengths_nm = {602.224, 541.069, 448.143};
 	rgb_wavelengths_m = rgb_wavelengths_nm * 1e-9;
-	
-	registry.on_construct<ecs::blackbody_component>().connect<&astronomy_system::on_blackbody_construct>(this);
-	registry.on_replace<ecs::blackbody_component>().connect<&astronomy_system::on_blackbody_replace>(this);
 	
 	registry.on_construct<ecs::atmosphere_component>().connect<&astronomy_system::on_atmosphere_construct>(this);
 	registry.on_replace<ecs::atmosphere_component>().connect<&astronomy_system::on_atmosphere_replace>(this);
@@ -79,35 +73,28 @@ void astronomy_system::update(double t, double dt)
 	// Add scaled timestep to current time
 	set_universal_time(universal_time + dt * time_scale);
 	
-	// Abort if reference body has not been set
-	if (reference_body == entt::null)
+	// Abort if either reference body or orbit have not been set
+	if (!reference_orbit || !reference_body)
 		return;
 	
-	// Abort if reference body has no orbit component
-	if (!registry.has<ecs::orbit_component>(reference_body))
-		return;
+	// Determine axial rotation at current time
+	const double reference_axial_rotation = reference_body->axial_rotation + reference_body->angular_frequency * universal_time;
 	
-	// Update axial rotation of reference body
-	reference_body_axial_rotation = physics::time::ut1::era(universal_time);
-	
-	// Get orbit component of reference body
-	const auto& reference_orbit = registry.get<ecs::orbit_component>(reference_body);
-	
-	/// Construct reference frame which transforms coordinates from inertial space to reference body BCBF space
+	// Construct reference frame which transforms coordinates from inertial space to reference body BCBF space
 	inertial_to_bcbf = physics::orbit::inertial::to_bcbf
 	(
-		reference_orbit.state.r,
-		reference_orbit.elements.i,
-		reference_body_axial_tilt,
-		reference_body_axial_rotation
+		reference_orbit->state.r,
+		reference_orbit->elements.i,
+		reference_body->axial_tilt,
+		reference_axial_rotation
 	);
 	
-	/// Construct reference frame which transforms coordinates from inertial space to reference body topocentric space
+	// Construct reference frame which transforms coordinates from inertial space to reference body topocentric space
 	inertial_to_topocentric = inertial_to_bcbf * bcbf_to_topocentric;
 	
 	// Set the transform component translations of orbiting bodies to their topocentric positions
 	registry.view<orbit_component, transform_component>().each(
-	[&](ecs::entity entity, auto& orbit, auto& transform)
+	[&](ecs::entity entity, const auto& orbit, auto& transform)
 	{
 		// Transform Cartesian position vector (r) from inertial space to topocentric space
 		const math::vector3<double> r_topocentric = inertial_to_topocentric * orbit.state.r;
@@ -116,14 +103,12 @@ void astronomy_system::update(double t, double dt)
 		transform.local.translation = math::type_cast<float>(r_topocentric);
 	});
 	
-	const double earth_radius = 6.3781e6;
-	
 	// Update blackbody lighting
-	registry.view<blackbody_component, orbit_component>().each(
-	[&](ecs::entity entity, auto& blackbody, auto& orbit)
+	registry.view<celestial_body_component, orbit_component, blackbody_component>().each(
+	[&](ecs::entity entity, const auto& celestial_body, const auto& orbit, const auto& blackbody)
 	{
 		// Calculate blackbody inertial basis
-		double3 blackbody_forward_inertial = math::normalize(reference_orbit.state.r - orbit.state.r);
+		double3 blackbody_forward_inertial = math::normalize(reference_orbit->state.r - orbit.state.r);
 		double3 blackbody_up_inertial = {0, 0, 1};
 		
 		// Transform blackbody inertial position and basis into topocentric space
@@ -141,10 +126,8 @@ void astronomy_system::update(double t, double dt)
 		double3 atmospheric_transmittance = {1.0, 1.0, 1.0};
 		
 		// Get atmosphere component of reference body (if any)
-		if (this->registry.has<ecs::atmosphere_component>(reference_body))
+		if (reference_atmosphere)
 		{
-			const ecs::atmosphere_component& atmosphere = this->registry.get<ecs::atmosphere_component>(reference_body);
-			
 			// Altitude of observer in meters	
 			geom::ray<double> sample_ray;
 			sample_ray.origin = {0, observer_location[0], 0};
@@ -152,7 +135,7 @@ void astronomy_system::update(double t, double dt)
 			
 			geom::sphere<double> exosphere;
 			exosphere.center = {0, 0, 0};
-			exosphere.radius = earth_radius + atmosphere.exosphere_altitude;
+			exosphere.radius = reference_body->radius + reference_atmosphere->exosphere_altitude;
 			
 			auto intersection_result = geom::ray_sphere_intersection(sample_ray, exosphere);
 			
@@ -161,11 +144,11 @@ void astronomy_system::update(double t, double dt)
 				double3 sample_start = sample_ray.origin;
 				double3 sample_end = sample_ray.extrapolate(std::get<2>(intersection_result));
 				
-				double optical_depth_r = physics::atmosphere::optical_depth(sample_start, sample_end, earth_radius, atmosphere.rayleigh_scale_height, 32);
-				double optical_depth_k = physics::atmosphere::optical_depth(sample_start, sample_end, earth_radius, atmosphere.mie_scale_height, 32);
+				double optical_depth_r = physics::atmosphere::optical_depth(sample_start, sample_end, reference_body->radius, reference_atmosphere->rayleigh_scale_height, 32);
+				double optical_depth_k = physics::atmosphere::optical_depth(sample_start, sample_end, reference_body->radius, reference_atmosphere->mie_scale_height, 32);
 				double optical_depth_o = 0.0;
 				
-				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_k, optical_depth_o, atmosphere.rayleigh_scattering, atmosphere.mie_scattering);
+				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_k, optical_depth_o, reference_atmosphere->rayleigh_scattering, reference_atmosphere->mie_scattering);
 			}
 		}
 		
@@ -192,7 +175,7 @@ void astronomy_system::update(double t, double dt)
 				this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_topocentric));
 				this->sky_pass->set_sun_color(math::type_cast<float>(blackbody.luminous_intensity * distance_attenuation));
 				
-				double blackbody_angular_radius = std::asin((blackbody.radius * 2.0) / (blackbody_distance * 2.0));
+				double blackbody_angular_radius = std::asin((celestial_body.radius * 2.0) / (blackbody_distance * 2.0));
 				this->sky_pass->set_sun_angular_radius(static_cast<float>(blackbody_angular_radius));
 			}
 		}
@@ -212,18 +195,16 @@ void astronomy_system::update(double t, double dt)
 		);
 		
 		// Upload observer altitude to sky pass
-		float observer_altitude = observer_location[0] - earth_radius;
+		float observer_altitude = observer_location[0] - reference_body->radius;
 		sky_pass->set_observer_altitude(observer_altitude);
 		
 		// Upload atmosphere params to sky pass
-		if (this->registry.has<ecs::atmosphere_component>(reference_body))
+		if (reference_atmosphere)
 		{
-			const ecs::atmosphere_component& atmosphere = this->registry.get<ecs::atmosphere_component>(reference_body);
-			
-			sky_pass->set_scale_heights(atmosphere.rayleigh_scale_height, atmosphere.mie_scale_height);
-			sky_pass->set_scattering_coefficients(math::type_cast<float>(atmosphere.rayleigh_scattering), math::type_cast<float>(atmosphere.mie_scattering));
-			sky_pass->set_mie_anisotropy(atmosphere.mie_anisotropy);
-			sky_pass->set_atmosphere_radii(earth_radius, earth_radius + atmosphere.exosphere_altitude);
+			sky_pass->set_scale_heights(reference_atmosphere->rayleigh_scale_height, reference_atmosphere->mie_scale_height);
+			sky_pass->set_scattering_coefficients(math::type_cast<float>(reference_atmosphere->rayleigh_scattering), math::type_cast<float>(reference_atmosphere->mie_scattering));
+			sky_pass->set_mie_anisotropy(reference_atmosphere->mie_anisotropy);
+			sky_pass->set_atmosphere_radii(reference_body->radius, reference_body->radius + reference_atmosphere->exosphere_altitude);
 		}
 	}
 }
@@ -240,12 +221,22 @@ void astronomy_system::set_time_scale(double scale)
 
 void astronomy_system::set_reference_body(ecs::entity entity)
 {
-	reference_body = entity;
-}
-
-void astronomy_system::set_reference_body_axial_tilt(double angle)
-{
-	reference_body_axial_tilt = angle;
+	reference_entity = entity;
+	reference_orbit = nullptr;
+	reference_body = nullptr;
+	reference_atmosphere = nullptr;
+	
+	if (reference_entity != entt::null)
+	{
+		if (registry.has<ecs::orbit_component>(reference_entity))
+			reference_orbit = &registry.get<ecs::orbit_component>(reference_entity);
+		
+		if (registry.has<ecs::celestial_body_component>(reference_entity))
+			reference_body = &registry.get<ecs::celestial_body_component>(reference_entity);
+		
+		if (registry.has<ecs::atmosphere_component>(reference_entity))
+			reference_atmosphere = &registry.get<ecs::atmosphere_component>(reference_entity);
+	}
 }
 
 void astronomy_system::set_observer_location(const double3& location)
@@ -283,40 +274,6 @@ void astronomy_system::set_sun_light(scene::directional_light* light)
 void astronomy_system::set_sky_pass(::sky_pass* pass)
 {
 	this->sky_pass = pass;
-}
-
-void astronomy_system::on_blackbody_construct(ecs::registry& registry, ecs::entity entity, ecs::blackbody_component& blackbody)
-{
-	on_blackbody_replace(registry, entity, blackbody);
-}
-
-void astronomy_system::on_blackbody_replace(ecs::registry& registry, ecs::entity entity, ecs::blackbody_component& blackbody)
-{
-	// Calculate the surface area of a spherical blackbody
-	const double surface_area = 4.0 * math::pi<double> * blackbody.radius * blackbody.radius;
-	
-	// Construct a lambda function which calculates the blackbody's RGB luminous intensity of a given wavelength
-	auto rgb_luminous_intensity = [blackbody, surface_area](double wavelength_nm) -> double3
-	{
-		// Convert wavelength from nanometers to meters
-		const double wavelength_m = wavelength_nm * 1e-9;
-		
-		// Calculate the spectral intensity of the wavelength
-		const double spectral_intensity = physics::light::blackbody::spectral_intensity<double>(blackbody.temperature, surface_area, wavelength_m);
-		
-		// Calculate the ACEScg color of the wavelength using CIE color matching functions
-		double3 spectral_color = color::xyz::to_acescg(color::xyz::match(wavelength_nm));
-		
-		// Scale the spectral color by spectral intensity
-		return spectral_color * spectral_intensity * 1e-9 * physics::light::max_luminous_efficacy<double>;
-	};
-	
-	// Construct a range of sample wavelengths in the visible spectrum
-	std::vector<double> samples(780 - 280);
-	std::iota(samples.begin(), samples.end(), 280);
-	
-	// Integrate the blackbody RGB luminous intensity over wavelengths in the visible spectrum
-	blackbody.luminous_intensity = math::quadrature::simpson(rgb_luminous_intensity, samples.begin(), samples.end());
 }
 
 void astronomy_system::on_atmosphere_construct(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere)

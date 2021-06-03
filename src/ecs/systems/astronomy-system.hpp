@@ -26,8 +26,9 @@
 #include "utility/fundamental-types.hpp"
 #include "physics/frame.hpp"
 #include "renderer/passes/sky-pass.hpp"
-#include "ecs/components/blackbody-component.hpp"
 #include "ecs/components/atmosphere-component.hpp"
+#include "ecs/components/celestial-body-component.hpp"
+#include "ecs/components/orbit-component.hpp"
 
 namespace ecs {
 
@@ -63,18 +64,11 @@ public:
 	void set_time_scale(double scale);
 	
 	/**
-	 * Sets the reference body, from which observations are taking place.
+	 * Sets the reference body entity, from which observations are taking place.
 	 *
 	 * @param entity Entity of the reference body.
 	 */
 	void set_reference_body(ecs::entity entity);
-	
-	/**
-	 * Sets the axial tilt of the reference body.
-	 *
-	 * @param angle Angle between the reference body's rotational axis and its orbital axis, in radians.
-	 */
-	void set_reference_body_axial_tilt(double angle);
 	
 	/**
 	 * Sets the location of the observer using spherical coordinates in BCBF space.
@@ -88,21 +82,21 @@ public:
 	void set_sky_pass(sky_pass* pass);
 	
 private:
-	void on_blackbody_construct(ecs::registry& registry, ecs::entity entity, ecs::blackbody_component& blackbody);
-	void on_blackbody_replace(ecs::registry& registry, ecs::entity entity, ecs::blackbody_component& blackbody);
-	
 	void on_atmosphere_construct(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere);
 	void on_atmosphere_replace(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere);
 
-	
 	double universal_time;
 	double time_scale;
-	ecs::entity reference_body;
-	double reference_body_axial_tilt;
-	double reference_body_axial_rotation;
+	
+	double3 rgb_wavelengths_nm;
+	double3 rgb_wavelengths_m;
+	
+	ecs::entity reference_entity;
+	const ecs::orbit_component* reference_orbit;
+	const ecs::celestial_body_component* reference_body;
+	const ecs::atmosphere_component* reference_atmosphere;
+	
 	double3 observer_location;
-	scene::directional_light* sun_light;
-	sky_pass* sky_pass;
 	
 	physics::frame<double> inertial_to_bcbf;
 	physics::frame<double> bcbf_to_topocentric;
@@ -110,8 +104,8 @@ private:
 	physics::frame<double> sez_to_ezs;
 	physics::frame<double> ezs_to_sez;
 	
-	double3 rgb_wavelengths_nm;
-	double3 rgb_wavelengths_m;
+	scene::directional_light* sun_light;
+	sky_pass* sky_pass;
 };
 
 } // namespace ecs

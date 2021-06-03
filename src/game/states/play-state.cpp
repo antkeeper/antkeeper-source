@@ -33,6 +33,7 @@
 #include "ecs/components/camera-follow-component.hpp"
 #include "ecs/components/orbit-component.hpp"
 #include "ecs/components/blackbody-component.hpp"
+#include "ecs/components/celestial-body-component.hpp"
 #include "ecs/components/atmosphere-component.hpp"
 #include "ecs/components/light-component.hpp"
 #include "ecs/commands.hpp"
@@ -96,6 +97,12 @@ void play_state_enter(game_context* ctx)
 	// Create sun
 	auto sun_entity = ecs_registry.create();
 	{
+		ecs::celestial_body_component body;
+		body.radius = 6.957e+8;
+		body.axial_tilt = math::radians(0.0);
+		body.axial_rotation = math::radians(0.0);
+		body.angular_frequency = math::radians(0.0);
+		
 		ecs::orbit_component orbit;
 		orbit.elements.a = 0.0;
 		orbit.elements.e = 0.0;
@@ -106,12 +113,12 @@ void play_state_enter(game_context* ctx)
 		
 		ecs::blackbody_component blackbody;
 		blackbody.temperature = 5777.0;
-		blackbody.radius = 6.957e+8;
 		
 		ecs::transform_component transform;
 		transform.local = math::identity_transform<float>;
 		transform.warp = true;
 		
+		ecs_registry.assign<ecs::celestial_body_component>(sun_entity, body);
 		ecs_registry.assign<ecs::orbit_component>(sun_entity, orbit);
 		ecs_registry.assign<ecs::blackbody_component>(sun_entity, blackbody);
 		ecs_registry.assign<ecs::transform_component>(sun_entity, transform);
@@ -120,6 +127,12 @@ void play_state_enter(game_context* ctx)
 	// Create Earth
 	auto earth_entity = ecs_registry.create();
 	{
+		ecs::celestial_body_component body;
+		body.radius = 6.3781e6;
+		body.axial_tilt = math::radians(23.4393);
+		body.axial_rotation = math::radians(280.46061837504);
+		body.angular_frequency = math::radians(360.9856122880876128);
+		
 		ecs::orbit_component orbit;
 		orbit.elements.a = 1.496e+11;
 		orbit.elements.e = 0.01671123;
@@ -131,12 +144,10 @@ void play_state_enter(game_context* ctx)
 		
 		ecs::atmosphere_component atmosphere;
 		atmosphere.exosphere_altitude = 65e3;
-		
 		atmosphere.index_of_refraction = 1.000293;
 		atmosphere.rayleigh_density = 2.545e25;
-		atmosphere.mie_density = 14.8875;
-		
 		atmosphere.rayleigh_scale_height = 8000.0;
+		atmosphere.mie_density = 14.8875;
 		atmosphere.mie_scale_height = 1200.0;
 		atmosphere.mie_anisotropy = 0.8;
 		
@@ -144,6 +155,7 @@ void play_state_enter(game_context* ctx)
 		transform.local = math::identity_transform<float>;
 		transform.warp = true;
 		
+		ecs_registry.assign<ecs::celestial_body_component>(earth_entity, body);
 		ecs_registry.assign<ecs::orbit_component>(earth_entity, orbit);
 		ecs_registry.assign<ecs::atmosphere_component>(earth_entity, atmosphere);
 		ecs_registry.assign<ecs::transform_component>(earth_entity, transform);
@@ -172,7 +184,6 @@ void play_state_enter(game_context* ctx)
 	
 	// Set astronomy system observation parameters
 	ctx->astronomy_system->set_reference_body(earth_entity);
-	ctx->astronomy_system->set_reference_body_axial_tilt(math::radians(23.4393));
 	ctx->astronomy_system->set_observer_location(double3{6.3781e6, math::radians(0.0f), math::radians(0.0f)});
 	ctx->astronomy_system->set_sun_light(sun);
 	ctx->astronomy_system->set_sky_pass(ctx->overworld_sky_pass);

@@ -17,21 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ECS_BLACKBODY_COMPONENT_HPP
-#define ANTKEEPER_ECS_BLACKBODY_COMPONENT_HPP
+#ifndef ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
+#define ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
 
 namespace ecs {
 
-/// Blackbody radiator
-struct blackbody_component
+/// A simple celestial body.
+struct celestial_body_component
 {
-	/// Effective temperature, in Kelvin.
-	double temperature;
+	/// Body radius, in meters.
+	double radius;
 	
-	/// (Dependent) RGB luminous intensity, in candela.
-	double3 luminous_intensity;
+	/// Angle between the body's rotational axis and its orbital axis, in radians.
+	double axial_tilt;
+	
+	/// Angle of rotation about the body's rotational axis at epoch, in radians.
+	double axial_rotation;
+	
+	/// Angular frequency, in radians per day.
+	double angular_frequency;
 };
 
 } // namespace ecs
 
-#endif // ANTKEEPER_ECS_BLACKBODY_COMPONENT_HPP
+#endif // ANTKEEPER_ECS_CELESTIAL_BODY_COMPONENT_HPP
