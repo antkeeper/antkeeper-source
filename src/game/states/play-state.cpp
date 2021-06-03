@@ -112,7 +112,7 @@ void play_state_enter(game_context* ctx)
 		orbit.elements.ta = math::radians(0.0);
 		
 		ecs::blackbody_component blackbody;
-		blackbody.temperature = 5777.0;
+		blackbody.temperature = 5778.0;
 		
 		ecs::transform_component transform;
 		transform.local = math::identity_transform<float>;

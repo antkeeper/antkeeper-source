@@ -59,14 +59,7 @@ astronomy_system::astronomy_system(ecs::registry& registry):
 	reference_atmosphere(nullptr),
 	sun_light(nullptr),
 	sky_pass(nullptr)
-{
-	// RGB wavelengths determined by matching wavelengths to XYZ, transforming XYZ to ACEScg, then selecting the max wavelengths for R, G, and B.
-	rgb_wavelengths_nm = {602.224, 541.069, 448.143};
-	rgb_wavelengths_m = rgb_wavelengths_nm * 1e-9;
-	
-	registry.on_construct<ecs::atmosphere_component>().connect<&astronomy_system::on_atmosphere_construct>(this);
-	registry.on_replace<ecs::atmosphere_component>().connect<&astronomy_system::on_atmosphere_replace>(this);
-}
+{}
 
 void astronomy_system::update(double t, double dt)
 {
@@ -93,8 +86,8 @@ void astronomy_system::update(double t, double dt)
 	inertial_to_topocentric = inertial_to_bcbf * bcbf_to_topocentric;
 	
 	// Set the transform component translations of orbiting bodies to their topocentric positions
-	registry.view<orbit_component, transform_component>().each(
-	[&](ecs::entity entity, const auto& orbit, auto& transform)
+	registry.view<celestial_body_component, orbit_component, transform_component>().each(
+	[&](ecs::entity entity, const auto& celestial_body, const auto& orbit, auto& transform)
 	{
 		// Transform Cartesian position vector (r) from inertial space to topocentric space
 		const math::vector3<double> r_topocentric = inertial_to_topocentric * orbit.state.r;
@@ -274,35 +267,6 @@ void astronomy_system::set_sun_light(scene::directional_light* light)
 void astronomy_system::set_sky_pass(::sky_pass* pass)
 {
 	this->sky_pass = pass;
-}
-
-void astronomy_system::on_atmosphere_construct(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere)
-{
-	on_atmosphere_replace(registry, entity, atmosphere);
-}
-
-void astronomy_system::on_atmosphere_replace(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere)
-{
-	// Calculate polarization factors
-	const double rayleigh_polarization = physics::atmosphere::polarization(atmosphere.index_of_refraction, atmosphere.rayleigh_density);
-	const double mie_polarization = physics::atmosphere::polarization(atmosphere.index_of_refraction, atmosphere.mie_density);
-	
-	// Calculate Rayleigh scattering coefficients
-	atmosphere.rayleigh_scattering =
-	{
-		physics::atmosphere::scattering_rayleigh(rgb_wavelengths_m.x, atmosphere.rayleigh_density, rayleigh_polarization),
-		physics::atmosphere::scattering_rayleigh(rgb_wavelengths_m.y, atmosphere.rayleigh_density, rayleigh_polarization),
-		physics::atmosphere::scattering_rayleigh(rgb_wavelengths_m.z, atmosphere.rayleigh_density, rayleigh_polarization)
-	};
-	
-	// Calculate Mie scattering coefficients
-	const double mie_scattering = physics::atmosphere::scattering_mie(atmosphere.mie_density, mie_polarization);
-	atmosphere.mie_scattering = 
-	{
-		mie_scattering,
-		mie_scattering,
-		mie_scattering
-	};
 }
 
 } // namespace ecs

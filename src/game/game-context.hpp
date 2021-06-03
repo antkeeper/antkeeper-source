@@ -84,6 +84,7 @@ namespace ecs
 	class painting_system;
 	class astronomy_system;
 	class blackbody_system;
+	class atmosphere_system;
 	class orbit_system;
 	class behavior_system;
 	class collision_system;
@@ -249,6 +250,7 @@ struct game_context
 	ecs::tracking_system* tracking_system;
 	ecs::painting_system* painting_system;
 	ecs::blackbody_system* blackbody_system;
+	ecs::atmosphere_system* atmosphere_system;
 	ecs::astronomy_system* astronomy_system;
 	ecs::orbit_system* orbit_system;
 	

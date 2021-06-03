@@ -21,6 +21,7 @@
 #define ANTKEEPER_PHYSICS_ATMOSPHERE_HPP
 
 #include "physics/constants.hpp"
+#include "math/constants.hpp"
 #include <cmath>
 
 namespace physics {

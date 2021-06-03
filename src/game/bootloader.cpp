@@ -75,6 +75,7 @@
 #include "ecs/systems/painting-system.hpp"
 #include "ecs/systems/astronomy-system.hpp"
 #include "ecs/systems/blackbody-system.hpp"
+#include "ecs/systems/atmosphere-system.hpp"
 #include "ecs/systems/orbit-system.hpp"
 #include "ecs/components/marker-component.hpp"
 #include "ecs/commands.hpp"
@@ -864,6 +865,9 @@ void setup_systems(game_context* ctx)
 	// Setup blackbody system
 	ctx->blackbody_system = new ecs::blackbody_system(*ctx->ecs_registry);
 	
+	// Setup atmosphere system
+	ctx->atmosphere_system = new ecs::atmosphere_system(*ctx->ecs_registry);
+	
 	// Setup astronomy system
 	ctx->astronomy_system = new ecs::astronomy_system(*ctx->ecs_registry);
 	
@@ -1260,6 +1264,7 @@ void setup_callbacks(game_context* ctx)
 			
 			ctx->orbit_system->update(t, dt);
 			ctx->blackbody_system->update(t, dt);
+			ctx->atmosphere_system->update(t, dt);
 			ctx->astronomy_system->update(t, dt);
 			ctx->spatial_system->update(t, dt);
 			ctx->constraint_system->update(t, dt);

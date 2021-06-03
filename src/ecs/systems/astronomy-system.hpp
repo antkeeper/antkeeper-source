@@ -82,14 +82,8 @@ public:
 	void set_sky_pass(sky_pass* pass);
 	
 private:
-	void on_atmosphere_construct(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere);
-	void on_atmosphere_replace(ecs::registry& registry, ecs::entity entity, ecs::atmosphere_component& atmosphere);
-
 	double universal_time;
 	double time_scale;
-	
-	double3 rgb_wavelengths_nm;
-	double3 rgb_wavelengths_m;
 	
 	ecs::entity reference_entity;
 	const ecs::orbit_component* reference_orbit;
