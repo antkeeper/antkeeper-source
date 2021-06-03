@@ -40,6 +40,13 @@ public:
 	
 	virtual void update(double t, double dt);
 	
+	/**
+	 * Sets the wavelengths of red, green, and blue light.
+	 *
+	 * @param wavelengths Vector containing the wavelengths of red (x), green (y), and blue (z) light, in nanometers.
+	 */
+	void set_rgb_wavelengths(const double3& wavelengths);
+	
 private:
 	void update_luminous_intensity(ecs::entity entity);
 	

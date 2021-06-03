@@ -23,18 +23,22 @@
 namespace ecs {
 
 atmosphere_system::atmosphere_system(ecs::registry& registry):
-	entity_system(registry)
+	entity_system(registry),
+	rgb_wavelengths_nm{0, 0, 0},
+	rgb_wavelengths_m{0, 0, 0}
 {
-	// RGB wavelengths determined by matching wavelengths to XYZ, transforming XYZ to ACEScg, then selecting the max wavelengths for R, G, and B.
-	rgb_wavelengths_nm = {602.224, 541.069, 448.143};
-	rgb_wavelengths_m = rgb_wavelengths_nm * 1e-9;
-	
 	registry.on_construct<ecs::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_construct>(this);
 	registry.on_replace<ecs::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_replace>(this);
 }
 
 void atmosphere_system::update(double t, double dt)
 {}
+
+void atmosphere_system::set_rgb_wavelengths(const double3& wavelengths)
+{
+	rgb_wavelengths_nm = wavelengths;
+	rgb_wavelengths_m = wavelengths * 1e-9;
+}
 
 void atmosphere_system::update_coefficients(ecs::entity entity)
 {

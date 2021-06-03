@@ -789,6 +789,9 @@ void setup_systems(game_context* ctx)
 	const auto& viewport_dimensions = ctx->app->get_viewport_dimensions();
 	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_dimensions[0]), static_cast<float>(viewport_dimensions[1])};
 	
+	// RGB wavelengths determined by matching wavelengths to XYZ, transforming XYZ to ACEScg, then selecting the max wavelengths for R, G, and B.
+	const double3 rgb_wavelengths_nm = {602.224, 541.069, 448.143};
+	
 	// Setup terrain system
 	ctx->terrain_system = new ecs::terrain_system(*ctx->ecs_registry, ctx->resource_manager);
 	ctx->terrain_system->set_patch_size(TERRAIN_PATCH_SIZE);
@@ -864,9 +867,11 @@ void setup_systems(game_context* ctx)
 	
 	// Setup blackbody system
 	ctx->blackbody_system = new ecs::blackbody_system(*ctx->ecs_registry);
+	ctx->blackbody_system->set_rgb_wavelengths(rgb_wavelengths_nm);
 	
 	// Setup atmosphere system
 	ctx->atmosphere_system = new ecs::atmosphere_system(*ctx->ecs_registry);
+	ctx->atmosphere_system->set_rgb_wavelengths(rgb_wavelengths_nm);
 	
 	// Setup astronomy system
 	ctx->astronomy_system = new ecs::astronomy_system(*ctx->ecs_registry);

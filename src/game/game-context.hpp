@@ -36,6 +36,7 @@
 #include "input/mapper.hpp"
 #include "input/event-router.hpp"
 #include "animation/tween.hpp"
+#include "scene/scene.hpp"
 #include <optional>
 #include <entt/entt.hpp>
 #include <fstream>
@@ -97,8 +98,6 @@ namespace ecs
 	class render_system;
 	class samara_system;
 }
-
-#include "scene/scene.hpp"
 
 /**
  * 
@@ -206,7 +205,7 @@ struct game_context
 	screen_transition* radial_transition_outer;
 	animation<float>* equip_tool_animation;
 	animation<float>* unequip_tool_animation;
-
+	
 	// Controls
 	input::event_router* input_event_router;
 	input::mapper* input_mapper;

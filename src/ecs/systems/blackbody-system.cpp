@@ -26,12 +26,10 @@
 namespace ecs {
 
 blackbody_system::blackbody_system(ecs::registry& registry):
-	entity_system(registry)
+	entity_system(registry),
+	rgb_wavelengths_nm{0, 0, 0},
+	rgb_wavelengths_m{0, 0, 0}
 {
-	// RGB wavelengths determined by matching wavelengths to XYZ, transforming XYZ to ACEScg, then selecting the max wavelengths for R, G, and B.
-	rgb_wavelengths_nm = {602.224, 541.069, 448.143};
-	rgb_wavelengths_m = rgb_wavelengths_nm * 1e-9;
-	
 	// Construct a range of sample wavelengths in the visible spectrum
 	visible_wavelengths_nm.resize(780 - 280);
 	std::iota(visible_wavelengths_nm.begin(), visible_wavelengths_nm.end(), 280);
@@ -45,6 +43,12 @@ blackbody_system::blackbody_system(ecs::registry& registry):
 
 void blackbody_system::update(double t, double dt)
 {}
+
+void blackbody_system::set_rgb_wavelengths(const double3& wavelengths)
+{
+	rgb_wavelengths_nm = wavelengths;
+	rgb_wavelengths_m = wavelengths * 1e-9;
+}
 
 void blackbody_system::update_luminous_intensity(ecs::entity entity)
 {
