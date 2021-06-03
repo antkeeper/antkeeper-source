@@ -17,27 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TOOL_EVENTS_HPP
-#define ANTKEEPER_TOOL_EVENTS_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_SAMARA_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_SAMARA_HPP
 
-#include "event/event.hpp"
 #include "utility/fundamental-types.hpp"
-#include "entity/id.hpp"
 
-class tool_pressed_event: public event<tool_pressed_event>
+namespace entity {
+namespace component {
+
+struct samara
 {
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
+	float3 direction;
+	float angle;
+	float chirality;
 };
 
-class tool_released_event: public event<tool_released_event>
-{
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+} // namespace component
+} // namespace entity
 
-#endif // ANTKEEPER_TOOL_EVENTS_HPP
+#endif // ANTKEEPER_ENTITY_COMPONENT_SAMARA_HPP
+

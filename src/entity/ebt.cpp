@@ -17,27 +17,37 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TOOL_EVENTS_HPP
-#define ANTKEEPER_TOOL_EVENTS_HPP
+#include "entity/ebt.hpp"
+#include "entity/components/transform.hpp"
+#include <iostream>
 
-#include "event/event.hpp"
-#include "utility/fundamental-types.hpp"
-#include "entity/id.hpp"
+namespace entity {
+namespace ebt {
 
-class tool_pressed_event: public event<tool_pressed_event>
+status print(context& context, const std::string& text)
 {
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+	std::cout << text;
+	return status::success;
+}
 
-class tool_released_event: public event<tool_released_event>
+status print_eid(context& context)
 {
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+	std::cout << static_cast<std::size_t>(context.entity_id) << std::endl;
+	return status::success;
+}
 
-#endif // ANTKEEPER_TOOL_EVENTS_HPP
+status warp_to(context& context, float x, float y, float z)
+{
+	auto& transform = context.registry->get<component::transform>(context.entity_id);
+	transform.local.translation = {x, y, z};
+	transform.warp = true;
+	return status::success;
+}
+
+bool is_carrying_food(const context& context)
+{
+	return false;
+}
+
+} // namespace ebt
+} // namespace entity

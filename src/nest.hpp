@@ -87,4 +87,3 @@ inline nest::shaft* nest::get_central_shaft()
 }
 
 #endif // ANTKEEPER_NEST_HPP
-

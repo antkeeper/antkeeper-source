@@ -17,27 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TOOL_EVENTS_HPP
-#define ANTKEEPER_TOOL_EVENTS_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_MARKER_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_MARKER_HPP
 
-#include "event/event.hpp"
-#include "utility/fundamental-types.hpp"
-#include "entity/id.hpp"
+namespace entity {
+namespace component {
 
-class tool_pressed_event: public event<tool_pressed_event>
+struct marker
 {
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
+	int color;
 };
 
-class tool_released_event: public event<tool_released_event>
-{
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+} // namespace component
+} // namespace entity
 
-#endif // ANTKEEPER_TOOL_EVENTS_HPP
+#endif // ANTKEEPER_ENTITY_COMPONENT_MARKER_HPP

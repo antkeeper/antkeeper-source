@@ -19,7 +19,7 @@
 
 #include "resource-loader.hpp"
 #include "resource-manager.hpp"
-#include "ecs/ebt.hpp"
+#include "entity/ebt.hpp"
 #include <nlohmann/json.hpp>
 #include <functional>
 #include <map>
@@ -43,7 +43,7 @@ void parse_argument(std::string& value, const std::string& string)
 }
 
 template <class T, class... Args>
-std::function<ecs::ebt::status(ecs::ebt::context&)> pack_function(T (*function)(ecs::ebt::context&, Args...), std::list<std::string> argv)
+std::function<entity::ebt::status(entity::ebt::context&)> pack_function(T (*function)(entity::ebt::context&, Args...), std::list<std::string> argv)
 {
 	//if (argv.size() != sizeof...(Args))
 
@@ -60,18 +60,18 @@ std::function<ecs::ebt::status(ecs::ebt::context&)> pack_function(T (*function)(
 	}
 
 	return std::bind(
-		[function, arguments](ecs::ebt::context& context) -> ecs::ebt::status
+		[function, arguments](entity::ebt::context& context) -> entity::ebt::status
 		{
 			return std::apply(function, std::tuple_cat(std::make_tuple(context), arguments));
 		},
 		std::placeholders::_1);
 }
 
-static ecs::ebt::node* load_node(const nlohmann::json::const_iterator& json, resource_manager* resource_manager);
-static void load_node_child(ecs::ebt::decorator_node* node, const nlohmann::json& json, resource_manager* resource_manager);
-static void load_node_children(ecs::ebt::composite_node* node, const nlohmann::json& json, resource_manager* resource_manager);
+static entity::ebt::node* load_node(const nlohmann::json::const_iterator& json, resource_manager* resource_manager);
+static void load_node_child(entity::ebt::decorator_node* node, const nlohmann::json& json, resource_manager* resource_manager);
+static void load_node_children(entity::ebt::composite_node* node, const nlohmann::json& json, resource_manager* resource_manager);
 
-static ecs::ebt::node* load_action_node(const nlohmann::json& json, resource_manager* resource_manager)
+static entity::ebt::node* load_action_node(const nlohmann::json& json, resource_manager* resource_manager)
 {
 	// Get function name
 	auto function_it = json.find("function");
@@ -85,31 +85,31 @@ static ecs::ebt::node* load_action_node(const nlohmann::json& json, resource_man
 	for (auto it = arguments_it.value().cbegin(); it != arguments_it.value().cend(); ++it)
 		arguments.push_back(it.value().get<std::string>());
 	
-	ecs::ebt::action* action_node = new ecs::ebt::action();
-	if (function_name == "print") action_node->function = pack_function(ecs::ebt::print, arguments);
-	else if (function_name == "print_eid") action_node->function = pack_function(ecs::ebt::print_eid, arguments);
-	else if (function_name == "warp_to") action_node->function = pack_function(ecs::ebt::warp_to, arguments);
+	entity::ebt::action* action_node = new entity::ebt::action();
+	if (function_name == "print") action_node->function = pack_function(entity::ebt::print, arguments);
+	else if (function_name == "print_eid") action_node->function = pack_function(entity::ebt::print_eid, arguments);
+	else if (function_name == "warp_to") action_node->function = pack_function(entity::ebt::warp_to, arguments);
 	
 	return action_node;
 }
 
-static ecs::ebt::node* load_selector_node(const nlohmann::json& json, resource_manager* resource_manager)
+static entity::ebt::node* load_selector_node(const nlohmann::json& json, resource_manager* resource_manager)
 {
-	ecs::ebt::selector* selector_node = new ecs::ebt::selector();
+	entity::ebt::selector* selector_node = new entity::ebt::selector();
 	load_node_children(selector_node, json, resource_manager);
 	return selector_node;
 }
 
-static ecs::ebt::node* load_sequence_node(const nlohmann::json& json, resource_manager* resource_manager)
+static entity::ebt::node* load_sequence_node(const nlohmann::json& json, resource_manager* resource_manager)
 {
-	ecs::ebt::sequence* sequence_node = new ecs::ebt::sequence();
+	entity::ebt::sequence* sequence_node = new entity::ebt::sequence();
 	load_node_children(sequence_node, json, resource_manager);
 	return sequence_node;
 }
 
-static ecs::ebt::node* load_node(const nlohmann::json::const_iterator& json, resource_manager* resource_manager)
+static entity::ebt::node* load_node(const nlohmann::json::const_iterator& json, resource_manager* resource_manager)
 {
-	static const std::map<std::string, std::function<ecs::ebt::node*(const nlohmann::json&, ::resource_manager*)>> node_loaders =
+	static const std::map<std::string, std::function<entity::ebt::node*(const nlohmann::json&, ::resource_manager*)>> node_loaders =
 	{
 		{"action", &load_action_node},
 		{"selector", &load_selector_node},
@@ -125,24 +125,24 @@ static ecs::ebt::node* load_node(const nlohmann::json::const_iterator& json, res
 	return node_loader->second(json.value(), resource_manager);
 }
 
-static void load_node_child(ecs::ebt::decorator_node* node, const nlohmann::json& json, resource_manager* resource_manager)
+static void load_node_child(entity::ebt::decorator_node* node, const nlohmann::json& json, resource_manager* resource_manager)
 {
 	auto it = json.find("child");
 	node->child = load_node(it.value().cbegin(), resource_manager);
 }
 
-static void load_node_children(ecs::ebt::composite_node* node, const nlohmann::json& json, resource_manager* resource_manager)
+static void load_node_children(entity::ebt::composite_node* node, const nlohmann::json& json, resource_manager* resource_manager)
 {
 	auto children_it = json.find("children");
 	for (auto it = children_it.value().cbegin(); it != children_it.value().cend(); ++it)
 	{
-		ecs::ebt::node* child = load_node(it.value().begin(), resource_manager);
+		entity::ebt::node* child = load_node(it.value().begin(), resource_manager);
 		node->children.push_back(child);
 	}
 }
 
 template <>
-ecs::ebt::node* resource_loader<ecs::ebt::node>::load(resource_manager* resource_manager, PHYSFS_File* file)
+entity::ebt::node* resource_loader<entity::ebt::node>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	// Read file into buffer
 	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));
@@ -155,7 +155,7 @@ ecs::ebt::node* resource_loader<ecs::ebt::node>::load(resource_manager* resource
 
 	if (json.size() != 1)
 	{
-		throw std::runtime_error("resource_loader<ecs::ebt::node>::load(): Behavior tree must have exactly one root node.");
+		throw std::runtime_error("resource_loader<entity::ebt::node>::load(): Behavior tree must have exactly one root node.");
 	}
 
 	return load_node(json.cbegin(), resource_manager);

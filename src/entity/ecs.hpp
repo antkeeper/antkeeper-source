@@ -17,27 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TOOL_EVENTS_HPP
-#define ANTKEEPER_TOOL_EVENTS_HPP
+#ifndef ANTKEEPER_ENTITY_HPP
+#define ANTKEEPER_ENTITY_HPP
 
-#include "event/event.hpp"
-#include "utility/fundamental-types.hpp"
-#include "entity/id.hpp"
+/// Entity-component-system (ECS)
+namespace entity {}
 
-class tool_pressed_event: public event<tool_pressed_event>
-{
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+#include "archetype.hpp"
+#include "commands.hpp"
+#include "id.hpp"
+#include "registry.hpp"
 
-class tool_released_event: public event<tool_released_event>
-{
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
-
-#endif // ANTKEEPER_TOOL_EVENTS_HPP
+#endif // ANTKEEPER_ENTITY_HPP

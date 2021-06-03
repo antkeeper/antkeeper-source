@@ -22,7 +22,7 @@
 event_base* tool_pressed_event::clone() const
 {
 	tool_pressed_event* event = new tool_pressed_event();
-	event->entity = entity;
+	event->entity_id = entity_id;
 	event->position = position;
 	return event;
 }
@@ -30,7 +30,7 @@ event_base* tool_pressed_event::clone() const
 event_base* tool_released_event::clone() const
 {
 	tool_released_event* event = new tool_released_event();
-	event->entity = entity;
+	event->entity_id = entity_id;
 	event->position = position;
 	return event;
 }

@@ -21,161 +21,159 @@
 #include "resource-manager.hpp"
 #include "string-table.hpp"
 #include "renderer/model.hpp"
-#include "ecs/components/behavior-component.hpp"
-#include "ecs/components/collision-component.hpp"
-#include "ecs/components/terrain-component.hpp"
-#include "ecs/components/transform-component.hpp"
-#include "ecs/components/model-component.hpp"
-#include "ecs/components/nest-component.hpp"
-#include "ecs/components/tool-component.hpp"
-#include "ecs/components/marker-component.hpp"
-#include "ecs/components/brush-component.hpp"
-#include "ecs/archetype.hpp"
-#include "ecs/ebt.hpp"
+#include "entity/components/behavior.hpp"
+#include "entity/components/collision.hpp"
+#include "entity/components/terrain.hpp"
+#include "entity/components/transform.hpp"
+#include "entity/components/model.hpp"
+#include "entity/components/nest.hpp"
+#include "entity/components/tool.hpp"
+#include "entity/components/marker.hpp"
+#include "entity/components/brush.hpp"
+#include "entity/archetype.hpp"
+#include "entity/ebt.hpp"
 #include <sstream>
 #include <stdexcept>
 
-using namespace ecs;
-
-static bool load_behavior_component(archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
+static bool load_component_behavior(entity::archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
 {
 	if (parameters.size() != 2)
 	{
-		throw std::runtime_error("load_behavior_component(): Invalid parameter count.");
+		throw std::runtime_error("load_component_behavior(): Invalid parameter count.");
 	}
 
 	std::string filename = parameters[1];
-	behavior_component component;
-	component.behavior_tree = resource_manager.load<ecs::ebt::node>(filename);
+	entity::component::behavior component;
+	component.behavior_tree = resource_manager.load<entity::ebt::node>(filename);
 	if (!component.behavior_tree)
 	{
-		std::string message = std::string("load_behavior_component(): Failed to load behavior tree \"") + filename + std::string("\"");
+		std::string message = std::string("load_component_behavior(): Failed to load behavior tree \"") + filename + std::string("\"");
 		throw std::runtime_error(message);
 	}
 
-	archetype.set<behavior_component>(component);
+	archetype.set<entity::component::behavior>(component);
 
 	return true;
 }
 
-static bool load_collision_component(archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
+static bool load_component_collision(entity::archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
 {
 	if (parameters.size() != 2)
 	{
-		throw std::runtime_error("load_collision_component(): Invalid parameter count.");
+		throw std::runtime_error("load_component_collision(): Invalid parameter count.");
 	}
 
 	std::string filename = parameters[1];
-	collision_component component;
+	entity::component::collision component;
 	component.mesh = resource_manager.load<geom::mesh>(filename);
 	if (!component.mesh)
 	{
-		std::string message = std::string("load_collision_component(): Failed to load model \"") + filename + std::string("\"");
+		std::string message = std::string("load_component_collision(): Failed to load model \"") + filename + std::string("\"");
 		throw std::runtime_error(message);
 	}
 
-	archetype.set<collision_component>(component);
+	archetype.set<entity::component::collision>(component);
 
 	return true;
 }
 
-static bool load_model_component(archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
+static bool load_component_model(entity::archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
 {
 	if (parameters.size() != 2)
 	{
-		throw std::runtime_error("load_model_component(): Invalid parameter count.");
+		throw std::runtime_error("load_component_model(): Invalid parameter count.");
 	}
 
 	std::string filename = parameters[1];
-	model_component component;
-	component.model = resource_manager.load<model>(filename);
+	entity::component::model component;
+	component.render_model = resource_manager.load<model>(filename);
 	component.instance_count = 0;
 	component.layers = 1;
-	if (!component.model)
+	if (!component.render_model)
 	{
-		std::string message = std::string("load_model_component(): Failed to load model \"") + filename + std::string("\"");
+		std::string message = std::string("load_component_model(): Failed to load model \"") + filename + std::string("\"");
 		throw std::runtime_error(message);
 	}
 
-	archetype.set<model_component>(component);
+	archetype.set<entity::component::model>(component);
 
 	return true;
 }
 
-static bool load_nest_component(archetype& archetype, const std::vector<std::string>& parameters)
+static bool load_component_nest(entity::archetype& archetype, const std::vector<std::string>& parameters)
 {
-	nest_component component;
-	archetype.set<nest_component>(component);
+	entity::component::nest component;
+	archetype.set<entity::component::nest>(component);
 
 	return true;
 }
 
-static bool load_marker_component(archetype& archetype, const std::vector<std::string>& parameters)
+static bool load_component_marker(entity::archetype& archetype, const std::vector<std::string>& parameters)
 {
 	if (parameters.size() != 2)
 	{
-		throw std::runtime_error("load_marker_component(): Invalid parameter count.");
+		throw std::runtime_error("load_component_marker(): Invalid parameter count.");
 	}
 	
-	marker_component component;
+	entity::component::marker component;
 	component.color = std::stoi(parameters[1]);
-	archetype.set<marker_component>(component);
+	archetype.set<entity::component::marker>(component);
 	
 	return true;
 }
 
-static bool load_brush_component(archetype& archetype, const std::vector<std::string>& parameters)
+static bool load_component_brush(entity::archetype& archetype, const std::vector<std::string>& parameters)
 {
 	if (parameters.size() != 2)
 	{
-		throw std::runtime_error("load_brush_component(): Invalid parameter count.");
+		throw std::runtime_error("load_component_brush(): Invalid parameter count.");
 	}
 	
-	brush_component component;
+	entity::component::brush component;
 	component.radius = std::stof(parameters[1]);
-	archetype.set<brush_component>(component);
+	archetype.set<entity::component::brush>(component);
 	
 	return true;
 }
 
-static bool load_terrain_component(archetype& archetype, const std::vector<std::string>& parameters)
+static bool load_component_terrain(entity::archetype& archetype, const std::vector<std::string>& parameters)
 {
 	if (parameters.size() != 4)
 	{
-		throw std::runtime_error("load_terrain_component(): Invalid parameter count.");
+		throw std::runtime_error("load_component_terrain(): Invalid parameter count.");
 	}
 
-	terrain_component component;
+	entity::component::terrain component;
 	component.subdivisions = std::stoi(parameters[1]);
 	component.x = std::stoi(parameters[2]);
 	component.z = std::stoi(parameters[3]);
-	archetype.set<terrain_component>(component);
+	archetype.set<entity::component::terrain>(component);
 
 	return true;
 }
 
-static bool load_tool_component(archetype& archetype, const std::vector<std::string>& parameters)
+static bool load_component_tool(entity::archetype& archetype, const std::vector<std::string>& parameters)
 {	
 	if (parameters.size() != 5)
 	{
-		throw std::runtime_error("load_tool_component(): Invalid parameter count.");
+		throw std::runtime_error("load_component_tool(): Invalid parameter count.");
 	}
 
-	tool_component component;
+	entity::component::tool component;
 	component.active = static_cast<bool>(std::stoi(parameters[1]));
 	component.idle_distance = std::stof(parameters[2]);
 	component.active_distance = std::stof(parameters[3]);
 	component.heliotropic = static_cast<bool>(std::stoi(parameters[4]));
-	archetype.set<tool_component>(component);
+	archetype.set<entity::component::tool>(component);
 
 	return true;
 }
 
-static bool load_transform_component(archetype& archetype, const std::vector<std::string>& parameters)
+static bool load_component_transform(entity::archetype& archetype, const std::vector<std::string>& parameters)
 {
 	if (parameters.size() != 11)
 	{
-		throw std::runtime_error("load_transform_component(): Invalid parameter count.");
+		throw std::runtime_error("load_component_transform(): Invalid parameter count.");
 	}
 
 	std::stringstream stream;
@@ -186,7 +184,7 @@ static bool load_transform_component(archetype& archetype, const std::vector<std
 			stream << ' ';
 	}
 
-	transform_component component;
+	entity::component::transform component;
 	stream >> component.local.translation.x;
 	stream >> component.local.translation.y;
 	stream >> component.local.translation.z;
@@ -199,31 +197,31 @@ static bool load_transform_component(archetype& archetype, const std::vector<std
 	stream >> component.local.scale.z;
 	component.warp = true;
 
-	archetype.set<transform_component>(component);
+	archetype.set<entity::component::transform>(component);
 
 	return true;
 }
 
-static bool load_component(archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
+static bool load_component(entity::archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
 {
-	if (parameters[0] == "behavior") return load_behavior_component(archetype, resource_manager, parameters);
-	if (parameters[0] == "collision") return load_collision_component(archetype, resource_manager, parameters);
-	if (parameters[0] == "model") return load_model_component(archetype, resource_manager, parameters);
-	if (parameters[0] == "nest") return load_nest_component(archetype, parameters);
-	if (parameters[0] == "terrain") return load_terrain_component(archetype, parameters);
-	if (parameters[0] == "tool") return load_tool_component(archetype, parameters);
-	if (parameters[0] == "transform") return load_transform_component(archetype, parameters);
-	if (parameters[0] == "marker") return load_marker_component(archetype, parameters);
-	if (parameters[0] == "brush") return load_brush_component(archetype, parameters);
+	if (parameters[0] == "behavior") return load_component_behavior(archetype, resource_manager, parameters);
+	if (parameters[0] == "collision") return load_component_collision(archetype, resource_manager, parameters);
+	if (parameters[0] == "model") return load_component_model(archetype, resource_manager, parameters);
+	if (parameters[0] == "nest") return load_component_nest(archetype, parameters);
+	if (parameters[0] == "terrain") return load_component_terrain(archetype, parameters);
+	if (parameters[0] == "tool") return load_component_tool(archetype, parameters);
+	if (parameters[0] == "transform") return load_component_transform(archetype, parameters);
+	if (parameters[0] == "marker") return load_component_marker(archetype, parameters);
+	if (parameters[0] == "brush") return load_component_brush(archetype, parameters);
 
 	std::string message = std::string("load_component(): Unknown component type \"") + parameters[0] + std::string("\"");
 	throw std::runtime_error(message);
 }
 
 template <>
-archetype* resource_loader<archetype>::load(resource_manager* resource_manager, PHYSFS_File* file)
+entity::archetype* resource_loader<entity::archetype>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
-	ecs::archetype* archetype = new ecs::archetype(resource_manager->get_archetype_registry());
+	entity::archetype* archetype = new entity::archetype(resource_manager->get_archetype_registry());
 
 	// Load string table from input stream
 	string_table* table = resource_loader<string_table>::load(resource_manager, file);

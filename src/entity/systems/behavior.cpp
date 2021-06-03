@@ -17,27 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TOOL_EVENTS_HPP
-#define ANTKEEPER_TOOL_EVENTS_HPP
-
-#include "event/event.hpp"
-#include "utility/fundamental-types.hpp"
+#include "entity/systems/behavior.hpp"
+#include "entity/components/behavior.hpp"
 #include "entity/id.hpp"
 
-class tool_pressed_event: public event<tool_pressed_event>
-{
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+namespace entity {
+namespace system {
 
-class tool_released_event: public event<tool_released_event>
-{
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+behavior::behavior(entity::registry& registry):
+	updatable(registry)
+{}
 
-#endif // ANTKEEPER_TOOL_EVENTS_HPP
+void behavior::update(double t, double dt)
+{
+	ebt::context context;
+	context.registry = &registry;
+
+	registry.view<component::behavior>().each(
+		[&](entity::id entity_id, auto& behavior)
+		{
+			if (behavior.behavior_tree)
+			{
+				context.entity_id = entity_id;
+				behavior.behavior_tree->execute(context);
+			}
+		});
+}
+
+} // namespace system
+} // namespace entity

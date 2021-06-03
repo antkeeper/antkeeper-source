@@ -17,27 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TOOL_EVENTS_HPP
-#define ANTKEEPER_TOOL_EVENTS_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_SNAP_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_SNAP_HPP
 
-#include "event/event.hpp"
-#include "utility/fundamental-types.hpp"
-#include "entity/id.hpp"
+#include "geom/ray.hpp"
 
-class tool_pressed_event: public event<tool_pressed_event>
+namespace entity {
+namespace component {
+
+struct snap
 {
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
+	geom::ray<float> ray;
+	bool relative;
+	bool warp;
+	bool autoremove;
 };
 
-class tool_released_event: public event<tool_released_event>
-{
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+} // namespace component
+} // namespace entity
 
-#endif // ANTKEEPER_TOOL_EVENTS_HPP
+#endif // ANTKEEPER_ENTITY_COMPONENT_SNAP_HPP
+

@@ -22,8 +22,8 @@
 
 #include "utility/fundamental-types.hpp"
 #include "resources/string-table.hpp"
-#include "ecs/entity.hpp"
-#include "ecs/registry.hpp"
+#include "entity/id.hpp"
+#include "entity/registry.hpp"
 #include "geom/aabb.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
@@ -73,30 +73,33 @@ namespace debug
 	class logger;
 }
 
-namespace ecs
+namespace entity
 {
-	class subterrain_system;
-	class terrain_system;
-	class vegetation_system;
-	class tool_system;
-	class ui_system;
-	class spatial_system;
-	class tracking_system;
-	class painting_system;
-	class astronomy_system;
-	class blackbody_system;
-	class atmosphere_system;
-	class orbit_system;
-	class behavior_system;
-	class collision_system;
-	class constraint_system;
-	class locomotion_system;
-	class control_system;
-	class snapping_system;
-	class camera_system;
-	class nest_system;
-	class render_system;
-	class samara_system;
+	namespace system
+	{
+		class subterrain;
+		class terrain;
+		class vegetation;
+		class tool;
+		class ui;
+		class spatial;
+		class tracking;
+		class painting;
+		class astronomy;
+		class blackbody;
+		class atmosphere;
+		class orbit;
+		class behavior;
+		class collision;
+		class constraint;
+		class locomotion;
+		class control;
+		class snapping;
+		class camera;
+		class nest;
+		class render;
+		class samara;
+	}
 }
 
 /**
@@ -219,39 +222,39 @@ struct game_context
 	input::control* toggle_fullscreen_control;
 
 	// Entities
-	ecs::registry* ecs_registry;
-	ecs::entity brush_entity;
-	ecs::entity flashlight_entity;
-	ecs::entity forceps_entity;
-	ecs::entity lens_entity;
-	ecs::entity marker_entity;
-	ecs::entity container_entity;
-	ecs::entity twig_entity;
-	ecs::entity focal_point_entity;
+	entity::registry* entity_registry;
+	entity::id brush_entity;
+	entity::id flashlight_entity;
+	entity::id forceps_entity;
+	entity::id lens_entity;
+	entity::id marker_entity;
+	entity::id container_entity;
+	entity::id twig_entity;
+	entity::id focal_point_entity;
 
 	// Systems
-	ecs::behavior_system* behavior_system;
-	ecs::camera_system* camera_system;
-	ecs::collision_system* collision_system;
-	ecs::constraint_system* constraint_system;
-	ecs::control_system* control_system;
-	ecs::locomotion_system* locomotion_system;
-	ecs::nest_system* nest_system;
-	ecs::snapping_system* snapping_system;
-	ecs::render_system* render_system;
-	ecs::samara_system* samara_system;
-	ecs::subterrain_system* subterrain_system;
-	ecs::terrain_system* terrain_system;
-	ecs::tool_system* tool_system;
-	ecs::ui_system* ui_system;
-	ecs::vegetation_system* vegetation_system;
-	ecs::spatial_system* spatial_system;
-	ecs::tracking_system* tracking_system;
-	ecs::painting_system* painting_system;
-	ecs::blackbody_system* blackbody_system;
-	ecs::atmosphere_system* atmosphere_system;
-	ecs::astronomy_system* astronomy_system;
-	ecs::orbit_system* orbit_system;
+	entity::system::behavior* behavior_system;
+	entity::system::camera* camera_system;
+	entity::system::collision* collision_system;
+	entity::system::constraint* constraint_system;
+	entity::system::control* control_system;
+	entity::system::locomotion* locomotion_system;
+	entity::system::nest* nest_system;
+	entity::system::snapping* snapping_system;
+	entity::system::render* render_system;
+	entity::system::samara* samara_system;
+	entity::system::subterrain* subterrain_system;
+	entity::system::terrain* terrain_system;
+	entity::system::tool* tool_system;
+	entity::system::ui* ui_system;
+	entity::system::vegetation* vegetation_system;
+	entity::system::spatial* spatial_system;
+	entity::system::tracking* tracking_system;
+	entity::system::painting* painting_system;
+	entity::system::blackbody* blackbody_system;
+	entity::system::atmosphere* atmosphere_system;
+	entity::system::astronomy* astronomy_system;
+	entity::system::orbit* orbit_system;
 	
 	// Game
 	biome* biome;

@@ -17,27 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TOOL_EVENTS_HPP
-#define ANTKEEPER_TOOL_EVENTS_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_CHAMBER_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_CHAMBER_HPP
 
-#include "event/event.hpp"
-#include "utility/fundamental-types.hpp"
+#include <array>
+#include <unordered_set>
 #include "entity/id.hpp"
 
-class tool_pressed_event: public event<tool_pressed_event>
-{
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+namespace entity {
+namespace component {
 
-class tool_released_event: public event<tool_released_event>
+struct chamber
 {
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+	entity nest;
+	float depth;
+	float outer_radius;
+	float inner_radius;
+	float inner_sector_angle;
+	float tile_radius;
+	std::unordered_set<std::array<int, 2>> tiles;
+}
 
-#endif // ANTKEEPER_TOOL_EVENTS_HPP
+} // namespace component
+} // namespace entity
+
+#endif // ANTKEEPER_ENTITY_COMPONENT_CHAMBER_HPP

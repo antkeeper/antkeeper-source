@@ -17,27 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TOOL_EVENTS_HPP
-#define ANTKEEPER_TOOL_EVENTS_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_COPY_TRANSLATION_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_COPY_TRANSLATION_HPP
 
-#include "event/event.hpp"
-#include "utility/fundamental-types.hpp"
 #include "entity/id.hpp"
 
-class tool_pressed_event: public event<tool_pressed_event>
+namespace entity {
+namespace component {
+
+struct copy_translation
 {
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
+	entity::id target;
+	bool use_x;
+	bool use_y;
+	bool use_z;
+	bool invert_x;
+	bool invert_y;
+	bool invert_z;
 };
 
-class tool_released_event: public event<tool_released_event>
-{
-public:
-	virtual event_base* clone() const;
-	entity::id entity_id;
-	float3 position;
-};
+} // namespace component
+} // namespace entity
 
-#endif // ANTKEEPER_TOOL_EVENTS_HPP
+#endif // ANTKEEPER_ENTITY_COMPONENT_COPY_TRANSLATION_HPP

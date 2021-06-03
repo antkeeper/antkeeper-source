@@ -21,22 +21,22 @@
 #include "animation/screen-transition.hpp"
 #include "configuration.hpp"
 #include "debug/logger.hpp"
-#include "ecs/archetype.hpp"
-#include "ecs/components/cavity-component.hpp"
-#include "ecs/components/copy-transform-component.hpp"
-#include "ecs/components/copy-translation-component.hpp"
-#include "ecs/components/model-component.hpp"
-#include "ecs/components/snap-component.hpp"
-#include "ecs/components/terrain-component.hpp"
-#include "ecs/components/tool-component.hpp"
-#include "ecs/components/transform-component.hpp"
-#include "ecs/components/camera-follow-component.hpp"
-#include "ecs/components/orbit-component.hpp"
-#include "ecs/components/blackbody-component.hpp"
-#include "ecs/components/celestial-body-component.hpp"
-#include "ecs/components/atmosphere-component.hpp"
-#include "ecs/components/light-component.hpp"
-#include "ecs/commands.hpp"
+#include "entity/archetype.hpp"
+#include "entity/components/cavity.hpp"
+#include "entity/components/copy-transform.hpp"
+#include "entity/components/copy-translation.hpp"
+#include "entity/components/model.hpp"
+#include "entity/components/snap.hpp"
+#include "entity/components/terrain.hpp"
+#include "entity/components/tool.hpp"
+#include "entity/components/transform.hpp"
+#include "entity/components/camera-follow.hpp"
+#include "entity/components/orbit.hpp"
+#include "entity/components/blackbody.hpp"
+#include "entity/components/celestial-body.hpp"
+#include "entity/components/atmosphere.hpp"
+#include "entity/components/light.hpp"
+#include "entity/commands.hpp"
 #include "game/game-context.hpp"
 #include "game/states/game-states.hpp"
 #include "math/math.hpp"
@@ -54,12 +54,12 @@
 #include "scene/camera.hpp"
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
-#include "ecs/systems/control-system.hpp"
-#include "ecs/systems/camera-system.hpp"
-#include "ecs/systems/render-system.hpp"
-#include "ecs/systems/tool-system.hpp"
-#include "ecs/systems/orbit-system.hpp"
-#include "ecs/systems/astronomy-system.hpp"
+#include "entity/systems/control.hpp"
+#include "entity/systems/camera.hpp"
+#include "entity/systems/render.hpp"
+#include "entity/systems/tool.hpp"
+#include "entity/systems/orbit.hpp"
+#include "entity/systems/astronomy.hpp"
 #include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
 
@@ -76,7 +76,7 @@ void play_state_enter(game_context* ctx)
 	logger->push_task("Entering play state");
 	
 	resource_manager* resource_manager = ctx->resource_manager;
-	entt::registry& ecs_registry = *ctx->ecs_registry;
+	entt::registry& entity_registry = *ctx->entity_registry;
 	
 	// Load biome
 	if (ctx->option_biome.has_value())
@@ -95,15 +95,15 @@ void play_state_enter(game_context* ctx)
 	sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
 	
 	// Create sun
-	auto sun_entity = ecs_registry.create();
+	auto sun_entity = entity_registry.create();
 	{
-		ecs::celestial_body_component body;
+		entity::component::celestial_body body;
 		body.radius = 6.957e+8;
 		body.axial_tilt = math::radians(0.0);
 		body.axial_rotation = math::radians(0.0);
 		body.angular_frequency = math::radians(0.0);
 		
-		ecs::orbit_component orbit;
+		entity::component::orbit orbit;
 		orbit.elements.a = 0.0;
 		orbit.elements.e = 0.0;
 		orbit.elements.i = math::radians(0.0);
@@ -111,29 +111,29 @@ void play_state_enter(game_context* ctx)
 		orbit.elements.w = math::radians(0.0);
 		orbit.elements.ta = math::radians(0.0);
 		
-		ecs::blackbody_component blackbody;
+		entity::component::blackbody blackbody;
 		blackbody.temperature = 5778.0;
 		
-		ecs::transform_component transform;
+		entity::component::transform transform;
 		transform.local = math::identity_transform<float>;
 		transform.warp = true;
 		
-		ecs_registry.assign<ecs::celestial_body_component>(sun_entity, body);
-		ecs_registry.assign<ecs::orbit_component>(sun_entity, orbit);
-		ecs_registry.assign<ecs::blackbody_component>(sun_entity, blackbody);
-		ecs_registry.assign<ecs::transform_component>(sun_entity, transform);
+		entity_registry.assign<entity::component::celestial_body>(sun_entity, body);
+		entity_registry.assign<entity::component::orbit>(sun_entity, orbit);
+		entity_registry.assign<entity::component::blackbody>(sun_entity, blackbody);
+		entity_registry.assign<entity::component::transform>(sun_entity, transform);
 	}
 	
 	// Create Earth
-	auto earth_entity = ecs_registry.create();
+	auto earth_entity = entity_registry.create();
 	{
-		ecs::celestial_body_component body;
+		entity::component::celestial_body body;
 		body.radius = 6.3781e6;
 		body.axial_tilt = math::radians(23.4393);
 		body.axial_rotation = math::radians(280.46061837504);
 		body.angular_frequency = math::radians(360.9856122880876128);
 		
-		ecs::orbit_component orbit;
+		entity::component::orbit orbit;
 		orbit.elements.a = 1.496e+11;
 		orbit.elements.e = 0.01671123;
 		orbit.elements.i = math::radians(-0.00001531);
@@ -142,7 +142,7 @@ void play_state_enter(game_context* ctx)
 		orbit.elements.w = longitude_periapsis - orbit.elements.raan;
 		orbit.elements.ta = math::radians(100.46457166) - longitude_periapsis;
 		
-		ecs::atmosphere_component atmosphere;
+		entity::component::atmosphere atmosphere;
 		atmosphere.exosphere_altitude = 65e3;
 		atmosphere.index_of_refraction = 1.000293;
 		atmosphere.rayleigh_density = 2.545e25;
@@ -151,14 +151,14 @@ void play_state_enter(game_context* ctx)
 		atmosphere.mie_scale_height = 1200.0;
 		atmosphere.mie_anisotropy = 0.8;
 		
-		ecs::transform_component transform;
+		entity::component::transform transform;
 		transform.local = math::identity_transform<float>;
 		transform.warp = true;
 		
-		ecs_registry.assign<ecs::celestial_body_component>(earth_entity, body);
-		ecs_registry.assign<ecs::orbit_component>(earth_entity, orbit);
-		ecs_registry.assign<ecs::atmosphere_component>(earth_entity, atmosphere);
-		ecs_registry.assign<ecs::transform_component>(earth_entity, transform);
+		entity_registry.assign<entity::component::celestial_body>(earth_entity, body);
+		entity_registry.assign<entity::component::orbit>(earth_entity, orbit);
+		entity_registry.assign<entity::component::atmosphere>(earth_entity, atmosphere);
+		entity_registry.assign<entity::component::transform>(earth_entity, transform);
 	}
 	
 	scene::ambient_light* ambient = new scene::ambient_light();
@@ -189,36 +189,36 @@ void play_state_enter(game_context* ctx)
 	ctx->astronomy_system->set_sky_pass(ctx->overworld_sky_pass);
 
 	// Load entity archetypes
-	ecs::archetype* ant_hill_archetype = resource_manager->load<ecs::archetype>("ant-hill.ent");
-	ecs::archetype* nest_archetype = resource_manager->load<ecs::archetype>("harvester-nest.ent");
-	ecs::archetype* redwood_archetype = resource_manager->load<ecs::archetype>("redwood.ent");
-	ecs::archetype* forceps_archetype = resource_manager->load<ecs::archetype>("forceps.ent");
-	ecs::archetype* lens_archetype = resource_manager->load<ecs::archetype>("lens.ent");
-	ecs::archetype* brush_archetype = resource_manager->load<ecs::archetype>("brush.ent");
-	ecs::archetype* marker_archetype = resource_manager->load<ecs::archetype>("marker.ent");
-	ecs::archetype* container_archetype = resource_manager->load<ecs::archetype>("container.ent");
-	ecs::archetype* twig_archetype = resource_manager->load<ecs::archetype>("twig.ent");
-	ecs::archetype* larva_archetype = resource_manager->load<ecs::archetype>("ant-larva.ent");
-	ecs::archetype* flashlight_archetype = resource_manager->load<ecs::archetype>("flashlight.ent");
-	ecs::archetype* flashlight_light_cone_archetype = resource_manager->load<ecs::archetype>("flashlight-light-cone.ent");
-	ecs::archetype* lens_light_cone_archetype = resource_manager->load<ecs::archetype>("lens-light-cone.ent");
-	ecs::archetype* cube_archetype = resource_manager->load<ecs::archetype>("unit-cube.ent");
-	ecs::archetype* color_checker_archetype = resource_manager->load<ecs::archetype>("color-checker.ent");
+	entity::archetype* ant_hill_archetype = resource_manager->load<entity::archetype>("ant-hill.ent");
+	entity::archetype* nest_archetype = resource_manager->load<entity::archetype>("harvester-nest.ent");
+	entity::archetype* redwood_archetype = resource_manager->load<entity::archetype>("redwood.ent");
+	entity::archetype* forceps_archetype = resource_manager->load<entity::archetype>("forceps.ent");
+	entity::archetype* lens_archetype = resource_manager->load<entity::archetype>("lens.ent");
+	entity::archetype* brush_archetype = resource_manager->load<entity::archetype>("brush.ent");
+	entity::archetype* marker_archetype = resource_manager->load<entity::archetype>("marker.ent");
+	entity::archetype* container_archetype = resource_manager->load<entity::archetype>("container.ent");
+	entity::archetype* twig_archetype = resource_manager->load<entity::archetype>("twig.ent");
+	entity::archetype* larva_archetype = resource_manager->load<entity::archetype>("ant-larva.ent");
+	entity::archetype* flashlight_archetype = resource_manager->load<entity::archetype>("flashlight.ent");
+	entity::archetype* flashlight_light_cone_archetype = resource_manager->load<entity::archetype>("flashlight-light-cone.ent");
+	entity::archetype* lens_light_cone_archetype = resource_manager->load<entity::archetype>("lens-light-cone.ent");
+	entity::archetype* cube_archetype = resource_manager->load<entity::archetype>("unit-cube.ent");
+	entity::archetype* color_checker_archetype = resource_manager->load<entity::archetype>("color-checker.ent");
 	
 	// Create tools
-	forceps_archetype->assign(ecs_registry, ctx->forceps_entity);
-	lens_archetype->assign(ecs_registry, ctx->lens_entity);
-	brush_archetype->assign(ecs_registry, ctx->brush_entity);
-	marker_archetype->assign(ecs_registry, ctx->marker_entity);
-	container_archetype->assign(ecs_registry, ctx->container_entity);
-	twig_archetype->assign(ecs_registry, ctx->twig_entity);
+	forceps_archetype->assign(entity_registry, ctx->forceps_entity);
+	lens_archetype->assign(entity_registry, ctx->lens_entity);
+	brush_archetype->assign(entity_registry, ctx->brush_entity);
+	marker_archetype->assign(entity_registry, ctx->marker_entity);
+	container_archetype->assign(entity_registry, ctx->container_entity);
+	twig_archetype->assign(entity_registry, ctx->twig_entity);
 	
 	// Create flashlight and light cone, set light cone parent to flashlight, and move both to underworld scene
-	flashlight_archetype->assign(ecs_registry, ctx->flashlight_entity);
-	auto flashlight_light_cone = flashlight_light_cone_archetype->create(ecs_registry);
-	ecs::command::parent(ecs_registry, flashlight_light_cone, ctx->flashlight_entity);
-	ecs::command::assign_render_layers(ecs_registry, ctx->flashlight_entity, 2);
-	ecs::command::assign_render_layers(ecs_registry, flashlight_light_cone, 2);
+	flashlight_archetype->assign(entity_registry, ctx->flashlight_entity);
+	auto flashlight_light_cone = flashlight_light_cone_archetype->create(entity_registry);
+	entity::command::parent(entity_registry, flashlight_light_cone, ctx->flashlight_entity);
+	entity::command::assign_render_layers(entity_registry, ctx->flashlight_entity, 2);
+	entity::command::assign_render_layers(entity_registry, flashlight_light_cone, 2);
 	
 	// Make lens tool's model instance unculled, so its shadow is always visible.
 	scene::model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
@@ -228,27 +228,27 @@ void play_state_enter(game_context* ctx)
 	}
 	
 	// Create lens light cone and set its parent to lens
-	auto lens_light_cone = lens_light_cone_archetype->create(ecs_registry);
-	ecs::command::bind_transform(ecs_registry, lens_light_cone, ctx->lens_entity);
-	ecs::command::parent(ecs_registry, lens_light_cone, ctx->lens_entity);
+	auto lens_light_cone = lens_light_cone_archetype->create(entity_registry);
+	entity::command::bind_transform(entity_registry, lens_light_cone, ctx->lens_entity);
+	entity::command::parent(entity_registry, lens_light_cone, ctx->lens_entity);
 	
 	// Hide inactive tools
-	ecs::command::assign_render_layers(ecs_registry, ctx->forceps_entity, 0);
-	ecs::command::assign_render_layers(ecs_registry, ctx->brush_entity, 0);
-	ecs::command::assign_render_layers(ecs_registry, ctx->lens_entity, 0);
-	ecs::command::assign_render_layers(ecs_registry, ctx->marker_entity, 0);
-	ecs::command::assign_render_layers(ecs_registry, ctx->container_entity, 0);
-	ecs::command::assign_render_layers(ecs_registry, ctx->twig_entity, 0);
+	entity::command::assign_render_layers(entity_registry, ctx->forceps_entity, 0);
+	entity::command::assign_render_layers(entity_registry, ctx->brush_entity, 0);
+	entity::command::assign_render_layers(entity_registry, ctx->lens_entity, 0);
+	entity::command::assign_render_layers(entity_registry, ctx->marker_entity, 0);
+	entity::command::assign_render_layers(entity_registry, ctx->container_entity, 0);
+	entity::command::assign_render_layers(entity_registry, ctx->twig_entity, 0);
 	
 	// Activate brush tool
 	//ctx->tool_system->set_active_tool(ctx->brush_entity);
 
 	// Create ant-hill
-	auto ant_hill_entity = ant_hill_archetype->create(ecs_registry);
-	ecs::command::place(ecs_registry, ant_hill_entity, {0, -40});
+	auto ant_hill_entity = ant_hill_archetype->create(entity_registry);
+	entity::command::place(entity_registry, ant_hill_entity, {0, -40});
 
 	// Creat nest
-	auto nest_entity = nest_archetype->create(ecs_registry);
+	auto nest_entity = nest_archetype->create(entity_registry);
 	
 	// Create terrain
 	int terrain_radius = 0;//6;
@@ -256,49 +256,49 @@ void play_state_enter(game_context* ctx)
 	{
 		for (int z = -terrain_radius; z <= terrain_radius; ++z)
 		{
-			ecs::terrain_component terrain_component;
-			terrain_component.subdivisions = TERRAIN_PATCH_RESOLUTION;
-			terrain_component.x = x;
-			terrain_component.z = z;
-			auto terrain_entity = ecs_registry.create();
-			ecs_registry.assign<ecs::terrain_component>(terrain_entity, terrain_component);
+			entity::component::terrain terrain;
+			terrain.subdivisions = TERRAIN_PATCH_RESOLUTION;
+			terrain.x = x;
+			terrain.z = z;
+			auto terrain_entity = entity_registry.create();
+			entity_registry.assign<entity::component::terrain>(terrain_entity, terrain);
 		}
 	}
 
 	// Create trees
 	for (int i = 0; i < 0; ++i)
 	{
-		auto redwood = redwood_archetype->create(ecs_registry);
+		auto redwood = redwood_archetype->create(entity_registry);
 
-		auto& transform = ecs_registry.get<ecs::transform_component>(redwood);
+		auto& transform = entity_registry.get<entity::component::transform>(redwood);
 		float zone = 500.0f;
-		ecs::command::place(ecs_registry, redwood, {math::random(-zone, zone), math::random(-zone, zone)});
+		entity::command::place(entity_registry, redwood, {math::random(-zone, zone), math::random(-zone, zone)});
 	}
 	
 	// Create unit cube
-	auto cube = cube_archetype->create(ecs_registry);
-	ecs::command::place(ecs_registry, cube, {10, 10});
+	auto cube = cube_archetype->create(entity_registry);
+	entity::command::place(entity_registry, cube, {10, 10});
 	
 	// Create color checker
-	auto color_checker = color_checker_archetype->create(ecs_registry);
-	ecs::command::place(ecs_registry, color_checker, {-10, -10});
-	auto& cc_transform = ecs_registry.get<ecs::transform_component>(color_checker);
+	auto color_checker = color_checker_archetype->create(entity_registry);
+	entity::command::place(entity_registry, color_checker, {-10, -10});
+	auto& cc_transform = entity_registry.get<entity::component::transform>(color_checker);
 	cc_transform.local.scale *= 10.0f;
 	cc_transform.local.rotation = math::angle_axis(math::radians(-90.0f), {1, 0, 0});
 	
 	// Setup camera focal point
-	ecs::transform_component focal_point_transform;
+	entity::component::transform focal_point_transform;
 	focal_point_transform.local = math::identity_transform<float>;
 	focal_point_transform.warp = true;
-	ecs::camera_follow_component focal_point_follow;
-	ecs::snap_component focal_point_snap;
+	entity::component::camera_follow focal_point_follow;
+	entity::component::snap focal_point_snap;
 	focal_point_snap.ray = {float3{0, 10000, 0}, float3{0, -1, 0}};
 	focal_point_snap.warp = false;
 	focal_point_snap.relative = true;
 	focal_point_snap.autoremove = false;
-	ecs_registry.assign_or_replace<ecs::transform_component>(ctx->focal_point_entity, focal_point_transform);
-	ecs_registry.assign_or_replace<ecs::camera_follow_component>(ctx->focal_point_entity, focal_point_follow);
-	ecs_registry.assign_or_replace<ecs::snap_component>(ctx->focal_point_entity, focal_point_snap);
+	entity_registry.assign_or_replace<entity::component::transform>(ctx->focal_point_entity, focal_point_transform);
+	entity_registry.assign_or_replace<entity::component::camera_follow>(ctx->focal_point_entity, focal_point_follow);
+	entity_registry.assign_or_replace<entity::component::snap>(ctx->focal_point_entity, focal_point_snap);
 	
 	// Setup camera
 	ctx->overworld_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
@@ -336,12 +336,12 @@ void play_state_enter(game_context* ctx)
 	float shift = 0.1f;
 	for (int i = 0; i < 800; ++i)
 	{
-		ecs::cavity_component cavity;
+		entity::component::cavity cavity;
 		cavity.position = nest->extend_shaft(*nest->get_central_shaft());
 		cavity.position += float3{math::random(-shift, shift), math::random(-shift, shift), math::random(-shift, shift)};
 		cavity.radius = tunnel_radius * math::random(1.0f, 1.1f);
 
-		ecs_registry.assign<ecs::cavity_component>(ecs_registry.create(), cavity);
+		entity_registry.assign<entity::component::cavity>(entity_registry.create(), cavity);
 	}
 
 	// Dig nest chambers
@@ -350,28 +350,28 @@ void play_state_enter(game_context* ctx)
 	{
 		for (int j = 0; j < 150; ++j)
 		{
-			ecs::cavity_component cavity;
+			entity::component::cavity cavity;
 			cavity.position = nest->expand_chamber(central_shaft->chambers[i]);
 			cavity.position += float3{math::random(-shift, shift), math::random(-shift, shift), math::random(-shift, shift)};
 			cavity.radius = tunnel_radius * math::random(1.0f, 1.1f);
 
-			ecs_registry.assign<ecs::cavity_component>(ecs_registry.create(), cavity);
+			entity_registry.assign<entity::component::cavity>(entity_registry.create(), cavity);
 		}
 	}
 	*/
 	
 	// Place larva in chamber
 	{
-		auto larva = larva_archetype->create(ecs_registry);
-		ecs::command::assign_render_layers(ecs_registry, larva, 1);
-		ecs::command::warp_to(ecs_registry, larva, {50, 0.1935f, 0});
-		//auto& transform = ecs_registry.get<ecs::transform_component>(larva_entity);
+		auto larva = larva_archetype->create(entity_registry);
+		entity::command::assign_render_layers(entity_registry, larva, 1);
+		entity::command::warp_to(entity_registry, larva, {50, 0.1935f, 0});
+		//auto& transform = entity_registry.get<entity::component::transform>(larva_entity);
 		//transform.transform = math::identity_transform<float>;
 		//transform.transform.translation = nest->get_shaft_position(*central_shaft, central_shaft->depth[1]);
 		//transform.transform.translation.y -= 1.0f;
 	}
 	
-	ecs::control_system* control_system = ctx->control_system;
+	entity::system::control* control_system = ctx->control_system;
 	control_system->update(0.0, 0.0);
 	control_system->set_nest(nest);
 	

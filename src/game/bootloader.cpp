@@ -55,30 +55,30 @@
 #include "resources/resource-manager.hpp"
 #include "scene/scene.hpp"
 #include "game/states/game-states.hpp"
-#include "ecs/systems/behavior-system.hpp"
-#include "ecs/systems/camera-system.hpp"
-#include "ecs/systems/collision-system.hpp"
-#include "ecs/systems/constraint-system.hpp"
-#include "ecs/systems/control-system.hpp"
-#include "ecs/systems/locomotion-system.hpp"
-#include "ecs/systems/nest-system.hpp"
-#include "ecs/systems/snapping-system.hpp"
-#include "ecs/systems/render-system.hpp"
-#include "ecs/systems/samara-system.hpp"
-#include "ecs/systems/subterrain-system.hpp"
-#include "ecs/systems/terrain-system.hpp"
-#include "ecs/systems/tool-system.hpp"
-#include "ecs/systems/ui-system.hpp"
-#include "ecs/systems/vegetation-system.hpp"
-#include "ecs/systems/spatial-system.hpp"
-#include "ecs/systems/tracking-system.hpp"
-#include "ecs/systems/painting-system.hpp"
-#include "ecs/systems/astronomy-system.hpp"
-#include "ecs/systems/blackbody-system.hpp"
-#include "ecs/systems/atmosphere-system.hpp"
-#include "ecs/systems/orbit-system.hpp"
-#include "ecs/components/marker-component.hpp"
-#include "ecs/commands.hpp"
+#include "entity/systems/behavior.hpp"
+#include "entity/systems/camera.hpp"
+#include "entity/systems/collision.hpp"
+#include "entity/systems/constraint.hpp"
+#include "entity/systems/control.hpp"
+#include "entity/systems/locomotion.hpp"
+#include "entity/systems/nest.hpp"
+#include "entity/systems/snapping.hpp"
+#include "entity/systems/render.hpp"
+#include "entity/systems/samara.hpp"
+#include "entity/systems/subterrain.hpp"
+#include "entity/systems/terrain.hpp"
+#include "entity/systems/tool.hpp"
+#include "entity/systems/ui.hpp"
+#include "entity/systems/vegetation.hpp"
+#include "entity/systems/spatial.hpp"
+#include "entity/systems/tracking.hpp"
+#include "entity/systems/painting.hpp"
+#include "entity/systems/astronomy.hpp"
+#include "entity/systems/blackbody.hpp"
+#include "entity/systems/atmosphere.hpp"
+#include "entity/systems/orbit.hpp"
+#include "entity/components/marker.hpp"
+#include "entity/commands.hpp"
 #include "utility/paths.hpp"
 #include "event/event-dispatcher.hpp"
 #include "input/event-router.hpp"
@@ -768,18 +768,18 @@ void setup_animation(game_context* ctx)
 
 void setup_entities(game_context* ctx)
 {
-	// Create ECS registry
-	ctx->ecs_registry = new entt::registry();
+	// Create entity registry
+	ctx->entity_registry = new entt::registry();
 	
 	// Reserve named entities
-	ctx->brush_entity = ctx->ecs_registry->create();
-	ctx->flashlight_entity = ctx->ecs_registry->create();
-	ctx->forceps_entity = ctx->ecs_registry->create();
-	ctx->lens_entity = ctx->ecs_registry->create();
-	ctx->marker_entity = ctx->ecs_registry->create();
-	ctx->container_entity = ctx->ecs_registry->create();
-	ctx->twig_entity = ctx->ecs_registry->create();
-	ctx->focal_point_entity = ctx->ecs_registry->create();
+	ctx->brush_entity = ctx->entity_registry->create();
+	ctx->flashlight_entity = ctx->entity_registry->create();
+	ctx->forceps_entity = ctx->entity_registry->create();
+	ctx->lens_entity = ctx->entity_registry->create();
+	ctx->marker_entity = ctx->entity_registry->create();
+	ctx->container_entity = ctx->entity_registry->create();
+	ctx->twig_entity = ctx->entity_registry->create();
+	ctx->focal_point_entity = ctx->entity_registry->create();
 }
 
 void setup_systems(game_context* ctx)
@@ -793,11 +793,11 @@ void setup_systems(game_context* ctx)
 	const double3 rgb_wavelengths_nm = {602.224, 541.069, 448.143};
 	
 	// Setup terrain system
-	ctx->terrain_system = new ecs::terrain_system(*ctx->ecs_registry, ctx->resource_manager);
+	ctx->terrain_system = new entity::system::terrain(*ctx->entity_registry, ctx->resource_manager);
 	ctx->terrain_system->set_patch_size(TERRAIN_PATCH_SIZE);
 	
 	// Setup vegetation system
-	//ctx->vegetation_system = new ecs::vegetation_system(*ctx->ecs_registry);
+	//ctx->vegetation_system = new entity::system::vegetation(*ctx->entity_registry);
 	//ctx->vegetation_system->set_terrain_patch_size(TERRAIN_PATCH_SIZE);
 	//ctx->vegetation_system->set_vegetation_patch_resolution(VEGETATION_PATCH_RESOLUTION);
 	//ctx->vegetation_system->set_vegetation_density(1.0f);
@@ -805,38 +805,38 @@ void setup_systems(game_context* ctx)
 	//ctx->vegetation_system->set_scene(ctx->overworld_scene);
 	
 	// Setup camera system
-	ctx->camera_system = new ecs::camera_system(*ctx->ecs_registry);
+	ctx->camera_system = new entity::system::camera(*ctx->entity_registry);
 	ctx->camera_system->set_viewport(viewport);
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->camera_system);
 	event_dispatcher->subscribe<window_resized_event>(ctx->camera_system);
 	
 	// Setup tool system
-	ctx->tool_system = new ecs::tool_system(*ctx->ecs_registry, event_dispatcher);
+	ctx->tool_system = new entity::system::tool(*ctx->entity_registry, event_dispatcher);
 	ctx->tool_system->set_camera(ctx->overworld_camera);
 	ctx->tool_system->set_orbit_cam(ctx->camera_system->get_orbit_cam());
 	ctx->tool_system->set_viewport(viewport);
 	
 	// Setup subterrain system
-	ctx->subterrain_system = new ecs::subterrain_system(*ctx->ecs_registry, ctx->resource_manager);
+	ctx->subterrain_system = new entity::system::subterrain(*ctx->entity_registry, ctx->resource_manager);
 	ctx->subterrain_system->set_scene(ctx->underworld_scene);
 	
 	// Setup nest system
-	ctx->nest_system = new ecs::nest_system(*ctx->ecs_registry, ctx->resource_manager);
+	ctx->nest_system = new entity::system::nest(*ctx->entity_registry, ctx->resource_manager);
 	
 	// Setup collision system
-	ctx->collision_system = new ecs::collision_system(*ctx->ecs_registry);
+	ctx->collision_system = new entity::system::collision(*ctx->entity_registry);
 	
 	// Setup samara system
-	ctx->samara_system = new ecs::samara_system(*ctx->ecs_registry);
+	ctx->samara_system = new entity::system::samara(*ctx->entity_registry);
 	
 	// Setup snapping system
-	ctx->snapping_system = new ecs::snapping_system(*ctx->ecs_registry);
+	ctx->snapping_system = new entity::system::snapping(*ctx->entity_registry);
 	
 	// Setup behavior system
-	ctx->behavior_system = new ecs::behavior_system(*ctx->ecs_registry);
+	ctx->behavior_system = new entity::system::behavior(*ctx->entity_registry);
 	
 	// Setup locomotion system
-	ctx->locomotion_system = new ecs::locomotion_system(*ctx->ecs_registry);
+	ctx->locomotion_system = new entity::system::locomotion(*ctx->entity_registry);
 	
 	// Setup pheromone system
 	ctx->pheromones = new pheromone_matrix();
@@ -849,32 +849,32 @@ void setup_systems(game_context* ctx)
 	//diffuse(ctx->pheromones);
 	
 	// Setup spatial system
-	ctx->spatial_system = new ecs::spatial_system(*ctx->ecs_registry);
+	ctx->spatial_system = new entity::system::spatial(*ctx->entity_registry);
 	
 	// Setup constraint system
-	ctx->constraint_system = new ecs::constraint_system(*ctx->ecs_registry);
+	ctx->constraint_system = new entity::system::constraint(*ctx->entity_registry);
 	
 	// Setup tracking system
-	ctx->tracking_system = new ecs::tracking_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
+	ctx->tracking_system = new entity::system::tracking(*ctx->entity_registry, event_dispatcher, ctx->resource_manager);
 	ctx->tracking_system->set_scene(ctx->overworld_scene);
 	
 	// Setup painting system
-	ctx->painting_system = new ecs::painting_system(*ctx->ecs_registry, event_dispatcher, ctx->resource_manager);
+	ctx->painting_system = new entity::system::painting(*ctx->entity_registry, event_dispatcher, ctx->resource_manager);
 	ctx->painting_system->set_scene(ctx->overworld_scene);
 	
 	// Setup solar system
-	ctx->orbit_system = new ecs::orbit_system(*ctx->ecs_registry);
+	ctx->orbit_system = new entity::system::orbit(*ctx->entity_registry);
 	
 	// Setup blackbody system
-	ctx->blackbody_system = new ecs::blackbody_system(*ctx->ecs_registry);
+	ctx->blackbody_system = new entity::system::blackbody(*ctx->entity_registry);
 	ctx->blackbody_system->set_rgb_wavelengths(rgb_wavelengths_nm);
 	
 	// Setup atmosphere system
-	ctx->atmosphere_system = new ecs::atmosphere_system(*ctx->ecs_registry);
+	ctx->atmosphere_system = new entity::system::atmosphere(*ctx->entity_registry);
 	ctx->atmosphere_system->set_rgb_wavelengths(rgb_wavelengths_nm);
 	
 	// Setup astronomy system
-	ctx->astronomy_system = new ecs::astronomy_system(*ctx->ecs_registry);
+	ctx->astronomy_system = new entity::system::astronomy(*ctx->entity_registry);
 	
 	// Set time scale
 	float time_scale = 60.0f;
@@ -887,14 +887,14 @@ void setup_systems(game_context* ctx)
 	ctx->astronomy_system->set_time_scale(time_scale / seconds_per_day);
 	
 	// Setup render system
-	ctx->render_system = new ecs::render_system(*ctx->ecs_registry);
+	ctx->render_system = new entity::system::render(*ctx->entity_registry);
 	ctx->render_system->add_layer(ctx->overworld_scene);
 	ctx->render_system->add_layer(ctx->underworld_scene);
 	ctx->render_system->add_layer(ctx->ui_scene);
 	ctx->render_system->set_renderer(ctx->renderer);
 	
 	// Setup control system
-	ctx->control_system = new ecs::control_system(*ctx->ecs_registry);
+	ctx->control_system = new entity::system::control(*ctx->entity_registry);
 	ctx->control_system->set_viewport(viewport);
 	ctx->control_system->set_underworld_camera(ctx->underworld_camera);
 	ctx->control_system->set_tool(nullptr);
@@ -908,7 +908,7 @@ void setup_systems(game_context* ctx)
 	event_dispatcher->subscribe<window_resized_event>(ctx->control_system);
 	
 	// Setup UI system
-	ctx->ui_system = new ecs::ui_system(ctx->resource_manager);
+	ctx->ui_system = new entity::system::ui(ctx->resource_manager);
 	ctx->ui_system->set_camera(ctx->ui_camera);
 	ctx->ui_system->set_scene(ctx->ui_scene);
 	ctx->ui_system->set_viewport(viewport);
@@ -1141,9 +1141,9 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx]()
 		{
-			auto& marker_component = ctx->ecs_registry->get<ecs::marker_component>(ctx->marker_entity);
-			marker_component.color = (marker_component.color + 1) % 8;			
-			const gl::texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker_component.color];
+			auto& marker = ctx->entity_registry->get<entity::component::marker>(ctx->marker_entity);
+			marker.color = (marker.color + 1) % 8;			
+			const gl::texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker.color];
 			
 			model* marker_model = ctx->render_system->get_model_instance(ctx->marker_entity)->get_model();
 			for (::model_group* group: *marker_model->get_groups())
@@ -1161,9 +1161,9 @@ void setup_controls(game_context* ctx)
 	(
 		[ctx]()
 		{
-			auto& marker_component = ctx->ecs_registry->get<ecs::marker_component>(ctx->marker_entity);
-			marker_component.color = (marker_component.color + 7) % 8;			
-			const gl::texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker_component.color];
+			auto& marker = ctx->entity_registry->get<entity::component::marker>(ctx->marker_entity);
+			marker.color = (marker.color + 7) % 8;			
+			const gl::texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker.color];
 			
 			model* marker_model = ctx->render_system->get_model_instance(ctx->marker_entity)->get_model();
 			for (::model_group* group: *marker_model->get_groups())
@@ -1279,10 +1279,10 @@ void setup_callbacks(game_context* ctx)
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			
-			auto xf = ecs::command::get_world_transform(*ctx->ecs_registry, ctx->lens_entity);
+			auto xf = entity::command::get_world_transform(*ctx->entity_registry, ctx->lens_entity);
 			//ctx->lens_spot_light->look_at(xf.translation, xf.translation + ctx->sun_direct->get_direction(), {0, 1, 0});
 			
-			xf = ecs::command::get_world_transform(*ctx->ecs_registry, ctx->flashlight_entity);
+			xf = entity::command::get_world_transform(*ctx->entity_registry, ctx->flashlight_entity);
 			//ctx->flashlight_spot_light->set_transform(xf);
 			ctx->flashlight_spot_light->look_at(xf.translation, xf.translation + xf.rotation * float3{0, 0, 1}, {0, 0, -1});
 			
@@ -1303,7 +1303,7 @@ void setup_callbacks(game_context* ctx)
 	(
 		[ctx](double alpha)
 		{
-			ctx->render_system->render(alpha);
+			ctx->render_system->draw(alpha);
 		}
 	);
 }
