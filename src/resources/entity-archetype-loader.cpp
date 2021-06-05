@@ -136,22 +136,6 @@ static bool load_component_brush(entity::archetype& archetype, const std::vector
 	return true;
 }
 
-static bool load_component_terrain(entity::archetype& archetype, const std::vector<std::string>& parameters)
-{
-	if (parameters.size() != 4)
-	{
-		throw std::runtime_error("load_component_terrain(): Invalid parameter count.");
-	}
-
-	entity::component::terrain component;
-	component.subdivisions = std::stoi(parameters[1]);
-	component.x = std::stoi(parameters[2]);
-	component.z = std::stoi(parameters[3]);
-	archetype.set<entity::component::terrain>(component);
-
-	return true;
-}
-
 static bool load_component_tool(entity::archetype& archetype, const std::vector<std::string>& parameters)
 {	
 	if (parameters.size() != 5)
@@ -208,7 +192,6 @@ static bool load_component(entity::archetype& archetype, resource_manager& resou
 	if (parameters[0] == "collision") return load_component_collision(archetype, resource_manager, parameters);
 	if (parameters[0] == "model") return load_component_model(archetype, resource_manager, parameters);
 	if (parameters[0] == "nest") return load_component_nest(archetype, parameters);
-	if (parameters[0] == "terrain") return load_component_terrain(archetype, parameters);
 	if (parameters[0] == "tool") return load_component_tool(archetype, parameters);
 	if (parameters[0] == "transform") return load_component_transform(archetype, parameters);
 	if (parameters[0] == "marker") return load_component_marker(archetype, parameters);

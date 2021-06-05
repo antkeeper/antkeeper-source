@@ -36,6 +36,7 @@
 #include "entity/components/celestial-body.hpp"
 #include "entity/components/atmosphere.hpp"
 #include "entity/components/light.hpp"
+#include "entity/components/observer.hpp"
 #include "entity/commands.hpp"
 #include "game/game-context.hpp"
 #include "game/states/game-states.hpp"
@@ -62,13 +63,11 @@
 #include "entity/systems/astronomy.hpp"
 #include "game/biome.hpp"
 #include "utility/fundamental-types.hpp"
-
 #include "utility/bit-math.hpp"
 #include "genetics/genetics.hpp"
 #include <iostream>
 #include <bitset>
 #include <ctime>
-
 
 void play_state_enter(game_context* ctx)
 {
@@ -142,6 +141,12 @@ void play_state_enter(game_context* ctx)
 		orbit.elements.w = longitude_periapsis - orbit.elements.raan;
 		orbit.elements.ta = math::radians(100.46457166) - longitude_periapsis;
 		
+		entity::component::terrain terrain;
+		terrain.elevation = [](double, double) -> double
+		{
+			return 0.0;
+		};
+		
 		entity::component::atmosphere atmosphere;
 		atmosphere.exosphere_altitude = 65e3;
 		atmosphere.index_of_refraction = 1.000293;
@@ -158,7 +163,20 @@ void play_state_enter(game_context* ctx)
 		entity_registry.assign<entity::component::celestial_body>(earth_entity, body);
 		entity_registry.assign<entity::component::orbit>(earth_entity, orbit);
 		entity_registry.assign<entity::component::atmosphere>(earth_entity, atmosphere);
+		entity_registry.assign<entity::component::terrain>(earth_entity, terrain);
 		entity_registry.assign<entity::component::transform>(earth_entity, transform);
+	}
+	
+	// Create observer
+	auto observer_eid = entity_registry.create();
+	{
+		entity::component::observer observer;
+		observer.reference_body_eid = earth_entity;
+		observer.altitude = 0.0;
+		observer.latitude = 0.0;
+		observer.longitude = 0.0;
+		
+		entity_registry.assign<entity::component::observer>(observer_eid, observer);
 	}
 	
 	scene::ambient_light* ambient = new scene::ambient_light();
@@ -206,85 +224,61 @@ void play_state_enter(game_context* ctx)
 	entity::archetype* color_checker_archetype = resource_manager->load<entity::archetype>("color-checker.ent");
 	
 	// Create tools
+	/*
 	forceps_archetype->assign(entity_registry, ctx->forceps_entity);
 	lens_archetype->assign(entity_registry, ctx->lens_entity);
 	brush_archetype->assign(entity_registry, ctx->brush_entity);
 	marker_archetype->assign(entity_registry, ctx->marker_entity);
 	container_archetype->assign(entity_registry, ctx->container_entity);
 	twig_archetype->assign(entity_registry, ctx->twig_entity);
+	*/
 	
 	// Create flashlight and light cone, set light cone parent to flashlight, and move both to underworld scene
+	/*
 	flashlight_archetype->assign(entity_registry, ctx->flashlight_entity);
 	auto flashlight_light_cone = flashlight_light_cone_archetype->create(entity_registry);
 	entity::command::parent(entity_registry, flashlight_light_cone, ctx->flashlight_entity);
 	entity::command::assign_render_layers(entity_registry, ctx->flashlight_entity, 2);
 	entity::command::assign_render_layers(entity_registry, flashlight_light_cone, 2);
+	*/
 	
 	// Make lens tool's model instance unculled, so its shadow is always visible.
-	scene::model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
-	if (lens_model_instance)
-	{
+	//scene::model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
+	//if (lens_model_instance)
+	//{
 		//lens_model_instance->set_culling_mask(&ctx->no_cull);
-	}
+	//}
 	
 	// Create lens light cone and set its parent to lens
-	auto lens_light_cone = lens_light_cone_archetype->create(entity_registry);
-	entity::command::bind_transform(entity_registry, lens_light_cone, ctx->lens_entity);
-	entity::command::parent(entity_registry, lens_light_cone, ctx->lens_entity);
+	//auto lens_light_cone = lens_light_cone_archetype->create(entity_registry);
+	//entity::command::bind_transform(entity_registry, lens_light_cone, ctx->lens_entity);
+	//entity::command::parent(entity_registry, lens_light_cone, ctx->lens_entity);
 	
 	// Hide inactive tools
+	/*
 	entity::command::assign_render_layers(entity_registry, ctx->forceps_entity, 0);
 	entity::command::assign_render_layers(entity_registry, ctx->brush_entity, 0);
 	entity::command::assign_render_layers(entity_registry, ctx->lens_entity, 0);
 	entity::command::assign_render_layers(entity_registry, ctx->marker_entity, 0);
 	entity::command::assign_render_layers(entity_registry, ctx->container_entity, 0);
 	entity::command::assign_render_layers(entity_registry, ctx->twig_entity, 0);
+	*/
 	
 	// Activate brush tool
 	//ctx->tool_system->set_active_tool(ctx->brush_entity);
 
 	// Create ant-hill
 	auto ant_hill_entity = ant_hill_archetype->create(entity_registry);
-	entity::command::place(entity_registry, ant_hill_entity, {0, -40});
-
-	// Creat nest
-	auto nest_entity = nest_archetype->create(entity_registry);
-	
-	// Create terrain
-	int terrain_radius = 0;//6;
-	for (int x = -terrain_radius; x <= terrain_radius; ++x)
-	{
-		for (int z = -terrain_radius; z <= terrain_radius; ++z)
-		{
-			entity::component::terrain terrain;
-			terrain.subdivisions = TERRAIN_PATCH_RESOLUTION;
-			terrain.x = x;
-			terrain.z = z;
-			auto terrain_entity = entity_registry.create();
-			entity_registry.assign<entity::component::terrain>(terrain_entity, terrain);
-		}
-	}
-
-	// Create trees
-	for (int i = 0; i < 0; ++i)
-	{
-		auto redwood = redwood_archetype->create(entity_registry);
-
-		auto& transform = entity_registry.get<entity::component::transform>(redwood);
-		float zone = 500.0f;
-		entity::command::place(entity_registry, redwood, {math::random(-zone, zone), math::random(-zone, zone)});
-	}
-	
-	// Create unit cube
-	auto cube = cube_archetype->create(entity_registry);
-	entity::command::place(entity_registry, cube, {10, 10});
+	entity::command::place(entity_registry, ant_hill_entity, earth_entity, 0.0, 0.0, 0.0);
 	
 	// Create color checker
+	/*
 	auto color_checker = color_checker_archetype->create(entity_registry);
 	entity::command::place(entity_registry, color_checker, {-10, -10});
 	auto& cc_transform = entity_registry.get<entity::component::transform>(color_checker);
 	cc_transform.local.scale *= 10.0f;
 	cc_transform.local.rotation = math::angle_axis(math::radians(-90.0f), {1, 0, 0});
+	*/
 	
 	// Setup camera focal point
 	entity::component::transform focal_point_transform;

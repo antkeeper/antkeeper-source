@@ -23,6 +23,8 @@
 #include "entity/components/copy-transform.hpp"
 #include "entity/components/snap.hpp"
 #include "entity/components/parent.hpp"
+#include "entity/components/celestial-body.hpp"
+#include "entity/components/terrain.hpp"
 #include <limits>
 
 namespace entity {
@@ -75,15 +77,36 @@ void set_transform(entity::registry& registry, entity::id entity_id, const math:
 	}
 }
 
-void place(entity::registry& registry, entity::id entity_id, const float2& translation)
+void place(entity::registry& registry, entity::id entity_id, entity::id celestial_body_id, double altitude, double latitude, double longitude)
 {
-	component::snap component;
-	component.warp = true;
-	component.relative = false;
-	component.autoremove = true;
-	component.ray.origin = {translation[0], 10000.0f, translation[1]};
-	component.ray.direction = {0.0f, -1.0f, 0.0f};
-	registry.assign_or_replace<component::snap>(entity_id, component);
+	if (registry.has<component::transform>(entity_id))
+	{
+		double x = 0.0;
+		double y = altitude;
+		double z = 0.0;
+		
+		if (registry.has<component::celestial_body>(celestial_body_id))
+		{
+			const component::celestial_body& celestial_body = registry.get<component::celestial_body>(celestial_body_id);
+			
+			x = longitude * math::two_pi<double> * celestial_body.radius;
+			z = -latitude * math::two_pi<double> * celestial_body.radius;
+			
+			if (registry.has<component::terrain>(celestial_body_id))
+			{
+				const component::terrain& terrain = registry.get<component::terrain>(celestial_body_id);
+				
+				if (terrain.elevation != nullptr)
+				{
+					y += terrain.elevation(latitude, longitude);
+				}
+			}
+		}
+		
+		component::transform& transform = registry.get<component::transform>(entity_id);
+		transform.local.translation = math::type_cast<float>(double3{x, y, z});
+		transform.warp = true;
+	}
 }
 
 void assign_render_layers(entity::registry& registry, entity::id entity_id, unsigned int layers)

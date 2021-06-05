@@ -23,12 +23,6 @@
 #include "entity/systems/updatable.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/id.hpp"
-#include "geom/mesh.hpp"
-
-class terrain;
-class resource_manager;
-class model;
-class image;
 
 namespace entity {
 namespace system {
@@ -36,33 +30,31 @@ namespace system {
 class terrain: public updatable
 {
 public:
-	terrain(entity::registry& registry, ::resource_manager* resource_manager);
+	terrain(entity::registry& registry);
 	~terrain();
+	
 	virtual void update(double t, double dt);
 	
 	/**
-	 * Sets the size of a single terrain patch.
+	 * Sets the number of subdivisions for a patch.
+	 *
+	 * @param n Number of subdivisions.
 	 */
-	void set_patch_size(float size);
+	void set_patch_subdivisions(std::uint8_t n);
 
 private:
-	geom::mesh* generate_terrain_mesh(float size, int subdivisions);
-	model* generate_terrain_model(geom::mesh* terrain_mesh);
-	void project_terrain_mesh(geom::mesh* terrain_mesh, const entity::component::terrain& component);
-	void update_terrain_model(model* terrain_model, geom::mesh* terrain_mesh);
-
 	void on_terrain_construct(entity::registry& registry, entity::id entity_id, entity::component::terrain& component);
 	void on_terrain_destroy(entity::registry& registry, entity::id entity_id);
-
-	resource_manager* resource_manager;
-	float patch_size;
-	float heightmap_size;
-	float heightmap_scale;
-	image* heightmap;
+	
+	void generate_patch();
+	
+	std::uint8_t patch_subdivisions;
+	std::size_t patch_vertex_size;
+	std::size_t patch_vertex_count;
+	float* patch_vertex_data;
 };
 
 } // namespace system
 } // namespace entity
 
 #endif // ANTKEEPER_ENTITY_SYSTEM_TERRAIN_HPP
-

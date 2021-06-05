@@ -17,21 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ENTITY_COMPONENT_TERRAIN_HPP
-#define ANTKEEPER_ENTITY_COMPONENT_TERRAIN_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_OBSERVER_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_OBSERVER_HPP
 
-#include <functional>
+#include "entity/id.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace entity {
 namespace component {
 
-struct terrain
+/// Observer
+struct observer
 {
-	/// Function object which returns elevation (in meters) given latitude (radians) and longitude (radians).
-	std::function<double(double, double)> elevation;
+	entity::id reference_body_eid;
+	double altitude;
+	double latitude;
+	double longitude;
 };
 
 } // namespace component
 } // namespace entity
 
-#endif // ANTKEEPER_ENTITY_COMPONENT_TERRAIN_HPP
+#endif // ANTKEEPER_ENTITY_COMPONENT_OBSERVER_HPP

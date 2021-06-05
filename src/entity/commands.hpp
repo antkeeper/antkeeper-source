@@ -35,7 +35,7 @@ void move_to(entity::registry& registry, entity::id entity_id, const float3& pos
 void warp_to(entity::registry& registry, entity::id entity_id, const float3& position);
 void set_scale(entity::registry& registry, entity::id entity_id, const float3& scale);
 void set_transform(entity::registry& registry, entity::id entity_id, const math::transform<float>& transform, bool warp = false);
-void place(entity::registry& registry, entity::id entity_id, const float2& translation);
+void place(entity::registry& registry, entity::id entity_id, entity::id celestial_body_id, double altitude, double latitude, double longitude);
 void assign_render_layers(entity::registry& registry, entity::id entity_id, unsigned int layers);
 void bind_transform(entity::registry& registry, entity::id source_eid, entity::id target_eid);
 math::transform<float> get_local_transform(entity::registry& registry, entity::id entity_id);

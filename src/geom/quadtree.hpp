@@ -17,21 +17,29 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ENTITY_COMPONENT_TERRAIN_HPP
-#define ANTKEEPER_ENTITY_COMPONENT_TERRAIN_HPP
+#ifndef ANTKEEPER_GEOM_QUADTREE_HPP
+#define ANTKEEPER_GEOM_QUADTREE_HPP
 
-#include <functional>
+#include "geom/hyperoctree.hpp"
 
-namespace entity {
-namespace component {
+namespace geom {
 
-struct terrain
-{
-	/// Function object which returns elevation (in meters) given latitude (radians) and longitude (radians).
-	std::function<double(double, double)> elevation;
-};
+/// A quadtree, or 2-dimensional hyperoctree.
+template <std::size_t D, class T>
+using quadtree = hyperoctree<2, D, T>;
 
-} // namespace component
-} // namespace entity
+/// Quadtree with an 8-bit node type (2 depth levels).
+typedef quadtree<1, std::uint8_t> quadtree8;
 
-#endif // ANTKEEPER_ENTITY_COMPONENT_TERRAIN_HPP
+/// Quadtree with a 16-bit node type (6 depth levels).
+typedef quadtree<5, std::uint16_t> quadtree16;
+
+/// Quadtree with a 32-bit node type (13 depth levels).
+typedef quadtree<12, std::uint32_t> quadtree32;
+
+/// Quadtree with a 64-bit node type (29 depth levels).
+typedef quadtree<28, std::uint64_t> quadtree64;
+
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_QUADTREE_HPP

@@ -793,8 +793,8 @@ void setup_systems(game_context* ctx)
 	const double3 rgb_wavelengths_nm = {602.224, 541.069, 448.143};
 	
 	// Setup terrain system
-	ctx->terrain_system = new entity::system::terrain(*ctx->entity_registry, ctx->resource_manager);
-	ctx->terrain_system->set_patch_size(TERRAIN_PATCH_SIZE);
+	ctx->terrain_system = new entity::system::terrain(*ctx->entity_registry);
+	ctx->terrain_system->set_patch_subdivisions(4);
 	
 	// Setup vegetation system
 	//ctx->vegetation_system = new entity::system::vegetation(*ctx->entity_registry);
