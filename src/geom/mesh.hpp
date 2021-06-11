@@ -39,14 +39,23 @@ public:
 	typedef std::vector<edge*> loop;
 
 	/**
-	 * Creates a mesh.
+	 * Constructs a mesh.
 	 */
 	mesh() = default;
+	
+	/// Copy-constructs a mesh.
+	mesh(const mesh& other);
 	
 	/**
 	 * Destroys a mesh.
 	 */
 	~mesh();
+	
+	/// Copies another mesh into this mesh.
+	mesh& operator=(const mesh& other);
+	
+	/// Removes all vertices, edges, and faces from the mesh.
+	void clear();
 
 	/**
 	 * Adds a vertex to the mesh. This vertex initially has a null edge.
@@ -70,6 +79,11 @@ public:
 	 *
 	 * @param loop List of edges which form the face.
 	 * @return Pointer to the added face.
+	 *
+	 * @exception std::runtime_error Empty edge loop.
+	 * @exception std::runtime_error Disconnected edge loop.
+	 * @exception std::runtime_error Non-manifold mesh 1.
+	 * @exception std::runtime_error Non-manifold mesh 2.
 	 */
 	mesh::face* add_face(const loop& loop);
 

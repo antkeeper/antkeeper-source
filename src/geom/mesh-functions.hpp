@@ -61,6 +61,15 @@ void calculate_vertex_tangents(float4* tangents, const float2* texcoords, const 
  */
 aabb<float> calculate_bounds(const mesh& mesh);
 
+/**
+ * Triangulates a face by adding a new vertex in the center, then creating triangles between the edges of the original face and the new vertex.
+ *
+ * @param mesh Mesh containing the face to poke.
+ * @param index Index of the face to poke.
+ * @return Pointer to the newly-created vertex in the center of the face, or `nullptr` if the face could not be poked.
+ */
+mesh::vertex* poke_face(mesh& mesh, std::size_t index);
+
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_MESH_FUNCTIONS_HPP

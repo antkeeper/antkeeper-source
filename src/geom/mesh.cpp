@@ -22,13 +22,109 @@
 
 namespace geom {
 
+mesh::mesh(const mesh& other)
+{
+	*this = other;
+}
+
 mesh::~mesh()
+{
+	clear();
+}
+
+mesh& mesh::operator=(const mesh& other)
+{
+	// Clear the mesh
+	clear();
+	
+	// Resize vertices, edges, and faces
+	vertices.resize(other.vertices.size());
+	edges.resize(other.edges.size());
+	faces.resize(other.faces.size());
+	
+	// Allocate vertices
+	for (std::size_t i = 0; i < vertices.size(); ++i)
+		vertices[i] = new vertex();
+	
+	// Allocate edges
+	for (std::size_t i = 0; i < edges.size(); ++i)
+	{
+		edges[i] = new edge();
+		edges[i]->symmetric = new edge();
+		edges[i]->symmetric->symmetric = edges[i];
+	}
+	
+	// Allocate faces
+	for (std::size_t i = 0; i < faces.size(); ++i)
+		faces[i] = new face();
+	
+	// Copy vertices
+	for (std::size_t i = 0; i < vertices.size(); ++i)
+	{
+		vertex* va = vertices[i];
+		const vertex* vb = other.vertices[i];
+		
+		va->index = vb->index;
+		va->position = vb->position;
+		va->edge = nullptr;
+		
+		if (vb->edge)
+		{
+			va->edge = edges[vb->edge->index];
+			if (vb->edge != other.edges[vb->edge->index])
+				va->edge = va->edge->symmetric;
+		}
+	}
+	
+	// Copy edges
+	for (std::size_t i = 0; i < edges.size(); ++i)
+	{
+		edge* ea = edges[i];
+		const edge* eb = other.edges[i];
+		
+		for (std::size_t j = 0; j < 2; ++j)
+		{
+			ea->index = eb->index;
+			ea->vertex = vertices[eb->vertex->index];
+			
+			ea->face = nullptr;
+			if (eb->face)
+				ea->face = faces[eb->face->index];
+			
+			ea->previous = edges[eb->previous->index];
+			if (eb->previous != other.edges[eb->previous->index])
+				ea->previous = ea->previous->symmetric;
+			
+			ea->next = edges[eb->next->index];
+			if (eb->next != other.edges[eb->next->index])
+				ea->next = ea->next->symmetric;
+			
+			ea = ea->symmetric;
+			eb = eb->symmetric;
+		}
+	}
+	
+	// Copy faces
+	for (std::size_t i = 0; i < faces.size(); ++i)
+	{
+		face* fa = faces[i];
+		const face* fb = other.faces[i];
+		
+		fa->index = fb->index;
+		
+		fa->edge = edges[fb->edge->index];
+		if (fb->edge != other.edges[fb->edge->index])
+			fa->edge = fa->edge->symmetric;
+	}
+	
+	return *this;
+}
+
+void mesh::clear()
 {
 	// Deallocate vertices
 	for (mesh::vertex* vertex: vertices)
-	{		
 		delete vertex;
-	}
 
 	// Deallocate edges
 	for (mesh::edge* edge: edges)
@@ -39,9 +135,11 @@ mesh::~mesh()
 
 	// Deallocate faces
 	for (mesh::face* face: faces)
-	{
 		delete face;
-	}
+	
+	vertices.clear();
+	edges.clear();
+	faces.clear();
 }
 
 mesh::vertex* mesh::add_vertex(const float3& position)
@@ -120,13 +218,13 @@ mesh::face* mesh::add_face(const loop& loop)
 	{
 		mesh::edge* current = loop[i];
 		mesh::edge* next = loop[(i + 1) % loop.size()];
-
+		
 		if (current->symmetric->vertex != next->vertex)
 		{
 			// Disconnected edge loop
 			throw std::runtime_error("Disconnected edge loop");
 		}
-
+		
 		if (current->face)
 		{
 			// This edge already has a face

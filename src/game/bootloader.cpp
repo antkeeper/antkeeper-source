@@ -794,7 +794,9 @@ void setup_systems(game_context* ctx)
 	
 	// Setup terrain system
 	ctx->terrain_system = new entity::system::terrain(*ctx->entity_registry);
-	ctx->terrain_system->set_patch_subdivisions(4);
+	ctx->terrain_system->set_patch_subdivisions(30);
+	ctx->terrain_system->set_patch_scene_collection(ctx->overworld_scene);
+	ctx->terrain_system->set_max_error(200.0);
 	
 	// Setup vegetation system
 	//ctx->vegetation_system = new entity::system::vegetation(*ctx->entity_registry);

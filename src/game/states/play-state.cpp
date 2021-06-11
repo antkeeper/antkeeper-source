@@ -65,6 +65,7 @@
 #include "utility/fundamental-types.hpp"
 #include "utility/bit-math.hpp"
 #include "genetics/genetics.hpp"
+#include "math/random.hpp"
 #include <iostream>
 #include <bitset>
 #include <ctime>
@@ -144,8 +145,11 @@ void play_state_enter(game_context* ctx)
 		entity::component::terrain terrain;
 		terrain.elevation = [](double, double) -> double
 		{
+			//return math::random<double>(0.0, 1.0);
 			return 0.0;
 		};
+		terrain.max_lod = 18;
+		terrain.patch_material = resource_manager->load<material>("desert-terrain.mtl");
 		
 		entity::component::atmosphere atmosphere;
 		atmosphere.exosphere_altitude = 65e3;
@@ -172,9 +176,10 @@ void play_state_enter(game_context* ctx)
 	{
 		entity::component::observer observer;
 		observer.reference_body_eid = earth_entity;
-		observer.altitude = 0.0;
+		observer.elevation = 0.0;
 		observer.latitude = 0.0;
 		observer.longitude = 0.0;
+		observer.camera = ctx->overworld_camera;
 		
 		entity_registry.assign<entity::component::observer>(observer_eid, observer);
 	}
@@ -268,8 +273,8 @@ void play_state_enter(game_context* ctx)
 	//ctx->tool_system->set_active_tool(ctx->brush_entity);
 
 	// Create ant-hill
-	auto ant_hill_entity = ant_hill_archetype->create(entity_registry);
-	entity::command::place(entity_registry, ant_hill_entity, earth_entity, 0.0, 0.0, 0.0);
+	//auto ant_hill_entity = ant_hill_archetype->create(entity_registry);
+	//entity::command::place(entity_registry, ant_hill_entity, earth_entity, 0.0, 0.0, 0.0);
 	
 	// Create color checker
 	/*
@@ -283,6 +288,7 @@ void play_state_enter(game_context* ctx)
 	// Setup camera focal point
 	entity::component::transform focal_point_transform;
 	focal_point_transform.local = math::identity_transform<float>;
+	//focal_point_transform.local.translation = {0, 6.3781e6, 0};
 	focal_point_transform.warp = true;
 	entity::component::camera_follow focal_point_follow;
 	entity::component::snap focal_point_snap;
@@ -292,7 +298,7 @@ void play_state_enter(game_context* ctx)
 	focal_point_snap.autoremove = false;
 	entity_registry.assign_or_replace<entity::component::transform>(ctx->focal_point_entity, focal_point_transform);
 	entity_registry.assign_or_replace<entity::component::camera_follow>(ctx->focal_point_entity, focal_point_follow);
-	entity_registry.assign_or_replace<entity::component::snap>(ctx->focal_point_entity, focal_point_snap);
+	//entity_registry.assign_or_replace<entity::component::snap>(ctx->focal_point_entity, focal_point_snap);
 	
 	// Setup camera
 	ctx->overworld_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});

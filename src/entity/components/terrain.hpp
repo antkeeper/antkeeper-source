@@ -20,6 +20,7 @@
 #ifndef ANTKEEPER_ENTITY_COMPONENT_TERRAIN_HPP
 #define ANTKEEPER_ENTITY_COMPONENT_TERRAIN_HPP
 
+#include "renderer/material.hpp"
 #include <functional>
 
 namespace entity {
@@ -29,6 +30,12 @@ struct terrain
 {
 	/// Function object which returns elevation (in meters) given latitude (radians) and longitude (radians).
 	std::function<double(double, double)> elevation;
+	
+	/// Maximum level of detail (maximum quadtree depth level)
+	std::size_t max_lod;
+	
+	/// Material for terrain patches;
+	material* patch_material;
 };
 
 } // namespace component

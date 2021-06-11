@@ -184,4 +184,54 @@ aabb<float> calculate_bounds(const mesh& mesh)
 	return aabb<float>{bounds_min, bounds_max};
 }
 
+mesh::vertex* poke_face(mesh& mesh, std::size_t index)
+{
+	mesh::face* face = mesh.get_faces()[index];
+	
+	// Collect face edges and sum edge vertex positions
+	std::vector<mesh::edge*> edges = {face->edge};
+	float3 sum_positions = face->edge->vertex->position;
+	for (mesh::edge* edge = face->edge->next; edge != face->edge; edge = edge->next)
+	{
+		edges.push_back(edge);
+		sum_positions += edge->vertex->position;
+	}
+	
+	if (edges.size() > 2)
+	{
+		// Remove face
+		mesh.remove_face(face);
+		
+		// Add vertex in center
+		mesh::vertex* center = mesh.add_vertex(sum_positions / static_cast<float>(edges.size()));
+		
+		// Create first triangle
+		geom::mesh::edge* ab = edges[0];
+		geom::mesh::edge* bc = mesh.add_edge(ab->next->vertex, center);
+		geom::mesh::edge* ca = mesh.add_edge(center, ab->vertex);
+		mesh.add_face({ab, bc, ca});
+		
+		// Save first triangle CA edge
+		geom::mesh::edge* first_triangle_ca = ca;
+		
+		// Create remaining triangles
+		for (std::size_t i = 1; i < edges.size(); ++i)
+		{
+			ab = edges[i];
+			ca = bc->symmetric;
+			
+			if (i == edges.size() - 1)
+				bc = first_triangle_ca->symmetric;
+			else
+				bc = mesh.add_edge(ab->next->vertex, center);
+			
+			mesh.add_face({ab, bc, ca});
+		}
+		
+		return center;
+	}
+	
+	return nullptr;
+}
+
 } // namespace geom

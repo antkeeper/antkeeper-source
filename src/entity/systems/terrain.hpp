@@ -23,10 +23,22 @@
 #include "entity/systems/updatable.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/id.hpp"
+#include "math/quaternion-type.hpp"
+#include "geom/quadtree.hpp"
+#include "geom/mesh.hpp"
+#include "utility/fundamental-types.hpp"
+#include "renderer/model.hpp"
+#include "renderer/material.hpp"
+#include "scene/model-instance.hpp"
+#include "scene/collection.hpp"
+#include <unordered_map>
 
 namespace entity {
 namespace system {
 
+/**
+ * Generates and manages terrain with LOD based on distance to observers.
+ */
 class terrain: public updatable
 {
 public:
@@ -36,22 +48,87 @@ public:
 	virtual void update(double t, double dt);
 	
 	/**
-	 * Sets the number of subdivisions for a patch.
+	 * Sets the number of subdivisions for a patch. Zero subdivisions results in a single quad, one subdivison results in four quads, etc.
 	 *
 	 * @param n Number of subdivisions.
 	 */
 	void set_patch_subdivisions(std::uint8_t n);
+	
+	/**
+	 * Sets the scene collection into which terrain patch model instances will be inserted.
+	 */
+	void set_patch_scene_collection(scene::collection* collection);
+	
+	/**
+	 * Sets the maximum tolerable screen-space error.
+	 *
+	 * If the screen-space error of a terrain patch exceeds the maximum tolerable value, it will be subdivided.
+	 *
+	 * @param error Maximum tolerable screen-space error.
+	 */
+	void set_max_error(double error);
 
 private:
+	typedef geom::quadtree64 quadtree_type;
+	typedef quadtree_type::node_type quadtree_node_type;
+	
+	struct terrain_patch
+	{
+		geom::mesh* mesh;
+		model* model;
+		scene::model_instance* model_instance;
+		float error;
+		float morph;
+	};
+	
+	/// Single face of a terrain quadsphere
+	struct terrain_quadsphere_face
+	{
+		/// Quadtree describing level of detail
+		quadtree_type quadtree;
+		
+		/// Map linking quadtree nodes to terrain patches
+		std::unordered_map<quadtree_node_type, terrain_patch*> patches;
+	};
+	
+	/// A terrain quadsphere with six faces.
+	struct terrain_quadsphere
+	{
+		/// Array of six terrain quadsphere faces, in the order of +x, -x, +y, -y, +z, -z.
+		terrain_quadsphere_face faces[6];
+	};
+	
+	
+	static double screen_space_error(double horizontal_fov, double horizontal_resolution, double distance, double geometric_error);
+	
 	void on_terrain_construct(entity::registry& registry, entity::id entity_id, entity::component::terrain& component);
 	void on_terrain_destroy(entity::registry& registry, entity::id entity_id);
 	
-	void generate_patch();
+	/**
+	 * Generates a mesh for a terrain patch given the patch's quadtree node
+	 */
+	geom::mesh* generate_patch_mesh(std::uint8_t face_index, quadtree_node_type node, double body_radius, const std::function<double(double, double)>& elevation) const;
+	
+	/**
+	 * Generates a model for a terrain patch given the patch's mesh.
+	 */
+	model* generate_patch_model(const geom::mesh& patch_mesh, material* patch_material) const;
+	
+	
+	
+	/// @TODO horizon culling
 	
 	std::uint8_t patch_subdivisions;
 	std::size_t patch_vertex_size;
+	std::size_t patch_vertex_stride;
 	std::size_t patch_vertex_count;
 	float* patch_vertex_data;
+	math::quaternion<double> face_rotations[6];
+	geom::mesh* patch_base_mesh;
+	scene::collection* patch_scene_collection;
+	double max_error;
+	
+	std::unordered_map<entity::id, terrain_quadsphere*> terrain_quadspheres;
 };
 
 } // namespace system

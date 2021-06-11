@@ -22,6 +22,7 @@
 
 #include "entity/id.hpp"
 #include "utility/fundamental-types.hpp"
+#include "scene/camera.hpp"
 
 namespace entity {
 namespace component {
@@ -30,9 +31,10 @@ namespace component {
 struct observer
 {
 	entity::id reference_body_eid;
-	double altitude;
+	double elevation;
 	double latitude;
 	double longitude;
+	scene::camera* camera;
 };
 
 } // namespace component

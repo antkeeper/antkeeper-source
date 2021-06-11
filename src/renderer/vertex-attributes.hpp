@@ -44,5 +44,8 @@
 /// Vertex barycentric coordinates (vec3)
 #define VERTEX_BARYCENTRIC_LOCATION 7
 
+/// Vertex morph target (vec3)
+#define VERTEX_TARGET_LOCATION 8
+
 #endif // ANTKEEPER_VERTEX_ATTRIBUTES_HPP
 

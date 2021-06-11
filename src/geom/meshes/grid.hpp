@@ -17,23 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RELIEF_MAP_HPP
-#define ANTKEEPER_RELIEF_MAP_HPP
+#ifndef ANTKEEPER_GEOM_MESHES_GRID_HPP
+#define ANTKEEPER_GEOM_MESHES_GRID_HPP
 
 #include "geom/mesh.hpp"
-#include <functional>
 
-namespace cart
-{
+namespace geom {
+namespace meshes {
 
 /**
- * Generates a relief map mesh given an elevation function.
+ * Generates a grid mesh on the XY plane.
  *
- * @param function Function which returns an elevation given UV coordinates on a unit plane.
- * @param subdivisions Number of lines of longitude. Minimum value is 3.
+ * @param length Side length of the grid.
+ * @param subdivisions_x Number of subdivisions on the x-axis.
+ * @param subdivisions_y Number of subdivisions on the y-axis.
+ * @return Grid mesh on the XY plane.
  */
-geom::mesh* map_elevation(const std::function<float(float, float)>& function, float scale, std::size_t subdivisions);
+geom::mesh* grid_xy(float length, std::size_t subdivisions_x, std::size_t subdivisions_y);
 
-} // namespace cart
+} // namespace meshes
+} // namespace geom
 
-#endif // ANTKEEPER_RELIEF_MAP_HPP
+#endif // ANTKEEPER_GEOM_MESHES_GRID_HPP
