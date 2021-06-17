@@ -26,6 +26,7 @@
 #include "entity/components/copy-transform.hpp"
 #include "entity/components/copy-translation.hpp"
 #include "entity/components/model.hpp"
+#include "entity/components/genome.hpp"
 #include "entity/components/snap.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/components/tool.hpp"
@@ -362,13 +363,20 @@ void play_state_enter(game_context* ctx)
 	
 	// Place larva in chamber
 	{
-		auto larva = larva_archetype->create(entity_registry);
-		entity::command::assign_render_layers(entity_registry, larva, 1);
-		entity::command::warp_to(entity_registry, larva, {50, 0.1935f, 0});
+		auto larva_eid = larva_archetype->create(entity_registry);
+		entity::command::assign_render_layers(entity_registry, larva_eid, 1);
+		entity::command::warp_to(entity_registry, larva_eid, {50, 0.1935f, 0});
 		//auto& transform = entity_registry.get<entity::component::transform>(larva_entity);
 		//transform.transform = math::identity_transform<float>;
 		//transform.transform.translation = nest->get_shaft_position(*central_shaft, central_shaft->depth[1]);
 		//transform.transform.translation.y -= 1.0f;
+		
+		// Construct larva genome
+		entity::component::genome genome;
+		genome.ploidy = 2;
+		const std::string antp = "ATGACCATGAGCACCAACAACTGCGAAAGCATGACCAGCTATTTTACCAACAGCTATATGGGCGCGGATATGCATCATGGCCATTATCCGGGCAACGGCGTGACCGATCTGGATGCGCAGCAGATGCATCATTATAGCCAGAACGCGAACCATCAGGGCAACATGCCGTATCCGCGCTTTCCGCCGTATGATCGCATGCCGTATTATAACGGCCAGGGCATGGATCAGCAGCAGCAGCATCAGGTGTATAGCCGCCCGGATAGCCCGAGCAGCCAGGTGGGCGGCGTGATGCCGCAGGCGCAGACCAACGGCCAGCTGGGCGTGCCGCAGCAGCAGCAGCAGCAGCAGCAGCAGCCGAGCCAGAACCAGCAGCAGCAGCAGGCGCAGCAGGCGCCGCAGCAGCTGCAGCAGCAGCTGCCGCAGGTGACCCAGCAGGTGACCCATCCGCAGCAGCAGCAGCAGCAGCCGGTGGTGTATGCGAGCTGCAAACTGCAGGCGGCGGTGGGCGGCCTGGGCATGGTGCCGGAAGGCGGCAGCCCGCCGCTGGTGGATCAGATGAGCGGCCATCATATGAACGCGCAGATGACCCTGCCGCATCATATGGGCCATCCGCAGGCGCAGGTGCATCAGAACCATCATAACATGGGCATGTATCAGCAGCAGAGCGGCGTGCCGCCGGTGGGCGCGCCGCCGCAGGGCATGATGCATCAGGGCCAGGGCCCGCCGCAGATGCATCAGGGCCATCCGGGCCAGCATACCCCGCCGAGCCAGAACCCGAACAGCCAGAGCAGCGGCATGCCGAGCCCGCTGTATCCGTGGATGCGCAGCCAGTTTGAACGCAAACGCGGCCGCCAGACCTATACCCGCTATCAGACCCTGGAACTGGAAAAAGAATTTCATTTTAACCGCTATCTGACCCGCCGCCGCCGCATTGAAATTGCGCATGCGCTGTGCCTGACCGAACGCCAGATTAAAATTTGGTTTCAGAACCGCCGCATGAAATGGAAAAAAGAAAACAAAACCAAAGGCGAACCGGGCAGCGGCGGCGAAGGCGATGAAATTACCCCGCCGAACAGCCCGCAGTAG";
+		genome.chromosomes.push_back(antp);
+		entity_registry.assign<entity::component::genome>(larva_eid, genome);
 	}
 	
 	entity::system::control* control_system = ctx->control_system;
@@ -382,62 +390,6 @@ void play_state_enter(game_context* ctx)
 	
 	std::string biome_name = (*ctx->strings)[ctx->biome->name];
 	logger->log("Entered biome \"" + biome_name + "\"");
-	
-	
-	std::srand(std::time(nullptr));
-	//auto rng = [](){ return std::rand(); };
-	
-	std::random_device rd;
-	std::mt19937 rng(rd());
-	
-	
-	std::string sequence_a = "CCTTGCCCTTTGGGTCGCCCCCCTAG";
-	std::string sequence_b = "ATGTTTCCCGAAGGGTAG";
-	std::string sequence_c = "AAATGCCCCCCCCCCCCCCCCCCCCCCCCCCCTAGAAAAAAAAA";
-	std::string orf_a;
-	std::string protein_a;
-	std::string protein_b;
-	std::string protein_c;
-	
-	
-	std::cout << "sequence a: " << sequence_a << std::endl;
-	genetics::sequence::transcribe(sequence_a.begin(), sequence_a.end(), sequence_a.begin());
-	std::cout << "sequence a: " << sequence_a << std::endl;
-	
-	std::string complement;
-	genetics::sequence::rna::complement(sequence_a.begin(), sequence_a.end(), std::back_inserter(complement));
-	std::cout << "complement: "  << complement << std::endl;
-	
-	auto orf = genetics::sequence::find_orf(sequence_a.begin(), sequence_a.end(), genetics::standard_code);
-	if (orf.start != sequence_a.end())
-	{
-		std::copy(orf.start, orf.stop, std::back_inserter(orf_a));
-		std::cout << "orf      a: " << orf_a << std::endl;
-		
-		genetics::sequence::translate(orf.start, orf.stop, std::back_inserter(protein_a), genetics::standard_code);
-		std::cout << "protein  a: " << protein_a << std::endl;
-	}
-	
-	protein_b = "MFFFFP";
-	protein_c = "MFFFYP";
-	int score;
-
-	std::cout << std::endl;
-	std::cout << "protein_b: " << protein_b << std::endl;
-	std::cout << "protein_c: " << protein_c << std::endl;
-	
-	score = genetics::protein::score(protein_b.begin(), protein_b.end(), protein_c.begin(), genetics::matrix::blosum62<int>);
-	std::cout << "score blosum62: " << score << std::endl;
-	
-	score = genetics::protein::score(protein_b.begin(), protein_b.end(), protein_c.begin(), genetics::matrix::blosum80<int>);
-	std::cout << "score blosum80: " << score << std::endl;
-	
-	
-	std::cout << "identity  : " << genetics::protein::identity<float>(protein_b.begin(), protein_b.end(), protein_c.begin()) << std::endl;
-	std::cout << "similarity62: " << genetics::protein::similarity<float>(protein_b.begin(), protein_b.end(), protein_c.begin(), genetics::matrix::blosum62<int>) << std::endl;
-	std::cout << "similarity80: " << genetics::protein::similarity<float>(protein_b.begin(), protein_b.end(), protein_c.begin(), genetics::matrix::blosum80<int>) << std::endl;
-	
-	
 }
 
 void play_state_exit(game_context* ctx)

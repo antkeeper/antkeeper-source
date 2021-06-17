@@ -77,6 +77,7 @@
 #include "entity/systems/blackbody.hpp"
 #include "entity/systems/atmosphere.hpp"
 #include "entity/systems/orbit.hpp"
+#include "entity/systems/proteome.hpp"
 #include "entity/components/marker.hpp"
 #include "entity/commands.hpp"
 #include "utility/paths.hpp"
@@ -878,6 +879,9 @@ void setup_systems(game_context* ctx)
 	// Setup astronomy system
 	ctx->astronomy_system = new entity::system::astronomy(*ctx->entity_registry);
 	
+	// Setup proteome system
+	ctx->proteome_system = new entity::system::proteome(*ctx->entity_registry);
+	
 	// Set time scale
 	float time_scale = 60.0f;
 	if (ctx->config->has("time_scale"))
@@ -1277,7 +1281,7 @@ void setup_callbacks(game_context* ctx)
 			ctx->constraint_system->update(t, dt);
 			ctx->tracking_system->update(t, dt);
 			ctx->painting_system->update(t, dt);
-
+			ctx->proteome_system->update(t, dt);
 			
 			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
 			
@@ -1295,8 +1299,6 @@ void setup_callbacks(game_context* ctx)
 			ctx->application_controls->update();
 			ctx->menu_controls->update();
 			ctx->camera_controls->update();
-			
-
 		}
 	);
 	

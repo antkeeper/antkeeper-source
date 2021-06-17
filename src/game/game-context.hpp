@@ -99,6 +99,7 @@ namespace entity
 		class nest;
 		class render;
 		class samara;
+		class proteome;
 	}
 }
 
@@ -255,6 +256,7 @@ struct game_context
 	entity::system::atmosphere* atmosphere_system;
 	entity::system::astronomy* astronomy_system;
 	entity::system::orbit* orbit_system;
+	entity::system::proteome* proteome_system;
 	
 	// Game
 	biome* biome;
