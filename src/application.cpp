@@ -39,7 +39,8 @@
 application::application():
 	closed(false),
 	exit_status(EXIT_SUCCESS),
-	state({nullptr, nullptr}),
+	current_state{std::string(), nullptr, nullptr},
+	queued_state{std::string(), nullptr, nullptr},
 	update_callback(nullptr),
 	render_callback(nullptr),
 	fullscreen(true),
@@ -277,25 +278,67 @@ int application::execute(bootloader_type bootloader)
 	}
 	
 	// Exit current state
-	change_state({nullptr, nullptr});
+	change_state({std::string(), nullptr, nullptr});
 	
 	return exit_status;
 }
 
-void application::change_state(const state_type& next_state)
+void application::change_state(const application::state& next_state)
 {
 	// Exit current state
-	if (state[1])
+	if (current_state.exit)
 	{
-		state[1]();
+		logger->push_task("Exiting application state \"" + current_state.name + "\"");
+		
+		try
+		{
+			current_state.exit();
+		}
+		catch (...)
+		{
+			logger->pop_task(EXIT_FAILURE);
+			throw;
+		}
+		logger->pop_task(EXIT_SUCCESS);
 	}
 	
+	current_state = next_state;
+	
 	// Enter next state
-	state = next_state;
-	if (state[0])
+	if (current_state.enter)
 	{
-		state[0]();
+		logger->push_task("Entering application state \"" + current_state.name + "\"");
+		
+		try
+		{
+			current_state.enter();
+		}
+		catch (...)
+		{
+			logger->pop_task(EXIT_FAILURE);
+			throw;
+		}
+		logger->pop_task(EXIT_SUCCESS);
 	}
+	
+	// Enter queued state (if any)
+	if (queued_state.enter != nullptr || queued_state.exit != nullptr)
+	{
+		// Make a copy of the queued state
+		application::state queued_state_copy = queued_state;
+		
+		// Clear the queued state
+		queued_state = {std::string(), nullptr, nullptr};
+		
+		// Enter the queued state
+		change_state(queued_state_copy);
+	}
+}
+
+void application::queue_state(const application::state& next_state)
+{
+	queued_state = next_state;
+	logger->log("Queued application state \"" + queued_state.name + "\"");
 }
 
 std::shared_ptr<image> application::capture_frame() const

@@ -41,6 +41,7 @@
 #include <entt/entt.hpp>
 #include <fstream>
 #include <string>
+#include <unordered_map>
 
 // Forward declarations
 class animator;
@@ -103,10 +104,10 @@ namespace entity
 	}
 }
 
-/**
- * 
- */
-struct game_context
+namespace game {
+
+/// Structure containing the state of a game.
+struct context
 {
 	application* app;
 	debug::logger* logger;
@@ -205,6 +206,7 @@ struct game_context
 	animation<float>* radial_transition_in;
 	animation<float>* radial_transition_out;
 	screen_transition* fade_transition;
+	material_property<float3>* fade_transition_color;
 	screen_transition* radial_transition_inner;
 	screen_transition* radial_transition_outer;
 	animation<float>* equip_tool_animation;
@@ -257,6 +259,7 @@ struct game_context
 	entity::system::astronomy* astronomy_system;
 	entity::system::orbit* orbit_system;
 	entity::system::proteome* proteome_system;
+	std::unordered_map<std::string, entity::id> named_entities;
 	
 	// Game
 	biome* biome;
@@ -267,5 +270,7 @@ struct game_context
 	// Misc
 	pheromone_matrix* pheromones;
 };
+
+} // namespace game
 
 #endif // ANTKEEPER_GAME_CONTEXT_HPP

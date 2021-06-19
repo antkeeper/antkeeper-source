@@ -17,31 +17,19 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "animation/ease.hpp"
+#include "game/states/splash.hpp"
+#include "game/states/play.hpp"
 #include "animation/screen-transition.hpp"
+#include "animation/ease.hpp"
 #include "animation/timeline.hpp"
 #include "application.hpp"
-#include "debug/logger.hpp"
-#include "game/game-context.hpp"
-#include "input/listener.hpp"
-#include "event/input-events.hpp"
-#include "gl/rasterizer.hpp"
-#include "game/states/game-states.hpp"
-#include "renderer/passes/sky-pass.hpp"
-#include "scene/billboard.hpp"
-#include "scene/collection.hpp"
-#include <functional>
 
-void splash_state_enter(game_context* ctx)
+namespace game {
+namespace state {
+namespace splash {
+
+void enter(game::context* ctx)
 {
-	debug::logger* logger = ctx->logger;	
-	logger->push_task("Entering splash state");
-	
-	//ctx->app->set_window_opacity(0.5f);
-	
-	// Disable sky pass
-	ctx->overworld_sky_pass->set_enabled(false);
-	
 	// Add splash billboard to UI scene
 	ctx->ui_scene->add_object(ctx->splash_billboard);
 	
@@ -62,7 +50,12 @@ void splash_state_enter(game_context* ctx)
 	// Create change state function
 	auto change_state = [ctx]()
 	{
-		ctx->app->change_state({std::bind(play_state_enter, ctx), std::bind(play_state_exit, ctx)});
+		application::state next_state;
+		next_state.name = "play";
+		next_state.enter = std::bind(game::state::play::enter, ctx);
+		next_state.exit = std::bind(game::state::play::exit, ctx);
+		
+		ctx->app->change_state(next_state);
 	};
 	
 	// Schedule fade out and change state events
@@ -88,26 +81,29 @@ void splash_state_enter(game_context* ctx)
 				ctx->rasterizer->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 				ctx->rasterizer->clear_framebuffer(true, false, false);
 				ctx->app->swap_buffers();
-				ctx->app->change_state({std::bind(play_state_enter, ctx), std::bind(play_state_exit, ctx)});
+				
+				application::state next_state;
+				next_state.name = "play";
+				next_state.enter = std::bind(game::state::play::enter, ctx);
+				next_state.exit = std::bind(game::state::play::exit, ctx);
+				
+				ctx->app->change_state(next_state);
 			}
 		}
 	);
 	ctx->input_listener->set_enabled(true);
-	
-	logger->pop_task(EXIT_SUCCESS);
 }
 
-void splash_state_exit(game_context* ctx)
+void exit(game::context* ctx)
 {
-	debug::logger* logger = ctx->logger;
-	logger->push_task("Exiting splash state");
-	
 	// Disable splash skipper
 	ctx->input_listener->set_enabled(false);
 	ctx->input_listener->set_callback(nullptr);
 	
 	// Remove splash billboard from UI scene
 	ctx->ui_scene->remove_object(ctx->splash_billboard);
-	
-	logger->pop_task(EXIT_SUCCESS);
 }
+
+} // namespace splash
+} // namespace state
+} // namespace game

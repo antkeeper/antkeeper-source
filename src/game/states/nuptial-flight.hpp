@@ -17,26 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/states/game-states.hpp"
-#include "game/game-context.hpp"
-#include "debug/logger.hpp"
-#include "application.hpp"
+#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
 
-void loading_state_enter(game_context* ctx)
-{
-	debug::logger* logger = ctx->logger;
-	logger->push_task("Entering loading state");
+#include "game/context.hpp"
 
-	logger->pop_task(EXIT_SUCCESS);
-	
-	ctx->app->change_state({std::bind(title_state_enter, ctx), std::bind(title_state_exit, ctx)});
-}
+namespace game {
+namespace state {
 
-void loading_state_exit(game_context* ctx)
-{
-	debug::logger* logger = ctx->logger;
-	logger->push_task("Exiting loading state");
+/// Nuptial flight game state functions.
+namespace nuptial_flight {
 
-	logger->pop_task(EXIT_SUCCESS);
-}
+void enter(game::context* ctx);
+void exit(game::context* ctx);
 
+} // namespace nuptial_flight
+
+} // namespace state
+} // namespace game
+
+#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP

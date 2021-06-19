@@ -17,26 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_DEBUG_CONSOLE_COMMANDS_HPP
-#define ANTKEEPER_DEBUG_CONSOLE_COMMANDS_HPP
+#ifndef ANTKEEPER_GAME_STATES_HPP
+#define ANTKEEPER_GAME_STATES_HPP
 
-#include "game/context.hpp"
-#include <string>
+namespace game {
 
-namespace debug {
+/// Game state functions.
+namespace state {}
 
-/// Console commands
-namespace cc {
+} // namespace game
 
-std::string echo(std::string text);
+#include "game/states/loading.hpp"
+#include "game/states/splash.hpp"
 
-std::string exit(game::context* ctx);
-
-std::string scrot(game::context* ctx);
-
-std::string cue(game::context* ctx, float t, std::string command);
-
-} // namespace cc
-} // namespace debug
-
-#endif // ANTKEEPER_DEBUG_CONSOLE_COMMANDS_HPP
+#endif // ANTKEEPER_GAME_STATES_HPP

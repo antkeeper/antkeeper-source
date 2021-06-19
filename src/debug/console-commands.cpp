@@ -20,7 +20,6 @@
 #include "console-commands.hpp"
 #include "application.hpp"
 #include "animation/timeline.hpp"
-#include "game/game-context.hpp"
 #include "debug/cli.hpp"
 
 namespace debug {
@@ -31,19 +30,19 @@ std::string echo(std::string text)
 	return text;
 }
 
-std::string exit(game_context* ctx)
+std::string exit(game::context* ctx)
 {
 	ctx->app->close(EXIT_SUCCESS);
 	return std::string();
 }
 
-std::string scrot(game_context* ctx)
+std::string scrot(game::context* ctx)
 {
 	//ctx->app->take_screenshot();
 	return std::string("screenshot saved");
 }
 
-std::string cue(game_context* ctx, float t, std::string command)
+std::string cue(game::context* ctx, float t, std::string command)
 {
 	::timeline* timeline = ctx->timeline;
 	debug::cli* cli = ctx->cli;

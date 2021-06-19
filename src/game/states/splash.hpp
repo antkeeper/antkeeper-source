@@ -17,22 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATES_HPP
-#define ANTKEEPER_GAME_STATES_HPP
+#ifndef ANTKEEPER_GAME_STATE_SPLASH_HPP
+#define ANTKEEPER_GAME_STATE_SPLASH_HPP
 
-struct game_context;
+#include "game/context.hpp"
 
-void loading_state_enter(game_context* ctx);
-void loading_state_exit(game_context* ctx);
-void language_select_state_enter(game_context* ctx);
-void language_select_state_exit(game_context* ctx);
-void splash_state_enter(game_context* ctx);
-void splash_state_exit(game_context* ctx);
-void title_state_enter(game_context* ctx);
-void title_state_exit(game_context* ctx);
-void play_state_enter(game_context* ctx);
-void play_state_exit(game_context* ctx);
-void pause_state_enter(game_context* ctx);
-void pause_state_exit(game_context* ctx);
+namespace game {
+namespace state {
 
-#endif // ANTKEEPER_GAME_STATES_HPP
+/// Splash screen game state functions.
+namespace splash {
+
+void enter(game::context* ctx);
+void exit(game::context* ctx);
+
+} // namespace splash
+
+} // namespace state
+} // namespace game
+
+#endif // ANTKEEPER_GAME_STATE_SPLASH_HPP

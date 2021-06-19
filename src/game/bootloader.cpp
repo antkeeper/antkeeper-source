@@ -26,7 +26,7 @@
 #include "debug/cli.hpp"
 #include "debug/console-commands.hpp"
 #include "debug/logger.hpp"
-#include "game/game-context.hpp"
+#include "game/context.hpp"
 #include "gl/framebuffer.hpp"
 #include "gl/pixel-format.hpp"
 #include "gl/pixel-type.hpp"
@@ -54,7 +54,7 @@
 #include "resources/resource-manager.hpp"
 #include "resources/resource-manager.hpp"
 #include "scene/scene.hpp"
-#include "game/states/game-states.hpp"
+#include "game/states/loading.hpp"
 #include "entity/systems/behavior.hpp"
 #include "entity/systems/camera.hpp"
 #include "entity/systems/collision.hpp"
@@ -102,19 +102,19 @@
 
 static constexpr double seconds_per_day = 24.0 * 60.0 * 60.0;
 
-static void parse_options(game_context* ctx, int argc, char** argv);
-static void setup_resources(game_context* ctx);
-static void load_config(game_context* ctx);
-static void load_strings(game_context* ctx);
-static void setup_window(game_context* ctx);
-static void setup_rendering(game_context* ctx);
-static void setup_scenes(game_context* ctx);
-static void setup_animation(game_context* ctx);
-static void setup_entities(game_context* ctx);
-static void setup_systems(game_context* ctx);
-static void setup_controls(game_context* ctx);
-static void setup_cli(game_context* ctx);
-static void setup_callbacks(game_context* ctx);
+static void parse_options(game::context* ctx, int argc, char** argv);
+static void setup_resources(game::context* ctx);
+static void load_config(game::context* ctx);
+static void load_strings(game::context* ctx);
+static void setup_window(game::context* ctx);
+static void setup_rendering(game::context* ctx);
+static void setup_scenes(game::context* ctx);
+static void setup_animation(game::context* ctx);
+static void setup_entities(game::context* ctx);
+static void setup_systems(game::context* ctx);
+static void setup_controls(game::context* ctx);
+static void setup_cli(game::context* ctx);
+static void setup_callbacks(game::context* ctx);
 
 int bootloader(application* app, int argc, char** argv)
 {
@@ -124,7 +124,7 @@ int bootloader(application* app, int argc, char** argv)
 	logger->push_task("Running application bootloader");
 	
 	// Allocate game context
-	game_context* ctx = new game_context();
+	game::context* ctx = new game::context();
 	ctx->app = app;
 	ctx->logger = logger;
 	
@@ -154,16 +154,19 @@ int bootloader(application* app, int argc, char** argv)
 	
 	logger->pop_task(EXIT_SUCCESS);
 	
-	// Change state
-	if (ctx->option_quick_start.has_value())
-		app->change_state({std::bind(play_state_enter, ctx), std::bind(play_state_exit, ctx)});
-	else
-		app->change_state({std::bind(splash_state_enter, ctx), std::bind(splash_state_exit, ctx)});
+	// Setup initial application state
+	application::state initial_state;
+	initial_state.name = "loading";
+	initial_state.enter = std::bind(game::state::loading::enter, ctx);
+	initial_state.exit = std::bind(game::state::loading::exit, ctx);
+	
+	// Enter initial application state
+	app->change_state(initial_state);
 	
 	return EXIT_SUCCESS;
 }
 
-void parse_options(game_context* ctx, int argc, char** argv)
+void parse_options(game::context* ctx, int argc, char** argv)
 {
 	debug::logger* logger = ctx->logger;
 	logger->push_task("Parsing command line options");
@@ -229,7 +232,7 @@ void parse_options(game_context* ctx, int argc, char** argv)
 	logger->pop_task(EXIT_SUCCESS);
 }
 
-void setup_resources(game_context* ctx)
+void setup_resources(game::context* ctx)
 {
 	debug::logger* logger = ctx->logger;
 	
@@ -352,7 +355,7 @@ void setup_resources(game_context* ctx)
 	ctx->resource_manager->include("/");
 }
 
-void load_config(game_context* ctx)
+void load_config(game::context* ctx)
 {
 	debug::logger* logger = ctx->logger;
 	logger->push_task("Loading config");
@@ -368,7 +371,7 @@ void load_config(game_context* ctx)
 	logger->pop_task(EXIT_SUCCESS);
 }
 
-void load_strings(game_context* ctx)
+void load_strings(game::context* ctx)
 {
 	debug::logger* logger = ctx->logger;
 	logger->push_task("Loading strings");
@@ -392,7 +395,7 @@ void load_strings(game_context* ctx)
 	logger->pop_task(EXIT_SUCCESS);
 }
 
-void setup_window(game_context* ctx)
+void setup_window(game::context* ctx)
 {
 	debug::logger* logger = ctx->logger;
 	logger->push_task("Setting up window");
@@ -439,7 +442,7 @@ void setup_window(game_context* ctx)
 	logger->pop_task(EXIT_SUCCESS);
 }
 
-void setup_rendering(game_context* ctx)
+void setup_rendering(game::context* ctx)
 {
 	debug::logger* logger = ctx->logger;
 	logger->push_task("Setting up rendering");
@@ -505,7 +508,7 @@ void setup_rendering(game_context* ctx)
 	ctx->overworld_clear_pass->set_clear_depth(0.0f);
 	ctx->overworld_sky_pass = new sky_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->overworld_sky_pass);
-	ctx->overworld_sky_pass->set_enabled(false);
+	ctx->overworld_sky_pass->set_enabled(true);
 	ctx->overworld_material_pass = new material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
 	ctx->overworld_material_pass->set_fallback_material(ctx->fallback_material);
 	ctx->overworld_material_pass->shadow_map_pass = ctx->overworld_shadow_map_pass;
@@ -601,7 +604,7 @@ void setup_rendering(game_context* ctx)
 	logger->pop_task(EXIT_SUCCESS);
 }
 
-void setup_scenes(game_context* ctx)
+void setup_scenes(game::context* ctx)
 {
 	debug::logger* logger = ctx->logger;
 	logger->push_task("Setting up scenes");
@@ -720,7 +723,7 @@ void setup_scenes(game_context* ctx)
 	logger->pop_task(EXIT_SUCCESS);
 }
 
-void setup_animation(game_context* ctx)
+void setup_animation(game::context* ctx)
 {
 	// Setup timeline system
 	ctx->timeline = new timeline();
@@ -736,6 +739,8 @@ void setup_animation(game_context* ctx)
 	// Create fade transition
 	ctx->fade_transition = new screen_transition();
 	ctx->fade_transition->get_material()->set_shader_program(ctx->resource_manager->load<gl::shader_program>("fade-transition.glsl"));
+	ctx->fade_transition_color = ctx->fade_transition->get_material()->add_property<float3>("color");
+	ctx->fade_transition_color->set_value({0, 0, 0});
 	ctx->ui_scene->add_object(ctx->fade_transition->get_billboard());
 	ctx->animator->add_animation(ctx->fade_transition->get_animation());
 	
@@ -767,7 +772,7 @@ void setup_animation(game_context* ctx)
 	ctx->ui_material_pass->set_time_tween(ctx->time_tween);
 }
 
-void setup_entities(game_context* ctx)
+void setup_entities(game::context* ctx)
 {
 	// Create entity registry
 	ctx->entity_registry = new entt::registry();
@@ -783,7 +788,7 @@ void setup_entities(game_context* ctx)
 	ctx->focal_point_entity = ctx->entity_registry->create();
 }
 
-void setup_systems(game_context* ctx)
+void setup_systems(game::context* ctx)
 {
 	event_dispatcher* event_dispatcher = ctx->app->get_event_dispatcher();
 
@@ -878,6 +883,7 @@ void setup_systems(game_context* ctx)
 	
 	// Setup astronomy system
 	ctx->astronomy_system = new entity::system::astronomy(*ctx->entity_registry);
+	ctx->astronomy_system->set_sky_pass(ctx->overworld_sky_pass);
 	
 	// Setup proteome system
 	ctx->proteome_system = new entity::system::proteome(*ctx->entity_registry);
@@ -923,7 +929,7 @@ void setup_systems(game_context* ctx)
 	event_dispatcher->subscribe<window_resized_event>(ctx->ui_system);
 }
 
-void setup_controls(game_context* ctx)
+void setup_controls(game::context* ctx)
 {
 	event_dispatcher* event_dispatcher = ctx->app->get_event_dispatcher();
 	
@@ -1227,7 +1233,7 @@ void setup_controls(game_context* ctx)
 
 }
 
-void setup_cli(game_context* ctx)
+void setup_cli(game::context* ctx)
 {
 	ctx->cli = new debug::cli();
 	ctx->cli->register_command("echo", debug::cc::echo);
@@ -1239,7 +1245,7 @@ void setup_cli(game_context* ctx)
 	//logger->log(cli.interpret(cmd));
 }
 
-void setup_callbacks(game_context* ctx)
+void setup_callbacks(game::context* ctx)
 {
 	// Set update callback
 	ctx->app->set_update_callback

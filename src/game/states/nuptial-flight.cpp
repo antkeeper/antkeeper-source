@@ -17,38 +17,37 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "animation/ease.hpp"
+#include "game/states/nuptial-flight.hpp"
+#include "entity/systems/astronomy.hpp"
+#include "entity/systems/orbit.hpp"
+#include "renderer/material-property.hpp"
 #include "animation/screen-transition.hpp"
-#include "animation/timeline.hpp"
-#include "application.hpp"
-#include "debug/logger.hpp"
-#include "game/game-context.hpp"
-#include "input/listener.hpp"
-#include "event/input-events.hpp"
-#include "gl/rasterizer.hpp"
-#include "game/states/game-states.hpp"
-#include "renderer/passes/sky-pass.hpp"
-#include "scene/billboard.hpp"
-#include <functional>
+#include "animation/ease.hpp"
+#include "resources/config-file.hpp"
 
-void map_state_enter(game_context* ctx)
+namespace game {
+namespace state {
+namespace nuptial_flight {
+
+void enter(game::context* ctx)
 {
-	debug::logger* logger = ctx->logger;	
-	logger->push_task("Entering map state");
+	// Pause motion of celestial objects
+	ctx->astronomy_system->set_time_scale(0.0);
+	ctx->orbit_system->set_time_scale(0.0);
 	
-	// Disable sky pass
-	ctx->overworld_sky_pass->set_enabled(false);
-	
-	// Start fade in
+	// Start fade in from white
+	ctx->fade_transition_color->set_value({1, 1, 1});
 	ctx->fade_transition->transition(1.0f, true, ease<float>::in_quad);
-	
-	logger->pop_task(EXIT_SUCCESS);
 }
 
-void map_state_exit(game_context* ctx)
+void exit(game::context* ctx)
 {
-	debug::logger* logger = ctx->logger;
-	logger->push_task("Exiting map state");
-	
-	logger->pop_task(EXIT_SUCCESS);
+	// Resume motion of celestial objects
+	const double time_scale = ctx->config->get<double>("time_scale");
+	ctx->astronomy_system->set_time_scale(time_scale);
+	ctx->orbit_system->set_time_scale(time_scale);
 }
+
+} // namespace nuptial_flight
+} // namespace state
+} // namespace game

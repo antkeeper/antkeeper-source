@@ -49,7 +49,19 @@ namespace debug
 class application
 {
 public:
-	typedef std::array<std::function<void()>, 2> state_type;
+	/// Application state type.
+	struct state
+	{
+		/// Name of the state.
+		std::string name;
+		
+		/// State enter function.
+		std::function<void()> enter;
+		
+		/// State exit function.
+		std::function<void()> exit;
+	};
+	
 	typedef std::function<int(application*)> bootloader_type;
 	typedef std::function<void(double, double)> update_callback_type;
 	typedef std::function<void(double)> render_callback_type;
@@ -83,9 +95,16 @@ public:
 	/**
 	 * Changes the applications state, resulting in the execution of the current state's exit function (if any), followed by the new state's enter function (if any).
 	 *
-	 * @param state A pair of enter and exit functions, respectively, which define the state.
+	 * @param next_state Next application state.
 	 */
-	void change_state(const state_type& state);
+	void change_state(const application::state& next_state);
+	
+	/**
+	 * Queues the next applications state. This may be called from within a state's enter function.
+	 *
+	 * @param next_state Next application state.
+	 */
+	void queue_state(const application::state& next_state);
 	
 	/**
 	 * Captures a screenshot of the most recently rendered frame.
@@ -206,7 +225,8 @@ private:
 	
 	bool closed;
 	int exit_status;
-	state_type state;
+	application::state current_state;
+	application::state queued_state;
 	update_callback_type update_callback;
 	render_callback_type render_callback;
 	bool fullscreen;
