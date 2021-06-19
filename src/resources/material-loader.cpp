@@ -400,5 +400,8 @@ material* resource_loader<material>::load(resource_manager* resource_manager, PH
 		}
 	}
 	
+	// Update material tweens
+	material->update_tweens();
+	
 	return material;
 }

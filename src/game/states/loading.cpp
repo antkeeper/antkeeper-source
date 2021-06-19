@@ -18,21 +18,34 @@
  */
 
 #include "game/states/loading.hpp"
-#include "game/states/play.hpp"
-#include "game/states/splash.hpp"
+#include "application.hpp"
+#include "astro/illuminance.hpp"
+#include "color/color.hpp"
+#include "entity/components/atmosphere.hpp"
+#include "entity/components/blackbody.hpp"
 #include "entity/components/celestial-body.hpp"
 #include "entity/components/orbit.hpp"
-#include "entity/components/blackbody.hpp"
 #include "entity/components/terrain.hpp"
-#include "entity/components/atmosphere.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/systems/astronomy.hpp"
 #include "entity/systems/orbit.hpp"
-#include "scene/directional-light.hpp"
-#include "scene/ambient-light.hpp"
-#include "resources/resource-manager.hpp"
-#include "application.hpp"
+#include "game/states/nuptial-flight.hpp"
+#include "game/states/play.hpp"
+#include "game/states/splash.hpp"
+#include "geom/spherical.hpp"
+#include "gl/drawing-mode.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-attribute-type.hpp"
+#include "gl/vertex-buffer.hpp"
+#include "physics/light/photometry.hpp"
+#include "physics/orbit/orbit.hpp"
+#include "renderer/material.hpp"
+#include "renderer/model.hpp"
 #include "renderer/passes/shadow-map-pass.hpp"
+#include "renderer/vertex-attributes.hpp"
+#include "resources/resource-manager.hpp"
+#include "scene/ambient-light.hpp"
+#include "scene/directional-light.hpp"
 
 namespace game {
 namespace state {
@@ -49,6 +62,9 @@ static void planetogenesis(game::context* ctx);
 
 /// Creates a moon.
 static void selenogenesis(game::context* ctx);
+
+/// Creates fixed stars.
+static void extrasolar_heliogenesis(game::context* ctx);
 
 void enter(game::context* ctx)
 {
@@ -69,9 +85,9 @@ void enter(game::context* ctx)
 	application::state next_state;
 	if (ctx->option_quick_start.has_value())
 	{
-		next_state.name = "play";
-		next_state.enter = std::bind(game::state::play::enter, ctx);
-		next_state.exit = std::bind(game::state::play::exit, ctx);
+		next_state.name = "nuptial flight";
+		next_state.enter = std::bind(game::state::nuptial_flight::enter, ctx);
+		next_state.exit = std::bind(game::state::nuptial_flight::exit, ctx);
 	}
 	else
 	{
@@ -125,6 +141,19 @@ void cosmogenesis(game::context* ctx)
 	try
 	{
 		selenogenesis(ctx);
+	}
+	catch (...)
+	{
+		ctx->logger->pop_task(EXIT_FAILURE);
+		throw;
+	}
+	ctx->logger->pop_task(EXIT_SUCCESS);
+	
+	// Create fixed stars
+	ctx->logger->push_task("Creating fixed stars");
+	try
+	{
+		extrasolar_heliogenesis(ctx);
 	}
 	catch (...)
 	{
@@ -261,6 +290,115 @@ void selenogenesis(game::context* ctx)
 	
 	// Pass moon model to sky pass
 	ctx->overworld_sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
+}
+
+void extrasolar_heliogenesis(game::context* ctx)
+{
+	// Load star catalog
+	string_table* star_catalog = ctx->resource_manager->load<string_table>("stars.csv");
+	
+	// Allocate star catalog vertex data
+	std::size_t star_count = 0;
+	if (star_catalog->size() > 0)
+		star_count = star_catalog->size() - 1;
+	std::size_t star_vertex_size = 6;
+	std::size_t star_vertex_stride = star_vertex_size * sizeof(float);
+	float* star_vertex_data = new float[star_count * star_vertex_size];
+	float* star_vertex = star_vertex_data;
+	
+	// Build star catalog vertex data
+	for (std::size_t i = 1; i < star_catalog->size(); ++i)
+	{
+		const string_table_row& catalog_row = (*star_catalog)[i];
+		
+		double ra = 0.0;
+		double dec = 0.0;
+		double vmag = 0.0;
+		double bv_color = 0.0;
+		
+		// Parse star catalog entry
+		try
+		{
+			ra = std::stod(catalog_row[1]);
+			dec = std::stod(catalog_row[2]);
+			vmag = std::stod(catalog_row[3]);
+			bv_color = std::stod(catalog_row[4]);
+		}
+		catch (const std::exception& e)
+		{
+			continue;
+		}
+		
+		// Convert right ascension and declination from degrees to radians
+		ra = math::wrap_radians(math::radians(ra));
+		dec = math::wrap_radians(math::radians(dec));
+		
+		// Transform spherical equatorial coordinates to rectangular equatorial coordinates
+		double3 position_bci = geom::spherical::to_cartesian(double3{1.0, dec, ra});
+		
+		// Transform coordinates from equatorial space to inertial space
+		physics::frame<double> bci_to_inertial = physics::orbit::inertial::to_bci({0, 0, 0}, 0.0, math::radians(23.4393)).inverse();
+		double3 position_inertial = bci_to_inertial * position_bci;
+		
+		// Convert color index to color temperature
+		double cct = color::index::bv_to_cct(bv_color);
+		
+		// Calculate XYZ color from color temperature
+		double3 color_xyz = color::cct::to_xyz(cct);
+		
+		// Transform XYZ color to ACEScg colorspace
+		double3 color_acescg = color::xyz::to_acescg(color_xyz);
+		
+		// Convert apparent magnitude to irradiance (W/m^2)
+		double vmag_irradiance = std::pow(10.0, 0.4 * (-vmag - 19.0 + 0.4));
+		
+		// Convert irradiance to illuminance
+		double vmag_illuminance = vmag_irradiance * (683.0 * 0.14);
+		
+		// Scale color by illuminance
+		double3 scaled_color = color_acescg * vmag_illuminance;
+		
+		// Build vertex
+		*(star_vertex++) = static_cast<float>(position_inertial.x);
+		*(star_vertex++) = static_cast<float>(position_inertial.y);
+		*(star_vertex++) = static_cast<float>(position_inertial.z);
+		*(star_vertex++) = static_cast<float>(scaled_color.x);
+		*(star_vertex++) = static_cast<float>(scaled_color.y);
+		*(star_vertex++) = static_cast<float>(scaled_color.z);
+	}
+	
+	// Unload star catalog
+	ctx->resource_manager->unload("stars.csv");
+	
+	// Allocate stars model
+	model* stars_model = new model();
+	
+	// Resize model VBO and upload vertex data
+	gl::vertex_buffer* vbo = stars_model->get_vertex_buffer();
+	vbo->resize(star_count * star_vertex_stride, star_vertex_data);
+	
+	// Free star catalog vertex data
+	delete[] star_vertex_data;
+	
+	// Bind vertex attributes to model VAO
+	gl::vertex_array* vao = stars_model->get_vertex_array();
+	std::size_t vao_offset = 0;
+	vao->bind_attribute(VERTEX_POSITION_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, star_vertex_stride, 0);
+	vao_offset += 3;
+	vao->bind_attribute(VERTEX_COLOR_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, star_vertex_stride, sizeof(float) * vao_offset);
+	
+	// Load star material
+	material* star_material = ctx->resource_manager->load<material>("fixed-star.mtl");
+	
+	// Create model group
+	model_group* stars_model_group = stars_model->add_group("stars");
+	stars_model_group->set_material(star_material);
+	stars_model_group->set_drawing_mode(gl::drawing_mode::points);
+	stars_model_group->set_start_index(0);
+	stars_model_group->set_index_count(star_count);
+	
+	// Pass stars model to sky pass
+	ctx->overworld_sky_pass->set_stars_model(stars_model);
 }
 
 } // namespace loading

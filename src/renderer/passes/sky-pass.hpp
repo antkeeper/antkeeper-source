@@ -55,6 +55,7 @@ public:
 	void set_sky_model(const model* model);
 	void set_time_tween(const tween<double>* time);
 	void set_moon_model(const model* model);
+	void set_stars_model(const model* model);
 	
 	void set_topocentric_frame(const physics::frame<float>& frame);
 	
@@ -76,7 +77,6 @@ private:
 	const gl::shader_input* resolution_input;
 	const gl::shader_input* time_input;
 	const gl::shader_input* exposure_input;
-	
 	const gl::shader_input* observer_altitude_input;
 	const gl::shader_input* sun_direction_input;
 	const gl::shader_input* sun_color_input;
@@ -93,15 +93,6 @@ private:
 	const gl::shader_input* moon_moon_position_input;
 	const gl::shader_input* moon_sun_position_input;
 	
-	gl::vertex_buffer* star_catalog_vbo;
-	gl::vertex_array* star_catalog_vao;
-	gl::shader_program* star_shader_program;
-	const gl::shader_input* star_model_view_input;
-	const gl::shader_input* star_projection_input;
-	const gl::shader_input* star_exposure_input;
-	const gl::shader_input* star_distance_input;
-	std::size_t star_count;
-	
 	const model* sky_model;
 	const material* sky_material;
 	const gl::vertex_array* sky_model_vao;
@@ -115,6 +106,18 @@ private:
 	gl::drawing_mode moon_model_drawing_mode;
 	std::size_t moon_model_start_index;
 	std::size_t moon_model_index_count;
+	
+	const model* stars_model;
+	const material* star_material;
+	const gl::vertex_array* stars_model_vao;
+	gl::drawing_mode stars_model_drawing_mode;
+	std::size_t stars_model_start_index;
+	std::size_t stars_model_index_count;
+	gl::shader_program* star_shader_program;
+	const gl::shader_input* star_model_view_input;
+	const gl::shader_input* star_projection_input;
+	const gl::shader_input* star_exposure_input;
+	const gl::shader_input* star_distance_input;
 
 	const gl::texture_2d* blue_noise_map;
 	const gl::texture_2d* sky_gradient;

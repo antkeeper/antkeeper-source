@@ -56,7 +56,7 @@ void enter(game::context* ctx)
 		
 		// Set reference location of astronomy system
 		ctx->astronomy_system->set_reference_body(planet_eid);
-		ctx->astronomy_system->set_observer_location(double3{0.0, math::radians(0.0), math::radians(0.0)});
+		ctx->astronomy_system->set_observer_location(double3{observer.elevation, observer.latitude, observer.longitude});
 	}
 	
 	// Create camera focal point
