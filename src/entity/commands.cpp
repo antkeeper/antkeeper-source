@@ -25,61 +25,62 @@
 #include "entity/components/parent.hpp"
 #include "entity/components/celestial-body.hpp"
 #include "entity/components/terrain.hpp"
+#include "entity/components/name.hpp"
 #include <limits>
 
 namespace entity {
 namespace command {
 
-void translate(entity::registry& registry, entity::id entity_id, const float3& translation)
+void translate(entity::registry& registry, entity::id eid, const float3& translation)
 {
-	if (registry.has<component::transform>(entity_id))
+	if (registry.has<component::transform>(eid))
 	{
-		component::transform& transform = registry.get<component::transform>(entity_id);
+		component::transform& transform = registry.get<component::transform>(eid);
 		transform.local.translation += translation;
 	}
 }
 
-void move_to(entity::registry& registry, entity::id entity_id, const float3& position)
+void move_to(entity::registry& registry, entity::id eid, const float3& position)
 {
-	if (registry.has<component::transform>(entity_id))
+	if (registry.has<component::transform>(eid))
 	{
-		component::transform& transform = registry.get<component::transform>(entity_id);
+		component::transform& transform = registry.get<component::transform>(eid);
 		transform.local.translation = position;
 	}
 }
 
-void warp_to(entity::registry& registry, entity::id entity_id, const float3& position)
+void warp_to(entity::registry& registry, entity::id eid, const float3& position)
 {
-	if (registry.has<component::transform>(entity_id))
+	if (registry.has<component::transform>(eid))
 	{
-		component::transform& transform = registry.get<component::transform>(entity_id);
+		component::transform& transform = registry.get<component::transform>(eid);
 		transform.local.translation = position;
 		transform.warp = true;
 	}
 }
 
-void set_scale(entity::registry& registry, entity::id entity_id, const float3& scale)
+void set_scale(entity::registry& registry, entity::id eid, const float3& scale)
 {
-	if (registry.has<component::transform>(entity_id))
+	if (registry.has<component::transform>(eid))
 	{
-		component::transform& transform = registry.get<component::transform>(entity_id);
+		component::transform& transform = registry.get<component::transform>(eid);
 		transform.local.scale = scale;
 	}
 }
 
-void set_transform(entity::registry& registry, entity::id entity_id, const math::transform<float>& transform, bool warp)
+void set_transform(entity::registry& registry, entity::id eid, const math::transform<float>& transform, bool warp)
 {
-	if (registry.has<component::transform>(entity_id))
+	if (registry.has<component::transform>(eid))
 	{
-		component::transform& component = registry.get<component::transform>(entity_id);
+		component::transform& component = registry.get<component::transform>(eid);
 		component.local = transform;
 		component.warp = warp;
 	}
 }
 
-void place(entity::registry& registry, entity::id entity_id, entity::id celestial_body_id, double altitude, double latitude, double longitude)
+void place(entity::registry& registry, entity::id eid, entity::id celestial_body_id, double altitude, double latitude, double longitude)
 {
-	if (registry.has<component::transform>(entity_id))
+	if (registry.has<component::transform>(eid))
 	{
 		double x = 0.0;
 		double y = altitude;
@@ -103,26 +104,26 @@ void place(entity::registry& registry, entity::id entity_id, entity::id celestia
 			}
 		}
 		
-		component::transform& transform = registry.get<component::transform>(entity_id);
+		component::transform& transform = registry.get<component::transform>(eid);
 		transform.local.translation = math::type_cast<float>(double3{x, y, z});
 		transform.warp = true;
 	}
 }
 
-void assign_render_layers(entity::registry& registry, entity::id entity_id, unsigned int layers)
+void assign_render_layers(entity::registry& registry, entity::id eid, unsigned int layers)
 {
-	if (registry.has<component::model>(entity_id))
+	if (registry.has<component::model>(eid))
 	{
-		component::model model = registry.get<component::model>(entity_id);
+		component::model model = registry.get<component::model>(eid);
 		model.layers = layers;
-		registry.replace<component::model>(entity_id, model);
+		registry.replace<component::model>(eid, model);
 		
 		// Apply to child layers
 		registry.view<component::parent>().each(
-		[&](entity::id entity_id, auto& component)
+		[&](entity::id eid, auto& component)
 		{
-			if (component.parent == entity_id)
-				assign_render_layers(registry, entity_id, layers);
+			if (component.parent == eid)
+				assign_render_layers(registry, eid, layers);
 		});
 	}
 }
@@ -133,22 +134,22 @@ void bind_transform(entity::registry& registry, entity::id source, entity::id ta
 	registry.assign_or_replace<component::copy_transform>(source, copy_transform);
 }
 
-math::transform<float> get_local_transform(entity::registry& registry, entity::id entity_id)
+math::transform<float> get_local_transform(entity::registry& registry, entity::id eid)
 {
-	if (registry.has<component::transform>(entity_id))
+	if (registry.has<component::transform>(eid))
 	{
-		const component::transform& component = registry.get<component::transform>(entity_id);
+		const component::transform& component = registry.get<component::transform>(eid);
 		return component.local;
 	}
 	
 	return math::identity_transform<float>;
 }
 
-math::transform<float> get_world_transform(entity::registry& registry, entity::id entity_id)
+math::transform<float> get_world_transform(entity::registry& registry, entity::id eid)
 {
-	if (registry.has<component::transform>(entity_id))
+	if (registry.has<component::transform>(eid))
 	{
-		const component::transform& component = registry.get<component::transform>(entity_id);
+		const component::transform& component = registry.get<component::transform>(eid);
 		return component.world;
 	}
 	
@@ -160,6 +161,36 @@ void parent(entity::registry& registry, entity::id child, entity::id parent)
 	component::parent component;
 	component.parent = parent;
 	registry.assign_or_replace<component::parent>(child, component);
+}
+
+void rename(entity::registry& registry, entity::id eid, const std::string& name)
+{
+	registry.assign_or_replace<component::name>(eid, name);
+}
+
+entity::id find(entity::registry& registry, const std::string& name)
+{
+	auto view = registry.view<component::name>();
+
+	for (auto eid: view)
+	{
+		if (view.get(eid).id == name)
+			return eid;
+	}
+	
+	return entt::null;
+}
+
+entity::id create(entity::registry& registry)
+{
+	return registry.create();
+}
+
+entity::id create(entity::registry& registry, const std::string& name)
+{
+	auto eid = registry.create();
+	rename(registry, eid, name);
+	return eid;
 }
 
 } // namespace command

@@ -27,6 +27,7 @@
 #include "entity/components/camera-follow.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/components/terrain.hpp"
+#include "entity/commands.hpp"
 #include "renderer/material-property.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
@@ -44,11 +45,7 @@ void enter(game::context* ctx)
 	ctx->surface_camera->set_active(true);
 	
 	// Find planet EID by name
-	entity::id planet_eid = entt::null;
-	if (auto it = ctx->named_entities.find("planet"); it != ctx->named_entities.end())
-	{
-		planet_eid = it->second;
-	}
+	auto planet_eid = entity::command::find(*ctx->entity_registry, "planet");
 	
 	// Remove terrain component from planet (if any)
 	if (ctx->entity_registry->has<entity::component::terrain>(planet_eid))
@@ -82,6 +79,7 @@ void enter(game::context* ctx)
 	entity::archetype* ant_round_eye_archetype = ctx->resource_manager->load<entity::archetype>("ant-round-eye.ent");
 	auto ant_round_eye_eid = ctx->entity_registry->create();
 	ant_round_eye_archetype->assign(*ctx->entity_registry, ant_round_eye_eid);
+	entity::command::assign_render_layers(*ctx->entity_registry, ant_round_eye_eid, 0b10);
 	
 	// Create green orb ring
 	entity::archetype* orb_ring_archetype = ctx->resource_manager->load<entity::archetype>("orb-ring.ent");

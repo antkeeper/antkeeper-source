@@ -30,17 +30,22 @@ namespace entity {
 /// Commands which operate on entity::id components
 namespace command {
 
-void translate(entity::registry& registry, entity::id entity_id, const float3& translation);
-void move_to(entity::registry& registry, entity::id entity_id, const float3& position);
-void warp_to(entity::registry& registry, entity::id entity_id, const float3& position);
-void set_scale(entity::registry& registry, entity::id entity_id, const float3& scale);
-void set_transform(entity::registry& registry, entity::id entity_id, const math::transform<float>& transform, bool warp = false);
-void place(entity::registry& registry, entity::id entity_id, entity::id celestial_body_id, double altitude, double latitude, double longitude);
-void assign_render_layers(entity::registry& registry, entity::id entity_id, unsigned int layers);
+void translate(entity::registry& registry, entity::id eid, const float3& translation);
+void move_to(entity::registry& registry, entity::id eid, const float3& position);
+void warp_to(entity::registry& registry, entity::id eid, const float3& position);
+void set_scale(entity::registry& registry, entity::id eid, const float3& scale);
+void set_transform(entity::registry& registry, entity::id eid, const math::transform<float>& transform, bool warp = false);
+void place(entity::registry& registry, entity::id eid, entity::id celestial_body_id, double altitude, double latitude, double longitude);
+void assign_render_layers(entity::registry& registry, entity::id eid, unsigned int layers);
 void bind_transform(entity::registry& registry, entity::id source_eid, entity::id target_eid);
-math::transform<float> get_local_transform(entity::registry& registry, entity::id entity_id);
-math::transform<float> get_world_transform(entity::registry& registry, entity::id entity_id);
+math::transform<float> get_local_transform(entity::registry& registry, entity::id eid);
+math::transform<float> get_world_transform(entity::registry& registry, entity::id eid);
 void parent(entity::registry& registry, entity::id child, entity::id parent);
+
+void rename(entity::registry& registry, entity::id eid, const std::string& name);
+entity::id find(entity::registry& registry, const std::string& name);
+entity::id create(entity::registry& registry);
+entity::id create(entity::registry& registry, const std::string& name);
 
 } // namespace command
 } // namespace entity

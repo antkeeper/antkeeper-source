@@ -29,6 +29,7 @@
 #include "entity/components/transform.hpp"
 #include "entity/systems/astronomy.hpp"
 #include "entity/systems/orbit.hpp"
+#include "entity/commands.hpp"
 #include "game/states/nuptial-flight.hpp"
 #include "game/states/splash.hpp"
 #include "geom/spherical.hpp"
@@ -181,10 +182,7 @@ void cosmogenesis(game::context* ctx)
 void heliogenesis(game::context* ctx)
 {
 	// Create solar entity
-	auto sun_eid = ctx->entity_registry->create();
-	
-	// Name solar entity
-	ctx->named_entities["sun"] = sun_eid;
+	auto sun_eid = entity::command::create(*ctx->entity_registry, "sun");
 	
 	// Assign solar celestial body component
 	entity::component::celestial_body body;
@@ -236,10 +234,7 @@ void heliogenesis(game::context* ctx)
 void planetogenesis(game::context* ctx)
 {
 	// Create planetary entity
-	auto planet_eid = ctx->entity_registry->create();
-	
-	// Name planetary entity
-	ctx->named_entities["planet"] = planet_eid;
+	auto planet_eid = entity::command::create(*ctx->entity_registry, "planet");
 	
 	// Assign planetary celestial body component
 	entity::component::celestial_body body;
@@ -298,10 +293,7 @@ void planetogenesis(game::context* ctx)
 void selenogenesis(game::context* ctx)
 {
 	// Create lunar entity
-	auto moon_eid = ctx->entity_registry->create();
-	
-	// Name lunar entity
-	ctx->named_entities["moon"] = moon_eid;
+	auto moon_eid = entity::command::create(*ctx->entity_registry, "moon");
 	
 	// Pass moon model to sky pass
 	ctx->surface_sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
@@ -419,16 +411,13 @@ void extrasolar_heliogenesis(game::context* ctx)
 void colonigenesis(game::context* ctx)
 {
 	// Create queen entity
-	auto queen_eid = ctx->entity_registry->create();
-	ctx->named_entities["queen"] = queen_eid;
+	auto queen_eid = entity::command::create(*ctx->entity_registry, "queen");
 	
 	// Create central shaft entity
-	auto shaft_eid = ctx->entity_registry->create();
-	ctx->named_entities["shaft"] = queen_eid;
+	auto shaft_eid = entity::command::create(*ctx->entity_registry, "shaft");
 	
 	// Create entrance "lobby" chamber entity
-	auto lobby_eid = ctx->entity_registry->create();
-	ctx->named_entities["lobby"] = lobby_eid;
+	auto lobby_eid = entity::command::create(*ctx->entity_registry, "lobby");
 	
 }
 

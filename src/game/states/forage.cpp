@@ -42,11 +42,7 @@ void enter(game::context* ctx)
 	ctx->surface_camera->set_active(true);
 	
 	// Find planet EID by name
-	entity::id planet_eid = entt::null;
-	if (auto it = ctx->named_entities.find("planet"); it != ctx->named_entities.end())
-	{
-		planet_eid = it->second;
-	}
+	auto planet_eid = entity::command::find(*ctx->entity_registry, "planet");
 	
 	// Create biome terrain component
 	entity::component::terrain biome_terrain;
@@ -101,6 +97,7 @@ void enter(game::context* ctx)
 		entity::archetype* larva_archetype = ctx->resource_manager->load<entity::archetype>("ant-larva.ent");
 		auto larva_eid = larva_archetype->create(*ctx->entity_registry);
 		entity::command::warp_to(*ctx->entity_registry, larva_eid, {50, 0.1935f, 0});
+		entity::command::assign_render_layers(*ctx->entity_registry, larva_eid, 0b10);
 	}
 	
 	// Create cocoon
@@ -108,6 +105,7 @@ void enter(game::context* ctx)
 		entity::archetype* cocoon_archetype = ctx->resource_manager->load<entity::archetype>("ant-cocoon.ent");
 		auto cocoon_eid = cocoon_archetype->create(*ctx->entity_registry);
 		entity::command::warp_to(*ctx->entity_registry, cocoon_eid, {-50, 0.1935f, 0});
+		entity::command::assign_render_layers(*ctx->entity_registry, cocoon_eid, 0b10);
 	}
 	
 	ctx->surface_scene->update_tweens();
