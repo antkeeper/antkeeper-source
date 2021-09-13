@@ -17,11 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/states/play.hpp"
+#include "game/states/forage.hpp"
 #include "entity/archetype.hpp"
 #include "entity/commands.hpp"
 #include "entity/components/observer.hpp"
 #include "entity/components/camera-follow.hpp"
+#include "entity/components/terrain.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/systems/astronomy.hpp"
 #include "entity/systems/control.hpp"
@@ -32,16 +33,32 @@
 
 namespace game {
 namespace state {
-namespace play {
+namespace forage {
 
 void enter(game::context* ctx)
 {
+	// Switch to surface camera
+	ctx->underground_camera->set_active(false);
+	ctx->surface_camera->set_active(true);
+	
 	// Find planet EID by name
 	entity::id planet_eid = entt::null;
 	if (auto it = ctx->named_entities.find("planet"); it != ctx->named_entities.end())
 	{
 		planet_eid = it->second;
 	}
+	
+	// Create biome terrain component
+	entity::component::terrain biome_terrain;
+	biome_terrain.max_lod = 18;
+	biome_terrain.patch_material = ctx->resource_manager->load<material>("desert-terrain.mtl");
+	biome_terrain.elevation = [](double, double) -> double
+	{
+		return 0.0;
+	};
+	
+	// Replace planet terrain component with biome terrain component
+	ctx->entity_registry->replace<entity::component::terrain>(planet_eid, biome_terrain);
 	
 	// Create observer
 	auto observer_eid = ctx->entity_registry->create();
@@ -51,7 +68,7 @@ void enter(game::context* ctx)
 		observer.elevation = 0.0;
 		observer.latitude = 0.0;
 		observer.longitude = 0.0;
-		observer.camera = ctx->overworld_camera;
+		observer.camera = ctx->surface_camera;
 		ctx->entity_registry->assign<entity::component::observer>(observer_eid, observer);
 		
 		// Set reference location of astronomy system
@@ -71,9 +88,9 @@ void enter(game::context* ctx)
 	}
 	
 	// Setup camera
-	ctx->overworld_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
-	ctx->overworld_camera->set_exposure(-14.5f);
-	ctx->camera_system->set_camera(ctx->overworld_camera);
+	ctx->surface_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
+	ctx->surface_camera->set_exposure(-14.5f);
+	ctx->camera_system->set_camera(ctx->surface_camera);
 	
 	entity::system::control* control_system = ctx->control_system;
 	control_system->update(0.0, 0.0);
@@ -86,7 +103,14 @@ void enter(game::context* ctx)
 		entity::command::warp_to(*ctx->entity_registry, larva_eid, {50, 0.1935f, 0});
 	}
 	
-	ctx->overworld_scene->update_tweens();
+	// Create cocoon
+	{
+		entity::archetype* cocoon_archetype = ctx->resource_manager->load<entity::archetype>("ant-cocoon.ent");
+		auto cocoon_eid = cocoon_archetype->create(*ctx->entity_registry);
+		entity::command::warp_to(*ctx->entity_registry, cocoon_eid, {-50, 0.1935f, 0});
+	}
+	
+	ctx->surface_scene->update_tweens();
 	
 	// Start fade in
 	ctx->fade_transition->transition(1.0f, true, ease<float>::in_quad);
@@ -95,6 +119,6 @@ void enter(game::context* ctx)
 void exit(game::context* ctx)
 {}
 
-} // namespace play
+} // namespace forage
 } // namespace state
 } // namespace game

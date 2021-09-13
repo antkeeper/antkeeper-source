@@ -17,23 +17,21 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_PLAY_HPP
-#define ANTKEEPER_GAME_STATE_PLAY_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_CAMERA_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_CAMERA_HPP
 
-#include "game/context.hpp"
+#include "scene/camera.hpp"
 
-namespace game {
-namespace state {
+namespace entity {
+namespace component {
 
-/// Play game state functions.
-namespace play {
+struct flight_controller
+{
+	
+};
 
-void enter(game::context* ctx);
-void exit(game::context* ctx);
+} // namespace component
+} // namespace entity
 
-} // namespace play
+#endif // ANTKEEPER_ENTITY_COMPONENT_CAMERA_HPP
 
-} // namespace state
-} // namespace game
-
-#endif // ANTKEEPER_GAME_STATE_PLAY_HPP

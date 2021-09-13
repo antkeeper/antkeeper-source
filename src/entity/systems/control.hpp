@@ -58,7 +58,7 @@ public:
 	void set_camera_subject(entity::id entity_id);
 	
 	void set_viewport(const float4& viewport);
-	void set_underworld_camera(scene::camera* camera);
+	void set_underground_camera(scene::camera* camera);
 
 	input::control_set* get_control_set();
 	input::control* get_move_forward_control();
@@ -148,7 +148,7 @@ private:
 	
 	entity::id flashlight_entity;
 	entity::id camera_subject_entity;
-	scene::camera* underworld_camera;
+	scene::camera* underground_camera;
 	
 	float mouse_angle;
 	float old_mouse_angle;

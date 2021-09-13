@@ -177,15 +177,22 @@ void astronomy::update(double t, double dt)
 				)
 			);
 			
+			
+			// Sun color at the outer atmosphere
+			float3 sun_color_outer = math::type_cast<float>(blackbody.luminous_intensity * distance_attenuation);
+			
+			// Sun color at sea level
+			float3 sun_color_inner = math::type_cast<float>(blackbody.luminous_intensity * distance_attenuation * atmospheric_transmittance);
+			
 			// Update blackbody light color and intensity
-			sun_light->set_color(math::type_cast<float>(blackbody.luminous_intensity * atmospheric_transmittance));	
-			sun_light->set_intensity(static_cast<float>(distance_attenuation));
+			sun_light->set_color(sun_color_inner);	
+			sun_light->set_intensity(1.0f);
 			
 			// Upload blackbody params to sky pass
 			if (this->sky_pass)
 			{
 				this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_topocentric));
-				this->sky_pass->set_sun_color(math::type_cast<float>(blackbody.luminous_intensity * distance_attenuation));
+				this->sky_pass->set_sun_color(sun_color_outer, sun_color_inner);
 				
 				double blackbody_angular_radius = std::asin((celestial_body.radius * 2.0) / (blackbody_distance * 2.0));
 				this->sky_pass->set_sun_angular_radius(static_cast<float>(blackbody_angular_radius));

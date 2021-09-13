@@ -164,39 +164,44 @@ struct context
 	gl::texture_2d** marker_albedo_textures;
 	
 	// Compositing
-	bloom_pass* overworld_bloom_pass;
-	clear_pass* overworld_clear_pass;
-	clear_pass* overworld_shadow_map_clear_pass;
 	clear_pass* ui_clear_pass;
-	clear_pass* underworld_clear_pass;
-	final_pass* overworld_final_pass;
-	material_pass* overworld_material_pass;
 	material_pass* ui_material_pass;
-	material_pass* underworld_material_pass;
-	outline_pass* overworld_outline_pass;
-	shadow_map_pass* overworld_shadow_map_pass;
-	simple_render_pass* underworld_final_pass;
-	sky_pass* overworld_sky_pass;
-	material_property<const gl::texture_2d*>* underground_color_texture_property;
-	compositor* overworld_compositor;
-	compositor* underworld_compositor;
 	compositor* ui_compositor;
 	
-	// Scene
+	bloom_pass* common_bloom_pass;
+	final_pass* common_final_pass;
+	
+	clear_pass* underground_clear_pass;
+	material_pass* underground_material_pass;
+	compositor* underground_compositor;
+	
+	clear_pass* surface_shadow_map_clear_pass;
+	shadow_map_pass* surface_shadow_map_pass;
+	clear_pass* surface_clear_pass;
+	sky_pass* surface_sky_pass;
+	material_pass* surface_material_pass;
+	outline_pass* surface_outline_pass;
+	compositor* surface_compositor;
+	
+	// Scene utilities
 	scene::collection* active_scene;
-	scene::collection* overworld_scene;
-	scene::collection* underworld_scene;
-	scene::collection* ui_scene;
-	scene::camera* overworld_camera;
-	scene::camera* underworld_camera;
-	scene::camera* ui_camera;
-	scene::directional_light* moon_light;
-	scene::point_light* subterrain_light;
-	scene::ambient_light* underworld_ambient_light;
-	scene::billboard* splash_billboard;
-	scene::spot_light* lens_spot_light;
-	scene::spot_light* flashlight_spot_light;
 	geom::aabb<float> no_cull;
+	
+	// UI scene
+	scene::collection* ui_scene;
+	scene::camera* ui_camera;
+	scene::billboard* splash_billboard;
+	
+	// Surface scene
+	scene::collection* surface_scene;
+	scene::camera* surface_camera;
+	scene::spot_light* lens_spot_light;
+	
+	// Underground scene
+	scene::collection* underground_scene;
+	scene::camera* underground_camera;
+	scene::ambient_light* underground_ambient_light;
+	scene::spot_light* flashlight_spot_light;
 	
 	// Animation
 	timeline* timeline;

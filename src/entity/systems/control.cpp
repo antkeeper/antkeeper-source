@@ -37,7 +37,7 @@ control::control(entity::registry& registry):
 	zoom(0.0f),
 	tool(nullptr),
 	flashlight_entity(entt::null),
-	underworld_camera(nullptr)
+	underground_camera(nullptr)
 {
 	control_set.add_control(&move_forward_control);
 	control_set.add_control(&move_back_control);
@@ -186,9 +186,9 @@ void control::update(double t, double dt)
 			
 			command::set_transform(registry, flashlight_entity, flashlight_transform, false);
 			
-			if (underworld_camera)
+			if (underground_camera)
 			{
-				underworld_camera->look_at({0, -flashlight_depth + 50.0f, 0}, {0, -flashlight_depth, 0}, {0, 0, -1});
+				underground_camera->look_at({0, -flashlight_depth + 50.0f, 0}, {0, -flashlight_depth, 0}, {0, 0, -1});
 			}
 		}
 	}
@@ -224,9 +224,9 @@ void control::set_viewport(const float4& viewport)
 	this->viewport = viewport;
 }
 
-void control::set_underworld_camera(scene::camera* camera)
+void control::set_underground_camera(scene::camera* camera)
 {
-	this->underworld_camera = camera;
+	this->underground_camera = camera;
 }
 
 void control::handle_event(const mouse_moved_event& event)

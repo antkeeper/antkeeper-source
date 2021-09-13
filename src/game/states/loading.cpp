@@ -30,7 +30,6 @@
 #include "entity/systems/astronomy.hpp"
 #include "entity/systems/orbit.hpp"
 #include "game/states/nuptial-flight.hpp"
-#include "game/states/play.hpp"
 #include "game/states/splash.hpp"
 #include "geom/spherical.hpp"
 #include "gl/drawing-mode.hpp"
@@ -65,6 +64,9 @@ static void selenogenesis(game::context* ctx);
 
 /// Creates fixed stars.
 static void extrasolar_heliogenesis(game::context* ctx);
+
+/// Creates an ant colony
+static void colonigenesis(game::context* ctx);
 
 void enter(game::context* ctx)
 {
@@ -161,6 +163,19 @@ void cosmogenesis(game::context* ctx)
 		throw;
 	}
 	ctx->logger->pop_task(EXIT_SUCCESS);
+	
+	// Create ant colony
+	ctx->logger->push_task("Creating ant colony");
+	try
+	{
+		colonigenesis(ctx);
+	}
+	catch (...)
+	{
+		ctx->logger->pop_task(EXIT_FAILURE);
+		throw;
+	}
+	ctx->logger->pop_task(EXIT_SUCCESS);
 }
 
 void heliogenesis(game::context* ctx)
@@ -209,12 +224,12 @@ void heliogenesis(game::context* ctx)
 	sun_ambient->set_intensity(0.0f);
 	sun_ambient->update_tweens();
 	
-	// Add sun light scene objects to overworld scene
-	ctx->overworld_scene->add_object(sun_direct);
-	ctx->overworld_scene->add_object(sun_ambient);
+	// Add sun light scene objects to surface scene
+	ctx->surface_scene->add_object(sun_direct);
+	ctx->surface_scene->add_object(sun_ambient);
 	
 	// Pass direct sun light scene object to shadow map pass and astronomy system
-	ctx->overworld_shadow_map_pass->set_light(sun_direct);
+	ctx->surface_shadow_map_pass->set_light(sun_direct);
 	ctx->astronomy_system->set_sun_light(sun_direct);
 }
 
@@ -252,8 +267,8 @@ void planetogenesis(game::context* ctx)
 		//return math::random<double>(0.0, 1.0);
 		return 0.0;
 	};
-	terrain.max_lod = 18;
-	terrain.patch_material = ctx->resource_manager->load<material>("desert-terrain.mtl");
+	terrain.max_lod = 0;
+	terrain.patch_material = nullptr;
 	ctx->entity_registry->assign<entity::component::terrain>(planet_eid, terrain);
 	
 	// Assign planetary atmosphere component
@@ -277,7 +292,7 @@ void planetogenesis(game::context* ctx)
 	ctx->astronomy_system->set_reference_body(planet_eid);
 	
 	// Load sky model
-	ctx->overworld_sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
+	ctx->surface_sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
 }
 
 void selenogenesis(game::context* ctx)
@@ -289,7 +304,7 @@ void selenogenesis(game::context* ctx)
 	ctx->named_entities["moon"] = moon_eid;
 	
 	// Pass moon model to sky pass
-	ctx->overworld_sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
+	ctx->surface_sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
 }
 
 void extrasolar_heliogenesis(game::context* ctx)
@@ -398,7 +413,23 @@ void extrasolar_heliogenesis(game::context* ctx)
 	stars_model_group->set_index_count(star_count);
 	
 	// Pass stars model to sky pass
-	ctx->overworld_sky_pass->set_stars_model(stars_model);
+	ctx->surface_sky_pass->set_stars_model(stars_model);
+}
+
+void colonigenesis(game::context* ctx)
+{
+	// Create queen entity
+	auto queen_eid = ctx->entity_registry->create();
+	ctx->named_entities["queen"] = queen_eid;
+	
+	// Create central shaft entity
+	auto shaft_eid = ctx->entity_registry->create();
+	ctx->named_entities["shaft"] = queen_eid;
+	
+	// Create entrance "lobby" chamber entity
+	auto lobby_eid = ctx->entity_registry->create();
+	ctx->named_entities["lobby"] = lobby_eid;
+	
 }
 
 } // namespace loading

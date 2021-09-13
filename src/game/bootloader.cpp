@@ -497,71 +497,87 @@ void setup_rendering(game::context* ctx)
 	// Load fallback material
 	ctx->fallback_material = ctx->resource_manager->load<material>("fallback.mtl");
 	
-	// Setup overworld compositor
-	ctx->overworld_shadow_map_clear_pass = new clear_pass(ctx->rasterizer, ctx->shadow_map_framebuffer);
-	ctx->overworld_shadow_map_clear_pass->set_cleared_buffers(false, true, false);
-	ctx->overworld_shadow_map_clear_pass->set_clear_depth(1.0f);
-	ctx->overworld_shadow_map_pass = new shadow_map_pass(ctx->rasterizer, ctx->shadow_map_framebuffer, ctx->resource_manager);
-	ctx->overworld_shadow_map_pass->set_split_scheme_weight(0.75f);
-	ctx->overworld_clear_pass = new clear_pass(ctx->rasterizer, ctx->framebuffer_hdr);
-	ctx->overworld_clear_pass->set_cleared_buffers(true, true, true);
-	ctx->overworld_clear_pass->set_clear_depth(0.0f);
-	ctx->overworld_sky_pass = new sky_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
-	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->overworld_sky_pass);
-	ctx->overworld_sky_pass->set_enabled(true);
-	ctx->overworld_material_pass = new material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
-	ctx->overworld_material_pass->set_fallback_material(ctx->fallback_material);
-	ctx->overworld_material_pass->shadow_map_pass = ctx->overworld_shadow_map_pass;
-	ctx->overworld_material_pass->shadow_map = ctx->shadow_map_depth_texture;
-	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->overworld_material_pass);
-	ctx->overworld_outline_pass = new outline_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
-	ctx->overworld_outline_pass->set_outline_width(0.25f);
-	ctx->overworld_outline_pass->set_outline_color(float4{1.0f, 1.0f, 1.0f, 1.0f});
-	ctx->overworld_outline_pass->set_enabled(false);
-	ctx->overworld_bloom_pass = new bloom_pass(ctx->rasterizer, ctx->framebuffer_bloom, ctx->resource_manager);
-	ctx->overworld_bloom_pass->set_source_texture(ctx->framebuffer_hdr_color);
-	ctx->overworld_bloom_pass->set_brightness_threshold(1.0f);
-	ctx->overworld_bloom_pass->set_blur_iterations(5);
-	ctx->overworld_bloom_pass->set_enabled(true);
-	ctx->overworld_final_pass = new ::final_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), ctx->resource_manager);
-	ctx->overworld_final_pass->set_color_texture(ctx->framebuffer_hdr_color);
-	ctx->overworld_final_pass->set_bloom_texture(ctx->bloom_texture);
-	ctx->overworld_final_pass->set_blue_noise_texture(blue_noise_map);
-	ctx->overworld_compositor = new compositor();
-	ctx->overworld_compositor->add_pass(ctx->overworld_shadow_map_clear_pass);
-	ctx->overworld_compositor->add_pass(ctx->overworld_shadow_map_pass);
-	ctx->overworld_compositor->add_pass(ctx->overworld_clear_pass);
-	ctx->overworld_compositor->add_pass(ctx->overworld_sky_pass);
-	ctx->overworld_compositor->add_pass(ctx->overworld_material_pass);
-	//ctx->overworld_compositor->add_pass(ctx->overworld_outline_pass);
-	ctx->overworld_compositor->add_pass(ctx->overworld_bloom_pass);
-	ctx->overworld_compositor->add_pass(ctx->overworld_final_pass);
+	// Setup common render passes
+	{
+		ctx->common_bloom_pass = new bloom_pass(ctx->rasterizer, ctx->framebuffer_bloom, ctx->resource_manager);
+		ctx->common_bloom_pass->set_source_texture(ctx->framebuffer_hdr_color);
+		ctx->common_bloom_pass->set_brightness_threshold(1.0f);
+		ctx->common_bloom_pass->set_blur_iterations(5);
+		
+		ctx->common_final_pass = new ::final_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), ctx->resource_manager);
+		ctx->common_final_pass->set_color_texture(ctx->framebuffer_hdr_color);
+		ctx->common_final_pass->set_bloom_texture(ctx->bloom_texture);
+		ctx->common_final_pass->set_blue_noise_texture(blue_noise_map);
+	}
 	
-	// Setup underworld compositor
-	ctx->underworld_clear_pass = new clear_pass(ctx->rasterizer, ctx->framebuffer_hdr);
-	ctx->underworld_clear_pass->set_cleared_buffers(true, true, false);
-	ctx->underworld_material_pass = new material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
-	ctx->underworld_material_pass->set_fallback_material(ctx->fallback_material);
-	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->underworld_material_pass);
-	gl::shader_program* underworld_final_shader = ctx->resource_manager->load<gl::shader_program>("underground-final.glsl");
-	ctx->underworld_final_pass = new simple_render_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), underworld_final_shader);
-	ctx->underground_color_texture_property = ctx->underworld_final_pass->get_material()->add_property<const gl::texture_2d*>("color_texture");
-	ctx->underground_color_texture_property->set_value(ctx->framebuffer_hdr_color);
-	ctx->underworld_final_pass->get_material()->update_tweens();
-	ctx->underworld_compositor = new compositor();
-	ctx->underworld_compositor->add_pass(ctx->underworld_clear_pass);
-	ctx->underworld_compositor->add_pass(ctx->underworld_material_pass);
-	ctx->underworld_compositor->add_pass(ctx->underworld_final_pass);
+	// Setup UI compositor
+	{
+		ctx->ui_clear_pass = new clear_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer());
+		ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
+		ctx->ui_clear_pass->set_clear_depth(0.0f);
+		
+		ctx->ui_material_pass = new material_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), ctx->resource_manager);
+		ctx->ui_material_pass->set_fallback_material(ctx->fallback_material);
+		
+		ctx->ui_compositor = new compositor();
+		ctx->ui_compositor->add_pass(ctx->ui_clear_pass);
+		ctx->ui_compositor->add_pass(ctx->ui_material_pass);
+	}
 	
-	// Setup UI camera compositor
-	ctx->ui_clear_pass = new clear_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer());
-	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
-	ctx->ui_clear_pass->set_clear_depth(0.0f);
-	ctx->ui_material_pass = new material_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), ctx->resource_manager);
-	ctx->ui_material_pass->set_fallback_material(ctx->fallback_material);
-	ctx->ui_compositor = new compositor();
-	ctx->ui_compositor->add_pass(ctx->ui_clear_pass);
-	ctx->ui_compositor->add_pass(ctx->ui_material_pass);
+	// Setup underground compositor
+	{
+		ctx->underground_clear_pass = new clear_pass(ctx->rasterizer, ctx->framebuffer_hdr);
+		ctx->underground_clear_pass->set_cleared_buffers(true, true, false);
+		ctx->underground_clear_pass->set_clear_color({1, 0, 1, 0});
+		ctx->underground_clear_pass->set_clear_depth(0.0f);
+		
+		ctx->underground_material_pass = new material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
+		ctx->underground_material_pass->set_fallback_material(ctx->fallback_material);
+		ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->underground_material_pass);
+		
+		ctx->underground_compositor = new compositor();
+		ctx->underground_compositor->add_pass(ctx->underground_clear_pass);
+		ctx->underground_compositor->add_pass(ctx->underground_material_pass);
+		ctx->underground_compositor->add_pass(ctx->common_bloom_pass);
+		ctx->underground_compositor->add_pass(ctx->common_final_pass);
+	}
+	
+	// Setup surface compositor
+	{
+		ctx->surface_shadow_map_clear_pass = new clear_pass(ctx->rasterizer, ctx->shadow_map_framebuffer);
+		ctx->surface_shadow_map_clear_pass->set_cleared_buffers(false, true, false);
+		ctx->surface_shadow_map_clear_pass->set_clear_depth(1.0f);
+		
+		ctx->surface_shadow_map_pass = new shadow_map_pass(ctx->rasterizer, ctx->shadow_map_framebuffer, ctx->resource_manager);
+		ctx->surface_shadow_map_pass->set_split_scheme_weight(0.75f);
+		
+		ctx->surface_clear_pass = new clear_pass(ctx->rasterizer, ctx->framebuffer_hdr);
+		ctx->surface_clear_pass->set_cleared_buffers(true, true, true);
+		ctx->surface_clear_pass->set_clear_depth(0.0f);
+		
+		ctx->surface_sky_pass = new sky_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
+		ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->surface_sky_pass);
+		
+		ctx->surface_material_pass = new material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
+		ctx->surface_material_pass->set_fallback_material(ctx->fallback_material);
+		ctx->surface_material_pass->shadow_map_pass = ctx->surface_shadow_map_pass;
+		ctx->surface_material_pass->shadow_map = ctx->shadow_map_depth_texture;
+		ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->surface_material_pass);
+		
+		ctx->surface_outline_pass = new outline_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
+		ctx->surface_outline_pass->set_outline_width(0.25f);
+		ctx->surface_outline_pass->set_outline_color(float4{1.0f, 1.0f, 1.0f, 1.0f});
+		
+		ctx->surface_compositor = new compositor();
+		ctx->surface_compositor->add_pass(ctx->surface_shadow_map_clear_pass);
+		ctx->surface_compositor->add_pass(ctx->surface_shadow_map_pass);
+		ctx->surface_compositor->add_pass(ctx->surface_clear_pass);
+		ctx->surface_compositor->add_pass(ctx->surface_sky_pass);
+		ctx->surface_compositor->add_pass(ctx->surface_material_pass);
+		//ctx->surface_compositor->add_pass(ctx->surface_outline_pass);
+		ctx->surface_compositor->add_pass(ctx->common_bloom_pass);
+		ctx->surface_compositor->add_pass(ctx->common_final_pass);
+	}
 	
 	// Create billboard VAO
 	{
@@ -611,114 +627,100 @@ void setup_scenes(game::context* ctx)
 	
 	// Get default framebuffer
 	const auto& viewport_dimensions = ctx->rasterizer->get_default_framebuffer().get_dimensions();
-	float viewport_aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
+	const float viewport_aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
 	
 	// Create infinite culling mask
-	float inf = std::numeric_limits<float>::infinity();
+	const float inf = std::numeric_limits<float>::infinity();
 	ctx->no_cull = {{-inf, -inf, -inf}, {inf, inf, inf}};
-	
-	// Setup overworld camera
-	ctx->overworld_camera = new scene::camera();
-	ctx->overworld_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
-	ctx->overworld_camera->set_compositor(ctx->overworld_compositor);
-	ctx->overworld_camera->set_composite_index(0);
-	ctx->overworld_camera->set_active(true);
-	
-	// Setup underworld camera
-	ctx->underworld_camera = new scene::camera();
-	ctx->underworld_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
-	ctx->underworld_camera->look_at({0, 50, 0}, {0, 0, 0}, {0, 0, -1});
-	ctx->underworld_camera->set_compositor(ctx->underworld_compositor);
-	ctx->underworld_camera->set_composite_index(0);
-	ctx->underworld_camera->set_active(false);
 	
 	// Setup UI camera
 	ctx->ui_camera = new scene::camera();
 	ctx->ui_camera->set_compositor(ctx->ui_compositor);
 	
-	// Setup lights
-	ctx->moon_light = new scene::directional_light();
-	ctx->moon_light->set_intensity(0.0f);
-	ctx->moon_light->update_tweens();
+	// Setup underground camera
+	ctx->underground_camera = new scene::camera();
+	ctx->underground_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
+	ctx->underground_camera->set_compositor(ctx->underground_compositor);
+	ctx->underground_camera->set_composite_index(0);
+	ctx->underground_camera->set_active(false);
 	
-	ctx->subterrain_light = new scene::point_light();
-	ctx->subterrain_light->set_color({1, 1, 1});
-	ctx->subterrain_light->set_intensity(1.0f);
-	ctx->subterrain_light->set_attenuation({1.0f, 0.09f, 0.032f});
-	ctx->subterrain_light->update_tweens();
-	
-	ctx->underworld_ambient_light = new scene::ambient_light();
-	ctx->underworld_ambient_light->set_color({1, 1, 1});
-	ctx->underworld_ambient_light->set_intensity(0.1f);
-	ctx->underworld_ambient_light->update_tweens();
-	
-	ctx->lens_spot_light = new scene::spot_light();
-	ctx->lens_spot_light->set_color({1, 1, 1});
-	ctx->lens_spot_light->set_intensity(20.0f);
-	ctx->lens_spot_light->set_attenuation({1.0f, 0.0f, 0.0f});
-	ctx->lens_spot_light->set_cutoff({math::radians(1.25f), math::radians(1.8f)});
-	
-	ctx->flashlight_spot_light = new scene::spot_light();
-	ctx->flashlight_spot_light->set_color({1, 1, 1});
-	ctx->flashlight_spot_light->set_intensity(1.0f);
-	ctx->flashlight_spot_light->set_attenuation({1.0f, 0.0f, 0.0f});
-	ctx->flashlight_spot_light->set_cutoff({math::radians(10.0f), math::radians(19.0f)});
-
-
-	
-	const gl::texture_2d* splash_texture = ctx->resource_manager->load<gl::texture_2d>("splash.tex");
-	auto splash_dimensions = splash_texture->get_dimensions();
-	ctx->splash_billboard_material = new material();
-	ctx->splash_billboard_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
-	ctx->splash_billboard_material->add_property<const gl::texture_2d*>("background")->set_value(splash_texture);
-	ctx->splash_billboard_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
-	ctx->splash_billboard_material->update_tweens();
-	ctx->splash_billboard = new scene::billboard();
-	ctx->splash_billboard->set_material(ctx->splash_billboard_material);
-	ctx->splash_billboard->set_scale({(float)std::get<0>(splash_dimensions) * 0.5f, (float)std::get<1>(splash_dimensions) * 0.5f, 1.0f});
-	ctx->splash_billboard->set_translation({0.0f, 0.0f, 0.0f});
-	ctx->splash_billboard->update_tweens();
-	
-	
-	// Create depth debug billboard
-	/*
-	material* depth_debug_material = new material();
-	depth_debug_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
-	depth_debug_material->add_property<const gl::texture_2d*>("background")->set_value(shadow_map_depth_texture);
-	depth_debug_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
-	billboard* depth_debug_billboard = new billboard();
-	depth_debug_billboard->set_material(depth_debug_material);
-	depth_debug_billboard->set_scale({128, 128, 1});
-	depth_debug_billboard->set_translation({-960 + 128, 1080 * 0.5f - 128, 0});
-	depth_debug_billboard->update_tweens();
-	ui_system->get_scene()->add_object(depth_debug_billboard);
-	*/
-	
-	// Setup overworld scene
-	ctx->overworld_scene = new scene::collection();
-	ctx->overworld_scene->add_object(ctx->overworld_camera);
-	//ctx->overworld_scene->add_object(ctx->moon_light);
-	//ctx->overworld_scene->add_object(ctx->spot_light);
-	
-	// Setup underworld scene
-	ctx->underworld_scene = new scene::collection();
-	ctx->underworld_scene->add_object(ctx->underworld_camera);
-	ctx->underworld_scene->add_object(ctx->underworld_ambient_light);
-	//ctx->underworld_scene->add_object(ctx->lantern);
-	//ctx->underworld_scene->add_object(ctx->subterrain_light);
-	//ctx->underworld_scene->add_object(ctx->portal_billboard);
-	//model_instance* larva = new scene::model_instance(ctx->resource_manager->load<model>("larva.mdl"));
-	//ctx->underworld_scene->add_object(larva);
+	// Setup surface camera
+	ctx->surface_camera = new scene::camera();
+	ctx->surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
+	ctx->surface_camera->set_compositor(ctx->surface_compositor);
+	ctx->surface_camera->set_composite_index(0);
+	ctx->surface_camera->set_active(false);
 	
 	// Setup UI scene
-	ctx->ui_scene = new scene::collection();
-	ctx->ui_scene->add_object(ctx->ui_camera);
+	{
+		ctx->ui_scene = new scene::collection();
+		
+		const gl::texture_2d* splash_texture = ctx->resource_manager->load<gl::texture_2d>("splash.tex");
+		auto splash_dimensions = splash_texture->get_dimensions();
+		ctx->splash_billboard_material = new material();
+		ctx->splash_billboard_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
+		ctx->splash_billboard_material->add_property<const gl::texture_2d*>("background")->set_value(splash_texture);
+		ctx->splash_billboard_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
+		ctx->splash_billboard_material->update_tweens();
+		ctx->splash_billboard = new scene::billboard();
+		ctx->splash_billboard->set_material(ctx->splash_billboard_material);
+		ctx->splash_billboard->set_scale({(float)std::get<0>(splash_dimensions) * 0.5f, (float)std::get<1>(splash_dimensions) * 0.5f, 1.0f});
+		ctx->splash_billboard->set_translation({0.0f, 0.0f, 0.0f});
+		ctx->splash_billboard->update_tweens();
+		
+		// Create depth debug billboard
+		/*
+		material* depth_debug_material = new material();
+		depth_debug_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
+		depth_debug_material->add_property<const gl::texture_2d*>("background")->set_value(shadow_map_depth_texture);
+		depth_debug_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
+		billboard* depth_debug_billboard = new billboard();
+		depth_debug_billboard->set_material(depth_debug_material);
+		depth_debug_billboard->set_scale({128, 128, 1});
+		depth_debug_billboard->set_translation({-960 + 128, 1080 * 0.5f - 128, 0});
+		depth_debug_billboard->update_tweens();
+		ui_system->get_scene()->add_object(depth_debug_billboard);
+		*/
+		
+		ctx->ui_scene->add_object(ctx->ui_camera);
+	}
 	
-	//ctx->overworld_scene->add_object(ctx->lens_spot_light);
-	ctx->underworld_scene->add_object(ctx->flashlight_spot_light);
+	// Setup underground scene
+	{
+		ctx->underground_scene = new scene::collection();
+		
+		ctx->underground_ambient_light = new scene::ambient_light();
+		ctx->underground_ambient_light->set_color({1, 1, 1});
+		ctx->underground_ambient_light->set_intensity(0.1f);
+		ctx->underground_ambient_light->update_tweens();
+		
+		ctx->flashlight_spot_light = new scene::spot_light();
+		ctx->flashlight_spot_light->set_color({1, 1, 1});
+		ctx->flashlight_spot_light->set_intensity(1.0f);
+		ctx->flashlight_spot_light->set_attenuation({1.0f, 0.0f, 0.0f});
+		ctx->flashlight_spot_light->set_cutoff({math::radians(10.0f), math::radians(19.0f)});
+		
+		ctx->underground_scene->add_object(ctx->underground_camera);
+		ctx->underground_scene->add_object(ctx->underground_ambient_light);
+		//ctx->underground_scene->add_object(ctx->flashlight_spot_light);
+	}
 	
-	// Set overworld as active scene
-	ctx->active_scene = ctx->overworld_scene;
+	// Setup surface scene
+	{
+		ctx->surface_scene = new scene::collection();
+		
+		ctx->lens_spot_light = new scene::spot_light();
+		ctx->lens_spot_light->set_color({1, 1, 1});
+		ctx->lens_spot_light->set_intensity(20.0f);
+		ctx->lens_spot_light->set_attenuation({1.0f, 0.0f, 0.0f});
+		ctx->lens_spot_light->set_cutoff({math::radians(1.25f), math::radians(1.8f)});
+		
+		ctx->surface_scene->add_object(ctx->surface_camera);
+		//ctx->surface_scene->add_object(ctx->lens_spot_light);
+	}
+	
+	// Clear active scene
+	ctx->active_scene = nullptr;
 	
 	logger->pop_task(EXIT_SUCCESS);
 }
@@ -761,14 +763,12 @@ void setup_animation(game::context* ctx)
 	ctx->focal_point_tween->set_interpolator(math::lerp<float3, float>);
 	
 	// Set material pass tweens
-	ctx->overworld_sky_pass->set_time_tween(ctx->time_tween);
-	ctx->overworld_material_pass->set_time_tween(ctx->time_tween);
-	ctx->overworld_material_pass->set_focal_point_tween(ctx->focal_point_tween);
-	ctx->overworld_final_pass->set_time_tween(ctx->time_tween);
-	ctx->underworld_material_pass->set_time_tween(ctx->time_tween);
-	ctx->underworld_material_pass->set_focal_point_tween(ctx->focal_point_tween);
-	ctx->underworld_final_pass->set_time_tween(ctx->time_tween);
-	ctx->underworld_material_pass->set_focal_point_tween(ctx->focal_point_tween);
+	ctx->common_final_pass->set_time_tween(ctx->time_tween);
+	ctx->surface_sky_pass->set_time_tween(ctx->time_tween);
+	ctx->surface_material_pass->set_time_tween(ctx->time_tween);
+	ctx->surface_material_pass->set_focal_point_tween(ctx->focal_point_tween);
+	ctx->underground_material_pass->set_time_tween(ctx->time_tween);
+	ctx->underground_material_pass->set_focal_point_tween(ctx->focal_point_tween);
 	ctx->ui_material_pass->set_time_tween(ctx->time_tween);
 }
 
@@ -801,7 +801,7 @@ void setup_systems(game::context* ctx)
 	// Setup terrain system
 	ctx->terrain_system = new entity::system::terrain(*ctx->entity_registry);
 	ctx->terrain_system->set_patch_subdivisions(30);
-	ctx->terrain_system->set_patch_scene_collection(ctx->overworld_scene);
+	ctx->terrain_system->set_patch_scene_collection(ctx->surface_scene);
 	ctx->terrain_system->set_max_error(200.0);
 	
 	// Setup vegetation system
@@ -810,7 +810,7 @@ void setup_systems(game::context* ctx)
 	//ctx->vegetation_system->set_vegetation_patch_resolution(VEGETATION_PATCH_RESOLUTION);
 	//ctx->vegetation_system->set_vegetation_density(1.0f);
 	//ctx->vegetation_system->set_vegetation_model(ctx->resource_manager->load<model>("grass-tuft.mdl"));
-	//ctx->vegetation_system->set_scene(ctx->overworld_scene);
+	//ctx->vegetation_system->set_scene(ctx->surface_scene);
 	
 	// Setup camera system
 	ctx->camera_system = new entity::system::camera(*ctx->entity_registry);
@@ -820,13 +820,13 @@ void setup_systems(game::context* ctx)
 	
 	// Setup tool system
 	ctx->tool_system = new entity::system::tool(*ctx->entity_registry, event_dispatcher);
-	ctx->tool_system->set_camera(ctx->overworld_camera);
+	ctx->tool_system->set_camera(ctx->surface_camera);
 	ctx->tool_system->set_orbit_cam(ctx->camera_system->get_orbit_cam());
 	ctx->tool_system->set_viewport(viewport);
 	
 	// Setup subterrain system
 	ctx->subterrain_system = new entity::system::subterrain(*ctx->entity_registry, ctx->resource_manager);
-	ctx->subterrain_system->set_scene(ctx->underworld_scene);
+	ctx->subterrain_system->set_scene(ctx->underground_scene);
 	
 	// Setup nest system
 	ctx->nest_system = new entity::system::nest(*ctx->entity_registry, ctx->resource_manager);
@@ -864,11 +864,11 @@ void setup_systems(game::context* ctx)
 	
 	// Setup tracking system
 	ctx->tracking_system = new entity::system::tracking(*ctx->entity_registry, event_dispatcher, ctx->resource_manager);
-	ctx->tracking_system->set_scene(ctx->overworld_scene);
+	ctx->tracking_system->set_scene(ctx->surface_scene);
 	
 	// Setup painting system
 	ctx->painting_system = new entity::system::painting(*ctx->entity_registry, event_dispatcher, ctx->resource_manager);
-	ctx->painting_system->set_scene(ctx->overworld_scene);
+	ctx->painting_system->set_scene(ctx->surface_scene);
 	
 	// Setup solar system
 	ctx->orbit_system = new entity::system::orbit(*ctx->entity_registry);
@@ -883,7 +883,7 @@ void setup_systems(game::context* ctx)
 	
 	// Setup astronomy system
 	ctx->astronomy_system = new entity::system::astronomy(*ctx->entity_registry);
-	ctx->astronomy_system->set_sky_pass(ctx->overworld_sky_pass);
+	ctx->astronomy_system->set_sky_pass(ctx->surface_sky_pass);
 	
 	// Setup proteome system
 	ctx->proteome_system = new entity::system::proteome(*ctx->entity_registry);
@@ -900,15 +900,15 @@ void setup_systems(game::context* ctx)
 	
 	// Setup render system
 	ctx->render_system = new entity::system::render(*ctx->entity_registry);
-	ctx->render_system->add_layer(ctx->overworld_scene);
-	ctx->render_system->add_layer(ctx->underworld_scene);
+	ctx->render_system->add_layer(ctx->underground_scene);
+	ctx->render_system->add_layer(ctx->surface_scene);
 	ctx->render_system->add_layer(ctx->ui_scene);
 	ctx->render_system->set_renderer(ctx->renderer);
 	
 	// Setup control system
 	ctx->control_system = new entity::system::control(*ctx->entity_registry);
 	ctx->control_system->set_viewport(viewport);
-	ctx->control_system->set_underworld_camera(ctx->underworld_camera);
+	ctx->control_system->set_underground_camera(ctx->underground_camera);
 	ctx->control_system->set_tool(nullptr);
 	//ctx->control_system->set_flashlight(flashlight, flashlight_light_cone);
 	ctx->control_system->get_adjust_camera_control()->set_activated_callback([ctx](){ ctx->app->set_relative_mouse_mode(true); ctx->tool_system->set_pick(false); });
@@ -1020,15 +1020,15 @@ void setup_controls(game::context* ctx)
 	ctx->control_system->get_toggle_view_control()->set_activated_callback(
 		[ctx]()
 		{
-			if (ctx->active_scene == ctx->overworld_scene)
+			if (ctx->active_scene == ctx->surface_scene)
 			{
-				ctx->active_scene = ctx->underworld_scene;
+				ctx->active_scene = ctx->underground_scene;
 				ctx->radial_transition_inner->transition(0.5f, false, ease<float, double>::in_quad);
 				
 				auto switch_cameras = [ctx]()
 				{
-					ctx->overworld_camera->set_active(false);
-					ctx->underworld_camera->set_active(true);
+					ctx->surface_camera->set_active(false);
+					ctx->underground_camera->set_active(true);
 					ctx->fade_transition->transition(0.25f, true, ease<float, double>::out_quad);
 				};
 				
@@ -1037,13 +1037,13 @@ void setup_controls(game::context* ctx)
 			}
 			else
 			{
-				ctx->active_scene = ctx->overworld_scene;
+				ctx->active_scene = ctx->surface_scene;
 				ctx->fade_transition->transition(0.25f, false, ease<float, double>::out_quad);
 				
 				auto switch_cameras = [ctx]()
 				{
-					ctx->overworld_camera->set_active(true);
-					ctx->underworld_camera->set_active(false);
+					ctx->surface_camera->set_active(true);
+					ctx->underground_camera->set_active(false);
 					ctx->radial_transition_inner->transition(0.5f, true, ease<float, double>::out_quad);
 				};
 				
@@ -1254,12 +1254,11 @@ void setup_callbacks(game::context* ctx)
 		{
 			// Update tweens
 			ctx->time_tween->update();
-			ctx->overworld_sky_pass->update_tweens();
-			ctx->overworld_scene->update_tweens();
-			ctx->underworld_scene->update_tweens();
+			ctx->surface_sky_pass->update_tweens();
+			ctx->surface_scene->update_tweens();
+			ctx->underground_scene->update_tweens();
 			ctx->ui_scene->update_tweens();
 			ctx->focal_point_tween->update();
-			ctx->underworld_final_pass->get_material()->update_tweens();
 			
 			// Set time tween time
 			(*ctx->time_tween)[1] = t;

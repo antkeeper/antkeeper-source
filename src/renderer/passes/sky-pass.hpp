@@ -56,11 +56,12 @@ public:
 	void set_time_tween(const tween<double>* time);
 	void set_moon_model(const model* model);
 	void set_stars_model(const model* model);
+	void set_clouds_model(const model* model);
 	
 	void set_topocentric_frame(const physics::frame<float>& frame);
 	
 	void set_sun_position(const float3& position);
-	void set_sun_color(const float3& color);
+	void set_sun_color(const float3& color_outer, const float3& color_inner);
 	void set_sun_angular_radius(float radius);
 	void set_observer_altitude(float altitude);
 	void set_scale_heights(float rayleigh, float mie);
@@ -118,6 +119,20 @@ private:
 	const gl::shader_input* star_projection_input;
 	const gl::shader_input* star_exposure_input;
 	const gl::shader_input* star_distance_input;
+	
+	const model* clouds_model;
+	const material* cloud_material;
+	const gl::vertex_array* clouds_model_vao;
+	gl::drawing_mode clouds_model_drawing_mode;
+	std::size_t clouds_model_start_index;
+	std::size_t clouds_model_index_count;
+	
+	gl::shader_program* cloud_shader_program;
+	const gl::shader_input* cloud_model_view_projection_input;
+	const gl::shader_input* cloud_sun_direction_input;
+	const gl::shader_input* cloud_sun_color_input;
+	const gl::shader_input* cloud_camera_position_input;
+	const gl::shader_input* cloud_camera_exposure_input;
 
 	const gl::texture_2d* blue_noise_map;
 	const gl::texture_2d* sky_gradient;
@@ -127,7 +142,8 @@ private:
 	const tween<double>* time_tween;
 	tween<float> observer_altitude_tween;
 	tween<float3> sun_position_tween;
-	tween<float3> sun_color_tween;
+	tween<float3> sun_color_outer_tween;
+	tween<float3> sun_color_inner_tween;
 	tween<float3> topocentric_frame_translation;
 	tween<math::quaternion<float>> topocentric_frame_rotation;
 	

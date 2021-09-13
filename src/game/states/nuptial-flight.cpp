@@ -18,6 +18,7 @@
  */
 
 #include "game/states/nuptial-flight.hpp"
+#include "entity/archetype.hpp"
 #include "entity/systems/astronomy.hpp"
 #include "entity/systems/orbit.hpp"
 #include "entity/systems/control.hpp"
@@ -38,6 +39,10 @@ namespace nuptial_flight {
 
 void enter(game::context* ctx)
 {
+	// Switch to surface camera
+	ctx->underground_camera->set_active(false);
+	ctx->surface_camera->set_active(true);
+	
 	// Find planet EID by name
 	entity::id planet_eid = entt::null;
 	if (auto it = ctx->named_entities.find("planet"); it != ctx->named_entities.end())
@@ -45,10 +50,12 @@ void enter(game::context* ctx)
 		planet_eid = it->second;
 	}
 	
-	// Replace planet terrain material with cloud material
-	entity::component::terrain planet_terrain = ctx->entity_registry->get<entity::component::terrain>(planet_eid);
-	planet_terrain.patch_material = ctx->resource_manager->load<material>("cloud.mtl");
-	ctx->entity_registry->replace<entity::component::terrain>(planet_eid, planet_terrain);
+	// Remove terrain component from planet (if any)
+	if (ctx->entity_registry->has<entity::component::terrain>(planet_eid))
+		ctx->entity_registry->remove<entity::component::terrain>(planet_eid);
+	
+	// Enable clouds in sky pass
+	ctx->surface_sky_pass->set_clouds_model(ctx->resource_manager->load<model>("cloud-plane.mdl"));
 	
 	// Create observer
 	auto observer_eid = ctx->entity_registry->create();
@@ -58,13 +65,28 @@ void enter(game::context* ctx)
 		observer.elevation = 2000.0;
 		observer.latitude = 0.0;
 		observer.longitude = 0.0;
-		observer.camera = ctx->overworld_camera;
+		observer.camera = ctx->surface_camera;
 		ctx->entity_registry->assign<entity::component::observer>(observer_eid, observer);
 		
 		// Set reference location of astronomy system
 		ctx->astronomy_system->set_reference_body(planet_eid);
 		ctx->astronomy_system->set_observer_location(double3{observer.elevation, observer.latitude, observer.longitude});
 	}
+	
+	// Create wing
+	entity::archetype* ant_forewing_archetype = ctx->resource_manager->load<entity::archetype>("ant-forewing.ent");
+	auto forewing_eid = ctx->entity_registry->create();
+	//ant_forewing_archetype->assign(*ctx->entity_registry, forewing_eid);
+	
+	// Create eye
+	entity::archetype* ant_round_eye_archetype = ctx->resource_manager->load<entity::archetype>("ant-round-eye.ent");
+	auto ant_round_eye_eid = ctx->entity_registry->create();
+	ant_round_eye_archetype->assign(*ctx->entity_registry, ant_round_eye_eid);
+	
+	// Create green orb ring
+	entity::archetype* orb_ring_archetype = ctx->resource_manager->load<entity::archetype>("orb-ring.ent");
+	auto orb_ring_eid = ctx->entity_registry->create();
+	//orb_ring_archetype->assign(*ctx->entity_registry, orb_ring_eid);
 	
 	// Create camera focal point
 	{
@@ -78,14 +100,14 @@ void enter(game::context* ctx)
 	}
 	
 	// Setup camera
-	ctx->overworld_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
-	ctx->overworld_camera->set_exposure(-14.5f);
-	ctx->camera_system->set_camera(ctx->overworld_camera);
+	ctx->surface_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
+	ctx->surface_camera->set_exposure(-14.5f);
+	ctx->camera_system->set_camera(ctx->surface_camera);
 	
 	entity::system::control* control_system = ctx->control_system;
 	control_system->update(0.0, 0.0);
 	
-	ctx->overworld_scene->update_tweens();
+	ctx->surface_scene->update_tweens();
 	
 	// Pause motion of celestial objects
 	ctx->astronomy_system->set_time_scale(0.0);

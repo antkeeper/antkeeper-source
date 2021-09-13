@@ -64,10 +64,15 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	stars_model_vao(nullptr),
 	star_material(nullptr),
 	star_shader_program(nullptr),
+	clouds_model(nullptr),
+	clouds_model_vao(nullptr),
+	cloud_material(nullptr),
+	cloud_shader_program(nullptr),
 	time_tween(nullptr),
 	observer_altitude_tween(0.0f, math::lerp<float, float>),
 	sun_position_tween(float3{1.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
-	sun_color_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
+	sun_color_outer_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
+	sun_color_inner_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
 	topocentric_frame_translation({0, 0, 0}, math::lerp<float3, float>),
 	topocentric_frame_rotation(math::quaternion<float>::identity(), math::nlerp<float>)
 {}
@@ -88,7 +93,7 @@ void sky_pass::render(render_context* context) const
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
-	float time = (*time_tween)[context->alpha];
+	float time = static_cast<float>((*time_tween)[context->alpha]);
 	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
 	const scene::camera& camera = *context->camera;
@@ -118,9 +123,11 @@ void sky_pass::render(render_context* context) const
 	float3 sun_direction = math::normalize(sun_position);
 	
 	// Interpolate sun color
-	float3 sun_color = sun_color_tween.interpolate(context->alpha);
+	float3 sun_color_outer = sun_color_outer_tween.interpolate(context->alpha);
+	float3 sun_color_inner = sun_color_inner_tween.interpolate(context->alpha);
 	
-	// Draw sky model
+	// Draw atmosphere
+	if (sky_model)
 	{
 		rasterizer->use_program(*sky_shader_program);
 
@@ -143,7 +150,7 @@ void sky_pass::render(render_context* context) const
 		if (sun_angular_radius_input)
 			sun_angular_radius_input->upload(sun_angular_radius);
 		if (sun_color_input)
-			sun_color_input->upload(sun_color);
+			sun_color_input->upload(sun_color_outer);
 		if (scale_height_rm_input)
 			scale_height_rm_input->upload(scale_height_rm);
 		if (rayleigh_scattering_input)
@@ -158,6 +165,27 @@ void sky_pass::render(render_context* context) const
 		sky_material->upload(context->alpha);
 
 		rasterizer->draw_arrays(*sky_model_vao, sky_model_drawing_mode, sky_model_start_index, sky_model_index_count);
+	}
+	
+	// Draw clouds
+	if (clouds_model)
+	{
+		rasterizer->use_program(*cloud_shader_program);
+		
+		if (cloud_model_view_projection_input)
+			cloud_model_view_projection_input->upload(model_view_projection);
+		if (cloud_sun_direction_input)
+			cloud_sun_direction_input->upload(sun_direction);
+		if (cloud_sun_color_input)
+			cloud_sun_color_input->upload(sun_color_inner);
+		if (cloud_camera_position_input)
+			cloud_camera_position_input->upload(context->camera_transform.translation);
+		if (cloud_camera_exposure_input)
+			cloud_camera_exposure_input->upload(exposure);
+		
+		cloud_material->upload(context->alpha);
+
+		rasterizer->draw_arrays(*clouds_model_vao, clouds_model_drawing_mode, clouds_model_start_index, clouds_model_index_count);
 	}
 	
 	glEnable(GL_BLEND);
@@ -345,11 +373,49 @@ void sky_pass::set_stars_model(const model* model)
 	}
 }
 
+void sky_pass::set_clouds_model(const model* model)
+{
+	clouds_model = model;
+	
+	if (clouds_model)
+	{
+		clouds_model_vao = model->get_vertex_array();
+
+		const std::vector<model_group*>& groups = *model->get_groups();
+		for (model_group* group: groups)
+		{
+			cloud_material = group->get_material();
+			clouds_model_drawing_mode = group->get_drawing_mode();
+			clouds_model_start_index = group->get_start_index();
+			clouds_model_index_count = group->get_index_count();
+		}
+		
+		if (cloud_material)
+		{
+			cloud_shader_program = cloud_material->get_shader_program();
+			
+			if (cloud_shader_program)
+			{
+				cloud_model_view_projection_input = cloud_shader_program->get_input("model_view_projection");
+				cloud_sun_direction_input = cloud_shader_program->get_input("sun_direction");
+				cloud_sun_color_input = cloud_shader_program->get_input("sun_color");
+				cloud_camera_position_input = cloud_shader_program->get_input("camera.position");
+				cloud_camera_exposure_input = cloud_shader_program->get_input("camera.exposure");
+			}
+		}
+	}
+	else
+	{
+		clouds_model = nullptr;
+	}
+}
+
 void sky_pass::update_tweens()
 {
 	observer_altitude_tween.update();
 	sun_position_tween.update();
-	sun_color_tween.update();
+	sun_color_outer_tween.update();
+	sun_color_inner_tween.update();
 	topocentric_frame_translation.update();
 	topocentric_frame_rotation.update();
 }
@@ -370,9 +436,10 @@ void sky_pass::set_sun_position(const float3& position)
 	sun_position_tween[1] = position;
 }
 
-void sky_pass::set_sun_color(const float3& color)
+void sky_pass::set_sun_color(const float3& color_outer, const float3& color_inner)
 {
-	sun_color_tween[1] = color;
+	sun_color_outer_tween[1] = color_outer;
+	sun_color_inner_tween[1] = color_inner;
 }
 
 void sky_pass::set_sun_angular_radius(float radius)
