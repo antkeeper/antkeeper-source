@@ -511,6 +511,13 @@ void application::render(double alpha)
 
 void application::translate_sdl_events()
 {
+	// Mouse motion event accumulators
+	bool mouse_motion = false;
+	int mouse_x;
+	int mouse_y;
+	int mouse_dx = 0;
+	int mouse_dy = 0;
+	
 	SDL_Event sdl_event;
 	while (SDL_PollEvent(&sdl_event))
 	{
@@ -537,8 +544,13 @@ void application::translate_sdl_events()
 
 			case SDL_MOUSEMOTION:
 			{
-				/// @WARNING: more than one mouse motion event is often generated per frame and may be a source of lag.
-				mouse->move(sdl_event.motion.x, sdl_event.motion.y, sdl_event.motion.xrel, sdl_event.motion.yrel);
+				// More than one mouse motion event is often generated per frame, and may be a source of lag.
+				// Mouse events are accumulated here to prevent excess function calls and allocations
+				mouse_motion = true;
+				mouse_x = sdl_event.motion.x;
+				mouse_y = sdl_event.motion.y;
+				mouse_dx += sdl_event.motion.xrel;
+				mouse_dy += sdl_event.motion.yrel;
 				break;
 			}
 
@@ -672,6 +684,12 @@ void application::translate_sdl_events()
 				break;
 			}
 		}
+	}
+	
+	// Process accumulated mouse motion events
+	if (mouse_motion)
+	{
+		mouse->move(mouse_x, mouse_y, mouse_dx, mouse_dy);
 	}
 }
 
