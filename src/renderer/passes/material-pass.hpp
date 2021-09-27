@@ -52,8 +52,6 @@ public:
 	/// Sets the time tween, which is interpolated between updates
 	void set_time_tween(const tween<double>* time);
 	
-	void set_focal_point_tween(const tween<float3>* focal_point);	
-	
 	const ::shadow_map_pass* shadow_map_pass;
 	const gl::texture_2d* shadow_map;
 	
@@ -100,8 +98,6 @@ private:
 		const gl::shader_input* spot_light_attenuations;
 		const gl::shader_input* spot_light_cutoffs;
 		
-		const gl::shader_input* focal_point;
-		
 		const gl::shader_input* shadow_map_directional;
 		const gl::shader_input* shadow_splits_directional;
 		const gl::shader_input* shadow_matrices_directional;
@@ -113,7 +109,6 @@ private:
 	const material* fallback_material;
 	const tween<double>* time_tween;
 	float2 mouse_position;
-	const tween<float3>* focal_point_tween;
 	
 	int max_ambient_light_count;
 	int max_point_light_count;
@@ -142,4 +137,3 @@ private:
 };
 
 #endif // ANTKEEPER_MATERIAL_PASS_HPP
-

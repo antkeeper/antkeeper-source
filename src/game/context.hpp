@@ -192,7 +192,6 @@ struct context
 	// Surface scene
 	scene::collection* surface_scene;
 	scene::camera* surface_camera;
-	scene::spot_light* lens_spot_light;
 	
 	// Underground scene
 	scene::collection* underground_scene;
@@ -204,7 +203,6 @@ struct context
 	timeline* timeline;
 	animator* animator;
 	tween<double>* time_tween;
-	tween<float3>* focal_point_tween;
 	animation<float>* radial_transition_in;
 	animation<float>* radial_transition_out;
 	screen_transition* fade_transition;
@@ -218,42 +216,11 @@ struct context
 	input::event_router* input_event_router;
 	input::mapper* input_mapper;
 	input::listener* input_listener;
-	input::control_set* application_controls;
-	input::control_set* camera_controls;
-	input::control_set* menu_controls;
-	input::control* menu_back_control;
-	input::control* menu_select_control;
-	input::control* screenshot_control;
-	input::control* toggle_fullscreen_control;
-	
-	input::control* camera_control_mouse_rotate;
-	input::control* camera_control_mouse_left;
-	input::control* camera_control_mouse_right;
-	input::control* camera_control_mouse_down;
-	input::control* camera_control_mouse_up;
-	input::control* camera_control_dolly_forward;
-	input::control* camera_control_dolly_backward;
-	input::control* camera_control_truck_left;
-	input::control* camera_control_truck_right;
-	input::control* camera_control_pedestal_up;
-	input::control* camera_control_pedestal_down;
-	input::control* camera_control_pan_left;
-	input::control* camera_control_pan_right;
-	input::control* camera_control_tilt_up;
-	input::control* camera_control_tilt_down;
-	input::control* camera_control_slow_modifier;
-	input::control* camera_control_fast_modifier;
+	std::unordered_map<std::string, input::control*> controls;
 
 	// Entities
 	entity::registry* entity_registry;
-	entity::id brush_entity;
-	entity::id flashlight_entity;
-	entity::id forceps_entity;
-	entity::id lens_entity;
-	entity::id marker_entity;
-	entity::id container_entity;
-	entity::id twig_entity;
-	entity::id focal_point_entity;
+	std::unordered_map<std::string, entity::id> entities;
 
 	// Systems
 	entity::system::behavior* behavior_system;

@@ -95,7 +95,6 @@
 #include <functional>
 #include <string>
 #include <vector>
-#include "utility/timestamp.hpp"
 
 static constexpr double seconds_per_day = 24.0 * 60.0 * 60.0;
 
@@ -705,15 +704,7 @@ void setup_scenes(game::context* ctx)
 	// Setup surface scene
 	{
 		ctx->surface_scene = new scene::collection();
-		
-		ctx->lens_spot_light = new scene::spot_light();
-		ctx->lens_spot_light->set_color({1, 1, 1});
-		ctx->lens_spot_light->set_intensity(20.0f);
-		ctx->lens_spot_light->set_attenuation({1.0f, 0.0f, 0.0f});
-		ctx->lens_spot_light->set_cutoff({math::radians(1.25f), math::radians(1.8f)});
-		
 		ctx->surface_scene->add_object(ctx->surface_camera);
-		//ctx->surface_scene->add_object(ctx->lens_spot_light);
 	}
 	
 	// Clear active scene
@@ -755,17 +746,11 @@ void setup_animation(game::context* ctx)
 	ctx->ui_scene->add_object(ctx->radial_transition_outer->get_billboard());
 	ctx->animator->add_animation(ctx->radial_transition_outer->get_animation());
 	
-	// Setup tweens
-	ctx->focal_point_tween = new tween<float3>();
-	ctx->focal_point_tween->set_interpolator(math::lerp<float3, float>);
-	
 	// Set material pass tweens
 	ctx->common_final_pass->set_time_tween(ctx->time_tween);
 	ctx->surface_sky_pass->set_time_tween(ctx->time_tween);
 	ctx->surface_material_pass->set_time_tween(ctx->time_tween);
-	ctx->surface_material_pass->set_focal_point_tween(ctx->focal_point_tween);
 	ctx->underground_material_pass->set_time_tween(ctx->time_tween);
-	ctx->underground_material_pass->set_focal_point_tween(ctx->focal_point_tween);
 	ctx->ui_material_pass->set_time_tween(ctx->time_tween);
 }
 
@@ -773,16 +758,6 @@ void setup_entities(game::context* ctx)
 {
 	// Create entity registry
 	ctx->entity_registry = new entt::registry();
-	
-	// Reserve named entities
-	ctx->brush_entity = ctx->entity_registry->create();
-	ctx->flashlight_entity = ctx->entity_registry->create();
-	ctx->forceps_entity = ctx->entity_registry->create();
-	ctx->lens_entity = ctx->entity_registry->create();
-	ctx->marker_entity = ctx->entity_registry->create();
-	ctx->container_entity = ctx->entity_registry->create();
-	ctx->twig_entity = ctx->entity_registry->create();
-	ctx->focal_point_entity = ctx->entity_registry->create();
 }
 
 void setup_systems(game::context* ctx)
@@ -912,85 +887,6 @@ void setup_controls(game::context* ctx)
 	ctx->input_listener = new input::listener();
 	ctx->input_listener->set_event_dispatcher(event_dispatcher);
 	
-	// Create toggle fullscreen control
-	ctx->toggle_fullscreen_control = new input::control();
-	ctx->toggle_fullscreen_control->set_activated_callback
-	(
-		[ctx]()
-		{
-			bool fullscreen = !ctx->app->is_fullscreen();
-			
-			ctx->app->set_fullscreen(fullscreen);
-			
-			if (!fullscreen)
-			{
-				int2 resolution = ctx->config->get<int2>("windowed_resolution");
-				ctx->app->resize_window(resolution.x, resolution.y);
-			}
-			
-			ctx->config->set<int>("fullscreen", (fullscreen) ? 1 : 0);
-		}
-	);
-	
-	// Create screenshot control
-	ctx->screenshot_control = new input::control();
-	ctx->screenshot_control->set_activated_callback
-	(
-		[ctx]()
-		{
-			std::string path = ctx->screenshots_path + "antkeeper-" + timestamp() + ".png";
-			ctx->app->save_frame(path);
-		}
-	);
-	
-	// Create menu back control
-	ctx->menu_back_control = new input::control();
-	ctx->menu_back_control->set_activated_callback
-	(
-		std::bind(&application::close, ctx->app, 0)
-	);
-	
-	// Create menu select control
-	ctx->menu_select_control = new input::control();
-	
-	// Create application control set
-	ctx->application_controls = new input::control_set();
-	ctx->application_controls->add_control(ctx->toggle_fullscreen_control);
-	ctx->application_controls->add_control(ctx->screenshot_control);
-	
-	// Create menu control set
-	ctx->menu_controls = new input::control_set();
-	ctx->menu_controls->add_control(ctx->menu_back_control);
-	ctx->menu_controls->add_control(ctx->menu_select_control);
-
-	// Create camera controls
-	ctx->camera_control_slow_modifier = new input::control();
-	ctx->camera_control_fast_modifier = new input::control();
-	ctx->camera_control_mouse_rotate = new input::control();
-	ctx->camera_control_mouse_left = new input::control();
-	ctx->camera_control_mouse_right = new input::control();
-	ctx->camera_control_mouse_down = new input::control();
-	ctx->camera_control_mouse_up = new input::control();
-	ctx->camera_control_dolly_forward = new input::control();
-	ctx->camera_control_dolly_backward = new input::control();
-	ctx->camera_control_truck_left = new input::control();
-	ctx->camera_control_truck_right = new input::control();
-	ctx->camera_control_pedestal_up = new input::control();
-	ctx->camera_control_pedestal_down = new input::control();
-	ctx->camera_control_pan_left = new input::control();
-	ctx->camera_control_pan_right = new input::control();
-	ctx->camera_control_tilt_up = new input::control();
-	ctx->camera_control_tilt_down = new input::control();
-
-
-	// Application control mappings
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->toggle_fullscreen_control, nullptr, input::scancode::f11));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->screenshot_control, nullptr, input::scancode::f12));
-	
-	// UI controls
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_back_control, nullptr, input::scancode::escape));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_back_control, nullptr, input::scancode::backspace));
-	
 	/*
 	// Add menu control mappings
 
@@ -1038,41 +934,6 @@ void setup_controls(game::context* ctx)
 			}
 		});
 	
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_move_forward_control(), nullptr, input::scancode::w));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_move_forward_control(), nullptr, input::game_controller_axis::left_y, true));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_move_back_control(), nullptr, input::scancode::s));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_move_back_control(), nullptr, input::game_controller_axis::left_y, false));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_move_left_control(), nullptr, input::scancode::a));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_move_left_control(), nullptr, input::game_controller_axis::left_x, true));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_move_right_control(), nullptr, input::scancode::d));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_move_right_control(), nullptr, input::game_controller_axis::left_x, false));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_rotate_ccw_control(), nullptr, input::game_controller_axis::right_x, false));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_rotate_cw_control(), nullptr, input::game_controller_axis::right_x, true));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_tilt_up_control(), nullptr, input::game_controller_axis::right_y, false));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_tilt_down_control(), nullptr, input::game_controller_axis::right_y, true));
-	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->control_system->get_zoom_in_control(), nullptr, input::mouse_wheel_axis::positive_y));
-	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->control_system->get_zoom_out_control(), nullptr, input::mouse_wheel_axis::negative_y));
-	//ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->control_system->get_adjust_camera_control(), nullptr, 3));
-	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->control_system->get_ascend_control(), nullptr, input::game_controller_button::y));
-	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->control_system->get_descend_control(), nullptr, input::game_controller_button::a));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_zoom_out_control(), nullptr, input::game_controller_axis::trigger_left, false));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_zoom_in_control(), nullptr, input::game_controller_axis::trigger_right, false));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_rotate_ccw_control(), nullptr, input::scancode::q));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_rotate_cw_control(), nullptr, input::scancode::e));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_fast_forward_control(), nullptr, input::scancode::dot));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_rewind_control(), nullptr, input::scancode::comma));
-	
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_exposure_increase_control(), nullptr, input::scancode::right_brace));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_exposure_decrease_control(), nullptr, input::scancode::left_brace));
-	
-	
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_brush_control(), nullptr, input::scancode::one));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_twig_control(), nullptr, input::scancode::two));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_forceps_control(), nullptr, input::scancode::three));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_container_control(), nullptr, input::scancode::four));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_lens_control(), nullptr, input::scancode::five));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_marker_control(), nullptr, input::scancode::six));
-	
 	float time_scale = ctx->config->get<float>("time_scale");
 	ctx->control_system->get_fast_forward_control()->set_activated_callback
 	(
@@ -1107,35 +968,6 @@ void setup_controls(game::context* ctx)
 		}
 	);
 	*/
-	
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_slow_modifier, nullptr, input::scancode::left_ctrl));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_fast_modifier, nullptr, input::scancode::left_shift));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_dolly_forward, nullptr, input::scancode::w));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->camera_control_dolly_forward, nullptr, input::game_controller_axis::left_y, true));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_dolly_backward, nullptr, input::scancode::s));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->camera_control_dolly_backward, nullptr, input::game_controller_axis::left_y, false));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_truck_left, nullptr, input::scancode::a));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->camera_control_truck_left, nullptr, input::game_controller_axis::left_x, true));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_truck_right, nullptr, input::scancode::d));
-	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->camera_control_truck_right, nullptr, input::game_controller_axis::left_x, false));
-	
-	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->camera_control_pedestal_up, nullptr, input::mouse_wheel_axis::positive_y));
-	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->camera_control_pedestal_down, nullptr, input::mouse_wheel_axis::negative_y));
-	
-	ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->camera_control_mouse_rotate, nullptr, 3));
-	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_left, nullptr, input::mouse_motion_axis::negative_x));
-	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_right, nullptr, input::mouse_motion_axis::positive_x));
-	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_down, nullptr, input::mouse_motion_axis::positive_y));
-	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_up, nullptr, input::mouse_motion_axis::negative_y));
-	
-
-	// Make lens tool's model instance unculled, so its shadow is always visible.
-	scene::model_instance* lens_model_instance = ctx->render_system->get_model_instance(ctx->lens_entity);
-	if (lens_model_instance)
-	{
-		lens_model_instance->set_culling_mask(&ctx->no_cull);
-	}
-
 }
 
 void setup_cli(game::context* ctx)
@@ -1158,25 +990,8 @@ void setup_callbacks(game::context* ctx)
 		[ctx](double t, double dt)
 		{
 			// Update controls
-			ctx->application_controls->update();
-			ctx->menu_controls->update();
-			ctx->camera_control_slow_modifier->update();
-			ctx->camera_control_fast_modifier->update();
-			ctx->camera_control_mouse_rotate->update();
-			ctx->camera_control_mouse_left->update();
-			ctx->camera_control_mouse_right->update();
-			ctx->camera_control_mouse_down->update();
-			ctx->camera_control_mouse_up->update();
-			ctx->camera_control_dolly_forward->update();
-			ctx->camera_control_dolly_backward->update();
-			ctx->camera_control_truck_left->update();
-			ctx->camera_control_truck_right->update();
-			ctx->camera_control_pedestal_up->update();
-			ctx->camera_control_pedestal_down->update();
-			ctx->camera_control_pan_left->update();
-			ctx->camera_control_pan_right->update();
-			ctx->camera_control_tilt_up->update();
-			ctx->camera_control_tilt_down->update();
+			for (const auto& control: ctx->controls)
+				control.second->update();
 			
 			// Update tweens
 			ctx->time_tween->update();
@@ -1184,7 +999,6 @@ void setup_callbacks(game::context* ctx)
 			ctx->surface_scene->update_tweens();
 			ctx->underground_scene->update_tweens();
 			ctx->ui_scene->update_tweens();
-			ctx->focal_point_tween->update();
 			
 			// Set time tween time
 			(*ctx->time_tween)[1] = t;
@@ -1215,15 +1029,6 @@ void setup_callbacks(game::context* ctx)
 			ctx->tracking_system->update(t, dt);
 			ctx->painting_system->update(t, dt);
 			ctx->proteome_system->update(t, dt);
-			
-			//(*ctx->focal_point_tween)[1] = ctx->orbit_cam->get_focal_point();
-			
-			auto xf = entity::command::get_world_transform(*ctx->entity_registry, ctx->lens_entity);
-			//ctx->lens_spot_light->look_at(xf.translation, xf.translation + ctx->sun_direct->get_direction(), {0, 1, 0});
-			
-			xf = entity::command::get_world_transform(*ctx->entity_registry, ctx->flashlight_entity);
-			//ctx->flashlight_spot_light->set_transform(xf);
-			ctx->flashlight_spot_light->look_at(xf.translation, xf.translation + xf.rotation * float3{0, 0, 1}, {0, 0, -1});
 			
 			ctx->ui_system->update(dt);
 			ctx->render_system->update(t, dt);

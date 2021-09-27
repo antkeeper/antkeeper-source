@@ -46,10 +46,15 @@
 #include "resources/resource-manager.hpp"
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
+#include "resources/config-file.hpp"
+#include "utility/timestamp.hpp"
 
 namespace game {
 namespace state {
 namespace loading {
+
+/// Creates or loads control configuration
+static void load_controls(game::context* ctx);
 
 /// Creates the universe and solar system.
 static void cosmogenesis(game::context* ctx);
@@ -71,6 +76,18 @@ static void colonigenesis(game::context* ctx);
 
 void enter(game::context* ctx)
 {
+	// Load controls
+	ctx->logger->push_task("Loading controls");
+	try
+	{
+		load_controls(ctx);
+	}
+	catch (...)
+	{
+		ctx->logger->pop_task(EXIT_FAILURE);
+	}
+	ctx->logger->pop_task(EXIT_SUCCESS);
+	
 	// Create universe
 	ctx->logger->push_task("Creating the universe");
 	try
@@ -105,6 +122,172 @@ void enter(game::context* ctx)
 
 void exit(game::context* ctx)
 {}
+
+void load_controls(game::context* ctx)
+{
+	// Toggle fullscreen
+	if (ctx->controls.find("toggle_fullscreen") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::f11));
+		ctx->controls["toggle_fullscreen"] = control;
+	}
+	ctx->controls["toggle_fullscreen"]->set_activated_callback
+	(
+		[ctx]()
+		{
+			bool fullscreen = !ctx->app->is_fullscreen();
+			
+			ctx->app->set_fullscreen(fullscreen);
+			
+			if (!fullscreen)
+			{
+				int2 resolution = ctx->config->get<int2>("windowed_resolution");
+				ctx->app->resize_window(resolution.x, resolution.y);
+			}
+			
+			ctx->config->set<int>("fullscreen", (fullscreen) ? 1 : 0);
+		}
+	);
+	
+	// Screenshot
+	if (ctx->controls.find("screenshot") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::f12));
+		ctx->controls["screenshot"] = control;
+	}
+	ctx->controls["screenshot"]->set_activated_callback
+	(
+		[ctx]()
+		{
+			std::string path = ctx->screenshots_path + "antkeeper-" + timestamp() + ".png";
+			ctx->app->save_frame(path);
+		}
+	);
+	
+	// Menu back
+	if (ctx->controls.find("menu_back") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::escape));
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::backspace));
+		ctx->controls["menu_back"] = control;
+	}
+	ctx->controls["menu_back"]->set_activated_callback
+	(
+		std::bind(&application::close, ctx->app, 0)
+	);
+	
+	// Dolly forward
+	if (ctx->controls.find("dolly_forward") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::w));
+		ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(control, nullptr, input::game_controller_axis::left_y, true));
+		ctx->controls["dolly_forward"] = control;
+	}
+	
+	// Dolly backward
+	if (ctx->controls.find("dolly_backward") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::s));
+		ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(control, nullptr, input::game_controller_axis::left_y, false));
+		ctx->controls["dolly_backward"] = control;
+	}
+	
+	// Truck left
+	if (ctx->controls.find("truck_left") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::a));
+		ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(control, nullptr, input::game_controller_axis::left_x, true));
+		ctx->controls["truck_left"] = control;
+	}
+	
+	// Truck right
+	if (ctx->controls.find("truck_right") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::d));
+		ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(control, nullptr, input::game_controller_axis::left_x, false));
+		ctx->controls["truck_right"] = control;
+	}
+	
+	// Pedestal up
+	if (ctx->controls.find("pedestal_up") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(control, nullptr, input::mouse_wheel_axis::positive_y));
+		ctx->controls["pedestal_up"] = control;
+	}
+	
+	// Pedestal down
+	if (ctx->controls.find("pedestal_down") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(control, nullptr, input::mouse_wheel_axis::negative_y));
+		ctx->controls["pedestal_down"] = control;
+	}
+	
+	// Move slow
+	if (ctx->controls.find("move_slow") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::left_ctrl));
+		ctx->controls["move_slow"] = control;
+	}
+	
+	// Move fast
+	if (ctx->controls.find("move_fast") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::left_shift));
+		ctx->controls["move_fast"] = control;
+	}
+	
+	// Mouse rotate
+	if (ctx->controls.find("mouse_rotate") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::mouse_button_mapping(control, nullptr, 3));
+		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::left_alt));
+		ctx->controls["mouse_rotate"] = control;
+	}
+	
+	// Mouse left
+	if (ctx->controls.find("mouse_left") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::negative_x));
+		ctx->controls["mouse_left"] = control;
+	}
+	
+	// Mouse right
+	if (ctx->controls.find("mouse_right") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::positive_x));
+		ctx->controls["mouse_right"] = control;
+	}
+	
+	// Mouse up
+	if (ctx->controls.find("mouse_up") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::negative_y));
+		ctx->controls["mouse_up"] = control;
+	}
+	
+	// Mouse down
+	if (ctx->controls.find("mouse_down") == ctx->controls.end())
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::positive_y));
+		ctx->controls["mouse_down"] = control;
+	}
+}
 
 void cosmogenesis(game::context* ctx)
 {

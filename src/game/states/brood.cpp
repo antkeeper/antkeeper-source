@@ -239,14 +239,17 @@ void setup_controls(game::context* ctx)
 	const float pan_speed = math::radians(8.0f);
 	const float tilt_speed = pan_speed;
 	
-	// Dolly forward
-	ctx->camera_control_dolly_forward->set_active_callback
+	const input::control* move_slow = ctx->controls["move_slow"];
+	const input::control* move_fast = ctx->controls["move_fast"];
+	const input::control* mouse_rotate = ctx->controls["mouse_rotate"];
+	
+	ctx->controls["dolly_forward"]->set_active_callback
 	(
-		[ctx, target_eid, three_dof_eid, truck_speed](float value)
+		[ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast](float value)
 		{
-			if (ctx->camera_control_slow_modifier->is_active())
+			if (move_slow->is_active())
 				value *= 0.5f;
-			if (ctx->camera_control_fast_modifier->is_active())
+			if (move_fast->is_active())
 				value *= 2.0f;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -258,13 +261,13 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Dolly backward
-	ctx->camera_control_dolly_backward->set_active_callback
+	ctx->controls["dolly_backward"]->set_active_callback
 	(
-		[ctx, target_eid, three_dof_eid, truck_speed](float value)
+		[ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast](float value)
 		{
-			if (ctx->camera_control_slow_modifier->is_active())
+			if (move_slow->is_active())
 				value *= 0.5f;
-			if (ctx->camera_control_fast_modifier->is_active())
+			if (move_fast->is_active())
 				value *= 2.0f;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -276,13 +279,13 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Truck right
-	ctx->camera_control_truck_right->set_active_callback
+	ctx->controls["truck_right"]->set_active_callback
 	(
-		[ctx, target_eid, three_dof_eid, truck_speed](float value)
+		[ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast](float value)
 		{
-			if (ctx->camera_control_slow_modifier->is_active())
+			if (move_slow->is_active())
 				value *= 0.5f;
-			if (ctx->camera_control_fast_modifier->is_active())
+			if (move_fast->is_active())
 				value *= 2.0f;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -294,13 +297,13 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Truck left
-	ctx->camera_control_truck_left->set_active_callback
+	ctx->controls["truck_left"]->set_active_callback
 	(
-		[ctx, target_eid, three_dof_eid, truck_speed](float value)
+		[ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast](float value)
 		{
-			if (ctx->camera_control_slow_modifier->is_active())
+			if (move_slow->is_active())
 				value *= 0.5f;
-			if (ctx->camera_control_fast_modifier->is_active())
+			if (move_fast->is_active())
 				value *= 2.0f;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -312,13 +315,13 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Pedestal up
-	ctx->camera_control_pedestal_up->set_active_callback
+	ctx->controls["pedestal_up"]->set_active_callback
 	(
-		[ctx, target_eid, pedestal_speed](float value)
+		[ctx, target_eid, pedestal_speed, move_slow, move_fast](float value)
 		{
-			if (ctx->camera_control_slow_modifier->is_active())
+			if (move_slow->is_active())
 				value *= 0.5f;
-			if (ctx->camera_control_fast_modifier->is_active())
+			if (move_fast->is_active())
 				value *= 2.0f;
 				
 			const float3 movement = {0.0f, pedestal_speed * value * (1.0f / 60.0f), 0.0f};
@@ -327,13 +330,13 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Pedestal down
-	ctx->camera_control_pedestal_down->set_active_callback
+	ctx->controls["pedestal_down"]->set_active_callback
 	(
-		[ctx, target_eid, pedestal_speed](float value)
+		[ctx, target_eid, pedestal_speed, move_slow, move_fast](float value)
 		{
-			if (ctx->camera_control_slow_modifier->is_active())
+			if (move_slow->is_active())
 				value *= 0.5f;
-			if (ctx->camera_control_fast_modifier->is_active())
+			if (move_fast->is_active())
 				value *= 2.0f;
 				
 			const float3 movement = {0.0f, -pedestal_speed * value * (1.0f / 60.0f), 0.0f};
@@ -342,14 +345,14 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Mouse rotate
-	ctx->camera_control_mouse_rotate->set_activated_callback
+	ctx->controls["mouse_rotate"]->set_activated_callback
 	(
 		[ctx]()
 		{
 			ctx->app->set_relative_mouse_mode(true);
 		}
 	);
-	ctx->camera_control_mouse_rotate->set_deactivated_callback
+	ctx->controls["mouse_rotate"]->set_deactivated_callback
 	(
 		[ctx]()
 		{
@@ -358,11 +361,11 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Pan left
-	ctx->camera_control_mouse_left->set_active_callback
+	ctx->controls["mouse_left"]->set_active_callback
 	(
-		[ctx, three_dof_eid, pan_speed](float value)
+		[ctx, three_dof_eid, pan_speed, mouse_rotate](float value)
 		{
-			if (!ctx->camera_control_mouse_rotate->is_active())
+			if (!mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -371,11 +374,11 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Pan right
-	ctx->camera_control_mouse_right->set_active_callback
+	ctx->controls["mouse_right"]->set_active_callback
 	(
-		[ctx, three_dof_eid, pan_speed](float value)
+		[ctx, three_dof_eid, pan_speed, mouse_rotate](float value)
 		{
-			if (!ctx->camera_control_mouse_rotate->is_active())
+			if (!mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -384,11 +387,11 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Tilt up
-	ctx->camera_control_mouse_up->set_active_callback
+	ctx->controls["mouse_up"]->set_active_callback
 	(
-		[ctx, three_dof_eid, tilt_speed](float value)
+		[ctx, three_dof_eid, tilt_speed, mouse_rotate](float value)
 		{
-			if (!ctx->camera_control_mouse_rotate->is_active())
+			if (!mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -398,11 +401,11 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Tilt down
-	ctx->camera_control_mouse_down->set_active_callback
+	ctx->controls["mouse_down"]->set_active_callback
 	(
-		[ctx, three_dof_eid, tilt_speed](float value)
+		[ctx, three_dof_eid, tilt_speed, mouse_rotate](float value)
 		{
-			if (!ctx->camera_control_mouse_rotate->is_active())
+			if (!mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);

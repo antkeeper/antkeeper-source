@@ -55,7 +55,6 @@ material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	fallback_material(nullptr),
 	time_tween(nullptr),
 	mouse_position({0.0f, 0.0f}),
-	focal_point_tween(nullptr),
 	shadow_map_pass(nullptr),
 	shadow_map(nullptr)
 {
@@ -122,7 +121,6 @@ void material_pass::render(render_context* context) const
 	
 	float time = time_tween->interpolate(context->alpha);
 	const float3& camera_position = context->camera_transform.translation;
-	float3 focal_point = (focal_point_tween) ? focal_point_tween->interpolate(context->alpha) : float3{0, 0, 0};
 	float4x4 view = context->camera->get_view_tween().interpolate(context->alpha);
 	float4x4 projection = context->camera->get_projection_tween().interpolate(context->alpha);
 	float4x4 view_projection = projection * view;
@@ -492,8 +490,6 @@ void material_pass::render(render_context* context) const
 					parameters->spot_light_attenuations->upload(0, spot_light_attenuations, spot_light_count);
 				if (parameters->spot_light_cutoffs)
 					parameters->spot_light_cutoffs->upload(0, spot_light_cutoffs, spot_light_count);
-				if (parameters->focal_point)
-					parameters->focal_point->upload(focal_point);
 				
 				if (parameters->shadow_map_directional && shadow_map)
 					parameters->shadow_map_directional->upload(shadow_map);
@@ -548,11 +544,6 @@ void material_pass::set_time_tween(const tween<double>* time)
 	this->time_tween = time;
 }
 
-void material_pass::set_focal_point_tween(const tween<float3>* focal_point)
-{
-	this->focal_point_tween = focal_point;
-}
-
 const material_pass::parameter_set* material_pass::load_parameter_set(const gl::shader_program* program) const
 {
 	// Allocate a new parameter set
@@ -592,7 +583,6 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 	parameters->spot_light_directions = program->get_input("spot_light_directions");
 	parameters->spot_light_attenuations = program->get_input("spot_light_attenuations");
 	parameters->spot_light_cutoffs = program->get_input("spot_light_cutoffs");
-	parameters->focal_point = program->get_input("focal_point");
 	parameters->shadow_map_directional = program->get_input("shadow_map_directional");
 	parameters->shadow_splits_directional = program->get_input("shadow_splits_directional");
 	parameters->shadow_matrices_directional = program->get_input("shadow_matrices_directional");
