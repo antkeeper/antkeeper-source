@@ -228,6 +228,23 @@ struct context
 	input::control* menu_select_control;
 	input::control* screenshot_control;
 	input::control* toggle_fullscreen_control;
+	
+	input::control* camera_control_mouse_left;
+	input::control* camera_control_mouse_right;
+	input::control* camera_control_mouse_down;
+	input::control* camera_control_mouse_up;
+	input::control* camera_control_orbit;
+	input::control* camera_control_dolly_forward;
+	input::control* camera_control_dolly_backward;
+	input::control* camera_control_truck_left;
+	input::control* camera_control_truck_right;
+	input::control* camera_control_pedestal_up;
+	input::control* camera_control_pedestal_down;
+	input::control* camera_control_pan_left;
+	input::control* camera_control_pan_right;
+	input::control* camera_control_tilt_up;
+	input::control* camera_control_tilt_down;
+	input::control* camera_control_modifier;
 
 	// Entities
 	entity::registry* entity_registry;
@@ -264,7 +281,6 @@ struct context
 	entity::system::astronomy* astronomy_system;
 	entity::system::orbit* orbit_system;
 	entity::system::proteome* proteome_system;
-	std::unordered_map<std::string, entity::id> named_entities;
 	
 	// Game
 	biome* biome;

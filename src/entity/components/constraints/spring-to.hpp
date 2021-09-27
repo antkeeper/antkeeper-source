@@ -17,19 +17,40 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ENTITY_COMPONENT_CAMERA_FOLLOW_HPP
-#define ANTKEEPER_ENTITY_COMPONENT_CAMERA_FOLLOW_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_SPRING_TO_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_SPRING_TO_HPP
+
+#include "entity/id.hpp"
+#include "animation/spring.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace entity {
 namespace component {
+namespace constraint {
 
-struct camera_follow
+/**
+ * Springs to a target entity.
+ */
+struct spring_to
 {
+	/// Target entity ID.
+	entity::id target;
 	
+	/// Translation spring.
+	numeric_spring<float3, float> translation;
+	
+	/// Rotation spring.
+	numeric_spring<float4, float> rotation;
+	
+	/// Spring translation.
+	bool spring_translation;
+	
+	/// Spring rotation.
+	bool spring_rotation;
 };
 
+} // namespace constraint
 } // namespace component
 } // namespace entity
 
-#endif // ANTKEEPER_ENTITY_COMPONENT_CAMERA_FOLLOW_HPP
-
+#endif // ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_SPRING_TO_HPP

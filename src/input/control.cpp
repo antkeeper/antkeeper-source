@@ -29,6 +29,7 @@ control::control():
 	activated_callback(nullptr),
 	deactivated_callback(nullptr),
 	value_changed_callback(nullptr),
+	active_callback(nullptr),
 	callbacks_enabled(true)
 {}
 
@@ -65,6 +66,11 @@ void control::update()
 					value_changed_callback(current_value);
 				}
 			}
+		}
+		
+		if (active_callback && is_active())
+		{
+			active_callback(current_value);
 		}
 	}
 
@@ -109,6 +115,11 @@ void control::set_deactivated_callback(std::function<void()> callback)
 void control::set_value_changed_callback(std::function<void(float)> callback)
 {
 	this->value_changed_callback = callback;
+}
+
+void control::set_active_callback(std::function<void(float)> callback)
+{
+	this->active_callback = callback;
 }
 
 } // namespace input

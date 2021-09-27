@@ -17,26 +17,35 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ENTITY_COMPONENT_COPY_TRANSLATION_HPP
-#define ANTKEEPER_ENTITY_COMPONENT_COPY_TRANSLATION_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_COPY_SCALE_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_COPY_SCALE_HPP
 
 #include "entity/id.hpp"
 
 namespace entity {
 namespace component {
+namespace constraint {
 
-struct copy_translation
+/**
+ * Copies the scale of a target entity.
+ */
+struct copy_scale
 {
+	/// Target entity ID.
 	entity::id target;
-	bool use_x;
-	bool use_y;
-	bool use_z;
-	bool invert_x;
-	bool invert_y;
-	bool invert_z;
+	
+	/// Copy X scale.
+	bool copy_x;
+	
+	/// Copy Y scale.
+	bool copy_y;
+	
+	/// Copy Z scale.
+	bool copy_z;
 };
 
+} // namespace constraint
 } // namespace component
 } // namespace entity
 
-#endif // ANTKEEPER_ENTITY_COMPONENT_COPY_TRANSLATION_HPP
+#endif // ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_COPY_SCALE_HPP

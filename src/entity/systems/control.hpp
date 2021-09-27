@@ -48,17 +48,7 @@ public:
 	
 	virtual void update(double t, double dt);
 	
-	void set_invert_mouse_x(bool invert);
-	void set_invert_mouse_y(bool invert);
-
-	void set_camera_system(system::camera* camera_system);
-	void set_nest(::nest* nest);
-	void set_tool(scene::model_instance* tool);
-	void set_flashlight(entity::id entity_id);
-	void set_camera_subject(entity::id entity_id);
-	
 	void set_viewport(const float4& viewport);
-	void set_underground_camera(scene::camera* camera);
 
 	input::control_set* get_control_set();
 	input::control* get_move_forward_control();
@@ -123,38 +113,9 @@ private:
 	input::control rewind_control;
 	input::control exposure_increase_control;
 	input::control exposure_decrease_control;
-
-	float zoom_speed;
-	float min_elevation;
-	float max_elevation;
-	float near_focal_distance;
-	float far_focal_distance;
-	float near_movement_speed;
-	float far_movement_speed;
-	float near_fov;
-	float far_fov;
-	float near_clip_near;
-	float far_clip_near;
-	float near_clip_far;
-	float far_clip_far;
 	
-	float timestep;
-	float zoom;
-	system::camera* camera_system;
-	::nest* nest;
-	scene::model_instance* tool;
 	float2 mouse_position;
 	float4 viewport;
-	
-	entity::id flashlight_entity;
-	entity::id camera_subject_entity;
-	scene::camera* underground_camera;
-	
-	float mouse_angle;
-	float old_mouse_angle;
-	float flashlight_turns;
-	float flashlight_turns_i;
-	float flashlight_turns_f;
 };
 
 inline input::control_set* control::get_control_set()

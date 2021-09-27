@@ -32,12 +32,7 @@ namespace entity {
 namespace system {
 
 control::control(entity::registry& registry):
-	updatable(registry),
-	timestep(0.0f),
-	zoom(0.0f),
-	tool(nullptr),
-	flashlight_entity(entt::null),
-	underground_camera(nullptr)
+	updatable(registry)
 {
 	control_set.add_control(&move_forward_control);
 	control_set.add_control(&move_back_control);
@@ -74,6 +69,8 @@ control::control(entity::registry& registry):
 	{
 		control->set_deadzone(0.15f);
 	}
+	
+	/*
 
 	zoom_speed = 5.0f; //1
 	min_elevation = math::radians(-85.0f);
@@ -96,11 +93,12 @@ control::control(entity::registry& registry):
 	flashlight_turns = 0.0f;
 	flashlight_turns_i = 0;
 	flashlight_turns_f = 0.0f;
+	*/
 }
 
 void control::update(double t, double dt)
 {
-	timestep = dt;
+	/*
 	
 	// Zoom camera
 	if (zoom_in_control.is_active())
@@ -192,31 +190,7 @@ void control::update(double t, double dt)
 			}
 		}
 	}
-}
-
-void control::set_camera_system(system::camera* camera_system)
-{
-	this->camera_system = camera_system;
-}
-
-void control::set_nest(::nest* nest)
-{
-	this->nest = nest;
-}
-
-void control::set_tool(scene::model_instance* tool)
-{
-	this->tool = tool;
-}
-
-void control::set_flashlight(entity::id entity_id)
-{
-	flashlight_entity = entity_id;
-}
-
-void control::set_camera_subject(entity::id entity_id)
-{
-	camera_subject_entity = entity_id;
+	*/
 }
 
 void control::set_viewport(const float4& viewport)
@@ -224,13 +198,9 @@ void control::set_viewport(const float4& viewport)
 	this->viewport = viewport;
 }
 
-void control::set_underground_camera(scene::camera* camera)
-{
-	this->underground_camera = camera;
-}
-
 void control::handle_event(const mouse_moved_event& event)
 {
+	/*
 	if (adjust_camera_control.is_active())
 	{
 		bool invert_x = true;
@@ -260,6 +230,7 @@ void control::handle_event(const mouse_moved_event& event)
 		mouse_position[0] = event.x;
 		mouse_position[1] = event.y;
 	}
+	*/
 }
 
 void control::handle_event(const window_resized_event& event)

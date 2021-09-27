@@ -25,9 +25,11 @@
 namespace entity {
 namespace component {
 
-struct flight_controller
+/// Camera scene object component.
+struct camera
 {
-	
+	/// Pointer to camera scene object
+	scene::camera* object;
 };
 
 } // namespace component

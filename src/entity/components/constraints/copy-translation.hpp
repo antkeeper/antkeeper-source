@@ -17,36 +17,47 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ENTITY_SYSTEM_CAMERA_HPP
-#define ANTKEEPER_ENTITY_SYSTEM_CAMERA_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_COPY_TRANSLATION_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_COPY_TRANSLATION_HPP
 
-#include "entity/systems/updatable.hpp"
-#include "event/event-handler.hpp"
-#include "event/input-events.hpp"
-#include "event/window-events.hpp"
-#include "utility/fundamental-types.hpp"
+#include "entity/id.hpp"
 
 namespace entity {
-namespace system {
+namespace component {
+namespace constraint {
 
-class camera:
-	public updatable,
-	public event_handler<window_resized_event>
+/**
+ * Copies the translation of a target entity.
+ */
+struct copy_translation
 {
-public:
-	camera(entity::registry& registry);
-	virtual void update(double t, double dt);
+	/// Target entity ID.
+	entity::id target;
 	
-	void set_viewport(const float4& viewport);
-
-private:
-	virtual void handle_event(const window_resized_event& event);
+	/// Copy X translation.
+	bool copy_x;
 	
-	float4 viewport;
+	/// Copy Y translation.
+	bool copy_y;
+	
+	/// Copy Z translation.
+	bool copy_z;
+	
+	/// Invert the copied X translation.
+	bool invert_x;
+	
+	/// Invert the copied Y translation.
+	bool invert_y;
+	
+	/// Invert the copied Z translation.
+	bool invert_z;
+	
+	/// Add the copied translation.
+	bool offset;
 };
 
-} // namespace system
+} // namespace constraint
+} // namespace component
 } // namespace entity
 
-#endif // ANTKEEPER_ENTITY_SYSTEM_CAMERA_HPP
-
+#endif // ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_COPY_TRANSLATION_HPP

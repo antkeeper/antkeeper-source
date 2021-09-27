@@ -235,19 +235,19 @@ void event_router::handle_event(const mouse_moved_event& event)
 		{
 			if (mapping->axis == mouse_motion_axis::negative_x && event.dx < 0)
 			{
-				mapping->control->set_temporary_value(-event.dx);
+				mapping->control->set_temporary_value(mapping->control->get_current_value() - event.dx);
 			}
 			else if (mapping->axis == mouse_motion_axis::positive_x && event.dx > 0)
 			{
-				mapping->control->set_temporary_value(event.dx);
+				mapping->control->set_temporary_value(mapping->control->get_current_value() + event.dx);
 			}
 			else if (mapping->axis == mouse_motion_axis::negative_y && event.dy < 0)
 			{
-				mapping->control->set_temporary_value(-event.dy);
+				mapping->control->set_temporary_value(mapping->control->get_current_value() - event.dy);
 			}
 			else if (mapping->axis == mouse_motion_axis::positive_y && event.dy > 0)
 			{
-				mapping->control->set_temporary_value(event.dy);
+				mapping->control->set_temporary_value(mapping->control->get_current_value() + event.dy);
 			}
 		}
 	}
@@ -261,19 +261,19 @@ void event_router::handle_event(const mouse_wheel_scrolled_event& event)
 		{
 			if (mapping->axis == mouse_wheel_axis::negative_x && event.x < 0)
 			{
-				mapping->control->set_temporary_value(-event.x);
+				mapping->control->set_temporary_value(mapping->control->get_current_value() - event.x);
 			}
 			else if (mapping->axis == mouse_wheel_axis::positive_x && event.x > 0)
 			{
-				mapping->control->set_temporary_value(event.x);
+				mapping->control->set_temporary_value(mapping->control->get_current_value() + event.x);
 			}
 			else if (mapping->axis == mouse_wheel_axis::negative_y && event.y < 0)
 			{
-				mapping->control->set_temporary_value(-event.y);
+				mapping->control->set_temporary_value(mapping->control->get_current_value() - event.y);
 			}
 			else if (mapping->axis == mouse_wheel_axis::positive_y && event.y > 0)
 			{
-				mapping->control->set_temporary_value(event.y);
+				mapping->control->set_temporary_value(mapping->control->get_current_value() + event.y);
 			}
 		}
 	}

@@ -21,9 +21,13 @@
 #include "entity/archetype.hpp"
 #include "entity/commands.hpp"
 #include "entity/components/observer.hpp"
-#include "entity/components/camera-follow.hpp"
+#include "entity/components/camera.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/components/transform.hpp"
+#include "entity/components/chamber.hpp"
+#include "entity/components/constraints/spring-to.hpp"
+#include "entity/components/constraints/three-dof.hpp"
+#include "entity/components/constraint-stack.hpp"
 #include "entity/systems/control.hpp"
 #include "entity/systems/camera.hpp"
 #include "entity/systems/tool.hpp"
@@ -31,41 +35,26 @@
 #include "animation/ease.hpp"
 #include "resources/resource-manager.hpp"
 #include "renderer/passes/sky-pass.hpp"
+#include "application.hpp"
+#include <iostream>
 
 namespace game {
 namespace state {
 namespace brood {
 
+static void setup_nest(game::context* ctx);
+static void setup_ants(game::context* ctx);
+static void setup_camera(game::context* ctx);
+static void setup_controls(game::context* ctx);
+
 void enter(game::context* ctx)
 {
-	// Switch to underground camera
-	ctx->surface_camera->set_active(false);
-	ctx->underground_camera->set_active(true);
+	setup_nest(ctx);
+	setup_ants(ctx);
+	setup_camera(ctx);
+	setup_controls(ctx);
 	
 	ctx->underground_ambient_light->set_intensity(1.0f);
-	
-	// Create camera focal point
-	{
-		entity::component::transform focal_point_transform;
-		focal_point_transform.local = math::identity_transform<float>;
-		focal_point_transform.warp = true;
-		ctx->entity_registry->assign_or_replace<entity::component::transform>(ctx->focal_point_entity, focal_point_transform);
-		
-		entity::component::camera_follow focal_point_follow;
-		ctx->entity_registry->assign_or_replace<entity::component::camera_follow>(ctx->focal_point_entity, focal_point_follow);
-	}
-	
-	// Setup camera
-	ctx->underground_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
-	ctx->underground_camera->set_exposure(0.0f);
-	
-	ctx->camera_system->set_camera(ctx->underground_camera);
-	ctx->tool_system->set_camera(ctx->underground_camera);
-	ctx->tool_system->set_orbit_cam(ctx->camera_system->get_orbit_cam());
-	
-	entity::system::control* control_system = ctx->control_system;
-	control_system->update(0.0, 0.0);
-	control_system->set_nest(nullptr);
 	
 	// Create larva
 	{
@@ -73,6 +62,7 @@ void enter(game::context* ctx)
 		auto larva_eid = larva_archetype->create(*ctx->entity_registry);
 		entity::command::warp_to(*ctx->entity_registry, larva_eid, {0.0f, 0.0f, 0.0f});
 		entity::command::assign_render_layers(*ctx->entity_registry, larva_eid, 0b1);
+		entity::command::rename(*ctx->entity_registry, larva_eid, "larva");
 	}
 	
 	// Create cocoon
@@ -81,8 +71,10 @@ void enter(game::context* ctx)
 		auto cocoon_eid = cocoon_archetype->create(*ctx->entity_registry);
 		entity::command::warp_to(*ctx->entity_registry, cocoon_eid, {-50, 0.1935f, 0});
 		entity::command::assign_render_layers(*ctx->entity_registry, cocoon_eid, 0b1);
+		entity::command::rename(*ctx->entity_registry, cocoon_eid, "cocoon");
 	}
 	
+	// Reset tweening
 	ctx->underground_scene->update_tweens();
 	
 	// Start fade in
@@ -91,6 +83,348 @@ void enter(game::context* ctx)
 
 void exit(game::context* ctx)
 {}
+
+void setup_nest(game::context* ctx)
+{
+	// Find or create nest central shaft entity
+	entity::id shaft_eid = entity::command::find(*ctx->entity_registry, "shaft");
+	if (shaft_eid == entt::null)
+	{
+		shaft_eid = entity::command::create(*ctx->entity_registry, "shaft");
+		
+		entity::component::transform transform;
+		transform.local = math::identity_transform<float>;
+		transform.world = transform.local;
+		transform.warp = true;
+		
+		ctx->entity_registry->assign<entity::component::transform>(shaft_eid, transform);
+	}
+	
+	// Find or create nest lobby chamber entity
+	entity::id lobby_eid = entity::command::find(*ctx->entity_registry, "lobby");
+	if (lobby_eid == entt::null)
+	{
+		lobby_eid = entity::command::create(*ctx->entity_registry, "lobby");
+		
+		entity::component::chamber chamber;
+		chamber.shaft_eid = shaft_eid;
+		chamber.distance = 10.0f;
+		chamber.previous_chamber_eid = entt::null;
+		chamber.next_chamber_eid = entt::null;
+	}
+	
+	// Find or create nest shaft elevator entity
+	entity::id elevator_eid = entity::command::find(*ctx->entity_registry, "elevator");
+	if (elevator_eid == entt::null)
+	{
+		elevator_eid = entity::command::create(*ctx->entity_registry, "elevator");
+		
+		// Create transform component
+		entity::component::transform transform;
+		transform.local = math::identity_transform<float>;
+		transform.world = transform.local;
+		transform.warp = true;
+		ctx->entity_registry->assign<entity::component::transform>(elevator_eid, transform);
+		
+		/*
+		entity::component::constraint::follow_curve follow_curve;
+		follow_curve.target_eid = shaft_eid;
+		follow_curve.offset = 10.0f;
+		*/
+	}
+}
+
+void setup_ants(game::context* ctx)
+{
+	// Find or create queen ant entity
+	entity::id queen_eid = entity::command::find(*ctx->entity_registry, "queen");
+	if (queen_eid == entt::null)
+	{
+		queen_eid = entity::command::create(*ctx->entity_registry, "queen");
+	}
+}
+
+void setup_camera(game::context* ctx)
+{
+	// Switch to underground camera
+	ctx->surface_camera->set_active(false);
+	ctx->underground_camera->set_active(true);
+	
+	// Get underground camera entity
+	entity::id camera_eid = entity::command::find(*ctx->entity_registry, "underground_cam");
+	
+	if (camera_eid == entt::null)
+	{
+		// Create camera target entity
+		entity::id target_eid = entity::command::create(*ctx->entity_registry, "underground_cam_target");
+		{
+			// Transform
+			entity::component::transform target_transform;
+			target_transform.local = math::identity_transform<float>;
+			target_transform.world = target_transform.local;
+			target_transform.warp = true;
+			ctx->entity_registry->assign<entity::component::transform>(target_eid, target_transform);
+			
+			// 3DOF constraint
+			entity::id three_dof_eid = entity::command::create(*ctx->entity_registry, "underground_cam_3dof");
+			entity::component::constraint::three_dof three_dof;
+			three_dof.yaw = 0.0f;
+			three_dof.pitch = 0.0f;
+			three_dof.roll = 0.0f;
+			ctx->entity_registry->assign<entity::component::constraint::three_dof>(three_dof_eid, three_dof);
+			entity::component::constraint_stack_node node;
+			node.active = true;
+			node.weight = 1.0f;
+			node.next = entt::null;
+			ctx->entity_registry->assign<entity::component::constraint_stack_node>(three_dof_eid, node);
+			
+			// Create target constraint stack component
+			entity::component::constraint_stack constraint_stack;
+			constraint_stack.head = three_dof_eid;
+			ctx->entity_registry->assign<entity::component::constraint_stack>(target_eid, constraint_stack);
+		}
+		
+		// Create camera entity
+		camera_eid = entity::command::create(*ctx->entity_registry, "underground_cam");
+		
+		// Create camera transform component
+		entity::component::transform transform;
+		transform.local = math::identity_transform<float>;
+		transform.world = transform.local;
+		transform.warp = true;
+		ctx->entity_registry->assign<entity::component::transform>(camera_eid, transform);
+		
+		// Create camera camera component
+		entity::component::camera camera;
+		camera.object = ctx->underground_camera;
+		ctx->entity_registry->assign<entity::component::camera>(camera_eid, camera);
+		
+		// Create camera spring to constraint entity
+		entity::id spring_constraint_eid = entity::command::create(*ctx->entity_registry);
+		{
+			// Create spring to constraint
+			entity::component::constraint::spring_to spring;
+			spring.target = target_eid;
+			spring.translation = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 1.0f, math::two_pi<float>};
+			spring.translation.w = hz_to_rads(8.0f);
+			
+			spring.rotation = {{1.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, 1.0f, math::two_pi<float>};
+			spring.rotation.w = hz_to_rads(8.0f);
+			
+			spring.spring_translation = true;
+			spring.spring_rotation = true;
+			ctx->entity_registry->assign<entity::component::constraint::spring_to>(spring_constraint_eid, spring);
+			
+			// Create constraint stack node component
+			entity::component::constraint_stack_node node;
+			node.active = true;
+			node.weight = 1.0f;
+			node.next = entt::null;
+			ctx->entity_registry->assign<entity::component::constraint_stack_node>(spring_constraint_eid, node);
+		}
+		
+		// Create camera constraint stack component
+		entity::component::constraint_stack constraint_stack;
+		constraint_stack.head = spring_constraint_eid;
+		ctx->entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
+	}
+	
+	/*
+	entity::component::orbit_rig orbit;
+	orbit.azimuth_min = -std::numeric_limits<float>::infinity();
+	orbit.azimuth_max = std::numeric_limits<float>::infinity();
+	orbit.elevation_min = math::radians(-89.0f);
+	orbit.elevation_max = math::radians(89.0f);
+	orbit.dolly_min = 2.0f;
+	orbit.dolly_max = 200.0f;
+	orbit.fov_near = math::radians(80.0f);
+	orbit.fov_far = math::radians(35.0f);
+	orbit.clip_near_min = 0.1f;
+	orbit.clip_near_max = 5.0f;
+	orbit.clip_far_min = 100.0f;
+	orbit.clip_far_max = 5000.0f;
+	*/
+	
+	ctx->underground_camera->set_exposure(0.0f);
+}
+
+void setup_controls(game::context* ctx)
+{
+	// Get underground camera entity
+	entity::id camera_eid = entity::command::find(*ctx->entity_registry, "underground_cam");
+	entity::id target_eid = entity::command::find(*ctx->entity_registry, "underground_cam_target");
+	entity::id three_dof_eid = entity::command::find(*ctx->entity_registry, "underground_cam_3dof");
+	
+	const float dolly_speed = 10.0f;
+	const float truck_speed = dolly_speed;
+	const float pedestal_speed = 20.0f;
+	const float pan_speed = math::radians(10.0f);
+	const float tilt_speed = pan_speed;
+	
+	ctx->camera_control_dolly_forward->set_active_callback
+	(
+		[ctx, target_eid, three_dof_eid, truck_speed](float value)
+		{
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
+
+			const float3 movement = {0.0f, 0.0f, -truck_speed * value * (1.0f / 60.0f)};
+			entity::command::translate(*ctx->entity_registry, target_eid, yaw * movement);
+		}
+	);
+	
+	ctx->camera_control_dolly_backward->set_active_callback
+	(
+		[ctx, target_eid, three_dof_eid, truck_speed](float value)
+		{
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
+			
+			const float3 movement = {0.0f, 0.0f, truck_speed * value * (1.0f / 60.0f)};
+			entity::command::translate(*ctx->entity_registry, target_eid, yaw * movement);
+		}
+	);
+	
+	ctx->camera_control_truck_right->set_active_callback
+	(
+		[ctx, target_eid, three_dof_eid, truck_speed](float value)
+		{
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
+			
+			const float3 movement = {truck_speed * value * (1.0f / 60.0f), 0.0f, 0.0f};
+			entity::command::translate(*ctx->entity_registry, target_eid, yaw * movement);
+		}
+	);
+	
+	ctx->camera_control_truck_left->set_active_callback
+	(
+		[ctx, target_eid, three_dof_eid, truck_speed](float value)
+		{
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
+			
+			const float3 movement = {-truck_speed * value * (1.0f / 60.0f), 0.0f, 0.0f};
+			entity::command::translate(*ctx->entity_registry, target_eid, yaw * movement);
+		}
+	);
+	
+	// Pedestal up
+	ctx->camera_control_pedestal_up->set_activated_callback
+	(
+		[ctx, target_eid]()
+		{
+			if (ctx->camera_control_modifier->is_active())
+			{
+				// Snap to chamber
+				
+				// Find closest chamber
+				// Pedestal to chamber + offset
+			}
+		}
+	);
+	ctx->camera_control_pedestal_up->set_active_callback
+	(
+		[ctx, target_eid, pedestal_speed](float value)
+		{
+			if (!ctx->camera_control_modifier->is_active())
+			{
+				const float3 movement = {0.0f, pedestal_speed * value * (1.0f / 60.0f), 0.0f};
+				entity::command::translate(*ctx->entity_registry, target_eid, movement);
+			}
+		}
+	);
+	
+	// Pedestal down
+	ctx->camera_control_pedestal_down->set_activated_callback
+	(
+		[ctx, target_eid]()
+		{
+			//...
+		}
+	);
+	ctx->camera_control_pedestal_down->set_active_callback
+	(
+		[ctx, target_eid, pedestal_speed](float value)
+		{
+			if (!ctx->camera_control_modifier->is_active())
+			{
+				const float3 movement = {0.0f, -pedestal_speed * value * (1.0f / 60.0f), 0.0f};
+				entity::command::translate(*ctx->entity_registry, target_eid, movement);
+			}
+		}
+	);
+	
+	ctx->camera_control_orbit->set_activated_callback
+	(
+		[ctx]()
+		{
+			ctx->app->set_relative_mouse_mode(true);
+		}
+	);
+	
+	ctx->camera_control_orbit->set_deactivated_callback
+	(
+		[ctx]()
+		{
+			ctx->app->set_relative_mouse_mode(false);
+		}
+	);
+	
+	// Pan left
+	ctx->camera_control_mouse_left->set_active_callback
+	(
+		[ctx, three_dof_eid, pan_speed](float value)
+		{
+			if (!ctx->camera_control_orbit->is_active())
+				return;
+			
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.yaw += pan_speed * value * (1.0f / 60.0f);
+		}
+	);
+	
+	// Pan right
+	ctx->camera_control_mouse_right->set_active_callback
+	(
+		[ctx, three_dof_eid, pan_speed](float value)
+		{
+			if (!ctx->camera_control_orbit->is_active())
+				return;
+			
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.yaw -= pan_speed * value * (1.0f / 60.0f);
+		}
+	);
+	
+	// Tilt up
+	ctx->camera_control_mouse_up->set_active_callback
+	(
+		[ctx, three_dof_eid, tilt_speed](float value)
+		{
+			if (!ctx->camera_control_orbit->is_active())
+				return;
+			
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.pitch -= tilt_speed * value * (1.0f / 60.0f);
+			three_dof.pitch = std::max<float>(math::radians(-89.0f), three_dof.pitch);
+		}
+	);
+	
+	// Tilt down
+	ctx->camera_control_mouse_down->set_active_callback
+	(
+		[ctx, three_dof_eid, tilt_speed](float value)
+		{
+			if (!ctx->camera_control_orbit->is_active())
+				return;
+			
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.pitch += tilt_speed * value * (1.0f / 60.0f);
+			three_dof.pitch = std::min<float>(math::radians(89.0f), three_dof.pitch);
+		}
+	);
+}
 
 } // namespace brood
 } // namespace state

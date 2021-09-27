@@ -20,7 +20,6 @@
 #include "entity/commands.hpp"
 #include "entity/components/model.hpp"
 #include "entity/components/transform.hpp"
-#include "entity/components/copy-transform.hpp"
 #include "entity/components/snap.hpp"
 #include "entity/components/parent.hpp"
 #include "entity/components/celestial-body.hpp"
@@ -37,6 +36,15 @@ void translate(entity::registry& registry, entity::id eid, const float3& transla
 	{
 		component::transform& transform = registry.get<component::transform>(eid);
 		transform.local.translation += translation;
+	}
+}
+
+void rotate(entity::registry& registry, entity::id eid, float angle, const float3& axis)
+{
+	if (registry.has<component::transform>(eid))
+	{
+		component::transform& transform = registry.get<component::transform>(eid);
+		transform.local.rotation = math::angle_axis(angle, axis) * transform.local.rotation;
 	}
 }
 
@@ -128,12 +136,6 @@ void assign_render_layers(entity::registry& registry, entity::id eid, unsigned i
 	}
 }
 
-void bind_transform(entity::registry& registry, entity::id source, entity::id target)
-{
-	component::copy_transform copy_transform = {target};
-	registry.assign_or_replace<component::copy_transform>(source, copy_transform);
-}
-
 math::transform<float> get_local_transform(entity::registry& registry, entity::id eid)
 {
 	if (registry.has<component::transform>(eid))
@@ -190,6 +192,14 @@ entity::id create(entity::registry& registry, const std::string& name)
 {
 	auto eid = registry.create();
 	rename(registry, eid, name);
+	return eid;
+}
+
+entity::id find_or_create(entity::registry& registry, const std::string& name)
+{
+	entity::id eid = find(registry, name);
+	if (eid == entt::null)
+		eid = create(registry, name);
 	return eid;
 }
 

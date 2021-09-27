@@ -68,6 +68,9 @@ public:
 
 	/// Sets the callback for when the control value is changed.
 	void set_value_changed_callback(std::function<void(float)> callback);
+	
+	/// Sets the callback for while the control is active.
+	void set_active_callback(std::function<void(float)> callback);
 
 	/**
 	 * Enables or disables callbacks.
@@ -99,6 +102,7 @@ private:
 	std::function<void()> activated_callback;
 	std::function<void()> deactivated_callback;
 	std::function<void(float)> value_changed_callback;
+	std::function<void(float)> active_callback;
 	bool callbacks_enabled;
 };
 

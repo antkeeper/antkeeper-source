@@ -17,20 +17,30 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ENTITY_COMPONENT_COPY_TRANSFORM_HPP
-#define ANTKEEPER_ENTITY_COMPONENT_COPY_TRANSFORM_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_TRACK_TO_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_TRACK_TO_HPP
 
 #include "entity/id.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace entity {
 namespace component {
+namespace constraint {
 
-struct copy_transform
+/**
+ * Rotates a transform to face a target.
+ */
+struct track_to
 {
+	/// Target entity ID.
 	entity::id target;
+	
+	/// Up direction vector.
+	float3 up;
 };
 
+} // namespace constraint
 } // namespace component
 } // namespace entity
 
-#endif // ANTKEEPER_ENTITY_COMPONENT_COPY_TRANSFORM_HPP
+#endif // ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_TRACK_TO_HPP

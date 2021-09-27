@@ -17,23 +17,30 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ENTITY_COMPONENT_COPY_SCALE_HPP
-#define ANTKEEPER_ENTITY_COMPONENT_COPY_SCALE_HPP
-
-#include "entity/id.hpp"
+#ifndef ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_THREE_DOF_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_THREE_DOF_HPP
 
 namespace entity {
 namespace component {
+namespace constraint {
 
-struct copy_scale
+/**
+ * Springs to a target entity.
+ */
+struct three_dof
 {
-	entity::id target;
-	bool use_x;
-	bool use_y;
-	bool use_z;
+	/// Yaw rotation angle, in radians.
+	float yaw;
+	
+	/// Pitch rotation angle, in radians.
+	float pitch;
+	
+	/// Roll rotation angle, in radians.
+	float roll;
 };
 
+} // namespace constraint
 } // namespace component
 } // namespace entity
 
-#endif // ANTKEEPER_ENTITY_COMPONENT_COPY_SCALE_HPP
+#endif // ANTKEEPER_ENTITY_COMPONENT_CONSTRAINT_THREE_DOF_HPP

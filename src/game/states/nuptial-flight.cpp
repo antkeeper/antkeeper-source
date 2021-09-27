@@ -24,7 +24,6 @@
 #include "entity/systems/control.hpp"
 #include "entity/systems/camera.hpp"
 #include "entity/components/observer.hpp"
-#include "entity/components/camera-follow.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/commands.hpp"
@@ -86,24 +85,9 @@ void enter(game::context* ctx)
 	auto orb_ring_eid = ctx->entity_registry->create();
 	//orb_ring_archetype->assign(*ctx->entity_registry, orb_ring_eid);
 	
-	// Create camera focal point
-	{
-		entity::component::transform focal_point_transform;
-		focal_point_transform.local = math::identity_transform<float>;
-		focal_point_transform.warp = true;
-		ctx->entity_registry->assign_or_replace<entity::component::transform>(ctx->focal_point_entity, focal_point_transform);
-		
-		entity::component::camera_follow focal_point_follow;
-		ctx->entity_registry->assign_or_replace<entity::component::camera_follow>(ctx->focal_point_entity, focal_point_follow);
-	}
-	
 	// Setup camera
 	ctx->surface_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
 	ctx->surface_camera->set_exposure(-14.5f);
-	ctx->camera_system->set_camera(ctx->surface_camera);
-	
-	entity::system::control* control_system = ctx->control_system;
-	control_system->update(0.0, 0.0);
 	
 	ctx->surface_scene->update_tweens();
 	

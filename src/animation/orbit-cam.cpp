@@ -74,7 +74,7 @@ void orbit_cam::update(float dt)
 	float fov = math::log_lerp<float>(fov_limits[1], fov_limits[0], zoom_spring.x0);
 	float clip_near = math::log_lerp<float>(clip_near_limits[1], clip_near_limits[0], zoom_spring.x0);
 	float clip_far = math::log_lerp<float>(clip_far_limits[1], clip_far_limits[0], zoom_spring.x0);
-		
+	
 	// Calculate camera transform
 	transform_type transform = math::identity_transform<float>;
 	

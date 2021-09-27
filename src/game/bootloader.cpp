@@ -375,7 +375,7 @@ void load_strings(game::context* ctx)
 {
 	debug::logger* logger = ctx->logger;
 	logger->push_task("Loading strings");
-		
+	
 	ctx->string_table = ctx->resource_manager->load<string_table>("strings.csv");
 	
 	build_string_table_map(&ctx->string_table_map, *ctx->string_table);
@@ -815,13 +815,11 @@ void setup_systems(game::context* ctx)
 	// Setup camera system
 	ctx->camera_system = new entity::system::camera(*ctx->entity_registry);
 	ctx->camera_system->set_viewport(viewport);
-	event_dispatcher->subscribe<mouse_moved_event>(ctx->camera_system);
 	event_dispatcher->subscribe<window_resized_event>(ctx->camera_system);
 	
 	// Setup tool system
 	ctx->tool_system = new entity::system::tool(*ctx->entity_registry, event_dispatcher);
 	ctx->tool_system->set_camera(ctx->surface_camera);
-	ctx->tool_system->set_orbit_cam(ctx->camera_system->get_orbit_cam());
 	ctx->tool_system->set_viewport(viewport);
 	
 	// Setup subterrain system
@@ -908,14 +906,8 @@ void setup_systems(game::context* ctx)
 	// Setup control system
 	ctx->control_system = new entity::system::control(*ctx->entity_registry);
 	ctx->control_system->set_viewport(viewport);
-	ctx->control_system->set_underground_camera(ctx->underground_camera);
-	ctx->control_system->set_tool(nullptr);
-	//ctx->control_system->set_flashlight(flashlight, flashlight_light_cone);
 	ctx->control_system->get_adjust_camera_control()->set_activated_callback([ctx](){ ctx->app->set_relative_mouse_mode(true); ctx->tool_system->set_pick(false); });
 	ctx->control_system->get_adjust_camera_control()->set_deactivated_callback([ctx](){ ctx->app->set_relative_mouse_mode(false); ctx->tool_system->set_pick(true); });
-	ctx->control_system->set_flashlight(ctx->flashlight_entity);
-	ctx->control_system->set_camera_subject(ctx->focal_point_entity);
-	ctx->control_system->set_camera_system(ctx->camera_system);
 	event_dispatcher->subscribe<mouse_moved_event>(ctx->control_system);
 	event_dispatcher->subscribe<window_resized_event>(ctx->control_system);
 	
@@ -996,8 +988,23 @@ void setup_controls(game::context* ctx)
 	ctx->menu_controls->add_control(ctx->menu_back_control);
 	ctx->menu_controls->add_control(ctx->menu_select_control);
 
-	
-
+	// Create camera controls
+	ctx->camera_control_modifier = new input::control();
+	ctx->camera_control_mouse_left = new input::control();
+	ctx->camera_control_mouse_right = new input::control();
+	ctx->camera_control_mouse_down = new input::control();
+	ctx->camera_control_mouse_up = new input::control();
+	ctx->camera_control_orbit = new input::control();
+	ctx->camera_control_dolly_forward = new input::control();
+	ctx->camera_control_dolly_backward = new input::control();
+	ctx->camera_control_truck_left = new input::control();
+	ctx->camera_control_truck_right = new input::control();
+	ctx->camera_control_pedestal_up = new input::control();
+	ctx->camera_control_pedestal_down = new input::control();
+	ctx->camera_control_pan_left = new input::control();
+	ctx->camera_control_pan_right = new input::control();
+	ctx->camera_control_tilt_up = new input::control();
+	ctx->camera_control_tilt_down = new input::control();
 
 	ctx->camera_controls = ctx->control_system->get_control_set();
 
@@ -1009,7 +1016,7 @@ void setup_controls(game::context* ctx)
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_back_control, nullptr, input::scancode::escape));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_back_control, nullptr, input::scancode::backspace));
 	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->menu_back_control, nullptr, input::game_controller_button::b));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::scancode::left_shift));
+	//ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::scancode::left_shift));
 	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::game_controller_button::x));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_select_control, nullptr, input::scancode::enter));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_select_control, nullptr, input::scancode::space));
@@ -1066,7 +1073,7 @@ void setup_controls(game::context* ctx)
 	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_tilt_down_control(), nullptr, input::game_controller_axis::right_y, true));
 	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->control_system->get_zoom_in_control(), nullptr, input::mouse_wheel_axis::positive_y));
 	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->control_system->get_zoom_out_control(), nullptr, input::mouse_wheel_axis::negative_y));
-	ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->control_system->get_adjust_camera_control(), nullptr, 3));
+	//ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->control_system->get_adjust_camera_control(), nullptr, 3));
 	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->control_system->get_ascend_control(), nullptr, input::game_controller_button::y));
 	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->control_system->get_descend_control(), nullptr, input::game_controller_button::a));
 	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->control_system->get_zoom_out_control(), nullptr, input::game_controller_axis::trigger_left, false));
@@ -1087,107 +1094,29 @@ void setup_controls(game::context* ctx)
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_lens_control(), nullptr, input::scancode::five));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_equip_marker_control(), nullptr, input::scancode::six));
 	
+	
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_modifier, nullptr, input::scancode::left_shift));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_dolly_forward, nullptr, input::scancode::w));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->camera_control_dolly_forward, nullptr, input::game_controller_axis::left_y, true));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_dolly_backward, nullptr, input::scancode::s));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->camera_control_dolly_backward, nullptr, input::game_controller_axis::left_y, false));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_truck_left, nullptr, input::scancode::a));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->camera_control_truck_left, nullptr, input::game_controller_axis::left_x, true));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_truck_right, nullptr, input::scancode::d));
+	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->camera_control_truck_right, nullptr, input::game_controller_axis::left_x, false));
+	
+	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->camera_control_pedestal_up, nullptr, input::mouse_wheel_axis::positive_y));
+	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->camera_control_pedestal_down, nullptr, input::mouse_wheel_axis::negative_y));
+	
+	ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->camera_control_orbit, nullptr, 3));
+	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_left, nullptr, input::mouse_motion_axis::negative_x));
+	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_right, nullptr, input::mouse_motion_axis::positive_x));
+	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_down, nullptr, input::mouse_motion_axis::positive_y));
+	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_up, nullptr, input::mouse_motion_axis::negative_y));
+	
 	//ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_next_marker_control(), nullptr, input::scancode::right_brace));
 	//ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_previous_marker_control(), nullptr, input::scancode::left_brace));
 	
-	ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->control_system->get_use_tool_control(), nullptr, 1));
-	ctx->control_system->get_use_tool_control()->set_activated_callback
-	(
-		[ctx]()
-		{
-			ctx->tool_system->set_tool_active(true);
-		}
-	);
-	ctx->control_system->get_use_tool_control()->set_deactivated_callback
-	(
-		[ctx]()
-		{
-			ctx->tool_system->set_tool_active(false);
-		}
-	);
-	
-	ctx->control_system->get_equip_forceps_control()->set_activated_callback
-	(
-		[ctx]()
-		{
-			ctx->tool_system->set_active_tool(ctx->forceps_entity);
-		}
-	);
-	ctx->control_system->get_equip_brush_control()->set_activated_callback
-	(
-		[ctx]()
-		{
-			ctx->tool_system->set_active_tool(ctx->brush_entity);
-		}
-	);
-	ctx->control_system->get_equip_lens_control()->set_activated_callback
-	(
-		[ctx]()
-		{
-			ctx->tool_system->set_active_tool(ctx->lens_entity);
-		}
-	);
-	ctx->control_system->get_equip_marker_control()->set_activated_callback
-	(
-		[ctx]()
-		{
-			ctx->tool_system->set_active_tool(ctx->marker_entity);
-		}
-	);
-	ctx->control_system->get_equip_container_control()->set_activated_callback
-	(
-		[ctx]()
-		{
-			ctx->tool_system->set_active_tool(ctx->container_entity);
-		}
-	);
-	ctx->control_system->get_equip_twig_control()->set_activated_callback
-	(
-		[ctx]()
-		{
-			ctx->tool_system->set_active_tool(ctx->twig_entity);
-		}
-	);
-	
-	ctx->control_system->get_next_marker_control()->set_activated_callback
-	(
-		[ctx]()
-		{
-			auto& marker = ctx->entity_registry->get<entity::component::marker>(ctx->marker_entity);
-			marker.color = (marker.color + 1) % 8;			
-			const gl::texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker.color];
-			
-			model* marker_model = ctx->render_system->get_model_instance(ctx->marker_entity)->get_model();
-			for (::model_group* group: *marker_model->get_groups())
-			{
-				material_property_base* albedo_property = group->get_material()->get_property("albedo_texture");
-				if (albedo_property)
-				{
-					static_cast<material_property<const gl::texture_2d*>*>(albedo_property)->set_value(marker_albedo_texture);
-				}
-			}
-		}
-	);
-	
-	ctx->control_system->get_previous_marker_control()->set_activated_callback
-	(
-		[ctx]()
-		{
-			auto& marker = ctx->entity_registry->get<entity::component::marker>(ctx->marker_entity);
-			marker.color = (marker.color + 7) % 8;			
-			const gl::texture_2d* marker_albedo_texture = ctx->marker_albedo_textures[marker.color];
-			
-			model* marker_model = ctx->render_system->get_model_instance(ctx->marker_entity)->get_model();
-			for (::model_group* group: *marker_model->get_groups())
-			{
-				material_property_base* albedo_property = group->get_material()->get_property("albedo_texture");
-				if (albedo_property)
-				{
-					static_cast<material_property<const gl::texture_2d*>*>(albedo_property)->set_value(marker_albedo_texture);
-				}
-			}
-		}
-	);
 	
 	
 	float time_scale = ctx->config->get<float>("time_scale");
@@ -1265,7 +1194,10 @@ void setup_callbacks(game::context* ctx)
 						
 			ctx->timeline->advance(dt);
 			
-			ctx->control_system->update(t, dt);
+
+
+
+			
 			ctx->terrain_system->update(t, dt);
 			//ctx->vegetation_system->update(t, dt);
 			ctx->snapping_system->update(t, dt);
@@ -1304,6 +1236,24 @@ void setup_callbacks(game::context* ctx)
 			ctx->application_controls->update();
 			ctx->menu_controls->update();
 			ctx->camera_controls->update();
+			
+			ctx->control_system->update(t, dt);
+			ctx->camera_control_modifier->update();
+			ctx->camera_control_mouse_left->update();
+			ctx->camera_control_mouse_right->update();
+			ctx->camera_control_mouse_down->update();
+			ctx->camera_control_mouse_up->update();
+			ctx->camera_control_dolly_forward->update();
+			ctx->camera_control_dolly_backward->update();
+			ctx->camera_control_truck_left->update();
+			ctx->camera_control_truck_right->update();
+			ctx->camera_control_pedestal_up->update();
+			ctx->camera_control_pedestal_down->update();
+			ctx->camera_control_pan_left->update();
+			ctx->camera_control_pan_right->update();
+			ctx->camera_control_tilt_up->update();
+			ctx->camera_control_tilt_down->update();
+			ctx->camera_control_orbit->update();
 		}
 	);
 	

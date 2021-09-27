@@ -537,6 +537,7 @@ void application::translate_sdl_events()
 
 			case SDL_MOUSEMOTION:
 			{
+				/// @WARNING: more than one mouse motion event is often generated per frame and may be a source of lag.
 				mouse->move(sdl_event.motion.x, sdl_event.motion.y, sdl_event.motion.xrel, sdl_event.motion.yrel);
 				break;
 			}

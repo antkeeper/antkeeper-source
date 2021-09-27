@@ -19,6 +19,7 @@
 
 #include "render.hpp"
 #include "entity/components/transform.hpp"
+#include "entity/components/camera.hpp"
 #include "renderer/renderer.hpp"
 #include "scene/point-light.hpp"
 #include "scene/directional-light.hpp"
@@ -56,6 +57,21 @@ void render::update(double t, double dt)
 			{
 				instance->get_transform_tween().update();
 				instance->update_tweens();
+				transform.warp = false;
+			}
+		}
+	);
+	
+	// Update camera transforms
+	registry.view<component::transform, component::camera>().each
+	(
+		[this](entity::id entity_id, auto& transform, auto& camera)
+		{
+			camera.object->set_transform(transform.world);
+			if (transform.warp)
+			{
+				camera.object->get_transform_tween().update();
+				camera.object->update_tweens();
 				transform.warp = false;
 			}
 		}
