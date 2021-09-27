@@ -28,9 +28,6 @@
 #include "entity/components/constraints/spring-to.hpp"
 #include "entity/components/constraints/three-dof.hpp"
 #include "entity/components/constraint-stack.hpp"
-#include "entity/systems/control.hpp"
-#include "entity/systems/camera.hpp"
-#include "entity/systems/tool.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
 #include "resources/resource-manager.hpp"
@@ -164,26 +161,6 @@ void setup_camera(game::context* ctx)
 			target_transform.world = target_transform.local;
 			target_transform.warp = true;
 			ctx->entity_registry->assign<entity::component::transform>(target_eid, target_transform);
-			
-			/*
-			// 3DOF constraint
-			entity::id three_dof_eid = entity::command::create(*ctx->entity_registry, "underground_cam_3dof");
-			entity::component::constraint::three_dof three_dof;
-			three_dof.yaw = 0.0f;
-			three_dof.pitch = 0.0f;
-			three_dof.roll = 0.0f;
-			ctx->entity_registry->assign<entity::component::constraint::three_dof>(three_dof_eid, three_dof);
-			entity::component::constraint_stack_node node;
-			node.active = true;
-			node.weight = 1.0f;
-			node.next = entt::null;
-			ctx->entity_registry->assign<entity::component::constraint_stack_node>(three_dof_eid, node);
-			
-			// Create target constraint stack component
-			entity::component::constraint_stack constraint_stack;
-			constraint_stack.head = three_dof_eid;
-			ctx->entity_registry->assign<entity::component::constraint_stack>(target_eid, constraint_stack);
-			*/
 		}
 		
 		// Create camera entity
@@ -228,9 +205,6 @@ void setup_camera(game::context* ctx)
 			spring.translation = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 1.0f, math::two_pi<float>};
 			spring.translation.w = hz_to_rads(8.0f);
 			
-			//spring.rotation = {{1.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, 1.0f, math::two_pi<float>};
-			//spring.rotation.w = hz_to_rads(5.0f);
-			
 			spring.spring_translation = true;
 			spring.spring_rotation = false;
 			ctx->entity_registry->assign<entity::component::constraint::spring_to>(spring_constraint_eid, spring);
@@ -249,22 +223,6 @@ void setup_camera(game::context* ctx)
 		ctx->entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
 	}
 	
-	/*
-	entity::component::orbit_rig orbit;
-	orbit.azimuth_min = -std::numeric_limits<float>::infinity();
-	orbit.azimuth_max = std::numeric_limits<float>::infinity();
-	orbit.elevation_min = math::radians(-89.0f);
-	orbit.elevation_max = math::radians(89.0f);
-	orbit.dolly_min = 2.0f;
-	orbit.dolly_max = 200.0f;
-	orbit.fov_near = math::radians(80.0f);
-	orbit.fov_far = math::radians(35.0f);
-	orbit.clip_near_min = 0.1f;
-	orbit.clip_near_max = 5.0f;
-	orbit.clip_far_min = 100.0f;
-	orbit.clip_far_max = 5000.0f;
-	*/
-	
 	ctx->underground_camera->set_exposure(0.0f);
 }
 
@@ -277,7 +235,7 @@ void setup_controls(game::context* ctx)
 	
 	const float dolly_speed = 10.0f;
 	const float truck_speed = dolly_speed;
-	const float pedestal_speed = 20.0f;
+	const float pedestal_speed = 30.0f;
 	const float pan_speed = math::radians(8.0f);
 	const float tilt_speed = pan_speed;
 	
@@ -431,7 +389,7 @@ void setup_controls(game::context* ctx)
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch -= tilt_speed * value * (1.0f / 60.0f);
-			three_dof.pitch = std::max<float>(math::radians(-89.9f), three_dof.pitch);
+			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
 		}
 	);
 	
@@ -445,7 +403,7 @@ void setup_controls(game::context* ctx)
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch += tilt_speed * value * (1.0f / 60.0f);
-			three_dof.pitch = std::min<float>(math::radians(89.9f), three_dof.pitch);
+			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
 		}
 	);
 }

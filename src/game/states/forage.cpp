@@ -24,8 +24,6 @@
 #include "entity/components/terrain.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/systems/astronomy.hpp"
-#include "entity/systems/control.hpp"
-#include "entity/systems/camera.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
 #include "resources/resource-manager.hpp"

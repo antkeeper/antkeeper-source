@@ -76,8 +76,12 @@ void ui::set_viewport(const float4& viewport)
 void ui::set_tool_menu_control(input::control* control)
 {
 	tool_menu_control = control;
-	tool_menu_control->set_activated_callback(std::bind(&ui::open_tool_menu, this));
-	tool_menu_control->set_deactivated_callback(std::bind(&ui::close_tool_menu, this));
+	
+	if (tool_menu_control)
+	{
+		tool_menu_control->set_activated_callback(std::bind(&ui::open_tool_menu, this));
+		tool_menu_control->set_deactivated_callback(std::bind(&ui::close_tool_menu, this));
+	}
 }
 
 void ui::set_camera(scene::camera* camera)
@@ -98,7 +102,7 @@ void ui::set_scene(scene::collection* collection)
 
 void ui::handle_event(const mouse_moved_event& event)
 {
-	if (tool_menu_control->is_active())
+	if (tool_menu_control && tool_menu_control->is_active())
 	{
 		tool_selection_vector.x += event.dx;
 		tool_selection_vector.y += event.dy;

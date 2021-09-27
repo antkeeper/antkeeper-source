@@ -21,7 +21,6 @@
 #include "entity/archetype.hpp"
 #include "entity/systems/astronomy.hpp"
 #include "entity/systems/orbit.hpp"
-#include "entity/systems/control.hpp"
 #include "entity/systems/camera.hpp"
 #include "entity/components/observer.hpp"
 #include "entity/components/transform.hpp"

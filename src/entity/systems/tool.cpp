@@ -23,7 +23,6 @@
 #include "entity/components/transform.hpp"
 #include "event/event-dispatcher.hpp"
 #include "game/events/tool-events.hpp"
-#include "animation/orbit-cam.hpp"
 #include "animation/ease.hpp"
 #include "geom/mesh.hpp"
 #include "geom/intersection.hpp"
@@ -37,7 +36,6 @@ tool::tool(entity::registry& registry, ::event_dispatcher* event_dispatcher):
 	updatable(registry),
 	event_dispatcher(event_dispatcher),
 	camera(nullptr),
-	orbit_cam(orbit_cam),
 	viewport{0, 0, 0, 0},
 	mouse_position{0, 0},
 	pick_enabled(true),
@@ -95,6 +93,7 @@ tool::~tool()
 
 void tool::update(double t, double dt)
 {
+	/*
 	if (active_tool == entt::null)
 		return;
 	
@@ -174,11 +173,6 @@ void tool::update(double t, double dt)
 	registry.view<component::tool, component::transform>().each(
 		[&](entity::id entity_id, auto& tool, auto& transform)
 		{
-			/*
-			if (registry.has<component::model>(entity_id))
-			{
-				
-			}*/
 			
 			if (!tool.active)
 				return;
@@ -221,16 +215,12 @@ void tool::update(double t, double dt)
 		});
 	
 	was_pick_enabled = pick_enabled;
+	*/
 }
 
 void tool::set_camera(const scene::camera* camera)
 {
 	this->camera = camera;
-}
-
-void tool::set_orbit_cam(const ::orbit_cam* orbit_cam)
-{
-	this->orbit_cam = orbit_cam;
 }
 
 void tool::set_viewport(const float4& viewport)

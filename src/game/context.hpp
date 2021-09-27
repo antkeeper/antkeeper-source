@@ -53,7 +53,6 @@ class config_file;
 class final_pass;
 class material;
 class material_pass;
-class orbit_cam;
 class pheromone_matrix;
 class resource_manager;
 class screen_transition;
@@ -94,7 +93,6 @@ namespace entity
 		class collision;
 		class constraint;
 		class locomotion;
-		class control;
 		class snapping;
 		class camera;
 		class nest;
@@ -262,7 +260,6 @@ struct context
 	entity::system::camera* camera_system;
 	entity::system::collision* collision_system;
 	entity::system::constraint* constraint_system;
-	entity::system::control* control_system;
 	entity::system::locomotion* locomotion_system;
 	entity::system::nest* nest_system;
 	entity::system::snapping* snapping_system;

@@ -30,7 +30,6 @@
 #include "animation/animation.hpp"
 #include "scene/camera.hpp"
 
-class orbit_cam;
 class event_dispatcher;
 
 namespace entity {
@@ -47,7 +46,6 @@ public:
 	virtual void update(double t, double dt);
 
 	void set_camera(const scene::camera* camera);
-	void set_orbit_cam(const orbit_cam* camera);
 	void set_viewport(const float4& viewport);
 	void set_pick(bool enabled);
 	void set_sun_direction(const float3& direction);
@@ -64,7 +62,6 @@ private:
 
 	event_dispatcher* event_dispatcher;
 	const scene::camera* camera;
-	const orbit_cam* orbit_cam;
 	float4 viewport;
 	float2 mouse_position;
 	bool was_pick_enabled;
