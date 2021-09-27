@@ -244,41 +244,61 @@ void application::close(int status)
 
 int application::execute(bootloader_type bootloader)
 {
-	// Execute bootloader
-	if (bootloader)
+	try
 	{
-		exit_status = bootloader(this);
-		if (exit_status != EXIT_SUCCESS)
+		// Execute bootloader
+		if (bootloader)
 		{
-			return exit_status;
+			exit_status = bootloader(this);
+			if (exit_status != EXIT_SUCCESS)
+			{
+				return exit_status;
+			}
 		}
-	}
-	
-	// Show window
-	SDL_ShowWindow(sdl_window);
-	
-	// Clear window
-	rasterizer->clear_framebuffer(true, false, false);
-	SDL_GL_SwapWindow(sdl_window);
-	
-	// Perform initial update
-	update(0.0, 0.0);
-	
-	// Reset frame scheduler
-	frame_scheduler->reset();
+		
+		// Show window
+		SDL_ShowWindow(sdl_window);
+		
+		// Clear window
+		rasterizer->clear_framebuffer(true, false, false);
+		SDL_GL_SwapWindow(sdl_window);
+		
+		// Perform initial update
+		update(0.0, 0.0);
+		
+		// Reset frame scheduler
+		frame_scheduler->reset();
 
-	// Schedule frames until closed
-	while (!closed)
+		// Schedule frames until closed
+		while (!closed)
+		{
+			// Tick frame scheduler
+			frame_scheduler->tick();
+
+			// Sample frame duration
+			performance_sampler->sample(frame_scheduler->get_frame_duration());
+		}
+		
+		// Exit current state
+		change_state({std::string(), nullptr, nullptr});
+	}
+	catch (const std::exception& e)
 	{
-		// Tick frame scheduler
-		frame_scheduler->tick();
-
-		// Sample frame duration
-		performance_sampler->sample(frame_scheduler->get_frame_duration());
+		// Print exception to logger
+		logger->error(std::string("Unhandled exception: \"") + e.what() + std::string("\""));
+		
+		// Show error message box with unhandled exception
+		SDL_ShowSimpleMessageBox
+		(
+			SDL_MESSAGEBOX_ERROR,
+			"Unhandled Exception",
+			e.what(),
+			sdl_window
+		);
+		
+		// Set exit status to failure
+		exit_status = EXIT_FAILURE;
 	}
-	
-	// Exit current state
-	change_state({std::string(), nullptr, nullptr});
 	
 	return exit_status;
 }
@@ -706,14 +726,4 @@ void application::window_resized()
 	event.h = window_dimensions[1];
 	
 	event_dispatcher->queue(event);
-
-	/*
-	rasterizer->window_resized(width, height);
-	overworld_camera.set_perspective(overworld_camera.get_fov(), aspect_ratio, overworld_camera.get_clip_near(), overworld_camera.get_clip_far());
-	underworld_camera.set_perspective(underworld_camera.get_fov(), aspect_ratio, underworld_camera.get_clip_near(), underworld_camera.get_clip_far());
-	control_system->set_viewport(viewport);
-	camera_system->set_viewport(viewport);
-	tool_system->set_viewport(viewport);
-	ui_system->set_viewport(viewport);
-	*/
 }
