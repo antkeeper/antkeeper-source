@@ -32,6 +32,7 @@
 #include "entity/commands.hpp"
 #include "game/states/nuptial-flight.hpp"
 #include "game/states/splash.hpp"
+#include "game/states/forage.hpp"
 #include "geom/spherical.hpp"
 #include "gl/drawing-mode.hpp"
 #include "gl/vertex-array.hpp"
@@ -105,9 +106,9 @@ void enter(game::context* ctx)
 	application::state next_state;
 	if (ctx->option_quick_start.has_value())
 	{
-		next_state.name = "nuptial flight";
-		next_state.enter = std::bind(game::state::nuptial_flight::enter, ctx);
-		next_state.exit = std::bind(game::state::nuptial_flight::exit, ctx);
+		next_state.name = "forage";
+		next_state.enter = std::bind(game::state::forage::enter, ctx);
+		next_state.exit = std::bind(game::state::forage::exit, ctx);
 	}
 	else
 	{
