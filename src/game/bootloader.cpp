@@ -60,7 +60,6 @@
 #include "entity/systems/collision.hpp"
 #include "entity/systems/constraint.hpp"
 #include "entity/systems/locomotion.hpp"
-#include "entity/systems/nest.hpp"
 #include "entity/systems/snapping.hpp"
 #include "entity/systems/render.hpp"
 #include "entity/systems/samara.hpp"
@@ -87,7 +86,6 @@
 #include "input/game-controller.hpp"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
-#include "pheromone-matrix.hpp"
 #include "configuration.hpp"
 #include "input/scancode.hpp"
 #include <cxxopts.hpp>
@@ -825,9 +823,6 @@ void setup_systems(game::context* ctx)
 	ctx->subterrain_system = new entity::system::subterrain(*ctx->entity_registry, ctx->resource_manager);
 	ctx->subterrain_system->set_scene(ctx->underground_scene);
 	
-	// Setup nest system
-	ctx->nest_system = new entity::system::nest(*ctx->entity_registry, ctx->resource_manager);
-	
 	// Setup collision system
 	ctx->collision_system = new entity::system::collision(*ctx->entity_registry);
 	
@@ -842,16 +837,6 @@ void setup_systems(game::context* ctx)
 	
 	// Setup locomotion system
 	ctx->locomotion_system = new entity::system::locomotion(*ctx->entity_registry);
-	
-	// Setup pheromone system
-	ctx->pheromones = new pheromone_matrix();
-	ctx->pheromones->rows = 256;
-	ctx->pheromones->columns = 256;
-	ctx->pheromones->buffers = new float*[2];
-	ctx->pheromones->buffers[0] = new float[ctx->pheromones->rows * ctx->pheromones->columns];
-	ctx->pheromones->buffers[1] = new float[ctx->pheromones->rows * ctx->pheromones->columns];
-	ctx->pheromones->current = 0;
-	//diffuse(ctx->pheromones);
 	
 	// Setup spatial system
 	ctx->spatial_system = new entity::system::spatial(*ctx->entity_registry);
@@ -979,7 +964,8 @@ void setup_controls(game::context* ctx)
 	ctx->menu_controls->add_control(ctx->menu_select_control);
 
 	// Create camera controls
-	ctx->camera_control_modifier = new input::control();
+	ctx->camera_control_slow_modifier = new input::control();
+	ctx->camera_control_fast_modifier = new input::control();
 	ctx->camera_control_mouse_rotate = new input::control();
 	ctx->camera_control_mouse_left = new input::control();
 	ctx->camera_control_mouse_right = new input::control();
@@ -1001,10 +987,13 @@ void setup_controls(game::context* ctx)
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->toggle_fullscreen_control, nullptr, input::scancode::f11));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->screenshot_control, nullptr, input::scancode::f12));
 	
-	/*
-	// Add menu control mappings
+	// UI controls
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_back_control, nullptr, input::scancode::escape));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_back_control, nullptr, input::scancode::backspace));
+	
+	/*
+	// Add menu control mappings
+
 	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->menu_back_control, nullptr, input::game_controller_button::b));
 	//ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::scancode::left_shift));
 	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::game_controller_button::x));
@@ -1119,7 +1108,8 @@ void setup_controls(game::context* ctx)
 	);
 	*/
 	
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_modifier, nullptr, input::scancode::left_shift));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_slow_modifier, nullptr, input::scancode::left_ctrl));
+	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_fast_modifier, nullptr, input::scancode::left_shift));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_dolly_forward, nullptr, input::scancode::w));
 	ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(ctx->camera_control_dolly_forward, nullptr, input::game_controller_axis::left_y, true));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->camera_control_dolly_backward, nullptr, input::scancode::s));
@@ -1170,7 +1160,8 @@ void setup_callbacks(game::context* ctx)
 			// Update controls
 			ctx->application_controls->update();
 			ctx->menu_controls->update();
-			ctx->camera_control_modifier->update();
+			ctx->camera_control_slow_modifier->update();
+			ctx->camera_control_fast_modifier->update();
 			ctx->camera_control_mouse_rotate->update();
 			ctx->camera_control_mouse_left->update();
 			ctx->camera_control_mouse_right->update();
@@ -1207,7 +1198,6 @@ void setup_callbacks(game::context* ctx)
 			ctx->terrain_system->update(t, dt);
 			//ctx->vegetation_system->update(t, dt);
 			ctx->snapping_system->update(t, dt);
-			ctx->nest_system->update(t, dt);
 			ctx->subterrain_system->update(t, dt);
 			ctx->collision_system->update(t, dt);
 			ctx->samara_system->update(t, dt);

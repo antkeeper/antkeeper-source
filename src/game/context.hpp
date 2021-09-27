@@ -53,7 +53,6 @@ class config_file;
 class final_pass;
 class material;
 class material_pass;
-class pheromone_matrix;
 class resource_manager;
 class screen_transition;
 class shadow_map_pass;
@@ -242,7 +241,8 @@ struct context
 	input::control* camera_control_pan_right;
 	input::control* camera_control_tilt_up;
 	input::control* camera_control_tilt_down;
-	input::control* camera_control_modifier;
+	input::control* camera_control_slow_modifier;
+	input::control* camera_control_fast_modifier;
 
 	// Entities
 	entity::registry* entity_registry;
@@ -261,7 +261,6 @@ struct context
 	entity::system::collision* collision_system;
 	entity::system::constraint* constraint_system;
 	entity::system::locomotion* locomotion_system;
-	entity::system::nest* nest_system;
 	entity::system::snapping* snapping_system;
 	entity::system::render* render_system;
 	entity::system::samara* samara_system;
@@ -284,9 +283,6 @@ struct context
 	
 	// Debug
 	debug::cli* cli;
-	
-	// Misc
-	pheromone_matrix* pheromones;
 };
 
 } // namespace game

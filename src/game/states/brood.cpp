@@ -233,7 +233,7 @@ void setup_controls(game::context* ctx)
 	entity::id target_eid = entity::command::find(*ctx->entity_registry, "underground_cam_target");
 	entity::id three_dof_eid = entity::command::find(*ctx->entity_registry, "underground_cam_3dof");
 	
-	const float dolly_speed = 10.0f;
+	const float dolly_speed = 20.0f;
 	const float truck_speed = dolly_speed;
 	const float pedestal_speed = 30.0f;
 	const float pan_speed = math::radians(8.0f);
@@ -244,6 +244,11 @@ void setup_controls(game::context* ctx)
 	(
 		[ctx, target_eid, three_dof_eid, truck_speed](float value)
 		{
+			if (ctx->camera_control_slow_modifier->is_active())
+				value *= 0.5f;
+			if (ctx->camera_control_fast_modifier->is_active())
+				value *= 2.0f;
+			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
 
@@ -257,6 +262,11 @@ void setup_controls(game::context* ctx)
 	(
 		[ctx, target_eid, three_dof_eid, truck_speed](float value)
 		{
+			if (ctx->camera_control_slow_modifier->is_active())
+				value *= 0.5f;
+			if (ctx->camera_control_fast_modifier->is_active())
+				value *= 2.0f;
+			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
 			
@@ -270,6 +280,11 @@ void setup_controls(game::context* ctx)
 	(
 		[ctx, target_eid, three_dof_eid, truck_speed](float value)
 		{
+			if (ctx->camera_control_slow_modifier->is_active())
+				value *= 0.5f;
+			if (ctx->camera_control_fast_modifier->is_active())
+				value *= 2.0f;
+			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
 			
@@ -283,6 +298,11 @@ void setup_controls(game::context* ctx)
 	(
 		[ctx, target_eid, three_dof_eid, truck_speed](float value)
 		{
+			if (ctx->camera_control_slow_modifier->is_active())
+				value *= 0.5f;
+			if (ctx->camera_control_fast_modifier->is_active())
+				value *= 2.0f;
+			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
 			
@@ -292,48 +312,32 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Pedestal up
-	ctx->camera_control_pedestal_up->set_activated_callback
-	(
-		[ctx, target_eid]()
-		{
-			if (ctx->camera_control_modifier->is_active())
-			{
-				// Snap to chamber
-				
-				// Find closest chamber
-				// Pedestal to chamber + offset
-			}
-		}
-	);
 	ctx->camera_control_pedestal_up->set_active_callback
 	(
 		[ctx, target_eid, pedestal_speed](float value)
 		{
-			if (!ctx->camera_control_modifier->is_active())
-			{
-				const float3 movement = {0.0f, pedestal_speed * value * (1.0f / 60.0f), 0.0f};
-				entity::command::translate(*ctx->entity_registry, target_eid, movement);
-			}
+			if (ctx->camera_control_slow_modifier->is_active())
+				value *= 0.5f;
+			if (ctx->camera_control_fast_modifier->is_active())
+				value *= 2.0f;
+				
+			const float3 movement = {0.0f, pedestal_speed * value * (1.0f / 60.0f), 0.0f};
+			entity::command::translate(*ctx->entity_registry, target_eid, movement);
 		}
 	);
 	
 	// Pedestal down
-	ctx->camera_control_pedestal_down->set_activated_callback
-	(
-		[ctx, target_eid]()
-		{
-			//...
-		}
-	);
 	ctx->camera_control_pedestal_down->set_active_callback
 	(
 		[ctx, target_eid, pedestal_speed](float value)
 		{
-			if (!ctx->camera_control_modifier->is_active())
-			{
-				const float3 movement = {0.0f, -pedestal_speed * value * (1.0f / 60.0f), 0.0f};
-				entity::command::translate(*ctx->entity_registry, target_eid, movement);
-			}
+			if (ctx->camera_control_slow_modifier->is_active())
+				value *= 0.5f;
+			if (ctx->camera_control_fast_modifier->is_active())
+				value *= 2.0f;
+				
+			const float3 movement = {0.0f, -pedestal_speed * value * (1.0f / 60.0f), 0.0f};
+			entity::command::translate(*ctx->entity_registry, target_eid, movement);
 		}
 	);
 	
