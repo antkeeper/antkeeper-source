@@ -24,7 +24,6 @@
 #include "entity/components/parent.hpp"
 #include "entity/components/celestial-body.hpp"
 #include "entity/components/terrain.hpp"
-#include "entity/components/name.hpp"
 #include <limits>
 
 namespace entity {
@@ -163,44 +162,6 @@ void parent(entity::registry& registry, entity::id child, entity::id parent)
 	component::parent component;
 	component.parent = parent;
 	registry.assign_or_replace<component::parent>(child, component);
-}
-
-void rename(entity::registry& registry, entity::id eid, const std::string& name)
-{
-	registry.assign_or_replace<component::name>(eid, name);
-}
-
-entity::id find(entity::registry& registry, const std::string& name)
-{
-	auto view = registry.view<component::name>();
-
-	for (auto eid: view)
-	{
-		if (view.get(eid).id == name)
-			return eid;
-	}
-	
-	return entt::null;
-}
-
-entity::id create(entity::registry& registry)
-{
-	return registry.create();
-}
-
-entity::id create(entity::registry& registry, const std::string& name)
-{
-	auto eid = registry.create();
-	rename(registry, eid, name);
-	return eid;
-}
-
-entity::id find_or_create(entity::registry& registry, const std::string& name)
-{
-	entity::id eid = find(registry, name);
-	if (eid == entt::null)
-		eid = create(registry, name);
-	return eid;
 }
 
 } // namespace command

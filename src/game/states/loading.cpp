@@ -126,7 +126,7 @@ void exit(game::context* ctx)
 void load_controls(game::context* ctx)
 {
 	// Toggle fullscreen
-	if (ctx->controls.find("toggle_fullscreen") == ctx->controls.end())
+	if (!ctx->controls.count("toggle_fullscreen"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::f11));
@@ -151,7 +151,7 @@ void load_controls(game::context* ctx)
 	);
 	
 	// Screenshot
-	if (ctx->controls.find("screenshot") == ctx->controls.end())
+	if (!ctx->controls.count("screenshot"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::f12));
@@ -167,7 +167,7 @@ void load_controls(game::context* ctx)
 	);
 	
 	// Menu back
-	if (ctx->controls.find("menu_back") == ctx->controls.end())
+	if (!ctx->controls.count("menu_back"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::escape));
@@ -180,7 +180,7 @@ void load_controls(game::context* ctx)
 	);
 	
 	// Dolly forward
-	if (ctx->controls.find("dolly_forward") == ctx->controls.end())
+	if (!ctx->controls.count("dolly_forward"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::w));
@@ -189,7 +189,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Dolly backward
-	if (ctx->controls.find("dolly_backward") == ctx->controls.end())
+	if (!ctx->controls.count("dolly_backward"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::s));
@@ -198,7 +198,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Truck left
-	if (ctx->controls.find("truck_left") == ctx->controls.end())
+	if (!ctx->controls.count("truck_left"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::a));
@@ -207,7 +207,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Truck right
-	if (ctx->controls.find("truck_right") == ctx->controls.end())
+	if (!ctx->controls.count("truck_right"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::d));
@@ -216,7 +216,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Pedestal up
-	if (ctx->controls.find("pedestal_up") == ctx->controls.end())
+	if (!ctx->controls.count("pedestal_up"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(control, nullptr, input::mouse_wheel_axis::positive_y));
@@ -224,7 +224,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Pedestal down
-	if (ctx->controls.find("pedestal_down") == ctx->controls.end())
+	if (!ctx->controls.count("pedestal_down"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(control, nullptr, input::mouse_wheel_axis::negative_y));
@@ -232,7 +232,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Move slow
-	if (ctx->controls.find("move_slow") == ctx->controls.end())
+	if (!ctx->controls.count("move_slow"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::left_ctrl));
@@ -240,7 +240,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Move fast
-	if (ctx->controls.find("move_fast") == ctx->controls.end())
+	if (!ctx->controls.count("move_fast"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::left_shift));
@@ -248,7 +248,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Mouse rotate
-	if (ctx->controls.find("mouse_rotate") == ctx->controls.end())
+	if (!ctx->controls.count("mouse_rotate"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_button_mapping(control, nullptr, 3));
@@ -257,7 +257,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Mouse left
-	if (ctx->controls.find("mouse_left") == ctx->controls.end())
+	if (!ctx->controls.count("mouse_left"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::negative_x));
@@ -265,7 +265,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Mouse right
-	if (ctx->controls.find("mouse_right") == ctx->controls.end())
+	if (!ctx->controls.count("mouse_right"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::positive_x));
@@ -273,7 +273,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Mouse up
-	if (ctx->controls.find("mouse_up") == ctx->controls.end())
+	if (!ctx->controls.count("mouse_up"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::negative_y));
@@ -281,7 +281,7 @@ void load_controls(game::context* ctx)
 	}
 	
 	// Mouse down
-	if (ctx->controls.find("mouse_down") == ctx->controls.end())
+	if (!ctx->controls.count("mouse_down"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::positive_y));
@@ -365,7 +365,8 @@ void cosmogenesis(game::context* ctx)
 void heliogenesis(game::context* ctx)
 {
 	// Create solar entity
-	auto sun_eid = entity::command::create(*ctx->entity_registry, "sun");
+	entity::id sun_eid = ctx->entity_registry->create();
+	ctx->entities["sun"] = sun_eid;
 	
 	// Assign solar celestial body component
 	entity::component::celestial_body body;
@@ -417,7 +418,8 @@ void heliogenesis(game::context* ctx)
 void planetogenesis(game::context* ctx)
 {
 	// Create planetary entity
-	auto planet_eid = entity::command::create(*ctx->entity_registry, "planet");
+	entity::id planet_eid = ctx->entity_registry->create();
+	ctx->entities["planet"] = planet_eid;
 	
 	// Assign planetary celestial body component
 	entity::component::celestial_body body;
@@ -476,7 +478,8 @@ void planetogenesis(game::context* ctx)
 void selenogenesis(game::context* ctx)
 {
 	// Create lunar entity
-	auto moon_eid = entity::command::create(*ctx->entity_registry, "moon");
+	entity::id moon_eid = ctx->entity_registry->create();
+	ctx->entities["moon"] = moon_eid;
 	
 	// Pass moon model to sky pass
 	ctx->surface_sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
@@ -592,17 +595,7 @@ void extrasolar_heliogenesis(game::context* ctx)
 }
 
 void colonigenesis(game::context* ctx)
-{
-	// Create queen entity
-	auto queen_eid = entity::command::create(*ctx->entity_registry, "queen");
-	
-	// Create central shaft entity
-	auto shaft_eid = entity::command::create(*ctx->entity_registry, "shaft");
-	
-	// Create entrance "lobby" chamber entity
-	auto lobby_eid = entity::command::create(*ctx->entity_registry, "lobby");
-	
-}
+{}
 
 } // namespace loading
 } // namespace state

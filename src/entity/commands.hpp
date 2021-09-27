@@ -42,12 +42,6 @@ math::transform<float> get_local_transform(entity::registry& registry, entity::i
 math::transform<float> get_world_transform(entity::registry& registry, entity::id eid);
 void parent(entity::registry& registry, entity::id child, entity::id parent);
 
-void rename(entity::registry& registry, entity::id eid, const std::string& name);
-entity::id find(entity::registry& registry, const std::string& name);
-entity::id create(entity::registry& registry);
-entity::id create(entity::registry& registry, const std::string& name);
-entity::id find_or_create(entity::registry& registry, const std::string& name);
-
 } // namespace command
 } // namespace entity
 

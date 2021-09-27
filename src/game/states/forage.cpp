@@ -39,7 +39,7 @@ void enter(game::context* ctx)
 	ctx->surface_camera->set_active(true);
 	
 	// Find planet EID by name
-	auto planet_eid = entity::command::find(*ctx->entity_registry, "planet");
+	entity::id planet_eid = ctx->entities["planet"];
 	
 	// Create biome terrain component
 	entity::component::terrain biome_terrain;
@@ -54,7 +54,7 @@ void enter(game::context* ctx)
 	ctx->entity_registry->replace<entity::component::terrain>(planet_eid, biome_terrain);
 	
 	// Create observer
-	auto observer_eid = ctx->entity_registry->create();
+	entity::id observer_eid = ctx->entity_registry->create();
 	{
 		entity::component::observer observer;
 		observer.reference_body_eid = planet_eid;

@@ -43,7 +43,7 @@ void enter(game::context* ctx)
 	ctx->surface_camera->set_active(true);
 	
 	// Find planet EID by name
-	auto planet_eid = entity::command::find(*ctx->entity_registry, "planet");
+	entity::id planet_eid = ctx->entities["planet"];
 	
 	// Remove terrain component from planet (if any)
 	if (ctx->entity_registry->has<entity::component::terrain>(planet_eid))
@@ -53,7 +53,7 @@ void enter(game::context* ctx)
 	ctx->surface_sky_pass->set_clouds_model(ctx->resource_manager->load<model>("cloud-plane.mdl"));
 	
 	// Create observer
-	auto observer_eid = ctx->entity_registry->create();
+	entity::id observer_eid = ctx->entity_registry->create();
 	{
 		entity::component::observer observer;
 		observer.reference_body_eid = planet_eid;

@@ -59,7 +59,6 @@ void enter(game::context* ctx)
 		auto larva_eid = larva_archetype->create(*ctx->entity_registry);
 		entity::command::warp_to(*ctx->entity_registry, larva_eid, {0.0f, 0.0f, 0.0f});
 		entity::command::assign_render_layers(*ctx->entity_registry, larva_eid, 0b1);
-		entity::command::rename(*ctx->entity_registry, larva_eid, "larva");
 	}
 	
 	// Create cocoon
@@ -68,7 +67,6 @@ void enter(game::context* ctx)
 		auto cocoon_eid = cocoon_archetype->create(*ctx->entity_registry);
 		entity::command::warp_to(*ctx->entity_registry, cocoon_eid, {-50, 0.1935f, 0});
 		entity::command::assign_render_layers(*ctx->entity_registry, cocoon_eid, 0b1);
-		entity::command::rename(*ctx->entity_registry, cocoon_eid, "cocoon");
 	}
 	
 	// Reset tweening
@@ -83,11 +81,11 @@ void exit(game::context* ctx)
 
 void setup_nest(game::context* ctx)
 {
-	// Find or create nest central shaft entity
-	entity::id shaft_eid = entity::command::find(*ctx->entity_registry, "shaft");
-	if (shaft_eid == entt::null)
+	// Create nest central shaft entity
+	if (!ctx->entities.count("shaft"))
 	{
-		shaft_eid = entity::command::create(*ctx->entity_registry, "shaft");
+		entity::id shaft_eid = ctx->entity_registry->create();
+		ctx->entities["shaft"] = shaft_eid;
 		
 		entity::component::transform transform;
 		transform.local = math::identity_transform<float>;
@@ -97,47 +95,27 @@ void setup_nest(game::context* ctx)
 		ctx->entity_registry->assign<entity::component::transform>(shaft_eid, transform);
 	}
 	
-	// Find or create nest lobby chamber entity
-	entity::id lobby_eid = entity::command::find(*ctx->entity_registry, "lobby");
-	if (lobby_eid == entt::null)
+	// Create nest lobby chamber entity
+	if (!ctx->entities.count("lobby"))
 	{
-		lobby_eid = entity::command::create(*ctx->entity_registry, "lobby");
+		entity::id lobby_eid = ctx->entity_registry->create();
+		ctx->entities["lobby"] = lobby_eid;
 		
 		entity::component::chamber chamber;
-		chamber.shaft_eid = shaft_eid;
+		chamber.shaft_eid = ctx->entities["shaft"];
 		chamber.distance = 10.0f;
 		chamber.previous_chamber_eid = entt::null;
 		chamber.next_chamber_eid = entt::null;
-	}
-	
-	// Find or create nest shaft elevator entity
-	entity::id elevator_eid = entity::command::find(*ctx->entity_registry, "elevator");
-	if (elevator_eid == entt::null)
-	{
-		elevator_eid = entity::command::create(*ctx->entity_registry, "elevator");
-		
-		// Create transform component
-		entity::component::transform transform;
-		transform.local = math::identity_transform<float>;
-		transform.world = transform.local;
-		transform.warp = true;
-		ctx->entity_registry->assign<entity::component::transform>(elevator_eid, transform);
-		
-		/*
-		entity::component::constraint::follow_curve follow_curve;
-		follow_curve.target_eid = shaft_eid;
-		follow_curve.offset = 10.0f;
-		*/
 	}
 }
 
 void setup_ants(game::context* ctx)
 {
-	// Find or create queen ant entity
-	entity::id queen_eid = entity::command::find(*ctx->entity_registry, "queen");
-	if (queen_eid == entt::null)
+	// Create queen ant entity
+	if (!ctx->entities.count("queen"))
 	{
-		queen_eid = entity::command::create(*ctx->entity_registry, "queen");
+		entity::id queen_eid = ctx->entity_registry->create();
+		ctx->entities["queen"] = queen_eid;
 	}
 }
 
@@ -147,13 +125,12 @@ void setup_camera(game::context* ctx)
 	ctx->surface_camera->set_active(false);
 	ctx->underground_camera->set_active(true);
 	
-	// Get underground camera entity
-	entity::id camera_eid = entity::command::find(*ctx->entity_registry, "underground_cam");
-	
-	if (camera_eid == entt::null)
+	// Create underground camera entity
+	if (!ctx->entities.count("underground_cam"))
 	{
 		// Create camera target entity
-		entity::id target_eid = entity::command::create(*ctx->entity_registry, "underground_cam_target");
+		entity::id target_eid = ctx->entity_registry->create();
+		ctx->entities["underground_cam_target"] = target_eid;
 		{
 			// Transform
 			entity::component::transform target_transform;
@@ -164,7 +141,8 @@ void setup_camera(game::context* ctx)
 		}
 		
 		// Create camera entity
-		camera_eid = entity::command::create(*ctx->entity_registry, "underground_cam");
+		entity::id camera_eid = ctx->entity_registry->create();
+		ctx->entities["underground_cam"] = camera_eid;
 		
 		// Create camera transform component
 		entity::component::transform transform;
@@ -179,7 +157,8 @@ void setup_camera(game::context* ctx)
 		ctx->entity_registry->assign<entity::component::camera>(camera_eid, camera);
 		
 		// Create camera 3DOF constraint entity
-		entity::id three_dof_constraint_eid = entity::command::create(*ctx->entity_registry, "underground_cam_3dof");
+		entity::id three_dof_constraint_eid = ctx->entity_registry->create();
+		ctx->entities["underground_cam_3dof"] = three_dof_constraint_eid;
 		{
 			// Create 3DOF to constraint
 			entity::component::constraint::three_dof three_dof;
@@ -197,7 +176,7 @@ void setup_camera(game::context* ctx)
 		}
 		
 		// Create camera spring to constraint entity
-		entity::id spring_constraint_eid = entity::command::create(*ctx->entity_registry);
+		entity::id spring_constraint_eid = ctx->entity_registry->create();
 		{
 			// Create spring to constraint
 			entity::component::constraint::spring_to spring;
@@ -229,9 +208,9 @@ void setup_camera(game::context* ctx)
 void setup_controls(game::context* ctx)
 {
 	// Get underground camera entity
-	entity::id camera_eid = entity::command::find(*ctx->entity_registry, "underground_cam");
-	entity::id target_eid = entity::command::find(*ctx->entity_registry, "underground_cam_target");
-	entity::id three_dof_eid = entity::command::find(*ctx->entity_registry, "underground_cam_3dof");
+	entity::id camera_eid = ctx->entities["underground_cam"];
+	entity::id target_eid = ctx->entities["underground_cam_target"];
+	entity::id three_dof_eid = ctx->entities["underground_cam_3dof"];
 	
 	const float dolly_speed = 20.0f;
 	const float truck_speed = dolly_speed;
