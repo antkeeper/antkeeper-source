@@ -229,11 +229,11 @@ struct context
 	input::control* screenshot_control;
 	input::control* toggle_fullscreen_control;
 	
+	input::control* camera_control_mouse_rotate;
 	input::control* camera_control_mouse_left;
 	input::control* camera_control_mouse_right;
 	input::control* camera_control_mouse_down;
 	input::control* camera_control_mouse_up;
-	input::control* camera_control_orbit;
 	input::control* camera_control_dolly_forward;
 	input::control* camera_control_dolly_backward;
 	input::control* camera_control_truck_left;

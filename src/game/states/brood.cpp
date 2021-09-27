@@ -165,6 +165,7 @@ void setup_camera(game::context* ctx)
 			target_transform.warp = true;
 			ctx->entity_registry->assign<entity::component::transform>(target_eid, target_transform);
 			
+			/*
 			// 3DOF constraint
 			entity::id three_dof_eid = entity::command::create(*ctx->entity_registry, "underground_cam_3dof");
 			entity::component::constraint::three_dof three_dof;
@@ -182,6 +183,7 @@ void setup_camera(game::context* ctx)
 			entity::component::constraint_stack constraint_stack;
 			constraint_stack.head = three_dof_eid;
 			ctx->entity_registry->assign<entity::component::constraint_stack>(target_eid, constraint_stack);
+			*/
 		}
 		
 		// Create camera entity
@@ -199,6 +201,24 @@ void setup_camera(game::context* ctx)
 		camera.object = ctx->underground_camera;
 		ctx->entity_registry->assign<entity::component::camera>(camera_eid, camera);
 		
+		// Create camera 3DOF constraint entity
+		entity::id three_dof_constraint_eid = entity::command::create(*ctx->entity_registry, "underground_cam_3dof");
+		{
+			// Create 3DOF to constraint
+			entity::component::constraint::three_dof three_dof;
+			three_dof.yaw = 0.0f;
+			three_dof.pitch = 0.0f;
+			three_dof.roll = 0.0f;
+			ctx->entity_registry->assign<entity::component::constraint::three_dof>(three_dof_constraint_eid, three_dof);
+			
+			// Create constraint stack node component
+			entity::component::constraint_stack_node node;
+			node.active = true;
+			node.weight = 1.0f;
+			node.next = entt::null;
+			ctx->entity_registry->assign<entity::component::constraint_stack_node>(three_dof_constraint_eid, node);
+		}
+		
 		// Create camera spring to constraint entity
 		entity::id spring_constraint_eid = entity::command::create(*ctx->entity_registry);
 		{
@@ -208,18 +228,18 @@ void setup_camera(game::context* ctx)
 			spring.translation = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 1.0f, math::two_pi<float>};
 			spring.translation.w = hz_to_rads(8.0f);
 			
-			spring.rotation = {{1.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, 1.0f, math::two_pi<float>};
-			spring.rotation.w = hz_to_rads(8.0f);
+			//spring.rotation = {{1.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, 1.0f, math::two_pi<float>};
+			//spring.rotation.w = hz_to_rads(5.0f);
 			
 			spring.spring_translation = true;
-			spring.spring_rotation = true;
+			spring.spring_rotation = false;
 			ctx->entity_registry->assign<entity::component::constraint::spring_to>(spring_constraint_eid, spring);
 			
 			// Create constraint stack node component
 			entity::component::constraint_stack_node node;
 			node.active = true;
 			node.weight = 1.0f;
-			node.next = entt::null;
+			node.next = three_dof_constraint_eid;
 			ctx->entity_registry->assign<entity::component::constraint_stack_node>(spring_constraint_eid, node);
 		}
 		
@@ -258,9 +278,10 @@ void setup_controls(game::context* ctx)
 	const float dolly_speed = 10.0f;
 	const float truck_speed = dolly_speed;
 	const float pedestal_speed = 20.0f;
-	const float pan_speed = math::radians(10.0f);
+	const float pan_speed = math::radians(8.0f);
 	const float tilt_speed = pan_speed;
 	
+	// Dolly forward
 	ctx->camera_control_dolly_forward->set_active_callback
 	(
 		[ctx, target_eid, three_dof_eid, truck_speed](float value)
@@ -273,6 +294,7 @@ void setup_controls(game::context* ctx)
 		}
 	);
 	
+	// Dolly backward
 	ctx->camera_control_dolly_backward->set_active_callback
 	(
 		[ctx, target_eid, three_dof_eid, truck_speed](float value)
@@ -285,6 +307,7 @@ void setup_controls(game::context* ctx)
 		}
 	);
 	
+	// Truck right
 	ctx->camera_control_truck_right->set_active_callback
 	(
 		[ctx, target_eid, three_dof_eid, truck_speed](float value)
@@ -297,6 +320,7 @@ void setup_controls(game::context* ctx)
 		}
 	);
 	
+	// Truck left
 	ctx->camera_control_truck_left->set_active_callback
 	(
 		[ctx, target_eid, three_dof_eid, truck_speed](float value)
@@ -355,15 +379,15 @@ void setup_controls(game::context* ctx)
 		}
 	);
 	
-	ctx->camera_control_orbit->set_activated_callback
+	// Mouse rotate
+	ctx->camera_control_mouse_rotate->set_activated_callback
 	(
 		[ctx]()
 		{
 			ctx->app->set_relative_mouse_mode(true);
 		}
 	);
-	
-	ctx->camera_control_orbit->set_deactivated_callback
+	ctx->camera_control_mouse_rotate->set_deactivated_callback
 	(
 		[ctx]()
 		{
@@ -376,7 +400,7 @@ void setup_controls(game::context* ctx)
 	(
 		[ctx, three_dof_eid, pan_speed](float value)
 		{
-			if (!ctx->camera_control_orbit->is_active())
+			if (!ctx->camera_control_mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -389,7 +413,7 @@ void setup_controls(game::context* ctx)
 	(
 		[ctx, three_dof_eid, pan_speed](float value)
 		{
-			if (!ctx->camera_control_orbit->is_active())
+			if (!ctx->camera_control_mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -402,12 +426,12 @@ void setup_controls(game::context* ctx)
 	(
 		[ctx, three_dof_eid, tilt_speed](float value)
 		{
-			if (!ctx->camera_control_orbit->is_active())
+			if (!ctx->camera_control_mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch -= tilt_speed * value * (1.0f / 60.0f);
-			three_dof.pitch = std::max<float>(math::radians(-89.0f), three_dof.pitch);
+			three_dof.pitch = std::max<float>(math::radians(-89.9f), three_dof.pitch);
 		}
 	);
 	
@@ -416,12 +440,12 @@ void setup_controls(game::context* ctx)
 	(
 		[ctx, three_dof_eid, tilt_speed](float value)
 		{
-			if (!ctx->camera_control_orbit->is_active())
+			if (!ctx->camera_control_mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch += tilt_speed * value * (1.0f / 60.0f);
-			three_dof.pitch = std::min<float>(math::radians(89.0f), three_dof.pitch);
+			three_dof.pitch = std::min<float>(math::radians(89.9f), three_dof.pitch);
 		}
 	);
 }

@@ -990,11 +990,11 @@ void setup_controls(game::context* ctx)
 
 	// Create camera controls
 	ctx->camera_control_modifier = new input::control();
+	ctx->camera_control_mouse_rotate = new input::control();
 	ctx->camera_control_mouse_left = new input::control();
 	ctx->camera_control_mouse_right = new input::control();
 	ctx->camera_control_mouse_down = new input::control();
 	ctx->camera_control_mouse_up = new input::control();
-	ctx->camera_control_orbit = new input::control();
 	ctx->camera_control_dolly_forward = new input::control();
 	ctx->camera_control_dolly_backward = new input::control();
 	ctx->camera_control_truck_left = new input::control();
@@ -1108,7 +1108,7 @@ void setup_controls(game::context* ctx)
 	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->camera_control_pedestal_up, nullptr, input::mouse_wheel_axis::positive_y));
 	ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(ctx->camera_control_pedestal_down, nullptr, input::mouse_wheel_axis::negative_y));
 	
-	ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->camera_control_orbit, nullptr, 3));
+	ctx->input_event_router->add_mapping(input::mouse_button_mapping(ctx->camera_control_mouse_rotate, nullptr, 3));
 	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_left, nullptr, input::mouse_motion_axis::negative_x));
 	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_right, nullptr, input::mouse_motion_axis::positive_x));
 	ctx->input_event_router->add_mapping(input::mouse_motion_mapping(ctx->camera_control_mouse_down, nullptr, input::mouse_motion_axis::positive_y));
@@ -1181,6 +1181,28 @@ void setup_callbacks(game::context* ctx)
 	(
 		[ctx](double t, double dt)
 		{
+			// Update controls
+			ctx->application_controls->update();
+			ctx->menu_controls->update();
+			ctx->camera_controls->update();
+			ctx->control_system->update(t, dt);
+			ctx->camera_control_modifier->update();
+			ctx->camera_control_mouse_rotate->update();
+			ctx->camera_control_mouse_left->update();
+			ctx->camera_control_mouse_right->update();
+			ctx->camera_control_mouse_down->update();
+			ctx->camera_control_mouse_up->update();
+			ctx->camera_control_dolly_forward->update();
+			ctx->camera_control_dolly_backward->update();
+			ctx->camera_control_truck_left->update();
+			ctx->camera_control_truck_right->update();
+			ctx->camera_control_pedestal_up->update();
+			ctx->camera_control_pedestal_down->update();
+			ctx->camera_control_pan_left->update();
+			ctx->camera_control_pan_right->update();
+			ctx->camera_control_tilt_up->update();
+			ctx->camera_control_tilt_down->update();
+			
 			// Update tweens
 			ctx->time_tween->update();
 			ctx->surface_sky_pass->update_tweens();
@@ -1232,28 +1254,6 @@ void setup_callbacks(game::context* ctx)
 			ctx->ui_system->update(dt);
 			ctx->render_system->update(t, dt);
 			ctx->animator->animate(dt);
-			
-			ctx->application_controls->update();
-			ctx->menu_controls->update();
-			ctx->camera_controls->update();
-			
-			ctx->control_system->update(t, dt);
-			ctx->camera_control_modifier->update();
-			ctx->camera_control_mouse_left->update();
-			ctx->camera_control_mouse_right->update();
-			ctx->camera_control_mouse_down->update();
-			ctx->camera_control_mouse_up->update();
-			ctx->camera_control_dolly_forward->update();
-			ctx->camera_control_dolly_backward->update();
-			ctx->camera_control_truck_left->update();
-			ctx->camera_control_truck_right->update();
-			ctx->camera_control_pedestal_up->update();
-			ctx->camera_control_pedestal_down->update();
-			ctx->camera_control_pan_left->update();
-			ctx->camera_control_pan_right->update();
-			ctx->camera_control_tilt_up->update();
-			ctx->camera_control_tilt_down->update();
-			ctx->camera_control_orbit->update();
 		}
 	);
 	
