@@ -47,8 +47,8 @@ const game_controller_axis sdl_axis_table[6] =
 	game_controller_axis::left_y, // SDL_CONTROLLER_AXIS_LEFTY,
 	game_controller_axis::right_x, // SDL_CONTROLLER_AXIS_RIGHTX,
 	game_controller_axis::right_y, // SDL_CONTROLLER_AXIS_RIGHTY,
-	game_controller_axis::trigger_left, // SDL_CONTROLLER_AXIS_TRIGGERLEFT,
-	game_controller_axis::trigger_right, // SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
+	game_controller_axis::left_trigger, // SDL_CONTROLLER_AXIS_TRIGGERLEFT,
+	game_controller_axis::right_trigger, // SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
 };
 
 } // namespace input

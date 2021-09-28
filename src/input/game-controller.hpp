@@ -49,8 +49,8 @@ enum class game_controller_axis
 	left_y,
 	right_x,
 	right_y,
-	trigger_left,
-	trigger_right,
+	left_trigger,
+	right_trigger,
 };
 
 /**

@@ -125,11 +125,205 @@ void exit(game::context* ctx)
 
 void load_controls(game::context* ctx)
 {
+	// Get keyboard and mouse devices
+	input::keyboard* keyboard = ctx->app->get_keyboard();
+	input::mouse* mouse = ctx->app->get_mouse();
+	
+	const std::unordered_map<std::string, input::game_controller_button> gamepad_button_map =
+	{
+		{"a", input::game_controller_button::a},
+		{"b", input::game_controller_button::b},
+		{"x", input::game_controller_button::x},
+		{"y", input::game_controller_button::y},
+		{"back", input::game_controller_button::back},
+		{"guide", input::game_controller_button::guide},
+		{"start", input::game_controller_button::start},
+		{"leftstick", input::game_controller_button::left_stick},
+		{"rightstick", input::game_controller_button::right_stick},
+		{"leftshoulder", input::game_controller_button::left_shoulder},
+		{"rightshoulder", input::game_controller_button::right_shoulder},
+		{"dpup", input::game_controller_button::dpad_up},
+		{"dpdown", input::game_controller_button::dpad_down},
+		{"dpleft", input::game_controller_button::dpad_left},
+		{"dpright", input::game_controller_button::dpad_right}
+	};
+	
+	const std::unordered_map<std::string, input::game_controller_axis> gamepad_axis_map =
+	{
+		{"leftx", input::game_controller_axis::left_x},
+		{"lefty", input::game_controller_axis::left_y},
+		{"rightx", input::game_controller_axis::right_x},
+		{"righty", input::game_controller_axis::right_y},
+		{"lefttrigger", input::game_controller_axis::left_trigger},
+		{"righttrigger", input::game_controller_axis::right_trigger}
+	};
+	
+	// Check if a control profile is set in the config file
+	if (ctx->config->contains("control_profile"))
+	{
+		// Load control profile
+		json* profile = ctx->resource_manager->load<json>((*ctx->config)["control_profile"].get<std::string>());
+		
+		// Parse control profile
+		for (auto it = profile->begin(); it != profile->end(); ++it)
+		{
+			// Parse control name
+			if (!it->contains("name"))
+			{
+				ctx->logger->warning("Unnamed control in control profile");
+				continue;
+			}
+			std::string name = (*it)["name"].get<std::string>();
+			
+			// Find or create control
+			input::control* control;
+			if (ctx->controls.count(name))
+			{
+				control = ctx->controls[name];
+			}
+			else
+			{
+				control = new input::control;
+				control->set_deadzone(0.15f);
+				ctx->controls[name] = control;
+			}
+			
+			// Parse control device
+			if (!it->contains("device"))
+			{
+				ctx->logger->warning("Control \"" + name + "\" not mapped to a device");
+				continue;
+			}
+			std::string device = (*it)["device"].get<std::string>();
+			
+			if (device == "keyboard")
+			{
+				// Parse key name
+				if (!it->contains("key"))
+				{
+					ctx->logger->warning("Control \"" + name + "\" has invalid keyboard mapping");
+					continue;
+				}
+				std::string key = (*it)["key"].get<std::string>();
+				
+				// Get scancode from key name
+				input::scancode scancode = keyboard->get_scancode_from_name(key.c_str());
+				if (scancode == input::scancode::unknown)
+				{
+					ctx->logger->warning("Control \"" + name + "\" mapped to unknown keyboard key \"" + key + "\"");
+					continue;
+				}
+				
+				// Map control to keyboard key
+				ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, scancode));
+				
+				ctx->logger->log("Mapped control \"" + name + "\" to keyboard key \"" + key + "\"");
+			}
+			else if (device == "mouse")
+			{
+				if (it->contains("button"))
+				{
+					// Parse mouse button index
+					int button = (*it)["button"].get<int>();
+					
+					// Map control to mouse button
+					ctx->input_event_router->add_mapping(input::mouse_button_mapping(control, nullptr, button));
+					
+					ctx->logger->log("Mapped control \"" + name + "\" to mouse button " + std::to_string(button));
+				}
+				else if (it->contains("wheel"))
+				{
+					// Parse mouse wheel axis
+					std::string wheel = (*it)["wheel"].get<std::string>();
+					input::mouse_wheel_axis axis;
+					if (wheel == "+x")
+						axis = input::mouse_wheel_axis::positive_x;
+					else if (wheel == "-x")
+						axis = input::mouse_wheel_axis::negative_x;
+					else if (wheel == "+y")
+						axis = input::mouse_wheel_axis::positive_y;
+					else if (wheel == "-y")
+						axis = input::mouse_wheel_axis::negative_y;
+					else
+					{
+						ctx->logger->warning("Control \"" + name + "\" is mapped to invalid mouse wheel axis \"" + wheel + "\"");
+						continue;
+					}
+					
+					// Map control to mouse wheel axis
+					ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(control, nullptr, axis));
+					
+					ctx->logger->log("Mapped control \"" + name + "\" to mouse wheel axis " + wheel);
+				}
+				else
+				{
+					ctx->logger->warning("Control \"" + name + "\" has invalid mouse mapping");
+					continue;
+				}
+			}
+			else if (device == "gamepad")
+			{
+				if (it->contains("button"))
+				{
+					// Parse gamepad button
+					std::string button = (*it)["button"].get<std::string>();
+					
+					auto button_it = gamepad_button_map.find(button);
+					if (button_it == gamepad_button_map.end())
+					{
+						ctx->logger->warning("Control \"" + name + "\" is mapped to invalid gamepad button \"" + button + "\"");
+						continue;
+					}
+					
+					// Map control to gamepad button
+					ctx->input_event_router->add_mapping(input::game_controller_button_mapping(control, nullptr, button_it->second));
+					
+					ctx->logger->log("Mapped control \"" + name + "\" to gamepad button " + button);
+				}
+				else if (it->contains("axis"))
+				{
+					std::string axis = (*it)["axis"].get<std::string>();
+					
+					// Parse gamepad axis name
+					const std::string axis_name = axis.substr(0, axis.length() - 1);
+					auto axis_it = gamepad_axis_map.find(axis_name);
+					if (axis_it == gamepad_axis_map.end())
+					{
+						ctx->logger->warning("Control \"" + name + "\" is mapped to invalid gamepad axis \"" + axis_name + "\"");
+						continue;
+					}
+					
+					// Parse gamepad axis sign
+					const char axis_sign = axis.back();
+					if (axis_sign != '-' && axis_sign != '+')
+					{
+						ctx->logger->warning("Control \"" + name + "\" is mapped to gamepad axis with invalid sign \"" + axis_sign + "\"");
+						continue;
+					}
+					bool axis_negative = (axis_sign == '-');
+					
+					// Map control to gamepad axis
+					ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(control, nullptr, axis_it->second, axis_negative));
+					
+					ctx->logger->log("Mapped control \"" + name + "\" to gamepad axis " + axis);
+				}
+				else
+				{
+					ctx->logger->log("Control \"" + name + "\" has invalid gamepad mapping");
+					continue;
+				}
+			}
+			else
+			{
+				ctx->logger->warning("Control \"" + name + "\" bound to unknown device \"" + device + "\"");
+			}
+		}
+	}
+	
 	// Toggle fullscreen
 	if (!ctx->controls.count("toggle_fullscreen"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::f11));
 		ctx->controls["toggle_fullscreen"] = control;
 	}
 	ctx->controls["toggle_fullscreen"]->set_activated_callback
@@ -157,7 +351,6 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("screenshot"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::f12));
 		ctx->controls["screenshot"] = control;
 	}
 	ctx->controls["screenshot"]->set_activated_callback
@@ -173,8 +366,6 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("menu_back"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::escape));
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::backspace));
 		ctx->controls["menu_back"] = control;
 	}
 	ctx->controls["menu_back"]->set_activated_callback
@@ -186,8 +377,6 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("dolly_forward"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::w));
-		ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(control, nullptr, input::game_controller_axis::left_y, true));
 		ctx->controls["dolly_forward"] = control;
 	}
 	
@@ -195,8 +384,6 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("dolly_backward"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::s));
-		ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(control, nullptr, input::game_controller_axis::left_y, false));
 		ctx->controls["dolly_backward"] = control;
 	}
 	
@@ -204,8 +391,6 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("truck_left"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::a));
-		ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(control, nullptr, input::game_controller_axis::left_x, true));
 		ctx->controls["truck_left"] = control;
 	}
 	
@@ -213,8 +398,6 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("truck_right"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::d));
-		ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(control, nullptr, input::game_controller_axis::left_x, false));
 		ctx->controls["truck_right"] = control;
 	}
 	
@@ -222,7 +405,6 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("pedestal_up"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(control, nullptr, input::mouse_wheel_axis::positive_y));
 		ctx->controls["pedestal_up"] = control;
 	}
 	
@@ -230,7 +412,6 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("pedestal_down"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(control, nullptr, input::mouse_wheel_axis::negative_y));
 		ctx->controls["pedestal_down"] = control;
 	}
 	
@@ -238,7 +419,6 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("move_slow"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::left_ctrl));
 		ctx->controls["move_slow"] = control;
 	}
 	
@@ -246,7 +426,6 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("move_fast"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::left_shift));
 		ctx->controls["move_fast"] = control;
 	}
 	
@@ -254,48 +433,65 @@ void load_controls(game::context* ctx)
 	if (!ctx->controls.count("mouse_rotate"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::mouse_button_mapping(control, nullptr, 3));
-		ctx->input_event_router->add_mapping(input::key_mapping(control, nullptr, input::scancode::left_alt));
 		ctx->controls["mouse_rotate"] = control;
 	}
 	
-	// Mouse left
-	if (!ctx->controls.count("mouse_left"))
+	// Pan left
+	if (!ctx->controls.count("pan_left"))
+	{
+		input::control* control = new input::control();
+		ctx->controls["pan_left"] = control;
+	}
+	if (!ctx->controls.count("pan_left_mouse"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::negative_x));
-		ctx->controls["mouse_left"] = control;
+		ctx->controls["pan_left_mouse"] = control;
 	}
 	
-	// Mouse right
-	if (!ctx->controls.count("mouse_right"))
+	// Pan right
+	if (!ctx->controls.count("pan_right"))
+	{
+		input::control* control = new input::control();
+		ctx->controls["pan_right"] = control;
+	}
+	if (!ctx->controls.count("pan_right_mouse"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::positive_x));
-		ctx->controls["mouse_right"] = control;
+		ctx->controls["pan_right_mouse"] = control;
 	}
 	
-	// Mouse up
-	if (!ctx->controls.count("mouse_up"))
+	// Tilt up
+	if (!ctx->controls.count("tilt_up"))
+	{
+		input::control* control = new input::control();
+		ctx->controls["tilt_up"] = control;
+	}
+	if (!ctx->controls.count("tilt_up_mouse"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::negative_y));
-		ctx->controls["mouse_up"] = control;
+		ctx->controls["tilt_up_mouse"] = control;
 	}
 	
-	// Mouse down
-	if (!ctx->controls.count("mouse_down"))
+	// Tilt down
+	if (!ctx->controls.count("tilt_down"))
+	{
+		input::control* control = new input::control();
+		ctx->controls["tilt_down"] = control;
+	}
+	if (!ctx->controls.count("tilt_down_mouse"))
 	{
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::positive_y));
-		ctx->controls["mouse_down"] = control;
+		ctx->controls["tilt_down_mouse"] = control;
 	}
 	
 	// Use tool
 	if (!ctx->controls.count("use_tool"))
 	{
 		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::mouse_button_mapping(control, nullptr, 1));
 		ctx->controls["use_tool"] = control;
 	}
 }

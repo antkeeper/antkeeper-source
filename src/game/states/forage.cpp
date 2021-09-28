@@ -246,7 +246,10 @@ void setup_controls(game::context* ctx)
 	const float dolly_speed = 20.0f;
 	const float truck_speed = dolly_speed;
 	const float pedestal_speed = 30.0f;
-	const float pan_speed = math::radians(8.0f);
+	const float pan_speed_mouse = math::radians(8.0f);
+	const float tilt_speed_mouse = pan_speed_mouse;
+	
+	const float pan_speed = math::radians(110.0f);
 	const float tilt_speed = pan_speed;
 	
 	const input::control* move_slow = ctx->controls["move_slow"];
@@ -371,55 +374,89 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Pan left
-	ctx->controls["mouse_left"]->set_active_callback
+	ctx->controls["pan_left"]->set_active_callback
 	(
-		[ctx, three_dof_eid, pan_speed, mouse_rotate](float value)
+		[ctx, three_dof_eid, pan_speed](float value)
 		{
-			if (!mouse_rotate->is_active())
-				return;
-			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			three_dof.yaw += pan_speed * value * (1.0f / 60.0f);
 		}
 	);
-	
-	// Pan right
-	ctx->controls["mouse_right"]->set_active_callback
+	ctx->controls["pan_left_mouse"]->set_active_callback
 	(
-		[ctx, three_dof_eid, pan_speed, mouse_rotate](float value)
+		[ctx, three_dof_eid, pan_speed_mouse, mouse_rotate](float value)
 		{
 			if (!mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw -= pan_speed * value * (1.0f / 60.0f);
+			three_dof.yaw += pan_speed_mouse * value * (1.0f / 60.0f);
 		}
 	);
 	
-	// Tilt up
-	ctx->controls["mouse_up"]->set_active_callback
+	// Pan right
+	ctx->controls["pan_right"]->set_active_callback
 	(
-		[ctx, three_dof_eid, tilt_speed, mouse_rotate](float value)
+		[ctx, three_dof_eid, pan_speed](float value)
+		{
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.yaw -= pan_speed * value * (1.0f / 60.0f);
+		}
+	);
+	ctx->controls["pan_right_mouse"]->set_active_callback
+	(
+		[ctx, three_dof_eid, pan_speed_mouse, mouse_rotate](float value)
 		{
 			if (!mouse_rotate->is_active())
 				return;
 			
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.yaw -= pan_speed_mouse * value * (1.0f / 60.0f);
+		}
+	);
+	
+	// Tilt up
+	ctx->controls["tilt_up"]->set_active_callback
+	(
+		[ctx, three_dof_eid, tilt_speed](float value)
+		{
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch -= tilt_speed * value * (1.0f / 60.0f);
 			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
 		}
 	);
-	
-	// Tilt down
-	ctx->controls["mouse_down"]->set_active_callback
+	ctx->controls["tilt_up_mouse"]->set_active_callback
 	(
-		[ctx, three_dof_eid, tilt_speed, mouse_rotate](float value)
+		[ctx, three_dof_eid, tilt_speed_mouse, mouse_rotate](float value)
 		{
 			if (!mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.pitch -= tilt_speed_mouse * value * (1.0f / 60.0f);
+			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
+		}
+	);
+	
+	// Tilt down
+	ctx->controls["tilt_down"]->set_active_callback
+	(
+		[ctx, three_dof_eid, tilt_speed](float value)
+		{
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch += tilt_speed * value * (1.0f / 60.0f);
+			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
+		}
+	);
+	ctx->controls["tilt_down_mouse"]->set_active_callback
+	(
+		[ctx, three_dof_eid, tilt_speed_mouse, mouse_rotate](float value)
+		{
+			if (!mouse_rotate->is_active())
+				return;
+			
+			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.pitch += tilt_speed_mouse * value * (1.0f / 60.0f);
 			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
 		}
 	);
