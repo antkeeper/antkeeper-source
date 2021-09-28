@@ -38,6 +38,7 @@ namespace state {
 namespace forage {
 
 static void setup_camera(game::context* ctx);
+static void setup_tools(game::context* ctx);
 static void setup_controls(game::context* ctx);
 
 void enter(game::context* ctx)
@@ -187,6 +188,54 @@ void setup_camera(game::context* ctx)
 	ctx->surface_camera->set_exposure(-14.5f);
 }
 
+void setup_tools(game::context* ctx)
+{
+	if (!ctx->entities.count("move_tool"))
+	{
+		entity::id tool_eid = ctx->entity_registry->create();
+		ctx->entities["move_tool"] = tool_eid;
+	}
+	
+	if (!ctx->entities.count("paint_tool"))
+	{
+		entity::id tool_eid = ctx->entity_registry->create();
+		ctx->entities["paint_tool"] = tool_eid;
+	}
+	
+	if (!ctx->entities.count("flip_tool"))
+	{
+		entity::id tool_eid = ctx->entity_registry->create();
+		ctx->entities["flip_tool"] = tool_eid;
+	}
+	
+	if (!ctx->entities.count("poke_tool"))
+	{
+		entity::id tool_eid = ctx->entity_registry->create();
+		ctx->entities["poke_tool"] = tool_eid;
+	}
+	
+	if (!ctx->entities.count("inspect_tool"))
+	{
+		entity::id tool_eid = ctx->entity_registry->create();
+		ctx->entities["inspect_tool"] = tool_eid;
+	}
+	
+	if (!ctx->entities.count("label_tool"))
+	{
+		entity::id tool_eid = ctx->entity_registry->create();
+		ctx->entities["label_tool"] = tool_eid;
+	}
+	
+	if (!ctx->entities.count("wait_tool"))
+	{
+		entity::id tool_eid = ctx->entity_registry->create();
+		ctx->entities["wait_tool"] = tool_eid;
+	}
+	
+	// Set move tool as active tool
+	ctx->entities["active_tool"] = ctx->entities["move_tool"];
+}
+
 void setup_controls(game::context* ctx)
 {
 	// Get underground camera entity
@@ -209,9 +258,9 @@ void setup_controls(game::context* ctx)
 		[ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast](float value)
 		{
 			if (move_slow->is_active())
-				value *= 0.5f;
+				value *= 0.25f;
 			if (move_fast->is_active())
-				value *= 2.0f;
+				value *= 4.0f;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
@@ -227,9 +276,9 @@ void setup_controls(game::context* ctx)
 		[ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast](float value)
 		{
 			if (move_slow->is_active())
-				value *= 0.5f;
+				value *= 0.25f;
 			if (move_fast->is_active())
-				value *= 2.0f;
+				value *= 4.0f;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
@@ -245,9 +294,9 @@ void setup_controls(game::context* ctx)
 		[ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast](float value)
 		{
 			if (move_slow->is_active())
-				value *= 0.5f;
+				value *= 0.25f;
 			if (move_fast->is_active())
-				value *= 2.0f;
+				value *= 4.0f;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
@@ -263,9 +312,9 @@ void setup_controls(game::context* ctx)
 		[ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast](float value)
 		{
 			if (move_slow->is_active())
-				value *= 0.5f;
+				value *= 0.25f;
 			if (move_fast->is_active())
-				value *= 2.0f;
+				value *= 4.0f;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
@@ -281,9 +330,9 @@ void setup_controls(game::context* ctx)
 		[ctx, target_eid, pedestal_speed, move_slow, move_fast](float value)
 		{
 			if (move_slow->is_active())
-				value *= 0.5f;
+				value *= 0.25f;
 			if (move_fast->is_active())
-				value *= 2.0f;
+				value *= 4.0f;
 				
 			const float3 movement = {0.0f, pedestal_speed * value * (1.0f / 60.0f), 0.0f};
 			entity::command::translate(*ctx->entity_registry, target_eid, movement);
@@ -296,9 +345,9 @@ void setup_controls(game::context* ctx)
 		[ctx, target_eid, pedestal_speed, move_slow, move_fast](float value)
 		{
 			if (move_slow->is_active())
-				value *= 0.5f;
+				value *= 0.25f;
 			if (move_fast->is_active())
-				value *= 2.0f;
+				value *= 4.0f;
 				
 			const float3 movement = {0.0f, -pedestal_speed * value * (1.0f / 60.0f), 0.0f};
 			entity::command::translate(*ctx->entity_registry, target_eid, movement);
@@ -372,6 +421,39 @@ void setup_controls(game::context* ctx)
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch += tilt_speed * value * (1.0f / 60.0f);
 			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
+		}
+	);
+	
+	// Use tool
+	ctx->controls["use_tool"]->set_activated_callback
+	(
+		[ctx]()
+		{
+			if (ctx->entities["active_tool"] == ctx->entities["move_tool"])
+			{
+				// Project mouse position into scene and grab selectable entity
+				auto [mouse_x, mouse_y] = ctx->app->get_mouse()->get_current_position();
+			}
+		}
+	);
+	
+	ctx->controls["use_tool"]->set_deactivated_callback
+	(
+		[ctx]()
+		{
+			if (ctx->entities["active_tool"] == ctx->entities["move_tool"])
+			{
+				
+			}
+		}
+	);
+	
+	ctx->controls["use_tool"]->set_active_callback
+	(
+		[ctx](float value)
+		{
+			auto [mouse_x, mouse_y] = ctx->app->get_mouse()->get_current_position();
+			ctx->logger->log("tool used (" + std::to_string(mouse_x) + ", " + std::to_string(mouse_y) + ")");
 		}
 	);
 }

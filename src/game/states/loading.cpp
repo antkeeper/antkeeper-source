@@ -47,7 +47,6 @@
 #include "resources/resource-manager.hpp"
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
-#include "resources/config-file.hpp"
 #include "utility/timestamp.hpp"
 
 namespace game {
@@ -143,11 +142,14 @@ void load_controls(game::context* ctx)
 			
 			if (!fullscreen)
 			{
-				int2 resolution = ctx->config->get<int2>("windowed_resolution");
+				int2 resolution;
+				resolution.x = (*ctx->config)["windowed_resolution"][0].get<int>();
+				resolution.y = (*ctx->config)["windowed_resolution"][1].get<int>();
+				
 				ctx->app->resize_window(resolution.x, resolution.y);
 			}
 			
-			ctx->config->set<int>("fullscreen", (fullscreen) ? 1 : 0);
+			(*ctx->config)["fullscreen"] = fullscreen;
 		}
 	);
 	
@@ -287,6 +289,14 @@ void load_controls(game::context* ctx)
 		input::control* control = new input::control();
 		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::positive_y));
 		ctx->controls["mouse_down"] = control;
+	}
+	
+	// Use tool
+	if (!ctx->controls.count("use_tool"))
+	{
+		input::control* control = new input::control();
+		ctx->input_event_router->add_mapping(input::mouse_button_mapping(control, nullptr, 1));
+		ctx->controls["use_tool"] = control;
 	}
 }
 

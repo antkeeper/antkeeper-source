@@ -42,6 +42,7 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
+#include "resources/json.hpp"
 
 // Forward declarations
 class animator;
@@ -49,7 +50,6 @@ class application;
 class bloom_pass;
 class clear_pass;
 class compositor;
-class config_file;
 class final_pass;
 class material;
 class material_pass;
@@ -129,8 +129,8 @@ struct context
 	std::string screenshots_path;
 	std::string data_package_path;
 	
-	// Config
-	config_file* config;
+	// Configuration
+	json* config;
 	
 	// Resources
 	resource_manager* resource_manager;

@@ -29,7 +29,6 @@
 #include "renderer/material-property.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
-#include "resources/config-file.hpp"
 #include "resources/resource-manager.hpp"
 
 namespace game {
@@ -102,7 +101,7 @@ void enter(game::context* ctx)
 void exit(game::context* ctx)
 {
 	// Resume motion of celestial objects
-	const double time_scale = ctx->config->get<double>("time_scale");
+	const double time_scale = (*ctx->config)["time_scale"].get<double>();
 	ctx->astronomy_system->set_time_scale(time_scale);
 	ctx->orbit_system->set_time_scale(time_scale);
 }

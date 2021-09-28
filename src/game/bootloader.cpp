@@ -50,7 +50,6 @@
 #include "renderer/vertex-attributes.hpp"
 #include "renderer/compositor.hpp"
 #include "renderer/renderer.hpp"
-#include "resources/config-file.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/resource-manager.hpp"
 #include "scene/scene.hpp"
@@ -357,7 +356,7 @@ void load_config(game::context* ctx)
 	logger->push_task("Loading config");
 	
 	// Load config file
-	ctx->config = ctx->resource_manager->load<config_file>("config.txt");
+	ctx->config = ctx->resource_manager->load<json>("config.json");
 	if (!ctx->config)
 	{
 		logger->pop_task(EXIT_FAILURE);
@@ -376,7 +375,7 @@ void load_strings(game::context* ctx)
 	
 	build_string_table_map(&ctx->string_table_map, *ctx->string_table);
 	
-	ctx->language_code = ctx->config->get<std::string>("language");
+	ctx->language_code = (*ctx->config)["language"].get<std::string>();
 	ctx->language_index = -1;
 	for (int i = 2; i < (*ctx->string_table)[0].size(); ++i)
 	{
@@ -397,7 +396,7 @@ void setup_window(game::context* ctx)
 	logger->push_task("Setting up window");
 	
 	application* app = ctx->app;
-	config_file* config = ctx->config;
+	json* config = ctx->config;
 	
 	// Set fullscreen or windowed mode
 	bool fullscreen = true;
@@ -405,8 +404,8 @@ void setup_window(game::context* ctx)
 		fullscreen = true;
 	else if (ctx->option_windowed.has_value())
 		fullscreen = false;
-	else if (config->has("fullscreen"))
-		fullscreen = (config->get<int>("fullscreen") != 0);
+	else if (config->contains("fullscreen"))
+		fullscreen = (*config)["fullscreen"].get<bool>();
 	app->set_fullscreen(fullscreen);
 	
 	// Set resolution
@@ -414,13 +413,19 @@ void setup_window(game::context* ctx)
 	int2 resolution = {display_dimensions[0], display_dimensions[1]};
 	if (fullscreen)
 	{
-		if (config->has("fullscreen_resolution"))
-			resolution = config->get<int2>("fullscreen_resolution");
+		if (config->contains("fullscreen_resolution"))
+		{
+			resolution.x = (*config)["fullscreen_resolution"][0].get<int>();
+			resolution.y = (*config)["fullscreen_resolution"][1].get<int>();
+		}
 	}
 	else
 	{
-		if (config->has("windowed_resolution"))
-			resolution = config->get<int2>("windowed_resolution");
+		if (config->contains("windowed_resolution"))
+		{
+			resolution.x = (*config)["windowed_resolution"][0].get<int>();
+			resolution.y = (*config)["windowed_resolution"][1].get<int>();
+		}
 	}
 	app->resize_window(resolution.x, resolution.y);
 	
@@ -428,8 +433,8 @@ void setup_window(game::context* ctx)
 	bool vsync = true;
 	if (ctx->option_vsync.has_value())
 		vsync = (ctx->option_vsync.value() != 0);
-	else if (config->has("vsync"))
-		vsync = (config->get<int>("vsync") != 0);
+	else if (config->contains("vsync"))
+		vsync = (*config)["vsync"].get<bool>();
 	app->set_vsync(vsync);
 	
 	// Set title
@@ -466,9 +471,9 @@ void setup_rendering(game::context* ctx)
 	
 	// Create shadow map framebuffer
 	int shadow_map_resolution = 4096;
-	if (ctx->config->has("shadow_map_resolution"))
+	if (ctx->config->contains("shadow_map_resolution"))
 	{
-		shadow_map_resolution = ctx->config->get<int>("shadow_map_resolution");
+		shadow_map_resolution = (*ctx->config)["shadow_map_resolution"].get<int>();
 	}
 	ctx->shadow_map_depth_texture = new gl::texture_2d(shadow_map_resolution, shadow_map_resolution, gl::pixel_type::float_32, gl::pixel_format::d);
 	ctx->shadow_map_depth_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
@@ -846,10 +851,10 @@ void setup_systems(game::context* ctx)
 	ctx->proteome_system = new entity::system::proteome(*ctx->entity_registry);
 	
 	// Set time scale
-	float time_scale = 60.0f;
-	if (ctx->config->has("time_scale"))
+	double time_scale = 60.0;
+	if (ctx->config->contains("time_scale"))
 	{
-		time_scale = ctx->config->get<float>("time_scale");
+		time_scale = (*ctx->config)["time_scale"].get<double>();
 	}
 	
 	ctx->orbit_system->set_time_scale(time_scale / seconds_per_day);
