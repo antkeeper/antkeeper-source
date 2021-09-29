@@ -20,18 +20,16 @@
 #ifndef ANTKEEPER_ENTITY_COMPONENT_TOOL_HPP
 #define ANTKEEPER_ENTITY_COMPONENT_TOOL_HPP
 
+#include <functional>
+
 namespace entity {
 namespace component {
 
 struct tool
 {
-	bool active;
-	float idle_distance;
-	float active_distance;
-	bool heliotropic;
-	float3 cursor;
-	
-	//float activation_speed;
+	std::function<void()> activated;
+	std::function<void()> deactivated;
+	std::function<void()> active;
 };
 
 } // namespace component

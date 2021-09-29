@@ -64,7 +64,6 @@
 #include "entity/systems/samara.hpp"
 #include "entity/systems/subterrain.hpp"
 #include "entity/systems/terrain.hpp"
-#include "entity/systems/tool.hpp"
 #include "entity/systems/ui.hpp"
 #include "entity/systems/vegetation.hpp"
 #include "entity/systems/spatial.hpp"
@@ -794,11 +793,6 @@ void setup_systems(game::context* ctx)
 	ctx->camera_system->set_viewport(viewport);
 	event_dispatcher->subscribe<window_resized_event>(ctx->camera_system);
 	
-	// Setup tool system
-	ctx->tool_system = new entity::system::tool(*ctx->entity_registry, event_dispatcher);
-	ctx->tool_system->set_camera(ctx->surface_camera);
-	ctx->tool_system->set_viewport(viewport);
-	
 	// Setup subterrain system
 	ctx->subterrain_system = new entity::system::subterrain(*ctx->entity_registry, ctx->resource_manager);
 	ctx->subterrain_system->set_scene(ctx->underground_scene);
@@ -1023,7 +1017,6 @@ void setup_callbacks(game::context* ctx)
 			ctx->behavior_system->update(t, dt);
 			ctx->locomotion_system->update(t, dt);
 			ctx->camera_system->update(t, dt);
-			ctx->tool_system->update(t, dt);
 			
 			ctx->orbit_system->update(t, dt);
 			ctx->blackbody_system->update(t, dt);

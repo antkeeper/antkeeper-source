@@ -27,7 +27,6 @@
 #include "entity/components/transform.hpp"
 #include "entity/components/model.hpp"
 #include "entity/components/nest.hpp"
-#include "entity/components/tool.hpp"
 #include "entity/components/marker.hpp"
 #include "entity/components/brush.hpp"
 #include "entity/archetype.hpp"
@@ -136,23 +135,6 @@ static bool load_component_brush(entity::archetype& archetype, const std::vector
 	return true;
 }
 
-static bool load_component_tool(entity::archetype& archetype, const std::vector<std::string>& parameters)
-{	
-	if (parameters.size() != 5)
-	{
-		throw std::runtime_error("load_component_tool(): Invalid parameter count.");
-	}
-
-	entity::component::tool component;
-	component.active = static_cast<bool>(std::stoi(parameters[1]));
-	component.idle_distance = std::stof(parameters[2]);
-	component.active_distance = std::stof(parameters[3]);
-	component.heliotropic = static_cast<bool>(std::stoi(parameters[4]));
-	archetype.set<entity::component::tool>(component);
-
-	return true;
-}
-
 static bool load_component_transform(entity::archetype& archetype, const std::vector<std::string>& parameters)
 {
 	if (parameters.size() != 11)
@@ -192,7 +174,6 @@ static bool load_component(entity::archetype& archetype, resource_manager& resou
 	if (parameters[0] == "collision") return load_component_collision(archetype, resource_manager, parameters);
 	if (parameters[0] == "model") return load_component_model(archetype, resource_manager, parameters);
 	if (parameters[0] == "nest") return load_component_nest(archetype, parameters);
-	if (parameters[0] == "tool") return load_component_tool(archetype, parameters);
 	if (parameters[0] == "transform") return load_component_transform(archetype, parameters);
 	if (parameters[0] == "marker") return load_component_marker(archetype, parameters);
 	if (parameters[0] == "brush") return load_component_brush(archetype, parameters);

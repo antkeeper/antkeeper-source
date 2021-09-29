@@ -79,7 +79,6 @@ namespace entity
 		class subterrain;
 		class terrain;
 		class vegetation;
-		class tool;
 		class ui;
 		class spatial;
 		class tracking;
@@ -233,7 +232,6 @@ struct context
 	entity::system::samara* samara_system;
 	entity::system::subterrain* subterrain_system;
 	entity::system::terrain* terrain_system;
-	entity::system::tool* tool_system;
 	entity::system::ui* ui_system;
 	entity::system::vegetation* vegetation_system;
 	entity::system::spatial* spatial_system;

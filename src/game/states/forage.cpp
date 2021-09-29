@@ -23,6 +23,8 @@
 #include "entity/components/observer.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/components/transform.hpp"
+#include "entity/components/celestial-body.hpp"
+#include "entity/components/tool.hpp"
 #include "entity/systems/astronomy.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
@@ -44,6 +46,7 @@ static void setup_controls(game::context* ctx);
 void enter(game::context* ctx)
 {
 	setup_camera(ctx);
+	setup_tools(ctx);
 	setup_controls(ctx);
 	
 	// Find planet EID by name
@@ -91,6 +94,15 @@ void enter(game::context* ctx)
 		auto cocoon_eid = cocoon_archetype->create(*ctx->entity_registry);
 		entity::command::warp_to(*ctx->entity_registry, cocoon_eid, {-50, 0.1935f, 0});
 		entity::command::assign_render_layers(*ctx->entity_registry, cocoon_eid, 0b10);
+	}
+	
+	// Create moon
+	{
+		entity::archetype* moon_archetype = ctx->resource_manager->load<entity::archetype>("moon.ent");
+		auto moon_eid = moon_archetype->create(*ctx->entity_registry);
+		entity::command::warp_to(*ctx->entity_registry, moon_eid, {50.0f, 50.0f, 50.0f});
+		entity::command::assign_render_layers(*ctx->entity_registry, moon_eid, 0b10);
+		entity::command::set_scale(*ctx->entity_registry, moon_eid, float3{1.0f, 1.0f, 1.0f} * 10.0f);
 	}
 	
 	ctx->surface_scene->update_tweens();
@@ -226,14 +238,27 @@ void setup_tools(game::context* ctx)
 		ctx->entities["label_tool"] = tool_eid;
 	}
 	
-	if (!ctx->entities.count("wait_tool"))
+	if (!ctx->entities.count("time_tool"))
 	{
 		entity::id tool_eid = ctx->entity_registry->create();
-		ctx->entities["wait_tool"] = tool_eid;
+		ctx->entities["time_tool"] = tool_eid;
+		
+		entity::component::tool tool;
+		tool.active = [ctx]()
+		{
+			auto [mouse_x, mouse_y] = ctx->app->get_mouse()->get_current_position();
+			auto [window_w, window_h] = ctx->app->get_viewport_dimensions();
+			
+			entity::id planet_eid = ctx->entities["planet"];
+			entity::component::celestial_body& body = ctx->entity_registry->get<entity::component::celestial_body>(planet_eid);
+			body.axial_tilt = math::radians(360.0f) * ((float)mouse_x / (float)window_w);
+		};
+		
+		ctx->entity_registry->assign<entity::component::tool>(tool_eid, tool);
 	}
 	
-	// Set move tool as active tool
-	ctx->entities["active_tool"] = ctx->entities["move_tool"];
+	// Set active tool
+	ctx->entities["active_tool"] = ctx->entities["time_tool"];
 }
 
 void setup_controls(game::context* ctx)
@@ -466,33 +491,50 @@ void setup_controls(game::context* ctx)
 	(
 		[ctx]()
 		{
-			if (ctx->entities["active_tool"] == ctx->entities["move_tool"])
+			if (ctx->entities.count("active_tool"))
 			{
-				// Project mouse position into scene and grab selectable entity
-				auto [mouse_x, mouse_y] = ctx->app->get_mouse()->get_current_position();
+				entity::id tool_eid = ctx->entities["active_tool"];
+				const auto& tool = ctx->entity_registry->get<entity::component::tool>(tool_eid);
+				if (tool.activated)
+					tool.activated();
 			}
 		}
 	);
-	
 	ctx->controls["use_tool"]->set_deactivated_callback
 	(
 		[ctx]()
 		{
-			if (ctx->entities["active_tool"] == ctx->entities["move_tool"])
+			if (ctx->entities.count("active_tool"))
 			{
-				
+				entity::id tool_eid = ctx->entities["active_tool"];
+				const auto& tool = ctx->entity_registry->get<entity::component::tool>(tool_eid);
+				if (tool.deactivated)
+					tool.deactivated();
 			}
 		}
 	);
-	
 	ctx->controls["use_tool"]->set_active_callback
 	(
 		[ctx](float value)
 		{
-			auto [mouse_x, mouse_y] = ctx->app->get_mouse()->get_current_position();
-			ctx->logger->log("tool used (" + std::to_string(mouse_x) + ", " + std::to_string(mouse_y) + ")");
+			if (ctx->entities.count("active_tool"))
+			{
+				entity::id tool_eid = ctx->entities["active_tool"];
+				const auto& tool = ctx->entity_registry->get<entity::component::tool>(tool_eid);
+				if (tool.active)
+					tool.active();
+			}
 		}
 	);
+	
+	/*
+	auto [mouse_x, mouse_y] = ctx->app->get_mouse()->get_current_position();
+	ctx->logger->log("tool used (" + std::to_string(mouse_x) + ", " + std::to_string(mouse_y) + ")");
+	
+	entity::id planet_eid = ctx->entities["planet"];
+	entity::component::celestial_body& body = ctx->entity_registry->get<entity::component::celestial_body>(planet_eid);
+	body.axial_tilt += math::radians(30.0f) * 1.0f / 60.0f;
+	*/
 }
 
 } // namespace forage

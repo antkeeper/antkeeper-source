@@ -96,6 +96,7 @@ painting::~painting()
 
 void painting::update(double t, double dt)
 {
+	/*
 	if (is_painting)
 	{
 		const component::tool& tool = registry.get<component::tool>(brush_entity);
@@ -264,6 +265,7 @@ void painting::update(double t, double dt)
 			}
 		}
 	}
+	*/
 }
 
 void painting::set_scene(scene::collection* collection)
