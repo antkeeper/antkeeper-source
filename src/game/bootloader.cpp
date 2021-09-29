@@ -171,7 +171,6 @@ void parse_options(game::context* ctx, int argc, char** argv)
 	{
 		cxxopts::Options options("Antkeeper", "Ant colony simulation game");
 		options.add_options()
-			("b,biome", "Selects the biome to load", cxxopts::value<std::string>())
 			("c,continue", "Continues from the last save")
 			("d,data", "Sets the data package path", cxxopts::value<std::string>())
 			("f,fullscreen", "Starts in fullscreen mode")
@@ -181,10 +180,6 @@ void parse_options(game::context* ctx, int argc, char** argv)
 			("v,vsync", "Enables or disables v-sync", cxxopts::value<int>())
 			("w,windowed", "Starts in windowed mode");
 		auto result = options.parse(argc, argv);
-		
-		// --biome
-		if (result.count("biome"))
-			ctx->option_biome = result["biome"].as<std::string>();
 		
 		// --continue
 		if (result.count("continue"))

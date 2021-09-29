@@ -32,7 +32,7 @@ json* resource_loader<json>::load(resource_manager* resource_manager, PHYSFS_Fil
 	PHYSFS_readBytes(file, &buffer[0], size);
 	
 	// Parse json from file buffer
-	json* data = new json(json::parse(buffer));
+	json* data = new json(json::parse(buffer, nullptr, true, true));
 	
 	return data;
 }

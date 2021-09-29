@@ -111,7 +111,6 @@ struct context
 	std::ofstream log_filestream;
 	
 	// Command-line options
-	std::optional<std::string> option_biome;
 	std::optional<bool> option_continue;
 	std::optional<std::string> option_data;
 	std::optional<bool> option_fullscreen;

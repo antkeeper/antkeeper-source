@@ -340,7 +340,7 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Pan left
-	ctx->controls["mouse_left"]->set_active_callback
+	ctx->controls["pan_left_mouse"]->set_active_callback
 	(
 		[ctx, three_dof_eid, pan_speed, mouse_rotate](float value)
 		{
@@ -353,7 +353,7 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Pan right
-	ctx->controls["mouse_right"]->set_active_callback
+	ctx->controls["pan_right_mouse"]->set_active_callback
 	(
 		[ctx, three_dof_eid, pan_speed, mouse_rotate](float value)
 		{
@@ -366,7 +366,7 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Tilt up
-	ctx->controls["mouse_up"]->set_active_callback
+	ctx->controls["tilt_up_mouse"]->set_active_callback
 	(
 		[ctx, three_dof_eid, tilt_speed, mouse_rotate](float value)
 		{
@@ -380,7 +380,7 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Tilt down
-	ctx->controls["mouse_down"]->set_active_callback
+	ctx->controls["tilt_down_mouse"]->set_active_callback
 	(
 		[ctx, three_dof_eid, tilt_speed, mouse_rotate](float value)
 		{

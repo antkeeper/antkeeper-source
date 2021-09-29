@@ -125,6 +125,29 @@ void exit(game::context* ctx)
 
 void load_controls(game::context* ctx)
 {
+	// Allocate known controls
+	ctx->controls["toggle_fullscreen"] = new input::control();
+	ctx->controls["screenshot"] = new input::control();
+	ctx->controls["menu_back"] = new input::control();
+	ctx->controls["dolly_forward"] = new input::control();
+	ctx->controls["dolly_backward"] = new input::control();
+	ctx->controls["truck_left"] = new input::control();
+	ctx->controls["truck_right"] = new input::control();
+	ctx->controls["pedestal_up"] = new input::control();
+	ctx->controls["pedestal_down"] = new input::control();
+	ctx->controls["move_slow"] = new input::control();
+	ctx->controls["move_fast"] = new input::control();
+	ctx->controls["mouse_rotate"] = new input::control();
+	ctx->controls["pan_left_gamepad"] = new input::control();
+	ctx->controls["pan_left_mouse"] = new input::control();
+	ctx->controls["pan_right_gamepad"] = new input::control();
+	ctx->controls["pan_right_mouse"] = new input::control();
+	ctx->controls["tilt_up_gamepad"] = new input::control();
+	ctx->controls["tilt_up_mouse"] = new input::control();
+	ctx->controls["tilt_down_gamepad"] = new input::control();
+	ctx->controls["tilt_down_mouse"] = new input::control();
+	ctx->controls["use_tool"] = new input::control();
+	
 	// Get keyboard and mouse devices
 	input::keyboard* keyboard = ctx->app->get_keyboard();
 	input::mouse* mouse = ctx->app->get_mouse();
@@ -184,7 +207,6 @@ void load_controls(game::context* ctx)
 			else
 			{
 				control = new input::control;
-				control->set_deadzone(0.15f);
 				ctx->controls[name] = control;
 			}
 			
@@ -236,13 +258,13 @@ void load_controls(game::context* ctx)
 					// Parse mouse wheel axis
 					std::string wheel = (*it)["wheel"].get<std::string>();
 					input::mouse_wheel_axis axis;
-					if (wheel == "+x")
+					if (wheel == "x+")
 						axis = input::mouse_wheel_axis::positive_x;
-					else if (wheel == "-x")
+					else if (wheel == "x-")
 						axis = input::mouse_wheel_axis::negative_x;
-					else if (wheel == "+y")
+					else if (wheel == "y+")
 						axis = input::mouse_wheel_axis::positive_y;
-					else if (wheel == "-y")
+					else if (wheel == "y-")
 						axis = input::mouse_wheel_axis::negative_y;
 					else
 					{
@@ -254,6 +276,29 @@ void load_controls(game::context* ctx)
 					ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(control, nullptr, axis));
 					
 					ctx->logger->log("Mapped control \"" + name + "\" to mouse wheel axis " + wheel);
+				}
+				else if (it->contains("motion"))
+				{
+					std::string motion = (*it)["motion"].get<std::string>();
+					input::mouse_motion_axis axis;
+					if (motion == "x+")
+						axis = input::mouse_motion_axis::positive_x;
+					else if (motion == "x-")
+						axis = input::mouse_motion_axis::negative_x;
+					else if (motion == "y+")
+						axis = input::mouse_motion_axis::positive_y;
+					else if (motion == "y-")
+						axis = input::mouse_motion_axis::negative_y;
+					else
+					{
+						ctx->logger->warning("Control \"" + name + "\" is mapped to invalid mouse motion axis \"" + motion + "\"");
+						continue;
+					}
+					
+					// Map control to mouse motion axis
+					ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, axis));
+					
+					ctx->logger->log("Mapped control \"" + name + "\" to mouse motion axis " + motion);
 				}
 				else
 				{
@@ -320,12 +365,13 @@ void load_controls(game::context* ctx)
 		}
 	}
 	
-	// Toggle fullscreen
-	if (!ctx->controls.count("toggle_fullscreen"))
+	// Set all control deadzones to 0.15
+	for (auto control: ctx->controls)
 	{
-		input::control* control = new input::control();
-		ctx->controls["toggle_fullscreen"] = control;
+		control.second->set_deadzone(0.15f);
 	}
+	
+	// Toggle fullscreen
 	ctx->controls["toggle_fullscreen"]->set_activated_callback
 	(
 		[ctx]()
@@ -348,11 +394,6 @@ void load_controls(game::context* ctx)
 	);
 	
 	// Screenshot
-	if (!ctx->controls.count("screenshot"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["screenshot"] = control;
-	}
 	ctx->controls["screenshot"]->set_activated_callback
 	(
 		[ctx]()
@@ -363,137 +404,10 @@ void load_controls(game::context* ctx)
 	);
 	
 	// Menu back
-	if (!ctx->controls.count("menu_back"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["menu_back"] = control;
-	}
 	ctx->controls["menu_back"]->set_activated_callback
 	(
 		std::bind(&application::close, ctx->app, 0)
 	);
-	
-	// Dolly forward
-	if (!ctx->controls.count("dolly_forward"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["dolly_forward"] = control;
-	}
-	
-	// Dolly backward
-	if (!ctx->controls.count("dolly_backward"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["dolly_backward"] = control;
-	}
-	
-	// Truck left
-	if (!ctx->controls.count("truck_left"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["truck_left"] = control;
-	}
-	
-	// Truck right
-	if (!ctx->controls.count("truck_right"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["truck_right"] = control;
-	}
-	
-	// Pedestal up
-	if (!ctx->controls.count("pedestal_up"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["pedestal_up"] = control;
-	}
-	
-	// Pedestal down
-	if (!ctx->controls.count("pedestal_down"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["pedestal_down"] = control;
-	}
-	
-	// Move slow
-	if (!ctx->controls.count("move_slow"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["move_slow"] = control;
-	}
-	
-	// Move fast
-	if (!ctx->controls.count("move_fast"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["move_fast"] = control;
-	}
-	
-	// Mouse rotate
-	if (!ctx->controls.count("mouse_rotate"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["mouse_rotate"] = control;
-	}
-	
-	// Pan left
-	if (!ctx->controls.count("pan_left"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["pan_left"] = control;
-	}
-	if (!ctx->controls.count("pan_left_mouse"))
-	{
-		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::negative_x));
-		ctx->controls["pan_left_mouse"] = control;
-	}
-	
-	// Pan right
-	if (!ctx->controls.count("pan_right"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["pan_right"] = control;
-	}
-	if (!ctx->controls.count("pan_right_mouse"))
-	{
-		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::positive_x));
-		ctx->controls["pan_right_mouse"] = control;
-	}
-	
-	// Tilt up
-	if (!ctx->controls.count("tilt_up"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["tilt_up"] = control;
-	}
-	if (!ctx->controls.count("tilt_up_mouse"))
-	{
-		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::negative_y));
-		ctx->controls["tilt_up_mouse"] = control;
-	}
-	
-	// Tilt down
-	if (!ctx->controls.count("tilt_down"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["tilt_down"] = control;
-	}
-	if (!ctx->controls.count("tilt_down_mouse"))
-	{
-		input::control* control = new input::control();
-		ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, nullptr, input::mouse_motion_axis::positive_y));
-		ctx->controls["tilt_down_mouse"] = control;
-	}
-	
-	// Use tool
-	if (!ctx->controls.count("use_tool"))
-	{
-		input::control* control = new input::control();
-		ctx->controls["use_tool"] = control;
-	}
 }
 
 void cosmogenesis(game::context* ctx)
