@@ -40,6 +40,7 @@
 #include <optional>
 #include <entt/entt.hpp>
 #include <fstream>
+#include <queue>
 #include <string>
 #include <unordered_map>
 #include "resources/json.hpp"
@@ -216,6 +217,9 @@ struct context
 	input::mapper* input_mapper;
 	input::listener* input_listener;
 	std::unordered_map<std::string, input::control*> controls;
+	
+	// Parallel processes
+	std::unordered_map<std::string, std::function<void(double, double)>> processes;
 
 	// Entities
 	entity::registry* entity_registry;

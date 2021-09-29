@@ -71,6 +71,7 @@ void logger::log(const std::string& text)
 			message += "\n";
 		
 		// Add message to log history
+		const std::lock_guard<std::mutex> history_lock(history_mutex);
 		history += message;
 		
 		// Output message

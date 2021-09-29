@@ -93,6 +93,8 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <execution>
+#include <algorithm>
 
 static constexpr double seconds_per_day = 24.0 * 60.0 * 60.0;
 
@@ -992,6 +994,18 @@ void setup_callbacks(game::context* ctx)
 			for (const auto& control: ctx->controls)
 				control.second->update();
 			
+			// Update processes
+			std::for_each
+			(
+				std::execution::par,
+				ctx->processes.begin(),
+				ctx->processes.end(),
+				[t, dt](const auto& process)
+				{
+					process.second(t, dt);
+				}
+			);
+			
 			// Update tweens
 			ctx->time_tween->update();
 			ctx->surface_sky_pass->update_tweens();
@@ -1001,7 +1015,7 @@ void setup_callbacks(game::context* ctx)
 			
 			// Set time tween time
 			(*ctx->time_tween)[1] = t;
-						
+			
 			ctx->timeline->advance(dt);
 			
 

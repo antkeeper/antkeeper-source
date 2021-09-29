@@ -24,6 +24,7 @@
 #include <ostream>
 #include <stack>
 #include <string>
+#include <mutex>
 
 namespace debug {
 
@@ -115,6 +116,7 @@ private:
 	std::string success_postfix;	
 	std::stack<std::string> tasks;
 	std::string history;
+	std::mutex history_mutex;
 };
 
 inline const std::string& logger::get_history() const
