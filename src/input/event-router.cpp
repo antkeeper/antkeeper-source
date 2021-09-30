@@ -77,20 +77,20 @@ void event_router::add_mapping(const mapping& mapping)
 			break;
 		}
 
-		case mapping_type::game_controller_axis:
+		case mapping_type::gamepad_axis:
 		{
-			input::game_controller_axis_mapping* game_controller_axis_mapping = new input::game_controller_axis_mapping(static_cast<const input::game_controller_axis_mapping&>(mapping));
-			game_controller_axis_mappings.push_back(game_controller_axis_mapping);
-			controls[control].push_back(game_controller_axis_mapping);
+			input::gamepad_axis_mapping* gamepad_axis_mapping = new input::gamepad_axis_mapping(static_cast<const input::gamepad_axis_mapping&>(mapping));
+			gamepad_axis_mappings.push_back(gamepad_axis_mapping);
+			controls[control].push_back(gamepad_axis_mapping);
 
 			break;
 		}
 
-		case mapping_type::game_controller_button:
+		case mapping_type::gamepad_button:
 		{
-			input::game_controller_button_mapping* game_controller_button_mapping = new input::game_controller_button_mapping(static_cast<const input::game_controller_button_mapping&>(mapping));
-			game_controller_button_mappings.push_back(game_controller_button_mapping);
-			controls[control].push_back(game_controller_button_mapping);
+			input::gamepad_button_mapping* gamepad_button_mapping = new input::gamepad_button_mapping(static_cast<const input::gamepad_button_mapping&>(mapping));
+			gamepad_button_mappings.push_back(gamepad_button_mapping);
+			controls[control].push_back(gamepad_button_mapping);
 
 			break;
 		}
@@ -125,12 +125,12 @@ void event_router::remove_mappings(control* control)
 					mouse_button_mappings.remove(static_cast<mouse_button_mapping*>(mapping));
 					break;
 
-				case mapping_type::game_controller_axis:
-					game_controller_axis_mappings.remove(static_cast<game_controller_axis_mapping*>(mapping));
+				case mapping_type::gamepad_axis:
+					gamepad_axis_mappings.remove(static_cast<gamepad_axis_mapping*>(mapping));
 					break;
 
-				case mapping_type::game_controller_button:
-					game_controller_button_mappings.remove(static_cast<game_controller_button_mapping*>(mapping));
+				case mapping_type::gamepad_button:
+					gamepad_button_mappings.remove(static_cast<gamepad_button_mapping*>(mapping));
 					break;
 
 				default:
@@ -154,9 +154,9 @@ void event_router::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 		this->event_dispatcher->unsubscribe<mouse_wheel_scrolled_event>(this);
 		this->event_dispatcher->unsubscribe<mouse_button_pressed_event>(this);
 		this->event_dispatcher->unsubscribe<mouse_button_released_event>(this);
-		this->event_dispatcher->unsubscribe<game_controller_axis_moved_event>(this);
-		this->event_dispatcher->unsubscribe<game_controller_button_pressed_event>(this);
-		this->event_dispatcher->unsubscribe<game_controller_button_released_event>(this);
+		this->event_dispatcher->unsubscribe<gamepad_axis_moved_event>(this);
+		this->event_dispatcher->unsubscribe<gamepad_button_pressed_event>(this);
+		this->event_dispatcher->unsubscribe<gamepad_button_released_event>(this);
 	}
 
 	this->event_dispatcher = event_dispatcher;
@@ -169,9 +169,9 @@ void event_router::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 		event_dispatcher->subscribe<mouse_wheel_scrolled_event>(this);
 		event_dispatcher->subscribe<mouse_button_pressed_event>(this);
 		event_dispatcher->subscribe<mouse_button_released_event>(this);
-		event_dispatcher->subscribe<game_controller_axis_moved_event>(this);
-		event_dispatcher->subscribe<game_controller_button_pressed_event>(this);
-		event_dispatcher->subscribe<game_controller_button_released_event>(this);
+		event_dispatcher->subscribe<gamepad_axis_moved_event>(this);
+		event_dispatcher->subscribe<gamepad_button_pressed_event>(this);
+		event_dispatcher->subscribe<gamepad_button_released_event>(this);
 	}
 }
 
@@ -190,8 +190,8 @@ void event_router::remove_mappings()
 	mouse_motion_mappings.clear();
 	mouse_wheel_mappings.clear();
 	mouse_button_mappings.clear();
-	game_controller_axis_mappings.clear();
-	game_controller_button_mappings.clear();
+	gamepad_axis_mappings.clear();
+	gamepad_button_mappings.clear();
 }
 
 const std::list<mapping*>* event_router::get_mappings(control* control) const
@@ -301,9 +301,9 @@ void event_router::handle_event(const mouse_button_released_event& event)
 	}
 }
 
-void event_router::handle_event(const game_controller_axis_moved_event& event)
+void event_router::handle_event(const gamepad_axis_moved_event& event)
 {
-	for (const game_controller_axis_mapping* mapping: game_controller_axis_mappings)
+	for (const gamepad_axis_mapping* mapping: gamepad_axis_mappings)
 	{
 		if ((!mapping->controller || mapping->controller == event.controller) && mapping->axis == event.axis)
 		{
@@ -319,9 +319,9 @@ void event_router::handle_event(const game_controller_axis_moved_event& event)
 	}
 }
 
-void event_router::handle_event(const game_controller_button_pressed_event& event)
+void event_router::handle_event(const gamepad_button_pressed_event& event)
 {
-	for (const game_controller_button_mapping* mapping: game_controller_button_mappings)
+	for (const gamepad_button_mapping* mapping: gamepad_button_mappings)
 	{
 		if ((!mapping->controller || mapping->controller == event.controller) && mapping->button == event.button)
 		{
@@ -330,9 +330,9 @@ void event_router::handle_event(const game_controller_button_pressed_event& even
 	}
 }
 
-void event_router::handle_event(const game_controller_button_released_event& event)
+void event_router::handle_event(const gamepad_button_released_event& event)
 {
-	for (const game_controller_button_mapping* mapping: game_controller_button_mappings)
+	for (const gamepad_button_mapping* mapping: gamepad_button_mappings)
 	{
 		if ((!mapping->controller || mapping->controller == event.controller) && mapping->button == event.button)
 		{

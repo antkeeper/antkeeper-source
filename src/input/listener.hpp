@@ -35,8 +35,8 @@ class listener:
 	public event_handler<mouse_moved_event>,
 	public event_handler<mouse_wheel_scrolled_event>,
 	public event_handler<mouse_button_pressed_event>,
-	public event_handler<game_controller_axis_moved_event>,
-	public event_handler<game_controller_button_pressed_event>
+	public event_handler<gamepad_axis_moved_event>,
+	public event_handler<gamepad_button_pressed_event>
 {
 public:
 	/**
@@ -78,8 +78,8 @@ private:
 	void handle_event(const mouse_moved_event& event);
 	void handle_event(const mouse_wheel_scrolled_event& event);
 	void handle_event(const mouse_button_pressed_event& event);
-	void handle_event(const game_controller_axis_moved_event& event);
-	void handle_event(const game_controller_button_pressed_event& event);
+	void handle_event(const gamepad_axis_moved_event& event);
+	void handle_event(const gamepad_button_pressed_event& event);
 
 	event_dispatcher* event_dispatcher;
 	std::function<void(const event_base&)> callback;

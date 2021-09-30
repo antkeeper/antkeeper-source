@@ -25,12 +25,12 @@ namespace input {
 enum class mouse_motion_axis;
 enum class mouse_wheel_axis;
 enum class scancode;
-enum class game_controller_axis;
-enum class game_controller_button;
+enum class gamepad_axis;
+enum class gamepad_button;
 class control;
 class keyboard;
 class mouse;
-class game_controller;
+class gamepad;
 
 /**
  * Enumerates the supported types of control mappings.
@@ -41,8 +41,8 @@ enum class mapping_type
 	mouse_motion,
 	mouse_wheel,
 	mouse_button,
-	game_controller_axis,
-	game_controller_button
+	gamepad_axis,
+	gamepad_button
 };
 
 /**
@@ -150,50 +150,50 @@ inline mapping_type mouse_button_mapping::get_type() const
 }
 
 /**
- * A mapping between a control and a game controller axis.
+ * A mapping between a control and a gamepad axis.
  */
-class game_controller_axis_mapping: public mapping
+class gamepad_axis_mapping: public mapping
 {
 public:
-	game_controller_axis_mapping() = default;
-	game_controller_axis_mapping(const game_controller_axis_mapping& mapping);
-	game_controller_axis_mapping(input::control* control, game_controller* controller, game_controller_axis axis, bool negative);
-	virtual ~game_controller_axis_mapping() = default;
-	game_controller_axis_mapping& operator=(const game_controller_axis_mapping& mapping);
+	gamepad_axis_mapping() = default;
+	gamepad_axis_mapping(const gamepad_axis_mapping& mapping);
+	gamepad_axis_mapping(input::control* control, gamepad* controller, gamepad_axis axis, bool negative);
+	virtual ~gamepad_axis_mapping() = default;
+	gamepad_axis_mapping& operator=(const gamepad_axis_mapping& mapping);
 	virtual mapping_type get_type() const;
 
-	game_controller* controller;
-	game_controller_axis axis;
+	gamepad* controller;
+	gamepad_axis axis;
 	bool negative;
 };
 
-inline mapping_type game_controller_axis_mapping::get_type() const
+inline mapping_type gamepad_axis_mapping::get_type() const
 {
-	return mapping_type::game_controller_axis;
+	return mapping_type::gamepad_axis;
 }
 
 /**
- * A mapping between a control and a game controller button.
+ * A mapping between a control and a gamepad button.
  *
  * @ingroup input.
  */
-class game_controller_button_mapping: public mapping
+class gamepad_button_mapping: public mapping
 {
 public:
-	game_controller_button_mapping() = default;
-	game_controller_button_mapping(const game_controller_button_mapping& mapping);
-	game_controller_button_mapping(input::control* control, game_controller* controller, game_controller_button button);
-	virtual ~game_controller_button_mapping() = default;
-	game_controller_button_mapping& operator=(const game_controller_button_mapping& mapping);
+	gamepad_button_mapping() = default;
+	gamepad_button_mapping(const gamepad_button_mapping& mapping);
+	gamepad_button_mapping(input::control* control, gamepad* controller, gamepad_button button);
+	virtual ~gamepad_button_mapping() = default;
+	gamepad_button_mapping& operator=(const gamepad_button_mapping& mapping);
 	virtual mapping_type get_type() const;
 
-	game_controller* controller;
-	game_controller_button button;
+	gamepad* controller;
+	gamepad_button button;
 };
 
-inline mapping_type game_controller_button_mapping::get_type() const
+inline mapping_type gamepad_button_mapping::get_type() const
 {
-	return mapping_type::game_controller_button;
+	return mapping_type::gamepad_button;
 }
 
 } // namespace input

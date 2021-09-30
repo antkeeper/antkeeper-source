@@ -27,7 +27,7 @@ namespace input {}
 #include "control-set.hpp"
 #include "device.hpp"
 #include "event-router.hpp"
-#include "game-controller.hpp"
+#include "gamepad.hpp"
 #include "keyboard.hpp"
 #include "listener.hpp"
 #include "mapper.hpp"

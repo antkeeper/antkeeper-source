@@ -56,7 +56,7 @@ namespace loading {
 /// Creates or loads control configuration
 static void load_controls(game::context* ctx);
 
-static input::game_controller_response_curve parse_response_curve(const std::string& curve);
+static input::gamepad_response_curve parse_response_curve(const std::string& curve);
 
 /// Creates the universe and solar system.
 static void cosmogenesis(game::context* ctx);
@@ -155,7 +155,7 @@ void load_controls(game::context* ctx)
 	ctx->controls["tilt_down_mouse"] = new input::control();
 	ctx->controls["use_tool"] = new input::control();
 	
-	// Set activation threshold for menu navigation controls to mitigate drifting game controller axes
+	// Set activation threshold for menu navigation controls to mitigate drifting gamepad axes
 	const float menu_activation_threshold = 0.1f;
 	ctx->controls["menu_up"]->set_activation_threshold(menu_activation_threshold);
 	ctx->controls["menu_down"]->set_activation_threshold(menu_activation_threshold);
@@ -166,33 +166,33 @@ void load_controls(game::context* ctx)
 	input::keyboard* keyboard = ctx->app->get_keyboard();
 	input::mouse* mouse = ctx->app->get_mouse();
 	
-	const std::unordered_map<std::string, input::game_controller_button> gamepad_button_map =
+	const std::unordered_map<std::string, input::gamepad_button> gamepad_button_map =
 	{
-		{"a", input::game_controller_button::a},
-		{"b", input::game_controller_button::b},
-		{"x", input::game_controller_button::x},
-		{"y", input::game_controller_button::y},
-		{"back", input::game_controller_button::back},
-		{"guide", input::game_controller_button::guide},
-		{"start", input::game_controller_button::start},
-		{"leftstick", input::game_controller_button::left_stick},
-		{"rightstick", input::game_controller_button::right_stick},
-		{"leftshoulder", input::game_controller_button::left_shoulder},
-		{"rightshoulder", input::game_controller_button::right_shoulder},
-		{"dpup", input::game_controller_button::dpad_up},
-		{"dpdown", input::game_controller_button::dpad_down},
-		{"dpleft", input::game_controller_button::dpad_left},
-		{"dpright", input::game_controller_button::dpad_right}
+		{"a", input::gamepad_button::a},
+		{"b", input::gamepad_button::b},
+		{"x", input::gamepad_button::x},
+		{"y", input::gamepad_button::y},
+		{"back", input::gamepad_button::back},
+		{"guide", input::gamepad_button::guide},
+		{"start", input::gamepad_button::start},
+		{"leftstick", input::gamepad_button::left_stick},
+		{"rightstick", input::gamepad_button::right_stick},
+		{"leftshoulder", input::gamepad_button::left_shoulder},
+		{"rightshoulder", input::gamepad_button::right_shoulder},
+		{"dpup", input::gamepad_button::dpad_up},
+		{"dpdown", input::gamepad_button::dpad_down},
+		{"dpleft", input::gamepad_button::dpad_left},
+		{"dpright", input::gamepad_button::dpad_right}
 	};
 	
-	const std::unordered_map<std::string, input::game_controller_axis> gamepad_axis_map =
+	const std::unordered_map<std::string, input::gamepad_axis> gamepad_axis_map =
 	{
-		{"leftx", input::game_controller_axis::left_x},
-		{"lefty", input::game_controller_axis::left_y},
-		{"rightx", input::game_controller_axis::right_x},
-		{"righty", input::game_controller_axis::right_y},
-		{"lefttrigger", input::game_controller_axis::left_trigger},
-		{"righttrigger", input::game_controller_axis::right_trigger}
+		{"leftx", input::gamepad_axis::left_x},
+		{"lefty", input::gamepad_axis::left_y},
+		{"rightx", input::gamepad_axis::right_x},
+		{"righty", input::gamepad_axis::right_y},
+		{"lefttrigger", input::gamepad_axis::left_trigger},
+		{"righttrigger", input::gamepad_axis::right_trigger}
 	};
 	
 	// Check if a control profile is set in the config file
@@ -335,7 +335,7 @@ void load_controls(game::context* ctx)
 					}
 					
 					// Map control to gamepad button
-					ctx->input_event_router->add_mapping(input::game_controller_button_mapping(control, nullptr, button_it->second));
+					ctx->input_event_router->add_mapping(input::gamepad_button_mapping(control, nullptr, button_it->second));
 					
 					ctx->logger->log("Mapped control \"" + name + "\" to gamepad button " + button);
 				}
@@ -362,7 +362,7 @@ void load_controls(game::context* ctx)
 					bool axis_negative = (axis_sign == '-');
 					
 					// Map control to gamepad axis
-					ctx->input_event_router->add_mapping(input::game_controller_axis_mapping(control, nullptr, axis_it->second, axis_negative));
+					ctx->input_event_router->add_mapping(input::gamepad_axis_mapping(control, nullptr, axis_it->second, axis_negative));
 					
 					ctx->logger->log("Mapped control \"" + name + "\" to gamepad axis " + axis);
 				}
@@ -396,12 +396,12 @@ void load_controls(game::context* ctx)
 	bool gamepad_right_deadzone_cross = true;
 	float gamepad_left_deadzone_roundness = 0.0f;
 	float gamepad_right_deadzone_roundness = 0.0f;
-	input::game_controller_response_curve gamepad_leftx_response_curve = input::game_controller_response_curve::linear;
-	input::game_controller_response_curve gamepad_lefty_response_curve = input::game_controller_response_curve::linear;
-	input::game_controller_response_curve gamepad_rightx_response_curve = input::game_controller_response_curve::linear;
-	input::game_controller_response_curve gamepad_righty_response_curve = input::game_controller_response_curve::linear;
-	input::game_controller_response_curve gamepad_lefttrigger_response_curve = input::game_controller_response_curve::linear;
-	input::game_controller_response_curve gamepad_righttrigger_response_curve = input::game_controller_response_curve::linear;
+	input::gamepad_response_curve gamepad_leftx_response_curve = input::gamepad_response_curve::linear;
+	input::gamepad_response_curve gamepad_lefty_response_curve = input::gamepad_response_curve::linear;
+	input::gamepad_response_curve gamepad_rightx_response_curve = input::gamepad_response_curve::linear;
+	input::gamepad_response_curve gamepad_righty_response_curve = input::gamepad_response_curve::linear;
+	input::gamepad_response_curve gamepad_lefttrigger_response_curve = input::gamepad_response_curve::linear;
+	input::gamepad_response_curve gamepad_righttrigger_response_curve = input::gamepad_response_curve::linear;
 	
 	if (ctx->config->contains("gamepad_leftx_activation_min"))
 		gamepad_leftx_activation_min = (*ctx->config)["gamepad_leftx_activation_min"].get<float>();
@@ -448,24 +448,24 @@ void load_controls(game::context* ctx)
 	if (ctx->config->contains("gamepad_righttrigger_response_curve"))
 		gamepad_righttrigger_response_curve = parse_response_curve((*ctx->config)["gamepad_righttrigger_response_curve"].get<std::string>());
 	
-	for (input::game_controller* gamepad: ctx->app->get_game_controllers())
+	for (input::gamepad* gamepad: ctx->app->get_gamepads())
 	{
-		gamepad->set_activation_threshold(input::game_controller_axis::left_x, gamepad_leftx_activation_min, gamepad_leftx_activation_max);
-		gamepad->set_activation_threshold(input::game_controller_axis::left_y, gamepad_lefty_activation_min, gamepad_lefty_activation_max);
-		gamepad->set_activation_threshold(input::game_controller_axis::right_x, gamepad_rightx_activation_min, gamepad_rightx_activation_max);
-		gamepad->set_activation_threshold(input::game_controller_axis::right_y, gamepad_righty_activation_min, gamepad_righty_activation_max);
-		gamepad->set_activation_threshold(input::game_controller_axis::left_trigger, gamepad_lefttrigger_activation_min, gamepad_lefttrigger_activation_max);
-		gamepad->set_activation_threshold(input::game_controller_axis::right_trigger, gamepad_righttrigger_activation_min, gamepad_righttrigger_activation_max);
+		gamepad->set_activation_threshold(input::gamepad_axis::left_x, gamepad_leftx_activation_min, gamepad_leftx_activation_max);
+		gamepad->set_activation_threshold(input::gamepad_axis::left_y, gamepad_lefty_activation_min, gamepad_lefty_activation_max);
+		gamepad->set_activation_threshold(input::gamepad_axis::right_x, gamepad_rightx_activation_min, gamepad_rightx_activation_max);
+		gamepad->set_activation_threshold(input::gamepad_axis::right_y, gamepad_righty_activation_min, gamepad_righty_activation_max);
+		gamepad->set_activation_threshold(input::gamepad_axis::left_trigger, gamepad_lefttrigger_activation_min, gamepad_lefttrigger_activation_max);
+		gamepad->set_activation_threshold(input::gamepad_axis::right_trigger, gamepad_righttrigger_activation_min, gamepad_righttrigger_activation_max);
 		gamepad->set_left_deadzone_cross(gamepad_left_deadzone_cross);
 		gamepad->set_right_deadzone_cross(gamepad_right_deadzone_cross);
 		gamepad->set_left_deadzone_roundness(gamepad_left_deadzone_roundness);
 		gamepad->set_right_deadzone_roundness(gamepad_right_deadzone_roundness);
-		gamepad->set_response_curve(input::game_controller_axis::left_x, gamepad_leftx_response_curve);
-		gamepad->set_response_curve(input::game_controller_axis::left_y, gamepad_lefty_response_curve);
-		gamepad->set_response_curve(input::game_controller_axis::right_x, gamepad_rightx_response_curve);
-		gamepad->set_response_curve(input::game_controller_axis::right_y, gamepad_righty_response_curve);
-		gamepad->set_response_curve(input::game_controller_axis::left_trigger, gamepad_lefttrigger_response_curve);
-		gamepad->set_response_curve(input::game_controller_axis::right_trigger, gamepad_righttrigger_response_curve);
+		gamepad->set_response_curve(input::gamepad_axis::left_x, gamepad_leftx_response_curve);
+		gamepad->set_response_curve(input::gamepad_axis::left_y, gamepad_lefty_response_curve);
+		gamepad->set_response_curve(input::gamepad_axis::right_x, gamepad_rightx_response_curve);
+		gamepad->set_response_curve(input::gamepad_axis::right_y, gamepad_righty_response_curve);
+		gamepad->set_response_curve(input::gamepad_axis::left_trigger, gamepad_lefttrigger_response_curve);
+		gamepad->set_response_curve(input::gamepad_axis::right_trigger, gamepad_righttrigger_response_curve);
 	}
 	
 	// Toggle fullscreen
@@ -507,13 +507,13 @@ void load_controls(game::context* ctx)
 	);
 }
 
-static input::game_controller_response_curve parse_response_curve(const std::string& curve)
+static input::gamepad_response_curve parse_response_curve(const std::string& curve)
 {
 	if (curve == "square")
-		return input::game_controller_response_curve::square;
+		return input::gamepad_response_curve::square;
 	else if (curve == "cube")
-		return input::game_controller_response_curve::cube;
-	return input::game_controller_response_curve::linear;
+		return input::gamepad_response_curve::cube;
+	return input::gamepad_response_curve::linear;
 }
 
 void cosmogenesis(game::context* ctx)

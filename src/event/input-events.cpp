@@ -75,40 +75,40 @@ event_base* mouse_wheel_scrolled_event::clone() const
 	return event;
 }
 
-event_base* game_controller_connected_event::clone() const
+event_base* gamepad_connected_event::clone() const
 {
-	game_controller_connected_event* event = new game_controller_connected_event();
+	gamepad_connected_event* event = new gamepad_connected_event();
 	event->controller = controller;
 	event->reconnected = reconnected;
 	return event;
 }
 
-event_base* game_controller_disconnected_event::clone() const
+event_base* gamepad_disconnected_event::clone() const
 {
-	game_controller_disconnected_event* event = new game_controller_disconnected_event();
+	gamepad_disconnected_event* event = new gamepad_disconnected_event();
 	event->controller = controller;
 	return event;
 }
 
-event_base* game_controller_button_pressed_event::clone() const
+event_base* gamepad_button_pressed_event::clone() const
 {
-	game_controller_button_pressed_event* event = new game_controller_button_pressed_event();
-	event->controller = controller;
-	event->button = button;
-	return event;
-}
-
-event_base* game_controller_button_released_event::clone() const
-{
-	game_controller_button_released_event* event = new game_controller_button_released_event();
+	gamepad_button_pressed_event* event = new gamepad_button_pressed_event();
 	event->controller = controller;
 	event->button = button;
 	return event;
 }
 
-event_base* game_controller_axis_moved_event::clone() const
+event_base* gamepad_button_released_event::clone() const
 {
-	game_controller_axis_moved_event* event = new game_controller_axis_moved_event();
+	gamepad_button_released_event* event = new gamepad_button_released_event();
+	event->controller = controller;
+	event->button = button;
+	return event;
+}
+
+event_base* gamepad_axis_moved_event::clone() const
+{
+	gamepad_axis_moved_event* event = new gamepad_axis_moved_event();
 	event->controller = controller;
 	event->axis = axis;
 	event->value = value;

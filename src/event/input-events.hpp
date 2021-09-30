@@ -24,7 +24,7 @@
 #include "input/scancode.hpp"
 #include "input/keyboard.hpp"
 #include "input/mouse.hpp"
-#include "input/game-controller.hpp"
+#include "input/gamepad.hpp"
 
 /**
  * Input event which indicates a keyboard key has been pressed.
@@ -109,60 +109,60 @@ public:
 /**
  * Input event which indicates a controller has been connected.
  */
-class game_controller_connected_event: public event<game_controller_connected_event>
+class gamepad_connected_event: public event<gamepad_connected_event>
 {
 public:
 	virtual event_base* clone() const;
 
-	input::game_controller* controller;
+	input::gamepad* controller;
 	bool reconnected;
 };
 
 /**
  * Input event which indicates a controller has been disconnected.
  */
-class game_controller_disconnected_event: public event<game_controller_disconnected_event>
+class gamepad_disconnected_event: public event<gamepad_disconnected_event>
 {
 public:
 	virtual event_base* clone() const;
 
-	input::game_controller* controller;
+	input::gamepad* controller;
 };
 
 /**
  * Input event which indicates a controller button has been pressed.
  */
-class game_controller_button_pressed_event: public event<game_controller_button_pressed_event>
+class gamepad_button_pressed_event: public event<gamepad_button_pressed_event>
 {
 public:
 	virtual event_base* clone() const;
 
-	input::game_controller* controller;
-	input::game_controller_button button;
+	input::gamepad* controller;
+	input::gamepad_button button;
 };
 
 /**
  * Input event which indicates a controller button has been released.
  */
-class game_controller_button_released_event: public event<game_controller_button_released_event>
+class gamepad_button_released_event: public event<gamepad_button_released_event>
 {
 public:
 	virtual event_base* clone() const;
 
-	input::game_controller* controller;
-	input::game_controller_button button;
+	input::gamepad* controller;
+	input::gamepad_button button;
 };
 
 /**
  * Input event which indicates a controller axis has been moved.
  */
-class game_controller_axis_moved_event: public event<game_controller_axis_moved_event>
+class gamepad_axis_moved_event: public event<gamepad_axis_moved_event>
 {
 public:
 	virtual event_base* clone() const;
 
-	input::game_controller* controller;
-	input::game_controller_axis axis;
+	input::gamepad* controller;
+	input::gamepad_axis axis;
 	float value;
 };
 

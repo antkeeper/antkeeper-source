@@ -74,7 +74,7 @@ void enter(game::context* ctx)
 		[ctx](const event_base& event)
 		{
 			auto id = event.get_event_type_id();
-			if (id != mouse_moved_event::event_type_id && id != mouse_wheel_scrolled_event::event_type_id && id != game_controller_axis_moved_event::event_type_id)
+			if (id != mouse_moved_event::event_type_id && id != mouse_wheel_scrolled_event::event_type_id && id != gamepad_axis_moved_event::event_type_id)
 			{
 				ctx->timeline->clear();
 				ctx->fade_transition->get_animation()->stop();

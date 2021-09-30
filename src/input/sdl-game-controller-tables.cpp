@@ -18,37 +18,37 @@
  */
 
 #include "sdl-game-controller-tables.hpp"
-#include "game-controller.hpp"
+#include "gamepad.hpp"
 
 namespace input {
 
-const game_controller_button sdl_button_table[15] =
+const gamepad_button sdl_button_table[15] =
 {
-	game_controller_button::a, // SDL_CONTROLLER_BUTTON_A,
-	game_controller_button::b, // SDL_CONTROLLER_BUTTON_B,
-	game_controller_button::x, // SDL_CONTROLLER_BUTTON_X,
-	game_controller_button::y, // SDL_CONTROLLER_BUTTON_Y,
-	game_controller_button::back, // SDL_CONTROLLER_BUTTON_BACK,
-	game_controller_button::guide, // SDL_CONTROLLER_BUTTON_GUIDE,
-	game_controller_button::start, // SDL_CONTROLLER_BUTTON_START,
-	game_controller_button::left_stick, // SDL_CONTROLLER_BUTTON_LEFTSTICK,
-	game_controller_button::right_stick, // SDL_CONTROLLER_BUTTON_RIGHTSTICK,
-	game_controller_button::left_shoulder, // SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
-	game_controller_button::right_shoulder, // SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
-	game_controller_button::dpad_up, // SDL_CONTROLLER_BUTTON_DPAD_UP,
-	game_controller_button::dpad_down, // SDL_CONTROLLER_BUTTON_DPAD_DOWN,
-	game_controller_button::dpad_left, // SDL_CONTROLLER_BUTTON_DPAD_LEFT,
-	game_controller_button::dpad_right, // SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
+	gamepad_button::a, // SDL_CONTROLLER_BUTTON_A,
+	gamepad_button::b, // SDL_CONTROLLER_BUTTON_B,
+	gamepad_button::x, // SDL_CONTROLLER_BUTTON_X,
+	gamepad_button::y, // SDL_CONTROLLER_BUTTON_Y,
+	gamepad_button::back, // SDL_CONTROLLER_BUTTON_BACK,
+	gamepad_button::guide, // SDL_CONTROLLER_BUTTON_GUIDE,
+	gamepad_button::start, // SDL_CONTROLLER_BUTTON_START,
+	gamepad_button::left_stick, // SDL_CONTROLLER_BUTTON_LEFTSTICK,
+	gamepad_button::right_stick, // SDL_CONTROLLER_BUTTON_RIGHTSTICK,
+	gamepad_button::left_shoulder, // SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
+	gamepad_button::right_shoulder, // SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
+	gamepad_button::dpad_up, // SDL_CONTROLLER_BUTTON_DPAD_UP,
+	gamepad_button::dpad_down, // SDL_CONTROLLER_BUTTON_DPAD_DOWN,
+	gamepad_button::dpad_left, // SDL_CONTROLLER_BUTTON_DPAD_LEFT,
+	gamepad_button::dpad_right, // SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
 };
 
-const game_controller_axis sdl_axis_table[6] =
+const gamepad_axis sdl_axis_table[6] =
 {
-	game_controller_axis::left_x, // SDL_CONTROLLER_AXIS_LEFTX,
-	game_controller_axis::left_y, // SDL_CONTROLLER_AXIS_LEFTY,
-	game_controller_axis::right_x, // SDL_CONTROLLER_AXIS_RIGHTX,
-	game_controller_axis::right_y, // SDL_CONTROLLER_AXIS_RIGHTY,
-	game_controller_axis::left_trigger, // SDL_CONTROLLER_AXIS_TRIGGERLEFT,
-	game_controller_axis::right_trigger, // SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
+	gamepad_axis::left_x, // SDL_CONTROLLER_AXIS_LEFTX,
+	gamepad_axis::left_y, // SDL_CONTROLLER_AXIS_LEFTY,
+	gamepad_axis::right_x, // SDL_CONTROLLER_AXIS_RIGHTX,
+	gamepad_axis::right_y, // SDL_CONTROLLER_AXIS_RIGHTY,
+	gamepad_axis::left_trigger, // SDL_CONTROLLER_AXIS_TRIGGERLEFT,
+	gamepad_axis::right_trigger, // SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
 };
 
 } // namespace input

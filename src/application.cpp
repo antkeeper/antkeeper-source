@@ -174,7 +174,7 @@ application::application():
 		logger->pop_task(EXIT_SUCCESS);
 	}
 
-	// Init SDL joystick and game controller subsystems
+	// Init SDL joystick and gamepad subsystems
 	logger->push_task("Initializing SDL Joystick and Game Controller subsystems");
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
 	{
@@ -185,9 +185,9 @@ application::application():
 		logger->pop_task(EXIT_SUCCESS);
 	}
 
-	// Load SDL game controller mappings
+	// Load SDL gamepad mappings
 	/*
-	logger->push_task("Loading SDL game controller mappings from database");
+	logger->push_task("Loading SDL gamepad mappings from database");
 	std::string gamecontrollerdb_path = data_path + "controls/gamecontrollerdb.txt";
 	if (SDL_GameControllerAddMappingsFromFile(gamecontrollerdb_path.c_str()) == -1)
 	{
@@ -211,7 +211,7 @@ application::application():
 	mouse = new input::mouse();
 	mouse->set_event_dispatcher(event_dispatcher);
 	
-	// Connect game controllers
+	// Connect gamepads
 	translate_sdl_events();
 
 	// Setup frame scheduler
@@ -600,9 +600,9 @@ void application::translate_sdl_events()
 			{
 				if (sdl_event.cbutton.button != SDL_CONTROLLER_BUTTON_INVALID)
 				{
-					if (auto it = game_controller_map.find(sdl_event.cdevice.which); it != game_controller_map.end())
+					if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
 					{
-						input::game_controller_button button = input::sdl_button_table[sdl_event.cbutton.button];
+						input::gamepad_button button = input::sdl_button_table[sdl_event.cbutton.button];
 						it->second->press(button);
 					}
 				}
@@ -613,9 +613,9 @@ void application::translate_sdl_events()
 			{
 				if (sdl_event.cbutton.button != SDL_CONTROLLER_BUTTON_INVALID)
 				{
-					if (auto it = game_controller_map.find(sdl_event.cdevice.which); it != game_controller_map.end())
+					if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
 					{
-						input::game_controller_button button = input::sdl_button_table[sdl_event.cbutton.button];
+						input::gamepad_button button = input::sdl_button_table[sdl_event.cbutton.button];
 						it->second->release(button);
 					}
 				}
@@ -626,9 +626,9 @@ void application::translate_sdl_events()
 			{
 				if (sdl_event.caxis.axis != SDL_CONTROLLER_AXIS_INVALID)
 				{
-					if (auto it = game_controller_map.find(sdl_event.cdevice.which); it != game_controller_map.end())
+					if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
 					{
-						input::game_controller_axis axis = input::sdl_axis_table[sdl_event.caxis.axis];
+						input::gamepad_axis axis = input::sdl_axis_table[sdl_event.caxis.axis];
 						float value = sdl_event.caxis.value;
 						value /= (value < 0.0f) ? 32768.0f : 32767.0f;
 						it->second->move(axis, value);
@@ -646,27 +646,27 @@ void application::translate_sdl_events()
 					std::string controller_name = SDL_GameControllerNameForIndex(sdl_event.cdevice.which);
 					if (sdl_controller)
 					{
-						if (auto it = game_controller_map.find(sdl_event.cdevice.which); it != game_controller_map.end())
+						if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
 						{
-							logger->log("Reconnected game controller  \"" + controller_name + "\"");
+							logger->log("Reconnected gamepad  \"" + controller_name + "\"");
 							
 							it->second->connect(true);
 						}
 						else
 						{
-							logger->log("Connected game controller \"" + controller_name + "\"");
+							logger->log("Connected gamepad \"" + controller_name + "\"");
 							
-							input::game_controller* controller = new input::game_controller();
+							input::gamepad* controller = new input::gamepad();
 							controller->set_event_dispatcher(event_dispatcher);
-							game_controllers.push_back(controller);
-							game_controller_map[sdl_event.cdevice.which] = controller;
+							gamepads.push_back(controller);
+							gamepad_map[sdl_event.cdevice.which] = controller;
 							
 							controller->connect(false);
 						}
 					}
 					else
 					{
-						logger->error("Failed to connected game controller \"" + controller_name + "\"");
+						logger->error("Failed to connected gamepad \"" + controller_name + "\"");
 					}
 				}
 
@@ -680,9 +680,9 @@ void application::translate_sdl_events()
 				if (sdl_controller)
 				{
 					SDL_GameControllerClose(sdl_controller);
-					logger->log("Disconnected game controller");
+					logger->log("Disconnected gamepad");
 					
-					if (auto it = game_controller_map.find(sdl_event.cdevice.which); it != game_controller_map.end())
+					if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
 					{
 						it->second->disconnect();
 					}

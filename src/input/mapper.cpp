@@ -43,8 +43,8 @@ void mapper::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 		this->event_dispatcher->unsubscribe<mouse_moved_event>(this);
 		this->event_dispatcher->unsubscribe<mouse_wheel_scrolled_event>(this);
 		this->event_dispatcher->unsubscribe<mouse_button_pressed_event>(this);
-		this->event_dispatcher->unsubscribe<game_controller_axis_moved_event>(this);
-		this->event_dispatcher->unsubscribe<game_controller_button_pressed_event>(this);
+		this->event_dispatcher->unsubscribe<gamepad_axis_moved_event>(this);
+		this->event_dispatcher->unsubscribe<gamepad_button_pressed_event>(this);
 	}
 
 	this->event_dispatcher = event_dispatcher;
@@ -55,8 +55,8 @@ void mapper::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 		event_dispatcher->subscribe<mouse_moved_event>(this);
 		event_dispatcher->subscribe<mouse_wheel_scrolled_event>(this);
 		event_dispatcher->subscribe<mouse_button_pressed_event>(this);
-		event_dispatcher->subscribe<game_controller_axis_moved_event>(this);
-		event_dispatcher->subscribe<game_controller_button_pressed_event>(this);
+		event_dispatcher->subscribe<gamepad_axis_moved_event>(this);
+		event_dispatcher->subscribe<gamepad_button_pressed_event>(this);
 	}
 }
 
@@ -135,24 +135,24 @@ void mapper::handle_event(const mouse_wheel_scrolled_event& event)
 	}
 }
 
-void mapper::handle_event(const game_controller_button_pressed_event& event)
+void mapper::handle_event(const gamepad_button_pressed_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
 		return;
 	}
 
-	callback(game_controller_button_mapping(control, event.controller, event.button));
+	callback(gamepad_button_mapping(control, event.controller, event.button));
 }
 
-void mapper::handle_event(const game_controller_axis_moved_event& event)
+void mapper::handle_event(const gamepad_axis_moved_event& event)
 {
 	if (!is_enabled() || !callback)
 	{
 		return;
 	}
 
-	callback(game_controller_axis_mapping(control, event.controller, event.axis, (event.value < 0.0f)));
+	callback(gamepad_axis_mapping(control, event.controller, event.axis, (event.value < 0.0f)));
 }
 
 } // namespace input

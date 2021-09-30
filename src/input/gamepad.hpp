@@ -17,15 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_INPUT_GAME_CONTROLLER_HPP
-#define ANTKEEPER_INPUT_GAME_CONTROLLER_HPP
+#ifndef ANTKEEPER_INPUT_GAMEPAD_HPP
+#define ANTKEEPER_INPUT_GAMEPAD_HPP
 
 #include "device.hpp"
 
 namespace input {
 
-/// Game controller buttons.
-enum class game_controller_button
+/// Gamepad buttons.
+enum class gamepad_button
 {
 	a,
 	b,
@@ -44,8 +44,8 @@ enum class game_controller_button
 	dpad_right
 };
 
-/// Game controller axes.
-enum class game_controller_axis
+/// Gamepad axes.
+enum class gamepad_axis
 {
 	/// Left stick x-axis.
 	left_x,
@@ -66,8 +66,8 @@ enum class game_controller_axis
 	right_trigger,
 };
 
-/// Game controller axis activation response curves.
-enum class game_controller_response_curve
+/// Gamepad axis activation response curves.
+enum class gamepad_response_curve
 {
 	/// Linear response curve.
 	linear,
@@ -80,37 +80,37 @@ enum class game_controller_response_curve
 };
 
 /**
- * A virtual game controller which can generate game controller-related input events and pass them to an event dispatcher.
+ * A virtual gamepad which can generate gamepad-related input events and pass them to an event dispatcher.
  *
  * @ingroup input
  */
-class game_controller: public device
+class gamepad: public device
 {
 public:
 	/**
-	 * Creates a game controller input device.
+	 * Creates a gamepad input device.
 	 */
-	game_controller();
+	gamepad();
 	
-	/// Destroys a game controller input device.
-	virtual ~game_controller() = default;
+	/// Destroys a gamepad input device.
+	virtual ~gamepad() = default;
 	
 	/**
-	 * Sets the activation threshold for a game controller axis.
+	 * Sets the activation threshold for a gamepad axis.
 	 *
-	 * @param axis Game controller axis.
+	 * @param axis Gamepad axis.
 	 * @param min Axis minimum activation threshold.
 	 * @param max Axis maximum activation threshold.
 	 */
-	void set_activation_threshold(game_controller_axis axis, float min, float max);
+	void set_activation_threshold(gamepad_axis axis, float min, float max);
 	
 	/**
 	 * Sets the activation response curve of an axis.
 	 *
-	 * @param axis Game controller axis.
+	 * @param axis Gamepad axis.
 	 * @param curve Activation response curve.
 	 */
-	void set_response_curve(game_controller_axis axis, game_controller_response_curve curve);
+	void set_response_curve(gamepad_axis axis, gamepad_response_curve curve);
 	
 	/**
 	 * Sets the type of deadzone shape for the axes on the left stick.
@@ -141,51 +141,51 @@ public:
 	void set_right_deadzone_roundness(float roundness);
 	
 	/**
-	 * Simulates a game controller button press.
+	 * Simulates a gamepad button press.
 	 *
 	 * @param button Index of the pressed button.
 	 */
-	void press(game_controller_button button);
+	void press(gamepad_button button);
 	
 	/**
-	 * Simulates a game controller button release.
+	 * Simulates a gamepad button release.
 	 *
 	 * @param button Index of the released button.
 	 */
-	void release(game_controller_button button);
+	void release(gamepad_button button);
 	
 	/**
-	 * Simulates a game controller axis movement.
+	 * Simulates a gamepad axis movement.
 	 *
 	 * @param axis Index of the moved axis.
 	 * @param negative Whether the movement was negative or positive.
 	 * @param value Normalized degree of movement.
 	 */
-	void move(game_controller_axis axis, float value);
+	void move(gamepad_axis axis, float value);
 	
 	/**
-	 * Simulates a game controller being connected.
+	 * Simulates a gamepad being connected.
 	 *
 	 * @param reconnected `true` if the controller is being reconnected, or `false` if the controller is being connected for the first time.
 	 */
 	void connect(bool reconnnected);
 	
-	/// Simulates a game controller being disconnected.
+	/// Simulates a gamepad being disconnected.
 	void disconnect();
 	
 	/// Returns `true` if the controller is currently connected.
 	bool is_connected() const;
 	
 private:
-	void handle_axial_motion(game_controller_axis axis);
-	void handle_biaxial_motion(game_controller_axis axis_x, game_controller_axis axis_y);
-	float curve_response(game_controller_axis axis, float response) const;
+	void handle_axial_motion(gamepad_axis axis);
+	void handle_biaxial_motion(gamepad_axis axis_x, gamepad_axis axis_y);
+	float curve_response(gamepad_axis axis, float response) const;
 	
 	bool connected;
 	float axis_values[6];
 	float axis_activation_min[6];
 	float axis_activation_max[6];
-	game_controller_response_curve axis_response_curves[6];
+	gamepad_response_curve axis_response_curves[6];
 	
 	bool left_deadzone_cross;
 	bool right_deadzone_cross;
@@ -193,12 +193,11 @@ private:
 	float right_deadzone_roundness;
 };
 
-inline bool game_controller::is_connected() const
+inline bool gamepad::is_connected() const
 {
 	return connected;
 }
 
 } // namespace input
 
-#endif // ANTKEEPER_INPUT_GAME_CONTROLLER_HPP
-
+#endif // ANTKEEPER_INPUT_GAMEPAD_HPP

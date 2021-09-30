@@ -34,8 +34,8 @@ class key_mapping;
 class mouse_motion_mapping;
 class mouse_wheel_mapping;
 class mouse_button_mapping;
-class game_controller_axis_mapping;
-class game_controller_button_mapping;
+class gamepad_axis_mapping;
+class gamepad_button_mapping;
 enum class mouse_motion_axis;
 enum class mouse_wheel_axis;
 
@@ -49,9 +49,9 @@ class event_router:
 	public event_handler<mouse_wheel_scrolled_event>,
 	public event_handler<mouse_button_pressed_event>,
 	public event_handler<mouse_button_released_event>,
-	public event_handler<game_controller_axis_moved_event>,
-	public event_handler<game_controller_button_pressed_event>,
-	public event_handler<game_controller_button_released_event>
+	public event_handler<gamepad_axis_moved_event>,
+	public event_handler<gamepad_button_pressed_event>,
+	public event_handler<gamepad_button_released_event>
 {
 public:
 	/**
@@ -99,9 +99,9 @@ private:
 	virtual void handle_event(const mouse_wheel_scrolled_event& event);
 	virtual void handle_event(const mouse_button_pressed_event& event);
 	virtual void handle_event(const mouse_button_released_event& event);
-	virtual void handle_event(const game_controller_axis_moved_event& event);
-	virtual void handle_event(const game_controller_button_pressed_event& event);
-	virtual void handle_event(const game_controller_button_released_event& event);
+	virtual void handle_event(const gamepad_axis_moved_event& event);
+	virtual void handle_event(const gamepad_button_pressed_event& event);
+	virtual void handle_event(const gamepad_button_released_event& event);
 
 	event_dispatcher* event_dispatcher;
 	std::map<control*, std::list<mapping*>> controls;
@@ -109,8 +109,8 @@ private:
 	std::list<mouse_motion_mapping*> mouse_motion_mappings;
 	std::list<mouse_wheel_mapping*> mouse_wheel_mappings;
 	std::list<mouse_button_mapping*> mouse_button_mappings;
-	std::list<game_controller_axis_mapping*> game_controller_axis_mappings;
-	std::list<game_controller_button_mapping*> game_controller_button_mappings;
+	std::list<gamepad_axis_mapping*> gamepad_axis_mappings;
+	std::list<gamepad_button_mapping*> gamepad_button_mappings;
 };
 
 } // namespace input

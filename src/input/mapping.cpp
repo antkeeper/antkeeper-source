@@ -101,19 +101,19 @@ mouse_button_mapping& mouse_button_mapping::operator=(const mouse_button_mapping
 	return *this;
 }
 
-game_controller_axis_mapping::game_controller_axis_mapping(const game_controller_axis_mapping& mapping)
+gamepad_axis_mapping::gamepad_axis_mapping(const gamepad_axis_mapping& mapping)
 {
 	*this = mapping;
 }
 
-game_controller_axis_mapping::game_controller_axis_mapping(input::control* control, game_controller* controller, game_controller_axis axis, bool negative):
+gamepad_axis_mapping::gamepad_axis_mapping(input::control* control, gamepad* controller, gamepad_axis axis, bool negative):
 	mapping(control),
 	controller(controller),
 	axis(axis),
 	negative(negative)
 {}
 
-game_controller_axis_mapping& game_controller_axis_mapping::operator=(const game_controller_axis_mapping& mapping)
+gamepad_axis_mapping& gamepad_axis_mapping::operator=(const gamepad_axis_mapping& mapping)
 {
 	control = mapping.control;
 	controller = mapping.controller;
@@ -122,18 +122,18 @@ game_controller_axis_mapping& game_controller_axis_mapping::operator=(const game
 	return *this;
 }
 
-game_controller_button_mapping::game_controller_button_mapping(const game_controller_button_mapping& mapping)
+gamepad_button_mapping::gamepad_button_mapping(const gamepad_button_mapping& mapping)
 {
 	*this = mapping;
 }
 
-game_controller_button_mapping::game_controller_button_mapping(input::control* control, game_controller* controller, game_controller_button button):
+gamepad_button_mapping::gamepad_button_mapping(input::control* control, gamepad* controller, gamepad_button button):
 	mapping(control),
 	controller(controller),
 	button(button)
 {}
 
-game_controller_button_mapping& game_controller_button_mapping::operator=(const game_controller_button_mapping& mapping)
+gamepad_button_mapping& gamepad_button_mapping::operator=(const gamepad_button_mapping& mapping)
 {
 	control = mapping.control;
 	controller = mapping.controller;

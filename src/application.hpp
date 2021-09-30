@@ -28,7 +28,7 @@
 #include "gl/rasterizer.hpp"
 #include "input/keyboard.hpp"
 #include "input/mouse.hpp"
-#include "input/game-controller.hpp"
+#include "input/gamepad.hpp"
 
 // Forward declarations
 typedef struct SDL_Window SDL_Window;
@@ -210,8 +210,8 @@ public:
 	/// Returns the virtual mouse.
 	input::mouse* get_mouse();
 	
-	/// Returns the list of virtual game controllers.
-	const std::list<input::game_controller*>& get_game_controllers();
+	/// Returns the list of virtual gamepads.
+	const std::list<input::gamepad*>& get_gamepads();
 	
 	/// Returns the application's event dispatcher.
 	event_dispatcher* get_event_dispatcher();
@@ -254,8 +254,8 @@ private:
 	// Input devices
 	input::keyboard* keyboard;
 	input::mouse* mouse;
-	std::list<input::game_controller*> game_controllers;
-	std::unordered_map<int, input::game_controller*> game_controller_map;
+	std::list<input::gamepad*> gamepads;
+	std::unordered_map<int, input::gamepad*> gamepad_map;
 };
 
 inline debug::logger* application::get_logger()
@@ -298,9 +298,9 @@ inline input::mouse* application::get_mouse()
 	return mouse;
 }
 
-inline const std::list<input::game_controller*>& application::get_game_controllers()
+inline const std::list<input::gamepad*>& application::get_gamepads()
 {
-	return game_controllers;
+	return gamepads;
 }
 
 inline event_dispatcher* application::get_event_dispatcher()

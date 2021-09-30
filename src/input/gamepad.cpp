@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game-controller.hpp"
+#include "gamepad.hpp"
 #include "event/input-events.hpp"
 #include "event/event-dispatcher.hpp"
 #include "math/map.hpp"
@@ -26,7 +26,7 @@
 
 namespace input {
 
-game_controller::game_controller():
+gamepad::gamepad():
 	connected(true),
 	left_deadzone_cross(true),
 	right_deadzone_cross(true),
@@ -38,70 +38,70 @@ game_controller::game_controller():
 		axis_values[i] = 0.0f;
 		axis_activation_min[i] = 0.0f;
 		axis_activation_max[i] = 1.0f;
-		axis_response_curves[i] = game_controller_response_curve::linear;
+		axis_response_curves[i] = gamepad_response_curve::linear;
 	}
 }
 
-void game_controller::set_activation_threshold(game_controller_axis axis, float min, float max)
+void gamepad::set_activation_threshold(gamepad_axis axis, float min, float max)
 {
 	axis_activation_min[static_cast<int>(axis)] = min;
 	axis_activation_max[static_cast<int>(axis)] = max;
 }
 
-void game_controller::set_response_curve(game_controller_axis axis, game_controller_response_curve curve)
+void gamepad::set_response_curve(gamepad_axis axis, gamepad_response_curve curve)
 {
 	axis_response_curves[static_cast<int>(axis)] = curve;
 }
 
-void game_controller::set_left_deadzone_cross(bool cross)
+void gamepad::set_left_deadzone_cross(bool cross)
 {
 	left_deadzone_cross = cross;
 }
 
-void game_controller::set_right_deadzone_cross(bool cross)
+void gamepad::set_right_deadzone_cross(bool cross)
 {
 	right_deadzone_cross = cross;
 }
 
-void game_controller::set_left_deadzone_roundness(float roundness)
+void gamepad::set_left_deadzone_roundness(float roundness)
 {
 	left_deadzone_roundness = roundness;
 }
 
-void game_controller::set_right_deadzone_roundness(float roundness)
+void gamepad::set_right_deadzone_roundness(float roundness)
 {
 	right_deadzone_roundness = roundness;
 }
 
-void game_controller::press(game_controller_button button)
+void gamepad::press(gamepad_button button)
 {
 	if (!device::event_dispatcher)
 	{
 		return;
 	}
 
-	game_controller_button_pressed_event event;
+	gamepad_button_pressed_event event;
 	event.controller = this;
 	event.button = button;
 
 	device::event_dispatcher->queue(event);
 }
 
-void game_controller::release(game_controller_button button)
+void gamepad::release(gamepad_button button)
 {
 	if (!device::event_dispatcher)
 	{
 		return;
 	}
 
-	game_controller_button_released_event event;
+	gamepad_button_released_event event;
 	event.controller = this;
 	event.button = button;
 
 	device::event_dispatcher->queue(event);
 }
 
-void game_controller::move(game_controller_axis axis, float value)
+void gamepad::move(gamepad_axis axis, float value)
 {
 	// Update axis value
 	axis_values[static_cast<int>(axis)] = value;
@@ -113,20 +113,20 @@ void game_controller::move(game_controller_axis axis, float value)
 	
 	switch (axis)
 	{
-		case game_controller_axis::left_x:
-		case game_controller_axis::left_y:
+		case gamepad_axis::left_x:
+		case gamepad_axis::left_y:
 			if (left_deadzone_cross)
 				handle_axial_motion(axis);
 			else
-				handle_biaxial_motion(game_controller_axis::left_x, game_controller_axis::left_y);
+				handle_biaxial_motion(gamepad_axis::left_x, gamepad_axis::left_y);
 			break;
 			
-		case game_controller_axis::right_x:
-		case game_controller_axis::right_y:
+		case gamepad_axis::right_x:
+		case gamepad_axis::right_y:
 			if (right_deadzone_cross)
 				handle_axial_motion(axis);
 			else
-				handle_biaxial_motion(game_controller_axis::right_x, game_controller_axis::right_y);
+				handle_biaxial_motion(gamepad_axis::right_x, gamepad_axis::right_y);
 			break;
 		
 		default:
@@ -135,17 +135,17 @@ void game_controller::move(game_controller_axis axis, float value)
 	}
 }
 
-void game_controller::handle_axial_motion(game_controller_axis axis)
+void gamepad::handle_axial_motion(gamepad_axis axis)
 {
 	// Get axis parameters
 	const int axis_index = static_cast<int>(axis);
 	const float activation_min = axis_activation_min[axis_index];
 	const float activation_max = axis_activation_max[axis_index];
 	const float axis_value = axis_values[axis_index];
-	const game_controller_response_curve response_curve = axis_response_curves[axis_index];
+	const gamepad_response_curve response_curve = axis_response_curves[axis_index];
 	
 	// Build event
-	game_controller_axis_moved_event event;
+	gamepad_axis_moved_event event;
 	event.controller = this;
 	event.axis = axis;
 	
@@ -172,7 +172,7 @@ void game_controller::handle_axial_motion(game_controller_axis axis)
 	device::event_dispatcher->queue(event);
 }
 
-void game_controller::handle_biaxial_motion(game_controller_axis axis_x, game_controller_axis axis_y)
+void gamepad::handle_biaxial_motion(gamepad_axis axis_x, gamepad_axis axis_y)
 {
 	// Get axis parameters
 	const int x_axis_index = static_cast<int>(axis_x);
@@ -183,9 +183,9 @@ void game_controller::handle_biaxial_motion(game_controller_axis axis_x, game_co
 	const float y_activation_max = axis_activation_max[y_axis_index];
 	const float x_axis_value = axis_values[x_axis_index];
 	const float y_axis_value = axis_values[y_axis_index];
-	const game_controller_response_curve x_response_curve = axis_response_curves[x_axis_index];
-	const game_controller_response_curve y_response_curve = axis_response_curves[y_axis_index];
-	const float deadzone_roundness = (axis_x == game_controller_axis::left_x) ? left_deadzone_roundness : right_deadzone_roundness;
+	const gamepad_response_curve x_response_curve = axis_response_curves[x_axis_index];
+	const gamepad_response_curve y_response_curve = axis_response_curves[y_axis_index];
+	const float deadzone_roundness = (axis_x == gamepad_axis::left_x) ? left_deadzone_roundness : right_deadzone_roundness;
 	
 	const float radius = std::min<float>(x_activation_min, y_activation_min) * deadzone_roundness;
 	const float dx = std::max<float>(0.0f, std::abs(x_axis_value) - x_activation_min + radius);
@@ -193,7 +193,7 @@ void game_controller::handle_biaxial_motion(game_controller_axis axis_x, game_co
 	const float distance = std::sqrt(dx * dx + dy * dy) - radius;
 	
 	// Build event
-	game_controller_axis_moved_event event;
+	gamepad_axis_moved_event event;
 	event.controller = this;
 	
 	if (distance > 0.0f)
@@ -230,20 +230,20 @@ void game_controller::handle_biaxial_motion(game_controller_axis axis_x, game_co
 	}
 }
 
-float game_controller::curve_response(game_controller_axis axis, float response) const
+float gamepad::curve_response(gamepad_axis axis, float response) const
 {
-	const game_controller_response_curve response_curve = axis_response_curves[static_cast<int>(axis)];
+	const gamepad_response_curve response_curve = axis_response_curves[static_cast<int>(axis)];
 	
 	switch (response_curve)
 	{
-		case game_controller_response_curve::linear:
+		case gamepad_response_curve::linear:
 			break;
 		
-		case game_controller_response_curve::square:
+		case gamepad_response_curve::square:
 			response = response * response;
 			break;
 		
-		case game_controller_response_curve::cube:
+		case gamepad_response_curve::cube:
 			response = response * response * response;
 			break;
 	}
@@ -251,22 +251,22 @@ float game_controller::curve_response(game_controller_axis axis, float response)
 	return response;
 }
 
-void game_controller::connect(bool reconnected)
+void gamepad::connect(bool reconnected)
 {
 	connected = true;
 	
-	game_controller_connected_event event;
+	gamepad_connected_event event;
 	event.controller = this;
 	event.reconnected = reconnected;
 	
 	device::event_dispatcher->queue(event);
 }
 
-void game_controller::disconnect()
+void gamepad::disconnect()
 {
 	connected = false;
 	
-	game_controller_disconnected_event event;
+	gamepad_disconnected_event event;
 	event.controller = this;
 	
 	device::event_dispatcher->queue(event);

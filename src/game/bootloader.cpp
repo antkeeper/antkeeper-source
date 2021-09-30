@@ -81,7 +81,7 @@
 #include "input/event-router.hpp"
 #include "input/mapper.hpp"
 #include "input/listener.hpp"
-#include "input/game-controller.hpp"
+#include "input/gamepad.hpp"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
 #include "configuration.hpp"
@@ -892,9 +892,9 @@ void setup_controls(game::context* ctx)
 	/*
 	// Add menu control mappings
 
-	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->menu_back_control, nullptr, input::game_controller_button::b));
+	ctx->input_event_router->add_mapping(input::gamepad_button_mapping(ctx->menu_back_control, nullptr, input::gamepad_button::b));
 	//ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::scancode::left_shift));
-	ctx->input_event_router->add_mapping(input::game_controller_button_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::game_controller_button::x));
+	ctx->input_event_router->add_mapping(input::gamepad_button_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::gamepad_button::x));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_select_control, nullptr, input::scancode::enter));
 	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_select_control, nullptr, input::scancode::space));
 	
