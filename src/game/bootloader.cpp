@@ -150,6 +150,12 @@ int bootloader(application* app, int argc, char** argv)
 	
 	logger->pop_task(EXIT_SUCCESS);
 	
+	// Set update rate
+	if (ctx->config->contains("update_rate"))
+	{
+		app->set_update_rate((*ctx->config)["update_rate"].get<double>());
+	}
+	
 	// Setup initial application state
 	application::state initial_state;
 	initial_state.name = "loading";

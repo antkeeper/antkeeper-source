@@ -271,17 +271,35 @@ void setup_controls(game::context* ctx)
 	const float dolly_speed = 20.0f;
 	const float truck_speed = dolly_speed;
 	const float pedestal_speed = 30.0f;
-	float mouse_sensitivity = 1.0f;	
-	float gamepad_sensitivity = 1.0f;
+	float mouse_look_sensitivity = 1.0f;	
+	bool mouse_invert_tilt = false;
+	bool mouse_invert_pan = false;
+	float gamepad_look_sensitivity = 1.0f;
+	bool gamepad_invert_tilt = false;
+	bool gamepad_invert_pan = false;
 	
-	if (ctx->config->contains("mouse_sensitivity"))
-		mouse_sensitivity = math::radians((*ctx->config)["mouse_sensitivity"].get<float>());
-	if (ctx->config->contains("gamepad_sensitivity"))
-		gamepad_sensitivity = math::radians((*ctx->config)["gamepad_sensitivity"].get<float>());
+	if (ctx->config->contains("mouse_look_sensitivity"))
+		mouse_look_sensitivity = math::radians((*ctx->config)["mouse_look_sensitivity"].get<float>());
+	if (ctx->config->contains("mouse_invert_tilt"))
+		mouse_invert_tilt = math::radians((*ctx->config)["mouse_invert_tilt"].get<bool>());
+	if (ctx->config->contains("mouse_invert_pan"))
+		mouse_invert_pan = math::radians((*ctx->config)["mouse_invert_pan"].get<bool>());
+	
+	if (ctx->config->contains("gamepad_look_sensitivity"))
+		gamepad_look_sensitivity = math::radians((*ctx->config)["gamepad_look_sensitivity"].get<float>());
+	if (ctx->config->contains("gamepad_invert_tilt"))
+		gamepad_invert_tilt = math::radians((*ctx->config)["gamepad_invert_tilt"].get<bool>());
+	if (ctx->config->contains("gamepad_invert_pan"))
+		gamepad_invert_pan = math::radians((*ctx->config)["gamepad_invert_pan"].get<bool>());
 	
 	const input::control* move_slow = ctx->controls["move_slow"];
 	const input::control* move_fast = ctx->controls["move_fast"];
 	const input::control* mouse_rotate = ctx->controls["mouse_rotate"];
+	
+	float mouse_tilt_factor = mouse_look_sensitivity * (mouse_invert_tilt ? -1.0f : 1.0f);
+	float mouse_pan_factor = mouse_look_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
+	float gamepad_tilt_factor = gamepad_look_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
+	float gamepad_pan_factor = gamepad_look_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
 	
 	ctx->controls["dolly_forward"]->set_active_callback
 	(
@@ -403,64 +421,64 @@ void setup_controls(game::context* ctx)
 	// Pan left
 	ctx->controls["pan_left_gamepad"]->set_active_callback
 	(
-		[ctx, three_dof_eid, gamepad_sensitivity](float value)
+		[ctx, three_dof_eid, gamepad_pan_factor](float value)
 		{
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw += gamepad_sensitivity * value * (1.0f / 60.0f);
+			three_dof.yaw += gamepad_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
 	ctx->controls["pan_left_mouse"]->set_active_callback
 	(
-		[ctx, three_dof_eid, mouse_sensitivity, mouse_rotate](float value)
+		[ctx, three_dof_eid, mouse_pan_factor, mouse_rotate](float value)
 		{
 			if (!mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw += mouse_sensitivity * value * (1.0f / 60.0f);
+			three_dof.yaw += mouse_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
 	
 	// Pan right
 	ctx->controls["pan_right_gamepad"]->set_active_callback
 	(
-		[ctx, three_dof_eid, gamepad_sensitivity](float value)
+		[ctx, three_dof_eid, gamepad_pan_factor](float value)
 		{
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw -= gamepad_sensitivity * value * (1.0f / 60.0f);
+			three_dof.yaw -= gamepad_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
 	ctx->controls["pan_right_mouse"]->set_active_callback
 	(
-		[ctx, three_dof_eid, mouse_sensitivity, mouse_rotate](float value)
+		[ctx, three_dof_eid, mouse_pan_factor, mouse_rotate](float value)
 		{
 			if (!mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw -= mouse_sensitivity * value * (1.0f / 60.0f);
+			three_dof.yaw -= mouse_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
 	
 	// Tilt up
 	ctx->controls["tilt_up_gamepad"]->set_active_callback
 	(
-		[ctx, three_dof_eid, gamepad_sensitivity](float value)
+		[ctx, three_dof_eid, gamepad_tilt_factor](float value)
 		{
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch -= gamepad_sensitivity * value * (1.0f / 60.0f);
+			three_dof.pitch -= gamepad_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
 		}
 	);
 	ctx->controls["tilt_up_mouse"]->set_active_callback
 	(
-		[ctx, three_dof_eid, mouse_sensitivity, mouse_rotate](float value)
+		[ctx, three_dof_eid, mouse_tilt_factor, mouse_rotate](float value)
 		{
 			if (!mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch -= mouse_sensitivity * value * (1.0f / 60.0f);
+			three_dof.pitch -= mouse_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
 		}
 	);
@@ -468,22 +486,22 @@ void setup_controls(game::context* ctx)
 	// Tilt down
 	ctx->controls["tilt_down_gamepad"]->set_active_callback
 	(
-		[ctx, three_dof_eid, gamepad_sensitivity](float value)
+		[ctx, three_dof_eid, gamepad_tilt_factor](float value)
 		{
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch += gamepad_sensitivity * value * (1.0f / 60.0f);
+			three_dof.pitch += gamepad_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
 		}
 	);
 	ctx->controls["tilt_down_mouse"]->set_active_callback
 	(
-		[ctx, three_dof_eid, mouse_sensitivity, mouse_rotate](float value)
+		[ctx, three_dof_eid, mouse_tilt_factor, mouse_rotate](float value)
 		{
 			if (!mouse_rotate->is_active())
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch += mouse_sensitivity * value * (1.0f / 60.0f);
+			three_dof.pitch += mouse_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
 		}
 	);

@@ -21,8 +21,8 @@
 #include <algorithm>
 
 frame_scheduler::frame_scheduler():
-	update_callback(nullptr),
-	render_callback(nullptr),
+	update_callback([](double, double){}),
+	render_callback([](double){}),
 	update_rate(60.0),
 	update_timestep(1.0 / update_rate),
 	max_frame_duration(update_timestep)
