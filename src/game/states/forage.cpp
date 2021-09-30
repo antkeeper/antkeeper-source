@@ -271,22 +271,28 @@ void setup_controls(game::context* ctx)
 	const float dolly_speed = 20.0f;
 	const float truck_speed = dolly_speed;
 	const float pedestal_speed = 30.0f;
-	float mouse_look_sensitivity = 1.0f;	
+	float mouse_tilt_sensitivity = 1.0f;
+	float mouse_pan_sensitivity = 1.0f;
 	bool mouse_invert_tilt = false;
 	bool mouse_invert_pan = false;
-	float gamepad_look_sensitivity = 1.0f;
+	float gamepad_tilt_sensitivity = 1.0f;
+	float gamepad_pan_sensitivity = 1.0f;
 	bool gamepad_invert_tilt = false;
 	bool gamepad_invert_pan = false;
 	
-	if (ctx->config->contains("mouse_look_sensitivity"))
-		mouse_look_sensitivity = math::radians((*ctx->config)["mouse_look_sensitivity"].get<float>());
+	if (ctx->config->contains("mouse_tilt_sensitivity"))
+		mouse_tilt_sensitivity = math::radians((*ctx->config)["mouse_tilt_sensitivity"].get<float>());
+	if (ctx->config->contains("mouse_pan_sensitivity"))
+		mouse_pan_sensitivity = math::radians((*ctx->config)["mouse_pan_sensitivity"].get<float>());
 	if (ctx->config->contains("mouse_invert_tilt"))
 		mouse_invert_tilt = math::radians((*ctx->config)["mouse_invert_tilt"].get<bool>());
 	if (ctx->config->contains("mouse_invert_pan"))
 		mouse_invert_pan = math::radians((*ctx->config)["mouse_invert_pan"].get<bool>());
 	
-	if (ctx->config->contains("gamepad_look_sensitivity"))
-		gamepad_look_sensitivity = math::radians((*ctx->config)["gamepad_look_sensitivity"].get<float>());
+	if (ctx->config->contains("gamepad_tilt_sensitivity"))
+		gamepad_tilt_sensitivity = math::radians((*ctx->config)["gamepad_tilt_sensitivity"].get<float>());
+	if (ctx->config->contains("gamepad_pan_sensitivity"))
+		gamepad_pan_sensitivity = math::radians((*ctx->config)["gamepad_pan_sensitivity"].get<float>());
 	if (ctx->config->contains("gamepad_invert_tilt"))
 		gamepad_invert_tilt = math::radians((*ctx->config)["gamepad_invert_tilt"].get<bool>());
 	if (ctx->config->contains("gamepad_invert_pan"))
@@ -296,10 +302,10 @@ void setup_controls(game::context* ctx)
 	const input::control* move_fast = ctx->controls["move_fast"];
 	const input::control* mouse_rotate = ctx->controls["mouse_rotate"];
 	
-	float mouse_tilt_factor = mouse_look_sensitivity * (mouse_invert_tilt ? -1.0f : 1.0f);
-	float mouse_pan_factor = mouse_look_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
-	float gamepad_tilt_factor = gamepad_look_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
-	float gamepad_pan_factor = gamepad_look_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
+	float mouse_tilt_factor = mouse_tilt_sensitivity * (mouse_invert_tilt ? -1.0f : 1.0f);
+	float mouse_pan_factor = mouse_pan_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
+	float gamepad_tilt_factor = gamepad_tilt_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
+	float gamepad_pan_factor = gamepad_pan_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
 	
 	ctx->controls["dolly_forward"]->set_active_callback
 	(

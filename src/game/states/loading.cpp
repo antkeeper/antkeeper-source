@@ -56,6 +56,8 @@ namespace loading {
 /// Creates or loads control configuration
 static void load_controls(game::context* ctx);
 
+static input::game_controller_response_curve parse_response_curve(const std::string& curve);
+
 /// Creates the universe and solar system.
 static void cosmogenesis(game::context* ctx);
 
@@ -128,6 +130,11 @@ void load_controls(game::context* ctx)
 	// Allocate known controls
 	ctx->controls["toggle_fullscreen"] = new input::control();
 	ctx->controls["screenshot"] = new input::control();
+	ctx->controls["menu_up"] = new input::control();
+	ctx->controls["menu_down"] = new input::control();
+	ctx->controls["menu_left"] = new input::control();
+	ctx->controls["menu_right"] = new input::control();
+	ctx->controls["menu_select"] = new input::control();
 	ctx->controls["menu_back"] = new input::control();
 	ctx->controls["dolly_forward"] = new input::control();
 	ctx->controls["dolly_backward"] = new input::control();
@@ -147,6 +154,13 @@ void load_controls(game::context* ctx)
 	ctx->controls["tilt_down_gamepad"] = new input::control();
 	ctx->controls["tilt_down_mouse"] = new input::control();
 	ctx->controls["use_tool"] = new input::control();
+	
+	// Set activation threshold for menu navigation controls to mitigate drifting game controller axes
+	const float menu_activation_threshold = 0.1f;
+	ctx->controls["menu_up"]->set_activation_threshold(menu_activation_threshold);
+	ctx->controls["menu_down"]->set_activation_threshold(menu_activation_threshold);
+	ctx->controls["menu_left"]->set_activation_threshold(menu_activation_threshold);
+	ctx->controls["menu_right"]->set_activation_threshold(menu_activation_threshold);
 	
 	// Get keyboard and mouse devices
 	input::keyboard* keyboard = ctx->app->get_keyboard();
@@ -365,10 +379,93 @@ void load_controls(game::context* ctx)
 		}
 	}
 	
-	// Set all control deadzones to 0.15
-	for (auto control: ctx->controls)
+	// Set gamepad deadzones
+	float gamepad_leftx_activation_min = 0.0f;
+	float gamepad_leftx_activation_max = 0.0f;
+	float gamepad_lefty_activation_min = 0.0f;
+	float gamepad_lefty_activation_max = 0.0f;
+	float gamepad_rightx_activation_min = 0.0f;
+	float gamepad_rightx_activation_max = 0.0f;
+	float gamepad_righty_activation_min = 0.0f;
+	float gamepad_righty_activation_max = 0.0f;
+	float gamepad_lefttrigger_activation_min = 0.0f;
+	float gamepad_lefttrigger_activation_max = 0.0f;
+	float gamepad_righttrigger_activation_min = 0.0f;
+	float gamepad_righttrigger_activation_max = 0.0f;
+	bool gamepad_left_deadzone_cross = true;
+	bool gamepad_right_deadzone_cross = true;
+	float gamepad_left_deadzone_roundness = 0.0f;
+	float gamepad_right_deadzone_roundness = 0.0f;
+	input::game_controller_response_curve gamepad_leftx_response_curve = input::game_controller_response_curve::linear;
+	input::game_controller_response_curve gamepad_lefty_response_curve = input::game_controller_response_curve::linear;
+	input::game_controller_response_curve gamepad_rightx_response_curve = input::game_controller_response_curve::linear;
+	input::game_controller_response_curve gamepad_righty_response_curve = input::game_controller_response_curve::linear;
+	input::game_controller_response_curve gamepad_lefttrigger_response_curve = input::game_controller_response_curve::linear;
+	input::game_controller_response_curve gamepad_righttrigger_response_curve = input::game_controller_response_curve::linear;
+	
+	if (ctx->config->contains("gamepad_leftx_activation_min"))
+		gamepad_leftx_activation_min = (*ctx->config)["gamepad_leftx_activation_min"].get<float>();
+	if (ctx->config->contains("gamepad_leftx_activation_max"))
+		gamepad_leftx_activation_max = (*ctx->config)["gamepad_leftx_activation_max"].get<float>();
+	if (ctx->config->contains("gamepad_lefty_activation_min"))
+		gamepad_lefty_activation_min = (*ctx->config)["gamepad_lefty_activation_min"].get<float>();
+	if (ctx->config->contains("gamepad_lefty_activation_max"))
+		gamepad_lefty_activation_max = (*ctx->config)["gamepad_lefty_activation_max"].get<float>();
+	if (ctx->config->contains("gamepad_rightx_activation_min"))
+		gamepad_rightx_activation_min = (*ctx->config)["gamepad_rightx_activation_min"].get<float>();
+	if (ctx->config->contains("gamepad_rightx_activation_max"))
+		gamepad_rightx_activation_max = (*ctx->config)["gamepad_rightx_activation_max"].get<float>();
+	if (ctx->config->contains("gamepad_righty_activation_min"))
+		gamepad_righty_activation_min = (*ctx->config)["gamepad_righty_activation_min"].get<float>();
+	if (ctx->config->contains("gamepad_righty_activation_max"))
+		gamepad_righty_activation_max = (*ctx->config)["gamepad_righty_activation_max"].get<float>();
+	if (ctx->config->contains("gamepad_lefttrigger_activation_min"))
+		gamepad_lefttrigger_activation_min = (*ctx->config)["gamepad_lefttrigger_activation_min"].get<float>();
+	if (ctx->config->contains("gamepad_lefttrigger_activation_max"))
+		gamepad_lefttrigger_activation_max = (*ctx->config)["gamepad_lefttrigger_activation_max"].get<float>();
+	if (ctx->config->contains("gamepad_righttrigger_activation_min"))
+		gamepad_righttrigger_activation_min = (*ctx->config)["gamepad_righttrigger_activation_min"].get<float>();
+	if (ctx->config->contains("gamepad_righttrigger_activation_max"))
+		gamepad_righttrigger_activation_max = (*ctx->config)["gamepad_righttrigger_activation_max"].get<float>();
+	if (ctx->config->contains("gamepad_left_deadzone_cross"))
+		gamepad_left_deadzone_cross = (*ctx->config)["gamepad_left_deadzone_cross"].get<bool>();
+	if (ctx->config->contains("gamepad_right_deadzone_cross"))
+		gamepad_right_deadzone_cross = (*ctx->config)["gamepad_right_deadzone_cross"].get<bool>();
+	if (ctx->config->contains("gamepad_left_deadzone_roundness"))
+		gamepad_left_deadzone_roundness = (*ctx->config)["gamepad_left_deadzone_roundness"].get<float>();
+	if (ctx->config->contains("gamepad_right_deadzone_roundness"))
+		gamepad_right_deadzone_roundness = (*ctx->config)["gamepad_right_deadzone_roundness"].get<float>();
+	if (ctx->config->contains("gamepad_leftx_response_curve"))
+		gamepad_leftx_response_curve = parse_response_curve((*ctx->config)["gamepad_leftx_response_curve"].get<std::string>());
+	if (ctx->config->contains("gamepad_leftx_response_curve"))
+		gamepad_leftx_response_curve = parse_response_curve((*ctx->config)["gamepad_leftx_response_curve"].get<std::string>());
+	if (ctx->config->contains("gamepad_rightx_response_curve"))
+		gamepad_rightx_response_curve = parse_response_curve((*ctx->config)["gamepad_rightx_response_curve"].get<std::string>());
+	if (ctx->config->contains("gamepad_leftx_response_curve"))
+		gamepad_leftx_response_curve = parse_response_curve((*ctx->config)["gamepad_leftx_response_curve"].get<std::string>());
+	if (ctx->config->contains("gamepad_lefttrigger_response_curve"))
+		gamepad_lefttrigger_response_curve = parse_response_curve((*ctx->config)["gamepad_lefttrigger_response_curve"].get<std::string>());
+	if (ctx->config->contains("gamepad_righttrigger_response_curve"))
+		gamepad_righttrigger_response_curve = parse_response_curve((*ctx->config)["gamepad_righttrigger_response_curve"].get<std::string>());
+	
+	for (input::game_controller* gamepad: ctx->app->get_game_controllers())
 	{
-		control.second->set_deadzone(0.15f);
+		gamepad->set_activation_threshold(input::game_controller_axis::left_x, gamepad_leftx_activation_min, gamepad_leftx_activation_max);
+		gamepad->set_activation_threshold(input::game_controller_axis::left_y, gamepad_lefty_activation_min, gamepad_lefty_activation_max);
+		gamepad->set_activation_threshold(input::game_controller_axis::right_x, gamepad_rightx_activation_min, gamepad_rightx_activation_max);
+		gamepad->set_activation_threshold(input::game_controller_axis::right_y, gamepad_righty_activation_min, gamepad_righty_activation_max);
+		gamepad->set_activation_threshold(input::game_controller_axis::left_trigger, gamepad_lefttrigger_activation_min, gamepad_lefttrigger_activation_max);
+		gamepad->set_activation_threshold(input::game_controller_axis::right_trigger, gamepad_righttrigger_activation_min, gamepad_righttrigger_activation_max);
+		gamepad->set_left_deadzone_cross(gamepad_left_deadzone_cross);
+		gamepad->set_right_deadzone_cross(gamepad_right_deadzone_cross);
+		gamepad->set_left_deadzone_roundness(gamepad_left_deadzone_roundness);
+		gamepad->set_right_deadzone_roundness(gamepad_right_deadzone_roundness);
+		gamepad->set_response_curve(input::game_controller_axis::left_x, gamepad_leftx_response_curve);
+		gamepad->set_response_curve(input::game_controller_axis::left_y, gamepad_lefty_response_curve);
+		gamepad->set_response_curve(input::game_controller_axis::right_x, gamepad_rightx_response_curve);
+		gamepad->set_response_curve(input::game_controller_axis::right_y, gamepad_righty_response_curve);
+		gamepad->set_response_curve(input::game_controller_axis::left_trigger, gamepad_lefttrigger_response_curve);
+		gamepad->set_response_curve(input::game_controller_axis::right_trigger, gamepad_righttrigger_response_curve);
 	}
 	
 	// Toggle fullscreen
@@ -408,6 +505,15 @@ void load_controls(game::context* ctx)
 	(
 		std::bind(&application::close, ctx->app, 0)
 	);
+}
+
+static input::game_controller_response_curve parse_response_curve(const std::string& curve)
+{
+	if (curve == "square")
+		return input::game_controller_response_curve::square;
+	else if (curve == "cube")
+		return input::game_controller_response_curve::cube;
+	return input::game_controller_response_curve::linear;
 }
 
 void cosmogenesis(game::context* ctx)

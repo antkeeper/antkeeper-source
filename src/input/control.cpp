@@ -22,7 +22,7 @@
 namespace input {
 
 control::control():
-	deadzone(0.0f),
+	activation_threshold(0.0f),
 	current_value(0.0f),
 	previous_value(0.0f),
 	reset(false),
@@ -97,9 +97,9 @@ void control::set_temporary_value(float value)
 	reset = true;
 }
 
-void control::set_deadzone(float value)
+void control::set_activation_threshold(float threshold)
 {
-	deadzone = value;
+	activation_threshold = threshold;
 }
 
 void control::set_activated_callback(std::function<void()> callback)

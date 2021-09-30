@@ -210,6 +210,9 @@ application::application():
 	keyboard->set_event_dispatcher(event_dispatcher);
 	mouse = new input::mouse();
 	mouse->set_event_dispatcher(event_dispatcher);
+	
+	// Connect game controllers
+	translate_sdl_events();
 
 	// Setup frame scheduler
 	frame_scheduler = new ::frame_scheduler();

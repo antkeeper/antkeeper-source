@@ -46,5 +46,6 @@ namespace math {}
 #include "math/quadrature.hpp"
 #include "math/interpolation.hpp"
 #include "math/random.hpp"
+#include "math/map.hpp"
 
 #endif // ANTKEEPER_MATH_HPP

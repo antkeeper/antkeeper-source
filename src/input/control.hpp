@@ -54,11 +54,11 @@ public:
 	void set_temporary_value(float value);
 
 	/**
-	 * Sets the deadzone value. If the current value of the control is not greater than the deadzone value, the control will not be considered active.
+	 * Sets the activation threshold. If the current value of the control is not greater than the activation threshold, the control will not be considered active.
 	 *
-	 * @param value Deadzone value.
+	 * @param threshold Activation threshold.
 	 */
-	void set_deadzone(float value);
+	void set_activation_threshold(float threshold);
 
 	/// Sets the callback for when the control is activated.
 	void set_activated_callback(std::function<void()> callback);
@@ -79,8 +79,8 @@ public:
 	 */
 	void set_callbacks_enabled(bool enabled);
 
-	/// Returns the deadzone value. The default value is 0.0.
-	float get_deadzone() const;
+	/// Returns the activation threshold. The default value is 0.0.
+	float get_activation_threshold() const;
 
 	/// Returns the current value of the control.
 	float get_current_value() const;
@@ -95,7 +95,7 @@ public:
 	bool was_active() const;
 
 private:
-	float deadzone;
+	float activation_threshold;
 	float current_value;
 	float previous_value;
 	bool reset;
@@ -111,9 +111,9 @@ inline void control::set_callbacks_enabled(bool enabled)
 	this->callbacks_enabled = enabled;
 }
 
-inline float control::get_deadzone() const
+inline float control::get_activation_threshold() const
 {
-	return deadzone;
+	return activation_threshold;
 }
 
 inline float control::get_current_value() const
@@ -128,12 +128,12 @@ inline float control::get_previous_value() const
 
 inline bool control::is_active() const
 {
-	return current_value > deadzone;
+	return current_value > activation_threshold;
 }
 
 inline bool control::was_active() const
 {
-	return previous_value > deadzone;
+	return previous_value > activation_threshold;
 }
 
 } // namespace input
