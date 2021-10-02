@@ -721,7 +721,7 @@ void extrasolar_heliogenesis(game::context* ctx)
 	std::size_t star_count = 0;
 	if (star_catalog->size() > 0)
 		star_count = star_catalog->size() - 1;
-	std::size_t star_vertex_size = 6;
+	std::size_t star_vertex_size = 7;
 	std::size_t star_vertex_stride = star_vertex_size * sizeof(float);
 	float* star_vertex_data = new float[star_count * star_vertex_size];
 	float* star_vertex = star_vertex_data;
@@ -785,6 +785,7 @@ void extrasolar_heliogenesis(game::context* ctx)
 		*(star_vertex++) = static_cast<float>(scaled_color.x);
 		*(star_vertex++) = static_cast<float>(scaled_color.y);
 		*(star_vertex++) = static_cast<float>(scaled_color.z);
+		*(star_vertex++) = static_cast<float>(vmag);
 	}
 	
 	// Unload star catalog
@@ -805,7 +806,7 @@ void extrasolar_heliogenesis(game::context* ctx)
 	std::size_t vao_offset = 0;
 	vao->bind_attribute(VERTEX_POSITION_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, star_vertex_stride, 0);
 	vao_offset += 3;
-	vao->bind_attribute(VERTEX_COLOR_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, star_vertex_stride, sizeof(float) * vao_offset);
+	vao->bind_attribute(VERTEX_COLOR_LOCATION, *vbo, 4, gl::vertex_attribute_type::float_32, star_vertex_stride, sizeof(float) * vao_offset);
 	
 	// Load star material
 	material* star_material = ctx->resource_manager->load<material>("fixed-star.mtl");
