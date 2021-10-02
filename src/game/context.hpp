@@ -216,6 +216,7 @@ struct context
 	input::mapper* input_mapper;
 	input::listener* input_listener;
 	std::unordered_map<std::string, input::control*> controls;
+	bool mouse_look;
 	
 	// Parallel processes
 	std::unordered_map<std::string, std::function<void(double, double)>> processes;

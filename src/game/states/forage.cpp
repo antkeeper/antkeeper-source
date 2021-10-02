@@ -279,6 +279,8 @@ void setup_controls(game::context* ctx)
 	float gamepad_pan_sensitivity = 1.0f;
 	bool gamepad_invert_tilt = false;
 	bool gamepad_invert_pan = false;
+	bool mouse_look_toggle = false;
+	ctx->mouse_look = false;
 	
 	if (ctx->config->contains("mouse_tilt_sensitivity"))
 		mouse_tilt_sensitivity = math::radians((*ctx->config)["mouse_tilt_sensitivity"].get<float>());
@@ -288,6 +290,8 @@ void setup_controls(game::context* ctx)
 		mouse_invert_tilt = math::radians((*ctx->config)["mouse_invert_tilt"].get<bool>());
 	if (ctx->config->contains("mouse_invert_pan"))
 		mouse_invert_pan = math::radians((*ctx->config)["mouse_invert_pan"].get<bool>());
+	if (ctx->config->contains("mouse_look_toggle"))
+		mouse_look_toggle = math::radians((*ctx->config)["mouse_look_toggle"].get<bool>());
 	
 	if (ctx->config->contains("gamepad_tilt_sensitivity"))
 		gamepad_tilt_sensitivity = math::radians((*ctx->config)["gamepad_tilt_sensitivity"].get<float>());
@@ -300,7 +304,7 @@ void setup_controls(game::context* ctx)
 	
 	const input::control* move_slow = ctx->controls["move_slow"];
 	const input::control* move_fast = ctx->controls["move_fast"];
-	const input::control* mouse_rotate = ctx->controls["mouse_rotate"];
+	const input::control* mouse_look = ctx->controls["mouse_look"];
 	
 	float mouse_tilt_factor = mouse_tilt_sensitivity * (mouse_invert_tilt ? -1.0f : 1.0f);
 	float mouse_pan_factor = mouse_pan_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
@@ -409,18 +413,27 @@ void setup_controls(game::context* ctx)
 	);
 	
 	// Mouse rotate
-	ctx->controls["mouse_rotate"]->set_activated_callback
+	ctx->controls["mouse_look"]->set_activated_callback
 	(
-		[ctx]()
+		[ctx, mouse_look_toggle]()
 		{
-			ctx->app->set_relative_mouse_mode(true);
+			if (mouse_look_toggle)
+				ctx->mouse_look = !ctx->mouse_look;
+			else
+				ctx->mouse_look = true;
+			
+			ctx->app->set_relative_mouse_mode(ctx->mouse_look);
 		}
 	);
-	ctx->controls["mouse_rotate"]->set_deactivated_callback
+	ctx->controls["mouse_look"]->set_deactivated_callback
 	(
-		[ctx]()
+		[ctx, mouse_look_toggle]()
 		{
-			ctx->app->set_relative_mouse_mode(false);
+			if (!mouse_look_toggle)
+			{
+				ctx->mouse_look = false;
+				ctx->app->set_relative_mouse_mode(false);
+			}
 		}
 	);
 	
@@ -435,9 +448,9 @@ void setup_controls(game::context* ctx)
 	);
 	ctx->controls["pan_left_mouse"]->set_active_callback
 	(
-		[ctx, three_dof_eid, mouse_pan_factor, mouse_rotate](float value)
+		[ctx, three_dof_eid, mouse_pan_factor](float value)
 		{
-			if (!mouse_rotate->is_active())
+			if (!ctx->mouse_look)
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -456,9 +469,9 @@ void setup_controls(game::context* ctx)
 	);
 	ctx->controls["pan_right_mouse"]->set_active_callback
 	(
-		[ctx, three_dof_eid, mouse_pan_factor, mouse_rotate](float value)
+		[ctx, three_dof_eid, mouse_pan_factor](float value)
 		{
-			if (!mouse_rotate->is_active())
+			if (!ctx->mouse_look)
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -478,9 +491,9 @@ void setup_controls(game::context* ctx)
 	);
 	ctx->controls["tilt_up_mouse"]->set_active_callback
 	(
-		[ctx, three_dof_eid, mouse_tilt_factor, mouse_rotate](float value)
+		[ctx, three_dof_eid, mouse_tilt_factor](float value)
 		{
-			if (!mouse_rotate->is_active())
+			if (!ctx->mouse_look)
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
@@ -501,9 +514,9 @@ void setup_controls(game::context* ctx)
 	);
 	ctx->controls["tilt_down_mouse"]->set_active_callback
 	(
-		[ctx, three_dof_eid, mouse_tilt_factor, mouse_rotate](float value)
+		[ctx, three_dof_eid, mouse_tilt_factor](float value)
 		{
-			if (!mouse_rotate->is_active())
+			if (!ctx->mouse_look)
 				return;
 			
 			auto& three_dof = ctx->entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);

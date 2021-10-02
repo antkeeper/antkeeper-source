@@ -144,7 +144,7 @@ void load_controls(game::context* ctx)
 	ctx->controls["pedestal_down"] = new input::control();
 	ctx->controls["move_slow"] = new input::control();
 	ctx->controls["move_fast"] = new input::control();
-	ctx->controls["mouse_rotate"] = new input::control();
+	ctx->controls["mouse_look"] = new input::control();
 	ctx->controls["pan_left_gamepad"] = new input::control();
 	ctx->controls["pan_left_mouse"] = new input::control();
 	ctx->controls["pan_right_gamepad"] = new input::control();
