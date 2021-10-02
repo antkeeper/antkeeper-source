@@ -232,7 +232,7 @@ material* resource_loader<material>::load(resource_manager* resource_manager, PH
 	PHYSFS_readBytes(file, &buffer[0], size);
 	
 	// Parse json from file buffer
-	nlohmann::json json = nlohmann::json::parse(buffer);
+	nlohmann::json json = nlohmann::json::parse(buffer, nullptr, true, true);
 	
 	// Allocate material
 	material* material = new ::material();

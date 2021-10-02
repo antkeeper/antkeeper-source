@@ -23,6 +23,6 @@
 #include <nlohmann/json.hpp>
 
 /// JSON data
-typedef nlohmann::json json;
+using json = nlohmann::json;
 
 #endif // ANTKEEPER_RESOURCES_JSON_HPP

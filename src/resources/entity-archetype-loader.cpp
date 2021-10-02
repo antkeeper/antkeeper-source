@@ -19,197 +19,245 @@
 
 #include "resource-loader.hpp"
 #include "resource-manager.hpp"
-#include "string-table.hpp"
 #include "renderer/model.hpp"
+#include "entity/components/atmosphere.hpp"
 #include "entity/components/behavior.hpp"
 #include "entity/components/collision.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/components/model.hpp"
-#include "entity/components/nest.hpp"
-#include "entity/components/marker.hpp"
-#include "entity/components/brush.hpp"
+#include "entity/components/orbit.hpp"
+#include "entity/components/blackbody.hpp"
+#include "entity/components/celestial-body.hpp"
 #include "entity/archetype.hpp"
 #include "entity/ebt.hpp"
-#include <sstream>
+#include "resources/json.hpp"
 #include <stdexcept>
 
-static bool load_component_behavior(entity::archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
+static bool load_component_atmosphere(entity::archetype& archetype, const json& element)
 {
-	if (parameters.size() != 2)
-	{
-		throw std::runtime_error("load_component_behavior(): Invalid parameter count.");
-	}
+	entity::component::atmosphere component;
+	component.exosphere_altitude = 0.0;
+	component.index_of_refraction = 0.0;
+	component.rayleigh_density = 0.0;
+	component.mie_density = 0.0;
+	component.rayleigh_scale_height = 0.0;
+	component.mie_scale_height = 0.0;
+	component.mie_anisotropy = 0.0;
+	
+	if (element.contains("exosphere_altitude"))
+		component.exosphere_altitude = element["exosphere_altitude"].get<double>();
+	if (element.contains("index_of_refraction"))
+		component.index_of_refraction = element["index_of_refraction"].get<double>();
+	if (element.contains("rayleigh_density"))
+		component.rayleigh_density = element["rayleigh_density"].get<double>();
+	if (element.contains("mie_density"))
+		component.mie_density = element["mie_density"].get<double>();
+	if (element.contains("rayleigh_scale_height"))
+		component.rayleigh_scale_height = element["rayleigh_scale_height"].get<double>();
+	if (element.contains("mie_scale_height"))
+		component.mie_scale_height = element["mie_scale_height"].get<double>();
+	if (element.contains("mie_anisotropy"))
+		component.mie_anisotropy = element["mie_anisotropy"].get<double>();
 
-	std::string filename = parameters[1];
+	archetype.set<entity::component::atmosphere>(component);
+
+	return true;
+}
+
+static bool load_component_behavior(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
+{
 	entity::component::behavior component;
-	component.behavior_tree = resource_manager.load<entity::ebt::node>(filename);
-	if (!component.behavior_tree)
+	component.behavior_tree = nullptr;
+	
+	if (element.contains("file"))
 	{
-		std::string message = std::string("load_component_behavior(): Failed to load behavior tree \"") + filename + std::string("\"");
-		throw std::runtime_error(message);
+		component.behavior_tree = resource_manager.load<entity::ebt::node>(element["file"].get<std::string>());
 	}
-
+	
 	archetype.set<entity::component::behavior>(component);
+	
+	return (component.behavior_tree != nullptr);
+}
+
+static bool load_component_blackbody(entity::archetype& archetype, const json& element)
+{
+	entity::component::blackbody component;
+	component.temperature = 0.0;
+	
+	if (element.contains("temperature"))
+		component.temperature = element["temperature"].get<double>();
+
+	archetype.set<entity::component::blackbody>(component);
 
 	return true;
 }
 
-static bool load_component_collision(entity::archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
+static bool load_component_celestial_body(entity::archetype& archetype, const json& element)
 {
-	if (parameters.size() != 2)
-	{
-		throw std::runtime_error("load_component_collision(): Invalid parameter count.");
-	}
+	entity::component::celestial_body component;
+	component.radius = 0.0;
+	component.axial_tilt = 0.0;
+	component.axial_rotation = 0.0;
+	component.angular_frequency = 0.0;
+	
+	if (element.contains("radius"))
+		component.radius = element["radius"].get<double>();
+	if (element.contains("axial_tilt"))
+		component.axial_tilt = element["axial_tilt"].get<double>();
+	if (element.contains("axial_rotation"))
+		component.axial_rotation = element["axial_rotation"].get<double>();
+	if (element.contains("angular_frequency"))
+		component.angular_frequency = element["angular_frequency"].get<double>();
+	
+	archetype.set<entity::component::celestial_body>(component);
 
-	std::string filename = parameters[1];
+	return true;
+}
+
+static bool load_component_collision(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
+{
 	entity::component::collision component;
-	component.mesh = resource_manager.load<geom::mesh>(filename);
-	if (!component.mesh)
+	component.mesh = nullptr;
+	
+	if (element.contains("file"))
 	{
-		std::string message = std::string("load_component_collision(): Failed to load model \"") + filename + std::string("\"");
-		throw std::runtime_error(message);
+		component.mesh = resource_manager.load<geom::mesh>(element["file"].get<std::string>());
 	}
-
+	
 	archetype.set<entity::component::collision>(component);
-
-	return true;
+	
+	return (component.mesh != nullptr);
 }
 
-static bool load_component_model(entity::archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
+static bool load_component_model(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
 {
-	if (parameters.size() != 2)
-	{
-		throw std::runtime_error("load_component_model(): Invalid parameter count.");
-	}
-
-	std::string filename = parameters[1];
 	entity::component::model component;
-	component.render_model = resource_manager.load<model>(filename);
 	component.instance_count = 0;
-	component.layers = 1;
-	if (!component.render_model)
+	component.layers = ~0;
+	
+	if (element.contains("file"))
 	{
-		std::string message = std::string("load_component_model(): Failed to load model \"") + filename + std::string("\"");
-		throw std::runtime_error(message);
+		component.render_model = resource_manager.load<model>(element["file"].get<std::string>());
 	}
-
+	
 	archetype.set<entity::component::model>(component);
-
-	return true;
-}
-
-static bool load_component_nest(entity::archetype& archetype, const std::vector<std::string>& parameters)
-{
-	entity::component::nest component;
-	archetype.set<entity::component::nest>(component);
-
-	return true;
-}
-
-static bool load_component_marker(entity::archetype& archetype, const std::vector<std::string>& parameters)
-{
-	if (parameters.size() != 2)
-	{
-		throw std::runtime_error("load_component_marker(): Invalid parameter count.");
-	}
-	
-	entity::component::marker component;
-	component.color = std::stoi(parameters[1]);
-	archetype.set<entity::component::marker>(component);
 	
 	return true;
 }
 
-static bool load_component_brush(entity::archetype& archetype, const std::vector<std::string>& parameters)
+static bool load_component_orbit(entity::archetype& archetype, const json& element)
 {
-	if (parameters.size() != 2)
-	{
-		throw std::runtime_error("load_component_brush(): Invalid parameter count.");
-	}
+	entity::component::orbit component;
 	
-	entity::component::brush component;
-	component.radius = std::stof(parameters[1]);
-	archetype.set<entity::component::brush>(component);
+	component.elements.e = 0.0;
+	component.elements.a = 0.0;
+	component.elements.i = 0.0;
+	component.elements.raan = 0.0;
+	component.elements.w = 0.0;
+	component.elements.ta = 0.0;
 	
+	if (element.contains("e"))
+		component.elements.e = element["e"].get<double>();
+	if (element.contains("a"))
+		component.elements.a = element["a"].get<double>();
+	if (element.contains("i"))
+		component.elements.i = element["i"].get<double>();
+	if (element.contains("raan"))
+		component.elements.raan = element["raan"].get<double>();
+	if (element.contains("w"))
+		component.elements.w = element["w"].get<double>();
+	if (element.contains("ta"))
+		component.elements.ta = element["ta"].get<double>();
+
+	archetype.set<entity::component::orbit>(component);
+
 	return true;
 }
 
-static bool load_component_transform(entity::archetype& archetype, const std::vector<std::string>& parameters)
+static bool load_component_transform(entity::archetype& archetype, const json& element)
 {
-	if (parameters.size() != 11)
-	{
-		throw std::runtime_error("load_component_transform(): Invalid parameter count.");
-	}
-
-	std::stringstream stream;
-	for (std::size_t i = 1; i < parameters.size(); ++i)
-	{
-		stream << parameters[i];
-		if (i < parameters.size() - 1)
-			stream << ' ';
-	}
-
 	entity::component::transform component;
-	stream >> component.local.translation.x;
-	stream >> component.local.translation.y;
-	stream >> component.local.translation.z;
-	stream >> component.local.rotation.w;
-	stream >> component.local.rotation.x;
-	stream >> component.local.rotation.y;
-	stream >> component.local.rotation.z;
-	stream >> component.local.scale.x;
-	stream >> component.local.scale.y;
-	stream >> component.local.scale.z;
+	component.local = math::identity_transform<float>;
 	component.warp = true;
+	
+	if (element.contains("translation"))
+	{
+		auto translation = element["translation"];
+		component.local.translation.x = translation[0].get<float>();
+		component.local.translation.y = translation[1].get<float>();
+		component.local.translation.z = translation[2].get<float>();
+	}
+	
+	if (element.contains("rotation"))
+	{
+		auto translation = element["rotation"];
+		component.local.rotation.w = translation[0].get<float>();
+		component.local.rotation.x = translation[1].get<float>();
+		component.local.rotation.y = translation[2].get<float>();
+		component.local.rotation.z = translation[3].get<float>();
+	}
+	
+	if (element.contains("scale"))
+	{
+		auto translation = element["scale"];
+		component.local.scale.x = translation[0].get<float>();
+		component.local.scale.y = translation[1].get<float>();
+		component.local.scale.z = translation[2].get<float>();
+	}
 
 	archetype.set<entity::component::transform>(component);
 
 	return true;
 }
 
-static bool load_component(entity::archetype& archetype, resource_manager& resource_manager, const std::vector<std::string>& parameters)
+static bool load_component(entity::archetype& archetype, resource_manager& resource_manager, json::const_iterator element)
 {
-	if (parameters[0] == "behavior") return load_component_behavior(archetype, resource_manager, parameters);
-	if (parameters[0] == "collision") return load_component_collision(archetype, resource_manager, parameters);
-	if (parameters[0] == "model") return load_component_model(archetype, resource_manager, parameters);
-	if (parameters[0] == "nest") return load_component_nest(archetype, parameters);
-	if (parameters[0] == "transform") return load_component_transform(archetype, parameters);
-	if (parameters[0] == "marker") return load_component_marker(archetype, parameters);
-	if (parameters[0] == "brush") return load_component_brush(archetype, parameters);
-
-	std::string message = std::string("load_component(): Unknown component type \"") + parameters[0] + std::string("\"");
-	throw std::runtime_error(message);
+	if (element.key() == "atmosphere")
+		return load_component_atmosphere(archetype, element.value());
+	if (element.key() == "behavior")
+		return load_component_behavior(archetype, resource_manager, element.value());
+	if (element.key() == "blackbody")
+		return load_component_blackbody(archetype, element.value());
+	if (element.key() == "celestial_body")
+		return load_component_celestial_body(archetype, element.value());
+	if (element.key() == "collision")
+		return load_component_collision(archetype, resource_manager, element.value());
+	if (element.key() == "model")
+		return load_component_model(archetype, resource_manager, element.value());
+	if (element.key() == "orbit")
+		return load_component_orbit(archetype, element.value());
+	if (element.key() == "transform")
+		return load_component_transform(archetype, element.value());
+	
+	//throw std::runtime_error("Unknown component type \"" + element.key() + "\"");
+	
+	return true;
 }
 
 template <>
 entity::archetype* resource_loader<entity::archetype>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
+	// Allocate archetype
 	entity::archetype* archetype = new entity::archetype(resource_manager->get_archetype_registry());
 
-	// Load string table from input stream
-	string_table* table = resource_loader<string_table>::load(resource_manager, file);
-
-	// Ensure table is not empty.
-	if (!table || table->empty())
-	{
-		delete table;
-		return nullptr;
-	}
+	// Read file into buffer
+	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));
+	std::string buffer;
+	buffer.resize(size);
+	PHYSFS_readBytes(file, &buffer[0], size);
+	
+	// Parse JSON data from file buffer
+	json data = nlohmann::json::parse(buffer, nullptr, true, true);
 
 	// Load components from table rows
-	for (const string_table_row& row: *table)
+	for (json::const_iterator element = data.cbegin(); element != data.cend(); ++element)
 	{
-		// Skip empty rows and comments
-		if (row.empty() || row[0].empty() || row[0][0] == '#')
+		if (!load_component(*archetype, *resource_manager, element))
 		{
-			continue;
+			throw std::runtime_error("Failed to load component \"" + element.key() + "\"");
 		}
-
-
-		load_component(*archetype, *resource_manager, row);
 	}
 	
 	return archetype;
 }
-
