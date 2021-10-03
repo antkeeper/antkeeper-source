@@ -250,6 +250,7 @@ void setup_resources(game::context* ctx)
 	ctx->mods_path = ctx->config_path + "mods/";
 	ctx->saves_path = ctx->config_path + "saves/";
 	ctx->screenshots_path = ctx->config_path + "screenshots/";
+	ctx->controls_path = ctx->config_path + "controls/";
 	
 	// Log resource paths
 	logger->log("Detected data path as \"" + ctx->data_path + "\"");
@@ -261,6 +262,7 @@ void setup_resources(game::context* ctx)
 	config_paths.push_back(ctx->mods_path);
 	config_paths.push_back(ctx->saves_path);
 	config_paths.push_back(ctx->screenshots_path);
+	config_paths.push_back(ctx->controls_path);
 	for (const std::string& path: config_paths)
 	{
 		if (!path_exists(path))

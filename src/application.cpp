@@ -654,14 +654,27 @@ void application::translate_sdl_events()
 						}
 						else
 						{
-							logger->log("Connected gamepad \"" + controller_name + "\"");
+							// Get gamepad GUID
+							SDL_Joystick* sdl_joystick = SDL_GameControllerGetJoystick(sdl_controller);
+							SDL_JoystickGUID sdl_guid = SDL_JoystickGetGUID(sdl_joystick);
+							char guid_buffer[33];
+							std::memset(guid_buffer, '\0', 33);
+							SDL_JoystickGetGUIDString(sdl_guid, &guid_buffer[0], 33);
+							std::string guid(guid_buffer);
 							
-							input::gamepad* controller = new input::gamepad();
-							controller->set_event_dispatcher(event_dispatcher);
-							gamepads.push_back(controller);
-							gamepad_map[sdl_event.cdevice.which] = controller;
+							logger->log("Connected gamepad \"" + controller_name + "\" with GUID: " + guid + "");
 							
-							controller->connect(false);
+							// Create new gamepad
+							input::gamepad* gamepad = new input::gamepad();
+							gamepad->set_event_dispatcher(event_dispatcher);
+							gamepad->set_guid(guid);
+							
+							// Add gamepad to list and map
+							gamepads.push_back(gamepad);
+							gamepad_map[sdl_event.cdevice.which] = gamepad;
+							
+							// Send controller connected event
+							gamepad->connect(false);
 						}
 					}
 					else

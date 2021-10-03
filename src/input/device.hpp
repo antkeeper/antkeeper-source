@@ -21,6 +21,7 @@
 #define ANTKEEPER_INPUT_DEVICE_HPP
 
 #include "event/event-dispatcher.hpp"
+#include <string>
 
 namespace input {
 
@@ -36,9 +37,22 @@ public:
 	void set_event_dispatcher(event_dispatcher* event_dispatcher);
 	const event_dispatcher* get_event_dispatcher() const;
 	event_dispatcher* get_event_dispatcher();
+	
+	/**
+	 * Sets the globally unique identifier (GUID) of this input device.
+	 *
+	 * @param guid GUID string.
+	 */
+	void set_guid(const std::string& guid);
+	
+	/// Returns the globally unique identifier (GUID) of this input device.
+	const std::string& get_guid() const;
 
 protected:
 	event_dispatcher* event_dispatcher;
+	
+private:
+	std::string guid;
 };
 
 inline const event_dispatcher* device::get_event_dispatcher() const
@@ -49,6 +63,11 @@ inline const event_dispatcher* device::get_event_dispatcher() const
 inline event_dispatcher* device::get_event_dispatcher()
 {
 	return event_dispatcher;
+}
+
+inline const std::string& device::get_guid() const
+{
+	return guid;
 }
 
 } // namespace input

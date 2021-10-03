@@ -30,9 +30,11 @@
 #include "entity/systems/astronomy.hpp"
 #include "entity/systems/orbit.hpp"
 #include "entity/commands.hpp"
+#include "entity/archetype.hpp"
 #include "game/states/nuptial-flight.hpp"
 #include "game/states/splash.hpp"
 #include "game/states/forage.hpp"
+#include "game/controls.hpp"
 #include "geom/spherical.hpp"
 #include "gl/drawing-mode.hpp"
 #include "gl/vertex-array.hpp"
@@ -55,8 +57,6 @@ namespace loading {
 
 /// Creates or loads control configuration
 static void load_controls(game::context* ctx);
-
-static input::gamepad_response_curve parse_response_curve(const std::string& curve);
 
 /// Creates the universe and solar system.
 static void cosmogenesis(game::context* ctx);
@@ -379,93 +379,28 @@ void load_controls(game::context* ctx)
 		}
 	}
 	
-	// Set gamepad deadzones
-	float gamepad_leftx_activation_min = 0.0f;
-	float gamepad_leftx_activation_max = 0.0f;
-	float gamepad_lefty_activation_min = 0.0f;
-	float gamepad_lefty_activation_max = 0.0f;
-	float gamepad_rightx_activation_min = 0.0f;
-	float gamepad_rightx_activation_max = 0.0f;
-	float gamepad_righty_activation_min = 0.0f;
-	float gamepad_righty_activation_max = 0.0f;
-	float gamepad_lefttrigger_activation_min = 0.0f;
-	float gamepad_lefttrigger_activation_max = 0.0f;
-	float gamepad_righttrigger_activation_min = 0.0f;
-	float gamepad_righttrigger_activation_max = 0.0f;
-	bool gamepad_left_deadzone_cross = true;
-	bool gamepad_right_deadzone_cross = true;
-	float gamepad_left_deadzone_roundness = 0.0f;
-	float gamepad_right_deadzone_roundness = 0.0f;
-	input::gamepad_response_curve gamepad_leftx_response_curve = input::gamepad_response_curve::linear;
-	input::gamepad_response_curve gamepad_lefty_response_curve = input::gamepad_response_curve::linear;
-	input::gamepad_response_curve gamepad_rightx_response_curve = input::gamepad_response_curve::linear;
-	input::gamepad_response_curve gamepad_righty_response_curve = input::gamepad_response_curve::linear;
-	input::gamepad_response_curve gamepad_lefttrigger_response_curve = input::gamepad_response_curve::linear;
-	input::gamepad_response_curve gamepad_righttrigger_response_curve = input::gamepad_response_curve::linear;
-	
-	if (ctx->config->contains("gamepad_leftx_activation_min"))
-		gamepad_leftx_activation_min = (*ctx->config)["gamepad_leftx_activation_min"].get<float>();
-	if (ctx->config->contains("gamepad_leftx_activation_max"))
-		gamepad_leftx_activation_max = (*ctx->config)["gamepad_leftx_activation_max"].get<float>();
-	if (ctx->config->contains("gamepad_lefty_activation_min"))
-		gamepad_lefty_activation_min = (*ctx->config)["gamepad_lefty_activation_min"].get<float>();
-	if (ctx->config->contains("gamepad_lefty_activation_max"))
-		gamepad_lefty_activation_max = (*ctx->config)["gamepad_lefty_activation_max"].get<float>();
-	if (ctx->config->contains("gamepad_rightx_activation_min"))
-		gamepad_rightx_activation_min = (*ctx->config)["gamepad_rightx_activation_min"].get<float>();
-	if (ctx->config->contains("gamepad_rightx_activation_max"))
-		gamepad_rightx_activation_max = (*ctx->config)["gamepad_rightx_activation_max"].get<float>();
-	if (ctx->config->contains("gamepad_righty_activation_min"))
-		gamepad_righty_activation_min = (*ctx->config)["gamepad_righty_activation_min"].get<float>();
-	if (ctx->config->contains("gamepad_righty_activation_max"))
-		gamepad_righty_activation_max = (*ctx->config)["gamepad_righty_activation_max"].get<float>();
-	if (ctx->config->contains("gamepad_lefttrigger_activation_min"))
-		gamepad_lefttrigger_activation_min = (*ctx->config)["gamepad_lefttrigger_activation_min"].get<float>();
-	if (ctx->config->contains("gamepad_lefttrigger_activation_max"))
-		gamepad_lefttrigger_activation_max = (*ctx->config)["gamepad_lefttrigger_activation_max"].get<float>();
-	if (ctx->config->contains("gamepad_righttrigger_activation_min"))
-		gamepad_righttrigger_activation_min = (*ctx->config)["gamepad_righttrigger_activation_min"].get<float>();
-	if (ctx->config->contains("gamepad_righttrigger_activation_max"))
-		gamepad_righttrigger_activation_max = (*ctx->config)["gamepad_righttrigger_activation_max"].get<float>();
-	if (ctx->config->contains("gamepad_left_deadzone_cross"))
-		gamepad_left_deadzone_cross = (*ctx->config)["gamepad_left_deadzone_cross"].get<bool>();
-	if (ctx->config->contains("gamepad_right_deadzone_cross"))
-		gamepad_right_deadzone_cross = (*ctx->config)["gamepad_right_deadzone_cross"].get<bool>();
-	if (ctx->config->contains("gamepad_left_deadzone_roundness"))
-		gamepad_left_deadzone_roundness = (*ctx->config)["gamepad_left_deadzone_roundness"].get<float>();
-	if (ctx->config->contains("gamepad_right_deadzone_roundness"))
-		gamepad_right_deadzone_roundness = (*ctx->config)["gamepad_right_deadzone_roundness"].get<float>();
-	if (ctx->config->contains("gamepad_leftx_response_curve"))
-		gamepad_leftx_response_curve = parse_response_curve((*ctx->config)["gamepad_leftx_response_curve"].get<std::string>());
-	if (ctx->config->contains("gamepad_leftx_response_curve"))
-		gamepad_leftx_response_curve = parse_response_curve((*ctx->config)["gamepad_leftx_response_curve"].get<std::string>());
-	if (ctx->config->contains("gamepad_rightx_response_curve"))
-		gamepad_rightx_response_curve = parse_response_curve((*ctx->config)["gamepad_rightx_response_curve"].get<std::string>());
-	if (ctx->config->contains("gamepad_leftx_response_curve"))
-		gamepad_leftx_response_curve = parse_response_curve((*ctx->config)["gamepad_leftx_response_curve"].get<std::string>());
-	if (ctx->config->contains("gamepad_lefttrigger_response_curve"))
-		gamepad_lefttrigger_response_curve = parse_response_curve((*ctx->config)["gamepad_lefttrigger_response_curve"].get<std::string>());
-	if (ctx->config->contains("gamepad_righttrigger_response_curve"))
-		gamepad_righttrigger_response_curve = parse_response_curve((*ctx->config)["gamepad_righttrigger_response_curve"].get<std::string>());
-	
 	for (input::gamepad* gamepad: ctx->app->get_gamepads())
 	{
-		gamepad->set_activation_threshold(input::gamepad_axis::left_x, gamepad_leftx_activation_min, gamepad_leftx_activation_max);
-		gamepad->set_activation_threshold(input::gamepad_axis::left_y, gamepad_lefty_activation_min, gamepad_lefty_activation_max);
-		gamepad->set_activation_threshold(input::gamepad_axis::right_x, gamepad_rightx_activation_min, gamepad_rightx_activation_max);
-		gamepad->set_activation_threshold(input::gamepad_axis::right_y, gamepad_righty_activation_min, gamepad_righty_activation_max);
-		gamepad->set_activation_threshold(input::gamepad_axis::left_trigger, gamepad_lefttrigger_activation_min, gamepad_lefttrigger_activation_max);
-		gamepad->set_activation_threshold(input::gamepad_axis::right_trigger, gamepad_righttrigger_activation_min, gamepad_righttrigger_activation_max);
-		gamepad->set_left_deadzone_cross(gamepad_left_deadzone_cross);
-		gamepad->set_right_deadzone_cross(gamepad_right_deadzone_cross);
-		gamepad->set_left_deadzone_roundness(gamepad_left_deadzone_roundness);
-		gamepad->set_right_deadzone_roundness(gamepad_right_deadzone_roundness);
-		gamepad->set_response_curve(input::gamepad_axis::left_x, gamepad_leftx_response_curve);
-		gamepad->set_response_curve(input::gamepad_axis::left_y, gamepad_lefty_response_curve);
-		gamepad->set_response_curve(input::gamepad_axis::right_x, gamepad_rightx_response_curve);
-		gamepad->set_response_curve(input::gamepad_axis::right_y, gamepad_righty_response_curve);
-		gamepad->set_response_curve(input::gamepad_axis::left_trigger, gamepad_lefttrigger_response_curve);
-		gamepad->set_response_curve(input::gamepad_axis::right_trigger, gamepad_righttrigger_response_curve);
+		ctx->logger->push_task("Loading calibration for gamepad " + gamepad->get_guid());
+		json* calibration = game::load_gamepad_calibration(ctx, gamepad);
+		if (!calibration)
+		{
+			ctx->logger->pop_task(EXIT_FAILURE);
+			
+			ctx->logger->push_task("Generating default calibration for gamepad " + gamepad->get_guid());
+			json default_calibration = game::default_gamepad_calibration();
+			apply_gamepad_calibration(gamepad, default_calibration);
+			
+			if (!save_gamepad_calibration(ctx, gamepad, default_calibration))
+				ctx->logger->pop_task(EXIT_FAILURE);
+			else
+				ctx->logger->pop_task(EXIT_SUCCESS);
+		}
+		else
+		{
+			ctx->logger->pop_task(EXIT_SUCCESS);
+			apply_gamepad_calibration(gamepad, *calibration);
+		}
 	}
 	
 	// Toggle fullscreen
@@ -505,15 +440,6 @@ void load_controls(game::context* ctx)
 	(
 		std::bind(&application::close, ctx->app, 0)
 	);
-}
-
-static input::gamepad_response_curve parse_response_curve(const std::string& curve)
-{
-	if (curve == "square")
-		return input::gamepad_response_curve::square;
-	else if (curve == "cube")
-		return input::gamepad_response_curve::cube;
-	return input::gamepad_response_curve::linear;
 }
 
 void cosmogenesis(game::context* ctx)
@@ -592,37 +518,9 @@ void cosmogenesis(game::context* ctx)
 void heliogenesis(game::context* ctx)
 {
 	// Create solar entity
-	entity::id sun_eid = ctx->entity_registry->create();
+	entity::archetype* sun_archetype = ctx->resource_manager->load<entity::archetype>("sun.ent");
+	entity::id sun_eid = sun_archetype->create(*ctx->entity_registry);
 	ctx->entities["sun"] = sun_eid;
-	
-	// Assign solar celestial body component
-	entity::component::celestial_body body;
-	body.radius = 6.957e+8;
-	body.axial_tilt = math::radians(0.0);
-	body.axial_rotation = math::radians(0.0);
-	body.angular_frequency = math::radians(0.0);
-	ctx->entity_registry->assign<entity::component::celestial_body>(sun_eid, body);
-	
-	// Assign solar orbit component
-	entity::component::orbit orbit;
-	orbit.elements.a = 0.0;
-	orbit.elements.e = 0.0;
-	orbit.elements.i = math::radians(0.0);
-	orbit.elements.raan = math::radians(0.0);
-	orbit.elements.w = math::radians(0.0);
-	orbit.elements.ta = math::radians(0.0);
-	ctx->entity_registry->assign<entity::component::orbit>(sun_eid, orbit);
-	
-	// Assign solar blackbody component
-	entity::component::blackbody blackbody;
-	blackbody.temperature = 5778.0;
-	ctx->entity_registry->assign<entity::component::blackbody>(sun_eid, blackbody);
-	
-	// Assign solar transform component
-	entity::component::transform transform;
-	transform.local = math::identity_transform<float>;
-	transform.warp = true;
-	ctx->entity_registry->assign<entity::component::transform>(sun_eid, transform);
 	
 	// Create direct sun light scene object
 	scene::directional_light* sun_direct = new scene::directional_light();

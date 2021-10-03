@@ -126,6 +126,7 @@ struct context
 	std::string mods_path;
 	std::string saves_path;
 	std::string screenshots_path;
+	std::string controls_path;
 	std::string data_package_path;
 	
 	// Configuration

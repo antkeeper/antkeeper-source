@@ -30,4 +30,9 @@ void device::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 	this->event_dispatcher = event_dispatcher;
 }
 
+void device::set_guid(const std::string& guid)
+{
+	this->guid = guid;
+}
+
 } // namespace input
