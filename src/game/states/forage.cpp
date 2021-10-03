@@ -34,6 +34,8 @@
 #include "entity/components/constraints/three-dof.hpp"
 #include "entity/components/constraint-stack.hpp"
 #include "application.hpp"
+#include "utility/timestamp.hpp"
+#include "animation/animator.hpp"
 
 namespace game {
 namespace state {
@@ -258,8 +260,53 @@ void setup_tools(game::context* ctx)
 		ctx->entity_registry->assign<entity::component::tool>(tool_eid, tool);
 	}
 	
+	if (!ctx->entities.count("camera_tool"))
+	{
+		entity::id tool_eid = ctx->entity_registry->create();
+		ctx->entities["camera_tool"] = tool_eid;
+		
+		entity::component::tool tool;
+		tool.activated = [ctx]()
+		{
+			if (!ctx->camera_flash_animation->is_stopped())
+				return;
+			
+			std::string path = ctx->screenshots_path + "antkeeper-" + timestamp() + ".png";
+			ctx->app->save_frame(path);
+			
+			material_property<float4>* tint = static_cast<material_property<float4>*>(ctx->camera_flash_billboard->get_material()->get_property("tint"));
+			tint->set_value({1.0f, 1.0f, 1.0f, 1.0f});
+			ctx->camera_flash_billboard->get_material()->update_tweens();
+			ctx->ui_scene->add_object(ctx->camera_flash_billboard);
+			
+			ctx->camera_flash_animation->set_end_callback
+			(
+				[ctx]()
+				{
+					ctx->ui_scene->remove_object(ctx->camera_flash_billboard);
+				}
+			);
+			
+			ctx->camera_flash_animation->set_frame_callback
+			(
+				[ctx, tint](int channel, const float& opacity)
+				{
+					
+					tint->set_value({1.0f, 1.0f, 1.0f, opacity});
+				}
+			);
+			
+			ctx->animator->remove_animation(ctx->camera_flash_animation);
+			ctx->animator->add_animation(ctx->camera_flash_animation);
+			ctx->camera_flash_animation->rewind();
+			ctx->camera_flash_animation->play();
+		};
+		
+		ctx->entity_registry->assign<entity::component::tool>(tool_eid, tool);
+	}
+	
 	// Set active tool
-	ctx->entities["active_tool"] = ctx->entities["time_tool"];
+	ctx->entities["active_tool"] = ctx->entities["camera_tool"];
 }
 
 void setup_controls(game::context* ctx)

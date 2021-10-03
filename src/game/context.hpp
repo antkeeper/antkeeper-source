@@ -188,6 +188,7 @@ struct context
 	scene::collection* ui_scene;
 	scene::camera* ui_camera;
 	scene::billboard* splash_billboard;
+	scene::billboard* camera_flash_billboard;
 	
 	// Surface scene
 	scene::collection* surface_scene;
@@ -211,6 +212,7 @@ struct context
 	screen_transition* radial_transition_outer;
 	animation<float>* equip_tool_animation;
 	animation<float>* unequip_tool_animation;
+	animation<float>* camera_flash_animation;
 	
 	// Controls
 	input::event_router* input_event_router;

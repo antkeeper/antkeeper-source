@@ -673,6 +673,23 @@ void setup_scenes(game::context* ctx)
 		ctx->splash_billboard->set_translation({0.0f, 0.0f, 0.0f});
 		ctx->splash_billboard->update_tweens();
 		
+		// Create camera flash billboard
+		
+		material* flash_material = new material();
+		flash_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("ui-element-untextured.glsl"));
+		auto flash_tint = flash_material->add_property<float4>("tint");
+		flash_tint->set_value(float4{1, 1, 1, 1});
+		//flash_tint->set_tween_interpolator(ease<float4>::out_quad);
+		
+		flash_material->set_flags(MATERIAL_FLAG_TRANSLUCENT);
+		flash_material->update_tweens();
+		
+		ctx->camera_flash_billboard = new scene::billboard();
+		ctx->camera_flash_billboard->set_material(flash_material);
+		ctx->camera_flash_billboard->set_scale({(float)viewport_dimensions[0] * 0.5f, (float)viewport_dimensions[1] * 0.5f, 1.0f});
+		ctx->camera_flash_billboard->set_translation({0.0f, 0.0f, 0.0f});
+		ctx->camera_flash_billboard->update_tweens();
+		
 		// Create depth debug billboard
 		/*
 		material* depth_debug_material = new material();
@@ -754,6 +771,16 @@ void setup_animation(game::context* ctx)
 	ctx->radial_transition_outer->get_material()->set_shader_program(ctx->resource_manager->load<gl::shader_program>("radial-transition-outer.glsl"));
 	ctx->ui_scene->add_object(ctx->radial_transition_outer->get_billboard());
 	ctx->animator->add_animation(ctx->radial_transition_outer->get_animation());
+	
+	// Create camera flash animation
+	ctx->camera_flash_animation = new animation<float>();
+	{
+		ctx->camera_flash_animation->set_interpolator(ease<float>::out_sine);
+		const float duration = 0.5f;
+		animation_channel<float>* channel = ctx->camera_flash_animation->add_channel(0);
+		channel->insert_keyframe({0.0f, 1.0f});
+		channel->insert_keyframe({duration, 0.0f});
+	}
 	
 	// Set material pass tweens
 	ctx->common_final_pass->set_time_tween(ctx->time_tween);
