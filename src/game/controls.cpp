@@ -19,6 +19,7 @@
 
 #include "controls.hpp"
 #include "resources/resource-manager.hpp"
+#include "application.hpp"
 #include <fstream>
 
 namespace game {
@@ -26,6 +27,11 @@ namespace game {
 std::string gamepad_calibration_path(const game::context* ctx, const input::gamepad* gamepad)
 {
 	return "gamepad-" + gamepad->get_guid() + ".json";
+}
+
+json default_control_profile()
+{
+	return json();
 }
 
 json default_gamepad_calibration()
@@ -92,6 +98,251 @@ bool save_gamepad_calibration(const game::context* ctx, const input::gamepad* ga
 	stream.close();
 	
 	return true;
+}
+
+void apply_control_profile(game::context* ctx, const json& profile)
+{
+	// Map gamepad buttons to strings
+	const std::unordered_map<std::string, input::gamepad_button> gamepad_button_map =
+	{
+		{"a", input::gamepad_button::a},
+		{"b", input::gamepad_button::b},
+		{"x", input::gamepad_button::x},
+		{"y", input::gamepad_button::y},
+		{"back", input::gamepad_button::back},
+		{"guide", input::gamepad_button::guide},
+		{"start", input::gamepad_button::start},
+		{"leftstick", input::gamepad_button::left_stick},
+		{"rightstick", input::gamepad_button::right_stick},
+		{"leftshoulder", input::gamepad_button::left_shoulder},
+		{"rightshoulder", input::gamepad_button::right_shoulder},
+		{"dpup", input::gamepad_button::dpad_up},
+		{"dpdown", input::gamepad_button::dpad_down},
+		{"dpleft", input::gamepad_button::dpad_left},
+		{"dpright", input::gamepad_button::dpad_right}
+	};
+	
+	// Map gamepad axes to strings
+	const std::unordered_map<std::string, input::gamepad_axis> gamepad_axis_map =
+	{
+		{"leftx", input::gamepad_axis::left_x},
+		{"lefty", input::gamepad_axis::left_y},
+		{"rightx", input::gamepad_axis::right_x},
+		{"righty", input::gamepad_axis::right_y},
+		{"lefttrigger", input::gamepad_axis::left_trigger},
+		{"righttrigger", input::gamepad_axis::right_trigger}
+	};
+	
+	// Remove all existing input mappings
+	for (auto control = ctx->controls.begin(); control != ctx->controls.end(); ++control)
+	{
+		ctx->input_event_router->remove_mappings(control->second);
+	}
+	
+	// Get keyboard and mouse devices
+	input::keyboard* keyboard = ctx->app->get_keyboard();
+	input::mouse* mouse = ctx->app->get_mouse();
+	
+	// Find profile gamepad device
+	input::gamepad* gamepad = nullptr;
+	auto gamepad_element = profile.find("gamepad");
+	if (gamepad_element != profile.end())
+	{
+		// Get gamepad GUID
+		const std::string gamepad_guid = gamepad_element->get<std::string>();
+		
+		// Find gamepad with matching GUID
+		for (input::gamepad* device: ctx->app->get_gamepads())
+		{
+			if (device->get_guid() == gamepad_guid)
+			{
+				gamepad = device;
+				break;
+			}
+		}
+	}
+	
+	// Find controls element
+	auto controls_element = profile.find("controls");
+	if (controls_element != profile.end())
+	{
+		// For each control in the profile
+		for (auto control_element = controls_element->cbegin(); control_element != controls_element->cend(); ++control_element)
+		{
+			// Get the control name
+			std::string control_name = control_element.key();
+			
+			// Find or create control
+			input::control* control;
+			if (ctx->controls.count(control_name))
+			{
+				control = ctx->controls[control_name];
+			}
+			else
+			{
+				control = new input::control();
+				ctx->controls[control_name] = control;
+			}
+			
+			// For each mapping in the control
+			for (auto mapping_element = control_element.value().cbegin(); mapping_element != control_element.value().cend(); ++mapping_element)
+			{
+				if (!mapping_element->contains("device"))
+				{
+					ctx->logger->warning("Control \"" + control_name + "\" not mapped to a device");
+					continue;
+				}
+				
+				// Get the mapping device
+				const std::string device = (*mapping_element)["device"];
+				
+				if (device == "keyboard")
+				{
+					// Parse key name
+					if (!mapping_element->contains("key"))
+					{
+						ctx->logger->warning("Control \"" + control_name + "\" has invalid keyboard mapping");
+						continue;
+					}
+					std::string key = (*mapping_element)["key"].get<std::string>();
+					
+					// Get scancode from key name
+					input::scancode scancode = keyboard->get_scancode_from_name(key.c_str());
+					if (scancode == input::scancode::unknown)
+					{
+						ctx->logger->warning("Control \"" + control_name + "\" mapped to unknown keyboard key \"" + key + "\"");
+						continue;
+					}
+					
+					// Map control to keyboard key
+					ctx->input_event_router->add_mapping(input::key_mapping(control, keyboard, scancode));
+					
+					ctx->logger->log("Mapped control \"" + control_name + "\" to keyboard key \"" + key + "\"");
+				}
+				else if (device == "mouse")
+				{
+					if (mapping_element->contains("button"))
+					{
+						// Parse mouse button index
+						int button = (*mapping_element)["button"].get<int>();
+						
+						// Map control to mouse button
+						ctx->input_event_router->add_mapping(input::mouse_button_mapping(control, mouse, button));
+						
+						ctx->logger->log("Mapped control \"" + control_name + "\" to mouse button " + std::to_string(button));
+					}
+					else if (mapping_element->contains("wheel"))
+					{
+						// Parse mouse wheel axis
+						std::string wheel = (*mapping_element)["wheel"].get<std::string>();
+						input::mouse_wheel_axis axis;
+						if (wheel == "x+")
+							axis = input::mouse_wheel_axis::positive_x;
+						else if (wheel == "x-")
+							axis = input::mouse_wheel_axis::negative_x;
+						else if (wheel == "y+")
+							axis = input::mouse_wheel_axis::positive_y;
+						else if (wheel == "y-")
+							axis = input::mouse_wheel_axis::negative_y;
+						else
+						{
+							ctx->logger->warning("Control \"" + control_name + "\" is mapped to invalid mouse wheel axis \"" + wheel + "\"");
+							continue;
+						}
+						
+						// Map control to mouse wheel axis
+						ctx->input_event_router->add_mapping(input::mouse_wheel_mapping(control, mouse, axis));
+						
+						ctx->logger->log("Mapped control \"" + control_name + "\" to mouse wheel axis " + wheel);
+					}
+					else if (mapping_element->contains("motion"))
+					{
+						std::string motion = (*mapping_element)["motion"].get<std::string>();
+						input::mouse_motion_axis axis;
+						if (motion == "x+")
+							axis = input::mouse_motion_axis::positive_x;
+						else if (motion == "x-")
+							axis = input::mouse_motion_axis::negative_x;
+						else if (motion == "y+")
+							axis = input::mouse_motion_axis::positive_y;
+						else if (motion == "y-")
+							axis = input::mouse_motion_axis::negative_y;
+						else
+						{
+							ctx->logger->warning("Control \"" + control_name + "\" is mapped to invalid mouse motion axis \"" + motion + "\"");
+							continue;
+						}
+						
+						// Map control to mouse motion axis
+						ctx->input_event_router->add_mapping(input::mouse_motion_mapping(control, mouse, axis));
+						
+						ctx->logger->log("Mapped control \"" + control_name + "\" to mouse motion axis " + motion);
+					}
+					else
+					{
+						ctx->logger->warning("Control \"" + control_name + "\" has invalid mouse mapping");
+						continue;
+					}
+				}
+				else if (device == "gamepad")
+				{
+					if (mapping_element->contains("button"))
+					{
+						// Parse gamepad button
+						std::string button = (*mapping_element)["button"].get<std::string>();
+						
+						auto button_it = gamepad_button_map.find(button);
+						if (button_it == gamepad_button_map.end())
+						{
+							ctx->logger->warning("Control \"" + control_name + "\" is mapped to invalid gamepad button \"" + button + "\"");
+							continue;
+						}
+						
+						// Map control to gamepad button
+						ctx->input_event_router->add_mapping(input::gamepad_button_mapping(control, gamepad, button_it->second));
+						
+						ctx->logger->log("Mapped control \"" + control_name + "\" to gamepad button " + button);
+					}
+					else if (mapping_element->contains("axis"))
+					{
+						std::string axis = (*mapping_element)["axis"].get<std::string>();
+						
+						// Parse gamepad axis name
+						const std::string axis_name = axis.substr(0, axis.length() - 1);
+						auto axis_it = gamepad_axis_map.find(axis_name);
+						if (axis_it == gamepad_axis_map.end())
+						{
+							ctx->logger->warning("Control \"" + control_name + "\" is mapped to invalid gamepad axis \"" + axis_name + "\"");
+							continue;
+						}
+						
+						// Parse gamepad axis sign
+						const char axis_sign = axis.back();
+						if (axis_sign != '-' && axis_sign != '+')
+						{
+							ctx->logger->warning("Control \"" + control_name + "\" is mapped to gamepad axis with invalid sign \"" + axis_sign + "\"");
+							continue;
+						}
+						bool axis_negative = (axis_sign == '-');
+						
+						// Map control to gamepad axis
+						ctx->input_event_router->add_mapping(input::gamepad_axis_mapping(control, gamepad, axis_it->second, axis_negative));
+						
+						ctx->logger->log("Mapped control \"" + control_name + "\" to gamepad axis " + axis);
+					}
+					else
+					{
+						ctx->logger->log("Control \"" + control_name + "\" has invalid gamepad mapping");
+						continue;
+					}
+				}
+				else
+				{
+					ctx->logger->warning("Control \"" + control_name + "\" bound to unknown device \"" + device + "\"");
+				}
+			}
+		}
+	}
 }
 
 void apply_gamepad_calibration(input::gamepad* gamepad, const json& calibration)

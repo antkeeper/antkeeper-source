@@ -27,6 +27,21 @@
 namespace game {
 
 /**
+ * Applies a control profile to the game context.
+ *
+ * @param ctx Game context.
+ * @param profile Control profile.
+ */
+void apply_control_profile(game::context* ctx, const json& profile);
+
+/**
+ * Generates a default control profile.
+ *
+ * @return Default control profile.
+ */
+json default_control_profile();
+
+/**
  * Returns a string containing the path to the gamepad calibration file.
  */
 std::string gamepad_calibration_path(const game::context* ctx, const input::gamepad* gamepad);
@@ -43,6 +58,7 @@ json default_gamepad_calibration();
  *
  * @param ctx Game context.
  * @param gamepad Gamepad for which to load calibration settings.
+ * @return Gamepad calibration settings, or `nullptr` if not loaded.
  */
 json* load_gamepad_calibration(game::context* ctx, input::gamepad* gamepad);
 
