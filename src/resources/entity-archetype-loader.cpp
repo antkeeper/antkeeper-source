@@ -104,11 +104,11 @@ static bool load_component_celestial_body(entity::archetype& archetype, const js
 	if (element.contains("radius"))
 		component.radius = element["radius"].get<double>();
 	if (element.contains("axial_tilt"))
-		component.axial_tilt = element["axial_tilt"].get<double>();
+		component.axial_tilt = math::radians(element["axial_tilt"].get<double>());
 	if (element.contains("axial_rotation"))
-		component.axial_rotation = element["axial_rotation"].get<double>();
+		component.axial_rotation = math::radians(element["axial_rotation"].get<double>());
 	if (element.contains("angular_frequency"))
-		component.angular_frequency = element["angular_frequency"].get<double>();
+		component.angular_frequency = math::radians(element["angular_frequency"].get<double>());
 	
 	archetype.set<entity::component::celestial_body>(component);
 
@@ -162,13 +162,13 @@ static bool load_component_orbit(entity::archetype& archetype, const json& eleme
 	if (element.contains("a"))
 		component.elements.a = element["a"].get<double>();
 	if (element.contains("i"))
-		component.elements.i = element["i"].get<double>();
+		component.elements.i = math::radians(element["i"].get<double>());
 	if (element.contains("raan"))
-		component.elements.raan = element["raan"].get<double>();
+		component.elements.raan = math::radians(element["raan"].get<double>());
 	if (element.contains("w"))
-		component.elements.w = element["w"].get<double>();
+		component.elements.w = math::radians(element["w"].get<double>());
 	if (element.contains("ta"))
-		component.elements.ta = element["ta"].get<double>();
+		component.elements.ta = math::radians(element["ta"].get<double>());
 
 	archetype.set<entity::component::orbit>(component);
 
@@ -205,7 +205,8 @@ static bool load_component_transform(entity::archetype& archetype, const json& e
 		component.local.scale.y = translation[1].get<float>();
 		component.local.scale.z = translation[2].get<float>();
 	}
-
+	
+	component.world = component.local;
 	archetype.set<entity::component::transform>(component);
 
 	return true;

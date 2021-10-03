@@ -126,7 +126,7 @@ void exit(game::context* ctx)
 {}
 
 void load_controls(game::context* ctx)
-{		
+{
 	// If a control profile is set in the config file
 	if (ctx->config->contains("control_profile"))
 	{

@@ -55,9 +55,6 @@ astronomy::astronomy(entity::registry& registry):
 	universal_time(0.0),
 	time_scale(1.0),
 	reference_entity(entt::null),
-	reference_orbit(nullptr),
-	reference_body(nullptr),
-	reference_atmosphere(nullptr),
 	observer_location{0, 0, 0},
 	sun_light(nullptr),
 	sky_pass(nullptr)
@@ -85,19 +82,25 @@ void astronomy::update(double t, double dt)
 	// Add scaled timestep to current time
 	set_universal_time(universal_time + dt * time_scale);
 	
-	// Abort if either reference body or orbit have not been set
-	if (!reference_orbit || !reference_body)
+	// Abort if no reference body
+	if (reference_entity == entt::null)
 		return;
+
+	// Abort if either reference body or orbit have not been set
+	if (!registry.has<entity::component::orbit>(reference_entity) || !registry.has<entity::component::celestial_body>(reference_entity))
+		return;
+	const entity::component::orbit& reference_orbit = registry.get<entity::component::orbit>(reference_entity);
+	const entity::component::celestial_body& reference_body = registry.get<entity::component::celestial_body>(reference_entity);
 	
 	// Determine axial rotation at current time
-	const double reference_axial_rotation = reference_body->axial_rotation + reference_body->angular_frequency * universal_time;
+	const double reference_axial_rotation = reference_body.axial_rotation + reference_body.angular_frequency * universal_time;
 	
 	// Construct reference frame which transforms coordinates from inertial space to reference body BCBF space
 	inertial_to_bcbf = physics::orbit::inertial::to_bcbf
 	(
-		reference_orbit->state.r,
-		reference_orbit->elements.i,
-		reference_body->axial_tilt,
+		reference_orbit.state.r,
+		reference_orbit.elements.i,
+		reference_body.axial_tilt,
 		reference_axial_rotation
 	);
 	
@@ -120,7 +123,7 @@ void astronomy::update(double t, double dt)
 	[&](entity::id entity_id, const auto& celestial_body, const auto& orbit, const auto& blackbody)
 	{
 		// Calculate blackbody inertial basis
-		double3 blackbody_forward_inertial = math::normalize(reference_orbit->state.r - orbit.state.r);
+		double3 blackbody_forward_inertial = math::normalize(reference_orbit.state.r - orbit.state.r);
 		double3 blackbody_up_inertial = {0, 0, 1};
 		
 		// Transform blackbody inertial position and basis into topocentric space
@@ -138,16 +141,18 @@ void astronomy::update(double t, double dt)
 		double3 atmospheric_transmittance = {1.0, 1.0, 1.0};
 		
 		// Get atmosphere component of reference body (if any)
-		if (reference_atmosphere)
+		if (this->registry.has<entity::component::atmosphere>(reference_entity))
 		{
+			const entity::component::atmosphere& reference_atmosphere = registry.get<entity::component::atmosphere>(reference_entity);
+
 			// Altitude of observer in meters	
 			geom::ray<double> sample_ray;
-			sample_ray.origin = {0, reference_body->radius + observer_location[0], 0};
+			sample_ray.origin = {0, reference_body.radius + observer_location[0], 0};
 			sample_ray.direction = math::normalize(blackbody_position_topocentric);
 			
 			geom::sphere<double> exosphere;
 			exosphere.center = {0, 0, 0};
-			exosphere.radius = reference_body->radius + reference_atmosphere->exosphere_altitude;
+			exosphere.radius = reference_body.radius + reference_atmosphere.exosphere_altitude;
 			
 			auto intersection_result = geom::ray_sphere_intersection(sample_ray, exosphere);
 			
@@ -156,11 +161,11 @@ void astronomy::update(double t, double dt)
 				double3 sample_start = sample_ray.origin;
 				double3 sample_end = sample_ray.extrapolate(std::get<2>(intersection_result));
 				
-				double optical_depth_r = physics::atmosphere::optical_depth(sample_start, sample_end, reference_body->radius, reference_atmosphere->rayleigh_scale_height, 32);
-				double optical_depth_k = physics::atmosphere::optical_depth(sample_start, sample_end, reference_body->radius, reference_atmosphere->mie_scale_height, 32);
+				double optical_depth_r = physics::atmosphere::optical_depth(sample_start, sample_end, reference_body.radius, reference_atmosphere.rayleigh_scale_height, 32);
+				double optical_depth_k = physics::atmosphere::optical_depth(sample_start, sample_end, reference_body.radius, reference_atmosphere.mie_scale_height, 32);
 				double optical_depth_o = 0.0;
 				
-				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_k, optical_depth_o, reference_atmosphere->rayleigh_scattering, reference_atmosphere->mie_scattering);
+				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_k, optical_depth_o, reference_atmosphere.rayleigh_scattering, reference_atmosphere.mie_scattering);
 			}
 		}
 		
@@ -217,12 +222,14 @@ void astronomy::update(double t, double dt)
 		sky_pass->set_observer_altitude(observer_location[0]);
 		
 		// Upload atmosphere params to sky pass
-		if (reference_atmosphere)
+		if (registry.has<entity::component::atmosphere>(reference_entity))
 		{
-			sky_pass->set_scale_heights(reference_atmosphere->rayleigh_scale_height, reference_atmosphere->mie_scale_height);
-			sky_pass->set_scattering_coefficients(math::type_cast<float>(reference_atmosphere->rayleigh_scattering), math::type_cast<float>(reference_atmosphere->mie_scattering));
-			sky_pass->set_mie_anisotropy(reference_atmosphere->mie_anisotropy);
-			sky_pass->set_atmosphere_radii(reference_body->radius, reference_body->radius + reference_atmosphere->exosphere_altitude);
+			const entity::component::atmosphere& reference_atmosphere = registry.get<entity::component::atmosphere>(reference_entity);
+			
+			sky_pass->set_scale_heights(reference_atmosphere.rayleigh_scale_height, reference_atmosphere.mie_scale_height);
+			sky_pass->set_scattering_coefficients(math::type_cast<float>(reference_atmosphere.rayleigh_scattering), math::type_cast<float>(reference_atmosphere.mie_scattering));
+			sky_pass->set_mie_anisotropy(reference_atmosphere.mie_anisotropy);
+			sky_pass->set_atmosphere_radii(reference_body.radius, reference_body.radius + reference_atmosphere.exosphere_altitude);
 		}
 	}
 }
@@ -240,22 +247,6 @@ void astronomy::set_time_scale(double scale)
 void astronomy::set_reference_body(entity::id entity_id)
 {
 	reference_entity = entity_id;
-	reference_orbit = nullptr;
-	reference_body = nullptr;
-	reference_atmosphere = nullptr;
-	
-	if (reference_entity != entt::null)
-	{
-		if (registry.has<entity::component::orbit>(reference_entity))
-			reference_orbit = &registry.get<entity::component::orbit>(reference_entity);
-		
-		if (registry.has<entity::component::celestial_body>(reference_entity))
-			reference_body = &registry.get<entity::component::celestial_body>(reference_entity);
-		
-		if (registry.has<entity::component::atmosphere>(reference_entity))
-			reference_atmosphere = &registry.get<entity::component::atmosphere>(reference_entity);
-	}
-	
 	update_bcbf_to_topocentric();
 }
 
@@ -291,9 +282,10 @@ void astronomy::update_bcbf_to_topocentric()
 {
 	double radial_distance = observer_location[0];
 	
-	if (reference_body)
+	if (reference_entity)
 	{
-		radial_distance += reference_body->radius;
+		if (registry.has<entity::component::celestial_body>(reference_entity))
+			radial_distance += registry.get<entity::component::celestial_body>(reference_entity).radius;
 	}
 	
 	// Construct reference frame which transforms coordinates from BCBF space to topocentric space

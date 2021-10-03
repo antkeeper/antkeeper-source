@@ -92,9 +92,6 @@ private:
 	double time_scale;
 	
 	entity::id reference_entity;
-	const entity::component::orbit* reference_orbit;
-	const entity::component::celestial_body* reference_body;
-	const entity::component::atmosphere* reference_atmosphere;
 	
 	double3 observer_location;
 	

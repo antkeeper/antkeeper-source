@@ -76,7 +76,7 @@ void enter(game::context* ctx)
 		ctx->entity_registry->assign<entity::component::observer>(observer_eid, observer);
 		
 		// Set reference location of astronomy system
-		ctx->astronomy_system->set_reference_body(planet_eid);
+		//ctx->astronomy_system->set_reference_body(planet_eid);
 		ctx->astronomy_system->set_observer_location(double3{observer.elevation, observer.latitude, observer.longitude});
 	}
 	
@@ -250,8 +250,9 @@ void setup_tools(game::context* ctx)
 			auto [window_w, window_h] = ctx->app->get_viewport_dimensions();
 			
 			entity::id planet_eid = ctx->entities["planet"];
-			entity::component::celestial_body& body = ctx->entity_registry->get<entity::component::celestial_body>(planet_eid);
-			body.axial_tilt = math::radians(360.0f) * ((float)mouse_x / (float)window_w);
+			entity::component::celestial_body body = ctx->entity_registry->get<entity::component::celestial_body>(planet_eid);
+			body.axial_rotation = math::radians(360.0f) * ((float)mouse_x / (float)window_w);
+			ctx->entity_registry->replace<entity::component::celestial_body>(planet_eid, body);
 		};
 		
 		ctx->entity_registry->assign<entity::component::tool>(tool_eid, tool);
