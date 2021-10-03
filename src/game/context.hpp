@@ -63,7 +63,6 @@ class timeline;
 class renderer;
 class outline_pass;
 
-struct biome;
 template <typename T> class animation;
 template <typename T> class material_property;
 
@@ -249,9 +248,6 @@ struct context
 	entity::system::astronomy* astronomy_system;
 	entity::system::orbit* orbit_system;
 	entity::system::proteome* proteome_system;
-	
-	// Game
-	biome* biome;
 	
 	// Debug
 	debug::cli* cli;
