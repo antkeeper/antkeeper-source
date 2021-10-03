@@ -34,8 +34,7 @@
 #include "entity/components/constraints/three-dof.hpp"
 #include "entity/components/constraint-stack.hpp"
 #include "application.hpp"
-#include "utility/timestamp.hpp"
-#include "animation/animator.hpp"
+#include "game/tools.hpp"
 
 namespace game {
 namespace state {
@@ -204,109 +203,11 @@ void setup_camera(game::context* ctx)
 
 void setup_tools(game::context* ctx)
 {
-	if (!ctx->entities.count("move_tool"))
-	{
-		entity::id tool_eid = ctx->entity_registry->create();
-		ctx->entities["move_tool"] = tool_eid;
-	}
-	
-	if (!ctx->entities.count("paint_tool"))
-	{
-		entity::id tool_eid = ctx->entity_registry->create();
-		ctx->entities["paint_tool"] = tool_eid;
-	}
-	
-	if (!ctx->entities.count("flip_tool"))
-	{
-		entity::id tool_eid = ctx->entity_registry->create();
-		ctx->entities["flip_tool"] = tool_eid;
-	}
-	
-	if (!ctx->entities.count("poke_tool"))
-	{
-		entity::id tool_eid = ctx->entity_registry->create();
-		ctx->entities["poke_tool"] = tool_eid;
-	}
-	
-	if (!ctx->entities.count("inspect_tool"))
-	{
-		entity::id tool_eid = ctx->entity_registry->create();
-		ctx->entities["inspect_tool"] = tool_eid;
-	}
-	
-	if (!ctx->entities.count("label_tool"))
-	{
-		entity::id tool_eid = ctx->entity_registry->create();
-		ctx->entities["label_tool"] = tool_eid;
-	}
-	
-	if (!ctx->entities.count("time_tool"))
-	{
-		entity::id tool_eid = ctx->entity_registry->create();
-		ctx->entities["time_tool"] = tool_eid;
-		
-		entity::component::tool tool;
-		tool.active = [ctx]()
-		{
-			auto [mouse_x, mouse_y] = ctx->app->get_mouse()->get_current_position();
-			auto [window_w, window_h] = ctx->app->get_viewport_dimensions();
-			
-			entity::id planet_eid = ctx->entities["planet"];
-			entity::component::celestial_body body = ctx->entity_registry->get<entity::component::celestial_body>(planet_eid);
-			body.axial_rotation = math::radians(360.0f) * ((float)mouse_x / (float)window_w);
-			ctx->entity_registry->replace<entity::component::celestial_body>(planet_eid, body);
-		};
-		
-		ctx->entity_registry->assign<entity::component::tool>(tool_eid, tool);
-	}
-	
-	if (!ctx->entities.count("camera_tool"))
-	{
-		entity::id tool_eid = ctx->entity_registry->create();
-		ctx->entities["camera_tool"] = tool_eid;
-		
-		entity::component::tool tool;
-		tool.activated = [ctx]()
-		{
-			if (!ctx->camera_flash_animation->is_stopped())
-				return;
-			
-			std::string path = ctx->screenshots_path + "antkeeper-" + timestamp() + ".png";
-			ctx->app->save_frame(path);
-			
-			material_property<float4>* tint = static_cast<material_property<float4>*>(ctx->camera_flash_billboard->get_material()->get_property("tint"));
-			tint->set_value({1.0f, 1.0f, 1.0f, 1.0f});
-			ctx->camera_flash_billboard->get_material()->update_tweens();
-			ctx->ui_scene->add_object(ctx->camera_flash_billboard);
-			
-			ctx->camera_flash_animation->set_end_callback
-			(
-				[ctx]()
-				{
-					ctx->ui_scene->remove_object(ctx->camera_flash_billboard);
-				}
-			);
-			
-			ctx->camera_flash_animation->set_frame_callback
-			(
-				[ctx, tint](int channel, const float& opacity)
-				{
-					
-					tint->set_value({1.0f, 1.0f, 1.0f, opacity});
-				}
-			);
-			
-			ctx->animator->remove_animation(ctx->camera_flash_animation);
-			ctx->animator->add_animation(ctx->camera_flash_animation);
-			ctx->camera_flash_animation->rewind();
-			ctx->camera_flash_animation->play();
-		};
-		
-		ctx->entity_registry->assign<entity::component::tool>(tool_eid, tool);
-	}
+	ctx->entities["camera_tool"] = build_camera_tool(ctx);
+	ctx->entities["time_tool"] = build_time_tool(ctx);
 	
 	// Set active tool
-	ctx->entities["active_tool"] = ctx->entities["camera_tool"];
+	ctx->entities["active_tool"] = ctx->entities["time_tool"];
 }
 
 void setup_controls(game::context* ctx)

@@ -312,27 +312,9 @@ void heliogenesis(game::context* ctx)
 void planetogenesis(game::context* ctx)
 {
 	// Create planetary entity
-	entity::id planet_eid = ctx->entity_registry->create();
+	entity::archetype* planet_archetype = ctx->resource_manager->load<entity::archetype>("planet.ent");
+	entity::id planet_eid = planet_archetype->create(*ctx->entity_registry);
 	ctx->entities["planet"] = planet_eid;
-	
-	// Assign planetary celestial body component
-	entity::component::celestial_body body;
-	body.radius = 6.3781e6;
-	body.axial_tilt = math::radians(23.4393);
-	body.axial_rotation = math::radians(280.46061837504);
-	body.angular_frequency = math::radians(360.9856122880876128);
-	ctx->entity_registry->assign<entity::component::celestial_body>(planet_eid, body);
-	
-	// Assign planetary orbit component
-	entity::component::orbit orbit;
-	orbit.elements.a = 1.496e+11;
-	orbit.elements.e = 0.01671123;
-	orbit.elements.i = math::radians(-0.00001531);
-	orbit.elements.raan = math::radians(0.0);
-	const double longitude_periapsis = math::radians(102.93768193);
-	orbit.elements.w = longitude_periapsis - orbit.elements.raan;
-	orbit.elements.ta = math::radians(100.46457166) - longitude_periapsis;
-	ctx->entity_registry->assign<entity::component::orbit>(planet_eid, orbit);
 	
 	// Assign planetary terrain component
 	entity::component::terrain terrain;
@@ -344,23 +326,6 @@ void planetogenesis(game::context* ctx)
 	terrain.max_lod = 0;
 	terrain.patch_material = nullptr;
 	ctx->entity_registry->assign<entity::component::terrain>(planet_eid, terrain);
-	
-	// Assign planetary atmosphere component
-	entity::component::atmosphere atmosphere;
-	atmosphere.exosphere_altitude = 65e3;
-	atmosphere.index_of_refraction = 1.000293;
-	atmosphere.rayleigh_density = 2.545e25;
-	atmosphere.rayleigh_scale_height = 8000.0;
-	atmosphere.mie_density = 14.8875;
-	atmosphere.mie_scale_height = 1200.0;
-	atmosphere.mie_anisotropy = 0.8;
-	ctx->entity_registry->assign<entity::component::atmosphere>(planet_eid, atmosphere);
-	
-	// Assign planetary transform component
-	entity::component::transform transform;
-	transform.local = math::identity_transform<float>;
-	transform.warp = true;
-	ctx->entity_registry->assign<entity::component::transform>(planet_eid, transform);
 	
 	// Pass planet to astronomy system as reference body
 	ctx->astronomy_system->set_reference_body(planet_eid);
