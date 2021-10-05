@@ -630,7 +630,9 @@ void application::translate_sdl_events()
 					{
 						input::gamepad_axis axis = input::sdl_axis_table[sdl_event.caxis.axis];
 						float value = sdl_event.caxis.value;
-						value /= (value < 0.0f) ? 32768.0f : 32767.0f;
+						static const float min = static_cast<float>(std::numeric_limits<std::int16_t>::min());
+						static const float max = static_cast<float>(std::numeric_limits<std::int16_t>::max());
+						value /= (value < 0.0f) ? -min : max;
 						it->second->move(axis, value);
 					}
 				}

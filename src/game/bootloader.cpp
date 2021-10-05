@@ -67,14 +67,12 @@
 #include "entity/systems/ui.hpp"
 #include "entity/systems/vegetation.hpp"
 #include "entity/systems/spatial.hpp"
-#include "entity/systems/tracking.hpp"
 #include "entity/systems/painting.hpp"
 #include "entity/systems/astronomy.hpp"
 #include "entity/systems/blackbody.hpp"
 #include "entity/systems/atmosphere.hpp"
 #include "entity/systems/orbit.hpp"
 #include "entity/systems/proteome.hpp"
-#include "entity/components/marker.hpp"
 #include "entity/commands.hpp"
 #include "utility/paths.hpp"
 #include "event/event-dispatcher.hpp"
@@ -249,7 +247,7 @@ void setup_resources(game::context* ctx)
 	ctx->config_path = get_config_path(application_name);
 	ctx->mods_path = ctx->config_path + "mods/";
 	ctx->saves_path = ctx->config_path + "saves/";
-	ctx->screenshots_path = ctx->config_path + "screenshots/";
+	ctx->screenshots_path = ctx->config_path + "gallery/";
 	ctx->controls_path = ctx->config_path + "controls/";
 	
 	// Log resource paths
@@ -337,8 +335,7 @@ void setup_resources(game::context* ctx)
 	
 	// Mount data package
 	ctx->resource_manager->mount(ctx->data_package_path);
-
-
+	
 	// Include resource search paths in order of priority
 	ctx->resource_manager->include("/shaders/");
 	ctx->resource_manager->include("/models/");
@@ -607,17 +604,6 @@ void setup_rendering(game::context* ctx)
 		ctx->billboard_vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *ctx->billboard_vbo, 3, gl::vertex_attribute_type::float_32, billboard_vertex_stride, sizeof(float) * 5);
 	}
 	
-	// Load marker albedo textures
-	ctx->marker_albedo_textures = new gl::texture_2d*[8];
-	ctx->marker_albedo_textures[0] = ctx->resource_manager->load<gl::texture_2d>("marker-clear-albedo.tex");
-	ctx->marker_albedo_textures[1] = ctx->resource_manager->load<gl::texture_2d>("marker-yellow-albedo.tex");
-	ctx->marker_albedo_textures[2] = ctx->resource_manager->load<gl::texture_2d>("marker-green-albedo.tex");
-	ctx->marker_albedo_textures[3] = ctx->resource_manager->load<gl::texture_2d>("marker-blue-albedo.tex");
-	ctx->marker_albedo_textures[4] = ctx->resource_manager->load<gl::texture_2d>("marker-purple-albedo.tex");
-	ctx->marker_albedo_textures[5] = ctx->resource_manager->load<gl::texture_2d>("marker-pink-albedo.tex");
-	ctx->marker_albedo_textures[6] = ctx->resource_manager->load<gl::texture_2d>("marker-red-albedo.tex");
-	ctx->marker_albedo_textures[7] = ctx->resource_manager->load<gl::texture_2d>("marker-orange-albedo.tex");
-	
 	// Create renderer
 	ctx->renderer = new renderer();
 	ctx->renderer->set_billboard_vao(ctx->billboard_vao);
@@ -850,10 +836,6 @@ void setup_systems(game::context* ctx)
 	// Setup constraint system
 	ctx->constraint_system = new entity::system::constraint(*ctx->entity_registry);
 	
-	// Setup tracking system
-	ctx->tracking_system = new entity::system::tracking(*ctx->entity_registry, event_dispatcher, ctx->resource_manager);
-	ctx->tracking_system->set_scene(ctx->surface_scene);
-	
 	// Setup painting system
 	ctx->painting_system = new entity::system::painting(*ctx->entity_registry, event_dispatcher, ctx->resource_manager);
 	ctx->painting_system->set_scene(ctx->surface_scene);
@@ -917,88 +899,6 @@ void setup_controls(game::context* ctx)
 	// Setup input listener
 	ctx->input_listener = new input::listener();
 	ctx->input_listener->set_event_dispatcher(event_dispatcher);
-	
-	/*
-	// Add menu control mappings
-
-	ctx->input_event_router->add_mapping(input::gamepad_button_mapping(ctx->menu_back_control, nullptr, input::gamepad_button::b));
-	//ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::scancode::left_shift));
-	ctx->input_event_router->add_mapping(input::gamepad_button_mapping(ctx->control_system->get_tool_menu_control(), nullptr, input::gamepad_button::x));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_select_control, nullptr, input::scancode::enter));
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->menu_select_control, nullptr, input::scancode::space));
-	
-	
-	
-	ctx->input_event_router->add_mapping(input::key_mapping(ctx->control_system->get_toggle_view_control(), nullptr, input::scancode::tab));
-	ctx->control_system->get_toggle_view_control()->set_activated_callback(
-		[ctx]()
-		{
-			if (ctx->active_scene == ctx->surface_scene)
-			{
-				ctx->active_scene = ctx->underground_scene;
-				ctx->radial_transition_inner->transition(0.5f, false, ease<float, double>::in_quad);
-				
-				auto switch_cameras = [ctx]()
-				{
-					ctx->surface_camera->set_active(false);
-					ctx->underground_camera->set_active(true);
-					ctx->fade_transition->transition(0.25f, true, ease<float, double>::out_quad);
-				};
-				
-				float t = ctx->timeline->get_position();
-				ctx->timeline->add_cue({t + 0.5f, switch_cameras});
-			}
-			else
-			{
-				ctx->active_scene = ctx->surface_scene;
-				ctx->fade_transition->transition(0.25f, false, ease<float, double>::out_quad);
-				
-				auto switch_cameras = [ctx]()
-				{
-					ctx->surface_camera->set_active(true);
-					ctx->underground_camera->set_active(false);
-					ctx->radial_transition_inner->transition(0.5f, true, ease<float, double>::out_quad);
-				};
-				
-				float t = ctx->timeline->get_position();
-				ctx->timeline->add_cue({t + 0.25f, switch_cameras});
-			}
-		});
-	
-	float time_scale = ctx->config->get<float>("time_scale");
-	ctx->control_system->get_fast_forward_control()->set_activated_callback
-	(
-		[ctx, time_scale]()
-		{
-			ctx->orbit_system->set_time_scale(time_scale * 100.0f / seconds_per_day);
-			ctx->astronomy_system->set_time_scale(time_scale * 100.0f / seconds_per_day);
-		}
-	);
-	ctx->control_system->get_fast_forward_control()->set_deactivated_callback
-	(
-		[ctx, time_scale]()
-		{
-			ctx->orbit_system->set_time_scale(time_scale / seconds_per_day);
-			ctx->astronomy_system->set_time_scale(time_scale / seconds_per_day);
-		}
-	);
-	ctx->control_system->get_rewind_control()->set_activated_callback
-	(
-		[ctx, time_scale]()
-		{
-			ctx->orbit_system->set_time_scale(time_scale * -100.0f / seconds_per_day);
-			ctx->astronomy_system->set_time_scale(time_scale * -100.0f / seconds_per_day);
-		}
-	);
-	ctx->control_system->get_rewind_control()->set_deactivated_callback
-	(
-		[ctx, time_scale]()
-		{
-			ctx->orbit_system->set_time_scale(time_scale / seconds_per_day);
-			ctx->astronomy_system->set_time_scale(time_scale / seconds_per_day);
-		}
-	);
-	*/
 }
 
 void setup_cli(game::context* ctx)
@@ -1068,7 +968,6 @@ void setup_callbacks(game::context* ctx)
 			ctx->astronomy_system->update(t, dt);
 			ctx->spatial_system->update(t, dt);
 			ctx->constraint_system->update(t, dt);
-			ctx->tracking_system->update(t, dt);
 			ctx->painting_system->update(t, dt);
 			ctx->proteome_system->update(t, dt);
 			

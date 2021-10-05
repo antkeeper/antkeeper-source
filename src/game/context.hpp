@@ -81,7 +81,6 @@ namespace entity
 		class vegetation;
 		class ui;
 		class spatial;
-		class tracking;
 		class painting;
 		class astronomy;
 		class blackbody;
@@ -157,7 +156,6 @@ struct context
 	gl::vertex_array* billboard_vao;
 	material* fallback_material;
 	material* splash_billboard_material;
-	gl::texture_2d** marker_albedo_textures;
 	
 	// Compositing
 	clear_pass* ui_clear_pass;
@@ -241,7 +239,6 @@ struct context
 	entity::system::ui* ui_system;
 	entity::system::vegetation* vegetation_system;
 	entity::system::spatial* spatial_system;
-	entity::system::tracking* tracking_system;
 	entity::system::painting* painting_system;
 	entity::system::blackbody* blackbody_system;
 	entity::system::atmosphere* atmosphere_system;

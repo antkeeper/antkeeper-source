@@ -17,18 +17,14 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ENTITY_COMPONENT_MARKER_HPP
-#define ANTKEEPER_ENTITY_COMPONENT_MARKER_HPP
+#include "game/save.hpp"
+#include "application.hpp"
 
-namespace entity {
-namespace component {
+namespace game {
 
-struct marker
+bool save(game::context* ctx)
 {
-	int color;
-};
+	return false;
+}
 
-} // namespace component
-} // namespace entity
-
-#endif // ANTKEEPER_ENTITY_COMPONENT_MARKER_HPP
+} // namespace game
