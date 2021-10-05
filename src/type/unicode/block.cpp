@@ -17,9 +17,9 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "unicode-block.hpp"
+#include "type/unicode/block.hpp"
 
-namespace font {
+namespace type {
 namespace unicode {
 
 const block block::basic_latin{0x0, 0x7F};
@@ -344,4 +344,4 @@ const block block::supplementary_private_use_area_a{0xF0000, 0xFFFFF};
 const block block::supplementary_private_use_area_b{0x100000, 0x10FFFF};
 
 } // namespace unicode
-} // namespace font
+} // namespace type

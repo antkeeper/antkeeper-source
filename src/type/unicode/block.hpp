@@ -17,12 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_FONT_UNICODE_BLOCK_HPP
-#define ANTKEEPER_FONT_UNICODE_BLOCK_HPP
+#ifndef ANTKEEPER_TYPE_UNICODE_BLOCK_HPP
+#define ANTKEEPER_TYPE_UNICODE_BLOCK_HPP
 
-namespace font {
-
-/// Unicode-related functions and data
+namespace type {
 namespace unicode {
 
 /**
@@ -1001,6 +999,6 @@ struct block
 };
 
 } // namespace unicode
-} // namespace font
+} // namespace type
 
-#endif // ANTKEEPER_FONT_UNICODE_BLOCK_HPP
+#endif // ANTKEEPER_TYPE_UNICODE_BLOCK_HPP
