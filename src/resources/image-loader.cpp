@@ -64,11 +64,12 @@ image* resource_loader<image>::load(resource_manager* resource_manager, PHYSFS_F
 	{
 		throw std::runtime_error("STBI failed to load image from memory.");
 	}
-
+	
+	std::size_t component_size = (hdr) ? sizeof(float) : sizeof(unsigned char);
 	::image* image = new ::image();
-	image->format(static_cast<unsigned int>(channels), hdr);
+	image->format(component_size, channels);
 	image->resize(static_cast<unsigned int>(width), static_cast<unsigned int>(height));
-	std::memcpy(image->get_pixels(), pixels, width * height * channels * ((hdr) ? sizeof(float) : sizeof(unsigned char)));
+	std::memcpy(image->get_pixels(), pixels, image->get_size());
 	
 	// Free loaded image data
 	stbi_image_free(pixels);

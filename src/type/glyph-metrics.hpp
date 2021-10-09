@@ -17,38 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "type/font.hpp"
+#ifndef ANTKEEPER_TYPE_GLYPH_METRICS_HPP
+#define ANTKEEPER_TYPE_GLYPH_METRICS_HPP
 
 namespace type {
 
-font::font(const font_metrics& metrics):
-	metrics(metrics)
-{}
-
-font::font()
-{}
-
-font::~font()
-{}
-
-void font::kern(char32_t first, char32_t second, const float2& offset)
+/**
+ * Metrics describing properties of a glyph.
+ */
+struct glyph_metrics
 {
-	kerning_table[first][second] = offset;
-}
-
-void font::set_font_metrics(const font_metrics& metrics)
-{
-	this->metrics = metrics;
-}
-
-const float2& font::get_kerning(char32_t first, char32_t second) const
-{
-	if (auto it_first = kerning_table.find(first); it_first != kerning_table.end())
-		if (auto it_second = it_first->second.find(second); it_second != it_first->second.end())
-			return it_second->second;
+	/// Horizontal extent of the glyph.
+	float width;
 	
-	static const float2 no_kerning = {0.0f, 0.0f};
-	return no_kerning;
-}
+	/// Vertical extent of the glyph.
+	float height;
+	
+	/// Horizontal distance from the pen position to the glyph's left edge.
+	float bearing_left;
+	
+	/// Vertical distance from the baseline to the glyph's top edge.
+	float bearing_top;
+	
+	/// Distance to move the pen position after the glyph has been rendered.
+	float advance;
+};
 
 } // namespace type
+
+#endif // ANTKEEPER_TYPE_GLYPH_METRICS_HPP

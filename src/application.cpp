@@ -391,7 +391,7 @@ void application::save_frame(const std::string& path) const
 		[frame, path]
 		{
 			stbi_flip_vertically_on_write(1);
-			stbi_write_png(path.c_str(), frame->get_width(), frame->get_height(), frame->get_channels(), frame->get_pixels(), frame->get_width() * frame->get_channels());
+			stbi_write_png(path.c_str(), frame->get_width(), frame->get_height(), frame->get_channel_count(), frame->get_pixels(), frame->get_width() * frame->get_channel_count());
 		}
 	).detach();
 	

@@ -100,30 +100,30 @@ gl::texture_2d* resource_loader<gl::texture_2d>::load(resource_manager* resource
 	::image* image = resource_manager->load<::image>(image_filename);
 	
 	// Determine pixel type
-	gl::pixel_type type = (image->is_hdr()) ? gl::pixel_type::float_32 : gl::pixel_type::uint_8;
+	gl::pixel_type type = (image->get_component_size() == sizeof(float)) ? gl::pixel_type::float_32 : gl::pixel_type::uint_8;
 
 	// Determine pixel format
 	gl::pixel_format format;
-	if (image->get_channels() == 1)
+	if (image->get_channel_count() == 1)
 	{
 		format = gl::pixel_format::r;
 	}
-	else if (image->get_channels() == 2)
+	else if (image->get_channel_count() == 2)
 	{
 		format = gl::pixel_format::rg;
 	}
-	else if (image->get_channels() == 3)
+	else if (image->get_channel_count() == 3)
 	{
 		format = gl::pixel_format::rgb;
 	}
-	else if (image->get_channels() == 4)
+	else if (image->get_channel_count() == 4)
 	{
 		format = gl::pixel_format::rgba;
 	}
 	else
 	{
 		std::stringstream stream;
-		stream << std::string("Texture cannot be created from an image with an unsupported number of color channels (") << image->get_channels() << std::string(").");
+		stream << std::string("Texture cannot be created from an image with an unsupported number of channels (") << image->get_channel_count() << std::string(").");
 		delete image;
 		throw std::runtime_error(stream.str().c_str());
 	}

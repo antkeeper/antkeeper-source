@@ -23,7 +23,12 @@
 /// Text and typography.
 namespace type {}
 
+#include "type/bitmap-font.hpp"
+#include "type/bitmap-glyph.hpp"
 #include "type/font.hpp"
+#include "type/font-metrics.hpp"
+#include "type/glyph-metrics.hpp"
+#include "type/kerning-table.hpp"
 #include "type/unicode/unicode.hpp"
 
 #endif // ANTKEEPER_TYPE_HPP

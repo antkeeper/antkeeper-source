@@ -17,38 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "type/font.hpp"
+#ifndef ANTKEEPER_TYPE_BITMAP_GLYPH_HPP
+#define ANTKEEPER_TYPE_BITMAP_GLYPH_HPP
+
+#include "resources/image.hpp"
+#include "type/glyph-metrics.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace type {
 
-font::font(const font_metrics& metrics):
-	metrics(metrics)
-{}
-
-font::font()
-{}
-
-font::~font()
-{}
-
-void font::kern(char32_t first, char32_t second, const float2& offset)
+/**
+ * Single glyph in a bitmap font.
+ *
+ * @see type::bitmap_font
+ */
+struct bitmap_glyph
 {
-	kerning_table[first][second] = offset;
-}
-
-void font::set_font_metrics(const font_metrics& metrics)
-{
-	this->metrics = metrics;
-}
-
-const float2& font::get_kerning(char32_t first, char32_t second) const
-{
-	if (auto it_first = kerning_table.find(first); it_first != kerning_table.end())
-		if (auto it_second = it_first->second.find(second); it_second != it_first->second.end())
-			return it_second->second;
+	/// Metrics describing the glyph.
+	glyph_metrics metrics;
 	
-	static const float2 no_kerning = {0.0f, 0.0f};
-	return no_kerning;
-}
+	/// Bitmap representing the glyph.
+	image bitmap;
+	
+	/// Position of the packed glyph bitmap within the font bitmap.
+	uint2 position;
+};
 
 } // namespace type
+
+#endif // ANTKEEPER_TYPE_BITMAP_GLYPH_HPP

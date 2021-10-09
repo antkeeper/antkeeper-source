@@ -28,19 +28,58 @@
 class image
 {
 public:
+	/**
+	 * Creates a copy of another image.
+	 *
+	 * @param source Image from which to copy.
+	 */
+	image(const image& source);
+	
 	/// Creates an image.
 	image();
 
 	/// Destroys an image.
 	~image();
+	
+	/**
+	 * Makes this image a copy of another image.
+	 *
+	 * @param source Image from which to copy.
+	 */
+	image& operator=(const image& source);
+	
+	/**
+	 * Checks whether another image has the same number of channels and pixel size as this image.
+	 *
+	 * @param other Image for with which to compare compatibility.
+	 * @return `true` if the image formats are compatible, `false` otherwise.
+	 */
+	bool compatible(const image& other) const;
+	
+	/**
+	 * Copies pixel data from another image with a compatible format into this image.
+	 *
+	 * @param source Source image from which to copy pixel data.
+	 * @param w Width of the subimage to copy.
+	 * @param h Height of the subimage to copy.
+	 * @param from_x X-coordinate of the first pixel to copy from the source subimage.
+	 * @param from_y Y-coordinate of the first pixel to copy from the source subimage.
+	 * @param to_x X-coordinate of the first pixel in the destination subimage.
+	 * @param to_y Y-coordinate of the first pixel in the destination subimage.
+	 *
+	 * @except std::runtime_error Cannot copy image with mismatched format.
+	 *
+	 * @see image::compatible(const image&) const
+	 */
+	void copy(const image& source, unsigned int w, unsigned int h, unsigned int from_x = 0, int unsigned from_y = 0, unsigned int to_x = 0, unsigned int to_y = 0);
 
 	/**
 	 * Changes the format of the image. Existing pixel data will be erased if the format has changed.
 	 *
-	 * @param channels Number of color channels.
-	 * @param hdr Whether or not the image will contain HDR data. HDR pixels are stored as floats. Standard pixels are stored as unsigned chars.
+	 * @param component_size Size of channel components, in bytes.
+	 * @param channel_count Number of channels in the image.
 	 */
-	void format(unsigned int channels, bool hdr);
+	void format(std::size_t component_size, std::size_t channel_count);
 
 	/**
 	 * Resizes the image. Existing pixel data will be erased if the size has changed.
@@ -50,23 +89,26 @@ public:
 	 */
 	void resize(unsigned int width, unsigned int height);
 
-	/// Returns whether or not the image contains HDR data.
-	bool is_hdr() const;
-
 	/// Returns the width of the image, in pixels.
 	unsigned int get_width() const;
 
 	/// Returns the height of the image, in pixels.
 	unsigned int get_height() const;
+	
+	/// Returns the size of channel components, in bytes.
+	std::size_t get_component_size() const;
 
 	/// Returns the number of color channels in the image. 
-	unsigned int get_channels() const;
+	std::size_t get_channel_count() const;
 
 	/// Returns a pointer to the pixel data.
 	const void* get_pixels() const;
 	
 	/// @copydoc image::get_pixels() const
 	void* get_pixels();
+	
+	/// Returns the size of a single pixel, in bytes.
+	std::size_t get_pixel_size() const;
 	
 	/// Returns the size of the image, in bytes.
 	std::size_t get_size() const;
@@ -75,18 +117,14 @@ private:
 	void allocate_pixels();
 	void free_pixels();
 
-	bool hdr;
 	unsigned int width;
 	unsigned int height;
-	unsigned int channels;
+	std::size_t component_size;
+	std::size_t channel_count;
 	void* pixels;
+	std::size_t pixel_size;
 	std::size_t size;
 };
-
-inline bool image::is_hdr() const
-{
-	return hdr;
-}
 
 inline unsigned int image::get_width() const
 {
@@ -98,9 +136,14 @@ inline unsigned int image::get_height() const
 	return height;
 }
 
-inline unsigned int image::get_channels() const
+inline std::size_t image::get_component_size() const
 {
-	return channels;
+	return component_size;
+}
+
+inline std::size_t image::get_channel_count() const
+{
+	return channel_count;
 }
 
 inline const void* image::get_pixels() const
@@ -111,6 +154,11 @@ inline const void* image::get_pixels() const
 inline void* image::get_pixels()
 {
 	return pixels;
+}
+
+inline std::size_t image::get_pixel_size() const
+{
+	return pixel_size;
 }
 
 inline std::size_t image::get_size() const

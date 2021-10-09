@@ -17,38 +17,36 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "type/font.hpp"
+#ifndef ANTKEEPER_TYPE_TYPEFACE_HPP
+#define ANTKEEPER_TYPE_TYPEFACE_HPP
 
 namespace type {
 
-font::font(const font_metrics& metrics):
-	metrics(metrics)
-{}
-
-font::font()
-{}
-
-font::~font()
-{}
-
-void font::kern(char32_t first, char32_t second, const float2& offset)
+enum class typeface_style
 {
-	kerning_table[first][second] = offset;
-}
+	normal,
+	italic,
+	oblique
+};
 
-void font::set_font_metrics(const font_metrics& metrics)
+/**
+ * Variant a typeface family, with a specific style and weight. A typeface corresponds to a single digital font file.
+ *
+ * @see type::font
+ */
+class typeface
 {
-	this->metrics = metrics;
-}
-
-const float2& font::get_kerning(char32_t first, char32_t second) const
-{
-	if (auto it_first = kerning_table.find(first); it_first != kerning_table.end())
-		if (auto it_second = it_first->second.find(second); it_second != it_first->second.end())
-			return it_second->second;
+public:
+	typeface(typeface_style style, int weight);
 	
-	static const float2 no_kerning = {0.0f, 0.0f};
-	return no_kerning;
-}
+	typeface_style get_style() const;
+	int get_weight() const;
+	
+private:
+	typeface_style style;
+	int weight;
+};
 
 } // namespace type
+
+#endif // ANTKEEPER_TYPE_TYPEFACE_HPP

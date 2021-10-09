@@ -17,23 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_TYPE_GLYPH_HPP
-#define ANTKEEPER_TYPE_GLYPH_HPP
+#ifndef ANTKEEPER_GEOM_RECT_HPP
+#define ANTKEEPER_GEOM_RECT_HPP
 
-namespace type {
+#include "math/vector-type.hpp"
+
+namespace geom {
 
 /**
- *
+ * 2D rectangle.
  */
-struct glyph_metrics
+template <class T>
+struct rect
 {
-	float2 size;
-	float2 bearing_h;
-	float2 bearing_v;
-	float advance_h;
-	float advance_v;
+	typedef math::vector<T, 2> vector_type;
+	
+	vector_type min;
+	vector_type max;
 };
 
-} // namespace type
+} // namespace geom
 
-#endif // ANTKEEPER_TYPE_GLYPH_HPP
+#endif // ANTKEEPER_GEOM_RECT_HPP
