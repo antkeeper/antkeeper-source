@@ -346,6 +346,7 @@ void setup_resources(game::context* ctx)
 	ctx->resource_manager->include("/behaviors/");
 	ctx->resource_manager->include("/controls/");
 	ctx->resource_manager->include("/localization/");
+	ctx->resource_manager->include("/localization/fonts/");
 	ctx->resource_manager->include("/biomes/");
 	ctx->resource_manager->include("/traits/");
 	ctx->resource_manager->include("/");

@@ -14,6 +14,7 @@ find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED COMPONENTS SDL2::SDL2-static SDL2::SDL2main CONFIG)
 find_package(OpenAL REQUIRED CONFIG)
 find_library(physfs REQUIRED NAMES physfs-static PATHS "${CMAKE_PREFIX_PATH}/lib")
+find_package(freetype REQUIRED CONFIG)
 
 # Determine dependencies
 set(STATIC_LIBS
@@ -24,7 +25,8 @@ set(STATIC_LIBS
 	SDL2::SDL2-static
 	SDL2::SDL2main
 	OpenAL::OpenAL
-	${physfs})
+	${physfs}
+	freetype)
 set(SHARED_LIBS
 	${OPENGL_gl_LIBRARY})
 

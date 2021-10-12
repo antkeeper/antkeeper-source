@@ -52,7 +52,6 @@
 #include "utility/timestamp.hpp"
 #include "type/type.hpp"
 #include <stb/stb_image_write.h>
-#include <stb/stb_truetype.h>
 
 namespace game {
 namespace state {
@@ -60,6 +59,8 @@ namespace loading {
 
 /// Loads control profile and calibrates gamepads
 static void load_controls(game::context* ctx);
+
+static void load_fonts(game::context* ctx);
 
 /// Creates the universe and solar system.
 static void cosmogenesis(game::context* ctx);
@@ -86,6 +87,18 @@ void enter(game::context* ctx)
 	try
 	{
 		load_controls(ctx);
+	}
+	catch (...)
+	{
+		ctx->logger->pop_task(EXIT_FAILURE);
+	}
+	ctx->logger->pop_task(EXIT_SUCCESS);
+	
+	// Load fonts
+	ctx->logger->push_task("Loading fonts");
+	try
+	{
+		load_fonts(ctx);
 	}
 	catch (...)
 	{
@@ -120,79 +133,6 @@ void enter(game::context* ctx)
 		next_state.enter = std::bind(game::state::splash::enter, ctx);
 		next_state.exit = std::bind(game::state::splash::exit, ctx);
 	}
-	
-	
-	type::bitmap_font font;
-	image& font_bitmap = font.get_bitmap();
-	font_bitmap.format(sizeof(unsigned char), 1);
-	
-	std::ifstream font_file(ctx->config_path + "Vollkorn-Regular.ttf", std::ios::binary | std::ios::ate);
-	std::streamsize size = font_file.tellg();
-	font_file.seekg(0, std::ios::beg);
-	std::vector<unsigned char> font_buffer(size);
-	if (!font_file.read((char*)font_buffer.data(), size))
-	{
-		ctx->logger->error("Failed to read font file");
-	}
-	
-	// stb_truetype
-	{
-		stbtt_fontinfo font_info;
-		if (!stbtt_InitFont(&font_info, font_buffer.data(), 0))
-		{
-			ctx->logger->error("stb init font failed");
-		}
-
-		const float font_size = 64.0f;
-		const float scale = stbtt_ScaleForPixelHeight(&font_info, font_size);
-		
-		int ascent = 0;
-		int descent = 0;
-		int linegap = 0;
-		stbtt_GetFontVMetrics(&font_info, &ascent, &descent, &linegap);
-		
-		float scaled_ascent = static_cast<float>(ascent) * scale;
-		float scaled_descent = static_cast<float>(descent) * scale;
-		float scaled_linegap = static_cast<float>(linegap) * scale;
-		
-		type::unicode::block block = type::unicode::block::basic_latin;
-		for (int c = block.first; c <= block.last; ++c)
-		{
-			int glyph_index = stbtt_FindGlyphIndex(&font_info, c);
-			if (!glyph_index)
-				continue;
-			
-			type::bitmap_glyph& glyph = font[static_cast<char32_t>(c)];
-			
-			int advance_width = 0;
-			int left_side_bearing = 0;
-			stbtt_GetGlyphHMetrics(&font_info, glyph_index, &advance_width, &left_side_bearing);
-			
-			int min_x;
-			int min_y;
-			int max_x;
-			int max_y;
-			stbtt_GetGlyphBitmapBox(&font_info, glyph_index, scale, scale, &min_x, &min_y, &max_x, &max_y);
-			
-			int glyph_width = max_x - min_x;
-			int glyph_height = max_y - min_y;
-			
-			glyph.metrics.width = static_cast<float>(glyph_width);
-			glyph.metrics.height = static_cast<float>(glyph_height);
-			glyph.metrics.bearing_left = static_cast<float>(left_side_bearing) * scale;
-			glyph.metrics.bearing_top = 0.0f;
-			glyph.metrics.advance = static_cast<float>(advance_width) * scale;
-			
-			glyph.bitmap.format(sizeof(unsigned char), 1);
-			glyph.bitmap.resize(glyph_width, glyph_height);
-			stbtt_MakeGlyphBitmap(&font_info, (unsigned char*)glyph.bitmap.get_pixels(), glyph_width, glyph_height, glyph_width, scale, scale, glyph_index);
-		}
-	}
-	font.pack();
-	
-	std::string bitmap_path = ctx->config_path + "bitmap-font.png";
-	stbi_flip_vertically_on_write(0);
-	stbi_write_png(bitmap_path.c_str(), font_bitmap.get_width(), font_bitmap.get_height(), font_bitmap.get_channel_count(), font_bitmap.get_pixels(), font_bitmap.get_width() * font_bitmap.get_channel_count());
 	
 	// Queue next game state
 	ctx->app->queue_state(next_state);
@@ -285,6 +225,48 @@ void load_controls(game::context* ctx)
 	ctx->controls["menu_down"]->set_activation_threshold(menu_activation_threshold);
 	ctx->controls["menu_left"]->set_activation_threshold(menu_activation_threshold);
 	ctx->controls["menu_right"]->set_activation_threshold(menu_activation_threshold);
+}
+
+void load_fonts(game::context* ctx)
+{
+	// Load typefaces
+	if (auto it = ctx->strings->find("font_serif"); it != ctx->strings->end())
+		ctx->typefaces["serif"] = ctx->resource_manager->load<type::typeface>(it->second);
+	if (auto it = ctx->strings->find("font_sans_serif"); it != ctx->strings->end())
+		ctx->typefaces["sans_serif"] = ctx->resource_manager->load<type::typeface>(it->second);
+	if (auto it = ctx->strings->find("font_monospace"); it != ctx->strings->end())
+		ctx->typefaces["monospace"] = ctx->resource_manager->load<type::typeface>(it->second);
+	
+	// Build bitmap fonts
+	if (auto it = ctx->typefaces.find("serif"); it != ctx->typefaces.end())
+	{
+		type::typeface* typeface = it->second;
+		type::bitmap_font font;
+		
+		const float size = 48.0f;
+		if (type::font_metrics metrics; typeface->get_metrics(size, metrics))
+			font.set_font_metrics(metrics);
+		
+		image& font_bitmap = font.get_bitmap();
+		font_bitmap.format(sizeof(unsigned char), 1);
+		
+		type::unicode::block block = type::unicode::block::basic_latin;
+		for (char32_t code = block.first; code <= block.last; ++code)
+		{
+			if (!typeface->has_glyph(code))
+				continue;
+			
+			type::bitmap_glyph& glyph = font[code];
+			typeface->get_metrics(size, code, glyph.metrics);
+			typeface->get_bitmap(size, code, glyph.bitmap);
+		}
+		
+		font.pack();
+		
+		std::string bitmap_path = ctx->config_path + "bitmap-font-serif.png";
+		stbi_flip_vertically_on_write(0);
+		stbi_write_png(bitmap_path.c_str(), font_bitmap.get_width(), font_bitmap.get_height(), font_bitmap.get_channel_count(), font_bitmap.get_pixels(), font_bitmap.get_width() * font_bitmap.get_channel_count());
+	}
 }
 
 void cosmogenesis(game::context* ctx)

@@ -17,22 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "resource-loader.hpp"
-#include "resource-manager.hpp"
-#include "json.hpp"
-#include <physfs.h>
+#include "type/typeface.hpp"
 
-template <>
-json* resource_loader<json>::load(resource_manager* resource_manager, PHYSFS_File* file)
+namespace type {
+
+typeface::typeface(typeface_style style, int weight):
+	style(style),
+	weight(weight)
+{}
+
+typeface::typeface():
+	style(typeface_style::normal),
+	weight(400)
+{}
+
+void typeface::set_style(typeface_style style)
 {
-	// Read file into buffer
-	std::size_t size = static_cast<std::size_t>(PHYSFS_fileLength(file));
-	std::string buffer;
-	buffer.resize(size);
-	PHYSFS_readBytes(file, &buffer[0], size);
-	
-	// Parse json from file buffer
-	json* data = new json(json::parse(buffer, nullptr, true, true));
-	
-	return data;
+	this->style = style;
 }
+
+void typeface::set_weight(int weight)
+{
+	this->weight = weight;
+}
+
+} // namespace type

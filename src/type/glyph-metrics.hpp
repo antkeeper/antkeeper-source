@@ -20,6 +20,8 @@
 #ifndef ANTKEEPER_TYPE_GLYPH_METRICS_HPP
 #define ANTKEEPER_TYPE_GLYPH_METRICS_HPP
 
+#include "utility/fundamental-types.hpp"
+
 namespace type {
 
 /**
@@ -33,14 +35,17 @@ struct glyph_metrics
 	/// Vertical extent of the glyph.
 	float height;
 	
-	/// Horizontal distance from the pen position to the glyph's left edge.
-	float bearing_left;
+	/// Offset from the pen position to the glyph's top-left edge, in horizontal layouts.
+	float2 horizontal_bearing;
 	
-	/// Vertical distance from the baseline to the glyph's top edge.
-	float bearing_top;
+	/// Offset from the pen position to the glph's top-left edge, in vertical layouts.
+	float2 vertical_bearing;
 	
-	/// Distance to move the pen position after the glyph has been rendered.
-	float advance;
+	/// Distance to move the pen position after the glyph has been rendered, in horizontal layouts.
+	float horizontal_advance;
+	
+	/// Distance to move the pen position after the glyph has been rendered, in vertical layouts.
+	float vertical_advance;
 };
 
 } // namespace type

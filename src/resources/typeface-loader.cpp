@@ -18,21 +18,39 @@
  */
 
 #include "resource-loader.hpp"
-#include "resource-manager.hpp"
-#include "json.hpp"
+#include "type/freetype/typeface.hpp"
+#include <stdexcept>
 #include <physfs.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 template <>
-json* resource_loader<json>::load(resource_manager* resource_manager, PHYSFS_File* file)
+type::typeface* resource_loader<type::typeface>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
+	FT_Error error = 0;
+	
+	// Init FreeType library object
+	FT_Library library;
+	error = FT_Init_FreeType(&library);
+	if (error)
+	{
+		throw std::runtime_error("Failed to init FreeType library (error code " + std::to_string(error) + ")");
+	}
+	
 	// Read file into buffer
 	std::size_t size = static_cast<std::size_t>(PHYSFS_fileLength(file));
-	std::string buffer;
-	buffer.resize(size);
-	PHYSFS_readBytes(file, &buffer[0], size);
+	unsigned char* buffer = new unsigned char[size];
+	PHYSFS_readBytes(file, buffer, size);
 	
-	// Parse json from file buffer
-	json* data = new json(json::parse(buffer, nullptr, true, true));
-	
-	return data;
+	// Load FreeType face from buffer
+	FT_Face face;
+	error = FT_New_Memory_Face(library, buffer, size, 0, &face);
+	if (error)
+	{
+		delete[] buffer;
+		FT_Done_FreeType(library);
+		throw std::runtime_error("Failed to load FreeType face (error code " + std::to_string(error) + ")");
+	}
+
+	return new type::freetype::typeface(library, face, buffer);
 }

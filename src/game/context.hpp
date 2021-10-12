@@ -44,6 +44,7 @@
 #include <string>
 #include <unordered_map>
 #include "resources/json.hpp"
+#include "type/typeface.hpp"
 
 // Forward declarations
 class animator;
@@ -139,6 +140,7 @@ struct context
 	string_table* string_table;
 	string_table_map string_table_map;
 	std::unordered_map<std::string, std::string>* strings;
+	std::unordered_map<std::string, type::typeface*> typefaces;
 	
 	// Framebuffers
 	gl::framebuffer* shadow_map_framebuffer;

@@ -44,6 +44,12 @@ struct font_metrics
 	
 	/// Thickness of an underline.
 	float underline_thickness;
+	
+	/// Maximum advance with for all glyphs, for horizontal layouts.
+	float max_horizontal_advance;
+	
+	/// Maximum advance height for all glyphs, for vertical layouts.
+	float max_vertical_advance;
 };
 
 } // namespace type
