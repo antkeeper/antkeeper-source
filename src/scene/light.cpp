@@ -23,7 +23,8 @@
 namespace scene {
 
 light::light():
-	bounds(get_translation(), 0.0f),
+	local_bounds{{0.0f, 0.0f, 0.0f}, 0.0f},
+	world_bounds{{0.0f, 0.0f, 0.0f}, 0.0f},
 	color(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
 	intensity(1.0f, math::lerp<float, float>),
 	scaled_color(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>)
@@ -51,7 +52,7 @@ void light::update_tweens()
 
 void light::transformed()
 {
-	bounds = sphere_type(get_translation(), 0.0f);
+	world_bounds = {get_translation(), 0.0f};
 }
 
 } // namespace scene

@@ -26,7 +26,8 @@ namespace scene {
 model_instance::model_instance(::model* model):
 	model(nullptr),
 	pose(nullptr),
-	bounds(get_translation(), get_translation()),
+	local_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+	world_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
 	instanced(false),
 	instance_count(0)
 {
@@ -45,7 +46,8 @@ model_instance::model_instance(const model_instance& other)
 
 model_instance& model_instance::operator=(const model_instance& other)
 {
-	bounds = other.bounds;
+	local_bounds = other.local_bounds;
+	world_bounds = other.world_bounds;
 	model = other.model;
 	pose = other.pose;
 	materials = other.materials;
@@ -92,14 +94,20 @@ void model_instance::reset_materials()
 void model_instance::update_bounds()
 {
 	if (model)
-		bounds = aabb_type::transform(model->get_bounds(), get_transform());
+	{
+		local_bounds = aabb_type::transform(model->get_bounds(), get_transform());
+		transformed();
+	}
 	else
-		bounds = {get_translation(), get_translation()};
+	{
+		local_bounds = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
+		world_bounds = {get_translation(), get_translation()};
+	}
 }
 
 void model_instance::transformed()
 {
-	update_bounds();
+	world_bounds = aabb_type::transform(local_bounds, get_transform());
 }
 
 void model_instance::update_tweens()

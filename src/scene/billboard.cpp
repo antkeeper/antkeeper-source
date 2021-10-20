@@ -23,10 +23,10 @@
 
 namespace scene {
 
-const typename billboard::aabb_type billboard::untransformed_bounds = {{-1, -1, -1}, {1, 1, 1}};
+const typename billboard::aabb_type billboard::local_bounds = {{-1, -1, -1}, {1, 1, 1}};
 
 billboard::billboard():
-	bounds(untransformed_bounds),
+	world_bounds(local_bounds),
 	material(nullptr),
 	type(billboard_type::flat),
 	alignment_axis(global_up)
@@ -39,10 +39,12 @@ billboard::billboard(const billboard& other)
 
 billboard& billboard::operator=(const billboard& other)
 {
-	bounds = other.bounds;
 	material = other.material;
 	type = other.type;
 	alignment_axis = other.alignment_axis;
+	set_transform(other.get_transform());
+	set_active(other.is_active());
+	set_culling_mask(other.get_culling_mask());
 	return *this;
 }
 
@@ -63,7 +65,7 @@ void billboard::set_alignment_axis(const float3& axis)
 
 void billboard::transformed()
 {
-	bounds = aabb_type::transform(untransformed_bounds, get_transform());
+	world_bounds = aabb_type::transform(local_bounds, get_transform());
 }
 
 void billboard::update_tweens()

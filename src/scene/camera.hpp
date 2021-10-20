@@ -89,7 +89,8 @@ public:
 	void set_composite_index(int index);
 	
 	
-	virtual const bounding_volume_type& get_bounds() const;
+	virtual const bounding_volume_type& get_local_bounds() const;
+	virtual const bounding_volume_type& get_world_bounds() const;
 
 	float is_orthographic() const;
 	float get_clip_left() const;
@@ -157,7 +158,13 @@ private:
 	view_frustum_type view_frustum;
 };
 
-inline const typename object_base::bounding_volume_type& camera::get_bounds() const
+inline const typename object_base::bounding_volume_type& camera::get_local_bounds() const
+{
+	/// @TODO: return local bounds, not world bounds
+	return view_frustum.get_bounds();
+}
+
+inline const typename object_base::bounding_volume_type& camera::get_world_bounds() const
 {
 	return view_frustum.get_bounds();
 }

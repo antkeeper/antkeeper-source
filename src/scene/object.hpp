@@ -137,9 +137,14 @@ public:
 	tween<transform_type>& get_transform_tween();
 
 	/**
-	 * Returns the bounds of the object.
+	 * Returns the local-space (untransformed) bounds of the object.
 	 */
-	virtual const bounding_volume_type& get_bounds() const = 0;
+	virtual const bounding_volume_type& get_local_bounds() const = 0;
+	
+	/**
+	 * Returns the world-space (transformed) bounds of the object.
+	 */
+	virtual const bounding_volume_type& get_world_bounds() const = 0;
 	
 	/**
 	 * Returns the culling mask of the object.

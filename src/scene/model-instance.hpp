@@ -65,7 +65,8 @@ public:
 	 */
 	void reset_materials();
 	
-	virtual const bounding_volume_type& get_bounds() const;
+	virtual const bounding_volume_type& get_local_bounds() const;
+	virtual const bounding_volume_type& get_world_bounds() const;
 
 	const model* get_model() const;
 	model* get_model();
@@ -88,14 +89,20 @@ private:
 	model* model;
 	pose* pose;
 	std::vector<material*> materials;
-	aabb_type bounds;
+	aabb_type local_bounds;
+	aabb_type world_bounds;
 	bool instanced;
 	std::size_t instance_count;
 };
 
-inline const typename object_base::bounding_volume_type& model_instance::get_bounds() const
+inline const typename object_base::bounding_volume_type& model_instance::get_local_bounds() const
 {
-	return bounds;
+	return local_bounds;
+}
+
+inline const typename object_base::bounding_volume_type& model_instance::get_world_bounds() const
+{
+	return world_bounds;
 }
 
 inline const model* model_instance::get_model() const

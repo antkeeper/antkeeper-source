@@ -70,8 +70,11 @@ public:
 	 */
 	void set_intensity(float intensity);
 	
-	/// Returns the bounding volume of the light.
-	virtual const bounding_volume_type& get_bounds() const;
+	/// Returns the local-space bounding volume of the light.
+	virtual const bounding_volume_type& get_local_bounds() const;
+	
+	/// Returns the world-space bounding volume of the light.
+	virtual const bounding_volume_type& get_world_bounds() const;
 	
 	/// Returns the light color.
 	const float3& get_color() const;
@@ -95,12 +98,18 @@ private:
 	tween<float3> color;
 	tween<float> intensity;
 	tween<float3> scaled_color;
-	sphere_type bounds;
+	sphere_type local_bounds;
+	sphere_type world_bounds;
 };
 
-inline const typename object_base::bounding_volume_type& light::get_bounds() const
+inline const typename object_base::bounding_volume_type& light::get_local_bounds() const
 {
-	return bounds;
+	return local_bounds;
+}
+
+inline const typename object_base::bounding_volume_type& light::get_world_bounds() const
+{
+	return world_bounds;
 }
 
 inline const float3& light::get_color() const
@@ -136,4 +145,3 @@ inline const tween<float3>& light::get_scaled_color_tween() const
 } // namespace scene
 
 #endif // ANTKEEPER_SCENE_LIGHT_HPP
-

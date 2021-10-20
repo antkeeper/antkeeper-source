@@ -61,7 +61,8 @@ public:
 	/// Sets the axis around which the billboard will be rotated when the alignment is set to billboard_alignment::cylindrical.
 	void set_alignment_axis(const float3& axis);
 	
-	virtual const bounding_volume_type& get_bounds() const;
+	virtual const bounding_volume_type& get_local_bounds() const;
+	virtual const bounding_volume_type& get_world_bounds() const;
 
 	material* get_material() const;
 	billboard_type get_billboard_type() const;
@@ -70,20 +71,25 @@ public:
 	virtual void update_tweens();
 
 private:
-	static const aabb_type untransformed_bounds;
+	static const aabb_type local_bounds;
 	
 	virtual void transformed();
 	
 	
-	aabb_type bounds;
+	aabb_type world_bounds;
 	material* material;
 	billboard_type type;
 	float3 alignment_axis;
 };
 
-inline const typename object_base::bounding_volume_type& billboard::get_bounds() const
+inline const typename object_base::bounding_volume_type& billboard::get_local_bounds() const
 {
-	return bounds;
+	return local_bounds;
+}
+
+inline const typename object_base::bounding_volume_type& billboard::get_world_bounds() const
+{
+	return world_bounds;
 }
 
 inline material* billboard::get_material() const

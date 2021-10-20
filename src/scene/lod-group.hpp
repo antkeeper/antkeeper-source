@@ -82,7 +82,8 @@ public:
 	 */
 	void remove_objects(std::size_t level);
 	
-	virtual const bounding_volume_type& get_bounds() const;
+	virtual const bounding_volume_type& get_local_bounds() const;
+	virtual const bounding_volume_type& get_world_bounds() const;
 	
 	/// Returns the number of detail levels in the group.
 	std::size_t get_level_count() const;
@@ -99,13 +100,19 @@ private:
 	void update_bounds();
 	virtual void transformed();
 	
-	aabb_type bounds;
+	aabb_type local_bounds;
+	aabb_type world_bounds;
 	std::vector<std::list<object_base*>> levels;
 };
 
-inline const typename object_base::bounding_volume_type& lod_group::get_bounds() const
+inline const typename object_base::bounding_volume_type& lod_group::get_local_bounds() const
 {
-	return bounds;
+	return local_bounds;
+}
+
+inline const typename object_base::bounding_volume_type& lod_group::get_world_bounds() const
+{
+	return world_bounds;
 }
 
 inline std::size_t lod_group::get_level_count() const

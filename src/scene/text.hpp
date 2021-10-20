@@ -105,8 +105,11 @@ public:
 	/// Returns the text color.
 	const float4& get_color() const;
 	
-	/// @copydoc scene::object::get_bounds() const
-	virtual const bounding_volume_type& get_bounds() const;
+	/// @copydoc scene::object::get_local_bounds() const
+	virtual const bounding_volume_type& get_local_bounds() const;
+	
+	/// @copydoc scene::object::get_world_bounds() const
+	virtual const bounding_volume_type& get_world_bounds() const;
 	
 	/// @copydoc scene::object::update_tweens()
 	virtual void update_tweens();
@@ -158,7 +161,12 @@ inline const float4& text::get_color() const
 	return color;
 }
 
-inline const typename object_base::bounding_volume_type& text::get_bounds() const
+inline const typename object_base::bounding_volume_type& text::get_local_bounds() const
+{
+	return local_bounds;
+}
+
+inline const typename object_base::bounding_volume_type& text::get_world_bounds() const
 {
 	return world_bounds;
 }

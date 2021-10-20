@@ -103,7 +103,7 @@ void renderer::render(float t, float dt, float alpha, const scene::collection& c
 		// Get camera culling volume
 		ctx.camera_culling_volume = camera->get_culling_mask();
 		if (!ctx.camera_culling_volume)
-			ctx.camera_culling_volume = &camera->get_bounds();
+			ctx.camera_culling_volume = &camera->get_world_bounds();
 		
 		// Queue render operations for each visible scene object
 		for (const scene::object_base* object: *objects)
@@ -149,7 +149,7 @@ void renderer::process_model_instance(const render::context& ctx, render::queue&
 	// Get object culling volume
 	const geom::bounding_volume<float>* object_culling_volume = model_instance->get_culling_mask();
 	if (!object_culling_volume)
-		object_culling_volume = &model_instance->get_bounds();
+		object_culling_volume = &model_instance->get_world_bounds();
 	
 	// Perform view-frustum culling
 	if (!ctx.camera_culling_volume->intersects(*object_culling_volume))
@@ -188,7 +188,7 @@ void renderer::process_billboard(const render::context& ctx, render::queue& queu
 	// Get object culling volume
 	const geom::bounding_volume<float>* object_culling_volume = billboard->get_culling_mask();
 	if (!object_culling_volume)
-		object_culling_volume = &billboard->get_bounds();
+		object_culling_volume = &billboard->get_world_bounds();
 	
 	// Perform view-frustum culling
 	if (!ctx.camera_culling_volume->intersects(*object_culling_volume))
@@ -236,7 +236,7 @@ void renderer::process_text(const render::context& ctx, render::queue& queue, co
 	// Get object culling volume
 	const geom::bounding_volume<float>* object_culling_volume = text->get_culling_mask();
 	if (!object_culling_volume)
-		object_culling_volume = &text->get_bounds();
+		object_culling_volume = &text->get_world_bounds();
 	
 	// Perform view-frustum culling
 	if (!ctx.camera_culling_volume->intersects(*object_culling_volume))

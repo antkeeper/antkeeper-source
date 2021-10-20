@@ -23,7 +23,8 @@
 namespace scene {
 
 lod_group::lod_group(std::size_t level_count):
-	bounds(get_translation(), get_translation())
+	local_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+	world_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}
 {
 	resize(level_count);
 }
@@ -68,7 +69,7 @@ void lod_group::remove_objects(std::size_t level)
 
 void lod_group::update_bounds()
 {
-	bounds = {get_translation(), get_translation()};
+	world_bounds = {get_translation(), get_translation()};
 }
 
 void lod_group::transformed()

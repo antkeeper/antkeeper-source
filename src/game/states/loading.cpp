@@ -318,13 +318,11 @@ void load_fonts(game::context* ctx)
 		// Add text object to UI scene
 		ctx->ui_scene->add_object(text_object);
 		
-		
-		/*
-		// Output font bitmap
-		std::string bitmap_path = ctx->config_path + "bitmap-font-serif.png";
-		stbi_flip_vertically_on_write(0);
-		stbi_write_png(bitmap_path.c_str(), font_bitmap.get_width(), font_bitmap.get_height(), font_bitmap.get_channel_count(), font_bitmap.get_pixels(), font_bitmap.get_width() * font_bitmap.get_channel_count());
-		*/
+		// Center text object
+		const auto& text_aabb = static_cast<const geom::aabb<float>&>(text_object->get_local_bounds());
+		float text_w = text_aabb.max_point.x - text_aabb.min_point.x;
+		float text_h = text_aabb.max_point.y - text_aabb.min_point.y;
+		text_object->set_translation({std::round(-text_w * 0.5f), std::round(-text_h * 0.5f), 0.0f});
 	}
 }
 
