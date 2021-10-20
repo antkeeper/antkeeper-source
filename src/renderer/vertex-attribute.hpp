@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_VERTEX_ATTRIBUTES_HPP
-#define ANTKEEPER_VERTEX_ATTRIBUTES_HPP
+#ifndef ANTKEEPER_VERTEX_ATTRIBUTE_HPP
+#define ANTKEEPER_VERTEX_ATTRIBUTE_HPP
 
 /// Vertex position (vec3)
 #define VERTEX_POSITION_LOCATION 0
@@ -47,5 +47,44 @@
 /// Vertex morph target (vec3)
 #define VERTEX_TARGET_LOCATION 8
 
-#endif // ANTKEEPER_VERTEX_ATTRIBUTES_HPP
+namespace render {
 
+/**
+ * Contains enumerated vertex attribute locations.
+ */
+namespace vertex_attribute
+{
+	enum
+	{
+		/// Vertex position (vec3)
+		position,
+		
+		/// Vertex UV texture coordinates (vec2)
+		uv,
+		
+		/// Vertex normal (vec3)
+		normal,
+		
+		/// Vertex tangent (vec4)
+		tangent,
+		
+		/// Vertex color (vec4)
+		color,
+		
+		/// Vertex bone indices (vec4)
+		bone_index,
+		
+		/// Vertex bone weights (vec4)
+		bone_weight,
+		
+		/// Vertex barycentric coordinates (vec3)
+		barycentric,
+		
+		/// Vertex morph target (vec3)
+		target
+	};
+}
+
+} // namespace render
+
+#endif // ANTKEEPER_VERTEX_ATTRIBUTE_HPP

@@ -21,7 +21,7 @@
 #define ANTKEEPER_GL_SHADER_OBJECT_HPP
 
 #include "gl/shader-stage.hpp"
-#include <cstdlib>
+#include <cstddef>
 #include <string>
 
 namespace gl {

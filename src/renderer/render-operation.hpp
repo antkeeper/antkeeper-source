@@ -23,7 +23,7 @@
 #include "utility/fundamental-types.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/drawing-mode.hpp"
-#include <cstdlib>
+#include <cstddef>
 
 class pose;
 class material;

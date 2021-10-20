@@ -41,7 +41,7 @@ namespace gl {}
 #include "texture-filter.hpp"
 #include "texture-wrapping.hpp"
 #include "vertex-array.hpp"
-#include "vertex-attribute-type.hpp"
+#include "vertex-attribute.hpp"
 #include "vertex-buffer.hpp"
 
 #endif // ANTKEEPER_GL_HPP

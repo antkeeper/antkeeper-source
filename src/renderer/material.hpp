@@ -23,7 +23,7 @@
 #include "renderer/material-property.hpp"
 #include "gl/shader-program.hpp"
 #include <cstdint>
-#include <cstdlib>
+#include <cstddef>
 #include <list>
 #include <map>
 #include <string>

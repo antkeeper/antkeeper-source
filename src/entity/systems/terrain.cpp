@@ -26,10 +26,10 @@
 #include "geom/morton.hpp"
 #include "geom/quadtree.hpp"
 #include "geom/spherical.hpp"
-#include "gl/vertex-attribute-type.hpp"
+#include "gl/vertex-attribute.hpp"
 #include "math/constants.hpp"
 #include "math/quaternion-operators.hpp"
-#include "renderer/vertex-attributes.hpp"
+#include "renderer/vertex-attribute.hpp"
 #include "utility/fundamental-types.hpp"
 #include <functional>
 #include <iostream>
@@ -471,26 +471,77 @@ model* terrain::generate_patch_model(const geom::mesh& patch_mesh, material* pat
 	
 	// Allocate patch model
 	model* patch_model = new model();
+	
+	// Get model VBO and VAO
+	gl::vertex_buffer* vbo = patch_model->get_vertex_buffer();
+	gl::vertex_array* vao = patch_model->get_vertex_array();
 
 	// Resize model VBO and upload vertex data
-	gl::vertex_buffer* vbo = patch_model->get_vertex_buffer();
 	vbo->resize(patch_triangle_count * 3 * patch_vertex_stride, patch_vertex_data);
 	
-	// Bind vertex attributes to model VAO
-	gl::vertex_array* vao = patch_model->get_vertex_array();
-	std::size_t offset = 0;
-	vao->bind_attribute(VERTEX_POSITION_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, patch_vertex_stride, 0);
-	offset += 3;
-	vao->bind_attribute(VERTEX_TEXCOORD_LOCATION, *vbo, 2, gl::vertex_attribute_type::float_32, patch_vertex_stride, sizeof(float) * offset);
-	offset += 2;
-	vao->bind_attribute(VERTEX_NORMAL_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, patch_vertex_stride, sizeof(float) * offset);
-	offset += 3;
-	vao->bind_attribute(VERTEX_TANGENT_LOCATION, *vbo, 4, gl::vertex_attribute_type::float_32, patch_vertex_stride, sizeof(float) * offset);
-	offset += 4;
-	vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, patch_vertex_stride, sizeof(float) * offset);
-	offset += 3;
-	vao->bind_attribute(VERTEX_TARGET_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, patch_vertex_stride, sizeof(float) * offset);
-	offset += 3;
+	std::size_t attribute_offset = 0;
+	
+	// Define position vertex attribute
+	gl::vertex_attribute position_attribute;
+	position_attribute.buffer = vbo;
+	position_attribute.offset = attribute_offset;
+	position_attribute.stride = patch_vertex_stride;
+	position_attribute.type = gl::vertex_attribute_type::float_32;
+	position_attribute.components = 3;
+	attribute_offset += position_attribute.components * sizeof(float);
+	
+	// Define UV vertex attribute
+	gl::vertex_attribute uv_attribute;
+	uv_attribute.buffer = vbo;
+	uv_attribute.offset = attribute_offset;
+	uv_attribute.stride = patch_vertex_stride;
+	uv_attribute.type = gl::vertex_attribute_type::float_32;
+	uv_attribute.components = 2;
+	attribute_offset += uv_attribute.components * sizeof(float);
+	
+	// Define normal vertex attribute
+	gl::vertex_attribute normal_attribute;
+	normal_attribute.buffer = vbo;
+	normal_attribute.offset = attribute_offset;
+	normal_attribute.stride = patch_vertex_stride;
+	normal_attribute.type = gl::vertex_attribute_type::float_32;
+	normal_attribute.components = 3;
+	attribute_offset += normal_attribute.components * sizeof(float);
+	
+	// Define tangent vertex attribute
+	gl::vertex_attribute tangent_attribute;
+	tangent_attribute.buffer = vbo;
+	tangent_attribute.offset = attribute_offset;
+	tangent_attribute.stride = patch_vertex_stride;
+	tangent_attribute.type = gl::vertex_attribute_type::float_32;
+	tangent_attribute.components = 4;
+	attribute_offset += tangent_attribute.components * sizeof(float);
+	
+	// Define barycentric vertex attribute
+	gl::vertex_attribute barycentric_attribute;
+	barycentric_attribute.buffer = vbo;
+	barycentric_attribute.offset = attribute_offset;
+	barycentric_attribute.stride = patch_vertex_stride;
+	barycentric_attribute.type = gl::vertex_attribute_type::float_32;
+	barycentric_attribute.components = 3;
+	attribute_offset += barycentric_attribute.components * sizeof(float);
+	
+	// Define target vertex attribute
+	gl::vertex_attribute target_attribute;
+	target_attribute.buffer = vbo;
+	target_attribute.offset = attribute_offset;
+	target_attribute.stride = patch_vertex_stride;
+	target_attribute.type = gl::vertex_attribute_type::float_32;
+	target_attribute.components = 3;
+	attribute_offset += target_attribute.components * sizeof(float);
+	
+	// Bind vertex attributes to VAO
+	vao->bind(render::vertex_attribute::position, position_attribute);
+	vao->bind(render::vertex_attribute::uv, uv_attribute);
+	vao->bind(render::vertex_attribute::normal, normal_attribute);
+	vao->bind(render::vertex_attribute::tangent, tangent_attribute);
+	vao->bind(render::vertex_attribute::barycentric, barycentric_attribute);
+	vao->bind(render::vertex_attribute::target, target_attribute);
 	
 	// Create model group
 	model_group* patch_model_group = patch_model->add_group("terrain");

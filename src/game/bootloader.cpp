@@ -35,7 +35,7 @@
 #include "gl/texture-filter.hpp"
 #include "gl/texture-wrapping.hpp"
 #include "gl/vertex-array.hpp"
-#include "gl/vertex-attribute-type.hpp"
+#include "gl/vertex-attribute.hpp"
 #include "gl/vertex-buffer.hpp"
 #include "renderer/material-flags.hpp"
 #include "renderer/material-property.hpp"
@@ -47,7 +47,7 @@
 #include "renderer/passes/shadow-map-pass.hpp"
 #include "renderer/passes/sky-pass.hpp"
 #include "renderer/simple-render-pass.hpp"
-#include "renderer/vertex-attributes.hpp"
+#include "renderer/vertex-attribute.hpp"
 #include "renderer/compositor.hpp"
 #include "renderer/renderer.hpp"
 #include "resources/resource-manager.hpp"
@@ -600,9 +600,40 @@ void setup_rendering(game::context* ctx)
 
 		ctx->billboard_vbo = new gl::vertex_buffer(sizeof(float) * billboard_vertex_size * billboard_vertex_count, billboard_vertex_data);
 		ctx->billboard_vao = new gl::vertex_array();
-		ctx->billboard_vao->bind_attribute(VERTEX_POSITION_LOCATION, *ctx->billboard_vbo, 3, gl::vertex_attribute_type::float_32, billboard_vertex_stride, 0);
-		ctx->billboard_vao->bind_attribute(VERTEX_TEXCOORD_LOCATION, *ctx->billboard_vbo, 2, gl::vertex_attribute_type::float_32, billboard_vertex_stride, sizeof(float) * 3);
-		ctx->billboard_vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *ctx->billboard_vbo, 3, gl::vertex_attribute_type::float_32, billboard_vertex_stride, sizeof(float) * 5);
+		
+		std::size_t attribute_offset = 0;
+		
+		// Define position vertex attribute
+		gl::vertex_attribute position_attribute;
+		position_attribute.buffer = ctx->billboard_vbo;
+		position_attribute.offset = attribute_offset;
+		position_attribute.stride = billboard_vertex_stride;
+		position_attribute.type = gl::vertex_attribute_type::float_32;
+		position_attribute.components = 3;
+		attribute_offset += position_attribute.components * sizeof(float);
+		
+		// Define UV vertex attribute
+		gl::vertex_attribute uv_attribute;
+		uv_attribute.buffer = ctx->billboard_vbo;
+		uv_attribute.offset = attribute_offset;
+		uv_attribute.stride = billboard_vertex_stride;
+		uv_attribute.type = gl::vertex_attribute_type::float_32;
+		uv_attribute.components = 2;
+		attribute_offset += uv_attribute.components * sizeof(float);
+		
+		// Define barycentric vertex attribute
+		gl::vertex_attribute barycentric_attribute;
+		barycentric_attribute.buffer = ctx->billboard_vbo;
+		barycentric_attribute.offset = attribute_offset;
+		barycentric_attribute.stride = billboard_vertex_stride;
+		barycentric_attribute.type = gl::vertex_attribute_type::float_32;
+		barycentric_attribute.components = 3;
+		attribute_offset += barycentric_attribute.components * sizeof(float);
+			
+		// Bind vertex attributes to VAO
+		ctx->billboard_vao->bind(render::vertex_attribute::position, position_attribute);
+		ctx->billboard_vao->bind(render::vertex_attribute::uv, uv_attribute);
+		ctx->billboard_vao->bind(render::vertex_attribute::barycentric, barycentric_attribute);
 	}
 	
 	// Create renderer
@@ -841,7 +872,7 @@ void setup_systems(game::context* ctx)
 	ctx->painting_system = new entity::system::painting(*ctx->entity_registry, event_dispatcher, ctx->resource_manager);
 	ctx->painting_system->set_scene(ctx->surface_scene);
 	
-	// Setup solar system
+	// Setup orbit system
 	ctx->orbit_system = new entity::system::orbit(*ctx->entity_registry);
 	
 	// Setup blackbody system

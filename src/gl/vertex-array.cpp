@@ -20,6 +20,8 @@
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
 #include <glad/glad.h>
+#include <stdexcept>
+#include <string>
 
 namespace gl {
 
@@ -47,20 +49,51 @@ vertex_array::~vertex_array()
 	glDeleteVertexArrays(1, &gl_array_id);
 }
 
-void vertex_array::bind_attribute(unsigned int index, const vertex_buffer& buffer, int size, vertex_attribute_type type, int stride, std::size_t offset)
+void vertex_array::bind(attribute_location_type location, const vertex_attribute& attribute)
 {
-	GLenum gl_type = vertex_attribute_type_lut[static_cast<std::size_t>(type)];
-
+	if (attribute.buffer == nullptr)
+	{
+		throw std::invalid_argument("Cannot bind vertex attribute that has a null vertex buffer.");
+	}
+	
+	if (attribute.components < 1 || attribute.components > 4)
+	{
+		throw std::invalid_argument("Cannot bind vertex attribute that has an unsupported number of components (" + std::to_string(attribute.components) + ")");
+	}
+	
+	attributes[location] = attribute;
+	
+	GLenum gl_type = vertex_attribute_type_lut[static_cast<std::size_t>(attribute.type)];
 	glBindVertexArray(gl_array_id);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer.gl_buffer_id);
-	glVertexAttribPointer(index, size, gl_type, GL_FALSE, stride, (const GLvoid*)offset); 
-	glEnableVertexAttribArray(index);
+	glBindBuffer(GL_ARRAY_BUFFER, attribute.buffer->gl_buffer_id);
+	glVertexAttribPointer(
+		static_cast<GLuint>(location),
+		static_cast<GLint>(attribute.components),
+		gl_type,
+		GL_FALSE,
+		static_cast<GLsizei>(attribute.stride),
+		(const GLvoid*)attribute.offset); 
+	glEnableVertexAttribArray(static_cast<GLuint>(location));
 }
 
-void vertex_array::bind_elements(const vertex_buffer& buffer)
+void vertex_array::unbind(attribute_location_type location)
 {
-	glBindVertexArray(gl_array_id);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.gl_buffer_id);
+	if (auto it = attributes.find(location); it != attributes.end())
+	{
+		glBindVertexArray(gl_array_id);
+		glDisableVertexAttribArray(static_cast<GLuint>(location));
+		
+		attributes.erase(it);
+	}
+	else
+	{
+		throw std::invalid_argument("Non-existent vertex attribute cannot be unbound.");
+	}
+}
+
+const typename vertex_array::attribute_map_type& vertex_array::get_attributes() const
+{
+	return attributes;
 }
 
 } // namespace gl

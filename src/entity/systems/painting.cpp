@@ -31,8 +31,7 @@
 #include "entity/components/collision.hpp"
 #include "entity/components/transform.hpp"
 #include "gl/vertex-buffer.hpp"
-#include "gl/vertex-attribute-type.hpp"
-#include "renderer/vertex-attributes.hpp"
+#include "renderer/vertex-attribute.hpp"
 #include "geom/mesh-functions.hpp"
 #include <limits>
 
@@ -46,6 +45,7 @@ painting::painting(entity::registry& registry, ::event_dispatcher* event_dispatc
 	scene_collection(nullptr),
 	is_painting(false)
 {
+	/*
 	event_dispatcher->subscribe<tool_pressed_event>(this);
 	event_dispatcher->subscribe<tool_released_event>(this);
 	
@@ -67,7 +67,7 @@ painting::painting(entity::registry& registry, ::event_dispatcher* event_dispatc
 	
 	// Setup stroke vbo and vao
 	stroke_vbo = stroke_model->get_vertex_buffer();
-	stroke_vbo->repurpose(sizeof(float) * vertex_size * vertex_count, nullptr, gl::buffer_usage::dynamic_draw);
+	stroke_vbo->repurpose(gl::buffer_usage::dynamic_draw, sizeof(float) * vertex_size * vertex_count, nullptr);
 	stroke_model->get_vertex_array()->bind_attribute(VERTEX_POSITION_LOCATION, *stroke_vbo, 4, gl::vertex_attribute_type::float_32, vertex_stride, 0);
 	stroke_model->get_vertex_array()->bind_attribute(VERTEX_NORMAL_LOCATION, *stroke_vbo, 3, gl::vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 4);
 	stroke_model->get_vertex_array()->bind_attribute(VERTEX_TEXCOORD_LOCATION, *stroke_vbo, 2, gl::vertex_attribute_type::float_32, vertex_stride, sizeof(float) * 7);
@@ -86,12 +86,15 @@ painting::painting(entity::registry& registry, ::event_dispatcher* event_dispatc
 	stroke_bounds_max.z = -std::numeric_limits<float>::infinity();
 	
 	midstroke = false;
+	*/
 }
 
 painting::~painting()
 {
+	/*
 	event_dispatcher->unsubscribe<tool_pressed_event>(this);
 	event_dispatcher->unsubscribe<tool_released_event>(this);
+	*/
 }
 
 void painting::update(double t, double dt)
@@ -270,12 +273,15 @@ void painting::update(double t, double dt)
 
 void painting::set_scene(scene::collection* collection)
 {
+	/*
 	this->scene_collection = collection;
 	scene_collection->add_object(stroke_model_instance);
+	*/
 }
 
 void painting::handle_event(const tool_pressed_event& event)
 {
+	/*
 	if (registry.has<component::brush>(event.entity_id))
 	{
 		auto cast_result = cast_ray(event.position);
@@ -292,10 +298,12 @@ void painting::handle_event(const tool_pressed_event& event)
 			midstroke = false;
 		}
 	}
+	*/
 }
 
 void painting::handle_event(const tool_released_event& event)
 {
+	/*
 	if (registry.has<component::brush>(event.entity_id))
 	{
 		auto cast_result = cast_ray(command::get_world_transform(registry, event.entity_id).translation);
@@ -308,11 +316,13 @@ void painting::handle_event(const tool_released_event& event)
 		brush_entity = entt::null;
 		is_painting = false;
 	}
+	*/
 }
 
 std::optional<std::tuple<float3, float3>> painting::cast_ray(const float3& position) const
 {
 	std::optional<std::tuple<float3, float3>> result;
+	/*
 	
 	float3 intersection;
 	float3 surface_normal;
@@ -355,7 +365,7 @@ std::optional<std::tuple<float3, float3>> painting::cast_ray(const float3& posit
 		surface_normal = calculate_face_normal(*face);
 		result = std::make_tuple(intersection, surface_normal);
 	}
-	
+	*/
 	return result;
 }
 

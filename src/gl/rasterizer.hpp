@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GL_RASTERIZER_HPP
 #define ANTKEEPER_GL_RASTERIZER_HPP
 
-#include <cstdlib>
+#include <cstddef>
 
 namespace gl {
 

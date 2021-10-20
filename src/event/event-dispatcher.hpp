@@ -22,7 +22,7 @@
 
 #include "event.hpp"
 #include "event-handler.hpp"
-#include <cstdlib>
+#include <cstddef>
 #include <list>
 #include <map>
 

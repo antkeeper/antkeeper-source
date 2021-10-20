@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_IMAGE_HPP
 #define ANTKEEPER_IMAGE_HPP
 
-#include <cstdlib>
+#include <cstddef>
 
 /**
  * Stores basic image data.

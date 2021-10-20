@@ -25,6 +25,7 @@
 #include "scene/model-instance.hpp"
 #include "scene/billboard.hpp"
 #include "scene/lod-group.hpp"
+#include "scene/text.hpp"
 #include "renderer/model.hpp"
 #include "gl/drawing-mode.hpp"
 #include "math/math.hpp"
@@ -128,6 +129,8 @@ void renderer::process_object(render_context& context, const scene::object_base*
 		process_billboard(context, static_cast<const scene::billboard*>(object));
 	else if (type == scene::lod_group::object_type_id)
 		process_lod_group(context, static_cast<const scene::lod_group*>(object));
+	else if (type == scene::text::object_type_id)
+		process_text(context, static_cast<const scene::text*>(object));
 }
 
 void renderer::process_model_instance(render_context& context, const scene::model_instance* model_instance) const
@@ -219,4 +222,29 @@ void renderer::process_lod_group(render_context& context, const scene::lod_group
 	{
 		process_object(context, object);
 	}
+}
+
+void renderer::process_text(render_context& context, const scene::text* text) const
+{
+	// Get object culling volume
+	const geom::bounding_volume<float>* object_culling_volume = text->get_culling_mask();
+	if (!object_culling_volume)
+		object_culling_volume = &text->get_bounds();
+	
+	// Perform view-frustum culling
+	if (!context.camera_culling_volume->intersects(*object_culling_volume))
+		return;
+	
+	render_operation operation;
+	operation.material = text->get_material();
+	operation.pose = nullptr;
+	operation.vertex_array = text->get_vertex_array();
+	operation.drawing_mode = gl::drawing_mode::triangles;
+	operation.start_index = 0;
+	operation.index_count = text->get_vertex_count();
+	operation.transform = math::matrix_cast(text->get_transform_tween().interpolate(context.alpha));
+	operation.depth = context.clip_near.signed_distance(math::resize<3>(operation.transform[3]));
+	operation.instance_count = 0;
+
+	context.operations.push_back(operation);
 }

@@ -24,7 +24,7 @@
 #include "geom/plane.hpp"
 #include "geom/sphere.hpp"
 #include "geom/aabb.hpp"
-#include <cstdlib>
+#include <cstddef>
 #include <vector>
 
 namespace geom {

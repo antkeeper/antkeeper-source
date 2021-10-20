@@ -32,6 +32,7 @@ namespace scene
 	class model_instance;
 	class billboard;
 	class lod_group;
+	class text;
 }
 
 /*
@@ -71,6 +72,7 @@ private:
 	void process_model_instance(render_context& context, const scene::model_instance* model_instance) const;
 	void process_billboard(render_context& context, const scene::billboard* billboard) const;
 	void process_lod_group(render_context& context, const scene::lod_group* lod_group) const;
+	void process_text(render_context& context, const scene::text* text) const;
 
 	mutable render_operation billboard_op;
 };

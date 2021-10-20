@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_MATH_RANDOM_HPP
 #define ANTKEEPER_MATH_RANDOM_HPP
 
-#include <cstdlib>
+#include <cstddef>
 #include <type_traits>
 
 namespace math {

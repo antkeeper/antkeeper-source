@@ -21,7 +21,7 @@
 #define ANTKEEPER_GEOM_MORTON_HPP
 
 #include <array>
-#include <cstdlib>
+#include <cstddef>
 
 namespace geom {
 

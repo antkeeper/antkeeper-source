@@ -21,7 +21,7 @@
 #define ANTKEEPER_EVENT_HPP
 
 #include <atomic>
-#include <cstdlib>
+#include <cstddef>
 
 /**
  * Abstract base class for events.

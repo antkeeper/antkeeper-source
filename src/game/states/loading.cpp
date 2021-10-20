@@ -38,20 +38,27 @@
 #include "geom/spherical.hpp"
 #include "gl/drawing-mode.hpp"
 #include "gl/vertex-array.hpp"
-#include "gl/vertex-attribute-type.hpp"
+#include "gl/vertex-attribute.hpp"
 #include "gl/vertex-buffer.hpp"
 #include "physics/light/photometry.hpp"
 #include "physics/orbit/orbit.hpp"
 #include "renderer/material.hpp"
 #include "renderer/model.hpp"
 #include "renderer/passes/shadow-map-pass.hpp"
-#include "renderer/vertex-attributes.hpp"
+#include "renderer/vertex-attribute.hpp"
 #include "resources/resource-manager.hpp"
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
 #include "utility/timestamp.hpp"
 #include "type/type.hpp"
 #include <stb/stb_image_write.h>
+#include <unordered_set>
+#include <codecvt>
+
+#include "gl/texture-wrapping.hpp"
+#include "gl/texture-filter.hpp"
+#include "scene/text.hpp"
+#include "renderer/material-flags.hpp"
 
 namespace game {
 namespace state {
@@ -60,6 +67,7 @@ namespace loading {
 /// Loads control profile and calibrates gamepads
 static void load_controls(game::context* ctx);
 
+/// Loads typefaces and builds fonts
 static void load_fonts(game::context* ctx);
 
 /// Creates the universe and solar system.
@@ -237,35 +245,86 @@ void load_fonts(game::context* ctx)
 	if (auto it = ctx->strings->find("font_monospace"); it != ctx->strings->end())
 		ctx->typefaces["monospace"] = ctx->resource_manager->load<type::typeface>(it->second);
 	
+	// Build character set
+	std::unordered_set<char32_t> charset;
+	{
+		// Add all character codes from the basic Latin unicode block
+		for (char32_t code = type::unicode::block::basic_latin.first; code <= type::unicode::block::basic_latin.last; ++code)
+			charset.insert(code);
+		
+		// Add all character codes from game strings
+		for (auto it = ctx->strings->begin(); it != ctx->strings->end(); ++it)
+		{
+			// Convert UTF-8 string to UTF-32
+			std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
+			std::u32string u32 = convert.from_bytes(it->second);
+			
+			/// Insert each character code from the UTF-32 string into the character set
+			for (char32_t code: u32)
+				charset.insert(code);
+		}
+	}
+	
 	// Build bitmap fonts
-	if (auto it = ctx->typefaces.find("serif"); it != ctx->typefaces.end())
+	if (auto it = ctx->typefaces.find("sans_serif"); it != ctx->typefaces.end())
 	{
 		type::typeface* typeface = it->second;
-		type::bitmap_font font;
+		type::bitmap_font* font = new type::bitmap_font();
 		
-		const float size = 48.0f;
+		// Get font metrics
+		const float size = 28.0f;
 		if (type::font_metrics metrics; typeface->get_metrics(size, metrics))
-			font.set_font_metrics(metrics);
+			font->set_font_metrics(metrics);
 		
-		image& font_bitmap = font.get_bitmap();
+		// Format font bitmap
+		image& font_bitmap = font->get_bitmap();
 		font_bitmap.format(sizeof(unsigned char), 1);
 		
-		type::unicode::block block = type::unicode::block::basic_latin;
-		for (char32_t code = block.first; code <= block.last; ++code)
+		// For each UTF-32 character code in the character set
+		for (char32_t code: charset)
 		{
 			if (!typeface->has_glyph(code))
 				continue;
 			
-			type::bitmap_glyph& glyph = font[code];
+			type::bitmap_glyph& glyph = (*font)[code];
 			typeface->get_metrics(size, code, glyph.metrics);
 			typeface->get_bitmap(size, code, glyph.bitmap);
 		}
 		
-		font.pack();
+		// Pack glyph bitmaps into the font bitmap
+		font->pack();
 		
+		// Create font texture from bitmap
+		gl::texture_2d* font_texture = new gl::texture_2d(font_bitmap.get_width(), font_bitmap.get_height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.get_pixels());
+		font_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+		font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
+		
+		// Create font material
+		material* font_material = new material();
+		font_material->set_flags(MATERIAL_FLAG_TRANSLUCENT);
+		font_material->add_property<const gl::texture_2d*>("font_bitmap")->set_value(font_texture);
+		font_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("bitmap-font.glsl"));
+		
+		// Create text scene object
+		scene::text* text_object = new scene::text();
+		text_object->set_material(font_material);
+		text_object->set_font(font);
+		text_object->set_color({1.0f, 1.0f, 1.0f, 1.0f});
+		//text_object->set_content("Hello, World!");
+		
+		if (auto it = ctx->strings->find("continue"); it != ctx->strings->end())
+			text_object->set_content(it->second);
+		
+		// Add text object to UI scene
+		ctx->ui_scene->add_object(text_object);
+		
+		
+		/*
+		// Output font bitmap
 		std::string bitmap_path = ctx->config_path + "bitmap-font-serif.png";
 		stbi_flip_vertically_on_write(0);
 		stbi_write_png(bitmap_path.c_str(), font_bitmap.get_width(), font_bitmap.get_height(), font_bitmap.get_channel_count(), font_bitmap.get_pixels(), font_bitmap.get_width() * font_bitmap.get_channel_count());
+		*/
 	}
 }
 
@@ -484,19 +543,39 @@ void extrasolar_heliogenesis(game::context* ctx)
 	// Allocate stars model
 	model* stars_model = new model();
 	
-	// Resize model VBO and upload vertex data
+	// Get model VBO and VAO
 	gl::vertex_buffer* vbo = stars_model->get_vertex_buffer();
+	gl::vertex_array* vao = stars_model->get_vertex_array();
+	
+	// Resize model VBO and upload vertex data
 	vbo->resize(star_count * star_vertex_stride, star_vertex_data);
 	
 	// Free star catalog vertex data
 	delete[] star_vertex_data;
 	
-	// Bind vertex attributes to model VAO
-	gl::vertex_array* vao = stars_model->get_vertex_array();
-	std::size_t vao_offset = 0;
-	vao->bind_attribute(VERTEX_POSITION_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, star_vertex_stride, 0);
-	vao_offset += 3;
-	vao->bind_attribute(VERTEX_COLOR_LOCATION, *vbo, 4, gl::vertex_attribute_type::float_32, star_vertex_stride, sizeof(float) * vao_offset);
+	std::size_t attribute_offset = 0;
+	
+	// Define position vertex attribute
+	gl::vertex_attribute position_attribute;
+	position_attribute.buffer = vbo;
+	position_attribute.offset = attribute_offset;
+	position_attribute.stride = star_vertex_stride;
+	position_attribute.type = gl::vertex_attribute_type::float_32;
+	position_attribute.components = 3;
+	attribute_offset += position_attribute.components * sizeof(float);
+	
+	// Define color vertex attribute
+	gl::vertex_attribute color_attribute;
+	color_attribute.buffer = vbo;
+	color_attribute.offset = attribute_offset;
+	color_attribute.stride = star_vertex_stride;
+	color_attribute.type = gl::vertex_attribute_type::float_32;
+	color_attribute.components = 4;
+	attribute_offset += color_attribute.components * sizeof(float);
+	
+	// Bind vertex attributes to VAO
+	vao->bind(render::vertex_attribute::position, position_attribute);
+	vao->bind(render::vertex_attribute::color, color_attribute);
 	
 	// Load star material
 	material* star_material = ctx->resource_manager->load<material>("fixed-star.mtl");

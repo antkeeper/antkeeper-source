@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_DEBUG_PERFORMANCE_SAMPLER_HPP
 #define ANTKEEPER_DEBUG_PERFORMANCE_SAMPLER_HPP
 
-#include <cstdlib>
+#include <cstddef>
 #include <vector>
 
 namespace debug {

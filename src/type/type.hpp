@@ -29,6 +29,7 @@ namespace type {}
 #include "type/font-metrics.hpp"
 #include "type/glyph-metrics.hpp"
 #include "type/kerning-table.hpp"
+#include "type/text-direction.hpp"
 #include "type/unicode/unicode.hpp"
 
 #endif // ANTKEEPER_TYPE_HPP

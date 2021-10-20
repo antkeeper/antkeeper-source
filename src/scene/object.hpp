@@ -26,7 +26,7 @@
 #include "math/quaternion-type.hpp"
 #include "math/transform-type.hpp"
 #include <atomic>
-#include <cstdlib>
+#include <cstddef>
 
 namespace scene {
 

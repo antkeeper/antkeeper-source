@@ -24,12 +24,12 @@
 #include "gl/shader-input.hpp"
 #include "gl/vertex-buffer.hpp"
 #include "gl/vertex-array.hpp"
-#include "gl/vertex-attribute-type.hpp"
+#include "gl/vertex-attribute.hpp"
 #include "gl/drawing-mode.hpp"
 #include "gl/texture-2d.hpp"
 #include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
-#include "renderer/vertex-attributes.hpp"
+#include "renderer/vertex-attribute.hpp"
 #include "renderer/render-context.hpp"
 #include "renderer/material.hpp"
 #include "renderer/material-property.hpp"
@@ -64,7 +64,17 @@ simple_render_pass::simple_render_pass(gl::rasterizer* rasterizer, const gl::fra
 
 	quad_vbo = new gl::vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
 	quad_vao = new gl::vertex_array();
-	quad_vao->bind_attribute(VERTEX_POSITION_LOCATION, *quad_vbo, 3, gl::vertex_attribute_type::float_32, vertex_stride, 0);
+	
+	// Define position vertex attribute
+	gl::vertex_attribute position_attribute;
+	position_attribute.buffer = quad_vbo;
+	position_attribute.offset = 0;
+	position_attribute.stride = vertex_stride;
+	position_attribute.type = gl::vertex_attribute_type::float_32;
+	position_attribute.components = 3;
+	
+	// Bind vertex attributes to VAO
+	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 }
 
 simple_render_pass::~simple_render_pass()

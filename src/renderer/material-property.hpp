@@ -28,7 +28,7 @@
 #include "gl/shader-program.hpp"
 #include "gl/texture-2d.hpp"
 #include "gl/texture-cube.hpp"
-#include <cstdlib>
+#include <cstddef>
 
 class material;
 

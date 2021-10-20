@@ -24,8 +24,8 @@
 #include "renderer/model.hpp"
 #include "renderer/material.hpp"
 #include "geom/mesh-functions.hpp"
-#include "renderer/vertex-attributes.hpp"
-#include "gl/vertex-attribute-type.hpp"
+#include "renderer/vertex-attribute.hpp"
+#include "gl/vertex-attribute.hpp"
 #include "gl/drawing-mode.hpp"
 #include "gl/vertex-buffer.hpp"
 #include "resources/resource-manager.hpp"
@@ -219,16 +219,43 @@ subterrain::subterrain(entity::registry& registry, ::resource_manager* resource_
 	subterrain_model_vertex_size = 3 + 3 + 3;
 	subterrain_model_vertex_stride = subterrain_model_vertex_size * sizeof(float);
 	
-	// Bind vertex attributes
+	// Get model VBO and VAO
 	gl::vertex_buffer* vbo = subterrain_model->get_vertex_buffer();
 	gl::vertex_array* vao = subterrain_model->get_vertex_array();
-	std::size_t offset = 0;
-	vao->bind_attribute(VERTEX_POSITION_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, subterrain_model_vertex_stride, 0);
-	offset += 3;
-	vao->bind_attribute(VERTEX_NORMAL_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, subterrain_model_vertex_stride, sizeof(float) * offset);
-	offset += 3;
-	vao->bind_attribute(VERTEX_BARYCENTRIC_LOCATION, *vbo, 3, gl::vertex_attribute_type::float_32, subterrain_model_vertex_stride, sizeof(float) * offset);
-	offset += 3;
+	
+	std::size_t attribute_offset = 0;
+	
+	// Define position vertex attribute
+	gl::vertex_attribute position_attribute;
+	position_attribute.buffer = vbo;
+	position_attribute.offset = attribute_offset;
+	position_attribute.stride = subterrain_model_vertex_stride;
+	position_attribute.type = gl::vertex_attribute_type::float_32;
+	position_attribute.components = 3;
+	attribute_offset += position_attribute.components * sizeof(float);
+	
+	// Define normal vertex attribute
+	gl::vertex_attribute normal_attribute;
+	normal_attribute.buffer = vbo;
+	normal_attribute.offset = attribute_offset;
+	normal_attribute.stride = subterrain_model_vertex_stride;
+	normal_attribute.type = gl::vertex_attribute_type::float_32;
+	normal_attribute.components = 3;
+	attribute_offset += normal_attribute.components * sizeof(float);
+	
+	// Define barycentric vertex attribute
+	gl::vertex_attribute barycentric_attribute;
+	barycentric_attribute.buffer = vbo;
+	barycentric_attribute.offset = attribute_offset;
+	barycentric_attribute.stride = subterrain_model_vertex_stride;
+	barycentric_attribute.type = gl::vertex_attribute_type::float_32;
+	barycentric_attribute.components = 3;
+	attribute_offset += barycentric_attribute.components * sizeof(float);
+	
+	// Bind vertex attributes to VAO
+	vao->bind(render::vertex_attribute::position, position_attribute);
+	vao->bind(render::vertex_attribute::normal, normal_attribute);
+	vao->bind(render::vertex_attribute::barycentric, barycentric_attribute);
 
 	// Calculate adjusted bounds to fit isosurface resolution
 	//isosurface_resolution = 0.325f;

@@ -17,25 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GL_VERTEX_ATTRIBUTE_TYPE_HPP
-#define ANTKEEPER_GL_VERTEX_ATTRIBUTE_TYPE_HPP
+#ifndef ANTKEEPER_TYPE_TEXT_DIRECTION_HPP
+#define ANTKEEPER_TYPE_TEXT_DIRECTION_HPP
 
-namespace gl {
+namespace type {
 
-enum class vertex_attribute_type
+/**
+ * Text writing direction.
+ */
+enum class text_direction
 {
-	int_8,
-	uint_8,
-	int_16,
-	uint_16,
-	int_32,
-	uint_32,
-	float_16,
-	float_32,
-	float_64
+	/// Text is written from left to right.
+	ltr,
+	
+	/// Text is written from right to left.
+	rtl
 };
 
-} // namespace gl
+} // namespace type
 
-#endif // ANTKEEPER_GL_VERTEX_ATTRIBUTE_TYPE_HPP
-
+#endif // ANTKEEPER_TYPE_TEXT_DIRECTION_HPP

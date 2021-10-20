@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_RESOURCE_HANDLE_HPP
 #define ANTKEEPER_RESOURCE_HANDLE_HPP
 
-#include <cstdlib>
+#include <cstddef>
 
 /**
  * Base class for resource handles.

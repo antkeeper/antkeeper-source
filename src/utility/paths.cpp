@@ -18,7 +18,7 @@
  */
 
 #include "paths.hpp"
-#include <cstdlib>
+#include <cstddef>
 #include <limits.h>
 #include <stdexcept>
 

@@ -20,8 +20,8 @@
 #include "resources/resource-loader.hpp"
 #include "resources/resource-manager.hpp"
 #include "renderer/model.hpp"
-#include "renderer/vertex-attributes.hpp"
-#include "gl/vertex-attribute-type.hpp"
+#include "renderer/vertex-attribute.hpp"
+#include "gl/vertex-attribute.hpp"
 #include "gl/drawing-mode.hpp"
 #include "utility/fundamental-types.hpp"
 #include <sstream>
@@ -471,28 +471,37 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	// Map attribute names to locations
 	static const std::unordered_map<std::string, unsigned int> attribute_location_map =
 	{
-		{"position", VERTEX_POSITION_LOCATION},
-		{"texcoord", VERTEX_TEXCOORD_LOCATION},
-		{"normal", VERTEX_NORMAL_LOCATION},
-		{"tangent", VERTEX_TANGENT_LOCATION},
-		{"color", VERTEX_COLOR_LOCATION},
-		{"bone_index", VERTEX_BONE_INDEX_LOCATION},
-		{"bone_weight", VERTEX_BONE_WEIGHT_LOCATION},
-		{"barycentric", VERTEX_BARYCENTRIC_LOCATION}
+		{"position", render::vertex_attribute::position},
+		{"texcoord", render::vertex_attribute::uv},
+		{"normal", render::vertex_attribute::normal},
+		{"tangent", render::vertex_attribute::tangent},
+		{"color", render::vertex_attribute::color},
+		{"bone_index", render::vertex_attribute::bone_index},
+		{"bone_weight", render::vertex_attribute::bone_weight},
+		{"barycentric", render::vertex_attribute::barycentric},
+		{"target", render::vertex_attribute::target}
 	};
 	
 	// Bind attributes to VAO
 	gl::vertex_array* vao = model->get_vertex_array();
-	std::size_t offset = 0;
+	std::size_t attribute_offset = 0;
 	for (auto attribute_it = attributes.begin(); attribute_it != attributes.end(); ++attribute_it)
 	{
 		std::string attribute_name = attribute_it->first;
-		std::size_t attribute_size = std::get<0>(attribute_it->second);
 		
 		if (auto location_it = attribute_location_map.find(attribute_name); location_it != attribute_location_map.end())
-			vao->bind_attribute(location_it->second, *vbo, attribute_size, gl::vertex_attribute_type::float_32, vertex_stride, offset);
-		
-		offset += attribute_size * sizeof(float);
+		{
+			gl::vertex_attribute attribute;
+			attribute.buffer = vbo;
+			attribute.offset = attribute_offset;
+			attribute.stride = vertex_stride;
+			attribute.type = gl::vertex_attribute_type::float_32;
+			attribute.components = std::get<0>(attribute_it->second);
+			
+			vao->bind(location_it->second, attribute);
+			
+			attribute_offset += attribute.components * sizeof(float);
+		}
 	}
 	
 	// Load materials
