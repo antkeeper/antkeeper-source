@@ -37,9 +37,7 @@ class ui_pass: public render_pass
 public:
 	ui_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~ui_pass();
-	virtual void render(render_context* context) const final;
-
-	void set_time(float time);
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
 
 private:
 	/**
@@ -54,7 +52,6 @@ private:
 	const parameter_set* load_parameter_set(const gl::shader_program* program) const;
 
 	mutable std::unordered_map<const gl::shader_program*, parameter_set*> parameter_sets;
-	float time;
 };
 
 #endif // ANTKEEPER_UI_PASS_HPP

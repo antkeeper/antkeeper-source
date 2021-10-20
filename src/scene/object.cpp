@@ -49,6 +49,9 @@ std::size_t object_base::next_object_type_id()
 	return id++;
 }
 
+void object_base::render(const render::context& ctx, render::queue& queue) const
+{}
+
 void object_base::update_tweens()
 {
 	transform.update();

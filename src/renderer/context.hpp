@@ -20,27 +20,55 @@
 #ifndef ANTKEEPER_RENDER_CONTEXT_HPP
 #define ANTKEEPER_RENDER_CONTEXT_HPP
 
-#include "renderer/render-operation.hpp"
 #include "geom/plane.hpp"
 #include "geom/bounding-volume.hpp"
 #include "utility/fundamental-types.hpp"
-#include "scene/camera.hpp"
-#include "scene/collection.hpp"
 #include <list>
 
-struct render_context
+namespace scene
 {
+	class camera;
+	class collection;
+}
+
+namespace render {
+
+/**
+ * Context of a renderer.
+ */
+struct context
+{
+	/// Pointer to the camera.
 	const scene::camera* camera;
+	
+	/// Camera transform.
 	math::transform<float> camera_transform;
+	
+	/// Camera forward vector
 	float3 camera_forward;
+	
+	/// Camera up vector.
 	float3 camera_up;
+	
+	/// Camera culling volume.
 	const geom::bounding_volume<float>* camera_culling_volume;
+	
+	/// Near clipping plane of the camera
 	geom::plane<float> clip_near;
 	
+	/// Collection of scene objects being rendered.
 	const scene::collection* collection;
-	std::list<render_operation> operations;
+	
+	/// Current time, in seconds.
+	float t;
+	
+	/// Timestep, in seconds.
+	float dt;
+	
+	/// Subframe interpolation factor.
 	float alpha;
 };
 
-#endif // ANTKEEPER_RENDER_CONTEXT_HPP
+} // namespace render
 
+#endif // ANTKEEPER_RENDER_CONTEXT_HPP

@@ -35,7 +35,7 @@ class outline_pass: public render_pass
 public:
 	outline_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~outline_pass();
-	virtual void render(render_context* context) const final;
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
 	
 	void set_outline_width(float width);
 	void set_outline_color(const float4& color);

@@ -31,7 +31,7 @@
 #include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
 #include "renderer/vertex-attribute.hpp"
-#include "renderer/render-context.hpp"
+#include "renderer/context.hpp"
 #include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
@@ -41,8 +41,7 @@ final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	color_texture(nullptr),
 	bloom_texture(nullptr),
 	blue_noise_texture(nullptr),
-	blue_noise_scale(1.0),
-	time_tween(nullptr)
+	blue_noise_scale(1.0)
 {
 	shader_program = resource_manager->load<gl::shader_program>("final.glsl");
 	color_texture_input = shader_program->get_input("color_texture");
@@ -87,7 +86,7 @@ final_pass::~final_pass()
 	delete quad_vbo;
 }
 
-void final_pass::render(render_context* context) const
+void final_pass::render(const render::context& ctx, render::queue& queue) const
 {
 	rasterizer->use_framebuffer(*framebuffer);
 	
@@ -101,7 +100,6 @@ void final_pass::render(render_context* context) const
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
 	float2 resolution = {std::get<0>(viewport), std::get<1>(viewport)};
-	float time = (time_tween) ? (*time_tween)[context->alpha] : 0.0f;
 
 	// Change shader program
 	rasterizer->use_program(*shader_program);
@@ -117,7 +115,7 @@ void final_pass::render(render_context* context) const
 	if (resolution_input)
 		resolution_input->upload(resolution);
 	if (time_input)
-		time_input->upload(time);
+		time_input->upload(ctx.t);
 
 	// Draw quad
 	rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
@@ -137,9 +135,4 @@ void final_pass::set_blue_noise_texture(const gl::texture_2d* texture)
 {
 	this->blue_noise_texture = texture;
 	blue_noise_scale = 1.0f / static_cast<float>(texture->get_dimensions()[0]);
-}
-
-void final_pass::set_time_tween(const tween<double>* time)
-{
-	this->time_tween = time;
 }

@@ -48,12 +48,11 @@ class sky_pass: public render_pass,
 public:
 	sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~sky_pass();
-	virtual void render(render_context* context) const final;
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
 	
 	void update_tweens();
 	
 	void set_sky_model(const model* model);
-	void set_time_tween(const tween<double>* time);
 	void set_moon_model(const model* model);
 	void set_stars_model(const model* model);
 	void set_clouds_model(const model* model);
@@ -139,7 +138,6 @@ private:
 	const gl::texture_2d* sky_gradient2;
 	float2 mouse_position;
 	
-	const tween<double>* time_tween;
 	tween<float> observer_altitude_tween;
 	tween<float3> sun_position_tween;
 	tween<float3> sun_color_outer_tween;

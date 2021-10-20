@@ -20,10 +20,11 @@
 #ifndef ANTKEEPER_COMPOSITOR_HPP
 #define ANTKEEPER_COMPOSITOR_HPP
 
+#include "renderer/context.hpp"
+#include "renderer/queue.hpp"
 #include <list>
 
 class render_pass;
-struct render_context;
 
 /**
  * 
@@ -35,7 +36,7 @@ public:
 	void remove_pass(render_pass* pass);
 	void remove_passes();
 
-	void composite(render_context* context) const;
+	void composite(const render::context& ctx, render::queue& queue) const;
 
 	const std::list<render_pass*>* get_passes() const;
 

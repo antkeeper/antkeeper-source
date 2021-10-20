@@ -31,7 +31,7 @@ class clear_pass: public render_pass
 public:
 	clear_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer);
 	virtual ~clear_pass();
-	virtual void render(render_context* context) const final;
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
 	
 	void set_cleared_buffers(bool color, bool depth, bool stencil);
 	

@@ -28,10 +28,12 @@
 class pose;
 class material;
 
+namespace render {
+
 /**
- * Describes a render operation with a single mesh and single material.
+ * Encapsulates an atomic render operation.
  */
-struct render_operation
+struct operation
 {
 	const pose* pose;
 	const material* material;
@@ -44,5 +46,6 @@ struct render_operation
 	std::size_t instance_count;
 };
 
-#endif // ANTKEEPER_RENDER_OPERATION_HPP
+} // namespace render
 
+#endif // ANTKEEPER_RENDER_OPERATION_HPP

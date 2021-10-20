@@ -32,7 +32,7 @@
 #include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
 #include "renderer/vertex-attribute.hpp"
-#include "renderer/render-context.hpp"
+#include "renderer/context.hpp"
 #include "renderer/model.hpp"
 #include "renderer/material.hpp"
 #include "scene/camera.hpp"
@@ -68,7 +68,6 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	clouds_model_vao(nullptr),
 	cloud_material(nullptr),
 	cloud_shader_program(nullptr),
-	time_tween(nullptr),
 	observer_altitude_tween(0.0f, math::lerp<float, float>),
 	sun_position_tween(float3{1.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
 	sun_color_outer_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
@@ -80,7 +79,7 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 sky_pass::~sky_pass()
 {}
 
-void sky_pass::render(render_context* context) const
+void sky_pass::render(const render::context& ctx, render::queue& queue) const
 {
 	rasterizer->use_framebuffer(*framebuffer);
 	
@@ -93,38 +92,37 @@ void sky_pass::render(render_context* context) const
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
-	float time = static_cast<float>((*time_tween)[context->alpha]);
 	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
-	const scene::camera& camera = *context->camera;
-	float clip_near = camera.get_clip_near_tween().interpolate(context->alpha);
-	float clip_far = camera.get_clip_far_tween().interpolate(context->alpha);
+	const scene::camera& camera = *ctx.camera;
+	float clip_near = camera.get_clip_near_tween().interpolate(ctx.alpha);
+	float clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
 	float3 model_scale = float3{1.0f, 1.0f, 1.0f} * (clip_near + clip_far) * 0.5f;
 	float4x4 model = math::scale(math::identity4x4<float>, model_scale);
-	float4x4 view = math::resize<4, 4>(math::resize<3, 3>(camera.get_view_tween().interpolate(context->alpha)));
+	float4x4 view = math::resize<4, 4>(math::resize<3, 3>(camera.get_view_tween().interpolate(ctx.alpha)));
 	float4x4 model_view = view * model;
-	float4x4 projection = camera.get_projection_tween().interpolate(context->alpha);
+	float4x4 projection = camera.get_projection_tween().interpolate(ctx.alpha);
 	float4x4 view_projection = projection * view;
 	float4x4 model_view_projection = projection * model_view;
-	float exposure = std::exp2(camera.get_exposure_tween().interpolate(context->alpha));
+	float exposure = std::exp2(camera.get_exposure_tween().interpolate(ctx.alpha));
 	
 	// Interpolate observer altitude
-	float observer_altitude = observer_altitude_tween.interpolate(context->alpha);
+	float observer_altitude = observer_altitude_tween.interpolate(ctx.alpha);
 	
 	// Construct tweened inertial to topocentric frame
 	physics::frame<float> topocentric_frame =
 	{
-		topocentric_frame_translation.interpolate(context->alpha),
-		topocentric_frame_rotation.interpolate(context->alpha)
+		topocentric_frame_translation.interpolate(ctx.alpha),
+		topocentric_frame_rotation.interpolate(ctx.alpha)
 	};
 	
 	// Get topocentric space direction to sun
-	float3 sun_position = sun_position_tween.interpolate(context->alpha);
+	float3 sun_position = sun_position_tween.interpolate(ctx.alpha);
 	float3 sun_direction = math::normalize(sun_position);
 	
 	// Interpolate sun color
-	float3 sun_color_outer = sun_color_outer_tween.interpolate(context->alpha);
-	float3 sun_color_inner = sun_color_inner_tween.interpolate(context->alpha);
+	float3 sun_color_outer = sun_color_outer_tween.interpolate(ctx.alpha);
+	float3 sun_color_inner = sun_color_inner_tween.interpolate(ctx.alpha);
 	
 	// Draw atmosphere
 	if (sky_model)
@@ -139,7 +137,7 @@ void sky_pass::render(render_context* context) const
 		if (resolution_input)
 			resolution_input->upload(resolution);
 		if (time_input)
-			time_input->upload(time);
+			time_input->upload(ctx.t);
 		if (exposure_input)
 			exposure_input->upload(exposure);
 		
@@ -162,7 +160,7 @@ void sky_pass::render(render_context* context) const
 		if (atmosphere_radii_input)
 			atmosphere_radii_input->upload(atmosphere_radii);
 		
-		sky_material->upload(context->alpha);
+		sky_material->upload(ctx.alpha);
 
 		rasterizer->draw_arrays(*sky_model_vao, sky_model_drawing_mode, sky_model_start_index, sky_model_index_count);
 	}
@@ -179,11 +177,11 @@ void sky_pass::render(render_context* context) const
 		if (cloud_sun_color_input)
 			cloud_sun_color_input->upload(sun_color_inner);
 		if (cloud_camera_position_input)
-			cloud_camera_position_input->upload(context->camera_transform.translation);
+			cloud_camera_position_input->upload(ctx.camera_transform.translation);
 		if (cloud_camera_exposure_input)
 			cloud_camera_exposure_input->upload(exposure);
 		
-		cloud_material->upload(context->alpha);
+		cloud_material->upload(ctx.alpha);
 
 		rasterizer->draw_arrays(*clouds_model_vao, clouds_model_drawing_mode, clouds_model_start_index, clouds_model_index_count);
 	}
@@ -212,7 +210,7 @@ void sky_pass::render(render_context* context) const
 		if (star_exposure_input)
 			star_exposure_input->upload(exposure);
 		
-		star_material->upload(context->alpha);
+		star_material->upload(ctx.alpha);
 		
 		rasterizer->draw_arrays(*stars_model_vao, stars_model_drawing_mode, stars_model_start_index, stars_model_index_count);
 	}
@@ -246,7 +244,7 @@ void sky_pass::render(render_context* context) const
 			moon_moon_position_input->upload(moon_position);
 		if (moon_sun_position_input)
 			moon_sun_position_input->upload(sun_position);
-		moon_material->upload(context->alpha);
+		moon_material->upload(ctx.alpha);
 		rasterizer->draw_arrays(*moon_model_vao, moon_model_drawing_mode, moon_model_start_index, moon_model_index_count);
 	}
 	*/
@@ -418,11 +416,6 @@ void sky_pass::update_tweens()
 	sun_color_inner_tween.update();
 	topocentric_frame_translation.update();
 	topocentric_frame_rotation.update();
-}
-
-void sky_pass::set_time_tween(const tween<double>* time)
-{
-	this->time_tween = time;
 }
 
 void sky_pass::set_topocentric_frame(const physics::frame<float>& frame)

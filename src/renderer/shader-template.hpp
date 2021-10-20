@@ -35,7 +35,7 @@
  * * `#pragma vertex`: Replaced with `#define __VERTEX__` when generating vertex shader objects.
  * * `#pragma fragment`: Replaced with `#define __FRAGMENT__` when generating fragment shader objects.
  * * `#pragma geometry`: Replaced with `#define __GEOMETRY__` when generating geometry shader objects.
- * * `#pragma define <key> <value>`: Will be replaced with `#define <key> <value>` if its definition is passed to the shader template.
+ * * `#pragma define <key>`: Will be replaced with `#define <key> <value>` if its definition is passed to the shader template.
  *
  * @see gl::shader_stage
  * @see gl::shader_object

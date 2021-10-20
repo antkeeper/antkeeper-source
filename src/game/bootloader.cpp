@@ -766,10 +766,6 @@ void setup_animation(game::context* ctx)
 	// Setup animator
 	ctx->animator = new animator();
 	
-	// Initialize time tween
-	ctx->time_tween = new tween<double>(0.0);
-	ctx->time_tween->set_interpolator(math::lerp<double, double>);
-	
 	// Create fade transition
 	ctx->fade_transition = new screen_transition();
 	ctx->fade_transition->get_material()->set_shader_program(ctx->resource_manager->load<gl::shader_program>("fade-transition.glsl"));
@@ -799,13 +795,6 @@ void setup_animation(game::context* ctx)
 		channel->insert_keyframe({0.0f, 1.0f});
 		channel->insert_keyframe({duration, 0.0f});
 	}
-	
-	// Set material pass tweens
-	ctx->common_final_pass->set_time_tween(ctx->time_tween);
-	ctx->surface_sky_pass->set_time_tween(ctx->time_tween);
-	ctx->surface_material_pass->set_time_tween(ctx->time_tween);
-	ctx->underground_material_pass->set_time_tween(ctx->time_tween);
-	ctx->ui_material_pass->set_time_tween(ctx->time_tween);
 }
 
 void setup_entities(game::context* ctx)
@@ -969,14 +958,10 @@ void setup_callbacks(game::context* ctx)
 			);
 			
 			// Update tweens
-			ctx->time_tween->update();
 			ctx->surface_sky_pass->update_tweens();
 			ctx->surface_scene->update_tweens();
 			ctx->underground_scene->update_tweens();
 			ctx->ui_scene->update_tweens();
-			
-			// Set time tween time
-			(*ctx->time_tween)[1] = t;
 			
 			ctx->timeline->advance(dt);
 			

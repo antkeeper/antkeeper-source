@@ -35,7 +35,7 @@ clear_pass::clear_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 clear_pass::~clear_pass()
 {}
 
-void clear_pass::render(render_context* context) const
+void clear_pass::render(const render::context& ctx, render::queue& queue) const
 {
 	if (clear_color_buffer)
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);

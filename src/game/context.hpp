@@ -202,7 +202,6 @@ struct context
 	// Animation
 	timeline* timeline;
 	animator* animator;
-	tween<double>* time_tween;
 	animation<float>* radial_transition_in;
 	animation<float>* radial_transition_out;
 	screen_transition* fade_transition;

@@ -30,7 +30,7 @@
 #include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
 #include "renderer/vertex-attribute.hpp"
-#include "renderer/render-context.hpp"
+#include "renderer/context.hpp"
 #include "renderer/material.hpp"
 #include "renderer/material-property.hpp"
 #include "math/math.hpp"
@@ -38,8 +38,7 @@
 
 simple_render_pass::simple_render_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, gl::shader_program* shader_program):
 	render_pass(rasterizer, framebuffer),
-	shader_program(shader_program),
-	time_tween(nullptr)
+	shader_program(shader_program)
 {
 	// Create material
 	material = new ::material(shader_program);
@@ -84,7 +83,7 @@ simple_render_pass::~simple_render_pass()
 	delete quad_vbo;
 }
 
-void simple_render_pass::render(render_context* context) const
+void simple_render_pass::render(const render::context& ctx, render::queue& queue) const
 {
 	// Bind framebuffer
 	rasterizer->use_framebuffer(*framebuffer);
@@ -103,21 +102,13 @@ void simple_render_pass::render(render_context* context) const
 	// Change shader program
 	rasterizer->use_program(*shader_program);
 	
-	// Get interpolated time
-	float time = (time_tween) ? time_tween->interpolate(context->alpha) : 0.0f;
-	
 	// Update material properties
-	time_property->set_value(time);
+	time_property->set_value(ctx.t);
 	resolution_property->set_value({static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))});
 	
 	// Upload material properties
-	material->upload(context->alpha);
+	material->upload(ctx.alpha);
 
 	// Draw quad
 	rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
-}
-
-void simple_render_pass::set_time_tween(const tween<double>* time)
-{
-	this->time_tween = time;
 }

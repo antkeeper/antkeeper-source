@@ -36,7 +36,7 @@ class shadow_map_pass: public render_pass
 public:
 	shadow_map_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~shadow_map_pass();
-	virtual void render(render_context* context) const final;
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
 	
 	/**
 	 * Sets the linear interpolation weight between uniform and logarithmic frustum-splitting schemes.

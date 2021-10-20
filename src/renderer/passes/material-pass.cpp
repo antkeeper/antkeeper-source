@@ -34,7 +34,7 @@
 #include "renderer/vertex-attribute.hpp"
 #include "renderer/material-flags.hpp"
 #include "renderer/model.hpp"
-#include "renderer/render-context.hpp"
+#include "renderer/context.hpp"
 #include "scene/camera.hpp"
 #include "scene/collection.hpp"
 #include "scene/ambient-light.hpp"
@@ -48,12 +48,11 @@
 
 #include "shadow-map-pass.hpp"
 
-static bool operation_compare(const render_operation& a, const render_operation& b);
+static bool operation_compare(const render::operation& a, const render::operation& b);
 
 material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	render_pass(rasterizer, framebuffer),
 	fallback_material(nullptr),
-	time_tween(nullptr),
 	mouse_position({0.0f, 0.0f}),
 	shadow_map_pass(nullptr),
 	shadow_map(nullptr)
@@ -98,7 +97,7 @@ material_pass::~material_pass()
 	delete[] spot_light_cutoffs;
 }
 
-void material_pass::render(render_context* context) const
+void material_pass::render(const render::context& ctx, render::queue& queue) const
 {
 	rasterizer->use_framebuffer(*framebuffer);
 	
@@ -119,10 +118,9 @@ void material_pass::render(render_context* context) const
 	
 	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
-	float time = time_tween->interpolate(context->alpha);
-	const float3& camera_position = context->camera_transform.translation;
-	float4x4 view = context->camera->get_view_tween().interpolate(context->alpha);
-	float4x4 projection = context->camera->get_projection_tween().interpolate(context->alpha);
+	const float3& camera_position = ctx.camera_transform.translation;
+	float4x4 view = ctx.camera->get_view_tween().interpolate(ctx.alpha);
+	float4x4 projection = ctx.camera->get_projection_tween().interpolate(ctx.alpha);
 	float4x4 view_projection = projection * view;
 	float4x4 model_view_projection;
 	float4x4 model;
@@ -130,11 +128,11 @@ void material_pass::render(render_context* context) const
 	float3x3 normal_model;
 	float3x3 normal_model_view;
 	float2 clip_depth;
-	clip_depth[0] = context->camera->get_clip_near_tween().interpolate(context->alpha);
-	clip_depth[1] = context->camera->get_clip_far_tween().interpolate(context->alpha);
+	clip_depth[0] = ctx.camera->get_clip_near_tween().interpolate(ctx.alpha);
+	clip_depth[1] = ctx.camera->get_clip_far_tween().interpolate(ctx.alpha);
 	float log_depth_coef = 2.0f / std::log2(clip_depth[1] + 1.0f);
 	
-	float camera_exposure = std::exp2(context->camera->get_exposure_tween().interpolate(context->alpha));
+	float camera_exposure = std::exp2(ctx.camera->get_exposure_tween().interpolate(ctx.alpha));
 
 
 	int active_material_flags = 0;
@@ -149,7 +147,7 @@ void material_pass::render(render_context* context) const
 	spot_light_count = 0;
 	
 	// Collect lights
-	const std::list<scene::object_base*>* lights = context->collection->get_objects(scene::light::object_type_id);
+	const std::list<scene::object_base*>* lights = ctx.collection->get_objects(scene::light::object_type_id);
 	for (const scene::object_base* object: *lights)
 	{
 		// Skip inactive lights
@@ -165,7 +163,7 @@ void material_pass::render(render_context* context) const
 				if (ambient_light_count < max_ambient_light_count)
 				{
 					// Pre-expose light
-					ambient_light_colors[ambient_light_count] = light->get_scaled_color_tween().interpolate(context->alpha) * camera_exposure;
+					ambient_light_colors[ambient_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * camera_exposure;
 					++ambient_light_count;
 				}
 				break;
@@ -177,12 +175,12 @@ void material_pass::render(render_context* context) const
 				if (point_light_count < max_point_light_count)
 				{
 					// Pre-expose light
-					point_light_colors[point_light_count] = light->get_scaled_color_tween().interpolate(context->alpha) * camera_exposure;
+					point_light_colors[point_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * camera_exposure;
 					
-					float3 position = light->get_transform_tween().interpolate(context->alpha).translation;
+					float3 position = light->get_transform_tween().interpolate(ctx.alpha).translation;
 					point_light_positions[point_light_count] = position;
 					
-					point_light_attenuations[point_light_count] = static_cast<const scene::point_light*>(light)->get_attenuation_tween().interpolate(context->alpha);
+					point_light_attenuations[point_light_count] = static_cast<const scene::point_light*>(light)->get_attenuation_tween().interpolate(ctx.alpha);
 					++point_light_count;
 				}
 				break;
@@ -196,23 +194,23 @@ void material_pass::render(render_context* context) const
 					const scene::directional_light* directional_light = static_cast<const scene::directional_light*>(light);
 
 					// Pre-expose light
-					directional_light_colors[directional_light_count] = light->get_scaled_color_tween().interpolate(context->alpha) * camera_exposure;
+					directional_light_colors[directional_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * camera_exposure;
 					
-					float3 direction = static_cast<const scene::directional_light*>(light)->get_direction_tween().interpolate(context->alpha);
+					float3 direction = static_cast<const scene::directional_light*>(light)->get_direction_tween().interpolate(ctx.alpha);
 					directional_light_directions[directional_light_count] = direction;
 					
 					
 					if (directional_light->get_light_texture())
 					{
 						directional_light_textures[directional_light_count] = directional_light->get_light_texture();
-						directional_light_texture_opacities[directional_light_count] = directional_light->get_light_texture_opacity_tween().interpolate(context->alpha);
+						directional_light_texture_opacities[directional_light_count] = directional_light->get_light_texture_opacity_tween().interpolate(ctx.alpha);
 						
-						math::transform<float> light_transform = light->get_transform_tween().interpolate(context->alpha);
+						math::transform<float> light_transform = light->get_transform_tween().interpolate(ctx.alpha);
 						float3 forward = light_transform.rotation * global_forward;
 						float3 up = light_transform.rotation * global_up;
 						float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
 						
-						float2 scale = directional_light->get_light_texture_scale_tween().interpolate(context->alpha);
+						float2 scale = directional_light->get_light_texture_scale_tween().interpolate(ctx.alpha);
 						float4x4 light_projection = math::ortho(-scale.x, scale.x, -scale.y, scale.y, -1.0f, 1.0f);
 						
 						directional_light_texture_matrices[directional_light_count] = light_projection * light_view;
@@ -236,16 +234,16 @@ void material_pass::render(render_context* context) const
 					const scene::spot_light* spot_light = static_cast<const scene::spot_light*>(light);
 
 					// Pre-expose light
-					spot_light_colors[spot_light_count] = light->get_scaled_color_tween().interpolate(context->alpha) * camera_exposure;
+					spot_light_colors[spot_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * camera_exposure;
 					
-					float3 position = light->get_transform_tween().interpolate(context->alpha).translation;
+					float3 position = light->get_transform_tween().interpolate(ctx.alpha).translation;
 					spot_light_positions[spot_light_count] = position;
 					
-					float3 direction = spot_light->get_direction_tween().interpolate(context->alpha);
+					float3 direction = spot_light->get_direction_tween().interpolate(ctx.alpha);
 					spot_light_directions[spot_light_count] = direction;
 					
-					spot_light_attenuations[spot_light_count] = spot_light->get_attenuation_tween().interpolate(context->alpha);
-					spot_light_cutoffs[spot_light_count] = spot_light->get_cosine_cutoff_tween().interpolate(context->alpha);
+					spot_light_attenuations[spot_light_count] = spot_light->get_attenuation_tween().interpolate(ctx.alpha);
+					spot_light_cutoffs[spot_light_count] = spot_light->get_cosine_cutoff_tween().interpolate(ctx.alpha);
 					
 					++spot_light_count;
 				}
@@ -270,10 +268,10 @@ void material_pass::render(render_context* context) const
 			shadow_splits_directional[i] = shadow_map_pass->get_split_distances()[i + 1];
 	}
 	
-	// Sort render operations
-	context->operations.sort(operation_compare);
+	// Sort render queue
+	queue.sort(operation_compare);
 
-	for (const render_operation& operation: context->operations)
+	for (const render::operation& operation: queue)
 	{
 		// Get operation material
 		const ::material* material = operation.material;
@@ -439,7 +437,7 @@ void material_pass::render(render_context* context) const
 
 				// Upload context-dependent shader parameters
 				if (parameters->time)
-					parameters->time->upload(time);
+					parameters->time->upload(ctx.t);
 				if (parameters->mouse)
 					parameters->mouse->upload(mouse_position);
 				if (parameters->resolution)
@@ -500,7 +498,7 @@ void material_pass::render(render_context* context) const
 			}
 			
 			// Upload material properties to shader
-			active_material->upload(context->alpha);
+			active_material->upload(ctx.alpha);
 		}
 
 		// Calculate operation-dependent parameters
@@ -537,11 +535,6 @@ void material_pass::render(render_context* context) const
 void material_pass::set_fallback_material(const material* fallback)
 {
 	this->fallback_material = fallback;
-}
-
-void material_pass::set_time_tween(const tween<double>* time)
-{
-	this->time_tween = time;
 }
 
 const material_pass::parameter_set* material_pass::load_parameter_set(const gl::shader_program* program) const
@@ -598,7 +591,7 @@ void material_pass::handle_event(const mouse_moved_event& event)
 	mouse_position = {static_cast<float>(event.x), static_cast<float>(event.y)};
 }
 
-bool operation_compare(const render_operation& a, const render_operation& b)
+bool operation_compare(const render::operation& a, const render::operation& b)
 {
 	if (!a.material)
 		return false;

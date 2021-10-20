@@ -45,6 +45,14 @@ public:
 	/// Destructs a text object.
 	~text();
 	
+	/// @copydoc scene::object_base::render(const render::context&, render::queue&) const
+	virtual void render(const render::context& ctx, render::queue& queue) const;
+	
+	/**
+	 * Manually updates the text object if its font has been updated or altered in any way.
+	 */
+	void refresh();
+	
 	/**
 	 * Sets the text material.
 	 *
@@ -97,15 +105,6 @@ public:
 	/// Returns the text color.
 	const float4& get_color() const;
 	
-	/// Returns the text vertex array.
-	const gl::vertex_array* get_vertex_array() const;
-	
-	/// Returns the text vertex buffer.
-	const gl::vertex_buffer* get_vertex_buffer() const;
-	
-	/// Returns the number of vertices.
-	std::size_t get_vertex_count() const;
-	
 	/// @copydoc scene::object::get_bounds() const
 	virtual const bounding_volume_type& get_bounds() const;
 	
@@ -118,6 +117,7 @@ private:
 	
 	virtual void transformed();
 	
+	mutable render::operation render_op;
 	aabb_type local_bounds;
 	aabb_type world_bounds;
 	material* material;
@@ -156,21 +156,6 @@ inline const std::string& text::get_content() const
 inline const float4& text::get_color() const
 {
 	return color;
-}
-
-inline const gl::vertex_array* text::get_vertex_array() const
-{
-	return vao;
-}
-	
-inline const gl::vertex_buffer* text::get_vertex_buffer() const
-{
-	return vbo;
-}
-
-inline std::size_t text::get_vertex_count() const
-{
-	return vertex_count;
 }
 
 inline const typename object_base::bounding_volume_type& text::get_bounds() const

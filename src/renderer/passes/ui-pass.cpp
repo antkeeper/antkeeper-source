@@ -32,7 +32,7 @@
 #include "gl/texture-filter.hpp"
 #include "renderer/vertex-attribute.hpp"
 #include "renderer/material-flags.hpp"
-#include "renderer/render-context.hpp"
+#include "renderer/context.hpp"
 #include "scene/camera.hpp"
 #include "scene/collection.hpp"
 #include "scene/ambient-light.hpp"
@@ -43,14 +43,13 @@
 #include <glad/glad.h>
 
 ui_pass::ui_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
-	render_pass(rasterizer, framebuffer),
-	time(0.0f)
+	render_pass(rasterizer, framebuffer)
 {}
 
 ui_pass::~ui_pass()
 {}
 
-void ui_pass::render(render_context* context) const
+void ui_pass::render(const render::context& ctx, render::queue& queue) const
 {
 	glEnable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
@@ -60,22 +59,17 @@ void ui_pass::render(render_context* context) const
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 
-	float4x4 view = context->camera->get_view_tween().interpolate(context->alpha);
-	float4x4 projection = context->camera->get_projection_tween().interpolate(context->alpha);
+	float4x4 view = ctx.camera->get_view_tween().interpolate(ctx.alpha);
+	float4x4 projection = ctx.camera->get_projection_tween().interpolate(ctx.alpha);
 	float4x4 view_projection = projection * view;
 	float4x4 model_view_projection;
 	
 	// Collect billboards
-	std::list<scene::object_base*> billboards = *context->collection->get_objects(scene::billboard::object_type_id);
+	std::list<scene::object_base*> billboards = *ctx.collection->get_objects(scene::billboard::object_type_id);
 	
 	// Sort billboards
 	
 	// Rebuild vertex buffer
-}
-
-void ui_pass::set_time(float time)
-{
-	this->time = time;
 }
 
 const ui_pass::parameter_set* ui_pass::load_parameter_set(const gl::shader_program* program) const

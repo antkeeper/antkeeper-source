@@ -64,6 +64,8 @@ private:
 	void on_light_replace(entity::registry& registry, entity::id entity_id, entity::component::light& light);
 	void on_light_destroy(entity::registry& registry, entity::id entity_id);
 	
+	double t;
+	double dt;
 	renderer* renderer;
 	std::vector<scene::collection*> layers;
 	std::unordered_map<entity::id, scene::model_instance*> model_instances;

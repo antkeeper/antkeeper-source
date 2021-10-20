@@ -81,6 +81,15 @@ text::text():
 	vao->bind(render::vertex_attribute::position, position_attribute);
 	vao->bind(render::vertex_attribute::uv, uv_attribute);
 	vao->bind(render::vertex_attribute::color, color_attribute);
+	
+	// Init render operation
+	render_op.material = nullptr;
+	render_op.pose = nullptr;
+	render_op.vertex_array = vao;
+	render_op.drawing_mode = gl::drawing_mode::triangles;
+	render_op.start_index = 0;
+	render_op.index_count = 0;
+	render_op.instance_count = 0;
 }
 
 text::~text()
@@ -90,9 +99,25 @@ text::~text()
 	delete vbo;
 }
 
+void text::render(const render::context& ctx, render::queue& queue) const
+{
+	if (!vertex_count)
+		return;
+	
+	render_op.transform = math::matrix_cast(get_transform_tween().interpolate(ctx.alpha));
+	render_op.depth = ctx.clip_near.signed_distance(math::resize<3>(render_op.transform[3]));
+	queue.push_back(render_op);
+}
+
+void text::refresh()
+{
+	update_content();
+}
+
 void text::set_material(::material* material)
 {
 	this->material = material;
+	render_op.material = material;
 }
 
 void text::set_font(const type::bitmap_font* font)
@@ -162,6 +187,9 @@ void text::update_content()
 	if (!font || content_u32.empty())
 	{
 		vertex_count = 0;
+		render_op.index_count = vertex_count;
+		local_bounds = {{0, 0, 0}, {0, 0, 0}};
+		transformed();
 		return;
 	}
 	
@@ -287,6 +315,7 @@ void text::update_content()
 	
 	// Update vertex count
 	this->vertex_count = vertex_count;
+	render_op.index_count = vertex_count;
 	
 	// Update world-space bounds
 	transformed();

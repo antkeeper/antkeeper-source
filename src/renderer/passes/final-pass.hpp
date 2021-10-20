@@ -39,12 +39,11 @@ class final_pass: public render_pass
 public:
 	final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~final_pass();
-	virtual void render(render_context* context) const final;
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
 	
 	void set_color_texture(const gl::texture_2d* texture);
 	void set_bloom_texture(const gl::texture_2d* texture);
 	void set_blue_noise_texture(const gl::texture_2d* texture);
-	void set_time_tween(const tween<double>* time);
 
 private:
 	gl::shader_program* shader_program;
@@ -61,8 +60,6 @@ private:
 	const gl::texture_2d* bloom_texture;
 	const gl::texture_2d* blue_noise_texture;
 	float blue_noise_scale;
-	
-	const tween<double>* time_tween;
 };
 
 #endif // ANTKEEPER_FINAL_PASS_HPP

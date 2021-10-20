@@ -38,7 +38,7 @@ class bloom_pass: public render_pass
 public:
 	bloom_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~bloom_pass();
-	virtual void render(render_context* context) const final;
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
 	
 	void set_source_texture(const gl::texture_2d* texture);
 	void set_brightness_threshold(float threshold);

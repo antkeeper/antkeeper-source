@@ -20,10 +20,10 @@
 #ifndef ANTKEEPER_RENDERER_HPP
 #define ANTKEEPER_RENDERER_HPP
 
-#include "render-operation.hpp"
+#include "renderer/operation.hpp"
+#include "renderer/context.hpp"
+#include "renderer/queue.hpp"
 #include "gl/vertex-array.hpp"
-
-struct render_context;
 
 namespace scene
 {
@@ -57,10 +57,12 @@ public:
 	/**
 	 * Renders a collection of scene objects.
 	 *
+	 * @param t Current time, in seconds.
+	 * @param dt Timestep, in seconds.
 	 * @param alpha Subframe interpolation factor.
 	 * @parma collection Collection of scene objects to render.
 	 */
-	void render(float alpha, const scene::collection& collection) const;
+	void render(float t, float dt, float alpha, const scene::collection& collection) const;
 	
 	/**
 	 * Sets the VAO to be used when generating render operations for billboards.
@@ -68,14 +70,13 @@ public:
 	void set_billboard_vao(gl::vertex_array* vao);
 	
 private:
-	void process_object(render_context& context, const scene::object_base* object) const;
-	void process_model_instance(render_context& context, const scene::model_instance* model_instance) const;
-	void process_billboard(render_context& context, const scene::billboard* billboard) const;
-	void process_lod_group(render_context& context, const scene::lod_group* lod_group) const;
-	void process_text(render_context& context, const scene::text* text) const;
+	void process_object(const render::context& ctx, render::queue& queue, const scene::object_base* object) const;
+	void process_model_instance(const render::context& ctx, render::queue& queue, const scene::model_instance* model_instance) const;
+	void process_billboard(const render::context& ctx, render::queue& queue, const scene::billboard* billboard) const;
+	void process_lod_group(const render::context& ctx, render::queue& queue, const scene::lod_group* lod_group) const;
+	void process_text(const render::context& ctx, render::queue& queue, const scene::text* text) const;
 
-	mutable render_operation billboard_op;
+	mutable render::operation billboard_op;
 };
 
 #endif // ANTKEEPER_RENDERER_HPP
-

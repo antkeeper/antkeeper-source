@@ -40,9 +40,7 @@ class simple_render_pass: public render_pass
 public:
 	simple_render_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, gl::shader_program* shader_program);
 	virtual ~simple_render_pass();
-	virtual void render(render_context* context) const final;
-	
-	void set_time_tween(const tween<double>* time);
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
 	
 	const ::material* get_material() const;
 	::material* get_material();
@@ -52,8 +50,6 @@ private:
 	material* material;
 	material_property<float>* time_property;
 	material_property<float2>* resolution_property;
-	
-	const tween<double>* time_tween;
 	
 	gl::vertex_buffer* quad_vbo;
 	gl::vertex_array* quad_vao;

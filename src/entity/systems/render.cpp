@@ -32,6 +32,8 @@ namespace system {
 
 render::render(entity::registry& registry):
 	updatable(registry),
+	t(0.0),
+	dt(0.0),
 	renderer(nullptr)
 {
 	registry.on_construct<component::model>().connect<&render::on_model_construct>(this);
@@ -45,6 +47,9 @@ render::render(entity::registry& registry):
 
 void render::update(double t, double dt)
 {
+	this->t = t;
+	this->dt = dt;
+	
 	// Update model instance transforms
 	registry.view<component::transform, component::model>().each
 	(
@@ -101,7 +106,7 @@ void render::draw(double alpha)
 	{
 		for (const scene::collection* collection: layers)
 		{
-			renderer->render(alpha, *collection);
+			renderer->render(static_cast<float>(t + dt * alpha), static_cast<float>(dt), static_cast<float>(alpha), *collection);
 		}
 	}
 }

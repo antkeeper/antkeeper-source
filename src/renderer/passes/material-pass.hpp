@@ -44,13 +44,10 @@ class material_pass: public render_pass,
 public:
 	material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~material_pass();
-	virtual void render(render_context* context) const final;
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
 	
 	/// Sets the material to be used when a render operation is missing a material. If no fallback material is specified, render operations without materials will not be processed.
 	void set_fallback_material(const material* fallback);
-	
-	/// Sets the time tween, which is interpolated between updates
-	void set_time_tween(const tween<double>* time);
 	
 	const ::shadow_map_pass* shadow_map_pass;
 	const gl::texture_2d* shadow_map;
@@ -107,7 +104,6 @@ private:
 
 	mutable std::unordered_map<const gl::shader_program*, parameter_set*> parameter_sets;
 	const material* fallback_material;
-	const tween<double>* time_tween;
 	float2 mouse_position;
 	
 	int max_ambient_light_count;

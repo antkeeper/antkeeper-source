@@ -28,7 +28,7 @@
 #include "gl/vertex-attribute.hpp"
 #include "gl/drawing-mode.hpp"
 #include "renderer/vertex-attribute.hpp"
-#include "renderer/render-context.hpp"
+#include "renderer/context.hpp"
 #include "renderer/material.hpp"
 #include "renderer/material-flags.hpp"
 #include "scene/camera.hpp"
@@ -55,7 +55,7 @@ outline_pass::outline_pass(gl::rasterizer* rasterizer, const gl::framebuffer* fr
 outline_pass::~outline_pass()
 {}
 
-void outline_pass::render(render_context* context) const
+void outline_pass::render(const render::context& ctx, render::queue& queue) const
 {
 	rasterizer->use_framebuffer(*framebuffer);
 	
@@ -64,8 +64,8 @@ void outline_pass::render(render_context* context) const
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
 	// Get camera matrices
-	float4x4 view = context->camera->get_view_tween().interpolate(context->alpha);
-	float4x4 view_projection = context->camera->get_view_projection_tween().interpolate(context->alpha);
+	float4x4 view = ctx.camera->get_view_tween().interpolate(ctx.alpha);
+	float4x4 view_projection = ctx.camera->get_view_projection_tween().interpolate(ctx.alpha);
 	
 	float4x4 model_view_projection;
 	
@@ -86,7 +86,7 @@ void outline_pass::render(render_context* context) const
 		rasterizer->use_program(*fill_shader);
 		
 		// Render fills
-		for (const render_operation& operation: context->operations)
+		for (const render::operation& operation: queue)
 		{
 			const ::material* material = operation.material;
 			if (!material || !(material->get_flags() & MATERIAL_FLAG_OUTLINE))
@@ -122,7 +122,7 @@ void outline_pass::render(render_context* context) const
 		stroke_color_input->upload(outline_color);
 		
 		// Render strokes
-		for (const render_operation& operation: context->operations)
+		for (const render::operation& operation: queue)
 		{
 			const ::material* material = operation.material;
 			if (!material || !(material->get_flags() & MATERIAL_FLAG_OUTLINE))

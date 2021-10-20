@@ -31,7 +31,7 @@
 #include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
 #include "renderer/vertex-attribute.hpp"
-#include "renderer/render-context.hpp"
+#include "renderer/context.hpp"
 #include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
@@ -114,7 +114,7 @@ bloom_pass::~bloom_pass()
 	delete quad_vbo;
 }
 
-void bloom_pass::render(render_context* context) const
+void bloom_pass::render(const render::context& ctx, render::queue& queue) const
 {	
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);

@@ -18,7 +18,7 @@
  */
 
 #include "renderer/renderer.hpp"
-#include "renderer/render-context.hpp"
+#include "renderer/context.hpp"
 #include "renderer/compositor.hpp"
 #include "scene/collection.hpp"
 #include "scene/camera.hpp"
@@ -45,7 +45,7 @@ renderer::renderer()
 	billboard_op.instance_count = 0;
 }
 
-void renderer::render(float alpha, const scene::collection& collection) const
+void renderer::render(float t, float dt, float alpha, const scene::collection& collection) const
 {
 	// Get list of all objects in the collection
 	const std::list<scene::object_base*>* objects = collection.get_objects();
@@ -66,6 +66,13 @@ void renderer::render(float alpha, const scene::collection& collection) const
 			return a->get_composite_index() < b->get_composite_index();
 		}
 	);
+	
+	// Init render context
+	render::context ctx;
+	ctx.collection = &collection;
+	ctx.t = t;
+	ctx.dt = dt;
+	ctx.alpha = alpha;
 
 	// Process cameras in order
 	for (const scene::camera* camera: sorted_cameras)
@@ -83,22 +90,22 @@ void renderer::render(float alpha, const scene::collection& collection) const
 			continue;
 		}
 		
-		// Setup render context
-		render_context context;
-		context.camera = camera;
-		context.camera_transform = camera->get_transform_tween().interpolate(alpha); 
-		context.camera_forward = context.camera_transform.rotation * global_forward;
-		context.camera_up = context.camera_transform.rotation * global_up;
-		context.clip_near = camera->get_view_frustum().get_near(); ///< TODO: tween this
-		context.collection = &collection;
-		context.alpha = alpha;
+		// Update render context with camera parameters
+		ctx.camera = camera;
+		ctx.camera_transform = camera->get_transform_tween().interpolate(alpha); 
+		ctx.camera_forward = ctx.camera_transform.rotation * global_forward;
+		ctx.camera_up = ctx.camera_transform.rotation * global_up;
+		ctx.clip_near = camera->get_view_frustum().get_near(); ///< TODO: tween this
+		
+		// Create render queue
+		render::queue queue;
 		
 		// Get camera culling volume
-		context.camera_culling_volume = camera->get_culling_mask();
-		if (!context.camera_culling_volume)
-			context.camera_culling_volume = &camera->get_bounds();
+		ctx.camera_culling_volume = camera->get_culling_mask();
+		if (!ctx.camera_culling_volume)
+			ctx.camera_culling_volume = &camera->get_bounds();
 		
-		// Generate render operations for each visible scene object
+		// Queue render operations for each visible scene object
 		for (const scene::object_base* object: *objects)
 		{
 			// Skip inactive objects
@@ -106,11 +113,11 @@ void renderer::render(float alpha, const scene::collection& collection) const
 				continue;
 			
 			// Process object
-			process_object(context, object);
+			process_object(ctx, queue, object);
 		}
 		
 		// Pass render context to the camera's compositor
-		compositor->composite(&context);
+		compositor->composite(ctx, queue);
 	}
 }
 
@@ -119,21 +126,21 @@ void renderer::set_billboard_vao(gl::vertex_array* vao)
 	billboard_op.vertex_array = vao;
 }
 
-void renderer::process_object(render_context& context, const scene::object_base* object) const
+void renderer::process_object(const render::context& ctx, render::queue& queue, const scene::object_base* object) const
 {
 	std::size_t type = object->get_object_type_id();
 	
 	if (type == scene::model_instance::object_type_id)
-		process_model_instance(context, static_cast<const scene::model_instance*>(object));
+		process_model_instance(ctx, queue, static_cast<const scene::model_instance*>(object));
 	else if (type == scene::billboard::object_type_id)		
-		process_billboard(context, static_cast<const scene::billboard*>(object));
+		process_billboard(ctx, queue, static_cast<const scene::billboard*>(object));
 	else if (type == scene::lod_group::object_type_id)
-		process_lod_group(context, static_cast<const scene::lod_group*>(object));
+		process_lod_group(ctx, queue, static_cast<const scene::lod_group*>(object));
 	else if (type == scene::text::object_type_id)
-		process_text(context, static_cast<const scene::text*>(object));
+		process_text(ctx, queue, static_cast<const scene::text*>(object));
 }
 
-void renderer::process_model_instance(render_context& context, const scene::model_instance* model_instance) const
+void renderer::process_model_instance(const render::context& ctx, render::queue& queue, const scene::model_instance* model_instance) const
 {
 	const model* model = model_instance->get_model();
 	if (!model)
@@ -145,7 +152,7 @@ void renderer::process_model_instance(render_context& context, const scene::mode
 		object_culling_volume = &model_instance->get_bounds();
 	
 	// Perform view-frustum culling
-	if (!context.camera_culling_volume->intersects(*object_culling_volume))
+	if (!ctx.camera_culling_volume->intersects(*object_culling_volume))
 		return;
 	
 	const std::vector<material*>* instance_materials = model_instance->get_materials();
@@ -153,7 +160,7 @@ void renderer::process_model_instance(render_context& context, const scene::mode
 
 	for (model_group* group: *groups)
 	{
-		render_operation operation;
+		render::operation operation;
 
 		// Determine operation material
 		operation.material = group->get_material();
@@ -168,15 +175,15 @@ void renderer::process_model_instance(render_context& context, const scene::mode
 		operation.drawing_mode = group->get_drawing_mode();
 		operation.start_index = group->get_start_index();
 		operation.index_count = group->get_index_count();
-		operation.transform = math::matrix_cast(model_instance->get_transform_tween().interpolate(context.alpha));
-		operation.depth = context.clip_near.signed_distance(math::resize<3>(operation.transform[3]));
+		operation.transform = math::matrix_cast(model_instance->get_transform_tween().interpolate(ctx.alpha));
+		operation.depth = ctx.clip_near.signed_distance(math::resize<3>(operation.transform[3]));
 		operation.instance_count = model_instance->get_instance_count();
 
-		context.operations.push_back(operation);
+		queue.push_back(operation);
 	}
 }
 
-void renderer::process_billboard(render_context& context, const scene::billboard* billboard) const
+void renderer::process_billboard(const render::context& ctx, render::queue& queue, const scene::billboard* billboard) const
 {
 	// Get object culling volume
 	const geom::bounding_volume<float>* object_culling_volume = billboard->get_culling_mask();
@@ -184,22 +191,22 @@ void renderer::process_billboard(render_context& context, const scene::billboard
 		object_culling_volume = &billboard->get_bounds();
 	
 	// Perform view-frustum culling
-	if (!context.camera_culling_volume->intersects(*object_culling_volume))
+	if (!ctx.camera_culling_volume->intersects(*object_culling_volume))
 		return;
 	
-	math::transform<float> billboard_transform = billboard->get_transform_tween().interpolate(context.alpha);
+	math::transform<float> billboard_transform = billboard->get_transform_tween().interpolate(ctx.alpha);
 	billboard_op.material = billboard->get_material();
-	billboard_op.depth = context.clip_near.signed_distance(math::resize<3>(billboard_transform.translation));
+	billboard_op.depth = ctx.clip_near.signed_distance(math::resize<3>(billboard_transform.translation));
 	
 	// Align billboard
 	if (billboard->get_billboard_type() == scene::billboard_type::spherical)
 	{
-		billboard_transform.rotation = math::normalize(math::look_rotation(context.camera_forward, context.camera_up) * billboard_transform.rotation);
+		billboard_transform.rotation = math::normalize(math::look_rotation(ctx.camera_forward, ctx.camera_up) * billboard_transform.rotation);
 	}
 	else if (billboard->get_billboard_type() == scene::billboard_type::cylindrical)
 	{
 		const float3& alignment_axis = billboard->get_alignment_axis();
-		float3 look = math::normalize(geom::project_on_plane(billboard_transform.translation - context.camera_transform.translation, {0.0f, 0.0f, 0.0f}, alignment_axis));
+		float3 look = math::normalize(geom::project_on_plane(billboard_transform.translation - ctx.camera_transform.translation, {0.0f, 0.0f, 0.0f}, alignment_axis));
 		float3 right = math::normalize(math::cross(alignment_axis, look));
 		look = math::cross(right, alignment_axis);
 		float3 up = math::cross(look, right);
@@ -208,23 +215,23 @@ void renderer::process_billboard(render_context& context, const scene::billboard
 	
 	billboard_op.transform = math::matrix_cast(billboard_transform);
 	
-	context.operations.push_back(billboard_op);
+	queue.push_back(billboard_op);
 }
 
-void renderer::process_lod_group(render_context& context, const scene::lod_group* lod_group) const
+void renderer::process_lod_group(const render::context& ctx, render::queue& queue, const scene::lod_group* lod_group) const
 {
 	// Select level of detail
-	std::size_t level = lod_group->select_lod(*context.camera);
+	std::size_t level = lod_group->select_lod(*ctx.camera);
 	
 	// Process all objects in the group with the selected level of detail
 	const std::list<scene::object_base*>& objects = lod_group->get_objects(level);
 	for (const scene::object_base* object: objects)
 	{
-		process_object(context, object);
+		process_object(ctx, queue, object);
 	}
 }
 
-void renderer::process_text(render_context& context, const scene::text* text) const
+void renderer::process_text(const render::context& ctx, render::queue& queue, const scene::text* text) const
 {
 	// Get object culling volume
 	const geom::bounding_volume<float>* object_culling_volume = text->get_culling_mask();
@@ -232,19 +239,8 @@ void renderer::process_text(render_context& context, const scene::text* text) co
 		object_culling_volume = &text->get_bounds();
 	
 	// Perform view-frustum culling
-	if (!context.camera_culling_volume->intersects(*object_culling_volume))
+	if (!ctx.camera_culling_volume->intersects(*object_culling_volume))
 		return;
 	
-	render_operation operation;
-	operation.material = text->get_material();
-	operation.pose = nullptr;
-	operation.vertex_array = text->get_vertex_array();
-	operation.drawing_mode = gl::drawing_mode::triangles;
-	operation.start_index = 0;
-	operation.index_count = text->get_vertex_count();
-	operation.transform = math::matrix_cast(text->get_transform_tween().interpolate(context.alpha));
-	operation.depth = context.clip_near.signed_distance(math::resize<3>(operation.transform[3]));
-	operation.instance_count = 0;
-
-	context.operations.push_back(operation);
+	text->render(ctx, queue);
 }

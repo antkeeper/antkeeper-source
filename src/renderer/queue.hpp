@@ -17,40 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RENDER_PASS_HPP
-#define ANTKEEPER_RENDER_PASS_HPP
+#ifndef ANTKEEPER_RENDER_QUEUE_HPP
+#define ANTKEEPER_RENDER_QUEUE_HPP
 
-#include "gl/rasterizer.hpp"
-#include "gl/framebuffer.hpp"
-#include "renderer/context.hpp"
-#include "renderer/queue.hpp"
+#include "renderer/operation.hpp"
+#include <list>
 
-/**
- *
- */
-class render_pass
-{
-public:
-	render_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer);
-	virtual ~render_pass();
+namespace render {
 
-	virtual void render(const render::context& ctx, render::queue& queue) const = 0;
+/// Queue of render operations
+typedef std::list<render::operation> queue;
 
-	void set_enabled(bool enabled);
-	bool is_enabled() const;
+} // namespace render
 
-protected:
-	gl::rasterizer* rasterizer;
-	const gl::framebuffer* framebuffer;
-
-private:
-	bool enabled;
-};
-
-inline bool render_pass::is_enabled() const
-{
-	return enabled;
-}
-
-#endif // ANTKEEPER_RENDER_PASS_HPP
-
+#endif // ANTKEEPER_RENDER_QUEUE_HPP

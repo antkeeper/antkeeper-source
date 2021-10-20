@@ -25,6 +25,8 @@
 #include "math/vector-type.hpp"
 #include "math/quaternion-type.hpp"
 #include "math/transform-type.hpp"
+#include "renderer/context.hpp"
+#include "renderer/queue.hpp"
 #include <atomic>
 #include <cstddef>
 
@@ -53,6 +55,17 @@ public:
 	 * Destroys a scene object base.
 	 */
 	virtual ~object_base() = default;
+	
+	/**
+	 * Adds a render operation describing this object to a render queue.
+	 *
+	 * @param ctx Render context.
+	 * @param queue Render queue.
+	 *
+	 * @see render::context
+	 * @see render::operation
+	 */
+	virtual void render(const render::context& ctx, render::queue& queue) const;
 
 	/**
 	 * Updates all tweens in the scene object.

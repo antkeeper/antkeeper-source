@@ -24,7 +24,7 @@
 #include "gl/shader-program.hpp"
 #include "gl/shader-input.hpp"
 #include "gl/drawing-mode.hpp"
-#include "renderer/render-context.hpp"
+#include "renderer/context.hpp"
 #include "renderer/material.hpp"
 #include "renderer/material-flags.hpp"
 #include "scene/camera.hpp"
@@ -36,7 +36,7 @@
 #include <cmath>
 #include <glad/glad.h>
 
-static bool operation_compare(const render_operation& a, const render_operation& b);
+static bool operation_compare(const render::operation& a, const render::operation& b);
 
 void shadow_map_pass::distribute_frustum_splits(float* split_distances, std::size_t split_count, float split_scheme, float near, float far)
 {
@@ -84,7 +84,7 @@ shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, const gl::framebuff
 shadow_map_pass::~shadow_map_pass()
 {}
 
-void shadow_map_pass::render(render_context* context) const
+void shadow_map_pass::render(const render::context& ctx, render::queue& queue) const
 {
 	// Abort if no directional light was set
 	if (!light)
@@ -110,11 +110,11 @@ void shadow_map_pass::render(render_context* context) const
 	//glDepthRange(-1.0f, 1.0f);
 	
 	// Get camera
-	const scene::camera& camera = *context->camera;
+	const scene::camera& camera = *ctx.camera;
 	
 	// Calculate distances to the depth clipping planes of each frustum split
-	float clip_near = camera.get_clip_near_tween().interpolate(context->alpha);
-	float clip_far = camera.get_clip_far_tween().interpolate(context->alpha);
+	float clip_near = camera.get_clip_near_tween().interpolate(ctx.alpha);
+	float clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
 	split_distances[0] = clip_near;
 	split_distances[4] = clip_far;
 	distribute_frustum_splits(&split_distances[1], 3, split_scheme_weight, clip_near, clip_far);
@@ -135,7 +135,7 @@ void shadow_map_pass::render(render_context* context) const
 	}
 	
 	// Calculate a view-projection matrix from the directional light's transform
-	math::transform<float> light_transform = light->get_transform_tween().interpolate(context->alpha);
+	math::transform<float> light_transform = light->get_transform_tween().interpolate(ctx.alpha);
 	float3 forward = light_transform.rotation * global_forward;
 	float3 up = light_transform.rotation * global_up;
 	float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
@@ -143,14 +143,14 @@ void shadow_map_pass::render(render_context* context) const
 	float4x4 light_view_projection = light_projection * light_view;
 	
 	// Get the camera's view matrix
-	float4x4 camera_view = camera.get_view_tween().interpolate(context->alpha);	
+	float4x4 camera_view = camera.get_view_tween().interpolate(ctx.alpha);	
 	
 	float4x4 crop_matrix;
 	float4x4 cropped_view_projection;
 	float4x4 model_view_projection;
 	
-	// Sort render operations
-	context->operations.sort(operation_compare);
+	// Sort render queue
+	queue.sort(operation_compare);
 	
 	gl::shader_program* active_shader_program = nullptr;
 	
@@ -214,7 +214,7 @@ void shadow_map_pass::render(render_context* context) const
 		// Calculate shadow matrix
 		shadow_matrices[i] = bias_tile_matrices[i] * cropped_view_projection;
 		
-		for (const render_operation& operation: context->operations)
+		for (const render::operation& operation: queue)
 		{
 			// Skip materials which don't cast shadows
 			const ::material* material = operation.material;
@@ -260,7 +260,7 @@ void shadow_map_pass::set_light(const scene::directional_light* light)
 	this->light = light;
 }
 
-bool operation_compare(const render_operation& a, const render_operation& b)
+bool operation_compare(const render::operation& a, const render::operation& b)
 {
 	// Determine transparency
 	bool skinned_a = (a.pose != nullptr);
