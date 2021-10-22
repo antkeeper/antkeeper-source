@@ -81,8 +81,6 @@ enum class gamepad_response_curve
 
 /**
  * A virtual gamepad which can generate gamepad-related input events and pass them to an event dispatcher.
- *
- * @ingroup input
  */
 class gamepad: public device
 {

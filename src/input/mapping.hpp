@@ -174,8 +174,6 @@ inline mapping_type gamepad_axis_mapping::get_type() const
 
 /**
  * A mapping between a control and a gamepad button.
- *
- * @ingroup input.
  */
 class gamepad_button_mapping: public mapping
 {

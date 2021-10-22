@@ -21,8 +21,8 @@
 #define ANTKEEPER_SCREEN_TRANSITION_HPP
 
 #include "animation/animation.hpp"
-#include "renderer/material.hpp"
-#include "renderer/material-property.hpp"
+#include "render/material.hpp"
+#include "render/material-property.hpp"
 #include "scene/billboard.hpp"
 
 /**
@@ -36,13 +36,13 @@ public:
 	void transition(float duration, bool reverse, animation<float>::interpolator_type interpolator);
 	
 	scene::billboard* get_billboard();
-	::material* get_material();
+	render::material* get_material();
 	::animation<float>* get_animation();
 	
 private:
 	scene::billboard billboard;
-	::material material;
-	material_property<float>* progress;
+	render::material material;
+	render::material_property<float>* progress;
 	::animation<float> animation;
 	::animation<float>::channel* channel;
 };
@@ -52,7 +52,7 @@ inline scene::billboard* screen_transition::get_billboard()
 	return &billboard;
 }
 
-inline material* screen_transition::get_material()
+inline render::material* screen_transition::get_material()
 {
 	return &material;
 }

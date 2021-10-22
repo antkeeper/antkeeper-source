@@ -261,7 +261,7 @@ void astronomy::set_sun_light(scene::directional_light* light)
 	sun_light = light;
 }
 
-void astronomy::set_sky_pass(::sky_pass* pass)
+void astronomy::set_sky_pass(::render::sky_pass* pass)
 {
 	this->sky_pass = pass;
 }

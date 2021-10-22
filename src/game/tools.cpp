@@ -24,7 +24,7 @@
 #include "entity/components/tool.hpp"
 #include "entity/components/celestial-body.hpp"
 #include "utility/timestamp.hpp"
-#include "renderer/material.hpp"
+#include "render/material.hpp"
 
 namespace game {
 
@@ -45,7 +45,7 @@ entity::id build_camera_tool(game::context* ctx)
 		std::string path = ctx->screenshots_path + "antkeeper-" + timestamp() + ".png";
 		ctx->app->save_frame(path);
 		
-		material_property<float4>* tint = static_cast<material_property<float4>*>(ctx->camera_flash_billboard->get_material()->get_property("tint"));
+		render::material_property<float4>* tint = static_cast<render::material_property<float4>*>(ctx->camera_flash_billboard->get_material()->get_property("tint"));
 		tint->set_value({1.0f, 1.0f, 1.0f, 1.0f});
 		ctx->camera_flash_billboard->get_material()->update_tweens();
 		ctx->ui_scene->add_object(ctx->camera_flash_billboard);

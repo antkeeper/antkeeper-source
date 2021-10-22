@@ -25,7 +25,7 @@
 #include "utility/fundamental-types.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
-#include "renderer/material.hpp"
+#include "render/material.hpp"
 #include "type/bitmap-font.hpp"
 #include "type/text-direction.hpp"
 
@@ -58,7 +58,7 @@ public:
 	 *
 	 * @param material Text material.
 	 */
-	void set_material(material* material);
+	void set_material(render::material* material);
 	
 	/**
 	 * Sets the text font.
@@ -91,7 +91,7 @@ public:
 	void set_color(const float4& color);
 	
 	/// Returns the text material.
-	material* get_material() const;
+	render::material* get_material() const;
 	
 	/// Returns the text font.
 	const type::bitmap_font* get_font() const;
@@ -123,7 +123,7 @@ private:
 	mutable render::operation render_op;
 	aabb_type local_bounds;
 	aabb_type world_bounds;
-	material* material;
+	render::material* material;
 	const type::bitmap_font* font;
 	type::text_direction direction;
 	std::string content_u8;
@@ -136,7 +136,7 @@ private:
 	gl::vertex_buffer* vbo;
 };
 
-inline material* text::get_material() const
+inline render::material* text::get_material() const
 {
 	return material;
 }

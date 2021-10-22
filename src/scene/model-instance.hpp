@@ -22,10 +22,9 @@
 
 #include "scene/object.hpp"
 #include "geom/aabb.hpp"
+#include "render/model.hpp"
 #include <vector>
 
-class material;
-class model;
 class pose;
 
 namespace scene {
@@ -35,7 +34,7 @@ class model_instance: public object<model_instance>
 public:
 	typedef geom::aabb<float> aabb_type;
 	
-	explicit model_instance(model* model);
+	explicit model_instance(render::model* model);
 	model_instance();
 	model_instance(const model_instance& other);
 	model_instance& operator=(const model_instance& other);
@@ -43,7 +42,7 @@ public:
 	/**
 	 * Sets the model with which this model instance is associated. This will reset the pose and all overwritten materials.
 	 */
-	void set_model(model* model);
+	void set_model(render::model* model);
 
 	/**
 	 * Sets the
@@ -56,7 +55,7 @@ public:
 	 * @param group_index Index of a model group.
 	 * @param material Pointer to the material which should overwrite the model group's material. A value of `nullptr` indicates the material will not be overwritten.
 	 */
-	void set_material(std::size_t group_index, material* material);
+	void set_material(std::size_t group_index, render::material* material);
 	
 	void set_instanced(bool instanced, std::size_t instance_count = 1);
 
@@ -68,13 +67,13 @@ public:
 	virtual const bounding_volume_type& get_local_bounds() const;
 	virtual const bounding_volume_type& get_world_bounds() const;
 
-	const model* get_model() const;
-	model* get_model();
+	const render::model* get_model() const;
+	render::model* get_model();
 
 	const pose* get_pose() const;
 	pose* get_pose();
 
-	const std::vector<material*>* get_materials() const;
+	const std::vector<render::material*>* get_materials() const;
 	
 	bool is_instanced() const;
 	std::size_t get_instance_count() const;
@@ -86,9 +85,9 @@ public:
 private:
 	virtual void transformed();
 	
-	model* model;
+	render::model* model;
 	pose* pose;
-	std::vector<material*> materials;
+	std::vector<render::material*> materials;
 	aabb_type local_bounds;
 	aabb_type world_bounds;
 	bool instanced;
@@ -105,12 +104,12 @@ inline const typename object_base::bounding_volume_type& model_instance::get_wor
 	return world_bounds;
 }
 
-inline const model* model_instance::get_model() const
+inline const render::model* model_instance::get_model() const
 {
 	return model;
 }
 
-inline model* model_instance::get_model()
+inline render::model* model_instance::get_model()
 {
 	return model;
 }
@@ -125,7 +124,7 @@ inline pose* model_instance::get_pose()
 	return pose;
 }
 
-inline const std::vector<material*>* model_instance::get_materials() const
+inline const std::vector<render::material*>* model_instance::get_materials() const
 {
 	return &materials;
 }

@@ -19,7 +19,7 @@
 
 #include "resource-loader.hpp"
 #include "resource-manager.hpp"
-#include "renderer/model.hpp"
+#include "render/model.hpp"
 #include "entity/components/atmosphere.hpp"
 #include "entity/components/behavior.hpp"
 #include "entity/components/collision.hpp"
@@ -138,7 +138,7 @@ static bool load_component_model(entity::archetype& archetype, resource_manager&
 	
 	if (element.contains("file"))
 	{
-		component.render_model = resource_manager.load<model>(element["file"].get<std::string>());
+		component.render_model = resource_manager.load<render::model>(element["file"].get<std::string>());
 	}
 	
 	archetype.set<entity::component::model>(component);

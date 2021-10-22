@@ -45,27 +45,19 @@
 #include <unordered_map>
 #include "resources/json.hpp"
 #include "type/typeface.hpp"
+#include "type/bitmap-font.hpp"
+#include "render/material.hpp"
+#include "render/material-property.hpp"
 
 // Forward declarations
 class animator;
 class application;
-class bloom_pass;
-class clear_pass;
-class compositor;
-class final_pass;
-class material;
-class material_pass;
+
 class resource_manager;
 class screen_transition;
-class shadow_map_pass;
-class simple_render_pass;
-class sky_pass;
 class timeline;
-class renderer;
-class outline_pass;
 
 template <typename T> class animation;
-template <typename T> class material_property;
 
 namespace debug
 {
@@ -80,7 +72,6 @@ namespace entity
 		class subterrain;
 		class terrain;
 		class vegetation;
-		class ui;
 		class spatial;
 		class painting;
 		class astronomy;
@@ -98,6 +89,20 @@ namespace entity
 		class samara;
 		class proteome;
 	}
+}
+
+namespace render
+{
+	class bloom_pass;
+	class clear_pass;
+	class compositor;
+	class final_pass;
+	class material_pass;
+	class renderer;
+	class outline_pass;
+	class shadow_map_pass;
+	class simple_render_pass;
+	class sky_pass;
 }
 
 namespace game {
@@ -141,6 +146,12 @@ struct context
 	string_table_map string_table_map;
 	std::unordered_map<std::string, std::string>* strings;
 	std::unordered_map<std::string, type::typeface*> typefaces;
+	type::bitmap_font debug_font;
+	type::bitmap_font menu_font;
+	type::bitmap_font title_font;
+	render::material debug_font_material;
+	render::material menu_font_material;
+	render::material title_font_material;
 	
 	// Framebuffers
 	gl::framebuffer* shadow_map_framebuffer;
@@ -153,31 +164,31 @@ struct context
 	
 	// Rendering
 	gl::rasterizer* rasterizer;
-	renderer* renderer;
+	render::renderer* renderer;
 	gl::vertex_buffer* billboard_vbo;
 	gl::vertex_array* billboard_vao;
-	material* fallback_material;
-	material* splash_billboard_material;
+	render::material* fallback_material;
+	render::material* splash_billboard_material;
 	
 	// Compositing
-	clear_pass* ui_clear_pass;
-	material_pass* ui_material_pass;
-	compositor* ui_compositor;
+	render::clear_pass* ui_clear_pass;
+	render::material_pass* ui_material_pass;
+	render::compositor* ui_compositor;
 	
-	bloom_pass* common_bloom_pass;
-	final_pass* common_final_pass;
+	render::bloom_pass* common_bloom_pass;
+	render::final_pass* common_final_pass;
 	
-	clear_pass* underground_clear_pass;
-	material_pass* underground_material_pass;
-	compositor* underground_compositor;
+	render::clear_pass* underground_clear_pass;
+	render::material_pass* underground_material_pass;
+	render::compositor* underground_compositor;
 	
-	clear_pass* surface_shadow_map_clear_pass;
-	shadow_map_pass* surface_shadow_map_pass;
-	clear_pass* surface_clear_pass;
-	sky_pass* surface_sky_pass;
-	material_pass* surface_material_pass;
-	outline_pass* surface_outline_pass;
-	compositor* surface_compositor;
+	render::clear_pass* surface_shadow_map_clear_pass;
+	render::shadow_map_pass* surface_shadow_map_pass;
+	render::clear_pass* surface_clear_pass;
+	render::sky_pass* surface_sky_pass;
+	render::material_pass* surface_material_pass;
+	render::outline_pass* surface_outline_pass;
+	render::compositor* surface_compositor;
 	
 	// Scene utilities
 	scene::collection* active_scene;
@@ -205,7 +216,7 @@ struct context
 	animation<float>* radial_transition_in;
 	animation<float>* radial_transition_out;
 	screen_transition* fade_transition;
-	material_property<float3>* fade_transition_color;
+	render::material_property<float3>* fade_transition_color;
 	screen_transition* radial_transition_inner;
 	screen_transition* radial_transition_outer;
 	animation<float>* equip_tool_animation;
@@ -237,7 +248,6 @@ struct context
 	entity::system::samara* samara_system;
 	entity::system::subterrain* subterrain_system;
 	entity::system::terrain* terrain_system;
-	entity::system::ui* ui_system;
 	entity::system::vegetation* vegetation_system;
 	entity::system::spatial* spatial_system;
 	entity::system::painting* painting_system;

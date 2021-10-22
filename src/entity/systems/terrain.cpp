@@ -29,7 +29,7 @@
 #include "gl/vertex-attribute.hpp"
 #include "math/constants.hpp"
 #include "math/quaternion-operators.hpp"
-#include "renderer/vertex-attribute.hpp"
+#include "render/vertex-attribute.hpp"
 #include "utility/fundamental-types.hpp"
 #include <functional>
 #include <iostream>
@@ -405,7 +405,7 @@ geom::mesh* terrain::generate_patch_mesh(std::uint8_t face_index, quadtree_node_
 	return patch_mesh;
 }
 
-model* terrain::generate_patch_model(const geom::mesh& patch_mesh, material* patch_material) const
+::render::model* terrain::generate_patch_model(const geom::mesh& patch_mesh, ::render::material* patch_material) const
 {
 	// Barycentric coordinates
 	static const float3 barycentric[3] =
@@ -470,7 +470,7 @@ model* terrain::generate_patch_model(const geom::mesh& patch_mesh, material* pat
 	std::size_t patch_triangle_count = patch_mesh.get_faces().size();
 	
 	// Allocate patch model
-	model* patch_model = new model();
+	::render::model* patch_model = new ::render::model();
 	
 	// Get model VBO and VAO
 	gl::vertex_buffer* vbo = patch_model->get_vertex_buffer();
@@ -536,15 +536,15 @@ model* terrain::generate_patch_model(const geom::mesh& patch_mesh, material* pat
 	attribute_offset += target_attribute.components * sizeof(float);
 	
 	// Bind vertex attributes to VAO
-	vao->bind(render::vertex_attribute::position, position_attribute);
-	vao->bind(render::vertex_attribute::uv, uv_attribute);
-	vao->bind(render::vertex_attribute::normal, normal_attribute);
-	vao->bind(render::vertex_attribute::tangent, tangent_attribute);
-	vao->bind(render::vertex_attribute::barycentric, barycentric_attribute);
-	vao->bind(render::vertex_attribute::target, target_attribute);
+	vao->bind(::render::vertex_attribute::position, position_attribute);
+	vao->bind(::render::vertex_attribute::uv, uv_attribute);
+	vao->bind(::render::vertex_attribute::normal, normal_attribute);
+	vao->bind(::render::vertex_attribute::tangent, tangent_attribute);
+	vao->bind(::render::vertex_attribute::barycentric, barycentric_attribute);
+	vao->bind(::render::vertex_attribute::target, target_attribute);
 	
 	// Create model group
-	model_group* patch_model_group = patch_model->add_group("terrain");
+	::render::model_group* patch_model_group = patch_model->add_group("terrain");
 	patch_model_group->set_material(patch_material);
 	patch_model_group->set_drawing_mode(gl::drawing_mode::triangles);
 	patch_model_group->set_start_index(0);

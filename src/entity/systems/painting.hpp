@@ -28,14 +28,12 @@
 #include "scene/collection.hpp"
 #include "scene/model-instance.hpp"
 #include "gl/vertex-buffer.hpp"
+#include "render/model.hpp"
 #include <vector>
 #include <optional>
 
-class material;
 class event_dispatcher;
 class resource_manager;
-class model;
-class model_group;
 
 namespace entity {
 namespace system {
@@ -82,8 +80,8 @@ private:
 	std::size_t vertex_stride;
 	std::size_t vertex_count;
 	
-	model* stroke_model;
-	model_group* stroke_model_group;
+	::render::model* stroke_model;
+	::render::model_group* stroke_model_group;
 	gl::vertex_buffer* stroke_vbo;
 	bool midstroke;
 	

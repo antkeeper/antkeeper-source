@@ -25,8 +25,8 @@
 #include "math/vector-type.hpp"
 #include "math/quaternion-type.hpp"
 #include "math/transform-type.hpp"
-#include "renderer/context.hpp"
-#include "renderer/queue.hpp"
+#include "render/context.hpp"
+#include "render/queue.hpp"
 #include <atomic>
 #include <cstddef>
 
@@ -248,7 +248,8 @@ class object: public object_base
 public:
 	/// Unique type ID for this scene object type.
 	static const std::atomic<std::size_t> object_type_id;
-
+	
+	/// @copydoc object_base::get_object_type_id() const
 	virtual const std::size_t get_object_type_id() const final;
 };
 

@@ -23,7 +23,7 @@
 #include "scene/model-instance.hpp"
 #include "scene/lod-group.hpp"
 #include "scene/collection.hpp"
-#include "renderer/material.hpp"
+#include "render/material.hpp"
 #include "geom/aabb.hpp"
 #include "utility/fundamental-types.hpp"
 #include <cmath>

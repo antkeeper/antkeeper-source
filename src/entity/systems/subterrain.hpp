@@ -25,13 +25,11 @@
 #include "geom/aabb.hpp"
 #include "scene/collection.hpp"
 #include "scene/model-instance.hpp"
+#include "render/model.hpp"
 #include "utility/fundamental-types.hpp"
 #include <unordered_map>
 
 class resource_manager;
-class model;
-class model_group;
-class material;
 
 namespace entity {
 namespace system {
@@ -104,11 +102,11 @@ private:
 
 	resource_manager* resource_manager;
 	geom::mesh* subterrain_mesh;
-	model* subterrain_model;
-	material* subterrain_inside_material;
-	material* subterrain_outside_material;
-	model_group* subterrain_inside_group;
-	model_group* subterrain_outside_group;
+	::render::model* subterrain_model;
+	::render::material* subterrain_inside_material;
+	::render::material* subterrain_outside_material;
+	::render::model_group* subterrain_inside_group;
+	::render::model_group* subterrain_outside_group;
 	int subterrain_model_vertex_size;
 	int subterrain_model_vertex_stride;
 	geom::aabb<float> subterrain_bounds;

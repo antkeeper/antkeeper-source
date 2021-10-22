@@ -18,7 +18,7 @@
  */
 
 #include "screen-transition.hpp"
-#include "renderer/material-flags.hpp"
+#include "render/material-flags.hpp"
 #include <functional>
 
 screen_transition::screen_transition()

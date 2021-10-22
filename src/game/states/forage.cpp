@@ -56,7 +56,7 @@ void enter(game::context* ctx)
 	// Create biome terrain component
 	entity::component::terrain biome_terrain;
 	biome_terrain.max_lod = 18;
-	biome_terrain.patch_material = ctx->resource_manager->load<material>("desert-terrain.mtl");
+	biome_terrain.patch_material = ctx->resource_manager->load<render::material>("desert-terrain.mtl");
 	biome_terrain.elevation = [](double, double) -> double
 	{
 		return 0.0;

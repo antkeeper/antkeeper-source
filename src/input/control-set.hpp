@@ -28,8 +28,6 @@ class control;
 
 /**
  * A set of controls which can be managed simultaneously.
- *
- * @ingroup input
  */
 class control_set
 {

@@ -18,7 +18,6 @@
  */
 
 #include "scene/billboard.hpp"
-#include "renderer/material.hpp"
 #include "configuration.hpp"
 
 namespace scene {
@@ -48,7 +47,7 @@ billboard& billboard::operator=(const billboard& other)
 	return *this;
 }
 
-void billboard::set_material(::material* material)
+void billboard::set_material(render::material* material)
 {
 	this->material = material;
 }

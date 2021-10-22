@@ -27,8 +27,8 @@
 #include "geom/quadtree.hpp"
 #include "geom/mesh.hpp"
 #include "utility/fundamental-types.hpp"
-#include "renderer/model.hpp"
-#include "renderer/material.hpp"
+#include "render/model.hpp"
+#include "render/material.hpp"
 #include "scene/model-instance.hpp"
 #include "scene/collection.hpp"
 #include <unordered_map>
@@ -75,7 +75,7 @@ private:
 	struct terrain_patch
 	{
 		geom::mesh* mesh;
-		model* model;
+		::render::model* model;
 		scene::model_instance* model_instance;
 		float error;
 		float morph;
@@ -112,7 +112,7 @@ private:
 	/**
 	 * Generates a model for a terrain patch given the patch's mesh.
 	 */
-	model* generate_patch_model(const geom::mesh& patch_mesh, material* patch_material) const;
+	::render::model* generate_patch_model(const geom::mesh& patch_mesh, ::render::material* patch_material) const;
 	
 	
 	

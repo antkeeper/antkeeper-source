@@ -18,8 +18,7 @@
  */
 
 #include "scene/text.hpp"
-#include "renderer/material.hpp"
-#include "renderer/vertex-attribute.hpp"
+#include "render/vertex-attribute.hpp"
 #include "math/vector-operators.hpp"
 #include <cstddef>
 #include <codecvt>
@@ -114,7 +113,7 @@ void text::refresh()
 	update_content();
 }
 
-void text::set_material(::material* material)
+void text::set_material(render::material* material)
 {
 	this->material = material;
 	render_op.material = material;

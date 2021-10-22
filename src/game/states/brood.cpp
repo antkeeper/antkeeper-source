@@ -31,7 +31,7 @@
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
 #include "resources/resource-manager.hpp"
-#include "renderer/passes/sky-pass.hpp"
+#include "render/passes/sky-pass.hpp"
 #include "application.hpp"
 #include <iostream>
 

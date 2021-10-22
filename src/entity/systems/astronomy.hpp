@@ -25,7 +25,7 @@
 #include "scene/directional-light.hpp"
 #include "utility/fundamental-types.hpp"
 #include "physics/frame.hpp"
-#include "renderer/passes/sky-pass.hpp"
+#include "render/passes/sky-pass.hpp"
 #include "entity/components/atmosphere.hpp"
 #include "entity/components/celestial-body.hpp"
 #include "entity/components/orbit.hpp"
@@ -80,7 +80,7 @@ public:
 	
 	void set_sun_light(scene::directional_light* light);
 	
-	void set_sky_pass(sky_pass* pass);
+	void set_sky_pass(::render::sky_pass* pass);
 	
 private:
 	void on_celestial_body_construct(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body);
@@ -102,7 +102,7 @@ private:
 	physics::frame<double> ezs_to_sez;
 	
 	scene::directional_light* sun_light;
-	sky_pass* sky_pass;
+	::render::sky_pass* sky_pass;
 };
 
 } // namespace system

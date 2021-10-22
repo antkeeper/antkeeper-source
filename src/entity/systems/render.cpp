@@ -20,7 +20,6 @@
 #include "render.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/components/camera.hpp"
-#include "renderer/renderer.hpp"
 #include "scene/point-light.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/ambient-light.hpp"
@@ -121,7 +120,7 @@ void render::remove_layers()
 	layers.clear();
 }
 
-void render::set_renderer(::renderer* renderer)
+void render::set_renderer(::render::renderer* renderer)
 {
 	this->renderer = renderer;
 }

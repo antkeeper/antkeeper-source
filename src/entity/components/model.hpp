@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_ENTITY_COMPONENT_MODEL_HPP
 #define ANTKEEPER_ENTITY_COMPONENT_MODEL_HPP
 
-#include "renderer/model.hpp"
+#include "render/model.hpp"
 #include <unordered_map>
 
 namespace entity {
@@ -28,8 +28,8 @@ namespace component {
 
 struct model
 {
-	::model* render_model;
-	std::unordered_map<int, material*> materials;
+	render::model* render_model;
+	std::unordered_map<int, render::material*> materials;
 	int instance_count;
 	unsigned int layers;
 };

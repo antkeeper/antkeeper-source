@@ -23,8 +23,7 @@
 #include "scene/object.hpp"
 #include "geom/aabb.hpp"
 #include "utility/fundamental-types.hpp"
-
-class material;
+#include "render/material.hpp"
 
 namespace scene {
 
@@ -53,7 +52,7 @@ public:
 	billboard(const billboard& other);
 	billboard& operator=(const billboard& other);
 
-	void set_material(material* material);
+	void set_material(render::material* material);
 	
 	/// Sets the billboard alignment mode.
 	void set_billboard_type(billboard_type type);
@@ -64,7 +63,7 @@ public:
 	virtual const bounding_volume_type& get_local_bounds() const;
 	virtual const bounding_volume_type& get_world_bounds() const;
 
-	material* get_material() const;
+	render::material* get_material() const;
 	billboard_type get_billboard_type() const;
 	const float3& get_alignment_axis() const;
 	
@@ -77,7 +76,7 @@ private:
 	
 	
 	aabb_type world_bounds;
-	material* material;
+	render::material* material;
 	billboard_type type;
 	float3 alignment_axis;
 };
@@ -92,7 +91,7 @@ inline const typename object_base::bounding_volume_type& billboard::get_world_bo
 	return world_bounds;
 }
 
-inline material* billboard::get_material() const
+inline render::material* billboard::get_material() const
 {
 	return material;
 }

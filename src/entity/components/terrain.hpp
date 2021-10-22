@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_ENTITY_COMPONENT_TERRAIN_HPP
 #define ANTKEEPER_ENTITY_COMPONENT_TERRAIN_HPP
 
-#include "renderer/material.hpp"
+#include "render/material.hpp"
 #include <functional>
 
 namespace entity {
@@ -35,7 +35,7 @@ struct terrain
 	std::size_t max_lod;
 	
 	/// Material for terrain patches;
-	material* patch_material;
+	render::material* patch_material;
 };
 
 } // namespace component

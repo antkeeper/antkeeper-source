@@ -42,15 +42,16 @@
 #include "gl/vertex-buffer.hpp"
 #include "physics/light/photometry.hpp"
 #include "physics/orbit/orbit.hpp"
-#include "renderer/material.hpp"
-#include "renderer/model.hpp"
-#include "renderer/passes/shadow-map-pass.hpp"
-#include "renderer/vertex-attribute.hpp"
+#include "render/material.hpp"
+#include "render/model.hpp"
+#include "render/passes/shadow-map-pass.hpp"
+#include "render/vertex-attribute.hpp"
 #include "resources/resource-manager.hpp"
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
 #include "utility/timestamp.hpp"
 #include "type/type.hpp"
+#include "configuration.hpp"
 #include <stb/stb_image_write.h>
 #include <unordered_set>
 #include <codecvt>
@@ -58,7 +59,7 @@
 #include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
 #include "scene/text.hpp"
-#include "renderer/material-flags.hpp"
+#include "render/material-flags.hpp"
 
 namespace game {
 namespace state {
@@ -235,6 +236,43 @@ void load_controls(game::context* ctx)
 	ctx->controls["menu_right"]->set_activation_threshold(menu_activation_threshold);
 }
 
+static void build_bitmap_font(const type::typeface& typeface, float size, const std::unordered_set<char32_t>& charset, type::bitmap_font& font, render::material& material, gl::shader_program* shader_program)
+{
+	// Get font metrics for given size
+	if (type::font_metrics metrics; typeface.get_metrics(size, metrics))
+		font.set_font_metrics(metrics);
+	
+	// Format font bitmap
+	image& font_bitmap = font.get_bitmap();
+	font_bitmap.format(sizeof(std::byte), 1);
+	
+	// For each UTF-32 character code in the character set
+	for (char32_t code: charset)
+	{
+		// Skip missing glyphs
+		if (!typeface.has_glyph(code))
+			continue;
+		
+		// Add glyph to font
+		type::bitmap_glyph& glyph = font[code];
+		typeface.get_metrics(size, code, glyph.metrics);
+		typeface.get_bitmap(size, code, glyph.bitmap);
+	}
+	
+	// Pack glyph bitmaps into the font bitmap
+	font.pack();
+	
+	// Create font texture from bitmap
+	gl::texture_2d* font_texture = new gl::texture_2d(font_bitmap.get_width(), font_bitmap.get_height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.get_pixels());
+	font_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+	font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
+	
+	// Create font material
+	material.set_flags(MATERIAL_FLAG_TRANSLUCENT);
+	material.add_property<const gl::texture_2d*>("font_bitmap")->set_value(font_texture);
+	material.set_shader_program(shader_program);
+}
+
 void load_fonts(game::context* ctx)
 {
 	// Load typefaces
@@ -265,65 +303,56 @@ void load_fonts(game::context* ctx)
 		}
 	}
 	
-	// Build bitmap fonts
+	// Load bitmap font shader
+	gl::shader_program* bitmap_font_shader = ctx->resource_manager->load<gl::shader_program>("bitmap-font.glsl");
+	
+	// Build debug font
+	if (auto it = ctx->typefaces.find("monospace"); it != ctx->typefaces.end())
+	{
+		build_bitmap_font(*it->second, 22.0f, charset, ctx->debug_font, ctx->debug_font_material, bitmap_font_shader);
+	}
+	
+	// Build menu font
 	if (auto it = ctx->typefaces.find("sans_serif"); it != ctx->typefaces.end())
 	{
-		type::typeface* typeface = it->second;
-		type::bitmap_font* font = new type::bitmap_font();
-		
-		// Get font metrics
-		const float size = 28.0f;
-		if (type::font_metrics metrics; typeface->get_metrics(size, metrics))
-			font->set_font_metrics(metrics);
-		
-		// Format font bitmap
-		image& font_bitmap = font->get_bitmap();
-		font_bitmap.format(sizeof(unsigned char), 1);
-		
-		// For each UTF-32 character code in the character set
-		for (char32_t code: charset)
-		{
-			if (!typeface->has_glyph(code))
-				continue;
-			
-			type::bitmap_glyph& glyph = (*font)[code];
-			typeface->get_metrics(size, code, glyph.metrics);
-			typeface->get_bitmap(size, code, glyph.bitmap);
-		}
-		
-		// Pack glyph bitmaps into the font bitmap
-		font->pack();
-		
-		// Create font texture from bitmap
-		gl::texture_2d* font_texture = new gl::texture_2d(font_bitmap.get_width(), font_bitmap.get_height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.get_pixels());
-		font_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-		font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-		
-		// Create font material
-		material* font_material = new material();
-		font_material->set_flags(MATERIAL_FLAG_TRANSLUCENT);
-		font_material->add_property<const gl::texture_2d*>("font_bitmap")->set_value(font_texture);
-		font_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("bitmap-font.glsl"));
-		
-		// Create text scene object
-		scene::text* text_object = new scene::text();
-		text_object->set_material(font_material);
-		text_object->set_font(font);
-		text_object->set_color({1.0f, 1.0f, 1.0f, 1.0f});
-		//text_object->set_content("Hello, World!");
-		
-		if (auto it = ctx->strings->find("continue"); it != ctx->strings->end())
-			text_object->set_content(it->second);
-		
-		// Add text object to UI scene
-		ctx->ui_scene->add_object(text_object);
-		
-		// Center text object
-		const auto& text_aabb = static_cast<const geom::aabb<float>&>(text_object->get_local_bounds());
-		float text_w = text_aabb.max_point.x - text_aabb.min_point.x;
-		float text_h = text_aabb.max_point.y - text_aabb.min_point.y;
-		text_object->set_translation({std::round(-text_w * 0.5f), std::round(-text_h * 0.5f), 0.0f});
+		build_bitmap_font(*it->second, 28.0f, charset, ctx->menu_font, ctx->menu_font_material, bitmap_font_shader);
 	}
+	
+	// Build title font
+	if (auto it = ctx->typefaces.find("serif"); it != ctx->typefaces.end())
+	{
+		build_bitmap_font(*it->second, 96.0f, charset, ctx->title_font, ctx->title_font_material, bitmap_font_shader);
+	}
+	
+	// Create title text
+	scene::text* title_text = new scene::text();
+	title_text->set_material(&ctx->title_font_material);
+	title_text->set_font(&ctx->title_font);
+	title_text->set_color({1.0f, 1.0f, 1.0f, 1.0f});
+	title_text->set_content((*ctx->strings)["title"]);
+	ctx->ui_scene->add_object(title_text);
+	
+	// Align title text
+	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text->get_local_bounds());
+	float title_w = title_aabb.max_point.x - title_aabb.min_point.x;
+	float title_h = title_aabb.max_point.y - title_aabb.min_point.y;
+	title_text->set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f), 0.0f});
+	
+	// Create version string text
+	scene::text* version_text = new scene::text();
+	version_text->set_material(&ctx->debug_font_material);
+	version_text->set_font(&ctx->debug_font);
+	version_text->set_color({1.0f, 1.0f, 1.0f, 1.0f});
+	version_text->set_content(ANTKEEPER_VERSION_STRING);
+	ctx->ui_scene->add_object(version_text);
+	
+	// Align version string
+	const auto& version_aabb = static_cast<const geom::aabb<float>&>(version_text->get_local_bounds());
+	float version_w = version_aabb.max_point.x - version_aabb.min_point.x;
+	float version_h = version_aabb.max_point.y - version_aabb.min_point.y;
+	const float version_padding = 12.0f;
+	auto viewport = ctx->app->get_viewport_dimensions();
+	version_text->set_translation({viewport[0] * 0.5f - version_w - version_padding, -viewport[1] * 0.5f + version_padding, 0.0f});
 }
 
 void cosmogenesis(game::context* ctx)
@@ -446,7 +475,7 @@ void planetogenesis(game::context* ctx)
 	ctx->astronomy_system->set_reference_body(planet_eid);
 	
 	// Load sky model
-	ctx->surface_sky_pass->set_sky_model(ctx->resource_manager->load<model>("sky-dome.mdl"));
+	ctx->surface_sky_pass->set_sky_model(ctx->resource_manager->load<render::model>("sky-dome.mdl"));
 }
 
 void selenogenesis(game::context* ctx)
@@ -456,7 +485,7 @@ void selenogenesis(game::context* ctx)
 	ctx->entities["moon"] = moon_eid;
 	
 	// Pass moon model to sky pass
-	ctx->surface_sky_pass->set_moon_model(ctx->resource_manager->load<model>("moon.mdl"));
+	ctx->surface_sky_pass->set_moon_model(ctx->resource_manager->load<render::model>("moon.mdl"));
 }
 
 void extrasolar_heliogenesis(game::context* ctx)
@@ -539,7 +568,7 @@ void extrasolar_heliogenesis(game::context* ctx)
 	ctx->resource_manager->unload("stars.csv");
 	
 	// Allocate stars model
-	model* stars_model = new model();
+	render::model* stars_model = new render::model();
 	
 	// Get model VBO and VAO
 	gl::vertex_buffer* vbo = stars_model->get_vertex_buffer();
@@ -576,10 +605,10 @@ void extrasolar_heliogenesis(game::context* ctx)
 	vao->bind(render::vertex_attribute::color, color_attribute);
 	
 	// Load star material
-	material* star_material = ctx->resource_manager->load<material>("fixed-star.mtl");
+	render::material* star_material = ctx->resource_manager->load<render::material>("fixed-star.mtl");
 	
 	// Create model group
-	model_group* stars_model_group = stars_model->add_group("stars");
+	render::model_group* stars_model_group = stars_model->add_group("stars");
 	stars_model_group->set_material(star_material);
 	stars_model_group->set_drawing_mode(gl::drawing_mode::points);
 	stars_model_group->set_start_index(0);

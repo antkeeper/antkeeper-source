@@ -26,7 +26,6 @@
 #include "entity/components/transform.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/commands.hpp"
-#include "renderer/material-property.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
 #include "resources/resource-manager.hpp"
@@ -49,7 +48,7 @@ void enter(game::context* ctx)
 		ctx->entity_registry->remove<entity::component::terrain>(planet_eid);
 	
 	// Enable clouds in sky pass
-	ctx->surface_sky_pass->set_clouds_model(ctx->resource_manager->load<model>("cloud-plane.mdl"));
+	ctx->surface_sky_pass->set_clouds_model(ctx->resource_manager->load<render::model>("cloud-plane.mdl"));
 	
 	// Create observer
 	entity::id observer_eid = ctx->entity_registry->create();

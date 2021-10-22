@@ -19,8 +19,8 @@
 
 #include "resource-loader.hpp"
 #include "resource-manager.hpp"
-#include "renderer/material.hpp"
-#include "renderer/material-flags.hpp"
+#include "render/material.hpp"
+#include "render/material-flags.hpp"
 #include <nlohmann/json.hpp>
 #include <physfs.h>
 #include <utility>
@@ -39,7 +39,7 @@ static bool read_value(T* value, const nlohmann::json& json, const std::string& 
 	return false;
 }
 
-static bool load_texture_2d_property(resource_manager* resource_manager, material* material, const std::string& name, const nlohmann::json& json)
+static bool load_texture_2d_property(resource_manager* resource_manager, render::material* material, const std::string& name, const nlohmann::json& json)
 {
 	// If JSON element is an array
 	if (json.is_array())
@@ -48,7 +48,7 @@ static bool load_texture_2d_property(resource_manager* resource_manager, materia
 		std::size_t array_size = json.size();
 		
 		// Create property
-		material_property<const gl::texture_2d*>* property = material->add_property<const gl::texture_2d*>(name, array_size);
+		render::material_property<const gl::texture_2d*>* property = material->add_property<const gl::texture_2d*>(name, array_size);
 		
 		// Load textures
 		std::size_t i = 0;
@@ -62,7 +62,7 @@ static bool load_texture_2d_property(resource_manager* resource_manager, materia
 	else
 	{
 		// Create property
-		material_property<const gl::texture_2d*>* property = material->add_property<const gl::texture_2d*>(name);
+		render::material_property<const gl::texture_2d*>* property = material->add_property<const gl::texture_2d*>(name);
 		
 		// Load texture
 		std::string filename = json.get<std::string>();
@@ -73,13 +73,13 @@ static bool load_texture_2d_property(resource_manager* resource_manager, materia
 	return true;
 }
 
-static bool load_texture_cube_property(resource_manager* resource_manager, material* material, const std::string& name, const nlohmann::json& json)
+static bool load_texture_cube_property(resource_manager* resource_manager, render::material* material, const std::string& name, const nlohmann::json& json)
 {
 	return false;
 }
 
 template <typename T>
-static bool load_scalar_property(material* material, const std::string& name, const nlohmann::json& json)
+static bool load_scalar_property(render::material* material, const std::string& name, const nlohmann::json& json)
 {
 	// If JSON element is an array
 	if (json.is_array())
@@ -88,7 +88,7 @@ static bool load_scalar_property(material* material, const std::string& name, co
 		std::size_t array_size = json.size();
 		
 		// Create property
-		material_property<T>* property = material->add_property<T>(name, array_size);
+		render::material_property<T>* property = material->add_property<T>(name, array_size);
 		
 		// Set property values
 		std::size_t i = 0;
@@ -98,7 +98,7 @@ static bool load_scalar_property(material* material, const std::string& name, co
 	else
 	{
 		// Create property
-		material_property<T>* property = material->add_property<T>(name);
+		render::material_property<T>* property = material->add_property<T>(name);
 		
 		// Set property value
 		property->set_value(json.get<T>());
@@ -108,7 +108,7 @@ static bool load_scalar_property(material* material, const std::string& name, co
 }
 
 template <typename T>
-static bool load_vector_property(material* material, const std::string& name, std::size_t vector_size, const nlohmann::json& json)
+static bool load_vector_property(render::material* material, const std::string& name, std::size_t vector_size, const nlohmann::json& json)
 {
 	// If JSON element is an array of arrays
 	if (json.is_array() && json.begin().value().is_array())
@@ -117,7 +117,7 @@ static bool load_vector_property(material* material, const std::string& name, st
 		std::size_t array_size = json.size();
 		
 		// Create property
-		material_property<T>* property = material->add_property<T>(name, array_size);
+		render::material_property<T>* property = material->add_property<T>(name, array_size);
 		
 		// For each vector in the array
 		std::size_t i = 0;
@@ -136,7 +136,7 @@ static bool load_vector_property(material* material, const std::string& name, st
 	else
 	{
 		// Create property
-		material_property<T>* property = material->add_property<T>(name);
+		render::material_property<T>* property = material->add_property<T>(name);
 		
 		// Read vector elements
 		T value;
@@ -152,7 +152,7 @@ static bool load_vector_property(material* material, const std::string& name, st
 }
 
 template <typename T>
-static bool load_matrix_property(material* material, const std::string& name, std::size_t column_count, std::size_t row_count, const nlohmann::json& json)
+static bool load_matrix_property(render::material* material, const std::string& name, std::size_t column_count, std::size_t row_count, const nlohmann::json& json)
 {
 	// If JSON element is an array of arrays of arrays
 	if (json.is_array() && json.begin().value().is_array())
@@ -163,7 +163,7 @@ static bool load_matrix_property(material* material, const std::string& name, st
 			std::size_t array_size = json.size();
 			
 			// Create property
-			material_property<T>* property = material->add_property<T>(name, array_size);
+			render::material_property<T>* property = material->add_property<T>(name, array_size);
 			
 			// For each matrix in the array
 			std::size_t i = 0;
@@ -195,7 +195,7 @@ static bool load_matrix_property(material* material, const std::string& name, st
 		else
 		{
 			// Create property
-			material_property<T>* property = material->add_property<T>(name);
+			render::material_property<T>* property = material->add_property<T>(name);
 			
 			// Read matrix elements
 			T value;
@@ -223,7 +223,7 @@ static bool load_matrix_property(material* material, const std::string& name, st
 }
 
 template <>
-material* resource_loader<material>::load(resource_manager* resource_manager, PHYSFS_File* file)
+render::material* resource_loader<render::material>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	// Read file into buffer
 	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));
@@ -235,7 +235,7 @@ material* resource_loader<material>::load(resource_manager* resource_manager, PH
 	nlohmann::json json = nlohmann::json::parse(buffer, nullptr, true, true);
 	
 	// Allocate material
-	material* material = new ::material();
+	render::material* material = new render::material();
 	
 	// Read shader filename
 	std::string shader_filename;

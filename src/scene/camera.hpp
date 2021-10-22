@@ -23,8 +23,7 @@
 #include "scene/object.hpp"
 #include "geom/view-frustum.hpp"
 #include "utility/fundamental-types.hpp"
-
-class compositor;
+#include "render/compositor.hpp"
 
 namespace scene {
 
@@ -85,7 +84,7 @@ public:
 	 */
 	void set_exposure(float exposure);
 
-	void set_compositor(compositor* compositor);
+	void set_compositor(render::compositor* compositor);
 	void set_composite_index(int index);
 	
 	
@@ -117,8 +116,8 @@ public:
 	/// Returns the camera's exposure.
 	float get_exposure() const;
 
-	const compositor* get_compositor() const;
-	compositor* get_compositor();
+	const render::compositor* get_compositor() const;
+	render::compositor* get_compositor();
 	int get_composite_index() const;
 
 	const tween<float>& get_clip_left_tween() const;
@@ -140,7 +139,7 @@ public:
 private:
 	virtual void transformed();
 
-	compositor* compositor;
+	render::compositor* compositor;
 	int composite_index;
 	bool orthographic;
 	tween<float> clip_left;
@@ -239,13 +238,12 @@ inline float camera::get_exposure() const
 	return exposure[1];
 }
 
-
-inline const compositor* camera::get_compositor() const
+inline const render::compositor* camera::get_compositor() const
 {
 	return compositor;
 }
 
-inline compositor* camera::get_compositor()
+inline render::compositor* camera::get_compositor()
 {
 	return compositor;
 }

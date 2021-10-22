@@ -19,8 +19,8 @@
 
 #include "resources/resource-loader.hpp"
 #include "resources/resource-manager.hpp"
-#include "renderer/model.hpp"
-#include "renderer/vertex-attribute.hpp"
+#include "render/model.hpp"
+#include "render/vertex-attribute.hpp"
 #include "gl/vertex-attribute.hpp"
 #include "gl/drawing-mode.hpp"
 #include "utility/fundamental-types.hpp"
@@ -357,7 +357,7 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 */
 
 template <>
-model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_File* file)
+render::model* resource_loader<render::model>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
 	// Read file into buffer
 	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));
@@ -431,7 +431,7 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 	}
 	
 	// Allocate a model
-	model* model = new ::model();
+	render::model* model = new render::model();
 	
 	// Set the model bounds
 	model->set_bounds(bounds);
@@ -512,7 +512,7 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 			std::string group_name;
 			std::size_t group_offset = 0;
 			std::size_t group_size = 0;
-			material* group_material = nullptr;
+			render::material* group_material = nullptr;
 			
 			if (auto name_node = material_node.value().find("name"); name_node != material_node.value().end())
 				group_name = name_node.value().get<std::string>();
@@ -526,9 +526,9 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 			std::replace(material_filename.begin(), material_filename.end(), '_', '-');
 			
 			// Load material from file
-			group_material = resource_manager->load<material>(material_filename);
+			group_material = resource_manager->load<render::material>(material_filename);
 			
-			model_group* model_group = model->add_group(group_name);
+			render::model_group* model_group = model->add_group(group_name);
 			model_group->set_drawing_mode(gl::drawing_mode::triangles);
 			model_group->set_start_index(group_offset * 3);
 			model_group->set_index_count(group_size * 3);

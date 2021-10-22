@@ -27,10 +27,9 @@
 #include "entity/components/model.hpp"
 #include "entity/components/light.hpp"
 #include "entity/id.hpp"
+#include "render/renderer.hpp"
 #include <unordered_map>
 #include <vector>
-
-class renderer;
 
 namespace entity {
 namespace system {
@@ -47,7 +46,7 @@ public:
 	void add_layer(scene::collection* layer);
 	void remove_layers();
 	
-	void set_renderer(::renderer* renderer);
+	void set_renderer(::render::renderer* renderer);
 	
 	scene::model_instance* get_model_instance(entity::id entity_id);
 	scene::light* get_light(entity::id entity_id);
@@ -66,7 +65,7 @@ private:
 	
 	double t;
 	double dt;
-	renderer* renderer;
+	::render::renderer* renderer;
 	std::vector<scene::collection*> layers;
 	std::unordered_map<entity::id, scene::model_instance*> model_instances;
 	std::unordered_map<entity::id, scene::light*> lights;

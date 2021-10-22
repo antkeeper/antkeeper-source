@@ -18,12 +18,12 @@
  */
 
 #include "scene/model-instance.hpp"
-#include "renderer/model.hpp"
-#include "renderer/material.hpp"
+#include "render/model.hpp"
+#include "render/material.hpp"
 
 namespace scene {
 
-model_instance::model_instance(::model* model):
+model_instance::model_instance(render::model* model):
 	model(nullptr),
 	pose(nullptr),
 	local_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
@@ -56,7 +56,7 @@ model_instance& model_instance::operator=(const model_instance& other)
 	return *this;
 }
 
-void model_instance::set_model(::model* model)
+void model_instance::set_model(render::model* model)
 {
 	this->model = model;
 	this->pose = nullptr;
@@ -75,7 +75,7 @@ void model_instance::set_pose(::pose* pose)
 	this->pose = pose;
 }
 
-void model_instance::set_material(std::size_t group_index, material* material)
+void model_instance::set_material(std::size_t group_index, render::material* material)
 {
 	materials[group_index] = material;
 }
@@ -117,9 +117,9 @@ void model_instance::update_tweens()
 	// Update model material tweens
 	if (model)
 	{
-		for (model_group* group: *model->get_groups())
+		for (render::model_group* group: *model->get_groups())
 		{
-			material* material = group->get_material();
+			render::material* material = group->get_material();
 			if (material)
 			{
 				material->update_tweens();
@@ -128,7 +128,7 @@ void model_instance::update_tweens()
 	}
 	
 	// Update material override tweens
-	for (::material* material: materials)
+	for (render::material* material: materials)
 	{
 		if (material)
 		{

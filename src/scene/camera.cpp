@@ -149,7 +149,7 @@ void camera::set_exposure(float exposure)
 	this->exposure[1] = exposure;
 }
 
-void camera::set_compositor(::compositor* compositor)
+void camera::set_compositor(render::compositor* compositor)
 {
 	this->compositor = compositor;
 }

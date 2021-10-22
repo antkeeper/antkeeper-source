@@ -20,7 +20,7 @@
 #include "resources/resource-loader.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/text-file.hpp"
-#include "renderer/shader-template.hpp"
+#include "render/shader-template.hpp"
 #include "gl/shader-object.hpp"
 #include "gl/shader-program.hpp"
 #include <sstream>
@@ -89,10 +89,10 @@ gl::shader_program* resource_loader<gl::shader_program>::load(resource_manager* 
 	std::copy(source_lines.begin(), source_lines.end(), std::ostream_iterator<std::string>(stream, "\n"));
 	
 	// Create shader template
-	shader_template* shader = new shader_template(stream.str());
+	render::shader_template* shader = new render::shader_template(stream.str());
 	
 	// Build shader program
-	gl::shader_program* program = shader->build(shader_template::dictionary_type());
+	gl::shader_program* program = shader->build(render::shader_template::dictionary_type());
 	
 	// Check if shader program was linked successfully
 	if (!program->was_linked())

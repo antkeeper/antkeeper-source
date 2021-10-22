@@ -24,14 +24,14 @@
 #include "event/event-dispatcher.hpp"
 #include "resources/resource-manager.hpp"
 #include "math/math.hpp"
-#include "renderer/material.hpp"
-#include "renderer/model.hpp"
+#include "render/material.hpp"
+#include "render/model.hpp"
 #include "utility/fundamental-types.hpp"
 #include "entity/commands.hpp"
 #include "entity/components/collision.hpp"
 #include "entity/components/transform.hpp"
 #include "gl/vertex-buffer.hpp"
-#include "renderer/vertex-attribute.hpp"
+#include "render/vertex-attribute.hpp"
 #include "geom/mesh-functions.hpp"
 #include <limits>
 

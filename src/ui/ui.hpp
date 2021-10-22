@@ -23,4 +23,6 @@
 /// UI elements
 namespace ui {}
 
+#include "ui/element.hpp"
+
 #endif // ANTKEEPER_UI_HPP
