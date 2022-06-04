@@ -149,6 +149,18 @@ application::application():
 	// Update window size and viewport size
 	SDL_GetWindowSize(sdl_window, &window_dimensions[0], &window_dimensions[1]);
 	SDL_GL_GetDrawableSize(sdl_window, &viewport_dimensions[0], &viewport_dimensions[1]);
+	
+	// Make OpenGL context current
+	logger->push_task("Making OpenGL context current");
+	if (SDL_GL_MakeCurrent(sdl_window, sdl_gl_context) != 0)
+	{
+		logger->pop_task(EXIT_FAILURE);
+		throw std::runtime_error("Failed to make OpenGL context current");
+	}
+	else
+	{
+		logger->pop_task(EXIT_SUCCESS);
+	}
 
 	// Load OpenGL functions via GLAD
 	logger->push_task("Loading OpenGL functions");
@@ -184,20 +196,6 @@ application::application():
 	{
 		logger->pop_task(EXIT_SUCCESS);
 	}
-
-	// Load SDL gamepad mappings
-	/*
-	logger->push_task("Loading SDL gamepad mappings from database");
-	std::string gamecontrollerdb_path = data_path + "controls/gamecontrollerdb.txt";
-	if (SDL_GameControllerAddMappingsFromFile(gamecontrollerdb_path.c_str()) == -1)
-	{
-		logger->pop_task(EXIT_FAILURE);
-	}
-	else
-	{
-		logger->pop_task(EXIT_SUCCESS);
-	}
-	*/
 	
 	// Setup rasterizer
 	rasterizer = new gl::rasterizer();
@@ -245,26 +243,12 @@ void application::close(int status)
 	exit_status = status;
 }
 
-int application::execute(bootloader_type bootloader)
+int application::execute(const application::state& initial_state)
 {
 	try
 	{
-		// Execute bootloader
-		if (bootloader)
-		{
-			exit_status = bootloader(this);
-			if (exit_status != EXIT_SUCCESS)
-			{
-				return exit_status;
-			}
-		}
-		
-		// Show window
-		SDL_ShowWindow(sdl_window);
-		
-		// Clear window
-		rasterizer->clear_framebuffer(true, false, false);
-		SDL_GL_SwapWindow(sdl_window);
+		// Enter initial application state
+		change_state(initial_state);
 		
 		// Perform initial update
 		update(0.0, 0.0);
@@ -492,6 +476,31 @@ void application::set_window_opacity(float opacity)
 void application::swap_buffers()
 {
 	SDL_GL_SwapWindow(sdl_window);
+}
+
+void application::show_window()
+{
+	SDL_ShowWindow(sdl_window);
+}
+
+void application::hide_window()
+{
+	SDL_HideWindow(sdl_window);
+}
+
+void application::add_game_controller_mappings(const void* mappings, std::size_t size)
+{
+	logger->push_task("Adding SDL game controller mappings");
+	int mapping_count = SDL_GameControllerAddMappingsFromRW(SDL_RWFromConstMem(mappings, size), 0);
+	if (mapping_count == -1)
+	{
+		logger->pop_task(EXIT_FAILURE);
+	}
+	else
+	{
+		logger->log("Added " + std::to_string(mapping_count) + " SDL game controller mappings");
+		logger->pop_task(EXIT_SUCCESS);
+	}
 }
 
 void application::update(double t, double dt)

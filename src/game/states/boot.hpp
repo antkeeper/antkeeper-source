@@ -17,9 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_BOOTLOADER_HPP
-#define ANTKEEPER_BOOTLOADER_HPP
+#ifndef ANTKEEPER_GAME_STATE_BOOT_HPP
+#define ANTKEEPER_GAME_STATE_BOOT_HPP
 
-int bootloader(application* app, int argc, char** argv);
+#include "application.hpp"
 
-#endif // ANTKEEPER_BOOTLOADER_HPP
+namespace game {
+namespace state {
+
+/// Boot game state functions.
+namespace boot {
+
+void enter(application* app, int argc, char** argv);
+void exit(application* app);
+
+} // namespace boot
+
+} // namespace state
+} // namespace game
+
+#endif // ANTKEEPER_GAME_STATE_BOOT_HPP

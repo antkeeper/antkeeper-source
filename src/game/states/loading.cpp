@@ -323,36 +323,6 @@ void load_fonts(game::context* ctx)
 	{
 		build_bitmap_font(*it->second, 96.0f, charset, ctx->title_font, ctx->title_font_material, bitmap_font_shader);
 	}
-	
-	// Create title text
-	scene::text* title_text = new scene::text();
-	title_text->set_material(&ctx->title_font_material);
-	title_text->set_font(&ctx->title_font);
-	title_text->set_color({1.0f, 1.0f, 1.0f, 1.0f});
-	title_text->set_content((*ctx->strings)["title"]);
-	ctx->ui_scene->add_object(title_text);
-	
-	// Align title text
-	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text->get_local_bounds());
-	float title_w = title_aabb.max_point.x - title_aabb.min_point.x;
-	float title_h = title_aabb.max_point.y - title_aabb.min_point.y;
-	title_text->set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f), 0.0f});
-	
-	// Create version string text
-	scene::text* version_text = new scene::text();
-	version_text->set_material(&ctx->debug_font_material);
-	version_text->set_font(&ctx->debug_font);
-	version_text->set_color({1.0f, 1.0f, 1.0f, 1.0f});
-	version_text->set_content(ANTKEEPER_VERSION_STRING);
-	ctx->ui_scene->add_object(version_text);
-	
-	// Align version string
-	const auto& version_aabb = static_cast<const geom::aabb<float>&>(version_text->get_local_bounds());
-	float version_w = version_aabb.max_point.x - version_aabb.min_point.x;
-	float version_h = version_aabb.max_point.y - version_aabb.min_point.y;
-	const float version_padding = 12.0f;
-	auto viewport = ctx->app->get_viewport_dimensions();
-	version_text->set_translation({viewport[0] * 0.5f - version_w - version_padding, -viewport[1] * 0.5f + version_padding, 0.0f});
 }
 
 void cosmogenesis(game::context* ctx)

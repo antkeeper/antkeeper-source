@@ -17,32 +17,19 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "application.hpp"
-#include "game/states/boot.hpp"
-#include <functional>
-#include <iostream>
-#include <stdexcept>
+#include "resources/resource-loader.hpp"
+#include "resources/file-buffer.hpp"
+#include <physfs.h>
 
-int main(int argc, char* argv[])
+template <>
+file_buffer* resource_loader<file_buffer>::load(resource_manager* resource_manager, PHYSFS_File* file)
 {
-	try
-	{
-		// Construct application
-		application app;
-		
-		// Setup initial application state
-		application::state boot_state;
-		boot_state.name = "boot";
-		boot_state.enter = std::bind(game::state::boot::enter, &app, argc, argv);
-		boot_state.exit = std::bind(game::state::boot::exit, &app);
-		
-		// Execute application then return the exit status code
-		return app.execute(boot_state);
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr << "Unhandled exception: \"" << e.what() << "\"" << std::endl;
-	}
+	file_buffer* buffer = new file_buffer();
 	
-	return EXIT_FAILURE;
+	// Read file into buffer
+	std::size_t size = static_cast<std::size_t>(PHYSFS_fileLength(file));
+	buffer->resize(size);
+	PHYSFS_readBytes(file, buffer->data(), size);
+
+	return buffer;
 }

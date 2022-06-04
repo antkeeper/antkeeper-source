@@ -34,5 +34,6 @@ namespace scene {}
 #include "object.hpp"
 #include "point-light.hpp"
 #include "spot-light.hpp"
+#include "text.hpp"
 
 #endif // ANTKEEPER_SCENE_HPP

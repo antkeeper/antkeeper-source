@@ -199,6 +199,8 @@ struct context
 	scene::camera* ui_camera;
 	scene::billboard* splash_billboard;
 	scene::billboard* camera_flash_billboard;
+	scene::text* title_text;
+	scene::text* title_version_text;
 	
 	// Surface scene
 	scene::collection* surface_scene;

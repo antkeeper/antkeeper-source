@@ -27,7 +27,10 @@ namespace state {}
 
 } // namespace game
 
+#include "game/states/boot.hpp"
 #include "game/states/loading.hpp"
 #include "game/states/splash.hpp"
+#include "game/states/title.hpp"
+#include "game/states/main-menu.hpp"
 
 #endif // ANTKEEPER_GAME_STATES_HPP

@@ -18,7 +18,7 @@
  */
 
 #include "game/states/splash.hpp"
-#include "game/states/brood.hpp"
+#include "game/states/title.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
 #include "animation/timeline.hpp"
@@ -51,9 +51,9 @@ void enter(game::context* ctx)
 	auto change_state = [ctx]()
 	{
 		application::state next_state;
-		next_state.name = "brood";
-		next_state.enter = std::bind(game::state::brood::enter, ctx);
-		next_state.exit = std::bind(game::state::brood::exit, ctx);
+		next_state.name = "title";
+		next_state.enter = std::bind(game::state::title::enter, ctx);
+		next_state.exit = std::bind(game::state::title::exit, ctx);
 		
 		ctx->app->change_state(next_state);
 	};
@@ -83,9 +83,9 @@ void enter(game::context* ctx)
 				ctx->app->swap_buffers();
 				
 				application::state next_state;
-				next_state.name = "brood";
-				next_state.enter = std::bind(game::state::brood::enter, ctx);
-				next_state.exit = std::bind(game::state::brood::exit, ctx);
+				next_state.name = "title";
+				next_state.enter = std::bind(game::state::title::enter, ctx);
+				next_state.exit = std::bind(game::state::title::exit, ctx);
 				
 				ctx->app->change_state(next_state);
 			}

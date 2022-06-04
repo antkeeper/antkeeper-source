@@ -17,32 +17,22 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "application.hpp"
-#include "game/states/boot.hpp"
-#include <functional>
-#include <iostream>
-#include <stdexcept>
+#include "game/states/main-menu.hpp"
 
-int main(int argc, char* argv[])
+namespace game {
+namespace state {
+namespace main_menu {
+
+void enter(game::context* ctx)
 {
-	try
-	{
-		// Construct application
-		application app;
-		
-		// Setup initial application state
-		application::state boot_state;
-		boot_state.name = "boot";
-		boot_state.enter = std::bind(game::state::boot::enter, &app, argc, argv);
-		boot_state.exit = std::bind(game::state::boot::exit, &app);
-		
-		// Execute application then return the exit status code
-		return app.execute(boot_state);
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr << "Unhandled exception: \"" << e.what() << "\"" << std::endl;
-	}
-	
-	return EXIT_FAILURE;
+
 }
+
+void exit(game::context* ctx)
+{
+
+}
+
+} // namespace main_menu
+} // namespace state
+} // namespace game

@@ -17,6 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/states/boot.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
 #include "animation/ease.hpp"
@@ -51,7 +52,7 @@
 #include "render/compositor.hpp"
 #include "render/renderer.hpp"
 #include "resources/resource-manager.hpp"
-#include "resources/resource-manager.hpp"
+#include "resources/file-buffer.hpp"
 #include "scene/scene.hpp"
 #include "game/states/loading.hpp"
 #include "entity/systems/behavior.hpp"
@@ -93,6 +94,10 @@
 #include <execution>
 #include <algorithm>
 
+namespace game {
+namespace state {
+namespace boot {
+
 static constexpr double seconds_per_day = 24.0 * 60.0 * 60.0;
 
 static void parse_options(game::context* ctx, int argc, char** argv);
@@ -109,7 +114,7 @@ static void setup_controls(game::context* ctx);
 static void setup_cli(game::context* ctx);
 static void setup_callbacks(game::context* ctx);
 
-int bootloader(application* app, int argc, char** argv)
+void enter(application* app, int argc, char** argv)
 {
 	// Get application logger
 	debug::logger* logger = app->get_logger();
@@ -142,7 +147,7 @@ int bootloader(application* app, int argc, char** argv)
 	{
 		logger->error("Caught exception: \"" + std::string(e.what()) + "\"");
 		logger->pop_task(EXIT_FAILURE);
-		return EXIT_FAILURE;
+		return;
 	}
 	
 	logger->pop_task(EXIT_SUCCESS);
@@ -162,8 +167,14 @@ int bootloader(application* app, int argc, char** argv)
 	// Enter initial application state
 	app->change_state(initial_state);
 	
-	return EXIT_SUCCESS;
+	return;
 }
+
+void exit(application* app)
+{
+
+}
+
 
 void parse_options(game::context* ctx, int argc, char** argv)
 {
@@ -440,6 +451,12 @@ void setup_window(game::context* ctx)
 	
 	// Set title
 	app->set_title((*ctx->strings)["title"]);
+	
+	// Show window
+	ctx->app->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+	ctx->app->get_rasterizer()->clear_framebuffer(true, false, false);
+	app->show_window();
+	ctx->app->swap_buffers();
 	
 	logger->pop_task(EXIT_SUCCESS);
 }
@@ -919,6 +936,20 @@ void setup_controls(game::context* ctx)
 	// Setup input listener
 	ctx->input_listener = new input::listener();
 	ctx->input_listener->set_event_dispatcher(event_dispatcher);
+	
+	// Load SDL game controller mappings database
+	ctx->logger->push_task("Loading SDL game controller mappings from database");
+	file_buffer* game_controller_db = ctx->resource_manager->load<file_buffer>("gamecontrollerdb.txt");
+	if (!game_controller_db)
+	{
+		ctx->logger->pop_task(EXIT_FAILURE);
+	}
+	else
+	{
+		ctx->app->add_game_controller_mappings(game_controller_db->data(), game_controller_db->size());
+		ctx->resource_manager->unload("gamecontrollerdb.txt");
+		ctx->logger->pop_task(EXIT_SUCCESS);
+	}	
 }
 
 void setup_cli(game::context* ctx)
@@ -1001,3 +1032,7 @@ void setup_callbacks(game::context* ctx)
 		}
 	);
 }
+
+} // namespace boot
+} // namespace state
+} // namespace game

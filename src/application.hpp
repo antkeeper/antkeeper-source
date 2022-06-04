@@ -79,11 +79,11 @@ public:
 	/**
 	 * Executes the application, causing it to run the bootloader then enter the execution loop until closed.
 	 *
-	 * @param bootloader Function which will be executed immediately before the execution loop is entered. The bootloader will be passed a pointer to this application and should return an exit status code.
+	 * @param initial_state Initial state of the application.
 	 *
 	 * @return Exit status code.
 	 */
-	int execute(bootloader_type bootloader);
+	int execute(const application::state& initial_state);
 	
 	/**
 	 * Requests the application's execution loop to cleanly terminate, and specifies its exit status code.
@@ -185,6 +185,11 @@ public:
 	void set_window_opacity(float opacity);
 	
 	void swap_buffers();
+	
+	void show_window();
+	void hide_window();
+	
+	void add_game_controller_mappings(const void* mappings, std::size_t size);
 	
 	/// Returns the dimensions of the current display.
 	const std::array<int, 2>& get_display_dimensions() const;
