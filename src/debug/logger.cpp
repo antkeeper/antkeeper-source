@@ -154,7 +154,7 @@ void logger::set_success_postfix(const std::string& postfix)
 
 void logger::push_task(const std::string& description)
 {
-	std::string message = description + "...";
+	std::string message = description + " {";
 	if (!auto_newline)
 		message += "\n";
 	
@@ -163,20 +163,20 @@ void logger::push_task(const std::string& description)
 	tasks.push(description);
 }
 
-void logger::pop_task(int status)
+void logger::pop_task(int status, std::string error)
 {
 	if (tasks.empty())
 	{
 		return;
 	}
 	
-	std::string message = tasks.top() + "... ";
+	std::string message = "} ";
 	
 	tasks.pop();
 	
 	if (status == EXIT_SUCCESS)
 	{
-		message += "success";
+		message += "=> success";
 		if (!auto_newline)
 			message += "\n";
 		
@@ -184,11 +184,13 @@ void logger::pop_task(int status)
 	}
 	else
 	{
-		message += "failed (" + std::to_string(status) + ")";
+		message += "failed";
+		if (!error.empty())
+			message += " (" + error + ")";
 		if (!auto_newline)
 			message += "\n";
 		
-		error(message);
+		this->error(message);
 	}
 }
 

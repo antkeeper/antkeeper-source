@@ -33,7 +33,7 @@
 #include "entity/archetype.hpp"
 #include "game/states/nuptial-flight.hpp"
 #include "game/states/splash.hpp"
-#include "game/states/forage.hpp"
+#include "game/states/main-menu.hpp"
 #include "game/controls.hpp"
 #include "geom/spherical.hpp"
 #include "gl/drawing-mode.hpp"
@@ -132,9 +132,9 @@ void enter(game::context* ctx)
 	application::state next_state;
 	if (ctx->option_quick_start.has_value())
 	{
-		next_state.name = "forage";
-		next_state.enter = std::bind(game::state::forage::enter, ctx);
-		next_state.exit = std::bind(game::state::forage::exit, ctx);
+		next_state.name = "main_menu";
+		next_state.enter = std::bind(game::state::main_menu::enter, ctx);
+		next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 	}
 	else
 	{

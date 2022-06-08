@@ -56,8 +56,8 @@ bool typeface::get_metrics(float height, font_metrics& metrics) const
 	// Get font metrics
 	metrics.ascent = face->size->metrics.ascender / 64.0f;
 	metrics.descent = face->size->metrics.descender / 64.0f;
-	metrics.linegap = face->size->metrics.height / 64.0f;
-	metrics.linespace = metrics.ascent - metrics.descent + metrics.linegap;
+	metrics.linespace = face->size->metrics.height / 64.0f;
+	metrics.linegap = metrics.linespace - (metrics.ascent - metrics.descent);
 	metrics.underline_position = FT_MulFix(face->underline_position, face->size->metrics.y_scale) / 64.0f;
 	metrics.underline_thickness = FT_MulFix(face->underline_thickness, face->size->metrics.y_scale) / 64.0f;
 	metrics.max_horizontal_advance = face->size->metrics.max_advance / 64.0f;

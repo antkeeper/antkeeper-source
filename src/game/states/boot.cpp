@@ -119,8 +119,6 @@ void enter(application* app, int argc, char** argv)
 	// Get application logger
 	debug::logger* logger = app->get_logger();
 	
-	logger->push_task("Running application bootloader");
-	
 	// Allocate game context
 	game::context* ctx = new game::context();
 	ctx->app = app;
@@ -150,31 +148,22 @@ void enter(application* app, int argc, char** argv)
 		return;
 	}
 	
-	logger->pop_task(EXIT_SUCCESS);
-	
 	// Set update rate
 	if (ctx->config->contains("update_rate"))
 	{
 		app->set_update_rate((*ctx->config)["update_rate"].get<double>());
 	}
 	
-	// Setup initial application state
-	application::state initial_state;
-	initial_state.name = "loading";
-	initial_state.enter = std::bind(game::state::loading::enter, ctx);
-	initial_state.exit = std::bind(game::state::loading::exit, ctx);
-	
-	// Enter initial application state
-	app->change_state(initial_state);
-	
-	return;
+	// Queue next application state
+	application::state next_state;
+	next_state.name = "loading";
+	next_state.enter = std::bind(game::state::loading::enter, ctx);
+	next_state.exit = std::bind(game::state::loading::exit, ctx);
+	app->queue_state(next_state);
 }
 
 void exit(application* app)
-{
-
-}
-
+{}
 
 void parse_options(game::context* ctx, int argc, char** argv)
 {
@@ -289,10 +278,10 @@ void setup_resources(game::context* ctx)
 	
 	// Redirect logger output to log file on non-debug builds
 	#if defined(NDEBUG)
-		std::string log_filename = config_path + "log.txt";
+		std::string log_filename = ctx->config_path + "log.txt";
 		ctx->log_filestream.open(log_filename.c_str());
 		ctx->log_filestream << logger->get_history();
-		logger->redirect(&log_filestream);
+		logger->redirect(&ctx->log_filestream);
 	#endif
 	
 	// Scan for mods

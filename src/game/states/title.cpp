@@ -25,6 +25,7 @@
 #include "application.hpp"
 #include "scene/text.hpp"
 #include "configuration.hpp"
+#include "render/passes/clear-pass.hpp"
 
 namespace game {
 namespace state {
@@ -32,6 +33,8 @@ namespace title {
 
 void enter(game::context* ctx)
 {
+	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
+	
 	// Setup timing
 	const float title_fade_in_duration = 0.5f;
 	const float title_fade_out_duration = 0.5f;
@@ -66,6 +69,7 @@ void enter(game::context* ctx)
 			{
 				ctx->timeline->clear();
 				ctx->fade_transition->get_animation()->stop();
+				ctx->fade_transition->get_billboard()->set_active(false);
 				ctx->rasterizer->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 				ctx->rasterizer->clear_framebuffer(true, false, false);
 				ctx->app->swap_buffers();
@@ -125,6 +129,8 @@ void exit(game::context* ctx)
 	// Disable title skipper
 	ctx->input_listener->set_enabled(false);
 	ctx->input_listener->set_callback(nullptr);
+	
+	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }
 
 } // namespace title

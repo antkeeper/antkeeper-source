@@ -23,6 +23,7 @@
 #include "animation/ease.hpp"
 #include "animation/timeline.hpp"
 #include "application.hpp"
+#include "render/passes/clear-pass.hpp"
 
 namespace game {
 namespace state {
@@ -30,6 +31,8 @@ namespace splash {
 
 void enter(game::context* ctx)
 {
+	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
+	
 	// Add splash billboard to UI scene
 	ctx->ui_scene->add_object(ctx->splash_billboard);
 	
@@ -102,6 +105,8 @@ void exit(game::context* ctx)
 	
 	// Remove splash billboard from UI scene
 	ctx->ui_scene->remove_object(ctx->splash_billboard);
+	
+	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }
 
 } // namespace splash

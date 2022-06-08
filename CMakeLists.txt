@@ -123,4 +123,3 @@ elseif(PACKAGE_PLATFORM MATCHES "win")
 	#endif()
 	#install(FILES ${OPENAL_DLL} DESTINATION .)
 endif()
-

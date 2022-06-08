@@ -33,7 +33,9 @@ class screen_transition
 public:
 	screen_transition();
 	
-	void transition(float duration, bool reverse, animation<float>::interpolator_type interpolator);
+	void set_visible(bool visible);
+	
+	void transition(float duration, bool reverse, animation<float>::interpolator_type interpolator, bool hide = true);
 	
 	scene::billboard* get_billboard();
 	render::material* get_material();

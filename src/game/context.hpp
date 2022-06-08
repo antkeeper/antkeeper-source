@@ -201,6 +201,11 @@ struct context
 	scene::billboard* camera_flash_billboard;
 	scene::text* title_text;
 	scene::text* title_version_text;
+	scene::text* main_menu_start_text;
+	scene::text* main_menu_options_text;
+	scene::text* main_menu_credits_text;
+	scene::text* main_menu_quit_text;
+	scene::model_instance* ui_pointer;
 	
 	// Surface scene
 	scene::collection* surface_scene;

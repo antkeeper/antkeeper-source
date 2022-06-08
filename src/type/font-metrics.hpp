@@ -36,7 +36,7 @@ struct font_metrics
 	/// Distance that must be placed between two lines of text.
 	float linegap;
 	
-	/// Baseline-to-baseline distance, computed as ascent - descent + linegap`.
+	/// Baseline-to-baseline distance, computed as `ascent - descent + linegap`.
 	float linespace;
 	
 	/// Vertical position of an underline.

@@ -97,7 +97,7 @@ public:
 	 *
 	 * @param status Exit status of the task. A value of `0` or `EXIT_SUCCESS` indicates the task exited successfully. A non-zero exit status indicates the task failed.
 	 */
-	void pop_task(int status);
+	void pop_task(int status, std::string error = std::string());
 	
 	const std::string& get_history() const;
 

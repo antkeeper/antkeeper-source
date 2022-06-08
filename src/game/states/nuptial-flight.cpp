@@ -66,22 +66,6 @@ void enter(game::context* ctx)
 		ctx->astronomy_system->set_observer_location(double3{observer.elevation, observer.latitude, observer.longitude});
 	}
 	
-	// Create wing
-	entity::archetype* ant_forewing_archetype = ctx->resource_manager->load<entity::archetype>("ant-forewing.ent");
-	auto forewing_eid = ctx->entity_registry->create();
-	//ant_forewing_archetype->assign(*ctx->entity_registry, forewing_eid);
-	
-	// Create eye
-	entity::archetype* ant_round_eye_archetype = ctx->resource_manager->load<entity::archetype>("ant-round-eye.ent");
-	auto ant_round_eye_eid = ctx->entity_registry->create();
-	ant_round_eye_archetype->assign(*ctx->entity_registry, ant_round_eye_eid);
-	entity::command::assign_render_layers(*ctx->entity_registry, ant_round_eye_eid, 0b10);
-	
-	// Create green orb ring
-	entity::archetype* orb_ring_archetype = ctx->resource_manager->load<entity::archetype>("orb-ring.ent");
-	auto orb_ring_eid = ctx->entity_registry->create();
-	//orb_ring_archetype->assign(*ctx->entity_registry, orb_ring_eid);
-	
 	// Setup camera
 	ctx->surface_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
 	ctx->surface_camera->set_exposure(-14.5f);
@@ -94,7 +78,7 @@ void enter(game::context* ctx)
 	
 	// Start fade in from white
 	ctx->fade_transition_color->set_value({1, 1, 1});
-	ctx->fade_transition->transition(2.0f, true, ease<float>::in_quad);
+	ctx->fade_transition->transition(5.0f, true, math::lerp<float, float>);
 }
 
 void exit(game::context* ctx)
