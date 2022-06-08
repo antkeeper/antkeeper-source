@@ -20,10 +20,13 @@
 #ifndef ANTKEEPER_ANIMATOR_HPP
 #define ANTKEEPER_ANIMATOR_HPP
 
-#include <set>
+#include <unordered_set>
 
 class animation_base;
 
+/**
+ * Progresses a set of animations.
+ */
 class animator
 {
 public:
@@ -34,12 +37,25 @@ public:
 	 */
 	void animate(double dt);
 	
+	/**
+	 * Adds an animation to the animator.
+	 *
+	 * @param animation Animation to add.
+	 */
 	void add_animation(animation_base* animation);
+	
+	/**
+	 * Removes an animation from the animator.
+	 *
+	 * @param animation Animation to remove.
+	 */
 	void remove_animation(animation_base* animation);
+	
+	/// Removes all animations from the animator.
 	void remove_animations();
 	
 private:
-	std::set<animation_base*> animations;
+	std::unordered_set<animation_base*> animations;
 };
 
 #endif // ANTKEEPER_ANIMATOR_HPP
