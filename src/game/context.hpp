@@ -43,6 +43,7 @@
 #include <queue>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include "resources/json.hpp"
 #include "type/typeface.hpp"
 #include "type/bitmap-font.hpp"
@@ -141,6 +142,7 @@ struct context
 	
 	// Localization
 	std::string language_code;
+	int language_count;
 	int language_index;
 	string_table* string_table;
 	string_table_map string_table_map;
@@ -200,12 +202,26 @@ struct context
 	scene::billboard* splash_billboard;
 	scene::billboard* camera_flash_billboard;
 	scene::text* title_text;
-	scene::text* title_version_text;
+	scene::text* title_press_any_key_text;
 	scene::text* main_menu_start_text;
 	scene::text* main_menu_options_text;
 	scene::text* main_menu_credits_text;
 	scene::text* main_menu_quit_text;
-	scene::model_instance* ui_pointer;
+	int main_menu_index;
+	scene::text* credits_text;
+	scene::text* options_menu_controls_text;
+	scene::text* options_menu_graphics_text;
+	scene::text* options_menu_sound_text;
+	scene::text* options_menu_language_text;
+	scene::text* options_menu_back_text;
+	std::vector<scene::text*> options_menu_texts;
+	std::vector<std::function<void()>> options_menu_callbacks;
+	int options_menu_index;
+	scene::text* language_menu_language_text;
+	scene::text* language_menu_back_text;
+	std::vector<scene::text*> language_menu_texts;
+	std::vector<std::function<void()>> language_menu_callbacks;
+	int language_menu_index;
 	
 	// Surface scene
 	scene::collection* surface_scene;
@@ -229,6 +245,14 @@ struct context
 	animation<float>* equip_tool_animation;
 	animation<float>* unequip_tool_animation;
 	animation<float>* camera_flash_animation;
+	animation<float>* splash_fade_in_animation;
+	animation<float>* splash_fade_out_animation;
+	animation<float>* title_fade_in_animation;
+	animation<float>* title_fade_out_animation;
+	animation<float>* title_press_any_key_animation;
+	animation<float>* main_menu_fade_animation;
+	animation<float>* credits_fade_in_animation;
+	animation<float>* credits_scroll_animation;
 	
 	// Controls
 	input::event_router* input_event_router;

@@ -17,23 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_MAIN_MENU_HPP
-#define ANTKEEPER_GAME_STATE_MAIN_MENU_HPP
+#ifndef ANTKEEPER_GAME_STATE_OPTIONS_MENU_HPP
+#define ANTKEEPER_GAME_STATE_OPTIONS_MENU_HPP
 
 #include "game/context.hpp"
 
 namespace game {
 namespace state {
 
-/// Main menu screen game state functions.
-namespace main_menu {
+/// Options menu screen game state functions.
+namespace options_menu {
 
-void enter(game::context* ctx, int main_menu_index);
+void enter(game::context* ctx);
 void exit(game::context* ctx);
 
-} // namespace main_menu
+} // namespace options_menu
 
 } // namespace state
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_MAIN_MENU_HPP
+#endif // ANTKEEPER_GAME_STATE_OPTIONS_MENU_HPP

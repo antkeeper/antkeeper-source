@@ -50,16 +50,13 @@
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
 #include "utility/timestamp.hpp"
-#include "type/type.hpp"
 #include "configuration.hpp"
-#include <stb/stb_image_write.h>
 #include <unordered_set>
-#include <codecvt>
 
 #include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
-#include "scene/text.hpp"
 #include "render/material-flags.hpp"
+#include "game/fonts.hpp"
 
 namespace game {
 namespace state {
@@ -67,9 +64,6 @@ namespace loading {
 
 /// Loads control profile and calibrates gamepads
 static void load_controls(game::context* ctx);
-
-/// Loads typefaces and builds fonts
-static void load_fonts(game::context* ctx);
 
 /// Creates the universe and solar system.
 static void cosmogenesis(game::context* ctx);
@@ -107,7 +101,7 @@ void enter(game::context* ctx)
 	ctx->logger->push_task("Loading fonts");
 	try
 	{
-		load_fonts(ctx);
+		game::load_fonts(ctx);
 	}
 	catch (...)
 	{
@@ -115,6 +109,7 @@ void enter(game::context* ctx)
 	}
 	ctx->logger->pop_task(EXIT_SUCCESS);
 	
+	/*
 	// Create universe
 	ctx->logger->push_task("Creating the universe");
 	try
@@ -127,13 +122,14 @@ void enter(game::context* ctx)
 		throw;
 	}
 	ctx->logger->pop_task(EXIT_SUCCESS);
+	*/
 	
 	// Determine next game state
 	application::state next_state;
 	if (ctx->option_quick_start.has_value())
 	{
 		next_state.name = "main_menu";
-		next_state.enter = std::bind(game::state::main_menu::enter, ctx);
+		next_state.enter = std::bind(game::state::main_menu::enter, ctx, 0);
 		next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 	}
 	else
@@ -222,107 +218,12 @@ void load_controls(game::context* ctx)
 		}
 	);
 	
-	// Menu back
-	ctx->controls["menu_back"]->set_activated_callback
-	(
-		std::bind(&application::close, ctx->app, 0)
-	);
-	
 	// Set activation threshold for menu navigation controls to mitigate drifting gamepad axes
 	const float menu_activation_threshold = 0.1f;
 	ctx->controls["menu_up"]->set_activation_threshold(menu_activation_threshold);
 	ctx->controls["menu_down"]->set_activation_threshold(menu_activation_threshold);
 	ctx->controls["menu_left"]->set_activation_threshold(menu_activation_threshold);
 	ctx->controls["menu_right"]->set_activation_threshold(menu_activation_threshold);
-}
-
-static void build_bitmap_font(const type::typeface& typeface, float size, const std::unordered_set<char32_t>& charset, type::bitmap_font& font, render::material& material, gl::shader_program* shader_program)
-{
-	// Get font metrics for given size
-	if (type::font_metrics metrics; typeface.get_metrics(size, metrics))
-		font.set_font_metrics(metrics);
-	
-	// Format font bitmap
-	image& font_bitmap = font.get_bitmap();
-	font_bitmap.format(sizeof(std::byte), 1);
-	
-	// For each UTF-32 character code in the character set
-	for (char32_t code: charset)
-	{
-		// Skip missing glyphs
-		if (!typeface.has_glyph(code))
-			continue;
-		
-		// Add glyph to font
-		type::bitmap_glyph& glyph = font[code];
-		typeface.get_metrics(size, code, glyph.metrics);
-		typeface.get_bitmap(size, code, glyph.bitmap);
-	}
-	
-	// Pack glyph bitmaps into the font bitmap
-	font.pack();
-	
-	// Create font texture from bitmap
-	gl::texture_2d* font_texture = new gl::texture_2d(font_bitmap.get_width(), font_bitmap.get_height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.get_pixels());
-	font_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-	font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-	
-	// Create font material
-	material.set_flags(MATERIAL_FLAG_TRANSLUCENT);
-	material.add_property<const gl::texture_2d*>("font_bitmap")->set_value(font_texture);
-	material.set_shader_program(shader_program);
-}
-
-void load_fonts(game::context* ctx)
-{
-	// Load typefaces
-	if (auto it = ctx->strings->find("font_serif"); it != ctx->strings->end())
-		ctx->typefaces["serif"] = ctx->resource_manager->load<type::typeface>(it->second);
-	if (auto it = ctx->strings->find("font_sans_serif"); it != ctx->strings->end())
-		ctx->typefaces["sans_serif"] = ctx->resource_manager->load<type::typeface>(it->second);
-	if (auto it = ctx->strings->find("font_monospace"); it != ctx->strings->end())
-		ctx->typefaces["monospace"] = ctx->resource_manager->load<type::typeface>(it->second);
-	
-	// Build character set
-	std::unordered_set<char32_t> charset;
-	{
-		// Add all character codes from the basic Latin unicode block
-		for (char32_t code = type::unicode::block::basic_latin.first; code <= type::unicode::block::basic_latin.last; ++code)
-			charset.insert(code);
-		
-		// Add all character codes from game strings
-		for (auto it = ctx->strings->begin(); it != ctx->strings->end(); ++it)
-		{
-			// Convert UTF-8 string to UTF-32
-			std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
-			std::u32string u32 = convert.from_bytes(it->second);
-			
-			/// Insert each character code from the UTF-32 string into the character set
-			for (char32_t code: u32)
-				charset.insert(code);
-		}
-	}
-	
-	// Load bitmap font shader
-	gl::shader_program* bitmap_font_shader = ctx->resource_manager->load<gl::shader_program>("bitmap-font.glsl");
-	
-	// Build debug font
-	if (auto it = ctx->typefaces.find("monospace"); it != ctx->typefaces.end())
-	{
-		build_bitmap_font(*it->second, 22.0f, charset, ctx->debug_font, ctx->debug_font_material, bitmap_font_shader);
-	}
-	
-	// Build menu font
-	if (auto it = ctx->typefaces.find("sans_serif"); it != ctx->typefaces.end())
-	{
-		build_bitmap_font(*it->second, 28.0f, charset, ctx->menu_font, ctx->menu_font_material, bitmap_font_shader);
-	}
-	
-	// Build title font
-	if (auto it = ctx->typefaces.find("serif"); it != ctx->typefaces.end())
-	{
-		build_bitmap_font(*it->second, 96.0f, charset, ctx->title_font, ctx->title_font_material, bitmap_font_shader);
-	}
 }
 
 void cosmogenesis(game::context* ctx)

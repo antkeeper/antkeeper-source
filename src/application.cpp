@@ -47,6 +47,7 @@ application::application():
 	vsync(true),
 	cursor_visible(true),
 	display_dimensions({0, 0}),
+	display_dpi(0.0f),
 	window_dimensions({0, 0}),
 	viewport_dimensions({0, 0}),
 	mouse_position({0, 0}),
@@ -97,6 +98,8 @@ application::application():
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
@@ -104,13 +107,23 @@ application::application():
 	SDL_DisplayMode sdl_desktop_display_mode;
 	if (SDL_GetDesktopDisplayMode(0, &sdl_desktop_display_mode) != 0)
 	{
-		logger->error("Failed to get desktop display mode: \"" + std::string(SDL_GetError()) + "\"");
+		logger->error("Failed to detect desktop display mode: \"" + std::string(SDL_GetError()) + "\"");
 		throw std::runtime_error("Failed to detect desktop display mode");
 	}
 	else
 	{
-		logger->log("Detected " + std::to_string(sdl_desktop_display_mode.w) + "x" + std::to_string(sdl_desktop_display_mode.h) + " display");
 		display_dimensions = {sdl_desktop_display_mode.w, sdl_desktop_display_mode.h};
+	}
+	
+	// Get display DPI
+	if (SDL_GetDisplayDPI(0, &display_dpi, nullptr, nullptr) != 0)
+	{
+		logger->error("Failed to detect display DPI: \"" + std::string(SDL_GetError()) + "\"");
+		throw std::runtime_error("Failed to detect display DPI");
+	}
+	else
+	{
+		logger->log("Detected " + std::to_string(sdl_desktop_display_mode.w) + "x" + std::to_string(sdl_desktop_display_mode.h) + " display with " + std::to_string(display_dpi) + " DPI");
 	}
 	
 	// Create a hidden fullscreen window
@@ -259,6 +272,21 @@ int application::execute(const application::state& initial_state)
 		// Schedule frames until closed
 		while (!closed)
 		{
+			translate_sdl_events();
+			
+			// Enter queued state (if any)
+			if (queued_state.enter != nullptr || queued_state.exit != nullptr)
+			{
+				// Make a copy of the queued state
+				application::state queued_state_copy = queued_state;
+				
+				// Clear the queued state
+				queued_state = {std::string(), nullptr, nullptr};
+				
+				// Enter the queued state
+				change_state(queued_state_copy);
+			}
+			
 			// Tick frame scheduler
 			frame_scheduler->tick();
 
@@ -354,12 +382,18 @@ std::shared_ptr<image> application::capture_frame() const
 	int h = viewport_dimensions[1];
 	
 	std::shared_ptr<image> frame = std::make_shared<image>();
-	frame->format(3, false);
+	frame->format(1, 3);
 	frame->resize(w, h);
+	
+	logger->log("starting read");
 
 	// Read pixel data from framebuffer into image
 	glReadBuffer(GL_BACK);
+	
+	logger->log("buffer read");
 	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, frame->get_pixels());
+	
+	logger->log("ending read");
 	
 	return std::move(frame);
 }

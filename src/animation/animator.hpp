@@ -20,6 +20,7 @@
 #ifndef ANTKEEPER_ANIMATOR_HPP
 #define ANTKEEPER_ANIMATOR_HPP
 
+#include <list>
 #include <unordered_set>
 
 class animation_base;
@@ -30,6 +31,9 @@ class animation_base;
 class animator
 {
 public:
+	/// Constructs an animator.
+	animator();
+	
 	/**
 	 * Progresses all active animations by @p dt.
 	 *
@@ -56,6 +60,9 @@ public:
 	
 private:
 	std::unordered_set<animation_base*> animations;
+	std::list<animation_base*> animations_to_add;
+	std::list<animation_base*> animations_to_remove;
+	int animating;
 };
 
 #endif // ANTKEEPER_ANIMATOR_HPP

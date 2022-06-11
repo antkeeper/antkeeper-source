@@ -381,10 +381,13 @@ void load_strings(game::context* ctx)
 	for (int i = 2; i < (*ctx->string_table)[0].size(); ++i)
 	{
 		if ((*ctx->string_table)[0][i] == ctx->language_code)
-			ctx->language_index = i;
+			ctx->language_index = i - 2;
 	}
 	
-	logger->log("lang index: " + std::to_string(ctx->language_index));
+	ctx->language_count = (*ctx->string_table)[0].size() - 2;
+	logger->log("language count: " + std::to_string(ctx->language_count));
+	logger->log("language index: " + std::to_string(ctx->language_index));
+	logger->log("language code: " + ctx->language_code);
 	
 	ctx->strings = &ctx->string_table_map[ctx->language_code];
 	
@@ -439,7 +442,7 @@ void setup_window(game::context* ctx)
 	app->set_vsync(vsync);
 	
 	// Set title
-	app->set_title((*ctx->strings)["title"]);
+	app->set_title((*ctx->strings)["application_title"]);
 	
 	// Show window
 	ctx->app->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
@@ -694,6 +697,7 @@ void setup_scenes(game::context* ctx)
 		const gl::texture_2d* splash_texture = ctx->resource_manager->load<gl::texture_2d>("splash.tex");
 		auto splash_dimensions = splash_texture->get_dimensions();
 		ctx->splash_billboard_material = new render::material();
+		ctx->splash_billboard_material->set_flags(MATERIAL_FLAG_TRANSLUCENT);
 		ctx->splash_billboard_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
 		ctx->splash_billboard_material->add_property<const gl::texture_2d*>("background")->set_value(splash_texture);
 		ctx->splash_billboard_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
@@ -790,14 +794,14 @@ void setup_animation(game::context* ctx)
 	// Create inner radial transition
 	ctx->radial_transition_inner = new screen_transition();
 	ctx->radial_transition_inner->get_material()->set_shader_program(ctx->resource_manager->load<gl::shader_program>("radial-transition-inner.glsl"));
-	ctx->ui_scene->add_object(ctx->radial_transition_inner->get_billboard());
-	ctx->animator->add_animation(ctx->radial_transition_inner->get_animation());
+	//ctx->ui_scene->add_object(ctx->radial_transition_inner->get_billboard());
+	//ctx->animator->add_animation(ctx->radial_transition_inner->get_animation());
 	
 	// Create outer radial transition
 	ctx->radial_transition_outer = new screen_transition();
 	ctx->radial_transition_outer->get_material()->set_shader_program(ctx->resource_manager->load<gl::shader_program>("radial-transition-outer.glsl"));
-	ctx->ui_scene->add_object(ctx->radial_transition_outer->get_billboard());
-	ctx->animator->add_animation(ctx->radial_transition_outer->get_animation());
+	//ctx->ui_scene->add_object(ctx->radial_transition_outer->get_billboard());
+	//ctx->animator->add_animation(ctx->radial_transition_outer->get_animation());
 	
 	// Create camera flash animation
 	ctx->camera_flash_animation = new animation<float>();

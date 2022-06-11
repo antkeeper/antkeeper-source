@@ -17,23 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_MAIN_MENU_HPP
-#define ANTKEEPER_GAME_STATE_MAIN_MENU_HPP
+#ifndef ANTKEEPER_GAME_FONTS_HPP
+#define ANTKEEPER_GAME_FONTS_HPP
 
 #include "game/context.hpp"
 
 namespace game {
-namespace state {
 
-/// Main menu screen game state functions.
-namespace main_menu {
+void load_fonts(game::context* ctx);
 
-void enter(game::context* ctx, int main_menu_index);
-void exit(game::context* ctx);
-
-} // namespace main_menu
-
-} // namespace state
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_MAIN_MENU_HPP
+#endif // ANTKEEPER_GAME_FONTS_HPP

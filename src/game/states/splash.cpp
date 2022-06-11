@@ -20,6 +20,8 @@
 #include "game/states/splash.hpp"
 #include "game/states/title.hpp"
 #include "animation/screen-transition.hpp"
+#include "animation/animation.hpp"
+#include "animation/animator.hpp"
 #include "animation/ease.hpp"
 #include "animation/timeline.hpp"
 #include "application.hpp"
@@ -33,43 +35,78 @@ void enter(game::context* ctx)
 {
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
 	
-	// Add splash billboard to UI scene
-	ctx->ui_scene->add_object(ctx->splash_billboard);
+	// Load animation timing configuration
+	double splash_fade_in_duration = 0.0;
+	double splash_duration = 0.0;
+	double splash_fade_out_duration = 0.0;
+	if (ctx->config->contains("splash_fade_in_duration"))
+		splash_fade_in_duration = (*ctx->config)["splash_fade_in_duration"].get<double>();
+	if (ctx->config->contains("splash_duration"))
+		splash_duration = (*ctx->config)["splash_duration"].get<double>();
+	if (ctx->config->contains("splash_fade_out_duration"))
+		splash_fade_out_duration = (*ctx->config)["splash_fade_out_duration"].get<double>();
 	
-	// Setup timing
-	const float splash_fade_in_duration = 0.5f;
-	const float splash_hang_duration = 2.0f;
-	const float splash_fade_out_duration = 0.5f;
+	// Build splash fade in animation
+	ctx->splash_fade_in_animation = new animation<float>();
+	animation_channel<float>* splash_fade_in_opacity_channel = ctx->splash_fade_in_animation->add_channel(0);
+	ctx->splash_fade_in_animation->set_interpolator(ease<float>::in_quad);
+	splash_fade_in_opacity_channel->insert_keyframe({0.0, 0.0f});
+	splash_fade_in_opacity_channel->insert_keyframe({splash_fade_in_duration, 1.0f});
+	splash_fade_in_opacity_channel->insert_keyframe({splash_fade_in_duration + splash_duration, 1.0f});
 	
-	// Start fade in
-	ctx->fade_transition->transition(splash_fade_in_duration, true, ease<float>::in_quad);
+	// Build splash fade out animation
+	ctx->splash_fade_out_animation = new animation<float>();
+	animation_channel<float>* splash_fade_out_opacity_channel = ctx->splash_fade_out_animation->add_channel(0);
+	ctx->splash_fade_out_animation->set_interpolator(ease<float>::out_quad);
+	splash_fade_out_opacity_channel->insert_keyframe({0.0, 1.0f});
+	splash_fade_out_opacity_channel->insert_keyframe({splash_fade_out_duration, 0.0f});
 	
-	// Crate fade out function
-	auto fade_out = [ctx, splash_fade_out_duration]()
+	// Setup animation frame callbacks
+	auto set_splash_opacity = [ctx](int channel, const float& opacity)
 	{
-		ctx->fade_transition->transition(splash_fade_out_duration, false, ease<float>::out_quad);
+		static_cast<render::material_property<float4>*>(ctx->splash_billboard_material->get_property("tint"))->set_value(float4{1, 1, 1, opacity});
 	};
+	ctx->splash_fade_in_animation->set_frame_callback(set_splash_opacity);
+	ctx->splash_fade_out_animation->set_frame_callback(set_splash_opacity);
 	
-	// Create change state function
-	auto change_state = [ctx]()
-	{
-		application::state next_state;
-		next_state.name = "title";
-		next_state.enter = std::bind(game::state::title::enter, ctx);
-		next_state.exit = std::bind(game::state::title::exit, ctx);
-		
-		ctx->app->change_state(next_state);
-	};
+	// Reset splash color when animation starts
+	ctx->splash_fade_in_animation->set_start_callback
+	(
+		[ctx]()
+		{
+			static_cast<render::material_property<float4>*>(ctx->splash_billboard_material->get_property("tint"))->set_value(float4{1, 1, 1, 0});
+			ctx->splash_billboard_material->update_tweens();
+		}
+	);
 	
-	// Schedule fade out and change state events
-	timeline* timeline = ctx->timeline;
-	float t = timeline->get_position();
-	timeline::sequence splash_sequence =
-	{
-		{t + splash_fade_in_duration + splash_hang_duration, fade_out},
-		{t + splash_fade_in_duration + splash_hang_duration + splash_fade_out_duration, change_state}
-	};
-	timeline->add_sequence(splash_sequence);
+	// Trigger splash fade out animation when splash fade in animation ends
+	ctx->splash_fade_in_animation->set_end_callback
+	(
+		[ctx]()
+		{
+			ctx->splash_fade_out_animation->play();
+		}
+	);
+	
+	// Trigger a state change when the splash fade out animation ends
+	ctx->splash_fade_out_animation->set_end_callback
+	(
+		[ctx]()
+		{
+			application::state next_state;
+			next_state.name = "title";
+			next_state.enter = std::bind(game::state::title::enter, ctx);
+			next_state.exit = std::bind(game::state::title::exit, ctx);
+			ctx->app->queue_state(next_state);
+		}
+	);
+	
+	// Add splash fade animations to animator
+	ctx->animator->add_animation(ctx->splash_fade_in_animation);
+	ctx->animator->add_animation(ctx->splash_fade_out_animation);
+	
+	// Start splash fade in animation
+	ctx->splash_fade_in_animation->play();
 	
 	// Set up splash skipper
 	ctx->input_listener->set_callback
@@ -79,32 +116,42 @@ void enter(game::context* ctx)
 			auto id = event.get_event_type_id();
 			if (id != mouse_moved_event::event_type_id && id != mouse_wheel_scrolled_event::event_type_id && id != gamepad_axis_moved_event::event_type_id)
 			{
-				ctx->timeline->clear();
-				ctx->fade_transition->get_animation()->stop();
+				// Black out screen
 				ctx->rasterizer->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
 				ctx->rasterizer->clear_framebuffer(true, false, false);
 				ctx->app->swap_buffers();
 				
+				// Change state
 				application::state next_state;
 				next_state.name = "title";
 				next_state.enter = std::bind(game::state::title::enter, ctx);
 				next_state.exit = std::bind(game::state::title::exit, ctx);
-				
 				ctx->app->change_state(next_state);
 			}
 		}
 	);
 	ctx->input_listener->set_enabled(true);
+	
+	// Add splash billboard to UI scene
+	ctx->ui_scene->add_object(ctx->splash_billboard);
 }
 
 void exit(game::context* ctx)
 {
+	// Remove splash billboard from UI scene
+	ctx->ui_scene->remove_object(ctx->splash_billboard);
+	
 	// Disable splash skipper
 	ctx->input_listener->set_enabled(false);
 	ctx->input_listener->set_callback(nullptr);
 	
-	// Remove splash billboard from UI scene
-	ctx->ui_scene->remove_object(ctx->splash_billboard);
+	// Destruct splash fade animations
+	ctx->animator->remove_animation(ctx->splash_fade_in_animation);
+	ctx->animator->remove_animation(ctx->splash_fade_out_animation);
+	delete ctx->splash_fade_in_animation;
+	delete ctx->splash_fade_out_animation;
+	ctx->splash_fade_in_animation = nullptr;
+	ctx->splash_fade_out_animation = nullptr;
 	
 	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }

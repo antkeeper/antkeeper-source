@@ -194,6 +194,9 @@ public:
 	/// Returns the dimensions of the current display.
 	const std::array<int, 2>& get_display_dimensions() const;
 	
+	/// Returns the DPI of the display.
+	float get_display_dpi() const;
+	
 	/// Returns the dimensions of the window.
 	const std::array<int, 2>& get_window_dimensions() const;
 	
@@ -238,6 +241,7 @@ private:
 	bool vsync;
 	bool cursor_visible;
 	std::array<int, 2> display_dimensions;
+	float display_dpi;
 	std::array<int, 2> window_dimensions;
 	std::array<int, 2> viewport_dimensions;
 	std::array<int, 2> mouse_position;
@@ -271,6 +275,11 @@ inline debug::logger* application::get_logger()
 inline const std::array<int, 2>& application::get_display_dimensions() const
 {
 	return display_dimensions;
+}
+
+inline float application::get_display_dpi() const
+{
+	return display_dpi;
 }
 
 inline const std::array<int, 2>& application::get_window_dimensions() const
