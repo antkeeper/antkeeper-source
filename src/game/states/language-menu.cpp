@@ -24,6 +24,7 @@
 #include "render/passes/clear-pass.hpp"
 #include "debug/logger.hpp"
 #include "game/fonts.hpp"
+#include "game/save.hpp"
 
 namespace game {
 namespace state {
@@ -181,6 +182,9 @@ void enter(game::context* ctx)
 		ctx->language_code = (*ctx->string_table)[0][ctx->language_index + 2];
 		ctx->strings = &ctx->string_table_map[ctx->language_code];
 		
+		// Update language in config
+		(*ctx->config)["language"] = ctx->language_code;
+		
 		ctx->logger->log("Language changed to \"" + ctx->language_code + "\"");
 		
 		// Reload fonts
@@ -270,6 +274,9 @@ void exit(game::context* ctx)
 		delete text;
 	}
 	ctx->language_menu_texts.clear();
+	
+	// Save config
+	game::save_config(ctx);
 	
 	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }

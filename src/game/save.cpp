@@ -19,12 +19,25 @@
 
 #include "game/save.hpp"
 #include "application.hpp"
+#include "debug/logger.hpp"
+#include <fstream>
 
 namespace game {
 
-bool save(game::context* ctx)
+void save_config(game::context* ctx)
 {
-	return false;
+	const std::string config_file_path = ctx->config_path + "config.json";
+	ctx->logger->push_task("Saving config to \"" + config_file_path + "\"");
+	try
+	{
+		std::ofstream config_file(config_file_path);
+		config_file << *(ctx->config);
+	}
+	catch (...)
+	{
+		ctx->logger->pop_task(EXIT_FAILURE);
+	}
+	ctx->logger->pop_task(EXIT_SUCCESS);
 }
 
 } // namespace game
