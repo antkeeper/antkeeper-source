@@ -69,27 +69,19 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 void load_fonts(game::context* ctx)
 {
 	// Load dyslexia-friendly typeface (if enabled)
-	bool dyslexia_font = false;
-	if (ctx->config->contains("dyslexia_font"))
+	bool dyslexia_font_loaded = false;
+	if (ctx->dyslexia_font)
 	{
-		dyslexia_font = (*ctx->config)["dyslexia_font"].get<bool>();
-		
-		if (dyslexia_font)
+		if (auto it = ctx->strings->find("font_dyslexia"); it != ctx->strings->end() && !it->second.empty() && it->second[0] != '#')
 		{
-			if (auto it = ctx->strings->find("font_dyslexia"); it != ctx->strings->end() && !it->second.empty() && it->second[0] != '#')
-			{
-				ctx->logger->log(it->second);
-				ctx->typefaces["dyslexia"] = ctx->resource_manager->load<type::typeface>(it->second);
-			}
-			else
-			{
-				dyslexia_font = false;
-			}
+			ctx->logger->log(it->second);
+			ctx->typefaces["dyslexia"] = ctx->resource_manager->load<type::typeface>(it->second);
+			dyslexia_font_loaded = true;
 		}
 	}
 	
 	// Load typefaces
-	if (dyslexia_font)
+	if (dyslexia_font_loaded)
 	{
 		// Override standard typefaces with dyslexia-friendly typeface
 		ctx->typefaces["serif"] = ctx->typefaces["dyslexia"];
@@ -142,13 +134,10 @@ void load_fonts(game::context* ctx)
 		title_font_size_pt = (*ctx->config)["title_font_size"].get<float>();
 
 	// Scale font point sizes
-	if (ctx->config->contains("font_scale"))
-	{
-		const float font_scale = (*ctx->config)["font_scale"].get<float>();
-		debug_font_size_pt *= font_scale;
-		menu_font_size_pt *= font_scale;
-		title_font_size_pt *= font_scale;
-	}
+	const float font_size = (*ctx->config)["font_size"].get<float>();
+	debug_font_size_pt *= font_size;
+	menu_font_size_pt *= font_size;
+	title_font_size_pt *= font_size;
 	
 	// Convert font point sizes to pixel sizes
 	const float dpi = ctx->app->get_display_dpi();

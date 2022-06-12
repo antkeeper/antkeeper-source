@@ -102,7 +102,7 @@ void enter(game::context* ctx)
 					// Change state
 					application::state next_state;
 					next_state.name = "main_menu";
-					next_state.enter = std::bind(game::state::main_menu::enter, ctx, 2);
+					next_state.enter = std::bind(game::state::main_menu::enter, ctx);
 					next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 					ctx->app->change_state(next_state);
 				}

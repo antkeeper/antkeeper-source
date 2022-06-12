@@ -38,10 +38,8 @@ namespace game {
 namespace state {
 namespace main_menu {
 
-void enter(game::context* ctx, int main_menu_index)
+void enter(game::context* ctx)
 {
-	ctx->main_menu_index = main_menu_index;
-	
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
 	
 	// Construct main menu texts

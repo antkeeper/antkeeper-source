@@ -111,8 +111,6 @@ void enter(game::context* ctx)
 {
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
 	
-	ctx->language_menu_index = 0;
-	
 	// Construct language menu texts
 	ctx->language_menu_language_text = new scene::text();
 	ctx->language_menu_back_text = new scene::text();

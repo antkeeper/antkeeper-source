@@ -112,6 +112,7 @@ static void setup_animation(game::context* ctx);
 static void setup_entities(game::context* ctx);
 static void setup_systems(game::context* ctx);
 static void setup_controls(game::context* ctx);
+static void setup_ui(game::context* ctx);
 static void setup_cli(game::context* ctx);
 static void setup_callbacks(game::context* ctx);
 
@@ -140,6 +141,7 @@ void enter(application* app, int argc, char** argv)
 		setup_entities(ctx);
 		setup_systems(ctx);
 		setup_controls(ctx);
+		setup_ui(ctx);
 		setup_cli(ctx);
 		setup_callbacks(ctx);
 	}
@@ -462,6 +464,11 @@ void setup_rendering(game::context* ctx)
 	
 	// Get rasterizer from application
 	ctx->rasterizer = ctx->app->get_rasterizer();
+	
+	// Load render resolution
+	ctx->render_resolution_scale = 1.0f;
+	if (ctx->config->contains("render_resolution"))
+		ctx->render_resolution_scale = (*ctx->config)["render_resolution"].get<float>();
 	
 	// Get default framebuffer
 	const gl::framebuffer& default_framebuffer = ctx->rasterizer->get_default_framebuffer();
@@ -968,6 +975,25 @@ void setup_controls(game::context* ctx)
 		ctx->resource_manager->unload("gamecontrollerdb.txt");
 		ctx->logger->pop_task(EXIT_SUCCESS);
 	}	
+}
+
+void setup_ui(game::context* ctx)
+{
+	// Load font size config
+	ctx->font_size = 1.0f;
+	if (ctx->config->contains("font_size"))
+		ctx->font_size = (*ctx->config)["font_size"].get<float>();
+	
+	// Load dyslexia font config
+	ctx->dyslexia_font = false;
+	if (ctx->config->contains("dyslexia_font"))
+		ctx->dyslexia_font = (*ctx->config)["dyslexia_font"].get<bool>();
+	
+	ctx->main_menu_index = 0;
+	ctx->options_menu_index = 0;
+	ctx->graphics_menu_index = 0;
+	ctx->sound_menu_index = 0;
+	ctx->language_menu_index = 0;
 }
 
 void setup_cli(game::context* ctx)

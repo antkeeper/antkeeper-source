@@ -19,6 +19,8 @@
 
 #include "game/states/options-menu.hpp"
 #include "game/states/main-menu.hpp"
+#include "game/states/graphics-menu.hpp"
+#include "game/states/graphics-menu.hpp"
 #include "game/states/sound-menu.hpp"
 #include "game/states/language-menu.hpp"
 #include "game/save.hpp"
@@ -36,8 +38,6 @@ namespace options_menu {
 void enter(game::context* ctx)
 {
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
-	
-	ctx->options_menu_index = 0;
 	
 	// Construct options menu texts
 	ctx->options_menu_controls_text = new scene::text();
@@ -62,8 +62,16 @@ void enter(game::context* ctx)
 		// Return to main menu
 		application::state next_state;
 		next_state.name = "main_menu";
-		next_state.enter = std::bind(game::state::main_menu::enter, ctx, 1);
+		next_state.enter = std::bind(game::state::main_menu::enter, ctx);
 		next_state.exit = std::bind(game::state::main_menu::exit, ctx);
+		ctx->app->change_state(next_state);
+	};
+	auto change_state_graphics_menu = [ctx]()
+	{
+		application::state next_state;
+		next_state.name = "graphics_menu";
+		next_state.enter = std::bind(game::state::graphics_menu::enter, ctx);
+		next_state.exit = std::bind(game::state::graphics_menu::exit, ctx);
 		ctx->app->change_state(next_state);
 	};
 	auto change_state_sound_menu = [ctx]()
@@ -85,7 +93,7 @@ void enter(game::context* ctx)
 	
 	// Build list of options menu callbacks
 	ctx->options_menu_callbacks.push_back(nullptr);
-	ctx->options_menu_callbacks.push_back(nullptr);
+	ctx->options_menu_callbacks.push_back(change_state_graphics_menu);
 	ctx->options_menu_callbacks.push_back(change_state_sound_menu);
 	ctx->options_menu_callbacks.push_back(change_state_language_menu);
 	ctx->options_menu_callbacks.push_back(menu_back_callback);

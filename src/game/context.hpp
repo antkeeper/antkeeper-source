@@ -167,6 +167,7 @@ struct context
 	// Rendering
 	gl::rasterizer* rasterizer;
 	render::renderer* renderer;
+	float render_resolution_scale;
 	gl::vertex_buffer* billboard_vbo;
 	gl::vertex_array* billboard_vao;
 	render::material* fallback_material;
@@ -232,6 +233,25 @@ struct context
 	std::vector<scene::text*> sound_menu_label_texts;
 	std::vector<scene::text*> sound_menu_value_texts;
 	int sound_menu_index;
+	scene::text* graphics_menu_display_mode_label_text;
+	scene::text* graphics_menu_display_mode_value_text;
+	scene::text* graphics_menu_render_resolution_label_text;
+	scene::text* graphics_menu_render_resolution_value_text;
+	scene::text* graphics_menu_v_sync_label_text;
+	scene::text* graphics_menu_v_sync_value_text;
+	scene::text* graphics_menu_font_size_label_text;
+	scene::text* graphics_menu_font_size_value_text;
+	scene::text* graphics_menu_dyslexia_font_label_text;
+	scene::text* graphics_menu_dyslexia_font_value_text;
+	scene::text* graphics_menu_back_label_text;
+	std::vector<scene::text*> graphics_menu_label_texts;
+	std::vector<scene::text*> graphics_menu_value_texts;
+	int graphics_menu_index;
+	std::vector<std::function<void()>> graphics_menu_select_callbacks;
+	std::vector<std::function<void()>> graphics_menu_left_callbacks;
+	std::vector<std::function<void()>> graphics_menu_right_callbacks;
+	float font_size;
+	bool dyslexia_font;
 	
 	// Surface scene
 	scene::collection* surface_scene;

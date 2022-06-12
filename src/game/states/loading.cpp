@@ -35,6 +35,7 @@
 #include "game/states/splash.hpp"
 #include "game/states/main-menu.hpp"
 #include "game/controls.hpp"
+#include "game/save.hpp"
 #include "geom/spherical.hpp"
 #include "gl/drawing-mode.hpp"
 #include "gl/vertex-array.hpp"
@@ -129,7 +130,7 @@ void enter(game::context* ctx)
 	if (ctx->option_quick_start.has_value())
 	{
 		next_state.name = "main_menu";
-		next_state.enter = std::bind(game::state::main_menu::enter, ctx, 0);
+		next_state.enter = std::bind(game::state::main_menu::enter, ctx);
 		next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 	}
 	else
@@ -204,7 +205,9 @@ void load_controls(game::context* ctx)
 				ctx->app->resize_window(resolution.x, resolution.y);
 			}
 			
+			// Save display mode config
 			(*ctx->config)["fullscreen"] = fullscreen;
+			game::save_config(ctx);
 		}
 	);
 	

@@ -53,7 +53,6 @@ static void update_text_color(game::context* ctx)
 	}
 }
 
-
 static void update_text_tweens(game::context* ctx)
 {
 	for (std::size_t i = 0; i < ctx->sound_menu_label_texts.size(); ++i)
@@ -71,8 +70,6 @@ void enter(game::context* ctx)
 {
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
 	
-	ctx->sound_menu_index = 0;
-	
 	// Construct sound menu texts
 	ctx->sound_menu_master_volume_label_text = new scene::text();
 	ctx->sound_menu_master_volume_value_text = new scene::text();
@@ -84,11 +81,11 @@ void enter(game::context* ctx)
 	
 	// Set text content
 	ctx->sound_menu_master_volume_label_text->set_content((*ctx->strings)["sound_menu_master_volume"]);
-	ctx->sound_menu_master_volume_value_text->set_content(std::to_string(static_cast<int>(ctx->master_volume * 100.0f + 0.5f)));
+	ctx->sound_menu_master_volume_value_text->set_content(std::to_string(static_cast<int>(ctx->master_volume * 100.0f + 0.5f)) + "%");
 	ctx->sound_menu_ambience_volume_label_text->set_content((*ctx->strings)["sound_menu_ambience_volume"]);
-	ctx->sound_menu_ambience_volume_value_text->set_content(std::to_string(static_cast<int>(ctx->ambience_volume * 100.0f + 0.5f)));
+	ctx->sound_menu_ambience_volume_value_text->set_content(std::to_string(static_cast<int>(ctx->ambience_volume * 100.0f + 0.5f)) + "%");
 	ctx->sound_menu_effects_volume_label_text->set_content((*ctx->strings)["sound_menu_effects_volume"]);
-	ctx->sound_menu_effects_volume_value_text->set_content(std::to_string(static_cast<int>(ctx->effects_volume * 100.0f + 0.5f)));
+	ctx->sound_menu_effects_volume_value_text->set_content(std::to_string(static_cast<int>(ctx->effects_volume * 100.0f + 0.5f)) + "%");
 	ctx->sound_menu_back_label_text->set_content((*ctx->strings)["back"]);
 	
 	// Build lists of sound menu texts
@@ -190,13 +187,18 @@ void enter(game::context* ctx)
 		float* volume = volumes[ctx->sound_menu_index];
 		
 		// Increase volume
-		*volume += 0.1f;
+		if (ctx->controls["menu_modifier"]->is_active())
+			*volume += 0.01f;
+		else
+			*volume += 0.1f;
+		
+		// Limit volume
 		if (*volume > 1.0f)
 			*volume = 1.0f;
 		
 		// Update volume value text
 		scene::text* value_text = ctx->sound_menu_value_texts[ctx->sound_menu_index];
-		value_text->set_content(std::to_string(static_cast<int>((*volume) * 100.0f + 0.5f)));
+		value_text->set_content(std::to_string(static_cast<int>((*volume) * 100.0f + 0.5f)) + "%");
 		
 		// Realign value text
 		const auto& value_bounds = static_cast<const geom::aabb<float>&>(value_text->get_local_bounds());
@@ -220,13 +222,18 @@ void enter(game::context* ctx)
 		float* volume = volumes[ctx->sound_menu_index];
 		
 		// Decrease volume
-		*volume -= 0.1f;
+		if (ctx->controls["menu_modifier"]->is_active())
+			*volume -= 0.01f;
+		else
+			*volume -= 0.1f;
+		
+		// Limit volume
 		if (*volume < 0.0f)
 			*volume = 0.0f;
 		
 		// Update volume value text
 		scene::text* value_text = ctx->sound_menu_value_texts[ctx->sound_menu_index];
-		value_text->set_content(std::to_string(static_cast<int>((*volume) * 100.0f + 0.5f)));
+		value_text->set_content(std::to_string(static_cast<int>((*volume) * 100.0f + 0.5f)) + "%");
 		
 		// Realign value text
 		const auto& value_bounds = static_cast<const geom::aabb<float>&>(value_text->get_local_bounds());

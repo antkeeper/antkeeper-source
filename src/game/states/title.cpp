@@ -116,7 +116,7 @@ void enter(game::context* ctx)
 		{
 			application::state next_state;
 			next_state.name = "main_menu";
-			next_state.enter = std::bind(game::state::main_menu::enter, ctx, 0);
+			next_state.enter = std::bind(game::state::main_menu::enter, ctx);
 			next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 			ctx->app->queue_state(next_state);
 		}
@@ -151,6 +151,9 @@ void enter(game::context* ctx)
 	(
 		[ctx](const event_base& event)
 		{
+			if (ctx->controls["menu_back"]->is_active())
+				return;
+			
 			auto id = event.get_event_type_id();
 			if (id != mouse_moved_event::event_type_id && id != mouse_wheel_scrolled_event::event_type_id && id != gamepad_axis_moved_event::event_type_id)
 			{
@@ -174,11 +177,9 @@ void enter(game::context* ctx)
 					// Change state
 					application::state next_state;
 					next_state.name = "main_menu";
-					next_state.enter = std::bind(game::state::main_menu::enter, ctx, 0);
+					next_state.enter = std::bind(game::state::main_menu::enter, ctx);
 					next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 					ctx->app->change_state(next_state);
-					
-
 				}
 			}
 		}

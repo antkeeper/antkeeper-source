@@ -206,6 +206,9 @@ public:
 	/// Returns `true` if the window is in fullscreen mode, `false` otherwise.
 	bool is_fullscreen() const;
 	
+	/// Returns `true` if the v-sync is enabled, `false` otherwise.
+	bool get_vsync() const;
+	
 	/// Returns the rasterizer for the window.
 	gl::rasterizer* get_rasterizer();
 	
@@ -295,6 +298,11 @@ inline const std::array<int, 2>& application::get_viewport_dimensions() const
 inline bool application::is_fullscreen() const
 {
 	return fullscreen;
+}
+
+inline bool application::get_vsync() const
+{
+	return vsync;
 }
 
 inline gl::rasterizer* application::get_rasterizer()
