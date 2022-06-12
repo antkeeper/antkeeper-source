@@ -24,7 +24,6 @@
 #include "render/passes/clear-pass.hpp"
 #include "debug/logger.hpp"
 #include "game/fonts.hpp"
-#include "game/save.hpp"
 
 namespace game {
 namespace state {
@@ -274,9 +273,6 @@ void exit(game::context* ctx)
 		delete text;
 	}
 	ctx->language_menu_texts.clear();
-	
-	// Save config
-	game::save_config(ctx);
 	
 	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }

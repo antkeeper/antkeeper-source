@@ -222,6 +222,16 @@ struct context
 	std::vector<scene::text*> language_menu_texts;
 	std::vector<std::function<void()>> language_menu_callbacks;
 	int language_menu_index;
+	scene::text* sound_menu_master_volume_label_text;
+	scene::text* sound_menu_master_volume_value_text;
+	scene::text* sound_menu_ambience_volume_label_text;
+	scene::text* sound_menu_ambience_volume_value_text;
+	scene::text* sound_menu_effects_volume_label_text;
+	scene::text* sound_menu_effects_volume_value_text;
+	scene::text* sound_menu_back_label_text;
+	std::vector<scene::text*> sound_menu_label_texts;
+	std::vector<scene::text*> sound_menu_value_texts;
+	int sound_menu_index;
 	
 	// Surface scene
 	scene::collection* surface_scene;
@@ -260,6 +270,11 @@ struct context
 	input::listener* input_listener;
 	std::unordered_map<std::string, input::control*> controls;
 	bool mouse_look;
+	
+	// Sound
+	float master_volume;
+	float ambience_volume;
+	float effects_volume;
 	
 	// Parallel processes
 	std::unordered_map<std::string, std::function<void(double, double)>> processes;

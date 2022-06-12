@@ -19,7 +19,9 @@
 
 #include "game/states/options-menu.hpp"
 #include "game/states/main-menu.hpp"
+#include "game/states/sound-menu.hpp"
 #include "game/states/language-menu.hpp"
+#include "game/save.hpp"
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
@@ -54,10 +56,22 @@ void enter(game::context* ctx)
 	// Construct options menu callbacks
 	auto menu_back_callback = [ctx]()
 	{
+		// Save config
+		game::save_config(ctx);
+		
+		// Return to main menu
 		application::state next_state;
 		next_state.name = "main_menu";
 		next_state.enter = std::bind(game::state::main_menu::enter, ctx, 1);
 		next_state.exit = std::bind(game::state::main_menu::exit, ctx);
+		ctx->app->change_state(next_state);
+	};
+	auto change_state_sound_menu = [ctx]()
+	{
+		application::state next_state;
+		next_state.name = "sound_menu";
+		next_state.enter = std::bind(game::state::sound_menu::enter, ctx);
+		next_state.exit = std::bind(game::state::sound_menu::exit, ctx);
 		ctx->app->change_state(next_state);
 	};
 	auto change_state_language_menu = [ctx]()
@@ -72,7 +86,7 @@ void enter(game::context* ctx)
 	// Build list of options menu callbacks
 	ctx->options_menu_callbacks.push_back(nullptr);
 	ctx->options_menu_callbacks.push_back(nullptr);
-	ctx->options_menu_callbacks.push_back(nullptr);
+	ctx->options_menu_callbacks.push_back(change_state_sound_menu);
 	ctx->options_menu_callbacks.push_back(change_state_language_menu);
 	ctx->options_menu_callbacks.push_back(menu_back_callback);
 	

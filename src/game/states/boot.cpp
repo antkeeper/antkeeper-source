@@ -106,6 +106,7 @@ static void load_config(game::context* ctx);
 static void load_strings(game::context* ctx);
 static void setup_window(game::context* ctx);
 static void setup_rendering(game::context* ctx);
+static void setup_sound(game::context* ctx);
 static void setup_scenes(game::context* ctx);
 static void setup_animation(game::context* ctx);
 static void setup_entities(game::context* ctx);
@@ -133,6 +134,7 @@ void enter(application* app, int argc, char** argv)
 		load_strings(ctx);
 		setup_window(ctx);
 		setup_rendering(ctx);
+		setup_sound(ctx);
 		setup_scenes(ctx);
 		setup_animation(ctx);
 		setup_entities(ctx);
@@ -647,6 +649,29 @@ void setup_rendering(game::context* ctx)
 	// Create renderer
 	ctx->renderer = new render::renderer();
 	ctx->renderer->set_billboard_vao(ctx->billboard_vao);
+	
+	logger->pop_task(EXIT_SUCCESS);
+}
+
+void setup_sound(game::context* ctx)
+{
+	debug::logger* logger = ctx->logger;
+	logger->push_task("Setting up sound");
+	
+	// Load master volume
+	ctx->master_volume = 1.0f;
+	if (ctx->config->contains("master_volume"))
+		ctx->master_volume = (*ctx->config)["master_volume"].get<float>();
+	
+	// Load ambience volume
+	ctx->ambience_volume = 1.0f;
+	if (ctx->config->contains("ambience_volume"))
+		ctx->ambience_volume = (*ctx->config)["ambience_volume"].get<float>();
+	
+	// Load effects volume
+	ctx->effects_volume = 1.0f;
+	if (ctx->config->contains("effects_volume"))
+		ctx->effects_volume = (*ctx->config)["effects_volume"].get<float>();
 	
 	logger->pop_task(EXIT_SUCCESS);
 }
