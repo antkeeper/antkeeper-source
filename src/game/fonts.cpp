@@ -145,6 +145,8 @@ void load_fonts(game::context* ctx)
 	const float menu_font_size_px = (menu_font_size_pt * dpi) / 72.0f;
 	const float title_font_size_px = (title_font_size_pt * dpi) / 72.0f;
 	
+	ctx->logger->log("font size: " + std::to_string(menu_font_size_px));
+	
 	// Build debug font
 	if (auto it = ctx->typefaces.find("monospace"); it != ctx->typefaces.end())
 	{

@@ -54,105 +54,8 @@ static void update_text_color(game::context* ctx)
 	}
 }
 
-static void update_text_tweens(game::context* ctx)
+static void align_texts(game::context* ctx)
 {
-	for (std::size_t i = 0; i < ctx->graphics_menu_label_texts.size(); ++i)
-	{
-		scene::text* label_text = ctx->graphics_menu_label_texts[i];
-		scene::text* value_text = ctx->graphics_menu_value_texts[i];
-		
-		label_text->update_tweens();
-		if (value_text)
-			value_text->update_tweens();
-	}
-}
-
-static void refresh_texts(game::context* ctx)
-{
-	for (std::size_t i = 0; i < ctx->graphics_menu_label_texts.size(); ++i)
-	{
-		scene::text* label_text = ctx->graphics_menu_label_texts[i];
-		label_text->refresh();
-		
-		scene::text* value_text = ctx->graphics_menu_value_texts[i];
-		if (value_text)
-			value_text->refresh();
-	}
-}
-
-void enter(game::context* ctx)
-{
-	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
-	
-	// Construct graphics menu texts
-	ctx->graphics_menu_display_mode_label_text = new scene::text();
-	ctx->graphics_menu_display_mode_value_text = new scene::text();
-	ctx->graphics_menu_render_resolution_label_text = new scene::text();
-	ctx->graphics_menu_render_resolution_value_text = new scene::text();
-	ctx->graphics_menu_v_sync_label_text = new scene::text();
-	ctx->graphics_menu_v_sync_value_text = new scene::text();
-	ctx->graphics_menu_font_size_label_text = new scene::text();
-	ctx->graphics_menu_font_size_value_text = new scene::text();
-	ctx->graphics_menu_dyslexia_font_label_text = new scene::text();
-	ctx->graphics_menu_dyslexia_font_value_text = new scene::text();
-	ctx->graphics_menu_back_label_text = new scene::text();
-	
-	bool fullscreen = ctx->app->is_fullscreen();
-	float render_resolution = ctx->render_resolution_scale;
-	bool vsync = ctx->app->get_vsync();
-	float font_size = ctx->font_size;
-	bool dyslexia_font = ctx->dyslexia_font;
-	
-	std::string string_fullscreen = (*ctx->strings)["graphics_menu_display_mode_fullscreen"];
-	std::string string_window = (*ctx->strings)["graphics_menu_display_mode_window"];
-	std::string string_on = (*ctx->strings)["on"];
-	std::string string_off = (*ctx->strings)["off"];
-	
-	// Set text content
-	ctx->graphics_menu_display_mode_label_text->set_content((*ctx->strings)["graphics_menu_display_mode"]);
-	ctx->graphics_menu_display_mode_value_text->set_content((fullscreen) ? string_fullscreen : string_window);
-	ctx->graphics_menu_render_resolution_label_text->set_content((*ctx->strings)["graphics_menu_render_resolution"]);
-	ctx->graphics_menu_render_resolution_value_text->set_content(std::to_string(static_cast<int>(std::round(render_resolution * 100.0f))) + "%");
-	ctx->graphics_menu_v_sync_label_text->set_content((*ctx->strings)["graphics_menu_v_sync"]);
-	ctx->graphics_menu_v_sync_value_text->set_content((vsync) ? string_on : string_off);
-	
-	ctx->graphics_menu_font_size_label_text->set_content((*ctx->strings)["graphics_menu_font_size"]);
-	ctx->graphics_menu_font_size_value_text->set_content(std::to_string(static_cast<int>(std::round(font_size * 100.0f))) + "%");
-	
-	ctx->graphics_menu_dyslexia_font_label_text->set_content((*ctx->strings)["graphics_menu_dyslexia_font"]);
-	ctx->graphics_menu_dyslexia_font_value_text->set_content((dyslexia_font) ? string_on : string_off);
-	
-	ctx->graphics_menu_back_label_text->set_content((*ctx->strings)["back"]);
-	
-	// Build lists of graphics menu texts
-	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_display_mode_label_text);
-	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_render_resolution_label_text);
-	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_v_sync_label_text);
-	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_font_size_label_text);
-	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_dyslexia_font_label_text);
-	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_back_label_text);
-	ctx->graphics_menu_value_texts.push_back(ctx->graphics_menu_display_mode_value_text);
-	ctx->graphics_menu_value_texts.push_back(ctx->graphics_menu_render_resolution_value_text);
-	ctx->graphics_menu_value_texts.push_back(ctx->graphics_menu_v_sync_value_text);
-	ctx->graphics_menu_value_texts.push_back(ctx->graphics_menu_font_size_value_text);
-	ctx->graphics_menu_value_texts.push_back(ctx->graphics_menu_dyslexia_font_value_text);
-	ctx->graphics_menu_value_texts.push_back(nullptr);
-	
-	// Set text fonts
-	for (std::size_t i = 0; i < ctx->graphics_menu_label_texts.size(); ++i)
-	{
-		scene::text* label_text = ctx->graphics_menu_label_texts[i];
-		label_text->set_material(&ctx->menu_font_material);
-		label_text->set_font(&ctx->menu_font);
-		
-		scene::text* value_text = ctx->graphics_menu_value_texts[i];
-		if (value_text)
-		{
-			value_text->set_material(&ctx->menu_font_material);
-			value_text->set_font(&ctx->menu_font);
-		}
-	}
-	
 	// Calculate menu width
 	float menu_width = 0.0f;
 	float menu_spacing = ctx->menu_font.get_glyph_metrics(U'M').width;
@@ -202,6 +105,109 @@ void enter(game::context* ctx)
 			value_text->set_translation({std::round(x), std::round(y), 0.0f});
 		}
 	}
+}
+
+static void update_text_tweens(game::context* ctx)
+{
+	for (std::size_t i = 0; i < ctx->graphics_menu_label_texts.size(); ++i)
+	{
+		scene::text* label_text = ctx->graphics_menu_label_texts[i];
+		scene::text* value_text = ctx->graphics_menu_value_texts[i];
+		
+		label_text->update_tweens();
+		if (value_text)
+			value_text->update_tweens();
+	}
+}
+
+static void refresh_texts(game::context* ctx)
+{
+	for (std::size_t i = 0; i < ctx->graphics_menu_label_texts.size(); ++i)
+	{
+		scene::text* label_text = ctx->graphics_menu_label_texts[i];
+		label_text->refresh();
+		
+		scene::text* value_text = ctx->graphics_menu_value_texts[i];
+		if (value_text)
+			value_text->refresh();
+	}
+}
+
+void enter(game::context* ctx)
+{
+	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
+	
+	// Construct graphics menu texts
+	ctx->graphics_menu_display_mode_label_text = new scene::text();
+	ctx->graphics_menu_display_mode_value_text = new scene::text();
+	ctx->graphics_menu_render_resolution_label_text = new scene::text();
+	ctx->graphics_menu_render_resolution_value_text = new scene::text();
+	ctx->graphics_menu_v_sync_label_text = new scene::text();
+	ctx->graphics_menu_v_sync_value_text = new scene::text();
+	ctx->graphics_menu_font_size_label_text = new scene::text();
+	ctx->graphics_menu_font_size_value_text = new scene::text();
+	ctx->graphics_menu_dyslexia_font_label_text = new scene::text();
+	ctx->graphics_menu_dyslexia_font_value_text = new scene::text();
+	ctx->graphics_menu_back_label_text = new scene::text();
+	
+	bool fullscreen = ctx->app->is_fullscreen();
+	float render_resolution = ctx->render_resolution_scale;
+	bool vsync = ctx->app->get_vsync();
+	float font_size = ctx->font_size;
+	bool dyslexia_font = ctx->dyslexia_font;
+	
+	const std::string string_fullscreen = (*ctx->strings)["graphics_menu_display_mode_fullscreen"];
+	const std::string string_window = (*ctx->strings)["graphics_menu_display_mode_window"];
+	const std::string string_on = (*ctx->strings)["on"];
+	const std::string string_off = (*ctx->strings)["off"];
+	
+	// Set text content
+	ctx->graphics_menu_display_mode_label_text->set_content((*ctx->strings)["graphics_menu_display_mode"]);
+	ctx->graphics_menu_display_mode_value_text->set_content((fullscreen) ? string_fullscreen : string_window);
+	ctx->graphics_menu_render_resolution_label_text->set_content((*ctx->strings)["graphics_menu_render_resolution"]);
+	ctx->graphics_menu_render_resolution_value_text->set_content(std::to_string(static_cast<int>(std::round(render_resolution * 100.0f))) + "%");
+	ctx->graphics_menu_v_sync_label_text->set_content((*ctx->strings)["graphics_menu_v_sync"]);
+	ctx->graphics_menu_v_sync_value_text->set_content((vsync) ? string_on : string_off);
+	
+	ctx->graphics_menu_font_size_label_text->set_content((*ctx->strings)["graphics_menu_font_size"]);
+	ctx->graphics_menu_font_size_value_text->set_content(std::to_string(static_cast<int>(std::round(font_size * 100.0f))) + "%");
+	
+	ctx->graphics_menu_dyslexia_font_label_text->set_content((*ctx->strings)["graphics_menu_dyslexia_font"]);
+	ctx->graphics_menu_dyslexia_font_value_text->set_content((dyslexia_font) ? string_on : string_off);
+	
+	ctx->graphics_menu_back_label_text->set_content((*ctx->strings)["back"]);
+	
+	// Build lists of graphics menu texts
+	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_display_mode_label_text);
+	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_render_resolution_label_text);
+	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_v_sync_label_text);
+	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_font_size_label_text);
+	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_dyslexia_font_label_text);
+	ctx->graphics_menu_label_texts.push_back(ctx->graphics_menu_back_label_text);
+	ctx->graphics_menu_value_texts.push_back(ctx->graphics_menu_display_mode_value_text);
+	ctx->graphics_menu_value_texts.push_back(ctx->graphics_menu_render_resolution_value_text);
+	ctx->graphics_menu_value_texts.push_back(ctx->graphics_menu_v_sync_value_text);
+	ctx->graphics_menu_value_texts.push_back(ctx->graphics_menu_font_size_value_text);
+	ctx->graphics_menu_value_texts.push_back(ctx->graphics_menu_dyslexia_font_value_text);
+	ctx->graphics_menu_value_texts.push_back(nullptr);
+	
+	// Set text fonts
+	for (std::size_t i = 0; i < ctx->graphics_menu_label_texts.size(); ++i)
+	{
+		scene::text* label_text = ctx->graphics_menu_label_texts[i];
+		label_text->set_material(&ctx->menu_font_material);
+		label_text->set_font(&ctx->menu_font);
+		
+		scene::text* value_text = ctx->graphics_menu_value_texts[i];
+		if (value_text)
+		{
+			value_text->set_material(&ctx->menu_font_material);
+			value_text->set_font(&ctx->menu_font);
+		}
+	}
+	
+	// Align texts
+	align_texts(ctx);
 	
 	// Construct graphics menu callbacks
 	auto menu_back_callback = [ctx]()
@@ -354,6 +360,10 @@ void enter(game::context* ctx)
 		
 		// Refresh text
 		refresh_texts(ctx);
+		
+		// Realign texts
+		align_texts(ctx);
+		update_text_tweens(ctx);
 	};
 	
 	auto decrease_font_size_callback = [ctx]()
@@ -388,6 +398,10 @@ void enter(game::context* ctx)
 		
 		// Refresh text
 		refresh_texts(ctx);
+		
+		// Realign texts
+		align_texts(ctx);
+		update_text_tweens(ctx);
 	};
 	
 	auto toggle_vsync_callback = [ctx]()
@@ -429,6 +443,10 @@ void enter(game::context* ctx)
 		
 		// Refresh text
 		refresh_texts(ctx);
+		
+		// Realign texts
+		align_texts(ctx);
+		update_text_tweens(ctx);
 	};
 	
 	// Build list of graphics menu callbacks

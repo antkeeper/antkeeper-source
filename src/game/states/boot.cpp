@@ -665,20 +665,35 @@ void setup_sound(game::context* ctx)
 	debug::logger* logger = ctx->logger;
 	logger->push_task("Setting up sound");
 	
-	// Load master volume
+	// Load master volume config
 	ctx->master_volume = 1.0f;
 	if (ctx->config->contains("master_volume"))
 		ctx->master_volume = (*ctx->config)["master_volume"].get<float>();
 	
-	// Load ambience volume
+	// Load ambience volume config
 	ctx->ambience_volume = 1.0f;
 	if (ctx->config->contains("ambience_volume"))
 		ctx->ambience_volume = (*ctx->config)["ambience_volume"].get<float>();
 	
-	// Load effects volume
+	// Load effects volume config
 	ctx->effects_volume = 1.0f;
 	if (ctx->config->contains("effects_volume"))
 		ctx->effects_volume = (*ctx->config)["effects_volume"].get<float>();
+	
+	// Load mono audio config
+	ctx->mono_audio = false;
+	if (ctx->config->contains("mono_audio"))
+		ctx->mono_audio = (*ctx->config)["mono_audio"].get<bool>();
+		
+	// Load captions config
+	ctx->captions = false;
+	if (ctx->config->contains("captions"))
+		ctx->captions = (*ctx->config)["captions"].get<bool>();
+	
+	// Load captions size config
+	ctx->captions_size = 1.0f;
+	if (ctx->config->contains("captions_size"))
+		ctx->captions_size = (*ctx->config)["captions_size"].get<float>();
 	
 	logger->pop_task(EXIT_SUCCESS);
 }

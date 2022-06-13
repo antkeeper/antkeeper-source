@@ -229,10 +229,19 @@ struct context
 	scene::text* sound_menu_ambience_volume_value_text;
 	scene::text* sound_menu_effects_volume_label_text;
 	scene::text* sound_menu_effects_volume_value_text;
+	scene::text* sound_menu_mono_audio_label_text;
+	scene::text* sound_menu_mono_audio_value_text;
+	scene::text* sound_menu_captions_label_text;
+	scene::text* sound_menu_captions_value_text;
+	scene::text* sound_menu_captions_size_label_text;
+	scene::text* sound_menu_captions_size_value_text;
 	scene::text* sound_menu_back_label_text;
 	std::vector<scene::text*> sound_menu_label_texts;
 	std::vector<scene::text*> sound_menu_value_texts;
 	int sound_menu_index;
+	std::vector<std::function<void()>> sound_menu_select_callbacks;
+	std::vector<std::function<void()>> sound_menu_left_callbacks;
+	std::vector<std::function<void()>> sound_menu_right_callbacks;
 	scene::text* graphics_menu_display_mode_label_text;
 	scene::text* graphics_menu_display_mode_value_text;
 	scene::text* graphics_menu_render_resolution_label_text;
@@ -295,6 +304,9 @@ struct context
 	float master_volume;
 	float ambience_volume;
 	float effects_volume;
+	bool mono_audio;
+	bool captions;
+	float captions_size;
 	
 	// Parallel processes
 	std::unordered_map<std::string, std::function<void(double, double)>> processes;
