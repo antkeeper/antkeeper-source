@@ -148,8 +148,10 @@ void enter(game::context* ctx)
 	// Set menu back callback
 	ctx->menu_back_callback = menu_back_callback;
 	
-	// Setup menu controls
-	game::menu::setup_controls(ctx);
+	// Schedule menu control setup
+	timeline* timeline = ctx->timeline;
+	float t = timeline->get_position();
+	timeline->add_sequence({{t + game::menu::input_delay, std::bind(game::menu::setup_controls, ctx)}});
 }
 
 void exit(game::context* ctx)

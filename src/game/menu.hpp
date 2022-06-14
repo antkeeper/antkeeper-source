@@ -25,6 +25,9 @@
 namespace game {
 namespace menu {
 
+/// Delay, in seconds, to when menu input should be activated.
+static constexpr float input_delay = 0.01f;
+
 /// RGBA color of active menu items.
 static constexpr float4 active_color{1.0f, 1.0f, 1.0f, 1.0f};
 
