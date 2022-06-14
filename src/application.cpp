@@ -44,7 +44,7 @@ application::application():
 	update_callback(nullptr),
 	render_callback(nullptr),
 	fullscreen(true),
-	vsync(true),
+	v_sync(true),
 	cursor_visible(true),
 	display_dimensions({0, 0}),
 	display_dpi(0.0f),
@@ -82,7 +82,6 @@ application::application():
 	{
 		logger->pop_task(EXIT_SUCCESS);
 	}
-
 	// Load default OpenGL library
 	logger->push_task("Loading OpenGL library");
 	if (SDL_GL_LoadLibrary(nullptr) != 0)
@@ -102,7 +101,7 @@ application::application():
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
+	
 	// Get display dimensions
 	SDL_DisplayMode sdl_desktop_display_mode;
 	if (SDL_GetDesktopDisplayMode(0, &sdl_desktop_display_mode) != 0)
@@ -130,7 +129,7 @@ application::application():
 	logger->push_task("Creating " + std::to_string(display_dimensions[0]) + "x" + std::to_string(display_dimensions[1]) + " window");
 	sdl_window = SDL_CreateWindow
 	(
-		"",
+		"Antkeeper",
     	SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 	    display_dimensions[0], display_dimensions[1],
 		SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN
@@ -159,10 +158,6 @@ application::application():
 		logger->pop_task(EXIT_SUCCESS);
 	}
 	
-	// Update window size and viewport size
-	SDL_GetWindowSize(sdl_window, &window_dimensions[0], &window_dimensions[1]);
-	SDL_GL_GetDrawableSize(sdl_window, &viewport_dimensions[0], &viewport_dimensions[1]);
-	
 	// Make OpenGL context current
 	logger->push_task("Making OpenGL context current");
 	if (SDL_GL_MakeCurrent(sdl_window, sdl_gl_context) != 0)
@@ -186,9 +181,13 @@ application::application():
 	{
 		logger->pop_task(EXIT_SUCCESS);
 	}
-
+	
+	// Update window size and viewport size
+	SDL_GetWindowSize(sdl_window, &window_dimensions[0], &window_dimensions[1]);
+	SDL_GL_GetDrawableSize(sdl_window, &viewport_dimensions[0], &viewport_dimensions[1]);
+	
 	// Set v-sync mode
-	int swap_interval = (vsync) ? 1 : 0;
+	int swap_interval = (v_sync) ? 1 : 0;
 	logger->push_task((swap_interval) ? "Enabling v-sync" : "Disabling v-sync");
 	if (SDL_GL_SetSwapInterval(swap_interval) != 0)
 	{
@@ -493,12 +492,12 @@ void application::set_fullscreen(bool fullscreen)
 	}
 }
 
-void application::set_vsync(bool vsync)
+void application::set_v_sync(bool v_sync)
 {
-	if (this->vsync != vsync)
+	if (this->v_sync != v_sync)
 	{
-		this->vsync = vsync;
-		SDL_GL_SetSwapInterval((vsync) ? 1 : 0);
+		this->v_sync = v_sync;
+		SDL_GL_SetSwapInterval((v_sync) ? 1 : 0);
 	}
 }
 
@@ -515,6 +514,7 @@ void application::swap_buffers()
 void application::show_window()
 {
 	SDL_ShowWindow(sdl_window);
+	//SDL_GL_MakeCurrent(sdl_window, sdl_gl_context);
 }
 
 void application::hide_window()

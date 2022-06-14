@@ -214,7 +214,7 @@ void parse_options(game::context* ctx, int argc, char** argv)
 		
 		// --vsync
 		if (result.count("vsync"))
-			ctx->option_vsync = (result["vsync"].as<int>()) ? true : false;
+			ctx->option_v_sync = (result["vsync"].as<int>()) ? true : false;
 		
 		// --windowed
 		if (result.count("windowed"))
@@ -438,12 +438,12 @@ void setup_window(game::context* ctx)
 	app->resize_window(resolution.x, resolution.y);
 	
 	// Set v-sync
-	bool vsync = true;
-	if (ctx->option_vsync.has_value())
-		vsync = (ctx->option_vsync.value() != 0);
-	else if (config->contains("vsync"))
-		vsync = (*config)["vsync"].get<bool>();
-	app->set_vsync(vsync);
+	bool v_sync = true;
+	if (ctx->option_v_sync.has_value())
+		v_sync = (ctx->option_v_sync.value() != 0);
+	else if (config->contains("v_sync"))
+		v_sync = (*config)["v_sync"].get<bool>();
+	app->set_v_sync(v_sync);
 	
 	// Set title
 	app->set_title((*ctx->strings)["application_title"]);
@@ -1006,9 +1006,18 @@ void setup_ui(game::context* ctx)
 	
 	ctx->main_menu_index = 0;
 	ctx->options_menu_index = 0;
+	ctx->controls_menu_index = 0;
 	ctx->graphics_menu_index = 0;
 	ctx->sound_menu_index = 0;
 	ctx->language_menu_index = 0;
+	ctx->keyboard_config_menu_index = 0;
+	
+	// Construct mouse tracker
+	ctx->menu_mouse_tracker = new ui::mouse_tracker();
+	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->menu_mouse_tracker);
+	ctx->app->get_event_dispatcher()->subscribe<mouse_button_pressed_event>(ctx->menu_mouse_tracker);
+	ctx->app->get_event_dispatcher()->subscribe<mouse_button_released_event>(ctx->menu_mouse_tracker);
+	ctx->app->get_event_dispatcher()->subscribe<mouse_wheel_scrolled_event>(ctx->menu_mouse_tracker);
 }
 
 void setup_cli(game::context* ctx)

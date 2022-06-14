@@ -178,9 +178,9 @@ public:
 	/**
 	 * Enables or disables v-sync mode.
 	 *
-	 * @param vsync `true` if v-sync should be enabled, `false` otherwise.
+	 * @param v_sync `true` if v-sync should be enabled, `false` otherwise.
 	 */
-	void set_vsync(bool vsync);
+	void set_v_sync(bool v_sync);
 	
 	void set_window_opacity(float opacity);
 	
@@ -207,7 +207,7 @@ public:
 	bool is_fullscreen() const;
 	
 	/// Returns `true` if the v-sync is enabled, `false` otherwise.
-	bool get_vsync() const;
+	bool get_v_sync() const;
 	
 	/// Returns the rasterizer for the window.
 	gl::rasterizer* get_rasterizer();
@@ -241,7 +241,7 @@ private:
 	update_callback_type update_callback;
 	render_callback_type render_callback;
 	bool fullscreen;
-	bool vsync;
+	bool v_sync;
 	bool cursor_visible;
 	std::array<int, 2> display_dimensions;
 	float display_dpi;
@@ -300,9 +300,9 @@ inline bool application::is_fullscreen() const
 	return fullscreen;
 }
 
-inline bool application::get_vsync() const
+inline bool application::get_v_sync() const
 {
-	return vsync;
+	return v_sync;
 }
 
 inline gl::rasterizer* application::get_rasterizer()

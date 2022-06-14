@@ -24,115 +24,50 @@
 #include "render/passes/clear-pass.hpp"
 #include "debug/logger.hpp"
 #include "game/fonts.hpp"
+#include "game/menu.hpp"
 
 namespace game {
 namespace state {
 namespace language_menu {
 
-static void update_text_font(game::context* ctx)
-{
-	for (scene::text* text: ctx->language_menu_texts)
-	{
-		text->set_material(&ctx->menu_font_material);
-		text->set_font(&ctx->menu_font);
-	}
-}
-
-static void update_text_color(game::context* ctx)
-{
-	float4 inactive_color = {1.0f, 1.0f, 1.0f, 0.5f};
-	float4 active_color = {1.0f, 1.0f, 1.0f, 1.0f};
-	
-	for (std::size_t i = 0; i < ctx->language_menu_texts.size(); ++i)
-	{
-		scene::text* text = ctx->language_menu_texts[i];
-		
-		if (i == ctx->language_menu_index)
-			text->set_color(active_color);
-		else
-			text->set_color(inactive_color);
-	}
-}
-
 static void update_text_content(game::context* ctx)
 {
-	ctx->language_menu_language_text->set_content((*ctx->strings)["language_name"]);
-	ctx->language_menu_back_text->set_content((*ctx->strings)["back"]);
-}
-
-static void refresh_texts(game::context* ctx)
-{
-	for (scene::text* text: ctx->language_menu_texts)
-	{
-		text->refresh();
-	}
-}
-
-static void align_texts(game::context* ctx)
-{
-	float menu_width = 0.0f;
-	for (std::size_t i = 0; i < ctx->language_menu_texts.size(); ++i)
-	{
-		scene::text* text = ctx->language_menu_texts[i];
-		
-		// Update menu width
-		const auto& bounds = static_cast<const geom::aabb<float>&>(text->get_local_bounds());
-		float width = bounds.max_point.x - bounds.min_point.x;
-		menu_width = std::max<float>(menu_width, width);
-	}
+	auto [language_name, language_value] = ctx->menu_item_texts[0];
+	auto [back_name, back_value] = ctx->menu_item_texts[1];
 	
-	float menu_height = ctx->language_menu_texts.size() * ctx->menu_font.get_font_metrics().linespace;
-	float menu_x = -menu_width * 0.5f;
-	float menu_y = menu_height * 0.5f - ctx->menu_font.get_font_metrics().linespace;
-	for (std::size_t i = 0; i < ctx->language_menu_texts.size(); ++i)
-	{
-		scene::text* text = ctx->language_menu_texts[i];
-		
-		// Align text
-		const auto& bounds = static_cast<const geom::aabb<float>&>(text->get_local_bounds());
-		float w = bounds.max_point.x - bounds.min_point.x;
-		float x = -w * 0.5f;		
-		//float x = menu_x;
-		float y = menu_y - ctx->menu_font.get_font_metrics().linespace * i;
-		
-		text->set_translation({std::round(x), std::round(y), 0.0f});
-	}
-}
-
-static void update_text_tweens(game::context* ctx)
-{
-	for (scene::text* text: ctx->language_menu_texts)
-	{
-		text->update_tweens();
-	}
+	language_name->set_content((*ctx->strings)["language_menu_language"]);
+	language_value->set_content((*ctx->strings)["language_name"]);
+	back_name->set_content((*ctx->strings)["back"]);
 }
 
 void enter(game::context* ctx)
 {
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
 	
-	// Construct language menu texts
-	ctx->language_menu_language_text = new scene::text();
-	ctx->language_menu_back_text = new scene::text();
+	// Construct menu item texts
+	scene::text* language_name_text = new scene::text();
+	scene::text* language_value_text = new scene::text();
+	scene::text* back_text = new scene::text();
 	
-	// Build list of language menu texts
-	ctx->language_menu_texts.push_back(ctx->language_menu_language_text);
-	ctx->language_menu_texts.push_back(ctx->language_menu_back_text);
+	// Build list of menu item texts
+	ctx->menu_item_texts.push_back({language_name_text, language_value_text});
+	ctx->menu_item_texts.push_back({back_text, nullptr});
 	
-	// Construct language menu callbacks
-	auto menu_back_callback = [ctx]()
-	{
-		application::state next_state;
-		next_state.name = "options_menu";
-		next_state.enter = std::bind(game::state::options_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::options_menu::exit, ctx);
-		ctx->app->change_state(next_state);
-	};
+	// Set content of menu item texts
+	update_text_content(ctx);
+	
+	// Init menu item index
+	game::menu::init_menu_item_index(ctx, "language");
+	
+	game::menu::update_text_color(ctx);
+	game::menu::update_text_font(ctx);
+	game::menu::align_text(ctx);
+	game::menu::update_text_tweens(ctx);
+	game::menu::add_text_to_ui(ctx);
+	
+	// Construct menu item callbacks
 	auto next_language_callback = [ctx]()
 	{
-		if (ctx->language_menu_index != 0)
-			return;
-		
 		// Increment language index
 		++ctx->language_index;
 		if (ctx->language_index >= ctx->language_count)
@@ -159,17 +94,14 @@ void enter(game::context* ctx)
 		}
 		ctx->logger->pop_task(EXIT_SUCCESS);
 		
-		update_text_font(ctx);
+		game::menu::update_text_font(ctx);
 		update_text_content(ctx);
-		refresh_texts(ctx);
-		align_texts(ctx);
-		update_text_tweens(ctx);
+		game::menu::refresh_text(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
 	};
 	auto previous_language_callback = [ctx]()
 	{
-		if (ctx->language_menu_index != 0)
-			return;
-		
 		// Increment language index
 		--ctx->language_index;
 		if (ctx->language_index < 0)
@@ -196,81 +128,47 @@ void enter(game::context* ctx)
 		}
 		ctx->logger->pop_task(EXIT_SUCCESS);
 		
-		update_text_font(ctx);
+		game::menu::update_text_font(ctx);
 		update_text_content(ctx);
-		refresh_texts(ctx);
-		align_texts(ctx);
-		update_text_tweens(ctx);
+		game::menu::refresh_text(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
+	};
+	auto select_back_callback = [ctx]()
+	{
+		application::state next_state;
+		next_state.name = "options_menu";
+		next_state.enter = std::bind(game::state::options_menu::enter, ctx);
+		next_state.exit = std::bind(game::state::options_menu::exit, ctx);
+		ctx->app->change_state(next_state);
 	};
 	
-	// Build list of language menu callbacks
-	ctx->language_menu_callbacks.push_back(next_language_callback);
-	ctx->language_menu_callbacks.push_back(menu_back_callback);
+	// Build list of menu select callbacks
+	ctx->menu_select_callbacks.push_back(next_language_callback);
+	ctx->menu_select_callbacks.push_back(select_back_callback);
 	
-	ctx->controls["menu_down"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			++ctx->language_menu_index;
-			if (ctx->language_menu_index >= ctx->language_menu_texts.size())
-				ctx->language_menu_index = 0;
-			
-			update_text_color(ctx);
-		}
-	);
-	ctx->controls["menu_up"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			--ctx->language_menu_index;
-			if (ctx->language_menu_index < 0)
-				ctx->language_menu_index = ctx->language_menu_texts.size() - 1;
-			
-			update_text_color(ctx);
-		}
-	);
-	ctx->controls["menu_left"]->set_activated_callback(previous_language_callback);
-	ctx->controls["menu_right"]->set_activated_callback(next_language_callback);
-	ctx->controls["menu_select"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			auto callback = ctx->language_menu_callbacks[ctx->language_menu_index];
-			if (callback != nullptr)
-				callback();
-		}
-	);
-	ctx->controls["menu_back"]->set_activated_callback(menu_back_callback);
+	// Build list of menu left callbacks
+	ctx->menu_left_callbacks.push_back(previous_language_callback);
+	ctx->menu_left_callbacks.push_back(nullptr);
 	
-	for (scene::text* text: ctx->language_menu_texts)
-		ctx->ui_scene->add_object(text);
-	update_text_font(ctx);
-	update_text_color(ctx);
-	update_text_content(ctx);
-	align_texts(ctx);
-	update_text_tweens(ctx);
+	// Build list of menu right callbacks
+	ctx->menu_right_callbacks.push_back(next_language_callback);
+	ctx->menu_right_callbacks.push_back(nullptr);
+	
+	// Set menu back callback
+	ctx->menu_back_callback = select_back_callback;
+	
+	// Setup menu controls
+	game::menu::setup_controls(ctx);
 }
 
 void exit(game::context* ctx)
 {
-	// Clear control callbacks
-	ctx->controls["menu_down"]->set_activated_callback(nullptr);
-	ctx->controls["menu_up"]->set_activated_callback(nullptr);
-	ctx->controls["menu_left"]->set_activated_callback(nullptr);
-	ctx->controls["menu_right"]->set_activated_callback(nullptr);
-	ctx->controls["menu_select"]->set_activated_callback(nullptr);
-	ctx->controls["menu_back"]->set_activated_callback(nullptr);
-	
-	// Clear language menu callbacks
-	ctx->language_menu_callbacks.clear();
-	
-	// Destruct language menu texts
-	for (scene::text* text: ctx->language_menu_texts)
-	{
-		ctx->ui_scene->remove_object(text);
-		delete text;
-	}
-	ctx->language_menu_texts.clear();
+	// Destruct menu
+	game::menu::clear_controls(ctx);
+	game::menu::clear_callbacks(ctx);
+	game::menu::remove_text_from_ui(ctx);
+	game::menu::delete_text(ctx);
 	
 	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }

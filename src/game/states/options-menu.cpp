@@ -19,11 +19,12 @@
 
 #include "game/states/options-menu.hpp"
 #include "game/states/main-menu.hpp"
-#include "game/states/graphics-menu.hpp"
+#include "game/states/controls-menu.hpp"
 #include "game/states/graphics-menu.hpp"
 #include "game/states/sound-menu.hpp"
 #include "game/states/language-menu.hpp"
 #include "game/save.hpp"
+#include "game/menu.hpp"
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
@@ -39,22 +40,70 @@ void enter(game::context* ctx)
 {
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
 	
-	// Construct options menu texts
-	ctx->options_menu_controls_text = new scene::text();
-	ctx->options_menu_graphics_text = new scene::text();
-	ctx->options_menu_sound_text = new scene::text();
-	ctx->options_menu_language_text = new scene::text();
-	ctx->options_menu_back_text = new scene::text();
+	// Construct menu item texts
+	scene::text* controls_text = new scene::text();
+	scene::text* graphics_text = new scene::text();
+	scene::text* sound_text = new scene::text();
+	scene::text* language_text = new scene::text();
+	scene::text* back_text = new scene::text();
 	
-	// Build list of options menu texts
-	ctx->options_menu_texts.push_back(ctx->options_menu_controls_text);
-	ctx->options_menu_texts.push_back(ctx->options_menu_graphics_text);
-	ctx->options_menu_texts.push_back(ctx->options_menu_sound_text);
-	ctx->options_menu_texts.push_back(ctx->options_menu_language_text);
-	ctx->options_menu_texts.push_back(ctx->options_menu_back_text);
+	// Set content of menu item texts
+	controls_text->set_content((*ctx->strings)["options_menu_controls"]);
+	graphics_text->set_content((*ctx->strings)["options_menu_graphics"]);
+	sound_text->set_content((*ctx->strings)["options_menu_sound"]);
+	language_text->set_content((*ctx->strings)["options_menu_language"]);
+	back_text->set_content((*ctx->strings)["back"]);
 	
-	// Construct options menu callbacks
-	auto menu_back_callback = [ctx]()
+	// Build list of menu item texts
+	ctx->menu_item_texts.push_back({controls_text, nullptr});
+	ctx->menu_item_texts.push_back({graphics_text, nullptr});
+	ctx->menu_item_texts.push_back({sound_text, nullptr});
+	ctx->menu_item_texts.push_back({language_text, nullptr});
+	ctx->menu_item_texts.push_back({back_text, nullptr});
+	
+	// Init menu item index
+	game::menu::init_menu_item_index(ctx, "options");
+	
+	game::menu::update_text_color(ctx);
+	game::menu::update_text_font(ctx);
+	game::menu::align_text(ctx);
+	game::menu::update_text_tweens(ctx);
+	game::menu::add_text_to_ui(ctx);
+	
+	// Construct menu item callbacks
+	auto select_controls_callback = [ctx]()
+	{
+		application::state next_state;
+		next_state.name = "controls_menu";
+		next_state.enter = std::bind(game::state::controls_menu::enter, ctx);
+		next_state.exit = std::bind(game::state::controls_menu::exit, ctx);
+		ctx->app->change_state(next_state);
+	};
+	auto select_graphics_callback = [ctx]()
+	{
+		application::state next_state;
+		next_state.name = "graphics_menu";
+		next_state.enter = std::bind(game::state::graphics_menu::enter, ctx);
+		next_state.exit = std::bind(game::state::graphics_menu::exit, ctx);
+		ctx->app->change_state(next_state);
+	};
+	auto select_sound_callback = [ctx]()
+	{
+		application::state next_state;
+		next_state.name = "sound_menu";
+		next_state.enter = std::bind(game::state::sound_menu::enter, ctx);
+		next_state.exit = std::bind(game::state::sound_menu::exit, ctx);
+		ctx->app->change_state(next_state);
+	};
+	auto select_language_callback = [ctx]()
+	{
+		application::state next_state;
+		next_state.name = "language_menu";
+		next_state.enter = std::bind(game::state::language_menu::enter, ctx);
+		next_state.exit = std::bind(game::state::language_menu::exit, ctx);
+		ctx->app->change_state(next_state);
+	};
+	auto select_back_callback = [ctx]()
 	{
 		// Save config
 		game::save_config(ctx);
@@ -66,166 +115,37 @@ void enter(game::context* ctx)
 		next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 		ctx->app->change_state(next_state);
 	};
-	auto change_state_graphics_menu = [ctx]()
-	{
-		application::state next_state;
-		next_state.name = "graphics_menu";
-		next_state.enter = std::bind(game::state::graphics_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::graphics_menu::exit, ctx);
-		ctx->app->change_state(next_state);
-	};
-	auto change_state_sound_menu = [ctx]()
-	{
-		application::state next_state;
-		next_state.name = "sound_menu";
-		next_state.enter = std::bind(game::state::sound_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::sound_menu::exit, ctx);
-		ctx->app->change_state(next_state);
-	};
-	auto change_state_language_menu = [ctx]()
-	{
-		application::state next_state;
-		next_state.name = "language_menu";
-		next_state.enter = std::bind(game::state::language_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::language_menu::exit, ctx);
-		ctx->app->change_state(next_state);
-	};
 	
-	// Build list of options menu callbacks
-	ctx->options_menu_callbacks.push_back(nullptr);
-	ctx->options_menu_callbacks.push_back(change_state_graphics_menu);
-	ctx->options_menu_callbacks.push_back(change_state_sound_menu);
-	ctx->options_menu_callbacks.push_back(change_state_language_menu);
-	ctx->options_menu_callbacks.push_back(menu_back_callback);
+	// Build list of menu select callbacks
+	ctx->menu_select_callbacks.push_back(select_controls_callback);
+	ctx->menu_select_callbacks.push_back(select_graphics_callback);
+	ctx->menu_select_callbacks.push_back(select_sound_callback);
+	ctx->menu_select_callbacks.push_back(select_language_callback);
+	ctx->menu_select_callbacks.push_back(select_back_callback);
 	
-	// Set content of texts
-	ctx->options_menu_controls_text->set_content((*ctx->strings)["options_menu_controls"]);
-	ctx->options_menu_graphics_text->set_content((*ctx->strings)["options_menu_graphics"]);
-	ctx->options_menu_sound_text->set_content((*ctx->strings)["options_menu_sound"]);
-	ctx->options_menu_language_text->set_content((*ctx->strings)["options_menu_language"]);
-	ctx->options_menu_back_text->set_content((*ctx->strings)["back"]);
+	// Build list of menu right callbacks
+	ctx->menu_right_callbacks.resize(5, nullptr);
 	
-	float4 inactive_color = {1.0f, 1.0f, 1.0f, 0.5f};
-	float4 active_color = {1.0f, 1.0f, 1.0f, 1.0f};
-	float menu_width = 0.0f;
-	for (std::size_t i = 0; i < ctx->options_menu_texts.size(); ++i)
-	{
-		scene::text* text = ctx->options_menu_texts[i];
-		
-		// Set text material and font
-		text->set_material(&ctx->menu_font_material);
-		text->set_font(&ctx->menu_font);
-		
-		// Set text color
-		if (i == ctx->options_menu_index)
-			text->set_color(active_color);
-		else
-			text->set_color(inactive_color);
-		
-		// Update menu width
-		const auto& bounds = static_cast<const geom::aabb<float>&>(text->get_local_bounds());
-		float width = bounds.max_point.x - bounds.min_point.x;
-		menu_width = std::max<float>(menu_width, width);
-		
-		// Add text to UI
-		ctx->ui_scene->add_object(text);
-	}
+	// Build list of menu left callbacks
+	ctx->menu_left_callbacks.resize(5, nullptr);
 	
-	// Align texts
-	float menu_height = ctx->options_menu_texts.size() * ctx->menu_font.get_font_metrics().linespace;
-	float menu_x = -menu_width * 0.5f;
-	float menu_y = menu_height * 0.5f - ctx->menu_font.get_font_metrics().linespace;
-	for (std::size_t i = 0; i < ctx->options_menu_texts.size(); ++i)
-	{
-		scene::text* text = ctx->options_menu_texts[i];
-		
-		float x = menu_x;
-		float y = menu_y - ctx->menu_font.get_font_metrics().linespace * i;
-		
-		text->set_translation({std::round(x), std::round(y), 0.0f});
-		text->update_tweens();
-	}
+	// Set menu back callback
+	ctx->menu_back_callback = select_back_callback;
 	
-	ctx->controls["menu_down"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			++ctx->options_menu_index;
-			if (ctx->options_menu_index >= ctx->options_menu_texts.size())
-				ctx->options_menu_index = 0;
-			
-			float4 active_color{1.0f, 1.0f, 1.0f, 1.0f};
-			float4 inactive_color{1.0f, 1.0f, 1.0f, 0.5f};
-			
-			for (std::size_t i = 0; i < ctx->options_menu_texts.size(); ++i)
-			{
-				scene::text* text = ctx->options_menu_texts[i];
-				
-				if (i == ctx->options_menu_index)
-					text->set_color(active_color);
-				else
-					text->set_color(inactive_color);
-			}
-		}
-	);
-	ctx->controls["menu_up"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			--ctx->options_menu_index;
-			if (ctx->options_menu_index < 0)
-				ctx->options_menu_index = ctx->options_menu_texts.size() - 1;
-			
-			float4 active_color{1.0f, 1.0f, 1.0f, 1.0f};
-			float4 inactive_color{1.0f, 1.0f, 1.0f, 0.5f};
-			
-			for (std::size_t i = 0; i < ctx->options_menu_texts.size(); ++i)
-			{
-				scene::text* text = ctx->options_menu_texts[i];
-				
-				if (i == ctx->options_menu_index)
-					text->set_color(active_color);
-				else
-					text->set_color(inactive_color);
-			}
-		}
-	);
-	ctx->controls["menu_select"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			auto callback = ctx->options_menu_callbacks[ctx->options_menu_index];
-			if (callback != nullptr)
-				callback();
-		}
-	);
-	ctx->controls["menu_back"]->set_activated_callback(menu_back_callback);
-	/*
-	ctx->controls["menu_back"]->set_activated_callback
-	(
-		std::bind(&application::close, ctx->app, 0)
-	);
-	*/
+	// Setup menu controls
+	game::menu::setup_controls(ctx);
 }
 
 void exit(game::context* ctx)
 {
-	// Clear control callbacks
-	ctx->controls["menu_down"]->set_activated_callback(nullptr);
-	ctx->controls["menu_up"]->set_activated_callback(nullptr);
-	ctx->controls["menu_select"]->set_activated_callback(nullptr);
-	ctx->controls["menu_back"]->set_activated_callback(nullptr);
+	// Destruct menu
+	game::menu::clear_controls(ctx);
+	game::menu::clear_callbacks(ctx);
+	game::menu::remove_text_from_ui(ctx);
+	game::menu::delete_text(ctx);
 	
-	// Clear options menu callbacks
-	ctx->options_menu_callbacks.clear();
-	
-	// Destruct options menu texts
-	for (scene::text* text: ctx->options_menu_texts)
-	{
-		ctx->ui_scene->remove_object(text);
-		delete text;
-	}
-	ctx->options_menu_texts.clear();
+	// Save config
+	game::save_config(ctx);
 	
 	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }

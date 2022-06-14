@@ -49,6 +49,7 @@
 #include "type/bitmap-font.hpp"
 #include "render/material.hpp"
 #include "render/material-property.hpp"
+#include "ui/mouse-tracker.hpp"
 
 // Forward declarations
 class animator;
@@ -122,7 +123,7 @@ struct context
 	std::optional<bool> option_new_game;
 	std::optional<bool> option_quick_start;
 	std::optional<bool> option_reset;
-	std::optional<int> option_vsync;
+	std::optional<int> option_v_sync;
 	std::optional<bool> option_windowed;
 	
 	// Paths
@@ -208,6 +209,7 @@ struct context
 	scene::text* main_menu_options_text;
 	scene::text* main_menu_credits_text;
 	scene::text* main_menu_quit_text;
+	std::vector<scene::text*> main_menu_texts;
 	int main_menu_index;
 	scene::text* credits_text;
 	scene::text* options_menu_controls_text;
@@ -218,6 +220,15 @@ struct context
 	std::vector<scene::text*> options_menu_texts;
 	std::vector<std::function<void()>> options_menu_callbacks;
 	int options_menu_index;
+	scene::text* controls_menu_configure_keyboard_mouse_label_text;
+	scene::text* controls_menu_configure_game_controller_label_text;
+	scene::text* controls_menu_back_label_text;
+	std::vector<scene::text*> controls_menu_label_texts;
+	std::vector<scene::text*> controls_menu_value_texts;
+	int controls_menu_index;
+	std::vector<std::function<void()>> controls_menu_select_callbacks;
+	std::vector<std::function<void()>> controls_menu_left_callbacks;
+	std::vector<std::function<void()>> controls_menu_right_callbacks;
 	scene::text* language_menu_language_text;
 	scene::text* language_menu_back_text;
 	std::vector<scene::text*> language_menu_texts;
@@ -259,8 +270,23 @@ struct context
 	std::vector<std::function<void()>> graphics_menu_select_callbacks;
 	std::vector<std::function<void()>> graphics_menu_left_callbacks;
 	std::vector<std::function<void()>> graphics_menu_right_callbacks;
+	std::vector<scene::text*> keyboard_config_menu_label_texts;
+	std::vector<scene::text*> keyboard_config_menu_value_texts;
+	int keyboard_config_menu_index;
+	std::vector<std::function<void()>> keyboard_config_menu_select_callbacks;
+	std::vector<std::function<void()>> keyboard_config_menu_left_callbacks;
+	std::vector<std::function<void()>> keyboard_config_menu_right_callbacks;
 	float font_size;
 	bool dyslexia_font;
+	ui::mouse_tracker* menu_mouse_tracker;
+	
+	std::vector<std::function<void()>> menu_select_callbacks;
+	std::vector<std::function<void()>> menu_left_callbacks;
+	std::vector<std::function<void()>> menu_right_callbacks;
+	std::function<void()> menu_back_callback;
+	std::vector<std::tuple<scene::text*, scene::text*>> menu_item_texts;
+	std::unordered_map<std::string, int> menu_item_indices;
+	int* menu_item_index;
 	
 	// Surface scene
 	scene::collection* surface_scene;

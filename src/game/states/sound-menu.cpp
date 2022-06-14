@@ -23,182 +23,75 @@
 #include "scene/text.hpp"
 #include "render/passes/clear-pass.hpp"
 #include "debug/logger.hpp"
+#include "game/menu.hpp"
 
 namespace game {
 namespace state {
 namespace sound_menu {
 
-static void update_text_color(game::context* ctx)
+static void update_value_text_content(game::context* ctx)
 {
-	float4 inactive_color = {1.0f, 1.0f, 1.0f, 0.5f};
-	float4 active_color = {1.0f, 1.0f, 1.0f, 1.0f};
+	const std::string string_on = (*ctx->strings)["on"];
+	const std::string string_off = (*ctx->strings)["off"];
 	
-	for (std::size_t i = 0; i < ctx->sound_menu_label_texts.size(); ++i)
-	{
-		scene::text* label_text = ctx->sound_menu_label_texts[i];
-		scene::text* value_text = ctx->sound_menu_value_texts[i];
-
-		if (i == ctx->sound_menu_index)
-		{
-			label_text->set_color(active_color);
-			if (value_text)
-				value_text->set_color(active_color);
-		}
-		else
-		{
-			label_text->set_color(inactive_color);
-			if (value_text)
-				value_text->set_color(inactive_color);
-		}
-	}
-}
-
-static void align_texts(game::context* ctx)
-{
-	// Calculate menu width
-	float menu_width = 0.0f;
-	float menu_spacing = ctx->menu_font.get_glyph_metrics(U'M').width;
-	for (std::size_t i = 0; i < ctx->sound_menu_label_texts.size(); ++i)
-	{
-		scene::text* label_text = ctx->sound_menu_label_texts[i];
-		scene::text* value_text = ctx->sound_menu_value_texts[i];
-		
-		float row_width = 0.0f;
-		
-		// Add label width to width
-		const auto& label_bounds = static_cast<const geom::aabb<float>&>(label_text->get_local_bounds());
-		row_width += label_bounds.max_point.x - label_bounds.min_point.x;
-		
-		if (value_text != nullptr)
-		{
-			// Add value width to width
-			//const auto& value_bounds = static_cast<const geom::aabb<float>&>(value_text->get_local_bounds());
-			//row_width += value_bounds.max_point.x - value_bounds.min_point.x;
-			
-			// Add spacing to row width
-			row_width += menu_spacing * 4.0f;
-		}
-		
-		menu_width = std::max<float>(menu_width, row_width);
-	}
-	
-	// Align texts
-	float menu_height = ctx->sound_menu_label_texts.size() * ctx->menu_font.get_font_metrics().linespace;
-	float menu_x = -menu_width * 0.5f;
-	float menu_y = menu_height * 0.5f - ctx->menu_font.get_font_metrics().linespace;
-	for (std::size_t i = 0; i < ctx->sound_menu_label_texts.size(); ++i)
-	{
-		scene::text* label_text = ctx->sound_menu_label_texts[i];
-		
-		float x = menu_x;
-		float y = menu_y - ctx->menu_font.get_font_metrics().linespace * i;
-		label_text->set_translation({std::round(x), std::round(y), 0.0f});
-		
-		scene::text* value_text = ctx->sound_menu_value_texts[i];
-		if (value_text)
-		{
-			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value_text->get_local_bounds());
-			const float value_width =  value_bounds.max_point.x - value_bounds.min_point.x;
-			x = menu_x + menu_width - value_width;
-			
-			value_text->set_translation({std::round(x), std::round(y), 0.0f});
-		}
-	}
-}
-
-static void update_text_tweens(game::context* ctx)
-{
-	for (std::size_t i = 0; i < ctx->sound_menu_label_texts.size(); ++i)
-	{
-		scene::text* label_text = ctx->sound_menu_label_texts[i];
-		scene::text* value_text = ctx->sound_menu_value_texts[i];
-		
-		label_text->update_tweens();
-		if (value_text)
-			value_text->update_tweens();
-	}
+	std::get<1>(ctx->menu_item_texts[0])->set_content(std::to_string(static_cast<int>(std::round(ctx->master_volume * 100.0f))) + "%");
+	std::get<1>(ctx->menu_item_texts[1])->set_content(std::to_string(static_cast<int>(std::round(ctx->ambience_volume * 100.0f))) + "%");
+	std::get<1>(ctx->menu_item_texts[2])->set_content(std::to_string(static_cast<int>(std::round(ctx->effects_volume * 100.0f))) + "%");
+	std::get<1>(ctx->menu_item_texts[3])->set_content((ctx->mono_audio) ? string_on : string_off);
+	std::get<1>(ctx->menu_item_texts[4])->set_content((ctx->captions) ? string_on : string_off);
+	std::get<1>(ctx->menu_item_texts[5])->set_content(std::to_string(static_cast<int>(std::round(ctx->captions_size * 100.0f))) + "%");
 }
 
 void enter(game::context* ctx)
 {
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
 	
-	// Construct sound menu texts
-	ctx->sound_menu_master_volume_label_text = new scene::text();
-	ctx->sound_menu_master_volume_value_text = new scene::text();
-	ctx->sound_menu_ambience_volume_label_text = new scene::text();
-	ctx->sound_menu_ambience_volume_value_text = new scene::text();
-	ctx->sound_menu_effects_volume_label_text = new scene::text();
-	ctx->sound_menu_effects_volume_value_text = new scene::text();
-	ctx->sound_menu_mono_audio_label_text = new scene::text();
-	ctx->sound_menu_mono_audio_value_text = new scene::text();
-	ctx->sound_menu_captions_label_text = new scene::text();
-	ctx->sound_menu_captions_value_text = new scene::text();
-	ctx->sound_menu_captions_size_label_text = new scene::text();
-	ctx->sound_menu_captions_size_value_text = new scene::text();
-	ctx->sound_menu_back_label_text = new scene::text();
+	// Construct menu item texts
+	scene::text* master_volume_name_text = new scene::text();
+	scene::text* master_volume_value_text = new scene::text();
+	scene::text* ambience_volume_name_text = new scene::text();
+	scene::text* ambience_volume_value_text = new scene::text();
+	scene::text* effects_volume_name_text = new scene::text();
+	scene::text* effects_volume_value_text = new scene::text();
+	scene::text* mono_audio_name_text = new scene::text();
+	scene::text* mono_audio_value_text = new scene::text();
+	scene::text* captions_name_text = new scene::text();
+	scene::text* captions_value_text = new scene::text();
+	scene::text* captions_size_name_text = new scene::text();
+	scene::text* captions_size_value_text = new scene::text();
+	scene::text* back_text = new scene::text();
 	
-	// Set text content
-	const std::string string_on = (*ctx->strings)["on"];
-	const std::string string_off = (*ctx->strings)["off"];
-	ctx->sound_menu_master_volume_label_text->set_content((*ctx->strings)["sound_menu_master_volume"]);
-	ctx->sound_menu_master_volume_value_text->set_content(std::to_string(static_cast<int>(ctx->master_volume * 100.0f + 0.5f)) + "%");
-	ctx->sound_menu_ambience_volume_label_text->set_content((*ctx->strings)["sound_menu_ambience_volume"]);
-	ctx->sound_menu_ambience_volume_value_text->set_content(std::to_string(static_cast<int>(ctx->ambience_volume * 100.0f + 0.5f)) + "%");
-	ctx->sound_menu_effects_volume_label_text->set_content((*ctx->strings)["sound_menu_effects_volume"]);
-	ctx->sound_menu_effects_volume_value_text->set_content(std::to_string(static_cast<int>(ctx->effects_volume * 100.0f + 0.5f)) + "%");
-	ctx->sound_menu_mono_audio_label_text->set_content((*ctx->strings)["sound_menu_mono_audio"]);
-	ctx->sound_menu_mono_audio_value_text->set_content((ctx->mono_audio) ? string_on : string_off);
-	ctx->sound_menu_captions_label_text->set_content((*ctx->strings)["sound_menu_captions"]);
-	ctx->sound_menu_captions_value_text->set_content((ctx->captions) ? string_on : string_off);
-	ctx->sound_menu_captions_size_label_text->set_content((*ctx->strings)["sound_menu_captions_size"]);
-	ctx->sound_menu_captions_size_value_text->set_content(std::to_string(static_cast<int>(ctx->captions_size * 100.0f + 0.5f)) + "%");
-	ctx->sound_menu_back_label_text->set_content((*ctx->strings)["back"]);
+	// Build list of menu item texts
+	ctx->menu_item_texts.push_back({master_volume_name_text, master_volume_value_text});
+	ctx->menu_item_texts.push_back({ambience_volume_name_text, ambience_volume_value_text});
+	ctx->menu_item_texts.push_back({effects_volume_name_text, effects_volume_value_text});
+	ctx->menu_item_texts.push_back({mono_audio_name_text, mono_audio_value_text});
+	ctx->menu_item_texts.push_back({captions_name_text, captions_value_text});
+	ctx->menu_item_texts.push_back({captions_size_name_text, captions_size_value_text});
+	ctx->menu_item_texts.push_back({back_text, nullptr});
 	
-	// Build lists of sound menu texts
-	ctx->sound_menu_label_texts.push_back(ctx->sound_menu_master_volume_label_text);
-	ctx->sound_menu_label_texts.push_back(ctx->sound_menu_ambience_volume_label_text);
-	ctx->sound_menu_label_texts.push_back(ctx->sound_menu_effects_volume_label_text);
-	ctx->sound_menu_label_texts.push_back(ctx->sound_menu_mono_audio_label_text);
-	ctx->sound_menu_label_texts.push_back(ctx->sound_menu_captions_label_text);
-	ctx->sound_menu_label_texts.push_back(ctx->sound_menu_captions_size_label_text);
-	ctx->sound_menu_label_texts.push_back(ctx->sound_menu_back_label_text);
+	// Set content of menu item texts
+	master_volume_name_text->set_content((*ctx->strings)["sound_menu_master_volume"]);
+	ambience_volume_name_text->set_content((*ctx->strings)["sound_menu_ambience_volume"]);
+	effects_volume_name_text->set_content((*ctx->strings)["sound_menu_effects_volume"]);
+	mono_audio_name_text->set_content((*ctx->strings)["sound_menu_mono_audio"]);
+	captions_name_text->set_content((*ctx->strings)["sound_menu_captions"]);
+	captions_size_name_text->set_content((*ctx->strings)["sound_menu_captions_size"]);
+	back_text->set_content((*ctx->strings)["back"]);
+	update_value_text_content(ctx);
 	
-	ctx->sound_menu_value_texts.push_back(ctx->sound_menu_master_volume_value_text);
-	ctx->sound_menu_value_texts.push_back(ctx->sound_menu_ambience_volume_value_text);
-	ctx->sound_menu_value_texts.push_back(ctx->sound_menu_effects_volume_value_text);
-	ctx->sound_menu_value_texts.push_back(ctx->sound_menu_mono_audio_value_text);
-	ctx->sound_menu_value_texts.push_back(ctx->sound_menu_captions_value_text);
-	ctx->sound_menu_value_texts.push_back(ctx->sound_menu_captions_size_value_text);
-	ctx->sound_menu_value_texts.push_back(nullptr);
+	// Init menu item index
+	game::menu::init_menu_item_index(ctx, "sound");
 	
-	// Set text fonts
-	for (std::size_t i = 0; i < ctx->sound_menu_label_texts.size(); ++i)
-	{
-		scene::text* label_text = ctx->sound_menu_label_texts[i];
-		label_text->set_material(&ctx->menu_font_material);
-		label_text->set_font(&ctx->menu_font);
-		
-		scene::text* value_text = ctx->sound_menu_value_texts[i];
-		if (value_text)
-		{
-			value_text->set_material(&ctx->menu_font_material);
-			value_text->set_font(&ctx->menu_font);
-		}
-	}
+	game::menu::update_text_color(ctx);
+	game::menu::update_text_font(ctx);
+	game::menu::align_text(ctx);
+	game::menu::update_text_tweens(ctx);
+	game::menu::add_text_to_ui(ctx);
 	
-	align_texts(ctx);
 	
-	// Construct sound menu callbacks
-	auto menu_back_callback = [ctx]()
-	{
-		application::state next_state;
-		next_state.name = "options_menu";
-		next_state.enter = std::bind(game::state::options_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::options_menu::exit, ctx);
-		ctx->app->change_state(next_state);
-	};
-	auto increase_volume_callback = [ctx](float* volume, scene::text* value_text)
+	// Construct menu item callbacks
+	auto increase_volume_callback = [ctx](float* volume)
 	{
 		// Increase volume
 		if (ctx->controls["menu_modifier"]->is_active())
@@ -210,14 +103,11 @@ void enter(game::context* ctx)
 		if (*volume > 1.0f)
 			*volume = 1.0f;
 		
-		// Update volume value text
-		value_text->set_content(std::to_string(static_cast<int>(std::round(*volume * 100.0f))) + "%");
-		
-		// Realign text
-		align_texts(ctx);
-		value_text->update_tweens();
+		update_value_text_content(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
 	};
-	auto decrease_volume_callback = [ctx](float* volume, scene::text* value_text)
+	auto decrease_volume_callback = [ctx](float* volume)
 	{
 		// Decrease volume
 		if (ctx->controls["menu_modifier"]->is_active())
@@ -229,36 +119,27 @@ void enter(game::context* ctx)
 		if (*volume < 0.0f)
 			*volume = 0.0f;
 		
-		// Update volume value text
-		value_text->set_content(std::to_string(static_cast<int>(std::round(*volume * 100.0f))) + "%");
-		
-		// Realign text
-		align_texts(ctx);
-		value_text->update_tweens();
+		update_value_text_content(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
 	};
 	
 	auto toggle_mono_audio_callback = [ctx]()
 	{
 		ctx->mono_audio = !ctx->mono_audio;
 		
-		const std::string string_on = (*ctx->strings)["on"];
-		const std::string string_off = (*ctx->strings)["off"];
-		ctx->sound_menu_mono_audio_value_text->set_content((ctx->mono_audio) ? string_on : string_off);
-		
-		align_texts(ctx);
-		ctx->sound_menu_mono_audio_value_text->update_tweens();
+		update_value_text_content(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
 	};
 	
 	auto toggle_captions_callback = [ctx]()
 	{
 		ctx->captions = !ctx->captions;
 		
-		const std::string string_on = (*ctx->strings)["on"];
-		const std::string string_off = (*ctx->strings)["off"];
-		ctx->sound_menu_captions_value_text->set_content((ctx->captions) ? string_on : string_off);
-		
-		align_texts(ctx);
-		ctx->sound_menu_captions_value_text->update_tweens();
+		update_value_text_content(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
 	};
 	
 	auto increase_captions_size_callback = [ctx]()
@@ -273,12 +154,9 @@ void enter(game::context* ctx)
 		if (ctx->captions_size > 2.0f)
 			ctx->captions_size = 2.0f;
 		
-		// Update volume value text
-		ctx->sound_menu_captions_size_value_text->set_content(std::to_string(static_cast<int>(std::round(ctx->captions_size * 100.0f))) + "%");
-		
-		// Realign text
-		align_texts(ctx);
-		ctx->sound_menu_captions_size_value_text->update_tweens();
+		update_value_text_content(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
 	};
 	
 	auto decrease_captions_size_callback = [ctx]()
@@ -293,134 +171,62 @@ void enter(game::context* ctx)
 		if (ctx->captions_size < 0.1f)
 			ctx->captions_size = 0.1f;
 		
-		// Update volume value text
-		ctx->sound_menu_captions_size_value_text->set_content(std::to_string(static_cast<int>(std::round(ctx->captions_size * 100.0f))) + "%");
-		
-		// Realign text
-		align_texts(ctx);
-		ctx->sound_menu_captions_size_value_text->update_tweens();
+		update_value_text_content(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
+	};
+	auto select_back_callback = [ctx]()
+	{
+		application::state next_state;
+		next_state.name = "options_menu";
+		next_state.enter = std::bind(game::state::options_menu::enter, ctx);
+		next_state.exit = std::bind(game::state::options_menu::exit, ctx);
+		ctx->app->change_state(next_state);
 	};
 	
-	ctx->controls["menu_down"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			++ctx->sound_menu_index;
-			if (ctx->sound_menu_index >= ctx->sound_menu_label_texts.size())
-				ctx->sound_menu_index = 0;
-			
-			update_text_color(ctx);
-		}
-	);
-	ctx->controls["menu_up"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			--ctx->sound_menu_index;
-			if (ctx->sound_menu_index < 0)
-				ctx->sound_menu_index = ctx->sound_menu_label_texts.size() - 1;
-			
-			update_text_color(ctx);
-		}
-	);
-	ctx->controls["menu_left"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			if (ctx->sound_menu_left_callbacks[ctx->sound_menu_index])
-				ctx->sound_menu_left_callbacks[ctx->sound_menu_index]();
-		}
-	);
-	ctx->controls["menu_right"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			if (ctx->sound_menu_right_callbacks[ctx->sound_menu_index])
-				ctx->sound_menu_right_callbacks[ctx->sound_menu_index]();
-		}
-	);
-	ctx->controls["menu_select"]->set_activated_callback
-	(
-		[ctx]()
-		{
-			if (ctx->sound_menu_select_callbacks[ctx->sound_menu_index])
-				ctx->sound_menu_select_callbacks[ctx->sound_menu_index]();
-		}
-	);
-	ctx->controls["menu_back"]->set_activated_callback(menu_back_callback);
+	// Build list of menu select callbacks
+	ctx->menu_select_callbacks.push_back(std::bind(increase_volume_callback, &ctx->master_volume));
+	ctx->menu_select_callbacks.push_back(std::bind(increase_volume_callback, &ctx->ambience_volume));
+	ctx->menu_select_callbacks.push_back(std::bind(increase_volume_callback, &ctx->effects_volume));
+	ctx->menu_select_callbacks.push_back(toggle_mono_audio_callback);
+	ctx->menu_select_callbacks.push_back(toggle_captions_callback);
+	ctx->menu_select_callbacks.push_back(increase_captions_size_callback);
+	ctx->menu_select_callbacks.push_back(select_back_callback);
 	
-	// Build list of sound menu callbacks
-	ctx->sound_menu_select_callbacks.push_back(std::bind(increase_volume_callback, &ctx->master_volume, ctx->sound_menu_master_volume_value_text));
-	ctx->sound_menu_select_callbacks.push_back(std::bind(increase_volume_callback, &ctx->ambience_volume, ctx->sound_menu_ambience_volume_value_text));
-	ctx->sound_menu_select_callbacks.push_back(std::bind(increase_volume_callback, &ctx->effects_volume, ctx->sound_menu_effects_volume_value_text));
-	ctx->sound_menu_select_callbacks.push_back(toggle_mono_audio_callback);
-	ctx->sound_menu_select_callbacks.push_back(toggle_captions_callback);
-	ctx->sound_menu_select_callbacks.push_back(increase_captions_size_callback);
-	ctx->sound_menu_select_callbacks.push_back(menu_back_callback);
+	// Build list of menu left callbacks
+	ctx->menu_left_callbacks.push_back(std::bind(decrease_volume_callback, &ctx->master_volume));
+	ctx->menu_left_callbacks.push_back(std::bind(decrease_volume_callback, &ctx->ambience_volume));
+	ctx->menu_left_callbacks.push_back(std::bind(decrease_volume_callback, &ctx->effects_volume));
+	ctx->menu_left_callbacks.push_back(toggle_mono_audio_callback);
+	ctx->menu_left_callbacks.push_back(toggle_captions_callback);
+	ctx->menu_left_callbacks.push_back(decrease_captions_size_callback);
+	ctx->menu_left_callbacks.push_back(nullptr);
 	
-	ctx->sound_menu_right_callbacks.push_back(std::bind(increase_volume_callback, &ctx->master_volume, ctx->sound_menu_master_volume_value_text));
-	ctx->sound_menu_right_callbacks.push_back(std::bind(increase_volume_callback, &ctx->ambience_volume, ctx->sound_menu_ambience_volume_value_text));
-	ctx->sound_menu_right_callbacks.push_back(std::bind(increase_volume_callback, &ctx->effects_volume, ctx->sound_menu_effects_volume_value_text));
-	ctx->sound_menu_right_callbacks.push_back(toggle_mono_audio_callback);
-	ctx->sound_menu_right_callbacks.push_back(toggle_captions_callback);
-	ctx->sound_menu_right_callbacks.push_back(increase_captions_size_callback);
-	ctx->sound_menu_right_callbacks.push_back(nullptr);
+	// Build list of menu right callbacks
+	ctx->menu_right_callbacks.push_back(std::bind(increase_volume_callback, &ctx->master_volume));
+	ctx->menu_right_callbacks.push_back(std::bind(increase_volume_callback, &ctx->ambience_volume));
+	ctx->menu_right_callbacks.push_back(std::bind(increase_volume_callback, &ctx->effects_volume));
+	ctx->menu_right_callbacks.push_back(toggle_mono_audio_callback);
+	ctx->menu_right_callbacks.push_back(toggle_captions_callback);
+	ctx->menu_right_callbacks.push_back(increase_captions_size_callback);
+	ctx->menu_right_callbacks.push_back(nullptr);
 	
-	ctx->sound_menu_left_callbacks.push_back(std::bind(decrease_volume_callback, &ctx->master_volume, ctx->sound_menu_master_volume_value_text));
-	ctx->sound_menu_left_callbacks.push_back(std::bind(decrease_volume_callback, &ctx->ambience_volume, ctx->sound_menu_ambience_volume_value_text));
-	ctx->sound_menu_left_callbacks.push_back(std::bind(decrease_volume_callback, &ctx->effects_volume, ctx->sound_menu_effects_volume_value_text));
-	ctx->sound_menu_left_callbacks.push_back(toggle_mono_audio_callback);
-	ctx->sound_menu_left_callbacks.push_back(toggle_captions_callback);
-	ctx->sound_menu_left_callbacks.push_back(decrease_captions_size_callback);
-	ctx->sound_menu_left_callbacks.push_back(nullptr);
+	// Set menu back callback
+	ctx->menu_back_callback = select_back_callback;
 	
-	// Add text objects to UI
-	for (std::size_t i = 0; i < ctx->sound_menu_label_texts.size(); ++i)
-	{
-		scene::text* label_text = ctx->sound_menu_label_texts[i];
-		scene::text* value_text = ctx->sound_menu_value_texts[i];
-		
-		ctx->ui_scene->add_object(label_text);
-		if (value_text)
-			ctx->ui_scene->add_object(value_text);
-	}
-	update_text_color(ctx);
-	update_text_tweens(ctx);
+	// Setup menu controls
+	game::menu::setup_controls(ctx);
 }
 
 void exit(game::context* ctx)
 {
-	// Clear control callbacks
-	ctx->controls["menu_down"]->set_activated_callback(nullptr);
-	ctx->controls["menu_up"]->set_activated_callback(nullptr);
-	ctx->controls["menu_left"]->set_activated_callback(nullptr);
-	ctx->controls["menu_right"]->set_activated_callback(nullptr);
-	ctx->controls["menu_select"]->set_activated_callback(nullptr);
-	ctx->controls["menu_back"]->set_activated_callback(nullptr);
+	// Destruct menu
+	game::menu::clear_controls(ctx);
+	game::menu::clear_callbacks(ctx);
+	game::menu::remove_text_from_ui(ctx);
+	game::menu::delete_text(ctx);
 	
-	// Clear menu callbacks
-	ctx->sound_menu_select_callbacks.clear();
-	ctx->sound_menu_left_callbacks.clear();
-	ctx->sound_menu_right_callbacks.clear();
-	
-	// Destruct sound menu texts
-	for (std::size_t i = 0; i < ctx->sound_menu_label_texts.size(); ++i)
-	{
-		scene::text* label_text = ctx->sound_menu_label_texts[i];
-		ctx->ui_scene->remove_object(label_text);
-		delete label_text;
-		
-		scene::text* value_text = ctx->sound_menu_value_texts[i];
-		if (value_text)
-		{
-			ctx->ui_scene->remove_object(value_text);
-			delete value_text;
-		}
-	}
-	ctx->sound_menu_label_texts.clear();
-	ctx->sound_menu_value_texts.clear();
-	
-	// Update volumes in config
+	// Update config
 	(*ctx->config)["master_volume"] = ctx->master_volume;
 	(*ctx->config)["ambience_volume"] = ctx->ambience_volume;
 	(*ctx->config)["effects_volume"] = ctx->effects_volume;
