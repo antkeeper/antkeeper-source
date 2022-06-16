@@ -97,18 +97,33 @@ private:
 	std::map<std::size_t, std::list<event_handler_base*>> handler_map;
 	std::list<event_base*> queued_events;
 	std::multimap<double, event_base*> scheduled_events;
+	bool updating;
 };
 
 template <typename T>
 void event_dispatcher::subscribe(event_handler<T>* handler)
 {
-	to_subscribe.push_back(std::make_tuple(handler->get_handled_event_type_id(), handler));
+	if (updating)
+	{
+		to_subscribe.push_back(std::make_tuple(handler->get_handled_event_type_id(), handler));
+	}
+	else
+	{
+		handler_map[handler->get_handled_event_type_id()].push_back(handler);
+	}
 }
 
 template <typename T>
 void event_dispatcher::unsubscribe(event_handler<T>* handler)
 {
-	to_unsubscribe.push_back(std::make_tuple(handler->get_handled_event_type_id(), handler));
+	if (updating)
+	{
+		to_unsubscribe.push_back(std::make_tuple(handler->get_handled_event_type_id(), handler));
+	}
+	else
+	{
+		handler_map[handler->get_handled_event_type_id()].remove(handler);
+	}
 }
 
 inline void event_dispatcher::queue(const event_base& event)
@@ -119,19 +134,6 @@ inline void event_dispatcher::queue(const event_base& event)
 inline void event_dispatcher::schedule(const event_base& event, double time)
 {
 	scheduled_events.insert(std::pair<double, event_base*>(time, event.clone()));
-}
-
-inline void event_dispatcher::dispatch(const event_base& event)
-{
-	// Get list of handlers for this type of event
-	const std::list<event_handler_base*>& handlers = handler_map[event.get_event_type_id()];
-
-	// For each handler
-	for (auto handler = handlers.begin(); handler != handlers.end(); ++handler)
-	{
-		// Pass event to the handler
-		(*handler)->route_event(event);
-	}
 }
 
 #endif // ANTKEEPER_EVENT_DISPATCHER_HPP

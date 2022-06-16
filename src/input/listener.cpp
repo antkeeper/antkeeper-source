@@ -19,6 +19,7 @@
 
 #include "listener.hpp"
 #include "event/event-dispatcher.hpp"
+#include <iostream>
 
 namespace input {
 
@@ -35,26 +36,29 @@ listener::~listener()
 
 void listener::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 {
-	if (this->event_dispatcher)
+	if (event_dispatcher != this->event_dispatcher)
 	{
-		this->event_dispatcher->unsubscribe<key_pressed_event>(this);
-		this->event_dispatcher->unsubscribe<mouse_moved_event>(this);
-		this->event_dispatcher->unsubscribe<mouse_wheel_scrolled_event>(this);
-		this->event_dispatcher->unsubscribe<mouse_button_pressed_event>(this);
-		this->event_dispatcher->unsubscribe<gamepad_axis_moved_event>(this);
-		this->event_dispatcher->unsubscribe<gamepad_button_pressed_event>(this);
-	}
-
-	this->event_dispatcher = event_dispatcher;
-
-	if (event_dispatcher)
-	{
-		event_dispatcher->subscribe<key_pressed_event>(this);
-		event_dispatcher->subscribe<mouse_moved_event>(this);
-		event_dispatcher->subscribe<mouse_wheel_scrolled_event>(this);
-		event_dispatcher->subscribe<mouse_button_pressed_event>(this);
-		event_dispatcher->subscribe<gamepad_axis_moved_event>(this);
-		event_dispatcher->subscribe<gamepad_button_pressed_event>(this);
+		if (this->event_dispatcher)
+		{
+			this->event_dispatcher->unsubscribe<key_pressed_event>(this);
+			this->event_dispatcher->unsubscribe<mouse_moved_event>(this);
+			this->event_dispatcher->unsubscribe<mouse_wheel_scrolled_event>(this);
+			this->event_dispatcher->unsubscribe<mouse_button_pressed_event>(this);
+			this->event_dispatcher->unsubscribe<gamepad_axis_moved_event>(this);
+			this->event_dispatcher->unsubscribe<gamepad_button_pressed_event>(this);
+		}
+		
+		if (event_dispatcher)
+		{
+			event_dispatcher->subscribe<key_pressed_event>(this);
+			event_dispatcher->subscribe<mouse_moved_event>(this);
+			event_dispatcher->subscribe<mouse_wheel_scrolled_event>(this);
+			event_dispatcher->subscribe<mouse_button_pressed_event>(this);
+			event_dispatcher->subscribe<gamepad_axis_moved_event>(this);
+			event_dispatcher->subscribe<gamepad_button_pressed_event>(this);
+		}
+		
+		this->event_dispatcher = event_dispatcher;
 	}
 }
 
@@ -70,62 +74,38 @@ void listener::set_enabled(bool enabled)
 
 void listener::handle_event(const key_pressed_event& event)
 {
-	if (!is_enabled() || !callback)
-	{
-		return;
-	}
-
-	callback(event);
+	if (enabled && callback)
+		callback(event);
 }
 
 void listener::handle_event(const mouse_moved_event& event)
 {
-	if (!is_enabled() || !callback)
-	{
-		return;
-	}
-
-	callback(event);
+	if (enabled && callback)
+		callback(event);
 }
 
 void listener::handle_event(const mouse_button_pressed_event& event)
 {
-	if (!is_enabled() || !callback)
-	{
-		return;
-	}
-
-	callback(event);
+	if (enabled && callback)
+		callback(event);
 }
 
 void listener::handle_event(const mouse_wheel_scrolled_event& event)
 {
-	if (!is_enabled() || !callback)
-	{
-		return;
-	}
-
-	callback(event);
+	if (enabled && callback)
+		callback(event);
 }
 
 void listener::handle_event(const gamepad_button_pressed_event& event)
 {
-	if (!is_enabled() || !callback)
-	{
-		return;
-	}
-
-	callback(event);
+	if (enabled && callback)
+		callback(event);
 }
 
 void listener::handle_event(const gamepad_axis_moved_event& event)
 {
-	if (!is_enabled() || !callback)
-	{
-		return;
-	}
-
-	callback(event);
+	if (enabled && callback)
+		callback(event);
 }
 
 } // namespace input

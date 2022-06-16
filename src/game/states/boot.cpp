@@ -1004,14 +1004,6 @@ void setup_ui(game::context* ctx)
 	if (ctx->config->contains("dyslexia_font"))
 		ctx->dyslexia_font = (*ctx->config)["dyslexia_font"].get<bool>();
 	
-	ctx->main_menu_index = 0;
-	ctx->options_menu_index = 0;
-	ctx->controls_menu_index = 0;
-	ctx->graphics_menu_index = 0;
-	ctx->sound_menu_index = 0;
-	ctx->language_menu_index = 0;
-	ctx->keyboard_config_menu_index = 0;
-	
 	// Construct mouse tracker
 	ctx->menu_mouse_tracker = new ui::mouse_tracker();
 	ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->menu_mouse_tracker);

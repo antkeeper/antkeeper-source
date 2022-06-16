@@ -144,6 +144,61 @@ void event_router::remove_mappings(control* control)
 	}
 }
 
+void event_router::remove_mappings(control* control, mapping_type type)
+{
+	auto it = controls.find(control);
+	if (it != controls.end())
+	{
+		std::list<mapping*> flagged_mappings;
+		
+		for (mapping* mapping: it->second)
+		{
+			if (mapping->get_type() != type)
+				continue;
+			
+			// Flag mapping for deletion
+			flagged_mappings.push_back(mapping);
+			
+			switch (mapping->get_type())
+			{
+				case mapping_type::key:
+					key_mappings.remove(static_cast<key_mapping*>(mapping));
+					break;
+
+				case mapping_type::mouse_motion:
+					mouse_motion_mappings.remove(static_cast<mouse_motion_mapping*>(mapping));
+					break;
+
+				case mapping_type::mouse_wheel:
+					mouse_wheel_mappings.remove(static_cast<mouse_wheel_mapping*>(mapping));
+					break;
+
+				case mapping_type::mouse_button:
+					mouse_button_mappings.remove(static_cast<mouse_button_mapping*>(mapping));
+					break;
+
+				case mapping_type::gamepad_axis:
+					gamepad_axis_mappings.remove(static_cast<gamepad_axis_mapping*>(mapping));
+					break;
+
+				case mapping_type::gamepad_button:
+					gamepad_button_mappings.remove(static_cast<gamepad_button_mapping*>(mapping));
+					break;
+
+				default:
+					break;
+			}
+		}
+		
+		// Delete flagged mappings
+		for (mapping* mapping: flagged_mappings)
+		{
+			it->second.remove(mapping);
+			delete mapping;
+		}
+	}
+}
+
 void event_router::set_event_dispatcher(::event_dispatcher* event_dispatcher)
 {
 	if (this->event_dispatcher)

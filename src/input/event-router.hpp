@@ -29,6 +29,7 @@
 namespace input {
 
 class control;
+enum class mapping_type;
 class mapping;
 class key_mapping;
 class mouse_motion_mapping;
@@ -75,19 +76,27 @@ public:
 	/**
 	 * Removes all input mappings from the router that are associated with the specified control.
 	 *
-	 * @param control control with which associated input mappings should be removed.
+	 * @param control Control with which associated input mappings should be removed.
 	 */
 	void remove_mappings(control* control);
-
+	
 	/**
-	 * Sets the event dispatcher to which this input event router will subscribe itself.
+	 * Removes all input mappings of a given type from the router that are associated with the specified control.
+	 *
+	 * @param control Control with which associated input mappings should be removed.
+	 * @param type Type of input mapping to be removed.
 	 */
-	void set_event_dispatcher(event_dispatcher* event_dispatcher);
+	void remove_mappings(control* control, mapping_type type);
 
 	/**
 	 * Removes all input mappings from the router.
 	 */
 	void remove_mappings();
+	
+	/**
+	 * Sets the event dispatcher to which this input event router will subscribe itself.
+	 */
+	void set_event_dispatcher(event_dispatcher* event_dispatcher);
 
 	/// Returns a list of mappings for the specified control, or nullptr if the control is unmapped.
 	const std::list<mapping*>* get_mappings(control* control) const;

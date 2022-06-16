@@ -19,7 +19,8 @@
 
 #include "event-dispatcher.hpp"
 
-event_dispatcher::event_dispatcher()
+event_dispatcher::event_dispatcher():
+	updating(false)
 {}
 
 event_dispatcher::~event_dispatcher()
@@ -29,6 +30,8 @@ event_dispatcher::~event_dispatcher()
 
 void event_dispatcher::update(double time)
 {
+	updating = true;
+	
 	// Process pending subscriptions
 	for (auto it = to_subscribe.begin(); it != to_subscribe.end(); ++it)
 	{
@@ -63,6 +66,21 @@ void event_dispatcher::update(double time)
 		{
 			break;
 		}
+	}
+	
+	updating = false;
+}
+
+void event_dispatcher::dispatch(const event_base& event)
+{
+	// Get list of handlers for this type of event
+	const std::list<event_handler_base*>& handlers = handler_map[event.get_event_type_id()];
+
+	// For each handler
+	for (auto handler = handlers.begin(); handler != handlers.end(); ++handler)
+	{
+		// Pass event to the handler
+		(*handler)->route_event(event);
 	}
 }
 
