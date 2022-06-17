@@ -71,8 +71,7 @@ public:
 	 * @param mapping Input mapping to add.
 	 */
 	void add_mapping(const mapping& mapping);
-
-
+	
 	/**
 	 * Removes all input mappings from the router that are associated with the specified control.
 	 *

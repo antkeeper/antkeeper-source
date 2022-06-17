@@ -35,6 +35,13 @@ namespace game {
 void apply_control_profile(game::context* ctx, const json& profile);
 
 /**
+ * Saves the current control profile.
+ *
+ * @param ctx Game context.
+ */
+void save_control_profile(game::context* ctx);
+
+/**
  * Generates a default control profile.
  *
  * @return Default control profile.

@@ -25,6 +25,7 @@
 #include "debug/logger.hpp"
 #include "resources/resource-manager.hpp"
 #include "game/menu.hpp"
+#include "game/controls.hpp"
 #include "animation/timeline.hpp"
 
 namespace game {
@@ -234,12 +235,12 @@ void enter(game::context* ctx)
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
 	
 	// Add camera control menu items
-	add_control_item(ctx, "dolly_forward");
-	add_control_item(ctx, "dolly_backward");
-	add_control_item(ctx, "truck_left");
-	add_control_item(ctx, "truck_right");
-	add_control_item(ctx, "pedestal_up");
-	add_control_item(ctx, "pedestal_down");
+	add_control_item(ctx, "move_forward");
+	add_control_item(ctx, "move_back");
+	add_control_item(ctx, "move_left");
+	add_control_item(ctx, "move_right");
+	add_control_item(ctx, "move_up");
+	add_control_item(ctx, "move_down");
 	
 	// Add application control menu items
 	add_control_item(ctx, "toggle_fullscreen");
@@ -298,6 +299,9 @@ void exit(game::context* ctx)
 	game::menu::clear_callbacks(ctx);
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
+	
+	// Save control profile
+	game::save_control_profile(ctx);
 	
 	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }

@@ -19,6 +19,7 @@
 
 #include "controls.hpp"
 #include "resources/resource-manager.hpp"
+#include "resources/json.hpp"
 #include "application.hpp"
 #include <fstream>
 
@@ -343,6 +344,197 @@ void apply_control_profile(game::context* ctx, const json& profile)
 			}
 		}
 	}
+}
+
+void save_control_profile(game::context* ctx)
+{
+	std::string control_profile_path;
+	if (ctx->config->contains("control_profile"))
+		control_profile_path = ctx->config_path + "controls/" + (*ctx->config)["control_profile"].get<std::string>();
+	
+	ctx->logger->push_task("Saving control profile to \"" + control_profile_path + "\"");
+	try
+	{
+		json control_profile;
+		
+		// Add controls element
+		auto& controls_element = control_profile["controls"];
+		controls_element = json::object();
+		
+		for (auto controls_it = ctx->controls.begin(); controls_it != ctx->controls.end(); ++controls_it)
+		{	
+			const std::string& control_name = controls_it->first;
+			input::control* control = controls_it->second;
+			
+			// Add control element
+			auto& control_element = controls_element[control_name];
+			control_element = json::array();
+			
+			// Add control mappings
+			auto mappings = ctx->input_event_router->get_mappings(control);
+			for (input::mapping* mapping: *mappings)
+			{
+				json mapping_element;
+				
+				switch (mapping->get_type())
+				{
+					case input::mapping_type::key:
+					{
+						const input::key_mapping* key_mapping = static_cast<const input::key_mapping*>(mapping);
+						mapping_element["device"] = "keyboard";
+						mapping_element["key"] = input::keyboard::get_scancode_name(key_mapping->scancode);
+						break;
+					}
+					
+					case input::mapping_type::mouse_wheel:
+					{
+						const input::mouse_wheel_mapping* wheel_mapping = static_cast<const input::mouse_wheel_mapping*>(mapping);
+						
+						mapping_element["device"] = "mouse";
+						switch (wheel_mapping->axis)
+						{
+							case input::mouse_wheel_axis::negative_x:
+								mapping_element["device"] = "x-";
+								break;
+							case input::mouse_wheel_axis::positive_x:
+								mapping_element["device"] = "x+";
+								break;
+							case input::mouse_wheel_axis::negative_y:
+								mapping_element["device"] = "y-";
+								break;
+							case input::mouse_wheel_axis::positive_y:
+								mapping_element["device"] = "y+";
+								break;
+							default:
+								break;
+						}
+						break;
+					}
+					
+					case input::mapping_type::mouse_button:
+					{
+						const input::mouse_button_mapping* button_mapping = static_cast<const input::mouse_button_mapping*>(mapping);
+						mapping_element["device"] = "mouse";
+						mapping_element["button"] = button_mapping->button;
+						break;
+					}
+					
+					case input::mapping_type::gamepad_axis:
+					{
+						const input::gamepad_axis_mapping* axis_mapping = static_cast<const input::gamepad_axis_mapping*>(mapping);
+						mapping_element["device"] = "gamepad";
+						switch (axis_mapping->axis)
+						{
+							case input::gamepad_axis::left_x:
+								if (axis_mapping->negative)
+									mapping_element["axis"] = "leftx-";
+								else
+									mapping_element["axis+"] = "leftx+";
+								break;
+							case input::gamepad_axis::left_y:
+								if (axis_mapping->negative)
+									mapping_element["axis"] = "lefty-";
+								else
+									mapping_element["axis"] = "lefty+";
+								break;
+							case input::gamepad_axis::right_x:
+								if (axis_mapping->negative)
+									mapping_element["axis"] = "rightx-";
+								else
+									mapping_element["axis+"] = "rightx+";
+								break;
+							case input::gamepad_axis::right_y:
+								if (axis_mapping->negative)
+									mapping_element["axis"] = "righty-";
+								else
+									mapping_element["axis"] = "righty+";
+								break;
+							case input::gamepad_axis::left_trigger:
+								mapping_element["axis"] = "lefttrigger+";
+								break;
+							case input::gamepad_axis::right_trigger:
+								mapping_element["axis"] = "righttrigger+";
+								break;
+							default:
+								break;
+						}
+						break;
+					}
+					
+					case input::mapping_type::gamepad_button:
+					{
+						const input::gamepad_button_mapping* button_mapping = static_cast<const input::gamepad_button_mapping*>(mapping);
+						mapping_element["device"] = "gamepad";
+						
+						switch (button_mapping->button)
+						{
+							case input::gamepad_button::a:
+								mapping_element["button"] = "a";
+								break;
+							case input::gamepad_button::b:
+								mapping_element["button"] = "b";
+								break;
+							case input::gamepad_button::x:
+								mapping_element["button"] = "x";
+								break;
+							case input::gamepad_button::y:
+								mapping_element["button"] = "y";
+								break;
+							case input::gamepad_button::back:
+								mapping_element["button"] = "back";
+								break;
+							case input::gamepad_button::guide:
+								mapping_element["button"] = "guide";
+								break;
+							case input::gamepad_button::start:
+								mapping_element["button"] = "start";
+								break;
+							case input::gamepad_button::left_stick:
+								mapping_element["button"] = "leftstick";
+								break;
+							case input::gamepad_button::right_stick:
+								mapping_element["button"] = "rightstick";
+								break;
+							case input::gamepad_button::left_shoulder:
+								mapping_element["button"] = "leftshoulder";
+								break;
+							case input::gamepad_button::right_shoulder:
+								mapping_element["button"] = "rightshoulder";
+								break;
+							case input::gamepad_button::dpad_up:
+								mapping_element["button"] = "dpup";
+								break;
+							case input::gamepad_button::dpad_down:
+								mapping_element["button"] = "dpdown";
+								break;
+							case input::gamepad_button::dpad_left:
+								mapping_element["button"] = "dpleft";
+								break;
+							case input::gamepad_button::dpad_right:
+								mapping_element["button"] = "dpright";
+								break;
+							default:
+								break;
+						}
+						break;
+					}
+					
+					default:
+						break;
+				}
+				
+				control_element.push_back(mapping_element);
+			}
+		}
+		
+		std::ofstream control_profile_file(control_profile_path);
+		control_profile_file << control_profile;
+	}
+	catch (...)
+	{
+		ctx->logger->pop_task(EXIT_FAILURE);
+	}
+	ctx->logger->pop_task(EXIT_SUCCESS);
 }
 
 void apply_gamepad_calibration(input::gamepad* gamepad, const json& calibration)

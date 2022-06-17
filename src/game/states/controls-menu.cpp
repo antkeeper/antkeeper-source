@@ -19,7 +19,7 @@
 
 #include "game/states/controls-menu.hpp"
 #include "game/states/keyboard-config-menu.hpp"
-#include "game/states/controller-config-menu.hpp"
+#include "game/states/gamepad-config-menu.hpp"
 #include "game/states/options-menu.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
@@ -38,17 +38,17 @@ void enter(game::context* ctx)
 	
 	// Construct menu item texts
 	scene::text* keyboard_text = new scene::text();
-	scene::text* controller_text = new scene::text();
+	scene::text* gamepad_text = new scene::text();
 	scene::text* back_text = new scene::text();
 	
 	// Build list of menu item texts
 	ctx->menu_item_texts.push_back({keyboard_text, nullptr});
-	ctx->menu_item_texts.push_back({controller_text, nullptr});
+	ctx->menu_item_texts.push_back({gamepad_text, nullptr});
 	ctx->menu_item_texts.push_back({back_text, nullptr});
 	
 	// Set content of menu item texts
 	keyboard_text->set_content((*ctx->strings)["controls_menu_keyboard"]);
-	controller_text->set_content((*ctx->strings)["controls_menu_controller"]);
+	gamepad_text->set_content((*ctx->strings)["controls_menu_gamepad"]);
 	back_text->set_content((*ctx->strings)["back"]);
 	
 	// Init menu item index
@@ -69,12 +69,12 @@ void enter(game::context* ctx)
 		next_state.exit = std::bind(game::state::keyboard_config_menu::exit, ctx);
 		ctx->app->change_state(next_state);
 	};
-	auto select_controller_callback = [ctx]()
+	auto select_gamepad_callback = [ctx]()
 	{
 		application::state next_state;
-		next_state.name = "controller_config_menu";
-		next_state.enter = std::bind(game::state::controller_config_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::controller_config_menu::exit, ctx);
+		next_state.name = "gamepad_config_menu";
+		next_state.enter = std::bind(game::state::gamepad_config_menu::enter, ctx);
+		next_state.exit = std::bind(game::state::gamepad_config_menu::exit, ctx);
 		ctx->app->change_state(next_state);
 	};
 	auto select_back_callback = [ctx]()
@@ -88,7 +88,7 @@ void enter(game::context* ctx)
 	
 	// Build list of menu select callbacks
 	ctx->menu_select_callbacks.push_back(select_keyboard_callback);
-	ctx->menu_select_callbacks.push_back(select_controller_callback);
+	ctx->menu_select_callbacks.push_back(select_gamepad_callback);
 	ctx->menu_select_callbacks.push_back(select_back_callback);
 	
 	// Build list of menu left callbacks

@@ -17,23 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_CONTROLLER_CONFIG_MENU_HPP
-#define ANTKEEPER_GAME_STATE_CONTROLLER_CONFIG_MENU_HPP
+#ifndef ANTKEEPER_GAME_STATE_GAMEPAD_CONFIG_MENU_HPP
+#define ANTKEEPER_GAME_STATE_GAMEPAD_CONFIG_MENU_HPP
 
 #include "game/context.hpp"
 
 namespace game {
 namespace state {
 
-/// Game controller config menu screen game state functions.
-namespace controller_config_menu {
+/// Gamepad config menu screen game state functions.
+namespace gamepad_config_menu {
 
 void enter(game::context* ctx);
 void exit(game::context* ctx);
 
-} // namespace controller_config_menu
+} // namespace gamepad_config_menu
 
 } // namespace state
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_CONTROLLER_CONFIG_MENU_HPP
+#endif // ANTKEEPER_GAME_STATE_GAMEPAD_CONFIG_MENU_HPP
