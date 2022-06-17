@@ -394,16 +394,41 @@ void save_control_profile(game::context* ctx)
 						switch (wheel_mapping->axis)
 						{
 							case input::mouse_wheel_axis::negative_x:
-								mapping_element["device"] = "x-";
+								mapping_element["wheel"] = "x-";
 								break;
 							case input::mouse_wheel_axis::positive_x:
-								mapping_element["device"] = "x+";
+								mapping_element["wheel"] = "x+";
 								break;
 							case input::mouse_wheel_axis::negative_y:
-								mapping_element["device"] = "y-";
+								mapping_element["wheel"] = "y-";
 								break;
 							case input::mouse_wheel_axis::positive_y:
-								mapping_element["device"] = "y+";
+								mapping_element["wheel"] = "y+";
+								break;
+							default:
+								break;
+						}
+						break;
+					}
+					
+					case input::mapping_type::mouse_motion:
+					{
+						const input::mouse_motion_mapping* motion_mapping = static_cast<const input::mouse_motion_mapping*>(mapping);
+						
+						mapping_element["device"] = "mouse";
+						switch (motion_mapping->axis)
+						{
+							case input::mouse_motion_axis::negative_x:
+								mapping_element["motion"] = "x-";
+								break;
+							case input::mouse_motion_axis::positive_x:
+								mapping_element["motion"] = "x+";
+								break;
+							case input::mouse_motion_axis::negative_y:
+								mapping_element["motion"] = "y-";
+								break;
+							case input::mouse_motion_axis::positive_y:
+								mapping_element["motion"] = "y+";
 								break;
 							default:
 								break;
