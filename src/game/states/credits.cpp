@@ -18,7 +18,7 @@
  */
 
 #include "game/states/credits.hpp"
-#include "game/states/main-menu.hpp"
+#include "game/states/extras-menu.hpp"
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
@@ -101,9 +101,9 @@ void enter(game::context* ctx)
 					
 					// Change state
 					application::state next_state;
-					next_state.name = "main_menu";
-					next_state.enter = std::bind(game::state::main_menu::enter, ctx);
-					next_state.exit = std::bind(game::state::main_menu::exit, ctx);
+					next_state.name = "extras_menu";
+					next_state.enter = std::bind(game::state::extras_menu::enter, ctx);
+					next_state.exit = std::bind(game::state::extras_menu::exit, ctx);
 					ctx->app->change_state(next_state);
 				}
 			}

@@ -216,6 +216,8 @@ struct context
 	std::vector<std::tuple<scene::text*, scene::text*>> menu_item_texts;
 	std::unordered_map<std::string, int> menu_item_indices;
 	int* menu_item_index;
+	animation<float>* menu_fade_animation;
+	animation<float>* title_fade_animation;
 	
 	// Surface scene
 	scene::collection* surface_scene;

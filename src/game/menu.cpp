@@ -20,6 +20,9 @@
 #include "game/menu.hpp"
 #include "scene/text.hpp"
 #include "application.hpp"
+#include "animation/animation.hpp"
+#include "animation/animator.hpp"
+#include "animation/ease.hpp"
 #include <algorithm>
 
 namespace game {
@@ -117,13 +120,11 @@ void align_text(game::context* ctx, bool center, bool has_back, float anchor_y)
 	for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
 	{
 		auto [name, value] = ctx->menu_item_texts[i];
-
 		
 		float x = menu_x;
 		float y = menu_y - ctx->menu_font.get_font_metrics().linespace * i;
 		if (has_back && i == ctx->menu_item_texts.size() - 1)
 			y -= ctx->menu_font.get_font_metrics().linespace;
-		
 		
 		if (center || i == ctx->menu_item_texts.size() - 1)
 		{
@@ -190,6 +191,13 @@ void delete_text(game::context* ctx)
 	ctx->menu_item_texts.clear();
 }
 
+void delete_animations(game::context* ctx)
+{
+	ctx->animator->remove_animation(ctx->menu_fade_animation);
+	delete ctx->menu_fade_animation;
+	ctx->menu_fade_animation = nullptr;
+}
+
 void clear_callbacks(game::context* ctx)
 {
 	// Clear menu item callbacks
@@ -197,6 +205,78 @@ void clear_callbacks(game::context* ctx)
 	ctx->menu_right_callbacks.clear();
 	ctx->menu_select_callbacks.clear();
 	ctx->menu_back_callback = nullptr;
+}
+
+void setup_animations(game::context* ctx)
+{
+	ctx->menu_fade_animation = new animation<float>();
+	animation_channel<float>* opacity_channel = ctx->menu_fade_animation->add_channel(0);
+	
+	ctx->menu_fade_animation->set_frame_callback
+	(
+		[ctx](int channel, const float& opacity)
+		{
+			for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
+			{
+				auto [name, value] = ctx->menu_item_texts[i];
+				
+				float4 color = (i == *ctx->menu_item_index) ? active_color : inactive_color;
+				color[3] = color[3] * opacity;
+				
+				if (name)
+					name->set_color(color);
+				if (value)
+					value->set_color(color);
+			}
+		}
+	);
+	
+	ctx->animator->add_animation(ctx->menu_fade_animation);
+}
+
+void fade_in(game::context* ctx, const std::function<void()>& end_callback)
+{
+	ctx->menu_fade_animation->set_interpolator(ease<float>::out_cubic);
+	animation_channel<float>* opacity_channel = ctx->menu_fade_animation->get_channel(0);
+	opacity_channel->remove_keyframes();
+	opacity_channel->insert_keyframe({0.0, 0.0f});
+	opacity_channel->insert_keyframe({game::menu::fade_in_duration, 1.0f});
+	ctx->menu_fade_animation->set_end_callback(end_callback);
+	
+	for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
+	{
+		auto [name, value] = ctx->menu_item_texts[i];
+		
+		float4 color = (i == *ctx->menu_item_index) ? active_color : inactive_color;
+		color[3] = 0.0f;
+		
+		if (name)
+		{
+			name->set_color(color);
+			name->update_tweens();
+		}
+		if (value)
+		{
+			value->set_color(color);
+			value->update_tweens();
+		}
+	}
+	
+	ctx->menu_fade_animation->stop();
+	ctx->menu_fade_animation->play();
+}
+
+void fade_out(game::context* ctx, const std::function<void()>& end_callback)
+{
+	ctx->menu_fade_animation->set_interpolator(ease<float>::out_cubic);
+	animation_channel<float>* opacity_channel = ctx->menu_fade_animation->get_channel(0);
+	opacity_channel->remove_keyframes();
+	opacity_channel->insert_keyframe({0.0, 1.0f});
+	opacity_channel->insert_keyframe({game::menu::fade_out_duration, 0.0f});
+	ctx->menu_fade_animation->set_end_callback(end_callback);
+	
+	ctx->menu_fade_animation->stop();
+	ctx->menu_fade_animation->play();
 }
 
 void setup_controls(game::context* ctx)

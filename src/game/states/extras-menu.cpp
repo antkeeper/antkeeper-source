@@ -17,42 +17,39 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/states/controls-menu.hpp"
-#include "game/states/keyboard-config-menu.hpp"
-#include "game/states/gamepad-config-menu.hpp"
-#include "game/states/options-menu.hpp"
+#include "game/states/extras-menu.hpp"
+#include "game/states/main-menu.hpp"
+#include "game/states/credits.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
 #include "render/passes/clear-pass.hpp"
 #include "debug/logger.hpp"
+#include "game/fonts.hpp"
 #include "game/menu.hpp"
 #include "animation/timeline.hpp"
 
 namespace game {
 namespace state {
-namespace controls_menu {
+namespace extras_menu {
 
 void enter(game::context* ctx)
 {
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
 	
 	// Construct menu item texts
-	scene::text* keyboard_text = new scene::text();
-	scene::text* gamepad_text = new scene::text();
+	scene::text* credits_text = new scene::text();
 	scene::text* back_text = new scene::text();
 	
 	// Build list of menu item texts
-	ctx->menu_item_texts.push_back({keyboard_text, nullptr});
-	ctx->menu_item_texts.push_back({gamepad_text, nullptr});
+	ctx->menu_item_texts.push_back({credits_text, nullptr});
 	ctx->menu_item_texts.push_back({back_text, nullptr});
 	
 	// Set content of menu item texts
-	keyboard_text->set_content((*ctx->strings)["controls_menu_keyboard"]);
-	gamepad_text->set_content((*ctx->strings)["controls_menu_gamepad"]);
+	credits_text->set_content((*ctx->strings)["extras_menu_credits"]);
 	back_text->set_content((*ctx->strings)["back"]);
 	
 	// Init menu item index
-	game::menu::init_menu_item_index(ctx, "controls");
+	game::menu::init_menu_item_index(ctx, "extras");
 	
 	game::menu::update_text_color(ctx);
 	game::menu::update_text_font(ctx);
@@ -62,7 +59,7 @@ void enter(game::context* ctx)
 	game::menu::setup_animations(ctx);
 	
 	// Construct menu item callbacks
-	auto select_keyboard_callback = [ctx]()
+	auto select_credits_callback = [ctx]()
 	{
 		// Disable controls
 		game::menu::clear_controls(ctx);
@@ -73,27 +70,9 @@ void enter(game::context* ctx)
 			[ctx]()
 			{
 				application::state next_state;
-				next_state.name = "keyboard_config_menu";
-				next_state.enter = std::bind(game::state::keyboard_config_menu::enter, ctx);
-				next_state.exit = std::bind(game::state::keyboard_config_menu::exit, ctx);
-				ctx->app->queue_state(next_state);
-			}
-		);
-	};
-	auto select_gamepad_callback = [ctx]()
-	{
-		// Disable controls
-		game::menu::clear_controls(ctx);
-		
-		game::menu::fade_out
-		(
-			ctx,
-			[ctx]()
-			{
-				application::state next_state;
-				next_state.name = "gamepad_config_menu";
-				next_state.enter = std::bind(game::state::gamepad_config_menu::enter, ctx);
-				next_state.exit = std::bind(game::state::gamepad_config_menu::exit, ctx);
+				next_state.name = "credits";
+				next_state.enter = std::bind(game::state::credits::enter, ctx);
+				next_state.exit = std::bind(game::state::credits::exit, ctx);
 				ctx->app->queue_state(next_state);
 			}
 		);
@@ -109,26 +88,23 @@ void enter(game::context* ctx)
 			[ctx]()
 			{
 				application::state next_state;
-				next_state.name = "options_menu";
-				next_state.enter = std::bind(game::state::options_menu::enter, ctx);
-				next_state.exit = std::bind(game::state::options_menu::exit, ctx);
+				next_state.name = "main_menu";
+				next_state.enter = std::bind(game::state::main_menu::enter, ctx, false);
+				next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 				ctx->app->queue_state(next_state);
 			}
 		);
 	};
 	
 	// Build list of menu select callbacks
-	ctx->menu_select_callbacks.push_back(select_keyboard_callback);
-	ctx->menu_select_callbacks.push_back(select_gamepad_callback);
+	ctx->menu_select_callbacks.push_back(select_credits_callback);
 	ctx->menu_select_callbacks.push_back(select_back_callback);
 	
 	// Build list of menu left callbacks
 	ctx->menu_left_callbacks.push_back(nullptr);
 	ctx->menu_left_callbacks.push_back(nullptr);
-	ctx->menu_left_callbacks.push_back(nullptr);
 	
 	// Build list of menu right callbacks
-	ctx->menu_right_callbacks.push_back(nullptr);
 	ctx->menu_right_callbacks.push_back(nullptr);
 	ctx->menu_right_callbacks.push_back(nullptr);
 	
@@ -156,6 +132,6 @@ void exit(game::context* ctx)
 	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }
 
-} // namespace controls_menu
+} // namespace extras_menu
 } // namespace state
 } // namespace game

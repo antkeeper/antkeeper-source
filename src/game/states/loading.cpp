@@ -130,7 +130,7 @@ void enter(game::context* ctx)
 	if (ctx->option_quick_start.has_value())
 	{
 		next_state.name = "main_menu";
-		next_state.enter = std::bind(game::state::main_menu::enter, ctx);
+		next_state.enter = std::bind(game::state::main_menu::enter, ctx, true);
 		next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 	}
 	else

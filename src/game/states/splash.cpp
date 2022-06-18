@@ -49,7 +49,7 @@ void enter(game::context* ctx)
 	// Build splash fade in animation
 	ctx->splash_fade_in_animation = new animation<float>();
 	animation_channel<float>* splash_fade_in_opacity_channel = ctx->splash_fade_in_animation->add_channel(0);
-	ctx->splash_fade_in_animation->set_interpolator(ease<float>::in_quad);
+	ctx->splash_fade_in_animation->set_interpolator(ease<float>::out_cubic);
 	splash_fade_in_opacity_channel->insert_keyframe({0.0, 0.0f});
 	splash_fade_in_opacity_channel->insert_keyframe({splash_fade_in_duration, 1.0f});
 	splash_fade_in_opacity_channel->insert_keyframe({splash_fade_in_duration + splash_duration, 1.0f});
@@ -57,7 +57,7 @@ void enter(game::context* ctx)
 	// Build splash fade out animation
 	ctx->splash_fade_out_animation = new animation<float>();
 	animation_channel<float>* splash_fade_out_opacity_channel = ctx->splash_fade_out_animation->add_channel(0);
-	ctx->splash_fade_out_animation->set_interpolator(ease<float>::out_quad);
+	ctx->splash_fade_out_animation->set_interpolator(ease<float>::out_cubic);
 	splash_fade_out_opacity_channel->insert_keyframe({0.0, 1.0f});
 	splash_fade_out_opacity_channel->insert_keyframe({splash_fade_out_duration, 0.0f});
 	
@@ -95,7 +95,7 @@ void enter(game::context* ctx)
 		{
 			application::state next_state;
 			next_state.name = "main_menu";
-			next_state.enter = std::bind(game::state::main_menu::enter, ctx);
+			next_state.enter = std::bind(game::state::main_menu::enter, ctx, true);
 			next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 			ctx->app->queue_state(next_state);
 		}
@@ -124,7 +124,7 @@ void enter(game::context* ctx)
 				// Change state
 				application::state next_state;
 				next_state.name = "main_menu";
-				next_state.enter = std::bind(game::state::main_menu::enter, ctx);
+				next_state.enter = std::bind(game::state::main_menu::enter, ctx, true);
 				next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 				ctx->app->change_state(next_state);
 			}

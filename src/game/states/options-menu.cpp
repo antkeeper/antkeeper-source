@@ -70,51 +70,106 @@ void enter(game::context* ctx)
 	game::menu::align_text(ctx, true);
 	game::menu::update_text_tweens(ctx);
 	game::menu::add_text_to_ui(ctx);
+	game::menu::setup_animations(ctx);
 	
 	// Construct menu item callbacks
 	auto select_controls_callback = [ctx]()
 	{
-		application::state next_state;
-		next_state.name = "controls_menu";
-		next_state.enter = std::bind(game::state::controls_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::controls_menu::exit, ctx);
-		ctx->app->change_state(next_state);
+		// Disable controls
+		game::menu::clear_controls(ctx);
+		
+		// Return to main menu
+		game::menu::fade_out
+		(
+			ctx,
+			[ctx]()
+			{
+				application::state next_state;
+				next_state.name = "controls_menu";
+				next_state.enter = std::bind(game::state::controls_menu::enter, ctx);
+				next_state.exit = std::bind(game::state::controls_menu::exit, ctx);
+				ctx->app->queue_state(next_state);
+			}
+		);
 	};
 	auto select_graphics_callback = [ctx]()
 	{
-		application::state next_state;
-		next_state.name = "graphics_menu";
-		next_state.enter = std::bind(game::state::graphics_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::graphics_menu::exit, ctx);
-		ctx->app->change_state(next_state);
+		// Disable controls
+		game::menu::clear_controls(ctx);
+		
+		// Return to main menu
+		game::menu::fade_out
+		(
+			ctx,
+			[ctx]()
+			{
+				application::state next_state;
+				next_state.name = "graphics_menu";
+				next_state.enter = std::bind(game::state::graphics_menu::enter, ctx);
+				next_state.exit = std::bind(game::state::graphics_menu::exit, ctx);
+				ctx->app->queue_state(next_state);
+			}
+		);
 	};
 	auto select_sound_callback = [ctx]()
 	{
-		application::state next_state;
-		next_state.name = "sound_menu";
-		next_state.enter = std::bind(game::state::sound_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::sound_menu::exit, ctx);
-		ctx->app->change_state(next_state);
+		// Disable controls
+		game::menu::clear_controls(ctx);
+		
+		// Return to main menu
+		game::menu::fade_out
+		(
+			ctx,
+			[ctx]()
+			{
+				application::state next_state;
+				next_state.name = "sound_menu";
+				next_state.enter = std::bind(game::state::sound_menu::enter, ctx);
+				next_state.exit = std::bind(game::state::sound_menu::exit, ctx);
+				ctx->app->queue_state(next_state);
+			}
+		);
 	};
 	auto select_language_callback = [ctx]()
 	{
-		application::state next_state;
-		next_state.name = "language_menu";
-		next_state.enter = std::bind(game::state::language_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::language_menu::exit, ctx);
-		ctx->app->change_state(next_state);
+		// Disable controls
+		game::menu::clear_controls(ctx);
+		
+		// Return to main menu
+		game::menu::fade_out
+		(
+			ctx,
+			[ctx]()
+			{
+				application::state next_state;
+				next_state.name = "language_menu";
+				next_state.enter = std::bind(game::state::language_menu::enter, ctx);
+				next_state.exit = std::bind(game::state::language_menu::exit, ctx);
+				ctx->app->queue_state(next_state);
+			}
+		);
 	};
 	auto select_back_callback = [ctx]()
 	{
+		// Disable controls
+		game::menu::clear_controls(ctx);
+		
 		// Save config
 		game::save_config(ctx);
 		
 		// Return to main menu
-		application::state next_state;
-		next_state.name = "main_menu";
-		next_state.enter = std::bind(game::state::main_menu::enter, ctx);
-		next_state.exit = std::bind(game::state::main_menu::exit, ctx);
-		ctx->app->change_state(next_state);
+		game::menu::fade_out
+		(
+			ctx,
+			[ctx]()
+			{
+				application::state next_state;
+				next_state.name = "main_menu";
+				next_state.enter = std::bind(game::state::main_menu::enter, ctx, false);
+				next_state.exit = std::bind(game::state::main_menu::exit, ctx);
+				ctx->app->queue_state(next_state);
+			}
+		);
 	};
 	
 	// Build list of menu select callbacks
@@ -137,6 +192,9 @@ void enter(game::context* ctx)
 	timeline* timeline = ctx->timeline;
 	float t = timeline->get_position();
 	timeline->add_sequence({{t + game::menu::input_delay, std::bind(game::menu::setup_controls, ctx)}});
+	
+	// Fade in menu
+	game::menu::fade_in(ctx, nullptr);
 }
 
 void exit(game::context* ctx)
@@ -144,6 +202,7 @@ void exit(game::context* ctx)
 	// Destruct menu
 	game::menu::clear_controls(ctx);
 	game::menu::clear_callbacks(ctx);
+	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
