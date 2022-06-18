@@ -67,7 +67,7 @@ void enter(game::context* ctx)
 	
 	game::menu::update_text_color(ctx);
 	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx);
+	game::menu::align_text(ctx, true);
 	game::menu::update_text_tweens(ctx);
 	game::menu::add_text_to_ui(ctx);
 	

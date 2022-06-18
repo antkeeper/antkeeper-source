@@ -77,7 +77,7 @@ void update_text_tweens(game::context* ctx)
 	}
 }
 
-void align_text(game::context* ctx)
+void align_text(game::context* ctx, bool center, bool has_back, float anchor_y)
 {
 	// Calculate menu width
 	float menu_width = 0.0f;
@@ -105,23 +105,44 @@ void align_text(game::context* ctx)
 	}
 	
 	// Align texts
-	float menu_height = ctx->menu_item_texts.size() * ctx->menu_font.get_font_metrics().linespace;
+	float menu_height;
+	if (has_back)
+		menu_height = (ctx->menu_item_texts.size() - 1) * ctx->menu_font.get_font_metrics().linespace - ctx->menu_font.get_font_metrics().linegap;
+	else
+		menu_height = ctx->menu_item_texts.size() * ctx->menu_font.get_font_metrics().linespace - ctx->menu_font.get_font_metrics().linegap;
+	
 	float menu_x = -menu_width * 0.5f;
-	float menu_y = menu_height * 0.5f - ctx->menu_font.get_font_metrics().linespace;
+	float menu_y = anchor_y + menu_height * 0.5f - ctx->menu_font.get_font_metrics().size;
 	
 	for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
 	{
 		auto [name, value] = ctx->menu_item_texts[i];
+
 		
 		float x = menu_x;
 		float y = menu_y - ctx->menu_font.get_font_metrics().linespace * i;
+		if (has_back && i == ctx->menu_item_texts.size() - 1)
+			y -= ctx->menu_font.get_font_metrics().linespace;
+		
+		
+		if (center || i == ctx->menu_item_texts.size() - 1)
+		{
+			const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_local_bounds());
+			const float name_width =  name_bounds.max_point.x - name_bounds.min_point.x;
+			x = -name_width * 0.5f;
+		}
+		
 		name->set_translation({std::round(x), std::round(y), 0.0f});
 		
 		if (value)
 		{
 			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_local_bounds());
 			const float value_width =  value_bounds.max_point.x - value_bounds.min_point.x;
-			x = menu_x + menu_width - value_width;
+			
+			if (center || i == ctx->menu_item_texts.size() - 1)
+				x = -value_width * 0.5f;
+			else
+				x = menu_x + menu_width - value_width;
 			
 			value->set_translation({std::round(x), std::round(y), 0.0f});
 		}
@@ -242,6 +263,8 @@ void setup_controls(game::context* ctx)
 	(
 		[ctx](const mouse_moved_event& event)
 		{
+			const float padding = game::menu::mouseover_padding * ctx->menu_font.get_font_metrics().size;
+			
 			for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
 			{
 				auto [name, value] = ctx->menu_item_texts[i];
@@ -263,6 +286,11 @@ void setup_controls(game::context* ctx)
 				const auto& viewport = ctx->app->get_viewport_dimensions();
 				const float x = static_cast<float>(event.x - viewport[0] / 2);
 				const float y = static_cast<float>((viewport[1] - event.y + 1) - viewport[1] / 2);
+				
+				min_x -= padding;
+				min_y -= padding;
+				max_x += padding;
+				max_y += padding;
 				
 				if (x >= min_x && x <= max_x)
 				{

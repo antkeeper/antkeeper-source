@@ -54,6 +54,7 @@ bool typeface::get_metrics(float height, font_metrics& metrics) const
 	set_face_pixel_size(height);
 	
 	// Get font metrics
+	metrics.size = height;
 	metrics.ascent = face->size->metrics.ascender / 64.0f;
 	metrics.descent = face->size->metrics.descender / 64.0f;
 	metrics.linespace = face->size->metrics.height / 64.0f;

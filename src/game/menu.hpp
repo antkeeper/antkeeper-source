@@ -34,6 +34,9 @@ static constexpr float4 active_color{1.0f, 1.0f, 1.0f, 1.0f};
 /// RGBA color of inactive menu items.
 static constexpr float4 inactive_color{1.0f, 1.0f, 1.0f, 0.5f};
 
+/// Padding of the mouseover bounds, as a percentage of the font size.
+static constexpr float mouseover_padding = 0.1f;
+
 void init_menu_item_index(game::context* ctx, const std::string& menu_name);
 void setup_controls(game::context* ctx);
 
@@ -45,7 +48,7 @@ void delete_text(game::context* ctx);
 void update_text_color(game::context* ctx);
 void update_text_font(game::context* ctx);
 void update_text_tweens(game::context* ctx);
-void align_text(game::context* ctx);
+void align_text(game::context* ctx, bool center = false, bool has_back = true, float anchor_y = 0.0f);
 void refresh_text(game::context* ctx);
 void add_text_to_ui(game::context* ctx);
 

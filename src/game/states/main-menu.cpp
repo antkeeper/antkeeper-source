@@ -18,7 +18,6 @@
  */
 
 #include "game/states/main-menu.hpp"
-#include "game/states/title.hpp"
 #include "game/states/options-menu.hpp"
 #include "game/states/forage.hpp"
 #include "game/states/nuptial-flight.hpp"
@@ -43,6 +42,23 @@ void enter(game::context* ctx)
 {
 	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
 	
+	// Construct title text
+	ctx->title_text = new scene::text();
+	ctx->title_text->set_material(&ctx->title_font_material);
+	ctx->title_text->set_font(&ctx->title_font);
+	ctx->title_text->set_color({1.0f, 1.0f, 1.0f, 1.0f});
+	ctx->title_text->set_content((*ctx->strings)["title_antkeeper"]);
+	
+	// Align title text
+	const auto& title_aabb = static_cast<const geom::aabb<float>&>(ctx->title_text->get_local_bounds());
+	float title_w = title_aabb.max_point.x - title_aabb.min_point.x;
+	float title_h = title_aabb.max_point.y - title_aabb.min_point.y;
+	ctx->title_text->set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (std::get<1>(ctx->app->get_viewport_dimensions()) / 3.0f) / 2.0f), 0.0f});
+	
+	// Add title text to UI
+	ctx->ui_scene->add_object(ctx->title_text);
+	ctx->title_text->update_tweens();
+	
 	// Construct menu item texts
 	scene::text* start_text = new scene::text();
 	scene::text* options_text = new scene::text();
@@ -66,7 +82,7 @@ void enter(game::context* ctx)
 	
 	game::menu::update_text_color(ctx);
 	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx);
+	game::menu::align_text(ctx, true, false, (-std::get<1>(ctx->app->get_viewport_dimensions()) / 3.0f) / 2.0f);
 	game::menu::update_text_tweens(ctx);
 	game::menu::add_text_to_ui(ctx);
 	
@@ -118,14 +134,6 @@ void enter(game::context* ctx)
 	{
 		ctx->app->close(EXIT_SUCCESS);
 	};
-	auto menu_back_callback = [ctx]()
-	{
-		application::state next_state;
-		next_state.name = "title";
-		next_state.enter = std::bind(game::state::title::enter, ctx);
-		next_state.exit = std::bind(game::state::title::exit, ctx);
-		ctx->app->change_state(next_state);
-	};
 	
 	// Build list of menu select callbacks
 	ctx->menu_select_callbacks.push_back(select_start_callback);
@@ -146,7 +154,7 @@ void enter(game::context* ctx)
 	ctx->menu_right_callbacks.push_back(nullptr);
 	
 	// Set menu back callback
-	ctx->menu_back_callback = menu_back_callback;
+	ctx->menu_back_callback = select_quit_callback;
 	
 	// Schedule menu control setup
 	timeline* timeline = ctx->timeline;
@@ -161,6 +169,11 @@ void exit(game::context* ctx)
 	game::menu::clear_callbacks(ctx);
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
+	
+	// Destruct title text
+	ctx->ui_scene->remove_object(ctx->title_text);
+	delete ctx->title_text;
+	ctx->title_text = nullptr;
 	
 	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }

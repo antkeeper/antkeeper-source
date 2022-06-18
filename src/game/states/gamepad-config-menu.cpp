@@ -240,6 +240,14 @@ static void add_control_item(game::context* ctx, const std::string& control_name
 					const gamepad_button_pressed_event& button_event = static_cast<const gamepad_button_pressed_event&>(event);
 					ctx->input_event_router->add_mapping(input::gamepad_button_mapping(control, nullptr, button_event.button));
 				}
+				else if (id == key_pressed_event::event_type_id)
+				{
+					// Map key pressed event to control
+					const key_pressed_event& key_event = static_cast<const key_pressed_event&>(event);
+					
+					if (key_event.scancode != input::scancode::escape && key_event.scancode != input::scancode::backspace)
+						return;
+				}
 				else
 				{
 					return;

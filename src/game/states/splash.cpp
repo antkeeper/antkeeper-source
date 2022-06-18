@@ -18,7 +18,7 @@
  */
 
 #include "game/states/splash.hpp"
-#include "game/states/title.hpp"
+#include "game/states/main-menu.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
@@ -94,9 +94,9 @@ void enter(game::context* ctx)
 		[ctx]()
 		{
 			application::state next_state;
-			next_state.name = "title";
-			next_state.enter = std::bind(game::state::title::enter, ctx);
-			next_state.exit = std::bind(game::state::title::exit, ctx);
+			next_state.name = "main_menu";
+			next_state.enter = std::bind(game::state::main_menu::enter, ctx);
+			next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 			ctx->app->queue_state(next_state);
 		}
 	);
@@ -123,9 +123,9 @@ void enter(game::context* ctx)
 				
 				// Change state
 				application::state next_state;
-				next_state.name = "title";
-				next_state.enter = std::bind(game::state::title::enter, ctx);
-				next_state.exit = std::bind(game::state::title::exit, ctx);
+				next_state.name = "main_menu";
+				next_state.enter = std::bind(game::state::main_menu::enter, ctx);
+				next_state.exit = std::bind(game::state::main_menu::exit, ctx);
 				ctx->app->change_state(next_state);
 			}
 		}

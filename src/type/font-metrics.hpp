@@ -27,6 +27,9 @@ namespace type {
  */
 struct font_metrics
 {
+	/// Vertical size of the font, in pixels.
+	float size;
+	
 	/// Positive distance from the baseline to the highest or upper grid coordinate.
 	float ascent;
 	
