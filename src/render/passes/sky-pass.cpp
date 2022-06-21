@@ -188,8 +188,8 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	}
 	
 	glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	//glBlendFunc(GL_ONE, GL_ONE);
 	
 	// Draw stars
 	if (stars_model)
@@ -249,8 +249,6 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 		rasterizer->draw_arrays(*moon_model_vao, moon_model_drawing_mode, moon_model_start_index, moon_model_index_count);
 	}
 	*/
-	
-
 }
 
 void sky_pass::set_sky_model(const model* model)

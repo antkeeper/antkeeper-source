@@ -260,8 +260,6 @@ void exit(game::context* ctx)
 	ctx->ui_scene->remove_object(ctx->title_text);
 	delete ctx->title_text;
 	ctx->title_text = nullptr;
-	
-	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }
 
 } // namespace main_menu

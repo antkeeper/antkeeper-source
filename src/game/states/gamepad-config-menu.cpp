@@ -21,7 +21,6 @@
 #include "game/states/controls-menu.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "render/passes/clear-pass.hpp"
 #include "debug/logger.hpp"
 #include "resources/resource-manager.hpp"
 #include "game/menu.hpp"
@@ -279,8 +278,6 @@ static void add_control_item(game::context* ctx, const std::string& control_name
 
 void enter(game::context* ctx)
 {
-	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
-	
 	// Add camera control menu items
 	add_control_item(ctx, "move_forward");
 	add_control_item(ctx, "move_back");
@@ -364,8 +361,6 @@ void exit(game::context* ctx)
 	
 	// Save control profile
 	game::save_control_profile(ctx);
-	
-	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }
 
 } // namespace gamepad_config_menu

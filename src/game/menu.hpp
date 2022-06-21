@@ -34,6 +34,9 @@ static constexpr float4 active_color{1.0f, 1.0f, 1.0f, 1.0f};
 /// RGBA color of inactive menu items.
 static constexpr float4 inactive_color{1.0f, 1.0f, 1.0f, 0.5f};
 
+/// Opacity of the menu background.
+static constexpr float bg_opacity = 0.75f;
+
 /// Padding of the mouseover bounds, as a percentage of the font size.
 static constexpr float mouseover_padding = 0.1f;
 
@@ -41,7 +44,7 @@ static constexpr float mouseover_padding = 0.1f;
 static constexpr float fade_in_duration = 0.25f;
 
 /// Duration of the menu fade out animation
-static constexpr float fade_out_duration = 0.25f;
+static constexpr float fade_out_duration = 0.125f;
 
 void init_menu_item_index(game::context* ctx, const std::string& menu_name);
 void setup_controls(game::context* ctx);
@@ -55,6 +58,9 @@ void delete_animations(game::context* ctx);
 
 void fade_in(game::context* ctx, const std::function<void()>& end_callback);
 void fade_out(game::context* ctx, const std::function<void()>& end_callback);
+
+void fade_in_bg(game::context* ctx);
+void fade_out_bg(game::context* ctx);
 
 void update_text_color(game::context* ctx);
 void update_text_font(game::context* ctx);

@@ -21,7 +21,6 @@
 #include "game/states/options-menu.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "render/passes/clear-pass.hpp"
 #include "debug/logger.hpp"
 #include "game/fonts.hpp"
 #include "game/menu.hpp"
@@ -43,8 +42,6 @@ static void update_text_content(game::context* ctx)
 
 void enter(game::context* ctx)
 {
-	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
-	
 	// Construct menu item texts
 	scene::text* language_name_text = new scene::text();
 	scene::text* language_value_text = new scene::text();
@@ -187,8 +184,6 @@ void exit(game::context* ctx)
 	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
-	
-	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }
 
 } // namespace language_menu

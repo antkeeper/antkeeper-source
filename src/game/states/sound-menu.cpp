@@ -21,7 +21,6 @@
 #include "game/states/options-menu.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "render/passes/clear-pass.hpp"
 #include "debug/logger.hpp"
 #include "game/menu.hpp"
 #include "animation/timeline.hpp"
@@ -45,8 +44,6 @@ static void update_value_text_content(game::context* ctx)
 
 void enter(game::context* ctx)
 {
-	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
-	
 	// Construct menu item texts
 	scene::text* master_volume_name_text = new scene::text();
 	scene::text* master_volume_value_text = new scene::text();
@@ -250,8 +247,6 @@ void exit(game::context* ctx)
 	(*ctx->config)["mono_audio"] = ctx->mono_audio;
 	(*ctx->config)["captions"] = ctx->captions;
 	(*ctx->config)["captions_size"] = ctx->captions_size;
-	
-	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }
 
 } // namespace sound_menu

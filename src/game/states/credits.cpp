@@ -24,7 +24,6 @@
 #include "animation/animator.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "render/passes/clear-pass.hpp"
 
 namespace game {
 namespace state {
@@ -32,8 +31,6 @@ namespace credits {
 
 void enter(game::context* ctx)
 {
-	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
-	
 	// Construct credits text
 	ctx->credits_text = new scene::text();
 	ctx->credits_text->set_material(&ctx->menu_font_material);
@@ -133,8 +130,6 @@ void exit(game::context* ctx)
 	delete ctx->credits_scroll_animation;
 	ctx->credits_fade_in_animation = nullptr;
 	ctx->credits_scroll_animation = nullptr;
-	
-	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }
 
 } // namespace credits

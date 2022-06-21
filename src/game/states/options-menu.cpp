@@ -23,6 +23,7 @@
 #include "game/states/graphics-menu.hpp"
 #include "game/states/sound-menu.hpp"
 #include "game/states/language-menu.hpp"
+#include "game/states/pause-menu.hpp"
 #include "game/save.hpp"
 #include "game/menu.hpp"
 #include "animation/ease.hpp"
@@ -31,7 +32,6 @@
 #include "animation/timeline.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "render/passes/clear-pass.hpp"
 
 namespace game {
 namespace state {
@@ -39,8 +39,6 @@ namespace options_menu {
 
 void enter(game::context* ctx)
 {
-	ctx->ui_clear_pass->set_cleared_buffers(true, true, false);
-	
 	// Construct menu item texts
 	scene::text* controls_text = new scene::text();
 	scene::text* graphics_text = new scene::text();
@@ -157,19 +155,23 @@ void enter(game::context* ctx)
 		// Save config
 		game::save_config(ctx);
 		
-		// Return to main menu
-		game::menu::fade_out
-		(
-			ctx,
-			[ctx]()
-			{
-				application::state next_state;
-				next_state.name = "main_menu";
-				next_state.enter = std::bind(game::state::main_menu::enter, ctx, false);
-				next_state.exit = std::bind(game::state::main_menu::exit, ctx);
-				ctx->app->queue_state(next_state);
-			}
-		);
+		application::state next_state;
+		if (ctx->paused_state)
+		{
+			// Return to pause menu
+			next_state.name = "pause_menu";
+			next_state.enter = std::bind(game::state::pause_menu::enter, ctx);
+			next_state.exit = std::bind(game::state::pause_menu::exit, ctx);
+		}
+		else
+		{
+			// Return to main menu
+			next_state.name = "main_menu";
+			next_state.enter = std::bind(game::state::main_menu::enter, ctx, false);
+			next_state.exit = std::bind(game::state::main_menu::exit, ctx);
+		}
+		
+		game::menu::fade_out(ctx, std::bind(&application::queue_state, ctx->app, next_state));
 	};
 	
 	// Build list of menu select callbacks
@@ -208,8 +210,6 @@ void exit(game::context* ctx)
 	
 	// Save config
 	game::save_config(ctx);
-	
-	ctx->ui_clear_pass->set_cleared_buffers(false, true, false);
 }
 
 } // namespace options_menu

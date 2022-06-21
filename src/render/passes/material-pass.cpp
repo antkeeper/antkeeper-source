@@ -659,7 +659,7 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 						else
 						{
 							// A and B are both transparent, but not decals, render back to front
-							return (a.depth >= b.depth);
+							return (a.depth <= b.depth);
 						}
 					}
 				}

@@ -54,7 +54,7 @@
 #include "resources/resource-manager.hpp"
 #include "resources/file-buffer.hpp"
 #include "scene/scene.hpp"
-#include "game/states/loading.hpp"
+#include "game/states/splash.hpp"
 #include "entity/systems/behavior.hpp"
 #include "entity/systems/camera.hpp"
 #include "entity/systems/collision.hpp"
@@ -84,6 +84,11 @@
 #include "input/keyboard.hpp"
 #include "configuration.hpp"
 #include "input/scancode.hpp"
+#include "game/fonts.hpp"
+#include "game/controls.hpp"
+#include "game/save.hpp"
+#include "game/menu.hpp"
+#include "utility/timestamp.hpp"
 #include <cxxopts.hpp>
 #include <dirent.h>
 #include <entt/entt.hpp>
@@ -158,11 +163,13 @@ void enter(application* app, int argc, char** argv)
 		app->set_update_rate((*ctx->config)["update_rate"].get<double>());
 	}
 	
+	// Clear paused state
+	
 	// Queue next application state
 	application::state next_state;
-	next_state.name = "loading";
-	next_state.enter = std::bind(game::state::loading::enter, ctx);
-	next_state.exit = std::bind(game::state::loading::exit, ctx);
+	next_state.name = "splash";
+	next_state.enter = std::bind(game::state::splash::enter, ctx);
+	next_state.exit = std::bind(game::state::splash::exit, ctx);
 	app->queue_state(next_state);
 }
 
@@ -722,6 +729,8 @@ void setup_scenes(game::context* ctx)
 	float clip_near = 0.0f;
 	float clip_far = 1000.0f;
 	ctx->ui_camera->set_orthographic(clip_left, clip_right, clip_top, clip_bottom, clip_near, clip_far);
+	ctx->ui_camera->look_at({0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
+	ctx->ui_camera->update_tweens();
 	
 	// Setup underground camera
 	ctx->underground_camera = new scene::camera();
@@ -740,7 +749,6 @@ void setup_scenes(game::context* ctx)
 	// Setup UI scene
 	{
 		ctx->ui_scene = new scene::collection();
-		
 		const gl::texture_2d* splash_texture = ctx->resource_manager->load<gl::texture_2d>("splash.tex");
 		auto splash_dimensions = splash_texture->get_dimensions();
 		ctx->splash_billboard_material = new render::material();
@@ -754,6 +762,20 @@ void setup_scenes(game::context* ctx)
 		ctx->splash_billboard->set_scale({(float)std::get<0>(splash_dimensions) * 0.5f, (float)std::get<1>(splash_dimensions) * 0.5f, 1.0f});
 		ctx->splash_billboard->set_translation({0.0f, 0.0f, 0.0f});
 		ctx->splash_billboard->update_tweens();
+		
+		// Menu BG billboard
+		render::material* menu_bg_material = new render::material();
+		menu_bg_material->set_shader_program(ctx->resource_manager->load<gl::shader_program>("ui-element-untextured.glsl"));
+		auto menu_bg_tint = menu_bg_material->add_property<float4>("tint");
+		menu_bg_tint->set_value(float4{0.0f, 0.0f, 0.0f, 0.5f});
+		menu_bg_material->set_flags(MATERIAL_FLAG_TRANSLUCENT);
+		menu_bg_material->update_tweens();
+		ctx->menu_bg_billboard = new scene::billboard();
+		ctx->menu_bg_billboard->set_active(false);
+		ctx->menu_bg_billboard->set_material(menu_bg_material);
+		ctx->menu_bg_billboard->set_scale({(float)viewport_dimensions[0] * 0.5f, (float)viewport_dimensions[1] * 0.5f, 1.0f});
+		ctx->menu_bg_billboard->set_translation({0.0f, 0.0f, -100.0f});
+		ctx->menu_bg_billboard->update_tweens();
 		
 		// Create camera flash billboard
 		
@@ -849,6 +871,55 @@ void setup_animation(game::context* ctx)
 	ctx->radial_transition_outer->get_material()->set_shader_program(ctx->resource_manager->load<gl::shader_program>("radial-transition-outer.glsl"));
 	//ctx->ui_scene->add_object(ctx->radial_transition_outer->get_billboard());
 	//ctx->animator->add_animation(ctx->radial_transition_outer->get_animation());
+	
+	
+	// Menu BG animations
+	{
+		render::material_property<float4>* menu_bg_tint = static_cast<render::material_property<float4>*>(ctx->menu_bg_billboard->get_material()->get_property("tint"));
+		auto menu_bg_frame_callback = [menu_bg_tint](int channel, const float& opacity)
+		{
+			menu_bg_tint->set_value(float4{0.0f, 0.0f, 0.0f, opacity});
+		};
+		
+		// Create menu BG fade in animation
+		ctx->menu_bg_fade_in_animation = new animation<float>();
+		{
+			ctx->menu_bg_fade_in_animation->set_interpolator(ease<float>::out_cubic);
+			animation_channel<float>* channel = ctx->menu_bg_fade_in_animation->add_channel(0);
+			channel->insert_keyframe({0.0f, 0.0f});
+			channel->insert_keyframe({game::menu::fade_in_duration, game::menu::bg_opacity});
+			ctx->menu_bg_fade_in_animation->set_frame_callback(menu_bg_frame_callback);
+			ctx->menu_bg_fade_in_animation->set_start_callback
+			(
+				[ctx]()
+				{
+					ctx->ui_scene->add_object(ctx->menu_bg_billboard);
+					ctx->menu_bg_billboard->set_active(true);
+				}
+			);
+		}
+		
+		// Create menu BG fade out animation
+		ctx->menu_bg_fade_out_animation = new animation<float>();
+		{
+			ctx->menu_bg_fade_out_animation->set_interpolator(ease<float>::out_cubic);
+			animation_channel<float>* channel = ctx->menu_bg_fade_out_animation->add_channel(0);
+			channel->insert_keyframe({0.0f, game::menu::bg_opacity});
+			channel->insert_keyframe({game::menu::fade_out_duration, 0.0f});
+			ctx->menu_bg_fade_out_animation->set_frame_callback(menu_bg_frame_callback);
+			ctx->menu_bg_fade_out_animation->set_end_callback
+			(
+				[ctx]()
+				{
+					ctx->ui_scene->remove_object(ctx->menu_bg_billboard);
+					ctx->menu_bg_billboard->set_active(false);
+				}
+			);
+		}
+		
+		ctx->animator->add_animation(ctx->menu_bg_fade_in_animation);
+		ctx->animator->add_animation(ctx->menu_bg_fade_out_animation);
+	}
 	
 	// Create camera flash animation
 	ctx->camera_flash_animation = new animation<float>();
@@ -989,7 +1060,96 @@ void setup_controls(game::context* ctx)
 		ctx->app->add_game_controller_mappings(game_controller_db->data(), game_controller_db->size());
 		ctx->resource_manager->unload("gamecontrollerdb.txt");
 		ctx->logger->pop_task(EXIT_SUCCESS);
-	}	
+	}
+	
+	// Load controls
+	ctx->logger->push_task("Loading controls");
+	try
+	{
+		// If a control profile is set in the config file
+		if (ctx->config->contains("control_profile"))
+		{
+			// Load control profile
+			json* profile = ctx->resource_manager->load<json>((*ctx->config)["control_profile"].get<std::string>());
+			
+			// Apply control profile
+			if (profile)
+			{
+				game::apply_control_profile(ctx, *profile);
+			}
+		}
+		
+		// Calibrate gamepads
+		for (input::gamepad* gamepad: ctx->app->get_gamepads())
+		{
+			ctx->logger->push_task("Loading calibration for gamepad " + gamepad->get_guid());
+			json* calibration = game::load_gamepad_calibration(ctx, gamepad);
+			if (!calibration)
+			{
+				ctx->logger->pop_task(EXIT_FAILURE);
+				
+				ctx->logger->push_task("Generating default calibration for gamepad " + gamepad->get_guid());
+				json default_calibration = game::default_gamepad_calibration();
+				apply_gamepad_calibration(gamepad, default_calibration);
+				
+				if (!save_gamepad_calibration(ctx, gamepad, default_calibration))
+					ctx->logger->pop_task(EXIT_FAILURE);
+				else
+					ctx->logger->pop_task(EXIT_SUCCESS);
+			}
+			else
+			{
+				ctx->logger->pop_task(EXIT_SUCCESS);
+				apply_gamepad_calibration(gamepad, *calibration);
+			}
+		}
+		
+		// Toggle fullscreen
+		ctx->controls["toggle_fullscreen"]->set_activated_callback
+		(
+			[ctx]()
+			{
+				bool fullscreen = !ctx->app->is_fullscreen();
+				
+				ctx->app->set_fullscreen(fullscreen);
+				
+				if (!fullscreen)
+				{
+					int2 resolution;
+					resolution.x = (*ctx->config)["windowed_resolution"][0].get<int>();
+					resolution.y = (*ctx->config)["windowed_resolution"][1].get<int>();
+					
+					ctx->app->resize_window(resolution.x, resolution.y);
+				}
+				
+				// Save display mode config
+				(*ctx->config)["fullscreen"] = fullscreen;
+				game::save_config(ctx);
+			}
+		);
+		
+		// Screenshot
+		ctx->controls["screenshot"]->set_activated_callback
+		(
+			[ctx]()
+			{
+				std::string path = ctx->screenshots_path + "antkeeper-" + timestamp() + ".png";
+				ctx->app->save_frame(path);
+			}
+		);
+		
+		// Set activation threshold for menu navigation controls to mitigate drifting gamepad axes
+		const float menu_activation_threshold = 0.1f;
+		ctx->controls["menu_up"]->set_activation_threshold(menu_activation_threshold);
+		ctx->controls["menu_down"]->set_activation_threshold(menu_activation_threshold);
+		ctx->controls["menu_left"]->set_activation_threshold(menu_activation_threshold);
+		ctx->controls["menu_right"]->set_activation_threshold(menu_activation_threshold);
+	}
+	catch (...)
+	{
+		ctx->logger->pop_task(EXIT_FAILURE);
+	}
+	ctx->logger->pop_task(EXIT_SUCCESS);
 }
 
 void setup_ui(game::context* ctx)
@@ -1003,6 +1163,18 @@ void setup_ui(game::context* ctx)
 	ctx->dyslexia_font = false;
 	if (ctx->config->contains("dyslexia_font"))
 		ctx->dyslexia_font = (*ctx->config)["dyslexia_font"].get<bool>();
+	
+	// Load fonts
+	ctx->logger->push_task("Loading fonts");
+	try
+	{
+		game::load_fonts(ctx);
+	}
+	catch (...)
+	{
+		ctx->logger->pop_task(EXIT_FAILURE);
+	}
+	ctx->logger->pop_task(EXIT_SUCCESS);
 	
 	// Construct mouse tracker
 	ctx->menu_mouse_tracker = new ui::mouse_tracker();
@@ -1031,6 +1203,14 @@ void setup_callbacks(game::context* ctx)
 	(
 		[ctx](double t, double dt)
 		{
+			// Update tweens
+			ctx->surface_sky_pass->update_tweens();
+			ctx->surface_scene->update_tweens();
+			ctx->underground_scene->update_tweens();
+			ctx->ui_scene->update_tweens();
+			
+			ctx->timeline->advance(dt);
+			
 			// Update controls
 			for (const auto& control: ctx->controls)
 				control.second->update();
@@ -1047,13 +1227,9 @@ void setup_callbacks(game::context* ctx)
 				}
 			);
 			
-			// Update tweens
-			ctx->surface_sky_pass->update_tweens();
-			ctx->surface_scene->update_tweens();
-			ctx->underground_scene->update_tweens();
-			ctx->ui_scene->update_tweens();
+
 			
-			ctx->timeline->advance(dt);
+
 			
 
 
@@ -1077,9 +1253,9 @@ void setup_callbacks(game::context* ctx)
 			ctx->constraint_system->update(t, dt);
 			ctx->painting_system->update(t, dt);
 			ctx->proteome_system->update(t, dt);
+			ctx->animator->animate(dt);
 			
 			ctx->render_system->update(t, dt);
-			ctx->animator->animate(dt);
 		}
 	);
 	

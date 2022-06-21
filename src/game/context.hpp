@@ -50,6 +50,7 @@
 #include "render/material.hpp"
 #include "render/material-property.hpp"
 #include "ui/mouse-tracker.hpp"
+#include "application.hpp"
 
 // Forward declarations
 class animator;
@@ -218,6 +219,7 @@ struct context
 	int* menu_item_index;
 	animation<float>* menu_fade_animation;
 	animation<float>* title_fade_animation;
+	scene::billboard* menu_bg_billboard;
 	
 	// Surface scene
 	scene::collection* surface_scene;
@@ -249,6 +251,9 @@ struct context
 	animation<float>* main_menu_fade_animation;
 	animation<float>* credits_fade_in_animation;
 	animation<float>* credits_scroll_animation;
+	animation<float>* menu_bg_fade_in_animation;
+	animation<float>* menu_bg_fade_out_animation;
+
 	
 	// Controls
 	input::event_router* input_event_router;
@@ -291,6 +296,9 @@ struct context
 	entity::system::astronomy* astronomy_system;
 	entity::system::orbit* orbit_system;
 	entity::system::proteome* proteome_system;
+	
+	// State management
+	std::optional<application::state> paused_state;
 	
 	// Debug
 	debug::cli* cli;

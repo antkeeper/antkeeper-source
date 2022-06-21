@@ -279,6 +279,20 @@ void fade_out(game::context* ctx, const std::function<void()>& end_callback)
 	ctx->menu_fade_animation->play();
 }
 
+void fade_in_bg(game::context* ctx)
+{
+	ctx->menu_bg_fade_out_animation->stop();
+	ctx->menu_bg_fade_in_animation->stop();
+	ctx->menu_bg_fade_in_animation->play();
+}
+
+void fade_out_bg(game::context* ctx)
+{
+	ctx->menu_bg_fade_in_animation->stop();
+	ctx->menu_bg_fade_out_animation->stop();
+	ctx->menu_bg_fade_out_animation->play();
+}
+
 void setup_controls(game::context* ctx)
 {	
 	ctx->controls["menu_up"]->set_activated_callback
