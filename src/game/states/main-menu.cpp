@@ -75,7 +75,7 @@ void enter(game::context* ctx, bool fade_in)
 	const auto& title_aabb = static_cast<const geom::aabb<float>&>(ctx->title_text->get_local_bounds());
 	float title_w = title_aabb.max_point.x - title_aabb.min_point.x;
 	float title_h = title_aabb.max_point.y - title_aabb.min_point.y;
-	ctx->title_text->set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (std::get<1>(ctx->app->get_viewport_dimensions()) / 3.0f) / 2.0f), 0.0f});
+	ctx->title_text->set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (ctx->app->get_viewport_dimensions().y / 3.0f) / 2.0f), 0.0f});
 	ctx->title_text->update_tweens();
 	
 	// Add title text to UI
@@ -119,7 +119,7 @@ void enter(game::context* ctx, bool fade_in)
 	
 	game::menu::update_text_color(ctx);
 	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx, true, false, (-std::get<1>(ctx->app->get_viewport_dimensions()) / 3.0f) / 2.0f);
+	game::menu::align_text(ctx, true, false, (-ctx->app->get_viewport_dimensions().y / 3.0f) / 2.0f);
 	game::menu::update_text_tweens(ctx);
 	game::menu::add_text_to_ui(ctx);
 	game::menu::setup_animations(ctx);
@@ -221,10 +221,8 @@ void enter(game::context* ctx, bool fade_in)
 	// Set menu back callback
 	ctx->menu_back_callback = select_quit_callback;
 	
-	// Schedule menu control setup
-	timeline* timeline = ctx->timeline;
-	float t = timeline->get_position();
-	timeline->add_sequence({{t + game::menu::input_delay, std::bind(game::menu::setup_controls, ctx)}});
+	// Queue menu control setup
+	ctx->function_queue.push(std::bind(game::menu::setup_controls, ctx));
 	
 	if (fade_in)
 	{

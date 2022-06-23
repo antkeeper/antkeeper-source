@@ -37,7 +37,9 @@
 #include "game/world.hpp"
 #include "application.hpp"
 #include "render/passes/clear-pass.hpp"
-#include "animation/timeline.hpp"
+#include <memory>
+#include <iostream>
+#include "state-machine.hpp"
 
 namespace game {
 namespace state {
@@ -113,15 +115,12 @@ void enter(game::context* ctx)
 	ctx->surface_scene->update_tweens();
 	*/
 	
-	// Schedule control setup
-	timeline* timeline = ctx->timeline;
-	float t = timeline->get_position();
-	timeline->add_sequence({{t + 0.01f, std::bind(enable_controls, ctx)}});
-	
-	// Schedule fade in
+	// Queue fade in
 	ctx->fade_transition_color->set_value({1, 1, 1});
-	ctx->fade_transition->transition(5.0f, true, math::lerp<float, float>);
-	//timeline->add_sequence({{t + 10.0f, [ctx](){ctx->fade_transition->transition(5.0f, true, math::lerp<float, float>);}}});
+	ctx->function_queue.push(std::bind(&screen_transition::transition, ctx->fade_transition, 5.0f, true, math::lerp<float, float>, true));
+	
+	// Queue control setup
+	ctx->function_queue.push(std::bind(enable_controls, ctx));
 }
 
 void exit(game::context* ctx)
@@ -219,9 +218,6 @@ void setup_camera(game::context* ctx)
 
 void enable_controls(game::context* ctx)
 {
-	/// @WARNING!!! SOMETIMES THIS CALLBACK IS SKIPPED BY THE TIMELINE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	ctx->logger->log("ENABLING CONTROLS");
-	
 	// Get camera entities
 	entity::id camera_eid = ctx->entities["surface_cam"];
 	entity::id target_eid = ctx->entities["surface_cam_target"];

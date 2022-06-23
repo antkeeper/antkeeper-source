@@ -24,7 +24,6 @@
 #include "debug/logger.hpp"
 #include "game/fonts.hpp"
 #include "game/menu.hpp"
-#include "animation/timeline.hpp"
 
 namespace game {
 namespace state {
@@ -167,10 +166,8 @@ void enter(game::context* ctx)
 	// Set menu back callback
 	ctx->menu_back_callback = select_back_callback;
 	
-	// Schedule menu control setup
-	timeline* timeline = ctx->timeline;
-	float t = timeline->get_position();
-	timeline->add_sequence({{t + game::menu::input_delay, std::bind(game::menu::setup_controls, ctx)}});
+	// Queue menu control setup
+	ctx->function_queue.push(std::bind(game::menu::setup_controls, ctx));
 	
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);

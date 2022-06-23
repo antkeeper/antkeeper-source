@@ -29,7 +29,6 @@
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
-#include "animation/timeline.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
 
@@ -190,10 +189,8 @@ void enter(game::context* ctx)
 	// Set menu back callback
 	ctx->menu_back_callback = select_back_callback;
 	
-	// Schedule menu control setup
-	timeline* timeline = ctx->timeline;
-	float t = timeline->get_position();
-	timeline->add_sequence({{t + game::menu::input_delay, std::bind(game::menu::setup_controls, ctx)}});
+	// Queue menu control setup
+	ctx->function_queue.push(std::bind(game::menu::setup_controls, ctx));
 	
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);

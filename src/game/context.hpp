@@ -44,6 +44,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <queue>
 #include "resources/json.hpp"
 #include "type/typeface.hpp"
 #include "type/bitmap-font.hpp"
@@ -110,7 +111,7 @@ namespace render
 
 namespace game {
 
-/// Structure containing the state of a game.
+/// Container for data that is shared between game states.
 struct context
 {
 	application* app;
@@ -158,17 +159,18 @@ struct context
 	render::material title_font_material;
 	
 	// Framebuffers
-	gl::framebuffer* shadow_map_framebuffer;
+	gl::texture_2d* hdr_color_texture;
+	gl::texture_2d* hdr_depth_texture;
+	gl::framebuffer* hdr_framebuffer;
+	gl::texture_2d* bloom_color_texture;
+	gl::framebuffer* bloom_framebuffer;
 	gl::texture_2d* shadow_map_depth_texture;
-	gl::framebuffer* framebuffer_hdr;
-	gl::texture_2d* framebuffer_hdr_color;
-	gl::texture_2d* framebuffer_hdr_depth;
-	gl::framebuffer* framebuffer_bloom; // General purpose framebuffer A
-	gl::texture_2d* bloom_texture;
+	gl::framebuffer* shadow_map_framebuffer;
 	
 	// Rendering
 	gl::rasterizer* rasterizer;
 	render::renderer* renderer;
+	int2 render_resolution;
 	float render_resolution_scale;
 	gl::vertex_buffer* billboard_vbo;
 	gl::vertex_array* billboard_vao;
@@ -179,14 +181,11 @@ struct context
 	render::clear_pass* ui_clear_pass;
 	render::material_pass* ui_material_pass;
 	render::compositor* ui_compositor;
-	
 	render::bloom_pass* common_bloom_pass;
 	render::final_pass* common_final_pass;
-	
 	render::clear_pass* underground_clear_pass;
 	render::material_pass* underground_material_pass;
 	render::compositor* underground_compositor;
-	
 	render::clear_pass* surface_shadow_map_clear_pass;
 	render::shadow_map_pass* surface_shadow_map_pass;
 	render::clear_pass* surface_clear_pass;
@@ -299,6 +298,9 @@ struct context
 	
 	// State management
 	std::optional<application::state> paused_state;
+	
+	// Misc
+	std::queue<std::function<void()>> function_queue;
 	
 	// Debug
 	debug::cli* cli;

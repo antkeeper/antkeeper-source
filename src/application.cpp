@@ -44,7 +44,7 @@ application::application():
 	update_callback(nullptr),
 	render_callback(nullptr),
 	fullscreen(true),
-	v_sync(true),
+	v_sync(false),
 	cursor_visible(true),
 	display_dimensions({0, 0}),
 	display_dpi(0.0f),
@@ -187,16 +187,7 @@ application::application():
 	SDL_GL_GetDrawableSize(sdl_window, &viewport_dimensions[0], &viewport_dimensions[1]);
 	
 	// Set v-sync mode
-	int swap_interval = (v_sync) ? 1 : 0;
-	logger->push_task((swap_interval) ? "Enabling v-sync" : "Disabling v-sync");
-	if (SDL_GL_SetSwapInterval(swap_interval) != 0)
-	{
-		logger->pop_task(EXIT_FAILURE);
-	}
-	else
-	{
-		logger->pop_task(EXIT_SUCCESS);
-	}
+	set_v_sync(true);
 
 	// Init SDL joystick and gamepad subsystems
 	logger->push_task("Initializing SDL Joystick and Game Controller subsystems");
@@ -496,8 +487,43 @@ void application::set_v_sync(bool v_sync)
 {
 	if (this->v_sync != v_sync)
 	{
-		this->v_sync = v_sync;
-		SDL_GL_SetSwapInterval((v_sync) ? 1 : 0);
+		if (v_sync)
+		{
+			logger->push_task("Enabling adaptive v-sync");
+			if (SDL_GL_SetSwapInterval(-1) != 0)
+			{
+				logger->pop_task(EXIT_FAILURE);
+				
+				logger->push_task("Enabling synchronized v-sync");
+				if (SDL_GL_SetSwapInterval(-1) != 0)
+				{
+					logger->pop_task(EXIT_FAILURE);
+				}
+				else
+				{
+					this->v_sync = v_sync;
+					logger->pop_task(EXIT_SUCCESS);
+				}
+			}
+			else
+			{
+				this->v_sync = v_sync;
+				logger->pop_task(EXIT_SUCCESS);
+			}
+		}
+		else
+		{
+			logger->push_task("Disabling v-sync");
+			if (SDL_GL_SetSwapInterval(0) != 0)
+			{
+				logger->pop_task(EXIT_FAILURE);
+			}
+			else
+			{
+				this->v_sync = v_sync;
+				logger->pop_task(EXIT_SUCCESS);
+			}
+		}
 	}
 }
 

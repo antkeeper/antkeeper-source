@@ -88,6 +88,7 @@
 #include "game/controls.hpp"
 #include "game/save.hpp"
 #include "game/menu.hpp"
+#include "game/graphics.hpp"
 #include "utility/timestamp.hpp"
 #include <cxxopts.hpp>
 #include <dirent.h>
@@ -472,51 +473,8 @@ void setup_rendering(game::context* ctx)
 	// Get rasterizer from application
 	ctx->rasterizer = ctx->app->get_rasterizer();
 	
-	// Load render resolution
-	ctx->render_resolution_scale = 1.0f;
-	if (ctx->config->contains("render_resolution"))
-		ctx->render_resolution_scale = (*ctx->config)["render_resolution"].get<float>();
-	
-	// Get default framebuffer
-	const gl::framebuffer& default_framebuffer = ctx->rasterizer->get_default_framebuffer();
-	const auto& viewport_dimensions = default_framebuffer.get_dimensions();
-	
-	// Create HDR framebuffer (32F color, 32F depth)
-	ctx->framebuffer_hdr_color = new gl::texture_2d(viewport_dimensions[0], viewport_dimensions[1], gl::pixel_type::float_32, gl::pixel_format::rgb);
-	ctx->framebuffer_hdr_color->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-	ctx->framebuffer_hdr_color->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-	ctx->framebuffer_hdr_color->set_max_anisotropy(0.0f);
-	ctx->framebuffer_hdr_depth = new gl::texture_2d(viewport_dimensions[0], viewport_dimensions[1], gl::pixel_type::float_32, gl::pixel_format::ds);
-	ctx->framebuffer_hdr_depth->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-	ctx->framebuffer_hdr_depth->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-	ctx->framebuffer_hdr_depth->set_max_anisotropy(0.0f);
-	ctx->framebuffer_hdr = new gl::framebuffer(viewport_dimensions[0], viewport_dimensions[1]);
-	ctx->framebuffer_hdr->attach(gl::framebuffer_attachment_type::color, ctx->framebuffer_hdr_color);
-	ctx->framebuffer_hdr->attach(gl::framebuffer_attachment_type::depth, ctx->framebuffer_hdr_depth);
-	ctx->framebuffer_hdr->attach(gl::framebuffer_attachment_type::stencil, ctx->framebuffer_hdr_depth);
-	
-	// Create shadow map framebuffer
-	int shadow_map_resolution = 4096;
-	if (ctx->config->contains("shadow_map_resolution"))
-	{
-		shadow_map_resolution = (*ctx->config)["shadow_map_resolution"].get<int>();
-	}
-	ctx->shadow_map_depth_texture = new gl::texture_2d(shadow_map_resolution, shadow_map_resolution, gl::pixel_type::float_32, gl::pixel_format::d);
-	ctx->shadow_map_depth_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-	ctx->shadow_map_depth_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-	ctx->shadow_map_depth_texture->set_max_anisotropy(0.0f);
-	ctx->shadow_map_framebuffer = new gl::framebuffer(shadow_map_resolution, shadow_map_resolution);
-	ctx->shadow_map_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx->shadow_map_depth_texture);
-	
-	// Create bloom pingpong framebuffers (16F color, no depth)
-	int bloom_width = viewport_dimensions[0] >> 1;
-	int bloom_height = viewport_dimensions[1] >> 1;
-	ctx->bloom_texture = new gl::texture_2d(bloom_width, bloom_height, gl::pixel_type::float_16, gl::pixel_format::rgb);
-	ctx->bloom_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-	ctx->bloom_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-	ctx->bloom_texture->set_max_anisotropy(0.0f);
-	ctx->framebuffer_bloom = new gl::framebuffer(bloom_width, bloom_height);
-	ctx->framebuffer_bloom->attach(gl::framebuffer_attachment_type::color, ctx->bloom_texture);
+	// Create framebuffers
+	game::graphics::create_framebuffers(*ctx);
 	
 	// Load blue noise texture
 	gl::texture_2d* blue_noise_map = ctx->resource_manager->load<gl::texture_2d>("blue-noise.tex");
@@ -526,14 +484,14 @@ void setup_rendering(game::context* ctx)
 	
 	// Setup common render passes
 	{
-		ctx->common_bloom_pass = new render::bloom_pass(ctx->rasterizer, ctx->framebuffer_bloom, ctx->resource_manager);
-		ctx->common_bloom_pass->set_source_texture(ctx->framebuffer_hdr_color);
+		ctx->common_bloom_pass = new render::bloom_pass(ctx->rasterizer, ctx->bloom_framebuffer, ctx->resource_manager);
+		ctx->common_bloom_pass->set_source_texture(ctx->hdr_color_texture);
 		ctx->common_bloom_pass->set_brightness_threshold(1.0f);
 		ctx->common_bloom_pass->set_blur_iterations(5);
 		
 		ctx->common_final_pass = new render::final_pass(ctx->rasterizer, &ctx->rasterizer->get_default_framebuffer(), ctx->resource_manager);
-		ctx->common_final_pass->set_color_texture(ctx->framebuffer_hdr_color);
-		ctx->common_final_pass->set_bloom_texture(ctx->bloom_texture);
+		ctx->common_final_pass->set_color_texture(ctx->hdr_color_texture);
+		ctx->common_final_pass->set_bloom_texture(ctx->bloom_color_texture);
 		ctx->common_final_pass->set_blue_noise_texture(blue_noise_map);
 	}
 	
@@ -553,12 +511,12 @@ void setup_rendering(game::context* ctx)
 	
 	// Setup underground compositor
 	{
-		ctx->underground_clear_pass = new render::clear_pass(ctx->rasterizer, ctx->framebuffer_hdr);
+		ctx->underground_clear_pass = new render::clear_pass(ctx->rasterizer, ctx->hdr_framebuffer);
 		ctx->underground_clear_pass->set_cleared_buffers(true, true, false);
 		ctx->underground_clear_pass->set_clear_color({1, 0, 1, 0});
 		ctx->underground_clear_pass->set_clear_depth(0.0f);
 		
-		ctx->underground_material_pass = new render::material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
+		ctx->underground_material_pass = new render::material_pass(ctx->rasterizer, ctx->hdr_framebuffer, ctx->resource_manager);
 		ctx->underground_material_pass->set_fallback_material(ctx->fallback_material);
 		ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->underground_material_pass);
 		
@@ -578,20 +536,20 @@ void setup_rendering(game::context* ctx)
 		ctx->surface_shadow_map_pass = new render::shadow_map_pass(ctx->rasterizer, ctx->shadow_map_framebuffer, ctx->resource_manager);
 		ctx->surface_shadow_map_pass->set_split_scheme_weight(0.75f);
 		
-		ctx->surface_clear_pass = new render::clear_pass(ctx->rasterizer, ctx->framebuffer_hdr);
+		ctx->surface_clear_pass = new render::clear_pass(ctx->rasterizer, ctx->hdr_framebuffer);
 		ctx->surface_clear_pass->set_cleared_buffers(true, true, true);
 		ctx->surface_clear_pass->set_clear_depth(0.0f);
 		
-		ctx->surface_sky_pass = new render::sky_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
+		ctx->surface_sky_pass = new render::sky_pass(ctx->rasterizer, ctx->hdr_framebuffer, ctx->resource_manager);
 		ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->surface_sky_pass);
 		
-		ctx->surface_material_pass = new render::material_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
+		ctx->surface_material_pass = new render::material_pass(ctx->rasterizer, ctx->hdr_framebuffer, ctx->resource_manager);
 		ctx->surface_material_pass->set_fallback_material(ctx->fallback_material);
 		ctx->surface_material_pass->shadow_map_pass = ctx->surface_shadow_map_pass;
 		ctx->surface_material_pass->shadow_map = ctx->shadow_map_depth_texture;
 		ctx->app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx->surface_material_pass);
 		
-		ctx->surface_outline_pass = new render::outline_pass(ctx->rasterizer, ctx->framebuffer_hdr, ctx->resource_manager);
+		ctx->surface_outline_pass = new render::outline_pass(ctx->rasterizer, ctx->hdr_framebuffer, ctx->resource_manager);
 		ctx->surface_outline_pass->set_outline_width(0.25f);
 		ctx->surface_outline_pass->set_outline_color(float4{1.0f, 1.0f, 1.0f, 1.0f});
 		
@@ -1209,6 +1167,14 @@ void setup_callbacks(game::context* ctx)
 			ctx->underground_scene->update_tweens();
 			ctx->ui_scene->update_tweens();
 			
+			// Process function queue
+			while (!ctx->function_queue.empty())
+			{
+				ctx->function_queue.front()();
+				ctx->function_queue.pop();
+			}
+			
+			// Advance timeline
 			ctx->timeline->advance(dt);
 			
 			// Update controls
@@ -1227,14 +1193,6 @@ void setup_callbacks(game::context* ctx)
 				}
 			);
 			
-
-			
-
-			
-
-
-
-			
 			ctx->terrain_system->update(t, dt);
 			//ctx->vegetation_system->update(t, dt);
 			ctx->snapping_system->update(t, dt);
@@ -1244,7 +1202,6 @@ void setup_callbacks(game::context* ctx)
 			ctx->behavior_system->update(t, dt);
 			ctx->locomotion_system->update(t, dt);
 			ctx->camera_system->update(t, dt);
-			
 			ctx->orbit_system->update(t, dt);
 			ctx->blackbody_system->update(t, dt);
 			ctx->atmosphere_system->update(t, dt);
@@ -1254,7 +1211,6 @@ void setup_callbacks(game::context* ctx)
 			ctx->painting_system->update(t, dt);
 			ctx->proteome_system->update(t, dt);
 			ctx->animator->animate(dt);
-			
 			ctx->render_system->update(t, dt);
 		}
 	);

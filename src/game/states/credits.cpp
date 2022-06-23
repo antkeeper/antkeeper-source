@@ -91,7 +91,7 @@ void enter(game::context* ctx)
 		{
 			auto id = event.get_event_type_id();
 			if (id != mouse_moved_event::event_type_id && id != mouse_wheel_scrolled_event::event_type_id && id != gamepad_axis_moved_event::event_type_id)
-			{	
+			{
 				if (ctx->credits_text->get_color()[3] > 0.0f)
 				{
 					ctx->input_listener->set_enabled(false);
@@ -101,7 +101,7 @@ void enter(game::context* ctx)
 					next_state.name = "extras_menu";
 					next_state.enter = std::bind(game::state::extras_menu::enter, ctx);
 					next_state.exit = std::bind(game::state::extras_menu::exit, ctx);
-					ctx->app->change_state(next_state);
+					ctx->app->queue_state(next_state);
 				}
 			}
 		}

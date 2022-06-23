@@ -24,7 +24,6 @@
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
-#include "animation/timeline.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
 
@@ -83,7 +82,7 @@ void enter(game::context* ctx)
 	auto select_options_callback = [ctx]()
 	{
 		// Disable unpause control
-		//ctx->controls["pause"]->set_activated_callback(nullptr);
+		ctx->controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
 		game::menu::clear_controls(ctx);
@@ -157,12 +156,9 @@ void enter(game::context* ctx)
 	// Set menu back callback
 	ctx->menu_back_callback = select_resume_callback;
 	
-	// Schedule control setup
-	timeline* timeline = ctx->timeline;
-	float t = timeline->get_position();
-	timeline->add_sequence
-	({{
-		t + game::menu::input_delay,
+	// Queue control setup
+	ctx->function_queue.push
+	(
 		[ctx, select_resume_callback]()
 		{
 			// Enable unpause control
@@ -171,7 +167,7 @@ void enter(game::context* ctx)
 			// Enable menu controls
 			game::menu::setup_controls(ctx);
 		}
-	}});
+	);
 	
 	// Fade in menu and menu BG
 	game::menu::fade_in(ctx, nullptr);

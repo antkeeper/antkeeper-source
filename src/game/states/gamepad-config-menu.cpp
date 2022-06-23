@@ -25,7 +25,6 @@
 #include "resources/resource-manager.hpp"
 #include "game/menu.hpp"
 #include "game/controls.hpp"
-#include "animation/timeline.hpp"
 
 namespace game {
 namespace state {
@@ -261,10 +260,8 @@ static void add_control_item(game::context* ctx, const std::string& control_name
 				ctx->input_listener->set_enabled(false);
 				ctx->input_listener->set_callback(nullptr);
 				
-				// Schedule re-enabling of menu controls
-				timeline* timeline = ctx->timeline;
-				float t = timeline->get_position();
-				timeline->add_sequence({{t + game::menu::input_delay, std::bind(game::menu::setup_controls, ctx)}});
+				// Queue menu control setup
+				ctx->function_queue.push(std::bind(game::menu::setup_controls, ctx));
 			}
 		);
 		ctx->input_listener->set_enabled(true);
@@ -341,10 +338,8 @@ void enter(game::context* ctx)
 	// Set menu back callback
 	ctx->menu_back_callback = select_back_callback;
 	
-	// Schedule menu control setup
-	timeline* timeline = ctx->timeline;
-	float t = timeline->get_position();
-	timeline->add_sequence({{t + game::menu::input_delay, std::bind(game::menu::setup_controls, ctx)}});
+	// Queue menu control setup
+	ctx->function_queue.push(std::bind(game::menu::setup_controls, ctx));
 	
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);

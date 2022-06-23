@@ -23,7 +23,6 @@
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
 #include "animation/ease.hpp"
-#include "animation/timeline.hpp"
 #include "application.hpp"
 #include "render/passes/clear-pass.hpp"
 
@@ -126,7 +125,7 @@ void enter(game::context* ctx)
 				next_state.name = "main_menu";
 				next_state.enter = std::bind(game::state::main_menu::enter, ctx, true);
 				next_state.exit = std::bind(game::state::main_menu::exit, ctx);
-				ctx->app->change_state(next_state);
+				ctx->app->queue_state(next_state);
 			}
 		}
 	);

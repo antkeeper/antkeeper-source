@@ -24,29 +24,14 @@
 #include "debug/logger.hpp"
 #include "game/fonts.hpp"
 #include "game/menu.hpp"
+#include "game/graphics.hpp"
 #include "animation/timeline.hpp"
 
 namespace game {
 namespace state {
 namespace graphics_menu {
 
-static void update_value_text_content(game::context* ctx)
-{
-	bool fullscreen = ctx->app->is_fullscreen();
-	float resolution = ctx->render_resolution_scale;
-	bool v_sync = ctx->app->get_v_sync();
-	float font_size = ctx->font_size;
-	bool dyslexia_font = ctx->dyslexia_font;
-	
-	const std::string string_on = (*ctx->strings)["on"];
-	const std::string string_off = (*ctx->strings)["off"];
-	
-	std::get<1>(ctx->menu_item_texts[0])->set_content((fullscreen) ? string_on : string_off);
-	std::get<1>(ctx->menu_item_texts[1])->set_content(std::to_string(static_cast<int>(std::round(resolution * 100.0f))) + "%");
-	std::get<1>(ctx->menu_item_texts[2])->set_content((v_sync) ? string_on : string_off);
-	std::get<1>(ctx->menu_item_texts[3])->set_content(std::to_string(static_cast<int>(std::round(font_size * 100.0f))) + "%");
-	std::get<1>(ctx->menu_item_texts[4])->set_content((dyslexia_font) ? string_on : string_off);
-}
+static void update_value_text_content(game::context* ctx);
 
 void enter(game::context* ctx)
 {
@@ -118,14 +103,18 @@ void enter(game::context* ctx)
 	{
 		// Increase resolution
 		if (ctx->controls["menu_modifier"]->is_active())
-			ctx->render_resolution_scale += 0.01f;
+			ctx->render_resolution_scale += 0.05f;
 		else
-			ctx->render_resolution_scale += 0.1f;
+			ctx->render_resolution_scale += 0.25f;
 		
 		// Limit resolution
 		if (ctx->render_resolution_scale > 2.0f)
 			ctx->render_resolution_scale = 2.0f;
 		
+		// Resize framebuffers
+		game::graphics::change_render_resolution(*ctx, ctx->render_resolution_scale);
+		
+		// Update text
 		update_value_text_content(ctx);
 		game::menu::align_text(ctx);
 		game::menu::update_text_tweens(ctx);
@@ -138,14 +127,18 @@ void enter(game::context* ctx)
 	{
 		// Increase resolution
 		if (ctx->controls["menu_modifier"]->is_active())
-			ctx->render_resolution_scale -= 0.01f;
+			ctx->render_resolution_scale -= 0.05f;
 		else
-			ctx->render_resolution_scale -= 0.1f;
+			ctx->render_resolution_scale -= 0.25f;
 		
 		// Limit resolution
-		if (ctx->render_resolution_scale < 0.1f)
-			ctx->render_resolution_scale = 0.1f;
+		if (ctx->render_resolution_scale < 0.25f)
+			ctx->render_resolution_scale = 0.25f;
 		
+		// Resize framebuffers
+		game::graphics::change_render_resolution(*ctx, ctx->render_resolution_scale);
+		
+		// Update text
 		update_value_text_content(ctx);
 		game::menu::align_text(ctx);
 		game::menu::update_text_tweens(ctx);
@@ -313,10 +306,8 @@ void enter(game::context* ctx)
 	// Set menu back callback
 	ctx->menu_back_callback = select_back_callback;
 	
-	// Schedule menu control setup
-	timeline* timeline = ctx->timeline;
-	float t = timeline->get_position();
-	timeline->add_sequence({{t + game::menu::input_delay, std::bind(game::menu::setup_controls, ctx)}});
+	// Queue menu control setup
+	ctx->function_queue.push(std::bind(game::menu::setup_controls, ctx));
 	
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
@@ -330,6 +321,24 @@ void exit(game::context* ctx)
 	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
+}
+
+static void update_value_text_content(game::context* ctx)
+{
+	bool fullscreen = ctx->app->is_fullscreen();
+	float resolution = ctx->render_resolution_scale;
+	bool v_sync = ctx->app->get_v_sync();
+	float font_size = ctx->font_size;
+	bool dyslexia_font = ctx->dyslexia_font;
+	
+	const std::string string_on = (*ctx->strings)["on"];
+	const std::string string_off = (*ctx->strings)["off"];
+	
+	std::get<1>(ctx->menu_item_texts[0])->set_content((fullscreen) ? string_on : string_off);
+	std::get<1>(ctx->menu_item_texts[1])->set_content(std::to_string(static_cast<int>(std::round(resolution * 100.0f))) + "%");
+	std::get<1>(ctx->menu_item_texts[2])->set_content((v_sync) ? string_on : string_off);
+	std::get<1>(ctx->menu_item_texts[3])->set_content(std::to_string(static_cast<int>(std::round(font_size * 100.0f))) + "%");
+	std::get<1>(ctx->menu_item_texts[4])->set_content((dyslexia_font) ? string_on : string_off);
 }
 
 } // namespace graphics_menu

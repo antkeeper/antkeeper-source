@@ -29,6 +29,7 @@
 #include "input/keyboard.hpp"
 #include "input/mouse.hpp"
 #include "input/gamepad.hpp"
+#include "utility/fundamental-types.hpp"
 
 // Forward declarations
 typedef struct SDL_Window SDL_Window;
@@ -192,16 +193,16 @@ public:
 	void add_game_controller_mappings(const void* mappings, std::size_t size);
 	
 	/// Returns the dimensions of the current display.
-	const std::array<int, 2>& get_display_dimensions() const;
+	const int2& get_display_dimensions() const;
 	
 	/// Returns the DPI of the display.
 	float get_display_dpi() const;
 	
 	/// Returns the dimensions of the window.
-	const std::array<int, 2>& get_window_dimensions() const;
+	const int2& get_window_dimensions() const;
 	
 	/// Returns the dimensions of the window's drawable viewport.
-	const std::array<int, 2>& get_viewport_dimensions() const;
+	const int2& get_viewport_dimensions() const;
 	
 	/// Returns `true` if the window is in fullscreen mode, `false` otherwise.
 	bool is_fullscreen() const;
@@ -243,11 +244,11 @@ private:
 	bool fullscreen;
 	bool v_sync;
 	bool cursor_visible;
-	std::array<int, 2> display_dimensions;
+	int2 display_dimensions;
 	float display_dpi;
-	std::array<int, 2> window_dimensions;
-	std::array<int, 2> viewport_dimensions;
-	std::array<int, 2> mouse_position;
+	int2 window_dimensions;
+	int2 viewport_dimensions;
+	int2 mouse_position;
 	double update_rate;
 	debug::logger* logger;
 
@@ -275,7 +276,7 @@ inline debug::logger* application::get_logger()
 	return logger;
 }
 
-inline const std::array<int, 2>& application::get_display_dimensions() const
+inline const int2& application::get_display_dimensions() const
 {
 	return display_dimensions;
 }
@@ -285,12 +286,12 @@ inline float application::get_display_dpi() const
 	return display_dpi;
 }
 
-inline const std::array<int, 2>& application::get_window_dimensions() const
+inline const int2& application::get_window_dimensions() const
 {
 	return window_dimensions;
 }
 
-inline const std::array<int, 2>& application::get_viewport_dimensions() const
+inline const int2& application::get_viewport_dimensions() const
 {
 	return viewport_dimensions;
 }
