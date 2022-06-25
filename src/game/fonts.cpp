@@ -66,16 +66,16 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	material.set_shader_program(shader_program);
 }
 
-void load_fonts(game::context* ctx)
+void load_fonts(game::context& ctx)
 {
 	// Load dyslexia-friendly typeface (if enabled)
 	bool dyslexia_font_loaded = false;
-	if (ctx->dyslexia_font)
+	if (ctx.dyslexia_font)
 	{
-		if (auto it = ctx->strings->find("font_dyslexia"); it != ctx->strings->end() && !it->second.empty() && it->second[0] != '#')
+		if (auto it = ctx.strings->find("font_dyslexia"); it != ctx.strings->end() && !it->second.empty() && it->second[0] != '#')
 		{
-			ctx->logger->log(it->second);
-			ctx->typefaces["dyslexia"] = ctx->resource_manager->load<type::typeface>(it->second);
+			ctx.logger->log(it->second);
+			ctx.typefaces["dyslexia"] = ctx.resource_manager->load<type::typeface>(it->second);
 			dyslexia_font_loaded = true;
 		}
 	}
@@ -84,19 +84,19 @@ void load_fonts(game::context* ctx)
 	if (dyslexia_font_loaded)
 	{
 		// Override standard typefaces with dyslexia-friendly typeface
-		ctx->typefaces["serif"] = ctx->typefaces["dyslexia"];
-		ctx->typefaces["sans_serif"] = ctx->typefaces["dyslexia"];
-		ctx->typefaces["monospace"] = ctx->typefaces["dyslexia"];
+		ctx.typefaces["serif"] = ctx.typefaces["dyslexia"];
+		ctx.typefaces["sans_serif"] = ctx.typefaces["dyslexia"];
+		ctx.typefaces["monospace"] = ctx.typefaces["dyslexia"];
 	}
 	else
 	{
 		// Load standard typefaces
-		if (auto it = ctx->strings->find("font_serif"); it != ctx->strings->end())
-			ctx->typefaces["serif"] = ctx->resource_manager->load<type::typeface>(it->second);
-		if (auto it = ctx->strings->find("font_sans_serif"); it != ctx->strings->end())
-			ctx->typefaces["sans_serif"] = ctx->resource_manager->load<type::typeface>(it->second);
-		if (auto it = ctx->strings->find("font_monospace"); it != ctx->strings->end())
-			ctx->typefaces["monospace"] = ctx->resource_manager->load<type::typeface>(it->second);
+		if (auto it = ctx.strings->find("font_serif"); it != ctx.strings->end())
+			ctx.typefaces["serif"] = ctx.resource_manager->load<type::typeface>(it->second);
+		if (auto it = ctx.strings->find("font_sans_serif"); it != ctx.strings->end())
+			ctx.typefaces["sans_serif"] = ctx.resource_manager->load<type::typeface>(it->second);
+		if (auto it = ctx.strings->find("font_monospace"); it != ctx.strings->end())
+			ctx.typefaces["monospace"] = ctx.resource_manager->load<type::typeface>(it->second);
 	}
 	
 	// Build character set
@@ -107,7 +107,7 @@ void load_fonts(game::context* ctx)
 			charset.insert(code);
 		
 		// Add all character codes from game strings
-		for (auto it = ctx->strings->begin(); it != ctx->strings->end(); ++it)
+		for (auto it = ctx.strings->begin(); it != ctx.strings->end(); ++it)
 		{
 			// Convert UTF-8 string to UTF-32
 			std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
@@ -120,49 +120,49 @@ void load_fonts(game::context* ctx)
 	}
 	
 	// Load bitmap font shader
-	gl::shader_program* bitmap_font_shader = ctx->resource_manager->load<gl::shader_program>("bitmap-font.glsl");
+	gl::shader_program* bitmap_font_shader = ctx.resource_manager->load<gl::shader_program>("bitmap-font.glsl");
 	
 	// Determine font point sizes
 	float debug_font_size_pt = 12.0f;
 	float menu_font_size_pt = 12.0f;
 	float title_font_size_pt = 12.0f;
-	if (ctx->config->contains("debug_font_size"))
-		debug_font_size_pt = (*ctx->config)["debug_font_size"].get<float>();
-	if (ctx->config->contains("menu_font_size"))
-		menu_font_size_pt = (*ctx->config)["menu_font_size"].get<float>();
-	if (ctx->config->contains("title_font_size"))
-		title_font_size_pt = (*ctx->config)["title_font_size"].get<float>();
+	if (ctx.config->contains("debug_font_size"))
+		debug_font_size_pt = (*ctx.config)["debug_font_size"].get<float>();
+	if (ctx.config->contains("menu_font_size"))
+		menu_font_size_pt = (*ctx.config)["menu_font_size"].get<float>();
+	if (ctx.config->contains("title_font_size"))
+		title_font_size_pt = (*ctx.config)["title_font_size"].get<float>();
 
 	// Scale font point sizes
-	const float font_size = (*ctx->config)["font_size"].get<float>();
+	const float font_size = (*ctx.config)["font_size"].get<float>();
 	debug_font_size_pt *= font_size;
 	menu_font_size_pt *= font_size;
 	title_font_size_pt *= font_size;
 	
 	// Convert font point sizes to pixel sizes
-	const float dpi = ctx->app->get_display_dpi();
+	const float dpi = ctx.app->get_display_dpi();
 	const float debug_font_size_px = (debug_font_size_pt * dpi) / 72.0f;
 	const float menu_font_size_px = (menu_font_size_pt * dpi) / 72.0f;
 	const float title_font_size_px = (title_font_size_pt * dpi) / 72.0f;
 	
-	ctx->logger->log("font size: " + std::to_string(menu_font_size_px));
+	ctx.logger->log("font size: " + std::to_string(menu_font_size_px));
 	
 	// Build debug font
-	if (auto it = ctx->typefaces.find("monospace"); it != ctx->typefaces.end())
+	if (auto it = ctx.typefaces.find("monospace"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, debug_font_size_px, charset, ctx->debug_font, ctx->debug_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, debug_font_size_px, charset, ctx.debug_font, ctx.debug_font_material, bitmap_font_shader);
 	}
 	
 	// Build menu font
-	if (auto it = ctx->typefaces.find("sans_serif"); it != ctx->typefaces.end())
+	if (auto it = ctx.typefaces.find("sans_serif"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, menu_font_size_px, charset, ctx->menu_font, ctx->menu_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, menu_font_size_px, charset, ctx.menu_font, ctx.menu_font_material, bitmap_font_shader);
 	}
 	
 	// Build title font
-	if (auto it = ctx->typefaces.find("serif"); it != ctx->typefaces.end())
+	if (auto it = ctx.typefaces.find("serif"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, title_font_size_px, charset, ctx->title_font, ctx->title_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, title_font_size_px, charset, ctx.title_font, ctx.title_font_material, bitmap_font_shader);
 	}
 }
 

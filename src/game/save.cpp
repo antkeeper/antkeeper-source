@@ -24,20 +24,20 @@
 
 namespace game {
 
-void save_config(game::context* ctx)
+void save_config(game::context& ctx)
 {
-	const std::string config_file_path = ctx->config_path + "config.json";
-	ctx->logger->push_task("Saving config to \"" + config_file_path + "\"");
+	std::filesystem::path path = ctx.config_path / "config.json";
+	ctx.logger->push_task("Saving config to \"" + path.string() + "\"");
 	try
 	{
-		std::ofstream config_file(config_file_path);
-		config_file << *(ctx->config);
+		std::ofstream config_file(path);
+		config_file << *(ctx.config);
 	}
 	catch (...)
 	{
-		ctx->logger->pop_task(EXIT_FAILURE);
+		ctx.logger->pop_task(EXIT_FAILURE);
 	}
-	ctx->logger->pop_task(EXIT_SUCCESS);
+	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
 } // namespace game

@@ -28,41 +28,41 @@
 namespace game {
 namespace menu {
 
-void init_menu_item_index(game::context* ctx, const std::string& menu_name)
+void init_menu_item_index(game::context& ctx, const std::string& menu_name)
 {
-	if (auto it = ctx->menu_item_indices.find(menu_name); it != ctx->menu_item_indices.end())
+	if (auto it = ctx.menu_item_indices.find(menu_name); it != ctx.menu_item_indices.end())
 	{
-		ctx->menu_item_index = &it->second;
+		ctx.menu_item_index = &it->second;
 	}
 	else
 	{
-		ctx->menu_item_index = &ctx->menu_item_indices[menu_name];
-		*ctx->menu_item_index = 0;
+		ctx.menu_item_index = &ctx.menu_item_indices[menu_name];
+		*ctx.menu_item_index = 0;
 	}
 }
 
-void update_text_font(game::context* ctx)
+void update_text_font(game::context& ctx)
 {
-	for (auto [name, value]: ctx->menu_item_texts)
+	for (auto [name, value]: ctx.menu_item_texts)
 	{
-		name->set_material(&ctx->menu_font_material);
-		name->set_font(&ctx->menu_font);
+		name->set_material(&ctx.menu_font_material);
+		name->set_font(&ctx.menu_font);
 		
 		if (value)
 		{
-			value->set_material(&ctx->menu_font_material);
-			value->set_font(&ctx->menu_font);
+			value->set_material(&ctx.menu_font_material);
+			value->set_font(&ctx.menu_font);
 		}
 	}
 }
 
-void update_text_color(game::context* ctx)
+void update_text_color(game::context& ctx)
 {
-	for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
+	for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 	{
-		auto [name, value] = ctx->menu_item_texts[i];
+		auto [name, value] = ctx.menu_item_texts[i];
 		
-		const float4& color = (i == *ctx->menu_item_index) ? active_color : inactive_color;
+		const float4& color = (i == *ctx.menu_item_index) ? active_color : inactive_color;
 		
 		name->set_color(color);
 		if (value)
@@ -70,9 +70,9 @@ void update_text_color(game::context* ctx)
 	}
 }
 
-void update_text_tweens(game::context* ctx)
+void update_text_tweens(game::context& ctx)
 {
-	for (auto [name, value]: ctx->menu_item_texts)
+	for (auto [name, value]: ctx.menu_item_texts)
 	{
 		name->update_tweens();
 		if (value)
@@ -80,13 +80,13 @@ void update_text_tweens(game::context* ctx)
 	}
 }
 
-void align_text(game::context* ctx, bool center, bool has_back, float anchor_y)
+void align_text(game::context& ctx, bool center, bool has_back, float anchor_y)
 {
 	// Calculate menu width
 	float menu_width = 0.0f;
-	float menu_spacing = ctx->menu_font.get_glyph_metrics(U'M').width;
+	float menu_spacing = ctx.menu_font.get_glyph_metrics(U'M').width;
 	
-	for (auto [name, value]: ctx->menu_item_texts)
+	for (auto [name, value]: ctx.menu_item_texts)
 	{
 		float row_width = 0.0f;
 		
@@ -110,23 +110,23 @@ void align_text(game::context* ctx, bool center, bool has_back, float anchor_y)
 	// Align texts
 	float menu_height;
 	if (has_back)
-		menu_height = (ctx->menu_item_texts.size() - 1) * ctx->menu_font.get_font_metrics().linespace - ctx->menu_font.get_font_metrics().linegap;
+		menu_height = (ctx.menu_item_texts.size() - 1) * ctx.menu_font.get_font_metrics().linespace - ctx.menu_font.get_font_metrics().linegap;
 	else
-		menu_height = ctx->menu_item_texts.size() * ctx->menu_font.get_font_metrics().linespace - ctx->menu_font.get_font_metrics().linegap;
+		menu_height = ctx.menu_item_texts.size() * ctx.menu_font.get_font_metrics().linespace - ctx.menu_font.get_font_metrics().linegap;
 	
 	float menu_x = -menu_width * 0.5f;
-	float menu_y = anchor_y + menu_height * 0.5f - ctx->menu_font.get_font_metrics().size;
+	float menu_y = anchor_y + menu_height * 0.5f - ctx.menu_font.get_font_metrics().size;
 	
-	for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
+	for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 	{
-		auto [name, value] = ctx->menu_item_texts[i];
+		auto [name, value] = ctx.menu_item_texts[i];
 		
 		float x = menu_x;
-		float y = menu_y - ctx->menu_font.get_font_metrics().linespace * i;
-		if (has_back && i == ctx->menu_item_texts.size() - 1)
-			y -= ctx->menu_font.get_font_metrics().linespace;
+		float y = menu_y - ctx.menu_font.get_font_metrics().linespace * i;
+		if (has_back && i == ctx.menu_item_texts.size() - 1)
+			y -= ctx.menu_font.get_font_metrics().linespace;
 		
-		if (center || i == ctx->menu_item_texts.size() - 1)
+		if (center || i == ctx.menu_item_texts.size() - 1)
 		{
 			const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_local_bounds());
 			const float name_width =  name_bounds.max_point.x - name_bounds.min_point.x;
@@ -140,7 +140,7 @@ void align_text(game::context* ctx, bool center, bool has_back, float anchor_y)
 			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_local_bounds());
 			const float value_width =  value_bounds.max_point.x - value_bounds.min_point.x;
 			
-			if (center || i == ctx->menu_item_texts.size() - 1)
+			if (center || i == ctx.menu_item_texts.size() - 1)
 				x = -value_width * 0.5f;
 			else
 				x = menu_x + menu_width - value_width;
@@ -150,9 +150,9 @@ void align_text(game::context* ctx, bool center, bool has_back, float anchor_y)
 	}
 }
 
-void refresh_text(game::context* ctx)
+void refresh_text(game::context& ctx)
 {
-	for (auto [name, value]: ctx->menu_item_texts)
+	for (auto [name, value]: ctx.menu_item_texts)
 	{
 		name->refresh();
 		if (value)
@@ -160,67 +160,67 @@ void refresh_text(game::context* ctx)
 	}
 }
 
-void add_text_to_ui(game::context* ctx)
+void add_text_to_ui(game::context& ctx)
 {
-	for (auto [name, value]: ctx->menu_item_texts)
+	for (auto [name, value]: ctx.menu_item_texts)
 	{
-		ctx->ui_scene->add_object(name);
+		ctx.ui_scene->add_object(name);
 		if (value)
-			ctx->ui_scene->add_object(value);
+			ctx.ui_scene->add_object(value);
 	}
 }
 
-void remove_text_from_ui(game::context* ctx)
+void remove_text_from_ui(game::context& ctx)
 {
-	for (auto [name, value]: ctx->menu_item_texts)
+	for (auto [name, value]: ctx.menu_item_texts)
 	{
-		ctx->ui_scene->remove_object(name);
+		ctx.ui_scene->remove_object(name);
 		if (value)
-			ctx->ui_scene->remove_object(value);
+			ctx.ui_scene->remove_object(value);
 	}
 }
 
-void delete_text(game::context* ctx)
+void delete_text(game::context& ctx)
 {
-	for (auto [name, value]: ctx->menu_item_texts)
+	for (auto [name, value]: ctx.menu_item_texts)
 	{
 		delete name;
 		if (value)
 			delete value;
 	}
-	ctx->menu_item_texts.clear();
+	ctx.menu_item_texts.clear();
 }
 
-void delete_animations(game::context* ctx)
+void delete_animations(game::context& ctx)
 {
-	ctx->animator->remove_animation(ctx->menu_fade_animation);
-	delete ctx->menu_fade_animation;
-	ctx->menu_fade_animation = nullptr;
+	ctx.animator->remove_animation(ctx.menu_fade_animation);
+	delete ctx.menu_fade_animation;
+	ctx.menu_fade_animation = nullptr;
 }
 
-void clear_callbacks(game::context* ctx)
+void clear_callbacks(game::context& ctx)
 {
 	// Clear menu item callbacks
-	ctx->menu_left_callbacks.clear();
-	ctx->menu_right_callbacks.clear();
-	ctx->menu_select_callbacks.clear();
-	ctx->menu_back_callback = nullptr;
+	ctx.menu_left_callbacks.clear();
+	ctx.menu_right_callbacks.clear();
+	ctx.menu_select_callbacks.clear();
+	ctx.menu_back_callback = nullptr;
 }
 
-void setup_animations(game::context* ctx)
+void setup_animations(game::context& ctx)
 {
-	ctx->menu_fade_animation = new animation<float>();
-	animation_channel<float>* opacity_channel = ctx->menu_fade_animation->add_channel(0);
+	ctx.menu_fade_animation = new animation<float>();
+	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->add_channel(0);
 	
-	ctx->menu_fade_animation->set_frame_callback
+	ctx.menu_fade_animation->set_frame_callback
 	(
-		[ctx](int channel, const float& opacity)
+		[&ctx](int channel, const float& opacity)
 		{
-			for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
+			for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 			{
-				auto [name, value] = ctx->menu_item_texts[i];
+				auto [name, value] = ctx.menu_item_texts[i];
 				
-				float4 color = (i == *ctx->menu_item_index) ? active_color : inactive_color;
+				float4 color = (i == *ctx.menu_item_index) ? active_color : inactive_color;
 				color[3] = color[3] * opacity;
 				
 				if (name)
@@ -231,23 +231,23 @@ void setup_animations(game::context* ctx)
 		}
 	);
 	
-	ctx->animator->add_animation(ctx->menu_fade_animation);
+	ctx.animator->add_animation(ctx.menu_fade_animation);
 }
 
-void fade_in(game::context* ctx, const std::function<void()>& end_callback)
+void fade_in(game::context& ctx, const std::function<void()>& end_callback)
 {
-	ctx->menu_fade_animation->set_interpolator(ease<float>::out_cubic);
-	animation_channel<float>* opacity_channel = ctx->menu_fade_animation->get_channel(0);
+	ctx.menu_fade_animation->set_interpolator(ease<float>::out_cubic);
+	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->get_channel(0);
 	opacity_channel->remove_keyframes();
 	opacity_channel->insert_keyframe({0.0, 0.0f});
 	opacity_channel->insert_keyframe({game::menu::fade_in_duration, 1.0f});
-	ctx->menu_fade_animation->set_end_callback(end_callback);
+	ctx.menu_fade_animation->set_end_callback(end_callback);
 	
-	for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
+	for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 	{
-		auto [name, value] = ctx->menu_item_texts[i];
+		auto [name, value] = ctx.menu_item_texts[i];
 		
-		float4 color = (i == *ctx->menu_item_index) ? active_color : inactive_color;
+		float4 color = (i == *ctx.menu_item_index) ? active_color : inactive_color;
 		color[3] = 0.0f;
 		
 		if (name)
@@ -262,106 +262,106 @@ void fade_in(game::context* ctx, const std::function<void()>& end_callback)
 		}
 	}
 	
-	ctx->menu_fade_animation->stop();
-	ctx->menu_fade_animation->play();
+	ctx.menu_fade_animation->stop();
+	ctx.menu_fade_animation->play();
 }
 
-void fade_out(game::context* ctx, const std::function<void()>& end_callback)
+void fade_out(game::context& ctx, const std::function<void()>& end_callback)
 {
-	ctx->menu_fade_animation->set_interpolator(ease<float>::out_cubic);
-	animation_channel<float>* opacity_channel = ctx->menu_fade_animation->get_channel(0);
+	ctx.menu_fade_animation->set_interpolator(ease<float>::out_cubic);
+	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->get_channel(0);
 	opacity_channel->remove_keyframes();
 	opacity_channel->insert_keyframe({0.0, 1.0f});
 	opacity_channel->insert_keyframe({game::menu::fade_out_duration, 0.0f});
-	ctx->menu_fade_animation->set_end_callback(end_callback);
+	ctx.menu_fade_animation->set_end_callback(end_callback);
 	
-	ctx->menu_fade_animation->stop();
-	ctx->menu_fade_animation->play();
+	ctx.menu_fade_animation->stop();
+	ctx.menu_fade_animation->play();
 }
 
-void fade_in_bg(game::context* ctx)
+void fade_in_bg(game::context& ctx)
 {
-	ctx->menu_bg_fade_out_animation->stop();
-	ctx->menu_bg_fade_in_animation->stop();
-	ctx->menu_bg_fade_in_animation->play();
+	ctx.menu_bg_fade_out_animation->stop();
+	ctx.menu_bg_fade_in_animation->stop();
+	ctx.menu_bg_fade_in_animation->play();
 }
 
-void fade_out_bg(game::context* ctx)
+void fade_out_bg(game::context& ctx)
 {
-	ctx->menu_bg_fade_in_animation->stop();
-	ctx->menu_bg_fade_out_animation->stop();
-	ctx->menu_bg_fade_out_animation->play();
+	ctx.menu_bg_fade_in_animation->stop();
+	ctx.menu_bg_fade_out_animation->stop();
+	ctx.menu_bg_fade_out_animation->play();
 }
 
-void setup_controls(game::context* ctx)
+void setup_controls(game::context& ctx)
 {	
-	ctx->controls["menu_up"]->set_activated_callback
+	ctx.controls["menu_up"]->set_activated_callback
 	(
-		[ctx]()
+		[&ctx]()
 		{
-			--(*ctx->menu_item_index);
-			if (*ctx->menu_item_index < 0)
-				*ctx->menu_item_index = ctx->menu_item_texts.size() - 1;
+			--(*ctx.menu_item_index);
+			if (*ctx.menu_item_index < 0)
+				*ctx.menu_item_index = ctx.menu_item_texts.size() - 1;
 			
 			update_text_color(ctx);
 		}
 	);
-	ctx->controls["menu_down"]->set_activated_callback
+	ctx.controls["menu_down"]->set_activated_callback
 	(
-		[ctx]()
+		[&ctx]()
 		{
-			++(*ctx->menu_item_index);
-			if (*ctx->menu_item_index >= ctx->menu_item_texts.size())
-				*ctx->menu_item_index = 0;
+			++(*ctx.menu_item_index);
+			if (*ctx.menu_item_index >= ctx.menu_item_texts.size())
+				*ctx.menu_item_index = 0;
 			
 			update_text_color(ctx);
 		}
 	);
-	ctx->controls["menu_left"]->set_activated_callback
+	ctx.controls["menu_left"]->set_activated_callback
 	(
-		[ctx]()
+		[&ctx]()
 		{
-			auto callback = ctx->menu_left_callbacks[*ctx->menu_item_index];
+			auto callback = ctx.menu_left_callbacks[*ctx.menu_item_index];
 			if (callback != nullptr)
 				callback();
 		}
 	);
-	ctx->controls["menu_right"]->set_activated_callback
+	ctx.controls["menu_right"]->set_activated_callback
 	(
-		[ctx]()
+		[&ctx]()
 		{
-			auto callback = ctx->menu_right_callbacks[*ctx->menu_item_index];
+			auto callback = ctx.menu_right_callbacks[*ctx.menu_item_index];
 			if (callback != nullptr)
 				callback();
 		}
 	);
-	ctx->controls["menu_select"]->set_activated_callback
+	ctx.controls["menu_select"]->set_activated_callback
 	(
-		[ctx]()
+		[&ctx]()
 		{
-			auto callback = ctx->menu_select_callbacks[*ctx->menu_item_index];
+			auto callback = ctx.menu_select_callbacks[*ctx.menu_item_index];
 			if (callback != nullptr)
 				callback();
 		}
 	);
-	ctx->controls["menu_back"]->set_activated_callback
+	ctx.controls["menu_back"]->set_activated_callback
 	(
-		[ctx]()
+		[&ctx]()
 		{
-			if (ctx->menu_back_callback != nullptr)
-				ctx->menu_back_callback();
+			if (ctx.menu_back_callback != nullptr)
+				ctx.menu_back_callback();
 		}
 	);
 	
-	ctx->menu_mouse_tracker->set_mouse_moved_callback
+	ctx.menu_mouse_tracker->set_mouse_moved_callback
 	(
-		[ctx](const mouse_moved_event& event)
+		[&ctx](const mouse_moved_event& event)
 		{
-			const float padding = game::menu::mouseover_padding * ctx->menu_font.get_font_metrics().size;
+			const float padding = game::menu::mouseover_padding * ctx.menu_font.get_font_metrics().size;
 			
-			for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
+			for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 			{
-				auto [name, value] = ctx->menu_item_texts[i];
+				auto [name, value] = ctx.menu_item_texts[i];
 				
 				const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
 				float min_x = name_bounds.min_point.x;
@@ -377,7 +377,7 @@ void setup_controls(game::context* ctx)
 					max_y = std::max<float>(max_y, value_bounds.max_point.y);
 				}
 				
-				const auto& viewport = ctx->app->get_viewport_dimensions();
+				const auto& viewport = ctx.app->get_viewport_dimensions();
 				const float x = static_cast<float>(event.x - viewport[0] / 2);
 				const float y = static_cast<float>((viewport[1] - event.y + 1) - viewport[1] / 2);
 				
@@ -390,7 +390,7 @@ void setup_controls(game::context* ctx)
 				{
 					if (y >= min_y && y <= max_y)
 					{
-						*ctx->menu_item_index = i;
+						*ctx.menu_item_index = i;
 						update_text_color(ctx);
 						break;
 					}
@@ -399,13 +399,13 @@ void setup_controls(game::context* ctx)
 		}
 	);
 	
-	ctx->menu_mouse_tracker->set_mouse_button_pressed_callback
+	ctx.menu_mouse_tracker->set_mouse_button_pressed_callback
 	(
-		[ctx](const mouse_button_pressed_event& event)
+		[&ctx](const mouse_button_pressed_event& event)
 		{
-			for (std::size_t i = 0; i < ctx->menu_item_texts.size(); ++i)
+			for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 			{
-				auto [name, value] = ctx->menu_item_texts[i];
+				auto [name, value] = ctx.menu_item_texts[i];
 				
 				const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
 				float min_x = name_bounds.min_point.x;
@@ -421,7 +421,7 @@ void setup_controls(game::context* ctx)
 					max_y = std::max<float>(max_y, value_bounds.max_point.y);
 				}
 				
-				const auto& viewport = ctx->app->get_viewport_dimensions();
+				const auto& viewport = ctx.app->get_viewport_dimensions();
 				const float x = static_cast<float>(event.x - viewport[0] / 2);
 				const float y = static_cast<float>((viewport[1] - event.y + 1) - viewport[1] / 2);
 				
@@ -429,18 +429,18 @@ void setup_controls(game::context* ctx)
 				{
 					if (y >= min_y && y <= max_y)
 					{
-						*ctx->menu_item_index = i;
+						*ctx.menu_item_index = i;
 						update_text_color(ctx);
 						
 						if (event.button == 1)
 						{
-							auto callback = ctx->menu_select_callbacks[i];
+							auto callback = ctx.menu_select_callbacks[i];
 							if (callback)
 								callback();
 						}
 						else if (event.button == 3)
 						{
-							auto callback = ctx->menu_left_callbacks[i];
+							auto callback = ctx.menu_left_callbacks[i];
 							if (callback)
 								callback();
 						}
@@ -453,17 +453,17 @@ void setup_controls(game::context* ctx)
 	);
 }
 
-void clear_controls(game::context* ctx)
+void clear_controls(game::context& ctx)
 {
-	ctx->controls["menu_up"]->set_activated_callback(nullptr);
-	ctx->controls["menu_down"]->set_activated_callback(nullptr);
-	ctx->controls["menu_left"]->set_activated_callback(nullptr);
-	ctx->controls["menu_right"]->set_activated_callback(nullptr);
-	ctx->controls["menu_select"]->set_activated_callback(nullptr);
-	ctx->controls["menu_back"]->set_activated_callback(nullptr);
+	ctx.controls["menu_up"]->set_activated_callback(nullptr);
+	ctx.controls["menu_down"]->set_activated_callback(nullptr);
+	ctx.controls["menu_left"]->set_activated_callback(nullptr);
+	ctx.controls["menu_right"]->set_activated_callback(nullptr);
+	ctx.controls["menu_select"]->set_activated_callback(nullptr);
+	ctx.controls["menu_back"]->set_activated_callback(nullptr);
 	
-	ctx->menu_mouse_tracker->set_mouse_moved_callback(nullptr);
-	ctx->menu_mouse_tracker->set_mouse_button_pressed_callback(nullptr);
+	ctx.menu_mouse_tracker->set_mouse_moved_callback(nullptr);
+	ctx.menu_mouse_tracker->set_mouse_button_pressed_callback(nullptr);
 }
 
 } // namespace menu

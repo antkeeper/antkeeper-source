@@ -24,7 +24,7 @@
 
 namespace game {
 
-void save_config(game::context* ctx);
+void save_config(game::context& ctx);
 
 } // namespace game
 

@@ -32,7 +32,7 @@ std::string echo(std::string text)
 
 std::string exit(game::context* ctx)
 {
-	ctx->app->close(EXIT_SUCCESS);
+	ctx->app->close();
 	return std::string();
 }
 

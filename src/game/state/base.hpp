@@ -17,17 +17,38 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_TOOLS_HPP
-#define ANTKEEPER_GAME_TOOLS_HPP
-
-#include "game/context.hpp"
-#include "entity/id.hpp"
+#ifndef ANTKEEPER_GAME_STATE_BASE_HPP
+#define ANTKEEPER_GAME_STATE_BASE_HPP
 
 namespace game {
 
-entity::id build_camera_tool(game::context& ctx);
-entity::id build_time_tool(game::context& ctx);
+struct context;
 
+namespace state {
+
+/**
+ * Abstract base class for game states.
+ */
+class base
+{
+public:
+	/**
+	 * Constructs a game state.
+	 *
+	 * @param ctx Reference to the game context on which this state will operate.
+	 */
+	base(game::context& ctx);
+	
+	/**
+	 * Destructs a game state.
+	 */
+	virtual ~base() = 0;
+	
+protected:
+	game::context& ctx;
+};
+
+} // namespace state
 } // namespace game
 
-#endif // ANTKEEPER_GAME_TOOLS_HPP
+#endif // ANTKEEPER_GAME_STATE_BASE_HPP

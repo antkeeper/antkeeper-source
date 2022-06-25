@@ -24,7 +24,7 @@
 
 namespace game {
 
-void load_fonts(game::context* ctx);
+void load_fonts(game::context& ctx);
 
 } // namespace game
 

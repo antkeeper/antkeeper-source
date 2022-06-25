@@ -52,6 +52,11 @@
 #include "render/material-property.hpp"
 #include "ui/mouse-tracker.hpp"
 #include "application.hpp"
+#include "game/state/base.hpp"
+#include "game/loop.hpp"
+#include "state-machine.hpp"
+#include "debug/performance-sampler.hpp"
+#include <filesystem>
 
 // Forward declarations
 class animator;
@@ -114,34 +119,49 @@ namespace game {
 /// Container for data that is shared between game states.
 struct context
 {
-	application* app;
+	/// Hierarchichal state machine
+	hsm::state_machine<game::state::base> state_machine;
+	std::function<void()> resume_callback;
+	
+	/// Debugging
 	debug::logger* logger;
 	std::ofstream log_filestream;
+	debug::performance_sampler performance_sampler;
+	debug::cli* cli;
 	
-	// Command-line options
-	std::optional<bool> option_continue;
-	std::optional<std::string> option_data;
-	std::optional<bool> option_fullscreen;
-	std::optional<bool> option_new_game;
-	std::optional<bool> option_quick_start;
-	std::optional<bool> option_reset;
-	std::optional<int> option_v_sync;
-	std::optional<bool> option_windowed;
+	/// Queue for scheduling "next frame" function calls
+	std::queue<std::function<void()>> function_queue;
+	
+	// Parallel processes
+	std::unordered_map<std::string, std::function<void(double, double)>> processes;
+	
+	/// Interface for window management and input events
+	application* app;
+	
+	// Controls
+	input::event_router* input_event_router;
+	input::mapper* input_mapper;
+	input::listener* input_listener;
+	std::unordered_map<std::string, input::control*> controls;
+	bool mouse_look;
+	
+	/// Game loop
+	game::loop loop;
 	
 	// Paths
-	std::string data_path;
-	std::string config_path;
-	std::string mods_path;
-	std::string saves_path;
-	std::string screenshots_path;
-	std::string controls_path;
-	std::string data_package_path;
-	
-	// Configuration
-	json* config;
+	std::filesystem::path data_path;
+	std::filesystem::path config_path;
+	std::filesystem::path mods_path;
+	std::filesystem::path saves_path;
+	std::filesystem::path screenshots_path;
+	std::filesystem::path controls_path;
+	std::filesystem::path data_package_path;
 	
 	// Resources
 	resource_manager* resource_manager;
+	
+	// Configuration
+	json* config;
 	
 	// Localization
 	std::string language_code;
@@ -252,14 +272,6 @@ struct context
 	animation<float>* credits_scroll_animation;
 	animation<float>* menu_bg_fade_in_animation;
 	animation<float>* menu_bg_fade_out_animation;
-
-	
-	// Controls
-	input::event_router* input_event_router;
-	input::mapper* input_mapper;
-	input::listener* input_listener;
-	std::unordered_map<std::string, input::control*> controls;
-	bool mouse_look;
 	
 	// Sound
 	float master_volume;
@@ -268,9 +280,6 @@ struct context
 	bool mono_audio;
 	bool captions;
 	float captions_size;
-	
-	// Parallel processes
-	std::unordered_map<std::string, std::function<void(double, double)>> processes;
 
 	// Entities
 	entity::registry* entity_registry;
@@ -295,15 +304,6 @@ struct context
 	entity::system::astronomy* astronomy_system;
 	entity::system::orbit* orbit_system;
 	entity::system::proteome* proteome_system;
-	
-	// State management
-	std::optional<application::state> paused_state;
-	
-	// Misc
-	std::queue<std::function<void()>> function_queue;
-	
-	// Debug
-	debug::cli* cli;
 };
 
 } // namespace game

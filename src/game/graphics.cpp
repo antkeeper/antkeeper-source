@@ -23,6 +23,11 @@
 #include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
 #include "debug/logger.hpp"
+#include "utility/timestamp.hpp"
+#include <glad/glad.h>
+#include <stb/stb_image_write.h>
+#include <thread>
+#include <filesystem>
 
 namespace game {
 namespace graphics {
@@ -139,6 +144,38 @@ void change_render_resolution(game::context& ctx, float scale)
 void resize_framebuffer_attachment(gl::texture_2d& texture, const int2& resolution)
 {
 	texture.resize(resolution.x, resolution.y, texture.get_pixel_type(), texture.get_pixel_format(), texture.get_color_space(), nullptr);
+}
+
+void save_screenshot(game::context& ctx)
+{
+	// Determine screenshot path
+	std::string filename = "antkeeper-" + timestamp() + ".png";
+	std::filesystem::path path = ctx.config_path / "gallery" / filename;
+	
+	ctx.logger->push_task("Saving screenshot to \"" + path.string() + "\"");
+	
+	const int2& viewport_dimensions = ctx.app->get_viewport_dimensions();
+	
+	// Allocate image
+	std::shared_ptr<image> frame = std::make_shared<image>();
+	frame->format(1, 3);
+	frame->resize(viewport_dimensions.x, viewport_dimensions.y);
+	
+	// Read pixel data from backbuffer into image
+	glReadBuffer(GL_BACK);
+	glReadPixels(0, 0, viewport_dimensions.x, viewport_dimensions.y, GL_RGB, GL_UNSIGNED_BYTE, frame->get_pixels());
+	
+	// Write screenshot file in separate thread
+	std::thread
+	(
+		[frame, path]
+		{
+			stbi_flip_vertically_on_write(1);
+			stbi_write_png(path.string().c_str(), frame->get_width(), frame->get_height(), frame->get_channel_count(), frame->get_pixels(), frame->get_width() * frame->get_channel_count());
+		}
+	).detach();
+	
+	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
 } // namespace graphics

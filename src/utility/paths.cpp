@@ -48,9 +48,9 @@
 	}
 #endif
 
-std::string get_executable_path()
+std::filesystem::path get_executable_path()
 {
-	std::string executable_path;
+	std::filesystem::path executable_path;
 	
 	#if defined(_WIN32)
 		// Get executable path on Windows
@@ -73,38 +73,29 @@ std::string get_executable_path()
 	return executable_path;
 }
 
-std::string get_data_path(const std::string& application_name)
+std::filesystem::path get_data_path(const std::string& application_name)
 {
-	std::string data_path;
-	
 	#if defined(_WIN32)
-		std::string executable_path = get_executable_path();
-		std::size_t delimeter =  executable_path.find_last_of("\\/") + 1;
-		data_path = executable_path.substr(0, delimeter);
+		return get_executable_path().parent_path();
 	#else
-		std::string executable_path = get_executable_path();
-		std::size_t delimeter =  executable_path.find_last_of("\\/") + 1;
-		data_path = executable_path.substr(0, delimeter) + std::string("../share/") + application_name + std::string("/");
+		return get_executable_path().parent_path().parent_path() / "share" / application_name;
 	#endif
-	
-	return data_path;
 }
 
-std::string get_config_path(const std::string& application_name)
+std::filesystem::path get_config_path(const std::string& application_name)
 {
-	std::string config_path;
+	std::filesystem::path config_path;
 	
 	#if defined(_WIN32)
 		std::wstring wpath(MAX_PATH, L'\0');
 		if (SHGetSpecialFolderPathW(nullptr, &wpath[0], CSIDL_LOCAL_APPDATA, FALSE))
 		{
 			wpath.erase(std::find(wpath.begin(), wpath.end(), L'\0'), wpath.end());
-			config_path = narrow(wpath);
-			config_path += std::string("\\") + application_name + std::string("\\");
+			config_path = std::filesystem::path(narrow(wpath)) / application_name;
 		}
 	#else
 		// Determine home path
-		std::string home_path = std::string(getpwuid(getuid())->pw_dir);
+		std::filesystem::path home_path = getpwuid(getuid())->pw_dir;
 
 		// Determine config path
 		char* xdgConfigHome = std::getenv("XDG_CONFIG_HOME");
@@ -112,36 +103,13 @@ std::string get_config_path(const std::string& application_name)
 		{
 			// Default to $HOME/.config/ as per:
 			// https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
-			config_path = home_path + std::string("/.config/") + application_name + std::string("/");
+			config_path = home_path / ".config/" / application_name;
 		}
 		else
 		{
-			config_path = xdgConfigHome + std::string("/") + application_name + std::string("/");
+			config_path = std::filesystem::path(xdgConfigHome) / application_name;
 		}
 	#endif
 	
 	return config_path;
 }
-
-bool path_exists(const std::string& path)
-{
-	#if defined(_WIN32)
-		std::wstring wpath = widen(path);
-		DWORD attributes = GetFileAttributesW(wpath.c_str());
-		return (attributes != INVALID_FILE_ATTRIBUTES);
-	#else
-		struct stat info;
-		return (stat(path.c_str(), &info) == 0);
-	#endif
-}
-
-bool create_directory(const std::string& path)
-{
-	#if defined(_WIN32)
-		std::wstring wpath = widen(path);
-		return (CreateDirectoryW(wpath.c_str(), nullptr) != 0);
-	#else 
-		return (mkdir(path.c_str(), 0777) == 0);
-	#endif
-}
-

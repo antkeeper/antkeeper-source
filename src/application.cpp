@@ -17,10 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "animation/frame-scheduler.hpp"
 #include "application.hpp"
 #include "debug/logger.hpp"
-#include "debug/performance-sampler.hpp"
 #include "event/event-dispatcher.hpp"
 #include "event/window-events.hpp"
 #include "input/scancode.hpp"
@@ -31,18 +29,11 @@
 #include <glad/glad.h>
 #include <stdexcept>
 #include <utility>
-#include <thread>
-#include <stb/stb_image_write.h>
 #include <iostream>
 #include <iomanip>
 
 application::application():
 	closed(false),
-	exit_status(EXIT_SUCCESS),
-	current_state{std::string(), nullptr, nullptr},
-	queued_state{std::string(), nullptr, nullptr},
-	update_callback(nullptr),
-	render_callback(nullptr),
 	fullscreen(true),
 	v_sync(false),
 	cursor_visible(true),
@@ -51,7 +42,6 @@ application::application():
 	window_dimensions({0, 0}),
 	viewport_dimensions({0, 0}),
 	mouse_position({0, 0}),
-	update_rate(60.0),
 	logger(nullptr),
 	sdl_window(nullptr),
 	sdl_gl_context(nullptr)
@@ -213,18 +203,7 @@ application::application():
 	mouse->set_event_dispatcher(event_dispatcher);
 	
 	// Connect gamepads
-	translate_sdl_events();
-
-	// Setup frame scheduler
-	frame_scheduler = new ::frame_scheduler();
-	frame_scheduler->set_update_callback(std::bind(&application::update, this, std::placeholders::_1, std::placeholders::_2));
-	frame_scheduler->set_render_callback(std::bind(&application::render, this, std::placeholders::_1));
-	frame_scheduler->set_update_rate(update_rate);
-	frame_scheduler->set_max_frame_duration(0.25);
-
-	// Setup performance sampling
-	performance_sampler = new debug::performance_sampler();
-	performance_sampler->set_sample_size(15);
+	process_events();
 }
 
 application::~application()
@@ -240,186 +219,9 @@ application::~application()
 	SDL_Quit();
 }
 
-void application::close(int status)
+void application::close()
 {
 	closed = true;
-	exit_status = status;
-}
-
-int application::execute(const application::state& initial_state)
-{
-	try
-	{
-		// Enter initial application state
-		change_state(initial_state);
-		
-		// Perform initial update
-		update(0.0, 0.0);
-		
-		// Reset frame scheduler
-		frame_scheduler->reset();
-
-		// Schedule frames until closed
-		while (!closed)
-		{
-			translate_sdl_events();
-			
-			// Enter queued state (if any)
-			if (queued_state.enter != nullptr || queued_state.exit != nullptr)
-			{
-				// Make a copy of the queued state
-				application::state queued_state_copy = queued_state;
-				
-				// Clear the queued state
-				queued_state = {std::string(), nullptr, nullptr};
-				
-				// Enter the queued state
-				change_state(queued_state_copy);
-			}
-			
-			// Tick frame scheduler
-			frame_scheduler->tick();
-
-			// Sample frame duration
-			performance_sampler->sample(frame_scheduler->get_frame_duration());
-		}
-		
-		// Exit current state
-		change_state({std::string(), nullptr, nullptr});
-	}
-	catch (const std::exception& e)
-	{
-		// Print exception to logger
-		logger->error(std::string("Unhandled exception: \"") + e.what() + std::string("\""));
-		
-		// Show error message box with unhandled exception
-		SDL_ShowSimpleMessageBox
-		(
-			SDL_MESSAGEBOX_ERROR,
-			"Unhandled Exception",
-			e.what(),
-			sdl_window
-		);
-		
-		// Set exit status to failure
-		exit_status = EXIT_FAILURE;
-	}
-	
-	return exit_status;
-}
-
-void application::change_state(const application::state& next_state)
-{
-	// Exit current state
-	if (current_state.exit)
-	{
-		logger->push_task("Exiting application state \"" + current_state.name + "\"");
-		
-		try
-		{
-			current_state.exit();
-		}
-		catch (...)
-		{
-			logger->pop_task(EXIT_FAILURE);
-			throw;
-		}
-		logger->pop_task(EXIT_SUCCESS);
-	}
-	
-	current_state = next_state;
-	
-	// Enter next state
-	if (current_state.enter)
-	{
-		logger->push_task("Entering application state \"" + current_state.name + "\"");
-		
-		try
-		{
-			current_state.enter();
-		}
-		catch (...)
-		{
-			logger->pop_task(EXIT_FAILURE);
-			throw;
-		}
-		logger->pop_task(EXIT_SUCCESS);
-	}
-	
-	// Enter queued state (if any)
-	if (queued_state.enter != nullptr || queued_state.exit != nullptr)
-	{
-		// Make a copy of the queued state
-		application::state queued_state_copy = queued_state;
-		
-		// Clear the queued state
-		queued_state = {std::string(), nullptr, nullptr};
-		
-		// Enter the queued state
-		change_state(queued_state_copy);
-	}
-}
-
-void application::queue_state(const application::state& next_state)
-{
-	queued_state = next_state;
-	logger->log("Queued application state \"" + queued_state.name + "\"");
-}
-
-std::shared_ptr<image> application::capture_frame() const
-{
-	int w = viewport_dimensions[0];
-	int h = viewport_dimensions[1];
-	
-	std::shared_ptr<image> frame = std::make_shared<image>();
-	frame->format(1, 3);
-	frame->resize(w, h);
-	
-	logger->log("starting read");
-
-	// Read pixel data from framebuffer into image
-	glReadBuffer(GL_BACK);
-	
-	logger->log("buffer read");
-	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, frame->get_pixels());
-	
-	logger->log("ending read");
-	
-	return std::move(frame);
-}
-
-void application::save_frame(const std::string& path) const
-{
-	logger->push_task("Saving screenshot to \"" + path + "\"");
-	
-	auto frame = capture_frame();
-	
-	std::thread
-	(
-		[frame, path]
-		{
-			stbi_flip_vertically_on_write(1);
-			stbi_write_png(path.c_str(), frame->get_width(), frame->get_height(), frame->get_channel_count(), frame->get_pixels(), frame->get_width() * frame->get_channel_count());
-		}
-	).detach();
-	
-	logger->pop_task(EXIT_SUCCESS);
-}
-
-void application::set_update_callback(const update_callback_type& callback)
-{
-	update_callback = callback;
-}
-
-void application::set_render_callback(const render_callback_type& callback)
-{
-	render_callback = callback;
-}
-
-void application::set_update_rate(double frequency)
-{
-	update_rate = frequency;
-	frame_scheduler->set_update_rate(update_rate);
 }
 
 void application::set_title(const std::string& title)
@@ -563,45 +365,7 @@ void application::add_game_controller_mappings(const void* mappings, std::size_t
 	}
 }
 
-void application::update(double t, double dt)
-{
-	translate_sdl_events();
-	event_dispatcher->update(t);
-	
-	if (update_callback)
-	{
-		update_callback(t, dt);
-	}
-	
-	/*
-	static int frame =  0;
-	if (frame % 60 == 0)
-	{
-		std::cout << std::fixed;
-		std::cout << std::setprecision(2);
-		std::cout << performance_sampler->mean_frame_duration() * 1000.0 << "\n";
-	}
-	++frame;
-	*/
-}
-
-void application::render(double alpha)
-{
-	/*
-	std::cout << std::fixed;
-	std::cout << std::setprecision(2);
-	std::cout << performance_sampler->mean_frame_duration() * 1000.0 << std::endl;
-	*/
-	
-	if (render_callback)
-	{
-		render_callback(alpha);
-	}
-	
-	SDL_GL_SwapWindow(sdl_window);
-}
-
-void application::translate_sdl_events()
+void application::process_events()
 {
 	// Mouse motion event accumulators
 	bool mouse_motion = false;
@@ -787,7 +551,7 @@ void application::translate_sdl_events()
 
 			case SDL_QUIT:
 			{
-				close(EXIT_SUCCESS);
+				close();
 				break;
 			}
 		}

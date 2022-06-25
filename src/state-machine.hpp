@@ -17,17 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_TOOLS_HPP
-#define ANTKEEPER_GAME_TOOLS_HPP
+#ifndef ANTKEEPER_HSM_STATE_MACHINE_HPP
+#define ANTKEEPER_HSM_STATE_MACHINE_HPP
 
-#include "game/context.hpp"
-#include "entity/id.hpp"
+#include <memory>
+#include <stack>
 
-namespace game {
+/// Hierarchical State Machine (HSM)
+namespace hsm {
 
-entity::id build_camera_tool(game::context& ctx);
-entity::id build_time_tool(game::context& ctx);
+/**
+ * Stack-based hierarchical state machine.
+ *
+ * @tparam T State type.
+ */
+template <typename T>
+using state_machine = std::stack<std::unique_ptr<T>>;
 
-} // namespace game
+} // namespace hsm
 
-#endif // ANTKEEPER_GAME_TOOLS_HPP
+#endif // ANTKEEPER_HSM_STATE_MACHINE_HPP

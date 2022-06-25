@@ -25,82 +25,82 @@
 #include "entity/components/celestial-body.hpp"
 #include "utility/timestamp.hpp"
 #include "render/material.hpp"
+#include "game/graphics.hpp"
 
 namespace game {
 
-entity::id build_camera_tool(game::context* ctx)
+entity::id build_camera_tool(game::context& ctx)
 {
 	// Create camera tool entity
-	entity::id tool_eid = ctx->entity_registry->create();
+	entity::id tool_eid = ctx.entity_registry->create();
 	
 	// Create tool component
 	entity::component::tool tool;
 	
 	// Setup tool activated callback
-	tool.activated = [ctx]()
+	tool.activated = [&ctx]()
 	{
-		if (!ctx->camera_flash_animation->is_stopped())
+		if (!ctx.camera_flash_animation->is_stopped())
 			return;
 		
-		std::string path = ctx->screenshots_path + "antkeeper-" + timestamp() + ".png";
-		ctx->app->save_frame(path);
+		game::graphics::save_screenshot(ctx);
 		
-		render::material_property<float4>* tint = static_cast<render::material_property<float4>*>(ctx->camera_flash_billboard->get_material()->get_property("tint"));
+		render::material_property<float4>* tint = static_cast<render::material_property<float4>*>(ctx.camera_flash_billboard->get_material()->get_property("tint"));
 		tint->set_value({1.0f, 1.0f, 1.0f, 1.0f});
-		ctx->camera_flash_billboard->get_material()->update_tweens();
-		ctx->ui_scene->add_object(ctx->camera_flash_billboard);
+		ctx.camera_flash_billboard->get_material()->update_tweens();
+		ctx.ui_scene->add_object(ctx.camera_flash_billboard);
 		
-		ctx->camera_flash_animation->set_end_callback
+		ctx.camera_flash_animation->set_end_callback
 		(
-			[ctx]()
+			[&ctx]()
 			{
-				ctx->ui_scene->remove_object(ctx->camera_flash_billboard);
+				ctx.ui_scene->remove_object(ctx.camera_flash_billboard);
 			}
 		);
 		
-		ctx->camera_flash_animation->set_frame_callback
+		ctx.camera_flash_animation->set_frame_callback
 		(
-			[ctx, tint](int channel, const float& opacity)
+			[&ctx, tint](int channel, const float& opacity)
 			{
 				
 				tint->set_value({1.0f, 1.0f, 1.0f, opacity});
 			}
 		);
 		
-		ctx->animator->remove_animation(ctx->camera_flash_animation);
-		ctx->animator->add_animation(ctx->camera_flash_animation);
-		ctx->camera_flash_animation->rewind();
-		ctx->camera_flash_animation->play();
+		ctx.animator->remove_animation(ctx.camera_flash_animation);
+		ctx.animator->add_animation(ctx.camera_flash_animation);
+		ctx.camera_flash_animation->rewind();
+		ctx.camera_flash_animation->play();
 	};
 	
 	// Add tool component to camera tool entity
-	ctx->entity_registry->assign<entity::component::tool>(tool_eid, tool);
+	ctx.entity_registry->assign<entity::component::tool>(tool_eid, tool);
 	
 	return tool_eid;
 }
 
-entity::id build_time_tool(game::context* ctx)
+entity::id build_time_tool(game::context& ctx)
 {
 	// Create time tool entity
-	entity::id tool_eid = ctx->entity_registry->create();
+	entity::id tool_eid = ctx.entity_registry->create();
 	
 	// Create tool component
 	entity::component::tool tool;
 	
 	// Setup tool active calback
-	tool.active = [ctx]()
+	tool.active = [&ctx]()
 	{
-		auto [mouse_x, mouse_y] = ctx->app->get_mouse()->get_current_position();
-		auto [window_w, window_h] = ctx->app->get_viewport_dimensions();
+		auto [mouse_x, mouse_y] = ctx.app->get_mouse()->get_current_position();
+		auto [window_w, window_h] = ctx.app->get_viewport_dimensions();
 		
-		entity::id planet_eid = ctx->entities["planet"];
-		entity::component::celestial_body body = ctx->entity_registry->get<entity::component::celestial_body>(planet_eid);
+		entity::id planet_eid = ctx.entities["planet"];
+		entity::component::celestial_body body = ctx.entity_registry->get<entity::component::celestial_body>(planet_eid);
 		body.axial_rotation = math::radians(360.0f) * ((float)mouse_x / (float)window_w);
-		ctx->entity_registry->replace<entity::component::celestial_body>(planet_eid, body);
+		ctx.entity_registry->replace<entity::component::celestial_body>(planet_eid, body);
 	};
 	
 	// Add tool component to time tool entity
-	ctx->entity_registry->assign<entity::component::tool>(tool_eid, tool);
+	ctx.entity_registry->assign<entity::component::tool>(tool_eid, tool);
 	
 	return tool_eid;
 }

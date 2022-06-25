@@ -28,22 +28,22 @@ namespace game {
 namespace world {
 
 /// Creates the fixed stars.
-void create_stars(game::context* ctx);
+void create_stars(game::context& ctx);
 
 /// Creates the sun.
-void create_sun(game::context* ctx);
+void create_sun(game::context& ctx);
 
 /// Creates the planet.
-void create_planet(game::context* ctx);
+void create_planet(game::context& ctx);
 
 /// Creates the moon.
-void create_moon(game::context* ctx);
+void create_moon(game::context& ctx);
 
 /// Sets the current time.
-void set_time(game::context* ctx, double t);
+void set_time(game::context& ctx, double t);
 
 /// Sets rate at which time passes.
-void set_time_scale(game::context* ctx, double scale);
+void set_time_scale(game::context& ctx, double scale);
 
 } // namespace menu
 } // namespace game

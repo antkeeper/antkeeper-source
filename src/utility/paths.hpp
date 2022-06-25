@@ -20,6 +20,7 @@
 #ifndef ANTKEEPER_PATHS_HPP
 #define ANTKEEPER_PATHS_HPP
 
+#include <filesystem>
 #include <string>
 
 /**
@@ -27,7 +28,7 @@
  *
  * @return Path to the application's executable.
  */
-std::string get_executable_path();
+std::filesystem::path get_executable_path();
 
 /**
  * Returns the absolute path to the directory containing application data.
@@ -38,7 +39,7 @@ std::string get_executable_path();
  * @param application_name Name of the application.
  * @return Path to the application's data directory.
  */
-std::string get_data_path(const std::string& application_name);
+std::filesystem::path get_data_path(const std::string& application_name);
 
 /**
  * Returns the absolute path to the directory containing user-specific application data.
@@ -49,13 +50,7 @@ std::string get_data_path(const std::string& application_name);
  * @param application_name Name of the application.
  * @return Path to the application's config directory.
  */
-std::string get_config_path(const std::string& application_name);
-
-/// Checks if a file or directory exists
-bool path_exists(const std::string& path);
-
-/// Creates a directory
-bool create_directory(const std::string& path);
+std::filesystem::path get_config_path(const std::string& application_name);
 
 #endif // ANTKEEPER_PATHS_HPP
 

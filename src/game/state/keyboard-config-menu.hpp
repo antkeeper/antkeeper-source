@@ -17,17 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_TOOLS_HPP
-#define ANTKEEPER_GAME_TOOLS_HPP
+#ifndef ANTKEEPER_GAME_STATE_KEYBOARD_CONFIG_MENU_HPP
+#define ANTKEEPER_GAME_STATE_KEYBOARD_CONFIG_MENU_HPP
 
-#include "game/context.hpp"
-#include "entity/id.hpp"
+#include "game/state/base.hpp"
+#include "input/control.hpp"
+#include <string>
 
 namespace game {
+namespace state {
 
-entity::id build_camera_tool(game::context& ctx);
-entity::id build_time_tool(game::context& ctx);
+class keyboard_config_menu: public game::state::base
+{
+public:
+	keyboard_config_menu(game::context& ctx);
+	virtual ~keyboard_config_menu();
+	
+private:
+	std::string get_binding_string(input::control* control);
+	void add_control_item(const std::string& control_name);
+};
 
+} // namespace state
 } // namespace game
 
-#endif // ANTKEEPER_GAME_TOOLS_HPP
+#endif // ANTKEEPER_GAME_STATE_KEYBOARD_CONFIG_MENU_HPP

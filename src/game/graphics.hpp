@@ -28,6 +28,7 @@ namespace graphics {
 void create_framebuffers(game::context& ctx);
 void destroy_framebuffers(game::context& ctx);
 void change_render_resolution(game::context& ctx, float scale);
+void save_screenshot(game::context& ctx);
 
 } // namespace graphics
 } // namespace game

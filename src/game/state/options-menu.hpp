@@ -17,17 +17,22 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_TOOLS_HPP
-#define ANTKEEPER_GAME_TOOLS_HPP
+#ifndef ANTKEEPER_GAME_STATE_OPTIONS_MENU_HPP
+#define ANTKEEPER_GAME_STATE_OPTIONS_MENU_HPP
 
-#include "game/context.hpp"
-#include "entity/id.hpp"
+#include "game/state/base.hpp"
 
 namespace game {
+namespace state {
 
-entity::id build_camera_tool(game::context& ctx);
-entity::id build_time_tool(game::context& ctx);
+class options_menu: public game::state::base
+{
+public:
+	options_menu(game::context& ctx);
+	virtual ~options_menu();
+};
 
+} // namespace state
 } // namespace game
 
-#endif // ANTKEEPER_GAME_TOOLS_HPP
+#endif // ANTKEEPER_GAME_STATE_OPTIONS_MENU_HPP

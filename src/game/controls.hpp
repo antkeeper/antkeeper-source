@@ -23,6 +23,7 @@
 #include "game/context.hpp"
 #include "resources/json.hpp"
 #include "input/gamepad.hpp"
+#include <filesystem>
 
 namespace game {
 
@@ -32,14 +33,14 @@ namespace game {
  * @param ctx Game context.
  * @param profile Control profile.
  */
-void apply_control_profile(game::context* ctx, const json& profile);
+void apply_control_profile(game::context& ctx, const json& profile);
 
 /**
  * Saves the current control profile.
  *
  * @param ctx Game context.
  */
-void save_control_profile(game::context* ctx);
+void save_control_profile(game::context& ctx);
 
 /**
  * Generates a default control profile.
@@ -51,7 +52,7 @@ json default_control_profile();
 /**
  * Returns a string containing the path to the gamepad calibration file.
  */
-std::string gamepad_calibration_path(const game::context* ctx, const input::gamepad* gamepad);
+std::filesystem::path gamepad_calibration_path(const game::context& ctx, const input::gamepad& gamepad);
 
 /**
  * Generates default gamepad calibration settings.
@@ -67,7 +68,7 @@ json default_gamepad_calibration();
  * @param gamepad Gamepad for which to load calibration settings.
  * @return Gamepad calibration settings, or `nullptr` if not loaded.
  */
-json* load_gamepad_calibration(game::context* ctx, input::gamepad* gamepad);
+json* load_gamepad_calibration(game::context& ctx, const input::gamepad& gamepad);
 
 /**
  * Saves gamepad calibration settings.
@@ -76,7 +77,7 @@ json* load_gamepad_calibration(game::context* ctx, input::gamepad* gamepad);
  * @param gamepad Gamepad for which to save calibration settings.
  * @return `true` if calibration settings were successfully saved, `false` otherwise.
  */
-bool save_gamepad_calibration(const game::context* ctx, const input::gamepad* gamepad, const json& calibration);
+bool save_gamepad_calibration(const game::context& ctx, const input::gamepad& gamepad, const json& calibration);
 
 /**
  * Applies gamepad calibration settings.
@@ -84,7 +85,7 @@ bool save_gamepad_calibration(const game::context* ctx, const input::gamepad* ga
  * @param gamepad Gamepad to calibrate.
  * @param calibration JSON element containing gamepad calibration settings.
  */
-void apply_gamepad_calibration(input::gamepad* gamepad, const json& calibration);
+void apply_gamepad_calibration(input::gamepad& gamepad, const json& calibration);
 
 } // namespace game
 

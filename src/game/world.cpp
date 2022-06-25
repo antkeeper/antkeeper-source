@@ -53,10 +53,10 @@
 namespace game {
 namespace world {
 
-void create_stars(game::context* ctx)
+void create_stars(game::context& ctx)
 {
 	// Load star catalog
-	string_table* star_catalog = ctx->resource_manager->load<string_table>("stars.csv");
+	string_table* star_catalog = ctx.resource_manager->load<string_table>("stars.csv");
 	
 	// Allocate star catalog vertex data
 	std::size_t star_count = 0;
@@ -130,7 +130,7 @@ void create_stars(game::context* ctx)
 	}
 	
 	// Unload star catalog
-	ctx->resource_manager->unload("stars.csv");
+	ctx.resource_manager->unload("stars.csv");
 	
 	// Allocate stars model
 	render::model* stars_model = new render::model();
@@ -170,7 +170,7 @@ void create_stars(game::context* ctx)
 	vao->bind(render::vertex_attribute::color, color_attribute);
 	
 	// Load star material
-	render::material* star_material = ctx->resource_manager->load<render::material>("fixed-star.mtl");
+	render::material* star_material = ctx.resource_manager->load<render::material>("fixed-star.mtl");
 	
 	// Create model group
 	render::model_group* stars_model_group = stars_model->add_group("stars");
@@ -180,15 +180,15 @@ void create_stars(game::context* ctx)
 	stars_model_group->set_index_count(star_count);
 	
 	// Pass stars model to sky pass
-	ctx->surface_sky_pass->set_stars_model(stars_model);
+	ctx.surface_sky_pass->set_stars_model(stars_model);
 }
 
-void create_sun(game::context* ctx)
+void create_sun(game::context& ctx)
 {
 	// Create sun entity
-	entity::archetype* sun_archetype = ctx->resource_manager->load<entity::archetype>("sun.ent");
-	entity::id sun_eid = sun_archetype->create(*ctx->entity_registry);
-	ctx->entities["sun"] = sun_eid;
+	entity::archetype* sun_archetype = ctx.resource_manager->load<entity::archetype>("sun.ent");
+	entity::id sun_eid = sun_archetype->create(*ctx.entity_registry);
+	ctx.entities["sun"] = sun_eid;
 	
 	// Create direct sun light scene object
 	scene::directional_light* sun_direct = new scene::directional_light();
@@ -200,20 +200,20 @@ void create_sun(game::context* ctx)
 	sun_ambient->update_tweens();
 	
 	// Add sun light scene objects to surface scene
-	ctx->surface_scene->add_object(sun_direct);
-	ctx->surface_scene->add_object(sun_ambient);
+	ctx.surface_scene->add_object(sun_direct);
+	ctx.surface_scene->add_object(sun_ambient);
 	
 	// Pass direct sun light scene object to shadow map pass and astronomy system
-	ctx->surface_shadow_map_pass->set_light(sun_direct);
-	ctx->astronomy_system->set_sun_light(sun_direct);
+	ctx.surface_shadow_map_pass->set_light(sun_direct);
+	ctx.astronomy_system->set_sun_light(sun_direct);
 }
 
-void create_planet(game::context* ctx)
+void create_planet(game::context& ctx)
 {
 	// Create planet entity
-	entity::archetype* planet_archetype = ctx->resource_manager->load<entity::archetype>("planet.ent");
-	entity::id planet_eid = planet_archetype->create(*ctx->entity_registry);
-	ctx->entities["planet"] = planet_eid;
+	entity::archetype* planet_archetype = ctx.resource_manager->load<entity::archetype>("planet.ent");
+	entity::id planet_eid = planet_archetype->create(*ctx.entity_registry);
+	ctx.entities["planet"] = planet_eid;
 	
 	// Assign planetary terrain component
 	entity::component::terrain terrain;
@@ -224,38 +224,38 @@ void create_planet(game::context* ctx)
 	};
 	terrain.max_lod = 0;
 	terrain.patch_material = nullptr;
-	ctx->entity_registry->assign<entity::component::terrain>(planet_eid, terrain);
+	ctx.entity_registry->assign<entity::component::terrain>(planet_eid, terrain);
 	
 	// Pass planet to astronomy system as reference body
-	ctx->astronomy_system->set_reference_body(planet_eid);
+	ctx.astronomy_system->set_reference_body(planet_eid);
 	
 	// Load sky model
-	ctx->surface_sky_pass->set_sky_model(ctx->resource_manager->load<render::model>("sky-dome.mdl"));
+	ctx.surface_sky_pass->set_sky_model(ctx.resource_manager->load<render::model>("sky-dome.mdl"));
 }
 
-void create_moon(game::context* ctx)
+void create_moon(game::context& ctx)
 {
 	// Create lunar entity
-	entity::id moon_eid = ctx->entity_registry->create();
-	ctx->entities["moon"] = moon_eid;
+	entity::id moon_eid = ctx.entity_registry->create();
+	ctx.entities["moon"] = moon_eid;
 	
 	// Pass moon model to sky pass
-	ctx->surface_sky_pass->set_moon_model(ctx->resource_manager->load<render::model>("moon.mdl"));
+	ctx.surface_sky_pass->set_moon_model(ctx.resource_manager->load<render::model>("moon.mdl"));
 }
 
-void set_time(game::context* ctx, double t)
+void set_time(game::context& ctx, double t)
 {
-	ctx->astronomy_system->set_universal_time(t);
-	ctx->orbit_system->set_universal_time(t);
+	ctx.astronomy_system->set_universal_time(t);
+	ctx.orbit_system->set_universal_time(t);
 }
 
-void set_time_scale(game::context* ctx, double scale)
+void set_time_scale(game::context& ctx, double scale)
 {
 	static constexpr double seconds_per_day = 24.0 * 60.0 * 60.0;
 	scale /= seconds_per_day;
 	
-	ctx->orbit_system->set_time_scale(scale);
-	ctx->astronomy_system->set_time_scale(scale);
+	ctx.orbit_system->set_time_scale(scale);
+	ctx.astronomy_system->set_time_scale(scale);
 }
 
 } // namespace world
