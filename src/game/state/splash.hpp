@@ -21,6 +21,9 @@
 #define ANTKEEPER_GAME_STATE_SPLASH_HPP
 
 #include "game/state/base.hpp"
+#include "render/material.hpp"
+#include "scene/billboard.hpp"
+#include "animation/animation.hpp"
 
 namespace game {
 namespace state {
@@ -30,6 +33,12 @@ class splash: public game::state::base
 public:
 	splash(game::context& ctx);
 	virtual ~splash();
+	
+private:
+	render::material splash_billboard_material;
+	scene::billboard splash_billboard;
+	animation<float> splash_fade_in_animation;
+	animation<float> splash_fade_out_animation;
 };
 
 } // namespace state

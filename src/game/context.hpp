@@ -195,7 +195,7 @@ struct context
 	gl::vertex_buffer* billboard_vbo;
 	gl::vertex_array* billboard_vao;
 	render::material* fallback_material;
-	render::material* splash_billboard_material;
+
 	
 	// Compositing
 	render::clear_pass* ui_clear_pass;
@@ -221,7 +221,6 @@ struct context
 	// UI scene
 	scene::collection* ui_scene;
 	scene::camera* ui_camera;
-	scene::billboard* splash_billboard;
 	scene::billboard* camera_flash_billboard;
 	scene::text* title_text;
 	scene::text* title_press_any_key_text;
@@ -262,8 +261,6 @@ struct context
 	animation<float>* equip_tool_animation;
 	animation<float>* unequip_tool_animation;
 	animation<float>* camera_flash_animation;
-	animation<float>* splash_fade_in_animation;
-	animation<float>* splash_fade_out_animation;
 	animation<float>* title_fade_in_animation;
 	animation<float>* title_fade_out_animation;
 	animation<float>* title_press_any_key_animation;

@@ -27,6 +27,8 @@
 #include "render/passes/clear-pass.hpp"
 #include "game/context.hpp"
 #include "debug/logger.hpp"
+#include "resources/resource-manager.hpp"
+#include "render/material-flags.hpp"
 
 namespace game {
 namespace state {
@@ -36,7 +38,31 @@ splash::splash(game::context& ctx):
 {
 	ctx.logger->push_task("Entering splash state");
 	
+	// Enable color buffer clearing in UI pass
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
+	
+	// Load splash texture
+	const gl::texture_2d* splash_texture = ctx.resource_manager->load<gl::texture_2d>("splash.tex");
+	
+	// Get splash texture dimensions
+	auto splash_dimensions = splash_texture->get_dimensions();
+	
+	// Construct splash billboard material
+	splash_billboard_material.set_flags(MATERIAL_FLAG_TRANSLUCENT);
+	splash_billboard_material.set_shader_program(ctx.resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
+	splash_billboard_material.add_property<const gl::texture_2d*>("background")->set_value(splash_texture);
+	render::material_property<float4>* splash_tint = splash_billboard_material.add_property<float4>("tint");
+	splash_tint->set_value(float4{1, 1, 1, 0});
+	splash_billboard_material.update_tweens();
+	
+	// Construct splash billboard
+	splash_billboard.set_material(&splash_billboard_material);
+	splash_billboard.set_scale({(float)std::get<0>(splash_dimensions) * 0.5f, (float)std::get<1>(splash_dimensions) * 0.5f, 1.0f});
+	splash_billboard.set_translation({0.0f, 0.0f, 0.0f});
+	splash_billboard.update_tweens();
+	
+	// Add splash billboard to UI scene
+	ctx.ui_scene->add_object(&splash_billboard);
 	
 	// Load animation timing configuration
 	double splash_fade_in_duration = 0.0;
@@ -49,50 +75,38 @@ splash::splash(game::context& ctx):
 	if (ctx.config->contains("splash_fade_out_duration"))
 		splash_fade_out_duration = (*ctx.config)["splash_fade_out_duration"].get<double>();
 	
-	// Build splash fade in animation
-	ctx.splash_fade_in_animation = new animation<float>();
-	animation_channel<float>* splash_fade_in_opacity_channel = ctx.splash_fade_in_animation->add_channel(0);
-	ctx.splash_fade_in_animation->set_interpolator(ease<float>::out_cubic);
+	// Construct splash fade in animation
+	splash_fade_in_animation.set_interpolator(ease<float>::out_cubic);
+	animation_channel<float>* splash_fade_in_opacity_channel = splash_fade_in_animation.add_channel(0);
 	splash_fade_in_opacity_channel->insert_keyframe({0.0, 0.0f});
 	splash_fade_in_opacity_channel->insert_keyframe({splash_fade_in_duration, 1.0f});
 	splash_fade_in_opacity_channel->insert_keyframe({splash_fade_in_duration + splash_duration, 1.0f});
 	
 	// Build splash fade out animation
-	ctx.splash_fade_out_animation = new animation<float>();
-	animation_channel<float>* splash_fade_out_opacity_channel = ctx.splash_fade_out_animation->add_channel(0);
-	ctx.splash_fade_out_animation->set_interpolator(ease<float>::out_cubic);
+	splash_fade_out_animation.set_interpolator(ease<float>::out_cubic);
+	animation_channel<float>* splash_fade_out_opacity_channel = splash_fade_out_animation.add_channel(0);
 	splash_fade_out_opacity_channel->insert_keyframe({0.0, 1.0f});
 	splash_fade_out_opacity_channel->insert_keyframe({splash_fade_out_duration, 0.0f});
 	
 	// Setup animation frame callbacks
-	auto set_splash_opacity = [&ctx](int channel, const float& opacity)
+	auto set_splash_opacity = [splash_tint](int channel, const float& opacity)
 	{
-		static_cast<render::material_property<float4>*>(ctx.splash_billboard_material->get_property("tint"))->set_value(float4{1, 1, 1, opacity});
+		splash_tint->set_value(float4{1, 1, 1, opacity});
 	};
-	ctx.splash_fade_in_animation->set_frame_callback(set_splash_opacity);
-	ctx.splash_fade_out_animation->set_frame_callback(set_splash_opacity);
-	
-	// Reset splash color when animation starts
-	ctx.splash_fade_in_animation->set_start_callback
-	(
-		[&ctx]()
-		{
-			static_cast<render::material_property<float4>*>(ctx.splash_billboard_material->get_property("tint"))->set_value(float4{1, 1, 1, 0});
-			ctx.splash_billboard_material->update_tweens();
-		}
-	);
+	splash_fade_in_animation.set_frame_callback(set_splash_opacity);
+	splash_fade_out_animation.set_frame_callback(set_splash_opacity);
 	
 	// Trigger splash fade out animation when splash fade in animation ends
-	ctx.splash_fade_in_animation->set_end_callback
+	splash_fade_in_animation.set_end_callback
 	(
-		[&ctx]()
+		[this]()
 		{
-			ctx.splash_fade_out_animation->play();
+			this->splash_fade_out_animation.play();
 		}
 	);
 	
 	// Trigger a state change when the splash fade out animation ends
-	ctx.splash_fade_out_animation->set_end_callback
+	splash_fade_out_animation.set_end_callback
 	(
 		[&ctx]()
 		{
@@ -109,11 +123,11 @@ splash::splash(game::context& ctx):
 	);
 	
 	// Add splash fade animations to animator
-	ctx.animator->add_animation(ctx.splash_fade_in_animation);
-	ctx.animator->add_animation(ctx.splash_fade_out_animation);
+	ctx.animator->add_animation(&splash_fade_in_animation);
+	ctx.animator->add_animation(&splash_fade_out_animation);
 	
 	// Start splash fade in animation
-	ctx.splash_fade_in_animation->play();
+	splash_fade_in_animation.play();
 	
 	// Set up splash skipper
 	ctx.input_listener->set_callback
@@ -136,9 +150,6 @@ splash::splash(game::context& ctx):
 	);
 	ctx.input_listener->set_enabled(true);
 	
-	// Add splash billboard to UI scene
-	ctx.ui_scene->add_object(ctx.splash_billboard);
-	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
@@ -146,21 +157,21 @@ splash::~splash()
 {
 	ctx.logger->push_task("Exiting splash state");
 	
-	// Remove splash billboard from UI scene
-	ctx.ui_scene->remove_object(ctx.splash_billboard);
-	
 	// Disable splash skipper
 	ctx.input_listener->set_enabled(false);
 	ctx.input_listener->set_callback(nullptr);
 	
-	// Destruct splash fade animations
-	ctx.animator->remove_animation(ctx.splash_fade_in_animation);
-	ctx.animator->remove_animation(ctx.splash_fade_out_animation);
-	delete ctx.splash_fade_in_animation;
-	delete ctx.splash_fade_out_animation;
-	ctx.splash_fade_in_animation = nullptr;
-	ctx.splash_fade_out_animation = nullptr;
+	// Remove splash fade animations from animator
+	ctx.animator->remove_animation(&splash_fade_in_animation);
+	ctx.animator->remove_animation(&splash_fade_out_animation);
 	
+	// Remove splash billboard from UI scene
+	ctx.ui_scene->remove_object(&splash_billboard);
+	
+	// Unload splash texture
+	ctx.resource_manager->unload("splash.tex");
+	
+	// Disable color buffer clearing in UI pass
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);

@@ -667,19 +667,7 @@ void boot::setup_scenes()
 	// Setup UI scene
 	{
 		ctx.ui_scene = new scene::collection();
-		const gl::texture_2d* splash_texture = ctx.resource_manager->load<gl::texture_2d>("splash.tex");
-		auto splash_dimensions = splash_texture->get_dimensions();
-		ctx.splash_billboard_material = new render::material();
-		ctx.splash_billboard_material->set_flags(MATERIAL_FLAG_TRANSLUCENT);
-		ctx.splash_billboard_material->set_shader_program(ctx.resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
-		ctx.splash_billboard_material->add_property<const gl::texture_2d*>("background")->set_value(splash_texture);
-		ctx.splash_billboard_material->add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
-		ctx.splash_billboard_material->update_tweens();
-		ctx.splash_billboard = new scene::billboard();
-		ctx.splash_billboard->set_material(ctx.splash_billboard_material);
-		ctx.splash_billboard->set_scale({(float)std::get<0>(splash_dimensions) * 0.5f, (float)std::get<1>(splash_dimensions) * 0.5f, 1.0f});
-		ctx.splash_billboard->set_translation({0.0f, 0.0f, 0.0f});
-		ctx.splash_billboard->update_tweens();
+
 		
 		// Menu BG billboard
 		render::material* menu_bg_material = new render::material();
