@@ -45,36 +45,34 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
 	
 	// Construct title text
-	ctx.title_text = new scene::text();
-	ctx.title_text->set_material(&ctx.title_font_material);
-	ctx.title_text->set_font(&ctx.title_font);
-	ctx.title_text->set_color({1.0f, 1.0f, 1.0f, 1.0f});
-	ctx.title_text->set_content((*ctx.strings)["title_antkeeper"]);
+	title_text.set_material(&ctx.title_font_material);
+	title_text.set_color({1.0f, 1.0f, 1.0f, (fade_in) ? 1.0f : 0.0f});
+	title_text.set_font(&ctx.title_font);
+	title_text.set_content((*ctx.strings)["title_antkeeper"]);
 	
 	// Align title text
-	const auto& title_aabb = static_cast<const geom::aabb<float>&>(ctx.title_text->get_local_bounds());
+	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text.get_local_bounds());
 	float title_w = title_aabb.max_point.x - title_aabb.min_point.x;
 	float title_h = title_aabb.max_point.y - title_aabb.min_point.y;
-	ctx.title_text->set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (ctx.app->get_viewport_dimensions().y / 3.0f) / 2.0f), 0.0f});
-	ctx.title_text->update_tweens();
+	title_text.set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (ctx.app->get_viewport_dimensions().y / 3.0f) / 2.0f), 0.0f});
+	title_text.update_tweens();
 	
 	// Add title text to UI
-	ctx.ui_scene->add_object(ctx.title_text);
+	ctx.ui_scene->add_object(&title_text);
 	
 	// Construct title fade animation
-	ctx.title_fade_animation = new animation<float>();
-	animation_channel<float>* opacity_channel = ctx.title_fade_animation->add_channel(0);
-	
-	ctx.title_fade_animation->set_frame_callback
+	title_fade_animation.set_interpolator(ease<float>::out_cubic);
+	animation_channel<float>* opacity_channel = title_fade_animation.add_channel(0);
+	title_fade_animation.set_frame_callback
 	(
-		[&ctx](int channel, const float& opacity)
+		[this, &ctx](int channel, const float& opacity)
 		{
-			float4 color = ctx.title_text->get_color();
+			float4 color = this->title_text.get_color();
 			color[3] = opacity;
-			ctx.title_text->set_color(color);
+			this->title_text.set_color(color);
 		}
 	);
-	ctx.animator->add_animation(ctx.title_fade_animation);
+	ctx.animator->add_animation(&title_fade_animation);
 	
 	// Construct menu item texts
 	scene::text* start_text = new scene::text();
@@ -218,16 +216,13 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	if (fade_in)
 	{
+		// Fade in from black
 		ctx.fade_transition->transition(0.5f, true, ease<float>::out_cubic);
 	}
 	else
 	{
-		// Fade in title
-		ctx.title_text->set_color({1.0f, 1.0f, 1.0f, 0.0f});
-		ctx.title_text->update_tweens();
+		// Fade in text
 		fade_in_title();
-		
-		// Fade in menu
 		game::menu::fade_in(ctx, nullptr);
 	}
 	
@@ -246,38 +241,32 @@ main_menu::~main_menu()
 	game::menu::delete_text(ctx);
 	
 	// Destruct title animation
-	ctx.animator->remove_animation(ctx.title_fade_animation);
-	delete ctx.title_fade_animation;
-	ctx.title_fade_animation = nullptr;
+	ctx.animator->remove_animation(&title_fade_animation);
 	
 	// Destruct title text
-	ctx.ui_scene->remove_object(ctx.title_text);
-	delete ctx.title_text;
-	ctx.title_text = nullptr;
+	ctx.ui_scene->remove_object(&title_text);
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
 void main_menu::fade_in_title()
 {
-	ctx.title_fade_animation->set_interpolator(ease<float>::out_cubic);
-	animation_channel<float>* opacity_channel = ctx.title_fade_animation->get_channel(0);
+	animation_channel<float>* opacity_channel = title_fade_animation.get_channel(0);
 	opacity_channel->remove_keyframes();
 	opacity_channel->insert_keyframe({0.0, 0.0f});
 	opacity_channel->insert_keyframe({game::menu::fade_in_duration, 1.0f});
-	ctx.title_fade_animation->stop();
-	ctx.title_fade_animation->play();
+	title_fade_animation.stop();
+	title_fade_animation.play();
 }
 
 void main_menu::fade_out_title()
 {
-	ctx.title_fade_animation->set_interpolator(ease<float>::out_cubic);
-	animation_channel<float>* opacity_channel = ctx.title_fade_animation->get_channel(0);
+	animation_channel<float>* opacity_channel = title_fade_animation.get_channel(0);
 	opacity_channel->remove_keyframes();
 	opacity_channel->insert_keyframe({0.0, 1.0f});
 	opacity_channel->insert_keyframe({game::menu::fade_out_duration, 0.0f});
-	ctx.title_fade_animation->stop();
-	ctx.title_fade_animation->play();
+	title_fade_animation.stop();
+	title_fade_animation.play();
 }
 
 } // namespace state

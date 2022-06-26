@@ -21,6 +21,8 @@
 #define ANTKEEPER_GAME_STATE_CREDITS_HPP
 
 #include "game/state/base.hpp"
+#include "scene/text.hpp"
+#include "animation/animation.hpp"
 
 namespace game {
 namespace state {
@@ -30,6 +32,11 @@ class credits: public game::state::base
 public:
 	credits(game::context& ctx);
 	virtual ~credits();
+	
+private:
+	scene::text credits_text;
+	animation<float> credits_fade_in_animation;
+	animation<float> credits_scroll_animation;
 };
 
 } // namespace state

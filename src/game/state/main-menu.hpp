@@ -21,6 +21,8 @@
 #define ANTKEEPER_GAME_STATE_MAIN_MENU_HPP
 
 #include "game/state/base.hpp"
+#include "scene/text.hpp"
+#include "animation/animation.hpp"
 
 namespace game {
 namespace state {
@@ -34,6 +36,9 @@ public:
 private:
 	void fade_in_title();
 	void fade_out_title();
+	
+	scene::text title_text;
+	animation<float> title_fade_animation;
 };
 
 } // namespace state

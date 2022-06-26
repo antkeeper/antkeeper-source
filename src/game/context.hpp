@@ -195,7 +195,6 @@ struct context
 	gl::vertex_buffer* billboard_vbo;
 	gl::vertex_array* billboard_vao;
 	render::material* fallback_material;
-
 	
 	// Compositing
 	render::clear_pass* ui_clear_pass;
@@ -216,15 +215,12 @@ struct context
 	
 	// Scene utilities
 	scene::collection* active_scene;
-	geom::aabb<float> no_cull;
 	
 	// UI scene
 	scene::collection* ui_scene;
 	scene::camera* ui_camera;
 	scene::billboard* camera_flash_billboard;
-	scene::text* title_text;
-	scene::text* title_press_any_key_text;
-	scene::text* credits_text;
+	
 	float font_size;
 	bool dyslexia_font;
 	ui::mouse_tracker* menu_mouse_tracker;
@@ -235,9 +231,10 @@ struct context
 	std::vector<std::tuple<scene::text*, scene::text*>> menu_item_texts;
 	std::unordered_map<std::string, int> menu_item_indices;
 	int* menu_item_index;
-	animation<float>* menu_fade_animation;
-	animation<float>* title_fade_animation;
 	scene::billboard* menu_bg_billboard;
+	animation<float>* menu_fade_animation;
+	animation<float>* menu_bg_fade_in_animation;
+	animation<float>* menu_bg_fade_out_animation;
 	
 	// Surface scene
 	scene::collection* surface_scene;
@@ -261,14 +258,6 @@ struct context
 	animation<float>* equip_tool_animation;
 	animation<float>* unequip_tool_animation;
 	animation<float>* camera_flash_animation;
-	animation<float>* title_fade_in_animation;
-	animation<float>* title_fade_out_animation;
-	animation<float>* title_press_any_key_animation;
-	animation<float>* main_menu_fade_animation;
-	animation<float>* credits_fade_in_animation;
-	animation<float>* credits_scroll_animation;
-	animation<float>* menu_bg_fade_in_animation;
-	animation<float>* menu_bg_fade_out_animation;
 	
 	// Sound
 	float master_volume;

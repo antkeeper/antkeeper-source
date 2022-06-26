@@ -632,10 +632,6 @@ void boot::setup_scenes()
 	const auto& viewport_dimensions = ctx.rasterizer->get_default_framebuffer().get_dimensions();
 	const float viewport_aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
 	
-	// Create infinite culling mask
-	const float inf = std::numeric_limits<float>::infinity();
-	ctx.no_cull = {{-inf, -inf, -inf}, {inf, inf, inf}};
-	
 	// Setup UI camera
 	ctx.ui_camera = new scene::camera();
 	ctx.ui_camera->set_compositor(ctx.ui_compositor);
