@@ -224,7 +224,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	if (fade_in)
 	{
 		// Fade in from black
-		ctx.fade_transition->transition(0.5f, true, ease<float>::out_cubic);
+		ctx.fade_transition->transition(1.0f, true, ease<float>::out_cubic);
 	}
 	else
 	{

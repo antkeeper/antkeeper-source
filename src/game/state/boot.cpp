@@ -294,7 +294,7 @@ void boot::setup_resources()
 	}
 	else
 	{
-		ctx.data_package_path = ctx.data_path / "data.zip";
+		ctx.data_package_path = ctx.data_path / "antkeeper.dat";
 	}
 	
 	// Mount mods
