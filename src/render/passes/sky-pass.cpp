@@ -105,7 +105,8 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	float4x4 projection = camera.get_projection_tween().interpolate(ctx.alpha);
 	float4x4 view_projection = projection * view;
 	float4x4 model_view_projection = projection * model_view;
-	float exposure = std::exp2(camera.get_exposure_tween().interpolate(ctx.alpha));
+	float exposure = std::exp2(-camera.get_exposure_tween().interpolate(ctx.alpha));
+	//float exposure = camera.get_exposure_tween().interpolate(ctx.alpha);
 	
 	// Interpolate observer altitude
 	float observer_altitude = observer_altitude_tween.interpolate(ctx.alpha);

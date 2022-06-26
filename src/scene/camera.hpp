@@ -78,11 +78,20 @@ public:
 	void set_orthographic(float clip_left, float clip_right, float clip_bottom, float clip_top, float clip_near, float clip_far);
 
 	/**
-	 * Sets the camera's exposure.
+	 * Sets the camera's ISO 100 exposure value directly
 	 *
-	 * @param exposure Exposure factor.
+	 * @param ev100 ISO 100 exposure value.
 	 */
-	void set_exposure(float exposure);
+	void set_exposure(float ev100);
+	
+	/**
+	 * Sets the camera's ISO 100 exposure value given exposure settings.
+	 *
+	 * @param f_number F-number.
+	 * @param speed Shutter speed, in seconds.
+	 * @param iso ISO sensitivity value.
+	 */
+	void set_exposure(float f_number, float speed, float iso);
 
 	void set_compositor(render::compositor* compositor);
 	void set_composite_index(int index);
@@ -113,7 +122,7 @@ public:
 	/// Returns the camera's view frustum.
 	const view_frustum_type& get_view_frustum() const;
 	
-	/// Returns the camera's exposure.
+	/// Returns the camera's ISO 100 exposure value.
 	float get_exposure() const;
 
 	const render::compositor* get_compositor() const;

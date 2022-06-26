@@ -115,7 +115,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	
 	// Queue fade in
 	ctx.fade_transition_color->set_value({1, 1, 1});
-	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, 5.0f, true, math::lerp<float, float>, true, nullptr));
+	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, 5.0f, true, ease<float>::out_sine, true, nullptr));
 	
 	// Queue control setup
 	ctx.function_queue.push(std::bind(&nuptial_flight::enable_controls, this));
@@ -217,7 +217,8 @@ void nuptial_flight::setup_camera()
 		ctx.entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
 	}
 	
-	ctx.surface_camera->set_exposure(-14.0f);
+	float ev100 = 14.5f;
+	ctx.surface_camera->set_exposure(ev100);
 }
 
 void nuptial_flight::enable_controls()

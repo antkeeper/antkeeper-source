@@ -133,7 +133,8 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 	clip_depth[1] = ctx.camera->get_clip_far_tween().interpolate(ctx.alpha);
 	float log_depth_coef = 2.0f / std::log2(clip_depth[1] + 1.0f);
 	
-	float camera_exposure = std::exp2(ctx.camera->get_exposure_tween().interpolate(ctx.alpha));
+	float camera_exposure = std::exp2(-ctx.camera->get_exposure_tween().interpolate(ctx.alpha));
+	//float camera_exposure = ctx.camera->get_exposure_tween().interpolate(ctx.alpha);
 
 
 	int active_material_flags = 0;

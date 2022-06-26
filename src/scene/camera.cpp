@@ -144,9 +144,14 @@ void camera::set_orthographic(float clip_left, float clip_right, float clip_bott
 	view_frustum.set_matrix(view_projection[1]);
 }
 
-void camera::set_exposure(float exposure)
+void camera::set_exposure(float ev100)
 {
-	this->exposure[1] = exposure;
+	exposure[1] = ev100;
+}
+
+void camera::set_exposure(float f_number, float speed, float iso)
+{
+	exposure[1] = std::log2((f_number * f_number) / speed * 100.0f / iso);
 }
 
 void camera::set_compositor(render::compositor* compositor)
