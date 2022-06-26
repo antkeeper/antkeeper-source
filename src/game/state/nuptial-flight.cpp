@@ -78,6 +78,17 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	// Enable clouds in sky pass
 	//ctx.surface_sky_pass->set_clouds_model(ctx.resource_manager->load<render::model>("cloud-plane.mdl"));
 	
+	// Create biome terrain component
+	entity::component::terrain biome_terrain;
+	biome_terrain.max_lod = 18;
+	biome_terrain.patch_material = ctx.resource_manager->load<render::material>("desert-terrain.mtl");
+	biome_terrain.elevation = [](double, double) -> double
+	{
+		return 0.0;
+	};
+	// Replace planet terrain component with biome terrain component
+	ctx.entity_registry->replace<entity::component::terrain>(planet_eid, biome_terrain);
+	
 	// Create observer
 	entity::id observer_eid = ctx.entity_registry->create();
 	{
@@ -104,7 +115,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	
 	// Queue fade in
 	ctx.fade_transition_color->set_value({1, 1, 1});
-	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, 5.0f, true, math::lerp<float, float>, true));
+	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, 5.0f, true, math::lerp<float, float>, true, nullptr));
 	
 	// Queue control setup
 	ctx.function_queue.push(std::bind(&nuptial_flight::enable_controls, this));
@@ -206,7 +217,7 @@ void nuptial_flight::setup_camera()
 		ctx.entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
 	}
 	
-	ctx.surface_camera->set_exposure(-12.0f);
+	ctx.surface_camera->set_exposure(-14.0f);
 }
 
 void nuptial_flight::enable_controls()
@@ -537,6 +548,22 @@ void nuptial_flight::enable_controls()
 
 void nuptial_flight::disable_controls()
 {
+	ctx.controls["move_forward"]->set_active_callback(nullptr);
+	ctx.controls["move_back"]->set_active_callback(nullptr);
+	ctx.controls["move_right"]->set_active_callback(nullptr);
+	ctx.controls["move_left"]->set_active_callback(nullptr);
+	ctx.controls["move_up"]->set_active_callback(nullptr);
+	ctx.controls["move_down"]->set_active_callback(nullptr);
+	ctx.controls["mouse_look"]->set_activated_callback(nullptr);
+	ctx.controls["mouse_look"]->set_deactivated_callback(nullptr);
+	ctx.controls["look_left_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_left_mouse"]->set_active_callback(nullptr);
+	ctx.controls["look_right_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_right_mouse"]->set_active_callback(nullptr);
+	ctx.controls["look_up_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_up_mouse"]->set_active_callback(nullptr);
+	ctx.controls["look_down_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_down_mouse"]->set_active_callback(nullptr);
 	ctx.controls["pause"]->set_activated_callback(nullptr);
 }
 

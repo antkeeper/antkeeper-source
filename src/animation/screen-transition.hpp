@@ -35,7 +35,7 @@ public:
 	
 	void set_visible(bool visible);
 	
-	void transition(float duration, bool reverse, animation<float>::interpolator_type interpolator, bool hide = true);
+	void transition(float duration, bool reverse, animation<float>::interpolator_type interpolator, bool hide = true, const std::function<void()>& callback = nullptr);
 	
 	scene::billboard* get_billboard();
 	render::material* get_material();
@@ -47,6 +47,7 @@ private:
 	render::material_property<float>* progress;
 	::animation<float> animation;
 	::animation<float>::channel* channel;
+	std::function<void()> callback;
 };
 
 inline scene::billboard* screen_transition::get_billboard()

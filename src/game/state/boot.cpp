@@ -792,9 +792,12 @@ void boot::setup_animation()
 			ctx.menu_bg_fade_in_animation->set_frame_callback(menu_bg_frame_callback);
 			ctx.menu_bg_fade_in_animation->set_start_callback
 			(
-				[&ctx = this->ctx]()
+				[&ctx = this->ctx, menu_bg_tint]()
 				{
 					ctx.ui_scene->add_object(ctx.menu_bg_billboard);
+					
+					menu_bg_tint->set_value(float4{0.0f, 0.0f, 0.0f, 0.0f});
+					menu_bg_tint->update_tweens();
 					ctx.menu_bg_billboard->set_active(true);
 				}
 			);

@@ -116,7 +116,7 @@ namespace render
 
 namespace game {
 
-/// Container for data that is shared between game states.
+/// Container for data shared between game states.
 struct context
 {
 	/// Hierarchichal state machine
@@ -216,11 +216,10 @@ struct context
 	// Scene utilities
 	scene::collection* active_scene;
 	
-	// UI scene
+	// UI
 	scene::collection* ui_scene;
 	scene::camera* ui_camera;
 	scene::billboard* camera_flash_billboard;
-	
 	float font_size;
 	bool dyslexia_font;
 	ui::mouse_tracker* menu_mouse_tracker;

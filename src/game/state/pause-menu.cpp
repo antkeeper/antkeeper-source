@@ -28,6 +28,7 @@
 #include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/logger.hpp"
+#include "animation/screen-transition.hpp"
 
 namespace game {
 namespace state {
@@ -124,26 +125,29 @@ pause_menu::pause_menu(game::context& ctx):
 		// Disable menu controls
 		game::menu::clear_controls(ctx);
 		
-		// Clear paused state
-		//ctx.paused_state.reset();
+		// Clear resume callback
+		ctx.resume_callback = nullptr;
 		
-		// Fade out pause menu then return to main menu
-		game::menu::fade_out
-		(
-			ctx,
-			[&ctx]()
-			{
-				// Queue change to main menu state
-				ctx.function_queue.push
-				(
-					[&ctx]()
-					{
-						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
-					}
-				);
-			}
-		);
+		auto fade_out_callback = [&ctx]()
+		{
+			// Queue change to main menu state
+			ctx.function_queue.push
+			(
+				[&ctx]()
+				{
+					ctx.menu_bg_billboard->set_active(false);
+					ctx.state_machine.pop();
+					ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
+				}
+			);
+		};
+		
+		// Fade out pause menu
+		game::menu::fade_out(ctx, nullptr);
+		
+		// Fade out to black then return to main menu
+		ctx.fade_transition_color->set_value({0, 0, 0});
+		ctx.fade_transition->transition(1.0f, false, ease<float>::out_cubic, false, fade_out_callback);
 	};
 	auto select_quit_callback = [&ctx]()
 	{
@@ -156,8 +160,12 @@ pause_menu::pause_menu(game::context& ctx):
 		// Clear paused state
 		//ctx.paused_state.reset();
 		
-		// Fade out then quit
-		game::menu::fade_out(ctx, std::bind(&application::close, ctx.app));
+		// Fade out pause menu
+		game::menu::fade_out(ctx, nullptr);
+		
+		// Fade out to black then quit
+		ctx.fade_transition_color->set_value({0, 0, 0});
+		ctx.fade_transition->transition(1.0f, false, ease<float>::out_cubic, false, std::bind(&application::close, ctx.app));
 	};
 	
 	// Build list of menu select callbacks

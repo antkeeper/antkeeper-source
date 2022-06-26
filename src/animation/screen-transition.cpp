@@ -70,7 +70,7 @@ void screen_transition::set_visible(bool visible)
 	billboard.set_active(visible);
 }
 
-void screen_transition::transition(float duration, bool reverse, ::animation<float>::interpolator_type interpolator, bool hide)
+void screen_transition::transition(float duration, bool reverse, ::animation<float>::interpolator_type interpolator, bool hide, const std::function<void()>& callback)
 {
 	float initial_state = (reverse) ? 1.0f : 0.0f;
 	float final_state = (reverse) ? 0.0f : 1.0f;
@@ -83,17 +83,23 @@ void screen_transition::transition(float duration, bool reverse, ::animation<flo
 	// Set transition animation interpolator
 	animation.set_interpolator(interpolator);
 	
+	this->callback = callback;
 	if (hide)
 	{
 		// Setup animation end callback to hide transition billboard
 		animation.set_end_callback
 		(
-			std::bind(&scene::object_base::set_active, &billboard, false)
+			[this]()
+			{
+				this->billboard.set_active(false);
+				if (this->callback)
+					this->callback();
+			}
 		);
 	}
 	else
 	{
-		animation.set_end_callback(nullptr);
+		animation.set_end_callback(callback);
 	}
 	
 	// Update tweens

@@ -30,7 +30,6 @@
 #include "animation/animator.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
-#include "animation/timeline.hpp"
 #include "application.hpp"
 #include <limits>
 
@@ -102,7 +101,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	game::menu::add_text_to_ui(ctx);
 	game::menu::setup_animations(ctx);
 	
-	auto select_start_callback = [&ctx]()
+	auto select_start_callback = [this, &ctx]()
 	{
 		// Disable controls and menu callbacks
 		game::menu::clear_controls(ctx);
@@ -122,17 +121,15 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 			);
 		};
 		
-		// Set up timing
-		const float fade_out_duration = 1.0f;
+		// Fade out title
+		this->fade_out_title();
 		
-		// Schedule state change
-		timeline* timeline = ctx.timeline;
-		float t = timeline->get_position();
-		timeline->add_sequence({{t + fade_out_duration, change_state_nuptial_flight}});
+		// Fade out menu
+		game::menu::fade_out(ctx, nullptr);
 		
 		// Start fade out to white
 		ctx.fade_transition_color->set_value({1, 1, 1});
-		ctx.fade_transition->transition(fade_out_duration, false, ease<float>::out_cubic, false);
+		ctx.fade_transition->transition(1.0f, false, ease<float>::out_cubic, false, change_state_nuptial_flight);
 	};
 	auto select_options_callback = [this, &ctx]()
 	{
@@ -185,9 +182,19 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 			}
 		);
 	};
-	auto select_quit_callback = [&ctx]()
+	auto select_quit_callback = [this, &ctx]()
 	{
-		ctx.app->close();
+		// Disable controls
+		game::menu::clear_controls(ctx);
+		
+		// Fade out title
+		this->fade_out_title();
+		
+		// Fade out menu
+		game::menu::fade_out(ctx, nullptr);
+		
+		// Fade to black then quit
+		ctx.fade_transition->transition(0.5f, false, ease<float>::out_cubic, false, std::bind(&application::close, ctx.app));
 	};
 	
 	// Build list of menu select callbacks
