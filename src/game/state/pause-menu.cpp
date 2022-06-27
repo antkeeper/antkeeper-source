@@ -29,6 +29,7 @@
 #include "scene/text.hpp"
 #include "debug/logger.hpp"
 #include "animation/screen-transition.hpp"
+#include "config.hpp"
 
 namespace game {
 namespace state {
@@ -147,7 +148,7 @@ pause_menu::pause_menu(game::context& ctx):
 		
 		// Fade out to black then return to main menu
 		ctx.fade_transition_color->set_value({0, 0, 0});
-		ctx.fade_transition->transition(1.0f, false, ease<float>::out_cubic, false, fade_out_callback);
+		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, fade_out_callback);
 	};
 	auto select_quit_callback = [&ctx]()
 	{
@@ -165,7 +166,7 @@ pause_menu::pause_menu(game::context& ctx):
 		
 		// Fade out to black then quit
 		ctx.fade_transition_color->set_value({0, 0, 0});
-		ctx.fade_transition->transition(1.0f, false, ease<float>::out_cubic, false, std::bind(&application::close, ctx.app));
+		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, std::bind(&application::close, ctx.app));
 	};
 	
 	// Build list of menu select callbacks

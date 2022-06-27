@@ -31,8 +31,8 @@ set(SHARED_LIBS
 	${OPENGL_gl_LIBRARY})
 
 # Generate configuration header file
-configure_file(${PROJECT_SOURCE_DIR}/src/configuration.hpp.in
-	${PROJECT_BINARY_DIR}/src/configuration.hpp)
+configure_file(${PROJECT_SOURCE_DIR}/src/config.hpp.in
+	${PROJECT_BINARY_DIR}/src/config.hpp)
 
 # Collect source files
 file(GLOB_RECURSE SOURCE_FILES

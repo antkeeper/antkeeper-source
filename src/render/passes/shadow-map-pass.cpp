@@ -31,7 +31,7 @@
 #include "scene/light.hpp"
 #include "geom/view-frustum.hpp"
 #include "geom/aabb.hpp"
-#include "configuration.hpp"
+#include "config.hpp"
 #include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
@@ -138,8 +138,8 @@ void shadow_map_pass::render(const render::context& ctx, render::queue& queue) c
 	
 	// Calculate a view-projection matrix from the directional light's transform
 	math::transform<float> light_transform = light->get_transform_tween().interpolate(ctx.alpha);
-	float3 forward = light_transform.rotation * global_forward;
-	float3 up = light_transform.rotation * global_up;
+	float3 forward = light_transform.rotation * config::global_forward;
+	float3 up = light_transform.rotation * config::global_up;
 	float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
 	float4x4 light_projection = math::ortho_half_z(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	float4x4 light_view_projection = light_projection * light_view;

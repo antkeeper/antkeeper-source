@@ -82,7 +82,7 @@
 #include "input/gamepad.hpp"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
-#include "configuration.hpp"
+#include "config.hpp"
 #include "input/scancode.hpp"
 #include "game/fonts.hpp"
 #include "game/controls.hpp"
@@ -788,7 +788,7 @@ void boot::setup_animation()
 			ctx.menu_bg_fade_in_animation->set_interpolator(ease<float>::out_cubic);
 			animation_channel<float>* channel = ctx.menu_bg_fade_in_animation->add_channel(0);
 			channel->insert_keyframe({0.0f, 0.0f});
-			channel->insert_keyframe({game::menu::fade_in_duration, game::menu::bg_opacity});
+			channel->insert_keyframe({config::menu_fade_in_duration, config::menu_bg_opacity});
 			ctx.menu_bg_fade_in_animation->set_frame_callback(menu_bg_frame_callback);
 			ctx.menu_bg_fade_in_animation->set_start_callback
 			(
@@ -808,8 +808,8 @@ void boot::setup_animation()
 		{
 			ctx.menu_bg_fade_out_animation->set_interpolator(ease<float>::out_cubic);
 			animation_channel<float>* channel = ctx.menu_bg_fade_out_animation->add_channel(0);
-			channel->insert_keyframe({0.0f, game::menu::bg_opacity});
-			channel->insert_keyframe({game::menu::fade_out_duration, 0.0f});
+			channel->insert_keyframe({0.0f, config::menu_bg_opacity});
+			channel->insert_keyframe({config::menu_fade_out_duration, 0.0f});
 			ctx.menu_bg_fade_out_animation->set_frame_callback(menu_bg_frame_callback);
 			ctx.menu_bg_fade_out_animation->set_end_callback
 			(

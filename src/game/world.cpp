@@ -48,7 +48,7 @@
 #include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
 #include "render/material-flags.hpp"
-#include "configuration.hpp"
+#include "config.hpp"
 
 namespace game {
 namespace world {

@@ -18,7 +18,7 @@
  */
 
 #include "spot-light.hpp"
-#include "configuration.hpp"
+#include "config.hpp"
 #include "math/math.hpp"
 #include <cmath>
 
@@ -26,13 +26,13 @@ namespace scene {
 
 static float3 interpolate_direction(const float3& x, const float3& y, float a)
 {
-	math::quaternion<float> q0 = math::rotation(global_forward, x);
-	math::quaternion<float> q1 = math::rotation(global_forward, y);
-	return math::normalize(math::slerp(q0, q1, a) * global_forward);
+	math::quaternion<float> q0 = math::rotation(config::global_forward, x);
+	math::quaternion<float> q1 = math::rotation(config::global_forward, y);
+	return math::normalize(math::slerp(q0, q1, a) * config::global_forward);
 }
 
 spot_light::spot_light():
-	direction(global_forward, interpolate_direction),
+	direction(config::global_forward, interpolate_direction),
 	attenuation(float3{1, 0, 0}, math::lerp<float3, float>),
 	cutoff(float2{math::pi<float>, math::pi<float>}, math::lerp<float2, float>),
 	cosine_cutoff(float2{std::cos(math::pi<float>), std::cos(math::pi<float>)}, math::lerp<float2, float>)
@@ -60,7 +60,7 @@ void spot_light::update_tweens()
 
 void spot_light::transformed()
 {
-	direction[1] = math::normalize(get_transform().rotation * global_forward);
+	direction[1] = math::normalize(get_transform().rotation * config::global_forward);
 }
 
 } // namespace scene

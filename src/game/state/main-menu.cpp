@@ -31,6 +31,7 @@
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
 #include "application.hpp"
+#include "config.hpp"
 #include <limits>
 
 namespace game {
@@ -129,7 +130,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 		
 		// Start fade out to white
 		ctx.fade_transition_color->set_value({1, 1, 1});
-		ctx.fade_transition->transition(1.0f, false, ease<float>::out_cubic, false, change_state_nuptial_flight);
+		ctx.fade_transition->transition(config::new_colony_fade_out_duration, false, ease<float>::out_cubic, false, change_state_nuptial_flight);
 	};
 	auto select_options_callback = [this, &ctx]()
 	{
@@ -194,7 +195,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 		game::menu::fade_out(ctx, nullptr);
 		
 		// Fade to black then quit
-		ctx.fade_transition->transition(0.5f, false, ease<float>::out_cubic, false, std::bind(&application::close, ctx.app));
+		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, std::bind(&application::close, ctx.app));
 	};
 	
 	// Build list of menu select callbacks
@@ -224,7 +225,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	if (fade_in)
 	{
 		// Fade in from black
-		ctx.fade_transition->transition(1.0f, true, ease<float>::out_cubic);
+		ctx.fade_transition->transition(config::title_fade_in_duration, true, ease<float>::out_cubic);
 	}
 	else
 	{
@@ -261,7 +262,7 @@ void main_menu::fade_in_title()
 	animation_channel<float>* opacity_channel = title_fade_animation.get_channel(0);
 	opacity_channel->remove_keyframes();
 	opacity_channel->insert_keyframe({0.0, 0.0f});
-	opacity_channel->insert_keyframe({game::menu::fade_in_duration, 1.0f});
+	opacity_channel->insert_keyframe({config::menu_fade_in_duration, 1.0f});
 	title_fade_animation.stop();
 	title_fade_animation.play();
 }
@@ -271,7 +272,7 @@ void main_menu::fade_out_title()
 	animation_channel<float>* opacity_channel = title_fade_animation.get_channel(0);
 	opacity_channel->remove_keyframes();
 	opacity_channel->insert_keyframe({0.0, 1.0f});
-	opacity_channel->insert_keyframe({game::menu::fade_out_duration, 0.0f});
+	opacity_channel->insert_keyframe({config::menu_fade_out_duration, 0.0f});
 	title_fade_animation.stop();
 	title_fade_animation.play();
 }

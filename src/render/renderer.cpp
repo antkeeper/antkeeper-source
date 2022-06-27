@@ -30,7 +30,7 @@
 #include "gl/drawing-mode.hpp"
 #include "math/math.hpp"
 #include "geom/projection.hpp"
-#include "configuration.hpp"
+#include "config.hpp"
 #include <functional>
 #include <set>
 
@@ -95,8 +95,8 @@ void renderer::render(float t, float dt, float alpha, const scene::collection& c
 		// Update render context with camera parameters
 		ctx.camera = camera;
 		ctx.camera_transform = camera->get_transform_tween().interpolate(alpha); 
-		ctx.camera_forward = ctx.camera_transform.rotation * global_forward;
-		ctx.camera_up = ctx.camera_transform.rotation * global_up;
+		ctx.camera_forward = ctx.camera_transform.rotation * config::global_forward;
+		ctx.camera_up = ctx.camera_transform.rotation * config::global_up;
 		ctx.clip_near = camera->get_view_frustum().get_near(); ///< TODO: tween this
 		
 		// Create render queue

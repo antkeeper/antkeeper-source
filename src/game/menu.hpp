@@ -25,27 +25,6 @@
 namespace game {
 namespace menu {
 
-/// Delay, in seconds, to when menu input should be activated.
-static constexpr float input_delay = 0.025f;
-
-/// RGBA color of active menu items.
-static constexpr float4 active_color{1.0f, 1.0f, 1.0f, 1.0f};
-
-/// RGBA color of inactive menu items.
-static constexpr float4 inactive_color{1.0f, 1.0f, 1.0f, 0.5f};
-
-/// Opacity of the menu background.
-static constexpr float bg_opacity = 2.0f / 4.0f;
-
-/// Padding of the mouseover bounds, as a percentage of the font size.
-static constexpr float mouseover_padding = 0.1f;
-
-/// Duration of the menu fade in animation
-static constexpr float fade_in_duration = 0.25f;
-
-/// Duration of the menu fade out animation
-static constexpr float fade_out_duration = 0.125f;
-
 void init_menu_item_index(game::context& ctx, const std::string& menu_name);
 void setup_controls(game::context& ctx);
 void setup_animations(game::context& ctx);

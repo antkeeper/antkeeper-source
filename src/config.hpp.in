@@ -1,0 +1,77 @@
+/*
+ * Copyright (C) 2021  Christopher J. Howard
+ *
+ * This file is part of Antkeeper source code.
+ *
+ * Antkeeper source code is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Antkeeper source code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef ANTKEEPER_CONFIG_HPP
+#define ANTKEEPER_CONFIG_HPP
+
+#include "math/vector-type.hpp"
+
+/// Global configuration constants.
+namespace config {
+
+constexpr int version_major = @PROJECT_VERSION_MAJOR@;
+constexpr int version_minor = @PROJECT_VERSION_MINOR@;
+constexpr int version_patch = @PROJECT_VERSION_PATCH@;
+constexpr char* version_string = "@PROJECT_VERSION@";
+
+constexpr math::vector<float, 3> global_forward = {0.0f, 0.0f, -1.0f};
+constexpr math::vector<float, 3> global_up = {0.0f, 1.0f, 0.0f};
+constexpr math::vector<float, 3> global_right = {1.0f, 0.0f, 0.0f};
+
+/// Duration of the menu fade in animation, in seconds.
+constexpr float menu_fade_in_duration = 0.25f;
+
+/// Duration of the menu fade out animation, in seconds.
+constexpr float menu_fade_out_duration = 0.125f;
+
+/// Padding of the a menu item mouseover bounds, as a percentage of the font size.
+constexpr float menu_mouseover_padding = 0.1f;
+
+/// Opacity of the menu background.
+constexpr float menu_bg_opacity = 0.5f;
+
+/// RGBA color of active menu items.
+constexpr float4 menu_active_color{1.0f, 1.0f, 1.0f, 1.0f};
+
+/// RGBA color of inactive menu items.
+constexpr float4 menu_inactive_color{1.0f, 1.0f, 1.0f, 0.5f};
+
+/// Duration of the title screen fade in, in seconds.
+constexpr float title_fade_in_duration = 1.0f;
+
+/// Duration of the fade out when quitting the game or returning to the main menu, in seconds.
+constexpr float quit_fade_out_duration = 1.0f;
+
+/// Duration of the fade out when a new colony is started, in seconds.
+constexpr float new_colony_fade_out_duration = 1.0f;
+
+/// Duration of the nuptial flight fade in, in seconds.
+constexpr float nuptial_flight_fade_in_duration = 5.0f;
+
+#define MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT 1
+#define MATERIAL_PASS_MAX_POINT_LIGHT_COUNT 1
+#define MATERIAL_PASS_MAX_DIRECTIONAL_LIGHT_COUNT 2
+#define MATERIAL_PASS_MAX_SPOTLIGHT_COUNT 1
+#define TERRAIN_PATCH_SIZE 200.0f
+#define TERRAIN_PATCH_RESOLUTION 4
+#define VEGETATION_PATCH_RESOLUTION 1
+
+} // namespace config
+
+#endif // ANTKEEPER_CONFIG_HPP

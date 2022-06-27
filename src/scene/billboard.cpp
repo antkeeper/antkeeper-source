@@ -18,7 +18,7 @@
  */
 
 #include "scene/billboard.hpp"
-#include "configuration.hpp"
+#include "config.hpp"
 
 namespace scene {
 
@@ -28,7 +28,7 @@ billboard::billboard():
 	world_bounds(local_bounds),
 	material(nullptr),
 	type(billboard_type::flat),
-	alignment_axis(global_up)
+	alignment_axis(config::global_up)
 {}
 
 billboard::billboard(const billboard& other)

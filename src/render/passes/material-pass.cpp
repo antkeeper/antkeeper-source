@@ -18,7 +18,7 @@
  */
 
 #include "render/passes/material-pass.hpp"
-#include "configuration.hpp"
+#include "config.hpp"
 #include "resources/resource-manager.hpp"
 #include "gl/rasterizer.hpp"
 #include "gl/framebuffer.hpp"
@@ -41,7 +41,7 @@
 #include "scene/directional-light.hpp"
 #include "scene/point-light.hpp"
 #include "scene/spot-light.hpp"
-#include "configuration.hpp"
+#include "config.hpp"
 #include <cmath>
 #include <glad/glad.h>
 
@@ -208,8 +208,8 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 						directional_light_texture_opacities[directional_light_count] = directional_light->get_light_texture_opacity_tween().interpolate(ctx.alpha);
 						
 						math::transform<float> light_transform = light->get_transform_tween().interpolate(ctx.alpha);
-						float3 forward = light_transform.rotation * global_forward;
-						float3 up = light_transform.rotation * global_up;
+						float3 forward = light_transform.rotation * config::global_forward;
+						float3 up = light_transform.rotation * config::global_up;
 						float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
 						
 						float2 scale = directional_light->get_light_texture_scale_tween().interpolate(ctx.alpha);

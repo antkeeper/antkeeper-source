@@ -23,6 +23,7 @@
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
 #include "animation/ease.hpp"
+#include "config.hpp"
 #include <algorithm>
 
 namespace game {
@@ -62,7 +63,7 @@ void update_text_color(game::context& ctx)
 	{
 		auto [name, value] = ctx.menu_item_texts[i];
 		
-		const float4& color = (i == *ctx.menu_item_index) ? active_color : inactive_color;
+		const float4& color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
 		
 		name->set_color(color);
 		if (value)
@@ -220,7 +221,7 @@ void setup_animations(game::context& ctx)
 			{
 				auto [name, value] = ctx.menu_item_texts[i];
 				
-				float4 color = (i == *ctx.menu_item_index) ? active_color : inactive_color;
+				float4 color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
 				color[3] = color[3] * opacity;
 				
 				if (name)
@@ -240,14 +241,14 @@ void fade_in(game::context& ctx, const std::function<void()>& end_callback)
 	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->get_channel(0);
 	opacity_channel->remove_keyframes();
 	opacity_channel->insert_keyframe({0.0, 0.0f});
-	opacity_channel->insert_keyframe({game::menu::fade_in_duration, 1.0f});
+	opacity_channel->insert_keyframe({config::menu_fade_in_duration, 1.0f});
 	ctx.menu_fade_animation->set_end_callback(end_callback);
 	
 	for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 	{
 		auto [name, value] = ctx.menu_item_texts[i];
 		
-		float4 color = (i == *ctx.menu_item_index) ? active_color : inactive_color;
+		float4 color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
 		color[3] = 0.0f;
 		
 		if (name)
@@ -272,7 +273,7 @@ void fade_out(game::context& ctx, const std::function<void()>& end_callback)
 	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->get_channel(0);
 	opacity_channel->remove_keyframes();
 	opacity_channel->insert_keyframe({0.0, 1.0f});
-	opacity_channel->insert_keyframe({game::menu::fade_out_duration, 0.0f});
+	opacity_channel->insert_keyframe({config::menu_fade_out_duration, 0.0f});
 	ctx.menu_fade_animation->set_end_callback(end_callback);
 	
 	ctx.menu_fade_animation->stop();
@@ -357,7 +358,7 @@ void setup_controls(game::context& ctx)
 	(
 		[&ctx](const mouse_moved_event& event)
 		{
-			const float padding = game::menu::mouseover_padding * ctx.menu_font.get_font_metrics().size;
+			const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
 			
 			for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 			{
@@ -377,14 +378,14 @@ void setup_controls(game::context& ctx)
 					max_y = std::max<float>(max_y, value_bounds.max_point.y);
 				}
 				
-				const auto& viewport = ctx.app->get_viewport_dimensions();
-				const float x = static_cast<float>(event.x - viewport[0] / 2);
-				const float y = static_cast<float>((viewport[1] - event.y + 1) - viewport[1] / 2);
-				
 				min_x -= padding;
 				min_y -= padding;
 				max_x += padding;
 				max_y += padding;
+				
+				const auto& viewport = ctx.app->get_viewport_dimensions();
+				const float x = static_cast<float>(event.x - viewport[0] / 2);
+				const float y = static_cast<float>((viewport[1] - event.y + 1) - viewport[1] / 2);
 				
 				if (x >= min_x && x <= max_x)
 				{
@@ -403,6 +404,8 @@ void setup_controls(game::context& ctx)
 	(
 		[&ctx](const mouse_button_pressed_event& event)
 		{
+			const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
+			
 			for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 			{
 				auto [name, value] = ctx.menu_item_texts[i];
@@ -420,6 +423,11 @@ void setup_controls(game::context& ctx)
 					max_x = std::max<float>(max_x, value_bounds.max_point.x);
 					max_y = std::max<float>(max_y, value_bounds.max_point.y);
 				}
+				
+				min_x -= padding;
+				min_y -= padding;
+				max_x += padding;
+				max_y += padding;
 				
 				const auto& viewport = ctx.app->get_viewport_dimensions();
 				const float x = static_cast<float>(event.x - viewport[0] / 2);

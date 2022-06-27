@@ -40,6 +40,7 @@
 #include <memory>
 #include <iostream>
 #include "state-machine.hpp"
+#include "config.hpp"
 
 namespace game {
 namespace state {
@@ -115,7 +116,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	
 	// Queue fade in
 	ctx.fade_transition_color->set_value({1, 1, 1});
-	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, 5.0f, true, ease<float>::out_sine, true, nullptr));
+	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, config::nuptial_flight_fade_in_duration, true, ease<float>::out_sine, true, nullptr));
 	
 	// Queue control setup
 	ctx.function_queue.push(std::bind(&nuptial_flight::enable_controls, this));

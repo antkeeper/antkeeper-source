@@ -18,7 +18,7 @@
  */
 
 #include "scene/camera.hpp"
-#include "configuration.hpp"
+#include "config.hpp"
 #include "animation/ease.hpp"
 #include "math/constants.hpp"
 #include "math/interpolation.hpp"
@@ -28,8 +28,8 @@ namespace scene {
 static float4x4 interpolate_view(const camera* camera, const float4x4& x, const float4x4& y, float a)
 {
 	math::transform<float> transform = camera->get_transform_tween().interpolate(a);
-	float3 forward = transform.rotation * global_forward;
-	float3 up = transform.rotation * global_up;
+	float3 forward = transform.rotation * config::global_forward;
+	float3 up = transform.rotation * config::global_up;
 	return math::look_at(transform.translation, transform.translation + forward, up);
 }
 
@@ -184,8 +184,8 @@ void camera::update_tweens()
 void camera::transformed()
 {
 	// Recalculate view and view-projection matrices
-	float3 forward = get_rotation() * global_forward;
-	float3 up = get_rotation() * global_up;
+	float3 forward = get_rotation() * config::global_forward;
+	float3 up = get_rotation() * config::global_up;
 	view[1] = math::look_at(get_translation(), get_translation() + forward, up);
 	view_projection[1] = projection[1] * view[1];
 	
