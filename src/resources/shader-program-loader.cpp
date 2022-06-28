@@ -76,10 +76,10 @@ static void handle_includes(text_file* source, resource_manager* resource_manage
 }
 
 template <>
-gl::shader_program* resource_loader<gl::shader_program>::load(resource_manager* resource_manager, PHYSFS_File* file)
+gl::shader_program* resource_loader<gl::shader_program>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	// Load shader template source
-	text_file source_lines = *resource_loader<text_file>::load(resource_manager, file);
+	text_file source_lines = *resource_loader<text_file>::load(resource_manager, file, path);
 	
 	// Handle `#pragma include` directives
 	handle_includes(&source_lines, resource_manager);

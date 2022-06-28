@@ -20,6 +20,7 @@
 #ifndef RESOURCE_LOADER_HPP
 #define RESOURCE_LOADER_HPP
 
+#include <filesystem>
 #include <string>
 
 class resource_manager;
@@ -41,7 +42,7 @@ public:
 	 * @param file PhysicsFS file handle.
 	 * @return Pointer to the loaded resource.
 	 */
-	static T* load(resource_manager* resourceManager, PHYSFS_File* file);
+	static T* load(resource_manager* resourceManager, PHYSFS_File* file, const std::filesystem::path& path);
 
 	/**
 	 * Saves resource data.
@@ -50,7 +51,7 @@ public:
 	 * @param file PhysicsFS file handle.
 	 * @param resource Pointer to the resource data.
 	 */
-	static void save(resource_manager* resourceManager, PHYSFS_File* file, const T* resource);
+	static void save(resource_manager* resourceManager, PHYSFS_File* file, const std::filesystem::path& path, const T* resource);
 };
 
 /// getline function for PhysicsFS file handles

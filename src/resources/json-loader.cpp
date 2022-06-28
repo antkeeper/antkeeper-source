@@ -23,7 +23,7 @@
 #include <physfs.h>
 
 template <>
-json* resource_loader<json>::load(resource_manager* resource_manager, PHYSFS_File* file)
+json* resource_loader<json>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	// Read file into buffer
 	std::size_t size = static_cast<std::size_t>(PHYSFS_fileLength(file));

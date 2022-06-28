@@ -142,7 +142,7 @@ static void load_node_children(entity::ebt::composite_node* node, const nlohmann
 }
 
 template <>
-entity::ebt::node* resource_loader<entity::ebt::node>::load(resource_manager* resource_manager, PHYSFS_File* file)
+entity::ebt::node* resource_loader<entity::ebt::node>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	// Read file into buffer
 	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));

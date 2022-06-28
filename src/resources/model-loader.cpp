@@ -357,7 +357,7 @@ model* resource_loader<model>::load(resource_manager* resource_manager, PHYSFS_F
 */
 
 template <>
-render::model* resource_loader<render::model>::load(resource_manager* resource_manager, PHYSFS_File* file)
+render::model* resource_loader<render::model>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	// Read file into buffer
 	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));

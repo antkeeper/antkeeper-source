@@ -31,7 +31,7 @@
 #include <physfs.h>
 
 template <>
-gl::texture_2d* resource_loader<gl::texture_2d>::load(resource_manager* resource_manager, PHYSFS_File* file)
+gl::texture_2d* resource_loader<gl::texture_2d>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	// Read file into buffer
 	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));

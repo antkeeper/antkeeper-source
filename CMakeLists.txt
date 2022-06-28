@@ -9,6 +9,7 @@ project(antkeeper VERSION ${VERSION_STRING} LANGUAGES CXX)
 # Find dependency packages
 find_package(dr_wav REQUIRED CONFIG)
 find_package(stb REQUIRED CONFIG)
+find_package(tinyexr REQUIRED CONFIG)
 find_package(glad REQUIRED CONFIG)
 find_package(EnTT REQUIRED CONFIG)
 find_package(OpenGL REQUIRED)
@@ -21,6 +22,7 @@ find_package(freetype REQUIRED CONFIG)
 set(STATIC_LIBS
 	dr_wav
 	stb
+	tinyexr
 	glad
 	EnTT
 	SDL2::SDL2-static

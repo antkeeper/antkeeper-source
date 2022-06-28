@@ -23,56 +23,92 @@
 #include <cstring>
 #include <stdexcept>
 #include <physfs.h>
+#include <tinyexr.h>
 
 template <>
-image* resource_loader<image>::load(resource_manager* resource_manager, PHYSFS_File* file)
+image* resource_loader<image>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	unsigned char* buffer;
 	int size;
-	int width;
-	int height;
-	int channels;
-	bool hdr;
-	void* pixels;
+	::image* image = nullptr;
 
 	// Read input stream into buffer
 	size = static_cast<int>(PHYSFS_fileLength(file));
 	buffer = new unsigned char[size];
 	PHYSFS_readBytes(file, buffer, size);
-
-	// Determine if image is in an HDR format
-	hdr = (stbi_is_hdr_from_memory(buffer, size) != 0);
 	
-	// Set vertical flip on load in order to upload pixels correctly to OpenGL
-	stbi_set_flip_vertically_on_load(true);
-	
-	// Load image data
-	if (hdr)
+	// Select loader according to file extension
+	if (path.extension() == ".exr")
 	{
-		pixels = stbi_loadf_from_memory(buffer, size, &width, &height, &channels, 0);
+		// Load OpenEXR with TinyEXR
+		
+		float* pixels = nullptr;
+		int width = 0;
+		int height = 0;
+		const char* error = nullptr;
+		int status = LoadEXRFromMemory(&pixels, &width, &height, buffer, size, &error);
+		
+		if (status != TINYEXR_SUCCESS)
+		{
+			delete[] buffer;
+			std::string error_string(error);
+			FreeEXRErrorMessage(error);
+			throw std::runtime_error("TinyEXR error (" + std::to_string(status) + "): " + error_string);
+		}
+		
+		// Create image
+		std::size_t component_size = sizeof(float);
+		image = new ::image();
+		image->format(component_size, 4);
+		image->resize(static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+		std::memcpy(image->get_pixels(), pixels, image->get_size());
+		
+		// Free loaded pixels
+		free(pixels);
 	}
 	else
 	{
-		pixels = stbi_load_from_memory(buffer, size, &width, &height, &channels, 0);
+		// Load all other formats with stb_image
+		
+		// Determine if image is in an HDR format
+		bool hdr = (stbi_is_hdr_from_memory(buffer, size) != 0);
+		
+		// Set vertical flip on load in order to upload pixels correctly to OpenGL
+		stbi_set_flip_vertically_on_load(true);
+		
+		// Load image data
+		void* pixels = nullptr;
+		int width = 0;
+		int height = 0;
+		int channels = 0;
+		if (hdr)
+		{
+			pixels = stbi_loadf_from_memory(buffer, size, &width, &height, &channels, 0);
+		}
+		else
+		{
+			pixels = stbi_load_from_memory(buffer, size, &width, &height, &channels, 0);
+		}
+		
+		// Free file buffer
+		delete[] buffer;
+		
+		// Check if image was loaded
+		if (!pixels)
+		{
+			throw std::runtime_error("STBI failed to load image from memory.");
+		}
+		
+		// Create image
+		std::size_t component_size = (hdr) ? sizeof(float) : sizeof(unsigned char);
+		image = new ::image();
+		image->format(component_size, channels);
+		image->resize(static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+		std::memcpy(image->get_pixels(), pixels, image->get_size());
+		
+		// Free loaded image data
+		stbi_image_free(pixels);
 	}
-
-	// Free file buffer
-	delete[] buffer;
-	
-	// Check if image was loaded
-	if (!pixels)
-	{
-		throw std::runtime_error("STBI failed to load image from memory.");
-	}
-	
-	std::size_t component_size = (hdr) ? sizeof(float) : sizeof(unsigned char);
-	::image* image = new ::image();
-	image->format(component_size, channels);
-	image->resize(static_cast<unsigned int>(width), static_cast<unsigned int>(height));
-	std::memcpy(image->get_pixels(), pixels, image->get_size());
-	
-	// Free loaded image data
-	stbi_image_free(pixels);
 
 	return image;
 }

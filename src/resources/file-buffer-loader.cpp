@@ -22,7 +22,7 @@
 #include <physfs.h>
 
 template <>
-file_buffer* resource_loader<file_buffer>::load(resource_manager* resource_manager, PHYSFS_File* file)
+file_buffer* resource_loader<file_buffer>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	file_buffer* buffer = new file_buffer();
 	

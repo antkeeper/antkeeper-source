@@ -30,6 +30,7 @@
 #include <string>
 #include <entt/entt.hpp>
 #include <physfs.h>
+#include <filesystem>
 
 /**
  * Loads resources.
@@ -47,14 +48,14 @@ public:
 	 */
 	~resource_manager();
 	
-	bool mount(const std::string& path);
+	bool mount(const std::filesystem::path& path);
 
 	/**
 	 * Adds a path to be searched when a resource is requested.
 	 *
 	 * @param path Search path.
 	 */
-	void include(const std::string& path);
+	void include(const std::filesystem::path& path);
 
 	/**
 	 * Loads the requested resource. If the resource has already been loaded it will be retrieved from the resource cache and its reference count incremented.
@@ -64,14 +65,14 @@ public:
 	 * @return Pointer to the requested resource, or nullptr if the resource could not be found nor loaded.
 	 */
 	template <typename T>
-	T* load(const std::string& name);
+	T* load(const std::filesystem::path& path);
 
 	/**
 	 * Decrements a resource's reference count and unloads the resource if it's unreferenced.
 	 *
 	 * @param path Path to the resource, relative to the search paths.
 	 */
-	void unload(const std::string& name);
+	void unload(const std::filesystem::path& path);
 
 	/**
 	 * Saves the specified resource.
@@ -81,28 +82,28 @@ public:
 	 * @param path Path to the resource.
 	 */
 	template <typename T>
-	void save(const T* resource, const std::string& path);
+	void save(const T* resource, const std::filesystem::path& path);
 
 	entt::registry& get_archetype_registry();
 
 private:
-	std::map<std::string, resource_handle_base*> resource_cache;
-	std::list<std::string> search_paths;
+	std::map<std::filesystem::path, resource_handle_base*> resource_cache;
+	std::list<std::filesystem::path> search_paths;
 	entt::registry archetype_registry;
 	debug::logger* logger;
 };
 
 template <typename T>
-T* resource_manager::load(const std::string& name)
+T* resource_manager::load(const std::filesystem::path& path)
 {
 	// Check if resource is in the cache
-	auto it = resource_cache.find(name);
+	auto it = resource_cache.find(path);
 	if (it != resource_cache.end())
 	{
 		/*
 		if (logger)
 		{
-			logger->log("Fetched resource \"" + name + "\"");
+			logger->log("Fetched resource \"" + path.string() + "\"");
 		}
 		*/
 		
@@ -118,18 +119,18 @@ T* resource_manager::load(const std::string& name)
 	
 	if (logger)
 	{
-		logger->push_task("Loading resource \"" + name + "\"");
+		logger->push_task("Loading resource \"" + path.string() + "\"");
 	}
 
 	// Resource not cached, look for file in search paths
 	T* data = nullptr;
 	bool found = false;
-	for (const std::string& search_path: search_paths)
+	for (const std::filesystem::path& search_path: search_paths)
 	{
-		std::string path = search_path + name;
+		std::filesystem::path full_path = search_path / path;
 		
 		// Check if file exists
-		if (!PHYSFS_exists(path.c_str()))
+		if (!PHYSFS_exists(full_path.string().c_str()))
 		{
 			continue;
 		}
@@ -138,7 +139,7 @@ T* resource_manager::load(const std::string& name)
 		found = true;
 		
 		// Open file for reading
-		PHYSFS_File* file = PHYSFS_openRead(path.c_str());
+		PHYSFS_File* file = PHYSFS_openRead(full_path.string().c_str());
 		if (!file)
 		{
 			logger->error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
@@ -148,7 +149,7 @@ T* resource_manager::load(const std::string& name)
 		// Load opened file
 		try
 		{
-			data = resource_loader<T>::load(this, file);
+			data = resource_loader<T>::load(this, file, full_path);
 		}
 		catch (const std::exception& e)
 		{
@@ -181,7 +182,7 @@ T* resource_manager::load(const std::string& name)
 	resource->reference_count = 1;
 	
 	// Add resource to the cache
-	resource_cache[name] = resource;
+	resource_cache[path] = resource;
 	
 	if (logger)
 	{
@@ -192,12 +193,12 @@ T* resource_manager::load(const std::string& name)
 }
 
 template <typename T>
-void resource_manager::save(const T* resource, const std::string& path)
+void resource_manager::save(const T* resource, const std::filesystem::path& path)
 {
-	logger->push_task("Saving resource to \"" + path + "\"");
+	logger->push_task("Saving resource to \"" + path.string() + "\"");
 	
 	// Open file for writing
-	PHYSFS_File* file = PHYSFS_openWrite(path.c_str());
+	PHYSFS_File* file = PHYSFS_openWrite(path.string().c_str());
 	if (!file)
 	{
 		logger->error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
@@ -209,7 +210,7 @@ void resource_manager::save(const T* resource, const std::string& path)
 	int status = EXIT_SUCCESS;
 	try
 	{
-		resource_loader<T>::save(this, file, resource);
+		resource_loader<T>::save(this, file, path, resource);
 	}
 	catch (const std::exception& e)
 	{

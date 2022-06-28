@@ -56,10 +56,10 @@ resource_manager::~resource_manager()
 	}
 }
 
-bool resource_manager::mount(const std::string& path)
+bool resource_manager::mount(const std::filesystem::path& path)
 {
-	logger->push_task("Mounting path \"" + path + "\"");
-	if (!PHYSFS_mount(path.c_str(), nullptr, 1))
+	logger->push_task("Mounting path \"" + path.string() + "\"");
+	if (!PHYSFS_mount(path.string().c_str(), nullptr, 1))
 	{
 		logger->error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 		logger->pop_task(EXIT_FAILURE);
@@ -72,10 +72,10 @@ bool resource_manager::mount(const std::string& path)
 	}
 }
 
-void resource_manager::unload(const std::string& name)
+void resource_manager::unload(const std::filesystem::path& path)
 {
 	// Check if resource is in the cache
-	auto it = resource_cache.find(name);
+	auto it = resource_cache.find(path);
 	if (it != resource_cache.end())
 	{
 		// Decrement the resource handle reference count
@@ -86,7 +86,7 @@ void resource_manager::unload(const std::string& name)
 		{
 			if (logger)
 			{
-				logger->push_task("Unloading resource \"" + name + "\"");
+				logger->push_task("Unloading resource \"" + path.string() + "\"");
 			}
 			
 			delete it->second;
@@ -102,7 +102,7 @@ void resource_manager::unload(const std::string& name)
 	}
 }
 
-void resource_manager::include(const std::string& search_path)
+void resource_manager::include(const std::filesystem::path& search_path)
 {
 	search_paths.push_back(search_path);
 }

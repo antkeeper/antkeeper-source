@@ -22,7 +22,7 @@
 #include <physfs.h>
 
 template <>
-text_file* resource_loader<text_file>::load(resource_manager* resource_manager, PHYSFS_File* file)
+text_file* resource_loader<text_file>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	text_file* text = new text_file();
 	std::string line;

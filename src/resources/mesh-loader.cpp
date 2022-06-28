@@ -26,7 +26,7 @@
 #include <physfs.h>
 
 template <>
-geom::mesh* resource_loader<geom::mesh>::load(resource_manager* resource_manager, PHYSFS_File* file)
+geom::mesh* resource_loader<geom::mesh>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	std::string line;
 	std::vector<float3> vertices;

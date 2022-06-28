@@ -237,7 +237,7 @@ static bool load_component(entity::archetype& archetype, resource_manager& resou
 }
 
 template <>
-entity::archetype* resource_loader<entity::archetype>::load(resource_manager* resource_manager, PHYSFS_File* file)
+entity::archetype* resource_loader<entity::archetype>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	// Allocate archetype
 	entity::archetype* archetype = new entity::archetype(resource_manager->get_archetype_registry());

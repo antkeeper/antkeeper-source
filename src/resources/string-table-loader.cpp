@@ -93,7 +93,7 @@ static string_table_row parse_row(const std::string& line)
 }
 
 template <>
-string_table* resource_loader<string_table>::load(resource_manager* resource_manager, PHYSFS_File* file)
+string_table* resource_loader<string_table>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	string_table* table = new string_table();
 	std::string line;
@@ -108,7 +108,7 @@ string_table* resource_loader<string_table>::load(resource_manager* resource_man
 }
 
 template <>
-void resource_loader<string_table>::save(resource_manager* resource_manager, PHYSFS_File* file, const string_table* table)
+void resource_loader<string_table>::save(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path, const string_table* table)
 {
 	const char* delimeter = ",";
 	const char* newline = "\n";

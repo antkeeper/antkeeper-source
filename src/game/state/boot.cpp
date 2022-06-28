@@ -300,13 +300,13 @@ void boot::setup_resources()
 	
 	// Mount mods
 	for (const std::filesystem::path& mod_path: mod_paths)
-		ctx.resource_manager->mount((ctx.mods_path / mod_path).string());
+		ctx.resource_manager->mount(ctx.mods_path / mod_path);
 	
 	// Mount config path
-	ctx.resource_manager->mount(ctx.config_path.string());
+	ctx.resource_manager->mount(ctx.config_path);
 	
 	// Mount data package
-	ctx.resource_manager->mount(ctx.data_package_path.string());
+	ctx.resource_manager->mount(ctx.data_package_path);
 	
 	// Include resource search paths in order of priority
 	ctx.resource_manager->include("/shaders/");

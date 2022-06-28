@@ -223,7 +223,7 @@ static bool load_matrix_property(render::material* material, const std::string& 
 }
 
 template <>
-render::material* resource_loader<render::material>::load(resource_manager* resource_manager, PHYSFS_File* file)
+render::material* resource_loader<render::material>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	// Read file into buffer
 	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));

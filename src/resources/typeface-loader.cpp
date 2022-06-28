@@ -25,7 +25,7 @@
 #include FT_FREETYPE_H
 
 template <>
-type::typeface* resource_loader<type::typeface>::load(resource_manager* resource_manager, PHYSFS_File* file)
+type::typeface* resource_loader<type::typeface>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	FT_Error error = 0;
 	
