@@ -180,7 +180,7 @@ void create_stars(game::context& ctx)
 	stars_model_group->set_index_count(star_count);
 	
 	// Pass stars model to sky pass
-	ctx.surface_sky_pass->set_stars_model(stars_model);
+	ctx.sky_pass->set_stars_model(stars_model);
 }
 
 void create_sun(game::context& ctx)
@@ -224,13 +224,10 @@ void create_planet(game::context& ctx)
 	};
 	terrain.max_lod = 0;
 	terrain.patch_material = nullptr;
-	ctx.entity_registry->assign<entity::component::terrain>(planet_eid, terrain);
+	//ctx.entity_registry->assign<entity::component::terrain>(planet_eid, terrain);
 	
 	// Pass planet to astronomy system as reference body
 	ctx.astronomy_system->set_reference_body(planet_eid);
-	
-	// Load sky model
-	ctx.surface_sky_pass->set_sky_model(ctx.resource_manager->load<render::model>("sky-dome.mdl"));
 }
 
 void create_moon(game::context& ctx)
@@ -240,7 +237,7 @@ void create_moon(game::context& ctx)
 	ctx.entities["moon"] = moon_eid;
 	
 	// Pass moon model to sky pass
-	ctx.surface_sky_pass->set_moon_model(ctx.resource_manager->load<render::model>("moon.mdl"));
+	ctx.sky_pass->set_moon_model(ctx.resource_manager->load<render::model>("moon.mdl"));
 }
 
 void set_time(game::context& ctx, double t)

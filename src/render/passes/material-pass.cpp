@@ -132,10 +132,6 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 	clip_depth[0] = ctx.camera->get_clip_near_tween().interpolate(ctx.alpha);
 	clip_depth[1] = ctx.camera->get_clip_far_tween().interpolate(ctx.alpha);
 	float log_depth_coef = 2.0f / std::log2(clip_depth[1] + 1.0f);
-	
-	float camera_exposure = std::exp2(-ctx.camera->get_exposure_tween().interpolate(ctx.alpha));
-	//float camera_exposure = ctx.camera->get_exposure_tween().interpolate(ctx.alpha);
-
 
 	int active_material_flags = 0;
 	const gl::shader_program* active_shader_program = nullptr;
@@ -165,7 +161,7 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 				if (ambient_light_count < max_ambient_light_count)
 				{
 					// Pre-expose light
-					ambient_light_colors[ambient_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * camera_exposure;
+					ambient_light_colors[ambient_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
 					++ambient_light_count;
 				}
 				break;
@@ -177,7 +173,7 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 				if (point_light_count < max_point_light_count)
 				{
 					// Pre-expose light
-					point_light_colors[point_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * camera_exposure;
+					point_light_colors[point_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
 					
 					float3 position = light->get_transform_tween().interpolate(ctx.alpha).translation;
 					point_light_positions[point_light_count] = position;
@@ -196,7 +192,7 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 					const scene::directional_light* directional_light = static_cast<const scene::directional_light*>(light);
 
 					// Pre-expose light
-					directional_light_colors[directional_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * camera_exposure;
+					directional_light_colors[directional_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
 					
 					float3 direction = static_cast<const scene::directional_light*>(light)->get_direction_tween().interpolate(ctx.alpha);
 					directional_light_directions[directional_light_count] = direction;
@@ -236,7 +232,7 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 					const scene::spot_light* spot_light = static_cast<const scene::spot_light*>(light);
 
 					// Pre-expose light
-					spot_light_colors[spot_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * camera_exposure;
+					spot_light_colors[spot_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
 					
 					float3 position = light->get_transform_tween().interpolate(ctx.alpha).translation;
 					spot_light_positions[spot_light_count] = position;
@@ -447,7 +443,7 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 				if (parameters->camera_position)
 					parameters->camera_position->upload(camera_position);
 				if (parameters->camera_exposure)
-					parameters->camera_exposure->upload(camera_exposure);
+					parameters->camera_exposure->upload(ctx.exposure);
 				if (parameters->view)
 					parameters->view->upload(view);
 				if (parameters->view_projection)

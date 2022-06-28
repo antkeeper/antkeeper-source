@@ -97,7 +97,8 @@ void renderer::render(float t, float dt, float alpha, const scene::collection& c
 		ctx.camera_transform = camera->get_transform_tween().interpolate(alpha); 
 		ctx.camera_forward = ctx.camera_transform.rotation * config::global_forward;
 		ctx.camera_up = ctx.camera_transform.rotation * config::global_up;
-		ctx.clip_near = camera->get_view_frustum().get_near(); ///< TODO: tween this
+		ctx.clip_near = camera->get_view_frustum().get_near(); ///< @TODO: tween this
+		ctx.exposure = std::exp2(-camera->get_exposure_tween().interpolate(alpha));
 		
 		// Create render queue
 		render::queue queue;

@@ -56,6 +56,9 @@ struct context
 	/// Near clipping plane of the camera
 	geom::plane<float> clip_near;
 	
+	/// Camera exposure normalization factor.
+	float exposure;
+	
 	/// Collection of scene objects being rendered.
 	const scene::collection* collection;
 	

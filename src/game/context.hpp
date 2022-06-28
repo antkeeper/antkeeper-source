@@ -112,6 +112,7 @@ namespace render
 	class shadow_map_pass;
 	class simple_render_pass;
 	class sky_pass;
+	class ground_pass;
 }
 
 namespace game {
@@ -208,10 +209,12 @@ struct context
 	render::clear_pass* surface_shadow_map_clear_pass;
 	render::shadow_map_pass* surface_shadow_map_pass;
 	render::clear_pass* surface_clear_pass;
-	render::sky_pass* surface_sky_pass;
+	render::sky_pass* sky_pass;
 	render::material_pass* surface_material_pass;
 	render::outline_pass* surface_outline_pass;
 	render::compositor* surface_compositor;
+	render::ground_pass* ground_pass;
+	
 	
 	// Scene utilities
 	scene::collection* active_scene;

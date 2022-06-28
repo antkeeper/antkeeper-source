@@ -47,6 +47,7 @@
 #include "render/passes/outline-pass.hpp"
 #include "render/passes/shadow-map-pass.hpp"
 #include "render/passes/sky-pass.hpp"
+#include "render/passes/ground-pass.hpp"
 #include "render/passes/simple-pass.hpp"
 #include "render/vertex-attribute.hpp"
 #include "render/compositor.hpp"
@@ -500,8 +501,12 @@ void boot::setup_rendering()
 		ctx.surface_clear_pass->set_cleared_buffers(true, true, true);
 		ctx.surface_clear_pass->set_clear_depth(0.0f);
 		
-		ctx.surface_sky_pass = new render::sky_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
-		ctx.app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx.surface_sky_pass);
+		ctx.sky_pass = new render::sky_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
+		ctx.sky_pass->set_enabled(false);
+		ctx.app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx.sky_pass);
+		
+		ctx.ground_pass = new render::ground_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
+		ctx.ground_pass->set_enabled(false);
 		
 		ctx.surface_material_pass = new render::material_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.surface_material_pass->set_fallback_material(ctx.fallback_material);
@@ -517,7 +522,8 @@ void boot::setup_rendering()
 		ctx.surface_compositor->add_pass(ctx.surface_shadow_map_clear_pass);
 		ctx.surface_compositor->add_pass(ctx.surface_shadow_map_pass);
 		ctx.surface_compositor->add_pass(ctx.surface_clear_pass);
-		ctx.surface_compositor->add_pass(ctx.surface_sky_pass);
+		ctx.surface_compositor->add_pass(ctx.sky_pass);
+		ctx.surface_compositor->add_pass(ctx.ground_pass);
 		ctx.surface_compositor->add_pass(ctx.surface_material_pass);
 		//ctx.surface_compositor->add_pass(ctx.surface_outline_pass);
 		ctx.surface_compositor->add_pass(ctx.common_bloom_pass);
@@ -913,7 +919,7 @@ void boot::setup_systems()
 	
 	// Setup astronomy system
 	ctx.astronomy_system = new entity::system::astronomy(*ctx.entity_registry);
-	ctx.astronomy_system->set_sky_pass(ctx.surface_sky_pass);
+	ctx.astronomy_system->set_sky_pass(ctx.sky_pass);
 	
 	// Setup proteome system
 	ctx.proteome_system = new entity::system::proteome(*ctx.entity_registry);
@@ -1100,7 +1106,7 @@ void boot::setup_loop()
 		[&ctx = this->ctx](double t, double dt)
 		{
 			// Update tweens
-			ctx.surface_sky_pass->update_tweens();
+			ctx.sky_pass->update_tweens();
 			ctx.surface_scene->update_tweens();
 			ctx.underground_scene->update_tweens();
 			ctx.ui_scene->update_tweens();

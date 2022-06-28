@@ -20,9 +20,8 @@
 #include "game/state/nuptial-flight.hpp"
 #include "game/state/pause-menu.hpp"
 #include "entity/archetype.hpp"
-#include "entity/systems/astronomy.hpp"
-#include "entity/systems/orbit.hpp"
 #include "entity/systems/camera.hpp"
+#include "entity/systems/astronomy.hpp"
 #include "entity/components/observer.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/components/terrain.hpp"
@@ -37,8 +36,7 @@
 #include "game/world.hpp"
 #include "application.hpp"
 #include "render/passes/clear-pass.hpp"
-#include <memory>
-#include <iostream>
+#include "render/passes/ground-pass.hpp"
 #include "state-machine.hpp"
 #include "config.hpp"
 
@@ -53,6 +51,16 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
+	// Setup and enable sky pass
+	ctx.sky_pass->set_sky_model(ctx.resource_manager->load<render::model>("celestial-hemisphere.mdl"));
+	ctx.sky_pass->set_enabled(true);
+	
+	// Setup and enable ground pass
+	render::model* terrestrial_hemisphere_model = ctx.resource_manager->load<render::model>("terrestrial-hemisphere.mdl");
+	(*terrestrial_hemisphere_model->get_groups())[0]->set_material(ctx.resource_manager->load<render::material>("scrub-terrestrial-hemisphere.mtl"));
+	ctx.ground_pass->set_ground_model(terrestrial_hemisphere_model);
+	ctx.ground_pass->set_enabled(true);
+	
 	// Create world
 	game::world::create_stars(ctx);
 	game::world::create_sun(ctx);
@@ -65,10 +73,6 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	// Freeze time
 	game::world::set_time_scale(ctx, 0.0);
 	
-	// Switch to surface camera
-	ctx.underground_camera->set_active(false);
-	ctx.surface_camera->set_active(true);
-	
 	// Find planet EID by name
 	entity::id planet_eid = ctx.entities["planet"];
 	
@@ -77,9 +81,10 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	//	ctx.entity_registry->remove<entity::component::terrain>(planet_eid);
 	
 	// Enable clouds in sky pass
-	//ctx.surface_sky_pass->set_clouds_model(ctx.resource_manager->load<render::model>("cloud-plane.mdl"));
+	//ctx.sky_pass->set_clouds_model(ctx.resource_manager->load<render::model>("cloud-plane.mdl"));
 	
 	// Create biome terrain component
+	/*
 	entity::component::terrain biome_terrain;
 	biome_terrain.max_lod = 18;
 	biome_terrain.patch_material = ctx.resource_manager->load<render::material>("desert-terrain.mtl");
@@ -89,6 +94,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	};
 	// Replace planet terrain component with biome terrain component
 	ctx.entity_registry->replace<entity::component::terrain>(planet_eid, biome_terrain);
+	*/
 	
 	// Create observer
 	entity::id observer_eid = ctx.entity_registry->create();
@@ -218,7 +224,7 @@ void nuptial_flight::setup_camera()
 		ctx.entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
 	}
 	
-	float ev100 = 14.5f;
+	float ev100 = 13.5f;
 	ctx.surface_camera->set_exposure(ev100);
 }
 
@@ -229,11 +235,13 @@ void nuptial_flight::enable_controls()
 	entity::id target_eid = ctx.entities["surface_cam_target"];
 	entity::id three_dof_eid = ctx.entities["surface_cam_3dof"];
 	
+	const float min_elevation = 0.1f;
+	const float max_elevation = 100.0f;
 	const float slow_modifier = 0.25f;
 	const float fast_modifier = 4.0f;
-	const float dolly_speed = 20.0f;
+	const float dolly_speed = 5.0f;
 	const float truck_speed = dolly_speed;
-	const float pedestal_speed = 30.0f;
+	const float pedestal_speed = 5.0f;
 	float mouse_tilt_sensitivity = 1.0f;
 	float mouse_pan_sensitivity = 1.0f;
 	bool mouse_invert_tilt = false;
@@ -348,14 +356,17 @@ void nuptial_flight::enable_controls()
 	// Pedestal up
 	ctx.controls["move_up"]->set_active_callback
 	(
-		[&ctx = this->ctx, target_eid, pedestal_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
+		[&ctx = this->ctx, target_eid, pedestal_speed, move_slow, move_fast, slow_modifier, fast_modifier, max_elevation](float value)
 		{
 			if (move_slow->is_active())
 				value *= slow_modifier;
 			if (move_fast->is_active())
 				value *= fast_modifier;
 				
-			const float3 movement = {0.0f, pedestal_speed * value * (1.0f / 60.0f), 0.0f};
+			float3 movement = {0.0f, pedestal_speed * value * (1.0f / 60.0f), 0.0f};
+			auto transform = entity::command::get_world_transform(*ctx.entity_registry, target_eid);
+			if (transform.translation.y + movement.y > max_elevation)
+				movement.y = max_elevation - transform.translation.y;
 			entity::command::translate(*ctx.entity_registry, target_eid, movement);
 		}
 	);
@@ -363,14 +374,18 @@ void nuptial_flight::enable_controls()
 	// Pedestal down
 	ctx.controls["move_down"]->set_active_callback
 	(
-		[&ctx = this->ctx, target_eid, pedestal_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
+		[&ctx = this->ctx, target_eid, pedestal_speed, move_slow, move_fast, slow_modifier, fast_modifier, min_elevation](float value)
 		{
 			if (move_slow->is_active())
 				value *= slow_modifier;
 			if (move_fast->is_active())
 				value *= fast_modifier;
-				
-			const float3 movement = {0.0f, -pedestal_speed * value * (1.0f / 60.0f), 0.0f};
+			
+			float3 movement = {0.0f, -pedestal_speed * value * (1.0f / 60.0f), 0.0f};
+			auto transform = entity::command::get_world_transform(*ctx.entity_registry, target_eid);
+			if (transform.translation.y + movement.y < min_elevation)
+				movement.y = min_elevation - transform.translation.y;
+			
 			entity::command::translate(*ctx.entity_registry, target_eid, movement);
 		}
 	);

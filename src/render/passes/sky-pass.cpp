@@ -105,8 +105,6 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	float4x4 projection = camera.get_projection_tween().interpolate(ctx.alpha);
 	float4x4 view_projection = projection * view;
 	float4x4 model_view_projection = projection * model_view;
-	float exposure = std::exp2(-camera.get_exposure_tween().interpolate(ctx.alpha));
-	//float exposure = camera.get_exposure_tween().interpolate(ctx.alpha);
 	
 	// Interpolate observer altitude
 	float observer_altitude = observer_altitude_tween.interpolate(ctx.alpha);
@@ -141,7 +139,7 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 		if (time_input)
 			time_input->upload(ctx.t);
 		if (exposure_input)
-			exposure_input->upload(exposure);
+			exposure_input->upload(ctx.exposure);
 		
 		if (observer_altitude_input)
 			observer_altitude_input->upload(observer_altitude);
@@ -149,8 +147,11 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 			sun_direction_input->upload(sun_direction);
 		if (sun_angular_radius_input)
 			sun_angular_radius_input->upload(sun_angular_radius);
+			
+		// Pre-exposure sun color
 		if (sun_color_input)
-			sun_color_input->upload(sun_color_outer);
+			sun_color_input->upload(sun_color_outer * ctx.exposure);
+		
 		if (scale_height_rm_input)
 			scale_height_rm_input->upload(scale_height_rm);
 		if (rayleigh_scattering_input)
@@ -181,7 +182,7 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 		if (cloud_camera_position_input)
 			cloud_camera_position_input->upload(ctx.camera_transform.translation);
 		if (cloud_camera_exposure_input)
-			cloud_camera_exposure_input->upload(exposure);
+			cloud_camera_exposure_input->upload(ctx.exposure);
 		
 		cloud_material->upload(ctx.alpha);
 
@@ -210,7 +211,7 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 		if (star_distance_input)
 			star_distance_input->upload(star_distance);
 		if (star_exposure_input)
-			star_exposure_input->upload(exposure);
+			star_exposure_input->upload(ctx.exposure);
 		
 		star_material->upload(ctx.alpha);
 		

@@ -56,7 +56,7 @@ constexpr float4 menu_inactive_color{1.0f, 1.0f, 1.0f, 0.5f};
 constexpr float title_fade_in_duration = 1.0f;
 
 /// Duration of the fade out when quitting the game or returning to the main menu, in seconds.
-constexpr float quit_fade_out_duration = 1.0f;
+constexpr float quit_fade_out_duration = 0.5f;
 
 /// Duration of the fade out when a new colony is started, in seconds.
 constexpr float new_colony_fade_out_duration = 1.0f;
