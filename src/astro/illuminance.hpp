@@ -22,6 +22,17 @@
 
 namespace astro
 {
+	
+	
+/**
+ * Converts apparent (visual) magnitude to a brightness factor relative to a 0th magnitude star.
+ *
+ * @param mv Illuminance in apparent magnitude.
+ * @return Relative brightness factor.
+ *
+ * @see https://en.wikipedia.org/wiki/Illuminance
+ */
+double vmag_to_brightness(double mv);
 
 /**
  * Converts apparent (visual) magnitude to lux.

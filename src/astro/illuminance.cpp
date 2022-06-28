@@ -23,6 +23,13 @@
 namespace astro
 {
 
+double vmag_to_brightness(double mv)
+{
+	// 100^(1/5)
+	static constexpr double fifth_root_100 = 2.5118864315095801110850320677993;
+	return std::pow(fifth_root_100, -mv);
+}
+
 double vmag_to_lux(double mv)
 {
 	return std::pow(10.0, (-14.18 - mv) * 0.4);

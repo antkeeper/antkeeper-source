@@ -38,6 +38,7 @@
 #include "gl/vertex-buffer.hpp"
 #include "physics/light/photometry.hpp"
 #include "physics/orbit/orbit.hpp"
+#include "astro/illuminance.hpp"
 #include "render/material.hpp"
 #include "render/model.hpp"
 #include "render/passes/shadow-map-pass.hpp"
@@ -110,14 +111,11 @@ void create_stars(game::context& ctx)
 		// Transform XYZ color to ACEScg colorspace
 		double3 color_acescg = color::xyz::to_acescg(color_xyz);
 		
-		// Convert apparent magnitude to irradiance (W/m^2)
-		double vmag_irradiance = std::pow(10.0, 0.4 * (-vmag - 19.0 + 0.4));
+		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
+		double brightness = astro::vmag_to_brightness(vmag);
 		
-		// Convert irradiance to illuminance
-		double vmag_illuminance = vmag_irradiance * (683.0 * 0.14);
-		
-		// Scale color by illuminance
-		double3 scaled_color = color_acescg * vmag_illuminance;
+		// Scale color by relative brightness
+		double3 scaled_color = color_acescg * brightness;
 		
 		// Build vertex
 		*(star_vertex++) = static_cast<float>(position_inertial.x);
@@ -126,7 +124,7 @@ void create_stars(game::context& ctx)
 		*(star_vertex++) = static_cast<float>(scaled_color.x);
 		*(star_vertex++) = static_cast<float>(scaled_color.y);
 		*(star_vertex++) = static_cast<float>(scaled_color.z);
-		*(star_vertex++) = static_cast<float>(vmag);
+		*(star_vertex++) = static_cast<float>(brightness);
 	}
 	
 	// Unload star catalog

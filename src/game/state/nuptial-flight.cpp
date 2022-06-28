@@ -114,11 +114,6 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	
 	// Setup camera
 	setup_camera();
-	/*
-	ctx.surface_camera->look_at({0, 0, 1}, {0, 0, 0}, {0, 1, 0});
-	ctx.surface_camera->set_exposure(-14.5f);
-	ctx.surface_scene->update_tweens();
-	*/
 	
 	// Queue fade in
 	ctx.fade_transition_color->set_value({1, 1, 1});
@@ -252,6 +247,7 @@ void nuptial_flight::enable_controls()
 	bool gamepad_invert_pan = false;
 	bool mouse_look_toggle = false;
 	ctx.mouse_look = false;
+	const double time_scale = 5000.0;
 	
 	if (ctx.config->contains("mouse_tilt_sensitivity"))
 		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());
@@ -541,6 +537,36 @@ void nuptial_flight::enable_controls()
 		}
 	);
 	*/
+	
+	// Fast-forward
+	ctx.controls["fast_forward"]->set_activated_callback
+	(
+		[&ctx = this->ctx, time_scale]()
+		{
+			game::world::set_time_scale(ctx, time_scale);
+		}
+	);
+	ctx.controls["fast_forward"]->set_deactivated_callback
+	(
+		[&ctx = this->ctx, time_scale]()
+		{
+			game::world::set_time_scale(ctx, 0.0);
+		}
+	);
+	ctx.controls["rewind"]->set_activated_callback
+	(
+		[&ctx = this->ctx, time_scale]()
+		{
+			game::world::set_time_scale(ctx, -time_scale);
+		}
+	);
+	ctx.controls["rewind"]->set_deactivated_callback
+	(
+		[&ctx = this->ctx, time_scale]()
+		{
+			game::world::set_time_scale(ctx, 0.0);
+		}
+	);
 	
 	// Setup pause control
 	ctx.controls["pause"]->set_activated_callback
