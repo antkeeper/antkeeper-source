@@ -67,10 +67,14 @@ void ground_pass::render(const render::context& ctx, render::queue& queue) const
 	rasterizer->use_framebuffer(*framebuffer);
 	
 	glDisable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_GREATER);
+	glDepthRange(-1.0f, 1.0f);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+	glDisable(GL_STENCIL_TEST);
+	glStencilMask(0);
 
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
@@ -85,8 +89,10 @@ void ground_pass::render(const render::context& ctx, render::queue& queue) const
 	float4x4 view = math::resize<4, 4>(math::resize<3, 3>(camera.get_view_tween().interpolate(ctx.alpha)));
 	float4x4 model_view = view * model;
 	float4x4 projection = camera.get_projection_tween().interpolate(ctx.alpha);
-	//float4x4 view_projection = projection * view;
+	float4x4 view_projection = camera.get_view_projection_tween().interpolate(ctx.alpha);
 	float4x4 model_view_projection = projection * model_view;
+	
+	
 	
 	float3 ambient_light_color = {0.0f, 0.0f, 0.0f};
 	float3 directional_light_color = {0.0f, 0.0f, 0.0f};
@@ -133,6 +139,8 @@ void ground_pass::render(const render::context& ctx, render::queue& queue) const
 	
 	if (model_view_projection_input)
 		model_view_projection_input->upload(model_view_projection);
+	if (view_projection_input)
+		view_projection_input->upload(view_projection);
 	if (camera_position_input)
 		camera_position_input->upload(ctx.camera_transform.translation);
 	if (directional_light_colors_input)
@@ -173,6 +181,7 @@ void ground_pass::set_ground_model(const model* model)
 			if (shader_program)
 			{
 				model_view_projection_input = shader_program->get_input("model_view_projection");
+				view_projection_input = shader_program->get_input("view_projection");
 				camera_position_input = shader_program->get_input("camera.position");
 				directional_light_colors_input = shader_program->get_input("directional_light_colors");
 				directional_light_directions_input = shader_program->get_input("directional_light_directions");

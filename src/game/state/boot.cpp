@@ -460,7 +460,7 @@ void boot::setup_rendering()
 	{
 		ctx.ui_clear_pass = new render::clear_pass(ctx.rasterizer, &ctx.rasterizer->get_default_framebuffer());
 		ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
-		ctx.ui_clear_pass->set_clear_depth(0.0f);
+		ctx.ui_clear_pass->set_clear_depth(-1.0f);
 		
 		ctx.ui_material_pass = new render::material_pass(ctx.rasterizer, &ctx.rasterizer->get_default_framebuffer(), ctx.resource_manager);
 		ctx.ui_material_pass->set_fallback_material(ctx.fallback_material);
@@ -475,7 +475,7 @@ void boot::setup_rendering()
 		ctx.underground_clear_pass = new render::clear_pass(ctx.rasterizer, ctx.hdr_framebuffer);
 		ctx.underground_clear_pass->set_cleared_buffers(true, true, false);
 		ctx.underground_clear_pass->set_clear_color({1, 0, 1, 0});
-		ctx.underground_clear_pass->set_clear_depth(0.0f);
+		ctx.underground_clear_pass->set_clear_depth(-1.0f);
 		
 		ctx.underground_material_pass = new render::material_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.underground_material_pass->set_fallback_material(ctx.fallback_material);
@@ -498,8 +498,8 @@ void boot::setup_rendering()
 		ctx.surface_shadow_map_pass->set_split_scheme_weight(0.75f);
 		
 		ctx.surface_clear_pass = new render::clear_pass(ctx.rasterizer, ctx.hdr_framebuffer);
-		ctx.surface_clear_pass->set_cleared_buffers(true, true, true);
-		ctx.surface_clear_pass->set_clear_depth(0.0f);
+		ctx.surface_clear_pass->set_cleared_buffers(false, true, true);
+		ctx.surface_clear_pass->set_clear_depth(-1.0f);
 		
 		ctx.sky_pass = new render::sky_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.sky_pass->set_enabled(false);
@@ -526,7 +526,7 @@ void boot::setup_rendering()
 		ctx.surface_compositor->add_pass(ctx.ground_pass);
 		ctx.surface_compositor->add_pass(ctx.surface_material_pass);
 		//ctx.surface_compositor->add_pass(ctx.surface_outline_pass);
-		ctx.surface_compositor->add_pass(ctx.common_bloom_pass);
+		//ctx.surface_compositor->add_pass(ctx.common_bloom_pass);
 		ctx.surface_compositor->add_pass(ctx.common_final_pass);
 	}
 	

@@ -51,6 +51,7 @@ public:
 private:	
 	gl::shader_program* shader_program;
 	const gl::shader_input* model_view_projection_input;
+	const gl::shader_input* view_projection_input;
 	const gl::shader_input* camera_position_input;
 	const gl::shader_input* directional_light_colors_input;
 	const gl::shader_input* directional_light_directions_input;

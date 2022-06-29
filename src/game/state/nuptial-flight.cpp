@@ -126,6 +126,13 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		entity::command::warp_to(*ctx.entity_registry, color_checker_eid, {0, 0, 0});
 	}
 	
+	// Create ruler
+	{
+		entity::archetype* ruler_10cm_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
+		auto ruler_10cm_eid = ruler_10cm_archetype->create(*ctx.entity_registry);
+		entity::command::warp_to(*ctx.entity_registry, ruler_10cm_eid, {0, 0, 10});
+	}
+	
 	// Setup camera
 	setup_camera();
 	
@@ -294,7 +301,7 @@ void nuptial_flight::enable_controls()
 	
 	ctx.controls["move_forward"]->set_active_callback
 	(
-		[&ctx = this->ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
+		[&ctx = this->ctx, target_eid, three_dof_eid, dolly_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
 		{
 			if (move_slow->is_active())
 				value *= slow_modifier;
@@ -304,7 +311,7 @@ void nuptial_flight::enable_controls()
 			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
 
-			const float3 movement = {0.0f, 0.0f, -truck_speed * value * (1.0f / 60.0f)};
+			const float3 movement = {0.0f, 0.0f, -dolly_speed * value * (1.0f / 60.0f)};
 			entity::command::translate(*ctx.entity_registry, target_eid, yaw * movement);
 		}
 	);
@@ -312,7 +319,7 @@ void nuptial_flight::enable_controls()
 	// Dolly backward
 	ctx.controls["move_back"]->set_active_callback
 	(
-		[&ctx = this->ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
+		[&ctx = this->ctx, target_eid, three_dof_eid, dolly_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
 		{
 			if (move_slow->is_active())
 				value *= slow_modifier;
@@ -322,7 +329,7 @@ void nuptial_flight::enable_controls()
 			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
 			
-			const float3 movement = {0.0f, 0.0f, truck_speed * value * (1.0f / 60.0f)};
+			const float3 movement = {0.0f, 0.0f, dolly_speed * value * (1.0f / 60.0f)};
 			entity::command::translate(*ctx.entity_registry, target_eid, yaw * movement);
 		}
 	);
