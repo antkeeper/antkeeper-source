@@ -38,6 +38,7 @@
 #include "render/passes/clear-pass.hpp"
 #include "render/passes/ground-pass.hpp"
 #include "state-machine.hpp"
+#include "scene/ambient-light.hpp"
 #include "config.hpp"
 
 namespace game {
@@ -110,6 +111,19 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		// Set reference location of astronomy system
 		ctx.astronomy_system->set_reference_body(planet_eid);
 		ctx.astronomy_system->set_observer_location(double3{observer.elevation, observer.latitude, observer.longitude});
+	}
+	
+	/*
+	scene::ambient_light* light = new scene::ambient_light();
+	light->set_color(float3{1, 1, 1} * 10000.0f);
+	ctx.surface_scene->add_object(light);
+	*/
+	
+	// Create color checker
+	{
+		entity::archetype* color_checker_archetype = ctx.resource_manager->load<entity::archetype>("color-checker.ent");
+		auto color_checker_eid = color_checker_archetype->create(*ctx.entity_registry);
+		entity::command::warp_to(*ctx.entity_registry, color_checker_eid, {0, 0, 0});
 	}
 	
 	// Setup camera

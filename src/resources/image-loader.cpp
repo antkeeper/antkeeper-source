@@ -41,30 +41,94 @@ image* resource_loader<image>::load(resource_manager* resource_manager, PHYSFS_F
 	if (path.extension() == ".exr")
 	{
 		// Load OpenEXR with TinyEXR
-		
-		float* pixels = nullptr;
-		int width = 0;
-		int height = 0;
+		int status = TINYEXR_SUCCESS;
 		const char* error = nullptr;
-		int status = LoadEXRFromMemory(&pixels, &width, &height, buffer, size, &error);
 		
+		// Read EXR version
+		EXRVersion exr_version;
+		status = ParseEXRVersionFromMemory(&exr_version, buffer, size);
 		if (status != TINYEXR_SUCCESS)
 		{
 			delete[] buffer;
-			std::string error_string(error);
-			FreeEXRErrorMessage(error);
-			throw std::runtime_error("TinyEXR error (" + std::to_string(status) + "): " + error_string);
+			throw std::runtime_error("TinyEXR parse version error (" + std::to_string(status) + "): invalid EXR file");
 		}
 		
-		// Create image
-		std::size_t component_size = sizeof(float);
-		image = new ::image();
-		image->format(component_size, 4);
-		image->resize(static_cast<unsigned int>(width), static_cast<unsigned int>(height));
-		std::memcpy(image->get_pixels(), pixels, image->get_size());
+		// Check if image is multipart
+		if (exr_version.multipart)
+		{
+			throw std::runtime_error("OpenEXR multipart images not supported");
+		}
 		
-		// Free loaded pixels
-		free(pixels);
+		// Read EXR header
+		EXRHeader exr_header;
+		InitEXRHeader(&exr_header);
+		status = ParseEXRHeaderFromMemory(&exr_header, &exr_version, buffer, size, &error);
+		if (status != TINYEXR_SUCCESS)
+		{
+			std::string error_string(error);
+			FreeEXRErrorMessage(error);
+			delete[] buffer;
+			throw std::runtime_error("TinyEXR parse header error (" + std::to_string(status) + "): " + error_string);
+		}
+		
+		// Check if image is tiled
+		if (exr_header.tiled)
+		{
+			FreeEXRHeader(&exr_header);
+			delete[] buffer;
+			throw std::runtime_error("OpenEXR tiled images not supported");
+		}
+		
+		// Read half channels as float
+		for (int i = 0; i < exr_header.num_channels; ++i)
+		{
+			if (exr_header.pixel_types[i] == TINYEXR_PIXELTYPE_HALF)
+			{
+				exr_header.requested_pixel_types[i] = TINYEXR_PIXELTYPE_FLOAT;
+			}
+		}
+		
+		// Read EXR data
+		EXRImage exr_image;
+		InitEXRImage(&exr_image);
+		status = LoadEXRImageFromMemory(&exr_image, &exr_header, buffer, size, &error);
+		if (status != TINYEXR_SUCCESS)
+		{
+			std::string error_string(error);
+			FreeEXRErrorMessage(error);
+			FreeEXRHeader(&exr_header);
+			delete[] buffer;
+			throw std::runtime_error("TinyEXR load error (" + std::to_string(status) + "): " + error_string);
+		}
+		
+		// Free file buffer
+		delete[] buffer;
+		
+		// Create image
+		image = new ::image();
+		image->format(sizeof(float), exr_image.num_channels);
+		image->resize(static_cast<unsigned int>(exr_image.width), static_cast<unsigned int>(exr_image.height));
+		
+		// Fill image pixels
+		float* component = static_cast<float*>(image->get_pixels());
+		for (int y = exr_image.height - 1; y >= 0; --y)
+		{
+			int row_offset = y * exr_image.width;
+			
+			for (int x = 0; x < exr_image.width; ++x)
+			{
+				int pixel_index = row_offset + x;
+				
+				for (int c = exr_image.num_channels - 1; c >= 0; --c)
+				{
+					*(component++) = reinterpret_cast<float**>(exr_image.images)[c][pixel_index];
+				}
+			}
+		}
+		
+		// Free EXR data
+		FreeEXRImage(&exr_image);
+		FreeEXRHeader(&exr_header);
 	}
 	else
 	{
