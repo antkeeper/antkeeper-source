@@ -17,33 +17,29 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_FORAGING_TIME_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_FORAGING_TIME_HPP
 
-#include "game/state/base.hpp"
+#include "render/model.hpp"
 
 namespace game {
-namespace state {
+namespace ant {
+namespace trait {
 
-class nuptial_flight: public game::state::base
+/**
+ * Trait that describes the surface foraging time of an ant.
+ */
+struct foraging_time
 {
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
+	/// Minimum solar altitude at which foraging occurs.
+	float solar_altitude_min;
 	
-private:
-	void setup_camera();
-	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	/// Maximum solar alttiude at which foraging occurs.
+	float solar_altitude_max;
 };
 
-} // namespace state
+} // namespace trait
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_FORAGING_TIME_HPP

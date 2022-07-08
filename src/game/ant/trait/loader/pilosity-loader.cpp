@@ -20,19 +20,32 @@
 #include "resources/resource-loader.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/json.hpp"
-#include <physfs.h>
+#include "game/ant/trait/pilosity.hpp"
+#include <stdexcept>
+
+using namespace game::ant;
 
 template <>
-json* resource_loader<json>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
+trait::pilosity* resource_loader<trait::pilosity>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
-	// Read file into buffer
-	std::size_t size = static_cast<std::size_t>(PHYSFS_fileLength(file));
-	std::string buffer;
-	buffer.resize(size);
-	PHYSFS_readBytes(file, &buffer[0], size);
+	// Load JSON data
+	json* data = resource_loader<json>::load(resource_manager, file, path);
 	
-	// Parse json from file buffer
-	json* data = new json(json::parse(buffer, nullptr, true, true));
+	// Validate trait file
+	auto pilosity_element = data->find("pilosity");
+	if (pilosity_element == data->end())
+		throw std::runtime_error("Invalid pilosity trait.");
 	
-	return data;
+	// Allocate pilosity trait
+	trait::pilosity* pilosity = new trait::pilosity();
+	
+	// Parse pilosity density
+	pilosity->density = 0.0f;
+	if (auto density_element = pilosity_element->find("density"); density_element != pilosity_element->end())
+		pilosity->density = density_element->get<float>();
+	
+	// Free JSON data
+	delete data;
+	
+	return pilosity;
 }

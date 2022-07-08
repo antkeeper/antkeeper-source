@@ -17,33 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_ENTITY_COMPONENT_STEERING_HPP
+#define ANTKEEPER_ENTITY_COMPONENT_STEERING_HPP
 
-#include "game/state/base.hpp"
+#include "utility/fundamental-types.hpp"
 
-namespace game {
-namespace state {
+namespace entity {
+namespace component {
 
-class nuptial_flight: public game::state::base
+struct steering
 {
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
-	
-private:
-	void setup_camera();
-	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	float3 velocity;
+	float3 acceleration;
+	float max_force;
+	float max_speed;
 };
 
-} // namespace state
-} // namespace game
+} // namespace component
+} // namespace entity
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_ENTITY_COMPONENT_STEERING_HPP
+

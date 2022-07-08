@@ -17,33 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_GASTER_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_GASTER_HPP
 
-#include "game/state/base.hpp"
+#include "render/model.hpp"
 
 namespace game {
-namespace state {
+namespace ant {
+namespace trait {
 
-class nuptial_flight: public game::state::base
+/**
+ * Trait that describes the gaster of an ant.
+ */
+struct gaster
 {
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
-	
-private:
-	void setup_camera();
-	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	/// 3D model of the gaster.
+	render::model* model;
 };
 
-} // namespace state
+} // namespace trait
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_GASTER_HPP

@@ -171,7 +171,7 @@ options_menu::options_menu(game::context& ctx):
 		game::menu::clear_controls(ctx);
 		
 		// Save config
-		game::save_config(ctx);
+		game::save::config(ctx);
 		
 		game::menu::fade_out
 		(

@@ -17,33 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-
-#include "game/state/base.hpp"
+#ifndef ANTKEEPER_GAME_ANT_CASTE_HPP
+#define ANTKEEPER_GAME_ANT_CASTE_HPP
 
 namespace game {
-namespace state {
+namespace ant {
 
-class nuptial_flight: public game::state::base
+/**
+ * Caste type enumerations
+ */
+enum class caste
 {
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
-	
-private:
-	void setup_camera();
-	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	queen,
+	worker,
+	soldier,
+	male
 };
 
-} // namespace state
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_CASTE_HPP

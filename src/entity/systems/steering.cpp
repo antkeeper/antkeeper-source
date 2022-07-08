@@ -17,25 +17,42 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ENTITY_COMPONENT_PLACEMENT_HPP
-#define ANTKEEPER_ENTITY_COMPONENT_PLACEMENT_HPP
-
-#include "geom/mesh.hpp"
-#include "utility/fundamental-types.hpp"
+#include "entity/systems/steering.hpp"
+#include "entity/components/steering.hpp"
+#include "entity/components/transform.hpp"
+#include "entity/id.hpp"
 
 namespace entity {
-namespace component {
+namespace system {
 
-struct locomotion
+steering::steering(entity::registry& registry):
+	updatable(registry)
+{}
+
+void steering::update(double t, double dt)
 {
-	//const geom::mesh::face* triangle;
-	//float3 barycentric_position;
+	registry.view<component::transform, component::steering>().each(
+		[&](entity::id entity_id, auto& transform, auto& boid)
+		{
+			// Accelerate
+			boid.velocity += boid.acceleration;
+			if (math::dot(boid.velocity, boid.velocity) > boid.max_speed * boid.max_speed)
+			{
+				boid.velocity = math::normalize(boid.velocity) * boid.max_speed;
+			}
+			
+			// Clear acceleration
+			boid.acceleration = {0, 0, 0};
+			
+			// Move
+			transform.local.translation += boid.velocity;
+		});
+}
+
+void steering::wander()
+{
 	
-	float yaw;
-};
+}
 
-} // namespace component
+} // namespace system
 } // namespace entity
-
-#endif // ANTKEEPER_ENTITY_COMPONENT_PLACEMENT_HPP
-

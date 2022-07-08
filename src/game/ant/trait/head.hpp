@@ -17,33 +17,35 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_HEAD_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_HEAD_HPP
 
-#include "game/state/base.hpp"
+#include "render/model.hpp"
 
 namespace game {
-namespace state {
+namespace ant {
+namespace trait {
 
-class nuptial_flight: public game::state::base
+/**
+ * Trait that describes the head of an ant.
+ */
+struct head
 {
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
+	/// Head length in full face view (HL), measured in mesosomal lengths.
+	float length;
 	
-private:
-	void setup_camera();
+	/// Head width in full face view (HW), measured in mesosomal lengths.
+	float width;
 	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	/// Indicates whether the head can be used to plug nest entrances.
+	bool phragmotic;
+	
+	/// 3D model of the head.
+	render::model* model;
 };
 
-} // namespace state
+} // namespace trait
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_HEAD_HPP

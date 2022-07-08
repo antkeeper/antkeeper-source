@@ -68,8 +68,8 @@ void ground_pass::render(const render::context& ctx, render::queue& queue) const
 	
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_ALWAYS);
 	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_GREATER);
 	glDepthRange(-1.0f, 1.0f);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);

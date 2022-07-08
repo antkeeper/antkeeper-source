@@ -17,33 +17,29 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
 
-#include "game/state/base.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace game {
-namespace state {
+namespace ant {
+namespace trait {
 
-class nuptial_flight: public game::state::base
+/**
+ * Trait that describes the pigmentation of an ant.
+ */
+struct pigmentation
 {
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
+	/// Primary albedo color.
+	float3 primary_albedo;
 	
-private:
-	void setup_camera();
-	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	/// Secondary albedo color.
+	float3 secondary_albedo;
 };
 
-} // namespace state
+} // namespace trait
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP

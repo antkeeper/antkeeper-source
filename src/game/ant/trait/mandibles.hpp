@@ -17,33 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_MANDIBLES_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_MANDIBLES_HPP
 
-#include "game/state/base.hpp"
+#include "render/model.hpp"
 
 namespace game {
-namespace state {
+namespace ant {
+namespace trait {
 
-class nuptial_flight: public game::state::base
+/**
+ * Trait that describes the mandibles of an ant.
+ */
+struct mandibles
 {
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
+	/// Length of the closed mandibles in full face view (MandL), measured in mesosomal lengths.
+	float length;
 	
-private:
-	void setup_camera();
+	/// Indicates the mandibles are able to lock open, such as in trap-jaw ants.
+	bool locking;
 	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	/// 3D model of the mandibles.
+	render::model* model;
 };
 
-} // namespace state
+} // namespace trait
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_MANDIBLES_HPP

@@ -23,9 +23,19 @@
 #include "game/context.hpp"
 
 namespace game {
+namespace save {
 
-void save_config(game::context& ctx);
+/**
+ * Saves the current ant colony.
+ */
+void colony(game::context& ctx);
 
+/**
+ * Saves the current configuration.
+ */
+void config(game::context& ctx);
+
+} // namespace save
 } // namespace game
 
 #endif // ANTKEEPER_GAME_SAVE_HPP

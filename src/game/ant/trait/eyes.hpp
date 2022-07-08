@@ -17,33 +17,35 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_EYES_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_EYES_HPP
 
-#include "game/state/base.hpp"
+#include "render/model.hpp"
 
 namespace game {
-namespace state {
+namespace ant {
+namespace trait {
 
-class nuptial_flight: public game::state::base
+/**
+ * Trait that describes the eyes of an ant.
+ */
+struct eyes
 {
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
+	/// Eye length (EL), measured in mesosomal lengths.
+	float length;
 	
-private:
-	void setup_camera();
+	/// Eye width (EW), measured in mesosomal lengths.
+	float width;
 	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	/// Number of ommatidia.
+	int ommatidia;
+	
+	/// 3D model of the eyes.
+	render::model* model;
 };
 
-} // namespace state
+} // namespace trait
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_EYES_HPP

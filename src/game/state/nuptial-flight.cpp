@@ -22,10 +22,11 @@
 #include "entity/archetype.hpp"
 #include "entity/systems/camera.hpp"
 #include "entity/systems/astronomy.hpp"
-#include "entity/components/observer.hpp"
+#include "entity/components/locomotion.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/components/camera.hpp"
+#include "entity/components/model.hpp"
 #include "entity/components/constraints/spring-to.hpp"
 #include "entity/components/constraints/three-dof.hpp"
 #include "entity/components/constraint-stack.hpp"
@@ -38,8 +39,12 @@
 #include "render/passes/clear-pass.hpp"
 #include "render/passes/ground-pass.hpp"
 #include "state-machine.hpp"
-#include "scene/ambient-light.hpp"
 #include "config.hpp"
+#include "game/load.hpp"
+#include "game/ant/breed.hpp"
+#include "game/ant/morphogenesis.hpp"
+
+using namespace game::ant;
 
 namespace game {
 namespace state {
@@ -49,81 +54,67 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 {
 	ctx.logger->push_task("Entering nuptial flight state");
 	
+	// Allocate ant breed
+	ant::breed breed;
+	
+	// Load morphological traits
+	breed.head = ctx.resource_manager->load<ant::trait::head>("collared-harvester-head.dna");
+	breed.mandibles = ctx.resource_manager->load<ant::trait::mandibles>("harvester-mandibles.dna");
+	breed.antennae = ctx.resource_manager->load<ant::trait::antennae>("slender-antennae.dna");
+	breed.eyes = ctx.resource_manager->load<ant::trait::eyes>("vestigial-eyes.dna");
+	breed.mesosoma = ctx.resource_manager->load<ant::trait::mesosoma>("humpback-mesosoma.dna");
+	breed.legs = ctx.resource_manager->load<ant::trait::legs>("trekking-legs.dna");
+	breed.waist = ctx.resource_manager->load<ant::trait::waist>("harvester-waist.dna");
+	breed.gaster = ctx.resource_manager->load<ant::trait::gaster>("ovoid-gaster.dna");
+	breed.ocelli = ctx.resource_manager->load<ant::trait::ocelli>("absent-ocelli.dna");
+	breed.sting = ctx.resource_manager->load<ant::trait::sting>("bullet-sting.dna");
+	breed.sculpturing = ctx.resource_manager->load<ant::trait::sculpturing>("politus-sculpturing.dna");
+	breed.pigmentation = ctx.resource_manager->load<ant::trait::pigmentation>("onyx-pigmentation.dna");
+	breed.egg = ctx.resource_manager->load<ant::trait::egg>("ellipsoid-egg.dna");
+	breed.larva = ctx.resource_manager->load<ant::trait::larva>("old-larva.dna");
+	breed.cocoon = ctx.resource_manager->load<ant::trait::cocoon>("cocoon-present.dna");
+	breed.pilosity = ctx.resource_manager->load<ant::trait::pilosity>("hairless-pilosity.dna");
+	breed.forewings = nullptr;
+	breed.hindwings = nullptr;
+	
+	// Load behavioral traits
+	breed.foraging_time = ctx.resource_manager->load<ant::trait::foraging_time>("crepuscular-foraging-time.dna");
+	breed.diet = nullptr;
+	breed.nest = ctx.resource_manager->load<ant::trait::nest>("hypogeic-nest.dna");
+	
+	// Build caste models
+	render::model* worker_model = ant::morphogenesis(breed, ant::caste::worker);
+	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
-	// Setup and enable sky pass
-	ctx.sky_pass->set_sky_model(ctx.resource_manager->load<render::model>("celestial-hemisphere.mdl"));
-	ctx.sky_pass->set_enabled(true);
-	
-	// Setup and enable ground pass
-	render::model* terrestrial_hemisphere_model = ctx.resource_manager->load<render::model>("terrestrial-hemisphere.mdl");
-	(*terrestrial_hemisphere_model->get_groups())[0]->set_material(ctx.resource_manager->load<render::material>("scrub-terrestrial-hemisphere.mtl"));
-	ctx.ground_pass->set_ground_model(terrestrial_hemisphere_model);
-	ctx.ground_pass->set_enabled(true);
-	
-	// Create world
-	game::world::create_stars(ctx);
-	game::world::create_sun(ctx);
-	game::world::create_planet(ctx);
-	game::world::create_moon(ctx);
-	
-	// Set time to solar noon
-	game::world::set_time(ctx, 0.0);
-	
-	// Freeze time
-	game::world::set_time_scale(ctx, 0.0);
-	
-	// Find planet EID by name
-	entity::id planet_eid = ctx.entities["planet"];
-	
-	// Remove terrain component from planet (if any)
-	//if (ctx.entity_registry->has<entity::component::terrain>(planet_eid))
-	//	ctx.entity_registry->remove<entity::component::terrain>(planet_eid);
-	
-	// Enable clouds in sky pass
-	//ctx.sky_pass->set_clouds_model(ctx.resource_manager->load<render::model>("cloud-plane.mdl"));
-	
-	// Create biome terrain component
-	/*
-	entity::component::terrain biome_terrain;
-	biome_terrain.max_lod = 18;
-	biome_terrain.patch_material = ctx.resource_manager->load<render::material>("desert-terrain.mtl");
-	biome_terrain.elevation = [](double, double) -> double
+	// Create world if not yet created
+	if (ctx.entities.find("planet") == ctx.entities.end())
 	{
-		return 0.0;
-	};
-	// Replace planet terrain component with biome terrain component
-	ctx.entity_registry->replace<entity::component::terrain>(planet_eid, biome_terrain);
-	*/
-	
-	// Create observer
-	entity::id observer_eid = ctx.entity_registry->create();
-	{
-		entity::component::observer observer;
-		observer.reference_body_eid = planet_eid;
-		observer.elevation = 2000.0;
-		observer.latitude = 0.0;
-		observer.longitude = 0.0;
-		observer.camera = ctx.surface_camera;
-		ctx.entity_registry->assign<entity::component::observer>(observer_eid, observer);
+		game::world::create_stars(ctx);
+		game::world::create_sun(ctx);
+		game::world::create_planet(ctx);
+		game::world::create_moon(ctx);
 		
-		// Set reference location of astronomy system
-		ctx.astronomy_system->set_reference_body(planet_eid);
-		ctx.astronomy_system->set_observer_location(double3{observer.elevation, observer.latitude, observer.longitude});
+		// Set time to solar noon
+		game::world::set_time(ctx, 0.3);
+		
+		// Freeze time
+		game::world::set_time_scale(ctx, 0.0);
 	}
 	
-	/*
-	scene::ambient_light* light = new scene::ambient_light();
-	light->set_color(float3{1, 1, 1} * 10000.0f);
-	ctx.surface_scene->add_object(light);
-	*/
+	// Load biome
+	game::load::biome(ctx, "desert-scrub.bio");
+	
+	// Setup and enable sky and ground passes
+	ctx.sky_pass->set_enabled(true);
+	ctx.ground_pass->set_enabled(true);
 	
 	// Create color checker
 	{
 		entity::archetype* color_checker_archetype = ctx.resource_manager->load<entity::archetype>("color-checker.ent");
 		auto color_checker_eid = color_checker_archetype->create(*ctx.entity_registry);
-		entity::command::warp_to(*ctx.entity_registry, color_checker_eid, {0, 0, 0});
+		entity::command::warp_to(*ctx.entity_registry, color_checker_eid, {0, 0, -10});
 	}
 	
 	// Create ruler
@@ -133,6 +124,48 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		entity::command::warp_to(*ctx.entity_registry, ruler_10cm_eid, {0, 0, 10});
 	}
 	
+	// Create ant_test
+	{
+		entity::archetype* ant_test_10cm_archetype = ctx.resource_manager->load<entity::archetype>("ant-test.ent");
+		auto ant_test_eid = ant_test_10cm_archetype->create(*ctx.entity_registry);
+		entity::command::warp_to(*ctx.entity_registry, ant_test_eid, {10, 0, 0});
+	}
+	
+	// Create keeper if not yet created
+	if (ctx.entities.find("keeper") == ctx.entities.end())
+	{
+		entity::id keeper_eid = ctx.entity_registry->create();
+		ctx.entities["keeper"] = keeper_eid;
+	}
+	
+	// Create ant if not created
+	if (ctx.entities.find("ant") == ctx.entities.end())
+	{
+		auto boid_eid = ctx.entity_registry->create();
+		
+		entity::component::model model;
+		model.render_model = ctx.resource_manager->load<render::model>("ant-test.mdl");
+		model.instance_count = 0;
+		model.layers = 1;
+		ctx.entity_registry->assign<entity::component::model>(boid_eid, model);
+		
+		entity::component::transform transform;
+		transform.local = math::identity_transform<float>;
+		transform.world = math::identity_transform<float>;
+		transform.warp = true;
+		ctx.entity_registry->assign<entity::component::transform>(boid_eid, transform);
+		
+		entity::component::locomotion locomotion;
+		locomotion.yaw = 0.0f;
+		ctx.entity_registry->assign<entity::component::locomotion>(boid_eid, locomotion);
+
+		// Set target ant
+		ctx.entities["ant"] = boid_eid;
+	}
+	
+	// Start as ant-keeper
+	is_keeper = true;
+	
 	// Setup camera
 	setup_camera();
 	
@@ -141,7 +174,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, config::nuptial_flight_fade_in_duration, true, ease<float>::out_sine, true, nullptr));
 	
 	// Queue control setup
-	ctx.function_queue.push(std::bind(&nuptial_flight::enable_controls, this));
+	ctx.function_queue.push(std::bind(&nuptial_flight::enable_keeper_controls, this));
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
@@ -149,10 +182,6 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 nuptial_flight::~nuptial_flight()
 {
 	ctx.logger->push_task("Exiting nuptial flight state");
-	
-	// Resume time
-	//const double time_scale = (*ctx.config)["time_scale"].get<double>();
-	//game::world::set_time_scale(ctx, time_scale);
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
@@ -244,7 +273,7 @@ void nuptial_flight::setup_camera()
 	ctx.surface_camera->set_exposure(ev100);
 }
 
-void nuptial_flight::enable_controls()
+void nuptial_flight::enable_keeper_controls()
 {
 	// Get camera entities
 	entity::id camera_eid = ctx.entities["surface_cam"];
@@ -516,48 +545,22 @@ void nuptial_flight::enable_controls()
 			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
 		}
 	);
-	/*
-	// Use tool
-	ctx.controls["use_tool"]->set_activated_callback
+	
+	// Setup switch POV control
+	ctx.controls["switch_pov"]->set_activated_callback
 	(
-		[&ctx]()
+		[this]()
 		{
-			if (ctx.entities.count("active_tool"))
-			{
-				entity::id tool_eid = ctx.entities["active_tool"];
-				const auto& tool = ctx.entity_registry->get<entity::component::tool>(tool_eid);
-				if (tool.activated)
-					tool.activated();
-			}
+			// Disable keeper controls
+			this->disable_keeper_controls();
+			
+			// Switch to ant
+			this->is_keeper = false;
+			
+			// Enable ant controls
+			this->enable_ant_controls();
 		}
 	);
-	ctx.controls["use_tool"]->set_deactivated_callback
-	(
-		[&ctx]()
-		{
-			if (ctx.entities.count("active_tool"))
-			{
-				entity::id tool_eid = ctx.entities["active_tool"];
-				const auto& tool = ctx.entity_registry->get<entity::component::tool>(tool_eid);
-				if (tool.deactivated)
-					tool.deactivated();
-			}
-		}
-	);
-	ctx.controls["use_tool"]->set_active_callback
-	(
-		[&ctx](float value)
-		{
-			if (ctx.entities.count("active_tool"))
-			{
-				entity::id tool_eid = ctx.entities["active_tool"];
-				const auto& tool = ctx.entity_registry->get<entity::component::tool>(tool_eid);
-				if (tool.active)
-					tool.active();
-			}
-		}
-	);
-	*/
 	
 	// Fast-forward
 	ctx.controls["fast_forward"]->set_activated_callback
@@ -610,7 +613,7 @@ void nuptial_flight::enable_controls()
 	);
 }
 
-void nuptial_flight::disable_controls()
+void nuptial_flight::disable_keeper_controls()
 {
 	ctx.controls["move_forward"]->set_active_callback(nullptr);
 	ctx.controls["move_back"]->set_active_callback(nullptr);
@@ -628,7 +631,321 @@ void nuptial_flight::disable_controls()
 	ctx.controls["look_up_mouse"]->set_active_callback(nullptr);
 	ctx.controls["look_down_gamepad"]->set_active_callback(nullptr);
 	ctx.controls["look_down_mouse"]->set_active_callback(nullptr);
+	ctx.controls["switch_pov"]->set_activated_callback(nullptr);
+	ctx.controls["fast_forward"]->set_activated_callback(nullptr);
+	ctx.controls["rewind"]->set_activated_callback(nullptr);
 	ctx.controls["pause"]->set_activated_callback(nullptr);
+}
+
+void nuptial_flight::enable_ant_controls()
+{
+	// Get ant controller entities
+	entity::id ant_eid = ctx.entities["ant"];
+	
+	const float move_forward_speed = 5.0f;
+	const float move_back_speed = move_forward_speed * 0.5f;
+	const float strafe_speed = move_forward_speed * 0.5f;
+	const float turn_speed = math::radians(270.0f);
+	const float slow_modifier = 0.5f;
+	const float fast_modifier = 2.0f;
+	float mouse_tilt_sensitivity = 1.0f;
+	float mouse_pan_sensitivity = 1.0f;
+	bool mouse_invert_tilt = false;
+	bool mouse_invert_pan = false;
+	float gamepad_tilt_sensitivity = 1.0f;
+	float gamepad_pan_sensitivity = 1.0f;
+	bool gamepad_invert_tilt = false;
+	bool gamepad_invert_pan = false;
+	const double time_scale = 5000.0;
+	
+	if (ctx.config->contains("mouse_tilt_sensitivity"))
+		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());
+	if (ctx.config->contains("mouse_pan_sensitivity"))
+		mouse_pan_sensitivity = math::radians((*ctx.config)["mouse_pan_sensitivity"].get<float>());
+	if (ctx.config->contains("mouse_invert_tilt"))
+		mouse_invert_tilt = math::radians((*ctx.config)["mouse_invert_tilt"].get<bool>());
+	if (ctx.config->contains("mouse_invert_pan"))
+		mouse_invert_pan = math::radians((*ctx.config)["mouse_invert_pan"].get<bool>());
+	
+	if (ctx.config->contains("gamepad_tilt_sensitivity"))
+		gamepad_tilt_sensitivity = math::radians((*ctx.config)["gamepad_tilt_sensitivity"].get<float>());
+	if (ctx.config->contains("gamepad_pan_sensitivity"))
+		gamepad_pan_sensitivity = math::radians((*ctx.config)["gamepad_pan_sensitivity"].get<float>());
+	if (ctx.config->contains("gamepad_invert_tilt"))
+		gamepad_invert_tilt = math::radians((*ctx.config)["gamepad_invert_tilt"].get<bool>());
+	if (ctx.config->contains("gamepad_invert_pan"))
+		gamepad_invert_pan = math::radians((*ctx.config)["gamepad_invert_pan"].get<bool>());
+	
+	const input::control* move_slow = ctx.controls["move_slow"];
+	const input::control* move_fast = ctx.controls["move_fast"];
+	const input::control* mouse_look = ctx.controls["mouse_look"];
+	
+	float mouse_tilt_factor = mouse_tilt_sensitivity * (mouse_invert_tilt ? -1.0f : 1.0f);
+	float mouse_pan_factor = mouse_pan_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
+	float gamepad_tilt_factor = gamepad_tilt_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
+	float gamepad_pan_factor = gamepad_pan_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
+	
+	// Move forward
+	ctx.controls["move_forward"]->set_active_callback
+	(
+		[&ctx = this->ctx, ant_eid, move_forward_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
+		{
+			if (move_slow->is_active())
+				value *= slow_modifier;
+			if (move_fast->is_active())
+				value *= fast_modifier;
+			
+			auto& locomotion = ctx.entity_registry->get<entity::component::locomotion>(ant_eid);
+			const math::quaternion<float> yaw = math::angle_axis(locomotion.yaw, {0.0f, 1.0f, 0.0f});
+
+			const float3 movement = {0.0f, 0.0f, move_forward_speed * value * (1.0f / 60.0f)};
+			entity::command::translate(*ctx.entity_registry, ant_eid, yaw * movement);
+		}
+	);
+	
+	// Move back
+	ctx.controls["move_back"]->set_active_callback
+	(
+		[&ctx = this->ctx, ant_eid, move_back_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
+		{
+			if (move_slow->is_active())
+				value *= slow_modifier;
+			if (move_fast->is_active())
+				value *= fast_modifier;
+			
+			auto& locomotion = ctx.entity_registry->get<entity::component::locomotion>(ant_eid);
+			const math::quaternion<float> yaw = math::angle_axis(locomotion.yaw, {0.0f, 1.0f, 0.0f});
+
+			const float3 movement = {0.0f, 0.0f, -move_back_speed * value * (1.0f / 60.0f)};
+			entity::command::translate(*ctx.entity_registry, ant_eid, yaw * movement);
+		}
+	);
+	
+	// Turn right
+	ctx.controls["move_right"]->set_active_callback
+	(
+		[&ctx = this->ctx, ant_eid, turn_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
+		{
+			if (move_slow->is_active())
+				value *= slow_modifier;
+			if (move_fast->is_active())
+				value *= fast_modifier;
+			
+			auto& locomotion = ctx.entity_registry->get<entity::component::locomotion>(ant_eid);
+			float delta_yaw = -turn_speed * value * (1.0f / 60.0f);
+			locomotion.yaw += delta_yaw;
+			
+			entity::command::rotate(*ctx.entity_registry, ant_eid, delta_yaw, {0.0f, 1.0f, 0.0f});
+		}
+	);
+	
+	// Truck left
+	ctx.controls["move_left"]->set_active_callback
+	(
+		[&ctx = this->ctx, ant_eid, turn_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
+		{
+			if (move_slow->is_active())
+				value *= slow_modifier;
+			if (move_fast->is_active())
+				value *= fast_modifier;
+			
+			auto& locomotion = ctx.entity_registry->get<entity::component::locomotion>(ant_eid);
+			float delta_yaw = turn_speed * value * (1.0f / 60.0f);
+			locomotion.yaw += delta_yaw;
+			
+			entity::command::rotate(*ctx.entity_registry, ant_eid, delta_yaw, {0.0f, 1.0f, 0.0f});
+		}
+	);
+	
+	// Pan left
+	/*
+	ctx.controls["look_left_gamepad"]->set_active_callback
+	(
+		[&ctx = this->ctx, three_dof_eid, gamepad_pan_factor](float value)
+		{
+			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.yaw += gamepad_pan_factor * value * (1.0f / 60.0f);
+		}
+	);
+	ctx.controls["look_left_mouse"]->set_active_callback
+	(
+		[&ctx = this->ctx, three_dof_eid, mouse_pan_factor](float value)
+		{
+			if (!ctx.mouse_look)
+				return;
+			
+			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.yaw += mouse_pan_factor * value * (1.0f / 60.0f);
+		}
+	);
+	
+	// Pan right
+	ctx.controls["look_right_gamepad"]->set_active_callback
+	(
+		[&ctx = this->ctx, three_dof_eid, gamepad_pan_factor](float value)
+		{
+			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.yaw -= gamepad_pan_factor * value * (1.0f / 60.0f);
+		}
+	);
+	ctx.controls["look_right_mouse"]->set_active_callback
+	(
+		[&ctx = this->ctx, three_dof_eid, mouse_pan_factor](float value)
+		{
+			if (!ctx.mouse_look)
+				return;
+			
+			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.yaw -= mouse_pan_factor * value * (1.0f / 60.0f);
+		}
+	);
+	// Tilt up
+	ctx.controls["look_up_gamepad"]->set_active_callback
+	(
+		[&ctx = this->ctx, three_dof_eid, gamepad_tilt_factor](float value)
+		{
+			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.pitch -= gamepad_tilt_factor * value * (1.0f / 60.0f);
+			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
+		}
+	);
+	ctx.controls["look_up_mouse"]->set_active_callback
+	(
+		[&ctx = this->ctx, three_dof_eid, mouse_tilt_factor](float value)
+		{
+			if (!ctx.mouse_look)
+				return;
+			
+			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.pitch -= mouse_tilt_factor * value * (1.0f / 60.0f);
+			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
+		}
+	);
+	// Tilt down
+	ctx.controls["look_down_gamepad"]->set_active_callback
+	(
+		[&ctx = this->ctx, three_dof_eid, gamepad_tilt_factor](float value)
+		{
+			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.pitch += gamepad_tilt_factor * value * (1.0f / 60.0f);
+			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
+		}
+	);
+	ctx.controls["look_down_mouse"]->set_active_callback
+	(
+		[&ctx = this->ctx, three_dof_eid, mouse_tilt_factor](float value)
+		{
+			if (!ctx.mouse_look)
+				return;
+			
+			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			three_dof.pitch += mouse_tilt_factor * value * (1.0f / 60.0f);
+			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
+		}
+	);
+	*/
+	
+	// Setup switch POV control
+	ctx.controls["switch_pov"]->set_activated_callback
+	(
+		[this]()
+		{
+			// Disable ant controls
+			this->disable_ant_controls();
+			
+			// Switch to keeper
+			this->is_keeper = true;
+			
+			// Enable keeper controls
+			this->enable_keeper_controls();
+		}
+	);
+	
+	// Fast-forward
+	ctx.controls["fast_forward"]->set_activated_callback
+	(
+		[&ctx = this->ctx, time_scale]()
+		{
+			game::world::set_time_scale(ctx, time_scale);
+		}
+	);
+	ctx.controls["fast_forward"]->set_deactivated_callback
+	(
+		[&ctx = this->ctx, time_scale]()
+		{
+			game::world::set_time_scale(ctx, 0.0);
+		}
+	);
+	ctx.controls["rewind"]->set_activated_callback
+	(
+		[&ctx = this->ctx, time_scale]()
+		{
+			game::world::set_time_scale(ctx, -time_scale);
+		}
+	);
+	ctx.controls["rewind"]->set_deactivated_callback
+	(
+		[&ctx = this->ctx, time_scale]()
+		{
+			game::world::set_time_scale(ctx, 0.0);
+		}
+	);
+	
+	// Setup pause control
+	ctx.controls["pause"]->set_activated_callback
+	(
+		[this, &ctx = this->ctx]()
+		{
+			// Disable controls
+			this->disable_controls();
+			
+			// Set resume callback
+			ctx.resume_callback = [this, &ctx]()
+			{
+				this->enable_controls();
+				ctx.resume_callback = nullptr;
+			};
+			
+			// Push pause menu state
+			ctx.state_machine.emplace(new game::state::pause_menu(ctx));
+		}
+	);
+}
+
+void nuptial_flight::disable_ant_controls()
+{
+	ctx.controls["move_forward"]->set_active_callback(nullptr);
+	ctx.controls["move_back"]->set_active_callback(nullptr);
+	ctx.controls["move_right"]->set_active_callback(nullptr);
+	ctx.controls["move_left"]->set_active_callback(nullptr);
+	ctx.controls["look_left_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_left_mouse"]->set_active_callback(nullptr);
+	ctx.controls["look_right_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_right_mouse"]->set_active_callback(nullptr);
+	ctx.controls["look_up_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_up_mouse"]->set_active_callback(nullptr);
+	ctx.controls["look_down_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_down_mouse"]->set_active_callback(nullptr);
+	ctx.controls["switch_pov"]->set_activated_callback(nullptr);
+	ctx.controls["fast_forward"]->set_activated_callback(nullptr);
+	ctx.controls["rewind"]->set_activated_callback(nullptr);
+	ctx.controls["pause"]->set_activated_callback(nullptr);
+}
+
+void nuptial_flight::enable_controls()
+{
+	if (is_keeper)
+		enable_keeper_controls();
+	else
+		enable_ant_controls();
+}
+
+void nuptial_flight::disable_controls()
+{
+	if (is_keeper)
+		disable_keeper_controls();
+	else
+		disable_ant_controls();
 }
 
 } // namespace state

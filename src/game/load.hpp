@@ -17,33 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_GAME_LOAD_HPP
+#define ANTKEEPER_GAME_LOAD_HPP
 
-#include "game/state/base.hpp"
+#include "game/context.hpp"
 
 namespace game {
-namespace state {
+namespace load {
 
-class nuptial_flight: public game::state::base
-{
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
-	
-private:
-	void setup_camera();
-	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
-};
+/**
+ * Loads a biome.
+ */
+void biome(game::context& ctx, const std::filesystem::path& path);
 
-} // namespace state
+/**
+ * Loads a colony
+ */
+void colony(game::context& ctx, const std::filesystem::path& path);
+
+} // namespace load
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_LOAD_HPP

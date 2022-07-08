@@ -134,7 +134,8 @@ static bool load_component_model(entity::archetype& archetype, resource_manager&
 {
 	entity::component::model component;
 	component.instance_count = 0;
-	component.layers = ~0;
+	//component.layers = ~0;
+	component.layers = 1;
 	
 	if (element.contains("file"))
 	{

@@ -17,33 +17,38 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_OCELLI_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_OCELLI_HPP
 
-#include "game/state/base.hpp"
+#include "render/model.hpp"
 
 namespace game {
-namespace state {
+namespace ant {
+namespace trait {
 
-class nuptial_flight: public game::state::base
+/**
+ * Trait that describes the ocelli of an ant.
+ */
+struct ocelli
 {
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
+	/// Median ocellus present.
+	bool median_ocellus;
 	
-private:
-	void setup_camera();
+	/// Lateral ocelli present.
+	bool lateral_ocelli;
 	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	/// Ocellus width, in mesosomal lengths.
+	float width;
+	
+	/// Ocellus height, in mesosomal lengths.
+	float height;
+	
+	/// 3D model of the ocelli.
+	render::model* model;
 };
 
-} // namespace state
+} // namespace trait
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_OCELLI_HPP

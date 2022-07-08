@@ -17,33 +17,35 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_FOREWINGS_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_FOREWINGS_HPP
 
-#include "game/state/base.hpp"
+#include "render/model.hpp"
 
 namespace game {
-namespace state {
+namespace ant {
+namespace trait {
 
-class nuptial_flight: public game::state::base
-{
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
+/**
+ * Trait that describes the forewings of an ant.
+ */
+struct forewings
+{	
+	/// Wing length, measured in mesosomal lengths.
+	float length;
 	
-private:
-	void setup_camera();
+	/// Wing width, measured in mesosomal lengths.
+	float width;
 	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	/// Degree of venation. A value of `1.0` indicates a highly-developed venation pattern, while `0.0` indicates a complete absence of visible venation.
+	float venation;
+	
+	/// 3D model of the forewings.
+	render::model* model;
 };
 
-} // namespace state
+} // namespace trait
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_FOREWINGS_HPP

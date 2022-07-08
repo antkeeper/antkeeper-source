@@ -17,33 +17,43 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-
-#include "game/state/base.hpp"
+#ifndef ANTKEEPER_GAME_ANT_SUBCASTE_HPP
+#define ANTKEEPER_GAME_ANT_SUBCASTE_HPP
 
 namespace game {
-namespace state {
+namespace ant {
 
-class nuptial_flight: public game::state::base
+/**
+ * Ant subcaste types.
+ */
+enum class subcaste
 {
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
+	/// A worker from the queen's first batch of eggs, smaller than normal workers.
+	nanitic,
 	
-private:
-	void setup_camera();
+	/// A small worker or soldier.
+	minor,
 	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
+	/// A normal-sized worker or soldier
+	media,
+	
+	/// A large worker or soldier.
+	major,
+	
+	/// A queen or male which still has its wings.
+	alate,
+	
+	/// A queen or male which has shed its wings.
+	dealate,
+	
+	/// A queen or male which does not develop wings.
+	ergatoid,
+	
+	/// A queen or male with short, nonfunctional wings.
+	brachypterous
 };
 
-} // namespace state
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_SUBCASTE_HPP

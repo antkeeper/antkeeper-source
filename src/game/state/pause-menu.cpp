@@ -30,6 +30,7 @@
 #include "debug/logger.hpp"
 #include "animation/screen-transition.hpp"
 #include "config.hpp"
+#include "game/save.hpp"
 
 namespace game {
 namespace state {
@@ -201,6 +202,9 @@ pause_menu::pause_menu(game::context& ctx):
 	game::menu::fade_in(ctx, nullptr);
 	if (!ctx.menu_bg_billboard->is_active())
 		game::menu::fade_in_bg(ctx);
+	
+	// Save colony
+	game::save::colony(ctx);
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }

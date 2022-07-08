@@ -17,33 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
-#define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#ifndef ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP
+#define ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP
 
-#include "game/state/base.hpp"
+#include "game/ant/breed.hpp"
+#include "game/ant/caste.hpp"
+#include "render/model.hpp"
 
 namespace game {
-namespace state {
+namespace ant {
 
-class nuptial_flight: public game::state::base
-{
-public:
-	nuptial_flight(game::context& ctx);
-	virtual ~nuptial_flight();
-	
-private:
-	void setup_camera();
-	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
-	void enable_controls();
-	void disable_controls();
-};
+/**
+ * Generates a 3D model of an ant.
+ *
+ * @param breed Breed of the ant.
+ * @param caste Caste to which the ant belongs.
+ * @return 3D model of an ant.
+ */
+render::model* morphogenesis(const ant::breed& breed, ant::caste caste);
 
-} // namespace state
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
+#endif // ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP

@@ -309,18 +309,7 @@ void boot::setup_resources()
 	ctx.resource_manager->mount(ctx.data_package_path);
 	
 	// Include resource search paths in order of priority
-	ctx.resource_manager->include("/shaders/");
-	ctx.resource_manager->include("/models/");
-	ctx.resource_manager->include("/images/");
-	ctx.resource_manager->include("/textures/");
-	ctx.resource_manager->include("/materials/");
-	ctx.resource_manager->include("/entities/");
-	ctx.resource_manager->include("/behaviors/");
 	ctx.resource_manager->include("/controls/");
-	ctx.resource_manager->include("/localization/");
-	ctx.resource_manager->include("/localization/fonts/");
-	ctx.resource_manager->include("/biomes/");
-	ctx.resource_manager->include("/traits/");
 	ctx.resource_manager->include("/");
 }
 
@@ -722,21 +711,7 @@ void boot::setup_scenes()
 	// Setup underground scene
 	{
 		ctx.underground_scene = new scene::collection();
-		
-		ctx.underground_ambient_light = new scene::ambient_light();
-		ctx.underground_ambient_light->set_color({1, 1, 1});
-		ctx.underground_ambient_light->set_intensity(0.1f);
-		ctx.underground_ambient_light->update_tweens();
-		
-		ctx.flashlight_spot_light = new scene::spot_light();
-		ctx.flashlight_spot_light->set_color({1, 1, 1});
-		ctx.flashlight_spot_light->set_intensity(1.0f);
-		ctx.flashlight_spot_light->set_attenuation({1.0f, 0.0f, 0.0f});
-		ctx.flashlight_spot_light->set_cutoff({math::radians(10.0f), math::radians(19.0f)});
-		
 		ctx.underground_scene->add_object(ctx.underground_camera);
-		ctx.underground_scene->add_object(ctx.underground_ambient_light);
-		//ctx.underground_scene->add_object(ctx.flashlight_spot_light);
 	}
 	
 	// Setup surface scene
@@ -926,7 +901,7 @@ void boot::setup_systems()
 	
 	// Setup render system
 	ctx.render_system = new entity::system::render(*ctx.entity_registry);
-	ctx.render_system->add_layer(ctx.underground_scene);
+	//ctx.render_system->add_layer(ctx.underground_scene);
 	ctx.render_system->add_layer(ctx.surface_scene);
 	ctx.render_system->add_layer(ctx.ui_scene);
 	ctx.render_system->set_renderer(ctx.renderer);
@@ -1024,7 +999,7 @@ void boot::setup_controls()
 				
 				// Save display mode config
 				(*ctx.config)["fullscreen"] = fullscreen;
-				game::save_config(ctx);
+				game::save::config(ctx);
 			}
 		);
 		

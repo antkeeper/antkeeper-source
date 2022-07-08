@@ -194,7 +194,7 @@ void create_sun(game::context& ctx)
 	// Create ambient sun light scene object
 	scene::ambient_light* sun_ambient = new scene::ambient_light();
 	sun_ambient->set_color({1, 1, 1});
-	sun_ambient->set_intensity(0.0f);
+	sun_ambient->set_intensity(30000.0f);
 	sun_ambient->update_tweens();
 	
 	// Add sun light scene objects to surface scene

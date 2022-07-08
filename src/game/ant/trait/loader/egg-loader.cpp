@@ -20,19 +20,34 @@
 #include "resources/resource-loader.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/json.hpp"
-#include <physfs.h>
+#include "game/ant/trait/egg.hpp"
+#include "render/model.hpp"
+#include <stdexcept>
+
+using namespace game::ant;
 
 template <>
-json* resource_loader<json>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
+trait::egg* resource_loader<trait::egg>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
-	// Read file into buffer
-	std::size_t size = static_cast<std::size_t>(PHYSFS_fileLength(file));
-	std::string buffer;
-	buffer.resize(size);
-	PHYSFS_readBytes(file, &buffer[0], size);
+	// Load JSON data
+	json* data = resource_loader<json>::load(resource_manager, file, path);
 	
-	// Parse json from file buffer
-	json* data = new json(json::parse(buffer, nullptr, true, true));
+	// Validate trait file
+	auto egg_element = data->find("egg");
+	if (egg_element == data->end())
+		throw std::runtime_error("Invalid egg trait.");
 	
-	return data;
+	// Allocate egg trait
+	trait::egg* egg = new trait::egg();
+	
+	// Load egg model
+	auto model_element = egg_element->find("model");
+	if (model_element == egg_element->end())
+		throw std::runtime_error("Egg trait doesn't specify egg model.");
+	egg->model = resource_manager->load<render::model>(model_element->get<std::string>());
+	
+	// Free JSON data
+	delete data;
+	
+	return egg;
 }

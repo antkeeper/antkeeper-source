@@ -44,7 +44,7 @@ constexpr float menu_fade_out_duration = 0.125f;
 constexpr float menu_mouseover_padding = 0.1f;
 
 /// Opacity of the menu background.
-constexpr float menu_bg_opacity = 0.5f;
+constexpr float menu_bg_opacity = 2.0f / 3.0f;
 
 /// RGBA color of active menu items.
 constexpr float4 menu_active_color{1.0f, 1.0f, 1.0f, 1.0f};
