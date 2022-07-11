@@ -336,9 +336,8 @@ inline quaternion<T> mul(const quaternion<T>& q, T s)
 template <class T>
 vector<T, 3> mul(const quaternion<T>& q, const vector<T, 3>& v)
 {
-	const T r = q.w;             // Real part
-	const vector<T, 3>& i = reinterpret_cast<const vector<T, 3>&>(q.x); // Imaginary part
-	return i * dot(i, v) * T(2) + v * (r * r - dot(i, i)) + cross(i, v) * r * T(2);
+	const vector<T, 3>& i = reinterpret_cast<const vector<T, 3>&>(q.x);	
+	return add(add(mul(i, dot(i, v) * T(2)), mul(v, (q.w * q.w - dot(i, i)))), mul(cross(i, v), q.w * T(2)));
 }
 
 template <class T>

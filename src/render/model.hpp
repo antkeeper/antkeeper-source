@@ -20,19 +20,17 @@
 #ifndef ANTKEEPER_RENDER_MODEL_HPP
 #define ANTKEEPER_RENDER_MODEL_HPP
 
+#include "render/skeleton.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
 #include "gl/drawing-mode.hpp"
+#include "render/material.hpp"
 #include "geom/aabb.hpp"
 #include <unordered_map>
 #include <string>
 #include <vector>
 
-class skeleton;
-
 namespace render {
-
-class material;
 
 /**
  * Part of a model which is associated with exactly one material.
@@ -149,6 +147,9 @@ public:
 
 	const gl::vertex_buffer* get_vertex_buffer() const;
 	gl::vertex_buffer* get_vertex_buffer();
+	
+	const skeleton& get_skeleton() const;
+	skeleton& get_skeleton();
 
 private:
 	aabb_type bounds;
@@ -156,7 +157,7 @@ private:
 	std::unordered_map<std::string, model_group*> group_map;
 	gl::vertex_array vao;
 	gl::vertex_buffer vbo;
-	skeleton* skeleton;
+	render::skeleton skeleton;
 };
 
 inline void model::set_bounds(const aabb_type& bounds)
@@ -192,6 +193,16 @@ inline const gl::vertex_buffer* model::get_vertex_buffer() const
 inline gl::vertex_buffer* model::get_vertex_buffer()
 {
 	return &vbo;
+}
+
+inline const skeleton& model::get_skeleton() const
+{
+	return skeleton;
+}
+
+inline skeleton& model::get_skeleton()
+{
+	return skeleton;
 }
 
 } // namespace render

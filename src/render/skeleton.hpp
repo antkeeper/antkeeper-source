@@ -17,26 +17,37 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
-#define ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
+#ifndef ANTKEEPER_RENDER_SKELETON_HPP
+#define ANTKEEPER_RENDER_SKELETON_HPP
 
-#include "render/material.hpp"
+#include "render/bone.hpp"
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-namespace game {
-namespace ant {
-namespace trait {
+namespace render {
 
 /**
- * Trait that describes the pigmentation of an ant.
+ * Skeletal animation skeleton.
  */
-struct pigmentation
+struct skeleton
 {
-	/// Pigmentation material
-	render::material* material;
+	/// Collection of bones.
+	std::vector<bone> bones;
+	
+	/// Maps bone names to bone indices.
+	std::unordered_map<std::string, std::uint16_t> bone_map;
+	
+	/**
+	 * Calculates the global transform of a bone.
+	 *
+	 * @param index Index of the bone.
+	 * @return Global transform of the bone.
+	 */
+	math::transform<float> concatenate(std::uint16_t index) const;
 };
 
-} // namespace trait
-} // namespace ant
-} // namespace game
+} // namespace render
 
-#endif // ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
+#endif // ANTKEEPER_RENDER_SKELETON_HPP

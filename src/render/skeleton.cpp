@@ -17,26 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
-#define ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
+#include "render/skeleton.hpp"
+#include "math/transform-operators.hpp"
 
-#include "render/material.hpp"
+namespace render {
 
-namespace game {
-namespace ant {
-namespace trait {
-
-/**
- * Trait that describes the pigmentation of an ant.
- */
-struct pigmentation
+math::transform<float> skeleton::concatenate(std::uint16_t index) const
 {
-	/// Pigmentation material
-	render::material* material;
-};
+	const bone* bone = &bones[index];
+	math::transform<float> transform = bone->transform;
+	
+	while (bone->parent)
+	{
+		transform = bone->parent->transform * transform;
+		bone = bone->parent;
+	}
+	
+	return transform;
+}
 
-} // namespace trait
-} // namespace ant
-} // namespace game
-
-#endif // ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
+} // namespace render

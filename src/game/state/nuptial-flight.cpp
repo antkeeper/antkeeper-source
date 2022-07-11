@@ -58,18 +58,18 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	ant::breed breed;
 	
 	// Load morphological traits
-	breed.head = ctx.resource_manager->load<ant::trait::head>("collared-harvester-head.dna");
+	breed.head = ctx.resource_manager->load<ant::trait::head>("square-harvester-head.dna");
 	breed.mandibles = ctx.resource_manager->load<ant::trait::mandibles>("harvester-mandibles.dna");
 	breed.antennae = ctx.resource_manager->load<ant::trait::antennae>("slender-antennae.dna");
-	breed.eyes = ctx.resource_manager->load<ant::trait::eyes>("vestigial-eyes.dna");
+	breed.eyes = ctx.resource_manager->load<ant::trait::eyes>("oval-eyes.dna");
 	breed.mesosoma = ctx.resource_manager->load<ant::trait::mesosoma>("humpback-mesosoma.dna");
 	breed.legs = ctx.resource_manager->load<ant::trait::legs>("trekking-legs.dna");
 	breed.waist = ctx.resource_manager->load<ant::trait::waist>("harvester-waist.dna");
 	breed.gaster = ctx.resource_manager->load<ant::trait::gaster>("ovoid-gaster.dna");
 	breed.ocelli = ctx.resource_manager->load<ant::trait::ocelli>("absent-ocelli.dna");
-	breed.sting = ctx.resource_manager->load<ant::trait::sting>("bullet-sting.dna");
+	breed.sting = ctx.resource_manager->load<ant::trait::sting>("sting-absent.dna");
 	breed.sculpturing = ctx.resource_manager->load<ant::trait::sculpturing>("politus-sculpturing.dna");
-	breed.pigmentation = ctx.resource_manager->load<ant::trait::pigmentation>("onyx-pigmentation.dna");
+	breed.pigmentation = ctx.resource_manager->load<ant::trait::pigmentation>("rust-pigmentation.dna");
 	breed.egg = ctx.resource_manager->load<ant::trait::egg>("ellipsoid-egg.dna");
 	breed.larva = ctx.resource_manager->load<ant::trait::larva>("old-larva.dna");
 	breed.cocoon = ctx.resource_manager->load<ant::trait::cocoon>("cocoon-present.dna");
@@ -124,13 +124,6 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		entity::command::warp_to(*ctx.entity_registry, ruler_10cm_eid, {0, 0, 10});
 	}
 	
-	// Create ant_test
-	{
-		entity::archetype* ant_test_10cm_archetype = ctx.resource_manager->load<entity::archetype>("ant-test.ent");
-		auto ant_test_eid = ant_test_10cm_archetype->create(*ctx.entity_registry);
-		entity::command::warp_to(*ctx.entity_registry, ant_test_eid, {10, 0, 0});
-	}
-	
 	// Create keeper if not yet created
 	if (ctx.entities.find("keeper") == ctx.entities.end())
 	{
@@ -144,7 +137,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		auto boid_eid = ctx.entity_registry->create();
 		
 		entity::component::model model;
-		model.render_model = ctx.resource_manager->load<render::model>("ant-test.mdl");
+		model.render_model = worker_model;//ctx.resource_manager->load<render::model>("ant-test.mdl");
 		model.instance_count = 0;
 		model.layers = 1;
 		ctx.entity_registry->assign<entity::component::model>(boid_eid, model);
@@ -158,6 +151,8 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		entity::component::locomotion locomotion;
 		locomotion.yaw = 0.0f;
 		ctx.entity_registry->assign<entity::component::locomotion>(boid_eid, locomotion);
+		
+		entity::command::warp_to(*ctx.entity_registry, boid_eid, {0, 2, 0});
 
 		// Set target ant
 		ctx.entities["ant"] = boid_eid;

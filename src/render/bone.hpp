@@ -17,26 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
-#define ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
+#ifndef ANTKEEPER_RENDER_BONE_HPP
+#define ANTKEEPER_RENDER_BONE_HPP
 
-#include "render/material.hpp"
+#include "math/transform-type.hpp"
 
-namespace game {
-namespace ant {
-namespace trait {
+namespace render {
 
 /**
- * Trait that describes the pigmentation of an ant.
+ * Skeletal animation bone.
  */
-struct pigmentation
+struct bone
 {
-	/// Pigmentation material
-	render::material* material;
+	/// Pointer to the parent bone.
+	bone* parent;
+	
+	/// Local transform, relative to the parent bone.
+	math::transform<float> transform;
+	
+	/// Length of the bone.
+	float length;
 };
 
-} // namespace trait
-} // namespace ant
-} // namespace game
+} // namespace render
 
-#endif // ANTKEEPER_GAME_ANT_TRAIT_PIGMENTATION_HPP
+#endif // ANTKEEPER_RENDER_BONE_HPP

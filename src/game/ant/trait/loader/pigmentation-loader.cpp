@@ -39,23 +39,11 @@ trait::pigmentation* resource_loader<trait::pigmentation>::load(resource_manager
 	// Allocate pigmentation trait
 	trait::pigmentation* pigmentation = new trait::pigmentation();
 	
-	// Parse pigmentation primary albedo
-	pigmentation->primary_albedo = {0.0, 0.0, 0.0};
-	if (auto primary_albedo_element = pigmentation_element->find("primary_albedo"); primary_albedo_element != pigmentation_element->end())
-	{
-		pigmentation->primary_albedo.x = (*primary_albedo_element)[0].get<float>();
-		pigmentation->primary_albedo.y = (*primary_albedo_element)[1].get<float>();
-		pigmentation->primary_albedo.z = (*primary_albedo_element)[2].get<float>();
-	}
-	
-	// Parse pigmentation secondary albedo
-	pigmentation->secondary_albedo = {0.0, 0.0, 0.0};
-	if (auto secondary_albedo_element = pigmentation_element->find("secondary_albedo"); secondary_albedo_element != pigmentation_element->end())
-	{
-		pigmentation->secondary_albedo.x = (*secondary_albedo_element)[0].get<float>();
-		pigmentation->secondary_albedo.y = (*secondary_albedo_element)[1].get<float>();
-		pigmentation->secondary_albedo.z = (*secondary_albedo_element)[2].get<float>();
-	}
+	// Load pigmentation material
+	auto material_element = pigmentation_element->find("material");
+	if (material_element == pigmentation_element->end())
+		throw std::runtime_error("Pigmentation trait doesn't specify pigmentation material.");
+	pigmentation->material = resource_manager->load<render::material>(material_element->get<std::string>());
 	
 	// Free JSON data
 	delete data;

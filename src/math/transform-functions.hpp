@@ -89,14 +89,14 @@ transform<T> mul(const transform<T>& x, const transform<T>& y)
 		{
 			mul(x, y.translation),
 			normalize(mul(x.rotation, y.rotation)),
-			x.scale * y.scale
+			mul(x.scale, y.scale)
 		};
 }
 
 template <class T>
 vector<T, 3> mul(const transform<T>& t, const vector<T, 3>& v)
 {
-	return t.translation + (t.rotation * (v * t.scale));
+	return add(t.translation, (mul(t.rotation, mul(v, t.scale))));
 }
 
 } // namespace math
