@@ -31,11 +31,11 @@ namespace trait {
  */
 struct ocelli
 {
-	/// Median ocellus present.
-	bool median_ocellus;
-	
 	/// Lateral ocelli present.
 	bool lateral_ocelli;
+	
+	/// Median ocellus present.
+	bool median_ocellus;
 	
 	/// Ocellus width, in mesosomal lengths.
 	float width;
@@ -43,8 +43,11 @@ struct ocelli
 	/// Ocellus height, in mesosomal lengths.
 	float height;
 	
-	/// 3D model of the ocelli.
-	render::model* model;
+	/// 3D model of the lateral ocelli.
+	render::model* lateral_ocelli_model;
+	
+	/// 3D model of the median ocellus.
+	render::model* median_ocellus_model;
 };
 
 } // namespace trait

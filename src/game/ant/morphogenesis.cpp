@@ -60,7 +60,8 @@ static render::model* build_model
 	const render::model* legs,
 	const render::model* mandibles,
 	const render::model* mesosoma,
-	const render::model* ocelli,
+	const render::model* lateral_ocelli,
+	const render::model* median_ocellus,
 	const render::model* sting,
 	const render::model* waist
 );
@@ -105,6 +106,8 @@ render::model* generate_worker(const ant::breed& breed)
 	render::model* mesosoma_model = breed.mesosoma->model;
 	render::model* sting_model = breed.sting->model;
 	render::model* waist_model = breed.waist->model;
+	//render::model* lateral_ocelli_model = breed.ocelli->lateral_ocelli_model;
+	//render::model* median_ocellus_model = breed.ocelli->median_ocellus_model;
 	
 	// Build worker model
 	render::model* model = build_model
@@ -112,14 +115,15 @@ render::model* generate_worker(const ant::breed& breed)
 		exoskeleton_material,
 		antennae_model,
 		eyes_model,
-		nullptr,
+		nullptr, // forewings
 		gaster_model,
 		head_model,
-		nullptr,
+		nullptr, // hindwings
 		legs_model,
 		mandibles_model,
 		mesosoma_model,
-		nullptr,
+		nullptr, // lateral ocelli
+		nullptr, // median ocellus
 		sting_model,
 		waist_model
 	);
@@ -182,7 +186,8 @@ render::model* build_model
 	const render::model* legs,
 	const render::model* mandibles,
 	const render::model* mesosoma,
-	const render::model* ocelli,
+	const render::model* lateral_ocelli,
+	const render::model* median_ocellus,
 	const render::model* sting,
 	const render::model* waist
 )
@@ -199,7 +204,8 @@ render::model* build_model
 	// Get vertex buffers of optional body parts
 	const gl::vertex_buffer* sting_vbo = (sting) ? sting->get_vertex_buffer() : nullptr;
 	const gl::vertex_buffer* eyes_vbo = (eyes) ? eyes->get_vertex_buffer() : nullptr;
-	const gl::vertex_buffer* ocelli_vbo = (ocelli) ? ocelli->get_vertex_buffer() : nullptr;
+	const gl::vertex_buffer* lateral_ocelli_vbo = (lateral_ocelli) ? lateral_ocelli->get_vertex_buffer() : nullptr;
+	const gl::vertex_buffer* median_ocellus_vbo = (median_ocellus) ? median_ocellus->get_vertex_buffer() : nullptr;
 	const gl::vertex_buffer* forewings_vbo = (forewings) ? forewings->get_vertex_buffer() : nullptr;
 	const gl::vertex_buffer* hindwings_vbo = (hindwings) ? hindwings->get_vertex_buffer() : nullptr;
 	
@@ -225,9 +231,12 @@ render::model* build_model
 	std::size_t eyes_vbo_offset = vertex_buffer_size;
 	if (eyes)
 		vertex_buffer_size += eyes_vbo->get_size();
-	std::size_t ocelli_vbo_offset = vertex_buffer_size;
-	if (ocelli)
-		vertex_buffer_size += ocelli_vbo->get_size();
+	std::size_t lateral_ocelli_vbo_offset = vertex_buffer_size;
+	if (lateral_ocelli)
+		vertex_buffer_size += lateral_ocelli_vbo->get_size();
+	std::size_t median_ocellus_vbo_offset = vertex_buffer_size;
+	if (median_ocellus)
+		vertex_buffer_size += median_ocellus_vbo->get_size();
 	std::size_t forewings_vbo_offset = vertex_buffer_size;
 	if (forewings)
 		vertex_buffer_size += forewings_vbo->get_size();
@@ -250,8 +259,10 @@ render::model* build_model
 		sting_vbo->read(0, sting_vbo->get_size(), vertex_buffer_data + sting_vbo_offset);
 	if (eyes)
 		eyes_vbo->read(0, eyes_vbo->get_size(), vertex_buffer_data + eyes_vbo_offset);
-	if (ocelli)
-		ocelli_vbo->read(0, ocelli_vbo->get_size(), vertex_buffer_data + ocelli_vbo_offset);
+	if (lateral_ocelli)
+		lateral_ocelli_vbo->read(0, lateral_ocelli_vbo->get_size(), vertex_buffer_data + lateral_ocelli_vbo_offset);
+	if (median_ocellus)
+		median_ocellus_vbo->read(0, median_ocellus_vbo->get_size(), vertex_buffer_data + median_ocellus_vbo_offset);
 	if (forewings)
 		forewings_vbo->read(0, forewings_vbo->get_size(), vertex_buffer_data + forewings_vbo_offset);
 	if (hindwings)
@@ -293,7 +304,8 @@ render::model* build_model
 	const render::skeleton& gaster_skeleton = gaster->get_skeleton();
 	const render::skeleton* sting_skeleton = (sting) ? &sting->get_skeleton() : nullptr;
 	const render::skeleton* eyes_skeleton = (eyes) ? &eyes->get_skeleton() : nullptr;
-	const render::skeleton* ocelli_skeleton = (ocelli) ? &ocelli->get_skeleton() : nullptr;
+	const render::skeleton* lateral_ocelli_skeleton = (lateral_ocelli) ? &lateral_ocelli->get_skeleton() : nullptr;
+	const render::skeleton* median_ocellus_skeleton = (median_ocellus) ? &median_ocellus->get_skeleton() : nullptr;
 	bool postpetiole = (waist_skeleton.bone_map.find("postpetiole") != waist_skeleton.bone_map.end());
 	
 	// Allocate skeleton bones
@@ -530,7 +542,8 @@ render::model* build_model
 	std::size_t gaster_index_count = (*gaster->get_groups())[0]->get_index_count();
 	std::size_t sting_index_count = (sting) ? (*sting->get_groups())[0]->get_index_count() : 0;
 	std::size_t eyes_index_count = (eyes) ? (*eyes->get_groups())[0]->get_index_count() : 0;
-	std::size_t ocelli_index_count = (ocelli) ? (*ocelli->get_groups())[0]->get_index_count() : 0;
+	std::size_t lateral_ocelli_index_count = (lateral_ocelli) ? (*lateral_ocelli->get_groups())[0]->get_index_count() : 0;
+	std::size_t median_ocellus_index_count = (median_ocellus) ? (*median_ocellus->get_groups())[0]->get_index_count() : 0;
 	std::size_t forewings_index_count = (forewings) ? (*forewings->get_groups())[0]->get_index_count() : 0;
 	std::size_t hindwings_index_count = (hindwings) ? (*hindwings->get_groups())[0]->get_index_count() : 0;
 	std::size_t exoskeleton_index_count =
@@ -668,7 +681,7 @@ render::model* build_model
 		if (auto it = head_skeleton.bone_map.find("eye_l"); it != head_skeleton.bone_map.end())
 			eye_l_to_body = head_to_body * head_skeleton.concatenate(it->second);
 		math::transform<float> eye_r_to_body;
-		if (auto it =head_skeleton.bone_map.find("eye_r"); it != head_skeleton.bone_map.end())
+		if (auto it = head_skeleton.bone_map.find("eye_r"); it != head_skeleton.bone_map.end())
 			eye_r_to_body = head_to_body * head_skeleton.concatenate(it->second);
 		
 		// Reskin eye bones
@@ -682,10 +695,43 @@ render::model* build_model
 		reskin_vertices(vertex_buffer_data + eyes_vbo_offset, eyes_index_count, *position_attribute, *normal_attribute, *tangent_attribute, *bone_index_attribute, old_eye_r_bone_indices, head_bone_index, eye_r_to_body);
 	}
 	
+	if (lateral_ocelli)
+	{
+		// Calculate transforms from lateral ocelli space to body space
+		math::transform<float> ocellus_l_to_body;
+		if (auto it = head_skeleton.bone_map.find("ocellus_l"); it != head_skeleton.bone_map.end())
+			ocellus_l_to_body = head_to_body * head_skeleton.concatenate(it->second);
+		math::transform<float> ocellus_r_to_body;
+		if (auto it = head_skeleton.bone_map.find("ocellus_r"); it != head_skeleton.bone_map.end())
+			ocellus_r_to_body = head_to_body * head_skeleton.concatenate(it->second);
+		
+		// Reskin lateral ocelli bones
+		std::unordered_set<std::uint16_t> old_ocellus_l_bone_indices;
+		if (auto it = lateral_ocelli_skeleton->bone_map.find("ocellus_l"); it != lateral_ocelli_skeleton->bone_map.end())
+			old_ocellus_l_bone_indices.emplace(it->second);
+		reskin_vertices(vertex_buffer_data + lateral_ocelli_vbo_offset, lateral_ocelli_index_count, *position_attribute, *normal_attribute, *tangent_attribute, *bone_index_attribute, old_ocellus_l_bone_indices, head_bone_index, ocellus_l_to_body);
+		std::unordered_set<std::uint16_t> old_ocellus_r_bone_indices;
+		if (auto it = lateral_ocelli_skeleton->bone_map.find("ocellus_r"); it != lateral_ocelli_skeleton->bone_map.end())
+			old_ocellus_r_bone_indices.emplace(it->second);
+		reskin_vertices(vertex_buffer_data + lateral_ocelli_vbo_offset, lateral_ocelli_index_count, *position_attribute, *normal_attribute, *tangent_attribute, *bone_index_attribute, old_ocellus_r_bone_indices, head_bone_index, ocellus_r_to_body);
+	}
+	
+	if (median_ocellus)
+	{
+		// Calculate transforms from lateral ocelli space to body space
+		math::transform<float> ocellus_m_to_body;
+		if (auto it = head_skeleton.bone_map.find("ocellus_m"); it != head_skeleton.bone_map.end())
+			ocellus_m_to_body = head_to_body * head_skeleton.concatenate(it->second);
+		
+		// Reskin lateral ocelli bones
+		std::unordered_set<std::uint16_t> old_ocellus_m_bone_indices;
+		if (auto it = median_ocellus_skeleton->bone_map.find("ocellus_m"); it != median_ocellus_skeleton->bone_map.end())
+			old_ocellus_m_bone_indices.emplace(it->second);
+		reskin_vertices(vertex_buffer_data + median_ocellus_vbo_offset, median_ocellus_index_count, *position_attribute, *normal_attribute, *tangent_attribute, *bone_index_attribute, old_ocellus_m_bone_indices, head_bone_index, ocellus_m_to_body);
+	}
+	
 	// Upload vertex buffer data to model VBO
 	model->get_vertex_buffer()->repurpose(gl::buffer_usage::static_draw, vertex_buffer_size, vertex_buffer_data);
-	
-
 	
 	// Construct exoskeleton model group
 	render::model_group* exoskeleton_group = model->add_group("exoskeleton");
@@ -706,15 +752,29 @@ render::model* build_model
 		index_offset += eyes_index_count;
 	}
 	
-	if (ocelli)
+	if (lateral_ocelli || median_ocellus)
 	{
 		// Construct ocelli model group
 		render::model_group* ocelli_group = model->add_group("ocelli");
-		ocelli_group->set_material((*ocelli->get_groups())[0]->get_material());
 		ocelli_group->set_drawing_mode(gl::drawing_mode::triangles);
 		ocelli_group->set_start_index(index_offset);
-		ocelli_group->set_index_count(ocelli_index_count);
-		index_offset += ocelli_index_count;
+		
+		std::size_t index_count = 0;
+		if (lateral_ocelli)
+		{
+			index_count += lateral_ocelli_index_count;
+			index_offset += lateral_ocelli_index_count;
+			ocelli_group->set_material((*lateral_ocelli->get_groups())[0]->get_material());
+		}
+		if (median_ocellus)
+		{
+			index_count += median_ocellus_index_count;
+			index_offset += median_ocellus_index_count;
+			if (!lateral_ocelli)
+				ocelli_group->set_material((*median_ocellus->get_groups())[0]->get_material());
+		}
+		
+		ocelli_group->set_index_count(index_count);
 	}
 	
 	if (forewings)

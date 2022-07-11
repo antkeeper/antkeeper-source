@@ -66,7 +66,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	breed.legs = ctx.resource_manager->load<ant::trait::legs>("trekking-legs.dna");
 	breed.waist = ctx.resource_manager->load<ant::trait::waist>("harvester-waist.dna");
 	breed.gaster = ctx.resource_manager->load<ant::trait::gaster>("ovoid-gaster.dna");
-	breed.ocelli = ctx.resource_manager->load<ant::trait::ocelli>("absent-ocelli.dna");
+	breed.ocelli = ctx.resource_manager->load<ant::trait::ocelli>("trinocular-fisheye-ocelli.dna");
 	breed.sting = ctx.resource_manager->load<ant::trait::sting>("sting-absent.dna");
 	breed.sculpturing = ctx.resource_manager->load<ant::trait::sculpturing>("politus-sculpturing.dna");
 	breed.pigmentation = ctx.resource_manager->load<ant::trait::pigmentation>("rust-pigmentation.dna");
