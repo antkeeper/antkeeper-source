@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_RENDER_MODEL_HPP
 #define ANTKEEPER_RENDER_MODEL_HPP
 
-#include "render/skeleton.hpp"
+#include "animation/skeleton.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
 #include "gl/drawing-mode.hpp"
@@ -157,7 +157,7 @@ private:
 	std::unordered_map<std::string, model_group*> group_map;
 	gl::vertex_array vao;
 	gl::vertex_buffer vbo;
-	render::skeleton skeleton;
+	::skeleton skeleton;
 };
 
 inline void model::set_bounds(const aabb_type& bounds)

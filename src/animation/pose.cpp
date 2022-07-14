@@ -17,35 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RENDER_OPERATION_HPP
-#define ANTKEEPER_RENDER_OPERATION_HPP
-
-#include "utility/fundamental-types.hpp"
 #include "animation/pose.hpp"
-#include "gl/vertex-array.hpp"
-#include "gl/drawing-mode.hpp"
-#include <cstddef>
+#include "math/transform-operators.hpp"
 
-namespace render {
-
-class material;
-
-/**
- * Encapsulates an atomic render operation.
- */
-struct operation
+void concatenate(const pose& bone_space, pose& skeleton_space)
 {
-	const pose* pose;
-	const material* material;
-	const gl::vertex_array* vertex_array;
-	gl::drawing_mode drawing_mode;
-	std::size_t start_index;
-	std::size_t index_count;
-	float4x4 transform;
-	float depth;
-	std::size_t instance_count;
-};
-
-} // namespace render
-
-#endif // ANTKEEPER_RENDER_OPERATION_HPP
+	for (auto&& [bone, transform]: bone_space)
+	{
+		auto parent_index = bone_parent_index(bone);
+		
+		if (parent_index != bone_index(bone))
+		{
+			auto parent = skeleton_space.find(parent_index);
+			skeleton_space[bone] = (parent != skeleton_space.end()) ? parent->second * transform : transform;
+		}
+		else
+		{
+			skeleton_space[bone] = transform;
+		}
+	}
+}

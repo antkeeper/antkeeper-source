@@ -17,23 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "render/skeleton.hpp"
-#include "math/transform-operators.hpp"
+#ifndef ANTKEEPER_ANIMATION_POSE_HPP
+#define ANTKEEPER_ANIMATION_POSE_HPP
 
-namespace render {
+#include "animation/bone.hpp"
+#include "math/transform-type.hpp"
+#include <map>
 
-math::transform<float> skeleton::concatenate(std::uint16_t index) const
-{
-	const bone* bone = &bones[index];
-	math::transform<float> transform = bone->transform;
-	
-	while (bone->parent)
-	{
-		transform = bone->parent->transform * transform;
-		bone = bone->parent;
-	}
-	
-	return transform;
-}
+/**
+ * Skeletal animation pose.
+ */
+typedef std::map<bone, math::transform<float>, bone_index_compare> pose;
 
-} // namespace render
+/**
+ * Transforms a pose from bone-space into skeleton-space.
+ *
+ * @param[in] bone_space Bone-space pose.
+ * @param[out] skeleton_space Skeleton-space pose.
+ *
+ * @warning If the index of any child bone is greater than its parent index, the concatenated pose may be incorrect.
+ */
+void concatenate(const pose& bone_space, pose& skeleton_space);
+
+#endif // ANTKEEPER_ANIMATION_POSE_HPP

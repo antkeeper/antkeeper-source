@@ -97,7 +97,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		game::world::create_moon(ctx);
 		
 		// Set time to solar noon
-		game::world::set_time(ctx, 0.3);
+		game::world::set_time(ctx, 0.0);
 		
 		// Freeze time
 		game::world::set_time_scale(ctx, 0.0);
@@ -264,7 +264,7 @@ void nuptial_flight::setup_camera()
 		ctx.entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
 	}
 	
-	float ev100 = 13.5f;
+	float ev100 = 14.0f;
 	ctx.surface_camera->set_exposure(ev100);
 }
 

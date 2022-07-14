@@ -21,11 +21,10 @@
 #define ANTKEEPER_SCENE_MODEL_INSTANCE_HPP
 
 #include "scene/object.hpp"
+#include "animation/pose.hpp"
 #include "geom/aabb.hpp"
 #include "render/model.hpp"
 #include <vector>
-
-class pose;
 
 namespace scene {
 

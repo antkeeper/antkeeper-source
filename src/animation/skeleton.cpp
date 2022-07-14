@@ -17,28 +17,6 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RENDER_BONE_HPP
-#define ANTKEEPER_RENDER_BONE_HPP
+#include "animation/skeleton.hpp"
+#include "math/transform-operators.hpp"
 
-#include "math/transform-type.hpp"
-
-namespace render {
-
-/**
- * Skeletal animation bone.
- */
-struct bone
-{
-	/// Pointer to the parent bone.
-	bone* parent;
-	
-	/// Local transform, relative to the parent bone.
-	math::transform<float> transform;
-	
-	/// Length of the bone.
-	float length;
-};
-
-} // namespace render
-
-#endif // ANTKEEPER_RENDER_BONE_HPP

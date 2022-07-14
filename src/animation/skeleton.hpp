@@ -17,37 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RENDER_SKELETON_HPP
-#define ANTKEEPER_RENDER_SKELETON_HPP
+#ifndef ANTKEEPER_ANIMATION_SKELETON_HPP
+#define ANTKEEPER_ANIMATION_SKELETON_HPP
 
-#include "render/bone.hpp"
-#include <cstdint>
+#include "animation/bone.hpp"
+#include "animation/pose.hpp"
 #include <string>
 #include <unordered_map>
-#include <vector>
-
-namespace render {
 
 /**
  * Skeletal animation skeleton.
  */
 struct skeleton
 {
-	/// Collection of bones.
-	std::vector<bone> bones;
+	/// Bone-space bind pose of the skeleton.
+	pose bind_pose;
 	
-	/// Maps bone names to bone indices.
-	std::unordered_map<std::string, std::uint16_t> bone_map;
-	
-	/**
-	 * Calculates the global transform of a bone.
-	 *
-	 * @param index Index of the bone.
-	 * @return Global transform of the bone.
-	 */
-	math::transform<float> concatenate(std::uint16_t index) const;
+	/// Maps bone names to bone identifiers.
+	std::unordered_map<std::string, bone> bone_map;
 };
 
-} // namespace render
-
-#endif // ANTKEEPER_RENDER_SKELETON_HPP
+#endif // ANTKEEPER_ANIMATION_SKELETON_HPP

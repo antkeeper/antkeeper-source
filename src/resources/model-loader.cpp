@@ -223,62 +223,66 @@ render::model* resource_loader<render::model>::load(resource_manager* resource_m
 	{
 		if (auto bones_node = skeleton_node->find("bones"); bones_node != skeleton_node->end())
 		{
-			render::skeleton& skeleton = model->get_skeleton();
-			skeleton.bones.resize(bones_node->size());
+			::skeleton& skeleton = model->get_skeleton();
+			pose& bind_pose = skeleton.bind_pose;
 			
-			std::size_t bone_index = 0;
+			std::uint8_t bone_index = 0;
 			for (const auto& bone_node: bones_node.value())
 			{
-				render::bone& bone = skeleton.bones[bone_index];
-
-				// Find bone name
-				if (auto name_node = bone_node.find("name"); name_node != bone_node.end())
-				{
-					// Add bone to bone map
-					skeleton.bone_map[name_node->get<std::string>()] = bone_index;
-				}
-				
 				// Find parent bone
-				bone.parent = nullptr;
+				std::uint8_t bone_parent_index = bone_index;
 				if (auto parent_node = bone_node.find("parent"); parent_node != bone_node.end())
 				{
-					// Link bone to parent bone (if any)
 					if (!parent_node->is_null())
-						bone.parent = &skeleton.bones[parent_node->get<std::uint16_t>()];
+						bone_parent_index = parent_node->get<std::uint8_t>();
 				}
 				
+				// Construct bone identifier
+				::bone bone = make_bone(bone_index, bone_parent_index);
 				
-				// Clear bone transform
-				bone.transform = math::identity_transform<float>;
+				// Get reference to the bone's bind pose transform
+				auto& bone_transform = bind_pose[bone];
 				
-				// Find translation
+				// Get bone translation
 				if (auto translation_node = bone_node.find("translation"); translation_node != bone_node.end())
 				{
 					if (translation_node->size() == 3)
 					{
-						bone.transform.translation.x = (*translation_node)[0].get<float>();
-						bone.transform.translation.y = (*translation_node)[1].get<float>();
-						bone.transform.translation.z = (*translation_node)[2].get<float>();
+						bone_transform.translation.x = (*translation_node)[0].get<float>();
+						bone_transform.translation.y = (*translation_node)[1].get<float>();
+						bone_transform.translation.z = (*translation_node)[2].get<float>();
 					}
 				}
 				
-				// Find rotation
+				// Get bone rotation
 				if (auto rotation_node = bone_node.find("rotation"); rotation_node != bone_node.end())
 				{
 					if (rotation_node->size() == 4)
 					{
-						bone.transform.rotation.w = (*rotation_node)[0].get<float>();
-						bone.transform.rotation.x = (*rotation_node)[1].get<float>();
-						bone.transform.rotation.y = (*rotation_node)[2].get<float>();
-						bone.transform.rotation.z = (*rotation_node)[3].get<float>();
+						bone_transform.rotation.w = (*rotation_node)[0].get<float>();
+						bone_transform.rotation.x = (*rotation_node)[1].get<float>();
+						bone_transform.rotation.y = (*rotation_node)[2].get<float>();
+						bone_transform.rotation.z = (*rotation_node)[3].get<float>();
 					}
 				}
 				
-				// Find length
+				// Set bone scale
+				bone_transform.scale = {1, 1, 1};
+				
+				// Get bone length
+				/*
 				if (auto length_node = bone_node.find("length"); length_node != bone_node.end())
 					bone.length = length_node->get<float>();
 				else
 					bone.length = 0.0f;
+				*/
+				
+				// Get bone name
+				if (auto name_node = bone_node.find("name"); name_node != bone_node.end())
+				{
+					// Add bone to bone map
+					skeleton.bone_map[name_node->get<std::string>()] = bone;
+				}
 				
 				++bone_index;
 			}
