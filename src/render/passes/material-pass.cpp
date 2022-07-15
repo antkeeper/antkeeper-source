@@ -505,6 +505,12 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 		model_view = view * model;
 		normal_model = math::transpose(math::inverse(math::resize<3, 3>(model)));
 		normal_model_view = math::transpose(math::inverse(math::resize<3, 3>(model_view)));
+		
+		// Skinning palette
+		if (operation.bone_count && parameters->skinning_palette)
+		{
+			parameters->skinning_palette->upload(0, operation.skinning_palette, operation.bone_count);
+		}
 
 		// Upload operation-dependent parameters
 		if (parameters->model)
@@ -577,6 +583,7 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 	parameters->shadow_map_directional = program->get_input("shadow_map_directional");
 	parameters->shadow_splits_directional = program->get_input("shadow_splits_directional");
 	parameters->shadow_matrices_directional = program->get_input("shadow_matrices_directional");
+	parameters->skinning_palette = program->get_input("skinning_palette");
 
 	// Add parameter set to map of parameter sets
 	parameter_sets[program] = parameters;

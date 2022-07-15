@@ -18,5 +18,4 @@
  */
 
 #include "animation/skeleton.hpp"
-#include "math/transform-operators.hpp"
 

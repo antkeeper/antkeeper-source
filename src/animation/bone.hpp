@@ -22,13 +22,15 @@
 
 #include <cstdint>
 
-/// Mask to extract the index of a bone.
-constexpr std::uint16_t bone_index_mask = 0xFF;
+
 
 /**
  * Skeletal animation bone identifier, consisting of a bone index in the lower half, and a parent bone index in the upper half.
  */
 typedef std::uint16_t bone;
+
+/// Mask to extract the index of a bone.
+constexpr bone bone_index_mask = 0xFF;
 
 /**
  * Bone index comparison function object.

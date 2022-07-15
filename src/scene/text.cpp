@@ -83,7 +83,8 @@ text::text():
 	
 	// Init render operation
 	render_op.material = nullptr;
-	render_op.pose = nullptr;
+	render_op.bone_count = 0;
+	render_op.skinning_palette = nullptr;
 	render_op.vertex_array = vao;
 	render_op.drawing_mode = gl::drawing_mode::triangles;
 	render_op.start_index = 0;

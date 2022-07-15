@@ -39,12 +39,21 @@ namespace render {
 renderer::renderer()
 {
 	// Setup billboard render operation
-	billboard_op.pose = nullptr;
+	billboard_op.bone_count = 0;
+	billboard_op.skinning_palette = nullptr;
 	billboard_op.drawing_mode = gl::drawing_mode::triangles;
 	billboard_op.vertex_array = nullptr;
 	billboard_op.start_index = 0;
 	billboard_op.index_count = 6;
 	billboard_op.instance_count = 0;
+	
+	// Allocate skinning palette
+	skinning_palette = new float4x4[MATERIAL_PASS_MAX_BONE_COUNT];
+}
+
+renderer::~renderer()
+{
+	delete[] skinning_palette;
 }
 
 void renderer::render(float t, float dt, float alpha, const scene::collection& collection) const
@@ -161,10 +170,26 @@ void renderer::process_model_instance(const render::context& ctx, render::queue&
 	const std::vector<material*>* instance_materials = model_instance->get_materials();
 	const std::vector<model_group*>* groups = model->get_groups();
 
+	render::operation operation;
+	operation.transform = math::matrix_cast(model_instance->get_transform_tween().interpolate(ctx.alpha));
+	operation.depth = ctx.clip_near.signed_distance(math::resize<3>(operation.transform[3]));
+	operation.vertex_array = model->get_vertex_array();
+	operation.instance_count = model_instance->get_instance_count();
+	
+	// Skinning parameters
+	operation.bone_count = model_instance->get_pose().size();
+	if (operation.bone_count)
+	{
+		operation.skinning_palette = skinning_palette;
+		::matrix_palette(model->get_skeleton().inverse_bind_pose, model_instance->get_pose(), skinning_palette);
+	}
+	else
+	{
+		operation.skinning_palette = nullptr;
+	}
+	
 	for (model_group* group: *groups)
 	{
-		render::operation operation;
-
 		// Determine operation material
 		operation.material = group->get_material();
 		if ((*instance_materials)[group->get_index()])
@@ -172,16 +197,11 @@ void renderer::process_model_instance(const render::context& ctx, render::queue&
 			// Override model group material with the instance's material 
 			operation.material = (*instance_materials)[group->get_index()];
 		}
-
-		operation.pose = model_instance->get_pose();
-		operation.vertex_array = model->get_vertex_array();
+		
 		operation.drawing_mode = group->get_drawing_mode();
 		operation.start_index = group->get_start_index();
 		operation.index_count = group->get_index_count();
-		operation.transform = math::matrix_cast(model_instance->get_transform_tween().interpolate(ctx.alpha));
-		operation.depth = ctx.clip_near.signed_distance(math::resize<3>(operation.transform[3]));
-		operation.instance_count = model_instance->get_instance_count();
-
+		
 		queue.push_back(operation);
 	}
 }

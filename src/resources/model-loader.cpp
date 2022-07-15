@@ -286,6 +286,10 @@ render::model* resource_loader<render::model>::load(resource_manager* resource_m
 				
 				++bone_index;
 			}
+			
+			// Calculate inverse skeleton-space bind pose
+			::concatenate(skeleton.bind_pose, skeleton.inverse_bind_pose);
+			::inverse(skeleton.inverse_bind_pose, skeleton.inverse_bind_pose);
 		}
 	}
 	

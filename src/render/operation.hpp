@@ -35,7 +35,8 @@ class material;
  */
 struct operation
 {
-	const pose* pose;
+	const float4x4* skinning_palette;
+	std::size_t bone_count;
 	const material* material;
 	const gl::vertex_array* vertex_array;
 	gl::drawing_mode drawing_mode;

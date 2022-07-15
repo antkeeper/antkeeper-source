@@ -25,7 +25,6 @@ namespace scene {
 
 model_instance::model_instance(render::model* model):
 	model(nullptr),
-	pose(nullptr),
 	local_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
 	world_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
 	instanced(false),
@@ -59,20 +58,21 @@ model_instance& model_instance::operator=(const model_instance& other)
 void model_instance::set_model(render::model* model)
 {
 	this->model = model;
-	this->pose = nullptr;
 
 	if (model)
 	{
 		materials.resize(model->get_groups()->size());
 		reset_materials();
+		
+		pose = model->get_skeleton().bind_pose;
+		::concatenate(pose, pose);
+	}
+	else
+	{
+		pose.clear();
 	}
 	
 	update_bounds();
-}
-
-void model_instance::set_pose(::pose* pose)
-{
-	this->pose = pose;
 }
 
 void model_instance::set_material(std::size_t group_index, render::material* material)

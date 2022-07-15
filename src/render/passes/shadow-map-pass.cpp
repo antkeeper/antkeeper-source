@@ -226,7 +226,7 @@ void shadow_map_pass::render(const render::context& ctx, render::queue& queue) c
 			}
 			
 			// Switch shader programs if necessary
-			gl::shader_program* shader_program = (operation.pose != nullptr) ? skinned_shader_program : unskinned_shader_program;
+			gl::shader_program* shader_program = (operation.bone_count) ? skinned_shader_program : unskinned_shader_program;
 			if (active_shader_program != shader_program)
 			{
 				active_shader_program = shader_program;
@@ -265,8 +265,8 @@ void shadow_map_pass::set_light(const scene::directional_light* light)
 bool operation_compare(const render::operation& a, const render::operation& b)
 {
 	// Determine transparency
-	bool skinned_a = (a.pose != nullptr);
-	bool skinned_b = (b.pose != nullptr);
+	bool skinned_a = (a.bone_count);
+	bool skinned_b = (b.bone_count);
 	
 	if (skinned_a)
 	{

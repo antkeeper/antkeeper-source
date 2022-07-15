@@ -44,6 +44,7 @@ class renderer
 {
 public:
 	renderer();
+	~renderer();
 	
 	/**
 	 * Renders a collection of scene objects.
@@ -68,6 +69,7 @@ private:
 	void process_text(const render::context& ctx, render::queue& queue, const scene::text* text) const;
 
 	mutable render::operation billboard_op;
+	float4x4* skinning_palette;
 };
 
 } // namespace render

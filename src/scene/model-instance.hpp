@@ -44,11 +44,6 @@ public:
 	void set_model(render::model* model);
 
 	/**
-	 * Sets the
-	 */
-	void set_pose(pose* pose);
-
-	/**
 	 * Overwrites the material of a model group for this model instance.
 	 *
 	 * @param group_index Index of a model group.
@@ -68,9 +63,12 @@ public:
 
 	const render::model* get_model() const;
 	render::model* get_model();
-
-	const pose* get_pose() const;
-	pose* get_pose();
+	
+	/// Returns the skeletal animation pose of this model.
+	const pose& get_pose() const;
+	
+	/// @copydoc model_instance::get_pose() const
+	pose& get_pose();
 
 	const std::vector<render::material*>* get_materials() const;
 	
@@ -85,7 +83,7 @@ private:
 	virtual void transformed();
 	
 	render::model* model;
-	pose* pose;
+	::pose pose;
 	std::vector<render::material*> materials;
 	aabb_type local_bounds;
 	aabb_type world_bounds;
@@ -113,12 +111,12 @@ inline render::model* model_instance::get_model()
 	return model;
 }
 
-inline const pose* model_instance::get_pose() const
+inline const pose& model_instance::get_pose() const
 {
 	return pose;
 }
 
-inline pose* model_instance::get_pose()
+inline pose&model_instance::get_pose()
 {	
 	return pose;
 }

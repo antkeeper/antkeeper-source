@@ -33,6 +33,9 @@ struct skeleton
 	/// Bone-space bind pose of the skeleton.
 	pose bind_pose;
 	
+	/// Inverse skeleton-space bind pose of the skeleton.
+	pose inverse_bind_pose;
+	
 	/// Maps bone names to bone identifiers.
 	std::unordered_map<std::string, bone> bone_map;
 };

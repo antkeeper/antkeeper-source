@@ -22,6 +22,7 @@
 
 #include "animation/bone.hpp"
 #include "math/transform-type.hpp"
+#include "utility/fundamental-types.hpp"
 #include <map>
 
 /**
@@ -38,5 +39,21 @@ typedef std::map<bone, math::transform<float>, bone_index_compare> pose;
  * @warning If the index of any child bone is greater than its parent index, the concatenated pose may be incorrect.
  */
 void concatenate(const pose& bone_space, pose& skeleton_space);
+
+/**
+ * Inverses each transform in a pose.
+ *
+ * @param[in] x Input pose.
+ * @param[out] y Output pose.
+ */
+void inverse(const pose& x, pose& y);
+
+/**
+ * Generates a skinning matrix palette from a pose.
+ *
+ * @param inverse_bind_pose Inverse of the skeleton-space bind pose.
+ * @param pose Bone-space Skeleton-space pose.
+ */
+void matrix_palette(const pose& inverse_bind_pose, const pose& pose, float4x4* palette);
 
 #endif // ANTKEEPER_ANIMATION_POSE_HPP

@@ -99,6 +99,8 @@ private:
 		const gl::shader_input* shadow_map_directional;
 		const gl::shader_input* shadow_splits_directional;
 		const gl::shader_input* shadow_matrices_directional;
+		
+		const gl::shader_input* skinning_palette;
 	};
 
 	const parameter_set* load_parameter_set(const gl::shader_program* program) const;
@@ -111,6 +113,7 @@ private:
 	int max_point_light_count;
 	int max_directional_light_count;
 	int max_spot_light_count;
+	int max_bone_count;
 	
 	mutable int ambient_light_count;
 	mutable int point_light_count;
