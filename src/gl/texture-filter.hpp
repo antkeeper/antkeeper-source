@@ -22,6 +22,9 @@
 
 namespace gl {
 
+/**
+ * Texture minification filter modes.
+ */
 enum class texture_min_filter
 {
 	nearest,
@@ -32,6 +35,9 @@ enum class texture_min_filter
 	linear_mipmap_linear
 };
 
+/**
+ * Texture magnification filter modes.
+ */
 enum class texture_mag_filter
 {
 	nearest,

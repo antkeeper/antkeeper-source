@@ -58,8 +58,8 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	ant::breed breed;
 	
 	// Load morphological traits
-	breed.head = ctx.resource_manager->load<ant::trait::head>("square-harvester-head.dna");
-	breed.mandibles = ctx.resource_manager->load<ant::trait::mandibles>("harvester-mandibles.dna");
+	breed.head = ctx.resource_manager->load<ant::trait::head>("miller-head.dna");
+	breed.mandibles = ctx.resource_manager->load<ant::trait::mandibles>("miller-mandibles.dna");
 	breed.antennae = ctx.resource_manager->load<ant::trait::antennae>("slender-antennae.dna");
 	breed.eyes = ctx.resource_manager->load<ant::trait::eyes>("oval-eyes.dna");
 	breed.mesosoma = ctx.resource_manager->load<ant::trait::mesosoma>("humpback-mesosoma.dna");
@@ -264,7 +264,7 @@ void nuptial_flight::setup_camera()
 		ctx.entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
 	}
 	
-	float ev100 = 14.0f;
+	float ev100 = 14.5f;
 	ctx.surface_camera->set_exposure(ev100);
 }
 

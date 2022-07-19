@@ -38,4 +38,3 @@ struct model
 } // namespace entity
 
 #endif // ANTKEEPER_ENTITY_COMPONENT_MODEL_HPP
-

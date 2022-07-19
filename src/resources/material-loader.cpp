@@ -39,6 +39,40 @@ static bool read_value(T* value, const nlohmann::json& json, const std::string& 
 	return false;
 }
 
+static bool load_texture_1d_property(resource_manager* resource_manager, render::material* material, const std::string& name, const nlohmann::json& json)
+{
+	// If JSON element is an array
+	if (json.is_array())
+	{
+		// Determine size of the array
+		std::size_t array_size = json.size();
+		
+		// Create property
+		render::material_property<const gl::texture_1d*>* property = material->add_property<const gl::texture_1d*>(name, array_size);
+		
+		// Load textures
+		std::size_t i = 0;
+		for (const auto& element: json)
+		{
+			std::string filename = element.get<std::string>();
+			const gl::texture_1d* texture = resource_manager->load<gl::texture_1d>(filename);
+			property->set_value(i++, texture);
+		}
+	}
+	else
+	{
+		// Create property
+		render::material_property<const gl::texture_1d*>* property = material->add_property<const gl::texture_1d*>(name);
+		
+		// Load texture
+		std::string filename = json.get<std::string>();
+		const gl::texture_1d* texture = resource_manager->load<gl::texture_1d>(filename);
+		property->set_value(texture);
+	}
+	
+	return true;
+}
+
 static bool load_texture_2d_property(resource_manager* resource_manager, render::material* material, const std::string& name, const nlohmann::json& json)
 {
 	// If JSON element is an array
@@ -315,12 +349,14 @@ render::material* resource_loader<render::material>::load(resource_manager* reso
 				// Ignore valueless properties
 				continue;
 			
-			// If property type is a 2D texture
-			if (type == "texture_2d")
+			if (type == "texture_1d")
+			{
+				load_texture_1d_property(resource_manager, material, name, value_element.value());
+			}
+			else if (type == "texture_2d")
 			{
 				load_texture_2d_property(resource_manager, material, name, value_element.value());
 			}
-			// If property type is a cubic texture
 			else if (type == "texture_cube")
 			{
 				load_texture_cube_property(resource_manager, material, name, value_element.value());

@@ -26,7 +26,9 @@
 namespace gl {
 
 class shader_program;
+class texture_1d;
 class texture_2d;
+class texture_3d;
 class texture_cube;
 enum class shader_variable_type;
 
@@ -77,7 +79,9 @@ public:
 	bool upload(const float2x2& value) const;
 	bool upload(const float3x3& value) const;
 	bool upload(const float4x4& value) const;
+	bool upload(const texture_1d* value) const;
 	bool upload(const texture_2d* value) const;
+	bool upload(const texture_3d* value) const;
 	bool upload(const texture_cube* value) const;
 	///@}
 	
@@ -108,7 +112,9 @@ public:
 	bool upload(std::size_t index, const float2x2& value) const;
 	bool upload(std::size_t index, const float3x3& value) const;
 	bool upload(std::size_t index, const float4x4& value) const;
+	bool upload(std::size_t index, const texture_1d* value) const;
 	bool upload(std::size_t index, const texture_2d* value) const;
+	bool upload(std::size_t index, const texture_3d* value) const;
 	bool upload(std::size_t index, const texture_cube* value) const;
 	///@}
 	
@@ -140,7 +146,9 @@ public:
 	bool upload(std::size_t index, const float2x2* values, std::size_t count) const;
 	bool upload(std::size_t index, const float3x3* values, std::size_t count) const;
 	bool upload(std::size_t index, const float4x4* values, std::size_t count) const;
+	bool upload(std::size_t index, const texture_1d** values, std::size_t count) const;
 	bool upload(std::size_t index, const texture_2d** values, std::size_t count) const;
+	bool upload(std::size_t index, const texture_3d** values, std::size_t count) const;
 	bool upload(std::size_t index, const texture_cube** values, std::size_t count) const;
 	///@}
 	

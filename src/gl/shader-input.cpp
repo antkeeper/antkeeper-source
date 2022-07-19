@@ -18,7 +18,9 @@
  */
 
 #include "gl/shader-input.hpp"
+#include "gl/texture-1d.hpp"
 #include "gl/texture-2d.hpp"
+#include "gl/texture-3d.hpp"
 #include "gl/texture-cube.hpp"
 #include <glad/glad.h>
 
@@ -211,6 +213,21 @@ bool shader_input::upload(const float4x4& value) const
 	return true;
 }
 
+bool shader_input::upload(const texture_1d* value) const
+{
+	if (gl_uniform_location == -1)
+		return false;
+	
+	// Bind texture to a texture unit reserved by this shader input
+	glActiveTexture(GL_TEXTURE0 + texture_unit);
+	glBindTexture(GL_TEXTURE_1D, value->gl_texture_id);
+	
+	// Upload texture unit index to shader
+	glUniform1i(gl_uniform_location, texture_unit);
+	
+	return true;
+}
+
 bool shader_input::upload(const texture_2d* value) const
 {
 	if (gl_uniform_location == -1)
@@ -219,6 +236,21 @@ bool shader_input::upload(const texture_2d* value) const
 	// Bind texture to a texture unit reserved by this shader input
 	glActiveTexture(GL_TEXTURE0 + texture_unit);
 	glBindTexture(GL_TEXTURE_2D, value->gl_texture_id);
+	
+	// Upload texture unit index to shader
+	glUniform1i(gl_uniform_location, texture_unit);
+	
+	return true;
+}
+
+bool shader_input::upload(const texture_3d* value) const
+{
+	if (gl_uniform_location == -1)
+		return false;
+	
+	// Bind texture to a texture unit reserved by this shader input
+	glActiveTexture(GL_TEXTURE0 + texture_unit);
+	glBindTexture(GL_TEXTURE_3D, value->gl_texture_id);
 	
 	// Upload texture unit index to shader
 	glUniform1i(gl_uniform_location, texture_unit);
@@ -415,6 +447,21 @@ bool shader_input::upload(std::size_t index, const float4x4& value) const
 	return true;
 }
 
+bool shader_input::upload(std::size_t index, const texture_1d* value) const
+{
+	if (gl_uniform_location == -1)
+		return false;
+	
+	// Bind texture to a texture unit reserved by this shader input
+	glActiveTexture(GL_TEXTURE0 + texture_unit + static_cast<int>(index));
+	glBindTexture(GL_TEXTURE_1D, value->gl_texture_id);
+	
+	// Upload texture unit index to shader
+	glUniform1i(gl_uniform_location + static_cast<int>(index), texture_unit + static_cast<int>(index));
+	
+	return true;
+}
+
 bool shader_input::upload(std::size_t index, const texture_2d* value) const
 {
 	if (gl_uniform_location == -1)
@@ -423,6 +470,21 @@ bool shader_input::upload(std::size_t index, const texture_2d* value) const
 	// Bind texture to a texture unit reserved by this shader input
 	glActiveTexture(GL_TEXTURE0 + texture_unit + static_cast<int>(index));
 	glBindTexture(GL_TEXTURE_2D, value->gl_texture_id);
+	
+	// Upload texture unit index to shader
+	glUniform1i(gl_uniform_location + static_cast<int>(index), texture_unit + static_cast<int>(index));
+	
+	return true;
+}
+
+bool shader_input::upload(std::size_t index, const texture_3d* value) const
+{
+	if (gl_uniform_location == -1)
+		return false;
+	
+	// Bind texture to a texture unit reserved by this shader input
+	glActiveTexture(GL_TEXTURE0 + texture_unit + static_cast<int>(index));
+	glBindTexture(GL_TEXTURE_3D, value->gl_texture_id);
 	
 	// Upload texture unit index to shader
 	glUniform1i(gl_uniform_location + static_cast<int>(index), texture_unit + static_cast<int>(index));
@@ -636,6 +698,24 @@ bool shader_input::upload(std::size_t index, const float4x4* values, std::size_t
 	return true;
 }
 
+bool shader_input::upload(std::size_t index, const texture_1d** values, std::size_t count) const
+{
+	if (gl_uniform_location == -1)
+		return false;
+	
+	for (std::size_t i = 0; i < count; ++i)
+	{
+		// Bind texture to a texture unit reserved by this shader input
+		glActiveTexture(GL_TEXTURE0 + texture_unit + static_cast<int>(index + i));
+		glBindTexture(GL_TEXTURE_1D, values[i]->gl_texture_id);
+		
+		// Upload texture unit index to shader
+		glUniform1i(gl_uniform_location + static_cast<int>(index + i), texture_unit + static_cast<int>(index + i));
+	}
+	
+	return true;
+}
+
 bool shader_input::upload(std::size_t index, const texture_2d** values, std::size_t count) const
 {
 	if (gl_uniform_location == -1)
@@ -646,6 +726,24 @@ bool shader_input::upload(std::size_t index, const texture_2d** values, std::siz
 		// Bind texture to a texture unit reserved by this shader input
 		glActiveTexture(GL_TEXTURE0 + texture_unit + static_cast<int>(index + i));
 		glBindTexture(GL_TEXTURE_2D, values[i]->gl_texture_id);
+		
+		// Upload texture unit index to shader
+		glUniform1i(gl_uniform_location + static_cast<int>(index + i), texture_unit + static_cast<int>(index + i));
+	}
+	
+	return true;
+}
+
+bool shader_input::upload(std::size_t index, const texture_3d** values, std::size_t count) const
+{
+	if (gl_uniform_location == -1)
+		return false;
+	
+	for (std::size_t i = 0; i < count; ++i)
+	{
+		// Bind texture to a texture unit reserved by this shader input
+		glActiveTexture(GL_TEXTURE0 + texture_unit + static_cast<int>(index + i));
+		glBindTexture(GL_TEXTURE_3D, values[i]->gl_texture_id);
 		
 		// Upload texture unit index to shader
 		glUniform1i(gl_uniform_location + static_cast<int>(index + i), texture_unit + static_cast<int>(index + i));

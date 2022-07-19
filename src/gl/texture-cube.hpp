@@ -58,4 +58,3 @@ inline int texture_cube::get_face_size() const
 } // namespace gl
 
 #endif // ANTKEEPER_GL_TEXTURE_CUBE_HPP
-

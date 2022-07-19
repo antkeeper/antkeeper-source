@@ -267,10 +267,23 @@ void shader_program::find_inputs()
 			case GL_FLOAT_MAT4:
 				variable_type = shader_variable_type::float4x4;
 				break;
+			
+			case GL_SAMPLER_1D:
+			case GL_SAMPLER_1D_SHADOW:
+				variable_type = shader_variable_type::texture_1d;
+				texture_unit = available_texture_unit;
+				available_texture_unit += uniform_size;
+				break;
 						
 			case GL_SAMPLER_2D:
 			case GL_SAMPLER_2D_SHADOW:
 				variable_type = shader_variable_type::texture_2d;
+				texture_unit = available_texture_unit;
+				available_texture_unit += uniform_size;
+				break;
+			
+			case GL_SAMPLER_3D:
+				variable_type = shader_variable_type::texture_3d;
 				texture_unit = available_texture_unit;
 				available_texture_unit += uniform_size;
 				break;

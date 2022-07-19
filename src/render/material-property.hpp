@@ -26,7 +26,9 @@
 #include "math/interpolation.hpp"
 #include "utility/fundamental-types.hpp"
 #include "gl/shader-program.hpp"
+#include "gl/texture-1d.hpp"
 #include "gl/texture-2d.hpp"
+#include "gl/texture-3d.hpp"
 #include "gl/texture-cube.hpp"
 #include <cstddef>
 
@@ -416,9 +418,21 @@ inline gl::shader_variable_type material_property<float4x4>::get_data_type() con
 }
 
 template <>
+inline gl::shader_variable_type material_property<const gl::texture_1d*>::get_data_type() const
+{
+	return gl::shader_variable_type::texture_1d;
+}
+
+template <>
 inline gl::shader_variable_type material_property<const gl::texture_2d*>::get_data_type() const
 {
 	return gl::shader_variable_type::texture_2d;
+}
+
+template <>
+inline gl::shader_variable_type material_property<const gl::texture_3d*>::get_data_type() const
+{
+	return gl::shader_variable_type::texture_3d;
 }
 
 template <>

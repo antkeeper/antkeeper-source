@@ -17,39 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GL_SHADER_VARIABLE_TYPE_HPP
-#define ANTKEEPER_GL_SHADER_VARIABLE_TYPE_HPP
+#include "gl/texture-1d.hpp"
 
 namespace gl {
 
-enum class shader_variable_type
+texture_1d::texture_1d(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data):
+	texture(width, type, format, color_space, data)
+{}
+
+texture_1d::~texture_1d()
+{}
+
+void texture_1d::resize(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data)
 {
-	bool1,
-	bool2,
-	bool3,
-	bool4,
-	int1,
-	int2,
-	int3,
-	int4,
-	uint1,
-	uint2,
-	uint3,
-	uint4,
-	float1,
-	float2,
-	float3,
-	float4,
-	float2x2,
-	float3x3,
-	float4x4,
-	texture_1d,
-	texture_2d,
-	texture_3d,
-	texture_cube
-};
+	texture::resize(width, type, format, color_space, data);
+}
+
+void texture_1d::set_wrapping(gl::texture_wrapping wrap_s)
+{
+	texture::set_wrapping(wrap_s);
+}
 
 } // namespace gl
-
-#endif // ANTKEEPER_GL_SHADER_VARIABLE_TYPE_HPP
-
