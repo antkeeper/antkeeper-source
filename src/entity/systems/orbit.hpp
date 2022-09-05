@@ -22,6 +22,8 @@
 
 #include "entity/systems/updatable.hpp"
 #include "utility/fundamental-types.hpp"
+#include "entity/id.hpp"
+#include "entity/components/orbit.hpp"
 
 namespace entity {
 namespace system {
@@ -58,6 +60,9 @@ public:
 	void set_time_scale(double scale);
 	
 private:
+	void on_orbit_construct(entity::registry& registry, entity::id entity_id, entity::component::orbit& component);
+	void on_orbit_replace(entity::registry& registry, entity::id entity_id, entity::component::orbit& component);
+	
 	double universal_time;
 	double time_scale;
 	std::size_t ke_iterations;

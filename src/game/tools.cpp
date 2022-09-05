@@ -95,7 +95,7 @@ entity::id build_time_tool(game::context& ctx)
 		
 		entity::id planet_eid = ctx.entities["planet"];
 		entity::component::celestial_body body = ctx.entity_registry->get<entity::component::celestial_body>(planet_eid);
-		body.axial_rotation = math::radians(360.0f) * ((float)mouse_x / (float)window_w);
+		//body.axial_rotation = math::radians(360.0f) * ((float)mouse_x / (float)window_w);
 		ctx.entity_registry->replace<entity::component::celestial_body>(planet_eid, body);
 	};
 	

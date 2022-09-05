@@ -31,9 +31,9 @@ namespace orbit {}
 
 } // namespace physics
 
+#include "physics/orbit/anomaly.hpp"
 #include "physics/orbit/elements.hpp"
-#include "physics/orbit/frames.hpp"
-#include "physics/orbit/kepler.hpp"
+#include "physics/orbit/frame.hpp"
 #include "physics/orbit/state.hpp"
 
 #endif // ANTKEEPER_PHYSICS_ORBIT_HPP

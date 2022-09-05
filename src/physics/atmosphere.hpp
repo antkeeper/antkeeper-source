@@ -124,7 +124,7 @@ T extinction(T ec, T s)
 template <class T>
 T albedo(T s, T e)
 {
-	return s / t;
+	return s / e;
 }
 
 /**

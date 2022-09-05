@@ -18,9 +18,8 @@
  */
 
 #include "entity/systems/orbit.hpp"
-#include "entity/components/orbit.hpp"
-#include "entity/id.hpp"
 #include "physics/orbit/orbit.hpp"
+#include <iostream>
 
 namespace entity {
 namespace system {
@@ -31,51 +30,46 @@ orbit::orbit(entity::registry& registry):
 	time_scale(1.0),
 	ke_iterations(10),
 	ke_tolerance(1e-6)
-{}
+{
+	registry.on_construct<entity::component::orbit>().connect<&orbit::on_orbit_construct>(this);
+	registry.on_replace<entity::component::orbit>().connect<&orbit::on_orbit_replace>(this);
+}
 
 void orbit::update(double t, double dt)
 {
 	// Add scaled timestep to current time
 	set_universal_time(universal_time + dt * time_scale);
 	
-	// Update the orbital state of orbiting bodies
+	// Propagate orbits
 	registry.view<component::orbit>().each(
 	[&](entity::id entity_id, auto& orbit)
 	{
-		// Calculate semi-minor axis (b)
-		const double b = physics::orbit::derive_semiminor_axis(orbit.elements.a, orbit.elements.e);
+		// Determine mean anomaly at current time
+		const double ma = orbit.elements.ma + orbit.mean_motion * this->universal_time;
 		
 		// Solve Kepler's equation for eccentric anomaly (E)
-		const double ea = physics::orbit::kepler_ea(orbit.elements.e, orbit.elements.ta, ke_iterations, ke_tolerance);
+		const double ea = physics::orbit::anomaly::mean_to_eccentric(orbit.elements.ec, ma, ke_iterations, ke_tolerance);
 		
-		// Calculate radial distance and true anomaly (nu)
-		const double xv = orbit.elements.a * (std::cos(ea) - orbit.elements.e);
-		const double yv = b * std::sin(ea);
-		const double distance = std::sqrt(xv * xv + yv * yv);
-		const double ta = std::atan2(yv, xv);
+		// Calculate Cartesian orbital position in the PQW frame
+		math::vector3<double> pqw_position = physics::orbit::frame::pqw::cartesian(orbit.elements.ec, orbit.elements.a, ea, orbit.semiminor_axis);
 		
-		// Calculate Cartesian position (r) in perifocal space
-		const math::vector3<double> r_perifocal = math::quaternion<double>::rotate_z(ta) * math::vector3<double>{distance, 0, 0};
+		// Transform orbital position from PQW frame to BCI frame
+		orbit.bci_position = orbit.pqw_to_bci.transform(pqw_position);
+	});
+	
+	// Update orbital positions in the ICRF frame
+	registry.view<component::orbit>().each(
+	[&](entity::id entity_id, auto& orbit)
+	{
+		orbit.icrf_position = orbit.bci_position;
 		
-		/// @TODO Calculate Cartesian velocity (v) in perifocal space
-		//const math::vector3<double> v_perifocal = ...
-		
-		// Construct perifocal to inertial reference frame
-		const physics::frame<double> perifocal_to_inertial = physics::orbit::inertial::to_perifocal
-		(
-			{0, 0, 0},
-			orbit.elements.raan,
-			orbit.elements.i,
-			orbit.elements.w
-		).inverse();
-		
-		// Transform orbital state vectors from perifocal space to the parent inertial space
-		const math::vector3<double> r_inertial = perifocal_to_inertial.transform(r_perifocal);
-		//const math::vector3<double> v_inertial = perifocal_frame.transform(v_perifocal);
-		
-		// Update orbital state of component
-		orbit.state.r = r_inertial;
-		//orbit.state.v = v_inertial;
+		entity::id parent = orbit.parent;
+		while (parent != entt::null)
+		{
+			const component::orbit& parent_orbit = registry.get<component::orbit>(parent);
+			orbit.icrf_position += parent_orbit.bci_position;
+			parent = parent_orbit.parent;
+		}
 	});
 }
 
@@ -87,6 +81,28 @@ void orbit::set_universal_time(double time)
 void orbit::set_time_scale(double scale)
 {
 	time_scale = scale;
+}
+
+void orbit::on_orbit_construct(entity::registry& registry, entity::id entity_id, entity::component::orbit& component)
+{
+	component.semiminor_axis = physics::orbit::semiminor_axis(component.elements.a, component.elements.ec);
+	component.pqw_to_bci = physics::orbit::frame::pqw::to_bci
+	(
+		component.elements.om,
+		component.elements.in,
+		component.elements.w
+	);
+}
+
+void orbit::on_orbit_replace(entity::registry& registry, entity::id entity_id, entity::component::orbit& component)
+{
+	component.semiminor_axis = physics::orbit::semiminor_axis(component.elements.a, component.elements.ec);
+	component.pqw_to_bci = physics::orbit::frame::pqw::to_bci
+	(
+		component.elements.om,
+		component.elements.in,
+		component.elements.w
+	);
 }
 
 } // namespace system

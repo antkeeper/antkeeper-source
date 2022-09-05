@@ -32,7 +32,7 @@
 #include "gl/vertex-array.hpp"
 #include "gl/texture-2d.hpp"
 #include "gl/drawing-mode.hpp"
-#include "physics/frame.hpp"
+#include "math/se3.hpp"
 #include "scene/object.hpp"
 
 class resource_manager;
@@ -60,16 +60,18 @@ public:
 	void set_stars_model(const model* model);
 	void set_clouds_model(const model* model);
 	
-	void set_topocentric_frame(const physics::frame<float>& frame);
+	void set_icrf_to_eus(const math::transformation::se3<float>& transformation);
 	
 	void set_sun_position(const float3& position);
-	void set_sun_color(const float3& color_outer, const float3& color_inner);
+	void set_sun_illuminance(const float3& illuminance_outer, const float3& illuminance_inner);
 	void set_sun_angular_radius(float radius);
 	void set_observer_altitude(float altitude);
 	void set_scale_heights(float rayleigh, float mie);
 	void set_scattering_coefficients(const float3& r, const float3& m);
 	void set_mie_anisotropy(float g);
 	void set_atmosphere_radii(float inner, float outer);
+	
+	void set_moon_position(const float3& position);
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -82,7 +84,7 @@ private:
 	const gl::shader_input* exposure_input;
 	const gl::shader_input* observer_altitude_input;
 	const gl::shader_input* sun_direction_input;
-	const gl::shader_input* sun_color_input;
+	const gl::shader_input* sun_illuminance_input;
 	const gl::shader_input* sun_angular_radius_input;
 	const gl::shader_input* scale_height_rm_input;
 	const gl::shader_input* rayleigh_scattering_input;
@@ -132,7 +134,7 @@ private:
 	gl::shader_program* cloud_shader_program;
 	const gl::shader_input* cloud_model_view_projection_input;
 	const gl::shader_input* cloud_sun_direction_input;
-	const gl::shader_input* cloud_sun_color_input;
+	const gl::shader_input* cloud_sun_illuminance_input;
 	const gl::shader_input* cloud_camera_position_input;
 	const gl::shader_input* cloud_camera_exposure_input;
 
@@ -143,10 +145,13 @@ private:
 	
 	tween<float> observer_altitude_tween;
 	tween<float3> sun_position_tween;
-	tween<float3> sun_color_outer_tween;
-	tween<float3> sun_color_inner_tween;
-	tween<float3> topocentric_frame_translation;
-	tween<math::quaternion<float>> topocentric_frame_rotation;
+	tween<float3> sun_illuminance_outer_tween;
+	tween<float3> sun_illuminance_inner_tween;
+	tween<float3> icrf_to_eus_translation;
+	tween<math::quaternion<float>> icrf_to_eus_rotation;
+	
+	tween<float3> moon_position_tween;
+
 	
 	float sun_angular_radius;
 	float2 scale_height_rm;

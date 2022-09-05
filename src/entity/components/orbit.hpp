@@ -20,16 +20,36 @@
 #ifndef ANTKEEPER_ENTITY_COMPONENT_ORBIT_HPP
 #define ANTKEEPER_ENTITY_COMPONENT_ORBIT_HPP
 
+#include "entity/id.hpp"
 #include "physics/orbit/elements.hpp"
 #include "physics/orbit/state.hpp"
+#include "math/se3.hpp"
 
 namespace entity {
 namespace component {
 
 struct orbit
 {
+	/// Parent body.
+	entity::id parent;
+	
+	/// Keplerian orbital elements at epoch.
 	physics::orbit::elements<double> elements;
-	physics::orbit::state<double> state;
+	
+	/// Orbital semi-minor axis (b) at epoch.
+	double semiminor_axis;
+	
+	/// Orbital mean motion (n) at epoch.
+	double mean_motion;
+	
+	/// Transformation from the PQW frame to the BCI frame of the parent body.
+	math::transformation::se3<double> pqw_to_bci;
+	
+	/// Orbital Cartesian position of the body in the BCI frame of the parent body.
+	math::vector3<double> bci_position;
+	
+	/// Orbital Cartesian position of the body in the ICRF frame.
+	math::vector3<double> icrf_position;
 };
 
 } // namespace component

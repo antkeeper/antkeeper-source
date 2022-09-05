@@ -339,7 +339,6 @@ T ease<T, S>::in_out_elastic(const T& x, const T& y, S a)
 	if (a < S(0.5))
 	{
 		return math::lerp(x, y, std::pow(S(2), S(20) * a - S(11)) * std::sin(S(15.5334) - S(27.5293) * a));
-		
 	}
 	else
 	{

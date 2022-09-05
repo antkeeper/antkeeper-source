@@ -31,6 +31,7 @@
 #include "entity/components/celestial-body.hpp"
 #include "entity/archetype.hpp"
 #include "entity/ebt.hpp"
+#include "physics/orbit/elements.hpp"
 #include "resources/json.hpp"
 #include <stdexcept>
 
@@ -97,18 +98,24 @@ static bool load_component_celestial_body(entity::archetype& archetype, const js
 {
 	entity::component::celestial_body component;
 	component.radius = 0.0;
-	component.axial_tilt = 0.0;
-	component.axial_rotation = 0.0;
-	component.angular_frequency = 0.0;
+	component.mass = 0.0;
+	component.pole_ra = 0.0;
+	component.pole_dec = 0.0;
+	component.prime_meridian = 0.0;
+	component.rotation_period = 0.0;
 	
 	if (element.contains("radius"))
 		component.radius = element["radius"].get<double>();
-	if (element.contains("axial_tilt"))
-		component.axial_tilt = math::radians(element["axial_tilt"].get<double>());
-	if (element.contains("axial_rotation"))
-		component.axial_rotation = math::radians(element["axial_rotation"].get<double>());
-	if (element.contains("angular_frequency"))
-		component.angular_frequency = math::radians(element["angular_frequency"].get<double>());
+	if (element.contains("mass"))
+		component.mass = element["mass"].get<double>();
+	if (element.contains("pole_ra"))
+		component.pole_ra = math::radians(element["pole_ra"].get<double>());
+	if (element.contains("pole_dec"))
+		component.pole_dec = math::radians(element["pole_dec"].get<double>());
+	if (element.contains("prime_meridian"))
+		component.prime_meridian = math::radians(element["prime_meridian"].get<double>());
+	if (element.contains("rotation_period"))
+		component.rotation_period = element["rotation_period"].get<double>();
 	
 	archetype.set<entity::component::celestial_body>(component);
 
@@ -151,26 +158,30 @@ static bool load_component_orbit(entity::archetype& archetype, const json& eleme
 {
 	entity::component::orbit component;
 	
-	component.elements.e = 0.0;
+	component.parent = entt::null;
+	component.elements.ec = 0.0;
 	component.elements.a = 0.0;
-	component.elements.i = 0.0;
-	component.elements.raan = 0.0;
+	component.elements.in = 0.0;
+	component.elements.om = 0.0;
 	component.elements.w = 0.0;
-	component.elements.ta = 0.0;
+	component.elements.ma = 0.0;
+	component.mean_motion = 0.0;
 	
-	if (element.contains("e"))
-		component.elements.e = element["e"].get<double>();
+	if (element.contains("ec"))
+		component.elements.ec = element["ec"].get<double>();
 	if (element.contains("a"))
 		component.elements.a = element["a"].get<double>();
-	if (element.contains("i"))
-		component.elements.i = math::radians(element["i"].get<double>());
-	if (element.contains("raan"))
-		component.elements.raan = math::radians(element["raan"].get<double>());
+	if (element.contains("in"))
+		component.elements.in = math::radians(element["in"].get<double>());
+	if (element.contains("om"))
+		component.elements.om = math::radians(element["om"].get<double>());
 	if (element.contains("w"))
 		component.elements.w = math::radians(element["w"].get<double>());
-	if (element.contains("ta"))
-		component.elements.ta = math::radians(element["ta"].get<double>());
-
+	if (element.contains("ma"))
+		component.elements.ma = math::radians(element["ma"].get<double>());
+	if (element.contains("n"))
+		component.mean_motion = math::radians(element["n"].get<double>());
+	
 	archetype.set<entity::component::orbit>(component);
 
 	return true;

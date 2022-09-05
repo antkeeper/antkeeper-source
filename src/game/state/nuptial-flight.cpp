@@ -97,14 +97,14 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		game::world::create_moon(ctx);
 		
 		// Set time to solar noon
-		game::world::set_time(ctx, 0.0);
+		game::world::set_time(ctx, 50.0);//107.3);
 		
 		// Freeze time
 		game::world::set_time_scale(ctx, 0.0);
 	}
 	
 	// Load biome
-	game::load::biome(ctx, "desert-scrub.bio");
+	game::load::biome(ctx, "lab.bio");
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
@@ -122,6 +122,20 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		entity::archetype* ruler_10cm_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
 		auto ruler_10cm_eid = ruler_10cm_archetype->create(*ctx.entity_registry);
 		entity::command::warp_to(*ctx.entity_registry, ruler_10cm_eid, {0, 0, 10});
+	}
+	
+	// Create cocoon
+	{
+		entity::archetype* cocoon_archetype = ctx.resource_manager->load<entity::archetype>("cocoon.ent");
+		auto cocoon_eid = cocoon_archetype->create(*ctx.entity_registry);
+		entity::command::warp_to(*ctx.entity_registry, cocoon_eid, {-10, 0, 10});
+	}
+	
+	// Create larva
+	{
+		entity::archetype* larva_archetype = ctx.resource_manager->load<entity::archetype>("long-neck-larva.ent");
+		auto larva_eid = larva_archetype->create(*ctx.entity_registry);
+		entity::command::warp_to(*ctx.entity_registry, larva_eid, {-13, 0, 10});
 	}
 	
 	// Create keeper if not yet created
@@ -152,7 +166,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		locomotion.yaw = 0.0f;
 		ctx.entity_registry->assign<entity::component::locomotion>(boid_eid, locomotion);
 		
-		entity::command::warp_to(*ctx.entity_registry, boid_eid, {0, 2, 0});
+		entity::command::warp_to(*ctx.entity_registry, boid_eid, {0, 1, 0});
 
 		// Set target ant
 		ctx.entities["ant"] = boid_eid;
@@ -264,7 +278,7 @@ void nuptial_flight::setup_camera()
 		ctx.entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
 	}
 	
-	float ev100 = 14.5f;
+	float ev100 = 15.0f;
 	ctx.surface_camera->set_exposure(ev100);
 }
 

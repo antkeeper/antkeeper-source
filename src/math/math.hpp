@@ -35,6 +35,7 @@ namespace math {}
 #include "math/quaternion-functions.hpp"
 #include "math/quaternion-operators.hpp"
 
+#include "math/se3.hpp"
 #include "math/transform-type.hpp"
 #include "math/transform-functions.hpp"
 #include "math/transform-operators.hpp"

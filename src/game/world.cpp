@@ -95,12 +95,8 @@ void create_stars(game::context& ctx)
 		ra = math::wrap_radians(math::radians(ra));
 		dec = math::wrap_radians(math::radians(dec));
 		
-		// Transform spherical equatorial coordinates to rectangular equatorial coordinates
-		double3 position_bci = geom::spherical::to_cartesian(double3{1.0, dec, ra});
-		
-		// Transform coordinates from equatorial space to inertial space
-		physics::frame<double> bci_to_inertial = physics::orbit::inertial::to_bci({0, 0, 0}, 0.0, math::radians(23.4393)).inverse();
-		double3 position_inertial = bci_to_inertial * position_bci;
+		// Convert ICRF coordinates from spherical to Cartesian
+		double3 position = physics::orbit::frame::bci::cartesian(double3{1.0, dec, ra});
 		
 		// Convert color index to color temperature
 		double cct = color::index::bv_to_cct(bv_color);
@@ -118,9 +114,9 @@ void create_stars(game::context& ctx)
 		double3 scaled_color = color_acescg * brightness;
 		
 		// Build vertex
-		*(star_vertex++) = static_cast<float>(position_inertial.x);
-		*(star_vertex++) = static_cast<float>(position_inertial.y);
-		*(star_vertex++) = static_cast<float>(position_inertial.z);
+		*(star_vertex++) = static_cast<float>(position.x);
+		*(star_vertex++) = static_cast<float>(position.y);
+		*(star_vertex++) = static_cast<float>(position.z);
 		*(star_vertex++) = static_cast<float>(scaled_color.x);
 		*(star_vertex++) = static_cast<float>(scaled_color.y);
 		*(star_vertex++) = static_cast<float>(scaled_color.z);
@@ -188,22 +184,23 @@ void create_sun(game::context& ctx)
 	entity::id sun_eid = sun_archetype->create(*ctx.entity_registry);
 	ctx.entities["sun"] = sun_eid;
 	
-	// Create direct sun light scene object
-	scene::directional_light* sun_direct = new scene::directional_light();
+	// Create sun directional light scene object
+	scene::directional_light* sun_light = new scene::directional_light();
 	
-	// Create ambient sun light scene object
-	scene::ambient_light* sun_ambient = new scene::ambient_light();
-	sun_ambient->set_color({1, 1, 1});
-	sun_ambient->set_intensity(30000.0f * 0.0f);
-	sun_ambient->update_tweens();
+	// Create sky ambient light scene object
+	scene::ambient_light* sky_light = new scene::ambient_light();
+	sky_light->set_color({1, 1, 1});
+	sky_light->set_intensity(0.0f);
+	sky_light->update_tweens();
 	
 	// Add sun light scene objects to surface scene
-	ctx.surface_scene->add_object(sun_direct);
-	ctx.surface_scene->add_object(sun_ambient);
+	ctx.surface_scene->add_object(sun_light);
+	ctx.surface_scene->add_object(sky_light);
 	
 	// Pass direct sun light scene object to shadow map pass and astronomy system
-	ctx.surface_shadow_map_pass->set_light(sun_direct);
-	ctx.astronomy_system->set_sun_light(sun_direct);
+	ctx.surface_shadow_map_pass->set_light(sun_light);
+	ctx.astronomy_system->set_sun_light(sun_light);
+	ctx.astronomy_system->set_sky_light(sky_light);
 }
 
 void create_planet(game::context& ctx)
@@ -212,6 +209,9 @@ void create_planet(game::context& ctx)
 	entity::archetype* planet_archetype = ctx.resource_manager->load<entity::archetype>("planet.ent");
 	entity::id planet_eid = planet_archetype->create(*ctx.entity_registry);
 	ctx.entities["planet"] = planet_eid;
+	
+	// Assign orbital parent
+	ctx.entity_registry->get<entity::component::orbit>(planet_eid).parent = ctx.entities["sun"];
 	
 	// Assign planetary terrain component
 	entity::component::terrain terrain;
@@ -231,8 +231,12 @@ void create_planet(game::context& ctx)
 void create_moon(game::context& ctx)
 {
 	// Create lunar entity
-	entity::id moon_eid = ctx.entity_registry->create();
+	entity::archetype* moon_archetype = ctx.resource_manager->load<entity::archetype>("moon.ent");
+	entity::id moon_eid = moon_archetype->create(*ctx.entity_registry);
 	ctx.entities["moon"] = moon_eid;
+	
+	// Assign orbital parent
+	ctx.entity_registry->get<entity::component::orbit>(moon_eid).parent = ctx.entities["planet"];
 	
 	// Pass moon model to sky pass
 	ctx.sky_pass->set_moon_model(ctx.resource_manager->load<render::model>("moon.mdl"));

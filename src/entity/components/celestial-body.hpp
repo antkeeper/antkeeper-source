@@ -26,17 +26,23 @@ namespace component {
 /// A simple celestial body.
 struct celestial_body
 {
-	/// Body radius, in meters.
+	/// Mean radius of the body, in meters.
 	double radius;
 	
-	/// Angle between the body's rotational axis and its orbital axis, in radians.
-	double axial_tilt;
+	/// Mass of the body, in kilograms.
+	double mass;
 	
-	/// Angle of rotation about the body's rotational axis at epoch, in radians.
-	double axial_rotation;
+	/// Right ascension of the body's north pole at epoch, in radians.
+	double pole_ra;
 	
-	/// Angular frequency, in radians per day.
-	double angular_frequency;
+	/// Declination of the body's north pole at epoch, in radians.
+	double pole_dec;
+	
+	/// Location of the prime meridian at epoch, as a rotation about the north pole, in radians.
+	double prime_meridian;
+	
+	/// Sidereal rotation period, in rotations per day.
+	double rotation_period;
 };
 
 } // namespace component

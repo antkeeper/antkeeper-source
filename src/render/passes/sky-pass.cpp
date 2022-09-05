@@ -71,10 +71,10 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	cloud_shader_program(nullptr),
 	observer_altitude_tween(0.0f, math::lerp<float, float>),
 	sun_position_tween(float3{1.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
-	sun_color_outer_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
-	sun_color_inner_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
-	topocentric_frame_translation({0, 0, 0}, math::lerp<float3, float>),
-	topocentric_frame_rotation(math::quaternion<float>::identity(), math::nlerp<float>)
+	sun_illuminance_outer_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
+	sun_illuminance_inner_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
+	icrf_to_eus_translation({0, 0, 0}, math::lerp<float3, float>),
+	icrf_to_eus_rotation(math::quaternion<float>::identity(), math::nlerp<float>)
 {}
 
 sky_pass::~sky_pass()
@@ -109,20 +109,20 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	// Interpolate observer altitude
 	float observer_altitude = observer_altitude_tween.interpolate(ctx.alpha);
 	
-	// Construct tweened inertial to topocentric frame
-	physics::frame<float> topocentric_frame =
+	// Construct tweened ICRF to EUS transformation
+	math::transformation::se3<float> icrf_to_eus =
 	{
-		topocentric_frame_translation.interpolate(ctx.alpha),
-		topocentric_frame_rotation.interpolate(ctx.alpha)
+		icrf_to_eus_translation.interpolate(ctx.alpha),
+		icrf_to_eus_rotation.interpolate(ctx.alpha)
 	};
 	
-	// Get topocentric space direction to sun
+	// Get EUS direction to sun
 	float3 sun_position = sun_position_tween.interpolate(ctx.alpha);
 	float3 sun_direction = math::normalize(sun_position);
 	
 	// Interpolate sun color
-	float3 sun_color_outer = sun_color_outer_tween.interpolate(ctx.alpha);
-	float3 sun_color_inner = sun_color_inner_tween.interpolate(ctx.alpha);
+	float3 sun_illuminance_outer = sun_illuminance_outer_tween.interpolate(ctx.alpha);
+	float3 sun_illuminance_inner = sun_illuminance_inner_tween.interpolate(ctx.alpha);
 	
 	// Draw atmosphere
 	if (sky_model)
@@ -149,8 +149,8 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 			sun_angular_radius_input->upload(sun_angular_radius);
 			
 		// Pre-exposure sun color
-		if (sun_color_input)
-			sun_color_input->upload(sun_color_outer * ctx.exposure);
+		if (sun_illuminance_input)
+			sun_illuminance_input->upload(sun_illuminance_outer * ctx.exposure);
 		
 		if (scale_height_rm_input)
 			scale_height_rm_input->upload(scale_height_rm);
@@ -177,8 +177,8 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 			cloud_model_view_projection_input->upload(model_view_projection);
 		if (cloud_sun_direction_input)
 			cloud_sun_direction_input->upload(sun_direction);
-		if (cloud_sun_color_input)
-			cloud_sun_color_input->upload(sun_color_inner);
+		if (cloud_sun_illuminance_input)
+			cloud_sun_illuminance_input->upload(sun_illuminance_inner);
 		if (cloud_camera_position_input)
 			cloud_camera_position_input->upload(ctx.camera_transform.translation);
 		if (cloud_camera_exposure_input)
@@ -198,7 +198,7 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	{
 		float star_distance = (clip_near + clip_far) * 0.5f;
 		
-		model = math::resize<4, 4>(math::matrix_cast<float>(topocentric_frame.rotation));
+		model = math::resize<4, 4>(math::matrix_cast<float>(icrf_to_eus.r));
 		model = math::scale(model, {star_distance, star_distance, star_distance});
 		
 		model_view = view * model;
@@ -218,13 +218,12 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 		rasterizer->draw_arrays(*stars_model_vao, stars_model_drawing_mode, stars_model_start_index, stars_model_index_count);
 	}
 	
-	// Draw moon model
 	/*
-	float3 moon_position = {0, 0, 0};
+	// Draw moon model
+	float3 moon_position = moon_position_tween.interpolate(ctx.alpha);
+	float moon_angular_radius = math::radians(2.0f);
 	if (moon_position.y >= -moon_angular_radius)
 	{
-
-		
 		float moon_distance = (clip_near + clip_far) * 0.5f;		
 		float moon_radius = moon_angular_radius * moon_distance;
 		
@@ -284,7 +283,7 @@ void sky_pass::set_sky_model(const model* model)
 
 				observer_altitude_input = sky_shader_program->get_input("observer_altitude");
 				sun_direction_input = sky_shader_program->get_input("sun_direction");
-				sun_color_input = sky_shader_program->get_input("sun_color");
+				sun_illuminance_input = sky_shader_program->get_input("sun_illuminance");
 				sun_angular_radius_input = sky_shader_program->get_input("sun_angular_radius");
 				scale_height_rm_input = sky_shader_program->get_input("scale_height_rm");
 				rayleigh_scattering_input = sky_shader_program->get_input("rayleigh_scattering");
@@ -397,7 +396,7 @@ void sky_pass::set_clouds_model(const model* model)
 			{
 				cloud_model_view_projection_input = cloud_shader_program->get_input("model_view_projection");
 				cloud_sun_direction_input = cloud_shader_program->get_input("sun_direction");
-				cloud_sun_color_input = cloud_shader_program->get_input("sun_color");
+				cloud_sun_illuminance_input = cloud_shader_program->get_input("sun_illuminance");
 				cloud_camera_position_input = cloud_shader_program->get_input("camera.position");
 				cloud_camera_exposure_input = cloud_shader_program->get_input("camera.exposure");
 			}
@@ -413,16 +412,17 @@ void sky_pass::update_tweens()
 {
 	observer_altitude_tween.update();
 	sun_position_tween.update();
-	sun_color_outer_tween.update();
-	sun_color_inner_tween.update();
-	topocentric_frame_translation.update();
-	topocentric_frame_rotation.update();
+	sun_illuminance_outer_tween.update();
+	sun_illuminance_inner_tween.update();
+	icrf_to_eus_translation.update();
+	icrf_to_eus_rotation.update();
+	moon_position_tween.update();
 }
 
-void sky_pass::set_topocentric_frame(const physics::frame<float>& frame)
+void sky_pass::set_icrf_to_eus(const math::transformation::se3<float>& transformation)
 {
-	topocentric_frame_translation[1] = frame.translation;
-	topocentric_frame_rotation[1] = frame.rotation;
+	icrf_to_eus_translation[1] = transformation.t;
+	icrf_to_eus_rotation[1] = transformation.r;
 }
 
 void sky_pass::set_sun_position(const float3& position)
@@ -430,10 +430,10 @@ void sky_pass::set_sun_position(const float3& position)
 	sun_position_tween[1] = position;
 }
 
-void sky_pass::set_sun_color(const float3& color_outer, const float3& color_inner)
+void sky_pass::set_sun_illuminance(const float3& illuminance_outer, const float3& illuminance_inner)
 {
-	sun_color_outer_tween[1] = color_outer;
-	sun_color_inner_tween[1] = color_inner;
+	sun_illuminance_outer_tween[1] = illuminance_outer;
+	sun_illuminance_inner_tween[1] = illuminance_inner;
 }
 
 void sky_pass::set_sun_angular_radius(float radius)
@@ -467,6 +467,11 @@ void sky_pass::set_atmosphere_radii(float inner, float outer)
 	atmosphere_radii.x = inner;
 	atmosphere_radii.y = outer;
 	atmosphere_radii.z = outer * outer;
+}
+
+void sky_pass::set_moon_position(const float3& position)
+{
+	moon_position_tween[1] = position;
 }
 
 void sky_pass::handle_event(const mouse_moved_event& event)

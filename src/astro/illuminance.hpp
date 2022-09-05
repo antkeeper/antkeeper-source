@@ -22,8 +22,7 @@
 
 namespace astro
 {
-	
-	
+
 /**
  * Converts apparent (visual) magnitude to a brightness factor relative to a 0th magnitude star.
  *

@@ -23,8 +23,9 @@
 #include "entity/systems/updatable.hpp"
 #include "entity/id.hpp"
 #include "scene/directional-light.hpp"
+#include "scene/ambient-light.hpp"
 #include "utility/fundamental-types.hpp"
-#include "physics/frame.hpp"
+#include "math/se3.hpp"
 #include "render/passes/sky-pass.hpp"
 #include "entity/components/atmosphere.hpp"
 #include "entity/components/celestial-body.hpp"
@@ -79,6 +80,7 @@ public:
 	void set_observer_location(const double3& location);
 	
 	void set_sun_light(scene::directional_light* light);
+	void set_sky_light(scene::ambient_light* light);
 	
 	void set_sky_pass(::render::sky_pass* pass);
 	
@@ -86,7 +88,7 @@ private:
 	void on_celestial_body_construct(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body);
 	void on_celestial_body_replace(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body);
 	
-	void update_bcbf_to_topocentric();
+	void update_bcbf_to_enu();
 
 	double universal_time;
 	double time_scale;
@@ -95,13 +97,14 @@ private:
 	
 	double3 observer_location;
 	
-	physics::frame<double> inertial_to_bcbf;
-	physics::frame<double> bcbf_to_topocentric;
-	physics::frame<double> inertial_to_topocentric;
-	physics::frame<double> sez_to_ezs;
-	physics::frame<double> ezs_to_sez;
+	math::transformation::se3<double> icrf_to_bcbf;
+	math::transformation::se3<double> bcbf_to_enu;
+	math::transformation::se3<double> icrf_to_enu;
+	math::transformation::se3<double> enu_to_eus;
+	math::transformation::se3<double> icrf_to_eus;
 	
 	scene::directional_light* sun_light;
+	scene::ambient_light* sky_light;
 	::render::sky_pass* sky_pass;
 };
 

@@ -22,6 +22,7 @@
 #include "entity/components/blackbody.hpp"
 #include "entity/components/transform.hpp"
 #include "geom/intersection.hpp"
+#include "geom/cartesian.hpp"
 #include "color/color.hpp"
 #include "physics/orbit/orbit.hpp"
 #include "physics/time/ut1.hpp"
@@ -57,21 +58,15 @@ astronomy::astronomy(entity::registry& registry):
 	reference_entity(entt::null),
 	observer_location{0, 0, 0},
 	sun_light(nullptr),
+	sky_light(nullptr),
 	sky_pass(nullptr)
 {
-	// Construct reference frame which transforms coordinates from SEZ to EZS
-	sez_to_ezs = physics::frame<double>
+	// Construct transformation which transforms coordinates from ENU to EUS
+	enu_to_eus = math::transformation::se3<double>
 	{
 		{0, 0, 0},
-		math::normalize
-		(
-			math::quaternion<double>::rotate_x(-math::half_pi<double>) *
-				math::quaternion<double>::rotate_z(-math::half_pi<double>)
-		)
+		math::quaternion<double>::rotate_x(-math::half_pi<double>)
 	};
-	
-	// Construct reference frame which transforms coordinates from EZS to SEZ
-	ezs_to_sez = sez_to_ezs.inverse();
 	
 	registry.on_construct<entity::component::celestial_body>().connect<&astronomy::on_celestial_body_construct>(this);
 	registry.on_replace<entity::component::celestial_body>().connect<&astronomy::on_celestial_body_replace>(this);
@@ -92,47 +87,91 @@ void astronomy::update(double t, double dt)
 	const entity::component::orbit& reference_orbit = registry.get<entity::component::orbit>(reference_entity);
 	const entity::component::celestial_body& reference_body = registry.get<entity::component::celestial_body>(reference_entity);
 	
-	// Determine axial rotation at current time
-	const double reference_axial_rotation = reference_body.axial_rotation + reference_body.angular_frequency * universal_time;
+	math::transformation::se3<double> icrf_to_bci{{-reference_orbit.icrf_position}, math::identity_quaternion<double>};
 	
-	// Construct reference frame which transforms coordinates from inertial space to reference body BCBF space
-	inertial_to_bcbf = physics::orbit::inertial::to_bcbf
+	// Construct transformation from the ICRF frame to the reference body BCBF frame	
+	icrf_to_bcbf = physics::orbit::frame::bci::to_bcbf
 	(
-		reference_orbit.state.r,
-		reference_orbit.elements.i,
-		reference_body.axial_tilt,
-		reference_axial_rotation
+		reference_body.pole_ra,
+		reference_body.pole_dec,
+		reference_body.prime_meridian + (math::two_pi<double> / reference_body.rotation_period) * universal_time
 	);
+	icrf_to_bcbf.t = icrf_to_bcbf.r * -reference_orbit.icrf_position;
 	
-	// Construct reference frame which transforms coordinates from inertial space to reference body topocentric space
-	inertial_to_topocentric = inertial_to_bcbf * bcbf_to_topocentric;
+	icrf_to_enu = icrf_to_bcbf * bcbf_to_enu;
+	icrf_to_eus = icrf_to_enu * enu_to_eus;
 	
 	// Set the transform component translations of orbiting bodies to their topocentric positions
 	registry.view<component::celestial_body, component::orbit, component::transform>().each(
-	[&](entity::id entity_id, const auto& celestial_body, const auto& orbit, auto& transform)
+	[&](entity::id entity_id, const auto& body, const auto& orbit, auto& transform)
 	{
-		// Transform Cartesian position vector (r) from inertial space to topocentric space
-		const math::vector3<double> r_topocentric = inertial_to_topocentric * orbit.state.r;
+		// Skip reference entity
+		if (entity_id == this->reference_entity)
+			return;
+		
+		// Transform orbital Cartesian position (r) from the ICRF frame to the EUS frame
+		const double3 r_eus = icrf_to_eus * orbit.icrf_position;
+		
+		// Determine body orientation in the ICRF frame
+		math::quaternion<double> rotation_icrf = physics::orbit::frame::bcbf::to_bci
+		(
+			body.pole_ra,
+			body.pole_dec,
+			body.prime_meridian + (math::two_pi<double> / body.rotation_period) * this->universal_time
+		).r;
+		
+		// Transform body orientation from the ICRF frame to the EUS frame.
+		math::quaternion<double> rotation_eus = math::normalize(icrf_to_eus.r * rotation_icrf);
 		
 		// Update local transform
-		transform.local.translation = math::type_cast<float>(r_topocentric);
+		if (orbit.parent != entt::null)
+		{
+			transform.local.translation = math::normalize(math::type_cast<float>(r_eus)) * 1000.0f;
+			transform.local.rotation = math::type_cast<float>(rotation_eus);
+			transform.local.scale = {50.0f, 50.0f, 50.0f};
+		}
+		
+		/*
+		if (orbit.parent == entt::null)
+		{
+			// RA-DEC
+			const double3 r_bci = icrf_to_bci * orbit.icrf_position;
+			double3 r_bci_spherical = physics::orbit::frame::bci::spherical(r_bci);
+			if (r_bci_spherical.z < 0.0)
+				r_bci_spherical.z += math::two_pi<double>;
+			const double dec = math::degrees(r_bci_spherical.y);
+			const double ra = math::degrees(r_bci_spherical.z);
+			
+			// AZ-EL
+			const double3 r_enu = icrf_to_enu * orbit.icrf_position;
+			double3 r_enu_spherical = physics::orbit::frame::enu::spherical(r_enu);
+			if (r_enu_spherical.z < 0.0)
+				r_enu_spherical.z += math::two_pi<double>;
+			const double el = math::degrees(r_enu_spherical.y);
+			const double az = math::degrees(r_enu_spherical.z);
+			
+			std::cout << "t: " << this->universal_time << "; ra: " << ra << "; dec: " << dec << std::endl;
+			std::cout << "t: " << this->universal_time << "; az: " << az << "; el: " << el << std::endl;
+		}
+		*/
 	});
 	
 	// Update blackbody lighting
 	registry.view<component::celestial_body, component::orbit, component::blackbody>().each(
-	[&](entity::id entity_id, const auto& celestial_body, const auto& orbit, const auto& blackbody)
+	[&](entity::id entity_id, const auto& body, const auto& orbit, const auto& blackbody)
 	{
 		// Calculate blackbody inertial basis
-		double3 blackbody_forward_inertial = math::normalize(reference_orbit.state.r - orbit.state.r);
-		double3 blackbody_up_inertial = {0, 0, 1};
+		//double3 blackbody_forward_icrf = math::normalize(reference_orbit.icrf_position - orbit.icrf_position);
+		double3 blackbody_up_icrf = {0, 0, 1};
 		
-		// Transform blackbody inertial position and basis into topocentric space
-		double3 blackbody_position_topocentric = inertial_to_topocentric * orbit.state.r;
-		double3 blackbody_forward_topocentric = inertial_to_topocentric.rotation * blackbody_forward_inertial;
-		double3 blackbody_up_topocentric = inertial_to_topocentric.rotation * blackbody_up_inertial;
+		// Transform blackbody ICRF position and basis into EUS frame
+		double3 blackbody_position_eus = icrf_to_eus * orbit.icrf_position;
+		double3 blackbody_position_enu = icrf_to_enu * orbit.icrf_position;
+		double3 blackbody_forward_eus = math::normalize(-blackbody_position_eus);
+		double3 blackbody_up_eus = icrf_to_eus.r * blackbody_up_icrf;
 		
 		// Calculate distance from observer to blackbody
-		double blackbody_distance = math::length(blackbody_position_topocentric) - celestial_body.radius;
+		double blackbody_distance = math::length(blackbody_position_eus) - body.radius;
 		
 		// Calculate blackbody distance attenuation
 		double distance_attenuation = 1.0 / (blackbody_distance * blackbody_distance);
@@ -148,7 +187,7 @@ void astronomy::update(double t, double dt)
 			// Altitude of observer in meters	
 			geom::ray<double> sample_ray;
 			sample_ray.origin = {0, reference_body.radius + observer_location[0], 0};
-			sample_ray.direction = math::normalize(blackbody_position_topocentric);
+			sample_ray.direction = math::normalize(blackbody_position_eus);
 			
 			geom::sphere<double> exosphere;
 			exosphere.center = {0, 0, 0};
@@ -172,36 +211,45 @@ void astronomy::update(double t, double dt)
 		if (sun_light != nullptr)
 		{
 			// Update blackbody light transform
-			sun_light->set_translation(math::normalize(math::type_cast<float>(blackbody_position_topocentric)));
+			sun_light->set_translation(math::normalize(math::type_cast<float>(blackbody_position_eus)));
 			sun_light->set_rotation
 			(
 				math::look_rotation
 				(
-					math::type_cast<float>(blackbody_forward_topocentric),
-					math::type_cast<float>(blackbody_up_topocentric)
+					math::type_cast<float>(blackbody_forward_eus),
+					math::type_cast<float>(blackbody_up_eus)
 				)
 			);
 			
+			// Sun illuminance at the outer atmosphere
+			float3 sun_illuminance_outer = math::type_cast<float>(blackbody.luminous_intensity * distance_attenuation);
 			
-			// Sun color at the outer atmosphere
-			float3 sun_color_outer = math::type_cast<float>(blackbody.luminous_intensity * distance_attenuation);
-			
-			// Sun color at sea level
-			float3 sun_color_inner = math::type_cast<float>(blackbody.luminous_intensity * distance_attenuation * atmospheric_transmittance);
+			// Sun illuminance at sea level
+			float3 sun_illuminance_inner = math::type_cast<float>(blackbody.luminous_intensity * distance_attenuation * atmospheric_transmittance);
 			
 			// Update blackbody light color and intensity
-			sun_light->set_color(sun_color_inner);	
+			sun_light->set_color(sun_illuminance_inner);	
 			sun_light->set_intensity(1.0f);
 			
 			// Upload blackbody params to sky pass
 			if (this->sky_pass)
 			{
-				this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_topocentric));
-				this->sky_pass->set_sun_color(sun_color_outer, sun_color_inner);
+				this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_eus));
+				this->sky_pass->set_sun_illuminance(sun_illuminance_outer, sun_illuminance_inner);
 				
-				double blackbody_angular_radius = std::asin((celestial_body.radius * 2.0) / (blackbody_distance * 2.0));
+				double blackbody_angular_radius = std::asin((body.radius * 2.0) / (blackbody_distance * 2.0));
 				this->sky_pass->set_sun_angular_radius(static_cast<float>(blackbody_angular_radius));
 			}
+		}
+		
+		if (sky_light != nullptr)
+		{
+			double3 blackbody_position_enu_spherical = physics::orbit::frame::enu::spherical(icrf_to_enu * orbit.icrf_position);
+			
+			double illuminance = 25000.0 * std::max<double>(0.0, std::sin(blackbody_position_enu_spherical.y));
+			
+			sky_light->set_color({1.0f, 1.0f, 1.0f});
+			sky_light->set_intensity(static_cast<float>(illuminance));
 		}
 	});
 	
@@ -209,12 +257,12 @@ void astronomy::update(double t, double dt)
 	if (sky_pass != nullptr)
 	{
 		// Upload topocentric frame to sky pass
-		sky_pass->set_topocentric_frame
+		sky_pass->set_icrf_to_eus
 		(
-			physics::frame<float>
+			math::transformation::se3<float>
 			{
-				math::type_cast<float>(inertial_to_topocentric.translation),
-				math::type_cast<float>(inertial_to_topocentric.rotation)
+				math::type_cast<float>(icrf_to_eus.t),
+				math::type_cast<float>(icrf_to_eus.r)
 			}
 		);
 		
@@ -247,18 +295,23 @@ void astronomy::set_time_scale(double scale)
 void astronomy::set_reference_body(entity::id entity_id)
 {
 	reference_entity = entity_id;
-	update_bcbf_to_topocentric();
+	update_bcbf_to_enu();
 }
 
 void astronomy::set_observer_location(const double3& location)
 {
 	observer_location = location;
-	update_bcbf_to_topocentric();
+	update_bcbf_to_enu();
 }
 
 void astronomy::set_sun_light(scene::directional_light* light)
 {
 	sun_light = light;
+}
+
+void astronomy::set_sky_light(scene::ambient_light* light)
+{
+	sky_light = light;
 }
 
 void astronomy::set_sky_pass(::render::sky_pass* pass)
@@ -269,16 +322,16 @@ void astronomy::set_sky_pass(::render::sky_pass* pass)
 void astronomy::on_celestial_body_construct(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body)
 {
 	if (entity_id == reference_entity)
-		update_bcbf_to_topocentric();
+		update_bcbf_to_enu();
 }
 
 void astronomy::on_celestial_body_replace(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body)
 {
 	if (entity_id == reference_entity)
-		update_bcbf_to_topocentric();
+		update_bcbf_to_enu();
 }
 
-void astronomy::update_bcbf_to_topocentric()
+void astronomy::update_bcbf_to_enu()
 {
 	double radial_distance = observer_location[0];
 	
@@ -288,13 +341,13 @@ void astronomy::update_bcbf_to_topocentric()
 			radial_distance += registry.get<entity::component::celestial_body>(reference_entity).radius;
 	}
 	
-	// Construct reference frame which transforms coordinates from BCBF space to topocentric space
-	bcbf_to_topocentric = physics::orbit::bcbf::to_topocentric
+	// Construct reference frame which transforms coordinates from a BCBF frame to a horizontal frame
+	bcbf_to_enu = physics::orbit::frame::bcbf::to_enu
 	(
 		radial_distance,
 		observer_location[1],
 		observer_location[2]
-	) * sez_to_ezs;
+	);
 }
 
 } // namespace system
