@@ -49,7 +49,7 @@ public:
 	void set_rgb_wavelengths(const double3& wavelengths);
 	
 private:
-	void update_luminous_intensity(entity::id entity_id);
+	void update_luminance(entity::id entity_id);
 	
 	void on_blackbody_construct(entity::registry& registry, entity::id entity_id, entity::component::blackbody& blackbody);
 	void on_blackbody_replace(entity::registry& registry, entity::id entity_id, entity::component::blackbody& blackbody);

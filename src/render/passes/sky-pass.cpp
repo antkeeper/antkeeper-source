@@ -74,7 +74,15 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	sun_illuminance_outer_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
 	sun_illuminance_inner_tween(float3{1.0f, 1.0f, 1.0f}, math::lerp<float3, float>),
 	icrf_to_eus_translation({0, 0, 0}, math::lerp<float3, float>),
-	icrf_to_eus_rotation(math::quaternion<float>::identity(), math::nlerp<float>)
+	icrf_to_eus_rotation(math::quaternion<float>::identity(), math::nlerp<float>),
+	moon_position_tween(float3{0, 0, 0}, math::lerp<float3, float>),
+	moon_rotation_tween(math::quaternion<float>::identity(), math::nlerp<float>),
+	moon_angular_radius_tween(0.0f, math::lerp<float, float>),
+	moon_sunlight_direction_tween(float3{0, 0, 0}, math::lerp<float3, float>),
+	moon_sunlight_illuminance_tween(float3{0, 0, 0}, math::lerp<float3, float>),
+	moon_planetlight_direction_tween(float3{0, 0, 0}, math::lerp<float3, float>),
+	moon_planetlight_illuminance_tween(float3{0, 0, 0}, math::lerp<float3, float>),
+	magnification(1.0f)
 {}
 
 sky_pass::~sky_pass()
@@ -146,8 +154,8 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 		if (sun_direction_input)
 			sun_direction_input->upload(sun_direction);
 		if (sun_angular_radius_input)
-			sun_angular_radius_input->upload(sun_angular_radius);
-			
+			sun_angular_radius_input->upload(sun_angular_radius * magnification);
+		
 		// Pre-exposure sun color
 		if (sun_illuminance_input)
 			sun_illuminance_input->upload(sun_illuminance_outer * ctx.exposure);
@@ -218,38 +226,43 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 		rasterizer->draw_arrays(*stars_model_vao, stars_model_drawing_mode, stars_model_start_index, stars_model_index_count);
 	}
 	
-	/*
 	// Draw moon model
 	float3 moon_position = moon_position_tween.interpolate(ctx.alpha);
-	float moon_angular_radius = math::radians(2.0f);
-	if (moon_position.y >= -moon_angular_radius)
+	float moon_angular_radius = moon_angular_radius_tween.interpolate(ctx.alpha) * magnification;
+	//if (moon_position.y >= -moon_angular_radius)
 	{
 		float moon_distance = (clip_near + clip_far) * 0.5f;		
 		float moon_radius = moon_angular_radius * moon_distance;
 		
 		math::transform<float> moon_transform;
-		moon_transform.translation = moon_position * -moon_distance;
-		moon_transform.rotation = math::quaternion<float>::identity();
+		moon_transform.translation = math::normalize(moon_position) * moon_distance;
+		moon_transform.rotation = moon_rotation_tween.interpolate(ctx.alpha);
 		moon_transform.scale = {moon_radius, moon_radius, moon_radius};
 		
 		model = math::matrix_cast(moon_transform);		
-		model_view = view * model;
-		model_view_projection = projection * model_view;
 		float3x3 normal_model = math::transpose(math::inverse(math::resize<3, 3>(model)));
 		
 		rasterizer->use_program(*moon_shader_program);
-		if (moon_model_view_projection_input)
-			moon_model_view_projection_input->upload(model_view_projection);
+		if (moon_model_input)
+			moon_model_input->upload(model);
+		if (moon_view_projection_input)
+			moon_view_projection_input->upload(view_projection);
 		if (moon_normal_model_input)
 			moon_normal_model_input->upload(normal_model);
-		if (moon_moon_position_input)
-			moon_moon_position_input->upload(moon_position);
-		if (moon_sun_position_input)
-			moon_sun_position_input->upload(sun_position);
+		if (moon_camera_position_input)
+			moon_camera_position_input->upload(ctx.camera_transform.translation);
+		if (moon_sunlight_direction_input)
+			moon_sunlight_direction_input->upload(math::normalize(moon_sunlight_direction_tween.interpolate(ctx.alpha)));
+		if (moon_planetlight_direction_input)
+			moon_planetlight_direction_input->upload(math::normalize(moon_planetlight_direction_tween.interpolate(ctx.alpha)));
+		if (moon_sunlight_illuminance_input)
+			moon_sunlight_illuminance_input->upload(moon_sunlight_illuminance_tween.interpolate(ctx.alpha) * ctx.exposure);
+		if (moon_planetlight_illuminance_input)
+			moon_planetlight_illuminance_input->upload(moon_planetlight_illuminance_tween.interpolate(ctx.alpha) * ctx.exposure);
+		
 		moon_material->upload(ctx.alpha);
 		rasterizer->draw_arrays(*moon_model_vao, moon_model_drawing_mode, moon_model_start_index, moon_model_index_count);
 	}
-	*/
 }
 
 void sky_pass::set_sky_model(const model* model)
@@ -322,10 +335,14 @@ void sky_pass::set_moon_model(const model* model)
 			
 			if (moon_shader_program)
 			{
-				moon_model_view_projection_input = moon_shader_program->get_input("model_view_projection");
+				moon_model_input = moon_shader_program->get_input("model");
+				moon_view_projection_input = moon_shader_program->get_input("view_projection");
 				moon_normal_model_input = moon_shader_program->get_input("normal_model");
-				moon_moon_position_input = moon_shader_program->get_input("moon_position");
-				moon_sun_position_input = moon_shader_program->get_input("sun_position");
+				moon_camera_position_input = moon_shader_program->get_input("camera_position");
+				moon_sunlight_direction_input = moon_shader_program->get_input("sunlight_direction");
+				moon_sunlight_illuminance_input = moon_shader_program->get_input("sunlight_illuminance");
+				moon_planetlight_direction_input = moon_shader_program->get_input("planetlight_direction");
+				moon_planetlight_illuminance_input = moon_shader_program->get_input("planetlight_illuminance");
 			}
 		}
 	}
@@ -416,7 +433,19 @@ void sky_pass::update_tweens()
 	sun_illuminance_inner_tween.update();
 	icrf_to_eus_translation.update();
 	icrf_to_eus_rotation.update();
+
 	moon_position_tween.update();
+	moon_rotation_tween.update();
+	moon_angular_radius_tween.update();
+	moon_sunlight_direction_tween.update();
+	moon_sunlight_illuminance_tween.update();
+	moon_planetlight_direction_tween.update();
+	moon_planetlight_illuminance_tween.update();
+}
+
+void sky_pass::set_magnification(float magnification)
+{
+	this->magnification = magnification;
 }
 
 void sky_pass::set_icrf_to_eus(const math::transformation::se3<float>& transformation)
@@ -472,6 +501,36 @@ void sky_pass::set_atmosphere_radii(float inner, float outer)
 void sky_pass::set_moon_position(const float3& position)
 {
 	moon_position_tween[1] = position;
+}
+
+void sky_pass::set_moon_rotation(const math::quaternion<float>& rotation)
+{
+	moon_rotation_tween[1] = rotation;
+}
+
+void sky_pass::set_moon_angular_radius(float angular_radius)
+{
+	moon_angular_radius_tween[1] = angular_radius;
+}
+
+void sky_pass::set_moon_sunlight_direction(const float3& direction)
+{
+	moon_sunlight_direction_tween[1] = direction;
+}
+
+void sky_pass::set_moon_sunlight_illuminance(const float3& illuminance)
+{
+	moon_sunlight_illuminance_tween[1] = illuminance;
+}
+
+void sky_pass::set_moon_planetlight_direction(const float3& direction)
+{
+	moon_planetlight_direction_tween[1] = direction;
+}
+
+void sky_pass::set_moon_planetlight_illuminance(const float3& illuminance)
+{
+	moon_planetlight_illuminance_tween[1] = illuminance;
 }
 
 void sky_pass::handle_event(const mouse_moved_event& event)

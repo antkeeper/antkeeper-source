@@ -123,7 +123,11 @@ void ground_pass::render(const render::context& ctx, render::queue& queue) const
 				const scene::directional_light* directional_light = static_cast<const scene::directional_light*>(light);
 
 				// Pre-expose light
-				directional_light_color = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
+				float3 light_color = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
+				if (light_color.x < directional_light_color.x)
+					break;
+				
+				directional_light_color = light_color;
 				
 				directional_light_direction = static_cast<const scene::directional_light*>(light)->get_direction_tween().interpolate(ctx.alpha);
 				break;

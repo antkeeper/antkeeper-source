@@ -17,15 +17,30 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "apparent-size.hpp"
-#include <cmath>
+#ifndef ANTKEEPER_PHYSICS_TIME_JD_HPP
+#define ANTKEEPER_PHYSICS_TIME_JD_HPP
 
-namespace astro
-{
+namespace physics {
+namespace time {
 
-double find_angular_radius(double radius, double distance)
+// Julian day (JD)
+namespace jd {
+
+/**
+ * Converts JD to UT1
+ *
+ * @param t JD time.
+ * @return UT1 time.
+ */
+template <class T>
+T to_ut1(T t)
 {
-	return std::asin(radius / distance);
+	return t - T(2451545);
 }
 
-} // namespace astro
+} // namespace jd
+
+} // namespace time
+} // namespace physics
+
+#endif // ANTKEEPER_PHYSICS_TIME_JD_HPP

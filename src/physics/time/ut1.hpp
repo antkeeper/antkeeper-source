@@ -25,8 +25,20 @@
 namespace physics {
 namespace time {
 
-/// Functions which operate on UT1 universal time.
+/// UT1 universal time.
 namespace ut1 {
+
+/**
+ * Converts UT1 to JD
+ *
+ * @param t UT1 time.
+ * @return JD time.
+ */
+template <class T>
+T to_jd(T t)
+{
+	return t + T(2451545);
+}
 
 /**
  * Calculates the Earth Rotation Angle (ERA) at a given UT1 date.
@@ -34,9 +46,6 @@ namespace ut1 {
  * @param t J2000 UT1 date.
  * @return ERA at the given date, in radians.
  */
-template <class T>
-T era(T t);
-
 template <class T>
 T era(T t)
 {

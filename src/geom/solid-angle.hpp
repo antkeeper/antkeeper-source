@@ -17,23 +17,31 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ENTITY_COMPONENT_BLACKBODY_HPP
-#define ANTKEEPER_ENTITY_COMPONENT_BLACKBODY_HPP
+#ifndef ANTKEEPER_GEOM_SOLID_ANGLE_HPP
+#define ANTKEEPER_GEOM_SOLID_ANGLE_HPP
 
-namespace entity {
-namespace component {
+#include "math/constants.hpp"
+#include <cmath>
 
-/// Blackbody radiator
-struct blackbody
+namespace geom {
+
+/// Solid angle functions.
+namespace solid_angle {
+
+/**
+ * Calculates the solid angle of a cone.
+ * 
+ * @param theta Apex angle of the cone, in radians.
+ *
+ * @return Solid angle of the cone, in steradians.
+ */
+template <class T>
+T cone(T theta)
 {
-	/// Effective temperature, in Kelvin.
-	double temperature;
-	
-	/// (Dependent) RGB luminance, in lumens.
-	double3 luminance;
-};
+	return math::two_pi<T> * (T(1) - std::cos(theta));
+}
 
-} // namespace component
-} // namespace entity
+} // namespace solid_angle
+} // namespace geom
 
-#endif // ANTKEEPER_ENTITY_COMPONENT_BLACKBODY_HPP
+#endif // ANTKEEPER_GEOM_SOLID_ANGLE_HPP

@@ -33,8 +33,11 @@ void create_stars(game::context& ctx);
 /// Creates the sun.
 void create_sun(game::context& ctx);
 
-/// Creates the planet.
-void create_planet(game::context& ctx);
+/// Creates the earth-moon barycenter.
+void create_em_bary(game::context& ctx);
+
+/// Creates the earth.
+void create_earth(game::context& ctx);
 
 /// Creates the moon.
 void create_moon(game::context& ctx);

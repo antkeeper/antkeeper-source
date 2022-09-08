@@ -492,6 +492,7 @@ void boot::setup_rendering()
 		
 		ctx.sky_pass = new render::sky_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.sky_pass->set_enabled(false);
+		ctx.sky_pass->set_magnification(4.0f);
 		ctx.app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx.sky_pass);
 		
 		ctx.ground_pass = new render::ground_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);

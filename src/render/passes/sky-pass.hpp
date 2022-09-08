@@ -55,6 +55,8 @@ public:
 	
 	void update_tweens();
 	
+	void set_magnification(float scale);
+	
 	void set_sky_model(const model* model);
 	void set_moon_model(const model* model);
 	void set_stars_model(const model* model);
@@ -72,6 +74,12 @@ public:
 	void set_atmosphere_radii(float inner, float outer);
 	
 	void set_moon_position(const float3& position);
+	void set_moon_rotation(const math::quaternion<float>& rotation);
+	void set_moon_angular_radius(float angular_radius);
+	void set_moon_sunlight_direction(const float3& direction);
+	void set_moon_sunlight_illuminance(const float3& illuminance);
+	void set_moon_planetlight_direction(const float3& direction);
+	void set_moon_planetlight_illuminance(const float3& illuminance);
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
@@ -93,10 +101,14 @@ private:
 	const gl::shader_input* atmosphere_radii_input;
 	
 	gl::shader_program* moon_shader_program;
-	const gl::shader_input* moon_model_view_projection_input;
+	const gl::shader_input* moon_model_input;
+	const gl::shader_input* moon_view_projection_input;
 	const gl::shader_input* moon_normal_model_input;
-	const gl::shader_input* moon_moon_position_input;
-	const gl::shader_input* moon_sun_position_input;
+	const gl::shader_input* moon_camera_position_input;
+	const gl::shader_input* moon_sunlight_direction_input;
+	const gl::shader_input* moon_sunlight_illuminance_input;
+	const gl::shader_input* moon_planetlight_direction_input;
+	const gl::shader_input* moon_planetlight_illuminance_input;
 	
 	const model* sky_model;
 	const material* sky_material;
@@ -151,7 +163,12 @@ private:
 	tween<math::quaternion<float>> icrf_to_eus_rotation;
 	
 	tween<float3> moon_position_tween;
-
+	tween<math::quaternion<float>> moon_rotation_tween;
+	tween<float> moon_angular_radius_tween;
+	tween<float3> moon_sunlight_direction_tween;
+	tween<float3> moon_sunlight_illuminance_tween;
+	tween<float3> moon_planetlight_direction_tween;
+	tween<float3> moon_planetlight_illuminance_tween;
 	
 	float sun_angular_radius;
 	float2 scale_height_rm;
@@ -159,6 +176,8 @@ private:
 	float3 mie_scattering;
 	float2 mie_anisotropy;
 	float3 atmosphere_radii;
+	
+	float magnification;
 };
 
 } // namespace render

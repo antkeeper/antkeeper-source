@@ -211,9 +211,9 @@ namespace bci {
 	{
 		const math::quaternion<T> r = math::normalize
 		(
-			math::quaternion<T>::rotate_z(-w) *
+			math::quaternion<T>::rotate_z(-math::half_pi<T> - ra) *
 				math::quaternion<T>::rotate_x(-math::half_pi<T> + dec) *
-				math::quaternion<T>::rotate_z(-math::half_pi<T> - ra)
+				math::quaternion<T>::rotate_z(-w)
 		);
 		
 		return math::transformation::se3<T>{{T(0), T(0), T(0)}, r};
@@ -296,9 +296,10 @@ namespace bcbf {
 	{
 		const math::quaternion<T> r = math::normalize
 		(
-			math::quaternion<T>::rotate_z(math::half_pi<T> + ra) *
+			math::quaternion<T>::rotate_z(w) *
 				math::quaternion<T>::rotate_x(math::half_pi<T> - dec) *
-				math::quaternion<T>::rotate_z(w)
+				math::quaternion<T>::rotate_z(math::half_pi<T> + ra)
+
 		);
 		
 		return math::transformation::se3<T>{{T(0), T(0), T(0)}, r};

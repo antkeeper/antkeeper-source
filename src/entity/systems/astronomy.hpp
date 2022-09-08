@@ -24,6 +24,7 @@
 #include "entity/id.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/ambient-light.hpp"
+#include "scene/camera.hpp"
 #include "utility/fundamental-types.hpp"
 #include "math/se3.hpp"
 #include "render/passes/sky-pass.hpp"
@@ -81,6 +82,8 @@ public:
 	
 	void set_sun_light(scene::directional_light* light);
 	void set_sky_light(scene::ambient_light* light);
+	void set_moon_light(scene::directional_light* light);
+	void set_camera(scene::camera* camera);
 	
 	void set_sky_pass(::render::sky_pass* pass);
 	
@@ -105,6 +108,8 @@ private:
 	
 	scene::directional_light* sun_light;
 	scene::ambient_light* sky_light;
+	scene::directional_light* moon_light;
+	scene::camera* camera;
 	::render::sky_pass* sky_pass;
 };
 

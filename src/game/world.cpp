@@ -50,6 +50,7 @@
 #include "gl/texture-filter.hpp"
 #include "render/material-flags.hpp"
 #include "config.hpp"
+#include <iostream>
 
 namespace game {
 namespace world {
@@ -67,6 +68,8 @@ void create_stars(game::context& ctx)
 	std::size_t star_vertex_stride = star_vertex_size * sizeof(float);
 	float* star_vertex_data = new float[star_count * star_vertex_size];
 	float* star_vertex = star_vertex_data;
+	
+	double starlight_illuminance = 0.0;
 	
 	// Build star catalog vertex data
 	for (std::size_t i = 1; i < star_catalog->size(); ++i)
@@ -90,6 +93,8 @@ void create_stars(game::context& ctx)
 		{
 			continue;
 		}
+		
+		starlight_illuminance += astro::vmag_to_lux(vmag);
 		
 		// Convert right ascension and declination from degrees to radians
 		ra = math::wrap_radians(math::radians(ra));
@@ -122,6 +127,8 @@ void create_stars(game::context& ctx)
 		*(star_vertex++) = static_cast<float>(scaled_color.z);
 		*(star_vertex++) = static_cast<float>(brightness);
 	}
+	
+	std::cout << "TOTAL STARLIGHT: " << starlight_illuminance << std::endl;
 	
 	// Unload star catalog
 	ctx.resource_manager->unload("stars.csv");
@@ -203,17 +210,28 @@ void create_sun(game::context& ctx)
 	ctx.astronomy_system->set_sky_light(sky_light);
 }
 
-void create_planet(game::context& ctx)
+void create_em_bary(game::context& ctx)
 {
-	// Create planet entity
-	entity::archetype* planet_archetype = ctx.resource_manager->load<entity::archetype>("planet.ent");
-	entity::id planet_eid = planet_archetype->create(*ctx.entity_registry);
-	ctx.entities["planet"] = planet_eid;
+	// Create earth-moon barycenter entity
+	entity::archetype* em_bary_archetype = ctx.resource_manager->load<entity::archetype>("em-bary.ent");
+	entity::id em_bary_eid = em_bary_archetype->create(*ctx.entity_registry);
+	ctx.entities["em_bary"] = em_bary_eid;
 	
 	// Assign orbital parent
-	ctx.entity_registry->get<entity::component::orbit>(planet_eid).parent = ctx.entities["sun"];
+	ctx.entity_registry->get<entity::component::orbit>(em_bary_eid).parent = ctx.entities["sun"];
+}
+
+void create_earth(game::context& ctx)
+{
+	// Create earth entity
+	entity::archetype* earth_archetype = ctx.resource_manager->load<entity::archetype>("earth.ent");
+	entity::id earth_eid = earth_archetype->create(*ctx.entity_registry);
+	ctx.entities["earth"] = earth_eid;
 	
-	// Assign planetary terrain component
+	// Assign orbital parent
+	ctx.entity_registry->get<entity::component::orbit>(earth_eid).parent = ctx.entities["em_bary"];
+	
+	// Assign earth terrain component
 	entity::component::terrain terrain;
 	terrain.elevation = [](double, double) -> double
 	{
@@ -222,10 +240,10 @@ void create_planet(game::context& ctx)
 	};
 	terrain.max_lod = 0;
 	terrain.patch_material = nullptr;
-	//ctx.entity_registry->assign<entity::component::terrain>(planet_eid, terrain);
+	//ctx.entity_registry->assign<entity::component::terrain>(earth_eid, terrain);
 	
-	// Pass planet to astronomy system as reference body
-	ctx.astronomy_system->set_reference_body(planet_eid);
+	// Pass earth to astronomy system as reference body
+	ctx.astronomy_system->set_reference_body(earth_eid);
 }
 
 void create_moon(game::context& ctx)
@@ -236,10 +254,22 @@ void create_moon(game::context& ctx)
 	ctx.entities["moon"] = moon_eid;
 	
 	// Assign orbital parent
-	ctx.entity_registry->get<entity::component::orbit>(moon_eid).parent = ctx.entities["planet"];
+	ctx.entity_registry->get<entity::component::orbit>(moon_eid).parent = ctx.entities["em_bary"];
 	
 	// Pass moon model to sky pass
 	ctx.sky_pass->set_moon_model(ctx.resource_manager->load<render::model>("moon.mdl"));
+	
+	// Create moon directional light scene object
+	scene::directional_light* moon_light = new scene::directional_light();
+	moon_light->set_color({1, 1, 1});
+	moon_light->set_intensity(1.0f);
+	moon_light->update_tweens();
+	
+	// Add moon light scene objects to surface scene
+	ctx.surface_scene->add_object(moon_light);
+	
+	// Pass moon light scene object to astronomy system
+	ctx.astronomy_system->set_moon_light(moon_light);
 }
 
 void set_time(game::context& ctx, double t)

@@ -20,6 +20,8 @@
 #ifndef ANTKEEPER_ASTRO_APPARENT_SIZE_HPP
 #define ANTKEEPER_ASTRO_APPARENT_SIZE_HPP
 
+#include <cmath>
+
 namespace astro
 {
 
@@ -30,7 +32,11 @@ namespace astro
  * @param distance Distance to the celestial object.
  * @return Angular radius, in radians.
  */
-double find_angular_radius(double radius, double distance);
+template <class T>
+T angular_radius(T radius, T distance)
+{
+	return std::asin(radius / distance);
+}
 
 } // namespace astro
 

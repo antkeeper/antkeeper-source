@@ -57,10 +57,11 @@ T radiant_flux(T t, T a);
  *
  * @param t Temperature of the blackbody, in kelvin.
  * @param a Surface area of the blackbody, in square meters.
+ * @param omega Solid angle, in steradians.
  * @return Radiant intensity of the blackbody, in watt per steradian.
  */
 template <class T>
-T radiant_intensity(T t, T a);
+T radiant_intensity(T t, T a, T omega);
 
 /**
  * Calculates the spectral exitance of a blackbody for the given wavelength.
@@ -91,11 +92,12 @@ T spectral_flux(T t, T a, T lambda, T c  = constants::speed_of_light<T>);
  * @param t Temperature of the blackbody, in kelvin.
  * @param a Surface area of the blackbody, in square meters.
  * @param lambda Wavelength of light, in meters.
+ * @param omega Solid angle, in steradians.
  * @param c Speed of light in medium.
  * @return Spectral intensity of the blackbody for the given wavelength, in watt per steradian per meter.
  */
 template <class T>
-T spectral_intensity(T t, T a, T lambda, T c  = constants::speed_of_light<T>);
+T spectral_intensity(T t, T a, T lambda, T omega, T c  = constants::speed_of_light<T>);
 
 /**
  * Calculates the spectral radiance of a blackbody for the given wavelength.
@@ -122,9 +124,9 @@ T radiant_flux(T t, T a)
 }
 
 template <class T>
-T radiant_intensity(T t, T a)
+T radiant_intensity(T t, T a, T omega)
 {
-	return radiant_flux(t, a) / (T(4) * math::pi<T>);
+	return radiant_flux(t, a) / omega;
 }
 
 template <class T>
@@ -149,9 +151,9 @@ T spectral_flux(T t, T a, T lambda, T c)
 }
 
 template <class T>
-T spectral_intensity(T t, T a, T lambda, T c)
+T spectral_intensity(T t, T a, T lambda, T omega, T c)
 {
-	return spectral_flux(t, a, lambda, c) / (T(4) * math::pi<T>);
+	return spectral_flux(t, a, lambda, c) / omega;
 }
 
 template <class T>

@@ -43,6 +43,8 @@
 #include "game/load.hpp"
 #include "game/ant/breed.hpp"
 #include "game/ant/morphogenesis.hpp"
+#include "physics/time/time.hpp"
+#include <iostream>
 
 using namespace game::ant;
 
@@ -93,11 +95,15 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	{
 		game::world::create_stars(ctx);
 		game::world::create_sun(ctx);
-		game::world::create_planet(ctx);
+		game::world::create_em_bary(ctx);
+		game::world::create_earth(ctx);
 		game::world::create_moon(ctx);
 		
-		// Set time to solar noon
-		game::world::set_time(ctx, 50.0);//107.3);
+		// Set world time
+		const double utc = 0.0;
+		const double equinox_2000 = physics::time::gregorian::to_ut1<double>(2000, 1, 1, 12, 0, 0.0, utc);
+		const double spring_2000 = physics::time::gregorian::to_ut1<double>(2000, 6, 19, 12, 0, 0.0, utc);
+		game::world::set_time(ctx, 55.0);
 		
 		// Freeze time
 		game::world::set_time_scale(ctx, 0.0);
@@ -277,9 +283,10 @@ void nuptial_flight::setup_camera()
 		constraint_stack.head = spring_constraint_eid;
 		ctx.entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
 	}
+
+	ctx.surface_camera->set_exposure(15.0f);
 	
-	float ev100 = 15.0f;
-	ctx.surface_camera->set_exposure(ev100);
+	ctx.astronomy_system->set_camera(ctx.surface_camera);
 }
 
 void nuptial_flight::enable_keeper_controls()
@@ -306,7 +313,7 @@ void nuptial_flight::enable_keeper_controls()
 	bool gamepad_invert_pan = false;
 	bool mouse_look_toggle = false;
 	ctx.mouse_look = false;
-	const double time_scale = 5000.0;
+	const double time_scale = 10000.0;
 	
 	if (ctx.config->contains("mouse_tilt_sensitivity"))
 		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());
@@ -665,7 +672,7 @@ void nuptial_flight::enable_ant_controls()
 	float gamepad_pan_sensitivity = 1.0f;
 	bool gamepad_invert_tilt = false;
 	bool gamepad_invert_pan = false;
-	const double time_scale = 5000.0;
+	const double time_scale = 10000.0;
 	
 	if (ctx.config->contains("mouse_tilt_sensitivity"))
 		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());

@@ -27,6 +27,8 @@ namespace time {}
 
 } // namespace physics
 
+#include "gregorian.hpp"
+#include "jd.hpp"
 #include "ut1.hpp"
 
 #endif // ANTKEEPER_PHYSICS_TIME_HPP

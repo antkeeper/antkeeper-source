@@ -23,6 +23,7 @@
 #include "entity/components/atmosphere.hpp"
 #include "entity/components/behavior.hpp"
 #include "entity/components/collision.hpp"
+#include "entity/components/diffuse-reflector.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/components/model.hpp"
@@ -103,6 +104,7 @@ static bool load_component_celestial_body(entity::archetype& archetype, const js
 	component.pole_dec = 0.0;
 	component.prime_meridian = 0.0;
 	component.rotation_period = 0.0;
+	component.albedo = 0.0;
 	
 	if (element.contains("radius"))
 		component.radius = element["radius"].get<double>();
@@ -116,6 +118,8 @@ static bool load_component_celestial_body(entity::archetype& archetype, const js
 		component.prime_meridian = math::radians(element["prime_meridian"].get<double>());
 	if (element.contains("rotation_period"))
 		component.rotation_period = element["rotation_period"].get<double>();
+	if (element.contains("albedo"))
+		component.albedo = element["albedo"].get<double>();
 	
 	archetype.set<entity::component::celestial_body>(component);
 
@@ -135,6 +139,19 @@ static bool load_component_collision(entity::archetype& archetype, resource_mana
 	archetype.set<entity::component::collision>(component);
 	
 	return (component.mesh != nullptr);
+}
+
+static bool load_component_diffuse_reflector(entity::archetype& archetype, const json& element)
+{
+	entity::component::diffuse_reflector component;
+	component.albedo = 0.0;
+	
+	if (element.contains("albedo"))
+		component.albedo = element["albedo"].get<double>();
+	
+	archetype.set<entity::component::diffuse_reflector>(component);
+
+	return true;
 }
 
 static bool load_component_model(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
@@ -236,6 +253,8 @@ static bool load_component(entity::archetype& archetype, resource_manager& resou
 		return load_component_celestial_body(archetype, element.value());
 	if (element.key() == "collision")
 		return load_component_collision(archetype, resource_manager, element.value());
+	if (element.key() == "diffuse_reflector")
+		return load_component_diffuse_reflector(archetype, element.value());
 	if (element.key() == "model")
 		return load_component_model(archetype, resource_manager, element.value());
 	if (element.key() == "orbit")

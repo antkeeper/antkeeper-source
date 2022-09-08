@@ -41,8 +41,28 @@ struct celestial_body
 	/// Location of the prime meridian at epoch, as a rotation about the north pole, in radians.
 	double prime_meridian;
 	
+	/*
+	/// Quadratic e coefficients for the right ascension of the body's north pole, in radians. Right ascension is calculated as `x + y * T + z * T^2`, where `T` is the Julian centuries (36525 days) from epoch.
+	double3 pole_ra;
+	
+	/// Quadratic coefficients for the declination of the body's north pole, in radians. Declination is calculated as `x + y * T + z * T^2`, where `T` is the Julian centuries (36525 days) from epoch.
+	double3 pole_ra;
+	
+	/// Quadratic coefficients for the rotation state of the body's prime meridian, in radians. Prime meridian rotation is calculated as `x + y * d + z * d^2`, where `d` is the days from epoch.
+	double3 prime_meridian;
+	
+	/// Linear coefficients of the nutation and precession angles, in radians. Angles are calculated as `x + y * d`, where `d` is the days from epoch.
+	std::vector<double2> nutation_precession_angles;
+	std::vector<double> nutation_precession_ra;
+	std::vector<double> nutation_precession_dec;
+	std::vector<double> nutation_precession_pm;
+	*/
+	
 	/// Sidereal rotation period, in rotations per day.
 	double rotation_period;
+	
+	/// Geometric albedo
+	double albedo;
 };
 
 } // namespace component
