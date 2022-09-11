@@ -25,7 +25,7 @@ namespace math {
 /**
  * Remaps a number from one range to another.
  *
- * @param value Value to remap.
+ * @param x Value to remap.
  * @param from_min Start of the first range.
  * @param from_max End of the first range.
  * @param to_min Start of the second range.
@@ -33,9 +33,9 @@ namespace math {
  * @return Unclamped remapped value.
  */
 template <class T>
-T map(T value, T from_min, T from_max, T to_min, T to_max)
+T map(T x, T from_min, T from_max, T to_min, T to_max)
 {
-	return to_min + (to_max - to_min) * ((value - from_min) / (from_max - from_min));
+	return to_min + (x - from_min) * (to_max - to_min) / (from_max - from_min);
 }
 
 } // namespace math

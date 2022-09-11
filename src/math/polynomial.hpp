@@ -20,9 +20,12 @@
 #ifndef ANTKEEPER_MATH_POLYNOMIAL_HPP
 #define ANTKEEPER_MATH_POLYNOMIAL_HPP
 
+#include "math/constants.hpp"
+#include "math/map.hpp"
+
 namespace math {
 
-/// Polynomial evaluation functions.
+/// Polynomial functions.
 namespace polynomial {
 
 /**
@@ -37,11 +40,90 @@ namespace polynomial {
 template <class InputIt, class T>
 T horner(InputIt first, InputIt last, T x)
 {
-	T sum = *first;
+	T y = *first;
 	for (++first; first != last; ++first)
-		sum = sum * x + *first;
-	return sum;
+		y = y * x + *first;
+	return y;
 }
+
+/** Chebychev polynomials.
+ *
+ * @see https://en.wikipedia.org/wiki/Chebyshev_polynomials
+ */
+namespace chebyshev {
+
+	/**
+	 * Generates a Chebyshev approximation of a function.
+	 *
+	 * @param[out] first,last Range of Chebyshev polynomial coefficients.
+	 * @param[in] f Unary function to approximate.
+	 * @param[in] min,max Domain of @p f.
+	 */
+	template <class OutputIt, class UnaryOp, class T>
+	void approximate(OutputIt first, OutputIt last, UnaryOp f, T min, T max)
+	{
+		std::size_t n = last - first;
+		const T two_over_n = T(2) / static_cast<T>(n);
+		const T pi_over_n = math::pi<T> / static_cast<T>(n);
+		
+		last = first;
+		for (std::size_t i = 0; i < n; ++i)
+			*(last++) = T(0);
+		
+		for (std::size_t i = 0; i < n; ++i)
+		{
+			const T y = pi_over_n * (static_cast<T>(i) + T(0.5));
+			
+			T x = f(math::map<T>(std::cos(y), T(-1), T(1), min, max)) * two_over_n;
+			
+			*first += x;
+			last = first;
+			for (std::size_t j = 1; j < n; ++j)
+			{
+				*(++last) += x * std::cos(y * static_cast<T>(j));
+			}
+		}
+	}
+
+	/**
+	 * Evaluates a Chebyshev polynomial.
+	 *
+	 * @param[in] first,last Range of Chebychev polynomial coefficients.
+	 * @param[in] x Value on the interval `[-1, 1]`.
+	 *
+	 * @return Evaluated value.
+	 */
+	template <class InputIt, class T>
+	T evaluate(InputIt first, InputIt last, T x)
+	{
+		T y = *(first++) * T(0.5) + *(first++) * x;
+		
+		const T x2 = x * T(2);
+		for (T n2 = T(1), n1 = x, n0; first != last; n2 = n1, n1 = n0)
+		{
+			n0 = x2 * n1 - n2;
+			y += *(first++) * n0;
+		}
+		
+		return y;
+	}
+
+	/**
+	 * Evaluates a Chebyshev polynomial.
+	 *
+	 * @param first,last Range of Chebychev polynomial coefficients.
+	 * @param min,max Domain of the approximated function.
+	 * @param x Value on the interval `[min, max]`.
+	 *
+	 * @return Evaluated value.
+	 */
+	template <class InputIt, class T>
+	T evaluate(InputIt first, InputIt last, T min, T max, T x)
+	{
+		return evaluate<InputIt, T>(first, last, math::map<T>(x, min, max, T(-1), T(1)));
+	}
+
+} // namespace chebyshev
 
 } // namespace polynomial
 } // namespace math
