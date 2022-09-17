@@ -88,7 +88,7 @@ void setup_nest(game::context* ctx)
 		ctx->entities["shaft"] = shaft_eid;
 		
 		entity::component::transform transform;
-		transform.local = math::identity_transform<float>;
+		transform.local = math::transform<float>::identity;
 		transform.world = transform.local;
 		transform.warp = true;
 		
@@ -134,7 +134,7 @@ void setup_camera(game::context* ctx)
 		{
 			// Transform
 			entity::component::transform target_transform;
-			target_transform.local = math::identity_transform<float>;
+			target_transform.local = math::transform<float>::identity;
 			target_transform.world = target_transform.local;
 			target_transform.warp = true;
 			ctx->entity_registry->assign<entity::component::transform>(target_eid, target_transform);
@@ -146,7 +146,7 @@ void setup_camera(game::context* ctx)
 		
 		// Create camera transform component
 		entity::component::transform transform;
-		transform.local = math::identity_transform<float>;
+		transform.local = math::transform<float>::identity;
 		transform.world = transform.local;
 		transform.warp = true;
 		ctx->entity_registry->assign<entity::component::transform>(camera_eid, transform);

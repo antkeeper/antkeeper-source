@@ -48,7 +48,7 @@ terrain::terrain(entity::registry& registry):
 	max_error(0.0)
 {
 	// Build set of quaternions to rotate quadtree cube coordinates into BCBF space according to face index
-	face_rotations[0] = math::quaternion<double>::identity();                       // +x
+	face_rotations[0] = math::quaternion<double>::identity;                       // +x
 	face_rotations[1] = math::quaternion<double>::rotate_z(math::pi<double>);       // -x
 	face_rotations[2] = math::quaternion<double>::rotate_z( math::half_pi<double>); // +y
 	face_rotations[3] = math::quaternion<double>::rotate_z(-math::half_pi<double>); // -y

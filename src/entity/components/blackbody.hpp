@@ -29,7 +29,7 @@ struct blackbody
 	/// Effective temperature, in Kelvin.
 	double temperature;
 	
-	/// (Dependent) RGB luminance, in lumens.
+	/// (Dependent) RGB spectral luminance, in cd/m^2.
 	double3 luminance;
 };
 

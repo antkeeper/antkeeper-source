@@ -32,34 +32,28 @@ struct celestial_body
 	/// Mass of the body, in kilograms.
 	double mass;
 	
-	/// Right ascension of the body's north pole at epoch, in radians.
-	double pole_ra;
+	/// Polynomial coefficients, in descending order of degree, of the right ascension of the body's north pole, in radians, w.r.t. Julian centuries (36525 days) from epoch.
+	std::vector<double> pole_ra;
 	
-	/// Declination of the body's north pole at epoch, in radians.
-	double pole_dec;
+	/// Polynomial coefficients, in descending order of degree, of the declination of the body's north pole, in radians, w.r.t. Julian centuries (36525 days) from epoch.
+	std::vector<double> pole_dec;
 	
-	/// Location of the prime meridian at epoch, as a rotation about the north pole, in radians.
-	double prime_meridian;
+	/// Polynomial coefficients, in descending order of degree, of the rotation state of the body's prime meridian, in radians, w.r.t. days from epoch.
+	std::vector<double> prime_meridian;
 	
 	/*
-	/// Quadratic e coefficients for the right ascension of the body's north pole, in radians. Right ascension is calculated as `x + y * T + z * T^2`, where `T` is the Julian centuries (36525 days) from epoch.
-	double3 pole_ra;
+	/// Polynomial coefficients, in descending order of degree, of the nutation and precession angles, in radians. Angles are calculated as `x + y * d`, where `d` is the days from epoch.
+	std::vector<std::vector<double>> nutation_precession_angles;
 	
-	/// Quadratic coefficients for the declination of the body's north pole, in radians. Declination is calculated as `x + y * T + z * T^2`, where `T` is the Julian centuries (36525 days) from epoch.
-	double3 pole_ra;
-	
-	/// Quadratic coefficients for the rotation state of the body's prime meridian, in radians. Prime meridian rotation is calculated as `x + y * d + z * d^2`, where `d` is the days from epoch.
-	double3 prime_meridian;
-	
-	/// Linear coefficients of the nutation and precession angles, in radians. Angles are calculated as `x + y * d`, where `d` is the days from epoch.
-	std::vector<double2> nutation_precession_angles;
+	/// Nutation and precession amplitudes of the right ascension of the body's north pole, in radians.
 	std::vector<double> nutation_precession_ra;
+	
+	/// Nutation and precession amplitudes of the declination of the body's north pole, in radians.
 	std::vector<double> nutation_precession_dec;
+	
+	/// Nutation and precession amplitudes of the rotation state of the body's prime meridian, in radians.
 	std::vector<double> nutation_precession_pm;
 	*/
-	
-	/// Sidereal rotation period, in rotations per day.
-	double rotation_period;
 	
 	/// Geometric albedo
 	double albedo;

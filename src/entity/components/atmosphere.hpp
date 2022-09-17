@@ -54,6 +54,9 @@ struct atmosphere
 	
 	/// (Dependent) Mie scattering coefficients at sea level.
 	double3 mie_scattering;
+	
+	/// Airglow, in lux.
+	double airglow;
 };
 
 } // namespace component

@@ -83,15 +83,6 @@ public:
 	 * @param ev100 ISO 100 exposure value.
 	 */
 	void set_exposure(float ev100);
-	
-	/**
-	 * Sets the camera's ISO 100 exposure value given exposure settings.
-	 *
-	 * @param f_number F-number.
-	 * @param speed Shutter speed, in seconds.
-	 * @param iso ISO sensitivity value.
-	 */
-	void set_exposure(float f_number, float speed, float iso);
 
 	void set_compositor(render::compositor* compositor);
 	void set_composite_index(int index);

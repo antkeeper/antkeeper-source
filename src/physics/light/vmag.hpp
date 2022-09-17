@@ -17,27 +17,63 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "illuminance.hpp"
+#ifndef ANTKEEPER_PHYSICS_LIGHT_VMAG_HPP
+#define ANTKEEPER_PHYSICS_LIGHT_VMAG_HPP
+
 #include <cmath>
 
-namespace astro
-{
+namespace physics {
+namespace light {
 
-double vmag_to_brightness(double mv)
+/// Apparent (visual) magnitude functions.
+namespace vmag {
+
+/**
+ * Converts apparent magnitude to a brightness factor relative to a 0th magnitude star.
+ *
+ * @param mv Apparent magnitude.
+ * @return Brightness factor relative to a 0th magnitude star.
+ *
+ * @see https://en.wikipedia.org/wiki/Illuminance
+ */
+template <class T>
+T to_brightness(T mv)
 {
 	// 100^(1/5)
 	static constexpr double fifth_root_100 = 2.5118864315095801110850320677993;
 	return std::pow(fifth_root_100, -mv);
 }
 
-double vmag_to_lux(double mv)
+/**
+ * Converts apparent magnitude to illuminance.
+ *
+ * @param mv Apparent magnitude.
+ * @return Illuminance, in lux.
+ *
+ * @see https://en.wikipedia.org/wiki/Illuminance
+ */
+template <class T>
+T to_illuminance(T mv)
 {
 	return std::pow(10.0, (-14.18 - mv) * 0.4);
 }
 
-double lux_to_vmag(double ev)
+/**
+ * Converts illuminance to apparent  magnitude.
+ *
+ * @param ev Illuminance, in lux.
+ * @return Apparent magnitude.
+ *
+ * @see https://en.wikipedia.org/wiki/Illuminance
+ */
+template <class T>
+T from_illuminance(T ev)
 {
 	return -14.18 - 2.5 * std::log10(ev);
 }
 
-} // namespace astro
+} // namespace vmag
+} // namespace light
+} // namespace physics
+
+#endif // ANTKEEPER_PHYSICS_LIGHT_VMAG_HPP

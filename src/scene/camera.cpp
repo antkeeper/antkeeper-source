@@ -72,9 +72,9 @@ camera::camera():
 	clip_far(1.0f, math::lerp<float, float>),
 	fov(math::half_pi<float>, math::lerp<float, float>),
 	aspect_ratio(1.0f, math::lerp<float, float>),
-	view(math::identity4x4<float>, std::bind(&interpolate_view, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-	projection(math::identity4x4<float>, std::bind(&interpolate_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-	view_projection(math::identity4x4<float>, std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
+	view(math::matrix4<float>::identity, std::bind(&interpolate_view, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
+	projection(math::matrix4<float>::identity, std::bind(&interpolate_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
+	view_projection(math::matrix4<float>::identity, std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
 	exposure(0.0f, math::lerp<float, float>)
 {}
 
@@ -147,11 +147,6 @@ void camera::set_orthographic(float clip_left, float clip_right, float clip_bott
 void camera::set_exposure(float ev100)
 {
 	exposure[1] = ev100;
-}
-
-void camera::set_exposure(float f_number, float speed, float iso)
-{
-	exposure[1] = std::log2((f_number * f_number) / speed * 100.0f / iso);
 }
 
 void camera::set_compositor(render::compositor* compositor)

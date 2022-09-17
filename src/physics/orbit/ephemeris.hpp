@@ -17,16 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ASTRO_CONSTANTS_HPP
-#define ANTKEEPER_ASTRO_CONSTANTS_HPP
+#ifndef ANTKEEPER_PHYSICS_ORBIT_EPHEMERIS_HPP
+#define ANTKEEPER_PHYSICS_ORBIT_EPHEMERIS_HPP
 
-namespace astro
-{
+#include "physics/orbit/trajectory.hpp"
 
-/// Kilometers per astronomical unit
-template <typename T>
-constexpr T km_per_au = 6.68459e-9;
+namespace physics {
+namespace orbit {
 
-} // namespace astro
+/**
+ * Table of orbital trajectories.
+ *
+ * @tparam t Real type.
+ */
+template <class T>
+using ephemeris = std::vector<trajectory<T>>;
 
-#endif // ANTKEEPER_ASTRO_CONSTANTS_HPP
+} // namespace orbit
+} // namespace physics
+
+#endif // ANTKEEPER_PHYSICS_ORBIT_EPHEMERIS_HPP

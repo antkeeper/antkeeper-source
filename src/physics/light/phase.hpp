@@ -50,7 +50,7 @@ template <class T>
 T henyey_greenstein(T mu, T g);
 
 /**
- * Isotropic phase function. Causes light to be scattered uniformly in all directions.
+ * Isotropic phase function.
  */
 template <class T>
 constexpr T isotropic()

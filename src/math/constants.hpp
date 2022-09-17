@@ -26,73 +26,25 @@
 
 namespace math {
 
-/**
- * Pi.
- */
+/// Pi.
 template <class T>
-constexpr T pi = T(3.14159265358979323846);
+constexpr T pi = T(3.1415926535897932384626433832795);
 
-/**
- * Pi / 2.
- */
-template <class T>
-constexpr T half_pi = pi<T> * T(0.5);
-
-/**
- * Pi * 2.
- */
+/// Pi * 2.
 template <class T>
 constexpr T two_pi = pi<T> * T(2);
 
-/**
- * 2x2 identity matrix.
- */
+/// Pi * 4.
 template <class T>
-constexpr matrix<T, 2, 2> identity2x2 =
-{{
-	{1, 0},
-	{0, 1}
-}};
+constexpr T four_pi = pi<T> * T(4);
 
-/**
- * 3x3 identity matrix.
- */
+/// Pi / 2.
 template <class T>
-constexpr matrix<T, 3, 3> identity3x3 =
-{{
-	{1, 0, 0},
-	{0, 1, 0},
-	{0, 0, 1}
-}};
+constexpr T half_pi = pi<T> * T(0.5);
 
-/**
- * 4x4 identity matrix.
- */
+/// 1 / Pi.
 template <class T>
-constexpr matrix<T, 4, 4> identity4x4 =
-{{
-	{1, 0, 0, 0},
-	{0, 1, 0, 0},
-	{0, 0, 1, 0},
-	{0, 0, 0, 1}
-}};
-
-/**
- * Unit quaternion.
- */
-template <class T>
-constexpr quaternion<T> identity_quaternion = {T(1), T(0), T(0), T(0)};
-
-/**
- * Identity transform.
- */
-template <class T>
-constexpr transform<T> identity_transform =
-{
-	{T(0), T(0), T(0)},
-	{T(1), T(0), T(0), T(0)},
-	{T(1), T(1), T(1)}
-};
+constexpr T inverse_pi = T(1) / pi<T>;
 
 } // namespace math
 

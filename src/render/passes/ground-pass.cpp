@@ -85,7 +85,7 @@ void ground_pass::render(const render::context& ctx, render::queue& queue) const
 	float clip_near = camera.get_clip_near_tween().interpolate(ctx.alpha);
 	float clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
 	float3 model_scale = float3{1.0f, 1.0f, 1.0f} * (clip_near + clip_far) * 0.5f;
-	float4x4 model = math::scale(math::identity4x4<float>, model_scale);
+	float4x4 model = math::scale(math::matrix4<float>::identity, model_scale);
 	float4x4 view = math::resize<4, 4>(math::resize<3, 3>(camera.get_view_tween().interpolate(ctx.alpha)));
 	float4x4 model_view = view * model;
 	float4x4 projection = camera.get_projection_tween().interpolate(ctx.alpha);

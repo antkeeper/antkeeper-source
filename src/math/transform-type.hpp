@@ -41,9 +41,19 @@ struct transform
 
 	/// Scale vector
 	vector<T, 3> scale;
+	
+	/// Identity transform.
+	static const transform identity;
+};
+
+template <class T>
+constexpr transform<T> transform<T>::identity =
+{
+	{T(0), T(0), T(0)},
+	{T(1), T(0), T(0), T(0)},
+	{T(1), T(1), T(1)}
 };
 
 } // namespace math
 
 #endif // ANTKEEPER_MATH_TRANSFORM_TYPE_HPP
-

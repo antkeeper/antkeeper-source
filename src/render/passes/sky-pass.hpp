@@ -65,7 +65,8 @@ public:
 	void set_icrf_to_eus(const math::transformation::se3<float>& transformation);
 	
 	void set_sun_position(const float3& position);
-	void set_sun_illuminance(const float3& illuminance_outer, const float3& illuminance_inner);
+	void set_sun_luminance(const float3& luminance);
+	void set_sun_illuminance(const float3& illuminance);
 	void set_sun_angular_radius(float radius);
 	void set_observer_altitude(float altitude);
 	void set_scale_heights(float rayleigh, float mie);
@@ -92,6 +93,7 @@ private:
 	const gl::shader_input* exposure_input;
 	const gl::shader_input* observer_altitude_input;
 	const gl::shader_input* sun_direction_input;
+	const gl::shader_input* sun_luminance_input;
 	const gl::shader_input* sun_illuminance_input;
 	const gl::shader_input* sun_angular_radius_input;
 	const gl::shader_input* scale_height_rm_input;
@@ -157,8 +159,8 @@ private:
 	
 	tween<float> observer_altitude_tween;
 	tween<float3> sun_position_tween;
-	tween<float3> sun_illuminance_outer_tween;
-	tween<float3> sun_illuminance_inner_tween;
+	tween<float3> sun_luminance_tween;
+	tween<float3> sun_illuminance_tween;
 	tween<float3> icrf_to_eus_translation;
 	tween<math::quaternion<float>> icrf_to_eus_rotation;
 	

@@ -27,6 +27,9 @@ namespace game {
 /// World creation and manipulation functions.
 namespace world {
 
+/// Creates an ephemeris.
+void load_ephemeris(game::context& ctx);
+
 /// Creates the fixed stars.
 void create_stars(game::context& ctx);
 

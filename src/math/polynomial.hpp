@@ -96,12 +96,15 @@ namespace chebyshev {
 	template <class InputIt, class T>
 	T evaluate(InputIt first, InputIt last, T x)
 	{
-		T y = *(first++) * T(0.5) + *(first++) * x;
+		T y = *(first++);
+		y += *(first++) * x;
 		
-		const T x2 = x * T(2);
-		for (T n2 = T(1), n1 = x, n0; first != last; n2 = n1, n1 = n0)
+		T n2 = T(1), n1 = x, n0;
+		x *= T(2);
+		
+		for (; first != last; n2 = n1, n1 = n0)
 		{
-			n0 = x2 * n1 - n2;
+			n0 = x * n1 - n2;
 			y += *(first++) * n0;
 		}
 		

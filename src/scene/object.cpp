@@ -34,7 +34,7 @@ typename object_base::transform_type object_base::interpolate_transforms(const t
 
 object_base::object_base():
 	active(true),
-	transform(math::identity_transform<float>, interpolate_transforms),
+	transform(math::transform<float>::identity, interpolate_transforms),
 	culling_mask(nullptr)
 {}
 

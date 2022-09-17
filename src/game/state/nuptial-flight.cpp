@@ -44,6 +44,7 @@
 #include "game/ant/breed.hpp"
 #include "game/ant/morphogenesis.hpp"
 #include "physics/time/time.hpp"
+#include "math/interpolation.hpp"
 #include <iostream>
 
 using namespace game::ant;
@@ -92,7 +93,9 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	
 	// Create world if not yet created
 	if (ctx.entities.find("planet") == ctx.entities.end())
-	{
+	{		
+		// Create cosmos
+		game::world::load_ephemeris(ctx);
 		game::world::create_stars(ctx);
 		game::world::create_sun(ctx);
 		game::world::create_em_bary(ctx);
@@ -103,10 +106,10 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		const double utc = 0.0;
 		const double equinox_2000 = physics::time::gregorian::to_ut1<double>(2000, 1, 1, 12, 0, 0.0, utc);
 		const double spring_2000 = physics::time::gregorian::to_ut1<double>(2000, 6, 19, 12, 0, 0.0, utc);
-		game::world::set_time(ctx, 55.0);
+		game::world::set_time(ctx, 14622.5);
 		
 		// Freeze time
-		game::world::set_time_scale(ctx, 0.0);
+		game::world::set_time_scale(ctx, 60.0);
 	}
 	
 	// Load biome
@@ -163,8 +166,8 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		ctx.entity_registry->assign<entity::component::model>(boid_eid, model);
 		
 		entity::component::transform transform;
-		transform.local = math::identity_transform<float>;
-		transform.world = math::identity_transform<float>;
+		transform.local = math::transform<float>::identity;
+		transform.world = math::transform<float>::identity;
 		transform.warp = true;
 		ctx.entity_registry->assign<entity::component::transform>(boid_eid, transform);
 		
@@ -216,7 +219,7 @@ void nuptial_flight::setup_camera()
 		{
 			// Transform
 			entity::component::transform target_transform;
-			target_transform.local = math::identity_transform<float>;
+			target_transform.local = math::transform<float>::identity;
 			target_transform.world = target_transform.local;
 			target_transform.warp = true;
 			ctx.entity_registry->assign<entity::component::transform>(target_eid, target_transform);
@@ -228,7 +231,7 @@ void nuptial_flight::setup_camera()
 		
 		// Create camera transform component
 		entity::component::transform transform;
-		transform.local = math::identity_transform<float>;
+		transform.local = math::transform<float>::identity;
 		transform.world = transform.local;
 		transform.warp = true;
 		ctx.entity_registry->assign<entity::component::transform>(camera_eid, transform);
@@ -313,27 +316,28 @@ void nuptial_flight::enable_keeper_controls()
 	bool gamepad_invert_pan = false;
 	bool mouse_look_toggle = false;
 	ctx.mouse_look = false;
-	const double time_scale = 10000.0;
+	const double time_scale = 60.0;
+	const double ff_time_scale = 50000.0;
 	
 	if (ctx.config->contains("mouse_tilt_sensitivity"))
 		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());
 	if (ctx.config->contains("mouse_pan_sensitivity"))
 		mouse_pan_sensitivity = math::radians((*ctx.config)["mouse_pan_sensitivity"].get<float>());
 	if (ctx.config->contains("mouse_invert_tilt"))
-		mouse_invert_tilt = math::radians((*ctx.config)["mouse_invert_tilt"].get<bool>());
+		mouse_invert_tilt = (*ctx.config)["mouse_invert_tilt"].get<bool>();
 	if (ctx.config->contains("mouse_invert_pan"))
-		mouse_invert_pan = math::radians((*ctx.config)["mouse_invert_pan"].get<bool>());
+		mouse_invert_pan = (*ctx.config)["mouse_invert_pan"].get<bool>();
 	if (ctx.config->contains("mouse_look_toggle"))
-		mouse_look_toggle = math::radians((*ctx.config)["mouse_look_toggle"].get<bool>());
+		mouse_look_toggle = (*ctx.config)["mouse_look_toggle"].get<bool>();
 	
 	if (ctx.config->contains("gamepad_tilt_sensitivity"))
 		gamepad_tilt_sensitivity = math::radians((*ctx.config)["gamepad_tilt_sensitivity"].get<float>());
 	if (ctx.config->contains("gamepad_pan_sensitivity"))
 		gamepad_pan_sensitivity = math::radians((*ctx.config)["gamepad_pan_sensitivity"].get<float>());
 	if (ctx.config->contains("gamepad_invert_tilt"))
-		gamepad_invert_tilt = math::radians((*ctx.config)["gamepad_invert_tilt"].get<bool>());
+		gamepad_invert_tilt = (*ctx.config)["gamepad_invert_tilt"].get<bool>();
 	if (ctx.config->contains("gamepad_invert_pan"))
-		gamepad_invert_pan = math::radians((*ctx.config)["gamepad_invert_pan"].get<bool>());
+		gamepad_invert_pan = (*ctx.config)["gamepad_invert_pan"].get<bool>();
 	
 	const input::control* move_slow = ctx.controls["move_slow"];
 	const input::control* move_fast = ctx.controls["move_fast"];
@@ -581,30 +585,30 @@ void nuptial_flight::enable_keeper_controls()
 	// Fast-forward
 	ctx.controls["fast_forward"]->set_activated_callback
 	(
-		[&ctx = this->ctx, time_scale]()
+		[&ctx = this->ctx, ff_time_scale]()
 		{
-			game::world::set_time_scale(ctx, time_scale);
+			game::world::set_time_scale(ctx, ff_time_scale);
 		}
 	);
 	ctx.controls["fast_forward"]->set_deactivated_callback
 	(
 		[&ctx = this->ctx, time_scale]()
 		{
-			game::world::set_time_scale(ctx, 0.0);
+			game::world::set_time_scale(ctx, time_scale);
 		}
 	);
 	ctx.controls["rewind"]->set_activated_callback
 	(
-		[&ctx = this->ctx, time_scale]()
+		[&ctx = this->ctx, ff_time_scale]()
 		{
-			game::world::set_time_scale(ctx, -time_scale);
+			game::world::set_time_scale(ctx, -ff_time_scale);
 		}
 	);
 	ctx.controls["rewind"]->set_deactivated_callback
 	(
 		[&ctx = this->ctx, time_scale]()
 		{
-			game::world::set_time_scale(ctx, 0.0);
+			game::world::set_time_scale(ctx, time_scale);
 		}
 	);
 	
@@ -625,6 +629,26 @@ void nuptial_flight::enable_keeper_controls()
 			
 			// Push pause menu state
 			ctx.state_machine.emplace(new game::state::pause_menu(ctx));
+		}
+	);
+	
+	ctx.controls["increase_exposure"]->set_activated_callback
+	(
+		[&ctx = this->ctx]()
+		{
+			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() - 1.0f);
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 1.0f);
+			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
+		}
+	);
+	
+	ctx.controls["decrease_exposure"]->set_activated_callback
+	(
+		[&ctx = this->ctx]()
+		{
+			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() + 1.0f);
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 1.0f);
+			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
 }
@@ -651,6 +675,8 @@ void nuptial_flight::disable_keeper_controls()
 	ctx.controls["fast_forward"]->set_activated_callback(nullptr);
 	ctx.controls["rewind"]->set_activated_callback(nullptr);
 	ctx.controls["pause"]->set_activated_callback(nullptr);
+	ctx.controls["increase_exposure"]->set_activated_callback(nullptr);
+	ctx.controls["decrease_exposure"]->set_activated_callback(nullptr);
 }
 
 void nuptial_flight::enable_ant_controls()
@@ -672,25 +698,26 @@ void nuptial_flight::enable_ant_controls()
 	float gamepad_pan_sensitivity = 1.0f;
 	bool gamepad_invert_tilt = false;
 	bool gamepad_invert_pan = false;
-	const double time_scale = 10000.0;
+	const double time_scale = 60.0;
+	const double ff_time_scale = 50000.0;
 	
 	if (ctx.config->contains("mouse_tilt_sensitivity"))
 		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());
 	if (ctx.config->contains("mouse_pan_sensitivity"))
 		mouse_pan_sensitivity = math::radians((*ctx.config)["mouse_pan_sensitivity"].get<float>());
 	if (ctx.config->contains("mouse_invert_tilt"))
-		mouse_invert_tilt = math::radians((*ctx.config)["mouse_invert_tilt"].get<bool>());
+		mouse_invert_tilt = (*ctx.config)["mouse_invert_tilt"].get<bool>();
 	if (ctx.config->contains("mouse_invert_pan"))
-		mouse_invert_pan = math::radians((*ctx.config)["mouse_invert_pan"].get<bool>());
+		mouse_invert_pan = (*ctx.config)["mouse_invert_pan"].get<bool>();
 	
 	if (ctx.config->contains("gamepad_tilt_sensitivity"))
 		gamepad_tilt_sensitivity = math::radians((*ctx.config)["gamepad_tilt_sensitivity"].get<float>());
 	if (ctx.config->contains("gamepad_pan_sensitivity"))
 		gamepad_pan_sensitivity = math::radians((*ctx.config)["gamepad_pan_sensitivity"].get<float>());
 	if (ctx.config->contains("gamepad_invert_tilt"))
-		gamepad_invert_tilt = math::radians((*ctx.config)["gamepad_invert_tilt"].get<bool>());
+		gamepad_invert_tilt = (*ctx.config)["gamepad_invert_tilt"].get<bool>();
 	if (ctx.config->contains("gamepad_invert_pan"))
-		gamepad_invert_pan = math::radians((*ctx.config)["gamepad_invert_pan"].get<bool>());
+		gamepad_invert_pan = (*ctx.config)["gamepad_invert_pan"].get<bool>();
 	
 	const input::control* move_slow = ctx.controls["move_slow"];
 	const input::control* move_fast = ctx.controls["move_fast"];
@@ -880,30 +907,30 @@ void nuptial_flight::enable_ant_controls()
 	// Fast-forward
 	ctx.controls["fast_forward"]->set_activated_callback
 	(
-		[&ctx = this->ctx, time_scale]()
+		[&ctx = this->ctx, ff_time_scale]()
 		{
-			game::world::set_time_scale(ctx, time_scale);
+			game::world::set_time_scale(ctx, ff_time_scale);
 		}
 	);
 	ctx.controls["fast_forward"]->set_deactivated_callback
 	(
 		[&ctx = this->ctx, time_scale]()
 		{
-			game::world::set_time_scale(ctx, 0.0);
+			game::world::set_time_scale(ctx, time_scale);
 		}
 	);
 	ctx.controls["rewind"]->set_activated_callback
 	(
-		[&ctx = this->ctx, time_scale]()
+		[&ctx = this->ctx, ff_time_scale]()
 		{
-			game::world::set_time_scale(ctx, -time_scale);
+			game::world::set_time_scale(ctx, -ff_time_scale);
 		}
 	);
 	ctx.controls["rewind"]->set_deactivated_callback
 	(
 		[&ctx = this->ctx, time_scale]()
 		{
-			game::world::set_time_scale(ctx, 0.0);
+			game::world::set_time_scale(ctx, time_scale);
 		}
 	);
 	

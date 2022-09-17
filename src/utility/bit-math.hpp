@@ -20,6 +20,8 @@
 #ifndef ANTKEEPER_BIT_MATH_HPP
 #define ANTKEEPER_BIT_MATH_HPP
 
+#include <stdint.h>
+
 /// Bitwise math
 namespace bit {
 
@@ -169,6 +171,23 @@ constexpr T segregate(T x) noexcept;
 template <class T>
 constexpr T swap_adjacent(T x) noexcept;
 
+/// Swaps the byte order of an unsigned 16-bit number.
+std::uint16_t swap16(std::uint16_t x) noexcept;
+
+/// Swaps the byte order of a signed 16-bit number.
+std::int16_t swap16(std::int16_t x) noexcept;
+
+/// Swaps the byte order of an unsigned 32-bit number.
+std::uint32_t swap32(std::uint32_t x) noexcept;
+
+/// Swaps the byte order of a signed 32-bit number.
+std::int32_t swap32(std::int32_t x) noexcept;
+
+/// Swaps the byte order of an unsigned 64-bit number.
+std::uint64_t swap64(std::uint64_t x) noexcept;
+
+/// Swaps the byte order of a signed 64-bit number.
+std::int64_t swap64(std::int64_t x) noexcept;
 
 template <class T>
 constexpr T compress(T x) noexcept
@@ -324,6 +343,42 @@ template <class T>
 constexpr T swap_adjacent(T x) noexcept
 {
 	return ((x & T(0xaaaaaaaaaaaaaaaa)) >> 1) | ((x & T(0x5555555555555555)) << 1);
+}
+
+std::uint16_t swap16(std::uint16_t x) noexcept
+{
+	return (x << 8) | (x >> 8);
+}
+
+std::int16_t swap16(std::int16_t x) noexcept
+{
+	return (x << 8) | ((x >> 8) & 0xFF);
+}
+
+std::uint32_t swap32(std::uint32_t x) noexcept
+{
+	x = ((x << 8) & 0xFF00FF00) | ((x >> 8) & 0xFF00FF);
+	return (x << 16) | (x >> 16);
+}
+
+std::int32_t swap32(std::int32_t x) noexcept
+{
+	x = ((x << 8) & 0xFF00FF00) | ((x >> 8) & 0xFF00FF); 
+	return (x << 16) | ((x >> 16) & 0xFFFF);
+}
+
+std::uint64_t swap64(std::uint64_t x) noexcept
+{
+	x = ((x << 8) & 0xFF00FF00FF00FF00) | ((x >> 8) & 0x00FF00FF00FF00FF);
+	x = ((x << 16) & 0xFFFF0000FFFF0000) | ((x >> 16) & 0x0000FFFF0000FFFF);
+	return (x << 32) | (x >> 32);
+}
+
+std::int64_t swap64(std::int64_t x) noexcept
+{
+    x = ((x << 8) & 0xFF00FF00FF00FF00) | ((x >> 8) & 0x00FF00FF00FF00FF);
+    x = ((x << 16) & 0xFFFF0000FFFF0000) | ((x >> 16) & 0x0000FFFF0000FFFF);
+    return (x << 32) | ((x >> 32) & 0xFFFFFFFF);
 }
 
 } // namespace bit

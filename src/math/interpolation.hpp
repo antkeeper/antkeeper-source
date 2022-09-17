@@ -20,12 +20,8 @@
 #ifndef ANTKEEPER_MATH_INTERPOLATION_HPP
 #define ANTKEEPER_MATH_INTERPOLATION_HPP
 
-#include "math/constants.hpp"
-#include "math/matrix-type.hpp"
-#include "math/quaternion-type.hpp"
-#include "math/transform-type.hpp"
+#include "math/angles.hpp"
 #include <cmath>
-#include <type_traits>
 
 namespace math {
 
@@ -76,8 +72,7 @@ inline T lerp(const T& x, const T& y, S a)
 template <typename T>
 T lerp_angle(T x, T y, T a)
 {
-	T shortest_angle = std::remainder((y - x), two_pi<T>);
-	return std::remainder(x + shortest_angle * a, two_pi<T>);
+	return wrap_radians(x + wrap_radians(y - x) * a);
 }
 
 template <typename T, typename S>

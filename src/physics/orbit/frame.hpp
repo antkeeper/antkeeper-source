@@ -204,7 +204,10 @@ namespace bci {
 	 * @param ra Right ascension of the north pole, in radians.
 	 * @param dec Declination of the north pole, in radians.
 	 * @param w Location of the prime meridian, as a rotation about the north pole, in radians.
+	 *
 	 * @return BCI to BCBF transformation.
+	 *
+	 * @see Archinal, B.A., A’Hearn, M.F., Bowell, E. et al. Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009. Celest Mech Dyn Astr 109, 101–135 (2011). https://doi.org/10.1007/s10569-010-9320-4
 	 */
 	template <typename T>
 	math::transformation::se3<T> to_bcbf(T ra, T dec, T w)
@@ -212,7 +215,7 @@ namespace bci {
 		const math::quaternion<T> r = math::normalize
 		(
 			math::quaternion<T>::rotate_z(-math::half_pi<T> - ra) *
-				math::quaternion<T>::rotate_x(-math::half_pi<T> + dec) *
+				math::quaternion<T>::rotate_x(dec - math::half_pi<T>) *
 				math::quaternion<T>::rotate_z(-w)
 		);
 		
@@ -289,7 +292,10 @@ namespace bcbf {
 	 * @param ra Right ascension of the north pole, in radians.
 	 * @param dec Declination of the north pole, in radians.
 	 * @param w Location of the prime meridian, as a rotation about the north pole, in radians.
+	 *
 	 * @return BCBF to BCI transformation.
+	 *
+	 * @see Archinal, B.A., A’Hearn, M.F., Bowell, E. et al. Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009. Celest Mech Dyn Astr 109, 101–135 (2011). https://doi.org/10.1007/s10569-010-9320-4
 	 */
 	template <typename T>
 	math::transformation::se3<T> to_bci(T ra, T dec, T w)
@@ -298,7 +304,7 @@ namespace bcbf {
 		(
 			math::quaternion<T>::rotate_z(w) *
 				math::quaternion<T>::rotate_x(math::half_pi<T> - dec) *
-				math::quaternion<T>::rotate_z(math::half_pi<T> + ra)
+				math::quaternion<T>::rotate_z(ra + math::half_pi<T>)
 
 		);
 		

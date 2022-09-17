@@ -39,13 +39,6 @@
 static bool load_component_atmosphere(entity::archetype& archetype, const json& element)
 {
 	entity::component::atmosphere component;
-	component.exosphere_altitude = 0.0;
-	component.index_of_refraction = 0.0;
-	component.rayleigh_density = 0.0;
-	component.mie_density = 0.0;
-	component.rayleigh_scale_height = 0.0;
-	component.mie_scale_height = 0.0;
-	component.mie_anisotropy = 0.0;
 	
 	if (element.contains("exosphere_altitude"))
 		component.exosphere_altitude = element["exosphere_altitude"].get<double>();
@@ -61,6 +54,8 @@ static bool load_component_atmosphere(entity::archetype& archetype, const json& 
 		component.mie_scale_height = element["mie_scale_height"].get<double>();
 	if (element.contains("mie_anisotropy"))
 		component.mie_anisotropy = element["mie_anisotropy"].get<double>();
+	if (element.contains("airglow"))
+		component.airglow = element["airglow"].get<double>();
 
 	archetype.set<entity::component::atmosphere>(component);
 
@@ -98,26 +93,32 @@ static bool load_component_blackbody(entity::archetype& archetype, const json& e
 static bool load_component_celestial_body(entity::archetype& archetype, const json& element)
 {
 	entity::component::celestial_body component;
-	component.radius = 0.0;
-	component.mass = 0.0;
-	component.pole_ra = 0.0;
-	component.pole_dec = 0.0;
-	component.prime_meridian = 0.0;
-	component.rotation_period = 0.0;
-	component.albedo = 0.0;
 	
 	if (element.contains("radius"))
 		component.radius = element["radius"].get<double>();
 	if (element.contains("mass"))
 		component.mass = element["mass"].get<double>();
 	if (element.contains("pole_ra"))
-		component.pole_ra = math::radians(element["pole_ra"].get<double>());
+	{
+		component.pole_ra.clear();
+		auto& pole_ra_element = element["pole_ra"];
+		for (auto it = pole_ra_element.rbegin(); it != pole_ra_element.rend(); ++it) 
+			component.pole_ra.push_back(math::radians(it->get<double>()));
+	}
 	if (element.contains("pole_dec"))
-		component.pole_dec = math::radians(element["pole_dec"].get<double>());
+	{
+		component.pole_dec.clear();
+		auto& pole_dec_element = element["pole_dec"];
+		for (auto it = pole_dec_element.rbegin(); it != pole_dec_element.rend(); ++it) 
+			component.pole_dec.push_back(math::radians(it->get<double>()));
+	}
 	if (element.contains("prime_meridian"))
-		component.prime_meridian = math::radians(element["prime_meridian"].get<double>());
-	if (element.contains("rotation_period"))
-		component.rotation_period = element["rotation_period"].get<double>();
+	{
+		component.prime_meridian.clear();
+		auto& prime_meridian_element = element["prime_meridian"];
+		for (auto it = prime_meridian_element.rbegin(); it != prime_meridian_element.rend(); ++it) 
+			component.prime_meridian.push_back(math::radians(it->get<double>()));
+	}
 	if (element.contains("albedo"))
 		component.albedo = element["albedo"].get<double>();
 	
@@ -176,28 +177,14 @@ static bool load_component_orbit(entity::archetype& archetype, const json& eleme
 	entity::component::orbit component;
 	
 	component.parent = entt::null;
-	component.elements.ec = 0.0;
-	component.elements.a = 0.0;
-	component.elements.in = 0.0;
-	component.elements.om = 0.0;
-	component.elements.w = 0.0;
-	component.elements.ma = 0.0;
-	component.mean_motion = 0.0;
+	component.ephemeris_index = -1;
+	component.scale = 1.0;
+	component.position = {0, 0, 0};
 	
-	if (element.contains("ec"))
-		component.elements.ec = element["ec"].get<double>();
-	if (element.contains("a"))
-		component.elements.a = element["a"].get<double>();
-	if (element.contains("in"))
-		component.elements.in = math::radians(element["in"].get<double>());
-	if (element.contains("om"))
-		component.elements.om = math::radians(element["om"].get<double>());
-	if (element.contains("w"))
-		component.elements.w = math::radians(element["w"].get<double>());
-	if (element.contains("ma"))
-		component.elements.ma = math::radians(element["ma"].get<double>());
-	if (element.contains("n"))
-		component.mean_motion = math::radians(element["n"].get<double>());
+	if (element.contains("ephemeris_index"))
+		component.ephemeris_index = element["ephemeris_index"].get<int>();
+	if (element.contains("scale"))
+		component.scale = element["scale"].get<double>();
 	
 	archetype.set<entity::component::orbit>(component);
 
@@ -207,7 +194,7 @@ static bool load_component_orbit(entity::archetype& archetype, const json& eleme
 static bool load_component_transform(entity::archetype& archetype, const json& element)
 {
 	entity::component::transform component;
-	component.local = math::identity_transform<float>;
+	component.local = math::transform<float>::identity;
 	component.warp = true;
 	
 	if (element.contains("translation"))

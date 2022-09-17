@@ -563,7 +563,7 @@ render::model* build_model
 		+ sting_index_count;
 	
 	// Calculate transform from legs space to body space
-	const math::transform<float>& legs_to_body = math::identity_transform<float>;
+	const math::transform<float>& legs_to_body = math::transform<float>::identity;
 	
 	// Reskin leg bones
 	std::unordered_set<std::uint8_t> old_foreleg_coxa_l_indices;

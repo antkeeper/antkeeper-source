@@ -53,14 +53,14 @@ public:
 	virtual void update(double t, double dt);
 	
 	/**
-	 * Sets the current universal time.
+	 * Sets the current time.
 	 *
-	 * @param time Universal time, in days.
+	 * @param time Time, in days.
 	 */
-	void set_universal_time(double time);
+	void set_time(double time);
 	
 	/**
-	 * Sets the factor by which the timestep `dt` will be scaled before being added to the current universal time.
+	 * Sets the factor by which the timestep `dt` will be scaled before being added to the current time.
 	 *
 	 * @param scale Factor by which to scale the timestep.
 	 */
@@ -84,6 +84,9 @@ public:
 	void set_sky_light(scene::ambient_light* light);
 	void set_moon_light(scene::directional_light* light);
 	void set_camera(scene::camera* camera);
+	void set_exposure_offset(float offset);
+	
+	inline float get_exposure_offset() const { return exposure_offset; };
 	
 	void set_sky_pass(::render::sky_pass* pass);
 	
@@ -93,7 +96,7 @@ private:
 	
 	void update_bcbf_to_enu();
 
-	double universal_time;
+	double time;
 	double time_scale;
 	
 	entity::id reference_entity;
@@ -111,6 +114,7 @@ private:
 	scene::directional_light* moon_light;
 	scene::camera* camera;
 	::render::sky_pass* sky_pass;
+	float exposure_offset;
 };
 
 } // namespace system

@@ -143,7 +143,7 @@ math::transform<float> get_local_transform(entity::registry& registry, entity::i
 		return component.local;
 	}
 	
-	return math::identity_transform<float>;
+	return math::transform<float>::identity;
 }
 
 math::transform<float> get_world_transform(entity::registry& registry, entity::id eid)
@@ -154,7 +154,7 @@ math::transform<float> get_world_transform(entity::registry& registry, entity::i
 		return component.world;
 	}
 	
-	return math::identity_transform<float>;
+	return math::transform<float>::identity;
 }
 
 void parent(entity::registry& registry, entity::id child, entity::id parent)

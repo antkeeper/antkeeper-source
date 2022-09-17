@@ -19,7 +19,7 @@
 
 #include "game/world.hpp"
 #include "scene/text.hpp"
-#include "astro/illuminance.hpp"
+#include "physics/light/vmag.hpp"
 #include "color/color.hpp"
 #include "entity/components/atmosphere.hpp"
 #include "entity/components/blackbody.hpp"
@@ -38,7 +38,7 @@
 #include "gl/vertex-buffer.hpp"
 #include "physics/light/photometry.hpp"
 #include "physics/orbit/orbit.hpp"
-#include "astro/illuminance.hpp"
+#include "physics/orbit/ephemeris.hpp"
 #include "render/material.hpp"
 #include "render/model.hpp"
 #include "render/passes/shadow-map-pass.hpp"
@@ -54,6 +54,12 @@
 
 namespace game {
 namespace world {
+
+void load_ephemeris(game::context& ctx)
+{
+	// Load ephemeris
+	ctx.orbit_system->set_ephemeris(ctx.resource_manager->load<physics::orbit::ephemeris<double>>("de421.eph"));
+}
 
 void create_stars(game::context& ctx)
 {
@@ -89,12 +95,12 @@ void create_stars(game::context& ctx)
 			vmag = std::stod(catalog_row[3]);
 			bv_color = std::stod(catalog_row[4]);
 		}
-		catch (const std::exception& e)
+		catch (const std::exception&)
 		{
 			continue;
 		}
 		
-		starlight_illuminance += astro::vmag_to_lux(vmag);
+		starlight_illuminance += physics::light::vmag::to_illuminance(vmag);
 		
 		// Convert right ascension and declination from degrees to radians
 		ra = math::wrap_radians(math::radians(ra));
@@ -113,7 +119,7 @@ void create_stars(game::context& ctx)
 		double3 color_acescg = color::xyz::to_acescg(color_xyz);
 		
 		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
-		double brightness = astro::vmag_to_brightness(vmag);
+		double brightness = physics::light::vmag::to_brightness(vmag);
 		
 		// Scale color by relative brightness
 		double3 scaled_color = color_acescg * brightness;
@@ -193,11 +199,12 @@ void create_sun(game::context& ctx)
 	
 	// Create sun directional light scene object
 	scene::directional_light* sun_light = new scene::directional_light();
+	sun_light->set_color({0, 0, 0});
+	sun_light->update_tweens();
 	
 	// Create sky ambient light scene object
 	scene::ambient_light* sky_light = new scene::ambient_light();
-	sky_light->set_color({1, 1, 1});
-	sky_light->set_intensity(0.0f);
+	sky_light->set_color({0, 0, 0});
 	sky_light->update_tweens();
 	
 	// Add sun light scene objects to surface scene
@@ -216,9 +223,6 @@ void create_em_bary(game::context& ctx)
 	entity::archetype* em_bary_archetype = ctx.resource_manager->load<entity::archetype>("em-bary.ent");
 	entity::id em_bary_eid = em_bary_archetype->create(*ctx.entity_registry);
 	ctx.entities["em_bary"] = em_bary_eid;
-	
-	// Assign orbital parent
-	ctx.entity_registry->get<entity::component::orbit>(em_bary_eid).parent = ctx.entities["sun"];
 }
 
 void create_earth(game::context& ctx)
@@ -261,8 +265,7 @@ void create_moon(game::context& ctx)
 	
 	// Create moon directional light scene object
 	scene::directional_light* moon_light = new scene::directional_light();
-	moon_light->set_color({1, 1, 1});
-	moon_light->set_intensity(1.0f);
+	moon_light->set_color({0, 0, 0});
 	moon_light->update_tweens();
 	
 	// Add moon light scene objects to surface scene
@@ -274,8 +277,8 @@ void create_moon(game::context& ctx)
 
 void set_time(game::context& ctx, double t)
 {
-	ctx.astronomy_system->set_universal_time(t);
-	ctx.orbit_system->set_universal_time(t);
+	ctx.astronomy_system->set_time(t);
+	ctx.orbit_system->set_time(t);
 }
 
 void set_time_scale(game::context& ctx, double scale)

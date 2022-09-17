@@ -24,6 +24,7 @@
 #include "utility/fundamental-types.hpp"
 #include "entity/id.hpp"
 #include "entity/components/orbit.hpp"
+#include "physics/orbit/ephemeris.hpp"
 
 namespace entity {
 namespace system {
@@ -46,27 +47,31 @@ public:
 	virtual void update(double t, double dt);
 	
 	/**
-	 * Sets the current universal time.
+	 * Sets the current time.
 	 *
-	 * @param time Universal time, in days.
+	 * @param time Time, in days.
 	 */
-	void set_universal_time(double time);
+	void set_time(double time);
 	
 	/**
-	 * Sets the factor by which the timestep `dt` will be scaled before being added to the current universal time.
+	 * Sets the factor by which the timestep `dt` will be scaled before being added to the current time.
 	 *
 	 * @param scale Factor by which to scale the timestep.
 	 */
 	void set_time_scale(double scale);
 	
-private:
-	void on_orbit_construct(entity::registry& registry, entity::id entity_id, entity::component::orbit& component);
-	void on_orbit_replace(entity::registry& registry, entity::id entity_id, entity::component::orbit& component);
+	/**
+	 * Sets the ephemeris used to calculate orbital positions.
+	 *
+	 * @param ephemeris Ephemeris.
+	 */
+	void set_ephemeris(const physics::orbit::ephemeris<double>* ephemeris);
 	
-	double universal_time;
+private:
+	const physics::orbit::ephemeris<double>* ephemeris;
+	double time;
 	double time_scale;
-	std::size_t ke_iterations;
-	double ke_tolerance;
+	std::vector<double3> positions;
 };
 
 } // namespace system

@@ -33,8 +33,8 @@
 #include "physics/atmosphere.hpp"
 #include "geom/cartesian.hpp"
 #include "astro/apparent-size.hpp"
-#include "astro/illuminance.hpp"
 #include "geom/solid-angle.hpp"
+#include "math/polynomial.hpp"
 #include <iostream>
 
 namespace entity {
@@ -57,7 +57,7 @@ math::vector3<T> transmittance(T depth_r, T depth_m, T depth_o, const math::vect
 
 astronomy::astronomy(entity::registry& registry):
 	updatable(registry),
-	universal_time(0.0),
+	time(0.0),
 	time_scale(1.0),
 	reference_entity(entt::null),
 	observer_location{0, 0, 0},
@@ -65,7 +65,8 @@ astronomy::astronomy(entity::registry& registry):
 	sky_light(nullptr),
 	moon_light(nullptr),
 	camera(nullptr),
-	sky_pass(nullptr)
+	sky_pass(nullptr),
+	exposure_offset(0.0)
 {
 	// Construct transformation which transforms coordinates from ENU to EUS
 	enu_to_eus = math::transformation::se3<double>
@@ -81,9 +82,10 @@ astronomy::astronomy(entity::registry& registry):
 void astronomy::update(double t, double dt)
 {
 	double total_illuminance = 0.0;
+	double sky_light_illuminance = 0.0;
 	
 	// Add scaled timestep to current time
-	set_universal_time(universal_time + dt * time_scale);
+	set_time(time + dt * time_scale);
 	
 	// Abort if no reference body
 	if (reference_entity == entt::null)
@@ -95,16 +97,24 @@ void astronomy::update(double t, double dt)
 	const entity::component::orbit& reference_orbit = registry.get<entity::component::orbit>(reference_entity);
 	const entity::component::celestial_body& reference_body = registry.get<entity::component::celestial_body>(reference_entity);
 	
-	math::transformation::se3<double> icrf_to_bci{{-reference_orbit.icrf_position}, math::identity_quaternion<double>};
+	math::transformation::se3<double> icrf_to_bci{{-reference_orbit.position}, math::quaternion<double>::identity};
+	
+	const double days_from_epoch = time;
+	const double centuries_from_epoch = days_from_epoch / 36525.0;
+	
+	// Evaluate reference body orientation polynomials
+	const double reference_body_pole_ra = math::polynomial::horner(reference_body.pole_ra.begin(), reference_body.pole_ra.end(), centuries_from_epoch);
+	const double reference_body_pole_dec = math::polynomial::horner(reference_body.pole_dec.begin(), reference_body.pole_dec.end(), centuries_from_epoch);
+	const double reference_body_prime_meridian = math::polynomial::horner(reference_body.prime_meridian.begin(), reference_body.prime_meridian.end(), days_from_epoch);
 	
 	// Construct transformation from the ICRF frame to the reference body BCBF frame	
 	icrf_to_bcbf = physics::orbit::frame::bci::to_bcbf
 	(
-		reference_body.pole_ra,
-		reference_body.pole_dec,
-		reference_body.prime_meridian + (math::two_pi<double> / reference_body.rotation_period) * universal_time
+		reference_body_pole_ra,
+		reference_body_pole_dec,
+		reference_body_prime_meridian
 	);
-	icrf_to_bcbf.t = icrf_to_bcbf.r * -reference_orbit.icrf_position;
+	icrf_to_bcbf.t = icrf_to_bcbf.r * -reference_orbit.position;
 	
 	icrf_to_enu = icrf_to_bcbf * bcbf_to_enu;
 	icrf_to_eus = icrf_to_enu * enu_to_eus;
@@ -118,14 +128,19 @@ void astronomy::update(double t, double dt)
 			return;
 		
 		// Transform orbital Cartesian position (r) from the ICRF frame to the EUS frame
-		const double3 r_eus = icrf_to_eus * orbit.icrf_position;
+		const double3 r_eus = icrf_to_eus * orbit.position;
+		
+		// Evaluate body orientation polynomials
+		const double body_pole_ra = math::polynomial::horner(body.pole_ra.begin(), body.pole_ra.end(), centuries_from_epoch);
+		const double body_pole_dec = math::polynomial::horner(body.pole_dec.begin(), body.pole_dec.end(), centuries_from_epoch);
+		const double body_prime_meridian = math::polynomial::horner(body.prime_meridian.begin(), body.prime_meridian.end(), days_from_epoch);
 		
 		// Determine body orientation in the ICRF frame
 		math::quaternion<double> rotation_icrf = physics::orbit::frame::bcbf::to_bci
 		(
-			body.pole_ra,
-			body.pole_dec,
-			body.prime_meridian + (math::two_pi<double> / body.rotation_period) * this->universal_time
+			body_pole_ra,
+			body_pole_dec,
+			body_prime_meridian
 		).r;
 		
 		// Transform body orientation from the ICRF frame to the EUS frame.
@@ -139,11 +154,11 @@ void astronomy::update(double t, double dt)
 			transform.local.scale = {1.0f, 1.0f, 1.0f};
 		}
 		
-		
+		/*
 		if (orbit.parent != entt::null)
 		{
 			// RA-DEC
-			const double3 r_bci = icrf_to_bci * orbit.icrf_position;
+			const double3 r_bci = icrf_to_bci * orbit.position;
 			double3 r_bci_spherical = physics::orbit::frame::bci::spherical(r_bci);
 			if (r_bci_spherical.z < 0.0)
 				r_bci_spherical.z += math::two_pi<double>;
@@ -151,17 +166,17 @@ void astronomy::update(double t, double dt)
 			const double ra = math::degrees(r_bci_spherical.z);
 			
 			// AZ-EL
-			const double3 r_enu = icrf_to_enu * orbit.icrf_position;
+			const double3 r_enu = icrf_to_enu * orbit.position;
 			double3 r_enu_spherical = physics::orbit::frame::enu::spherical(r_enu);
 			if (r_enu_spherical.z < 0.0)
 				r_enu_spherical.z += math::two_pi<double>;
 			const double el = math::degrees(r_enu_spherical.y);
 			const double az = math::degrees(r_enu_spherical.z);
 			
-			//std::cout << "t: " << this->universal_time << "; ra: " << ra << "; dec: " << dec << std::endl;
-			//std::cout << "t: " << this->universal_time << "; az: " << az << "; el: " << el << std::endl;
+			std::cout << "t: " << this->time << "; ra: " << ra << "; dec: " << dec << std::endl;
+			std::cout << "t: " << this->time << "; az: " << az << "; el: " << el << std::endl;
 		}
-		
+		*/
 	});
 	
 	// Update blackbody lighting
@@ -173,13 +188,20 @@ void astronomy::update(double t, double dt)
 		double3 blackbody_up_icrf = {0, 0, 1};
 		
 		// Transform blackbody ICRF position and basis into EUS frame
-		double3 blackbody_position_eus = icrf_to_eus * orbit.icrf_position;
-		double3 blackbody_position_enu = icrf_to_enu * orbit.icrf_position;
+		double3 blackbody_position_eus = icrf_to_eus * orbit.position;
+		double3 blackbody_position_enu = icrf_to_enu * orbit.position;
 		double3 blackbody_forward_eus = math::normalize(-blackbody_position_eus);
 		double3 blackbody_up_eus = icrf_to_eus.r * blackbody_up_icrf;
 		
 		// Calculate distance from observer to blackbody
 		double blackbody_distance = math::length(blackbody_position_eus) - body.radius;
+		
+		// Calculate blackbody solid angle
+		const double blackbody_angular_radius = astro::angular_radius(body.radius, blackbody_distance);
+		const double blackbody_solid_angle = geom::solid_angle::cone(blackbody_angular_radius);
+		
+		// Calculate blackbody illuminance
+		const double3 blackbody_illuminance = blackbody.luminance * blackbody_solid_angle;
 		
 		// Init atmospheric transmittance
 		double3 atmospheric_transmittance = {1.0, 1.0, 1.0};
@@ -211,11 +233,20 @@ void astronomy::update(double t, double dt)
 				
 				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_k, optical_depth_o, reference_atmosphere.rayleigh_scattering, reference_atmosphere.mie_scattering);
 			}
+			
+			// Add airglow to sky light illuminance
+			sky_light_illuminance += reference_atmosphere.airglow;
 		}
 		
+		// Blackbody illuminance transmitted through the atmosphere
+		const double3 transmitted_blackbody_illuminance = blackbody_illuminance * atmospheric_transmittance;
+		
+		// Add atmosphere-transmitted blackbody illuminance to total illuminance
+		total_illuminance += (transmitted_blackbody_illuminance.x + transmitted_blackbody_illuminance.y + transmitted_blackbody_illuminance.z) / 3.0;
+		
+		// Update sun light
 		if (sun_light != nullptr)
 		{
-			// Update blackbody light transform
 			sun_light->set_translation(math::normalize(math::type_cast<float>(blackbody_position_eus)));
 			sun_light->set_rotation
 			(
@@ -226,56 +257,49 @@ void astronomy::update(double t, double dt)
 				)
 			);
 			
-			// Calculate blackbody solid angle
-			const double angular_radius = astro::angular_radius(body.radius, blackbody_distance);
-			const double solid_angle = geom::solid_angle::cone(angular_radius);
-			
-			const double3 blackbody_illuminance = blackbody.luminance * solid_angle;
-			
-			// Sun illuminance at the outer atmosphere
-			float3 sun_illuminance_outer = math::type_cast<float>(blackbody_illuminance);
-			
-			// Sun illuminance at sea level
-			float3 sun_illuminance_inner = math::type_cast<float>(blackbody_illuminance * atmospheric_transmittance);
-			
-			// Update blackbody light color and intensity
-			sun_light->set_color(sun_illuminance_inner);	
-			sun_light->set_intensity(1.0f);
-			
-			total_illuminance += (sun_illuminance_inner.x + sun_illuminance_inner.y + sun_illuminance_inner.z) / 3.0;
-			
-			// Upload blackbody params to sky pass
-			if (this->sky_pass)
-			{
-				this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_eus));
-				this->sky_pass->set_sun_illuminance(sun_illuminance_outer, sun_illuminance_inner);
-				
-				double blackbody_angular_radius = astro::angular_radius(body.radius, blackbody_distance);
-				this->sky_pass->set_sun_angular_radius(static_cast<float>(blackbody_angular_radius));
-			}
+			sun_light->set_color(math::type_cast<float>(transmitted_blackbody_illuminance));	
 		}
 		
+		// Update sky light
 		if (sky_light != nullptr)
 		{
-			double3 blackbody_position_enu_spherical = physics::orbit::frame::enu::spherical(icrf_to_enu * orbit.icrf_position);
-			
-			const double starlight_illuminance = 0.0011;
+			// Calculate sky illuminance
+			double3 blackbody_position_enu_spherical = physics::orbit::frame::enu::spherical(blackbody_position_enu);
 			const double sky_illuminance = 25000.0 * std::max<double>(0.0, std::sin(blackbody_position_enu_spherical.y));
-			const double sky_light_illuminance = sky_illuminance + starlight_illuminance;
+			
+			// Add sky illuminance to sky light illuminance
+			sky_light_illuminance += sky_illuminance;
+			
+			// Add starlight illuminance to sky light illuminance
+			const double starlight_illuminance = 0.0002;
+			sky_light_illuminance += starlight_illuminance;
+			
+			// Add sky light illuminance to total illuminance
 			total_illuminance += sky_light_illuminance;
 			
-			sky_light->set_color({1.0f, 1.0f, 1.0f});
-			sky_light->set_intensity(static_cast<float>(sky_illuminance));
+			//std::cout << "sky light illum: " << sky_light_illuminance << std::endl;
+			
+			// Update sky light
+			sky_light->set_color(float3{1.0f, 1.0f, 1.0f} * static_cast<float>(sky_light_illuminance));
 		}
 		
-		const double3& blackbody_icrf_position = orbit.icrf_position;
+		// Upload blackbody params to sky pass
+		if (this->sky_pass)
+		{
+			this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_eus));
+			this->sky_pass->set_sun_luminance(math::type_cast<float>(blackbody.luminance));
+			this->sky_pass->set_sun_illuminance(math::type_cast<float>(blackbody_illuminance));
+			this->sky_pass->set_sun_angular_radius(static_cast<float>(blackbody_angular_radius));
+		}
+		
+		const double3& blackbody_icrf_position = orbit.position;
 		
 		// Update diffuse reflectors
 		this->registry.view<component::celestial_body, component::orbit, component::diffuse_reflector, component::transform>().each(
 		[&](entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
 		{
 			// Calculate distance to blackbody and direction of incoming light
-			double3 blackbody_light_direction_icrf = reflector_orbit.icrf_position - blackbody_icrf_position;
+			double3 blackbody_light_direction_icrf = reflector_orbit.position - blackbody_icrf_position;
 			double blackbody_distance = math::length(blackbody_light_direction_icrf);
 			blackbody_light_direction_icrf = blackbody_light_direction_icrf / blackbody_distance;
 			
@@ -288,7 +312,7 @@ void astronomy::update(double t, double dt)
 			
 			// Calculate blackbody illuminance
 			
-			double3 view_direction_icrf = reflector_orbit.icrf_position - reference_orbit.icrf_position;
+			double3 view_direction_icrf = reflector_orbit.position - reference_orbit.position;
 			const double reflector_distance = math::length(view_direction_icrf);
 			view_direction_icrf = view_direction_icrf / reflector_distance;
 			
@@ -300,7 +324,7 @@ void astronomy::update(double t, double dt)
 			const double3 planet_luminance = (sunlight_illuminance * reference_body.albedo) / math::pi<double>;
 			const double planet_angular_radius = astro::angular_radius(reference_body.radius, reflector_distance);
 			const double planet_solid_angle = geom::solid_angle::cone(planet_angular_radius);
-			const double planet_phase_factor = math::dot(-view_direction_icrf, math::normalize(reference_orbit.icrf_position - blackbody_icrf_position)) * 0.5 + 0.5;
+			const double planet_phase_factor = math::dot(-view_direction_icrf, math::normalize(reference_orbit.position - blackbody_icrf_position)) * 0.5 + 0.5;
 			const double3 planetlight_illuminance = planet_luminance * planet_solid_angle * planet_phase_factor;
 			double3 planetlight_direction_eus = math::normalize(icrf_to_eus.r * view_direction_icrf);
 			
@@ -309,12 +333,16 @@ void astronomy::update(double t, double dt)
 			const double3 reflected_planetlight_luminance = (planetlight_illuminance * reflector.albedo) / math::pi<double>;
 			const double3 reflected_planetlight_illuminance = reflected_planetlight_luminance * reflector_solid_angle;
 			
-			std::cout << "sunlight illuminance: " << sunlight_illuminance << std::endl;
+			/*
 			std::cout << "reflected sunlight illuminance: " << reflected_sunlight_illuminance << std::endl;
 			std::cout << "planetlight illuminance: " << planetlight_illuminance << std::endl;
+			std::cout << "planet luminance: " << planet_luminance << std::endl;
+			std::cout << "reflected planetlight luminance: " << reflected_planetlight_luminance << std::endl;
 			std::cout << "reflected planetlight illuminance: " << reflected_planetlight_illuminance << std::endl;
 			std::cout << "reflector phase: " << reflector_phase_factor << std::endl;
 			std::cout << "planet phase: " << planet_phase_factor << std::endl;
+			*/
+			
 			
 			if (this->sky_pass)
 			{
@@ -332,7 +360,7 @@ void astronomy::update(double t, double dt)
 				float3 reflector_up_eus = math::type_cast<float>(icrf_to_eus.r * double3{0, 0, 1});
 				
 				double3 reflected_illuminance = reflected_sunlight_illuminance + reflected_planetlight_illuminance;
-				reflected_illuminance *= std::max<double>(0.0, std::sin(transform.local.translation.y));
+				//reflected_illuminance *= std::max<double>(0.0, std::sin(transform.local.translation.y));
 				
 				total_illuminance += (reflected_illuminance.x + reflected_illuminance.y + reflected_illuminance.z) / 3.0;
 				
@@ -397,14 +425,15 @@ void astronomy::update(double t, double dt)
 	{
 		const double calibration = 250.0;
 		const double ev100 = std::log2((total_illuminance * 100.0) / calibration);
-		// std::cout << "EV100: " << ev100 << std::endl;
-		camera->set_exposure(static_cast<float>(ev100));
+		//std::cout << "LUX: " << total_illuminance << std::endl;
+		//std::cout << "EV100: " << ev100 << std::endl;
+		//camera->set_exposure(exposure_offset);
 	}
 }
 
-void astronomy::set_universal_time(double time)
+void astronomy::set_time(double time)
 {
-	universal_time = time;
+	this->time = time;
 }
 
 void astronomy::set_time_scale(double scale)
@@ -442,6 +471,11 @@ void astronomy::set_moon_light(scene::directional_light* light)
 void astronomy::set_camera(scene::camera* camera)
 {
 	this->camera = camera;
+}
+
+void astronomy::set_exposure_offset(float offset)
+{
+	exposure_offset = offset;
 }
 
 void astronomy::set_sky_pass(::render::sky_pass* pass)

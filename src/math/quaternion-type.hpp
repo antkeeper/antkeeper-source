@@ -38,8 +38,8 @@ struct quaternion
 	scalar_type y;
 	scalar_type z;
 	
-	/// Returns the rotation identity quaternion.
-	static constexpr quaternion identity();
+	/// Rotation identity quaternion.
+	static const quaternion identity;
 	
 	/**
 	 * Returns a quaternion representing a rotation about the x-axis.
@@ -67,10 +67,7 @@ struct quaternion
 };
 
 template <class T>
-constexpr quaternion<T> quaternion<T>::identity()
-{
-	return {T(1), T(0), T(0), T(0)};
-};
+constexpr quaternion<T> quaternion<T>::identity = {T(1), T(0), T(0), T(0)};
 
 template <class T>
 quaternion<T> quaternion<T>::rotate_x(scalar_type angle)
