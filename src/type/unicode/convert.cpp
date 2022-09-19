@@ -20,7 +20,7 @@
 #include "type/unicode/convert.hpp"
 #include <codecvt>
 
-namespace font {
+namespace type {
 namespace unicode {
 
 std::u32string u32(const std::string& u8)
@@ -36,4 +36,4 @@ std::string u8(const std::u32string& u32)
 }
 
 } // namespace unicode
-} // namespace font
+} // namespace type

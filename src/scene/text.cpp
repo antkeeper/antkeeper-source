@@ -20,8 +20,8 @@
 #include "scene/text.hpp"
 #include "render/vertex-attribute.hpp"
 #include "math/vector-operators.hpp"
+#include "type/unicode/convert.hpp"
 #include <cstddef>
-#include <codecvt>
 
 namespace scene {
 
@@ -151,8 +151,7 @@ void text::set_content(const std::string& content)
 		content_u8 = content;
 		
 		// Convert UTF-8 content to UTF-32
-		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
-		content_u32 = convert.from_bytes(content_u8.c_str());
+		content_u32 = type::unicode::u32(content_u8);
 		
 		// Update text in VBO
 		update_content();
