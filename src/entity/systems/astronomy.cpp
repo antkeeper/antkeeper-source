@@ -66,7 +66,8 @@ astronomy::astronomy(entity::registry& registry):
 	moon_light(nullptr),
 	camera(nullptr),
 	sky_pass(nullptr),
-	exposure_offset(0.0)
+	exposure_offset(0.0),
+	starlight_illuminance(0.0)
 {
 	// Construct transformation which transforms coordinates from ENU to EUS
 	enu_to_eus = math::transformation::se3<double>
@@ -77,6 +78,12 @@ astronomy::astronomy(entity::registry& registry):
 	
 	registry.on_construct<entity::component::celestial_body>().connect<&astronomy::on_celestial_body_construct>(this);
 	registry.on_replace<entity::component::celestial_body>().connect<&astronomy::on_celestial_body_replace>(this);
+}
+
+astronomy::~astronomy()
+{
+	registry.on_construct<entity::component::celestial_body>().disconnect<&astronomy::on_celestial_body_construct>(this);
+	registry.on_replace<entity::component::celestial_body>().disconnect<&astronomy::on_celestial_body_replace>(this);
 }
 
 void astronomy::update(double t, double dt)
@@ -271,7 +278,6 @@ void astronomy::update(double t, double dt)
 			sky_light_illuminance += sky_illuminance;
 			
 			// Add starlight illuminance to sky light illuminance
-			const double starlight_illuminance = 0.0002;
 			sky_light_illuminance += starlight_illuminance;
 			
 			// Add sky light illuminance to total illuminance
@@ -476,6 +482,11 @@ void astronomy::set_camera(scene::camera* camera)
 void astronomy::set_exposure_offset(float offset)
 {
 	exposure_offset = offset;
+}
+
+void astronomy::set_starlight_illuminance(double illuminance)
+{
+	starlight_illuminance = illuminance;
 }
 
 void astronomy::set_sky_pass(::render::sky_pass* pass)

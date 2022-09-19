@@ -43,6 +43,7 @@ class astronomy:
 {
 public:
 	astronomy(entity::registry& registry);
+	~astronomy();
 	
 	/**
 	 * Scales then adds the timestep `dt` to the current time, then recalculates the positions of celestial bodies.
@@ -86,6 +87,8 @@ public:
 	void set_camera(scene::camera* camera);
 	void set_exposure_offset(float offset);
 	
+	void set_starlight_illuminance(double illuminance);
+	
 	inline float get_exposure_offset() const { return exposure_offset; };
 	
 	void set_sky_pass(::render::sky_pass* pass);
@@ -115,6 +118,7 @@ private:
 	scene::camera* camera;
 	::render::sky_pass* sky_pass;
 	float exposure_offset;
+	double starlight_illuminance;
 };
 
 } // namespace system

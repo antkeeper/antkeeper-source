@@ -75,6 +75,7 @@ void create_stars(game::context& ctx)
 	float* star_vertex_data = new float[star_count * star_vertex_size];
 	float* star_vertex = star_vertex_data;
 	
+	// Init starlight illuminance
 	double starlight_illuminance = 0.0;
 	
 	// Build star catalog vertex data
@@ -100,14 +101,15 @@ void create_stars(game::context& ctx)
 			continue;
 		}
 		
-		starlight_illuminance += physics::light::vmag::to_illuminance(vmag);
-		
 		// Convert right ascension and declination from degrees to radians
 		ra = math::wrap_radians(math::radians(ra));
 		dec = math::wrap_radians(math::radians(dec));
 		
 		// Convert ICRF coordinates from spherical to Cartesian
 		double3 position = physics::orbit::frame::bci::cartesian(double3{1.0, dec, ra});
+		
+		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
+		double brightness = physics::light::vmag::to_brightness(vmag);
 		
 		// Convert color index to color temperature
 		double cct = color::index::bv_to_cct(bv_color);
@@ -118,23 +120,21 @@ void create_stars(game::context& ctx)
 		// Transform XYZ color to ACEScg colorspace
 		double3 color_acescg = color::xyz::to_acescg(color_xyz);
 		
-		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
-		double brightness = physics::light::vmag::to_brightness(vmag);
-		
 		// Scale color by relative brightness
-		double3 scaled_color = color_acescg * brightness;
+		color_acescg *= brightness;
 		
 		// Build vertex
 		*(star_vertex++) = static_cast<float>(position.x);
 		*(star_vertex++) = static_cast<float>(position.y);
 		*(star_vertex++) = static_cast<float>(position.z);
-		*(star_vertex++) = static_cast<float>(scaled_color.x);
-		*(star_vertex++) = static_cast<float>(scaled_color.y);
-		*(star_vertex++) = static_cast<float>(scaled_color.z);
+		*(star_vertex++) = static_cast<float>(color_acescg.x);
+		*(star_vertex++) = static_cast<float>(color_acescg.y);
+		*(star_vertex++) = static_cast<float>(color_acescg.z);
 		*(star_vertex++) = static_cast<float>(brightness);
+		
+		// Convert apparent magnitude to illuminance and add to total starlight
+		starlight_illuminance += physics::light::vmag::to_illuminance(vmag);
 	}
-	
-	std::cout << "TOTAL STARLIGHT: " << starlight_illuminance << std::endl;
 	
 	// Unload star catalog
 	ctx.resource_manager->unload("stars.csv");
@@ -188,6 +188,9 @@ void create_stars(game::context& ctx)
 	
 	// Pass stars model to sky pass
 	ctx.sky_pass->set_stars_model(stars_model);
+	
+	// Pass starlight illuminance to astronomy system
+	ctx.astronomy_system->set_starlight_illuminance(starlight_illuminance);
 }
 
 void create_sun(game::context& ctx)

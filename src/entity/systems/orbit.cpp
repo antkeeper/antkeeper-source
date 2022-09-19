@@ -29,7 +29,16 @@ orbit::orbit(entity::registry& registry):
 	ephemeris(nullptr),
 	time(0.0),
 	time_scale(1.0)
-{}
+{
+	registry.on_construct<entity::component::orbit>().connect<&orbit::on_orbit_construct>(this);
+	registry.on_replace<entity::component::orbit>().connect<&orbit::on_orbit_replace>(this);
+}
+
+orbit::~orbit()
+{
+	registry.on_construct<entity::component::orbit>().disconnect<&orbit::on_orbit_construct>(this);
+	registry.on_replace<entity::component::orbit>().disconnect<&orbit::on_orbit_replace>(this);
+}
 
 void orbit::update(double t, double dt)
 {
@@ -40,7 +49,7 @@ void orbit::update(double t, double dt)
 		return;
 	
 	// Calculate positions of ephemeris items, in meters
-	for (std::size_t i = 0; i < ephemeris->size(); ++i)
+	for (int i: ephemeris_indices)
 		positions[i] = (*ephemeris)[i].position(time) * 1000.0;
 	
 	// Propagate orbits
@@ -73,6 +82,16 @@ void orbit::set_time(double time)
 void orbit::set_time_scale(double scale)
 {
 	time_scale = scale;
+}
+
+void orbit::on_orbit_construct(entity::registry& registry, entity::id entity_id, entity::component::orbit& component)
+{
+	ephemeris_indices.insert(component.ephemeris_index);
+}
+
+void orbit::on_orbit_replace(entity::registry& registry, entity::id entity_id, entity::component::orbit& component)
+{
+	ephemeris_indices.insert(component.ephemeris_index);
 }
 
 } // namespace system

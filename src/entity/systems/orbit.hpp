@@ -25,6 +25,7 @@
 #include "entity/id.hpp"
 #include "entity/components/orbit.hpp"
 #include "physics/orbit/ephemeris.hpp"
+#include <unordered_set>
 
 namespace entity {
 namespace system {
@@ -37,6 +38,7 @@ class orbit:
 {
 public:
 	orbit(entity::registry& registry);
+	~orbit();
 	
 	/**
 	 * Scales then adds the timestep `dt` to the current time, then recalculates the positions of orbiting bodies.
@@ -68,10 +70,14 @@ public:
 	void set_ephemeris(const physics::orbit::ephemeris<double>* ephemeris);
 	
 private:
+	void on_orbit_construct(entity::registry& registry, entity::id entity_id, entity::component::orbit& component);
+	void on_orbit_replace(entity::registry& registry, entity::id entity_id, entity::component::orbit& component);
+	
 	const physics::orbit::ephemeris<double>* ephemeris;
 	double time;
 	double time_scale;
 	std::vector<double3> positions;
+	std::unordered_set<int> ephemeris_indices;
 };
 
 } // namespace system
