@@ -19,7 +19,7 @@ To suggest changes or new features, please do one of the following:
 
 ## Contributing Code
 
-If you have written code that fixes a bug or provides new funtionality, please [open a pull request](https://git.antkeeper.com/antkeeper/source/pulls) on Antkeeper Git.
+If you have written code that fixes a bug or provides new functionality, please [open a pull request](https://git.antkeeper.com/antkeeper/source/pulls) on Antkeeper Git.
 
 ### Coding Conventions
 
