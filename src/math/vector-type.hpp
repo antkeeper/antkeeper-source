@@ -28,7 +28,7 @@ namespace math {
 /**
  * An `N`-dimensional Euclidean vector.
  *
- * @tparam T Vector component type.
+ * @tparam T Scalar type.
  * @tparam N Number of dimensions.
  */
 template <typename T, std::size_t N>

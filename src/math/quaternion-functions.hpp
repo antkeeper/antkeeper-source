@@ -20,6 +20,7 @@
 #ifndef ANTKEEPER_MATH_QUATERNION_FUNCTIONS_HPP
 #define ANTKEEPER_MATH_QUATERNION_FUNCTIONS_HPP
 
+#include "math/constants.hpp"
 #include "math/matrix-type.hpp"
 #include "math/quaternion-type.hpp"
 #include "math/vector-type.hpp"
@@ -210,6 +211,20 @@ template <class T>
 quaternion<T> sub(const quaternion<T>& x, const quaternion<T>& y);
 
 /**
+ * Decomposes a quaternion into swing and twist rotation components.
+ *
+ * @param[in] q Quaternion to decompose.
+ * @param[in] a Axis of twist rotation.
+ * @param[out] swing Swing rotation component.
+ * @param[out] twist Twist rotation component.
+ * @param[in] epsilon Threshold at which a number is considered zero.
+ *
+ * @see https://www.euclideanspace.com/maths/geometry/rotations/for/decomposition/
+ */
+template <class T>
+void swing_twist(const quaternion<T>& q, const vector<T, 3>& a, quaternion<T>& qs, quaternion<T>& qt, T epsilon = T(1e-6));
+
+/**
  * Converts a 3x3 rotation matrix to a quaternion.
  *
  * @param m Rotation matrix.
@@ -284,11 +299,11 @@ quaternion<T> look_rotation(const vector<T, 3>& forward, vector<T, 3> up)
 	up = cross(right, forward);
 
 	matrix<T, 3, 3> m =
-		{{
-			{right[0], up[0], -forward[0]},
-			{right[1], up[1], -forward[1]},
-			{right[2], up[2], -forward[2]}
-		}};
+		{
+			right,
+			up,
+			-forward
+		};
 
 	// Convert to quaternion
 	return normalize(quaternion_cast(m));
@@ -297,22 +312,22 @@ quaternion<T> look_rotation(const vector<T, 3>& forward, vector<T, 3> up)
 template <class T>
 matrix<T, 3, 3> matrix_cast(const quaternion<T>& q)
 {
-	T wx = q.w * q.x;
-	T wy = q.w * q.y;
-	T wz = q.w * q.z;
-	T xx = q.x * q.x;
-	T xy = q.x * q.y;
-	T xz = q.x * q.z;
-	T yy = q.y * q.y;
-	T yz = q.y * q.z;
-	T zz = q.z * q.z;
+	const T xx = q.x * q.x;
+	const T xy = q.x * q.y;
+	const T xz = q.x * q.z;
+	const T xw = q.x * q.w;
+	const T yy = q.y * q.y;
+	const T yz = q.y * q.z;
+	const T yw = q.y * q.w;
+	const T zz = q.z * q.z;
+	const T zw = q.z * q.w;
 
 	return
-		{{
-			{T(1) - (yy + zz) * T(2), (xy + wz) * T(2), (xz - wy) * T(2)},
-			{(xy - wz) * T(2), T(1) - (xx + zz) * T(2), (yz + wx) * T(2)},
-			{(xz + wy) * T(2), (yz - wx) * T(2), T(1) - (xx + yy) * T(2)}
-		}};
+		{
+			T(1) - (yy + zz) * T(2), (xy + zw) * T(2), (xz - yw) * T(2),
+			(xy - zw) * T(2), T(1) - (xx + zz) * T(2), (yz + xw) * T(2),
+			(xz + yw) * T(2), (yz - xw) * T(2), T(1) - (xx + yy) * T(2)
+		};
 }
 
 template <class T>
@@ -349,14 +364,7 @@ inline quaternion<T> negate(const quaternion<T>& x)
 template <class T>
 quaternion<T> nlerp(const quaternion<T>& x, const quaternion<T>& y, T a)
 {
-	if (dot(x, y) < T(0))
-	{
-		return normalize(add(mul(x, T(1) - a), mul(y, -a)));
-	}
-	else
-	{
-		return normalize(add(mul(x, T(1) - a), mul(y, a)));
-	}
+	return normalize(add(mul(x, T(1) - a), mul(y, a * std::copysign(T(1), dot(x, y)))));
 }
 
 template <class T>
@@ -409,61 +417,80 @@ inline quaternion<T> sub(const quaternion<T>& x, const quaternion<T>& y)
 }
 
 template <class T>
+void swing_twist(const quaternion<T>& q, const vector<T, 3>& a, quaternion<T>& qs, quaternion<T>& qt, T epsilon)
+{
+	if (q.x * q.x + q.y * q.y + q.z * q.z > epsilon)
+	{
+		const vector<T, 3> pa = mul(a, (a.x * q.x + a.y * q.y + a.z * q.z));
+		qt = normalize(quaternion<T>{q.w, pa.x, pa.y, pa.z});
+		qs = mul(q, conjugate(qt));
+	}
+	else
+	{
+		qt = angle_axis(pi<T>, a);
+		
+		const vector<T, 3> qa = mul(q, a);
+		const vector<T, 3> sa = cross(a, qa);
+		if (length_squared(sa) > epsilon)
+			qs = angle_axis(std::acos(dot(a, qa)), sa);
+		else
+			qs = quaternion<T>::identity;
+	}
+}
+
+template <class T>
 quaternion<T> quaternion_cast(const matrix<T, 3, 3>& m)
 {
-	T r;
-	vector<T, 3> i;
-
 	T trace = m[0][0] + m[1][1] + m[2][2];
+	
 	if (trace > T(0))
 	{
 		T s = T(0.5) / std::sqrt(trace + T(1));
-		r = T(0.25) / s;
-		i =
-			{
-				(m[2][1] - m[1][2]) * s,
-				(m[0][2] - m[2][0]) * s,
-				(m[1][0] - m[0][1]) * s
-			};
+		return
+		{
+			T(0.25) / s,
+			(m[1][2] - m[2][1]) * s,
+			(m[2][0] - m[0][2]) * s,
+			(m[0][1] - m[1][0]) * s
+		};
 	}
 	else
 	{
 		if (m[0][0] > m[1][1] && m[0][0] > m[2][2])
 		{
 			T s = T(2) * std::sqrt(T(1) + m[0][0] - m[1][1] - m[2][2]);
-			r = (m[2][1] - m[1][2]) / s;
-			i =
-				{
-					T(0.25) * s,
-					(m[0][1] + m[1][0]) / s,
-					(m[0][2] + m[2][0]) / s
-				};
+			
+			return
+			{
+				(m[1][2] - m[2][1]) / s,
+				T(0.25) * s,
+				(m[1][0] + m[0][1]) / s,
+				(m[2][0] + m[0][2]) / s
+			};
 		}
 		else if (m[1][1] > m[2][2])
 		{
 			T s = T(2) * std::sqrt(T(1) + m[1][1] - m[0][0] - m[2][2]);
-			r = (m[0][2] - m[2][0]) / s;
-			i =
-				{
-					(m[0][1] + m[1][0]) / s,
-					T(0.25) * s,
-					(m[1][2] + m[2][1]) / s
-				};
+			return
+			{
+				(m[2][0] - m[0][2]) / s,
+				(m[1][0] + m[0][1]) / s,
+				T(0.25) * s,
+				(m[2][1] + m[1][2]) / s
+			};
 		}
 		else
 		{
 			T s = T(2) * std::sqrt(T(1) + m[2][2] - m[0][0] - m[1][1]);
-			r = (m[1][0] - m[0][1]) / s;
-			i = 
-				{
-					(m[0][2] + m[2][0]) / s,
-					(m[1][2] + m[2][1]) / s,
-					T(0.25) * s
-				};
+			return
+			{
+				(m[0][1] - m[1][0]) / s,
+				(m[2][0] + m[0][2]) / s,
+				(m[2][1] + m[1][2]) / s,
+				T(0.25) * s
+			};
 		}
 	}
-
-	return {r, i.x, i.y, i.z};
 }
 
 template <class T2, class T1>

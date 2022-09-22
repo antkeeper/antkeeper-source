@@ -74,6 +74,7 @@
 #include "entity/systems/atmosphere.hpp"
 #include "entity/systems/orbit.hpp"
 #include "entity/systems/proteome.hpp"
+#include "entity/systems/steering.hpp"
 #include "entity/commands.hpp"
 #include "utility/paths.hpp"
 #include "event/event-dispatcher.hpp"
@@ -872,6 +873,9 @@ void boot::setup_systems()
 	// Setup locomotion system
 	ctx.locomotion_system = new entity::system::locomotion(*ctx.entity_registry);
 	
+	// Setup steering system
+	ctx.steering_system = new entity::system::steering(*ctx.entity_registry);
+	
 	// Setup spatial system
 	ctx.spatial_system = new entity::system::spatial(*ctx.entity_registry);
 	
@@ -1125,6 +1129,7 @@ void boot::setup_loop()
 			ctx.collision_system->update(t, dt);
 			ctx.samara_system->update(t, dt);
 			ctx.behavior_system->update(t, dt);
+			ctx.steering_system->update(t, dt);
 			ctx.locomotion_system->update(t, dt);
 			ctx.camera_system->update(t, dt);
 			ctx.orbit_system->update(t, dt);

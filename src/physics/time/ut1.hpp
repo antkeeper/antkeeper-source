@@ -29,7 +29,7 @@ namespace time {
 namespace ut1 {
 
 /**
- * Converts UT1 to JD
+ * Converts UT1 to JD.
  *
  * @param t UT1 time.
  * @return JD time.

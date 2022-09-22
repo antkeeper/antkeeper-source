@@ -47,26 +47,20 @@ struct matrix
 	inline constexpr const row_type& operator[](std::size_t i) const noexcept { return columns[i]; }
 };
 
-template <typename T, std::size_t I, std::size_t ... Is>
-constexpr vector<T, sizeof...(Is)> identity_matrix_column(const std::index_sequence<Is...>&)
+template <typename T, std::size_t I, std::size_t... Is>
+constexpr vector<T, sizeof...(Is)> identity_matrix_row(const std::index_sequence<Is...>&)
 {
 	return {(Is == I ? T{1} : T{0})...};
 }
 
-template <typename T, std::size_t ... Is>
-constexpr matrix<T, sizeof...(Is), sizeof...(Is)> identity_matrix_rows(const std::index_sequence<Is...>& is)
+template <typename T, std::size_t... Is>
+constexpr matrix<T, sizeof...(Is), sizeof...(Is)> identity_matrix(const std::index_sequence<Is...>& is)
 {
-	return {{identity_matrix_column<T, Is>(is)...}};
-}
-
-template <typename T, std::size_t N>
-constexpr matrix<T, N, N> identity_matrix()
-{
-	return identity_matrix_rows<T>(std::make_index_sequence<N>{});
+	return {{identity_matrix_row<T, Is>(is)...}};
 }
 
 template <typename T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> matrix<T, N, M>::identity = identity_matrix<T, N>();
+constexpr matrix<T, N, M> matrix<T, N, M>::identity = identity_matrix<T>(std::make_index_sequence<N>{});
 
 /// 2x2 matrix.
 template <typename T>

@@ -241,15 +241,14 @@ template <std::size_t N1, std::size_t M1, class T, std::size_t N0, std::size_t M
 matrix<T, N1, M1> resize(const matrix<T, N0, M0>& m);
 
 /**
- * Rotates a matrix.
+ * Constructs a rotation matrix.
  *
- * @param m Matrix to rotate.
- * @param angle Angle of rotation (in radians).
+ * @param angle Angle of rotation, in radians.
  * @param axis Axis of rotation
- * @return Rotated matrix.
+ * @return Rotation matrix.
  */
 template <class T>
-matrix<T, 4, 4> rotate(const matrix<T, 4, 4>& m, T angle, const vector<T, 3>& axis);
+matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis);
 
 /**
  * Produces a matrix which rotates Cartesian coordinates about the x-axis by a given angle.
@@ -734,31 +733,24 @@ matrix<T, N1, M1> resize(const matrix<T, N0, M0>& m)
 }
 
 template <class T>
-matrix<T, 4, 4> rotate(const matrix<T, 4, 4>& m, T angle, const vector<T, 3>& axis)
+matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis)
 {
 	const T c = std::cos(angle);
 	const T s = std::sin(angle);
 	const vector<T, 3> temp = mul(axis, T(1) - c);
 
-	matrix<T, 4, 4> rotation;
-	rotation[0][0] = axis[0] * temp[0] + c
+	matrix<T, 3, 3> rotation;
+	rotation[0][0] = axis[0] * temp[0] + c;
 	rotation[0][1] = axis[1] * temp[0] + axis[2] * s;
 	rotation[0][2] = axis[2] * temp[0] - axis[1] * s;
-	rotation[0][3] = T(0);
-	rotation[1][0] = axis[0] * temp[1] - axis[2] * s
+	rotation[1][0] = axis[0] * temp[1] - axis[2] * s;
 	rotation[1][1] = axis[1] * temp[1] + c;
 	rotation[1][2] = axis[2] * temp[1] + axis[0] * s;
-	rotation[1][3] = T(0);
 	rotation[2][0] = axis[0] * temp[2] + axis[1] * s;
 	rotation[2][1] = axis[1] * temp[2] - axis[0] * s;
-	rotation[2][2] = axis[2] * temp[2] + c
-	rotation[2][3] = T(0);
-	rotation[3][0] = T(0);
-	rotation[3][1] = T(0);
-	rotation[3][2] = T(0);
-	rotation[3][3] = T(1);
+	rotation[2][2] = axis[2] * temp[2] + c;
 
-	return mul(m, rotation);
+	return rotation;
 }
 
 template <class T>

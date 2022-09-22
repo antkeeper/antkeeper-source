@@ -17,30 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_TIME_JD_HPP
-#define ANTKEEPER_PHYSICS_TIME_JD_HPP
+#ifndef ANTKEEPER_AI_STEERING_HPP
+#define ANTKEEPER_AI_STEERING_HPP
 
-namespace physics {
-namespace time {
-
-/// Julian day (JD).
-namespace jd {
+namespace ai {
 
 /**
- * Converts JD to UT1.
+ * Autonomous agent steering.
  *
- * @param t JD time.
- * @return UT1 time.
+ * @see Reynolds, Craig. (2002). Steering Behaviors For Autonomous Characters.
  */
-template <class T>
-T to_ut1(T t)
-{
-	return t - T(2451545);
-}
+namespace steering {}
 
-} // namespace jd
+} // namespace ai
 
-} // namespace time
-} // namespace physics
-
-#endif // ANTKEEPER_PHYSICS_TIME_JD_HPP
+#endif // ANTKEEPER_AI_STEERING_HPP

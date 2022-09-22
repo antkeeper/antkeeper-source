@@ -17,30 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_TIME_JD_HPP
-#define ANTKEEPER_PHYSICS_TIME_JD_HPP
+#include "ai/steering/behavior/seek.hpp"
 
-namespace physics {
-namespace time {
+namespace ai {
+namespace steering {
+namespace behavior {
 
-/// Julian day (JD).
-namespace jd {
-
-/**
- * Converts JD to UT1.
- *
- * @param t JD time.
- * @return UT1 time.
- */
-template <class T>
-T to_ut1(T t)
+float3 seek(const agent& agent, const float3& target)
 {
-	return t - T(2451545);
+	float3 force = {0, 0, 0};
+	const float3 difference = target - agent.position;
+	const float distance_squared = math::dot(difference, difference);
+	
+	if (distance_squared)
+	{
+		const float inverse_distance = 1.0f / std::sqrt(distance_squared);
+		force = difference * inverse_distance * agent.max_force;
+		force -= agent.velocity;
+	}
+	
+	return force;
 }
 
-} // namespace jd
-
-} // namespace time
-} // namespace physics
-
-#endif // ANTKEEPER_PHYSICS_TIME_JD_HPP
+} // namespace behavior
+} // namespace steering
+} // namespace ai

@@ -31,9 +31,6 @@ class steering:
 public:
 	steering(entity::registry& registry);
 	virtual void update(double t, double dt);
-	
-private:
-	void wander();
 };
 
 } // namespace system

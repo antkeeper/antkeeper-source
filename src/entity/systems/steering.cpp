@@ -21,6 +21,9 @@
 #include "entity/components/steering.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/id.hpp"
+#include "ai/steering/behavior/wander.hpp"
+#include "ai/steering/behavior/seek.hpp"
+#include "config.hpp"
 
 namespace entity {
 namespace system {
@@ -31,27 +34,57 @@ steering::steering(entity::registry& registry):
 
 void steering::update(double t, double dt)
 {
-	registry.view<component::transform, component::steering>().each(
-		[&](entity::id entity_id, auto& transform, auto& boid)
+	registry.view<component::steering, component::transform>().each
+	(
+		[&](entity::id entity_id, auto& steering, auto& transform)
 		{
-			// Accelerate
-			boid.velocity += boid.acceleration;
-			if (math::dot(boid.velocity, boid.velocity) > boid.max_speed * boid.max_speed)
+			auto& agent = steering.agent;
+			
+			// Update agent orientation
+			agent.orientation = transform.local.rotation;
+			
+			// Accumulate forces
+			float3 force = {0, 0, 0};
+			if (steering.wander_weight)
 			{
-				boid.velocity = math::normalize(boid.velocity) * boid.max_speed;
+				force += ai::steering::behavior::wander_2d(agent, steering.wander_noise * dt, steering.wander_distance, steering.wander_radius, steering.wander_angle) * steering.wander_weight;
+			}
+			if (steering.seek_weight)
+			{
+				force += ai::steering::behavior::seek(agent, steering.seek_target) * steering.seek_weight;
 			}
 			
-			// Clear acceleration
-			boid.acceleration = {0, 0, 0};
+			// Normalize force
+			force /= steering.weight_sum;
 			
-			// Move
-			transform.local.translation += boid.velocity;
-		});
-}
-
-void steering::wander()
-{
-	
+			// Accelerate
+			agent.acceleration = force / agent.mass;
+			agent.velocity += agent.acceleration * static_cast<float>(dt);
+			
+			// Limit speed
+			const float speed_squared = math::length_squared(agent.velocity);
+			if (speed_squared > agent.max_speed_squared)
+			{
+				const float speed = std::sqrt(speed_squared);
+				agent.velocity = (agent.velocity / speed) * agent.max_speed;
+			}
+			
+			// Move agent
+			agent.position += agent.velocity * static_cast<float>(dt);
+			
+			// Rotate agent
+			if (speed_squared)
+			{
+				agent.orientation = math::look_rotation(agent.velocity / std::sqrt(speed_squared), agent.up);
+				agent.forward = agent.orientation * config::global_forward;
+				agent.up = agent.orientation * config::global_up;
+			}
+			
+			// Update transform
+			transform.local.translation = agent.position;
+			transform.local.rotation = agent.orientation;
+		}
+	);
 }
 
 } // namespace system

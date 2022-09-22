@@ -25,7 +25,7 @@
 namespace physics {
 namespace time {
 
-// Gregorian calender time.
+/// Gregorian calender time.
 namespace gregorian {
 
 /**

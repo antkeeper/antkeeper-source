@@ -20,21 +20,30 @@
 #ifndef ANTKEEPER_ENTITY_COMPONENT_STEERING_HPP
 #define ANTKEEPER_ENTITY_COMPONENT_STEERING_HPP
 
-#include "utility/fundamental-types.hpp"
+#include "ai/steering/agent.hpp"
 
 namespace entity {
 namespace component {
 
 struct steering
 {
-	float3 velocity;
-	float3 acceleration;
-	float max_force;
-	float max_speed;
+	/// Steering agent.
+	ai::steering::agent agent;
+	
+	float wander_weight;
+	float wander_noise;
+	float wander_distance;
+	float wander_radius;
+	float wander_angle;
+	
+	float seek_weight;
+	float3 seek_target;
+	
+	float flee_weight;
+	float weight_sum;
 };
 
 } // namespace component
 } // namespace entity
 
 #endif // ANTKEEPER_ENTITY_COMPONENT_STEERING_HPP
-

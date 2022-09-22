@@ -48,7 +48,7 @@ math::vector3<T> to_cartesian(const math::vector3<T>& v)
 	{
 		x * std::cos(v[2]),
 		x * std::sin(v[2]),
-		v[0] * std::sin(v[1]),
+		v[0] * std::sin(v[1])
 	};
 }
 

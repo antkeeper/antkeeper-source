@@ -17,30 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_TIME_JD_HPP
-#define ANTKEEPER_PHYSICS_TIME_JD_HPP
+#ifndef ANTKEEPER_AI_STEERING_BEHAVIOR_FLEE_HPP
+#define ANTKEEPER_AI_STEERING_BEHAVIOR_FLEE_HPP
 
-namespace physics {
-namespace time {
+#include "ai/steering/agent.hpp"
+#include "utility/fundamental-types.hpp"
 
-/// Julian day (JD).
-namespace jd {
+namespace ai {
+namespace steering {
+namespace behavior {
 
 /**
- * Converts JD to UT1.
+ * Attempts to steer an agent so that it moves away from a target.
  *
- * @param t JD time.
- * @return UT1 time.
+ * @param agent Autonomous agent to steer.
+ * @param target Target position.
+ * @return Flee force.
  */
-template <class T>
-T to_ut1(T t)
-{
-	return t - T(2451545);
-}
+float3 flee(const agent& agent, const float3& target);
 
-} // namespace jd
+} // namespace behavior
+} // namespace steering
+} // namespace ai
 
-} // namespace time
-} // namespace physics
-
-#endif // ANTKEEPER_PHYSICS_TIME_JD_HPP
+#endif // ANTKEEPER_AI_STEERING_BEHAVIOR_FLEE_HPP

@@ -30,6 +30,7 @@
 #include "entity/components/constraints/spring-to.hpp"
 #include "entity/components/constraints/three-dof.hpp"
 #include "entity/components/constraint-stack.hpp"
+#include "entity/components/steering.hpp"
 #include "entity/commands.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
@@ -105,11 +106,54 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		// Set world time
 		const double utc = 0.0;
 		const double equinox_2000 = physics::time::gregorian::to_ut1<double>(2000, 1, 1, 12, 0, 0.0, utc);
-		const double spring_2000 = physics::time::gregorian::to_ut1<double>(2000, 6, 19, 12, 0, 0.0, utc);
-		game::world::set_time(ctx, 14622.5);
+		const double summer_2022 = physics::time::gregorian::to_ut1<double>(2022, 6, 21, 12, 0, 0.0, utc);
+		game::world::set_time(ctx, summer_2022);
 		
-		// Freeze time
+		// Set time scale
 		game::world::set_time_scale(ctx, 60.0);
+		
+		// Create boids
+		for (int i = 0; i < 20; ++i)
+		{
+			entity::id boid_eid = ctx.entity_registry->create();
+			
+			// Create transform component
+			entity::component::transform transform;
+			transform.local = math::transform<float>::identity;
+			transform.world = math::transform<float>::identity;
+			transform.warp = true;
+			ctx.entity_registry->assign<entity::component::transform>(boid_eid, transform);
+			
+			// Create model component
+			entity::component::model model;
+			model.render_model = ctx.resource_manager->load<render::model>("boid.mdl");
+			model.instance_count = 0;
+			model.layers = 1;
+			ctx.entity_registry->assign<entity::component::model>(boid_eid, model);
+			
+			// Create steering component
+			entity::component::steering steering;
+			steering.agent.mass = 1.0f;
+			steering.agent.position = {0, 0, 0};
+			steering.agent.velocity = {0, 0, 0};
+			steering.agent.acceleration = {0, 0, 0};
+			steering.agent.max_force = 2.5f;
+			steering.agent.max_speed = 5.0f;
+			steering.agent.max_speed_squared = steering.agent.max_speed * steering.agent.max_speed;
+			steering.agent.orientation = math::quaternion<float>::identity;
+			steering.agent.forward = steering.agent.orientation * config::global_forward;
+			steering.agent.up = steering.agent.orientation * config::global_up;
+			steering.wander_weight = 1.0f;
+			steering.wander_noise = math::radians(2000.0f);
+			steering.wander_distance = 10.0f;
+			steering.wander_radius = 5.0f;
+			steering.wander_angle = 0.0f;
+			steering.seek_weight = 0.2f;
+			steering.seek_target = {0, 0, 0};
+			steering.flee_weight = 0.0f;
+			steering.weight_sum = steering.wander_weight + steering.seek_weight + steering.flee_weight;
+			ctx.entity_registry->assign<entity::component::steering>(boid_eid, steering);
+		}
 	}
 	
 	// Load biome

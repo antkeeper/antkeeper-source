@@ -97,6 +97,7 @@ namespace entity
 		class render;
 		class samara;
 		class proteome;
+		class steering;
 	}
 }
 
@@ -279,6 +280,7 @@ struct context
 	entity::system::collision* collision_system;
 	entity::system::constraint* constraint_system;
 	entity::system::locomotion* locomotion_system;
+	entity::system::steering* steering_system;
 	entity::system::snapping* snapping_system;
 	entity::system::render* render_system;
 	entity::system::samara* samara_system;
