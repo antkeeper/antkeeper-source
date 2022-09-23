@@ -23,6 +23,7 @@
 /// Artificial intelligence (AI)
 namespace ai {}
 
-#include "behavior-tree.hpp"
+#include "bt/bt.hpp"
+#include "steering/steering.hpp"
 
 #endif // ANTKEEPER_AI_HPP

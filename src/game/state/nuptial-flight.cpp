@@ -113,7 +113,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		game::world::set_time_scale(ctx, 60.0);
 		
 		// Create boids
-		for (int i = 0; i < 20; ++i)
+		for (int i = 0; i < 50; ++i)
 		{
 			entity::id boid_eid = ctx.entity_registry->create();
 			
@@ -134,10 +134,10 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 			// Create steering component
 			entity::component::steering steering;
 			steering.agent.mass = 1.0f;
-			steering.agent.position = {0, 0, 0};
+			steering.agent.position = {0, 100, 0};
 			steering.agent.velocity = {0, 0, 0};
 			steering.agent.acceleration = {0, 0, 0};
-			steering.agent.max_force = 2.5f;
+			steering.agent.max_force = 4.0f;
 			steering.agent.max_speed = 5.0f;
 			steering.agent.max_speed_squared = steering.agent.max_speed * steering.agent.max_speed;
 			steering.agent.orientation = math::quaternion<float>::identity;
@@ -146,18 +146,19 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 			steering.wander_weight = 1.0f;
 			steering.wander_noise = math::radians(2000.0f);
 			steering.wander_distance = 10.0f;
-			steering.wander_radius = 5.0f;
+			steering.wander_radius = 8.0f;
 			steering.wander_angle = 0.0f;
+			steering.wander_angle2 = 0.0f;
 			steering.seek_weight = 0.2f;
-			steering.seek_target = {0, 0, 0};
+			steering.seek_target = {0, 100, 0};
 			steering.flee_weight = 0.0f;
-			steering.weight_sum = steering.wander_weight + steering.seek_weight + steering.flee_weight;
+			steering.sum_weights = steering.wander_weight + steering.seek_weight + steering.flee_weight;
 			ctx.entity_registry->assign<entity::component::steering>(boid_eid, steering);
 		}
 	}
 	
 	// Load biome
-	game::load::biome(ctx, "lab.bio");
+	game::load::biome(ctx, "desert-scrub.bio");
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);

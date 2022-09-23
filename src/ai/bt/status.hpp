@@ -17,23 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_FORAGE_HPP
-#define ANTKEEPER_GAME_STATE_FORAGE_HPP
+#ifndef ANTKEEPER_AI_BT_STATUS_HPP
+#define ANTKEEPER_AI_BT_STATUS_HPP
 
-#include "game/context.hpp"
+namespace ai {
+namespace bt {
 
-namespace game {
-namespace state {
+/// Behavior tree node return status enumerations.
+enum class status
+{
+	/// Indicates a node's execution has failed.
+	failure,
+	
+	/// Indicates a node's execution has succeeded.
+	success,
+	
+	/// Indicates a node's execution has not finished.
+	running
+};
 
-/// Forage game state functions.
-namespace forage {
+} // namespace bt
+} // namespace ai
 
-void enter(game::context* ctx);
-void exit(game::context* ctx);
-
-} // namespace forage
-
-} // namespace state
-} // namespace game
-
-#endif // ANTKEEPER_GAME_STATE_FORAGE_HPP
+#endif // ANTKEEPER_AI_BT_STATUS_HPP

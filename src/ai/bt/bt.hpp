@@ -17,23 +17,20 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_BROOD_HPP
-#define ANTKEEPER_GAME_STATE_BROOD_HPP
+#ifndef ANTKEEPER_AI_BT_HPP
+#define ANTKEEPER_AI_BT_HPP
 
-#include "game/context.hpp"
+#include <functional>
+#include <list>
 
-namespace game {
-namespace state {
+namespace ai {
 
-/// Brood game state functions.
-namespace brood {
+/// Behavior tree (BT)
+namespace bt {}
 
-void enter(game::context* ctx);
-void exit(game::context* ctx);
+} // namespace ai
 
-} // namespace brood
+#include "ai/bt/node.hpp"
+#include "ai/bt/status.hpp"
 
-} // namespace state
-} // namespace game
-
-#endif // ANTKEEPER_GAME_STATE_BROOD_HPP
+#endif // ANTKEEPER_AI_BT_HPP

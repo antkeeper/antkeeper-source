@@ -20,7 +20,6 @@
 #include "game/state/main-menu.hpp"
 #include "game/state/options-menu.hpp"
 #include "game/state/extras-menu.hpp"
-#include "game/state/forage.hpp"
 #include "game/state/nuptial-flight.hpp"
 #include "game/menu.hpp"
 #include "render/passes/clear-pass.hpp"

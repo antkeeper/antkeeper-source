@@ -30,17 +30,23 @@ struct steering
 	/// Steering agent.
 	ai::steering::agent agent;
 	
+	// Wander behavior
 	float wander_weight;
 	float wander_noise;
 	float wander_distance;
 	float wander_radius;
 	float wander_angle;
+	float wander_angle2;
 	
+	// Seek behavior
 	float seek_weight;
 	float3 seek_target;
 	
+	// Flee behavior
 	float flee_weight;
-	float weight_sum;
+	
+	/// Sum of steering behavior weights
+	float sum_weights;
 };
 
 } // namespace component

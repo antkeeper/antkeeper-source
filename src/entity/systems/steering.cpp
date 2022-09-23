@@ -47,7 +47,8 @@ void steering::update(double t, double dt)
 			float3 force = {0, 0, 0};
 			if (steering.wander_weight)
 			{
-				force += ai::steering::behavior::wander_2d(agent, steering.wander_noise * dt, steering.wander_distance, steering.wander_radius, steering.wander_angle) * steering.wander_weight;
+				//force += ai::steering::behavior::wander_2d(agent, steering.wander_noise * dt, steering.wander_distance, steering.wander_radius, steering.wander_angle) * steering.wander_weight;
+				force += ai::steering::behavior::wander_3d(agent, steering.wander_noise * dt, steering.wander_distance, steering.wander_radius, steering.wander_angle, steering.wander_angle2) * steering.wander_weight;
 			}
 			if (steering.seek_weight)
 			{
@@ -55,7 +56,8 @@ void steering::update(double t, double dt)
 			}
 			
 			// Normalize force
-			force /= steering.weight_sum;
+			if (steering.sum_weights)
+				force /= steering.sum_weights;
 			
 			// Accelerate
 			agent.acceleration = force / agent.mass;

@@ -29,6 +29,11 @@ namespace ai {
  */
 namespace steering {}
 
+#include "ai/steering/agent.hpp"
+#include "ai/steering/behavior/flee.hpp"
+#include "ai/steering/behavior/seek.hpp"
+#include "ai/steering/behavior/wander.hpp"
+
 } // namespace ai
 
 #endif // ANTKEEPER_AI_STEERING_HPP

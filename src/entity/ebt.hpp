@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_ENTITY_EBT_HPP
 #define ANTKEEPER_ENTITY_EBT_HPP
 
-#include "ai/behavior-tree.hpp"
+#include "ai/bt/bt.hpp"
 #include "entity/id.hpp"
 #include "entity/registry.hpp"
 

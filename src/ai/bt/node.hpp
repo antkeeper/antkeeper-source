@@ -17,24 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_AI_BEHAVIOR_TREE_HPP
-#define ANTKEEPER_AI_BEHAVIOR_TREE_HPP
+#ifndef ANTKEEPER_AI_BT_NODE_HPP
+#define ANTKEEPER_AI_BT_NODE_HPP
 
-#include <functional>
-#include <list>
+#include "ai/bt/status.hpp"
 
 namespace ai {
-
-/// Behavior tree (BT)
 namespace bt {
-
-/// Behavior tree node return status enumerations.
-enum class status
-{
-	failure, ///< Indicates a node's execution failed.
-	success, ///< Indicates a node's execution succeed.
-	running  ///< Indicates a node's execution has not finished.
-};
 
 /**
  * Abstract base class for behavior tree nodes.
@@ -48,16 +37,17 @@ struct node
 	typedef T context_type;
 
 	/**
-	 * Executes a node's functionality and returns its status.
+	 * Executes a node's function and returns its status.
 	 *
 	 * @param context Context data on which the node will operate.
 	 */
 	virtual status execute(context_type& context) const = 0;
 };
 
-/// A node with no children.
+/// Behavior tree node with no children.
 template <class T>
 using leaf_node = node<T>;
+
 
 /// A node with exactly one child.
 template <class T>
@@ -193,4 +183,4 @@ status selector<T>::execute(context_type& context) const
 } // namespace bt
 } // namespace ai
 
-#endif // ANTKEEPER_AI_BEHAVIOR_TREE_HPP
+#endif // ANTKEEPER_AI_BT_NODE_HPP

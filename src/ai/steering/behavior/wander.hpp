@@ -47,13 +47,12 @@ float3 wander_2d(const agent& agent, float noise, float distance, float radius, 
  * @param distance Distance to the wander sphere.
  * @param radius Radius of the wander sphere.
  * @param delta Maximum angle offset.
- * @param theta Polar wander angle, in radians.
- * @param phi Azimuthal wander angle, in radians.
- * @param[in,out] Wander angle, in radians.
+ * @param[in,out] theta Polar wander angle, in radians.
+ * @param[in,out] phi Azimuthal wander angle, in radians.
  *
  * @return Wander force.
  */
-//float3 wander_3d(const agent& agent, float distance, float radius, float delta, float& theta, float& phi);
+float3 wander_3d(const agent& agent, float noise, float distance, float radius, float& theta, float& phi);
 
 } // namespace behavior
 } // namespace steering

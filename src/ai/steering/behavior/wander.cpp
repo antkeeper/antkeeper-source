@@ -46,18 +46,14 @@ float3 wander_2d(const agent& agent, float noise, float distance, float radius, 
 	return seek(agent, center + offset);
 }
 
-/*
-float3 wander_3d(const agent& agent, float distance, float radius, float delta, float& theta, float& phi)
+float3 wander_3d(const agent& agent, float noise, float distance, float radius, float& theta, float& phi)
 {
 	// Shift wander angles
-	theta += random(-delta, delta);
-	phi += random(-delta, delta);
+	theta += math::random(-noise, noise);
+	phi += math::random(-noise, noise);
 	
 	// Calculate center of wander sphere
-	float3 center = agent.position;
-	const float speed_squared = math::dot(agent.velocity, agent.velocity);
-	if (speed_squared)
-		center += (agent.velocity / std::sqrt(speed_squared)) * distance;
+	const float3 center = agent.position + agent.forward * distance;
 	
 	// Convert spherical coordinates to Cartesian point on wander sphere
 	const float r_cos_theta = radius * std::cos(theta);
@@ -71,7 +67,6 @@ float3 wander_3d(const agent& agent, float distance, float radius, float delta, 
 	// Seek toward point on wander sphere
 	return seek(agent, center + offset);
 }
-*/
 
 } // namespace behavior
 } // namespace steering
