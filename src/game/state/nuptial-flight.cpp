@@ -143,7 +143,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	}
 	
 	// Load biome
-	game::load::biome(ctx, "desert-scrub.bio");
+	game::load::biome(ctx, "debug.bio");
 	
 	// Set world time
 	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);

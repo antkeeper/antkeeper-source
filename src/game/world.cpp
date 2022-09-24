@@ -41,6 +41,7 @@
 #include "physics/orbit/ephemeris.hpp"
 #include "physics/time/gregorian.hpp"
 #include "physics/time/constants.hpp"
+#include "physics/time/utc.hpp"
 #include "render/material.hpp"
 #include "render/model.hpp"
 #include "render/passes/shadow-map-pass.hpp"
@@ -116,7 +117,7 @@ void set_time(game::context& ctx, double t)
 
 void set_time(game::context& ctx, int year, int month, int day, int hour, int minute, double second)
 {
-	const double utc_offset = ctx.longitude / (math::two_pi<double> / 24.0);
+	const double utc_offset = physics::time::utc::offset<double>(ctx.longitude);
 	const double t = physics::time::gregorian::to_ut1<double>(year, month, day, hour, minute, second, utc_offset);
 	set_time(ctx, t);
 }

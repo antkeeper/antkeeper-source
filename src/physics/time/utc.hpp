@@ -17,20 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_TIME_HPP
-#define ANTKEEPER_PHYSICS_TIME_HPP
+#ifndef ANTKEEPER_PHYSICS_TIME_UTC_HPP
+#define ANTKEEPER_PHYSICS_TIME_UTC_HPP
+
+#include "math/constants.hpp"
 
 namespace physics {
+namespace time {
 
-/// Time-related functions.
-namespace time {}
+/// Coordinated Universal Time (UTC).
+namespace utc {
 
+/**
+ * Calculates the UTC offset at a given longitude
+ *
+ * @param longitude Longitude, in radians.
+ * @return UTC offset.
+ */
+template <class T>
+T offset(T longitude)
+{
+	return longitude / (math::two_pi<double> / 24.0);
+}
+
+} // namespace utc
+
+} // namespace time
 } // namespace physics
 
-#include "constants.hpp"
-#include "gregorian.hpp"
-#include "jd.hpp"
-#include "ut1.hpp"
-#include "utc.hpp"
-
-#endif // ANTKEEPER_PHYSICS_TIME_HPP
+#endif // ANTKEEPER_PHYSICS_TIME_UTC_HPP
