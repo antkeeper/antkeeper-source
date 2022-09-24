@@ -47,7 +47,7 @@ template <class T>
 T to_jd(int year, int month, int day, int hour, int minute, T second, T utc)
 {
 	T jdn = static_cast<T>((1461 * (year + 4800 + (month - 14) / 12)) / 4 + (367 * (month - 2 - 12 * ((month - 14) / 12))) / 12 - (3 * ((year + 4900 + (month - 14) / 12) / 100)) / 4 + day - 32075);
-	return jdn + static_cast<T>(hour - 12) / T(24) + static_cast<T>(minute) / T(1440) + static_cast<T>(second) / T(86400) + utc / T(24);
+	return jdn + static_cast<T>(hour - 12) / T(24) + static_cast<T>(minute) / T(1440) + static_cast<T>(second) / T(86400) - utc / T(24);
 }
 
 /**

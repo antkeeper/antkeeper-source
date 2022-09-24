@@ -294,6 +294,10 @@ struct context
 	entity::system::astronomy* astronomy_system;
 	entity::system::orbit* orbit_system;
 	entity::system::proteome* proteome_system;
+	
+	double elevation;
+	double latitude;
+	double longitude;
 };
 
 } // namespace game

@@ -18,6 +18,7 @@
  */
 
 #include "game/load.hpp"
+#include "game/world.hpp"
 #include "application.hpp"
 #include "debug/logger.hpp"
 #include "resources/json.hpp"
@@ -61,7 +62,8 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 			else
 				ctx.logger->warning("Biome longitude undefined");
 			
-			ctx.astronomy_system->set_observer_location({elevation, latitude, longitude});
+			// Set location
+			game::world::set_location(ctx, elevation, latitude, longitude);
 		}
 		else
 		{

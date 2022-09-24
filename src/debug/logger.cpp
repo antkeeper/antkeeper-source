@@ -21,6 +21,11 @@
 #include "utility/timestamp.hpp"
 #include <iostream>
 
+#if defined(_WIN32)
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
+#endif
+
 namespace debug {
 
 logger::logger():
@@ -84,17 +89,45 @@ void logger::log(const std::string& text)
 
 void logger::warning(const std::string& text)
 {
+	#if defined(_WIN32)
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN);
+	#endif
+	
 	log(warning_prefix + text + warning_postfix);
+	
+	#if defined(_WIN32)
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+	#endif
 }
 
 void logger::error(const std::string& text)
 {
+	#if defined(_WIN32)
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);
+	#endif
+	
 	log(error_prefix + text + error_postfix);
+	
+	#if defined(_WIN32)
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+	#endif
 }
 
 void logger::success(const std::string& text)
 {
+	/*
+	#if defined(_WIN32)
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN);
+	#endif
+	*/
+	
 	log(success_prefix + text + success_postfix);
+	
+	/*
+	#if defined(_WIN32)
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+	#endif
+	*/
 }
 
 void logger::set_auto_newline(bool enabled)
@@ -170,21 +203,21 @@ void logger::pop_task(int status, std::string error)
 		return;
 	}
 	
-	std::string message = "} ";
+	std::string message = "} => ";
 	
 	tasks.pop();
 	
 	if (status == EXIT_SUCCESS)
 	{
-		message += "=> success";
+		message += "success";
 		if (!auto_newline)
 			message += "\n";
 		
-		log(message);
+		success(message);
 	}
 	else
 	{
-		message += "failed";
+		message += "failure";
 		if (!error.empty())
 			message += " (" + error + ")";
 		if (!auto_newline)

@@ -44,7 +44,6 @@
 #include "game/load.hpp"
 #include "game/ant/breed.hpp"
 #include "game/ant/morphogenesis.hpp"
-#include "physics/time/time.hpp"
 #include "math/interpolation.hpp"
 #include <iostream>
 
@@ -75,7 +74,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	breed.sculpturing = ctx.resource_manager->load<ant::trait::sculpturing>("politus-sculpturing.dna");
 	breed.pigmentation = ctx.resource_manager->load<ant::trait::pigmentation>("rust-pigmentation.dna");
 	breed.egg = ctx.resource_manager->load<ant::trait::egg>("ellipsoid-egg.dna");
-	breed.larva = ctx.resource_manager->load<ant::trait::larva>("old-larva.dna");
+	breed.larva = ctx.resource_manager->load<ant::trait::larva>("long-neck-larva.dna");
 	breed.cocoon = ctx.resource_manager->load<ant::trait::cocoon>("cocoon-present.dna");
 	breed.pilosity = ctx.resource_manager->load<ant::trait::pilosity>("hairless-pilosity.dna");
 	breed.forewings = nullptr;
@@ -94,23 +93,9 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	
 	// Create world if not yet created
 	if (ctx.entities.find("planet") == ctx.entities.end())
-	{		
+	{
 		// Create cosmos
-		game::world::load_ephemeris(ctx);
-		game::world::create_stars(ctx);
-		game::world::create_sun(ctx);
-		game::world::create_em_bary(ctx);
-		game::world::create_earth(ctx);
-		game::world::create_moon(ctx);
-		
-		// Set world time
-		const double utc = 0.0;
-		const double equinox_2000 = physics::time::gregorian::to_ut1<double>(2000, 1, 1, 12, 0, 0.0, utc);
-		const double summer_2022 = physics::time::gregorian::to_ut1<double>(2022, 6, 21, 12, 0, 0.0, utc);
-		game::world::set_time(ctx, summer_2022);
-		
-		// Set time scale
-		game::world::set_time_scale(ctx, 60.0);
+		game::world::cosmogenesis(ctx);
 		
 		// Create boids
 		for (int i = 0; i < 50; ++i)
@@ -159,6 +144,12 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	
 	// Load biome
 	game::load::biome(ctx, "desert-scrub.bio");
+	
+	// Set world time
+	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
+	
+	// Set world time scale
+	game::world::set_time_scale(ctx, 60.0);
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);

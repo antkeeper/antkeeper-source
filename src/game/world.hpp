@@ -27,28 +27,46 @@ namespace game {
 /// World creation and manipulation functions.
 namespace world {
 
-/// Creates an ephemeris.
-void load_ephemeris(game::context& ctx);
+/// Creates the cosmos.
+void cosmogenesis(game::context& ctx);
 
-/// Creates the fixed stars.
-void create_stars(game::context& ctx);
+/**
+ * Sets the location of the observer.
+ *
+ * @param ctx Game context.
+ * @param elevation Elevation, in meters.
+ * @param latitude Latitude, in radians.
+ * @param longitude Longitude, in radians.
+ */
+void set_location(game::context& ctx, double elevation, double latitude, double longitude);
 
-/// Creates the sun.
-void create_sun(game::context& ctx);
-
-/// Creates the earth-moon barycenter.
-void create_em_bary(game::context& ctx);
-
-/// Creates the earth.
-void create_earth(game::context& ctx);
-
-/// Creates the moon.
-void create_moon(game::context& ctx);
-
-/// Sets the current time.
+/**
+ * Sets the current time.
+ *
+ * @param ctx Game context.
+ * @param t UT1 time, in days.
+ */
 void set_time(game::context& ctx, double t);
 
-/// Sets rate at which time passes.
+/**
+ * Sets the current time.
+ *
+ * @param ctx Game context.
+ * @param year Astronomical year numbering. 1 BC is `0`, 2 BC is `-1`.
+ * @param month Month number on `[1, 12]`.
+ * @param day Day number on `[1, 31]`.
+ * @param hour Hour number on `[0, 23]`.
+ * @param minute Minute number on `[0, 59]`.
+ * @param second Fractional second on `[0.0, 60.0)`.
+ */
+void set_time(game::context& ctx, int year, int month, int day, int hour, int minute, double second);
+
+/**
+ * Sets rate at which time passes.
+ *
+ * @param ctx Game context.
+ * @param scale Time scale.
+ */
 void set_time_scale(game::context& ctx, double scale);
 
 } // namespace menu

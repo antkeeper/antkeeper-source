@@ -17,19 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_TIME_HPP
-#define ANTKEEPER_PHYSICS_TIME_HPP
+#ifndef ANTKEEPER_PHYSICS_TIME_CONSTANTS_HPP
+#define ANTKEEPER_PHYSICS_TIME_CONSTANTS_HPP
 
 namespace physics {
+namespace time {
 
-/// Time-related functions.
-namespace time {}
+/// Number of seconds per day, in seconds.
+template <class T>
+constexpr T seconds_per_day = T(86400);
 
+} // namespace time
 } // namespace physics
 
-#include "constants.hpp"
-#include "gregorian.hpp"
-#include "jd.hpp"
-#include "ut1.hpp"
-
-#endif // ANTKEEPER_PHYSICS_TIME_HPP
+#endif // ANTKEEPER_PHYSICS_TIME_CONSTANTS_HPP
