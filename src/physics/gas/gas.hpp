@@ -17,19 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_HPP
-#define ANTKEEPER_PHYSICS_HPP
+#ifndef ANTKEEPER_PHYSICS_GAS_HPP
+#define ANTKEEPER_PHYSICS_GAS_HPP
 
-/// Physics
-namespace physics {}
+namespace physics {
 
-#include "constants.hpp"
-#include "frame.hpp"
-#include "number-density.hpp"
-#include "planck.hpp"
-#include "gas/gas.hpp"
-#include "light/light.hpp"
-#include "orbit/orbit.hpp"
-#include "time/time.hpp"
+/// Gas-related functions.
+namespace light {}
 
-#endif // ANTKEEPER_PHYSICS_HPP
+} // namespace physics
+
+#include "physics/gas/atmosphere.hpp"
+#include "physics/gas/ozone.hpp"
+
+#endif // ANTKEEPER_PHYSICS_GAS_HPP

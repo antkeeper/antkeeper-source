@@ -42,9 +42,16 @@ public:
 	/**
 	 * Sets the wavelengths of red, green, and blue light.
 	 *
-	 * @param wavelengths Vector containing the wavelengths of red (x), green (y), and blue (z) light, in nanometers.
+	 * @param wavelengths Vector containing the wavelengths of red (x), green (y), and blue (z) light, in meters.
 	 */
 	void set_rgb_wavelengths(const double3& wavelengths);
+	
+	/**
+	 * Sets ozone cross sections for red, green, and blue wavelengths.
+	 *
+	 * @param cross_sections Vector containing the ozone cross sections of red (x), green (y), and blue (z) light, in m-2/molecule.
+	 */
+	void set_rgb_ozone_cross_sections(const double3& cross_sections);
 	
 private:
 	void update_coefficients(entity::id entity_id);
@@ -52,8 +59,8 @@ private:
 	void on_atmosphere_construct(entity::registry& registry, entity::id entity_id, entity::component::atmosphere& atmosphere);
 	void on_atmosphere_replace(entity::registry& registry, entity::id entity_id, entity::component::atmosphere& atmosphere);
 	
-	double3 rgb_wavelengths_nm;
-	double3 rgb_wavelengths_m;
+	double3 rgb_wavelengths;
+	double3 rgb_ozone_cross_sections;
 };
 
 } // namespace system

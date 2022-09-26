@@ -30,7 +30,7 @@
 #include "physics/light/photometry.hpp"
 #include "physics/light/luminosity.hpp"
 #include "physics/light/refraction.hpp"
-#include "physics/atmosphere.hpp"
+#include "physics/gas/atmosphere.hpp"
 #include "geom/cartesian.hpp"
 #include "astro/apparent-size.hpp"
 #include "geom/solid-angle.hpp"
@@ -41,11 +41,11 @@ namespace entity {
 namespace system {
 
 template <class T>
-math::vector3<T> transmittance(T depth_r, T depth_m, T depth_o, const math::vector3<T>& beta_r, const math::vector3<T>& beta_m)
+math::vector3<T> transmittance(T depth_r, T depth_m, T depth_o, const math::vector3<T>& beta_r, const math::vector3<T>& beta_m, const math::vector3<T>& beta_o)
 {
 	math::vector3<T> transmittance_r = beta_r * depth_r;
-	math::vector3<T> transmittance_m = beta_m * 1.1 * depth_m;
-	math::vector3<T> transmittance_o = {0, 0, 0};
+	math::vector3<T> transmittance_m = beta_m * (T(10)/T(9)) * depth_m;
+	math::vector3<T> transmittance_o = beta_o * depth_o;
 	
 	math::vector3<T> t = transmittance_r + transmittance_m + transmittance_o;
 	t.x = std::exp(-t.x);
@@ -218,7 +218,7 @@ void astronomy::update(double t, double dt)
 		{
 			const entity::component::atmosphere& reference_atmosphere = registry.get<entity::component::atmosphere>(reference_entity);
 
-			// Altitude of observer in meters	
+			// Altitude of observer in meters
 			geom::ray<double> sample_ray;
 			sample_ray.origin = {0, reference_body.radius + observer_location[0], 0};
 			sample_ray.direction = math::normalize(blackbody_position_eus);
@@ -234,11 +234,11 @@ void astronomy::update(double t, double dt)
 				double3 sample_start = sample_ray.origin;
 				double3 sample_end = sample_ray.extrapolate(std::get<2>(intersection_result));
 				
-				double optical_depth_r = physics::atmosphere::optical_depth(sample_start, sample_end, reference_body.radius, reference_atmosphere.rayleigh_scale_height, 32);
-				double optical_depth_k = physics::atmosphere::optical_depth(sample_start, sample_end, reference_body.radius, reference_atmosphere.mie_scale_height, 32);
-				double optical_depth_o = 0.0;
+				double optical_depth_r = physics::gas::atmosphere::optical_depth_exp(sample_start, sample_end, reference_body.radius, reference_atmosphere.rayleigh_scale_height, 16);
+				double optical_depth_m = physics::gas::atmosphere::optical_depth_exp(sample_start, sample_end, reference_body.radius, reference_atmosphere.mie_scale_height, 16);
+				double optical_depth_o = physics::gas::atmosphere::optical_depth_tri(sample_start, sample_end, reference_body.radius, reference_atmosphere.ozone_lower_limit, reference_atmosphere.ozone_upper_limit, reference_atmosphere.ozone_mode, 16);
 				
-				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_k, optical_depth_o, reference_atmosphere.rayleigh_scattering, reference_atmosphere.mie_scattering);
+				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_m, optical_depth_o, reference_atmosphere.rayleigh_scattering, reference_atmosphere.mie_scattering, reference_atmosphere.ozone_absorption);
 			}
 			
 			// Add airglow to sky light illuminance
@@ -419,9 +419,17 @@ void astronomy::update(double t, double dt)
 		{
 			const entity::component::atmosphere& reference_atmosphere = registry.get<entity::component::atmosphere>(reference_entity);
 			
-			sky_pass->set_scale_heights(reference_atmosphere.rayleigh_scale_height, reference_atmosphere.mie_scale_height);
+			sky_pass->set_particle_distributions
+			(
+				static_cast<float>(reference_atmosphere.rayleigh_scale_height),
+				static_cast<float>(reference_atmosphere.mie_scale_height),
+				static_cast<float>(reference_atmosphere.ozone_lower_limit),
+				static_cast<float>(reference_atmosphere.ozone_upper_limit),
+				static_cast<float>(reference_atmosphere.ozone_mode)
+			);
 			sky_pass->set_scattering_coefficients(math::type_cast<float>(reference_atmosphere.rayleigh_scattering), math::type_cast<float>(reference_atmosphere.mie_scattering));
 			sky_pass->set_mie_anisotropy(reference_atmosphere.mie_anisotropy);
+			sky_pass->set_absorption_coefficients(math::type_cast<float>(reference_atmosphere.ozone_absorption));
 			sky_pass->set_atmosphere_radii(reference_body.radius, reference_body.radius + reference_atmosphere.exosphere_altitude);
 		}
 	}

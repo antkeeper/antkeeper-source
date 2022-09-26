@@ -98,7 +98,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		game::world::cosmogenesis(ctx);
 		
 		// Create boids
-		for (int i = 0; i < 50; ++i)
+		for (int i = 0; i < 100; ++i)
 		{
 			entity::id boid_eid = ctx.entity_registry->create();
 			
@@ -143,7 +143,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	}
 	
 	// Load biome
-	game::load::biome(ctx, "debug.bio");
+	game::load::biome(ctx, "desert-scrub.bio");
 	
 	// Set world time
 	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
@@ -353,7 +353,7 @@ void nuptial_flight::enable_keeper_controls()
 	bool mouse_look_toggle = false;
 	ctx.mouse_look = false;
 	const double time_scale = 60.0;
-	const double ff_time_scale = 50000.0;
+	const double ff_time_scale = time_scale * 200;
 	
 	if (ctx.config->contains("mouse_tilt_sensitivity"))
 		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());
@@ -668,22 +668,22 @@ void nuptial_flight::enable_keeper_controls()
 		}
 	);
 	
-	ctx.controls["increase_exposure"]->set_activated_callback
+	ctx.controls["increase_exposure"]->set_active_callback
 	(
-		[&ctx = this->ctx]()
+		[&ctx = this->ctx](float)
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() - 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 1.0f);
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 3.0f * (1.0f / 60.0f));
 			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
 	
-	ctx.controls["decrease_exposure"]->set_activated_callback
+	ctx.controls["decrease_exposure"]->set_active_callback
 	(
-		[&ctx = this->ctx]()
+		[&ctx = this->ctx](float)
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() + 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 1.0f);
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 3.0f * (1.0f / 60.0f));
 			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
@@ -735,7 +735,7 @@ void nuptial_flight::enable_ant_controls()
 	bool gamepad_invert_tilt = false;
 	bool gamepad_invert_pan = false;
 	const double time_scale = 60.0;
-	const double ff_time_scale = 50000.0;
+	const double ff_time_scale = time_scale * 200;
 	
 	if (ctx.config->contains("mouse_tilt_sensitivity"))
 		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());

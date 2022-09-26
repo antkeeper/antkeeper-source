@@ -49,14 +49,32 @@ struct atmosphere
 	/// Mie phase function anisotropy factor.
 	double mie_anisotropy;
 	
-	/// (Dependent) Rayleigh scattering coefficients at sea level.
-	double3 rayleigh_scattering;
-	
-	/// (Dependent) Mie scattering coefficients at sea level.
-	double3 mie_scattering;
-	
 	/// Airglow, in lux.
 	double airglow;
+	
+	/// Molar concentration of air at sea level, in mol/m-3.
+	double air_concentration;
+	
+	/// Concentration of ozone in the atmosphere, unitless.
+	double ozone_concentration;
+	
+	/// Elevation of the lower limit of the ozone triangular distribution, in meters.
+	double ozone_lower_limit;
+	
+	/// Elevation of the upper limit of the ozone triangular distribution, in meters.
+	double ozone_upper_limit;
+	
+	/// Elevation of the mode of the ozone triangular distribution, in meters.
+	double ozone_mode;
+	
+	/// (Dependent) Rayleigh scattering coefficients.
+	double3 rayleigh_scattering;
+	
+	/// (Dependent) Mie scattering coefficients.
+	double3 mie_scattering;
+	
+	/// (Dependent) Ozone absorption coefficients.
+	double3 ozone_absorption;
 };
 
 } // namespace component

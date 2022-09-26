@@ -17,19 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_HPP
-#define ANTKEEPER_PHYSICS_HPP
+#ifndef ANTKEEPER_PHYSICS_NUMBER_DENSITY_HPP
+#define ANTKEEPER_PHYSICS_NUMBER_DENSITY_HPP
 
-/// Physics
-namespace physics {}
+#include "physics/constants.hpp"
 
-#include "constants.hpp"
-#include "frame.hpp"
-#include "number-density.hpp"
-#include "planck.hpp"
-#include "gas/gas.hpp"
-#include "light/light.hpp"
-#include "orbit/orbit.hpp"
-#include "time/time.hpp"
+namespace physics {
 
-#endif // ANTKEEPER_PHYSICS_HPP
+/**
+ * Calculates the number density of a substance.
+ *
+ * @param c Molar concentration, in mol/m-3.
+ * @return Number density, in m-3.
+ *
+ * @see https://en.wikipedia.org/wiki/Number_density
+ */
+template <class T>
+T number_density(T c)
+{
+	return physics::constants::avogadro<T> * c;
+}
+
+} // namespace physics
+
+#endif // ANTKEEPER_PHYSICS_NUMBER_DENSITY_HPP

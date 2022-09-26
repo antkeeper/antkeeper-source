@@ -92,6 +92,8 @@
 #include "game/menu.hpp"
 #include "game/graphics.hpp"
 #include "utility/timestamp.hpp"
+#include "color/color.hpp"
+#include "physics/gas/ozone.hpp"
 #include <cxxopts.hpp>
 #include <entt/entt.hpp>
 #include <filesystem>
@@ -832,8 +834,19 @@ void boot::setup_systems()
 	const auto& viewport_dimensions = ctx.app->get_viewport_dimensions();
 	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_dimensions[0]), static_cast<float>(viewport_dimensions[1])};
 	
-	// RGB wavelengths determined by matching wavelengths to XYZ, transforming XYZ to ACEScg, then selecting the max wavelengths for R, G, and B.
-	const double3 rgb_wavelengths_nm = {602.224, 541.069, 448.143};
+	// RGB wavelengths
+	const double3 rgb_wavelengths_nm = {680, 550, 440};
+	const double3 rgb_wavelengths_m = rgb_wavelengths_nm * 1e-9;
+	
+	// Ozone cross sections
+	double3 rgb_ozone_cross_sections_293k =
+	{
+		physics::gas::ozone::cross_section_680nm_293k<double>,
+		physics::gas::ozone::cross_section_550nm_293k<double>,
+		physics::gas::ozone::cross_section_440nm_293k<double>
+	};
+	
+	rgb_ozone_cross_sections_293k = rgb_ozone_cross_sections_293k;
 	
 	// Setup terrain system
 	ctx.terrain_system = new entity::system::terrain(*ctx.entity_registry);
@@ -891,11 +904,11 @@ void boot::setup_systems()
 	
 	// Setup blackbody system
 	ctx.blackbody_system = new entity::system::blackbody(*ctx.entity_registry);
-	ctx.blackbody_system->set_rgb_wavelengths(rgb_wavelengths_nm);
 	
 	// Setup atmosphere system
 	ctx.atmosphere_system = new entity::system::atmosphere(*ctx.entity_registry);
-	ctx.atmosphere_system->set_rgb_wavelengths(rgb_wavelengths_nm);
+	ctx.atmosphere_system->set_rgb_wavelengths(rgb_wavelengths_m);
+	ctx.atmosphere_system->set_rgb_ozone_cross_sections(rgb_ozone_cross_sections_293k);
 	
 	// Setup astronomy system
 	ctx.astronomy_system = new entity::system::astronomy(*ctx.entity_registry);

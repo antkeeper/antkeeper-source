@@ -41,13 +41,6 @@ public:
 	
 	virtual void update(double t, double dt);
 	
-	/**
-	 * Sets the wavelengths of red, green, and blue light.
-	 *
-	 * @param wavelengths Vector containing the wavelengths of red (x), green (y), and blue (z) light, in nanometers.
-	 */
-	void set_rgb_wavelengths(const double3& wavelengths);
-	
 private:
 	void update_luminance(entity::id entity_id);
 	
@@ -57,8 +50,6 @@ private:
 	void on_celestial_body_construct(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body);
 	void on_celestial_body_replace(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body);
 	
-	double3 rgb_wavelengths_nm;
-	double3 rgb_wavelengths_m;
 	std::vector<double> visible_wavelengths_nm;
 };
 

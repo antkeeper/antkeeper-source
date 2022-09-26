@@ -56,6 +56,16 @@ static bool load_component_atmosphere(entity::archetype& archetype, const json& 
 		component.mie_anisotropy = element["mie_anisotropy"].get<double>();
 	if (element.contains("airglow"))
 		component.airglow = element["airglow"].get<double>();
+	if (element.contains("air_concentration"))
+		component.air_concentration = element["air_concentration"].get<double>();
+	if (element.contains("ozone_concentration"))
+		component.ozone_concentration = element["ozone_concentration"].get<double>();
+	if (element.contains("ozone_lower_limit"))
+		component.ozone_lower_limit = element["ozone_lower_limit"].get<double>();
+	if (element.contains("ozone_upper_limit"))
+		component.ozone_upper_limit = element["ozone_upper_limit"].get<double>();
+	if (element.contains("ozone_mode"))
+		component.ozone_mode = element["ozone_mode"].get<double>();
 
 	archetype.set<entity::component::atmosphere>(component);
 

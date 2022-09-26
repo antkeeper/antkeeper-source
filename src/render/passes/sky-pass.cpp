@@ -160,14 +160,18 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 		if (sun_illuminance_input)
 			sun_illuminance_input->upload(sun_illuminance);
 		
-		if (scale_height_rm_input)
-			scale_height_rm_input->upload(scale_height_rm);
+		if (distribution_rm_input)
+			distribution_rm_input->upload(distribution_rm);
+		if (distribution_o_input)
+			distribution_o_input->upload(distribution_o);
 		if (rayleigh_scattering_input)
 			rayleigh_scattering_input->upload(rayleigh_scattering);
 		if (mie_scattering_input)
 			mie_scattering_input->upload(mie_scattering);
 		if (mie_anisotropy_input)
 			mie_anisotropy_input->upload(mie_anisotropy);
+		if (ozone_absorption_input)
+			ozone_absorption_input->upload(ozone_absorption);
 		if (atmosphere_radii_input)
 			atmosphere_radii_input->upload(atmosphere_radii);
 		
@@ -299,10 +303,12 @@ void sky_pass::set_sky_model(const model* model)
 				sun_luminance_input = sky_shader_program->get_input("sun_luminance");
 				sun_illuminance_input = sky_shader_program->get_input("sun_illuminance");
 				sun_angular_radius_input = sky_shader_program->get_input("sun_angular_radius");
-				scale_height_rm_input = sky_shader_program->get_input("scale_height_rm");
+				distribution_rm_input = sky_shader_program->get_input("distribution_rm");
+				distribution_o_input = sky_shader_program->get_input("distribution_o");
 				rayleigh_scattering_input = sky_shader_program->get_input("rayleigh_scattering");
 				mie_scattering_input = sky_shader_program->get_input("mie_scattering");
 				mie_anisotropy_input = sky_shader_program->get_input("mie_anisotropy");
+				ozone_absorption_input = sky_shader_program->get_input("ozone_absorption");
 				atmosphere_radii_input = sky_shader_program->get_input("atmosphere_radii");
 			}
 		}
@@ -480,9 +486,20 @@ void sky_pass::set_observer_altitude(float altitude)
 	observer_altitude_tween[1] = altitude;
 }
 
-void sky_pass::set_scale_heights(float rayleigh, float mie)
+void sky_pass::set_particle_distributions(float rayleigh_scale_height, float mie_scale_height, float ozone_lower_limit, float ozone_upper_limit, float ozone_mode)
 {
-	scale_height_rm = {rayleigh, mie};
+	distribution_rm =
+	{
+		-1.0f / rayleigh_scale_height,
+		-1.0f / mie_scale_height
+	};
+	
+	distribution_o =
+	{
+		1.0f / (ozone_lower_limit - ozone_mode),
+		1.0f / (ozone_upper_limit - ozone_mode),
+		ozone_mode
+	};
 }
 
 void sky_pass::set_scattering_coefficients(const float3& r, const float3& m)
@@ -494,6 +511,11 @@ void sky_pass::set_scattering_coefficients(const float3& r, const float3& m)
 void sky_pass::set_mie_anisotropy(float g)
 {
 	mie_anisotropy = {g, g * g};
+}
+
+void sky_pass::set_absorption_coefficients(const float3& o)
+{
+	ozone_absorption = o;
 }
 
 void sky_pass::set_atmosphere_radii(float inner, float outer)

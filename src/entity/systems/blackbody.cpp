@@ -27,9 +27,7 @@ namespace entity {
 namespace system {
 
 blackbody::blackbody(entity::registry& registry):
-	updatable(registry),
-	rgb_wavelengths_nm{0, 0, 0},
-	rgb_wavelengths_m{0, 0, 0}
+	updatable(registry)
 {
 	// Construct a range of sample wavelengths in the visible spectrum
 	visible_wavelengths_nm.resize(780 - 280);
@@ -44,12 +42,6 @@ blackbody::blackbody(entity::registry& registry):
 
 void blackbody::update(double t, double dt)
 {}
-
-void blackbody::set_rgb_wavelengths(const double3& wavelengths)
-{
-	rgb_wavelengths_nm = wavelengths;
-	rgb_wavelengths_m = wavelengths * 1e-9;
-}
 
 void blackbody::update_luminance(entity::id entity_id)
 {
