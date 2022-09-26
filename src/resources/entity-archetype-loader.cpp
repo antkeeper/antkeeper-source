@@ -40,33 +40,37 @@ static bool load_component_atmosphere(entity::archetype& archetype, const json& 
 {
 	entity::component::atmosphere component;
 	
-	if (element.contains("exosphere_altitude"))
-		component.exosphere_altitude = element["exosphere_altitude"].get<double>();
+	if (element.contains("upper_limit"))
+		component.upper_limit = element["upper_limit"].get<double>();
 	if (element.contains("index_of_refraction"))
 		component.index_of_refraction = element["index_of_refraction"].get<double>();
-	if (element.contains("rayleigh_density"))
-		component.rayleigh_density = element["rayleigh_density"].get<double>();
-	if (element.contains("mie_density"))
-		component.mie_density = element["mie_density"].get<double>();
-	if (element.contains("rayleigh_scale_height"))
-		component.rayleigh_scale_height = element["rayleigh_scale_height"].get<double>();
-	if (element.contains("mie_scale_height"))
-		component.mie_scale_height = element["mie_scale_height"].get<double>();
-	if (element.contains("mie_anisotropy"))
-		component.mie_anisotropy = element["mie_anisotropy"].get<double>();
-	if (element.contains("airglow"))
-		component.airglow = element["airglow"].get<double>();
 	if (element.contains("air_concentration"))
 		component.air_concentration = element["air_concentration"].get<double>();
-	if (element.contains("ozone_concentration"))
-		component.ozone_concentration = element["ozone_concentration"].get<double>();
+	
+	if (element.contains("rayleigh_scale_height"))
+		component.rayleigh_scale_height = element["rayleigh_scale_height"].get<double>();
+	if (element.contains("rayleigh_density"))
+		component.rayleigh_density = element["rayleigh_density"].get<double>();
+	
+	if (element.contains("mie_scale_height"))
+		component.mie_scale_height = element["mie_scale_height"].get<double>();
+	if (element.contains("mie_density"))
+		component.mie_density = element["mie_density"].get<double>();
+	if (element.contains("mie_anisotropy"))
+		component.mie_anisotropy = element["mie_anisotropy"].get<double>();
+	
 	if (element.contains("ozone_lower_limit"))
 		component.ozone_lower_limit = element["ozone_lower_limit"].get<double>();
 	if (element.contains("ozone_upper_limit"))
 		component.ozone_upper_limit = element["ozone_upper_limit"].get<double>();
 	if (element.contains("ozone_mode"))
 		component.ozone_mode = element["ozone_mode"].get<double>();
-
+	if (element.contains("ozone_concentration"))
+		component.ozone_concentration = element["ozone_concentration"].get<double>();
+	
+	if (element.contains("airglow"))
+		component.airglow = element["airglow"].get<double>();
+	
 	archetype.set<entity::component::atmosphere>(component);
 
 	return true;

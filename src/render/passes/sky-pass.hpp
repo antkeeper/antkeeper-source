@@ -68,12 +68,12 @@ public:
 	void set_sun_luminance(const float3& luminance);
 	void set_sun_illuminance(const float3& illuminance);
 	void set_sun_angular_radius(float radius);
-	void set_observer_altitude(float altitude);
-	void set_scattering_coefficients(const float3& r, const float3& m);
-	void set_mie_anisotropy(float g);
-	void set_absorption_coefficients(const float3& o);
-	void set_atmosphere_radii(float inner, float outer);
-	void set_particle_distributions(float rayleigh_scale_height, float mie_scale_height, float ozone_lower_limit, float ozone_upper_limit, float ozone_mode);
+	void set_planet_radius(float radius);
+	void set_atmosphere_upper_limit(float limit);
+	void set_observer_elevation(float elevation);
+	void set_rayleigh_parameters(float scale_height, const float3& scattering);
+	void set_mie_parameters(float scale_height, float scattering, float absorption, float anisotropy);
+	void set_ozone_parameters(float lower_limit, float upper_limit, float mode, const float3& absorption);
 	
 	void set_moon_position(const float3& position);
 	void set_moon_rotation(const math::quaternion<float>& rotation);
@@ -92,19 +92,16 @@ private:
 	const gl::shader_input* resolution_input;
 	const gl::shader_input* time_input;
 	const gl::shader_input* exposure_input;
-	const gl::shader_input* observer_altitude_input;
 	const gl::shader_input* sun_direction_input;
 	const gl::shader_input* sun_luminance_input;
 	const gl::shader_input* sun_illuminance_input;
 	const gl::shader_input* sun_angular_radius_input;
-	const gl::shader_input* distribution_rm_input;
-	const gl::shader_input* distribution_o_input;
-	const gl::shader_input* rayleigh_scattering_input;
-	const gl::shader_input* mie_scattering_input;
-	const gl::shader_input* mie_anisotropy_input;
-	const gl::shader_input* ozone_absorption_input;
 	const gl::shader_input* atmosphere_radii_input;
-
+	const gl::shader_input* observer_elevation_input;
+	const gl::shader_input* rayleigh_parameters_input;
+	const gl::shader_input* mie_parameters_input;
+	const gl::shader_input* ozone_distribution_input;
+	const gl::shader_input* ozone_absorption_input;
 	
 	gl::shader_program* moon_shader_program;
 	const gl::shader_input* moon_model_input;
@@ -161,7 +158,7 @@ private:
 	const gl::texture_2d* sky_gradient2;
 	float2 mouse_position;
 	
-	tween<float> observer_altitude_tween;
+	tween<float> observer_elevation_tween;
 	tween<float3> sun_position_tween;
 	tween<float3> sun_luminance_tween;
 	tween<float3> sun_illuminance_tween;
@@ -177,13 +174,13 @@ private:
 	tween<float3> moon_planetlight_illuminance_tween;
 	
 	float sun_angular_radius;
-	float3 rayleigh_scattering;
-	float3 mie_scattering;
-	float2 mie_anisotropy;
-	float3 ozone_absorption;
+	float atmosphere_upper_limit;
 	float3 atmosphere_radii;
-	float2 distribution_rm;
-	float3 distribution_o;
+	float observer_elevation;
+	float4 rayleigh_parameters;
+	float4 mie_parameters;
+	float3 ozone_distribution;
+	float3 ozone_absorption;
 	
 	float magnification;
 };

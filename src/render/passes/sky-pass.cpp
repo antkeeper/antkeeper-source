@@ -68,7 +68,7 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	clouds_model_vao(nullptr),
 	cloud_material(nullptr),
 	cloud_shader_program(nullptr),
-	observer_altitude_tween(0.0f, math::lerp<float, float>),
+	observer_elevation_tween(0.0f, math::lerp<float, float>),
 	sun_position_tween(float3{1.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
 	sun_luminance_tween(float3{0.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
 	sun_illuminance_tween(float3{0.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
@@ -113,8 +113,8 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	float4x4 view_projection = projection * view;
 	float4x4 model_view_projection = projection * model_view;
 	
-	// Interpolate observer altitude
-	float observer_altitude = observer_altitude_tween.interpolate(ctx.alpha);
+	// Interpolate observer elevation
+	float observer_elevation = observer_elevation_tween.interpolate(ctx.alpha);
 	
 	// Construct tweened ICRF to EUS transformation
 	math::transformation::se3<float> icrf_to_eus =
@@ -147,33 +147,26 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 			time_input->upload(ctx.t);
 		if (exposure_input)
 			exposure_input->upload(ctx.exposure);
-		
-		if (observer_altitude_input)
-			observer_altitude_input->upload(observer_altitude);
 		if (sun_direction_input)
 			sun_direction_input->upload(sun_direction);
-		if (sun_angular_radius_input)
-			sun_angular_radius_input->upload(sun_angular_radius * magnification);
-		
 		if (sun_luminance_input)
 			sun_luminance_input->upload(sun_luminance);
 		if (sun_illuminance_input)
 			sun_illuminance_input->upload(sun_illuminance);
-		
-		if (distribution_rm_input)
-			distribution_rm_input->upload(distribution_rm);
-		if (distribution_o_input)
-			distribution_o_input->upload(distribution_o);
-		if (rayleigh_scattering_input)
-			rayleigh_scattering_input->upload(rayleigh_scattering);
-		if (mie_scattering_input)
-			mie_scattering_input->upload(mie_scattering);
-		if (mie_anisotropy_input)
-			mie_anisotropy_input->upload(mie_anisotropy);
-		if (ozone_absorption_input)
-			ozone_absorption_input->upload(ozone_absorption);
+		if (sun_angular_radius_input)
+			sun_angular_radius_input->upload(sun_angular_radius * magnification);
 		if (atmosphere_radii_input)
 			atmosphere_radii_input->upload(atmosphere_radii);
+		if (observer_elevation_input)
+			observer_elevation_input->upload(observer_elevation);
+		if (rayleigh_parameters_input)
+			rayleigh_parameters_input->upload(rayleigh_parameters);
+		if (mie_parameters_input)
+			mie_parameters_input->upload(mie_parameters);
+		if (ozone_distribution_input)
+			ozone_distribution_input->upload(ozone_distribution);
+		if (ozone_absorption_input)
+			ozone_absorption_input->upload(ozone_absorption);
 		
 		sky_material->upload(ctx.alpha);
 
@@ -296,20 +289,17 @@ void sky_pass::set_sky_model(const model* model)
 				mouse_input = sky_shader_program->get_input("mouse");
 				resolution_input = sky_shader_program->get_input("resolution");
 				time_input = sky_shader_program->get_input("time");
-				exposure_input = sky_shader_program->get_input("camera.exposure");
-
-				observer_altitude_input = sky_shader_program->get_input("observer_altitude");
+				exposure_input = sky_shader_program->get_input("camera.exposure");				
 				sun_direction_input = sky_shader_program->get_input("sun_direction");
 				sun_luminance_input = sky_shader_program->get_input("sun_luminance");
 				sun_illuminance_input = sky_shader_program->get_input("sun_illuminance");
 				sun_angular_radius_input = sky_shader_program->get_input("sun_angular_radius");
-				distribution_rm_input = sky_shader_program->get_input("distribution_rm");
-				distribution_o_input = sky_shader_program->get_input("distribution_o");
-				rayleigh_scattering_input = sky_shader_program->get_input("rayleigh_scattering");
-				mie_scattering_input = sky_shader_program->get_input("mie_scattering");
-				mie_anisotropy_input = sky_shader_program->get_input("mie_anisotropy");
-				ozone_absorption_input = sky_shader_program->get_input("ozone_absorption");
 				atmosphere_radii_input = sky_shader_program->get_input("atmosphere_radii");
+				observer_elevation_input = sky_shader_program->get_input("observer_elevation");
+				rayleigh_parameters_input = sky_shader_program->get_input("rayleigh_parameters");
+				mie_parameters_input = sky_shader_program->get_input("mie_parameters");
+				ozone_distribution_input = sky_shader_program->get_input("ozone_distribution");
+				ozone_absorption_input = sky_shader_program->get_input("ozone_absorption");
 			}
 		}
 	}
@@ -434,7 +424,7 @@ void sky_pass::set_clouds_model(const model* model)
 
 void sky_pass::update_tweens()
 {
-	observer_altitude_tween.update();
+	observer_elevation_tween.update();
 	sun_position_tween.update();
 	sun_luminance_tween.update();
 	sun_illuminance_tween.update();
@@ -481,48 +471,56 @@ void sky_pass::set_sun_angular_radius(float radius)
 	sun_angular_radius = radius;
 }
 
-void sky_pass::set_observer_altitude(float altitude)
+void sky_pass::set_planet_radius(float radius)
 {
-	observer_altitude_tween[1] = altitude;
+	atmosphere_radii.x = radius;
+	atmosphere_radii.y = atmosphere_radii.x + atmosphere_upper_limit;
+	atmosphere_radii.z = atmosphere_radii.y * atmosphere_radii.y;
 }
 
-void sky_pass::set_particle_distributions(float rayleigh_scale_height, float mie_scale_height, float ozone_lower_limit, float ozone_upper_limit, float ozone_mode)
+void sky_pass::set_atmosphere_upper_limit(float limit)
 {
-	distribution_rm =
+	atmosphere_upper_limit = limit;
+	atmosphere_radii.y = atmosphere_radii.x + atmosphere_upper_limit;
+	atmosphere_radii.z = atmosphere_radii.y * atmosphere_radii.y;
+}
+
+void sky_pass::set_observer_elevation(float elevation)
+{
+	observer_elevation_tween[1] = elevation;
+}
+
+void sky_pass::set_rayleigh_parameters(float scale_height, const float3& scattering)
+{
+	rayleigh_parameters =
 	{
-		-1.0f / rayleigh_scale_height,
-		-1.0f / mie_scale_height
+		-1.0f / scale_height,
+		scattering.x,
+		scattering.y,
+		scattering.z
 	};
-	
-	distribution_o =
+}
+
+void sky_pass::set_mie_parameters(float scale_height, float scattering, float absorption, float anisotropy)
+{
+	mie_parameters =
 	{
-		1.0f / (ozone_lower_limit - ozone_mode),
-		1.0f / (ozone_upper_limit - ozone_mode),
-		ozone_mode
+		-1.0f / scale_height,
+		scattering,
+		absorption,
+		anisotropy
 	};
 }
 
-void sky_pass::set_scattering_coefficients(const float3& r, const float3& m)
+void sky_pass::set_ozone_parameters(float lower_limit, float upper_limit, float mode, const float3& absorption)
 {
-	rayleigh_scattering = r;
-	mie_scattering = m;
-}
-
-void sky_pass::set_mie_anisotropy(float g)
-{
-	mie_anisotropy = {g, g * g};
-}
-
-void sky_pass::set_absorption_coefficients(const float3& o)
-{
-	ozone_absorption = o;
-}
-
-void sky_pass::set_atmosphere_radii(float inner, float outer)
-{
-	atmosphere_radii.x = inner;
-	atmosphere_radii.y = outer;
-	atmosphere_radii.z = outer * outer;
+	ozone_distribution =
+	{
+		1.0f / (lower_limit - mode),
+		1.0f / (upper_limit - mode),
+		mode
+	};
+	ozone_absorption = absorption;
 }
 
 void sky_pass::set_moon_position(const float3& position)

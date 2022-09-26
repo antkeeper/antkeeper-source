@@ -24,6 +24,7 @@
 #include "entity/id.hpp"
 #include "utility/fundamental-types.hpp"
 #include "entity/components/atmosphere.hpp"
+#include "render/passes/sky-pass.hpp"
 
 namespace entity {
 namespace system {
@@ -53,14 +54,20 @@ public:
 	 */
 	void set_rgb_ozone_cross_sections(const double3& cross_sections);
 	
-private:
-	void update_coefficients(entity::id entity_id);
+	void set_sky_pass(::render::sky_pass* pass);
 	
-	void on_atmosphere_construct(entity::registry& registry, entity::id entity_id, entity::component::atmosphere& atmosphere);
-	void on_atmosphere_replace(entity::registry& registry, entity::id entity_id, entity::component::atmosphere& atmosphere);
+private:
+	void atmosphere_modified();
+	void update_sky_pass();
+	
+	void on_atmosphere_construct(entity::registry& registry, entity::id entity_id, entity::component::atmosphere& component);
+	void on_atmosphere_replace(entity::registry& registry, entity::id entity_id, entity::component::atmosphere& component);
+	void on_atmosphere_destroy(entity::registry& registry, entity::id entity_id);
 	
 	double3 rgb_wavelengths;
 	double3 rgb_ozone_cross_sections;
+	entity::component::atmosphere* atmosphere_component;
+	::render::sky_pass* sky_pass;
 };
 
 } // namespace system

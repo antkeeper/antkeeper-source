@@ -909,6 +909,7 @@ void boot::setup_systems()
 	ctx.atmosphere_system = new entity::system::atmosphere(*ctx.entity_registry);
 	ctx.atmosphere_system->set_rgb_wavelengths(rgb_wavelengths_m);
 	ctx.atmosphere_system->set_rgb_ozone_cross_sections(rgb_ozone_cross_sections_293k);
+	ctx.atmosphere_system->set_sky_pass(ctx.sky_pass);
 	
 	// Setup astronomy system
 	ctx.astronomy_system = new entity::system::astronomy(*ctx.entity_registry);

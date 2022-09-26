@@ -28,53 +28,56 @@ namespace component {
 /// Atmosphere
 struct atmosphere
 {
-	/// Altitude of the outer atmosphere, in meters.
-	double exosphere_altitude;
+	/// Elevation of the upper limit of the atmosphere, in meters.
+	double upper_limit;
 	
-	/// Atmospheric index of refraction at sea level.
+	/// Index of refraction of air at sea level.
 	double index_of_refraction;
-	
-	/// Molecular density of Rayleigh particles at sea level.
-	double rayleigh_density;
-	
-	/// Molecular density of Mie particles at sea level.
-	double mie_density;
-	
-	/// Rayleigh scale height, in meters.
-	double rayleigh_scale_height;
-	
-	/// Mie scale height, in meters.
-	double mie_scale_height;
-	
-	/// Mie phase function anisotropy factor.
-	double mie_anisotropy;
-	
-	/// Airglow, in lux.
-	double airglow;
 	
 	/// Molar concentration of air at sea level, in mol/m-3.
 	double air_concentration;
 	
-	/// Concentration of ozone in the atmosphere, unitless.
-	double ozone_concentration;
+	/// Scale height of the exponential distribution of Rayleigh particles, in meters.
+	double rayleigh_scale_height;
 	
-	/// Elevation of the lower limit of the ozone triangular distribution, in meters.
-	double ozone_lower_limit;
-	
-	/// Elevation of the upper limit of the ozone triangular distribution, in meters.
-	double ozone_upper_limit;
-	
-	/// Elevation of the mode of the ozone triangular distribution, in meters.
-	double ozone_mode;
+	/// Molecular density of Rayleigh particles at sea level.
+	double rayleigh_density;
 	
 	/// (Dependent) Rayleigh scattering coefficients.
 	double3 rayleigh_scattering;
 	
-	/// (Dependent) Mie scattering coefficients.
-	double3 mie_scattering;
+	/// Scale height of the exponential distribution of Mie particles, in meters.
+	double mie_scale_height;
+	
+	/// Molecular density of Mie particles at sea level.
+	double mie_density;
+	
+	/// (Dependent) Mie scattering coefficient.
+	double mie_scattering;
+	
+	/// (Dependent) Mie absorption coefficient.
+	double mie_absorption;
+	
+	/// Mie phase function anisotropy factor.
+	double mie_anisotropy;
+	
+	/// Elevation of the lower limit of the triangular distribution of ozone particles, in meters.
+	double ozone_lower_limit;
+	
+	/// Elevation of the upper limit of the triangular distribution of ozone particles, in meters.
+	double ozone_upper_limit;
+	
+	/// Elevation of the mode of the triangular distribution of ozone particles, in meters.
+	double ozone_mode;
+	
+	/// Concentration of ozone in the atmosphere, unitless.
+	double ozone_concentration;
 	
 	/// (Dependent) Ozone absorption coefficients.
 	double3 ozone_absorption;
+	
+	/// Airglow, in lux.
+	double airglow;
 };
 
 } // namespace component

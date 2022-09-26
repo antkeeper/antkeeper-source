@@ -41,11 +41,11 @@ namespace entity {
 namespace system {
 
 template <class T>
-math::vector3<T> transmittance(T depth_r, T depth_m, T depth_o, const math::vector3<T>& beta_r, const math::vector3<T>& beta_m, const math::vector3<T>& beta_o)
+math::vector3<T> transmittance(T depth_r, T depth_m, T depth_o, const math::vector3<T>& extinction_r, T extinction_m, const math::vector3<T>& extinction_o)
 {
-	math::vector3<T> transmittance_r = beta_r * depth_r;
-	math::vector3<T> transmittance_m = beta_m * (T(10)/T(9)) * depth_m;
-	math::vector3<T> transmittance_o = beta_o * depth_o;
+	math::vector3<T> transmittance_r = extinction_r * depth_r;
+	math::vector3<T> transmittance_m = math::vector3<T>{extinction_m, extinction_m, extinction_m} * depth_m;
+	math::vector3<T> transmittance_o = extinction_o * depth_o;
 	
 	math::vector3<T> t = transmittance_r + transmittance_m + transmittance_o;
 	t.x = std::exp(-t.x);
@@ -225,7 +225,7 @@ void astronomy::update(double t, double dt)
 			
 			geom::sphere<double> exosphere;
 			exosphere.center = {0, 0, 0};
-			exosphere.radius = reference_body.radius + reference_atmosphere.exosphere_altitude;
+			exosphere.radius = reference_body.radius + reference_atmosphere.upper_limit;
 			
 			auto intersection_result = geom::ray_sphere_intersection(sample_ray, exosphere);
 			
@@ -238,7 +238,7 @@ void astronomy::update(double t, double dt)
 				double optical_depth_m = physics::gas::atmosphere::optical_depth_exp(sample_start, sample_end, reference_body.radius, reference_atmosphere.mie_scale_height, 16);
 				double optical_depth_o = physics::gas::atmosphere::optical_depth_tri(sample_start, sample_end, reference_body.radius, reference_atmosphere.ozone_lower_limit, reference_atmosphere.ozone_upper_limit, reference_atmosphere.ozone_mode, 16);
 				
-				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_m, optical_depth_o, reference_atmosphere.rayleigh_scattering, reference_atmosphere.mie_scattering, reference_atmosphere.ozone_absorption);
+				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_m, optical_depth_o, reference_atmosphere.rayleigh_scattering, reference_atmosphere.mie_scattering + reference_atmosphere.mie_absorption, reference_atmosphere.ozone_absorption);
 			}
 			
 			// Add airglow to sky light illuminance
@@ -411,27 +411,10 @@ void astronomy::update(double t, double dt)
 			}
 		);
 		
-		// Upload observer altitude to sky pass
-		sky_pass->set_observer_altitude(observer_location[0]);
+		// Upload observer elevation to sky pass
+		sky_pass->set_observer_elevation(observer_location[0]);
 		
-		// Upload atmosphere params to sky pass
-		if (registry.has<entity::component::atmosphere>(reference_entity))
-		{
-			const entity::component::atmosphere& reference_atmosphere = registry.get<entity::component::atmosphere>(reference_entity);
-			
-			sky_pass->set_particle_distributions
-			(
-				static_cast<float>(reference_atmosphere.rayleigh_scale_height),
-				static_cast<float>(reference_atmosphere.mie_scale_height),
-				static_cast<float>(reference_atmosphere.ozone_lower_limit),
-				static_cast<float>(reference_atmosphere.ozone_upper_limit),
-				static_cast<float>(reference_atmosphere.ozone_mode)
-			);
-			sky_pass->set_scattering_coefficients(math::type_cast<float>(reference_atmosphere.rayleigh_scattering), math::type_cast<float>(reference_atmosphere.mie_scattering));
-			sky_pass->set_mie_anisotropy(reference_atmosphere.mie_anisotropy);
-			sky_pass->set_absorption_coefficients(math::type_cast<float>(reference_atmosphere.ozone_absorption));
-			sky_pass->set_atmosphere_radii(reference_body.radius, reference_body.radius + reference_atmosphere.exosphere_altitude);
-		}
+		sky_pass->set_planet_radius(static_cast<float>(reference_body.radius));
 	}
 	
 	// Auto-exposure
