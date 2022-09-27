@@ -323,7 +323,7 @@ void nuptial_flight::setup_camera()
 		ctx.entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
 	}
 
-	ctx.surface_camera->set_exposure(15.0f);
+	ctx.surface_camera->set_exposure(15.5f);
 	
 	ctx.astronomy_system->set_camera(ctx.surface_camera);
 }

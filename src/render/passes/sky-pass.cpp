@@ -68,7 +68,7 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	clouds_model_vao(nullptr),
 	cloud_material(nullptr),
 	cloud_shader_program(nullptr),
-	observer_elevation_tween(0.0f, math::lerp<float, float>),
+	observer_position_tween({0, 0, 0}, math::lerp<float3, float>),
 	sun_position_tween(float3{1.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
 	sun_luminance_tween(float3{0.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
 	sun_illuminance_tween(float3{0.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
@@ -82,24 +82,84 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	moon_planetlight_direction_tween(float3{0, 0, 0}, math::lerp<float3, float>),
 	moon_planetlight_illuminance_tween(float3{0, 0, 0}, math::lerp<float3, float>),
 	magnification(1.0f)
-{}
+{
+	// Build quad VBO and VAO
+	const float quad_vertex_data[] =
+	{
+		-1.0f,  1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f
+	};
+	std::size_t quad_vertex_size = 3;
+	std::size_t quad_vertex_stride = sizeof(float) * quad_vertex_size;
+	std::size_t quad_vertex_count = 6;
+	quad_vbo = new gl::vertex_buffer(sizeof(float) * quad_vertex_size * quad_vertex_count, quad_vertex_data);
+	quad_vao = new gl::vertex_array();
+	gl::vertex_attribute quad_position_attribute;
+	quad_position_attribute.buffer = quad_vbo;
+	quad_position_attribute.offset = 0;
+	quad_position_attribute.stride = quad_vertex_stride;
+	quad_position_attribute.type = gl::vertex_attribute_type::float_32;
+	quad_position_attribute.components = 3;
+	quad_vao->bind(render::vertex_attribute::position, quad_position_attribute);
+	
+	// Create transmittance LUT texture and framebuffer (32F color, no depth)
+	int transmittance_width = 256;
+	int transmittance_height = 64;
+	transmittance_inverse_lut_resolution = {1.0f / static_cast<float>(transmittance_width), 1.0f / static_cast<float>(transmittance_height)};
+	transmittance_texture = new gl::texture_2d(transmittance_width, transmittance_height, gl::pixel_type::float_32, gl::pixel_format::rgb);
+	transmittance_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+	transmittance_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
+	transmittance_texture->set_max_anisotropy(0.0f);
+	transmittance_framebuffer = new gl::framebuffer(transmittance_width, transmittance_height);
+	transmittance_framebuffer->attach(gl::framebuffer_attachment_type::color, transmittance_texture);
+	
+	// Load transmittance LUT shader
+	transmittance_shader_program = resource_manager->load<gl::shader_program>("transmittance-lut.glsl");
+	transmittance_atmosphere_radii_input = transmittance_shader_program->get_input("atmosphere_radii");
+	transmittance_rayleigh_parameters_input = transmittance_shader_program->get_input("rayleigh_parameters");
+	transmittance_mie_parameters_input = transmittance_shader_program->get_input("mie_parameters");
+	transmittance_ozone_distribution_input = transmittance_shader_program->get_input("ozone_distribution");
+	transmittance_ozone_absorption_input = transmittance_shader_program->get_input("ozone_absorption");
+	transmittance_inverse_lut_resolution_input = transmittance_shader_program->get_input("inverse_lut_resolution");
+}
 
 sky_pass::~sky_pass()
-{}
+{
+	delete transmittance_framebuffer;
+	delete transmittance_texture;
+	delete quad_vao;
+	delete quad_vbo;
+}
 
 void sky_pass::render(const render::context& ctx, render::queue& queue) const
 {
-	rasterizer->use_framebuffer(*framebuffer);
-	
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-
+	
+	// Render transmittance LUT
+	auto transmittance_viewport = transmittance_framebuffer->get_dimensions();
+	rasterizer->set_viewport(0, 0, std::get<0>(transmittance_viewport), std::get<1>(transmittance_viewport));
+	rasterizer->use_framebuffer(*transmittance_framebuffer);
+	rasterizer->use_program(*transmittance_shader_program);
+	transmittance_atmosphere_radii_input->upload(atmosphere_radii);
+	transmittance_rayleigh_parameters_input->upload(rayleigh_parameters);
+	transmittance_mie_parameters_input->upload(mie_parameters);
+	transmittance_ozone_distribution_input->upload(ozone_distribution);
+	transmittance_ozone_absorption_input->upload(ozone_absorption);
+	if (transmittance_inverse_lut_resolution_input)
+		transmittance_inverse_lut_resolution_input->upload(transmittance_inverse_lut_resolution);
+	rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+	
+	rasterizer->use_framebuffer(*framebuffer);
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
-	
 	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
 	const scene::camera& camera = *ctx.camera;
@@ -113,8 +173,8 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	float4x4 view_projection = projection * view;
 	float4x4 model_view_projection = projection * model_view;
 	
-	// Interpolate observer elevation
-	float observer_elevation = observer_elevation_tween.interpolate(ctx.alpha);
+	// Interpolate observer position
+	float3 observer_position = observer_position_tween.interpolate(ctx.alpha);
 	
 	// Construct tweened ICRF to EUS transformation
 	math::transformation::se3<float> icrf_to_eus =
@@ -157,8 +217,8 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 			sun_angular_radius_input->upload(sun_angular_radius * magnification);
 		if (atmosphere_radii_input)
 			atmosphere_radii_input->upload(atmosphere_radii);
-		if (observer_elevation_input)
-			observer_elevation_input->upload(observer_elevation);
+		if (observer_position_input)
+			observer_position_input->upload(observer_position);
 		if (rayleigh_parameters_input)
 			rayleigh_parameters_input->upload(rayleigh_parameters);
 		if (mie_parameters_input)
@@ -167,6 +227,10 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 			ozone_distribution_input->upload(ozone_distribution);
 		if (ozone_absorption_input)
 			ozone_absorption_input->upload(ozone_absorption);
+		if (transmittance_lut_input)
+			transmittance_lut_input->upload(transmittance_texture);
+		if (inverse_transmittance_lut_resolution_input)
+			inverse_transmittance_lut_resolution_input->upload(transmittance_inverse_lut_resolution);
 		
 		sky_material->upload(ctx.alpha);
 
@@ -295,11 +359,13 @@ void sky_pass::set_sky_model(const model* model)
 				sun_illuminance_input = sky_shader_program->get_input("sun_illuminance");
 				sun_angular_radius_input = sky_shader_program->get_input("sun_angular_radius");
 				atmosphere_radii_input = sky_shader_program->get_input("atmosphere_radii");
-				observer_elevation_input = sky_shader_program->get_input("observer_elevation");
+				observer_position_input = sky_shader_program->get_input("observer_position");
 				rayleigh_parameters_input = sky_shader_program->get_input("rayleigh_parameters");
 				mie_parameters_input = sky_shader_program->get_input("mie_parameters");
 				ozone_distribution_input = sky_shader_program->get_input("ozone_distribution");
 				ozone_absorption_input = sky_shader_program->get_input("ozone_absorption");
+				transmittance_lut_input = sky_shader_program->get_input("transmittance_lut");
+				inverse_transmittance_lut_resolution_input = sky_shader_program->get_input("inverse_transmittance_lut_resolution");
 			}
 		}
 	}
@@ -424,7 +490,7 @@ void sky_pass::set_clouds_model(const model* model)
 
 void sky_pass::update_tweens()
 {
-	observer_elevation_tween.update();
+	observer_position_tween.update();
 	sun_position_tween.update();
 	sun_luminance_tween.update();
 	sun_illuminance_tween.update();
@@ -476,6 +542,7 @@ void sky_pass::set_planet_radius(float radius)
 	atmosphere_radii.x = radius;
 	atmosphere_radii.y = atmosphere_radii.x + atmosphere_upper_limit;
 	atmosphere_radii.z = atmosphere_radii.y * atmosphere_radii.y;
+	observer_position_tween[1] = {0.0f, atmosphere_radii.x + observer_elevation, 0.0f};
 }
 
 void sky_pass::set_atmosphere_upper_limit(float limit)
@@ -487,7 +554,8 @@ void sky_pass::set_atmosphere_upper_limit(float limit)
 
 void sky_pass::set_observer_elevation(float elevation)
 {
-	observer_elevation_tween[1] = elevation;
+	observer_elevation = elevation;
+	observer_position_tween[1] = {0.0f, atmosphere_radii.x + observer_elevation, 0.0f};
 }
 
 void sky_pass::set_rayleigh_parameters(float scale_height, const float3& scattering)

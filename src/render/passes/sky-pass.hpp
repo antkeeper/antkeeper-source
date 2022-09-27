@@ -85,6 +85,20 @@ public:
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
+	
+	gl::vertex_buffer* quad_vbo;
+	gl::vertex_array* quad_vao;
+	gl::texture_2d* transmittance_texture;
+	gl::framebuffer* transmittance_framebuffer;
+	float2 transmittance_inverse_lut_resolution;
+	
+	gl::shader_program* transmittance_shader_program;
+	const gl::shader_input* transmittance_atmosphere_radii_input;
+	const gl::shader_input* transmittance_rayleigh_parameters_input;
+	const gl::shader_input* transmittance_mie_parameters_input;
+	const gl::shader_input* transmittance_ozone_distribution_input;
+	const gl::shader_input* transmittance_ozone_absorption_input;
+	const gl::shader_input* transmittance_inverse_lut_resolution_input;
 
 	gl::shader_program* sky_shader_program;
 	const gl::shader_input* model_view_projection_input;
@@ -97,11 +111,13 @@ private:
 	const gl::shader_input* sun_illuminance_input;
 	const gl::shader_input* sun_angular_radius_input;
 	const gl::shader_input* atmosphere_radii_input;
-	const gl::shader_input* observer_elevation_input;
+	const gl::shader_input* observer_position_input;
 	const gl::shader_input* rayleigh_parameters_input;
 	const gl::shader_input* mie_parameters_input;
 	const gl::shader_input* ozone_distribution_input;
 	const gl::shader_input* ozone_absorption_input;
+	const gl::shader_input* transmittance_lut_input;
+	const gl::shader_input* inverse_transmittance_lut_resolution_input;
 	
 	gl::shader_program* moon_shader_program;
 	const gl::shader_input* moon_model_input;
@@ -158,7 +174,6 @@ private:
 	const gl::texture_2d* sky_gradient2;
 	float2 mouse_position;
 	
-	tween<float> observer_elevation_tween;
 	tween<float3> sun_position_tween;
 	tween<float3> sun_luminance_tween;
 	tween<float3> sun_illuminance_tween;
@@ -177,6 +192,7 @@ private:
 	float atmosphere_upper_limit;
 	float3 atmosphere_radii;
 	float observer_elevation;
+	tween<float3> observer_position_tween;
 	float4 rayleigh_parameters;
 	float4 mie_parameters;
 	float3 ozone_distribution;
