@@ -18,12 +18,12 @@
  */
 
 #include "entity/commands.hpp"
-#include "entity/components/model.hpp"
-#include "entity/components/transform.hpp"
-#include "entity/components/snap.hpp"
-#include "entity/components/parent.hpp"
-#include "entity/components/celestial-body.hpp"
-#include "entity/components/terrain.hpp"
+#include "game/component/model.hpp"
+#include "game/component/transform.hpp"
+#include "game/component/snap.hpp"
+#include "game/component/parent.hpp"
+#include "game/component/celestial-body.hpp"
+#include "game/component/terrain.hpp"
 #include <limits>
 
 namespace entity {
@@ -31,36 +31,36 @@ namespace command {
 
 void translate(entity::registry& registry, entity::id eid, const float3& translation)
 {
-	if (registry.has<component::transform>(eid))
+	if (registry.has<game::component::transform>(eid))
 	{
-		component::transform& transform = registry.get<component::transform>(eid);
+		game::component::transform& transform = registry.get<game::component::transform>(eid);
 		transform.local.translation += translation;
 	}
 }
 
 void rotate(entity::registry& registry, entity::id eid, float angle, const float3& axis)
 {
-	if (registry.has<component::transform>(eid))
+	if (registry.has<game::component::transform>(eid))
 	{
-		component::transform& transform = registry.get<component::transform>(eid);
+		game::component::transform& transform = registry.get<game::component::transform>(eid);
 		transform.local.rotation = math::angle_axis(angle, axis) * transform.local.rotation;
 	}
 }
 
 void move_to(entity::registry& registry, entity::id eid, const float3& position)
 {
-	if (registry.has<component::transform>(eid))
+	if (registry.has<game::component::transform>(eid))
 	{
-		component::transform& transform = registry.get<component::transform>(eid);
+		game::component::transform& transform = registry.get<game::component::transform>(eid);
 		transform.local.translation = position;
 	}
 }
 
 void warp_to(entity::registry& registry, entity::id eid, const float3& position)
 {
-	if (registry.has<component::transform>(eid))
+	if (registry.has<game::component::transform>(eid))
 	{
-		component::transform& transform = registry.get<component::transform>(eid);
+		game::component::transform& transform = registry.get<game::component::transform>(eid);
 		transform.local.translation = position;
 		transform.warp = true;
 	}
@@ -68,18 +68,18 @@ void warp_to(entity::registry& registry, entity::id eid, const float3& position)
 
 void set_scale(entity::registry& registry, entity::id eid, const float3& scale)
 {
-	if (registry.has<component::transform>(eid))
+	if (registry.has<game::component::transform>(eid))
 	{
-		component::transform& transform = registry.get<component::transform>(eid);
+		game::component::transform& transform = registry.get<game::component::transform>(eid);
 		transform.local.scale = scale;
 	}
 }
 
 void set_transform(entity::registry& registry, entity::id eid, const math::transform<float>& transform, bool warp)
 {
-	if (registry.has<component::transform>(eid))
+	if (registry.has<game::component::transform>(eid))
 	{
-		component::transform& component = registry.get<component::transform>(eid);
+		game::component::transform& component = registry.get<game::component::transform>(eid);
 		component.local = transform;
 		component.warp = warp;
 	}
@@ -87,22 +87,22 @@ void set_transform(entity::registry& registry, entity::id eid, const math::trans
 
 void place(entity::registry& registry, entity::id eid, entity::id celestial_body_id, double altitude, double latitude, double longitude)
 {
-	if (registry.has<component::transform>(eid))
+	if (registry.has<game::component::transform>(eid))
 	{
 		double x = 0.0;
 		double y = altitude;
 		double z = 0.0;
 		
-		if (registry.has<component::celestial_body>(celestial_body_id))
+		if (registry.has<game::component::celestial_body>(celestial_body_id))
 		{
-			const component::celestial_body& celestial_body = registry.get<component::celestial_body>(celestial_body_id);
+			const game::component::celestial_body& celestial_body = registry.get<game::component::celestial_body>(celestial_body_id);
 			
 			x = longitude * math::two_pi<double> * celestial_body.radius;
 			z = -latitude * math::two_pi<double> * celestial_body.radius;
 			
-			if (registry.has<component::terrain>(celestial_body_id))
+			if (registry.has<game::component::terrain>(celestial_body_id))
 			{
-				const component::terrain& terrain = registry.get<component::terrain>(celestial_body_id);
+				const game::component::terrain& terrain = registry.get<game::component::terrain>(celestial_body_id);
 				
 				if (terrain.elevation != nullptr)
 				{
@@ -111,7 +111,7 @@ void place(entity::registry& registry, entity::id eid, entity::id celestial_body
 			}
 		}
 		
-		component::transform& transform = registry.get<component::transform>(eid);
+		game::component::transform& transform = registry.get<game::component::transform>(eid);
 		transform.local.translation = math::type_cast<float>(double3{x, y, z});
 		transform.warp = true;
 	}
@@ -119,14 +119,14 @@ void place(entity::registry& registry, entity::id eid, entity::id celestial_body
 
 void assign_render_layers(entity::registry& registry, entity::id eid, unsigned int layers)
 {
-	if (registry.has<component::model>(eid))
+	if (registry.has<game::component::model>(eid))
 	{
-		component::model model = registry.get<component::model>(eid);
+		game::component::model model = registry.get<game::component::model>(eid);
 		model.layers = layers;
-		registry.replace<component::model>(eid, model);
+		registry.replace<game::component::model>(eid, model);
 		
 		// Apply to child layers
-		registry.view<component::parent>().each(
+		registry.view<game::component::parent>().each(
 		[&](entity::id eid, auto& component)
 		{
 			if (component.parent == eid)
@@ -137,9 +137,9 @@ void assign_render_layers(entity::registry& registry, entity::id eid, unsigned i
 
 math::transform<float> get_local_transform(entity::registry& registry, entity::id eid)
 {
-	if (registry.has<component::transform>(eid))
+	if (registry.has<game::component::transform>(eid))
 	{
-		const component::transform& component = registry.get<component::transform>(eid);
+		const game::component::transform& component = registry.get<game::component::transform>(eid);
 		return component.local;
 	}
 	
@@ -148,9 +148,9 @@ math::transform<float> get_local_transform(entity::registry& registry, entity::i
 
 math::transform<float> get_world_transform(entity::registry& registry, entity::id eid)
 {
-	if (registry.has<component::transform>(eid))
+	if (registry.has<game::component::transform>(eid))
 	{
-		const component::transform& component = registry.get<component::transform>(eid);
+		const game::component::transform& component = registry.get<game::component::transform>(eid);
 		return component.world;
 	}
 	
@@ -159,9 +159,9 @@ math::transform<float> get_world_transform(entity::registry& registry, entity::i
 
 void parent(entity::registry& registry, entity::id child, entity::id parent)
 {
-	component::parent component;
+	game::component::parent component;
 	component.parent = parent;
-	registry.assign_or_replace<component::parent>(child, component);
+	registry.assign_or_replace<game::component::parent>(child, component);
 }
 
 } // namespace command

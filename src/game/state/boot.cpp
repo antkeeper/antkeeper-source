@@ -56,25 +56,25 @@
 #include "resources/file-buffer.hpp"
 #include "scene/scene.hpp"
 #include "game/state/splash.hpp"
-#include "entity/systems/behavior.hpp"
-#include "entity/systems/camera.hpp"
-#include "entity/systems/collision.hpp"
-#include "entity/systems/constraint.hpp"
-#include "entity/systems/locomotion.hpp"
-#include "entity/systems/snapping.hpp"
-#include "entity/systems/render.hpp"
-#include "entity/systems/samara.hpp"
-#include "entity/systems/subterrain.hpp"
-#include "entity/systems/terrain.hpp"
-#include "entity/systems/vegetation.hpp"
-#include "entity/systems/spatial.hpp"
-#include "entity/systems/painting.hpp"
-#include "entity/systems/astronomy.hpp"
-#include "entity/systems/blackbody.hpp"
-#include "entity/systems/atmosphere.hpp"
-#include "entity/systems/orbit.hpp"
-#include "entity/systems/proteome.hpp"
-#include "entity/systems/steering.hpp"
+#include "game/system/behavior.hpp"
+#include "game/system/camera.hpp"
+#include "game/system/collision.hpp"
+#include "game/system/constraint.hpp"
+#include "game/system/locomotion.hpp"
+#include "game/system/snapping.hpp"
+#include "game/system/render.hpp"
+#include "game/system/samara.hpp"
+#include "game/system/subterrain.hpp"
+#include "game/system/terrain.hpp"
+#include "game/system/vegetation.hpp"
+#include "game/system/spatial.hpp"
+#include "game/system/painting.hpp"
+#include "game/system/astronomy.hpp"
+#include "game/system/blackbody.hpp"
+#include "game/system/atmosphere.hpp"
+#include "game/system/orbit.hpp"
+#include "game/system/proteome.hpp"
+#include "game/system/steering.hpp"
 #include "entity/commands.hpp"
 #include "utility/paths.hpp"
 #include "event/event-dispatcher.hpp"
@@ -834,13 +834,13 @@ void boot::setup_systems()
 	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_dimensions[0]), static_cast<float>(viewport_dimensions[1])};
 	
 	// Setup terrain system
-	ctx.terrain_system = new entity::system::terrain(*ctx.entity_registry);
+	ctx.terrain_system = new game::system::terrain(*ctx.entity_registry);
 	ctx.terrain_system->set_patch_subdivisions(30);
 	ctx.terrain_system->set_patch_scene_collection(ctx.surface_scene);
 	ctx.terrain_system->set_max_error(200.0);
 	
 	// Setup vegetation system
-	//ctx.vegetation_system = new entity::system::vegetation(*ctx.entity_registry);
+	//ctx.vegetation_system = new game::system::vegetation(*ctx.entity_registry);
 	//ctx.vegetation_system->set_terrain_patch_size(TERRAIN_PATCH_SIZE);
 	//ctx.vegetation_system->set_vegetation_patch_resolution(VEGETATION_PATCH_RESOLUTION);
 	//ctx.vegetation_system->set_vegetation_density(1.0f);
@@ -848,67 +848,67 @@ void boot::setup_systems()
 	//ctx.vegetation_system->set_scene(ctx.surface_scene);
 	
 	// Setup camera system
-	ctx.camera_system = new entity::system::camera(*ctx.entity_registry);
+	ctx.camera_system = new game::system::camera(*ctx.entity_registry);
 	ctx.camera_system->set_viewport(viewport);
 	event_dispatcher->subscribe<window_resized_event>(ctx.camera_system);
 	
 	// Setup subterrain system
-	ctx.subterrain_system = new entity::system::subterrain(*ctx.entity_registry, ctx.resource_manager);
+	ctx.subterrain_system = new game::system::subterrain(*ctx.entity_registry, ctx.resource_manager);
 	ctx.subterrain_system->set_scene(ctx.underground_scene);
 	
 	// Setup collision system
-	ctx.collision_system = new entity::system::collision(*ctx.entity_registry);
+	ctx.collision_system = new game::system::collision(*ctx.entity_registry);
 	
 	// Setup samara system
-	ctx.samara_system = new entity::system::samara(*ctx.entity_registry);
+	ctx.samara_system = new game::system::samara(*ctx.entity_registry);
 	
 	// Setup snapping system
-	ctx.snapping_system = new entity::system::snapping(*ctx.entity_registry);
+	ctx.snapping_system = new game::system::snapping(*ctx.entity_registry);
 	
 	// Setup behavior system
-	ctx.behavior_system = new entity::system::behavior(*ctx.entity_registry);
+	ctx.behavior_system = new game::system::behavior(*ctx.entity_registry);
 	
 	// Setup locomotion system
-	ctx.locomotion_system = new entity::system::locomotion(*ctx.entity_registry);
+	ctx.locomotion_system = new game::system::locomotion(*ctx.entity_registry);
 	
 	// Setup steering system
-	ctx.steering_system = new entity::system::steering(*ctx.entity_registry);
+	ctx.steering_system = new game::system::steering(*ctx.entity_registry);
 	
 	// Setup spatial system
-	ctx.spatial_system = new entity::system::spatial(*ctx.entity_registry);
+	ctx.spatial_system = new game::system::spatial(*ctx.entity_registry);
 	
 	// Setup constraint system
-	ctx.constraint_system = new entity::system::constraint(*ctx.entity_registry);
+	ctx.constraint_system = new game::system::constraint(*ctx.entity_registry);
 	
 	// Setup painting system
-	ctx.painting_system = new entity::system::painting(*ctx.entity_registry, event_dispatcher, ctx.resource_manager);
+	ctx.painting_system = new game::system::painting(*ctx.entity_registry, event_dispatcher, ctx.resource_manager);
 	ctx.painting_system->set_scene(ctx.surface_scene);
 	
 	// Setup orbit system
-	ctx.orbit_system = new entity::system::orbit(*ctx.entity_registry);
+	ctx.orbit_system = new game::system::orbit(*ctx.entity_registry);
 	
 	// Setup blackbody system
-	ctx.blackbody_system = new entity::system::blackbody(*ctx.entity_registry);
+	ctx.blackbody_system = new game::system::blackbody(*ctx.entity_registry);
 	ctx.blackbody_system->set_illuminant(color::illuminant::deg2::d55<double>);
 	
 	// RGB wavelengths for atmospheric scatteering
 	ctx.rgb_wavelengths = {645, 575, 440};
 	
 	// Setup atmosphere system
-	ctx.atmosphere_system = new entity::system::atmosphere(*ctx.entity_registry);
+	ctx.atmosphere_system = new game::system::atmosphere(*ctx.entity_registry);
 	ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 	ctx.atmosphere_system->set_sky_pass(ctx.sky_pass);
 	
 	// Setup astronomy system
-	ctx.astronomy_system = new entity::system::astronomy(*ctx.entity_registry);
+	ctx.astronomy_system = new game::system::astronomy(*ctx.entity_registry);
 	ctx.astronomy_system->set_transmittance_samples(16);
 	ctx.astronomy_system->set_sky_pass(ctx.sky_pass);
 	
 	// Setup proteome system
-	ctx.proteome_system = new entity::system::proteome(*ctx.entity_registry);
+	ctx.proteome_system = new game::system::proteome(*ctx.entity_registry);
 	
 	// Setup render system
-	ctx.render_system = new entity::system::render(*ctx.entity_registry);
+	ctx.render_system = new game::system::render(*ctx.entity_registry);
 	//ctx.render_system->add_layer(ctx.underground_scene);
 	ctx.render_system->add_layer(ctx.surface_scene);
 	ctx.render_system->add_layer(ctx.ui_scene);

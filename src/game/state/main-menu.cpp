@@ -37,9 +37,9 @@
 #include "application.hpp"
 #include "config.hpp"
 #include "physics/light/exposure.hpp"
-#include "entity/components/model.hpp"
-#include "entity/components/steering.hpp"
-#include "entity/components/transform.hpp"
+#include "game/component/model.hpp"
+#include "game/component/steering.hpp"
+#include "game/component/transform.hpp"
 #include <limits>
 
 namespace game {

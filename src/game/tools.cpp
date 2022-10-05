@@ -21,8 +21,8 @@
 #include "application.hpp"
 #include "animation/animator.hpp"
 #include "animation/animation.hpp"
-#include "entity/components/tool.hpp"
-#include "entity/components/celestial-body.hpp"
+#include "game/component/tool.hpp"
+#include "game/component/celestial-body.hpp"
 #include "utility/timestamp.hpp"
 #include "render/material.hpp"
 #include "game/graphics.hpp"
@@ -35,7 +35,7 @@ entity::id build_camera_tool(game::context& ctx)
 	entity::id tool_eid = ctx.entity_registry->create();
 	
 	// Create tool component
-	entity::component::tool tool;
+	game::component::tool tool;
 	
 	// Setup tool activated callback
 	tool.activated = [&ctx]()
@@ -74,7 +74,7 @@ entity::id build_camera_tool(game::context& ctx)
 	};
 	
 	// Add tool component to camera tool entity
-	ctx.entity_registry->assign<entity::component::tool>(tool_eid, tool);
+	ctx.entity_registry->assign<game::component::tool>(tool_eid, tool);
 	
 	return tool_eid;
 }
@@ -85,7 +85,7 @@ entity::id build_time_tool(game::context& ctx)
 	entity::id tool_eid = ctx.entity_registry->create();
 	
 	// Create tool component
-	entity::component::tool tool;
+	game::component::tool tool;
 	
 	// Setup tool active calback
 	tool.active = [&ctx]()
@@ -94,13 +94,13 @@ entity::id build_time_tool(game::context& ctx)
 		//auto window = ctx.app->get_viewport_dimensions();
 		
 		entity::id planet_eid = ctx.entities["planet"];
-		entity::component::celestial_body body = ctx.entity_registry->get<entity::component::celestial_body>(planet_eid);
+		game::component::celestial_body body = ctx.entity_registry->get<game::component::celestial_body>(planet_eid);
 		//body.axial_rotation = math::radians(360.0f) * ((float)mouse_x / (float)window_w);
-		ctx.entity_registry->replace<entity::component::celestial_body>(planet_eid, body);
+		ctx.entity_registry->replace<game::component::celestial_body>(planet_eid, body);
 	};
 	
 	// Add tool component to time tool entity
-	ctx.entity_registry->assign<entity::component::tool>(tool_eid, tool);
+	ctx.entity_registry->assign<game::component::tool>(tool_eid, tool);
 	
 	return tool_eid;
 }

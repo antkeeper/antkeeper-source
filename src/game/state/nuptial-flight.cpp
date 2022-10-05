@@ -21,18 +21,18 @@
 #include "game/state/pause-menu.hpp"
 #include "game/ant/swarm.hpp"
 #include "entity/archetype.hpp"
-#include "entity/systems/camera.hpp"
-#include "entity/systems/astronomy.hpp"
-#include "entity/systems/atmosphere.hpp"
-#include "entity/components/locomotion.hpp"
-#include "entity/components/transform.hpp"
-#include "entity/components/terrain.hpp"
-#include "entity/components/camera.hpp"
-#include "entity/components/model.hpp"
-#include "entity/components/constraints/spring-to.hpp"
-#include "entity/components/constraints/three-dof.hpp"
-#include "entity/components/constraint-stack.hpp"
-#include "entity/components/steering.hpp"
+#include "game/system/camera.hpp"
+#include "game/system/astronomy.hpp"
+#include "game/system/atmosphere.hpp"
+#include "game/component/locomotion.hpp"
+#include "game/component/transform.hpp"
+#include "game/component/terrain.hpp"
+#include "game/component/camera.hpp"
+#include "game/component/model.hpp"
+#include "game/component/constraints/spring-to.hpp"
+#include "game/component/constraints/three-dof.hpp"
+#include "game/component/constraint-stack.hpp"
+#include "game/component/steering.hpp"
 #include "entity/commands.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
@@ -183,11 +183,11 @@ void nuptial_flight::setup_camera()
 		ctx.entities["surface_cam_target"] = target_eid;
 		{
 			// Transform
-			entity::component::transform target_transform;
+			game::component::transform target_transform;
 			target_transform.local = math::transform<float>::identity;
 			target_transform.world = target_transform.local;
 			target_transform.warp = true;
-			ctx.entity_registry->assign<entity::component::transform>(target_eid, target_transform);
+			ctx.entity_registry->assign<game::component::transform>(target_eid, target_transform);
 		}
 		
 		// Create camera entity
@@ -195,61 +195,61 @@ void nuptial_flight::setup_camera()
 		ctx.entities["surface_cam"] = camera_eid;
 		
 		// Create camera transform component
-		entity::component::transform transform;
+		game::component::transform transform;
 		transform.local = math::transform<float>::identity;
 		transform.world = transform.local;
 		transform.warp = true;
-		ctx.entity_registry->assign<entity::component::transform>(camera_eid, transform);
+		ctx.entity_registry->assign<game::component::transform>(camera_eid, transform);
 		
 		// Create camera camera component
-		entity::component::camera camera;
+		game::component::camera camera;
 		camera.object = ctx.surface_camera;
-		ctx.entity_registry->assign<entity::component::camera>(camera_eid, camera);
+		ctx.entity_registry->assign<game::component::camera>(camera_eid, camera);
 		
 		// Create camera 3DOF constraint entity
 		entity::id three_dof_constraint_eid = ctx.entity_registry->create();
 		ctx.entities["surface_cam_3dof"] = three_dof_constraint_eid;
 		{
 			// Create 3DOF to constraint
-			entity::component::constraint::three_dof three_dof;
+			game::component::constraint::three_dof three_dof;
 			three_dof.yaw = 0.0f;
 			three_dof.pitch = 0.0f;
 			three_dof.roll = 0.0f;
-			ctx.entity_registry->assign<entity::component::constraint::three_dof>(three_dof_constraint_eid, three_dof);
+			ctx.entity_registry->assign<game::component::constraint::three_dof>(three_dof_constraint_eid, three_dof);
 			
 			// Create constraint stack node component
-			entity::component::constraint_stack_node node;
+			game::component::constraint_stack_node node;
 			node.active = true;
 			node.weight = 1.0f;
 			node.next = entt::null;
-			ctx.entity_registry->assign<entity::component::constraint_stack_node>(three_dof_constraint_eid, node);
+			ctx.entity_registry->assign<game::component::constraint_stack_node>(three_dof_constraint_eid, node);
 		}
 		
 		// Create camera spring to constraint entity
 		entity::id spring_constraint_eid = ctx.entity_registry->create();
 		{
 			// Create spring to constraint
-			entity::component::constraint::spring_to spring;
+			game::component::constraint::spring_to spring;
 			spring.target = target_eid;
 			spring.translation = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 1.0f, math::two_pi<float>};
 			spring.translation.w = hz_to_rads(8.0f);
 			
 			spring.spring_translation = true;
 			spring.spring_rotation = false;
-			ctx.entity_registry->assign<entity::component::constraint::spring_to>(spring_constraint_eid, spring);
+			ctx.entity_registry->assign<game::component::constraint::spring_to>(spring_constraint_eid, spring);
 			
 			// Create constraint stack node component
-			entity::component::constraint_stack_node node;
+			game::component::constraint_stack_node node;
 			node.active = true;
 			node.weight = 1.0f;
 			node.next = three_dof_constraint_eid;
-			ctx.entity_registry->assign<entity::component::constraint_stack_node>(spring_constraint_eid, node);
+			ctx.entity_registry->assign<game::component::constraint_stack_node>(spring_constraint_eid, node);
 		}
 		
 		// Create camera constraint stack component
-		entity::component::constraint_stack constraint_stack;
+		game::component::constraint_stack constraint_stack;
 		constraint_stack.head = spring_constraint_eid;
-		ctx.entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
+		ctx.entity_registry->assign<game::component::constraint_stack>(camera_eid, constraint_stack);
 	}
 	
 	game::ant::create_swarm(ctx);
@@ -324,7 +324,7 @@ void nuptial_flight::enable_keeper_controls()
 			if (move_fast->is_active())
 				value *= fast_modifier;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
 
 			const float3 movement = {0.0f, 0.0f, -dolly_speed * value * (1.0f / 60.0f)};
@@ -342,7 +342,7 @@ void nuptial_flight::enable_keeper_controls()
 			if (move_fast->is_active())
 				value *= fast_modifier;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
 			
 			const float3 movement = {0.0f, 0.0f, dolly_speed * value * (1.0f / 60.0f)};
@@ -360,7 +360,7 @@ void nuptial_flight::enable_keeper_controls()
 			if (move_fast->is_active())
 				value *= fast_modifier;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
 			
 			const float3 movement = {truck_speed * value * (1.0f / 60.0f), 0.0f, 0.0f};
@@ -378,7 +378,7 @@ void nuptial_flight::enable_keeper_controls()
 			if (move_fast->is_active())
 				value *= fast_modifier;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
 			
 			const float3 movement = {-truck_speed * value * (1.0f / 60.0f), 0.0f, 0.0f};
@@ -452,7 +452,7 @@ void nuptial_flight::enable_keeper_controls()
 	(
 		[&ctx = this->ctx, three_dof_eid, gamepad_pan_factor](float value)
 		{
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.yaw += gamepad_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
@@ -463,7 +463,7 @@ void nuptial_flight::enable_keeper_controls()
 			if (!ctx.mouse_look)
 				return;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.yaw += mouse_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
@@ -473,7 +473,7 @@ void nuptial_flight::enable_keeper_controls()
 	(
 		[&ctx = this->ctx, three_dof_eid, gamepad_pan_factor](float value)
 		{
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.yaw -= gamepad_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
@@ -484,7 +484,7 @@ void nuptial_flight::enable_keeper_controls()
 			if (!ctx.mouse_look)
 				return;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.yaw -= mouse_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
@@ -493,7 +493,7 @@ void nuptial_flight::enable_keeper_controls()
 	(
 		[&ctx = this->ctx, three_dof_eid, gamepad_tilt_factor](float value)
 		{
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch -= gamepad_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
 		}
@@ -505,7 +505,7 @@ void nuptial_flight::enable_keeper_controls()
 			if (!ctx.mouse_look)
 				return;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch -= mouse_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
 		}
@@ -515,7 +515,7 @@ void nuptial_flight::enable_keeper_controls()
 	(
 		[&ctx = this->ctx, three_dof_eid, gamepad_tilt_factor](float value)
 		{
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch += gamepad_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
 		}
@@ -527,7 +527,7 @@ void nuptial_flight::enable_keeper_controls()
 			if (!ctx.mouse_look)
 				return;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch += mouse_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
 		}
@@ -775,7 +775,7 @@ void nuptial_flight::enable_ant_controls()
 			if (move_fast->is_active())
 				value *= fast_modifier;
 			
-			auto& locomotion = ctx.entity_registry->get<entity::component::locomotion>(ant_eid);
+			auto& locomotion = ctx.entity_registry->get<game::component::locomotion>(ant_eid);
 			const math::quaternion<float> yaw = math::angle_axis(locomotion.yaw, {0.0f, 1.0f, 0.0f});
 
 			const float3 movement = {0.0f, 0.0f, move_forward_speed * value * (1.0f / 60.0f)};
@@ -793,7 +793,7 @@ void nuptial_flight::enable_ant_controls()
 			if (move_fast->is_active())
 				value *= fast_modifier;
 			
-			auto& locomotion = ctx.entity_registry->get<entity::component::locomotion>(ant_eid);
+			auto& locomotion = ctx.entity_registry->get<game::component::locomotion>(ant_eid);
 			const math::quaternion<float> yaw = math::angle_axis(locomotion.yaw, {0.0f, 1.0f, 0.0f});
 
 			const float3 movement = {0.0f, 0.0f, -move_back_speed * value * (1.0f / 60.0f)};
@@ -811,7 +811,7 @@ void nuptial_flight::enable_ant_controls()
 			if (move_fast->is_active())
 				value *= fast_modifier;
 			
-			auto& locomotion = ctx.entity_registry->get<entity::component::locomotion>(ant_eid);
+			auto& locomotion = ctx.entity_registry->get<game::component::locomotion>(ant_eid);
 			float delta_yaw = -turn_speed * value * (1.0f / 60.0f);
 			locomotion.yaw += delta_yaw;
 			
@@ -829,7 +829,7 @@ void nuptial_flight::enable_ant_controls()
 			if (move_fast->is_active())
 				value *= fast_modifier;
 			
-			auto& locomotion = ctx.entity_registry->get<entity::component::locomotion>(ant_eid);
+			auto& locomotion = ctx.entity_registry->get<game::component::locomotion>(ant_eid);
 			float delta_yaw = turn_speed * value * (1.0f / 60.0f);
 			locomotion.yaw += delta_yaw;
 			
@@ -843,7 +843,7 @@ void nuptial_flight::enable_ant_controls()
 	(
 		[&ctx = this->ctx, three_dof_eid, gamepad_pan_factor](float value)
 		{
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.yaw += gamepad_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
@@ -854,7 +854,7 @@ void nuptial_flight::enable_ant_controls()
 			if (!ctx.mouse_look)
 				return;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.yaw += mouse_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
@@ -864,7 +864,7 @@ void nuptial_flight::enable_ant_controls()
 	(
 		[&ctx = this->ctx, three_dof_eid, gamepad_pan_factor](float value)
 		{
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.yaw -= gamepad_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
@@ -875,7 +875,7 @@ void nuptial_flight::enable_ant_controls()
 			if (!ctx.mouse_look)
 				return;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.yaw -= mouse_pan_factor * value * (1.0f / 60.0f);
 		}
 	);
@@ -884,7 +884,7 @@ void nuptial_flight::enable_ant_controls()
 	(
 		[&ctx = this->ctx, three_dof_eid, gamepad_tilt_factor](float value)
 		{
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch -= gamepad_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
 		}
@@ -896,7 +896,7 @@ void nuptial_flight::enable_ant_controls()
 			if (!ctx.mouse_look)
 				return;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch -= mouse_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
 		}
@@ -906,7 +906,7 @@ void nuptial_flight::enable_ant_controls()
 	(
 		[&ctx = this->ctx, three_dof_eid, gamepad_tilt_factor](float value)
 		{
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch += gamepad_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
 		}
@@ -918,7 +918,7 @@ void nuptial_flight::enable_ant_controls()
 			if (!ctx.mouse_look)
 				return;
 			
-			auto& three_dof = ctx.entity_registry->get<entity::component::constraint::three_dof>(three_dof_eid);
+			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
 			three_dof.pitch += mouse_tilt_factor * value * (1.0f / 60.0f);
 			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
 		}

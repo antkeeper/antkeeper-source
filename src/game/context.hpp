@@ -74,7 +74,7 @@ namespace debug
 	class logger;
 }
 
-namespace entity
+namespace game
 {
 	namespace system
 	{
@@ -275,25 +275,25 @@ struct context
 	std::unordered_map<std::string, entity::id> entities;
 
 	// Systems
-	entity::system::behavior* behavior_system;
-	entity::system::camera* camera_system;
-	entity::system::collision* collision_system;
-	entity::system::constraint* constraint_system;
-	entity::system::locomotion* locomotion_system;
-	entity::system::steering* steering_system;
-	entity::system::snapping* snapping_system;
-	entity::system::render* render_system;
-	entity::system::samara* samara_system;
-	entity::system::subterrain* subterrain_system;
-	entity::system::terrain* terrain_system;
-	entity::system::vegetation* vegetation_system;
-	entity::system::spatial* spatial_system;
-	entity::system::painting* painting_system;
-	entity::system::blackbody* blackbody_system;
-	entity::system::atmosphere* atmosphere_system;
-	entity::system::astronomy* astronomy_system;
-	entity::system::orbit* orbit_system;
-	entity::system::proteome* proteome_system;
+	game::system::behavior* behavior_system;
+	game::system::camera* camera_system;
+	game::system::collision* collision_system;
+	game::system::constraint* constraint_system;
+	game::system::locomotion* locomotion_system;
+	game::system::steering* steering_system;
+	game::system::snapping* snapping_system;
+	game::system::render* render_system;
+	game::system::samara* samara_system;
+	game::system::subterrain* subterrain_system;
+	game::system::terrain* terrain_system;
+	game::system::vegetation* vegetation_system;
+	game::system::spatial* spatial_system;
+	game::system::painting* painting_system;
+	game::system::blackbody* blackbody_system;
+	game::system::atmosphere* atmosphere_system;
+	game::system::astronomy* astronomy_system;
+	game::system::orbit* orbit_system;
+	game::system::proteome* proteome_system;
 	
 	double3 rgb_wavelengths;
 };

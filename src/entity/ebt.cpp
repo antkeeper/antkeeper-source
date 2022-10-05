@@ -18,7 +18,7 @@
  */
 
 #include "entity/ebt.hpp"
-#include "entity/components/transform.hpp"
+#include "game/component/transform.hpp"
 #include <iostream>
 
 namespace entity {
@@ -38,7 +38,7 @@ status print_eid(context& context)
 
 status warp_to(context& context, float x, float y, float z)
 {
-	auto& transform = context.registry->get<component::transform>(context.entity_id);
+	auto& transform = context.registry->get<game::component::transform>(context.entity_id);
 	transform.local.translation = {x, y, z};
 	transform.warp = true;
 	return status::success;

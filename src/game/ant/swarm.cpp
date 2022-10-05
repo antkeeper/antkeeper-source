@@ -18,9 +18,9 @@
  */
 
 #include "game/ant/swarm.hpp"
-#include "entity/components/transform.hpp"
-#include "entity/components/steering.hpp"
-#include "entity/components/model.hpp"
+#include "game/component/transform.hpp"
+#include "game/component/steering.hpp"
+#include "game/component/model.hpp"
 #include "resources/resource-manager.hpp"
 #include "config.hpp"
 #include <cmath>
@@ -63,25 +63,25 @@ void create_swarm(game::context& ctx)
 	const float3 queen_scale = {1, 1, 1};
 	
 	// Init male model component
-	entity::component::model male_model;
+	game::component::model male_model;
 	male_model.render_model = ctx.resource_manager->load<render::model>("male-boid.mdl");
 	male_model.instance_count = 0;
 	male_model.layers = 1;
 	
 	// Init queen model component
-	entity::component::model queen_model;
+	game::component::model queen_model;
 	queen_model.render_model = ctx.resource_manager->load<render::model>("queen-boid.mdl");
 	queen_model.instance_count = 0;
 	queen_model.layers = 1;
 	
 	// Init transform component
-	entity::component::transform transform;
+	game::component::transform transform;
 	transform.local = math::transform<float>::identity;
 	transform.world = transform.local;
 	transform.warp = true;
 	
 	// Init steering component
-	entity::component::steering steering;
+	game::component::steering steering;
 	steering.agent.mass = 1.0f;
 	steering.agent.velocity = {0, 0, 0};
 	steering.agent.acceleration = {0, 0, 0};
@@ -114,32 +114,32 @@ void create_swarm(game::context& ctx)
 		transform.local.translation = steering.agent.position;
 		
 		entity::id alate_eid = ctx.entity_registry->create();
-		ctx.entity_registry->assign<entity::component::steering>(alate_eid, steering);
+		ctx.entity_registry->assign<game::component::steering>(alate_eid, steering);
 		
 		if (i < male_count)
 		{
 			// Create male
-			ctx.entity_registry->assign<entity::component::model>(alate_eid, male_model);
+			ctx.entity_registry->assign<game::component::model>(alate_eid, male_model);
 			
 			transform.local.scale = male_scale;
 			transform.world = transform.local;
-			ctx.entity_registry->assign<entity::component::transform>(alate_eid, transform);
+			ctx.entity_registry->assign<game::component::transform>(alate_eid, transform);
 		}
 		else
 		{
 			// Create queen
-			ctx.entity_registry->assign<entity::component::model>(alate_eid, queen_model);
+			ctx.entity_registry->assign<game::component::model>(alate_eid, queen_model);
 			
 			transform.local.scale = queen_scale;
 			transform.world = transform.local;
-			ctx.entity_registry->assign<entity::component::transform>(alate_eid, transform);
+			ctx.entity_registry->assign<game::component::transform>(alate_eid, transform);
 		}
 	}
 }
 
 void destroy_swarm(game::context& ctx)
 {
-	auto view = ctx.entity_registry->view<entity::component::steering>();
+	auto view = ctx.entity_registry->view<game::component::steering>();
 	ctx.entity_registry->destroy(view.begin(), view.end());
 }
 

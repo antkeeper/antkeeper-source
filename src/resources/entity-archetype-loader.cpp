@@ -20,16 +20,16 @@
 #include "resource-loader.hpp"
 #include "resource-manager.hpp"
 #include "render/model.hpp"
-#include "entity/components/atmosphere.hpp"
-#include "entity/components/behavior.hpp"
-#include "entity/components/collision.hpp"
-#include "entity/components/diffuse-reflector.hpp"
-#include "entity/components/terrain.hpp"
-#include "entity/components/transform.hpp"
-#include "entity/components/model.hpp"
-#include "entity/components/orbit.hpp"
-#include "entity/components/blackbody.hpp"
-#include "entity/components/celestial-body.hpp"
+#include "game/component/atmosphere.hpp"
+#include "game/component/behavior.hpp"
+#include "game/component/collision.hpp"
+#include "game/component/diffuse-reflector.hpp"
+#include "game/component/terrain.hpp"
+#include "game/component/transform.hpp"
+#include "game/component/model.hpp"
+#include "game/component/orbit.hpp"
+#include "game/component/blackbody.hpp"
+#include "game/component/celestial-body.hpp"
 #include "entity/archetype.hpp"
 #include "entity/ebt.hpp"
 #include "physics/orbit/elements.hpp"
@@ -38,7 +38,7 @@
 
 static bool load_component_atmosphere(entity::archetype& archetype, const json& element)
 {
-	entity::component::atmosphere component;
+	game::component::atmosphere component;
 	
 	if (element.contains("upper_limit"))
 		component.upper_limit = element["upper_limit"].get<double>();
@@ -76,14 +76,14 @@ static bool load_component_atmosphere(entity::archetype& archetype, const json& 
 		component.airglow_illuminance.z = airglow_illuminance[2].get<double>();
 	}
 	
-	archetype.set<entity::component::atmosphere>(component);
+	archetype.set<game::component::atmosphere>(component);
 
 	return true;
 }
 
 static bool load_component_behavior(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
 {
-	entity::component::behavior component;
+	game::component::behavior component;
 	component.behavior_tree = nullptr;
 	
 	if (element.contains("file"))
@@ -91,27 +91,27 @@ static bool load_component_behavior(entity::archetype& archetype, resource_manag
 		component.behavior_tree = resource_manager.load<entity::ebt::node>(element["file"].get<std::string>());
 	}
 	
-	archetype.set<entity::component::behavior>(component);
+	archetype.set<game::component::behavior>(component);
 	
 	return (component.behavior_tree != nullptr);
 }
 
 static bool load_component_blackbody(entity::archetype& archetype, const json& element)
 {
-	entity::component::blackbody component;
+	game::component::blackbody component;
 	component.temperature = 0.0;
 	
 	if (element.contains("temperature"))
 		component.temperature = element["temperature"].get<double>();
 
-	archetype.set<entity::component::blackbody>(component);
+	archetype.set<game::component::blackbody>(component);
 
 	return true;
 }
 
 static bool load_component_celestial_body(entity::archetype& archetype, const json& element)
 {
-	entity::component::celestial_body component;
+	game::component::celestial_body component;
 	
 	if (element.contains("radius"))
 		component.radius = element["radius"].get<double>();
@@ -141,14 +141,14 @@ static bool load_component_celestial_body(entity::archetype& archetype, const js
 	if (element.contains("albedo"))
 		component.albedo = element["albedo"].get<double>();
 	
-	archetype.set<entity::component::celestial_body>(component);
+	archetype.set<game::component::celestial_body>(component);
 
 	return true;
 }
 
 static bool load_component_collision(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
 {
-	entity::component::collision component;
+	game::component::collision component;
 	component.mesh = nullptr;
 	
 	if (element.contains("file"))
@@ -156,27 +156,27 @@ static bool load_component_collision(entity::archetype& archetype, resource_mana
 		component.mesh = resource_manager.load<geom::mesh>(element["file"].get<std::string>());
 	}
 	
-	archetype.set<entity::component::collision>(component);
+	archetype.set<game::component::collision>(component);
 	
 	return (component.mesh != nullptr);
 }
 
 static bool load_component_diffuse_reflector(entity::archetype& archetype, const json& element)
 {
-	entity::component::diffuse_reflector component;
+	game::component::diffuse_reflector component;
 	component.albedo = 0.0;
 	
 	if (element.contains("albedo"))
 		component.albedo = element["albedo"].get<double>();
 	
-	archetype.set<entity::component::diffuse_reflector>(component);
+	archetype.set<game::component::diffuse_reflector>(component);
 
 	return true;
 }
 
 static bool load_component_model(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
 {
-	entity::component::model component;
+	game::component::model component;
 	component.instance_count = 0;
 	//component.layers = ~0;
 	component.layers = 1;
@@ -186,14 +186,14 @@ static bool load_component_model(entity::archetype& archetype, resource_manager&
 		component.render_model = resource_manager.load<render::model>(element["file"].get<std::string>());
 	}
 	
-	archetype.set<entity::component::model>(component);
+	archetype.set<game::component::model>(component);
 	
 	return true;
 }
 
 static bool load_component_orbit(entity::archetype& archetype, const json& element)
 {
-	entity::component::orbit component;
+	game::component::orbit component;
 	
 	component.parent = entt::null;
 	component.ephemeris_index = -1;
@@ -205,14 +205,14 @@ static bool load_component_orbit(entity::archetype& archetype, const json& eleme
 	if (element.contains("scale"))
 		component.scale = element["scale"].get<double>();
 	
-	archetype.set<entity::component::orbit>(component);
+	archetype.set<game::component::orbit>(component);
 
 	return true;
 }
 
 static bool load_component_transform(entity::archetype& archetype, const json& element)
 {
-	entity::component::transform component;
+	game::component::transform component;
 	component.local = math::transform<float>::identity;
 	component.warp = true;
 	
@@ -242,7 +242,7 @@ static bool load_component_transform(entity::archetype& archetype, const json& e
 	}
 	
 	component.world = component.local;
-	archetype.set<entity::component::transform>(component);
+	archetype.set<game::component::transform>(component);
 
 	return true;
 }

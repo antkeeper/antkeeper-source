@@ -27,7 +27,7 @@
 #include "render/material.hpp"
 #include "render/passes/sky-pass.hpp"
 #include "render/passes/ground-pass.hpp"
-#include "entity/systems/astronomy.hpp"
+#include "game/system/astronomy.hpp"
 #include <fstream>
 
 namespace game {

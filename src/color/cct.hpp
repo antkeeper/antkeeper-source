@@ -26,7 +26,7 @@
 
 namespace color {
 
-/// Functions which operate on correlated color temperature (CCT).
+/// Correlated color temperature (CCT).
 namespace cct {
 
 /**

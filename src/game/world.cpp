@@ -21,15 +21,15 @@
 #include "scene/text.hpp"
 #include "physics/light/vmag.hpp"
 #include "color/color.hpp"
-#include "entity/components/atmosphere.hpp"
-#include "entity/components/blackbody.hpp"
-#include "entity/components/celestial-body.hpp"
-#include "entity/components/orbit.hpp"
-#include "entity/components/terrain.hpp"
-#include "entity/components/transform.hpp"
-#include "entity/components/observer.hpp"
-#include "entity/systems/astronomy.hpp"
-#include "entity/systems/orbit.hpp"
+#include "game/component/atmosphere.hpp"
+#include "game/component/blackbody.hpp"
+#include "game/component/celestial-body.hpp"
+#include "game/component/orbit.hpp"
+#include "game/component/terrain.hpp"
+#include "game/component/transform.hpp"
+#include "game/component/observer.hpp"
+#include "game/system/astronomy.hpp"
+#include "game/system/orbit.hpp"
 #include "entity/commands.hpp"
 #include "entity/archetype.hpp"
 #include "geom/spherical.hpp"
@@ -101,7 +101,7 @@ void create_observer(game::context& ctx)
 		ctx.entities["observer"] = observer_eid;
 		
 		// Construct observer component
-		entity::component::observer observer;
+		game::component::observer observer;
 		
 		// Set observer reference body
 		if (auto it = ctx.entities.find("earth"); it != ctx.entities.end())
@@ -115,7 +115,7 @@ void create_observer(game::context& ctx)
 		observer.longitude = 0.0;
 		
 		// Assign observer component to observer entity
-		ctx.entity_registry->assign<entity::component::observer>(observer_eid, observer);
+		ctx.entity_registry->assign<game::component::observer>(observer_eid, observer);
 		
 		// Set astronomy system observer
 		ctx.astronomy_system->set_observer(observer_eid);
@@ -138,7 +138,7 @@ void set_location(game::context& ctx, double elevation, double latitude, double 
 		if (observer_eid != entt::null)
 		{
 			// Get pointer to observer component
-			const auto observer = ctx.entity_registry->try_get<entity::component::observer>(observer_eid);
+			const auto observer = ctx.entity_registry->try_get<game::component::observer>(observer_eid);
 			
 			// Set observer location
 			if (observer)
@@ -146,11 +146,11 @@ void set_location(game::context& ctx, double elevation, double latitude, double 
 				observer->elevation = elevation;
 				observer->latitude = latitude;
 				observer->longitude = longitude;
-				ctx.entity_registry->replace<entity::component::observer>(observer_eid, *observer);
+				ctx.entity_registry->replace<game::component::observer>(observer_eid, *observer);
 			}
 
 			/*
-			ctx.entity_registry->patch<entity::component::observer>
+			ctx.entity_registry->patch<game::component::observer>
 			(
 				observer_eid,
 				[&](auto& component)
@@ -191,7 +191,7 @@ void set_time(game::context& ctx, int year, int month, int day, int hour, int mi
 		entity::id observer_eid = it->second;
 		if (observer_eid != entt::null)
 		{
-			const auto observer = ctx.entity_registry->try_get<entity::component::observer>(observer_eid);
+			const auto observer = ctx.entity_registry->try_get<game::component::observer>(observer_eid);
 			if (observer)
 				longitude = observer->longitude;
 		}
@@ -485,10 +485,10 @@ void create_earth(game::context& ctx)
 		ctx.entities["earth"] = earth_eid;
 		
 		// Assign orbital parent
-		ctx.entity_registry->get<entity::component::orbit>(earth_eid).parent = ctx.entities["em_bary"];
+		ctx.entity_registry->get<game::component::orbit>(earth_eid).parent = ctx.entities["em_bary"];
 		
 		// Assign earth terrain component
-		entity::component::terrain terrain;
+		game::component::terrain terrain;
 		terrain.elevation = [](double, double) -> double
 		{
 			//return math::random<double>(0.0, 1.0);
@@ -496,7 +496,7 @@ void create_earth(game::context& ctx)
 		};
 		terrain.max_lod = 0;
 		terrain.patch_material = nullptr;
-		//ctx.entity_registry->assign<entity::component::terrain>(earth_eid, terrain);
+		//ctx.entity_registry->assign<game::component::terrain>(earth_eid, terrain);
 	}
 	catch (const std::exception&)
 	{
@@ -519,7 +519,7 @@ void create_moon(game::context& ctx)
 		ctx.entities["moon"] = moon_eid;
 		
 		// Assign orbital parent
-		ctx.entity_registry->get<entity::component::orbit>(moon_eid).parent = ctx.entities["em_bary"];
+		ctx.entity_registry->get<game::component::orbit>(moon_eid).parent = ctx.entities["em_bary"];
 		
 		// Pass moon model to sky pass
 		ctx.sky_pass->set_moon_model(ctx.resource_manager->load<render::model>("moon.mdl"));
