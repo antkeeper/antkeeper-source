@@ -120,9 +120,9 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
 	const float3& camera_position = ctx.camera_transform.translation;
-	float4x4 view = ctx.camera->get_view_tween().interpolate(ctx.alpha);
-	float4x4 projection = ctx.camera->get_projection_tween().interpolate(ctx.alpha);
-	float4x4 view_projection = projection * view;
+	const float4x4& view = ctx.view;
+	const float4x4& projection = ctx.projection;
+	const float4x4& view_projection = ctx.view_projection;
 	float4x4 model_view_projection;
 	float4x4 model;
 	float4x4 model_view;

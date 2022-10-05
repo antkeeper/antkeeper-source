@@ -30,6 +30,9 @@ namespace world {
 /// Creates the cosmos.
 void cosmogenesis(game::context& ctx);
 
+/// Creates the observer.
+void create_observer(game::context& ctx);
+
 /**
  * Sets the location of the observer.
  *

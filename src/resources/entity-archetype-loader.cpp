@@ -44,32 +44,37 @@ static bool load_component_atmosphere(entity::archetype& archetype, const json& 
 		component.upper_limit = element["upper_limit"].get<double>();
 	if (element.contains("index_of_refraction"))
 		component.index_of_refraction = element["index_of_refraction"].get<double>();
-	if (element.contains("air_concentration"))
-		component.air_concentration = element["air_concentration"].get<double>();
 	
+	if (element.contains("rayleigh_concentration"))
+		component.rayleigh_concentration = element["rayleigh_concentration"].get<double>();
 	if (element.contains("rayleigh_scale_height"))
 		component.rayleigh_scale_height = element["rayleigh_scale_height"].get<double>();
-	if (element.contains("rayleigh_density"))
-		component.rayleigh_density = element["rayleigh_density"].get<double>();
 	
+	if (element.contains("mie_concentration"))
+		component.mie_concentration = element["mie_concentration"].get<double>();
 	if (element.contains("mie_scale_height"))
 		component.mie_scale_height = element["mie_scale_height"].get<double>();
-	if (element.contains("mie_density"))
-		component.mie_density = element["mie_density"].get<double>();
 	if (element.contains("mie_anisotropy"))
 		component.mie_anisotropy = element["mie_anisotropy"].get<double>();
+	if (element.contains("mie_albedo"))
+		component.mie_albedo = element["mie_albedo"].get<double>();
 	
+	if (element.contains("ozone_concentration"))
+		component.ozone_concentration = element["ozone_concentration"].get<double>();
 	if (element.contains("ozone_lower_limit"))
 		component.ozone_lower_limit = element["ozone_lower_limit"].get<double>();
 	if (element.contains("ozone_upper_limit"))
 		component.ozone_upper_limit = element["ozone_upper_limit"].get<double>();
 	if (element.contains("ozone_mode"))
 		component.ozone_mode = element["ozone_mode"].get<double>();
-	if (element.contains("ozone_concentration"))
-		component.ozone_concentration = element["ozone_concentration"].get<double>();
 	
-	if (element.contains("airglow"))
-		component.airglow = element["airglow"].get<double>();
+	if (element.contains("airglow_illuminance"))
+	{
+		const auto& airglow_illuminance = element["airglow_illuminance"];
+		component.airglow_illuminance.x = airglow_illuminance[0].get<double>();
+		component.airglow_illuminance.y = airglow_illuminance[1].get<double>();
+		component.airglow_illuminance.z = airglow_illuminance[2].get<double>();
+	}
 	
 	archetype.set<entity::component::atmosphere>(component);
 

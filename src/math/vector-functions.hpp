@@ -36,7 +36,7 @@ namespace math {
  * @return Sum of the two vectors.
  */
 template <class T, std::size_t N>
-vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y);
+constexpr vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Checks if all elements of a boolean vector are `true`.
@@ -45,7 +45,7 @@ vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y);
  * @return `true` if all elements are `true`, `false` otherwise.
  */
 template <std::size_t N>
-bool all(const vector<bool, N>& x);
+constexpr bool all(const vector<bool, N>& x);
 
 /**
  * Checks if any elements of a boolean vector are `true`.
@@ -54,7 +54,7 @@ bool all(const vector<bool, N>& x);
  * @return `true` if any elements are `true`, `false` otherwise.
  */
 template <std::size_t N>
-bool any(const vector<bool, N>& x);
+constexpr bool any(const vector<bool, N>& x);
 
 /**
  * Reinterprets data as an `N`-dimensional vector of type `T`.
@@ -64,7 +64,7 @@ bool any(const vector<bool, N>& x);
  * @param data Data to reinterpret.
  */
 template <std::size_t N, typename T>
-vector<T, N>& as_vector(T& data);
+constexpr vector<T, N>& as_vector(T& data);
 
 /**
  * Clamps the values of a vector's elements.
@@ -75,7 +75,7 @@ vector<T, N>& as_vector(T& data);
  * @return Clamped vector.
  */
 template <class T, std::size_t N>
-vector<T, N> clamp(const vector<T, N>& x, T min_value, T max_value);
+constexpr vector<T, N> clamp(const vector<T, N>& x, T min_value, T max_value);
 
 /**
  * Clamps the length of a vector.
@@ -95,7 +95,7 @@ vector<T, N> clamp_length(const vector<T, N>& x, T max_length);
  * @return Cross product of the two vectors.
  */
 template <class T>
-vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y);
+constexpr vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y);
 
 /**
  * Calculates the distance between two points.
@@ -115,7 +115,7 @@ vector<T, N> distance(const vector<T, N>& p0, const vector<T, N>& p1);
  * @return Squared distance between the two points.
  */
 template <class T, std::size_t N>
-vector<T, N> distance_squared(const vector<T, N>& p0, const vector<T, N>& p1);
+constexpr vector<T, N> distance_squared(const vector<T, N>& p0, const vector<T, N>& p1);
 
 /**
  * Divides a vector by another vector.
@@ -125,7 +125,7 @@ vector<T, N> distance_squared(const vector<T, N>& p0, const vector<T, N>& p1);
  * @return Result of the division.
  */
 template <class T, std::size_t N>
-vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y);
+constexpr vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Divides a vector by a scalar.
@@ -135,7 +135,7 @@ vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y);
  * @return Result of the division.
  */
 template <class T, std::size_t N>
-vector<T, N> div(const vector<T, N>& v, T s);
+constexpr vector<T, N> div(const vector<T, N>& v, T s);
 
 /**
  * Calculates the dot product of two vectors.
@@ -145,7 +145,7 @@ vector<T, N> div(const vector<T, N>& v, T s);
  * @return Dot product of the two vectors.
  */
 template <class T, std::size_t N>
-T dot(const vector<T, N>& x, const vector<T, N>& y);
+constexpr T dot(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Compares two vectors for equality
@@ -155,7 +155,7 @@ T dot(const vector<T, N>& x, const vector<T, N>& y);
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y);
+constexpr vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Performs a component-wise greater-than comparison of two vectors.
@@ -165,7 +165,7 @@ vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y);
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y);
+constexpr vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Performs a component-wise greater-than or equal-to comparison of two vectors.
@@ -175,7 +175,7 @@ vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y);
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y);
+constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Calculates the length of a vector.
@@ -193,7 +193,7 @@ T length(const vector<T, N>& x);
  * @return Squared length of the vector.
  */
 template <class T, std::size_t N>
-T length_squared(const vector<T, N>& x);
+constexpr T length_squared(const vector<T, N>& x);
 
 /**
  * Performs a component-wise less-than comparison of two vectors.
@@ -203,7 +203,7 @@ T length_squared(const vector<T, N>& x);
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y);
+constexpr vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Performs a component-wise less-than or equal-to comparison of two vectors.
@@ -213,7 +213,7 @@ vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y);
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y);
+constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Multiplies two vectors.
@@ -223,7 +223,7 @@ vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y);
  * @return Product of the two vectors.
  */
 template <class T, std::size_t N>
-vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y);
+constexpr vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Multiplies a vector by a scalar.
@@ -233,7 +233,7 @@ vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y);
  * @return Product of the vector and scalar.
  */
 template <class T, std::size_t N>
-vector<T, N> mul(const vector<T, N>& v, T s);
+constexpr vector<T, N> mul(const vector<T, N>& v, T s);
 
 /**
  * Negates a vector.
@@ -242,7 +242,7 @@ vector<T, N> mul(const vector<T, N>& v, T s);
  * @return Negated vector.
  */
 template <class T, std::size_t N>
-vector<T, N> negate(const vector<T, N>& x);
+constexpr vector<T, N> negate(const vector<T, N>& x);
 
 /**
  * Calculates the unit vector in the same direction as the original vector.
@@ -260,7 +260,7 @@ vector<T, N> normalize(const vector<T, N>& x);
  * @return Logically inverted vector.
  */
 template <class T, std::size_t N>
-vector<bool, N> not(const vector<T, N>& x);
+constexpr vector<bool, N> not(const vector<T, N>& x);
 
 /**
  * Compares two vectors for inequality
@@ -270,7 +270,7 @@ vector<bool, N> not(const vector<T, N>& x);
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y);
+constexpr vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Resizes a vector. Any new elements will be set to `0`.
@@ -279,7 +279,7 @@ vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y);
  * @return Resized vector.
  */
 template <std::size_t N1, class T, std::size_t N0>
-vector<T, N1> resize(const vector<T, N0>& v);
+constexpr vector<T, N1> resize(const vector<T, N0>& v);
 
 /**
  * Subtracts a vector from another vector.
@@ -289,7 +289,7 @@ vector<T, N1> resize(const vector<T, N0>& v);
  * @return Difference between the two vectors.
  */
 template <class T, std::size_t N>
-vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y);
+constexpr vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Makes an m-dimensional vector by rearranging and/or duplicating elements of an n-dimensional vector.
@@ -300,7 +300,7 @@ vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y);
  * @return Vector containing elements from vector `v` in the order specified by `Indices`. The size of the returned vector is equivalent to the number of indices in `Indices`.
  */
 template <std::size_t... Indices, class T, std::size_t N>
-vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& v);
+constexpr vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& v);
 
 /**
  * Types casts each vector component and returns a vector of the casted type.
@@ -312,49 +312,49 @@ vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& v);
  * @return Type-casted vector.
  */
 template <class T2, class T1, std::size_t N>
-vector<T2, N> type_cast(const vector<T1, N>& v);
+constexpr vector<T2, N> type_cast(const vector<T1, N>& v);
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {(x[I] + y[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return add(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::size_t N, std::size_t... I>
-inline bool all(const vector<bool, N>& x, std::index_sequence<I...>)
+constexpr inline bool all(const vector<bool, N>& x, std::index_sequence<I...>)
 {
 	return (x[I] && ...);
 }
 
 template <std::size_t N>
-inline bool all(const vector<bool, N>& x)
+constexpr inline bool all(const vector<bool, N>& x)
 {
 	return all(x, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::size_t N, std::size_t... I>
-inline bool any(const vector<bool, N>& x, std::index_sequence<I...>)
+constexpr inline bool any(const vector<bool, N>& x, std::index_sequence<I...>)
 {
 	return (x[I] || ...);
 }
 
 template <std::size_t N>
-inline bool any(const vector<bool, N>& x)
+constexpr inline bool any(const vector<bool, N>& x)
 {
 	return any(x, std::make_index_sequence<N>{});
 }
 
 template <std::size_t N, typename T>
-inline vector<T, N>& as_vector(T& data)
+constexpr inline vector<T, N>& as_vector(T& data)
 {
 	static_assert(std::is_pod<vector<T, N>>::value);
 	return reinterpret_cast<vector<T, N>&>(data);
@@ -362,13 +362,13 @@ inline vector<T, N>& as_vector(T& data)
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<T, N> clamp(const vector<T, N>& x, T min_value, T max_value, std::index_sequence<I...>)
+constexpr inline vector<T, N> clamp(const vector<T, N>& x, T min_value, T max_value, std::index_sequence<I...>)
 {
 	return {std::min<T>(max_value, std::max<T>(min_value, x[I]))...};
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> clamp(const vector<T, N>& x, T min_value, T max_value)
+constexpr inline vector<T, N> clamp(const vector<T, N>& x, T min_value, T max_value)
 {
 	return clamp(x, min_value, max_value, std::make_index_sequence<N>{});
 }
@@ -381,7 +381,7 @@ vector<T, N> clamp_length(const vector<T, N>& x, T max_length)
 }
 
 template <class T>
-inline vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y)
+constexpr inline vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y)
 {
 	return
 		{
@@ -399,7 +399,7 @@ inline vector<T, N> distance(const vector<T, N>& p0, const vector<T, N>& p1)
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> distance_squared(const vector<T, N>& p0, const vector<T, N>& p1)
+constexpr inline vector<T, N> distance_squared(const vector<T, N>& p0, const vector<T, N>& p1)
 {
 	static_assert(std::is_floating_point<T>::value);
 	return length_squared(sub(p0, p1));
@@ -407,78 +407,78 @@ inline vector<T, N> distance_squared(const vector<T, N>& p0, const vector<T, N>&
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {(x[I] / y[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return div(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<T, N> div(const vector<T, N>& v, T s, std::index_sequence<I...>)
+constexpr inline vector<T, N> div(const vector<T, N>& v, T s, std::index_sequence<I...>)
 {
 	return {(v[I] / s)...};
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> div(const vector<T, N>& v, T s)
+constexpr inline vector<T, N> div(const vector<T, N>& v, T s)
 {
 	return div(v, s, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline T dot(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline T dot(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return ((x[I] * y[I]) + ...);
 }
 
 template <class T, std::size_t N>
-inline T dot(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline T dot(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return dot(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {(x[I] == y[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return equal(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {(x[I] > y[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return greater_than(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {(x[I] >= y[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return greater_than_equal(x, y, std::make_index_sequence<N>{});
 }
@@ -491,73 +491,72 @@ inline T length(const vector<T, N>& x)
 }
 
 template <class T, std::size_t N>
-inline T length_squared(const vector<T, N>& x)
+constexpr inline T length_squared(const vector<T, N>& x)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return dot(x, x);
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {(x[I] < y[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return less_than(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {(x[I] <= y[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return less_than_equal(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {(x[I] * y[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return mul(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<T, N> mul(const vector<T, N>& v, T s, std::index_sequence<I...>)
+constexpr inline vector<T, N> mul(const vector<T, N>& v, T s, std::index_sequence<I...>)
 {
 	return {(v[I] * s)...};
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> mul(const vector<T, N>& v, T s)
+constexpr inline vector<T, N> mul(const vector<T, N>& v, T s)
 {
 	return mul(v, s, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<T, N> negate(const vector<T, N>& x, std::index_sequence<I...>)
+constexpr inline vector<T, N> negate(const vector<T, N>& x, std::index_sequence<I...>)
 {
 	return {(-x[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> negate(const vector<T, N>& x)
+constexpr inline vector<T, N> negate(const vector<T, N>& x)
 {
 	return negate(x, std::make_index_sequence<N>{});
 }
@@ -571,32 +570,32 @@ inline vector<T, N> normalize(const vector<T, N>& x)
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<bool, N> not(const vector<T, N>& x, std::index_sequence<I...>)
+constexpr inline vector<bool, N> not(const vector<T, N>& x, std::index_sequence<I...>)
 {
 	return {!x[I]...};
 }
 
 template <class T, std::size_t N>
-inline vector<bool, N> not(const vector<T, N>& x)
+constexpr inline vector<bool, N> not(const vector<T, N>& x)
 {
 	return not(x, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {(x[I] != y[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return not_equal(x, y, std::make_index_sequence<N>{});
 }
 
 template <std::size_t N1, class T, std::size_t N0>
-vector<T, N1> resize(const vector<T, N0>& v)
+constexpr vector<T, N1> resize(const vector<T, N0>& v)
 {
 	vector<T, N1> resized;
 
@@ -611,32 +610,32 @@ vector<T, N1> resize(const vector<T, N0>& v)
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-inline vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+constexpr inline vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {(x[I] - y[I])...};
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y)
+constexpr inline vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return sub(x, y, std::make_index_sequence<N>{});
 }
 
 template <std::size_t... Indices, class T, std::size_t N>
-inline vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& v)
+constexpr inline vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& v)
 {
 	return { v[Indices]... };
 }
 
 /// @private
 template <class T2, class T1, std::size_t N, std::size_t... I>
-inline vector<T2, N> type_cast(const vector<T1, N>& v, std::index_sequence<I...>)
+constexpr inline vector<T2, N> type_cast(const vector<T1, N>& v, std::index_sequence<I...>)
 {
 	return {static_cast<T2>(v[I])...};
 }
 
 template <class T2, class T1, std::size_t N>
-inline vector<T2, N> type_cast(const vector<T1, N>& v)
+constexpr inline vector<T2, N> type_cast(const vector<T1, N>& v)
 {
 	return type_cast<T2>(v, std::make_index_sequence<N>{}); 
 }
@@ -644,4 +643,3 @@ inline vector<T2, N> type_cast(const vector<T1, N>& v)
 } // namespace math
 
 #endif // ANTKEEPER_MATH_VECTOR_FUNCTIONS_HPP
-

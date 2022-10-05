@@ -47,13 +47,6 @@ public:
 	 */
 	void set_rgb_wavelengths(const double3& wavelengths);
 	
-	/**
-	 * Sets ozone cross sections for red, green, and blue wavelengths.
-	 *
-	 * @param cross_sections Vector containing the ozone cross sections of red (x), green (y), and blue (z) light, in m-2/molecule.
-	 */
-	void set_rgb_ozone_cross_sections(const double3& cross_sections);
-	
 	void set_sky_pass(::render::sky_pass* pass);
 	
 private:

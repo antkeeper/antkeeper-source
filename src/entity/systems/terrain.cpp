@@ -72,6 +72,7 @@ terrain::~terrain()
 
 void terrain::update(double t, double dt)
 {
+	/*
 	// Refine the level of detail of each terrain quadsphere
 	registry.view<component::terrain, component::celestial_body>().each(
 	[&](entity::id terrain_eid, const auto& terrain_component, const auto& terrain_body)
@@ -238,6 +239,7 @@ void terrain::update(double t, double dt)
 			}
 		}
 	});
+	*/
 }
 
 void terrain::set_patch_subdivisions(std::uint8_t n)

@@ -53,8 +53,17 @@ struct context
 	/// Camera culling volume.
 	const geom::bounding_volume<float>* camera_culling_volume;
 	
-	/// Near clipping plane of the camera
+	/// Near clipping plane of the camera.
 	geom::plane<float> clip_near;
+	
+	/// Camera view matrix.
+	float4x4 view;
+	
+	/// Camera projection matrix.
+	float4x4 projection;
+	
+	/// Camera view projection matrix.
+	float4x4 view_projection;
 	
 	/// Camera exposure normalization factor.
 	float exposure;

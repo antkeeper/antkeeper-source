@@ -20,149 +20,71 @@
 #ifndef ANTKEEPER_COLOR_SRGB_HPP
 #define ANTKEEPER_COLOR_SRGB_HPP
 
+#include "color/rgb.hpp"
+#include "color/illuminant.hpp"
 #include "math/math.hpp"
 #include <cmath>
 
 namespace color {
 
-/// Functions which operate in the sRGB colorspace.
-namespace srgb {
-
-/// CIE chromaticity coordinates of the sRGB white point (D65)
-template <class T>
-constexpr math::vector2<T> whitepoint = {0.31271, 0.32902};
-
 /**
- * Performs the sRGB Electro-Optical Transfer Function (EOTF), also known as the sRGB decoding function.
+ * sRGB electro-optical transfer function (EOTF), also known as the sRGB decoding function.
  *
  * @param v sRGB electrical signal (gamma-encoded sRGB).
+ *
  * @return Corresponding luminance of the signal (linear sRGB).
  */
-/// @{
-float eotf(float v);
-double eotf(double v);
 template <class T>
-math::vector3<T> eotf(const math::vector3<T>& v);
-/// @}
+math::vector3<T> srgb_eotf(const math::vector3<T>& v)
+{
+	auto f = [](T x) -> T
+	{
+		return x < T{0.04045} ? x / T{12.92} : std::pow((x + T{0.055}) / T{1.055}, T{2.4});
+	};
+	
+	return math::vector3<T>
+	{
+		f(v[0]),
+		f(v[1]),
+		f(v[2])
+	};
+}
 
 /**
- * Performs the sRGB inverse Electro-Optical Transfer Function (EOTF), also known as the sRGB encoding function.
+ * sRGB inverse electro-optical transfer function (EOTF), also known as the sRGB encoding function.
  *
  * @param l sRGB luminance (linear sRGB).
+ *
  * @return Corresponding electrical signal (gamma-encoded sRGB).
  */
-/// @{
-float eotf_inverse(float v);
-double eotf_inverse(double v);
 template <class T>
-math::vector3<T> eotf_inverse(const math::vector3<T>& l);
-/// @}
-
-/**
- * Calculates the luminance of a linear sRGB color.
- *
- * @param x Linear sRGB color.
- * @return return Luminance of @p x.
- */
-template <class T>
-T luminance(const math::vector3<T>& x);
-
-/**
- * Transforms a linear sRGB color into the ACEScg colorspace using the Bradford chromatic adaption transform.
- *
- * @param x Linear sRGB color.
- * @return ACEScg color.
- *
- * @see https://www.colour-science.org/apps/
- */
-template <class T>
-math::vector3<T> to_acescg(const math::vector3<T>& x);
-
-/**
- * Transforms a linear sRGB color into the CIE XYZ colorspace.
- *
- * @param x Linear sRGB color.
- * @return CIE XYZ color.
- */
-template <class T>
-math::vector3<T> to_xyz(const math::vector3<T>& x);
-
-inline float eotf(float v)
+math::vector3<T> srgb_inverse_eotf(const math::vector3<T>& l)
 {
-	return (v < 0.04045f) ? (v / 12.92f) : std::pow((v + 0.055f) / 1.055f, 2.4f);
-}
-
-inline double eotf(double v)
-{
-	return (v < 0.04045) ? (v / 12.92) : std::pow((v + 0.055) / 1.055, 2.4);
-}
-
-template <class T>
-math::vector3<T> eotf(const math::vector3<T>& v)
-{
-	return math::vector3<T>
-		{
-			eotf(v[0]),
-			eotf(v[1]),
-			eotf(v[2])
-		};
-}
-
-inline float eotf_inverse(float l)
-{
-	return (l <= 0.0031308f) ? (l * 12.92f) : (std::pow(l, 1.0f / 2.4f) * 1.055f - 0.055f);
-}
-
-inline double eotf_inverse(double l)
-{
-	return (l <= 0.0031308) ? (l * 12.92) : (std::pow(l, 1.0 / 2.4) * 1.055 - 0.055);
-}
-
-template <class T>
-math::vector3<T> eotf_inverse(const math::vector3<T>& l)
-{
-	return math::vector3<T>
-		{
-			eotf_inverse(l[0]),
-			eotf_inverse(l[1]),
-			eotf_inverse(l[2])
-		};
-}
-
-template <class T>
-T luminance(const math::vector3<T>& x)
-{
-	static const math::vector3<T> luma = {0.212639005871510, 0.715168678767756, 0.072192315360734};
-	return math::dot(x, luma);
-}
-
-template <class T>
-math::vector3<T> to_acescg(const math::vector3<T>& x)
-{
-	static const math::matrix3<T> srgb_to_acescg
-	{{
-		{0.613132422390542, 0.070124380833917, 0.020587657528185},
-		{0.339538015799666, 0.916394011313573, 0.109574571610682},
-		{0.047416696048269, 0.013451523958235, 0.869785404035327}
-	}};
+	auto f = [](T x) -> T
+	{
+		return x <= T{0.0031308} ? x * T{12.92} : std::pow(x, T{1} / T{2.4}) * T{1.055} - T{0.055};
+	};
 	
-	return srgb_to_acescg * x;
+	return math::vector3<T>
+	{
+		f(l[0]),
+		f(l[1]),
+		f(l[2])
+	};
 }
 
+/// sRGB color space.
 template <class T>
-math::vector3<T> to_xyz(const math::vector3<T>& x)
-{
-	static const math::matrix3<T> srgb_to_xyz
-	{{
-		{0.412390799265959, 0.212639005871510, 0.019330818715592},
-		{0.357584339383878, 0.715168678767756, 0.119194779794626},
-		{0.180480788401834, 0.072192315360734, 0.950532152249661}
-	}};
-	
-	return srgb_to_xyz * x;
-}
+constexpr rgb::color_space<T> srgb
+(
+	{T{0.64}, T{0.33}},
+	{T{0.30}, T{0.60}},
+	{T{0.15}, T{0.06}},
+	color::illuminant::deg2::d65<T>,
+	&srgb_eotf<T>,
+	&srgb_inverse_eotf
+);
 
-} // namespace srgb
 } // namespace color
 
 #endif // ANTKEEPER_COLOR_SRGB_HPP

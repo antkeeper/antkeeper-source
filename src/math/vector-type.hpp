@@ -20,7 +20,6 @@
 #ifndef ANTKEEPER_MATH_VECTOR_TYPE_HPP
 #define ANTKEEPER_MATH_VECTOR_TYPE_HPP
 
-#include <array>
 #include <cstddef>
 
 namespace math {
@@ -34,87 +33,107 @@ namespace math {
 template <typename T, std::size_t N>
 struct vector
 {
-	typedef T scalar_type;
-	typedef std::array<T, N> array_type;
-	scalar_type components[N];
+	typedef T element_type;
+	element_type elements[N];
 
-	inline constexpr scalar_type& operator[](std::size_t i) noexcept { return components[i]; }
-	inline constexpr const scalar_type& operator[](std::size_t i) const noexcept { return components[i]; }
-	inline constexpr operator array_type&() noexcept { return reinterpret_cast<array_type&>(components[0]); }
-	inline constexpr operator const array_type&() const noexcept { return reinterpret_cast<const array_type&>(components[0]); }
-	inline constexpr const scalar_type* data() const noexcept { return components; };
-	inline constexpr scalar_type* data() noexcept { return components; };
+	inline constexpr element_type& operator[](std::size_t i) noexcept { return elements[i]; }
+	inline constexpr const element_type& operator[](std::size_t i) const noexcept { return elements[i]; }
+	inline constexpr const element_type* data() const noexcept { return elements; };
+	inline constexpr element_type* data() noexcept { return elements; };
 	inline constexpr std::size_t size() const noexcept { return N; };
 };
 
 template <typename T>
 struct vector<T, 1>
 {
-	typedef T scalar_type;
-	typedef std::array<T, 1> array_type;
-	scalar_type x;
+	typedef T element_type;
+	
+	union
+	{
+		element_type elements[1];
+		
+		struct
+		{
+			element_type x;
+		};
+	};
 
-	inline constexpr scalar_type& operator[](std::size_t i) noexcept { return *((&x) + i); }
-	inline constexpr const scalar_type& operator[](std::size_t i) const noexcept { return *((&x) + i); }
-	inline constexpr operator array_type&() noexcept { return reinterpret_cast<array_type&>(x); }
-	inline constexpr operator const array_type&() const noexcept { return reinterpret_cast<const array_type&>(x); }
-	inline constexpr const scalar_type* data() const noexcept { return &x; };
-	inline constexpr scalar_type* data() noexcept { return &x; };
+	inline constexpr element_type& operator[](std::size_t i) noexcept { return elements[i]; }
+	inline constexpr const element_type& operator[](std::size_t i) const noexcept { return elements[i]; }
+	inline constexpr const element_type* data() const noexcept { return elements; };
+	inline constexpr element_type* data() noexcept { return elements; };
 	inline constexpr std::size_t size() const noexcept { return 1; };
 };
 
 template <typename T>
 struct vector<T, 2>
 {
-	typedef T scalar_type;
-	typedef std::array<T, 2> array_type;
-	scalar_type x;
-	scalar_type y;
+	typedef T element_type;
+	
+	union
+	{
+		element_type elements[2];
+		
+		struct
+		{
+			element_type x;
+			element_type y;
+		};
+	};
 
-	inline constexpr scalar_type& operator[](std::size_t i) noexcept { return *((&x) + i); }
-	inline constexpr const scalar_type& operator[](std::size_t i) const noexcept { return *((&x) + i); }
-	inline constexpr operator array_type&() noexcept { return reinterpret_cast<array_type&>(x); }
-	inline constexpr operator const array_type&() const noexcept { return reinterpret_cast<const array_type&>(x); }
-	inline constexpr const scalar_type* data() const noexcept { return &x; };
-	inline constexpr scalar_type* data() noexcept { return &x; };
+	inline constexpr element_type& operator[](std::size_t i) noexcept { return elements[i]; }
+	inline constexpr const element_type& operator[](std::size_t i) const noexcept { return elements[i]; }
+	inline constexpr const element_type* data() const noexcept { return elements; };
+	inline constexpr element_type* data() noexcept { return elements; };
 	inline constexpr std::size_t size() const noexcept { return 2; };
 };
 
 template <typename T>
 struct vector<T, 3>
 {
-	typedef T scalar_type;
-	typedef std::array<T, 3> array_type;
-	scalar_type x;
-	scalar_type y;
-	scalar_type z;
+	typedef T element_type;
+	
+	union
+	{
+		element_type elements[3];
+		
+		struct
+		{
+			element_type x;
+			element_type y;
+			element_type z;
+		};
+	};
 
-	inline constexpr scalar_type& operator[](std::size_t i) noexcept { return *((&x) + i); }
-	inline constexpr const scalar_type& operator[](std::size_t i) const noexcept { return *((&x) + i); }
-	inline constexpr operator array_type&() noexcept { return reinterpret_cast<array_type&>(x); }
-	inline constexpr operator const array_type&() const noexcept { return reinterpret_cast<const array_type&>(x); }
-	inline constexpr const scalar_type* data() const noexcept { return &x; };
-	inline constexpr scalar_type* data() noexcept { return &x; };
+	inline constexpr element_type& operator[](std::size_t i) noexcept { return elements[i]; }
+	inline constexpr const element_type& operator[](std::size_t i) const noexcept { return elements[i]; }
+	inline constexpr const element_type* data() const noexcept { return elements; };
+	inline constexpr element_type* data() noexcept { return elements; };
 	inline constexpr std::size_t size() const noexcept { return 3; };
-
 };
 
 template <typename T>
 struct vector<T, 4>
 {
-	typedef T scalar_type;
-	typedef std::array<T, 4> array_type;
-	scalar_type x;
-	scalar_type y;
-	scalar_type z;
-	scalar_type w;
+	typedef T element_type;
+	
+	union
+	{
+		element_type elements[4];
+		
+		struct
+		{
+			element_type x;
+			element_type y;
+			element_type z;
+			element_type w;
+		};
+	};
 
-	inline constexpr scalar_type& operator[](std::size_t i) noexcept { return *((&x) + i); }
-	inline constexpr const scalar_type& operator[](std::size_t i) const noexcept { return *((&x) + i); }
-	inline constexpr operator array_type&() noexcept { return reinterpret_cast<array_type&>(x); }
-	inline constexpr operator const array_type&() const noexcept { return reinterpret_cast<const array_type&>(x); }
-	inline constexpr const scalar_type* data() const noexcept { return &x; };
-	inline constexpr scalar_type* data() noexcept { return &x; };
+	inline constexpr element_type& operator[](std::size_t i) noexcept { return elements[i]; }
+	inline constexpr const element_type& operator[](std::size_t i) const noexcept { return elements[i]; }
+	inline constexpr const element_type* data() const noexcept { return elements; };
+	inline constexpr element_type* data() noexcept { return elements; };
 	inline constexpr std::size_t size() const noexcept { return 4; };
 };
 
@@ -133,4 +152,3 @@ using vector4 = vector<T, 4>;
 } // namespace math
 
 #endif // ANTKEEPER_MATH_VECTOR_TYPE_HPP
-

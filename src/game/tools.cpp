@@ -90,8 +90,8 @@ entity::id build_time_tool(game::context& ctx)
 	// Setup tool active calback
 	tool.active = [&ctx]()
 	{
-		auto [mouse_x, mouse_y] = ctx.app->get_mouse()->get_current_position();
-		auto [window_w, window_h] = ctx.app->get_viewport_dimensions();
+		//auto mouse = ctx.app->get_mouse()->get_current_position();
+		//auto window = ctx.app->get_viewport_dimensions();
 		
 		entity::id planet_eid = ctx.entities["planet"];
 		entity::component::celestial_body body = ctx.entity_registry->get<entity::component::celestial_body>(planet_eid);

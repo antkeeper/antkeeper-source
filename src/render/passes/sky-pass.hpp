@@ -60,20 +60,20 @@ public:
 	void set_sky_model(const model* model);
 	void set_moon_model(const model* model);
 	void set_stars_model(const model* model);
-	void set_clouds_model(const model* model);
 	
 	void set_icrf_to_eus(const math::transformation::se3<float>& transformation);
 	
 	void set_sun_position(const float3& position);
 	void set_sun_luminance(const float3& luminance);
-	void set_sun_illuminance(const float3& illuminance);
+	void set_sun_illuminance(const float3& illuminance, const float3& transmitted_illuminance);
 	void set_sun_angular_radius(float radius);
 	void set_planet_radius(float radius);
 	void set_atmosphere_upper_limit(float limit);
 	void set_observer_elevation(float elevation);
 	void set_rayleigh_parameters(float scale_height, const float3& scattering);
-	void set_mie_parameters(float scale_height, float scattering, float absorption, float anisotropy);
+	void set_mie_parameters(float scale_height, float scattering, float extinction, float anisotropy);
 	void set_ozone_parameters(float lower_limit, float upper_limit, float mode, const float3& absorption);
+	void set_airglow_illuminance(const float3& illuminance);
 	
 	void set_moon_position(const float3& position);
 	void set_moon_rotation(const math::quaternion<float>& rotation);
@@ -82,42 +82,62 @@ public:
 	void set_moon_sunlight_illuminance(const float3& illuminance);
 	void set_moon_planetlight_direction(const float3& direction);
 	void set_moon_planetlight_illuminance(const float3& illuminance);
+	void set_moon_illuminance(const float3& illuminance, const float3& transmitted_illuminance);
+	
+	/**
+	 * Sets the resolution of transmittance LUT.
+	 *
+	 * @param width Transmittance LUT width, in pixels.
+	 * @param height Transmittance LUT height, in pixels.
+	 */
+	void set_transmittance_lut_resolution(std::uint16_t width, std::uint16_t height);
 
 private:
 	virtual void handle_event(const mouse_moved_event& event);
 	
 	gl::vertex_buffer* quad_vbo;
 	gl::vertex_array* quad_vao;
-	gl::texture_2d* transmittance_texture;
-	gl::framebuffer* transmittance_framebuffer;
-	float2 transmittance_inverse_lut_resolution;
 	
+	gl::texture_2d* transmittance_lut_texture;
+	gl::framebuffer* transmittance_lut_framebuffer;
+	float2 transmittance_lut_resolution;
 	gl::shader_program* transmittance_shader_program;
 	const gl::shader_input* transmittance_atmosphere_radii_input;
 	const gl::shader_input* transmittance_rayleigh_parameters_input;
 	const gl::shader_input* transmittance_mie_parameters_input;
 	const gl::shader_input* transmittance_ozone_distribution_input;
 	const gl::shader_input* transmittance_ozone_absorption_input;
-	const gl::shader_input* transmittance_inverse_lut_resolution_input;
+	const gl::shader_input* transmittance_resolution_input;
+	mutable bool render_transmittance_lut;
+	
+	gl::texture_2d* sky_lut_texture;
+	gl::framebuffer* sky_lut_framebuffer;
+	gl::shader_program* sky_lut_shader_program;
+	float2 sky_lut_resolution;
+	const gl::shader_input* sky_lut_light_direction_input;
+	const gl::shader_input* sky_lut_light_illuminance_input;
+	const gl::shader_input* sky_lut_atmosphere_radii_input;
+	const gl::shader_input* sky_lut_observer_position_input;
+	const gl::shader_input* sky_lut_rayleigh_parameters_input;
+	const gl::shader_input* sky_lut_mie_parameters_input;
+	const gl::shader_input* sky_lut_ozone_distribution_input;
+	const gl::shader_input* sky_lut_ozone_absorption_input;
+	const gl::shader_input* sky_lut_airglow_illuminance_input;
+	const gl::shader_input* sky_lut_resolution_input;
+	const gl::shader_input* sky_lut_transmittance_lut_input;
+	const gl::shader_input* sky_lut_transmittance_lut_resolution_input;
 
 	gl::shader_program* sky_shader_program;
 	const gl::shader_input* model_view_projection_input;
 	const gl::shader_input* mouse_input;
 	const gl::shader_input* resolution_input;
-	const gl::shader_input* time_input;
-	const gl::shader_input* exposure_input;
-	const gl::shader_input* sun_direction_input;
+	const gl::shader_input* light_direction_input;
 	const gl::shader_input* sun_luminance_input;
-	const gl::shader_input* sun_illuminance_input;
 	const gl::shader_input* sun_angular_radius_input;
 	const gl::shader_input* atmosphere_radii_input;
 	const gl::shader_input* observer_position_input;
-	const gl::shader_input* rayleigh_parameters_input;
-	const gl::shader_input* mie_parameters_input;
-	const gl::shader_input* ozone_distribution_input;
-	const gl::shader_input* ozone_absorption_input;
-	const gl::shader_input* transmittance_lut_input;
-	const gl::shader_input* inverse_transmittance_lut_resolution_input;
+	const gl::shader_input* sky_illuminance_lut_input;
+	const gl::shader_input* sky_illuminance_lut_resolution_input;
 	
 	gl::shader_program* moon_shader_program;
 	const gl::shader_input* moon_model_input;
@@ -155,13 +175,6 @@ private:
 	const gl::shader_input* star_exposure_input;
 	const gl::shader_input* star_distance_input;
 	
-	const model* clouds_model;
-	const material* cloud_material;
-	const gl::vertex_array* clouds_model_vao;
-	gl::drawing_mode clouds_model_drawing_mode;
-	std::size_t clouds_model_start_index;
-	std::size_t clouds_model_index_count;
-	
 	gl::shader_program* cloud_shader_program;
 	const gl::shader_input* cloud_model_view_projection_input;
 	const gl::shader_input* cloud_sun_direction_input;
@@ -169,14 +182,12 @@ private:
 	const gl::shader_input* cloud_camera_position_input;
 	const gl::shader_input* cloud_camera_exposure_input;
 
-	const gl::texture_2d* blue_noise_map;
-	const gl::texture_2d* sky_gradient;
-	const gl::texture_2d* sky_gradient2;
 	float2 mouse_position;
 	
 	tween<float3> sun_position_tween;
 	tween<float3> sun_luminance_tween;
 	tween<float3> sun_illuminance_tween;
+	float3 sun_transmitted_illuminance;
 	tween<float3> icrf_to_eus_translation;
 	tween<math::quaternion<float>> icrf_to_eus_rotation;
 	
@@ -187,6 +198,9 @@ private:
 	tween<float3> moon_sunlight_illuminance_tween;
 	tween<float3> moon_planetlight_direction_tween;
 	tween<float3> moon_planetlight_illuminance_tween;
+	tween<float3> moon_illuminance_tween;
+	float3 moon_transmitted_illuminance;
+
 	
 	float sun_angular_radius;
 	float atmosphere_upper_limit;
@@ -197,6 +211,7 @@ private:
 	float4 mie_parameters;
 	float3 ozone_distribution;
 	float3 ozone_absorption;
+	float3 airglow_illuminance;
 	
 	float magnification;
 };

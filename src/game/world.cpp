@@ -27,6 +27,7 @@
 #include "entity/components/orbit.hpp"
 #include "entity/components/terrain.hpp"
 #include "entity/components/transform.hpp"
+#include "entity/components/observer.hpp"
 #include "entity/systems/astronomy.hpp"
 #include "entity/systems/orbit.hpp"
 #include "entity/commands.hpp"
@@ -52,6 +53,7 @@
 #include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
 #include "render/material-flags.hpp"
+#include "geom/solid-angle.hpp"
 #include "config.hpp"
 #include <iostream>
 
@@ -88,15 +90,79 @@ void cosmogenesis(game::context& ctx)
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
+void create_observer(game::context& ctx)
+{
+	ctx.logger->push_task("Creating observer");
+	
+	try
+	{
+		// Create observer entity
+		entity::id observer_eid = ctx.entity_registry->create();
+		ctx.entities["observer"] = observer_eid;
+		
+		// Construct observer component
+		entity::component::observer observer;
+		
+		// Set observer reference body
+		if (auto it = ctx.entities.find("earth"); it != ctx.entities.end())
+			observer.reference_body_eid = it->second;
+		else
+			observer.reference_body_eid = entt::null;
+		
+		// Set observer location
+		observer.elevation = 0.0;
+		observer.latitude = 0.0;
+		observer.longitude = 0.0;
+		
+		// Assign observer component to observer entity
+		ctx.entity_registry->assign<entity::component::observer>(observer_eid, observer);
+		
+		// Set astronomy system observer
+		ctx.astronomy_system->set_observer(observer_eid);
+	}
+	catch (const std::exception&)
+	{
+		ctx.logger->pop_task(EXIT_FAILURE);
+		return;
+	}
+	
+	ctx.logger->pop_task(EXIT_SUCCESS);
+}
+
 void set_location(game::context& ctx, double elevation, double latitude, double longitude)
 {
-	// Update context location
-	ctx.elevation = elevation;
-	ctx.latitude = latitude;
-	ctx.longitude = longitude;
-	
-	// Pass location to astronomy system
-	ctx.astronomy_system->set_observer_location({elevation, latitude, longitude});
+	if (auto it = ctx.entities.find("observer"); it != ctx.entities.end())
+	{
+		entity::id observer_eid = it->second;
+		
+		if (observer_eid != entt::null)
+		{
+			// Get pointer to observer component
+			const auto observer = ctx.entity_registry->try_get<entity::component::observer>(observer_eid);
+			
+			// Set observer location
+			if (observer)
+			{
+				observer->elevation = elevation;
+				observer->latitude = latitude;
+				observer->longitude = longitude;
+				ctx.entity_registry->replace<entity::component::observer>(observer_eid, *observer);
+			}
+
+			/*
+			ctx.entity_registry->patch<entity::component::observer>
+			(
+				observer_eid,
+				[&](auto& component)
+				{
+					component.elevation = elevation;
+					component.latitude = latitude;
+					component.longitude = longitude;
+				}
+			);
+			*/
+		}
+	}
 }
 
 void set_time(game::context& ctx, double t)
@@ -117,28 +183,36 @@ void set_time(game::context& ctx, double t)
 
 void set_time(game::context& ctx, int year, int month, int day, int hour, int minute, double second)
 {
-	const double utc_offset = physics::time::utc::offset<double>(ctx.longitude);
+	double longitude = 0.0;
+	
+	// Get longitude of observer
+	if (auto it = ctx.entities.find("observer"); it != ctx.entities.end())
+	{
+		entity::id observer_eid = it->second;
+		if (observer_eid != entt::null)
+		{
+			const auto observer = ctx.entity_registry->try_get<entity::component::observer>(observer_eid);
+			if (observer)
+				longitude = observer->longitude;
+		}
+	}
+	
+	// Calculate UTC offset at longitude
+	const double utc_offset = physics::time::utc::offset<double>(longitude);
+	
+	// Convert time from Gregorian to UT1
 	const double t = physics::time::gregorian::to_ut1<double>(year, month, day, hour, minute, second, utc_offset);
+	
 	set_time(ctx, t);
 }
 
 void set_time_scale(game::context& ctx, double scale)
 {
-	ctx.logger->push_task("Setting time scale to " + std::to_string(scale));
-	try
-	{
-		// Convert time scale from seconds to days
-		const double astronomical_scale = scale / physics::time::seconds_per_day<double>;
-		
-		ctx.orbit_system->set_time_scale(astronomical_scale);
-		ctx.astronomy_system->set_time_scale(astronomical_scale);
-	}
-	catch (const std::exception&)
-	{
-		ctx.logger->pop_task(EXIT_FAILURE);
-		return;
-	}
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	// Convert time scale from seconds to days
+	const double astronomical_scale = scale / physics::time::seconds_per_day<double>;
+	
+	ctx.orbit_system->set_time_scale(astronomical_scale);
+	ctx.astronomy_system->set_time_scale(astronomical_scale);
 }
 
 void load_ephemeris(game::context& ctx)
@@ -208,7 +282,7 @@ void create_stars(game::context& ctx)
 	float* star_vertex = star_vertex_data;
 	
 	// Init starlight illuminance
-	double starlight_illuminance = 0.0;
+	double3 starlight_illuminance = {0, 0, 0};
 	
 	// Build star catalog vertex data
 	for (std::size_t i = 1; i < star_catalog->size(); ++i)
@@ -239,9 +313,6 @@ void create_stars(game::context& ctx)
 		// Convert ICRF coordinates from spherical to Cartesian
 		double3 position = physics::orbit::frame::bci::cartesian(double3{1.0, dec, ra});
 		
-		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
-		double brightness = physics::light::vmag::to_brightness(vmag);
-		
 		// Convert color index to color temperature
 		double cct = color::index::bv_to_cct(bv);
 		
@@ -249,10 +320,10 @@ void create_stars(game::context& ctx)
 		double3 color_xyz = color::cct::to_xyz(cct);
 		
 		// Transform XYZ color to ACEScg colorspace
-		double3 color_acescg = color::xyz::to_acescg(color_xyz);
+		double3 color_acescg = color::aces::ap1<double>.from_xyz * color_xyz;
 		
-		// Scale color by relative brightness
-		color_acescg *= brightness;
+		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
+		double brightness = physics::light::vmag::to_brightness(vmag);
 		
 		// Build vertex
 		*(star_vertex++) = static_cast<float>(position.x);
@@ -263,8 +334,11 @@ void create_stars(game::context& ctx)
 		*(star_vertex++) = static_cast<float>(color_acescg.z);
 		*(star_vertex++) = static_cast<float>(brightness);
 		
-		// Convert apparent magnitude to illuminance and add to total starlight
-		starlight_illuminance += physics::light::vmag::to_illuminance(vmag);
+		// Calculate spectral illuminance
+		double3 illuminance = color_acescg * physics::light::vmag::to_illuminance(vmag);
+		
+		// Add spectral illuminance to total starlight illuminance
+		starlight_illuminance += illuminance;
 	}
 	
 	// Unload star catalog
@@ -347,14 +421,22 @@ void create_sun(game::context& ctx)
 		sky_light->set_color({0, 0, 0});
 		sky_light->update_tweens();
 		
+		// Create bounce directional light scene object
+		scene::directional_light* bounce_light = new scene::directional_light();
+		bounce_light->set_color({0, 0, 0});
+		bounce_light->look_at({0, 0, 0}, {0, 1, 0}, {1, 0, 0});
+		bounce_light->update_tweens();
+		
 		// Add sun light scene objects to surface scene
 		ctx.surface_scene->add_object(sun_light);
 		ctx.surface_scene->add_object(sky_light);
+		ctx.surface_scene->add_object(bounce_light);
 		
 		// Pass direct sun light scene object to shadow map pass and astronomy system
 		ctx.surface_shadow_map_pass->set_light(sun_light);
 		ctx.astronomy_system->set_sun_light(sun_light);
 		ctx.astronomy_system->set_sky_light(sky_light);
+		ctx.astronomy_system->set_bounce_light(bounce_light);
 	}
 	catch (const std::exception&)
 	{
@@ -415,9 +497,6 @@ void create_earth(game::context& ctx)
 		terrain.max_lod = 0;
 		terrain.patch_material = nullptr;
 		//ctx.entity_registry->assign<entity::component::terrain>(earth_eid, terrain);
-		
-		// Pass earth to astronomy system as reference body
-		ctx.astronomy_system->set_reference_body(earth_eid);
 	}
 	catch (const std::exception&)
 	{

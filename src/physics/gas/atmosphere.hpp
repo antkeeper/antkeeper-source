@@ -32,101 +32,95 @@ namespace gas {
 namespace atmosphere {
 
 /**
- * Calculates a particle polarizability factor used in computing scattering coefficients.
+ * Calculates a particle polarizability factor.
  *
  * @param ior Atmospheric index of refraction.
- * @param density Molecular density.
- * @return Polarization factor.
+ * @param density Molecular number density, in mol/m-3.
+ * @return Polarizability factor.
  *
+ * @see Elek, O., & Kmoch, P. (2010). Real-time spectral scattering in large-scale natural participating media. Proceedings of the 26th Spring Conference on Computer Graphics - SCCG ’10. doi:10.1145/1925059.1925074
  * @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
- * @see Real-Time Spectral Scattering in Large-Scale Natural Participating Media.
  */
 template <class T>
 T polarization(T ior, T density)
 {
-	const T ior2m1 = ior * ior - T(1.0);
-	const T num = T(2) * math::pi<T> * math::pi<T> * ior2m1 * ior2m1;
+	constexpr T k = T(2) * math::pi<T> * math::pi<T>;
+	const T ior2m1 = ior * ior - T(1);
+	const T num = k * ior2m1 * ior2m1;
 	const T den = T(3) * density * density;
 	return num / den;
 }
 
 /**
- * Calculates a Rayleigh scattering coefficient (wavelength-dependent).
+ * Calculates a wavelength-dependent scattering coefficient.
  *
+ * @param density Molecular number density of the particles, in mol/m-3.
+ * @param polarization Particle polarizability factor.
  * @param wavelength Wavelength of light, in meters.
- * @param density Molecular density of Rayleigh particles.
- * @param polarization Rayleigh particle polarization factor.
+ *
+ * @return Scattering coefficient.
  *
  * @see atmosphere::polarization
  *
+ * @see Elek, O., & Kmoch, P. (2010). Real-time spectral scattering in large-scale natural participating media. Proceedings of the 26th Spring Conference on Computer Graphics - SCCG ’10. doi:10.1145/1925059.1925074
  * @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
- * @see Real-Time Spectral Scattering in Large-Scale Natural Participating Media.
  */
 template <class T>
-T scattering_rayleigh(T wavelength, T density, T polarization)
+T scattering(T density, T polarization, T wavelength)
 {
 	const T wavelength2 = wavelength * wavelength;
-	return math::four_pi<T> * density / (wavelength2 * wavelength2) * polarization;
+	return math::four_pi<T> * (density / (wavelength2 * wavelength2)) * polarization;
 }
 
 /**
- * Calculates a Mie scattering coefficient (wavelength-independent).
+ * Calculates a wavelength-independent scattering coefficient.
  *
- * @param density Molecular density of Mie particles.
- * @param polarization Mie particle polarization factor.
+ * @param density Molecular number density of the particles, in mol/m-3.
+ * @param polarization Particle polarizability factor.
  *
- * @return Mie scattering coefficient.
+ * @return Scattering coefficient.
  *
  * @see atmosphere::polarization
  *
+ * @see Elek, O., & Kmoch, P. (2010). Real-time spectral scattering in large-scale natural participating media. Proceedings of the 26th Spring Conference on Computer Graphics - SCCG ’10. doi:10.1145/1925059.1925074
  * @see Elek, Oskar. (2009). Rendering Parametrizable Planetary Atmospheres with Multiple Scattering in Real-Time.
- * @see Real-Time Spectral Scattering in Large-Scale Natural Participating Media.
  */
 template <class T>
-T scattering_mie(T density, T polarization)
+T scattering(T density, T polarization)
 {
 	return math::four_pi<T> * density * polarization;
 }
 
 /**
- * Calculates a Mie absorption coefficient (wavelength-independent).
+ * Calculates an absorption coefficient.
  *
- * @param scattering Mie scattering coefficient.
+ * @param scattering Scattering coefficient.
+ * @param albedo Single-scattering albedo.
  *
- * @return Mie absorption coefficient.
+ * @return Absorption coefficient.
  *
- * @see Bruneton, E. and Neyret, F. (2008), Precomputed Atmospheric Scattering. Computer Graphics Forum, 27: 1079-1086. https://doi.org/10.1111/j.1467-8659.2008.01245.x
+ * @see https://en.wikipedia.org/wiki/Single-scattering_albedo
  */
 template <class T>
-T absorption_mie(T scattering)
+T absorption(T scattering, T albedo)
 {
-	return scattering / T(9);
+	return scattering * (T(1) / albedo - T(1));
 }
 
 /**
- * Calculates attenuation due to extinction (absorption + out-scattering).
+ * Calculates an extinction coefficient.
  *
- * @param ec Extinction coefficient (absorption coefficient + scattering coefficient).
- * @param s Scale factor.
- * @return Attenuation factor.
+ * @param scattering Scattering coefficient.
+ * @param albedo Single-scattering albedo.
+ *
+ * @return Extinction coefficient.
+ *
+ * @see https://en.wikipedia.org/wiki/Single-scattering_albedo
  */
 template <class T>
-T extinction(T ec, T s)
+T extinction(T scattering, T albedo)
 {
-	return std::exp(-(ec * s));
-}
-
-/**
- * Calculates the single-scattering albedo (SSA) given a scattering coefficient and an extinction coefficient.
- *
- * @param s Scattering coefficient.
- * @param e Extinction coefficient.
- * @return Single-scattering albedo.
- */
-template <class T>
-T albedo(T s, T e)
-{
-	return s / e;
+	return scattering / albedo;
 }
 
 /**

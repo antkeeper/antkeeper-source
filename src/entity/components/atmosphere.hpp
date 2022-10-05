@@ -34,32 +34,35 @@ struct atmosphere
 	/// Index of refraction of air at sea level.
 	double index_of_refraction;
 	
-	/// Molar concentration of air at sea level, in mol/m-3.
-	double air_concentration;
+	/// Molar concentration of Rayleigh particles at sea level, in mol/m-3.
+	double rayleigh_concentration;
 	
 	/// Scale height of the exponential distribution of Rayleigh particles, in meters.
 	double rayleigh_scale_height;
 	
-	/// Molecular density of Rayleigh particles at sea level.
-	double rayleigh_density;
-	
 	/// (Dependent) Rayleigh scattering coefficients.
 	double3 rayleigh_scattering;
+	
+	/// Molar concentration of Mie particles at sea level, in mol/m-3.
+	double mie_concentration;
 	
 	/// Scale height of the exponential distribution of Mie particles, in meters.
 	double mie_scale_height;
 	
-	/// Molecular density of Mie particles at sea level.
-	double mie_density;
+	/// Mie phase function anisotropy factor.
+	double mie_anisotropy;
+	
+	/// Mie single-scattering albedo.
+	double mie_albedo;
 	
 	/// (Dependent) Mie scattering coefficient.
 	double mie_scattering;
 	
-	/// (Dependent) Mie absorption coefficient.
-	double mie_absorption;
+	/// (Dependent) Mie extinction coefficient.
+	double mie_extinction;
 	
-	/// Mie phase function anisotropy factor.
-	double mie_anisotropy;
+	/// Concentration of ozone in the atmosphere, unitless.
+	double ozone_concentration;
 	
 	/// Elevation of the lower limit of the triangular distribution of ozone particles, in meters.
 	double ozone_lower_limit;
@@ -70,14 +73,11 @@ struct atmosphere
 	/// Elevation of the mode of the triangular distribution of ozone particles, in meters.
 	double ozone_mode;
 	
-	/// Concentration of ozone in the atmosphere, unitless.
-	double ozone_concentration;
-	
 	/// (Dependent) Ozone absorption coefficients.
 	double3 ozone_absorption;
 	
-	/// Airglow, in lux.
-	double airglow;
+	/// Airglow illuminance, in lux.
+	double3 airglow_illuminance;
 };
 
 } // namespace component

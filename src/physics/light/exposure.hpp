@@ -93,16 +93,16 @@ T to_luminance(T ev, T s, T k)
 }
 
 /**
- * Exposure value to luminance.
+ * Exposure value to illuminance.
  *
  * @param ev Exposure value.
  * @param s ISO arithmetic speed. A value of `100` corresponds to ISO 100.
- * @param k Incident-light meter calibration constant. A common value is `250`.
+ * @param c Incident-light meter calibration constant. A common value is `250`.
  *
  * @return Illuminance, in lux.
  */
 template <class T>
-T to_luminance(T ev, T s, T c)
+T to_illuminance(T ev, T s, T c)
 {
 	return  (c * std::exp2(ev)) / s;
 }

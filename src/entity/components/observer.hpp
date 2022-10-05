@@ -21,20 +21,26 @@
 #define ANTKEEPER_ENTITY_COMPONENT_OBSERVER_HPP
 
 #include "entity/id.hpp"
-#include "utility/fundamental-types.hpp"
-#include "scene/camera.hpp"
 
 namespace entity {
 namespace component {
 
-/// Observer
+/**
+ * 
+ */
 struct observer
 {
+	/// Entity ID of a celestial body to which the observer position is relative.
 	entity::id reference_body_eid;
+	
+	/// Elevation of the observer, in radians.
 	double elevation;
+	
+	/// Latitude of the observer, in radians.
 	double latitude;
+	
+	/// Longitude of the observer, in radians.
 	double longitude;
-	scene::camera* camera;
 };
 
 } // namespace component

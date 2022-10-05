@@ -39,6 +39,15 @@ public:
 	/// @copydoc texture::resize(std::uint16_t, std::uint16_t, gl::pixel_type, gl::pixel_format, gl::color_space, const void*)
 	virtual void resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data);
 	
+	/**
+	 * Resizes the texture.
+	 *
+	 * @param width Texture width, in pixels.
+	 * @param height Texture height, in pixels.
+	 * @param data Pointer to pixel data.
+	 */
+	void resize(std::uint16_t width, std::uint16_t height, const void* data);
+	
 	/// @copydoc texture::set_wrapping(gl::texture_wrapping, gl::texture_wrapping)
 	virtual void set_wrapping(gl::texture_wrapping wrap_s, texture_wrapping wrap_t);
 };

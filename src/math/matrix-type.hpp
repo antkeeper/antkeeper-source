@@ -66,13 +66,25 @@ constexpr matrix<T, N, M> matrix<T, N, M>::identity = identity_matrix<T>(std::ma
 template <typename T>
 using matrix2 = matrix<T, 2, 2>;
 
+/// 2x2 matrix.
+template <typename T>
+using matrix2x2 = matrix<T, 2, 2>;
+
 /// 3x3 matrix.
 template <typename T>
 using matrix3 = matrix<T, 3, 3>;
 
+/// 3x3 matrix.
+template <typename T>
+using matrix3x3 = matrix<T, 3, 3>;
+
 /// 4x4 matrix.
 template <typename T>
 using matrix4 = matrix<T, 4, 4>;
+
+/// 4x4 matrix.
+template <typename T>
+using matrix4x4 = matrix<T, 4, 4>;
 
 } // namespace math
 

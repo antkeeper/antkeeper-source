@@ -86,6 +86,19 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 			{
 				ctx.logger->warning("Biome terrain material undefined");
 			}
+			
+			// Setup lighting
+			double3 terrain_albedo = {0, 0, 0};
+			if (terrain->contains("albedo"))
+			{
+				const auto& albedo_element = (*terrain)["albedo"];
+				
+				terrain_albedo[0] = albedo_element[0].get<double>();
+				terrain_albedo[1]= albedo_element[1].get<double>();
+				terrain_albedo[2] = albedo_element[2].get<double>();
+				
+			}
+			ctx.astronomy_system->set_bounce_albedo(terrain_albedo);
 		}
 		else
 		{

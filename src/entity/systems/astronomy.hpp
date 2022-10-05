@@ -24,19 +24,20 @@
 #include "entity/id.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/ambient-light.hpp"
-#include "scene/camera.hpp"
 #include "utility/fundamental-types.hpp"
 #include "math/se3.hpp"
 #include "render/passes/sky-pass.hpp"
+#include "entity/components/observer.hpp"
 #include "entity/components/atmosphere.hpp"
 #include "entity/components/celestial-body.hpp"
 #include "entity/components/orbit.hpp"
+#include "geom/ray.hpp"
 
 namespace entity {
 namespace system {
 
 /**
- * Calculates apparent properties of celestial bodies relative to an observer.
+ * Calculates apparent properties of celestial bodies as seen by an observer.
  */
 class astronomy:
 	public updatable
@@ -46,7 +47,7 @@ public:
 	~astronomy();
 	
 	/**
-	 * Scales then adds the timestep `dt` to the current time, then recalculates the positions of celestial bodies.
+	 * Adds the timestep `dt`, scaled by set time scale, to the current time, then calculates apparent properties of celestial bodies as seen by an observer.
 	 *
 	 * @param t Time, in seconds.
 	 * @param dt Delta time, in seconds.
@@ -56,9 +57,9 @@ public:
 	/**
 	 * Sets the current time.
 	 *
-	 * @param time Time, in days.
+	 * @param t Time since epoch, in days.
 	 */
-	void set_time(double time);
+	void set_time(double t);
 	
 	/**
 	 * Sets the factor by which the timestep `dt` will be scaled before being added to the current time.
@@ -68,57 +69,99 @@ public:
 	void set_time_scale(double scale);
 	
 	/**
-	 * Sets the reference body entity, from which observations are taking place.
+	 * Sets the observer entity.
 	 *
-	 * @param entity Entity of the reference body.
+	 * @param eid Entity ID of the observer.
 	 */
-	void set_reference_body(entity::id entity_id);
+	void set_observer(entity::id eid);
 	
 	/**
-	 * Sets the location of the observer using spherical coordinates in BCBF space.
+	 * Sets the number of samples to take when integrating atmospheric transmittance.
 	 *
-	 * @param location Spherical coordinates of the observer, in reference body BCBF space, in the ISO order of altitude (meters), latitude (radians), and longitude (radians).
+	 * @param samples Number of integration samples.
 	 */
-	void set_observer_location(const double3& location);
+	void set_transmittance_samples(std::size_t samples);
 	
 	void set_sun_light(scene::directional_light* light);
 	void set_sky_light(scene::ambient_light* light);
 	void set_moon_light(scene::directional_light* light);
-	void set_camera(scene::camera* camera);
-	void set_exposure_offset(float offset);
-	
-	void set_starlight_illuminance(double illuminance);
-	
-	inline float get_exposure_offset() const { return exposure_offset; };
-	
+	void set_bounce_light(scene::directional_light* light);
+	void set_bounce_albedo(const double3& albedo);
+	void set_starlight_illuminance(const double3& illuminance);
 	void set_sky_pass(::render::sky_pass* pass);
 	
 private:
-	void on_celestial_body_construct(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body);
-	void on_celestial_body_replace(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body);
+	void on_observer_modified(entity::registry& registry, entity::id entity_id, entity::component::observer& component);
+	void on_observer_destroyed(entity::registry& registry, entity::id entity_id);
+	void on_celestial_body_modified(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& component);
+	void on_celestial_body_destroyed(entity::registry& registry, entity::id entity_id);
+	void on_orbit_modified(entity::registry& registry, entity::id entity_id, entity::component::orbit& component);
+	void on_orbit_destroyed(entity::registry& registry, entity::id entity_id);
+	void on_atmosphere_modified(entity::registry& registry, entity::id entity_id, entity::component::atmosphere& component);
+	void on_atmosphere_destroyed(entity::registry& registry, entity::id entity_id);
 	
-	void update_bcbf_to_enu();
+	/// Called each time the observer is modified.
+	void observer_modified();
+	
+	/// Called each time the celestial body of the reference body is modified.
+	void reference_body_modified();
+	
+	/// Called each time the orbit of the reference body is modified.
+	void reference_orbit_modified();
+	
+	/// Called each time the atmosphere of the reference body is modified.
+	void reference_atmosphere_modified();
 
-	double time;
+	/// Updates the BCBF to EUS transformation.
+	void update_bcbf_to_eus(const entity::component::observer& observer, const entity::component::celestial_body& body);
+	
+	/// Updates the ICRF to EUS transformation.
+	void update_icrf_to_eus(const entity::component::celestial_body& body, const entity::component::orbit& orbit);
+	
+	/**
+	 * Integrates a transmittance factor due to atmospheric extinction along a ray.
+	 *
+	 * @param ray Ray to cast, in the EUS frame.
+	 * @param samples Number of samples to integrate.
+	 *
+	 * @return Spectral transmittance factor.
+	 */
+	double3 integrate_transmittance(const entity::component::observer& observer, const entity::component::celestial_body& body, const entity::component::atmosphere& atmosphere, geom::ray<double> ray) const;
+	
+	/// Time since epoch, in days.
+	double time_days;
+	
+	/// Time since epoch, in centuries.
+	double time_centuries;
+	
+	/// Time scale.
 	double time_scale;
 	
-	entity::id reference_entity;
+	/// Number of transmittance integration samples.
+	std::size_t transmittance_samples;
 	
-	double3 observer_location;
+	/// Entity ID of the observer.
+	entity::id observer_eid;
 	
-	math::transformation::se3<double> icrf_to_bcbf;
-	math::transformation::se3<double> bcbf_to_enu;
-	math::transformation::se3<double> icrf_to_enu;
+	/// Entity ID of the reference body.
+	entity::id reference_body_eid;
+	
+	/// ENU to EUS transformation.
 	math::transformation::se3<double> enu_to_eus;
+	
+	/// BCBF to EUS transformation.
+	math::transformation::se3<double> bcbf_to_eus;
+	
+	/// ICRF to EUS tranformation.
 	math::transformation::se3<double> icrf_to_eus;
 	
 	scene::directional_light* sun_light;
 	scene::ambient_light* sky_light;
 	scene::directional_light* moon_light;
-	scene::camera* camera;
+	scene::directional_light* bounce_light;
+	double3 bounce_albedo;
 	::render::sky_pass* sky_pass;
-	float exposure_offset;
-	double starlight_illuminance;
+	double3 starlight_illuminance;
 };
 
 } // namespace system

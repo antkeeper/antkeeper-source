@@ -27,6 +27,7 @@
 #include "color/color.hpp"
 #include "physics/orbit/orbit.hpp"
 #include "physics/time/ut1.hpp"
+#include "physics/time/jd.hpp"
 #include "physics/light/photometry.hpp"
 #include "physics/light/luminosity.hpp"
 #include "physics/light/refraction.hpp"
@@ -40,107 +41,107 @@
 namespace entity {
 namespace system {
 
-template <class T>
-math::vector3<T> transmittance(T depth_r, T depth_m, T depth_o, const math::vector3<T>& extinction_r, T extinction_m, const math::vector3<T>& extinction_o)
-{
-	math::vector3<T> transmittance_r = extinction_r * depth_r;
-	math::vector3<T> transmittance_m = math::vector3<T>{extinction_m, extinction_m, extinction_m} * depth_m;
-	math::vector3<T> transmittance_o = extinction_o * depth_o;
-	
-	math::vector3<T> t = transmittance_r + transmittance_m + transmittance_o;
-	t.x = std::exp(-t.x);
-	t.y = std::exp(-t.y);
-	t.z = std::exp(-t.z);
-	
-	return t;
-}
-
 astronomy::astronomy(entity::registry& registry):
 	updatable(registry),
-	time(0.0),
+	time_days(0.0),
+	time_centuries(0.0),
 	time_scale(1.0),
-	reference_entity(entt::null),
-	observer_location{0, 0, 0},
+	observer_eid(entt::null),
+	reference_body_eid(entt::null),
+	transmittance_samples(0),
 	sun_light(nullptr),
 	sky_light(nullptr),
 	moon_light(nullptr),
-	camera(nullptr),
+	bounce_light(nullptr),
+	bounce_albedo{0, 0, 0},
 	sky_pass(nullptr),
-	exposure_offset(0.0),
-	starlight_illuminance(0.0)
+	starlight_illuminance{0, 0, 0}
 {
-	// Construct transformation which transforms coordinates from ENU to EUS
+	// Construct ENU to EUS transformation
 	enu_to_eus = math::transformation::se3<double>
 	{
 		{0, 0, 0},
 		math::quaternion<double>::rotate_x(-math::half_pi<double>)
 	};
 	
-	registry.on_construct<entity::component::celestial_body>().connect<&astronomy::on_celestial_body_construct>(this);
-	registry.on_replace<entity::component::celestial_body>().connect<&astronomy::on_celestial_body_replace>(this);
+	registry.on_construct<entity::component::observer>().connect<&astronomy::on_observer_modified>(this);
+	registry.on_replace<entity::component::observer>().connect<&astronomy::on_observer_modified>(this);
+	registry.on_destroy<entity::component::observer>().connect<&astronomy::on_observer_destroyed>(this);
+	registry.on_construct<entity::component::celestial_body>().connect<&astronomy::on_celestial_body_modified>(this);
+	registry.on_replace<entity::component::celestial_body>().connect<&astronomy::on_celestial_body_modified>(this);
+	registry.on_destroy<entity::component::celestial_body>().connect<&astronomy::on_celestial_body_destroyed>(this);
+	registry.on_construct<entity::component::orbit>().connect<&astronomy::on_orbit_modified>(this);
+	registry.on_replace<entity::component::orbit>().connect<&astronomy::on_orbit_modified>(this);
+	registry.on_destroy<entity::component::orbit>().connect<&astronomy::on_orbit_destroyed>(this);
+	registry.on_construct<entity::component::atmosphere>().connect<&astronomy::on_atmosphere_modified>(this);
+	registry.on_replace<entity::component::atmosphere>().connect<&astronomy::on_atmosphere_modified>(this);
+	registry.on_destroy<entity::component::atmosphere>().connect<&astronomy::on_atmosphere_destroyed>(this);
 }
 
 astronomy::~astronomy()
 {
-	registry.on_construct<entity::component::celestial_body>().disconnect<&astronomy::on_celestial_body_construct>(this);
-	registry.on_replace<entity::component::celestial_body>().disconnect<&astronomy::on_celestial_body_replace>(this);
+	registry.on_construct<entity::component::observer>().disconnect<&astronomy::on_observer_modified>(this);
+	registry.on_replace<entity::component::observer>().disconnect<&astronomy::on_observer_modified>(this);
+	registry.on_destroy<entity::component::observer>().disconnect<&astronomy::on_observer_destroyed>(this);
+	registry.on_construct<entity::component::celestial_body>().disconnect<&astronomy::on_celestial_body_modified>(this);
+	registry.on_replace<entity::component::celestial_body>().disconnect<&astronomy::on_celestial_body_modified>(this);
+	registry.on_destroy<entity::component::celestial_body>().disconnect<&astronomy::on_celestial_body_destroyed>(this);
+	registry.on_construct<entity::component::orbit>().disconnect<&astronomy::on_orbit_modified>(this);
+	registry.on_replace<entity::component::orbit>().disconnect<&astronomy::on_orbit_modified>(this);
+	registry.on_destroy<entity::component::orbit>().disconnect<&astronomy::on_orbit_destroyed>(this);
+	registry.on_construct<entity::component::atmosphere>().disconnect<&astronomy::on_atmosphere_modified>(this);
+	registry.on_replace<entity::component::atmosphere>().disconnect<&astronomy::on_atmosphere_modified>(this);
+	registry.on_destroy<entity::component::atmosphere>().disconnect<&astronomy::on_atmosphere_destroyed>(this);
 }
 
 void astronomy::update(double t, double dt)
 {
-	double total_illuminance = 0.0;
-	double sky_light_illuminance = 0.0;
+	double3 sky_light_illuminance = {0.0, 0.0, 0.0};
 	
 	// Add scaled timestep to current time
-	set_time(time + dt * time_scale);
+	set_time(time_days + dt * time_scale);
 	
-	// Abort if no reference body
-	if (reference_entity == entt::null)
+	// Abort if no valid observer entity or reference body entity
+	if (observer_eid == entt::null || reference_body_eid == entt::null)
 		return;
-
-	// Abort if either reference body or orbit have not been set
-	if (!registry.has<entity::component::orbit>(reference_entity) || !registry.has<entity::component::celestial_body>(reference_entity))
+	
+	// Get pointer to observer component
+	const auto observer = registry.try_get<component::observer>(observer_eid);
+	
+	// Abort if no observer component
+	if (!observer)
 		return;
-	const entity::component::orbit& reference_orbit = registry.get<entity::component::orbit>(reference_entity);
-	const entity::component::celestial_body& reference_body = registry.get<entity::component::celestial_body>(reference_entity);
 	
-	math::transformation::se3<double> icrf_to_bci{{-reference_orbit.position}, math::quaternion<double>::identity};
+	// Get pointers to reference body components
+	const auto
+	[
+		reference_body,
+		reference_orbit,
+		reference_atmosphere
+	] = registry.try_get<component::celestial_body, component::orbit, component::atmosphere>(reference_body_eid);
 	
-	const double days_from_epoch = time;
-	const double centuries_from_epoch = days_from_epoch / 36525.0;
+	// Abort if no reference body or reference orbit
+	if (!reference_body || !reference_orbit)
+		return;
 	
-	// Evaluate reference body orientation polynomials
-	const double reference_body_pole_ra = math::polynomial::horner(reference_body.pole_ra.begin(), reference_body.pole_ra.end(), centuries_from_epoch);
-	const double reference_body_pole_dec = math::polynomial::horner(reference_body.pole_dec.begin(), reference_body.pole_dec.end(), centuries_from_epoch);
-	const double reference_body_prime_meridian = math::polynomial::horner(reference_body.prime_meridian.begin(), reference_body.prime_meridian.end(), days_from_epoch);
-	
-	// Construct transformation from the ICRF frame to the reference body BCBF frame	
-	icrf_to_bcbf = physics::orbit::frame::bci::to_bcbf
-	(
-		reference_body_pole_ra,
-		reference_body_pole_dec,
-		reference_body_prime_meridian
-	);
-	icrf_to_bcbf.t = icrf_to_bcbf.r * -reference_orbit.position;
-	
-	icrf_to_enu = icrf_to_bcbf * bcbf_to_enu;
-	icrf_to_eus = icrf_to_enu * enu_to_eus;
+	// Update ICRF to EUS transformation
+	update_icrf_to_eus(*reference_body, *reference_orbit);
 	
 	// Set the transform component translations of orbiting bodies to their topocentric positions
 	registry.view<component::celestial_body, component::orbit, component::transform>().each(
 	[&](entity::id entity_id, const auto& body, const auto& orbit, auto& transform)
 	{
-		// Skip reference entity
-		if (entity_id == this->reference_entity)
+		// Skip reference body entity
+		if (entity_id == reference_body_eid)
 			return;
 		
 		// Transform orbital Cartesian position (r) from the ICRF frame to the EUS frame
 		const double3 r_eus = icrf_to_eus * orbit.position;
 		
 		// Evaluate body orientation polynomials
-		const double body_pole_ra = math::polynomial::horner(body.pole_ra.begin(), body.pole_ra.end(), centuries_from_epoch);
-		const double body_pole_dec = math::polynomial::horner(body.pole_dec.begin(), body.pole_dec.end(), centuries_from_epoch);
-		const double body_prime_meridian = math::polynomial::horner(body.prime_meridian.begin(), body.prime_meridian.end(), days_from_epoch);
+		const double body_pole_ra = math::polynomial::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
+		const double body_pole_dec = math::polynomial::horner(body.pole_dec.begin(), body.pole_dec.end(), time_centuries);
+		const double body_prime_meridian = math::polynomial::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
 		
 		// Determine body orientation in the ICRF frame
 		math::quaternion<double> rotation_icrf = physics::orbit::frame::bcbf::to_bci
@@ -160,133 +161,80 @@ void astronomy::update(double t, double dt)
 			transform.local.rotation = math::type_cast<float>(rotation_eus);
 			transform.local.scale = {1.0f, 1.0f, 1.0f};
 		}
-		
-		/*
-		if (orbit.parent != entt::null)
-		{
-			// RA-DEC
-			const double3 r_bci = icrf_to_bci * orbit.position;
-			double3 r_bci_spherical = physics::orbit::frame::bci::spherical(r_bci);
-			if (r_bci_spherical.z < 0.0)
-				r_bci_spherical.z += math::two_pi<double>;
-			const double dec = math::degrees(r_bci_spherical.y);
-			const double ra = math::degrees(r_bci_spherical.z);
-			
-			// AZ-EL
-			const double3 r_enu = icrf_to_enu * orbit.position;
-			double3 r_enu_spherical = physics::orbit::frame::enu::spherical(r_enu);
-			if (r_enu_spherical.z < 0.0)
-				r_enu_spherical.z += math::two_pi<double>;
-			const double el = math::degrees(r_enu_spherical.y);
-			const double az = math::degrees(r_enu_spherical.z);
-			
-			std::cout << "t: " << this->time << "; ra: " << ra << "; dec: " << dec << std::endl;
-			std::cout << "t: " << this->time << "; az: " << az << "; el: " << el << std::endl;
-		}
-		*/
 	});
+	
+	constexpr double3 bounce_normal = {0, 1, 0};
+	double3 bounce_illuminance = {0, 0, 0};
 	
 	// Update blackbody lighting
 	registry.view<component::celestial_body, component::orbit, component::blackbody>().each(
-	[&](entity::id entity_id, const auto& body, const auto& orbit, const auto& blackbody)
+	[&](entity::id entity_id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
 	{
-		// Calculate blackbody inertial basis
-		//double3 blackbody_forward_icrf = math::normalize(reference_orbit.icrf_position - orbit.icrf_position);
-		double3 blackbody_up_icrf = {0, 0, 1};
+		// Transform blackbody position from ICRF frame to EUS frame
+		const double3 blackbody_position_eus = icrf_to_eus * blackbody_orbit.position;
 		
-		// Transform blackbody ICRF position and basis into EUS frame
-		double3 blackbody_position_eus = icrf_to_eus * orbit.position;
-		double3 blackbody_position_enu = icrf_to_enu * orbit.position;
-		double3 blackbody_forward_eus = math::normalize(-blackbody_position_eus);
-		double3 blackbody_up_eus = icrf_to_eus.r * blackbody_up_icrf;
+		// Measure distance and direction, in EUS frame, from observer to blackbody
+		const double observer_blackbody_distance = math::length(blackbody_position_eus);
+		const double3 observer_blackbody_direction_eus = blackbody_position_eus / observer_blackbody_distance;
 		
-		// Calculate distance from observer to blackbody
-		double blackbody_distance = math::length(blackbody_position_eus) - body.radius;
+		// Measure blackbody solid angle as seen by observer
+		const double observer_blackbody_angular_radius = astro::angular_radius(blackbody_body.radius, observer_blackbody_distance);
+		const double observer_blackbody_solid_angle = geom::solid_angle::cone(observer_blackbody_angular_radius);
 		
-		// Calculate blackbody solid angle
-		const double blackbody_angular_radius = astro::angular_radius(body.radius, blackbody_distance);
-		const double blackbody_solid_angle = geom::solid_angle::cone(blackbody_angular_radius);
+		// Calculate illuminance from blackbody reaching observer
+		const double3 observer_blackbody_illuminance = blackbody.luminance * observer_blackbody_solid_angle;
 		
-		// Calculate blackbody illuminance
-		const double3 blackbody_illuminance = blackbody.luminance * blackbody_solid_angle;
-		
-		// Init atmospheric transmittance
-		double3 atmospheric_transmittance = {1.0, 1.0, 1.0};
-		
-		// Get atmosphere component of reference body (if any)
-		if (this->registry.has<entity::component::atmosphere>(reference_entity))
+		// Calculate illuminance from blackbody reaching observer after atmospheric extinction
+		double3 observer_blackbody_transmitted_illuminance = observer_blackbody_illuminance;
+		if (reference_atmosphere)
 		{
-			const entity::component::atmosphere& reference_atmosphere = registry.get<entity::component::atmosphere>(reference_entity);
-
-			// Altitude of observer in meters
-			geom::ray<double> sample_ray;
-			sample_ray.origin = {0, reference_body.radius + observer_location[0], 0};
-			sample_ray.direction = math::normalize(blackbody_position_eus);
+			// Construct ray at observer pointing towards the blackbody
+			const geom::ray<double> ray = {{0, 0, 0}, observer_blackbody_direction_eus};
 			
-			geom::sphere<double> exosphere;
-			exosphere.center = {0, 0, 0};
-			exosphere.radius = reference_body.radius + reference_atmosphere.upper_limit;
+			// Integrate atmospheric spectral transmittance factor between observer and blackbody
+			const double3 transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
 			
-			auto intersection_result = geom::ray_sphere_intersection(sample_ray, exosphere);
-			
-			if (std::get<0>(intersection_result))
-			{
-				double3 sample_start = sample_ray.origin;
-				double3 sample_end = sample_ray.extrapolate(std::get<2>(intersection_result));
-				
-				double optical_depth_r = physics::gas::atmosphere::optical_depth_exp(sample_start, sample_end, reference_body.radius, reference_atmosphere.rayleigh_scale_height, 16);
-				double optical_depth_m = physics::gas::atmosphere::optical_depth_exp(sample_start, sample_end, reference_body.radius, reference_atmosphere.mie_scale_height, 16);
-				double optical_depth_o = physics::gas::atmosphere::optical_depth_tri(sample_start, sample_end, reference_body.radius, reference_atmosphere.ozone_lower_limit, reference_atmosphere.ozone_upper_limit, reference_atmosphere.ozone_mode, 16);
-				
-				atmospheric_transmittance = transmittance(optical_depth_r, optical_depth_m, optical_depth_o, reference_atmosphere.rayleigh_scattering, reference_atmosphere.mie_scattering + reference_atmosphere.mie_absorption, reference_atmosphere.ozone_absorption);
-			}
-			
-			// Add airglow to sky light illuminance
-			sky_light_illuminance += reference_atmosphere.airglow;
+			// Attenuate illuminance from blackbody reaching observer by spectral transmittance factor
+			observer_blackbody_transmitted_illuminance *= transmittance;
 		}
-		
-		// Blackbody illuminance transmitted through the atmosphere
-		const double3 transmitted_blackbody_illuminance = blackbody_illuminance * atmospheric_transmittance;
-		
-		// Add atmosphere-transmitted blackbody illuminance to total illuminance
-		total_illuminance += (transmitted_blackbody_illuminance.x + transmitted_blackbody_illuminance.y + transmitted_blackbody_illuminance.z) / 3.0;
 		
 		// Update sun light
 		if (sun_light != nullptr)
 		{
-			sun_light->set_translation(math::normalize(math::type_cast<float>(blackbody_position_eus)));
+			const double3 blackbody_up_eus = icrf_to_eus.r * double3{0, 0, 1};
 			sun_light->set_rotation
 			(
 				math::look_rotation
 				(
-					math::type_cast<float>(blackbody_forward_eus),
+					math::type_cast<float>(-observer_blackbody_direction_eus),
 					math::type_cast<float>(blackbody_up_eus)
 				)
 			);
 			
-			sun_light->set_color(math::type_cast<float>(transmitted_blackbody_illuminance));	
+			sun_light->set_color(math::type_cast<float>(observer_blackbody_transmitted_illuminance));
+			
+			// Bounce sun light
+			bounce_illuminance += std::max(0.0, math::dot(bounce_normal, -observer_blackbody_direction_eus)) * observer_blackbody_transmitted_illuminance * bounce_albedo;
 		}
 		
 		// Update sky light
 		if (sky_light != nullptr)
 		{
 			// Calculate sky illuminance
-			double3 blackbody_position_enu_spherical = physics::orbit::frame::enu::spherical(blackbody_position_enu);
+			double3 blackbody_position_enu_spherical = physics::orbit::frame::enu::spherical(enu_to_eus.inverse() * blackbody_position_eus);
 			const double sky_illuminance = 25000.0 * std::max<double>(0.0, std::sin(blackbody_position_enu_spherical.y));
 			
 			// Add sky illuminance to sky light illuminance
-			sky_light_illuminance += sky_illuminance;
+			sky_light_illuminance += {sky_illuminance, sky_illuminance, sky_illuminance};
 			
 			// Add starlight illuminance to sky light illuminance
 			sky_light_illuminance += starlight_illuminance;
 			
-			// Add sky light illuminance to total illuminance
-			total_illuminance += sky_light_illuminance;
-			
-			//std::cout << "sky light illum: " << sky_light_illuminance << std::endl;
-			
 			// Update sky light
-			sky_light->set_color(float3{1.0f, 1.0f, 1.0f} * static_cast<float>(sky_light_illuminance));
+			sky_light->set_color(math::type_cast<float>(sky_light_illuminance));
+			
+			// Bounce sky light
+			bounce_illuminance += sky_light_illuminance * bounce_albedo;
 		}
 		
 		// Upload blackbody params to sky pass
@@ -294,143 +242,109 @@ void astronomy::update(double t, double dt)
 		{
 			this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_eus));
 			this->sky_pass->set_sun_luminance(math::type_cast<float>(blackbody.luminance));
-			this->sky_pass->set_sun_illuminance(math::type_cast<float>(blackbody_illuminance));
-			this->sky_pass->set_sun_angular_radius(static_cast<float>(blackbody_angular_radius));
+			this->sky_pass->set_sun_illuminance(math::type_cast<float>(observer_blackbody_illuminance), math::type_cast<float>(observer_blackbody_transmitted_illuminance));
+			this->sky_pass->set_sun_angular_radius(static_cast<float>(observer_blackbody_angular_radius));
 		}
-		
-		const double3& blackbody_icrf_position = orbit.position;
 		
 		// Update diffuse reflectors
 		this->registry.view<component::celestial_body, component::orbit, component::diffuse_reflector, component::transform>().each(
 		[&](entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
 		{
-			// Calculate distance to blackbody and direction of incoming light
-			double3 blackbody_light_direction_icrf = reflector_orbit.position - blackbody_icrf_position;
-			double blackbody_distance = math::length(blackbody_light_direction_icrf);
-			blackbody_light_direction_icrf = blackbody_light_direction_icrf / blackbody_distance;
+			// Transform reflector position from ICRF frame to EUS frame
+			const double3 reflector_position_eus = icrf_to_eus * reflector_orbit.position;
 			
-			// Transform blackbody light direction from the ICRF frame to the EUS frame
-			double3 blackbody_light_direction_eus = icrf_to_eus.r * blackbody_light_direction_icrf;
+			// Measure distance and direction, in EUS frame, from observer to reflector
+			const double observer_reflector_distance = math::length(reflector_position_eus);
+			const double3 observer_reflector_direction_eus = reflector_position_eus / observer_reflector_distance;
 			
-			// Calculate blackbody solid angle
-			const double blackbody_angular_radius = astro::angular_radius(body.radius, blackbody_distance);
-			const double blackbody_solid_angle = geom::solid_angle::cone(blackbody_angular_radius);
+			// Measure distance and direction, in EUS frame, from reflector to blackbody
+			double3 reflector_blackbody_direction_eus = blackbody_position_eus - reflector_position_eus;
+			const double reflector_blackbody_distance = math::length(reflector_blackbody_direction_eus);
+			reflector_blackbody_direction_eus /= reflector_blackbody_distance;
 			
-			// Calculate blackbody illuminance
+			// Measure blackbody solid angle as seen by reflector
+			const double reflector_blackbody_angular_radius = astro::angular_radius(blackbody_body.radius, reflector_blackbody_distance);
+			const double reflector_blackbody_solid_angle = geom::solid_angle::cone(reflector_blackbody_angular_radius);
 			
-			double3 view_direction_icrf = reflector_orbit.position - reference_orbit.position;
-			const double reflector_distance = math::length(view_direction_icrf);
-			view_direction_icrf = view_direction_icrf / reflector_distance;
+			// Calculate blackbody illuminance reaching reflector
+			const double3 reflector_blackbody_illuminance = blackbody.luminance * reflector_blackbody_solid_angle;
 			
-			const double3 sunlight_illuminance = blackbody.luminance * blackbody_solid_angle;
-			const double reflector_angular_radius = astro::angular_radius(reflector_body.radius, reflector_distance);
-			const double reflector_solid_angle = geom::solid_angle::cone(reflector_angular_radius);
-			const double reflector_phase_factor = dot(view_direction_icrf, blackbody_light_direction_icrf) * 0.5 + 0.5;
+			// Measure reflector solid angle as seen by observer
+			const double observer_reflector_angular_radius = astro::angular_radius(reflector_body.radius, observer_reflector_distance);
+			const double observer_reflector_solid_angle = geom::solid_angle::cone(observer_reflector_angular_radius);
 			
-			const double3 planet_luminance = (sunlight_illuminance * reference_body.albedo) / math::pi<double>;
-			const double planet_angular_radius = astro::angular_radius(reference_body.radius, reflector_distance);
-			const double planet_solid_angle = geom::solid_angle::cone(planet_angular_radius);
-			const double planet_phase_factor = math::dot(-view_direction_icrf, math::normalize(reference_orbit.position - blackbody_icrf_position)) * 0.5 + 0.5;
-			const double3 planetlight_illuminance = planet_luminance * planet_solid_angle * planet_phase_factor;
-			double3 planetlight_direction_eus = math::normalize(icrf_to_eus.r * view_direction_icrf);
+			// Determine phase factor of reflector as seen by observer
+			const double observer_reflector_phase_factor = dot(observer_reflector_direction_eus, -reflector_blackbody_direction_eus) * 0.5 + 0.5;
 			
-			const double3 reflected_sunlight_luminance = (sunlight_illuminance * reflector.albedo) / math::pi<double>;
-			const double3 reflected_sunlight_illuminance = reflected_sunlight_luminance * reflector_solid_angle * reflector_phase_factor;
-			const double3 reflected_planetlight_luminance = (planetlight_illuminance * reflector.albedo) / math::pi<double>;
-			const double3 reflected_planetlight_illuminance = reflected_planetlight_luminance * reflector_solid_angle;
+			// Measure observer reference body solid angle as seen by reflector
+			const double reflector_observer_angular_radius = astro::angular_radius(reference_body->radius, observer_reflector_distance);
+			const double reflector_observer_solid_angle = geom::solid_angle::cone(reflector_observer_angular_radius);
 			
-			/*
-			std::cout << "reflected sunlight illuminance: " << reflected_sunlight_illuminance << std::endl;
-			std::cout << "planetlight illuminance: " << planetlight_illuminance << std::endl;
-			std::cout << "planet luminance: " << planet_luminance << std::endl;
-			std::cout << "reflected planetlight luminance: " << reflected_planetlight_luminance << std::endl;
-			std::cout << "reflected planetlight illuminance: " << reflected_planetlight_illuminance << std::endl;
-			std::cout << "reflector phase: " << reflector_phase_factor << std::endl;
-			std::cout << "planet phase: " << planet_phase_factor << std::endl;
-			*/
+			// Determine phase factor of observer reference body as by reflector
+			const double reflector_observer_phase_factor = dot(-observer_reflector_direction_eus, -observer_blackbody_direction_eus) * 0.5 + 0.5;
 			
+			// Calculate spectral transmittance between observer and reflector factor due to atmospheric extinction
+			double3 observer_reflector_transmittance = {1, 1, 1};
+			if (reference_atmosphere)
+			{
+				const geom::ray<double> ray = {{0, 0, 0}, observer_reflector_direction_eus};
+				observer_reflector_transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
+			}
+			
+			// Measure luminance of observer reference body as seen by reflector
+			const double3 reflector_observer_luminance = observer_blackbody_illuminance * reference_body->albedo * observer_reflector_transmittance * reflector_observer_phase_factor * math::inverse_pi<double>;
+			
+			// Measure illuminance from observer reference body reaching reflector
+			const double3 reflector_observer_illuminance = reflector_observer_luminance * reflector_observer_solid_angle;
+			
+			// Measure luminance of reflector as seen by observer
+			const double3 observer_reflector_luminance = (reflector_blackbody_illuminance * observer_reflector_phase_factor + reflector_observer_illuminance) * reflector.albedo * observer_reflector_transmittance * math::inverse_pi<double>;
+			
+			// Measure illuminance from reflector reaching observer
+			const double3 observer_reflector_illuminance = observer_reflector_luminance * observer_reflector_solid_angle;
 			
 			if (this->sky_pass)
 			{
 				this->sky_pass->set_moon_position(transform.local.translation);
 				this->sky_pass->set_moon_rotation(transform.local.rotation);
-				this->sky_pass->set_moon_angular_radius(static_cast<float>(reflector_angular_radius));
-				this->sky_pass->set_moon_sunlight_direction(math::type_cast<float>(blackbody_light_direction_eus));
-				this->sky_pass->set_moon_sunlight_illuminance(math::type_cast<float>(sunlight_illuminance));
-				this->sky_pass->set_moon_planetlight_direction(math::type_cast<float>(planetlight_direction_eus));
-				this->sky_pass->set_moon_planetlight_illuminance(math::type_cast<float>(planetlight_illuminance));
+				this->sky_pass->set_moon_angular_radius(static_cast<float>(observer_reflector_angular_radius));
+				this->sky_pass->set_moon_sunlight_direction(math::type_cast<float>(-reflector_blackbody_direction_eus));
+				this->sky_pass->set_moon_sunlight_illuminance(math::type_cast<float>(reflector_blackbody_illuminance * observer_reflector_transmittance));
+				this->sky_pass->set_moon_planetlight_direction(math::type_cast<float>(observer_reflector_direction_eus));
+				this->sky_pass->set_moon_planetlight_illuminance(math::type_cast<float>(reflector_observer_illuminance * observer_reflector_transmittance));
+				this->sky_pass->set_moon_illuminance(math::type_cast<float>(observer_reflector_illuminance / observer_reflector_transmittance), math::type_cast<float>(observer_reflector_illuminance));
 			}
 			
 			if (this->moon_light)
 			{
-				float3 reflector_up_eus = math::type_cast<float>(icrf_to_eus.r * double3{0, 0, 1});
+				const float3 reflector_up_eus = math::type_cast<float>(icrf_to_eus.r * double3{0, 0, 1});
 				
-				double3 reflected_illuminance = reflected_sunlight_illuminance + reflected_planetlight_illuminance;
-				//reflected_illuminance *= std::max<double>(0.0, std::sin(transform.local.translation.y));
-				
-				total_illuminance += (reflected_illuminance.x + reflected_illuminance.y + reflected_illuminance.z) / 3.0;
-				
-				this->moon_light->set_color(math::type_cast<float>(reflected_illuminance));
+				this->moon_light->set_color(math::type_cast<float>(observer_reflector_illuminance));
 				this->moon_light->set_rotation
 				(
 					math::look_rotation
 					(
-						math::normalize(-transform.local.translation),
+						math::type_cast<float>(-observer_reflector_direction_eus),
 						reflector_up_eus
 					)
 				);
+				
+				// Bounce moon light
+				bounce_illuminance += std::max(0.0, math::dot(bounce_normal, -observer_reflector_direction_eus)) * observer_reflector_illuminance * bounce_albedo;
 			}
-			
-			/*
-			std::cout << "moon: sun solid angle: " << blackbody_solid_angle << std::endl;
-			std::cout << "moon: sun illuminance: " << blackbody_illuminance << std::endl;
-			std::cout << "moon: moon luminance: " << reflector_luminance << std::endl;
-			std::cout << "sun brightness: " << sun_brightness << std::endl;
-			std::cout << "vega brightness: " << vega_brightness << std::endl;
-			std::cout << "earth: moon distance: " << reflector_distance << std::endl;
-			std::cout << "earth: moon solid angle: " << reflector_solid_angle << std::endl;
-			std::cout << "earth: moon phase: " << reflector_phase << std::endl;
-			std::cout << "earth: moon phase angle: " << math::degrees(reflector_phase_angle) << std::endl;
-			std::cout << "earth: moon illum %: " << reflector_illumination_factor * 100.0 << std::endl;
-			std::cout << "earth: moon illuminance: " << reflector_illuminance << std::endl;
-			std::cout << "earth: moon phase-modulated illuminance: " << reflector_illuminance * reflector_illumination_factor << std::endl;
-			*/
 		});
 	});
 	
-	// Update sky pass topocentric frame
-	if (sky_pass != nullptr)
+	if (bounce_light)
 	{
-		// Upload topocentric frame to sky pass
-		sky_pass->set_icrf_to_eus
-		(
-			math::transformation::se3<float>
-			{
-				math::type_cast<float>(icrf_to_eus.t),
-				math::type_cast<float>(icrf_to_eus.r)
-			}
-		);
-		
-		// Upload observer elevation to sky pass
-		sky_pass->set_observer_elevation(observer_location[0]);
-		
-		sky_pass->set_planet_radius(static_cast<float>(reference_body.radius));
-	}
-	
-	// Auto-exposure
-	if (camera)
-	{
-		const double calibration = 250.0;
-		const double ev100 = std::log2((total_illuminance * 100.0) / calibration);
-		//std::cout << "LUX: " << total_illuminance << std::endl;
-		//std::cout << "EV100: " << ev100 << std::endl;
-		//camera->set_exposure(exposure_offset);
+		bounce_light->set_color(math::type_cast<float>(bounce_illuminance));
 	}
 }
 
-void astronomy::set_time(double time)
+void astronomy::set_time(double t)
 {
-	this->time = time;
+	time_days = t;
+	time_centuries = time_days * physics::time::jd::centuries_per_day<double>;
 }
 
 void astronomy::set_time_scale(double scale)
@@ -438,16 +352,22 @@ void astronomy::set_time_scale(double scale)
 	time_scale = scale;
 }
 
-void astronomy::set_reference_body(entity::id entity_id)
+void astronomy::set_observer(entity::id eid)
 {
-	reference_entity = entity_id;
-	update_bcbf_to_enu();
+	if (observer_eid != eid)
+	{
+		observer_eid = eid;
+		
+		if (observer_eid != entt::null)
+			observer_modified();
+		else
+			reference_body_eid = entt::null;
+	}
 }
 
-void astronomy::set_observer_location(const double3& location)
+void astronomy::set_transmittance_samples(std::size_t samples)
 {
-	observer_location = location;
-	update_bcbf_to_enu();
+	transmittance_samples = samples;
 }
 
 void astronomy::set_sun_light(scene::directional_light* light)
@@ -465,17 +385,17 @@ void astronomy::set_moon_light(scene::directional_light* light)
 	moon_light = light;
 }
 
-void astronomy::set_camera(scene::camera* camera)
+void astronomy::set_bounce_light(scene::directional_light* light)
 {
-	this->camera = camera;
+	bounce_light = light;
 }
 
-void astronomy::set_exposure_offset(float offset)
+void astronomy::set_bounce_albedo(const double3& albedo)
 {
-	exposure_offset = offset;
+	bounce_albedo = albedo;
 }
 
-void astronomy::set_starlight_illuminance(double illuminance)
+void astronomy::set_starlight_illuminance(const double3& illuminance)
 {
 	starlight_illuminance = illuminance;
 }
@@ -483,37 +403,225 @@ void astronomy::set_starlight_illuminance(double illuminance)
 void astronomy::set_sky_pass(::render::sky_pass* pass)
 {
 	this->sky_pass = pass;
-}
-
-void astronomy::on_celestial_body_construct(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body)
-{
-	if (entity_id == reference_entity)
-		update_bcbf_to_enu();
-}
-
-void astronomy::on_celestial_body_replace(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body)
-{
-	if (entity_id == reference_entity)
-		update_bcbf_to_enu();
-}
-
-void astronomy::update_bcbf_to_enu()
-{
-	double radial_distance = observer_location[0];
 	
-	if (reference_entity)
+	if (sky_pass)
 	{
-		if (registry.has<entity::component::celestial_body>(reference_entity))
-			radial_distance += registry.get<entity::component::celestial_body>(reference_entity).radius;
+		if (observer_eid != entt::null)
+		{
+			// Get pointer to observer
+			const auto observer = registry.try_get<component::observer>(reference_body_eid);
+			
+			sky_pass->set_observer_elevation(static_cast<float>(observer->elevation));
+		}
+		
+		if (reference_body_eid != entt::null)
+		{
+			// Get pointer to reference celestial body
+			const auto reference_body = registry.try_get<component::celestial_body>(reference_body_eid);
+			
+			if (reference_body)
+				sky_pass->set_planet_radius(static_cast<float>(reference_body->radius));
+			else
+				sky_pass->set_planet_radius(0.0f);
+		}
+	}
+}
+
+void astronomy::on_observer_modified(entity::registry& registry, entity::id entity_id, entity::component::observer& component)
+{
+	if (entity_id == observer_eid)
+		observer_modified();
+}
+
+void astronomy::on_observer_destroyed(entity::registry& registry, entity::id entity_id)
+{
+	if (entity_id == observer_eid)
+		observer_modified();
+}
+
+void astronomy::on_celestial_body_modified(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& component)
+{
+	if (entity_id == reference_body_eid)
+		reference_body_modified();
+}
+
+void astronomy::on_celestial_body_destroyed(entity::registry& registry, entity::id entity_id)
+{
+	if (entity_id == reference_body_eid)
+		reference_body_modified();
+}
+
+void astronomy::on_orbit_modified(entity::registry& registry, entity::id entity_id, entity::component::orbit& component)
+{
+	if (entity_id == reference_body_eid)
+		reference_orbit_modified();
+}
+
+void astronomy::on_orbit_destroyed(entity::registry& registry, entity::id entity_id)
+{
+	if (entity_id == reference_body_eid)
+		reference_orbit_modified();
+}
+
+void astronomy::on_atmosphere_modified(entity::registry& registry, entity::id entity_id, entity::component::atmosphere& component)
+{
+	if (entity_id == reference_body_eid)
+		reference_atmosphere_modified();
+}
+
+void astronomy::on_atmosphere_destroyed(entity::registry& registry, entity::id entity_id)
+{
+	if (entity_id == reference_body_eid)
+		reference_atmosphere_modified();
+}
+
+void astronomy::observer_modified()
+{
+	// Get pointer to observer component
+	const auto observer = registry.try_get<component::observer>(observer_eid);
+	
+	if (observer)
+	{
+		if (reference_body_eid != observer->reference_body_eid)
+		{
+			// Reference body changed
+			reference_body_eid = observer->reference_body_eid;
+			reference_body_modified();
+			reference_orbit_modified();
+			reference_atmosphere_modified();
+		}
+		
+		if (reference_body_eid != entt::null)
+		{
+			// Get pointer to reference celestial body
+			const auto reference_body = registry.try_get<component::celestial_body>(reference_body_eid);
+			
+			// Update BCBF to EUS transformation
+			if (reference_body)
+				update_bcbf_to_eus(*observer, *reference_body);
+		}
+	
+		// Upload observer elevation to sky pass
+		if (sky_pass)
+			sky_pass->set_observer_elevation(static_cast<float>(observer->elevation));
+	}
+}
+
+void astronomy::reference_body_modified()
+{
+	// Get pointer to reference celestial body
+	const auto reference_body = registry.try_get<component::celestial_body>(reference_body_eid);
+	
+	if (reference_body)
+	{
+		// Get pointer to observer
+		const auto observer = registry.try_get<component::observer>(observer_eid);
+		
+		// Update BCBF to EUS transformation
+		if (observer)
+			update_bcbf_to_eus(*observer, *reference_body);
 	}
 	
-	// Construct reference frame which transforms coordinates from a BCBF frame to a horizontal frame
-	bcbf_to_enu = physics::orbit::frame::bcbf::to_enu
+	// Update reference celestial body-related sky pass parameters
+	if (sky_pass)
+	{
+		if (reference_body)
+			sky_pass->set_planet_radius(static_cast<float>(reference_body->radius));
+		else
+			sky_pass->set_planet_radius(0.0f);
+	}
+}
+
+void astronomy::reference_orbit_modified()
+{
+	
+}
+
+void astronomy::reference_atmosphere_modified()
+{
+
+}
+
+void astronomy::update_bcbf_to_eus(const entity::component::observer& observer, const entity::component::celestial_body& body)
+{
+	// Construct BCBF to EUS transformation
+	bcbf_to_eus = physics::orbit::frame::bcbf::to_enu
 	(
-		radial_distance,
-		observer_location[1],
-		observer_location[2]
+		body.radius + observer.elevation,
+		observer.latitude,
+		observer.longitude
+	) * enu_to_eus;
+}
+
+void astronomy::update_icrf_to_eus(const entity::component::celestial_body& body, const entity::component::orbit& orbit)
+{
+	// Evaluate reference body orientation polynomials
+	const double body_pole_ra = math::polynomial::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
+	const double body_pole_dec = math::polynomial::horner(body.pole_dec.begin(), body.pole_dec.end(), time_centuries);
+	const double body_prime_meridian = math::polynomial::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
+	
+	// Construct ICRF frame to BCBF transformation
+	math::transformation::se3<double> icrf_to_bcbf = physics::orbit::frame::bci::to_bcbf
+	(
+		body_pole_ra,
+		body_pole_dec,
+		body_prime_meridian
 	);
+	icrf_to_bcbf.t = icrf_to_bcbf.r * -orbit.position;
+	
+	/// Construct ICRF to EUS transformation
+	icrf_to_eus = icrf_to_bcbf * bcbf_to_eus;
+	
+	// Pass ICRF to EUS transformation to sky pass
+	if (sky_pass)
+	{
+		// Upload topocentric frame to sky pass
+		sky_pass->set_icrf_to_eus
+		(
+			math::transformation::se3<float>
+			{
+				math::type_cast<float>(icrf_to_eus.t),
+				math::type_cast<float>(icrf_to_eus.r)
+			}
+		);
+	}
+}
+
+double3 astronomy::integrate_transmittance(const entity::component::observer& observer, const entity::component::celestial_body& body, const entity::component::atmosphere& atmosphere, geom::ray<double> ray) const
+{
+	double3 transmittance = {1, 1, 1};
+	
+	// Make ray height relative to center of reference body
+	ray.origin.y += body.radius + observer.elevation;
+	
+	// Construct sphere representing upper limit of the atmosphere
+	geom::sphere<double> atmosphere_sphere;
+	atmosphere_sphere.center = {0, 0, 0};
+	atmosphere_sphere.radius = body.radius + atmosphere.upper_limit;
+	
+	// Check for intersection between the ray and atmosphere
+	auto intersection = geom::ray_sphere_intersection(ray, atmosphere_sphere);
+	if (std::get<0>(intersection))
+	{
+		// Get point of intersection
+		const double3 intersection_point = ray.extrapolate(std::get<2>(intersection));
+		
+		// Integrate optical of Rayleigh, Mie, and ozone particles
+		const double optical_depth_r = physics::gas::atmosphere::optical_depth_exp(ray.origin, intersection_point, body.radius, atmosphere.rayleigh_scale_height, transmittance_samples);
+		const double optical_depth_m = physics::gas::atmosphere::optical_depth_exp(ray.origin, intersection_point, body.radius, atmosphere.mie_scale_height, transmittance_samples);
+		const double optical_depth_o = physics::gas::atmosphere::optical_depth_tri(ray.origin, intersection_point, body.radius, atmosphere.ozone_lower_limit, atmosphere.ozone_upper_limit, atmosphere.ozone_mode, transmittance_samples);
+		
+		// Calculate transmittance factor due to scattering and absorption
+		const double3 extinction_r = atmosphere.rayleigh_scattering * optical_depth_r;
+		const double extinction_m = atmosphere.mie_extinction * optical_depth_m;
+		const double3 extinction_o = atmosphere.ozone_absorption * optical_depth_o;
+		transmittance = extinction_r + double3{extinction_m, extinction_m, extinction_m} + extinction_o;
+		transmittance.x = std::exp(-transmittance.x);
+		transmittance.y = std::exp(-transmittance.y);
+		transmittance.z = std::exp(-transmittance.z);
+	}
+	
+	return transmittance;
 }
 
 } // namespace system

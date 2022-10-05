@@ -27,7 +27,8 @@ namespace entity {
 namespace system {
 
 blackbody::blackbody(entity::registry& registry):
-	updatable(registry)
+	updatable(registry),
+	illuminant(color::illuminant::deg2::d50<double>)
 {
 	// Construct a range of sample wavelengths in the visible spectrum
 	visible_wavelengths_nm.resize(780 - 280);
@@ -42,6 +43,11 @@ blackbody::blackbody(entity::registry& registry):
 
 void blackbody::update(double t, double dt)
 {}
+
+void blackbody::set_illuminant(const math::vector2<double>& illuminant)
+{
+	this->illuminant = illuminant;
+}
 
 void blackbody::update_luminance(entity::id entity_id)
 {
@@ -62,8 +68,11 @@ void blackbody::update_luminance(entity::id entity_id)
 	// Get celestial body component of the entity
 	const component::celestial_body& celestial_body = registry.get<component::celestial_body>(entity_id);
 	
+	// Construct chromatic adaptation transform
+	const double3x3 cat = color::cat::matrix(illuminant, color::aces::white_point<double>);
+	
 	// Construct a lambda function which calculates the blackbody's RGB luminance of a given wavelength
-	auto rgb_luminance = [blackbody](double wavelength_nm) -> double3
+	auto rgb_luminance = [blackbody, cat](double wavelength_nm) -> double3
 	{
 		// Convert wavelength from nanometers to meters
 		const double wavelength_m = wavelength_nm * 1e-9;
@@ -71,8 +80,9 @@ void blackbody::update_luminance(entity::id entity_id)
 		// Calculate the spectral intensity of the wavelength
 		const double spectral_radiance = physics::light::blackbody::spectral_radiance<double>(blackbody.temperature, wavelength_m);
 		
+		
 		// Calculate the ACEScg color of the wavelength using CIE color matching functions
-		double3 spectral_color = color::xyz::to_acescg(color::xyz::match(wavelength_nm));
+		double3 spectral_color = color::aces::ap1<double>.from_xyz * cat * color::xyz::match(wavelength_nm);
 		
 		// Scale the spectral color by spectral intensity
 		return spectral_color * spectral_radiance * 1e-9 * physics::light::max_luminous_efficacy<double>;

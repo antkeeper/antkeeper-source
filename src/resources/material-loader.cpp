@@ -161,7 +161,7 @@ static bool load_vector_property(render::material* material, const std::string& 
 			T value;
 			std::size_t j = 0;
 			for (const auto& value_element: vector_element)
-				value[j++] = value_element.get<typename T::scalar_type>();
+				value[j++] = value_element.get<typename T::element_type>();
 			
 			// Set property values
 			property->set_value(i++, value);
@@ -176,7 +176,7 @@ static bool load_vector_property(render::material* material, const std::string& 
 		T value;
 		std::size_t i = 0;
 		for (const auto& value_element: json)
-			value[i++] = value_element.get<typename T::scalar_type>();
+			value[i++] = value_element.get<typename T::element_type>();
 		
 		// Set property values
 		property->set_value(value);

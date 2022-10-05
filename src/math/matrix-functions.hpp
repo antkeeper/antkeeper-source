@@ -35,15 +35,15 @@ namespace math {
  * @return Sum of the two matrices.
  */
 template <class T>
-matrix<T, 2, 2> add(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
+constexpr matrix<T, 2, 2> add(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
 
 /// @copydoc add(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
 template <class T>
-matrix<T, 3, 3> add(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
+constexpr matrix<T, 3, 3> add(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
 
 /// @copydoc add(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
 template <class T>
-matrix<T, 4, 4> add(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
+constexpr matrix<T, 4, 4> add(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
 
 /**
  * Reinterprets data as an `NxM` matrix of type `T`.
@@ -54,7 +54,7 @@ matrix<T, 4, 4> add(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
  * @param data Data to reinterpret.
  */
 template <std::size_t N, std::size_t M, typename T>
-matrix<T, N, M>& as_matrix(T& data);
+constexpr matrix<T, N, M>& as_matrix(T& data);
 
 /**
  * Calculates the determinant of a matrix.
@@ -62,15 +62,15 @@ matrix<T, N, M>& as_matrix(T& data);
  * @param m Matrix of which to take the determinant. 
  */
 template <class T>
-T determinant(const matrix<T, 2, 2>& m);
+constexpr T determinant(const matrix<T, 2, 2>& m);
 
 /// @copydoc determinant(const matrix<T, 2, 2>&)
 template <class T>
-T determinant(const matrix<T, 3, 3>& m);
+constexpr T determinant(const matrix<T, 3, 3>& m);
 
 /// @copydoc determinant(const matrix<T, 2, 2>&)
 template <class T>
-T determinant(const matrix<T, 4, 4>& m);
+constexpr T determinant(const matrix<T, 4, 4>& m);
 
 /**
  * Calculates the inverse of a matrix.
@@ -78,15 +78,15 @@ T determinant(const matrix<T, 4, 4>& m);
  * @param m Matrix of which to take the inverse.
  */
 template <class T>
-matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m);
+constexpr matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m);
 
 /// @copydoc inverse(const matrix<T, 2, 2>&)
 template <class T>
-matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m);
+constexpr matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m);
 
 /// @copydoc inverse(const matrix<T, 2, 2>&)
 template <class T>
-matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m);
+constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m);
 
 /**
  * Performs a component-wise multiplication of two matrices.
@@ -95,15 +95,15 @@ matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m);
  * @param y Second matrix multiplicand.
  */
 template <class T>
-matrix<T, 2, 2> componentwise_mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
+constexpr matrix<T, 2, 2> componentwise_mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
 
 /// @copydoc componentwise_mul(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
 template <class T>
-matrix<T, 3, 3> componentwise_mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
+constexpr matrix<T, 3, 3> componentwise_mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
 
 /// @copydoc componentwise_mul(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
 template <class T>
-matrix<T, 4, 4> componentwise_mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
+constexpr matrix<T, 4, 4> componentwise_mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
 
 /**
  * Creates a viewing transformation matrix.
@@ -114,7 +114,7 @@ matrix<T, 4, 4> componentwise_mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4
  * @return Viewing transformation matrix.
  */
 template <class T>
-matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target, vector<T, 3> up);
+constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target, vector<T, 3> up);
 
 /**
  * Multiplies two matrices.
@@ -124,15 +124,15 @@ matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target
  * @return Product of the two matrices.
  */
 template <class T>
-matrix<T, 2, 2> mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
+constexpr matrix<T, 2, 2> mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
 
 /// @copydoc mul(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&);
 template <class T>
-matrix<T, 3, 3> mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
+constexpr matrix<T, 3, 3> mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
 
 /// @copydoc mul(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&);
 template <class T>
-matrix<T, 4, 4> mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
+constexpr matrix<T, 4, 4> mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
 
 /**
  * Multiplies a matrix by a scalar.
@@ -142,7 +142,7 @@ matrix<T, 4, 4> mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
  * @return Product of the matrix and the scalar..
  */
 template <class T, std::size_t N, std::size_t M>
-matrix<T, N, M> mul(const matrix<T, N, M>& m, T s);
+constexpr matrix<T, N, M> mul(const matrix<T, N, M>& m, T s);
 
 /**
  * Transforms a vector by a matrix.
@@ -152,15 +152,15 @@ matrix<T, N, M> mul(const matrix<T, N, M>& m, T s);
  * @return Transformed vector.
  */
 template <class T>
-vector<T, 2> mul(const matrix<T, 2, 2>& m, const vector<T, 2>& v);
+constexpr vector<T, 2> mul(const matrix<T, 2, 2>& m, const vector<T, 2>& v);
 
 /// @copydoc mul(const matrix<T, 2, 2>&, const vector<T, 2>&)
 template <class T>
-vector<T, 3> mul(const matrix<T, 3, 3>& m, const vector<T, 3>& v);
+constexpr vector<T, 3> mul(const matrix<T, 3, 3>& m, const vector<T, 3>& v);
 
 /// @copydoc mul(const matrix<T, 2, 2>&, const vector<T, 2>&)
 template <class T>
-vector<T, 4> mul(const matrix<T, 4, 4>& m, const vector<T, 4>& v);
+constexpr vector<T, 4> mul(const matrix<T, 4, 4>& m, const vector<T, 4>& v);
 
 /**
  * Creates an orthographic projection matrix which will transform the near and far clipping planes to `[-1, 1]`, respectively.
@@ -174,7 +174,7 @@ vector<T, 4> mul(const matrix<T, 4, 4>& m, const vector<T, 4>& v);
  * @return Orthographic projection matrix.
  */
 template <class T>
-matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far);
+constexpr matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far);
 
 /**
  * Creates an orthographic projection matrix which will transform the near and far clipping planes to `[0, 1]`, respectively.
@@ -188,7 +188,7 @@ matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far);
  * @return Orthographic projection matrix.
  */
 template <class T>
-matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far);
+constexpr matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far);
 
 /**
  * Calculates the outer product of a pair of vectors.
@@ -197,15 +197,15 @@ matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far
  * @param r Parameter to be treated as a row vector.
  */
 template <class T>
-matrix<T, 2, 2> outer_product(const vector<T, 2>& c, const vector<T, 2>& r);
+constexpr matrix<T, 2, 2> outer_product(const vector<T, 2>& c, const vector<T, 2>& r);
 
 /// @copydoc outer_product(const vector<T, 2>&, const vector<T, 2>&)
 template <class T>
-matrix<T, 3, 3> outer_product(const vector<T, 3>& c, const vector<T, 3>& r);
+constexpr matrix<T, 3, 3> outer_product(const vector<T, 3>& c, const vector<T, 3>& r);
 
 /// @copydoc outer_product(const vector<T, 2>&, const vector<T, 2>&)
 template <class T>
-matrix<T, 4, 4> outer_product(const vector<T, 4>& c, const vector<T, 4> r);
+constexpr matrix<T, 4, 4> outer_product(const vector<T, 4>& c, const vector<T, 4> r);
 
 /**
  * Creates a perspective projection matrix which will transform the near and far clipping planes to `[-1, 1]`, respectively.
@@ -238,7 +238,7 @@ matrix<T, 4, 4> perspective_half_z(T vertical_fov, T aspect_ratio, T z_near, T z
  * @return Resized matrix.
  */
 template <std::size_t N1, std::size_t M1, class T, std::size_t N0, std::size_t M0>
-matrix<T, N1, M1> resize(const matrix<T, N0, M0>& m);
+constexpr matrix<T, N1, M1> resize(const matrix<T, N0, M0>& m);
 
 /**
  * Constructs a rotation matrix.
@@ -285,7 +285,7 @@ matrix3<T> rotate_z(T angle);
  * @return Scaled matrix.
  */
 template <class T>
-matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
+constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
 
 /**
  * Subtracts a matrix from another matrix.
@@ -295,15 +295,15 @@ matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
  * @return Difference between the two matrices.
  */
 template <class T>
-matrix<T, 2, 2> sub(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
+constexpr matrix<T, 2, 2> sub(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
 
 /// @copydoc sub(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
 template <class T>
-matrix<T, 3, 3> sub(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
+constexpr matrix<T, 3, 3> sub(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
 
 /// @copydoc sub(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
 template <class T>
-matrix<T, 4, 4> sub(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
+constexpr matrix<T, 4, 4> sub(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
 
 /**
  * Translates a matrix.
@@ -313,7 +313,7 @@ matrix<T, 4, 4> sub(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
  * @return Translated matrix.
  */
 template <class T>
-matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
+constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
 
 /**
  * Calculates the transpose of a matrix.
@@ -321,15 +321,15 @@ matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
  * @param m Matrix of which to take the transpose.
  */
 template <class T>
-matrix<T, 2, 2> transpose(const matrix<T, 2, 2>& m);
+constexpr matrix<T, 2, 2> transpose(const matrix<T, 2, 2>& m);
 
 /// @copydoc transpose(const matrix<T, 2, 2>&)
 template <class T>
-matrix<T, 3, 3> transpose(const matrix<T, 3, 3>& m);
+constexpr matrix<T, 3, 3> transpose(const matrix<T, 3, 3>& m);
 
 /// @copydoc transpose(const matrix<T, 2, 2>&)
 template <class T>
-matrix<T, 4, 4> transpose(const matrix<T, 4, 4>& m);
+constexpr matrix<T, 4, 4> transpose(const matrix<T, 4, 4>& m);
 
 /**
  * Types casts each matrix element and returns a matrix of the casted type.
@@ -342,10 +342,10 @@ matrix<T, 4, 4> transpose(const matrix<T, 4, 4>& m);
  * @return Type-casted matrix.
  */
 template <class T2, class T1, std::size_t N, std::size_t M>
-matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m);
+constexpr matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m);
 
 template <class T>
-matrix<T, 2, 2> add(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
+constexpr matrix<T, 2, 2> add(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
 {
 	return
 		{{
@@ -355,7 +355,7 @@ matrix<T, 2, 2> add(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
 }
 
 template <class T>
-matrix<T, 3, 3> add(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
+constexpr matrix<T, 3, 3> add(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
 {
 	return
 		{{
@@ -366,7 +366,7 @@ matrix<T, 3, 3> add(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
 }
 
 template <class T>
-matrix<T, 4, 4> add(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
+constexpr matrix<T, 4, 4> add(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
 {
 	return
 		{{
@@ -378,20 +378,20 @@ matrix<T, 4, 4> add(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
 }
 
 template <std::size_t N, std::size_t M, typename T>
-inline matrix<T, N, M>& as_matrix(T& data)
+constexpr inline matrix<T, N, M>& as_matrix(T& data)
 {
 	static_assert(std::is_pod<matrix<T, N, M>>::value);
 	return reinterpret_cast<matrix<T, N, M>&>(data);
 }
 
 template <class T>
-T determinant(const matrix<T, 2, 2>& m)
+constexpr T determinant(const matrix<T, 2, 2>& m)
 {
 	return m[0][0] * m[1][1] - m[0][1] * m[1][0];
 }
 
 template <class T>
-T determinant(const matrix<T, 3, 3>& m)
+constexpr T determinant(const matrix<T, 3, 3>& m)
 {
 	return m[0][0] * m [1][1] * m[2][2] +
 		m[0][1] * m[1][2] * m[2][0] +
@@ -402,7 +402,7 @@ T determinant(const matrix<T, 3, 3>& m)
 }
 
 template <class T>
-T determinant(const matrix<T, 4, 4>& m)
+constexpr T determinant(const matrix<T, 4, 4>& m)
 {
 	return m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0] -
 		m[0][3] * m[1][1] * m[2][2] * m[3][0] + m[0][1] * m[1][3] * m[2][2] * m[3][0] +
@@ -419,7 +419,7 @@ T determinant(const matrix<T, 4, 4>& m)
 }
 
 template <class T>
-matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m)
+constexpr matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m)
 {
 	static_assert(std::is_floating_point<T>::value);
 
@@ -432,7 +432,7 @@ matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m)
 }
 
 template <class T>
-matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m)
+constexpr matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m)
 {
 	static_assert(std::is_floating_point<T>::value);
 
@@ -461,7 +461,7 @@ matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m)
 }
 
 template <class T>
-matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m)
+constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m)
 {
 	static_assert(std::is_floating_point<T>::value);
 
@@ -500,7 +500,7 @@ matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m)
 }
 
 template <class T>
-matrix<T, 2, 2> componentwise_mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
+constexpr matrix<T, 2, 2> componentwise_mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
 {
 	return
 		{{
@@ -510,7 +510,7 @@ matrix<T, 2, 2> componentwise_mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2
 }
 
 template <class T>
-matrix<T, 3, 3> componentwise_mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
+constexpr matrix<T, 3, 3> componentwise_mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
 {
 	return
 		{{
@@ -521,7 +521,7 @@ matrix<T, 3, 3> componentwise_mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3
 }
 
 template <class T>
-matrix<T, 4, 4> componentwise_mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
+constexpr matrix<T, 4, 4> componentwise_mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
 {
 	return
 		{{
@@ -533,7 +533,7 @@ matrix<T, 4, 4> componentwise_mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4
 }
 
 template <class T>
-matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target, vector<T, 3> up)
+constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target, vector<T, 3> up)
 {
 	vector<T, 3> forward = normalize(sub(target, position));
 	vector<T, 3> right = normalize(cross(forward, up));
@@ -551,7 +551,7 @@ matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target
 }
 
 template <class T>
-matrix<T, 2, 2> mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
+constexpr matrix<T, 2, 2> mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
 {
 	return
 		{{
@@ -561,7 +561,7 @@ matrix<T, 2, 2> mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
 }
 
 template <class T>
-matrix<T, 3, 3> mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
+constexpr matrix<T, 3, 3> mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
 {
 	return
 		{{
@@ -572,7 +572,7 @@ matrix<T, 3, 3> mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
 }
 
 template <class T>
-matrix<T, 4, 4> mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
+constexpr matrix<T, 4, 4> mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
 {
 	return
 		{{
@@ -585,19 +585,19 @@ matrix<T, 4, 4> mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-inline matrix<T, N, M> mul(const matrix<T, N, M>& m, T s, std::index_sequence<I...>)
+constexpr inline matrix<T, N, M> mul(const matrix<T, N, M>& m, T s, std::index_sequence<I...>)
 {
 	return {{(m[I] * s)...}};
 }
 
 template <class T, std::size_t N, std::size_t M>
-inline matrix<T, N, M> mul(const matrix<T, N, M>& m, T s)
+constexpr inline matrix<T, N, M> mul(const matrix<T, N, M>& m, T s)
 {
 	return mul(m, s, std::make_index_sequence<N>{});
 }
 
 template <class T>
-vector<T, 2> mul(const matrix<T, 2, 2>& m, const vector<T, 2>& v)
+constexpr vector<T, 2> mul(const matrix<T, 2, 2>& m, const vector<T, 2>& v)
 {
 	return
 		{
@@ -607,7 +607,7 @@ vector<T, 2> mul(const matrix<T, 2, 2>& m, const vector<T, 2>& v)
 }
 
 template <class T>
-vector<T, 3> mul(const matrix<T, 3, 3>& m, const vector<T, 3>& v)
+constexpr vector<T, 3> mul(const matrix<T, 3, 3>& m, const vector<T, 3>& v)
 {
 	return
 		{
@@ -618,7 +618,7 @@ vector<T, 3> mul(const matrix<T, 3, 3>& m, const vector<T, 3>& v)
 }
 
 template <class T>
-vector<T, 4> mul(const matrix<T, 4, 4>& m, const vector<T, 4>& v)
+constexpr vector<T, 4> mul(const matrix<T, 4, 4>& m, const vector<T, 4>& v)
 {
 	return
 		{
@@ -630,7 +630,7 @@ vector<T, 4> mul(const matrix<T, 4, 4>& m, const vector<T, 4>& v)
 }
 
 template <class T>
-matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far)
+constexpr matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far)
 {
 	return
 		{{
@@ -642,7 +642,7 @@ matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far)
 }
 
 template <class T>
-matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far)
+constexpr matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far)
 {
 	return
 		{{
@@ -654,7 +654,7 @@ matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far
 }
 
 template <class T>
-matrix<T, 2, 2> outer_product(const vector<T, 2>& c, const vector<T, 2>& r)
+constexpr matrix<T, 2, 2> outer_product(const vector<T, 2>& c, const vector<T, 2>& r)
 {
 	return
 		{{
@@ -664,7 +664,7 @@ matrix<T, 2, 2> outer_product(const vector<T, 2>& c, const vector<T, 2>& r)
 }
 
 template <class T>
-matrix<T, 3, 3> outer_product(const vector<T, 3>& c, const vector<T, 3>& r)
+constexpr matrix<T, 3, 3> outer_product(const vector<T, 3>& c, const vector<T, 3>& r)
 {
 	return
 		{{
@@ -675,7 +675,7 @@ matrix<T, 3, 3> outer_product(const vector<T, 3>& c, const vector<T, 3>& r)
 }
 
 template <class T>
-matrix<T, 4, 4> outer_product(const vector<T, 4>& c, const vector<T, 4> r)
+constexpr matrix<T, 4, 4> outer_product(const vector<T, 4>& c, const vector<T, 4> r)
 {
 	return
 		{{
@@ -717,7 +717,7 @@ matrix<T, 4, 4> perspective_half_z(T vertical_fov, T aspect_ratio, T z_near, T z
 }
 
 template <std::size_t N1, std::size_t M1, class T, std::size_t N0, std::size_t M0>
-matrix<T, N1, M1> resize(const matrix<T, N0, M0>& m)
+constexpr matrix<T, N1, M1> resize(const matrix<T, N0, M0>& m)
 {
 	matrix<T, N1, M1> resized;
 
@@ -796,7 +796,7 @@ matrix3<T> rotate_z(T angle)
 }
 
 template <class T>
-matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
+constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
 {
 	return mul(m, matrix<T, 4, 4>
 		{{
@@ -808,7 +808,7 @@ matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
 }
 
 template <class T>
-matrix<T, 2, 2> sub(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
+constexpr matrix<T, 2, 2> sub(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
 {
 	return
 		{{
@@ -818,7 +818,7 @@ matrix<T, 2, 2> sub(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
 }
 
 template <class T>
-matrix<T, 3, 3> sub(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
+constexpr matrix<T, 3, 3> sub(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
 {
 	return
 		{{
@@ -829,7 +829,7 @@ matrix<T, 3, 3> sub(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
 }
 
 template <class T>
-matrix<T, 4, 4> sub(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
+constexpr matrix<T, 4, 4> sub(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
 {
 	return
 		{{
@@ -841,7 +841,7 @@ matrix<T, 4, 4> sub(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
 }
 
 template <class T>
-matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
+constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
 {
 	return mul(m, matrix<T, 4, 4>
 		{{
@@ -853,7 +853,7 @@ matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
 }
 
 template <class T>
-matrix<T, 2, 2> transpose(const matrix<T, 2, 2>& m)
+constexpr matrix<T, 2, 2> transpose(const matrix<T, 2, 2>& m)
 {
 
 	return
@@ -869,7 +869,7 @@ matrix<T, 2, 2> transpose(const matrix<T, 2, 2>& m)
 }
 
 template <class T>
-matrix<T, 3, 3> transpose(const matrix<T, 3, 3>& m)
+constexpr matrix<T, 3, 3> transpose(const matrix<T, 3, 3>& m)
 {
 
 	return
@@ -889,7 +889,7 @@ matrix<T, 3, 3> transpose(const matrix<T, 3, 3>& m)
 }
 
 template <class T>
-matrix<T, 4, 4> transpose(const matrix<T, 4, 4>& m)
+constexpr matrix<T, 4, 4> transpose(const matrix<T, 4, 4>& m)
 {
 
 	return
@@ -914,13 +914,13 @@ matrix<T, 4, 4> transpose(const matrix<T, 4, 4>& m)
 
 /// @private
 template <class T2, class T1, std::size_t N, std::size_t M, std::size_t... I>
-inline matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m, std::index_sequence<I...>)
+constexpr inline matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m, std::index_sequence<I...>)
 {
 	return {type_cast<T2>(m[I])...};
 }
 
 template <class T2, class T1, std::size_t N, std::size_t M>
-matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m)
+constexpr matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m)
 {
 	return type_cast<T2>(m, std::make_index_sequence<N>{}); 
 }

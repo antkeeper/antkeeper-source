@@ -31,23 +31,14 @@ namespace ucs {
  * Transforms CIE 1960 UCS chromaticity coordinates into the CIE xyY colorspace.
  *
  * @param uv CIE 1960 UCS chromaticity coordinates.
- * @param luminance Luminance or `Y` value of the resulting xyY color.
+ * @param y Luminance or `Y` value of the resulting xyY color.
  * @return CIE xyY color.
  */
 template <class T>
-math::vector3<T> to_xyy(const math::vector2<T>& uv, T luminance = T(1.0));
-
-template <class T>
-math::vector3<T> to_xyy(const math::vector2<T>& uv, T luminance)
+constexpr math::vector3<T> to_xyy(const math::vector2<T>& uv, T y = T{1})
 {
-	const T inverse_denom = T(1.0) / (T(2.0) * uv[0] - T(8.0) * uv[1] + T(4.0));
-	
-	return math::vector3<T>
-		{
-			(T(3.0) * uv[0]) * inverse_denom,
-			(T(2.0) * uv[1]) * inverse_denom,
-			luminance
-		};
+	const T d = T{1} / (T{2} * uv[0] - T{8} * uv[1] + T{4});
+	return math::vector3<T>{(T{3} * uv[0]) * d, (T{2} * uv[1]) * d, y};
 }
 
 } // namespace ucs

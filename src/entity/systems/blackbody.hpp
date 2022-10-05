@@ -41,6 +41,13 @@ public:
 	
 	virtual void update(double t, double dt);
 	
+	/**
+	 * Sets the blackbody illuminant.
+	 *
+	 * @param illuminant CIE chromaticity coordinates of an illuminant.
+	 */
+	void set_illuminant(const math::vector2<double>& illuminant);
+	
 private:
 	void update_luminance(entity::id entity_id);
 	
@@ -50,6 +57,7 @@ private:
 	void on_celestial_body_construct(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body);
 	void on_celestial_body_replace(entity::registry& registry, entity::id entity_id, entity::component::celestial_body& celestial_body);
 	
+	math::vector2<double> illuminant;
 	std::vector<double> visible_wavelengths_nm;
 };
 

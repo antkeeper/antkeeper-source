@@ -21,8 +21,13 @@
 #include "game/state/options-menu.hpp"
 #include "game/state/extras-menu.hpp"
 #include "game/state/nuptial-flight.hpp"
+#include "game/world.hpp"
+#include "game/load.hpp"
 #include "game/menu.hpp"
+#include "game/ant/swarm.hpp"
 #include "render/passes/clear-pass.hpp"
+#include "render/passes/ground-pass.hpp"
+#include "render/passes/sky-pass.hpp"
 #include "resources/resource-manager.hpp"
 #include "render/model.hpp"
 #include "animation/animation.hpp"
@@ -31,6 +36,10 @@
 #include "animation/ease.hpp"
 #include "application.hpp"
 #include "config.hpp"
+#include "physics/light/exposure.hpp"
+#include "entity/components/model.hpp"
+#include "entity/components/steering.hpp"
+#include "entity/components/transform.hpp"
 #include <limits>
 
 namespace game {
@@ -233,6 +242,40 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 		game::menu::fade_in(ctx, nullptr);
 	}
 	
+	if (ctx.entities.find("earth") == ctx.entities.end())
+	{
+		game::world::cosmogenesis(ctx);
+		game::world::create_observer(ctx);
+		game::load::biome(ctx, "debug.bio");
+	}
+	
+	// Set world time
+	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
+	
+	// Set world time scale
+	game::world::set_time_scale(ctx, 0.0);
+	
+	ctx.surface_camera->set_active(true);
+	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
+	ctx.surface_camera->set_exposure(15.5f);
+	
+	ctx.surface_camera->look_at({-55, 36, 10}, {0, 100, 0}, {0, 1, 0});
+	ctx.surface_camera->update_tweens();
+	
+	// Setup and enable sky and ground passes
+	ctx.sky_pass->set_enabled(true);
+	ctx.ground_pass->set_enabled(true);
+	
+	// Disable UI color clear
+	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
+	
+	// Create mating swarm
+	game::ant::create_swarm(ctx);
+	
+	if (!ctx.menu_bg_billboard->is_active())
+		game::menu::fade_in_bg(ctx);
+		
+	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
@@ -252,6 +295,9 @@ main_menu::~main_menu()
 	
 	// Destruct title text
 	ctx.ui_scene->remove_object(&title_text);
+	
+	// Destroy swarm
+	game::ant::destroy_swarm(ctx);
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }

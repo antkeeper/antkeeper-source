@@ -660,4 +660,14 @@ void apply_gamepad_calibration(input::gamepad& gamepad, const json& calibration)
 	}
 }
 
+void enable_orbit_controls(game::context& ctx)
+{
+
+}
+
+void disable_orbit_controls(game::context& ctx)
+{
+	
+}
+
 } // namespace game

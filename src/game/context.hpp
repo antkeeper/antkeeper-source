@@ -295,9 +295,7 @@ struct context
 	entity::system::orbit* orbit_system;
 	entity::system::proteome* proteome_system;
 	
-	double elevation;
-	double latitude;
-	double longitude;
+	double3 rgb_wavelengths;
 };
 
 } // namespace game

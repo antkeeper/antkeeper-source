@@ -25,35 +25,35 @@
 
 /// @copydoc math::add(const math::vector<T, N>&, const math::vector<T, N>&)
 template <class T, std::size_t N>
-math::vector<T, N> operator+(const math::vector<T, N>& x, const math::vector<T, N>& y);
+constexpr math::vector<T, N> operator+(const math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /// @copydoc math::div(const math::vector<T, N>&, const math::vector<T, N>&)
 template <class T, std::size_t N>
-math::vector<T, N> operator/(const math::vector<T, N>& x, const math::vector<T, N>& y);
+constexpr math::vector<T, N> operator/(const math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /// @copydoc math::div(const math::vector<T, N>&, T)
 template <class T, std::size_t N>
-math::vector<T, N> operator/(const math::vector<T, N>& v, T s);
+constexpr math::vector<T, N> operator/(const math::vector<T, N>& v, T s);
 
 /// @copydoc math::mul(const math::vector<T, N>&, const math::vector<T, N>&)
 template <class T, std::size_t N>
-math::vector<T, N> operator*(const math::vector<T, N>& x, const math::vector<T, N>& y);
+constexpr math::vector<T, N> operator*(const math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /// @copydoc math::mul(const math::vector<T, N>&, T)
 template <class T, std::size_t N>
-math::vector<T, N> operator*(const math::vector<T, N>& v, T s);
+constexpr math::vector<T, N> operator*(const math::vector<T, N>& v, T s);
 
 /// @copydoc math::mul(const math::vector<T, N>&, T)
 template <class T, std::size_t N>
-math::vector<T, N> operator*(T s, const math::vector<T, N>& v);
+constexpr math::vector<T, N> operator*(T s, const math::vector<T, N>& v);
 
 /// @copydoc math::negate(const math::vector<T, N>&)
 template <class T, std::size_t N>
-math::vector<T, N> operator-(const math::vector<T, N>& x);
+constexpr math::vector<T, N> operator-(const math::vector<T, N>& x);
 
 /// @copydoc math::sub(const math::vector<T, N>&, const math::vector<T, N>&)
 template <class T, std::size_t N>
-math::vector<T, N> operator-(const math::vector<T, N>& x, const math::vector<T, N>& y);
+constexpr math::vector<T, N> operator-(const math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /**
  * Adds two vectors and stores the result in the first vector.
@@ -63,7 +63,7 @@ math::vector<T, N> operator-(const math::vector<T, N>& x, const math::vector<T, 
  * @return Reference to the first vector.
  */
 template <class T, std::size_t N>
-math::vector<T, N>& operator+=(math::vector<T, N>& x, const math::vector<T, N>& y);
+constexpr math::vector<T, N>& operator+=(math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /**
  * Subtracts two vectors and stores the result in the first vector.
@@ -73,7 +73,7 @@ math::vector<T, N>& operator+=(math::vector<T, N>& x, const math::vector<T, N>& 
  * @return Reference to the first vector.
  */
 template <class T, std::size_t N>
-math::vector<T, N>& operator-=(math::vector<T, N>& x, const math::vector<T, N>& y);
+constexpr math::vector<T, N>& operator-=(math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /**
  * Multiplies two vectors and stores the result in the first vector.
@@ -83,7 +83,7 @@ math::vector<T, N>& operator-=(math::vector<T, N>& x, const math::vector<T, N>& 
  * @return Reference to the first vector.
  */
 template <class T, std::size_t N>
-math::vector<T, N>& operator*=(math::vector<T, N>& x, const math::vector<T, N>& y);
+constexpr math::vector<T, N>& operator*=(math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /**
  * Multiplies a vector and a scalar and stores the result in the vector.
@@ -93,7 +93,7 @@ math::vector<T, N>& operator*=(math::vector<T, N>& x, const math::vector<T, N>& 
  * @return Reference to the vector.
  */
 template <class T, std::size_t N>
-math::vector<T, N>& operator*=(math::vector<T, N>& v, T s);
+constexpr math::vector<T, N>& operator*=(math::vector<T, N>& v, T s);
 
 /**
  * Divides the first vector by the second vector the result in the first vector.
@@ -103,7 +103,7 @@ math::vector<T, N>& operator*=(math::vector<T, N>& v, T s);
  * @return Reference to the first vector.
  */
 template <class T, std::size_t N>
-math::vector<T, N>& operator/=(math::vector<T, N>& x, const math::vector<T, N>& y);
+constexpr math::vector<T, N>& operator/=(math::vector<T, N>& x, const math::vector<T, N>& y);
 
 /**
  * Divides a vector by a scalar and stores the result in the vector.
@@ -113,91 +113,90 @@ math::vector<T, N>& operator/=(math::vector<T, N>& x, const math::vector<T, N>& 
  * @return Reference to the vector.
  */
 template <class T, std::size_t N>
-math::vector<T, N>& operator/=(math::vector<T, N>& v, T s);
+constexpr math::vector<T, N>& operator/=(math::vector<T, N>& v, T s);
 
 template <class T, std::size_t N>
-inline math::vector<T, N> operator+(const math::vector<T, N>& x, const math::vector<T, N>& y)
+constexpr inline math::vector<T, N> operator+(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return add(x, y);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N> operator-(const math::vector<T, N>& x)
+constexpr inline math::vector<T, N> operator-(const math::vector<T, N>& x)
 {
 	return negate(x);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N> operator-(const math::vector<T, N>& x, const math::vector<T, N>& y)
+constexpr inline math::vector<T, N> operator-(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return sub(x, y);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N> operator*(const math::vector<T, N>& x, const math::vector<T, N>& y)
+constexpr inline math::vector<T, N> operator*(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return mul(x, y);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N> operator*(const math::vector<T, N>& v, T s)
+constexpr inline math::vector<T, N> operator*(const math::vector<T, N>& v, T s)
 {
 	return mul(v, s);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N> operator*(T s, const math::vector<T, N>& v)
+constexpr inline math::vector<T, N> operator*(T s, const math::vector<T, N>& v)
 {
 	return mul(v, s);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N> operator/(const math::vector<T, N>& x, const math::vector<T, N>& y)
+constexpr inline math::vector<T, N> operator/(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return div(x, y);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N> operator/(const math::vector<T, N>& v, T s)
+constexpr inline math::vector<T, N> operator/(const math::vector<T, N>& v, T s)
 {
 	return div(v, s);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N>& operator+=(math::vector<T, N>& x, const math::vector<T, N>& y)
+constexpr inline math::vector<T, N>& operator+=(math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return (x = x + y);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N>& operator-=(math::vector<T, N>& x, const math::vector<T, N>& y)
+constexpr inline math::vector<T, N>& operator-=(math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return (x = x - y);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N>& operator*=(math::vector<T, N>& x, const math::vector<T, N>& y)
+constexpr inline math::vector<T, N>& operator*=(math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return (x = x * y);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N>& operator*=(math::vector<T, N>& v, T s)
+constexpr inline math::vector<T, N>& operator*=(math::vector<T, N>& v, T s)
 {
 	return (v = v * s);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N>& operator/=(math::vector<T, N>& x, const math::vector<T, N>& y)
+constexpr inline math::vector<T, N>& operator/=(math::vector<T, N>& x, const math::vector<T, N>& y)
 {
 	return (x = x * y);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N>& operator/=(math::vector<T, N>& v, T s)
+constexpr inline math::vector<T, N>& operator/=(math::vector<T, N>& v, T s)
 {
 	return (v = v / s);
 }
 
 #endif // ANTKEEPER_MATH_VECTOR_OPERATORS_HPP
-

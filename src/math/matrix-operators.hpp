@@ -25,60 +25,60 @@
 
 /// @copydoc math::add(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
 template <class T, std::size_t N, std::size_t M>
-math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
+constexpr math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
 
 /// @copydoc math::mul(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
 template <class T, std::size_t N, std::size_t M>
-math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
+constexpr math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
 
 /// @copydoc math::mul(const math::matrix<T, N, M>&, T)
 template <class T, std::size_t N, std::size_t M>
-math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& m, T s);
+constexpr math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& m, T s);
 
 /// @copydoc math::mul(const math::matrix<T, N, M>&, T)
 template <class T, std::size_t N, std::size_t M>
-math::matrix<T, N, M> operator*(T s, const math::matrix<T, N, M>& m);
+constexpr math::matrix<T, N, M> operator*(T s, const math::matrix<T, N, M>& m);
 
 /// @copydoc math::mul(const math::matrix<T, 2, 2>&, const math::vector<T, 2>&)
 template <class T, std::size_t N>
-math::vector<T, N> operator*(const math::matrix<T, N, N>& m, const math::vector<T, N>& v);
+constexpr math::vector<T, N> operator*(const math::matrix<T, N, N>& m, const math::vector<T, N>& v);
 
 /// @copydoc math::sub(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
 template <class T, std::size_t N, std::size_t M>
-math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
+constexpr math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
 
 template <class T, std::size_t N, std::size_t M>
-inline math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
+constexpr inline math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
 {
 	return add(x, y);
 }
 
 template <class T, std::size_t N, std::size_t M>
-inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
+constexpr inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
 {
 	return mul(x, y);
 }
 
 template <class T, std::size_t N, std::size_t M>
-inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& m, T s)
+constexpr inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& m, T s)
 {
 	return mul(m, s);
 }
 
 template <class T, std::size_t N, std::size_t M>
-inline math::matrix<T, N, M> operator*(T s, const math::matrix<T, N, M>& m)
+constexpr inline math::matrix<T, N, M> operator*(T s, const math::matrix<T, N, M>& m)
 {
 	return mul(m, s);
 }
 
 template <class T, std::size_t N>
-inline math::vector<T, N> operator*(const math::matrix<T, N, N>& m, const math::vector<T, N>& v)
+constexpr inline math::vector<T, N> operator*(const math::matrix<T, N, N>& m, const math::vector<T, N>& v)
 {
 	return mul(m, v);
 }
 
 template <class T, std::size_t N, std::size_t M>
-inline math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
+constexpr inline math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
 {
 	return sub(x, y);
 }

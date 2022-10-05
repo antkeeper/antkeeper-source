@@ -34,7 +34,10 @@ namespace xyy {
  * @return return Luminance of @p x.
  */
 template <class T>
-T luminance(const math::vector3<T>& x);
+constexpr inline T luminance(const math::vector3<T>& x)
+{
+	return x[2];
+}
 
 /**
  * Transforms a CIE xyY color into the CIE 1960 UCS colorspace.
@@ -43,7 +46,11 @@ T luminance(const math::vector3<T>& x);
  * @return CIE 1960 UCS color.
  */
 template <class T>
-math::vector2<T> to_ucs(const math::vector3<T>& x);
+constexpr math::vector2<T> to_ucs(const math::vector3<T>& x)
+{
+	const T d = T({1} / (T{-2} * x[0] + T{12} * x[1] + T{3}));
+	return math::vector2<T>{(T{4} * x[0]) * d, (T{6} * x[1]) * d};
+}
 
 /**
  * Transforms a CIE xyY color into the CIE XYZ colorspace.
@@ -52,35 +59,9 @@ math::vector2<T> to_ucs(const math::vector3<T>& x);
  * @return CIE XYZ color.
  */
 template <class T>
-math::vector3<T> to_xyz(const math::vector3<T>& x);
-
-template <class T>
-inline T luminance(const math::vector3<T>& x)
+constexpr math::vector3<T> to_xyz(const math::vector3<T>& x)
 {
-	return x[2];
-}
-
-template <class T>
-math::vector2<T> to_ucs(const math::vector3<T>& x)
-{
-	const T inverse_denom = T(1.0) / (T(-2.0) * x[0] + T(12.0) * x[1] + T(3.0));
-	
-	return math::vector2<T>
-		{
-			(T(4.0) * x[0]) * inverse_denom,
-			(T(6.0) * x[1]) * inverse_denom
-		};
-}
-
-template <class T>
-math::vector3<T> to_xyz(const math::vector3<T>& x)
-{
-	return math::vector3<T>
-		{
-			(x[0] * x[2]) / x[1],
-			x[2],
-			((T(1.0) - x[0] - x[1]) * x[2]) / x[1]
-		};
+	return math::vector3<T>{(x[0] * x[2]) / x[1], x[2], ((T{1} - x[0] - x[1]) * x[2]) / x[1]};
 }
 
 } // namespace xyy

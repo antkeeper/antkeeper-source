@@ -19,9 +19,11 @@
 
 #include "game/state/nuptial-flight.hpp"
 #include "game/state/pause-menu.hpp"
+#include "game/ant/swarm.hpp"
 #include "entity/archetype.hpp"
 #include "entity/systems/camera.hpp"
 #include "entity/systems/astronomy.hpp"
+#include "entity/systems/atmosphere.hpp"
 #include "entity/components/locomotion.hpp"
 #include "entity/components/transform.hpp"
 #include "entity/components/terrain.hpp"
@@ -45,6 +47,8 @@
 #include "game/ant/breed.hpp"
 #include "game/ant/morphogenesis.hpp"
 #include "math/interpolation.hpp"
+#include "physics/light/exposure.hpp"
+#include "color/color.hpp"
 #include <iostream>
 
 using namespace game::ant;
@@ -92,61 +96,20 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
 	// Create world if not yet created
-	if (ctx.entities.find("planet") == ctx.entities.end())
+	if (ctx.entities.find("earth") == ctx.entities.end())
 	{
 		// Create cosmos
 		game::world::cosmogenesis(ctx);
 		
-		// Create boids
-		for (int i = 0; i < 100; ++i)
-		{
-			entity::id boid_eid = ctx.entity_registry->create();
-			
-			// Create transform component
-			entity::component::transform transform;
-			transform.local = math::transform<float>::identity;
-			transform.world = math::transform<float>::identity;
-			transform.warp = true;
-			ctx.entity_registry->assign<entity::component::transform>(boid_eid, transform);
-			
-			// Create model component
-			entity::component::model model;
-			model.render_model = ctx.resource_manager->load<render::model>("boid.mdl");
-			model.instance_count = 0;
-			model.layers = 1;
-			ctx.entity_registry->assign<entity::component::model>(boid_eid, model);
-			
-			// Create steering component
-			entity::component::steering steering;
-			steering.agent.mass = 1.0f;
-			steering.agent.position = {0, 100, 0};
-			steering.agent.velocity = {0, 0, 0};
-			steering.agent.acceleration = {0, 0, 0};
-			steering.agent.max_force = 4.0f;
-			steering.agent.max_speed = 5.0f;
-			steering.agent.max_speed_squared = steering.agent.max_speed * steering.agent.max_speed;
-			steering.agent.orientation = math::quaternion<float>::identity;
-			steering.agent.forward = steering.agent.orientation * config::global_forward;
-			steering.agent.up = steering.agent.orientation * config::global_up;
-			steering.wander_weight = 1.0f;
-			steering.wander_noise = math::radians(2000.0f);
-			steering.wander_distance = 10.0f;
-			steering.wander_radius = 8.0f;
-			steering.wander_angle = 0.0f;
-			steering.wander_angle2 = 0.0f;
-			steering.seek_weight = 0.2f;
-			steering.seek_target = {0, 100, 0};
-			steering.flee_weight = 0.0f;
-			steering.sum_weights = steering.wander_weight + steering.seek_weight + steering.flee_weight;
-			ctx.entity_registry->assign<entity::component::steering>(boid_eid, steering);
-		}
+		// Create observer
+		game::world::create_observer(ctx);
 	}
 	
 	// Load biome
 	game::load::biome(ctx, "desert-scrub.bio");
 	
 	// Set world time
-	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
+	game::world::set_time(ctx, 2022, 10, 9, 12, 0, 0.0);
 	
 	// Set world time scale
 	game::world::set_time_scale(ctx, 60.0);
@@ -162,6 +125,13 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		entity::command::warp_to(*ctx.entity_registry, color_checker_eid, {0, 0, -10});
 	}
 	
+	// Create diffuse spheres
+	{
+		entity::archetype* diffuse_spheres_archetype = ctx.resource_manager->load<entity::archetype>("diffuse-spheres.ent");
+		auto diffuse_spheres_eid = diffuse_spheres_archetype->create(*ctx.entity_registry);
+		entity::command::warp_to(*ctx.entity_registry, diffuse_spheres_eid, {0, 0, -20});
+	}
+	
 	// Create ruler
 	{
 		entity::archetype* ruler_10cm_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
@@ -169,52 +139,11 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		entity::command::warp_to(*ctx.entity_registry, ruler_10cm_eid, {0, 0, 10});
 	}
 	
-	// Create cocoon
-	{
-		entity::archetype* cocoon_archetype = ctx.resource_manager->load<entity::archetype>("cocoon.ent");
-		auto cocoon_eid = cocoon_archetype->create(*ctx.entity_registry);
-		entity::command::warp_to(*ctx.entity_registry, cocoon_eid, {-10, 0, 10});
-	}
-	
-	// Create larva
-	{
-		entity::archetype* larva_archetype = ctx.resource_manager->load<entity::archetype>("long-neck-larva.ent");
-		auto larva_eid = larva_archetype->create(*ctx.entity_registry);
-		entity::command::warp_to(*ctx.entity_registry, larva_eid, {-13, 0, 10});
-	}
-	
 	// Create keeper if not yet created
 	if (ctx.entities.find("keeper") == ctx.entities.end())
 	{
 		entity::id keeper_eid = ctx.entity_registry->create();
 		ctx.entities["keeper"] = keeper_eid;
-	}
-	
-	// Create ant if not created
-	if (ctx.entities.find("ant") == ctx.entities.end())
-	{
-		auto boid_eid = ctx.entity_registry->create();
-		
-		entity::component::model model;
-		model.render_model = worker_model;//ctx.resource_manager->load<render::model>("ant-test.mdl");
-		model.instance_count = 0;
-		model.layers = 1;
-		ctx.entity_registry->assign<entity::component::model>(boid_eid, model);
-		
-		entity::component::transform transform;
-		transform.local = math::transform<float>::identity;
-		transform.world = math::transform<float>::identity;
-		transform.warp = true;
-		ctx.entity_registry->assign<entity::component::transform>(boid_eid, transform);
-		
-		entity::component::locomotion locomotion;
-		locomotion.yaw = 0.0f;
-		ctx.entity_registry->assign<entity::component::locomotion>(boid_eid, locomotion);
-		
-		entity::command::warp_to(*ctx.entity_registry, boid_eid, {0, 1, 0});
-
-		// Set target ant
-		ctx.entities["ant"] = boid_eid;
 	}
 	
 	// Start as ant-keeper
@@ -322,10 +251,12 @@ void nuptial_flight::setup_camera()
 		constraint_stack.head = spring_constraint_eid;
 		ctx.entity_registry->assign<entity::component::constraint_stack>(camera_eid, constraint_stack);
 	}
-
-	ctx.surface_camera->set_exposure(15.5f);
 	
-	ctx.astronomy_system->set_camera(ctx.surface_camera);
+	game::ant::create_swarm(ctx);
+	
+	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
+	const float ev100_looney11 = physics::light::ev::from_settings(11.0f, 1.0f / 100.0f, 100.0f);
+	ctx.surface_camera->set_exposure(ev100_sunny16);
 }
 
 void nuptial_flight::enable_keeper_controls()
@@ -685,6 +616,76 @@ void nuptial_flight::enable_keeper_controls()
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() + 1.0f);
 			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 3.0f * (1.0f / 60.0f));
 			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
+		}
+	);
+	
+	const float wavelength_speed = 20.0 * (1.0 / 60.0);
+	ctx.controls["dec_red"]->set_active_callback
+	(
+		[&ctx = this->ctx, wavelength_speed](float)
+		{
+			ctx.rgb_wavelengths.x -= wavelength_speed;
+			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
+			std::stringstream stream;
+			stream << ctx.rgb_wavelengths;
+			ctx.logger->log("wavelengths: " + stream.str());
+		}
+	);
+	ctx.controls["inc_red"]->set_active_callback
+	(
+		[&ctx = this->ctx, wavelength_speed](float)
+		{
+			ctx.rgb_wavelengths.x += wavelength_speed;
+			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
+			std::stringstream stream;
+			stream << ctx.rgb_wavelengths;
+			ctx.logger->log("wavelengths: " + stream.str());
+		}
+	);
+	
+	ctx.controls["dec_green"]->set_active_callback
+	(
+		[&ctx = this->ctx, wavelength_speed](float)
+		{
+			ctx.rgb_wavelengths.y -= wavelength_speed;
+			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
+			std::stringstream stream;
+			stream << ctx.rgb_wavelengths;
+			ctx.logger->log("wavelengths: " + stream.str());
+		}
+	);
+	ctx.controls["inc_green"]->set_active_callback
+	(
+		[&ctx = this->ctx, wavelength_speed](float)
+		{
+			ctx.rgb_wavelengths.y += wavelength_speed;
+			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
+			std::stringstream stream;
+			stream << ctx.rgb_wavelengths;
+			ctx.logger->log("wavelengths: " + stream.str());
+		}
+	);
+	
+	ctx.controls["dec_blue"]->set_active_callback
+	(
+		[&ctx = this->ctx, wavelength_speed](float)
+		{
+			ctx.rgb_wavelengths.z -= wavelength_speed;
+			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
+			std::stringstream stream;
+			stream << ctx.rgb_wavelengths;
+			ctx.logger->log("wavelengths: " + stream.str());
+		}
+	);
+	ctx.controls["inc_blue"]->set_active_callback
+	(
+		[&ctx = this->ctx, wavelength_speed](float)
+		{
+			ctx.rgb_wavelengths.z += wavelength_speed;
+			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
+			std::stringstream stream;
+			stream << ctx.rgb_wavelengths;
+			ctx.logger->log("wavelengths: " + stream.str());
 		}
 	);
 }

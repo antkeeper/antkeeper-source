@@ -38,7 +38,15 @@ namespace cct {
  * @see Krystek, M. (1985), An algorithm to calculate correlated colour temperature. Color Res. Appl., 10: 38-40.
  */
 template <class T>
-math::vector2<T> to_ucs(T t);
+math::vector2<T> to_ucs(T t)
+{
+	const T tt = t * t;
+	return math::vector2<T>
+	{
+		(T{0.860117757} + T{1.54118254e-4} * t + T{1.28641212e-7} * tt) / (T{1} + T{8.42420235e-4} * t + T{7.08145163e-7} * tt),
+		(T{0.317398726} + T{4.22806245e-5} * t + T{4.20481691e-8} * tt) / (T{1} - T{2.89741816e-5} * t + T{1.61456053e-7} * tt)
+	};
+}
 
 /**
  * Calculates CIE xyY colorspace chromaticity coordinates given a correlated color temperature using Krystek's algorithm.
@@ -47,7 +55,10 @@ math::vector2<T> to_ucs(T t);
  * @return CIE xyY color with `Y = 1`.
  */
 template <class T>
-math::vector3<T> to_xyy(T t);
+math::vector3<T> to_xyy(T t)
+{
+	return ucs::to_xyy(to_ucs(t), T{1});
+}
 
 /**
  * Calculates CIE XYZ colorspace chromaticity coordinates given a correlated color temperature using Krystek's algorithm.
@@ -55,27 +66,6 @@ math::vector3<T> to_xyy(T t);
  * @param t Correlated color temperature, in Kelvin.
  * @return CIE XYZ color with `Y = 1`.
  */
-template <class T>
-math::vector3<T> to_xyz(T t);
-
-template <class T>
-math::vector2<T> to_ucs(T t)
-{
-	// Approximate the Planckian locus in CIE 1960 UCS colorspace (Krystek's algorithm)
-	const T tt = t * t;
-	return math::vector2<T>
-		{
-			(T(0.860117757) + T(1.54118254e-4) * t + T(1.28641212e-7) * tt) / (T(1.0) + T(8.42420235e-4) * t + T(7.08145163e-7) * tt),
-			(T(0.317398726) + T(4.22806245e-5) * t + T(4.20481691e-8) * tt) / (T(1.0) - T(2.89741816e-5) * t + T(1.61456053e-7) * tt)
-		};
-}
-
-template <class T>
-math::vector3<T> to_xyy(T t)
-{
-	return ucs::to_xyy(to_ucs(t), T(1.0));
-}
-
 template <class T>
 math::vector3<T> to_xyz(T t)
 {

@@ -44,7 +44,7 @@ constexpr float menu_fade_out_duration = 0.125f;
 constexpr float menu_mouseover_padding = 0.1f;
 
 /// Opacity of the menu background.
-constexpr float menu_bg_opacity = 2.0f / 3.0f;
+constexpr float menu_bg_opacity = 2.0f / 4.0f;
 
 /// RGBA color of active menu items.
 constexpr float4 menu_active_color{1.0f, 1.0f, 1.0f, 1.0f};
@@ -66,7 +66,7 @@ constexpr float nuptial_flight_fade_in_duration = 5.0f;
 
 #define MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT 1
 #define MATERIAL_PASS_MAX_POINT_LIGHT_COUNT 1
-#define MATERIAL_PASS_MAX_DIRECTIONAL_LIGHT_COUNT 2
+#define MATERIAL_PASS_MAX_DIRECTIONAL_LIGHT_COUNT 3
 #define MATERIAL_PASS_MAX_SPOTLIGHT_COUNT 1
 #define MATERIAL_PASS_MAX_BONE_COUNT 64
 #define TERRAIN_PATCH_SIZE 200.0f

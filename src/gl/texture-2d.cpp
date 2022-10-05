@@ -33,6 +33,11 @@ void texture_2d::resize(std::uint16_t width, std::uint16_t height, gl::pixel_typ
 	texture::resize(width, height, type, format, color_space, data);
 }
 
+void texture_2d::resize(std::uint16_t width, std::uint16_t height, const void* data)
+{
+	texture::resize(width, height, get_pixel_type(), get_pixel_format(), get_color_space(), data);
+}
+
 void texture_2d::set_wrapping(gl::texture_wrapping wrap_s, texture_wrapping wrap_t)
 {
 	texture::set_wrapping(wrap_s, wrap_t);

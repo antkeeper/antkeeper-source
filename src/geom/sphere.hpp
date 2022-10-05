@@ -69,7 +69,7 @@ template <class T>
 bool sphere<T>::intersects(const sphere<T>& sphere) const
 {
 	vector_type d = center - sphere.center;
-	float r = radius + sphere.radius;
+	T r = radius + sphere.radius;
 	return (math::dot(d, d) <= r * r);
 }
 
@@ -82,7 +82,7 @@ bool sphere<T>::intersects(const aabb<T>& aabb) const
 template <class T>
 bool sphere<T>::contains(const sphere<T>& sphere) const
 {
-	float containment_radius = radius - sphere.radius;
+	T containment_radius = radius - sphere.radius;
 	if (containment_radius < T(0))
 		return false;
 	
@@ -115,4 +115,3 @@ bool sphere<T>::contains(const vector_type& point) const
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_SPHERE_HPP
-

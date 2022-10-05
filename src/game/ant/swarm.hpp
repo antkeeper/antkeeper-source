@@ -17,38 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_TIME_JD_HPP
-#define ANTKEEPER_PHYSICS_TIME_JD_HPP
+#ifndef ANTKEEPER_GAME_ANT_SWARM_HPP
+#define ANTKEEPER_GAME_ANT_SWARM_HPP
 
-namespace physics {
-namespace time {
+#include "game/context.hpp"
 
-/// Julian day (JD).
-namespace jd {
+namespace game {
+namespace ant {
 
-/// Number of Julian days per Julian century.
-template <class T>
-constexpr T days_per_century = T{36525};
+void create_swarm(game::context& ctx);
+void destroy_swarm(game::context& ctx);
 
-/// Number of Julian centuries per Julian day.
-template <class T>
-constexpr T centuries_per_day = T{1} / T{36525};
+} // namespace ant
+} // namespace game
 
-/**
- * Converts JD to UT1.
- *
- * @param t JD time.
- * @return UT1 time.
- */
-template <class T>
-T to_ut1(T t)
-{
-	return t - T(2451545);
-}
-
-} // namespace jd
-
-} // namespace time
-} // namespace physics
-
-#endif // ANTKEEPER_PHYSICS_TIME_JD_HPP
+#endif // ANTKEEPER_GAME_ANT_SWARM_HPP

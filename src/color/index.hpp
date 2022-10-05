@@ -34,12 +34,9 @@ namespace index {
  * @see Ballesteros, F. J. (2012). "New insights into black bodies". EPL 97 (2012) 34008.
  */
 template <class T>
-T bv_to_cct(T bv);
-
-template <class T>
 T bv_to_cct(T bv)
 {
-	return T(4600.0) * (T(1.0) / (T(0.92) * bv + T(1.7)) + T(1.0) / (T(0.92) * bv + T(0.62)));
+	return T{4600} * (T{1} / (T{0.92} * bv + T{1.7}) + T{1} / (T{0.92} * bv + T{0.62}));
 }
 
 } // namespace index
