@@ -19,6 +19,10 @@
 
 #include "collision.hpp"
 #include "game/component/transform.hpp"
+#include "game/component/picking.hpp"
+#include "geom/intersection.hpp"
+#include "geom/plane.hpp"
+#include <limits>
 
 namespace game {
 namespace system {
@@ -36,6 +40,82 @@ void collision::update(double t, double dt)
 	registry.on_construct<component::collision>().disconnect<&collision::on_collision_construct>(this);
 	registry.on_update<component::collision>().disconnect<&collision::on_collision_update>(this);
 	registry.on_destroy<component::collision>().disconnect<&collision::on_collision_destroy>(this);
+}
+
+entity::id collision::pick_nearest(const geom::ray<float>& ray, std::uint32_t flags) const
+{
+	entity::id nearest_eid = entt::null;
+	float nearest_distance = std::numeric_limits<float>::infinity();
+	
+	// For each entity with picking and transform components
+	registry.view<component::picking, component::transform>().each
+	(
+		[&](entity::id entity_id, const auto& picking, const auto& transform)
+		{
+			// Skip entity if picking flags don't match
+			if (!~(flags | picking.flags))
+				return;
+			
+			// Transform picking sphere
+			const geom::sphere<float> sphere =
+			{
+				transform.world * picking.sphere.center,
+				picking.sphere.radius * std::max(std::max(transform.world.scale[0], transform.world.scale[1]), transform.world.scale[2])
+			};
+			
+			// Test for intersection between ray and sphere
+			auto result = geom::ray_sphere_intersection(ray, sphere);
+			if (std::get<0>(result))
+			{
+				if (std::get<1>(result) < nearest_distance)
+				{
+					nearest_eid = entity_id;
+					nearest_distance = std::get<1>(result);
+				}
+			}
+		}
+	);
+	
+	return nearest_eid;
+}
+
+entity::id collision::pick_nearest(const float3& origin, const float3& normal, std::uint32_t flags) const
+{
+	entity::id nearest_eid = entt::null;
+	float nearest_distance_squared = std::numeric_limits<float>::infinity();
+	
+	// Construct picking plane
+	const geom::plane<float> picking_plane = geom::plane<float>(normal, origin);
+	
+	// For each entity with picking and transform components
+	registry.view<component::picking, component::transform>().each
+	(
+		[&](entity::id entity_id, const auto& picking, const auto& transform)
+		{
+			// Skip entity if picking flags don't match
+			if (!~(flags | picking.flags))
+				return;
+			
+			// Transform picking sphere center
+			float3 picking_sphere_center = transform.world * picking.sphere.center;
+			
+			// Skip entity if picking sphere center has negative distance from picking plane
+			if (picking_plane.signed_distance(picking_sphere_center) < 0.0f)
+				return;
+			
+			// Measure distance from picking plane origin to picking sphere center
+			const float distance_squared = math::distance_squared(picking_sphere_center, origin);
+			
+			// Check if entity is nearer than the current nearest entity
+			if (distance_squared < nearest_distance_squared)
+			{
+				nearest_eid = entity_id;
+				nearest_distance_squared = distance_squared;
+			}
+		}
+	);
+	
+	return nearest_eid;
 }
 
 void collision::on_collision_construct(entity::registry& registry, entity::id entity_id)

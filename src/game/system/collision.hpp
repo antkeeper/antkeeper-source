@@ -23,18 +23,40 @@
 #include "game/system/updatable.hpp"
 #include "entity/id.hpp"
 #include "game/component/collision.hpp"
+#include "geom/ray.hpp"
 
 namespace game {
 namespace system {
 
 /**
- * Maintains a spatially partitioned set of collision meshes. The set of collision meshes isnot owned by the collision system, so it can be accessed by other systems as well.
+ * Maintains a spatially partitioned set of collision meshes.
  */
 class collision: public updatable
 {
 public:
 	collision(entity::registry& registry);
 	virtual void update(double t, double dt);
+	
+	/**
+	 * Picks the nearest entity with the specified picking flags that intersects a ray.
+	 *
+	 * @param ray Picking ray.
+	 * @param flags Picking flags.
+	 *
+	 * @return ID of the picked entity, or `entt::null` if no entity was picked.
+	 */
+	entity::id pick_nearest(const geom::ray<float>& ray, std::uint32_t flags) const;
+	
+	/**
+	 * Picks the nearest entity with the specified picking flags that has a non-negative distance from a plane.
+	 *
+	 * @param origin Origin of the picking plane.
+	 * @param normal Picking plane normal direction.
+	 * @param flags Picking flags.
+	 *
+	 * @return ID of the picked entity, or `entt::null` if no entity was picked.
+	 */
+	entity::id pick_nearest(const float3& origin, const float3& normal, std::uint32_t flags) const;
 
 private:	
 	void on_collision_construct(entity::registry& registry, entity::id entity_id);

@@ -22,6 +22,7 @@
 
 #include "game/state/base.hpp"
 #include "entity/id.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace game {
 namespace state {
@@ -39,6 +40,12 @@ private:
 	void enable_controls();
 	void disable_controls();
 	
+	void select_entity(entity::id entity_id);
+	void select_nearest_entity(const float3& direction);
+	
+	entity::id camera_rig_focus_eid;
+	entity::id camera_rig_focus_ease_to_eid;
+	
 	entity::id camera_rig_eid;
 	entity::id camera_rig_spring_translation_eid;
 	entity::id camera_rig_spring_rotation_eid;
@@ -46,6 +53,9 @@ private:
 	entity::id camera_rig_pivot_eid;
 	
 	entity::id swarm_eid;
+	
+	std::uint32_t selected_picking_flag;
+	entity::id selected_eid;
 	
 	bool mouse_look;
 };

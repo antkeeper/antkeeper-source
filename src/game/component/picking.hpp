@@ -17,29 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_CONSTRAINT_HPP
-#define ANTKEEPER_GAME_COMPONENT_CONSTRAINT_HPP
+#ifndef ANTKEEPER_GAME_COMPONENT_PICKING_HPP
+#define ANTKEEPER_GAME_COMPONENT_PICKING_HPP
+
+#include "geom/sphere.hpp"
+#include <cstdint>
 
 namespace game {
 namespace component {
 
-/// Transform constraint components.
-namespace constraint {}
+struct picking
+{
+	/// Picking sphere.
+	geom::sphere<float> sphere;
+	
+	/// Picking flags.
+	std::uint32_t flags;
+};
 
 } // namespace component
 } // namespace game
 
-#include "game/component/constraint/child-of.hpp"
-#include "game/component/constraint/copy-rotation.hpp"
-#include "game/component/constraint/copy-scale.hpp"
-#include "game/component/constraint/copy-transform.hpp"
-#include "game/component/constraint/copy-translation.hpp"
-#include "game/component/constraint/ease-to.hpp"
-#include "game/component/constraint/pivot.hpp"
-#include "game/component/constraint/spring-rotation.hpp"
-#include "game/component/constraint/spring-to.hpp"
-#include "game/component/constraint/spring-translation.hpp"
-#include "game/component/constraint/three-dof.hpp"
-#include "game/component/constraint/track-to.hpp"
-
-#endif // ANTKEEPER_GAME_COMPONENT_CONSTRAINT_HPP
+#endif // ANTKEEPER_GAME_COMPONENT_PICKING_HPP

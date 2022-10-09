@@ -53,6 +53,7 @@ private:
 	void handle_copy_scale_constraint(component::transform& transform, const component::constraint::copy_scale& constraint);
 	void handle_copy_transform_constraint(component::transform& transform, const component::constraint::copy_transform& constraint);
 	void handle_copy_translation_constraint(component::transform& transform, const component::constraint::copy_translation& constraint);
+	void handle_ease_to_constraint(component::transform& transform, component::constraint::ease_to& constraint, float dt);
 	void handle_pivot_constraint(component::transform& transform, const component::constraint::pivot& constraint);
 	void handle_spring_rotation_constraint(component::transform& transform, component::constraint::spring_rotation& constraint, float dt);
 	void handle_spring_to_constraint(component::transform& transform, component::constraint::spring_to& constraint, float dt);

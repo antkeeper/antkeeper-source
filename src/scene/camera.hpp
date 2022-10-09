@@ -22,6 +22,7 @@
 
 #include "scene/object.hpp"
 #include "geom/view-frustum.hpp"
+#include "geom/ray.hpp"
 #include "utility/fundamental-types.hpp"
 #include "render/compositor.hpp"
 
@@ -36,6 +37,15 @@ public:
 	typedef geom::view_frustum<float> view_frustum_type;
 	
 	camera();
+	
+	/**
+	 * Constructs a picking ray from normalized device coordinates (NDC).
+	 *
+	 * @param ndc NDC coordinates.
+	 *
+	 * @return Picking ray.
+	 */
+	geom::ray<float> pick(const float2& ndc) const;
 
 	/**
 	 * Maps object coordinates to window coordinates.

@@ -105,7 +105,7 @@ constexpr vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y);
  * @return Distance between the two points.
  */
 template <class T, std::size_t N>
-vector<T, N> distance(const vector<T, N>& p0, const vector<T, N>& p1);
+T distance(const vector<T, N>& p0, const vector<T, N>& p1);
 
 /**
  * Calculates the squared distance between two points. The squared distance can be calculated faster than the distance because a call to `std::sqrt` is saved.
@@ -115,7 +115,7 @@ vector<T, N> distance(const vector<T, N>& p0, const vector<T, N>& p1);
  * @return Squared distance between the two points.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> distance_squared(const vector<T, N>& p0, const vector<T, N>& p1);
+constexpr T distance_squared(const vector<T, N>& p0, const vector<T, N>& p1);
 
 /**
  * Divides a vector by another vector.
@@ -392,14 +392,14 @@ constexpr inline vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y
 }
 
 template <class T, std::size_t N>
-inline vector<T, N> distance(const vector<T, N>& p0, const vector<T, N>& p1)
+inline T distance(const vector<T, N>& p0, const vector<T, N>& p1)
 {
 	static_assert(std::is_floating_point<T>::value);
 	return length(sub(p0, p1));
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> distance_squared(const vector<T, N>& p0, const vector<T, N>& p1)
+constexpr inline T distance_squared(const vector<T, N>& p0, const vector<T, N>& p1)
 {
 	static_assert(std::is_floating_point<T>::value);
 	return length_squared(sub(p0, p1));

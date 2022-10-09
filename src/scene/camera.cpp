@@ -19,7 +19,6 @@
 
 #include "scene/camera.hpp"
 #include "config.hpp"
-#include "animation/ease.hpp"
 #include "math/constants.hpp"
 #include "math/interpolation.hpp"
 
@@ -77,6 +76,19 @@ camera::camera():
 	view_projection(math::matrix4<float>::identity, std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
 	exposure(0.0f, math::lerp<float, float>)
 {}
+
+geom::ray<float> camera::pick(const float2& ndc) const
+{
+	const float4x4 inverse_view_projection = math::inverse(view_projection[1]);
+	
+	const float4 near = inverse_view_projection * float4{ndc[0], ndc[1], 1.0f, 1.0f};
+	const float4 far = inverse_view_projection * float4{ndc[0], ndc[1], 0.0f, 1.0f};
+	
+	const float3 origin = float3{near[0], near[1], near[2]} / near[3];
+	const float3 direction = math::normalize(float3{far[0], far[1], far[2]} / far[3] - origin);
+	
+	return {origin, direction};
+}
 
 float3 camera::project(const float3& object, const float4& viewport) const
 {

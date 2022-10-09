@@ -21,6 +21,7 @@
 #include "game/component/transform.hpp"
 #include "game/component/steering.hpp"
 #include "game/component/model.hpp"
+#include "game/component/picking.hpp"
 #include "resources/resource-manager.hpp"
 #include "config.hpp"
 #include <cmath>
@@ -67,6 +68,12 @@ entity::id create_swarm(game::context& ctx)
 	transform.local = math::transform<float>::identity;
 	transform.world = transform.local;
 	transform.warp = true;
+	
+	// Init picking component
+	game::component::picking picking;
+	picking.sphere = {float3{0, 0, 0}, 0.5f};
+	std::uint32_t male_picking_flags = 0b01;
+	std::uint32_t queen_picking_flags = 0b10;
 	
 	// Create swarm entity
 	entity::id swarm_eid = ctx.entity_registry->create();
@@ -131,6 +138,9 @@ entity::id create_swarm(game::context& ctx)
 			transform.local.scale = male_scale;
 			transform.world = transform.local;
 			ctx.entity_registry->emplace<game::component::transform>(alate_eid, transform);
+			
+			picking.flags = male_picking_flags;
+			ctx.entity_registry->emplace<game::component::picking>(alate_eid, picking);
 		}
 		else
 		{
@@ -140,6 +150,9 @@ entity::id create_swarm(game::context& ctx)
 			transform.local.scale = queen_scale;
 			transform.world = transform.local;
 			ctx.entity_registry->emplace<game::component::transform>(alate_eid, transform);
+			
+			picking.flags = queen_picking_flags;
+			ctx.entity_registry->emplace<game::component::picking>(alate_eid, picking);
 		}
 	}
 	

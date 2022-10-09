@@ -17,29 +17,39 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_CONSTRAINT_HPP
-#define ANTKEEPER_GAME_COMPONENT_CONSTRAINT_HPP
+#ifndef ANTKEEPER_GAME_COMPONENT_CONSTRAINT_EASE_TO_HPP
+#define ANTKEEPER_GAME_COMPONENT_CONSTRAINT_EASE_TO_HPP
+
+#include "entity/id.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace game {
 namespace component {
+namespace constraint {
 
-/// Transform constraint components.
-namespace constraint {}
+/**
+ * Eases toward a target entity.
+ */
+struct ease_to
+{
+	/// Target entity ID.
+	entity::id target;
+	
+	/// Start position.
+	float3 start;
+	
+	/// Total duration of the ease.
+	float duration;
+	
+	/// Elapsed time since ease began.
+	float t;
+	
+	/// Pointer to the interpolation function.
+	float3 (*function)(const float3&, const float3&, float);
+};
 
+} // namespace constraint
 } // namespace component
 } // namespace game
 
-#include "game/component/constraint/child-of.hpp"
-#include "game/component/constraint/copy-rotation.hpp"
-#include "game/component/constraint/copy-scale.hpp"
-#include "game/component/constraint/copy-transform.hpp"
-#include "game/component/constraint/copy-translation.hpp"
-#include "game/component/constraint/ease-to.hpp"
-#include "game/component/constraint/pivot.hpp"
-#include "game/component/constraint/spring-rotation.hpp"
-#include "game/component/constraint/spring-to.hpp"
-#include "game/component/constraint/spring-translation.hpp"
-#include "game/component/constraint/three-dof.hpp"
-#include "game/component/constraint/track-to.hpp"
-
-#endif // ANTKEEPER_GAME_COMPONENT_CONSTRAINT_HPP
+#endif // ANTKEEPER_GAME_COMPONENT_CONSTRAINT_EASE_TO_HPP

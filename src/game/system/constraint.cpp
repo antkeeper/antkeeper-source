@@ -107,6 +107,8 @@ void constraint::handle_constraint(component::transform& transform, entity::id c
 		handle_spring_translation_constraint(transform, *constraint, dt);
 	else if (auto constraint = registry.try_get<component::constraint::spring_rotation>(constraint_eid); constraint)
 		handle_spring_rotation_constraint(transform, *constraint, dt);
+	else if (auto constraint = registry.try_get<component::constraint::ease_to>(constraint_eid); constraint)
+		handle_ease_to_constraint(transform, *constraint, dt);
 }
 
 void constraint::handle_child_of_constraint(component::transform& transform, const component::constraint::child_of& constraint)
@@ -191,6 +193,28 @@ void constraint::handle_copy_translation_constraint(component::transform& transf
 				if (constraint.copy_z)
 					transform.world.translation.z = (constraint.invert_z) ? -target_translation.z : target_translation.z;
 			}
+		}
+	}
+}
+
+void constraint::handle_ease_to_constraint(component::transform& transform, component::constraint::ease_to& constraint, float dt)
+{
+	if (constraint.function && registry.valid(constraint.target))
+	{
+		const component::transform* target_transform = registry.try_get<component::transform>(constraint.target);
+		if (target_transform)
+		{
+			if (constraint.t < constraint.duration)
+			{
+				const float a = constraint.t / constraint.duration;
+				transform.world.translation = constraint.function(constraint.start, target_transform->world.translation, a);
+			}
+			else
+			{
+				transform.world.translation = target_transform->world.translation;
+			}
+			
+			constraint.t += dt;
 		}
 	}
 }

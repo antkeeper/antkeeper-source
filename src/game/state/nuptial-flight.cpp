@@ -24,6 +24,7 @@
 #include "game/system/camera.hpp"
 #include "game/system/astronomy.hpp"
 #include "game/system/atmosphere.hpp"
+#include "game/system/collision.hpp"
 #include "game/component/locomotion.hpp"
 #include "game/component/transform.hpp"
 #include "game/component/terrain.hpp"
@@ -32,6 +33,7 @@
 #include "game/component/constraint/constraint.hpp"
 #include "game/component/constraint-stack.hpp"
 #include "game/component/steering.hpp"
+#include "game/component/picking.hpp"
 #include "game/controls.hpp"
 #include "entity/commands.hpp"
 #include "animation/screen-transition.hpp"
@@ -49,6 +51,8 @@
 #include "math/interpolation.hpp"
 #include "physics/light/exposure.hpp"
 #include "color/color.hpp"
+#include "application.hpp"
+#include "input/mouse.hpp"
 #include <iostream>
 
 using namespace game::ant;
@@ -60,6 +64,10 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	game::state::base(ctx)
 {
 	ctx.logger->push_task("Entering nuptial flight state");
+	
+	// Init selected picking flag
+	selected_picking_flag = std::uint32_t{1} << (sizeof(std::uint32_t) * 8 - 1);
+	selected_eid = entt::null;
 	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
@@ -105,23 +113,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	(
 		[&](entity::id alate_eid, auto& transform, auto& steering)
 		{
-			ctx.entity_registry->patch<component::constraint::copy_translation>
-			(
-				camera_rig_copy_translation_eid,
-				[&](auto& component)
-				{
-					component.target = alate_eid;
-				}
-			);
-			
-			ctx.entity_registry->patch<component::constraint::pivot>
-			(
-				camera_rig_pivot_eid,
-				[&](auto& component)
-				{
-					component.target = alate_eid;
-				}
-			);
+			select_entity(alate_eid);
 		}
 	);
 	
@@ -139,6 +131,9 @@ nuptial_flight::~nuptial_flight()
 {
 	ctx.logger->push_task("Exiting nuptial flight state");
 	
+	// Deselect selected entity
+	select_entity(entt::null);
+	
 	destroy_camera_rig();
 	game::ant::destroy_swarm(ctx, swarm_eid);
 	
@@ -147,9 +142,40 @@ nuptial_flight::~nuptial_flight()
 
 void nuptial_flight::create_camera_rig()
 {
+	// Construct camera rig focus ease to constraint
+	component::constraint::ease_to camera_rig_focus_ease_to;
+	camera_rig_focus_ease_to.target = selected_eid;
+	camera_rig_focus_ease_to.start = {0, 0, 0};
+	camera_rig_focus_ease_to.duration = 1.0f;
+	camera_rig_focus_ease_to.t = camera_rig_focus_ease_to.duration;
+	camera_rig_focus_ease_to.function = &ease<float3, float>::out_expo;
+	component::constraint_stack_node camera_rig_focus_ease_to_node;
+	camera_rig_focus_ease_to_node.active = true;
+	camera_rig_focus_ease_to_node.weight = 1.0f;
+	camera_rig_focus_ease_to_node.next = entt::null;
+	camera_rig_focus_ease_to_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<component::constraint::ease_to>(camera_rig_focus_ease_to_eid, camera_rig_focus_ease_to);
+	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_focus_ease_to_eid, camera_rig_focus_ease_to_node);
+	
+	// Construct camera rig focus constraint stack
+	component::constraint_stack camera_rig_focus_constraint_stack;
+	camera_rig_focus_constraint_stack.priority = 1;
+	camera_rig_focus_constraint_stack.head = camera_rig_focus_ease_to_eid;
+	
+	// Construct camera rig focus transform component
+	component::transform camera_rig_focus_transform;
+	camera_rig_focus_transform.local = math::transform<float>::identity;
+	camera_rig_focus_transform.world = camera_rig_focus_transform.local;
+	camera_rig_focus_transform.warp = true;
+	
+	// Construct camera rig focus entity
+	camera_rig_focus_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<component::transform>(camera_rig_focus_eid, camera_rig_focus_transform);
+	ctx.entity_registry->emplace<component::constraint_stack>(camera_rig_focus_eid, camera_rig_focus_constraint_stack);
+	
 	// Construct camera rig pivot constraint
 	component::constraint::pivot camera_rig_pivot;
-	camera_rig_pivot.target = swarm_eid;
+	camera_rig_pivot.target = camera_rig_focus_eid;
 	camera_rig_pivot.offset = {0, 0, 0};
 	component::constraint_stack_node camera_rig_pivot_node;
 	camera_rig_pivot_node.active = true;
@@ -161,7 +187,7 @@ void nuptial_flight::create_camera_rig()
 	
 	// Construct camera rig copy translation constraint
 	component::constraint::copy_translation camera_rig_copy_translation;
-	camera_rig_copy_translation.target = swarm_eid;
+	camera_rig_copy_translation.target = camera_rig_focus_eid;
 	camera_rig_copy_translation.copy_x = true;
 	camera_rig_copy_translation.copy_y = true;
 	camera_rig_copy_translation.copy_z = true;
@@ -213,12 +239,12 @@ void nuptial_flight::create_camera_rig()
 	ctx.entity_registry->emplace<component::constraint::spring_translation>(camera_rig_spring_translation_eid, camera_rig_spring_translation);
 	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_spring_translation_eid, camera_rig_spring_translation_node);
 	
-	// Construct camera constraint stack
+	// Construct camera rig constraint stack
 	component::constraint_stack camera_rig_constraint_stack;
-	camera_rig_constraint_stack.priority = 1;
+	camera_rig_constraint_stack.priority = 2;
 	camera_rig_constraint_stack.head = camera_rig_spring_translation_eid;
 	
-	// Construct camera transform component
+	// Construct camera rig transform component
 	component::transform camera_rig_transform;
 	camera_rig_transform.local = math::transform<float>::identity;
 	camera_rig_transform.world = camera_rig_transform.local;
@@ -242,6 +268,10 @@ void nuptial_flight::destroy_camera_rig()
 	ctx.entity_registry->destroy(camera_rig_spring_rotation_eid);
 	ctx.entity_registry->destroy(camera_rig_copy_translation_eid);
 	ctx.entity_registry->destroy(camera_rig_pivot_eid);
+	
+	ctx.entity_registry->destroy(camera_rig_focus_eid);
+	ctx.entity_registry->destroy(camera_rig_focus_ease_to_eid);
+
 }
 
 void nuptial_flight::enable_controls()
@@ -456,7 +486,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&](float value)
 		{
-			ctx.entity_registry->patch<game::component::constraint::spring_translation>
+			ctx.entity_registry->patch<component::constraint::spring_translation>
 			(
 				camera_rig_spring_translation_eid,
 				[&](auto& component)
@@ -472,7 +502,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&](float value)
 		{
-			ctx.entity_registry->patch<game::component::constraint::spring_translation>
+			ctx.entity_registry->patch<component::constraint::spring_translation>
 			(
 				camera_rig_spring_translation_eid,
 				[&](auto& component)
@@ -480,6 +510,72 @@ void nuptial_flight::enable_controls()
 					component.spring.x1[2] += 100.0f * static_cast<float>(ctx.loop.get_update_period());
 				}
 			);
+		}
+	);
+	
+	// Mouse select control
+	ctx.controls["select_mouse"]->set_activated_callback
+	(
+		[&]()
+		{
+			// Get window-space mouse coordinates
+			auto [mouse_x, mouse_y] = ctx.app->get_mouse()->get_current_position();
+			
+			// Get window viewport dimensions
+			const auto viewport_dimensions = ctx.app->get_viewport_dimensions();
+			
+			// Transform mouse coordinates from window space to NDC space
+			const float2 mouse_ndc =
+			{
+				static_cast<float>(mouse_x) / static_cast<float>(viewport_dimensions[0] - 1) * 2.0f - 1.0f,
+				(1.0f - static_cast<float>(mouse_y) / static_cast<float>(viewport_dimensions[1] - 1)) * 2.0f - 1.0f
+			};
+			
+			// Get picking ray from camera
+			const geom::ray<float> ray = ctx.surface_camera->pick(mouse_ndc);
+			
+			// Pick entity
+			entity::id picked_eid = ctx.collision_system->pick_nearest(ray, ~selected_picking_flag);
+			if (picked_eid != entt::null)
+			{
+				select_entity(picked_eid);
+			}
+		}
+	);
+	
+	// Select forward control
+	ctx.controls["move_forward"]->set_activated_callback
+	(
+		[&]()
+		{
+			select_nearest_entity({0.0f, 0.0f, -1.0f});
+		}
+	);
+	
+	// Select back control
+	ctx.controls["move_back"]->set_activated_callback
+	(
+		[&]()
+		{
+			select_nearest_entity({0.0f, 0.0f, 1.0f});
+		}
+	);
+	
+	// Select right control
+	ctx.controls["move_right"]->set_activated_callback
+	(
+		[&]()
+		{
+			select_nearest_entity({1.0f, 0.0f, 0.0f});
+		}
+	);
+	
+	// Select left control
+	ctx.controls["move_left"]->set_activated_callback
+	(
+		[&]()
+		{
+			select_nearest_entity({-1.0f, 0.0f, 0.0f});
 		}
 	);
 	
@@ -632,10 +728,10 @@ void nuptial_flight::disable_controls()
 		ctx.app->set_relative_mouse_mode(false);
 	}
 	
-	ctx.controls["move_forward"]->set_active_callback(nullptr);
-	ctx.controls["move_back"]->set_active_callback(nullptr);
-	ctx.controls["move_right"]->set_active_callback(nullptr);
-	ctx.controls["move_left"]->set_active_callback(nullptr);
+	ctx.controls["move_forward"]->set_activated_callback(nullptr);
+	ctx.controls["move_back"]->set_activated_callback(nullptr);
+	ctx.controls["move_right"]->set_activated_callback(nullptr);
+	ctx.controls["move_left"]->set_activated_callback(nullptr);
 	ctx.controls["move_up"]->set_active_callback(nullptr);
 	ctx.controls["move_down"]->set_active_callback(nullptr);
 	ctx.controls["mouse_look"]->set_activated_callback(nullptr);
@@ -648,12 +744,84 @@ void nuptial_flight::disable_controls()
 	ctx.controls["look_up_mouse"]->set_active_callback(nullptr);
 	ctx.controls["look_down_gamepad"]->set_active_callback(nullptr);
 	ctx.controls["look_down_mouse"]->set_active_callback(nullptr);
+	ctx.controls["select_mouse"]->set_activated_callback(nullptr);
 	ctx.controls["switch_pov"]->set_activated_callback(nullptr);
 	ctx.controls["fast_forward"]->set_activated_callback(nullptr);
 	ctx.controls["rewind"]->set_activated_callback(nullptr);
 	ctx.controls["pause"]->set_activated_callback(nullptr);
 	ctx.controls["increase_exposure"]->set_activated_callback(nullptr);
 	ctx.controls["decrease_exposure"]->set_activated_callback(nullptr);
+}
+
+void nuptial_flight::select_entity(entity::id entity_id)
+{
+	if (entity_id != selected_eid)
+	{
+		if (ctx.entity_registry->valid(selected_eid) && ctx.entity_registry->all_of<component::picking>(selected_eid))
+		{
+			// Unset selected bit on picking flags of previously selected entity
+			ctx.entity_registry->patch<component::picking>
+			(
+				selected_eid,
+				[&](auto& component)
+				{
+					component.flags &= ~selected_picking_flag;
+
+				}
+			);
+		}
+		
+		selected_eid = entity_id;
+		
+		if (ctx.entity_registry->valid(selected_eid) && ctx.entity_registry->all_of<component::picking>(selected_eid))
+		{
+			// Set selected bit on picking flags of current selected entity
+			ctx.entity_registry->patch<component::picking>
+			(
+				selected_eid,
+				[&](auto& component)
+				{
+					component.flags |= selected_picking_flag;
+				}
+			);
+		}
+		
+		// Update camera rig focus ease to target
+		ctx.entity_registry->patch<component::constraint::ease_to>
+		(
+			camera_rig_focus_ease_to_eid,
+			[&](auto& component)
+			{
+				component.target = selected_eid;
+				component.t = 0.0f;
+				
+				const component::transform* transform = ctx.entity_registry->try_get<component::transform>(camera_rig_focus_eid);
+				if (transform)
+					component.start = transform->world.translation;
+			}
+		);
+	}
+}
+
+void nuptial_flight::select_nearest_entity(const float3& direction)
+{
+	if (!ctx.entity_registry->valid(selected_eid))
+		return;
+	
+	const component::transform* selected_eid_transform = ctx.entity_registry->try_get<component::transform>(selected_eid);
+	if (!selected_eid_transform)
+		return;
+	
+	// Construct picking plane
+	const float3 picking_normal = math::normalize(ctx.surface_camera->get_rotation() * direction);
+	const float3 picking_origin = selected_eid_transform->world.translation;
+	
+	// Pick entity
+	entity::id picked_eid = ctx.collision_system->pick_nearest(picking_origin, picking_normal, ~selected_picking_flag);
+	if (picked_eid != entt::null)
+	{
+		select_entity(picked_eid);
+	}
 }
 
 } // namespace state
