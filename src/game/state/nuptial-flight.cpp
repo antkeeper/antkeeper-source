@@ -118,7 +118,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	);
 	
 	// Queue fade in
-	ctx.fade_transition_color->set_value({0, 0, 0});
+	ctx.fade_transition_color->set_value({1, 1, 1});
 	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, config::nuptial_flight_fade_in_duration, true, ease<float>::out_sine, true, nullptr));
 	
 	// Queue control setup
@@ -259,6 +259,8 @@ void nuptial_flight::create_camera_rig()
 	ctx.entity_registry->emplace<component::camera>(camera_rig_eid, camera_rig_camera);
 	ctx.entity_registry->emplace<component::transform>(camera_rig_eid, camera_rig_transform);
 	ctx.entity_registry->emplace<component::constraint_stack>(camera_rig_eid, camera_rig_constraint_stack);
+	
+	set_camera_rig_zoom(0.5f);
 }
 
 void nuptial_flight::destroy_camera_rig()
@@ -271,7 +273,24 @@ void nuptial_flight::destroy_camera_rig()
 	
 	ctx.entity_registry->destroy(camera_rig_focus_eid);
 	ctx.entity_registry->destroy(camera_rig_focus_ease_to_eid);
+}
 
+void nuptial_flight::set_camera_rig_zoom(float zoom)
+{
+	const float near_distance = 1.0f;
+	const float far_distance = 50.0f;
+	
+	camera_rig_zoom = zoom;
+	const float distance = math::log_lerp(far_distance, near_distance, camera_rig_zoom);
+	
+	ctx.entity_registry->patch<component::constraint::spring_translation>
+	(
+		camera_rig_spring_translation_eid,
+		[&](auto& component)
+		{
+			component.spring.x1[2] = distance;
+		}
+	);
 }
 
 void nuptial_flight::enable_controls()
@@ -319,6 +338,8 @@ void nuptial_flight::enable_controls()
 	const float mouse_pan_factor = mouse_pan_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
 	const float gamepad_tilt_factor = gamepad_tilt_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
 	const float gamepad_pan_factor = gamepad_pan_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
+	
+	const float dolly_zoom_speed = 4.0f;
 	
 	// Mouse look
 	ctx.controls["mouse_look"]->set_activated_callback
@@ -484,32 +505,18 @@ void nuptial_flight::enable_controls()
 	// Dolly in control
 	ctx.controls["move_up"]->set_active_callback
 	(
-		[&](float value)
+		[&, dolly_zoom_speed](float value)
 		{
-			ctx.entity_registry->patch<component::constraint::spring_translation>
-			(
-				camera_rig_spring_translation_eid,
-				[&](auto& component)
-				{
-					component.spring.x1[2] -= 100.0f * static_cast<float>(ctx.loop.get_update_period());
-				}
-			);
+			set_camera_rig_zoom(std::min(1.0f, camera_rig_zoom + dolly_zoom_speed * static_cast<float>(ctx.loop.get_update_period())));
 		}
 	);
 	
 	// Dolly out control
 	ctx.controls["move_down"]->set_active_callback
 	(
-		[&](float value)
+		[&, dolly_zoom_speed](float value)
 		{
-			ctx.entity_registry->patch<component::constraint::spring_translation>
-			(
-				camera_rig_spring_translation_eid,
-				[&](auto& component)
-				{
-					component.spring.x1[2] += 100.0f * static_cast<float>(ctx.loop.get_update_period());
-				}
-			);
+			set_camera_rig_zoom(std::max(0.0f, camera_rig_zoom - dolly_zoom_speed * static_cast<float>(ctx.loop.get_update_period())));
 		}
 	);
 	

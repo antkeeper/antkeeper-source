@@ -290,6 +290,9 @@ main_menu::~main_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
+	// Hide menu BG
+	ctx.menu_bg_billboard->set_active(false);
+	
 	// Destruct title animation
 	ctx.animator->remove_animation(&title_fade_animation);
 	

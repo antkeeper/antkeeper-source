@@ -71,7 +71,7 @@ entity::id create_swarm(game::context& ctx)
 	
 	// Init picking component
 	game::component::picking picking;
-	picking.sphere = {float3{0, 0, 0}, 0.5f};
+	picking.sphere = {float3{0, 0, 0}, 0.5f * 2.0f};
 	std::uint32_t male_picking_flags = 0b01;
 	std::uint32_t queen_picking_flags = 0b10;
 	

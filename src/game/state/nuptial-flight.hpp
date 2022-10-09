@@ -37,6 +37,8 @@ private:
 	void create_camera_rig();
 	void destroy_camera_rig();
 	
+	void set_camera_rig_zoom(float zoom);
+	
 	void enable_controls();
 	void disable_controls();
 	
@@ -51,6 +53,8 @@ private:
 	entity::id camera_rig_spring_rotation_eid;
 	entity::id camera_rig_copy_translation_eid;
 	entity::id camera_rig_pivot_eid;
+	
+	float camera_rig_zoom;
 	
 	entity::id swarm_eid;
 	

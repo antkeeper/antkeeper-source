@@ -139,6 +139,7 @@ pause_menu::pause_menu(game::context& ctx):
 				{
 					ctx.menu_bg_billboard->set_active(false);
 					ctx.state_machine.pop();
+					ctx.state_machine.pop();
 					ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
 				}
 			);
