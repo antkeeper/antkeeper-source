@@ -17,17 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_TOOLS_HPP
-#define ANTKEEPER_GAME_TOOLS_HPP
+#ifndef ANTKEEPER_GAME_COMPONENT_CONSTRAINT_CHILD_OF_HPP
+#define ANTKEEPER_GAME_COMPONENT_CONSTRAINT_CHILD_OF_HPP
 
-#include "game/context.hpp"
 #include "entity/id.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace game {
+namespace component {
+namespace constraint {
 
-entity::id build_camera_tool(game::context& ctx);
-entity::id build_time_tool(game::context& ctx);
+/**
+ * Makes the entity a child of the target entity.
+ */
+struct child_of
+{
+	/// Target entity ID.
+	entity::id target;
+};
 
+} // namespace constraint
+} // namespace component
 } // namespace game
 
-#endif // ANTKEEPER_GAME_TOOLS_HPP
+#endif // ANTKEEPER_GAME_COMPONENT_CONSTRAINT_CHILD_OF_HPP

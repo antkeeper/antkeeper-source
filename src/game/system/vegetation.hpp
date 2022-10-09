@@ -61,7 +61,7 @@ public:
 	void set_scene(scene::collection* collection);
 
 private:
-	void on_terrain_construct(entity::registry& registry, entity::id entity_id, game::component::terrain& component);
+	void on_terrain_construct(entity::registry& registry, entity::id entity_id);
 	void on_terrain_destroy(entity::registry& registry, entity::id entity_id);
 
 	float terrain_patch_size;

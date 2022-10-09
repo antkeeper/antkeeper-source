@@ -23,6 +23,7 @@
 #include "game/state/base.hpp"
 #include "scene/text.hpp"
 #include "animation/animation.hpp"
+#include "entity/id.hpp"
 
 namespace game {
 namespace state {
@@ -39,6 +40,8 @@ private:
 	
 	scene::text title_text;
 	animation<float> title_fade_animation;
+	
+	entity::id swarm_eid;
 };
 
 } // namespace state

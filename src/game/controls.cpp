@@ -17,10 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "controls.hpp"
+#include "game/controls.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/json.hpp"
 #include "application.hpp"
+#include "game/component/transform.hpp"
+#include "game/component/constraint/constraint.hpp"
+#include "game/component/constraint-stack.hpp"
 #include <fstream>
 
 namespace game {
@@ -658,16 +661,6 @@ void apply_gamepad_calibration(input::gamepad& gamepad, const json& calibration)
 		auto curve = parse_response_curve(calibration["righttrigger_response_curve"].get<std::string>());
 		gamepad.set_response_curve(input::gamepad_axis::right_trigger, curve);
 	}
-}
-
-void enable_orbit_controls(game::context& ctx)
-{
-
-}
-
-void disable_orbit_controls(game::context& ctx)
-{
-	
 }
 
 } // namespace game

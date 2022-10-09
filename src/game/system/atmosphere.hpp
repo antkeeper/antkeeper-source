@@ -37,6 +37,7 @@ class atmosphere:
 {
 public:
 	atmosphere(entity::registry& registry);
+	~atmosphere();
 	
 	virtual void update(double t, double dt);
 	
@@ -49,14 +50,22 @@ public:
 	
 	void set_sky_pass(::render::sky_pass* pass);
 	
+	/**
+	 * Sets the entity ID of the active atmosphere.
+	 *
+	 * @param entity_id Entity ID of the active atmosphere.
+	 */
+	void set_active_atmosphere(entity::id entity_id);
+	
 private:
-	void atmosphere_modified();
+	void update_atmosphere(entity::id entity_id);
 	void update_sky_pass();
 	
-	void on_atmosphere_construct(entity::registry& registry, entity::id entity_id, game::component::atmosphere& component);
-	void on_atmosphere_replace(entity::registry& registry, entity::id entity_id, game::component::atmosphere& component);
+	void on_atmosphere_construct(entity::registry& registry, entity::id entity_id);
+	void on_atmosphere_update(entity::registry& registry, entity::id entity_id);
 	void on_atmosphere_destroy(entity::registry& registry, entity::id entity_id);
 	
+	entity::id active_atmosphere_eid;
 	double3 rgb_wavelengths;
 	double3 rgb_ozone_cross_sections;
 	game::component::atmosphere* atmosphere_component;

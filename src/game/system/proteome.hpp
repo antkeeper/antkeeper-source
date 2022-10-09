@@ -35,6 +35,7 @@ class proteome:
 {
 public:
 	proteome(entity::registry& registry);
+	~proteome();
 	
 	/**
 	 * Scales then adds the timestep `dt` to the current time, then recalculates the positions of proteomeing bodies.
@@ -45,8 +46,8 @@ public:
 	virtual void update(double t, double dt);
 	
 private:
-	void on_genome_construct(entity::registry& registry, entity::id entity_id, game::component::genome& genome);
-	void on_genome_replace(entity::registry& registry, entity::id entity_id, game::component::genome& genome);
+	void on_genome_construct(entity::registry& registry, entity::id entity_id);
+	void on_genome_update(entity::registry& registry, entity::id entity_id);
 };
 
 } // namespace system

@@ -17,30 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_CONSTRAINT_THREE_DOF_HPP
-#define ANTKEEPER_GAME_COMPONENT_CONSTRAINT_THREE_DOF_HPP
+#ifndef ANTKEEPER_GAME_COMPONENT_CONSTRAINT_SPRING_TRANSLATION_HPP
+#define ANTKEEPER_GAME_COMPONENT_CONSTRAINT_SPRING_TRANSLATION_HPP
+
+#include "animation/spring.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace game {
 namespace component {
 namespace constraint {
 
 /**
- * Springs to a target entity.
+ *
  */
-struct three_dof
+struct spring_translation
 {
-	/// Yaw rotation angle, in radians.
-	float yaw;
-	
-	/// Pitch rotation angle, in radians.
-	float pitch;
-	
-	/// Roll rotation angle, in radians.
-	float roll;
+	/// Translation spring.
+	numeric_spring<float3, float> spring;
 };
 
 } // namespace constraint
 } // namespace component
 } // namespace game
 
-#endif // ANTKEEPER_GAME_COMPONENT_CONSTRAINT_THREE_DOF_HPP
+#endif // ANTKEEPER_GAME_COMPONENT_CONSTRAINT_SPRING_TRANSLATION_HPP

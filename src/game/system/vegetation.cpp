@@ -45,7 +45,10 @@ vegetation::vegetation(entity::registry& registry):
 }
 
 vegetation::~vegetation()
-{}
+{
+	registry.on_construct<component::terrain>().disconnect<&vegetation::on_terrain_construct>(this);
+	registry.on_destroy<component::terrain>().disconnect<&vegetation::on_terrain_destroy>(this);
+}
 
 void vegetation::update(double t, double dt)
 {}
@@ -79,7 +82,7 @@ void vegetation::set_scene(scene::collection* collection)
 	this->scene_collection = collection;
 }
 
-void vegetation::on_terrain_construct(entity::registry& registry, entity::id entity_id, component::terrain& component)
+void vegetation::on_terrain_construct(entity::registry& registry, entity::id entity_id)
 {}
 
 void vegetation::on_terrain_destroy(entity::registry& registry, entity::id entity_id)

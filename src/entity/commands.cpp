@@ -31,62 +31,105 @@ namespace command {
 
 void translate(entity::registry& registry, entity::id eid, const float3& translation)
 {
-	if (registry.has<game::component::transform>(eid))
+	const game::component::transform* transform = registry.try_get<game::component::transform>(eid);
+	if (transform)
 	{
-		game::component::transform& transform = registry.get<game::component::transform>(eid);
-		transform.local.translation += translation;
+		registry.patch<game::component::transform>
+		(
+			eid,
+			[&translation](auto& transform)
+			{
+				transform.local.translation += translation;
+			}
+		);
 	}
 }
 
 void rotate(entity::registry& registry, entity::id eid, float angle, const float3& axis)
 {
-	if (registry.has<game::component::transform>(eid))
+	const game::component::transform* transform = registry.try_get<game::component::transform>(eid);
+	if (transform)
 	{
-		game::component::transform& transform = registry.get<game::component::transform>(eid);
-		transform.local.rotation = math::angle_axis(angle, axis) * transform.local.rotation;
+		registry.patch<game::component::transform>
+		(
+			eid,
+			[angle, &axis](auto& transform)
+			{
+				transform.local.rotation = math::normalize(math::angle_axis(angle, axis) * transform.local.rotation);
+			}
+		);
 	}
 }
 
 void move_to(entity::registry& registry, entity::id eid, const float3& position)
 {
-	if (registry.has<game::component::transform>(eid))
+	const game::component::transform* transform = registry.try_get<game::component::transform>(eid);
+	if (transform)
 	{
-		game::component::transform& transform = registry.get<game::component::transform>(eid);
-		transform.local.translation = position;
+		registry.patch<game::component::transform>
+		(
+			eid,
+			[&position](auto& transform)
+			{
+				transform.local.translation = position;
+			}
+		);
 	}
 }
 
 void warp_to(entity::registry& registry, entity::id eid, const float3& position)
 {
-	if (registry.has<game::component::transform>(eid))
+	const game::component::transform* transform = registry.try_get<game::component::transform>(eid);
+	if (transform)
 	{
-		game::component::transform& transform = registry.get<game::component::transform>(eid);
-		transform.local.translation = position;
-		transform.warp = true;
+		registry.patch<game::component::transform>
+		(
+			eid,
+			[&position](auto& transform)
+			{
+				transform.local.translation = position;
+				transform.warp = true;
+			}
+		);
 	}
 }
 
 void set_scale(entity::registry& registry, entity::id eid, const float3& scale)
 {
-	if (registry.has<game::component::transform>(eid))
+	const game::component::transform* transform = registry.try_get<game::component::transform>(eid);
+	if (transform)
 	{
-		game::component::transform& transform = registry.get<game::component::transform>(eid);
-		transform.local.scale = scale;
+		registry.patch<game::component::transform>
+		(
+			eid,
+			[&scale](auto& transform)
+			{
+				transform.local.scale = scale;
+			}
+		);
 	}
 }
 
 void set_transform(entity::registry& registry, entity::id eid, const math::transform<float>& transform, bool warp)
 {
-	if (registry.has<game::component::transform>(eid))
+	const game::component::transform* transform_component = registry.try_get<game::component::transform>(eid);
+	if (transform_component)
 	{
-		game::component::transform& component = registry.get<game::component::transform>(eid);
-		component.local = transform;
-		component.warp = warp;
+		registry.patch<game::component::transform>
+		(
+			eid,
+			[&other_transform = transform, warp](auto& transform)
+			{
+				transform.local = other_transform;
+				transform.warp = warp;
+			}
+		);
 	}
 }
 
 void place(entity::registry& registry, entity::id eid, entity::id celestial_body_id, double altitude, double latitude, double longitude)
 {
+	/*
 	if (registry.has<game::component::transform>(eid))
 	{
 		double x = 0.0;
@@ -115,32 +158,31 @@ void place(entity::registry& registry, entity::id eid, entity::id celestial_body
 		transform.local.translation = math::type_cast<float>(double3{x, y, z});
 		transform.warp = true;
 	}
+	*/
 }
 
 void assign_render_layers(entity::registry& registry, entity::id eid, unsigned int layers)
 {
-	if (registry.has<game::component::model>(eid))
+	const game::component::model* model = registry.try_get<game::component::model>(eid);
+	if (model)
 	{
-		game::component::model model = registry.get<game::component::model>(eid);
-		model.layers = layers;
-		registry.replace<game::component::model>(eid, model);
-		
-		// Apply to child layers
-		registry.view<game::component::parent>().each(
-		[&](entity::id eid, auto& component)
-		{
-			if (component.parent == eid)
-				assign_render_layers(registry, eid, layers);
-		});
+		registry.patch<game::component::model>
+		(
+			eid,
+			[layers](auto& model)
+			{
+				model.layers = layers;
+			}
+		);
 	}
 }
 
 math::transform<float> get_local_transform(entity::registry& registry, entity::id eid)
 {
-	if (registry.has<game::component::transform>(eid))
+	const game::component::transform* transform = registry.try_get<game::component::transform>(eid);
+	if (transform)
 	{
-		const game::component::transform& component = registry.get<game::component::transform>(eid);
-		return component.local;
+		return transform->local;
 	}
 	
 	return math::transform<float>::identity;
@@ -148,20 +190,13 @@ math::transform<float> get_local_transform(entity::registry& registry, entity::i
 
 math::transform<float> get_world_transform(entity::registry& registry, entity::id eid)
 {
-	if (registry.has<game::component::transform>(eid))
+	const game::component::transform* transform = registry.try_get<game::component::transform>(eid);
+	if (transform)
 	{
-		const game::component::transform& component = registry.get<game::component::transform>(eid);
-		return component.world;
+		return transform->world;
 	}
 	
 	return math::transform<float>::identity;
-}
-
-void parent(entity::registry& registry, entity::id child, entity::id parent)
-{
-	game::component::parent component;
-	component.parent = parent;
-	registry.assign_or_replace<game::component::parent>(child, component);
 }
 
 } // namespace command

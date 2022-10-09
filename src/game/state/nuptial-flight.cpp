@@ -29,10 +29,10 @@
 #include "game/component/terrain.hpp"
 #include "game/component/camera.hpp"
 #include "game/component/model.hpp"
-#include "game/component/constraints/spring-to.hpp"
-#include "game/component/constraints/three-dof.hpp"
+#include "game/component/constraint/constraint.hpp"
 #include "game/component/constraint-stack.hpp"
 #include "game/component/steering.hpp"
+#include "game/controls.hpp"
 #include "entity/commands.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
@@ -61,37 +61,6 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 {
 	ctx.logger->push_task("Entering nuptial flight state");
 	
-	// Allocate ant breed
-	ant::breed breed;
-	
-	// Load morphological traits
-	breed.head = ctx.resource_manager->load<ant::trait::head>("miller-head.dna");
-	breed.mandibles = ctx.resource_manager->load<ant::trait::mandibles>("miller-mandibles.dna");
-	breed.antennae = ctx.resource_manager->load<ant::trait::antennae>("slender-antennae.dna");
-	breed.eyes = ctx.resource_manager->load<ant::trait::eyes>("oval-eyes.dna");
-	breed.mesosoma = ctx.resource_manager->load<ant::trait::mesosoma>("humpback-mesosoma.dna");
-	breed.legs = ctx.resource_manager->load<ant::trait::legs>("trekking-legs.dna");
-	breed.waist = ctx.resource_manager->load<ant::trait::waist>("harvester-waist.dna");
-	breed.gaster = ctx.resource_manager->load<ant::trait::gaster>("ovoid-gaster.dna");
-	breed.ocelli = ctx.resource_manager->load<ant::trait::ocelli>("trinocular-fisheye-ocelli.dna");
-	breed.sting = ctx.resource_manager->load<ant::trait::sting>("sting-absent.dna");
-	breed.sculpturing = ctx.resource_manager->load<ant::trait::sculpturing>("politus-sculpturing.dna");
-	breed.pigmentation = ctx.resource_manager->load<ant::trait::pigmentation>("rust-pigmentation.dna");
-	breed.egg = ctx.resource_manager->load<ant::trait::egg>("ellipsoid-egg.dna");
-	breed.larva = ctx.resource_manager->load<ant::trait::larva>("long-neck-larva.dna");
-	breed.cocoon = ctx.resource_manager->load<ant::trait::cocoon>("cocoon-present.dna");
-	breed.pilosity = ctx.resource_manager->load<ant::trait::pilosity>("hairless-pilosity.dna");
-	breed.forewings = nullptr;
-	breed.hindwings = nullptr;
-	
-	// Load behavioral traits
-	breed.foraging_time = ctx.resource_manager->load<ant::trait::foraging_time>("crepuscular-foraging-time.dna");
-	breed.diet = nullptr;
-	breed.nest = ctx.resource_manager->load<ant::trait::nest>("hypogeic-nest.dna");
-	
-	// Build caste models
-	render::model* worker_model = ant::morphogenesis(breed, ant::caste::worker);
-	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
@@ -109,55 +78,59 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	game::load::biome(ctx, "desert-scrub.bio");
 	
 	// Set world time
-	game::world::set_time(ctx, 2022, 10, 9, 12, 0, 0.0);
+	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
 	
 	// Set world time scale
-	game::world::set_time_scale(ctx, 60.0);
+	game::world::set_time_scale(ctx, 0.0);
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
 	ctx.ground_pass->set_enabled(true);
 	
-	// Create color checker
-	{
-		entity::archetype* color_checker_archetype = ctx.resource_manager->load<entity::archetype>("color-checker.ent");
-		auto color_checker_eid = color_checker_archetype->create(*ctx.entity_registry);
-		entity::command::warp_to(*ctx.entity_registry, color_checker_eid, {0, 0, -10});
-	}
+	// Create mating swarm
+	swarm_eid = game::ant::create_swarm(ctx);
 	
-	// Create diffuse spheres
-	{
-		entity::archetype* diffuse_spheres_archetype = ctx.resource_manager->load<entity::archetype>("diffuse-spheres.ent");
-		auto diffuse_spheres_eid = diffuse_spheres_archetype->create(*ctx.entity_registry);
-		entity::command::warp_to(*ctx.entity_registry, diffuse_spheres_eid, {0, 0, -20});
-	}
+	// Switch to surface camera
+	ctx.underground_camera->set_active(false);
+	ctx.surface_camera->set_active(true);
 	
-	// Create ruler
-	{
-		entity::archetype* ruler_10cm_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
-		auto ruler_10cm_eid = ruler_10cm_archetype->create(*ctx.entity_registry);
-		entity::command::warp_to(*ctx.entity_registry, ruler_10cm_eid, {0, 0, 10});
-	}
+	// Set camera exposure
+	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
+	ctx.surface_camera->set_exposure(ev100_sunny16);
 	
-	// Create keeper if not yet created
-	if (ctx.entities.find("keeper") == ctx.entities.end())
-	{
-		entity::id keeper_eid = ctx.entity_registry->create();
-		ctx.entities["keeper"] = keeper_eid;
-	}
+	// Create camera rig
+	create_camera_rig();
 	
-	// Start as ant-keeper
-	is_keeper = true;
-	
-	// Setup camera
-	setup_camera();
+	ctx.entity_registry->view<component::transform, component::steering>().each
+	(
+		[&](entity::id alate_eid, auto& transform, auto& steering)
+		{
+			ctx.entity_registry->patch<component::constraint::copy_translation>
+			(
+				camera_rig_copy_translation_eid,
+				[&](auto& component)
+				{
+					component.target = alate_eid;
+				}
+			);
+			
+			ctx.entity_registry->patch<component::constraint::pivot>
+			(
+				camera_rig_pivot_eid,
+				[&](auto& component)
+				{
+					component.target = alate_eid;
+				}
+			);
+		}
+	);
 	
 	// Queue fade in
-	ctx.fade_transition_color->set_value({1, 1, 1});
+	ctx.fade_transition_color->set_value({0, 0, 0});
 	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, config::nuptial_flight_fade_in_duration, true, ease<float>::out_sine, true, nullptr));
 	
 	// Queue control setup
-	ctx.function_queue.push(std::bind(&nuptial_flight::enable_keeper_controls, this));
+	ctx.function_queue.push(std::bind(&nuptial_flight::enable_controls, this));
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
@@ -166,113 +139,120 @@ nuptial_flight::~nuptial_flight()
 {
 	ctx.logger->push_task("Exiting nuptial flight state");
 	
+	destroy_camera_rig();
+	game::ant::destroy_swarm(ctx, swarm_eid);
+	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
-void nuptial_flight::setup_camera()
+void nuptial_flight::create_camera_rig()
 {
-	// Switch to surface camera
-	ctx.underground_camera->set_active(false);
-	ctx.surface_camera->set_active(true);
+	// Construct camera rig pivot constraint
+	component::constraint::pivot camera_rig_pivot;
+	camera_rig_pivot.target = swarm_eid;
+	camera_rig_pivot.offset = {0, 0, 0};
+	component::constraint_stack_node camera_rig_pivot_node;
+	camera_rig_pivot_node.active = true;
+	camera_rig_pivot_node.weight = 1.0f;
+	camera_rig_pivot_node.next = entt::null;
+	camera_rig_pivot_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<component::constraint::pivot>(camera_rig_pivot_eid, camera_rig_pivot);
+	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_pivot_eid, camera_rig_pivot_node);
 	
-	// Create surface camera entity
-	if (!ctx.entities.count("surface_cam"))
+	// Construct camera rig copy translation constraint
+	component::constraint::copy_translation camera_rig_copy_translation;
+	camera_rig_copy_translation.target = swarm_eid;
+	camera_rig_copy_translation.copy_x = true;
+	camera_rig_copy_translation.copy_y = true;
+	camera_rig_copy_translation.copy_z = true;
+	camera_rig_copy_translation.invert_x = false;
+	camera_rig_copy_translation.invert_y = false;
+	camera_rig_copy_translation.invert_z = false;
+	camera_rig_copy_translation.offset = true;
+	component::constraint_stack_node camera_rig_copy_translation_node;
+	camera_rig_copy_translation_node.active = true;
+	camera_rig_copy_translation_node.weight = 1.0f;
+	camera_rig_copy_translation_node.next = camera_rig_pivot_eid;
+	camera_rig_copy_translation_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<component::constraint::copy_translation>(camera_rig_copy_translation_eid, camera_rig_copy_translation);
+	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_copy_translation_eid, camera_rig_copy_translation_node);
+	
+	// Construct camera rig spring rotation constraint
+	component::constraint::spring_rotation camera_rig_spring_rotation;
+	camera_rig_spring_rotation.spring =
 	{
-		// Create camera target entity
-		entity::id target_eid = ctx.entity_registry->create();
-		ctx.entities["surface_cam_target"] = target_eid;
-		{
-			// Transform
-			game::component::transform target_transform;
-			target_transform.local = math::transform<float>::identity;
-			target_transform.world = target_transform.local;
-			target_transform.warp = true;
-			ctx.entity_registry->assign<game::component::transform>(target_eid, target_transform);
-		}
-		
-		// Create camera entity
-		entity::id camera_eid = ctx.entity_registry->create();
-		ctx.entities["surface_cam"] = camera_eid;
-		
-		// Create camera transform component
-		game::component::transform transform;
-		transform.local = math::transform<float>::identity;
-		transform.world = transform.local;
-		transform.warp = true;
-		ctx.entity_registry->assign<game::component::transform>(camera_eid, transform);
-		
-		// Create camera camera component
-		game::component::camera camera;
-		camera.object = ctx.surface_camera;
-		ctx.entity_registry->assign<game::component::camera>(camera_eid, camera);
-		
-		// Create camera 3DOF constraint entity
-		entity::id three_dof_constraint_eid = ctx.entity_registry->create();
-		ctx.entities["surface_cam_3dof"] = three_dof_constraint_eid;
-		{
-			// Create 3DOF to constraint
-			game::component::constraint::three_dof three_dof;
-			three_dof.yaw = 0.0f;
-			three_dof.pitch = 0.0f;
-			three_dof.roll = 0.0f;
-			ctx.entity_registry->assign<game::component::constraint::three_dof>(three_dof_constraint_eid, three_dof);
-			
-			// Create constraint stack node component
-			game::component::constraint_stack_node node;
-			node.active = true;
-			node.weight = 1.0f;
-			node.next = entt::null;
-			ctx.entity_registry->assign<game::component::constraint_stack_node>(three_dof_constraint_eid, node);
-		}
-		
-		// Create camera spring to constraint entity
-		entity::id spring_constraint_eid = ctx.entity_registry->create();
-		{
-			// Create spring to constraint
-			game::component::constraint::spring_to spring;
-			spring.target = target_eid;
-			spring.translation = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 1.0f, math::two_pi<float>};
-			spring.translation.w = hz_to_rads(8.0f);
-			
-			spring.spring_translation = true;
-			spring.spring_rotation = false;
-			ctx.entity_registry->assign<game::component::constraint::spring_to>(spring_constraint_eid, spring);
-			
-			// Create constraint stack node component
-			game::component::constraint_stack_node node;
-			node.active = true;
-			node.weight = 1.0f;
-			node.next = three_dof_constraint_eid;
-			ctx.entity_registry->assign<game::component::constraint_stack_node>(spring_constraint_eid, node);
-		}
-		
-		// Create camera constraint stack component
-		game::component::constraint_stack constraint_stack;
-		constraint_stack.head = spring_constraint_eid;
-		ctx.entity_registry->assign<game::component::constraint_stack>(camera_eid, constraint_stack);
-	}
+		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, 0.0f},
+		1.0f,
+		hz_to_rads(8.0f)
+	};
+	component::constraint_stack_node camera_rig_spring_rotation_node;
+	camera_rig_spring_rotation_node.active = true;
+	camera_rig_spring_rotation_node.weight = 1.0f;
+	camera_rig_spring_rotation_node.next = camera_rig_copy_translation_eid;
+	camera_rig_spring_rotation_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<component::constraint::spring_rotation>(camera_rig_spring_rotation_eid, camera_rig_spring_rotation);
+	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_spring_rotation_eid, camera_rig_spring_rotation_node);
 	
-	game::ant::create_swarm(ctx);
+	// Construct camera rig spring translation constraint
+	component::constraint::spring_translation camera_rig_spring_translation;
+	camera_rig_spring_translation.spring =
+	{
+		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, 0.0f},
+		1.0f,
+		hz_to_rads(8.0f)
+	};
+	component::constraint_stack_node camera_rig_spring_translation_node;
+	camera_rig_spring_translation_node.active = true;
+	camera_rig_spring_translation_node.weight = 1.0f;
+	camera_rig_spring_translation_node.next = camera_rig_spring_rotation_eid;
+	camera_rig_spring_translation_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<component::constraint::spring_translation>(camera_rig_spring_translation_eid, camera_rig_spring_translation);
+	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_spring_translation_eid, camera_rig_spring_translation_node);
 	
-	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
-	const float ev100_looney11 = physics::light::ev::from_settings(11.0f, 1.0f / 100.0f, 100.0f);
-	ctx.surface_camera->set_exposure(ev100_sunny16);
+	// Construct camera constraint stack
+	component::constraint_stack camera_rig_constraint_stack;
+	camera_rig_constraint_stack.priority = 1;
+	camera_rig_constraint_stack.head = camera_rig_spring_translation_eid;
+	
+	// Construct camera transform component
+	component::transform camera_rig_transform;
+	camera_rig_transform.local = math::transform<float>::identity;
+	camera_rig_transform.world = camera_rig_transform.local;
+	camera_rig_transform.warp = true;
+	
+	// Construct camera rig camera component
+	component::camera camera_rig_camera;
+	camera_rig_camera.object = ctx.surface_camera;
+	
+	// Construct camera rig entity
+	camera_rig_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<component::camera>(camera_rig_eid, camera_rig_camera);
+	ctx.entity_registry->emplace<component::transform>(camera_rig_eid, camera_rig_transform);
+	ctx.entity_registry->emplace<component::constraint_stack>(camera_rig_eid, camera_rig_constraint_stack);
 }
 
-void nuptial_flight::enable_keeper_controls()
+void nuptial_flight::destroy_camera_rig()
 {
-	// Get camera entities
-	entity::id camera_eid = ctx.entities["surface_cam"];
-	entity::id target_eid = ctx.entities["surface_cam_target"];
-	entity::id three_dof_eid = ctx.entities["surface_cam_3dof"];
+	ctx.entity_registry->destroy(camera_rig_eid);
+	ctx.entity_registry->destroy(camera_rig_spring_translation_eid);
+	ctx.entity_registry->destroy(camera_rig_spring_rotation_eid);
+	ctx.entity_registry->destroy(camera_rig_copy_translation_eid);
+	ctx.entity_registry->destroy(camera_rig_pivot_eid);
+}
+
+void nuptial_flight::enable_controls()
+{
+	mouse_look = false;
 	
-	const float min_elevation = 0.1f;
-	const float max_elevation = 100.0f;
-	const float slow_modifier = 0.25f;
-	const float fast_modifier = 4.0f;
-	const float dolly_speed = 5.0f;
-	const float truck_speed = dolly_speed;
-	const float pedestal_speed = 5.0f;
+	float slow_modifier = 0.25f;
+	float fast_modifier = 4.0f;
+	float dolly_speed = 5.0f;
+	float truck_speed = dolly_speed;
+	float pedestal_speed = 5.0f;
 	float mouse_tilt_sensitivity = 1.0f;
 	float mouse_pan_sensitivity = 1.0f;
 	bool mouse_invert_tilt = false;
@@ -282,9 +262,8 @@ void nuptial_flight::enable_keeper_controls()
 	bool gamepad_invert_tilt = false;
 	bool gamepad_invert_pan = false;
 	bool mouse_look_toggle = false;
-	ctx.mouse_look = false;
-	const double time_scale = 60.0;
-	const double ff_time_scale = time_scale * 200;
+	double time_scale = 0.0;
+	double ff_time_scale = 60.0 * 200.0;
 	
 	if (ctx.config->contains("mouse_tilt_sensitivity"))
 		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());
@@ -306,246 +285,201 @@ void nuptial_flight::enable_keeper_controls()
 	if (ctx.config->contains("gamepad_invert_pan"))
 		gamepad_invert_pan = (*ctx.config)["gamepad_invert_pan"].get<bool>();
 	
-	const input::control* move_slow = ctx.controls["move_slow"];
-	const input::control* move_fast = ctx.controls["move_fast"];
-	const input::control* mouse_look = ctx.controls["mouse_look"];
+	const float mouse_tilt_factor = mouse_tilt_sensitivity * (mouse_invert_tilt ? -1.0f : 1.0f);
+	const float mouse_pan_factor = mouse_pan_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
+	const float gamepad_tilt_factor = gamepad_tilt_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
+	const float gamepad_pan_factor = gamepad_pan_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
 	
-	float mouse_tilt_factor = mouse_tilt_sensitivity * (mouse_invert_tilt ? -1.0f : 1.0f);
-	float mouse_pan_factor = mouse_pan_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
-	float gamepad_tilt_factor = gamepad_tilt_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
-	float gamepad_pan_factor = gamepad_pan_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
-	
-	ctx.controls["move_forward"]->set_active_callback
-	(
-		[&ctx = this->ctx, target_eid, three_dof_eid, dolly_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
-		{
-			if (move_slow->is_active())
-				value *= slow_modifier;
-			if (move_fast->is_active())
-				value *= fast_modifier;
-			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
-
-			const float3 movement = {0.0f, 0.0f, -dolly_speed * value * (1.0f / 60.0f)};
-			entity::command::translate(*ctx.entity_registry, target_eid, yaw * movement);
-		}
-	);
-	
-	// Dolly backward
-	ctx.controls["move_back"]->set_active_callback
-	(
-		[&ctx = this->ctx, target_eid, three_dof_eid, dolly_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
-		{
-			if (move_slow->is_active())
-				value *= slow_modifier;
-			if (move_fast->is_active())
-				value *= fast_modifier;
-			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
-			
-			const float3 movement = {0.0f, 0.0f, dolly_speed * value * (1.0f / 60.0f)};
-			entity::command::translate(*ctx.entity_registry, target_eid, yaw * movement);
-		}
-	);
-	
-	// Truck right
-	ctx.controls["move_right"]->set_active_callback
-	(
-		[&ctx = this->ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
-		{
-			if (move_slow->is_active())
-				value *= slow_modifier;
-			if (move_fast->is_active())
-				value *= fast_modifier;
-			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
-			
-			const float3 movement = {truck_speed * value * (1.0f / 60.0f), 0.0f, 0.0f};
-			entity::command::translate(*ctx.entity_registry, target_eid, yaw * movement);
-		}
-	);
-	
-	// Truck left
-	ctx.controls["move_left"]->set_active_callback
-	(
-		[&ctx = this->ctx, target_eid, three_dof_eid, truck_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
-		{
-			if (move_slow->is_active())
-				value *= slow_modifier;
-			if (move_fast->is_active())
-				value *= fast_modifier;
-			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			const math::quaternion<float> yaw = math::angle_axis(three_dof.yaw, {0.0f, 1.0f, 0.0f});
-			
-			const float3 movement = {-truck_speed * value * (1.0f / 60.0f), 0.0f, 0.0f};
-			entity::command::translate(*ctx.entity_registry, target_eid, yaw * movement);
-		}
-	);
-	
-	// Pedestal up
-	ctx.controls["move_up"]->set_active_callback
-	(
-		[&ctx = this->ctx, target_eid, pedestal_speed, move_slow, move_fast, slow_modifier, fast_modifier, max_elevation](float value)
-		{
-			if (move_slow->is_active())
-				value *= slow_modifier;
-			if (move_fast->is_active())
-				value *= fast_modifier;
-				
-			float3 movement = {0.0f, pedestal_speed * value * (1.0f / 60.0f), 0.0f};
-			auto transform = entity::command::get_world_transform(*ctx.entity_registry, target_eid);
-			if (transform.translation.y + movement.y > max_elevation)
-				movement.y = max_elevation - transform.translation.y;
-			entity::command::translate(*ctx.entity_registry, target_eid, movement);
-		}
-	);
-	
-	// Pedestal down
-	ctx.controls["move_down"]->set_active_callback
-	(
-		[&ctx = this->ctx, target_eid, pedestal_speed, move_slow, move_fast, slow_modifier, fast_modifier, min_elevation](float value)
-		{
-			if (move_slow->is_active())
-				value *= slow_modifier;
-			if (move_fast->is_active())
-				value *= fast_modifier;
-			
-			float3 movement = {0.0f, -pedestal_speed * value * (1.0f / 60.0f), 0.0f};
-			auto transform = entity::command::get_world_transform(*ctx.entity_registry, target_eid);
-			if (transform.translation.y + movement.y < min_elevation)
-				movement.y = min_elevation - transform.translation.y;
-			
-			entity::command::translate(*ctx.entity_registry, target_eid, movement);
-		}
-	);
-	
-	// Mouse rotate
+	// Mouse look
 	ctx.controls["mouse_look"]->set_activated_callback
 	(
-		[&ctx = this->ctx, mouse_look_toggle]()
+		[&, mouse_look_toggle]()
 		{
 			if (mouse_look_toggle)
-				ctx.mouse_look = !ctx.mouse_look;
+				mouse_look = !mouse_look;
 			else
-				ctx.mouse_look = true;
+				mouse_look = true;
 			
-			ctx.app->set_relative_mouse_mode(ctx.mouse_look);
+			ctx.app->set_relative_mouse_mode(mouse_look);
 		}
 	);
 	ctx.controls["mouse_look"]->set_deactivated_callback
 	(
-		[&ctx = this->ctx, mouse_look_toggle]()
+		[&, mouse_look_toggle]()
 		{
-			if (!mouse_look_toggle)
+			if (!mouse_look_toggle && mouse_look)
 			{
-				ctx.mouse_look = false;
+				mouse_look = false;
 				ctx.app->set_relative_mouse_mode(false);
 			}
 		}
 	);
-	// Pan left
-	ctx.controls["look_left_gamepad"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, gamepad_pan_factor](float value)
-		{
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw += gamepad_pan_factor * value * (1.0f / 60.0f);
-		}
-	);
+	
+	// Arc left control
 	ctx.controls["look_left_mouse"]->set_active_callback
 	(
-		[&ctx = this->ctx, three_dof_eid, mouse_pan_factor](float value)
+		[&, mouse_pan_factor](float value)
 		{
-			if (!ctx.mouse_look)
+			if (!mouse_look)
 				return;
 			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw += mouse_pan_factor * value * (1.0f / 60.0f);
+			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			(
+				camera_rig_spring_rotation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[0] -= mouse_pan_factor * value;
+				}
+			);
+		}
+	);
+	ctx.controls["look_left_gamepad"]->set_active_callback
+	(
+		[&, gamepad_pan_factor](float value)
+		{
+			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			(
+				camera_rig_spring_rotation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[0] -= gamepad_pan_factor * value * static_cast<float>(ctx.loop.get_update_period());
+				}
+			);
 		}
 	);
 	
-	// Pan right
-	ctx.controls["look_right_gamepad"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, gamepad_pan_factor](float value)
-		{
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw -= gamepad_pan_factor * value * (1.0f / 60.0f);
-		}
-	);
+	// Arc right control
 	ctx.controls["look_right_mouse"]->set_active_callback
 	(
-		[&ctx = this->ctx, three_dof_eid, mouse_pan_factor](float value)
+		[&, mouse_pan_factor](float value)
 		{
-			if (!ctx.mouse_look)
+			if (!mouse_look)
 				return;
 			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw -= mouse_pan_factor * value * (1.0f / 60.0f);
+			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			(
+				camera_rig_spring_rotation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[0] += mouse_pan_factor * value;
+				}
+			);
 		}
 	);
-	// Tilt up
-	ctx.controls["look_up_gamepad"]->set_active_callback
+	ctx.controls["look_right_gamepad"]->set_active_callback
 	(
-		[&ctx = this->ctx, three_dof_eid, gamepad_tilt_factor](float value)
+		[&, gamepad_pan_factor](float value)
 		{
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch -= gamepad_tilt_factor * value * (1.0f / 60.0f);
-			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
-		}
-	);
-	ctx.controls["look_up_mouse"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, mouse_tilt_factor](float value)
-		{
-			if (!ctx.mouse_look)
-				return;
-			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch -= mouse_tilt_factor * value * (1.0f / 60.0f);
-			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
-		}
-	);
-	// Tilt down
-	ctx.controls["look_down_gamepad"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, gamepad_tilt_factor](float value)
-		{
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch += gamepad_tilt_factor * value * (1.0f / 60.0f);
-			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
-		}
-	);
-	ctx.controls["look_down_mouse"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, mouse_tilt_factor](float value)
-		{
-			if (!ctx.mouse_look)
-				return;
-			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch += mouse_tilt_factor * value * (1.0f / 60.0f);
-			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
+			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			(
+				camera_rig_spring_rotation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[0] += gamepad_pan_factor * value * static_cast<float>(ctx.loop.get_update_period());
+				}
+			);
 		}
 	);
 	
-	// Setup switch POV control
-	ctx.controls["switch_pov"]->set_activated_callback
+	// Arc down control
+	ctx.controls["look_down_mouse"]->set_active_callback
 	(
-		[this]()
+		[&, mouse_tilt_factor](float value)
 		{
-			// Disable keeper controls
-			this->disable_keeper_controls();
+			if (!mouse_look)
+				return;
 			
-			// Switch to ant
-			this->is_keeper = false;
+			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			(
+				camera_rig_spring_rotation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[1] -= mouse_tilt_factor * value;
+					component.spring.x1[1] = std::max(-math::half_pi<float>, component.spring.x1[1]);
+				}
+			);
+		}
+	);
+	ctx.controls["look_down_gamepad"]->set_active_callback
+	(
+		[&, gamepad_tilt_factor](float value)
+		{
+			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			(
+				camera_rig_spring_rotation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[1] -= gamepad_tilt_factor * value * static_cast<float>(ctx.loop.get_update_period());
+					component.spring.x1[1] = std::max(-math::half_pi<float>, component.spring.x1[1]);
+				}
+			);
+		}
+	);
+	
+	// Arc up control
+	ctx.controls["look_up_mouse"]->set_active_callback
+	(
+		[&, mouse_tilt_factor](float value)
+		{
+			if (!mouse_look)
+				return;
 			
-			// Enable ant controls
-			this->enable_ant_controls();
+			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			(
+				camera_rig_spring_rotation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[1] += mouse_tilt_factor * value;
+					component.spring.x1[1] = std::min(math::half_pi<float>, component.spring.x1[1]);
+				}
+			);
+		}
+	);
+	ctx.controls["look_up_gamepad"]->set_active_callback
+	(
+		[&, gamepad_tilt_factor](float value)
+		{
+			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			(
+				camera_rig_spring_rotation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[1] += gamepad_tilt_factor * value * static_cast<float>(ctx.loop.get_update_period());
+					component.spring.x1[1] = std::min(math::half_pi<float>, component.spring.x1[1]);
+				}
+			);
+		}
+	);
+	
+	// Dolly in control
+	ctx.controls["move_up"]->set_active_callback
+	(
+		[&](float value)
+		{
+			ctx.entity_registry->patch<game::component::constraint::spring_translation>
+			(
+				camera_rig_spring_translation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[2] -= 100.0f * static_cast<float>(ctx.loop.get_update_period());
+				}
+			);
+		}
+	);
+	
+	// Dolly out control
+	ctx.controls["move_down"]->set_active_callback
+	(
+		[&](float value)
+		{
+			ctx.entity_registry->patch<game::component::constraint::spring_translation>
+			(
+				camera_rig_spring_translation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[2] += 100.0f * static_cast<float>(ctx.loop.get_update_period());
+				}
+			);
 		}
 	);
 	
@@ -604,7 +538,7 @@ void nuptial_flight::enable_keeper_controls()
 		[&ctx = this->ctx](float)
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() - 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 3.0f * (1.0f / 60.0f));
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 3.0f * static_cast<float>(ctx.loop.get_update_period()));
 			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
@@ -614,17 +548,17 @@ void nuptial_flight::enable_keeper_controls()
 		[&ctx = this->ctx](float)
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() + 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 3.0f * (1.0f / 60.0f));
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 3.0f * static_cast<float>(ctx.loop.get_update_period()));
 			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
 	
-	const float wavelength_speed = 20.0 * (1.0 / 60.0);
+	const float wavelength_speed = 20.0;
 	ctx.controls["dec_red"]->set_active_callback
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.x -= wavelength_speed;
+			ctx.rgb_wavelengths.x -= wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -635,7 +569,7 @@ void nuptial_flight::enable_keeper_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.x += wavelength_speed;
+			ctx.rgb_wavelengths.x += wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -647,7 +581,7 @@ void nuptial_flight::enable_keeper_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.y -= wavelength_speed;
+			ctx.rgb_wavelengths.y -= wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -658,7 +592,7 @@ void nuptial_flight::enable_keeper_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.y += wavelength_speed;
+			ctx.rgb_wavelengths.y += wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -670,7 +604,7 @@ void nuptial_flight::enable_keeper_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.z -= wavelength_speed;
+			ctx.rgb_wavelengths.z -= wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -681,7 +615,7 @@ void nuptial_flight::enable_keeper_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.z += wavelength_speed;
+			ctx.rgb_wavelengths.z += wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -690,8 +624,14 @@ void nuptial_flight::enable_keeper_controls()
 	);
 }
 
-void nuptial_flight::disable_keeper_controls()
+void nuptial_flight::disable_controls()
 {
+	if (mouse_look)
+	{
+		mouse_look = false;
+		ctx.app->set_relative_mouse_mode(false);
+	}
+	
 	ctx.controls["move_forward"]->set_active_callback(nullptr);
 	ctx.controls["move_back"]->set_active_callback(nullptr);
 	ctx.controls["move_right"]->set_active_callback(nullptr);
@@ -714,318 +654,6 @@ void nuptial_flight::disable_keeper_controls()
 	ctx.controls["pause"]->set_activated_callback(nullptr);
 	ctx.controls["increase_exposure"]->set_activated_callback(nullptr);
 	ctx.controls["decrease_exposure"]->set_activated_callback(nullptr);
-}
-
-void nuptial_flight::enable_ant_controls()
-{
-	// Get ant controller entities
-	entity::id ant_eid = ctx.entities["ant"];
-	
-	const float move_forward_speed = 5.0f;
-	const float move_back_speed = move_forward_speed * 0.5f;
-	const float strafe_speed = move_forward_speed * 0.5f;
-	const float turn_speed = math::radians(270.0f);
-	const float slow_modifier = 0.5f;
-	const float fast_modifier = 2.0f;
-	float mouse_tilt_sensitivity = 1.0f;
-	float mouse_pan_sensitivity = 1.0f;
-	bool mouse_invert_tilt = false;
-	bool mouse_invert_pan = false;
-	float gamepad_tilt_sensitivity = 1.0f;
-	float gamepad_pan_sensitivity = 1.0f;
-	bool gamepad_invert_tilt = false;
-	bool gamepad_invert_pan = false;
-	const double time_scale = 60.0;
-	const double ff_time_scale = time_scale * 200;
-	
-	if (ctx.config->contains("mouse_tilt_sensitivity"))
-		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());
-	if (ctx.config->contains("mouse_pan_sensitivity"))
-		mouse_pan_sensitivity = math::radians((*ctx.config)["mouse_pan_sensitivity"].get<float>());
-	if (ctx.config->contains("mouse_invert_tilt"))
-		mouse_invert_tilt = (*ctx.config)["mouse_invert_tilt"].get<bool>();
-	if (ctx.config->contains("mouse_invert_pan"))
-		mouse_invert_pan = (*ctx.config)["mouse_invert_pan"].get<bool>();
-	
-	if (ctx.config->contains("gamepad_tilt_sensitivity"))
-		gamepad_tilt_sensitivity = math::radians((*ctx.config)["gamepad_tilt_sensitivity"].get<float>());
-	if (ctx.config->contains("gamepad_pan_sensitivity"))
-		gamepad_pan_sensitivity = math::radians((*ctx.config)["gamepad_pan_sensitivity"].get<float>());
-	if (ctx.config->contains("gamepad_invert_tilt"))
-		gamepad_invert_tilt = (*ctx.config)["gamepad_invert_tilt"].get<bool>();
-	if (ctx.config->contains("gamepad_invert_pan"))
-		gamepad_invert_pan = (*ctx.config)["gamepad_invert_pan"].get<bool>();
-	
-	const input::control* move_slow = ctx.controls["move_slow"];
-	const input::control* move_fast = ctx.controls["move_fast"];
-	const input::control* mouse_look = ctx.controls["mouse_look"];
-	
-	float mouse_tilt_factor = mouse_tilt_sensitivity * (mouse_invert_tilt ? -1.0f : 1.0f);
-	float mouse_pan_factor = mouse_pan_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
-	float gamepad_tilt_factor = gamepad_tilt_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
-	float gamepad_pan_factor = gamepad_pan_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
-	
-	// Move forward
-	ctx.controls["move_forward"]->set_active_callback
-	(
-		[&ctx = this->ctx, ant_eid, move_forward_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
-		{
-			if (move_slow->is_active())
-				value *= slow_modifier;
-			if (move_fast->is_active())
-				value *= fast_modifier;
-			
-			auto& locomotion = ctx.entity_registry->get<game::component::locomotion>(ant_eid);
-			const math::quaternion<float> yaw = math::angle_axis(locomotion.yaw, {0.0f, 1.0f, 0.0f});
-
-			const float3 movement = {0.0f, 0.0f, move_forward_speed * value * (1.0f / 60.0f)};
-			entity::command::translate(*ctx.entity_registry, ant_eid, yaw * movement);
-		}
-	);
-	
-	// Move back
-	ctx.controls["move_back"]->set_active_callback
-	(
-		[&ctx = this->ctx, ant_eid, move_back_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
-		{
-			if (move_slow->is_active())
-				value *= slow_modifier;
-			if (move_fast->is_active())
-				value *= fast_modifier;
-			
-			auto& locomotion = ctx.entity_registry->get<game::component::locomotion>(ant_eid);
-			const math::quaternion<float> yaw = math::angle_axis(locomotion.yaw, {0.0f, 1.0f, 0.0f});
-
-			const float3 movement = {0.0f, 0.0f, -move_back_speed * value * (1.0f / 60.0f)};
-			entity::command::translate(*ctx.entity_registry, ant_eid, yaw * movement);
-		}
-	);
-	
-	// Turn right
-	ctx.controls["move_right"]->set_active_callback
-	(
-		[&ctx = this->ctx, ant_eid, turn_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
-		{
-			if (move_slow->is_active())
-				value *= slow_modifier;
-			if (move_fast->is_active())
-				value *= fast_modifier;
-			
-			auto& locomotion = ctx.entity_registry->get<game::component::locomotion>(ant_eid);
-			float delta_yaw = -turn_speed * value * (1.0f / 60.0f);
-			locomotion.yaw += delta_yaw;
-			
-			entity::command::rotate(*ctx.entity_registry, ant_eid, delta_yaw, {0.0f, 1.0f, 0.0f});
-		}
-	);
-	
-	// Truck left
-	ctx.controls["move_left"]->set_active_callback
-	(
-		[&ctx = this->ctx, ant_eid, turn_speed, move_slow, move_fast, slow_modifier, fast_modifier](float value)
-		{
-			if (move_slow->is_active())
-				value *= slow_modifier;
-			if (move_fast->is_active())
-				value *= fast_modifier;
-			
-			auto& locomotion = ctx.entity_registry->get<game::component::locomotion>(ant_eid);
-			float delta_yaw = turn_speed * value * (1.0f / 60.0f);
-			locomotion.yaw += delta_yaw;
-			
-			entity::command::rotate(*ctx.entity_registry, ant_eid, delta_yaw, {0.0f, 1.0f, 0.0f});
-		}
-	);
-	
-	// Pan left
-	/*
-	ctx.controls["look_left_gamepad"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, gamepad_pan_factor](float value)
-		{
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw += gamepad_pan_factor * value * (1.0f / 60.0f);
-		}
-	);
-	ctx.controls["look_left_mouse"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, mouse_pan_factor](float value)
-		{
-			if (!ctx.mouse_look)
-				return;
-			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw += mouse_pan_factor * value * (1.0f / 60.0f);
-		}
-	);
-	
-	// Pan right
-	ctx.controls["look_right_gamepad"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, gamepad_pan_factor](float value)
-		{
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw -= gamepad_pan_factor * value * (1.0f / 60.0f);
-		}
-	);
-	ctx.controls["look_right_mouse"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, mouse_pan_factor](float value)
-		{
-			if (!ctx.mouse_look)
-				return;
-			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.yaw -= mouse_pan_factor * value * (1.0f / 60.0f);
-		}
-	);
-	// Tilt up
-	ctx.controls["look_up_gamepad"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, gamepad_tilt_factor](float value)
-		{
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch -= gamepad_tilt_factor * value * (1.0f / 60.0f);
-			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
-		}
-	);
-	ctx.controls["look_up_mouse"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, mouse_tilt_factor](float value)
-		{
-			if (!ctx.mouse_look)
-				return;
-			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch -= mouse_tilt_factor * value * (1.0f / 60.0f);
-			three_dof.pitch = std::max<float>(math::radians(-90.0f), three_dof.pitch);
-		}
-	);
-	// Tilt down
-	ctx.controls["look_down_gamepad"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, gamepad_tilt_factor](float value)
-		{
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch += gamepad_tilt_factor * value * (1.0f / 60.0f);
-			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
-		}
-	);
-	ctx.controls["look_down_mouse"]->set_active_callback
-	(
-		[&ctx = this->ctx, three_dof_eid, mouse_tilt_factor](float value)
-		{
-			if (!ctx.mouse_look)
-				return;
-			
-			auto& three_dof = ctx.entity_registry->get<game::component::constraint::three_dof>(three_dof_eid);
-			three_dof.pitch += mouse_tilt_factor * value * (1.0f / 60.0f);
-			three_dof.pitch = std::min<float>(math::radians(90.0f), three_dof.pitch);
-		}
-	);
-	*/
-	
-	// Setup switch POV control
-	ctx.controls["switch_pov"]->set_activated_callback
-	(
-		[this]()
-		{
-			// Disable ant controls
-			this->disable_ant_controls();
-			
-			// Switch to keeper
-			this->is_keeper = true;
-			
-			// Enable keeper controls
-			this->enable_keeper_controls();
-		}
-	);
-	
-	// Fast-forward
-	ctx.controls["fast_forward"]->set_activated_callback
-	(
-		[&ctx = this->ctx, ff_time_scale]()
-		{
-			game::world::set_time_scale(ctx, ff_time_scale);
-		}
-	);
-	ctx.controls["fast_forward"]->set_deactivated_callback
-	(
-		[&ctx = this->ctx, time_scale]()
-		{
-			game::world::set_time_scale(ctx, time_scale);
-		}
-	);
-	ctx.controls["rewind"]->set_activated_callback
-	(
-		[&ctx = this->ctx, ff_time_scale]()
-		{
-			game::world::set_time_scale(ctx, -ff_time_scale);
-		}
-	);
-	ctx.controls["rewind"]->set_deactivated_callback
-	(
-		[&ctx = this->ctx, time_scale]()
-		{
-			game::world::set_time_scale(ctx, time_scale);
-		}
-	);
-	
-	// Setup pause control
-	ctx.controls["pause"]->set_activated_callback
-	(
-		[this, &ctx = this->ctx]()
-		{
-			// Disable controls
-			this->disable_controls();
-			
-			// Set resume callback
-			ctx.resume_callback = [this, &ctx]()
-			{
-				this->enable_controls();
-				ctx.resume_callback = nullptr;
-			};
-			
-			// Push pause menu state
-			ctx.state_machine.emplace(new game::state::pause_menu(ctx));
-		}
-	);
-}
-
-void nuptial_flight::disable_ant_controls()
-{
-	ctx.controls["move_forward"]->set_active_callback(nullptr);
-	ctx.controls["move_back"]->set_active_callback(nullptr);
-	ctx.controls["move_right"]->set_active_callback(nullptr);
-	ctx.controls["move_left"]->set_active_callback(nullptr);
-	ctx.controls["look_left_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_left_mouse"]->set_active_callback(nullptr);
-	ctx.controls["look_right_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_right_mouse"]->set_active_callback(nullptr);
-	ctx.controls["look_up_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_up_mouse"]->set_active_callback(nullptr);
-	ctx.controls["look_down_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_down_mouse"]->set_active_callback(nullptr);
-	ctx.controls["switch_pov"]->set_activated_callback(nullptr);
-	ctx.controls["fast_forward"]->set_activated_callback(nullptr);
-	ctx.controls["rewind"]->set_activated_callback(nullptr);
-	ctx.controls["pause"]->set_activated_callback(nullptr);
-}
-
-void nuptial_flight::enable_controls()
-{
-	if (is_keeper)
-		enable_keeper_controls();
-	else
-		enable_ant_controls();
-}
-
-void nuptial_flight::disable_controls()
-{
-	if (is_keeper)
-		disable_keeper_controls();
-	else
-		disable_ant_controls();
 }
 
 } // namespace state

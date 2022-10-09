@@ -24,7 +24,7 @@
 
 namespace color {
 
-/// Functions which operate in the CIE xyY colorspace.
+/// CIE xyY color space.
 namespace xyy {
 
 /**

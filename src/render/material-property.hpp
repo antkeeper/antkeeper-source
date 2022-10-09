@@ -249,7 +249,7 @@ bool material_property<T>::upload(double a) const
 	{
 		for (std::size_t i = 0; i < element_count; ++i)
 		{
-			if (!input->upload(i, values[i].interpolate(a)))
+			if (!input->upload(i, values[i].interpolate(static_cast<float>(a))))
 				return false;
 		}
 		
@@ -257,7 +257,7 @@ bool material_property<T>::upload(double a) const
 	}
 	else
 	{
-		return input->upload(values[0].interpolate(a));
+		return input->upload(values[0].interpolate(static_cast<float>(a)));
 	}
 }
 

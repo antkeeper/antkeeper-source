@@ -21,6 +21,7 @@
 #define ANTKEEPER_GAME_SYSTEM_SPATIAL_HPP
 
 #include "game/system/updatable.hpp"
+#include <entt/entt.hpp>
 
 namespace game {
 namespace system {
@@ -31,6 +32,10 @@ class spatial:
 public:
 	spatial(entity::registry& registry);
 	virtual void update(double t, double dt);
+	
+private:
+	/// Observes entities with updated, unconstrained transforms.
+	entt::observer updated_unconstrained_transforms;
 };
 
 } // namespace system

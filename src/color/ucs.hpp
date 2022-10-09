@@ -24,7 +24,7 @@
 
 namespace color {
 
-/// Functions which operate in the CIE 1960 UCS colorspace.
+/// CIE 1960 UCS color space.
 namespace ucs {
 
 /**

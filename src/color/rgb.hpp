@@ -25,7 +25,7 @@
 
 namespace color {
 
-/// Functions which operate on various RGB colorspaces.
+/// RGB color spaces.
 namespace rgb {
 
 /**

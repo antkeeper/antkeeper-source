@@ -31,13 +31,13 @@ orbit::orbit(entity::registry& registry):
 	time_scale(1.0)
 {
 	registry.on_construct<game::component::orbit>().connect<&orbit::on_orbit_construct>(this);
-	registry.on_replace<game::component::orbit>().connect<&orbit::on_orbit_replace>(this);
+	registry.on_update<game::component::orbit>().connect<&orbit::on_orbit_update>(this);
 }
 
 orbit::~orbit()
 {
 	registry.on_construct<game::component::orbit>().disconnect<&orbit::on_orbit_construct>(this);
-	registry.on_replace<game::component::orbit>().disconnect<&orbit::on_orbit_replace>(this);
+	registry.on_update<game::component::orbit>().disconnect<&orbit::on_orbit_update>(this);
 }
 
 void orbit::update(double t, double dt)
@@ -84,13 +84,15 @@ void orbit::set_time_scale(double scale)
 	time_scale = scale;
 }
 
-void orbit::on_orbit_construct(entity::registry& registry, entity::id entity_id, game::component::orbit& component)
+void orbit::on_orbit_construct(entity::registry& registry, entity::id entity_id)
 {
+	const game::component::orbit& component = registry.get<game::component::orbit>(entity_id);
 	ephemeris_indices.insert(component.ephemeris_index);
 }
 
-void orbit::on_orbit_replace(entity::registry& registry, entity::id entity_id, game::component::orbit& component)
+void orbit::on_orbit_update(entity::registry& registry, entity::id entity_id)
 {
+	const game::component::orbit& component = registry.get<game::component::orbit>(entity_id);
 	ephemeris_indices.insert(component.ephemeris_index);
 }
 

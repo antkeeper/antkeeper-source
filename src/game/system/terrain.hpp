@@ -101,7 +101,7 @@ private:
 	
 	static double screen_space_error(double horizontal_fov, double horizontal_resolution, double distance, double geometric_error);
 	
-	void on_terrain_construct(entity::registry& registry, entity::id entity_id, game::component::terrain& component);
+	void on_terrain_construct(entity::registry& registry, entity::id entity_id);
 	void on_terrain_destroy(entity::registry& registry, entity::id entity_id);
 	
 	/**

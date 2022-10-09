@@ -27,17 +27,21 @@ collision::collision(entity::registry& registry):
 	updatable(registry)
 {
 	registry.on_construct<component::collision>().connect<&collision::on_collision_construct>(this);
-	registry.on_replace<component::collision>().connect<&collision::on_collision_replace>(this);
+	registry.on_update<component::collision>().connect<&collision::on_collision_update>(this);
 	registry.on_destroy<component::collision>().connect<&collision::on_collision_destroy>(this);
 }
 
 void collision::update(double t, double dt)
+{
+	registry.on_construct<component::collision>().disconnect<&collision::on_collision_construct>(this);
+	registry.on_update<component::collision>().disconnect<&collision::on_collision_update>(this);
+	registry.on_destroy<component::collision>().disconnect<&collision::on_collision_destroy>(this);
+}
+
+void collision::on_collision_construct(entity::registry& registry, entity::id entity_id)
 {}
 
-void collision::on_collision_construct(entity::registry& registry, entity::id entity_id, component::collision& collision)
-{}
-
-void collision::on_collision_replace(entity::registry& registry, entity::id entity_id, component::collision& collision)
+void collision::on_collision_update(entity::registry& registry, entity::id entity_id)
 {}
 
 void collision::on_collision_destroy(entity::registry& registry, entity::id entity_id)

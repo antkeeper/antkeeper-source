@@ -29,19 +29,27 @@ proteome::proteome(entity::registry& registry):
 	updatable(registry)
 {
 	registry.on_construct<game::component::genome>().connect<&proteome::on_genome_construct>(this);
-	registry.on_replace<game::component::genome>().connect<&proteome::on_genome_replace>(this);
+	registry.on_update<game::component::genome>().connect<&proteome::on_genome_update>(this);
+}
+
+proteome::~proteome()
+{
+	registry.on_construct<game::component::genome>().disconnect<&proteome::on_genome_construct>(this);
+	registry.on_update<game::component::genome>().disconnect<&proteome::on_genome_update>(this);
 }
 
 void proteome::update(double t, double dt)
 {}
 
-void proteome::on_genome_construct(entity::registry& registry, entity::id entity_id, game::component::genome& genome)
+void proteome::on_genome_construct(entity::registry& registry, entity::id entity_id)
 {
-	on_genome_replace(registry, entity_id, genome);
+	on_genome_update(registry, entity_id);
 }
 
-void proteome::on_genome_replace(entity::registry& registry, entity::id entity_id, game::component::genome& genome)
+void proteome::on_genome_update(entity::registry& registry, entity::id entity_id)
 {
+	game::component::genome& genome = registry.get<game::component::genome>(entity_id);
+	
 	// Allocate a proteome component
 	game::component::proteome proteome_component;
 	
@@ -67,7 +75,7 @@ void proteome::on_genome_replace(entity::registry& registry, entity::id entity_i
 	}
 	
 	// Assign or replace the entity's proteome component
-	registry.assign_or_replace<game::component::proteome>(entity_id, proteome_component);
+	registry.emplace_or_replace<game::component::proteome>(entity_id, proteome_component);
 }
 
 } // namespace system

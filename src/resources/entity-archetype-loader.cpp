@@ -76,7 +76,13 @@ static bool load_component_atmosphere(entity::archetype& archetype, const json& 
 		component.airglow_illuminance.z = airglow_illuminance[2].get<double>();
 	}
 	
-	archetype.set<game::component::atmosphere>(component);
+	archetype.stamps.push_back
+	(
+		[component](entt::handle& handle)
+		{
+			handle.emplace_or_replace<decltype(component)>(component);
+		}
+	);
 
 	return true;
 }
@@ -91,7 +97,13 @@ static bool load_component_behavior(entity::archetype& archetype, resource_manag
 		component.behavior_tree = resource_manager.load<entity::ebt::node>(element["file"].get<std::string>());
 	}
 	
-	archetype.set<game::component::behavior>(component);
+	archetype.stamps.push_back
+	(
+		[component](entt::handle& handle)
+		{
+			handle.emplace_or_replace<decltype(component)>(component);
+		}
+	);
 	
 	return (component.behavior_tree != nullptr);
 }
@@ -104,7 +116,13 @@ static bool load_component_blackbody(entity::archetype& archetype, const json& e
 	if (element.contains("temperature"))
 		component.temperature = element["temperature"].get<double>();
 
-	archetype.set<game::component::blackbody>(component);
+	archetype.stamps.push_back
+	(
+		[component](entt::handle& handle)
+		{
+			handle.emplace_or_replace<decltype(component)>(component);
+		}
+	);
 
 	return true;
 }
@@ -140,8 +158,14 @@ static bool load_component_celestial_body(entity::archetype& archetype, const js
 	}
 	if (element.contains("albedo"))
 		component.albedo = element["albedo"].get<double>();
-	
-	archetype.set<game::component::celestial_body>(component);
+
+	archetype.stamps.push_back
+	(
+		[component](entt::handle& handle)
+		{
+			handle.emplace_or_replace<decltype(component)>(component);
+		}
+	);
 
 	return true;
 }
@@ -156,7 +180,13 @@ static bool load_component_collision(entity::archetype& archetype, resource_mana
 		component.mesh = resource_manager.load<geom::mesh>(element["file"].get<std::string>());
 	}
 	
-	archetype.set<game::component::collision>(component);
+	archetype.stamps.push_back
+	(
+		[component](entt::handle& handle)
+		{
+			handle.emplace_or_replace<decltype(component)>(component);
+		}
+	);
 	
 	return (component.mesh != nullptr);
 }
@@ -168,8 +198,14 @@ static bool load_component_diffuse_reflector(entity::archetype& archetype, const
 	
 	if (element.contains("albedo"))
 		component.albedo = element["albedo"].get<double>();
-	
-	archetype.set<game::component::diffuse_reflector>(component);
+
+	archetype.stamps.push_back
+	(
+		[component](entt::handle& handle)
+		{
+			handle.emplace_or_replace<decltype(component)>(component);
+		}
+	);
 
 	return true;
 }
@@ -186,7 +222,13 @@ static bool load_component_model(entity::archetype& archetype, resource_manager&
 		component.render_model = resource_manager.load<render::model>(element["file"].get<std::string>());
 	}
 	
-	archetype.set<game::component::model>(component);
+	archetype.stamps.push_back
+	(
+		[component](entt::handle& handle)
+		{
+			handle.emplace_or_replace<decltype(component)>(component);
+		}
+	);
 	
 	return true;
 }
@@ -204,8 +246,14 @@ static bool load_component_orbit(entity::archetype& archetype, const json& eleme
 		component.ephemeris_index = element["ephemeris_index"].get<int>();
 	if (element.contains("scale"))
 		component.scale = element["scale"].get<double>();
-	
-	archetype.set<game::component::orbit>(component);
+
+	archetype.stamps.push_back
+	(
+		[component](entt::handle& handle)
+		{
+			handle.emplace_or_replace<decltype(component)>(component);
+		}
+	);
 
 	return true;
 }
@@ -242,7 +290,14 @@ static bool load_component_transform(entity::archetype& archetype, const json& e
 	}
 	
 	component.world = component.local;
-	archetype.set<game::component::transform>(component);
+
+	archetype.stamps.push_back
+	(
+		[component](entt::handle& handle)
+		{
+			handle.emplace_or_replace<decltype(component)>(component);
+		}
+	);
 
 	return true;
 }
@@ -270,14 +325,14 @@ static bool load_component(entity::archetype& archetype, resource_manager& resou
 	
 	//throw std::runtime_error("Unknown component type \"" + element.key() + "\"");
 	
-	return true;
+	return false;
 }
 
 template <>
 entity::archetype* resource_loader<entity::archetype>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	// Allocate archetype
-	entity::archetype* archetype = new entity::archetype(resource_manager->get_archetype_registry());
+	entity::archetype* archetype = new entity::archetype();
 
 	// Read file into buffer
 	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));

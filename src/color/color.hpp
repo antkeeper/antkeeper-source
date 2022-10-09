@@ -20,18 +20,18 @@
 #ifndef ANTKEEPER_COLOR_HPP
 #define ANTKEEPER_COLOR_HPP
 
-/// Color manipulation functions.
+/// Color manipulation.
 namespace color {}
 
 #include "aces.hpp"
+#include "cat.hpp"
 #include "cct.hpp"
+#include "illuminant.hpp"
 #include "index.hpp"
 #include "rgb.hpp"
 #include "srgb.hpp"
 #include "ucs.hpp"
 #include "xyy.hpp"
 #include "xyz.hpp"
-#include "cat.hpp"
-#include "illuminant.hpp"
 
 #endif // ANTKEEPER_COLOR_HPP

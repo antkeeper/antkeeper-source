@@ -17,29 +17,30 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "spatial.hpp"
-#include "game/component/transform.hpp"
-#include "game/component/constraint-stack.hpp"
-#include <iostream>
+#ifndef ANTKEEPER_GAME_COMPONENT_CONSTRAINT_PIVOT_HPP
+#define ANTKEEPER_GAME_COMPONENT_CONSTRAINT_PIVOT_HPP
+
+#include "entity/id.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace game {
-namespace system {
+namespace component {
+namespace constraint {
 
-spatial::spatial(entity::registry& registry):
-	updatable(registry),
-	updated_unconstrained_transforms(registry, entt::collector.update<component::transform>().where(entt::exclude<component::constraint_stack>))
-{}
-
-void spatial::update(double t, double dt)
+/**
+ * Pivots around a target entity.
+ */
+struct pivot
 {
-	// Update world-space transforms of all updated, unconstrained transforms
-	for (const auto transform_eid: updated_unconstrained_transforms)
-	{
-		auto& transform = registry.get<component::transform>(transform_eid);
-		transform.world = transform.local;
-	}
-	updated_unconstrained_transforms.clear();
-}
+	/// Target entity ID.
+	entity::id target;
+	
+	/// Pivot point offset.
+	float3 offset;
+};
 
-} // namespace system
+} // namespace constraint
+} // namespace component
 } // namespace game
+
+#endif // ANTKEEPER_GAME_COMPONENT_CONSTRAINT_PIVOT_HPP

@@ -17,29 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "spatial.hpp"
-#include "game/component/transform.hpp"
-#include "game/component/constraint-stack.hpp"
-#include <iostream>
+#ifndef ANTKEEPER_ENTITY_CLONE_HPP
+#define ANTKEEPER_ENTITY_CLONE_HPP
 
-namespace game {
-namespace system {
+#include "entity/registry.hpp"
+#include "entity/id.hpp"
 
-spatial::spatial(entity::registry& registry):
-	updatable(registry),
-	updated_unconstrained_transforms(registry, entt::collector.update<component::transform>().where(entt::exclude<component::constraint_stack>))
-{}
+namespace entity {
 
-void spatial::update(double t, double dt)
-{
-	// Update world-space transforms of all updated, unconstrained transforms
-	for (const auto transform_eid: updated_unconstrained_transforms)
-	{
-		auto& transform = registry.get<component::transform>(transform_eid);
-		transform.world = transform.local;
-	}
-	updated_unconstrained_transforms.clear();
-}
+/**
+ * Clones all the components of an entity.
+ *
+ * @param registry Entity registry.
+ * @param source Source entity ID.
+ * @param destination Destination entity ID.
+ */
+void clone(entity::registry& registry, entity::id source, entity::id destination);
 
-} // namespace system
-} // namespace game
+} // namespace entity
+
+#endif // ANTKEEPER_ENTITY_CLONE_HPP

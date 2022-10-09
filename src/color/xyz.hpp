@@ -25,7 +25,7 @@
 namespace color {
 
 /**
- * Functions which operate in the CIE XYZ color space.
+ * CIE XYZ color space.
  *
  * @see https://en.wikipedia.org/wiki/CIE_1931_color_space
  */

@@ -83,8 +83,15 @@ void steering::update(double t, double dt)
 			}
 			
 			// Update transform
-			transform.local.translation = agent.position;
-			transform.local.rotation = agent.orientation;
+			registry.patch<game::component::transform>
+			(
+				entity_id,
+				[&agent](auto& component)
+				{
+					component.local.translation = agent.position;
+					component.local.rotation = agent.orientation;
+				}
+			);
 		}
 	);
 }

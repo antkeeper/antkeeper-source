@@ -17,29 +17,30 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "spatial.hpp"
-#include "game/component/transform.hpp"
-#include "game/component/constraint-stack.hpp"
-#include <iostream>
+#ifndef ANTKEEPER_GAME_COMPONENT_CONSTRAINT_THREE_DOF_HPP
+#define ANTKEEPER_GAME_COMPONENT_CONSTRAINT_THREE_DOF_HPP
 
 namespace game {
-namespace system {
+namespace component {
+namespace constraint {
 
-spatial::spatial(entity::registry& registry):
-	updatable(registry),
-	updated_unconstrained_transforms(registry, entt::collector.update<component::transform>().where(entt::exclude<component::constraint_stack>))
-{}
-
-void spatial::update(double t, double dt)
+/**
+ * Builds rotation from 3DoF angles.
+ */
+struct three_dof
 {
-	// Update world-space transforms of all updated, unconstrained transforms
-	for (const auto transform_eid: updated_unconstrained_transforms)
-	{
-		auto& transform = registry.get<component::transform>(transform_eid);
-		transform.world = transform.local;
-	}
-	updated_unconstrained_transforms.clear();
-}
+	/// Yaw rotation angle, in radians.
+	float yaw;
+	
+	/// Pitch rotation angle, in radians.
+	float pitch;
+	
+	/// Roll rotation angle, in radians.
+	float roll;
+};
 
-} // namespace system
+} // namespace constraint
+} // namespace component
 } // namespace game
+
+#endif // ANTKEEPER_GAME_COMPONENT_CONSTRAINT_THREE_DOF_HPP

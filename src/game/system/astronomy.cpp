@@ -65,32 +65,32 @@ astronomy::astronomy(entity::registry& registry):
 	};
 	
 	registry.on_construct<game::component::observer>().connect<&astronomy::on_observer_modified>(this);
-	registry.on_replace<game::component::observer>().connect<&astronomy::on_observer_modified>(this);
+	registry.on_update<game::component::observer>().connect<&astronomy::on_observer_modified>(this);
 	registry.on_destroy<game::component::observer>().connect<&astronomy::on_observer_destroyed>(this);
 	registry.on_construct<game::component::celestial_body>().connect<&astronomy::on_celestial_body_modified>(this);
-	registry.on_replace<game::component::celestial_body>().connect<&astronomy::on_celestial_body_modified>(this);
+	registry.on_update<game::component::celestial_body>().connect<&astronomy::on_celestial_body_modified>(this);
 	registry.on_destroy<game::component::celestial_body>().connect<&astronomy::on_celestial_body_destroyed>(this);
 	registry.on_construct<game::component::orbit>().connect<&astronomy::on_orbit_modified>(this);
-	registry.on_replace<game::component::orbit>().connect<&astronomy::on_orbit_modified>(this);
+	registry.on_update<game::component::orbit>().connect<&astronomy::on_orbit_modified>(this);
 	registry.on_destroy<game::component::orbit>().connect<&astronomy::on_orbit_destroyed>(this);
 	registry.on_construct<game::component::atmosphere>().connect<&astronomy::on_atmosphere_modified>(this);
-	registry.on_replace<game::component::atmosphere>().connect<&astronomy::on_atmosphere_modified>(this);
+	registry.on_update<game::component::atmosphere>().connect<&astronomy::on_atmosphere_modified>(this);
 	registry.on_destroy<game::component::atmosphere>().connect<&astronomy::on_atmosphere_destroyed>(this);
 }
 
 astronomy::~astronomy()
 {
 	registry.on_construct<game::component::observer>().disconnect<&astronomy::on_observer_modified>(this);
-	registry.on_replace<game::component::observer>().disconnect<&astronomy::on_observer_modified>(this);
+	registry.on_update<game::component::observer>().disconnect<&astronomy::on_observer_modified>(this);
 	registry.on_destroy<game::component::observer>().disconnect<&astronomy::on_observer_destroyed>(this);
 	registry.on_construct<game::component::celestial_body>().disconnect<&astronomy::on_celestial_body_modified>(this);
-	registry.on_replace<game::component::celestial_body>().disconnect<&astronomy::on_celestial_body_modified>(this);
+	registry.on_update<game::component::celestial_body>().disconnect<&astronomy::on_celestial_body_modified>(this);
 	registry.on_destroy<game::component::celestial_body>().disconnect<&astronomy::on_celestial_body_destroyed>(this);
 	registry.on_construct<game::component::orbit>().disconnect<&astronomy::on_orbit_modified>(this);
-	registry.on_replace<game::component::orbit>().disconnect<&astronomy::on_orbit_modified>(this);
+	registry.on_update<game::component::orbit>().disconnect<&astronomy::on_orbit_modified>(this);
 	registry.on_destroy<game::component::orbit>().disconnect<&astronomy::on_orbit_destroyed>(this);
 	registry.on_construct<game::component::atmosphere>().disconnect<&astronomy::on_atmosphere_modified>(this);
-	registry.on_replace<game::component::atmosphere>().disconnect<&astronomy::on_atmosphere_modified>(this);
+	registry.on_update<game::component::atmosphere>().disconnect<&astronomy::on_atmosphere_modified>(this);
 	registry.on_destroy<game::component::atmosphere>().disconnect<&astronomy::on_atmosphere_destroyed>(this);
 }
 
@@ -427,7 +427,7 @@ void astronomy::set_sky_pass(::render::sky_pass* pass)
 	}
 }
 
-void astronomy::on_observer_modified(entity::registry& registry, entity::id entity_id, game::component::observer& component)
+void astronomy::on_observer_modified(entity::registry& registry, entity::id entity_id)
 {
 	if (entity_id == observer_eid)
 		observer_modified();
@@ -439,7 +439,7 @@ void astronomy::on_observer_destroyed(entity::registry& registry, entity::id ent
 		observer_modified();
 }
 
-void astronomy::on_celestial_body_modified(entity::registry& registry, entity::id entity_id, game::component::celestial_body& component)
+void astronomy::on_celestial_body_modified(entity::registry& registry, entity::id entity_id)
 {
 	if (entity_id == reference_body_eid)
 		reference_body_modified();
@@ -451,7 +451,7 @@ void astronomy::on_celestial_body_destroyed(entity::registry& registry, entity::
 		reference_body_modified();
 }
 
-void astronomy::on_orbit_modified(entity::registry& registry, entity::id entity_id, game::component::orbit& component)
+void astronomy::on_orbit_modified(entity::registry& registry, entity::id entity_id)
 {
 	if (entity_id == reference_body_eid)
 		reference_orbit_modified();
@@ -463,7 +463,7 @@ void astronomy::on_orbit_destroyed(entity::registry& registry, entity::id entity
 		reference_orbit_modified();
 }
 
-void astronomy::on_atmosphere_modified(entity::registry& registry, entity::id entity_id, game::component::atmosphere& component)
+void astronomy::on_atmosphere_modified(entity::registry& registry, entity::id entity_id)
 {
 	if (entity_id == reference_body_eid)
 		reference_atmosphere_modified();

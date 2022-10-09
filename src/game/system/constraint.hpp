@@ -22,6 +22,7 @@
 
 #include "game/system/updatable.hpp"
 #include "game/component/transform.hpp"
+#include "game/component/constraint/constraint.hpp"
 #include "entity/id.hpp"
 
 namespace game {
@@ -39,18 +40,25 @@ class constraint:
 {
 public:
 	constraint(entity::registry& registry);
+	~constraint();
+	
 	virtual void update(double t, double dt);
 	
 private:
-	void handle_constraint(component::transform& transform, entity::id constraint_eid, float dt);
+	void on_constraint_stack_update(entity::registry& registry, entity::id constraint_stack_eid);
 	
-	void handle_copy_translation_constraint(component::transform& transform, entity::id constraint_eid);
-	void handle_copy_rotation_constraint(component::transform& transform, entity::id constraint_eid);
-	void handle_copy_scale_constraint(component::transform& transform, entity::id constraint_eid);
-	void handle_copy_transform_constraint(component::transform& transform, entity::id constraint_eid);
-	void handle_track_to_constraint(component::transform& transform, entity::id constraint_eid);
-	void handle_three_dof_constraint(component::transform& transform, entity::id constraint_eid);
-	void handle_spring_to_constraint(component::transform& transform, entity::id constraint_eid, float dt);
+	void handle_constraint(component::transform& transform, entity::id constraint_eid, float dt);
+	void handle_child_of_constraint(component::transform& transform, const component::constraint::child_of& constraint);
+	void handle_copy_rotation_constraint(component::transform& transform, const component::constraint::copy_rotation& constraint);
+	void handle_copy_scale_constraint(component::transform& transform, const component::constraint::copy_scale& constraint);
+	void handle_copy_transform_constraint(component::transform& transform, const component::constraint::copy_transform& constraint);
+	void handle_copy_translation_constraint(component::transform& transform, const component::constraint::copy_translation& constraint);
+	void handle_pivot_constraint(component::transform& transform, const component::constraint::pivot& constraint);
+	void handle_spring_rotation_constraint(component::transform& transform, component::constraint::spring_rotation& constraint, float dt);
+	void handle_spring_to_constraint(component::transform& transform, component::constraint::spring_to& constraint, float dt);
+	void handle_spring_translation_constraint(component::transform& transform, component::constraint::spring_translation& constraint, float dt);
+	void handle_three_dof_constraint(component::transform& transform, const component::constraint::three_dof& constraint);
+	void handle_track_to_constraint(component::transform& transform, const component::constraint::track_to& constraint);
 };
 
 } // namespace system

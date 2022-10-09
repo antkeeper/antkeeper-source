@@ -17,24 +17,33 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_CONSTRAINTS_HPP
-#define ANTKEEPER_GAME_COMPONENT_CONSTRAINTS_HPP
+#ifndef ANTKEEPER_GAME_STATE_NEST_SELECTION_HPP
+#define ANTKEEPER_GAME_STATE_NEST_SELECTION_HPP
+
+#include "game/state/base.hpp"
 
 namespace game {
-namespace component {
+namespace state {
 
-/// Transform constraint components
-namespace constraint {}
+class nest_selection: public game::state::base
+{
+public:
+	nest_selection(game::context& ctx);
+	virtual ~nest_selection();
+	
+private:
+	void setup_camera();
+	
+	bool is_keeper;
+	void enable_keeper_controls();
+	void disable_keeper_controls();
+	void enable_ant_controls();
+	void disable_ant_controls();
+	void enable_controls();
+	void disable_controls();
+};
 
-} // namespace component
+} // namespace state
 } // namespace game
 
-#include "copy-translation.hpp"
-#include "copy-rotation.hpp"
-#include "copy-scale.hpp"
-#include "copy-transform.hpp"
-#include "track-to.hpp"
-#include "spring-to.hpp"
-#include "three-dof.hpp"
-
-#endif // ANTKEEPER_GAME_COMPONENT_CONSTRAINTS_HPP
+#endif // ANTKEEPER_GAME_STATE_NEST_SELECTION_HPP

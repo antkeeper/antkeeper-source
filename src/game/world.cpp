@@ -30,6 +30,7 @@
 #include "game/component/observer.hpp"
 #include "game/system/astronomy.hpp"
 #include "game/system/orbit.hpp"
+#include "game/system/atmosphere.hpp"
 #include "entity/commands.hpp"
 #include "entity/archetype.hpp"
 #include "geom/spherical.hpp"
@@ -115,7 +116,10 @@ void create_observer(game::context& ctx)
 		observer.longitude = 0.0;
 		
 		// Assign observer component to observer entity
-		ctx.entity_registry->assign<game::component::observer>(observer_eid, observer);
+		ctx.entity_registry->emplace<game::component::observer>(observer_eid, observer);
+		
+		// Set atmosphere system active atmosphere
+		ctx.atmosphere_system->set_active_atmosphere(observer.reference_body_eid);
 		
 		// Set astronomy system observer
 		ctx.astronomy_system->set_observer(observer_eid);
@@ -496,7 +500,7 @@ void create_earth(game::context& ctx)
 		};
 		terrain.max_lod = 0;
 		terrain.patch_material = nullptr;
-		//ctx.entity_registry->assign<game::component::terrain>(earth_eid, terrain);
+		//ctx.entity_registry->emplace<game::component::terrain>(earth_eid, terrain);
 	}
 	catch (const std::exception&)
 	{

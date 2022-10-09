@@ -40,7 +40,7 @@ struct numeric_spring
 };
 
 /**
- * Performs numeric, damped springing on a value and velocity.
+ * Solves a number spring using the implicit Euler method.
  *
  * @tparam T Value type.
  * @tparam S Scalar type.
@@ -56,7 +56,7 @@ template <typename T, typename S>
 void spring(T& x0, T& v, const T& x1, S z, S w, S dt);
 
 /**
- * Solves a numeric spring using the spring() function.
+ * Solves a number spring using the implicit Euler method.
  *
  * @param[in,out] ns Numeric spring to be sovled.
  * @param dt Delta time, in seconds.
@@ -87,12 +87,12 @@ T rads_to_hz(T rads);
 template <typename T, typename S>
 void spring(T& x0, T& v, const T& x1, S z, S w, S dt)
 {
-	const S w2_dt = w * w * dt;
-	const S w2_dt2 = w2_dt * dt;
-	const S f = z * w * dt * S(2) + S(1);
-	const T det_x = x0 * f + v * dt + x1 * w2_dt2;
-	const T det_v = v + (x1 - x0) * w2_dt;
-	const S inv_det = S(1) / (f + w2_dt2);
+	const S ww_dt = w * w * dt;
+	const S ww_dtdt = ww_dt * dt;
+	const S f = z * w * dt * S{2} + S{1};
+	const T det_x = x0 * f + v * dt + x1 * ww_dtdt;
+	const T det_v = v + (x1 - x0) * ww_dt;
+	const S inv_det = S{1} / (f + ww_dtdt);
 	
 	x0 = det_x * inv_det;
 	v = det_v * inv_det;

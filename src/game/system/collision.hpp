@@ -37,8 +37,8 @@ public:
 	virtual void update(double t, double dt);
 
 private:	
-	void on_collision_construct(entity::registry& registry, entity::id entity_id, game::component::collision& collision);
-	void on_collision_replace(entity::registry& registry, entity::id entity_id, game::component::collision& collision);
+	void on_collision_construct(entity::registry& registry, entity::id entity_id);
+	void on_collision_update(entity::registry& registry, entity::id entity_id);
 	void on_collision_destroy(entity::registry& registry, entity::id entity_id);
 };
 

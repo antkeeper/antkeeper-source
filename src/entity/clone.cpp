@@ -17,46 +17,19 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "entity/ebt.hpp"
-#include "game/component/transform.hpp"
-#include <iostream>
+#include "entity/clone.hpp"
 
 namespace entity {
-namespace ebt {
 
-status print(context& context, const std::string& text)
+void clone(entity::registry& registry, entity::id source, entity::id destination)
 {
-	std::cout << text;
-	return status::success;
-}
-
-status print_eid(context& context)
-{
-	std::cout << static_cast<std::size_t>(context.entity_id) << std::endl;
-	return status::success;
-}
-
-status warp_to(context& context, float x, float y, float z)
-{
-	auto& transform = context.registry->get<game::component::transform>(context.entity_id);
-	
-	context.registry->patch<game::component::transform>
-	(
-		context.entity_id,
-		[x, y, z](auto& component)
+	for (auto&& it: registry.storage())
+	{
+		if (auto& storage = it.second; storage.contains(source))
 		{
-			component.local.translation = {x, y, z};
-			component.warp = true;
+			storage.emplace(destination, storage.get(source));
 		}
-	);
-	
-	return status::success;
+	}
 }
 
-bool is_carrying_food(const context& context)
-{
-	return false;
-}
-
-} // namespace ebt
 } // namespace entity

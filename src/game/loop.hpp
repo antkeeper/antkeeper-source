@@ -50,11 +50,11 @@ public:
 	void set_render_callback(std::function<void(double)> callback);
 
 	/**
-	 * Sets the update rate.
+	 * Sets the update frequency.
 	 *
 	 * @param frequency Frequency, in hertz, at which the update callback should be called.
 	 */
-	void set_update_rate(double frequency);
+	void set_update_frequency(double frequency);
 
 	/**
 	 * Sets the maximum duration of a frame. This limits the number of times the update callback is called per frame, thereby preventing a "spiral of death", in which the update callback is called too many times per frame while trying to catch up to the target update rate.
@@ -67,6 +67,12 @@ public:
 	 * Returns the duration of the last frame, in seconds.
 	 */
 	double get_frame_duration() const;
+	
+	/// Returns the frequency, in hertz, at which the update callback should be called.
+	double get_update_frequency() const;
+	
+	/// Returns the period, in seconds, between update callback calls.
+	double get_update_period() const;
 
 	/**
 	 * Resets the total elapsed time, frame duration, and internal timers.
@@ -81,8 +87,8 @@ public:
 private:
 	std::function<void(double, double)> update_callback;
 	std::function<void(double)> render_callback;
-	double update_rate;
-	double update_timestep;
+	double update_frequency;
+	double update_period;
 	double max_frame_duration;
 	double elapsed_time;
 	double accumulator;
@@ -90,6 +96,16 @@ private:
 	std::chrono::high_resolution_clock::time_point frame_end;
 	double frame_duration;
 };
+
+inline double loop::get_update_frequency() const
+{
+	return update_frequency;
+}
+
+inline double loop::get_update_period() const
+{
+	return update_period;
+}
 
 } // namespace game
 

@@ -68,7 +68,10 @@ terrain::terrain(entity::registry& registry):
 }
 
 terrain::~terrain()
-{}
+{
+	registry.on_construct<component::terrain>().disconnect<&terrain::on_terrain_construct>(this);
+	registry.on_destroy<component::terrain>().disconnect<&terrain::on_terrain_destroy>(this);
+}
 
 void terrain::update(double t, double dt)
 {
@@ -294,7 +297,7 @@ void terrain::set_max_error(double error)
 	max_error = error;
 }
 
-void terrain::on_terrain_construct(entity::registry& registry, entity::id entity_id, component::terrain& component)
+void terrain::on_terrain_construct(entity::registry& registry, entity::id entity_id)
 {
 	terrain_quadsphere* quadsphere = new terrain_quadsphere();
 	terrain_quadspheres[entity_id] = quadsphere;

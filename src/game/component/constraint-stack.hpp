@@ -33,6 +33,9 @@ namespace component {
  */
 struct constraint_stack
 {
+	/// Priority number, with lower priorities evaluated first.
+	int priority;
+	
 	/// ID of the entity containing the first constraint stack node.
 	entity::id head;
 };

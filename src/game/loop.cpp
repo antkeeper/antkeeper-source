@@ -25,9 +25,9 @@ namespace game {
 loop::loop():
 	update_callback([](double, double){}),
 	render_callback([](double){}),
-	update_rate(60.0),
-	update_timestep(1.0 / update_rate),
-	max_frame_duration(update_timestep)
+	update_frequency(60.0),
+	update_period(1.0 / update_frequency),
+	max_frame_duration(update_period)
 {
 	reset();
 }
@@ -42,10 +42,10 @@ void loop::set_render_callback(std::function<void(double)> callback)
 	render_callback = callback;
 }
 
-void loop::set_update_rate(double frequency)
+void loop::set_update_frequency(double frequency)
 {
-	update_rate = frequency;
-	update_timestep = 1.0 / frequency;
+	update_frequency = frequency;
+	update_period = 1.0 / update_frequency;
 }
 
 void loop::set_max_frame_duration(double duration)
@@ -75,14 +75,14 @@ void loop::tick()
 	
 	accumulator += std::min<double>(max_frame_duration, frame_duration);
 
-	while (accumulator >= update_timestep)
+	while (accumulator >= update_period)
 	{
-		update_callback(elapsed_time, update_timestep);
-		elapsed_time += update_timestep;
-		accumulator -= update_timestep;
+		update_callback(elapsed_time, update_period);
+		elapsed_time += update_period;
+		accumulator -= update_period;
 	}
 	
-	render_callback(accumulator * update_rate);
+	render_callback(accumulator * update_frequency);
 }
 
 } // namespace game

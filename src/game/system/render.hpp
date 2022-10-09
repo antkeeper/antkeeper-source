@@ -38,6 +38,8 @@ class render: public updatable
 {
 public:
 	render(entity::registry& registry);
+	~render();
+	
 	virtual void update(double t, double dt);
 	
 	void draw(double alpha);
@@ -55,12 +57,11 @@ private:
 	void update_model_and_materials(entity::id entity_id, game::component::model& model);
 	void update_light(entity::id entity_id, game::component::light& component);
 	
-	void on_model_construct(entity::registry& registry, entity::id entity_id, game::component::model& model);
-	void on_model_replace(entity::registry& registry, entity::id entity_id, game::component::model& model);
+	void on_model_construct(entity::registry& registry, entity::id entity_id);
+	void on_model_update(entity::registry& registry, entity::id entity_id);
 	void on_model_destroy(entity::registry& registry, entity::id entity_id);
-	
-	void on_light_construct(entity::registry& registry, entity::id entity_id, game::component::light& light);
-	void on_light_replace(entity::registry& registry, entity::id entity_id, game::component::light& light);
+	void on_light_construct(entity::registry& registry, entity::id entity_id);
+	void on_light_update(entity::registry& registry, entity::id entity_id);
 	void on_light_destroy(entity::registry& registry, entity::id entity_id);
 	
 	double t;

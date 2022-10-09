@@ -36,12 +36,21 @@ render::render(entity::registry& registry):
 	renderer(nullptr)
 {
 	registry.on_construct<component::model>().connect<&render::on_model_construct>(this);
-	registry.on_replace<component::model>().connect<&render::on_model_replace>(this);
+	registry.on_update<component::model>().connect<&render::on_model_update>(this);
 	registry.on_destroy<component::model>().connect<&render::on_model_destroy>(this);
-	
 	registry.on_construct<component::light>().connect<&render::on_light_construct>(this);
-	registry.on_replace<component::light>().connect<&render::on_light_replace>(this);
+	registry.on_update<component::light>().connect<&render::on_light_update>(this);
 	registry.on_destroy<component::light>().connect<&render::on_light_destroy>(this);
+}
+
+render::~render()
+{
+	registry.on_construct<component::model>().disconnect<&render::on_model_construct>(this);
+	registry.on_update<component::model>().disconnect<&render::on_model_update>(this);
+	registry.on_destroy<component::model>().disconnect<&render::on_model_destroy>(this);
+	registry.on_construct<component::light>().disconnect<&render::on_light_construct>(this);
+	registry.on_update<component::light>().disconnect<&render::on_light_update>(this);
+	registry.on_destroy<component::light>().disconnect<&render::on_light_destroy>(this);
 }
 
 void render::update(double t, double dt)
@@ -196,16 +205,19 @@ void render::update_light(entity::id entity_id, game::component::light& componen
 	}
 }
 
-void render::on_model_construct(entity::registry& registry, entity::id entity_id, component::model& model)
+void render::on_model_construct(entity::registry& registry, entity::id entity_id)
 {
+	game::component::model& component = registry.get<game::component::model>(entity_id);
+	
 	scene::model_instance* model_instance = new scene::model_instance();	
 	model_instances[entity_id] = model_instance;
-	update_model_and_materials(entity_id, model);
+	update_model_and_materials(entity_id, component);
 }
 
-void render::on_model_replace(entity::registry& registry, entity::id entity_id, component::model& model)
+void render::on_model_update(entity::registry& registry, entity::id entity_id)
 {
-	update_model_and_materials(entity_id, model);
+	game::component::model& component = registry.get<game::component::model>(entity_id);
+	update_model_and_materials(entity_id, component);
 }
 
 void render::on_model_destroy(entity::registry& registry, entity::id entity_id)
@@ -223,8 +235,10 @@ void render::on_model_destroy(entity::registry& registry, entity::id entity_id)
 	}
 }
 
-void render::on_light_construct(entity::registry& registry, entity::id entity_id, component::light& component)
+void render::on_light_construct(entity::registry& registry, entity::id entity_id)
 {
+	game::component::light& component = registry.get<game::component::light>(entity_id);
+	
 	scene::light* light = nullptr;
 	
 	switch (component.type)
@@ -259,9 +273,10 @@ void render::on_light_construct(entity::registry& registry, entity::id entity_id
 	}
 }
 
-void render::on_light_replace(entity::registry& registry, entity::id entity_id, component::light& light)
+void render::on_light_update(entity::registry& registry, entity::id entity_id)
 {
-	update_light(entity_id, light);
+	game::component::light& component = registry.get<game::component::light>(entity_id);
+	update_light(entity_id, component);
 }
 
 void render::on_light_destroy(entity::registry& registry, entity::id entity_id)

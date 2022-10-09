@@ -70,8 +70,8 @@ public:
 	void set_ephemeris(const physics::orbit::ephemeris<double>* ephemeris);
 	
 private:
-	void on_orbit_construct(entity::registry& registry, entity::id entity_id, game::component::orbit& component);
-	void on_orbit_replace(entity::registry& registry, entity::id entity_id, game::component::orbit& component);
+	void on_orbit_construct(entity::registry& registry, entity::id entity_id);
+	void on_orbit_update(entity::registry& registry, entity::id entity_id);
 	
 	const physics::orbit::ephemeris<double>* ephemeris;
 	double time;

@@ -1077,10 +1077,10 @@ void boot::setup_debugging()
 
 void boot::setup_loop()
 {
-	// Set update rate
-	if (ctx.config->contains("update_rate"))
+	// Set update frequency
+	if (ctx.config->contains("update_frequency"))
 	{
-		ctx.loop.set_update_rate((*ctx.config)["update_rate"].get<double>());
+		ctx.loop.set_update_frequency((*ctx.config)["update_frequency"].get<double>());
 	}
 	
 	// Set update callback

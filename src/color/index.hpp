@@ -22,7 +22,7 @@
 
 namespace color {
 
-/// Functions which operate on color indices.
+/// Color indices.
 namespace index {
 
 /**

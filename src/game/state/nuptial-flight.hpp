@@ -21,6 +21,7 @@
 #define ANTKEEPER_GAME_STATE_NUPTIAL_FLIGHT_HPP
 
 #include "game/state/base.hpp"
+#include "entity/id.hpp"
 
 namespace game {
 namespace state {
@@ -32,15 +33,21 @@ public:
 	virtual ~nuptial_flight();
 	
 private:
-	void setup_camera();
+	void create_camera_rig();
+	void destroy_camera_rig();
 	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
 	void enable_controls();
 	void disable_controls();
+	
+	entity::id camera_rig_eid;
+	entity::id camera_rig_spring_translation_eid;
+	entity::id camera_rig_spring_rotation_eid;
+	entity::id camera_rig_copy_translation_eid;
+	entity::id camera_rig_pivot_eid;
+	
+	entity::id swarm_eid;
+	
+	bool mouse_look;
 };
 
 } // namespace state

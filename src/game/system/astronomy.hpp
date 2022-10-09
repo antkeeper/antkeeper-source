@@ -91,13 +91,13 @@ public:
 	void set_sky_pass(::render::sky_pass* pass);
 	
 private:
-	void on_observer_modified(entity::registry& registry, entity::id entity_id, game::component::observer& component);
+	void on_observer_modified(entity::registry& registry, entity::id entity_id);
 	void on_observer_destroyed(entity::registry& registry, entity::id entity_id);
-	void on_celestial_body_modified(entity::registry& registry, entity::id entity_id, game::component::celestial_body& component);
+	void on_celestial_body_modified(entity::registry& registry, entity::id entity_id);
 	void on_celestial_body_destroyed(entity::registry& registry, entity::id entity_id);
-	void on_orbit_modified(entity::registry& registry, entity::id entity_id, game::component::orbit& component);
+	void on_orbit_modified(entity::registry& registry, entity::id entity_id);
 	void on_orbit_destroyed(entity::registry& registry, entity::id entity_id);
-	void on_atmosphere_modified(entity::registry& registry, entity::id entity_id, game::component::atmosphere& component);
+	void on_atmosphere_modified(entity::registry& registry, entity::id entity_id);
 	void on_atmosphere_destroyed(entity::registry& registry, entity::id entity_id);
 	
 	/// Called each time the observer is modified.

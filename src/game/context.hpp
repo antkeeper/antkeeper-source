@@ -216,7 +216,6 @@ struct context
 	render::compositor* surface_compositor;
 	render::ground_pass* ground_pass;
 	
-	
 	// Scene utilities
 	scene::collection* active_scene;
 	
@@ -269,11 +268,11 @@ struct context
 	bool mono_audio;
 	bool captions;
 	float captions_size;
-
+	
 	// Entities
 	entity::registry* entity_registry;
 	std::unordered_map<std::string, entity::id> entities;
-
+	
 	// Systems
 	game::system::behavior* behavior_system;
 	game::system::camera* camera_system;

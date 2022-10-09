@@ -38,6 +38,7 @@ class blackbody:
 {
 public:
 	blackbody(entity::registry& registry);
+	~blackbody();
 	
 	virtual void update(double t, double dt);
 	
@@ -51,11 +52,11 @@ public:
 private:
 	void update_luminance(entity::id entity_id);
 	
-	void on_blackbody_construct(entity::registry& registry, entity::id entity_id, game::component::blackbody& blackbody);
-	void on_blackbody_replace(entity::registry& registry, entity::id entity_id, game::component::blackbody& blackbody);
+	void on_blackbody_construct(entity::registry& registry, entity::id entity_id);
+	void on_blackbody_update(entity::registry& registry, entity::id entity_id);
 	
-	void on_celestial_body_construct(entity::registry& registry, entity::id entity_id, game::component::celestial_body& celestial_body);
-	void on_celestial_body_replace(entity::registry& registry, entity::id entity_id, game::component::celestial_body& celestial_body);
+	void on_celestial_body_construct(entity::registry& registry, entity::id entity_id);
+	void on_celestial_body_update(entity::registry& registry, entity::id entity_id);
 	
 	math::vector2<double> illuminant;
 	std::vector<double> visible_wavelengths_nm;

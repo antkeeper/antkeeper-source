@@ -270,7 +270,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
 	// Create mating swarm
-	game::ant::create_swarm(ctx);
+	swarm_eid = game::ant::create_swarm(ctx);
 	
 	if (!ctx.menu_bg_billboard->is_active())
 		game::menu::fade_in_bg(ctx);
@@ -297,7 +297,7 @@ main_menu::~main_menu()
 	ctx.ui_scene->remove_object(&title_text);
 	
 	// Destroy swarm
-	game::ant::destroy_swarm(ctx);
+	game::ant::destroy_swarm(ctx, swarm_eid);
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }

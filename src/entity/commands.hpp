@@ -40,7 +40,6 @@ void place(entity::registry& registry, entity::id eid, entity::id celestial_body
 void assign_render_layers(entity::registry& registry, entity::id eid, unsigned int layers);
 math::transform<float> get_local_transform(entity::registry& registry, entity::id eid);
 math::transform<float> get_world_transform(entity::registry& registry, entity::id eid);
-void parent(entity::registry& registry, entity::id child, entity::id parent);
 
 } // namespace command
 } // namespace entity

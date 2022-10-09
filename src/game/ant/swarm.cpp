@@ -50,7 +50,7 @@ static math::vector3<T> sphere_random(Generator& rng)
 	return {x * scale, y * scale, z * scale};
 }
 
-void create_swarm(game::context& ctx)
+entity::id create_swarm(game::context& ctx)
 {
 	// Determine swarm properties
 	const float3 swarm_center = {0, 100, 0};
@@ -61,6 +61,19 @@ void create_swarm(game::context& ctx)
 	
 	const float3 male_scale = {0.5, 0.5, 0.5};
 	const float3 queen_scale = {1, 1, 1};
+	
+	// Init transform component
+	game::component::transform transform;
+	transform.local = math::transform<float>::identity;
+	transform.world = transform.local;
+	transform.warp = true;
+	
+	// Create swarm entity
+	entity::id swarm_eid = ctx.entity_registry->create();
+	transform.local.translation = swarm_center;
+	transform.world = transform.local;
+	transform.warp = true;
+	ctx.entity_registry->emplace<game::component::transform>(swarm_eid, transform);
 	
 	// Init male model component
 	game::component::model male_model;
@@ -73,12 +86,6 @@ void create_swarm(game::context& ctx)
 	queen_model.render_model = ctx.resource_manager->load<render::model>("queen-boid.mdl");
 	queen_model.instance_count = 0;
 	queen_model.layers = 1;
-	
-	// Init transform component
-	game::component::transform transform;
-	transform.local = math::transform<float>::identity;
-	transform.world = transform.local;
-	transform.warp = true;
 	
 	// Init steering component
 	game::component::steering steering;
@@ -98,7 +105,7 @@ void create_swarm(game::context& ctx)
 	steering.wander_angle = 0.0f;
 	steering.wander_angle2 = 0.0f;
 	steering.seek_weight = 0.2f;
-	steering.seek_target = {0, 100, 0};
+	steering.seek_target = swarm_center;
 	steering.flee_weight = 0.0f;
 	steering.sum_weights = steering.wander_weight + steering.seek_weight + steering.flee_weight;
 	
@@ -114,33 +121,39 @@ void create_swarm(game::context& ctx)
 		transform.local.translation = steering.agent.position;
 		
 		entity::id alate_eid = ctx.entity_registry->create();
-		ctx.entity_registry->assign<game::component::steering>(alate_eid, steering);
+		ctx.entity_registry->emplace<game::component::steering>(alate_eid, steering);
 		
 		if (i < male_count)
 		{
 			// Create male
-			ctx.entity_registry->assign<game::component::model>(alate_eid, male_model);
+			ctx.entity_registry->emplace<game::component::model>(alate_eid, male_model);
 			
 			transform.local.scale = male_scale;
 			transform.world = transform.local;
-			ctx.entity_registry->assign<game::component::transform>(alate_eid, transform);
+			ctx.entity_registry->emplace<game::component::transform>(alate_eid, transform);
 		}
 		else
 		{
 			// Create queen
-			ctx.entity_registry->assign<game::component::model>(alate_eid, queen_model);
+			ctx.entity_registry->emplace<game::component::model>(alate_eid, queen_model);
 			
 			transform.local.scale = queen_scale;
 			transform.world = transform.local;
-			ctx.entity_registry->assign<game::component::transform>(alate_eid, transform);
+			ctx.entity_registry->emplace<game::component::transform>(alate_eid, transform);
 		}
 	}
+	
+	return swarm_eid;
 }
 
-void destroy_swarm(game::context& ctx)
+void destroy_swarm(game::context& ctx, entity::id swarm_eid)
 {
+	// Destroy alates
 	auto view = ctx.entity_registry->view<game::component::steering>();
 	ctx.entity_registry->destroy(view.begin(), view.end());
+	
+	// Destroy swarm
+	ctx.entity_registry->destroy(swarm_eid);
 }
 
 } // namespace ant
