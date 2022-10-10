@@ -109,6 +109,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	// Create camera rig
 	create_camera_rig();
 	
+	// Select random alate
 	ctx.entity_registry->view<component::transform, component::steering>().each
 	(
 		[&](entity::id alate_eid, auto& transform, auto& steering)
@@ -116,6 +117,9 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 			select_entity(alate_eid);
 		}
 	);
+	
+	// Satisfy camera rig constraints
+	satisfy_camera_rig_constraints();
 	
 	// Queue fade in
 	ctx.fade_transition_color->set_value({1, 1, 1});
@@ -260,7 +264,7 @@ void nuptial_flight::create_camera_rig()
 	ctx.entity_registry->emplace<component::transform>(camera_rig_eid, camera_rig_transform);
 	ctx.entity_registry->emplace<component::constraint_stack>(camera_rig_eid, camera_rig_constraint_stack);
 	
-	set_camera_rig_zoom(0.5f);
+	set_camera_rig_zoom(0.25f);
 }
 
 void nuptial_flight::destroy_camera_rig()
@@ -293,27 +297,62 @@ void nuptial_flight::set_camera_rig_zoom(float zoom)
 	);
 }
 
+void nuptial_flight::satisfy_camera_rig_constraints()
+{
+	// Warp camera rig focus ease to
+	ctx.entity_registry->patch<component::constraint::ease_to>
+	(
+		camera_rig_focus_ease_to_eid,
+		[&](auto& component)
+		{
+			component.t = component.duration;
+		}
+	);
+	
+	// Warp camera rig spring translation
+	ctx.entity_registry->patch<component::constraint::spring_translation>
+	(
+		camera_rig_spring_translation_eid,
+		[&](auto& component)
+		{
+			component.spring.x0 = component.spring.x1;
+			component.spring.v *= 0.0f;
+		}
+	);
+	
+	// Warp camera rig spring rotation
+	ctx.entity_registry->patch<component::constraint::spring_rotation>
+	(
+		camera_rig_spring_rotation_eid,
+		[&](auto& component)
+		{
+			component.spring.x0 = component.spring.x1;
+			component.spring.v *= 0.0f;
+		}
+	);
+}
+
 void nuptial_flight::enable_controls()
 {
+	// Reset mouse look
 	mouse_look = false;
 	
-	float slow_modifier = 0.25f;
-	float fast_modifier = 4.0f;
-	float dolly_speed = 5.0f;
-	float truck_speed = dolly_speed;
-	float pedestal_speed = 5.0f;
+	double time_scale = 0.0;
+	double ff_time_scale = 60.0 * 200.0;
+	const float dolly_zoom_speed = 4.0f;
+	
+	// Init control settings
 	float mouse_tilt_sensitivity = 1.0f;
 	float mouse_pan_sensitivity = 1.0f;
 	bool mouse_invert_tilt = false;
 	bool mouse_invert_pan = false;
+	bool mouse_look_toggle = false;
 	float gamepad_tilt_sensitivity = 1.0f;
 	float gamepad_pan_sensitivity = 1.0f;
 	bool gamepad_invert_tilt = false;
 	bool gamepad_invert_pan = false;
-	bool mouse_look_toggle = false;
-	double time_scale = 0.0;
-	double ff_time_scale = 60.0 * 200.0;
 	
+	// Read control settings
 	if (ctx.config->contains("mouse_tilt_sensitivity"))
 		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());
 	if (ctx.config->contains("mouse_pan_sensitivity"))
@@ -324,7 +363,6 @@ void nuptial_flight::enable_controls()
 		mouse_invert_pan = (*ctx.config)["mouse_invert_pan"].get<bool>();
 	if (ctx.config->contains("mouse_look_toggle"))
 		mouse_look_toggle = (*ctx.config)["mouse_look_toggle"].get<bool>();
-	
 	if (ctx.config->contains("gamepad_tilt_sensitivity"))
 		gamepad_tilt_sensitivity = math::radians((*ctx.config)["gamepad_tilt_sensitivity"].get<float>());
 	if (ctx.config->contains("gamepad_pan_sensitivity"))
@@ -334,12 +372,11 @@ void nuptial_flight::enable_controls()
 	if (ctx.config->contains("gamepad_invert_pan"))
 		gamepad_invert_pan = (*ctx.config)["gamepad_invert_pan"].get<bool>();
 	
+	// Determine tilt and pan factors according to sensitivity and inversion
 	const float mouse_tilt_factor = mouse_tilt_sensitivity * (mouse_invert_tilt ? -1.0f : 1.0f);
 	const float mouse_pan_factor = mouse_pan_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
 	const float gamepad_tilt_factor = gamepad_tilt_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
 	const float gamepad_pan_factor = gamepad_pan_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
-	
-	const float dolly_zoom_speed = 4.0f;
 	
 	// Mouse look
 	ctx.controls["mouse_look"]->set_activated_callback
@@ -367,7 +404,7 @@ void nuptial_flight::enable_controls()
 	);
 	
 	// Arc left control
-	ctx.controls["look_left_mouse"]->set_active_callback
+	ctx.controls["look_right_mouse"]->set_active_callback
 	(
 		[&, mouse_pan_factor](float value)
 		{
@@ -384,7 +421,7 @@ void nuptial_flight::enable_controls()
 			);
 		}
 	);
-	ctx.controls["look_left_gamepad"]->set_active_callback
+	ctx.controls["look_right_gamepad"]->set_active_callback
 	(
 		[&, gamepad_pan_factor](float value)
 		{
@@ -400,7 +437,7 @@ void nuptial_flight::enable_controls()
 	);
 	
 	// Arc right control
-	ctx.controls["look_right_mouse"]->set_active_callback
+	ctx.controls["look_left_mouse"]->set_active_callback
 	(
 		[&, mouse_pan_factor](float value)
 		{
@@ -417,7 +454,7 @@ void nuptial_flight::enable_controls()
 			);
 		}
 	);
-	ctx.controls["look_right_gamepad"]->set_active_callback
+	ctx.controls["look_left_gamepad"]->set_active_callback
 	(
 		[&, gamepad_pan_factor](float value)
 		{
@@ -433,7 +470,7 @@ void nuptial_flight::enable_controls()
 	);
 	
 	// Arc down control
-	ctx.controls["look_down_mouse"]->set_active_callback
+	ctx.controls["look_up_mouse"]->set_active_callback
 	(
 		[&, mouse_tilt_factor](float value)
 		{
@@ -451,7 +488,7 @@ void nuptial_flight::enable_controls()
 			);
 		}
 	);
-	ctx.controls["look_down_gamepad"]->set_active_callback
+	ctx.controls["look_up_gamepad"]->set_active_callback
 	(
 		[&, gamepad_tilt_factor](float value)
 		{
@@ -468,7 +505,7 @@ void nuptial_flight::enable_controls()
 	);
 	
 	// Arc up control
-	ctx.controls["look_up_mouse"]->set_active_callback
+	ctx.controls["look_down_mouse"]->set_active_callback
 	(
 		[&, mouse_tilt_factor](float value)
 		{
@@ -486,7 +523,7 @@ void nuptial_flight::enable_controls()
 			);
 		}
 	);
-	ctx.controls["look_up_gamepad"]->set_active_callback
+	ctx.controls["look_down_gamepad"]->set_active_callback
 	(
 		[&, gamepad_tilt_factor](float value)
 		{
@@ -583,6 +620,15 @@ void nuptial_flight::enable_controls()
 		[&]()
 		{
 			select_nearest_entity({-1.0f, 0.0f, 0.0f});
+		}
+	);
+	
+	// Action control
+	ctx.controls["action"]->set_activated_callback
+	(
+		[&]()
+		{
+			
 		}
 	);
 	
@@ -752,6 +798,7 @@ void nuptial_flight::disable_controls()
 	ctx.controls["look_down_gamepad"]->set_active_callback(nullptr);
 	ctx.controls["look_down_mouse"]->set_active_callback(nullptr);
 	ctx.controls["select_mouse"]->set_activated_callback(nullptr);
+	ctx.controls["action"]->set_activated_callback(nullptr);
 	ctx.controls["switch_pov"]->set_activated_callback(nullptr);
 	ctx.controls["fast_forward"]->set_activated_callback(nullptr);
 	ctx.controls["rewind"]->set_activated_callback(nullptr);

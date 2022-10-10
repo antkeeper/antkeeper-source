@@ -44,6 +44,13 @@ public:
 	
 	virtual void update(double t, double dt);
 	
+	/**
+	 * Manually evaluates an entity's constraints.
+	 *
+	 * @param entity_id ID of a constrained entity.
+	 */
+	void evaluate(entity::id entity_id);
+	
 private:
 	void on_constraint_stack_update(entity::registry& registry, entity::id constraint_stack_eid);
 	

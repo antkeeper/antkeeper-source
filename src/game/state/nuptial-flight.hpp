@@ -38,6 +38,7 @@ private:
 	void destroy_camera_rig();
 	
 	void set_camera_rig_zoom(float zoom);
+	void satisfy_camera_rig_constraints();
 	
 	void enable_controls();
 	void disable_controls();

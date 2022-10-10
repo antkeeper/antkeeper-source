@@ -259,7 +259,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure(15.5f);
 	
-	ctx.surface_camera->look_at({-55, 36, 10}, {0, 100, 0}, {0, 1, 0});
+	ctx.surface_camera->look_at({0, 10, 0}, {0, 0, 0}, {0, 0, 1});
 	ctx.surface_camera->update_tweens();
 	
 	// Setup and enable sky and ground passes
@@ -269,11 +269,8 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
-	// Create mating swarm
-	swarm_eid = game::ant::create_swarm(ctx);
-	
-	if (!ctx.menu_bg_billboard->is_active())
-		game::menu::fade_in_bg(ctx);
+	//if (!ctx.menu_bg_billboard->is_active())
+	//	game::menu::fade_in_bg(ctx);
 		
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
@@ -298,9 +295,6 @@ main_menu::~main_menu()
 	
 	// Destruct title text
 	ctx.ui_scene->remove_object(&title_text);
-	
-	// Destroy swarm
-	game::ant::destroy_swarm(ctx, swarm_eid);
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }

@@ -72,6 +72,42 @@ void constraint::update(double t, double dt)
 	);
 }
 
+void constraint::evaluate(entity::id entity_id)
+{
+	if (!registry.valid(entity_id))
+		return;
+	
+	// Get transform and constraint stack components of the entity
+	const auto [transform, stack] = registry.try_get<component::transform, component::constraint_stack>(entity_id);
+	
+	if (!transform || !stack)
+		return;
+	
+	// Init world-space transform
+	transform->world = transform->local;
+	
+	// Get entity ID of first constraint
+	entity::id constraint_eid = stack->head;
+	
+	// Consecutively apply constraints
+	while (registry.valid(constraint_eid))
+	{
+		// Get constraint stack node of the constraint
+		const component::constraint_stack_node* node = registry.try_get<component::constraint_stack_node>(constraint_eid);
+		
+		// Abort if constraint is missing a constraint stack node
+		if (!node)
+			break;
+		
+		// Apply constraint if enabled
+		if (node->active)
+			handle_constraint(*transform, constraint_eid, 0.0f);
+		
+		// Get entity ID of next constraint in the stack
+		constraint_eid = node->next;
+	}
+}
+
 void constraint::on_constraint_stack_update(entity::registry& registry, entity::id constraint_stack_eid)
 {
 	registry.sort<component::constraint_stack>
