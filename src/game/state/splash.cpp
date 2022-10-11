@@ -19,7 +19,6 @@
 
 #include "game/state/splash.hpp"
 #include "game/state/main-menu.hpp"
-#include "game/state/nuptial-flight.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
@@ -118,7 +117,6 @@ splash::splash(game::context& ctx):
 				{
 					ctx.state_machine.pop();
 					ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
-					//ctx.state_machine.emplace(new game::state::nuptial_flight(ctx));
 				}
 			);
 		}
@@ -147,7 +145,6 @@ splash::splash(game::context& ctx):
 				// Change to main menu state
 				ctx.state_machine.pop();
 				ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
-				//ctx.state_machine.emplace(new game::state::nuptial_flight(ctx));
 			}
 		}
 	);

@@ -19,6 +19,7 @@
 
 #include "game/state/nuptial-flight.hpp"
 #include "game/state/pause-menu.hpp"
+#include "game/state/nest-selection.hpp"
 #include "game/ant/swarm.hpp"
 #include "entity/archetype.hpp"
 #include "game/system/camera.hpp"
@@ -34,6 +35,8 @@
 #include "game/component/constraint-stack.hpp"
 #include "game/component/steering.hpp"
 #include "game/component/picking.hpp"
+#include "game/component/spring.hpp"
+#include "math/projection.hpp"
 #include "game/controls.hpp"
 #include "entity/commands.hpp"
 #include "animation/screen-transition.hpp"
@@ -83,7 +86,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	}
 	
 	// Load biome
-	game::load::biome(ctx, "desert-scrub.bio");
+	//game::load::biome(ctx, "desert-scrub.bio");
 	
 	// Set world time
 	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
@@ -105,6 +108,26 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	// Set camera exposure
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure(ev100_sunny16);
+	
+	const auto& viewport_dimensions = ctx.app->get_viewport_dimensions();
+	const float aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
+	
+	// Init camera rig params
+	camera_rig_near_distance = 1.0f;
+	camera_rig_far_distance = 150.0f;
+	camera_rig_near_fov = math::vertical_fov(math::radians(100.0f), aspect_ratio);
+	camera_rig_far_fov = math::vertical_fov(math::radians(60.0f), aspect_ratio);
+	camera_rig_zoom_speed = 4.0f;
+	camera_rig_translation_spring_angular_frequency = period_to_rads(0.125f);
+	camera_rig_rotation_spring_angular_frequency = period_to_rads(0.125f);
+	camera_rig_fov_spring_angular_frequency = period_to_rads(0.125f);
+	camera_rig_focus_ease_to_duration = 1.0f;
+	
+	// Read camera rig settingss
+	if (ctx.config->contains("near_fov"))
+		camera_rig_near_fov = math::vertical_fov(math::radians((*ctx.config)["near_fov"].get<float>()), aspect_ratio);
+	if (ctx.config->contains("far_fov"))
+		camera_rig_far_fov = math::vertical_fov(math::radians((*ctx.config)["far_fov"].get<float>()), aspect_ratio);
 	
 	// Create camera rig
 	create_camera_rig();
@@ -150,7 +173,7 @@ void nuptial_flight::create_camera_rig()
 	component::constraint::ease_to camera_rig_focus_ease_to;
 	camera_rig_focus_ease_to.target = selected_eid;
 	camera_rig_focus_ease_to.start = {0, 0, 0};
-	camera_rig_focus_ease_to.duration = 1.0f;
+	camera_rig_focus_ease_to.duration = camera_rig_focus_ease_to_duration;
 	camera_rig_focus_ease_to.t = camera_rig_focus_ease_to.duration;
 	camera_rig_focus_ease_to.function = &ease<float3, float>::out_expo;
 	component::constraint_stack_node camera_rig_focus_ease_to_node;
@@ -215,7 +238,7 @@ void nuptial_flight::create_camera_rig()
 		{0.0f, 0.0f, 0.0f},
 		{0.0f, 0.0f, 0.0f},
 		1.0f,
-		hz_to_rads(8.0f)
+		camera_rig_rotation_spring_angular_frequency
 	};
 	component::constraint_stack_node camera_rig_spring_rotation_node;
 	camera_rig_spring_rotation_node.active = true;
@@ -233,7 +256,7 @@ void nuptial_flight::create_camera_rig()
 		{0.0f, 0.0f, 0.0f},
 		{0.0f, 0.0f, 0.0f},
 		1.0f,
-		hz_to_rads(8.0f)
+		camera_rig_translation_spring_angular_frequency
 	};
 	component::constraint_stack_node camera_rig_spring_translation_node;
 	camera_rig_spring_translation_node.active = true;
@@ -264,6 +287,25 @@ void nuptial_flight::create_camera_rig()
 	ctx.entity_registry->emplace<component::transform>(camera_rig_eid, camera_rig_transform);
 	ctx.entity_registry->emplace<component::constraint_stack>(camera_rig_eid, camera_rig_constraint_stack);
 	
+	// Construct camera rig fov spring
+	component::spring1 camera_rig_fov_spring;
+	camera_rig_fov_spring.spring =
+	{
+		0.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		camera_rig_fov_spring_angular_frequency
+	};
+	camera_rig_fov_spring.callback = [&](float fov)
+	{
+		ctx.surface_camera->set_perspective(fov, ctx.surface_camera->get_aspect_ratio(), ctx.surface_camera->get_clip_near(), ctx.surface_camera->get_clip_far());
+	};
+	
+	// Construct camera rig fov spring entity
+	camera_rig_fov_spring_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<component::spring1>(camera_rig_fov_spring_eid, camera_rig_fov_spring);
+	
 	set_camera_rig_zoom(0.25f);
 }
 
@@ -277,16 +319,15 @@ void nuptial_flight::destroy_camera_rig()
 	
 	ctx.entity_registry->destroy(camera_rig_focus_eid);
 	ctx.entity_registry->destroy(camera_rig_focus_ease_to_eid);
+	
+	ctx.entity_registry->destroy(camera_rig_fov_spring_eid);
 }
 
 void nuptial_flight::set_camera_rig_zoom(float zoom)
 {
-	const float near_distance = 1.0f;
-	const float far_distance = 50.0f;
-	
 	camera_rig_zoom = zoom;
-	const float distance = math::log_lerp(far_distance, near_distance, camera_rig_zoom);
 	
+	const float distance = math::log_lerp(camera_rig_far_distance, camera_rig_near_distance, camera_rig_zoom);
 	ctx.entity_registry->patch<component::constraint::spring_translation>
 	(
 		camera_rig_spring_translation_eid,
@@ -295,11 +336,21 @@ void nuptial_flight::set_camera_rig_zoom(float zoom)
 			component.spring.x1[2] = distance;
 		}
 	);
+	
+	const float fov = math::log_lerp(camera_rig_far_fov, camera_rig_near_fov, camera_rig_zoom);	
+	ctx.entity_registry->patch<component::spring1>
+	(
+		camera_rig_fov_spring_eid,
+		[&](auto& component)
+		{
+			component.spring.x1 = fov;
+		}
+	);
 }
 
 void nuptial_flight::satisfy_camera_rig_constraints()
 {
-	// Warp camera rig focus ease to
+	// Satisfy camera rig focus ease to constraint
 	ctx.entity_registry->patch<component::constraint::ease_to>
 	(
 		camera_rig_focus_ease_to_eid,
@@ -309,7 +360,7 @@ void nuptial_flight::satisfy_camera_rig_constraints()
 		}
 	);
 	
-	// Warp camera rig spring translation
+	// Satisfy camera rig spring translation constraint
 	ctx.entity_registry->patch<component::constraint::spring_translation>
 	(
 		camera_rig_spring_translation_eid,
@@ -320,10 +371,21 @@ void nuptial_flight::satisfy_camera_rig_constraints()
 		}
 	);
 	
-	// Warp camera rig spring rotation
+	// Satisfy camera rig spring rotation constraint
 	ctx.entity_registry->patch<component::constraint::spring_rotation>
 	(
 		camera_rig_spring_rotation_eid,
+		[&](auto& component)
+		{
+			component.spring.x0 = component.spring.x1;
+			component.spring.v *= 0.0f;
+		}
+	);
+	
+	// Satisfycamera rig fov spring
+	ctx.entity_registry->patch<component::spring1>
+	(
+		camera_rig_fov_spring_eid,
 		[&](auto& component)
 		{
 			component.spring.x0 = component.spring.x1;
@@ -339,7 +401,6 @@ void nuptial_flight::enable_controls()
 	
 	double time_scale = 0.0;
 	double ff_time_scale = 60.0 * 200.0;
-	const float dolly_zoom_speed = 4.0f;
 	
 	// Init control settings
 	float mouse_tilt_sensitivity = 1.0f;
@@ -414,7 +475,7 @@ void nuptial_flight::enable_controls()
 			ctx.entity_registry->patch<component::constraint::spring_rotation>
 			(
 				camera_rig_spring_rotation_eid,
-				[&](auto& component)
+				[&, mouse_pan_factor](auto& component)
 				{
 					component.spring.x1[0] -= mouse_pan_factor * value;
 				}
@@ -428,7 +489,7 @@ void nuptial_flight::enable_controls()
 			ctx.entity_registry->patch<component::constraint::spring_rotation>
 			(
 				camera_rig_spring_rotation_eid,
-				[&](auto& component)
+				[&, gamepad_pan_factor](auto& component)
 				{
 					component.spring.x1[0] -= gamepad_pan_factor * value * static_cast<float>(ctx.loop.get_update_period());
 				}
@@ -447,7 +508,7 @@ void nuptial_flight::enable_controls()
 			ctx.entity_registry->patch<component::constraint::spring_rotation>
 			(
 				camera_rig_spring_rotation_eid,
-				[&](auto& component)
+				[&, mouse_pan_factor](auto& component)
 				{
 					component.spring.x1[0] += mouse_pan_factor * value;
 				}
@@ -461,7 +522,7 @@ void nuptial_flight::enable_controls()
 			ctx.entity_registry->patch<component::constraint::spring_rotation>
 			(
 				camera_rig_spring_rotation_eid,
-				[&](auto& component)
+				[&, gamepad_pan_factor](auto& component)
 				{
 					component.spring.x1[0] += gamepad_pan_factor * value * static_cast<float>(ctx.loop.get_update_period());
 				}
@@ -480,7 +541,7 @@ void nuptial_flight::enable_controls()
 			ctx.entity_registry->patch<component::constraint::spring_rotation>
 			(
 				camera_rig_spring_rotation_eid,
-				[&](auto& component)
+				[&, mouse_tilt_factor](auto& component)
 				{
 					component.spring.x1[1] -= mouse_tilt_factor * value;
 					component.spring.x1[1] = std::max(-math::half_pi<float>, component.spring.x1[1]);
@@ -495,7 +556,7 @@ void nuptial_flight::enable_controls()
 			ctx.entity_registry->patch<component::constraint::spring_rotation>
 			(
 				camera_rig_spring_rotation_eid,
-				[&](auto& component)
+				[&, gamepad_tilt_factor](auto& component)
 				{
 					component.spring.x1[1] -= gamepad_tilt_factor * value * static_cast<float>(ctx.loop.get_update_period());
 					component.spring.x1[1] = std::max(-math::half_pi<float>, component.spring.x1[1]);
@@ -515,7 +576,7 @@ void nuptial_flight::enable_controls()
 			ctx.entity_registry->patch<component::constraint::spring_rotation>
 			(
 				camera_rig_spring_rotation_eid,
-				[&](auto& component)
+				[&, mouse_tilt_factor](auto& component)
 				{
 					component.spring.x1[1] += mouse_tilt_factor * value;
 					component.spring.x1[1] = std::min(math::half_pi<float>, component.spring.x1[1]);
@@ -530,7 +591,7 @@ void nuptial_flight::enable_controls()
 			ctx.entity_registry->patch<component::constraint::spring_rotation>
 			(
 				camera_rig_spring_rotation_eid,
-				[&](auto& component)
+				[&, gamepad_tilt_factor](auto& component)
 				{
 					component.spring.x1[1] += gamepad_tilt_factor * value * static_cast<float>(ctx.loop.get_update_period());
 					component.spring.x1[1] = std::min(math::half_pi<float>, component.spring.x1[1]);
@@ -542,18 +603,18 @@ void nuptial_flight::enable_controls()
 	// Dolly in control
 	ctx.controls["move_up"]->set_active_callback
 	(
-		[&, dolly_zoom_speed](float value)
+		[&](float value)
 		{
-			set_camera_rig_zoom(std::min(1.0f, camera_rig_zoom + dolly_zoom_speed * static_cast<float>(ctx.loop.get_update_period())));
+			set_camera_rig_zoom(std::min(1.0f, camera_rig_zoom + camera_rig_zoom_speed * static_cast<float>(ctx.loop.get_update_period())));
 		}
 	);
 	
 	// Dolly out control
 	ctx.controls["move_down"]->set_active_callback
 	(
-		[&, dolly_zoom_speed](float value)
+		[&](float value)
 		{
-			set_camera_rig_zoom(std::max(0.0f, camera_rig_zoom - dolly_zoom_speed * static_cast<float>(ctx.loop.get_update_period())));
+			set_camera_rig_zoom(std::max(0.0f, camera_rig_zoom - camera_rig_zoom_speed * static_cast<float>(ctx.loop.get_update_period())));
 		}
 	);
 	
@@ -628,7 +689,12 @@ void nuptial_flight::enable_controls()
 	(
 		[&]()
 		{
+			// Disable controls
+			disable_controls();
 			
+			// Change to nest selection state
+			ctx.state_machine.pop();
+			ctx.state_machine.emplace(new game::state::nest_selection(ctx));
 		}
 	);
 	
@@ -781,30 +847,37 @@ void nuptial_flight::disable_controls()
 		ctx.app->set_relative_mouse_mode(false);
 	}
 	
+	ctx.controls["mouse_look"]->set_activated_callback(nullptr);
+	ctx.controls["mouse_look"]->set_deactivated_callback(nullptr);
+	ctx.controls["look_right_mouse"]->set_active_callback(nullptr);
+	ctx.controls["look_right_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_left_mouse"]->set_active_callback(nullptr);
+	ctx.controls["look_left_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_up_mouse"]->set_active_callback(nullptr);
+	ctx.controls["look_up_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["look_down_mouse"]->set_active_callback(nullptr);
+	ctx.controls["look_down_gamepad"]->set_active_callback(nullptr);
+	ctx.controls["move_up"]->set_active_callback(nullptr);
+	ctx.controls["move_down"]->set_active_callback(nullptr);
+	ctx.controls["select_mouse"]->set_activated_callback(nullptr);
 	ctx.controls["move_forward"]->set_activated_callback(nullptr);
 	ctx.controls["move_back"]->set_activated_callback(nullptr);
 	ctx.controls["move_right"]->set_activated_callback(nullptr);
 	ctx.controls["move_left"]->set_activated_callback(nullptr);
-	ctx.controls["move_up"]->set_active_callback(nullptr);
-	ctx.controls["move_down"]->set_active_callback(nullptr);
-	ctx.controls["mouse_look"]->set_activated_callback(nullptr);
-	ctx.controls["mouse_look"]->set_deactivated_callback(nullptr);
-	ctx.controls["look_left_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_left_mouse"]->set_active_callback(nullptr);
-	ctx.controls["look_right_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_right_mouse"]->set_active_callback(nullptr);
-	ctx.controls["look_up_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_up_mouse"]->set_active_callback(nullptr);
-	ctx.controls["look_down_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_down_mouse"]->set_active_callback(nullptr);
-	ctx.controls["select_mouse"]->set_activated_callback(nullptr);
 	ctx.controls["action"]->set_activated_callback(nullptr);
-	ctx.controls["switch_pov"]->set_activated_callback(nullptr);
 	ctx.controls["fast_forward"]->set_activated_callback(nullptr);
+	ctx.controls["fast_forward"]->set_deactivated_callback(nullptr);
 	ctx.controls["rewind"]->set_activated_callback(nullptr);
+	ctx.controls["rewind"]->set_deactivated_callback(nullptr);
 	ctx.controls["pause"]->set_activated_callback(nullptr);
-	ctx.controls["increase_exposure"]->set_activated_callback(nullptr);
-	ctx.controls["decrease_exposure"]->set_activated_callback(nullptr);
+	ctx.controls["increase_exposure"]->set_active_callback(nullptr);
+	ctx.controls["decrease_exposure"]->set_active_callback(nullptr);
+	ctx.controls["dec_red"]->set_active_callback(nullptr);
+	ctx.controls["inc_red"]->set_active_callback(nullptr);
+	ctx.controls["dec_green"]->set_active_callback(nullptr);
+	ctx.controls["inc_green"]->set_active_callback(nullptr);
+	ctx.controls["dec_blue"]->set_active_callback(nullptr);
+	ctx.controls["inc_blue"]->set_active_callback(nullptr);
 }
 
 void nuptial_flight::select_entity(entity::id entity_id)

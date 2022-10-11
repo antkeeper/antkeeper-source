@@ -75,6 +75,7 @@
 #include "game/system/orbit.hpp"
 #include "game/system/proteome.hpp"
 #include "game/system/steering.hpp"
+#include "game/system/spring.hpp"
 #include "entity/commands.hpp"
 #include "utility/paths.hpp"
 #include "event/event-dispatcher.hpp"
@@ -874,6 +875,9 @@ void boot::setup_systems()
 	// Setup steering system
 	ctx.steering_system = new game::system::steering(*ctx.entity_registry);
 	
+	// Setup spring system
+	ctx.spring_system = new game::system::spring(*ctx.entity_registry);
+	
 	// Setup spatial system
 	ctx.spatial_system = new game::system::spatial(*ctx.entity_registry);
 	
@@ -892,7 +896,7 @@ void boot::setup_systems()
 	ctx.blackbody_system->set_illuminant(color::illuminant::deg2::d55<double>);
 	
 	// RGB wavelengths for atmospheric scatteering
-	ctx.rgb_wavelengths = {645, 575, 440};
+	ctx.rgb_wavelengths = {640, 575, 440};
 	
 	// Setup atmosphere system
 	ctx.atmosphere_system = new game::system::atmosphere(*ctx.entity_registry);
@@ -1139,6 +1143,7 @@ void boot::setup_loop()
 			ctx.blackbody_system->update(t, dt);
 			ctx.atmosphere_system->update(t, dt);
 			ctx.astronomy_system->update(t, dt);
+			ctx.spring_system->update(t, dt);
 			ctx.spatial_system->update(t, dt);
 			ctx.constraint_system->update(t, dt);
 			ctx.painting_system->update(t, dt);

@@ -48,5 +48,6 @@ namespace math {}
 #include "math/interpolation.hpp"
 #include "math/random.hpp"
 #include "math/map.hpp"
+#include "math/projection.hpp"
 
 #endif // ANTKEEPER_MATH_HPP

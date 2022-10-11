@@ -56,4 +56,3 @@ constexpr float unit_cube[8][3] =
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_MARCHING_CUBES_HPP
-

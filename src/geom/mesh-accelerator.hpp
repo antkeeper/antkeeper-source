@@ -54,7 +54,7 @@ public:
 	 * Finds the first intersection between a ray and a triangle in the mesh.
 	 *
 	 * @param ray Ray to test for intersection.
-	 * @return Ray query result on intersection, and `std::nullopt` if no intersection occurreda.
+	 * @return Ray query result on intersection, and `std::nullopt` if no intersection occurred.
 	 */
 	std::optional<ray_query_result> query_nearest(const ray<float>& ray) const;
 	

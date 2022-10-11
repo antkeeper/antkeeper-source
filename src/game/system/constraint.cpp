@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "constraint.hpp"
+#include "game/system/constraint.hpp"
 #include "game/component/constraint-stack.hpp"
 
 namespace game {

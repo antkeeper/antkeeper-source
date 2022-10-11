@@ -54,8 +54,20 @@ private:
 	entity::id camera_rig_spring_rotation_eid;
 	entity::id camera_rig_copy_translation_eid;
 	entity::id camera_rig_pivot_eid;
-	
+	float camera_rig_near_distance;
+	float camera_rig_far_distance;
+	float camera_rig_near_fov;
+	float camera_rig_far_fov;
+	float camera_rig_zoom_speed;
 	float camera_rig_zoom;
+	
+	entity::id camera_rig_fov_spring_eid;
+	
+	float camera_rig_translation_spring_angular_frequency;
+	float camera_rig_rotation_spring_angular_frequency;
+	float camera_rig_fov_spring_angular_frequency;
+	float camera_rig_focus_ease_to_duration;
+
 	
 	entity::id swarm_eid;
 	

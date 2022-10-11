@@ -21,6 +21,8 @@
 #define ANTKEEPER_GAME_STATE_NEST_SELECTION_HPP
 
 #include "game/state/base.hpp"
+#include "entity/id.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace game {
 namespace state {
@@ -32,15 +34,33 @@ public:
 	virtual ~nest_selection();
 	
 private:
-	void setup_camera();
+	void create_first_person_camera_rig();
+	void destroy_first_person_camera_rig();
 	
-	bool is_keeper;
-	void enable_keeper_controls();
-	void disable_keeper_controls();
-	void enable_ant_controls();
-	void disable_ant_controls();
+	void set_first_person_camera_rig_pedestal(float pedestal);
+	void move_first_person_camera_rig(const float2& direction, float factor);
+	void satisfy_first_person_camera_rig_constraints();
+	
 	void enable_controls();
 	void disable_controls();
+	
+	entity::id first_person_camera_rig_eid;
+	entity::id first_person_camera_rig_spring_translation_eid;
+	entity::id first_person_camera_rig_spring_rotation_eid;
+	entity::id first_person_camera_rig_fov_spring_eid;
+	float first_person_camera_rig_translation_spring_angular_frequency;
+	float first_person_camera_rig_rotation_spring_angular_frequency;
+	float first_person_camera_rig_fov_spring_angular_frequency;
+	float first_person_camera_rig_min_elevation;
+	float first_person_camera_rig_max_elevation;
+	float first_person_camera_near_fov;
+	float first_person_camera_far_fov;
+	float first_person_camera_near_speed;
+	float first_person_camera_far_speed;
+	float first_person_camera_rig_pedestal_speed;
+	float first_person_camera_rig_pedestal;
+	
+	bool mouse_look;
 };
 
 } // namespace state

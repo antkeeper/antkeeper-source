@@ -98,6 +98,7 @@ namespace game
 		class samara;
 		class proteome;
 		class steering;
+		class spring;
 	}
 }
 
@@ -286,6 +287,7 @@ struct context
 	game::system::subterrain* subterrain_system;
 	game::system::terrain* terrain_system;
 	game::system::vegetation* vegetation_system;
+	game::system::spring* spring_system;
 	game::system::spatial* spatial_system;
 	game::system::painting* painting_system;
 	game::system::blackbody* blackbody_system;

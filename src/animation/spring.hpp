@@ -84,6 +84,15 @@ T hz_to_rads(T hz);
 template <typename T>
 T rads_to_hz(T rads);
 
+/**
+ * Converts a period from seconds to radians per second.
+ *
+ * @param t Period, in seconds.
+ * @return Angular frequency, in radians per second.
+ */
+template <typename T>
+T period_to_rads(T t);
+
 template <typename T, typename S>
 void spring(T& x0, T& v, const T& x1, S z, S w, S dt)
 {
@@ -114,6 +123,12 @@ template <typename T>
 inline T rads_to_hz(T rads)
 {
 	return rads / math::two_pi<T>;
+}
+
+template <typename T>
+inline T period_to_rads(T t)
+{
+	return math::two_pi<T> / t;
 }
 
 #endif // ANTKEEPER_SPRING_HPP

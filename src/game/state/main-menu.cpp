@@ -246,7 +246,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	{
 		game::world::cosmogenesis(ctx);
 		game::world::create_observer(ctx);
-		game::load::biome(ctx, "debug.bio");
+		game::load::biome(ctx, "desert-scrub.bio");
 	}
 	
 	// Set world time
@@ -257,9 +257,13 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	ctx.surface_camera->set_active(true);
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
-	ctx.surface_camera->set_exposure(15.5f);
+	ctx.surface_camera->set_exposure(ev100_sunny16);
 	
-	ctx.surface_camera->look_at({0, 10, 0}, {0, 0, 0}, {0, 0, 1});
+	const auto& viewport_dimensions = ctx.app->get_viewport_dimensions();
+	const float aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
+	
+	ctx.surface_camera->look_at({0, 3.0f, 0}, {0, 0, 0}, {0, 0, 1});
+	ctx.surface_camera->set_perspective(math::vertical_fov(math::radians(100.0f), aspect_ratio), ctx.surface_camera->get_aspect_ratio(), ctx.surface_camera->get_clip_near(), ctx.surface_camera->get_clip_far());
 	ctx.surface_camera->update_tweens();
 	
 	// Setup and enable sky and ground passes
@@ -271,7 +275,6 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	//if (!ctx.menu_bg_billboard->is_active())
 	//	game::menu::fade_in_bg(ctx);
-		
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
