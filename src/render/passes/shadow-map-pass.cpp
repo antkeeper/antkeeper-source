@@ -187,27 +187,27 @@ void shadow_map_pass::render(const render::context& ctx, render::queue& queue) c
 	
 		// Calculate scale
 		float3 scale;
-		scale.x = 2.0f / (cropping_bounds.max_point.x - cropping_bounds.min_point.x);
-		scale.y = 2.0f / (cropping_bounds.max_point.y - cropping_bounds.min_point.y);
-		scale.z = 1.0f / (cropping_bounds.max_point.z - cropping_bounds.min_point.z);
-		//scale.z = 2.0f / (cropping_bounds.max_point.z - cropping_bounds.min_point.z);
+		scale.x() = 2.0f / (cropping_bounds.max_point.x() - cropping_bounds.min_point.x());
+		scale.y() = 2.0f / (cropping_bounds.max_point.y() - cropping_bounds.min_point.y());
+		scale.z() = 1.0f / (cropping_bounds.max_point.z() - cropping_bounds.min_point.z());
+		//scale.z() = 2.0f / (cropping_bounds.max_point.z() - cropping_bounds.min_point.z());
 		
 		// Quantize scale
 		float scale_quantizer = 64.0f;
-		scale.x = 1.0f / std::ceil(1.0f / scale.x * scale_quantizer) * scale_quantizer;
-		scale.y = 1.0f / std::ceil(1.0f / scale.y * scale_quantizer) * scale_quantizer;
+		scale.x() = 1.0f / std::ceil(1.0f / scale.x() * scale_quantizer) * scale_quantizer;
+		scale.y() = 1.0f / std::ceil(1.0f / scale.y() * scale_quantizer) * scale_quantizer;
 		
 		// Calculate offset
 		float3 offset;
-		offset.x = (cropping_bounds.max_point.x + cropping_bounds.min_point.x) * scale.x * -0.5f;
-		offset.y = (cropping_bounds.max_point.y + cropping_bounds.min_point.y) * scale.y * -0.5f;
-		offset.z = -cropping_bounds.min_point.z * scale.z;
-		//offset.z = (cropping_bounds.max_point.z + cropping_bounds.min_point.z) * scale.z * -0.5f;
+		offset.x() = (cropping_bounds.max_point.x() + cropping_bounds.min_point.x()) * scale.x() * -0.5f;
+		offset.y() = (cropping_bounds.max_point.y() + cropping_bounds.min_point.y()) * scale.y() * -0.5f;
+		offset.z() = -cropping_bounds.min_point.z() * scale.z();
+		//offset.z() = (cropping_bounds.max_point.z() + cropping_bounds.min_point.z()) * scale.z() * -0.5f;
 
 		// Quantize offset
 		float half_shadow_map_resolution = static_cast<float>(shadow_map_resolution) * 0.5f;
-		offset.x = std::ceil(offset.x * half_shadow_map_resolution) / half_shadow_map_resolution;
-		offset.y = std::ceil(offset.y * half_shadow_map_resolution) / half_shadow_map_resolution;
+		offset.x() = std::ceil(offset.x() * half_shadow_map_resolution) / half_shadow_map_resolution;
+		offset.y() = std::ceil(offset.y() * half_shadow_map_resolution) / half_shadow_map_resolution;
 		
 		// Crop the light view-projection matrix
 		crop_matrix = math::translate(math::matrix4<float>::identity, offset) * math::scale(math::matrix4<float>::identity, scale);

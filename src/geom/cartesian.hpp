@@ -42,13 +42,13 @@ math::vector3<T> to_spherical(const math::vector3<T>& v);
 template <class T>
 math::vector3<T> to_spherical(const math::vector3<T>& v)
 {
-	const T xx_yy = v.x * v.x + v.y * v.y;
+	const T xx_yy = v.x() * v.x() + v.y() * v.y();
 	
 	return math::vector3<T>
 	{
-		std::sqrt(xx_yy + v.z * v.z),
-		std::atan2(v.z, std::sqrt(xx_yy)),
-		std::atan2(v.y, v.x)
+		std::sqrt(xx_yy + v.z() * v.z()),
+		std::atan2(v.z(), std::sqrt(xx_yy)),
+		std::atan2(v.y(), v.x())
 	};
 }
 

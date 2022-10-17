@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GEOM_RECT_HPP
 #define ANTKEEPER_GEOM_RECT_HPP
 
-#include "math/vector-type.hpp"
+#include "math/vector.hpp"
 
 namespace geom {
 

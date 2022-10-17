@@ -124,7 +124,7 @@ void ground_pass::render(const render::context& ctx, render::queue& queue) const
 
 				// Pre-expose light
 				float3 light_color = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
-				if (light_color.x < directional_light_color.x)
+				if (light_color.x() < directional_light_color.x())
 					break;
 				
 				directional_light_color = light_color;

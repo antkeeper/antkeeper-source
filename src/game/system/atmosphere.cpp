@@ -54,9 +54,9 @@ void atmosphere::set_rgb_wavelengths(const double3& wavelengths)
 	// Update ozone cross sections
 	rgb_ozone_cross_sections =
 	{
-		physics::gas::ozone::cross_section_293k<double>(wavelengths.x * 1e9),
-		physics::gas::ozone::cross_section_293k<double>(wavelengths.y * 1e9),
-		physics::gas::ozone::cross_section_293k<double>(wavelengths.z * 1e9)
+		physics::gas::ozone::cross_section_293k<double>(wavelengths.x() * 1e9),
+		physics::gas::ozone::cross_section_293k<double>(wavelengths.y() * 1e9),
+		physics::gas::ozone::cross_section_293k<double>(wavelengths.z() * 1e9)
 	};
 	
 	// Update atmosphere components
@@ -98,9 +98,9 @@ void atmosphere::update_atmosphere(entity::id entity_id)
 	const double rayleigh_polarization = physics::gas::atmosphere::polarization(component->index_of_refraction, rayleigh_density);
 	component->rayleigh_scattering =
 	{
-		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, rgb_wavelengths.x),
-		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, rgb_wavelengths.y),
-		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, rgb_wavelengths.z)
+		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, rgb_wavelengths.x()),
+		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, rgb_wavelengths.y()),
+		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, rgb_wavelengths.z())
 	};
 	
 	// Calculate Mie scattering and extinction coefficients
@@ -113,9 +113,9 @@ void atmosphere::update_atmosphere(entity::id entity_id)
 	const double ozone_density = physics::number_density(component->ozone_concentration);
 	component->ozone_absorption =
 	{
-		physics::gas::ozone::absorption(rgb_ozone_cross_sections.x, ozone_density),
-		physics::gas::ozone::absorption(rgb_ozone_cross_sections.y, ozone_density),
-		physics::gas::ozone::absorption(rgb_ozone_cross_sections.z, ozone_density)
+		physics::gas::ozone::absorption(rgb_ozone_cross_sections.x(), ozone_density),
+		physics::gas::ozone::absorption(rgb_ozone_cross_sections.y(), ozone_density),
+		physics::gas::ozone::absorption(rgb_ozone_cross_sections.z(), ozone_density)
 	};
 	
 	// Update sky pass parameters

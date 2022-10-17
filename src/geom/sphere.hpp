@@ -98,9 +98,9 @@ bool sphere<T>::contains(const aabb<T>& aabb) const
 	vector_type a = center - aabb.min_point;
 	vector_type b = center - aabb.max_point;
 	
-	distance += std::max(a.x * a.x, b.x * b.x);
-	distance += std::max(a.y * a.y, b.y * b.y);
-	distance += std::max(a.z * a.z, b.z * b.z);
+	distance += std::max(a.x() * a.x(), b.x() * b.x());
+	distance += std::max(a.y() * a.y(), b.y() * b.y());
+	distance += std::max(a.z() * a.z(), b.z() * b.z());
 	
 	return (distance <= radius * radius);
 }

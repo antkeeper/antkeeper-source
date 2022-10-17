@@ -20,8 +20,7 @@
 #ifndef ANTKEEPER_MATH_TRANSFORMATION_SE3_HPP
 #define ANTKEEPER_MATH_TRANSFORMATION_SE3_HPP
 
-#include "math/vector-type.hpp"
-#include "math/vector-operators.hpp"
+#include "math/vector.hpp"
 #include "math/quaternion-type.hpp"
 #include "math/quaternion-operators.hpp"
 #include "math/quaternion-functions.hpp"
@@ -98,9 +97,9 @@ typename se3<T>::matrix_type se3<T>::matrix() const
 {
 	matrix_type m = math::resize<4, 4>(math::matrix_cast<T>(r));
 	
-	m[3].x = t.x;
-	m[3].y = t.y;
-	m[3].z = t.z;
+	m[3].x() = t.x();
+	m[3].y() = t.y();
+	m[3].z() = t.z();
 	
 	return m;
 }

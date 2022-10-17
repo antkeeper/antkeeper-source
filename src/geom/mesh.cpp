@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mesh.hpp"
+#include "geom/mesh.hpp"
 #include <stdexcept>
 
 namespace geom {
@@ -157,21 +157,21 @@ mesh::edge* mesh::add_edge(mesh::vertex* a, mesh::vertex* b)
 {
 	mesh::edge* ab = new mesh::edge();
 	mesh::edge* ba = new mesh::edge();
-
+	
 	ab->vertex = a;
 	ab->face = nullptr;
 	ab->previous = ba;
 	ab->next = ba;
 	ab->symmetric = ba;
 	ab->index = edges.size();
-
+	
 	ba->vertex = b;
 	ba->face = nullptr;
 	ba->previous = ab;
 	ba->next = ab;
 	ba->symmetric = ab;
 	ba->index = edges.size();
-
+	
 	if (!a->edge)
 	{
 		a->edge = ab;
@@ -199,10 +199,10 @@ mesh::edge* mesh::add_edge(mesh::vertex* a, mesh::vertex* b)
 		ab->next = b_out;
 		b_out->previous = ab;
 	}
-
+	
 	// Add edge
 	edges.push_back(ab);
-
+	
 	return ab;
 }
 

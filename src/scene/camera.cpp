@@ -133,7 +133,8 @@ void camera::set_perspective(float fov, float aspect_ratio, float clip_near, flo
 	view_projection[1] = projection[1] * view[1];
 	
 	// Recalculate view frustum
-	view_frustum.set_matrix(view_projection[1]);
+	/// @TODO: this is a hack to fix the half z projection matrix view frustum
+	view_frustum.set_matrix(math::perspective(this->fov[1], this->aspect_ratio[1], this->clip_near[1], this->clip_far[1]) * view[1]);
 }
 
 void camera::set_orthographic(float clip_left, float clip_right, float clip_bottom, float clip_top, float clip_near, float clip_far)
@@ -197,7 +198,11 @@ void camera::transformed()
 	view_projection[1] = projection[1] * view[1];
 	
 	// Recalculate view frustum
-	view_frustum.set_matrix(view_projection[1]);
+	/// @TODO: this is a hack to fix the half z projection matrix view frustum
+	if (orthographic)
+		view_frustum.set_matrix(view_projection[1]);
+	else
+		view_frustum.set_matrix(math::perspective(fov[1], aspect_ratio[1], clip_near[1], clip_far[1]) * view[1]);
 }
 
 } // namespace scene

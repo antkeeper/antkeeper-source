@@ -209,7 +209,7 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 						float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
 						
 						float2 scale = directional_light->get_light_texture_scale_tween().interpolate(ctx.alpha);
-						float4x4 light_projection = math::ortho(-scale.x, scale.x, -scale.y, scale.y, -1.0f, 1.0f);
+						float4x4 light_projection = math::ortho(-scale.x(), scale.x(), -scale.y(), scale.y(), -1.0f, 1.0f);
 						
 						directional_light_texture_matrices[directional_light_count] = light_projection * light_view;
 					}

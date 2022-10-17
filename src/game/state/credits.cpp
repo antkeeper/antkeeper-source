@@ -43,8 +43,8 @@ credits::credits(game::context& ctx):
 	
 	// Align credits text
 	const auto& credits_aabb = static_cast<const geom::aabb<float>&>(credits_text.get_local_bounds());
-	float credits_w = credits_aabb.max_point.x - credits_aabb.min_point.x;
-	float credits_h = credits_aabb.max_point.y - credits_aabb.min_point.y;
+	float credits_w = credits_aabb.max_point.x() - credits_aabb.min_point.x();
+	float credits_h = credits_aabb.max_point.y() - credits_aabb.min_point.y();
 	credits_text.set_translation({std::round(-credits_w * 0.5f), std::round(-credits_h * 0.5f), 0.0f});
 	credits_text.update_tweens();
 	

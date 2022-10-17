@@ -20,7 +20,9 @@
 #ifndef ANTKEEPER_IMAGE_HPP
 #define ANTKEEPER_IMAGE_HPP
 
+#include "math/vector.hpp"
 #include <cstddef>
+#include <type_traits>
 
 /**
  * Stores basic image data.
@@ -47,6 +49,64 @@ public:
 	 * @param source Image from which to copy.
 	 */
 	image& operator=(const image& source);
+	
+	/**
+	 * Returns an iterator to the first pixel.
+	 *
+	 * @tparam T Pixel data type.
+	 */
+	/// @{
+	template <class T>
+	constexpr inline T* begin() noexcept
+	{
+		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
+		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
+		return static_cast<T*>(pixels);
+	}
+	template <class T>
+	constexpr inline const T* begin() const noexcept
+	{
+		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
+		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
+		return static_cast<const T*>(pixels);
+	}
+	template <class T>
+	constexpr inline const T* cbegin() const noexcept
+	{
+		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
+		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
+		return static_cast<const T*>(pixels);
+	}
+	/// @}
+	
+	/**
+	 * Returns an iterator to the pixel following the last pixel.
+	 *
+	 * @tparam T Pixel data type.
+	 */
+	/// @{
+	template <class T>
+	constexpr inline T* end() noexcept
+	{
+		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
+		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
+		return static_cast<T*>(static_cast<unsigned char*>(pixels) + size);
+	}
+	template <class T>
+	constexpr inline const T* end() const noexcept
+	{
+		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
+		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
+		return static_cast<const T*>(static_cast<const unsigned char*>(pixels) + size);
+	}
+	template <class T>
+	constexpr inline const T* cend() const noexcept
+	{
+		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
+		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
+		return static_cast<const T*>(static_cast<const unsigned char*>(pixels) + size);
+	}
+	/// @}
 	
 	/**
 	 * Checks whether another image has the same number of channels and pixel size as this image.
@@ -100,12 +160,12 @@ public:
 
 	/// Returns the number of color channels in the image. 
 	std::size_t get_channel_count() const;
-
-	/// Returns a pointer to the pixel data.
-	const void* get_pixels() const;
 	
-	/// @copydoc image::get_pixels() const
-	void* get_pixels();
+	/// Returns a pointer to the pixel data.
+	/// @{
+	void* data() noexcept;
+	const void* data() const noexcept;
+	/// @}
 	
 	/// Returns the size of a single pixel, in bytes.
 	std::size_t get_pixel_size() const;
@@ -146,12 +206,12 @@ inline std::size_t image::get_channel_count() const
 	return channel_count;
 }
 
-inline const void* image::get_pixels() const
+inline void* image::data() noexcept
 {
 	return pixels;
 }
 
-inline void* image::get_pixels()
+inline const void* image::data() const noexcept
 {
 	return pixels;
 }

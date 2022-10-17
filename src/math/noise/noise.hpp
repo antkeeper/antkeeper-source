@@ -17,31 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_ORBIT_HPP
-#define ANTKEEPER_GAME_COMPONENT_ORBIT_HPP
+#ifndef ANTKEEPER_MATH_NOISE_HPP
+#define ANTKEEPER_MATH_NOISE_HPP
 
-#include "entity/id.hpp"
-#include "math/vector.hpp"
+namespace math {
 
-namespace game {
-namespace component {
+/// Noise functions.
+namespace noise {}
 
-struct orbit
-{
-	/// Entity ID of the parent orbit.
-	entity::id parent;
-	
-	/// Index of the orbit in the ephemeris.
-	int ephemeris_index;
-	
-	/// Orbit scale, for two-body orbits with one ephemeris item.
-	double scale;
-	
-	/// Cartesian position of the orbit, w.r.t. the ICRF frame.
-	math::vector3<double> position;
-};
+} // namespace math
 
-} // namespace component
-} // namespace game
+#include "math/noise/fbm.hpp"
+#include "math/noise/hash.hpp"
+#include "math/noise/simplex.hpp"
 
-#endif // ANTKEEPER_GAME_COMPONENT_ORBIT_HPP
+#endif // ANTKEEPER_MATH_NOISE_HPP

@@ -86,9 +86,9 @@ bool convex_hull<T>::intersects(const aabb<T>& aabb) const
 	math::vector<T, 3> pv;
 	for (const plane<T>& plane: planes)
 	{	
-		pv.x = (plane.normal.x > T(0)) ? aabb.max_point.x : aabb.min_point.x;
-		pv.y = (plane.normal.y > T(0)) ? aabb.max_point.y : aabb.min_point.y;
-		pv.z = (plane.normal.z > T(0)) ? aabb.max_point.z : aabb.min_point.z;
+		pv.x() = (plane.normal.x() > T(0)) ? aabb.max_point.x() : aabb.min_point.x();
+		pv.y() = (plane.normal.y() > T(0)) ? aabb.max_point.y() : aabb.min_point.y();
+		pv.z() = (plane.normal.z() > T(0)) ? aabb.max_point.z() : aabb.min_point.z();
 		if (plane.signed_distance(pv) < T(0))
 			return false;
 	}
@@ -113,12 +113,12 @@ bool convex_hull<T>::contains(const aabb<T>& aabb) const
 	
 	for (const plane<T>& plane: planes)
 	{
-		pv.x = (plane.normal.x > T(0)) ? aabb.max_point.x : aabb.min_point.x;
-		pv.y = (plane.normal.y > T(0)) ? aabb.max_point.y : aabb.min_point.y;
-		pv.z = (plane.normal.z > T(0)) ? aabb.max_point.z : aabb.min_point.z;
-		nv.x = (plane.normal.x < T(0)) ? aabb.max_point.x : aabb.min_point.x;
-		nv.y = (plane.normal.y < T(0)) ? aabb.max_point.y : aabb.min_point.y;
-		nv.z = (plane.normal.z < T(0)) ? aabb.max_point.z : aabb.min_point.z;
+		pv.x() = (plane.normal.x() > T(0)) ? aabb.max_point.x() : aabb.min_point.x();
+		pv.y() = (plane.normal.y() > T(0)) ? aabb.max_point.y() : aabb.min_point.y();
+		pv.z() = (plane.normal.z() > T(0)) ? aabb.max_point.z() : aabb.min_point.z();
+		nv.x() = (plane.normal.x() < T(0)) ? aabb.max_point.x() : aabb.min_point.x();
+		nv.y() = (plane.normal.y() < T(0)) ? aabb.max_point.y() : aabb.min_point.y();
+		nv.z() = (plane.normal.z() < T(0)) ? aabb.max_point.z() : aabb.min_point.z();
 		
 		if (plane.signed_distance(pv) < T(0) || plane.signed_distance(nv) < T(0))
 			return false;

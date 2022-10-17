@@ -110,7 +110,7 @@ image* resource_loader<image>::load(resource_manager* resource_manager, PHYSFS_F
 		image->resize(static_cast<unsigned int>(exr_image.width), static_cast<unsigned int>(exr_image.height));
 		
 		// Fill image pixels
-		float* component = static_cast<float*>(image->get_pixels());
+		float* component = static_cast<float*>(image->data());
 		for (int y = exr_image.height - 1; y >= 0; --y)
 		{
 			int row_offset = y * exr_image.width;
@@ -168,7 +168,7 @@ image* resource_loader<image>::load(resource_manager* resource_manager, PHYSFS_F
 		image = new ::image();
 		image->format(component_size, channels);
 		image->resize(static_cast<unsigned int>(width), static_cast<unsigned int>(height));
-		std::memcpy(image->get_pixels(), pixels, image->get_size());
+		std::memcpy(image->data(), pixels, image->get_size());
 		
 		// Free loaded image data
 		stbi_image_free(pixels);

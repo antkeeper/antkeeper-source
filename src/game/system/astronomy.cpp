@@ -222,7 +222,7 @@ void astronomy::update(double t, double dt)
 		{
 			// Calculate sky illuminance
 			double3 blackbody_position_enu_spherical = physics::orbit::frame::enu::spherical(enu_to_eus.inverse() * blackbody_position_eus);
-			const double sky_illuminance = 25000.0 * std::max<double>(0.0, std::sin(blackbody_position_enu_spherical.y));
+			const double sky_illuminance = 25000.0 * std::max<double>(0.0, std::sin(blackbody_position_enu_spherical.y()));
 			
 			// Add sky illuminance to sky light illuminance
 			sky_light_illuminance += {sky_illuminance, sky_illuminance, sky_illuminance};
@@ -592,7 +592,7 @@ double3 astronomy::integrate_transmittance(const game::component::observer& obse
 	double3 transmittance = {1, 1, 1};
 	
 	// Make ray height relative to center of reference body
-	ray.origin.y += body.radius + observer.elevation;
+	ray.origin.y() += body.radius + observer.elevation;
 	
 	// Construct sphere representing upper limit of the atmosphere
 	geom::sphere<double> atmosphere_sphere;
@@ -616,9 +616,9 @@ double3 astronomy::integrate_transmittance(const game::component::observer& obse
 		const double extinction_m = atmosphere.mie_extinction * optical_depth_m;
 		const double3 extinction_o = atmosphere.ozone_absorption * optical_depth_o;
 		transmittance = extinction_r + double3{extinction_m, extinction_m, extinction_m} + extinction_o;
-		transmittance.x = std::exp(-transmittance.x);
-		transmittance.y = std::exp(-transmittance.y);
-		transmittance.z = std::exp(-transmittance.z);
+		transmittance.x() = std::exp(-transmittance.x());
+		transmittance.y() = std::exp(-transmittance.y());
+		transmittance.z() = std::exp(-transmittance.z());
 	}
 	
 	return transmittance;

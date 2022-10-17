@@ -172,6 +172,7 @@ void view_frustum<T>::recalculate_planes(const matrix_type& view_projection)
 template <class T>
 void view_frustum<T>::recalculate_corners()
 {
+	/// @TODO THESE CORNERS MAY BE INCORRECT!!!!!!!!!!!
 	corners[0] = plane_type::intersection(get_near(), get_top(), get_left());
 	corners[1] = plane_type::intersection(get_near(), get_top(), get_right());
 	corners[2] = plane_type::intersection(get_near(), get_bottom(), get_left());

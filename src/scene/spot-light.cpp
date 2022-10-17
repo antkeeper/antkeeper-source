@@ -46,7 +46,7 @@ void spot_light::set_attenuation(const float3& attenuation)
 void spot_light::set_cutoff(const float2& cutoff)
 {
 	this->cutoff[1] = cutoff;
-	this->cosine_cutoff[1] = {std::cos(cutoff.x), std::cos(cutoff.y)};
+	this->cosine_cutoff[1] = {std::cos(cutoff.x()), std::cos(cutoff.y())};
 }
 
 void spot_light::update_tweens()

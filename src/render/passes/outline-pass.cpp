@@ -104,7 +104,7 @@ void outline_pass::render(const render::context& ctx, render::queue& queue) cons
 	{
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-		if (outline_color.w < 1.0f)
+		if (outline_color[3] < 1.0f)
 		{
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

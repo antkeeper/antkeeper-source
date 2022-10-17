@@ -38,19 +38,19 @@ geom::mesh* grid_xy(float length, std::size_t subdivisions_x, std::size_t subdiv
 	
 	// Generate mesh vertices
 	float3 position;
-	position.z = 0.0f;
-	position.y = -length * 0.5f;
+	position.z() = 0.0f;
+	position.y() = -length * 0.5f;
 	for (std::size_t i = 0; i <= rows; ++i)
 	{
-		position.x = -length * 0.5f;
+		position.x() = -length * 0.5f;
 		for (std::size_t j = 0; j <= columns; ++j)
 		{
 			mesh->add_vertex(position);
 			
-			position.x += column_length;
+			position.x() += column_length;
 		}
 		
-		position.y += row_length;
+		position.y() += row_length;
 	}
 	
 	// Function to eliminate duplicate edges

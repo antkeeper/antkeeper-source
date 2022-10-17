@@ -139,21 +139,9 @@ void set_location(game::context& ctx, double elevation, double latitude, double 
 	{
 		entity::id observer_eid = it->second;
 		
-		if (observer_eid != entt::null)
+		if (ctx.entity_registry->valid(observer_eid) && ctx.entity_registry->all_of<game::component::observer>(observer_eid))
 		{
-			// Get pointer to observer component
-			const auto observer = ctx.entity_registry->try_get<game::component::observer>(observer_eid);
-			
-			// Set observer location
-			if (observer)
-			{
-				observer->elevation = elevation;
-				observer->latitude = latitude;
-				observer->longitude = longitude;
-				ctx.entity_registry->replace<game::component::observer>(observer_eid, *observer);
-			}
-
-			/*
+			// Update observer location 
 			ctx.entity_registry->patch<game::component::observer>
 			(
 				observer_eid,
@@ -164,7 +152,6 @@ void set_location(game::context& ctx, double elevation, double latitude, double 
 					component.longitude = longitude;
 				}
 			);
-			*/
 		}
 	}
 }
@@ -193,7 +180,7 @@ void set_time(game::context& ctx, int year, int month, int day, int hour, int mi
 	if (auto it = ctx.entities.find("observer"); it != ctx.entities.end())
 	{
 		entity::id observer_eid = it->second;
-		if (observer_eid != entt::null)
+		if (ctx.entity_registry->valid(observer_eid))
 		{
 			const auto observer = ctx.entity_registry->try_get<game::component::observer>(observer_eid);
 			if (observer)
@@ -330,12 +317,12 @@ void create_stars(game::context& ctx)
 		double brightness = physics::light::vmag::to_brightness(vmag);
 		
 		// Build vertex
-		*(star_vertex++) = static_cast<float>(position.x);
-		*(star_vertex++) = static_cast<float>(position.y);
-		*(star_vertex++) = static_cast<float>(position.z);
-		*(star_vertex++) = static_cast<float>(color_acescg.x);
-		*(star_vertex++) = static_cast<float>(color_acescg.y);
-		*(star_vertex++) = static_cast<float>(color_acescg.z);
+		*(star_vertex++) = static_cast<float>(position.x());
+		*(star_vertex++) = static_cast<float>(position.y());
+		*(star_vertex++) = static_cast<float>(position.z());
+		*(star_vertex++) = static_cast<float>(color_acescg.x());
+		*(star_vertex++) = static_cast<float>(color_acescg.y());
+		*(star_vertex++) = static_cast<float>(color_acescg.z());
 		*(star_vertex++) = static_cast<float>(brightness);
 		
 		// Calculate spectral illuminance
@@ -434,7 +421,7 @@ void create_sun(game::context& ctx)
 		// Add sun light scene objects to surface scene
 		ctx.surface_scene->add_object(sun_light);
 		ctx.surface_scene->add_object(sky_light);
-		ctx.surface_scene->add_object(bounce_light);
+		//ctx.surface_scene->add_object(bounce_light);
 		
 		// Pass direct sun light scene object to shadow map pass and astronomy system
 		ctx.surface_shadow_map_pass->set_light(sun_light);
@@ -490,17 +477,6 @@ void create_earth(game::context& ctx)
 		
 		// Assign orbital parent
 		ctx.entity_registry->get<game::component::orbit>(earth_eid).parent = ctx.entities["em_bary"];
-		
-		// Assign earth terrain component
-		game::component::terrain terrain;
-		terrain.elevation = [](double, double) -> double
-		{
-			//return math::random<double>(0.0, 1.0);
-			return 0.0;
-		};
-		terrain.max_lod = 0;
-		terrain.patch_material = nullptr;
-		//ctx.entity_registry->emplace<game::component::terrain>(earth_eid, terrain);
 	}
 	catch (const std::exception&)
 	{

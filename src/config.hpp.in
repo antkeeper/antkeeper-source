@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_CONFIG_HPP
 #define ANTKEEPER_CONFIG_HPP
 
-#include "math/vector-type.hpp"
+#include "math/vector.hpp"
 
 /// Global configuration constants.
 namespace config {

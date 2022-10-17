@@ -21,7 +21,6 @@
 #define ANTKEEPER_MATH_TRANSFORM_FUNCTIONS_HPP
 
 #include "math/transform-type.hpp"
-#include "math/vector-functions.hpp"
 #include "math/matrix-functions.hpp"
 #include "math/quaternion-functions.hpp"
 
@@ -68,7 +67,7 @@ template <class T>
 transform<T> inverse(const transform<T>& t)
 {
 	transform<T> inverse_t;
-	inverse_t.scale = {T(1) / t.scale.x, T(1) / t.scale.y, T(1) / t.scale.z};
+	inverse_t.scale = {T(1) / t.scale.x(), T(1) / t.scale.y(), T(1) / t.scale.z()};
 	inverse_t.rotation = conjugate(t.rotation);
 	inverse_t.translation = negate(mul(inverse_t.rotation, t.translation));
 	return inverse_t;

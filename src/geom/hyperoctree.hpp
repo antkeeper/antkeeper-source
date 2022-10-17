@@ -191,7 +191,7 @@ public:
 	 * Returns the nth child of a node.
 	 *
 	 * @param node Parent node.
-	 * @param n Offset to the nth sibling of the first child node. (Automatically wraps to 0..7)
+	 * @param n Offset to the nth sibling of the first child node. (Automatically wraps to 0..children_per_node-1)
 	 * @return nth child node.
 	 */
 	static node_type child(node_type node, T n);
@@ -405,7 +405,7 @@ void hyperoctree<N, D, T>::clear()
 template <std::size_t N, std::size_t D, class T>
 inline bool hyperoctree<N, D, T>::contains(node_type node) const
 {
-	return (nodes.find(node) != nodes.end());
+	return nodes.count(node);
 }
 
 template <std::size_t N, std::size_t D, class T>

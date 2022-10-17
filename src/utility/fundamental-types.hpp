@@ -20,8 +20,7 @@
 #ifndef ANTKEEPER_FUNDAMENTAL_TYPES_HPP
 #define ANTKEEPER_FUNDAMENTAL_TYPES_HPP
 
-#include "math/vector-type.hpp"
-#include "math/vector-operators.hpp"
+#include "math/vector.hpp"
 #include "math/matrix-type.hpp"
 #include "math/matrix-operators.hpp"
 

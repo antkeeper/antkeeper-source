@@ -81,14 +81,14 @@ cube_tree::cube_tree(const geom::aabb<float>& bounds, int max_depth, int depth):
 	max_depth(max_depth),
 	depth(depth)
 {
-	corners[0] = {bounds.min_point.x, bounds.min_point.y, bounds.min_point.z};
-	corners[1] = {bounds.max_point.x, bounds.min_point.y, bounds.min_point.z};
-	corners[2] = {bounds.max_point.x, bounds.max_point.y, bounds.min_point.z};
-	corners[3] = {bounds.min_point.x, bounds.max_point.y, bounds.min_point.z};
-	corners[4] = {bounds.min_point.x, bounds.min_point.y, bounds.max_point.z};
-	corners[5] = {bounds.max_point.x, bounds.min_point.y, bounds.max_point.z};
-	corners[6] = {bounds.max_point.x, bounds.max_point.y, bounds.max_point.z};
-	corners[7] = {bounds.min_point.x, bounds.max_point.y, bounds.max_point.z};
+	corners[0] = {bounds.min_point.x(), bounds.min_point.y(), bounds.min_point.z()};
+	corners[1] = {bounds.max_point.x(), bounds.min_point.y(), bounds.min_point.z()};
+	corners[2] = {bounds.max_point.x(), bounds.max_point.y(), bounds.min_point.z()};
+	corners[3] = {bounds.min_point.x(), bounds.max_point.y(), bounds.min_point.z()};
+	corners[4] = {bounds.min_point.x(), bounds.min_point.y(), bounds.max_point.z()};
+	corners[5] = {bounds.max_point.x(), bounds.min_point.y(), bounds.max_point.z()};
+	corners[6] = {bounds.max_point.x(), bounds.max_point.y(), bounds.max_point.z()};
+	corners[7] = {bounds.min_point.x(), bounds.max_point.y(), bounds.max_point.z()};
 
 	for (int i = 0; i < 8; ++i)
 	{

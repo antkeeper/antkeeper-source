@@ -384,19 +384,19 @@ void boot::setup_window()
 	{
 		if (config->contains("fullscreen_resolution"))
 		{
-			resolution.x = (*config)["fullscreen_resolution"][0].get<int>();
-			resolution.y = (*config)["fullscreen_resolution"][1].get<int>();
+			resolution.x() = (*config)["fullscreen_resolution"][0].get<int>();
+			resolution.y() = (*config)["fullscreen_resolution"][1].get<int>();
 		}
 	}
 	else
 	{
 		if (config->contains("windowed_resolution"))
 		{
-			resolution.x = (*config)["windowed_resolution"][0].get<int>();
-			resolution.y = (*config)["windowed_resolution"][1].get<int>();
+			resolution.x() = (*config)["windowed_resolution"][0].get<int>();
+			resolution.y() = (*config)["windowed_resolution"][1].get<int>();
 		}
 	}
-	app->resize_window(resolution.x, resolution.y);
+	app->resize_window(resolution.x(), resolution.y());
 	
 	// Set v-sync
 	bool v_sync = true;
@@ -654,7 +654,7 @@ void boot::setup_scenes()
 	
 	// Setup surface camera
 	ctx.surface_camera = new scene::camera();
-	ctx.surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
+	ctx.surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 500.0f);
 	ctx.surface_camera->set_compositor(ctx.surface_compositor);
 	ctx.surface_camera->set_composite_index(0);
 	ctx.surface_camera->set_active(false);
@@ -836,9 +836,9 @@ void boot::setup_systems()
 	
 	// Setup terrain system
 	ctx.terrain_system = new game::system::terrain(*ctx.entity_registry);
+	ctx.terrain_system->set_patch_side_length(31.0f);
 	ctx.terrain_system->set_patch_subdivisions(30);
-	ctx.terrain_system->set_patch_scene_collection(ctx.surface_scene);
-	ctx.terrain_system->set_max_error(200.0);
+	ctx.terrain_system->set_scene_collection(ctx.surface_scene);
 	
 	// Setup vegetation system
 	//ctx.vegetation_system = new game::system::vegetation(*ctx.entity_registry);
@@ -1003,10 +1003,10 @@ void boot::setup_controls()
 				if (!fullscreen)
 				{
 					int2 resolution;
-					resolution.x = (*ctx.config)["windowed_resolution"][0].get<int>();
-					resolution.y = (*ctx.config)["windowed_resolution"][1].get<int>();
+					resolution.x() = (*ctx.config)["windowed_resolution"][0].get<int>();
+					resolution.y() = (*ctx.config)["windowed_resolution"][1].get<int>();
 					
-					ctx.app->resize_window(resolution.x, resolution.y);
+					ctx.app->resize_window(resolution.x(), resolution.y());
 				}
 				
 				// Save display mode config

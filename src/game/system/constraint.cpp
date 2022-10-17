@@ -181,11 +181,11 @@ void constraint::handle_copy_scale_constraint(component::transform& transform, c
 			const auto& target_scale = target_transform->world.scale;
 			
 			if (constraint.copy_x)
-				transform.world.scale.x = target_scale.x;
+				transform.world.scale.x() = target_scale.x();
 			if (constraint.copy_y)
-				transform.world.scale.y = target_scale.y;
+				transform.world.scale.y() = target_scale.y();
 			if (constraint.copy_z)
-				transform.world.scale.z = target_scale.z;
+				transform.world.scale.z() = target_scale.z();
 		}
 	}
 }
@@ -214,20 +214,20 @@ void constraint::handle_copy_translation_constraint(component::transform& transf
 			if (constraint.offset)
 			{
 				if (constraint.copy_x)
-					transform.world.translation.x += (constraint.invert_x) ? -target_translation.x : target_translation.x;
+					transform.world.translation.x() += (constraint.invert_x) ? -target_translation.x() : target_translation.x();
 				if (constraint.copy_y)
-					transform.world.translation.y += (constraint.invert_y) ? -target_translation.y : target_translation.y;
+					transform.world.translation.y() += (constraint.invert_y) ? -target_translation.y() : target_translation.y();
 				if (constraint.copy_z)
-					transform.world.translation.z += (constraint.invert_z) ? -target_translation.z : target_translation.z;
+					transform.world.translation.z() += (constraint.invert_z) ? -target_translation.z() : target_translation.z();
 			}
 			else
 			{
 				if (constraint.copy_x)
-					transform.world.translation.x = (constraint.invert_x) ? -target_translation.x : target_translation.x;
+					transform.world.translation.x() = (constraint.invert_x) ? -target_translation.x() : target_translation.x();
 				if (constraint.copy_y)
-					transform.world.translation.y = (constraint.invert_y) ? -target_translation.y : target_translation.y;
+					transform.world.translation.y() = (constraint.invert_y) ? -target_translation.y() : target_translation.y();
 				if (constraint.copy_z)
-					transform.world.translation.z = (constraint.invert_z) ? -target_translation.z : target_translation.z;
+					transform.world.translation.z() = (constraint.invert_z) ? -target_translation.z() : target_translation.z();
 			}
 		}
 	}

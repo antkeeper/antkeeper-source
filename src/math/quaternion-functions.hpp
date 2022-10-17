@@ -23,8 +23,7 @@
 #include "math/constants.hpp"
 #include "math/matrix-type.hpp"
 #include "math/quaternion-type.hpp"
-#include "math/vector-type.hpp"
-#include "math/vector-functions.hpp"
+#include "math/vector.hpp"
 #include <cmath>
 
 namespace math {
@@ -377,7 +376,7 @@ template <class T>
 quaternion<T> angle_axis(T angle, const vector<T, 3>& axis)
 {
 	T s = std::sin(angle * T(0.5));
-	return {static_cast<T>(std::cos(angle * T(0.5))), axis.x * s, axis.y * s, axis.z * s};
+	return {static_cast<T>(std::cos(angle * T(0.5))), axis.x() * s, axis.y() * s, axis.z() * s};
 }
 
 template <class T>
@@ -421,8 +420,8 @@ void swing_twist(const quaternion<T>& q, const vector<T, 3>& a, quaternion<T>& q
 {
 	if (q.x * q.x + q.y * q.y + q.z * q.z > epsilon)
 	{
-		const vector<T, 3> pa = mul(a, (a.x * q.x + a.y * q.y + a.z * q.z));
-		qt = normalize(quaternion<T>{q.w, pa.x, pa.y, pa.z});
+		const vector<T, 3> pa = mul(a, (a.x() * q.x + a.y() * q.y + a.z() * q.z));
+		qt = normalize(quaternion<T>{q.w, pa.x(), pa.y(), pa.z()});
 		qs = mul(q, conjugate(qt));
 	}
 	else

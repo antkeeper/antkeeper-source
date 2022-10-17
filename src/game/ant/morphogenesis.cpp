@@ -992,15 +992,15 @@ void reskin_vertices
 		float3 tangent = transform.rotation * float3{*tx, *ty, *tz};
 		
 		// Update vertex data
-		*x = position.x;
-		*y = position.y;
-		*z = position.z;
-		*nx = normal.x;
-		*ny = normal.y;
-		*nz = normal.z;
-		*tx = tangent.x;
-		*ty = tangent.y;
-		*tz = tangent.z;
+		*x = position.x();
+		*y = position.y();
+		*z = position.z();
+		*nx = normal.x();
+		*ny = normal.y();
+		*nz = normal.z();
+		*tx = tangent.x();
+		*ty = tangent.y();
+		*tz = tangent.z();
 		//*bts = ...
 		*bone_index = static_cast<float>(new_bone_index);
 	}
@@ -1011,12 +1011,12 @@ geom::aabb<float> calculate_bounds(std::uint8_t* vertex_data, std::size_t index_
 	std::uint8_t* position_data = vertex_data + position_attribute.offset;
 	
 	geom::aabb<float> bounds;
-	bounds.min_point.x = std::numeric_limits<float>::infinity();
-	bounds.min_point.y = std::numeric_limits<float>::infinity();
-	bounds.min_point.z = std::numeric_limits<float>::infinity();
-	bounds.max_point.x = -std::numeric_limits<float>::infinity();
-	bounds.max_point.y = -std::numeric_limits<float>::infinity();
-	bounds.max_point.z = -std::numeric_limits<float>::infinity();
+	bounds.min_point.x() = std::numeric_limits<float>::infinity();
+	bounds.min_point.y() = std::numeric_limits<float>::infinity();
+	bounds.min_point.z() = std::numeric_limits<float>::infinity();
+	bounds.max_point.x() = -std::numeric_limits<float>::infinity();
+	bounds.max_point.y() = -std::numeric_limits<float>::infinity();
+	bounds.max_point.z() = -std::numeric_limits<float>::infinity();
 	
 	for (std::size_t i = 0; i < index_count; ++i)
 	{
@@ -1025,12 +1025,12 @@ geom::aabb<float> calculate_bounds(std::uint8_t* vertex_data, std::size_t index_
 		float* y = x + 1;
 		float* z = y + 1;
 		
-		bounds.min_point.x = std::min<float>(*x, bounds.min_point.x);
-		bounds.min_point.y = std::min<float>(*y, bounds.min_point.y);
-		bounds.min_point.z = std::min<float>(*z, bounds.min_point.z);
-		bounds.max_point.x = std::max<float>(*x, bounds.max_point.x);
-		bounds.max_point.y = std::max<float>(*y, bounds.max_point.y);
-		bounds.max_point.z = std::max<float>(*z, bounds.max_point.z);
+		bounds.min_point.x() = std::min<float>(*x, bounds.min_point.x());
+		bounds.min_point.y() = std::min<float>(*y, bounds.min_point.y());
+		bounds.min_point.z() = std::min<float>(*z, bounds.min_point.z());
+		bounds.max_point.x() = std::max<float>(*x, bounds.max_point.x());
+		bounds.max_point.y() = std::max<float>(*y, bounds.max_point.y());
+		bounds.max_point.z() = std::max<float>(*z, bounds.max_point.z());
 	}
 	
 	return bounds;

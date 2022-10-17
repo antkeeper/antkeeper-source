@@ -45,18 +45,18 @@ void create_framebuffers(game::context& ctx)
 	
 	// Calculate render resolution
 	const int2& viewport_dimensions = ctx.app->get_viewport_dimensions();
-	ctx.render_resolution = {static_cast<int>(viewport_dimensions.x * ctx.render_resolution_scale + 0.5f), static_cast<int>(viewport_dimensions.y * ctx.render_resolution_scale + 0.5f)};
+	ctx.render_resolution = {static_cast<int>(viewport_dimensions.x() * ctx.render_resolution_scale + 0.5f), static_cast<int>(viewport_dimensions.y() * ctx.render_resolution_scale + 0.5f)};
 	
 	// Create HDR framebuffer (32F color, 32F depth)
-	ctx.hdr_color_texture = new gl::texture_2d(ctx.render_resolution.x, ctx.render_resolution.y, gl::pixel_type::float_32, gl::pixel_format::rgb);
+	ctx.hdr_color_texture = new gl::texture_2d(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
 	ctx.hdr_color_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx.hdr_color_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx.hdr_color_texture->set_max_anisotropy(0.0f);
-	ctx.hdr_depth_texture = new gl::texture_2d(ctx.render_resolution.x, ctx.render_resolution.y, gl::pixel_type::float_32, gl::pixel_format::ds);
+	ctx.hdr_depth_texture = new gl::texture_2d(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::ds);
 	ctx.hdr_depth_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx.hdr_depth_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx.hdr_depth_texture->set_max_anisotropy(0.0f);
-	ctx.hdr_framebuffer = new gl::framebuffer(ctx.render_resolution.x, ctx.render_resolution.y);
+	ctx.hdr_framebuffer = new gl::framebuffer(ctx.render_resolution.x(), ctx.render_resolution.y());
 	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::color, ctx.hdr_color_texture);
 	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx.hdr_depth_texture);
 	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::stencil, ctx.hdr_depth_texture);
@@ -65,11 +65,11 @@ void create_framebuffers(game::context& ctx)
 	int2 bloom_resolution = ctx.render_resolution / 2;
 	
 	// Create bloom framebuffer (16F color, no depth)
-	ctx.bloom_color_texture = new gl::texture_2d(bloom_resolution.x, bloom_resolution.y, gl::pixel_type::float_16, gl::pixel_format::rgb);
+	ctx.bloom_color_texture = new gl::texture_2d(bloom_resolution.x(), bloom_resolution.y(), gl::pixel_type::float_16, gl::pixel_format::rgb);
 	ctx.bloom_color_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx.bloom_color_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx.bloom_color_texture->set_max_anisotropy(0.0f);
-	ctx.bloom_framebuffer = new gl::framebuffer(bloom_resolution.x, bloom_resolution.y);
+	ctx.bloom_framebuffer = new gl::framebuffer(bloom_resolution.x(), bloom_resolution.y());
 	ctx.bloom_framebuffer->attach(gl::framebuffer_attachment_type::color, ctx.bloom_color_texture);
 	
 	// Load shadow map resolution from config
@@ -124,10 +124,10 @@ void change_render_resolution(game::context& ctx, float scale)
 	
 	// Recalculate render resolution
 	const int2& viewport_dimensions = ctx.app->get_viewport_dimensions();
-	ctx.render_resolution = {static_cast<int>(viewport_dimensions.x * ctx.render_resolution_scale + 0.5f), static_cast<int>(viewport_dimensions.y * ctx.render_resolution_scale + 0.5f)};
+	ctx.render_resolution = {static_cast<int>(viewport_dimensions.x() * ctx.render_resolution_scale + 0.5f), static_cast<int>(viewport_dimensions.y() * ctx.render_resolution_scale + 0.5f)};
 	
 	// Resize HDR framebuffer and attachments
-	ctx.hdr_framebuffer->resize({ctx.render_resolution.x, ctx.render_resolution.y});
+	ctx.hdr_framebuffer->resize({ctx.render_resolution.x(), ctx.render_resolution.y()});
 	resize_framebuffer_attachment(*ctx.hdr_color_texture, ctx.render_resolution);
 	resize_framebuffer_attachment(*ctx.hdr_depth_texture, ctx.render_resolution);
 	
@@ -135,7 +135,7 @@ void change_render_resolution(game::context& ctx, float scale)
 	int2 bloom_resolution = ctx.render_resolution / 2;
 	
 	// Resize bloom framebuffer and attachments
-	ctx.bloom_framebuffer->resize({bloom_resolution.x, bloom_resolution.y});
+	ctx.bloom_framebuffer->resize({bloom_resolution.x(), bloom_resolution.y()});
 	resize_framebuffer_attachment(*ctx.bloom_color_texture, bloom_resolution);
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
@@ -143,7 +143,7 @@ void change_render_resolution(game::context& ctx, float scale)
 
 void resize_framebuffer_attachment(gl::texture_2d& texture, const int2& resolution)
 {
-	texture.resize(resolution.x, resolution.y, texture.get_pixel_type(), texture.get_pixel_format(), texture.get_color_space(), nullptr);
+	texture.resize(resolution.x(), resolution.y(), texture.get_pixel_type(), texture.get_pixel_format(), texture.get_color_space(), nullptr);
 }
 
 void save_screenshot(game::context& ctx)
@@ -159,11 +159,11 @@ void save_screenshot(game::context& ctx)
 	// Allocate image
 	std::shared_ptr<image> frame = std::make_shared<image>();
 	frame->format(1, 3);
-	frame->resize(viewport_dimensions.x, viewport_dimensions.y);
+	frame->resize(viewport_dimensions.x(), viewport_dimensions.y());
 	
 	// Read pixel data from backbuffer into image
 	glReadBuffer(GL_BACK);
-	glReadPixels(0, 0, viewport_dimensions.x, viewport_dimensions.y, GL_RGB, GL_UNSIGNED_BYTE, frame->get_pixels());
+	glReadPixels(0, 0, viewport_dimensions.x(), viewport_dimensions.y(), GL_RGB, GL_UNSIGNED_BYTE, frame->data());
 	
 	// Write screenshot file in separate thread
 	std::thread
@@ -171,7 +171,7 @@ void save_screenshot(game::context& ctx)
 		[frame, path]
 		{
 			stbi_flip_vertically_on_write(1);
-			stbi_write_png(path.string().c_str(), frame->get_width(), frame->get_height(), frame->get_channel_count(), frame->get_pixels(), frame->get_width() * frame->get_channel_count());
+			stbi_write_png(path.string().c_str(), frame->get_width(), frame->get_height(), frame->get_channel_count(), frame->data(), frame->get_width() * frame->get_channel_count());
 		}
 	).detach();
 	

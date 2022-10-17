@@ -93,13 +93,13 @@ void align_text(game::context& ctx, bool center, bool has_back, float anchor_y)
 		
 		// Add name width to width
 		const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_local_bounds());
-		row_width += name_bounds.max_point.x - name_bounds.min_point.x;
+		row_width += name_bounds.max_point.x() - name_bounds.min_point.x();
 		
 		if (value)
 		{
 			// Add value width to width
 			//const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_local_bounds());
-			//row_width += value_bounds.max_point.x - value_bounds.min_point.x;
+			//row_width += value_bounds.max_point.x() - value_bounds.min_point.x();
 			
 			// Add spacing to row width
 			row_width += menu_spacing * 8.0f;
@@ -130,7 +130,7 @@ void align_text(game::context& ctx, bool center, bool has_back, float anchor_y)
 		if (center || i == ctx.menu_item_texts.size() - 1)
 		{
 			const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_local_bounds());
-			const float name_width =  name_bounds.max_point.x - name_bounds.min_point.x;
+			const float name_width =  name_bounds.max_point.x() - name_bounds.min_point.x();
 			x = -name_width * 0.5f;
 		}
 		
@@ -139,7 +139,7 @@ void align_text(game::context& ctx, bool center, bool has_back, float anchor_y)
 		if (value)
 		{
 			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_local_bounds());
-			const float value_width =  value_bounds.max_point.x - value_bounds.min_point.x;
+			const float value_width =  value_bounds.max_point.x() - value_bounds.min_point.x();
 			
 			if (center || i == ctx.menu_item_texts.size() - 1)
 				x = -value_width * 0.5f;
@@ -365,17 +365,17 @@ void setup_controls(game::context& ctx)
 				auto [name, value] = ctx.menu_item_texts[i];
 				
 				const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
-				float min_x = name_bounds.min_point.x;
-				float min_y = name_bounds.min_point.y;
-				float max_x = name_bounds.max_point.x;
-				float max_y = name_bounds.max_point.y;
+				float min_x = name_bounds.min_point.x();
+				float min_y = name_bounds.min_point.y();
+				float max_x = name_bounds.max_point.x();
+				float max_y = name_bounds.max_point.y();
 				if (value)
 				{
 					const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_world_bounds());
-					min_x = std::min<float>(min_x, value_bounds.min_point.x);
-					min_y = std::min<float>(min_y, value_bounds.min_point.y);
-					max_x = std::max<float>(max_x, value_bounds.max_point.x);
-					max_y = std::max<float>(max_y, value_bounds.max_point.y);
+					min_x = std::min<float>(min_x, value_bounds.min_point.x());
+					min_y = std::min<float>(min_y, value_bounds.min_point.y());
+					max_x = std::max<float>(max_x, value_bounds.max_point.x());
+					max_y = std::max<float>(max_y, value_bounds.max_point.y());
 				}
 				
 				min_x -= padding;
@@ -411,17 +411,17 @@ void setup_controls(game::context& ctx)
 				auto [name, value] = ctx.menu_item_texts[i];
 				
 				const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
-				float min_x = name_bounds.min_point.x;
-				float min_y = name_bounds.min_point.y;
-				float max_x = name_bounds.max_point.x;
-				float max_y = name_bounds.max_point.y;
+				float min_x = name_bounds.min_point.x();
+				float min_y = name_bounds.min_point.y();
+				float max_x = name_bounds.max_point.x();
+				float max_y = name_bounds.max_point.y();
 				if (value)
 				{
 					const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_world_bounds());
-					min_x = std::min<float>(min_x, value_bounds.min_point.x);
-					min_y = std::min<float>(min_y, value_bounds.min_point.y);
-					max_x = std::max<float>(max_x, value_bounds.max_point.x);
-					max_y = std::max<float>(max_y, value_bounds.max_point.y);
+					min_x = std::min<float>(min_x, value_bounds.min_point.x());
+					min_y = std::min<float>(min_y, value_bounds.min_point.y());
+					max_x = std::max<float>(max_x, value_bounds.max_point.x());
+					max_y = std::max<float>(max_y, value_bounds.max_point.y());
 				}
 				
 				min_x -= padding;

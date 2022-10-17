@@ -44,12 +44,12 @@ void samara::update(double t, double dt)
 				math::angle_axis(math::radians(20.0f), float3{1, 0, 0}) *
 				((samara.chirality < 0.0f) ? math::angle_axis(math::radians(180.0f), float3{0, 0, -1}) : math::quaternion<float>{1, 0, 0, 0});
 
-			if (transform.local.translation.y < 0.0f)
+			if (transform.local.translation.y() < 0.0f)
 			{
 				const float zone = 200.0f;
-				transform.local.translation.x = math::random(-zone, zone);
-				transform.local.translation.y = math::random(100.0f, 150.0f);
-				transform.local.translation.z = math::random(-zone, zone);
+				transform.local.translation.x() = math::random(-zone, zone);
+				transform.local.translation.y() = math::random(100.0f, 150.0f);
+				transform.local.translation.z() = math::random(-zone, zone);
 				transform.warp = true;
 
 				samara.chirality = (math::random(0.0f, 1.0f) < 0.5f) ? -1.0f : 1.0f;

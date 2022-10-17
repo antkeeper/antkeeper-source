@@ -85,10 +85,10 @@ bool typeface::get_metrics(float height, char32_t code, glyph_metrics& metrics) 
 	// Get glyph metrics
 	metrics.width = face->glyph->metrics.width / 64.0f;
 	metrics.height = face->glyph->metrics.height / 64.0f;
-	metrics.horizontal_bearing.x = face->glyph->metrics.horiBearingX / 64.0f;
-	metrics.horizontal_bearing.y = face->glyph->metrics.horiBearingY / 64.0f;
-	metrics.vertical_bearing.x = face->glyph->metrics.vertBearingX / 64.0f;
-	metrics.vertical_bearing.y = face->glyph->metrics.vertBearingY / 64.0f;
+	metrics.horizontal_bearing.x() = face->glyph->metrics.horiBearingX / 64.0f;
+	metrics.horizontal_bearing.y() = face->glyph->metrics.horiBearingY / 64.0f;
+	metrics.vertical_bearing.x() = face->glyph->metrics.vertBearingX / 64.0f;
+	metrics.vertical_bearing.y() = face->glyph->metrics.vertBearingY / 64.0f;
 	metrics.horizontal_advance = face->glyph->metrics.horiAdvance / 64.0f;
 	metrics.vertical_advance = face->glyph->metrics.vertAdvance / 64.0f;
 	
@@ -116,7 +116,7 @@ bool typeface::get_bitmap(float height, char32_t code, image& bitmap) const
 	bitmap.resize(face->glyph->bitmap.width, face->glyph->bitmap.rows);
 	
 	// Copy glyph bitmap data in bitmap
-	std::memcpy(bitmap.get_pixels(), face->glyph->bitmap.buffer, bitmap.get_size());
+	std::memcpy(bitmap.data(), face->glyph->bitmap.buffer, bitmap.get_size());
 	
 	return true;
 }

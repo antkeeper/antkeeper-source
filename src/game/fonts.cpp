@@ -56,7 +56,7 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	font.pack();
 	
 	// Create font texture from bitmap
-	gl::texture_2d* font_texture = new gl::texture_2d(font_bitmap.get_width(), font_bitmap.get_height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.get_pixels());
+	gl::texture_2d* font_texture = new gl::texture_2d(font_bitmap.get_width(), font_bitmap.get_height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.data());
 	font_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	

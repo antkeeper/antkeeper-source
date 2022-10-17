@@ -128,9 +128,9 @@ void calculate_vertex_tangents(float4* tangents, const float2* texcoords, const 
 		float2 uvba = uvb - uva;
 		float2 uvca = uvc - uva;
 		
-		float f = 1.0f / (uvba.x * uvca.y - uvca.x * uvba.y);
-		float3 tangent = (ba * uvca.y - ca * uvba.y) * f;
-		float3 bitangent = (ba * -uvca.x + ca * uvba.x) * f;
+		float f = 1.0f / (uvba.x() * uvca.y() - uvca.x() * uvba.y());
+		float3 tangent = (ba * uvca.y() - ca * uvba.y()) * f;
+		float3 bitangent = (ba * -uvca.x() + ca * uvba.x()) * f;
 		
 		tangent_buffer[ia] += tangent;
 		tangent_buffer[ib] += tangent;
@@ -153,7 +153,7 @@ void calculate_vertex_tangents(float4* tangents, const float2* texcoords, const 
 		// Calculate bitangent sign
 		float bitangent_sign = (math::dot(math::cross(n, t), b) < 0.0f) ? -1.0f : 1.0f;
 		
-		tangents[i] = {tangent.x, tangent.y, tangent.z, bitangent_sign};
+		tangents[i] = {tangent.x(), tangent.y(), tangent.z(), bitangent_sign};
 	}
 	
 	// Free faceted tangents and bitangents
@@ -189,49 +189,47 @@ mesh::vertex* poke_face(mesh& mesh, std::size_t index)
 	mesh::face* face = mesh.get_faces()[index];
 	
 	// Collect face edges and sum edge vertex positions
-	std::vector<mesh::edge*> edges = {face->edge};
+	mesh::loop loop = {face->edge};
 	float3 sum_positions = face->edge->vertex->position;
 	for (mesh::edge* edge = face->edge->next; edge != face->edge; edge = edge->next)
 	{
-		edges.push_back(edge);
+		loop.push_back(edge);
 		sum_positions += edge->vertex->position;
 	}
 	
-	if (edges.size() > 2)
+	if (loop.size() <= 2)
+		return nullptr;
+	
+	// Remove face
+	mesh.remove_face(face);
+	
+	// Add vertex in center
+	mesh::vertex* center = mesh.add_vertex(sum_positions / static_cast<float>(loop.size()));
+	
+	// Create first triangle
+	geom::mesh::edge* ab = loop[0];
+	geom::mesh::edge* bc = mesh.add_edge(ab->next->vertex, center);
+	geom::mesh::edge* ca = mesh.add_edge(center, ab->vertex);
+	mesh.add_face({ab, bc, ca});
+	
+	// Save first triangle CA edge
+	geom::mesh::edge* first_triangle_ca = ca;
+	
+	// Create remaining triangles
+	for (std::size_t i = 1; i < loop.size(); ++i)
 	{
-		// Remove face
-		mesh.remove_face(face);
+		ab = loop[i];
+		ca = bc->symmetric;
 		
-		// Add vertex in center
-		mesh::vertex* center = mesh.add_vertex(sum_positions / static_cast<float>(edges.size()));
+		if (i == loop.size() - 1)
+			bc = first_triangle_ca->symmetric;
+		else
+			bc = mesh.add_edge(ab->next->vertex, center);
 		
-		// Create first triangle
-		geom::mesh::edge* ab = edges[0];
-		geom::mesh::edge* bc = mesh.add_edge(ab->next->vertex, center);
-		geom::mesh::edge* ca = mesh.add_edge(center, ab->vertex);
 		mesh.add_face({ab, bc, ca});
-		
-		// Save first triangle CA edge
-		geom::mesh::edge* first_triangle_ca = ca;
-		
-		// Create remaining triangles
-		for (std::size_t i = 1; i < edges.size(); ++i)
-		{
-			ab = edges[i];
-			ca = bc->symmetric;
-			
-			if (i == edges.size() - 1)
-				bc = first_triangle_ca->symmetric;
-			else
-				bc = mesh.add_edge(ab->next->vertex, center);
-			
-			mesh.add_face({ab, bc, ca});
-		}
-		
-		return center;
 	}
 	
-	return nullptr;
+	return center;
 }
 
 } // namespace geom

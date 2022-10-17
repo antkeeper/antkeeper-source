@@ -131,7 +131,7 @@ gl::texture_1d* resource_loader<gl::texture_1d>::load(resource_manager* resource
 	}
 	
 	// Create texture
-	gl::texture_1d* texture = new gl::texture_1d(image->get_width(), type, format, color_space, image->get_pixels());
+	gl::texture_1d* texture = new gl::texture_1d(image->get_width(), type, format, color_space, image->data());
 	
 	// Set wrapping and filtering
 	texture->set_wrapping(wrapping);
@@ -243,7 +243,7 @@ gl::texture_2d* resource_loader<gl::texture_2d>::load(resource_manager* resource
 	}
 
 	// Create texture
-	gl::texture_2d* texture = new gl::texture_2d(image->get_width(), image->get_height(), type, format, color_space, image->get_pixels());
+	gl::texture_2d* texture = new gl::texture_2d(image->get_width(), image->get_height(), type, format, color_space, image->data());
 	
 	// Set wrapping and filtering
 	texture->set_wrapping(wrapping, wrapping);

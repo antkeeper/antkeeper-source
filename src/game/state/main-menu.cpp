@@ -60,9 +60,9 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	// Align title text
 	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text.get_local_bounds());
-	float title_w = title_aabb.max_point.x - title_aabb.min_point.x;
-	float title_h = title_aabb.max_point.y - title_aabb.min_point.y;
-	title_text.set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (ctx.app->get_viewport_dimensions().y / 3.0f) / 2.0f), 0.0f});
+	float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
+	float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
+	title_text.set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (ctx.app->get_viewport_dimensions().y() / 3.0f) / 2.0f), 0.0f});
 	title_text.update_tweens();
 	
 	// Add title text to UI
@@ -105,7 +105,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	game::menu::update_text_color(ctx);
 	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx, true, false, (-ctx.app->get_viewport_dimensions().y / 3.0f) / 2.0f);
+	game::menu::align_text(ctx, true, false, (-ctx.app->get_viewport_dimensions().y() / 3.0f) / 2.0f);
 	game::menu::update_text_tweens(ctx);
 	game::menu::add_text_to_ui(ctx);
 	game::menu::setup_animations(ctx);
@@ -262,8 +262,12 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	const auto& viewport_dimensions = ctx.app->get_viewport_dimensions();
 	const float aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
 	
-	ctx.surface_camera->look_at({0, 3.0f, 0}, {0, 0, 0}, {0, 0, 1});
-	ctx.surface_camera->set_perspective(math::vertical_fov(math::radians(100.0f), aspect_ratio), ctx.surface_camera->get_aspect_ratio(), ctx.surface_camera->get_clip_near(), ctx.surface_camera->get_clip_far());
+	float fov = math::vertical_fov(math::radians(100.0f), aspect_ratio);
+	if (ctx.config->contains("near_fov"))
+		fov = math::vertical_fov(math::radians((*ctx.config)["near_fov"].get<float>()), aspect_ratio);
+	
+	ctx.surface_camera->look_at({0, 2.0f, 0}, {0, 0, 0}, {0, 0, 1});
+	ctx.surface_camera->set_perspective(fov, ctx.surface_camera->get_aspect_ratio(), ctx.surface_camera->get_clip_near(), ctx.surface_camera->get_clip_far());
 	ctx.surface_camera->update_tweens();
 	
 	// Setup and enable sky and ground passes

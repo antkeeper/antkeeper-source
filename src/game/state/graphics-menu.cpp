@@ -87,10 +87,10 @@ graphics_menu::graphics_menu(game::context& ctx):
 		if (!fullscreen)
 		{
 			int2 resolution;
-			resolution.x = (*ctx.config)["windowed_resolution"][0].get<int>();
-			resolution.y = (*ctx.config)["windowed_resolution"][1].get<int>();
+			resolution.x() = (*ctx.config)["windowed_resolution"][0].get<int>();
+			resolution.y() = (*ctx.config)["windowed_resolution"][1].get<int>();
 			
-			ctx.app->resize_window(resolution.x, resolution.y);
+			ctx.app->resize_window(resolution.x(), resolution.y());
 		}
 		
 		this->update_value_text_content();

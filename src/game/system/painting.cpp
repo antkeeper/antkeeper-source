@@ -78,12 +78,12 @@ painting::painting(entity::registry& registry, ::event_dispatcher* event_dispatc
 	stroke_model_instance->set_model(stroke_model);
 	stroke_model_instance->update_tweens();
 	
-	stroke_bounds_min.x = std::numeric_limits<float>::infinity();
-	stroke_bounds_min.y = std::numeric_limits<float>::infinity();
-	stroke_bounds_min.z = std::numeric_limits<float>::infinity();
-	stroke_bounds_max.x = -std::numeric_limits<float>::infinity();
-	stroke_bounds_max.y = -std::numeric_limits<float>::infinity();
-	stroke_bounds_max.z = -std::numeric_limits<float>::infinity();
+	stroke_bounds_min.x() = std::numeric_limits<float>::infinity();
+	stroke_bounds_min.y() = std::numeric_limits<float>::infinity();
+	stroke_bounds_min.z() = std::numeric_limits<float>::infinity();
+	stroke_bounds_max.x() = -std::numeric_limits<float>::infinity();
+	stroke_bounds_max.y() = -std::numeric_limits<float>::infinity();
+	stroke_bounds_max.z() = -std::numeric_limits<float>::infinity();
 	
 	midstroke = false;
 	*/
@@ -132,8 +132,8 @@ void painting::update(double t, double dt)
 				
 				// Find miter
 				float3 tangent = math::normalize(math::normalize(p2 - p1) + math::normalize(p1 - p0));
-				float2 miter = float2{-tangent.z, tangent.x};
-				float2 normal = float2{segment_right.x, segment_right.z};
+				float2 miter = float2{-tangent.z(), tangent.x()};
+				float2 normal = float2{segment_right.x(), segment_right.z()};
 				float miter_length = stroke_width / math::dot(miter, normal);
 				
 				float3 a = p0a;
@@ -151,8 +151,8 @@ void painting::update(double t, double dt)
 					if (angle < max_miter_angle)
 					{
 						mitered = true;
-						c = p1 - float3{miter.x, 0.0f, miter.y} * miter_length * 0.5f + segment_up * decal_offset;
-						d = p1 + float3{miter.x, 0.0f, miter.y} * miter_length * 0.5f + segment_up * decal_offset;
+						c = p1 - float3{miter.x(), 0.0f, miter.y()} * miter_length * 0.5f + segment_up * decal_offset;
+						d = p1 + float3{miter.x(), 0.0f, miter.y()} * miter_length * 0.5f + segment_up * decal_offset;
 					}
 				}
 				
@@ -198,9 +198,9 @@ void painting::update(double t, double dt)
 					float2 uvba = uvb - uva;
 					float2 uvca = uvc - uva;
 					
-					float f = 1.0f / (uvba.x * uvca.y - uvca.x * uvba.y);
-					float3 tangent = math::normalize((ba * uvca.y - ca * uvba.y) * f);
-					float3 bitangent = math::normalize((ba * -uvca.x + ca * uvba.x) * f);
+					float f = 1.0f / (uvba.x() * uvca.y() - uvca.x() * uvba.y());
+					float3 tangent = math::normalize((ba * uvca.y() - ca * uvba.y()) * f);
+					float3 bitangent = math::normalize((ba * -uvca.x() + ca * uvba.x()) * f);
 					
 					// Rotate tangent and bitangent according to segment rotation
 					tangent = math::normalize(tangent_rotation * tangent);
@@ -209,30 +209,30 @@ void painting::update(double t, double dt)
 					// Calculate sign of bitangent
 					float bitangent_sign = (math::dot(math::cross(surface_normal, tangent), bitangent) < 0.0f) ? -1.0f : 1.0f;
 					
-					tangents[i * 3] = {tangent.x, tangent.y, tangent.z, bitangent_sign};
-					tangents[i * 3 + 1] = {tangent.x, tangent.y, tangent.z, bitangent_sign};
-					tangents[i * 3 + 2] = {tangent.x, tangent.y, tangent.z, bitangent_sign};
+					tangents[i * 3] = {tangent.x(), tangent.y(), tangent.z(), bitangent_sign};
+					tangents[i * 3 + 1] = {tangent.x(), tangent.y(), tangent.z(), bitangent_sign};
+					tangents[i * 3 + 2] = {tangent.x(), tangent.y(), tangent.z(), bitangent_sign};
 				}
 				
 				float vertex_data[13 * 12];
 				float* v = &vertex_data[0];
 				for (int i = 0; i < 12; ++i)
 				{
-					*(v++) = positions[i].x;
-					*(v++) = positions[i].y;
-					*(v++) = positions[i].z;
+					*(v++) = positions[i].x();
+					*(v++) = positions[i].y();
+					*(v++) = positions[i].z();
 					*(v++) = w;
 
-					*(v++) = surface_normal.x;
-					*(v++) = surface_normal.y;
-					*(v++) = surface_normal.z;
+					*(v++) = surface_normal.x();
+					*(v++) = surface_normal.y();
+					*(v++) = surface_normal.z();
 					
-					*(v++) = texcoords[i].x;
-					*(v++) = texcoords[i].y;
+					*(v++) = texcoords[i].x();
+					*(v++) = texcoords[i].y();
 					
-					*(v++) = tangents[i].x;
-					*(v++) = tangents[i].y;
-					*(v++) = tangents[i].z;
+					*(v++) = tangents[i].x();
+					*(v++) = tangents[i].y();
+					*(v++) = tangents[i].z();
 					*(v++) = tangents[i].w;
 				}
 				
@@ -251,12 +251,12 @@ void painting::update(double t, double dt)
 				stroke_model_group->set_index_count(current_stroke_segment * 6);
 				
 				// Update stroke bounds
-				stroke_bounds_min.x = std::min<float>(stroke_bounds_min.x, std::min<float>(c.x, std::min<float>(d.x, std::min<float>(e.x, f.x))));
-				stroke_bounds_min.y = std::min<float>(stroke_bounds_min.y, std::min<float>(c.y, std::min<float>(d.y, std::min<float>(e.y, f.y))));
-				stroke_bounds_min.z = std::min<float>(stroke_bounds_min.z, std::min<float>(c.z, std::min<float>(d.z, std::min<float>(e.z, f.z))));
-				stroke_bounds_max.x = std::max<float>(stroke_bounds_max.x, std::max<float>(c.x, std::max<float>(d.x, std::max<float>(e.x, f.x))));
-				stroke_bounds_max.y = std::max<float>(stroke_bounds_max.y, std::max<float>(c.y, std::max<float>(d.y, std::max<float>(e.y, f.y))));
-				stroke_bounds_max.z = std::max<float>(stroke_bounds_max.z, std::max<float>(c.z, std::max<float>(d.z, std::max<float>(e.z, f.z))));
+				stroke_bounds_min.x() = std::min<float>(stroke_bounds_min.x(), std::min<float>(c.x(), std::min<float>(d.x(), std::min<float>(e.x(), f.x()))));
+				stroke_bounds_min.y() = std::min<float>(stroke_bounds_min.y(), std::min<float>(c.y(), std::min<float>(d.y(), std::min<float>(e.y(), f.y()))));
+				stroke_bounds_min.z() = std::min<float>(stroke_bounds_min.z(), std::min<float>(c.z(), std::min<float>(d.z(), std::min<float>(e.z(), f.z()))));
+				stroke_bounds_max.x() = std::max<float>(stroke_bounds_max.x(), std::max<float>(c.x(), std::max<float>(d.x(), std::max<float>(e.x(), f.x()))));
+				stroke_bounds_max.y() = std::max<float>(stroke_bounds_max.y(), std::max<float>(c.y(), std::max<float>(d.y(), std::max<float>(e.y(), f.y()))));
+				stroke_bounds_max.z() = std::max<float>(stroke_bounds_max.z(), std::max<float>(c.z(), std::max<float>(d.z(), std::max<float>(e.z(), f.z()))));
 				stroke_model->set_bounds(geom::aabb<float>{stroke_bounds_min, stroke_bounds_max});
 				stroke_model_instance->update_bounds();
 				

@@ -152,10 +152,10 @@ bool bitmap_font::pack(bool resize)
 			
 			// Copy glyph bitmap data into font bitmap
 			image& glyph_bitmap = it->second.bitmap;
-			bitmap.copy(glyph_bitmap, glyph_bitmap.get_width(), glyph_bitmap.get_height(), 0, 0, node->bounds.min.x, node->bounds.min.y);
+			bitmap.copy(glyph_bitmap, glyph_bitmap.get_width(), glyph_bitmap.get_height(), 0, 0, node->bounds.min.x(), node->bounds.min.y());
 			
 			// Record coordinates of glyph bitmap within font bitmap
-			it->second.position = {node->bounds.min.x, node->bounds.min.y};
+			it->second.position = {node->bounds.min.x(), node->bounds.min.y()};
 			
 			// Clear glyph bitmap data
 			glyph_bitmap.resize(0, 0);
@@ -185,7 +185,7 @@ void bitmap_font::unpack(bool resize)
 			glyph.bitmap.resize(glyph_width, glyph_height);
 		
 		// Copy pixel data from font bitmap to glyph bitmap
-		glyph.bitmap.copy(bitmap, glyph_width, glyph_height, glyph.position.x, glyph.position.y);
+		glyph.bitmap.copy(bitmap, glyph_width, glyph_height, glyph.position.x(), glyph.position.y());
 	}
 	
 	// Free font bitmap pixel data

@@ -22,7 +22,7 @@
 
 #include "animation/tween.hpp"
 #include "geom/bounding-volume.hpp"
-#include "math/vector-type.hpp"
+#include "math/vector.hpp"
 #include "math/quaternion-type.hpp"
 #include "math/transform-type.hpp"
 #include "render/context.hpp"

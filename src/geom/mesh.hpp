@@ -20,8 +20,8 @@
 #ifndef ANTKEEPER_GEOM_MESH_HPP
 #define ANTKEEPER_GEOM_MESH_HPP
 
-#include <vector>
 #include "utility/fundamental-types.hpp"
+#include <vector>
 
 namespace geom {
 
@@ -36,8 +36,10 @@ public:
 	struct vertex;
 	struct edge;
 	struct face;
+	
+	/// List of edges which form a face.
 	typedef std::vector<edge*> loop;
-
+	
 	/**
 	 * Constructs a mesh.
 	 */
@@ -118,61 +120,61 @@ public:
 	const std::vector<mesh::face*>& get_faces() const;
 
 	/**
-	 * Half-edge vertex which contains a pointer to its parent edge, a position vector, and an index.
+	 * Half-edge vertex which contains its index, a pointer to its parent edge, and its position vector.
 	 */
 	struct vertex
 	{
-		/// Pointer to the edge to which this vertex belongs
+		/// Index of this vertex.
+		std::size_t index;
+		
+		/// Pointer to the edge to which this vertex belongs.
 		mesh::edge* edge;
 		
-		/// Vertex position
+		/// Vertex position.
 		float3 position;
-		
-		/// Index of this vertex
-		std::size_t index;
 	};
 	
 	/**
-	 * Half-edge edge which contains pointers to its starting vertex, parent face, and related edges.
+	 * Half-edge edge which contains its index and pointers to its starting vertex, parent face, and related edges.
 	 */
 	struct edge
 	{
-		/// Pointer to the vertex at which the edge starts
+		/// Index of this edge.
+		std::size_t index;
+		
+		/// Pointer to the vertex at which the edge starts.
 		mesh::vertex* vertex;     
 		
-		/// Pointer to the face on the left of this edge
+		/// Pointer to the face on the left of this edge.
 		mesh::face* face;
 		
-		/// Pointer to the previous edge in the parent face
+		/// Pointer to the previous edge in the parent face.
 		mesh::edge* previous;
 		
-		/// Pointer to the next edge in the parent face
+		/// Pointer to the next edge in the parent face.
 		mesh::edge* next;
 		
-		/// Pointer to the symmetric edge
+		/// Pointer to the symmetric edge.
 		mesh::edge* symmetric;
-		
-		/// Index of this edge
-		std::size_t index;
 	};
 	
 	/**
-	 * Half-edge face which contains a pointer to its first edge and its normal vector.
+	 * Half-edge face which contains its index and a pointer to its first edge.
 	 */
 	struct face
 	{
-		/// Pointer to the first edge in this face
-		mesh::edge* edge;
-		
-		/// Index of this face
+		/// Index of this face.
 		std::size_t index;
+		
+		/// Pointer to the first edge in this face.
+		mesh::edge* edge;
 	};
 
 private:
 	mesh::edge* find_free_incident(mesh::vertex* vertex) const;
 	mesh::edge* find_free_incident(mesh::edge* start_edge, mesh::edge* end_edge) const;
 	bool make_adjacent(mesh::edge* in_edge, mesh::edge* out_edge);
-
+	
 	std::vector<mesh::vertex*> vertices;
 	std::vector<mesh::edge*> edges;
 	std::vector<mesh::face*> faces;
@@ -196,4 +198,3 @@ inline const std::vector<mesh::face*>& mesh::get_faces() const
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_MESH_HPP
-

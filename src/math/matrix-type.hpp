@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_MATH_MATRIX_TYPE_HPP
 #define ANTKEEPER_MATH_MATRIX_TYPE_HPP
 
-#include "math/vector-type.hpp"
+#include "math/vector.hpp"
 #include <cstddef>
 #include <utility>
 

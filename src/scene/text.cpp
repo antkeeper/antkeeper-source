@@ -19,7 +19,6 @@
 
 #include "scene/text.hpp"
 #include "render/vertex-attribute.hpp"
-#include "math/vector-operators.hpp"
 #include "type/unicode/convert.hpp"
 #include <cstddef>
 
@@ -218,7 +217,7 @@ void text::update_content()
 		// Apply kerning
 		if (previous_code)
 		{
-			pen_position.x += font->get_kerning(previous_code, code).x;
+			pen_position.x() += font->get_kerning(previous_code, code).x();
 		}
 		
 		if (font->contains(code))
@@ -229,48 +228,48 @@ void text::update_content()
 			// Calculate vertex positions
 			float2 positions[6];
 			positions[0] = pen_position + glyph.metrics.horizontal_bearing;
-			positions[1] = {positions[0].x, positions[0].y - glyph.metrics.height};
-			positions[2] = {positions[0].x + glyph.metrics.width, positions[1].y};
-			positions[3] = {positions[2].x, positions[0].y};
+			positions[1] = {positions[0].x(), positions[0].y() - glyph.metrics.height};
+			positions[2] = {positions[0].x() + glyph.metrics.width, positions[1].y()};
+			positions[3] = {positions[2].x(), positions[0].y()};
 			positions[4] = positions[0];
 			positions[5] = positions[2];
 			
 			// Calculate vertex UVs
 			float2 uvs[6];
-			uvs[0] = {static_cast<float>(glyph.position.x), static_cast<float>(glyph.position.y)};
-			uvs[1] = {uvs[0].x, uvs[0].y + glyph.metrics.height};
-			uvs[2] = {uvs[0].x + glyph.metrics.width, uvs[1].y};
-			uvs[3] = {uvs[2].x, uvs[0].y};
+			uvs[0] = {static_cast<float>(glyph.position.x()), static_cast<float>(glyph.position.y())};
+			uvs[1] = {uvs[0].x(), uvs[0].y() + glyph.metrics.height};
+			uvs[2] = {uvs[0].x() + glyph.metrics.width, uvs[1].y()};
+			uvs[3] = {uvs[2].x(), uvs[0].y()};
 			uvs[4] = uvs[0];
 			uvs[5] = uvs[2];
 			
 			for (int i = 0; i < 6; ++i)
 			{
 				// Round positions
-				positions[i].x = std::round(positions[i].x);
-				positions[i].y = std::round(positions[i].y);
+				positions[i].x() = std::round(positions[i].x());
+				positions[i].y() = std::round(positions[i].y());
 				
 				// Normalize UVs
-				uvs[i].x = uvs[i].x / static_cast<float>(font_bitmap.get_width());
-				uvs[i].y = uvs[i].y / static_cast<float>(font_bitmap.get_height());
+				uvs[i].x() = uvs[i].x() / static_cast<float>(font_bitmap.get_width());
+				uvs[i].y() = uvs[i].y() / static_cast<float>(font_bitmap.get_height());
 			}
 			
 			// Add vertex to vertex data buffer
 			for (int i = 0; i < 6; ++i)
 			{
-				*(v++) = positions[i].x;
-				*(v++) = positions[i].y;
+				*(v++) = positions[i].x();
+				*(v++) = positions[i].y();
 				*(v++) = 0.0f;
-				*(v++) = uvs[i].x;
-				*(v++) = uvs[i].y;
-				*(v++) = color.x;
-				*(v++) = color.y;
-				*(v++) = color.z;
-				*(v++) = color.w;
+				*(v++) = uvs[i].x();
+				*(v++) = uvs[i].y();
+				*(v++) = color[0];
+				*(v++) = color[1];
+				*(v++) = color[2];
+				*(v++) = color[3];
 			}
 			
 			// Advance pen position
-			pen_position.x += glyph.metrics.horizontal_advance;
+			pen_position.x() += glyph.metrics.horizontal_advance;
 			
 			// Update local-space bounds
 			for (int i = 0; i < 4; ++i)
@@ -293,8 +292,8 @@ void text::update_content()
 		// Handle newlines
 		if (code == static_cast<char32_t>('\n'))
 		{
-			pen_position.x = 0.0f;
-			pen_position.y -= font_metrics.linegap;
+			pen_position.x() = 0.0f;
+			pen_position.y() -= font_metrics.linegap;
 		}
 		
 		// Update previous UTF-32 character code
@@ -329,10 +328,10 @@ void text::update_color()
 		v += (3 + 2);
 		
 		// Update vertex color
-		*(v++) = color.x;
-		*(v++) = color.y;
-		*(v++) = color.z;
-		*(v++) = color.w;
+		*(v++) = color[0];
+		*(v++) = color[1];
+		*(v++) = color[2];
+		*(v++) = color[3];
 	}
 	
 	// Update VBO

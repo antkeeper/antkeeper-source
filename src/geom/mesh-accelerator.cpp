@@ -160,18 +160,18 @@ octree32::node_type mesh_accelerator::find_node(const float3& point) const
 
 	// Account for floating-point tolerance
 	const float epsilon = 0.00001f;
-	transformed_point.x = std::max<float>(0.0f, std::min<float>(node_dimensions[0].x - epsilon, transformed_point.x));
-	transformed_point.y = std::max<float>(0.0f, std::min<float>(node_dimensions[0].y - epsilon, transformed_point.y));
-	transformed_point.z = std::max<float>(0.0f, std::min<float>(node_dimensions[0].z - epsilon, transformed_point.z));
+	transformed_point.x() = std::max<float>(0.0f, std::min<float>(node_dimensions[0].x() - epsilon, transformed_point.x()));
+	transformed_point.y() = std::max<float>(0.0f, std::min<float>(node_dimensions[0].y() - epsilon, transformed_point.y()));
+	transformed_point.z() = std::max<float>(0.0f, std::min<float>(node_dimensions[0].z() - epsilon, transformed_point.z()));
 
 	// Transform point to max-depth node space
 	transformed_point = transformed_point / node_dimensions[octree32::max_depth];
 
 	// Encode transformed point as a Morton location code
 	std::uint32_t location = morton::encode(
-		static_cast<std::uint32_t>(transformed_point.x),
-		static_cast<std::uint32_t>(transformed_point.y),
-		static_cast<std::uint32_t>(transformed_point.z));
+		static_cast<std::uint32_t>(transformed_point.x()),
+		static_cast<std::uint32_t>(transformed_point.y()),
+		static_cast<std::uint32_t>(transformed_point.z()));
 	
 	// Return max depth node at the determined location
 	return octree32::node(octree32::max_depth, location);

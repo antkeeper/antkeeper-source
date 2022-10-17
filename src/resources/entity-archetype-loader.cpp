@@ -71,9 +71,9 @@ static bool load_component_atmosphere(entity::archetype& archetype, const json& 
 	if (element.contains("airglow_illuminance"))
 	{
 		const auto& airglow_illuminance = element["airglow_illuminance"];
-		component.airglow_illuminance.x = airglow_illuminance[0].get<double>();
-		component.airglow_illuminance.y = airglow_illuminance[1].get<double>();
-		component.airglow_illuminance.z = airglow_illuminance[2].get<double>();
+		component.airglow_illuminance.x() = airglow_illuminance[0].get<double>();
+		component.airglow_illuminance.y() = airglow_illuminance[1].get<double>();
+		component.airglow_illuminance.z() = airglow_illuminance[2].get<double>();
 	}
 	
 	archetype.stamps.push_back
@@ -267,9 +267,9 @@ static bool load_component_transform(entity::archetype& archetype, const json& e
 	if (element.contains("translation"))
 	{
 		auto translation = element["translation"];
-		component.local.translation.x = translation[0].get<float>();
-		component.local.translation.y = translation[1].get<float>();
-		component.local.translation.z = translation[2].get<float>();
+		component.local.translation.x() = translation[0].get<float>();
+		component.local.translation.y() = translation[1].get<float>();
+		component.local.translation.z() = translation[2].get<float>();
 	}
 	
 	if (element.contains("rotation"))
@@ -284,9 +284,9 @@ static bool load_component_transform(entity::archetype& archetype, const json& e
 	if (element.contains("scale"))
 	{
 		auto translation = element["scale"];
-		component.local.scale.x = translation[0].get<float>();
-		component.local.scale.y = translation[1].get<float>();
-		component.local.scale.z = translation[2].get<float>();
+		component.local.scale.x() = translation[0].get<float>();
+		component.local.scale.y() = translation[1].get<float>();
+		component.local.scale.z() = translation[2].get<float>();
 	}
 	
 	component.world = component.local;

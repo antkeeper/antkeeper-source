@@ -106,7 +106,7 @@ aabb<T> aabb<T>::transform(const aabb& a, const matrix_type& m)
 	for (std::size_t i = 0; i < 8; ++i)
 	{
 		vector_type corner = a.corner(i);
-		math::vector<T, 4> transformed_corner = math::mul(m, math::vector<T, 4>{corner.x, corner.y, corner.z, T(1)});
+		math::vector<T, 4> transformed_corner = math::mul(m, math::vector<T, 4>{corner.x(), corner.y(), corner.z(), T(1)});
 
 		for (std::size_t j = 0; j < 3; ++j)
 		{
@@ -144,11 +144,11 @@ bool aabb<T>::intersects(const sphere<T>& sphere) const
 template <class T>
 bool aabb<T>::intersects(const aabb<T>& aabb) const
 {
-	if (max_point.x < aabb.min_point.x || min_point.x > aabb.max_point.x)
+	if (max_point.x() < aabb.min_point.x() || min_point.x() > aabb.max_point.x())
 		return false;
-	if (max_point.y < aabb.min_point.y || min_point.y > aabb.max_point.y)
+	if (max_point.y() < aabb.min_point.y() || min_point.y() > aabb.max_point.y())
 		return false;
-	if (max_point.z < aabb.min_point.z || min_point.z > aabb.max_point.z)
+	if (max_point.z() < aabb.min_point.z() || min_point.z() > aabb.max_point.z())
 		return false;
 	return true;
 }
@@ -156,11 +156,11 @@ bool aabb<T>::intersects(const aabb<T>& aabb) const
 template <class T>
 bool aabb<T>::contains(const sphere<T>& sphere) const
 {
-	if (sphere.center.x - sphere.radius < min_point.x || sphere.center.x + sphere.radius > max_point.x)
+	if (sphere.center.x() - sphere.radius < min_point.x() || sphere.center.x() + sphere.radius > max_point.x())
 		return false;
-	if (sphere.center.y - sphere.radius < min_point.y || sphere.center.y + sphere.radius > max_point.y)
+	if (sphere.center.y() - sphere.radius < min_point.y() || sphere.center.y() + sphere.radius > max_point.y())
 		return false;
-	if (sphere.center.z - sphere.radius < min_point.z || sphere.center.z + sphere.radius > max_point.z)
+	if (sphere.center.z() - sphere.radius < min_point.z() || sphere.center.z() + sphere.radius > max_point.z())
 		return false;
 	return true;
 }
@@ -168,11 +168,11 @@ bool aabb<T>::contains(const sphere<T>& sphere) const
 template <class T>
 bool aabb<T>::contains(const aabb<T>& aabb) const
 {
-	if (aabb.min_point.x < min_point.x || aabb.max_point.x > max_point.x)
+	if (aabb.min_point.x() < min_point.x() || aabb.max_point.x() > max_point.x())
 		return false;
-	if (aabb.min_point.y < min_point.y || aabb.max_point.y > max_point.y)
+	if (aabb.min_point.y() < min_point.y() || aabb.max_point.y() > max_point.y())
 		return false;
-	if (aabb.min_point.z < min_point.z || aabb.max_point.z > max_point.z)
+	if (aabb.min_point.z() < min_point.z() || aabb.max_point.z() > max_point.z())
 		return false;
 	return true;
 }
@@ -180,11 +180,11 @@ bool aabb<T>::contains(const aabb<T>& aabb) const
 template <class T>
 bool aabb<T>::contains(const vector_type& point) const
 {
-	if (point.x < min_point.x || point.x > max_point.x)
+	if (point.x() < min_point.x() || point.x() > max_point.x())
 		return false;
-	if (point.y < min_point.y || point.y > max_point.y)
+	if (point.y() < min_point.y() || point.y() > max_point.y())
 		return false;
-	if (point.z < min_point.z || point.z > max_point.z)
+	if (point.z() < min_point.z() || point.z() > max_point.z())
 		return false;
 	return true;
 }

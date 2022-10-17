@@ -132,6 +132,9 @@ nest_selection::nest_selection(game::context& ctx):
 	// Satisfy first person camera rig constraints
 	satisfy_first_person_camera_rig_constraints();
 	
+	auto ruler_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
+	ruler_archetype->create(*ctx.entity_registry);
+	
 	// Queue control setup
 	ctx.function_queue.push(std::bind(&nest_selection::enable_controls, this));
 	
@@ -670,7 +673,7 @@ void nest_selection::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.x -= wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.x() -= wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -681,7 +684,7 @@ void nest_selection::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.x += wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.x() += wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -693,7 +696,7 @@ void nest_selection::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.y -= wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.y() -= wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -704,7 +707,7 @@ void nest_selection::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.y += wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.y() += wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -716,7 +719,7 @@ void nest_selection::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.z -= wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.z() -= wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -727,7 +730,7 @@ void nest_selection::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.z += wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.z() += wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;

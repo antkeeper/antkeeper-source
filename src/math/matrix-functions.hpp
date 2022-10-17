@@ -21,8 +21,7 @@
 #define ANTKEEPER_MATH_MATRIX_FUNCTIONS_HPP
 
 #include "math/matrix-type.hpp"
-#include "math/vector-type.hpp"
-#include "math/vector-functions.hpp"
+#include "math/vector.hpp"
 #include <type_traits>
 
 namespace math {

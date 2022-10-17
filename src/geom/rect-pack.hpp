@@ -194,8 +194,8 @@ typename rect_pack<T>::node_type* rect_pack<T>::insert(node_type& node, scalar_t
 		return nullptr;
 	
 	// Determine node dimensions
-	scalar_type node_w = node.bounds.max.x - node.bounds.min.x;
-	scalar_type node_h = node.bounds.max.y - node.bounds.min.y;
+	scalar_type node_w = node.bounds.max.x() - node.bounds.min.x();
+	scalar_type node_h = node.bounds.max.y() - node.bounds.min.y();
 	
 	// Check if rect is larger than node
 	if (w > node_w || h > node_h)
@@ -218,15 +218,15 @@ typename rect_pack<T>::node_type* rect_pack<T>::insert(node_type& node, scalar_t
 	if (dw > dh)
 	{
 		node.children[0]->bounds.min = node.bounds.min;
-		node.children[0]->bounds.max = {node.bounds.min.x + w, node.bounds.max.y};
-		node.children[1]->bounds.min = {node.bounds.min.x + w, node.bounds.min.y};
+		node.children[0]->bounds.max = {node.bounds.min.x() + w, node.bounds.max.y()};
+		node.children[1]->bounds.min = {node.bounds.min.x() + w, node.bounds.min.y()};
 		node.children[1]->bounds.max = {node.bounds.max};
 	}
 	else
 	{
 		node.children[0]->bounds.min = node.bounds.min;
-		node.children[0]->bounds.max = {node.bounds.max.x, node.bounds.min.y + h};
-		node.children[1]->bounds.min = {node.bounds.min.x, node.bounds.min.y + h};
+		node.children[0]->bounds.max = {node.bounds.max.x(), node.bounds.min.y() + h};
+		node.children[1]->bounds.min = {node.bounds.min.x(), node.bounds.min.y() + h};
 		node.children[1]->bounds.max = {node.bounds.max};
 	}
 	

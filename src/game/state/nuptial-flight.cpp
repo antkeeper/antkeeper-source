@@ -773,7 +773,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.x -= wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.x() -= wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -784,7 +784,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.x += wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.x() += wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -796,7 +796,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.y -= wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.y() -= wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -807,7 +807,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.y += wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.y() += wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -819,7 +819,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.z -= wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.z() -= wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;
@@ -830,7 +830,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&ctx = this->ctx, wavelength_speed](float)
 		{
-			ctx.rgb_wavelengths.z += wavelength_speed * ctx.loop.get_update_period();
+			ctx.rgb_wavelengths.z() += wavelength_speed * ctx.loop.get_update_period();
 			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 			std::stringstream stream;
 			stream << ctx.rgb_wavelengths;

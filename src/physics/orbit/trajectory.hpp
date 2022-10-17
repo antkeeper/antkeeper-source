@@ -21,6 +21,7 @@
 #define ANTKEEPER_PHYSICS_ORBIT_TRAJECTORY_HPP
 
 #include "math/polynomial.hpp"
+#include "math/vector.hpp"
 #include <vector>
 
 namespace physics {
@@ -71,9 +72,9 @@ math::vector<T, 3> trajectory<T>::position(T t) const
 	t = (t / dt - i) * T(2) - T(1);
 	
 	math::vector3<T> r;
-	r.x = math::polynomial::chebyshev::evaluate(ax, ay, t);
-	r.y = math::polynomial::chebyshev::evaluate(ay, az, t);
-	r.z = math::polynomial::chebyshev::evaluate(az, az + n, t);
+	r.x() = math::polynomial::chebyshev::evaluate(ax, ay, t);
+	r.y() = math::polynomial::chebyshev::evaluate(ay, az, t);
+	r.z() = math::polynomial::chebyshev::evaluate(az, az + n, t);
 	
 	return r;
 }

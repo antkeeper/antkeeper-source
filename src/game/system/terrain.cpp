@@ -18,16 +18,13 @@
  */
 
 #include "game/system/terrain.hpp"
-#include "game/component/celestial-body.hpp"
-#include "game/component/observer.hpp"
 #include "game/component/terrain.hpp"
+#include "game/component/camera.hpp"
 #include "geom/meshes/grid.hpp"
 #include "geom/mesh-functions.hpp"
 #include "geom/morton.hpp"
 #include "geom/quadtree.hpp"
-#include "geom/spherical.hpp"
 #include "gl/vertex-attribute.hpp"
-#include "math/constants.hpp"
 #include "math/quaternion-operators.hpp"
 #include "render/vertex-attribute.hpp"
 #include "utility/fundamental-types.hpp"
@@ -39,440 +36,524 @@ namespace system {
 
 terrain::terrain(entity::registry& registry):
 	updatable(registry),
+	patch_side_length(0.0f),
 	patch_subdivisions(0),
+	patch_material(nullptr),
+	elevation_function(nullptr),
+	scene_collection(nullptr),
 	patch_base_mesh(nullptr),
 	patch_vertex_size(0),
-	patch_vertex_count(0),
-	patch_vertex_data(nullptr),
-	patch_scene_collection(nullptr),
-	max_error(0.0)
+	patch_vertex_stride(0),
+	patch_vertex_data(nullptr)
 {
-	// Build set of quaternions to rotate quadtree cube coordinates into BCBF space according to face index
-	face_rotations[0] = math::quaternion<double>::identity;                       // +x
-	face_rotations[1] = math::quaternion<double>::rotate_z(math::pi<double>);       // -x
-	face_rotations[2] = math::quaternion<double>::rotate_z( math::half_pi<double>); // +y
-	face_rotations[3] = math::quaternion<double>::rotate_z(-math::half_pi<double>); // -y
-	face_rotations[4] = math::quaternion<double>::rotate_y(-math::half_pi<double>); // +z
-	face_rotations[5] = math::quaternion<double>::rotate_y( math::half_pi<double>); // -z
-	
 	// Specify vertex size and stride
 	// (position + uv + normal + tangent + barycentric + target)
 	patch_vertex_size = 3 + 2 + 3 + 4 + 3 + 3;
 	patch_vertex_stride = patch_vertex_size * sizeof(float);
 	
-	// Init patch subdivisions to zero
-	set_patch_subdivisions(0);
+	// Init quadtee node sizes at each depth
+	for (std::size_t i = 0; i <= quadtree_type::max_depth; ++i)
+		quadtree_node_size[i] = 0.0f;
 	
 	registry.on_construct<component::terrain>().connect<&terrain::on_terrain_construct>(this);
+	registry.on_update<component::terrain>().connect<&terrain::on_terrain_update>(this);
 	registry.on_destroy<component::terrain>().connect<&terrain::on_terrain_destroy>(this);
 }
 
 terrain::~terrain()
 {
 	registry.on_construct<component::terrain>().disconnect<&terrain::on_terrain_construct>(this);
+	registry.on_update<component::terrain>().disconnect<&terrain::on_terrain_update>(this);
 	registry.on_destroy<component::terrain>().disconnect<&terrain::on_terrain_destroy>(this);
 }
 
 void terrain::update(double t, double dt)
 {
-	/*
-	// Refine the level of detail of each terrain quadsphere
-	registry.view<component::terrain, component::celestial_body>().each(
-	[&](entity::id terrain_eid, const auto& terrain_component, const auto& terrain_body)
-	{
-		// Retrieve terrain quadsphere
-		terrain_quadsphere* quadsphere = terrain_quadspheres[terrain_eid];
-		
-		// For each observer
-		this->registry.view<component::observer>().each(
-		[&](entity::id observer_eid, const auto& observer)
+	// Clear quadtree
+	quadtree.clear();
+	
+	// For each camera
+	this->registry.view<component::camera>().each
+	(
+		[&](entity::id camera_eid, const auto& camera)
 		{
-			// Skip observers with invalid reference body
-			if (!this->registry.has<component::celestial_body>(observer.reference_body_eid) ||
-				!this->registry.has<component::terrain>(observer.reference_body_eid))
+			if (!camera.object)
 				return;
 			
-			// Get celestial body and terrain component of observer reference body
-			const auto& reference_celestial_body = this->registry.get<component::celestial_body>(observer.reference_body_eid);
-			const auto& reference_terrain = this->registry.get<component::terrain>(observer.reference_body_eid);
+			const scene::camera& cam = *camera.object;
 			
-			// Calculate reference BCBF-space position of observer.
-			//double3 observer_spherical = {reference_celestial_body.radius + observer.elevation, observer.latitude, observer.longitude};
-			double3 observer_spherical = {observer.elevation, observer.latitude, observer.longitude};
-			double3 observer_cartesian = geom::spherical::to_cartesian(observer_spherical);
-			
-			observer_cartesian = math::type_cast<double>(observer.camera->get_translation());
-			
-			/// @TODO Transform observer position into BCBF space of terrain body (use orbit component?)
-			
-			// For each terrain quadsphere face
-			for (int i = 0; i < 6; ++i)
-			{
-				terrain_quadsphere_face& quadsphere_face = quadsphere->faces[i];
 
-				// Get the quadsphere faces's quadtree
-				quadtree_type& quadtree = quadsphere_face.quadtree;
-				
-				// Clear quadsphere face quadtree
-				quadtree.clear();
-				
-				// For each node in the face quadtree
-				for (auto node_it = quadtree.begin(); node_it != quadtree.end(); ++node_it)
-				{
-					quadtree_node_type node = *node_it;
-					
-					// Skip non leaf nodes
-					if (!quadtree.is_leaf(node))
-						continue;
-					
-					// Extract node depth
-					quadtree_type::node_type node_depth = quadtree_type::depth(node);
-					
-					// Skip nodes at max depth level
-					if (node_depth >= terrain_component.max_lod)
-						continue;
-					
-					// Extract node location from Morton location code
-					quadtree_type::node_type node_location = quadtree_type::location(node);
-					quadtree_type::node_type node_location_x;
-					quadtree_type::node_type node_location_y;
-					geom::morton::decode(node_location, node_location_x, node_location_y);
-					
-
-					
-					const double nodes_per_axis = std::exp2(node_depth);
-					const double node_width = 2.0 / nodes_per_axis;
-					
-					// Determine node center on front face of unit BCBF cube.
-					double3 center;
-					center.y = -(nodes_per_axis * 0.5 * node_width) + node_width * 0.5;
-					center.z = center.y;
-					center.y += static_cast<double>(node_location_x) * node_width;
-					center.z += static_cast<double>(node_location_y) * node_width;
-					center.x = 1.0;
-					
-					// Rotate node center according to cube face
-					/// @TODO Rather than rotating every center, "unrotate" observer position 6 times
-					center = face_rotations[i] * center;
-					
-					// Project node center onto unit sphere
-					double xx = center.x * center.x;
-					double yy = center.y * center.y;
-					double zz = center.z * center.z;
-					center.x *= std::sqrt(std::max(0.0, 1.0 - yy * 0.5 - zz * 0.5 + yy * zz / 3.0));
-					center.y *= std::sqrt(std::max(0.0, 1.0 - xx * 0.5 - zz * 0.5 + xx * zz / 3.0));
-					center.z *= std::sqrt(std::max(0.0, 1.0 - xx * 0.5 - yy * 0.5 + xx * yy / 3.0));
-					
-					// Scale node center by body radius
-					center *= terrain_body.radius;
-					center.y -= terrain_body.radius;
-					//center *= 50.0;
-					
-					const double horizontal_fov = observer.camera->get_fov();
-					const double horizontal_resolution = 1920.0;
-					const double distance = math::length(center - observer_cartesian);
-					const double geometric_error = static_cast<double>(524288.0 / std::exp2(node_depth));
-					const double screen_error = screen_space_error(horizontal_fov, horizontal_resolution, distance, geometric_error);
-					
-					if (screen_error > max_error)
-					{
-						//std::cout << screen_error << std::endl;
-						quadtree.insert(quadtree_type::child(node, 0));
-					}
-				}
-			}
-		});
-	});
-	
-	// Handle meshes and models for each terrain patch
-	registry.view<component::terrain, component::celestial_body>().each(
-	[&](entity::id terrain_eid, const auto& terrain_component, const auto& terrain_body)
-	{
-		// Retrieve terrain quadsphere
-		terrain_quadsphere* quadsphere = terrain_quadspheres[terrain_eid];
-		
-		// For each terrain quadsphere face
-		for (int i = 0; i < 6; ++i)
-		{
-			terrain_quadsphere_face& quadsphere_face = quadsphere->faces[i];
-			const quadtree_type& quadtree = quadsphere_face.quadtree;
-
-			// For each quadtree node
-			for (auto node_it = quadtree.unordered_begin(); node_it != quadtree.unordered_end(); ++node_it)
-			{
-				quadtree_node_type node = *node_it;
-				
-				// Look up cached patch for this node
-				auto patch_it = quadsphere_face.patches.find(node);
-				
-				// If there is no cached patch instance for this node
-				if (patch_it == quadsphere_face.patches.end())
-				{
-					// Construct a terrain patch
-					terrain_patch* patch = new terrain_patch();
-					
-					// Generate a patch mesh
-					patch->mesh = generate_patch_mesh(i, *node_it, terrain_body.radius, terrain_component.elevation);
-					//patch->mesh = generate_patch_mesh(i, *node_it, 50.0, terrain_component.elevation);
-					
-					// Generate a patch model
-					patch->model = generate_patch_model(*patch->mesh, terrain_component.patch_material);
-					
-					// Construct patch model instance
-					patch->model_instance = new scene::model_instance(patch->model);
-
-					
-					// Cache the terrain patch
-					quadsphere_face.patches[node] = patch;
-					
-					// Add patch model instance to the patch scene collection
-					if (patch_scene_collection)
-						patch_scene_collection->add_object(patch->model_instance);
-				}
-			}
 			
-			// For each terrain pach
-			for (auto patch_it = quadsphere_face.patches.begin(); patch_it != quadsphere_face.patches.end(); ++patch_it)
-			{
-				quadtree_node_type node = patch_it->first;
-				
-				// Set patch model instance active if its node is a leaf node, otherwise deactivate it
-				bool active = (quadtree.contains(node) && quadtree.is_leaf(node));
-				patch_it->second->model_instance->set_active(active);
-			}
+
+			
+			// for (int i = 0; i < 8; ++i)
+				// std::cout << "corner " << i << ": " << cam.get_view_frustum().get_corners()[i] << std::endl;
+			
+			geom::ray<float> rays[8];
+			rays[0] = cam.pick({-1, -1});
+			rays[1] = cam.pick({-1,  1});
+			rays[2] = cam.pick({ 1,  1});
+			rays[3] = cam.pick({ 1, -1});
+			
+			float3 ntl = rays[0].origin;
+			float3 nbl = rays[1].origin;
+			float3 nbr = rays[2].origin;
+			float3 ntr = rays[3].origin;
+			
+			float3 ftl = rays[0].origin + rays[0].direction * (cam.get_clip_far() - cam.get_clip_near());
+			float3 fbl = rays[1].origin + rays[1].direction * (cam.get_clip_far() - cam.get_clip_near());
+			float3 fbr = rays[2].origin + rays[2].direction * (cam.get_clip_far() - cam.get_clip_near());
+			float3 ftr = rays[3].origin + rays[3].direction * (cam.get_clip_far() - cam.get_clip_near());
+			
+			// for (int i = 0; i < 8; ++i)
+				// std::cout << "ray or " << i << ": " << rays[i].origin << std::endl;
+			
+			geom::convex_hull<float> hull(6);
+			hull.planes[0] = geom::plane<float>(ftl, fbl, nbl);
+			hull.planes[1] = geom::plane<float>(ntr, nbr, fbr);
+			hull.planes[2] = geom::plane<float>(fbl, fbr, nbr);
+			hull.planes[3] = geom::plane<float>(ftl, ntl, ntr);
+			hull.planes[4] = geom::plane<float>(ntl, nbl, nbr);
+			hull.planes[5] = geom::plane<float>(ftr, fbr, fbl);
+			
+			geom::sphere<float> sphere;
+			sphere.center = cam.get_translation();
+			sphere.radius = cam.get_clip_far() * 0.25;
+			
+			//visit_quadtree(cam.get_view_frustum().get_bounds(), quadtree_type::root);
+			visit_quadtree(sphere, quadtree_type::root);
 		}
-	});
-	*/
+	);
+	
+	//std::cout << "qsize: " << quadtree.size() << std::endl;
+	std::size_t qvis = 0;
+
+	
+	/// Toggle visibility of terrain scene objects
+	for (auto it = patches.begin(); it != patches.end(); ++it)
+	{
+		bool active = (quadtree.contains(it->first) && quadtree.is_leaf(it->first));
+		it->second->model_instance->set_active(active);
+		
+		if (active)
+			++qvis;
+	}
+	
+	//std::cout << "qvis: " << qvis << std::endl;
 }
 
-void terrain::set_patch_subdivisions(std::uint8_t n)
+void terrain::set_patch_side_length(float length)
+{
+	patch_side_length = length;
+	
+	// Recalculate node sizes at each quadtree depth
+	for (std::size_t i = 0; i <= quadtree_type::max_depth; ++i)
+	{
+		quadtree_node_size[i] = std::exp2(quadtree_type::max_depth - i) * patch_side_length;
+		//std::cout << quadtree_node_size[i] << std::endl;
+	}
+}
+
+void terrain::set_patch_subdivisions(std::size_t n)
 {
 	patch_subdivisions = n;
 	
-	// Rebuid patch base mesh
-	{
-		delete patch_base_mesh;
-		patch_base_mesh = geom::meshes::grid_xy(2.0f, patch_subdivisions, patch_subdivisions);
-		
-		// Convert quads to triangle fans
-		for (std::size_t i = 0; i < patch_base_mesh->get_faces().size(); ++i)
-		{
-			geom::mesh::face* face = patch_base_mesh->get_faces()[i];
-			
-			std::size_t edge_count = 1;
-			for (geom::mesh::edge* edge = face->edge->next; edge != face->edge; edge = edge->next)
-				++edge_count;
-			
-			if (edge_count > 3)
-			{
-				geom::poke_face(*patch_base_mesh, face->index);
-				--i;
-			}
-		}
-	}
-	
-	// Transform patch base mesh coordinates to match the front face of a BCBF cube
-	const math::quaternion<float> xy_to_zy = math::quaternion<float>::rotate_y(-math::half_pi<float>);
-	for (geom::mesh::vertex* vertex: patch_base_mesh->get_vertices())
-	{
-		vertex->position = xy_to_zy * vertex->position;
-		vertex->position.x = 1.0f;
-	}
-	
-	// Recalculate number of vertices per patch
-	patch_vertex_count = patch_base_mesh->get_faces().size() * 3;
+	// Recalculate patch properties
+	patch_cell_count = (patch_subdivisions + 1) * (patch_subdivisions + 1);
+	patch_triangle_count = patch_cell_count * 4;
 	
 	// Resize patch vertex data buffer
 	delete[] patch_vertex_data;
-	patch_vertex_data = new float[patch_vertex_count * patch_vertex_size];
+	patch_vertex_data = new float[patch_triangle_count * 3 * patch_vertex_size];
+	
+	// Resize patch buffers
+	
+	std::size_t vertex_buffer_row_size = patch_subdivisions + 4;
+	std::size_t vertex_buffer_column_size = vertex_buffer_row_size * 2;
+	
+	patch_vertex_buffer.resize(vertex_buffer_row_size);
+	for (std::size_t i = 0; i < patch_vertex_buffer.size(); ++i)
+		patch_vertex_buffer[i].resize(vertex_buffer_column_size);
+	
+	rebuild_patch_base_mesh();
 }
 
-void terrain::set_patch_scene_collection(scene::collection* collection)
+void terrain::set_patch_material(::render::material* material)
 {
-	patch_scene_collection = collection;
+	patch_material = material;
 }
 
-void terrain::set_max_error(double error)
+void terrain::set_elevation_function(const std::function<float(float, float)>& f)
 {
-	max_error = error;
+	elevation_function = f;
+}
+
+void terrain::set_scene_collection(scene::collection* collection)
+{
+	scene_collection = collection;
 }
 
 void terrain::on_terrain_construct(entity::registry& registry, entity::id entity_id)
 {
-	terrain_quadsphere* quadsphere = new terrain_quadsphere();
-	terrain_quadspheres[entity_id] = quadsphere;
+}
+
+void terrain::on_terrain_update(entity::registry& registry, entity::id entity_id)
+{
 }
 
 void terrain::on_terrain_destroy(entity::registry& registry, entity::id entity_id)
 {
-	// Find terrain quadsphere for the given entity ID
-	auto quadsphere_it = terrain_quadspheres.find(entity_id);
+}
+
+float terrain::get_patch_size(quadtree_node_type node) const
+{
+	return quadtree_node_size[quadtree_type::depth(node)];
+}
+
+float3 terrain::get_patch_center(quadtree_node_type node) const
+{
+	const float node_size = get_patch_size(node);
+	const float node_offset = quadtree_node_size[0] * -0.5f + node_size * 0.5f;
 	
-	if (quadsphere_it != terrain_quadspheres.end())
+	// Extract node location from Morton location code
+	quadtree_type::node_type node_location = quadtree_type::location(node);
+	quadtree_type::node_type node_location_x;
+	quadtree_type::node_type node_location_y;
+	geom::morton::decode(node_location, node_location_x, node_location_y);
+	
+	return float3
 	{
-		terrain_quadsphere* quadsphere = quadsphere_it->second;
+		node_offset + static_cast<float>(node_location_x) * node_size,
+		0.0f,
+		node_offset + static_cast<float>(node_location_y) * node_size
+	};
+}
+
+void terrain::rebuild_patch_base_mesh()
+{
+	// Rebuild grid
+	delete patch_base_mesh;
+	patch_base_mesh = geom::meshes::grid_xy(1.0f, patch_subdivisions, patch_subdivisions);
+	
+	// Convert quads to triangle fans
+	for (std::size_t i = 0; i < patch_base_mesh->get_faces().size(); ++i)
+	{
+		geom::mesh::face* face = patch_base_mesh->get_faces()[i];
 		
-		// For each terrain quadsphere face
-		for (int i = 0; i < 6; ++i)
+		std::size_t edge_count = 1;
+		for (geom::mesh::edge* edge = face->edge->next; edge != face->edge; edge = edge->next)
+			++edge_count;
+		
+		if (edge_count > 3)
 		{
-			terrain_quadsphere_face& quadsphere_face = quadsphere->faces[i];
+			geom::poke_face(*patch_base_mesh, face->index);
+			--i;
+		}
+	}
+	
+	// Transform patch base mesh coordinates from XY plane to XZ plane
+	const math::quaternion<float> xy_to_xz = math::quaternion<float>::rotate_x(math::half_pi<float>);
+	for (geom::mesh::vertex* vertex: patch_base_mesh->get_vertices())
+	{
+		vertex->position = xy_to_xz * vertex->position;
+	}
+}
+
+void terrain::visit_quadtree(const geom::bounding_volume<float>& volume, quadtree_node_type node)
+{
+	const float root_offset = quadtree_node_size[0] * -0.5f;
+	
+	// Extract node depth
+	quadtree_type::node_type node_depth = quadtree_type::depth(node);
+	
+	const float node_size = get_patch_size(node);
+	const float3 node_center = get_patch_center(node);
+	
+	// Build node bounds AABB
+	geom::aabb<float> node_bounds;
+	node_bounds.min_point = 
+	{
+		node_center.x() - node_size * 0.5f,
+		quadtree_node_size[quadtree_type::max_depth] * -0.5f,
+		node_center.z() - node_size * 0.5f
+	};
+	node_bounds.max_point =
+	{
+		node_bounds.min_point[0] + node_size,
+		node_bounds.min_point[1] + quadtree_node_size[quadtree_type::max_depth],
+		node_bounds.min_point[2] + node_size
+	};
+	
+	// If volume intersects node
+	if (volume.intersects(node_bounds))
+	{
+		// Subdivide leaf nodes
+		if (quadtree.is_leaf(node))
+		{
+			quadtree.insert(quadtree_type::child(node, 0));
 			
-			for (auto patch_it = quadsphere_face.patches.begin(); patch_it != quadsphere_face.patches.end(); ++patch_it)
+			for (quadtree_node_type i = 0; i < quadtree_type::children_per_node; ++i)
 			{
-				terrain_patch* patch = patch_it->second;
+				quadtree_node_type child = quadtree_type::child(node, i);
 				
-				if (patch_scene_collection)
-					patch_scene_collection->remove_object(patch->model_instance);
-				
-				delete patch->model_instance;
-				delete patch->model;
-				delete patch->mesh;
-				
-				delete patch;
+				if (patches.find(child) == patches.end())
+				{
+					patch* child_patch = generate_patch(child);
+					patches[child] = child_patch;
+					scene_collection->add_object(child_patch->model_instance);
+				}
 			}
 		}
 		
-		// Free terrain quadsphere
-		delete quadsphere;
+		// Visit children
+		if (node_depth < quadtree_type::max_depth - 1)
+		{
+			for (quadtree_node_type i = 0; i < quadtree_type::children_per_node; ++i)
+				visit_quadtree(volume, quadtree_type::child(node, i));
+		}
 	}
-	
-	// Remove terrain quadsphere from the map
-	terrain_quadspheres.erase(quadsphere_it);
 }
 
-geom::mesh* terrain::generate_patch_mesh(std::uint8_t face_index, quadtree_node_type node, double body_radius, const std::function<double(double, double)>& elevation) const
+geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 {
 	// Extract node depth
-	const quadtree_type::node_type depth = quadtree_type::depth(node);
+	const quadtree_type::node_type node_depth = quadtree_type::depth(node);
+	
+	// Get size of node at depth
+	const float node_size = quadtree_node_size[node_depth];
 	
 	// Extract node Morton location code and decode location
-	const quadtree_type::node_type location = quadtree_type::location(node);
-	quadtree_type::node_type location_x;
-	quadtree_type::node_type location_y;
-	geom::morton::decode(location, location_x, location_y);
+	const quadtree_type::node_type node_location = quadtree_type::location(node);
+	quadtree_type::node_type node_location_x;
+	quadtree_type::node_type node_location_y;
+	geom::morton::decode(node_location, node_location_x, node_location_y);
 	
-	const double nodes_per_axis = std::exp2(depth);
+	// Determine center of node
+	const float node_offset = quadtree_node_size[0] * -0.5f + node_size * 0.5f;
+	const float3 node_center =
+	{
+		node_offset + static_cast<float>(node_location_x) * node_size,
+		0.0f,
+		node_offset + static_cast<float>(node_location_y) * node_size
+	};
 	
-	const double scale_yz = 1.0 / nodes_per_axis;
-	
-	const double node_width = 2.0 / nodes_per_axis;
-	
-	// Determine vertex offset according to node location
-	double offset_y = -(nodes_per_axis * 0.5 * node_width) + node_width * 0.5;
-	double offset_z = offset_y;
-	offset_y += static_cast<double>(location_x) * node_width;
-	offset_z += static_cast<double>(location_y) * node_width;
-	
-	// Copy base mesh
+	// Copy patch base mesh
 	geom::mesh* patch_mesh = new geom::mesh(*patch_base_mesh);
 	
 	// Modify patch mesh vertex positions
 	for (geom::mesh::vertex* v: patch_mesh->get_vertices())
 	{
-		double3 position = math::type_cast<double>(v->position);
-		
-		// Offset and scale vertex position
-		position.y *= scale_yz;
-		position.z *= scale_yz;
-		position.y += offset_y;
-		position.z += offset_z;
-
-		// Rotate according to cube face
-		position = face_rotations[face_index] * position;
-		
-		// Project onto unit sphere
-		//position = math::normalize(position);
-		
-		// Cartesian Spherical Cube projection (KSC)
-		/// @see https://catlikecoding.com/unity/tutorials/cube-sphere/
-		/// @see https://core.ac.uk/download/pdf/228552506.pdf
-		double xx = position.x * position.x;
-		double yy = position.y * position.y;
-		double zz = position.z * position.z;
-		position.x *= std::sqrt(std::max(0.0, 1.0 - yy * 0.5 - zz * 0.5 + yy * zz / 3.0));
-		position.y *= std::sqrt(std::max(0.0, 1.0 - xx * 0.5 - zz * 0.5 + xx * zz / 3.0));
-		position.z *= std::sqrt(std::max(0.0, 1.0 - xx * 0.5 - yy * 0.5 + xx * yy / 3.0));
-		
-		// Calculate latitude and longitude of vertex position
-		const double latitude = std::atan2(position.z, std::sqrt(position.x * position.x + position.y * position.y));
-		const double longitude = std::atan2(position.y, position.x);
-		
-		// Look up elevation at latitude and longitude and use to calculate radial distance
-		const double radial_distance = body_radius + elevation(latitude, longitude);
-		
-		// Scale vertex position by radial distance
-		position *= radial_distance;
-		position.y -= body_radius;
-		
-		v->position = math::type_cast<float>(position);
+		v->position.x() = node_center.x() + v->position.x() * node_size;
+		v->position.z() = node_center.z() + v->position.z() * node_size;
+		v->position.y() = elevation_function(v->position.x(), v->position.z());
 	}
 	
 	return patch_mesh;
 }
 
-::render::model* terrain::generate_patch_model(const geom::mesh& patch_mesh, ::render::material* patch_material) const
+::render::model* terrain::generate_patch_model(quadtree_node_type node) const
 {
-	// Barycentric coordinates
-	static const float3 barycentric[3] =
-	{
-		{1, 0, 0},
-		{0, 1, 0},
-		{0, 0, 1}
-	};
+	// Get size and position of patch
+	const float patch_size = get_patch_size(node);
+	const float3 patch_center = get_patch_center(node);
 	
-	// Fill vertex data buffer
-	float* v = patch_vertex_data;
-	for (const geom::mesh::face* face: patch_mesh.get_faces())
+	// Calculate size of a patch cell
+	const float cell_size = patch_size / static_cast<float>(patch_subdivisions + 1);
+	const float half_cell_size = cell_size * 0.5f;
+	
+	// Init patch bounds
+	geom::aabb<float> patch_bounds;
+	patch_bounds.min_point.x() = patch_center.x() - patch_size * 0.5f;
+	patch_bounds.min_point.y() = std::numeric_limits<float>::infinity();
+	patch_bounds.min_point.z() = patch_center.z() - patch_size * 0.5f;
+	patch_bounds.max_point.x() = patch_center.x() + patch_size * 0.5f;
+	patch_bounds.max_point.y() = -std::numeric_limits<float>::infinity();
+	patch_bounds.max_point.z() = patch_center.z() + patch_size * 0.5f;
+	
+	// Calculate positions of patch vertices and immediately neighboring vertices
+	float3 first_vertex_position =
 	{
-		const geom::mesh::vertex* a = face->edge->vertex;
-		const geom::mesh::vertex* b = face->edge->next->vertex;
-		const geom::mesh::vertex* c = face->edge->previous->vertex;
-		const geom::mesh::vertex* face_vertices[] = {a, b, c};
-		
-		// Calculate facted normal
-		float3 normal = math::normalize(math::cross(b->position - a->position, c->position - a->position));
-		
-		for (std::size_t i = 0; i < 3; ++i)
+		patch_bounds.min_point.x() - cell_size,
+		patch_center.y(),
+		patch_bounds.min_point.z() - cell_size
+	};
+	float3 vertex_position = first_vertex_position;
+	for (std::size_t i = 0; i < patch_vertex_buffer.size(); ++i)
+	{
+		// For each column
+		for (std::size_t j = 0; j < patch_vertex_buffer[i].size(); j += 2)
 		{
-			const geom::mesh::vertex* vertex = face_vertices[i];
+			// Get elevation of vertex
+			vertex_position.y() = elevation_function(vertex_position.x(), vertex_position.z());
 			
-			// Vertex position
-			const float3& position = vertex->position;
-			*(v++) = position.x;
-			*(v++) = position.y;
-			*(v++) = position.z;
+			// Update patch bounds
+			patch_bounds.min_point.y() = std::min(patch_bounds.min_point.y(), vertex_position.y());
+			patch_bounds.max_point.y() = std::max(patch_bounds.max_point.y(), vertex_position.y());
 			
-			// Vertex UV coordinates (latitude, longitude)
-			const float latitude = std::atan2(position.z, std::sqrt(position.x * position.x + position.y * position.y));
-			const float longitude = std::atan2(position.y, position.x);
-			*(v++) = latitude;
-			*(v++) = longitude;
+			patch_vertex_buffer[i][j].position = vertex_position;
 			
-			// Vertex normal
-			*(v++) = normal.x;
-			*(v++) = normal.y;
-			*(v++) = normal.z;
+			vertex_position.x() += cell_size;
+		}
+		
+		vertex_position.z() += cell_size;
+		vertex_position.x() = first_vertex_position.x();
+	}
+	
+	first_vertex_position.x() += cell_size * 0.5f;
+	first_vertex_position.z() += cell_size * 0.5f;
+	vertex_position = first_vertex_position;
+	for (std::size_t i = 0; i < patch_vertex_buffer.size(); ++i)
+	{
+		// For each column
+		for (std::size_t j = 1; j < patch_vertex_buffer[i].size(); j += 2)
+		{
+			// Get elevation of vertex
+			vertex_position.y() = elevation_function(vertex_position.x(), vertex_position.z());
 			
-			/// @TODO Vertex tangent
-			*(v++) = 0.0f;
-			*(v++) = 0.0f;
-			*(v++) = 0.0f;
-			*(v++) = 0.0f;
+			// Update patch bounds
+			patch_bounds.min_point.y() = std::min(patch_bounds.min_point.y(), vertex_position.y());
+			patch_bounds.max_point.y() = std::max(patch_bounds.max_point.y(), vertex_position.y());
 			
-			// Vertex barycentric coordinates
-			*(v++) = barycentric[i].x;
-			*(v++) = barycentric[i].y;
-			*(v++) = barycentric[i].z;
+			patch_vertex_buffer[i][j].position = vertex_position;
 			
-			// Vertex morph target (LOD transition)
-			*(v++) = 0.0f;
-			*(v++) = 0.0f;
-			*(v++) = 0.0f;
+			vertex_position.x() += cell_size;
+		}
+		
+		vertex_position.z() += cell_size;
+		vertex_position.x() = first_vertex_position.x();
+	}
+	
+	// Calculate tangents, bitangents, and normals of patch vertices
+	for (std::size_t i = 1; i < patch_vertex_buffer.size() - 1; ++i)
+	{
+		// For each column
+		for (std::size_t j = 2; j < patch_vertex_buffer[i].size() - 3; ++j)
+		{
+			const float3& c  = patch_vertex_buffer[i  ][j  ].position;
+			const float3& n  = patch_vertex_buffer[i+1][j  ].position;
+			const float3& s  = patch_vertex_buffer[i-1][j  ].position;
+			const float3& e  = patch_vertex_buffer[i  ][j+2].position;
+			const float3& w  = patch_vertex_buffer[i  ][j-2].position;
+			
+			const float3 tangent = math::normalize(float3{2.0f, (e.y() - w.y()) / cell_size, 0.0f});
+			const float3 bitangent = math::normalize(float3{0.0f, (n.y() - s.y()) / cell_size, 2.0f});
+			const float3 normal = math::cross(bitangent, tangent);
+			const float bitangent_sign = std::copysign(1.0f, math::dot(math::cross(normal, tangent), bitangent));
+			
+			patch_vertex_buffer[i][j].uv.x() = (c.x() - patch_bounds.min_point.x()) / patch_size;
+			patch_vertex_buffer[i][j].uv.y() = (c.z() - patch_bounds.min_point.z()) / patch_size;
+			patch_vertex_buffer[i][j].normal = normal;
+			patch_vertex_buffer[i][j].tangent = {tangent.x(), tangent.y(), tangent.z(), bitangent_sign};
 		}
 	}
 	
-	// Get triangle count of patch mesh
-	std::size_t patch_triangle_count = patch_mesh.get_faces().size();
+	/*
+	
+	0 subdivisions:
+	+---+---+---+
+	|           |
+	+   +---+   +
+	|   |   |   |
+	+   +---+   +
+	|           |
+    +---+---+---+
+	
+	1 subdivision:
+	+---+---+---+---+
+    |               |
+	+   +---+---+   +
+	|   |   |   |   |
+	+   +---+---+   +
+	|   |   |   |   |
+	+   +---+---+   +
+	|               |
+	+---+---+---+---+
+	
+	2 subdivisions:
+	+---+---+---+---+---+
+	| x   x   x   x   x | x
+	+   +---+---+---+   +
+	| x | x | x | x | x | x
+	+   +---+---+---+   +
+	| x | x | x | x | x | x
+	+   +---+---+---+   +
+	| x | x | x | x | x | x
+	+   +---+---+---+   +
+	| x   x   x   x   x | x
+	+---+---+---+---+---+
+	  x   x   x   x   x   x
+	*/
+	
+	// For each row
+	float* v = patch_vertex_data;
+	for (std::size_t i = 1; i < patch_vertex_buffer.size() - 2; ++i)
+	{
+		// For each column
+		for (std::size_t j = 3; j < patch_vertex_buffer[i].size() - 4; j += 2)
+		{
+			// a---c
+			// | x |
+			// b---d
+			
+			const patch_vertex& x = patch_vertex_buffer[i  ][j  ];
+			const patch_vertex& a = patch_vertex_buffer[i  ][j-1];
+			const patch_vertex& b = patch_vertex_buffer[i+1][j-1];
+			const patch_vertex& c = patch_vertex_buffer[i  ][j+1];
+			const patch_vertex& d = patch_vertex_buffer[i+1][j+1];
+			
+			const float4& td = patch_vertex_buffer[i+1][j+1].tangent;
+			
+			auto add_triangle = [&v](const patch_vertex& a, const patch_vertex& b, const patch_vertex& c)
+			{
+				auto add_vertex = [&v](const patch_vertex& vertex, const float3& barycentric)
+				{
+					// Position
+					*(v++) = vertex.position[0];
+					*(v++) = vertex.position[1];
+					*(v++) = vertex.position[2];
+					
+					// UV
+					*(v++) = vertex.uv[0];
+					*(v++) = vertex.uv[1];
+					
+					// Normal
+					*(v++) = vertex.normal[0];
+					*(v++) = vertex.normal[1];
+					*(v++) = vertex.normal[2];
+					
+					/// Tangent
+					*(v++) = vertex.tangent[0];
+					*(v++) = vertex.tangent[1];
+					*(v++) = vertex.tangent[2];
+					*(v++) = vertex.tangent[3];
+					
+					// Barycentric
+					*(v++) = barycentric[0];
+					*(v++) = barycentric[1];
+					*(v++) = barycentric[2];
+					
+					// Morph target (LOD transition)
+					*(v++) = 0.0f;
+					*(v++) = 0.0f;
+					*(v++) = 0.0f;
+				};
+				
+				add_vertex(a, float3{1, 0, 0});
+				add_vertex(b, float3{0, 1, 0});
+				add_vertex(c, float3{0, 0, 1});
+			};
+			
+			
+			add_triangle(x, a, b);
+			add_triangle(x, b, d);
+			add_triangle(x, d, c);
+			add_triangle(x, c, a);
+			
+			
+			// add_triangle(a, b, c);
+			// add_triangle(c, b, d);
+		}
+	}
 	
 	// Allocate patch model
 	::render::model* patch_model = new ::render::model();
@@ -555,19 +636,19 @@ geom::mesh* terrain::generate_patch_mesh(std::uint8_t face_index, quadtree_node_
 	patch_model_group->set_start_index(0);
 	patch_model_group->set_index_count(patch_triangle_count * 3);
 	
-	// Calculate model bounds
-	geom::aabb<float> bounds = geom::calculate_bounds(patch_mesh);
-	patch_model->set_bounds(bounds);
+	// Set patch model bounds
+	patch_model->set_bounds(patch_bounds);
 	
 	return patch_model;
 }
 
-double terrain::screen_space_error(double horizontal_fov, double horizontal_resolution, double distance, double geometric_error)
+terrain::patch* terrain::generate_patch(quadtree_node_type node)
 {
-	// Calculate view frustum width at given distance
-	const double frustum_width = 2.0 * distance * std::tan(horizontal_fov * 0.5);
-	
-	return (geometric_error * horizontal_resolution) / frustum_width;
+	patch* node_patch = new patch();
+	node_patch->mesh = nullptr;//generate_patch_mesh(node);
+	node_patch->model = generate_patch_model(node);
+	node_patch->model_instance = new scene::model_instance(node_patch->model);
+	return node_patch;
 }
 
 } // namespace system

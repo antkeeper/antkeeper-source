@@ -160,11 +160,11 @@ std::tuple<bool, float, float, std::size_t, std::size_t> ray_mesh_intersection(c
 
 bool aabb_aabb_intersection(const aabb<float>& a, const aabb<float>& b)
 {
-	if (a.max_point.x < b.min_point.x || a.min_point.x > b.max_point.x)
+	if (a.max_point.x() < b.min_point.x() || a.min_point.x() > b.max_point.x())
 		return false;
-	if (a.max_point.y < b.min_point.y || a.min_point.y > b.max_point.y)
+	if (a.max_point.y() < b.min_point.y() || a.min_point.y() > b.max_point.y())
 		return false;
-	if (a.max_point.z < b.min_point.z || a.min_point.z > b.max_point.z)
+	if (a.max_point.z() < b.min_point.z() || a.min_point.z() > b.max_point.z())
 		return false;
 	return true;
 }

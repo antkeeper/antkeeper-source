@@ -20,7 +20,6 @@
 #ifndef ANTKEEPER_MATH_OPERATORS_HPP
 #define ANTKEEPER_MATH_OPERATORS_HPP
 
-#include "math/vector-operators.hpp"
 #include "math/matrix-operators.hpp"
 #include "math/quaternion-operators.hpp"
 #include "math/transform-operators.hpp"

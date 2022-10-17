@@ -99,14 +99,14 @@ render::model* resource_loader<render::model>::load(resource_manager* resource_m
 	{
 		if (auto min_node = bounds_node.value().find("min"); min_node != bounds_node.value().end())
 		{
-			float* v = &bounds.min_point.x;
+			float* v = &bounds.min_point.x();
 			for (const auto& element: min_node.value())
 				*(v++) = element.get<float>();
 		}
 		
 		if (auto max_node = bounds_node.value().find("max"); max_node != bounds_node.value().end())
 		{
-			float* v = &bounds.max_point.x;
+			float* v = &bounds.max_point.x();
 			for (const auto& element: max_node.value())
 				*(v++) = element.get<float>();
 		}
@@ -248,9 +248,9 @@ render::model* resource_loader<render::model>::load(resource_manager* resource_m
 				{
 					if (translation_node->size() == 3)
 					{
-						bone_transform.translation.x = (*translation_node)[0].get<float>();
-						bone_transform.translation.y = (*translation_node)[1].get<float>();
-						bone_transform.translation.z = (*translation_node)[2].get<float>();
+						bone_transform.translation.x() = (*translation_node)[0].get<float>();
+						bone_transform.translation.y() = (*translation_node)[1].get<float>();
+						bone_transform.translation.z() = (*translation_node)[2].get<float>();
 					}
 				}
 				

@@ -23,9 +23,7 @@
 /// Mathematical functions and data types.
 namespace math {}
 
-#include "math/vector-type.hpp"
-#include "math/vector-functions.hpp"
-#include "math/vector-operators.hpp"
+#include "math/vector.hpp"
 
 #include "math/matrix-type.hpp"
 #include "math/matrix-functions.hpp"

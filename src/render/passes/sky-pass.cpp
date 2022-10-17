@@ -321,7 +321,7 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	}
 	
 	// Draw moon model
-	//if (moon_position.y >= -moon_angular_radius)
+	//if (moon_position.y() >= -moon_angular_radius)
 	{
 		float moon_distance = (clip_near + clip_far) * 0.5f;		
 		float moon_radius = moon_angular_radius * moon_distance;
@@ -528,10 +528,10 @@ void sky_pass::set_sun_angular_radius(float radius)
 
 void sky_pass::set_planet_radius(float radius)
 {
-	atmosphere_radii.x = radius;
-	atmosphere_radii.y = atmosphere_radii.x + atmosphere_upper_limit;
-	atmosphere_radii.z = atmosphere_radii.y * atmosphere_radii.y;
-	observer_position_tween[1] = {0.0f, atmosphere_radii.x + observer_elevation, 0.0f};
+	atmosphere_radii.x() = radius;
+	atmosphere_radii.y() = atmosphere_radii.x() + atmosphere_upper_limit;
+	atmosphere_radii.z() = atmosphere_radii.y() * atmosphere_radii.y();
+	observer_position_tween[1] = {0.0f, atmosphere_radii.x() + observer_elevation, 0.0f};
 	
 	// Trigger transmittance LUT render
 	render_transmittance_lut = true;
@@ -540,8 +540,8 @@ void sky_pass::set_planet_radius(float radius)
 void sky_pass::set_atmosphere_upper_limit(float limit)
 {
 	atmosphere_upper_limit = limit;
-	atmosphere_radii.y = atmosphere_radii.x + atmosphere_upper_limit;
-	atmosphere_radii.z = atmosphere_radii.y * atmosphere_radii.y;
+	atmosphere_radii.y() = atmosphere_radii.x() + atmosphere_upper_limit;
+	atmosphere_radii.z() = atmosphere_radii.y() * atmosphere_radii.y();
 	
 	// Trigger transmittance LUT render
 	render_transmittance_lut = true;
@@ -550,7 +550,7 @@ void sky_pass::set_atmosphere_upper_limit(float limit)
 void sky_pass::set_observer_elevation(float elevation)
 {
 	observer_elevation = elevation;
-	observer_position_tween[1] = {0.0f, atmosphere_radii.x + observer_elevation, 0.0f};
+	observer_position_tween[1] = {0.0f, atmosphere_radii.x() + observer_elevation, 0.0f};
 }
 
 void sky_pass::set_rayleigh_parameters(float scale_height, const float3& scattering)
@@ -558,9 +558,9 @@ void sky_pass::set_rayleigh_parameters(float scale_height, const float3& scatter
 	rayleigh_parameters =
 	{
 		-1.0f / scale_height,
-		scattering.x,
-		scattering.y,
-		scattering.z
+		scattering.x(),
+		scattering.y(),
+		scattering.z()
 	};
 	
 	// Trigger transmittance LUT render
