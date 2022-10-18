@@ -96,6 +96,7 @@ constexpr auto simplex_edges = make_simplex_edges<T, N>(std::make_index_sequence
  *
  * @tparam T Real type.
  * @tparam N Number of dimensions.
+ * @tparam U Hash function return type.
  *
  * @param x Input vector.
  * @param hash Hash function.
@@ -108,8 +109,8 @@ constexpr auto simplex_edges = make_simplex_edges<T, N>(std::make_index_sequence
  * @see https://briansharpe.wordpress.com/2011/11/14/two-useful-interpolation-functions-for-noise-development/
  * @see https://math.stackexchange.com/questions/474638/radius-and-amplitude-of-kernel-for-simplex-noise/1901116
  */
-template <class T, std::size_t N>
-T simplex(const vector<T, N>& x, std::uint32_t (*hash)(const vector<T, N>&))
+template <class T, std::size_t N, class U>
+T simplex(const vector<T, N>& x, U (*hash)(const vector<T, N>&))
 {
 	// Skewing (F) and unskewing (G) factors
 	static const T f = (std::sqrt(static_cast<T>(N + 1)) - T{1}) / static_cast<T>(N);

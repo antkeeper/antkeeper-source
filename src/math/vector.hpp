@@ -223,7 +223,7 @@ struct vector
 	}
 	
 	/**
-	 * Type-casts the elements of this vector.
+	 * Type-casts the elements of this vector using `static_cast`.
 	 *
 	 * @tparam U Target element type.
 	 *
@@ -513,6 +513,17 @@ template <class T, std::size_t N>
 constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
+ * Returns a vector containing the maximum elements of two vectors.
+ *
+ * @param x First vector.
+ * @param y Second vector.
+ *
+ * @return Maximum elements of the two vectors.
+ */
+template <class T, std::size_t N>
+constexpr vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y);
+
+/**
  * Returns the value of the greatest element in a vector.
  *
  * @param x Input vector.
@@ -521,6 +532,17 @@ constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T,
  */
 template <class T, std::size_t N>
 constexpr T max(const vector<T, N>& x);
+
+/**
+ * Returns a vector containing the minimum elements of two vectors.
+ *
+ * @param x First vector.
+ * @param y Second vector.
+ *
+ * @return Minimum elements of the two vectors.
+ */
+template <class T, std::size_t N>
+constexpr vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Returns the value of the smallest element in a vector.
@@ -598,6 +620,21 @@ template <class T, std::size_t N>
 constexpr vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
+ * Raises each element to a power.
+ *
+ * @param x Input vector
+ * @param y Exponent.
+ *
+ * @return Vector with its elements raised to the given power.
+ */
+/// @{
+template <class T, std::size_t N>
+vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y);
+template <class T, std::size_t N>
+vector<T, N> pow(const vector<T, N>& x, T y);
+/// @}
+
+/**
  * Resizes a vector. Any new elements will be set to `0`.
  *
  * @tparam M Target number of elements.
@@ -626,6 +663,16 @@ constexpr vector<T, N> round(const vector<T, N>& x);
  */
 template <class T, std::size_t N>
 constexpr vector<T, N> sign(const vector<T, N>& x);
+
+/**
+ * Takes the square root of each element.
+ *
+ * @param x Input vector
+ *
+ * @return Square roots of the input vector elements.
+ */
+template <class T, std::size_t N>
+vector<T, N> sqrt(const vector<T, N>& x);
 
 /**
  * Subtracts a value by another value.
@@ -1004,10 +1051,36 @@ constexpr inline vector<bool, N> less_than_equal(const vector<T, N>& x, const ve
 	return less_than_equal(x, y, std::make_index_sequence<N>{});
 }
 
+/// @private
+template <class T, std::size_t N, std::size_t... I>
+constexpr inline vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+{
+	return {std::max<T>(x[I], y[I])...};
+}
+
+template <class T, std::size_t N>
+constexpr vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y)
+{
+	return max(x, y, std::make_index_sequence<N>{});
+}
+
 template <class T, std::size_t N>
 constexpr inline T max(const vector<T, N>& x)
 {
 	return *std::max_element(x.elements, x.elements + N);
+}
+
+/// @private
+template <class T, std::size_t N, std::size_t... I>
+constexpr inline vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+{
+	return {std::min<T>(x[I], y[I])...};
+}
+
+template <class T, std::size_t N>
+constexpr vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y)
+{
+	return min(x, y, std::make_index_sequence<N>{});
 }
 
 template <class T, std::size_t N>
@@ -1117,6 +1190,34 @@ constexpr inline vector<bool, N> not_equal(const vector<T, N>& x, const vector<T
 }
 
 /// @private
+template <class T, std::size_t N, std::size_t... I>
+inline vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+{
+	return {std::pow(x[I], y[I])...};
+}
+
+template <class T, std::size_t N>
+inline vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y)
+{
+	static_assert(std::is_floating_point<T>::value);
+	return pow(x, y, std::make_index_sequence<N>{});
+}
+
+/// @private
+template <class T, std::size_t N, std::size_t... I>
+inline vector<T, N> pow(const vector<T, N>& x, T y, std::index_sequence<I...>)
+{
+	return {std::pow(x[I], y)...};
+}
+
+template <class T, std::size_t N>
+inline vector<T, N> pow(const vector<T, N>& x, T y)
+{
+	static_assert(std::is_floating_point<T>::value);
+	return pow(x, y, std::make_index_sequence<N>{});
+}
+
+/// @private
 template <std::size_t M, class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, M> resize(const vector<T, N>& x, std::index_sequence<I...>)
 {
@@ -1155,6 +1256,20 @@ constexpr inline vector<T, N> sign(const vector<T, N>& x)
 {
 	static_assert(std::is_floating_point<T>::value);
 	return sign(x, std::make_index_sequence<N>{});
+}
+
+/// @private
+template <class T, std::size_t N, std::size_t... I>
+inline vector<T, N> sqrt(const vector<T, N>& x, std::index_sequence<I...>)
+{
+	return {std::sqrt(x[I])...};
+}
+
+template <class T, std::size_t N>
+inline vector<T, N> sqrt(const vector<T, N>& x, const vector<T, N>& y)
+{
+	static_assert(std::is_floating_point<T>::value);
+	return pow(x, std::make_index_sequence<N>{});
 }
 
 /// @private

@@ -30,5 +30,6 @@ namespace noise {}
 #include "math/noise/fbm.hpp"
 #include "math/noise/hash.hpp"
 #include "math/noise/simplex.hpp"
+#include "math/noise/voronoi.hpp"
 
 #endif // ANTKEEPER_MATH_NOISE_HPP

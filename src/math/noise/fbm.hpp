@@ -21,7 +21,7 @@
 #define ANTKEEPER_MATH_NOISE_FBM_HPP
 
 #include "math/vector.hpp"
-#include <functional>
+#include <cstdint>
 
 namespace math {
 namespace noise {
@@ -31,6 +31,7 @@ namespace noise {
  *
  * @tparam T Real type.
  * @tparam N Number of dimensions.
+ * @tparam U Hash function return type.
  *
  * @param x n-dimensional input value.
  * @param octaves Number of octaves.
@@ -40,15 +41,15 @@ namespace noise {
  * @param hash Hash function.
  *
  */
-template <class T, std::size_t N>
+template <class T, std::size_t N, class U>
 T fbm
 (
 	vector<T, N> x,
 	std::size_t octaves,
 	T lacunarity,
 	T gain,
-	T (*noise)(const vector<T, N>&, std::uint32_t (*)(const vector<T, N>&)),
-	std::uint32_t (*hash)(const vector<T, N>&)
+	T (*noise)(const vector<T, N>&, U (*)(const vector<T, N>&)),
+	U (*hash)(const vector<T, N>&)
 )
 {
     T amplitude{1};

@@ -98,14 +98,31 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 			};
 			
 			//float n = math::noise::simplex<float, 2>(position, &math::noise::hash::pcg3d_1);
-			float n = fbm(position);
+			//float n = fbm(position);
+			// auto [sqr_center_distance, displacement, id, sqr_edge_distance] = math::noise::voronoi::f1_edge<float, std::uint32_t>(position, 1.0f, &math::noise::hash::pcg3d_3);
+			// float center_distance = std::sqrt(sqr_center_distance);
+			// float edge_distance = std::sqrt(sqr_edge_distance);
 			
-			pixel = static_cast<unsigned char>((n * 0.5f + 0.5f) * 255.0f);
+			auto
+			[
+				f1_sqr_distance,
+				f1_displacement,
+				f1_id,
+				f2_sqr_distance,
+				f2_displacement,
+				f2_id
+			] = math::noise::voronoi::f1_f2<float, std::uint32_t>(position, 1.0f, {0.0f, 0.0f}, &math::noise::hash::pcg3d_3);
+			
+			float f1_distance = std::sqrt(f1_sqr_distance);
+			float f2_distance = std::sqrt(f2_sqr_distance);
+			
+			pixel = static_cast<unsigned char>(std::min(255.0f, f1_distance * 255.0f));
+			//pixel = static_cast<unsigned char>(id % 255);
 		}
 	);
 	
 	stbi_flip_vertically_on_write(1);
-	stbi_write_png((ctx.config_path / "gallery" / "simplex-noise.png").string().c_str(), img.get_width(), img.get_height(), img.get_channel_count(), img.data(), img.get_width() * img.get_channel_count());
+	stbi_write_png((ctx.config_path / "gallery" / "noise.png").string().c_str(), img.get_width(), img.get_height(), img.get_channel_count(), img.data(), img.get_width() * img.get_channel_count());
 	
 	
 	try
@@ -192,6 +209,7 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 					
 					float2 position = float2{x, z} * frequency;
 					
+					/*
 					float n = math::noise::fbm
 					(
 						position,
@@ -201,8 +219,10 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 						noise,
 						hash
 					);
-					
-					return 2.0f * n;
+					*/
+					//float n = math::noise::voronoi::f1<float, std::uint32_t>(position, 1.0f, &math::noise::hash::pcg3d_3)[0];
+					float n = 0.0f;
+					return 10.0f * n;
 				}
 			);
 			
