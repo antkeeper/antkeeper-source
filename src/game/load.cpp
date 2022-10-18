@@ -49,7 +49,7 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 	
 	image img;
 	img.format(1, 1);
-	img.resize(2048, 2048);
+	img.resize(1024, 1024);
 	
 	float frequency = 10.0f;
 	std::size_t octaves = 4;
@@ -108,15 +108,17 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 				f1_sqr_distance,
 				f1_displacement,
 				f1_id,
-				f2_sqr_distance,
-				f2_displacement,
-				f2_id
-			] = math::noise::voronoi::f1_f2<float, std::uint32_t>(position, 1.0f, {0.0f, 0.0f}, &math::noise::hash::pcg3d_3);
+				// f2_sqr_distance,
+				// f2_displacement,
+				// f2_id
+				edge_sqr_distance
+			] = math::noise::voronoi::f1_edge<float, 3, std::uint32_t>({position[0], position[1], 0.5f}, 1.0f, {0.0f, 0.0f, 0.0f}, &math::noise::hash::pcg3d_3);
 			
 			float f1_distance = std::sqrt(f1_sqr_distance);
-			float f2_distance = std::sqrt(f2_sqr_distance);
+			//float f2_distance = std::sqrt(f2_sqr_distance);
+			float edge_distance = std::sqrt(edge_sqr_distance);
 			
-			pixel = static_cast<unsigned char>(std::min(255.0f, f1_distance * 255.0f));
+			pixel = static_cast<unsigned char>(std::min(255.0f, edge_distance * 255.0f));
 			//pixel = static_cast<unsigned char>(id % 255);
 		}
 	);
