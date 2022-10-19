@@ -27,6 +27,7 @@ namespace hash {}
 
 } // namespace math
 
+#include "math/hash/make-uint.hpp"
 #include "math/hash/pcg.hpp"
 
 #endif // ANTKEEPER_MATH_HASH_HPP

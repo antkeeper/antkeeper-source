@@ -48,6 +48,7 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 {
 	ctx.logger->push_task("Loading biome from \"" + path.string() + "\"");
 	
+	/*
 	image img;
 	img.format(1, 1);
 	img.resize(1024, 1024);
@@ -113,7 +114,7 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 				// f2_displacement,
 				// f2_id
 				edge_sqr_distance
-			] = math::noise::voronoi::f1_edge<float, 1, std::uint32_t>({position[0]}, 1.0f, {0.0f}, &math::hash::pcg);
+			] = math::noise::voronoi::f1_edge<float, 2>(position);
 			
 			float f1_distance = std::sqrt(f1_sqr_distance);
 			//float f2_distance = std::sqrt(f2_sqr_distance);
@@ -126,7 +127,7 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 	
 	stbi_flip_vertically_on_write(1);
 	stbi_write_png((ctx.config_path / "gallery" / "noise.png").string().c_str(), img.get_width(), img.get_height(), img.get_channel_count(), img.data(), img.get_width() * img.get_channel_count());
-	
+	*/
 	
 	try
 	{
@@ -194,38 +195,32 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 			(
 				[](float x, float z) -> float
 				{
-					float angle = math::radians(30.0f);
-					float c = std::cos(angle);
-					float s = std::sin(angle);
-					
-					x = x * c - z * s;
-					z = x * s + z * c;
-					
-					
-					
 					float frequency = 0.01f;
 					std::size_t octaves = 4;
 					float lacunarity = 3.0f;
 					float gain = 0.5f;
-					auto noise = static_cast<float(*)(const math::vector<float, 2>&, decltype(hash))>(math::noise::simplex);
-					auto hash = static_cast<math::vector<std::uint32_t, 2>(*)(const math::vector<float, 2>&)>(math::hash::pcg);
 					
 					float2 position = float2{x, z} * frequency;
 					
-					/*
-					float n = math::noise::fbm
+					float fbm = math::noise::fbm
 					(
 						position,
 						octaves,
 						lacunarity,
-						gain,
-						noise,
-						hash
+						gain
 					);
-					*/
-					//float n = math::noise::voronoi::f1<float, std::uint32_t>(position, 1.0f, &math::noise::hash::pcg3d_3)[0];
-					float n = 0.0f;
-					return 10.0f * n;
+					
+					auto
+					[
+						f1_sqr_distance,
+						f1_displacement,
+						f1_id
+					] = math::noise::voronoi::f1(position);
+					float f1_distance = std::sqrt(f1_sqr_distance);
+					
+					float y = f1_distance * 5.0f + fbm * 0.5f;
+					
+					return y;
 				}
 			);
 			

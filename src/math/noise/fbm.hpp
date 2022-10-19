@@ -20,6 +20,9 @@
 #ifndef ANTKEEPER_MATH_NOISE_FBM_HPP
 #define ANTKEEPER_MATH_NOISE_FBM_HPP
 
+#include "math/hash/make-uint.hpp"
+#include "math/hash/pcg.hpp"
+#include "math/noise/simplex.hpp"
 #include "math/vector.hpp"
 #include <cstdint>
 
@@ -31,7 +34,6 @@ namespace noise {
  *
  * @tparam T Real type.
  * @tparam N Number of dimensions.
- * @tparam U Hash function return type.
  *
  * @param x n-dimensional input value.
  * @param octaves Number of octaves.
@@ -41,15 +43,15 @@ namespace noise {
  * @param hash Hash function.
  *
  */
-template <class T, std::size_t N, class U>
+template <class T, std::size_t N>
 T fbm
 (
 	vector<T, N> x,
 	std::size_t octaves,
 	T lacunarity,
 	T gain,
-	T (*noise)(const vector<T, N>&, vector<U, N> (*)(const vector<T, N>&)),
-	vector<U, N> (*hash)(const vector<T, N>&)
+	T (*noise)(const vector<T, N>&, vector<hash::make_uint_t<T>, N> (*)(const vector<T, N>&)) = &simplex<T, N>,
+	vector<hash::make_uint_t<T>, N> (*hash)(const vector<T, N>&) = &hash::pcg<T, N>
 )
 {
     T amplitude{1};

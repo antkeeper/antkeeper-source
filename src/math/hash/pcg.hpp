@@ -21,41 +21,12 @@
 #define ANTKEEPER_MATH_HASH_PCG_HPP
 
 #include "math/vector.hpp"
+#include "math/hash/make-uint.hpp"
 #include <cstdint>
 #include <type_traits>
 
 namespace math {
 namespace hash {
-
-/**
- * Provides an unsigned integer type of equivalent size to type @p T.
- */
-template <class T>
-struct pcg_make_uint
-{
-	static_assert(std::is_integral<T>::value);
-	
-	/// Unsigned integer type of equivalent size to type @p T.
-	typedef typename std::make_unsigned<T>::type type;
-};
-
-/// Provides an unsigned integer type of equivalent to `float`.
-template<>
-struct pcg_make_uint<float>
-{
-	typedef std::uint32_t type;
-};
-
-/// Provides an unsigned integer type of equivalent to `double`.
-template<>
-struct pcg_make_uint<double>
-{
-	typedef std::uint64_t type;
-};
-
-/// Helper type for pcg_make_uint.
-template <class T>
-using pcg_make_uint_t = typename pcg_make_uint<T>::type;
 
 /// @private
 template <class T>
@@ -197,7 +168,10 @@ constexpr vector<T, 4> pcg_uvec4(vector<T, 4> x) noexcept
  *
  * @param x Input value.
  *
- * @return Pseudorandom output value.
+ * @return Unsigned pseudorandom output value.
+ *
+ * @warning Floating point and signed input values will be converted to unsigned integers via `static_cast`.
+ * @warning Vectors with more than 4 elements are not supported.
  *
  * @see https://en.wikipedia.org/wiki/Permuted_congruential_generator
  * @see O'Neill, M.E. (2014). PCG : A Family of Simple Fast Space-Efficient Statistically Good Algorithms for Random Number Generation.
@@ -255,18 +229,18 @@ inline constexpr std::uint64_t pcg(double x) noexcept
 }
 
 template <class T, std::size_t N>
-inline constexpr vector<pcg_make_uint_t<T>, N> pcg(const vector<T, N>& x) noexcept
+inline constexpr vector<make_uint_t<T>, N> pcg(const vector<T, N>& x) noexcept
 {
-	static_assert(N > 0 && N < 5, "Dimension not supported by PCG hash.");
+	static_assert(N > 0 && N < 5, "PCG hash only supports vectors with 1-4 elements.");
 	
 	if constexpr (N == 1)
-		return pcg_uvec1<pcg_make_uint_t<T>>(vector<pcg_make_uint_t<T>, N>(x));
+		return pcg_uvec1<make_uint_t<T>>(vector<make_uint_t<T>, N>(x));
 	else if constexpr (N == 2)
-		return pcg_uvec2<pcg_make_uint_t<T>>(vector<pcg_make_uint_t<T>, N>(x));
+		return pcg_uvec2<make_uint_t<T>>(vector<make_uint_t<T>, N>(x));
 	else if constexpr (N == 3)
-		return pcg_uvec3<pcg_make_uint_t<T>>(vector<pcg_make_uint_t<T>, N>(x));
+		return pcg_uvec3<make_uint_t<T>>(vector<make_uint_t<T>, N>(x));
 	else
-		return pcg_uvec4<pcg_make_uint_t<T>>(vector<pcg_make_uint_t<T>, N>(x));
+		return pcg_uvec4<make_uint_t<T>>(vector<make_uint_t<T>, N>(x));
 }
 /// @}
 

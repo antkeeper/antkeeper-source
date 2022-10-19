@@ -21,6 +21,8 @@
 #define ANTKEEPER_MATH_NOISE_SIMPLEX_HPP
 
 #include "math/vector.hpp"
+#include "math/hash/make-uint.hpp"
+#include "math/hash/pcg.hpp"
 #include <algorithm>
 #include <utility>
 
@@ -109,8 +111,12 @@ constexpr auto simplex_edges = make_simplex_edges<T, N>(std::make_index_sequence
  * @see https://briansharpe.wordpress.com/2011/11/14/two-useful-interpolation-functions-for-noise-development/
  * @see https://math.stackexchange.com/questions/474638/radius-and-amplitude-of-kernel-for-simplex-noise/1901116
  */
-template <class T, std::size_t N, class U>
-T simplex(const vector<T, N>& x, vector<U, N> (*hash)(const vector<T, N>&))
+template <class T, std::size_t N>
+T simplex
+(
+	const vector<T, N>& x,
+	vector<hash::make_uint_t<T>, N> (*hash)(const vector<T, N>&) = &hash::pcg<T, N>
+)
 {
 	// Skewing (F) and unskewing (G) factors
 	static const T f = (std::sqrt(static_cast<T>(N + 1)) - T{1}) / static_cast<T>(N);
@@ -137,13 +143,13 @@ T simplex(const vector<T, N>& x, vector<U, N> (*hash)(const vector<T, N>&))
 	static const T corner_normalization = T{1} / ((static_cast<T>(N) / std::sqrt(static_cast<T>(N + 1))) * falloff(static_cast<T>(N) / (T{4} * static_cast<T>(N + 1))));
 	
 	// Adjust normalization factor for difference in length between corner gradient vectors and edge gradient vectors
-	static const T edge_normalization = corner_normalization * (std::sqrt(static_cast<T>(N)) / math::length(simplex_edges<T, N>[0]));
+	static const T edge_normalization = corner_normalization * (std::sqrt(static_cast<T>(N)) / length(simplex_edges<T, N>[0]));
 	
 	// Skew input position to get the origin vertex of the unit hypercube cell to which they belong
-	const vector<T, N> origin_vertex = math::floor(x + math::sum(x) * f);
+	const vector<T, N> origin_vertex = floor(x + sum(x) * f);
 	
 	// Displacement vector from origin vertex position to input position
-	const vector<T, N> dx = x - origin_vertex + math::sum(origin_vertex) * g;
+	const vector<T, N> dx = x - origin_vertex + sum(origin_vertex) * g;
 	
 	// Find axis traversal order
 	vector<std::size_t, N> axis_order;
@@ -170,13 +176,13 @@ T simplex(const vector<T, N>& x, vector<U, N> (*hash)(const vector<T, N>&))
 		const vector<T, N> d = dx - (current_vertex - origin_vertex) + g * static_cast<T>(i);
 		
 		// Calculate falloff
-		T t = falloff(math::length_squared(d));
+		T t = falloff(length_squared(d));
 		if (t > T{0})
 		{
-			const auto gradient_index = hash(current_vertex)[0] % simplex_edges<T, N>.size();
+			const hash::make_uint_t<T> gradient_index = hash(current_vertex)[0] % simplex_edges<T, N>.size();
 			const vector<T, N>& gradient = simplex_edges<T, N>[gradient_index];
 			
-			n += math::dot(d, gradient) * t;
+			n += dot(d, gradient) * t;
 		}
 	}
 	

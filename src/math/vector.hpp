@@ -254,6 +254,12 @@ struct vector
 	{
 		return size_cast<M>(std::make_index_sequence<M>{});
 	}
+	
+	/// Returns a zero vector.
+	static constexpr inline vector zero() noexcept
+	{
+		return {};
+	}
 };
 
 // Ensure vector is a POD type
