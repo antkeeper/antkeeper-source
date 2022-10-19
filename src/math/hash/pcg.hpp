@@ -30,7 +30,6 @@ namespace hash {
 /**
  * Provides an unsigned integer type of equivalent size to type @p T.
  */
-/// @{
 template <class T>
 struct pcg_make_uint
 {
@@ -40,60 +39,61 @@ struct pcg_make_uint
 	typedef typename std::make_unsigned<T>::type type;
 };
 
+/// Provides an unsigned integer type of equivalent to `float`.
 template<>
 struct pcg_make_uint<float>
 {
 	typedef std::uint32_t type;
 };
 
+/// Provides an unsigned integer type of equivalent to `double`.
 template<>
 struct pcg_make_uint<double>
 {
 	typedef std::uint64_t type;
 };
 
+/// Helper type for pcg_make_uint.
 template <class T>
 using pcg_make_uint_t = typename pcg_make_uint<T>::type;
-/// @}
 
 /// @private
-/// @{
-
 template <class T>
 constexpr T pcg_multiplier = 0;
-template <class T>
-constexpr T pcg_increment = 0;
-template <class T>
-constexpr T mcg_multiplier = 0;
-
 template <>
 constexpr std::uint8_t pcg_multiplier<std::uint8_t> = 141U;
 template <>
-constexpr std::uint8_t pcg_increment<std::uint8_t> = 77U;
-template <>
-constexpr std::uint8_t mcg_multiplier<std::uint8_t> = 217U;
-
-template <>
 constexpr std::uint16_t pcg_multiplier<std::uint16_t> = 12829U;
-template <>
-constexpr std::uint16_t pcg_increment<std::uint16_t> = 47989U;
-template <>
-constexpr std::uint16_t mcg_multiplier<std::uint16_t> = 62169U;
-
 template <>
 constexpr std::uint32_t pcg_multiplier<std::uint32_t> = 747796405UL;
 template <>
+constexpr std::uint64_t pcg_multiplier<std::uint64_t> = 6364136223846793005ULL;
+
+/// @private
+template <class T>
+constexpr T pcg_increment = 0;
+template <>
+constexpr std::uint8_t pcg_increment<std::uint8_t> = 77U;
+template <>
+constexpr std::uint16_t pcg_increment<std::uint16_t> = 47989U;
+template <>
 constexpr std::uint32_t pcg_increment<std::uint32_t> = 2891336453UL;
 template <>
-constexpr std::uint32_t mcg_multiplier<std::uint32_t> = 277803737UL;
-
-template <>
-constexpr std::uint64_t pcg_multiplier<std::uint64_t> = 6364136223846793005ULL;
-template <>
 constexpr std::uint64_t pcg_increment<std::uint64_t> = 1442695040888963407ULL;
+
+/// @private
+template <class T>
+constexpr T mcg_multiplier = 0;
+template <>
+constexpr std::uint8_t mcg_multiplier<std::uint8_t> = 217U;
+template <>
+constexpr std::uint16_t mcg_multiplier<std::uint16_t> = 62169U;
+template <>
+constexpr std::uint32_t mcg_multiplier<std::uint32_t> = 277803737UL;
 template <>
 constexpr std::uint64_t mcg_multiplier<std::uint64_t> = 12605985483714917081ULL;
 
+/// @private
 template <class T>
 constexpr T pcg_uint(T x) noexcept
 {
@@ -105,6 +105,7 @@ constexpr T pcg_uint(T x) noexcept
 	return x ^ (x >> ((sizeof(T) * 16 + 2) / 3));
 }
 
+/// @private
 template <class T>
 inline constexpr vector<T, 1> pcg_uvec1(vector<T, 1> x) noexcept
 {
@@ -116,6 +117,7 @@ inline constexpr vector<T, 1> pcg_uvec1(vector<T, 1> x) noexcept
 	return x;
 }
 
+/// @private
 template <class T>
 constexpr vector<T, 2> pcg_uvec2(vector<T, 2> x) noexcept
 {
@@ -139,6 +141,7 @@ constexpr vector<T, 2> pcg_uvec2(vector<T, 2> x) noexcept
 	return x;
 }
 
+/// @private
 template <class T>
 constexpr vector<T, 3> pcg_uvec3(vector<T, 3> x) noexcept
 {
@@ -162,6 +165,7 @@ constexpr vector<T, 3> pcg_uvec3(vector<T, 3> x) noexcept
 	return x;
 }
 
+/// @private
 template <class T>
 constexpr vector<T, 4> pcg_uvec4(vector<T, 4> x) noexcept
 {
@@ -188,10 +192,8 @@ constexpr vector<T, 4> pcg_uvec4(vector<T, 4> x) noexcept
 	return x;
 }
 
-/// @}
-
 /**
- * PCG hash functions.
+ * PCG hash function.
  *
  * @param x Input value.
  *
