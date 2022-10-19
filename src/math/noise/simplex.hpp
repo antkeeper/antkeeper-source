@@ -29,36 +29,57 @@
 namespace math {
 namespace noise {
 
-/// @private
-/// @{
-
-/// Number of corners in an *n*-dimensional simplex lattice cell.
+/**
+ * Number of corners in an *n*-dimensional simplex lattice cell.
+ *
+ * @private
+ */
 template <std::size_t N>
 constexpr std::size_t simplex_corner_count = std::size_t(2) << std::max<std::size_t>(0, N - 1);
 
-/// Number of edges in an *n*-dimensional simplex lattice cell.
+/**
+ * Number of edges in an *n*-dimensional simplex lattice cell.
+ *
+ * @private
+ */
 template <std::size_t N>
 constexpr std::size_t simplex_edge_count = (N > 1) ? N * simplex_corner_count<N - 1> : 2;
 
-/// Returns the simplex lattice cell corner vector for a given dimension and index.
+/**
+ * Returns the simplex lattice cell corner vector for a given dimension and index.
+ *
+ * @private
+ */
 template <class T, std::size_t N, std::size_t... I>
 constexpr vector<T, N> make_simplex_corner(std::size_t i, std::index_sequence<I...>)
 {
 	return {((i >> I) % 2) * T{2} - T{1}...};
 }
 
-/// Builds an array of simplex lattice cell corner vectors for a given dimension.
+/**
+ * Builds an array of simplex lattice cell corner vectors for a given dimension.
+ *
+ * @private
+ */
 template <class T, std::size_t N, std::size_t... I>
 constexpr std::array<vector<T, N>, simplex_corner_count<N>> make_simplex_corners(std::index_sequence<I...>)
 {
 	return {make_simplex_corner<T, N>(I, std::make_index_sequence<N>{})...};
 }
 
-/// Array of simplex lattice cell corner vectors for a given dimension.
+/**
+ * Array of simplex lattice cell corner vectors for a given dimension.
+ *
+ * @private
+ */
 template <class T, std::size_t N>
 constexpr auto simplex_corners = make_simplex_corners<T, N>(std::make_index_sequence<simplex_corner_count<N>>{});
 
-/// Returns the simplex lattice cell edge vector for a given dimension and index.
+/**
+ * Returns the simplex lattice cell edge vector for a given dimension and index.
+ *
+ * @private
+ */
 template <class T, std::size_t N, std::size_t... I>
 constexpr vector<T, N> make_simplex_edge(std::size_t i, std::index_sequence<I...>)
 {
@@ -77,7 +98,11 @@ constexpr vector<T, N> make_simplex_edge(std::size_t i, std::index_sequence<I...
 	};
 }
 
-/// Builds an array of simplex lattice cell edge vectors for a given dimension.
+/**
+ * Builds an array of simplex lattice cell edge vectors for a given dimension.
+ *
+ * @private
+ */
 template <class T, std::size_t N, std::size_t... I>
 constexpr std::array<vector<T, N>, simplex_edge_count<N>> make_simplex_edges(std::index_sequence<I...>)
 {
@@ -87,20 +112,21 @@ constexpr std::array<vector<T, N>, simplex_edge_count<N>> make_simplex_edges(std
 		return {make_simplex_edge<T, N>(I, std::make_index_sequence<N>{})...};
 }
 
-/// Array of simplex lattice cell edge vectors for a given dimension.
+/**
+ * Array of simplex lattice cell edge vectors for a given dimension.
+ *
+ * @private
+ */
 template <class T, std::size_t N>
 constexpr auto simplex_edges = make_simplex_edges<T, N>(std::make_index_sequence<simplex_edge_count<N>>{});
-
-/// @}
 
 /**
  * *n*-dimensional simplex noise.
  *
  * @tparam T Real type.
  * @tparam N Number of dimensions.
- * @tparam U Hash function return type.
  *
- * @param x Input vector.
+ * @param position Input position.
  * @param hash Hash function.
  *
  * @return Noise value, on `[-1, 1]`.
@@ -114,7 +140,7 @@ constexpr auto simplex_edges = make_simplex_edges<T, N>(std::make_index_sequence
 template <class T, std::size_t N>
 T simplex
 (
-	const vector<T, N>& x,
+	const vector<T, N>& position,
 	vector<hash::make_uint_t<T>, N> (*hash)(const vector<T, N>&) = &hash::pcg<T, N>
 )
 {
@@ -146,10 +172,10 @@ T simplex
 	static const T edge_normalization = corner_normalization * (std::sqrt(static_cast<T>(N)) / length(simplex_edges<T, N>[0]));
 	
 	// Skew input position to get the origin vertex of the unit hypercube cell to which they belong
-	const vector<T, N> origin_vertex = floor(x + sum(x) * f);
+	const vector<T, N> origin_vertex = floor(position + sum(position) * f);
 	
 	// Displacement vector from origin vertex position to input position
-	const vector<T, N> dx = x - origin_vertex + sum(origin_vertex) * g;
+	const vector<T, N> dx = position - origin_vertex + sum(origin_vertex) * g;
 	
 	// Find axis traversal order
 	vector<std::size_t, N> axis_order;

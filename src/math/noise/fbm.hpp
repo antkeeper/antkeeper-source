@@ -35,7 +35,7 @@ namespace noise {
  * @tparam T Real type.
  * @tparam N Number of dimensions.
  *
- * @param x n-dimensional input value.
+ * @param position Input position.
  * @param octaves Number of octaves.
  * @param lacunarity Frequency multiplier.
  * @param gain Amplitude multiplier.
@@ -46,7 +46,7 @@ namespace noise {
 template <class T, std::size_t N>
 T fbm
 (
-	vector<T, N> x,
+	vector<T, N> position,
 	std::size_t octaves,
 	T lacunarity,
 	T gain,
@@ -59,8 +59,8 @@ T fbm
 	
 	while (octaves--)
 	{
-        value += noise(x, hash) * amplitude;
-        x *= lacunarity;
+        value += noise(position, hash) * amplitude;
+        position *= lacunarity;
         amplitude *= gain;
 	}
 	
