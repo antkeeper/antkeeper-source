@@ -31,6 +31,7 @@
 #include "game/system/terrain.hpp"
 #include "math/random.hpp"
 #include "math/noise/noise.hpp"
+#include "math/hash/hash.hpp"
 #include <fstream>
 #include <iostream>
 #include <stb/stb_image_write.h>
@@ -55,7 +56,7 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 	std::size_t octaves = 4;
 	float lacunarity = 2.0f;
 	float gain = 0.5f;	
-	auto hash = static_cast<std::uint32_t(*)(const math::vector<float, 2>&)>(math::noise::hash::pcg3d_1);
+	auto hash = static_cast<math::vector<std::uint32_t, 2>(*)(const math::vector<float, 2>&)>(math::hash::pcg);
 	auto noise = static_cast<float(*)(const math::vector<float, 2>&, decltype(hash))>(math::noise::simplex);
 	
 	auto fbm = [&](const float2& x)
@@ -112,13 +113,13 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 				// f2_displacement,
 				// f2_id
 				edge_sqr_distance
-			] = math::noise::voronoi::f1_edge<float, 3, std::uint32_t>({position[0], position[1], 0.5f}, 1.0f, {0.0f, 0.0f, 0.0f}, &math::noise::hash::pcg3d_3);
+			] = math::noise::voronoi::f1_edge<float, 1, std::uint32_t>({position[0]}, 1.0f, {0.0f}, &math::hash::pcg);
 			
 			float f1_distance = std::sqrt(f1_sqr_distance);
 			//float f2_distance = std::sqrt(f2_sqr_distance);
 			float edge_distance = std::sqrt(edge_sqr_distance);
 			
-			pixel = static_cast<unsigned char>(std::min(255.0f, edge_distance * 255.0f));
+			pixel = static_cast<unsigned char>(std::min(255.0f, f1_distance * 255.0f));
 			//pixel = static_cast<unsigned char>(id % 255);
 		}
 	);
@@ -207,7 +208,7 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 					float lacunarity = 3.0f;
 					float gain = 0.5f;
 					auto noise = static_cast<float(*)(const math::vector<float, 2>&, decltype(hash))>(math::noise::simplex);
-					auto hash = static_cast<std::uint32_t(*)(const math::vector<float, 2>&)>(math::noise::hash::pcg3d_1);
+					auto hash = static_cast<math::vector<std::uint32_t, 2>(*)(const math::vector<float, 2>&)>(math::hash::pcg);
 					
 					float2 position = float2{x, z} * frequency;
 					

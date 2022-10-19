@@ -17,18 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_NOISE_HPP
-#define ANTKEEPER_MATH_NOISE_HPP
+#ifndef ANTKEEPER_MATH_HASH_HPP
+#define ANTKEEPER_MATH_HASH_HPP
 
 namespace math {
 
-/// Noise functions.
-namespace noise {}
+/// Hash functions.
+namespace hash {}
 
 } // namespace math
 
-#include "math/noise/fbm.hpp"
-#include "math/noise/simplex.hpp"
-#include "math/noise/voronoi.hpp"
+#include "math/hash/pcg.hpp"
 
-#endif // ANTKEEPER_MATH_NOISE_HPP
+#endif // ANTKEEPER_MATH_HASH_HPP

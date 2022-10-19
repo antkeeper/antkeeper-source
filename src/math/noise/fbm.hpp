@@ -48,8 +48,8 @@ T fbm
 	std::size_t octaves,
 	T lacunarity,
 	T gain,
-	T (*noise)(const vector<T, N>&, U (*)(const vector<T, N>&)),
-	U (*hash)(const vector<T, N>&)
+	T (*noise)(const vector<T, N>&, vector<U, N> (*)(const vector<T, N>&)),
+	vector<U, N> (*hash)(const vector<T, N>&)
 )
 {
     T amplitude{1};

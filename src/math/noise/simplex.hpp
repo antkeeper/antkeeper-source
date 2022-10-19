@@ -110,7 +110,7 @@ constexpr auto simplex_edges = make_simplex_edges<T, N>(std::make_index_sequence
  * @see https://math.stackexchange.com/questions/474638/radius-and-amplitude-of-kernel-for-simplex-noise/1901116
  */
 template <class T, std::size_t N, class U>
-T simplex(const vector<T, N>& x, U (*hash)(const vector<T, N>&))
+T simplex(const vector<T, N>& x, vector<U, N> (*hash)(const vector<T, N>&))
 {
 	// Skewing (F) and unskewing (G) factors
 	static const T f = (std::sqrt(static_cast<T>(N + 1)) - T{1}) / static_cast<T>(N);
@@ -173,7 +173,7 @@ T simplex(const vector<T, N>& x, U (*hash)(const vector<T, N>&))
 		T t = falloff(math::length_squared(d));
 		if (t > T{0})
 		{
-			const auto gradient_index = hash(current_vertex) % simplex_edges<T, N>.size();
+			const auto gradient_index = hash(current_vertex)[0] % simplex_edges<T, N>.size();
 			const vector<T, N>& gradient = simplex_edges<T, N>[gradient_index];
 			
 			n += math::dot(d, gradient) * t;

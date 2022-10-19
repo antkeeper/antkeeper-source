@@ -136,7 +136,6 @@ f1
 	T f1_sqr_distance = std::numeric_limits<T>::infinity();
 	vector<T, N> f1_displacement;
 	U f1_hash;
-	
 	for (std::size_t i = 0; i < kernel_size<N>; ++i)
 	{
 		// Get kernel offset for current cell
@@ -228,7 +227,6 @@ f1_edge
 	vector<T, N> displacement_cache[kernel_size<N>];
 	std::size_t f1_i = 0;
 	U f1_hash;
-	
 	for (std::size_t i = 0; i < kernel_size<N>; ++i)
 	{
 		// Get kernel offset for current cell
@@ -357,7 +355,6 @@ f1_f2
 	T f2_sqr_distance_center = std::numeric_limits<T>::infinity();
 	vector<T, N> f2_displacement = {0, 0};
 	U f2_hash = 0;
-	
 	for (std::size_t i = 0; i < kernel_size<N>; ++i)
 	{
 		// Get kernel offset for current cell
