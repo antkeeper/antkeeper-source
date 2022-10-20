@@ -837,7 +837,7 @@ void boot::setup_systems()
 	// Setup terrain system
 	ctx.terrain_system = new game::system::terrain(*ctx.entity_registry);
 	ctx.terrain_system->set_patch_side_length(31.0f);
-	ctx.terrain_system->set_patch_subdivisions(30);
+	ctx.terrain_system->set_patch_subdivisions(31);
 	ctx.terrain_system->set_scene_collection(ctx.surface_scene);
 	
 	// Setup vegetation system

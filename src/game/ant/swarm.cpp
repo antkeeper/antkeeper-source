@@ -40,15 +40,11 @@ static math::vector3<T> sphere_random(Generator& rng)
 {
 	const std::uniform_real_distribution<T> distribution(T{-1}, T{1});
 	
-	const T x = distribution(rng);
-	const T y = distribution(rng);
-	const T z = distribution(rng);
+	math::vector3<T> position;
+	for (std::size_t i = 0; i < 3; ++i)
+		position[i] = distribution(rng);
 	
-	const T cbrt_u = std::cbrt(distribution(rng));
-	
-	const T scale = (T{1} / std::sqrt(x * x + y * y + z * z)) * cbrt_u;
-	
-	return {x * scale, y * scale, z * scale};
+	return math::normalize(position) * std::cbrt(distribution(rng));
 }
 
 entity::id create_swarm(game::context& ctx)

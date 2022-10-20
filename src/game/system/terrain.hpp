@@ -132,7 +132,9 @@ private:
 		float3 position;
 		float2 uv;
 		float3 normal;
-		float4 tangent;
+		float3 tangent;
+		float3 bitangent;
+		float bitangent_sign;
 	};
 	
 	mutable std::vector<std::vector<patch_vertex>> patch_vertex_buffer;

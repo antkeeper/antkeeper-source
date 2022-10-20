@@ -49,8 +49,8 @@ constexpr math::matrix<T, 3, 3> bradford =
 template <class T>
 constexpr math::matrix<T, 3, 3> von_kries =
 {
-	 0.40024, -0.22630, 0.00000
-	 0.70760,  1.16532, 0.00000
+	 0.40024, -0.22630, 0.00000,
+	 0.70760,  1.16532, 0.00000,
 	-0.08081,  0.04570, 0.91822
 };
 
@@ -62,9 +62,9 @@ constexpr math::matrix<T, 3, 3> von_kries =
 template <class T>
 constexpr math::matrix<T, 3, 3> xyz_scaling =
 {
-	T{1}, T{0}. T{0},
-	T{0}, T{1}. T{0},
-	T{0}, T{0}. T{1}
+	T{1}, T{0}, T{0},
+	T{0}, T{1}, T{0},
+	T{0}, T{0}, T{1}
 };
 
 /**

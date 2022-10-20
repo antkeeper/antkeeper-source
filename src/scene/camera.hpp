@@ -22,7 +22,7 @@
 
 #include "scene/object.hpp"
 #include "geom/view-frustum.hpp"
-#include "geom/ray.hpp"
+#include "geom/primitive/ray.hpp"
 #include "utility/fundamental-types.hpp"
 #include "render/compositor.hpp"
 
@@ -45,7 +45,7 @@ public:
 	 *
 	 * @return Picking ray.
 	 */
-	geom::ray<float> pick(const float2& ndc) const;
+	geom::primitive::ray<float, 3> pick(const float2& ndc) const;
 
 	/**
 	 * Maps object coordinates to window coordinates.

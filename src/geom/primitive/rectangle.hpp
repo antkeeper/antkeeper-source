@@ -17,25 +17,19 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_PICKING_HPP
-#define ANTKEEPER_GAME_COMPONENT_PICKING_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVE_RECTANGLE_HPP
+#define ANTKEEPER_GEOM_PRIMITIVE_RECTANGLE_HPP
 
-#include "geom/primitive/sphere.hpp"
-#include <cstdint>
+#include "geom/primitive/hyperrectangle.hpp"
 
-namespace game {
-namespace component {
+namespace geom {
+namespace primitive {
 
-struct picking
-{
-	/// Picking sphere.
-	geom::primitive::sphere<float> sphere;
-	
-	/// Picking flags.
-	std::uint32_t flags;
-};
+/// 2-dimensional hyperrectangle.
+template <class T>
+using rectangle = hyperrectangle<T, 2>;
 
-} // namespace component
-} // namespace game
+} // namespace primitive
+} // namespace geom
 
-#endif // ANTKEEPER_GAME_COMPONENT_PICKING_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVE_RECTANGLE_HPP

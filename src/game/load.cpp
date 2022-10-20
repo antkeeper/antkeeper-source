@@ -195,6 +195,7 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 			(
 				[](float x, float z) -> float
 				{
+					/*
 					float frequency = 0.01f;
 					std::size_t octaves = 4;
 					float lacunarity = 3.0f;
@@ -219,6 +220,19 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 					float f1_distance = std::sqrt(f1_sqr_distance);
 					
 					float y = f1_distance * 5.0f + fbm * 0.5f;
+					*/
+					
+					float2 position = float2{x, z} * 0.05f;
+					
+					auto
+					[
+						f1_sqr_distance,
+						f1_displacement,
+						f1_id
+					] = math::noise::voronoi::f1(position);
+					float f1_distance = std::sqrt(f1_sqr_distance);
+					float y = f1_distance * 3.0f;
+
 					
 					return y;
 				}

@@ -77,15 +77,11 @@ else()
 	target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE NDEBUG)
 endif()
 
-# Set C++17 standard
+# Set C++20 standard
 set_target_properties(${EXECUTABLE_TARGET} PROPERTIES
-	CXX_STANDARD 17
+	CXX_STANDARD 20
+	CXX_STANDARD_REQUIRED ON
 	CXX_EXTENSIONS OFF)
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES COMPILE_FLAGS "-std=c++17")
-elseif(MSVC)
-	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES COMPILE_FLAGS "/std:c++17")
-endif()
 
 # Set link flags to show console window on debug builds and hide it on release builds
 if(MSVC)

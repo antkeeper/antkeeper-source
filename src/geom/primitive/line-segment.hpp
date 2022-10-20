@@ -17,25 +17,43 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_PICKING_HPP
-#define ANTKEEPER_GAME_COMPONENT_PICKING_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVE_LINE_SEGMENT_HPP
+#define ANTKEEPER_GEOM_PRIMITIVE_LINE_SEGMENT_HPP
 
-#include "geom/primitive/sphere.hpp"
-#include <cstdint>
+#include "math/vector.hpp"
 
-namespace game {
-namespace component {
+namespace geom {
+namespace primitive {
 
-struct picking
+/**
+ * *n*-dimensional line segment.
+ *
+ * @tparam T Real type.
+ * @tparam N Number of dimensions.
+ */
+template <class T, std::size_t N>
+struct line_segment
 {
-	/// Picking sphere.
-	geom::primitive::sphere<float> sphere;
+	typedef math::vector<T, N> vector_type;
 	
-	/// Picking flags.
-	std::uint32_t flags;
+	/// First endpoint.
+	vector_type a;
+	
+	/// Second endpoint.
+	vector_type b;
+	
+	/**
+	 * Calculates the length of the line segment.
+	 *
+	 * @return Length of the line segment.
+	 */
+	T length() const noexcept
+	{
+		return math::distance(a, b);
+	}
 };
 
-} // namespace component
-} // namespace game
+} // namespace primitive
+} // namespace geom
 
-#endif // ANTKEEPER_GAME_COMPONENT_PICKING_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVE_LINE_SEGMENT_HPP

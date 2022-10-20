@@ -24,6 +24,7 @@
 #include "geom/mesh-functions.hpp"
 #include "geom/morton.hpp"
 #include "geom/quadtree.hpp"
+#include "geom/primitive/ray.hpp"
 #include "gl/vertex-attribute.hpp"
 #include "math/quaternion-operators.hpp"
 #include "render/vertex-attribute.hpp"
@@ -89,7 +90,7 @@ void terrain::update(double t, double dt)
 			// for (int i = 0; i < 8; ++i)
 				// std::cout << "corner " << i << ": " << cam.get_view_frustum().get_corners()[i] << std::endl;
 			
-			geom::ray<float> rays[8];
+			geom::primitive::ray<float, 3> rays[8];
 			rays[0] = cam.pick({-1, -1});
 			rays[1] = cam.pick({-1,  1});
 			rays[2] = cam.pick({ 1,  1});
@@ -160,7 +161,7 @@ void terrain::set_patch_subdivisions(std::size_t n)
 	
 	// Recalculate patch properties
 	patch_cell_count = (patch_subdivisions + 1) * (patch_subdivisions + 1);
-	patch_triangle_count = patch_cell_count * 4;
+	patch_triangle_count = patch_cell_count * 2;
 	
 	// Resize patch vertex data buffer
 	delete[] patch_vertex_data;
@@ -169,7 +170,7 @@ void terrain::set_patch_subdivisions(std::size_t n)
 	// Resize patch buffers
 	
 	std::size_t vertex_buffer_row_size = patch_subdivisions + 4;
-	std::size_t vertex_buffer_column_size = vertex_buffer_row_size * 2;
+	std::size_t vertex_buffer_column_size = vertex_buffer_row_size;
 	
 	patch_vertex_buffer.resize(vertex_buffer_row_size);
 	for (std::size_t i = 0; i < patch_vertex_buffer.size(); ++i)
@@ -370,7 +371,7 @@ geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 	patch_bounds.max_point.y() = -std::numeric_limits<float>::infinity();
 	patch_bounds.max_point.z() = patch_center.z() + patch_size * 0.5f;
 	
-	// Calculate positions of patch vertices and immediately neighboring vertices
+	// Calculate positions and UVs of patch vertices and immediately neighboring vertices
 	float3 first_vertex_position =
 	{
 		patch_bounds.min_point.x() - cell_size,
@@ -381,16 +382,26 @@ geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 	for (std::size_t i = 0; i < patch_vertex_buffer.size(); ++i)
 	{
 		// For each column
-		for (std::size_t j = 0; j < patch_vertex_buffer[i].size(); j += 2)
+		for (std::size_t j = 0; j < patch_vertex_buffer[i].size(); ++j)
 		{
-			// Get elevation of vertex
+			// Calculate vertex elevation
 			vertex_position.y() = elevation_function(vertex_position.x(), vertex_position.z());
 			
 			// Update patch bounds
 			patch_bounds.min_point.y() = std::min(patch_bounds.min_point.y(), vertex_position.y());
 			patch_bounds.max_point.y() = std::max(patch_bounds.max_point.y(), vertex_position.y());
 			
+			// Update patch vertex position
 			patch_vertex_buffer[i][j].position = vertex_position;
+			
+			// Calculate patch vertex UV
+			patch_vertex_buffer[i][j].uv.x() = (vertex_position.x() - patch_bounds.min_point.x()) / patch_size;
+			patch_vertex_buffer[i][j].uv.y() = (vertex_position.z() - patch_bounds.min_point.z()) / patch_size;
+			
+			// Init patch vertex normal, tangent, and bitangent
+			patch_vertex_buffer[i][j].normal = {0, 0, 0};
+			patch_vertex_buffer[i][j].tangent = {0, 0, 0};
+			patch_vertex_buffer[i][j].bitangent = {0, 0, 0};
 			
 			vertex_position.x() += cell_size;
 		}
@@ -399,51 +410,69 @@ geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 		vertex_position.x() = first_vertex_position.x();
 	}
 	
-	first_vertex_position.x() += cell_size * 0.5f;
-	first_vertex_position.z() += cell_size * 0.5f;
-	vertex_position = first_vertex_position;
-	for (std::size_t i = 0; i < patch_vertex_buffer.size(); ++i)
+	// Accumulate normals, tangents, and bitangents
+	for (std::size_t i = 0; i < patch_vertex_buffer.size() - 1; ++i)
 	{
-		// For each column
-		for (std::size_t j = 1; j < patch_vertex_buffer[i].size(); j += 2)
+		for (std::size_t j = 0; j < patch_vertex_buffer[i].size() - 1; ++j)
 		{
-			// Get elevation of vertex
-			vertex_position.y() = elevation_function(vertex_position.x(), vertex_position.z());
+			patch_vertex& a = patch_vertex_buffer[i  ][j];
+			patch_vertex& b = patch_vertex_buffer[i+1][j];
+			patch_vertex& c = patch_vertex_buffer[i  ][j+1];
+			patch_vertex& d = patch_vertex_buffer[i+1][j+1];
 			
-			// Update patch bounds
-			patch_bounds.min_point.y() = std::min(patch_bounds.min_point.y(), vertex_position.y());
-			patch_bounds.max_point.y() = std::max(patch_bounds.max_point.y(), vertex_position.y());
+			auto add_ntb = [](auto& a, auto& b, auto& c)
+			{
+				const float3 ba = b.position - a.position;
+				const float3 ca = c.position - a.position;
+				const float2 uvba = b.uv - a.uv;
+				const float2 uvca = c.uv - a.uv;
+				
+				const float3 normal = math::normalize(math::cross(ba, ca));
+				const float f = 1.0f / (uvba.x() * uvca.y() - uvca.x() * uvba.y());
+				const float3 tangent = (ba * uvca.y() - ca * uvba.y()) * f;
+				const float3 bitangent = (ba * -uvca.x() + ca * uvba.x()) * f;
+				
+				a.normal += normal;
+				a.tangent += tangent;
+				a.bitangent += bitangent;
+				
+				b.normal += normal;
+				b.tangent += tangent;
+				b.bitangent += bitangent;
+				
+				c.normal += normal;
+				c.tangent += tangent;
+				c.bitangent += bitangent;
+			};
 			
-			patch_vertex_buffer[i][j].position = vertex_position;
-			
-			vertex_position.x() += cell_size;
+			if ((j + i) % 2)
+			{
+				add_ntb(a, b, c);
+				add_ntb(c, b, d);
+			}
+			else
+			{
+				add_ntb(a, b, d);
+				add_ntb(a, d, c);
+			}
 		}
-		
-		vertex_position.z() += cell_size;
-		vertex_position.x() = first_vertex_position.x();
 	}
 	
-	// Calculate tangents, bitangents, and normals of patch vertices
+	// Finalize normals, tangents, and bitangent signs of patch vertices
 	for (std::size_t i = 1; i < patch_vertex_buffer.size() - 1; ++i)
 	{
-		// For each column
-		for (std::size_t j = 2; j < patch_vertex_buffer[i].size() - 3; ++j)
+		for (std::size_t j = 1; j < patch_vertex_buffer[i].size() - 1; ++j)
 		{
-			const float3& c  = patch_vertex_buffer[i  ][j  ].position;
-			const float3& n  = patch_vertex_buffer[i+1][j  ].position;
-			const float3& s  = patch_vertex_buffer[i-1][j  ].position;
-			const float3& e  = patch_vertex_buffer[i  ][j+2].position;
-			const float3& w  = patch_vertex_buffer[i  ][j-2].position;
+			auto& vertex = patch_vertex_buffer[i][j];
 			
-			const float3 tangent = math::normalize(float3{2.0f, (e.y() - w.y()) / cell_size, 0.0f});
-			const float3 bitangent = math::normalize(float3{0.0f, (n.y() - s.y()) / cell_size, 2.0f});
-			const float3 normal = math::cross(bitangent, tangent);
-			const float bitangent_sign = std::copysign(1.0f, math::dot(math::cross(normal, tangent), bitangent));
+			// Normalize normal
+			vertex.normal = math::normalize(vertex.normal);
 			
-			patch_vertex_buffer[i][j].uv.x() = (c.x() - patch_bounds.min_point.x()) / patch_size;
-			patch_vertex_buffer[i][j].uv.y() = (c.z() - patch_bounds.min_point.z()) / patch_size;
-			patch_vertex_buffer[i][j].normal = normal;
-			patch_vertex_buffer[i][j].tangent = {tangent.x(), tangent.y(), tangent.z(), bitangent_sign};
+			// Gram-Schmidt orthogonalize tangent
+			vertex.tangent = math::normalize(vertex.tangent - vertex.normal * math::dot(vertex.normal, vertex.tangent));
+			
+			// Calculate bitangent sign
+			vertex.bitangent_sign = std::copysign(1.0f, math::dot(math::cross(vertex.normal, vertex.tangent), vertex.bitangent));
 		}
 	}
 	
@@ -471,17 +500,16 @@ geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 	
 	2 subdivisions:
 	+---+---+---+---+---+
-	| x   x   x   x   x | x
+	|                   |
 	+   +---+---+---+   +
-	| x | x | x | x | x | x
+	|   |   |   |   |   |
 	+   +---+---+---+   +
-	| x | x | x | x | x | x
+	|   |   |   |   |   |
 	+   +---+---+---+   +
-	| x | x | x | x | x | x
+	|   |   |   |   |   |
 	+   +---+---+---+   +
-	| x   x   x   x   x | x
+	|                   |
 	+---+---+---+---+---+
-	  x   x   x   x   x   x
 	*/
 	
 	// For each row
@@ -489,19 +517,15 @@ geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 	for (std::size_t i = 1; i < patch_vertex_buffer.size() - 2; ++i)
 	{
 		// For each column
-		for (std::size_t j = 3; j < patch_vertex_buffer[i].size() - 4; j += 2)
+		for (std::size_t j = 1; j < patch_vertex_buffer[i].size() - 2; ++j)
 		{
 			// a---c
-			// | x |
+			// |   |
 			// b---d
-			
-			const patch_vertex& x = patch_vertex_buffer[i  ][j  ];
-			const patch_vertex& a = patch_vertex_buffer[i  ][j-1];
-			const patch_vertex& b = patch_vertex_buffer[i+1][j-1];
+			const patch_vertex& a = patch_vertex_buffer[i  ][j];
+			const patch_vertex& b = patch_vertex_buffer[i+1][j];
 			const patch_vertex& c = patch_vertex_buffer[i  ][j+1];
 			const patch_vertex& d = patch_vertex_buffer[i+1][j+1];
-			
-			const float4& td = patch_vertex_buffer[i+1][j+1].tangent;
 			
 			auto add_triangle = [&v](const patch_vertex& a, const patch_vertex& b, const patch_vertex& c)
 			{
@@ -525,7 +549,7 @@ geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 					*(v++) = vertex.tangent[0];
 					*(v++) = vertex.tangent[1];
 					*(v++) = vertex.tangent[2];
-					*(v++) = vertex.tangent[3];
+					*(v++) = vertex.bitangent_sign;
 					
 					// Barycentric
 					*(v++) = barycentric[0];
@@ -543,15 +567,16 @@ geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 				add_vertex(c, float3{0, 0, 1});
 			};
 			
-			
-			add_triangle(x, a, b);
-			add_triangle(x, b, d);
-			add_triangle(x, d, c);
-			add_triangle(x, c, a);
-			
-			
-			// add_triangle(a, b, c);
-			// add_triangle(c, b, d);
+			if ((j + i) % 2)
+			{
+				add_triangle(a, b, c);
+				add_triangle(c, b, d);
+			}
+			else
+			{
+				add_triangle(a, b, d);
+				add_triangle(a, d, c);
+			}
 		}
 	}
 	

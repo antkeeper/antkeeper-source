@@ -56,6 +56,9 @@
 #include "color/color.hpp"
 #include "application.hpp"
 #include "input/mouse.hpp"
+#include "geom/primitive/sphere.hpp"
+#include "geom/primitive/rectangle.hpp"
+#include "geom/primitive/hyperplane.hpp"
 #include <iostream>
 
 using namespace game::ant;
@@ -66,6 +69,11 @@ namespace state {
 nuptial_flight::nuptial_flight(game::context& ctx):
 	game::state::base(ctx)
 {
+	geom::primitive::rectangle<float> rect;
+	rect.intersects(rect);
+	geom::primitive::hyperplane<float, 4> plane;
+	plane.distance({0, 0, 0, 0});
+	
 	ctx.logger->push_task("Entering nuptial flight state");
 	
 	// Init selected picking flag
@@ -637,7 +645,7 @@ void nuptial_flight::enable_controls()
 			};
 			
 			// Get picking ray from camera
-			const geom::ray<float> ray = ctx.surface_camera->pick(mouse_ndc);
+			const geom::primitive::ray<float, 3> ray = ctx.surface_camera->pick(mouse_ndc);
 			
 			// Pick entity
 			entity::id picked_eid = ctx.collision_system->pick_nearest(ray, ~selected_picking_flag);

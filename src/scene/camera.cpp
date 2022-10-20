@@ -77,7 +77,7 @@ camera::camera():
 	exposure(0.0f, math::lerp<float, float>)
 {}
 
-geom::ray<float> camera::pick(const float2& ndc) const
+geom::primitive::ray<float, 3> camera::pick(const float2& ndc) const
 {
 	const float4x4 inverse_view_projection = math::inverse(view_projection[1]);
 	
