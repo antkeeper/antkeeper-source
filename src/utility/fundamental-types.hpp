@@ -21,8 +21,7 @@
 #define ANTKEEPER_FUNDAMENTAL_TYPES_HPP
 
 #include "math/vector.hpp"
-#include "math/matrix-type.hpp"
-#include "math/matrix-operators.hpp"
+#include "math/matrix.hpp"
 
 /// 2D vector of bools
 using bool2 = math::vector<bool, 2>;

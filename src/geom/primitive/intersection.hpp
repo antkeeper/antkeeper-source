@@ -125,7 +125,15 @@ std::optional<std::tuple<T, T>> intersection(const ray<T, N>& ray, const hypersp
 	
 	h = std::sqrt(h);
 	
-	return std::tuple<float, float>{-b - h, -b + h};
+	T t0 = -b - h;
+	T t1 = -b + h;
+	if (t0 > t1)
+		std::swap(t0, t1);
+	
+	if (t0 < T{0})
+		return std::nullopt;
+	
+	return std::tuple<T, T>{t0, t1};
 }
 
 /**

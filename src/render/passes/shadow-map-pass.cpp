@@ -72,13 +72,13 @@ shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, const gl::framebuff
 	skinned_model_view_projection_input = skinned_shader_program->get_input("model_view_projection");
 	
 	// Calculate bias-tile matrices
-	float4x4 bias_matrix = math::translate(math::matrix4<float>::identity, float3{0.5f, 0.5f, 0.5f}) * math::scale(math::matrix4<float>::identity, float3{0.5f, 0.5f, 0.5f});
-	float4x4 tile_scale = math::scale(math::matrix4<float>::identity, float3{0.5f, 0.5f, 1.0f});
+	float4x4 bias_matrix = math::translate(math::matrix4<float>::identity(), float3{0.5f, 0.5f, 0.5f}) * math::scale(math::matrix4<float>::identity(), float3{0.5f, 0.5f, 0.5f});
+	float4x4 tile_scale = math::scale(math::matrix4<float>::identity(), float3{0.5f, 0.5f, 1.0f});
 	for (int i = 0; i < 4; ++i)
 	{
 		float x = static_cast<float>(i % 2) * 0.5f;
 		float y = static_cast<float>(i / 2) * 0.5f;
-		float4x4 tile_matrix = math::translate(math::matrix4<float>::identity, float3{x, y, 0.0f}) * tile_scale;
+		float4x4 tile_matrix = math::translate(math::matrix4<float>::identity(), float3{x, y, 0.0f}) * tile_scale;
 		bias_tile_matrices[i] = tile_matrix * bias_matrix;
 	}
 }
@@ -210,7 +210,7 @@ void shadow_map_pass::render(const render::context& ctx, render::queue& queue) c
 		offset.y() = std::ceil(offset.y() * half_shadow_map_resolution) / half_shadow_map_resolution;
 		
 		// Crop the light view-projection matrix
-		crop_matrix = math::translate(math::matrix4<float>::identity, offset) * math::scale(math::matrix4<float>::identity, scale);
+		crop_matrix = math::translate(math::matrix4<float>::identity(), offset) * math::scale(math::matrix4<float>::identity(), scale);
 		cropped_view_projection = crop_matrix * light_view_projection;
 		
 		// Calculate shadow matrix

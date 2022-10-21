@@ -21,7 +21,6 @@
 #define ANTKEEPER_MATH_TRANSFORM_FUNCTIONS_HPP
 
 #include "math/transform-type.hpp"
-#include "math/matrix-functions.hpp"
 #include "math/quaternion-functions.hpp"
 
 namespace math {

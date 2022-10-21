@@ -99,7 +99,7 @@ view_frustum<T>::view_frustum(const matrix_type& view_projection):
 
 template <class T>
 view_frustum<T>::view_frustum():
-	view_frustum(math::matrix4<T>::identity)
+	view_frustum(math::matrix4<T>::identity())
 {}
 
 template <class T>

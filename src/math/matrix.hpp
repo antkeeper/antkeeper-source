@@ -17,14 +17,312 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_MATRIX_FUNCTIONS_HPP
-#define ANTKEEPER_MATH_MATRIX_FUNCTIONS_HPP
+#ifndef ANTKEEPER_MATH_MATRIX_HPP
+#define ANTKEEPER_MATH_MATRIX_HPP
 
-#include "math/matrix-type.hpp"
 #include "math/vector.hpp"
+#include <cstddef>
+#include <istream>
+#include <iterator>
+#include <ostream>
 #include <type_traits>
+#include <utility>
 
 namespace math {
+
+/**
+ * *n*-by-*m* column-major matrix.
+ *
+ * @tparam T Matrix element data type.
+ * @tparam N Number of columns.
+ * @tparam M Number of rows.
+ *
+ * @see https://en.wikipedia.org/wiki/Row-_and_column-major_order
+ */
+template <typename T, std::size_t N, std::size_t M>
+struct matrix
+{
+	/// Matrix element data type.
+	typedef T element_type;
+	
+	/// Number of matrix columns.
+	static constexpr std::size_t column_count = N;
+	
+	/// Number of matrix rows.
+	static constexpr std::size_t row_count = M;
+	
+	/// Number of matrix elements.
+	static constexpr std::size_t element_count = column_count * row_count;
+	
+	/// Matrix column vector data type.
+	typedef vector<element_type, row_count> column_vector_type;
+	
+	/// Matrix row vector data type.
+	typedef vector<element_type, column_count> row_vector_type;
+	
+	/// Array of matrix column vectors.
+	column_vector_type columns[column_count];
+	
+	/**
+	 * Returns a reference to the column vector at a given index.
+	 *
+	 * @param i Index of a column vector.
+	 *
+	 * @return Reference to the column vector at index @p i.
+	 */
+	/// @{
+	constexpr inline column_vector_type& operator[](std::size_t i) noexcept
+	{
+		return columns[i];
+	}
+	constexpr inline const column_vector_type& operator[](std::size_t i) const noexcept
+	{
+		return columns[i];
+	}
+	constexpr inline column_vector_type& column(std::size_t i) noexcept
+	{
+		return columns[i];
+	}
+	constexpr inline const column_vector_type& column(std::size_t i) const noexcept
+	{
+		return columns[i];
+	}
+	/// @}
+	
+	/**
+	 * Returns a reference to the element at a given index, in column-major order.
+	 *
+	 * @param i Index of a matrix element.
+	 *
+	 * @return Reference to the element at index @p i.
+	 */
+	/// @{
+	constexpr inline T& element(std::size_t i) noexcept
+	{
+		return columns[i / row_count][i % row_count];
+	}
+	constexpr inline const T& element(std::size_t i) const noexcept
+	{
+		return columns[i / row_count][i % row_count];
+	}
+	/// @}
+	
+	/// Returns a reference to the first column vector.
+	/// @{
+	constexpr inline column_vector_type& front() noexcept
+	{
+		return columns[0];
+	}
+	constexpr inline const column_vector_type& front() const noexcept
+	{
+		return columns[0];
+	}
+	/// @}
+	
+	/// Returns a reference to the last column vector.
+	/// @{
+	constexpr inline column_vector_type& back() noexcept
+	{
+		return elements[column_count - 1];
+	}
+	constexpr inline const column_vector_type& back() const noexcept
+	{
+		return elements[column_count - 1];
+	}
+	/// @}
+	
+	/// Returns a pointer to the column vector array.
+	/// @{
+	constexpr inline column_vector_type* data() noexcept
+	{
+		return columns;
+	};
+	constexpr inline const column_vector_type* data() const noexcept
+	{
+		return columns;
+	};
+	/// @}
+	
+	/// Returns an iterator to the first column vector.
+	/// @{
+	constexpr inline column_vector_type* begin() noexcept
+	{
+		return columns;
+	}
+	constexpr inline const column_vector_type* begin() const noexcept
+	{
+		return columns;
+	}
+	constexpr inline const column_vector_type* cbegin() const noexcept
+	{
+		return columns;
+	}
+	/// @}
+	
+	/// Returns an iterator to the column vector following the last column vector.
+	/// @{
+	constexpr inline column_vector_type* end() noexcept
+	{
+		return columns + column_count;
+	}
+	constexpr inline const column_vector_type* end() const noexcept
+	{
+		return columns + column_count;
+	}
+	constexpr inline const column_vector_type* cend() const noexcept
+	{
+		return columns + column_count;
+	}
+	/// @}
+	
+	/// Returns a reverse iterator to the first column vector of the reversed matrix.
+	/// @{
+	constexpr inline std::reverse_iterator<column_vector_type*> rbegin() noexcept
+	{
+		return std::reverse_iterator<column_vector_type*>(columns + column_count);
+	}
+	constexpr inline std::reverse_iterator<const column_vector_type*> rbegin() const noexcept
+	{
+		return std::reverse_iterator<const column_vector_type*>(columns + column_count);
+	}
+	constexpr inline std::reverse_iterator<const column_vector_type*> crbegin() const noexcept
+	{
+		return std::reverse_iterator<const column_vector_type*>(columns + column_count);
+	}
+	/// @}
+	
+	/// Returns a reverse iterator to the column vector following the last column vector of the reversed matrix.
+	/// @{
+	constexpr inline std::reverse_iterator<column_vector_type*> rend() noexcept
+	{
+		return std::reverse_iterator<column_vector_type*>(columns);
+	}
+	constexpr inline std::reverse_iterator<const column_vector_type*> rend() const noexcept
+	{
+		return std::reverse_iterator<const column_vector_type*>(columns);
+	}
+	constexpr inline std::reverse_iterator<const column_vector_type*> crend() const noexcept
+	{
+		return std::reverse_iterator<const column_vector_type*>(columns);
+	}
+	/// @}
+	
+	/// Returns the number of elements in the matrix.
+	constexpr inline std::size_t size() const noexcept
+	{
+		return element_count;
+	};
+	
+	/// @private
+	template <class U, std::size_t... I>
+	constexpr inline matrix<U, N, M> type_cast(std::index_sequence<I...>) const noexcept
+	{
+		return {vector<U, M>(columns[I])...};
+	}
+	
+	/**
+	 * Type-casts the elements of this matrix using `static_cast`.
+	 *
+	 * @tparam U Target element type.
+	 *
+	 * @return Matrix containing the type-casted elements.
+	 */
+	template <class U>
+	constexpr inline explicit operator matrix<U, N, M>() const noexcept
+	{
+		return type_cast<U>(std::make_index_sequence<N>{});
+	}
+	
+	/// @private
+	template <std::size_t P, std::size_t O, std::size_t... I>
+	constexpr inline matrix<T, P, O> size_cast(std::index_sequence<I...>) const noexcept
+	{
+		if constexpr (O == M)
+			return {((I < N) ? columns[I] : vector<T, O>::zero()) ...};
+		else
+			return {((I < N) ? vector<T, O>(columns[I]) : vector<T, O>::zero()) ...};
+	}
+	
+	/**
+	 * Size-casts this matrix to a matrix with different dimensions. Casting to greater dimensions causes new elements to be set to zero.
+	 *
+	 * @tparam P Target number of columns.
+	 * @tparam O Target number of rows.
+	 *
+	 * @return *p*-by-*o* matrix.
+	 */
+	template <std::size_t P, std::size_t O>
+	constexpr inline explicit operator matrix<T, P, O>() const noexcept
+	{
+		return size_cast<P, O>(std::make_index_sequence<P>{});
+	}
+	
+	/// Returns a zero matrix, where every element is equal to zero.
+	static constexpr matrix zero() noexcept
+	{
+		return {};
+	}
+	
+	/// @private
+	template <std::size_t... I>
+	static constexpr inline matrix one(std::index_sequence<I...>) noexcept
+	{
+		//return {column_vector_type::one() ...};
+		
+		// MSVC bug workaround (I must be referenced for parameter pack expansion)
+		return {(I ? column_vector_type::one() : column_vector_type::one()) ...};
+	}
+	
+	/// Returns a matrix of ones, where every element is equal to one.
+	static constexpr matrix one() noexcept
+	{
+		return one(std::make_index_sequence<column_count>{});
+	}
+	
+	/// @private
+	template <std::size_t... I>
+	static constexpr inline column_vector_type identity_column(std::size_t i, std::index_sequence<I...>) noexcept
+	{
+		return {(I == i ? T{1} : T{0}) ...};
+	}
+	
+	/// @private
+	template <std::size_t... I>
+	static constexpr inline matrix identity(std::index_sequence<I...>) noexcept
+	{
+		return {identity_column(I, std::make_index_sequence<row_count>{}) ...};
+	}
+	
+	/// Returns an identity matrix, with ones on the main diagonal and zeros elsewhere.
+	static constexpr matrix identity() noexcept
+	{
+		return identity(std::make_index_sequence<column_count>{});
+	}
+};
+
+/// 2x2 matrix.
+template <typename T>
+using matrix2 = matrix<T, 2, 2>;
+
+/// 2x2 matrix.
+template <typename T>
+using matrix2x2 = matrix<T, 2, 2>;
+
+/// 3x3 matrix.
+template <typename T>
+using matrix3 = matrix<T, 3, 3>;
+
+/// 3x3 matrix.
+template <typename T>
+using matrix3x3 = matrix<T, 3, 3>;
+
+/// 4x4 matrix.
+template <typename T>
+using matrix4 = matrix<T, 4, 4>;
+
+/// 4x4 matrix.
+template <typename T>
+using matrix4x4 = matrix<T, 4, 4>;
 
 /**
  * Adds two matrices.
@@ -926,4 +1224,106 @@ constexpr matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m)
 
 } // namespace math
 
-#endif // ANTKEEPER_MATH_MATRIX_FUNCTIONS_HPP
+/// @copydoc math::add(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
+template <class T, std::size_t N, std::size_t M>
+constexpr math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
+
+/// @copydoc math::mul(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
+template <class T, std::size_t N, std::size_t M>
+constexpr math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
+
+/// @copydoc math::mul(const math::matrix<T, N, M>&, T)
+template <class T, std::size_t N, std::size_t M>
+constexpr math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& m, T s);
+
+/// @copydoc math::mul(const math::matrix<T, N, M>&, T)
+template <class T, std::size_t N, std::size_t M>
+constexpr math::matrix<T, N, M> operator*(T s, const math::matrix<T, N, M>& m);
+
+/// @copydoc math::mul(const math::matrix<T, 2, 2>&, const math::vector<T, 2>&)
+template <class T, std::size_t N>
+constexpr math::vector<T, N> operator*(const math::matrix<T, N, N>& m, const math::vector<T, N>& v);
+
+/// @copydoc math::sub(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
+template <class T, std::size_t N, std::size_t M>
+constexpr math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
+
+/**
+ * Writes the elements of a matrix to an output stream, with each element delimeted by a space.
+ *
+ * @param os Output stream.
+ * @param m Matrix.
+ * @return Output stream.
+ */
+template <class T, std::size_t N, std::size_t M>
+std::ostream& operator<<(std::ostream& os, const math::matrix<T, N, M>& m);
+
+/**
+ * Reads the elements of a matrix from an input stream, with each element delimeted by a space.
+ *
+ * @param is Input stream.
+ * @param m Matrix.
+ * @return Input stream.
+ */
+template <class T, std::size_t N, std::size_t M>
+std::istream& operator>>(std::istream& is, math::matrix<T, N, M>& m);
+
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
+{
+	return math::add(x, y);
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
+{
+	return math::mul(x, y);
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& m, T s)
+{
+	return math::mul(m, s);
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator*(T s, const math::matrix<T, N, M>& m)
+{
+	return math::mul(m, s);
+}
+
+template <class T, std::size_t N>
+constexpr inline math::vector<T, N> operator*(const math::matrix<T, N, N>& m, const math::vector<T, N>& v)
+{
+	return math::mul(m, v);
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
+{
+	return math::sub(x, y);
+}
+
+template <class T, std::size_t N, std::size_t M>
+std::ostream& operator<<(std::ostream& os, const math::matrix<T, N, M>& m)
+{
+	for (std::size_t i = 0; i < m.size(); ++i)
+	{
+		if (i)
+			os << ' ';
+		os << m.element(i);
+	}
+	
+	return os;
+}
+
+template <class T, std::size_t N, std::size_t M>
+std::istream& operator>>(std::istream& is, math::matrix<T, N, M>& m)
+{
+	for (std::size_t i = 0; i < m.size(); ++i)
+		is >> m.element(i);
+	
+	return is;
+}
+
+#endif // ANTKEEPER_MATH_MATRIX_HPP

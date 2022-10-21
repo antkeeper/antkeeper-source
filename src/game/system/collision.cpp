@@ -60,15 +60,21 @@ entity::id collision::pick_nearest(const geom::primitive::ray<float, 3>& ray, st
 			const geom::primitive::sphere<float> sphere =
 			{
 				transform.world * picking.sphere.center,
-				picking.sphere.radius * std::max(std::max(transform.world.scale[0], transform.world.scale[1]), transform.world.scale[2])
+				picking.sphere.radius * math::max(transform.world.scale)
 			};
 			
 			// Test for intersection between ray and sphere
 			auto result = geom::primitive::intersection(ray, sphere);
-			if (result && std::get<0>(*result) < nearest_distance)
+			if (result)
 			{
-				nearest_eid = entity_id;
-				nearest_distance = std::get<0>(*result);
+				float t0 = std::get<0>(*result);
+				float t1 = std::get<1>(*result);
+				
+				if (t0 < nearest_distance)
+				{
+					nearest_eid = entity_id;
+					nearest_distance = t0;
+				}
 			}
 		}
 	);

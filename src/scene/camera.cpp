@@ -71,9 +71,9 @@ camera::camera():
 	clip_far(1.0f, math::lerp<float, float>),
 	fov(math::half_pi<float>, math::lerp<float, float>),
 	aspect_ratio(1.0f, math::lerp<float, float>),
-	view(math::matrix4<float>::identity, std::bind(&interpolate_view, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-	projection(math::matrix4<float>::identity, std::bind(&interpolate_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-	view_projection(math::matrix4<float>::identity, std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
+	view(math::matrix4<float>::identity(), std::bind(&interpolate_view, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
+	projection(math::matrix4<float>::identity(), std::bind(&interpolate_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
+	view_projection(math::matrix4<float>::identity(), std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
 	exposure(0.0f, math::lerp<float, float>)
 {}
 

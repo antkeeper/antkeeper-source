@@ -21,7 +21,7 @@
 #define ANTKEEPER_MATH_QUATERNION_FUNCTIONS_HPP
 
 #include "math/constants.hpp"
-#include "math/matrix-type.hpp"
+#include "math/matrix.hpp"
 #include "math/quaternion-type.hpp"
 #include "math/vector.hpp"
 #include <cmath>

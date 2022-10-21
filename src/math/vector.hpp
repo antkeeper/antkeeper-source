@@ -32,7 +32,7 @@
 namespace math {
 
 /**
- * *n*-dimensional Euclidean vector.
+ * *n*-dimensional vector.
  *
  * @tparam T Element type.
  * @tparam N Number of elements.
@@ -43,7 +43,7 @@ struct vector
 	/// Vector element data type.
 	typedef T element_type;
 	
-	/// Number of elements.
+	/// Number of vector elements.
 	static constexpr std::size_t element_count = N;
 	
 	/// Array of vector elements.
@@ -243,11 +243,11 @@ struct vector
 	}
 	
 	/**
-	 * Size-casts this vector to a vector with a different number of elements. Casting to a greater number of elements causes new elements to be set to `0`.
+	 * Size-casts this vector to a vector with a different number of elements. Casting to a greater number of elements causes new elements to be set to zero.
 	 *
 	 * @tparam M Target number of elements.
 	 *
-	 * @return Vector containing the type-casted elements.
+	 * @return *m*-dimensional vector.
 	 */
 	template <std::size_t M>
 	constexpr inline explicit operator vector<T, M>() const noexcept
@@ -255,17 +255,28 @@ struct vector
 		return size_cast<M>(std::make_index_sequence<M>{});
 	}
 	
-	/// Returns a zero vector.
-	static constexpr inline vector zero() noexcept
+	/// Returns a zero vector, where every element is equal to zero.
+	static constexpr vector zero() noexcept
 	{
 		return {};
 	}
+	
+	/// @private
+	template <std::size_t... I>
+	static constexpr vector one(std::index_sequence<I...>) noexcept
+	{
+		//return {T{1}...};
+		
+		// MSVC bug workaround (I must be referenced for parameter pack expansion)
+		return {(I ? T{1} : T{1})...};
+	}
+	
+	/// Returns a vector of ones, where every element is equal to one.
+	static constexpr vector one() noexcept
+	{
+		return one(std::make_index_sequence<N>{});
+	}
 };
-
-// Ensure vector is a POD type
-static_assert(std::is_standard_layout<vector<float, 3>>::value, "Vector is not a standard-layout type.");
-static_assert(std::is_trivial<vector<float, 3>>::value, "Vector is not a trivial type.");
-static_assert(sizeof(vector<float, 3>) == sizeof(float) * 3, "Vector size is greater than the size of its elements.");
 
 /// Vector with two elements.
 template <typename T>
@@ -1477,67 +1488,67 @@ std::istream& operator>>(std::istream& is, math::vector<T, N>& v);
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator+(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
-	return add(x, y);
+	return math::add(x, y);
 }
 
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator+(const math::vector<T, N>& x, T y)
 {
-	return add(x, y);
+	return math::add(x, y);
 }
 
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator+(T x, const math::vector<T, N>& y)
 {
-	return add(y, x);
+	return math::add(y, x);
 }
 
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator-(const math::vector<T, N>& x)
 {
-	return negate(x);
+	return math::negate(x);
 }
 
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator-(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
-	return sub(x, y);
+	return math::sub(x, y);
 }
 
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator-(const math::vector<T, N>& x, T y)
 {
-	return sub(x, y);
+	return math::sub(x, y);
 }
 
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator*(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
-	return mul(x, y);
+	return math::mul(x, y);
 }
 
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator*(const math::vector<T, N>& x, T y)
 {
-	return mul(x, y);
+	return math::mul(x, y);
 }
 
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator*(T x, const math::vector<T, N>& y)
 {
-	return mul(y, x);
+	return math::mul(y, x);
 }
 
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator/(const math::vector<T, N>& x, const math::vector<T, N>& y)
 {
-	return div(x, y);
+	return math::div(x, y);
 }
 
 template <class T, std::size_t N>
 constexpr inline math::vector<T, N> operator/(const math::vector<T, N>& x, T y)
 {
-	return div(x, y);
+	return math::div(x, y);
 }
 
 template <class T, std::size_t N>

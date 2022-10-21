@@ -24,10 +24,7 @@
 namespace math {}
 
 #include "math/vector.hpp"
-
-#include "math/matrix-type.hpp"
-#include "math/matrix-functions.hpp"
-#include "math/matrix-operators.hpp"
+#include "math/matrix.hpp"
 
 #include "math/quaternion-type.hpp"
 #include "math/quaternion-functions.hpp"

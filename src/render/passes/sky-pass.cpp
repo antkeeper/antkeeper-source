@@ -193,7 +193,7 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	float clip_near = camera.get_clip_near_tween().interpolate(ctx.alpha);
 	float clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
 	float3 model_scale = float3{1.0f, 1.0f, 1.0f} * (clip_near + clip_far) * 0.5f;
-	float4x4 model = math::scale(math::matrix4<float>::identity, model_scale);
+	float4x4 model = math::scale(math::matrix4<float>::identity(), model_scale);
 	float4x4 view = math::resize<4, 4>(math::resize<3, 3>(ctx.view));
 	float4x4 model_view = view * model;
 	const float4x4& projection = ctx.projection;
