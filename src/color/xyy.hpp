@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_COLOR_XYY_HPP
 #define ANTKEEPER_COLOR_XYY_HPP
 
-#include "math/math.hpp"
+#include "math/vector.hpp"
 
 namespace color {
 

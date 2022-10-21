@@ -19,6 +19,8 @@
 
 #include "game/system/constraint.hpp"
 #include "game/component/constraint-stack.hpp"
+#include "math/quaternion-operators.hpp"
+#include "math/transform-operators.hpp"
 
 namespace game {
 namespace system {

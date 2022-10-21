@@ -20,7 +20,8 @@
 #ifndef ANTKEEPER_COLOR_CAT_HPP
 #define ANTKEEPER_COLOR_CAT_HPP
 
-#include "math/math.hpp"
+#include "math/matrix.hpp"
+#include "math/vector.hpp"
 
 namespace color {
 

@@ -19,7 +19,8 @@
 
 #include "directional-light.hpp"
 #include "config.hpp"
-#include "math/math.hpp"
+#include "math/quaternion-operators.hpp"
+#include "math/interpolation.hpp"
 
 namespace scene {
 

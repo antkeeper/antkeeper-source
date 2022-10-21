@@ -32,7 +32,9 @@
 #include "geom/view-frustum.hpp"
 #include "geom/aabb.hpp"
 #include "config.hpp"
-#include "math/math.hpp"
+#include "math/vector.hpp"
+#include "math/matrix.hpp"
+#include "math/quaternion-operators.hpp"
 #include <cmath>
 #include <glad/glad.h>
 

@@ -51,7 +51,7 @@
 #ifndef ANTKEEPER_EASE_HPP
 #define ANTKEEPER_EASE_HPP
 
-#include "math/math.hpp"
+#include "math/interpolation.hpp"
 #include <cmath>
 
 /**

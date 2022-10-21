@@ -21,7 +21,8 @@
 #define ANTKEEPER_COLOR_ACES_HPP
 
 #include "color/rgb.hpp"
-#include "math/math.hpp"
+#include "math/matrix.hpp"
+#include "math/vector.hpp"
 
 namespace color {
 

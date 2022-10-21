@@ -21,7 +21,8 @@
 #define ANTKEEPER_GEOM_VIEW_FRUSTUM_HPP
 
 #include "geom/convex-hull.hpp"
-#include "math/math.hpp"
+#include "math/vector.hpp"
+#include "math/matrix.hpp"
 #include <array>
 
 namespace geom {

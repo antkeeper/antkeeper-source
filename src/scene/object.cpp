@@ -18,7 +18,7 @@
  */
 
 #include "scene/object.hpp"
-#include "math/math.hpp"
+#include "math/interpolation.hpp"
 
 namespace scene {
 

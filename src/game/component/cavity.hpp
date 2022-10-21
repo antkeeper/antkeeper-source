@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_COMPONENT_CAVITY_HPP
 #define ANTKEEPER_GAME_COMPONENT_CAVITY_HPP
 
-#include "math/math.hpp"
+#include "utility/fundamental-types.hpp"
 
 namespace game {
 namespace component {

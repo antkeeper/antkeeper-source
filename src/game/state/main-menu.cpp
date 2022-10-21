@@ -40,6 +40,7 @@
 #include "game/component/model.hpp"
 #include "game/component/steering.hpp"
 #include "game/component/transform.hpp"
+#include "math/projection.hpp"
 #include <limits>
 
 namespace game {

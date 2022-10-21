@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GEOM_PLANE_HPP
 #define ANTKEEPER_GEOM_PLANE_HPP
 
-#include "math/math.hpp"
+#include "math/vector.hpp"
 
 namespace geom {
 

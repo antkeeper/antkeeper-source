@@ -28,9 +28,10 @@
 #include "scene/text.hpp"
 #include "render/model.hpp"
 #include "gl/drawing-mode.hpp"
-#include "math/math.hpp"
+#include "math/matrix.hpp"
 #include "geom/projection.hpp"
 #include "config.hpp"
+#include "math/quaternion-operators.hpp"
 #include <functional>
 #include <set>
 

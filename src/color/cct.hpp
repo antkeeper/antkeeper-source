@@ -20,9 +20,9 @@
 #ifndef ANTKEEPER_COLOR_CCT_HPP
 #define ANTKEEPER_COLOR_CCT_HPP
 
-#include "math/math.hpp"
 #include "ucs.hpp"
 #include "xyy.hpp"
+#include "math/vector.hpp"
 
 namespace color {
 

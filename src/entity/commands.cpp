@@ -20,10 +20,12 @@
 #include "entity/commands.hpp"
 #include "game/component/model.hpp"
 #include "game/component/transform.hpp"
-#include "game/component/snap.hpp"
 #include "game/component/parent.hpp"
 #include "game/component/celestial-body.hpp"
 #include "game/component/terrain.hpp"
+#include "math/quaternion-type.hpp"
+#include "math/quaternion-operators.hpp"
+#include "math/quaternion-functions.hpp"
 #include <limits>
 
 namespace entity {

@@ -19,7 +19,8 @@
 
 #include "spot-light.hpp"
 #include "config.hpp"
-#include "math/math.hpp"
+#include "math/quaternion-operators.hpp"
+#include "math/interpolation.hpp"
 #include <cmath>
 
 namespace scene {

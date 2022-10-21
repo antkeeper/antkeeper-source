@@ -22,7 +22,7 @@
 
 #include "color/rgb.hpp"
 #include "color/illuminant.hpp"
-#include "math/math.hpp"
+#include "math/vector.hpp"
 #include <cmath>
 
 namespace color {

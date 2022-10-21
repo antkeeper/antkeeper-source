@@ -76,21 +76,6 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	
 	ctx.logger->push_task("Entering nuptial flight state");
 	
-	
-	math::matrix<float, 3, 3> m = 
-	{
-		1, 2, 3,
-		4, 5, 6,
-		7, 8, 9
-	};
-	
-	auto m2 = math::matrix<float, 3, 3>::one();
-	auto m3 = math::matrix<int, 3, 3>(m2);
-	
-	std::cout << "m: " << m << std::endl;
-	std::cout << "m2: " << m2 << std::endl;
-	std::cout << "m3: " << m3 << std::endl;
-	
 	// Init selected picking flag
 	selected_picking_flag = std::uint32_t{1} << (sizeof(std::uint32_t) * 8 - 1);
 	selected_eid = entt::null;

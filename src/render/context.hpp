@@ -23,6 +23,7 @@
 #include "geom/plane.hpp"
 #include "geom/bounding-volume.hpp"
 #include "utility/fundamental-types.hpp"
+#include "math/transform-operators.hpp"
 #include <list>
 
 namespace scene

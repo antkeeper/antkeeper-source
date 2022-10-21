@@ -18,7 +18,7 @@
  */
 
 #include "mesh-functions.hpp"
-#include "math/math.hpp"
+#include "utility/fundamental-types.hpp"
 #include <unordered_map>
 
 namespace geom {

@@ -31,7 +31,7 @@
 namespace math {
 
 /**
- * *n*-by-*m* column-major matrix.
+ * *n* by *m* column-major matrix.
  *
  * @tparam T Matrix element data type.
  * @tparam N Number of columns.
@@ -90,11 +90,11 @@ struct matrix
 	/// @}
 	
 	/**
-	 * Returns a reference to the element at a given index, in column-major order.
+	 * Returns a reference to the element at a given column-major index.
 	 *
-	 * @param i Index of a matrix element.
+	 * @param i Column-major index of a matrix element.
 	 *
-	 * @return Reference to the element at index @p i.
+	 * @return Reference to the element at column-major index @p i.
 	 */
 	/// @{
 	constexpr inline T& element(std::size_t i) noexcept
@@ -131,15 +131,19 @@ struct matrix
 	}
 	/// @}
 	
-	/// Returns a pointer to the column vector array.
+	/**
+	 * Returns a pointer to the first element.
+	 *
+	 * @warning If column_vector_type is not a POD type, elements may not be stored contiguously.
+	 */
 	/// @{
-	constexpr inline column_vector_type* data() noexcept
+	constexpr inline element_type* data() noexcept
 	{
-		return columns;
+		return &columns[0][0];
 	};
-	constexpr inline const column_vector_type* data() const noexcept
+	constexpr inline const element_type* data() const noexcept
 	{
-		return columns;
+		return &columns[0][0];
 	};
 	/// @}
 	
@@ -249,7 +253,7 @@ struct matrix
 	 * @tparam P Target number of columns.
 	 * @tparam O Target number of rows.
 	 *
-	 * @return *p*-by-*o* matrix.
+	 * @return *p by *o* matrix.
 	 */
 	template <std::size_t P, std::size_t O>
 	constexpr inline explicit operator matrix<T, P, O>() const noexcept

@@ -61,9 +61,7 @@
 #include "game/system/collision.hpp"
 #include "game/system/constraint.hpp"
 #include "game/system/locomotion.hpp"
-#include "game/system/snapping.hpp"
 #include "game/system/render.hpp"
-#include "game/system/samara.hpp"
 #include "game/system/subterrain.hpp"
 #include "game/system/terrain.hpp"
 #include "game/system/vegetation.hpp"
@@ -860,12 +858,6 @@ void boot::setup_systems()
 	// Setup collision system
 	ctx.collision_system = new game::system::collision(*ctx.entity_registry);
 	
-	// Setup samara system
-	ctx.samara_system = new game::system::samara(*ctx.entity_registry);
-	
-	// Setup snapping system
-	ctx.snapping_system = new game::system::snapping(*ctx.entity_registry);
-	
 	// Setup behavior system
 	ctx.behavior_system = new game::system::behavior(*ctx.entity_registry);
 	
@@ -1131,10 +1123,8 @@ void boot::setup_loop()
 			// Update entity systems
 			ctx.terrain_system->update(t, dt);
 			//ctx.vegetation_system->update(t, dt);
-			ctx.snapping_system->update(t, dt);
 			ctx.subterrain_system->update(t, dt);
 			ctx.collision_system->update(t, dt);
-			ctx.samara_system->update(t, dt);
 			ctx.behavior_system->update(t, dt);
 			ctx.steering_system->update(t, dt);
 			ctx.locomotion_system->update(t, dt);

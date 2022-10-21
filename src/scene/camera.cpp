@@ -21,6 +21,7 @@
 #include "config.hpp"
 #include "math/constants.hpp"
 #include "math/interpolation.hpp"
+#include "math/quaternion-operators.hpp"
 
 namespace scene {
 

@@ -21,7 +21,8 @@
 #define ANTKEEPER_COLOR_RGB_HPP
 
 #include "color/cat.hpp"
-#include "math/math.hpp"
+#include "math/matrix.hpp"
+#include "math/vector.hpp"
 
 namespace color {
 

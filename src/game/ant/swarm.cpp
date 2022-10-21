@@ -23,6 +23,7 @@
 #include "game/component/model.hpp"
 #include "game/component/picking.hpp"
 #include "resources/resource-manager.hpp"
+#include "math/quaternion-operators.hpp"
 #include "config.hpp"
 #include <cmath>
 #include <random>

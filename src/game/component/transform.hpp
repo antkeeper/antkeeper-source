@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_COMPONENT_TRANSFORM_HPP
 #define ANTKEEPER_GAME_COMPONENT_TRANSFORM_HPP
 
-#include "math/math.hpp"
+#include "math/transform-type.hpp"
 
 namespace game {
 namespace component {

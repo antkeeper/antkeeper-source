@@ -32,7 +32,6 @@
 #include "gl/texture-filter.hpp"
 #include "render/vertex-attribute.hpp"
 #include "render/context.hpp"
-#include "math/math.hpp"
 #include <cmath>
 #include <glad/glad.h>
 

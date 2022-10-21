@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GEOM_BOUNDING_VOLUME_HPP
 #define ANTKEEPER_GEOM_BOUNDING_VOLUME_HPP
 
-#include "math/math.hpp"
+#include "math/vector.hpp"
 #include <stdexcept>
 
 namespace geom {

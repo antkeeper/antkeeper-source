@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GEOM_PROJECTION_HPP
 #define ANTKEEPER_GEOM_PROJECTION_HPP
 
-#include "math/math.hpp"
+#include "math/vector.hpp"
 
 namespace geom {
 

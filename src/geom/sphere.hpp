@@ -22,7 +22,7 @@
 
 #include "geom/bounding-volume.hpp"
 #include "geom/aabb.hpp"
-#include "math/math.hpp"
+#include "math/vector.hpp"
 #include <algorithm>
 
 namespace geom {

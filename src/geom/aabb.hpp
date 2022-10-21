@@ -22,7 +22,9 @@
 
 #include "bounding-volume.hpp"
 #include "sphere.hpp"
-#include "math/math.hpp"
+#include "math/vector.hpp"
+#include "math/matrix.hpp"
+#include "math/transform-type.hpp"
 #include <limits>
 
 namespace geom {

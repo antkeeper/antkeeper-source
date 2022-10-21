@@ -23,7 +23,6 @@
 #include "game/component/tool.hpp"
 #include "event/event-dispatcher.hpp"
 #include "resources/resource-manager.hpp"
-#include "math/math.hpp"
 #include "render/material.hpp"
 #include "render/model.hpp"
 #include "utility/fundamental-types.hpp"

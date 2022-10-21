@@ -22,6 +22,7 @@
 #include "game/component/picking.hpp"
 #include "geom/primitive/intersection.hpp"
 #include "geom/primitive/plane.hpp"
+#include "math/transform-operators.hpp"
 #include <limits>
 
 namespace game {

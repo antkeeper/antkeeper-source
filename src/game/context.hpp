@@ -91,11 +91,9 @@ namespace game
 		class collision;
 		class constraint;
 		class locomotion;
-		class snapping;
 		class camera;
 		class nest;
 		class render;
-		class samara;
 		class proteome;
 		class steering;
 		class spring;
@@ -281,9 +279,7 @@ struct context
 	game::system::constraint* constraint_system;
 	game::system::locomotion* locomotion_system;
 	game::system::steering* steering_system;
-	game::system::snapping* snapping_system;
 	game::system::render* render_system;
-	game::system::samara* samara_system;
 	game::system::subterrain* subterrain_system;
 	game::system::terrain* terrain_system;
 	game::system::vegetation* vegetation_system;

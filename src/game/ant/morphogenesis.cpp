@@ -20,6 +20,8 @@
 #include "game/ant/morphogenesis.hpp"
 #include "render/material.hpp"
 #include "render/vertex-attribute.hpp"
+#include "math/transform-operators.hpp"
+#include "math/quaternion-operators.hpp"
 #include <unordered_set>
 #include <iostream>
 
