@@ -29,7 +29,7 @@
 #include "debug/logger.hpp"
 #include "resources/resource-manager.hpp"
 #include "render/material-flags.hpp"
-#include "math/matrix.hpp"
+#include "math/linear-algebra.hpp"
 #include <iostream>
 
 namespace game {
@@ -37,7 +37,7 @@ namespace state {
 
 splash::splash(game::context& ctx):
 	game::state::base(ctx)
-{
+{	
 	ctx.logger->push_task("Entering splash state");
 	
 	// Enable color buffer clearing in UI pass

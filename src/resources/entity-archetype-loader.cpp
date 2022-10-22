@@ -275,10 +275,10 @@ static bool load_component_transform(entity::archetype& archetype, const json& e
 	if (element.contains("rotation"))
 	{
 		auto translation = element["rotation"];
-		component.local.rotation.w = translation[0].get<float>();
-		component.local.rotation.x = translation[1].get<float>();
-		component.local.rotation.y = translation[2].get<float>();
-		component.local.rotation.z = translation[3].get<float>();
+		component.local.rotation.w() = translation[0].get<float>();
+		component.local.rotation.x() = translation[1].get<float>();
+		component.local.rotation.y() = translation[2].get<float>();
+		component.local.rotation.z() = translation[3].get<float>();
 	}
 	
 	if (element.contains("scale"))

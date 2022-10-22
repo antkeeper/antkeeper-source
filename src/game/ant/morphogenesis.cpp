@@ -21,7 +21,7 @@
 #include "render/material.hpp"
 #include "render/vertex-attribute.hpp"
 #include "math/transform-operators.hpp"
-#include "math/quaternion-operators.hpp"
+#include "math/quaternion.hpp"
 #include <unordered_set>
 #include <iostream>
 

@@ -42,7 +42,7 @@
 #include "scene/point-light.hpp"
 #include "scene/spot-light.hpp"
 #include "config.hpp"
-#include "math/quaternion-operators.hpp"
+#include "math/quaternion.hpp"
 #include "math/projection.hpp"
 #include <cmath>
 #include <glad/glad.h>

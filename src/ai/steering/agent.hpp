@@ -21,7 +21,7 @@
 #define ANTKEEPER_AI_STEERING_AGENT_HPP
 
 #include "utility/fundamental-types.hpp"
-#include "math/quaternion-type.hpp"
+#include "math/quaternion.hpp"
 
 namespace ai {
 namespace steering {

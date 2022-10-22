@@ -293,7 +293,8 @@ using vector4 = vector<T, 4>;
 /**
  * Returns the absolute values of each element.
  *
- * @param x Input vector
+ * @param x Input vector.
+ *
  * @return Absolute values of input vector elements.
  */
 template <class T, std::size_t N>
@@ -304,6 +305,7 @@ constexpr vector<T, N> abs(const vector<T, N>& x);
  *
  * @param x First value.
  * @param y Second value.
+ *
  * @return Sum of the two values.
  */
 /// @{
@@ -317,6 +319,7 @@ constexpr vector<T, N> add(const vector<T, N>& x, T y) noexcept;
  * Checks if all elements of a boolean vector are `true`.
  *
  * @param x Vector to be tested for truth.
+ *
  * @return `true` if all elements are `true`, `false` otherwise.
  */
 template <std::size_t N>
@@ -326,6 +329,7 @@ constexpr bool all(const vector<bool, N>& x) noexcept;
  * Checks if any elements of a boolean vector are `true`.
  *
  * @param x Vector to be tested for truth.
+ *
  * @return `true` if any elements are `true`, `false` otherwise.
  */
 template <std::size_t N>
@@ -334,7 +338,8 @@ constexpr bool any(const vector<bool, N>& x) noexcept;
 /**
  * Performs a element-wise ceil operation.
  *
- * @param x Input vector
+ * @param x Input vector.
+ *
  * @return Component-wise ceil of input vector.
  */
 template <class T, std::size_t N>
@@ -346,6 +351,7 @@ constexpr vector<T, N> ceil(const vector<T, N>& x);
  * @param x Vector to clamp.
  * @param min Minimum value.
  * @param max Maximum value.
+ *
  * @return Clamped vector.
  */
 /// @{
@@ -360,6 +366,7 @@ constexpr vector<T, N> clamp(const vector<T, N>& x, T min, T max);
  *
  * @param x Vector to clamp.
  * @param max_length Maximum length.
+ *
  * @return Length-clamped vector.
  */
 template <class T, std::size_t N>
@@ -370,6 +377,7 @@ vector<T, N> clamp_length(const vector<T, N>& x, T max_length);
  *
  * @param x First vector.
  * @param y Second vector.
+ *
  * @return Cross product of the two vectors.
  */
 template <class T>
@@ -380,6 +388,7 @@ constexpr vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y) noexc
  *
  * @param p0 First of two points.
  * @param p1 Second of two points.
+ *
  * @return Distance between the two points.
  */
 template <class T, std::size_t N>
@@ -390,6 +399,7 @@ T distance(const vector<T, N>& p0, const vector<T, N>& p1);
  *
  * @param p0 First of two points.
  * @param p1 Second of two points.
+ *
  * @return Squared distance between the two points.
  */
 template <class T, std::size_t N>
@@ -400,6 +410,7 @@ constexpr T distance_squared(const vector<T, N>& p0, const vector<T, N>& p1) noe
  *
  * @param x First value.
  * @param y Second value.
+ *
  * @return Result of the division.
  */
 /// @{
@@ -416,6 +427,7 @@ constexpr vector<T, N> div(T x, const vector<T, N>& y) noexcept;
  *
  * @param x First vector.
  * @param y Second vector.
+ *
  * @return Dot product of the two vectors.
  */
 template <class T, std::size_t N>
@@ -426,6 +438,7 @@ constexpr T dot(const vector<T, N>& x, const vector<T, N>& y) noexcept;
  *
  * @param x First vector.
  * @param y Second vector.
+ *
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
@@ -434,7 +447,8 @@ constexpr vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y) no
 /**
  * Performs a element-wise floor operation.
  *
- * @param x Input vector
+ * @param x Input vector.
+ *
  * @return Component-wise floor of input vector.
  */
 template <class T, std::size_t N>
@@ -459,7 +473,8 @@ constexpr vector<T, N> fma(const vector<T, N>& x, T y, T z);
 /**
  * Returns a vector containing the fractional part of each element.
  *
- * @param x Input vector
+ * @param x Input vector.
+ *
  * @return Fractional parts of input vector.
  */
 template <class T, std::size_t N>
@@ -470,6 +485,7 @@ constexpr vector<T, N> fract(const vector<T, N>& x);
  *
  * @param x First vector.
  * @param y Second vector.
+ *
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
@@ -480,6 +496,7 @@ constexpr vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>
  *
  * @param x First vector.
  * @param y Second vector.
+ *
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
@@ -489,6 +506,7 @@ constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector
  * Calculates the length of a vector.
  *
  * @param x Vector of which to calculate the length.
+ *
  * @return Length of the vector.
  */
 template <class T, std::size_t N>
@@ -498,6 +516,7 @@ T length(const vector<T, N>& x);
  * Calculates the squared length of a vector. The squared length can be calculated faster than the length because a call to `std::sqrt` is saved.
  *
  * @param x Vector of which to calculate the squared length.
+ *
  * @return Squared length of the vector.
  */
 template <class T, std::size_t N>
@@ -508,6 +527,7 @@ constexpr T length_squared(const vector<T, N>& x) noexcept;
  *
  * @param x First vector.
  * @param y Second vector.
+ *
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
@@ -518,6 +538,7 @@ constexpr vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y
  *
  * @param x First vector.
  * @param y Second vector.
+ *
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
@@ -570,6 +591,7 @@ constexpr T min(const vector<T, N>& x);
  *
  * @param x First vector.
  * @param y Second vector.
+ *
  * @return Remainders of `x / y`.
  */
 /// @{
@@ -584,6 +606,7 @@ constexpr vector<T, N> mod(const vector<T, N>& x, T y);
  *
  * @param x First value.
  * @param y Second value.
+ *
  * @return Product of the two values.
  */
 /// @{
@@ -597,6 +620,7 @@ constexpr vector<T, N> mul(const vector<T, N>& x, T y) noexcept;
  * Negates a vector.
  *
  * @param x Vector to negate.
+ *
  * @return Negated vector.
  */
 template <class T, std::size_t N>
@@ -606,6 +630,7 @@ constexpr vector<T, N> negate(const vector<T, N>& x) noexcept;
  * Calculates the unit vector in the same direction as the original vector.
  *
  * @param x Vector to normalize.
+ *
  * @return Normalized vector.
  */
 template <class T, std::size_t N>
@@ -615,6 +640,7 @@ vector<T, N> normalize(const vector<T, N>& x);
  * Logically inverts a boolean vector.
  *
  * @param x Vector to be inverted.
+ *
  * @return Logically inverted vector.
  */
 template <class T, std::size_t N>
@@ -625,6 +651,7 @@ constexpr vector<bool, N> not(const vector<T, N>& x) noexcept;
  *
  * @param x First vector.
  * @param y Second vector.
+ *
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
@@ -649,6 +676,7 @@ vector<T, N> pow(const vector<T, N>& x, T y);
  * Performs a element-wise round operation.
  *
  * @param x Input vector
+ *
  * @return Component-wise round of input vector.
  */
 template <class T, std::size_t N>
@@ -678,6 +706,7 @@ vector<T, N> sqrt(const vector<T, N>& x);
  *
  * @param x First value.
  * @param y Second value.
+ *
  * @return Difference between the two values.
  */
 /// @{
@@ -1422,6 +1451,7 @@ constexpr inline vector<T, N> operator-(T x, const vector<T, N>& y) noexcept
  *
  * @param x First value.
  * @param y Second value.
+ *
  * @return Reference to the first value.
  */
 /// @{
@@ -1442,6 +1472,7 @@ constexpr inline vector<T, N>& operator+=(vector<T, N>& x, T y) noexcept
  *
  * @param x First value.
  * @param y Second value.
+ *
  * @return Reference to the first value.
  */
 /// @{
@@ -1462,6 +1493,7 @@ constexpr inline vector<T, N>& operator-=(vector<T, N>& x, T y) noexcept
  *
  * @param x First value.
  * @param y Second value.
+ *
  * @return Reference to the first value.
  */
 /// @{
@@ -1482,6 +1514,7 @@ constexpr inline vector<T, N>& operator*=(vector<T, N>& x, T y) noexcept
  *
  * @param x First value.
  * @param y Second value.
+ *
  * @return Reference to the first value.
  */
 /// @{

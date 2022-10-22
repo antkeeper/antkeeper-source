@@ -26,7 +26,7 @@
 #include "geom/quadtree.hpp"
 #include "geom/primitive/ray.hpp"
 #include "gl/vertex-attribute.hpp"
-#include "math/quaternion-operators.hpp"
+#include "math/quaternion.hpp"
 #include "render/vertex-attribute.hpp"
 #include "utility/fundamental-types.hpp"
 #include <functional>

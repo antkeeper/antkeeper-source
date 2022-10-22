@@ -31,7 +31,7 @@
 #include "math/matrix.hpp"
 #include "geom/projection.hpp"
 #include "config.hpp"
-#include "math/quaternion-operators.hpp"
+#include "math/quaternion.hpp"
 #include <functional>
 #include <set>
 

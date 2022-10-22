@@ -23,9 +23,7 @@
 #include "game/component/parent.hpp"
 #include "game/component/celestial-body.hpp"
 #include "game/component/terrain.hpp"
-#include "math/quaternion-type.hpp"
-#include "math/quaternion-operators.hpp"
-#include "math/quaternion-functions.hpp"
+#include "math/quaternion.hpp"
 #include <limits>
 
 namespace entity {

@@ -19,7 +19,7 @@
 
 #include "game/system/constraint.hpp"
 #include "game/component/constraint-stack.hpp"
-#include "math/quaternion-operators.hpp"
+#include "math/quaternion.hpp"
 #include "math/transform-operators.hpp"
 
 namespace game {
@@ -311,13 +311,7 @@ void constraint::handle_spring_to_constraint(component::transform& transform, co
 			if (constraint.spring_rotation)
 			{
 				// Update rotation spring target
-				constraint.rotation.x1 =
-				{
-					target_transform->world.rotation.w,
-					target_transform->world.rotation.x,
-					target_transform->world.rotation.y,
-					target_transform->world.rotation.z
-				};
+				constraint.rotation.x1 = float4(target_transform->world.rotation);
 				
 				// Solve rotation spring
 				solve_numeric_spring<float4, float>(constraint.rotation, dt);

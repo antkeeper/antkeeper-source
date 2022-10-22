@@ -20,8 +20,7 @@
 #include "ai/steering/behavior/wander.hpp"
 #include "ai/steering/behavior/seek.hpp"
 #include "math/random.hpp"
-#include "math/quaternion-functions.hpp"
-#include "math/quaternion-operators.hpp"
+#include "math/quaternion.hpp"
 
 namespace ai {
 namespace steering {

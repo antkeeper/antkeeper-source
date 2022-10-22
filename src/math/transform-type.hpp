@@ -21,7 +21,7 @@
 #define ANTKEEPER_MATH_TRANSFORM_TYPE_HPP
 
 #include "math/vector.hpp"
-#include "math/quaternion-type.hpp"
+#include "math/quaternion.hpp"
 
 namespace math {
 
@@ -49,9 +49,9 @@ struct transform
 template <class T>
 constexpr transform<T> transform<T>::identity =
 {
-	{T(0), T(0), T(0)},
-	{T(1), T(0), T(0), T(0)},
-	{T(1), T(1), T(1)}
+	vector<T, 3>::zero(),
+	quaternion<T>::identity(),
+	vector<T, 3>::one()
 };
 
 } // namespace math

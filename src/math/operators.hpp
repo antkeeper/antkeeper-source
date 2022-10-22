@@ -20,10 +20,6 @@
 #ifndef ANTKEEPER_MATH_OPERATORS_HPP
 #define ANTKEEPER_MATH_OPERATORS_HPP
 
-#include "math/quaternion-operators.hpp"
-#include "math/transform-operators.hpp"
-#include "math/stream-operators.hpp"
-
 namespace math {
 
 /// Mathematical operators.

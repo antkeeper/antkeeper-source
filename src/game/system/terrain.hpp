@@ -23,7 +23,7 @@
 #include "game/system/updatable.hpp"
 #include "game/component/terrain.hpp"
 #include "entity/id.hpp"
-#include "math/quaternion-type.hpp"
+#include "math/quaternion.hpp"
 #include "geom/quadtree.hpp"
 #include "geom/mesh.hpp"
 #include "utility/fundamental-types.hpp"

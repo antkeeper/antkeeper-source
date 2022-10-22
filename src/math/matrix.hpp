@@ -365,7 +365,7 @@ constexpr T determinant(const matrix<T, N, N>& m) noexcept;
 /**
  * Calculates the inverse of a square matrix.
  *
- * @param m Matrix of which to take the inverse.
+ * @param m Square matrix.
  *
  * @return Inverse of matrix @p m.
  *
@@ -379,6 +379,8 @@ constexpr matrix<T, N, N> inverse(const matrix<T, N, N>& m) noexcept;
  *
  * @param x First matrix multiplicand.
  * @param y Second matrix multiplicand.
+ *
+ * @return Product of the component-wise multiplcation.
  */
 template <class T, std::size_t N, std::size_t M>
 constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
@@ -388,6 +390,7 @@ constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matr
  *
  * @param a First matrix.
  * @param b Second matrix.
+ *
  * @return Result of the division.
  */
 template <class T, std::size_t N, std::size_t M>
@@ -398,6 +401,7 @@ constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b
  *
  * @param a Matrix.
  * @param b Scalar.
+ *
  * @return Result of the division.
  */
 template <class T, std::size_t N, std::size_t M>
@@ -408,6 +412,7 @@ constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b) noexcept;
  *
  * @param a Scalar.
  * @param b Matrix.
+ *
  * @return Result of the division.
  */
 template <class T, std::size_t N, std::size_t M>
@@ -419,6 +424,7 @@ constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept;
  * @param position Position of the view point.
  * @param target Position of the target.
  * @param up Normalized direction of the up vector.
+ *
  * @return Viewing transformation matrix.
  */
 template <class T>
@@ -445,6 +451,7 @@ constexpr matrix<T, P, M> mul(const matrix<T, N, M>& a, const matrix<T, P, N>& b
  *
  * @param a Matrix.
  * @param b Scalar.
+ *
  * @return Product of the matrix and the scalar.
  */
 template <class T, std::size_t N, std::size_t M>
@@ -476,7 +483,8 @@ constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T,
  * Constructs a rotation matrix.
  *
  * @param angle Angle of rotation, in radians.
- * @param axis Axis of rotation
+ * @param axis Axis of rotation.
+ *
  * @return Rotation matrix.
  */
 template <class T>
@@ -486,6 +494,7 @@ matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis);
  * Produces a matrix which rotates Cartesian coordinates about the x-axis by a given angle.
  *
  * @param angle Angle of rotation, in radians.
+ *
  * @return Rotation matrix.
  */
 template <class T>
@@ -495,6 +504,7 @@ matrix3<T> rotate_x(T angle);
  * Produces a matrix which rotates Cartesian coordinates about the y-axis by a given angle.
  *
  * @param angle Angle of rotation, in radians.
+ *
  * @return Rotation matrix.
  */
 template <class T>
@@ -504,6 +514,7 @@ matrix3<T> rotate_y(T angle);
  * Produces a matrix which rotates Cartesian coordinates about the z-axis by a given angle.
  *
  * @param angle Angle of rotation, in radians.
+ *
  * @return Rotation matrix.
  */
 template <class T>
@@ -514,6 +525,7 @@ matrix3<T> rotate_z(T angle);
  *
  * @param m Matrix to scale.
  * @param v Scale vector.
+ *
  * @return Scaled matrix.
  */
 template <class T>
@@ -553,10 +565,21 @@ template <class T, std::size_t N, std::size_t M>
 constexpr matrix<T, N, M> sub(T a, const matrix<T, N, M>& b) noexcept;
 
 /**
+ * Calculates the trace of a square matrix.
+ *
+ * @param m Square matrix.
+ *
+ * @return Sum of elements on the main diagonal.
+ */
+template <class T, std::size_t N>
+constexpr T trace(const matrix<T, N, N>& m) noexcept;
+
+/**
  * Translates a matrix.
  *
  * @param m Matrix to translate.
  * @param v Translation vector.
+ *
  * @return Translated matrix.
  */
 template <class T>
@@ -942,6 +965,19 @@ constexpr matrix<T, N, M> sub(T a, const matrix<T, N, M>& b) noexcept
 	return sub(a, b, std::make_index_sequence<N>{});
 }
 
+/// @private
+template <class T, std::size_t N, std::size_t... I>
+constexpr inline T trace(const matrix<T, N, N>& m, std::index_sequence<I...>) noexcept
+{
+	return ((m[I][I]) + ...);
+}
+
+template <class T, std::size_t N>
+constexpr T trace(const matrix<T, N, N>& m) noexcept
+{
+	return trace(m, std::make_index_sequence<N>{});
+}
+
 template <class T>
 constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
 {
@@ -1079,6 +1115,7 @@ constexpr inline matrix<T, N, M> operator-(T a, const matrix<T, N, M>& b) noexce
  *
  * @param a First value.
  * @param b Second value.
+ *
  * @return Reference to the first value.
  */
 /// @{
@@ -1099,6 +1136,7 @@ constexpr inline matrix<T, N, M>& operator+=(matrix<T, N, M>& a, T b) noexcept
  *
  * @param a First value.
  * @param b Second value.
+ *
  * @return Reference to the first value.
  */
 /// @{
@@ -1119,11 +1157,12 @@ constexpr inline matrix<T, N, M>& operator-=(matrix<T, N, M>& a, T b) noexcept
  *
  * @param a First value.
  * @param b Second value.
+ *
  * @return Reference to the first value.
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline matrix<T, N, N>& operator*=(matrix<T, N, N>& a, matrix<T, N, N>& b) noexcept
+constexpr inline matrix<T, N, N>& operator*=(matrix<T, N, N>& a, const matrix<T, N, N>& b) noexcept
 {
 	return (a = a * b);
 }
@@ -1139,6 +1178,7 @@ constexpr inline matrix<T, N, M>& operator*=(matrix<T, N, M>& a, T b) noexcept
  *
  * @param a First value.
  * @param b Second value.
+ *
  * @return Reference to the first value.
  */
 /// @{
@@ -1159,6 +1199,7 @@ constexpr inline matrix<T, N, M>& operator/=(matrix<T, N, M>& a, T b) noexcept
  *
  * @param os Output stream.
  * @param m Matrix.
+ *
  * @return Output stream.
  */
 template <class T, std::size_t N, std::size_t M>
@@ -1179,6 +1220,7 @@ std::ostream& operator<<(std::ostream& os, const matrix<T, N, M>& m)
  *
  * @param is Input stream.
  * @param m Matrix.
+ *
  * @return Input stream.
  */
 template <class T, std::size_t N, std::size_t M>

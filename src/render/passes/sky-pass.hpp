@@ -25,7 +25,7 @@
 #include "event/event-handler.hpp"
 #include "event/input-events.hpp"
 #include "animation/tween.hpp"
-#include "math/quaternion-type.hpp"
+#include "math/quaternion.hpp"
 #include "gl/shader-program.hpp"
 #include "gl/shader-input.hpp"
 #include "gl/vertex-buffer.hpp"

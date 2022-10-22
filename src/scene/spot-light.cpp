@@ -19,7 +19,7 @@
 
 #include "spot-light.hpp"
 #include "config.hpp"
-#include "math/quaternion-operators.hpp"
+#include "math/quaternion.hpp"
 #include "math/interpolation.hpp"
 #include <cmath>
 

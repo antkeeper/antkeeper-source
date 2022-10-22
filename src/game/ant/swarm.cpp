@@ -23,7 +23,7 @@
 #include "game/component/model.hpp"
 #include "game/component/picking.hpp"
 #include "resources/resource-manager.hpp"
-#include "math/quaternion-operators.hpp"
+#include "math/quaternion.hpp"
 #include "config.hpp"
 #include <cmath>
 #include <random>
@@ -99,7 +99,7 @@ entity::id create_swarm(game::context& ctx)
 	steering.agent.max_force = 4.0f;
 	steering.agent.max_speed = 5.0f;
 	steering.agent.max_speed_squared = steering.agent.max_speed * steering.agent.max_speed;
-	steering.agent.orientation = math::quaternion<float>::identity;
+	steering.agent.orientation = math::quaternion<float>::identity();
 	steering.agent.forward = steering.agent.orientation * config::global_forward;
 	steering.agent.up = steering.agent.orientation * config::global_up;
 	steering.wander_weight = 1.0f;

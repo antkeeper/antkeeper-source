@@ -23,7 +23,7 @@
 #include "entity/id.hpp"
 #include "ai/steering/behavior/wander.hpp"
 #include "ai/steering/behavior/seek.hpp"
-#include "math/quaternion-operators.hpp"
+#include "math/quaternion.hpp"
 #include "config.hpp"
 
 namespace game {

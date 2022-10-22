@@ -158,7 +158,7 @@ void astronomy::update(double t, double dt)
 		if (orbit.parent != entt::null)
 		{
 			transform.local.translation = math::normalize(float3(r_eus));
-			transform.local.rotation = math::type_cast<float>(rotation_eus);
+			transform.local.rotation = math::quaternion<float>(rotation_eus);
 			transform.local.scale = {1.0f, 1.0f, 1.0f};
 		}
 	});
@@ -581,7 +581,7 @@ void astronomy::update_icrf_to_eus(const game::component::celestial_body& body, 
 			math::transformation::se3<float>
 			{
 				float3(icrf_to_eus.t),
-				math::type_cast<float>(icrf_to_eus.r)
+				math::quaternion<float>(icrf_to_eus.r)
 			}
 		);
 	}

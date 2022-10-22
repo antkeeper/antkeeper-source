@@ -259,10 +259,10 @@ render::model* resource_loader<render::model>::load(resource_manager* resource_m
 				{
 					if (rotation_node->size() == 4)
 					{
-						bone_transform.rotation.w = (*rotation_node)[0].get<float>();
-						bone_transform.rotation.x = (*rotation_node)[1].get<float>();
-						bone_transform.rotation.y = (*rotation_node)[2].get<float>();
-						bone_transform.rotation.z = (*rotation_node)[3].get<float>();
+						bone_transform.rotation.w() = (*rotation_node)[0].get<float>();
+						bone_transform.rotation.x() = (*rotation_node)[1].get<float>();
+						bone_transform.rotation.y() = (*rotation_node)[2].get<float>();
+						bone_transform.rotation.z() = (*rotation_node)[3].get<float>();
 					}
 				}
 				

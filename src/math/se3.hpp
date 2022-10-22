@@ -21,9 +21,7 @@
 #define ANTKEEPER_MATH_TRANSFORMATION_SE3_HPP
 
 #include "math/vector.hpp"
-#include "math/quaternion-type.hpp"
-#include "math/quaternion-operators.hpp"
-#include "math/quaternion-functions.hpp"
+#include "math/quaternion.hpp"
 
 namespace math {
 namespace transformation {
