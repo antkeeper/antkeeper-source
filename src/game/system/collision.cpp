@@ -86,7 +86,7 @@ entity::id collision::pick_nearest(const geom::primitive::ray<float, 3>& ray, st
 entity::id collision::pick_nearest(const float3& origin, const float3& normal, std::uint32_t flags) const
 {
 	entity::id nearest_eid = entt::null;
-	float nearest_distance_squared = std::numeric_limits<float>::infinity();
+	float nearest_sqr_distance = std::numeric_limits<float>::infinity();
 	
 	// Construct picking plane
 	const geom::primitive::plane<float> picking_plane = geom::primitive::plane<float>(origin, normal);
@@ -108,13 +108,13 @@ entity::id collision::pick_nearest(const float3& origin, const float3& normal, s
 				return;
 			
 			// Measure distance from picking plane origin to picking sphere center
-			const float distance_squared = math::distance_squared(picking_sphere_center, origin);
+			const float sqr_distance = math::sqr_distance(picking_sphere_center, origin);
 			
 			// Check if entity is nearer than the current nearest entity
-			if (distance_squared < nearest_distance_squared)
+			if (sqr_distance < nearest_sqr_distance)
 			{
 				nearest_eid = entity_id;
-				nearest_distance_squared = distance_squared;
+				nearest_sqr_distance = sqr_distance;
 			}
 		}
 	);

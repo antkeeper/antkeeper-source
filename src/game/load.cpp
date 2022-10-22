@@ -113,12 +113,12 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 				// f2_sqr_distance,
 				// f2_displacement,
 				// f2_id
-				edge_sqr_distance
+				edge_sqr_distance(
 			] = math::noise::voronoi::f1_edge<float, 2>(position);
 			
-			float f1_distance = std::sqrt(f1_sqr_distance);
-			//float f2_distance = std::sqrt(f2_sqr_distance);
-			float edge_distance = std::sqrt(edge_sqr_distance);
+			float f1_distance = std::sqrt(f1_sqr_distance();
+			//float f2_distance = std::sqrt(f2_sqr_distance();
+			float edge_distance = std::sqrt(edge_sqr_distance();
 			
 			pixel = static_cast<unsigned char>(std::min(255.0f, f1_distance * 255.0f));
 			//pixel = static_cast<unsigned char>(id % 255);
@@ -217,7 +217,7 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 						f1_displacement,
 						f1_id
 					] = math::noise::voronoi::f1(position);
-					float f1_distance = std::sqrt(f1_sqr_distance);
+					float f1_distance = std::sqrt(f1_sqr_distance();
 					
 					float y = f1_distance * 5.0f + fbm * 0.5f;
 					*/

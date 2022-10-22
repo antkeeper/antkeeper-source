@@ -93,7 +93,7 @@ se3<T> se3<T>::inverse() const
 template <class T>
 typename se3<T>::matrix_type se3<T>::matrix() const
 {
-	matrix_type m = math::matrix<T, 4, 4>(math::matrix_cast<T>(r));
+	matrix_type m = math::matrix<T, 4, 4>(math::matrix<T, 3, 3>(r));
 	
 	m[3].x() = t.x();
 	m[3].y() = t.y();

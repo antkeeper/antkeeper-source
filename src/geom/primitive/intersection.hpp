@@ -117,7 +117,7 @@ std::optional<std::tuple<T, T>> intersection(const ray<T, N>& ray, const hypersp
 {
 	const math::vector<T, N> displacement = ray.origin - hypersphere.center;
 	const T b = math::dot(displacement, ray.direction);
-	const T c = math::length_squared(displacement) - hypersphere.radius * hypersphere.radius;
+	const T c = math::sqr_length(displacement) - hypersphere.radius * hypersphere.radius;
 	T h = b * b - c;
 	
 	if (h < T{0})

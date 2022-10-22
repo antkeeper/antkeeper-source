@@ -202,7 +202,7 @@ T simplex
 		const vector<T, N> d = dx - (current_vertex - origin_vertex) + g * static_cast<T>(i);
 		
 		// Calculate falloff
-		T t = falloff(length_squared(d));
+		T t = falloff(sqr_length(d));
 		if (t > T{0})
 		{
 			const hash::make_uint_t<T> gradient_index = hash(current_vertex)[0] % simplex_edges<T, N>.size();

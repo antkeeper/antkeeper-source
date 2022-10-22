@@ -27,11 +27,11 @@ float3 seek(const agent& agent, const float3& target)
 {
 	float3 force = {0, 0, 0};
 	const float3 difference = target - agent.position;
-	const float distance_squared = math::dot(difference, difference);
+	const float sqr_distance = math::dot(difference, difference);
 	
-	if (distance_squared)
+	if (sqr_distance)
 	{
-		const float inverse_distance = 1.0f / std::sqrt(distance_squared);
+		const float inverse_distance = 1.0f / std::sqrt(sqr_distance);
 		force = difference * inverse_distance * agent.max_force;
 		force -= agent.velocity;
 	}

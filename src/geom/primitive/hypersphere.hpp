@@ -52,7 +52,7 @@ struct hypersphere
 	 */
 	constexpr bool contains(const vector_type& point) const noexcept
 	{
-		return math::distance_squared(center, point) <= radius * radius;
+		return math::sqr_distance(center, point) <= radius * radius;
 	}
 	
 	/**
@@ -68,7 +68,7 @@ struct hypersphere
 		if (containment_radius < T{0})
 			return false;
 		
-		return math::distance_squared(center, other.center) <= containment_radius * containment_radius;
+		return math::sqr_distance(center, other.center) <= containment_radius * containment_radius;
 	}
 	
 	/**
@@ -93,7 +93,7 @@ struct hypersphere
 	constexpr bool intersects(const hypersphere& other) const noexcept
 	{
 		const T intersection_radius = radius + other.radius;
-		return math::distance_squared(center, other.center) <= intersection_radius * intersection_radius;
+		return math::sqr_distance(center, other.center) <= intersection_radius * intersection_radius;
 	}
 	
 	/**

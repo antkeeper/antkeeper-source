@@ -395,17 +395,6 @@ template <class T, std::size_t N>
 T distance(const vector<T, N>& p0, const vector<T, N>& p1);
 
 /**
- * Calculates the squared distance between two points. The squared distance can be calculated faster than the distance because a call to `std::sqrt` is saved.
- *
- * @param p0 First of two points.
- * @param p1 Second of two points.
- *
- * @return Squared distance between the two points.
- */
-template <class T, std::size_t N>
-constexpr T distance_squared(const vector<T, N>& p0, const vector<T, N>& p1) noexcept;
-
-/**
  * Divides a vector by a value.
  *
  * @param x First value.
@@ -503,6 +492,16 @@ template <class T, std::size_t N>
 constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 
 /**
+ * Calculates the inverse length of a vector.
+ *
+ * @param x Vector of which to calculate the inverse length.
+ *
+ * @return Inverse length of the vector.
+ */
+template <class T, std::size_t N>
+T inv_length(const vector<T, N>& x);
+
+/**
  * Calculates the length of a vector.
  *
  * @param x Vector of which to calculate the length.
@@ -511,16 +510,6 @@ constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector
  */
 template <class T, std::size_t N>
 T length(const vector<T, N>& x);
-
-/**
- * Calculates the squared length of a vector. The squared length can be calculated faster than the length because a call to `std::sqrt` is saved.
- *
- * @param x Vector of which to calculate the squared length.
- *
- * @return Squared length of the vector.
- */
-template <class T, std::size_t N>
-constexpr T length_squared(const vector<T, N>& x) noexcept;
 
 /**
  * Performs a element-wise less-than comparison of two vectors.
@@ -692,6 +681,27 @@ template <class T, std::size_t N>
 constexpr vector<T, N> sign(const vector<T, N>& x);
 
 /**
+ * Calculates the square distance between two points. The square distance can be calculated faster than the distance because a call to `std::sqrt` is saved.
+ *
+ * @param p0 First of two points.
+ * @param p1 Second of two points.
+ *
+ * @return Square distance between the two points.
+ */
+template <class T, std::size_t N>
+constexpr T sqr_distance(const vector<T, N>& p0, const vector<T, N>& p1) noexcept;
+
+/**
+ * Calculates the square length of a vector. The square length can be calculated faster than the length because a call to `std::sqrt` is saved.
+ *
+ * @param x Vector of which to calculate the square length.
+ *
+ * @return Square length of the vector.
+ */
+template <class T, std::size_t N>
+constexpr T sqr_length(const vector<T, N>& x) noexcept;
+
+/**
  * Takes the square root of each element.
  *
  * @param x Input vector
@@ -819,13 +829,13 @@ constexpr inline bool any(const vector<bool, N>& x) noexcept
 template <class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> ceil(const vector<T, N>& x, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::ceil(x[I])...};
 }
 
 template <class T, std::size_t N>
 constexpr inline vector<T, N> ceil(const vector<T, N>& x)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return ceil(x, std::make_index_sequence<N>{});
 }
 
@@ -859,8 +869,8 @@ template <class T, std::size_t N>
 vector<T, N> clamp_length(const vector<T, N>& x, T max_length)
 {
 	static_assert(std::is_floating_point<T>::value);
-	T length2 = length_squared(x);
-	return (length2 > max_length * max_length) ? (x * max_length / std::sqrt(length2)) : x;
+	T length2 = sqr_length(x);
+	return (length2 > max_length * max_length) ? (x * (max_length / std::sqrt(length2))) : x;
 }
 
 template <class T>
@@ -877,14 +887,7 @@ constexpr inline vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y
 template <class T, std::size_t N>
 inline T distance(const vector<T, N>& p0, const vector<T, N>& p1)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return length(sub(p0, p1));
-}
-
-template <class T, std::size_t N>
-constexpr inline T distance_squared(const vector<T, N>& p0, const vector<T, N>& p1) noexcept
-{
-	return length_squared(sub(p0, p1));
 }
 
 /// @private
@@ -956,13 +959,13 @@ constexpr inline vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>
 template <class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> floor(const vector<T, N>& x, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::floor(x[I])...};
 }
 
 template <class T, std::size_t N>
 constexpr inline vector<T, N> floor(const vector<T, N>& x)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return floor(x, std::make_index_sequence<N>{});
 }
 
@@ -970,13 +973,13 @@ constexpr inline vector<T, N> floor(const vector<T, N>& x)
 template <class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::fma(x[I], y[I], z[I])...};
 }
 
 template <class T, std::size_t N>
 constexpr inline vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return fma(x, y, z, std::make_index_sequence<N>{});
 }
 
@@ -984,13 +987,13 @@ constexpr inline vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, 
 template <class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> fma(const vector<T, N>& x, T y, T z, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::fma(x[I], y, z)...};
 }
 
 template <class T, std::size_t N>
 constexpr inline vector<T, N> fma(const vector<T, N>& x, T y, T z)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return fma(x, y, z, std::make_index_sequence<N>{});
 }
 
@@ -998,13 +1001,13 @@ constexpr inline vector<T, N> fma(const vector<T, N>& x, T y, T z)
 template <class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> fract(const vector<T, N>& x, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {x[I] - std::floor(x[I])...};
 }
 
 template <class T, std::size_t N>
 constexpr inline vector<T, N> fract(const vector<T, N>& x)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return fract(x, std::make_index_sequence<N>{});
 }
 
@@ -1035,16 +1038,16 @@ constexpr inline vector<bool, N> greater_than_equal(const vector<T, N>& x, const
 }
 
 template <class T, std::size_t N>
-inline T length(const vector<T, N>& x)
+inline T inv_length(const vector<T, N>& x)
 {
-	static_assert(std::is_floating_point<T>::value);
-	return std::sqrt(dot(x, x));
+	return T{1} / length(x);
 }
 
 template <class T, std::size_t N>
-constexpr inline T length_squared(const vector<T, N>& x) noexcept
+inline T length(const vector<T, N>& x)
 {
-	return dot(x, x);
+	static_assert(std::is_floating_point<T>::value);
+	return std::sqrt(sqr_length(x));
 }
 
 /// @private
@@ -1115,13 +1118,13 @@ constexpr inline T min(const vector<T, N>& x)
 template <class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::fmod(x[I], y[I])...};
 }
 
 template <class T, std::size_t N>
 constexpr inline vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return mod(x, y, std::make_index_sequence<N>{});
 }
 
@@ -1129,13 +1132,13 @@ constexpr inline vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y)
 template <class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> mod(const vector<T, N>& x, T y, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::fmod(x[I], y)...};
 }
 
 template <class T, std::size_t N>
 constexpr inline vector<T, N> mod(const vector<T, N>& x, T y)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return mod(x, y, std::make_index_sequence<N>{});
 }
 
@@ -1181,8 +1184,7 @@ constexpr inline vector<T, N> negate(const vector<T, N>& x) noexcept
 template <class T, std::size_t N>
 inline vector<T, N> normalize(const vector<T, N>& x)
 {
-	static_assert(std::is_floating_point<T>::value);
-	return mul(x, T{1} / length(x));
+	return mul(x, inv_length(x));
 }
 
 /// @private
@@ -1215,13 +1217,13 @@ constexpr inline vector<bool, N> not_equal(const vector<T, N>& x, const vector<T
 template <class T, std::size_t N, std::size_t... I>
 inline vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::pow(x[I], y[I])...};
 }
 
 template <class T, std::size_t N>
 inline vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return pow(x, y, std::make_index_sequence<N>{});
 }
 
@@ -1229,13 +1231,13 @@ inline vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y)
 template <class T, std::size_t N, std::size_t... I>
 inline vector<T, N> pow(const vector<T, N>& x, T y, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::pow(x[I], y)...};
 }
 
 template <class T, std::size_t N>
 inline vector<T, N> pow(const vector<T, N>& x, T y)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return pow(x, y, std::make_index_sequence<N>{});
 }
 
@@ -1243,13 +1245,13 @@ inline vector<T, N> pow(const vector<T, N>& x, T y)
 template <class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> round(const vector<T, N>& x, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::round(x[I])...};
 }
 
 template <class T, std::size_t N>
 constexpr inline vector<T, N> round(const vector<T, N>& x)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return round(x, std::make_index_sequence<N>{});
 }
 
@@ -1257,28 +1259,40 @@ constexpr inline vector<T, N> round(const vector<T, N>& x)
 template <class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> sign(const vector<T, N>& x, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::copysign(T{1}, x[I])...};
 }
 
 template <class T, std::size_t N>
 constexpr inline vector<T, N> sign(const vector<T, N>& x)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return sign(x, std::make_index_sequence<N>{});
+}
+
+template <class T, std::size_t N>
+constexpr inline T sqr_distance(const vector<T, N>& p0, const vector<T, N>& p1) noexcept
+{
+	return sqr_length(sub(p0, p1));
+}
+
+template <class T, std::size_t N>
+constexpr inline T sqr_length(const vector<T, N>& x) noexcept
+{
+	return dot(x, x);
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
 inline vector<T, N> sqrt(const vector<T, N>& x, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::sqrt(x[I])...};
 }
 
 template <class T, std::size_t N>
 inline vector<T, N> sqrt(const vector<T, N>& x, const vector<T, N>& y)
 {
-	static_assert(std::is_floating_point<T>::value);
-	return pow(x, std::make_index_sequence<N>{});
+	return sqrt(x, std::make_index_sequence<N>{});
 }
 
 /// @private
@@ -1343,13 +1357,13 @@ constexpr inline vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) no
 template <class T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> trunc(const vector<T, N>& x, std::index_sequence<I...>)
 {
+	static_assert(std::is_floating_point<T>::value);
 	return {std::trunc(x[I])...};
 }
 
 template <class T, std::size_t N>
 constexpr inline vector<T, N> trunc(const vector<T, N>& x)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return trunc(x, std::make_index_sequence<N>{});
 }
 

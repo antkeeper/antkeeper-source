@@ -65,7 +65,7 @@ void steering::update(double t, double dt)
 			agent.velocity += agent.acceleration * static_cast<float>(dt);
 			
 			// Limit speed
-			const float speed_squared = math::length_squared(agent.velocity);
+			const float speed_squared = math::sqr_length(agent.velocity);
 			if (speed_squared > agent.max_speed_squared)
 			{
 				const float speed = std::sqrt(speed_squared);

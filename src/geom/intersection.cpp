@@ -171,17 +171,17 @@ bool aabb_aabb_intersection(const aabb<float>& a, const aabb<float>& b)
 
 bool aabb_sphere_intersection(const aabb<float>& aabb, const float3& center, float radius)
 {
-	float distance_squared = 0.0f;
+	float sqr_distance = 0.0f;
 	for (int i = 0; i < 3; ++i)
 	{
 		float v = center[i];
 		if (v < aabb.min_point[i])
-			distance_squared += (aabb.min_point[i] - v) * (aabb.min_point[i] - v);
+			sqr_distance += (aabb.min_point[i] - v) * (aabb.min_point[i] - v);
 		if (v > aabb.max_point[i])
-			distance_squared += (v - aabb.max_point[i]) * (v - aabb.max_point[i]);
+			sqr_distance += (v - aabb.max_point[i]) * (v - aabb.max_point[i]);
 	}
 
-	return (distance_squared <= (radius * radius));
+	return (sqr_distance <= (radius * radius));
 }
 
 } // namespace geom

@@ -75,7 +75,7 @@ transform<T> inverse(const transform<T>& t)
 template <class T>
 matrix<T, 4, 4> matrix_cast(const transform<T>& t)
 {
-	matrix<T, 4, 4> transformation = matrix<T, 4, 4>(matrix_cast(t.rotation));
+	matrix<T, 4, 4> transformation = matrix<T, 4, 4>(matrix<T, 3, 3>(t.rotation));
 	transformation[3] = {t.translation[0], t.translation[1], t.translation[2], T(1)};
 	return scale(transformation, t.scale);
 }

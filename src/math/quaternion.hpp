@@ -30,7 +30,7 @@
 namespace math {
 
 /**
- * A quaternion type is a tuple made of a scalar (real) part and vector (imaginary) part.
+ * Quaternion composed of a real scalar part and imaginary vector part.
  *
  * @tparam T Scalar type.
  */
@@ -149,6 +149,31 @@ struct quaternion
 	}
 	
 	/**
+	 * Constructs a matrix representing the rotation described the quaternion.
+	 *
+	 * @return Rotation matrix.
+	 */
+	constexpr explicit operator matrix_type() const noexcept
+	{
+		const T xx = x() * x();
+		const T xy = x() * y();
+		const T xz = x() * z();
+		const T xw = x() * w();
+		const T yy = y() * y();
+		const T yz = y() * z();
+		const T yw = y() * w();
+		const T zz = z() * z();
+		const T zw = z() * w();
+
+		return
+		{
+			T(1) - (yy + zz) * T(2), (xy + zw) * T(2), (xz - yw) * T(2),
+			(xy - zw) * T(2), T(1) - (xx + zz) * T(2), (yz + xw) * T(2),
+			(xz + yw) * T(2), (yz - xw) * T(2), T(1) - (xx + yy) * T(2)
+		};
+	}
+	
+	/**
 	 * Casts the quaternion to a 4-element vector, with the real part as the first element and the imaginary part as the following three elements.
 	 *
 	 * @return Vector containing the real and imaginary parts of the quaternion.
@@ -248,6 +273,16 @@ template <class T>
 constexpr quaternion<T> div(T a, const quaternion<T>& b) noexcept;
 
 /**
+ * Calculates the inverse length of a quaternion.
+ * 
+ * @param q Quaternion to calculate the inverse length of.
+ *
+ * @return Inverse length of the quaternion.
+ */
+template <class T>
+T inv_length(const quaternion<T>& q);
+
+/**
  * Calculates the length of a quaternion.
  * 
  * @param q Quaternion to calculate the length of.
@@ -256,16 +291,6 @@ constexpr quaternion<T> div(T a, const quaternion<T>& b) noexcept;
  */
 template <class T>
 T length(const quaternion<T>& q);
-
-/**
- * Calculates the squared length of a quaternion. The squared length can be calculated faster than the length because a call to `std::sqrt` is saved.
- * 
- * @param q Quaternion to calculate the squared length of.
- *
- * @return Squared length of the quaternion.
- */
-template <class T>
-constexpr T length_squared(const quaternion<T>& q) noexcept;
 
 /**
  * Performs linear interpolation between two quaternions.
@@ -289,16 +314,6 @@ constexpr quaternion<T> lerp(const quaternion<T>& a, const quaternion<T>& b, T t
  */
 template <class T>
 quaternion<T> look_rotation(const vector<T, 3>& forward, vector<T, 3> up);
-
-/**
- * Converts a quaternion to a rotation matrix.
- *
- * @param q Unit quaternion.
- *
- * @return Matrix representing the rotation described by `q`.
- */
-template <class T>
-constexpr matrix<T, 3, 3> matrix_cast(const quaternion<T>& q) noexcept;
 
 /**
  * Multiplies two quaternions.
@@ -404,6 +419,16 @@ template <class T>
 quaternion<T> slerp(const quaternion<T>& a, const quaternion<T>& b, T t, T error = T{1e-6});
 
 /**
+ * Calculates the square length of a quaternion. The square length can be calculated faster than the length because a call to `std::sqrt` is saved.
+ * 
+ * @param q Quaternion to calculate the square length of.
+ *
+ * @return Square length of the quaternion.
+ */
+template <class T>
+constexpr T sqr_length(const quaternion<T>& q) noexcept;
+
+/**
  * Subtracts a quaternion from another quaternion.
  *
  * @param a First quaternion.
@@ -496,15 +521,15 @@ constexpr inline quaternion<T> div(T a, const quaternion<T>& b) noexcept
 }
 
 template <class T>
-inline T length(const quaternion<T>& q)
+inline T inv_length(const quaternion<T>& q)
 {
-	return std::sqrt(length_squared(q));
+	return T{1} / length(q);
 }
 
 template <class T>
-constexpr inline T length_squared(const quaternion<T>& q) noexcept
+inline T length(const quaternion<T>& q)
 {
-	return q.r * q.r + length_squared(q.i);
+	return std::sqrt(sqr_length(q));
 }
 
 template <class T>
@@ -535,27 +560,6 @@ quaternion<T> look_rotation(const vector<T, 3>& forward, vector<T, 3> up)
 }
 
 template <class T>
-constexpr matrix<T, 3, 3> matrix_cast(const quaternion<T>& q) noexcept
-{
-	const T xx = q.x() * q.x();
-	const T xy = q.x() * q.y();
-	const T xz = q.x() * q.z();
-	const T xw = q.x() * q.w();
-	const T yy = q.y() * q.y();
-	const T yz = q.y() * q.z();
-	const T yw = q.y() * q.w();
-	const T zz = q.z() * q.z();
-	const T zw = q.z() * q.w();
-
-	return
-		{
-			T(1) - (yy + zz) * T(2), (xy + zw) * T(2), (xz - yw) * T(2),
-			(xy - zw) * T(2), T(1) - (xx + zz) * T(2), (yz + xw) * T(2),
-			(xz + yw) * T(2), (yz - xw) * T(2), T(1) - (xx + yy) * T(2)
-		};
-}
-
-template <class T>
 constexpr quaternion<T> mul(const quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return
@@ -576,7 +580,7 @@ constexpr inline quaternion<T> mul(const quaternion<T>& a, T b) noexcept
 template <class T>
 constexpr vector<T, 3> mul(const quaternion<T>& a, const vector<T, 3>& b) noexcept
 {
-	return a.i * dot(a.i, b) * T(2) + b * (a.r * a.r - length_squared(a.i)) + cross(a.i, b) * a.r * T(2);
+	return a.i * dot(a.i, b) * T(2) + b * (a.r * a.r - sqr_length(a.i)) + cross(a.i, b) * a.r * T(2);
 }
 
 template <class T>
@@ -600,7 +604,7 @@ quaternion<T> nlerp(const quaternion<T>& a, const quaternion<T>& b, T t)
 template <class T>
 inline quaternion<T> normalize(const quaternion<T>& q)
 {
-	return mul(q, T(1) / length(q));
+	return mul(q, inv_length(q));
 }
 
 template <class T>
@@ -635,6 +639,12 @@ quaternion<T> slerp(const quaternion<T>& a, const quaternion<T>& b, T t, T error
 }
 
 template <class T>
+constexpr inline T sqr_length(const quaternion<T>& q) noexcept
+{
+	return q.r * q.r + sqr_length(q.i);
+}
+
+template <class T>
 constexpr inline quaternion<T> sub(const quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return {a.r - b.r, a.i - b.i};
@@ -655,7 +665,7 @@ constexpr inline quaternion<T> sub(T a, const quaternion<T>& b) noexcept
 template <class T>
 void swing_twist(const quaternion<T>& q, const vector<T, 3>& a, quaternion<T>& qs, quaternion<T>& qt, T error)
 {
-	if (length_squared(q.i) > error)
+	if (sqr_length(q.i) > error)
 	{
 		qt = normalize(quaternion<T>{q.w(), a * dot(a, q.i)});
 		qs = mul(q, conjugate(qt));
@@ -666,7 +676,7 @@ void swing_twist(const quaternion<T>& q, const vector<T, 3>& a, quaternion<T>& q
 		
 		const vector<T, 3> qa = mul(q, a);
 		const vector<T, 3> sa = cross(a, qa);
-		if (length_squared(sa) > error)
+		if (sqr_length(sa) > error)
 			qs = angle_axis(std::acos(dot(a, qa)), sa);
 		else
 			qs = quaternion<T>::identity();

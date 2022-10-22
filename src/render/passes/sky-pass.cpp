@@ -300,7 +300,7 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	{
 		float star_distance = (clip_near + clip_far) * 0.5f;
 		
-		model = float4x4(math::matrix_cast<float>(icrf_to_eus.r));
+		model = float4x4(float3x3(icrf_to_eus.r));
 		model = math::scale(model, {star_distance, star_distance, star_distance});
 		
 		model_view = view * model;

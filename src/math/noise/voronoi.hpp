@@ -160,7 +160,7 @@ f1
 		vector<T, N> displacement = (offset_i + offset_f) - position_f;
 		
 		// Calculate square distance to the current cell center
-		T sqr_distance = length_squared(displacement);
+		T sqr_distance = sqr_length(displacement);
 		
 		// Update F1 cell
 		if (sqr_distance < f1_sqr_distance)
@@ -250,7 +250,7 @@ f1_edge
 		displacement_cache[i] = (offset_i + offset_f) - position_f;
 		
 		// Calculate square distance to the current cell center
-		T sqr_distance = length_squared(displacement_cache[i]);
+		T sqr_distance = sqr_length(displacement_cache[i]);
 		
 		// Update F1 cell
 		if (sqr_distance < f1_sqr_distance_center)
@@ -377,7 +377,7 @@ f1_f2
 		vector<T, N> displacement = (offset_i + offset_f) - position_f;
 		
 		// Calculate square distance to the current cell center
-		T sqr_distance = length_squared(displacement);
+		T sqr_distance = sqr_length(displacement);
 		
 		// Update F1 and F2 cells
 		if (sqr_distance < f1_sqr_distance_center)
