@@ -22,6 +22,7 @@
 #include "math/constants.hpp"
 #include "math/interpolation.hpp"
 #include "math/quaternion-operators.hpp"
+#include "math/projection.hpp"
 
 namespace scene {
 
@@ -101,7 +102,7 @@ float3 camera::project(const float3& object, const float4& viewport) const
 	result[0] = result[0] * viewport[2] + viewport[0];
 	result[1] = result[1] * viewport[3] + viewport[1];
 	
-	return math::resize<3>(result);
+	return math::vector<float, 3>(result);
 }
 
 float3 camera::unproject(const float3& window, const float4& viewport) const
@@ -116,7 +117,7 @@ float3 camera::unproject(const float3& window, const float4& viewport) const
 	
 	result = math::inverse(view_projection[1]) * result;
 
-	return math::resize<3>(result) * (1.0f / result[3]);
+	return math::vector<float, 3>(result) * (1.0f / result[3]);
 }
 
 void camera::set_perspective(float fov, float aspect_ratio, float clip_near, float clip_far)

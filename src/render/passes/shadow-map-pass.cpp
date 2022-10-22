@@ -35,6 +35,7 @@
 #include "math/vector.hpp"
 #include "math/matrix.hpp"
 #include "math/quaternion-operators.hpp"
+#include "math/projection.hpp"
 #include <cmath>
 #include <glad/glad.h>
 

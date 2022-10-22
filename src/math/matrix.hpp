@@ -134,7 +134,7 @@ struct matrix
 	/**
 	 * Returns a pointer to the first element.
 	 *
-	 * @warning If column_vector_type is not a POD type, elements may not be stored contiguously.
+	 * @warning If matrix::element_type is not a POD type, elements may not be stored contiguously.
 	 */
 	/// @{
 	constexpr inline element_type* data() noexcept
@@ -242,18 +242,18 @@ struct matrix
 	constexpr inline matrix<T, P, O> size_cast(std::index_sequence<I...>) const noexcept
 	{
 		if constexpr (O == M)
-			return {((I < N) ? columns[I] : vector<T, O>::zero()) ...};
+			return {((I < N) ? columns[I] : matrix<T, P, O>::identity()[I]) ...};
 		else
-			return {((I < N) ? vector<T, O>(columns[I]) : vector<T, O>::zero()) ...};
+			return {((I < N) ? vector<T, O>(columns[I]) : matrix<T, P, O>::identity()[I]) ...};
 	}
 	
 	/**
-	 * Size-casts this matrix to a matrix with different dimensions. Casting to greater dimensions causes new elements to be set to zero.
+	 * Size-casts this matrix to a matrix with different dimensions. Casting to greater dimensions causes new elements to be set to identity matrix elements.
 	 *
 	 * @tparam P Target number of columns.
 	 * @tparam O Target number of rows.
 	 *
-	 * @return *p by *o* matrix.
+	 * @return *p* by *o* matrix.
 	 */
 	template <std::size_t P, std::size_t O>
 	constexpr inline explicit operator matrix<T, P, O>() const noexcept
@@ -331,63 +331,48 @@ using matrix4x4 = matrix<T, 4, 4>;
 /**
  * Adds two matrices.
  *
- * @param x First matrix.
- * @param y Second matrix.
+ * @param a First matrix.
+ * @param b Second matrix.
+ *
  * @return Sum of the two matrices.
  */
-template <class T>
-constexpr matrix<T, 2, 2> add(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
-
-/// @copydoc add(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
-template <class T>
-constexpr matrix<T, 3, 3> add(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
-
-/// @copydoc add(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
-template <class T>
-constexpr matrix<T, 4, 4> add(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
 
 /**
- * Reinterprets data as an `NxM` matrix of type `T`.
+ * Adds a matrix and a scalar.
  *
- * @tparam N Number of columns.
- * @tparam M Number of rows.
- * @tparam T Element type.
- * @param data Data to reinterpret.
- */
-template <std::size_t N, std::size_t M, typename T>
-constexpr matrix<T, N, M>& as_matrix(T& data);
-
-/**
- * Calculates the determinant of a matrix.
+ * @param a Matrix.
+ * @param b scalar.
  *
- * @param m Matrix of which to take the determinant. 
+ * @return Sum of the matrix and scalar.
  */
-template <class T>
-constexpr T determinant(const matrix<T, 2, 2>& m);
-
-/// @copydoc determinant(const matrix<T, 2, 2>&)
-template <class T>
-constexpr T determinant(const matrix<T, 3, 3>& m);
-
-/// @copydoc determinant(const matrix<T, 2, 2>&)
-template <class T>
-constexpr T determinant(const matrix<T, 4, 4>& m);
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, T b) noexcept;
 
 /**
- * Calculates the inverse of a matrix.
+ * Calculates the determinant of a square matrix.
+ *
+ * @param m Matrix of which to take the determinant.
+ *
+ * @return Determinant of @p m.
+ *
+ * @warning Currently only implemented for 2x2, 3x3, and 4x4 matrices.
+ */
+template <class T, std::size_t N>
+constexpr T determinant(const matrix<T, N, N>& m) noexcept;
+
+/**
+ * Calculates the inverse of a square matrix.
  *
  * @param m Matrix of which to take the inverse.
+ *
+ * @return Inverse of matrix @p m.
+ *
+ * @warning Currently only implemented for 2x2, 3x3, and 4x4 matrices.
  */
-template <class T>
-constexpr matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m);
-
-/// @copydoc inverse(const matrix<T, 2, 2>&)
-template <class T>
-constexpr matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m);
-
-/// @copydoc inverse(const matrix<T, 2, 2>&)
-template <class T>
-constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m);
+template <class T, std::size_t N>
+constexpr matrix<T, N, N> inverse(const matrix<T, N, N>& m) noexcept;
 
 /**
  * Performs a component-wise multiplication of two matrices.
@@ -395,16 +380,38 @@ constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m);
  * @param x First matrix multiplicand.
  * @param y Second matrix multiplicand.
  */
-template <class T>
-constexpr matrix<T, 2, 2> componentwise_mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
 
-/// @copydoc componentwise_mul(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
-template <class T>
-constexpr matrix<T, 3, 3> componentwise_mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
+/**
+ * Divides a matrix by a matrix.
+ *
+ * @param a First matrix.
+ * @param b Second matrix.
+ * @return Result of the division.
+ */
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
 
-/// @copydoc componentwise_mul(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
-template <class T>
-constexpr matrix<T, 4, 4> componentwise_mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
+/**
+ * Divides a matrix by a scalar.
+ *
+ * @param a Matrix.
+ * @param b Scalar.
+ * @return Result of the division.
+ */
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b) noexcept;
+
+/**
+ * Divides a scalar by a matrix.
+ *
+ * @param a Scalar.
+ * @param b Matrix.
+ * @return Result of the division.
+ */
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept;
 
 /**
  * Creates a viewing transformation matrix.
@@ -418,128 +425,52 @@ template <class T>
 constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target, vector<T, 3> up);
 
 /**
- * Multiplies two matrices.
+ * Multiplies two matrices
  *
- * @param x First matrix.
- * @param y Second matrix.
- * @return Product of the two matrices.
+ * @tparam T Matrix element type.
+ * @tparam N Number of columns in matrix @p a, and rows in matrix @p b.
+ * @tparam M Number of rows in matrix @p a.
+ * @tparam P Number of columns in matrix @p b.
+ *
+ * @param a First matrix.
+ * @param b Second matrix.
+ *
+ * @return Product of `a * b`.
  */
-template <class T>
-constexpr matrix<T, 2, 2> mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
-
-/// @copydoc mul(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&);
-template <class T>
-constexpr matrix<T, 3, 3> mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
-
-/// @copydoc mul(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&);
-template <class T>
-constexpr matrix<T, 4, 4> mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
+template <typename T, std::size_t N, std::size_t M, std::size_t P>
+constexpr matrix<T, P, M> mul(const matrix<T, N, M>& a, const matrix<T, P, N>& b) noexcept;
 
 /**
  * Multiplies a matrix by a scalar.
  *
- * @param m Matrix.
- * @param s Scalar.
- * @return Product of the matrix and the scalar..
+ * @param a Matrix.
+ * @param b Scalar.
+ * @return Product of the matrix and the scalar.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> mul(const matrix<T, N, M>& m, T s);
+constexpr matrix<T, N, M> mul(const matrix<T, N, M>& a, T b) noexcept;
 
 /**
- * Transforms a vector by a matrix.
+ * Calculates the product of a matrix and a row vector.
  *
- * @param m Matrix.
- * @param v Vector.
- * @return Transformed vector.
+ * @param a Matrix.
+ * @param b Row vector
+ *
+ * @return Product of the matrix and the row vector.
  */
-template <class T>
-constexpr vector<T, 2> mul(const matrix<T, 2, 2>& m, const vector<T, 2>& v);
-
-/// @copydoc mul(const matrix<T, 2, 2>&, const vector<T, 2>&)
-template <class T>
-constexpr vector<T, 3> mul(const matrix<T, 3, 3>& m, const vector<T, 3>& v);
-
-/// @copydoc mul(const matrix<T, 2, 2>&, const vector<T, 2>&)
-template <class T>
-constexpr vector<T, 4> mul(const matrix<T, 4, 4>& m, const vector<T, 4>& v);
+template <typename T, std::size_t N, std::size_t M>
+constexpr typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b) noexcept;
 
 /**
- * Creates an orthographic projection matrix which will transform the near and far clipping planes to `[-1, 1]`, respectively.
+ * Calculates the product of a column vector and a matrix.
  *
- * @param left Signed distance to the left clipping plane.
- * @param right Signed distance to the right clipping plane.
- * @param bottom Signed distance to the bottom clipping plane.
- * @param top Signed distance to the top clipping plane.
- * @param z_near Signed distance to the near clipping plane.
- * @param z_far Signed distance to the far clipping plane.
- * @return Orthographic projection matrix.
- */
-template <class T>
-constexpr matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far);
-
-/**
- * Creates an orthographic projection matrix which will transform the near and far clipping planes to `[0, 1]`, respectively.
+ * @param a Column vector.
+ * @param b Matrix.
  *
- * @param left Signed distance to the left clipping plane.
- * @param right Signed distance to the right clipping plane.
- * @param bottom Signed distance to the bottom clipping plane.
- * @param top Signed distance to the top clipping plane.
- * @param z_near Signed distance to the near clipping plane.
- * @param z_far Signed distance to the far clipping plane.
- * @return Orthographic projection matrix.
+ * @return Product of the column vector and the matrix.
  */
-template <class T>
-constexpr matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far);
-
-/**
- * Calculates the outer product of a pair of vectors.
- *
- * @param c Parameter to be treated as a column vector.
- * @param r Parameter to be treated as a row vector.
- */
-template <class T>
-constexpr matrix<T, 2, 2> outer_product(const vector<T, 2>& c, const vector<T, 2>& r);
-
-/// @copydoc outer_product(const vector<T, 2>&, const vector<T, 2>&)
-template <class T>
-constexpr matrix<T, 3, 3> outer_product(const vector<T, 3>& c, const vector<T, 3>& r);
-
-/// @copydoc outer_product(const vector<T, 2>&, const vector<T, 2>&)
-template <class T>
-constexpr matrix<T, 4, 4> outer_product(const vector<T, 4>& c, const vector<T, 4> r);
-
-/**
- * Creates a perspective projection matrix which will transform the near and far clipping planes to `[-1, 1]`, respectively.
- *
- * @param vertical_fov Vertical field of view angle, in radians.
- * @param aspect_ratio Aspect ratio which determines the horizontal field of view.
- * @param z_near Distance to the near clipping plane.
- * @param z_far Distance to the far clipping plane.
- * @return Perspective projection matrix.
- */
-template <class T>
-matrix<T, 4, 4> perspective(T vertical_fov, T aspect_ratio, T z_near, T z_far);
-
-/**
- * Creates a perspective projection matrix which will transform the near and far clipping planes to `[0, 1]`, respectively.
- *
- * @param vertical_fov Vertical field of view angle, in radians.
- * @param aspect_ratio Aspect ratio which determines the horizontal field of view.
- * @param z_near Distance to the near clipping plane.
- * @param z_far Distance to the far clipping plane.
- * @return Perspective projection matrix.
- */
-template <class T>
-matrix<T, 4, 4> perspective_half_z(T vertical_fov, T aspect_ratio, T z_near, T z_far);
-
-/**
- * Resizes a matrix. Any new elements will be set to `1` if in the diagonal, and `0` otherwise.
- *
- * @param m Matrix to resize.
- * @return Resized matrix.
- */
-template <std::size_t N1, std::size_t M1, class T, std::size_t N0, std::size_t M0>
-constexpr matrix<T, N1, M1> resize(const matrix<T, N0, M0>& m);
+template <typename T, std::size_t N, std::size_t M>
+constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b) noexcept;
 
 /**
  * Constructs a rotation matrix.
@@ -591,20 +522,35 @@ constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
 /**
  * Subtracts a matrix from another matrix.
  *
- * @param x First matrix.
- * @param y Second matrix.
+ * @param a First matrix.
+ * @param b Second matrix.
+ *
  * @return Difference between the two matrices.
  */
-template <class T>
-constexpr matrix<T, 2, 2> sub(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y);
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
 
-/// @copydoc sub(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
-template <class T>
-constexpr matrix<T, 3, 3> sub(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y);
+/**
+ * Subtracts a scalar from matrix.
+ *
+ * @param a Matrix.
+ * @param b Scalar.
+ *
+ * @return Difference between the matrix and scalar.
+ */
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, T b) noexcept;
 
-/// @copydoc sub(const matrix<T, 2, 2>&, const matrix<T, 2, 2>&)
-template <class T>
-constexpr matrix<T, 4, 4> sub(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y);
+/**
+ * Subtracts a matrix from a scalar.
+ *
+ * @param a Scalar.
+ * @param b Matrix.
+ *
+ * @return Difference between the scalar and matrix.
+ */
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> sub(T a, const matrix<T, N, M>& b) noexcept;
 
 /**
  * Translates a matrix.
@@ -619,82 +565,52 @@ constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>
 /**
  * Calculates the transpose of a matrix.
  *
- * @param m Matrix of which to take the transpose.
- */
-template <class T>
-constexpr matrix<T, 2, 2> transpose(const matrix<T, 2, 2>& m);
-
-/// @copydoc transpose(const matrix<T, 2, 2>&)
-template <class T>
-constexpr matrix<T, 3, 3> transpose(const matrix<T, 3, 3>& m);
-
-/// @copydoc transpose(const matrix<T, 2, 2>&)
-template <class T>
-constexpr matrix<T, 4, 4> transpose(const matrix<T, 4, 4>& m);
-
-/**
- * Types casts each matrix element and returns a matrix of the casted type.
+ * @param m Matrix to transpose.
  *
- * @tparam T2 Target matrix element type.
- * @tparam T1 Source matrix element type.
- * @tparam N Number of columns.
- * @tparam M Number of rows.
- * @param m Matrix to type cast.
- * @return Type-casted matrix.
+ * @return Transposed matrix.
  */
-template <class T2, class T1, std::size_t N, std::size_t M>
-constexpr matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m);
+template <typename T, std::size_t N, std::size_t M>
+constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m) noexcept;
+
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> add(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+{
+	return {(a[I] + b[I]) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
+{
+	return add(a, b, std::make_index_sequence<N>{});
+}
+
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> add(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
+{
+	return {(a[I] + b) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, T b) noexcept
+{
+	return add(a, b, std::make_index_sequence<N>{});
+}
 
 template <class T>
-constexpr matrix<T, 2, 2> add(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
+constexpr T determinant(const matrix<T, 2, 2>& m) noexcept
 {
 	return
-		{{
-			x[0] + y[0],
-			x[1] + y[1]
-		}};
+		m[0][0] * m[1][1] -
+		m[0][1] * m[1][0];
 }
 
 template <class T>
-constexpr matrix<T, 3, 3> add(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
+constexpr T determinant(const matrix<T, 3, 3>& m) noexcept
 {
 	return
-		{{
-			x[0] + y[0],
-			x[1] + y[1],
-			x[2] + y[2]
-		}};
-}
-
-template <class T>
-constexpr matrix<T, 4, 4> add(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
-{
-	return
-		{{
-			x[0] + y[0],
-			x[1] + y[1],
-			x[2] + y[2],
-			x[3] + y[3]
-		}};
-}
-
-template <std::size_t N, std::size_t M, typename T>
-constexpr inline matrix<T, N, M>& as_matrix(T& data)
-{
-	static_assert(std::is_pod<matrix<T, N, M>>::value);
-	return reinterpret_cast<matrix<T, N, M>&>(data);
-}
-
-template <class T>
-constexpr T determinant(const matrix<T, 2, 2>& m)
-{
-	return m[0][0] * m[1][1] - m[0][1] * m[1][0];
-}
-
-template <class T>
-constexpr T determinant(const matrix<T, 3, 3>& m)
-{
-	return m[0][0] * m [1][1] * m[2][2] +
+		m[0][0] * m[1][1] * m[2][2] +
 		m[0][1] * m[1][2] * m[2][0] +
 		m[0][2] * m[1][0] * m[2][1] -
 		m[0][0] * m[1][2] * m[2][1] -
@@ -703,9 +619,10 @@ constexpr T determinant(const matrix<T, 3, 3>& m)
 }
 
 template <class T>
-constexpr T determinant(const matrix<T, 4, 4>& m)
+constexpr T determinant(const matrix<T, 4, 4>& m) noexcept
 {
-	return m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0] -
+	return
+		m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0] -
 		m[0][3] * m[1][1] * m[2][2] * m[3][0] + m[0][1] * m[1][3] * m[2][2] * m[3][0] +
 		m[0][2] * m[1][1] * m[2][3] * m[3][0] - m[0][1] * m[1][2] * m[2][3] * m[3][0] -
 		m[0][3] * m[1][2] * m[2][0] * m[3][1] + m[0][2] * m[1][3] * m[2][0] * m[3][1] +
@@ -720,117 +637,119 @@ constexpr T determinant(const matrix<T, 4, 4>& m)
 }
 
 template <class T>
-constexpr matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m)
+constexpr matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m) noexcept
 {
-	static_assert(std::is_floating_point<T>::value);
-
-	const T rd(T(1) / determinant(m));
+	const T inv_det = T{1} / determinant(m);
+	
 	return
-		{{
-			{ m[1][1] * rd, -m[0][1] * rd},
-			{-m[1][0] * rd,  m[0][0] * rd}
-		}};
+	{
+		 m[1][1] * inv_det,
+		-m[0][1] * inv_det,
+		-m[1][0] * inv_det,
+		 m[0][0] * inv_det
+	};
 }
 
 template <class T>
-constexpr matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m)
+constexpr matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m) noexcept
 {
-	static_assert(std::is_floating_point<T>::value);
-
-	const T rd(T(1) / determinant(m));
+	const T inv_det = T{1} / determinant(m);
 
 	return
-		{{
-			{
-				(m[1][1] * m[2][2] - m[1][2] * m[2][1]) * rd,
-				(m[0][2] * m[2][1] - m[0][1] * m[2][2]) * rd,
-				(m[0][1] * m[1][2] - m[0][2] * m[1][1]) * rd
-			},
+	{
+		(m[1][1] * m[2][2] - m[1][2] * m[2][1]) * inv_det,
+		(m[0][2] * m[2][1] - m[0][1] * m[2][2]) * inv_det,
+		(m[0][1] * m[1][2] - m[0][2] * m[1][1]) * inv_det,
+		
+		(m[1][2] * m[2][0] - m[1][0] * m[2][2]) * inv_det,
+		(m[0][0] * m[2][2] - m[0][2] * m[2][0]) * inv_det,
+		(m[0][2] * m[1][0] - m[0][0] * m[1][2]) * inv_det,
 
-			{
-				(m[1][2] * m[2][0] - m[1][0] * m[2][2]) * rd,
-				(m[0][0] * m[2][2] - m[0][2] * m[2][0]) * rd,
-				(m[0][2] * m[1][0] - m[0][0] * m[1][2]) * rd
-			},
-
-			{
-				(m[1][0] * m[2][1] - m[1][1] * m[2][0]) * rd,
-				(m[0][1] * m[2][0] - m[0][0] * m[2][1]) * rd,
-				(m[0][0] * m[1][1] - m[0][1] * m[1][0]) * rd
-			}
-		}};
+		(m[1][0] * m[2][1] - m[1][1] * m[2][0]) * inv_det,
+		(m[0][1] * m[2][0] - m[0][0] * m[2][1]) * inv_det,
+		(m[0][0] * m[1][1] - m[0][1] * m[1][0]) * inv_det
+	};
 }
 
 template <class T>
-constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m)
+constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m) noexcept
 {
-	static_assert(std::is_floating_point<T>::value);
-
-	const T rd(T(1) / determinant(m));
-
+	const T inv_det = T{1} / determinant(m);
+	
 	return
-		{{
-			{
-				(m[1][2] * m[2][3] * m[3][1] - m[1][3] * m[2][2] * m[3][1] + m[1][3] * m[2][1] * m[3][2] - m[1][1] * m[2][3] * m[3][2] - m[1][2] * m[2][1] * m[3][3] + m[1][1] * m[2][2] * m[3][3]) * rd,
-				(m[0][3] * m[2][2] * m[3][1] - m[0][2] * m[2][3] * m[3][1] - m[0][3] * m[2][1] * m[3][2] + m[0][1] * m[2][3] * m[3][2] + m[0][2] * m[2][1] * m[3][3] - m[0][1] * m[2][2] * m[3][3]) * rd,
-				(m[0][2] * m[1][3] * m[3][1] - m[0][3] * m[1][2] * m[3][1] + m[0][3] * m[1][1] * m[3][2] - m[0][1] * m[1][3] * m[3][2] - m[0][2] * m[1][1] * m[3][3] + m[0][1] * m[1][2] * m[3][3]) * rd,
-				(m[0][3] * m[1][2] * m[2][1] - m[0][2] * m[1][3] * m[2][1] - m[0][3] * m[1][1] * m[2][2] + m[0][1] * m[1][3] * m[2][2] + m[0][2] * m[1][1] * m[2][3] - m[0][1] * m[1][2] * m[2][3]) * rd
-			},
+	{
+		(m[1][2] * m[2][3] * m[3][1] - m[1][3] * m[2][2] * m[3][1] + m[1][3] * m[2][1] * m[3][2] - m[1][1] * m[2][3] * m[3][2] - m[1][2] * m[2][1] * m[3][3] + m[1][1] * m[2][2] * m[3][3]) * inv_det,
+		(m[0][3] * m[2][2] * m[3][1] - m[0][2] * m[2][3] * m[3][1] - m[0][3] * m[2][1] * m[3][2] + m[0][1] * m[2][3] * m[3][2] + m[0][2] * m[2][1] * m[3][3] - m[0][1] * m[2][2] * m[3][3]) * inv_det,
+		(m[0][2] * m[1][3] * m[3][1] - m[0][3] * m[1][2] * m[3][1] + m[0][3] * m[1][1] * m[3][2] - m[0][1] * m[1][3] * m[3][2] - m[0][2] * m[1][1] * m[3][3] + m[0][1] * m[1][2] * m[3][3]) * inv_det,
+		(m[0][3] * m[1][2] * m[2][1] - m[0][2] * m[1][3] * m[2][1] - m[0][3] * m[1][1] * m[2][2] + m[0][1] * m[1][3] * m[2][2] + m[0][2] * m[1][1] * m[2][3] - m[0][1] * m[1][2] * m[2][3]) * inv_det,
 
-			{
-				(m[1][3] * m[2][2] * m[3][0] - m[1][2] * m[2][3] * m[3][0] - m[1][3] * m[2][0] * m[3][2] + m[1][0] * m[2][3] * m[3][2] + m[1][2] * m[2][0] * m[3][3] - m[1][0] * m[2][2] * m[3][3]) * rd,
-				(m[0][2] * m[2][3] * m[3][0] - m[0][3] * m[2][2] * m[3][0] + m[0][3] * m[2][0] * m[3][2] - m[0][0] * m[2][3] * m[3][2] - m[0][2] * m[2][0] * m[3][3] + m[0][0] * m[2][2] * m[3][3]) * rd,
-				(m[0][3] * m[1][2] * m[3][0] - m[0][2] * m[1][3] * m[3][0] - m[0][3] * m[1][0] * m[3][2] + m[0][0] * m[1][3] * m[3][2] + m[0][2] * m[1][0] * m[3][3] - m[0][0] * m[1][2] * m[3][3]) * rd,
-				(m[0][2] * m[1][3] * m[2][0] - m[0][3] * m[1][2] * m[2][0] + m[0][3] * m[1][0] * m[2][2] - m[0][0] * m[1][3] * m[2][2] - m[0][2] * m[1][0] * m[2][3] + m[0][0] * m[1][2] * m[2][3]) * rd
-			},
+		(m[1][3] * m[2][2] * m[3][0] - m[1][2] * m[2][3] * m[3][0] - m[1][3] * m[2][0] * m[3][2] + m[1][0] * m[2][3] * m[3][2] + m[1][2] * m[2][0] * m[3][3] - m[1][0] * m[2][2] * m[3][3]) * inv_det,
+		(m[0][2] * m[2][3] * m[3][0] - m[0][3] * m[2][2] * m[3][0] + m[0][3] * m[2][0] * m[3][2] - m[0][0] * m[2][3] * m[3][2] - m[0][2] * m[2][0] * m[3][3] + m[0][0] * m[2][2] * m[3][3]) * inv_det,
+		(m[0][3] * m[1][2] * m[3][0] - m[0][2] * m[1][3] * m[3][0] - m[0][3] * m[1][0] * m[3][2] + m[0][0] * m[1][3] * m[3][2] + m[0][2] * m[1][0] * m[3][3] - m[0][0] * m[1][2] * m[3][3]) * inv_det,
+		(m[0][2] * m[1][3] * m[2][0] - m[0][3] * m[1][2] * m[2][0] + m[0][3] * m[1][0] * m[2][2] - m[0][0] * m[1][3] * m[2][2] - m[0][2] * m[1][0] * m[2][3] + m[0][0] * m[1][2] * m[2][3]) * inv_det,
 
-			{
-				(m[1][1] * m[2][3] * m[3][0] - m[1][3] * m[2][1] * m[3][0] + m[1][3] * m[2][0] * m[3][1] - m[1][0] * m[2][3] * m[3][1] - m[1][1] * m[2][0] * m[3][3] + m[1][0] * m[2][1] * m[3][3]) * rd,
-				(m[0][3] * m[2][1] * m[3][0] - m[0][1] * m[2][3] * m[3][0] - m[0][3] * m[2][0] * m[3][1] + m[0][0] * m[2][3] * m[3][1] + m[0][1] * m[2][0] * m[3][3] - m[0][0] * m[2][1] * m[3][3]) * rd,
-				(m[0][1] * m[1][3] * m[3][0] - m[0][3] * m[1][1] * m[3][0] + m[0][3] * m[1][0] * m[3][1] - m[0][0] * m[1][3] * m[3][1] - m[0][1] * m[1][0] * m[3][3] + m[0][0] * m[1][1] * m[3][3]) * rd,
-				(m[0][3] * m[1][1] * m[2][0] - m[0][1] * m[1][3] * m[2][0] - m[0][3] * m[1][0] * m[2][1] + m[0][0] * m[1][3] * m[2][1] + m[0][1] * m[1][0] * m[2][3] - m[0][0] * m[1][1] * m[2][3]) * rd
-			},
+		(m[1][1] * m[2][3] * m[3][0] - m[1][3] * m[2][1] * m[3][0] + m[1][3] * m[2][0] * m[3][1] - m[1][0] * m[2][3] * m[3][1] - m[1][1] * m[2][0] * m[3][3] + m[1][0] * m[2][1] * m[3][3]) * inv_det,
+		(m[0][3] * m[2][1] * m[3][0] - m[0][1] * m[2][3] * m[3][0] - m[0][3] * m[2][0] * m[3][1] + m[0][0] * m[2][3] * m[3][1] + m[0][1] * m[2][0] * m[3][3] - m[0][0] * m[2][1] * m[3][3]) * inv_det,
+		(m[0][1] * m[1][3] * m[3][0] - m[0][3] * m[1][1] * m[3][0] + m[0][3] * m[1][0] * m[3][1] - m[0][0] * m[1][3] * m[3][1] - m[0][1] * m[1][0] * m[3][3] + m[0][0] * m[1][1] * m[3][3]) * inv_det,
+		(m[0][3] * m[1][1] * m[2][0] - m[0][1] * m[1][3] * m[2][0] - m[0][3] * m[1][0] * m[2][1] + m[0][0] * m[1][3] * m[2][1] + m[0][1] * m[1][0] * m[2][3] - m[0][0] * m[1][1] * m[2][3]) * inv_det,
 
-			{
-				(m[1][2] * m[2][1] * m[3][0] - m[1][1] * m[2][2] * m[3][0] - m[1][2] * m[2][0] * m[3][1] + m[1][0] * m[2][2] * m[3][1] + m[1][1] * m[2][0] * m[3][2] - m[1][0] * m[2][1] * m[3][2]) * rd,
-				(m[0][1] * m[2][2] * m[3][0] - m[0][2] * m[2][1] * m[3][0] + m[0][2] * m[2][0] * m[3][1] - m[0][0] * m[2][2] * m[3][1] - m[0][1] * m[2][0] * m[3][2] + m[0][0] * m[2][1] * m[3][2]) * rd,
-				(m[0][2] * m[1][1] * m[3][0] - m[0][1] * m[1][2] * m[3][0] - m[0][2] * m[1][0] * m[3][1] + m[0][0] * m[1][2] * m[3][1] + m[0][1] * m[1][0] * m[3][2] - m[0][0] * m[1][1] * m[3][2]) * rd,
-				(m[0][1] * m[1][2] * m[2][0] - m[0][2] * m[1][1] * m[2][0] + m[0][2] * m[1][0] * m[2][1] - m[0][0] * m[1][2] * m[2][1] - m[0][1] * m[1][0] * m[2][2] + m[0][0] * m[1][1] * m[2][2]) * rd
-			}
-		}};
+		(m[1][2] * m[2][1] * m[3][0] - m[1][1] * m[2][2] * m[3][0] - m[1][2] * m[2][0] * m[3][1] + m[1][0] * m[2][2] * m[3][1] + m[1][1] * m[2][0] * m[3][2] - m[1][0] * m[2][1] * m[3][2]) * inv_det,
+		(m[0][1] * m[2][2] * m[3][0] - m[0][2] * m[2][1] * m[3][0] + m[0][2] * m[2][0] * m[3][1] - m[0][0] * m[2][2] * m[3][1] - m[0][1] * m[2][0] * m[3][2] + m[0][0] * m[2][1] * m[3][2]) * inv_det,
+		(m[0][2] * m[1][1] * m[3][0] - m[0][1] * m[1][2] * m[3][0] - m[0][2] * m[1][0] * m[3][1] + m[0][0] * m[1][2] * m[3][1] + m[0][1] * m[1][0] * m[3][2] - m[0][0] * m[1][1] * m[3][2]) * inv_det,
+		(m[0][1] * m[1][2] * m[2][0] - m[0][2] * m[1][1] * m[2][0] + m[0][2] * m[1][0] * m[2][1] - m[0][0] * m[1][2] * m[2][1] - m[0][1] * m[1][0] * m[2][2] + m[0][0] * m[1][1] * m[2][2]) * inv_det
+	};
 }
 
-template <class T>
-constexpr matrix<T, 2, 2> componentwise_mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
-	return
-		{{
-			 {x[0][0] * y[0][0], x[0][1] * y[0][1]},
-			 {x[1][0] * y[1][0], x[1][1] * y[1][1]}
-		}};
+	return {(a[I] * b[I]) ...};
 }
 
-template <class T>
-constexpr matrix<T, 3, 3> componentwise_mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
-	return
-		{{
-			 {x[0][0] * y[0][0], x[0][1] * y[0][1], x[0][2] * y[0][2]},
-			 {x[1][0] * y[1][0], x[1][1] * y[1][1], x[1][2] * y[1][2]},
-			 {x[2][0] * y[2][0], x[2][1] * y[2][1], x[2][2] * y[2][2]}
-		}};
+	return componentwise_mul(a, b, std::make_index_sequence<N>{});
 }
 
-template <class T>
-constexpr matrix<T, 4, 4> componentwise_mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
-	return
-		{{
-			 {x[0][0] * y[0][0], x[0][1] * y[0][1], x[0][2] * y[0][2], x[0][3] * y[0][3]},
-			 {x[1][0] * y[1][0], x[1][1] * y[1][1], x[1][2] * y[1][2], x[1][3] * y[1][3]},
-			 {x[2][0] * y[2][0], x[2][1] * y[2][1], x[2][2] * y[2][2], x[2][3] * y[2][3]},
-			 {x[3][0] * y[3][0], x[3][1] * y[3][1], x[3][2] * y[3][2], x[3][3] * y[3][3]}
-		}};
+	return {(a[I] / b[I]) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
+{
+	return div(a, b, std::make_index_sequence<N>{});
+}
+
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> div(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
+{
+	return {(a[I] / b) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b) noexcept
+{
+	return div(a, b, std::make_index_sequence<N>{});
+}
+
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> div(T a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+{
+	return {(a / b[I]) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept
+{
+	return div(a, b, std::make_index_sequence<N>{});
 }
 
 template <class T>
@@ -851,186 +770,62 @@ constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 
 	return translate(m, negate(position));
 }
 
-template <class T>
-constexpr matrix<T, 2, 2> mul(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
+template <typename T, std::size_t N, std::size_t M, std::size_t P>
+constexpr matrix<T, P, M> mul(const matrix<T, N, M>& a, const matrix<T, P, N>& b) noexcept
 {
-	return
-		{{
-			x[0] * y[0][0] + x[1] * y[0][1],
-			x[0] * y[1][0] + x[1] * y[1][1]
-		}};
-}
-
-template <class T>
-constexpr matrix<T, 3, 3> mul(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
-{
-	return
-		{{
-			x[0] * y[0][0] + x[1] * y[0][1] + x[2] * y[0][2],
-			x[0] * y[1][0] + x[1] * y[1][1] + x[2] * y[1][2],
-			x[0] * y[2][0] + x[1] * y[2][1] + x[2] * y[2][2]
-		}};
-}
-
-template <class T>
-constexpr matrix<T, 4, 4> mul(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
-{
-	return
-		{{
-			x[0] * y[0][0] + x[1] * y[0][1] + x[2] * y[0][2] + x[3] * y[0][3],
-			x[0] * y[1][0] + x[1] * y[1][1] + x[2] * y[1][2] + x[3] * y[1][3],
-			x[0] * y[2][0] + x[1] * y[2][1] + x[2] * y[2][2] + x[3] * y[2][3],
-			x[0] * y[3][0] + x[1] * y[3][1] + x[2] * y[3][2] + x[3] * y[3][3]
-		}};
+	matrix<T, P, M> c = matrix<T, P, M>::zero();
+	
+	for (std::size_t i = 0; i < P; ++i)
+	{
+		for (std::size_t j = 0; j < M; ++j)
+		{
+			for (std::size_t k = 0; k < N; ++k)
+			{
+				c[i][j] += a[k][j] * b[i][k];
+			}
+		}
+	}
+	
+	return c;
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> mul(const matrix<T, N, M>& m, T s, std::index_sequence<I...>)
+constexpr inline matrix<T, N, M> mul(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
 {
-	return {{(m[I] * s)...}};
+	return {(a[I] * b) ...};
 }
 
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> mul(const matrix<T, N, M>& m, T s)
+constexpr matrix<T, N, M> mul(const matrix<T, N, M>& a, T b) noexcept
 {
-	return mul(m, s, std::make_index_sequence<N>{});
+	return mul(a, b, std::make_index_sequence<N>{});
 }
 
-template <class T>
-constexpr vector<T, 2> mul(const matrix<T, 2, 2>& m, const vector<T, 2>& v)
+/// @private
+template <typename T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b, std::index_sequence<I...>) noexcept
 {
-	return
-		{
-			m[0][0] * v[0] + m[1][0] * v[1],
-			m[0][1] * v[0] + m[1][1] * v[1]
-		};
+	return ((a[I] * b[I]) + ...);
 }
 
-template <class T>
-constexpr vector<T, 3> mul(const matrix<T, 3, 3>& m, const vector<T, 3>& v)
+template <typename T, std::size_t N, std::size_t M>
+constexpr typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b) noexcept
 {
-	return
-		{
-			m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2],
-			m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2],
-			m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2]
-		};
+	return mul(a, b, std::make_index_sequence<N>{});
 }
 
-template <class T>
-constexpr vector<T, 4> mul(const matrix<T, 4, 4>& m, const vector<T, 4>& v)
+/// @private
+template <typename T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
-	return
-		{
-			m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2] + m[3][0] * v[3],
-			m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2] + m[3][1] * v[3],
-			m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2] + m[3][2] * v[3],
-			m[0][3] * v[0] + m[1][3] * v[1] + m[2][3] * v[2] + m[3][3] * v[3]
-		};
+	return {dot(a, b[I]) ...};
 }
 
-template <class T>
-constexpr matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far)
+template <typename T, std::size_t N, std::size_t M>
+constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b) noexcept
 {
-	return
-		{{
-			 {T(2) / (right - left), T(0), T(0), T(0)},
-			 {T(0), T(2) / (top - bottom), T(0), T(0)},
-			 {T(0), T(0), T(-2) / (z_far - z_near), T(0)},
-			 {-((right + left) / (right - left)), -((top + bottom) / (top - bottom)), -((z_far + z_near) / (z_far - z_near)), T(1)}
-		}};
-}
-
-template <class T>
-constexpr matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far)
-{
-	return
-		{{
-			 {T(2) / (right - left), T(0), T(0), T(0)},
-			 {T(0), T(2) / (top - bottom), T(0), T(0)},
-			 {T(0), T(0), T(-1) / (z_far - z_near), T(0)},
-			 {-((right + left) / (right - left)), -((top + bottom) / (top - bottom)), -z_near / (z_far - z_near), T(1)}
-		}};
-}
-
-template <class T>
-constexpr matrix<T, 2, 2> outer_product(const vector<T, 2>& c, const vector<T, 2>& r)
-{
-	return
-		{{
-			 {c[0] * r[0], c[1] * r[0]},
-			 {c[0] * r[1], c[1] * r[1]}
-		}};
-}
-
-template <class T>
-constexpr matrix<T, 3, 3> outer_product(const vector<T, 3>& c, const vector<T, 3>& r)
-{
-	return
-		{{
-			 {c[0] * r[0], c[1] * r[0], c[2] * r[0]},
-			 {c[0] * r[1], c[1] * r[1], c[2] * r[1]},
-			 {c[0] * r[2], c[1] * r[2], c[2] * r[2]}
-		}};
-}
-
-template <class T>
-constexpr matrix<T, 4, 4> outer_product(const vector<T, 4>& c, const vector<T, 4> r)
-{
-	return
-		{{
-			 {c[0] * r[0], c[1] * r[0], c[2] * r[0], c[3] * r[0]},
-			 {c[0] * r[1], c[1] * r[1], c[2] * r[1], c[3] * r[1]},
-			 {c[0] * r[2], c[1] * r[2], c[2] * r[2], c[3] * r[2]},
-			 {c[0] * r[3], c[1] * r[3], c[2] * r[3], c[3] * r[3]}
-		}};
-}
-
-template <class T>
-matrix<T, 4, 4> perspective(T vertical_fov, T aspect_ratio, T z_near, T z_far)
-{
-	T half_fov = vertical_fov * T(0.5);
-	T f = std::cos(half_fov) / std::sin(half_fov);
-
-	return
-		{{
-			 {f / aspect_ratio, T(0), T(0), T(0)},
-			 {T(0), f, T(0), T(0)},
-			 {T(0), T(0), (z_far + z_near) / (z_near - z_far), T(-1)},
-			 {T(0), T(0), (T(2) * z_far * z_near) / (z_near - z_far), T(0)}
-		}};
-}
-
-template <class T>
-matrix<T, 4, 4> perspective_half_z(T vertical_fov, T aspect_ratio, T z_near, T z_far)
-{
-	T half_fov = vertical_fov * T(0.5);
-	T f = std::cos(half_fov) / std::sin(half_fov);
-
-	return
-		{{
-			 {f / aspect_ratio, T(0), T(0), T(0)},
-			 {T(0), f, T(0), T(0)},
-			 {T(0), T(0), z_far / (z_near - z_far), T(-1)},
-			 {T(0), T(0), -(z_far * z_near) / (z_far - z_near), T(0)}
-		}};
-}
-
-template <std::size_t N1, std::size_t M1, class T, std::size_t N0, std::size_t M0>
-constexpr matrix<T, N1, M1> resize(const matrix<T, N0, M0>& m)
-{
-	matrix<T, N1, M1> resized;
-
-	for (std::size_t i = 0; i < N1; ++i)
-	{
-		for (std::size_t j = 0; j < M1; ++j)
-		{
-			resized[i][j] = (i < N0 && j < M0) ? m[i][j] : ((i == j) ? T(1) : T(0));
-		}
-	}
-
-	return resized;
+	return mul(a, b, std::make_index_sequence<N>{});
 }
 
 template <class T>
@@ -1108,37 +903,43 @@ constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
 		}});
 }
 
-template <class T>
-constexpr matrix<T, 2, 2> sub(const matrix<T, 2, 2>& x, const matrix<T, 2, 2>& y)
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> sub(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
-	return
-		{{
-			x[0] - y[0],
-			x[1] - y[1]
-		}};
+	return {(a[I] - b[I]) ...};
 }
 
-template <class T>
-constexpr matrix<T, 3, 3> sub(const matrix<T, 3, 3>& x, const matrix<T, 3, 3>& y)
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
-	return
-		{{
-			x[0] - y[0],
-			x[1] - y[1],
-			x[2] - y[2]
-		}};
+	return sub(a, b, std::make_index_sequence<N>{});
 }
 
-template <class T>
-constexpr matrix<T, 4, 4> sub(const matrix<T, 4, 4>& x, const matrix<T, 4, 4>& y)
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> sub(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
 {
-	return
-		{{
-			x[0] - y[0],
-			x[1] - y[1],
-			x[2] - y[2],
-			x[3] - y[3]
-		}};
+	return {(a[I] - b) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, T b) noexcept
+{
+	return sub(a, b, std::make_index_sequence<N>{});
+}
+
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> sub(T a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+{
+	return {(a - b[I]) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> sub(T a, const matrix<T, N, M>& b) noexcept
+{
+	return sub(a, b, std::make_index_sequence<N>{});
 }
 
 template <class T>
@@ -1153,104 +954,205 @@ constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>
 		}});
 }
 
-template <class T>
-constexpr matrix<T, 2, 2> transpose(const matrix<T, 2, 2>& m)
+/// @private
+template <typename T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline typename matrix<T, M, N>::column_vector_type transpose_column(const matrix<T, N, M>& m, std::size_t i, std::index_sequence<I...>) noexcept
 {
-
-	return
-		{{
-			{
-				m[0][0], m[1][0]
-			},
-
-			{
-				m[0][1], m[1][1]
-			}
-		}};
-}
-
-template <class T>
-constexpr matrix<T, 3, 3> transpose(const matrix<T, 3, 3>& m)
-{
-
-	return
-		{{
-			{
-				m[0][0], m[1][0], m[2][0]
-			},
-
-			{
-				m[0][1], m[1][1], m[2][1]
-			},
-
-			{
-				m[0][2], m[1][2], m[2][2]
-			}
-		}};
-}
-
-template <class T>
-constexpr matrix<T, 4, 4> transpose(const matrix<T, 4, 4>& m)
-{
-
-	return
-		{{
-			{
-				m[0][0], m[1][0], m[2][0], m[3][0]
-			},
-
-			{
-				m[0][1], m[1][1], m[2][1], m[3][1]
-			},
-
-			{
-				m[0][2], m[1][2], m[2][2], m[3][2]
-			},
-
-			{
-				m[0][3], m[1][3], m[2][3], m[3][3]
-			}
-		}};
+	return {m[I][i] ...};
 }
 
 /// @private
-template <class T2, class T1, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m, std::index_sequence<I...>)
+template <typename T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, M, N> transpose(const matrix<T, N, M>& m, std::index_sequence<I...>) noexcept
 {
-	return {type_cast<T2>(m[I])...};
+	return {transpose_column(m, I, std::make_index_sequence<N>{}) ...};
 }
 
-template <class T2, class T1, std::size_t N, std::size_t M>
-constexpr matrix<T2, N, M> type_cast(const matrix<T1, N, M>& m)
+template <typename T, std::size_t N, std::size_t M>
+constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m) noexcept
 {
-	return type_cast<T2>(m, std::make_index_sequence<N>{}); 
+	return transpose(m, std::make_index_sequence<M>{});
 }
 
 } // namespace math
 
-/// @copydoc math::add(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
+/// @copydoc math::add(const math::matrix<T, N, M>&, const math::matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
+constexpr inline math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+{
+	return math::add(a, b);
+}
 
-/// @copydoc math::mul(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
+/// @copydoc math::add(const math::matrix<T, N, M>&, T)
+/// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
+constexpr inline math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& a, T b) noexcept
+{
+	return math::add(a, b);
+}
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator+(T a, const math::matrix<T, N, M>& b) noexcept
+{
+	return math::add(b, a);
+}
+/// @}
+
+/// @copydoc math::div(const math::matrix<T, N, M>&, const math::matrix<T, N, M>&)
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator/(const math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+{
+	return math::div(a, b);
+}
+
+/// @copydoc math::div(const math::matrix<T, N, M>&, T)
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator/(const math::matrix<T, N, M>& a, T b) noexcept
+{
+	return math::div(a, b);
+}
+
+/// @copydoc math::div(T, const math::matrix<T, N, M>&)
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator/(T a, const math::matrix<T, N, M>& b) noexcept
+{
+	return math::div(a, b);
+}
+
+/// @copydoc math::mul(const math::matrix<T, N, M>&, const math::matrix<T, P, N>&)
+template <typename T, std::size_t N, std::size_t M, std::size_t P>
+constexpr inline math::matrix<T, P, M> operator*(const math::matrix<T, N, M>& a, const math::matrix<T, P, N>& b) noexcept
+{
+	return math::mul(a, b);
+}
 
 /// @copydoc math::mul(const math::matrix<T, N, M>&, T)
+/// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& m, T s);
-
-/// @copydoc math::mul(const math::matrix<T, N, M>&, T)
+constexpr inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& a, T b) noexcept
+{
+	return math::mul(a, b);
+}
 template <class T, std::size_t N, std::size_t M>
-constexpr math::matrix<T, N, M> operator*(T s, const math::matrix<T, N, M>& m);
+constexpr inline math::matrix<T, N, M> operator*(T a, const math::matrix<T, N, M>& b) noexcept
+{
+	return math::mul(b, a);
+}
+/// @}
 
-/// @copydoc math::mul(const math::matrix<T, 2, 2>&, const math::vector<T, 2>&)
+/// @copydoc math::mul(const math::matrix<T, N, M>&, const typename math::matrix<T, N, M>::row_vector_type&)
+template <typename T, std::size_t N, std::size_t M>
+constexpr inline typename math::matrix<T, N, M>::column_vector_type operator*(const math::matrix<T, N, M>& a, const typename math::matrix<T, N, M>::row_vector_type& b) noexcept
+{
+	return math::mul(a, b);
+}
+
+/// @copydoc math::mul(const typename math::matrix<T, N, M>::column_vector_type&, const math::matrix<T, N, M>&)
+template <typename T, std::size_t N, std::size_t M>
+constexpr inline typename math::matrix<T, N, M>::row_vector_type operator*(const typename math::matrix<T, N, M>::column_vector_type& a, const math::matrix<T, N, M>& b) noexcept
+{
+	return math::mul(a, b);
+}
+
+/// @copydoc math::sub(const math::matrix<T, N, M>&, const math::matrix<T, N, M>&)
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+{
+	return math::sub(a, b);
+}
+
+/// @copydoc math::sub(const math::matrix<T, N, M>&, T)
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& a, T b) noexcept
+{
+	return math::sub(a, b);
+}
+
+/// @copydoc math::sub(T, const math::matrix<T, N, M>&)
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M> operator-(T a, const math::matrix<T, N, M>& b) noexcept
+{
+	return math::sub(a, b);
+}
+
+/**
+ * Adds two values and stores the result in the first value.
+ *
+ * @param a First value.
+ * @param b Second value.
+ * @return Reference to the first value.
+ */
+/// @{
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M>& operator+=(math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+{
+	return (a = a + b);
+}
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M>& operator+=(math::matrix<T, N, M>& a, T b) noexcept
+{
+	return (a = a + b);
+}
+/// @}
+
+/**
+ * Subtracts the first value by the second value and stores the result in the first value.
+ *
+ * @param a First value.
+ * @param b Second value.
+ * @return Reference to the first value.
+ */
+/// @{
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M>& operator-=(math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+{
+	return (a = a - b);
+}
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M>& operator-=(math::matrix<T, N, M>& a, T b) noexcept
+{
+	return (a = a - b);
+}
+/// @}
+
+/**
+ * Multiplies two values and stores the result in the first value.
+ *
+ * @param a First value.
+ * @param b Second value.
+ * @return Reference to the first value.
+ */
+/// @{
 template <class T, std::size_t N>
-constexpr math::vector<T, N> operator*(const math::matrix<T, N, N>& m, const math::vector<T, N>& v);
-
-/// @copydoc math::sub(const math::matrix<T, 2, 2>&, const math::matrix<T, 2, 2>&)
+constexpr inline math::matrix<T, N, N>& operator*=(math::matrix<T, N, N>& a, math::matrix<T, N, N>& b) noexcept
+{
+	return (a = a * b);
+}
 template <class T, std::size_t N, std::size_t M>
-constexpr math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y);
+constexpr inline math::matrix<T, N, M>& operator*=(math::matrix<T, N, M>& a, T b) noexcept
+{
+	return (a = a * b);
+}
+/// @}
+
+/**
+ * Divides the first value by the second value and stores the result in the first value.
+ *
+ * @param a First value.
+ * @param b Second value.
+ * @return Reference to the first value.
+ */
+/// @{
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M>& operator/=(math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+{
+	return (a = a / b);
+}
+template <class T, std::size_t N, std::size_t M>
+constexpr inline math::matrix<T, N, M>& operator/=(math::matrix<T, N, M>& a, T b) noexcept
+{
+	return (a = a / b);
+}
+/// @}
 
 /**
  * Writes the elements of a matrix to an output stream, with each element delimeted by a space.
@@ -1259,55 +1161,6 @@ constexpr math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const 
  * @param m Matrix.
  * @return Output stream.
  */
-template <class T, std::size_t N, std::size_t M>
-std::ostream& operator<<(std::ostream& os, const math::matrix<T, N, M>& m);
-
-/**
- * Reads the elements of a matrix from an input stream, with each element delimeted by a space.
- *
- * @param is Input stream.
- * @param m Matrix.
- * @return Input stream.
- */
-template <class T, std::size_t N, std::size_t M>
-std::istream& operator>>(std::istream& is, math::matrix<T, N, M>& m);
-
-template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
-{
-	return math::add(x, y);
-}
-
-template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
-{
-	return math::mul(x, y);
-}
-
-template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& m, T s)
-{
-	return math::mul(m, s);
-}
-
-template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator*(T s, const math::matrix<T, N, M>& m)
-{
-	return math::mul(m, s);
-}
-
-template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator*(const math::matrix<T, N, N>& m, const math::vector<T, N>& v)
-{
-	return math::mul(m, v);
-}
-
-template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& x, const math::matrix<T, N, M>& y)
-{
-	return math::sub(x, y);
-}
-
 template <class T, std::size_t N, std::size_t M>
 std::ostream& operator<<(std::ostream& os, const math::matrix<T, N, M>& m)
 {
@@ -1321,6 +1174,13 @@ std::ostream& operator<<(std::ostream& os, const math::matrix<T, N, M>& m)
 	return os;
 }
 
+/**
+ * Reads the elements of a matrix from an input stream, with each element delimeted by a space.
+ *
+ * @param is Input stream.
+ * @param m Matrix.
+ * @return Input stream.
+ */
 template <class T, std::size_t N, std::size_t M>
 std::istream& operator>>(std::istream& is, math::matrix<T, N, M>& m)
 {

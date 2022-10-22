@@ -157,7 +157,7 @@ void place(entity::registry& registry, entity::id eid, entity::id celestial_body
 		}
 		
 		game::component::transform& transform = registry.get<game::component::transform>(eid);
-		transform.local.translation = math::type_cast<float>(double3{x, y, z});
+		transform.local.translation = math::vector<float, 3>(double3{x, y, z});
 		transform.warp = true;
 	}
 	*/

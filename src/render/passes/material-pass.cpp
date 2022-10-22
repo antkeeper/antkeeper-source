@@ -43,6 +43,7 @@
 #include "scene/spot-light.hpp"
 #include "config.hpp"
 #include "math/quaternion-operators.hpp"
+#include "math/projection.hpp"
 #include <cmath>
 #include <glad/glad.h>
 
@@ -504,8 +505,8 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 		model = operation.transform;
 		model_view_projection = view_projection * model;
 		model_view = view * model;
-		normal_model = math::transpose(math::inverse(math::resize<3, 3>(model)));
-		normal_model_view = math::transpose(math::inverse(math::resize<3, 3>(model_view)));
+		normal_model = math::transpose(math::inverse(math::matrix<float, 3, 3>(model)));
+		normal_model_view = math::transpose(math::inverse(math::matrix<float, 3, 3>(model_view)));
 		
 		// Skinning palette
 		if (operation.bone_count && parameters->skinning_palette)

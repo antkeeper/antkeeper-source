@@ -52,7 +52,7 @@ public:
 	 * @param t Current time, in seconds.
 	 * @param dt Timestep, in seconds.
 	 * @param alpha Subframe interpolation factor.
-	 * @parma collection Collection of scene objects to render.
+	 * @param collection Collection of scene objects to render.
 	 */
 	void render(float t, float dt, float alpha, const scene::collection& collection) const;
 	

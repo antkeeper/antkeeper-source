@@ -29,6 +29,8 @@
 #include "debug/logger.hpp"
 #include "resources/resource-manager.hpp"
 #include "render/material-flags.hpp"
+#include "math/matrix.hpp"
+#include <iostream>
 
 namespace game {
 namespace state {

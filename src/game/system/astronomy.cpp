@@ -157,7 +157,7 @@ void astronomy::update(double t, double dt)
 		// Update local transform
 		if (orbit.parent != entt::null)
 		{
-			transform.local.translation = math::normalize(math::type_cast<float>(r_eus));
+			transform.local.translation = math::normalize(float3(r_eus));
 			transform.local.rotation = math::type_cast<float>(rotation_eus);
 			transform.local.scale = {1.0f, 1.0f, 1.0f};
 		}
@@ -206,12 +206,12 @@ void astronomy::update(double t, double dt)
 			(
 				math::look_rotation
 				(
-					math::type_cast<float>(-observer_blackbody_direction_eus),
-					math::type_cast<float>(blackbody_up_eus)
+					float3(-observer_blackbody_direction_eus),
+					float3(blackbody_up_eus)
 				)
 			);
 			
-			sun_light->set_color(math::type_cast<float>(observer_blackbody_transmitted_illuminance));
+			sun_light->set_color(float3(observer_blackbody_transmitted_illuminance));
 			
 			// Bounce sun light
 			bounce_illuminance += std::max(0.0, math::dot(bounce_normal, -observer_blackbody_direction_eus)) * observer_blackbody_transmitted_illuminance * bounce_albedo;
@@ -231,7 +231,7 @@ void astronomy::update(double t, double dt)
 			sky_light_illuminance += starlight_illuminance;
 			
 			// Update sky light
-			sky_light->set_color(math::type_cast<float>(sky_light_illuminance));
+			sky_light->set_color(float3(sky_light_illuminance));
 			
 			// Bounce sky light
 			bounce_illuminance += sky_light_illuminance * bounce_albedo;
@@ -240,9 +240,9 @@ void astronomy::update(double t, double dt)
 		// Upload blackbody params to sky pass
 		if (this->sky_pass)
 		{
-			this->sky_pass->set_sun_position(math::type_cast<float>(blackbody_position_eus));
-			this->sky_pass->set_sun_luminance(math::type_cast<float>(blackbody.luminance));
-			this->sky_pass->set_sun_illuminance(math::type_cast<float>(observer_blackbody_illuminance), math::type_cast<float>(observer_blackbody_transmitted_illuminance));
+			this->sky_pass->set_sun_position(float3(blackbody_position_eus));
+			this->sky_pass->set_sun_luminance(float3(blackbody.luminance));
+			this->sky_pass->set_sun_illuminance(float3(observer_blackbody_illuminance), float3(observer_blackbody_transmitted_illuminance));
 			this->sky_pass->set_sun_angular_radius(static_cast<float>(observer_blackbody_angular_radius));
 		}
 		
@@ -308,23 +308,23 @@ void astronomy::update(double t, double dt)
 				this->sky_pass->set_moon_position(transform.local.translation);
 				this->sky_pass->set_moon_rotation(transform.local.rotation);
 				this->sky_pass->set_moon_angular_radius(static_cast<float>(observer_reflector_angular_radius));
-				this->sky_pass->set_moon_sunlight_direction(math::type_cast<float>(-reflector_blackbody_direction_eus));
-				this->sky_pass->set_moon_sunlight_illuminance(math::type_cast<float>(reflector_blackbody_illuminance * observer_reflector_transmittance));
-				this->sky_pass->set_moon_planetlight_direction(math::type_cast<float>(observer_reflector_direction_eus));
-				this->sky_pass->set_moon_planetlight_illuminance(math::type_cast<float>(reflector_observer_illuminance * observer_reflector_transmittance));
-				this->sky_pass->set_moon_illuminance(math::type_cast<float>(observer_reflector_illuminance / observer_reflector_transmittance), math::type_cast<float>(observer_reflector_illuminance));
+				this->sky_pass->set_moon_sunlight_direction(float3(-reflector_blackbody_direction_eus));
+				this->sky_pass->set_moon_sunlight_illuminance(float3(reflector_blackbody_illuminance * observer_reflector_transmittance));
+				this->sky_pass->set_moon_planetlight_direction(float3(observer_reflector_direction_eus));
+				this->sky_pass->set_moon_planetlight_illuminance(float3(reflector_observer_illuminance * observer_reflector_transmittance));
+				this->sky_pass->set_moon_illuminance(float3(observer_reflector_illuminance / observer_reflector_transmittance), float3(observer_reflector_illuminance));
 			}
 			
 			if (this->moon_light)
 			{
-				const float3 reflector_up_eus = math::type_cast<float>(icrf_to_eus.r * double3{0, 0, 1});
+				const float3 reflector_up_eus = float3(icrf_to_eus.r * double3{0, 0, 1});
 				
-				this->moon_light->set_color(math::type_cast<float>(observer_reflector_illuminance));
+				this->moon_light->set_color(float3(observer_reflector_illuminance));
 				this->moon_light->set_rotation
 				(
 					math::look_rotation
 					(
-						math::type_cast<float>(-observer_reflector_direction_eus),
+						float3(-observer_reflector_direction_eus),
 						reflector_up_eus
 					)
 				);
@@ -337,7 +337,7 @@ void astronomy::update(double t, double dt)
 	
 	if (bounce_light)
 	{
-		bounce_light->set_color(math::type_cast<float>(bounce_illuminance));
+		bounce_light->set_color(float3(bounce_illuminance));
 	}
 }
 
@@ -580,7 +580,7 @@ void astronomy::update_icrf_to_eus(const game::component::celestial_body& body, 
 		(
 			math::transformation::se3<float>
 			{
-				math::type_cast<float>(icrf_to_eus.t),
+				float3(icrf_to_eus.t),
 				math::type_cast<float>(icrf_to_eus.r)
 			}
 		);

@@ -194,7 +194,7 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	float clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
 	float3 model_scale = float3{1.0f, 1.0f, 1.0f} * (clip_near + clip_far) * 0.5f;
 	float4x4 model = math::scale(math::matrix4<float>::identity(), model_scale);
-	float4x4 view = math::resize<4, 4>(math::resize<3, 3>(ctx.view));
+	float4x4 view = float4x4(float3x3(ctx.view));
 	float4x4 model_view = view * model;
 	const float4x4& projection = ctx.projection;
 	float4x4 view_projection = projection * view;
@@ -300,7 +300,7 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	{
 		float star_distance = (clip_near + clip_far) * 0.5f;
 		
-		model = math::resize<4, 4>(math::matrix_cast<float>(icrf_to_eus.r));
+		model = float4x4(math::matrix_cast<float>(icrf_to_eus.r));
 		model = math::scale(model, {star_distance, star_distance, star_distance});
 		
 		model_view = view * model;
@@ -332,7 +332,7 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 		moon_transform.scale = {moon_radius, moon_radius, moon_radius};
 		
 		model = math::matrix_cast(moon_transform);		
-		float3x3 normal_model = math::transpose(math::inverse(math::resize<3, 3>(model)));
+		float3x3 normal_model = math::transpose(math::inverse(float3x3(model)));
 		
 		rasterizer->use_program(*moon_shader_program);
 		if (moon_model_input)

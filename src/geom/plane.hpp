@@ -99,7 +99,7 @@ plane<T>::plane(const vector_type& a, const vector_type& b, const vector_type& c
 template <class T>
 plane<T>::plane(const math::vector<T, 4>& coefficients)
 {
-	const vector_type abc = math::resize<3>(coefficients);
+	const vector_type abc = math::vector<T, 3>(coefficients);
 	const float inverse_length = T(1) / math::length(abc);
 	
 	normal = abc * inverse_length;

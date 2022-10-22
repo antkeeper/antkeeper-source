@@ -176,7 +176,7 @@ void renderer::process_model_instance(const render::context& ctx, render::queue&
 
 	render::operation operation;
 	operation.transform = math::matrix_cast(model_instance->get_transform_tween().interpolate(ctx.alpha));
-	operation.depth = ctx.clip_near.signed_distance(math::resize<3>(operation.transform[3]));
+	operation.depth = ctx.clip_near.signed_distance(float3(operation.transform[3]));
 	operation.vertex_array = model->get_vertex_array();
 	operation.instance_count = model_instance->get_instance_count();
 	
@@ -223,7 +223,7 @@ void renderer::process_billboard(const render::context& ctx, render::queue& queu
 	
 	math::transform<float> billboard_transform = billboard->get_transform_tween().interpolate(ctx.alpha);
 	billboard_op.material = billboard->get_material();
-	billboard_op.depth = ctx.clip_near.signed_distance(math::resize<3>(billboard_transform.translation));
+	billboard_op.depth = ctx.clip_near.signed_distance(float3(billboard_transform.translation));
 	
 	// Align billboard
 	if (billboard->get_billboard_type() == scene::billboard_type::spherical)

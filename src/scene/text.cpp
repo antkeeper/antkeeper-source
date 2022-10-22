@@ -104,7 +104,7 @@ void text::render(const render::context& ctx, render::queue& queue) const
 		return;
 	
 	render_op.transform = math::matrix_cast(get_transform_tween().interpolate(ctx.alpha));
-	render_op.depth = ctx.clip_near.signed_distance(math::resize<3>(render_op.transform[3]));
+	render_op.depth = ctx.clip_near.signed_distance(math::vector<float, 3>(render_op.transform[3]));
 	queue.push_back(render_op);
 }
 
