@@ -1324,97 +1324,97 @@ constexpr inline vector<T, N> trunc(const vector<T, N>& x)
 	return trunc(x, std::make_index_sequence<N>{});
 }
 
-} // namespace math
+namespace operators {
 
-/// @copydoc math::add(const math::vector<T, N>&, const math::vector<T, N>&)
+/// @copydoc add(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator+(const math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N> operator+(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
-	return math::add(x, y);
+	return add(x, y);
 }
 
-/// @copydoc math::add(const math::vector<T, N>&, T)
+/// @copydoc add(const vector<T, N>&, T)
 /// @{
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator+(const math::vector<T, N>& x, T y) noexcept
+constexpr inline vector<T, N> operator+(const vector<T, N>& x, T y) noexcept
 {
-	return math::add(x, y);
+	return add(x, y);
 }
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator+(T x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N> operator+(T x, const vector<T, N>& y) noexcept
 {
-	return math::add(y, x);
+	return add(y, x);
 }
 /// @}
 
-/// @copydoc math::div(const math::vector<T, N>&, const math::vector<T, N>&)
+/// @copydoc div(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator/(const math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N> operator/(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
-	return math::div(x, y);
+	return div(x, y);
 }
 
-/// @copydoc math::div(const math::vector<T, N>&, T)
+/// @copydoc div(const vector<T, N>&, T)
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator/(const math::vector<T, N>& x, T y) noexcept
+constexpr inline vector<T, N> operator/(const vector<T, N>& x, T y) noexcept
 {
-	return math::div(x, y);
+	return div(x, y);
 }
 
-/// @copydoc math::div(T, const math::vector<T, N>&)
+/// @copydoc div(T, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator/(T x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N> operator/(T x, const vector<T, N>& y) noexcept
 {
-	return math::div(x, y);
+	return div(x, y);
 }
 
-/// @copydoc math::mul(const math::vector<T, N>&, const math::vector<T, N>&)
+/// @copydoc mul(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator*(const math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N> operator*(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
-	return math::mul(x, y);
+	return mul(x, y);
 }
 
-/// @copydoc math::mul(const math::vector<T, N>&, T)
+/// @copydoc mul(const vector<T, N>&, T)
 /// @{
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator*(const math::vector<T, N>& x, T y) noexcept
+constexpr inline vector<T, N> operator*(const vector<T, N>& x, T y) noexcept
 {
-	return math::mul(x, y);
+	return mul(x, y);
 }
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator*(T x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N> operator*(T x, const vector<T, N>& y) noexcept
 {
-	return math::mul(y, x);
+	return mul(y, x);
 }
 /// @}
 
-/// @copydoc math::negate(const math::vector<T, N>&)
+/// @copydoc negate(const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator-(const math::vector<T, N>& x) noexcept
+constexpr inline vector<T, N> operator-(const vector<T, N>& x) noexcept
 {
-	return math::negate(x);
+	return negate(x);
 }
 
-/// @copydoc math::sub(const math::vector<T, N>&, const math::vector<T, N>&)
+/// @copydoc sub(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator-(const math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N> operator-(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
-	return math::sub(x, y);
+	return sub(x, y);
 }
 
-/// @copydoc math::sub(const math::vector<T, N>&, T)
+/// @copydoc sub(const vector<T, N>&, T)
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator-(const math::vector<T, N>& x, T y) noexcept
+constexpr inline vector<T, N> operator-(const vector<T, N>& x, T y) noexcept
 {
-	return math::sub(x, y);
+	return sub(x, y);
 }
 
-/// @copydoc math::sub(T, const math::vector<T, N>&)
+/// @copydoc sub(T, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N> operator-(T x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N> operator-(T x, const vector<T, N>& y) noexcept
 {
-	return math::sub(x, y);
+	return sub(x, y);
 }
 
 /**
@@ -1426,12 +1426,12 @@ constexpr inline math::vector<T, N> operator-(T x, const math::vector<T, N>& y) 
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N>& operator+=(math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N>& operator+=(vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return (x = x + y);
 }
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N>& operator+=(math::vector<T, N>& x, T y) noexcept
+constexpr inline vector<T, N>& operator+=(vector<T, N>& x, T y) noexcept
 {
 	return (x = x + y);
 }
@@ -1446,12 +1446,12 @@ constexpr inline math::vector<T, N>& operator+=(math::vector<T, N>& x, T y) noex
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N>& operator-=(math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N>& operator-=(vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return (x = x - y);
 }
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N>& operator-=(math::vector<T, N>& x, T y) noexcept
+constexpr inline vector<T, N>& operator-=(vector<T, N>& x, T y) noexcept
 {
 	return (x = x - y);
 }
@@ -1466,12 +1466,12 @@ constexpr inline math::vector<T, N>& operator-=(math::vector<T, N>& x, T y) noex
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N>& operator*=(math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N>& operator*=(vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return (x = x * y);
 }
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N>& operator*=(math::vector<T, N>& x, T y) noexcept
+constexpr inline vector<T, N>& operator*=(vector<T, N>& x, T y) noexcept
 {
 	return (x = x * y);
 }
@@ -1486,12 +1486,12 @@ constexpr inline math::vector<T, N>& operator*=(math::vector<T, N>& x, T y) noex
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N>& operator/=(math::vector<T, N>& x, const math::vector<T, N>& y) noexcept
+constexpr inline vector<T, N>& operator/=(vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return (x = x / y);
 }
 template <class T, std::size_t N>
-constexpr inline math::vector<T, N>& operator/=(math::vector<T, N>& x, T y) noexcept
+constexpr inline vector<T, N>& operator/=(vector<T, N>& x, T y) noexcept
 {
 	return (x = x / y);
 }
@@ -1506,7 +1506,7 @@ constexpr inline math::vector<T, N>& operator/=(math::vector<T, N>& x, T y) noex
  * @return Output stream.
  */
 template <class T, std::size_t N>
-std::ostream& operator<<(std::ostream& os, const math::vector<T, N>& x)
+std::ostream& operator<<(std::ostream& os, const vector<T, N>& x)
 {
 	for (std::size_t i = 0; i < N; ++i)
 	{
@@ -1527,12 +1527,18 @@ std::ostream& operator<<(std::ostream& os, const math::vector<T, N>& x)
  * @return Input stream.
  */
 template <class T, std::size_t N>
-std::istream& operator>>(std::istream& is, math::vector<T, N>& x)
+std::istream& operator>>(std::istream& is, vector<T, N>& x)
 {
 	for (std::size_t i = 0; i < N; ++i)
 		is >> x[i];
 	
 	return is;
 }
+
+} // namespace operators
+
+} // namespace math
+
+using namespace math::operators;
 
 #endif // ANTKEEPER_MATH_VECTOR_HPP

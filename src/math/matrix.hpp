@@ -974,104 +974,104 @@ constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m) noexcept
 	return transpose(m, std::make_index_sequence<M>{});
 }
 
-} // namespace math
+namespace operators {
 
-/// @copydoc math::add(const math::matrix<T, N, M>&, const math::matrix<T, N, M>&)
+/// @copydoc add(const matrix<T, N, M>&, const matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline matrix<T, N, M> operator+(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
-	return math::add(a, b);
+	return add(a, b);
 }
 
-/// @copydoc math::add(const math::matrix<T, N, M>&, T)
+/// @copydoc add(const matrix<T, N, M>&, T)
 /// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator+(const math::matrix<T, N, M>& a, T b) noexcept
+constexpr inline matrix<T, N, M> operator+(const matrix<T, N, M>& a, T b) noexcept
 {
-	return math::add(a, b);
+	return add(a, b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator+(T a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline matrix<T, N, M> operator+(T a, const matrix<T, N, M>& b) noexcept
 {
-	return math::add(b, a);
+	return add(b, a);
 }
 /// @}
 
-/// @copydoc math::div(const math::matrix<T, N, M>&, const math::matrix<T, N, M>&)
+/// @copydoc div(const matrix<T, N, M>&, const matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator/(const math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline matrix<T, N, M> operator/(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
-	return math::div(a, b);
+	return div(a, b);
 }
 
-/// @copydoc math::div(const math::matrix<T, N, M>&, T)
+/// @copydoc div(const matrix<T, N, M>&, T)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator/(const math::matrix<T, N, M>& a, T b) noexcept
+constexpr inline matrix<T, N, M> operator/(const matrix<T, N, M>& a, T b) noexcept
 {
-	return math::div(a, b);
+	return div(a, b);
 }
 
-/// @copydoc math::div(T, const math::matrix<T, N, M>&)
+/// @copydoc div(T, const matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator/(T a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline matrix<T, N, M> operator/(T a, const matrix<T, N, M>& b) noexcept
 {
-	return math::div(a, b);
+	return div(a, b);
 }
 
-/// @copydoc math::mul(const math::matrix<T, N, M>&, const math::matrix<T, P, N>&)
+/// @copydoc mul(const matrix<T, N, M>&, const matrix<T, P, N>&)
 template <typename T, std::size_t N, std::size_t M, std::size_t P>
-constexpr inline math::matrix<T, P, M> operator*(const math::matrix<T, N, M>& a, const math::matrix<T, P, N>& b) noexcept
+constexpr inline matrix<T, P, M> operator*(const matrix<T, N, M>& a, const matrix<T, P, N>& b) noexcept
 {
-	return math::mul(a, b);
+	return mul(a, b);
 }
 
-/// @copydoc math::mul(const math::matrix<T, N, M>&, T)
+/// @copydoc mul(const matrix<T, N, M>&, T)
 /// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator*(const math::matrix<T, N, M>& a, T b) noexcept
+constexpr inline matrix<T, N, M> operator*(const matrix<T, N, M>& a, T b) noexcept
 {
-	return math::mul(a, b);
+	return mul(a, b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator*(T a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline matrix<T, N, M> operator*(T a, const matrix<T, N, M>& b) noexcept
 {
-	return math::mul(b, a);
+	return mul(b, a);
 }
 /// @}
 
-/// @copydoc math::mul(const math::matrix<T, N, M>&, const typename math::matrix<T, N, M>::row_vector_type&)
+/// @copydoc mul(const matrix<T, N, M>&, const typename matrix<T, N, M>::row_vector_type&)
 template <typename T, std::size_t N, std::size_t M>
-constexpr inline typename math::matrix<T, N, M>::column_vector_type operator*(const math::matrix<T, N, M>& a, const typename math::matrix<T, N, M>::row_vector_type& b) noexcept
+constexpr inline typename matrix<T, N, M>::column_vector_type operator*(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b) noexcept
 {
-	return math::mul(a, b);
+	return mul(a, b);
 }
 
-/// @copydoc math::mul(const typename math::matrix<T, N, M>::column_vector_type&, const math::matrix<T, N, M>&)
+/// @copydoc mul(const typename matrix<T, N, M>::column_vector_type&, const matrix<T, N, M>&)
 template <typename T, std::size_t N, std::size_t M>
-constexpr inline typename math::matrix<T, N, M>::row_vector_type operator*(const typename math::matrix<T, N, M>::column_vector_type& a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline typename matrix<T, N, M>::row_vector_type operator*(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b) noexcept
 {
-	return math::mul(a, b);
+	return mul(a, b);
 }
 
-/// @copydoc math::sub(const math::matrix<T, N, M>&, const math::matrix<T, N, M>&)
+/// @copydoc sub(const matrix<T, N, M>&, const matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline matrix<T, N, M> operator-(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
-	return math::sub(a, b);
+	return sub(a, b);
 }
 
-/// @copydoc math::sub(const math::matrix<T, N, M>&, T)
+/// @copydoc sub(const matrix<T, N, M>&, T)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator-(const math::matrix<T, N, M>& a, T b) noexcept
+constexpr inline matrix<T, N, M> operator-(const matrix<T, N, M>& a, T b) noexcept
 {
-	return math::sub(a, b);
+	return sub(a, b);
 }
 
-/// @copydoc math::sub(T, const math::matrix<T, N, M>&)
+/// @copydoc sub(T, const matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M> operator-(T a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline matrix<T, N, M> operator-(T a, const matrix<T, N, M>& b) noexcept
 {
-	return math::sub(a, b);
+	return sub(a, b);
 }
 
 /**
@@ -1083,12 +1083,12 @@ constexpr inline math::matrix<T, N, M> operator-(T a, const math::matrix<T, N, M
  */
 /// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M>& operator+=(math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline matrix<T, N, M>& operator+=(matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
 	return (a = a + b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M>& operator+=(math::matrix<T, N, M>& a, T b) noexcept
+constexpr inline matrix<T, N, M>& operator+=(matrix<T, N, M>& a, T b) noexcept
 {
 	return (a = a + b);
 }
@@ -1103,12 +1103,12 @@ constexpr inline math::matrix<T, N, M>& operator+=(math::matrix<T, N, M>& a, T b
  */
 /// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M>& operator-=(math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline matrix<T, N, M>& operator-=(matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
 	return (a = a - b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M>& operator-=(math::matrix<T, N, M>& a, T b) noexcept
+constexpr inline matrix<T, N, M>& operator-=(matrix<T, N, M>& a, T b) noexcept
 {
 	return (a = a - b);
 }
@@ -1123,12 +1123,12 @@ constexpr inline math::matrix<T, N, M>& operator-=(math::matrix<T, N, M>& a, T b
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline math::matrix<T, N, N>& operator*=(math::matrix<T, N, N>& a, math::matrix<T, N, N>& b) noexcept
+constexpr inline matrix<T, N, N>& operator*=(matrix<T, N, N>& a, matrix<T, N, N>& b) noexcept
 {
 	return (a = a * b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M>& operator*=(math::matrix<T, N, M>& a, T b) noexcept
+constexpr inline matrix<T, N, M>& operator*=(matrix<T, N, M>& a, T b) noexcept
 {
 	return (a = a * b);
 }
@@ -1143,12 +1143,12 @@ constexpr inline math::matrix<T, N, M>& operator*=(math::matrix<T, N, M>& a, T b
  */
 /// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M>& operator/=(math::matrix<T, N, M>& a, const math::matrix<T, N, M>& b) noexcept
+constexpr inline matrix<T, N, M>& operator/=(matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
 	return (a = a / b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline math::matrix<T, N, M>& operator/=(math::matrix<T, N, M>& a, T b) noexcept
+constexpr inline matrix<T, N, M>& operator/=(matrix<T, N, M>& a, T b) noexcept
 {
 	return (a = a / b);
 }
@@ -1162,7 +1162,7 @@ constexpr inline math::matrix<T, N, M>& operator/=(math::matrix<T, N, M>& a, T b
  * @return Output stream.
  */
 template <class T, std::size_t N, std::size_t M>
-std::ostream& operator<<(std::ostream& os, const math::matrix<T, N, M>& m)
+std::ostream& operator<<(std::ostream& os, const matrix<T, N, M>& m)
 {
 	for (std::size_t i = 0; i < m.size(); ++i)
 	{
@@ -1182,12 +1182,18 @@ std::ostream& operator<<(std::ostream& os, const math::matrix<T, N, M>& m)
  * @return Input stream.
  */
 template <class T, std::size_t N, std::size_t M>
-std::istream& operator>>(std::istream& is, math::matrix<T, N, M>& m)
+std::istream& operator>>(std::istream& is, matrix<T, N, M>& m)
 {
 	for (std::size_t i = 0; i < m.size(); ++i)
 		is >> m.element(i);
 	
 	return is;
 }
+
+} // namespace operators
+
+} // namespace math
+
+using namespace math::operators;
 
 #endif // ANTKEEPER_MATH_MATRIX_HPP
