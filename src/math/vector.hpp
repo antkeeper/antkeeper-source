@@ -633,7 +633,7 @@ vector<T, N> normalize(const vector<T, N>& x);
  * @return Logically inverted vector.
  */
 template <class T, std::size_t N>
-constexpr vector<bool, N> not(const vector<T, N>& x) noexcept;
+constexpr vector<bool, N> logical_not(const vector<T, N>& x) noexcept;
 
 /**
  * Compares two vectors for inequality
@@ -1189,15 +1189,15 @@ inline vector<T, N> normalize(const vector<T, N>& x)
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<bool, N> not(const vector<T, N>& x, std::index_sequence<I...>) noexcept
+constexpr inline vector<bool, N> logical_not(const vector<T, N>& x, std::index_sequence<I...>) noexcept
 {
 	return {!x[I]...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<bool, N> not(const vector<T, N>& x) noexcept
+constexpr inline vector<bool, N> logical_not(const vector<T, N>& x) noexcept
 {
-	return not(x, std::make_index_sequence<N>{});
+	return logical_not(x, std::make_index_sequence<N>{});
 }
 
 /// @private

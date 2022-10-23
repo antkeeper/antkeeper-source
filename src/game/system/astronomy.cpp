@@ -168,7 +168,7 @@ void astronomy::update(double t, double dt)
 	
 	// Update blackbody lighting
 	registry.view<component::celestial_body, component::orbit, component::blackbody>().each(
-	[&](entity::id entity_id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
+	[&, bounce_normal](entity::id entity_id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
 	{
 		// Transform blackbody position from ICRF frame to EUS frame
 		const double3 blackbody_position_eus = icrf_to_eus * blackbody_orbit.position;
@@ -248,7 +248,7 @@ void astronomy::update(double t, double dt)
 		
 		// Update diffuse reflectors
 		this->registry.view<component::celestial_body, component::orbit, component::diffuse_reflector, component::transform>().each(
-		[&](entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
+		[&, bounce_normal](entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
 		{
 			// Transform reflector position from ICRF frame to EUS frame
 			const double3 reflector_position_eus = icrf_to_eus * reflector_orbit.position;

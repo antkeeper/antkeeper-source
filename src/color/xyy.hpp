@@ -48,7 +48,7 @@ constexpr inline T luminance(const math::vector3<T>& x)
 template <class T>
 constexpr math::vector2<T> to_ucs(const math::vector3<T>& x)
 {
-	const T d = T({1} / (T{-2} * x[0] + T{12} * x[1] + T{3}));
+	const T d = (T{1} / (T{-2} * x[0] + T{12} * x[1] + T{3}));
 	return math::vector2<T>{(T{4} * x[0]) * d, (T{6} * x[1]) * d};
 }
 

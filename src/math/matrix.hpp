@@ -123,11 +123,11 @@ struct matrix
 	/// @{
 	constexpr inline column_vector_type& back() noexcept
 	{
-		return elements[column_count - 1];
+		return columns[column_count - 1];
 	}
 	constexpr inline const column_vector_type& back() const noexcept
 	{
-		return elements[column_count - 1];
+		return columns[column_count - 1];
 	}
 	/// @}
 	

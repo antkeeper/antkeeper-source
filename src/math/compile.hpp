@@ -17,29 +17,45 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_OCTREE_HPP
-#define ANTKEEPER_GEOM_OCTREE_HPP
+#ifndef ANTKEEPER_MATH_COMPILE_HPP
+#define ANTKEEPER_MATH_COMPILE_HPP
 
-#include "geom/hyperoctree.hpp"
+#include <concepts>
 
-namespace geom {
+namespace math {
 
-/// An octree, or 3-dimensional hyperoctree.
-template <class T, std::size_t D>
-using octree = hyperoctree<T, 3, D>;
+/// Compile-time mathematical functions.
+namespace compile {
 
-/// Octree with an 8-bit node type (2 depth levels).
-typedef octree<std::uint8_t, 1> octree8;
+/**
+ * Compile-time `pow` for unsigned integrals.
+ *
+ * @param x Base value.
+ * @param e Integral exponent.
+ *
+ * @return `x^e`.
+ */
+template <std::unsigned_integral T>
+consteval T pow(T x, T e) noexcept
+{
+	return (e == 0) ? T(1) : (x * pow<T>(x, e - 1));
+}
 
-/// Octree with a 16-bit node type (4 depth levels).
-typedef octree<std::uint16_t, 3> octree16;
+/**
+ * Compile-time `ceil(log2(x))` for unsigned integrals.
+ *
+ * @param x Input value.
+ *
+ * @return `ceil(log2(x))`.
+ */
+template <std::unsigned_integral T>
+consteval T ceil_log2(T x) noexcept
+{
+	return (x <= T(1)) ? T(0) : ceil_log2((x + T(1)) / T(2)) + T(1);
+}
 
-/// Octree with a 32-bit node type (9 depth levels).
-typedef octree<std::uint32_t, 8> octree32;
+} // namespace compile
 
-/// Octree with a 64-bit node type (19 depth levels).
-typedef octree<std::uint64_t, 18> octree64;
+} // namespace math
 
-} // namespace geom
-
-#endif // ANTKEEPER_GEOM_OCTREE_HPP
+#endif // ANTKEEPER_MATH_COMPILE_HPP

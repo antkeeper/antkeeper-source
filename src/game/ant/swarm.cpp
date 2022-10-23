@@ -39,7 +39,7 @@ namespace ant {
 template <class T, class Generator>
 static math::vector3<T> sphere_random(Generator& rng)
 {
-	const std::uniform_real_distribution<T> distribution(T{-1}, T{1});
+	std::uniform_real_distribution<T> distribution(T{-1}, T{1});
 	
 	math::vector3<T> position;
 	for (std::size_t i = 0; i < 3; ++i)

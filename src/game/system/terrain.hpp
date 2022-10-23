@@ -82,7 +82,7 @@ public:
 	void set_scene_collection(scene::collection* collection);
 
 private:
-	typedef geom::quadtree32 quadtree_type;
+	typedef geom::quadtree16 quadtree_type;
 	typedef quadtree_type::node_type quadtree_node_type;
 	
 	struct patch
@@ -104,8 +104,6 @@ private:
 
 	
 	void visit_quadtree(const geom::bounding_volume<float>& volume, quadtree_node_type node);
-	
-
 	
 	/**
 	 * Generates a mesh for a terrain patch given the patch's quadtree node

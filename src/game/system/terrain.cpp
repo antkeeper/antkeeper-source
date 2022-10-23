@@ -56,6 +56,8 @@ terrain::terrain(entity::registry& registry):
 	for (std::size_t i = 0; i <= quadtree_type::max_depth; ++i)
 		quadtree_node_size[i] = 0.0f;
 	
+	std::cout << "quadtree cap: " << quadtree.max_size() << std::endl;
+	
 	registry.on_construct<component::terrain>().connect<&terrain::on_terrain_construct>(this);
 	registry.on_update<component::terrain>().connect<&terrain::on_terrain_update>(this);
 	registry.on_destroy<component::terrain>().connect<&terrain::on_terrain_destroy>(this);
@@ -119,7 +121,7 @@ void terrain::update(double t, double dt)
 			
 			geom::sphere<float> sphere;
 			sphere.center = cam.get_translation();
-			sphere.radius = cam.get_clip_far() * 0.25;
+			sphere.radius = patch_side_length;
 			
 			//visit_quadtree(cam.get_view_frustum().get_bounds(), quadtree_type::root);
 			visit_quadtree(sphere, quadtree_type::root);
@@ -275,14 +277,14 @@ void terrain::visit_quadtree(const geom::bounding_volume<float>& volume, quadtre
 	node_bounds.min_point = 
 	{
 		node_center.x() - node_size * 0.5f,
-		quadtree_node_size[quadtree_type::max_depth] * -0.5f,
+		-std::numeric_limits<float>::infinity(),
 		node_center.z() - node_size * 0.5f
 	};
 	node_bounds.max_point =
 	{
-		node_bounds.min_point[0] + node_size,
-		node_bounds.min_point[1] + quadtree_node_size[quadtree_type::max_depth],
-		node_bounds.min_point[2] + node_size
+		node_bounds.min_point.x() + node_size,
+		std::numeric_limits<float>::infinity(),
+		node_bounds.min_point.z() + node_size
 	};
 	
 	// If volume intersects node
@@ -663,6 +665,8 @@ geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 	
 	// Set patch model bounds
 	patch_model->set_bounds(patch_bounds);
+	
+	//std::cout << "depth: " << quadtree_type::depth(node) << "; size: " << (patch_bounds.max_point + patch_bounds.min_point) * 0.5f << std::endl;
 	
 	return patch_model;
 }

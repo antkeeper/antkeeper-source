@@ -87,6 +87,7 @@ static bool load_component_atmosphere(entity::archetype& archetype, const json& 
 	return true;
 }
 
+/*
 static bool load_component_behavior(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
 {
 	game::component::behavior component;
@@ -107,6 +108,7 @@ static bool load_component_behavior(entity::archetype& archetype, resource_manag
 	
 	return (component.behavior_tree != nullptr);
 }
+*/
 
 static bool load_component_blackbody(entity::archetype& archetype, const json& element)
 {
@@ -306,8 +308,8 @@ static bool load_component(entity::archetype& archetype, resource_manager& resou
 {
 	if (element.key() == "atmosphere")
 		return load_component_atmosphere(archetype, element.value());
-	if (element.key() == "behavior")
-		return load_component_behavior(archetype, resource_manager, element.value());
+	// if (element.key() == "behavior")
+		// return load_component_behavior(archetype, resource_manager, element.value());
 	if (element.key() == "blackbody")
 		return load_component_blackbody(archetype, element.value());
 	if (element.key() == "celestial_body")

@@ -47,7 +47,7 @@ struct transform
 };
 
 template <class T>
-constexpr transform<T> transform<T>::identity =
+const transform<T> transform<T>::identity =
 {
 	vector<T, 3>::zero(),
 	quaternion<T>::identity(),

@@ -23,7 +23,6 @@ set(STATIC_LIBS
 	stb
 	tinyexr
 	glad
-	EnTT
 	SDL2::SDL2-static
 	SDL2::SDL2main
 	OpenAL::OpenAL

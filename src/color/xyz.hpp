@@ -53,7 +53,7 @@ template <class T>
 constexpr math::vector3<T> to_xyy(const math::vector3<T>& x)
 {
 	const T sum = x[0] + x[1] + x[2];
-	return math::vector3<T>{x[0] / sum, x[1] / sum, x[1]}
+	return math::vector3<T>{x[0] / sum, x[1] / sum, x[1]};
 }
 
 /**

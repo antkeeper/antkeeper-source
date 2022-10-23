@@ -28,7 +28,7 @@ namespace config {
 constexpr int version_major = @PROJECT_VERSION_MAJOR@;
 constexpr int version_minor = @PROJECT_VERSION_MINOR@;
 constexpr int version_patch = @PROJECT_VERSION_PATCH@;
-constexpr char* version_string = "@PROJECT_VERSION@";
+constexpr const char* version_string = "@PROJECT_VERSION@";
 
 constexpr math::vector<float, 3> global_forward = {0.0f, 0.0f, -1.0f};
 constexpr math::vector<float, 3> global_up = {0.0f, 1.0f, 0.0f};

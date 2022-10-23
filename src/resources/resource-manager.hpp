@@ -225,7 +225,7 @@ void resource_manager::save(const T* resource, const std::filesystem::path& path
 		status = EXIT_FAILURE;
 	}
 	
-	logger->pop_task(status)
+	logger->pop_task(status);
 }
 
 inline entt::registry& resource_manager::get_archetype_registry()

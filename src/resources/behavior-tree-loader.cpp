@@ -29,6 +29,8 @@
 #include <sstream>
 #include <physfs.h>
 
+/*
+
 template <class T>
 void parse_argument(T& value, const std::string& string)
 {
@@ -160,4 +162,4 @@ entity::ebt::node* resource_loader<entity::ebt::node>::load(resource_manager* re
 
 	return load_node(json.cbegin(), resource_manager);
 }
-
+*/

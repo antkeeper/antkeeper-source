@@ -25,20 +25,20 @@
 namespace geom {
 
 /// A quadtree, or 2-dimensional hyperoctree.
-template <std::size_t D, class T>
-using quadtree = hyperoctree<2, D, T>;
+template <class T, std::size_t D>
+using quadtree = hyperoctree<T, 2, D>;
 
 /// Quadtree with an 8-bit node type (2 depth levels).
-typedef quadtree<1, std::uint8_t> quadtree8;
+typedef quadtree<std::uint8_t, 1> quadtree8;
 
 /// Quadtree with a 16-bit node type (6 depth levels).
-typedef quadtree<5, std::uint16_t> quadtree16;
+typedef quadtree<std::uint16_t, 5> quadtree16;
 
 /// Quadtree with a 32-bit node type (13 depth levels).
-typedef quadtree<12, std::uint32_t> quadtree32;
+typedef quadtree<std::uint32_t, 12> quadtree32;
 
 /// Quadtree with a 64-bit node type (29 depth levels).
-typedef quadtree<28, std::uint64_t> quadtree64;
+typedef quadtree<std::uint64_t, 28> quadtree64;
 
 } // namespace geom
 
