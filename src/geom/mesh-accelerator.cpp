@@ -39,7 +39,7 @@ void mesh_accelerator::build(const mesh& mesh)
 	center_offset = mesh_dimensions * 0.5f - (bounds.min_point + bounds.max_point) * 0.5f;
 
 	// Calculate node dimensions at each octree depth
-	for (auto i = 0; i <= octree32::max_depth; ++i)
+	for (auto i = 0; i <= octree_type::max_depth; ++i)
 	{
 		node_dimensions[i] = mesh_dimensions * static_cast<float>((1.0f / std::pow(2, i)));
 	}
@@ -67,9 +67,9 @@ void mesh_accelerator::build(const mesh& mesh)
 		// 1. Find max depth node of aabb min
 		// 2. Find max depth node of aabb max
 		// 3. Find common ancestor of the two nodes--that's the containing node.
-		octree32::node_type min_node = find_node(min_point);
-		octree32::node_type max_node = find_node(max_point);
-		octree32::node_type containing_node = octree32::common_ancestor(min_node, max_node);
+		typename octree_type::node_type min_node = find_node(min_point);
+		typename octree_type::node_type max_node = find_node(max_point);
+		typename octree_type::node_type containing_node = octree_type::common_ancestor(min_node, max_node);
 
 		// Insert containing node into octree
 		octree.insert(containing_node);
@@ -92,7 +92,7 @@ std::optional<mesh_accelerator::ray_query_result> mesh_accelerator::query_neares
 	return std::nullopt;
 }
 
-void mesh_accelerator::query_nearest_recursive(float& nearest_t, geom::mesh::face*& nearest_face, octree32::node_type node, const ray<float>& ray) const
+void mesh_accelerator::query_nearest_recursive(float& nearest_t, geom::mesh::face*& nearest_face, typename octree_type::node_type node, const ray<float>& ray) const
 {
 	// Get node bounds
 	const aabb<float> node_bounds = get_node_bounds(node);
@@ -138,22 +138,22 @@ void mesh_accelerator::query_nearest_recursive(float& nearest_t, geom::mesh::fac
 	}
 }
 
-aabb<float> mesh_accelerator::get_node_bounds(octree32::node_type node) const
+aabb<float> mesh_accelerator::get_node_bounds(typename octree_type::node_type node) const
 {
 	// Decode Morton location of node
 	std::uint32_t x, y, z;
-	morton::decode(octree32::location(node), x, y, z);
+	morton::decode(octree_type::location(node), x, y, z);
 	float3 node_location = float3{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
 
 	// Get node dimensions at node depth
-	const float3& dimensions = node_dimensions[octree32::depth(node)];
+	const float3& dimensions = node_dimensions[octree_type::depth(node)];
 
 	// Calculate AABB
 	float3 min_point = (node_location * dimensions) - center_offset;
 	return aabb<float>{min_point, min_point + dimensions};
 }
 
-octree32::node_type mesh_accelerator::find_node(const float3& point) const
+typename mesh_accelerator::octree_type::node_type mesh_accelerator::find_node(const float3& point) const
 {
 	// Transform point to octree space
 	float3 transformed_point = (point + center_offset);
@@ -165,7 +165,7 @@ octree32::node_type mesh_accelerator::find_node(const float3& point) const
 	transformed_point.z() = std::max<float>(0.0f, std::min<float>(node_dimensions[0].z() - epsilon, transformed_point.z()));
 
 	// Transform point to max-depth node space
-	transformed_point = transformed_point / node_dimensions[octree32::max_depth];
+	transformed_point = transformed_point / node_dimensions[octree_type::max_depth];
 
 	// Encode transformed point as a Morton location code
 	std::uint32_t location = morton::encode(
@@ -174,7 +174,7 @@ octree32::node_type mesh_accelerator::find_node(const float3& point) const
 		static_cast<std::uint32_t>(transformed_point.z()));
 	
 	// Return max depth node at the determined location
-	return octree32::node(octree32::max_depth, location);
+	return octree_type::node(octree_type::max_depth, location);
 }
 
 } // namespace geom

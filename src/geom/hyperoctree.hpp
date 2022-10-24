@@ -21,423 +21,556 @@
 #define ANTKEEPER_GEOM_HYPEROCTREE_HPP
 
 #include "math/compile.hpp"
+#include <algorithm>
+#include <array>
 #include <bit>
-#include <cstdint>
-#include <limits>
+#include <concepts>
+#include <cstddef>
+#include <set>
 #include <type_traits>
 #include <unordered_set>
-#include <stack>
 
 namespace geom {
+
+/// Orders in which hyperoctree nodes can be stored and iterated.
+enum class hyperoctree_order
+{
+	/// Hyperoctree nodes are unordered, potentially resulting in faster insertions through the internal use of `std::unordered_set` rather than `std::set`.
+	unordered,
+	
+	/// Hyperoctree nodes are stored and iterated in depth-first preorder.
+	dfs_pre,
+	
+	/// Hyperoctree nodes are stored and iterated in breadth-first order.
+	bfs
+};
+
+/// @private
+template <std::unsigned_integral T>
+using hyperoctree_dfs_pre_compare = std::less<T>;
+
+/// @private
+template <std::unsigned_integral T, std::size_t DepthBits>
+struct hyperoctree_bfs_compare
+{
+	constexpr bool operator()(const T& lhs, const T& rhs) const noexcept
+	{
+		return std::rotr(lhs, DepthBits) < std::rotr(rhs, DepthBits);
+	}
+};
+
+/// @private
+template <hyperoctree_order Order, std::unsigned_integral T, std::size_t DepthBits>
+struct hyperoctree_container {};
+
+/// @private
+template <std::unsigned_integral T, std::size_t DepthBits>
+struct hyperoctree_container<hyperoctree_order::unordered, T, DepthBits>
+{
+	typedef std::unordered_set<T> type;
+};
+
+/// @private
+template <std::unsigned_integral T, std::size_t DepthBits>
+struct hyperoctree_container<hyperoctree_order::dfs_pre, T, DepthBits>
+{
+	typedef std::set<T, hyperoctree_dfs_pre_compare<T>> type;
+};
+
+/// @private
+template <std::unsigned_integral T, std::size_t DepthBits>
+struct hyperoctree_container<hyperoctree_order::bfs, T, DepthBits>
+{
+	typedef std::set<T, hyperoctree_bfs_compare<T, DepthBits>> type;
+};
 
 /**
  * Hashed linear hyperoctree.
  *
- * @tparam T Integer node type.
+ * @tparam T Unsigned integral node identifier type.
  * @tparam N Number of dimensions.
- * @tparam D Max depth.
- *
- * Max depth can likely be determined by a generalized formula. 2D and 3D cases are given below:
- *
- * 2D:
- *   8 bit ( 1 byte) = max depth   1 (  4 loc bits, 1 depth bits, 1 divider bit) =   6 bits
- *  16 bit ( 2 byte) = max depth   5 ( 12 loc bits, 3 depth bits, 1 divider bit) =  16 bits
- *  32 bit ( 4 byte) = max depth  12 ( 26 loc bits, 4 depth bits, 1 divider bit) =  31 bits
- *  64 bit ( 8 byte) = max depth  28 ( 58 loc bits, 5 depth bits, 1 divider bit) =  64 bits
- * 128 bit (16 byte) = max depth  59 (120 loc bits, 6 depth bits, 1 divider bit) = 127 bits
- * 256 bit (32 byte) = max depth 123 (248 loc bits, 7 depth bits, 1 divider bit) = 256 bits
- * @see https://oeis.org/A173009
- * 
- * 3D:
- *   8 bit ( 1 byte) = max depth  1 (  6 loc bits, 1 depth bits, 1 divider bit) =   8 bits
- *  16 bit ( 2 byte) = max depth  3 ( 12 loc bits, 2 depth bits, 1 divider bit) =  15 bits
- *  32 bit ( 4 byte) = max depth  8 ( 27 loc bits, 4 depth bits, 1 divider bit) =  32 bits
- *  64 bit ( 8 byte) = max depth 18 ( 57 loc bits, 5 depth bits, 1 divider bit) =  63 bits
- * 128 bit (16 byte) = max depth 39 (120 loc bits, 6 depth bits, 1 divider bit) = 127 bits
- * 256 bit (32 byte) = max depth 81 (243 loc bits, 7 depth bits, 1 divider bit) = 251 bits
- * @see https://oeis.org/A178420
+ * @tparam Order Order in which nodes are stored and iterated.
  *
  * @see http://codervil.blogspot.com/2015/10/octree-node-identifiers.html
  * @see https://geidav.wordpress.com/2014/08/18/advanced-octrees-2-node-representations/
  */
-template <class T, std::size_t N, std::size_t D>
+template <std::unsigned_integral T, std::size_t N, hyperoctree_order Order = hyperoctree_order::dfs_pre>
 class hyperoctree
 {
+private:
+	/**
+	 * Finds the maximum hyperoctree depth level from the size of the node type `T` and number of dimensions `N`.
+	 *
+	 * @return Maximum hyperoctree depth level.
+	 *
+	 * @note There is likely a more elegant formula for this. Information about the 2D and 3D cases is given below:
+	 *
+	 * 2D:
+	 *   8 bit ( 1 byte) = max depth   1 (  4 loc bits, 1 depth bits, 1 divider bit) =   6 bits
+	 *  16 bit ( 2 byte) = max depth   5 ( 12 loc bits, 3 depth bits, 1 divider bit) =  16 bits
+	 *  32 bit ( 4 byte) = max depth  12 ( 26 loc bits, 4 depth bits, 1 divider bit) =  31 bits
+	 *  64 bit ( 8 byte) = max depth  28 ( 58 loc bits, 5 depth bits, 1 divider bit) =  64 bits
+	 * 128 bit (16 byte) = max depth  59 (120 loc bits, 6 depth bits, 1 divider bit) = 127 bits
+	 * 256 bit (32 byte) = max depth 123 (248 loc bits, 7 depth bits, 1 divider bit) = 256 bits
+	 *
+	 * @see https://oeis.org/A173009
+	 * 
+	 * 3D:
+	 *   8 bit ( 1 byte) = max depth  1 (  6 loc bits, 1 depth bits, 1 divider bit) =   8 bits
+	 *  16 bit ( 2 byte) = max depth  3 ( 12 loc bits, 2 depth bits, 1 divider bit) =  15 bits
+	 *  32 bit ( 4 byte) = max depth  8 ( 27 loc bits, 4 depth bits, 1 divider bit) =  32 bits
+	 *  64 bit ( 8 byte) = max depth 18 ( 57 loc bits, 5 depth bits, 1 divider bit) =  63 bits
+	 * 128 bit (16 byte) = max depth 39 (120 loc bits, 6 depth bits, 1 divider bit) = 127 bits
+	 * 256 bit (32 byte) = max depth 81 (243 loc bits, 7 depth bits, 1 divider bit) = 251 bits
+	 *
+	 * @see https://oeis.org/A178420
+	 */
+	static consteval std::size_t find_max_depth() noexcept
+	{
+		std::size_t max_depth = 0;
+		for (std::size_t i = 1; i <= sizeof(T) * 8; ++i)
+		{
+			const std::size_t location_bits = sizeof(T) * 8 - i;
+			max_depth = location_bits / N - 1;
+			const std::size_t depth_bits = static_cast<std::size_t>(std::bit_width(max_depth));
+			
+			if (depth_bits + location_bits < sizeof(T) * 8)
+				break;
+		}
+		return static_cast<T>(max_depth);
+	}
+	
 public:
-	/// Integral node type.
+	/// Node identifier type.
 	typedef T node_type;
 	
-	/// Ensure the node type is integral
-	static_assert(std::is_integral<T>::value, "Node type must be integral.");
+	/// Number of dimensions.
+	static constexpr std::size_t dimensions = N;
 	
-	/// Maximum node depth.
-	static constexpr std::size_t max_depth = D;
+	/// Node storage and traversal order.
+	static constexpr hyperoctree_order order = Order;
 	
-	/// Number of bits required to encode the depth of a node.
-	static constexpr T depth_bits = math::compile::ceil_log2(max_depth + 1);
-	
-	/// Number of bits required to encode the location of a node.
-	static constexpr T location_bits = (max_depth + 1) * N;
+	/// Maximum node depth level.
+	static constexpr node_type max_depth = find_max_depth();
 	
 	/// Number of bits in the node type.
-	static constexpr T node_bits = sizeof(node_type) * 8;
+	static constexpr node_type node_bits = sizeof(node_type) * 8;
 	
-	// Ensure the node type has enough bits
-	static_assert(depth_bits + location_bits + 1 <= node_bits, "Size of hyperoctree node type is insufficient to encode the maximum depth");
+	/// Number of bits required to encode the depth of a node.
+	static constexpr node_type depth_bits = std::bit_width(max_depth);
+	
+	/// Number of bits required to encode the Morton location code of a node.
+	static constexpr node_type location_bits = (max_depth + 1) * N;
+	
+	/// Number of bits separating the depth and Morton location code in a node identifier.
+	static constexpr node_type divider_bits = node_bits - (depth_bits + location_bits);
 	
 	/// Number of children per node.
-	static constexpr T children_per_node = (N) ? (2 << (N - 1)) : 1;
+	static constexpr node_type children_per_node = math::compile::exp2<node_type>(N);
 	
 	/// Number of siblings per node.
-	static constexpr T siblings_per_node = children_per_node - 1;
+	static constexpr node_type siblings_per_node = children_per_node - 1;
 	
-	/// Root node which is always guaranteed to exist.
+	/// Resolution in each dimension.
+	static constexpr node_type resolution = math::compile::exp2<node_type>(max_depth + 1);
+	
+	/// Number of nodes in a full hyperoctree.
+	static constexpr std::size_t max_node_count = (math::compile::pow<std::size_t>(resolution, N) - 1) / siblings_per_node;
+	
+	/// Node identifier of the persistent root node.
 	static constexpr node_type root = 0;
 	
-	/**
-	 * Accesses nodes in their internal hashmap order.
-	 */
-	struct unordered_iterator
-	{
-		inline unordered_iterator(const unordered_iterator& other): set_iterator(other.set_iterator) {};
-		inline unordered_iterator& operator=(const unordered_iterator& other) { this->set_iterator = other.set_iterator; return *this; };
-		inline unordered_iterator& operator++() { ++(this->set_iterator); return *this; };
-		inline unordered_iterator& operator--() { --(this->set_iterator); return *this; };
-		inline bool operator==(const unordered_iterator& other) const { return this->set_iterator == other.set_iterator; };
-		inline bool operator!=(const unordered_iterator& other) const { return this->set_iterator != other.set_iterator; };
-		inline node_type operator*() const { return *this->set_iterator; };
-	private:
-		friend class hyperoctree;
-		inline explicit unordered_iterator(const typename std::unordered_set<node_type>::const_iterator& it): set_iterator(it) {};
-		typename std::unordered_set<node_type>::const_iterator set_iterator;
-	};
+	/// Node container type.
+	typedef typename hyperoctree_container<order, node_type, depth_bits>::type container_type;
 	
-	/**
-	 * Accesses nodes in z-order.
-	 *
-	 * @TODO Can this be implemented without a stack?
-	 */
-	struct iterator
-	{
-		inline iterator(const iterator& other): hyperoctree(other.hyperoctree), stack(other.stack) {};
-		inline iterator& operator=(const iterator& other) { this->hyperoctree = other.hyperoctree; this->stack = other.stack; return *this; };
-		iterator& operator++();
-		inline bool operator==(const iterator& other) const { return **this == *other; };
-		inline bool operator!=(const iterator& other) const { return **this != *other; };
-		inline node_type operator*() const { return stack.top(); };
-	private:
-		friend class hyperoctree;
-		inline explicit iterator(const hyperoctree* hyperoctree, node_type node): hyperoctree(hyperoctree), stack({node}) {};
-		const hyperoctree* hyperoctree;
-		std::stack<node_type> stack;
-	};
+	/// Iterator type.
+	typedef typename container_type::iterator iterator;
 	
+	/// Constant iterator type.
+	typedef typename container_type::const_iterator const_iterator;
+	
+	/// Reverse iterator type.
+	typedef std::conditional<order != hyperoctree_order::unordered, std::reverse_iterator<iterator>, iterator>::type reverse_iterator;
+	
+	/// Constant reverse iterator type.
+	typedef std::conditional<order != hyperoctree_order::unordered, std::reverse_iterator<const_iterator>, const_iterator>::type const_reverse_iterator;
+	
+	/// @name Nodes
+	/// @{
 	/**
-	 * Returns the depth of a node.
+	 * Extracts the depth of a node from its identifier.
 	 *
-	 * @param node Node.
+	 * @param node Node identifier.
+	 *
 	 * @return Depth of the node.
 	 */
-	static T depth(node_type node);
+	static constexpr inline node_type depth(node_type node) noexcept
+	{
+		constexpr node_type mask = math::compile::exp2<node_type>(depth_bits) - 1;
+		return node & mask;
+	}
 	
 	/**
-	 * Returns the Morton code location of a node.
+	 * Extracts the Morton location code of a node from its identifier.
 	 *
-	 * @param node Node.
-	 * @return Morton code location of the node.
+	 * @param node Node identifier.
+	 *
+	 * @return Morton location code of the node.
 	 */
-	static T location(node_type node);
+	static constexpr inline node_type location(node_type node) noexcept
+	{
+		return node >> ((node_bits - 1) - depth(node) * N);
+	}
 	
 	/**
-	 * Returns the node at the given depth and location.
+	 * Extracts the depth and Morton location code of a node from its identifier.
 	 *
-	 * @param depth Node depth.
-	 * @param location Node Morton code location.
-	 */
-	static node_type node(T depth, T location);
-
-	/**
-	 * Returns the ancestor of a node at the specified depth.
+	 * @param node Node identifier.
 	 *
-	 * @param node Node whose ancestor will be located.
-	 * @param depth Absolute depth of the ancestors.
-	 * @return Ancestral node.
+	 * @return Array containing the depth of the node, followed by the Morton location code of the node.
 	 */
-	static node_type ancestor(node_type node, T depth);
-
+	static constexpr std::array<node_type, 2> split(node_type node) noexcept
+	{
+		const node_type depth = hyperoctree::depth(node);
+		const node_type location = node >> ((node_bits - 1) - depth * N);
+		return {depth, location};
+	}
+	
 	/**
-	 * Returns the parent of a node.
+	 * Constructs an identifier for a node at the given depth and location.
 	 *
-	 * @param node Node.
-	 * @return Parent node.
-	 */
-	static node_type parent(node_type node);
-
-	/**
-	 * Returns the nth sibling of a node.
+	 * @param depth Depth level.
+	 * @param location Morton location code.
 	 *
-	 * @param node Node.
-	 * @param n Offset to next sibling. (Automatically wraps to `[0, siblings_per_node]`)
-	 * @return Next sibling node.
-	 */
-	static node_type sibling(node_type node, T n);
-
-	/**
-	 * Returns the nth child of a node.
+	 * @return Identifier of a node at the given depth and location.
 	 *
-	 * @param node Parent node.
-	 * @param n Offset to the nth sibling of the first child node. (Automatically wraps to 0..children_per_node-1)
-	 * @return nth child node.
+	 * @warning If @p depth exceeds `max_depth`, the returned node identifier is not valid.
 	 */
-	static node_type child(node_type node, T n);
-
+	static constexpr inline node_type node(node_type depth, node_type location) noexcept
+	{
+		return (location << ((node_bits - 1) - depth * N)) | depth;
+	}
+	
 	/**
-	 * Calculates the first common ancestor of two nodes.
+	 * Constructs an identifier for the ancestor of a node at a given depth.
 	 *
-	 * @param a First node.
-	 * @param b Second node.
-	 * @return First common ancestor of the two nodes.
-	 */
-	static node_type common_ancestor(node_type a, node_type b);
-
-	/// Creates an hyperoctree with a single root node.
-	hyperoctree();
-
-	/// Returns a z-order iterator to the root node.
-	iterator begin() const;
-
-	/// Returns a z-order iterator indicating the end of a traversal.
-	iterator end() const;
-
-	/// Returns an iterator to the specified node.
-	iterator find(node_type node) const;
-
-	/// Returns an unordered iterator indicating the beginning of a traversal.
-	unordered_iterator unordered_begin() const;
-
-	/// Returns an unordered iterator indicating the end of a traversal.
-	unordered_iterator unordered_end() const;
-
-	/**
-	 * Inserts a node and its siblings into the hyperoctree, creating its ancestors as necessary. Note: The root node is persistent and cannot be inserted.
+	 * @param node Node identifier.
+	 * @param depth Absolute depth of an ancestor node.
 	 *
-	 * @param node Node to insert.
-	 */
-	void insert(node_type node);
-
-	/**
-	 * Erases a node along with its siblings and descendants. Note: The root node is persistent and cannot be erased.
+	 * @return Identifier of the ancestor of the node at the given depth.
 	 *
-	 * @param node Node to erase.
+	 * @warning If @p depth exceeds the depth of @p node, the returned node identifier is not valid.
 	 */
-	void erase(node_type node);
-
+	static constexpr inline node_type ancestor(node_type node, node_type depth) noexcept
+	{
+		const node_type mask = (~node_type(0)) << ((node_bits - 1) - depth * N);
+		return (node & mask) | depth;
+	}
+	
 	/**
-	 * Erases all nodes except the root.
+	 * Constructs an identifier for the parent of a node.
+	 *
+	 * @param node Node identifier.
+	 *
+	 * @return Identifier of the parent node.
 	 */
-	void clear();
-
-	/// Returns `true` if the node is contained within the hyperoctree, and `false` otherwise.
-	bool contains(node_type node) const;
-
-	/// Returns `true` if the node has no children, and `false` otherwise.
-	bool is_leaf(node_type node) const;
-
-	/// Returns the number of nodes in the hyperoctree.
-	std::size_t size() const;
+	static constexpr inline node_type parent(node_type node) noexcept
+	{
+		return ancestor(node, depth(node) - 1);
+	}
+	
+	/**
+	 * Constructs an identifier for the nth sibling of a node.
+	 *
+	 * @param node Node identifier.
+	 * @param n Offset to a sibling, automatically wrapped to `[0, siblings_per_node]`.
+	 *
+	 * @return Identifier of the nth sibling node.
+	 */
+	static constexpr node_type sibling(node_type node, node_type n) noexcept
+	{
+		constexpr node_type mask = (1 << N) - 1;
+		const auto [depth, location] = split(node);
+		const node_type sibling_location = (location & (~mask)) | ((location + n) & mask);
+		return hyperoctree::node(depth, sibling_location);
+	}
+	
+	/**
+	 * Constructs an identifier for the nth child of a node.
+	 *
+	 * @param node Node identifier.
+	 * @param n Offset to a sibling of the first child node, automatically wrapped to `[0, siblings_per_node]`.
+	 *
+	 * @return Identifier of the nth child node.
+	 */
+	static constexpr inline node_type child(node_type node, T n) noexcept
+	{
+		return sibling(node + 1, n);
+	}
+	
+	/**
+	 * Constructs an identifier for first common ancestor of two nodes
+	 *
+	 * @param a Identifier of the first node.
+	 * @param b Identifier of the second node.
+	 *
+	 * @return Identifier of the first common ancestor of the two nodes.
+	 */
+	static constexpr node_type common_ancestor(node_type a, node_type b) noexcept
+	{
+		const node_type bits = std::min<node_type>(depth(a), depth(b)) * N;
+		const node_type marker = (node_type(1) << (node_bits - 1)) >> bits;
+		const node_type depth = node_type(std::countl_zero((a ^ b) | marker) / N);
+		return ancestor(a, depth);
+	}
+	/// @}
+	
+	/// Constructs a hyperoctree with a single root node.
+	hyperoctree():
+		nodes({root})
+	{}
+	
+	/// @name Iterators
+	/// @{
+	/**
+	 * Returns an iterator to the first node, in the traversal order specified by hyperoctree::order.
+	 *
+	 * @note Node identifiers cannot be modified through iterators.
+	 */
+	/// @{
+	inline iterator begin() noexcept
+	{
+		return nodes.begin();
+	}
+	inline const_iterator begin() const noexcept
+	{
+		return nodes.begin();
+	}
+	inline const_iterator cbegin() const noexcept
+	{
+		return nodes.cbegin();
+	}
+	/// @}
+	
+	/**
+	 * Returns an iterator to the node following the last node, in the traversal order specified by hyperoctree::order.
+	 *
+	 * @note Node identifiers cannot be modified through iterators.
+	 */
+	/// @{
+	inline iterator end() noexcept
+	{
+		return nodes.end();
+	}
+	inline const_iterator end() const noexcept
+	{
+		return nodes.end();
+	}
+	inline const_iterator cend() const noexcept
+	{
+		return nodes.cend();
+	}
+	/// @}
+	
+	/**
+	 * Returns a reverse iterator to the first node of the revered hyperoctree, in the traversal order specified by hyperoctree::order.
+	 *
+	 * @note Node identifiers cannot be modified through iterators.
+	 * @note If the hyperoctree is unordered, reverse iteration and forward iteration will be identical.
+	 */
+	/// @{
+	inline reverse_iterator rbegin() noexcept
+	{
+		if constexpr (order != hyperoctree_order::unordered)
+			return nodes.rbegin();
+		else
+			return nodes.begin();
+	}
+	inline const_reverse_iterator rbegin() const noexcept
+	{
+		if constexpr (order != hyperoctree_order::unordered)
+			return nodes.rbegin();
+		else
+			return nodes.begin();
+	}
+	inline const_reverse_iterator crbegin() const noexcept
+	{
+		if constexpr (order != hyperoctree_order::unordered)
+			return nodes.crbegin();
+		else
+			return nodes.cbegin();
+	}
+	/// @}
+	
+	/**
+	 * Returns a reverse iterator to the node following the last node of the reverse hyperoctree, in the traversal order specified by hyperoctree::order.
+	 *
+	 * @note Node identifiers cannot be modified through iterators.
+	 * @note If the hyperoctree is unordered, reverse iteration and forward iteration will be identical.
+	 */
+	/// @{
+	inline reverse_iterator rend() noexcept
+	{
+		if constexpr (order != hyperoctree_order::unordered)
+			return nodes.rend();
+		else
+			return nodes.end();
+	}
+	inline const_reverse_iterator rend() const noexcept
+	{
+		if constexpr (order != hyperoctree_order::unordered)
+			return nodes.rend();
+		else
+			return nodes.end();
+	}
+	inline const_reverse_iterator crend() const noexcept
+	{
+		if constexpr (order != hyperoctree_order::unordered)
+			return nodes.crend();
+		else
+			return nodes.cend();
+	}
+	/// @}
+	/// @}
+	
+	/// @name Capacity
+	/// @{
+	/**
+	 * Checks if the hyperoctree has no nodes.
+	 *
+	 * @return `true` if the hyperoctree is empty, `false` otherwise.
+	 *
+	 * @note This function should always return `false`, as the root node is persistent.
+	 */
+	inline bool empty() const noexcept
+	{
+		return nodes.empty();
+	}
+	
+	/**
+	 * Checks if the hyperoctree is full.
+	 *
+	 * @return `true` if the hyperoctree is full, `false` otherwise.
+	 */
+	inline bool full() const noexcept
+	{
+		return size() == max_size();
+	}
+	
+	/**
+	 * Returns the number of nodes in the hyperoctree.
+	 *
+	 * @return Number of nodes in the hyperoctree.
+	 *
+	 * @note Hyperoctree size will always be greater than or equal to one, as the root node is persistent.
+	 */
+	inline std::size_t size() const noexcept
+	{
+		return nodes.size();
+	}
 	
 	/// Returns the total number of nodes the hyperoctree is capable of containing.
 	static consteval std::size_t max_size() noexcept
 	{
-		return (math::compile::pow<std::size_t>(children_per_node, max_depth + 1) - 1) / (children_per_node - 1);
+		return max_node_count;
 	}
-
+	/// @}
+	
+	/// @name Modifiers
+	/// @{
+	/**
+	 * Erases all nodes except the root node, which is persistent.
+	 */
+	inline void clear()
+	{
+		nodes = {root};
+	}
+	
+	/**
+	 * Inserts a node and its siblings into the hyperoctree, creating ancestors as necessary.
+	 *
+	 * @param node Node to insert.
+	 *
+	 * @note The root node is persistent and does not need to be inserted.
+	 */
+	void insert(node_type node)
+	{
+		if (contains(node))
+			return;
+		
+		// Insert node
+		nodes.emplace(node);
+		
+		// Insert node siblings
+		for (node_type i = 1; i < children_per_node; ++i)
+			nodes.emplace(sibling(node, i));
+		
+		// Insert node ancestors
+		insert(parent(node));
+	}
+	
+	/**
+	 * Erases a node, along with its descendants, siblings, and descendants of siblings.
+	 *
+	 * @param node Identifier of the node to erase.
+	 *
+	 * @note The root node is persistent and cannot be erased.
+	 */
+	void erase(node_type node)
+	{
+		if (node == root || !contains(node))
+			return;
+		
+		// Erase node and its descendants
+		nodes.erase(node);
+		erase(child(node, 0));
+		
+		// Erase node siblings
+		for (node_type i = 0; i < siblings_per_node; ++i)
+		{
+			node = sibling(node, 1);
+			
+			// Erase sibling and its descendants
+			nodes.erase(node);
+			erase(child(node, 0));
+		}
+	}
+	/// @}
+	
+	/// @name Lookup
+	/// @{
+	/**
+	 * Checks if a node is contained within the hyperoctree.
+	 *
+	 * @param node Identifier of the node to check for.
+	 *
+	 * @return `true` if the hyperoctree contains the node, `false` otherwise.
+	 */
+	inline bool contains(node_type node) const
+	{
+		return nodes.contains(node);
+	}
+	
+	/**
+	 * Checks if a node has no children.
+	 *
+	 * @param node Node identififer.
+	 *
+	 * @return `true` if the node has no children, and `false` otherwise.
+	 */
+	inline bool is_leaf(node_type node) const
+	{
+		return !contains(child(node, 0));
+	}
+	/// @}
+	
 private:
-	std::unordered_set<node_type> nodes;
+	container_type nodes;
 };
 
-template <class T, std::size_t N, std::size_t D>
-typename hyperoctree<T, N, D>::iterator& hyperoctree<T, N, D>::iterator::operator++()
-{
-	// Get next node from top of stack
-	node_type node = stack.top();
-	stack.pop();
-	
-	// If the node has children
-	if (!hyperoctree->is_leaf(node))
-	{
-		// Push first child onto the stack
-		for (T i = 0; i < children_per_node; ++i)
-			stack.push(child(node, siblings_per_node - i));
-	}
-	
-	if (stack.empty())
-		stack.push(std::numeric_limits<T>::max());
-	
-	return *this;
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline T hyperoctree<T, N, D>::depth(node_type node)
-{
-	// Extract depth using a bit mask
-	constexpr T mask = math::compile::pow<node_type>(2, depth_bits) - 1;
-	return node & mask;
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline T hyperoctree<T, N, D>::location(node_type node)
-{
-	return node >> ((node_bits - 1) - depth(node) * N);
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline typename hyperoctree<T, N, D>::node_type hyperoctree<T, N, D>::node(T depth, T location)
-{
-	return (location << ((node_bits - 1) - depth * N)) | depth;
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline typename hyperoctree<T, N, D>::node_type hyperoctree<T, N, D>::ancestor(node_type node, T depth)
-{
-	const T mask = std::numeric_limits<T>::max() << ((node_bits - 1) - depth * N);
-    return (node & mask) | depth;
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline typename hyperoctree<T, N, D>::node_type hyperoctree<T, N, D>::parent(node_type node)
-{
-	return ancestor(node, depth(node) - 1);
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline typename hyperoctree<T, N, D>::node_type hyperoctree<T, N, D>::sibling(node_type node, T n)
-{
-	constexpr T mask = (1 << N) - 1;
-	
-	T depth = hyperoctree::depth(node);
-	T location = node >> ((node_bits - 1) - depth * N);
-	
-	return hyperoctree::node(depth, (location & (~mask)) | ((location + n) & mask));
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline typename hyperoctree<T, N, D>::node_type hyperoctree<T, N, D>::child(node_type node, T n)
-{
-	return sibling(node + 1, n);
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline typename hyperoctree<T, N, D>::node_type hyperoctree<T, N, D>::common_ancestor(node_type a, node_type b)
-{
-	T bits = std::min<T>(depth(a), depth(b)) * N;
-	T marker = (T(1) << (node_bits - 1)) >> bits;
-	T depth = T(std::countl_zero((a ^ b) | marker) / N);
-	return ancestor(a, depth);
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline hyperoctree<T, N, D>::hyperoctree():
-	nodes({0})
-{}
-
-template <class T, std::size_t N, std::size_t D>
-void hyperoctree<T, N, D>::insert(node_type node)
-{
-	if (contains(node))
-		return;
-	
-	// Insert node
-	nodes.emplace(node);
-
-	// Insert siblings
-	for (T i = 1; i < children_per_node; ++i)
-		nodes.emplace(sibling(node, i));
-	
-	// Insert parent as necessary
-	node_type parent = hyperoctree::parent(node);
-	if (!contains(parent))
-		insert(parent);
-}
-
-template <class T, std::size_t N, std::size_t D>
-void hyperoctree<T, N, D>::erase(node_type node)
-{
-	// Don't erase the root!
-	if (node == root)
-		return;
-	
-	for (T i = 0; i < children_per_node; ++i)
-	{
-		// Erase node
-		nodes.erase(node);
-
-		// Erase descendants
-		if (!is_leaf(node))
-		{
-			for (T j = 0; j < children_per_node; ++j)
-				erase(child(node, j));
-		}
-
-		// Go to next sibling
-		if (i < siblings_per_node)
-			node = sibling(node, i);
-	}
-}
-
-template <class T, std::size_t N, std::size_t D>
-void hyperoctree<T, N, D>::clear()
-{
-	nodes = {0};
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline bool hyperoctree<T, N, D>::contains(node_type node) const
-{
-	return nodes.count(node);
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline bool hyperoctree<T, N, D>::is_leaf(node_type node) const
-{
-	return !contains(child(node, 0));
-}
-
-template <class T, std::size_t N, std::size_t D>
-inline std::size_t hyperoctree<T, N, D>::size() const
-{
-	return nodes.size();
-}
-
-template <class T, std::size_t N, std::size_t D>
-typename hyperoctree<T, N, D>::iterator hyperoctree<T, N, D>::begin() const
-{
-	return iterator(this, hyperoctree::root);
-}
-
-template <class T, std::size_t N, std::size_t D>
-typename hyperoctree<T, N, D>::iterator hyperoctree<T, N, D>::end() const
-{
-	return iterator(this, std::numeric_limits<T>::max());
-}
-
-template <class T, std::size_t N, std::size_t D>
-typename hyperoctree<T, N, D>::iterator hyperoctree<T, N, D>::find(node_type node) const
-{
-	return contains(node) ? iterator(node) : end();
-}
-
-template <class T, std::size_t N, std::size_t D>
-typename hyperoctree<T, N, D>::unordered_iterator hyperoctree<T, N, D>::unordered_begin() const
-{
-	return unordered_iterator(nodes.begin());
-}
-
-template <class T, std::size_t N, std::size_t D>
-typename hyperoctree<T, N, D>::unordered_iterator hyperoctree<T, N, D>::unordered_end() const
-{
-	return unordered_iterator(nodes.end());
-}
+/// Hyperoctree with unordered node storage and traversal.
+template <std::unsigned_integral T, std::size_t N>
+using unordered_hyperoctree = hyperoctree<T, N, hyperoctree_order::unordered>;
 
 } // namespace geom
 

@@ -29,6 +29,7 @@
 #include "math/quaternion.hpp"
 #include "render/vertex-attribute.hpp"
 #include "utility/fundamental-types.hpp"
+#include "math/compile.hpp"
 #include <functional>
 #include <iostream>
 
@@ -56,7 +57,29 @@ terrain::terrain(entity::registry& registry):
 	for (std::size_t i = 0; i <= quadtree_type::max_depth; ++i)
 		quadtree_node_size[i] = 0.0f;
 	
-	std::cout << "quadtree cap: " << quadtree.max_size() << std::endl;
+	
+	geom::quadtree64<geom::hyperoctree_order::dfs_pre> q;
+	q.insert(q.node(4, 0));
+	//q.insert(q.node(8, geom::morton::encode<std::uint64_t>(4, 4)));
+	
+	// std::cout << "q size: " << q.size() << std::endl;
+	// q.erase(q.node(1, 0));
+	// std::cout << "q size: " << q.size() << std::endl;
+	std::cout << "q maxd : " << (std::size_t)q.max_depth << std::endl;
+	std::cout << "q res  : " << (std::size_t)q.resolution << std::endl;
+	std::cout << "q cap  : " << q.max_size() << std::endl;
+	std::cout << "set cap: " << std::set<std::uint64_t>().max_size() << std::endl;
+	
+	
+	std::cout << "q size: " << q.size() << std::endl;
+	for (auto it = q.begin(); it != q.end(); ++it)
+	{
+		const auto& node = *it;
+		auto [depth, location] = q.split(node);
+		std::cout << "depth: " << (std::size_t)depth << "; location: " << (std::size_t)location << std::endl;
+	}
+
+
 	
 	registry.on_construct<component::terrain>().connect<&terrain::on_terrain_construct>(this);
 	registry.on_update<component::terrain>().connect<&terrain::on_terrain_update>(this);

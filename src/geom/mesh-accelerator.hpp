@@ -59,17 +59,19 @@ public:
 	std::optional<ray_query_result> query_nearest(const ray<float>& ray) const;
 	
 private:
-	aabb<float> get_node_bounds(octree32::node_type node) const;
+	typedef unordered_octree32 octree_type;
+	
+	aabb<float> get_node_bounds(typename octree_type::node_type node) const;
 
-	void query_nearest_recursive(float& nearest_t, geom::mesh::face*& nearest_face, octree32::node_type node, const ray<float>& ray) const;
+	void query_nearest_recursive(float& nearest_t, geom::mesh::face*& nearest_face, typename octree_type::node_type node, const ray<float>& ray) const;
 
 	/// Returns the max-depth node in which the point is located
-	octree32::node_type find_node(const float3& point) const;
+	typename octree_type::node_type find_node(const float3& point) const;
 
-	octree32 octree;
-	float3 node_dimensions[octree32::max_depth + 1];
+	octree_type octree;
+	float3 node_dimensions[octree_type::max_depth + 1];
 	float3 center_offset;
-	std::unordered_map<octree32::node_type, std::list<mesh::face*>> face_map;
+	std::unordered_map<typename octree_type::node_type, std::list<mesh::face*>> face_map;
 };
 
 } // namespace geom

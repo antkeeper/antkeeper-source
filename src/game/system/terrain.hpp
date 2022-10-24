@@ -82,8 +82,8 @@ public:
 	void set_scene_collection(scene::collection* collection);
 
 private:
-	typedef geom::quadtree16 quadtree_type;
-	typedef quadtree_type::node_type quadtree_node_type;
+	typedef geom::unordered_quadtree16 quadtree_type;
+	typedef typename quadtree_type::node_type quadtree_node_type;
 	
 	struct patch
 	{
