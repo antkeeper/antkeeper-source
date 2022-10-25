@@ -51,6 +51,7 @@ struct vector
 	
 	/// @name Element access
 	/// @{
+	
 	/**
 	 * Returns a reference to the element at a given index.
 	 *
@@ -69,7 +70,9 @@ struct vector
 	}
 	/// @}
 	
-	/// Returns a reference to the first element.
+	/**
+	 * Returns a reference to the first element.
+	 */
 	/// @{
 	constexpr inline element_type& front() noexcept
 	{
@@ -81,7 +84,9 @@ struct vector
 	}
 	/// @}
 	
-	/// Returns a reference to the last element.
+	/**
+	 * Returns a reference to the last element.
+	 */
 	/// @{
 	constexpr inline element_type& back() noexcept
 	{
@@ -93,7 +98,9 @@ struct vector
 	}
 	/// @}
 	
-	/// Returns a pointer to the element array.
+	/**
+	 * Returns a pointer to the element array.
+	 */
 	/// @{
 	constexpr inline element_type* data() noexcept
 	{
@@ -119,7 +126,9 @@ struct vector
 	}
 	/// @}
 	
-	/// Returns a reference to the second element.
+	/**
+	 * Returns a reference to the second element.
+	 */
 	/// @{
 	constexpr inline element_type& y() noexcept
 	{
@@ -133,7 +142,9 @@ struct vector
 	}
 	/// @}
 	
-	/// Returns a reference to the third element.
+	/**
+	 * Returns a reference to the third element.
+	 */
 	/// @{
 	constexpr inline element_type& z() noexcept
 	{
@@ -146,11 +157,15 @@ struct vector
 		return elements[2];
 	}
 	/// @}
+	
 	/// @}
 	
 	/// @name Iterators
 	/// @{
-	/// Returns an iterator to the first element.
+	
+	/**
+	 * Returns an iterator to the first element.
+	 */
 	/// @{
 	constexpr inline element_type* begin() noexcept
 	{
@@ -166,7 +181,9 @@ struct vector
 	}
 	/// @}
 	
-	/// Returns an iterator to the element following the last element.
+	/**
+	 * Returns an iterator to the element following the last element.
+	 */
 	/// @{
 	constexpr inline element_type* end() noexcept
 	{
@@ -182,7 +199,9 @@ struct vector
 	}
 	/// @}
 	
-	/// Returns a reverse iterator to the first element of the reversed vector.
+	/**
+	 * Returns a reverse iterator to the first element of the reversed vector.
+	 */
 	/// @{
 	constexpr inline std::reverse_iterator<element_type*> rbegin() noexcept
 	{
@@ -198,7 +217,9 @@ struct vector
 	}
 	/// @}
 	
-	/// Returns a reverse iterator to the element following the last element of the reversed vector.
+	/**
+	 * Returns a reverse iterator to the element following the last element of the reversed vector.
+	 */
 	/// @{
 	constexpr inline std::reverse_iterator<element_type*> rend() noexcept
 	{
@@ -213,15 +234,20 @@ struct vector
 		return std::reverse_iterator<const element_type*>(elements);
 	}
 	/// @}
+	
 	/// @}
 	
 	/// @name Capacity
 	/// @{
-	/// Returns the number of elements in the vector.
+	
+	/**
+	 * Returns the number of elements in the vector.
+	 */
 	constexpr inline std::size_t size() const noexcept
 	{
 		return N;
 	};
+	
 	/// @}
 	
 	/// @private
