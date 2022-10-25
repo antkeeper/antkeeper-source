@@ -20,8 +20,7 @@
 #ifndef ANTKEEPER_GEOM_MORTON_HPP
 #define ANTKEEPER_GEOM_MORTON_HPP
 
-#include <array>
-#include <cstddef>
+#include <concepts>
 
 namespace geom {
 
@@ -33,45 +32,11 @@ namespace morton {
  *
  * @param[in] x X-coordinate to encode.
  * @param[in] y Y-coordinate to encode.
+ *
  * @return Morton location code.
  */
-template <typename T>
-T encode(T x, T y);
-
-/**
- * Encodes 3D coordinates as a Morton location code.
- *
- * @param[in] x X-coordinate to encode.
- * @param[in] y Y-coordinate to encode.
- * @param[in] z Z-coordinate to encode.
- * @return Morton location code.
- */
-template <typename T>
-T encode(T x, T y, T z);
-
-/**
- * Decodes 2D coordinates from a Morton location code.
- *
- * @param[in] code Morton location code to decode.
- * @param[out] x Decoded x-coordinate.
- * @param[out] y Decoded y-coordinate.
- */
-template <typename T>
-void decode(T code, T& x, T& y);
-
-/**
- * Decodes 3D coordinates from a Morton location code.
- *
- * @param[in] code Morton location code to decode.
- * @param[out] x Decoded x-coordinate.
- * @param[out] y Decoded y-coordinate.
- * @param[out] z Decoded z-coordinate.
- */
-template <typename T>
-void decode(T code, T& x, T& y, T& z);
-
-template <typename T>
-T encode(T x, T y)
+template <std::unsigned_integral T>
+constexpr T encode(T x, T y) noexcept
 {
 	auto expand = [](T x) -> T
 	{
@@ -93,8 +58,17 @@ T encode(T x, T y)
 	return expand(x) | (expand(y) << 1);
 }
 
-template <typename T>
-T encode(T x, T y, T z)
+/**
+ * Encodes 3D coordinates as a Morton location code.
+ *
+ * @param[in] x X-coordinate to encode.
+ * @param[in] y Y-coordinate to encode.
+ * @param[in] z Z-coordinate to encode.
+ *
+ * @return Morton location code.
+ */
+template <std::unsigned_integral T>
+constexpr T encode(T x, T y, T z) noexcept
 {
 	auto expand = [](T x) -> T
 	{
@@ -134,8 +108,15 @@ T encode(T x, T y, T z)
 	return expand(x) | (expand(y) << 1) | (expand(z) << 2);
 }
 
-template <typename T>
-void decode(T code, T& x, T& y)
+/**
+ * Decodes 2D coordinates from a Morton location code.
+ *
+ * @param[in] code Morton location code to decode.
+ * @param[out] x Decoded x-coordinate.
+ * @param[out] y Decoded y-coordinate.
+ */
+template <std::unsigned_integral T>
+void decode(T code, T& x, T& y) noexcept
 {
 	auto compress = [](T x) -> T
 	{
@@ -158,8 +139,16 @@ void decode(T code, T& x, T& y)
 	y = compress(code >> 1);
 }
 
-template <typename T>
-void decode(T code, T& x, T& y, T& z)
+/**
+ * Decodes 3D coordinates from a Morton location code.
+ *
+ * @param[in] code Morton location code to decode.
+ * @param[out] x Decoded x-coordinate.
+ * @param[out] y Decoded y-coordinate.
+ * @param[out] z Decoded z-coordinate.
+ */
+template <std::unsigned_integral T>
+void decode(T code, T& x, T& y, T& z) noexcept
 {
 	auto compress = [](T x) -> T
 	{

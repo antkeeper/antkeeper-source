@@ -49,6 +49,8 @@ struct vector
 	/// Array of vector elements.
 	element_type elements[N];
 	
+	/// @name Element access
+	/// @{
 	/**
 	 * Returns a reference to the element at a given index.
 	 *
@@ -89,6 +91,18 @@ struct vector
 	{
 		return elements[N - 1];
 	}
+	/// @}
+	
+	/// Returns a pointer to the element array.
+	/// @{
+	constexpr inline element_type* data() noexcept
+	{
+		return elements;
+	};
+	constexpr inline const element_type* data() const noexcept
+	{
+		return elements;
+	};
 	/// @}
 	
 	/// Returns a reference to the first element.
@@ -132,19 +146,10 @@ struct vector
 		return elements[2];
 	}
 	/// @}
-	
-	/// Returns a pointer to the element array.
-	/// @{
-	constexpr inline element_type* data() noexcept
-	{
-		return elements;
-	};
-	constexpr inline const element_type* data() const noexcept
-	{
-		return elements;
-	};
 	/// @}
 	
+	/// @name Iterators
+	/// @{
 	/// Returns an iterator to the first element.
 	/// @{
 	constexpr inline element_type* begin() noexcept
@@ -208,12 +213,16 @@ struct vector
 		return std::reverse_iterator<const element_type*>(elements);
 	}
 	/// @}
+	/// @}
 	
+	/// @name Capacity
+	/// @{
 	/// Returns the number of elements in the vector.
 	constexpr inline std::size_t size() const noexcept
 	{
 		return N;
 	};
+	/// @}
 	
 	/// @private
 	template <class U, std::size_t... I>
@@ -468,6 +477,28 @@ constexpr vector<T, N> fma(const vector<T, N>& x, T y, T z);
  */
 template <class T, std::size_t N>
 constexpr vector<T, N> fract(const vector<T, N>& x);
+
+/**
+ * Extracts the Ith element from a vector.
+ *
+ * @tparam I Index of an element.
+ * @tparam T Element type.
+ * @tparam N Number of elements.
+ *
+ * @param v Vector from which to extract an element.
+ *
+ * @return Reference to the Ith element of @p v.
+ */
+/// @{
+template<std::size_t I, class T, std::size_t N>
+constexpr T& get(math::vector<T, N>& v) noexcept;
+template<std::size_t I, class T, std::size_t N>
+constexpr T&& get(math::vector<T, N>&& v) noexcept;
+template<std::size_t I, class T, std::size_t N>
+constexpr const T& get(const math::vector<T, N>& v) noexcept;
+template<std::size_t I, class T, std::size_t N>
+constexpr const T&& get(const math::vector<T, N>&& v) noexcept;
+/// @}
 
 /**
  * Performs a element-wise greater-than comparison of two vectors.
@@ -1009,6 +1040,34 @@ template <class T, std::size_t N>
 constexpr inline vector<T, N> fract(const vector<T, N>& x)
 {
 	return fract(x, std::make_index_sequence<N>{});
+}
+
+template<std::size_t I, class T, std::size_t N>
+constexpr inline T& get(math::vector<T, N>& v) noexcept
+{
+	static_assert(I < N);
+	return v.elements[I];
+}
+
+template<std::size_t I, class T, std::size_t N>
+constexpr inline T&& get(math::vector<T, N>&& v) noexcept
+{
+	static_assert(I < N);
+	return std::move(v.elements[I]);
+}
+
+template<std::size_t I, class T, std::size_t N>
+constexpr inline const T& get(const math::vector<T, N>& v) noexcept
+{
+	static_assert(I < N);
+	return v.elements[I];
+}
+
+template<std::size_t I, class T, std::size_t N>
+constexpr inline const T&& get(const math::vector<T, N>&& v) noexcept
+{
+	static_assert(I < N);
+	return std::move(v.elements[I]);
 }
 
 /// @private
@@ -1586,6 +1645,37 @@ std::istream& operator>>(std::istream& is, vector<T, N>& x)
 
 } // namespace math
 
+// Bring vector operators into global namespace
 using namespace math::operators;
+
+// Structured binding support
+namespace std
+{
+	/**
+	 * Provides access to the number of elements in a math::vector as a compile-time constant expression.
+	 *
+	 * @tparam T Element type.
+	 * @tparam N Number of elements.
+	 */
+	template<class T, std::size_t N>
+	struct tuple_size<math::vector<T, N>>
+	{
+		/// Number of elements in the vector. 
+		static constexpr std::size_t value = N;
+	};
+	
+	/**
+	 * Provides compile-time indexed access to the type of the elements in a math::vector using a tuple-like interface.
+	 *
+	 * @tparam T Element type.
+	 * @tparam N Number of elements.
+	 */
+	template<std::size_t I, class T, std::size_t N>
+	struct tuple_element<I, math::vector<T, N>>
+	{
+		/// Type of elements in the vector.
+		using type = T;
+	};
+}
 
 #endif // ANTKEEPER_MATH_VECTOR_HPP

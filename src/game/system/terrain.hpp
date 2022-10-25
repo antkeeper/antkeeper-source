@@ -85,6 +85,8 @@ private:
 	typedef geom::unordered_quadtree16 quadtree_type;
 	typedef typename quadtree_type::node_type quadtree_node_type;
 	
+	void balance_quadtree();
+	
 	struct patch
 	{
 		geom::mesh* mesh;

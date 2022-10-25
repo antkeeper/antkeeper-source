@@ -32,16 +32,16 @@
 
 namespace geom {
 
-/// Orders in which hyperoctree nodes can be stored and iterated.
+/// Orders in which hyperoctree nodes can be stored and traversed.
 enum class hyperoctree_order
 {
 	/// Hyperoctree nodes are unordered, potentially resulting in faster insertions through the internal use of `std::unordered_set` rather than `std::set`.
 	unordered,
 	
-	/// Hyperoctree nodes are stored and iterated in depth-first preorder.
+	/// Hyperoctree nodes are stored and traversed in depth-first preorder.
 	dfs_pre,
 	
-	/// Hyperoctree nodes are stored and iterated in breadth-first order.
+	/// Hyperoctree nodes are stored and traversed in breadth-first order.
 	bfs
 };
 
@@ -89,7 +89,7 @@ struct hyperoctree_container<hyperoctree_order::bfs, T, DepthBits>
  *
  * @tparam T Unsigned integral node identifier type.
  * @tparam N Number of dimensions.
- * @tparam Order Order in which nodes are stored and iterated.
+ * @tparam Order Order in which nodes are stored and traversed.
  *
  * @see http://codervil.blogspot.com/2015/10/octree-node-identifiers.html
  * @see https://geidav.wordpress.com/2014/08/18/advanced-octrees-2-node-representations/
@@ -309,7 +309,7 @@ public:
 	}
 	
 	/**
-	 * Constructs an identifier for first common ancestor of two nodes
+	 * Constructs an identifier for the first common ancestor of two nodes
 	 *
 	 * @param a Identifier of the first node.
 	 * @param b Identifier of the second node.
@@ -470,7 +470,7 @@ public:
 	}
 	
 	/// Returns the total number of nodes the hyperoctree is capable of containing.
-	static consteval std::size_t max_size() noexcept
+	consteval std::size_t max_size() const noexcept
 	{
 		return max_node_count;
 	}
@@ -487,7 +487,7 @@ public:
 	}
 	
 	/**
-	 * Inserts a node and its siblings into the hyperoctree, creating ancestors as necessary.
+	 * Inserts a node and its siblings into the hyperoctree, inserting ancestors as necessary.
 	 *
 	 * @param node Node to insert.
 	 *

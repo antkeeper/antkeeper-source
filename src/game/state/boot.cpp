@@ -652,7 +652,7 @@ void boot::setup_scenes()
 	
 	// Setup surface camera
 	ctx.surface_camera = new scene::camera();
-	ctx.surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 500.0f);
+	ctx.surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 10000.0f);
 	ctx.surface_camera->set_compositor(ctx.surface_compositor);
 	ctx.surface_camera->set_composite_index(0);
 	ctx.surface_camera->set_active(false);

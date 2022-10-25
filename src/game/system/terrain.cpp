@@ -57,30 +57,6 @@ terrain::terrain(entity::registry& registry):
 	for (std::size_t i = 0; i <= quadtree_type::max_depth; ++i)
 		quadtree_node_size[i] = 0.0f;
 	
-	
-	geom::quadtree64<geom::hyperoctree_order::dfs_pre> q;
-	q.insert(q.node(4, 0));
-	//q.insert(q.node(8, geom::morton::encode<std::uint64_t>(4, 4)));
-	
-	// std::cout << "q size: " << q.size() << std::endl;
-	// q.erase(q.node(1, 0));
-	// std::cout << "q size: " << q.size() << std::endl;
-	std::cout << "q maxd : " << (std::size_t)q.max_depth << std::endl;
-	std::cout << "q res  : " << (std::size_t)q.resolution << std::endl;
-	std::cout << "q cap  : " << q.max_size() << std::endl;
-	std::cout << "set cap: " << std::set<std::uint64_t>().max_size() << std::endl;
-	
-	
-	std::cout << "q size: " << q.size() << std::endl;
-	for (auto it = q.begin(); it != q.end(); ++it)
-	{
-		const auto& node = *it;
-		auto [depth, location] = q.split(node);
-		std::cout << "depth: " << (std::size_t)depth << "; location: " << (std::size_t)location << std::endl;
-	}
-
-
-	
 	registry.on_construct<component::terrain>().connect<&terrain::on_terrain_construct>(this);
 	registry.on_update<component::terrain>().connect<&terrain::on_terrain_update>(this);
 	registry.on_destroy<component::terrain>().connect<&terrain::on_terrain_destroy>(this);
@@ -144,12 +120,18 @@ void terrain::update(double t, double dt)
 			
 			geom::sphere<float> sphere;
 			sphere.center = cam.get_translation();
-			sphere.radius = patch_side_length;
+			//sphere.radius = patch_side_length;
+			sphere.radius = 1.0f;
+			
+			// Determine camera position node
+			auto translation = cam.get_translation();
 			
 			//visit_quadtree(cam.get_view_frustum().get_bounds(), quadtree_type::root);
 			visit_quadtree(sphere, quadtree_type::root);
 		}
 	);
+	
+	balance_quadtree();
 	
 	//std::cout << "qsize: " << quadtree.size() << std::endl;
 	std::size_t qvis = 0;
@@ -337,6 +319,46 @@ void terrain::visit_quadtree(const geom::bounding_volume<float>& volume, quadtre
 			for (quadtree_node_type i = 0; i < quadtree_type::children_per_node; ++i)
 				visit_quadtree(volume, quadtree_type::child(node, i));
 		}
+	}
+}
+
+void terrain::balance_quadtree()
+{
+	std::unordered_set<quadtree_node_type> nodes;
+	
+	for (const auto& node: quadtree)
+	{
+		auto [depth, location] = quadtree.split(node);
+		
+		// Skip root node
+		if (depth < 2)
+			continue;
+		
+		quadtree_node_type x, y;
+		geom::morton::decode(location, x, y);
+		
+		--depth;
+		
+		if (x < quadtree.resolution - 1)
+		{
+			if (y < quadtree.resolution - 1)
+				nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x + 1, y + 1)));
+			if (y > 0)
+				nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x + 1, y - 1)));
+		}
+		
+		if (x > 0)
+		{
+			if (y < quadtree.resolution - 1)
+				nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x - 1, y + 1)));
+			if (y > 0)
+				nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x - 1, y - 1)));
+		}
+	}
+	
+	for (const auto& node: nodes)
+	{
+		quadtree.insert(node);
 	}
 }
 
