@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cmath>
+#include <concepts>
 #include <istream>
 #include <iterator>
 #include <ostream>
@@ -48,6 +49,51 @@ struct vector
 	
 	/// Array of vector elements.
 	element_type elements[N];
+	
+	/// @name Conversion
+	/// @{
+	
+	/// @private
+	template <class U, std::size_t... I>
+	constexpr inline vector<U, N> type_cast(std::index_sequence<I...>) const noexcept
+	{
+		return {static_cast<U>(elements[I])...};
+	}
+	
+	/**
+	 * Type-casts the elements of this vector using `static_cast`.
+	 *
+	 * @tparam U Target element type.
+	 *
+	 * @return Vector containing the type-casted elements.
+	 */
+	template <class U>
+	constexpr inline explicit operator vector<U, N>() const noexcept
+	{
+		return type_cast<U>(std::make_index_sequence<N>{});
+	}
+	
+	/// @private
+	template <std::size_t M, std::size_t... I>
+	constexpr inline vector<T, M> size_cast(std::index_sequence<I...>) const noexcept
+	{
+		return {(I < N) ? elements[I] : T{0} ...};
+	}
+	
+	/**
+	 * Size-casts this vector to a vector with a different number of elements. Casting to a greater number of elements causes new elements to be set to zero.
+	 *
+	 * @tparam M Target number of elements.
+	 *
+	 * @return *m*-dimensional vector.
+	 */
+	template <std::size_t M>
+	constexpr inline explicit operator vector<T, M>() const noexcept
+	{
+		return size_cast<M>(std::make_index_sequence<M>{});
+	}
+	
+	/// @}
 	
 	/// @name Element access
 	/// @{
@@ -250,47 +296,12 @@ struct vector
 	
 	/// @}
 	
-	/// @private
-	template <class U, std::size_t... I>
-	constexpr inline vector<U, N> type_cast(std::index_sequence<I...>) const noexcept
-	{
-		return {static_cast<U>(elements[I])...};
-	}
+	/// @name Constants
+	/// @{
 	
 	/**
-	 * Type-casts the elements of this vector using `static_cast`.
-	 *
-	 * @tparam U Target element type.
-	 *
-	 * @return Vector containing the type-casted elements.
+	 * Returns a zero vector, where every element is equal to zero.
 	 */
-	template <class U>
-	constexpr inline explicit operator vector<U, N>() const noexcept
-	{
-		return type_cast<U>(std::make_index_sequence<N>{});
-	}
-	
-	/// @private
-	template <std::size_t M, std::size_t... I>
-	constexpr inline vector<T, M> size_cast(std::index_sequence<I...>) const noexcept
-	{
-		return {(I < N) ? elements[I] : T{0} ...};
-	}
-	
-	/**
-	 * Size-casts this vector to a vector with a different number of elements. Casting to a greater number of elements causes new elements to be set to zero.
-	 *
-	 * @tparam M Target number of elements.
-	 *
-	 * @return *m*-dimensional vector.
-	 */
-	template <std::size_t M>
-	constexpr inline explicit operator vector<T, M>() const noexcept
-	{
-		return size_cast<M>(std::make_index_sequence<M>{});
-	}
-	
-	/// Returns a zero vector, where every element is equal to zero.
 	static constexpr vector zero() noexcept
 	{
 		return {};
@@ -306,11 +317,15 @@ struct vector
 		return {(I ? T{1} : T{1})...};
 	}
 	
-	/// Returns a vector of ones, where every element is equal to one.
+	/**
+	 * Returns a vector of ones, where every element is equal to one.
+	 */
 	static constexpr vector one() noexcept
 	{
 		return one(std::make_index_sequence<N>{});
 	}
+	
+	/// @}
 };
 
 /// Vector with two elements.
@@ -883,14 +898,13 @@ constexpr inline bool any(const vector<bool, N>& x) noexcept
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> ceil(const vector<T, N>& x, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::ceil(x[I])...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 constexpr inline vector<T, N> ceil(const vector<T, N>& x)
 {
 	return ceil(x, std::make_index_sequence<N>{});
@@ -922,10 +936,9 @@ constexpr inline vector<T, N> clamp(const vector<T, N>& x, T min, T max)
 	return clamp(x, min, max, std::make_index_sequence<N>{});
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 vector<T, N> clamp_length(const vector<T, N>& x, T max_length)
 {
-	static_assert(std::is_floating_point<T>::value);
 	T length2 = sqr_length(x);
 	return (length2 > max_length * max_length) ? (x * (max_length / std::sqrt(length2))) : x;
 }
@@ -1013,56 +1026,52 @@ constexpr inline vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> floor(const vector<T, N>& x, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::floor(x[I])...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 constexpr inline vector<T, N> floor(const vector<T, N>& x)
 {
 	return floor(x, std::make_index_sequence<N>{});
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::fma(x[I], y[I], z[I])...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 constexpr inline vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z)
 {
 	return fma(x, y, z, std::make_index_sequence<N>{});
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> fma(const vector<T, N>& x, T y, T z, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::fma(x[I], y, z)...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 constexpr inline vector<T, N> fma(const vector<T, N>& x, T y, T z)
 {
 	return fma(x, y, z, std::make_index_sequence<N>{});
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> fract(const vector<T, N>& x, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {x[I] - std::floor(x[I])...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 constexpr inline vector<T, N> fract(const vector<T, N>& x)
 {
 	return fract(x, std::make_index_sequence<N>{});
@@ -1122,16 +1131,15 @@ constexpr inline vector<bool, N> greater_than_equal(const vector<T, N>& x, const
 	return greater_than_equal(x, y, std::make_index_sequence<N>{});
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 inline T inv_length(const vector<T, N>& x)
 {
 	return T{1} / length(x);
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 inline T length(const vector<T, N>& x)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return std::sqrt(sqr_length(x));
 }
 
@@ -1200,28 +1208,26 @@ constexpr inline T min(const vector<T, N>& x)
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::fmod(x[I], y[I])...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 constexpr inline vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return mod(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> mod(const vector<T, N>& x, T y, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::fmod(x[I], y)...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 constexpr inline vector<T, N> mod(const vector<T, N>& x, T y)
 {
 	return mod(x, y, std::make_index_sequence<N>{});
@@ -1266,7 +1272,7 @@ constexpr inline vector<T, N> negate(const vector<T, N>& x) noexcept
 	return negate(x, std::make_index_sequence<N>{});
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 inline vector<T, N> normalize(const vector<T, N>& x)
 {
 	return mul(x, inv_length(x));
@@ -1299,56 +1305,52 @@ constexpr inline vector<bool, N> not_equal(const vector<T, N>& x, const vector<T
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 inline vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::pow(x[I], y[I])...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 inline vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return pow(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 inline vector<T, N> pow(const vector<T, N>& x, T y, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::pow(x[I], y)...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 inline vector<T, N> pow(const vector<T, N>& x, T y)
 {
 	return pow(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> round(const vector<T, N>& x, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::round(x[I])...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 constexpr inline vector<T, N> round(const vector<T, N>& x)
 {
 	return round(x, std::make_index_sequence<N>{});
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> sign(const vector<T, N>& x, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::copysign(T{1}, x[I])...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 constexpr inline vector<T, N> sign(const vector<T, N>& x)
 {
 	return sign(x, std::make_index_sequence<N>{});
@@ -1367,14 +1369,13 @@ constexpr inline T sqr_length(const vector<T, N>& x) noexcept
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 inline vector<T, N> sqrt(const vector<T, N>& x, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::sqrt(x[I])...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 inline vector<T, N> sqrt(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return sqrt(x, std::make_index_sequence<N>{});
@@ -1439,14 +1440,13 @@ constexpr inline vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) no
 }
 
 /// @private
-template <class T, std::size_t N, std::size_t... I>
+template <std::floating_point T, std::size_t N, std::size_t... I>
 constexpr inline vector<T, N> trunc(const vector<T, N>& x, std::index_sequence<I...>)
 {
-	static_assert(std::is_floating_point<T>::value);
 	return {std::trunc(x[I])...};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 constexpr inline vector<T, N> trunc(const vector<T, N>& x)
 {
 	return trunc(x, std::make_index_sequence<N>{});
@@ -1687,12 +1687,13 @@ namespace std
 	struct tuple_size<math::vector<T, N>>
 	{
 		/// Number of elements in the vector. 
-		static constexpr std::size_t value = N;
+		static constexpr std::size_t value = math::vector<T, N>::element_count;
 	};
 	
 	/**
 	 * Provides compile-time indexed access to the type of the elements in a math::vector using a tuple-like interface.
 	 *
+	 * @tparam I Index of an element.
 	 * @tparam T Element type.
 	 * @tparam N Number of elements.
 	 */
@@ -1700,7 +1701,7 @@ namespace std
 	struct tuple_element<I, math::vector<T, N>>
 	{
 		/// Type of elements in the vector.
-		using type = T;
+		using type = math::vector<T, N>::element_type;
 	};
 }
 

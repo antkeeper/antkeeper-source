@@ -33,7 +33,7 @@ namespace math {
 /**
  * *n* by *m* column-major matrix.
  *
- * @tparam T Matrix element data type.
+ * @tparam T Element type.
  * @tparam N Number of columns.
  * @tparam M Number of rows.
  *
@@ -63,159 +63,8 @@ struct matrix
 	/// Array of matrix column vectors.
 	column_vector_type columns[column_count];
 	
-	/**
-	 * Returns a reference to the column vector at a given index.
-	 *
-	 * @param i Index of a column vector.
-	 *
-	 * @return Reference to the column vector at index @p i.
-	 */
+	/// @name Conversion
 	/// @{
-	constexpr inline column_vector_type& operator[](std::size_t i) noexcept
-	{
-		return columns[i];
-	}
-	constexpr inline const column_vector_type& operator[](std::size_t i) const noexcept
-	{
-		return columns[i];
-	}
-	constexpr inline column_vector_type& column(std::size_t i) noexcept
-	{
-		return columns[i];
-	}
-	constexpr inline const column_vector_type& column(std::size_t i) const noexcept
-	{
-		return columns[i];
-	}
-	/// @}
-	
-	/**
-	 * Returns a reference to the element at a given column-major index.
-	 *
-	 * @param i Column-major index of a matrix element.
-	 *
-	 * @return Reference to the element at column-major index @p i.
-	 */
-	/// @{
-	constexpr inline T& element(std::size_t i) noexcept
-	{
-		return columns[i / row_count][i % row_count];
-	}
-	constexpr inline const T& element(std::size_t i) const noexcept
-	{
-		return columns[i / row_count][i % row_count];
-	}
-	/// @}
-	
-	/// Returns a reference to the first column vector.
-	/// @{
-	constexpr inline column_vector_type& front() noexcept
-	{
-		return columns[0];
-	}
-	constexpr inline const column_vector_type& front() const noexcept
-	{
-		return columns[0];
-	}
-	/// @}
-	
-	/// Returns a reference to the last column vector.
-	/// @{
-	constexpr inline column_vector_type& back() noexcept
-	{
-		return columns[column_count - 1];
-	}
-	constexpr inline const column_vector_type& back() const noexcept
-	{
-		return columns[column_count - 1];
-	}
-	/// @}
-	
-	/**
-	 * Returns a pointer to the first element.
-	 *
-	 * @warning If matrix::element_type is not a POD type, elements may not be stored contiguously.
-	 */
-	/// @{
-	constexpr inline element_type* data() noexcept
-	{
-		return &columns[0][0];
-	};
-	constexpr inline const element_type* data() const noexcept
-	{
-		return &columns[0][0];
-	};
-	/// @}
-	
-	/// Returns an iterator to the first column vector.
-	/// @{
-	constexpr inline column_vector_type* begin() noexcept
-	{
-		return columns;
-	}
-	constexpr inline const column_vector_type* begin() const noexcept
-	{
-		return columns;
-	}
-	constexpr inline const column_vector_type* cbegin() const noexcept
-	{
-		return columns;
-	}
-	/// @}
-	
-	/// Returns an iterator to the column vector following the last column vector.
-	/// @{
-	constexpr inline column_vector_type* end() noexcept
-	{
-		return columns + column_count;
-	}
-	constexpr inline const column_vector_type* end() const noexcept
-	{
-		return columns + column_count;
-	}
-	constexpr inline const column_vector_type* cend() const noexcept
-	{
-		return columns + column_count;
-	}
-	/// @}
-	
-	/// Returns a reverse iterator to the first column vector of the reversed matrix.
-	/// @{
-	constexpr inline std::reverse_iterator<column_vector_type*> rbegin() noexcept
-	{
-		return std::reverse_iterator<column_vector_type*>(columns + column_count);
-	}
-	constexpr inline std::reverse_iterator<const column_vector_type*> rbegin() const noexcept
-	{
-		return std::reverse_iterator<const column_vector_type*>(columns + column_count);
-	}
-	constexpr inline std::reverse_iterator<const column_vector_type*> crbegin() const noexcept
-	{
-		return std::reverse_iterator<const column_vector_type*>(columns + column_count);
-	}
-	/// @}
-	
-	/// Returns a reverse iterator to the column vector following the last column vector of the reversed matrix.
-	/// @{
-	constexpr inline std::reverse_iterator<column_vector_type*> rend() noexcept
-	{
-		return std::reverse_iterator<column_vector_type*>(columns);
-	}
-	constexpr inline std::reverse_iterator<const column_vector_type*> rend() const noexcept
-	{
-		return std::reverse_iterator<const column_vector_type*>(columns);
-	}
-	constexpr inline std::reverse_iterator<const column_vector_type*> crend() const noexcept
-	{
-		return std::reverse_iterator<const column_vector_type*>(columns);
-	}
-	/// @}
-	
-	/// Returns the number of elements in the matrix.
-	constexpr inline std::size_t size() const noexcept
-	{
-		return element_count;
-	};
 	
 	/// @private
 	template <class U, std::size_t... I>
@@ -261,7 +110,202 @@ struct matrix
 		return size_cast<P, O>(std::make_index_sequence<P>{});
 	}
 	
-	/// Returns a zero matrix, where every element is equal to zero.
+	/// @}
+	
+	/// @name Column access
+	/// @{
+	
+	/**
+	 * Returns a reference to the column vector at a given index.
+	 *
+	 * @param i Index of a column vector.
+	 *
+	 * @return Reference to the column vector at index @p i.
+	 */
+	/// @{
+	constexpr inline column_vector_type& operator[](std::size_t i) noexcept
+	{
+		return columns[i];
+	}
+	constexpr inline const column_vector_type& operator[](std::size_t i) const noexcept
+	{
+		return columns[i];
+	}
+	constexpr inline column_vector_type& column(std::size_t i) noexcept
+	{
+		return columns[i];
+	}
+	constexpr inline const column_vector_type& column(std::size_t i) const noexcept
+	{
+		return columns[i];
+	}
+	/// @}
+	
+	/**
+	 * Returns a reference to the first column vector.
+	 */
+	/// @{
+	constexpr inline column_vector_type& front() noexcept
+	{
+		return columns[0];
+	}
+	constexpr inline const column_vector_type& front() const noexcept
+	{
+		return columns[0];
+	}
+	/// @}
+	
+	/**
+	 * Returns a reference to the last column vector.
+	 */
+	/// @{
+	constexpr inline column_vector_type& back() noexcept
+	{
+		return columns[column_count - 1];
+	}
+	constexpr inline const column_vector_type& back() const noexcept
+	{
+		return columns[column_count - 1];
+	}
+	/// @}
+	
+	/// @}
+	
+	/// @name Element access
+	/// @{
+	
+	/**
+	 * Returns a reference to the element at a given column-major index.
+	 *
+	 * @param i Column-major index of a matrix element.
+	 *
+	 * @return Reference to the element at column-major index @p i.
+	 */
+	/// @{
+	constexpr inline T& element(std::size_t i) noexcept
+	{
+		return columns[i / row_count][i % row_count];
+	}
+	constexpr inline const T& element(std::size_t i) const noexcept
+	{
+		return columns[i / row_count][i % row_count];
+	}
+	/// @}
+	
+	/**
+	 * Returns a pointer to the first element.
+	 *
+	 * @warning If matrix::element_type is not a POD type, elements may not be stored contiguously.
+	 */
+	/// @{
+	constexpr inline element_type* data() noexcept
+	{
+		return &columns[0][0];
+	};
+	constexpr inline const element_type* data() const noexcept
+	{
+		return &columns[0][0];
+	};
+	/// @}
+	
+	/// @}
+	
+	/// @name Iterators
+	/// @{
+	
+	/**
+	 * Returns an iterator to the first column vector.
+	 */
+	/// @{
+	constexpr inline column_vector_type* begin() noexcept
+	{
+		return columns;
+	}
+	constexpr inline const column_vector_type* begin() const noexcept
+	{
+		return columns;
+	}
+	constexpr inline const column_vector_type* cbegin() const noexcept
+	{
+		return columns;
+	}
+	/// @}
+	
+	/**
+	 * Returns an iterator to the column vector following the last column vector.
+	 */
+	/// @{
+	constexpr inline column_vector_type* end() noexcept
+	{
+		return columns + column_count;
+	}
+	constexpr inline const column_vector_type* end() const noexcept
+	{
+		return columns + column_count;
+	}
+	constexpr inline const column_vector_type* cend() const noexcept
+	{
+		return columns + column_count;
+	}
+	/// @}
+	
+	/**
+	 * Returns a reverse iterator to the first column vector of the reversed matrix.
+	 */
+	/// @{
+	constexpr inline std::reverse_iterator<column_vector_type*> rbegin() noexcept
+	{
+		return std::reverse_iterator<column_vector_type*>(columns + column_count);
+	}
+	constexpr inline std::reverse_iterator<const column_vector_type*> rbegin() const noexcept
+	{
+		return std::reverse_iterator<const column_vector_type*>(columns + column_count);
+	}
+	constexpr inline std::reverse_iterator<const column_vector_type*> crbegin() const noexcept
+	{
+		return std::reverse_iterator<const column_vector_type*>(columns + column_count);
+	}
+	/// @}
+	
+	/**
+	 * Returns a reverse iterator to the column vector following the last column vector of the reversed matrix.
+	 */
+	/// @{
+	constexpr inline std::reverse_iterator<column_vector_type*> rend() noexcept
+	{
+		return std::reverse_iterator<column_vector_type*>(columns);
+	}
+	constexpr inline std::reverse_iterator<const column_vector_type*> rend() const noexcept
+	{
+		return std::reverse_iterator<const column_vector_type*>(columns);
+	}
+	constexpr inline std::reverse_iterator<const column_vector_type*> crend() const noexcept
+	{
+		return std::reverse_iterator<const column_vector_type*>(columns);
+	}
+	/// @}
+	
+	/// @}
+	
+	/// @name Capacity
+	/// @{
+	
+	/**
+	 * Returns the number of elements in the matrix.
+	 */
+	constexpr inline std::size_t size() const noexcept
+	{
+		return element_count;
+	};
+	
+	/// @}
+	
+	/// @name Constants
+	/// @{
+	
+	/**
+	 * Returns a zero matrix, where every element is equal to zero.
+	 */
 	static constexpr matrix zero() noexcept
 	{
 		return {};
@@ -277,7 +321,9 @@ struct matrix
 		return {(I ? column_vector_type::one() : column_vector_type::one()) ...};
 	}
 	
-	/// Returns a matrix of ones, where every element is equal to one.
+	/**
+	 * Returns a matrix of ones, where every element is equal to one.
+	 */
 	static constexpr matrix one() noexcept
 	{
 		return one(std::make_index_sequence<column_count>{});
@@ -297,11 +343,15 @@ struct matrix
 		return {identity_column(I, std::make_index_sequence<row_count>{}) ...};
 	}
 	
-	/// Returns an identity matrix, with ones on the main diagonal and zeros elsewhere.
+	/**
+	 * Returns an identity matrix, with ones on the main diagonal and zeros elsewhere.
+	 */
 	static constexpr matrix identity() noexcept
 	{
 		return identity(std::make_index_sequence<column_count>{});
 	}
+	
+	/// @}
 };
 
 /// 2x2 matrix.
@@ -363,18 +413,6 @@ template <class T, std::size_t N>
 constexpr T determinant(const matrix<T, N, N>& m) noexcept;
 
 /**
- * Calculates the inverse of a square matrix.
- *
- * @param m Square matrix.
- *
- * @return Inverse of matrix @p m.
- *
- * @warning Currently only implemented for 2x2, 3x3, and 4x4 matrices.
- */
-template <class T, std::size_t N>
-constexpr matrix<T, N, N> inverse(const matrix<T, N, N>& m) noexcept;
-
-/**
  * Performs a component-wise multiplication of two matrices.
  *
  * @param x First matrix multiplicand.
@@ -417,6 +455,41 @@ constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b) noexcept;
  */
 template <class T, std::size_t N, std::size_t M>
 constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept;
+
+/**
+ * Extracts the Ith column from a matrix.
+ *
+ * @tparam I Index of a column.
+ * @tparam T Element type.
+ * @tparam N Number of columns.
+ * @tparam M Number of rows.
+ *
+ * @param m Matrix from which to extract a column.
+ *
+ * @return Reference to the Ith column of @p m.
+ */
+/// @{
+template<std::size_t I, class T, std::size_t N, std::size_t M>
+constexpr typename matrix<T, N, M>::column_vector_type& get(math::matrix<T, N, M>& m) noexcept;
+template<std::size_t I, class T, std::size_t N, std::size_t M>
+constexpr typename matrix<T, N, M>::column_vector_type&& get(math::matrix<T, N, M>&& m) noexcept;
+template<std::size_t I, class T, std::size_t N, std::size_t M>
+constexpr const typename matrix<T, N, M>::column_vector_type& get(const math::matrix<T, N, M>& m) noexcept;
+template<std::size_t I, class T, std::size_t N, std::size_t M>
+constexpr const typename matrix<T, N, M>::column_vector_type&& get(const math::matrix<T, N, M>&& m) noexcept;
+/// @}
+
+/**
+ * Calculates the inverse of a square matrix.
+ *
+ * @param m Square matrix.
+ *
+ * @return Inverse of matrix @p m.
+ *
+ * @warning Currently only implemented for 2x2, 3x3, and 4x4 matrices.
+ */
+template <class T, std::size_t N>
+constexpr matrix<T, N, N> inverse(const matrix<T, N, N>& m) noexcept;
 
 /**
  * Creates a viewing transformation matrix.
@@ -659,6 +732,86 @@ constexpr T determinant(const matrix<T, 4, 4>& m) noexcept
 		m[0][1] * m[1][0] * m[2][2] * m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3];
 }
 
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+{
+	return {(a[I] * b[I]) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
+{
+	return componentwise_mul(a, b, std::make_index_sequence<N>{});
+}
+
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+{
+	return {(a[I] / b[I]) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
+{
+	return div(a, b, std::make_index_sequence<N>{});
+}
+
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> div(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
+{
+	return {(a[I] / b) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b) noexcept
+{
+	return div(a, b, std::make_index_sequence<N>{});
+}
+
+/// @private
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
+constexpr inline matrix<T, N, M> div(T a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+{
+	return {(a / b[I]) ...};
+}
+
+template <class T, std::size_t N, std::size_t M>
+constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept
+{
+	return div(a, b, std::make_index_sequence<N>{});
+}
+
+template<std::size_t I, class T, std::size_t N, std::size_t M>
+constexpr inline typename matrix<T, N, M>::column_vector_type& get(math::matrix<T, N, M>& m) noexcept
+{
+	static_assert(I < N);
+	return m.columns[I];
+}
+
+template<std::size_t I, class T, std::size_t N, std::size_t M>
+constexpr inline typename matrix<T, N, M>::column_vector_type&& get(math::matrix<T, N, M>&& m) noexcept
+{
+	static_assert(I < N);
+	return std::move(m.columns[I]);
+}
+
+template<std::size_t I, class T, std::size_t N, std::size_t M>
+constexpr inline const typename matrix<T, N, M>::column_vector_type& get(const math::matrix<T, N, M>& m) noexcept
+{
+	static_assert(I < N);
+	return m.columns[I];
+}
+
+template<std::size_t I, class T, std::size_t N, std::size_t M>
+constexpr inline const typename matrix<T, N, M>::column_vector_type&& get(const math::matrix<T, N, M>&& m) noexcept
+{
+	static_assert(I < N);
+	return std::move(m.columns[I]);
+}
+
 template <class T>
 constexpr matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m) noexcept
 {
@@ -721,58 +874,6 @@ constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m) noexcept
 		(m[0][2] * m[1][1] * m[3][0] - m[0][1] * m[1][2] * m[3][0] - m[0][2] * m[1][0] * m[3][1] + m[0][0] * m[1][2] * m[3][1] + m[0][1] * m[1][0] * m[3][2] - m[0][0] * m[1][1] * m[3][2]) * inv_det,
 		(m[0][1] * m[1][2] * m[2][0] - m[0][2] * m[1][1] * m[2][0] + m[0][2] * m[1][0] * m[2][1] - m[0][0] * m[1][2] * m[2][1] - m[0][1] * m[1][0] * m[2][2] + m[0][0] * m[1][1] * m[2][2]) * inv_det
 	};
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
-{
-	return {(a[I] * b[I]) ...};
-}
-
-template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
-{
-	return componentwise_mul(a, b, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
-{
-	return {(a[I] / b[I]) ...};
-}
-
-template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
-{
-	return div(a, b, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> div(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
-{
-	return {(a[I] / b) ...};
-}
-
-template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b) noexcept
-{
-	return div(a, b, std::make_index_sequence<N>{});
-}
-
-/// @private
-template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> div(T a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
-{
-	return {(a / b[I]) ...};
-}
-
-template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept
-{
-	return div(a, b, std::make_index_sequence<N>{});
 }
 
 template <class T>
@@ -1237,5 +1338,38 @@ std::istream& operator>>(std::istream& is, matrix<T, N, M>& m)
 } // namespace math
 
 using namespace math::operators;
+
+// Structured binding support
+namespace std
+{
+	/**
+	 * Provides access to the number of columns in a math::matrix as a compile-time constant expression.
+	 *
+	 * @tparam T Element type.
+	 * @tparam N Number of columns.
+	 * @tparam M Number of rows.
+	 */
+	template<class T, std::size_t N, std::size_t M>
+	struct tuple_size<math::matrix<T, N, M>>
+	{
+		/// Number of columns in the matrix. 
+		static constexpr std::size_t value = math::matrix<T, N, M>::column_count;
+	};
+	
+	/**
+	 * Provides compile-time indexed access to the type of the columns in a math::matrix using a tuple-like interface.
+	 *
+	 * @tparam I Index of a column.
+	 * @tparam T Element type.
+	 * @tparam N Number of columns.
+	 * @tparam M Number of rows.
+	 */
+	template<std::size_t I, class T, std::size_t N, std::size_t M>
+	struct tuple_element<I, math::matrix<T, N, M>>
+	{
+		/// Type of columns in the matrix.
+		using type = math::matrix<T, N, M>::column_vector_type;
+	};
+}
 
 #endif // ANTKEEPER_MATH_MATRIX_HPP

@@ -84,54 +84,32 @@ void terrain::update(double t, double dt)
 			
 			const scene::camera& cam = *camera.object;
 			
-
+			// Determine camera node location
+			const auto [x, y, z] = cam.get_translation();
 			
-
+			quadtree_node_type node_x = static_cast<quadtree_node_type>((x / patch_side_length) + quadtree.resolution / 4);
+			quadtree_node_type node_y = static_cast<quadtree_node_type>((z / patch_side_length) + quadtree.resolution / 4);
+			quadtree_node_type node_location = geom::morton::encode<quadtree_node_type>(node_x, node_y);
+			quadtree.insert(quadtree.node(quadtree.max_depth, node_location));
 			
-			// for (int i = 0; i < 8; ++i)
-				// std::cout << "corner " << i << ": " << cam.get_view_frustum().get_corners()[i] << std::endl;
+			balance_quadtree();
 			
-			geom::primitive::ray<float, 3> rays[8];
-			rays[0] = cam.pick({-1, -1});
-			rays[1] = cam.pick({-1,  1});
-			rays[2] = cam.pick({ 1,  1});
-			rays[3] = cam.pick({ 1, -1});
-			
-			float3 ntl = rays[0].origin;
-			float3 nbl = rays[1].origin;
-			float3 nbr = rays[2].origin;
-			float3 ntr = rays[3].origin;
-			
-			float3 ftl = rays[0].origin + rays[0].direction * (cam.get_clip_far() - cam.get_clip_near());
-			float3 fbl = rays[1].origin + rays[1].direction * (cam.get_clip_far() - cam.get_clip_near());
-			float3 fbr = rays[2].origin + rays[2].direction * (cam.get_clip_far() - cam.get_clip_near());
-			float3 ftr = rays[3].origin + rays[3].direction * (cam.get_clip_far() - cam.get_clip_near());
-			
-			// for (int i = 0; i < 8; ++i)
-				// std::cout << "ray or " << i << ": " << rays[i].origin << std::endl;
-			
-			geom::convex_hull<float> hull(6);
-			hull.planes[0] = geom::plane<float>(ftl, fbl, nbl);
-			hull.planes[1] = geom::plane<float>(ntr, nbr, fbr);
-			hull.planes[2] = geom::plane<float>(fbl, fbr, nbr);
-			hull.planes[3] = geom::plane<float>(ftl, ntl, ntr);
-			hull.planes[4] = geom::plane<float>(ntl, nbl, nbr);
-			hull.planes[5] = geom::plane<float>(ftr, fbr, fbl);
-			
-			geom::sphere<float> sphere;
-			sphere.center = cam.get_translation();
-			//sphere.radius = patch_side_length;
-			sphere.radius = 1.0f;
-			
-			// Determine camera position node
-			auto translation = cam.get_translation();
-			
-			//visit_quadtree(cam.get_view_frustum().get_bounds(), quadtree_type::root);
-			visit_quadtree(sphere, quadtree_type::root);
+			for (const quadtree_node_type& node: quadtree)
+			{
+				if (!quadtree.is_leaf(node))
+					continue;
+				
+				if (patches.find(node) == patches.end())
+				{
+					patch* node_patch = generate_patch(node);
+					patches[node] = node_patch;
+					scene_collection->add_object(node_patch->model_instance);
+				}
+			}
 		}
 	);
 	
-	balance_quadtree();
+
 	
 	//std::cout << "qsize: " << quadtree.size() << std::endl;
 	std::size_t qvis = 0;
@@ -337,23 +315,30 @@ void terrain::balance_quadtree()
 		quadtree_node_type x, y;
 		geom::morton::decode(location, x, y);
 		
-		--depth;
 		
-		if (x < quadtree.resolution - 1)
-		{
-			if (y < quadtree.resolution - 1)
-				nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x + 1, y + 1)));
-			if (y > 0)
-				nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x + 1, y - 1)));
-		}
+		// TODO!!!!
 		
-		if (x > 0)
+		// DONT USE quadtree.resolution, use a depth-specific resolution
+		
+		if (!quadtree.is_leaf(node))
 		{
-			if (y < quadtree.resolution - 1)
-				nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x - 1, y + 1)));
-			if (y > 0)
-				nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x - 1, y - 1)));
+			if (x < (quadtree.resolution / 4) - 1)
+			{
+				if (y < (quadtree.resolution / 4) - 1)
+					nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x + 1, y + 1)));
+				if (y > 0)
+					nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x + 1, y - 1)));
+			}
+			
+			if (x > 0)
+			{
+				if (y < (quadtree.resolution / 4) - 1)
+					nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x - 1, y + 1)));
+				if (y > 0)
+					nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x - 1, y - 1)));
+			}
 		}
+
 	}
 	
 	for (const auto& node: nodes)
