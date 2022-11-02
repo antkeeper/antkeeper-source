@@ -147,7 +147,11 @@ f1
 		for (std::size_t j = 0; j < N; ++j)
 		{
 			if (tiling[j])
-				hash_position[j] = std::fmod(hash_position[j] + tiling[j], tiling[j]);
+			{
+				hash_position[j] = std::fmod(hash_position[j], tiling[j]);
+				if (hash_position[j] < T{0})
+					hash_position[j] += tiling[j];
+			}
 		}
 		
 		// Calculate hash values for the hash position
@@ -237,7 +241,11 @@ f1_edge
 		for (std::size_t j = 0; j < N; ++j)
 		{
 			if (tiling[j])
-				hash_position[j] = std::fmod(hash_position[j] + tiling[j], tiling[j]);
+			{
+				hash_position[j] = std::fmod(hash_position[j], tiling[j]);
+				if (hash_position[j] < T{0})
+					hash_position[j] += tiling[j];
+			}
 		}
 		
 		// Calculate hash values for the hash position
@@ -364,7 +372,11 @@ f1_f2
 		for (std::size_t j = 0; j < N; ++j)
 		{
 			if (tiling[j])
-				hash_position[j] = std::fmod(hash_position[j] + tiling[j], tiling[j]);
+			{
+				hash_position[j] = std::fmod(hash_position[j], tiling[j]);
+				if (hash_position[j] < T{0})
+					hash_position[j] += tiling[j];
+			}
 		}
 		
 		// Calculate hash values for the hash position
