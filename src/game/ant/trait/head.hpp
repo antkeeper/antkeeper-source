@@ -27,21 +27,24 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the head of an ant.
+ * Ant head description.
+ *
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
+ * @see https://antwiki.org/wiki/Phragmosis
  */
 struct head
 {
-	/// Head length in full face view (HL), measured in mesosomal lengths.
-	float length;
-	
-	/// Head width in full face view (HW), measured in mesosomal lengths.
-	float width;
-	
-	/// Indicates whether the head can be used to plug nest entrances.
-	bool phragmotic;
-	
 	/// 3D model of the head.
 	render::model* model;
+	
+	/// Head length, in mesosomal lengths.
+	float length;
+	
+	/// Head width, in mesosomal lengths.
+	float width;
+	
+	/// Degree of phragmosis.
+	float phragmosis;
 };
 
 } // namespace trait

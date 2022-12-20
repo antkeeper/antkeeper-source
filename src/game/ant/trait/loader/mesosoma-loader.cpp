@@ -37,8 +37,13 @@ trait::mesosoma* resource_loader<trait::mesosoma>::load(resource_manager* resour
 	if (mesosoma_element == data->end())
 		throw std::runtime_error("Invalid mesosoma trait.");
 	
-	// Allocate mesosoma trait
+	// Allocate and init mesosoma trait
 	trait::mesosoma* mesosoma = new trait::mesosoma();
+	mesosoma->model = nullptr;
+	mesosoma->pronotum_width = 0.0f;
+	mesosoma->pronotum_spinescence = 0.0f;
+	mesosoma->mesonotum_spinescence = 0.0f;
+	mesosoma->propodeum_spinescence = 0.0f;
 	
 	// Load mesosoma model
 	auto model_element = mesosoma_element->find("model");
@@ -46,20 +51,21 @@ trait::mesosoma* resource_loader<trait::mesosoma>::load(resource_manager* resour
 		throw std::runtime_error("Mesosoma trait doesn't specify mesosoma model.");
 	mesosoma->model = resource_manager->load<render::model>(model_element->get<std::string>());
 	
-	// Parse mesosoma length
-	mesosoma->length = 0.0f;
-	if (auto length_element = mesosoma_element->find("length"); length_element != mesosoma_element->end())
-		mesosoma->length = length_element->get<float>();
+	// Parse pronotum width
+	if (auto element = mesosoma_element->find("pronotum_width"); element != mesosoma_element->end())
+		mesosoma->pronotum_width = element->get<float>();
 	
-	// Parse mesosoma width
-	mesosoma->width = 0.0f;
-	if (auto width_element = mesosoma_element->find("width"); width_element != mesosoma_element->end())
-		mesosoma->width = width_element->get<float>();
+	// Parse pronotum spinescence
+	if (auto element = mesosoma_element->find("pronotum_spinescence"); element != mesosoma_element->end())
+		mesosoma->pronotum_spinescence = element->get<float>();
 	
-	// Parse mesosoma spinescence
-	mesosoma->spinescence = 0.0f;
-	if (auto spinescence_element = mesosoma_element->find("spinescence"); spinescence_element != mesosoma_element->end())
-		mesosoma->spinescence = spinescence_element->get<float>();
+	// Parse mesonotum spinescence
+	if (auto element = mesosoma_element->find("mesonotum_spinescence"); element != mesosoma_element->end())
+		mesosoma->mesonotum_spinescence = element->get<float>();
+	
+	// Parse propodeum spinescence
+	if (auto element = mesosoma_element->find("propodeum_spinescence"); element != mesosoma_element->end())
+		mesosoma->propodeum_spinescence = element->get<float>();
 	
 	// Free JSON data
 	delete data;

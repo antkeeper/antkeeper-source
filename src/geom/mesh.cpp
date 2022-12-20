@@ -120,19 +120,19 @@ mesh& mesh::operator=(const mesh& other)
 	return *this;
 }
 
-void mesh::clear()
+void mesh::clear() noexcept
 {
 	// Deallocate vertices
 	for (mesh::vertex* vertex: vertices)
 		delete vertex;
-
+	
 	// Deallocate edges
 	for (mesh::edge* edge: edges)
 	{
 		delete edge->symmetric;
 		delete edge;
 	}
-
+	
 	// Deallocate faces
 	for (mesh::face* face: faces)
 		delete face;
@@ -144,12 +144,15 @@ void mesh::clear()
 
 mesh::vertex* mesh::add_vertex(const float3& position)
 {
-	mesh::vertex* vertex = new mesh::vertex();
-	vertex->edge = nullptr;
-	vertex->position = position;
-	vertex->index = vertices.size();
+	mesh::vertex* vertex = new mesh::vertex
+	{
+		vertices.size(),
+		nullptr,
+		position
+	};
+	
 	vertices.push_back(vertex);
-
+	
 	return vertex;
 }
 
@@ -158,19 +161,19 @@ mesh::edge* mesh::add_edge(mesh::vertex* a, mesh::vertex* b)
 	mesh::edge* ab = new mesh::edge();
 	mesh::edge* ba = new mesh::edge();
 	
+	ab->index = edges.size();
 	ab->vertex = a;
 	ab->face = nullptr;
 	ab->previous = ba;
 	ab->next = ba;
 	ab->symmetric = ba;
-	ab->index = edges.size();
 	
+	ba->index = edges.size();
 	ba->vertex = b;
 	ba->face = nullptr;
 	ba->previous = ab;
 	ba->next = ab;
 	ba->symmetric = ab;
-	ba->index = edges.size();
 	
 	if (!a->edge)
 	{
@@ -240,21 +243,21 @@ mesh::face* mesh::add_face(const loop& loop)
 			throw std::runtime_error("Non-manifold mesh 2");
 		}
 	}
-
+	
 	// Create face
 	mesh::face* face = new mesh::face();
 	face->edge = loop[0];
 	face->index = faces.size();
-
+	
 	// Add face
 	faces.push_back(face);
-
+	
 	// Connect edges to the face
 	for (mesh::edge* edge: loop)
 	{
 		edge->face = face;
 	}
-
+	
 	return face;
 }
 

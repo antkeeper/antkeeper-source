@@ -17,24 +17,33 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_TRAIT_SIZE_HPP
-#define ANTKEEPER_GAME_ANT_TRAIT_SIZE_HPP
+#ifndef ANTKEEPER_GAME_ANT_CASTE_TYPE_HPP
+#define ANTKEEPER_GAME_ANT_CASTE_TYPE_HPP
 
 namespace game {
 namespace ant {
-namespace trait {
 
 /**
- * Trait that describes the sizes of an ant caste.
+ * Ant caste type enumerations
+ *
+ * @see https://www.antwiki.org/wiki/Caste_Terminology
  */
-struct size
+enum class caste_type
 {
-	/// Size-frequency distribution, with sizes measured in mesosomal lengths.
-	std::vector<std::tuple<float, float>> distribution;
+	/// Queen caste type.
+	queen,
+	
+	/// Worker caste type.
+	worker,
+	
+	/// Soldier caste type.
+	soldier,
+	
+	/// Male caste type.
+	male
 };
 
-} // namespace trait
 } // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_ANT_TRAIT_SIZE_HPP
+#endif // ANTKEEPER_GAME_ANT_CASTE_TYPE_HPP

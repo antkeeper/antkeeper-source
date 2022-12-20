@@ -27,21 +27,29 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the eyes of an ant.
+ * Ant eyes description.
+ *
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
  */
 struct eyes
 {
-	/// Eye length (EL), measured in mesosomal lengths.
+	/// 3D model of the eyes, if present.
+	render::model* model;
+	
+	/// Indicates whether eyes are present.
+	bool present;
+	
+	/// Eye length, in mesosomal lengths.
 	float length;
 	
-	/// Eye width (EW), measured in mesosomal lengths.
+	/// Eye width, in mesosomal lengths.
 	float width;
 	
-	/// Number of ommatidia.
-	int ommatidia;
+	/// Eye height, in mesosomal lengths.
+	float height;
 	
-	/// 3D model of the eyes.
-	render::model* model;
+	/// Number of ommatidia.
+	int ommatidia_count;
 };
 
 } // namespace trait

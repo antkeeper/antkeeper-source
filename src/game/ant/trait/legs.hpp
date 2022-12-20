@@ -27,15 +27,20 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the legs of an ant.
+ * Ant legs description.
+ *
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
  */
 struct legs
 {
-	/// Running speed, measured in mesosomal lengths per second (ML/s).
-	float speed;
-	
 	/// 3D model of the legs.
 	render::model* model;
+	
+	/// Running speed, in mesosomal lengths per second.
+	float speed;
+	
+	/// Grip factor.
+	float grip;
 };
 
 } // namespace trait

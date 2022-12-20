@@ -17,43 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_SUBCASTE_HPP
-#define ANTKEEPER_GAME_ANT_SUBCASTE_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_BODY_SIZE_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_BODY_SIZE_HPP
 
 namespace game {
 namespace ant {
+namespace trait {
 
 /**
- * Ant subcaste types.
+ * Ant body size description.
  */
-enum class subcaste
+struct body_size
 {
-	/// A worker from the queen's first batch of eggs, smaller than normal workers.
-	nanitic,
-	
-	/// A small worker or soldier.
-	minor,
-	
-	/// A normal-sized worker or soldier
-	media,
-	
-	/// A large worker or soldier.
-	major,
-	
-	/// A queen or male which still has its wings.
-	alate,
-	
-	/// A queen or male which has shed its wings.
-	dealate,
-	
-	/// A queen or male which does not develop wings.
-	ergatoid,
-	
-	/// A queen or male with short, nonfunctional wings.
-	brachypterous
+	/// Mesosoma length (Weber's length) of a media worker, in centimeters.
+	float mesosoma_length;
 };
 
+} // namespace trait
 } // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_ANT_SUBCASTE_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_BODY_SIZE_HPP

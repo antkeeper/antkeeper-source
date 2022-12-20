@@ -33,6 +33,7 @@
 #include "scene/collection.hpp"
 #include "geom/view-frustum.hpp"
 #include <unordered_map>
+#include <stack>
 
 namespace game {
 namespace system {
@@ -103,10 +104,6 @@ private:
 	
 	void rebuild_patch_base_mesh();
 	
-
-	
-	void visit_quadtree(const geom::bounding_volume<float>& volume, quadtree_node_type node);
-	
 	/**
 	 * Generates a mesh for a terrain patch given the patch's quadtree node
 	 */
@@ -149,9 +146,12 @@ private:
 	/// Quadtree describing level of detail
 	quadtree_type quadtree;
 	float quadtree_node_size[quadtree_type::max_depth + 1];
+	quadtree_node_type quadtree_node_resolution[quadtree_type::max_depth + 1];
 	
 	/// Map linking quadtree nodes to terrain patches
 	std::unordered_map<quadtree_node_type, patch*> patches;
+	
+	std::stack<quadtree_node_type> node_stack;
 };
 
 } // namespace system

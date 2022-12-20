@@ -36,8 +36,9 @@ trait::pigmentation* resource_loader<trait::pigmentation>::load(resource_manager
 	if (pigmentation_element == data->end())
 		throw std::runtime_error("Invalid pigmentation trait.");
 	
-	// Allocate pigmentation trait
+	// Allocate and init pigmentation trait
 	trait::pigmentation* pigmentation = new trait::pigmentation();
+	pigmentation->material = nullptr;
 	
 	// Load pigmentation material
 	auto material_element = pigmentation_element->find("material");

@@ -888,7 +888,7 @@ void boot::setup_systems()
 	ctx.blackbody_system->set_illuminant(color::illuminant::deg2::d55<double>);
 	
 	// RGB wavelengths for atmospheric scatteering
-	ctx.rgb_wavelengths = {640, 575, 440};
+	ctx.rgb_wavelengths = {680, 550, 440};
 	
 	// Setup atmosphere system
 	ctx.atmosphere_system = new game::system::atmosphere(*ctx.entity_registry);

@@ -54,7 +54,7 @@ constexpr std::optional<T> intersection(const ray<T, N>& ray, const hyperplane<T
 }
 
 template <class T, std::size_t N>
-constexpr inline std::optional<T> intersection(const hyperplane<T, N>& hyperplane, const ray<T, N>& ray) noexcept
+inline constexpr std::optional<T> intersection(const hyperplane<T, N>& hyperplane, const ray<T, N>& ray) noexcept
 {
 	return intersection<T, N>(ray, hyperplane);
 }
@@ -98,7 +98,7 @@ constexpr std::optional<std::tuple<T, T>> intersection(const ray<T, N>& ray, con
 }
 
 template <class T, std::size_t N>
-constexpr inline std::optional<std::tuple<T, T>> intersection(const hyperrectangle<T, N>& hyperrectangle, const ray<T, N>& ray) noexcept
+inline constexpr std::optional<std::tuple<T, T>> intersection(const hyperrectangle<T, N>& hyperrectangle, const ray<T, N>& ray) noexcept
 {
 	return intersection<T, N>(ray, hyperrectangle);
 }
@@ -145,7 +145,7 @@ std::optional<std::tuple<T, T>> intersection(const ray<T, N>& ray, const hypersp
  * @return `true` if an intersection occurred, `false` otherwise.
  */
 template <class T, std::size_t N>
-constexpr inline bool intersection(const hyperrectangle<T, N>& a, const hyperrectangle<T, N>& b) noexcept
+inline constexpr bool intersection(const hyperrectangle<T, N>& a, const hyperrectangle<T, N>& b) noexcept
 {
 	return a.intersects(b);
 }
@@ -181,7 +181,7 @@ constexpr bool intersection(const hyperrectangle<T, N>& hyperrectangle, const hy
 }
 
 template <class T, std::size_t N>
-constexpr inline bool intersection(const hypersphere<T, N>& hypersphere, const hyperrectangle<T, N>& hyperrectangle) noexcept
+inline constexpr bool intersection(const hypersphere<T, N>& hypersphere, const hyperrectangle<T, N>& hyperrectangle) noexcept
 {
 	return intersection<T, N>(hyperrectangle, hypersphere);
 }
@@ -196,7 +196,7 @@ constexpr inline bool intersection(const hypersphere<T, N>& hypersphere, const h
  * @return `true` if an intersection occurred, `false` otherwise.
  */
 template <class T, std::size_t N>
-constexpr inline bool intersection(const hypersphere<T, N>& a, const hypersphere<T, N>& b) noexcept
+inline constexpr bool intersection(const hypersphere<T, N>& a, const hypersphere<T, N>& b) noexcept
 {
 	return a.intersects(b);
 }

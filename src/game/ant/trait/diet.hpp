@@ -25,7 +25,7 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the diet of an ant.
+ * Ant diet description.
  */
 struct diet
 {

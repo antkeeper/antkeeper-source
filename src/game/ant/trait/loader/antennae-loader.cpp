@@ -37,8 +37,11 @@ trait::antennae* resource_loader<trait::antennae>::load(resource_manager* resour
 	if (antennae_element == data->end())
 		throw std::runtime_error("Invalid antennae trait.");
 	
-	// Allocate antennae trait
+	// Allocate and init antennae trait
 	trait::antennae* antennae = new trait::antennae();
+	antennae->model = nullptr;
+	antennae->total_antennomere_count = 0;
+	antennae->club_antennomere_count = 0;
 	
 	// Load antennae model
 	auto model_element = antennae_element->find("model");
@@ -46,10 +49,13 @@ trait::antennae* resource_loader<trait::antennae>::load(resource_manager* resour
 		throw std::runtime_error("Antennae trait doesn't specify antennae model.");
 	antennae->model = resource_manager->load<render::model>(model_element->get<std::string>());
 	
-	// Parse antennae scape length
-	antennae->scape_length = 0.0f;
-	if (auto scape_length_element = antennae_element->find("scape_length"); scape_length_element != antennae_element->end())
-		antennae->scape_length = scape_length_element->get<float>();
+	// Parse total antennomere count
+	if (auto element = antennae_element->find("total_antennomere_count"); element != antennae_element->end())
+		antennae->total_antennomere_count = element->get<int>();
+	
+	// Parse club antennomere count
+	if (auto element = antennae_element->find("club_antennomere_count"); element != antennae_element->end())
+		antennae->club_antennomere_count = element->get<int>();
 	
 	// Free JSON data
 	delete data;

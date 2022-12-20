@@ -55,7 +55,10 @@ terrain::terrain(entity::registry& registry):
 	
 	// Init quadtee node sizes at each depth
 	for (std::size_t i = 0; i <= quadtree_type::max_depth; ++i)
+	{
 		quadtree_node_size[i] = 0.0f;
+		quadtree_node_resolution[i] = static_cast<quadtree_node_type>(std::exp2(i));
+	}
 	
 	registry.on_construct<component::terrain>().connect<&terrain::on_terrain_construct>(this);
 	registry.on_update<component::terrain>().connect<&terrain::on_terrain_update>(this);
@@ -87,11 +90,16 @@ void terrain::update(double t, double dt)
 			// Determine camera node location
 			const auto [x, y, z] = cam.get_translation();
 			
-			quadtree_node_type node_x = static_cast<quadtree_node_type>((x / patch_side_length) + quadtree.resolution / 4);
-			quadtree_node_type node_y = static_cast<quadtree_node_type>((z / patch_side_length) + quadtree.resolution / 4);
-			quadtree_node_type node_location = geom::morton::encode<quadtree_node_type>(node_x, node_y);
-			quadtree.insert(quadtree.node(quadtree.max_depth, node_location));
+			quadtree_node_type node_depth = quadtree.max_depth;
+			const float node_size = quadtree_node_size[node_depth];
+			quadtree_node_type node_resolution = quadtree_node_resolution[node_depth];
 			
+			quadtree_node_type node_x = static_cast<quadtree_node_type>(x / node_size + node_resolution / 2);
+			quadtree_node_type node_y = static_cast<quadtree_node_type>(z / node_size + node_resolution / 2);
+			quadtree_node_type node_location = geom::morton::encode<quadtree_node_type>(node_x, node_y);
+			//quadtree.insert(quadtree.node(node_depth, node_location));
+			
+			node_stack.push(quadtree.node(node_depth, node_location));
 			balance_quadtree();
 			
 			for (const quadtree_node_type& node: quadtree)
@@ -111,21 +119,12 @@ void terrain::update(double t, double dt)
 	
 
 	
-	//std::cout << "qsize: " << quadtree.size() << std::endl;
-	std::size_t qvis = 0;
-
-	
 	/// Toggle visibility of terrain scene objects
 	for (auto it = patches.begin(); it != patches.end(); ++it)
 	{
 		bool active = (quadtree.contains(it->first) && quadtree.is_leaf(it->first));
 		it->second->model_instance->set_active(active);
-		
-		if (active)
-			++qvis;
 	}
-	
-	//std::cout << "qvis: " << qvis << std::endl;
 }
 
 void terrain::set_patch_side_length(float length)
@@ -136,7 +135,6 @@ void terrain::set_patch_side_length(float length)
 	for (std::size_t i = 0; i <= quadtree_type::max_depth; ++i)
 	{
 		quadtree_node_size[i] = std::exp2(quadtree_type::max_depth - i) * patch_side_length;
-		//std::cout << quadtree_node_size[i] << std::endl;
 	}
 }
 
@@ -245,105 +243,48 @@ void terrain::rebuild_patch_base_mesh()
 	}
 }
 
-void terrain::visit_quadtree(const geom::bounding_volume<float>& volume, quadtree_node_type node)
-{
-	const float root_offset = quadtree_node_size[0] * -0.5f;
-	
-	// Extract node depth
-	quadtree_type::node_type node_depth = quadtree_type::depth(node);
-	
-	const float node_size = get_patch_size(node);
-	const float3 node_center = get_patch_center(node);
-	
-	// Build node bounds AABB
-	geom::aabb<float> node_bounds;
-	node_bounds.min_point = 
-	{
-		node_center.x() - node_size * 0.5f,
-		-std::numeric_limits<float>::infinity(),
-		node_center.z() - node_size * 0.5f
-	};
-	node_bounds.max_point =
-	{
-		node_bounds.min_point.x() + node_size,
-		std::numeric_limits<float>::infinity(),
-		node_bounds.min_point.z() + node_size
-	};
-	
-	// If volume intersects node
-	if (volume.intersects(node_bounds))
-	{
-		// Subdivide leaf nodes
-		if (quadtree.is_leaf(node))
-		{
-			quadtree.insert(quadtree_type::child(node, 0));
-			
-			for (quadtree_node_type i = 0; i < quadtree_type::children_per_node; ++i)
-			{
-				quadtree_node_type child = quadtree_type::child(node, i);
-				
-				if (patches.find(child) == patches.end())
-				{
-					patch* child_patch = generate_patch(child);
-					patches[child] = child_patch;
-					scene_collection->add_object(child_patch->model_instance);
-				}
-			}
-		}
-		
-		// Visit children
-		if (node_depth < quadtree_type::max_depth - 1)
-		{
-			for (quadtree_node_type i = 0; i < quadtree_type::children_per_node; ++i)
-				visit_quadtree(volume, quadtree_type::child(node, i));
-		}
-	}
-}
-
 void terrain::balance_quadtree()
 {
-	std::unordered_set<quadtree_node_type> nodes;
-	
-	for (const auto& node: quadtree)
+	while (!node_stack.empty())
 	{
-		auto [depth, location] = quadtree.split(node);
+		quadtree_node_type node = node_stack.top();
+		node_stack.pop();
 		
-		// Skip root node
+		if (quadtree.contains(node))
+			continue;
+		
+		quadtree.insert(node);
+		
+		const auto depth = quadtree.depth(node);
 		if (depth < 2)
 			continue;
 		
-		quadtree_node_type x, y;
-		geom::morton::decode(location, x, y);
+		const quadtree_node_type parent = quadtree.parent(node);
+		const quadtree_node_type parent_depth = depth - 1;
+		const quadtree_node_type parent_resolution = quadtree_node_resolution[parent_depth];
 		
-		
-		// TODO!!!!
-		
-		// DONT USE quadtree.resolution, use a depth-specific resolution
-		
-		if (!quadtree.is_leaf(node))
+		for (quadtree_node_type i = 0; i < quadtree.children_per_node; ++i)
 		{
-			if (x < (quadtree.resolution / 4) - 1)
+			const auto location = quadtree.location(quadtree.sibling(parent, i));
+			quadtree_node_type x, y;
+			geom::morton::decode(location, x, y);
+			
+			if (x < parent_resolution - 1)
 			{
-				if (y < (quadtree.resolution / 4) - 1)
-					nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x + 1, y + 1)));
+				if (y < parent_resolution - 1)
+					node_stack.push(quadtree.node(parent_depth, geom::morton::encode<quadtree_node_type>(x + 1, y + 1)));
 				if (y > 0)
-					nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x + 1, y - 1)));
+					node_stack.push(quadtree.node(parent_depth, geom::morton::encode<quadtree_node_type>(x + 1, y - 1)));
 			}
 			
 			if (x > 0)
 			{
-				if (y < (quadtree.resolution / 4) - 1)
-					nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x - 1, y + 1)));
+				if (y < parent_resolution - 1)
+					node_stack.push(quadtree.node(parent_depth, geom::morton::encode<quadtree_node_type>(x - 1, y + 1)));
 				if (y > 0)
-					nodes.insert(quadtree.node(depth, geom::morton::encode<quadtree_node_type>(x - 1, y - 1)));
+					node_stack.push(quadtree.node(parent_depth, geom::morton::encode<quadtree_node_type>(x - 1, y - 1)));
 			}
 		}
-
-	}
-	
-	for (const auto& node: nodes)
-	{
-		quadtree.insert(node);
 	}
 }
 
@@ -392,7 +333,6 @@ geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 	
 	// Calculate size of a patch cell
 	const float cell_size = patch_size / static_cast<float>(patch_subdivisions + 1);
-	const float half_cell_size = cell_size * 0.5f;
 	
 	// Init patch bounds
 	geom::aabb<float> patch_bounds;
@@ -695,8 +635,6 @@ geom::mesh* terrain::generate_patch_mesh(quadtree_node_type node) const
 	
 	// Set patch model bounds
 	patch_model->set_bounds(patch_bounds);
-	
-	//std::cout << "depth: " << quadtree_type::depth(node) << "; size: " << (patch_bounds.max_point + patch_bounds.min_point) * 0.5f << std::endl;
 	
 	return patch_model;
 }

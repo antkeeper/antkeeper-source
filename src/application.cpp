@@ -297,7 +297,7 @@ void application::set_v_sync(bool v_sync)
 				logger->pop_task(EXIT_FAILURE);
 				
 				logger->push_task("Enabling synchronized v-sync");
-				if (SDL_GL_SetSwapInterval(-1) != 0)
+				if (SDL_GL_SetSwapInterval(1) != 0)
 				{
 					logger->pop_task(EXIT_FAILURE);
 				}

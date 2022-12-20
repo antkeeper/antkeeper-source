@@ -28,35 +28,43 @@ namespace trait {
 
 /**
  * Trait that describes the waist (petiole plus postpetiole) of an ant.
+ *
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
  */
 struct waist
 {
 	/// 3D model of the waist.
 	render::model* model;
 	
-	/// Degree of spinescence.
-	float spinescence;
+	//// Petiole presence.
+	bool petiole_present;
 	
-	/// Postpetiole presence.
-	bool postpetiole;
-	
-	/// Petiole length in dorsal view (PetL).
+	/// Petiole length, in mesosomal lengths.
 	float petiole_length;
 	
-	/// Petiole width in dorsal view (PetW).
+	/// Petiole width, in mesosomal lengths.
 	float petiole_width;
 	
-	/// Petiole height in in lateral profile (PetH).
+	/// Petiole height, in mesosomal lengths.
 	float petiole_height;
 	
-	/// Postpetiole length in dorsal view (PPL).
+	/// Degree of petiole spinescence.
+	float petiole_spinescence;
+	
+	/// Postpetiole presence.
+	bool postpetiole_present;
+	
+	/// Postpetiole length, in mesosomal lengths.
 	float postpetiole_length;
 	
-	/// Postpetiole width in dorsal view (PPW).
+	/// Postpetiole width, in mesosomal lengths.
 	float postpetiole_width;
 	
-	/// Postpetiole height in in lateral profile (PPH).
+	/// Postpetiole height, in mesosomal lengths.
 	float postpetiole_height;
+	
+	/// Degree of postpetiole spinescence
+	float postpetiole_spinescence;
 };
 
 } // namespace trait

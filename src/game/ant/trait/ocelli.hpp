@@ -27,27 +27,27 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the ocelli of an ant.
+ * Ant ocelli description.
  */
 struct ocelli
 {
+	/// 3D model of the lateral ocelli, if present.
+	render::model* lateral_ocelli_model;
+	
+	/// 3D model of the median ocellus, if present.
+	render::model* median_ocellus_model;
+	
 	/// Lateral ocelli present.
-	bool lateral_ocelli;
+	bool lateral_ocelli_present;
 	
 	/// Median ocellus present.
-	bool median_ocellus;
+	bool median_ocellus_present;
 	
 	/// Ocellus width, in mesosomal lengths.
 	float width;
 	
 	/// Ocellus height, in mesosomal lengths.
 	float height;
-	
-	/// 3D model of the lateral ocelli.
-	render::model* lateral_ocelli_model;
-	
-	/// 3D model of the median ocellus.
-	render::model* median_ocellus_model;
 };
 
 } // namespace trait

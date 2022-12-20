@@ -27,7 +27,7 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the surface sculpturing of an ant.
+ * Ant surface sculpturing description.
  */
 struct sculpturing
 {

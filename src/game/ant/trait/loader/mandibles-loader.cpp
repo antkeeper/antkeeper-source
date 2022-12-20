@@ -37,24 +37,30 @@ trait::mandibles* resource_loader<trait::mandibles>::load(resource_manager* reso
 	if (mandibles_element == data->end())
 		throw std::runtime_error("Invalid mandibles trait.");
 	
-	// Allocate mandibles trait
+	// Allocate and init mandibles trait
 	trait::mandibles* mandibles = new trait::mandibles();
+	mandibles->model = nullptr;
+	mandibles->length = 0.0f;
+	mandibles->apical_dental_count = 0;
+	mandibles->basal_dental_count = 0;
 	
-	// Load mandibles model
+	// Load model
 	auto model_element = mandibles_element->find("model");
 	if (model_element == mandibles_element->end())
 		throw std::runtime_error("Mandibles trait doesn't specify mandibles model.");
 	mandibles->model = resource_manager->load<render::model>(model_element->get<std::string>());
 	
-	// Parse mandibles length
-	mandibles->length = 0.0f;
-	if (auto length_element = mandibles_element->find("length"); length_element != mandibles_element->end())
-		mandibles->length = length_element->get<float>();
+	// Parse length
+	if (auto element = mandibles_element->find("length"); element != mandibles_element->end())
+		mandibles->length = element->get<float>();
 	
-	// Parse mandibles locking
-	mandibles->locking = false;
-	if (auto locking_element = mandibles_element->find("locking"); locking_element != mandibles_element->end())
-		mandibles->locking = locking_element->get<bool>();
+	// Parse apical dental count
+	if (auto element = mandibles_element->find("apical_dental_count"); element != mandibles_element->end())
+		mandibles->apical_dental_count = element->get<int>();
+	
+	// Parse basal dental count
+	if (auto element = mandibles_element->find("basal_dental_count"); element != mandibles_element->end())
+		mandibles->basal_dental_count = element->get<int>();
 	
 	// Free JSON data
 	delete data;

@@ -37,31 +37,33 @@ trait::ocelli* resource_loader<trait::ocelli>::load(resource_manager* resource_m
 	if (ocelli_element == data->end())
 		throw std::runtime_error("Invalid ocelli trait.");
 	
-	// Allocate ocelli trait
+	// Allocate and init ocelli trait
 	trait::ocelli* ocelli = new trait::ocelli();
-	
-	// Parse lateral ocelli
-	ocelli->lateral_ocelli = false;
-	if (auto lateral_ocelli_element = ocelli_element->find("lateral_ocelli"); lateral_ocelli_element != ocelli_element->end())
-		ocelli->lateral_ocelli = lateral_ocelli_element->get<bool>();
-	
-	// Parse median ocellus
-	ocelli->median_ocellus = false;
-	if (auto median_ocellus_element = ocelli_element->find("median_ocellus"); median_ocellus_element != ocelli_element->end())
-		ocelli->median_ocellus = median_ocellus_element->get<bool>();
-	
-	// Parse ocelli width
+	ocelli->lateral_ocelli_model = nullptr;
+	ocelli->median_ocellus_model = nullptr;
+	ocelli->lateral_ocelli_present = false;
+	ocelli->median_ocellus_present = false;
 	ocelli->width = 0.0f;
-	if (auto width_element = ocelli_element->find("width"); width_element != ocelli_element->end())
-		ocelli->width = width_element->get<float>();
-	
-	// Parse ocelli height
 	ocelli->height = 0.0f;
-	if (auto height_element = ocelli_element->find("height"); height_element != ocelli_element->end())
-		ocelli->height = height_element->get<float>();
 	
-	// Load lateral ocelli model (if not null)
-	if (ocelli->lateral_ocelli)
+	// Parse lateral ocelli present
+	if (auto element = ocelli_element->find("lateral_ocelli_present"); element != ocelli_element->end())
+		ocelli->lateral_ocelli_present = element->get<bool>();
+	
+	// Parse median ocellus present
+	if (auto element = ocelli_element->find("median_ocellus_present"); element != ocelli_element->end())
+		ocelli->median_ocellus_present = element->get<bool>();
+	
+	// Parse width
+	if (auto element = ocelli_element->find("width"); element != ocelli_element->end())
+		ocelli->width = element->get<float>();
+	
+	// Parse height
+	if (auto element = ocelli_element->find("height"); element != ocelli_element->end())
+		ocelli->height = element->get<float>();
+
+	// Load lateral ocelli model, if present
+	if (ocelli->lateral_ocelli_present)
 	{
 		auto lateral_ocelli_model_element = ocelli_element->find("lateral_ocelli_model");
 		if (lateral_ocelli_model_element == ocelli_element->end() || lateral_ocelli_model_element->is_null())
@@ -69,23 +71,15 @@ trait::ocelli* resource_loader<trait::ocelli>::load(resource_manager* resource_m
 		
 		ocelli->lateral_ocelli_model = resource_manager->load<render::model>(lateral_ocelli_model_element->get<std::string>());
 	}
-	else
-	{
-		ocelli->lateral_ocelli_model = nullptr;
-	}
 	
-	// Load median ocellus model (if not null)
-	if (ocelli->median_ocellus)
+	// Load median ocellus model, if present
+	if (ocelli->median_ocellus_present)
 	{
 		auto median_ocellus_model_element = ocelli_element->find("median_ocellus_model");
 		if (median_ocellus_model_element == ocelli_element->end() || median_ocellus_model_element->is_null())
 			throw std::runtime_error("Ocelli trait doesn't specify median ocellus model.");
 		
 		ocelli->median_ocellus_model = resource_manager->load<render::model>(median_ocellus_model_element->get<std::string>());
-	}
-	else
-	{
-		ocelli->median_ocellus_model = nullptr;
 	}
 	
 	// Free JSON data

@@ -17,19 +17,30 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_FOUNDING_MODE_HPP
-#define ANTKEEPER_GAME_ANT_FOUNDING_MODE_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_SIZE_VARIATION_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_SIZE_VARIATION_HPP
 
 namespace game {
 namespace ant {
+namespace trait {
 
-enum class founding_mode
+/**
+ * Caste size variation description.
+ */
+struct size_variation
 {
-	semi_claustral,
-	claustral
+	/// Minimum size factor.
+	float min_size;
+	
+	/// Maximum size factor.
+	float max_size;
+	
+	/// Mean size factor.
+	float mean_size;
 };
 
+} // namespace trait
 } // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_ANT_FOUNDING_MODE_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_SIZE_VARIATION_HPP

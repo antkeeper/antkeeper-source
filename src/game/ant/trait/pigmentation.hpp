@@ -27,7 +27,7 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the pigmentation of an ant.
+ * Ant pigmentation description.
  */
 struct pigmentation
 {

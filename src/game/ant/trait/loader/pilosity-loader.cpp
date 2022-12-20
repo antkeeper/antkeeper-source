@@ -36,11 +36,11 @@ trait::pilosity* resource_loader<trait::pilosity>::load(resource_manager* resour
 	if (pilosity_element == data->end())
 		throw std::runtime_error("Invalid pilosity trait.");
 	
-	// Allocate pilosity trait
+	// Allocate and init pilosity trait
 	trait::pilosity* pilosity = new trait::pilosity();
+	pilosity->density = 0.0f;
 	
 	// Parse pilosity density
-	pilosity->density = 0.0f;
 	if (auto density_element = pilosity_element->find("density"); density_element != pilosity_element->end())
 		pilosity->density = density_element->get<float>();
 	

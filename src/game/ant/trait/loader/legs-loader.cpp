@@ -37,19 +37,25 @@ trait::legs* resource_loader<trait::legs>::load(resource_manager* resource_manag
 	if (legs_element == data->end())
 		throw std::runtime_error("Invalid legs trait.");
 	
-	// Allocate legs trait
+	// Allocate and init legs trait
 	trait::legs* legs = new trait::legs();
+	legs->model = nullptr;
+	legs->speed = 1.0f;
+	legs->grip = 1.0f;
 	
-	// Load legs model
+	// Load model
 	auto model_element = legs_element->find("model");
 	if (model_element == legs_element->end())
 		throw std::runtime_error("Legs trait doesn't specify legs model.");
 	legs->model = resource_manager->load<render::model>(model_element->get<std::string>());
 	
-	// Parse legs speed
-	legs->speed = 0.0f;
-	if (auto speed_element = legs_element->find("speed"); speed_element != legs_element->end())
-		legs->speed = speed_element->get<float>();
+	// Parse speed
+	if (auto element = legs_element->find("speed"); element != legs_element->end())
+		legs->speed = element->get<float>();
+	
+	// Parse grip
+	if (auto element = legs_element->find("grip"); element != legs_element->end())
+		legs->grip = element->get<float>();
 	
 	// Free JSON data
 	delete data;

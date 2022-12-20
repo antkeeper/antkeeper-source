@@ -37,14 +37,20 @@ trait::gaster* resource_loader<trait::gaster>::load(resource_manager* resource_m
 	if (gaster_element == data->end())
 		throw std::runtime_error("Invalid gaster trait.");
 	
-	// Allocate gaster trait
+	// Allocate and init gaster trait
 	trait::gaster* gaster = new trait::gaster();
+	gaster->model = nullptr;
+	gaster->phragmosis = 0.0;
 	
 	// Load gaster model
 	auto model_element = gaster_element->find("model");
 	if (model_element == gaster_element->end())
 		throw std::runtime_error("Gaster trait doesn't specify gaster model.");
 	gaster->model = resource_manager->load<render::model>(model_element->get<std::string>());
+	
+	// Parse phragmosis
+	if (auto element = gaster_element->find("phragmosis"); element != gaster_element->end())
+		gaster->phragmosis = element->get<float>();
 	
 	// Free JSON data
 	delete data;

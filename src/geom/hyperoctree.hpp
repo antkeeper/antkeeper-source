@@ -172,10 +172,10 @@ public:
 	static constexpr node_type siblings_per_node = children_per_node - 1;
 	
 	/// Resolution in each dimension.
-	static constexpr node_type resolution = math::compile::exp2<node_type>(max_depth + 1);
+	static constexpr node_type resolution = math::compile::exp2<node_type>(max_depth);
 	
 	/// Number of nodes in a full hyperoctree.
-	static constexpr std::size_t max_node_count = (math::compile::pow<std::size_t>(resolution, N) - 1) / siblings_per_node;
+	static constexpr std::size_t max_node_count = (math::compile::pow<std::size_t>(resolution * 2, N) - 1) / siblings_per_node;
 	
 	/// Node identifier of the persistent root node.
 	static constexpr node_type root = 0;
@@ -204,7 +204,7 @@ public:
 	 *
 	 * @return Depth of the node.
 	 */
-	static constexpr inline node_type depth(node_type node) noexcept
+	static inline constexpr node_type depth(node_type node) noexcept
 	{
 		constexpr node_type mask = math::compile::exp2<node_type>(depth_bits) - 1;
 		return node & mask;
@@ -217,7 +217,7 @@ public:
 	 *
 	 * @return Morton location code of the node.
 	 */
-	static constexpr inline node_type location(node_type node) noexcept
+	static inline constexpr node_type location(node_type node) noexcept
 	{
 		return node >> ((node_bits - 1) - depth(node) * N);
 	}
@@ -246,7 +246,7 @@ public:
 	 *
 	 * @warning If @p depth exceeds `max_depth`, the returned node identifier is not valid.
 	 */
-	static constexpr inline node_type node(node_type depth, node_type location) noexcept
+	static inline constexpr node_type node(node_type depth, node_type location) noexcept
 	{
 		return (location << ((node_bits - 1) - depth * N)) | depth;
 	}
@@ -261,7 +261,7 @@ public:
 	 *
 	 * @warning If @p depth exceeds the depth of @p node, the returned node identifier is not valid.
 	 */
-	static constexpr inline node_type ancestor(node_type node, node_type depth) noexcept
+	static inline constexpr node_type ancestor(node_type node, node_type depth) noexcept
 	{
 		const node_type mask = (~node_type(0)) << ((node_bits - 1) - depth * N);
 		return (node & mask) | depth;
@@ -274,7 +274,7 @@ public:
 	 *
 	 * @return Identifier of the parent node.
 	 */
-	static constexpr inline node_type parent(node_type node) noexcept
+	static inline constexpr node_type parent(node_type node) noexcept
 	{
 		return ancestor(node, depth(node) - 1);
 	}
@@ -303,7 +303,7 @@ public:
 	 *
 	 * @return Identifier of the nth child node.
 	 */
-	static constexpr inline node_type child(node_type node, T n) noexcept
+	static inline constexpr node_type child(node_type node, T n) noexcept
 	{
 		return sibling(node + 1, n);
 	}
@@ -470,7 +470,7 @@ public:
 	}
 	
 	/// Returns the total number of nodes the hyperoctree is capable of containing.
-	consteval std::size_t max_size() const noexcept
+	constexpr std::size_t max_size() const noexcept
 	{
 		return max_node_count;
 	}

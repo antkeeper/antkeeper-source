@@ -20,7 +20,6 @@
 #ifndef ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP
 #define ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP
 
-#include "game/ant/breed.hpp"
 #include "game/ant/caste.hpp"
 #include "render/model.hpp"
 
@@ -30,11 +29,11 @@ namespace ant {
 /**
  * Generates a 3D model of an ant.
  *
- * @param breed Breed of the ant.
- * @param caste Caste to which the ant belongs.
+ * @param caste Caste description.
+ *
  * @return 3D model of an ant.
  */
-render::model* morphogenesis(const ant::breed& breed, ant::caste caste);
+render::model* morphogenesis(const ant::caste& caste);
 
 } // namespace ant
 } // namespace game

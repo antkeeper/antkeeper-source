@@ -22,6 +22,7 @@
 
 #include "game/state/base.hpp"
 #include "input/control.hpp"
+#include <string>
 
 namespace game {
 namespace state {

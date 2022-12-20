@@ -20,18 +20,75 @@
 #ifndef ANTKEEPER_GAME_ANT_CASTE_HPP
 #define ANTKEEPER_GAME_ANT_CASTE_HPP
 
+#include "game/ant/caste-type.hpp"
+#include "game/ant/trait/antennae.hpp"
+#include "game/ant/trait/eyes.hpp"
+#include "game/ant/trait/gaster.hpp"
+#include "game/ant/trait/head.hpp"
+#include "game/ant/trait/legs.hpp"
+#include "game/ant/trait/mandibles.hpp"
+#include "game/ant/trait/mesosoma.hpp"
+#include "game/ant/trait/ocelli.hpp"
+#include "game/ant/trait/pigmentation.hpp"
+#include "game/ant/trait/sculpturing.hpp"
+#include "game/ant/trait/size-variation.hpp"
+#include "game/ant/trait/sting.hpp"
+#include "game/ant/trait/waist.hpp"
+#include "game/ant/trait/wings.hpp"
+#include <optional>
+
 namespace game {
 namespace ant {
 
 /**
- * Caste type enumerations
+ * Ant caste description.
  */
-enum class caste
+struct caste
 {
-	queen,
-	worker,
-	soldier,
-	male
+	/// Caste type.
+	caste_type type;
+	
+	/// Antennae description.
+	const trait::antennae* antennae;
+	
+	/// Eyes description.
+	const trait::eyes* eyes;
+	
+	/// Gaster description.
+	const trait::gaster* gaster;
+	
+	/// Head description.
+	const trait::head* head;
+	
+	/// Legs description.
+	const trait::legs* legs;
+	
+	/// Mandibles description.
+	const trait::mandibles* mandibles;
+	
+	/// Mesosoma description.
+	const trait::mesosoma* mesosoma;
+	
+	/// Ocelli description.
+	const trait::ocelli* ocelli;
+	
+	/// Pigmentation description.
+	const trait::pigmentation* pigmentation;
+	
+	/// Sculpturing description.
+	const trait::sculpturing* sculpturing;
+	
+	/// Size variation description.
+	const trait::size_variation* size_variation;
+	
+	/// Sting description.
+	const trait::sting* sting;
+	
+	/// Waist description.
+	const trait::waist* waist;
+	
+	/// Wings description.
+	const trait::wings* wings;
 };
 
 } // namespace ant

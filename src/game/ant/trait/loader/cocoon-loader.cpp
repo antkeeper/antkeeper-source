@@ -37,11 +37,12 @@ trait::cocoon* resource_loader<trait::cocoon>::load(resource_manager* resource_m
 	if (cocoon_element == data->end())
 		throw std::runtime_error("Invalid cocoon trait.");
 	
-	// Allocate cocoon trait
+	// Allocate and init cocoon trait
 	trait::cocoon* cocoon = new trait::cocoon();
+	cocoon->present = false;
+	cocoon->model = nullptr;
 	
 	// Parse cocoon present
-	cocoon->present = false;
 	if (auto present_element = cocoon_element->find("present"); present_element != cocoon_element->end())
 		cocoon->present = present_element->get<bool>();
 	
@@ -52,10 +53,6 @@ trait::cocoon* resource_loader<trait::cocoon>::load(resource_manager* resource_m
 		if (model_element == cocoon_element->end())
 			throw std::runtime_error("Cocoon trait doesn't specify cocoon model.");
 		cocoon->model = resource_manager->load<render::model>(model_element->get<std::string>());
-	}
-	else
-	{
-		cocoon->model = nullptr;
 	}
 	
 	// Free JSON data

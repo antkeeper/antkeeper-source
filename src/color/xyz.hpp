@@ -38,7 +38,7 @@ namespace xyz {
  * @return return Luminance of @p x.
  */
 template <class T>
-constexpr inline T luminance(const math::vector3<T>& x)
+inline constexpr T luminance(const math::vector3<T>& x)
 {
 	return x[1];
 }

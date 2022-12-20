@@ -27,15 +27,15 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the larvae of an ant species.
+ * Ant larva description.
  */
 struct larva
 {
-	/// Number of larval instars before pupation.
-	int instars;
-	
 	/// 3D model of the larva.
 	render::model* model;
+	
+	/// Number of larval instars before pupation.
+	int instars;
 };
 
 } // namespace trait

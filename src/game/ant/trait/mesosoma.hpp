@@ -27,21 +27,26 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the mesosoma of an ant.
+ * Ant mesosoma description.
+ *
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
  */
 struct mesosoma
 {
-	/// Mesosoma length (ML), also known as the Weber's length (WL).
-	float length;
-	
-	/// Pronotum width in dorsal view (PrW).
-	float width;
-	
-	/// Degree of spinescence.
-	float spinescence;
-	
 	/// 3D model of the mesosoma.
 	render::model* model;
+	
+	/// Pronotum width, in mesosomal lengths.
+	float pronotum_width;
+	
+	/// Degree of spinescence on the pronotum.
+	float pronotum_spinescence;
+	
+	/// Degree of spinescence on the mesonotum.
+	float mesonotum_spinescence;
+	
+	/// Degree of spinescence on the propodeum.
+	float propodeum_spinescence;
 };
 
 } // namespace trait

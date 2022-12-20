@@ -37,19 +37,20 @@ trait::larva* resource_loader<trait::larva>::load(resource_manager* resource_man
 	if (larva_element == data->end())
 		throw std::runtime_error("Invalid larva trait.");
 	
-	// Allocate larva trait
+	// Allocate and init larva trait
 	trait::larva* larva = new trait::larva();
+	larva->model = nullptr;
+	larva->instars = 0;
 	
-	// Load larva model
+	// Load model
 	auto model_element = larva_element->find("model");
 	if (model_element == larva_element->end())
 		throw std::runtime_error("Larva trait doesn't specify larva model.");
 	larva->model = resource_manager->load<render::model>(model_element->get<std::string>());
 	
-	// Parse larva instars
-	larva->instars = 0;
-	if (auto instars_element = larva_element->find("instars"); instars_element != larva_element->end())
-		larva->instars = instars_element->get<int>();
+	// Parse instars
+	if (auto element = larva_element->find("instars"); element != larva_element->end())
+		larva->instars = element->get<int>();
 	
 	// Free JSON data
 	delete data;

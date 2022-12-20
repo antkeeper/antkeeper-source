@@ -27,12 +27,17 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the gaster of an ant.
+ * Ant gaster description.
+ *
+ * @see https://antwiki.org/wiki/Phragmosis
  */
 struct gaster
 {
 	/// 3D model of the gaster.
 	render::model* model;
+	
+	/// Degree of phragmosis.
+	float phragmosis;
 };
 
 } // namespace trait

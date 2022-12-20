@@ -37,13 +37,14 @@ trait::sting* resource_loader<trait::sting>::load(resource_manager* resource_man
 	if (sting_element == data->end())
 		throw std::runtime_error("Invalid sting trait.");
 	
-	// Allocate sting trait
+	// Allocate and init sting trait
 	trait::sting* sting = new trait::sting();
+	sting->present = false;
+	sting->model = nullptr;
 	
 	// Parse sting present
-	sting->present = false;
-	if (auto present_element = sting_element->find("present"); present_element != sting_element->end())
-		sting->present = present_element->get<bool>();
+	if (auto element = sting_element->find("present"); element != sting_element->end())
+		sting->present = element->get<bool>();
 	
 	// Load sting model (if present)
 	if (sting->present)
@@ -52,10 +53,6 @@ trait::sting* resource_loader<trait::sting>::load(resource_manager* resource_man
 		if (model_element == sting_element->end())
 			throw std::runtime_error("Sting trait doesn't specify sting model.");
 		sting->model = resource_manager->load<render::model>(model_element->get<std::string>());
-	}
-	else
-	{
-		sting->model = nullptr;
 	}
 	
 	// Free JSON data

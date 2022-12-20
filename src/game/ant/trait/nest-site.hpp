@@ -17,35 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_TRAIT_HINDWINGS_HPP
-#define ANTKEEPER_GAME_ANT_TRAIT_HINDWINGS_HPP
-
-#include "render/model.hpp"
+#ifndef ANTKEEPER_GAME_ANT_NEST_SITE_HPP
+#define ANTKEEPER_GAME_ANT_NEST_SITE_HPP
 
 namespace game {
 namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the hindwings of an ant.
+ * Colony nest site description.
  */
-struct hindwings
+enum class nest_site
 {
-	/// Wing length, measured in mesosomal lengths.
-	float length;
-	
-	/// Wing width, measured in mesosomal lengths.
-	float width;
-	
-	/// Degree of venation. A value of `1.0` indicates a highly-developed venation pattern, while `0.0` indicates a complete absence of visible venation.
-	float venation;
-	
-	/// 3D model of the hindwings.
-	render::model* model;
+	hypogeic,
+	arboreal
 };
 
 } // namespace trait
 } // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_ANT_TRAIT_HINDWINGS_HPP
+#endif // ANTKEEPER_GAME_ANT_NEST_SITE_HPP

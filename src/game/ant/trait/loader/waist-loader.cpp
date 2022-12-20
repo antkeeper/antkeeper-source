@@ -37,57 +37,58 @@ trait::waist* resource_loader<trait::waist>::load(resource_manager* resource_man
 	if (waist_element == data->end())
 		throw std::runtime_error("Invalid waist trait.");
 	
-	// Allocate waist trait
+	// Allocate and init waist trait
 	trait::waist* waist = new trait::waist();
-	
-	// Load waist model
-	auto model_element = waist_element->find("model");
-	if (model_element == waist_element->end())
-		throw std::runtime_error("Waist trait doesn't specify waist model.");
-	waist->model = resource_manager->load<render::model>(model_element->get<std::string>());
-	
-	// Parse waist spinescence
-	waist->spinescence = 0.0f;
-	if (auto spinescence_element = waist_element->find("spinescence"); spinescence_element != waist_element->end())
-		waist->spinescence = spinescence_element->get<float>();
-	
-	// Parse waist petiole length
+	waist->model = nullptr;
+	waist->petiole_present = false;
 	waist->petiole_length = 0.0f;
-	if (auto petiole_length_element = waist_element->find("petiole_length"); petiole_length_element != waist_element->end())
-		waist->petiole_length = petiole_length_element->get<float>();
-	
-	// Parse waist petiole width
 	waist->petiole_width = 0.0f;
-	if (auto petiole_width_element = waist_element->find("petiole_width"); petiole_width_element != waist_element->end())
-		waist->petiole_width = petiole_width_element->get<float>();
-		
-	// Parse waist petiole height
 	waist->petiole_height = 0.0f;
-	if (auto petiole_height_element = waist_element->find("petiole_height"); petiole_height_element != waist_element->end())
-		waist->petiole_height = petiole_height_element->get<float>();
-	
-	// Parse waist postpetiole
-	waist->postpetiole = false;
-	if (auto postpetiole_element = waist_element->find("postpetiole"); postpetiole_element != waist_element->end())
-		waist->postpetiole = postpetiole_element->get<bool>();
-	
+	waist->petiole_spinescence = 0.0f;
+	waist->postpetiole_present = false;
 	waist->postpetiole_length = 0.0f;
 	waist->postpetiole_width = 0.0f;
 	waist->postpetiole_height = 0.0f;
-
-	if (waist->postpetiole)
+	waist->postpetiole_spinescence = 0.0f;
+	
+	// Parse petiole present
+	if (auto element = waist_element->find("petiole_present"); element != waist_element->end())
+		waist->petiole_present = element->get<bool>();
+	
+	if (waist->petiole_present)
 	{
-		// Parse waist postpetiole length
-		if (auto postpetiole_length_element = waist_element->find("postpetiole_length"); postpetiole_length_element != waist_element->end())
-			waist->postpetiole_length = postpetiole_length_element->get<float>();
+		// Parse petiole properties
+		if (auto element = waist_element->find("petiole_length"); element != waist_element->end())
+			waist->petiole_length = element->get<float>();
+		if (auto element = waist_element->find("petiole_width"); element != waist_element->end())
+			waist->petiole_width = element->get<float>();
+		if (auto element = waist_element->find("petiole_height"); element != waist_element->end())
+			waist->petiole_height = element->get<float>();
+		if (auto element = waist_element->find("petiole_spinescence"); element != waist_element->end())
+			waist->petiole_spinescence = element->get<float>();
 		
-		// Parse waist postpetiole width
-		if (auto postpetiole_width_element = waist_element->find("postpetiole_width"); postpetiole_width_element != waist_element->end())
-			waist->postpetiole_width = postpetiole_width_element->get<float>();
-			
-		// Parse waist postpetiole height
-		if (auto postpetiole_height_element = waist_element->find("postpetiole_height"); postpetiole_height_element != waist_element->end())
-			waist->postpetiole_height = postpetiole_height_element->get<float>();
+		// Parse postpetiole present
+		if (auto element = waist_element->find("postpetiole_present"); element != waist_element->end())
+			waist->postpetiole_present = element->get<bool>();
+		
+		if (waist->postpetiole_present)
+		{
+			// Parse postpetiole properties
+			if (auto element = waist_element->find("postpetiole_length"); element != waist_element->end())
+				waist->postpetiole_length = element->get<float>();
+			if (auto element = waist_element->find("postpetiole_width"); element != waist_element->end())
+				waist->postpetiole_width = element->get<float>();
+			if (auto element = waist_element->find("postpetiole_height"); element != waist_element->end())
+				waist->postpetiole_height = element->get<float>();
+			if (auto element = waist_element->find("postpetiole_spinescence"); element != waist_element->end())
+				waist->postpetiole_spinescence = element->get<float>();
+		}
+		
+		// Load waist model
+		auto model_element = waist_element->find("model");
+		if (model_element == waist_element->end())
+			throw std::runtime_error("Waist trait doesn't specify waist model.");
+		waist->model = resource_manager->load<render::model>(model_element->get<std::string>());
 	}
 	
 	// Free JSON data

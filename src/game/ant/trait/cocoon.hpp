@@ -27,15 +27,15 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the cocoon of an ant species.
+ * Ant cocoon description.
  */
 struct cocoon
 {
-	/// Indicates whether a cocoon is formed by the larvae or not.
-	bool present;
-	
 	/// 3D model of the cocoon, if present.
 	render::model* model;
+	
+	/// Indicates whether a cocoon is formed by the larvae or not.
+	bool present;
 };
 
 } // namespace trait

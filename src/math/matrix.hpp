@@ -42,16 +42,16 @@ namespace math {
 template <typename T, std::size_t N, std::size_t M>
 struct matrix
 {
-	/// Matrix element data type.
+	/// Element type.
 	typedef T element_type;
 	
-	/// Number of matrix columns.
+	/// Number of columns.
 	static constexpr std::size_t column_count = N;
 	
-	/// Number of matrix rows.
+	/// Number of rows.
 	static constexpr std::size_t row_count = M;
 	
-	/// Number of matrix elements.
+	/// Number of elements.
 	static constexpr std::size_t element_count = column_count * row_count;
 	
 	/// Matrix column vector data type.
@@ -68,7 +68,7 @@ struct matrix
 	
 	/// @private
 	template <class U, std::size_t... I>
-	constexpr inline matrix<U, N, M> type_cast(std::index_sequence<I...>) const noexcept
+	inline constexpr matrix<U, N, M> type_cast(std::index_sequence<I...>) const noexcept
 	{
 		return {vector<U, M>(columns[I])...};
 	}
@@ -81,14 +81,14 @@ struct matrix
 	 * @return Matrix containing the type-casted elements.
 	 */
 	template <class U>
-	constexpr inline explicit operator matrix<U, N, M>() const noexcept
+	inline constexpr explicit operator matrix<U, N, M>() const noexcept
 	{
 		return type_cast<U>(std::make_index_sequence<N>{});
 	}
 	
 	/// @private
 	template <std::size_t P, std::size_t O, std::size_t... I>
-	constexpr inline matrix<T, P, O> size_cast(std::index_sequence<I...>) const noexcept
+	inline constexpr matrix<T, P, O> size_cast(std::index_sequence<I...>) const noexcept
 	{
 		if constexpr (O == M)
 			return {((I < N) ? columns[I] : matrix<T, P, O>::identity()[I]) ...};
@@ -105,7 +105,7 @@ struct matrix
 	 * @return *p* by *o* matrix.
 	 */
 	template <std::size_t P, std::size_t O>
-	constexpr inline explicit operator matrix<T, P, O>() const noexcept
+	inline constexpr explicit operator matrix<T, P, O>() const noexcept
 	{
 		return size_cast<P, O>(std::make_index_sequence<P>{});
 	}
@@ -123,19 +123,19 @@ struct matrix
 	 * @return Reference to the column vector at index @p i.
 	 */
 	/// @{
-	constexpr inline column_vector_type& operator[](std::size_t i) noexcept
+	inline constexpr column_vector_type& operator[](std::size_t i) noexcept
 	{
 		return columns[i];
 	}
-	constexpr inline const column_vector_type& operator[](std::size_t i) const noexcept
+	inline constexpr const column_vector_type& operator[](std::size_t i) const noexcept
 	{
 		return columns[i];
 	}
-	constexpr inline column_vector_type& column(std::size_t i) noexcept
+	inline constexpr column_vector_type& column(std::size_t i) noexcept
 	{
 		return columns[i];
 	}
-	constexpr inline const column_vector_type& column(std::size_t i) const noexcept
+	inline constexpr const column_vector_type& column(std::size_t i) const noexcept
 	{
 		return columns[i];
 	}
@@ -145,11 +145,11 @@ struct matrix
 	 * Returns a reference to the first column vector.
 	 */
 	/// @{
-	constexpr inline column_vector_type& front() noexcept
+	inline constexpr column_vector_type& front() noexcept
 	{
 		return columns[0];
 	}
-	constexpr inline const column_vector_type& front() const noexcept
+	inline constexpr const column_vector_type& front() const noexcept
 	{
 		return columns[0];
 	}
@@ -159,11 +159,11 @@ struct matrix
 	 * Returns a reference to the last column vector.
 	 */
 	/// @{
-	constexpr inline column_vector_type& back() noexcept
+	inline constexpr column_vector_type& back() noexcept
 	{
 		return columns[column_count - 1];
 	}
-	constexpr inline const column_vector_type& back() const noexcept
+	inline constexpr const column_vector_type& back() const noexcept
 	{
 		return columns[column_count - 1];
 	}
@@ -182,11 +182,11 @@ struct matrix
 	 * @return Reference to the element at column-major index @p i.
 	 */
 	/// @{
-	constexpr inline T& element(std::size_t i) noexcept
+	inline constexpr T& element(std::size_t i) noexcept
 	{
 		return columns[i / row_count][i % row_count];
 	}
-	constexpr inline const T& element(std::size_t i) const noexcept
+	inline constexpr const T& element(std::size_t i) const noexcept
 	{
 		return columns[i / row_count][i % row_count];
 	}
@@ -198,11 +198,11 @@ struct matrix
 	 * @warning If matrix::element_type is not a POD type, elements may not be stored contiguously.
 	 */
 	/// @{
-	constexpr inline element_type* data() noexcept
+	inline constexpr element_type* data() noexcept
 	{
 		return &columns[0][0];
 	};
-	constexpr inline const element_type* data() const noexcept
+	inline constexpr const element_type* data() const noexcept
 	{
 		return &columns[0][0];
 	};
@@ -217,15 +217,15 @@ struct matrix
 	 * Returns an iterator to the first column vector.
 	 */
 	/// @{
-	constexpr inline column_vector_type* begin() noexcept
+	inline constexpr column_vector_type* begin() noexcept
 	{
 		return columns;
 	}
-	constexpr inline const column_vector_type* begin() const noexcept
+	inline constexpr const column_vector_type* begin() const noexcept
 	{
 		return columns;
 	}
-	constexpr inline const column_vector_type* cbegin() const noexcept
+	inline constexpr const column_vector_type* cbegin() const noexcept
 	{
 		return columns;
 	}
@@ -235,15 +235,15 @@ struct matrix
 	 * Returns an iterator to the column vector following the last column vector.
 	 */
 	/// @{
-	constexpr inline column_vector_type* end() noexcept
+	inline constexpr column_vector_type* end() noexcept
 	{
 		return columns + column_count;
 	}
-	constexpr inline const column_vector_type* end() const noexcept
+	inline constexpr const column_vector_type* end() const noexcept
 	{
 		return columns + column_count;
 	}
-	constexpr inline const column_vector_type* cend() const noexcept
+	inline constexpr const column_vector_type* cend() const noexcept
 	{
 		return columns + column_count;
 	}
@@ -253,15 +253,15 @@ struct matrix
 	 * Returns a reverse iterator to the first column vector of the reversed matrix.
 	 */
 	/// @{
-	constexpr inline std::reverse_iterator<column_vector_type*> rbegin() noexcept
+	inline constexpr std::reverse_iterator<column_vector_type*> rbegin() noexcept
 	{
 		return std::reverse_iterator<column_vector_type*>(columns + column_count);
 	}
-	constexpr inline std::reverse_iterator<const column_vector_type*> rbegin() const noexcept
+	inline constexpr std::reverse_iterator<const column_vector_type*> rbegin() const noexcept
 	{
 		return std::reverse_iterator<const column_vector_type*>(columns + column_count);
 	}
-	constexpr inline std::reverse_iterator<const column_vector_type*> crbegin() const noexcept
+	inline constexpr std::reverse_iterator<const column_vector_type*> crbegin() const noexcept
 	{
 		return std::reverse_iterator<const column_vector_type*>(columns + column_count);
 	}
@@ -271,15 +271,15 @@ struct matrix
 	 * Returns a reverse iterator to the column vector following the last column vector of the reversed matrix.
 	 */
 	/// @{
-	constexpr inline std::reverse_iterator<column_vector_type*> rend() noexcept
+	inline constexpr std::reverse_iterator<column_vector_type*> rend() noexcept
 	{
 		return std::reverse_iterator<column_vector_type*>(columns);
 	}
-	constexpr inline std::reverse_iterator<const column_vector_type*> rend() const noexcept
+	inline constexpr std::reverse_iterator<const column_vector_type*> rend() const noexcept
 	{
 		return std::reverse_iterator<const column_vector_type*>(columns);
 	}
-	constexpr inline std::reverse_iterator<const column_vector_type*> crend() const noexcept
+	inline constexpr std::reverse_iterator<const column_vector_type*> crend() const noexcept
 	{
 		return std::reverse_iterator<const column_vector_type*>(columns);
 	}
@@ -293,7 +293,7 @@ struct matrix
 	/**
 	 * Returns the number of elements in the matrix.
 	 */
-	constexpr inline std::size_t size() const noexcept
+	inline constexpr std::size_t size() const noexcept
 	{
 		return element_count;
 	};
@@ -313,7 +313,7 @@ struct matrix
 	
 	/// @private
 	template <std::size_t... I>
-	static constexpr inline matrix one(std::index_sequence<I...>) noexcept
+	static inline constexpr matrix one(std::index_sequence<I...>) noexcept
 	{
 		//return {column_vector_type::one() ...};
 		
@@ -331,14 +331,14 @@ struct matrix
 	
 	/// @private
 	template <std::size_t... I>
-	static constexpr inline column_vector_type identity_column(std::size_t i, std::index_sequence<I...>) noexcept
+	static inline constexpr column_vector_type identity_column(std::size_t i, std::index_sequence<I...>) noexcept
 	{
 		return {(I == i ? T{1} : T{0}) ...};
 	}
 	
 	/// @private
 	template <std::size_t... I>
-	static constexpr inline matrix identity(std::index_sequence<I...>) noexcept
+	static inline constexpr matrix identity(std::index_sequence<I...>) noexcept
 	{
 		return {identity_column(I, std::make_index_sequence<row_count>{}) ...};
 	}
@@ -670,7 +670,7 @@ constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m) noexcept;
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> add(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
 	return {(a[I] + b[I]) ...};
 }
@@ -683,7 +683,7 @@ constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, const matrix<T, N, M>& b
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> add(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
 {
 	return {(a[I] + b) ...};
 }
@@ -694,6 +694,7 @@ constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, T b) noexcept
 	return add(a, b, std::make_index_sequence<N>{});
 }
 
+/// @private
 template <class T>
 constexpr T determinant(const matrix<T, 2, 2>& m) noexcept
 {
@@ -702,6 +703,7 @@ constexpr T determinant(const matrix<T, 2, 2>& m) noexcept
 		m[0][1] * m[1][0];
 }
 
+/// @private
 template <class T>
 constexpr T determinant(const matrix<T, 3, 3>& m) noexcept
 {
@@ -714,6 +716,7 @@ constexpr T determinant(const matrix<T, 3, 3>& m) noexcept
 		m[0][2] * m[1][1] * m[2][0];
 }
 
+/// @private
 template <class T>
 constexpr T determinant(const matrix<T, 4, 4>& m) noexcept
 {
@@ -734,7 +737,7 @@ constexpr T determinant(const matrix<T, 4, 4>& m) noexcept
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
 	return {(a[I] * b[I]) ...};
 }
@@ -747,7 +750,7 @@ constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matr
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
 	return {(a[I] / b[I]) ...};
 }
@@ -760,7 +763,7 @@ constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> div(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
 {
 	return {(a[I] / b) ...};
 }
@@ -773,7 +776,7 @@ constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b) noexcept
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> div(T a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
 	return {(a / b[I]) ...};
 }
@@ -785,33 +788,34 @@ constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept
 }
 
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-constexpr inline typename matrix<T, N, M>::column_vector_type& get(math::matrix<T, N, M>& m) noexcept
+inline constexpr typename matrix<T, N, M>::column_vector_type& get(math::matrix<T, N, M>& m) noexcept
 {
 	static_assert(I < N);
 	return m.columns[I];
 }
 
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-constexpr inline typename matrix<T, N, M>::column_vector_type&& get(math::matrix<T, N, M>&& m) noexcept
+inline constexpr typename matrix<T, N, M>::column_vector_type&& get(math::matrix<T, N, M>&& m) noexcept
 {
 	static_assert(I < N);
 	return std::move(m.columns[I]);
 }
 
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-constexpr inline const typename matrix<T, N, M>::column_vector_type& get(const math::matrix<T, N, M>& m) noexcept
+inline constexpr const typename matrix<T, N, M>::column_vector_type& get(const math::matrix<T, N, M>& m) noexcept
 {
 	static_assert(I < N);
 	return m.columns[I];
 }
 
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-constexpr inline const typename matrix<T, N, M>::column_vector_type&& get(const math::matrix<T, N, M>&& m) noexcept
+inline constexpr const typename matrix<T, N, M>::column_vector_type&& get(const math::matrix<T, N, M>&& m) noexcept
 {
 	static_assert(I < N);
 	return std::move(m.columns[I]);
 }
 
+/// @private
 template <class T>
 constexpr matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m) noexcept
 {
@@ -826,6 +830,7 @@ constexpr matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m) noexcept
 	};
 }
 
+/// @private
 template <class T>
 constexpr matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m) noexcept
 {
@@ -847,6 +852,7 @@ constexpr matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m) noexcept
 	};
 }
 
+/// @private
 template <class T>
 constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m) noexcept
 {
@@ -915,7 +921,7 @@ constexpr matrix<T, P, M> mul(const matrix<T, N, M>& a, const matrix<T, P, N>& b
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> mul(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, N, M> mul(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
 {
 	return {(a[I] * b) ...};
 }
@@ -928,7 +934,7 @@ constexpr matrix<T, N, M> mul(const matrix<T, N, M>& a, T b) noexcept
 
 /// @private
 template <typename T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b, std::index_sequence<I...>) noexcept
+inline constexpr typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b, std::index_sequence<I...>) noexcept
 {
 	return ((a[I] * b[I]) + ...);
 }
@@ -941,7 +947,7 @@ constexpr typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>
 
 /// @private
 template <typename T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+inline constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
 	return {dot(a, b[I]) ...};
 }
@@ -1029,7 +1035,7 @@ constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> sub(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
 	return {(a[I] - b[I]) ...};
 }
@@ -1042,7 +1048,7 @@ constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, const matrix<T, N, M>& b
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> sub(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, T b, std::index_sequence<I...>) noexcept
 {
 	return {(a[I] - b) ...};
 }
@@ -1055,7 +1061,7 @@ constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, T b) noexcept
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, N, M> sub(T a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, N, M> sub(T a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
 	return {(a - b[I]) ...};
 }
@@ -1068,7 +1074,7 @@ constexpr matrix<T, N, M> sub(T a, const matrix<T, N, M>& b) noexcept
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline T trace(const matrix<T, N, N>& m, std::index_sequence<I...>) noexcept
+inline constexpr T trace(const matrix<T, N, N>& m, std::index_sequence<I...>) noexcept
 {
 	return ((m[I][I]) + ...);
 }
@@ -1093,14 +1099,14 @@ constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>
 
 /// @private
 template <typename T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline typename matrix<T, M, N>::column_vector_type transpose_column(const matrix<T, N, M>& m, std::size_t i, std::index_sequence<I...>) noexcept
+inline constexpr typename matrix<T, M, N>::column_vector_type transpose_column(const matrix<T, N, M>& m, std::size_t i, std::index_sequence<I...>) noexcept
 {
 	return {m[I][i] ...};
 }
 
 /// @private
 template <typename T, std::size_t N, std::size_t M, std::size_t... I>
-constexpr inline matrix<T, M, N> transpose(const matrix<T, N, M>& m, std::index_sequence<I...>) noexcept
+inline constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m, std::index_sequence<I...>) noexcept
 {
 	return {transpose_column(m, I, std::make_index_sequence<N>{}) ...};
 }
@@ -1115,7 +1121,7 @@ namespace operators {
 
 /// @copydoc add(const matrix<T, N, M>&, const matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator+(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
+inline constexpr matrix<T, N, M> operator+(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
 	return add(a, b);
 }
@@ -1123,12 +1129,12 @@ constexpr inline matrix<T, N, M> operator+(const matrix<T, N, M>& a, const matri
 /// @copydoc add(const matrix<T, N, M>&, T)
 /// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator+(const matrix<T, N, M>& a, T b) noexcept
+inline constexpr matrix<T, N, M> operator+(const matrix<T, N, M>& a, T b) noexcept
 {
 	return add(a, b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator+(T a, const matrix<T, N, M>& b) noexcept
+inline constexpr matrix<T, N, M> operator+(T a, const matrix<T, N, M>& b) noexcept
 {
 	return add(b, a);
 }
@@ -1136,28 +1142,28 @@ constexpr inline matrix<T, N, M> operator+(T a, const matrix<T, N, M>& b) noexce
 
 /// @copydoc div(const matrix<T, N, M>&, const matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator/(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
+inline constexpr matrix<T, N, M> operator/(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
 	return div(a, b);
 }
 
 /// @copydoc div(const matrix<T, N, M>&, T)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator/(const matrix<T, N, M>& a, T b) noexcept
+inline constexpr matrix<T, N, M> operator/(const matrix<T, N, M>& a, T b) noexcept
 {
 	return div(a, b);
 }
 
 /// @copydoc div(T, const matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator/(T a, const matrix<T, N, M>& b) noexcept
+inline constexpr matrix<T, N, M> operator/(T a, const matrix<T, N, M>& b) noexcept
 {
 	return div(a, b);
 }
 
 /// @copydoc mul(const matrix<T, N, M>&, const matrix<T, P, N>&)
 template <typename T, std::size_t N, std::size_t M, std::size_t P>
-constexpr inline matrix<T, P, M> operator*(const matrix<T, N, M>& a, const matrix<T, P, N>& b) noexcept
+inline constexpr matrix<T, P, M> operator*(const matrix<T, N, M>& a, const matrix<T, P, N>& b) noexcept
 {
 	return mul(a, b);
 }
@@ -1165,12 +1171,12 @@ constexpr inline matrix<T, P, M> operator*(const matrix<T, N, M>& a, const matri
 /// @copydoc mul(const matrix<T, N, M>&, T)
 /// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator*(const matrix<T, N, M>& a, T b) noexcept
+inline constexpr matrix<T, N, M> operator*(const matrix<T, N, M>& a, T b) noexcept
 {
 	return mul(a, b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator*(T a, const matrix<T, N, M>& b) noexcept
+inline constexpr matrix<T, N, M> operator*(T a, const matrix<T, N, M>& b) noexcept
 {
 	return mul(b, a);
 }
@@ -1178,35 +1184,35 @@ constexpr inline matrix<T, N, M> operator*(T a, const matrix<T, N, M>& b) noexce
 
 /// @copydoc mul(const matrix<T, N, M>&, const typename matrix<T, N, M>::row_vector_type&)
 template <typename T, std::size_t N, std::size_t M>
-constexpr inline typename matrix<T, N, M>::column_vector_type operator*(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b) noexcept
+inline constexpr typename matrix<T, N, M>::column_vector_type operator*(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b) noexcept
 {
 	return mul(a, b);
 }
 
 /// @copydoc mul(const typename matrix<T, N, M>::column_vector_type&, const matrix<T, N, M>&)
 template <typename T, std::size_t N, std::size_t M>
-constexpr inline typename matrix<T, N, M>::row_vector_type operator*(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b) noexcept
+inline constexpr typename matrix<T, N, M>::row_vector_type operator*(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b) noexcept
 {
 	return mul(a, b);
 }
 
 /// @copydoc sub(const matrix<T, N, M>&, const matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator-(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
+inline constexpr matrix<T, N, M> operator-(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
 	return sub(a, b);
 }
 
 /// @copydoc sub(const matrix<T, N, M>&, T)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator-(const matrix<T, N, M>& a, T b) noexcept
+inline constexpr matrix<T, N, M> operator-(const matrix<T, N, M>& a, T b) noexcept
 {
 	return sub(a, b);
 }
 
 /// @copydoc sub(T, const matrix<T, N, M>&)
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M> operator-(T a, const matrix<T, N, M>& b) noexcept
+inline constexpr matrix<T, N, M> operator-(T a, const matrix<T, N, M>& b) noexcept
 {
 	return sub(a, b);
 }
@@ -1221,12 +1227,12 @@ constexpr inline matrix<T, N, M> operator-(T a, const matrix<T, N, M>& b) noexce
  */
 /// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M>& operator+=(matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
+inline constexpr matrix<T, N, M>& operator+=(matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
 	return (a = a + b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M>& operator+=(matrix<T, N, M>& a, T b) noexcept
+inline constexpr matrix<T, N, M>& operator+=(matrix<T, N, M>& a, T b) noexcept
 {
 	return (a = a + b);
 }
@@ -1242,12 +1248,12 @@ constexpr inline matrix<T, N, M>& operator+=(matrix<T, N, M>& a, T b) noexcept
  */
 /// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M>& operator-=(matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
+inline constexpr matrix<T, N, M>& operator-=(matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
 	return (a = a - b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M>& operator-=(matrix<T, N, M>& a, T b) noexcept
+inline constexpr matrix<T, N, M>& operator-=(matrix<T, N, M>& a, T b) noexcept
 {
 	return (a = a - b);
 }
@@ -1263,12 +1269,12 @@ constexpr inline matrix<T, N, M>& operator-=(matrix<T, N, M>& a, T b) noexcept
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline matrix<T, N, N>& operator*=(matrix<T, N, N>& a, const matrix<T, N, N>& b) noexcept
+inline constexpr matrix<T, N, N>& operator*=(matrix<T, N, N>& a, const matrix<T, N, N>& b) noexcept
 {
 	return (a = a * b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M>& operator*=(matrix<T, N, M>& a, T b) noexcept
+inline constexpr matrix<T, N, M>& operator*=(matrix<T, N, M>& a, T b) noexcept
 {
 	return (a = a * b);
 }
@@ -1284,12 +1290,12 @@ constexpr inline matrix<T, N, M>& operator*=(matrix<T, N, M>& a, T b) noexcept
  */
 /// @{
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M>& operator/=(matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
+inline constexpr matrix<T, N, M>& operator/=(matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept
 {
 	return (a = a / b);
 }
 template <class T, std::size_t N, std::size_t M>
-constexpr inline matrix<T, N, M>& operator/=(matrix<T, N, M>& a, T b) noexcept
+inline constexpr matrix<T, N, M>& operator/=(matrix<T, N, M>& a, T b) noexcept
 {
 	return (a = a / b);
 }

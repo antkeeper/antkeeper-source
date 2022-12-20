@@ -27,15 +27,21 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the antennae of an ant.
+ * Ant antennae description.
+ *
+ * @see https://www.antwiki.org/wiki/Character_States_for_Extant_Ant_Genera_of_the_Formicidae
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
  */
 struct antennae
 {
-	/// Scape length (SL), measured in mesosomal lengths.
-	float scape_length;
-	
 	/// 3D model of the antennae.
 	render::model* model;
+	
+	/// Total number of antennal segments.
+	int total_antennomere_count;
+	
+	/// Number of antennal segments that constitute a club.
+	int club_antennomere_count;
 };
 
 } // namespace trait

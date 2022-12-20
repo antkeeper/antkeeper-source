@@ -41,13 +41,13 @@ namespace math {
 template <typename T, std::size_t N>
 struct vector
 {
-	/// Vector element data type.
+	/// Element type.
 	typedef T element_type;
 	
-	/// Number of vector elements.
+	/// Number of elements.
 	static constexpr std::size_t element_count = N;
 	
-	/// Array of vector elements.
+	/// Array of elements.
 	element_type elements[N];
 	
 	/// @name Conversion
@@ -55,7 +55,7 @@ struct vector
 	
 	/// @private
 	template <class U, std::size_t... I>
-	constexpr inline vector<U, N> type_cast(std::index_sequence<I...>) const noexcept
+	inline constexpr vector<U, N> type_cast(std::index_sequence<I...>) const noexcept
 	{
 		return {static_cast<U>(elements[I])...};
 	}
@@ -68,14 +68,14 @@ struct vector
 	 * @return Vector containing the type-casted elements.
 	 */
 	template <class U>
-	constexpr inline explicit operator vector<U, N>() const noexcept
+	inline constexpr explicit operator vector<U, N>() const noexcept
 	{
 		return type_cast<U>(std::make_index_sequence<N>{});
 	}
 	
 	/// @private
 	template <std::size_t M, std::size_t... I>
-	constexpr inline vector<T, M> size_cast(std::index_sequence<I...>) const noexcept
+	inline constexpr vector<T, M> size_cast(std::index_sequence<I...>) const noexcept
 	{
 		return {(I < N) ? elements[I] : T{0} ...};
 	}
@@ -88,7 +88,7 @@ struct vector
 	 * @return *m*-dimensional vector.
 	 */
 	template <std::size_t M>
-	constexpr inline explicit operator vector<T, M>() const noexcept
+	inline constexpr explicit operator vector<T, M>() const noexcept
 	{
 		return size_cast<M>(std::make_index_sequence<M>{});
 	}
@@ -106,11 +106,11 @@ struct vector
 	 * @return Reference to the element at index @p i.
 	 */
 	/// @{
-	constexpr inline element_type& operator[](std::size_t i) noexcept
+	inline constexpr element_type& operator[](std::size_t i) noexcept
 	{
 		return elements[i];
 	}
-	constexpr inline const element_type& operator[](std::size_t i) const noexcept
+	inline constexpr const element_type& operator[](std::size_t i) const noexcept
 	{
 		return elements[i];
 	}
@@ -120,11 +120,11 @@ struct vector
 	 * Returns a reference to the first element.
 	 */
 	/// @{
-	constexpr inline element_type& front() noexcept
+	inline constexpr element_type& front() noexcept
 	{
 		return elements[0];
 	}
-	constexpr inline const element_type& front() const noexcept
+	inline constexpr const element_type& front() const noexcept
 	{
 		return elements[0];
 	}
@@ -134,11 +134,11 @@ struct vector
 	 * Returns a reference to the last element.
 	 */
 	/// @{
-	constexpr inline element_type& back() noexcept
+	inline constexpr element_type& back() noexcept
 	{
 		return elements[N - 1];
 	}
-	constexpr inline const element_type& back() const noexcept
+	inline constexpr const element_type& back() const noexcept
 	{
 		return elements[N - 1];
 	}
@@ -148,11 +148,11 @@ struct vector
 	 * Returns a pointer to the element array.
 	 */
 	/// @{
-	constexpr inline element_type* data() noexcept
+	inline constexpr element_type* data() noexcept
 	{
 		return elements;
 	};
-	constexpr inline const element_type* data() const noexcept
+	inline constexpr const element_type* data() const noexcept
 	{
 		return elements;
 	};
@@ -160,12 +160,12 @@ struct vector
 	
 	/// Returns a reference to the first element.
 	/// @{
-	constexpr inline element_type& x() noexcept
+	inline constexpr element_type& x() noexcept
 	{
 		static_assert(N > 0, "Vector does not contain an x element.");
 		return elements[0];
 	}
-	constexpr inline const element_type& x() const noexcept
+	inline constexpr const element_type& x() const noexcept
 	{
 		static_assert(N > 0, "Vector does not contain an x element.");
 		return elements[0];
@@ -176,12 +176,12 @@ struct vector
 	 * Returns a reference to the second element.
 	 */
 	/// @{
-	constexpr inline element_type& y() noexcept
+	inline constexpr element_type& y() noexcept
 	{
 		static_assert(N > 1, "Vector does not contain a y element.");
 		return elements[1];
 	}
-	constexpr inline const element_type& y() const noexcept
+	inline constexpr const element_type& y() const noexcept
 	{
 		static_assert(N > 1, "Vector does not contain a y element.");
 		return elements[1];
@@ -192,12 +192,12 @@ struct vector
 	 * Returns a reference to the third element.
 	 */
 	/// @{
-	constexpr inline element_type& z() noexcept
+	inline constexpr element_type& z() noexcept
 	{
 		static_assert(N > 2, "Vector does not contain a z element.");
 		return elements[2];
 	}
-	constexpr inline const element_type& z() const noexcept
+	inline constexpr const element_type& z() const noexcept
 	{
 		static_assert(N > 2, "Vector does not contain a z element.");
 		return elements[2];
@@ -213,15 +213,15 @@ struct vector
 	 * Returns an iterator to the first element.
 	 */
 	/// @{
-	constexpr inline element_type* begin() noexcept
+	inline constexpr element_type* begin() noexcept
 	{
 		return elements;
 	}
-	constexpr inline const element_type* begin() const noexcept
+	inline constexpr const element_type* begin() const noexcept
 	{
 		return elements;
 	}
-	constexpr inline const element_type* cbegin() const noexcept
+	inline constexpr const element_type* cbegin() const noexcept
 	{
 		return elements;
 	}
@@ -231,15 +231,15 @@ struct vector
 	 * Returns an iterator to the element following the last element.
 	 */
 	/// @{
-	constexpr inline element_type* end() noexcept
+	inline constexpr element_type* end() noexcept
 	{
 		return elements + N;
 	}
-	constexpr inline const element_type* end() const noexcept
+	inline constexpr const element_type* end() const noexcept
 	{
 		return elements + N;
 	}
-	constexpr inline const element_type* cend() const noexcept
+	inline constexpr const element_type* cend() const noexcept
 	{
 		return elements + N;
 	}
@@ -249,15 +249,15 @@ struct vector
 	 * Returns a reverse iterator to the first element of the reversed vector.
 	 */
 	/// @{
-	constexpr inline std::reverse_iterator<element_type*> rbegin() noexcept
+	inline constexpr std::reverse_iterator<element_type*> rbegin() noexcept
 	{
 		return std::reverse_iterator<element_type*>(elements + N);
 	}
-	constexpr inline std::reverse_iterator<const element_type*> rbegin() const noexcept
+	inline constexpr std::reverse_iterator<const element_type*> rbegin() const noexcept
 	{
 		return std::reverse_iterator<const element_type*>(elements + N);
 	}
-	constexpr inline std::reverse_iterator<const element_type*> crbegin() const noexcept
+	inline constexpr std::reverse_iterator<const element_type*> crbegin() const noexcept
 	{
 		return std::reverse_iterator<const element_type*>(elements + N);
 	}
@@ -267,15 +267,15 @@ struct vector
 	 * Returns a reverse iterator to the element following the last element of the reversed vector.
 	 */
 	/// @{
-	constexpr inline std::reverse_iterator<element_type*> rend() noexcept
+	inline constexpr std::reverse_iterator<element_type*> rend() noexcept
 	{
 		return std::reverse_iterator<element_type*>(elements);
 	}
-	constexpr inline std::reverse_iterator<const element_type*> rend() const noexcept
+	inline constexpr std::reverse_iterator<const element_type*> rend() const noexcept
 	{
 		return std::reverse_iterator<const element_type*>(elements);
 	}
-	constexpr inline std::reverse_iterator<const element_type*> crend() const noexcept
+	inline constexpr std::reverse_iterator<const element_type*> crend() const noexcept
 	{
 		return std::reverse_iterator<const element_type*>(elements);
 	}
@@ -289,7 +289,7 @@ struct vector
 	/**
 	 * Returns the number of elements in the vector.
 	 */
-	constexpr inline std::size_t size() const noexcept
+	inline constexpr std::size_t size() const noexcept
 	{
 		return N;
 	};
@@ -834,104 +834,104 @@ constexpr vector<T, N> trunc(const vector<T, N>& x);
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> abs(const vector<T, N>& x, std::index_sequence<I...>)
+inline constexpr vector<T, N> abs(const vector<T, N>& x, std::index_sequence<I...>)
 {
 	return {std::abs(x[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> abs(const vector<T, N>& x)
+inline constexpr vector<T, N> abs(const vector<T, N>& x)
 {
 	return abs(x, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] + y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return add(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> add(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> add(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] + y)...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> add(const vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N> add(const vector<T, N>& x, T y) noexcept
 {
 	return add(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::size_t N, std::size_t... I>
-constexpr inline bool all(const vector<bool, N>& x, std::index_sequence<I...>) noexcept
+inline constexpr bool all(const vector<bool, N>& x, std::index_sequence<I...>) noexcept
 {
 	return (x[I] && ...);
 }
 
 template <std::size_t N>
-constexpr inline bool all(const vector<bool, N>& x) noexcept
+inline constexpr bool all(const vector<bool, N>& x) noexcept
 {
 	return all(x, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::size_t N, std::size_t... I>
-constexpr inline bool any(const vector<bool, N>& x, std::index_sequence<I...>) noexcept
+inline constexpr bool any(const vector<bool, N>& x, std::index_sequence<I...>) noexcept
 {
 	return (x[I] || ...);
 }
 
 template <std::size_t N>
-constexpr inline bool any(const vector<bool, N>& x) noexcept
+inline constexpr bool any(const vector<bool, N>& x) noexcept
 {
 	return any(x, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> ceil(const vector<T, N>& x, std::index_sequence<I...>)
+inline constexpr vector<T, N> ceil(const vector<T, N>& x, std::index_sequence<I...>)
 {
 	return {std::ceil(x[I])...};
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr inline vector<T, N> ceil(const vector<T, N>& x)
+inline constexpr vector<T, N> ceil(const vector<T, N>& x)
 {
 	return ceil(x, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> clamp(const vector<T, N>& x, const vector<T, N>& min_val, const vector<T, N>& max_val, std::index_sequence<I...>)
+inline constexpr vector<T, N> clamp(const vector<T, N>& x, const vector<T, N>& min_val, const vector<T, N>& max_val, std::index_sequence<I...>)
 {
 	return {std::min<T>(max_val[I], std::max<T>(min_val[I], x[I]))...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> clamp(const vector<T, N>& x, const vector<T, N>& min, const vector<T, N>& max)
+inline constexpr vector<T, N> clamp(const vector<T, N>& x, const vector<T, N>& min, const vector<T, N>& max)
 {
 	return clamp(x, min, max, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> clamp(const vector<T, N>& x, T min, T max, std::index_sequence<I...>)
+inline constexpr vector<T, N> clamp(const vector<T, N>& x, T min, T max, std::index_sequence<I...>)
 {
 	return {std::min<T>(max, std::max<T>(min, x[I]))...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> clamp(const vector<T, N>& x, T min, T max)
+inline constexpr vector<T, N> clamp(const vector<T, N>& x, T min, T max)
 {
 	return clamp(x, min, max, std::make_index_sequence<N>{});
 }
@@ -944,7 +944,7 @@ vector<T, N> clamp_length(const vector<T, N>& x, T max_length)
 }
 
 template <class T>
-constexpr inline vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y) noexcept
+inline constexpr vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y) noexcept
 {
 	return
 	{
@@ -962,144 +962,144 @@ inline T distance(const vector<T, N>& p0, const vector<T, N>& p1)
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] / y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return div(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> div(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> div(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] / y)...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> div(const vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N> div(const vector<T, N>& x, T y) noexcept
 {
 	return div(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> div(T x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> div(T x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x / y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> div(T x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> div(T x, const vector<T, N>& y) noexcept
 {
 	return div(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline T dot(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr T dot(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return ((x[I] * y[I]) + ...);
 }
 
 template <class T, std::size_t N>
-constexpr inline T dot(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr T dot(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return dot(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] == y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return equal(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> floor(const vector<T, N>& x, std::index_sequence<I...>)
+inline constexpr vector<T, N> floor(const vector<T, N>& x, std::index_sequence<I...>)
 {
 	return {std::floor(x[I])...};
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr inline vector<T, N> floor(const vector<T, N>& x)
+inline constexpr vector<T, N> floor(const vector<T, N>& x)
 {
 	return floor(x, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z, std::index_sequence<I...>)
+inline constexpr vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z, std::index_sequence<I...>)
 {
 	return {std::fma(x[I], y[I], z[I])...};
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr inline vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z)
+inline constexpr vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z)
 {
 	return fma(x, y, z, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> fma(const vector<T, N>& x, T y, T z, std::index_sequence<I...>)
+inline constexpr vector<T, N> fma(const vector<T, N>& x, T y, T z, std::index_sequence<I...>)
 {
 	return {std::fma(x[I], y, z)...};
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr inline vector<T, N> fma(const vector<T, N>& x, T y, T z)
+inline constexpr vector<T, N> fma(const vector<T, N>& x, T y, T z)
 {
 	return fma(x, y, z, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> fract(const vector<T, N>& x, std::index_sequence<I...>)
+inline constexpr vector<T, N> fract(const vector<T, N>& x, std::index_sequence<I...>)
 {
 	return {x[I] - std::floor(x[I])...};
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr inline vector<T, N> fract(const vector<T, N>& x)
+inline constexpr vector<T, N> fract(const vector<T, N>& x)
 {
 	return fract(x, std::make_index_sequence<N>{});
 }
 
 template<std::size_t I, class T, std::size_t N>
-constexpr inline T& get(math::vector<T, N>& v) noexcept
+inline constexpr T& get(math::vector<T, N>& v) noexcept
 {
 	static_assert(I < N);
 	return v.elements[I];
 }
 
 template<std::size_t I, class T, std::size_t N>
-constexpr inline T&& get(math::vector<T, N>&& v) noexcept
+inline constexpr T&& get(math::vector<T, N>&& v) noexcept
 {
 	static_assert(I < N);
 	return std::move(v.elements[I]);
 }
 
 template<std::size_t I, class T, std::size_t N>
-constexpr inline const T& get(const math::vector<T, N>& v) noexcept
+inline constexpr const T& get(const math::vector<T, N>& v) noexcept
 {
 	static_assert(I < N);
 	return v.elements[I];
 }
 
 template<std::size_t I, class T, std::size_t N>
-constexpr inline const T&& get(const math::vector<T, N>&& v) noexcept
+inline constexpr const T&& get(const math::vector<T, N>&& v) noexcept
 {
 	static_assert(I < N);
 	return std::move(v.elements[I]);
@@ -1107,26 +1107,26 @@ constexpr inline const T&& get(const math::vector<T, N>&& v) noexcept
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] > y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return greater_than(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] >= y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return greater_than_equal(x, y, std::make_index_sequence<N>{});
 }
@@ -1145,33 +1145,33 @@ inline T length(const vector<T, N>& x)
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] < y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return less_than(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] <= y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return less_than_equal(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+inline constexpr vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {std::max<T>(x[I], y[I])...};
 }
@@ -1183,14 +1183,14 @@ constexpr vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y)
 }
 
 template <class T, std::size_t N>
-constexpr inline T max(const vector<T, N>& x)
+inline constexpr T max(const vector<T, N>& x)
 {
 	return *std::max_element(x.elements, x.elements + N);
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+inline constexpr vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {std::min<T>(x[I], y[I])...};
 }
@@ -1202,72 +1202,72 @@ constexpr vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y)
 }
 
 template <class T, std::size_t N>
-constexpr inline T min(const vector<T, N>& x)
+inline constexpr T min(const vector<T, N>& x)
 {
 	return *std::min_element(x.elements, x.elements + N);
 }
 
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
+inline constexpr vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>)
 {
 	return {std::fmod(x[I], y[I])...};
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr inline vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y)
+inline constexpr vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y)
 {
 	return mod(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> mod(const vector<T, N>& x, T y, std::index_sequence<I...>)
+inline constexpr vector<T, N> mod(const vector<T, N>& x, T y, std::index_sequence<I...>)
 {
 	return {std::fmod(x[I], y)...};
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr inline vector<T, N> mod(const vector<T, N>& x, T y)
+inline constexpr vector<T, N> mod(const vector<T, N>& x, T y)
 {
 	return mod(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] * y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return mul(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> mul(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> mul(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] * y)...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> mul(const vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N> mul(const vector<T, N>& x, T y) noexcept
 {
 	return mul(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> negate(const vector<T, N>& x, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> negate(const vector<T, N>& x, std::index_sequence<I...>) noexcept
 {
 	return {(-x[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> negate(const vector<T, N>& x) noexcept
+inline constexpr vector<T, N> negate(const vector<T, N>& x) noexcept
 {
 	return negate(x, std::make_index_sequence<N>{});
 }
@@ -1280,26 +1280,26 @@ inline vector<T, N> normalize(const vector<T, N>& x)
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<bool, N> logical_not(const vector<T, N>& x, std::index_sequence<I...>) noexcept
+inline constexpr vector<bool, N> logical_not(const vector<T, N>& x, std::index_sequence<I...>) noexcept
 {
 	return {!x[I]...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<bool, N> logical_not(const vector<T, N>& x) noexcept
+inline constexpr vector<bool, N> logical_not(const vector<T, N>& x) noexcept
 {
 	return logical_not(x, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] != y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return not_equal(x, y, std::make_index_sequence<N>{});
 }
@@ -1332,38 +1332,38 @@ inline vector<T, N> pow(const vector<T, N>& x, T y)
 
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> round(const vector<T, N>& x, std::index_sequence<I...>)
+inline constexpr vector<T, N> round(const vector<T, N>& x, std::index_sequence<I...>)
 {
 	return {std::round(x[I])...};
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr inline vector<T, N> round(const vector<T, N>& x)
+inline constexpr vector<T, N> round(const vector<T, N>& x)
 {
 	return round(x, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> sign(const vector<T, N>& x, std::index_sequence<I...>)
+inline constexpr vector<T, N> sign(const vector<T, N>& x, std::index_sequence<I...>)
 {
 	return {std::copysign(T{1}, x[I])...};
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr inline vector<T, N> sign(const vector<T, N>& x)
+inline constexpr vector<T, N> sign(const vector<T, N>& x)
 {
 	return sign(x, std::make_index_sequence<N>{});
 }
 
 template <class T, std::size_t N>
-constexpr inline T sqr_distance(const vector<T, N>& p0, const vector<T, N>& p1) noexcept
+inline constexpr T sqr_distance(const vector<T, N>& p0, const vector<T, N>& p1) noexcept
 {
 	return sqr_length(sub(p0, p1));
 }
 
 template <class T, std::size_t N>
-constexpr inline T sqr_length(const vector<T, N>& x) noexcept
+inline constexpr T sqr_length(const vector<T, N>& x) noexcept
 {
 	return dot(x, x);
 }
@@ -1383,71 +1383,71 @@ inline vector<T, N> sqrt(const vector<T, N>& x, const vector<T, N>& y)
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] - y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return sub(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> sub(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> sub(const vector<T, N>& x, T y, std::index_sequence<I...>) noexcept
 {
 	return {(x[I] - y)...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> sub(const vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N> sub(const vector<T, N>& x, T y) noexcept
 {
 	return sub(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> sub(T x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
+inline constexpr vector<T, N> sub(T x, const vector<T, N>& y, std::index_sequence<I...>) noexcept
 {
 	return {(x - y[I])...};
 }
 
 template <class T, std::size_t N>
-constexpr inline vector<T, N> sub(T x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> sub(T x, const vector<T, N>& y) noexcept
 {
 	return sub(x, y, std::make_index_sequence<N>{});
 }
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>
-constexpr inline T sum(const vector<T, N>& x, std::index_sequence<I...>) noexcept
+inline constexpr T sum(const vector<T, N>& x, std::index_sequence<I...>) noexcept
 {
 	return (x[I] + ...);
 }
 
 template <class T, std::size_t N>
-constexpr inline T sum(const vector<T, N>& x) noexcept
+inline constexpr T sum(const vector<T, N>& x) noexcept
 {
 	return sum(x, std::make_index_sequence<N>{});
 }
 
 template <std::size_t... Indices, class T, std::size_t N>
-constexpr inline vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) noexcept
+inline constexpr vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) noexcept
 {
 	return {x[Indices]...};
 }
 
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
-constexpr inline vector<T, N> trunc(const vector<T, N>& x, std::index_sequence<I...>)
+inline constexpr vector<T, N> trunc(const vector<T, N>& x, std::index_sequence<I...>)
 {
 	return {std::trunc(x[I])...};
 }
 
 template <std::floating_point T, std::size_t N>
-constexpr inline vector<T, N> trunc(const vector<T, N>& x)
+inline constexpr vector<T, N> trunc(const vector<T, N>& x)
 {
 	return trunc(x, std::make_index_sequence<N>{});
 }
@@ -1456,7 +1456,7 @@ namespace operators {
 
 /// @copydoc add(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator+(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> operator+(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return add(x, y);
 }
@@ -1464,12 +1464,12 @@ constexpr inline vector<T, N> operator+(const vector<T, N>& x, const vector<T, N
 /// @copydoc add(const vector<T, N>&, T)
 /// @{
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator+(const vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N> operator+(const vector<T, N>& x, T y) noexcept
 {
 	return add(x, y);
 }
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator+(T x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> operator+(T x, const vector<T, N>& y) noexcept
 {
 	return add(y, x);
 }
@@ -1477,28 +1477,28 @@ constexpr inline vector<T, N> operator+(T x, const vector<T, N>& y) noexcept
 
 /// @copydoc div(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator/(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> operator/(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return div(x, y);
 }
 
 /// @copydoc div(const vector<T, N>&, T)
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator/(const vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N> operator/(const vector<T, N>& x, T y) noexcept
 {
 	return div(x, y);
 }
 
 /// @copydoc div(T, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator/(T x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> operator/(T x, const vector<T, N>& y) noexcept
 {
 	return div(x, y);
 }
 
 /// @copydoc mul(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator*(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> operator*(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return mul(x, y);
 }
@@ -1506,12 +1506,12 @@ constexpr inline vector<T, N> operator*(const vector<T, N>& x, const vector<T, N
 /// @copydoc mul(const vector<T, N>&, T)
 /// @{
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator*(const vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N> operator*(const vector<T, N>& x, T y) noexcept
 {
 	return mul(x, y);
 }
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator*(T x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> operator*(T x, const vector<T, N>& y) noexcept
 {
 	return mul(y, x);
 }
@@ -1519,28 +1519,28 @@ constexpr inline vector<T, N> operator*(T x, const vector<T, N>& y) noexcept
 
 /// @copydoc negate(const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator-(const vector<T, N>& x) noexcept
+inline constexpr vector<T, N> operator-(const vector<T, N>& x) noexcept
 {
 	return negate(x);
 }
 
 /// @copydoc sub(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator-(const vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> operator-(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return sub(x, y);
 }
 
 /// @copydoc sub(const vector<T, N>&, T)
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator-(const vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N> operator-(const vector<T, N>& x, T y) noexcept
 {
 	return sub(x, y);
 }
 
 /// @copydoc sub(T, const vector<T, N>&)
 template <class T, std::size_t N>
-constexpr inline vector<T, N> operator-(T x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N> operator-(T x, const vector<T, N>& y) noexcept
 {
 	return sub(x, y);
 }
@@ -1555,12 +1555,12 @@ constexpr inline vector<T, N> operator-(T x, const vector<T, N>& y) noexcept
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline vector<T, N>& operator+=(vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N>& operator+=(vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return (x = x + y);
 }
 template <class T, std::size_t N>
-constexpr inline vector<T, N>& operator+=(vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N>& operator+=(vector<T, N>& x, T y) noexcept
 {
 	return (x = x + y);
 }
@@ -1576,12 +1576,12 @@ constexpr inline vector<T, N>& operator+=(vector<T, N>& x, T y) noexcept
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline vector<T, N>& operator-=(vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N>& operator-=(vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return (x = x - y);
 }
 template <class T, std::size_t N>
-constexpr inline vector<T, N>& operator-=(vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N>& operator-=(vector<T, N>& x, T y) noexcept
 {
 	return (x = x - y);
 }
@@ -1597,12 +1597,12 @@ constexpr inline vector<T, N>& operator-=(vector<T, N>& x, T y) noexcept
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline vector<T, N>& operator*=(vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N>& operator*=(vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return (x = x * y);
 }
 template <class T, std::size_t N>
-constexpr inline vector<T, N>& operator*=(vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N>& operator*=(vector<T, N>& x, T y) noexcept
 {
 	return (x = x * y);
 }
@@ -1618,12 +1618,12 @@ constexpr inline vector<T, N>& operator*=(vector<T, N>& x, T y) noexcept
  */
 /// @{
 template <class T, std::size_t N>
-constexpr inline vector<T, N>& operator/=(vector<T, N>& x, const vector<T, N>& y) noexcept
+inline constexpr vector<T, N>& operator/=(vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return (x = x / y);
 }
 template <class T, std::size_t N>
-constexpr inline vector<T, N>& operator/=(vector<T, N>& x, T y) noexcept
+inline constexpr vector<T, N>& operator/=(vector<T, N>& x, T y) noexcept
 {
 	return (x = x / y);
 }

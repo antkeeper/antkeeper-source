@@ -37,29 +37,30 @@ trait::head* resource_loader<trait::head>::load(resource_manager* resource_manag
 	if (head_element == data->end())
 		throw std::runtime_error("Invalid head trait.");
 	
-	// Allocate head trait
+	// Allocate and init head trait
 	trait::head* head = new trait::head();
+	head->model = nullptr;
+	head->length = 0.0f;
+	head->width = 0.0f;
+	head->phragmosis = false;
 	
-	// Load head model
+	// Load model
 	auto model_element = head_element->find("model");
 	if (model_element == head_element->end())
 		throw std::runtime_error("Head trait doesn't specify head model.");
 	head->model = resource_manager->load<render::model>(model_element->get<std::string>());
 	
-	// Parse head length
-	head->length = 0.0f;
-	if (auto length_element = head_element->find("length"); length_element != head_element->end())
-		head->length = length_element->get<float>();
+	// Parse length
+	if (auto element = head_element->find("length"); element != head_element->end())
+		head->length = element->get<float>();
 	
-	// Parse head width
-	head->width = 0.0f;
-	if (auto width_element = head_element->find("width"); width_element != head_element->end())
-		head->width = width_element->get<float>();
+	// Parse width
+	if (auto element = head_element->find("width"); element != head_element->end())
+		head->width = element->get<float>();
 	
-	// Parse head phragmotic
-	head->phragmotic = false;
-	if (auto phragmotic_element = head_element->find("phragmotic"); phragmotic_element != head_element->end())
-		head->phragmotic = phragmotic_element->get<bool>();
+	// Parse phragmosis
+	if (auto element = head_element->find("phragmosis"); element != head_element->end())
+		head->phragmosis = element->get<float>();
 	
 	// Free JSON data
 	delete data;

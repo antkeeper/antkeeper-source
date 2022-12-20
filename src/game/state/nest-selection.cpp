@@ -46,14 +46,15 @@
 #include "state-machine.hpp"
 #include "config.hpp"
 #include "game/load.hpp"
-#include "game/ant/breed.hpp"
-#include "game/ant/morphogenesis.hpp"
 #include "math/interpolation.hpp"
 #include "physics/light/exposure.hpp"
 #include "application.hpp"
 #include "input/mouse.hpp"
 #include "math/projection.hpp"
 #include <iostream>
+
+#include "game/ant/morphogenesis.hpp"
+#include "game/ant/species.hpp"
 
 using namespace game::ant;
 
@@ -64,6 +65,49 @@ nest_selection::nest_selection(game::context& ctx):
 	game::state::base(ctx)
 {
 	ctx.logger->push_task("Entering nest selection state");
+	
+	
+	ctx.logger->push_task("Loading worker caste");
+	
+	ant::species species;
+	ant::caste& worker_caste = *species.worker_caste;
+	worker_caste.type = ant::caste_type::worker;
+	
+	worker_caste.antennae = ctx.resource_manager->load<ant::trait::antennae>("pogonomyrmex-female-antennae.dna");
+	worker_caste.eyes = ctx.resource_manager->load<ant::trait::eyes>("pogonomyrmex-eyes.dna");
+	worker_caste.gaster = ctx.resource_manager->load<ant::trait::gaster>("pogonomyrmex-worker-gaster.dna");
+	worker_caste.head = ctx.resource_manager->load<ant::trait::head>("pogonomyrmex-head.dna");
+	worker_caste.legs = ctx.resource_manager->load<ant::trait::legs>("pogonomyrmex-legs.dna");
+	worker_caste.mandibles = ctx.resource_manager->load<ant::trait::mandibles>("pogonomyrmex-mandibles.dna");
+	worker_caste.mesosoma = ctx.resource_manager->load<ant::trait::mesosoma>("pogonomyrmex-worker-mesosoma.dna");
+	worker_caste.ocelli = ctx.resource_manager->load<ant::trait::ocelli>("ocelli-absent.dna");
+	worker_caste.pigmentation = ctx.resource_manager->load<ant::trait::pigmentation>("rust-pigmentation.dna");
+	worker_caste.sculpturing = ctx.resource_manager->load<ant::trait::sculpturing>("politus-sculpturing.dna");
+	//worker_caste.size_variation = ctx.resource_manager->load<ant::trait::size_variation>(...);
+	worker_caste.sting = ctx.resource_manager->load<ant::trait::sting>("pogonomyrmex-sting.dna");
+	worker_caste.waist = ctx.resource_manager->load<ant::trait::waist>("pogonomyrmex-waist.dna");
+	worker_caste.wings = ctx.resource_manager->load<ant::trait::wings>("wings-absent.dna");
+	
+	render::model* worker_model = ant::morphogenesis(worker_caste);
+	
+	ctx.logger->pop_task(EXIT_SUCCESS);
+	
+	
+	// Create worker entity(s)
+	entity::id worker_eid = ctx.entity_registry->create();
+	component::transform worker_transform_component;
+	worker_transform_component.local = math::transform<float>::identity;
+	worker_transform_component.local.translation = {0, 0, -20};
+	worker_transform_component.world = worker_transform_component.local;
+	worker_transform_component.warp = true;
+	ctx.entity_registry->emplace<component::transform>(worker_eid, worker_transform_component);
+	
+	component::model worker_model_component;
+	worker_model_component.render_model = worker_model;
+	worker_model_component.instance_count = 0;
+	worker_model_component.layers = ~0;
+	ctx.entity_registry->emplace<component::model>(worker_eid, worker_model_component);
+	
 	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
@@ -132,8 +176,11 @@ nest_selection::nest_selection(game::context& ctx):
 	// Satisfy first person camera rig constraints
 	satisfy_first_person_camera_rig_constraints();
 	
-	auto ruler_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
-	ruler_archetype->create(*ctx.entity_registry);
+	auto color_checker_archetype = ctx.resource_manager->load<entity::archetype>("color-checker.ent");
+	color_checker_archetype->create(*ctx.entity_registry);
+	
+	// auto ruler_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
+	// ruler_archetype->create(*ctx.entity_registry);
 	
 	// Queue control setup
 	ctx.function_queue.push(std::bind(&nest_selection::enable_controls, this));
@@ -653,7 +700,7 @@ void nest_selection::enable_controls()
 		[&ctx = this->ctx](float)
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() - 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 3.0f * static_cast<float>(ctx.loop.get_update_period()));
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 0.5f * static_cast<float>(ctx.loop.get_update_period()));
 			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
@@ -663,78 +710,8 @@ void nest_selection::enable_controls()
 		[&ctx = this->ctx](float)
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() + 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 3.0f * static_cast<float>(ctx.loop.get_update_period()));
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 0.5f * static_cast<float>(ctx.loop.get_update_period()));
 			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
-		}
-	);
-	
-	const float wavelength_speed = 20.0;
-	ctx.controls["dec_red"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.x() -= wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
-	ctx.controls["inc_red"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.x() += wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
-	
-	ctx.controls["dec_green"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.y() -= wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
-	ctx.controls["inc_green"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.y() += wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
-	
-	ctx.controls["dec_blue"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.z() -= wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
-	ctx.controls["inc_blue"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.z() += wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
 		}
 	);
 }
@@ -772,12 +749,6 @@ void nest_selection::disable_controls()
 	ctx.controls["pause"]->set_activated_callback(nullptr);
 	ctx.controls["increase_exposure"]->set_active_callback(nullptr);
 	ctx.controls["decrease_exposure"]->set_active_callback(nullptr);
-	ctx.controls["dec_red"]->set_active_callback(nullptr);
-	ctx.controls["inc_red"]->set_active_callback(nullptr);
-	ctx.controls["dec_green"]->set_active_callback(nullptr);
-	ctx.controls["inc_green"]->set_active_callback(nullptr);
-	ctx.controls["dec_blue"]->set_active_callback(nullptr);
-	ctx.controls["inc_blue"]->set_active_callback(nullptr);
 }
 
 } // namespace state

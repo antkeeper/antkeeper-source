@@ -37,36 +37,43 @@ trait::eyes* resource_loader<trait::eyes>::load(resource_manager* resource_manag
 	if (eyes_element == data->end())
 		throw std::runtime_error("Invalid eyes trait.");
 	
-	// Allocate eyes trait
+	// Allocate and init eyes trait
 	trait::eyes* eyes = new trait::eyes();
-	
-	// Load eyes model (if not null)
-	auto model_element = eyes_element->find("model");
-	if (model_element == eyes_element->end())
-		throw std::runtime_error("Eyes trait doesn't specify eyes model.");
-	if (model_element->is_null())
-	{
-		eyes->model = nullptr;
-	}
-	else
-	{
-		eyes->model = resource_manager->load<render::model>(model_element->get<std::string>());
-	}
-	
-	// Parse eyes length
+	eyes->present = false;
+	eyes->model = nullptr;
 	eyes->length = 0.0f;
-	if (auto length_element = eyes_element->find("length"); length_element != eyes_element->end())
-		eyes->length = length_element->get<float>();
-	
-	// Parse eyes width
 	eyes->width = 0.0f;
-	if (auto width_element = eyes_element->find("width"); width_element != eyes_element->end())
-		eyes->width = width_element->get<float>();
+	eyes->height = 0.0f;
+	eyes->ommatidia_count = 0;
 	
-	// Parse eyes ommatidia
-	eyes->ommatidia = 0;
-	if (auto ommatidia_element = eyes_element->find("ommatidia"); ommatidia_element != eyes_element->end())
-		eyes->ommatidia = ommatidia_element->get<int>();
+	// Parse eyes present
+	if (auto present_element = eyes_element->find("present"); present_element != eyes_element->end())
+		eyes->present = present_element->get<bool>();
+	
+	if (eyes->present)
+	{
+		// Load eyes model
+		auto model_element = eyes_element->find("model");
+		if (model_element == eyes_element->end())
+			throw std::runtime_error("Eyes trait doesn't specify eyes model.");
+		eyes->model = resource_manager->load<render::model>(model_element->get<std::string>());
+		
+		// Parse length
+		if (auto element = eyes_element->find("length"); element != eyes_element->end())
+			eyes->length = element->get<float>();
+		
+		// Parse width
+		if (auto element = eyes_element->find("width"); element != eyes_element->end())
+			eyes->width = element->get<float>();
+		
+		// Parse height
+		if (auto element = eyes_element->find("height"); element != eyes_element->end())
+			eyes->height = element->get<float>();
+		
+		// Parse ommatidia count
+		if (auto element = eyes_element->find("ommatidia_count"); element != eyes_element->end())
+			eyes->ommatidia_count = element->get<int>();
+	}
 	
 	// Free JSON data
 	delete data;

@@ -50,83 +50,57 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 	
 	/*
 	image img;
-	img.format(1, 1);
-	img.resize(1024, 1024);
-	
-	float frequency = 10.0f;
-	std::size_t octaves = 4;
-	float lacunarity = 2.0f;
-	float gain = 0.5f;	
-	auto hash = static_cast<math::vector<std::uint32_t, 2>(*)(const math::vector<float, 2>&)>(math::hash::pcg);
-	auto noise = static_cast<float(*)(const math::vector<float, 2>&, decltype(hash))>(math::noise::simplex);
-	
-	auto fbm = [&](const float2& x)
-	{
-		return math::noise::fbm
-		(
-			x,
-			octaves,
-			lacunarity,
-			gain,
-			noise,
-			hash
-		);
-	};
+	img.format(1, 4);
+	img.resize(2048, 2048);
 	
 	auto width = img.get_width();
 	auto height = img.get_height();
 	unsigned char* pixels = (unsigned char*)img.data();
 	
+	const float frequency = 400.0f;
 	float scale_x = 1.0f / static_cast<float>(width - 1) * frequency;
 	float scale_y = 1.0f / static_cast<float>(height - 1) * frequency;
-	
-
 	
 	std::for_each
 	(
 		std::execution::par_unseq,
-		img.begin<unsigned char>(),
-		img.end<unsigned char>(),
-		[pixels, width, height, scale_x, scale_y, &fbm](auto& pixel)
+		img.begin<math::vector<unsigned char, 4>>(),
+		img.end<math::vector<unsigned char, 4>>(),
+		[pixels, width, height, scale_x, scale_y, frequency](auto& pixel)
 		{
-			std::size_t i = &pixel - pixels;
-			std::size_t y = i / width;
-			std::size_t x = i % width;
+			const std::size_t i = &pixel - (math::vector<unsigned char, 4>*)pixels;
+			const std::size_t y = i / width;
+			const std::size_t x = i % width;
 			
-			float2 position =
+			const float2 position =
 			{
 				static_cast<float>(x) * scale_x,
 				static_cast<float>(y) * scale_y
 			};
 			
-			//float n = math::noise::simplex<float, 2>(position, &math::noise::hash::pcg3d_1);
-			//float n = fbm(position);
-			// auto [sqr_center_distance, displacement, id, sqr_edge_distance] = math::noise::voronoi::f1_edge<float, std::uint32_t>(position, 1.0f, &math::noise::hash::pcg3d_3);
-			// float center_distance = std::sqrt(sqr_center_distance);
-			// float edge_distance = std::sqrt(sqr_edge_distance);
-			
-			auto
+			const auto
 			[
 				f1_sqr_distance,
 				f1_displacement,
-				f1_id,
-				// f2_sqr_distance,
-				// f2_displacement,
-				// f2_id
-				edge_sqr_distance(
-			] = math::noise::voronoi::f1_edge<float, 2>(position);
+				f1_id
+			] = math::noise::voronoi::f1<float, 2>(position, 1.0f, {frequency, frequency});
 			
-			float f1_distance = std::sqrt(f1_sqr_distance();
-			//float f2_distance = std::sqrt(f2_sqr_distance();
-			float edge_distance = std::sqrt(edge_sqr_distance();
+			const float f1_distance = std::sqrt(f1_sqr_distance);
 			
-			pixel = static_cast<unsigned char>(std::min(255.0f, f1_distance * 255.0f));
-			//pixel = static_cast<unsigned char>(id % 255);
+			const float2 uv = (position + f1_displacement) / frequency;
+			
+			pixel = 
+			{
+				static_cast<unsigned char>(std::min(255.0f, f1_distance * 255.0f)),
+				static_cast<unsigned char>(std::min(255.0f, uv[0] * 255.0f)),
+				static_cast<unsigned char>(std::min(255.0f, uv[1] * 255.0f)),
+				static_cast<unsigned char>(f1_id % 256)
+			};
 		}
 	);
 	
 	stbi_flip_vertically_on_write(1);
-	stbi_write_png((ctx.config_path / "gallery" / "noise.png").string().c_str(), img.get_width(), img.get_height(), img.get_channel_count(), img.data(), img.get_width() * img.get_channel_count());
+	stbi_write_tga((ctx.config_path / "gallery" / "voronoi-f1-400-nc8-2k.tga").string().c_str(), img.get_width(), img.get_height(), img.get_channel_count(), img.data());
 	*/
 	
 	try
@@ -195,44 +169,21 @@ void biome(game::context& ctx, const std::filesystem::path& path)
 			(
 				[](float x, float z) -> float
 				{
-					/*
-					float frequency = 0.01f;
-					std::size_t octaves = 4;
-					float lacunarity = 3.0f;
-					float gain = 0.5f;
+					const float2 position = float2{x, z};
+
+					const std::size_t octaves = 3;
+					const float lacunarity = 1.5f;
+					const float gain = 0.5f;
 					
-					float2 position = float2{x, z} * frequency;
-					
-					float fbm = math::noise::fbm
+					const float fbm = math::noise::fbm
 					(
-						position,
+						position * 0.005f,
 						octaves,
 						lacunarity,
 						gain
 					);
 					
-					auto
-					[
-						f1_sqr_distance,
-						f1_displacement,
-						f1_id
-					] = math::noise::voronoi::f1(position);
-					float f1_distance = std::sqrt(f1_sqr_distance();
-					
-					float y = f1_distance * 5.0f + fbm * 0.5f;
-					*/
-					
-					float2 position = float2{x, z} * 0.05f;
-					
-					auto
-					[
-						f1_sqr_distance,
-						f1_displacement,
-						f1_id
-					] = math::noise::voronoi::f1(position);
-					float f1_distance = std::sqrt(f1_sqr_distance);
-					float y = f1_distance * 3.0f;
-
+					float y = fbm * 4.0f;
 					
 					return y;
 				}

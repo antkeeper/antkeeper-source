@@ -27,18 +27,25 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the mandibles of an ant.
+ * Ant mandibles description.
+ *
+ * @see https://www.antwiki.org/wiki/Character_States_for_Extant_Ant_Genera_of_the_Formicidae
+ * @see https://www.antwiki.org/wiki/Morphological_and_Functional_Diversity_of_Ant_Mandibles
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
  */
 struct mandibles
 {
-	/// Length of the closed mandibles in full face view (MandL), measured in mesosomal lengths.
-	float length;
-	
-	/// Indicates the mandibles are able to lock open, such as in trap-jaw ants.
-	bool locking;
-	
 	/// 3D model of the mandibles.
 	render::model* model;
+	
+	/// Mandible length at closure, in mesosomal lengths.
+	float length;
+	
+	/// Number of teeth and denticles on the masticatory (apical) margin of the mandible.
+	int apical_dental_count;
+	
+	/// Number of teeth and denticles on the basal margin of the mandible.
+	int basal_dental_count;
 };
 
 } // namespace trait

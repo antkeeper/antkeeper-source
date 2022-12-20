@@ -20,39 +20,32 @@
 #include "resources/resource-loader.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/json.hpp"
-#include "game/ant/trait/nest.hpp"
-#include "game/ant/nest-site.hpp"
+#include "game/ant/trait/body-size.hpp"
 #include <stdexcept>
 
 using namespace game::ant;
 
 template <>
-trait::nest* resource_loader<trait::nest>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
+trait::body_size* resource_loader<trait::body_size>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	// Load JSON data
 	json* data = resource_loader<json>::load(resource_manager, file, path);
 	
 	// Validate trait file
-	auto nest_element = data->find("nest");
-	if (nest_element == data->end())
-		throw std::runtime_error("Invalid nest trait.");
+	auto body_size_element = data->find("body_size");
+	if (body_size_element == data->end())
+		throw std::runtime_error("Invalid body size trait.");
 	
-	// Allocate nest trait
-	trait::nest* nest = new trait::nest();
+	// Allocate and init body size trait
+	trait::body_size* body_size = new trait::body_size();
+	body_size->mesosoma_length = 1.0f;
 	
-	// Parse nest site
-	nest->site = nest_site::hypogeic;
-	if (auto site_element = nest_element->find("site"); site_element != nest_element->end())
-	{
-		std::string site = site_element->get<std::string>();
-		if (site == "hypogeic")
-			nest->site = nest_site::hypogeic;
-		else if (site == "arboreal")
-			nest->site = nest_site::arboreal;
-	}
+	// Parse mesosoma length
+	if (auto element = body_size_element->find("mesosoma_length"); element != body_size_element->end())
+		body_size->mesosoma_length = element->get<float>();
 	
 	// Free JSON data
 	delete data;
 	
-	return nest;
+	return body_size;
 }

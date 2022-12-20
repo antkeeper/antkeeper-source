@@ -27,7 +27,7 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the eggs of an ant species.
+ * Ant egg description.
  */
 struct egg
 {

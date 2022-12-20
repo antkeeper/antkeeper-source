@@ -25,7 +25,7 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the pilosity of an ant.
+ * Ant pilosity description.
  */
 struct pilosity
 {

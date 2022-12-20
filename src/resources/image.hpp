@@ -57,21 +57,21 @@ public:
 	 */
 	/// @{
 	template <class T>
-	constexpr inline T* begin() noexcept
+	inline constexpr T* begin() noexcept
 	{
 		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
 		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
 		return static_cast<T*>(pixels);
 	}
 	template <class T>
-	constexpr inline const T* begin() const noexcept
+	inline constexpr const T* begin() const noexcept
 	{
 		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
 		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
 		return static_cast<const T*>(pixels);
 	}
 	template <class T>
-	constexpr inline const T* cbegin() const noexcept
+	inline constexpr const T* cbegin() const noexcept
 	{
 		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
 		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
@@ -86,25 +86,25 @@ public:
 	 */
 	/// @{
 	template <class T>
-	constexpr inline T* end() noexcept
+	inline constexpr T* end() noexcept
 	{
 		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
 		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
-		return static_cast<T*>(static_cast<unsigned char*>(pixels) + size);
+		return reinterpret_cast<T*>(static_cast<unsigned char*>(pixels) + size);
 	}
 	template <class T>
-	constexpr inline const T* end() const noexcept
+	inline constexpr const T* end() const noexcept
 	{
 		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
 		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
-		return static_cast<const T*>(static_cast<const unsigned char*>(pixels) + size);
+		return reinterpret_cast<const T*>(static_cast<const unsigned char*>(pixels) + size);
 	}
 	template <class T>
-	constexpr inline const T* cend() const noexcept
+	inline constexpr const T* cend() const noexcept
 	{
 		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
 		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
-		return static_cast<const T*>(static_cast<const unsigned char*>(pixels) + size);
+		return reinterpret_cast<const T*>(static_cast<const unsigned char*>(pixels) + size);
 	}
 	/// @}
 	

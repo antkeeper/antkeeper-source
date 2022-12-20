@@ -30,7 +30,6 @@
 #include "resources/resource-manager.hpp"
 #include "render/material-flags.hpp"
 #include "math/linear-algebra.hpp"
-#include <iostream>
 
 namespace game {
 namespace state {

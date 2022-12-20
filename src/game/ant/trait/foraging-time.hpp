@@ -27,7 +27,7 @@ namespace ant {
 namespace trait {
 
 /**
- * Trait that describes the surface foraging time of an ant.
+ * Ant foraging time description.
  */
 struct foraging_time
 {

@@ -49,8 +49,6 @@
 #include "state-machine.hpp"
 #include "config.hpp"
 #include "game/load.hpp"
-#include "game/ant/breed.hpp"
-#include "game/ant/morphogenesis.hpp"
 #include "math/interpolation.hpp"
 #include "physics/light/exposure.hpp"
 #include "color/color.hpp"
@@ -60,8 +58,6 @@
 #include "geom/primitive/rectangle.hpp"
 #include "geom/primitive/hyperplane.hpp"
 #include <iostream>
-
-using namespace game::ant;
 
 namespace game {
 namespace state {
@@ -775,76 +771,6 @@ void nuptial_flight::enable_controls()
 			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
-	
-	const float wavelength_speed = 20.0;
-	ctx.controls["dec_red"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.x() -= wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
-	ctx.controls["inc_red"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.x() += wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
-	
-	ctx.controls["dec_green"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.y() -= wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
-	ctx.controls["inc_green"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.y() += wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
-	
-	ctx.controls["dec_blue"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.z() -= wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
-	ctx.controls["inc_blue"]->set_active_callback
-	(
-		[&ctx = this->ctx, wavelength_speed](float)
-		{
-			ctx.rgb_wavelengths.z() += wavelength_speed * ctx.loop.get_update_period();
-			ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
-			std::stringstream stream;
-			stream << ctx.rgb_wavelengths;
-			ctx.logger->log("wavelengths: " + stream.str());
-		}
-	);
 }
 
 void nuptial_flight::disable_controls()
@@ -880,12 +806,6 @@ void nuptial_flight::disable_controls()
 	ctx.controls["pause"]->set_activated_callback(nullptr);
 	ctx.controls["increase_exposure"]->set_active_callback(nullptr);
 	ctx.controls["decrease_exposure"]->set_active_callback(nullptr);
-	ctx.controls["dec_red"]->set_active_callback(nullptr);
-	ctx.controls["inc_red"]->set_active_callback(nullptr);
-	ctx.controls["dec_green"]->set_active_callback(nullptr);
-	ctx.controls["inc_green"]->set_active_callback(nullptr);
-	ctx.controls["dec_blue"]->set_active_callback(nullptr);
-	ctx.controls["inc_blue"]->set_active_callback(nullptr);
 }
 
 void nuptial_flight::select_entity(entity::id entity_id)

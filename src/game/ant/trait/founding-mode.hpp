@@ -17,22 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_NEST_SITE_HPP
-#define ANTKEEPER_GAME_ANT_NEST_SITE_HPP
+#ifndef ANTKEEPER_GAME_ANT_TRAIT_FOUNDING_MODE_HPP
+#define ANTKEEPER_GAME_ANT_TRAIT_FOUNDING_MODE_HPP
 
 namespace game {
 namespace ant {
+namespace trait {
 
 /**
- * Nest site enumerations.
+ * Colony founding mode.
+ *
+ * @see https://www.antwiki.org/wiki/Colony_Foundation
  */
-enum class nest_site
+enum class founding_mode
 {
-	hypogeic,
-	arboreal
+	/// Foraging outside the claustral chamber is required.
+	semi_claustral,
+	
+	/// Foraging outside the claustral chamber is unnecessary.
+	claustral,
+	
+	/// Parent colony splits, with a queen taking a portion of the workforce with her.
+	fission
 };
 
+} // namespace trait
 } // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_ANT_NEST_SITE_HPP
+#endif // ANTKEEPER_GAME_ANT_TRAIT_FOUNDING_MODE_HPP

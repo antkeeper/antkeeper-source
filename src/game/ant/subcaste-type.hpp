@@ -17,26 +17,43 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_TRAIT_NEST_HPP
-#define ANTKEEPER_GAME_ANT_TRAIT_NEST_HPP
-
-#include "game/ant/nest-site.hpp"
+#ifndef ANTKEEPER_GAME_ANT_SUBCASTE_TYPE_HPP
+#define ANTKEEPER_GAME_ANT_SUBCASTE_TYPE_HPP
 
 namespace game {
 namespace ant {
-namespace trait {
 
 /**
- * Trait that describes the nest site of an ant.
+ * Ant subcaste type enumerations.
  */
-struct nest
+enum class subcaste
 {
-	/// Site of the nest.
-	game::ant::nest_site site;
+	/// Worker from the queen's first batch of eggs, smaller than normal workers.
+	nanitic,
+	
+	/// Small worker or soldier.
+	minor,
+	
+	/// Normal-sized worker or soldier
+	media,
+	
+	/// Large worker or soldier.
+	major,
+	
+	/// Winged queen or male.
+	alate,
+	
+	/// Dewinged queen or male.
+	dealate,
+	
+	/// Queen or male which does not develop wings.
+	ergatoid,
+	
+	/// Queen or male with short, nonfunctional wings.
+	brachypterous
 };
 
-} // namespace trait
 } // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_ANT_TRAIT_NEST_HPP
+#endif // ANTKEEPER_GAME_ANT_SUBCASTE_TYPE_HPP

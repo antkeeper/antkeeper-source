@@ -37,8 +37,9 @@ trait::egg* resource_loader<trait::egg>::load(resource_manager* resource_manager
 	if (egg_element == data->end())
 		throw std::runtime_error("Invalid egg trait.");
 	
-	// Allocate egg trait
+	// Allocate and init egg trait
 	trait::egg* egg = new trait::egg();
+	egg->model = nullptr;
 	
 	// Load egg model
 	auto model_element = egg_element->find("model");

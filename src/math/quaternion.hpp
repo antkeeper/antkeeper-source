@@ -54,11 +54,11 @@ struct quaternion
 	
 	/// Returns a reference to the quaternion real part.
 	/// @{
-	constexpr inline scalar_type& w() noexcept
+	inline constexpr scalar_type& w() noexcept
 	{
 		return r;
 	}
-	constexpr inline const scalar_type& w() const noexcept
+	inline constexpr const scalar_type& w() const noexcept
 	{
 		return r;
 	}
@@ -66,11 +66,11 @@ struct quaternion
 	
 	/// Returns a reference to the first element of the quaternion imaginary part.
 	/// @{
-	constexpr inline scalar_type& x() noexcept
+	inline constexpr scalar_type& x() noexcept
 	{
 		return i.x();
 	}
-	constexpr inline const scalar_type& x() const noexcept
+	inline constexpr const scalar_type& x() const noexcept
 	{
 		return i.x();
 	}
@@ -78,11 +78,11 @@ struct quaternion
 	
 	/// Returns a reference to the second element of the quaternion imaginary part.
 	/// @{
-	constexpr inline scalar_type& y() noexcept
+	inline constexpr scalar_type& y() noexcept
 	{
 		return i.y();
 	}
-	constexpr inline const scalar_type& y() const noexcept
+	inline constexpr const scalar_type& y() const noexcept
 	{
 		return i.y();
 	}
@@ -90,11 +90,11 @@ struct quaternion
 	
 	/// Returns a reference to the third element of the quaternion imaginary part.
 	/// @{
-	constexpr inline scalar_type& z() noexcept
+	inline constexpr scalar_type& z() noexcept
 	{
 		return i.z();
 	}
-	constexpr inline const scalar_type& z() const noexcept
+	inline constexpr const scalar_type& z() const noexcept
 	{
 		return i.z();
 	}
@@ -143,7 +143,7 @@ struct quaternion
 	 * @return Type-casted quaternion.
 	 */
 	template <class U>
-	constexpr inline explicit operator quaternion<U>() const noexcept
+	inline constexpr explicit operator quaternion<U>() const noexcept
 	{
 		return {static_cast<U>(r), vector<U, 3>(i)};
 	}
@@ -178,7 +178,7 @@ struct quaternion
 	 *
 	 * @return Vector containing the real and imaginary parts of the quaternion.
 	 */
-	constexpr inline explicit operator vector<T, 4>() const noexcept
+	inline constexpr explicit operator vector<T, 4>() const noexcept
 	{
 		return {r, i[0], i[1], i[2]};
 	}
@@ -479,43 +479,43 @@ template <class T>
 quaternion<T> quaternion_cast(const matrix<T, 3, 3>& m);
 
 template <class T>
-constexpr inline quaternion<T> add(const quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> add(const quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return {a.r + b.r, a.i + b.i};
 }
 
 template <class T>
-constexpr inline quaternion<T> add(const quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T> add(const quaternion<T>& a, T b) noexcept
 {
 	return {a.r + b, a.i + b};
 }
 
 template <class T>
-constexpr inline quaternion<T> conjugate(const quaternion<T>& q) noexcept
+inline constexpr quaternion<T> conjugate(const quaternion<T>& q) noexcept
 {
 	return {q.r, -q.i};
 }
 
 template <class T>
-constexpr inline T dot(const quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr T dot(const quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return a.r * b.r + dot(a.i, b.i);
 }
 
 template <class T>
-constexpr inline quaternion<T> div(const quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> div(const quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return {a.r / b.r, a.i / b.i};
 }
 
 template <class T>
-constexpr inline quaternion<T> div(const quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T> div(const quaternion<T>& a, T b) noexcept
 {
 	return {a.r / b, a.i / b};
 }
 
 template <class T>
-constexpr inline quaternion<T> div(T a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> div(T a, const quaternion<T>& b) noexcept
 {
 	return {a / b.r, a / b.i};
 }
@@ -533,7 +533,7 @@ inline T length(const quaternion<T>& q)
 }
 
 template <class T>
-constexpr inline quaternion<T> lerp(const quaternion<T>& a, const quaternion<T>& b, T t) noexcept
+inline constexpr quaternion<T> lerp(const quaternion<T>& a, const quaternion<T>& b, T t) noexcept
 {
 	return
 	{
@@ -572,7 +572,7 @@ constexpr quaternion<T> mul(const quaternion<T>& a, const quaternion<T>& b) noex
 }
 
 template <class T>
-constexpr inline quaternion<T> mul(const quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T> mul(const quaternion<T>& a, T b) noexcept
 {
 	return {a.r * b, a.i * b};
 }
@@ -584,13 +584,13 @@ constexpr vector<T, 3> mul(const quaternion<T>& a, const vector<T, 3>& b) noexce
 }
 
 template <class T>
-constexpr inline vector<T, 3> mul(const vector<T, 3>& a, const quaternion<T>& b) noexcept
+inline constexpr vector<T, 3> mul(const vector<T, 3>& a, const quaternion<T>& b) noexcept
 {
 	return mul(conjugate(b), a);
 }
 
 template <class T>
-constexpr inline quaternion<T> negate(const quaternion<T>& q) noexcept
+inline constexpr quaternion<T> negate(const quaternion<T>& q) noexcept
 {
 	return {-q.r, -q.i};
 }
@@ -639,25 +639,25 @@ quaternion<T> slerp(const quaternion<T>& a, const quaternion<T>& b, T t, T error
 }
 
 template <class T>
-constexpr inline T sqr_length(const quaternion<T>& q) noexcept
+inline constexpr T sqr_length(const quaternion<T>& q) noexcept
 {
 	return q.r * q.r + sqr_length(q.i);
 }
 
 template <class T>
-constexpr inline quaternion<T> sub(const quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> sub(const quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return {a.r - b.r, a.i - b.i};
 }
 
 template <class T>
-constexpr inline quaternion<T> sub(const quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T> sub(const quaternion<T>& a, T b) noexcept
 {
 	return {a.r - b, a.i - b};
 }
 
 template <class T>
-constexpr inline quaternion<T> sub(T a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> sub(T a, const quaternion<T>& b) noexcept
 {
 	return {a - b.r, a - b.i};
 }
@@ -742,7 +742,7 @@ namespace operators {
 
 /// @copydoc add(const quaternion<T>&, const quaternion<T>&)
 template <class T>
-constexpr inline quaternion<T> operator+(const quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> operator+(const quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return add(a, b);
 }
@@ -750,12 +750,12 @@ constexpr inline quaternion<T> operator+(const quaternion<T>& a, const quaternio
 /// @copydoc add(const quaternion<T>&, T)
 /// @{
 template <class T>
-constexpr inline quaternion<T> operator+(const quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T> operator+(const quaternion<T>& a, T b) noexcept
 {
 	return add(a, b);
 }
 template <class T>
-constexpr inline quaternion<T> operator+(T a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> operator+(T a, const quaternion<T>& b) noexcept
 {
 	return add(b, a);
 }
@@ -763,28 +763,28 @@ constexpr inline quaternion<T> operator+(T a, const quaternion<T>& b) noexcept
 
 /// @copydoc div(const quaternion<T>&, const quaternion<T>&)
 template <class T>
-constexpr inline quaternion<T> operator/(const quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> operator/(const quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return div(a, b);
 }
 
 /// @copydoc div(const quaternion<T>&, T)
 template <class T>
-constexpr inline quaternion<T> operator/(const quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T> operator/(const quaternion<T>& a, T b) noexcept
 {
 	return div(a, b);
 }
 
 /// @copydoc div(T, const quaternion<T>&)
 template <class T>
-constexpr inline quaternion<T> operator/(T a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> operator/(T a, const quaternion<T>& b) noexcept
 {
 	return div(a, b);
 }
 
 /// @copydoc mul(const quaternion<T>&, const quaternion<T>&)
 template <class T>
-constexpr inline quaternion<T> operator*(const quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> operator*(const quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return mul(a, b);
 }
@@ -792,12 +792,12 @@ constexpr inline quaternion<T> operator*(const quaternion<T>& a, const quaternio
 /// @copydoc mul(const quaternion<T>&, T)
 /// @{
 template <class T>
-constexpr inline quaternion<T> operator*(const quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T> operator*(const quaternion<T>& a, T b) noexcept
 {
 	return mul(a, b);
 }
 template <class T>
-constexpr inline quaternion<T> operator*(T a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> operator*(T a, const quaternion<T>& b) noexcept
 {
 	return mul(b, a);
 }
@@ -805,21 +805,21 @@ constexpr inline quaternion<T> operator*(T a, const quaternion<T>& b) noexcept
 
 /// @copydoc mul(const quaternion<T>&, const vector<T, 3>&)
 template <class T>
-constexpr inline vector<T, 3> operator*(const quaternion<T>& a, const vector<T, 3>& b) noexcept
+inline constexpr vector<T, 3> operator*(const quaternion<T>& a, const vector<T, 3>& b) noexcept
 {
 	return mul(a, b);
 }
 
 /// @copydoc mul(const vector<T, 3>&, const quaternion<T>&)
 template <class T>
-constexpr inline vector<T, 3> operator*(const vector<T, 3>& a, const quaternion<T>& b) noexcept
+inline constexpr vector<T, 3> operator*(const vector<T, 3>& a, const quaternion<T>& b) noexcept
 {
 	return mul(a, b);
 }
 
 /// @copydoc sub(const quaternion<T>&, const quaternion<T>&)
 template <class T>
-constexpr inline quaternion<T> operator-(const quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> operator-(const quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return sub(a, b);
 }
@@ -827,12 +827,12 @@ constexpr inline quaternion<T> operator-(const quaternion<T>& a, const quaternio
 /// @copydoc sub(const quaternion<T>&, T)
 /// @{
 template <class T>
-constexpr inline quaternion<T> operator-(const quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T> operator-(const quaternion<T>& a, T b) noexcept
 {
 	return sub(a, b);
 }
 template <class T>
-constexpr inline quaternion<T> operator-(T a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T> operator-(T a, const quaternion<T>& b) noexcept
 {
 	return sub(a, b);
 }
@@ -840,7 +840,7 @@ constexpr inline quaternion<T> operator-(T a, const quaternion<T>& b) noexcept
 
 /// @copydoc negate(const quaternion<T>&)
 template <class T>
-constexpr inline quaternion<T> operator-(const quaternion<T>& q) noexcept
+inline constexpr quaternion<T> operator-(const quaternion<T>& q) noexcept
 {
 	return negate(q);
 }
@@ -855,12 +855,12 @@ constexpr inline quaternion<T> operator-(const quaternion<T>& q) noexcept
  */
 /// @{
 template <class T>
-constexpr inline quaternion<T>& operator+=(quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T>& operator+=(quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return (a = a + b);
 }
 template <class T>
-constexpr inline quaternion<T>& operator+=(quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T>& operator+=(quaternion<T>& a, T b) noexcept
 {
 	return (a = a + b);
 }
@@ -876,12 +876,12 @@ constexpr inline quaternion<T>& operator+=(quaternion<T>& a, T b) noexcept
  */
 /// @{
 template <class T>
-constexpr inline quaternion<T>& operator-=(quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T>& operator-=(quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return (a = a - b);
 }
 template <class T>
-constexpr inline quaternion<T>& operator-=(quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T>& operator-=(quaternion<T>& a, T b) noexcept
 {
 	return (a = a - b);
 }
@@ -897,12 +897,12 @@ constexpr inline quaternion<T>& operator-=(quaternion<T>& a, T b) noexcept
  */
 /// @{
 template <class T>
-constexpr inline quaternion<T>& operator*=(quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T>& operator*=(quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return (a = a * b);
 }
 template <class T>
-constexpr inline quaternion<T>& operator*=(quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T>& operator*=(quaternion<T>& a, T b) noexcept
 {
 	return (a = a * b);
 }
@@ -918,12 +918,12 @@ constexpr inline quaternion<T>& operator*=(quaternion<T>& a, T b) noexcept
  */
 /// @{
 template <class T>
-constexpr inline quaternion<T>& operator/=(quaternion<T>& a, const quaternion<T>& b) noexcept
+inline constexpr quaternion<T>& operator/=(quaternion<T>& a, const quaternion<T>& b) noexcept
 {
 	return (a = a / b);
 }
 template <class T>
-constexpr inline quaternion<T>& operator/=(quaternion<T>& a, T b) noexcept
+inline constexpr quaternion<T>& operator/=(quaternion<T>& a, T b) noexcept
 {
 	return (a = a / b);
 }
