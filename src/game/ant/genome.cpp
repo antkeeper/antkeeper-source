@@ -17,26 +17,35 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_HPP
-#define ANTKEEPER_MATH_HPP
+#include "game/ant/genome.hpp"
 
-/// Mathematical functions and data types.
-namespace math {}
+namespace game {
+namespace ant {
 
-#include "math/vector.hpp"
-#include "math/matrix.hpp"
-#include "math/quaternion.hpp"
+genome::genome():
+	antennae(nullptr),
+	body_size(nullptr),
+	cocoon(nullptr),
+	diet(nullptr),
+	egg(nullptr),
+	eyes(nullptr),
+	foraging_time(nullptr),
+	founding_mode(nullptr),
+	gaster(nullptr),
+	head(nullptr),
+	larva(nullptr),
+	legs(nullptr),
+	mandibles(nullptr),
+	mesosoma(nullptr),
+	nest_site(nullptr),
+	ocelli(nullptr),
+	pigmentation(nullptr),
+	pilosity(nullptr),
+	sculpturing(nullptr),
+	sting(nullptr),
+	waist(nullptr),
+	wings(nullptr)
+{}
 
-#include "math/se3.hpp"
-#include "math/transform-type.hpp"
-#include "math/transform-functions.hpp"
-#include "math/transform-operators.hpp"
-
-#include "math/angles.hpp"
-#include "math/constants.hpp"
-#include "math/quadrature.hpp"
-#include "math/interpolation.hpp"
-#include "math/map.hpp"
-#include "math/projection.hpp"
-
-#endif // ANTKEEPER_MATH_HPP
+} // namespace ant
+} // namespace game

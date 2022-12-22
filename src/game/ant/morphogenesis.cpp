@@ -30,8 +30,8 @@ namespace ant {
 
 static render::material* build_exoskeleton_material
 (
-	const ant::trait::pigmentation& pigmentation,
-	const ant::trait::sculpturing& sculpturing
+	const phene::pigmentation& pigmentation,
+	const phene::sculpturing& sculpturing
 );
 static void reskin_vertices
 (
@@ -66,8 +66,8 @@ static render::model* build_model
 
 render::material* build_exoskeleton_material
 (
-	const ant::trait::pigmentation& pigmentation,
-	const ant::trait::sculpturing& sculpturing
+	const phene::pigmentation& pigmentation,
+	const phene::sculpturing& sculpturing
 )
 {
 	// Allocate copy of pigmentation material
@@ -96,34 +96,34 @@ render::material* build_exoskeleton_material
 	return exoskeleton_material;
 }
 
-render::model* morphogenesis(const ant::caste& caste)
+render::model* morphogenesis(const phenome& phenome)
 {
 	// Build exoskeleton material
-	render::material* exoskeleton_material = build_exoskeleton_material(*caste.pigmentation, *caste.sculpturing);
+	render::material* exoskeleton_material = build_exoskeleton_material(*phenome.pigmentation, *phenome.sculpturing);
 	
 	// Determine presence of optional parts
-	bool eyes_present = caste.eyes->present;
-	bool lateral_ocelli_present = caste.ocelli->lateral_ocelli_present;
-	bool median_ocellus_present = caste.ocelli->median_ocellus_present;
-	bool petiole_present = caste.waist->petiole_present;
-	bool postpetiole_present = caste.waist->postpetiole_present;
-	bool sting_present = caste.sting->present;
-	bool wings_present = caste.wings->present;
+	bool eyes_present = phenome.eyes->present;
+	bool lateral_ocelli_present = phenome.ocelli->lateral_ocelli_present;
+	bool median_ocellus_present = phenome.ocelli->median_ocellus_present;
+	bool petiole_present = phenome.waist->petiole_present;
+	bool postpetiole_present = phenome.waist->postpetiole_present;
+	bool sting_present = phenome.sting->present;
+	bool wings_present = phenome.wings->present;
 	
 	// Get body part models
-	render::model* antennae_model = caste.antennae->model;
-	render::model* eyes_model = caste.eyes->model;
-	render::model* forewings_model = caste.wings->forewings_model;
-	render::model* gaster_model = caste.gaster->model;
-	render::model* head_model = caste.head->model;
-	render::model* hindwings_model = caste.wings->hindwings_model;
-	render::model* lateral_ocelli_model = caste.ocelli->lateral_ocelli_model;
-	render::model* legs_model = caste.legs->model;
-	render::model* mandibles_model = caste.mandibles->model;
-	render::model* median_ocellus_model = caste.ocelli->median_ocellus_model;
-	render::model* mesosoma_model = caste.mesosoma->model;
-	render::model* sting_model = caste.sting->model;
-	render::model* waist_model = caste.waist->model;
+	render::model* antennae_model = phenome.antennae->model;
+	render::model* eyes_model = phenome.eyes->model;
+	render::model* forewings_model = phenome.wings->forewings_model;
+	render::model* gaster_model = phenome.gaster->model;
+	render::model* head_model = phenome.head->model;
+	render::model* hindwings_model = phenome.wings->hindwings_model;
+	render::model* lateral_ocelli_model = phenome.ocelli->lateral_ocelli_model;
+	render::model* legs_model = phenome.legs->model;
+	render::model* mandibles_model = phenome.mandibles->model;
+	render::model* median_ocellus_model = phenome.ocelli->median_ocellus_model;
+	render::model* mesosoma_model = phenome.mesosoma->model;
+	render::model* sting_model = phenome.sting->model;
+	render::model* waist_model = phenome.waist->model;
 	
 	// Get body part vertex buffers
 	const gl::vertex_buffer* antennae_vbo = antennae_model->get_vertex_buffer();

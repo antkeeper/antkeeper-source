@@ -17,26 +17,40 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_HPP
-#define ANTKEEPER_MATH_HPP
+#ifndef ANTKEEPER_GAME_ANT_PHENE_MESOSOMA_HPP
+#define ANTKEEPER_GAME_ANT_PHENE_MESOSOMA_HPP
 
-/// Mathematical functions and data types.
-namespace math {}
+#include "render/model.hpp"
 
-#include "math/vector.hpp"
-#include "math/matrix.hpp"
-#include "math/quaternion.hpp"
+namespace game {
+namespace ant {
+namespace phene {
 
-#include "math/se3.hpp"
-#include "math/transform-type.hpp"
-#include "math/transform-functions.hpp"
-#include "math/transform-operators.hpp"
+/**
+ * Ant mesosoma phene.
+ *
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
+ */
+struct mesosoma
+{
+	/// 3D model of the mesosoma.
+	render::model* model;
+	
+	/// Pronotum width, in mesosomal lengths.
+	float pronotum_width;
+	
+	/// Degree of spinescence on the pronotum.
+	float pronotum_spinescence;
+	
+	/// Degree of spinescence on the mesonotum.
+	float mesonotum_spinescence;
+	
+	/// Degree of spinescence on the propodeum.
+	float propodeum_spinescence;
+};
 
-#include "math/angles.hpp"
-#include "math/constants.hpp"
-#include "math/quadrature.hpp"
-#include "math/interpolation.hpp"
-#include "math/map.hpp"
-#include "math/projection.hpp"
+} // namespace phene
+} // namespace ant
+} // namespace game
 
-#endif // ANTKEEPER_MATH_HPP
+#endif // ANTKEEPER_GAME_ANT_PHENE_MESOSOMA_HPP

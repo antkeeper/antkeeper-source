@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 
+
 option(VERSION_STRING "Project version string" "0.0.0")
 
 project(antkeeper VERSION ${VERSION_STRING} LANGUAGES CXX)

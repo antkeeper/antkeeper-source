@@ -20,20 +20,20 @@
 #ifndef ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP
 #define ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP
 
-#include "game/ant/caste.hpp"
+#include "game/ant/phenome.hpp"
 #include "render/model.hpp"
 
 namespace game {
 namespace ant {
 
 /**
- * Generates a 3D model of an ant.
+ * Generates a 3D model of an ant given its phenome.
  *
- * @param caste Caste description.
+ * @param phenome Phenome of an ant.
  *
- * @return 3D model of an ant.
+ * @return 3D model of the given phenome.
  */
-render::model* morphogenesis(const ant::caste& caste);
+render::model* morphogenesis(const phenome& phenome);
 
 } // namespace ant
 } // namespace game

@@ -17,26 +17,35 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_HPP
-#define ANTKEEPER_MATH_HPP
+#ifndef ANTKEEPER_GAME_ANT_PHENE_ANTENNAE_HPP
+#define ANTKEEPER_GAME_ANT_PHENE_ANTENNAE_HPP
 
-/// Mathematical functions and data types.
-namespace math {}
+#include "render/model.hpp"
 
-#include "math/vector.hpp"
-#include "math/matrix.hpp"
-#include "math/quaternion.hpp"
+namespace game {
+namespace ant {
+namespace phene {
 
-#include "math/se3.hpp"
-#include "math/transform-type.hpp"
-#include "math/transform-functions.hpp"
-#include "math/transform-operators.hpp"
+/**
+ * Ant antennae phene.
+ *
+ * @see https://www.antwiki.org/wiki/Character_States_for_Extant_Ant_Genera_of_the_Formicidae
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
+ */
+struct antennae
+{
+	/// 3D model of the antennae.
+	render::model* model;
+	
+	/// Total number of antennal segments.
+	int total_antennomere_count;
+	
+	/// Number of antennal segments that constitute a club.
+	int club_antennomere_count;
+};
 
-#include "math/angles.hpp"
-#include "math/constants.hpp"
-#include "math/quadrature.hpp"
-#include "math/interpolation.hpp"
-#include "math/map.hpp"
-#include "math/projection.hpp"
+} // namespace phene
+} // namespace ant
+} // namespace game
 
-#endif // ANTKEEPER_MATH_HPP
+#endif // ANTKEEPER_GAME_ANT_PHENE_ANTENNAE_HPP

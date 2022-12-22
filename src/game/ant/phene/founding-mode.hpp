@@ -17,26 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_HPP
-#define ANTKEEPER_MATH_HPP
+#ifndef ANTKEEPER_GAME_ANT_PHENE_FOUNDING_MODE_HPP
+#define ANTKEEPER_GAME_ANT_PHENE_FOUNDING_MODE_HPP
 
-/// Mathematical functions and data types.
-namespace math {}
+namespace game {
+namespace ant {
+namespace phene {
 
-#include "math/vector.hpp"
-#include "math/matrix.hpp"
-#include "math/quaternion.hpp"
+/**
+ * Colony founding mode phene.
+ *
+ * @see https://www.antwiki.org/wiki/Colony_Foundation
+ */
+enum class founding_mode
+{
+	/// Foraging outside the claustral chamber is required.
+	semi_claustral,
+	
+	/// Foraging outside the claustral chamber is unnecessary.
+	claustral,
+	
+	/// Parent colony splits, with a queen taking a portion of the workforce with her.
+	fission
+};
 
-#include "math/se3.hpp"
-#include "math/transform-type.hpp"
-#include "math/transform-functions.hpp"
-#include "math/transform-operators.hpp"
+} // namespace phene
+} // namespace ant
+} // namespace game
 
-#include "math/angles.hpp"
-#include "math/constants.hpp"
-#include "math/quadrature.hpp"
-#include "math/interpolation.hpp"
-#include "math/map.hpp"
-#include "math/projection.hpp"
-
-#endif // ANTKEEPER_MATH_HPP
+#endif // ANTKEEPER_GAME_ANT_PHENE_FOUNDING_MODE_HPP

@@ -17,26 +17,29 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_HPP
-#define ANTKEEPER_MATH_HPP
+#ifndef ANTKEEPER_GAME_ANT_PHENE_SCULPTURING_HPP
+#define ANTKEEPER_GAME_ANT_PHENE_SCULPTURING_HPP
 
-/// Mathematical functions and data types.
-namespace math {}
+#include "gl/texture-2d.hpp"
 
-#include "math/vector.hpp"
-#include "math/matrix.hpp"
-#include "math/quaternion.hpp"
+namespace game {
+namespace ant {
+namespace phene {
 
-#include "math/se3.hpp"
-#include "math/transform-type.hpp"
-#include "math/transform-functions.hpp"
-#include "math/transform-operators.hpp"
+/**
+ * Ant surface sculpturing phene.
+ */
+struct sculpturing
+{
+	/// Surface roughness.
+	float roughness;
+	
+	/// Surface culpturing normal map.
+	gl::texture_2d* normal_map;
+};
 
-#include "math/angles.hpp"
-#include "math/constants.hpp"
-#include "math/quadrature.hpp"
-#include "math/interpolation.hpp"
-#include "math/map.hpp"
-#include "math/projection.hpp"
+} // namespace phene
+} // namespace ant
+} // namespace game
 
-#endif // ANTKEEPER_MATH_HPP
+#endif // ANTKEEPER_GAME_ANT_PHENE_SCULPTURING_HPP

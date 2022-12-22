@@ -17,33 +17,46 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_CASTE_HPP
-#define ANTKEEPER_GAME_ANT_CASTE_HPP
+#ifndef ANTKEEPER_GAME_ANT_GENE_FREQUENCY_TABLE_HPP
+#define ANTKEEPER_GAME_ANT_GENE_FREQUENCY_TABLE_HPP
+
+#include <random>
+#include <vector>
 
 namespace game {
 namespace ant {
 
 /**
- * Ant caste enumerations.
+ * Gene frequency table.
  *
- * @see https://www.antwiki.org/wiki/Caste_Terminology
+ * @tparam T Gene type.
  */
-enum class caste
+template <class T>
+struct gene_frequency_table
 {
-	/// Queen caste type.
-	queen,
+	/// Gene array.
+	std::vector<const T*> genes;
 	
-	/// Worker caste type.
-	worker,
+	/// Gene discrete probability distribution.
+	std::discrete_distribution<std::size_t> distribution;
 	
-	/// Soldier caste type.
-	soldier,
-	
-	/// Male caste type.
-	male
+	/**
+	 * Samples a gene from the frequency table.
+	 *
+	 * @tparam Generator Uniform random bit generator type.
+	 *
+	 * @param g Uniform random bit generator object.
+	 *
+	 * @return Randomly sampled gene.
+	 */
+	template <class Generator>
+	const T* sample(Generator& g)
+	{
+		return genes[distribution(g)];
+	}
 };
 
 } // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_ANT_CASTE_HPP
+#endif // ANTKEEPER_GAME_ANT_GENE_FREQUENCY_TABLE_HPP

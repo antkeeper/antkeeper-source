@@ -17,33 +17,39 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_CASTE_HPP
-#define ANTKEEPER_GAME_ANT_CASTE_HPP
+#ifndef ANTKEEPER_GAME_ANT_PHENE_MANDIBLES_HPP
+#define ANTKEEPER_GAME_ANT_PHENE_MANDIBLES_HPP
+
+#include "render/model.hpp"
 
 namespace game {
 namespace ant {
+namespace phene {
 
 /**
- * Ant caste enumerations.
+ * Ant mandibles phene.
  *
- * @see https://www.antwiki.org/wiki/Caste_Terminology
+ * @see https://www.antwiki.org/wiki/Character_States_for_Extant_Ant_Genera_of_the_Formicidae
+ * @see https://www.antwiki.org/wiki/Morphological_and_Functional_Diversity_of_Ant_Mandibles
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
  */
-enum class caste
+struct mandibles
 {
-	/// Queen caste type.
-	queen,
+	/// 3D model of the mandibles.
+	render::model* model;
 	
-	/// Worker caste type.
-	worker,
+	/// Mandible length at closure, in mesosomal lengths.
+	float length;
 	
-	/// Soldier caste type.
-	soldier,
+	/// Number of teeth and denticles on the masticatory (apical) margin of the mandible.
+	int apical_dental_count;
 	
-	/// Male caste type.
-	male
+	/// Number of teeth and denticles on the basal margin of the mandible.
+	int basal_dental_count;
 };
 
+} // namespace phene
 } // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_ANT_CASTE_HPP
+#endif // ANTKEEPER_GAME_ANT_PHENE_MANDIBLES_HPP

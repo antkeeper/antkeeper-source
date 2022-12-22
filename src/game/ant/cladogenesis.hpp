@@ -17,26 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_HPP
-#define ANTKEEPER_MATH_HPP
+#ifndef ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP
+#define ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP
 
-/// Mathematical functions and data types.
-namespace math {}
+#include "game/ant/genome.hpp"
+#include "game/ant/gene-pool.hpp"
+#include <random>
 
-#include "math/vector.hpp"
-#include "math/matrix.hpp"
-#include "math/quaternion.hpp"
+namespace game {
+namespace ant {
 
-#include "math/se3.hpp"
-#include "math/transform-type.hpp"
-#include "math/transform-functions.hpp"
-#include "math/transform-operators.hpp"
+/**
+ * Generates a genome from a gene pool.
+ *
+ * @param pool Gene pool.
+ * @param rng Random number generator.
+ *
+ * @return New genome.
+ */
+genome* cladogenesis(gene_pool& pool, std::random_device& rng);
 
-#include "math/angles.hpp"
-#include "math/constants.hpp"
-#include "math/quadrature.hpp"
-#include "math/interpolation.hpp"
-#include "math/map.hpp"
-#include "math/projection.hpp"
+} // namespace ant
+} // namespace game
 
-#endif // ANTKEEPER_MATH_HPP
+#endif // ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP

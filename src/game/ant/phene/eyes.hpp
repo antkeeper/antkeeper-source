@@ -17,26 +17,43 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_HPP
-#define ANTKEEPER_MATH_HPP
+#ifndef ANTKEEPER_GAME_ANT_PHENE_EYES_HPP
+#define ANTKEEPER_GAME_ANT_PHENE_EYES_HPP
 
-/// Mathematical functions and data types.
-namespace math {}
+#include "render/model.hpp"
 
-#include "math/vector.hpp"
-#include "math/matrix.hpp"
-#include "math/quaternion.hpp"
+namespace game {
+namespace ant {
+namespace phene {
 
-#include "math/se3.hpp"
-#include "math/transform-type.hpp"
-#include "math/transform-functions.hpp"
-#include "math/transform-operators.hpp"
+/**
+ * Ant eyes phene.
+ *
+ * @see https://www.antwiki.org/wiki/Morphological_Measurements
+ */
+struct eyes
+{
+	/// 3D model of the eyes, if present.
+	render::model* model;
+	
+	/// Indicates whether eyes are present.
+	bool present;
+	
+	/// Eye length, in mesosomal lengths.
+	float length;
+	
+	/// Eye width, in mesosomal lengths.
+	float width;
+	
+	/// Eye height, in mesosomal lengths.
+	float height;
+	
+	/// Number of ommatidia.
+	int ommatidia_count;
+};
 
-#include "math/angles.hpp"
-#include "math/constants.hpp"
-#include "math/quadrature.hpp"
-#include "math/interpolation.hpp"
-#include "math/map.hpp"
-#include "math/projection.hpp"
+} // namespace phene
+} // namespace ant
+} // namespace game
 
-#endif // ANTKEEPER_MATH_HPP
+#endif // ANTKEEPER_GAME_ANT_PHENE_EYES_HPP
