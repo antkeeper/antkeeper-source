@@ -25,7 +25,7 @@
 
 namespace game {
 namespace ant {
-
+	
 /**
  * Gene frequency table.
  *
@@ -37,8 +37,8 @@ struct gene_frequency_table
 	/// Gene array.
 	std::vector<const T*> genes;
 	
-	/// Gene discrete probability distribution.
-	std::discrete_distribution<std::size_t> distribution;
+	/// Weight array
+	std::vector<float> weights;
 	
 	/**
 	 * Samples a gene from the frequency table.
@@ -50,8 +50,12 @@ struct gene_frequency_table
 	 * @return Randomly sampled gene.
 	 */
 	template <class Generator>
-	const T* sample(Generator& g)
+	const T* sample(Generator& g) const
 	{
+		if (genes.empty())
+			return nullptr;
+		
+		std::discrete_distribution<std::size_t> distribution(weights.begin(), weights.end());
 		return genes[distribution(g)];
 	}
 };

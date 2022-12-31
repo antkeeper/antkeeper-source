@@ -21,6 +21,7 @@
 #define ANTKEEPER_GAME_WORLD_HPP
 
 #include "game/context.hpp"
+#include "game/ecoregion.hpp"
 
 namespace game {
 
@@ -71,6 +72,14 @@ void set_time(game::context& ctx, int year, int month, int day, int hour, int mi
  * @param scale Time scale.
  */
 void set_time_scale(game::context& ctx, double scale);
+
+/**
+ * Enters a ecoregion.
+ *
+ * @param ctx Game context.
+ * @param ecoregion Ecoregion to enter.
+ */
+void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion);
 
 } // namespace menu
 } // namespace game

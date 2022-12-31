@@ -54,6 +54,7 @@
 #include "application.hpp"
 #include "game/state/base.hpp"
 #include "game/loop.hpp"
+#include "game/ecoregion.hpp"
 #include "state-machine.hpp"
 #include "debug/performance-sampler.hpp"
 #include <filesystem>
@@ -293,6 +294,8 @@ struct context
 	game::system::proteome* proteome_system;
 	
 	double3 rgb_wavelengths;
+	
+	const ecoregion* active_ecoregion;
 };
 
 } // namespace game

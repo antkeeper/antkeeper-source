@@ -26,11 +26,6 @@ namespace game {
 namespace load {
 
 /**
- * Loads a biome.
- */
-void biome(game::context& ctx, const std::filesystem::path& path);
-
-/**
  * Loads a colony
  */
 void colony(game::context& ctx, const std::filesystem::path& path);

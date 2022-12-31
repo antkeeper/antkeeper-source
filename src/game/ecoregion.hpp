@@ -17,27 +17,50 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP
-#define ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP
+#ifndef ANTKEEPER_GAME_ECOREGION_HPP
+#define ANTKEEPER_GAME_ECOREGION_HPP
 
-#include "game/ant/genome.hpp"
+#include "utility/fundamental-types.hpp"
+#include "render/material.hpp"
 #include "game/ant/gene-pool.hpp"
+#include <string>
 #include <random>
 
 namespace game {
-namespace ant {
 
 /**
- * Generates a genome from a gene pool.
- *
- * @param pool Gene pool.
- * @param rng Random number generator.
- *
- * @return New genome.
+ * 
  */
-genome* cladogenesis(const gene_pool& pool, std::random_device& rng);
+struct ecoregion
+{
+	/// Ecoregion name.
+	std::string name;
+	
+	/// Elevation, in meters.
+	float elevation;
+	
+	/// Latitude, in radians.
+	float latitude;
+	
+	/// Longitude, in radians.
+	float longitude;
+	
+	/// Terrain material.
+	render::material* terrain_material;
+	
+	/// Terrain albedo.
+	float3 terrain_albedo;
+	
+	/// Horizon material.
+	render::material* horizon_material;
+	
+	/// Array of gene pools.
+	std::vector<ant::gene_pool> gene_pools;
+	
+	/// Discrete probability distribution of gene pools.
+	std::discrete_distribution<std::size_t> gene_pool_distribution;
+};
 
-} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP
+#endif // ANTKEEPER_GAME_ECOREGION_HPP

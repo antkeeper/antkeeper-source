@@ -24,6 +24,7 @@
 #include "game/world.hpp"
 #include "game/load.hpp"
 #include "game/menu.hpp"
+#include "game/ecoregion.hpp"
 #include "game/ant/swarm.hpp"
 #include "render/passes/clear-pass.hpp"
 #include "render/passes/ground-pass.hpp"
@@ -247,7 +248,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	{
 		game::world::cosmogenesis(ctx);
 		game::world::create_observer(ctx);
-		game::load::biome(ctx, "desert-scrub.bio");
+		game::world::enter_ecoregion(ctx, *ctx.resource_manager->load<game::ecoregion>("seedy-scrub.eco"));
 	}
 	
 	// Set world time

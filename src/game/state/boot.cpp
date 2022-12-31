@@ -133,6 +133,7 @@ boot::boot(game::context& ctx, int argc, char** argv):
 		setup_ui();
 		setup_debugging();
 		setup_loop();
+		ctx.active_ecoregion = nullptr;
 	}
 	catch (const std::exception& e)
 	{

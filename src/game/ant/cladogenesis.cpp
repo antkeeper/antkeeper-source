@@ -22,7 +22,7 @@
 namespace game {
 namespace ant {
 
-genome* cladogenesis(gene_pool& pool, std::random_device& rng)
+genome* cladogenesis(const gene_pool& pool, std::random_device& rng)
 {
 	// Allocate genome
 	ant::genome* genome = new ant::genome();

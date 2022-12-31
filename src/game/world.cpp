@@ -17,46 +17,59 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/world.hpp"
-#include "scene/text.hpp"
-#include "physics/light/vmag.hpp"
+#include "application.hpp"
 #include "color/color.hpp"
+#include "config.hpp"
+#include "debug/logger.hpp"
+#include "entity/archetype.hpp"
+#include "entity/commands.hpp"
 #include "game/component/atmosphere.hpp"
 #include "game/component/blackbody.hpp"
 #include "game/component/celestial-body.hpp"
+#include "game/component/observer.hpp"
 #include "game/component/orbit.hpp"
 #include "game/component/terrain.hpp"
 #include "game/component/transform.hpp"
-#include "game/component/observer.hpp"
 #include "game/system/astronomy.hpp"
-#include "game/system/orbit.hpp"
 #include "game/system/atmosphere.hpp"
-#include "entity/commands.hpp"
-#include "entity/archetype.hpp"
+#include "game/system/orbit.hpp"
+#include "game/system/terrain.hpp"
+#include "game/world.hpp"
+#include "geom/solid-angle.hpp"
 #include "geom/spherical.hpp"
 #include "gl/drawing-mode.hpp"
+#include "gl/texture-filter.hpp"
+#include "gl/texture-wrapping.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-attribute.hpp"
 #include "gl/vertex-buffer.hpp"
+#include "math/hash/hash.hpp"
+#include "math/noise/noise.hpp"
 #include "physics/light/photometry.hpp"
-#include "physics/orbit/orbit.hpp"
+#include "physics/light/vmag.hpp"
 #include "physics/orbit/ephemeris.hpp"
-#include "physics/time/gregorian.hpp"
+#include "physics/orbit/orbit.hpp"
 #include "physics/time/constants.hpp"
+#include "physics/time/gregorian.hpp"
 #include "physics/time/utc.hpp"
+#include "render/material-flags.hpp"
 #include "render/material.hpp"
 #include "render/model.hpp"
+#include "render/passes/ground-pass.hpp"
 #include "render/passes/shadow-map-pass.hpp"
+#include "render/passes/sky-pass.hpp"
 #include "render/vertex-attribute.hpp"
+#include "resources/image.hpp"
+#include "resources/json.hpp"
 #include "resources/resource-manager.hpp"
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
-#include "gl/texture-wrapping.hpp"
-#include "gl/texture-filter.hpp"
-#include "render/material-flags.hpp"
-#include "geom/solid-angle.hpp"
-#include "config.hpp"
+#include "scene/text.hpp"
+#include <algorithm>
+#include <execution>
+#include <fstream>
 #include <iostream>
+#include <stb/stb_image_write.h>
 
 namespace game {
 namespace world {
@@ -521,6 +534,113 @@ void create_moon(game::context& ctx)
 		return;
 	}
 	
+	ctx.logger->pop_task(EXIT_SUCCESS);
+}
+
+void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion)
+{
+	/*
+	image img;
+	img.format(1, 4);
+	img.resize(2048, 2048);
+	
+	auto width = img.get_width();
+	auto height = img.get_height();
+	unsigned char* pixels = (unsigned char*)img.data();
+	
+	const float frequency = 400.0f;
+	float scale_x = 1.0f / static_cast<float>(width - 1) * frequency;
+	float scale_y = 1.0f / static_cast<float>(height - 1) * frequency;
+	
+	std::for_each
+	(
+		std::execution::par_unseq,
+		img.begin<math::vector<unsigned char, 4>>(),
+		img.end<math::vector<unsigned char, 4>>(),
+		[pixels, width, height, scale_x, scale_y, frequency](auto& pixel)
+		{
+			const std::size_t i = &pixel - (math::vector<unsigned char, 4>*)pixels;
+			const std::size_t y = i / width;
+			const std::size_t x = i % width;
+			
+			const float2 position =
+			{
+				static_cast<float>(x) * scale_x,
+				static_cast<float>(y) * scale_y
+			};
+			
+			const auto
+			[
+				f1_sqr_distance,
+				f1_displacement,
+				f1_id
+			] = math::noise::voronoi::f1<float, 2>(position, 1.0f, {frequency, frequency});
+			
+			const float f1_distance = std::sqrt(f1_sqr_distance);
+			
+			const float2 uv = (position + f1_displacement) / frequency;
+			
+			pixel = 
+			{
+				static_cast<unsigned char>(std::min(255.0f, f1_distance * 255.0f)),
+				static_cast<unsigned char>(std::min(255.0f, uv[0] * 255.0f)),
+				static_cast<unsigned char>(std::min(255.0f, uv[1] * 255.0f)),
+				static_cast<unsigned char>(f1_id % 256)
+			};
+		}
+	);
+	
+	stbi_flip_vertically_on_write(1);
+	stbi_write_tga((ctx.config_path / "gallery" / "voronoi-f1-400-nc8-2k.tga").string().c_str(), img.get_width(), img.get_height(), img.get_channel_count(), img.data());
+	*/
+
+	
+	ctx.logger->push_task("Entering ecoregion " + ecoregion.name);
+	try
+	{
+		// Set active ecoregion
+		ctx.active_ecoregion = &ecoregion;
+		
+		// Set location
+		game::world::set_location(ctx, ecoregion.elevation, ecoregion.latitude, ecoregion.longitude);
+		
+		// Setup sky
+		ctx.sky_pass->set_sky_model(ctx.resource_manager->load<render::model>("celestial-hemisphere.mdl"));
+		render::model* terrestrial_hemisphere_model = ctx.resource_manager->load<render::model>("terrestrial-hemisphere.mdl");
+		(*terrestrial_hemisphere_model->get_groups())[0]->set_material(ecoregion.horizon_material);
+		ctx.ground_pass->set_ground_model(terrestrial_hemisphere_model);
+		
+		// Setup terrain
+		ctx.terrain_system->set_patch_material(ecoregion.terrain_material);
+		ctx.terrain_system->set_elevation_function
+		(
+			[](float x, float z) -> float
+			{
+				const float2 position = float2{x, z};
+
+				const std::size_t octaves = 3;
+				const float lacunarity = 1.5f;
+				const float gain = 0.5f;
+				
+				const float fbm = math::noise::fbm
+				(
+					position * 0.005f,
+					octaves,
+					lacunarity,
+					gain
+				);
+				
+				float y = fbm * 4.0f;
+				
+				return y;
+			}
+		);
+		ctx.astronomy_system->set_bounce_albedo(double3(ecoregion.terrain_albedo));
+	}
+	catch (...)
+	{
+		ctx.logger->pop_task(EXIT_FAILURE);
+	}
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 

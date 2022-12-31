@@ -56,6 +56,7 @@
 #include "game/ant/morphogenesis.hpp"
 #include "game/ant/phenome.hpp"
 #include "game/ant/genome.hpp"
+#include "game/ant/cladogenesis.hpp"
 
 using namespace game::ant;
 
@@ -68,25 +69,28 @@ nest_selection::nest_selection(game::context& ctx):
 	ctx.logger->push_task("Entering nest selection state");
 	
 	
-	ctx.logger->push_task("Loading genome");
-	ant::genome genome;
-	genome.antennae = ctx.resource_manager->load<ant::gene::antennae>("pogonomyrmex-antennae.dna");
-	genome.eyes = ctx.resource_manager->load<ant::gene::eyes>("pogonomyrmex-eyes.dna");
-	genome.gaster = ctx.resource_manager->load<ant::gene::gaster>("pogonomyrmex-gaster.dna");
-	genome.head = ctx.resource_manager->load<ant::gene::head>("pogonomyrmex-head.dna");
-	genome.legs = ctx.resource_manager->load<ant::gene::legs>("pogonomyrmex-legs.dna");
-	genome.mandibles = ctx.resource_manager->load<ant::gene::mandibles>("pogonomyrmex-mandibles.dna");
-	genome.mesosoma = ctx.resource_manager->load<ant::gene::mesosoma>("pogonomyrmex-mesosoma.dna");
-	genome.ocelli = ctx.resource_manager->load<ant::gene::ocelli>("ocelli-absent.dna");
-	genome.pigmentation = ctx.resource_manager->load<ant::gene::pigmentation>("rust-pigmentation.dna");
-	genome.sculpturing = ctx.resource_manager->load<ant::gene::sculpturing>("politus-sculpturing.dna");
-	genome.sting = ctx.resource_manager->load<ant::gene::sting>("pogonomyrmex-sting.dna");
-	genome.waist = ctx.resource_manager->load<ant::gene::waist>("pogonomyrmex-waist.dna");
-	genome.wings = ctx.resource_manager->load<ant::gene::wings>("wings-absent.dna");
+	ctx.logger->push_task("Generating genome");
+	
+	std::random_device rng;
+	ant::genome* genome = ant::cladogenesis(ctx.active_ecoregion->gene_pools[0], rng);
+	
+	// genome.antennae = ctx.resource_manager->load<ant::gene::antennae>("pogonomyrmex-antennae.dna");
+	// genome.eyes = ctx.resource_manager->load<ant::gene::eyes>("pogonomyrmex-eyes.dna");
+	// genome.gaster = ctx.resource_manager->load<ant::gene::gaster>("pogonomyrmex-gaster.dna");
+	// genome.head = ctx.resource_manager->load<ant::gene::head>("pogonomyrmex-head.dna");
+	// genome.legs = ctx.resource_manager->load<ant::gene::legs>("pogonomyrmex-legs.dna");
+	// genome.mandibles = ctx.resource_manager->load<ant::gene::mandibles>("pogonomyrmex-mandibles.dna");
+	// genome.mesosoma = ctx.resource_manager->load<ant::gene::mesosoma>("pogonomyrmex-mesosoma.dna");
+	// genome.ocelli = ctx.resource_manager->load<ant::gene::ocelli>("ocelli-absent.dna");
+	// genome.pigmentation = ctx.resource_manager->load<ant::gene::pigmentation>("rust-pigmentation.dna");
+	// genome.sculpturing = ctx.resource_manager->load<ant::gene::sculpturing>("politus-sculpturing.dna");
+	// genome.sting = ctx.resource_manager->load<ant::gene::sting>("pogonomyrmex-sting.dna");
+	// genome.waist = ctx.resource_manager->load<ant::gene::waist>("pogonomyrmex-waist.dna");
+	// genome.wings = ctx.resource_manager->load<ant::gene::wings>("wings-absent.dna");
 	ctx.logger->pop_task(EXIT_SUCCESS);
 	
 	ctx.logger->push_task("Building worker phenome");
-	ant::phenome worker_phenome = ant::phenome(genome, ant::caste::worker);
+	ant::phenome worker_phenome = ant::phenome(*genome, ant::caste::worker);
 	ctx.logger->pop_task(EXIT_SUCCESS);
 	
 	ctx.logger->push_task("Generating worker model");
