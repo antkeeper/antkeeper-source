@@ -750,7 +750,7 @@ render::model* morphogenesis(const phenome& phenome)
 	if (sting_present)
 	{
 		// Calculate transform from sting space to body space
-		math::transform<float> sting_to_body = bind_pose_ss.at(gaster_bone) * gaster_skeleton.bind_pose.at(gaster_skeleton.bone_map.at("sting"));
+		math::transform<float> sting_to_body = gaster_to_body * gaster_skeleton.bind_pose.at(gaster_skeleton.bone_map.at("sting"));
 
 		// Reskin sting bones
 		std::unordered_set<std::uint8_t> old_sting_bone_indices;
