@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.7)
 
-
 option(VERSION_STRING "Project version string" "0.0.0")
 
 project(antkeeper VERSION ${VERSION_STRING} LANGUAGES CXX)
@@ -12,7 +11,7 @@ find_package(tinyexr REQUIRED CONFIG)
 find_package(glad REQUIRED CONFIG)
 find_package(EnTT REQUIRED CONFIG)
 find_package(OpenGL REQUIRED)
-find_package(SDL2 REQUIRED COMPONENTS SDL2::SDL2-static SDL2::SDL2main CONFIG)
+find_package(SDL2 REQUIRED CONFIG)
 find_package(OpenAL REQUIRED CONFIG)
 find_library(physfs REQUIRED NAMES physfs-static PATHS "${CMAKE_PREFIX_PATH}/lib")
 find_package(freetype REQUIRED CONFIG)
