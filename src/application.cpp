@@ -32,7 +32,7 @@
 #include <iostream>
 #include <iomanip>
 
-application::application():
+application::application(debug::logger& log):
 	closed(false),
 	fullscreen(true),
 	v_sync(false),
@@ -42,27 +42,24 @@ application::application():
 	window_dimensions({0, 0}),
 	viewport_dimensions({0, 0}),
 	mouse_position({0, 0}),
-	logger(nullptr),
+	logger(&log),
 	sdl_window(nullptr),
 	sdl_gl_context(nullptr)
 {
-	// Setup logging
-	logger = new debug::logger();
-	
 	// Get SDL compiled version
 	SDL_version sdl_compiled_version;
 	SDL_VERSION(&sdl_compiled_version);
 	std::string sdl_compiled_version_string = std::to_string(sdl_compiled_version.major) + "." + std::to_string(sdl_compiled_version.minor) + "." + std::to_string(sdl_compiled_version.patch);
-	logger->log("Compiled against SDL " + sdl_compiled_version_string);
 
 	// Get SDL linked version
 	SDL_version sdl_linked_version;
 	SDL_GetVersion(&sdl_linked_version);
 	std::string sdl_linked_version_string = std::to_string(sdl_linked_version.major) + "." + std::to_string(sdl_linked_version.minor) + "." + std::to_string(sdl_linked_version.patch);
-	logger->log("Linking against SDL " + sdl_linked_version_string);
 
 	// Init SDL
 	logger->push_task("Initializing SDL");
+	logger->log("Compiled against SDL " + sdl_compiled_version_string);
+	logger->log("Linking against SDL " + sdl_linked_version_string);
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 	{
 		logger->pop_task(EXIT_FAILURE);
@@ -72,6 +69,7 @@ application::application():
 	{
 		logger->pop_task(EXIT_SUCCESS);
 	}
+	
 	// Load default OpenGL library
 	logger->push_task("Loading OpenGL library");
 	if (SDL_GL_LoadLibrary(nullptr) != 0)
@@ -353,7 +351,7 @@ void application::hide_window()
 void application::add_game_controller_mappings(const void* mappings, std::size_t size)
 {
 	logger->push_task("Adding SDL game controller mappings");
-	int mapping_count = SDL_GameControllerAddMappingsFromRW(SDL_RWFromConstMem(mappings, size), 0);
+	int mapping_count = SDL_GameControllerAddMappingsFromRW(SDL_RWFromConstMem(mappings, static_cast<int>(size)), 0);
 	if (mapping_count == -1)
 	{
 		logger->pop_task(EXIT_FAILURE);

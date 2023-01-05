@@ -28,17 +28,12 @@
 #include "input/mouse.hpp"
 #include "input/gamepad.hpp"
 #include "utility/fundamental-types.hpp"
+#include "debug/logger.hpp"
 
 // Forward declarations
 typedef struct SDL_Window SDL_Window;
 typedef void* SDL_GLContext;
 class event_dispatcher;
-
-namespace debug
-{
-	class logger;
-	class performance_sampler;
-}
 
 /**
  * 
@@ -48,8 +43,10 @@ class application
 public:
 	/**
 	 * Creates and initializes an application.
+	 *
+	 * @param logger Debug logger.
 	 */
-	application();
+	application(debug::logger& log);
 	
 	/**
 	 * Destroys an application.

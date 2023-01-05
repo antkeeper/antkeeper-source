@@ -58,6 +58,8 @@
 #include "state-machine.hpp"
 #include "debug/performance-sampler.hpp"
 #include <filesystem>
+#include <AL/al.h>
+#include <AL/alc.h>
 
 // Forward declarations
 class animator;
@@ -262,6 +264,8 @@ struct context
 	animation<float>* camera_flash_animation;
 	
 	// Sound
+	ALCdevice* alc_device;
+	ALCcontext* alc_context;
 	float master_volume;
 	float ambience_volume;
 	float effects_volume;

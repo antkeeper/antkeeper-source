@@ -107,24 +107,25 @@ namespace state {
 boot::boot(game::context& ctx, int argc, char** argv):
 	game::state::base(ctx)
 {
-	// Allocate application
-	ctx.app = new application();
-	
-	// Get application logger
-	ctx.logger = ctx.app->get_logger();
+	// Allocate application logger
+	ctx.logger = new debug::logger();
 	
 	// Boot process
-	ctx.logger->push_task("Entering boot state");
+	ctx.logger->push_task("Booting up");
 	try
 	{
+		// Allocate application
+		ctx.app = new application(*ctx.logger);
+		
 		// Parse command line options
 		parse_options(argc, argv);
+		
 		setup_resources();
 		load_config();
 		load_strings();
 		setup_window();
 		setup_rendering();
-		setup_sound();
+		setup_audio();
 		setup_scenes();
 		setup_animation();
 		setup_entities();
@@ -152,11 +153,22 @@ boot::boot(game::context& ctx, int argc, char** argv):
 
 boot::~boot()
 {
-	ctx.logger->push_task("Exiting boot state");
+	ctx.logger->push_task("Booting down");
 	
-	// Close application
-	delete ctx.app;
-	ctx.app = nullptr;
+	try
+	{
+		shutdown_audio();
+		
+		// Close application
+		delete ctx.app;
+		ctx.app = nullptr;
+	}
+	catch (const std::exception& e)
+	{
+		ctx.logger->error("Caught exception: \"" + std::string(e.what()) + "\"");
+		ctx.logger->pop_task(EXIT_FAILURE);
+		return;
+	}
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }
@@ -583,10 +595,10 @@ void boot::setup_rendering()
 	logger->pop_task(EXIT_SUCCESS);
 }
 
-void boot::setup_sound()
+void boot::setup_audio()
 {
 	debug::logger* logger = ctx.logger;
-	logger->push_task("Setting up sound");
+	logger->push_task("Setting up audio");
 	
 	// Load master volume config
 	ctx.master_volume = 1.0f;
@@ -617,6 +629,59 @@ void boot::setup_sound()
 	ctx.captions_size = 1.0f;
 	if (ctx.config->contains("captions_size"))
 		ctx.captions_size = (*ctx.config)["captions_size"].get<float>();
+	
+	// Open audio device
+	logger->push_task("Opening audio device");
+	ctx.alc_device = alcOpenDevice(nullptr);
+	if (!ctx.alc_device)
+	{
+		logger->pop_task(EXIT_FAILURE);
+		return;
+	}
+	else
+	{
+		// Get audio device name
+		const ALCchar* alc_device_name = nullptr;
+		if (alcIsExtensionPresent(ctx.alc_device, "ALC_ENUMERATE_ALL_EXT"))
+			alc_device_name = alcGetString(ctx.alc_device, ALC_ALL_DEVICES_SPECIFIER);
+		if (alcGetError(ctx.alc_device) != AL_NO_ERROR || !alc_device_name)
+			alc_device_name = alcGetString(ctx.alc_device, ALC_DEVICE_SPECIFIER);
+		
+		logger->log("Opened audio device \"" + std::string(alc_device_name) + "\"");
+		
+		logger->pop_task(EXIT_SUCCESS);
+	}
+	
+	// Create audio context
+	logger->push_task("Creating audio context");
+	ctx.alc_context = alcCreateContext(ctx.alc_device, nullptr);
+	if (!ctx.alc_context)
+	{
+		logger->pop_task(EXIT_FAILURE);
+		alcCloseDevice(ctx.alc_device);
+		return;
+	}
+	else
+	{
+		logger->pop_task(EXIT_SUCCESS);
+	}
+	
+	// Make audio context current
+	logger->push_task("Making audio context current");
+	if (alcMakeContextCurrent(ctx.alc_context) == ALC_FALSE)
+	{
+		logger->pop_task(EXIT_FAILURE);
+		if (ctx.alc_context != nullptr)
+		{
+			alcDestroyContext(ctx.alc_context);
+		}
+		alcCloseDevice(ctx.alc_device);
+		return;
+	}
+	else
+	{
+		logger->pop_task(EXIT_SUCCESS);
+	}
 	
 	logger->pop_task(EXIT_SUCCESS);
 }
@@ -1169,6 +1234,24 @@ void boot::loop()
 	// Exit all active game states
 	while (!ctx.state_machine.empty())
 		ctx.state_machine.pop();
+}
+
+void boot::shutdown_audio()
+{
+	ctx.logger->push_task("Shutting down audio");
+	
+	if (ctx.alc_context)
+	{
+		alcMakeContextCurrent(nullptr);
+		alcDestroyContext(ctx.alc_context);
+	}
+	
+	if (ctx.alc_device)
+	{
+		alcCloseDevice(ctx.alc_device);
+	}
+	
+	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
 } // namespace state

@@ -27,10 +27,24 @@
 namespace game {
 namespace state {
 
+/**
+ * Boots the game up on construction, and down on destruction.
+ */
 class boot: public game::state::base
 {
 public:
+	/**
+	 * Boots up the game.
+	 *
+	 * @param ctx Game context.
+	 * @param argc Command line argument count.
+	 * @param argv Command line argument vector.
+	 */
 	boot(game::context& ctx, int argc, char** argv);
+	
+	/**
+	 * Boots down the game.
+	 */
 	virtual ~boot();
 	
 private:
@@ -40,7 +54,7 @@ private:
 	void load_strings();
 	void setup_window();
 	void setup_rendering();
-	void setup_sound();
+	void setup_audio();
 	void setup_scenes();
 	void setup_animation();
 	void setup_entities();
@@ -50,6 +64,8 @@ private:
 	void setup_debugging();
 	void setup_loop();
 	void loop();
+	
+	void shutdown_audio();
 	
 	// Command line options
 	std::optional<bool> option_continue;
