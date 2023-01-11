@@ -35,7 +35,7 @@ directional_light::directional_light():
 	direction(config::global_forward, interpolate_direction),
 	shadow_caster(false),
 	shadow_framebuffer(nullptr),
-	shadow_bias(1.0f),
+	shadow_bias(0.005f),
 	shadow_cascade_count(4),
 	shadow_cascade_coverage(1.0f),
 	shadow_cascade_distribution(0.8f),

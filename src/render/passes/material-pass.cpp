@@ -147,6 +147,7 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 	unsigned int shadow_cascade_count = 0;
 	const float* shadow_splits_directional = nullptr;
 	const float4x4* shadow_matrices_directional = nullptr;
+	float shadow_bias_directional = 0.0f;
 	
 	// Collect lights
 	const std::list<scene::object_base*>* lights = ctx.collection->get_objects(scene::light::object_type_id);
@@ -205,6 +206,7 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 					{
 						if (directional_light->get_shadow_framebuffer())
 							shadow_map_texture = directional_light->get_shadow_framebuffer()->get_depth_attachment();
+						shadow_bias_directional = directional_light->get_shadow_bias();
 						shadow_cascade_count = directional_light->get_shadow_cascade_count();
 						shadow_splits_directional = directional_light->get_shadow_cascade_distances();
 						shadow_matrices_directional = directional_light->get_shadow_cascade_matrices();
@@ -469,6 +471,8 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 				
 				if (parameters->shadow_map_directional && shadow_map_texture)
 					parameters->shadow_map_directional->upload(shadow_map_texture);
+				if (parameters->shadow_bias_directional)
+					parameters->shadow_bias_directional->upload(shadow_bias_directional);
 				if (parameters->shadow_matrices_directional)
 					parameters->shadow_matrices_directional->upload(0, shadow_matrices_directional, shadow_cascade_count);
 				if (parameters->shadow_splits_directional)
@@ -574,6 +578,7 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 	parameters->spot_light_attenuations = program->get_input("spot_light_attenuations");
 	parameters->spot_light_cutoffs = program->get_input("spot_light_cutoffs");
 	parameters->shadow_map_directional = program->get_input("shadow_map_directional");
+	parameters->shadow_bias_directional = program->get_input("shadow_bias_directional");
 	parameters->shadow_splits_directional = program->get_input("shadow_splits_directional");
 	parameters->shadow_matrices_directional = program->get_input("shadow_matrices_directional");
 	parameters->skinning_palette = program->get_input("skinning_palette");

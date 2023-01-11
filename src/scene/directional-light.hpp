@@ -36,6 +36,18 @@ public:
 	/// Creates a directional light.
 	directional_light();
 	
+	/// Returns light_type::directional.
+	virtual light_type get_light_type() const;
+
+	/// Returns the normalized direction vector of the light.
+	const float3& get_direction() const;
+	
+	/// @copydoc object_base::update_tweens();
+	virtual void update_tweens();
+	
+	/// @name Shadow
+	/// @{
+	
 	/**
 	 * Enables or disables shadow casting.
 	 *
@@ -78,33 +90,6 @@ public:
 	 */
 	void set_shadow_cascade_distribution(float weight) noexcept;
 	
-	/**
-	 * Sets the light texture, also known as a gobo, cucoloris, or cookie.
-	 *
-	 * @param texture Light texture.
-	 */
-	void set_light_texture(const gl::texture_2d* texture);
-	
-	/**
-	 * Sets the opacity of the light texture.
-	 *
-	 * @param opacity Light texture opacity, on `[0, 1]`.
-	 */
-	void set_light_texture_opacity(float opacity);
-	
-	/**
-	 * Sets the scale of the light texture.
-	 *
-	 * @param scale Scale of the light texture.
-	 */
-	void set_light_texture_scale(const float2& scale);
-	
-	/// Returns light_type::directional.
-	virtual light_type get_light_type() const;
-
-	/// Returns the normalized direction vector of the light.
-	const float3& get_direction() const;
-	
 	/// Returns `true` if the light casts shadows, `false` otherwise.
 	bool is_shadow_caster() const noexcept;
 	
@@ -129,6 +114,32 @@ public:
 	/// Returns the array of world-space to cascade texture-space transformation matrices.
 	float4x4* get_shadow_cascade_matrices() const noexcept;
 	
+	/// @}
+
+	/// @name Light texture
+	/// @{
+	
+	/**
+	 * Sets the light texture, also known as a gobo, cucoloris, or cookie.
+	 *
+	 * @param texture Light texture.
+	 */
+	void set_light_texture(const gl::texture_2d* texture);
+	
+	/**
+	 * Sets the opacity of the light texture.
+	 *
+	 * @param opacity Light texture opacity, on `[0, 1]`.
+	 */
+	void set_light_texture_opacity(float opacity);
+	
+	/**
+	 * Sets the scale of the light texture.
+	 *
+	 * @param scale Scale of the light texture.
+	 */
+	void set_light_texture_scale(const float2& scale);
+	
 	/// Returns the light texture for this light, or `nullptr` if no light texture is set.
 	const gl::texture_2d* get_light_texture() const;
 	
@@ -146,9 +157,8 @@ public:
 	
 	/// Returns the light texture scale tween.
 	const tween<float2>& get_light_texture_scale_tween() const;
-
-	/// @copydoc object_base::update_tweens();
-	virtual void update_tweens();
+	
+	/// @}
 
 private:
 	virtual void transformed();

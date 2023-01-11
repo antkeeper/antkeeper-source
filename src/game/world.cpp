@@ -420,10 +420,10 @@ void create_sun(game::context& ctx)
 		sun_light->set_color({0, 0, 0});
 		sun_light->set_shadow_caster(true);
 		sun_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer);
-		sun_light->set_shadow_bias(1.0f);
+		sun_light->set_shadow_bias(0.005f);
 		sun_light->set_shadow_cascade_count(4);
 		sun_light->set_shadow_cascade_coverage(0.1f);
-		sun_light->set_shadow_cascade_distribution(0.8f);
+		sun_light->set_shadow_cascade_distribution(0.85f);
 		sun_light->update_tweens();
 		
 		// Create sky ambient light scene object

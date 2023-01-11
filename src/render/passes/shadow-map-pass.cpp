@@ -117,12 +117,14 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 	bool two_sided = false;
 	
 	// For half-z buffer
-	//glDepthRange(-1.0f, 1.0f);
+	glDepthRange(-1.0f, 1.0f);
 	
 	// Get camera
 	const scene::camera& camera = *ctx.camera;
 	
-	// Get distances to camera depth clipping planes
+	// Get tweened camera parameters
+	const float camera_fov = camera.get_fov_tween().interpolate(ctx.alpha);
+	const float camera_aspect_ratio = camera.get_aspect_ratio_tween().interpolate(ctx.alpha);
 	const float camera_clip_near = camera.get_clip_near_tween().interpolate(ctx.alpha);
 	const float camera_clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
 	
@@ -170,9 +172,6 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 	float4x4 light_projection = math::ortho_half_z(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	float4x4 light_view_projection = light_projection * light_view;
 	
-	// Get the camera's view matrix
-	float4x4 camera_view = camera.get_view_tween().interpolate(ctx.alpha);	
-	
 	float4x4 crop_matrix;
 	float4x4 cropped_view_projection;
 	float4x4 model_view_projection;
@@ -191,10 +190,10 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 		// Calculate projection matrix for view camera subfrustum
 		const float subfrustum_near = (i) ? cascade_distances[i - 1] : camera_clip_near;
 		const float subfrustum_far = cascade_distances[i];
-		float4x4 subfrustum_projection = math::perspective_half_z(camera.get_fov(), camera.get_aspect_ratio(), subfrustum_near, subfrustum_far);
+		float4x4 subfrustum_projection = math::perspective_half_z(camera_fov, camera_aspect_ratio, subfrustum_near, subfrustum_far);
 		
 		// Calculate view camera subfrustum
-		geom::view_frustum<float> subfrustum(subfrustum_projection * camera_view);
+		geom::view_frustum<float> subfrustum(subfrustum_projection * ctx.view);
 		
 		// Create AABB containing the view camera subfrustum corners
 		const std::array<float3, 8>& subfrustum_corners = subfrustum.get_corners();
@@ -219,9 +218,9 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 		//scale.z() = 2.0f / (cropping_bounds.max_point.z() - cropping_bounds.min_point.z());
 		
 		// Quantize scale
-		float scale_quantizer = 64.0f;
-		scale.x() = 1.0f / std::ceil(1.0f / scale.x() * scale_quantizer) * scale_quantizer;
-		scale.y() = 1.0f / std::ceil(1.0f / scale.y() * scale_quantizer) * scale_quantizer;
+		// float scale_quantizer = 64.0f;
+		// scale.x() = 1.0f / std::ceil(1.0f / scale.x() * scale_quantizer) * scale_quantizer;
+		// scale.y() = 1.0f / std::ceil(1.0f / scale.y() * scale_quantizer) * scale_quantizer;
 		
 		// Calculate offset
 		float3 offset;

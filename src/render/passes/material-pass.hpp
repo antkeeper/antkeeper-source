@@ -92,6 +92,7 @@ private:
 		const gl::shader_input* spot_light_cutoffs;
 		
 		const gl::shader_input* shadow_map_directional;
+		const gl::shader_input* shadow_bias_directional;
 		const gl::shader_input* shadow_splits_directional;
 		const gl::shader_input* shadow_matrices_directional;
 		
