@@ -17,20 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_SELECT_HPP
-#define ANTKEEPER_GAME_COMPONENT_SELECT_HPP
+#ifndef ANTKEEPER_RENDER_BLEND_MODE_HPP
+#define ANTKEEPER_RENDER_BLEND_MODE_HPP
 
-namespace game {
-namespace component {
+namespace render {
 
-/// Allows an entity to be selected.
-struct select
+/**
+ * Material blend modes.
+ */
+enum class blend_mode
 {
-	/// Radius of selection bounds.
-	float radius;
+	/// Fully opaque.
+	opaque,
+	
+	/// Binary masked opacity.
+	masked,
+	
+	/// Translucent.
+	translucent
 };
 
-} // namespace component
-} // namespace game
+} // namespace render
 
-#endif // ANTKEEPER_GAME_COMPONENT_SELECT_HPP
+#endif // ANTKEEPER_RENDER_BLEND_MODE_HPP

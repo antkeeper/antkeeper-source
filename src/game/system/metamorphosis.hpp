@@ -17,34 +17,33 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_GENOME_HPP
-#define ANTKEEPER_GAME_COMPONENT_GENOME_HPP
+#ifndef ANTKEEPER_GAME_SYSTEM_METAMORPHOSIS_HPP
+#define ANTKEEPER_GAME_SYSTEM_METAMORPHOSIS_HPP
 
-#include <string>
-#include <vector>
+#include "game/system/updatable.hpp"
 
 namespace game {
-namespace component {
+namespace system {
 
-/// Complete set of genetic material in an organism.
-struct genome
+class metamorphosis:
+	public updatable
 {
-	/**
-	 * Number of complete sets of chromosomes in a cell.
-	 *
-	 * A value of `1` indicates the organism is haploid, `2` is diploid, `3` is triploid, etc.
-	 */
-	unsigned int ploidy;
+public:
+	metamorphosis(entity::registry& registry);
+	virtual void update(double t, double dt);
 	
 	/**
-	 * Set of DNA base sequences for every chromosomes in the genome.
+	 * Sets the factor by which the timestep `dt` will be scaled.
 	 *
-	 * A DNA base sequence is a string of IUPAC DNA base symbols. Homologous chromosomes should be stored consecutively, such that in a diploid organism, a chromosome with an even index is homologous to the following chromosome.
+	 * @param scale Factor by which to scale the timestep.
 	 */
-	std::vector<std::string> chromosomes;
+	void set_time_scale(float scale);
+	
+private:
+	float time_scale;
 };
 
-} // namespace component
+} // namespace system
 } // namespace game
 
-#endif // ANTKEEPER_GAME_COMPONENT_GENOME_HPP
+#endif // ANTKEEPER_GAME_SYSTEM_METAMORPHOSIS_HPP

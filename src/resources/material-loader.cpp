@@ -286,28 +286,42 @@ render::material* resource_loader<render::material>::load(resource_manager* reso
 	// Read blend mode
 	std::string blend_mode;
 	read_value(&blend_mode, json, "blend_mode");
-	if (blend_mode == "alpha_blend")
-		flags |= MATERIAL_FLAG_TRANSLUCENT;
-	else
-		flags |= MATERIAL_FLAG_OPAQUE;
+	if (blend_mode == "opaque")
+	{
+		material->set_blend_mode(render::blend_mode::opaque);
+	}
+	else if (blend_mode == "masked")
+	{
+		material->set_blend_mode(render::blend_mode::masked);
+	}
+	else if (blend_mode == "translucent")
+	{
+		material->set_blend_mode(render::blend_mode::translucent);
+	}
+	
+	// Read opacity threshold
+	float opacity_threshold = 0.5f;
+	if (read_value(&opacity_threshold, json, "opacity_threshold"))
+	{
+		material->set_opacity_threshold(opacity_threshold);
+	}
+	
+	// Read two sided
+	bool two_sided = false;
+	read_value(&two_sided, json, "two_sided");
+	material->set_two_sided(two_sided);
 	
 	// Read shadow mode
 	std::string shadow_mode;
 	read_value(&shadow_mode, json, "shadow_mode");
-	if (shadow_mode == "none")
-		flags |= MATERIAL_FLAG_NOT_SHADOW_CASTER;
-	else
-		flags |= MATERIAL_FLAG_SHADOW_CASTER;
-	
-	// Read cull mode
-	std::string cull_mode;
-	read_value(&cull_mode, json, "cull_mode");
-	if (cull_mode == "none")
-		flags |= MATERIAL_FLAG_FRONT_AND_BACK_FACES;
-	else if (cull_mode == "front")
-		flags |= MATERIAL_FLAG_BACK_FACES;
-	else
-		flags |= MATERIAL_FLAG_FRONT_FACES;
+	if (shadow_mode == "opaque")
+	{
+		material->set_shadow_mode(render::shadow_mode::opaque);
+	}
+	else if (shadow_mode == "none")
+	{
+		material->set_shadow_mode(render::shadow_mode::none);
+	}
 	
 	// Read depth mode
 	std::string depth_mode;

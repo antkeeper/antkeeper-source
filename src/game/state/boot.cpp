@@ -71,7 +71,6 @@
 #include "game/system/blackbody.hpp"
 #include "game/system/atmosphere.hpp"
 #include "game/system/orbit.hpp"
-#include "game/system/proteome.hpp"
 #include "game/system/steering.hpp"
 #include "game/system/spring.hpp"
 #include "entity/commands.hpp"
@@ -497,8 +496,7 @@ void boot::setup_rendering()
 		ctx.surface_shadow_map_clear_pass->set_cleared_buffers(false, true, false);
 		ctx.surface_shadow_map_clear_pass->set_clear_depth(1.0f);
 		
-		ctx.surface_shadow_map_pass = new render::shadow_map_pass(ctx.rasterizer, ctx.shadow_map_framebuffer, ctx.resource_manager);
-		ctx.surface_shadow_map_pass->set_split_scheme_weight(0.75f);
+		ctx.surface_shadow_map_pass = new render::shadow_map_pass(ctx.rasterizer, ctx.resource_manager);
 		
 		ctx.surface_clear_pass = new render::clear_pass(ctx.rasterizer, ctx.hdr_framebuffer);
 		ctx.surface_clear_pass->set_cleared_buffers(false, true, true);
@@ -514,8 +512,6 @@ void boot::setup_rendering()
 		
 		ctx.surface_material_pass = new render::material_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.surface_material_pass->set_fallback_material(ctx.fallback_material);
-		ctx.surface_material_pass->shadow_map_pass = ctx.surface_shadow_map_pass;
-		ctx.surface_material_pass->shadow_map = ctx.shadow_map_depth_texture;
 		ctx.app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx.surface_material_pass);
 		
 		ctx.surface_outline_pass = new render::outline_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
@@ -733,7 +729,7 @@ void boot::setup_scenes()
 		menu_bg_material->set_shader_program(ctx.resource_manager->load<gl::shader_program>("ui-element-untextured.glsl"));
 		auto menu_bg_tint = menu_bg_material->add_property<float4>("tint");
 		menu_bg_tint->set_value(float4{0.0f, 0.0f, 0.0f, 0.5f});
-		menu_bg_material->set_flags(MATERIAL_FLAG_TRANSLUCENT);
+		menu_bg_material->set_blend_mode(render::blend_mode::translucent);
 		menu_bg_material->update_tweens();
 		ctx.menu_bg_billboard = new scene::billboard();
 		ctx.menu_bg_billboard->set_active(false);
@@ -750,7 +746,7 @@ void boot::setup_scenes()
 		flash_tint->set_value(float4{1, 1, 1, 1});
 		//flash_tint->set_tween_interpolator(ease<float4>::out_quad);
 		
-		flash_material->set_flags(MATERIAL_FLAG_TRANSLUCENT);
+		flash_material->set_blend_mode(render::blend_mode::translucent);
 		flash_material->update_tweens();
 		
 		ctx.camera_flash_billboard = new scene::billboard();
@@ -965,9 +961,6 @@ void boot::setup_systems()
 	ctx.astronomy_system = new game::system::astronomy(*ctx.entity_registry);
 	ctx.astronomy_system->set_transmittance_samples(16);
 	ctx.astronomy_system->set_sky_pass(ctx.sky_pass);
-	
-	// Setup proteome system
-	ctx.proteome_system = new game::system::proteome(*ctx.entity_registry);
 	
 	// Setup render system
 	ctx.render_system = new game::system::render(*ctx.entity_registry);
@@ -1203,7 +1196,6 @@ void boot::setup_loop()
 			ctx.spatial_system->update(t, dt);
 			ctx.constraint_system->update(t, dt);
 			ctx.painting_system->update(t, dt);
-			ctx.proteome_system->update(t, dt);
 			ctx.animator->animate(dt);
 			ctx.render_system->update(t, dt);
 		}

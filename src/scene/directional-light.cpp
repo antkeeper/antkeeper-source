@@ -33,10 +33,51 @@ static float3 interpolate_direction(const float3& x, const float3& y, float a)
 
 directional_light::directional_light():
 	direction(config::global_forward, interpolate_direction),
+	shadow_caster(false),
+	shadow_framebuffer(nullptr),
+	shadow_bias(1.0f),
+	shadow_cascade_count(4),
+	shadow_cascade_coverage(1.0f),
+	shadow_cascade_distribution(0.8f),
 	light_texture(nullptr),
 	light_texture_opacity(1.0f, math::lerp<float, float>),
 	light_texture_scale({1.0f, 1.0f}, math::lerp<float2, float>)
-{}
+{
+	shadow_cascade_distances.resize(shadow_cascade_count);
+	shadow_cascade_matrices.resize(shadow_cascade_count);
+}
+
+void directional_light::set_shadow_caster(bool caster) noexcept
+{
+	shadow_caster = caster;
+}
+
+void directional_light::set_shadow_framebuffer(const gl::framebuffer* framebuffer) noexcept
+{
+	shadow_framebuffer = framebuffer;
+}
+
+void directional_light::set_shadow_bias(float bias) noexcept
+{
+	shadow_bias = bias;
+}
+
+void directional_light::set_shadow_cascade_count(unsigned int count) noexcept
+{
+	shadow_cascade_count = count;
+	shadow_cascade_distances.resize(shadow_cascade_count);
+	shadow_cascade_matrices.resize(shadow_cascade_count);
+}
+
+void directional_light::set_shadow_cascade_coverage(float factor) noexcept
+{
+	shadow_cascade_coverage = factor;
+}
+
+void directional_light::set_shadow_cascade_distribution(float weight) noexcept
+{
+	shadow_cascade_distribution = weight;
+}
 
 void directional_light::set_light_texture(const gl::texture_2d* texture)
 {

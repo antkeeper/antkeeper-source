@@ -47,8 +47,6 @@
 #include <cmath>
 #include <glad/glad.h>
 
-#include "render/passes/shadow-map-pass.hpp"
-
 namespace render {
 
 static bool operation_compare(const render::operation& a, const render::operation& b);
@@ -56,9 +54,7 @@ static bool operation_compare(const render::operation& a, const render::operatio
 material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	pass(rasterizer, framebuffer),
 	fallback_material(nullptr),
-	mouse_position({0.0f, 0.0f}),
-	shadow_map_pass(nullptr),
-	shadow_map(nullptr)
+	mouse_position({0.0f, 0.0f})
 {
 	max_ambient_light_count = MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT;
 	max_point_light_count = MATERIAL_PASS_MAX_POINT_LIGHT_COUNT;
@@ -139,12 +135,18 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 	const gl::shader_program* active_shader_program = nullptr;
 	const render::material* active_material = nullptr;
 	const parameter_set* parameters = nullptr;
+	blend_mode active_blend_mode = blend_mode::opaque;
+	bool active_two_sided = false;
 	
 	// Reset light counts
 	ambient_light_count = 0;
 	point_light_count = 0;
 	directional_light_count = 0;
 	spot_light_count = 0;
+	const gl::texture_2d* shadow_map_texture = nullptr;
+	unsigned int shadow_cascade_count = 0;
+	const float* shadow_splits_directional = nullptr;
+	const float4x4* shadow_matrices_directional = nullptr;
 	
 	// Collect lights
 	const std::list<scene::object_base*>* lights = ctx.collection->get_objects(scene::light::object_type_id);
@@ -199,6 +201,14 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 					float3 direction = static_cast<const scene::directional_light*>(light)->get_direction_tween().interpolate(ctx.alpha);
 					directional_light_directions[directional_light_count] = direction;
 					
+					if (directional_light->is_shadow_caster())
+					{
+						if (directional_light->get_shadow_framebuffer())
+							shadow_map_texture = directional_light->get_shadow_framebuffer()->get_depth_attachment();
+						shadow_cascade_count = directional_light->get_shadow_cascade_count();
+						shadow_splits_directional = directional_light->get_shadow_cascade_distances();
+						shadow_matrices_directional = directional_light->get_shadow_cascade_matrices();
+					}
 					
 					if (directional_light->get_light_texture())
 					{
@@ -255,19 +265,6 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 		}
 	}
 	
-	float4x4 shadow_matrices_directional[4];
-	float4 shadow_splits_directional;
-	
-	if (shadow_map_pass)
-	{
-		for (int i = 0; i < 4; ++i)
-			shadow_matrices_directional[i] = shadow_map_pass->get_shadow_matrices()[i];
-
-		// Calculate shadow map split distances
-		for (int i = 0; i < 4; ++i)
-			shadow_splits_directional[i] = shadow_map_pass->get_split_distances()[i + 1];
-	}
-	
 	// Sort render queue
 	queue.sort(operation_compare);
 
@@ -294,49 +291,43 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 		{
 			active_material = material;
 			
+			// Set blend mode
+			const blend_mode material_blend_mode = active_material->get_blend_mode();
+			if (material_blend_mode != active_blend_mode)
+			{
+				if (material_blend_mode == blend_mode::translucent)
+				{
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				}
+				else if (active_blend_mode == blend_mode::translucent && (material_blend_mode == blend_mode::opaque || material_blend_mode == blend_mode::masked))
+				{
+					glDisable(GL_BLEND);
+				}
+				
+				active_blend_mode = material_blend_mode;
+			}
+			
+			// Set back-face culling mode
+			const bool material_two_sided = active_material->is_two_sided();
+			if (material_two_sided != active_two_sided)
+			{
+				if (material_two_sided)
+				{
+					glDisable(GL_CULL_FACE);
+				}
+				else
+				{
+					glEnable(GL_CULL_FACE);
+				}
+				
+				active_two_sided = material_two_sided;
+			}
+			
 			// Change rasterizer state according to material flags
 			std::uint32_t material_flags = active_material->get_flags();
 			if (active_material_flags != material_flags)
 			{
-				if ((material_flags & MATERIAL_FLAG_TRANSLUCENT) != (active_material_flags & MATERIAL_FLAG_TRANSLUCENT))
-				{
-					if (material_flags & MATERIAL_FLAG_TRANSLUCENT)
-					{
-						glEnable(GL_BLEND);
-						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					}
-					else
-					{
-						glDisable(GL_BLEND);
-					}
-				}
-
-				if ((material_flags & MATERIAL_FLAG_BACK_FACES) != (active_material_flags & MATERIAL_FLAG_BACK_FACES))
-				{
-					if (material_flags & MATERIAL_FLAG_BACK_FACES)
-					{
-						glEnable(GL_CULL_FACE);
-						glCullFace(GL_FRONT);
-					}
-					else
-					{
-						glEnable(GL_CULL_FACE);
-						glCullFace(GL_BACK);
-					}
-				}
-				else if ((material_flags & MATERIAL_FLAG_FRONT_AND_BACK_FACES) != (active_material_flags & MATERIAL_FLAG_FRONT_AND_BACK_FACES))
-				{
-					if (material_flags & MATERIAL_FLAG_FRONT_AND_BACK_FACES)
-					{
-						glDisable(GL_CULL_FACE);
-					}
-					else
-					{
-						glEnable(GL_CULL_FACE);
-						glCullFace(GL_BACK);
-					}
-				}
-
 				if ((material_flags & MATERIAL_FLAG_X_RAY) != (active_material_flags & MATERIAL_FLAG_X_RAY))
 				{
 					if (material_flags & MATERIAL_FLAG_X_RAY)
@@ -476,6 +467,13 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 				if (parameters->directional_light_texture_opacities)
 					parameters->directional_light_texture_opacities->upload(0, directional_light_texture_opacities, directional_light_count);
 				
+				if (parameters->shadow_map_directional && shadow_map_texture)
+					parameters->shadow_map_directional->upload(shadow_map_texture);
+				if (parameters->shadow_matrices_directional)
+					parameters->shadow_matrices_directional->upload(0, shadow_matrices_directional, shadow_cascade_count);
+				if (parameters->shadow_splits_directional)
+					parameters->shadow_splits_directional->upload(0, shadow_splits_directional, shadow_cascade_count);
+				
 				if (parameters->spot_light_count)
 					parameters->spot_light_count->upload(spot_light_count);
 				if (parameters->spot_light_colors)
@@ -488,13 +486,6 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 					parameters->spot_light_attenuations->upload(0, spot_light_attenuations, spot_light_count);
 				if (parameters->spot_light_cutoffs)
 					parameters->spot_light_cutoffs->upload(0, spot_light_cutoffs, spot_light_count);
-				
-				if (parameters->shadow_map_directional && shadow_map)
-					parameters->shadow_map_directional->upload(shadow_map);
-				if (parameters->shadow_matrices_directional)
-					parameters->shadow_matrices_directional->upload(0, shadow_matrices_directional, 4);
-				if (parameters->shadow_splits_directional)
-					parameters->shadow_splits_directional->upload(shadow_splits_directional);
 			}
 			
 			// Upload material properties to shader
@@ -608,6 +599,9 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 	bool xray_a = a.material->get_flags() & MATERIAL_FLAG_X_RAY;
 	bool xray_b = b.material->get_flags() & MATERIAL_FLAG_X_RAY;
 	
+	const bool two_sided_a = (a.material) ? a.material->is_two_sided() : false;
+	const bool two_sided_b = (b.material) ? b.material->is_two_sided() : false;
+	
 	if (xray_a)
 	{
 		if (xray_b)
@@ -631,8 +625,8 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 		else
 		{
 			// Determine transparency
-			bool transparent_a = a.material->get_flags() & MATERIAL_FLAG_TRANSLUCENT;
-			bool transparent_b = b.material->get_flags() & MATERIAL_FLAG_TRANSLUCENT;
+			bool transparent_a = a.material->get_blend_mode() == blend_mode::translucent;
+			bool transparent_b = b.material->get_blend_mode() == blend_mode::translucent;
 			
 			if (transparent_a)
 			{
@@ -695,8 +689,33 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 						}
 						else
 						{
-							// Sort by VAO
-							return (a.vertex_array < b.vertex_array);
+							// A and B have different VAOs, sort by two-sided
+							if (two_sided_a)
+							{
+								if (two_sided_b)
+								{
+									// A and B are both two-sided, sort by VAO
+									return (a.vertex_array < b.vertex_array);
+								}
+								else
+								{
+									// A is two-sided, B is one-sided. Render B first
+									return false;
+								}
+							}
+							else
+							{
+								if (two_sided_b)
+								{
+									// A is one-sided, B is two-sided. Render A first
+									return true;
+								}
+								else
+								{
+									// A and B are both one-sided, sort by VAO
+									return (a.vertex_array < b.vertex_array);
+								}
+							}
 						}
 					}
 					else

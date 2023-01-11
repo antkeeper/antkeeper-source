@@ -20,7 +20,6 @@
 #include "entity/commands.hpp"
 #include "game/component/model.hpp"
 #include "game/component/transform.hpp"
-#include "game/component/parent.hpp"
 #include "game/component/celestial-body.hpp"
 #include "game/component/terrain.hpp"
 #include "math/quaternion.hpp"

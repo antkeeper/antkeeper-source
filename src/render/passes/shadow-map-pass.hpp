@@ -31,38 +31,42 @@ class resource_manager;
 namespace render {
 
 /**
- *
+ * Renders shadow maps.
  */
 class shadow_map_pass: public pass
 {
 public:
-	shadow_map_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
-	virtual ~shadow_map_pass();
-	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	/**
+	 * Constructs a shadow map pass.
+	 *
+	 * @param rasterizer Rasterizer.
+	 * @param framebuffer Shadow map framebuffer.
+	 * @param resource_manage Resource manager.
+	 */
+	shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager);
 	
 	/**
-	 * Sets the linear interpolation weight between uniform and logarithmic frustum-splitting schemes.
-	 *
-	 * @param weight Linear interpolation weight between uniform and logarithmic frustum-splitting schemes. A value of `0.0` indicates a uniform split scheme, while `1.0` indicates a logarithmic split scheme.
+	 * Destructs a shadow map pass.
 	 */
-	void set_split_scheme_weight(float weight);
+	virtual ~shadow_map_pass();
 	
-	void set_light(const scene::directional_light* light);
-	
-	const float4x4* get_shadow_matrices() const;
-	const float* get_split_distances() const;
+	/**
+	 * Renders shadow maps for a single camera.
+	 *
+	 * @param ctx Render context.
+	 * @param queue Render queue.
+	 */
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
 
 private:
 	/**
-	 * Calculates the distances along the depth axis at which a view-frustum should be split, given a frustum-splitting scheme.
+	 * Renders cascaded shadow maps for a single directional light.
 	 *
-	 * @param[out] split_distances Array containing the distances to each split.
-	 * @param split_count Number of times the frustum should be split.
-	 * @param split_scheme Linear interpolation weight between uniform and logarithmic frustum-splitting schemes. A value of `0.0` indicates a uniform split scheme, while `1.0` indicates a logarithmic split scheme.
-	 * @param near Distance to the near clipping plane of the frustum to be split.
-	 * @param far Distance to the far clipping plane of the frustum to be split.
+	 * @param light Shadow-casting directional light.
+	 * @param ctx Render context.
+	 * @param queue Render queue.
 	 */
-	static void distribute_frustum_splits(float* split_distances, std::size_t split_count, float split_scheme, float near, float far);
+	void render_csm(const scene::directional_light& light, const render::context& ctx, render::queue& queue) const;
 	
 	gl::shader_program* unskinned_shader_program;
 	const gl::shader_input* unskinned_model_view_projection_input;
@@ -70,22 +74,8 @@ private:
 	gl::shader_program* skinned_shader_program;
 	const gl::shader_input* skinned_model_view_projection_input;
 	
-	mutable float split_distances[5];
-	mutable float4x4 shadow_matrices[4];
 	float4x4 bias_tile_matrices[4];
-	float split_scheme_weight;
-	const scene::directional_light* light;
 };
-
-inline const float4x4* shadow_map_pass::get_shadow_matrices() const
-{
-	return shadow_matrices;
-}
-
-inline const float* shadow_map_pass::get_split_distances() const
-{
-	return split_distances;
-}
 
 } // namespace render
 

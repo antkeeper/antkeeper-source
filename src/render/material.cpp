@@ -23,7 +23,11 @@ namespace render {
 
 material::material(gl::shader_program* program):
 	program(program),
-	flags(0)
+	flags(0),
+	blend_mode(blend_mode::opaque),
+	opacity_threshold(0.5f),
+	two_sided(false),
+	shadow_mode(shadow_mode::opaque)
 {}
 
 material::material():
@@ -55,6 +59,10 @@ material& material::operator=(const material& other)
 
 	this->program = other.program;
 	this->flags = other.flags;
+	this->blend_mode = other.blend_mode;
+	this->opacity_threshold = other.opacity_threshold;
+	this->two_sided = other.two_sided;
+	this->shadow_mode = other.shadow_mode;
 	for (auto it = other.property_map.begin(); it != other.property_map.end(); ++it)
 	{
 		material_property_base* property = it->second->clone();
@@ -99,9 +107,29 @@ void material::set_shader_program(gl::shader_program* program)
 	reconnect_properties();
 }
 
-void material::set_flags(std::uint32_t flags)
+void material::set_flags(std::uint32_t flags) noexcept
 {
 	this->flags = flags;
+}
+
+void material::set_blend_mode(render::blend_mode mode) noexcept
+{
+	blend_mode = mode;
+}
+
+void material::set_opacity_threshold(float threshold) noexcept
+{
+	opacity_threshold = threshold;
+}
+
+void material::set_two_sided(bool two_sided) noexcept
+{
+	this->two_sided = two_sided;
+}
+
+void material::set_shadow_mode(render::shadow_mode mode) noexcept
+{
+	shadow_mode = mode;
 }
 
 std::size_t material::reconnect_properties()

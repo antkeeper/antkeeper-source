@@ -36,11 +36,9 @@ public:
 private:
 	void create_first_person_camera_rig();
 	void destroy_first_person_camera_rig();
-	
 	void set_first_person_camera_rig_pedestal(float pedestal);
 	void move_first_person_camera_rig(const float2& direction, float factor);
 	void satisfy_first_person_camera_rig_constraints();
-	
 	void enable_controls();
 	void disable_controls();
 	
@@ -59,7 +57,6 @@ private:
 	float first_person_camera_far_speed;
 	float first_person_camera_rig_pedestal_speed;
 	float first_person_camera_rig_pedestal;
-	
 	bool mouse_look;
 };
 

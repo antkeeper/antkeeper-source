@@ -57,6 +57,7 @@
 #include "game/ant/phenome.hpp"
 #include "game/ant/genome.hpp"
 #include "game/ant/cladogenesis.hpp"
+#include "game/spawn.hpp"
 
 using namespace game::ant;
 
@@ -68,25 +69,9 @@ nest_selection::nest_selection(game::context& ctx):
 {
 	ctx.logger->push_task("Entering nest selection state");
 	
-	
 	ctx.logger->push_task("Generating genome");
-	
 	std::random_device rng;
 	ant::genome* genome = ant::cladogenesis(ctx.active_ecoregion->gene_pools[0], rng);
-	
-	// genome.antennae = ctx.resource_manager->load<ant::gene::antennae>("pogonomyrmex-antennae.dna");
-	// genome.eyes = ctx.resource_manager->load<ant::gene::eyes>("pogonomyrmex-eyes.dna");
-	// genome.gaster = ctx.resource_manager->load<ant::gene::gaster>("pogonomyrmex-gaster.dna");
-	// genome.head = ctx.resource_manager->load<ant::gene::head>("pogonomyrmex-head.dna");
-	// genome.legs = ctx.resource_manager->load<ant::gene::legs>("pogonomyrmex-legs.dna");
-	// genome.mandibles = ctx.resource_manager->load<ant::gene::mandibles>("pogonomyrmex-mandibles.dna");
-	// genome.mesosoma = ctx.resource_manager->load<ant::gene::mesosoma>("pogonomyrmex-mesosoma.dna");
-	// genome.ocelli = ctx.resource_manager->load<ant::gene::ocelli>("ocelli-absent.dna");
-	// genome.pigmentation = ctx.resource_manager->load<ant::gene::pigmentation>("rust-pigmentation.dna");
-	// genome.sculpturing = ctx.resource_manager->load<ant::gene::sculpturing>("politus-sculpturing.dna");
-	// genome.sting = ctx.resource_manager->load<ant::gene::sting>("pogonomyrmex-sting.dna");
-	// genome.waist = ctx.resource_manager->load<ant::gene::waist>("pogonomyrmex-waist.dna");
-	// genome.wings = ctx.resource_manager->load<ant::gene::wings>("wings-absent.dna");
 	ctx.logger->pop_task(EXIT_SUCCESS);
 	
 	ctx.logger->push_task("Building worker phenome");
@@ -111,7 +96,6 @@ nest_selection::nest_selection(game::context& ctx):
 	worker_model_component.instance_count = 0;
 	worker_model_component.layers = ~0;
 	ctx.entity_registry->emplace<component::model>(worker_eid, worker_model_component);
-	
 	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
@@ -180,11 +164,37 @@ nest_selection::nest_selection(game::context& ctx):
 	// Satisfy first person camera rig constraints
 	satisfy_first_person_camera_rig_constraints();
 	
-	auto color_checker_archetype = ctx.resource_manager->load<entity::archetype>("color-checker.ent");
-	color_checker_archetype->create(*ctx.entity_registry);
-	
+	// auto color_checker_archetype = ctx.resource_manager->load<entity::archetype>("color-checker.ent");
+	// color_checker_archetype->create(*ctx.entity_registry);
 	// auto ruler_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
 	// ruler_archetype->create(*ctx.entity_registry);
+	auto yucca_archetype = ctx.resource_manager->load<entity::archetype>("yucca-plant-l.ent");
+	auto yucca_eid = yucca_archetype->create(*ctx.entity_registry);
+	entity::command::warp_to(*ctx.entity_registry, yucca_eid, {0, 4, 30});
+	
+	yucca_archetype = ctx.resource_manager->load<entity::archetype>("yucca-plant-m.ent");
+	yucca_eid = yucca_archetype->create(*ctx.entity_registry);
+	entity::command::warp_to(*ctx.entity_registry, yucca_eid, {400, 0, 200});
+	
+	yucca_archetype = ctx.resource_manager->load<entity::archetype>("yucca-plant-s.ent");
+	yucca_eid = yucca_archetype->create(*ctx.entity_registry);
+	entity::command::warp_to(*ctx.entity_registry, yucca_eid, {-300, 3, -300});
+	
+	auto cactus_plant_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-plant-l.ent");
+	auto cactus_plant_eid = cactus_plant_archetype->create(*ctx.entity_registry);
+	entity::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {-100, 0, -200});
+	
+	cactus_plant_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-plant-m.ent");
+	cactus_plant_eid = cactus_plant_archetype->create(*ctx.entity_registry);
+	entity::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {100, -2, -70});
+	
+	cactus_plant_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-plant-s.ent");
+	cactus_plant_eid = cactus_plant_archetype->create(*ctx.entity_registry);
+	entity::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {50, 2, 80});
+	
+	auto cactus_seed_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-seed.ent");
+	auto cactus_seed_eid = cactus_seed_archetype->create(*ctx.entity_registry);
+	entity::command::warp_to(*ctx.entity_registry, cactus_seed_eid, {10, 5, 10});
 	
 	// Queue control setup
 	ctx.function_queue.push(std::bind(&nest_selection::enable_controls, this));

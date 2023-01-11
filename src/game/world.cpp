@@ -418,6 +418,12 @@ void create_sun(game::context& ctx)
 		// Create sun directional light scene object
 		scene::directional_light* sun_light = new scene::directional_light();
 		sun_light->set_color({0, 0, 0});
+		sun_light->set_shadow_caster(true);
+		sun_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer);
+		sun_light->set_shadow_bias(1.0f);
+		sun_light->set_shadow_cascade_count(4);
+		sun_light->set_shadow_cascade_coverage(0.1f);
+		sun_light->set_shadow_cascade_distribution(0.8f);
 		sun_light->update_tweens();
 		
 		// Create sky ambient light scene object
@@ -437,7 +443,6 @@ void create_sun(game::context& ctx)
 		//ctx.surface_scene->add_object(bounce_light);
 		
 		// Pass direct sun light scene object to shadow map pass and astronomy system
-		ctx.surface_shadow_map_pass->set_light(sun_light);
 		ctx.astronomy_system->set_sun_light(sun_light);
 		ctx.astronomy_system->set_sky_light(sky_light);
 		ctx.astronomy_system->set_bounce_light(bounce_light);

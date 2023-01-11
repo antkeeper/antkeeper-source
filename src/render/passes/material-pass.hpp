@@ -34,8 +34,6 @@ class resource_manager;
 
 namespace render {
 
-class shadow_map_pass;
-
 /**
  * Renders scene objects using their material-specified shaders and properties.
  */
@@ -49,9 +47,6 @@ public:
 	
 	/// Sets the material to be used when a render operation is missing a material. If no fallback material is specified, render operations without materials will not be processed.
 	void set_fallback_material(const material* fallback);
-	
-	const render::shadow_map_pass* shadow_map_pass;
-	const gl::texture_2d* shadow_map;
 	
 private:
 	virtual void handle_event(const mouse_moved_event& event);

@@ -26,12 +26,13 @@
 #include "gl/drawing-mode.hpp"
 #include "render/context.hpp"
 #include "render/material.hpp"
-#include "render/material-flags.hpp"
 #include "scene/camera.hpp"
+#include "scene/collection.hpp"
 #include "scene/light.hpp"
 #include "geom/view-frustum.hpp"
 #include "geom/aabb.hpp"
 #include "config.hpp"
+#include "math/interpolation.hpp"
 #include "math/vector.hpp"
 #include "math/matrix.hpp"
 #include "math/quaternion.hpp"
@@ -43,28 +44,8 @@ namespace render {
 
 static bool operation_compare(const render::operation& a, const render::operation& b);
 
-void shadow_map_pass::distribute_frustum_splits(float* split_distances, std::size_t split_count, float split_scheme, float near, float far)
-{
-	// Calculate split distances
-	for (std::size_t i = 0; i < split_count; ++i)
-	{
-		float part = static_cast<float>(i + 1) / static_cast<float>(split_count + 1);
-		
-		// Calculate uniform split distance
-		float uniform_split_distance = near + (far - near) * part;
-		
-		// Calculate logarithmic split distance
-		float log_split_distance = near * std::pow(far / near, part);
-			
-		// Interpolate between uniform and logarithmic split distances
-		split_distances[i] = log_split_distance * split_scheme + uniform_split_distance * (1.0f - split_scheme);
-	}
-}
-
-shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
-	pass(rasterizer, framebuffer),
-	split_scheme_weight(0.5f),
-	light(nullptr)
+shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager):
+	pass(rasterizer, nullptr)
 {
 	// Load skinned shader program
 	unskinned_shader_program = resource_manager->load<gl::shader_program>("depth-unskinned.glsl");
@@ -91,13 +72,36 @@ shadow_map_pass::~shadow_map_pass()
 
 void shadow_map_pass::render(const render::context& ctx, render::queue& queue) const
 {
-	// Abort if no directional light was set
-	if (!light)
+	// Collect lights
+	const std::list<scene::object_base*>* lights = ctx.collection->get_objects(scene::light::object_type_id);
+	for (const scene::object_base* object: *lights)
 	{
-		return;
+		// Ignore inactive lights
+		if (!object->is_active())
+				continue;
+		
+		// Ignore non-directional lights
+		const scene::light* light = static_cast<const scene::light*>(object);
+		if (light->get_light_type() != scene::light_type::directional)
+			continue;
+		
+		// Ignore non-shadow casters
+		const scene::directional_light* directional_light = static_cast<const scene::directional_light*>(light);
+		if (!directional_light->is_shadow_caster())
+			continue;
+		
+		// Ignore improperly-configured lights
+		if (!directional_light->get_shadow_cascade_count() || !directional_light->get_shadow_framebuffer())
+			continue;
+		
+		// Render cascaded shadow maps for light
+		render_csm(*directional_light, ctx, queue);
 	}
-	
-	rasterizer->use_framebuffer(*framebuffer);
+}
+
+void shadow_map_pass::render_csm(const scene::directional_light& light, const render::context& ctx, render::queue& queue) const
+{
+	rasterizer->use_framebuffer(*light.get_shadow_framebuffer());
 	
 	// Disable blending
 	glDisable(GL_BLEND);
@@ -107,9 +111,10 @@ void shadow_map_pass::render(const render::context& ctx, render::queue& queue) c
 	glDepthFunc(GL_LESS);
 	glDepthMask(GL_TRUE);
 	
-	// Disable face culling
+	// Enable back-face culling
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
+	glCullFace(GL_BACK);
+	bool two_sided = false;
 	
 	// For half-z buffer
 	//glDepthRange(-1.0f, 1.0f);
@@ -117,30 +122,48 @@ void shadow_map_pass::render(const render::context& ctx, render::queue& queue) c
 	// Get camera
 	const scene::camera& camera = *ctx.camera;
 	
-	// Calculate distances to the depth clipping planes of each frustum split
-	float clip_near = camera.get_clip_near_tween().interpolate(ctx.alpha);
-	float clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
-	split_distances[0] = clip_near;
-	split_distances[4] = clip_far;
-	distribute_frustum_splits(&split_distances[1], 3, split_scheme_weight, clip_near, clip_far);
+	// Get distances to camera depth clipping planes
+	const float camera_clip_near = camera.get_clip_near_tween().interpolate(ctx.alpha);
+	const float camera_clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
+	
+	// Calculate distance to shadow cascade depth clipping planes
+	const float shadow_clip_far = math::lerp(camera_clip_near, camera_clip_far, light.get_shadow_cascade_coverage());
+	
+	const unsigned int cascade_count = light.get_shadow_cascade_count();
+	float* cascade_distances = light.get_shadow_cascade_distances();
+	float4x4* cascade_matrices = light.get_shadow_cascade_matrices();
+	
+	// Calculate cascade far clipping plane distances
+	cascade_distances[cascade_count - 1] = shadow_clip_far;
+	for (unsigned int i = 0; i < cascade_count - 1; ++i)
+	{
+		const float weight = static_cast<float>(i + 1) / static_cast<float>(cascade_count);
+		
+		// Calculate linear and logarithmic distribution distances
+		const float linear_distance = math::lerp(camera_clip_near, shadow_clip_far, weight);
+		const float log_distance = math::log_lerp(camera_clip_near, shadow_clip_far, weight);
+		
+		// Interpolate between linear and logarithmic distribution distances
+		cascade_distances[i] = math::lerp(linear_distance, log_distance, light.get_shadow_cascade_distribution());
+	}
 	
 	// Calculate viewports for each shadow map
-	const int shadow_map_resolution = std::get<0>(framebuffer->get_dimensions()) / 2;
-	float4 shadow_map_viewports[4];
+	const int shadow_map_resolution = std::get<0>(light.get_shadow_framebuffer()->get_dimensions()) / 2;
+	int4 shadow_map_viewports[4];
 	for (int i = 0; i < 4; ++i)
 	{
 		int x = i % 2;
 		int y = i / 2;
 		
-		float4& viewport = shadow_map_viewports[i];
-		viewport[0] = static_cast<float>(x * shadow_map_resolution);
-		viewport[1] = static_cast<float>(y * shadow_map_resolution);
-		viewport[2] = static_cast<float>(shadow_map_resolution);
-		viewport[3] = static_cast<float>(shadow_map_resolution);
+		int4& viewport = shadow_map_viewports[i];
+		viewport[0] = x * shadow_map_resolution;
+		viewport[1] = y * shadow_map_resolution;
+		viewport[2] = shadow_map_resolution;
+		viewport[3] = shadow_map_resolution;
 	}
 	
 	// Calculate a view-projection matrix from the directional light's transform
-	math::transform<float> light_transform = light->get_transform_tween().interpolate(ctx.alpha);
+	math::transform<float> light_transform = light.get_transform_tween().interpolate(ctx.alpha);
 	float3 forward = light_transform.rotation * config::global_forward;
 	float3 up = light_transform.rotation * config::global_up;
 	float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
@@ -159,15 +182,15 @@ void shadow_map_pass::render(const render::context& ctx, render::queue& queue) c
 	
 	gl::shader_program* active_shader_program = nullptr;
 	
-	for (int i = 0; i < 4; ++i)
+	for (unsigned int i = 0; i < cascade_count; ++i)
 	{
 		// Set viewport for this shadow map
-		const float4& viewport = shadow_map_viewports[i];
+		const int4& viewport = shadow_map_viewports[i];
 		rasterizer->set_viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 		
 		// Calculate projection matrix for view camera subfrustum
-		const float subfrustum_near = split_distances[i];
-		const float subfrustum_far = split_distances[i + 1];
+		const float subfrustum_near = (i) ? cascade_distances[i - 1] : camera_clip_near;
+		const float subfrustum_far = cascade_distances[i];
 		float4x4 subfrustum_projection = math::perspective_half_z(camera.get_fov(), camera.get_aspect_ratio(), subfrustum_near, subfrustum_far);
 		
 		// Calculate view camera subfrustum
@@ -216,16 +239,31 @@ void shadow_map_pass::render(const render::context& ctx, render::queue& queue) c
 		crop_matrix = math::translate(math::matrix4<float>::identity(), offset) * math::scale(math::matrix4<float>::identity(), scale);
 		cropped_view_projection = crop_matrix * light_view_projection;
 		
-		// Calculate shadow matrix
-		shadow_matrices[i] = bias_tile_matrices[i] * cropped_view_projection;
+		// Calculate world-space to cascade texture-space transformation matrix
+		cascade_matrices[i] = bias_tile_matrices[i] * cropped_view_projection;
 		
 		for (const render::operation& operation: queue)
 		{
-			// Skip materials which don't cast shadows
 			const render::material* material = operation.material;
-			if (material && (material->get_flags() & MATERIAL_FLAG_NOT_SHADOW_CASTER))
+			if (material)
 			{
-				continue;
+				// Skip materials which don't cast shadows
+				if (material->get_shadow_mode() == shadow_mode::none)
+					continue;
+				
+				if (material->is_two_sided() != two_sided)
+				{
+					if (material->is_two_sided())
+					{
+						glDisable(GL_CULL_FACE);
+					}
+					else
+					{
+						glEnable(GL_CULL_FACE);
+					}
+					
+					two_sided = material->is_two_sided();
+				}
 			}
 			
 			// Switch shader programs if necessary
@@ -255,28 +293,44 @@ void shadow_map_pass::render(const render::context& ctx, render::queue& queue) c
 	}
 }
 
-void shadow_map_pass::set_split_scheme_weight(float weight)
-{
-	split_scheme_weight = weight;
-}
-
-void shadow_map_pass::set_light(const scene::directional_light* light)
-{
-	this->light = light;
-}
-
 bool operation_compare(const render::operation& a, const render::operation& b)
 {
-	// Determine transparency
-	bool skinned_a = (a.bone_count);
-	bool skinned_b = (b.bone_count);
+	const bool skinned_a = (a.bone_count);
+	const bool skinned_b = (b.bone_count);
+	const bool two_sided_a = (a.material) ? a.material->is_two_sided() : false;
+	const bool two_sided_b = (b.material) ? b.material->is_two_sided() : false;
 	
 	if (skinned_a)
 	{
 		if (skinned_b)
 		{
-			// A and B are both skinned, sort by VAO
-			return (a.vertex_array < b.vertex_array);
+			// A and B are both skinned, sort by two-sided
+			if (two_sided_a)
+			{
+				if (two_sided_b)
+				{
+					// A and B are both two-sided, sort by VAO
+					return (a.vertex_array < b.vertex_array);
+				}
+				else
+				{
+					// A is two-sided, B is one-sided. Render B first
+					return false;
+				}
+			}
+			else
+			{
+				if (two_sided_b)
+				{
+					// A is one-sided, B is two-sided. Render A first
+					return true;
+				}
+				else
+				{
+					// A and B are both one-sided, sort by VAO
+					return (a.vertex_array < b.vertex_array);
+				}
+			}
 		}
 		else
 		{
@@ -293,8 +347,33 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 		}
 		else
 		{
-			// A and B are both unskinned, sort by VAO
-			return (a.vertex_array < b.vertex_array);
+			// A and B are both unskinned, sort by two-sided
+			if (two_sided_a)
+			{
+				if (two_sided_b)
+				{
+					// A and B are both two-sided, sort by VAO
+					return (a.vertex_array < b.vertex_array);
+				}
+				else
+				{
+					// A is two-sided, B is one-sided. Render B first
+					return false;
+				}
+			}
+			else
+			{
+				if (two_sided_b)
+				{
+					// A is one-sided, B is two-sided. Render A first
+					return true;
+				}
+				else
+				{
+					// A and B are both one-sided, sort by VAO
+					return (a.vertex_array < b.vertex_array);
+				}
+			}
 		}
 	}
 }

@@ -17,20 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_PARENT_HPP
-#define ANTKEEPER_GAME_COMPONENT_PARENT_HPP
+#ifndef ANTKEEPER_RENDER_SHADOW_MODE_HPP
+#define ANTKEEPER_RENDER_SHADOW_MODE_HPP
 
-#include "entity/id.hpp"
+namespace render {
 
-namespace game {
-namespace component {
-
-struct parent
+/**
+ * Material shadow casting modes.
+ */
+enum class shadow_mode
 {
-	entity::id parent;
+	/// Fully opaque shadow casting.
+	opaque,
+	
+	/// No shadows cast.
+	none
 };
 
-} // namespace component
-} // namespace game
+} // namespace render
 
-#endif // ANTKEEPER_GAME_COMPONENT_PARENT_HPP
+#endif // ANTKEEPER_RENDER_SHADOW_MODE_HPP

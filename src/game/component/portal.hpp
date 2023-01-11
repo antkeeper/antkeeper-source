@@ -17,40 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_SYSTEM_PROTEOME_HPP
-#define ANTKEEPER_GAME_SYSTEM_PROTEOME_HPP
-
-#include "game/system/updatable.hpp"
-#include "game/component/genome.hpp"
-#include "entity/id.hpp"
+#ifndef ANTKEEPER_GAME_COMPONENT_PORTAL_HPP
+#define ANTKEEPER_GAME_COMPONENT_PORTAL_HPP
 
 namespace game {
-namespace system {
+namespace component {
 
-/**
- * Generates proteomes for every genome.
- */
-class proteome:
-	public updatable
+struct portal
 {
-public:
-	proteome(entity::registry& registry);
-	~proteome();
 	
-	/**
-	 * Scales then adds the timestep `dt` to the current time, then recalculates the positions of proteomeing bodies.
-	 *
-	 * @param t Time, in seconds.
-	 * @param dt Delta time, in seconds.
-	 */
-	virtual void update(double t, double dt);
-	
-private:
-	void on_genome_construct(entity::registry& registry, entity::id entity_id);
-	void on_genome_update(entity::registry& registry, entity::id entity_id);
 };
 
-} // namespace system
+} // namespace component
 } // namespace game
 
-#endif // ANTKEEPER_GAME_SYSTEM_PROTEOME_HPP
+#endif // ANTKEEPER_GAME_COMPONENT_PORTAL_HPP

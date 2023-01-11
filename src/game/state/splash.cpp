@@ -49,7 +49,7 @@ splash::splash(game::context& ctx):
 	auto splash_dimensions = splash_texture->get_dimensions();
 	
 	// Construct splash billboard material
-	splash_billboard_material.set_flags(MATERIAL_FLAG_TRANSLUCENT);
+	splash_billboard_material.set_blend_mode(render::blend_mode::translucent);
 	splash_billboard_material.set_shader_program(ctx.resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
 	splash_billboard_material.add_property<const gl::texture_2d*>("background")->set_value(splash_texture);
 	render::material_property<float4>* splash_tint = splash_billboard_material.add_property<float4>("tint");

@@ -97,7 +97,6 @@ namespace game
 		class camera;
 		class nest;
 		class render;
-		class proteome;
 		class steering;
 		class spring;
 	}
@@ -295,7 +294,6 @@ struct context
 	game::system::atmosphere* atmosphere_system;
 	game::system::astronomy* astronomy_system;
 	game::system::orbit* orbit_system;
-	game::system::proteome* proteome_system;
 	
 	double3 rgb_wavelengths;
 	

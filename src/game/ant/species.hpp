@@ -17,23 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_COMPONENT_PROTEOME_HPP
-#define ANTKEEPER_GAME_COMPONENT_PROTEOME_HPP
+#ifndef ANTKEEPER_GAME_ANT_SPECIES_HPP
+#define ANTKEEPER_GAME_ANT_SPECIES_HPP
 
-#include <string>
-#include <vector>
+#include "game/ant/caste.hpp"
+#include "game/ant/phenome.hpp"
+#include "render/model.hpp"
+#include <unordered_map>
 
 namespace game {
-namespace component {
+namespace ant {
 
-/// Set of all proteins that can be expressed by an organism.
-struct proteome
+struct species
 {
-	/// Set of amino acid sequences of every protein in the proteome.
-	std::vector<std::string> proteins;
+	/// Caste-specific phenomes
+	std::unordered_map<caste, phenome> phenomes;
+	
+	/// Caste-specific models
+	std::unordered_map<caste, render::model*> models;
 };
 
-} // namespace component
+} // namespace ant
 } // namespace game
 
-#endif // ANTKEEPER_GAME_COMPONENT_PROTEOME_HPP
+#endif // ANTKEEPER_GAME_ANT_SPECIES_HPP

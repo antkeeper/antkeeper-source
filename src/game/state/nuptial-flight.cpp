@@ -54,9 +54,6 @@
 #include "color/color.hpp"
 #include "application.hpp"
 #include "input/mouse.hpp"
-#include "geom/primitive/sphere.hpp"
-#include "geom/primitive/rectangle.hpp"
-#include "geom/primitive/hyperplane.hpp"
 #include <iostream>
 
 namespace game {
@@ -65,11 +62,6 @@ namespace state {
 nuptial_flight::nuptial_flight(game::context& ctx):
 	game::state::base(ctx)
 {
-	geom::primitive::rectangle<float> rect;
-	rect.intersects(rect);
-	geom::primitive::hyperplane<float, 4> plane;
-	plane.distance({0, 0, 0, 0});
-	
 	ctx.logger->push_task("Entering nuptial flight state");
 	
 	// Init selected picking flag
@@ -88,9 +80,6 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		// Create observer
 		game::world::create_observer(ctx);
 	}
-	
-	// Load biome
-	//game::load::biome(ctx, "desert-scrub.bio");
 	
 	// Set world time
 	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);

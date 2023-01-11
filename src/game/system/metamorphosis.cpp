@@ -17,28 +17,34 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_SYSTEM_MORPHOGENESIS_HPP
-#define ANTKEEPER_GAME_SYSTEM_MORPHOGENESIS_HPP
-
-#include "game/system/updatable.hpp"
+#include "game/system/metamorphosis.hpp"
+#include "entity/id.hpp"
 
 namespace game {
 namespace system {
 
-/**
- * Generates 3D models from genomes.
- */
-class morphogenesis:
-	public updatable
+metamorphosis::metamorphosis(entity::registry& registry):
+	updatable(registry),
+	time_scale(1.0f)
+{}
+
+void metamorphosis::update(double t, double dt)
 {
-public:
-	morphogenesis(entity::registry& registry);
-	virtual void update(double t, double dt);
+	// registry.view<component::egg>().each(
+		// [&](entity::id entity_id, auto& component)
+		// {
+		// });
 	
-private:
-};
+	// registry.view<component::larva>().each(
+		// [&](entity::id entity_id, auto& component)
+		// {
+		// });
+}
+
+void metamorphosis::set_time_scale(float scale)
+{
+	time_scale = scale;
+}
 
 } // namespace system
 } // namespace game
-
-#endif // ANTKEEPER_GAME_SYSTEM_MORPHOGENESIS_HPP

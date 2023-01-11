@@ -61,7 +61,7 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	
 	// Create font material
-	material.set_flags(MATERIAL_FLAG_TRANSLUCENT);
+	material.set_blend_mode(render::blend_mode::translucent);
 	material.add_property<const gl::texture_2d*>("font_bitmap")->set_value(font_texture);
 	material.set_shader_program(shader_program);
 }
