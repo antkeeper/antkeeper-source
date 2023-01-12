@@ -144,7 +144,7 @@ nest_selection::nest_selection(game::context& ctx):
 	first_person_camera_near_fov = math::vertical_fov(math::radians(100.0f), aspect_ratio);
 	first_person_camera_far_fov = math::vertical_fov(math::radians(60.0f), aspect_ratio);
 	first_person_camera_near_speed = 5.0f;
-	first_person_camera_far_speed = 90.0f;
+	first_person_camera_far_speed = 140.0f;
 	first_person_camera_rig_pedestal_speed = 2.0f;
 	first_person_camera_rig_pedestal = 0.0f;
 	

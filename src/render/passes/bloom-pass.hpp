@@ -85,7 +85,7 @@ public:
 	 *
 	 * @param radius Upsample filter radius, in texture coordinates.
 	 */
-	void set_filter_radius(float radius) noexcept;
+	void set_filter_radius(float radius);
 	
 	/**
 	 * Returns the texture containing the bloom result.
@@ -94,15 +94,12 @@ public:
 
 private:
 	const gl::texture_2d* source_texture;
-	float2 source_texel_size;
 	
 	gl::shader_program* downsample_karis_shader;
 	const gl::shader_input* downsample_karis_source_texture_input;
-	const gl::shader_input* downsample_karis_texel_size_input;
 	
 	gl::shader_program* downsample_shader;
 	const gl::shader_input* downsample_source_texture_input;
-	const gl::shader_input* downsample_texel_size_input;
 	
 	gl::shader_program* upsample_shader;
 	const gl::shader_input* upsample_source_texture_input;
@@ -114,7 +111,6 @@ private:
 	unsigned int mip_chain_length;
 	std::vector<gl::framebuffer*> framebuffers;
 	std::vector<gl::texture_2d*> textures;
-	std::vector<float2> texel_sizes;
 	float filter_radius;
 	float2 corrected_filter_radius;
 };

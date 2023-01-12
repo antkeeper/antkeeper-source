@@ -42,7 +42,6 @@ namespace render {
 bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager):
 	pass(rasterizer, nullptr),
 	source_texture(nullptr),
-	source_texel_size{1.0f, 1.0f},
 	mip_chain_length(0),
 	filter_radius(0.005f),
 	corrected_filter_radius{filter_radius, filter_radius}
@@ -50,12 +49,10 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 	// Load downsample with Karis average shader
 	downsample_karis_shader = resource_manager->load<gl::shader_program>("bloom-downsample-karis.glsl");
 	downsample_karis_source_texture_input = downsample_karis_shader->get_input("source_texture");
-	downsample_karis_texel_size_input = downsample_karis_shader->get_input("texel_size");
 	
 	// Load downsample shader
 	downsample_shader = resource_manager->load<gl::shader_program>("bloom-downsample.glsl");
 	downsample_source_texture_input = downsample_shader->get_input("source_texture");
-	downsample_texel_size_input = downsample_shader->get_input("texel_size");
 	
 	// Load upsample shader
 	upsample_shader = resource_manager->load<gl::shader_program>("bloom-upsample.glsl");
@@ -116,7 +113,6 @@ void bloom_pass::render(const render::context& ctx, render::queue& queue) const
 	{
 		rasterizer->use_program(*downsample_karis_shader);
 		downsample_karis_source_texture_input->upload(source_texture);
-		downsample_karis_texel_size_input->upload(source_texel_size);
 		
 		rasterizer->use_framebuffer(*framebuffers[0]);
 		rasterizer->set_viewport(0, 0, textures[0]->get_width(), textures[0]->get_height());
@@ -133,7 +129,6 @@ void bloom_pass::render(const render::context& ctx, render::queue& queue) const
 		
 		// Use previous downsample texture as downsample source
 		downsample_source_texture_input->upload(textures[i - 1]);
-		downsample_texel_size_input->upload(texel_sizes[i - 1]);
 		
 		rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
 	}
@@ -160,21 +155,17 @@ void bloom_pass::render(const render::context& ctx, render::queue& queue) const
 
 void bloom_pass::resize()
 {
-	unsigned int source_width = 0;
-	unsigned int source_height = 0;
-	source_texel_size = {0.0f, 0.0f};
+	unsigned int source_width = 1;
+	unsigned int source_height = 1;
 	if (source_texture)
 	{
 		// Get source texture dimensions
 		source_width = source_texture->get_width();
 		source_height = source_texture->get_height();
 		
-		// Update source texel size
-		source_texel_size.x() = 1.0f / static_cast<float>(source_texture->get_width());
-		source_texel_size.y() = 1.0f / static_cast<float>(source_texture->get_height());
-		
 		// Correct filter radius according to source texture aspect ratio
-		corrected_filter_radius = {filter_radius * (source_texel_size.x() / source_texel_size.y()), filter_radius};
+		const float aspect_ratio = static_cast<float>(source_height) / static_cast<float>(source_width);
+		corrected_filter_radius = {filter_radius * aspect_ratio, filter_radius};
 	}
 	
 	// Resize mip chain
@@ -189,9 +180,6 @@ void bloom_pass::resize()
 		
 		// Resize mip framebuffer
 		framebuffers[i]->resize({(int)mip_width, (int)mip_height});
-		
-		// Update mip texel size
-		texel_sizes[i] = 1.0f / float2{static_cast<float>(mip_width), static_cast<float>(mip_height)};
 	}
 }
 
@@ -228,8 +216,8 @@ void bloom_pass::set_source_texture(const gl::texture_2d* texture)
 
 void bloom_pass::set_mip_chain_length(unsigned int length)
 {
-	unsigned int source_width = 0;
-	unsigned int source_height = 0;
+	unsigned int source_width = 1;
+	unsigned int source_height = 1;
 	if (source_texture)
 	{
 		// Get source texture dimensions
@@ -257,9 +245,6 @@ void bloom_pass::set_mip_chain_length(unsigned int length)
 			gl::framebuffer* framebuffer = new gl::framebuffer(mip_width, mip_height);
 			framebuffer->attach(gl::framebuffer_attachment_type::color, texture);
 			framebuffers.push_back(framebuffer);
-			
-			// Calculate mip texel size
-			texel_sizes.push_back(1.0f / float2{static_cast<float>(mip_width), static_cast<float>(mip_height)});
 		}
 	}
 	else if (length < mip_chain_length)
@@ -272,8 +257,6 @@ void bloom_pass::set_mip_chain_length(unsigned int length)
 			
 			delete textures.back();
 			textures.pop_back();
-			
-			texel_sizes.pop_back();
 		}
 	}
 	
@@ -281,10 +264,19 @@ void bloom_pass::set_mip_chain_length(unsigned int length)
 	mip_chain_length = length;
 }
 
-void bloom_pass::set_filter_radius(float radius) noexcept
+void bloom_pass::set_filter_radius(float radius)
 {
 	filter_radius = radius;
-	corrected_filter_radius = {filter_radius * (source_texel_size.x() / source_texel_size.y()), filter_radius};
+	
+	// Get aspect ratio of source texture
+	float aspect_ratio = 1.0f;
+	if (source_texture)
+	{
+		aspect_ratio = static_cast<float>(source_texture->get_height()) / static_cast<float>(source_texture->get_width());
+	}
+	
+	// Correct filter radius according to source texture aspect ratio
+	corrected_filter_radius = {filter_radius * aspect_ratio, filter_radius};
 }
 
 } // namespace render
