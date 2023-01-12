@@ -215,8 +215,8 @@ void sky_pass::render(const render::context& ctx, render::queue& queue) const
 	float3 sun_direction = math::normalize(sun_position);
 	
 	// Interpolate and expose sun luminance and illuminance
-	float3 sun_luminance = sun_luminance_tween.interpolate(ctx.alpha) * ctx.exposure;
 	float3 sun_illuminance = sun_illuminance_tween.interpolate(ctx.alpha) * ctx.exposure;
+	float3 sun_luminance = sun_luminance_tween.interpolate(ctx.alpha) * ctx.exposure;
 	
 	float3 moon_position = moon_position_tween.interpolate(ctx.alpha);
 	float3 moon_direction = math::normalize(moon_position);

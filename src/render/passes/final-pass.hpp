@@ -42,13 +42,15 @@ public:
 	virtual void render(const render::context& ctx, render::queue& queue) const final;
 	
 	void set_color_texture(const gl::texture_2d* texture);
-	void set_bloom_texture(const gl::texture_2d* texture);
+	void set_bloom_texture(const gl::texture_2d* texture) noexcept;
+	void set_bloom_weight(float weight) noexcept;
 	void set_blue_noise_texture(const gl::texture_2d* texture);
 
 private:
 	gl::shader_program* shader_program;
 	const gl::shader_input* color_texture_input;
 	const gl::shader_input* bloom_texture_input;
+	const gl::shader_input* bloom_weight_input;
 	const gl::shader_input* blue_noise_texture_input;
 	const gl::shader_input* blue_noise_scale_input;
 	const gl::shader_input* resolution_input;
@@ -58,6 +60,7 @@ private:
 	
 	const gl::texture_2d* color_texture;
 	const gl::texture_2d* bloom_texture;
+	float bloom_weight;
 	const gl::texture_2d* blue_noise_texture;
 	float blue_noise_scale;
 };

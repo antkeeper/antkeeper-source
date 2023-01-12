@@ -32,63 +32,47 @@
 #include "gl/texture-filter.hpp"
 #include "render/vertex-attribute.hpp"
 #include "render/context.hpp"
+#include <algorithm>
 #include <cmath>
 #include <glad/glad.h>
+#include <iostream>
 
 namespace render {
 
-bloom_pass::bloom_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
-	pass(rasterizer, framebuffer),
+bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager):
+	pass(rasterizer, nullptr),
 	source_texture(nullptr),
-	brightness_threshold(1.0f),
-	blur_iterations(1)
+	source_texel_size{1.0f, 1.0f},
+	mip_chain_length(0),
+	filter_radius(0.005f),
+	corrected_filter_radius{filter_radius, filter_radius}
 {
-	// Create clone of framebuffer texture
-	const gl::texture_2d* framebuffer_texture = framebuffer->get_color_attachment();
-	auto dimensions = framebuffer_texture->get_dimensions();
-	auto pixel_type = framebuffer_texture->get_pixel_type();
-	auto pixel_format = framebuffer_texture->get_pixel_format();
-	auto wrapping = framebuffer_texture->get_wrapping();
-	auto filters = framebuffer_texture->get_filters();
-	float max_anisotropy = framebuffer_texture->get_max_anisotropy();
-	cloned_framebuffer_texture = new gl::texture_2d(std::get<0>(dimensions), std::get<1>(dimensions), pixel_type, pixel_format);
-	cloned_framebuffer_texture->set_wrapping(std::get<0>(wrapping), std::get<1>(wrapping));
-	cloned_framebuffer_texture->set_filters(std::get<0>(filters), std::get<1>(filters));
-	cloned_framebuffer_texture->set_max_anisotropy(max_anisotropy);
+	// Load downsample with Karis average shader
+	downsample_karis_shader = resource_manager->load<gl::shader_program>("bloom-downsample-karis.glsl");
+	downsample_karis_source_texture_input = downsample_karis_shader->get_input("source_texture");
+	downsample_karis_texel_size_input = downsample_karis_shader->get_input("texel_size");
 	
-	// Create clone of framebuffer
-	cloned_framebuffer = new gl::framebuffer(std::get<0>(dimensions), std::get<1>(dimensions));
-	cloned_framebuffer->attach(gl::framebuffer_attachment_type::color, cloned_framebuffer_texture);
+	// Load downsample shader
+	downsample_shader = resource_manager->load<gl::shader_program>("bloom-downsample.glsl");
+	downsample_source_texture_input = downsample_shader->get_input("source_texture");
+	downsample_texel_size_input = downsample_shader->get_input("texel_size");
 	
-	// Setup pingponging
-	pingpong_textures[0] = framebuffer_texture;
-	pingpong_textures[1] = cloned_framebuffer_texture;
-	pingpong_framebuffers[0] = framebuffer;
-	pingpong_framebuffers[1] = cloned_framebuffer;	
-	
-	// Load brightness threshold shader
-	threshold_shader = resource_manager->load<gl::shader_program>("brightness-threshold.glsl");
-	threshold_shader_image_input = threshold_shader->get_input("image");
-	threshold_shader_resolution_input = threshold_shader->get_input("resolution");
-	threshold_shader_threshold_input = threshold_shader->get_input("threshold");
-	
-	// Load blur shader
-	blur_shader = resource_manager->load<gl::shader_program>("blur.glsl");
-	blur_shader_image_input = blur_shader->get_input("image");
-	blur_shader_resolution_input = blur_shader->get_input("resolution");
-	blur_shader_direction_input = blur_shader->get_input("direction");
+	// Load upsample shader
+	upsample_shader = resource_manager->load<gl::shader_program>("bloom-upsample.glsl");
+	upsample_source_texture_input = upsample_shader->get_input("source_texture");
+	upsample_filter_radius_input = upsample_shader->get_input("filter_radius");
 
 	const float vertex_data[] =
 	{
-		-1.0f,  1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f
+		-1.0f,  1.0f,
+		-1.0f, -1.0f,
+		 1.0f,  1.0f,
+		 1.0f,  1.0f,
+		-1.0f, -1.0f,
+		 1.0f, -1.0f
 	};
-
-	std::size_t vertex_size = 3;
+	
+	std::size_t vertex_size = 2;
 	std::size_t vertex_stride = sizeof(float) * vertex_size;
 	std::size_t vertex_count = 6;
 
@@ -101,7 +85,7 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	position_attribute.offset = 0;
 	position_attribute.stride = vertex_stride;
 	position_attribute.type = gl::vertex_attribute_type::float_32;
-	position_attribute.components = 3;
+	position_attribute.components = 2;
 	
 	// Bind vertex attributes to VAO
 	quad_vao->bind(render::vertex_attribute::position, position_attribute);
@@ -109,67 +93,198 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 
 bloom_pass::~bloom_pass()
 {
-	delete cloned_framebuffer;
-	delete cloned_framebuffer_texture;
-	delete quad_vao;
-	delete quad_vbo;
+	set_mip_chain_length(0);
 }
 
 void bloom_pass::render(const render::context& ctx, render::queue& queue) const
-{	
-	glDisable(GL_BLEND);
+{
+	if (!source_texture || !mip_chain_length)
+		return;
+	
+	// Disable depth testing
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
+	
+	// Enable back-face culling
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-
-	// Determine viewport based on framebuffer resolution
-	auto viewport = framebuffer->get_dimensions();
-	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
-	float2 resolution = {std::get<0>(viewport), std::get<1>(viewport)};
 	
-	// Perform brightness threshold subpass, rendering to the first pingpong fbo
-	rasterizer->use_framebuffer(*pingpong_framebuffers[0]);
-	rasterizer->use_program(*threshold_shader);
-	threshold_shader_image_input->upload(source_texture);
-	threshold_shader_resolution_input->upload(resolution);
-	threshold_shader_threshold_input->upload(brightness_threshold);
-	rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+	// Disable blending
+	glDisable(GL_BLEND);
 	
-	// Perform iterative blur subpass
-	const float2 direction_horizontal = {1, 0};
-	const float2 direction_vertical = {0, 1};
-	rasterizer->use_program(*blur_shader);
-	blur_shader_resolution_input->upload(resolution);
-	for (int i = 0; i < blur_iterations; ++i)
+	// Downsample first mip with Karis average
 	{
-		// Perform horizontal blur
-		rasterizer->use_framebuffer(*pingpong_framebuffers[1]);
-		blur_shader_image_input->upload(pingpong_textures[0]);
-		blur_shader_direction_input->upload(direction_horizontal);
-		rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+		rasterizer->use_program(*downsample_karis_shader);
+		downsample_karis_source_texture_input->upload(source_texture);
+		downsample_karis_texel_size_input->upload(source_texel_size);
 		
-		// Perform vertical blur
-		rasterizer->use_framebuffer(*pingpong_framebuffers[0]);
-		blur_shader_image_input->upload(pingpong_textures[1]);
-		blur_shader_direction_input->upload(direction_vertical);
+		rasterizer->use_framebuffer(*framebuffers[0]);
+		rasterizer->set_viewport(0, 0, textures[0]->get_width(), textures[0]->get_height());
+		
 		rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+	}
+	
+	// Downsample remaining mips
+	rasterizer->use_program(*downsample_shader);
+	for (int i = 1; i < static_cast<int>(mip_chain_length); ++i)
+	{
+		rasterizer->use_framebuffer(*framebuffers[i]);
+		rasterizer->set_viewport(0, 0, textures[i]->get_width(), textures[i]->get_height());
+		
+		// Use previous downsample texture as downsample source
+		downsample_source_texture_input->upload(textures[i - 1]);
+		downsample_texel_size_input->upload(texel_sizes[i - 1]);
+		
+		rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+	}
+	
+	// Enable additive blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendEquation(GL_FUNC_ADD);
+	
+	// Upsample
+	rasterizer->use_program(*upsample_shader);
+	upsample_filter_radius_input->upload(corrected_filter_radius);
+	for (int i = static_cast<int>(mip_chain_length) - 1; i > 0; --i)
+	{
+		const int j = i - 1;
+		rasterizer->use_framebuffer(*framebuffers[j]);
+		rasterizer->set_viewport(0, 0, textures[j]->get_width(), textures[j]->get_height());
+		
+		upsample_source_texture_input->upload(textures[i]);
+		
+		rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+	}
+}
+
+void bloom_pass::resize()
+{
+	unsigned int source_width = 0;
+	unsigned int source_height = 0;
+	source_texel_size = {0.0f, 0.0f};
+	if (source_texture)
+	{
+		// Get source texture dimensions
+		source_width = source_texture->get_width();
+		source_height = source_texture->get_height();
+		
+		// Update source texel size
+		source_texel_size.x() = 1.0f / static_cast<float>(source_texture->get_width());
+		source_texel_size.y() = 1.0f / static_cast<float>(source_texture->get_height());
+		
+		// Correct filter radius according to source texture aspect ratio
+		corrected_filter_radius = {filter_radius * (source_texel_size.x() / source_texel_size.y()), filter_radius};
+	}
+	
+	// Resize mip chain
+	for (unsigned int i = 0; i < mip_chain_length; ++i)
+	{
+		// Calculate mip dimensions
+		unsigned int mip_width = std::max<unsigned int>(1, source_width >> (i + 1));
+		unsigned int mip_height = std::max<unsigned int>(1, source_height >> (i + 1));
+		
+		// Resize mip texture
+		textures[i]->resize(mip_width, mip_height, nullptr);
+		
+		// Resize mip framebuffer
+		framebuffers[i]->resize({(int)mip_width, (int)mip_height});
+		
+		// Update mip texel size
+		texel_sizes[i] = 1.0f / float2{static_cast<float>(mip_width), static_cast<float>(mip_height)};
 	}
 }
 
 void bloom_pass::set_source_texture(const gl::texture_2d* texture)
 {
-	this->source_texture = texture;
+	if (texture != source_texture)
+	{
+		if (texture)
+		{
+			if (source_texture)
+			{
+				if (texture->get_width() != source_texture->get_width() || texture->get_height() != source_texture->get_height())
+				{
+					source_texture = texture;
+					resize();
+				}
+				else
+				{
+					source_texture = texture;
+				}
+			}
+			else
+			{
+				source_texture = texture;
+				resize();
+			}
+		}
+		else
+		{
+			source_texture = texture;
+		}
+	}
 }
 
-void bloom_pass::set_brightness_threshold(float threshold)
+void bloom_pass::set_mip_chain_length(unsigned int length)
 {
-	this->brightness_threshold = threshold;
+	unsigned int source_width = 0;
+	unsigned int source_height = 0;
+	if (source_texture)
+	{
+		// Get source texture dimensions
+		source_width = source_texture->get_width();
+		source_height = source_texture->get_height();
+	}
+	
+	if (length > mip_chain_length)
+	{
+		// Generate additional framebuffers
+		for (unsigned int i = mip_chain_length; i < length; ++i)
+		{
+			// Calculate mip resolution
+			unsigned int mip_width = std::max<unsigned int>(1, source_width >> (i + 1));
+			unsigned int mip_height = std::max<unsigned int>(1, source_height >> (i + 1));
+			
+			// Generate mip texture
+			gl::texture_2d* texture = new gl::texture_2d(mip_width, mip_height, gl::pixel_type::float_16, gl::pixel_format::rgb);
+			texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+			texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
+			texture->set_max_anisotropy(0.0f);
+			textures.push_back(texture);
+			
+			// Generate mip framebuffer
+			gl::framebuffer* framebuffer = new gl::framebuffer(mip_width, mip_height);
+			framebuffer->attach(gl::framebuffer_attachment_type::color, texture);
+			framebuffers.push_back(framebuffer);
+			
+			// Calculate mip texel size
+			texel_sizes.push_back(1.0f / float2{static_cast<float>(mip_width), static_cast<float>(mip_height)});
+		}
+	}
+	else if (length < mip_chain_length)
+	{
+		// Free excess framebuffers
+		while (framebuffers.size() > length)
+		{
+			delete framebuffers.back();
+			framebuffers.pop_back();
+			
+			delete textures.back();
+			textures.pop_back();
+			
+			texel_sizes.pop_back();
+		}
+	}
+	
+	// Update mip chain length
+	mip_chain_length = length;
 }
 
-void bloom_pass::set_blur_iterations(int iterations)
+void bloom_pass::set_filter_radius(float radius) noexcept
 {
-	this->blur_iterations = iterations;
+	filter_radius = radius;
+	corrected_filter_radius = {filter_radius * (source_texel_size.x() / source_texel_size.y()), filter_radius};
 }
 
 } // namespace render

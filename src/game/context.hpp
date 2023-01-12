@@ -185,8 +185,6 @@ struct context
 	gl::texture_2d* hdr_color_texture;
 	gl::texture_2d* hdr_depth_texture;
 	gl::framebuffer* hdr_framebuffer;
-	gl::texture_2d* bloom_color_texture;
-	gl::framebuffer* bloom_framebuffer;
 	gl::texture_2d* shadow_map_depth_texture;
 	gl::framebuffer* shadow_map_framebuffer;
 	

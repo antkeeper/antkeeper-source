@@ -714,7 +714,7 @@ void nest_selection::enable_controls()
 		[&ctx = this->ctx](float)
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() - 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 0.5f * static_cast<float>(ctx.loop.get_update_period()));
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 2.0f * static_cast<float>(ctx.loop.get_update_period()));
 			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
@@ -724,7 +724,7 @@ void nest_selection::enable_controls()
 		[&ctx = this->ctx](float)
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() + 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 0.5f * static_cast<float>(ctx.loop.get_update_period()));
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 2.0f * static_cast<float>(ctx.loop.get_update_period()));
 			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);

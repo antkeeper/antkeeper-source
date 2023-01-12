@@ -18,6 +18,7 @@
  */
 
 #include "game/graphics.hpp"
+#include "render/passes/bloom-pass.hpp"
 #include "gl/framebuffer.hpp"
 #include "gl/texture-2d.hpp"
 #include "gl/texture-wrapping.hpp"
@@ -61,17 +62,6 @@ void create_framebuffers(game::context& ctx)
 	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx.hdr_depth_texture);
 	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::stencil, ctx.hdr_depth_texture);
 	
-	// Calculate bloom resolution
-	int2 bloom_resolution = ctx.render_resolution / 2;
-	
-	// Create bloom framebuffer (16F color, no depth)
-	ctx.bloom_color_texture = new gl::texture_2d(bloom_resolution.x(), bloom_resolution.y(), gl::pixel_type::float_16, gl::pixel_format::rgb);
-	ctx.bloom_color_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-	ctx.bloom_color_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-	ctx.bloom_color_texture->set_max_anisotropy(0.0f);
-	ctx.bloom_framebuffer = new gl::framebuffer(bloom_resolution.x(), bloom_resolution.y());
-	ctx.bloom_framebuffer->attach(gl::framebuffer_attachment_type::color, ctx.bloom_color_texture);
-	
 	// Load shadow map resolution from config
 	int shadow_map_resolution = 4096;
 	if (ctx.config->contains("shadow_map_resolution"))
@@ -100,12 +90,6 @@ void destroy_framebuffers(game::context& ctx)
 	delete ctx.hdr_depth_texture;
 	ctx.hdr_depth_texture = nullptr;
 	
-	// Delete bloom framebuffer and its attachments
-	delete ctx.bloom_framebuffer;
-	ctx.bloom_framebuffer = nullptr;
-	delete ctx.bloom_color_texture;
-	ctx.bloom_color_texture = nullptr;
-	
 	// Delete shadow map framebuffer and its attachments
 	delete ctx.shadow_map_framebuffer;
 	ctx.shadow_map_framebuffer = nullptr;
@@ -131,12 +115,8 @@ void change_render_resolution(game::context& ctx, float scale)
 	resize_framebuffer_attachment(*ctx.hdr_color_texture, ctx.render_resolution);
 	resize_framebuffer_attachment(*ctx.hdr_depth_texture, ctx.render_resolution);
 	
-	// Recalculate bloom resolution
-	int2 bloom_resolution = ctx.render_resolution / 2;
-	
-	// Resize bloom framebuffer and attachments
-	ctx.bloom_framebuffer->resize({bloom_resolution.x(), bloom_resolution.y()});
-	resize_framebuffer_attachment(*ctx.bloom_color_texture, bloom_resolution);
+	// Resize bloom render pass
+	ctx.common_bloom_pass->resize();
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
 }

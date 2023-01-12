@@ -447,14 +447,15 @@ void boot::setup_rendering()
 	
 	// Setup common render passes
 	{
-		ctx.common_bloom_pass = new render::bloom_pass(ctx.rasterizer, ctx.bloom_framebuffer, ctx.resource_manager);
+		ctx.common_bloom_pass = new render::bloom_pass(ctx.rasterizer, ctx.resource_manager);
 		ctx.common_bloom_pass->set_source_texture(ctx.hdr_color_texture);
-		ctx.common_bloom_pass->set_brightness_threshold(1.0f);
-		ctx.common_bloom_pass->set_blur_iterations(5);
+		ctx.common_bloom_pass->set_mip_chain_length(6);
+		ctx.common_bloom_pass->set_filter_radius(0.005f);
 		
 		ctx.common_final_pass = new render::final_pass(ctx.rasterizer, &ctx.rasterizer->get_default_framebuffer(), ctx.resource_manager);
 		ctx.common_final_pass->set_color_texture(ctx.hdr_color_texture);
-		ctx.common_final_pass->set_bloom_texture(ctx.bloom_color_texture);
+		ctx.common_final_pass->set_bloom_texture(ctx.common_bloom_pass->get_bloom_texture());
+		ctx.common_final_pass->set_bloom_weight(0.04f);
 		ctx.common_final_pass->set_blue_noise_texture(blue_noise_map);
 	}
 	
@@ -526,7 +527,7 @@ void boot::setup_rendering()
 		ctx.surface_compositor->add_pass(ctx.ground_pass);
 		ctx.surface_compositor->add_pass(ctx.surface_material_pass);
 		//ctx.surface_compositor->add_pass(ctx.surface_outline_pass);
-		//ctx.surface_compositor->add_pass(ctx.common_bloom_pass);
+		ctx.surface_compositor->add_pass(ctx.common_bloom_pass);
 		ctx.surface_compositor->add_pass(ctx.common_final_pass);
 	}
 	

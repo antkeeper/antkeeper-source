@@ -41,12 +41,14 @@ final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	pass(rasterizer, framebuffer),
 	color_texture(nullptr),
 	bloom_texture(nullptr),
+	bloom_weight(0.04f),
 	blue_noise_texture(nullptr),
-	blue_noise_scale(1.0)
+	blue_noise_scale(1.0f)
 {
 	shader_program = resource_manager->load<gl::shader_program>("final.glsl");
 	color_texture_input = shader_program->get_input("color_texture");
 	bloom_texture_input = shader_program->get_input("bloom_texture");
+	bloom_weight_input = shader_program->get_input("bloom_weight");
 	blue_noise_texture_input = shader_program->get_input("blue_noise_texture");
 	blue_noise_scale_input = shader_program->get_input("blue_noise_scale");
 	resolution_input = shader_program->get_input("resolution");
@@ -109,6 +111,8 @@ void final_pass::render(const render::context& ctx, render::queue& queue) const
 	color_texture_input->upload(color_texture);
 	if (bloom_texture && bloom_texture_input)
 		bloom_texture_input->upload(bloom_texture);
+	if (bloom_weight_input)
+		bloom_weight_input->upload(bloom_weight);
 	if (blue_noise_texture && blue_noise_texture_input)
 		blue_noise_texture_input->upload(blue_noise_texture);
 	if (blue_noise_scale_input)
@@ -127,9 +131,14 @@ void final_pass::set_color_texture(const gl::texture_2d* texture)
 	this->color_texture = texture;
 }
 
-void final_pass::set_bloom_texture(const gl::texture_2d* texture)
+void final_pass::set_bloom_texture(const gl::texture_2d* texture) noexcept
 {
 	this->bloom_texture = texture;
+}
+
+void final_pass::set_bloom_weight(float weight) noexcept
+{
+	this->bloom_weight = weight;
 }
 
 void final_pass::set_blue_noise_texture(const gl::texture_2d* texture)

@@ -32,42 +32,97 @@ class resource_manager;
 namespace render {
 
 /**
+ * Physically-based bloom render pass.
  *
+ * @see Jimenez, J. (2014). Next generation post processing in call of duty advanced warfare. SIGGRAPH Advances in Real-Time Rendering.
+ * @see https://learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom
  */
 class bloom_pass: public pass
 {
 public:
-	bloom_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
+	/**
+	 * Constructs a bloom pass.
+	 *
+	 * @param rasterizer Rasterizer.
+	 * @param resource_manager Resource manager.
+	 */
+	bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager);
+	
+	/**
+	 * Destructs a bloom pass.
+	 */
 	virtual ~bloom_pass();
+	
+	/**
+	 * Renders a bloom texture.
+	 *
+	 * @param ctx Render context.
+	 * @param queue Render queue.
+	 */
 	virtual void render(const render::context& ctx, render::queue& queue) const final;
 	
+	/**
+	 * Resizes the mip chain resolution according to the resolution of the source texture.
+	 */
+	void resize();
+	
+	/**
+	 * Sets the bloom source texture.
+	 *
+	 * @param texture Bloom source texture.
+	 */
 	void set_source_texture(const gl::texture_2d* texture);
-	void set_brightness_threshold(float threshold);
-	void set_blur_iterations(int iterations);
+	
+	/**
+	 * Sets the mip chain length. A length of `1` indicates a single stage bloom.
+	 *
+	 * @param length Mip chain length.
+	 */
+	void set_mip_chain_length(unsigned int length);
+	
+	/**
+	 * Sets the upsample filter radius.
+	 *
+	 * @param radius Upsample filter radius, in texture coordinates.
+	 */
+	void set_filter_radius(float radius) noexcept;
+	
+	/**
+	 * Returns the texture containing the bloom result.
+	 */
+	const gl::texture_2d* get_bloom_texture() const;
 
 private:
+	const gl::texture_2d* source_texture;
+	float2 source_texel_size;
+	
+	gl::shader_program* downsample_karis_shader;
+	const gl::shader_input* downsample_karis_source_texture_input;
+	const gl::shader_input* downsample_karis_texel_size_input;
+	
+	gl::shader_program* downsample_shader;
+	const gl::shader_input* downsample_source_texture_input;
+	const gl::shader_input* downsample_texel_size_input;
+	
+	gl::shader_program* upsample_shader;
+	const gl::shader_input* upsample_source_texture_input;
+	const gl::shader_input* upsample_filter_radius_input;
+	
 	gl::vertex_buffer* quad_vbo;
 	gl::vertex_array* quad_vao;
 	
-	const gl::framebuffer* pingpong_framebuffers[2];
-	const gl::texture_2d* pingpong_textures[2];
-	gl::texture_2d* cloned_framebuffer_texture;
-	gl::framebuffer* cloned_framebuffer;
-	
-	gl::shader_program* threshold_shader;
-	const gl::shader_input* threshold_shader_image_input;
-	const gl::shader_input* threshold_shader_resolution_input;
-	const gl::shader_input* threshold_shader_threshold_input;
-	
-	gl::shader_program* blur_shader;
-	const gl::shader_input* blur_shader_image_input;
-	const gl::shader_input* blur_shader_resolution_input;
-	const gl::shader_input* blur_shader_direction_input;
-	
-	const gl::texture_2d* source_texture;
-	float brightness_threshold;
-	int blur_iterations;
+	unsigned int mip_chain_length;
+	std::vector<gl::framebuffer*> framebuffers;
+	std::vector<gl::texture_2d*> textures;
+	std::vector<float2> texel_sizes;
+	float filter_radius;
+	float2 corrected_filter_radius;
 };
+
+inline const gl::texture_2d* bloom_pass::get_bloom_texture() const
+{
+	return textures.empty() ? nullptr : textures.front();
+}
 
 } // namespace render
 
