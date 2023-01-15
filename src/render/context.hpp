@@ -30,6 +30,7 @@ namespace scene
 {
 	class camera;
 	class collection;
+	class object_base;
 }
 
 namespace render {
@@ -80,6 +81,9 @@ struct context
 	
 	/// Subframe interpolation factor.
 	float alpha;
+	
+	/// List of objects visible to the active camera.
+	std::list<scene::object_base*> visible_objects;
 };
 
 } // namespace render

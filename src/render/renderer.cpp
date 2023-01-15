@@ -51,11 +51,15 @@ renderer::renderer()
 	
 	// Allocate skinning palette
 	skinning_palette = new float4x4[MATERIAL_PASS_MAX_BONE_COUNT];
+	
+	// Construct culling stage
+	culling_stage = new render::culling_stage();
 }
 
 renderer::~renderer()
 {
 	delete[] skinning_palette;
+	delete culling_stage;
 }
 
 void renderer::render(float t, float dt, float alpha, const scene::collection& collection) const
@@ -114,21 +118,15 @@ void renderer::render(float t, float dt, float alpha, const scene::collection& c
 		ctx.view_projection = ctx.projection * ctx.view;
 		ctx.exposure = std::exp2(-camera->get_exposure_tween().interpolate(alpha));
 		
+		// Execute culling stage
+		culling_stage->execute(ctx);
+		
 		// Create render queue
 		render::queue queue;
 		
-		// Get camera culling volume
-		ctx.camera_culling_volume = camera->get_culling_mask();
-		if (!ctx.camera_culling_volume)
-			ctx.camera_culling_volume = &camera->get_world_bounds();
-		
 		// Queue render operations for each visible scene object
-		for (const scene::object_base* object: *objects)
+		for (const scene::object_base* object: ctx.visible_objects)
 		{
-			// Skip inactive objects
-			if (!object->is_active())
-				continue;
-			
 			// Process object
 			process_object(ctx, queue, object);
 		}
@@ -161,15 +159,6 @@ void renderer::process_model_instance(const render::context& ctx, render::queue&
 {
 	const model* model = model_instance->get_model();
 	if (!model)
-		return;
-	
-	// Get object culling volume
-	const geom::bounding_volume<float>* object_culling_volume = model_instance->get_culling_mask();
-	if (!object_culling_volume)
-		object_culling_volume = &model_instance->get_world_bounds();
-	
-	// Perform view-frustum culling
-	if (!ctx.camera_culling_volume->intersects(*object_culling_volume))
 		return;
 	
 	const std::vector<material*>* instance_materials = model_instance->get_materials();
@@ -213,15 +202,6 @@ void renderer::process_model_instance(const render::context& ctx, render::queue&
 
 void renderer::process_billboard(const render::context& ctx, render::queue& queue, const scene::billboard* billboard) const
 {
-	// Get object culling volume
-	const geom::bounding_volume<float>* object_culling_volume = billboard->get_culling_mask();
-	if (!object_culling_volume)
-		object_culling_volume = &billboard->get_world_bounds();
-	
-	// Perform view-frustum culling
-	if (!ctx.camera_culling_volume->intersects(*object_culling_volume))
-		return;
-	
 	math::transform<float> billboard_transform = billboard->get_transform_tween().interpolate(ctx.alpha);
 	billboard_op.material = billboard->get_material();
 	billboard_op.depth = ctx.clip_near.signed_distance(float3(billboard_transform.translation));
@@ -261,15 +241,6 @@ void renderer::process_lod_group(const render::context& ctx, render::queue& queu
 
 void renderer::process_text(const render::context& ctx, render::queue& queue, const scene::text* text) const
 {
-	// Get object culling volume
-	const geom::bounding_volume<float>* object_culling_volume = text->get_culling_mask();
-	if (!object_culling_volume)
-		object_culling_volume = &text->get_world_bounds();
-	
-	// Perform view-frustum culling
-	if (!ctx.camera_culling_volume->intersects(*object_culling_volume))
-		return;
-	
 	text->render(ctx, queue);
 }
 

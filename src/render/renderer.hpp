@@ -23,6 +23,7 @@
 #include "render/operation.hpp"
 #include "render/context.hpp"
 #include "render/queue.hpp"
+#include "render/stage/culling-stage.hpp"
 #include "gl/vertex-array.hpp"
 
 namespace scene
@@ -70,6 +71,8 @@ private:
 
 	mutable render::operation billboard_op;
 	float4x4* skinning_palette;
+	
+	render::culling_stage* culling_stage;
 };
 
 } // namespace render
