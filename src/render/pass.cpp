@@ -35,4 +35,9 @@ void pass::set_enabled(bool enabled)
 	this->enabled = enabled;
 }
 
+void pass::set_framebuffer(const gl::framebuffer* framebuffer)
+{
+	this->framebuffer = framebuffer;
+}
+
 } // namespace render

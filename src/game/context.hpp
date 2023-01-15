@@ -50,6 +50,7 @@
 #include "type/bitmap-font.hpp"
 #include "render/material.hpp"
 #include "render/material-property.hpp"
+#include "render/anti-aliasing-method.hpp"
 #include "ui/mouse-tracker.hpp"
 #include "application.hpp"
 #include "game/state/base.hpp"
@@ -108,6 +109,8 @@ namespace render
 	class clear_pass;
 	class compositor;
 	class final_pass;
+	class fxaa_pass;
+	class resample_pass;
 	class material_pass;
 	class renderer;
 	class outline_pass;
@@ -185,6 +188,10 @@ struct context
 	gl::texture_2d* hdr_color_texture;
 	gl::texture_2d* hdr_depth_texture;
 	gl::framebuffer* hdr_framebuffer;
+	gl::texture_2d* ldr_color_texture_a;
+	gl::framebuffer* ldr_framebuffer_a;
+	gl::texture_2d* ldr_color_texture_b;
+	gl::framebuffer* ldr_framebuffer_b;
 	gl::texture_2d* shadow_map_depth_texture;
 	gl::framebuffer* shadow_map_framebuffer;
 	
@@ -192,7 +199,7 @@ struct context
 	gl::rasterizer* rasterizer;
 	render::renderer* renderer;
 	int2 render_resolution;
-	float render_resolution_scale;
+	float render_scale;
 	gl::vertex_buffer* billboard_vbo;
 	gl::vertex_array* billboard_vao;
 	render::material* fallback_material;
@@ -201,8 +208,10 @@ struct context
 	render::clear_pass* ui_clear_pass;
 	render::material_pass* ui_material_pass;
 	render::compositor* ui_compositor;
-	render::bloom_pass* common_bloom_pass;
+	render::bloom_pass* bloom_pass;
 	render::final_pass* common_final_pass;
+	render::fxaa_pass* fxaa_pass;
+	render::resample_pass* resample_pass;
 	render::clear_pass* underground_clear_pass;
 	render::material_pass* underground_material_pass;
 	render::compositor* underground_compositor;
@@ -296,6 +305,9 @@ struct context
 	double3 rgb_wavelengths;
 	
 	const ecoregion* active_ecoregion;
+	
+	bool bloom_enabled;
+	render::anti_aliasing_method anti_aliasing_method;
 };
 
 } // namespace game

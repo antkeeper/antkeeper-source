@@ -44,6 +44,10 @@ graphics_menu::graphics_menu(game::context& ctx):
 	scene::text* resolution_value_text = new scene::text();
 	scene::text* v_sync_name_text = new scene::text();
 	scene::text* v_sync_value_text = new scene::text();
+	scene::text* aa_method_name_text = new scene::text();
+	scene::text* aa_method_value_text = new scene::text();
+	scene::text* bloom_name_text = new scene::text();
+	scene::text* bloom_value_text = new scene::text();
 	scene::text* font_size_name_text = new scene::text();
 	scene::text* font_size_value_text = new scene::text();
 	scene::text* dyslexia_font_name_text = new scene::text();
@@ -54,6 +58,8 @@ graphics_menu::graphics_menu(game::context& ctx):
 	ctx.menu_item_texts.push_back({fullscreen_name_text, fullscreen_value_text});
 	ctx.menu_item_texts.push_back({resolution_name_text, resolution_value_text});
 	ctx.menu_item_texts.push_back({v_sync_name_text, v_sync_value_text});
+	ctx.menu_item_texts.push_back({aa_method_name_text, aa_method_value_text});
+	ctx.menu_item_texts.push_back({bloom_name_text, bloom_value_text});
 	ctx.menu_item_texts.push_back({font_size_name_text, font_size_value_text});
 	ctx.menu_item_texts.push_back({dyslexia_font_name_text, dyslexia_font_value_text});
 	ctx.menu_item_texts.push_back({back_text, nullptr});
@@ -62,6 +68,8 @@ graphics_menu::graphics_menu(game::context& ctx):
 	fullscreen_name_text->set_content((*ctx.strings)["graphics_menu_fullscreen"]);
 	resolution_name_text->set_content((*ctx.strings)["graphics_menu_resolution"]);
 	v_sync_name_text->set_content((*ctx.strings)["graphics_menu_v_sync"]);
+	aa_method_name_text->set_content((*ctx.strings)["graphics_menu_aa_method"]);
+	bloom_name_text->set_content((*ctx.strings)["graphics_menu_bloom"]);
 	font_size_name_text->set_content((*ctx.strings)["graphics_menu_font_size"]);
 	dyslexia_font_name_text->set_content((*ctx.strings)["graphics_menu_dyslexia_font"]);
 	back_text->set_content((*ctx.strings)["back"]);
@@ -105,16 +113,16 @@ graphics_menu::graphics_menu(game::context& ctx):
 	{
 		// Increase resolution
 		if (ctx.controls["menu_modifier"]->is_active())
-			ctx.render_resolution_scale += 0.05f;
+			ctx.render_scale += 0.05f;
 		else
-			ctx.render_resolution_scale += 0.25f;
+			ctx.render_scale += 0.25f;
 		
 		// Limit resolution
-		if (ctx.render_resolution_scale > 2.0f)
-			ctx.render_resolution_scale = 2.0f;
+		if (ctx.render_scale > 2.0f)
+			ctx.render_scale = 2.0f;
 		
 		// Resize framebuffers
-		game::graphics::change_render_resolution(ctx, ctx.render_resolution_scale);
+		game::graphics::change_render_resolution(ctx, ctx.render_scale);
 		
 		// Update text
 		this->update_value_text_content();
@@ -122,23 +130,23 @@ graphics_menu::graphics_menu(game::context& ctx):
 		game::menu::update_text_tweens(ctx);
 		
 		// Update config
-		(*ctx.config)["render_resolution"] = ctx.render_resolution_scale;
+		(*ctx.config)["render_scale"] = ctx.render_scale;
 	};
 	
 	auto decrease_resolution_callback = [this, &ctx]()
 	{
 		// Increase resolution
 		if (ctx.controls["menu_modifier"]->is_active())
-			ctx.render_resolution_scale -= 0.05f;
+			ctx.render_scale -= 0.05f;
 		else
-			ctx.render_resolution_scale -= 0.25f;
+			ctx.render_scale -= 0.25f;
 		
 		// Limit resolution
-		if (ctx.render_resolution_scale < 0.25f)
-			ctx.render_resolution_scale = 0.25f;
+		if (ctx.render_scale < 0.25f)
+			ctx.render_scale = 0.25f;
 		
 		// Resize framebuffers
-		game::graphics::change_render_resolution(ctx, ctx.render_resolution_scale);
+		game::graphics::change_render_resolution(ctx, ctx.render_scale);
 		
 		// Update text
 		this->update_value_text_content();
@@ -146,7 +154,7 @@ graphics_menu::graphics_menu(game::context& ctx):
 		game::menu::update_text_tweens(ctx);
 		
 		// Update config
-		(*ctx.config)["render_resolution"] = ctx.render_resolution_scale;
+		(*ctx.config)["render_scale"] = ctx.render_scale;
 	};
 	
 	auto toggle_v_sync_callback = [this, &ctx]()
@@ -161,6 +169,74 @@ graphics_menu::graphics_menu(game::context& ctx):
 		
 		// Save v-sync config
 		(*ctx.config)["v_sync"] = v_sync;
+	};
+	
+	auto next_aa_method_callback = [this, &ctx]()
+	{
+		switch (ctx.anti_aliasing_method)
+		{
+			case render::anti_aliasing_method::none:
+				ctx.anti_aliasing_method = render::anti_aliasing_method::fxaa;
+				(*ctx.config)["anti_aliasing_method"] = "fxaa";
+				break;
+			
+			case render::anti_aliasing_method::fxaa:
+				ctx.anti_aliasing_method = render::anti_aliasing_method::none;
+				(*ctx.config)["anti_aliasing_method"] = "none";
+				break;
+		}
+		
+		game::graphics::select_anti_aliasing_method(ctx, ctx.anti_aliasing_method);
+		
+		// Update value text
+		this->update_value_text_content();
+		
+		// Refresh and realign text
+		game::menu::refresh_text(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
+	};
+	
+	auto previous_aa_method_callback = [this, &ctx]()
+	{
+		switch (ctx.anti_aliasing_method)
+		{
+			case render::anti_aliasing_method::none:
+				ctx.anti_aliasing_method = render::anti_aliasing_method::fxaa;
+				(*ctx.config)["anti_aliasing_method"] = "fxaa";
+				break;
+			
+			case render::anti_aliasing_method::fxaa:
+				ctx.anti_aliasing_method = render::anti_aliasing_method::none;
+				(*ctx.config)["anti_aliasing_method"] = "none";
+				break;
+		}
+		
+		game::graphics::select_anti_aliasing_method(ctx, ctx.anti_aliasing_method);
+		
+		// Update value text
+		this->update_value_text_content();
+		
+		// Refresh and realign text
+		game::menu::refresh_text(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
+	};
+	
+	auto toggle_bloom_callback = [this, &ctx]()
+	{
+		game::graphics::toggle_bloom(ctx, !ctx.bloom_enabled);
+		
+		// Update value text
+		this->update_value_text_content();
+		
+		// Update config
+		(*ctx.config)["bloom_enabled"] = ctx.bloom_enabled;
+		
+		// Refresh and realign text
+		game::menu::refresh_text(ctx);
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
 	};
 	
 	auto increase_font_size_callback = [this, &ctx]()
@@ -289,6 +365,8 @@ graphics_menu::graphics_menu(game::context& ctx):
 	ctx.menu_select_callbacks.push_back(toggle_fullscreen_callback);
 	ctx.menu_select_callbacks.push_back(increase_resolution_callback);
 	ctx.menu_select_callbacks.push_back(toggle_v_sync_callback);
+	ctx.menu_select_callbacks.push_back(next_aa_method_callback);
+	ctx.menu_select_callbacks.push_back(toggle_bloom_callback);
 	ctx.menu_select_callbacks.push_back(increase_font_size_callback);
 	ctx.menu_select_callbacks.push_back(toggle_dyslexia_font_callback);
 	ctx.menu_select_callbacks.push_back(select_back_callback);
@@ -297,6 +375,8 @@ graphics_menu::graphics_menu(game::context& ctx):
 	ctx.menu_left_callbacks.push_back(toggle_fullscreen_callback);
 	ctx.menu_left_callbacks.push_back(decrease_resolution_callback);
 	ctx.menu_left_callbacks.push_back(toggle_v_sync_callback);
+	ctx.menu_left_callbacks.push_back(previous_aa_method_callback);
+	ctx.menu_left_callbacks.push_back(toggle_bloom_callback);
 	ctx.menu_left_callbacks.push_back(decrease_font_size_callback);
 	ctx.menu_left_callbacks.push_back(toggle_dyslexia_font_callback);
 	ctx.menu_left_callbacks.push_back(nullptr);
@@ -305,6 +385,8 @@ graphics_menu::graphics_menu(game::context& ctx):
 	ctx.menu_right_callbacks.push_back(toggle_fullscreen_callback);
 	ctx.menu_right_callbacks.push_back(increase_resolution_callback);
 	ctx.menu_right_callbacks.push_back(toggle_v_sync_callback);
+	ctx.menu_right_callbacks.push_back(next_aa_method_callback);
+	ctx.menu_right_callbacks.push_back(toggle_bloom_callback);
 	ctx.menu_right_callbacks.push_back(increase_font_size_callback);
 	ctx.menu_right_callbacks.push_back(toggle_dyslexia_font_callback);
 	ctx.menu_right_callbacks.push_back(nullptr);
@@ -337,20 +419,40 @@ graphics_menu::~graphics_menu()
 
 void graphics_menu::update_value_text_content()
 {
-	bool fullscreen = ctx.app->is_fullscreen();
-	float resolution = ctx.render_resolution_scale;
-	bool v_sync = ctx.app->get_v_sync();
-	float font_size = ctx.font_size;
-	bool dyslexia_font = ctx.dyslexia_font;
+	const bool fullscreen = ctx.app->is_fullscreen();
+	const float render_scale = ctx.render_scale;
+	const bool v_sync = ctx.app->get_v_sync();
+	const int aa_method_index = static_cast<int>(ctx.anti_aliasing_method);
+	const bool bloom_enabled = ctx.bloom_enabled;
+	const float font_size = ctx.font_size;
+	const bool dyslexia_font = ctx.dyslexia_font;
 	
 	const std::string string_on = (*ctx.strings)["on"];
 	const std::string string_off = (*ctx.strings)["off"];
 	
+	/*
+	const std::string string_quality[4] = 
+	{
+		(*ctx.strings)["off"],
+		(*ctx.strings)["quality_low"],
+		(*ctx.strings)["quality_medium"],
+		(*ctx.strings)["quality_high"]
+	};
+	*/
+	
+	const std::string string_aa_methods[2] = 
+	{
+		(*ctx.strings)["graphics_menu_aa_method_none"],
+		(*ctx.strings)["graphics_menu_aa_method_fxaa"]
+	};
+	
 	std::get<1>(ctx.menu_item_texts[0])->set_content((fullscreen) ? string_on : string_off);
-	std::get<1>(ctx.menu_item_texts[1])->set_content(std::to_string(static_cast<int>(std::round(resolution * 100.0f))) + "%");
+	std::get<1>(ctx.menu_item_texts[1])->set_content(std::to_string(static_cast<int>(std::round(render_scale * 100.0f))) + "%");
 	std::get<1>(ctx.menu_item_texts[2])->set_content((v_sync) ? string_on : string_off);
-	std::get<1>(ctx.menu_item_texts[3])->set_content(std::to_string(static_cast<int>(std::round(font_size * 100.0f))) + "%");
-	std::get<1>(ctx.menu_item_texts[4])->set_content((dyslexia_font) ? string_on : string_off);
+	std::get<1>(ctx.menu_item_texts[3])->set_content(string_aa_methods[aa_method_index]);
+	std::get<1>(ctx.menu_item_texts[4])->set_content((bloom_enabled) ? string_on : string_off);
+	std::get<1>(ctx.menu_item_texts[5])->set_content(std::to_string(static_cast<int>(std::round(font_size * 100.0f))) + "%");
+	std::get<1>(ctx.menu_item_texts[6])->set_content((dyslexia_font) ? string_on : string_off);
 }
 
 } // namespace state

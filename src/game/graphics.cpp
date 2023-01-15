@@ -19,6 +19,9 @@
 
 #include "game/graphics.hpp"
 #include "render/passes/bloom-pass.hpp"
+#include "render/passes/fxaa-pass.hpp"
+#include "render/passes/final-pass.hpp"
+#include "render/passes/resample-pass.hpp"
 #include "gl/framebuffer.hpp"
 #include "gl/texture-2d.hpp"
 #include "gl/texture-wrapping.hpp"
@@ -33,20 +36,20 @@
 namespace game {
 namespace graphics {
 
-static void resize_framebuffer_attachment(gl::texture_2d& texture, const int2& resolution);
+static void reroute_framebuffers(game::context& ctx);
 
 void create_framebuffers(game::context& ctx)
 {
 	ctx.logger->push_task("Creating framebuffers");
 	
 	// Load render resolution scale from config
-	ctx.render_resolution_scale = 1.0f;
-	if (ctx.config->contains("render_resolution"))
-		ctx.render_resolution_scale = (*ctx.config)["render_resolution"].get<float>();
+	ctx.render_scale = 1.0f;
+	if (ctx.config->contains("render_scale"))
+		ctx.render_scale = (*ctx.config)["render_scale"].get<float>();
 	
 	// Calculate render resolution
 	const int2& viewport_dimensions = ctx.app->get_viewport_dimensions();
-	ctx.render_resolution = {static_cast<int>(viewport_dimensions.x() * ctx.render_resolution_scale + 0.5f), static_cast<int>(viewport_dimensions.y() * ctx.render_resolution_scale + 0.5f)};
+	ctx.render_resolution = {static_cast<int>(viewport_dimensions.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_dimensions.y() * ctx.render_scale + 0.5f)};
 	
 	// Create HDR framebuffer (32F color, 32F depth)
 	ctx.hdr_color_texture = new gl::texture_2d(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
@@ -61,6 +64,21 @@ void create_framebuffers(game::context& ctx)
 	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::color, ctx.hdr_color_texture);
 	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx.hdr_depth_texture);
 	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::stencil, ctx.hdr_depth_texture);
+	
+	// Create LDR framebuffers (8-bit color, no depth)
+	ctx.ldr_color_texture_a = new gl::texture_2d(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::uint_8, gl::pixel_format::rgb);
+	ctx.ldr_color_texture_a->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+	ctx.ldr_color_texture_a->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
+	ctx.ldr_color_texture_a->set_max_anisotropy(0.0f);
+	ctx.ldr_framebuffer_a = new gl::framebuffer(ctx.render_resolution.x(), ctx.render_resolution.y());
+	ctx.ldr_framebuffer_a->attach(gl::framebuffer_attachment_type::color, ctx.ldr_color_texture_a);
+	
+	ctx.ldr_color_texture_b = new gl::texture_2d(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::uint_8, gl::pixel_format::rgb);
+	ctx.ldr_color_texture_b->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+	ctx.ldr_color_texture_b->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
+	ctx.ldr_color_texture_b->set_max_anisotropy(0.0f);
+	ctx.ldr_framebuffer_b = new gl::framebuffer(ctx.render_resolution.x(), ctx.render_resolution.y());
+	ctx.ldr_framebuffer_b->attach(gl::framebuffer_attachment_type::color, ctx.ldr_color_texture_b);
 	
 	// Load shadow map resolution from config
 	int shadow_map_resolution = 4096;
@@ -90,6 +108,17 @@ void destroy_framebuffers(game::context& ctx)
 	delete ctx.hdr_depth_texture;
 	ctx.hdr_depth_texture = nullptr;
 	
+	// Delete LDR framebuffers and attachments
+	delete ctx.ldr_framebuffer_a;
+	ctx.ldr_framebuffer_a = nullptr;
+	delete ctx.ldr_color_texture_a;
+	ctx.ldr_color_texture_a = nullptr;
+	
+	delete ctx.ldr_framebuffer_b;
+	ctx.ldr_framebuffer_b = nullptr;
+	delete ctx.ldr_color_texture_b;
+	ctx.ldr_color_texture_b = nullptr;
+	
 	// Delete shadow map framebuffer and its attachments
 	delete ctx.shadow_map_framebuffer;
 	ctx.shadow_map_framebuffer = nullptr;
@@ -104,26 +133,38 @@ void change_render_resolution(game::context& ctx, float scale)
 	ctx.logger->push_task("Changing render resolution");
 	
 	// Update render resolution scale
-	ctx.render_resolution_scale = scale;
+	ctx.render_scale = scale;
 	
 	// Recalculate render resolution
 	const int2& viewport_dimensions = ctx.app->get_viewport_dimensions();
-	ctx.render_resolution = {static_cast<int>(viewport_dimensions.x() * ctx.render_resolution_scale + 0.5f), static_cast<int>(viewport_dimensions.y() * ctx.render_resolution_scale + 0.5f)};
+	ctx.render_resolution = {static_cast<int>(viewport_dimensions.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_dimensions.y() * ctx.render_scale + 0.5f)};
 	
 	// Resize HDR framebuffer and attachments
 	ctx.hdr_framebuffer->resize({ctx.render_resolution.x(), ctx.render_resolution.y()});
-	resize_framebuffer_attachment(*ctx.hdr_color_texture, ctx.render_resolution);
-	resize_framebuffer_attachment(*ctx.hdr_depth_texture, ctx.render_resolution);
+	ctx.hdr_color_texture->resize(ctx.render_resolution.x(), ctx.render_resolution.y(), nullptr);
+	ctx.hdr_depth_texture->resize(ctx.render_resolution.x(), ctx.render_resolution.y(), nullptr);
+	
+	// Resize LDR framebuffers and attachments
+	ctx.ldr_framebuffer_a->resize({ctx.render_resolution.x(), ctx.render_resolution.y()});
+	ctx.ldr_color_texture_a->resize(ctx.render_resolution.x(), ctx.render_resolution.y(), nullptr);
+	ctx.ldr_framebuffer_b->resize({ctx.render_resolution.x(), ctx.render_resolution.y()});
+	ctx.ldr_color_texture_b->resize(ctx.render_resolution.x(), ctx.render_resolution.y(), nullptr);
 	
 	// Resize bloom render pass
-	ctx.common_bloom_pass->resize();
+	ctx.bloom_pass->resize();
+	
+	// Enable or disable resample pass
+	if (viewport_dimensions.x() != ctx.render_resolution.x() || viewport_dimensions.y() != ctx.render_resolution.y())
+	{
+		ctx.resample_pass->set_enabled(true);
+	}
+	else
+	{
+		ctx.resample_pass->set_enabled(false);
+	}
+	reroute_framebuffers(ctx);
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
-}
-
-void resize_framebuffer_attachment(gl::texture_2d& texture, const int2& resolution)
-{
-	texture.resize(resolution.x(), resolution.y(), texture.get_pixel_type(), texture.get_pixel_format(), texture.get_color_space(), nullptr);
 }
 
 void save_screenshot(game::context& ctx)
@@ -156,6 +197,74 @@ void save_screenshot(game::context& ctx)
 	).detach();
 	
 	ctx.logger->pop_task(EXIT_SUCCESS);
+}
+
+void toggle_bloom(game::context& ctx, bool enabled)
+{
+	if (enabled)
+	{
+		ctx.bloom_pass->set_mip_chain_length(6);
+		ctx.bloom_pass->set_enabled(true);
+		ctx.common_final_pass->set_bloom_weight(0.04f);
+	}
+	else
+	{
+		ctx.bloom_pass->set_mip_chain_length(0);
+		ctx.bloom_pass->set_enabled(false);
+		ctx.common_final_pass->set_bloom_weight(0.0f);
+	}
+	
+	ctx.bloom_enabled = enabled;
+}
+
+void select_anti_aliasing_method(game::context& ctx, render::anti_aliasing_method method)
+{
+	// Switch AA method
+	switch (method)
+	{
+		// Off
+		case render::anti_aliasing_method::none:
+			ctx.fxaa_pass->set_enabled(false);
+			reroute_framebuffers(ctx);
+			break;
+		
+		// FXAA
+		case render::anti_aliasing_method::fxaa:
+			ctx.fxaa_pass->set_enabled(true);
+			reroute_framebuffers(ctx);
+			break;
+	}
+	
+	// Update AA method setting
+	ctx.anti_aliasing_method = method;
+}
+
+void reroute_framebuffers(game::context& ctx)
+{
+	if (ctx.fxaa_pass->is_enabled())
+	{
+		if (ctx.resample_pass->is_enabled())
+		{
+			ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_a);
+			ctx.fxaa_pass->set_framebuffer(ctx.ldr_framebuffer_b);
+		}
+		else
+		{
+			ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_a);
+			ctx.fxaa_pass->set_framebuffer(&ctx.rasterizer->get_default_framebuffer());
+		}
+	}
+	else
+	{
+		if (ctx.resample_pass->is_enabled())
+		{
+			ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_b);
+		}
+		else
+		{
+			ctx.common_final_pass->set_framebuffer(&ctx.rasterizer->get_default_framebuffer());
+		}
+	}
 }
 
 } // namespace graphics

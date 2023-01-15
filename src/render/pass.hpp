@@ -40,6 +40,8 @@ public:
 
 	void set_enabled(bool enabled);
 	bool is_enabled() const;
+	
+	void set_framebuffer(const gl::framebuffer* framebuffer);
 
 protected:
 	gl::rasterizer* rasterizer;

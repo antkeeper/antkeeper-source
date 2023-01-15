@@ -35,7 +35,6 @@
 #include <algorithm>
 #include <cmath>
 #include <glad/glad.h>
-#include <iostream>
 
 namespace render {
 
@@ -46,7 +45,7 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 	filter_radius(0.005f),
 	corrected_filter_radius{filter_radius, filter_radius}
 {
-	// Load downsample with Karis average shader
+	// Load downsample shader with Karis average
 	downsample_karis_shader = resource_manager->load<gl::shader_program>("bloom-downsample-karis.glsl");
 	downsample_karis_source_texture_input = downsample_karis_shader->get_input("source_texture");
 	
@@ -91,6 +90,9 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 bloom_pass::~bloom_pass()
 {
 	set_mip_chain_length(0);
+	
+	delete quad_vao;
+	delete quad_vbo;
 }
 
 void bloom_pass::render(const render::context& ctx, render::queue& queue) const

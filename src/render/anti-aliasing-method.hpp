@@ -17,23 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_GRAPHICS_HPP
-#define ANTKEEPER_GAME_GRAPHICS_HPP
+#ifndef ANTKEEPER_RENDER_ANTI_ALIASING_METHOD_HPP
+#define ANTKEEPER_RENDER_ANTI_ALIASING_METHOD_HPP
 
-#include "game/context.hpp"
-#include "render/anti-aliasing-method.hpp"
+namespace render {
 
-namespace game {
-namespace graphics {
+/**
+ * Anti-aliasing methods.
+ */
+enum class anti_aliasing_method
+{
+	/// No anti-aliasing.
+	none,
+	
+	/// Fast approximate anti-aliasing (FXAA).
+	fxaa
+};
 
-void create_framebuffers(game::context& ctx);
-void destroy_framebuffers(game::context& ctx);
-void change_render_resolution(game::context& ctx, float scale);
-void save_screenshot(game::context& ctx);
-void toggle_bloom(game::context& ctx, bool enabled);
-void select_anti_aliasing_method(game::context& ctx, render::anti_aliasing_method method);
+} // namespace render
 
-} // namespace graphics
-} // namespace game
-
-#endif // ANTKEEPER_GAME_GRAPHICS_HPP
+#endif // ANTKEEPER_RENDER_ANTI_ALIASING_METHOD_HPP

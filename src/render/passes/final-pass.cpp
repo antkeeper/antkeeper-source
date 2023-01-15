@@ -56,15 +56,15 @@ final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 
 	const float vertex_data[] =
 	{
-		-1.0f,  1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f
+		-1.0f,  1.0f,
+		-1.0f, -1.0f,
+		 1.0f,  1.0f,
+		 1.0f,  1.0f,
+		-1.0f, -1.0f,
+		 1.0f, -1.0f
 	};
-
-	std::size_t vertex_size = 3;
+	
+	std::size_t vertex_size = 2;
 	std::size_t vertex_stride = sizeof(float) * vertex_size;
 	std::size_t vertex_count = 6;
 
@@ -77,7 +77,7 @@ final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	position_attribute.offset = 0;
 	position_attribute.stride = vertex_stride;
 	position_attribute.type = gl::vertex_attribute_type::float_32;
-	position_attribute.components = 3;
+	position_attribute.components = 2;
 	
 	// Bind vertex attributes to VAO
 	quad_vao->bind(render::vertex_attribute::position, position_attribute);

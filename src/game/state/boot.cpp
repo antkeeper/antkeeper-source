@@ -43,6 +43,8 @@
 #include "render/passes/bloom-pass.hpp"
 #include "render/passes/clear-pass.hpp"
 #include "render/passes/final-pass.hpp"
+#include "render/passes/fxaa-pass.hpp"
+#include "render/passes/resample-pass.hpp"
 #include "render/passes/material-pass.hpp"
 #include "render/passes/outline-pass.hpp"
 #include "render/passes/shadow-map-pass.hpp"
@@ -447,16 +449,57 @@ void boot::setup_rendering()
 	
 	// Setup common render passes
 	{
-		ctx.common_bloom_pass = new render::bloom_pass(ctx.rasterizer, ctx.resource_manager);
-		ctx.common_bloom_pass->set_source_texture(ctx.hdr_color_texture);
-		ctx.common_bloom_pass->set_mip_chain_length(6);
-		ctx.common_bloom_pass->set_filter_radius(0.005f);
+		// Construct bloom pass
+		ctx.bloom_pass = new render::bloom_pass(ctx.rasterizer, ctx.resource_manager);
+		ctx.bloom_pass->set_source_texture(ctx.hdr_color_texture);
+		ctx.bloom_pass->set_mip_chain_length(0);
+		ctx.bloom_pass->set_filter_radius(0.005f);
 		
-		ctx.common_final_pass = new render::final_pass(ctx.rasterizer, &ctx.rasterizer->get_default_framebuffer(), ctx.resource_manager);
+		ctx.common_final_pass = new render::final_pass(ctx.rasterizer, ctx.ldr_framebuffer_a, ctx.resource_manager);
 		ctx.common_final_pass->set_color_texture(ctx.hdr_color_texture);
-		ctx.common_final_pass->set_bloom_texture(ctx.common_bloom_pass->get_bloom_texture());
+		ctx.common_final_pass->set_bloom_texture(ctx.bloom_pass->get_bloom_texture());
 		ctx.common_final_pass->set_bloom_weight(0.04f);
 		ctx.common_final_pass->set_blue_noise_texture(blue_noise_map);
+		
+		ctx.fxaa_pass = new render::fxaa_pass(ctx.rasterizer, &ctx.rasterizer->get_default_framebuffer(), ctx.resource_manager);
+		ctx.fxaa_pass->set_source_texture(ctx.ldr_color_texture_a);
+		
+		ctx.resample_pass = new render::resample_pass(ctx.rasterizer, &ctx.rasterizer->get_default_framebuffer(), ctx.resource_manager);
+		ctx.resample_pass->set_source_texture(ctx.ldr_color_texture_b);
+		ctx.resample_pass->set_enabled(false);
+		
+		// Toggle bloom according to settings
+		ctx.bloom_enabled = true;
+		if (ctx.config->contains("bloom_enabled"))
+			ctx.bloom_enabled = (*ctx.config)["bloom_enabled"].get<bool>();
+		graphics::toggle_bloom(ctx, ctx.bloom_enabled);
+		
+		// Configure anti-aliasing according to settings
+		ctx.anti_aliasing_method = render::anti_aliasing_method::fxaa;
+		if (ctx.config->contains("anti_aliasing_method"))
+		{
+			const std::string aa_method = (*ctx.config)["anti_aliasing_method"].get<std::string>();
+			if (aa_method == "fxaa")
+			{
+				ctx.anti_aliasing_method = render::anti_aliasing_method::fxaa;
+			}
+			else
+			{
+				ctx.anti_aliasing_method = render::anti_aliasing_method::none;
+			}
+		}
+		graphics::select_anti_aliasing_method(ctx, ctx.anti_aliasing_method);
+		
+		// Configure render scaling according to settings
+		ctx.render_scale = 1.0f;
+		if (ctx.config->contains("render_scale"))
+		{
+			ctx.render_scale = (*ctx.config)["render_scale"].get<float>();
+			if (ctx.render_scale != 1.0f)
+			{
+				graphics::change_render_resolution(ctx, ctx.render_scale);
+			}
+		}
 	}
 	
 	// Setup UI compositor
@@ -487,8 +530,10 @@ void boot::setup_rendering()
 		ctx.underground_compositor = new render::compositor();
 		ctx.underground_compositor->add_pass(ctx.underground_clear_pass);
 		ctx.underground_compositor->add_pass(ctx.underground_material_pass);
-		ctx.underground_compositor->add_pass(ctx.common_bloom_pass);
+		ctx.underground_compositor->add_pass(ctx.bloom_pass);
 		ctx.underground_compositor->add_pass(ctx.common_final_pass);
+		ctx.underground_compositor->add_pass(ctx.fxaa_pass);
+		ctx.underground_compositor->add_pass(ctx.resample_pass);
 	}
 	
 	// Setup surface compositor
@@ -527,8 +572,10 @@ void boot::setup_rendering()
 		ctx.surface_compositor->add_pass(ctx.ground_pass);
 		ctx.surface_compositor->add_pass(ctx.surface_material_pass);
 		//ctx.surface_compositor->add_pass(ctx.surface_outline_pass);
-		ctx.surface_compositor->add_pass(ctx.common_bloom_pass);
+		ctx.surface_compositor->add_pass(ctx.bloom_pass);
 		ctx.surface_compositor->add_pass(ctx.common_final_pass);
+		ctx.surface_compositor->add_pass(ctx.fxaa_pass);
+		ctx.surface_compositor->add_pass(ctx.resample_pass);
 	}
 	
 	// Create billboard VAO
