@@ -28,7 +28,8 @@ shader_template::shader_template(const std::string& source_code)
 	source(source_code);
 }
 
-shader_template::shader_template()
+shader_template::shader_template():
+	hash(std::hash<std::string>{}(std::string()))
 {}
 
 void shader_template::source(const std::string& source)
@@ -71,6 +72,9 @@ void shader_template::source(const std::string& source)
 		// Append line to template source
 		template_source.push_back(line);
 	}
+	
+	// Calculate hash of source
+	hash = std::hash<std::string>{}(source);
 }
 
 std::string shader_template::configure(gl::shader_stage stage, const dictionary_type& definitions) const
@@ -186,7 +190,7 @@ void shader_template::replace_define_directives(const dictionary_type& definitio
 		auto definitions_it = definitions.find(define_directive.first);
 		if (definitions_it != definitions.end())
 		{
-			// Definition found, Replace `#pragma define <key>` with `#define <key>` or `#define <key> <value>`
+			// Definition found, replace `#pragma define <key>` with `#define <key>` or `#define <key> <value>`
 			line = "#define " + define_directive.first;
 			if (!definitions_it->second.empty())
 				line += " " + definitions_it->second;

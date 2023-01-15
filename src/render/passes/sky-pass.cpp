@@ -114,8 +114,11 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	transmittance_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, transmittance_lut_texture);
 	transmittance_lut_resolution = {static_cast<float>(transmittance_lut_texture->get_width()), static_cast<float>(transmittance_lut_texture->get_height())};
 	
-	// Load transmittance LUT shader
-	transmittance_shader_program = resource_manager->load<gl::shader_program>("transmittance-lut.glsl");
+	// Load transmittance LUT shader template
+	transmittance_shader_template = resource_manager->load<render::shader_template>("transmittance-lut.glsl");
+	
+	// Build transmittance LUT shader program
+	transmittance_shader_program = transmittance_shader_template->build();
 	transmittance_atmosphere_radii_input = transmittance_shader_program->get_input("atmosphere_radii");
 	transmittance_rayleigh_parameters_input = transmittance_shader_program->get_input("rayleigh_parameters");
 	transmittance_mie_parameters_input = transmittance_shader_program->get_input("mie_parameters");
@@ -134,8 +137,11 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	sky_lut_framebuffer = new gl::framebuffer(sky_lut_width, sky_lut_height);
 	sky_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, sky_lut_texture);
 	
-	// Load sky LUT shader
-	sky_lut_shader_program = resource_manager->load<gl::shader_program>("sky-illuminance-lut.glsl");
+	// Load sky LUT shader template
+	sky_lut_shader_template = resource_manager->load<render::shader_template>("sky-illuminance-lut.glsl");
+	
+	// Build sky LUT shader program
+	sky_lut_shader_program = sky_lut_shader_template->build();
 	sky_lut_light_direction_input = sky_lut_shader_program->get_input("light_direction");
 	sky_lut_light_illuminance_input = sky_lut_shader_program->get_input("light_illuminance");
 	sky_lut_atmosphere_radii_input = sky_lut_shader_program->get_input("atmosphere_radii");
@@ -158,6 +164,13 @@ sky_pass::~sky_pass()
 	delete transmittance_lut_texture;
 	delete quad_vao;
 	delete quad_vbo;
+	
+	delete transmittance_shader_program;
+	delete sky_lut_shader_program;
+	
+	/// @TODO
+	// resource_maanger->unload("transmittance-lut.glsl");
+	// resource_maanger->unload("sky-illuminance-lut.glsl");
 }
 
 void sky_pass::render(const render::context& ctx, render::queue& queue) const

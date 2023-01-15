@@ -50,7 +50,6 @@
 #include "render/passes/shadow-map-pass.hpp"
 #include "render/passes/sky-pass.hpp"
 #include "render/passes/ground-pass.hpp"
-#include "render/passes/simple-pass.hpp"
 #include "render/vertex-attribute.hpp"
 #include "render/compositor.hpp"
 #include "render/renderer.hpp"

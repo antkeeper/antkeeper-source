@@ -21,6 +21,7 @@
 #define ANTKEEPER_RENDER_RESAMPLE_PASS_HPP
 
 #include "render/pass.hpp"
+#include "render/shader-template.hpp"
 #include "gl/shader-program.hpp"
 #include "gl/shader-input.hpp"
 #include "gl/vertex-buffer.hpp"
@@ -69,6 +70,7 @@ public:
 private:
 	const gl::texture_2d* source_texture;
 	
+	render::shader_template* shader_template;
 	gl::shader_program* shader;
 	const gl::shader_input* source_texture_input;
 	

@@ -30,7 +30,7 @@
 namespace render {
 
 /**
- * Shader templates can be used to generate multiple shader variants from a single source.
+ * Template used to for generating one or more shader variants from a single source.
  *
  * Shader templates support the following preprocessor directives:
  *
@@ -46,11 +46,11 @@ namespace render {
 class shader_template
 {
 public:
-	/// Container of definitions used to replace `#pragma define <key> <value>` directives.
+	/// Container of definitions used to generate `#pragma define <key> <value>` directives.
 	typedef std::unordered_map<std::string, std::string> dictionary_type;
 	
 	/**
-	 * Creates a shader template and sets its source code.
+	 * Constructs a shader template and sets its source code.
 	 *
 	 * @param source_code String containing the shader template source code.
 	 *
@@ -59,7 +59,7 @@ public:
 	shader_template(const std::string& source_code);
 	
 	/**
-	 * Creates a shader template.
+	 * Constructs an empty shader template.
 	 */
 	shader_template();
 	
@@ -77,7 +77,7 @@ public:
 	 * @param definitions Container of definitions used to replace `#pragma define <key> <value>` directives.
 	 * @return Configured shader object source code.
 	 */
-	std::string configure(gl::shader_stage stage, const dictionary_type& definitions) const;
+	std::string configure(gl::shader_stage stage, const dictionary_type& definitions = {}) const;
 	
 	/**
 	 * Configures and compiles a shader object.
@@ -88,7 +88,7 @@ public:
 	 *
 	 * @exception std::runtime_error Any exceptions thrown by gl::shader_object.
 	 */
-	gl::shader_object* compile(gl::shader_stage stage, const dictionary_type& definitions) const;
+	gl::shader_object* compile(gl::shader_stage stage, const dictionary_type& definitions = {}) const;
 	
 	/**
 	 * Configures and compiles shader objects, then links them into a shader program. Shader object stages are determined according to the presence of `#pragma <stage>` directives.
@@ -102,7 +102,7 @@ public:
 	 * @see has_fragment_directive() const
 	 * @see has_geometry_directive() const
 	 */
-	gl::shader_program* build(const dictionary_type& definitions) const;
+	gl::shader_program* build(const dictionary_type& definitions = {}) const;
 	
 	/// Returns `true` if the template source contains one or more `#pragma vertex` directive.
 	bool has_vertex_directive() const;
@@ -120,6 +120,9 @@ public:
 	 */
 	bool has_define_directive(const std::string& key) const;
 	
+	/// Returns a hash of the template source.
+	std::size_t get_hash() const;
+	
 private:
 	void replace_stage_directives(gl::shader_stage stage) const;
 	void replace_define_directives(const dictionary_type& definitions) const;
@@ -129,7 +132,13 @@ private:
 	std::unordered_set<std::size_t> fragment_directives;
 	std::unordered_set<std::size_t> geometry_directives;
 	std::multimap<std::string, std::size_t> define_directives;
+	std::size_t hash;
 };
+
+inline std::size_t shader_template::get_hash() const
+{
+	return hash;
+}
 
 } // namespace render
 

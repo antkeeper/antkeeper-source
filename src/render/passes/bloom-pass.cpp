@@ -45,19 +45,30 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 	filter_radius(0.005f),
 	corrected_filter_radius{filter_radius, filter_radius}
 {
-	// Load downsample shader with Karis average
-	downsample_karis_shader = resource_manager->load<gl::shader_program>("bloom-downsample-karis.glsl");
+	// Load downsample shader template
+	downsample_shader_template = resource_manager->load<shader_template>("bloom-downsample.glsl");
+	
+	// Build downsample shader program with Karis averaging
+	downsample_karis_shader = downsample_shader_template->build
+	(
+		{
+			{"KARIS_AVERAGE", std::string()}
+		}
+	);
 	downsample_karis_source_texture_input = downsample_karis_shader->get_input("source_texture");
 	
-	// Load downsample shader
-	downsample_shader = resource_manager->load<gl::shader_program>("bloom-downsample.glsl");
+	// Build downsample shader program without Karis averaging
+	downsample_shader = downsample_shader_template->build();
 	downsample_source_texture_input = downsample_shader->get_input("source_texture");
 	
-	// Load upsample shader
-	upsample_shader = resource_manager->load<gl::shader_program>("bloom-upsample.glsl");
+	// Load upsample shader template
+	upsample_shader_template = resource_manager->load<shader_template>("bloom-upsample.glsl");
+	
+	// Build upsample shader program
+	upsample_shader = upsample_shader_template->build();
 	upsample_source_texture_input = upsample_shader->get_input("source_texture");
 	upsample_filter_radius_input = upsample_shader->get_input("filter_radius");
-
+	
 	const float vertex_data[] =
 	{
 		-1.0f,  1.0f,
@@ -71,7 +82,7 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 	std::size_t vertex_size = 2;
 	std::size_t vertex_stride = sizeof(float) * vertex_size;
 	std::size_t vertex_count = 6;
-
+	
 	quad_vbo = new gl::vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
 	quad_vao = new gl::vertex_array();
 	
@@ -89,10 +100,18 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 
 bloom_pass::~bloom_pass()
 {
-	set_mip_chain_length(0);
-	
 	delete quad_vao;
 	delete quad_vbo;
+	
+	set_mip_chain_length(0);
+	
+	delete downsample_karis_shader;
+	delete downsample_shader;
+	delete upsample_shader;
+	
+	/// @TODO
+	//resource_manager->unload("bloom-downsample.glsl");
+	//resource_manager->unload("bloom-upsample.glsl");
 }
 
 void bloom_pass::render(const render::context& ctx, render::queue& queue) const

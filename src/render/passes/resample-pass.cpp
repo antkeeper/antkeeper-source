@@ -38,8 +38,11 @@ resample_pass::resample_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	pass(rasterizer, framebuffer),
 	source_texture(nullptr)
 {
-	// Load resample shader
-	shader = resource_manager->load<gl::shader_program>("resample.glsl");
+	// Load resample shader template
+	shader_template = resource_manager->load<render::shader_template>("resample.glsl");
+	
+	// Build resample shader program
+	shader = shader_template->build();
 	source_texture_input = shader->get_input("source_texture");
 
 	const float vertex_data[] =
@@ -75,6 +78,11 @@ resample_pass::~resample_pass()
 {
 	delete quad_vao;
 	delete quad_vbo;
+	
+	delete shader;
+	
+	/// @TODO
+	// resource_manager->unload("resample.glsl");
 }
 
 void resample_pass::render(const render::context& ctx, render::queue& queue) const

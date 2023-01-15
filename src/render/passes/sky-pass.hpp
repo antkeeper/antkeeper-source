@@ -21,6 +21,7 @@
 #define ANTKEEPER_RENDER_SKY_PASS_HPP
 
 #include "render/pass.hpp"
+#include "render/shader-template.hpp"
 #include "utility/fundamental-types.hpp"
 #include "event/event-handler.hpp"
 #include "event/input-events.hpp"
@@ -101,6 +102,7 @@ private:
 	gl::texture_2d* transmittance_lut_texture;
 	gl::framebuffer* transmittance_lut_framebuffer;
 	float2 transmittance_lut_resolution;
+	render::shader_template* transmittance_shader_template;
 	gl::shader_program* transmittance_shader_program;
 	const gl::shader_input* transmittance_atmosphere_radii_input;
 	const gl::shader_input* transmittance_rayleigh_parameters_input;
@@ -112,6 +114,7 @@ private:
 	
 	gl::texture_2d* sky_lut_texture;
 	gl::framebuffer* sky_lut_framebuffer;
+	render::shader_template* sky_lut_shader_template;
 	gl::shader_program* sky_lut_shader_program;
 	float2 sky_lut_resolution;
 	const gl::shader_input* sky_lut_light_direction_input;
@@ -174,13 +177,6 @@ private:
 	const gl::shader_input* star_projection_input;
 	const gl::shader_input* star_exposure_input;
 	const gl::shader_input* star_distance_input;
-	
-	gl::shader_program* cloud_shader_program;
-	const gl::shader_input* cloud_model_view_projection_input;
-	const gl::shader_input* cloud_sun_direction_input;
-	const gl::shader_input* cloud_sun_illuminance_input;
-	const gl::shader_input* cloud_camera_position_input;
-	const gl::shader_input* cloud_camera_exposure_input;
 
 	float2 mouse_position;
 	
@@ -200,7 +196,6 @@ private:
 	tween<float3> moon_planetlight_illuminance_tween;
 	tween<float3> moon_illuminance_tween;
 	float3 moon_transmitted_illuminance;
-
 	
 	float sun_angular_radius;
 	float atmosphere_upper_limit;

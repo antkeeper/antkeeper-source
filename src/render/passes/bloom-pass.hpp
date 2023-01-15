@@ -21,6 +21,7 @@
 #define ANTKEEPER_RENDER_BLOOM_PASS_HPP
 
 #include "render/pass.hpp"
+#include "render/shader-template.hpp"
 #include "gl/shader-program.hpp"
 #include "gl/shader-input.hpp"
 #include "gl/vertex-buffer.hpp"
@@ -94,6 +95,9 @@ public:
 
 private:
 	const gl::texture_2d* source_texture;
+	
+	shader_template* downsample_shader_template;
+	shader_template* upsample_shader_template;
 	
 	gl::shader_program* downsample_karis_shader;
 	const gl::shader_input* downsample_karis_source_texture_input;

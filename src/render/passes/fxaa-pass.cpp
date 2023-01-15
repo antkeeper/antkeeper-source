@@ -38,8 +38,11 @@ fxaa_pass::fxaa_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuf
 	pass(rasterizer, framebuffer),
 	source_texture(nullptr)
 {
-	// Load FXAA shader
-	shader = resource_manager->load<gl::shader_program>("fxaa.glsl");
+	// Load FXAA shader template
+	shader_template = resource_manager->load<render::shader_template>("fxaa.glsl");
+	
+	// Build FXAA shader program
+	shader = shader_template->build();
 	source_texture_input = shader->get_input("source_texture");
 	texel_size_input = shader->get_input("texel_size");
 
@@ -76,6 +79,11 @@ fxaa_pass::~fxaa_pass()
 {
 	delete quad_vao;
 	delete quad_vbo;
+	
+	delete shader;
+	
+	/// @TODO
+	// resource_manager->unload("fxaa.glsl");
 }
 
 void fxaa_pass::render(const render::context& ctx, render::queue& queue) const

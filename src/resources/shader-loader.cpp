@@ -102,6 +102,25 @@ gl::shader_program* resource_loader<gl::shader_program>::load(resource_manager* 
 	
 	// Destroy shader template
 	delete shader;
-
+	
 	return program;
+}
+
+template <>
+render::shader_template* resource_loader<render::shader_template>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
+{
+	// Load shader template source
+	text_file source_lines = *resource_loader<text_file>::load(resource_manager, file, path);
+	
+	// Handle `#pragma include` directives
+	handle_includes(&source_lines, resource_manager);
+	
+	// Join vector of source lines into single string
+	std::ostringstream stream;
+	std::copy(source_lines.begin(), source_lines.end(), std::ostream_iterator<std::string>(stream, "\n"));
+	
+	// Create shader template
+	render::shader_template* shader = new render::shader_template(stream.str());
+	
+	return shader;
 }

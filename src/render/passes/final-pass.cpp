@@ -45,7 +45,11 @@ final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	blue_noise_texture(nullptr),
 	blue_noise_scale(1.0f)
 {
-	shader_program = resource_manager->load<gl::shader_program>("final.glsl");
+	// Load shader template
+	shader_template = resource_manager->load<render::shader_template>("final.glsl");
+	
+	// Build shader program
+	shader_program = shader_template->build();
 	color_texture_input = shader_program->get_input("color_texture");
 	bloom_texture_input = shader_program->get_input("bloom_texture");
 	bloom_weight_input = shader_program->get_input("bloom_weight");
@@ -87,6 +91,11 @@ final_pass::~final_pass()
 {
 	delete quad_vao;
 	delete quad_vbo;
+	
+	delete shader_program;
+	
+	/// @TODO
+	// resource_manager->unload("final.glsl");
 }
 
 void final_pass::render(const render::context& ctx, render::queue& queue) const

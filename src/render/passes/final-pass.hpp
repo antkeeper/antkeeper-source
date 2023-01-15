@@ -21,6 +21,7 @@
 #define ANTKEEPER_RENDER_FINAL_PASS_HPP
 
 #include "render/pass.hpp"
+#include "render/shader-template.hpp"
 #include "gl/shader-program.hpp"
 #include "gl/shader-input.hpp"
 #include "gl/vertex-buffer.hpp"
@@ -47,6 +48,8 @@ public:
 	void set_blue_noise_texture(const gl::texture_2d* texture);
 
 private:
+	render::shader_template* shader_template;
+	
 	gl::shader_program* shader_program;
 	const gl::shader_input* color_texture_input;
 	const gl::shader_input* bloom_texture_input;
