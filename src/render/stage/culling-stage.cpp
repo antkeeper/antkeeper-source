@@ -26,7 +26,7 @@
 
 namespace render {
 
-void culling_stage::execute(render::context& ctx)
+void culling_stage::execute(render::context& ctx) const
 {
 	// Get list of all objects in the collection
 	const std::list<scene::object_base*>& objects = *(ctx.collection->get_objects());

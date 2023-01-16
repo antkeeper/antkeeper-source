@@ -258,8 +258,6 @@ void application::resize_window(int width, int height)
 	// Resize and center window
 	SDL_SetWindowPosition(sdl_window, x, y);
 	SDL_SetWindowSize(sdl_window, width, height);
-	
-	window_resized();
 }
 
 void application::set_fullscreen(bool fullscreen)
@@ -539,11 +537,31 @@ void application::process_events()
 
 			case SDL_WINDOWEVENT:
 			{
-				if (sdl_event.window.event == SDL_WINDOWEVENT_RESIZED)
+				switch (sdl_event.window.event)
 				{
-					window_resized();
+					case SDL_WINDOWEVENT_SIZE_CHANGED:
+						window_resized();
+						break;
+					
+					case SDL_WINDOWEVENT_FOCUS_GAINED:
+						window_focus_signal.emit(true);
+						break;
+					
+					case SDL_WINDOWEVENT_FOCUS_LOST:
+						window_focus_signal.emit(false);
+						break;
+					
+					case SDL_WINDOWEVENT_MOVED:
+						window_motion_signal.emit(sdl_event.window.data1, sdl_event.window.data2);
+						break;
+					
+					case SDL_WINDOWEVENT_CLOSE:
+						window_close_signal.emit();
+						break;
+					
+					default:
+						break;
 				}
-
 				break;
 			}
 
@@ -575,4 +593,7 @@ void application::window_resized()
 	event.h = window_dimensions[1];
 	
 	event_dispatcher->queue(event);
+	
+	window_size_signal.emit(window_dimensions[0], window_dimensions[1]);
+	viewport_size_signal.emit(viewport_dimensions[0], viewport_dimensions[1]);
 }

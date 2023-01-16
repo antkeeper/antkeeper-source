@@ -17,29 +17,31 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RENDER_CULLING_STAGE_HPP
-#define ANTKEEPER_RENDER_CULLING_STAGE_HPP
+#include "event/signal.hpp"
 
-#include "render/stage.hpp"
+//namespace event {
 
-namespace render {
+connection::connection(std::weak_ptr<void> handler, disconnector_type disconnector):
+	handler(handler),
+	disconnector(disconnector)
+{}
 
-/**
- * Builds a set of scene objects visible to the current camera and stores it in the render context.
- */
-class culling_stage: public stage
+connection::~connection()
 {
-public:
-	/// Constructs a culling stage.
-	culling_stage() = default;
-	
-	/// Destructs a culling stage.
-	virtual ~culling_stage() = default;
-	
-	/// @copydoc render::stage::execute(render::context&)
-	virtual void execute(render::context& ctx) const final;
-};
+	disconnect();
+}
 
-} // namespace render
+bool connection::connected() const noexcept
+{
+	return !handler.expired();
+}
 
-#endif // ANTKEEPER_RENDER_CULLING_STAGE_HPP
+void connection::disconnect()
+{
+	if (connected())
+	{
+		disconnector(handler);
+	}
+}
+
+//} // namespace event

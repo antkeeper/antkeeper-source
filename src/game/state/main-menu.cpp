@@ -43,6 +43,9 @@
 #include "game/component/transform.hpp"
 #include "math/projection.hpp"
 #include <limits>
+#include <iostream>
+
+#include "event/signal.hpp"
 
 namespace game {
 namespace state {
@@ -51,6 +54,54 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	game::state::base(ctx)
 {
 	ctx.logger->push_task("Entering main menu state");
+	
+	auto listener1 = [](int x, int y)
+	{
+		std::cout << "listener1 received " << x << std::endl;
+	};
+	auto listener2 = [](int x, int y)
+	{
+		std::cout << "listener2 received " << x << std::endl;
+	};
+	auto listener3 = [](int x, int y)
+	{
+		std::cout << "listener3 received " << x << std::endl;
+	};
+	
+	viewport_size_connection = ctx.app->get_viewport_size_signal().connect
+	(
+		[](int w, int h)
+		{
+			std::cout << "viewport resized " << w << "x" << h << std::endl;
+		}
+	);
+	
+	window_motion_connection = ctx.app->get_window_motion_signal().connect
+	(
+		[](int x, int y)
+		{
+			std::cout << "window moved to " << x << ", " << y << std::endl;
+		}
+	);
+	
+	window_focus_connection = ctx.app->get_window_focus_signal().connect
+	(
+		[](bool focus)
+		{
+			if (focus)
+				std::cout << "focus gained" << std::endl;
+			else
+				std::cout << "focus lost" << std::endl;
+		}
+	);
+	
+	window_close_connection = ctx.app->get_window_close_signal().connect
+	(
+		[]()
+		{
+			std::cout << "window closed" << std::endl;
+		}
+	);
 	
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
 	

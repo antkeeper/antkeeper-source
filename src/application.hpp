@@ -29,6 +29,7 @@
 #include "input/gamepad.hpp"
 #include "utility/fundamental-types.hpp"
 #include "debug/logger.hpp"
+#include "event/signal.hpp"
 
 // Forward declarations
 typedef struct SDL_Window SDL_Window;
@@ -149,6 +150,21 @@ public:
 	void process_events();
 	
 	bool was_closed() const;
+	
+	/// Returns a connector for the signal emitted when the window is requested to close.
+	connector<void()>& get_window_close_signal() noexcept;
+	
+	/// Returns a connector for the signal emitted each time the window gains or loses focus.
+	connector<void(bool)>& get_window_focus_signal() noexcept;
+	
+	/// Returns a connector for the signal emitted each time the window is moved.
+	connector<void(int, int)>& get_window_motion_signal() noexcept;
+	
+	/// Returns a connector for the signal emitted each time the window is resized.
+	connector<void(int, int)>& get_window_size_signal() noexcept;
+	
+	/// Returns a connector for the signal emitted each time the window viewport is resized.
+	connector<void(int, int)>& get_viewport_size_signal() noexcept;
 
 private:
 	void window_resized();
@@ -177,6 +193,12 @@ private:
 	input::mouse* mouse;
 	std::list<input::gamepad*> gamepads;
 	std::unordered_map<int, input::gamepad*> gamepad_map;
+	
+	signal<void()> window_close_signal;
+	signal<void(bool)> window_focus_signal;
+	signal<void(int, int)> window_motion_signal;
+	signal<void(int, int)> window_size_signal;
+	signal<void(int, int)> viewport_size_signal;
 };
 
 inline debug::logger* application::get_logger()
@@ -242,6 +264,31 @@ inline event_dispatcher* application::get_event_dispatcher()
 inline bool application::was_closed() const
 {
 	return closed;
+}
+
+inline connector<void()>& application::get_window_close_signal() noexcept
+{
+	return window_close_signal.connector();
+}
+
+inline connector<void(bool)>& application::get_window_focus_signal() noexcept
+{
+	return window_focus_signal.connector();
+}
+
+inline connector<void(int, int)>& application::get_window_motion_signal() noexcept
+{
+	return window_motion_signal.connector();
+}
+
+inline connector<void(int, int)>& application::get_window_size_signal() noexcept
+{
+	return window_size_signal.connector();
+}
+
+inline connector<void(int, int)>& application::get_viewport_size_signal() noexcept
+{
+	return viewport_size_signal.connector();
 }
 
 #endif // ANTKEEPER_APPLICATION_HPP

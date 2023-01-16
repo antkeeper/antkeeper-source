@@ -17,29 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RENDER_CULLING_STAGE_HPP
-#define ANTKEEPER_RENDER_CULLING_STAGE_HPP
-
 #include "render/stage.hpp"
 
 namespace render {
 
-/**
- * Builds a set of scene objects visible to the current camera and stores it in the render context.
- */
-class culling_stage: public stage
-{
-public:
-	/// Constructs a culling stage.
-	culling_stage() = default;
-	
-	/// Destructs a culling stage.
-	virtual ~culling_stage() = default;
-	
-	/// @copydoc render::stage::execute(render::context&)
-	virtual void execute(render::context& ctx) const final;
-};
+stage::stage():
+	priority(0)
+{}
 
 } // namespace render
-
-#endif // ANTKEEPER_RENDER_CULLING_STAGE_HPP
