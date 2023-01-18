@@ -482,6 +482,7 @@ void application::process_events()
 							logger->log("Reconnected gamepad  \"" + controller_name + "\"");
 							
 							it->second->connect(true);
+							gamepad_connection_signal.emit(*it->second, true);
 						}
 						else
 						{
@@ -506,6 +507,7 @@ void application::process_events()
 							
 							// Send controller connected event
 							gamepad->connect(false);
+							gamepad_connection_signal.emit(*it->second, false);
 						}
 					}
 					else

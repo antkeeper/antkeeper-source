@@ -151,6 +151,9 @@ public:
 	
 	bool was_closed() const;
 	
+	/// Returns a connector for the signal emitted when a gamepad is connected or disconnected.
+	connector<void(input::gamepad&, bool)>& get_gamepad_connection_signal() noexcept;
+	
 	/// Returns a connector for the signal emitted when the window is requested to close.
 	connector<void()>& get_window_close_signal() noexcept;
 	
@@ -165,7 +168,7 @@ public:
 	
 	/// Returns a connector for the signal emitted each time the window viewport is resized.
 	connector<void(int, int)>& get_viewport_size_signal() noexcept;
-
+	
 private:
 	void window_resized();
 	
@@ -194,6 +197,7 @@ private:
 	std::list<input::gamepad*> gamepads;
 	std::unordered_map<int, input::gamepad*> gamepad_map;
 	
+	signal<void(input::gamepad&, bool)> gamepad_connection_signal;
 	signal<void()> window_close_signal;
 	signal<void(bool)> window_focus_signal;
 	signal<void(int, int)> window_motion_signal;
@@ -264,6 +268,11 @@ inline event_dispatcher* application::get_event_dispatcher()
 inline bool application::was_closed() const
 {
 	return closed;
+}
+
+inline connector<void(input::gamepad&, bool)>& application::get_gamepad_connection_signal() noexcept
+{
+	return gamepad_connection_signal.connector();
 }
 
 inline connector<void()>& application::get_window_close_signal() noexcept

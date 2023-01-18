@@ -86,7 +86,6 @@ namespace game
 		class terrain;
 		class vegetation;
 		class spatial;
-		class painting;
 		class astronomy;
 		class blackbody;
 		class atmosphere;
@@ -296,7 +295,6 @@ struct context
 	game::system::vegetation* vegetation_system;
 	game::system::spring* spring_system;
 	game::system::spatial* spatial_system;
-	game::system::painting* painting_system;
 	game::system::blackbody* blackbody_system;
 	game::system::atmosphere* atmosphere_system;
 	game::system::astronomy* astronomy_system;
@@ -308,6 +306,8 @@ struct context
 	
 	bool bloom_enabled;
 	render::anti_aliasing_method anti_aliasing_method;
+	
+	std::shared_ptr<connection> ui_resize_connection;
 };
 
 } // namespace game

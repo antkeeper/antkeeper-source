@@ -25,8 +25,15 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <type_traits>
 
 //namespace event {
+
+template <class T>
+class signal;
+
+template <class T>
+class connector;
 
 /**
  * Manages a connection between a signal and handler. A signal will be disconnected from a handler when the connection is destructed or is disconnected manually via connection::disconnect().
@@ -61,26 +68,26 @@ public:
 	void disconnect();
 	
 private:
+	template <class T>
+	friend class signal;
+	
 	std::weak_ptr<void> handler;
 	disconnector_type disconnector;
 };
 
-template<class T>
-class signal;
-
-template<class T>
-class connector;
-
 /**
  * Creates connections between a signal and signal handlers.
  *
- * @tparam T Signal handler return type.
- * @tparam Args Signal handler argument types.
+ * @tparam T Signal response type.
+ * @tparam Args Signal argument types.
  */
 template <class T, class... Args>
 class connector<T(Args...)>
 {
 public:
+	/// Signal response type.
+	typedef T response_type;
+	
 	/// Signal type.
 	typedef signal<T(Args...)> signal_type;
 	
@@ -104,15 +111,18 @@ private:
 };
 
 /**
- * Emits signals to connected handlers.
+ * Emits signals to signal handlers.
  *
- * @tparam T Signal handler return type.
- * @tparam Args Signal handler argument types.
+ * @tparam T Signal response type.
+ * @tparam Args Signal argument types.
  */
 template <class T, class... Args>
 class signal<T(Args...)>
 {
 public:
+	/// Signal response type.
+	typedef T response_type;
+	
 	/// Signal handler type.
 	typedef std::function<T(Args...)> handler_type;
 	
@@ -147,7 +157,7 @@ public:
 		std::shared_ptr<handler_type> shared_handler = std::make_shared<handler_type>(handler);
 		
 		// Add handler to list of connected handlers
-		handlers.push_back(shared_handler);
+		connections.push_back(shared_handler);
 		
 		// Return a shared pointer to the connection between the signal and handler
 		return std::make_shared<connection>
@@ -155,7 +165,7 @@ public:
 			std::static_pointer_cast<void>(shared_handler),
 			[this](std::weak_ptr<void> handler)
 			{
-				this->handlers.remove(std::static_pointer_cast<handler_type>(handler.lock()));
+				this->connections.remove(std::static_pointer_cast<handler_type>(handler.lock()));
 			}
 		);
 	}
@@ -165,7 +175,7 @@ public:
 	 */
 	void disconnect()
 	{
-		handlers.clear();
+		connections.clear();
 	}
 	
 	/**
@@ -176,14 +186,15 @@ public:
 	 * @param policy Execution policy to use.
 	 * @param args Signal arguments.
 	 */
+	/// @{
 	template <class ExecutionPolicy>
 	void emit(ExecutionPolicy&& policy, Args... args) const
 	{
 		std::for_each
 		(
 			policy,
-			std::begin(handlers),
-			std::end(handlers),
+			std::begin(connections),
+			std::end(connections),
 			[&](const auto& handler)
 			{
 				(*handler)(args...);
@@ -191,22 +202,59 @@ public:
 		);
 	}
 	
-	/**
-	 * Emits a signal to all connected handlers.
-	 *
-	 * @param args Signal arguments.
-	 */
 	void emit(Args... args) const
 	{
 		emit(std::execution::seq, args...);
 	}
+	/// @}
+	
+	/**
+	 * Emits a signal to all connected handlers and relays their responses to a listener.
+	 *
+	 * @tparam ExecutionPolicy Execution policy type.
+	 * @tparam UnaryFunction Listener function object type.
+	 *
+	 * @param policy Execution policy to use.
+	 * @param listener Listener function object.
+	 * @param args Signal arguments.
+	 */
+	/// @{
+	template <class ExecutionPolicy, class UnaryFunction>
+	void ping(ExecutionPolicy&& policy, UnaryFunction listener, Args... args) const
+	{
+		std::for_each
+		(
+			policy,
+			std::begin(connections),
+			std::end(connections),
+			[&](const auto& handler)
+			{
+				if constexpr(std::is_void_v<T>)
+				{
+					(*handler)(args...);
+					listener();
+				}
+				else
+				{
+					listener((*handler)(args...));
+				}
+			}
+		);
+	}
+	
+	template <class UnaryFunction>
+	void ping(UnaryFunction listener, Args... args) const
+	{
+		ping(std::execution::seq, listener, args...);
+	}
+	/// @}
 	
 private:
+	/// List of connected signal handlers.
+	std::list<std::shared_ptr<handler_type>> connections;
+	
 	/// Signal connector.
 	connector_type signal_connector;
-	
-	/// List of connected signal handlers.
-	std::list<std::shared_ptr<handler_type>> handlers;
 };
 
 //} // namespace event

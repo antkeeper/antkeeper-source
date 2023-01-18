@@ -27,13 +27,13 @@ namespace gl {
  */
 enum class shader_stage
 {
-	/// Indicates a vertex shader stage.
+	/// Vertex shader stage.
 	vertex,
 	
-	/// Indicates a fragment shader stage.
+	/// Fragment shader stage.
 	fragment,
 	
-	/// Indicates a geometry shader stage.
+	/// Geometry shader stage.
 	geometry
 };
 

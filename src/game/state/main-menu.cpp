@@ -55,19 +55,6 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 {
 	ctx.logger->push_task("Entering main menu state");
 	
-	auto listener1 = [](int x, int y)
-	{
-		std::cout << "listener1 received " << x << std::endl;
-	};
-	auto listener2 = [](int x, int y)
-	{
-		std::cout << "listener2 received " << x << std::endl;
-	};
-	auto listener3 = [](int x, int y)
-	{
-		std::cout << "listener3 received " << x << std::endl;
-	};
-	
 	viewport_size_connection = ctx.app->get_viewport_size_signal().connect
 	(
 		[](int w, int h)

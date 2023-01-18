@@ -45,7 +45,7 @@ void culling_stage::execute(render::context& ctx) const
 	// For each object in the scene collection
 	std::for_each
 	(
-		std::execution::par_unseq,
+		std::execution::par,
 		std::begin(objects),
 		std::end(objects),
 		[&](scene::object_base* object)

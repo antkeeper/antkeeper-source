@@ -67,7 +67,6 @@
 #include "game/system/terrain.hpp"
 #include "game/system/vegetation.hpp"
 #include "game/system/spatial.hpp"
-#include "game/system/painting.hpp"
 #include "game/system/astronomy.hpp"
 #include "game/system/blackbody.hpp"
 #include "game/system/atmosphere.hpp"
@@ -985,10 +984,6 @@ void boot::setup_systems()
 	// Setup constraint system
 	ctx.constraint_system = new game::system::constraint(*ctx.entity_registry);
 	
-	// Setup painting system
-	ctx.painting_system = new game::system::painting(*ctx.entity_registry, event_dispatcher, ctx.resource_manager);
-	ctx.painting_system->set_scene(ctx.surface_scene);
-	
 	// Setup orbit system
 	ctx.orbit_system = new game::system::orbit(*ctx.entity_registry);
 	
@@ -1154,6 +1149,22 @@ void boot::setup_ui()
 	}
 	ctx.logger->pop_task(EXIT_SUCCESS);
 	
+	// Setup UI resize handler
+	ctx.ui_resize_connection = ctx.app->get_window_size_signal().connect
+	(
+		[&](int w, int h)
+		{
+			const float clip_left = static_cast<float>(w) * -0.5f;
+			const float clip_right = static_cast<float>(w) * 0.5f;
+			const float clip_top = static_cast<float>(h) * -0.5f;
+			const float clip_bottom = static_cast<float>(h) * 0.5f;
+			const float clip_near = ctx.ui_camera->get_clip_near();
+			const float clip_far = ctx.ui_camera->get_clip_far();
+			
+			ctx.ui_camera->set_orthographic(clip_left, clip_right, clip_top, clip_bottom, clip_near, clip_far);
+		}
+	);
+	
 	// Construct mouse tracker
 	ctx.menu_mouse_tracker = new ui::mouse_tracker();
 	ctx.app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx.menu_mouse_tracker);
@@ -1242,7 +1253,6 @@ void boot::setup_loop()
 			ctx.spring_system->update(t, dt);
 			ctx.spatial_system->update(t, dt);
 			ctx.constraint_system->update(t, dt);
-			ctx.painting_system->update(t, dt);
 			ctx.animator->animate(dt);
 			ctx.render_system->update(t, dt);
 		}
