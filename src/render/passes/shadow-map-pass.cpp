@@ -39,7 +39,6 @@
 #include "math/projection.hpp"
 #include <cmath>
 #include <glad/glad.h>
-#include <iostream>
 
 namespace render {
 

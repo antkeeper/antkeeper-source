@@ -23,8 +23,6 @@
 #include "render/pass.hpp"
 #include "render/material.hpp"
 #include "utility/fundamental-types.hpp"
-#include "event/event-handler.hpp"
-#include "event/input-events.hpp"
 #include "gl/shader-program.hpp"
 #include "gl/shader-input.hpp"
 #include "gl/texture-2d.hpp"
@@ -37,8 +35,7 @@ namespace render {
 /**
  * Renders scene objects using their material-specified shaders and properties.
  */
-class material_pass: public pass,
-	public event_handler<mouse_moved_event>
+class material_pass: public pass
 {
 public:
 	material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
@@ -49,8 +46,6 @@ public:
 	void set_fallback_material(const material* fallback);
 	
 private:
-	virtual void handle_event(const mouse_moved_event& event);
-	
 	/**
 	 * Sets of known shader input parameters. Each time a new shader is encountered, a parameter set will be created and its inputs connected to the shader program. A null input indiciates that the shader doesn't have that parameter.
 	 */

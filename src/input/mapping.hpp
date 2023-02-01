@@ -20,30 +20,21 @@
 #ifndef ANTKEEPER_INPUT_MAPPING_HPP
 #define ANTKEEPER_INPUT_MAPPING_HPP
 
+#include "input/mapping-type.hpp"
+#include "input/gamepad-axis.hpp"
+#include "input/gamepad-button.hpp"
+#include "input/mouse-button.hpp"
+#include "input/mouse-motion-axis.hpp"
+#include "input/mouse-scroll-axis.hpp"
+#include "input/scancode.hpp"
+#include <cstdint>
+
 namespace input {
 
-enum class mouse_motion_axis;
-enum class mouse_wheel_axis;
-enum class scancode;
-enum class gamepad_axis;
-enum class gamepad_button;
 class control;
+class gamepad;
 class keyboard;
 class mouse;
-class gamepad;
-
-/**
- * Enumerates the supported types of control mappings.
- */
-enum class mapping_type
-{
-	key,
-	mouse_motion,
-	mouse_wheel,
-	mouse_button,
-	gamepad_axis,
-	gamepad_button
-};
 
 /**
  * Abstract base class for input mappings.
@@ -51,150 +42,233 @@ enum class mapping_type
 class mapping
 {
 public:
+	/**
+	 * Constructs an input mapping.
+	 */
 	mapping() = default;
-	mapping(input::control* control);
+	
+	/// Destructs an input mapping.
 	virtual ~mapping() = default;
-
-	/// Returns this control mapping's type.
-	virtual mapping_type get_type() const = 0;
-
-	control* control;
+	
+	/// Returns the input mapping type.
+	[[nodiscard]] virtual constexpr mapping_type get_mapping_type() const noexcept = 0;
 };
 
 /**
- * A mapping between a control and a keyboard key.
- */
-class key_mapping: public mapping
-{
-public:
-	key_mapping() = default;
-	key_mapping(const key_mapping& mapping);
-	key_mapping(input::control* control, input::keyboard* keyboard, scancode scancode);
-	virtual ~key_mapping() = default;
-	key_mapping& operator=(const key_mapping& mapping);
-	virtual mapping_type get_type() const;
-
-	input::keyboard* keyboard;
-	scancode scancode;
-};
-
-inline mapping_type key_mapping::get_type() const
-{
-	return mapping_type::key;
-}
-
-/**
- * A mapping between a control and a mouse motion axis.
- */
-class mouse_motion_mapping: public mapping
-{
-public:
-	mouse_motion_mapping() = default;
-	mouse_motion_mapping(const mouse_motion_mapping& mapping);
-	mouse_motion_mapping(input::control* control, input::mouse* mouse, mouse_motion_axis axis);
-	virtual ~mouse_motion_mapping() = default;
-	mouse_motion_mapping& operator=(const mouse_motion_mapping& mapping);
-	virtual mapping_type get_type() const;
-
-	input::mouse* mouse;
-	mouse_motion_axis axis;
-};
-
-inline mapping_type mouse_motion_mapping::get_type() const
-{
-	return mapping_type::mouse_motion;
-}
-
-/**
- * A mapping between a control and a mouse wheel axis.
- */
-class mouse_wheel_mapping: public mapping
-{
-public:
-	mouse_wheel_mapping() = default;
-	mouse_wheel_mapping(const mouse_wheel_mapping& mapping);
-	mouse_wheel_mapping(input::control* control, input::mouse* mouse, mouse_wheel_axis axis);
-	virtual ~mouse_wheel_mapping() = default;
-	mouse_wheel_mapping& operator=(const mouse_wheel_mapping& mapping);
-	virtual mapping_type get_type() const;
-
-	input::mouse* mouse;
-	mouse_wheel_axis axis;
-};
-
-inline mapping_type mouse_wheel_mapping::get_type() const
-{
-	return mapping_type::mouse_wheel;
-}
-
-/**
- * A mapping between a control and a mouse button.
- */
-class mouse_button_mapping: public mapping
-{
-public:
-	mouse_button_mapping() = default;
-	mouse_button_mapping(const mouse_button_mapping& mapping);
-	mouse_button_mapping(input::control* control, input::mouse* mouse, int button);
-	virtual ~mouse_button_mapping() = default;
-	mouse_button_mapping& operator=(const mouse_button_mapping& mapping);
-	virtual mapping_type get_type() const;
-
-	input::mouse* mouse;
-	int button;
-};
-
-inline mapping_type mouse_button_mapping::get_type() const
-{
-	return mapping_type::mouse_button;
-}
-
-/**
- * A mapping between a control and a gamepad axis.
+ * Maps a direction along a gamepad axis to a control input value.
  */
 class gamepad_axis_mapping: public mapping
 {
 public:
+	/**
+	 * Constructs a gamepad axis mapping.
+	 *
+	 * @param gamepad Pointer to the gamepad to map, or `nullptr` if input from any gamepad will be mapped.
+	 * @param axis Gamepad axis to map.
+	 * @param direction Sign bit of the direction to map.
+	 */
+	/// @{
+	gamepad_axis_mapping(input::gamepad* gamepad, gamepad_axis axis, bool direction);
 	gamepad_axis_mapping() = default;
-	gamepad_axis_mapping(const gamepad_axis_mapping& mapping);
-	gamepad_axis_mapping(input::control* control, gamepad* controller, gamepad_axis axis, bool negative);
+	/// @}
+	
+	/// Destructs a gamepad axis mapping.
 	virtual ~gamepad_axis_mapping() = default;
-	gamepad_axis_mapping& operator=(const gamepad_axis_mapping& mapping);
-	virtual mapping_type get_type() const;
-
-	gamepad* controller;
+	
+	/// Returns mapping_type::gamepad_axis.
+	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	{
+		return mapping_type::gamepad_axis;
+	}
+	
+	/// Pointer to the mapped gamepad, or `nullptr` if input from any gamepad is accepted.
+	input::gamepad* gamepad;
+	
+	/// Mapped gamepad axis.
 	gamepad_axis axis;
-	bool negative;
+	
+	/// Sign bit of the mapped direction.
+	bool direction;
 };
 
-inline mapping_type gamepad_axis_mapping::get_type() const
-{
-	return mapping_type::gamepad_axis;
-}
-
 /**
- * A mapping between a control and a gamepad button.
+ * Maps a gamepad button to a control input value.
  */
 class gamepad_button_mapping: public mapping
 {
 public:
+	/**
+	 * Constructs a gamepad button mapping.
+	 *
+	 * @param gamepad Pointer to the gamepad to map, or `nullptr` if input from any gamepad will be mapped.
+	 * @param button Gamepad button to map.
+	 */
+	/// @{
+	gamepad_button_mapping(input::gamepad* gamepad, gamepad_button button);
 	gamepad_button_mapping() = default;
-	gamepad_button_mapping(const gamepad_button_mapping& mapping);
-	gamepad_button_mapping(input::control* control, gamepad* controller, gamepad_button button);
+	/// @}
+	
+	/// Destructs a gamepad button mapping.
 	virtual ~gamepad_button_mapping() = default;
-	gamepad_button_mapping& operator=(const gamepad_button_mapping& mapping);
-	virtual mapping_type get_type() const;
-
-	gamepad* controller;
+	
+	/// Returns mapping_type::gamepad_button.
+	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	{
+		return mapping_type::gamepad_button;
+	}
+	
+	/// Pointer to the mapped gamepad, or `nullptr` if input from any gamepad is accepted.
+	input::gamepad* gamepad;
+	
+	/// Mapped gamepad button.
 	gamepad_button button;
 };
 
-inline mapping_type gamepad_button_mapping::get_type() const
+/**
+ * Maps a keyboard key to a control input value.
+ */
+class key_mapping: public mapping
 {
-	return mapping_type::gamepad_button;
-}
+public:
+	/**
+	 * Constructs a key mapping.
+	 *
+	 * @param keyboard Pointer to the keyboard to map, or `nullptr` if input from any keyboard will be mapped.
+	 * @param scancode Scancode of the key to map.
+	 * @param repeat `false` if the mapping should ignore key repeats, `true` otherwise.
+	 */
+	/// @{
+	key_mapping(input::keyboard* keyboard, input::scancode scancode, bool repeat = false);
+	key_mapping() = default;
+	/// @}
+	
+	/// Destructs a keyboard key mapping.
+	virtual ~key_mapping() = default;
+	
+	/// Returns mapping_type::key.
+	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	{
+		return mapping_type::key;
+	}
+	
+	/// Pointer to the mapped keyboard, or `nullptr` if input from any keyboard is accepted.
+	input::keyboard* keyboard;
+	
+	/// Scancode of the mapped key.
+	scancode scancode;
+	
+	/// `false` if the mapping ignores key repeats, `true` otherwise.
+	bool repeat;
+};
+
+/**
+ * Maps a mouse button to a control input value.
+ */
+class mouse_button_mapping: public mapping
+{
+public:
+	/**
+	 * Constructs a mouse button mapping.
+	 *
+	 * @param mouse Pointer to the mouse to map, or `nullptr` if input from any mouse will be mapped.
+	 * @param button Mouse button to map.
+	 */
+	/// @{
+	mouse_button_mapping(input::mouse* mouse, mouse_button button);
+	mouse_button_mapping() = default;
+	/// @}
+	
+	/// Destructs a mouse button mapping.
+	virtual ~mouse_button_mapping() = default;
+	
+	/// Returns mapping_type::mouse_button.
+	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	{
+		return mapping_type::mouse_button;
+	}
+	
+	/// Pointer to the mapped mouse, or `nullptr` if input from any mouse is accepted.
+	input::mouse* mouse;
+	
+	/// Mapped mouse button.
+	mouse_button button;
+};
+
+/**
+ * Maps a direction along a mouse motion axis to a control input value.
+ */
+class mouse_motion_mapping: public mapping
+{
+public:
+	/**
+	 * Constructs a mouse motion mapping.
+	 *
+	 * @param mouse Pointer to the mouse to map, or `nullptr` if input from any mouse will be mapped.
+	 * @param axis Mouse motion axis to map.
+	 * @param direction Sign bit of the direction to map.
+	 */
+	/// @{
+	mouse_motion_mapping(input::mouse* mouse, mouse_motion_axis axis, bool direction);
+	mouse_motion_mapping() = default;
+	/// @}
+	
+	/// Destructs a mouse motion mapping.
+	virtual ~mouse_motion_mapping() = default;
+	
+	/// Returns mapping_type::mouse_motion.
+	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	{
+		return mapping_type::mouse_motion;
+	}
+	
+	/// Pointer to the mapped mouse, or `nullptr` if input from any mouse is accepted.
+	input::mouse* mouse;
+	
+	/// Mapped mouse motion axis.
+	mouse_motion_axis axis;
+	
+	/// Sign bit of the mapped direction.
+	bool direction;
+};
+
+/**
+ * Maps a direction along a mouse scroll axis to a control input value.
+ */
+class mouse_scroll_mapping: public mapping
+{
+public:
+	/**
+	 * Constructs a mouse scroll mapping.
+	 *
+	 * @param control Control to which input will be mapped.
+	 * @param mouse Pointer to the mouse to map, or `nullptr` if input from any mouse will be mapped.
+	 * @param axis Mouse scroll axis to map.
+	 * @param direction Sign bit of the direction to map.
+	 */
+	/// @{
+	mouse_scroll_mapping(input::mouse* mouse, mouse_scroll_axis axis, bool direction);
+	mouse_scroll_mapping() = default;
+	/// @}
+	
+	/// Destructs a mouse scroll mapping.
+	virtual ~mouse_scroll_mapping() = default;
+	
+	/// Returns mapping_type::mouse_scroll.
+	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	{
+		return mapping_type::mouse_scroll;
+	}
+	
+	/// Pointer to the mapped mouse, or `nullptr` if input from any mouse is accepted.
+	input::mouse* mouse;
+	
+	/// Mapped mouse scroll axis.
+	mouse_scroll_axis axis;
+	
+	/// Sign bit of the mapped direction.
+	bool direction;
+};
 
 } // namespace input
 
 #endif // ANTKEEPER_INPUT_MAPPING_HPP
-

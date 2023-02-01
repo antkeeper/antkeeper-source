@@ -20,7 +20,7 @@
 #include "application.hpp"
 #include "color/color.hpp"
 #include "config.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 #include "entity/archetype.hpp"
 #include "entity/commands.hpp"
 #include "game/component/atmosphere.hpp"
@@ -68,7 +68,6 @@
 #include <algorithm>
 #include <execution>
 #include <fstream>
-#include <iostream>
 #include <stb/stb_image_write.h>
 
 namespace game {
@@ -94,19 +93,19 @@ static void create_moon(game::context& ctx);
 
 void cosmogenesis(game::context& ctx)
 {
-	ctx.logger->push_task("Generating cosmos");
+	debug::log::push_task("Generating cosmos");
 	
 	load_ephemeris(ctx);
 	create_stars(ctx);
 	create_sun(ctx);
 	create_earth_moon_system(ctx);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void create_observer(game::context& ctx)
 {
-	ctx.logger->push_task("Creating observer");
+	debug::log::push_task("Creating observer");
 	
 	try
 	{
@@ -139,11 +138,11 @@ void create_observer(game::context& ctx)
 	}
 	catch (const std::exception&)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::pop_task(EXIT_FAILURE);
 		return;
 	}
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void set_location(game::context& ctx, double elevation, double latitude, double longitude)
@@ -171,7 +170,7 @@ void set_location(game::context& ctx, double elevation, double latitude, double 
 
 void set_time(game::context& ctx, double t)
 {
-	ctx.logger->push_task("Setting time to UT1 " + std::to_string(t));
+	debug::log::push_task("Setting time to UT1 " + std::to_string(t));
 	try
 	{
 		ctx.astronomy_system->set_time(t);
@@ -179,10 +178,10 @@ void set_time(game::context& ctx, double t)
 	}
 	catch (const std::exception&)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::pop_task(EXIT_FAILURE);
 		return;
 	}
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void set_time(game::context& ctx, int year, int month, int day, int hour, int minute, double second)
@@ -221,7 +220,7 @@ void set_time_scale(game::context& ctx, double scale)
 
 void load_ephemeris(game::context& ctx)
 {
-	ctx.logger->push_task("Loading ephemeris");
+	debug::log::push_task("Loading ephemeris");
 	
 	try
 	{
@@ -232,8 +231,8 @@ void load_ephemeris(game::context& ctx)
 		}
 		else
 		{
-			ctx.logger->warning("No ephemeris set in config");
-			ctx.logger->pop_task(EXIT_FAILURE);
+			debug::log::warning("No ephemeris set in config");
+			debug::log::pop_task(EXIT_FAILURE);
 			return;
 		}
 		
@@ -241,16 +240,16 @@ void load_ephemeris(game::context& ctx)
 	}
 	catch (const std::exception&)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::pop_task(EXIT_FAILURE);
 		return;
 	}
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void create_stars(game::context& ctx)
 {
-	ctx.logger->push_task("Generating fixed stars");
+	debug::log::push_task("Generating fixed stars");
 	
 	// Load star catalog
 	string_table* star_catalog = nullptr;
@@ -263,8 +262,8 @@ void create_stars(game::context& ctx)
 		}
 		else
 		{
-			ctx.logger->warning("No star catalog set in config");
-			ctx.logger->pop_task(EXIT_FAILURE);
+			debug::log::warning("No star catalog set in config");
+			debug::log::pop_task(EXIT_FAILURE);
 			return;
 		}
 		
@@ -272,7 +271,7 @@ void create_stars(game::context& ctx)
 	}
 	catch (const std::exception&)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::pop_task(EXIT_FAILURE);
 		return;
 	}
 	
@@ -307,7 +306,7 @@ void create_stars(game::context& ctx)
 		}
 		catch (const std::exception&)
 		{
-			ctx.logger->warning("Invalid star catalog item on row " + std::to_string(i));
+			debug::log::warning("Invalid star catalog item on row " + std::to_string(i));
 		}
 		
 		// Convert right ascension and declination from degrees to radians
@@ -401,12 +400,12 @@ void create_stars(game::context& ctx)
 	// Pass starlight illuminance to astronomy system
 	ctx.astronomy_system->set_starlight_illuminance(starlight_illuminance);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void create_sun(game::context& ctx)
 {
-	ctx.logger->push_task("Generating Sun");
+	debug::log::push_task("Generating Sun");
 	
 	try
 	{
@@ -449,16 +448,16 @@ void create_sun(game::context& ctx)
 	}
 	catch (const std::exception&)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::pop_task(EXIT_FAILURE);
 		return;
 	}
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void create_earth_moon_system(game::context& ctx)
 {
-	ctx.logger->push_task("Generating Earth-Moon system");
+	debug::log::push_task("Generating Earth-Moon system");
 	
 	try
 	{
@@ -475,16 +474,16 @@ void create_earth_moon_system(game::context& ctx)
 	}
 	catch (const std::exception&)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::pop_task(EXIT_FAILURE);
 		return;
 	}
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void create_earth(game::context& ctx)
 {
-	ctx.logger->push_task("Generating Earth");
+	debug::log::push_task("Generating Earth");
 	
 	try
 	{
@@ -498,16 +497,16 @@ void create_earth(game::context& ctx)
 	}
 	catch (const std::exception&)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::pop_task(EXIT_FAILURE);
 		return;
 	}
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void create_moon(game::context& ctx)
 {
-	ctx.logger->push_task("Generating Moon");
+	debug::log::push_task("Generating Moon");
 	
 	try
 	{
@@ -535,11 +534,11 @@ void create_moon(game::context& ctx)
 	}
 	catch (const std::exception&)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::pop_task(EXIT_FAILURE);
 		return;
 	}
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion)
@@ -600,7 +599,7 @@ void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion)
 	*/
 
 	
-	ctx.logger->push_task("Entering ecoregion " + ecoregion.name);
+	debug::log::push_task("Entering ecoregion " + ecoregion.name);
 	try
 	{
 		// Set active ecoregion
@@ -644,9 +643,9 @@ void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion)
 	}
 	catch (...)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::pop_task(EXIT_FAILURE);
 	}
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 } // namespace world

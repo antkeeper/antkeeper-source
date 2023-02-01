@@ -23,15 +23,15 @@
 /// Color manipulation.
 namespace color {}
 
-#include "aces.hpp"
-#include "cat.hpp"
-#include "cct.hpp"
-#include "illuminant.hpp"
-#include "index.hpp"
-#include "rgb.hpp"
-#include "srgb.hpp"
-#include "ucs.hpp"
-#include "xyy.hpp"
-#include "xyz.hpp"
+#include "color/aces.hpp"
+#include "color/cat.hpp"
+#include "color/cct.hpp"
+#include "color/illuminant.hpp"
+#include "color/index.hpp"
+#include "color/rgb.hpp"
+#include "color/srgb.hpp"
+#include "color/ucs.hpp"
+#include "color/xyy.hpp"
+#include "color/xyz.hpp"
 
 #endif // ANTKEEPER_COLOR_HPP

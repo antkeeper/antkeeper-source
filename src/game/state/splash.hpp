@@ -24,6 +24,7 @@
 #include "render/material.hpp"
 #include "scene/billboard.hpp"
 #include "animation/animation.hpp"
+#include "event/subscription.hpp"
 
 namespace game {
 namespace state {
@@ -39,6 +40,8 @@ private:
 	scene::billboard splash_billboard;
 	animation<float> splash_fade_in_animation;
 	animation<float> splash_fade_out_animation;
+	std::shared_ptr<::event::subscription> input_mapped_subscription;
+	bool skipped;
 };
 
 } // namespace state

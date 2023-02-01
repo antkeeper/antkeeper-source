@@ -19,7 +19,6 @@
 
 #include "game/system/orbit.hpp"
 #include "physics/orbit/orbit.hpp"
-#include <iostream>
 
 namespace game {
 namespace system {

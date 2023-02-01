@@ -54,7 +54,6 @@
 #include "color/color.hpp"
 #include "application.hpp"
 #include "input/mouse.hpp"
-#include <iostream>
 
 namespace game {
 namespace state {
@@ -62,7 +61,7 @@ namespace state {
 nuptial_flight::nuptial_flight(game::context& ctx):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering nuptial flight state");
+	debug::log::push_task("Entering nuptial flight state");
 	
 	// Init selected picking flag
 	selected_picking_flag = std::uint32_t{1} << (sizeof(std::uint32_t) * 8 - 1);
@@ -144,12 +143,12 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	// Queue control setup
 	ctx.function_queue.push(std::bind(&nuptial_flight::enable_controls, this));
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 nuptial_flight::~nuptial_flight()
 {
-	ctx.logger->push_task("Exiting nuptial flight state");
+	debug::log::push_task("Exiting nuptial flight state");
 	
 	// Deselect selected entity
 	select_entity(entt::null);
@@ -157,7 +156,7 @@ nuptial_flight::~nuptial_flight()
 	destroy_camera_rig();
 	game::ant::destroy_swarm(ctx, swarm_eid);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void nuptial_flight::create_camera_rig()
@@ -389,6 +388,7 @@ void nuptial_flight::satisfy_camera_rig_constraints()
 
 void nuptial_flight::enable_controls()
 {
+	/*
 	// Reset mouse look
 	mouse_look = false;
 	
@@ -747,7 +747,7 @@ void nuptial_flight::enable_controls()
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() - 1.0f);
 			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 3.0f * static_cast<float>(ctx.loop.get_update_period()));
-			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
+			debug::log::info("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
 	
@@ -757,13 +757,15 @@ void nuptial_flight::enable_controls()
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() + 1.0f);
 			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 3.0f * static_cast<float>(ctx.loop.get_update_period()));
-			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
+			debug::log::info("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
+	*/
 }
 
 void nuptial_flight::disable_controls()
 {
+	/*
 	if (mouse_look)
 	{
 		mouse_look = false;
@@ -795,6 +797,7 @@ void nuptial_flight::disable_controls()
 	ctx.controls["pause"]->set_activated_callback(nullptr);
 	ctx.controls["increase_exposure"]->set_active_callback(nullptr);
 	ctx.controls["decrease_exposure"]->set_active_callback(nullptr);
+	*/
 }
 
 void nuptial_flight::select_entity(entity::id entity_id)

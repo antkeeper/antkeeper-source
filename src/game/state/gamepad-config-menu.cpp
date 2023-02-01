@@ -22,7 +22,7 @@
 #include "game/context.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 #include "resources/resource-manager.hpp"
 #include "game/menu.hpp"
 #include "game/controls.hpp"
@@ -33,7 +33,7 @@ namespace state {
 gamepad_config_menu::gamepad_config_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering gamepad config menu state");
+	debug::log::push_task("Entering gamepad config menu state");
 	
 	// Add camera control menu items
 	add_control_item("move_forward");
@@ -108,12 +108,12 @@ gamepad_config_menu::gamepad_config_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 gamepad_config_menu::~gamepad_config_menu()
 {
-	ctx.logger->push_task("Exiting gamepad config menu state");
+	debug::log::push_task("Exiting gamepad config menu state");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -125,13 +125,13 @@ gamepad_config_menu::~gamepad_config_menu()
 	// Save control profile
 	game::save_control_profile(ctx);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 std::string gamepad_config_menu::get_binding_string(input::control* control)
 {
 	std::string binding_string;
-	
+	/*
 	auto mappings = ctx.input_event_router->get_mappings(control);
 	for (input::mapping* mapping: *mappings)
 	{
@@ -275,14 +275,14 @@ std::string gamepad_config_menu::get_binding_string(input::control* control)
 			}
 		}
 	}
-	
+	*/
 	return binding_string;
 }
 
 void gamepad_config_menu::add_control_item(const std::string& control_name)
 {
 	// Get pointer to control
-	input::control* control = ctx.controls[control_name];
+	//input::control* control = ctx.controls[control_name];
 	
 	// Construct texts
 	scene::text* name_text = new scene::text();
@@ -299,9 +299,9 @@ void gamepad_config_menu::add_control_item(const std::string& control_name)
 		name_text->set_content(control_name);
 	
 	// Set content of value text
-	value_text->set_content(get_binding_string(control));
+	//value_text->set_content(get_binding_string(control));
 	
-	auto select_callback = [this, &ctx = this->ctx, control, value_text]()
+	auto select_callback = [this, &ctx = this->ctx, value_text]()
 	{
 		// Clear binding string from value text
 		value_text->set_content((*ctx.strings)["ellipsis"]);
@@ -311,6 +311,7 @@ void gamepad_config_menu::add_control_item(const std::string& control_name)
 		// Disable controls
 		game::menu::clear_controls(ctx);
 		
+		/*
 		// Remove gamepad event mappings from control
 		ctx.input_event_router->remove_mappings(control, input::mapping_type::gamepad_axis);
 		ctx.input_event_router->remove_mappings(control, input::mapping_type::gamepad_button);
@@ -363,6 +364,7 @@ void gamepad_config_menu::add_control_item(const std::string& control_name)
 			}
 		);
 		ctx.input_listener->set_enabled(true);
+		*/
 	};
 	
 	// Register menu item callbacks

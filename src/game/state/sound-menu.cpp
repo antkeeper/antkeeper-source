@@ -21,7 +21,7 @@
 #include "game/state/options-menu.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 #include "game/menu.hpp"
 
 namespace game {
@@ -30,7 +30,7 @@ namespace state {
 sound_menu::sound_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering sound menu state");
+	debug::log::push_task("Entering sound menu state");
 	
 	// Construct menu item texts
 	scene::text* master_volume_name_text = new scene::text();
@@ -80,7 +80,7 @@ sound_menu::sound_menu(game::context& ctx):
 	auto increase_volume_callback = [this, &ctx](float* volume)
 	{
 		// Increase volume
-		if (ctx.controls["menu_modifier"]->is_active())
+		if (ctx.menu_modifier_control.is_active())
 			*volume += 0.01f;
 		else
 			*volume += 0.1f;
@@ -96,7 +96,7 @@ sound_menu::sound_menu(game::context& ctx):
 	auto decrease_volume_callback = [this, &ctx](float* volume)
 	{
 		// Decrease volume
-		if (ctx.controls["menu_modifier"]->is_active())
+		if (ctx.menu_modifier_control.is_active())
 			*volume -= 0.01f;
 		else
 			*volume -= 0.1f;
@@ -131,7 +131,7 @@ sound_menu::sound_menu(game::context& ctx):
 	auto increase_captions_size_callback = [this, &ctx]()
 	{
 		// Increase size
-		if (ctx.controls["menu_modifier"]->is_active())
+		if (ctx.menu_modifier_control.is_active())
 			ctx.captions_size += 0.01f;
 		else
 			ctx.captions_size += 0.1f;
@@ -148,7 +148,7 @@ sound_menu::sound_menu(game::context& ctx):
 	auto decrease_captions_size_callback = [this, &ctx]()
 	{
 		// Decrease size
-		if (ctx.controls["menu_modifier"]->is_active())
+		if (ctx.menu_modifier_control.is_active())
 			ctx.captions_size -= 0.01f;
 		else
 			ctx.captions_size -= 0.1f;
@@ -220,12 +220,12 @@ sound_menu::sound_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 sound_menu::~sound_menu()
 {
-	ctx.logger->push_task("Exiting sound menu state");
+	debug::log::push_task("Exiting sound menu state");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -242,7 +242,7 @@ sound_menu::~sound_menu()
 	(*ctx.config)["captions"] = ctx.captions;
 	(*ctx.config)["captions_size"] = ctx.captions_size;
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void sound_menu::update_value_text_content()

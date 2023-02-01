@@ -20,15 +20,74 @@
 #ifndef ANTKEEPER_CONFIG_HPP
 #define ANTKEEPER_CONFIG_HPP
 
+// Disable trace message logging on release builds
+#if defined(NDEBUG)
+	#define ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY 1
+#else
+	#define ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY 0
+#endif
+
 #include "math/vector.hpp"
 
 /// Global configuration constants.
 namespace config {
 
-constexpr int version_major = @PROJECT_VERSION_MAJOR@;
-constexpr int version_minor = @PROJECT_VERSION_MINOR@;
-constexpr int version_patch = @PROJECT_VERSION_PATCH@;
-constexpr const char* version_string = "@PROJECT_VERSION@";
+/// @name Application config
+/// @{
+
+/// Application name string.
+constexpr const char* application_name = "@PROJECT_NAME@";
+
+/// Application major version number.
+constexpr int application_version_major = @PROJECT_VERSION_MAJOR@;
+
+/// Application minor version number.
+constexpr int application_version_minor = @PROJECT_VERSION_MINOR@;
+
+/// Application patch version number.
+constexpr int application_version_patch = @PROJECT_VERSION_PATCH@;
+
+/// Application version string ("`major.minor.patch`")
+constexpr const char* application_version_string = "@PROJECT_VERSION@";
+
+/// @}
+
+/// @name Debug config
+/// @{
+
+/// Maximum number of debug logs to archive.
+constexpr std::size_t debug_log_archive_capacity = 5;
+
+/// @}
+
+/// @name OpenGL config
+/// @{
+
+/// OpenGL major version number, used when creating OpenGL contexts.
+constexpr int opengl_version_major = 3;
+
+/// OpenGL minor version number, used when creating OpenGL contexts.
+constexpr int opengl_version_minor = 3;
+
+/// Minimum number of bits in the red channel of the color attachment of the OpenGL default framebuffer.
+constexpr int opengl_min_red_size = 8;
+
+/// Minimum number of bits in the green channel of the color attachment of the OpenGL default framebuffer.
+constexpr int opengl_min_green_size = 8;
+
+/// Minimum number of bits in the blue channel of the color attachment of the OpenGL default framebuffer.
+constexpr int opengl_min_blue_size = 8;
+
+/// Minimum number of bits in the alpha channel of the color attachment of the OpenGL default framebuffer.
+constexpr int opengl_min_alpha_size = 0;
+
+/// Minimum number of bits in the depth attachment, if any, of the OpenGL default framebuffer.
+constexpr int opengl_min_depth_size = 0;
+
+/// Minimum number of bits in the stencil attachment, if any, of the OpenGL default framebuffer.
+constexpr int opengl_min_stencil_size = 0;
+
+/// @}
 
 constexpr math::vector<float, 3> global_forward = {0.0f, 0.0f, -1.0f};
 constexpr math::vector<float, 3> global_up = {0.0f, 1.0f, 0.0f};
@@ -47,10 +106,10 @@ constexpr float menu_mouseover_padding = 0.1f;
 constexpr float menu_bg_opacity = 2.0f / 4.0f;
 
 /// RGBA color of active menu items.
-constexpr float4 menu_active_color{1.0f, 1.0f, 1.0f, 1.0f};
+constexpr math::vector<float, 4> menu_active_color{1.0f, 1.0f, 1.0f, 1.0f};
 
 /// RGBA color of inactive menu items.
-constexpr float4 menu_inactive_color{1.0f, 1.0f, 1.0f, 0.5f};
+constexpr math::vector<float, 4> menu_inactive_color{1.0f, 1.0f, 1.0f, 0.5f};
 
 /// Duration of the title screen fade in, in seconds.
 constexpr float title_fade_in_duration = 1.0f;

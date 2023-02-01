@@ -21,7 +21,7 @@
 #include "game/state/options-menu.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 #include "game/fonts.hpp"
 #include "game/menu.hpp"
 #include "game/graphics.hpp"
@@ -35,7 +35,7 @@ static void update_value_text_content(game::context* ctx);
 graphics_menu::graphics_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering graphics menu state");
+	debug::log::push_task("Entering graphics menu state");
 	
 	// Construct menu item texts
 	scene::text* fullscreen_name_text = new scene::text();
@@ -112,7 +112,7 @@ graphics_menu::graphics_menu(game::context& ctx):
 	auto increase_resolution_callback = [this, &ctx]()
 	{
 		// Increase resolution
-		if (ctx.controls["menu_modifier"]->is_active())
+		if (ctx.menu_modifier_control.is_active())
 			ctx.render_scale += 0.05f;
 		else
 			ctx.render_scale += 0.25f;
@@ -136,7 +136,7 @@ graphics_menu::graphics_menu(game::context& ctx):
 	auto decrease_resolution_callback = [this, &ctx]()
 	{
 		// Increase resolution
-		if (ctx.controls["menu_modifier"]->is_active())
+		if (ctx.menu_modifier_control.is_active())
 			ctx.render_scale -= 0.05f;
 		else
 			ctx.render_scale -= 0.25f;
@@ -242,7 +242,7 @@ graphics_menu::graphics_menu(game::context& ctx):
 	auto increase_font_size_callback = [this, &ctx]()
 	{
 		// Increase font size
-		if (ctx.controls["menu_modifier"]->is_active())
+		if (ctx.menu_modifier_control.is_active())
 			ctx.font_size += 0.01f;
 		else
 			ctx.font_size += 0.1f;
@@ -258,16 +258,16 @@ graphics_menu::graphics_menu(game::context& ctx):
 		(*ctx.config)["font_size"] = ctx.font_size;
 		
 		// Reload fonts
-		ctx.logger->push_task("Reloading fonts");
+		debug::log::push_task("Reloading fonts");
 		try
 		{
 			game::load_fonts(ctx);
 		}
 		catch (...)
 		{
-			ctx.logger->pop_task(EXIT_FAILURE);
+			debug::log::pop_task(EXIT_FAILURE);
 		}
-		ctx.logger->pop_task(EXIT_SUCCESS);
+		debug::log::pop_task(EXIT_SUCCESS);
 		
 		// Refresh and realign text
 		game::menu::refresh_text(ctx);
@@ -278,7 +278,7 @@ graphics_menu::graphics_menu(game::context& ctx):
 	auto decrease_font_size_callback = [this, &ctx]()
 	{
 		// Decrease font size
-		if (ctx.controls["menu_modifier"]->is_active())
+		if (ctx.menu_modifier_control.is_active())
 			ctx.font_size -= 0.01f;
 		else
 			ctx.font_size -= 0.1f;
@@ -294,16 +294,16 @@ graphics_menu::graphics_menu(game::context& ctx):
 		(*ctx.config)["font_size"] = ctx.font_size;
 		
 		// Reload fonts
-		ctx.logger->push_task("Reloading fonts");
+		debug::log::push_task("Reloading fonts");
 		try
 		{
 			game::load_fonts(ctx);
 		}
 		catch (...)
 		{
-			ctx.logger->pop_task(EXIT_FAILURE);
+			debug::log::pop_task(EXIT_FAILURE);
 		}
-		ctx.logger->pop_task(EXIT_SUCCESS);
+		debug::log::pop_task(EXIT_SUCCESS);
 		
 		// Refresh and realign text
 		game::menu::refresh_text(ctx);
@@ -322,16 +322,16 @@ graphics_menu::graphics_menu(game::context& ctx):
 		(*ctx.config)["dyslexia_font"] = ctx.dyslexia_font;
 		
 		// Reload fonts
-		ctx.logger->push_task("Reloading fonts");
+		debug::log::push_task("Reloading fonts");
 		try
 		{
 			game::load_fonts(ctx);
 		}
 		catch (...)
 		{
-			ctx.logger->pop_task(EXIT_FAILURE);
+			debug::log::pop_task(EXIT_FAILURE);
 		}
-		ctx.logger->pop_task(EXIT_SUCCESS);
+		debug::log::pop_task(EXIT_SUCCESS);
 		
 		// Refresh and realign text
 		game::menu::refresh_text(ctx);
@@ -400,12 +400,12 @@ graphics_menu::graphics_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 graphics_menu::~graphics_menu()
 {
-	ctx.logger->push_task("Exiting graphics menu state");
+	debug::log::push_task("Exiting graphics menu state");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -414,7 +414,7 @@ graphics_menu::~graphics_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void graphics_menu::update_value_text_content()

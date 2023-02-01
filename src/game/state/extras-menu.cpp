@@ -22,7 +22,7 @@
 #include "game/state/credits.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 #include "game/fonts.hpp"
 #include "game/menu.hpp"
 
@@ -32,7 +32,7 @@ namespace state {
 extras_menu::extras_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering extras menu state");
+	debug::log::push_task("Entering extras menu state");
 	
 	// Construct menu item texts
 	scene::text* credits_text = new scene::text();
@@ -123,12 +123,12 @@ extras_menu::extras_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 extras_menu::~extras_menu()
 {
-	ctx.logger->push_task("Exiting extras menu state");
+	debug::log::push_task("Exiting extras menu state");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -137,7 +137,7 @@ extras_menu::~extras_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 } // namespace state

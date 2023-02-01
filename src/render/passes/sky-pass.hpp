@@ -23,8 +23,6 @@
 #include "render/pass.hpp"
 #include "render/shader-template.hpp"
 #include "utility/fundamental-types.hpp"
-#include "event/event-handler.hpp"
-#include "event/input-events.hpp"
 #include "animation/tween.hpp"
 #include "math/quaternion.hpp"
 #include "gl/shader-program.hpp"
@@ -46,8 +44,7 @@ class model;
 /**
  *
  */
-class sky_pass: public pass,
-	public event_handler<mouse_moved_event>
+class sky_pass: public pass
 {
 public:
 	sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
@@ -94,8 +91,6 @@ public:
 	void set_transmittance_lut_resolution(std::uint16_t width, std::uint16_t height);
 
 private:
-	virtual void handle_event(const mouse_moved_event& event);
-	
 	gl::vertex_buffer* quad_vbo;
 	gl::vertex_array* quad_vao;
 	

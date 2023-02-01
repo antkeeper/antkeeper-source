@@ -27,7 +27,7 @@
 #include "animation/animator.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 #include "animation/screen-transition.hpp"
 #include "config.hpp"
 #include "game/save.hpp"
@@ -38,7 +38,7 @@ namespace state {
 pause_menu::pause_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering pause menu state");
+	debug::log::push_task("Entering pause menu state");
 	
 	// Construct menu item texts
 	scene::text* resume_text = new scene::text();
@@ -72,7 +72,7 @@ pause_menu::pause_menu(game::context& ctx):
 	auto select_resume_callback = [&ctx]()
 	{
 		// Disable unpause control
-		ctx.controls["pause"]->set_activated_callback(nullptr);
+		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
 		game::menu::clear_controls(ctx);
@@ -96,7 +96,7 @@ pause_menu::pause_menu(game::context& ctx):
 	auto select_options_callback = [&ctx]()
 	{
 		// Disable unpause control
-		ctx.controls["pause"]->set_activated_callback(nullptr);
+		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
 		game::menu::clear_controls(ctx);
@@ -122,7 +122,7 @@ pause_menu::pause_menu(game::context& ctx):
 	auto select_main_menu_callback = [&ctx]()
 	{
 		// Disable unpause control
-		ctx.controls["pause"]->set_activated_callback(nullptr);
+		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
 		game::menu::clear_controls(ctx);
@@ -155,7 +155,7 @@ pause_menu::pause_menu(game::context& ctx):
 	auto select_quit_callback = [&ctx]()
 	{
 		// Disable unpause control
-		ctx.controls["pause"]->set_activated_callback(nullptr);
+		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
 		game::menu::clear_controls(ctx);
@@ -192,7 +192,7 @@ pause_menu::pause_menu(game::context& ctx):
 		[&ctx, select_resume_callback]()
 		{
 			// Enable unpause control
-			ctx.controls["pause"]->set_activated_callback(select_resume_callback);
+			//ctx.controls["pause"]->set_activated_callback(select_resume_callback);
 			
 			// Enable menu controls
 			game::menu::setup_controls(ctx);
@@ -207,12 +207,12 @@ pause_menu::pause_menu(game::context& ctx):
 	// Save colony
 	game::save::colony(ctx);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 pause_menu::~pause_menu()
 {
-	ctx.logger->push_task("Exiting pause menu state");
+	debug::log::push_task("Exiting pause menu state");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -221,7 +221,7 @@ pause_menu::~pause_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 } // namespace state

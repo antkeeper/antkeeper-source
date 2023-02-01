@@ -589,11 +589,6 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 	return parameters;
 }
 
-void material_pass::handle_event(const mouse_moved_event& event)
-{
-	mouse_position = {static_cast<float>(event.x), static_cast<float>(event.y)};
-}
-
 bool operation_compare(const render::operation& a, const render::operation& b)
 {
 	if (!a.material)

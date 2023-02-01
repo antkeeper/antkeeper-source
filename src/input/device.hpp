@@ -20,57 +20,81 @@
 #ifndef ANTKEEPER_INPUT_DEVICE_HPP
 #define ANTKEEPER_INPUT_DEVICE_HPP
 
-#include "event/event-dispatcher.hpp"
+#include "input/device-type.hpp"
+#include "input/event.hpp"
+#include "event/publisher.hpp"
+#include "utility/uuid.hpp"
+#include <optional>
 #include <string>
 
 namespace input {
 
 /**
- * Base class for virtual devices which generate input events.
+ * Abstract base class for virtual devices that generate input events.
  */
 class device
 {
 public:
+	/// Constructs an input device.
 	device();
+	
+	/// Destructs an input device.
 	virtual ~device() = default;
-
-	void set_event_dispatcher(event_dispatcher* event_dispatcher);
-	const event_dispatcher* get_event_dispatcher() const;
-	event_dispatcher* get_event_dispatcher();
 	
 	/**
-	 * Sets the globally unique identifier (GUID) of this input device.
-	 *
-	 * @param guid GUID string.
+	 * Simulates the device being connected.
 	 */
-	void set_guid(const std::string& guid);
+	void connect();
 	
-	/// Returns the globally unique identifier (GUID) of this input device.
-	const std::string& get_guid() const;
-
-protected:
-	event_dispatcher* event_dispatcher;
+	/**
+	 * Simulates the device being disconnected.
+	 *
+	 * @note Disconnected devices can still generate input events.
+	 */
+	void disconnect();
+	
+	/// Returns `true` if the device is currently connected.
+	[[nodiscard]] inline bool is_connected() const noexcept
+	{
+		return connected;
+	}
+	
+	/**
+	 * Sets the universally unique identifier (UUID) of this input device.
+	 *
+	 * @param id UUID.
+	 */
+	void set_uuid(const ::uuid& id);
+	
+	/// Returns the universally unique identifier (UUID) of this input device.
+	[[nodiscard]] inline const ::uuid& get_uuid() const noexcept
+	{
+		return uuid;
+	}
+	
+	/// Returns the channel through which device connected events are published.
+	[[nodiscard]] inline ::event::channel<event::device_connected>& get_connected_channel() noexcept
+	{
+		return connected_publisher.channel();
+	}
+	
+	/// Returns the channel through which device disconnected events are published.
+	[[nodiscard]] inline ::event::channel<event::device_disconnected>& get_disconnected_channel() noexcept
+	{
+		return disconnected_publisher.channel();
+	}
+	
+	/// Returns the input device type.
+	[[nodiscard]] virtual constexpr device_type get_device_type() const noexcept = 0;
 	
 private:
-	std::string guid;
+	::uuid uuid;
+	bool connected;
+	
+	::event::publisher<event::device_connected> connected_publisher;
+	::event::publisher<event::device_disconnected> disconnected_publisher;
 };
-
-inline const event_dispatcher* device::get_event_dispatcher() const
-{
-	return event_dispatcher;
-}
-
-inline event_dispatcher* device::get_event_dispatcher()
-{
-	return event_dispatcher;
-}
-
-inline const std::string& device::get_guid() const
-{
-	return guid;
-}
 
 } // namespace input
 
 #endif // ANTKEEPER_INPUT_DEVICE_HPP
-

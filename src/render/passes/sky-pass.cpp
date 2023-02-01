@@ -46,7 +46,6 @@
 #include <cmath>
 #include <stdexcept>
 #include <glad/glad.h>
-#include <iostream>
 
 namespace render {
 
@@ -662,11 +661,6 @@ void sky_pass::set_transmittance_lut_resolution(std::uint16_t width, std::uint16
 	
 	// Trigger transmittance LUT render
 	render_transmittance_lut = true;
-}
-
-void sky_pass::handle_event(const mouse_moved_event& event)
-{
-	mouse_position = {static_cast<float>(event.x), static_cast<float>(event.y)};
 }
 
 } // namespace render

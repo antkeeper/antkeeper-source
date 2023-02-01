@@ -30,10 +30,11 @@ namespace math {
  * @param from_max End of the first range.
  * @param to_min Start of the second range.
  * @param to_max End of the second range.
+ *
  * @return Unclamped remapped value.
  */
 template <class T>
-T map(T x, T from_min, T from_max, T to_min, T to_max)
+constexpr T map(T x, T from_min, T from_max, T to_min, T to_max) noexcept
 {
 	return to_min + (x - from_min) * (to_max - to_min) / (from_max - from_min);
 }

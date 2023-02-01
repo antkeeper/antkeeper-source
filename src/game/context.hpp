@@ -20,47 +20,45 @@
 #ifndef ANTKEEPER_GAME_CONTEXT_HPP
 #define ANTKEEPER_GAME_CONTEXT_HPP
 
-#include "utility/fundamental-types.hpp"
-#include "resources/string-table.hpp"
+#include "animation/tween.hpp"
+#include "application.hpp"
+#include "debug/performance-sampler.hpp"
 #include "entity/id.hpp"
 #include "entity/registry.hpp"
+#include "event/subscription.hpp"
+#include "game/ecoregion.hpp"
+#include "game/loop.hpp"
+#include "game/state/base.hpp"
 #include "geom/aabb.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/texture-2d.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
-#include "gl/texture-2d.hpp"
-#include "gl/rasterizer.hpp"
-#include "gl/framebuffer.hpp"
+#include "input/control-map.hpp"
 #include "input/control.hpp"
-#include "input/control-set.hpp"
-#include "input/listener.hpp"
 #include "input/mapper.hpp"
-#include "input/event-router.hpp"
-#include "animation/tween.hpp"
+#include "render/anti-aliasing-method.hpp"
+#include "render/material-property.hpp"
+#include "render/material.hpp"
+#include "resources/json.hpp"
+#include "resources/string-table.hpp"
 #include "scene/scene.hpp"
-#include <optional>
+#include "state-machine.hpp"
+#include "type/bitmap-font.hpp"
+#include "type/typeface.hpp"
+#include "utility/fundamental-types.hpp"
+#include <AL/al.h>
+#include <AL/alc.h>
 #include <entt/entt.hpp>
-#include <fstream>
+#include <filesystem>
+#include <forward_list>
+#include <memory>
+#include <optional>
 #include <queue>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <queue>
-#include "resources/json.hpp"
-#include "type/typeface.hpp"
-#include "type/bitmap-font.hpp"
-#include "render/material.hpp"
-#include "render/material-property.hpp"
-#include "render/anti-aliasing-method.hpp"
-#include "ui/mouse-tracker.hpp"
-#include "application.hpp"
-#include "game/state/base.hpp"
-#include "game/loop.hpp"
-#include "game/ecoregion.hpp"
-#include "state-machine.hpp"
-#include "debug/performance-sampler.hpp"
-#include <filesystem>
-#include <AL/al.h>
-#include <AL/alc.h>
 
 // Forward declarations
 class animator;
@@ -75,7 +73,6 @@ template <typename T> class animation;
 namespace debug
 {
 	class cli;
-	class logger;
 }
 
 namespace game
@@ -129,8 +126,6 @@ struct context
 	std::function<void()> resume_callback;
 	
 	/// Debugging
-	debug::logger* logger;
-	std::ofstream log_filestream;
 	debug::performance_sampler performance_sampler;
 	debug::cli* cli;
 	
@@ -144,10 +139,22 @@ struct context
 	application* app;
 	
 	// Controls
-	input::event_router* input_event_router;
-	input::mapper* input_mapper;
-	input::listener* input_listener;
-	std::unordered_map<std::string, input::control*> controls;
+	input::mapper input_mapper;
+	std::forward_list<std::shared_ptr<::event::subscription>> control_subscriptions;
+	
+	input::control_map window_controls;
+	input::control fullscreen_control;
+	input::control screenshot_control;
+	
+	input::control_map menu_controls;
+	input::control menu_up_control;
+	input::control menu_down_control;
+	input::control menu_left_control;
+	input::control menu_right_control;
+	input::control menu_select_control;
+	input::control menu_back_control;
+	input::control menu_modifier_control;
+	
 	bool mouse_look;
 	
 	/// Game loop
@@ -232,7 +239,6 @@ struct context
 	scene::billboard* camera_flash_billboard;
 	float font_size;
 	bool dyslexia_font;
-	ui::mouse_tracker* menu_mouse_tracker;
 	std::vector<std::function<void()>> menu_select_callbacks;
 	std::vector<std::function<void()>> menu_left_callbacks;
 	std::vector<std::function<void()>> menu_right_callbacks;
@@ -307,7 +313,7 @@ struct context
 	bool bloom_enabled;
 	render::anti_aliasing_method anti_aliasing_method;
 	
-	std::shared_ptr<connection> ui_resize_connection;
+	std::shared_ptr<::event::subscription> ui_resize_subscription;
 };
 
 } // namespace game

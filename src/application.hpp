@@ -20,21 +20,21 @@
 #ifndef ANTKEEPER_APPLICATION_HPP
 #define ANTKEEPER_APPLICATION_HPP
 
+#include "event/publisher.hpp"
+#include "gl/rasterizer.hpp"
+#include "input/device-manager.hpp"
+#include "input/event.hpp"
+#include "input/gamepad.hpp"
+#include "input/keyboard.hpp"
+#include "input/mouse.hpp"
+#include "utility/fundamental-types.hpp"
 #include <list>
 #include <memory>
 #include <unordered_map>
-#include "gl/rasterizer.hpp"
-#include "input/keyboard.hpp"
-#include "input/mouse.hpp"
-#include "input/gamepad.hpp"
-#include "utility/fundamental-types.hpp"
-#include "debug/logger.hpp"
-#include "event/signal.hpp"
 
 // Forward declarations
 typedef struct SDL_Window SDL_Window;
 typedef void* SDL_GLContext;
-class event_dispatcher;
 
 /**
  * 
@@ -43,14 +43,12 @@ class application
 {
 public:
 	/**
-	 * Creates and initializes an application.
-	 *
-	 * @param logger Debug logger.
+	 * Constructs and initializes an application.
 	 */
-	application(debug::logger& log);
+	application();
 	
 	/**
-	 * Destroys an application.
+	 * Destructs an application.
 	 */
 	~application();
 	
@@ -112,62 +110,67 @@ public:
 	void add_game_controller_mappings(const void* mappings, std::size_t size);
 	
 	/// Returns the dimensions of the current display.
-	const int2& get_display_dimensions() const;
+	[[nodiscard]] const int2& get_display_dimensions() const;
 	
 	/// Returns the DPI of the display.
-	float get_display_dpi() const;
+	[[nodiscard]] float get_display_dpi() const;
 	
 	/// Returns the dimensions of the window.
-	const int2& get_window_dimensions() const;
+	[[nodiscard]] const int2& get_window_dimensions() const;
 	
 	/// Returns the dimensions of the window's drawable viewport.
-	const int2& get_viewport_dimensions() const;
+	[[nodiscard]] const int2& get_viewport_dimensions() const;
 	
 	/// Returns `true` if the window is in fullscreen mode, `false` otherwise.
-	bool is_fullscreen() const;
+	[[nodiscard]] bool is_fullscreen() const;
 	
 	/// Returns `true` if the v-sync is enabled, `false` otherwise.
-	bool get_v_sync() const;
+	[[nodiscard]] bool get_v_sync() const;
 	
 	/// Returns the rasterizer for the window.
-	gl::rasterizer* get_rasterizer();
-	
-	/// Returns the application logger.
-	debug::logger* get_logger();
-	
-	/// Returns the virtual keyboard.
-	input::keyboard* get_keyboard();
-	
-	/// Returns the virtual mouse.
-	input::mouse* get_mouse();
-	
-	/// Returns the list of virtual gamepads.
-	const std::list<input::gamepad*>& get_gamepads();
-	
-	/// Returns the application's event dispatcher.
-	event_dispatcher* get_event_dispatcher();
+	[[nodiscard]] gl::rasterizer* get_rasterizer();
 	
 	void process_events();
 	
-	bool was_closed() const;
+	[[nodiscard]] bool was_closed() const;
 	
-	/// Returns a connector for the signal emitted when a gamepad is connected or disconnected.
-	connector<void(input::gamepad&, bool)>& get_gamepad_connection_signal() noexcept;
+	/**
+	 * Returns the input device manager.
+	 */
+	/// @{
+	[[nodiscard]] inline const input::device_manager& get_device_manager() const noexcept
+	{
+		return device_manager;
+	}
+	[[nodiscard]] inline input::device_manager& get_device_manager() noexcept
+	{
+		return device_manager;
+	}
+	/// @}
 	
-	/// Returns a connector for the signal emitted when the window is requested to close.
-	connector<void()>& get_window_close_signal() noexcept;
+	/// Returns the channel through which window closed events are published.
+	[[nodiscard]] inline event::channel<input::event::window_closed>& get_window_closed_channel() noexcept
+	{
+		return window_closed_publisher.channel();
+	}
 	
-	/// Returns a connector for the signal emitted each time the window gains or loses focus.
-	connector<void(bool)>& get_window_focus_signal() noexcept;
+	/// Returns the channel through which window focus changed events are published.
+	[[nodiscard]] inline event::channel<input::event::window_focus_changed>& get_window_focus_changed_channel() noexcept
+	{
+		return window_focus_changed_publisher.channel();
+	}
 	
-	/// Returns a connector for the signal emitted each time the window is moved.
-	connector<void(int, int)>& get_window_motion_signal() noexcept;
+	/// Returns the channel through which window moved events are published.
+	[[nodiscard]] inline event::channel<input::event::window_moved>& get_window_moved_channel() noexcept
+	{
+		return window_moved_publisher.channel();
+	}
 	
-	/// Returns a connector for the signal emitted each time the window is resized.
-	connector<void(int, int)>& get_window_size_signal() noexcept;
-	
-	/// Returns a connector for the signal emitted each time the window viewport is resized.
-	connector<void(int, int)>& get_viewport_size_signal() noexcept;
+	/// Returns the channel through which window resized events are published.
+	[[nodiscard]] inline event::channel<input::event::window_resized>& get_window_resized_channel() noexcept
+	{
+		return window_resized_publisher.channel();
+	}
 	
 private:
 	void window_resized();
@@ -181,34 +184,23 @@ private:
 	int2 window_dimensions;
 	int2 viewport_dimensions;
 	int2 mouse_position;
-	debug::logger* logger;
-
+	
 	SDL_Window* sdl_window;
 	SDL_GLContext sdl_gl_context;
 	
 	gl::rasterizer* rasterizer;
 	
-	// Events
-	event_dispatcher* event_dispatcher;
-
 	// Input devices
-	input::keyboard* keyboard;
-	input::mouse* mouse;
-	std::list<input::gamepad*> gamepads;
+	input::device_manager device_manager;
+	input::keyboard keyboard;
+	input::mouse mouse;
 	std::unordered_map<int, input::gamepad*> gamepad_map;
 	
-	signal<void(input::gamepad&, bool)> gamepad_connection_signal;
-	signal<void()> window_close_signal;
-	signal<void(bool)> window_focus_signal;
-	signal<void(int, int)> window_motion_signal;
-	signal<void(int, int)> window_size_signal;
-	signal<void(int, int)> viewport_size_signal;
+	event::publisher<input::event::window_closed> window_closed_publisher;
+	event::publisher<input::event::window_focus_changed> window_focus_changed_publisher;
+	event::publisher<input::event::window_moved> window_moved_publisher;
+	event::publisher<input::event::window_resized> window_resized_publisher;
 };
-
-inline debug::logger* application::get_logger()
-{
-	return logger;
-}
 
 inline const int2& application::get_display_dimensions() const
 {
@@ -245,59 +237,9 @@ inline gl::rasterizer* application::get_rasterizer()
 	return rasterizer;
 }
 
-inline input::keyboard* application::get_keyboard()
-{
-	return keyboard;
-}
-
-inline input::mouse* application::get_mouse()
-{
-	return mouse;
-}
-
-inline const std::list<input::gamepad*>& application::get_gamepads()
-{
-	return gamepads;
-}
-
-inline event_dispatcher* application::get_event_dispatcher()
-{
-	return event_dispatcher;
-}
-
 inline bool application::was_closed() const
 {
 	return closed;
-}
-
-inline connector<void(input::gamepad&, bool)>& application::get_gamepad_connection_signal() noexcept
-{
-	return gamepad_connection_signal.connector();
-}
-
-inline connector<void()>& application::get_window_close_signal() noexcept
-{
-	return window_close_signal.connector();
-}
-
-inline connector<void(bool)>& application::get_window_focus_signal() noexcept
-{
-	return window_focus_signal.connector();
-}
-
-inline connector<void(int, int)>& application::get_window_motion_signal() noexcept
-{
-	return window_motion_signal.connector();
-}
-
-inline connector<void(int, int)>& application::get_window_size_signal() noexcept
-{
-	return window_size_signal.connector();
-}
-
-inline connector<void(int, int)>& application::get_viewport_size_signal() noexcept
-{
-	return viewport_size_signal.connector();
 }
 
 #endif // ANTKEEPER_APPLICATION_HPP

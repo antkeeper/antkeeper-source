@@ -18,20 +18,22 @@
  */
 
 #include "game/graphics.hpp"
-#include "render/passes/bloom-pass.hpp"
-#include "render/passes/fxaa-pass.hpp"
-#include "render/passes/final-pass.hpp"
-#include "render/passes/resample-pass.hpp"
+#include "config.hpp"
+#include "debug/log.hpp"
 #include "gl/framebuffer.hpp"
 #include "gl/texture-2d.hpp"
-#include "gl/texture-wrapping.hpp"
 #include "gl/texture-filter.hpp"
-#include "debug/logger.hpp"
-#include "utility/timestamp.hpp"
+#include "gl/texture-wrapping.hpp"
+#include "render/passes/bloom-pass.hpp"
+#include "render/passes/final-pass.hpp"
+#include "render/passes/fxaa-pass.hpp"
+#include "render/passes/resample-pass.hpp"
+#include <chrono>
+#include <filesystem>
+#include <format>
 #include <glad/glad.h>
 #include <stb/stb_image_write.h>
 #include <thread>
-#include <filesystem>
 
 namespace game {
 namespace graphics {
@@ -40,7 +42,7 @@ static void reroute_framebuffers(game::context& ctx);
 
 void create_framebuffers(game::context& ctx)
 {
-	ctx.logger->push_task("Creating framebuffers");
+	debug::log::trace("Creating framebuffers...");
 	
 	// Load render resolution scale from config
 	ctx.render_scale = 1.0f;
@@ -93,12 +95,12 @@ void create_framebuffers(game::context& ctx)
 	ctx.shadow_map_framebuffer = new gl::framebuffer(shadow_map_resolution, shadow_map_resolution);
 	ctx.shadow_map_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx.shadow_map_depth_texture);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::trace("Created framebuffers");
 }
 
 void destroy_framebuffers(game::context& ctx)
 {
-	ctx.logger->push_task("Destroying framebuffers");
+	debug::log::trace("Destroying framebuffers...");
 	
 	// Delete HDR framebuffer and its attachments
 	delete ctx.hdr_framebuffer;
@@ -125,12 +127,12 @@ void destroy_framebuffers(game::context& ctx)
 	delete ctx.shadow_map_depth_texture;
 	ctx.shadow_map_depth_texture = nullptr;
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::trace("Destroyed framebuffers");
 }
 
 void change_render_resolution(game::context& ctx, float scale)
 {
-	ctx.logger->push_task("Changing render resolution");
+	debug::log::trace("Changing render resolution to {}...", scale);
 	
 	// Update render resolution scale
 	ctx.render_scale = scale;
@@ -164,20 +166,24 @@ void change_render_resolution(game::context& ctx, float scale)
 	}
 	reroute_framebuffers(ctx);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::trace("Changed render resolution to {}", scale);
 }
 
 void save_screenshot(game::context& ctx)
 {
-	// Determine screenshot path
-	std::string filename = "antkeeper-" + timestamp() + ".png";
-	std::filesystem::path path = ctx.config_path / "gallery" / filename;
+	// Determine timestamped screenshot filename
+	const auto time = std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now());
+	const std::string screenshot_filename = std::format("{0}-{1:%Y%m%d}T{1:%H%M%S}Z.png", config::application_name, time);
 	
-	ctx.logger->push_task("Saving screenshot to \"" + path.string() + "\"");
+	// Determine path to screenshot file
+	std::filesystem::path screenshot_filepath = ctx.config_path / "gallery" / screenshot_filename;
+	std::string screenshot_filepath_string = screenshot_filepath.string();
+	debug::log::debug("Saving screenshot to \"{}\"...", screenshot_filepath_string);
 	
+	// Get viewport dimensions
 	const int2& viewport_dimensions = ctx.app->get_viewport_dimensions();
 	
-	// Allocate image
+	// Allocate screenshot image
 	std::shared_ptr<image> frame = std::make_shared<image>();
 	frame->format(1, 3);
 	frame->resize(viewport_dimensions.x(), viewport_dimensions.y());
@@ -189,14 +195,16 @@ void save_screenshot(game::context& ctx)
 	// Write screenshot file in separate thread
 	std::thread
 	(
-		[frame, path]
+		[frame, path = std::move(screenshot_filepath_string)]
 		{
 			stbi_flip_vertically_on_write(1);
-			stbi_write_png(path.string().c_str(), frame->get_width(), frame->get_height(), frame->get_channel_count(), frame->data(), frame->get_width() * frame->get_channel_count());
+			stbi_write_png(path.c_str(), frame->get_width(), frame->get_height(), frame->get_channel_count(), frame->data(), frame->get_width() * frame->get_channel_count());
+			
+			debug::log::debug("Saved screenshot to \"{}\"", path);
 		}
 	).detach();
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	
 }
 
 void toggle_bloom(game::context& ctx, bool enabled)

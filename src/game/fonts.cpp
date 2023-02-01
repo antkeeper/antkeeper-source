@@ -74,7 +74,7 @@ void load_fonts(game::context& ctx)
 	{
 		if (auto it = ctx.strings->find("font_dyslexia"); it != ctx.strings->end() && !it->second.empty() && it->second[0] != '#')
 		{
-			ctx.logger->log(it->second);
+			debug::log::info(it->second);
 			ctx.typefaces["dyslexia"] = ctx.resource_manager->load<type::typeface>(it->second);
 			dyslexia_font_loaded = true;
 		}
@@ -145,7 +145,7 @@ void load_fonts(game::context& ctx)
 	const float menu_font_size_px = (menu_font_size_pt * dpi) / 72.0f;
 	const float title_font_size_px = (title_font_size_pt * dpi) / 72.0f;
 	
-	ctx.logger->log("font size: " + std::to_string(menu_font_size_px));
+	debug::log::info("font size: " + std::to_string(menu_font_size_px));
 	
 	// Build debug font
 	if (auto it = ctx.typefaces.find("monospace"); it != ctx.typefaces.end())

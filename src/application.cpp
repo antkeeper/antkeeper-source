@@ -18,21 +18,19 @@
  */
 
 #include "application.hpp"
-#include "debug/logger.hpp"
-#include "event/event-dispatcher.hpp"
-#include "event/window-events.hpp"
+#include "config.hpp"
+#include "debug/log.hpp"
 #include "input/scancode.hpp"
-#include "input/sdl-game-controller-tables.hpp"
-#include "input/sdl-scancode-table.hpp"
+#include "math/map.hpp"
 #include "resources/image.hpp"
 #include <SDL2/SDL.h>
 #include <glad/glad.h>
+#include <cstring>
+#include <iomanip>
 #include <stdexcept>
 #include <utility>
-#include <iostream>
-#include <iomanip>
 
-application::application(debug::logger& log):
+application::application():
 	closed(false),
 	fullscreen(true),
 	v_sync(false),
@@ -42,133 +40,148 @@ application::application(debug::logger& log):
 	window_dimensions({0, 0}),
 	viewport_dimensions({0, 0}),
 	mouse_position({0, 0}),
-	logger(&log),
 	sdl_window(nullptr),
 	sdl_gl_context(nullptr)
 {
-	// Get SDL compiled version
+	// Log SDL compiled version
 	SDL_version sdl_compiled_version;
 	SDL_VERSION(&sdl_compiled_version);
-	std::string sdl_compiled_version_string = std::to_string(sdl_compiled_version.major) + "." + std::to_string(sdl_compiled_version.minor) + "." + std::to_string(sdl_compiled_version.patch);
-
-	// Get SDL linked version
+	debug::log::debug("Compiled against SDL {}.{}.{}", sdl_compiled_version.major, sdl_compiled_version.minor, sdl_compiled_version.patch);
+	
+	// Log SDL linked version
 	SDL_version sdl_linked_version;
 	SDL_GetVersion(&sdl_linked_version);
-	std::string sdl_linked_version_string = std::to_string(sdl_linked_version.major) + "." + std::to_string(sdl_linked_version.minor) + "." + std::to_string(sdl_linked_version.patch);
-
-	// Init SDL
-	logger->push_task("Initializing SDL");
-	logger->log("Compiled against SDL " + sdl_compiled_version_string);
-	logger->log("Linking against SDL " + sdl_linked_version_string);
-	if (SDL_Init(SDL_INIT_VIDEO) != 0)
-	{
-		logger->pop_task(EXIT_FAILURE);
-		throw std::runtime_error("Failed to initialize SDL");
-	}
-	else
-	{
-		logger->pop_task(EXIT_SUCCESS);
-	}
+	debug::log::debug("Linking against SDL {}.{}.{}", sdl_linked_version.major, sdl_linked_version.minor, sdl_linked_version.patch);
 	
-	// Load default OpenGL library
-	logger->push_task("Loading OpenGL library");
-	if (SDL_GL_LoadLibrary(nullptr) != 0)
+	// Init SDL events and video subsystems
+	debug::log::trace("Initializing SDL events and video subsystems...");
+	if (SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO) != 0)
 	{
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::fatal("Failed to initialize SDL events and video subsystems: {}", SDL_GetError());
+		throw std::runtime_error("Failed to initialize SDL events and video subsystems");
 	}
-	else
-	{
-		logger->pop_task(EXIT_SUCCESS);
-	}
-
-	// Set window creation hints
-	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	debug::log::trace("Initialized SDL events and video subsystems");
 	
-	// Get display dimensions
+	// Detect display dimensions
 	SDL_DisplayMode sdl_desktop_display_mode;
 	if (SDL_GetDesktopDisplayMode(0, &sdl_desktop_display_mode) != 0)
 	{
-		logger->error("Failed to detect desktop display mode: \"" + std::string(SDL_GetError()) + "\"");
+		debug::log::fatal("Failed to detect desktop display mode: {}", SDL_GetError());
 		throw std::runtime_error("Failed to detect desktop display mode");
 	}
-	else
-	{
-		display_dimensions = {sdl_desktop_display_mode.w, sdl_desktop_display_mode.h};
-	}
+	display_dimensions = {sdl_desktop_display_mode.w, sdl_desktop_display_mode.h};
 	
-	// Get display DPI
+	// Detect display DPI
 	if (SDL_GetDisplayDPI(0, &display_dpi, nullptr, nullptr) != 0)
 	{
-		logger->error("Failed to detect display DPI: \"" + std::string(SDL_GetError()) + "\"");
+		debug::log::fatal("Failed to detect display DPI: {}", SDL_GetError());
 		throw std::runtime_error("Failed to detect display DPI");
 	}
-	else
+	
+	// Log display properties
+	debug::log::info("Detected {}x{}@{}Hz display with {} DPI", sdl_desktop_display_mode.w, sdl_desktop_display_mode.h, sdl_desktop_display_mode.refresh_rate, display_dpi);
+	
+	// Load OpenGL library
+	debug::log::trace("Loading OpenGL library...");
+	if (SDL_GL_LoadLibrary(nullptr) != 0)
 	{
-		logger->log("Detected " + std::to_string(sdl_desktop_display_mode.w) + "x" + std::to_string(sdl_desktop_display_mode.h) + " display with " + std::to_string(display_dpi) + " DPI");
+		debug::log::fatal("Failed to load OpenGL library: {}", SDL_GetError());
+		throw std::runtime_error("Failed to load OpenGL library");
 	}
+	debug::log::trace("Loaded OpenGL library");
+	
+	// Set OpenGL-related window creation hints
+	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, config::opengl_version_major);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, config::opengl_version_minor);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, config::opengl_min_red_size);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, config::opengl_min_green_size);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, config::opengl_min_blue_size);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, config::opengl_min_alpha_size);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config::opengl_min_depth_size);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, config::opengl_min_stencil_size);
 	
 	// Create a hidden fullscreen window
-	logger->push_task("Creating " + std::to_string(display_dimensions[0]) + "x" + std::to_string(display_dimensions[1]) + " window");
+	debug::log::trace("Creating {}x{} window...", display_dimensions[0], display_dimensions[1]);
 	sdl_window = SDL_CreateWindow
 	(
-		"Antkeeper",
+		config::application_name,
     	SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 	    display_dimensions[0], display_dimensions[1],
 		SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN
 	);
-	
 	if (!sdl_window)
 	{
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::fatal("Failed to create {}x{} window: {}", display_dimensions[0], display_dimensions[1], SDL_GetError());
 		throw std::runtime_error("Failed to create SDL window");
 	}
-	else
-	{
-		logger->pop_task(EXIT_SUCCESS);
-	}
-
+	debug::log::trace("Created {}x{} window", display_dimensions[0], display_dimensions[1]);
+	
 	// Create OpenGL context
-	logger->push_task("Creating OpenGL 3.3 context");
+	debug::log::trace("Creating OpenGL {}.{} context...", config::opengl_version_major, config::opengl_version_minor);
 	sdl_gl_context = SDL_GL_CreateContext(sdl_window);
 	if (!sdl_gl_context)
 	{
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::fatal("Failed to create OpenGL context: {}", SDL_GetError());
 		throw std::runtime_error("Failed to create OpenGL context");
 	}
-	else
+	
+	// Log version of created OpenGL context
+	int opengl_context_version_major = -1;
+	int opengl_context_version_minor = -1;
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &opengl_context_version_major);
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &opengl_context_version_minor);
+	debug::log::info("Created OpenGL {}.{} context", opengl_context_version_major, opengl_context_version_minor);
+	
+	// Compare OpenGL context version with requested version
+	if (opengl_context_version_major != config::opengl_version_major ||
+		opengl_context_version_minor != config::opengl_version_minor)
 	{
-		logger->pop_task(EXIT_SUCCESS);
+		debug::log::warning("Requested OpenGL {}.{} context but created OpenGL {}.{} context", config::opengl_version_major, config::opengl_version_minor, opengl_context_version_major, opengl_context_version_minor);
 	}
 	
-	// Make OpenGL context current
-	logger->push_task("Making OpenGL context current");
-	if (SDL_GL_MakeCurrent(sdl_window, sdl_gl_context) != 0)
+	// Log format of OpenGL context default framebuffer
+	int opengl_context_red_size = -1;
+	int opengl_context_green_size = -1;
+	int opengl_context_blue_size = -1;
+	int opengl_context_alpha_size = -1;
+	int opengl_context_depth_size = -1;
+	int opengl_context_stencil_size = -1;
+	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &opengl_context_red_size);
+	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &opengl_context_green_size);
+	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &opengl_context_blue_size);
+	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &opengl_context_alpha_size);
+	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &opengl_context_depth_size);
+	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &opengl_context_stencil_size);
+	debug::log::info("OpenGL context default framebuffer format: R{}G{}B{}A{}D{}S{}", opengl_context_red_size, opengl_context_green_size, opengl_context_blue_size, opengl_context_alpha_size, opengl_context_depth_size, opengl_context_stencil_size);
+	
+	// Compare OpenGL context default framebuffer format with request format
+	if (opengl_context_red_size < config::opengl_min_red_size ||
+		opengl_context_green_size < config::opengl_min_green_size ||
+		opengl_context_blue_size < config::opengl_min_blue_size ||
+		opengl_context_alpha_size < config::opengl_min_alpha_size ||
+		opengl_context_depth_size < config::opengl_min_depth_size ||
+		opengl_context_stencil_size < config::opengl_min_stencil_size)
 	{
-		logger->pop_task(EXIT_FAILURE);
-		throw std::runtime_error("Failed to make OpenGL context current");
+		debug::log::warning
+		(
+			"OpenGL default framebuffer format (R{}G{}B{}A{}D{}S{}) does not meet minimum requested format (R{}G{}B{}A{}D{}S{})",
+			opengl_context_red_size, opengl_context_green_size, opengl_context_blue_size, opengl_context_alpha_size, opengl_context_depth_size, opengl_context_stencil_size,
+			config::opengl_min_red_size, config::opengl_min_green_size, config::opengl_min_blue_size, config::opengl_min_alpha_size, config::opengl_min_depth_size, config::opengl_min_stencil_size
+		);
 	}
-	else
-	{
-		logger->pop_task(EXIT_SUCCESS);
-	}
-
+	
 	// Load OpenGL functions via GLAD
-	logger->push_task("Loading OpenGL functions");
+	debug::log::trace("Loading OpenGL functions...");
 	if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
 	{
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::fatal("Failed to load OpenGL functions", SDL_GetError());
 		throw std::runtime_error("Failed to load OpenGL functions");
 	}
-	else
-	{
-		logger->pop_task(EXIT_SUCCESS);
-	}
+	debug::log::trace("Loaded OpenGL functions");
 	
 	// Update window size and viewport size
 	SDL_GetWindowSize(sdl_window, &window_dimensions[0], &window_dimensions[1]);
@@ -177,28 +190,27 @@ application::application(debug::logger& log):
 	// Set v-sync mode
 	set_v_sync(true);
 
-	// Init SDL joystick and gamepad subsystems
-	logger->push_task("Initializing SDL Joystick and Game Controller subsystems");
+	// Init SDL joystick and controller subsystems
+	debug::log::trace("Initializing SDL joystick and controller subsystems...");
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
 	{
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to initialize SDL joystick and controller subsytems: {}", SDL_GetError());
 	}
 	else
 	{
-		logger->pop_task(EXIT_SUCCESS);
+		debug::log::trace("Initialized SDL joystick and controller subsystems");
 	}
 	
 	// Setup rasterizer
 	rasterizer = new gl::rasterizer();
 	
-	// Setup events
-	event_dispatcher = new ::event_dispatcher();
+	// Register keyboard and mouse with input device manager
+	device_manager.register_device(keyboard);
+	device_manager.register_device(mouse);
 	
-	// Setup input
-	keyboard = new input::keyboard();
-	keyboard->set_event_dispatcher(event_dispatcher);
-	mouse = new input::mouse();
-	mouse->set_event_dispatcher(event_dispatcher);
+	// Generate keyboard and mouse device connected events
+	keyboard.connect();
+	mouse.connect();
 	
 	// Connect gamepads
 	process_events();
@@ -246,7 +258,9 @@ void application::set_relative_mouse_mode(bool enabled)
 		SDL_SetRelativeMouseMode(SDL_FALSE);
 		SDL_WarpMouseInWindow(sdl_window, mouse_position[0], mouse_position[1]);
 		if (cursor_visible)
+		{
 			SDL_ShowCursor(SDL_ENABLE);
+		}
 	}
 }
 
@@ -287,39 +301,38 @@ void application::set_v_sync(bool v_sync)
 	{
 		if (v_sync)
 		{
-			logger->push_task("Enabling adaptive v-sync");
+			debug::log::trace("Enabling adaptive v-sync...");
 			if (SDL_GL_SetSwapInterval(-1) != 0)
 			{
-				logger->pop_task(EXIT_FAILURE);
-				
-				logger->push_task("Enabling synchronized v-sync");
+				debug::log::error("Failed to enable adaptive v-sync: {}", SDL_GetError());
+				debug::log::trace("Enabling synchronized v-sync...");
 				if (SDL_GL_SetSwapInterval(1) != 0)
 				{
-					logger->pop_task(EXIT_FAILURE);
+					debug::log::error("Failed to enable synchronized v-sync: {}", SDL_GetError());
 				}
 				else
 				{
 					this->v_sync = v_sync;
-					logger->pop_task(EXIT_SUCCESS);
+					debug::log::debug("Enabled synchronized v-sync");
 				}
 			}
 			else
 			{
 				this->v_sync = v_sync;
-				logger->pop_task(EXIT_SUCCESS);
+				debug::log::debug("Enabled adaptive v-sync");
 			}
 		}
 		else
 		{
-			logger->push_task("Disabling v-sync");
+			debug::log::trace("Disabling v-sync...");
 			if (SDL_GL_SetSwapInterval(0) != 0)
 			{
-				logger->pop_task(EXIT_FAILURE);
+				debug::log::error("Failed to disable v-sync: {}", SDL_GetError());
 			}
 			else
 			{
 				this->v_sync = v_sync;
-				logger->pop_task(EXIT_SUCCESS);
+				debug::log::debug("Disabled v-sync");
 			}
 		}
 	}
@@ -348,195 +361,165 @@ void application::hide_window()
 
 void application::add_game_controller_mappings(const void* mappings, std::size_t size)
 {
-	logger->push_task("Adding SDL game controller mappings");
+	debug::log::trace("Adding SDL game controller mappings...");
 	int mapping_count = SDL_GameControllerAddMappingsFromRW(SDL_RWFromConstMem(mappings, static_cast<int>(size)), 0);
 	if (mapping_count == -1)
 	{
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to add SDL game controller mappings: {}", SDL_GetError());
 	}
 	else
 	{
-		logger->log("Added " + std::to_string(mapping_count) + " SDL game controller mappings");
-		logger->pop_task(EXIT_SUCCESS);
+		debug::log::debug("Added {} SDL game controller mappings", mapping_count);
 	}
 }
 
 void application::process_events()
 {
+	// Active modifier keys
+	std::uint16_t sdl_key_mod = KMOD_NONE;
+	std::uint16_t modifier_keys = input::modifier_key::none;
+	
 	// Mouse motion event accumulators
-	bool mouse_motion = false;
-	int mouse_x;
-	int mouse_y;
-	int mouse_dx = 0;
-	int mouse_dy = 0;
+	// bool mouse_motion = false;
+	// std::int32_t mouse_x;
+	// std::int32_t mouse_y;
+	// std::int32_t mouse_dx = 0;
+	// std::int32_t mouse_dy = 0;
 	
 	SDL_Event sdl_event;
 	while (SDL_PollEvent(&sdl_event))
 	{
 		switch (sdl_event.type)
 		{
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
-			{
-				if (sdl_event.key.repeat == 0)
-				{
-					input::scancode scancode = input::scancode::unknown;
-					if (sdl_event.key.keysym.scancode <= SDL_SCANCODE_APP2)
-					{
-						scancode = input::sdl_scancode_table[sdl_event.key.keysym.scancode];
-					}
-
-					if (sdl_event.type == SDL_KEYDOWN)
-						keyboard->press(scancode);
-					else
-						keyboard->release(scancode);
-				}
-				break;
-			}
-
-			case SDL_MOUSEMOTION:
+			[[likely]] case SDL_MOUSEMOTION:
 			{
 				// More than one mouse motion event is often generated per frame, and may be a source of lag.
-				// Mouse events are accumulated here to prevent excess function calls and allocations
-				mouse_motion = true;
-				mouse_x = sdl_event.motion.x;
-				mouse_y = sdl_event.motion.y;
-				mouse_dx += sdl_event.motion.xrel;
-				mouse_dy += sdl_event.motion.yrel;
-				break;
-			}
-
-			case SDL_MOUSEBUTTONDOWN:
-			{
-				mouse->press(sdl_event.button.button, sdl_event.button.x, sdl_event.button.y);
+				// Mouse events can be accumulated here to prevent excessive function calls and allocations
+				// mouse_motion = true;
+				// mouse_x = sdl_event.motion.x;
+				// mouse_y = sdl_event.motion.y;
+				// mouse_dx += sdl_event.motion.xrel;
+				// mouse_dy += sdl_event.motion.yrel;
+				
+				mouse.move({sdl_event.motion.x, sdl_event.motion.y}, {sdl_event.motion.xrel, sdl_event.motion.yrel});
 				break;
 			}
 			
-			case SDL_MOUSEBUTTONUP:
+			case SDL_KEYDOWN:
+			case SDL_KEYUP:
 			{
-				mouse->release(sdl_event.button.button, sdl_event.button.x, sdl_event.button.y);
+				// Get scancode of key
+				const input::scancode scancode = static_cast<input::scancode>(sdl_event.key.keysym.scancode);
+				
+				// Rebuild modifier keys bit mask
+				if (sdl_event.key.keysym.mod != sdl_key_mod)
+				{
+					sdl_key_mod = sdl_event.key.keysym.mod;
+					
+					modifier_keys = input::modifier_key::none;
+					if (sdl_key_mod & KMOD_LSHIFT)
+						modifier_keys |= input::modifier_key::left_shift;
+					if (sdl_key_mod & KMOD_RSHIFT)
+						modifier_keys |= input::modifier_key::right_shift;
+					if (sdl_key_mod & KMOD_LCTRL)
+						modifier_keys |= input::modifier_key::left_ctrl;
+					if (sdl_key_mod & KMOD_RCTRL)
+						modifier_keys |= input::modifier_key::right_ctrl;
+					if (sdl_key_mod & KMOD_LGUI)
+						modifier_keys |= input::modifier_key::left_gui;
+					if (sdl_key_mod & KMOD_RGUI)
+						modifier_keys |= input::modifier_key::right_gui;
+					if (sdl_key_mod & KMOD_NUM)
+						modifier_keys |= input::modifier_key::num_lock;
+					if (sdl_key_mod & KMOD_CAPS)
+						modifier_keys |= input::modifier_key::caps_lock;
+					if (sdl_key_mod & KMOD_SCROLL)
+						modifier_keys |= input::modifier_key::scroll_lock;
+					if (sdl_key_mod & KMOD_MODE)
+						modifier_keys |= input::modifier_key::alt_gr;
+				}
+				
+				// Determine if event was generated from a key repeat
+				const bool repeat = sdl_event.key.repeat > 0;
+				
+				if (sdl_event.type == SDL_KEYDOWN)
+				{
+					keyboard.press(scancode, repeat, modifier_keys);
+				}
+				else
+				{
+					keyboard.release(scancode, repeat, modifier_keys);
+				}
+				
 				break;
 			}
 			
 			case SDL_MOUSEWHEEL:
 			{
-				int direction = (sdl_event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) ? -1 : 1;
-				mouse->scroll(sdl_event.wheel.x * direction, sdl_event.wheel.y * direction);
+				const float flip = (sdl_event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) ? -1.0f : 1.0f;
+				mouse.scroll({sdl_event.wheel.preciseX * flip, sdl_event.wheel.preciseY * flip});
 				break;
 			}
-
+			
+			case SDL_MOUSEBUTTONDOWN:
+			{
+				mouse.press(static_cast<input::mouse_button>(sdl_event.button.button));
+				break;
+			}
+			
+			case SDL_MOUSEBUTTONUP:
+			{
+				mouse.release(static_cast<input::mouse_button>(sdl_event.button.button));
+				break;
+			}
+			
+			[[likely]] case SDL_CONTROLLERAXISMOTION:
+			{
+				if (sdl_event.caxis.axis != SDL_CONTROLLER_AXIS_INVALID)
+				{
+					if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
+					{
+						// Map axis position onto `[-1, 1]`.
+						const float position = math::map
+						(
+							static_cast<float>(sdl_event.caxis.value),
+							static_cast<float>(std::numeric_limits<decltype(sdl_event.caxis.value)>::min()),
+							static_cast<float>(std::numeric_limits<decltype(sdl_event.caxis.value)>::max()),
+							-1.0f,
+							1.0f
+						);
+						
+						// Generate gamepad axis moved event
+						it->second->move(static_cast<input::gamepad_axis>(sdl_event.caxis.axis), position);
+					}
+				}
+				break;
+			}
+			
 			case SDL_CONTROLLERBUTTONDOWN:
 			{
 				if (sdl_event.cbutton.button != SDL_CONTROLLER_BUTTON_INVALID)
 				{
 					if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
 					{
-						input::gamepad_button button = input::sdl_button_table[sdl_event.cbutton.button];
-						it->second->press(button);
+						it->second->press(static_cast<input::gamepad_button>(sdl_event.cbutton.button));
 					}
 				}
 				break;
 			}
-
+			
 			case SDL_CONTROLLERBUTTONUP:
 			{
 				if (sdl_event.cbutton.button != SDL_CONTROLLER_BUTTON_INVALID)
 				{
 					if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
 					{
-						input::gamepad_button button = input::sdl_button_table[sdl_event.cbutton.button];
-						it->second->release(button);
+						it->second->release(static_cast<input::gamepad_button>(sdl_event.cbutton.button));
 					}
 				}
 				break;
 			}
-
-			case SDL_CONTROLLERAXISMOTION:
-			{
-				if (sdl_event.caxis.axis != SDL_CONTROLLER_AXIS_INVALID)
-				{
-					if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
-					{
-						input::gamepad_axis axis = input::sdl_axis_table[sdl_event.caxis.axis];
-						float value = sdl_event.caxis.value;
-						static const float min = static_cast<float>(std::numeric_limits<std::int16_t>::min());
-						static const float max = static_cast<float>(std::numeric_limits<std::int16_t>::max());
-						value /= (value < 0.0f) ? -min : max;
-						it->second->move(axis, value);
-					}
-				}
-				break;
-			}
-
-			case SDL_CONTROLLERDEVICEADDED:
-			{
-				if (SDL_IsGameController(sdl_event.cdevice.which))
-				{
-					SDL_GameController* sdl_controller = SDL_GameControllerOpen(sdl_event.cdevice.which);
-
-					std::string controller_name = SDL_GameControllerNameForIndex(sdl_event.cdevice.which);
-					if (sdl_controller)
-					{
-						if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
-						{
-							logger->log("Reconnected gamepad  \"" + controller_name + "\"");
-							
-							it->second->connect(true);
-							gamepad_connection_signal.emit(*it->second, true);
-						}
-						else
-						{
-							// Get gamepad GUID
-							SDL_Joystick* sdl_joystick = SDL_GameControllerGetJoystick(sdl_controller);
-							SDL_JoystickGUID sdl_guid = SDL_JoystickGetGUID(sdl_joystick);
-							char guid_buffer[33];
-							std::memset(guid_buffer, '\0', 33);
-							SDL_JoystickGetGUIDString(sdl_guid, &guid_buffer[0], 33);
-							std::string guid(guid_buffer);
-							
-							logger->log("Connected gamepad \"" + controller_name + "\" with GUID: " + guid + "");
-							
-							// Create new gamepad
-							input::gamepad* gamepad = new input::gamepad();
-							gamepad->set_event_dispatcher(event_dispatcher);
-							gamepad->set_guid(guid);
-							
-							// Add gamepad to list and map
-							gamepads.push_back(gamepad);
-							gamepad_map[sdl_event.cdevice.which] = gamepad;
-							
-							// Send controller connected event
-							gamepad->connect(false);
-							gamepad_connection_signal.emit(*it->second, false);
-						}
-					}
-					else
-					{
-						logger->error("Failed to connected gamepad \"" + controller_name + "\"");
-					}
-				}
-
-				break;
-			}
-
-			case SDL_CONTROLLERDEVICEREMOVED:
-			{
-				SDL_GameController* sdl_controller = SDL_GameControllerFromInstanceID(sdl_event.cdevice.which);
-
-				if (sdl_controller)
-				{
-					SDL_GameControllerClose(sdl_controller);
-					logger->log("Disconnected gamepad");
-					
-					if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
-					{
-						it->second->disconnect();
-					}
-				}
-
-				break;
-			}
-
+			
 			case SDL_WINDOWEVENT:
 			{
 				switch (sdl_event.window.event)
@@ -546,19 +529,23 @@ void application::process_events()
 						break;
 					
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
-						window_focus_signal.emit(true);
+						debug::log::debug("Window focus gained");
+						window_focus_changed_publisher.publish({true});
 						break;
 					
 					case SDL_WINDOWEVENT_FOCUS_LOST:
-						window_focus_signal.emit(false);
+						debug::log::debug("Window focus lost");
+						window_focus_changed_publisher.publish({false});
 						break;
 					
 					case SDL_WINDOWEVENT_MOVED:
-						window_motion_signal.emit(sdl_event.window.data1, sdl_event.window.data2);
+						debug::log::trace("Window moved to ({}, {})", sdl_event.window.data1, sdl_event.window.data2);
+						window_moved_publisher.publish({static_cast<int>(sdl_event.window.data1), static_cast<int>(sdl_event.window.data2)});
 						break;
 					
-					case SDL_WINDOWEVENT_CLOSE:
-						window_close_signal.emit();
+					[[unlikely]] case SDL_WINDOWEVENT_CLOSE:
+						debug::log::info("Window closed");
+						window_closed_publisher.publish({});
 						break;
 					
 					default:
@@ -566,9 +553,80 @@ void application::process_events()
 				}
 				break;
 			}
-
-			case SDL_QUIT:
+			
+			[[unlikely]] case SDL_CONTROLLERDEVICEADDED:
 			{
+				if (SDL_IsGameController(sdl_event.cdevice.which))
+				{
+					SDL_GameController* sdl_controller = SDL_GameControllerOpen(sdl_event.cdevice.which);
+					const char* controller_name = SDL_GameControllerNameForIndex(sdl_event.cdevice.which);
+					
+					if (sdl_controller)
+					{
+						if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
+						{
+							// Gamepad reconnected
+							debug::log::info("Reconnected gamepad \"{}\"", controller_name);
+							it->second->connect();
+						}
+						else
+						{
+							// Get gamepad GUID
+							SDL_Joystick* sdl_joystick = SDL_GameControllerGetJoystick(sdl_controller);
+							SDL_JoystickGUID sdl_guid = SDL_JoystickGetGUID(sdl_joystick);
+							
+							// Copy into UUID struct
+							::uuid gamepad_uuid;
+							std::memcpy(gamepad_uuid.data.data(), sdl_guid.data, gamepad_uuid.data.size());
+							
+							debug::log::info("Connected gamepad \"{}\" with UUID {}", controller_name, gamepad_uuid.string());
+							
+							// Create new gamepad
+							input::gamepad* gamepad = new input::gamepad();
+							gamepad->set_uuid(gamepad_uuid);
+							
+							// Add gamepad to gamepad map
+							gamepad_map[sdl_event.cdevice.which] = gamepad;
+							
+							// Register gamepad with device manager
+							device_manager.register_device(*gamepad);
+							
+							// Generate gamepad connected event
+							gamepad->connect();
+						}
+					}
+					else
+					{
+						debug::log::error("Failed to connected gamepad \"{}\": {}", controller_name, SDL_GetError());
+					}
+				}
+
+				break;
+			}
+			
+			[[unlikely]] case SDL_CONTROLLERDEVICEREMOVED:
+			{
+				SDL_GameController* sdl_controller = SDL_GameControllerFromInstanceID(sdl_event.cdevice.which);
+				
+				if (sdl_controller)
+				{
+					const char* controller_name = SDL_GameControllerNameForIndex(sdl_event.cdevice.which);
+					
+					SDL_GameControllerClose(sdl_controller);
+					if (auto it = gamepad_map.find(sdl_event.cdevice.which); it != gamepad_map.end())
+					{
+						it->second->disconnect();
+					}
+					
+					debug::log::info("Disconnected gamepad \"{}\"", controller_name);
+				}
+
+				break;
+			}
+			
+			[[unlikely]] case SDL_QUIT:
+			{
+				debug::log::info("Quit requested");
 				close();
 				break;
 			}
@@ -576,10 +634,10 @@ void application::process_events()
 	}
 	
 	// Process accumulated mouse motion events
-	if (mouse_motion)
-	{
-		mouse->move(mouse_x, mouse_y, mouse_dx, mouse_dy);
-	}
+	// if (mouse_motion)
+	// {
+		// mouse.move(mouse_x, mouse_y, mouse_dx, mouse_dy);
+	// }
 }
 
 void application::window_resized()
@@ -588,14 +646,17 @@ void application::window_resized()
 	SDL_GetWindowSize(sdl_window, &window_dimensions[0], &window_dimensions[1]);
 	SDL_GL_GetDrawableSize(sdl_window, &viewport_dimensions[0], &viewport_dimensions[1]);
 	
+	debug::log::debug("Window resized to {}x{}", window_dimensions[0], window_dimensions[1]);
+	
 	rasterizer->context_resized(viewport_dimensions[0], viewport_dimensions[1]);
 	
-	window_resized_event event;
-	event.w = window_dimensions[0];
-	event.h = window_dimensions[1];
-	
-	event_dispatcher->queue(event);
-	
-	window_size_signal.emit(window_dimensions[0], window_dimensions[1]);
-	viewport_size_signal.emit(viewport_dimensions[0], viewport_dimensions[1]);
+	window_resized_publisher.publish
+	(
+		{
+			window_dimensions[0],
+			window_dimensions[1],
+			viewport_dimensions[0],
+			viewport_dimensions[1]
+		}
+	);
 }

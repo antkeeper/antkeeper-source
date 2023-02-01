@@ -21,17 +21,12 @@
 #define ANTKEEPER_GAME_SYSTEM_CAMERA_HPP
 
 #include "game/system/updatable.hpp"
-#include "event/event-handler.hpp"
-#include "event/input-events.hpp"
-#include "event/window-events.hpp"
 #include "utility/fundamental-types.hpp"
 
 namespace game {
 namespace system {
 
-class camera:
-	public updatable,
-	public event_handler<window_resized_event>
+class camera: public updatable
 {
 public:
 	camera(entity::registry& registry);
@@ -40,8 +35,6 @@ public:
 	void set_viewport(const float4& viewport);
 
 private:
-	virtual void handle_event(const window_resized_event& event);
-	
 	float4 viewport;
 };
 

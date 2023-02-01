@@ -20,7 +20,6 @@
 #include "spatial.hpp"
 #include "game/component/transform.hpp"
 #include "game/component/constraint-stack.hpp"
-#include <iostream>
 
 namespace game {
 namespace system {

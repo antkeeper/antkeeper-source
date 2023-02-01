@@ -24,7 +24,6 @@
 #include "scene/directional-light.hpp"
 #include "scene/ambient-light.hpp"
 #include "scene/spot-light.hpp"
-#include <iostream>
 
 namespace game {
 namespace system {

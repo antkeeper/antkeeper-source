@@ -20,51 +20,13 @@
 #ifndef ANTKEEPER_INPUT_GAMEPAD_HPP
 #define ANTKEEPER_INPUT_GAMEPAD_HPP
 
-#include "device.hpp"
+#include "input/device.hpp"
+#include "input/event.hpp"
+#include "input/gamepad-axis.hpp"
+#include "input/gamepad-button.hpp"
+#include "event/publisher.hpp"
 
 namespace input {
-
-/// Gamepad buttons.
-enum class gamepad_button
-{
-	a,
-	b,
-	x,
-	y,
-	back,
-	guide,
-	start,
-	left_stick,
-	right_stick,
-	left_shoulder,
-	right_shoulder,
-	dpad_up,
-	dpad_down,
-	dpad_left,
-	dpad_right
-};
-
-/// Gamepad axes.
-enum class gamepad_axis
-{
-	/// Left stick x-axis.
-	left_x,
-	
-	/// Left stick y-axis.
-	left_y,
-	
-	/// Right stick x-axis.
-	right_x,
-	
-	/// Right stick y-axis.
-	right_y,
-	
-	/// Left trigger.
-	left_trigger,
-	
-	/// Right trigger.
-	right_trigger,
-};
 
 /// Gamepad axis activation response curves.
 enum class gamepad_response_curve
@@ -80,17 +42,17 @@ enum class gamepad_response_curve
 };
 
 /**
- * A virtual gamepad which can generate gamepad-related input events and pass them to an event dispatcher.
+ * A virtual gamepad which generates gamepad-related input events.
  */
 class gamepad: public device
 {
 public:
 	/**
-	 * Creates a gamepad input device.
+	 * Constructs a gamepad input device.
 	 */
 	gamepad();
 	
-	/// Destroys a gamepad input device.
+	/// Destructs a gamepad input device.
 	virtual ~gamepad() = default;
 	
 	/**
@@ -141,46 +103,55 @@ public:
 	/**
 	 * Simulates a gamepad button press.
 	 *
-	 * @param button Index of the pressed button.
+	 * @param button Button to press.
 	 */
 	void press(gamepad_button button);
 	
 	/**
 	 * Simulates a gamepad button release.
 	 *
-	 * @param button Index of the released button.
+	 * @param button Button to release.
 	 */
 	void release(gamepad_button button);
 	
 	/**
 	 * Simulates a gamepad axis movement.
 	 *
-	 * @param axis Index of the moved axis.
-	 * @param negative Whether the movement was negative or positive.
-	 * @param value Normalized degree of movement.
+	 * @param axis Gamepad axis.
+	 * @param position Position on the axis, on `[-1, 1]`.
 	 */
-	void move(gamepad_axis axis, float value);
+	void move(gamepad_axis axis, float position);
 	
-	/**
-	 * Simulates a gamepad being connected.
-	 *
-	 * @param reconnected `true` if the controller is being reconnected, or `false` if the controller is being connected for the first time.
-	 */
-	void connect(bool reconnnected);
+	/// Returns the channel through which gamepad button pressed events are published.
+	[[nodiscard]] inline ::event::channel<event::gamepad_button_pressed>& get_button_pressed_channel() noexcept
+	{
+		return button_pressed_publisher.channel();
+	}
 	
-	/// Simulates a gamepad being disconnected.
-	void disconnect();
+	/// Returns the channel through which gamepad button released events are published.
+	[[nodiscard]] inline ::event::channel<event::gamepad_button_released>& get_button_released_channel() noexcept
+	{
+		return button_released_publisher.channel();
+	}
 	
-	/// Returns `true` if the controller is currently connected.
-	bool is_connected() const;
+	/// Returns the channel through which gamepad axis moved events are published.
+	[[nodiscard]] inline ::event::channel<event::gamepad_axis_moved>& get_axis_moved_channel() noexcept
+	{
+		return axis_moved_publisher.channel();
+	}
+	
+	/// Returns device_type::gamepad.
+	[[nodiscard]] inline virtual constexpr device_type get_device_type() const noexcept
+	{
+		return device_type::gamepad;
+	}
 	
 private:
 	void handle_axial_motion(gamepad_axis axis);
 	void handle_biaxial_motion(gamepad_axis axis_x, gamepad_axis axis_y);
 	float curve_response(gamepad_axis axis, float response) const;
 	
-	bool connected;
-	float axis_values[6];
+	float axis_positions[6];
 	float axis_activation_min[6];
 	float axis_activation_max[6];
 	gamepad_response_curve axis_response_curves[6];
@@ -189,12 +160,11 @@ private:
 	bool right_deadzone_cross;
 	float left_deadzone_roundness;
 	float right_deadzone_roundness;
+	
+	::event::publisher<event::gamepad_button_pressed> button_pressed_publisher;
+	::event::publisher<event::gamepad_button_released> button_released_publisher;
+	::event::publisher<event::gamepad_axis_moved> axis_moved_publisher;
 };
-
-inline bool gamepad::is_connected() const
-{
-	return connected;
-}
 
 } // namespace input
 

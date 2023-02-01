@@ -76,7 +76,7 @@ else()
 	target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE NDEBUG)
 endif()
 
-# Set C++20 standard
+# Set C++ standard
 set_target_properties(${EXECUTABLE_TARGET} PROPERTIES
 	CXX_STANDARD 20
 	CXX_STANDARD_REQUIRED ON

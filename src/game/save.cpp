@@ -19,7 +19,7 @@
 
 #include "game/save.hpp"
 #include "application.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 #include "resources/json.hpp"
 #include <fstream>
 
@@ -29,7 +29,9 @@ namespace save {
 void colony(game::context& ctx)
 {
 	std::filesystem::path path = ctx.saves_path / "colony.sav";
-	ctx.logger->push_task("Saving colony to \"" + path.string() + "\"");
+	const std::string path_string = path.string();
+	
+	debug::log::trace("Saving colony to \"{}\"...", path_string);
 	try
 	{
 		// Construct JSON data describing the colony
@@ -67,28 +69,32 @@ void colony(game::context& ctx)
 		
 		std::ofstream file(path);
 		file << data;
+		
+		debug::log::trace("Saved colony to \"{}\"", path_string);
 	}
 	catch (...)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to save colony to \"{}\"", path_string);
 	}
-	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
 void config(game::context& ctx)
 {
 	std::filesystem::path path = ctx.config_path / "config.json";
-	ctx.logger->push_task("Saving config to \"" + path.string() + "\"");
+	const std::string path_string = path.string();
+	
+	debug::log::trace("Saving config to \"{}\"...", path_string);
 	try
 	{
 		std::ofstream file(path);
 		file << *(ctx.config);
+		
+		debug::log::trace("Saved config to \"{}\"", path_string);
 	}
 	catch (...)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to save config to \"{}\"", path_string);
 	}
-	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
 } // namespace save

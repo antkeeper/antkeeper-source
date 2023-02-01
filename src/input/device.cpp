@@ -17,22 +17,29 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "device.hpp"
+#include "input/device.hpp"
 
 namespace input {
 
 device::device():
-	event_dispatcher(nullptr)
+	connected(true)
 {}
 
-void device::set_event_dispatcher(::event_dispatcher* event_dispatcher)
+void device::connect()
 {
-	this->event_dispatcher = event_dispatcher;
+	connected = true;
+	connected_publisher.publish({this});
 }
 
-void device::set_guid(const std::string& guid)
+void device::disconnect()
 {
-	this->guid = guid;
+	connected = false;
+	disconnected_publisher.publish({this});
+}
+
+void device::set_uuid(const ::uuid& id)
+{
+	uuid = id;
 }
 
 } // namespace input

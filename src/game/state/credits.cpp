@@ -25,7 +25,7 @@
 #include "animation/animator.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 
 namespace game {
 namespace state {
@@ -33,7 +33,7 @@ namespace state {
 credits::credits(game::context& ctx):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering credits state");
+	debug::log::push_task("Entering credits state");
 	
 	// Construct credits text
 	credits_text.set_material(&ctx.menu_font_material);
@@ -75,17 +75,18 @@ credits::credits(game::context& ctx):
 	credits_fade_in_animation.play();
 	
 	// Set up credits skipper
-	ctx.input_listener->set_callback
+	input_mapped_subscription = ctx.input_mapper.get_input_mapped_channel().subscribe
 	(
-		[this, &ctx](const event_base& event)
+		[this, &ctx](const auto& event)
 		{
-			auto id = event.get_event_type_id();
-			if (id != mouse_moved_event::event_type_id && id != mouse_wheel_scrolled_event::event_type_id && id != gamepad_axis_moved_event::event_type_id)
+			auto mapping_type = event.mapping->get_mapping_type();
+			
+			if (mapping_type != input::mapping_type::gamepad_axis &&
+				mapping_type != input::mapping_type::mouse_motion &&
+				mapping_type != input::mapping_type::mouse_scroll)
 			{
 				if (this->credits_text.get_color()[3] > 0.0f)
 				{
-					ctx.input_listener->set_enabled(false);
-					
 					// Change state
 					ctx.state_machine.pop();
 					ctx.state_machine.emplace(new game::state::extras_menu(ctx));
@@ -93,20 +94,19 @@ credits::credits(game::context& ctx):
 			}
 		}
 	);
-	ctx.input_listener->set_enabled(true);
+	ctx.input_mapper.connect(ctx.app->get_device_manager().get_event_queue());
 	
 	ctx.ui_scene->add_object(&credits_text);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 credits::~credits()
 {
-	ctx.logger->push_task("Exiting credits state");
+	debug::log::push_task("Exiting credits state");
 	
 	// Disable credits skipper
-	ctx.input_listener->set_enabled(false);
-	ctx.input_listener->set_callback(nullptr);
+	ctx.input_mapper.disconnect();
 	
 	// Destruct credits text
 	ctx.ui_scene->remove_object(&credits_text);
@@ -114,7 +114,7 @@ credits::~credits()
 	// Destruct credits animations
 	ctx.animator->remove_animation(&credits_fade_in_animation);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 } // namespace state

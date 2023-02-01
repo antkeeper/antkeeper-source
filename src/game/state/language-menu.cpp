@@ -21,7 +21,7 @@
 #include "game/state/options-menu.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 #include "game/fonts.hpp"
 #include "game/menu.hpp"
 
@@ -31,7 +31,7 @@ namespace state {
 language_menu::language_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering language menu state");
+	debug::log::push_task("Entering language menu state");
 	
 	// Construct menu item texts
 	scene::text* language_name_text = new scene::text();
@@ -70,19 +70,19 @@ language_menu::language_menu(game::context& ctx):
 		// Update language in config
 		(*ctx.config)["language"] = ctx.language_code;
 		
-		ctx.logger->log("Language changed to \"" + ctx.language_code + "\"");
+		debug::log::info("Language changed to \"" + ctx.language_code + "\"");
 		
 		// Reload fonts
-		ctx.logger->push_task("Reloading fonts");
+		debug::log::push_task("Reloading fonts");
 		try
 		{
 			game::load_fonts(ctx);
 		}
 		catch (...)
 		{
-			ctx.logger->pop_task(EXIT_FAILURE);
+			debug::log::pop_task(EXIT_FAILURE);
 		}
-		ctx.logger->pop_task(EXIT_SUCCESS);
+		debug::log::pop_task(EXIT_SUCCESS);
 		
 		game::menu::update_text_font(ctx);
 		this->update_text_content();
@@ -104,19 +104,19 @@ language_menu::language_menu(game::context& ctx):
 		// Update language in config
 		(*ctx.config)["language"] = ctx.language_code;
 		
-		ctx.logger->log("Language changed to \"" + ctx.language_code + "\"");
+		debug::log::info("Language changed to \"" + ctx.language_code + "\"");
 		
 		// Reload fonts
-		ctx.logger->push_task("Reloading fonts");
+		debug::log::push_task("Reloading fonts");
 		try
 		{
 			game::load_fonts(ctx);
 		}
 		catch (...)
 		{
-			ctx.logger->pop_task(EXIT_FAILURE);
+			debug::log::pop_task(EXIT_FAILURE);
 		}
-		ctx.logger->pop_task(EXIT_SUCCESS);
+		debug::log::pop_task(EXIT_SUCCESS);
 		
 		game::menu::update_text_font(ctx);
 		this->update_text_content();
@@ -168,12 +168,12 @@ language_menu::language_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 language_menu::~language_menu()
 {
-	ctx.logger->push_task("Exiting language menu state");
+	debug::log::push_task("Exiting language menu state");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -182,7 +182,7 @@ language_menu::~language_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void language_menu::update_text_content()

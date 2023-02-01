@@ -18,44 +18,28 @@
  */
 
 #include "game/load.hpp"
-#include "game/world.hpp"
-#include "application.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 #include "resources/json.hpp"
 #include "resources/resource-manager.hpp"
-#include "render/model.hpp"
-#include "render/material.hpp"
-#include "render/passes/sky-pass.hpp"
-#include "render/passes/ground-pass.hpp"
-#include "game/system/astronomy.hpp"
-#include "game/system/terrain.hpp"
-#include "math/noise/noise.hpp"
-#include "math/hash/hash.hpp"
-#include <fstream>
-#include <iostream>
-#include <stb/stb_image_write.h>
-#include "resources/image.hpp"
-
-#include <algorithm>
-#include <execution>
-
 
 namespace game {
 namespace load {
 
 void colony(game::context& ctx, const std::filesystem::path& path)
 {
-	ctx.logger->push_task("Loading colony from \"" + path.string() + "\"");
+	const std::string path_string = path.string();
+	
+	debug::log::trace("Loading colony from \"{}\"...", path_string);
 	try
 	{
 		json* data = ctx.resource_manager->load<json>(path);
 		
+		debug::log::trace("Loaded colony from \"{}\"", path_string);
 	}
 	catch (...)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to load colony from \"{}\"", path_string);
 	}
-	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
 } // namespace load

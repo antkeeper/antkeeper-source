@@ -20,116 +20,103 @@
 #ifndef ANTKEEPER_INPUT_MOUSE_HPP
 #define ANTKEEPER_INPUT_MOUSE_HPP
 
-#include "device.hpp"
-#include <tuple>
+#include "input/device.hpp"
+#include "input/event.hpp"
+#include "input/mouse-button.hpp"
+#include "event/publisher.hpp"
+#include "math/vector.hpp"
+#include <cstdint>
 
 namespace input {
 
 /**
- * Enumerates the mouse motion axes.
- */
-enum class mouse_motion_axis
-{
-	/// Indicates the positive X-axis.
-	positive_x,
-
-	/// Indicates the negative X-axis.
-	negative_x,
-
-	/// Indicates the positive Y-axis.
-	positive_y,
-
-	/// Indicates the negative Y-axis.
-	negative_y
-};
-
-/**
- * Enumerates the mouse wheel axes.
- */
-enum class mouse_wheel_axis
-{
-	/// Indicates the positive X-axis.
-	positive_x,
-
-	/// Indicates the negative X-axis.
-	negative_x,
-
-	/// Indicates the positive Y-axis.
-	positive_y,
-
-	/// Indicates the negative Y-axis.
-	negative_y
-};
-
-/**
- * A virtual mouse which can generate mouse-related input events and pass them to an event dispatcher.
+ * A virtual mouse which generates mouse-related input events.
  */
 class mouse: public device
 {
 public:
 	/**
-	 * Creates a mouse input device.
+	 * Constructs a mouse input device.
 	 */
-	mouse();
-
-	/// Destroys a mouse input device.
+	mouse() = default;
+	
+	/// Destructs a mouse input device.
 	virtual ~mouse() = default;
 	
 	/**
 	 * Simulates a mouse button press.
 	 *
-	 * @param button Index of the pressed button.
-	 * @param x X-coordinate of the mouse position.
-	 * @param y Y-coordinate of the mouse position.
+	 * @param button Button to press.
 	 */
-	void press(int button, int x, int y);
-
+	void press(mouse_button button);
+	
 	/**
 	 * Simulates a mouse button release.	
 	 *
-	 * @param button Index of the released button.
-	 * @param x X-coordinate of the mouse position.
-	 * @param y Y-coordinate of the mouse position.
+	 * @param button Button to release.
 	 */
-	void release(int button, int x, int y);
-
+	void release(mouse_button button);
+	
 	/**
 	 * Simulates mouse movement.
 	 *
-	 * @param x X-coordinate of the mouse position.
-	 * @param y Y-coordinate of the mouse position.
-	 * @param dx Relative movement on the X-axis.
-	 * @param dy Relative movement on the Y-axis.
+	 * @param position Mouse position, in pixels, relative to the window.
+	 * @param difference Relative movement of the mouse, in pixels.
 	 */
-	void move(int x, int y, int dx, int dy);
-
-	/**
-	 * Simulates mouse wheel scrolling.
-	 */
-	void scroll(int x, int y);
+	void move(const math::vector<std::int32_t, 2>& position, const math::vector<std::int32_t, 2>& difference);
 	
-	/// Returns the current mouse position.
-	const std::tuple<int, int>& get_current_position() const;
-
-	/// Returns the previous mouse position.
-	const std::tuple<int, int>& get_previous_position() const;
+	/**
+	 * Simulates mouse scrolling.
+	 *
+	 * @param velocity Scroll velocity.
+	 */
+	void scroll(const math::vector<float, 2>& velocity);
+	
+	/// Returns the current mouse position, in pixels, relative to the window.
+	[[nodiscard]] inline const math::vector<std::int32_t, 2>& get_position() const noexcept
+	{
+		return position;
+	}
+	
+	/// Returns the channel through which mouse button pressed events are published.
+	[[nodiscard]] inline ::event::channel<event::mouse_button_pressed>& get_button_pressed_channel() noexcept
+	{
+		return button_pressed_publisher.channel();
+	}
+	
+	/// Returns the channel through which mouse button released events are published.
+	[[nodiscard]] inline ::event::channel<event::mouse_button_released>& get_button_released_channel() noexcept
+	{
+		return button_released_publisher.channel();
+	}
+	
+	/// Returns the channel through which mouse moved events are published.
+	[[nodiscard]] inline ::event::channel<event::mouse_moved>& get_moved_channel() noexcept
+	{
+		return moved_publisher.channel();
+	}
+	
+	/// Returns the channel through which mouse scrolled events are published.
+	[[nodiscard]] inline ::event::channel<event::mouse_scrolled>& get_scrolled_channel() noexcept
+	{
+		return scrolled_publisher.channel();
+	}
+	
+	/// Returns device_type::mouse.
+	[[nodiscard]] inline virtual constexpr device_type get_device_type() const noexcept
+	{
+		return device_type::mouse;
+	}
 	
 private:
-	std::tuple<int, int> current_position;
-	std::tuple<int, int> previous_position;
+	math::vector<std::int32_t, 2> position;
+	
+	::event::publisher<event::mouse_button_pressed> button_pressed_publisher;
+	::event::publisher<event::mouse_button_released> button_released_publisher;
+	::event::publisher<event::mouse_moved> moved_publisher;
+	::event::publisher<event::mouse_scrolled> scrolled_publisher;
 };
-
-inline const std::tuple<int, int>& mouse::get_current_position() const
-{
-	return current_position;
-}
-
-inline const std::tuple<int, int>& mouse::get_previous_position() const
-{
-	return previous_position;
-}
 
 } // namespace input
 
 #endif // ANTKEEPER_INPUT_MOUSE_HPP
-

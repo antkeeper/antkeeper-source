@@ -24,7 +24,6 @@
 #include "scene/text.hpp"
 #include "animation/animation.hpp"
 #include "entity/id.hpp"
-#include "event/signal.hpp"
 
 namespace game {
 namespace state {
@@ -43,11 +42,6 @@ private:
 	animation<float> title_fade_animation;
 	
 	entity::id swarm_eid;
-	
-	std::shared_ptr<connection> window_close_connection;
-	std::shared_ptr<connection> window_motion_connection;
-	std::shared_ptr<connection> window_focus_connection;
-	std::shared_ptr<connection> viewport_size_connection;
 };
 
 } // namespace state

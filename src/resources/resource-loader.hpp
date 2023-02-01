@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RESOURCE_LOADER_HPP
-#define RESOURCE_LOADER_HPP
+#ifndef ANTKEEPER_RESOURCES_RESOURCE_LOADER_HPP
+#define ANTKEEPER_RESOURCES_RESOURCE_LOADER_HPP
 
 #include <filesystem>
 #include <string>
@@ -57,4 +57,4 @@ public:
 /// getline function for PhysicsFS file handles
 void physfs_getline(PHYSFS_File* file, std::string& line);
 
-#endif // RESOURCE_LOADER_HPP
+#endif // ANTKEEPER_RESOURCES_RESOURCE_LOADER_HPP

@@ -20,8 +20,8 @@
 #ifndef ANTKEEPER_COLOR_CCT_HPP
 #define ANTKEEPER_COLOR_CCT_HPP
 
-#include "ucs.hpp"
-#include "xyy.hpp"
+#include "color/ucs.hpp"
+#include "color/xyy.hpp"
 #include "math/vector.hpp"
 
 namespace color {

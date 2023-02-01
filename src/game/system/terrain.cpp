@@ -31,7 +31,6 @@
 #include "utility/fundamental-types.hpp"
 #include "math/compile.hpp"
 #include <functional>
-#include <iostream>
 
 namespace game {
 namespace system {

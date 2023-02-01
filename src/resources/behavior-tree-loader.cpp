@@ -24,7 +24,6 @@
 #include <functional>
 #include <map>
 #include <stdexcept>
-#include <iostream>
 #include <type_traits>
 #include <sstream>
 #include <physfs.h>

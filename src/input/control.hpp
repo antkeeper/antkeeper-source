@@ -20,123 +20,85 @@
 #ifndef ANTKEEPER_INPUT_CONTROL_HPP
 #define ANTKEEPER_INPUT_CONTROL_HPP
 
+#include "input/event.hpp"
+#include "event/publisher.hpp"
 #include <functional>
 
 namespace input {
 
 /**
- * A control can be bound to multiple types of input events.
+ * Generates control-related input events on activation state changes.
  */
 class control
 {
 public:
-	/// Creates a control.
-	control();
-
-	/// Destroys a control.
-	virtual ~control();
-
 	/**
-	 * Performs callbacks then sets the previous value equal to the current value.
-	 */
-	void update();
-
-	/**
-	 * Sets the current value of the control.
+	 * Threshold function type.
 	 *
-	 * @param value control value.
+	 * Given an input value, returns `true` if the control should be considered active, and `false` otherwise.
 	 */
-	void set_current_value(float value);
-
-	/**
-	 * This works the same as setting the current value, but causes the value to be reset on the next call to update.
-	 */
-	void set_temporary_value(float value);
-
-	/**
-	 * Sets the activation threshold. If the current value of the control is not greater than the activation threshold, the control will not be considered active.
-	 *
-	 * @param threshold Activation threshold.
-	 */
-	void set_activation_threshold(float threshold);
-
-	/// Sets the callback for when the control is activated.
-	void set_activated_callback(std::function<void()> callback);
-
-	/// Sets the callback for when the control is deactivated.
-	void set_deactivated_callback(std::function<void()> callback);
-
-	/// Sets the callback for when the control value is changed.
-	void set_value_changed_callback(std::function<void(float)> callback);
+	typedef std::function<bool(float)> threshold_function_type;
 	
-	/// Sets the callback for while the control is active.
-	void set_active_callback(std::function<void(float)> callback);
-
+	/// Constructs a control.
+	control();
+	
 	/**
-	 * Enables or disables callbacks.
+	 * Sets the threshold function.
 	 *
-	 * @param enabled Whether to enable or disable callbacks.
+	 * @param function Threshold function.
 	 */
-	void set_callbacks_enabled(bool enabled);
-
-	/// Returns the activation threshold. The default value is 0.0.
-	float get_activation_threshold() const;
-
-	/// Returns the current value of the control.
-	float get_current_value() const;
-
-	/// Returns the previous value of the control.
-	float get_previous_value() const;
-
-	/// Returns true if the control is currently active.
-	bool is_active() const;
-
-	/// Returns true if the control was previously active when update() was last called.
-	bool was_active() const;
+	void set_threshold_function(const threshold_function_type& function);
+	
+	/**
+	 * Evaluates the activation state of the control, according to its threshold function and an input value.
+	 *
+	 * @param value Input value.
+	 */
+	void evaluate(float value);
+	
+	/// Returns the threshold function.
+	[[nodiscard]] inline const threshold_function_type& get_threshold_function() const noexcept
+	{
+		return threshold_function;
+	}
+	
+	/// Returns `true` if the control is active, `false` otherwise.
+	[[nodiscard]] inline bool is_active() const noexcept
+	{
+		return active;
+	}
+	
+	/// Returns the channel through which control activated events are published.
+	[[nodiscard]] inline ::event::channel<event::control_activated>& get_activated_channel() noexcept
+	{
+		return activated_publisher.channel();
+	}
+	
+	/// Returns the channel through which control active events are published.
+	[[nodiscard]] inline ::event::channel<event::control_active>& get_active_channel() noexcept
+	{
+		return active_publisher.channel();
+	}
+	
+	/// Returns the channel through which control deactivated events are published.
+	[[nodiscard]] inline ::event::channel<event::control_deactivated>& get_deactivated_channel() noexcept
+	{
+		return deactivated_publisher.channel();
+	}
 
 private:
-	float activation_threshold;
-	float current_value;
-	float previous_value;
-	bool reset;
-	std::function<void()> activated_callback;
-	std::function<void()> deactivated_callback;
-	std::function<void(float)> value_changed_callback;
-	std::function<void(float)> active_callback;
-	bool callbacks_enabled;
+	threshold_function_type threshold_function;
+	bool active;
+	
+	event::control_activated activated_event;
+	event::control_active active_event;
+	event::control_deactivated deactivated_event;
+	
+	::event::publisher<event::control_activated> activated_publisher;
+	::event::publisher<event::control_active> active_publisher;
+	::event::publisher<event::control_deactivated> deactivated_publisher;
 };
-
-inline void control::set_callbacks_enabled(bool enabled)
-{
-	this->callbacks_enabled = enabled;
-}
-
-inline float control::get_activation_threshold() const
-{
-	return activation_threshold;
-}
-
-inline float control::get_current_value() const
-{
-	return current_value;
-}
-
-inline float control::get_previous_value() const
-{
-	return previous_value;
-}
-
-inline bool control::is_active() const
-{
-	return current_value > activation_threshold;
-}
-
-inline bool control::was_active() const
-{
-	return previous_value > activation_threshold;
-}
 
 } // namespace input
 
 #endif // ANTKEEPER_INPUT_CONTROL_HPP
-

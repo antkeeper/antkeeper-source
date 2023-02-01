@@ -37,10 +37,5 @@ void camera::set_viewport(const float4& viewport)
 	this->viewport = viewport;
 }
 
-void camera::handle_event(const window_resized_event& event)
-{
-	set_viewport({0.0f, 0.0f, static_cast<float>(event.w), static_cast<float>(event.h)});
-}
-
 } // namespace system
 } // namespace game

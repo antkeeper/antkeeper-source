@@ -17,80 +17,29 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mouse.hpp"
-#include "event/input-events.hpp"
-#include "event/event-dispatcher.hpp"
+#include "input/mouse.hpp"
 
 namespace input {
 
-mouse::mouse()
-{}
-
-void mouse::press(int button, int x, int y)
+void mouse::press(mouse_button button)
 {
-	if (!device::event_dispatcher)
-	{
-		return;
-	}
-
-	mouse_button_pressed_event event;
-	event.mouse = this;
-	event.button = button;
-	event.x = x;
-	event.y = y;
-
-	device::event_dispatcher->queue(event);
+	button_pressed_publisher.publish({this, position, button});
 }
 
-void mouse::release(int button, int x, int y)
+void mouse::release(mouse_button button)
 {
-	if (!device::event_dispatcher)
-	{
-		return;
-	}
-
-	mouse_button_released_event event;
-	event.mouse = this;
-	event.button = button;
-	event.x = x;
-	event.y = y;
-
-	device::event_dispatcher->queue(event);
+	button_released_publisher.publish({this, position, button});
 }
 
-void mouse::move(int x, int y, int dx, int dy)
+void mouse::move(const math::vector<std::int32_t, 2>& position, const math::vector<std::int32_t, 2>& difference)
 {
-	previous_position = current_position;
-	current_position = {x, y};
-
-	if (!device::event_dispatcher)
-	{
-		return;
-	}
-
-	mouse_moved_event event;
-	event.mouse = this;
-	event.x = x;
-	event.y = y;
-	event.dx = dx;
-	event.dy = dy;
-
-	device::event_dispatcher->queue(event);
+	this->position = position;
+	moved_publisher.publish({this, position, difference});
 }
 
-void mouse::scroll(int x, int y)
+void mouse::scroll(const math::vector<float, 2>& velocity)
 {
-	if (!device::event_dispatcher)
-	{
-		return;
-	}
-
-	mouse_wheel_scrolled_event event;
-	event.mouse = this;
-	event.x = x;
-	event.y = y;
-
-	device::event_dispatcher->queue(event);
+	scrolled_publisher.publish({this, position, velocity});
 }
 
 } // namespace input

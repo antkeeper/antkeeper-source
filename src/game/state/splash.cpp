@@ -26,7 +26,7 @@
 #include "application.hpp"
 #include "render/passes/clear-pass.hpp"
 #include "game/context.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 #include "resources/resource-manager.hpp"
 #include "render/material-flags.hpp"
 #include "math/linear-algebra.hpp"
@@ -35,9 +35,10 @@ namespace game {
 namespace state {
 
 splash::splash(game::context& ctx):
-	game::state::base(ctx)
+	game::state::base(ctx),
+	skipped(false)
 {	
-	ctx.logger->push_task("Entering splash state");
+	debug::log::push_task("Entering splash state");
 	
 	// Enable color buffer clearing in UI pass
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
@@ -131,36 +132,47 @@ splash::splash(game::context& ctx):
 	splash_fade_in_animation.play();
 	
 	// Set up splash skipper
-	ctx.input_listener->set_callback
+	input_mapped_subscription = ctx.input_mapper.get_input_mapped_channel().subscribe
 	(
-		[&ctx](const event_base& event)
+		[this](const auto& event)
 		{
-			auto id = event.get_event_type_id();
-			if (id != mouse_moved_event::event_type_id && id != mouse_wheel_scrolled_event::event_type_id && id != gamepad_axis_moved_event::event_type_id)
+			auto mapping_type = event.mapping->get_mapping_type();
+			
+			if (!this->skipped &&
+				mapping_type != input::mapping_type::gamepad_axis &&
+				mapping_type != input::mapping_type::mouse_motion &&
+				mapping_type != input::mapping_type::mouse_scroll)
 			{
-				// Black out screen
-				ctx.rasterizer->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-				ctx.rasterizer->clear_framebuffer(true, false, false);
-				ctx.app->swap_buffers();
+				this->skipped = true;
 				
-				// Change to main menu state
-				ctx.state_machine.pop();
-				ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
+				this->ctx.function_queue.emplace
+				(
+					[&ctx = this->ctx]()
+					{
+						// Black out screen
+						ctx.rasterizer->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+						ctx.rasterizer->clear_framebuffer(true, false, false);
+						ctx.app->swap_buffers();
+						
+						// Change to main menu state
+						ctx.state_machine.pop();
+						ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
+					}
+				);
 			}
 		}
 	);
-	ctx.input_listener->set_enabled(true);
+	ctx.input_mapper.connect(ctx.app->get_device_manager().get_event_queue());
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 splash::~splash()
 {
-	ctx.logger->push_task("Exiting splash state");
+	debug::log::push_task("Exiting splash state");
 	
 	// Disable splash skipper
-	ctx.input_listener->set_enabled(false);
-	ctx.input_listener->set_callback(nullptr);
+	ctx.input_mapper.disconnect();
 	
 	// Remove splash fade animations from animator
 	ctx.animator->remove_animation(&splash_fade_in_animation);
@@ -175,7 +187,7 @@ splash::~splash()
 	// Disable color buffer clearing in UI pass
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 } // namespace state

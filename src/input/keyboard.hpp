@@ -20,62 +20,69 @@
 #ifndef ANTKEEPER_INPUT_KEYBOARD_HPP
 #define ANTKEEPER_INPUT_KEYBOARD_HPP
 
-#include "device.hpp"
-#include <map>
-#include <string>
+#include "input/device.hpp"
+#include "input/event.hpp"
+#include "input/scancode.hpp"
+#include "input/modifier-key.hpp"
+#include "event/publisher.hpp"
 
 namespace input {
 
-enum class scancode;
-
 /**
- * A virtual keyboard which can generate keyboard-related input events and pass them to an event dispatcher.
+ * A virtual keyboard which generates keyboard-related input events.
  */
 class keyboard: public device
 {
 public:
 	/**
-	 * Returns the UTF-8 encoded name of a scancode.
+	 * Constructs a keyboard input device.
 	 */
-	static const char* get_scancode_name(scancode scancode);
-
-	/**
-	 * Returns the scancode corresponding to a scancode name.
-	 *
-	 * @param name Name of a scancode.
-	 * @return Corresponding scancode, or nullptr if a matching scancode was not found.
-	 */
-	static scancode get_scancode_from_name(const char* name);
-
-	/**
-	 * Creates a keyboard input device.
-	 */
-	keyboard();
-
-	/// Destroys a keyboard input device.
-	virtual ~keyboard();
+	keyboard() = default;
+	
+	/// Destructs a keyboard input device.
+	virtual ~keyboard() = default;
 	
 	/**
 	 * Simulates a key press.
 	 *
-	 * @param scancode scancode of the simulated key press.
+	 * @param scancode Scancode of the key to press.
+	 * @param repeat `true` if the key press is from a key repeat, `false` otherwise.
+	 * @param modifiers Bit mask containing the active modifier keys.
 	 */
-	void press(scancode scancode);
-
+	void press(scancode scancode, bool repeat = false, std::uint16_t modifiers = modifier_key::none);
+	
 	/**
 	 * Simulates a key release.
 	 *
-	 * @param scancode scancode of the simulated key release.
+	 * @param scancode Scancode of the key to release.
+	 * @param repeat `true` if the key release is from a key repeat, `false` otherwise.
+	 * @param modifiers Bit mask containing the active modifier keys.
 	 */
-	void release(scancode scancode);
+	void release(scancode scancode, bool repeat = false, std::uint16_t modifiers = modifier_key::none);
+	
+	/// Returns the channel through which key pressed events are published.
+	[[nodiscard]] inline ::event::channel<event::key_pressed>& get_key_pressed_channel() noexcept
+	{
+		return key_pressed_publisher.channel();
+	}
+	
+	/// Returns the channel through which key released events are published.
+	[[nodiscard]] inline ::event::channel<event::key_released>& get_key_released_channel() noexcept
+	{
+		return key_released_publisher.channel();
+	}
+	
+	/// Returns device_type::keyboard.
+	[[nodiscard]] inline virtual constexpr device_type get_device_type() const noexcept
+	{
+		return device_type::keyboard;
+	}
 
 private:
-	static std::map<std::string, scancode> build_scancode_map();
-	static const char* scancode_names[];
-	static std::map<std::string, scancode> scancode_map;
+	::event::publisher<event::key_pressed> key_pressed_publisher;
+	::event::publisher<event::key_released> key_released_publisher;
 };
 
 } // namespace input
 
 #endif // ANTKEEPER_INPUT_KEYBOARD_HPP
-

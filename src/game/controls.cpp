@@ -30,7 +30,7 @@ namespace game {
 
 std::filesystem::path gamepad_calibration_path(const game::context& ctx, const input::gamepad& gamepad)
 {
-	return std::filesystem::path("gamepad-" + gamepad.get_guid() + ".json");
+	return std::filesystem::path("gamepad-" + gamepad.get_uuid().string() + ".json");
 }
 
 json default_control_profile()
@@ -81,6 +81,7 @@ json* load_gamepad_calibration(game::context& ctx, const input::gamepad& gamepad
 
 bool save_gamepad_calibration(const game::context& ctx, const input::gamepad& gamepad, const json& calibration)
 {
+	/*
 	// Determine absolute path to gamepad calibration file
 	std::filesystem::path path = ctx.controls_path / gamepad_calibration_path(ctx, gamepad);
 	
@@ -100,12 +101,14 @@ bool save_gamepad_calibration(const game::context& ctx, const input::gamepad& ga
 	
 	// Close calibration file
 	stream.close();
+	*/
 	
 	return true;
 }
 
 void apply_control_profile(game::context& ctx, const json& profile)
 {
+	/*
 	// Map gamepad buttons to strings
 	const std::unordered_map<std::string, input::gamepad_button> gamepad_button_map =
 	{
@@ -144,21 +147,21 @@ void apply_control_profile(game::context& ctx, const json& profile)
 	}
 	
 	// Get keyboard and mouse devices
-	input::keyboard* keyboard = ctx.app->get_keyboard();
-	input::mouse* mouse = ctx.app->get_mouse();
+	input::keyboard* keyboard = ctx.app->get_device_manager().get_keyboards().front();
+	input::mouse* mouse = ctx.app->get_device_manager().get_mice().front();
 	
 	// Find profile gamepad device
 	input::gamepad* gamepad = nullptr;
 	auto gamepad_element = profile.find("gamepad");
 	if (gamepad_element != profile.end())
 	{
-		// Get gamepad GUID
-		const std::string gamepad_guid = gamepad_element->get<std::string>();
+		// Get gamepad UUID string
+		const std::string uuid_string = gamepad_element->get<std::string>();
 		
-		// Find gamepad with matching GUID
-		for (input::gamepad* device: ctx.app->get_gamepads())
+		// Find gamepad with matching UUID
+		for (input::gamepad* device: ctx.app->get_device_manager().get_gamepads())
 		{
-			if (device->get_guid() == gamepad_guid)
+			if (device->get_uuid().string() == uuid_string)
 			{
 				gamepad = device;
 				break;
@@ -193,7 +196,7 @@ void apply_control_profile(game::context& ctx, const json& profile)
 			{
 				if (!mapping_element->contains("device"))
 				{
-					ctx.logger->warning("Control \"" + control_name + "\" not mapped to a device");
+					debug::log::warning("Control \"" + control_name + "\" not mapped to a device");
 					continue;
 				}
 				
@@ -205,7 +208,7 @@ void apply_control_profile(game::context& ctx, const json& profile)
 					// Parse key name
 					if (!mapping_element->contains("key"))
 					{
-						ctx.logger->warning("Control \"" + control_name + "\" has invalid keyboard mapping");
+						debug::log::warning("Control \"" + control_name + "\" has invalid keyboard mapping");
 						continue;
 					}
 					std::string key = (*mapping_element)["key"].get<std::string>();
@@ -214,14 +217,14 @@ void apply_control_profile(game::context& ctx, const json& profile)
 					input::scancode scancode = keyboard->get_scancode_from_name(key.c_str());
 					if (scancode == input::scancode::unknown)
 					{
-						ctx.logger->warning("Control \"" + control_name + "\" mapped to unknown keyboard key \"" + key + "\"");
+						debug::log::warning("Control \"" + control_name + "\" mapped to unknown keyboard key \"" + key + "\"");
 						continue;
 					}
 					
 					// Map control to keyboard key
 					ctx.input_event_router->add_mapping(input::key_mapping(control, keyboard, scancode));
 					
-					ctx.logger->log("Mapped control \"" + control_name + "\" to keyboard key \"" + key + "\"");
+					debug::log::info("Mapped control \"" + control_name + "\" to keyboard key \"" + key + "\"");
 				}
 				else if (device == "mouse")
 				{
@@ -233,58 +236,58 @@ void apply_control_profile(game::context& ctx, const json& profile)
 						// Map control to mouse button
 						ctx.input_event_router->add_mapping(input::mouse_button_mapping(control, mouse, button));
 						
-						ctx.logger->log("Mapped control \"" + control_name + "\" to mouse button " + std::to_string(button));
+						debug::log::info("Mapped control \"" + control_name + "\" to mouse button " + std::to_string(button));
 					}
 					else if (mapping_element->contains("wheel"))
 					{
 						// Parse mouse wheel axis
 						std::string wheel = (*mapping_element)["wheel"].get<std::string>();
-						input::mouse_wheel_axis axis;
+						input::mouse_axis axis;
 						if (wheel == "x+")
-							axis = input::mouse_wheel_axis::positive_x;
+							axis = input::mouse_axis::positive_x;
 						else if (wheel == "x-")
-							axis = input::mouse_wheel_axis::negative_x;
+							axis = input::mouse_axis::negative_x;
 						else if (wheel == "y+")
-							axis = input::mouse_wheel_axis::positive_y;
+							axis = input::mouse_axis::positive_y;
 						else if (wheel == "y-")
-							axis = input::mouse_wheel_axis::negative_y;
+							axis = input::mouse_axis::negative_y;
 						else
 						{
-							ctx.logger->warning("Control \"" + control_name + "\" is mapped to invalid mouse wheel axis \"" + wheel + "\"");
+							debug::log::warning("Control \"" + control_name + "\" is mapped to invalid mouse wheel axis \"" + wheel + "\"");
 							continue;
 						}
 						
 						// Map control to mouse wheel axis
 						ctx.input_event_router->add_mapping(input::mouse_wheel_mapping(control, mouse, axis));
 						
-						ctx.logger->log("Mapped control \"" + control_name + "\" to mouse wheel axis " + wheel);
+						debug::log::info("Mapped control \"" + control_name + "\" to mouse wheel axis " + wheel);
 					}
 					else if (mapping_element->contains("motion"))
 					{
 						std::string motion = (*mapping_element)["motion"].get<std::string>();
-						input::mouse_motion_axis axis;
+						input::mouse_axis axis;
 						if (motion == "x+")
-							axis = input::mouse_motion_axis::positive_x;
+							axis = input::mouse_axis::positive_x;
 						else if (motion == "x-")
-							axis = input::mouse_motion_axis::negative_x;
+							axis = input::mouse_axis::negative_x;
 						else if (motion == "y+")
-							axis = input::mouse_motion_axis::positive_y;
+							axis = input::mouse_axis::positive_y;
 						else if (motion == "y-")
-							axis = input::mouse_motion_axis::negative_y;
+							axis = input::mouse_axis::negative_y;
 						else
 						{
-							ctx.logger->warning("Control \"" + control_name + "\" is mapped to invalid mouse motion axis \"" + motion + "\"");
+							debug::log::warning("Control \"" + control_name + "\" is mapped to invalid mouse motion axis \"" + motion + "\"");
 							continue;
 						}
 						
 						// Map control to mouse motion axis
 						ctx.input_event_router->add_mapping(input::mouse_motion_mapping(control, mouse, axis));
 						
-						ctx.logger->log("Mapped control \"" + control_name + "\" to mouse motion axis " + motion);
+						debug::log::info("Mapped control \"" + control_name + "\" to mouse motion axis " + motion);
 					}
 					else
 					{
-						ctx.logger->warning("Control \"" + control_name + "\" has invalid mouse mapping");
+						debug::log::warning("Control \"" + control_name + "\" has invalid mouse mapping");
 						continue;
 					}
 				}
@@ -298,14 +301,14 @@ void apply_control_profile(game::context& ctx, const json& profile)
 						auto button_it = gamepad_button_map.find(button);
 						if (button_it == gamepad_button_map.end())
 						{
-							ctx.logger->warning("Control \"" + control_name + "\" is mapped to invalid gamepad button \"" + button + "\"");
+							debug::log::warning("Control \"" + control_name + "\" is mapped to invalid gamepad button \"" + button + "\"");
 							continue;
 						}
 						
 						// Map control to gamepad button
 						ctx.input_event_router->add_mapping(input::gamepad_button_mapping(control, gamepad, button_it->second));
 						
-						ctx.logger->log("Mapped control \"" + control_name + "\" to gamepad button " + button);
+						debug::log::info("Mapped control \"" + control_name + "\" to gamepad button " + button);
 					}
 					else if (mapping_element->contains("axis"))
 					{
@@ -316,7 +319,7 @@ void apply_control_profile(game::context& ctx, const json& profile)
 						auto axis_it = gamepad_axis_map.find(axis_name);
 						if (axis_it == gamepad_axis_map.end())
 						{
-							ctx.logger->warning("Control \"" + control_name + "\" is mapped to invalid gamepad axis \"" + axis_name + "\"");
+							debug::log::warning("Control \"" + control_name + "\" is mapped to invalid gamepad axis \"" + axis_name + "\"");
 							continue;
 						}
 						
@@ -324,7 +327,7 @@ void apply_control_profile(game::context& ctx, const json& profile)
 						const char axis_sign = axis.back();
 						if (axis_sign != '-' && axis_sign != '+')
 						{
-							ctx.logger->warning("Control \"" + control_name + "\" is mapped to gamepad axis with invalid sign \"" + axis_sign + "\"");
+							debug::log::warning("Control \"" + control_name + "\" is mapped to gamepad axis with invalid sign \"" + axis_sign + "\"");
 							continue;
 						}
 						bool axis_negative = (axis_sign == '-');
@@ -332,30 +335,32 @@ void apply_control_profile(game::context& ctx, const json& profile)
 						// Map control to gamepad axis
 						ctx.input_event_router->add_mapping(input::gamepad_axis_mapping(control, gamepad, axis_it->second, axis_negative));
 						
-						ctx.logger->log("Mapped control \"" + control_name + "\" to gamepad axis " + axis);
+						debug::log::info("Mapped control \"" + control_name + "\" to gamepad axis " + axis);
 					}
 					else
 					{
-						ctx.logger->log("Control \"" + control_name + "\" has invalid gamepad mapping");
+						debug::log::info("Control \"" + control_name + "\" has invalid gamepad mapping");
 						continue;
 					}
 				}
 				else
 				{
-					ctx.logger->warning("Control \"" + control_name + "\" bound to unknown device \"" + device + "\"");
+					debug::log::warning("Control \"" + control_name + "\" bound to unknown device \"" + device + "\"");
 				}
 			}
 		}
 	}
+	*/
 }
 
 void save_control_profile(game::context& ctx)
 {
+	/*
 	std::filesystem::path path;
 	if (ctx.config->contains("control_profile"))
 		path = ctx.config_path / "controls" / (*ctx.config)["control_profile"].get<std::string>();
 	
-	ctx.logger->push_task("Saving control profile to \"" + path.string() + "\"");
+	debug::log::trace("Saving control profile to \"{}\"...", path.string());
 	try
 	{
 		json control_profile;
@@ -402,16 +407,16 @@ void save_control_profile(game::context& ctx)
 						mapping_element["device"] = "mouse";
 						switch (wheel_mapping->axis)
 						{
-							case input::mouse_wheel_axis::negative_x:
+							case input::mouse_axis::negative_x:
 								mapping_element["wheel"] = "x-";
 								break;
-							case input::mouse_wheel_axis::positive_x:
+							case input::mouse_axis::positive_x:
 								mapping_element["wheel"] = "x+";
 								break;
-							case input::mouse_wheel_axis::negative_y:
+							case input::mouse_axis::negative_y:
 								mapping_element["wheel"] = "y-";
 								break;
-							case input::mouse_wheel_axis::positive_y:
+							case input::mouse_axis::positive_y:
 								mapping_element["wheel"] = "y+";
 								break;
 							default:
@@ -427,16 +432,16 @@ void save_control_profile(game::context& ctx)
 						mapping_element["device"] = "mouse";
 						switch (motion_mapping->axis)
 						{
-							case input::mouse_motion_axis::negative_x:
+							case input::mouse_axis::negative_x:
 								mapping_element["motion"] = "x-";
 								break;
-							case input::mouse_motion_axis::positive_x:
+							case input::mouse_axis::positive_x:
 								mapping_element["motion"] = "x+";
 								break;
-							case input::mouse_motion_axis::negative_y:
+							case input::mouse_axis::negative_y:
 								mapping_element["motion"] = "y-";
 								break;
-							case input::mouse_motion_axis::positive_y:
+							case input::mouse_axis::positive_y:
 								mapping_element["motion"] = "y+";
 								break;
 							default:
@@ -566,13 +571,15 @@ void save_control_profile(game::context& ctx)
 	}
 	catch (...)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::pop_task(EXIT_FAILURE);
 	}
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
+	*/
 }
 
 void apply_gamepad_calibration(input::gamepad& gamepad, const json& calibration)
 {
+	/*
 	// Parse and apply activation thresholds
 	if (calibration.contains("leftx_activation"))
 	{
@@ -661,6 +668,7 @@ void apply_gamepad_calibration(input::gamepad& gamepad, const json& calibration)
 		auto curve = parse_response_curve(calibration["righttrigger_response_curve"].get<std::string>());
 		gamepad.set_response_curve(input::gamepad_axis::right_trigger, curve);
 	}
+	*/
 }
 
 } // namespace game

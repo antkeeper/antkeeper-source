@@ -17,142 +17,70 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mapper.hpp"
-#include "mouse.hpp"
-#include "event/event-dispatcher.hpp"
+#include "input/mapper.hpp"
+#include <cmath>
 
 namespace input {
 
-mapper::mapper():
-	event_dispatcher(nullptr),
-	control(nullptr),
-	callback(nullptr),
-	enabled(false)
-{}
-
-mapper::~mapper()
+void mapper::connect(::event::queue& queue)
 {
-	set_event_dispatcher(nullptr);
+	subscriptions.emplace_back(queue.subscribe<event::gamepad_axis_moved>(std::bind_front(&mapper::handle_gamepad_axis_moved, this)));
+	subscriptions.emplace_back(queue.subscribe<event::gamepad_button_pressed>(std::bind_front(&mapper::handle_gamepad_button_pressed, this)));
+	subscriptions.emplace_back(queue.subscribe<event::key_pressed>(std::bind_front(&mapper::handle_key_pressed, this)));
+	subscriptions.emplace_back(queue.subscribe<event::mouse_button_pressed>(std::bind_front(&mapper::handle_mouse_button_pressed, this)));
+	subscriptions.emplace_back(queue.subscribe<event::mouse_moved>(std::bind_front(&mapper::handle_mouse_moved, this)));
+	subscriptions.emplace_back(queue.subscribe<event::mouse_scrolled>(std::bind_front(&mapper::handle_mouse_scrolled, this)));
 }
 
-void mapper::set_event_dispatcher(::event_dispatcher* event_dispatcher)
+void mapper::disconnect()
 {
-	if (this->event_dispatcher)
+	subscriptions.clear();
+}
+
+void mapper::handle_gamepad_axis_moved(const event::gamepad_axis_moved& event)
+{
+	input_mapped_publisher.publish({std::shared_ptr<mapping>(new gamepad_axis_mapping(event.gamepad, event.axis, std::signbit(event.position)))});
+}
+
+void mapper::handle_gamepad_button_pressed(const event::gamepad_button_pressed& event)
+{
+	input_mapped_publisher.publish({std::shared_ptr<mapping>(new gamepad_button_mapping(event.gamepad, event.button))});
+}
+
+void mapper::handle_key_pressed(const event::key_pressed& event)
+{
+	input_mapped_publisher.publish({std::shared_ptr<mapping>(new key_mapping(event.keyboard, event.scancode))});
+}
+
+void mapper::handle_mouse_button_pressed(const event::mouse_button_pressed& event)
+{
+	input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_button_mapping(event.mouse, event.button))});
+}
+
+void mapper::handle_mouse_moved(const event::mouse_moved& event)
+{
+	if (event.difference.x())
 	{
-		this->event_dispatcher->unsubscribe<key_pressed_event>(this);
-		this->event_dispatcher->unsubscribe<mouse_moved_event>(this);
-		this->event_dispatcher->unsubscribe<mouse_wheel_scrolled_event>(this);
-		this->event_dispatcher->unsubscribe<mouse_button_pressed_event>(this);
-		this->event_dispatcher->unsubscribe<gamepad_axis_moved_event>(this);
-		this->event_dispatcher->unsubscribe<gamepad_button_pressed_event>(this);
+		input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_motion_mapping(event.mouse, mouse_motion_axis::x, std::signbit(static_cast<float>(event.difference.x()))))});
 	}
-
-	this->event_dispatcher = event_dispatcher;
-
-	if (event_dispatcher)
+	
+	if (event.difference.y())
 	{
-		event_dispatcher->subscribe<key_pressed_event>(this);
-		event_dispatcher->subscribe<mouse_moved_event>(this);
-		event_dispatcher->subscribe<mouse_wheel_scrolled_event>(this);
-		event_dispatcher->subscribe<mouse_button_pressed_event>(this);
-		event_dispatcher->subscribe<gamepad_axis_moved_event>(this);
-		event_dispatcher->subscribe<gamepad_button_pressed_event>(this);
-	}
-}
-
-void mapper::set_control(input::control* control)
-{
-	this->control = control;
-}
-
-void mapper::set_callback(std::function<void(const mapping&)> callback)
-{
-	this->callback = callback;
-}
-
-void mapper::set_enabled(bool enabled)
-{
-	this->enabled = enabled;
-}
-
-void mapper::handle_event(const key_pressed_event& event)
-{
-	if (!is_enabled() || !callback)
-	{
-		return;
-	}
-
-	callback(key_mapping(control, event.keyboard, event.scancode));
-}
-
-void mapper::handle_event(const mouse_moved_event& event)
-{
-	if (!is_enabled() || !callback)
-	{
-		return;
-	}
-
-	if (event.dx != 0)
-	{
-		mouse_motion_axis axis = (event.dx < 0) ? mouse_motion_axis::negative_x : mouse_motion_axis::positive_x;
-		callback(mouse_motion_mapping(control, event.mouse, axis));
-	}
-
-	if (event.dy != 0)
-	{
-		mouse_motion_axis axis = (event.dy < 0) ? mouse_motion_axis::negative_y : mouse_motion_axis::positive_y;
-		callback(mouse_motion_mapping(control, event.mouse, axis));
+		input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_motion_mapping(event.mouse, mouse_motion_axis::y, std::signbit(static_cast<float>(event.difference.y()))))});
 	}
 }
 
-void mapper::handle_event(const mouse_button_pressed_event& event)
+void mapper::handle_mouse_scrolled(const event::mouse_scrolled& event)
 {
-	if (!is_enabled() || !callback)
+	if (event.velocity.x())
 	{
-		return;
+		input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_scroll_mapping(event.mouse, mouse_scroll_axis::x, std::signbit(event.velocity.x())))});
 	}
-
-	callback(mouse_button_mapping(control, event.mouse, event.button));
-}
-
-void mapper::handle_event(const mouse_wheel_scrolled_event& event)
-{
-	if (!is_enabled() || !callback)
+	
+	if (event.velocity.y())
 	{
-		return;
+		input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_scroll_mapping(event.mouse, mouse_scroll_axis::y, std::signbit(event.velocity.y())))});
 	}
-
-	if (event.x != 0)
-	{
-		mouse_wheel_axis axis = (event.x < 0) ? mouse_wheel_axis::negative_x : mouse_wheel_axis::positive_x;
-		callback(mouse_wheel_mapping(control, event.mouse, axis));
-	}
-
-	if (event.y != 0)
-	{
-		mouse_wheel_axis axis = (event.y < 0) ? mouse_wheel_axis::negative_y : mouse_wheel_axis::positive_y;
-		callback(mouse_wheel_mapping(control, event.mouse, axis));
-	}
-}
-
-void mapper::handle_event(const gamepad_button_pressed_event& event)
-{
-	if (!is_enabled() || !callback)
-	{
-		return;
-	}
-
-	callback(gamepad_button_mapping(control, event.controller, event.button));
-}
-
-void mapper::handle_event(const gamepad_axis_moved_event& event)
-{
-	if (!is_enabled() || !callback)
-	{
-		return;
-	}
-
-	callback(gamepad_axis_mapping(control, event.controller, event.axis, (event.value < 0.0f)));
 }
 
 } // namespace input

@@ -28,7 +28,7 @@
  *
  * @return Path to the application's executable.
  */
-std::filesystem::path get_executable_path();
+[[nodiscard]] std::filesystem::path get_executable_path();
 
 /**
  * Returns the absolute path to the directory containing application data.
@@ -39,7 +39,7 @@ std::filesystem::path get_executable_path();
  * @param application_name Name of the application.
  * @return Path to the application's data directory.
  */
-std::filesystem::path get_data_path(const std::string& application_name);
+[[nodiscard]] std::filesystem::path get_data_path(const std::string& application_name);
 
 /**
  * Returns the absolute path to the directory containing user-specific application data.
@@ -50,7 +50,7 @@ std::filesystem::path get_data_path(const std::string& application_name);
  * @param application_name Name of the application.
  * @return Path to the application's config directory.
  */
-std::filesystem::path get_config_path(const std::string& application_name);
+[[nodiscard]] std::filesystem::path get_config_path(const std::string& application_name);
 
 #endif // ANTKEEPER_PATHS_HPP
 

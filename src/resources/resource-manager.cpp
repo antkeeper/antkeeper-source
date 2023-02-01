@@ -19,55 +19,55 @@
 
 #include "resources/resource-manager.hpp"
 
-resource_manager::resource_manager(debug::logger* logger):
-	logger(logger)
+resource_manager::resource_manager()
 {
 	// Init PhysicsFS
-	logger->push_task("Initializing PhysicsFS");
+	debug::log::trace("Initializing PhysicsFS...");
 	if (!PHYSFS_init(nullptr))
 	{
-		logger->error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to initialize PhysicsFS: {}", PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 	}
 	else
 	{
-		logger->pop_task(EXIT_SUCCESS);
+		debug::log::trace("Initialized PhysicsFS");
 	}
 }
 
 resource_manager::~resource_manager()
 {
+	debug::log::trace("Deleting cached resources...");
+	
 	// Delete cached resources
 	for (auto it = resource_cache.begin(); it != resource_cache.end(); ++it)
 	{
 		delete it->second;
 	}
 	
+	debug::log::trace("Deleted cached resources");
+	
 	// Deinit PhysicsFS
-	logger->push_task("Deinitializing PhysicsFS");
+	debug::log::trace("Deinitializing PhysicsFS...");
 	if (!PHYSFS_deinit())
 	{
-		logger->error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to deinitialize PhysicsFS: {}", PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 	}
 	else
 	{
-		logger->pop_task(EXIT_SUCCESS);
+		debug::log::trace("Deinitialized PhysicsFS");
 	}
 }
 
 bool resource_manager::mount(const std::filesystem::path& path)
 {
-	logger->push_task("Mounting path \"" + path.string() + "\"");
+	debug::log::trace("Mounting path \"{}\"...", path.string());
 	if (!PHYSFS_mount(path.string().c_str(), nullptr, 1))
 	{
-		logger->error(std::string("PhysicsFS error: ") + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to mount path \"{}\": {}", path.string(), PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 		return false;
 	}
 	else
 	{
-		logger->pop_task(EXIT_SUCCESS);
+		debug::log::trace("Mounted path \"{}\"", path.string());
 		return true;
 	}
 }
@@ -80,23 +80,17 @@ void resource_manager::unload(const std::filesystem::path& path)
 	{
 		// Decrement the resource handle reference count
 		--it->second->reference_count;
-
+		
 		// Free the resource if the resource handle is unreferenced
 		if (it->second->reference_count <= 0)
 		{
-			if (logger)
-			{
-				logger->push_task("Unloading resource \"" + path.string() + "\"");
-			}
+			debug::log::trace("Unloading resource \"{}\"...", path.string());
 			
 			delete it->second;
 			
-			if (logger)
-			{
-				logger->pop_task(EXIT_SUCCESS);
-			}
+			debug::log::trace("Unloaded resource \"{}\"", path.string());
 		}
-
+		
 		// Remove resource from the cache
 		resource_cache.erase(it);
 	}
@@ -106,4 +100,3 @@ void resource_manager::include(const std::filesystem::path& search_path)
 {
 	search_paths.push_back(search_path);
 }
-

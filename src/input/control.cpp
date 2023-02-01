@@ -17,109 +17,54 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "control.hpp"
+#include "input/control.hpp"
 
 namespace input {
 
-control::control():
-	activation_threshold(0.0f),
-	current_value(0.0f),
-	previous_value(0.0f),
-	reset(false),
-	activated_callback(nullptr),
-	deactivated_callback(nullptr),
-	value_changed_callback(nullptr),
-	active_callback(nullptr),
-	callbacks_enabled(true)
-{}
-
-control::~control()
-{}
-
-void control::update()
+static bool default_threshold_function(float x) noexcept
 {
-	// Perform callbacks, if enabled
-	if (callbacks_enabled)
+	return x > 0.0f;
+}
+
+control::control():
+	threshold_function(default_threshold_function),
+	active(false),
+	activated_event{this},
+	active_event{this, 0.0f},
+	deactivated_event{this}
+{}
+
+void control::set_threshold_function(const threshold_function_type& function)
+{
+	threshold_function = function;
+}
+
+void control::evaluate(float value)
+{
+	// Store activation state
+	const bool was_active = active;
+	
+	// Re-evaluate activation state
+	active = threshold_function(value);
+	
+	// Emit events
+	if (active)
 	{
-		if (activated_callback)
+		if (!was_active)
 		{
-			if (is_active() && !was_active())
-			{
-				activated_callback();
-			}
-		}
-
-		if (deactivated_callback)
-		{
-			if (!is_active() && was_active())
-			{
-				deactivated_callback();
-			}
-		}
-
-		if (value_changed_callback)
-		{
-			if (current_value != previous_value)
-			{
-				if (is_active() || was_active())
-				{
-					value_changed_callback(current_value);
-				}
-			}
+			activated_publisher.publish(activated_event);
 		}
 		
-		if (active_callback && is_active())
+		active_event.input_value = value;
+		active_publisher.publish(active_event);
+	}
+	else
+	{
+		if (was_active)
 		{
-			active_callback(current_value);
+			deactivated_publisher.publish(deactivated_event);
 		}
 	}
-
-	// Update previous value
-	previous_value = current_value;
-
-	// Reset temporary values
-	if (reset)
-	{
-		current_value = 0.0f;
-		reset = false;
-	}
-}
-
-void control::set_current_value(float value)
-{
-	current_value = value;
-	reset = false;
-}
-
-void control::set_temporary_value(float value)
-{
-	current_value = value;
-	reset = true;
-}
-
-void control::set_activation_threshold(float threshold)
-{
-	activation_threshold = threshold;
-}
-
-void control::set_activated_callback(std::function<void()> callback)
-{
-	this->activated_callback = callback;
-}
-
-void control::set_deactivated_callback(std::function<void()> callback)
-{
-	this->deactivated_callback = callback;
-}
-
-void control::set_value_changed_callback(std::function<void(float)> callback)
-{
-	this->value_changed_callback = callback;
-}
-
-void control::set_active_callback(std::function<void(float)> callback)
-{
-	this->active_callback = callback;
 }
 
 } // namespace input

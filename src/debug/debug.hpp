@@ -20,12 +20,7 @@
 #ifndef ANTKEEPER_DEBUG_HPP
 #define ANTKEEPER_DEBUG_HPP
 
-/// Debugging functions and classes
+/// Debugging functions and classes.
 namespace debug {}
-
-#include "ansi-codes.hpp"
-#include "cli.hpp"
-#include "logger.hpp"
-#include "performance-sampler.hpp"
 
 #endif // ANTKEEPER_DEBUG_HPP

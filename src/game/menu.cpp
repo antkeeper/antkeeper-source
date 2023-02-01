@@ -295,7 +295,8 @@ void fade_out_bg(game::context& ctx)
 }
 
 void setup_controls(game::context& ctx)
-{	
+{
+	/*
 	ctx.controls["menu_up"]->set_activated_callback
 	(
 		[&ctx]()
@@ -459,10 +460,12 @@ void setup_controls(game::context& ctx)
 			}
 		}
 	);
+	*/
 }
 
 void clear_controls(game::context& ctx)
 {
+	/*
 	ctx.controls["menu_up"]->set_activated_callback(nullptr);
 	ctx.controls["menu_down"]->set_activated_callback(nullptr);
 	ctx.controls["menu_left"]->set_activated_callback(nullptr);
@@ -472,6 +475,7 @@ void clear_controls(game::context& ctx)
 	
 	ctx.menu_mouse_tracker->set_mouse_moved_callback(nullptr);
 	ctx.menu_mouse_tracker->set_mouse_button_pressed_callback(nullptr);
+	*/
 }
 
 } // namespace menu

@@ -56,7 +56,7 @@ public:
 	/**
 	 * Returns the mean frame duration.
 	 */
-	double mean_frame_duration() const;
+	[[nodiscard]] double mean_frame_duration() const;
 
 private:
 	std::vector<double> samples;

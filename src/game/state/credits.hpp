@@ -23,6 +23,7 @@
 #include "game/state/base.hpp"
 #include "scene/text.hpp"
 #include "animation/animation.hpp"
+#include "event/subscription.hpp"
 
 namespace game {
 namespace state {
@@ -37,6 +38,7 @@ private:
 	scene::text credits_text;
 	animation<float> credits_fade_in_animation;
 	animation<float> credits_scroll_animation;
+	std::shared_ptr<::event::subscription> input_mapped_subscription;
 };
 
 } // namespace state

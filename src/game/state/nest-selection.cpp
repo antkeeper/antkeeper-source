@@ -51,7 +51,6 @@
 #include "application.hpp"
 #include "input/mouse.hpp"
 #include "math/projection.hpp"
-#include <iostream>
 
 #include "game/ant/morphogenesis.hpp"
 #include "game/ant/phenome.hpp"
@@ -67,20 +66,20 @@ namespace state {
 nest_selection::nest_selection(game::context& ctx):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering nest selection state");
+	debug::log::push_task("Entering nest selection state");
 	
-	ctx.logger->push_task("Generating genome");
+	debug::log::push_task("Generating genome");
 	std::random_device rng;
 	ant::genome* genome = ant::cladogenesis(ctx.active_ecoregion->gene_pools[0], rng);
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 	
-	ctx.logger->push_task("Building worker phenome");
+	debug::log::push_task("Building worker phenome");
 	ant::phenome worker_phenome = ant::phenome(*genome, ant::caste::worker);
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 	
-	ctx.logger->push_task("Generating worker model");
+	debug::log::push_task("Generating worker model");
 	render::model* worker_model = ant::morphogenesis(worker_phenome);
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 	
 	// Create worker entity(s)
 	entity::id worker_eid = ctx.entity_registry->create();
@@ -199,16 +198,16 @@ nest_selection::nest_selection(game::context& ctx):
 	// Queue control setup
 	ctx.function_queue.push(std::bind(&nest_selection::enable_controls, this));
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 nest_selection::~nest_selection()
 {
-	ctx.logger->push_task("Exiting nest selection state");
+	debug::log::push_task("Exiting nest selection state");
 	
 	destroy_first_person_camera_rig();
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void nest_selection::create_first_person_camera_rig()
@@ -383,6 +382,7 @@ void nest_selection::satisfy_first_person_camera_rig_constraints()
 
 void nest_selection::enable_controls()
 {
+	/*
 	// Reset mouse look
 	mouse_look = false;
 	
@@ -715,7 +715,7 @@ void nest_selection::enable_controls()
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() - 1.0f);
 			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 2.0f * static_cast<float>(ctx.loop.get_update_period()));
-			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
+			debug::log::info("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
 	
@@ -725,13 +725,15 @@ void nest_selection::enable_controls()
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() + 1.0f);
 			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 2.0f * static_cast<float>(ctx.loop.get_update_period()));
-			ctx.logger->log("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
+			debug::log::info("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
+	*/
 }
 
 void nest_selection::disable_controls()
 {
+	/*
 	if (mouse_look)
 	{
 		mouse_look = false;
@@ -763,6 +765,7 @@ void nest_selection::disable_controls()
 	ctx.controls["pause"]->set_activated_callback(nullptr);
 	ctx.controls["increase_exposure"]->set_active_callback(nullptr);
 	ctx.controls["decrease_exposure"]->set_active_callback(nullptr);
+	*/
 }
 
 } // namespace state

@@ -36,7 +36,6 @@
 #include "astro/apparent-size.hpp"
 #include "geom/solid-angle.hpp"
 #include "math/polynomial.hpp"
-#include <iostream>
 
 namespace game {
 namespace system {

@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cli.hpp"
+#include "debug/cli.hpp"
 
 namespace debug {
 
@@ -26,12 +26,12 @@ std::string cli::interpret(const std::string& line) const
 	std::istringstream stream(line);
 	std::string command_name;
 	stream >> command_name;
-
+	
 	if (auto it = commands.find(command_name); it != commands.end())
 	{
 		return it->second(line.substr(command_name.length() + 1));
 	}
-
+	
 	return std::string();
 }
 

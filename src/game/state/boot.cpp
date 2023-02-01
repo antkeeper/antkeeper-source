@@ -17,17 +17,41 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/state/boot.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
 #include "animation/ease.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/timeline.hpp"
 #include "application.hpp"
+#include "color/color.hpp"
+#include "config.hpp"
 #include "debug/cli.hpp"
-#include "debug/console-commands.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
+#include "entity/commands.hpp"
 #include "game/context.hpp"
+#include "game/controls.hpp"
+#include "game/fonts.hpp"
+#include "game/graphics.hpp"
+#include "game/menu.hpp"
+#include "game/save.hpp"
+#include "game/state/boot.hpp"
+#include "game/state/splash.hpp"
+#include "game/system/astronomy.hpp"
+#include "game/system/atmosphere.hpp"
+#include "game/system/behavior.hpp"
+#include "game/system/blackbody.hpp"
+#include "game/system/camera.hpp"
+#include "game/system/collision.hpp"
+#include "game/system/constraint.hpp"
+#include "game/system/locomotion.hpp"
+#include "game/system/orbit.hpp"
+#include "game/system/render.hpp"
+#include "game/system/spatial.hpp"
+#include "game/system/spring.hpp"
+#include "game/system/steering.hpp"
+#include "game/system/subterrain.hpp"
+#include "game/system/terrain.hpp"
+#include "game/system/vegetation.hpp"
 #include "gl/framebuffer.hpp"
 #include "gl/pixel-format.hpp"
 #include "gl/pixel-type.hpp"
@@ -38,67 +62,38 @@
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-attribute.hpp"
 #include "gl/vertex-buffer.hpp"
+#include "input/gamepad.hpp"
+#include "input/keyboard.hpp"
+#include "input/mapper.hpp"
+#include "input/mouse.hpp"
+#include "input/scancode.hpp"
+#include "render/compositor.hpp"
 #include "render/material-flags.hpp"
 #include "render/material-property.hpp"
 #include "render/passes/bloom-pass.hpp"
 #include "render/passes/clear-pass.hpp"
 #include "render/passes/final-pass.hpp"
 #include "render/passes/fxaa-pass.hpp"
-#include "render/passes/resample-pass.hpp"
+#include "render/passes/ground-pass.hpp"
 #include "render/passes/material-pass.hpp"
 #include "render/passes/outline-pass.hpp"
+#include "render/passes/resample-pass.hpp"
 #include "render/passes/shadow-map-pass.hpp"
 #include "render/passes/sky-pass.hpp"
-#include "render/passes/ground-pass.hpp"
-#include "render/vertex-attribute.hpp"
-#include "render/compositor.hpp"
 #include "render/renderer.hpp"
-#include "resources/resource-manager.hpp"
+#include "render/vertex-attribute.hpp"
 #include "resources/file-buffer.hpp"
+#include "resources/resource-manager.hpp"
 #include "scene/scene.hpp"
-#include "game/state/splash.hpp"
-#include "game/system/behavior.hpp"
-#include "game/system/camera.hpp"
-#include "game/system/collision.hpp"
-#include "game/system/constraint.hpp"
-#include "game/system/locomotion.hpp"
-#include "game/system/render.hpp"
-#include "game/system/subterrain.hpp"
-#include "game/system/terrain.hpp"
-#include "game/system/vegetation.hpp"
-#include "game/system/spatial.hpp"
-#include "game/system/astronomy.hpp"
-#include "game/system/blackbody.hpp"
-#include "game/system/atmosphere.hpp"
-#include "game/system/orbit.hpp"
-#include "game/system/steering.hpp"
-#include "game/system/spring.hpp"
-#include "entity/commands.hpp"
 #include "utility/paths.hpp"
-#include "event/event-dispatcher.hpp"
-#include "input/event-router.hpp"
-#include "input/mapper.hpp"
-#include "input/listener.hpp"
-#include "input/gamepad.hpp"
-#include "input/mouse.hpp"
-#include "input/keyboard.hpp"
-#include "config.hpp"
-#include "input/scancode.hpp"
-#include "game/fonts.hpp"
-#include "game/controls.hpp"
-#include "game/save.hpp"
-#include "game/menu.hpp"
-#include "game/graphics.hpp"
-#include "utility/timestamp.hpp"
-#include "color/color.hpp"
+#include <algorithm>
 #include <cxxopts.hpp>
 #include <entt/entt.hpp>
+#include <execution>
 #include <filesystem>
 #include <functional>
 #include <string>
 #include <vector>
-#include <execution>
-#include <algorithm>
 
 namespace game {
 namespace state {
@@ -106,15 +101,12 @@ namespace state {
 boot::boot(game::context& ctx, int argc, char** argv):
 	game::state::base(ctx)
 {
-	// Allocate application logger
-	ctx.logger = new debug::logger();
-	
 	// Boot process
-	ctx.logger->push_task("Booting up");
+	debug::log::trace("Booting up...");
 	try
 	{
 		// Allocate application
-		ctx.app = new application(*ctx.logger);
+		ctx.app = new application();
 		
 		// Parse command line options
 		parse_options(argc, argv);
@@ -137,22 +129,23 @@ boot::boot(game::context& ctx, int argc, char** argv):
 	}
 	catch (const std::exception& e)
 	{
-		ctx.logger->error("Caught exception: \"" + std::string(e.what()) + "\"");
-		ctx.logger->pop_task(EXIT_FAILURE);
-		return;
+		debug::log::fatal("Boot up failed: unhandled exception: {}", e.what());
+		throw e;
 	}
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	
+	debug::log::trace("Boot up complete");
 	
 	// Push splash state
 	ctx.state_machine.emplace(new game::state::splash(ctx));
 	
 	// Enter main loop
+	debug::log::trace("Entered main loop");
 	loop();
 }
 
 boot::~boot()
 {
-	ctx.logger->push_task("Booting down");
+	debug::log::trace("Booting down...");
 	
 	try
 	{
@@ -164,18 +157,16 @@ boot::~boot()
 	}
 	catch (const std::exception& e)
 	{
-		ctx.logger->error("Caught exception: \"" + std::string(e.what()) + "\"");
-		ctx.logger->pop_task(EXIT_FAILURE);
-		return;
+		debug::log::fatal("Boot down failed: unhandled exception: {}", e.what());
+		throw e;
 	}
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::trace("Boot down complete");
 }
 
 void boot::parse_options(int argc, char** argv)
 {
-	debug::logger* logger = ctx.logger;
-	logger->push_task("Parsing command line options");
+	debug::log::trace("Parsing {} command line arguments...", argc);
 	
 	try
 	{
@@ -221,44 +212,32 @@ void boot::parse_options(int argc, char** argv)
 		
 		// --windowed
 		if (result.count("windowed"))
-			option_windowed = true; 
+			option_windowed = true;
+		
+		debug::log::trace("Parsed {} command line arguments", argc);
 	}
 	catch (const std::exception& e)
 	{
-		logger->error("Exception caught: \"" + std::string(e.what()) + "\"");
-		logger->pop_task(EXIT_FAILURE);
-		return;
+		debug::log::warning("Exception caught while parsing command line arguments: {}", e.what());
 	}
-	
-	logger->pop_task(EXIT_SUCCESS);
 }
 
 void boot::setup_resources()
 {
-	debug::logger* logger = ctx.logger;
-	
 	// Setup resource manager
-	ctx.resource_manager = new resource_manager(logger);
-	
-	// Determine application name
-	std::string application_name;
-	#if defined(_WIN32) || defined(__APPLE__)
-		application_name = "Antkeeper";
-	#else
-		application_name = "antkeeper";
-	#endif
+	ctx.resource_manager = new resource_manager();
 	
 	// Detect paths
-	ctx.data_path = get_data_path(application_name);
-	ctx.config_path = get_config_path(application_name);
+	ctx.data_path = get_data_path(config::application_name);
+	ctx.config_path = get_config_path(config::application_name);
 	ctx.mods_path = ctx.config_path / "mods";
 	ctx.saves_path = ctx.config_path / "saves";
 	ctx.screenshots_path = ctx.config_path / "gallery";
 	ctx.controls_path = ctx.config_path / "controls";
 	
 	// Log resource paths
-	logger->log("Detected data path as \"" + ctx.data_path.string());
-	logger->log("Detected config path as \"" + ctx.config_path.string());
+	debug::log::info("Data path: \"{}\"", ctx.data_path.string());
+	debug::log::info("Config path: \"{}\"", ctx.config_path.string());
 	
 	// Create nonexistent config directories
 	std::vector<std::filesystem::path> config_paths;
@@ -271,25 +250,19 @@ void boot::setup_resources()
 	{
 		if (!std::filesystem::exists(path))
 		{
-			logger->push_task("Creating directory \"" + path.string());
+			const std::string path_string = path.string();
+			
+			debug::log::trace("Creating directory \"{}\"...", path_string);
 			if (std::filesystem::create_directories(path))
 			{
-				logger->pop_task(EXIT_SUCCESS);
+				debug::log::trace("Created directory \"{}\"", path_string);
 			}
 			else
 			{
-				logger->pop_task(EXIT_FAILURE);
+				debug::log::error("Failed to create directory \"{}\"", path_string);
 			}
 		}
 	}
-	
-	// Redirect logger output to log file on non-debug builds
-	#if defined(NDEBUG)
-		std::filesystem::path log_path = ctx.config_path / "log.txt";
-		ctx.log_filestream.open(log_path);
-		ctx.log_filestream << logger->get_history();
-		logger->redirect(&ctx.log_filestream);
-	#endif
 	
 	// Scan for mods
 	std::vector<std::filesystem::path> mod_paths;
@@ -328,24 +301,23 @@ void boot::setup_resources()
 
 void boot::load_config()
 {
-	debug::logger* logger = ctx.logger;
-	logger->push_task("Loading config");
+	debug::log::trace("Loading config...");
 	
 	// Load config file
 	ctx.config = ctx.resource_manager->load<json>("config.json");
-	if (!ctx.config)
+	if (ctx.config)
 	{
-		logger->pop_task(EXIT_FAILURE);
-		return;
+		debug::log::trace("Loaded config");
 	}
-	
-	logger->pop_task(EXIT_SUCCESS);
+	else
+	{
+		debug::log::error("Failed to load config");
+	}
 }
 
 void boot::load_strings()
 {
-	debug::logger* logger = ctx.logger;
-	logger->push_task("Loading strings");
+	debug::log::trace("Loading strings...");
 	
 	ctx.string_table = ctx.resource_manager->load<string_table>("strings.csv");
 	
@@ -360,19 +332,18 @@ void boot::load_strings()
 	}
 	
 	ctx.language_count = (*ctx.string_table)[0].size() - 2;
-	logger->log("language count: " + std::to_string(ctx.language_count));
-	logger->log("language index: " + std::to_string(ctx.language_index));
-	logger->log("language code: " + ctx.language_code);
+	debug::log::info("Languages available: {}", ctx.language_count);
+	debug::log::info("Language index: {}", ctx.language_index);
+	debug::log::info("Language code: {}", ctx.language_code);
 	
 	ctx.strings = &ctx.string_table_map[ctx.language_code];
 	
-	logger->pop_task(EXIT_SUCCESS);
+	debug::log::trace("Loaded strings");
 }
 
 void boot::setup_window()
 {
-	debug::logger* logger = ctx.logger;
-	logger->push_task("Setting up window");
+	debug::log::trace("Setting up window...");
 	
 	application* app = ctx.app;
 	json* config = ctx.config;
@@ -425,13 +396,12 @@ void boot::setup_window()
 	app->show_window();
 	ctx.app->swap_buffers();
 	
-	logger->pop_task(EXIT_SUCCESS);
+	debug::log::trace("Set up window");
 }
 
 void boot::setup_rendering()
 {
-	debug::logger* logger = ctx.logger;
-	logger->push_task("Setting up rendering");
+	debug::log::trace("Setting up rendering...");
 	
 	// Get rasterizer from application
 	ctx.rasterizer = ctx.app->get_rasterizer();
@@ -523,7 +493,6 @@ void boot::setup_rendering()
 		
 		ctx.underground_material_pass = new render::material_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.underground_material_pass->set_fallback_material(ctx.fallback_material);
-		ctx.app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx.underground_material_pass);
 		
 		ctx.underground_compositor = new render::compositor();
 		ctx.underground_compositor->add_pass(ctx.underground_clear_pass);
@@ -549,14 +518,12 @@ void boot::setup_rendering()
 		ctx.sky_pass = new render::sky_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.sky_pass->set_enabled(false);
 		ctx.sky_pass->set_magnification(3.0f);
-		ctx.app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx.sky_pass);
 		
 		ctx.ground_pass = new render::ground_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.ground_pass->set_enabled(false);
 		
 		ctx.surface_material_pass = new render::material_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.surface_material_pass->set_fallback_material(ctx.fallback_material);
-		ctx.app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx.surface_material_pass);
 		
 		ctx.surface_outline_pass = new render::outline_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.surface_outline_pass->set_outline_width(0.25f);
@@ -634,13 +601,12 @@ void boot::setup_rendering()
 	ctx.renderer = new render::renderer();
 	ctx.renderer->set_billboard_vao(ctx.billboard_vao);
 	
-	logger->pop_task(EXIT_SUCCESS);
+	debug::log::trace("Set up rendering");
 }
 
 void boot::setup_audio()
 {
-	debug::logger* logger = ctx.logger;
-	logger->push_task("Setting up audio");
+	debug::log::trace("Setting up audio...");
 	
 	// Load master volume config
 	ctx.master_volume = 1.0f;
@@ -673,11 +639,11 @@ void boot::setup_audio()
 		ctx.captions_size = (*ctx.config)["captions_size"].get<float>();
 	
 	// Open audio device
-	logger->push_task("Opening audio device");
+	debug::log::trace("Opening audio device...");
 	ctx.alc_device = alcOpenDevice(nullptr);
 	if (!ctx.alc_device)
 	{
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to open audio device: AL error code {}", alGetError());
 		return;
 	}
 	else
@@ -689,30 +655,29 @@ void boot::setup_audio()
 		if (alcGetError(ctx.alc_device) != AL_NO_ERROR || !alc_device_name)
 			alc_device_name = alcGetString(ctx.alc_device, ALC_DEVICE_SPECIFIER);
 		
-		logger->log("Opened audio device \"" + std::string(alc_device_name) + "\"");
-		
-		logger->pop_task(EXIT_SUCCESS);
+		// Log audio device name
+		debug::log::info("Opened audio device \"{}\"", alc_device_name);
 	}
 	
 	// Create audio context
-	logger->push_task("Creating audio context");
+	debug::log::trace("Creating audio context...");
 	ctx.alc_context = alcCreateContext(ctx.alc_device, nullptr);
 	if (!ctx.alc_context)
 	{
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to create audio context: ALC error code {}", alcGetError(ctx.alc_device));
 		alcCloseDevice(ctx.alc_device);
 		return;
 	}
 	else
 	{
-		logger->pop_task(EXIT_SUCCESS);
+		debug::log::trace("Created audio context");
 	}
 	
 	// Make audio context current
-	logger->push_task("Making audio context current");
+	debug::log::trace("Making audio context current...");
 	if (alcMakeContextCurrent(ctx.alc_context) == ALC_FALSE)
 	{
-		logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to make audio context current: ALC error code {}", alcGetError(ctx.alc_device));
 		if (ctx.alc_context != nullptr)
 		{
 			alcDestroyContext(ctx.alc_context);
@@ -722,16 +687,15 @@ void boot::setup_audio()
 	}
 	else
 	{
-		logger->pop_task(EXIT_SUCCESS);
+		debug::log::trace("Made audio context current");
 	}
 	
-	logger->pop_task(EXIT_SUCCESS);
+	debug::log::trace("Set up audio");
 }
 
 void boot::setup_scenes()
 {
-	debug::logger* logger = ctx.logger;
-	logger->push_task("Setting up scenes");
+	debug::log::trace("Setting up scenes...");
 	
 	// Get default framebuffer
 	const auto& viewport_dimensions = ctx.rasterizer->get_default_framebuffer().get_dimensions();
@@ -768,7 +732,6 @@ void boot::setup_scenes()
 	// Setup UI scene
 	{
 		ctx.ui_scene = new scene::collection();
-
 		
 		// Menu BG billboard
 		render::material* menu_bg_material = new render::material();
@@ -785,7 +748,6 @@ void boot::setup_scenes()
 		ctx.menu_bg_billboard->update_tweens();
 		
 		// Create camera flash billboard
-		
 		render::material* flash_material = new render::material();
 		flash_material->set_shader_program(ctx.resource_manager->load<gl::shader_program>("ui-element-untextured.glsl"));
 		auto flash_tint = flash_material->add_property<float4>("tint");
@@ -833,7 +795,7 @@ void boot::setup_scenes()
 	// Clear active scene
 	ctx.active_scene = nullptr;
 	
-	logger->pop_task(EXIT_SUCCESS);
+	debug::log::trace("Set up scenes");
 }
 
 void boot::setup_animation()
@@ -935,8 +897,6 @@ void boot::setup_entities()
 
 void boot::setup_systems()
 {
-	event_dispatcher* event_dispatcher = ctx.app->get_event_dispatcher();
-
 	const auto& viewport_dimensions = ctx.app->get_viewport_dimensions();
 	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_dimensions[0]), static_cast<float>(viewport_dimensions[1])};
 	
@@ -957,7 +917,6 @@ void boot::setup_systems()
 	// Setup camera system
 	ctx.camera_system = new game::system::camera(*ctx.entity_registry);
 	ctx.camera_system->set_viewport(viewport);
-	event_dispatcher->subscribe<window_resized_event>(ctx.camera_system);
 	
 	// Setup subterrain system
 	ctx.subterrain_system = new game::system::subterrain(*ctx.entity_registry, ctx.resource_manager);
@@ -1014,36 +973,23 @@ void boot::setup_systems()
 
 void boot::setup_controls()
 {
-	event_dispatcher* event_dispatcher = ctx.app->get_event_dispatcher();
-	
-	// Setup input event routing
-	ctx.input_event_router = new input::event_router();
-	ctx.input_event_router->set_event_dispatcher(event_dispatcher);
-	
-	// Setup input mapper
-	ctx.input_mapper = new input::mapper();
-	ctx.input_mapper->set_event_dispatcher(event_dispatcher);
-	
-	// Setup input listener
-	ctx.input_listener = new input::listener();
-	ctx.input_listener->set_event_dispatcher(event_dispatcher);
-	
 	// Load SDL game controller mappings database
-	ctx.logger->push_task("Loading SDL game controller mappings from database");
+	debug::log::trace("Loading SDL game controller mappings...");
 	file_buffer* game_controller_db = ctx.resource_manager->load<file_buffer>("gamecontrollerdb.txt");
 	if (!game_controller_db)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to load SDL game controller mappings");
 	}
 	else
 	{
 		ctx.app->add_game_controller_mappings(game_controller_db->data(), game_controller_db->size());
+		debug::log::trace("Loaded SDL game controller mappings");
+		
 		ctx.resource_manager->unload("gamecontrollerdb.txt");
-		ctx.logger->pop_task(EXIT_SUCCESS);
 	}
 	
 	// Load controls
-	ctx.logger->push_task("Loading controls");
+	debug::log::trace("Loading controls...");
 	try
 	{
 		// If a control profile is set in the config file
@@ -1060,69 +1006,92 @@ void boot::setup_controls()
 		}
 		
 		// Calibrate gamepads
-		for (input::gamepad* gamepad: ctx.app->get_gamepads())
-		{
-			ctx.logger->push_task("Loading calibration for gamepad " + gamepad->get_guid());
-			json* calibration = game::load_gamepad_calibration(ctx, *gamepad);
-			if (!calibration)
-			{
-				ctx.logger->pop_task(EXIT_FAILURE);
+		// for (input::gamepad* gamepad: ctx.app->get_gamepads())
+		// {
+			// const std::string uuid_string = gamepad->get_uuid().to_string();
+			
+			// debug::log::push_task("Loading calibration for gamepad " + uuid_string);
+			// json* calibration = game::load_gamepad_calibration(ctx, *gamepad);
+			// if (!calibration)
+			// {
+				// debug::log::pop_task(EXIT_FAILURE);
 				
-				ctx.logger->push_task("Generating default calibration for gamepad " + gamepad->get_guid());
-				json default_calibration = game::default_gamepad_calibration();
-				apply_gamepad_calibration(*gamepad, default_calibration);
+				// debug::log::push_task("Generating default calibration for gamepad " + uuid_string);
+				// json default_calibration = game::default_gamepad_calibration();
+				// apply_gamepad_calibration(*gamepad, default_calibration);
 				
-				if (!save_gamepad_calibration(ctx, *gamepad, default_calibration))
-					ctx.logger->pop_task(EXIT_FAILURE);
-				else
-					ctx.logger->pop_task(EXIT_SUCCESS);
-			}
-			else
-			{
-				ctx.logger->pop_task(EXIT_SUCCESS);
-				apply_gamepad_calibration(*gamepad, *calibration);
-			}
-		}
+				// if (!save_gamepad_calibration(ctx, *gamepad, default_calibration))
+					// debug::log::pop_task(EXIT_FAILURE);
+				// else
+					// debug::log::pop_task(EXIT_SUCCESS);
+			// }
+			// else
+			// {
+				// debug::log::pop_task(EXIT_SUCCESS);
+				// apply_gamepad_calibration(*gamepad, *calibration);
+			// }
+		// }
 		
-		// Toggle fullscreen
-		ctx.controls["toggle_fullscreen"]->set_activated_callback
+		// Setup fullscreen control
+		ctx.control_subscriptions.emplace_front
 		(
-			[&ctx = this->ctx]()
-			{
-				bool fullscreen = !ctx.app->is_fullscreen();
-				
-				ctx.app->set_fullscreen(fullscreen);
-				
-				if (!fullscreen)
+			ctx.fullscreen_control.get_activated_channel().subscribe
+			(
+				[&ctx = this->ctx](const auto& event)
 				{
-					int2 resolution;
-					resolution.x() = (*ctx.config)["windowed_resolution"][0].get<int>();
-					resolution.y() = (*ctx.config)["windowed_resolution"][1].get<int>();
+					bool fullscreen = !ctx.app->is_fullscreen();
 					
-					ctx.app->resize_window(resolution.x(), resolution.y());
+					ctx.app->set_fullscreen(fullscreen);
+					
+					if (!fullscreen)
+					{
+						int2 resolution;
+						resolution.x() = (*ctx.config)["windowed_resolution"][0].get<int>();
+						resolution.y() = (*ctx.config)["windowed_resolution"][1].get<int>();
+						
+						ctx.app->resize_window(resolution.x(), resolution.y());
+					}
+					
+					// Save display mode config
+					(*ctx.config)["fullscreen"] = fullscreen;
+					game::save::config(ctx);
 				}
-				
-				// Save display mode config
-				(*ctx.config)["fullscreen"] = fullscreen;
-				game::save::config(ctx);
-			}
+			)
 		);
 		
-		// Screenshot
-		ctx.controls["screenshot"]->set_activated_callback(std::bind(game::graphics::save_screenshot, std::ref(ctx)));
+		// Setup screenshot control
+		ctx.control_subscriptions.emplace_front
+		(
+			ctx.screenshot_control.get_activated_channel().subscribe
+			(
+				[&ctx = this->ctx](const auto& event)
+				{
+					game::graphics::save_screenshot(ctx);
+				}
+			)
+		);
+		
+		// Map and enable window controls
+		ctx.window_controls.add_mapping(ctx.fullscreen_control, input::key_mapping(nullptr, input::scancode::f11, false));
+		ctx.window_controls.add_mapping(ctx.screenshot_control, input::key_mapping(nullptr, input::scancode::f12, false));
+		ctx.window_controls.connect(ctx.app->get_device_manager().get_event_queue());
 		
 		// Set activation threshold for menu navigation controls to mitigate drifting gamepad axes
-		const float menu_activation_threshold = 0.1f;
-		ctx.controls["menu_up"]->set_activation_threshold(menu_activation_threshold);
-		ctx.controls["menu_down"]->set_activation_threshold(menu_activation_threshold);
-		ctx.controls["menu_left"]->set_activation_threshold(menu_activation_threshold);
-		ctx.controls["menu_right"]->set_activation_threshold(menu_activation_threshold);
+		auto menu_control_threshold = [](float x) -> bool
+		{
+			return x > 0.1f;
+		};
+		ctx.menu_up_control.set_threshold_function(menu_control_threshold);
+		ctx.menu_down_control.set_threshold_function(menu_control_threshold);
+		ctx.menu_left_control.set_threshold_function(menu_control_threshold);
+		ctx.menu_right_control.set_threshold_function(menu_control_threshold);
+		
+		debug::log::trace("Loaded controls");
 	}
 	catch (...)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to load controls");
 	}
-	ctx.logger->pop_task(EXIT_SUCCESS);
 }
 
 void boot::setup_ui()
@@ -1138,39 +1107,32 @@ void boot::setup_ui()
 		ctx.dyslexia_font = (*ctx.config)["dyslexia_font"].get<bool>();
 	
 	// Load fonts
-	ctx.logger->push_task("Loading fonts");
+	debug::log::trace("Loading fonts...");
 	try
 	{
 		game::load_fonts(ctx);
+		debug::log::trace("Loaded fonts");
 	}
 	catch (...)
 	{
-		ctx.logger->pop_task(EXIT_FAILURE);
+		debug::log::error("Failed to load fonts");
 	}
-	ctx.logger->pop_task(EXIT_SUCCESS);
 	
 	// Setup UI resize handler
-	ctx.ui_resize_connection = ctx.app->get_window_size_signal().connect
+	ctx.ui_resize_subscription = ctx.app->get_window_resized_channel().subscribe
 	(
-		[&](int w, int h)
+		[&](const auto& event)
 		{
-			const float clip_left = static_cast<float>(w) * -0.5f;
-			const float clip_right = static_cast<float>(w) * 0.5f;
-			const float clip_top = static_cast<float>(h) * -0.5f;
-			const float clip_bottom = static_cast<float>(h) * 0.5f;
+			const float clip_left = static_cast<float>(event.viewport_width) * -0.5f;
+			const float clip_right = static_cast<float>(event.viewport_width) * 0.5f;
+			const float clip_top = static_cast<float>(event.viewport_height) * -0.5f;
+			const float clip_bottom = static_cast<float>(event.viewport_height) * 0.5f;
 			const float clip_near = ctx.ui_camera->get_clip_near();
 			const float clip_far = ctx.ui_camera->get_clip_far();
 			
 			ctx.ui_camera->set_orthographic(clip_left, clip_right, clip_top, clip_bottom, clip_near, clip_far);
 		}
 	);
-	
-	// Construct mouse tracker
-	ctx.menu_mouse_tracker = new ui::mouse_tracker();
-	ctx.app->get_event_dispatcher()->subscribe<mouse_moved_event>(ctx.menu_mouse_tracker);
-	ctx.app->get_event_dispatcher()->subscribe<mouse_button_pressed_event>(ctx.menu_mouse_tracker);
-	ctx.app->get_event_dispatcher()->subscribe<mouse_button_released_event>(ctx.menu_mouse_tracker);
-	ctx.app->get_event_dispatcher()->subscribe<mouse_wheel_scrolled_event>(ctx.menu_mouse_tracker);
 }
 
 void boot::setup_debugging()
@@ -1179,13 +1141,7 @@ void boot::setup_debugging()
 	ctx.performance_sampler.set_sample_size(15);
 	
 	ctx.cli = new debug::cli();
-	ctx.cli->register_command("echo", debug::cc::echo);
-	ctx.cli->register_command("exit", std::function<std::string()>(std::bind(&debug::cc::exit, &ctx)));
-	ctx.cli->register_command("scrot", std::function<std::string()>(std::bind(&debug::cc::scrot, &ctx)));
-	ctx.cli->register_command("cue", std::function<std::string(float, std::string)>(std::bind(&debug::cc::cue, &ctx, std::placeholders::_1, std::placeholders::_2)));
-	//std::string cmd = "cue 20 exit";
-	//logger->log(cmd);
-	//logger->log(cli.interpret(cmd));
+	//debug::log::info(ctx.cli->interpret("echo hi 123"));
 }
 
 void boot::setup_loop()
@@ -1209,11 +1165,7 @@ void boot::setup_loop()
 			
 			// Process events
 			ctx.app->process_events();
-			ctx.app->get_event_dispatcher()->update(t);
-			
-			// Update controls
-			for (const auto& control: ctx.controls)
-				control.second->update();
+			ctx.app->get_device_manager().get_event_queue().flush();
 			
 			// Process function queue
 			while (!ctx.function_queue.empty())
@@ -1287,7 +1239,7 @@ void boot::loop()
 
 void boot::shutdown_audio()
 {
-	ctx.logger->push_task("Shutting down audio");
+	debug::log::trace("Shutting down audio...");
 	
 	if (ctx.alc_context)
 	{
@@ -1300,7 +1252,7 @@ void boot::shutdown_audio()
 		alcCloseDevice(ctx.alc_device);
 	}
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::trace("Shut down audio");
 }
 
 } // namespace state

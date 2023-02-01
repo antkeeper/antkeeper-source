@@ -23,7 +23,6 @@
 #include "math/transform-operators.hpp"
 #include "math/quaternion.hpp"
 #include <unordered_set>
-#include <iostream>
 
 namespace game {
 namespace ant {

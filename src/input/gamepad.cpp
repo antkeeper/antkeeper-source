@@ -17,17 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gamepad.hpp"
-#include "event/input-events.hpp"
-#include "event/event-dispatcher.hpp"
+#include "input/gamepad.hpp"
 #include "math/map.hpp"
 #include <algorithm>
+#include <type_traits>
 #include <cmath>
 
 namespace input {
 
 gamepad::gamepad():
-	connected(true),
 	left_deadzone_cross(true),
 	right_deadzone_cross(true),
 	left_deadzone_roundness(0.0f),
@@ -35,7 +33,7 @@ gamepad::gamepad():
 {
 	for (int i = 0; i < 6; ++i)
 	{
-		axis_values[i] = 0.0f;
+		axis_positions[i] = 0.0f;
 		axis_activation_min[i] = 0.0f;
 		axis_activation_max[i] = 1.0f;
 		axis_response_curves[i] = gamepad_response_curve::linear;
@@ -44,13 +42,13 @@ gamepad::gamepad():
 
 void gamepad::set_activation_threshold(gamepad_axis axis, float min, float max)
 {
-	axis_activation_min[static_cast<int>(axis)] = min;
-	axis_activation_max[static_cast<int>(axis)] = max;
+	axis_activation_min[static_cast<std::underlying_type_t<gamepad_axis>>(axis)] = min;
+	axis_activation_max[static_cast<std::underlying_type_t<gamepad_axis>>(axis)] = max;
 }
 
 void gamepad::set_response_curve(gamepad_axis axis, gamepad_response_curve curve)
 {
-	axis_response_curves[static_cast<int>(axis)] = curve;
+	axis_response_curves[static_cast<std::underlying_type_t<gamepad_axis>>(axis)] = curve;
 }
 
 void gamepad::set_left_deadzone_cross(bool cross)
@@ -75,60 +73,45 @@ void gamepad::set_right_deadzone_roundness(float roundness)
 
 void gamepad::press(gamepad_button button)
 {
-	if (!device::event_dispatcher)
-	{
-		return;
-	}
-
-	gamepad_button_pressed_event event;
-	event.controller = this;
-	event.button = button;
-
-	device::event_dispatcher->queue(event);
+	button_pressed_publisher.publish({this, button});
 }
 
 void gamepad::release(gamepad_button button)
 {
-	if (!device::event_dispatcher)
-	{
-		return;
-	}
-
-	gamepad_button_released_event event;
-	event.controller = this;
-	event.button = button;
-
-	device::event_dispatcher->queue(event);
+	button_released_publisher.publish({this, button});
 }
 
-void gamepad::move(gamepad_axis axis, float value)
+void gamepad::move(gamepad_axis axis, float position)
 {
-	// Update axis value
-	axis_values[static_cast<int>(axis)] = value;
+	const auto axis_index = static_cast<std::underlying_type_t<gamepad_axis>>(axis);
 	
-	if (!device::event_dispatcher)
-	{
+	/// @TODO Support arbitrary number of gamepad axes.
+	if (axis_index >= 6)
 		return;
-	}
+	
+	// Update axis position
+	axis_positions[axis_index] = position;
 	
 	switch (axis)
 	{
-		case gamepad_axis::left_x:
-		case gamepad_axis::left_y:
+		case gamepad_axis::left_stick_x:
+		case gamepad_axis::left_stick_y:
 			if (left_deadzone_cross)
 				handle_axial_motion(axis);
 			else
-				handle_biaxial_motion(gamepad_axis::left_x, gamepad_axis::left_y);
+				handle_biaxial_motion(gamepad_axis::left_stick_x, gamepad_axis::left_stick_y);
 			break;
-			
-		case gamepad_axis::right_x:
-		case gamepad_axis::right_y:
+		
+		case gamepad_axis::right_stick_x:
+		case gamepad_axis::right_stick_y:
 			if (right_deadzone_cross)
 				handle_axial_motion(axis);
 			else
-				handle_biaxial_motion(gamepad_axis::right_x, gamepad_axis::right_y);
+				handle_biaxial_motion(gamepad_axis::right_stick_x, gamepad_axis::right_stick_y);
 			break;
 		
+		case gamepad_axis::left_trigger:
+		case gamepad_axis::right_trigger:
 		default:
 			handle_axial_motion(axis);
 			break;
@@ -137,69 +120,58 @@ void gamepad::move(gamepad_axis axis, float value)
 
 void gamepad::handle_axial_motion(gamepad_axis axis)
 {
+	const auto axis_index = static_cast<std::underlying_type_t<gamepad_axis>>(axis);
+	
 	// Get axis parameters
-	const int axis_index = static_cast<int>(axis);
 	const float activation_min = axis_activation_min[axis_index];
 	const float activation_max = axis_activation_max[axis_index];
-	const float axis_value = axis_values[axis_index];
+	const float axis_position = axis_positions[axis_index];
 	const gamepad_response_curve response_curve = axis_response_curves[axis_index];
 	
-	// Build event
-	gamepad_axis_moved_event event;
-	event.controller = this;
-	event.axis = axis;
-	
-	if (std::abs(axis_value) > activation_min)
+	// Remap axis position
+	float remapped_position = 0.0f;
+	if (std::abs(axis_position) > activation_min)
 	{
-		// Remap response value according to activation thresholds and clamp to `[0, 1]`.
-		float response = math::map(std::abs(axis_value), activation_min, activation_max, 0.0f, 1.0f);
+		// Remap position according to activation thresholds and clamp to `[0, 1]`.
+		float response = math::map(std::abs(axis_position), activation_min, activation_max, 0.0f, 1.0f);
 		response = std::clamp(response, 0.0f, 1.0f);
 		
-		// Remap response value according to axis response curve
+		// Remap position according to axis response curve
 		response = curve_response(axis, response);
 		
 		// Restore sign of axis motion
-		response = (axis_value < 0.0f) ? -response : response;
+		response = (axis_position < 0.0f) ? -response : response;
 		
-		event.value = response;
-	}
-	else
-	{
-		event.value = 0.0f;
+		remapped_position = response;
 	}
 	
-	// Dispatch event
-	device::event_dispatcher->queue(event);
+	axis_moved_publisher.publish({this, axis, remapped_position});
 }
 
 void gamepad::handle_biaxial_motion(gamepad_axis axis_x, gamepad_axis axis_y)
 {
 	// Get axis parameters
-	const int x_axis_index = static_cast<int>(axis_x);
-	const int y_axis_index = static_cast<int>(axis_y);
+	const int x_axis_index = static_cast<std::underlying_type_t<gamepad_axis>>(axis_x);
+	const int y_axis_index = static_cast<std::underlying_type_t<gamepad_axis>>(axis_y);
 	const float x_activation_min = axis_activation_min[x_axis_index];
 	const float x_activation_max = axis_activation_max[x_axis_index];
 	const float y_activation_min = axis_activation_min[y_axis_index];
 	const float y_activation_max = axis_activation_max[y_axis_index];
-	const float x_axis_value = axis_values[x_axis_index];
-	const float y_axis_value = axis_values[y_axis_index];
+	const float x_axis_position = axis_positions[x_axis_index];
+	const float y_axis_position = axis_positions[y_axis_index];
 	const gamepad_response_curve x_response_curve = axis_response_curves[x_axis_index];
 	const gamepad_response_curve y_response_curve = axis_response_curves[y_axis_index];
-	const float deadzone_roundness = (axis_x == gamepad_axis::left_x) ? left_deadzone_roundness : right_deadzone_roundness;
+	const float deadzone_roundness = (axis_x == gamepad_axis::left_stick_x) ? left_deadzone_roundness : right_deadzone_roundness;
 	
 	const float radius = std::min<float>(x_activation_min, y_activation_min) * deadzone_roundness;
-	const float dx = std::max<float>(0.0f, std::abs(x_axis_value) - x_activation_min + radius);
-	const float dy = std::max<float>(0.0f, std::abs(y_axis_value) - y_activation_min + radius);
+	const float dx = std::max<float>(0.0f, std::abs(x_axis_position) - x_activation_min + radius);
+	const float dy = std::max<float>(0.0f, std::abs(y_axis_position) - y_activation_min + radius);
 	const float distance = std::sqrt(dx * dx + dy * dy) - radius;
-	
-	// Build event
-	gamepad_axis_moved_event event;
-	event.controller = this;
 	
 	if (distance > 0.0f)
 	{
-		const float nx = std::abs(x_axis_value) / distance;
-		const float ny = std::abs(y_axis_value) / distance;
+		const float nx = std::abs(x_axis_position) / distance;
+		const float ny = std::abs(y_axis_position) / distance;
 		const float ndx = (distance - x_activation_min) / (x_activation_max - x_activation_min);
 		const float ndy = (distance - y_activation_min) / (y_activation_max - y_activation_min);
 		
@@ -210,29 +182,23 @@ void gamepad::handle_biaxial_motion(gamepad_axis axis_x, gamepad_axis axis_y)
 		response_y = curve_response(axis_y, response_y);
 		
 		// Restore signs of axis motions
-		response_x = (x_axis_value < 0.0f) ? -response_x : response_x;
-		response_y = (y_axis_value < 0.0f) ? -response_y : response_y;
+		response_x = (x_axis_position < 0.0f) ? -response_x : response_x;
+		response_y = (y_axis_position < 0.0f) ? -response_y : response_y;
 		
-		event.value = response_x;
-		event.axis = axis_x;
-		device::event_dispatcher->queue(event);
-		event.value = response_y;
-		event.axis = axis_y;
-		device::event_dispatcher->queue(event);
+		axis_moved_publisher.publish({this, axis_x, response_x});
+		axis_moved_publisher.publish({this, axis_y, response_y});
 	}
 	else
 	{
-		event.value = 0.0f;
-		event.axis = axis_x;
-		device::event_dispatcher->queue(event);
-		event.axis = axis_y;
-		device::event_dispatcher->queue(event);
+		axis_moved_publisher.publish({this, axis_x, 0.0f});
+		axis_moved_publisher.publish({this, axis_y, 0.0f});
 	}
 }
 
 float gamepad::curve_response(gamepad_axis axis, float response) const
 {
-	const gamepad_response_curve response_curve = axis_response_curves[static_cast<int>(axis)];
+	const auto axis_index = static_cast<std::underlying_type_t<gamepad_axis>>(axis);
+	const gamepad_response_curve response_curve = axis_response_curves[axis_index];
 	
 	switch (response_curve)
 	{
@@ -249,27 +215,6 @@ float gamepad::curve_response(gamepad_axis axis, float response) const
 	}
 	
 	return response;
-}
-
-void gamepad::connect(bool reconnected)
-{
-	connected = true;
-	
-	gamepad_connected_event event;
-	event.controller = this;
-	event.reconnected = reconnected;
-	
-	device::event_dispatcher->queue(event);
-}
-
-void gamepad::disconnect()
-{
-	connected = false;
-	
-	gamepad_disconnected_event event;
-	event.controller = this;
-	
-	device::event_dispatcher->queue(event);
 }
 
 } // namespace input

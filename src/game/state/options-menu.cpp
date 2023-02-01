@@ -31,7 +31,7 @@
 #include "animation/animator.hpp"
 #include "application.hpp"
 #include "scene/text.hpp"
-#include "debug/logger.hpp"
+#include "debug/log.hpp"
 
 namespace game {
 namespace state {
@@ -39,7 +39,7 @@ namespace state {
 options_menu::options_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering options menu state");
+	debug::log::push_task("Entering options menu state");
 	
 	// Construct menu item texts
 	scene::text* controls_text = new scene::text();
@@ -216,12 +216,12 @@ options_menu::options_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 options_menu::~options_menu()
 {
-	ctx.logger->push_task("Exiting options menu state");
+	debug::log::push_task("Exiting options menu state");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -230,7 +230,7 @@ options_menu::~options_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 } // namespace state

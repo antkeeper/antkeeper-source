@@ -43,9 +43,6 @@
 #include "game/component/transform.hpp"
 #include "math/projection.hpp"
 #include <limits>
-#include <iostream>
-
-#include "event/signal.hpp"
 
 namespace game {
 namespace state {
@@ -53,42 +50,7 @@ namespace state {
 main_menu::main_menu(game::context& ctx, bool fade_in):
 	game::state::base(ctx)
 {
-	ctx.logger->push_task("Entering main menu state");
-	
-	viewport_size_connection = ctx.app->get_viewport_size_signal().connect
-	(
-		[](int w, int h)
-		{
-			std::cout << "viewport resized " << w << "x" << h << std::endl;
-		}
-	);
-	
-	window_motion_connection = ctx.app->get_window_motion_signal().connect
-	(
-		[](int x, int y)
-		{
-			std::cout << "window moved to " << x << ", " << y << std::endl;
-		}
-	);
-	
-	window_focus_connection = ctx.app->get_window_focus_signal().connect
-	(
-		[](bool focus)
-		{
-			if (focus)
-				std::cout << "focus gained" << std::endl;
-			else
-				std::cout << "focus lost" << std::endl;
-		}
-	);
-	
-	window_close_connection = ctx.app->get_window_close_signal().connect
-	(
-		[]()
-		{
-			std::cout << "window closed" << std::endl;
-		}
-	);
+	debug::log::push_task("Entering main menu state");
 	
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
 	
@@ -320,12 +282,12 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	//if (!ctx.menu_bg_billboard->is_active())
 	//	game::menu::fade_in_bg(ctx);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 main_menu::~main_menu()
 {
-	ctx.logger->push_task("Exiting main menu state");
+	debug::log::push_task("Exiting main menu state");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -343,7 +305,7 @@ main_menu::~main_menu()
 	// Destruct title text
 	ctx.ui_scene->remove_object(&title_text);
 	
-	ctx.logger->pop_task(EXIT_SUCCESS);
+	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void main_menu::fade_in_title()
