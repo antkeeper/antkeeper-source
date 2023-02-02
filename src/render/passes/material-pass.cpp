@@ -269,7 +269,7 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 	
 	// Sort render queue
 	queue.sort(operation_compare);
-
+	
 	for (const render::operation& operation: queue)
 	{
 		// Get operation material
@@ -591,6 +591,8 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 
 bool operation_compare(const render::operation& a, const render::operation& b)
 {
+	/// @TODO: something is wrong with this compare op, assertion fails
+	
 	if (!a.material)
 		return false;
 	else if (!b.material)
@@ -607,7 +609,7 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 		if (xray_b)
 		{
 			// A and B are both xray, render back to front
-			return (a.depth >= b.depth);
+			return (a.depth > b.depth);
 		}
 		else
 		{
@@ -641,7 +643,7 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 						if (decal_b)
 						{
 							// A and B are both transparent decals, render back to front
-							return (a.depth >= b.depth);
+							return (a.depth > b.depth);
 						}
 						else
 						{
@@ -659,7 +661,7 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 						else
 						{
 							// A and B are both transparent, but not decals, render back to front
-							return (a.depth <= b.depth);
+							return (a.depth < b.depth);
 						}
 					}
 				}

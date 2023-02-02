@@ -103,35 +103,28 @@ boot::boot(game::context& ctx, int argc, char** argv):
 {
 	// Boot process
 	debug::log::trace("Booting up...");
-	try
-	{
-		// Allocate application
-		ctx.app = new application();
-		
-		// Parse command line options
-		parse_options(argc, argv);
-		
-		setup_resources();
-		load_config();
-		load_strings();
-		setup_window();
-		setup_rendering();
-		setup_audio();
-		setup_scenes();
-		setup_animation();
-		setup_entities();
-		setup_systems();
-		setup_controls();
-		setup_ui();
-		setup_debugging();
-		setup_loop();
-		ctx.active_ecoregion = nullptr;
-	}
-	catch (const std::exception& e)
-	{
-		debug::log::fatal("Boot up failed: unhandled exception: {}", e.what());
-		throw e;
-	}
+	
+	// Allocate application
+	ctx.app = new application();
+	
+	// Parse command line options
+	parse_options(argc, argv);
+	
+	setup_resources();
+	load_config();
+	load_strings();
+	setup_window();
+	setup_rendering();
+	setup_audio();
+	setup_scenes();
+	setup_animation();
+	setup_entities();
+	setup_systems();
+	setup_controls();
+	setup_ui();
+	setup_debugging();
+	setup_loop();
+	ctx.active_ecoregion = nullptr;
 	
 	debug::log::trace("Boot up complete");
 	
@@ -147,19 +140,11 @@ boot::~boot()
 {
 	debug::log::trace("Booting down...");
 	
-	try
-	{
-		shutdown_audio();
-		
-		// Close application
-		delete ctx.app;
-		ctx.app = nullptr;
-	}
-	catch (const std::exception& e)
-	{
-		debug::log::fatal("Boot down failed: unhandled exception: {}", e.what());
-		throw e;
-	}
+	shutdown_audio();
+	
+	// Close application
+	delete ctx.app;
+	ctx.app = nullptr;
 	
 	debug::log::trace("Boot down complete");
 }

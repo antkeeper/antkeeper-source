@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_PHYSICS_LIGHT_BLACKBODY_HPP
 #define ANTKEEPER_PHYSICS_LIGHT_BLACKBODY_HPP
 
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include "physics/constants.hpp"
 
 namespace physics {

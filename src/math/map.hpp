@@ -34,7 +34,7 @@ namespace math {
  * @return Unclamped remapped value.
  */
 template <class T>
-constexpr T map(T x, T from_min, T from_max, T to_min, T to_max) noexcept
+[[nodiscard]] constexpr T map(T x, T from_min, T from_max, T to_min, T to_max) noexcept
 {
 	return to_min + (x - from_min) * (to_max - to_min) / (from_max - from_min);
 }

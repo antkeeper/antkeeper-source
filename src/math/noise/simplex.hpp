@@ -51,7 +51,7 @@ constexpr std::size_t simplex_edge_count = (N > 1) ? N * simplex_corner_count<N 
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-constexpr vector<T, N> make_simplex_corner(std::size_t i, std::index_sequence<I...>)
+[[nodiscard]] constexpr vector<T, N> make_simplex_corner(std::size_t i, std::index_sequence<I...>)
 {
 	return {((i >> I) % 2) * T{2} - T{1}...};
 }
@@ -62,7 +62,7 @@ constexpr vector<T, N> make_simplex_corner(std::size_t i, std::index_sequence<I.
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-constexpr std::array<vector<T, N>, simplex_corner_count<N>> make_simplex_corners(std::index_sequence<I...>)
+[[nodiscard]] constexpr std::array<vector<T, N>, simplex_corner_count<N>> make_simplex_corners(std::index_sequence<I...>)
 {
 	return {make_simplex_corner<T, N>(I, std::make_index_sequence<N>{})...};
 }
@@ -81,7 +81,7 @@ constexpr auto simplex_corners = make_simplex_corners<T, N>(std::make_index_sequ
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-constexpr vector<T, N> make_simplex_edge(std::size_t i, std::index_sequence<I...>)
+[[nodiscard]] constexpr vector<T, N> make_simplex_edge(std::size_t i, std::index_sequence<I...>)
 {
 	std::size_t j = i / (simplex_edge_count<N> / N);
 	
@@ -104,7 +104,7 @@ constexpr vector<T, N> make_simplex_edge(std::size_t i, std::index_sequence<I...
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-constexpr std::array<vector<T, N>, simplex_edge_count<N>> make_simplex_edges(std::index_sequence<I...>)
+[[nodiscard]] constexpr std::array<vector<T, N>, simplex_edge_count<N>> make_simplex_edges(std::index_sequence<I...>)
 {
 	if constexpr (N == 1)
 		return std::array<vector<T, N>, simplex_edge_count<N>>{vector<T, N>{T{1}}, vector<T, N>{T{-1}}};
@@ -138,7 +138,7 @@ constexpr auto simplex_edges = make_simplex_edges<T, N>(std::make_index_sequence
  * @see https://math.stackexchange.com/questions/474638/radius-and-amplitude-of-kernel-for-simplex-noise/1901116
  */
 template <class T, std::size_t N>
-T simplex
+[[nodiscard]] T simplex
 (
 	const vector<T, N>& position,
 	vector<hash::make_uint_t<T>, N> (*hash)(const vector<T, N>&) = &hash::pcg<T, N>

@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
-
+cmake_minimum_required(VERSION 3.25)
 
 option(VERSION_STRING "Project version string" "0.0.0")
 
@@ -69,6 +68,11 @@ set(EXECUTABLE_TARGET ${PROJECT_NAME}-executable)
 add_executable(${EXECUTABLE_TARGET} ${SOURCE_FILES})
 set_target_properties(${EXECUTABLE_TARGET} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
+if(MSVC)
+	# Select the static multithreaded MSVC runtime library
+	set_property(TARGET ${EXECUTABLE_TARGET} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 # Add compile definitions
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE DEBUG)
@@ -78,7 +82,7 @@ endif()
 
 # Set C++ standard
 set_target_properties(${EXECUTABLE_TARGET} PROPERTIES
-	CXX_STANDARD 20
+	CXX_STANDARD 23
 	CXX_STANDARD_REQUIRED ON
 	CXX_EXTENSIONS OFF)
 

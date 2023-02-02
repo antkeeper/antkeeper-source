@@ -84,7 +84,7 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	/**
 	 * Formats and logs a trace message.
 	 *
-	 * @param Args Types of arguments to be formatted.
+	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
 	using trace = message<message_severity::trace, Args...>;
@@ -97,7 +97,7 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	/**
 	 * Formats and logs a debug message.
 	 *
-	 * @param Args Types of arguments to be formatted.
+	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
 	using debug = message<message_severity::debug, Args...>;
@@ -110,7 +110,7 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	/**
 	 * Formats and logs an info message.
 	 *
-	 * @param Args Types of arguments to be formatted.
+	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
 	using info = message<message_severity::info, Args...>;
@@ -123,7 +123,7 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	/**
 	 * Formats and logs a warning message.
 	 *
-	 * @param Args Types of arguments to be formatted.
+	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
 	using warning = message<message_severity::warning, Args...>;
@@ -136,7 +136,7 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	/**
 	 * Formats and logs an error message.
 	 *
-	 * @param Args Types of arguments to be formatted.
+	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
 	using error = message<message_severity::error, Args...>;
@@ -149,7 +149,7 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	/**
 	 * Formats and logs a fatal error message.
 	 *
-	 * @param Args Types of arguments to be formatted.
+	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
 	using fatal = message<message_severity::fatal, Args...>;

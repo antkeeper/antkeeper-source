@@ -27,8 +27,6 @@ namespace math {
 /// Compile-time mathematical functions.
 namespace compile {
 
-
-
 /**
  * Compile-time `ceil(log2(x))` for unsigned integrals.
  *
@@ -37,7 +35,7 @@ namespace compile {
  * @return `ceil(log2(x))`.
  */
 template <std::unsigned_integral T>
-consteval T ceil_log2(T x) noexcept
+[[nodiscard]] consteval T ceil_log2(T x) noexcept
 {
 	return (x <= T(1)) ? T(0) : ceil_log2((x + T(1)) / T(2)) + T(1);
 }
@@ -50,7 +48,7 @@ consteval T ceil_log2(T x) noexcept
  * @return `exp2(x)`.
  */
 template <std::unsigned_integral T>
-consteval T exp2(T x) noexcept
+[[nodiscard]] consteval T exp2(T x) noexcept
 {
 	return (x) ? T(2) << (x - 1) : T(1);
 }
@@ -64,7 +62,7 @@ consteval T exp2(T x) noexcept
  * @return `x^e`.
  */
 template <std::unsigned_integral T>
-consteval T pow(T x, T e) noexcept
+[[nodiscard]] consteval T pow(T x, T e) noexcept
 {
 	return (e == 0) ? T(1) : (x * pow<T>(x, e - 1));
 }

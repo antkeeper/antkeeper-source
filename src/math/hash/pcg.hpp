@@ -66,7 +66,7 @@ constexpr std::uint64_t mcg_multiplier<std::uint64_t> = 12605985483714917081ULL;
 
 /// @private
 template <class T>
-constexpr T pcg_uint(T x) noexcept
+[[nodiscard]] constexpr T pcg_uint(T x) noexcept
 {
 	static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
 	static_assert(sizeof(T) <= 8);
@@ -78,7 +78,7 @@ constexpr T pcg_uint(T x) noexcept
 
 /// @private
 template <class T>
-inline constexpr vector<T, 1> pcg_uvec1(vector<T, 1> x) noexcept
+[[nodiscard]] inline constexpr vector<T, 1> pcg_uvec1(vector<T, 1> x) noexcept
 {
 	static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
 	static_assert(sizeof(T) <= 8);
@@ -90,7 +90,7 @@ inline constexpr vector<T, 1> pcg_uvec1(vector<T, 1> x) noexcept
 
 /// @private
 template <class T>
-constexpr vector<T, 2> pcg_uvec2(vector<T, 2> x) noexcept
+[[nodiscard]] constexpr vector<T, 2> pcg_uvec2(vector<T, 2> x) noexcept
 {
 	static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
 	static_assert(sizeof(T) <= 8);
@@ -114,7 +114,7 @@ constexpr vector<T, 2> pcg_uvec2(vector<T, 2> x) noexcept
 
 /// @private
 template <class T>
-constexpr vector<T, 3> pcg_uvec3(vector<T, 3> x) noexcept
+[[nodiscard]] constexpr vector<T, 3> pcg_uvec3(vector<T, 3> x) noexcept
 {
 	static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
 	static_assert(sizeof(T) <= 8);
@@ -138,7 +138,7 @@ constexpr vector<T, 3> pcg_uvec3(vector<T, 3> x) noexcept
 
 /// @private
 template <class T>
-constexpr vector<T, 4> pcg_uvec4(vector<T, 4> x) noexcept
+[[nodiscard]] constexpr vector<T, 4> pcg_uvec4(vector<T, 4> x) noexcept
 {
 	static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
 	static_assert(sizeof(T) <= 8);
@@ -178,58 +178,58 @@ constexpr vector<T, 4> pcg_uvec4(vector<T, 4> x) noexcept
  * @see Mark Jarzynski and Marc Olano, Hash Functions for GPU Rendering, Journal of Computer Graphics Techniques (JCGT), vol. 9, no. 3, 21-38, 2020.
  */
 /// @{
-inline constexpr std::uint8_t pcg(std::uint8_t x) noexcept
+[[nodiscard]] inline constexpr std::uint8_t pcg(std::uint8_t x) noexcept
 {
 	return pcg_uint<std::uint8_t>(x);
 }
 
-inline constexpr std::uint16_t pcg(std::uint16_t x) noexcept
+[[nodiscard]] inline constexpr std::uint16_t pcg(std::uint16_t x) noexcept
 {
 	return pcg_uint<std::uint16_t>(x);
 }
 
-inline constexpr std::uint32_t pcg(std::uint32_t x) noexcept
+[[nodiscard]] inline constexpr std::uint32_t pcg(std::uint32_t x) noexcept
 {
 	return pcg_uint<std::uint32_t>(x);
 }
 
-inline constexpr std::uint64_t pcg(std::uint64_t x) noexcept
+[[nodiscard]] inline constexpr std::uint64_t pcg(std::uint64_t x) noexcept
 {
 	return pcg_uint<std::uint64_t>(x);
 }
 
-inline constexpr std::uint8_t pcg(std::int8_t x) noexcept
+[[nodiscard]] inline constexpr std::uint8_t pcg(std::int8_t x) noexcept
 {
 	return pcg_uint<std::uint8_t>(static_cast<std::uint8_t>(x));
 }
 
-inline constexpr std::uint16_t pcg(std::int16_t x) noexcept
+[[nodiscard]] inline constexpr std::uint16_t pcg(std::int16_t x) noexcept
 {
 	return pcg_uint<std::uint16_t>(static_cast<std::uint16_t>(x));
 }
 
-inline constexpr std::uint32_t pcg(std::int32_t x) noexcept
+[[nodiscard]] inline constexpr std::uint32_t pcg(std::int32_t x) noexcept
 {
 	return pcg_uint<std::uint32_t>(static_cast<std::uint32_t>(x));
 }
 
-inline constexpr std::uint64_t pcg(std::int64_t x) noexcept
+[[nodiscard]] inline constexpr std::uint64_t pcg(std::int64_t x) noexcept
 {
 	return pcg_uint<std::uint64_t>(static_cast<std::uint64_t>(x));
 }
 
-inline constexpr std::uint32_t pcg(float x) noexcept
+[[nodiscard]] inline constexpr std::uint32_t pcg(float x) noexcept
 {
 	return pcg_uint<std::uint32_t>(static_cast<std::uint32_t>(x));
 }
 
-inline constexpr std::uint64_t pcg(double x) noexcept
+[[nodiscard]] inline constexpr std::uint64_t pcg(double x) noexcept
 {
 	return pcg_uint<std::uint64_t>(static_cast<std::uint64_t>(x));
 }
 
 template <class T, std::size_t N>
-inline constexpr vector<make_uint_t<T>, N> pcg(const vector<T, N>& x) noexcept
+[[nodiscard]] inline constexpr vector<make_uint_t<T>, N> pcg(const vector<T, N>& x) noexcept
 {
 	static_assert(N > 0 && N < 5, "PCG hash only supports vectors with 1-4 elements.");
 	

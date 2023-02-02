@@ -33,7 +33,7 @@ namespace math {}
 #include "math/transform-operators.hpp"
 
 #include "math/angles.hpp"
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include "math/quadrature.hpp"
 #include "math/interpolation.hpp"
 #include "math/map.hpp"

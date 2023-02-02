@@ -20,19 +20,23 @@
 #ifndef ANTKEEPER_MATH_ANGLES_HPP
 #define ANTKEEPER_MATH_ANGLES_HPP
 
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include <cmath>
 
 namespace math {
 
 /**
- * Converts an angle given in radians to degrees.
+ * Converts an angle from radians to degrees.
  *
  * @param radians Angle in radians.
+ *
  * @return Angle in degrees.
  */
 template <class T>
-T degrees(T radians);
+[[nodiscard]] inline constexpr T degrees(T radians) noexcept
+{
+	return radians * rad2deg<T>;
+}
 
 /**
  * Converts an angle given in degrees to radians.
@@ -41,7 +45,10 @@ T degrees(T radians);
  * @return Angle in degrees.
  */
 template <class T>
-T radians(T degrees);
+[[nodiscard]] inline constexpr T radians(T degrees) noexcept
+{
+	return degrees * deg2rad<T>;
+}
 
 /**
  * Wraps an angle to [-180, 180].
@@ -50,7 +57,10 @@ T radians(T degrees);
  * @return Wrapped angle.
  */
 template <class T>
-T wrap_degrees(T degrees);
+[[nodiscard]] inline constexpr T wrap_degrees(T degrees)
+{
+	return std::remainder(degrees, T(360));
+}
 
 /**
  * Wraps an angle to [-pi, pi].
@@ -59,28 +69,7 @@ T wrap_degrees(T degrees);
  * @return Wrapped angle.
  */
 template <class T>
-T wrap_radians(T radians);
-
-template <class T>
-inline T degrees(T radians)
-{
-	return radians * T(180) / pi<T>;
-}
-
-template <class T>
-inline T radians(T degrees)
-{
-	return degrees * pi<T> / T(180);
-}
-
-template <class T>
-inline T wrap_degrees(T degrees)
-{
-	return std::remainder(degrees, T(360));
-}
-
-template <class T>
-inline T wrap_radians(T radians)
+[[nodiscard]] inline constexpr T wrap_radians(T radians)
 {
 	return std::remainder(radians, two_pi<T>);
 }

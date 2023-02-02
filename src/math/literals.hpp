@@ -17,31 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_RANDOM_HPP
-#define ANTKEEPER_MATH_RANDOM_HPP
-
-#include <cstddef>
-#include <type_traits>
+#ifndef ANTKEEPER_MATH_LITERALS_HPP
+#define ANTKEEPER_MATH_LITERALS_HPP
 
 namespace math {
 
 /**
- * Generates a pseudo-random floating point number on `[start, end)` using std::rand().
- *
- * @warning Don't forget to seed with std::srand() before using!
- *
- * @param start Start of the range (inclusive).
- * @param end End of the range (exclusive).
- * @return Pseudo-random floating point number.
+ * User-defined math literals.
  */
-template <typename T = float>
-[[nodiscard]] T random(T start, T end)
-{
-	static_assert(std::is_floating_point<T>::value);
-	constexpr T rand_max_inverse = T(1) / static_cast<T>(RAND_MAX);
-    return static_cast<T>(std::rand()) * rand_max_inverse * (end - start) + start;
-}
+namespace literals {}
 
 } // namespace math
 
-#endif // ANTKEEPER_MATH_RANDOM_HPP
+#endif // ANTKEEPER_MATH_LITERALS_HPP

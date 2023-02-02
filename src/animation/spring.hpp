@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_SPRING_HPP
 #define ANTKEEPER_SPRING_HPP
 
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 
 /**
  * Contains the variables required for numeric springing.

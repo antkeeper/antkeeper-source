@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_PHYSICS_LIGHT_PHASE_HPP
 #define ANTKEEPER_PHYSICS_LIGHT_PHASE_HPP
 
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include <cmath>
 
 namespace physics {

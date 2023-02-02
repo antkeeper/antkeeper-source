@@ -38,7 +38,10 @@ namespace math {
  * @tparam S Scalar type.
  */
 template <typename T, typename S = float>
-T lerp(const T& x, const T& y, S a);
+[[nodiscard]] constexpr T lerp(const T& x, const T& y, S a)
+{
+	return x + (y - x) * a;
+}
 
 /**
  * Linearly interpolates between two angles, @p x and @p y.
@@ -50,7 +53,10 @@ T lerp(const T& x, const T& y, S a);
  * @return Interpolated angle, in radians.
  */
 template <typename T>
-T lerp_angle(T x, T y, T a);
+[[nodiscard]] constexpr T lerp_angle(T x, T y, T a)
+{
+	return wrap_radians(x + wrap_radians(y - x) * a);
+}
 
 /**
  * Logarithmically interpolates between @p x and @p y.
@@ -61,22 +67,7 @@ T lerp_angle(T x, T y, T a);
  * @tparam S Scalar type.
  */
 template <typename T, typename S = float>
-T log_lerp(const T& x, const T& y, S a);
-
-template <typename T, typename S>
-inline T lerp(const T& x, const T& y, S a)
-{
-	return x + (y - x) * a;
-}
-
-template <typename T>
-T lerp_angle(T x, T y, T a)
-{
-	return wrap_radians(x + wrap_radians(y - x) * a);
-}
-
-template <typename T, typename S>
-inline T log_lerp(const T& x, const T& y, S a)
+[[nodiscard]] T log_lerp(const T& x, const T& y, S a)
 {
 	//return std::exp(linear(std::log(x), std::log(y), a));
 	return x * std::pow(y / x, a);

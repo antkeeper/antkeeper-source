@@ -19,7 +19,7 @@
 
 #include "scene/camera.hpp"
 #include "config.hpp"
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include "math/interpolation.hpp"
 #include "math/quaternion.hpp"
 #include "math/projection.hpp"

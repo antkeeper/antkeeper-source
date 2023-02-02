@@ -31,7 +31,7 @@ namespace math {
  * @param t Transform of which to take the inverse.
  */
 template <class T>
-transform<T> inverse(const transform<T>& t);
+[[nodiscard]] transform<T> inverse(const transform<T>& t);
 
 /**
  * Converts a transform to a transformation matrix.
@@ -40,7 +40,7 @@ transform<T> inverse(const transform<T>& t);
  * @return Matrix representing the transformation described by `t`.
  */
 template <class T>
-matrix<T, 4, 4> matrix_cast(const transform<T>& t);
+[[nodiscard]] matrix<T, 4, 4> matrix_cast(const transform<T>& t);
 
 /**
  * Multiplies two transforms.
@@ -50,7 +50,7 @@ matrix<T, 4, 4> matrix_cast(const transform<T>& t);
  * @return Product of the two transforms.
  */
 template <class T>
-transform<T> mul(const transform<T>& x, const transform<T>& y);
+[[nodiscard]] transform<T> mul(const transform<T>& x, const transform<T>& y);
 
 /**
  * Multiplies a vector by a transform.
@@ -60,7 +60,7 @@ transform<T> mul(const transform<T>& x, const transform<T>& y);
  * @return Product of the transform and vector.
  */
 template <class T>
-vector<T, 3> mul(const transform<T>& t, const vector<T, 3>& v);
+[[nodiscard]] vector<T, 3> mul(const transform<T>& t, const vector<T, 3>& v);
 
 template <class T>
 transform<T> inverse(const transform<T>& t)

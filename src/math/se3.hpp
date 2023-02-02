@@ -54,10 +54,10 @@ public:
 	quaternion_type r;
 	
 	/// Returns the inverse of this SE(3) transformation.
-	se3 inverse() const;
+	[[nodiscard]] se3 inverse() const;
 	
 	/// Returns a matrix representation of the SE(3) transformation.
-	matrix_type matrix() const;
+	[[nodiscard]] matrix_type matrix() const;
 	
 	/**
 	 * Transforms a vector by this SE(3) transformation.
@@ -65,7 +65,7 @@ public:
 	 * @param x Untransformed vector.
 	 * @return Transformed vector.
 	 */
-	vector_type transform(const vector_type& x) const;
+	[[nodiscard]] vector_type transform(const vector_type& x) const;
 	
 	/**
 	 * Transforms an SE(3) transformation by this SE(3) transformation.
@@ -73,13 +73,13 @@ public:
 	 * @param x Other SE(3) transformation.
 	 * @return Frame in this se3's space.
 	 */
-	se3 transform(const se3& x) const;
+	[[nodiscard]] se3 transform(const se3& x) const;
 	
 	/// @copydoc se3::transform(const vector_type&) const
-	vector_type operator*(const vector_type& x) const;
+	[[nodiscard]] vector_type operator*(const vector_type& x) const;
 	
 	/// @copydoc se3::transform(const se3&) const
-	se3 operator*(const se3& x) const;
+	[[nodiscard]] se3 operator*(const se3& x) const;
 };
 
 template <class T>

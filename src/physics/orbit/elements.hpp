@@ -21,7 +21,7 @@
 #define ANTKEEPER_PHYSICS_ORBIT_ELEMENTS_HPP
 
 #include "utility/fundamental-types.hpp"
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include <cmath>
 
 namespace physics {

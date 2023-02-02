@@ -36,7 +36,7 @@ namespace math {
  * @see https://en.wikipedia.org/wiki/Field_of_view_in_video_games
  */
 template <class T>
-T horizontal_fov(T v, T r)
+[[nodiscard]] T horizontal_fov(T v, T r)
 {
 	return T{2} * std::atan(std::tan(v * T{0.5}) * r);
 }
@@ -52,7 +52,7 @@ T horizontal_fov(T v, T r)
  * @see https://en.wikipedia.org/wiki/Field_of_view_in_video_games
  */
 template <class T>
-T vertical_fov(T h, T r)
+[[nodiscard]] T vertical_fov(T h, T r)
 {
 	return T{2} * std::atan(std::tan(h * T{0.5}) / r);
 }
@@ -70,7 +70,7 @@ T vertical_fov(T h, T r)
  * @return Orthographic projection matrix.
  */
 template <class T>
-constexpr matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far) noexcept
+[[nodiscard]] constexpr matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_far) noexcept
 {
 	return
 		{{
@@ -94,7 +94,7 @@ constexpr matrix<T, 4, 4> ortho(T left, T right, T bottom, T top, T z_near, T z_
  * @return Orthographic projection matrix.
  */
 template <class T>
-constexpr matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far) noexcept
+[[nodiscard]] constexpr matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_near, T z_far) noexcept
 {
 	return
 		{{
@@ -116,7 +116,7 @@ constexpr matrix<T, 4, 4> ortho_half_z(T left, T right, T bottom, T top, T z_nea
  * @return Perspective projection matrix.
  */
 template <class T>
-matrix<T, 4, 4> perspective(T vertical_fov, T aspect_ratio, T z_near, T z_far)
+[[nodiscard]] matrix<T, 4, 4> perspective(T vertical_fov, T aspect_ratio, T z_near, T z_far)
 {
 	T half_fov = vertical_fov * T(0.5);
 	T f = std::cos(half_fov) / std::sin(half_fov);
@@ -141,7 +141,7 @@ matrix<T, 4, 4> perspective(T vertical_fov, T aspect_ratio, T z_near, T z_far)
  * @return Perspective projection matrix.
  */
 template <class T>
-matrix<T, 4, 4> perspective_half_z(T vertical_fov, T aspect_ratio, T z_near, T z_far)
+[[nodiscard]] matrix<T, 4, 4> perspective_half_z(T vertical_fov, T aspect_ratio, T z_near, T z_far)
 {
 	T half_fov = vertical_fov * T(0.5);
 	T f = std::cos(half_fov) / std::sin(half_fov);

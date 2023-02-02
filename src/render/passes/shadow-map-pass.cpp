@@ -173,7 +173,6 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 	float4x4 light_projection = math::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	float4x4 light_view_projection = light_projection * light_view;
 	
-	float4x4 crop_matrix;
 	float4x4 cropped_view_projection;
 	float4x4 model_view_projection;
 	

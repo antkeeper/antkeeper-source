@@ -24,7 +24,7 @@
 #include "gl/vertex-attribute.hpp"
 #include "gl/drawing-mode.hpp"
 #include "utility/fundamental-types.hpp"
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include <sstream>
 #include <stdexcept>
 #include <limits>

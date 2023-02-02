@@ -68,7 +68,7 @@ struct matrix
 	
 	/// @private
 	template <class U, std::size_t... I>
-	inline constexpr matrix<U, N, M> type_cast(std::index_sequence<I...>) const noexcept
+	[[nodiscard]] inline constexpr matrix<U, N, M> type_cast(std::index_sequence<I...>) const noexcept
 	{
 		return {vector<U, M>(columns[I])...};
 	}
@@ -81,14 +81,14 @@ struct matrix
 	 * @return Matrix containing the type-casted elements.
 	 */
 	template <class U>
-	inline constexpr explicit operator matrix<U, N, M>() const noexcept
+	[[nodiscard]] inline constexpr explicit operator matrix<U, N, M>() const noexcept
 	{
 		return type_cast<U>(std::make_index_sequence<N>{});
 	}
 	
 	/// @private
 	template <std::size_t P, std::size_t O, std::size_t... I>
-	inline constexpr matrix<T, P, O> size_cast(std::index_sequence<I...>) const noexcept
+	[[nodiscard]] inline constexpr matrix<T, P, O> size_cast(std::index_sequence<I...>) const noexcept
 	{
 		if constexpr (O == M)
 			return {((I < N) ? columns[I] : matrix<T, P, O>::identity()[I]) ...};
@@ -105,7 +105,7 @@ struct matrix
 	 * @return *p* by *o* matrix.
 	 */
 	template <std::size_t P, std::size_t O>
-	inline constexpr explicit operator matrix<T, P, O>() const noexcept
+	[[nodiscard]] inline constexpr explicit operator matrix<T, P, O>() const noexcept
 	{
 		return size_cast<P, O>(std::make_index_sequence<P>{});
 	}
@@ -123,19 +123,19 @@ struct matrix
 	 * @return Reference to the column vector at index @p i.
 	 */
 	/// @{
-	inline constexpr column_vector_type& operator[](std::size_t i) noexcept
+	[[nodiscard]] inline constexpr column_vector_type& operator[](std::size_t i) noexcept
 	{
 		return columns[i];
 	}
-	inline constexpr const column_vector_type& operator[](std::size_t i) const noexcept
+	[[nodiscard]] inline constexpr const column_vector_type& operator[](std::size_t i) const noexcept
 	{
 		return columns[i];
 	}
-	inline constexpr column_vector_type& column(std::size_t i) noexcept
+	[[nodiscard]] inline constexpr column_vector_type& column(std::size_t i) noexcept
 	{
 		return columns[i];
 	}
-	inline constexpr const column_vector_type& column(std::size_t i) const noexcept
+	[[nodiscard]] inline constexpr const column_vector_type& column(std::size_t i) const noexcept
 	{
 		return columns[i];
 	}
@@ -145,11 +145,11 @@ struct matrix
 	 * Returns a reference to the first column vector.
 	 */
 	/// @{
-	inline constexpr column_vector_type& front() noexcept
+	[[nodiscard]] inline constexpr column_vector_type& front() noexcept
 	{
 		return columns[0];
 	}
-	inline constexpr const column_vector_type& front() const noexcept
+	[[nodiscard]] inline constexpr const column_vector_type& front() const noexcept
 	{
 		return columns[0];
 	}
@@ -159,11 +159,11 @@ struct matrix
 	 * Returns a reference to the last column vector.
 	 */
 	/// @{
-	inline constexpr column_vector_type& back() noexcept
+	[[nodiscard]] inline constexpr column_vector_type& back() noexcept
 	{
 		return columns[column_count - 1];
 	}
-	inline constexpr const column_vector_type& back() const noexcept
+	[[nodiscard]] inline constexpr const column_vector_type& back() const noexcept
 	{
 		return columns[column_count - 1];
 	}
@@ -182,11 +182,11 @@ struct matrix
 	 * @return Reference to the element at column-major index @p i.
 	 */
 	/// @{
-	inline constexpr T& element(std::size_t i) noexcept
+	[[nodiscard]] inline constexpr T& element(std::size_t i) noexcept
 	{
 		return columns[i / row_count][i % row_count];
 	}
-	inline constexpr const T& element(std::size_t i) const noexcept
+	[[nodiscard]] inline constexpr const T& element(std::size_t i) const noexcept
 	{
 		return columns[i / row_count][i % row_count];
 	}
@@ -198,11 +198,11 @@ struct matrix
 	 * @warning If matrix::element_type is not a POD type, elements may not be stored contiguously.
 	 */
 	/// @{
-	inline constexpr element_type* data() noexcept
+	[[nodiscard]] inline constexpr element_type* data() noexcept
 	{
 		return &columns[0][0];
 	};
-	inline constexpr const element_type* data() const noexcept
+	[[nodiscard]] inline constexpr const element_type* data() const noexcept
 	{
 		return &columns[0][0];
 	};
@@ -217,15 +217,15 @@ struct matrix
 	 * Returns an iterator to the first column vector.
 	 */
 	/// @{
-	inline constexpr column_vector_type* begin() noexcept
+	[[nodiscard]] inline constexpr column_vector_type* begin() noexcept
 	{
 		return columns;
 	}
-	inline constexpr const column_vector_type* begin() const noexcept
+	[[nodiscard]] inline constexpr const column_vector_type* begin() const noexcept
 	{
 		return columns;
 	}
-	inline constexpr const column_vector_type* cbegin() const noexcept
+	[[nodiscard]] inline constexpr const column_vector_type* cbegin() const noexcept
 	{
 		return columns;
 	}
@@ -235,15 +235,15 @@ struct matrix
 	 * Returns an iterator to the column vector following the last column vector.
 	 */
 	/// @{
-	inline constexpr column_vector_type* end() noexcept
+	[[nodiscard]] inline constexpr column_vector_type* end() noexcept
 	{
 		return columns + column_count;
 	}
-	inline constexpr const column_vector_type* end() const noexcept
+	[[nodiscard]] inline constexpr const column_vector_type* end() const noexcept
 	{
 		return columns + column_count;
 	}
-	inline constexpr const column_vector_type* cend() const noexcept
+	[[nodiscard]] inline constexpr const column_vector_type* cend() const noexcept
 	{
 		return columns + column_count;
 	}
@@ -253,15 +253,15 @@ struct matrix
 	 * Returns a reverse iterator to the first column vector of the reversed matrix.
 	 */
 	/// @{
-	inline constexpr std::reverse_iterator<column_vector_type*> rbegin() noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<column_vector_type*> rbegin() noexcept
 	{
 		return std::reverse_iterator<column_vector_type*>(columns + column_count);
 	}
-	inline constexpr std::reverse_iterator<const column_vector_type*> rbegin() const noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<const column_vector_type*> rbegin() const noexcept
 	{
 		return std::reverse_iterator<const column_vector_type*>(columns + column_count);
 	}
-	inline constexpr std::reverse_iterator<const column_vector_type*> crbegin() const noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<const column_vector_type*> crbegin() const noexcept
 	{
 		return std::reverse_iterator<const column_vector_type*>(columns + column_count);
 	}
@@ -271,15 +271,15 @@ struct matrix
 	 * Returns a reverse iterator to the column vector following the last column vector of the reversed matrix.
 	 */
 	/// @{
-	inline constexpr std::reverse_iterator<column_vector_type*> rend() noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<column_vector_type*> rend() noexcept
 	{
 		return std::reverse_iterator<column_vector_type*>(columns);
 	}
-	inline constexpr std::reverse_iterator<const column_vector_type*> rend() const noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<const column_vector_type*> rend() const noexcept
 	{
 		return std::reverse_iterator<const column_vector_type*>(columns);
 	}
-	inline constexpr std::reverse_iterator<const column_vector_type*> crend() const noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<const column_vector_type*> crend() const noexcept
 	{
 		return std::reverse_iterator<const column_vector_type*>(columns);
 	}
@@ -293,7 +293,7 @@ struct matrix
 	/**
 	 * Returns the number of elements in the matrix.
 	 */
-	inline constexpr std::size_t size() const noexcept
+	[[nodiscard]] inline constexpr std::size_t size() const noexcept
 	{
 		return element_count;
 	};
@@ -306,14 +306,14 @@ struct matrix
 	/**
 	 * Returns a zero matrix, where every element is equal to zero.
 	 */
-	static constexpr matrix zero() noexcept
+	[[nodiscard]] static constexpr matrix zero() noexcept
 	{
 		return {};
 	}
 	
 	/// @private
 	template <std::size_t... I>
-	static inline constexpr matrix one(std::index_sequence<I...>) noexcept
+	[[nodiscard]] static inline constexpr matrix one(std::index_sequence<I...>) noexcept
 	{
 		//return {column_vector_type::one() ...};
 		
@@ -324,21 +324,21 @@ struct matrix
 	/**
 	 * Returns a matrix of ones, where every element is equal to one.
 	 */
-	static constexpr matrix one() noexcept
+	[[nodiscard]] static constexpr matrix one() noexcept
 	{
 		return one(std::make_index_sequence<column_count>{});
 	}
 	
 	/// @private
 	template <std::size_t... I>
-	static inline constexpr column_vector_type identity_column(std::size_t i, std::index_sequence<I...>) noexcept
+	[[nodiscard]] static inline constexpr column_vector_type identity_column(std::size_t i, std::index_sequence<I...>) noexcept
 	{
 		return {(I == i ? T{1} : T{0}) ...};
 	}
 	
 	/// @private
 	template <std::size_t... I>
-	static inline constexpr matrix identity(std::index_sequence<I...>) noexcept
+	[[nodiscard]] static inline constexpr matrix identity(std::index_sequence<I...>) noexcept
 	{
 		return {identity_column(I, std::make_index_sequence<row_count>{}) ...};
 	}
@@ -346,7 +346,7 @@ struct matrix
 	/**
 	 * Returns an identity matrix, with ones on the main diagonal and zeros elsewhere.
 	 */
-	static constexpr matrix identity() noexcept
+	[[nodiscard]] static constexpr matrix identity() noexcept
 	{
 		return identity(std::make_index_sequence<column_count>{});
 	}
@@ -387,7 +387,7 @@ using matrix4x4 = matrix<T, 4, 4>;
  * @return Sum of the two matrices.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
+[[nodiscard]] constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
 
 /**
  * Adds a matrix and a scalar.
@@ -398,7 +398,7 @@ constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, const matrix<T, N, M>& b
  * @return Sum of the matrix and scalar.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, T b) noexcept;
+[[nodiscard]] constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, T b) noexcept;
 
 /**
  * Calculates the determinant of a square matrix.
@@ -410,7 +410,7 @@ constexpr matrix<T, N, M> add(const matrix<T, N, M>& a, T b) noexcept;
  * @warning Currently only implemented for 2x2, 3x3, and 4x4 matrices.
  */
 template <class T, std::size_t N>
-constexpr T determinant(const matrix<T, N, N>& m) noexcept;
+[[nodiscard]] constexpr T determinant(const matrix<T, N, N>& m) noexcept;
 
 /**
  * Performs a component-wise multiplication of two matrices.
@@ -421,7 +421,7 @@ constexpr T determinant(const matrix<T, N, N>& m) noexcept;
  * @return Product of the component-wise multiplcation.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
+[[nodiscard]] constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
 
 /**
  * Divides a matrix by a matrix.
@@ -432,7 +432,7 @@ constexpr matrix<T, N, M> componentwise_mul(const matrix<T, N, M>& a, const matr
  * @return Result of the division.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
+[[nodiscard]] constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
 
 /**
  * Divides a matrix by a scalar.
@@ -443,7 +443,7 @@ constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, const matrix<T, N, M>& b
  * @return Result of the division.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b) noexcept;
+[[nodiscard]] constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b) noexcept;
 
 /**
  * Divides a scalar by a matrix.
@@ -454,7 +454,7 @@ constexpr matrix<T, N, M> div(const matrix<T, N, M>& a, T b) noexcept;
  * @return Result of the division.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept;
+[[nodiscard]] constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept;
 
 /**
  * Extracts the Ith column from a matrix.
@@ -470,13 +470,13 @@ constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept;
  */
 /// @{
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-constexpr typename matrix<T, N, M>::column_vector_type& get(math::matrix<T, N, M>& m) noexcept;
+[[nodiscard]] constexpr typename matrix<T, N, M>::column_vector_type& get(math::matrix<T, N, M>& m) noexcept;
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-constexpr typename matrix<T, N, M>::column_vector_type&& get(math::matrix<T, N, M>&& m) noexcept;
+[[nodiscard]] constexpr typename matrix<T, N, M>::column_vector_type&& get(math::matrix<T, N, M>&& m) noexcept;
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-constexpr const typename matrix<T, N, M>::column_vector_type& get(const math::matrix<T, N, M>& m) noexcept;
+[[nodiscard]] constexpr const typename matrix<T, N, M>::column_vector_type& get(const math::matrix<T, N, M>& m) noexcept;
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-constexpr const typename matrix<T, N, M>::column_vector_type&& get(const math::matrix<T, N, M>&& m) noexcept;
+[[nodiscard]] constexpr const typename matrix<T, N, M>::column_vector_type&& get(const math::matrix<T, N, M>&& m) noexcept;
 /// @}
 
 /**
@@ -489,7 +489,7 @@ constexpr const typename matrix<T, N, M>::column_vector_type&& get(const math::m
  * @warning Currently only implemented for 2x2, 3x3, and 4x4 matrices.
  */
 template <class T, std::size_t N>
-constexpr matrix<T, N, N> inverse(const matrix<T, N, N>& m) noexcept;
+[[nodiscard]] constexpr matrix<T, N, N> inverse(const matrix<T, N, N>& m) noexcept;
 
 /**
  * Creates a viewing transformation matrix.
@@ -501,7 +501,7 @@ constexpr matrix<T, N, N> inverse(const matrix<T, N, N>& m) noexcept;
  * @return Viewing transformation matrix.
  */
 template <class T>
-constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target, vector<T, 3> up);
+[[nodiscard]] constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target, vector<T, 3> up);
 
 /**
  * Multiplies two matrices
@@ -517,7 +517,7 @@ constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 
  * @return Product of `a * b`.
  */
 template <typename T, std::size_t N, std::size_t M, std::size_t P>
-constexpr matrix<T, P, M> mul(const matrix<T, N, M>& a, const matrix<T, P, N>& b) noexcept;
+[[nodiscard]] constexpr matrix<T, P, M> mul(const matrix<T, N, M>& a, const matrix<T, P, N>& b) noexcept;
 
 /**
  * Multiplies a matrix by a scalar.
@@ -528,7 +528,7 @@ constexpr matrix<T, P, M> mul(const matrix<T, N, M>& a, const matrix<T, P, N>& b
  * @return Product of the matrix and the scalar.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> mul(const matrix<T, N, M>& a, T b) noexcept;
+[[nodiscard]] constexpr matrix<T, N, M> mul(const matrix<T, N, M>& a, T b) noexcept;
 
 /**
  * Calculates the product of a matrix and a row vector.
@@ -539,7 +539,7 @@ constexpr matrix<T, N, M> mul(const matrix<T, N, M>& a, T b) noexcept;
  * @return Product of the matrix and the row vector.
  */
 template <typename T, std::size_t N, std::size_t M>
-constexpr typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b) noexcept;
+[[nodiscard]] constexpr typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b) noexcept;
 
 /**
  * Calculates the product of a column vector and a matrix.
@@ -550,7 +550,7 @@ constexpr typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>
  * @return Product of the column vector and the matrix.
  */
 template <typename T, std::size_t N, std::size_t M>
-constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b) noexcept;
+[[nodiscard]] constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b) noexcept;
 
 /**
  * Constructs a rotation matrix.
@@ -561,7 +561,7 @@ constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T,
  * @return Rotation matrix.
  */
 template <class T>
-matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis);
+[[nodiscard]] matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis);
 
 /**
  * Produces a matrix which rotates Cartesian coordinates about the x-axis by a given angle.
@@ -571,7 +571,7 @@ matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis);
  * @return Rotation matrix.
  */
 template <class T>
-matrix3<T> rotate_x(T angle);
+[[nodiscard]] matrix3<T> rotate_x(T angle);
 
 /**
  * Produces a matrix which rotates Cartesian coordinates about the y-axis by a given angle.
@@ -581,7 +581,7 @@ matrix3<T> rotate_x(T angle);
  * @return Rotation matrix.
  */
 template <class T>
-matrix3<T> rotate_y(T angle);
+[[nodiscard]] matrix3<T> rotate_y(T angle);
 
 /**
  * Produces a matrix which rotates Cartesian coordinates about the z-axis by a given angle.
@@ -591,7 +591,7 @@ matrix3<T> rotate_y(T angle);
  * @return Rotation matrix.
  */
 template <class T>
-matrix3<T> rotate_z(T angle);
+[[nodiscard]] matrix3<T> rotate_z(T angle);
 
 /**
  * Scales a matrix.
@@ -602,7 +602,7 @@ matrix3<T> rotate_z(T angle);
  * @return Scaled matrix.
  */
 template <class T>
-constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
+[[nodiscard]] constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
 
 /**
  * Subtracts a matrix from another matrix.
@@ -613,7 +613,7 @@ constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
  * @return Difference between the two matrices.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
+[[nodiscard]] constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, const matrix<T, N, M>& b) noexcept;
 
 /**
  * Subtracts a scalar from matrix.
@@ -624,7 +624,7 @@ constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, const matrix<T, N, M>& b
  * @return Difference between the matrix and scalar.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, T b) noexcept;
+[[nodiscard]] constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, T b) noexcept;
 
 /**
  * Subtracts a matrix from a scalar.
@@ -635,7 +635,7 @@ constexpr matrix<T, N, M> sub(const matrix<T, N, M>& a, T b) noexcept;
  * @return Difference between the scalar and matrix.
  */
 template <class T, std::size_t N, std::size_t M>
-constexpr matrix<T, N, M> sub(T a, const matrix<T, N, M>& b) noexcept;
+[[nodiscard]] constexpr matrix<T, N, M> sub(T a, const matrix<T, N, M>& b) noexcept;
 
 /**
  * Calculates the trace of a square matrix.
@@ -645,7 +645,7 @@ constexpr matrix<T, N, M> sub(T a, const matrix<T, N, M>& b) noexcept;
  * @return Sum of elements on the main diagonal.
  */
 template <class T, std::size_t N>
-constexpr T trace(const matrix<T, N, N>& m) noexcept;
+[[nodiscard]] constexpr T trace(const matrix<T, N, N>& m) noexcept;
 
 /**
  * Translates a matrix.
@@ -656,7 +656,7 @@ constexpr T trace(const matrix<T, N, N>& m) noexcept;
  * @return Translated matrix.
  */
 template <class T>
-constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
+[[nodiscard]] constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
 
 /**
  * Calculates the transpose of a matrix.
@@ -666,7 +666,7 @@ constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>
  * @return Transposed matrix.
  */
 template <typename T, std::size_t N, std::size_t M>
-constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m) noexcept;
+[[nodiscard]] constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m) noexcept;
 
 /// @private
 template <class T, std::size_t N, std::size_t M, std::size_t... I>

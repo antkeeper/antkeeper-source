@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_MATH_QUATERNION_HPP
 #define ANTKEEPER_MATH_QUATERNION_HPP
 
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include "math/matrix.hpp"
 #include "math/vector.hpp"
 #include <cmath>
@@ -54,11 +54,11 @@ struct quaternion
 	
 	/// Returns a reference to the quaternion real part.
 	/// @{
-	inline constexpr scalar_type& w() noexcept
+	[[nodiscard]] inline constexpr scalar_type& w() noexcept
 	{
 		return r;
 	}
-	inline constexpr const scalar_type& w() const noexcept
+	[[nodiscard]] inline constexpr const scalar_type& w() const noexcept
 	{
 		return r;
 	}
@@ -66,11 +66,11 @@ struct quaternion
 	
 	/// Returns a reference to the first element of the quaternion imaginary part.
 	/// @{
-	inline constexpr scalar_type& x() noexcept
+	[[nodiscard]] inline constexpr scalar_type& x() noexcept
 	{
 		return i.x();
 	}
-	inline constexpr const scalar_type& x() const noexcept
+	[[nodiscard]] inline constexpr const scalar_type& x() const noexcept
 	{
 		return i.x();
 	}
@@ -78,11 +78,11 @@ struct quaternion
 	
 	/// Returns a reference to the second element of the quaternion imaginary part.
 	/// @{
-	inline constexpr scalar_type& y() noexcept
+	[[nodiscard]] inline constexpr scalar_type& y() noexcept
 	{
 		return i.y();
 	}
-	inline constexpr const scalar_type& y() const noexcept
+	[[nodiscard]] inline constexpr const scalar_type& y() const noexcept
 	{
 		return i.y();
 	}
@@ -90,11 +90,11 @@ struct quaternion
 	
 	/// Returns a reference to the third element of the quaternion imaginary part.
 	/// @{
-	inline constexpr scalar_type& z() noexcept
+	[[nodiscard]] inline constexpr scalar_type& z() noexcept
 	{
 		return i.z();
 	}
-	inline constexpr const scalar_type& z() const noexcept
+	[[nodiscard]] inline constexpr const scalar_type& z() const noexcept
 	{
 		return i.z();
 	}
@@ -107,7 +107,7 @@ struct quaternion
 	 *
 	 * @return Quaternion representing an x-axis rotation.
 	 */
-	static quaternion rotate_x(scalar_type angle)
+	[[nodiscard]] static quaternion rotate_x(scalar_type angle)
 	{
 		return {std::cos(angle * T(0.5)), std::sin(angle * T(0.5)), T(0), T(0)};
 	}
@@ -119,7 +119,7 @@ struct quaternion
 	 *
 	 * @return Quaternion representing an y-axis rotation.
 	 */
-	static quaternion rotate_y(scalar_type angle)
+	[[nodiscard]] static quaternion rotate_y(scalar_type angle)
 	{
 		return {std::cos(angle * T(0.5)), T(0), std::sin(angle * T(0.5)), T(0)};
 	}
@@ -130,7 +130,7 @@ struct quaternion
 	 * @param angle Angle of rotation, in radians.
 	 * @return Quaternion representing an z-axis rotation.
 	 */
-	static quaternion rotate_z(scalar_type angle)
+	[[nodiscard]] static quaternion rotate_z(scalar_type angle)
 	{
 		return {std::cos(angle * T(0.5)), T(0), T(0), std::sin(angle * T(0.5))};
 	}
@@ -143,7 +143,7 @@ struct quaternion
 	 * @return Type-casted quaternion.
 	 */
 	template <class U>
-	inline constexpr explicit operator quaternion<U>() const noexcept
+	[[nodiscard]] inline constexpr explicit operator quaternion<U>() const noexcept
 	{
 		return {static_cast<U>(r), vector<U, 3>(i)};
 	}
@@ -153,7 +153,7 @@ struct quaternion
 	 *
 	 * @return Rotation matrix.
 	 */
-	constexpr explicit operator matrix_type() const noexcept
+	[[nodiscard]] constexpr explicit operator matrix_type() const noexcept
 	{
 		const T xx = x() * x();
 		const T xy = x() * y();
@@ -178,19 +178,19 @@ struct quaternion
 	 *
 	 * @return Vector containing the real and imaginary parts of the quaternion.
 	 */
-	inline constexpr explicit operator vector<T, 4>() const noexcept
+	[[nodiscard]] inline constexpr explicit operator vector<T, 4>() const noexcept
 	{
 		return {r, i[0], i[1], i[2]};
 	}
 	
 	/// Returns a zero quaternion, where every scalar is equal to zero.
-	static constexpr quaternion zero() noexcept
+	[[nodiscard]] static constexpr quaternion zero() noexcept
 	{
 		return {};
 	}
 	
 	/// Returns a rotation identity quaternion.
-	static constexpr quaternion identity() noexcept
+	[[nodiscard]] static constexpr quaternion identity() noexcept
 	{
 		return {T{1}, vector_type::zero()};
 	}
@@ -205,7 +205,7 @@ struct quaternion
  * @return Sum of the two quaternions.
  */
 template <class T>
-constexpr quaternion<T> add(const quaternion<T>& a, const quaternion<T>& b) noexcept;
+[[nodiscard]] constexpr quaternion<T> add(const quaternion<T>& a, const quaternion<T>& b) noexcept;
 
 /**
  * Adds a quaternion and a scalar.
@@ -216,7 +216,7 @@ constexpr quaternion<T> add(const quaternion<T>& a, const quaternion<T>& b) noex
  * @return Sum of the quaternion and scalar.
  */
 template <class T>
-constexpr quaternion<T> add(const quaternion<T>& a, T b) noexcept;
+[[nodiscard]] constexpr quaternion<T> add(const quaternion<T>& a, T b) noexcept;
 
 /**
  * Calculates the conjugate of a quaternion.
@@ -226,7 +226,7 @@ constexpr quaternion<T> add(const quaternion<T>& a, T b) noexcept;
  * @return Conjugate of the quaternion.
  */
 template <class T>
-constexpr quaternion<T> conjugate(const quaternion<T>& q) noexcept;
+[[nodiscard]] constexpr quaternion<T> conjugate(const quaternion<T>& q) noexcept;
 
 /**
  * Calculates the dot product of two quaternions.
@@ -237,7 +237,7 @@ constexpr quaternion<T> conjugate(const quaternion<T>& q) noexcept;
  * @return Dot product of the two quaternions.
  */
 template <class T>
-constexpr T dot(const quaternion<T>& a, const quaternion<T>& b) noexcept;
+[[nodiscard]] constexpr T dot(const quaternion<T>& a, const quaternion<T>& b) noexcept;
 
 /**
  * Divides a quaternion by another quaternion.
@@ -248,7 +248,7 @@ constexpr T dot(const quaternion<T>& a, const quaternion<T>& b) noexcept;
  * @return Result of the division.
  */
 template <class T>
-constexpr quaternion<T> div(const quaternion<T>& a, const quaternion<T>& b) noexcept;
+[[nodiscard]] constexpr quaternion<T> div(const quaternion<T>& a, const quaternion<T>& b) noexcept;
 
 /**
  * Divides a quaternion by a scalar.
@@ -259,7 +259,7 @@ constexpr quaternion<T> div(const quaternion<T>& a, const quaternion<T>& b) noex
  * @return Result of the division.
  */
 template <class T>
-constexpr quaternion<T> div(const quaternion<T>& a, T b) noexcept;
+[[nodiscard]] constexpr quaternion<T> div(const quaternion<T>& a, T b) noexcept;
 
 /**
  * Divides a scalar by a quaternion.
@@ -270,7 +270,7 @@ constexpr quaternion<T> div(const quaternion<T>& a, T b) noexcept;
  * @return Result of the division.
  */
 template <class T>
-constexpr quaternion<T> div(T a, const quaternion<T>& b) noexcept;
+[[nodiscard]] constexpr quaternion<T> div(T a, const quaternion<T>& b) noexcept;
 
 /**
  * Calculates the inverse length of a quaternion.
@@ -280,7 +280,7 @@ constexpr quaternion<T> div(T a, const quaternion<T>& b) noexcept;
  * @return Inverse length of the quaternion.
  */
 template <class T>
-T inv_length(const quaternion<T>& q);
+[[nodiscard]] T inv_length(const quaternion<T>& q);
 
 /**
  * Calculates the length of a quaternion.
@@ -290,7 +290,7 @@ T inv_length(const quaternion<T>& q);
  * @return Length of the quaternion.
  */
 template <class T>
-T length(const quaternion<T>& q);
+[[nodiscard]] T length(const quaternion<T>& q);
 
 /**
  * Performs linear interpolation between two quaternions.
@@ -302,7 +302,7 @@ T length(const quaternion<T>& q);
  * @return Interpolated quaternion.
  */
 template <class T>
-constexpr quaternion<T> lerp(const quaternion<T>& a, const quaternion<T>& b, T t) noexcept;
+[[nodiscard]] constexpr quaternion<T> lerp(const quaternion<T>& a, const quaternion<T>& b, T t) noexcept;
 
 /**
  * Creates a unit quaternion rotation using forward and up vectors.
@@ -313,7 +313,7 @@ constexpr quaternion<T> lerp(const quaternion<T>& a, const quaternion<T>& b, T t
  * @return Unit rotation quaternion.
  */
 template <class T>
-quaternion<T> look_rotation(const vector<T, 3>& forward, vector<T, 3> up);
+[[nodiscard]] quaternion<T> look_rotation(const vector<T, 3>& forward, vector<T, 3> up);
 
 /**
  * Multiplies two quaternions.
@@ -324,7 +324,7 @@ quaternion<T> look_rotation(const vector<T, 3>& forward, vector<T, 3> up);
  * @return Product of the two quaternions.
  */
 template <class T>
-constexpr quaternion<T> mul(const quaternion<T>& a, const quaternion<T>& b) noexcept;
+[[nodiscard]] constexpr quaternion<T> mul(const quaternion<T>& a, const quaternion<T>& b) noexcept;
 
 /**
  * Multiplies a quaternion by a scalar.
@@ -335,7 +335,7 @@ constexpr quaternion<T> mul(const quaternion<T>& a, const quaternion<T>& b) noex
  * @return Product of the quaternion and scalar.
  */
 template <class T>
-constexpr quaternion<T> mul(const quaternion<T>& a, T b) noexcept;
+[[nodiscard]] constexpr quaternion<T> mul(const quaternion<T>& a, T b) noexcept;
 
 /**
  * Calculates the product of a quaternion and a vector.
@@ -347,9 +347,9 @@ constexpr quaternion<T> mul(const quaternion<T>& a, T b) noexcept;
  */
 /// @{
 template <class T>
-constexpr vector<T, 3> mul(const quaternion<T>& a, const vector<T, 3>& b) noexcept;
+[[nodiscard]] constexpr vector<T, 3> mul(const quaternion<T>& a, const vector<T, 3>& b) noexcept;
 template <class T>
-constexpr vector<T, 3> mul(const vector<T, 3>& a, const quaternion<T>& b) noexcept;
+[[nodiscard]] constexpr vector<T, 3> mul(const vector<T, 3>& a, const quaternion<T>& b) noexcept;
 /// @}
 
 /**
@@ -360,7 +360,7 @@ constexpr vector<T, 3> mul(const vector<T, 3>& a, const quaternion<T>& b) noexce
  * @return Negated quaternion.
  */
 template <class T>
-constexpr quaternion<T> negate(const quaternion<T>& q) noexcept;
+[[nodiscard]] constexpr quaternion<T> negate(const quaternion<T>& q) noexcept;
 
 /**
  * Performs normalized linear interpolation between two quaternions.
@@ -372,7 +372,7 @@ constexpr quaternion<T> negate(const quaternion<T>& q) noexcept;
  * @return Interpolated quaternion.
  */
 template <class T>
-quaternion<T> nlerp(const quaternion<T>& a, const quaternion<T>& b, T t);
+[[nodiscard]] quaternion<T> nlerp(const quaternion<T>& a, const quaternion<T>& b, T t);
 
 /**
  * Normalizes a quaternion.
@@ -382,7 +382,7 @@ quaternion<T> nlerp(const quaternion<T>& a, const quaternion<T>& b, T t);
  * @return Normalized quaternion.
  */
 template <class T>
-quaternion<T> normalize(const quaternion<T>& q);
+[[nodiscard]] quaternion<T> normalize(const quaternion<T>& q);
 
 /**
  * Creates a rotation from an angle and axis.
@@ -393,7 +393,7 @@ quaternion<T> normalize(const quaternion<T>& q);
  * @return Quaternion representing the rotation.
  */
 template <class T>
-quaternion<T> angle_axis(T angle, const vector<T, 3>& axis);
+[[nodiscard]] quaternion<T> angle_axis(T angle, const vector<T, 3>& axis);
 
 /**
  * Calculates the minimum rotation between two normalized direction vectors.
@@ -404,7 +404,7 @@ quaternion<T> angle_axis(T angle, const vector<T, 3>& axis);
  * @return Quaternion representing the minimum rotation between the source and destination vectors.
  */
 template <class T>
-quaternion<T> rotation(const vector<T, 3>& source, const vector<T, 3>& destination);
+[[nodiscard]] quaternion<T> rotation(const vector<T, 3>& source, const vector<T, 3>& destination);
 
 /**
  * Performs spherical linear interpolation between two quaternions.
@@ -416,7 +416,7 @@ quaternion<T> rotation(const vector<T, 3>& source, const vector<T, 3>& destinati
  * @return Interpolated quaternion.
  */
 template <class T>
-quaternion<T> slerp(const quaternion<T>& a, const quaternion<T>& b, T t, T error = T{1e-6});
+[[nodiscard]] quaternion<T> slerp(const quaternion<T>& a, const quaternion<T>& b, T t, T error = T{1e-6});
 
 /**
  * Calculates the square length of a quaternion. The square length can be calculated faster than the length because a call to `std::sqrt` is saved.
@@ -426,7 +426,7 @@ quaternion<T> slerp(const quaternion<T>& a, const quaternion<T>& b, T t, T error
  * @return Square length of the quaternion.
  */
 template <class T>
-constexpr T sqr_length(const quaternion<T>& q) noexcept;
+[[nodiscard]] constexpr T sqr_length(const quaternion<T>& q) noexcept;
 
 /**
  * Subtracts a quaternion from another quaternion.
@@ -437,7 +437,7 @@ constexpr T sqr_length(const quaternion<T>& q) noexcept;
  * @return Difference between the quaternions.
  */
 template <class T>
-constexpr quaternion<T> sub(const quaternion<T>& a, const quaternion<T>& b) noexcept;
+[[nodiscard]] constexpr quaternion<T> sub(const quaternion<T>& a, const quaternion<T>& b) noexcept;
 
 /**
  * Subtracts a quaternion and a scalar.
@@ -449,9 +449,9 @@ constexpr quaternion<T> sub(const quaternion<T>& a, const quaternion<T>& b) noex
  */
 /// @{
 template <class T>
-constexpr quaternion<T> sub(const quaternion<T>& a, T b) noexcept;
+[[nodiscard]] constexpr quaternion<T> sub(const quaternion<T>& a, T b) noexcept;
 template <class T>
-constexpr quaternion<T> sub(T a, const quaternion<T>& b) noexcept;
+[[nodiscard]] constexpr quaternion<T> sub(T a, const quaternion<T>& b) noexcept;
 /// @}
 
 /**
@@ -476,7 +476,7 @@ void swing_twist(const quaternion<T>& q, const vector<T, 3>& a, quaternion<T>& q
  * @return Unit quaternion representing the rotation described by @p m.
  */
 template <class T>
-quaternion<T> quaternion_cast(const matrix<T, 3, 3>& m);
+[[nodiscard]] quaternion<T> quaternion_cast(const matrix<T, 3, 3>& m);
 
 template <class T>
 inline constexpr quaternion<T> add(const quaternion<T>& a, const quaternion<T>& b) noexcept

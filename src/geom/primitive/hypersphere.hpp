@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GEOM_PRIMITIVE_HYPERSPHERE_HPP
 #define ANTKEEPER_GEOM_PRIMITIVE_HYPERSPHERE_HPP
 
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include "math/vector.hpp"
 
 namespace geom {

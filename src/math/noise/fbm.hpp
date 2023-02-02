@@ -44,7 +44,7 @@ namespace noise {
  *
  */
 template <class T, std::size_t N>
-T fbm
+[[nodiscard]] T fbm
 (
 	vector<T, N> position,
 	std::size_t octaves,

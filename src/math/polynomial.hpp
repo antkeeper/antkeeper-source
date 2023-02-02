@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_MATH_POLYNOMIAL_HPP
 #define ANTKEEPER_MATH_POLYNOMIAL_HPP
 
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include "math/map.hpp"
 
 namespace math {
@@ -38,7 +38,7 @@ namespace polynomial {
  * @see https://en.wikipedia.org/wiki/Horner%27s_method
  */
 template <class InputIt, class T>
-T horner(InputIt first, InputIt last, T x)
+[[nodiscard]] constexpr T horner(InputIt first, InputIt last, T x)
 {
 	T y = *first;
 	for (++first; first != last; ++first)
@@ -61,7 +61,7 @@ namespace chebyshev {
 	 * @return Evaluated value.
 	 */
 	template <class InputIt, class T>
-	T evaluate(InputIt first, InputIt last, T x)
+	[[nodiscard]] T evaluate(InputIt first, InputIt last, T x)
 	{
 		T y = *(first++);
 		y += *(first++) * x;
@@ -88,7 +88,7 @@ namespace chebyshev {
 	 * @return Evaluated value.
 	 */
 	template <class InputIt, class T>
-	T evaluate(InputIt first, InputIt last, T min, T max, T x)
+	[[nodiscard]] T evaluate(InputIt first, InputIt last, T min, T max, T x)
 	{
 		return evaluate<InputIt, T>(first, last, math::map<T>(x, min, max, T(-1), T(1)));
 	}

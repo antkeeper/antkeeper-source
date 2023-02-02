@@ -25,11 +25,11 @@
 
 /// @copydoc math::mul(const math::transform<T>&, const math::transform<T>&)
 template <class T>
-math::transform<T> operator*(const math::transform<T>& x, const math::transform<T>& y);
+[[nodiscard]] math::transform<T> operator*(const math::transform<T>& x, const math::transform<T>& y);
 
 /// @copydoc math::mul(const math::transform<T>&, const math::vector<T, 3>&)
 template <class T>
-math::vector<T, 3> operator*(const math::transform<T>& t, const math::vector<T, 3>& v);
+[[nodiscard]] math::vector<T, 3> operator*(const math::transform<T>& t, const math::vector<T, 3>& v);
 
 /**
  * Multiplies two transforms and stores the result in the first transform.

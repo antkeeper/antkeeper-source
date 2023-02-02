@@ -60,7 +60,7 @@ constexpr std::size_t kernel_size = 4 << std::max<std::size_t>(0, (2 * (N - 1)))
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-constexpr vector<T, N> kernel_offset(std::size_t i, std::index_sequence<I...>)
+[[nodiscard]] constexpr vector<T, N> kernel_offset(std::size_t i, std::index_sequence<I...>)
 {
 	return {static_cast<T>((I ? (i / (2 << std::max<std::size_t>(0, 2 * I - 1))) : i) % 4)...};
 }
@@ -77,7 +77,7 @@ constexpr vector<T, N> kernel_offset(std::size_t i, std::index_sequence<I...>)
  * @private
  */
 template <class T, std::size_t N, std::size_t... I>
-constexpr std::array<vector<T, N>, kernel_size<N>> generate_kernel(std::index_sequence<I...>)
+[[nodiscard]] constexpr std::array<vector<T, N>, kernel_size<N>> generate_kernel(std::index_sequence<I...>)
 {
 	return {kernel_offset<T, N>(I, std::make_index_sequence<N>{})...};
 }
@@ -107,7 +107,7 @@ constexpr auto kernel = generate_kernel<T, N>(std::make_index_sequence<kernel_si
  * @return Tuple containing the square Euclidean distance from @p position to the F1 cell, the displacement vector from the input position to the F1 cell center, and a hash value indicating the ID of the F1 cell.
  */
 template <class T, std::size_t N>
-std::tuple
+[[nodiscard]] std::tuple
 <
 	// F1 square distance to center
 	T,
@@ -197,7 +197,7 @@ f1
  * @return Tuple containing the square Euclidean distance from @p position to the F1 cell center, the displacement vector from the input position to the F1 cell center, a hash value indicating the ID of the F1 cell, and the square Euclidean distance from @p position to the nearest edge.
  */
 template <class T, std::size_t N>
-std::tuple
+[[nodiscard]] std::tuple
 <
 	// F1 square distance to center
 	T,
@@ -320,7 +320,7 @@ f1_edge
  * @return Tuple containing the square Euclidean distances, displacement vectors from the input position to the cell centers, and hash values indicating the cell IDs, for both the F1 and F2 cells.
  */
 template <class T, std::size_t N>
-std::tuple
+[[nodiscard]] std::tuple
 <
 	// F1 square distance to center
 	T,

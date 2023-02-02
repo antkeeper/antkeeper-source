@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_PHYSICS_TIME_UT1_HPP
 #define ANTKEEPER_PHYSICS_TIME_UT1_HPP
 
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 
 namespace physics {
 namespace time {

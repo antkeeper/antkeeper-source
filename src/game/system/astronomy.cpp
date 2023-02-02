@@ -291,13 +291,13 @@ void astronomy::update(double t, double dt)
 			}
 			
 			// Measure luminance of observer reference body as seen by reflector
-			const double3 reflector_observer_luminance = observer_blackbody_illuminance * reference_body->albedo * observer_reflector_transmittance * reflector_observer_phase_factor * math::inverse_pi<double>;
+			const double3 reflector_observer_luminance = observer_blackbody_illuminance * reference_body->albedo * observer_reflector_transmittance * reflector_observer_phase_factor * math::inv_pi<double>;
 			
 			// Measure illuminance from observer reference body reaching reflector
 			const double3 reflector_observer_illuminance = reflector_observer_luminance * reflector_observer_solid_angle;
 			
 			// Measure luminance of reflector as seen by observer
-			const double3 observer_reflector_luminance = (reflector_blackbody_illuminance * observer_reflector_phase_factor + reflector_observer_illuminance) * reflector.albedo * observer_reflector_transmittance * math::inverse_pi<double>;
+			const double3 observer_reflector_luminance = (reflector_blackbody_illuminance * observer_reflector_phase_factor + reflector_observer_illuminance) * reflector.albedo * observer_reflector_transmittance * math::inv_pi<double>;
 			
 			// Measure illuminance from reflector reaching observer
 			const double3 observer_reflector_illuminance = observer_reflector_luminance * observer_reflector_solid_angle;

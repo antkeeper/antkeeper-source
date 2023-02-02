@@ -23,7 +23,7 @@
 #include "resources/json.hpp"
 #include "game/ant/gene/nest-site.hpp"
 #include "math/angles.hpp"
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include <stdexcept>
 
 using namespace game::ant;

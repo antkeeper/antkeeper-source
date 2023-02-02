@@ -32,7 +32,7 @@
 #include "geom/projection.hpp"
 #include "config.hpp"
 #include "math/quaternion.hpp"
-#include "math/constants.hpp"
+#include "math/numbers.hpp"
 #include <functional>
 #include <set>
 

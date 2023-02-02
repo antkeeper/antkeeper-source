@@ -55,7 +55,7 @@ struct vector
 	
 	/// @private
 	template <class U, std::size_t... I>
-	inline constexpr vector<U, N> type_cast(std::index_sequence<I...>) const noexcept
+	[[nodiscard]] inline constexpr vector<U, N> type_cast(std::index_sequence<I...>) const noexcept
 	{
 		return {static_cast<U>(elements[I])...};
 	}
@@ -68,14 +68,14 @@ struct vector
 	 * @return Vector containing the type-casted elements.
 	 */
 	template <class U>
-	inline constexpr explicit operator vector<U, N>() const noexcept
+	[[nodiscard]] inline constexpr explicit operator vector<U, N>() const noexcept
 	{
 		return type_cast<U>(std::make_index_sequence<N>{});
 	}
 	
 	/// @private
 	template <std::size_t M, std::size_t... I>
-	inline constexpr vector<T, M> size_cast(std::index_sequence<I...>) const noexcept
+	[[nodiscard]] inline constexpr vector<T, M> size_cast(std::index_sequence<I...>) const noexcept
 	{
 		return {(I < N) ? elements[I] : T{0} ...};
 	}
@@ -88,7 +88,7 @@ struct vector
 	 * @return *m*-dimensional vector.
 	 */
 	template <std::size_t M>
-	inline constexpr explicit operator vector<T, M>() const noexcept
+	[[nodiscard]] inline constexpr explicit operator vector<T, M>() const noexcept
 	{
 		return size_cast<M>(std::make_index_sequence<M>{});
 	}
@@ -106,11 +106,11 @@ struct vector
 	 * @return Reference to the element at index @p i.
 	 */
 	/// @{
-	inline constexpr element_type& operator[](std::size_t i) noexcept
+	[[nodiscard]] inline constexpr element_type& operator[](std::size_t i) noexcept
 	{
 		return elements[i];
 	}
-	inline constexpr const element_type& operator[](std::size_t i) const noexcept
+	[[nodiscard]] inline constexpr const element_type& operator[](std::size_t i) const noexcept
 	{
 		return elements[i];
 	}
@@ -120,11 +120,11 @@ struct vector
 	 * Returns a reference to the first element.
 	 */
 	/// @{
-	inline constexpr element_type& front() noexcept
+	[[nodiscard]] inline constexpr element_type& front() noexcept
 	{
 		return elements[0];
 	}
-	inline constexpr const element_type& front() const noexcept
+	[[nodiscard]] inline constexpr const element_type& front() const noexcept
 	{
 		return elements[0];
 	}
@@ -134,11 +134,11 @@ struct vector
 	 * Returns a reference to the last element.
 	 */
 	/// @{
-	inline constexpr element_type& back() noexcept
+	[[nodiscard]] inline constexpr element_type& back() noexcept
 	{
 		return elements[N - 1];
 	}
-	inline constexpr const element_type& back() const noexcept
+	[[nodiscard]] inline constexpr const element_type& back() const noexcept
 	{
 		return elements[N - 1];
 	}
@@ -148,11 +148,11 @@ struct vector
 	 * Returns a pointer to the element array.
 	 */
 	/// @{
-	inline constexpr element_type* data() noexcept
+	[[nodiscard]] inline constexpr element_type* data() noexcept
 	{
 		return elements;
 	};
-	inline constexpr const element_type* data() const noexcept
+	[[nodiscard]] inline constexpr const element_type* data() const noexcept
 	{
 		return elements;
 	};
@@ -160,12 +160,12 @@ struct vector
 	
 	/// Returns a reference to the first element.
 	/// @{
-	inline constexpr element_type& x() noexcept
+	[[nodiscard]] inline constexpr element_type& x() noexcept
 	{
 		static_assert(N > 0, "Vector does not contain an x element.");
 		return elements[0];
 	}
-	inline constexpr const element_type& x() const noexcept
+	[[nodiscard]] inline constexpr const element_type& x() const noexcept
 	{
 		static_assert(N > 0, "Vector does not contain an x element.");
 		return elements[0];
@@ -176,12 +176,12 @@ struct vector
 	 * Returns a reference to the second element.
 	 */
 	/// @{
-	inline constexpr element_type& y() noexcept
+	[[nodiscard]] inline constexpr element_type& y() noexcept
 	{
 		static_assert(N > 1, "Vector does not contain a y element.");
 		return elements[1];
 	}
-	inline constexpr const element_type& y() const noexcept
+	[[nodiscard]] inline constexpr const element_type& y() const noexcept
 	{
 		static_assert(N > 1, "Vector does not contain a y element.");
 		return elements[1];
@@ -192,12 +192,12 @@ struct vector
 	 * Returns a reference to the third element.
 	 */
 	/// @{
-	inline constexpr element_type& z() noexcept
+	[[nodiscard]] inline constexpr element_type& z() noexcept
 	{
 		static_assert(N > 2, "Vector does not contain a z element.");
 		return elements[2];
 	}
-	inline constexpr const element_type& z() const noexcept
+	[[nodiscard]] inline constexpr const element_type& z() const noexcept
 	{
 		static_assert(N > 2, "Vector does not contain a z element.");
 		return elements[2];
@@ -213,15 +213,15 @@ struct vector
 	 * Returns an iterator to the first element.
 	 */
 	/// @{
-	inline constexpr element_type* begin() noexcept
+	[[nodiscard]] inline constexpr element_type* begin() noexcept
 	{
 		return elements;
 	}
-	inline constexpr const element_type* begin() const noexcept
+	[[nodiscard]] inline constexpr const element_type* begin() const noexcept
 	{
 		return elements;
 	}
-	inline constexpr const element_type* cbegin() const noexcept
+	[[nodiscard]] inline constexpr const element_type* cbegin() const noexcept
 	{
 		return elements;
 	}
@@ -231,15 +231,15 @@ struct vector
 	 * Returns an iterator to the element following the last element.
 	 */
 	/// @{
-	inline constexpr element_type* end() noexcept
+	[[nodiscard]] inline constexpr element_type* end() noexcept
 	{
 		return elements + N;
 	}
-	inline constexpr const element_type* end() const noexcept
+	[[nodiscard]] inline constexpr const element_type* end() const noexcept
 	{
 		return elements + N;
 	}
-	inline constexpr const element_type* cend() const noexcept
+	[[nodiscard]] inline constexpr const element_type* cend() const noexcept
 	{
 		return elements + N;
 	}
@@ -249,15 +249,15 @@ struct vector
 	 * Returns a reverse iterator to the first element of the reversed vector.
 	 */
 	/// @{
-	inline constexpr std::reverse_iterator<element_type*> rbegin() noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<element_type*> rbegin() noexcept
 	{
 		return std::reverse_iterator<element_type*>(elements + N);
 	}
-	inline constexpr std::reverse_iterator<const element_type*> rbegin() const noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<const element_type*> rbegin() const noexcept
 	{
 		return std::reverse_iterator<const element_type*>(elements + N);
 	}
-	inline constexpr std::reverse_iterator<const element_type*> crbegin() const noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<const element_type*> crbegin() const noexcept
 	{
 		return std::reverse_iterator<const element_type*>(elements + N);
 	}
@@ -267,15 +267,15 @@ struct vector
 	 * Returns a reverse iterator to the element following the last element of the reversed vector.
 	 */
 	/// @{
-	inline constexpr std::reverse_iterator<element_type*> rend() noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<element_type*> rend() noexcept
 	{
 		return std::reverse_iterator<element_type*>(elements);
 	}
-	inline constexpr std::reverse_iterator<const element_type*> rend() const noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<const element_type*> rend() const noexcept
 	{
 		return std::reverse_iterator<const element_type*>(elements);
 	}
-	inline constexpr std::reverse_iterator<const element_type*> crend() const noexcept
+	[[nodiscard]] inline constexpr std::reverse_iterator<const element_type*> crend() const noexcept
 	{
 		return std::reverse_iterator<const element_type*>(elements);
 	}
@@ -289,7 +289,7 @@ struct vector
 	/**
 	 * Returns the number of elements in the vector.
 	 */
-	inline constexpr std::size_t size() const noexcept
+	[[nodiscard]] inline constexpr std::size_t size() const noexcept
 	{
 		return N;
 	};
@@ -302,14 +302,14 @@ struct vector
 	/**
 	 * Returns a zero vector, where every element is equal to zero.
 	 */
-	static constexpr vector zero() noexcept
+	[[nodiscard]] static constexpr vector zero() noexcept
 	{
 		return {};
 	}
 	
 	/// @private
 	template <std::size_t... I>
-	static constexpr vector one(std::index_sequence<I...>) noexcept
+	[[nodiscard]] static constexpr vector one(std::index_sequence<I...>) noexcept
 	{
 		//return {T{1}...};
 		
@@ -320,7 +320,7 @@ struct vector
 	/**
 	 * Returns a vector of ones, where every element is equal to one.
 	 */
-	static constexpr vector one() noexcept
+	[[nodiscard]] static constexpr vector one() noexcept
 	{
 		return one(std::make_index_sequence<N>{});
 	}
@@ -348,7 +348,7 @@ using vector4 = vector<T, 4>;
  * @return Absolute values of input vector elements.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> abs(const vector<T, N>& x);
+[[nodiscard]] constexpr vector<T, N> abs(const vector<T, N>& x);
 
 /**
  * Adds two values.
@@ -360,9 +360,9 @@ constexpr vector<T, N> abs(const vector<T, N>& x);
  */
 /// @{
 template <class T, std::size_t N>
-constexpr vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<T, N> add(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 template <class T, std::size_t N>
-constexpr vector<T, N> add(const vector<T, N>& x, T y) noexcept;
+[[nodiscard]] constexpr vector<T, N> add(const vector<T, N>& x, T y) noexcept;
 /// @}
 
 /**
@@ -373,7 +373,7 @@ constexpr vector<T, N> add(const vector<T, N>& x, T y) noexcept;
  * @return `true` if all elements are `true`, `false` otherwise.
  */
 template <std::size_t N>
-constexpr bool all(const vector<bool, N>& x) noexcept;
+[[nodiscard]] constexpr bool all(const vector<bool, N>& x) noexcept;
 
 /**
  * Checks if any elements of a boolean vector are `true`.
@@ -383,7 +383,7 @@ constexpr bool all(const vector<bool, N>& x) noexcept;
  * @return `true` if any elements are `true`, `false` otherwise.
  */
 template <std::size_t N>
-constexpr bool any(const vector<bool, N>& x) noexcept;
+[[nodiscard]] constexpr bool any(const vector<bool, N>& x) noexcept;
 
 /**
  * Performs a element-wise ceil operation.
@@ -393,7 +393,7 @@ constexpr bool any(const vector<bool, N>& x) noexcept;
  * @return Component-wise ceil of input vector.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> ceil(const vector<T, N>& x);
+[[nodiscard]] constexpr vector<T, N> ceil(const vector<T, N>& x);
 
 /**
  * Clamps the values of a vector's elements.
@@ -406,9 +406,9 @@ constexpr vector<T, N> ceil(const vector<T, N>& x);
  */
 /// @{
 template <class T, std::size_t N>
-constexpr vector<T, N> clamp(const vector<T, N>& x, const vector<T, N>& min, const vector<T, N>& max);
+[[nodiscard]] constexpr vector<T, N> clamp(const vector<T, N>& x, const vector<T, N>& min, const vector<T, N>& max);
 template <class T, std::size_t N>
-constexpr vector<T, N> clamp(const vector<T, N>& x, T min, T max);
+[[nodiscard]] constexpr vector<T, N> clamp(const vector<T, N>& x, T min, T max);
 /// @}
 
 /**
@@ -420,7 +420,7 @@ constexpr vector<T, N> clamp(const vector<T, N>& x, T min, T max);
  * @return Length-clamped vector.
  */
 template <class T, std::size_t N>
-vector<T, N> clamp_length(const vector<T, N>& x, T max_length);
+[[nodiscard]] vector<T, N> clamp_length(const vector<T, N>& x, T max_length);
 
 /**
  * Calculate the cross product of two vectors.
@@ -431,7 +431,7 @@ vector<T, N> clamp_length(const vector<T, N>& x, T max_length);
  * @return Cross product of the two vectors.
  */
 template <class T>
-constexpr vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y) noexcept;
+[[nodiscard]] constexpr vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y) noexcept;
 
 /**
  * Calculates the distance between two points.
@@ -442,7 +442,7 @@ constexpr vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y) noexc
  * @return Distance between the two points.
  */
 template <class T, std::size_t N>
-T distance(const vector<T, N>& p0, const vector<T, N>& p1);
+[[nodiscard]] T distance(const vector<T, N>& p0, const vector<T, N>& p1);
 
 /**
  * Divides a vector by a value.
@@ -454,11 +454,11 @@ T distance(const vector<T, N>& p0, const vector<T, N>& p1);
  */
 /// @{
 template <class T, std::size_t N>
-constexpr vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<T, N> div(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 template <class T, std::size_t N>
-constexpr vector<T, N> div(const vector<T, N>& x, T y) noexcept;
+[[nodiscard]] constexpr vector<T, N> div(const vector<T, N>& x, T y) noexcept;
 template <class T, std::size_t N>
-constexpr vector<T, N> div(T x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<T, N> div(T x, const vector<T, N>& y) noexcept;
 /// @}
 
 /**
@@ -470,7 +470,7 @@ constexpr vector<T, N> div(T x, const vector<T, N>& y) noexcept;
  * @return Dot product of the two vectors.
  */
 template <class T, std::size_t N>
-constexpr T dot(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr T dot(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 
 /**
  * Compares two vectors for equality
@@ -481,7 +481,7 @@ constexpr T dot(const vector<T, N>& x, const vector<T, N>& y) noexcept;
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-constexpr vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 
 /**
  * Performs a element-wise floor operation.
@@ -491,7 +491,7 @@ constexpr vector<bool, N> equal(const vector<T, N>& x, const vector<T, N>& y) no
  * @return Component-wise floor of input vector.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> floor(const vector<T, N>& x);
+[[nodiscard]] constexpr vector<T, N> floor(const vector<T, N>& x);
 
 /**
  * Performs a multiply-add operation.
@@ -504,9 +504,9 @@ constexpr vector<T, N> floor(const vector<T, N>& x);
  */
 /// @{
 template <class T, std::size_t N>
-constexpr vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z);
+[[nodiscard]] constexpr vector<T, N> fma(const vector<T, N>& x, const vector<T, N>& y, const vector<T, N>& z);
 template <class T, std::size_t N>
-constexpr vector<T, N> fma(const vector<T, N>& x, T y, T z);
+[[nodiscard]] constexpr vector<T, N> fma(const vector<T, N>& x, T y, T z);
 /// @}
 
 /**
@@ -517,7 +517,7 @@ constexpr vector<T, N> fma(const vector<T, N>& x, T y, T z);
  * @return Fractional parts of input vector.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> fract(const vector<T, N>& x);
+[[nodiscard]] constexpr vector<T, N> fract(const vector<T, N>& x);
 
 /**
  * Extracts the Ith element from a vector.
@@ -532,13 +532,13 @@ constexpr vector<T, N> fract(const vector<T, N>& x);
  */
 /// @{
 template<std::size_t I, class T, std::size_t N>
-constexpr T& get(math::vector<T, N>& v) noexcept;
+[[nodiscard]] constexpr T& get(math::vector<T, N>& v) noexcept;
 template<std::size_t I, class T, std::size_t N>
-constexpr T&& get(math::vector<T, N>&& v) noexcept;
+[[nodiscard]] constexpr T&& get(math::vector<T, N>&& v) noexcept;
 template<std::size_t I, class T, std::size_t N>
-constexpr const T& get(const math::vector<T, N>& v) noexcept;
+[[nodiscard]] constexpr const T& get(const math::vector<T, N>& v) noexcept;
 template<std::size_t I, class T, std::size_t N>
-constexpr const T&& get(const math::vector<T, N>&& v) noexcept;
+[[nodiscard]] constexpr const T&& get(const math::vector<T, N>&& v) noexcept;
 /// @}
 
 /**
@@ -550,7 +550,7 @@ constexpr const T&& get(const math::vector<T, N>&& v) noexcept;
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-constexpr vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 
 /**
  * Performs a element-wise greater-than or equal-to comparison of two vectors.
@@ -561,7 +561,7 @@ constexpr vector<bool, N> greater_than(const vector<T, N>& x, const vector<T, N>
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 
 /**
  * Calculates the inverse length of a vector.
@@ -571,7 +571,7 @@ constexpr vector<bool, N> greater_than_equal(const vector<T, N>& x, const vector
  * @return Inverse length of the vector.
  */
 template <class T, std::size_t N>
-T inv_length(const vector<T, N>& x);
+[[nodiscard]] T inv_length(const vector<T, N>& x);
 
 /**
  * Calculates the length of a vector.
@@ -581,7 +581,7 @@ T inv_length(const vector<T, N>& x);
  * @return Length of the vector.
  */
 template <class T, std::size_t N>
-T length(const vector<T, N>& x);
+[[nodiscard]] T length(const vector<T, N>& x);
 
 /**
  * Performs a element-wise less-than comparison of two vectors.
@@ -592,7 +592,7 @@ T length(const vector<T, N>& x);
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-constexpr vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 
 /**
  * Performs a element-wise less-than or equal-to comparison of two vectors.
@@ -603,7 +603,7 @@ constexpr vector<bool, N> less_than(const vector<T, N>& x, const vector<T, N>& y
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 
 /**
  * Returns a vector containing the maximum elements of two vectors.
@@ -614,7 +614,7 @@ constexpr vector<bool, N> less_than_equal(const vector<T, N>& x, const vector<T,
  * @return Maximum elements of the two vectors.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y);
+[[nodiscard]] constexpr vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Returns the value of the greatest element in a vector.
@@ -624,7 +624,7 @@ constexpr vector<T, N> max(const vector<T, N>& x, const vector<T, N>& y);
  * @return Value of the greatest element in the input vector.
  */
 template <class T, std::size_t N>
-constexpr T max(const vector<T, N>& x);
+[[nodiscard]] constexpr T max(const vector<T, N>& x);
 
 /**
  * Returns a vector containing the minimum elements of two vectors.
@@ -635,7 +635,7 @@ constexpr T max(const vector<T, N>& x);
  * @return Minimum elements of the two vectors.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y);
+[[nodiscard]] constexpr vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y);
 
 /**
  * Returns the value of the smallest element in a vector.
@@ -645,7 +645,7 @@ constexpr vector<T, N> min(const vector<T, N>& x, const vector<T, N>& y);
  * @return Value of the smallest element in the input vector.
  */
 template <class T, std::size_t N>
-constexpr T min(const vector<T, N>& x);
+[[nodiscard]] constexpr T min(const vector<T, N>& x);
 
 /**
  * Calculates the element-wise remainder of the division operation `x / y`.
@@ -657,9 +657,9 @@ constexpr T min(const vector<T, N>& x);
  */
 /// @{
 template <class T, std::size_t N>
-constexpr vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y);
+[[nodiscard]] constexpr vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y);
 template <class T, std::size_t N>
-constexpr vector<T, N> mod(const vector<T, N>& x, T y);
+[[nodiscard]] constexpr vector<T, N> mod(const vector<T, N>& x, T y);
 /// @}
 
 /**
@@ -672,9 +672,9 @@ constexpr vector<T, N> mod(const vector<T, N>& x, T y);
  */
 /// @{
 template <class T, std::size_t N>
-constexpr vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<T, N> mul(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 template <class T, std::size_t N>
-constexpr vector<T, N> mul(const vector<T, N>& x, T y) noexcept;
+[[nodiscard]] constexpr vector<T, N> mul(const vector<T, N>& x, T y) noexcept;
 /// @}
 
 /**
@@ -685,7 +685,7 @@ constexpr vector<T, N> mul(const vector<T, N>& x, T y) noexcept;
  * @return Negated vector.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> negate(const vector<T, N>& x) noexcept;
+[[nodiscard]] constexpr vector<T, N> negate(const vector<T, N>& x) noexcept;
 
 /**
  * Calculates the unit vector in the same direction as the original vector.
@@ -695,7 +695,7 @@ constexpr vector<T, N> negate(const vector<T, N>& x) noexcept;
  * @return Normalized vector.
  */
 template <class T, std::size_t N>
-vector<T, N> normalize(const vector<T, N>& x);
+[[nodiscard]] vector<T, N> normalize(const vector<T, N>& x);
 
 /**
  * Logically inverts a boolean vector.
@@ -705,7 +705,7 @@ vector<T, N> normalize(const vector<T, N>& x);
  * @return Logically inverted vector.
  */
 template <class T, std::size_t N>
-constexpr vector<bool, N> logical_not(const vector<T, N>& x) noexcept;
+[[nodiscard]] constexpr vector<bool, N> logical_not(const vector<T, N>& x) noexcept;
 
 /**
  * Compares two vectors for inequality
@@ -716,7 +716,7 @@ constexpr vector<bool, N> logical_not(const vector<T, N>& x) noexcept;
  * @return Boolean vector containing the result of the element comparisons.
  */
 template <class T, std::size_t N>
-constexpr vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 
 /**
  * Raises each element to a power.
@@ -728,9 +728,9 @@ constexpr vector<bool, N> not_equal(const vector<T, N>& x, const vector<T, N>& y
  */
 /// @{
 template <class T, std::size_t N>
-vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y);
+[[nodiscard]] vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y);
 template <class T, std::size_t N>
-vector<T, N> pow(const vector<T, N>& x, T y);
+[[nodiscard]] vector<T, N> pow(const vector<T, N>& x, T y);
 /// @}
 
 /**
@@ -741,7 +741,7 @@ vector<T, N> pow(const vector<T, N>& x, T y);
  * @return Component-wise round of input vector.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> round(const vector<T, N>& x);
+[[nodiscard]] constexpr vector<T, N> round(const vector<T, N>& x);
 
 /**
  * Returns a vector containing the signs of each element.
@@ -750,7 +750,7 @@ constexpr vector<T, N> round(const vector<T, N>& x);
  * @return Signs of input vector elements.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> sign(const vector<T, N>& x);
+[[nodiscard]] constexpr vector<T, N> sign(const vector<T, N>& x);
 
 /**
  * Calculates the square distance between two points. The square distance can be calculated faster than the distance because a call to `std::sqrt` is saved.
@@ -761,7 +761,7 @@ constexpr vector<T, N> sign(const vector<T, N>& x);
  * @return Square distance between the two points.
  */
 template <class T, std::size_t N>
-constexpr T sqr_distance(const vector<T, N>& p0, const vector<T, N>& p1) noexcept;
+[[nodiscard]] constexpr T sqr_distance(const vector<T, N>& p0, const vector<T, N>& p1) noexcept;
 
 /**
  * Calculates the square length of a vector. The square length can be calculated faster than the length because a call to `std::sqrt` is saved.
@@ -771,7 +771,7 @@ constexpr T sqr_distance(const vector<T, N>& p0, const vector<T, N>& p1) noexcep
  * @return Square length of the vector.
  */
 template <class T, std::size_t N>
-constexpr T sqr_length(const vector<T, N>& x) noexcept;
+[[nodiscard]] constexpr T sqr_length(const vector<T, N>& x) noexcept;
 
 /**
  * Takes the square root of each element.
@@ -781,7 +781,7 @@ constexpr T sqr_length(const vector<T, N>& x) noexcept;
  * @return Square roots of the input vector elements.
  */
 template <class T, std::size_t N>
-vector<T, N> sqrt(const vector<T, N>& x);
+[[nodiscard]] vector<T, N> sqrt(const vector<T, N>& x);
 
 /**
  * Subtracts a value by another value.
@@ -793,11 +793,11 @@ vector<T, N> sqrt(const vector<T, N>& x);
  */
 /// @{
 template <class T, std::size_t N>
-constexpr vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<T, N> sub(const vector<T, N>& x, const vector<T, N>& y) noexcept;
 template <class T, std::size_t N>
-constexpr vector<T, N> sub(const vector<T, N>& x, T y) noexcept;
+[[nodiscard]] constexpr vector<T, N> sub(const vector<T, N>& x, T y) noexcept;
 template <class T, std::size_t N>
-constexpr vector<T, N> sub(T x, const vector<T, N>& y) noexcept;
+[[nodiscard]] constexpr vector<T, N> sub(T x, const vector<T, N>& y) noexcept;
 /// @}
 
 /**
@@ -807,7 +807,7 @@ constexpr vector<T, N> sub(T x, const vector<T, N>& y) noexcept;
  * @return Sum of the vector's elements.
  */
 template <class T, std::size_t N>
-constexpr T sum(const vector<T, N>& x) noexcept;
+[[nodiscard]] constexpr T sum(const vector<T, N>& x) noexcept;
 
 /**
  * Makes an *m*-dimensional vector by rearranging and/or duplicating elements of an *n*-dimensional vector.
@@ -821,7 +821,7 @@ constexpr T sum(const vector<T, N>& x) noexcept;
  * @return Vector containing elements from @p x in the order specified by @p Indices. The size of the returned vector is equivalent to the number of indices in @p Indices.
  */
 template <std::size_t... Indices, class T, std::size_t N>
-constexpr vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) noexcept;
+[[nodiscard]] constexpr vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) noexcept;
 
 /**
  * Performs a element-wise trunc operation.
@@ -830,7 +830,7 @@ constexpr vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) noexcept;
  * @return Component-wise trunc of input vector.
  */
 template <class T, std::size_t N>
-constexpr vector<T, N> trunc(const vector<T, N>& x);
+[[nodiscard]] constexpr vector<T, N> trunc(const vector<T, N>& x);
 
 /// @private
 template <class T, std::size_t N, std::size_t... I>

@@ -33,29 +33,13 @@ namespace quadrature {
  *
  * @param f Unary function object to integrate.
  * @param first,last Range of sample points on `[first, last)`.
+ *
  * @return Approximated integral of @p f.
  *
  * @see https://en.wikipedia.org/wiki/Simpson%27s_rule
  */
 template<class UnaryOp, class InputIt>
-typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::value_type>::type
-	simpson(UnaryOp f, InputIt first, InputIt last);
-
-/**
- * Approximates the definite integral of a function using the trapezoidal rule.
- *
- * @param f Unary function object to integrate.
- * @param first,last Range of sample points on `[first, last)`.
- * @return Approximated integral of @p f.
- *
- * @see https://en.wikipedia.org/wiki/Trapezoidal_rule
- */
-template<class UnaryOp, class InputIt>
-typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::value_type>::type
-	trapezoid(UnaryOp f, InputIt first, InputIt last);
-
-template<class UnaryOp, class InputIt>
-typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::value_type>::type
+[[nodiscard]] typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::value_type>::type
 	simpson(UnaryOp f, InputIt first, InputIt last)
 {
 	typedef typename std::iterator_traits<InputIt>::value_type input_type;
@@ -93,8 +77,18 @@ typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::val
 	return sum / difference_type(6);
 }
 
+/**
+ * Approximates the definite integral of a function using the trapezoidal rule.
+ *
+ * @param f Unary function object to integrate.
+ * @param first,last Range of sample points on `[first, last)`.
+ *
+ * @return Approximated integral of @p f.
+ *
+ * @see https://en.wikipedia.org/wiki/Trapezoidal_rule
+ */
 template<class UnaryOp, class InputIt>
-typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::value_type>::type
+[[nodiscard]] typename std::invoke_result<UnaryOp, typename std::iterator_traits<InputIt>::value_type>::type
 	trapezoid(UnaryOp f, InputIt first, InputIt last)
 {
 	typedef typename std::iterator_traits<InputIt>::value_type input_type;
