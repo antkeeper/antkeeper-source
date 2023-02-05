@@ -24,6 +24,10 @@
 #include "debug/log.hpp"
 #include "game/fonts.hpp"
 #include "game/menu.hpp"
+#include "game/strings.hpp"
+#include "utility/hash/fnv1a.hpp"
+
+using namespace hash::literals;
 
 namespace game {
 namespace state {
@@ -31,7 +35,7 @@ namespace state {
 language_menu::language_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering language menu state");
+	debug::log::trace("Entering language menu state...");
 	
 	// Construct menu item texts
 	scene::text* language_name_text = new scene::text();
@@ -59,30 +63,24 @@ language_menu::language_menu(game::context& ctx):
 	auto next_language_callback = [this, &ctx]()
 	{
 		// Increment language index
-		++ctx.language_index;
-		if (ctx.language_index >= ctx.language_count)
-			ctx.language_index = 0;
+		ctx.language_index = (ctx.language_index + 1) % ctx.language_count;
 		
-		// Find corresponding language code and strings
-		ctx.language_code = (*ctx.string_table)[0][ctx.language_index + 2];
-		ctx.strings = &ctx.string_table_map[ctx.language_code];
+		// Update language index setting
+		(*ctx.settings)["language_index"_fnv1a32] = ctx.language_index;
 		
-		// Update language in config
-		(*ctx.config)["language"] = ctx.language_code;
+		// Build string map for current language if not built
+		if (ctx.string_maps[ctx.language_index].empty())
+		{
+			i18n::build_string_map(*ctx.string_table, 0, ctx.language_index + 2, ctx.string_maps[ctx.language_index]);
+		}
 		
-		debug::log::info("Language changed to \"" + ctx.language_code + "\"");
+		// Log language change
+		debug::log::info("Language index: {}; code: {}", ctx.language_index, get_string(ctx, "language_code"_fnv1a32));
 		
 		// Reload fonts
-		debug::log::push_task("Reloading fonts");
-		try
-		{
-			game::load_fonts(ctx);
-		}
-		catch (...)
-		{
-			debug::log::pop_task(EXIT_FAILURE);
-		}
-		debug::log::pop_task(EXIT_SUCCESS);
+		debug::log::trace("Reloading fonts...");
+		game::load_fonts(ctx);
+		debug::log::trace("Reloaded fonts");
 		
 		game::menu::update_text_font(ctx);
 		this->update_text_content();
@@ -92,31 +90,32 @@ language_menu::language_menu(game::context& ctx):
 	};
 	auto previous_language_callback = [this, &ctx]()
 	{
-		// Increment language index
-		--ctx.language_index;
-		if (ctx.language_index < 0)
+		// Decrement language index
+		if (ctx.language_index > 0)
+		{
+			--ctx.language_index;
+		}
+		else
+		{
 			ctx.language_index = ctx.language_count - 1;
+		}
 		
-		// Find corresponding language code and strings
-		ctx.language_code = (*ctx.string_table)[0][ctx.language_index + 2];
-		ctx.strings = &ctx.string_table_map[ctx.language_code];
+		// Update language index setting
+		(*ctx.settings)["language_index"_fnv1a32] = ctx.language_index;
 		
-		// Update language in config
-		(*ctx.config)["language"] = ctx.language_code;
+		// Build string map for current language if not built
+		if (ctx.string_maps[ctx.language_index].empty())
+		{
+			i18n::build_string_map(*ctx.string_table, 0, ctx.language_index + 2, ctx.string_maps[ctx.language_index]);
+		}
 		
-		debug::log::info("Language changed to \"" + ctx.language_code + "\"");
+		// Log language change
+		debug::log::info("Language index: {}; code: {}", ctx.language_index, get_string(ctx, "language_code"_fnv1a32));
 		
 		// Reload fonts
-		debug::log::push_task("Reloading fonts");
-		try
-		{
-			game::load_fonts(ctx);
-		}
-		catch (...)
-		{
-			debug::log::pop_task(EXIT_FAILURE);
-		}
-		debug::log::pop_task(EXIT_SUCCESS);
+		debug::log::trace("Reloading fonts...");
+		game::load_fonts(ctx);
+		debug::log::trace("Reloaded fonts");
 		
 		game::menu::update_text_font(ctx);
 		this->update_text_content();
@@ -168,12 +167,12 @@ language_menu::language_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered language menu state");
 }
 
 language_menu::~language_menu()
 {
-	debug::log::push_task("Exiting language menu state");
+	debug::log::trace("Exiting language menu state...");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -182,7 +181,7 @@ language_menu::~language_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited language menu state...");
 }
 
 void language_menu::update_text_content()
@@ -190,9 +189,9 @@ void language_menu::update_text_content()
 	auto [language_name, language_value] = ctx.menu_item_texts[0];
 	auto [back_name, back_value] = ctx.menu_item_texts[1];
 	
-	language_name->set_content((*ctx.strings)["language_menu_language"]);
-	language_value->set_content((*ctx.strings)["language_name"]);
-	back_name->set_content((*ctx.strings)["back"]);
+	language_name->set_content(get_string(ctx, "language_menu_language"_fnv1a32));
+	language_value->set_content(get_string(ctx, "language_name"_fnv1a32));
+	back_name->set_content(get_string(ctx, "back"_fnv1a32));
 }
 
 } // namespace state

@@ -38,7 +38,7 @@ splash::splash(game::context& ctx):
 	game::state::base(ctx),
 	skipped(false)
 {	
-	debug::log::push_task("Entering splash state");
+	debug::log::trace("Entering splash state...");
 	
 	// Enable color buffer clearing in UI pass
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
@@ -67,15 +67,9 @@ splash::splash(game::context& ctx):
 	ctx.ui_scene->add_object(&splash_billboard);
 	
 	// Load animation timing configuration
-	double splash_fade_in_duration = 0.0;
-	double splash_duration = 0.0;
-	double splash_fade_out_duration = 0.0;
-	if (ctx.config->contains("splash_fade_in_duration"))
-		splash_fade_in_duration = (*ctx.config)["splash_fade_in_duration"].get<double>();
-	if (ctx.config->contains("splash_duration"))
-		splash_duration = (*ctx.config)["splash_duration"].get<double>();
-	if (ctx.config->contains("splash_fade_out_duration"))
-		splash_fade_out_duration = (*ctx.config)["splash_fade_out_duration"].get<double>();
+	const double splash_fade_in_duration = 0.5;
+	const double splash_duration = 2.0;
+	const double splash_fade_out_duration = 0.5;
 	
 	// Construct splash fade in animation
 	splash_fade_in_animation.set_interpolator(ease<float>::out_cubic);
@@ -164,12 +158,12 @@ splash::splash(game::context& ctx):
 	);
 	ctx.input_mapper.connect(ctx.app->get_device_manager().get_event_queue());
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered splash state");
 }
 
 splash::~splash()
 {
-	debug::log::push_task("Exiting splash state");
+	debug::log::trace("Exiting splash state...");
 	
 	// Disable splash skipper
 	ctx.input_mapper.disconnect();
@@ -187,7 +181,7 @@ splash::~splash()
 	// Disable color buffer clearing in UI pass
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited splash state");
 }
 
 } // namespace state

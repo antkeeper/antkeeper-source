@@ -47,6 +47,8 @@ public:
 	~resource_manager();
 	
 	bool mount(const std::filesystem::path& path);
+	
+	void set_write_dir(const std::filesystem::path& path);
 
 	/**
 	 * Adds a path to be searched when a resource is requested.

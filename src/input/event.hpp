@@ -237,15 +237,22 @@ struct mouse_scrolled
 };
 
 /**
- * Event generated when a window has been closed.
+ * Event generated when a window has been requested to close.
  */
-struct window_closed {};
+struct window_closed
+{
+	/// Pointer to the window that has been requested to close.
+	void* window;
+};
 
 /**
  * Event generated when a window has gained or lost focus.
  */
 struct window_focus_changed
 {
+	/// Pointer to the window that has gained or lost focus.
+	void* window;
+	
 	/// `true` if the window is in focus, `false` otherwise.
 	bool in_focus;
 };
@@ -255,8 +262,44 @@ struct window_focus_changed
  */
 struct window_moved
 {
+	/// Pointer to the window that has been moved.
+	void* window;
+	
 	/// Position of the window, in pixels.
 	math::vector<std::int32_t, 2> position;
+	
+	/// `true` if the window is maximized, `false` otherwise.
+	bool maximized;
+	
+	/// `true` if the window is fullscreen, `false` otherwise.
+	bool fullscreen;
+};
+
+/**
+ * Event generated when a window has been maximized.
+ */
+struct window_maximized
+{
+	/// Pointer to the window that has been maximized.
+	void* window;
+};
+
+/**
+ * Event generated when a window has been minimized.
+ */
+struct window_minimized
+{
+	/// Pointer to the window that has been minimized.
+	void* window;
+};
+
+/**
+ * Event generated when a window has been restored.
+ */
+struct window_restored
+{
+	/// Pointer to the window that has been restored.
+	void* window;
 };
 
 /**
@@ -264,17 +307,20 @@ struct window_moved
  */
 struct window_resized
 {
-	/// Window width, in pixels.
-	std::int32_t window_width;
+	/// Pointer to the window that has been resized.
+	void* window;
 	
-	/// Window height, in pixels.
-	std::int32_t window_height;
+	/// Window size, in display units.
+	math::vector<std::int32_t, 2> size;
 	
-	/// Viewport width, in pixels.
-	std::int32_t viewport_width;
+	/// `true` if the window is maximized, `false` otherwise.
+	bool maximized;
 	
-	/// Viewport height, in pixels.
-	std::int32_t viewport_height;
+	/// `true` if the window is fullscreen, `false` otherwise.
+	bool fullscreen;
+	
+	/// Window viewport size, in pixels.
+	math::vector<std::int32_t, 2> viewport_size;
 };
 
 } // namespace event

@@ -25,7 +25,11 @@
 #include "gl/texture-filter.hpp"
 #include "render/material.hpp"
 #include "render/material-flags.hpp"
+#include "utility/hash/fnv1a.hpp"
+#include "game/strings.hpp"
 #include <codecvt>
+
+using namespace hash::literals;
 
 namespace game {
 
@@ -72,12 +76,9 @@ void load_fonts(game::context& ctx)
 	bool dyslexia_font_loaded = false;
 	if (ctx.dyslexia_font)
 	{
-		if (auto it = ctx.strings->find("font_dyslexia"); it != ctx.strings->end() && !it->second.empty() && it->second[0] != '#')
-		{
-			debug::log::info(it->second);
-			ctx.typefaces["dyslexia"] = ctx.resource_manager->load<type::typeface>(it->second);
-			dyslexia_font_loaded = true;
-		}
+		const auto dyslexia_font_path = get_string(ctx, "font_dyslexia"_fnv1a32);
+		ctx.typefaces["dyslexia"] = ctx.resource_manager->load<type::typeface>(dyslexia_font_path);
+		dyslexia_font_loaded = true;
 	}
 	
 	// Load typefaces
@@ -91,12 +92,13 @@ void load_fonts(game::context& ctx)
 	else
 	{
 		// Load standard typefaces
-		if (auto it = ctx.strings->find("font_serif"); it != ctx.strings->end())
-			ctx.typefaces["serif"] = ctx.resource_manager->load<type::typeface>(it->second);
-		if (auto it = ctx.strings->find("font_sans_serif"); it != ctx.strings->end())
-			ctx.typefaces["sans_serif"] = ctx.resource_manager->load<type::typeface>(it->second);
-		if (auto it = ctx.strings->find("font_monospace"); it != ctx.strings->end())
-			ctx.typefaces["monospace"] = ctx.resource_manager->load<type::typeface>(it->second);
+		const auto serif_font_path = get_string(ctx, "font_serif"_fnv1a32);
+		const auto sans_serif_font_path = get_string(ctx, "font_sans_serif"_fnv1a32);
+		const auto monospace_font_path = get_string(ctx, "font_monospace"_fnv1a32);
+		
+		ctx.typefaces["serif"] = ctx.resource_manager->load<type::typeface>(serif_font_path);
+		ctx.typefaces["sans_serif"] = ctx.resource_manager->load<type::typeface>(sans_serif_font_path);
+		ctx.typefaces["monospace"] = ctx.resource_manager->load<type::typeface>(monospace_font_path);
 	}
 	
 	// Build character set
@@ -107,7 +109,8 @@ void load_fonts(game::context& ctx)
 			charset.insert(code);
 		
 		// Add all character codes from game strings
-		for (auto it = ctx.strings->begin(); it != ctx.strings->end(); ++it)
+		const auto& string_map = ctx.string_maps[ctx.language_index];
+		for (auto it = string_map.begin(); it != string_map.end(); ++it)
 		{
 			// Convert UTF-8 string to UTF-32
 			std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
@@ -122,47 +125,25 @@ void load_fonts(game::context& ctx)
 	// Load bitmap font shader
 	gl::shader_program* bitmap_font_shader = ctx.resource_manager->load<gl::shader_program>("bitmap-font.glsl");
 	
-	// Determine font point sizes
-	float debug_font_size_pt = 12.0f;
-	float menu_font_size_pt = 12.0f;
-	float title_font_size_pt = 12.0f;
-	if (ctx.config->contains("debug_font_size"))
-		debug_font_size_pt = (*ctx.config)["debug_font_size"].get<float>();
-	if (ctx.config->contains("menu_font_size"))
-		menu_font_size_pt = (*ctx.config)["menu_font_size"].get<float>();
-	if (ctx.config->contains("title_font_size"))
-		title_font_size_pt = (*ctx.config)["title_font_size"].get<float>();
-
-	// Scale font point sizes
-	const float font_size = (*ctx.config)["font_size"].get<float>();
-	debug_font_size_pt *= font_size;
-	menu_font_size_pt *= font_size;
-	title_font_size_pt *= font_size;
-	
-	// Convert font point sizes to pixel sizes
-	const float dpi = ctx.app->get_display_dpi();
-	const float debug_font_size_px = (debug_font_size_pt * dpi) / 72.0f;
-	const float menu_font_size_px = (menu_font_size_pt * dpi) / 72.0f;
-	const float title_font_size_px = (title_font_size_pt * dpi) / 72.0f;
-	
-	debug::log::info("font size: " + std::to_string(menu_font_size_px));
+	// Point size to pixel size conversion factor
+	const float pt_to_px = (ctx.app->get_display_dpi() / 72.0f) * ctx.font_scale;
 	
 	// Build debug font
 	if (auto it = ctx.typefaces.find("monospace"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, debug_font_size_px, charset, ctx.debug_font, ctx.debug_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, ctx.debug_font_size_pt * pt_to_px, charset, ctx.debug_font, ctx.debug_font_material, bitmap_font_shader);
 	}
 	
 	// Build menu font
 	if (auto it = ctx.typefaces.find("sans_serif"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, menu_font_size_px, charset, ctx.menu_font, ctx.menu_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, ctx.menu_font_size_pt * pt_to_px, charset, ctx.menu_font, ctx.menu_font_material, bitmap_font_shader);
 	}
 	
 	// Build title font
 	if (auto it = ctx.typefaces.find("serif"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, title_font_size_px, charset, ctx.title_font, ctx.title_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, ctx.title_font_size_pt * pt_to_px, charset, ctx.title_font, ctx.title_font_material, bitmap_font_shader);
 	}
 }
 

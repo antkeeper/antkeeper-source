@@ -45,7 +45,6 @@
 #include "render/passes/ground-pass.hpp"
 #include "state-machine.hpp"
 #include "config.hpp"
-#include "game/load.hpp"
 #include "math/interpolation.hpp"
 #include "physics/light/exposure.hpp"
 #include "application.hpp"
@@ -66,20 +65,20 @@ namespace state {
 nest_selection::nest_selection(game::context& ctx):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering nest selection state");
+	debug::log::trace("Entering nest selection state...");
 	
-	debug::log::push_task("Generating genome");
+	debug::log::trace("Generating genome...");
 	std::random_device rng;
 	ant::genome* genome = ant::cladogenesis(ctx.active_ecoregion->gene_pools[0], rng);
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Generated genome");
 	
-	debug::log::push_task("Building worker phenome");
+	debug::log::trace("Building worker phenome...");
 	ant::phenome worker_phenome = ant::phenome(*genome, ant::caste::worker);
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Built worker phenome...");
 	
-	debug::log::push_task("Generating worker model");
+	debug::log::trace("Generating worker model...");
 	render::model* worker_model = ant::morphogenesis(worker_phenome);
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Generated worker model");
 	
 	// Create worker entity(s)
 	entity::id worker_eid = ctx.entity_registry->create();
@@ -110,11 +109,7 @@ nest_selection::nest_selection(game::context& ctx):
 	}
 	
 	// Init time scale
-	double time_scale = 1.0;
-	
-	// Read time scale settings
-	if (ctx.config->contains("time_scale"))
-		time_scale = (*ctx.config)["time_scale"].get<double>();
+	double time_scale = 60.0;
 	
 	// Set time scale
 	game::world::set_time_scale(ctx, time_scale);
@@ -131,8 +126,8 @@ nest_selection::nest_selection(game::context& ctx):
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure(ev100_sunny16);
 	
-	const auto& viewport_dimensions = ctx.app->get_viewport_dimensions();
-	const float aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
+	const auto& viewport_size = ctx.app->get_viewport_size();
+	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
 	// Init first person camera rig parameters
 	first_person_camera_rig_translation_spring_angular_frequency = period_to_rads(0.125f);
@@ -146,16 +141,6 @@ nest_selection::nest_selection(game::context& ctx):
 	first_person_camera_far_speed = 140.0f;
 	first_person_camera_rig_pedestal_speed = 2.0f;
 	first_person_camera_rig_pedestal = 0.0f;
-	
-	// Read first person camera rig settings
-	if (ctx.config->contains("standing_eye_height"))
-		first_person_camera_rig_max_elevation = (*ctx.config)["standing_eye_height"].get<float>();
-	if (ctx.config->contains("walking_speed"))
-		first_person_camera_far_speed = (*ctx.config)["walking_speed"].get<float>();
-	if (ctx.config->contains("near_fov"))
-		first_person_camera_near_fov = math::vertical_fov(math::radians((*ctx.config)["near_fov"].get<float>()), aspect_ratio);
-	if (ctx.config->contains("far_fov"))
-		first_person_camera_far_fov = math::vertical_fov(math::radians((*ctx.config)["far_fov"].get<float>()), aspect_ratio);
 	
 	// Create first person camera rig
 	create_first_person_camera_rig();
@@ -198,16 +183,16 @@ nest_selection::nest_selection(game::context& ctx):
 	// Queue control setup
 	ctx.function_queue.push(std::bind(&nest_selection::enable_controls, this));
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered nest selection state");
 }
 
 nest_selection::~nest_selection()
 {
-	debug::log::push_task("Exiting nest selection state");
+	debug::log::trace("Exiting nest selection state...");
 	
 	destroy_first_person_camera_rig();
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited nest selection state");
 }
 
 void nest_selection::create_first_person_camera_rig()

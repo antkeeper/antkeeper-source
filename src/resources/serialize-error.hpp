@@ -17,45 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "resources/resource-loader.hpp"
-#include "resources/deserialize-error.hpp"
-#include <physfs.h>
+#ifndef ANTKEEPER_RESOURCES_SERIALIZE_ERROR_HPP
+#define ANTKEEPER_RESOURCES_SERIALIZE_ERROR_HPP
 
-void physfs_getline(PHYSFS_File* file, std::string& line)
+#include <stdexcept>
+
+/**
+ * An exception of this type is thrown when an error occurs during serialization.
+ */
+class serialize_error: public std::runtime_error
 {
-	line.clear();
-	
-	for (;;)
-	{
-		char c;
-		const PHYSFS_sint64 status = PHYSFS_readBytes(file, &c, 1);
-		
-		if (status == 1)
-		{
-			if (c == '\r')
-			{
-				continue;
-			}
-			else if (c == '\n')
-			{
-				break;
-			}
-			else
-			{
-				line.append(1, c);
-			}
-			
-		}
-		else
-		{
-			if (PHYSFS_eof(file))
-			{
-				break;
-			}
-			else
-			{
-				throw deserialize_error(PHYSFS_getLastError());
-			}
-		}
-	}
-}
+	using std::runtime_error::runtime_error;
+};
+
+#endif // ANTKEEPER_RESOURCES_SERIALIZE_ERROR_HPP

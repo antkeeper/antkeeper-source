@@ -26,6 +26,10 @@
 #include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
+#include "game/strings.hpp"
+#include "utility/hash/fnv1a.hpp"
+
+using namespace hash::literals;
 
 namespace game {
 namespace state {
@@ -33,13 +37,13 @@ namespace state {
 credits::credits(game::context& ctx):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering credits state");
+	debug::log::trace("Entering credits state...");
 	
 	// Construct credits text
 	credits_text.set_material(&ctx.menu_font_material);
 	credits_text.set_font(&ctx.menu_font);
 	credits_text.set_color({1.0f, 1.0f, 1.0f, 0.0f});
-	credits_text.set_content((*ctx.strings)["credits"]);
+	credits_text.set_content(get_string(ctx, "credits"_fnv1a32));
 	
 	// Align credits text
 	const auto& credits_aabb = static_cast<const geom::aabb<float>&>(credits_text.get_local_bounds());
@@ -48,13 +52,9 @@ credits::credits(game::context& ctx):
 	credits_text.set_translation({std::round(-credits_w * 0.5f), std::round(-credits_h * 0.5f), 0.0f});
 	credits_text.update_tweens();
 	
-	// Load animation timing configuration
-	double credits_fade_in_duration = 0.0;
-	double credits_scroll_duration = 0.0;
-	if (ctx.config->contains("credits_fade_in_duration"))
-		credits_fade_in_duration = (*ctx.config)["credits_fade_in_duration"].get<double>();
-	if (ctx.config->contains("credits_scroll_duration"))
-		credits_scroll_duration = (*ctx.config)["credits_scroll_duration"].get<double>();
+	// Set up animation timing configuration
+	const double credits_fade_in_duration = 0.5;
+	const double credits_scroll_duration = 5.0;
 	
 	auto set_credits_opacity = [this](int channel, const float& opacity)
 	{
@@ -98,12 +98,12 @@ credits::credits(game::context& ctx):
 	
 	ctx.ui_scene->add_object(&credits_text);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered credits state");
 }
 
 credits::~credits()
 {
-	debug::log::push_task("Exiting credits state");
+	debug::log::trace("Exiting credits state...");
 	
 	// Disable credits skipper
 	ctx.input_mapper.disconnect();
@@ -114,7 +114,7 @@ credits::~credits()
 	// Destruct credits animations
 	ctx.animator->remove_animation(&credits_fade_in_animation);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited credits state");
 }
 
 } // namespace state

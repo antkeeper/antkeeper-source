@@ -30,7 +30,10 @@
 #include "debug/log.hpp"
 #include "animation/screen-transition.hpp"
 #include "config.hpp"
-#include "game/save.hpp"
+#include "game/strings.hpp"
+#include "utility/hash/fnv1a.hpp"
+
+using namespace hash::literals;
 
 namespace game {
 namespace state {
@@ -38,7 +41,7 @@ namespace state {
 pause_menu::pause_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering pause menu state");
+	debug::log::trace("Entering pause menu state...");
 	
 	// Construct menu item texts
 	scene::text* resume_text = new scene::text();
@@ -47,10 +50,10 @@ pause_menu::pause_menu(game::context& ctx):
 	scene::text* quit_text = new scene::text();
 	
 	// Set content of menu item texts
-	resume_text->set_content((*ctx.strings)["pause_menu_resume"]);
-	options_text->set_content((*ctx.strings)["pause_menu_options"]);
-	main_menu_text->set_content((*ctx.strings)["pause_menu_main_menu"]);
-	quit_text->set_content((*ctx.strings)["pause_menu_quit"]);
+	resume_text->set_content(get_string(ctx, "pause_menu_resume"_fnv1a32));
+	options_text->set_content(get_string(ctx, "pause_menu_options"_fnv1a32));
+	main_menu_text->set_content(get_string(ctx, "pause_menu_main_menu"_fnv1a32));
+	quit_text->set_content(get_string(ctx, "pause_menu_quit"_fnv1a32));
 	
 	// Build list of menu item texts
 	ctx.menu_item_texts.push_back({resume_text, nullptr});
@@ -205,14 +208,14 @@ pause_menu::pause_menu(game::context& ctx):
 		game::menu::fade_in_bg(ctx);
 	
 	// Save colony
-	game::save::colony(ctx);
+	//game::save::colony(ctx);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered pause menu state");
 }
 
 pause_menu::~pause_menu()
 {
-	debug::log::push_task("Exiting pause menu state");
+	debug::log::trace("Exiting pause menu state...");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -221,7 +224,7 @@ pause_menu::~pause_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited pause menu state");
 }
 
 } // namespace state

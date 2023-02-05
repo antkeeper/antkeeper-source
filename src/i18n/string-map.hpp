@@ -17,38 +17,30 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_STRING_TABLE_HPP
-#define ANTKEEPER_STRING_TABLE_HPP
+#ifndef ANTKEEPER_I18N_STRING_MAP_HPP
+#define ANTKEEPER_I18N_STRING_MAP_HPP
 
+#include "i18n/string-table.hpp"
 #include <string>
 #include <unordered_map>
-#include <vector>
+
+namespace i18n {
 
 /**
- * A single row in a string table.
+ * Maps 32-bit keys to strings.
  */
-typedef std::vector<std::string> string_table_row;
+typedef std::unordered_map<std::uint32_t, std::string> string_map;
 
 /**
- * A table of strings.
- */
-typedef std::vector<string_table_row> string_table;
-
-/**
- * An index for finding elements in a string table.
- */
-typedef std::unordered_map<std::string, std::size_t> string_table_index;
-
-typedef std::unordered_map<std::string, std::unordered_map<std::string, std::string>> string_table_map;
-
-void build_string_table_map(string_table_map* map, const string_table& table);
-
-/**
- * Creates an index for a string table using strings in the first column as keys.
+ * Builds a string map from a string table. Keys are generated with the 32-bit FNV-1a hash function.
  *
- * @param table Table for which an index will be created.
+ * @param[in] table String table from which the string map will be built.
+ * @param[in] key_column Column containing key strings.
+ * @param[in] value_column Column containing value strings.
+ * @param[out] String map to build.
  */
-string_table_index index_string_table(const string_table& table);
+void build_string_map(const string_table& table, std::size_t key_column, std::size_t value_column, string_map& map);
 
-#endif // ANTKEEPER_STRING_TABLE_HPP
+} // namespace i18n
 
+#endif // ANTKEEPER_I18N_STRING_MAP_HPP

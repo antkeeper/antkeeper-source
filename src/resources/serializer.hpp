@@ -17,26 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_UTILITY_TYPE_ID_HPP
-#define ANTKEEPER_UTILITY_TYPE_ID_HPP
+#ifndef ANTKEEPER_RESOURCES_SERIALIZER_HPP
+#define ANTKEEPER_RESOURCES_SERIALIZER_HPP
+
+#include "resources/serialize-context.hpp"
 
 /**
- * Provides unique type IDs at compile-time via the templated addresses of this function.
+ * Specializations of serializer define the serialization process for a given type.
  *
- * @tparam T Type.
+ * @tparam T Serializable type.
  */
 template <class T>
-void type_id_generator() noexcept {}
+struct serializer
+{
+	/**
+	 * Serializes a value.
+	 *
+	 * @param value Value to serialize.
+	 * @param ctx Serialize context.
+	 */
+	void serialize(const T& value, serialize_context& ctx);
+};
 
-/// Type ID type.
-using type_id_t = void(*)(void);
-
-/**
- * Compile-time constant type ID.
- *
- * @tparam T Type.
- */
-template <class T>
-constexpr type_id_t type_id = &type_id_generator<T>;
-
-#endif // ANTKEEPER_UTILITY_TYPE_ID_HPP
+#endif // ANTKEEPER_RESOURCES_SERIALIZER_HPP

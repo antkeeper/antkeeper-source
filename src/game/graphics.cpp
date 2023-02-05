@@ -44,14 +44,9 @@ void create_framebuffers(game::context& ctx)
 {
 	debug::log::trace("Creating framebuffers...");
 	
-	// Load render resolution scale from config
-	ctx.render_scale = 1.0f;
-	if (ctx.config->contains("render_scale"))
-		ctx.render_scale = (*ctx.config)["render_scale"].get<float>();
-	
 	// Calculate render resolution
-	const int2& viewport_dimensions = ctx.app->get_viewport_dimensions();
-	ctx.render_resolution = {static_cast<int>(viewport_dimensions.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_dimensions.y() * ctx.render_scale + 0.5f)};
+	const int2& viewport_size = ctx.app->get_viewport_size();
+	ctx.render_resolution = {static_cast<int>(viewport_size.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_size.y() * ctx.render_scale + 0.5f)};
 	
 	// Create HDR framebuffer (32F color, 32F depth)
 	ctx.hdr_color_texture = new gl::texture_2d(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
@@ -82,17 +77,12 @@ void create_framebuffers(game::context& ctx)
 	ctx.ldr_framebuffer_b = new gl::framebuffer(ctx.render_resolution.x(), ctx.render_resolution.y());
 	ctx.ldr_framebuffer_b->attach(gl::framebuffer_attachment_type::color, ctx.ldr_color_texture_b);
 	
-	// Load shadow map resolution from config
-	int shadow_map_resolution = 4096;
-	if (ctx.config->contains("shadow_map_resolution"))
-		shadow_map_resolution = (*ctx.config)["shadow_map_resolution"].get<int>();
-	
 	// Create shadow map framebuffer
-	ctx.shadow_map_depth_texture = new gl::texture_2d(shadow_map_resolution, shadow_map_resolution, gl::pixel_type::float_32, gl::pixel_format::d);
+	ctx.shadow_map_depth_texture = new gl::texture_2d(ctx.shadow_map_resolution, ctx.shadow_map_resolution, gl::pixel_type::float_32, gl::pixel_format::d);
 	ctx.shadow_map_depth_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx.shadow_map_depth_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx.shadow_map_depth_texture->set_max_anisotropy(0.0f);
-	ctx.shadow_map_framebuffer = new gl::framebuffer(shadow_map_resolution, shadow_map_resolution);
+	ctx.shadow_map_framebuffer = new gl::framebuffer(ctx.shadow_map_resolution, ctx.shadow_map_resolution);
 	ctx.shadow_map_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx.shadow_map_depth_texture);
 	
 	debug::log::trace("Created framebuffers");
@@ -138,8 +128,8 @@ void change_render_resolution(game::context& ctx, float scale)
 	ctx.render_scale = scale;
 	
 	// Recalculate render resolution
-	const int2& viewport_dimensions = ctx.app->get_viewport_dimensions();
-	ctx.render_resolution = {static_cast<int>(viewport_dimensions.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_dimensions.y() * ctx.render_scale + 0.5f)};
+	const int2& viewport_size = ctx.app->get_viewport_size();
+	ctx.render_resolution = {static_cast<int>(viewport_size.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_size.y() * ctx.render_scale + 0.5f)};
 	
 	// Resize HDR framebuffer and attachments
 	ctx.hdr_framebuffer->resize({ctx.render_resolution.x(), ctx.render_resolution.y()});
@@ -156,7 +146,7 @@ void change_render_resolution(game::context& ctx, float scale)
 	ctx.bloom_pass->resize();
 	
 	// Enable or disable resample pass
-	if (viewport_dimensions.x() != ctx.render_resolution.x() || viewport_dimensions.y() != ctx.render_resolution.y())
+	if (viewport_size.x() != ctx.render_resolution.x() || viewport_size.y() != ctx.render_resolution.y())
 	{
 		ctx.resample_pass->set_enabled(true);
 	}
@@ -176,21 +166,21 @@ void save_screenshot(game::context& ctx)
 	const std::string screenshot_filename = std::format("{0}-{1:%Y%m%d}T{1:%H%M%S}Z.png", config::application_name, time);
 	
 	// Determine path to screenshot file
-	std::filesystem::path screenshot_filepath = ctx.config_path / "gallery" / screenshot_filename;
+	std::filesystem::path screenshot_filepath = ctx.screenshots_path / screenshot_filename;
 	std::string screenshot_filepath_string = screenshot_filepath.string();
 	debug::log::debug("Saving screenshot to \"{}\"...", screenshot_filepath_string);
 	
 	// Get viewport dimensions
-	const int2& viewport_dimensions = ctx.app->get_viewport_dimensions();
+	const int2& viewport_size = ctx.app->get_viewport_size();
 	
 	// Allocate screenshot image
 	std::shared_ptr<image> frame = std::make_shared<image>();
 	frame->format(1, 3);
-	frame->resize(viewport_dimensions.x(), viewport_dimensions.y());
+	frame->resize(viewport_size.x(), viewport_size.y());
 	
 	// Read pixel data from backbuffer into image
 	glReadBuffer(GL_BACK);
-	glReadPixels(0, 0, viewport_dimensions.x(), viewport_dimensions.y(), GL_RGB, GL_UNSIGNED_BYTE, frame->data());
+	glReadPixels(0, 0, viewport_size.x(), viewport_size.y(), GL_RGB, GL_UNSIGNED_BYTE, frame->data());
 	
 	// Write screenshot file in separate thread
 	std::thread
@@ -205,24 +195,6 @@ void save_screenshot(game::context& ctx)
 	).detach();
 	
 	
-}
-
-void toggle_bloom(game::context& ctx, bool enabled)
-{
-	if (enabled)
-	{
-		ctx.bloom_pass->set_mip_chain_length(6);
-		ctx.bloom_pass->set_enabled(true);
-		ctx.common_final_pass->set_bloom_weight(0.04f);
-	}
-	else
-	{
-		ctx.bloom_pass->set_mip_chain_length(0);
-		ctx.bloom_pass->set_enabled(false);
-		ctx.common_final_pass->set_bloom_weight(0.0f);
-	}
-	
-	ctx.bloom_enabled = enabled;
 }
 
 void select_anti_aliasing_method(game::context& ctx, render::anti_aliasing_method method)

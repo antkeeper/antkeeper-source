@@ -23,6 +23,10 @@
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "game/menu.hpp"
+#include "game/strings.hpp"
+#include "utility/hash/fnv1a.hpp"
+
+using namespace hash::literals;
 
 namespace game {
 namespace state {
@@ -30,7 +34,7 @@ namespace state {
 sound_menu::sound_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering sound menu state");
+	debug::log::trace("Entering sound menu state...");
 	
 	// Construct menu item texts
 	scene::text* master_volume_name_text = new scene::text();
@@ -57,13 +61,13 @@ sound_menu::sound_menu(game::context& ctx):
 	ctx.menu_item_texts.push_back({back_text, nullptr});
 	
 	// Set content of menu item texts
-	master_volume_name_text->set_content((*ctx.strings)["sound_menu_master_volume"]);
-	ambience_volume_name_text->set_content((*ctx.strings)["sound_menu_ambience_volume"]);
-	effects_volume_name_text->set_content((*ctx.strings)["sound_menu_effects_volume"]);
-	mono_audio_name_text->set_content((*ctx.strings)["sound_menu_mono_audio"]);
-	captions_name_text->set_content((*ctx.strings)["sound_menu_captions"]);
-	captions_size_name_text->set_content((*ctx.strings)["sound_menu_captions_size"]);
-	back_text->set_content((*ctx.strings)["back"]);
+	master_volume_name_text->set_content(get_string(ctx, "sound_menu_master_volume"_fnv1a32));
+	ambience_volume_name_text->set_content(get_string(ctx, "sound_menu_ambience_volume"_fnv1a32));
+	effects_volume_name_text->set_content(get_string(ctx, "sound_menu_effects_volume"_fnv1a32));
+	mono_audio_name_text->set_content(get_string(ctx, "sound_menu_mono_audio"_fnv1a32));
+	captions_name_text->set_content(get_string(ctx, "sound_menu_captions"_fnv1a32));
+	captions_size_name_text->set_content(get_string(ctx, "sound_menu_captions_size"_fnv1a32));
+	back_text->set_content(get_string(ctx, "back"_fnv1a32));
 	update_value_text_content();
 	
 	// Init menu item index
@@ -220,12 +224,12 @@ sound_menu::sound_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered sound menu state");
 }
 
 sound_menu::~sound_menu()
 {
-	debug::log::push_task("Exiting sound menu state");
+	debug::log::trace("Exiting sound menu state...");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -234,21 +238,13 @@ sound_menu::~sound_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	// Update config
-	(*ctx.config)["master_volume"] = ctx.master_volume;
-	(*ctx.config)["ambience_volume"] = ctx.ambience_volume;
-	(*ctx.config)["effects_volume"] = ctx.effects_volume;
-	(*ctx.config)["mono_audio"] = ctx.mono_audio;
-	(*ctx.config)["captions"] = ctx.captions;
-	(*ctx.config)["captions_size"] = ctx.captions_size;
-	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited sound menu state");
 }
 
 void sound_menu::update_value_text_content()
 {
-	const std::string string_on = (*ctx.strings)["on"];
-	const std::string string_off = (*ctx.strings)["off"];
+	const std::string string_on = get_string(ctx, "on"_fnv1a32);
+	const std::string string_off = get_string(ctx, "off"_fnv1a32);
 	
 	std::get<1>(ctx.menu_item_texts[0])->set_content(std::to_string(static_cast<int>(std::round(ctx.master_volume * 100.0f))) + "%");
 	std::get<1>(ctx.menu_item_texts[1])->set_content(std::to_string(static_cast<int>(std::round(ctx.ambience_volume * 100.0f))) + "%");

@@ -65,6 +65,7 @@
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/text.hpp"
+#include "i18n/string-table.hpp"
 #include <algorithm>
 #include <execution>
 #include <fstream>
@@ -93,21 +94,20 @@ static void create_moon(game::context& ctx);
 
 void cosmogenesis(game::context& ctx)
 {
-	debug::log::push_task("Generating cosmos");
+	debug::log::trace("Generating cosmos...");
 	
 	load_ephemeris(ctx);
 	create_stars(ctx);
 	create_sun(ctx);
 	create_earth_moon_system(ctx);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Generated cosmos");
 }
 
 void create_observer(game::context& ctx)
 {
-	debug::log::push_task("Creating observer");
+	debug::log::trace("Creating observer...");
 	
-	try
 	{
 		// Create observer entity
 		entity::id observer_eid = ctx.entity_registry->create();
@@ -136,13 +136,8 @@ void create_observer(game::context& ctx)
 		// Set astronomy system observer
 		ctx.astronomy_system->set_observer(observer_eid);
 	}
-	catch (const std::exception&)
-	{
-		debug::log::pop_task(EXIT_FAILURE);
-		return;
-	}
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Created observer");
 }
 
 void set_location(game::context& ctx, double elevation, double latitude, double longitude)
@@ -170,18 +165,17 @@ void set_location(game::context& ctx, double elevation, double latitude, double 
 
 void set_time(game::context& ctx, double t)
 {
-	debug::log::push_task("Setting time to UT1 " + std::to_string(t));
 	try
 	{
 		ctx.astronomy_system->set_time(t);
 		ctx.orbit_system->set_time(t);
+		
+		debug::log::info("Set time to UT1 {}", t);
 	}
-	catch (const std::exception&)
+	catch (const std::exception& e)
 	{
-		debug::log::pop_task(EXIT_FAILURE);
-		return;
+		debug::log::error("Failed to set time to UT1 {}: {}", t, e.what());
 	}
-	debug::log::pop_task(EXIT_SUCCESS);
 }
 
 void set_time(game::context& ctx, int year, int month, int day, int hour, int minute, double second)
@@ -220,60 +214,16 @@ void set_time_scale(game::context& ctx, double scale)
 
 void load_ephemeris(game::context& ctx)
 {
-	debug::log::push_task("Loading ephemeris");
-	
-	try
-	{
-		std::string ephemeris_filename;
-		if (ctx.config->contains("ephemeris"))
-		{
-			ephemeris_filename = (*ctx.config)["ephemeris"].get<std::string>();
-		}
-		else
-		{
-			debug::log::warning("No ephemeris set in config");
-			debug::log::pop_task(EXIT_FAILURE);
-			return;
-		}
-		
-		ctx.orbit_system->set_ephemeris(ctx.resource_manager->load<physics::orbit::ephemeris<double>>(ephemeris_filename));
-	}
-	catch (const std::exception&)
-	{
-		debug::log::pop_task(EXIT_FAILURE);
-		return;
-	}
-	
-	debug::log::pop_task(EXIT_SUCCESS);
+	ctx.orbit_system->set_ephemeris(ctx.resource_manager->load<physics::orbit::ephemeris<double>>("de421.eph"));
 }
 
 void create_stars(game::context& ctx)
 {
-	debug::log::push_task("Generating fixed stars");
+	debug::log::trace("Generating fixed stars...");
 	
 	// Load star catalog
-	string_table* star_catalog = nullptr;
-	try
-	{
-		std::string star_catalog_filename;
-		if (ctx.config->contains("star_catalog"))
-		{
-			star_catalog_filename = (*ctx.config)["star_catalog"].get<std::string>();
-		}
-		else
-		{
-			debug::log::warning("No star catalog set in config");
-			debug::log::pop_task(EXIT_FAILURE);
-			return;
-		}
-		
-		star_catalog = ctx.resource_manager->load<string_table>(star_catalog_filename);
-	}
-	catch (const std::exception&)
-	{
-		debug::log::pop_task(EXIT_FAILURE);
-		return;
-	}
+	i18n::string_table* star_catalog = nullptr;
+	star_catalog = ctx.resource_manager->load<i18n::string_table>("hipparcos-7.tsv");
 	
 	// Allocate star catalog vertex data
 	std::size_t star_count = 0;
@@ -290,23 +240,24 @@ void create_stars(game::context& ctx)
 	// Build star catalog vertex data
 	for (std::size_t i = 1; i < star_catalog->size(); ++i)
 	{
-		const string_table_row& catalog_row = (*star_catalog)[i];
+		const i18n::string_table_row& catalog_row = (*star_catalog)[i];
 		
 		// Parse star catalog item
-		double ra = 0.0;
-		double dec = 0.0;
-		double vmag = 0.0;
-		double bv = 0.0;
+		float ra = 0.0;
+		float dec = 0.0;
+		float vmag = 0.0;
+		float bv = 0.0;
 		try
 		{
-			ra = std::stod(catalog_row[1]);
-			dec = std::stod(catalog_row[2]);
-			vmag = std::stod(catalog_row[3]);
-			bv = std::stod(catalog_row[4]);
+			ra = std::stof(catalog_row[1]);
+			dec = std::stof(catalog_row[2]);
+			vmag = std::stof(catalog_row[3]);
+			bv = std::stof(catalog_row[4]);
 		}
 		catch (const std::exception&)
 		{
-			debug::log::warning("Invalid star catalog item on row " + std::to_string(i));
+			debug::log::warning("Invalid star catalog item on row {}", i);
+			continue;
 		}
 		
 		// Convert right ascension and declination from degrees to radians
@@ -314,38 +265,38 @@ void create_stars(game::context& ctx)
 		dec = math::wrap_radians(math::radians(dec));
 		
 		// Convert ICRF coordinates from spherical to Cartesian
-		double3 position = physics::orbit::frame::bci::cartesian(double3{1.0, dec, ra});
+		float3 position = physics::orbit::frame::bci::cartesian(float3{1.0f, dec, ra});
 		
 		// Convert color index to color temperature
-		double cct = color::index::bv_to_cct(bv);
+		float cct = color::index::bv_to_cct(bv);
 		
 		// Calculate XYZ color from color temperature
-		double3 color_xyz = color::cct::to_xyz(cct);
+		float3 color_xyz = color::cct::to_xyz(cct);
 		
 		// Transform XYZ color to ACEScg colorspace
-		double3 color_acescg = color::aces::ap1<double>.from_xyz * color_xyz;
+		float3 color_acescg = color::aces::ap1<float>.from_xyz * color_xyz;
 		
 		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
-		double brightness = physics::light::vmag::to_brightness(vmag);
+		float brightness = physics::light::vmag::to_brightness(vmag);
 		
 		// Build vertex
-		*(star_vertex++) = static_cast<float>(position.x());
-		*(star_vertex++) = static_cast<float>(position.y());
-		*(star_vertex++) = static_cast<float>(position.z());
-		*(star_vertex++) = static_cast<float>(color_acescg.x());
-		*(star_vertex++) = static_cast<float>(color_acescg.y());
-		*(star_vertex++) = static_cast<float>(color_acescg.z());
-		*(star_vertex++) = static_cast<float>(brightness);
+		*(star_vertex++) = position.x();
+		*(star_vertex++) = position.y();
+		*(star_vertex++) = position.z();
+		*(star_vertex++) = color_acescg.x();
+		*(star_vertex++) = color_acescg.y();
+		*(star_vertex++) = color_acescg.z();
+		*(star_vertex++) = brightness;
 		
 		// Calculate spectral illuminance
-		double3 illuminance = color_acescg * physics::light::vmag::to_illuminance(vmag);
+		double3 illuminance = double3(color_acescg * physics::light::vmag::to_illuminance(vmag));
 		
 		// Add spectral illuminance to total starlight illuminance
 		starlight_illuminance += illuminance;
 	}
 	
 	// Unload star catalog
-	ctx.resource_manager->unload("stars.csv");
+	ctx.resource_manager->unload("hipparcos-7.tsv");
 	
 	// Allocate stars model
 	render::model* stars_model = new render::model();
@@ -400,14 +351,13 @@ void create_stars(game::context& ctx)
 	// Pass starlight illuminance to astronomy system
 	ctx.astronomy_system->set_starlight_illuminance(starlight_illuminance);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Generated fixed stars");
 }
 
 void create_sun(game::context& ctx)
 {
-	debug::log::push_task("Generating Sun");
+	debug::log::trace("Generating Sun...");
 	
-	try
 	{
 		// Create sun entity
 		entity::archetype* sun_archetype = ctx.resource_manager->load<entity::archetype>("sun.ent");
@@ -446,20 +396,14 @@ void create_sun(game::context& ctx)
 		ctx.astronomy_system->set_sky_light(sky_light);
 		ctx.astronomy_system->set_bounce_light(bounce_light);
 	}
-	catch (const std::exception&)
-	{
-		debug::log::pop_task(EXIT_FAILURE);
-		return;
-	}
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Generated Sun");
 }
 
 void create_earth_moon_system(game::context& ctx)
 {
-	debug::log::push_task("Generating Earth-Moon system");
+	debug::log::trace("Generating Earth-Moon system...");
 	
-	try
 	{
 		// Create Earth-Moon barycenter entity
 		entity::archetype* em_bary_archetype = ctx.resource_manager->load<entity::archetype>("em-bary.ent");
@@ -472,20 +416,14 @@ void create_earth_moon_system(game::context& ctx)
 		// Create Moon
 		create_moon(ctx);
 	}
-	catch (const std::exception&)
-	{
-		debug::log::pop_task(EXIT_FAILURE);
-		return;
-	}
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Generated Earth-Moon system");
 }
 
 void create_earth(game::context& ctx)
 {
-	debug::log::push_task("Generating Earth");
+	debug::log::trace("Generating Earth...");
 	
-	try
 	{
 		// Create earth entity
 		entity::archetype* earth_archetype = ctx.resource_manager->load<entity::archetype>("earth.ent");
@@ -495,20 +433,14 @@ void create_earth(game::context& ctx)
 		// Assign orbital parent
 		ctx.entity_registry->get<game::component::orbit>(earth_eid).parent = ctx.entities["em_bary"];
 	}
-	catch (const std::exception&)
-	{
-		debug::log::pop_task(EXIT_FAILURE);
-		return;
-	}
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Generated Earth");
 }
 
 void create_moon(game::context& ctx)
 {
-	debug::log::push_task("Generating Moon");
+	debug::log::trace("Generating Moon...");
 	
-	try
 	{
 		// Create lunar entity
 		entity::archetype* moon_archetype = ctx.resource_manager->load<entity::archetype>("moon.ent");
@@ -532,13 +464,8 @@ void create_moon(game::context& ctx)
 		// Pass moon light scene object to astronomy system
 		ctx.astronomy_system->set_moon_light(moon_light);
 	}
-	catch (const std::exception&)
-	{
-		debug::log::pop_task(EXIT_FAILURE);
-		return;
-	}
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Generated Moon");
 }
 
 void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion)
@@ -595,12 +522,11 @@ void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion)
 	);
 	
 	stbi_flip_vertically_on_write(1);
-	stbi_write_tga((ctx.config_path / "gallery" / "voronoi-f1-400-nc8-2k.tga").string().c_str(), img.get_width(), img.get_height(), img.get_channel_count(), img.data());
+	stbi_write_tga((ctx.screenshots_path / "voronoi-f1-400-nc8-2k.tga").string().c_str(), img.get_width(), img.get_height(), img.get_channel_count(), img.data());
 	*/
 
 	
-	debug::log::push_task("Entering ecoregion " + ecoregion.name);
-	try
+	debug::log::trace("Entering ecoregion {}...", ecoregion.name);
 	{
 		// Set active ecoregion
 		ctx.active_ecoregion = &ecoregion;
@@ -641,11 +567,8 @@ void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion)
 		);
 		ctx.astronomy_system->set_bounce_albedo(double3(ecoregion.terrain_albedo));
 	}
-	catch (...)
-	{
-		debug::log::pop_task(EXIT_FAILURE);
-	}
-	debug::log::pop_task(EXIT_SUCCESS);
+	
+	debug::log::trace("Entered ecoregion {}", ecoregion.name);
 }
 
 } // namespace world

@@ -90,7 +90,8 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	using trace = message<message_severity::trace, Args...>;
 #else
 	// Disable trace message logging.
-	inline void trace([[maybe_unused]] ...) noexcept {};
+	template <class... Args>
+	inline void trace([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_DEBUG)
@@ -103,7 +104,8 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	using debug = message<message_severity::debug, Args...>;
 #else
 	// Disable debug message logging.
-	inline void debug([[maybe_unused]] ...) noexcept {};
+	template <class... Args>
+	inline void debug([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_INFO)
@@ -116,7 +118,8 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	using info = message<message_severity::info, Args...>;
 #else
 	// Disable info message logging.
-	inline void info([[maybe_unused]] ...) noexcept {};
+	template <class... Args>
+	inline void info([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_WARNING)
@@ -129,7 +132,8 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	using warning = message<message_severity::warning, Args...>;
 #else
 	// Disable warning message logging.
-	inline void warning([[maybe_unused]] ...) noexcept {};
+	template <class... Args>
+	inline void warning([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_ERROR)
@@ -142,7 +146,8 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	using error = message<message_severity::error, Args...>;
 #else
 	// Disable error message logging.
-	inline void error([[maybe_unused]] ...) noexcept {};
+	template <class... Args>
+	inline void error([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_FATAL)
@@ -155,33 +160,9 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	using fatal = message<message_severity::fatal, Args...>;
 #else
 	// Disable fatal error message logging.
-	inline void fatal([[maybe_unused]] ...) noexcept {};
+	template <class... Args>
+	inline void fatal([[maybe_unused]] Args&&...) noexcept {};
 #endif
-
-/**
- * Pushes a task onto the default logger's task stack and writes its description the log.
- *
- * @param description Task description.
- * @param location Source location from which the message was sent.
- */
-void push_task
-(
-	const std::string& description,
-	std::source_location&& location = std::source_location::current()
-);
-
-/**
- * Pops a task off the default logger's task stack and writes its status to the log.
- *
- * @param status Exit status of the task. A value of `0` or `EXIT_SUCCESS` indicates the task exited successfully. A non-zero exit status indicates the task failed.
- * @param description Error code description.
- */
-void pop_task
-(
-	int status,
-	const std::string& description = std::string(),
-	std::source_location&& location = std::source_location::current()
-);
 
 } // namespace log
 } // namespace debug

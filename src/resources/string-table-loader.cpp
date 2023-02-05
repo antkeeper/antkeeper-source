@@ -17,121 +17,63 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "resource-loader.hpp"
-#include "string-table.hpp"
+#include "resources/resource-loader.hpp"
+#include "i18n/string-table.hpp"
+#include "resources/deserialize-error.hpp"
 #include <physfs.h>
 
-static string_table_row parse_row(const std::string& line)
+template <>
+i18n::string_table* resource_loader<i18n::string_table>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
-	std::vector<std::string> row;
-	std::string column;
-	bool quoted = false;
-	bool escape = false;
-
-	for (char c: line)
+	i18n::string_table* table = new i18n::string_table();
+	
+	i18n::string_table_row row;
+	std::string entry;
+	
+	for (;;)
 	{
-		if (escape)
+		char c;
+		const PHYSFS_sint64 status = PHYSFS_readBytes(file, &c, 1);
+		
+		if (status == 1)
 		{
-			switch (c)
+			if (c == '\t')
 			{
-				case 'n':
-					column.push_back('\n');
-					break;
-
-				case 't':
-					column.push_back('\t');
-					break;
-
-				default:
-					column.push_back(c);
-					break;
+				row.push_back(entry);
+				entry.clear();
 			}
-
-			escape = false;
+			else if (c == '\n')
+			{
+				row.push_back(entry);
+				entry.clear();
+				table->push_back(row);
+				row.clear();
+			}
+			else if (c != '\r')
+			{
+				entry.push_back(c);
+			}
 		}
 		else
 		{
-			switch (c)
+			if (PHYSFS_eof(file))
 			{
-				case '\\':
-					escape = true;
-					break;
-
-				case ',':
-					if (quoted)
-					{
-						column.push_back(c);
-					}
-					else
-					{
-						row.push_back(column);
-						column.clear();
-					}
-					break;
-
-				case '"':
-					if (!quoted)
-					{
-						quoted = true;
-					}
-					else
-					{
-						quoted = false;
-					}
-					break;
-
-				default:
-					column.push_back(c);
-					break;
+				if (!entry.empty())
+				{
+					row.push_back(entry);
+				}
+				if (!row.empty())
+				{
+					table->push_back(row);
+				}
+				break;
+			}
+			else
+			{
+				throw deserialize_error(PHYSFS_getLastError());
 			}
 		}
-	}
-
-	row.push_back(column);
-
-	return row;
-}
-
-template <>
-string_table* resource_loader<string_table>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
-{
-	string_table* table = new string_table();
-	std::string line;
-
-	while (!PHYSFS_eof(file))
-	{
-		physfs_getline(file, line);
-		table->push_back(parse_row(line));
 	}
 
 	return table;
-}
-
-template <>
-void resource_loader<string_table>::save(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path, const string_table* table)
-{
-	const char* delimeter = ",";
-	const char* newline = "\n";
-	
-	for (std::size_t i = 0; i < table->size(); ++i)
-	{
-		const string_table_row& row = (*table)[i];
-
-		for (std::size_t j = 0; j < row.size(); ++j)
-		{
-			const std::string& column = row[j];
-			
-			PHYSFS_writeBytes(file, column.data(), column.length());
-
-			if (j < row.size() - 1)
-			{
-				PHYSFS_writeBytes(file, delimeter, 1);
-			}
-		}
-
-		if (i < table->size() - 1)
-		{
-			PHYSFS_writeBytes(file, newline, 1);
-		}
-	}
 }

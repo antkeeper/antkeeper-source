@@ -22,36 +22,51 @@
 #include "debug/log.hpp"
 #include "input/scancode.hpp"
 #include "math/map.hpp"
-#include "resources/image.hpp"
 #include <SDL2/SDL.h>
 #include <glad/glad.h>
-#include <cstring>
-#include <iomanip>
 #include <stdexcept>
 #include <utility>
 
-application::application():
+application::application
+(
+	const std::string& window_title,
+	int window_x,
+	int window_y,
+	int window_w,
+	int window_h,
+	bool maximized,
+	bool fullscreen,
+	bool v_sync
+):
 	closed(false),
+	maximized(false),
 	fullscreen(true),
 	v_sync(false),
 	cursor_visible(true),
-	display_dimensions({0, 0}),
+	display_size({0, 0}),
 	display_dpi(0.0f),
-	window_dimensions({0, 0}),
-	viewport_dimensions({0, 0}),
+	windowed_position({-1, -1}),
+	windowed_size({-1, -1}),
+	viewport_size({-1, -1}),
 	mouse_position({0, 0}),
 	sdl_window(nullptr),
 	sdl_gl_context(nullptr)
 {
-	// Log SDL compiled version
-	SDL_version sdl_compiled_version;
-	SDL_VERSION(&sdl_compiled_version);
-	debug::log::debug("Compiled against SDL {}.{}.{}", sdl_compiled_version.major, sdl_compiled_version.minor, sdl_compiled_version.patch);
-	
-	// Log SDL linked version
-	SDL_version sdl_linked_version;
-	SDL_GetVersion(&sdl_linked_version);
-	debug::log::debug("Linking against SDL {}.{}.{}", sdl_linked_version.major, sdl_linked_version.minor, sdl_linked_version.patch);
+	// Log SDL info
+	// SDL_version sdl_compiled_version;
+	// SDL_version sdl_linked_version;
+	// SDL_VERSION(&sdl_compiled_version);
+	// SDL_GetVersion(&sdl_linked_version);
+	// debug::log::info
+	// (
+		// "SDL compiled version: {}.{}.{}; linked version: {}.{}.{}",
+		// sdl_compiled_version.major,
+		// sdl_compiled_version.minor,
+		// sdl_compiled_version.patch,
+		// sdl_linked_version.major,
+		// sdl_linked_version.minor,
+		// sdl_linked_version.patch
+	// );
 	
 	// Init SDL events and video subsystems
 	debug::log::trace("Initializing SDL events and video subsystems...");
@@ -62,6 +77,53 @@ application::application():
 	}
 	debug::log::trace("Initialized SDL events and video subsystems");
 	
+	// Query displays
+	debug::log::trace("Querying displays...");
+	
+	const int sdl_display_count = SDL_GetNumVideoDisplays();
+	if (sdl_display_count < 1)
+	{
+		debug::log::fatal("No displays detected: {}", SDL_GetError());
+		throw std::runtime_error("No displays detected");
+	}
+	
+	debug::log::info("Display count: {}", sdl_display_count);
+	
+	for (int i = 0; i < sdl_display_count; ++i)
+	{
+		// Query display mode
+		SDL_DisplayMode sdl_display_mode;
+		if (SDL_GetDesktopDisplayMode(i, &sdl_display_mode) != 0)
+		{
+			debug::log::error("Failed to get mode of display {}: {}", i, SDL_GetError());
+			SDL_ClearError();
+			continue;
+		}
+		
+		// Query display name
+		const char* sdl_display_name = SDL_GetDisplayName(i);
+		if (!sdl_display_name)
+		{
+			debug::log::warning("Failed to get name of display {}: {}", i, SDL_GetError());
+			SDL_ClearError();
+			sdl_display_name = "";
+		}
+		
+		// Query display DPI
+		float sdl_display_dpi;
+		if (SDL_GetDisplayDPI(i, &sdl_display_dpi, nullptr, nullptr) != 0)
+		{
+			const float default_dpi = 96.0f;
+			debug::log::warning("Failed to get DPI of display {}: {}; Defaulting to {} DPI", i, SDL_GetError(), default_dpi);
+			SDL_ClearError();
+		}
+		
+		// Log display information
+		debug::log::info("Display {} name: \"{}\"; resolution: {}x{}; refresh rate: {}Hz; DPI: {}", i, sdl_display_name, sdl_display_mode.w, sdl_display_mode.h, sdl_display_mode.refresh_rate, sdl_display_dpi);
+	}
+	
+	debug::log::trace("Queried displays");
+	
 	// Detect display dimensions
 	SDL_DisplayMode sdl_desktop_display_mode;
 	if (SDL_GetDesktopDisplayMode(0, &sdl_desktop_display_mode) != 0)
@@ -69,7 +131,7 @@ application::application():
 		debug::log::fatal("Failed to detect desktop display mode: {}", SDL_GetError());
 		throw std::runtime_error("Failed to detect desktop display mode");
 	}
-	display_dimensions = {sdl_desktop_display_mode.w, sdl_desktop_display_mode.h};
+	display_size = {sdl_desktop_display_mode.w, sdl_desktop_display_mode.h};
 	
 	// Detect display DPI
 	if (SDL_GetDisplayDPI(0, &display_dpi, nullptr, nullptr) != 0)
@@ -104,21 +166,55 @@ application::application():
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config::opengl_min_depth_size);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, config::opengl_min_stencil_size);
 	
+	Uint32 sdl_window_flags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+	if (fullscreen)
+	{
+		sdl_window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+	}
+	if (maximized)
+	{
+		sdl_window_flags |= SDL_WINDOW_MAXIMIZED;
+	}
+	if (window_x == -1 && window_y == -1)
+	{
+		window_x = SDL_WINDOWPOS_CENTERED;
+		window_y = SDL_WINDOWPOS_CENTERED;
+	}
+	if (window_w <= 0 || window_h <= 0)
+	{
+		window_w = sdl_desktop_display_mode.w / 2;
+		window_h = sdl_desktop_display_mode.h / 2;
+	}
+	
 	// Create a hidden fullscreen window
-	debug::log::trace("Creating {}x{} window...", display_dimensions[0], display_dimensions[1]);
+	debug::log::trace("Creating window...");
 	sdl_window = SDL_CreateWindow
 	(
-		config::application_name,
-    	SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
-	    display_dimensions[0], display_dimensions[1],
-		SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN
+		window_title.c_str(),
+    	window_x,
+    	window_y,
+	    window_w,
+	    window_h,
+		sdl_window_flags
 	);
 	if (!sdl_window)
 	{
-		debug::log::fatal("Failed to create {}x{} window: {}", display_dimensions[0], display_dimensions[1], SDL_GetError());
+		debug::log::fatal("Failed to create {}x{} window: {}", display_size[0], display_size[1], SDL_GetError());
 		throw std::runtime_error("Failed to create SDL window");
 	}
-	debug::log::trace("Created {}x{} window", display_dimensions[0], display_dimensions[1]);
+	debug::log::trace("Created window");
+	
+	
+	if (window_x != SDL_WINDOWPOS_CENTERED && window_y != SDL_WINDOWPOS_CENTERED)
+	{
+		this->windowed_position = {window_x, window_y};
+	}
+	this->windowed_size = {window_w, window_h};
+	this->maximized = maximized;
+	this->fullscreen = fullscreen;
+	
+	// Set hard window minimum size
+	SDL_SetWindowMinimumSize(sdl_window, 160, 120);
 	
 	// Create OpenGL context
 	debug::log::trace("Creating OpenGL {}.{} context...", config::opengl_version_major, config::opengl_version_minor);
@@ -156,7 +252,7 @@ application::application():
 	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &opengl_context_alpha_size);
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &opengl_context_depth_size);
 	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &opengl_context_stencil_size);
-	debug::log::info("OpenGL context default framebuffer format: R{}G{}B{}A{}D{}S{}", opengl_context_red_size, opengl_context_green_size, opengl_context_blue_size, opengl_context_alpha_size, opengl_context_depth_size, opengl_context_stencil_size);
+	debug::log::info("OpenGL context format: R{}G{}B{}A{}D{}S{}", opengl_context_red_size, opengl_context_green_size, opengl_context_blue_size, opengl_context_alpha_size, opengl_context_depth_size, opengl_context_stencil_size);
 	
 	// Compare OpenGL context default framebuffer format with request format
 	if (opengl_context_red_size < config::opengl_min_red_size ||
@@ -168,7 +264,7 @@ application::application():
 	{
 		debug::log::warning
 		(
-			"OpenGL default framebuffer format (R{}G{}B{}A{}D{}S{}) does not meet minimum requested format (R{}G{}B{}A{}D{}S{})",
+			"OpenGL context format (R{}G{}B{}A{}D{}S{}) does not meet minimum requested format (R{}G{}B{}A{}D{}S{})",
 			opengl_context_red_size, opengl_context_green_size, opengl_context_blue_size, opengl_context_alpha_size, opengl_context_depth_size, opengl_context_stencil_size,
 			config::opengl_min_red_size, config::opengl_min_green_size, config::opengl_min_blue_size, config::opengl_min_alpha_size, config::opengl_min_depth_size, config::opengl_min_stencil_size
 		);
@@ -183,13 +279,27 @@ application::application():
 	}
 	debug::log::trace("Loaded OpenGL functions");
 	
-	// Update window size and viewport size
-	SDL_GetWindowSize(sdl_window, &window_dimensions[0], &window_dimensions[1]);
-	SDL_GL_GetDrawableSize(sdl_window, &viewport_dimensions[0], &viewport_dimensions[1]);
+	// Log OpenGL context information
+	debug::log::info
+	(
+		"OpenGL vendor: {}; renderer: {}; version: {}; shading language version: {}",
+		reinterpret_cast<const char*>(glGetString(GL_VENDOR)),
+		reinterpret_cast<const char*>(glGetString(GL_RENDERER)),
+		reinterpret_cast<const char*>(glGetString(GL_VERSION)),
+		reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION))
+	);
+	
+	// Clear window color
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	swap_buffers();
 	
 	// Set v-sync mode
-	set_v_sync(true);
-
+	set_v_sync(v_sync);
+	
+	// Update viewport size
+	SDL_GL_GetDrawableSize(sdl_window, &viewport_size[0], &viewport_size[1]);
+	
 	// Init SDL joystick and controller subsystems
 	debug::log::trace("Initializing SDL joystick and controller subsystems...");
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
@@ -203,6 +313,7 @@ application::application():
 	
 	// Setup rasterizer
 	rasterizer = new gl::rasterizer();
+	rasterizer->context_resized(viewport_size[0], viewport_size[1]);
 	
 	// Register keyboard and mouse with input device manager
 	device_manager.register_device(keyboard);
@@ -266,8 +377,8 @@ void application::set_relative_mouse_mode(bool enabled)
 
 void application::resize_window(int width, int height)
 {
-	int x = (display_dimensions[0] >> 1) - (width >> 1);
-	int y = (display_dimensions[1] >> 1) - (height >> 1);
+	int x = (display_size[0] >> 1) - (width >> 1);
+	int y = (display_size[1] >> 1) - (height >> 1);
 	
 	// Resize and center window
 	SDL_SetWindowPosition(sdl_window, x, y);
@@ -282,58 +393,51 @@ void application::set_fullscreen(bool fullscreen)
 		
 		if (fullscreen)
 		{
-			SDL_HideWindow(sdl_window);
 			SDL_SetWindowFullscreen(sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-			SDL_ShowWindow(sdl_window);
 		}
 		else
 		{
 			SDL_SetWindowFullscreen(sdl_window, 0);
-			SDL_SetWindowBordered(sdl_window, SDL_TRUE);
-			SDL_SetWindowResizable(sdl_window, SDL_TRUE);
 		}
 	}
 }
 
 void application::set_v_sync(bool v_sync)
 {
-	if (this->v_sync != v_sync)
+	if (v_sync)
 	{
-		if (v_sync)
+		debug::log::trace("Enabling adaptive v-sync...");
+		if (SDL_GL_SetSwapInterval(-1) != 0)
 		{
-			debug::log::trace("Enabling adaptive v-sync...");
-			if (SDL_GL_SetSwapInterval(-1) != 0)
+			debug::log::error("Failed to enable adaptive v-sync: {}", SDL_GetError());
+			debug::log::trace("Enabling synchronized v-sync...");
+			if (SDL_GL_SetSwapInterval(1) != 0)
 			{
-				debug::log::error("Failed to enable adaptive v-sync: {}", SDL_GetError());
-				debug::log::trace("Enabling synchronized v-sync...");
-				if (SDL_GL_SetSwapInterval(1) != 0)
-				{
-					debug::log::error("Failed to enable synchronized v-sync: {}", SDL_GetError());
-				}
-				else
-				{
-					this->v_sync = v_sync;
-					debug::log::debug("Enabled synchronized v-sync");
-				}
+				debug::log::error("Failed to enable synchronized v-sync: {}", SDL_GetError());
 			}
 			else
 			{
 				this->v_sync = v_sync;
-				debug::log::debug("Enabled adaptive v-sync");
+				debug::log::debug("Enabled synchronized v-sync");
 			}
 		}
 		else
 		{
-			debug::log::trace("Disabling v-sync...");
-			if (SDL_GL_SetSwapInterval(0) != 0)
-			{
-				debug::log::error("Failed to disable v-sync: {}", SDL_GetError());
-			}
-			else
-			{
-				this->v_sync = v_sync;
-				debug::log::debug("Disabled v-sync");
-			}
+			this->v_sync = v_sync;
+			debug::log::debug("Enabled adaptive v-sync");
+		}
+	}
+	else
+	{
+		debug::log::trace("Disabling v-sync...");
+		if (SDL_GL_SetSwapInterval(0) != 0)
+		{
+			debug::log::error("Failed to disable v-sync: {}", SDL_GetError());
+		}
+		else
+		{
+			this->v_sync = v_sync;
+			debug::log::debug("Disabled v-sync");
 		}
 	}
 }
@@ -525,27 +629,97 @@ void application::process_events()
 				switch (sdl_event.window.event)
 				{
 					case SDL_WINDOWEVENT_SIZE_CHANGED:
-						window_resized();
+					{
+						// Query SDL window parameters
+						SDL_Window* sdl_window = SDL_GetWindowFromID(sdl_event.window.windowID);
+						const auto sdl_window_flags = SDL_GetWindowFlags(sdl_window);
+						int sdl_window_drawable_w = 0;
+						int sdl_window_drawable_h = 0;
+						SDL_GL_GetDrawableSize(sdl_window, &sdl_window_drawable_w, &sdl_window_drawable_h);
+						
+						// Build window resized event
+						input::event::window_resized event;
+						event.window = nullptr;
+						event.size.x() = static_cast<std::int32_t>(sdl_event.window.data1);
+						event.size.y() = static_cast<std::int32_t>(sdl_event.window.data2);
+						event.maximized = sdl_window_flags & SDL_WINDOW_MAXIMIZED;
+						event.fullscreen = sdl_window_flags & SDL_WINDOW_FULLSCREEN;
+						event.viewport_size.x() = static_cast<std::int32_t>(sdl_window_drawable_w);
+						event.viewport_size.y() = static_cast<std::int32_t>(sdl_window_drawable_h);
+						
+						// Update windowed size
+						if (!event.maximized && !event.fullscreen)
+						{
+							windowed_size = event.size;
+						}
+						
+						// Update GL context size
+						rasterizer->context_resized(event.viewport_size.x(), event.viewport_size.y());
+						
+						// Publish window resized event
+						window_resized_publisher.publish(event);
 						break;
+					}
+					
+					case SDL_WINDOWEVENT_MOVED:
+					{
+						// Query SDL window parameters
+						SDL_Window* sdl_window = SDL_GetWindowFromID(sdl_event.window.windowID);
+						const auto sdl_window_flags = SDL_GetWindowFlags(sdl_window);
+						
+						// Build window moved event
+						input::event::window_moved event;
+						event.window = nullptr;
+						event.position.x() = static_cast<std::int32_t>(sdl_event.window.data1);
+						event.position.y() = static_cast<std::int32_t>(sdl_event.window.data2);
+						event.maximized = sdl_window_flags & SDL_WINDOW_MAXIMIZED;
+						event.fullscreen = sdl_window_flags & SDL_WINDOW_FULLSCREEN;
+						
+						// Update windowed position
+						if (!event.maximized && !event.fullscreen)
+						{
+							windowed_position = event.position;
+						}
+						
+						// Publish window moved event
+						window_moved_publisher.publish(event);
+						break;
+					}
 					
 					case SDL_WINDOWEVENT_FOCUS_GAINED:
-						debug::log::debug("Window focus gained");
-						window_focus_changed_publisher.publish({true});
+						// Build and publish window focused gained event
+						window_focus_changed_publisher.publish({nullptr, true});
 						break;
 					
 					case SDL_WINDOWEVENT_FOCUS_LOST:
-						debug::log::debug("Window focus lost");
-						window_focus_changed_publisher.publish({false});
+						// Build and publish window focused lost event
+						window_focus_changed_publisher.publish({nullptr, false});
 						break;
 					
-					case SDL_WINDOWEVENT_MOVED:
-						debug::log::trace("Window moved to ({}, {})", sdl_event.window.data1, sdl_event.window.data2);
-						window_moved_publisher.publish({static_cast<int>(sdl_event.window.data1), static_cast<int>(sdl_event.window.data2)});
+					case SDL_WINDOWEVENT_MAXIMIZED:
+						// Update window maximized 
+						maximized = true;
+						
+						// Build and publish window maximized event
+						window_maximized_publisher.publish({nullptr});
+						break;
+					
+					case SDL_WINDOWEVENT_RESTORED:
+						// Update window maximized 
+						maximized = false;
+						
+						// Build and publish window restored event
+						window_restored_publisher.publish({nullptr});
+						break;
+					
+					case SDL_WINDOWEVENT_MINIMIZED:
+						// Build and publish window minimized event
+						window_minimized_publisher.publish({nullptr});
 						break;
 					
 					[[unlikely]] case SDL_WINDOWEVENT_CLOSE:
-						debug::log::info("Window closed");
-						window_closed_publisher.publish({});
+						// Build and publish window closed event
+						window_closed_publisher.publish({nullptr});
 						break;
 					
 					default:
@@ -630,6 +804,9 @@ void application::process_events()
 				close();
 				break;
 			}
+			
+			default:
+				break;
 		}
 	}
 	
@@ -638,25 +815,4 @@ void application::process_events()
 	// {
 		// mouse.move(mouse_x, mouse_y, mouse_dx, mouse_dy);
 	// }
-}
-
-void application::window_resized()
-{
-	// Update window size and viewport size
-	SDL_GetWindowSize(sdl_window, &window_dimensions[0], &window_dimensions[1]);
-	SDL_GL_GetDrawableSize(sdl_window, &viewport_dimensions[0], &viewport_dimensions[1]);
-	
-	debug::log::debug("Window resized to {}x{}", window_dimensions[0], window_dimensions[1]);
-	
-	rasterizer->context_resized(viewport_dimensions[0], viewport_dimensions[1]);
-	
-	window_resized_publisher.publish
-	(
-		{
-			window_dimensions[0],
-			window_dimensions[1],
-			viewport_dimensions[0],
-			viewport_dimensions[1]
-		}
-	);
 }

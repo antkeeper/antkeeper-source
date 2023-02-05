@@ -358,7 +358,7 @@ void save_control_profile(game::context& ctx)
 	/*
 	std::filesystem::path path;
 	if (ctx.config->contains("control_profile"))
-		path = ctx.config_path / "controls" / (*ctx.config)["control_profile"].get<std::string>();
+		path = ctx.shared_config_path / "controls" / (*ctx.config)["control_profile"].get<std::string>();
 	
 	debug::log::trace("Saving control profile to \"{}\"...", path.string());
 	try

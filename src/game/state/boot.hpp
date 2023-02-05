@@ -48,9 +48,9 @@ public:
 	virtual ~boot();
 	
 private:
-	void parse_options(int argc, char** argv);
+	void parse_arguments(int argc, char** argv);
 	void setup_resources();
-	void load_config();
+	void load_settings();
 	void load_strings();
 	void setup_window();
 	void setup_rendering();

@@ -42,12 +42,14 @@
 #include "render/material-property.hpp"
 #include "render/material.hpp"
 #include "resources/json.hpp"
-#include "resources/string-table.hpp"
 #include "scene/scene.hpp"
 #include "state-machine.hpp"
 #include "type/bitmap-font.hpp"
 #include "type/typeface.hpp"
+#include "utility/dict.hpp"
 #include "utility/fundamental-types.hpp"
+#include "i18n/string-table.hpp"
+#include "i18n/string-map.hpp"
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <entt/entt.hpp>
@@ -121,6 +123,9 @@ namespace game {
 /// Container for data shared between game states.
 struct context
 {
+	// Configuration
+	dict<std::uint32_t>* settings;
+	
 	/// Hierarchichal state machine
 	hsm::state_machine<game::state::base> state_machine;
 	std::function<void()> resume_callback;
@@ -162,7 +167,8 @@ struct context
 	
 	// Paths
 	std::filesystem::path data_path;
-	std::filesystem::path config_path;
+	std::filesystem::path local_config_path;
+	std::filesystem::path shared_config_path;
 	std::filesystem::path mods_path;
 	std::filesystem::path saves_path;
 	std::filesystem::path screenshots_path;
@@ -172,16 +178,11 @@ struct context
 	// Resources
 	resource_manager* resource_manager;
 	
-	// Configuration
-	json* config;
-	
 	// Localization
-	std::string language_code;
-	int language_count;
-	int language_index;
-	string_table* string_table;
-	string_table_map string_table_map;
-	std::unordered_map<std::string, std::string>* strings;
+	std::uint16_t language_index;
+	std::uint16_t language_count;
+	i18n::string_table* string_table;
+	std::vector<i18n::string_map> string_maps;
 	std::unordered_map<std::string, type::typeface*> typefaces;
 	type::bitmap_font debug_font;
 	type::bitmap_font menu_font;
@@ -206,6 +207,7 @@ struct context
 	render::renderer* renderer;
 	int2 render_resolution;
 	float render_scale;
+	int shadow_map_resolution;
 	gl::vertex_buffer* billboard_vbo;
 	gl::vertex_array* billboard_vao;
 	render::material* fallback_material;
@@ -237,8 +239,12 @@ struct context
 	scene::collection* ui_scene;
 	scene::camera* ui_camera;
 	scene::billboard* camera_flash_billboard;
-	float font_size;
+	float font_scale;
 	bool dyslexia_font;
+	float debug_font_size_pt;
+	float menu_font_size_pt;
+	float title_font_size_pt;
+	
 	std::vector<std::function<void()>> menu_select_callbacks;
 	std::vector<std::function<void()>> menu_left_callbacks;
 	std::vector<std::function<void()>> menu_right_callbacks;
@@ -310,7 +316,6 @@ struct context
 	
 	const ecoregion* active_ecoregion;
 	
-	bool bloom_enabled;
 	render::anti_aliasing_method anti_aliasing_method;
 	
 	std::shared_ptr<::event::subscription> ui_resize_subscription;

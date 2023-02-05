@@ -25,6 +25,10 @@
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "game/menu.hpp"
+#include "game/strings.hpp"
+#include "utility/hash/fnv1a.hpp"
+
+using namespace hash::literals;
 
 namespace game {
 namespace state {
@@ -32,7 +36,7 @@ namespace state {
 controls_menu::controls_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering controls menu state");
+	debug::log::trace("Entering controls menu state...");
 	
 	// Construct menu item texts
 	scene::text* keyboard_text = new scene::text();
@@ -45,9 +49,9 @@ controls_menu::controls_menu(game::context& ctx):
 	ctx.menu_item_texts.push_back({back_text, nullptr});
 	
 	// Set content of menu item texts
-	keyboard_text->set_content((*ctx.strings)["controls_menu_keyboard"]);
-	gamepad_text->set_content((*ctx.strings)["controls_menu_gamepad"]);
-	back_text->set_content((*ctx.strings)["back"]);
+	keyboard_text->set_content(get_string(ctx, "controls_menu_keyboard"_fnv1a32));
+	gamepad_text->set_content(get_string(ctx, "controls_menu_gamepad"_fnv1a32));
+	back_text->set_content(get_string(ctx, "back"_fnv1a32));
 	
 	// Init menu item index
 	game::menu::init_menu_item_index(ctx, "controls");
@@ -151,12 +155,12 @@ controls_menu::controls_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered controls menu state");
 }
 
 controls_menu::~controls_menu()
 {
-	debug::log::push_task("Exiting options menu state");
+	debug::log::trace("Exiting options menu state...");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -165,7 +169,7 @@ controls_menu::~controls_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited controls menu state");
 }
 
 } // namespace state

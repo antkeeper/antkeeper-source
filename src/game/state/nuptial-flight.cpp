@@ -48,7 +48,6 @@
 #include "render/passes/ground-pass.hpp"
 #include "state-machine.hpp"
 #include "config.hpp"
-#include "game/load.hpp"
 #include "math/interpolation.hpp"
 #include "physics/light/exposure.hpp"
 #include "color/color.hpp"
@@ -61,7 +60,7 @@ namespace state {
 nuptial_flight::nuptial_flight(game::context& ctx):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering nuptial flight state");
+	debug::log::trace("Entering nuptial flight state...");
 	
 	// Init selected picking flag
 	selected_picking_flag = std::uint32_t{1} << (sizeof(std::uint32_t) * 8 - 1);
@@ -101,8 +100,8 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure(ev100_sunny16);
 	
-	const auto& viewport_dimensions = ctx.app->get_viewport_dimensions();
-	const float aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
+	const auto& viewport_size = ctx.app->get_viewport_size();
+	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
 	// Init camera rig params
 	camera_rig_near_distance = 1.0f;
@@ -114,12 +113,6 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	camera_rig_rotation_spring_angular_frequency = period_to_rads(0.125f);
 	camera_rig_fov_spring_angular_frequency = period_to_rads(0.125f);
 	camera_rig_focus_ease_to_duration = 1.0f;
-	
-	// Read camera rig settingss
-	if (ctx.config->contains("near_fov"))
-		camera_rig_near_fov = math::vertical_fov(math::radians((*ctx.config)["near_fov"].get<float>()), aspect_ratio);
-	if (ctx.config->contains("far_fov"))
-		camera_rig_far_fov = math::vertical_fov(math::radians((*ctx.config)["far_fov"].get<float>()), aspect_ratio);
 	
 	// Create camera rig
 	create_camera_rig();
@@ -143,12 +136,12 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	// Queue control setup
 	ctx.function_queue.push(std::bind(&nuptial_flight::enable_controls, this));
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered nuptial flight state");
 }
 
 nuptial_flight::~nuptial_flight()
 {
-	debug::log::push_task("Exiting nuptial flight state");
+	debug::log::trace("Exiting nuptial flight state...");
 	
 	// Deselect selected entity
 	select_entity(entt::null);
@@ -156,7 +149,7 @@ nuptial_flight::~nuptial_flight()
 	destroy_camera_rig();
 	game::ant::destroy_swarm(ctx, swarm_eid);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited nuptial flight state");
 }
 
 void nuptial_flight::create_camera_rig()
@@ -619,14 +612,14 @@ void nuptial_flight::enable_controls()
 			// Get window-space mouse coordinates
 			auto [mouse_x, mouse_y] = ctx.app->get_mouse()->get_current_position();
 			
-			// Get window viewport dimensions
-			const auto viewport_dimensions = ctx.app->get_viewport_dimensions();
+			// Get window viewport size
+			const auto viewport_size = ctx.app->viewport_size();
 			
 			// Transform mouse coordinates from window space to NDC space
 			const float2 mouse_ndc =
 			{
-				static_cast<float>(mouse_x) / static_cast<float>(viewport_dimensions[0] - 1) * 2.0f - 1.0f,
-				(1.0f - static_cast<float>(mouse_y) / static_cast<float>(viewport_dimensions[1] - 1)) * 2.0f - 1.0f
+				static_cast<float>(mouse_x) / static_cast<float>(viewport_size[0] - 1) * 2.0f - 1.0f,
+				(1.0f - static_cast<float>(mouse_y) / static_cast<float>(viewport_size[1] - 1)) * 2.0f - 1.0f
 			};
 			
 			// Get picking ray from camera

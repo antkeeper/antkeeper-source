@@ -18,14 +18,33 @@
  */
 
 #include "resources/resource-manager.hpp"
+#include "debug/log.hpp"
+#include <stdexcept>
 
 resource_manager::resource_manager()
 {
+	// Log PhysicsFS info
+	// PHYSFS_Version physfs_compiled_version;
+	// PHYSFS_Version physfs_linked_version;
+	// PHYSFS_VERSION(&physfs_compiled_version);
+	// PHYSFS_getLinkedVersion(&physfs_linked_version);
+	// debug::log::info
+	// (
+		// "PhysicsFS compiled version: {}.{}.{}; linked version: {}.{}.{}",
+		// physfs_compiled_version.major,
+		// physfs_compiled_version.minor,
+		// physfs_compiled_version.patch,
+		// physfs_linked_version.major,
+		// physfs_linked_version.minor,
+		// physfs_linked_version.patch
+	// );
+	
 	// Init PhysicsFS
 	debug::log::trace("Initializing PhysicsFS...");
 	if (!PHYSFS_init(nullptr))
 	{
 		debug::log::error("Failed to initialize PhysicsFS: {}", PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		throw std::runtime_error("Failed to initialize PhysicsFS");
 	}
 	else
 	{
@@ -69,6 +88,18 @@ bool resource_manager::mount(const std::filesystem::path& path)
 	{
 		debug::log::trace("Mounted path \"{}\"", path.string());
 		return true;
+	}
+}
+
+void resource_manager::set_write_dir(const std::filesystem::path& path)
+{
+	if (!PHYSFS_setWriteDir(path.string().c_str()))
+	{
+		debug::log::error("Failed set write directory to \"{}\": {}", path.string(), PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+	}
+	else
+	{
+		debug::log::trace("Set write directory to \"{}\"", path.string());
 	}
 }
 

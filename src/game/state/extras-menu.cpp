@@ -25,6 +25,10 @@
 #include "debug/log.hpp"
 #include "game/fonts.hpp"
 #include "game/menu.hpp"
+#include "game/strings.hpp"
+#include "utility/hash/fnv1a.hpp"
+
+using namespace hash::literals;
 
 namespace game {
 namespace state {
@@ -32,7 +36,7 @@ namespace state {
 extras_menu::extras_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering extras menu state");
+	debug::log::trace("Entering extras menu state...");
 	
 	// Construct menu item texts
 	scene::text* credits_text = new scene::text();
@@ -43,8 +47,8 @@ extras_menu::extras_menu(game::context& ctx):
 	ctx.menu_item_texts.push_back({back_text, nullptr});
 	
 	// Set content of menu item texts
-	credits_text->set_content((*ctx.strings)["extras_menu_credits"]);
-	back_text->set_content((*ctx.strings)["back"]);
+	credits_text->set_content(get_string(ctx, "extras_menu_credits"_fnv1a32));
+	back_text->set_content(get_string(ctx, "back"_fnv1a32));
 	
 	// Init menu item index
 	game::menu::init_menu_item_index(ctx, "extras");
@@ -123,12 +127,12 @@ extras_menu::extras_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered extras menu state");
 }
 
 extras_menu::~extras_menu()
 {
-	debug::log::push_task("Exiting extras menu state");
+	debug::log::trace("Exiting extras menu state...");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -137,7 +141,7 @@ extras_menu::~extras_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited extras menu state");
 }
 
 } // namespace state

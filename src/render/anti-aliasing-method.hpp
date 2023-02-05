@@ -20,12 +20,14 @@
 #ifndef ANTKEEPER_RENDER_ANTI_ALIASING_METHOD_HPP
 #define ANTKEEPER_RENDER_ANTI_ALIASING_METHOD_HPP
 
+#include <cstdint>
+
 namespace render {
 
 /**
  * Anti-aliasing methods.
  */
-enum class anti_aliasing_method
+enum class anti_aliasing_method: std::uint8_t
 {
 	/// No anti-aliasing.
 	none,

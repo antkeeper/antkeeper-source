@@ -17,45 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "resources/resource-loader.hpp"
-#include "resources/deserialize-error.hpp"
-#include <physfs.h>
+#ifndef ANTKEEPER_I18N_HPP
+#define ANTKEEPER_I18N_HPP
 
-void physfs_getline(PHYSFS_File* file, std::string& line)
-{
-	line.clear();
-	
-	for (;;)
-	{
-		char c;
-		const PHYSFS_sint64 status = PHYSFS_readBytes(file, &c, 1);
-		
-		if (status == 1)
-		{
-			if (c == '\r')
-			{
-				continue;
-			}
-			else if (c == '\n')
-			{
-				break;
-			}
-			else
-			{
-				line.append(1, c);
-			}
-			
-		}
-		else
-		{
-			if (PHYSFS_eof(file))
-			{
-				break;
-			}
-			else
-			{
-				throw deserialize_error(PHYSFS_getLastError());
-			}
-		}
-	}
-}
+/// Internationalization and localization.
+namespace i18n {}
+
+#endif // ANTKEEPER_I18N_HPP

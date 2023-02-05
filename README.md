@@ -1,16 +1,16 @@
 # Antkeeper Source
 
-Antkeeper is an ant colony simulation game currently in development for Windows, Mac, and Linux. This repository contains all of the source code to Antkeeper.
+Antkeeper is a 3D ant colony simulation game currently in development for Windows, Mac, and Linux. This repository contains all of the source code to Antkeeper.
 
 Head over to [antkeeper.com](https://antkeeper.com/) if you're interested in following the development of the game or purchasing a copy when it's released. Antkeeper is an indie game with a single developer, so feel free to reach out to me personally with any questions, comments, or feedback you may have.
 
 ## Building
 
-Download the Antkeeper build system, source code, and all dependencies via the [Antkeeper superbuild](https://git.antkeeper.com/antkeeper/superbuild) repository:
+Download the Antkeeper source code, build system, and all dependencies via the [Antkeeper superbuild](https://github.com/antkeeper/antkeeper-superbuild) repository:
 
-	git clone --recursive https://git.antkeeper.com/antkeeper/superbuild.git
+	git clone --recursive https://github.com/antkeeper/antkeeper-superbuild.git
 
-Detailed configuration and build instructions can be found in the [README](https://git.antkeeper.com/antkeeper/superbuild/src/branch/master/README.md) of the superbuild repository.
+Detailed configuration and build instructions can be found in the [README](https://github.com/antkeeper/antkeeper-superbuild/blob/master/README.md) of the superbuild repository.
 
 ## Documentation
 

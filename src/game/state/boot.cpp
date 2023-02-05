@@ -33,7 +33,7 @@
 #include "game/fonts.hpp"
 #include "game/graphics.hpp"
 #include "game/menu.hpp"
-#include "game/save.hpp"
+#include "game/strings.hpp"
 #include "game/state/boot.hpp"
 #include "game/state/splash.hpp"
 #include "game/system/astronomy.hpp"
@@ -52,6 +52,7 @@
 #include "game/system/subterrain.hpp"
 #include "game/system/terrain.hpp"
 #include "game/system/vegetation.hpp"
+#include "game/settings.hpp"
 #include "gl/framebuffer.hpp"
 #include "gl/pixel-format.hpp"
 #include "gl/pixel-type.hpp"
@@ -86,6 +87,8 @@
 #include "resources/resource-manager.hpp"
 #include "scene/scene.hpp"
 #include "utility/paths.hpp"
+#include "utility/dict.hpp"
+#include "utility/hash/fnv1a.hpp"
 #include <algorithm>
 #include <cxxopts.hpp>
 #include <entt/entt.hpp>
@@ -94,6 +97,8 @@
 #include <functional>
 #include <string>
 #include <vector>
+
+using namespace hash::literals;
 
 namespace game {
 namespace state {
@@ -104,16 +109,50 @@ boot::boot(game::context& ctx, int argc, char** argv):
 	// Boot process
 	debug::log::trace("Booting up...");
 	
-	// Allocate application
-	ctx.app = new application();
+	// Parse command line arguments
+	parse_arguments(argc, argv);
 	
-	// Parse command line options
-	parse_options(argc, argv);
-	
+	// Setup resource management
 	setup_resources();
-	load_config();
-	load_strings();
+	
+	// Load settings
+	load_settings();
+	
+	// Default window settings
+	std::string window_title = config::application_name;
+	int window_x = -1;
+	int window_y = -1;
+	int window_w = -1;
+	int window_h = -1;
+	bool maximized = true;
+	bool fullscreen = true;
+	bool v_sync = true;
+	
+	// Read window settings
+	read_or_write_setting(ctx, "window_title"_fnv1a32, window_title);
+	read_or_write_setting(ctx, "window_x"_fnv1a32, window_x);
+	read_or_write_setting(ctx, "window_y"_fnv1a32, window_y);
+	read_or_write_setting(ctx, "window_w"_fnv1a32, window_w);
+	read_or_write_setting(ctx, "window_h"_fnv1a32, window_h);
+	read_or_write_setting(ctx, "maximized"_fnv1a32, maximized);
+	read_or_write_setting(ctx, "fullscreen"_fnv1a32, fullscreen);
+	read_or_write_setting(ctx, "v_sync"_fnv1a32, v_sync);
+	
+	// Allocate application
+	ctx.app = new application
+	(
+		window_title,
+		window_x,
+		window_y,
+		window_w,
+		window_h,
+		maximized,
+		fullscreen,
+		v_sync
+	);
+	
 	setup_window();
+	load_strings();
 	setup_rendering();
 	setup_audio();
 	setup_scenes();
@@ -140,6 +179,21 @@ boot::~boot()
 {
 	debug::log::trace("Booting down...");
 	
+	// Update window settings
+	const auto& windowed_position = ctx.app->get_windowed_position();
+	const auto& windowed_size = ctx.app->get_windowed_size();
+	const bool maximized = ctx.app->is_maximized();
+	const bool fullscreen = ctx.app->is_fullscreen();
+	(*ctx.settings)["window_x"_fnv1a32] = windowed_position.x();
+	(*ctx.settings)["window_y"_fnv1a32] = windowed_position.y();
+	(*ctx.settings)["window_w"_fnv1a32] = windowed_size.x();
+	(*ctx.settings)["window_h"_fnv1a32] = windowed_size.y();
+	(*ctx.settings)["maximized"_fnv1a32] = maximized;
+	(*ctx.settings)["fullscreen"_fnv1a32] = fullscreen;
+	
+	// Save settings
+	ctx.resource_manager->save<dict<std::uint32_t>>(ctx.settings, "settings.cfg");
+	
 	shutdown_audio();
 	
 	// Close application
@@ -149,7 +203,7 @@ boot::~boot()
 	debug::log::trace("Boot down complete");
 }
 
-void boot::parse_options(int argc, char** argv)
+void boot::parse_arguments(int argc, char** argv)
 {
 	debug::log::trace("Parsing {} command line arguments...", argc);
 	
@@ -163,8 +217,8 @@ void boot::parse_options(int argc, char** argv)
 			("n,new-game", "Starts a new game")
 			("q,quick-start", "Skips to the main menu")
 			("r,reset", "Restores all settings to default")
-			("v,vsync", "Enables or disables v-sync", cxxopts::value<int>())
-			("w,windowed", "Starts in windowed mode");
+			("v,v_sync", "Enables or disables v-sync", cxxopts::value<int>())
+			("w,window", "Starts in window mode");
 		auto result = options.parse(argc, argv);
 		
 		// --continue
@@ -191,12 +245,12 @@ void boot::parse_options(int argc, char** argv)
 		if (result.count("reset"))
 			option_reset = true;
 		
-		// --vsync
-		if (result.count("vsync"))
-			option_v_sync = (result["vsync"].as<int>()) ? true : false;
+		// --v_sync
+		if (result.count("v_sync"))
+			option_v_sync = (result["v_sync"].as<int>()) ? true : false;
 		
-		// --windowed
-		if (result.count("windowed"))
+		// --window
+		if (result.count("window"))
 			option_windowed = true;
 		
 		debug::log::trace("Parsed {} command line arguments", argc);
@@ -207,27 +261,43 @@ void boot::parse_options(int argc, char** argv)
 	}
 }
 
+void boot::load_settings()
+{
+	ctx.settings = ctx.resource_manager->load<dict<std::uint32_t>>("settings.cfg");
+	if (!ctx.settings)
+	{
+		debug::log::info("Settings not found");
+		ctx.settings = new dict<std::uint32_t>();
+	}
+}
+
 void boot::setup_resources()
 {
 	// Setup resource manager
 	ctx.resource_manager = new resource_manager();
 	
 	// Detect paths
-	ctx.data_path = get_data_path(config::application_name);
-	ctx.config_path = get_config_path(config::application_name);
-	ctx.mods_path = ctx.config_path / "mods";
-	ctx.saves_path = ctx.config_path / "saves";
-	ctx.screenshots_path = ctx.config_path / "gallery";
-	ctx.controls_path = ctx.config_path / "controls";
+	ctx.data_path = get_executable_data_path();
+	ctx.local_config_path = get_local_config_path() / config::application_name;
+	ctx.shared_config_path = get_shared_config_path() / config::application_name;
+	ctx.mods_path = ctx.data_path / "mods";
+	ctx.saves_path = ctx.shared_config_path / "saves";
+	ctx.screenshots_path = ctx.shared_config_path / "gallery";
+	ctx.controls_path = ctx.shared_config_path / "controls";
 	
 	// Log resource paths
 	debug::log::info("Data path: \"{}\"", ctx.data_path.string());
-	debug::log::info("Config path: \"{}\"", ctx.config_path.string());
+	debug::log::info("Local config path: \"{}\"", ctx.local_config_path.string());
+	debug::log::info("Shared config path: \"{}\"", ctx.shared_config_path.string());
+	
+	// Set write dir
+	ctx.resource_manager->set_write_dir(ctx.shared_config_path);
 	
 	// Create nonexistent config directories
 	std::vector<std::filesystem::path> config_paths;
-	config_paths.push_back(ctx.config_path);
-	config_paths.push_back(ctx.mods_path);
+	config_paths.push_back(ctx.local_config_path);
+	config_paths.push_back(ctx.shared_config_path);
+	//config_paths.push_back(ctx.mods_path);
 	config_paths.push_back(ctx.saves_path);
 	config_paths.push_back(ctx.screenshots_path);
 	config_paths.push_back(ctx.controls_path);
@@ -251,10 +321,16 @@ void boot::setup_resources()
 	
 	// Scan for mods
 	std::vector<std::filesystem::path> mod_paths;
-	for (const auto& directory_entry: std::filesystem::directory_iterator(ctx.mods_path))
+	if (std::filesystem::is_directory(ctx.mods_path))
 	{
-		if (directory_entry.is_directory())
-			mod_paths.push_back(directory_entry.path());
+		for (const auto& entry: std::filesystem::directory_iterator{ctx.mods_path})
+		{
+			if (entry.is_directory() || (entry.is_regular_file() && entry.path().extension() == ".zip"))
+			{
+				mod_paths.push_back(entry.path());
+				debug::log::info("Found mod \"{}\"", entry.path().filename().string());
+			}
+		}
 	}
 	
 	// Determine data package path
@@ -271,10 +347,13 @@ void boot::setup_resources()
 	
 	// Mount mods
 	for (const std::filesystem::path& mod_path: mod_paths)
+	{
 		ctx.resource_manager->mount(ctx.mods_path / mod_path);
+	}
 	
 	// Mount config path
-	ctx.resource_manager->mount(ctx.config_path);
+	ctx.resource_manager->mount(ctx.local_config_path);
+	ctx.resource_manager->mount(ctx.shared_config_path);
 	
 	// Mount data package
 	ctx.resource_manager->mount(ctx.data_package_path);
@@ -284,109 +363,73 @@ void boot::setup_resources()
 	ctx.resource_manager->include("/");
 }
 
-void boot::load_config()
+void boot::setup_window()
 {
-	debug::log::trace("Loading config...");
+	// debug::log::trace("Setting up window...");
 	
-	// Load config file
-	ctx.config = ctx.resource_manager->load<json>("config.json");
-	if (ctx.config)
-	{
-		debug::log::trace("Loaded config");
-	}
-	else
-	{
-		debug::log::error("Failed to load config");
-	}
+	// application* app = ctx.app;
+	
+	// ctx.app->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+	// ctx.app->get_rasterizer()->clear_framebuffer(true, false, false);
+	// app->show_window();
+	// ctx.app->swap_buffers();
+	
+	// debug::log::trace("Set up window");
 }
 
 void boot::load_strings()
 {
 	debug::log::trace("Loading strings...");
 	
-	ctx.string_table = ctx.resource_manager->load<string_table>("strings.csv");
+	// Default strings settings
+	ctx.language_index = 0;
 	
-	build_string_table_map(&ctx.string_table_map, *ctx.string_table);
+	// Read strings settings
+	read_or_write_setting(ctx, "language_index"_fnv1a32, ctx.language_index);
 	
-	ctx.language_code = (*ctx.config)["language"].get<std::string>();
-	ctx.language_index = -1;
-	for (int i = 2; i < (*ctx.string_table)[0].size(); ++i)
+	// Load string table
+	ctx.string_table = ctx.resource_manager->load<i18n::string_table>("strings.tsv");
+	
+	// Count languages
+	ctx.language_count = static_cast<std::uint16_t>((*ctx.string_table)[0].size() - 2);
+	
+	if (ctx.language_index >= ctx.language_count)
 	{
-		if ((*ctx.string_table)[0][i] == ctx.language_code)
-			ctx.language_index = i - 2;
+		debug::log::error("Language index ({}) exceeds language count ({}). Language index reset to 0", ctx.language_index, ctx.language_count);
+		ctx.language_index = 0;
+		(*ctx.settings)["language_index"_fnv1a32] = ctx.language_index;
 	}
 	
-	ctx.language_count = (*ctx.string_table)[0].size() - 2;
-	debug::log::info("Languages available: {}", ctx.language_count);
-	debug::log::info("Language index: {}", ctx.language_index);
-	debug::log::info("Language code: {}", ctx.language_code);
+	// Build string map
+	ctx.string_maps.resize(ctx.language_count);
+	i18n::build_string_map(*ctx.string_table, 0, ctx.language_index + 2, ctx.string_maps[ctx.language_index]);
 	
-	ctx.strings = &ctx.string_table_map[ctx.language_code];
+	// Log language info
+	debug::log::info("Language index: {}; code: {}", ctx.language_index, get_string(ctx, "language_code"_fnv1a32));
+	
+	// Change window title
+	const std::string window_title = get_string(ctx, "application_title"_fnv1a32);
+	ctx.app->set_title(window_title);
+	
+	// Update window title setting
+	(*ctx.settings)["window_title"_fnv1a32] = window_title;
 	
 	debug::log::trace("Loaded strings");
-}
-
-void boot::setup_window()
-{
-	debug::log::trace("Setting up window...");
-	
-	application* app = ctx.app;
-	json* config = ctx.config;
-	
-	// Set fullscreen or windowed mode
-	bool fullscreen = true;
-	if (option_fullscreen.has_value())
-		fullscreen = true;
-	else if (option_windowed.has_value())
-		fullscreen = false;
-	else if (config->contains("fullscreen"))
-		fullscreen = (*config)["fullscreen"].get<bool>();
-	app->set_fullscreen(fullscreen);
-	
-	// Set resolution
-	const auto& display_dimensions = ctx.app->get_display_dimensions();
-	int2 resolution = {display_dimensions[0], display_dimensions[1]};
-	if (fullscreen)
-	{
-		if (config->contains("fullscreen_resolution"))
-		{
-			resolution.x() = (*config)["fullscreen_resolution"][0].get<int>();
-			resolution.y() = (*config)["fullscreen_resolution"][1].get<int>();
-		}
-	}
-	else
-	{
-		if (config->contains("windowed_resolution"))
-		{
-			resolution.x() = (*config)["windowed_resolution"][0].get<int>();
-			resolution.y() = (*config)["windowed_resolution"][1].get<int>();
-		}
-	}
-	app->resize_window(resolution.x(), resolution.y());
-	
-	// Set v-sync
-	bool v_sync = true;
-	if (option_v_sync.has_value())
-		v_sync = (option_v_sync.value() != 0);
-	else if (config->contains("v_sync"))
-		v_sync = (*config)["v_sync"].get<bool>();
-	app->set_v_sync(v_sync);
-	
-	// Set title
-	app->set_title((*ctx.strings)["application_title"]);
-	
-	// Show window
-	ctx.app->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-	ctx.app->get_rasterizer()->clear_framebuffer(true, false, false);
-	app->show_window();
-	ctx.app->swap_buffers();
-	
-	debug::log::trace("Set up window");
 }
 
 void boot::setup_rendering()
 {
 	debug::log::trace("Setting up rendering...");
+	
+	// Default rendering settings
+	ctx.render_scale = 1.0f;
+	ctx.anti_aliasing_method = render::anti_aliasing_method::fxaa;
+	ctx.shadow_map_resolution = 4096;
+	
+	// Read rendering settings
+	read_or_write_setting(ctx, "render_scale"_fnv1a32, ctx.render_scale);
+	read_or_write_setting(ctx, "anti_aliasing_method"_fnv1a32, *reinterpret_cast<std::underlying_type_t<render::anti_aliasing_method>*>(&ctx.anti_aliasing_method));
+	read_or_write_setting(ctx, "shadow_map_resolution"_fnv1a32, ctx.shadow_map_resolution);
 	
 	// Get rasterizer from application
 	ctx.rasterizer = ctx.app->get_rasterizer();
@@ -421,38 +464,11 @@ void boot::setup_rendering()
 		ctx.resample_pass->set_source_texture(ctx.ldr_color_texture_b);
 		ctx.resample_pass->set_enabled(false);
 		
-		// Toggle bloom according to settings
-		ctx.bloom_enabled = true;
-		if (ctx.config->contains("bloom_enabled"))
-			ctx.bloom_enabled = (*ctx.config)["bloom_enabled"].get<bool>();
-		graphics::toggle_bloom(ctx, ctx.bloom_enabled);
-		
 		// Configure anti-aliasing according to settings
-		ctx.anti_aliasing_method = render::anti_aliasing_method::fxaa;
-		if (ctx.config->contains("anti_aliasing_method"))
-		{
-			const std::string aa_method = (*ctx.config)["anti_aliasing_method"].get<std::string>();
-			if (aa_method == "fxaa")
-			{
-				ctx.anti_aliasing_method = render::anti_aliasing_method::fxaa;
-			}
-			else
-			{
-				ctx.anti_aliasing_method = render::anti_aliasing_method::none;
-			}
-		}
 		graphics::select_anti_aliasing_method(ctx, ctx.anti_aliasing_method);
 		
 		// Configure render scaling according to settings
-		ctx.render_scale = 1.0f;
-		if (ctx.config->contains("render_scale"))
-		{
-			ctx.render_scale = (*ctx.config)["render_scale"].get<float>();
-			if (ctx.render_scale != 1.0f)
-			{
-				graphics::change_render_resolution(ctx, ctx.render_scale);
-			}
-		}
+		graphics::change_render_resolution(ctx, ctx.render_scale);
 	}
 	
 	// Setup UI compositor
@@ -593,35 +609,21 @@ void boot::setup_audio()
 {
 	debug::log::trace("Setting up audio...");
 	
-	// Load master volume config
+	// Default audio settings
 	ctx.master_volume = 1.0f;
-	if (ctx.config->contains("master_volume"))
-		ctx.master_volume = (*ctx.config)["master_volume"].get<float>();
-	
-	// Load ambience volume config
 	ctx.ambience_volume = 1.0f;
-	if (ctx.config->contains("ambience_volume"))
-		ctx.ambience_volume = (*ctx.config)["ambience_volume"].get<float>();
-	
-	// Load effects volume config
 	ctx.effects_volume = 1.0f;
-	if (ctx.config->contains("effects_volume"))
-		ctx.effects_volume = (*ctx.config)["effects_volume"].get<float>();
-	
-	// Load mono audio config
 	ctx.mono_audio = false;
-	if (ctx.config->contains("mono_audio"))
-		ctx.mono_audio = (*ctx.config)["mono_audio"].get<bool>();
-		
-	// Load captions config
 	ctx.captions = false;
-	if (ctx.config->contains("captions"))
-		ctx.captions = (*ctx.config)["captions"].get<bool>();
-	
-	// Load captions size config
 	ctx.captions_size = 1.0f;
-	if (ctx.config->contains("captions_size"))
-		ctx.captions_size = (*ctx.config)["captions_size"].get<float>();
+	
+	// Read audio settings
+	read_or_write_setting(ctx, "master_volume"_fnv1a32, ctx.master_volume);
+	read_or_write_setting(ctx, "ambience_volume"_fnv1a32, ctx.ambience_volume);
+	read_or_write_setting(ctx, "effects_volume"_fnv1a32, ctx.effects_volume);
+	read_or_write_setting(ctx, "mono_audio"_fnv1a32, ctx.mono_audio);
+	read_or_write_setting(ctx, "captions"_fnv1a32, ctx.captions);
+	read_or_write_setting(ctx, "captions_size"_fnv1a32, ctx.captions_size);
 	
 	// Open audio device
 	debug::log::trace("Opening audio device...");
@@ -683,17 +685,16 @@ void boot::setup_scenes()
 	debug::log::trace("Setting up scenes...");
 	
 	// Get default framebuffer
-	const auto& viewport_dimensions = ctx.rasterizer->get_default_framebuffer().get_dimensions();
-	const float viewport_aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
+	const auto& viewport_size = ctx.app->get_viewport_size();
+	const float viewport_aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
 	// Setup UI camera
 	ctx.ui_camera = new scene::camera();
 	ctx.ui_camera->set_compositor(ctx.ui_compositor);
-	auto viewport = ctx.app->get_viewport_dimensions();
-	float clip_left = -viewport[0] * 0.5f;
-	float clip_right = viewport[0] * 0.5f;
-	float clip_top = -viewport[1] * 0.5f;
-	float clip_bottom = viewport[1] * 0.5f;
+	float clip_left = -viewport_size[0] * 0.5f;
+	float clip_right = viewport_size[0] * 0.5f;
+	float clip_top = -viewport_size[1] * 0.5f;
+	float clip_bottom = viewport_size[1] * 0.5f;
 	float clip_near = 0.0f;
 	float clip_far = 1000.0f;
 	ctx.ui_camera->set_orthographic(clip_left, clip_right, clip_top, clip_bottom, clip_near, clip_far);
@@ -728,7 +729,7 @@ void boot::setup_scenes()
 		ctx.menu_bg_billboard = new scene::billboard();
 		ctx.menu_bg_billboard->set_active(false);
 		ctx.menu_bg_billboard->set_material(menu_bg_material);
-		ctx.menu_bg_billboard->set_scale({(float)viewport_dimensions[0] * 0.5f, (float)viewport_dimensions[1] * 0.5f, 1.0f});
+		ctx.menu_bg_billboard->set_scale({(float)viewport_size[0] * 0.5f, (float)viewport_size[1] * 0.5f, 1.0f});
 		ctx.menu_bg_billboard->set_translation({0.0f, 0.0f, -100.0f});
 		ctx.menu_bg_billboard->update_tweens();
 		
@@ -744,7 +745,7 @@ void boot::setup_scenes()
 		
 		ctx.camera_flash_billboard = new scene::billboard();
 		ctx.camera_flash_billboard->set_material(flash_material);
-		ctx.camera_flash_billboard->set_scale({(float)viewport_dimensions[0] * 0.5f, (float)viewport_dimensions[1] * 0.5f, 1.0f});
+		ctx.camera_flash_billboard->set_scale({(float)viewport_size[0] * 0.5f, (float)viewport_size[1] * 0.5f, 1.0f});
 		ctx.camera_flash_billboard->set_translation({0.0f, 0.0f, 0.0f});
 		ctx.camera_flash_billboard->update_tweens();
 		
@@ -882,8 +883,8 @@ void boot::setup_entities()
 
 void boot::setup_systems()
 {
-	const auto& viewport_dimensions = ctx.app->get_viewport_dimensions();
-	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_dimensions[0]), static_cast<float>(viewport_dimensions[1])};
+	const auto& viewport_size = ctx.app->get_viewport_size();
+	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_size[0]), static_cast<float>(viewport_size[1])};
 	
 	// Setup terrain system
 	ctx.terrain_system = new game::system::terrain(*ctx.entity_registry);
@@ -977,18 +978,16 @@ void boot::setup_controls()
 	debug::log::trace("Loading controls...");
 	try
 	{
-		// If a control profile is set in the config file
-		if (ctx.config->contains("control_profile"))
-		{
-			// Load control profile
-			json* profile = ctx.resource_manager->load<json>((*ctx.config)["control_profile"].get<std::string>());
+		// Load control profile
+		// if (ctx.config->contains("control_profile"))
+		// {
+			// json* profile = ctx.resource_manager->load<json>((*ctx.config)["control_profile"].get<std::string>());
 			
-			// Apply control profile
-			if (profile)
-			{
-				game::apply_control_profile(ctx, *profile);
-			}
-		}
+			// if (profile)
+			// {
+				// game::apply_control_profile(ctx, *profile);
+			// }
+		// }
 		
 		// Calibrate gamepads
 		// for (input::gamepad* gamepad: ctx.app->get_gamepads())
@@ -1026,20 +1025,17 @@ void boot::setup_controls()
 				{
 					bool fullscreen = !ctx.app->is_fullscreen();
 					
+					// Toggle fullscreen
 					ctx.app->set_fullscreen(fullscreen);
+					
+					// Update fullscreen setting
+					(*ctx.settings)["fullscreen"_fnv1a32] = fullscreen;
 					
 					if (!fullscreen)
 					{
-						int2 resolution;
-						resolution.x() = (*ctx.config)["windowed_resolution"][0].get<int>();
-						resolution.y() = (*ctx.config)["windowed_resolution"][1].get<int>();
-						
-						ctx.app->resize_window(resolution.x(), resolution.y());
+						// Restore window size and position
+						//ctx.app->resize_window(resolution.x(), resolution.y());
 					}
-					
-					// Save display mode config
-					(*ctx.config)["fullscreen"] = fullscreen;
-					game::save::config(ctx);
 				}
 			)
 		);
@@ -1081,15 +1077,19 @@ void boot::setup_controls()
 
 void boot::setup_ui()
 {
-	// Load font size config
-	ctx.font_size = 1.0f;
-	if (ctx.config->contains("font_size"))
-		ctx.font_size = (*ctx.config)["font_size"].get<float>();
-	
-	// Load dyslexia font config
+	// Default UI settings
+	ctx.font_scale = 1.0f;
+	ctx.debug_font_size_pt = 12.0f;
+	ctx.menu_font_size_pt = 22.0f;
+	ctx.title_font_size_pt = 80.0f;
 	ctx.dyslexia_font = false;
-	if (ctx.config->contains("dyslexia_font"))
-		ctx.dyslexia_font = (*ctx.config)["dyslexia_font"].get<bool>();
+	
+	// Read UI settings
+	read_or_write_setting(ctx, "font_scale"_fnv1a32, ctx.font_scale);
+	read_or_write_setting(ctx, "debug_font_size_pt"_fnv1a32, ctx.debug_font_size_pt);
+	read_or_write_setting(ctx, "menu_font_size_pt"_fnv1a32, ctx.menu_font_size_pt);
+	read_or_write_setting(ctx, "title_font_size_pt"_fnv1a32, ctx.title_font_size_pt);
+	read_or_write_setting(ctx, "dyslexia_font"_fnv1a32, ctx.dyslexia_font);
 	
 	// Load fonts
 	debug::log::trace("Loading fonts...");
@@ -1108,10 +1108,10 @@ void boot::setup_ui()
 	(
 		[&](const auto& event)
 		{
-			const float clip_left = static_cast<float>(event.viewport_width) * -0.5f;
-			const float clip_right = static_cast<float>(event.viewport_width) * 0.5f;
-			const float clip_top = static_cast<float>(event.viewport_height) * -0.5f;
-			const float clip_bottom = static_cast<float>(event.viewport_height) * 0.5f;
+			const float clip_left = static_cast<float>(event.viewport_size.x()) * -0.5f;
+			const float clip_right = static_cast<float>(event.viewport_size.x()) * 0.5f;
+			const float clip_top = static_cast<float>(event.viewport_size.y()) * -0.5f;
+			const float clip_bottom = static_cast<float>(event.viewport_size.y()) * 0.5f;
 			const float clip_near = ctx.ui_camera->get_clip_near();
 			const float clip_far = ctx.ui_camera->get_clip_far();
 			
@@ -1131,11 +1131,14 @@ void boot::setup_debugging()
 
 void boot::setup_loop()
 {
+	// Default loop settings
+	double update_frequency = 60.0;
+	
+	// Read loop settings
+	read_or_write_setting(ctx, "update_frequency"_fnv1a32, update_frequency);
+	
 	// Set update frequency
-	if (ctx.config->contains("update_frequency"))
-	{
-		ctx.loop.set_update_frequency((*ctx.config)["update_frequency"].get<double>());
-	}
+	ctx.loop.set_update_frequency(update_frequency);
 	
 	// Set update callback
 	ctx.loop.set_update_callback

@@ -20,28 +20,28 @@
 #ifndef ANTKEEPER_GL_HPP
 #define ANTKEEPER_GL_HPP
 
-/// Graphics library (GL) is a cross-platform GPU interface.
+/// Graphics library interface.
 namespace gl {}
 
-#include "buffer-usage.hpp"
-#include "color-space.hpp"
-#include "drawing-mode.hpp"
-#include "element-array-type.hpp"
-#include "framebuffer.hpp"
-#include "pixel-format.hpp"
-#include "pixel-type.hpp"
-#include "rasterizer.hpp"
-#include "shader-input.hpp"
-#include "shader-object.hpp"
-#include "shader-program.hpp"
-#include "shader-stage.hpp"
-#include "shader-variable-type.hpp"
-#include "texture-2d.hpp"
-#include "texture-cube.hpp"
-#include "texture-filter.hpp"
-#include "texture-wrapping.hpp"
-#include "vertex-array.hpp"
-#include "vertex-attribute.hpp"
-#include "vertex-buffer.hpp"
+#include "gl/buffer-usage.hpp"
+#include "gl/color-space.hpp"
+#include "gl/drawing-mode.hpp"
+#include "gl/element-array-type.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/pixel-format.hpp"
+#include "gl/pixel-type.hpp"
+#include "gl/rasterizer.hpp"
+#include "gl/shader-input.hpp"
+#include "gl/shader-object.hpp"
+#include "gl/shader-program.hpp"
+#include "gl/shader-stage.hpp"
+#include "gl/shader-variable-type.hpp"
+#include "gl/texture-2d.hpp"
+#include "gl/texture-cube.hpp"
+#include "gl/texture-filter.hpp"
+#include "gl/texture-wrapping.hpp"
+#include "gl/vertex-array.hpp"
+#include "gl/vertex-attribute.hpp"
+#include "gl/vertex-buffer.hpp"
 
 #endif // ANTKEEPER_GL_HPP

@@ -195,22 +195,22 @@ subterrain::subterrain(entity::registry& registry, ::resource_manager* resource_
 {
 
 	// Load subterrain materials
-	subterrain_inside_material = resource_manager->load<::render::material>("subterrain-inside.mtl");
-	subterrain_inside_material = resource_manager->load<::render::material>("subterrain-outside.mtl");
+	subterrain_inside_material = nullptr;//resource_manager->load<::render::material>("subterrain-inside.mtl");
+	subterrain_outside_material = nullptr;//resource_manager->load<::render::material>("subterrain-outside.mtl");
 
 	// Allocate subterrain model
 	subterrain_model = new ::render::model();
 
 	// Create inside model group
 	subterrain_inside_group = subterrain_model->add_group("inside");
-	subterrain_inside_group->set_material(resource_manager->load<::render::material>("subterrain-inside.mtl"));
+	subterrain_inside_group->set_material(subterrain_inside_material);
 	subterrain_inside_group->set_drawing_mode(gl::drawing_mode::triangles);
 	subterrain_inside_group->set_start_index(0);
 	subterrain_inside_group->set_index_count(0);
 
 	// Create outside model group
 	subterrain_outside_group = subterrain_model->add_group("outside");
-	subterrain_outside_group->set_material(resource_manager->load<::render::material>("subterrain-outside.mtl"));
+	subterrain_outside_group->set_material(subterrain_outside_material);
 	subterrain_outside_group->set_drawing_mode(gl::drawing_mode::triangles);
 	subterrain_outside_group->set_start_index(0);
 	subterrain_outside_group->set_index_count(0);

@@ -22,7 +22,6 @@
 #include "game/state/extras-menu.hpp"
 #include "game/state/nuptial-flight.hpp"
 #include "game/world.hpp"
-#include "game/load.hpp"
 #include "game/menu.hpp"
 #include "game/ecoregion.hpp"
 #include "game/ant/swarm.hpp"
@@ -43,6 +42,10 @@
 #include "game/component/transform.hpp"
 #include "math/projection.hpp"
 #include <limits>
+#include "game/strings.hpp"
+#include "utility/hash/fnv1a.hpp"
+
+using namespace hash::literals;
 
 namespace game {
 namespace state {
@@ -50,7 +53,7 @@ namespace state {
 main_menu::main_menu(game::context& ctx, bool fade_in):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering main menu state");
+	debug::log::trace("Entering main menu state...");
 	
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
 	
@@ -58,13 +61,13 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	title_text.set_material(&ctx.title_font_material);
 	title_text.set_color({1.0f, 1.0f, 1.0f, (fade_in) ? 1.0f : 0.0f});
 	title_text.set_font(&ctx.title_font);
-	title_text.set_content((*ctx.strings)["title_antkeeper"]);
+	title_text.set_content(get_string(ctx, "title_antkeeper"_fnv1a32));
 	
 	// Align title text
 	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text.get_local_bounds());
 	float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
 	float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
-	title_text.set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (ctx.app->get_viewport_dimensions().y() / 3.0f) / 2.0f), 0.0f});
+	title_text.set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (ctx.app->get_viewport_size().y() / 3.0f) / 2.0f), 0.0f});
 	title_text.update_tweens();
 	
 	// Add title text to UI
@@ -97,17 +100,17 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	ctx.menu_item_texts.push_back({quit_text, nullptr});
 	
 	// Set content of menu item texts
-	start_text->set_content((*ctx.strings)["main_menu_start"]);
-	options_text->set_content((*ctx.strings)["main_menu_options"]);
-	extras_text->set_content((*ctx.strings)["main_menu_extras"]);
-	quit_text->set_content((*ctx.strings)["main_menu_quit"]);
+	start_text->set_content(get_string(ctx, "main_menu_start"_fnv1a32));
+	options_text->set_content(get_string(ctx, "main_menu_options"_fnv1a32));
+	extras_text->set_content(get_string(ctx, "main_menu_extras"_fnv1a32));
+	quit_text->set_content(get_string(ctx, "main_menu_quit"_fnv1a32));
 	
 	// Init menu item index
 	game::menu::init_menu_item_index(ctx, "main");
 	
 	game::menu::update_text_color(ctx);
 	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx, true, false, (-ctx.app->get_viewport_dimensions().y() / 3.0f) / 2.0f);
+	game::menu::align_text(ctx, true, false, (-ctx.app->get_viewport_size().y() / 3.0f) / 2.0f);
 	game::menu::update_text_tweens(ctx);
 	game::menu::add_text_to_ui(ctx);
 	game::menu::setup_animations(ctx);
@@ -248,7 +251,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	{
 		game::world::cosmogenesis(ctx);
 		game::world::create_observer(ctx);
-		game::world::enter_ecoregion(ctx, *ctx.resource_manager->load<game::ecoregion>("seedy-scrub.eco"));
+		//game::world::enter_ecoregion(ctx, *ctx.resource_manager->load<game::ecoregion>("seedy-scrub.eco"));
 	}
 	
 	// Set world time
@@ -261,12 +264,10 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure(ev100_sunny16);
 	
-	const auto& viewport_dimensions = ctx.app->get_viewport_dimensions();
-	const float aspect_ratio = static_cast<float>(viewport_dimensions[0]) / static_cast<float>(viewport_dimensions[1]);
+	const auto& viewport_size = ctx.app->get_viewport_size();
+	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
 	float fov = math::vertical_fov(math::radians(100.0f), aspect_ratio);
-	if (ctx.config->contains("near_fov"))
-		fov = math::vertical_fov(math::radians((*ctx.config)["near_fov"].get<float>()), aspect_ratio);
 	
 	ctx.surface_camera->look_at({0, 2.0f, 0}, {0, 0, 0}, {0, 0, 1});
 	ctx.surface_camera->set_perspective(fov, ctx.surface_camera->get_aspect_ratio(), ctx.surface_camera->get_clip_near(), ctx.surface_camera->get_clip_far());
@@ -282,12 +283,12 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	//if (!ctx.menu_bg_billboard->is_active())
 	//	game::menu::fade_in_bg(ctx);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered main menu state");
 }
 
 main_menu::~main_menu()
 {
-	debug::log::push_task("Exiting main menu state");
+	debug::log::trace("Exiting main menu state...");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -305,7 +306,7 @@ main_menu::~main_menu()
 	// Destruct title text
 	ctx.ui_scene->remove_object(&title_text);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited main menu state");
 }
 
 void main_menu::fade_in_title()

@@ -24,21 +24,26 @@
 #include "game/state/boot.hpp"
 #include "utility/ansi.hpp"
 #include "utility/paths.hpp"
+#include <chrono>
 #include <fstream>
 #include <iostream>
+#include <SDL2/SDL.h>
 #include <set>
 #include <stdexcept>
 #include <syncstream>
 
 int main(int argc, char* argv[])
 {
+	// Get time at which the application launched 
+	const auto launch_time = std::chrono::system_clock::now();
+	
 	// Enable VT100 sequences in console for colored text
 	debug::console::enable_vt100();
 	
 	// Subscribe log to cout function to message logged events
 	auto log_to_cout_subscription = debug::log::default_logger().get_message_logged_channel().subscribe
 	(
-		[&](const auto& event)
+		[&launch_time](const auto& event)
 		{
 			static const char* severities[] =
 			{
@@ -62,7 +67,8 @@ int main(int argc, char* argv[])
 			
 			std::osyncstream(std::cout) << std::format
 			(
-				"{}:{}:{}: {}{}: {}{}\n",
+				"{:8.03f} {}:{}:{}: {}{}: {}{}\n",
+				std::chrono::duration<float>(event.time - launch_time).count(),
 				std::filesystem::path(event.location.file_name()).filename().string(),
 				event.location.line(),
 				event.location.column(),
@@ -75,7 +81,7 @@ int main(int argc, char* argv[])
 	);
 	
 	// Determine path to log archive
-	const std::filesystem::path log_archive_path = get_config_path(config::application_name) / "logs";
+	const std::filesystem::path log_archive_path = get_shared_config_path() / config::application_name / "logs";
 	
 	// Set up log archive
 	bool log_archive_exists = false;
@@ -130,14 +136,15 @@ int main(int argc, char* argv[])
 	
 	// Set up logging to file
 	std::shared_ptr<event::subscription> log_to_file_subscription;
+	std::filesystem::path log_filepath;
 	if (config::debug_log_archive_capacity && log_archive_exists)
 	{
 		// Determine log filename
-		const auto time = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+		const auto time = std::chrono::floor<std::chrono::seconds>(launch_time);
 		const std::string log_filename = std::format("{0}-{1:%Y%m%d}T{1:%H%M%S}Z.log", config::application_name, time);
 		
 		// Open log file
-		std::filesystem::path log_filepath = log_archive_path / log_filename;
+		log_filepath = log_archive_path / log_filename;
 		const std::string log_filepath_string = log_filepath.string();
 		auto log_filestream = std::make_shared<std::ofstream>(log_filepath);
 		
@@ -153,12 +160,12 @@ int main(int argc, char* argv[])
 				// Subscribe log to file function to message logged events
 				log_to_file_subscription = debug::log::default_logger().get_message_logged_channel().subscribe
 				(
-					[log_filestream](const auto& event)
+					[&launch_time, log_filestream](const auto& event)
 					{
 						std::osyncstream(*log_filestream) << std::format
 						(
-							"\n{0:%Y%m%d}T{0:%H%M%S}Z\t{1}\t{2}\t{3}\t{4}\t{5}",
-							std::chrono::floor<std::chrono::milliseconds>(event.time),
+							"\n{:.03f}\t{}\t{}\t{}\t{}\t{}",
+							std::chrono::duration<float>(event.time - launch_time).count(),
 							std::filesystem::path(event.location.file_name()).filename().string(),
 							event.location.line(),
 							event.location.column(),
@@ -184,8 +191,11 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-	// Log application name and version string
-	debug::log::info("{} v{}", config::application_name, config::application_version_string);
+	// Log application name and version string, followed by launch time
+	debug::log::info("{0} {1}; {2:%Y%m%d}T{2:%H%M%S}Z", config::application_name, config::application_version_string, std::chrono::floor<std::chrono::milliseconds>(launch_time));
+	
+	// Start marker
+	debug::log::debug("Hi! 🐜");
 	
 	try
 	{
@@ -198,8 +208,16 @@ int main(int argc, char* argv[])
 	catch (const std::exception& e)
 	{
 		debug::log::fatal("Unhandled exception: {}", e.what());
+		
+		#if defined(NDEBUG)
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", std::format("Unhandled exception: {}", e.what()).c_str(), nullptr);
+		#endif
+		
 		return EXIT_FAILURE;
 	}
+	
+	// Clean exit marker
+	debug::log::debug("Bye! 🐜");
 	
 	return EXIT_SUCCESS;
 }

@@ -28,31 +28,5 @@ logger& default_logger() noexcept
 	return instance;
 }
 
-void push_task(const std::string& description, std::source_location&& location)
-{
-	default_logger().log(description + " {", message_severity::info, std::forward<std::source_location>(location));
-}
-
-void pop_task(int status, const std::string& description, std::source_location&& location)
-{
-	std::string message = "} => ";
-	if (status == EXIT_SUCCESS)
-	{
-		message += "success";
-		
-		default_logger().log(std::move(message), message_severity::info, std::forward<std::source_location>(location));
-	}
-	else
-	{
-		message += "failure";
-		if (!description.empty())
-		{
-			message += "(" + description + ")";
-		}
-		
-		default_logger().log(std::move(message), message_severity::error, std::forward<std::source_location>(location));
-	}
-}
-
 } // namespace log
 } // namespace debug

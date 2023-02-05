@@ -30,6 +30,7 @@
 #include "gl/texture-2d.hpp"
 #include "render/vertex-attribute.hpp"
 #include "render/context.hpp"
+#include "debug/log.hpp"
 #include <glad/glad.h>
 
 namespace render {

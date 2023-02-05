@@ -17,11 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PATHS_HPP
-#define ANTKEEPER_PATHS_HPP
+#ifndef ANTKEEPER_UTILITY_PATHS_HPP
+#define ANTKEEPER_UTILITY_PATHS_HPP
 
 #include <filesystem>
-#include <string>
 
 /**
  * Returns the absolute path to the current executable.
@@ -33,24 +32,31 @@
 /**
  * Returns the absolute path to the directory containing application data.
  *
- * Windows: executable_directory
- * GNU/Linux: executable_directory/../share/applicationName/
+ * Windows: ` get_executable_path()`
+ * GNU/Linux: ` get_executable_path()/../share/`
  *
- * @param application_name Name of the application.
  * @return Path to the application's data directory.
  */
-[[nodiscard]] std::filesystem::path get_data_path(const std::string& application_name);
+[[nodiscard]] std::filesystem::path get_executable_data_path();
 
 /**
- * Returns the absolute path to the directory containing user-specific application data.
+ * Returns the absolute path to the directory containing user-specific, device-specific application data.
  *
- * Windows: %LOCALAPPDATA%\application_name\
- * GNU/Linux: $XDG_CONFIG_HOME/application_name/ or ~/.config/application_name/ if $XDG_CONFIG_HOME is not set.
+ * Windows: `%LOCALAPPDATA%`
+ * GNU/Linux: `$XDG_CONFIG_HOME` or `~/.config/` if `$XDG_CONFIG_HOME` is not set.
  *
- * @param application_name Name of the application.
- * @return Path to the application's config directory.
+ * @return Path to the local config directory.
  */
-[[nodiscard]] std::filesystem::path get_config_path(const std::string& application_name);
+[[nodiscard]] std::filesystem::path get_local_config_path();
 
-#endif // ANTKEEPER_PATHS_HPP
+/**
+ * Returns the absolute path to the directory containing user-specific application data that may be shared across devices.
+ *
+ * Windows: `%APPDATA%`
+ * GNU/Linux: `$XDG_CONFIG_HOME` or `~/.config/` if `$XDG_CONFIG_HOME` is not set.
+ *
+ * @return Path to the shared config directory.
+ */
+[[nodiscard]] std::filesystem::path get_shared_config_path();
 
+#endif // ANTKEEPER_UTILITY_PATHS_HPP

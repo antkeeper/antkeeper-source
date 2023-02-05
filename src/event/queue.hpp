@@ -20,15 +20,15 @@
 #ifndef ANTKEEPER_EVENT_QUEUE_HPP
 #define ANTKEEPER_EVENT_QUEUE_HPP
 
+#include "event/subscriber.hpp"
+#include "event/subscription.hpp"
 #include <any>
 #include <functional>
 #include <list>
 #include <map>
 #include <memory>
+#include <typeindex>
 #include <utility>
-#include "event/subscriber.hpp"
-#include "event/subscription.hpp"
-#include "utility/type-id.hpp"
 
 namespace event {
 
@@ -54,7 +54,7 @@ public:
 		std::shared_ptr<std::any> shared_subscriber = std::make_shared<std::any>(std::make_any<event::subscriber<T>>(std::move(subscriber)));
 		
 		// Append subscriber to subscriber list and store iterator
-		auto iterator = subscribers.emplace(type_id<T>, shared_subscriber);
+		auto iterator = subscribers.emplace(std::type_index(typeid(T)), shared_subscriber);
 		
 		// Construct and return a shared subscription object which removes the subscriber from the subscriber list when unsubscribed or destructed
 		return std::make_shared<subscription>
@@ -126,7 +126,7 @@ private:
 	void distribute(const T& message) const
 	{
 		// For each subscriber of the given message type
-		const auto range = subscribers.equal_range(type_id<T>);
+		const auto range = subscribers.equal_range(std::type_index(typeid(T)));
 		for (auto i = range.first; i != range.second; ++i)
 		{
 			// Send message to subscriber
@@ -134,7 +134,7 @@ private:
 		}
 	}
 	
-	std::multimap<type_id_t, std::shared_ptr<std::any>> subscribers;
+	std::multimap<std::type_index, std::shared_ptr<std::any>> subscribers;
 	std::list<std::function<void()>> messages;
 };
 

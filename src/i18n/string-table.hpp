@@ -17,45 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "resources/resource-loader.hpp"
-#include "resources/deserialize-error.hpp"
-#include <physfs.h>
+#ifndef ANTKEEPER_I18N_STRING_TABLE_HPP
+#define ANTKEEPER_I18N_STRING_TABLE_HPP
 
-void physfs_getline(PHYSFS_File* file, std::string& line)
-{
-	line.clear();
-	
-	for (;;)
-	{
-		char c;
-		const PHYSFS_sint64 status = PHYSFS_readBytes(file, &c, 1);
-		
-		if (status == 1)
-		{
-			if (c == '\r')
-			{
-				continue;
-			}
-			else if (c == '\n')
-			{
-				break;
-			}
-			else
-			{
-				line.append(1, c);
-			}
-			
-		}
-		else
-		{
-			if (PHYSFS_eof(file))
-			{
-				break;
-			}
-			else
-			{
-				throw deserialize_error(PHYSFS_getLastError());
-			}
-		}
-	}
-}
+#include <string>
+#include <vector>
+
+namespace i18n {
+
+/**
+ * A single row in a string table.
+ */
+typedef std::vector<std::string> string_table_row;
+
+/**
+ * A table of strings.
+ */
+typedef std::vector<string_table_row> string_table;
+
+} // namespace i18n
+
+#endif // ANTKEEPER_I18N_STRING_TABLE_HPP

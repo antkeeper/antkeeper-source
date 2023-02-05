@@ -17,30 +17,35 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "resources/string-table.hpp"
+#include "i18n/string-map.hpp"
+#include "utility/hash/fnv1a.hpp"
+#include <algorithm>
 
-void build_string_table_map(string_table_map* map, const string_table& table)
+namespace i18n {
+
+void build_string_map(const string_table& table, std::size_t key_column, std::size_t value_column, string_map& map)
 {
-	map->clear();
+	map.clear();
 	
-	for (std::size_t i = 0; i < table.size(); ++i)
+	const std::size_t max_column = std::max<std::size_t>(key_column, value_column);
+	
+	for (const auto& row: table)
 	{
-		for (std::size_t j = 2; j < table[i].size(); ++j)
+		if (row.size() <= max_column)
 		{
-			const std::string& string = table[i][j];
-			(*map)[table[0][j]][table[i][0]] = string.empty() ? "# MISSING STRING #" : string;
+			continue;
 		}
+		
+		const auto& value_string = row[value_column];
+		if (value_string.empty())
+		{
+			continue;
+		}
+		
+		const auto& key_string = row[key_column];		
+		const std::uint32_t key_hash = hash::fnv1a32(key_string.c_str(), key_string.length());	
+		map[key_hash] = row[value_column];
 	}
 }
 
-string_table_index index_string_table(const string_table& table)
-{
-	string_table_index index;
-
-	for (std::size_t i = 0; i < table.size(); ++i)
-	{
-		index[table[i][0]] = i;
-	}
-	
-	return index;
-}
+} // namespace i18n

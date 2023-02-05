@@ -25,6 +25,10 @@
 #include "resources/resource-manager.hpp"
 #include "game/menu.hpp"
 #include "game/controls.hpp"
+#include "game/strings.hpp"
+#include "utility/hash/fnv1a.hpp"
+
+using namespace hash::literals;
 
 namespace game {
 namespace state {
@@ -32,7 +36,7 @@ namespace state {
 keyboard_config_menu::keyboard_config_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering keyboard config menu state");
+	debug::log::trace("Entering keyboard config menu state...");
 	
 	// Add camera control menu items
 	add_control_item("move_forward");
@@ -53,7 +57,7 @@ keyboard_config_menu::keyboard_config_menu(game::context& ctx):
 	ctx.menu_item_texts.push_back({back_text, nullptr});
 	
 	// Set content of menu item texts
-	back_text->set_content((*ctx.strings)["back"]);
+	back_text->set_content(get_string(ctx, "back"_fnv1a32));
 	
 	// Init menu item index
 	game::menu::init_menu_item_index(ctx, "keyboard_config");
@@ -107,12 +111,12 @@ keyboard_config_menu::keyboard_config_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered keyboard config menu state");
 }
 
 keyboard_config_menu::~keyboard_config_menu()
 {
-	debug::log::push_task("Exiting keyboard config menu state");
+	debug::log::trace("Exiting keyboard config menu state...");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -124,7 +128,7 @@ keyboard_config_menu::~keyboard_config_menu()
 	// Save control profile
 	game::save_control_profile(ctx);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited keyboard config menu state...");
 }
 
 std::string keyboard_config_menu::get_binding_string(input::control* control)
@@ -234,11 +238,7 @@ void keyboard_config_menu::add_control_item(const std::string& control_name)
 	ctx.menu_item_texts.push_back({name_text, value_text});
 	
 	// Set content of name text
-	std::string string_name = "control_" + control_name;
-	if (auto it = ctx.strings->find(string_name); it != ctx.strings->end())
-		name_text->set_content(it->second);
-	else
-		name_text->set_content(control_name);
+	name_text->set_content(control_name);
 	
 	// Set content of value text
 	//value_text->set_content(get_binding_string( control));
@@ -246,7 +246,7 @@ void keyboard_config_menu::add_control_item(const std::string& control_name)
 	auto select_callback = [this, &ctx = this->ctx, value_text]()
 	{
 		// Clear binding string from value text
-		value_text->set_content((*ctx.strings)["ellipsis"]);
+		value_text->set_content(get_string(ctx, "ellipsis"_fnv1a32));
 		game::menu::align_text(ctx);
 		game::menu::update_text_tweens(ctx);
 		

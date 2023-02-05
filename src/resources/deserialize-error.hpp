@@ -17,25 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_SAVE_HPP
-#define ANTKEEPER_GAME_SAVE_HPP
+#ifndef ANTKEEPER_RESOURCES_DESERIALIZE_ERROR_HPP
+#define ANTKEEPER_RESOURCES_DESERIALIZE_ERROR_HPP
 
-#include "game/context.hpp"
-
-namespace game {
-namespace save {
+#include <stdexcept>
 
 /**
- * Saves the current ant colony.
+ * An exception of this type is thrown when an error occurs during deserialization.
  */
-void colony(game::context& ctx);
+class deserialize_error: public std::runtime_error
+{
+	using std::runtime_error::runtime_error;
+};
 
-/**
- * Saves the current configuration.
- */
-void config(game::context& ctx);
-
-} // namespace save
-} // namespace game
-
-#endif // ANTKEEPER_GAME_SAVE_HPP
+#endif // ANTKEEPER_RESOURCES_DESERIALIZE_ERROR_HPP

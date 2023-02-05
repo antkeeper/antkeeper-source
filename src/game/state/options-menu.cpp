@@ -24,7 +24,6 @@
 #include "game/state/sound-menu.hpp"
 #include "game/state/language-menu.hpp"
 #include "game/state/pause-menu.hpp"
-#include "game/save.hpp"
 #include "game/menu.hpp"
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
@@ -32,6 +31,10 @@
 #include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
+#include "game/strings.hpp"
+#include "utility/hash/fnv1a.hpp"
+
+using namespace hash::literals;
 
 namespace game {
 namespace state {
@@ -39,7 +42,7 @@ namespace state {
 options_menu::options_menu(game::context& ctx):
 	game::state::base(ctx)
 {
-	debug::log::push_task("Entering options menu state");
+	debug::log::trace("Entering options menu state...");
 	
 	// Construct menu item texts
 	scene::text* controls_text = new scene::text();
@@ -49,11 +52,11 @@ options_menu::options_menu(game::context& ctx):
 	scene::text* back_text = new scene::text();
 	
 	// Set content of menu item texts
-	controls_text->set_content((*ctx.strings)["options_menu_controls"]);
-	graphics_text->set_content((*ctx.strings)["options_menu_graphics"]);
-	sound_text->set_content((*ctx.strings)["options_menu_sound"]);
-	language_text->set_content((*ctx.strings)["options_menu_language"]);
-	back_text->set_content((*ctx.strings)["back"]);
+	controls_text->set_content(get_string(ctx, "options_menu_controls"_fnv1a32));
+	graphics_text->set_content(get_string(ctx, "options_menu_graphics"_fnv1a32));
+	sound_text->set_content(get_string(ctx, "options_menu_sound"_fnv1a32));
+	language_text->set_content(get_string(ctx, "options_menu_language"_fnv1a32));
+	back_text->set_content(get_string(ctx, "back"_fnv1a32));
 	
 	// Build list of menu item texts
 	ctx.menu_item_texts.push_back({controls_text, nullptr});
@@ -171,7 +174,7 @@ options_menu::options_menu(game::context& ctx):
 		game::menu::clear_controls(ctx);
 		
 		// Save config
-		game::save::config(ctx);
+		//game::save::config(ctx);
 		
 		game::menu::fade_out
 		(
@@ -216,12 +219,12 @@ options_menu::options_menu(game::context& ctx):
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Entered options menu state");
 }
 
 options_menu::~options_menu()
 {
-	debug::log::push_task("Exiting options menu state");
+	debug::log::trace("Exiting options menu state...");
 	
 	// Destruct menu
 	game::menu::clear_controls(ctx);
@@ -230,7 +233,7 @@ options_menu::~options_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	debug::log::pop_task(EXIT_SUCCESS);
+	debug::log::trace("Exited options menu state");
 }
 
 } // namespace state

@@ -17,45 +17,21 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "resources/resource-loader.hpp"
-#include "resources/deserialize-error.hpp"
-#include <physfs.h>
+#include "game/strings.hpp"
+#include <format>
 
-void physfs_getline(PHYSFS_File* file, std::string& line)
+namespace game {
+
+std::string get_string(const game::context& ctx, std::uint32_t key)
 {
-	line.clear();
+	const auto& string_map = ctx.string_maps[ctx.language_index];
 	
-	for (;;)
+	if (auto i = string_map.find(key); i != string_map.end())
 	{
-		char c;
-		const PHYSFS_sint64 status = PHYSFS_readBytes(file, &c, 1);
-		
-		if (status == 1)
-		{
-			if (c == '\r')
-			{
-				continue;
-			}
-			else if (c == '\n')
-			{
-				break;
-			}
-			else
-			{
-				line.append(1, c);
-			}
-			
-		}
-		else
-		{
-			if (PHYSFS_eof(file))
-			{
-				break;
-			}
-			else
-			{
-				throw deserialize_error(PHYSFS_getLastError());
-			}
-		}
+		return i->second;
 	}
+	
+	return std::format("${:x}", key);
 }
+
+} // namespace game

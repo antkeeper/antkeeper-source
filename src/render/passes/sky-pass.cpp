@@ -19,7 +19,6 @@
 
 #include "render/passes/sky-pass.hpp"
 #include "resources/resource-manager.hpp"
-#include "resources/string-table.hpp"
 #include "gl/rasterizer.hpp"
 #include "gl/framebuffer.hpp"
 #include "gl/shader-program.hpp"

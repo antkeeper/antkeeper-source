@@ -45,7 +45,17 @@ public:
 	/**
 	 * Constructs and initializes an application.
 	 */
-	application();
+	application
+	(
+		const std::string& window_title,
+		int window_x,
+		int window_y,
+		int window_w,
+		int window_h,
+		bool maximized,
+		bool fullscreen,
+		bool v_sync
+	);
 	
 	/**
 	 * Destructs an application.
@@ -87,9 +97,9 @@ public:
 	void resize_window(int width, int height);
 	
 	/**
-	 * Puts the application window into either fullscreen or windowed mode.
+	 * Puts the application window into either fullscreen or window mode.
 	 *
-	 * @param fullscreen `true` if the window should be fullscreen, `false` if it should be windowed.
+	 * @param fullscreen `true` if the window should be fullscreen, `false` if it should be window.
 	 */
 	void set_fullscreen(bool fullscreen);
 	
@@ -110,16 +120,22 @@ public:
 	void add_game_controller_mappings(const void* mappings, std::size_t size);
 	
 	/// Returns the dimensions of the current display.
-	[[nodiscard]] const int2& get_display_dimensions() const;
+	[[nodiscard]] const int2& get_display_size() const;
 	
 	/// Returns the DPI of the display.
 	[[nodiscard]] float get_display_dpi() const;
 	
-	/// Returns the dimensions of the window.
-	[[nodiscard]] const int2& get_window_dimensions() const;
+	/// Returns the position of the window when not maximized or fullscreen.
+	[[nodiscard]] const int2& get_windowed_position() const;
+	
+	/// Returns the dimensions of the window when not maximized or fullscreen.
+	[[nodiscard]] const int2& get_windowed_size() const;
 	
 	/// Returns the dimensions of the window's drawable viewport.
-	[[nodiscard]] const int2& get_viewport_dimensions() const;
+	[[nodiscard]] const int2& get_viewport_size() const;
+	
+	/// Returns `true` if the window is maximized, `false` otherwise.
+	[[nodiscard]] bool is_maximized() const;
 	
 	/// Returns `true` if the window is in fullscreen mode, `false` otherwise.
 	[[nodiscard]] bool is_fullscreen() const;
@@ -172,17 +188,38 @@ public:
 		return window_resized_publisher.channel();
 	}
 	
+	/// Returns the channel through which window maximized events are published.
+	[[nodiscard]] inline event::channel<input::event::window_maximized>& get_window_maximized_channel() noexcept
+	{
+		return window_maximized_publisher.channel();
+	}
+	
+	/// Returns the channel through which window restored events are published.
+	[[nodiscard]] inline event::channel<input::event::window_restored>& get_window_restored_channel() noexcept
+	{
+		return window_restored_publisher.channel();
+	}
+	
+	/// Returns the channel through which window minimized events are published.
+	[[nodiscard]] inline event::channel<input::event::window_minimized>& get_window_minimized_channel() noexcept
+	{
+		return window_minimized_publisher.channel();
+	}
+	
 private:
+	void window_moved();
 	void window_resized();
 	
 	bool closed;
+	bool maximized;
 	bool fullscreen;
 	bool v_sync;
 	bool cursor_visible;
-	int2 display_dimensions;
+	int2 display_size;
 	float display_dpi;
-	int2 window_dimensions;
-	int2 viewport_dimensions;
+	int2 windowed_position;
+	int2 windowed_size;
+	int2 viewport_size;
 	int2 mouse_position;
 	
 	SDL_Window* sdl_window;
@@ -200,11 +237,14 @@ private:
 	event::publisher<input::event::window_focus_changed> window_focus_changed_publisher;
 	event::publisher<input::event::window_moved> window_moved_publisher;
 	event::publisher<input::event::window_resized> window_resized_publisher;
+	event::publisher<input::event::window_maximized> window_maximized_publisher;
+	event::publisher<input::event::window_restored> window_restored_publisher;
+	event::publisher<input::event::window_minimized> window_minimized_publisher;
 };
 
-inline const int2& application::get_display_dimensions() const
+inline const int2& application::get_display_size() const
 {
-	return display_dimensions;
+	return display_size;
 }
 
 inline float application::get_display_dpi() const
@@ -212,14 +252,24 @@ inline float application::get_display_dpi() const
 	return display_dpi;
 }
 
-inline const int2& application::get_window_dimensions() const
+inline const int2& application::get_windowed_position() const
 {
-	return window_dimensions;
+	return windowed_position;
 }
 
-inline const int2& application::get_viewport_dimensions() const
+inline const int2& application::get_windowed_size() const
 {
-	return viewport_dimensions;
+	return windowed_size;
+}
+
+inline const int2& application::get_viewport_size() const
+{
+	return viewport_size;
+}
+
+inline bool application::is_maximized() const
+{
+	return maximized;
 }
 
 inline bool application::is_fullscreen() const

@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "paths.hpp"
+#include "utility/paths.hpp"
 #include <cstddef>
 #include <limits.h>
 #include <stdexcept>
@@ -32,33 +32,16 @@
 	#include <unistd.h>
 #endif
 
-#if defined(_WIN32)
-	std::string narrow(const std::wstring& wstring)
-	{
-		std::string string(WideCharToMultiByte(CP_UTF8, 0, &wstring[0], static_cast<int>(wstring.size()), nullptr, 0, nullptr, nullptr), '\0');
-		WideCharToMultiByte(CP_UTF8, 0, &wstring[0], static_cast<int>(wstring.size()), &string[0], static_cast<int>(string.size()), nullptr, nullptr);
-		return string;
-	}
-
-	std::wstring widen(const std::string& string)
-	{
-		std::wstring wstring(MultiByteToWideChar(CP_UTF8, 0, &string[0], static_cast<int>(string.size()), nullptr, 0), L'\0');
-		MultiByteToWideChar(CP_UTF8, 0, &string[0], static_cast<int>(string.size()), &wstring[0], static_cast<int>(wstring.size()));
-		return wstring;
-	}
-#endif
-
 std::filesystem::path get_executable_path()
 {
 	std::filesystem::path executable_path;
 	
 	#if defined(_WIN32)
 		// Get executable path on Windows
-		HMODULE hModule = GetModuleHandleW(nullptr);
-		std::wstring wpath(MAX_PATH, L'\0');
-		GetModuleFileNameW(hModule, &wpath[0], MAX_PATH);
-		wpath.erase(std::find(wpath.begin(), wpath.end(), L'\0'), wpath.end());
-		executable_path = narrow(wpath);
+		std::wstring path(MAX_PATH, L'\0');
+		GetModuleFileNameW(GetModuleHandleW(nullptr), path.data(), MAX_PATH);
+		path.erase(std::find(path.begin(), path.end(), L'\0'), path.end());
+		executable_path = path;
 	#else
 		// Get executable path on Linux
 		char path[PATH_MAX];
@@ -73,43 +56,79 @@ std::filesystem::path get_executable_path()
 	return executable_path;
 }
 
-std::filesystem::path get_data_path(const std::string& application_name)
+std::filesystem::path get_executable_data_path()
 {
 	#if defined(_WIN32)
 		return get_executable_path().parent_path();
 	#else
-		return get_executable_path().parent_path().parent_path() / "share" / application_name;
+		return get_executable_path().parent_path().parent_path() / "share";
 	#endif
 }
 
-std::filesystem::path get_config_path(const std::string& application_name)
+std::filesystem::path get_local_config_path()
 {
-	std::filesystem::path config_path;
+	std::filesystem::path local_config_path;
 	
 	#if defined(_WIN32)
-		std::wstring wpath(MAX_PATH, L'\0');
-		if (SHGetSpecialFolderPathW(nullptr, &wpath[0], CSIDL_LOCAL_APPDATA, FALSE))
+		
+		std::wstring path(MAX_PATH, L'\0');
+		if (SHGetFolderPathW(nullptr, CSIDL_LOCAL_APPDATA, nullptr, SHGFP_TYPE_CURRENT, path.data()) == S_OK)
 		{
-			wpath.erase(std::find(wpath.begin(), wpath.end(), L'\0'), wpath.end());
-			config_path = std::filesystem::path(narrow(wpath)) / application_name;
+			path.erase(std::find(path.begin(), path.end(), L'\0'), path.end());
+			local_config_path = path;
 		}
+		
+		// Windows Vista+
+		// wchar_t* path_buffer = nullptr;
+		// if (SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_DEFAULT, nullptr, &path_buffer) == S_OK)
+		// {
+			// local_config_path = std::filesystem::path(path_buffer);
+			// CoTaskMemFree(static_cast<void*>(path_buffer));
+		// }
+		
 	#else
 		// Determine home path
 		std::filesystem::path home_path = getpwuid(getuid())->pw_dir;
 
 		// Determine config path
-		char* xdgConfigHome = std::getenv("XDG_CONFIG_HOME");
-		if (!xdgConfigHome)
+		char* xdg_config_home = std::getenv("XDG_CONFIG_HOME");
+		if (!xdg_config_home)
 		{
 			// Default to $HOME/.config/ as per:
 			// https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
-			config_path = home_path / ".config/" / application_name;
+			local_config_path = home_path / ".config/";
 		}
 		else
 		{
-			config_path = std::filesystem::path(xdgConfigHome) / application_name;
+			local_config_path = xdg_config_home;
 		}
 	#endif
 	
-	return config_path;
+	return local_config_path;
+}
+
+std::filesystem::path get_shared_config_path()
+{
+	#if defined(_WIN32)
+		std::filesystem::path shared_config_path;
+		
+		std::wstring path(MAX_PATH, L'\0');
+		if (SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr, SHGFP_TYPE_CURRENT, path.data()) == S_OK)
+		{
+			path.erase(std::find(path.begin(), path.end(), L'\0'), path.end());
+			shared_config_path = path;
+		}
+		
+		// Windows Vista+
+		// wchar_t* path_buffer = nullptr;
+		// if (SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &path_buffer) == S_OK)
+		// {
+			// shared_config_path = path_buffer;
+			// CoTaskMemFree(static_cast<void*>(path_buffer));
+		// }
+		
+		return shared_config_path;
+	#else
+		return get_local_config_path();
+	#endif
 }

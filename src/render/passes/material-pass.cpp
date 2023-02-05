@@ -591,8 +591,6 @@ const material_pass::parameter_set* material_pass::load_parameter_set(const gl::
 
 bool operation_compare(const render::operation& a, const render::operation& b)
 {
-	/// @TODO: something is wrong with this compare op, assertion fails
-	
 	if (!a.material)
 		return false;
 	else if (!b.material)

@@ -18,44 +18,26 @@
  */
 
 #include "resources/resource-loader.hpp"
-#include "resources/deserialize-error.hpp"
+#include "resources/serializer.hpp"
+#include "resources/deserializer.hpp"
+#include "utility/dict.hpp"
+#include <cstdint>
 #include <physfs.h>
 
-void physfs_getline(PHYSFS_File* file, std::string& line)
+template <>
+dict<std::uint32_t>* resource_loader<dict<std::uint32_t>>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
-	line.clear();
+	dict<std::uint32_t>* dict = new ::dict<std::uint32_t>();
 	
-	for (;;)
-	{
-		char c;
-		const PHYSFS_sint64 status = PHYSFS_readBytes(file, &c, 1);
-		
-		if (status == 1)
-		{
-			if (c == '\r')
-			{
-				continue;
-			}
-			else if (c == '\n')
-			{
-				break;
-			}
-			else
-			{
-				line.append(1, c);
-			}
-			
-		}
-		else
-		{
-			if (PHYSFS_eof(file))
-			{
-				break;
-			}
-			else
-			{
-				throw deserialize_error(PHYSFS_getLastError());
-			}
-		}
-	}
+	deserialize_context ctx(file);
+	deserializer<::dict<std::uint32_t>>().deserialize(*dict, ctx);
+	
+	return dict;
+}
+
+template <>
+void resource_loader<dict<std::uint32_t>>::save(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path, const dict<std::uint32_t>* dict)
+{
+	serialize_context ctx(file);
+	serializer<::dict<std::uint32_t>>().serialize(*dict, ctx);
 }

@@ -31,7 +31,7 @@ namespace aces {
 
 /// CIE xy chromaticity coordinates of the ACES white point (~D60).
 template <class T>
-constexpr math::vector2<T> white_point = {T{0.32168}, {0.33767}};
+constexpr math::vector2<T> white_point = {T{0.32168}, T{0.33767}};
 
 /// ACES AP0 color space.
 template <class T>
