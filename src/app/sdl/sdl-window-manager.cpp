@@ -44,48 +44,19 @@ sdl_window_manager::sdl_window_manager()
 	}
 	else
 	{
+		// Allocate displays
+		displays.resize(display_count);
 		debug::log::info("Display count: {}", display_count);
 		
-		displays.resize(display_count);
 		for (int i = 0; i < display_count; ++i)
 		{
-			// Query display mode
-			SDL_DisplayMode display_mode;
-			if (SDL_GetDesktopDisplayMode(i, &display_mode) != 0)
-			{
-				debug::log::error("Failed to get mode of display {}: {}", i, SDL_GetError());
-				SDL_ClearError();
-				continue;
-			}
-			
-			// Query display name
-			const char* display_name = SDL_GetDisplayName(i);
-			if (!display_name)
-			{
-				debug::log::warning("Failed to get name of display {}: {}", i, SDL_GetError());
-				SDL_ClearError();
-				display_name = "";
-			}
-			
-			// Query display DPI
-			float display_dpi;
-			if (SDL_GetDisplayDPI(i, &display_dpi, nullptr, nullptr) != 0)
-			{
-				const float default_dpi = 96.0f;
-				debug::log::warning("Failed to get DPI of display {}: {}; Defaulting to {} DPI", i, SDL_GetError(), default_dpi);
-				SDL_ClearError();
-			}
-			
-			// Update display properties
-			display& display = displays[i];
-			display.set_index(i);
-			display.set_name(display_name);
-			display.set_size({display_mode.w, display_mode.h});
-			display.set_refresh_rate(display_mode.refresh_rate);
-			display.set_dpi(display_dpi);
+			// Update display state
+			update_display(i);
 			
 			// Log display information
-			debug::log::info("Display {} name: \"{}\"; resolution: {}x{}; refresh rate: {}Hz; DPI: {}", i, display_name, display_mode.w, display_mode.h, display_mode.refresh_rate, display_dpi);
+			display& display = displays[i];
+			const auto display_resolution = display.get_bounds().size();
+			debug::log::info("Display {} name: \"{}\"; resolution: {}x{}; refresh rate: {}Hz; DPI: {}", i, display.get_name(), display_resolution.x(), display_resolution.y(), display.get_refresh_rate(), display.get_dpi());
 		}
 	}
 	
@@ -190,6 +161,9 @@ void sdl_window_manager::update()
 					SDL_GL_GetDrawableSize(internal_window, &window->viewport_size.x(), &window->viewport_size.y());
 					window->rasterizer->context_resized(window->viewport_size.x(), window->viewport_size.y());
 					
+					// Log window resized event
+					debug::log::debug("Window {} resized to {}x{}", event.window.windowID, event.window.data1, event.window.data2);
+					
 					// Publish window resized event
 					window->resized_publisher.publish({window, window->size});
 					break;
@@ -209,6 +183,9 @@ void sdl_window_manager::update()
 						window->windowed_position = window->position;
 					}
 					
+					// Log window moved event
+					debug::log::debug("Window {} moved to ({}, {})", event.window.windowID, event.window.data1, event.window.data2);
+					
 					// Publish window moved event
 					window->moved_publisher.publish({window, window->position});
 					break;
@@ -220,6 +197,9 @@ void sdl_window_manager::update()
 					SDL_Window* internal_window = SDL_GetWindowFromID(event.window.windowID);
 					app::sdl_window* window = get_window(internal_window);
 					
+					// Log window focus gained event
+					debug::log::debug("Window {} gained focus", event.window.windowID);
+					
 					// Publish window focus gained event
 					window->focus_changed_publisher.publish({window, true});
 					break;
@@ -230,6 +210,9 @@ void sdl_window_manager::update()
 					// Get window
 					SDL_Window* internal_window = SDL_GetWindowFromID(event.window.windowID);
 					app::sdl_window* window = get_window(internal_window);
+					
+					// Log window focus lost event
+					debug::log::debug("Window {} lost focus", event.window.windowID);
 					
 					// Publish window focus lost event
 					window->focus_changed_publisher.publish({window, false});
@@ -245,6 +228,9 @@ void sdl_window_manager::update()
 					// Update window state
 					window->maximized = true;
 					
+					// Log window focus gained event
+					debug::log::debug("Window {} maximized", event.window.windowID);
+					
 					// Publish window maximized event
 					window->maximized_publisher.publish({window});
 					break;
@@ -259,6 +245,9 @@ void sdl_window_manager::update()
 					// Update window state
 					window->maximized = false;
 					
+					// Log window restored event
+					debug::log::debug("Window {} restored", event.window.windowID);
+					
 					// Publish window restored event
 					window->restored_publisher.publish({window});
 					break;
@@ -269,6 +258,9 @@ void sdl_window_manager::update()
 					// Get window
 					SDL_Window* internal_window = SDL_GetWindowFromID(event.window.windowID);
 					app::sdl_window* window = get_window(internal_window);
+					
+					// Log window focus gained event
+					debug::log::debug("Window {} minimized", event.window.windowID);
 					
 					// Publish window minimized event
 					window->minimized_publisher.publish({window});
@@ -281,6 +273,9 @@ void sdl_window_manager::update()
 					SDL_Window* internal_window = SDL_GetWindowFromID(event.window.windowID);
 					app::sdl_window* window = get_window(internal_window);
 					
+					// Log window closed event
+					debug::log::debug("Window {} closed", event.window.windowID);
+					
 					// Publish window closed event
 					window->closed_publisher.publish({window});
 					break;
@@ -292,7 +287,107 @@ void sdl_window_manager::update()
 		}
 		else if (event.type == SDL_DISPLAYEVENT)
 		{
-			
+			switch (event.display.event)
+			{
+				case SDL_DISPLAYEVENT_CONNECTED:
+					if (event.display.display < displays.size())
+					{
+						// Get previously connected display
+						display& display = displays[event.display.display];
+						
+						// Update display state
+						display.connected = true;
+						
+						// Log display (re)connected event
+						debug::log::info("Reconnected display {}", event.display.display);
+						
+						// Publish display (re)connected event
+						display.connected_publisher.publish({&display});
+					}
+					else if (event.display.display == displays.size())
+					{
+						// Allocate new display
+						displays.resize(displays.size() + 1);
+						display& display = displays[event.display.display];
+						
+						// Update display state
+						update_display(event.display.display);
+						
+						// Log display info
+						const auto display_resolution = display.get_bounds().size();
+						debug::log::info("Connected display {}; name: \"{}\"; resolution: {}x{}; refresh rate: {}Hz; DPI: {}", event.display.display, display.get_name(), display_resolution.x(), display_resolution.y(), display.get_refresh_rate(), display.get_dpi());
+						
+						// Publish display connected event
+						display.connected_publisher.publish({&display});
+					}
+					else
+					{
+						debug::log::error("Index of connected display ({}) out of range", event.display.display);
+					}
+					break;
+				
+				case SDL_DISPLAYEVENT_DISCONNECTED:
+					if (event.display.display < displays.size())
+					{
+						// Get display
+						display& display = displays[event.display.display];
+						
+						// Update display state
+						display.connected = false;
+						
+						// Log display disconnected event
+						debug::log::info("Disconnected display {}", event.display.display);
+						
+						// Publish display disconnected event
+						display.disconnected_publisher.publish({&display});
+					}
+					else
+					{
+						debug::log::error("Index of disconnected display ({}) out of range", event.display.display);
+					}
+					break;
+				
+				case SDL_DISPLAYEVENT_ORIENTATION:
+					if (event.display.display < displays.size())
+					{
+						// Get display
+						display& display = displays[event.display.display];
+						
+						// Update display state
+						switch (event.display.data1)
+						{
+							case SDL_ORIENTATION_LANDSCAPE:
+								display.set_orientation(display_orientation::landscape);
+								break;
+							case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+								display.set_orientation(display_orientation::landscape_flipped);
+								break;
+							case SDL_ORIENTATION_PORTRAIT:
+								display.set_orientation(display_orientation::portrait);
+								break;
+							case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+								display.set_orientation(display_orientation::portrait_flipped);
+								break;
+							default:
+								display.set_orientation(display_orientation::unknown);
+								break;
+						}
+						
+						// Log display orientation changed event
+						debug::log::info("Display {} orientation changed", event.display.display);
+						
+						// Publish display orientation changed event
+						display.orientation_changed_publisher.publish({&display, display.get_orientation()});
+					}
+					else
+					{
+						debug::log::error("Index of orientation-changed display ({}) out of range", event.display.display);
+					}
+					break;
+				
+				default:
+					break;
+			}
 		}
 	}
 }
@@ -319,6 +414,85 @@ std::size_t sdl_window_manager::get_display_count() const
 const display& sdl_window_manager::get_display(std::size_t index) const
 {
 	return displays[index];
+}
+
+void sdl_window_manager::update_display(int sdl_display_index)
+{
+	// Query display mode
+	SDL_DisplayMode sdl_display_mode;
+	if (SDL_GetDesktopDisplayMode(sdl_display_index, &sdl_display_mode) != 0)
+	{
+		debug::log::error("Failed to get mode of display {}: {}", sdl_display_index, SDL_GetError());
+		SDL_ClearError();
+		sdl_display_mode = {0, 0, 0, 0, nullptr};
+	}
+	
+	// Query display name
+	const char* sdl_display_name = SDL_GetDisplayName(sdl_display_index);
+	if (!sdl_display_name)
+	{
+		debug::log::warning("Failed to get name of display {}: {}", sdl_display_index, SDL_GetError());
+		SDL_ClearError();
+		sdl_display_name = nullptr;
+	}
+	
+	// Query display bounds
+	SDL_Rect sdl_display_bounds;
+	if (SDL_GetDisplayBounds(sdl_display_index, &sdl_display_bounds) != 0)
+	{
+		debug::log::warning("Failed to get bounds of display {}: {}", sdl_display_index, SDL_GetError());
+		SDL_ClearError();
+		sdl_display_bounds = {0, 0, sdl_display_mode.w, sdl_display_mode.h};
+	}
+	
+	// Query display usable bounds
+	SDL_Rect sdl_display_usable_bounds;
+	if (SDL_GetDisplayUsableBounds(sdl_display_index, &sdl_display_usable_bounds) != 0)
+	{
+		debug::log::warning("Failed to get usable bounds of display {}: {}", sdl_display_index, SDL_GetError());
+		SDL_ClearError();
+		sdl_display_usable_bounds = sdl_display_bounds;
+	}
+	
+	// Query display DPI
+	float sdl_display_dpi;
+	if (SDL_GetDisplayDPI(sdl_display_index, &sdl_display_dpi, nullptr, nullptr) != 0)
+	{
+		debug::log::warning("Failed to get DPI of display {}: {}", sdl_display_index, SDL_GetError());
+		SDL_ClearError();
+		sdl_display_dpi = 0.0f;
+	}
+	
+	// Query display orientation
+	SDL_DisplayOrientation sdl_display_orientation = SDL_GetDisplayOrientation(sdl_display_index);
+	
+	// Update display properties
+	display& display = displays[sdl_display_index];
+	display.set_index(static_cast<std::size_t>(sdl_display_index));
+	display.set_name(sdl_display_name ? sdl_display_name : std::string());
+	display.set_bounds({{sdl_display_bounds.x, sdl_display_bounds.y}, {sdl_display_bounds.x + sdl_display_bounds.w, sdl_display_bounds.y + sdl_display_bounds.h}});
+	display.set_usable_bounds({{sdl_display_usable_bounds.x, sdl_display_usable_bounds.y}, {sdl_display_usable_bounds.x + sdl_display_usable_bounds.w, sdl_display_usable_bounds.y + sdl_display_usable_bounds.h}});
+	display.set_refresh_rate(sdl_display_mode.refresh_rate);
+	display.set_dpi(sdl_display_dpi);
+	switch (sdl_display_orientation)
+	{
+		case SDL_ORIENTATION_LANDSCAPE:
+			display.set_orientation(display_orientation::landscape);
+			break;
+		case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+			display.set_orientation(display_orientation::landscape_flipped);
+			break;
+		case SDL_ORIENTATION_PORTRAIT:
+			display.set_orientation(display_orientation::portrait);
+			break;
+		case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+			display.set_orientation(display_orientation::portrait_flipped);
+			break;
+		default:
+			display.set_orientation(display_orientation::unknown);
+			break;
+	}
+	display.connected = true;
 }
 
 } // namespace app

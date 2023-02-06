@@ -359,12 +359,15 @@ void boot::setup_window()
 	if (resize)
 	{
 		const app::display& display = ctx.window_manager->get_display(0);
+		const auto& usable_bounds = display.get_usable_bounds();
+		const auto usable_bounds_center = usable_bounds.center();
 		
-		const float windowed_size_scale = 1.0f / 1.2f;
-		window_w = static_cast<int>(display.get_size().x() * windowed_size_scale);
-		window_h = static_cast<int>(display.get_size().y() * windowed_size_scale);
-		window_x = display.get_size().x() / 2 - window_w / 2;
-		window_y = display.get_size().y() / 2 - window_h / 2;
+		const float default_windowed_scale = 1.0f / 1.2f;
+		
+		window_w = static_cast<int>((usable_bounds.max.x() - usable_bounds.min.x()) * default_windowed_scale);
+		window_h = static_cast<int>((usable_bounds.max.y() - usable_bounds.min.y()) * default_windowed_scale);
+		window_x = usable_bounds_center.x() - window_w / 2;
+		window_y = usable_bounds_center.y() - window_h / 2;
 	}
 	
 	// Construct window

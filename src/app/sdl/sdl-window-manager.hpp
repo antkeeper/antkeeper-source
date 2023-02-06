@@ -64,6 +64,7 @@ public:
 	
 private:
 	sdl_window* get_window(SDL_Window* internal_window);
+	void update_display(int sdl_display_index);
 	
 	std::vector<display> displays;
 	std::unordered_map<SDL_Window*, app::sdl_window*> window_map;

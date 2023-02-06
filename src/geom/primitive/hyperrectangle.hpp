@@ -76,7 +76,7 @@ struct hyperrectangle
 	/// Returns the center position of the hyperrectangle.
 	constexpr vector_type center() const noexcept
 	{
-		return (min + max) * T{0.5};
+		return (min + max) / T{2};
 	}
 	
 	/**
