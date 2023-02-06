@@ -48,7 +48,7 @@ public:
 	virtual ~boot();
 	
 private:
-	void parse_arguments(int argc, char** argv);
+	void parse_options(int argc, char** argv);
 	void setup_resources();
 	void load_settings();
 	void setup_window();
@@ -64,19 +64,10 @@ private:
 	void setup_ui();
 	void setup_debugging();
 	void setup_loop();
+	
 	void loop();
 	
 	void shutdown_audio();
-	
-	// Command line options
-	std::optional<bool> option_continue;
-	std::optional<std::string> option_data;
-	std::optional<bool> option_fullscreen;
-	std::optional<bool> option_new_game;
-	std::optional<bool> option_quick_start;
-	std::optional<bool> option_reset;
-	std::optional<int> option_v_sync;
-	std::optional<bool> option_windowed;
 };
 
 } // namespace state

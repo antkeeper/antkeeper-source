@@ -89,13 +89,16 @@
 #include "utility/dict.hpp"
 #include "utility/hash/fnv1a.hpp"
 #include <algorithm>
-#include <cxxopts.hpp>
 #include <entt/entt.hpp>
 #include <execution>
 #include <filesystem>
 #include <functional>
 #include <string>
 #include <vector>
+
+// Prevent cxxopts from using RTTI
+#define CXXOPTS_NO_RTTI
+#include <cxxopts.hpp>
 
 using namespace hash::literals;
 
@@ -108,7 +111,7 @@ boot::boot(game::context& ctx, int argc, char** argv):
 	// Boot process
 	debug::log::trace("Booting up...");
 	
-	parse_arguments(argc, argv);
+	parse_options(argc, argv);
 	setup_resources();
 	load_settings();
 	setup_window();
@@ -153,8 +156,11 @@ boot::~boot()
 	(*ctx.settings)["maximized"_fnv1a32] = maximized;
 	(*ctx.settings)["fullscreen"_fnv1a32] = fullscreen;
 	
+	// Destruct window
+	delete ctx.window;
+	
 	// Save settings
-	ctx.resource_manager->save<dict<std::uint32_t>>(ctx.settings, "settings.cfg");
+	ctx.resource_manager->save(ctx.settings, "settings.cfg");
 	
 	// Destruct input and window managers
 	delete ctx.input_manager;
@@ -166,61 +172,78 @@ boot::~boot()
 	debug::log::trace("Boot down complete");
 }
 
-void boot::parse_arguments(int argc, char** argv)
+void boot::parse_options(int argc, char** argv)
 {
-	debug::log::trace("Parsing {} command line arguments...", argc);
+	debug::log::trace("Parsing command-line options...");
 	
+	// Parse command-line options with cxxopts
 	try
 	{
-		cxxopts::Options options("Antkeeper", "Ant colony simulation game");
+		cxxopts::Options options(config::application_name, "Ant colony simulation game");
 		options.add_options()
 			("c,continue", "Continues from the last save")
 			("d,data", "Sets the data package path", cxxopts::value<std::string>())
 			("f,fullscreen", "Starts in fullscreen mode")
 			("n,new-game", "Starts a new game")
 			("q,quick-start", "Skips to the main menu")
-			("r,reset", "Restores all settings to default")
-			("v,v_sync", "Enables or disables v-sync", cxxopts::value<int>())
-			("w,window", "Starts in window mode");
+			("r,reset", "Resets all settings to default")
+			("v,vsync", "Enables or disables v-sync", cxxopts::value<int>())
+			("w,windowed", "Starts in windowed mode");
 		auto result = options.parse(argc, argv);
 		
 		// --continue
 		if (result.count("continue"))
-			option_continue = true;
+		{
+			ctx.option_continue = true;
+		}
 		
 		// --data
 		if (result.count("data"))
-			option_data = result["data"].as<std::string>();
+		{
+			ctx.option_data = result["data"].as<std::string>();
+		}
 		
 		// --fullscreen
 		if (result.count("fullscreen"))
-			option_fullscreen = true;
+		{
+			ctx.option_fullscreen = true;
+		}
 		
 		// --new-game
 		if (result.count("new-game"))
-			option_new_game = true;
+		{
+			ctx.option_new_game = true;
+		}
 		
 		// --quick-start
 		if (result.count("quick-start"))
-			option_quick_start = true;
+		{
+			ctx.option_quick_start = true;
+		}
 		
 		// --reset
 		if (result.count("reset"))
-			option_reset = true;
+		{
+			ctx.option_reset = true;
+		}
 		
 		// --v_sync
-		if (result.count("v_sync"))
-			option_v_sync = (result["v_sync"].as<int>()) ? true : false;
+		if (result.count("vsync"))
+		{
+			ctx.option_v_sync = result["vsync"].as<int>();
+		}
 		
 		// --window
-		if (result.count("window"))
-			option_windowed = true;
+		if (result.count("windowed"))
+		{
+			ctx.option_windowed = true;
+		}
 		
-		debug::log::trace("Parsed {} command line arguments", argc);
+		debug::log::info("Parsed {} command-line options", argc);
 	}
 	catch (const std::exception& e)
 	{
-		debug::log::warning("Exception caught while parsing command line arguments: {}", e.what());
+		debug::log::error("An error occurred while parsing command-line options: {}", e.what());
 	}
 }
 
@@ -287,9 +310,9 @@ void boot::setup_resources()
 	}
 	
 	// Determine data package path
-	if (option_data.has_value())
+	if (ctx.option_data)
 	{
-		ctx.data_package_path = std::filesystem::path(option_data.value());
+		ctx.data_package_path = std::filesystem::path(ctx.option_data.value());
 		if (ctx.data_package_path.is_relative())
 			ctx.data_package_path = ctx.data_path / ctx.data_package_path;
 	}
@@ -318,11 +341,21 @@ void boot::setup_resources()
 
 void boot::load_settings()
 {
-	ctx.settings = ctx.resource_manager->load<dict<std::uint32_t>>("settings.cfg");
-	if (!ctx.settings)
+	if (ctx.option_reset)
 	{
-		debug::log::info("Settings not found");
+		// Command-line reset option found, reset settings
 		ctx.settings = new dict<std::uint32_t>();
+		ctx.resource_manager->save(ctx.settings, "settings.cfg");
+		debug::log::info("Settings reset");
+	}
+	else
+	{
+		ctx.settings = ctx.resource_manager->load<dict<std::uint32_t>>("settings.cfg");
+		if (!ctx.settings)
+		{
+			debug::log::info("Settings not found");
+			ctx.settings = new dict<std::uint32_t>();
+		}
 	}
 }
 
@@ -370,6 +403,23 @@ void boot::setup_window()
 		window_y = usable_bounds_center.y() - window_h / 2;
 	}
 	
+	// Handle window-related command-line options
+	if (ctx.option_windowed)
+	{
+		// Start in windowed mode
+		maximized = false;
+		fullscreen = false;
+	}
+	if (ctx.option_fullscreen)
+	{
+		// Start in fullscreen mode
+		fullscreen = true;
+	}
+	if (ctx.option_v_sync)
+	{
+		v_sync = ctx.option_v_sync.value();
+	}
+	
 	// Construct window
 	ctx.window = ctx.window_manager->create_window
 	(
@@ -398,6 +448,15 @@ void boot::setup_input()
 {
 	// Construct input manager
 	ctx.input_manager = app::input_manager::instance();
+	
+	// Setup application quit callback
+	ctx.application_quit_subscription = ctx.input_manager->get_event_queue().subscribe<input::event::application_quit>
+	(
+		[&](const auto& event)
+		{
+			ctx.closed = true;
+		}
+	);
 }
 
 void boot::load_strings()

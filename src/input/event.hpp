@@ -237,91 +237,9 @@ struct mouse_scrolled
 };
 
 /**
- * Event generated when a window has been requested to close.
+ * Event generated when the application has been requested to quit.
  */
-struct window_closed
-{
-	/// Pointer to the window that has been requested to close.
-	void* window;
-};
-
-/**
- * Event generated when a window has gained or lost focus.
- */
-struct window_focus_changed
-{
-	/// Pointer to the window that has gained or lost focus.
-	void* window;
-	
-	/// `true` if the window is in focus, `false` otherwise.
-	bool in_focus;
-};
-
-/**
- * Event generated when a window has been moved.
- */
-struct window_moved
-{
-	/// Pointer to the window that has been moved.
-	void* window;
-	
-	/// Position of the window, in pixels.
-	math::vector<std::int32_t, 2> position;
-	
-	/// `true` if the window is maximized, `false` otherwise.
-	bool maximized;
-	
-	/// `true` if the window is fullscreen, `false` otherwise.
-	bool fullscreen;
-};
-
-/**
- * Event generated when a window has been maximized.
- */
-struct window_maximized
-{
-	/// Pointer to the window that has been maximized.
-	void* window;
-};
-
-/**
- * Event generated when a window has been minimized.
- */
-struct window_minimized
-{
-	/// Pointer to the window that has been minimized.
-	void* window;
-};
-
-/**
- * Event generated when a window has been restored.
- */
-struct window_restored
-{
-	/// Pointer to the window that has been restored.
-	void* window;
-};
-
-/**
- * Event generated when a window has been resized.
- */
-struct window_resized
-{
-	/// Pointer to the window that has been resized.
-	void* window;
-	
-	/// Window size, in display units.
-	math::vector<std::int32_t, 2> size;
-	
-	/// `true` if the window is maximized, `false` otherwise.
-	bool maximized;
-	
-	/// `true` if the window is fullscreen, `false` otherwise.
-	bool fullscreen;
-	
-	/// Window viewport size, in pixels.
-	math::vector<std::int32_t, 2> viewport_size;
-};
+struct application_quit {};
 
 } // namespace event
 } // namespace input

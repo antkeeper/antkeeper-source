@@ -122,17 +122,46 @@ namespace game {
 /// Container for data shared between game states.
 struct context
 {
-	// Configuration
+	// Command-line options
+	std::optional<bool> option_continue;
+	std::optional<std::string> option_data;
+	std::optional<bool> option_fullscreen;
+	std::optional<bool> option_new_game;
+	std::optional<bool> option_quick_start;
+	std::optional<bool> option_reset;
+	std::optional<bool> option_v_sync;
+	std::optional<bool> option_windowed;
+	
+	// Resource management and paths
+	resource_manager* resource_manager;
+	
+	// Persistent settings
 	dict<std::uint32_t>* settings;
 	
-	// Window creation, events, and management
+	// Window management and event handling
 	app::window_manager* window_manager;
 	app::window* window;
 	bool closed;
 	std::shared_ptr<::event::subscription> window_closed_subscription;
 	
-	// Input devices and events
+	// Input management and event handling
 	app::input_manager* input_manager;
+	std::shared_ptr<::event::subscription> application_quit_subscription;
+	
+	// Localization and internationalization
+	std::uint16_t language_index;
+	std::uint16_t language_count;
+	i18n::string_table* string_table;
+	std::vector<i18n::string_map> string_maps;
+	
+	// Fonts
+	std::unordered_map<std::string, type::typeface*> typefaces;
+	type::bitmap_font debug_font;
+	type::bitmap_font menu_font;
+	type::bitmap_font title_font;
+	render::material debug_font_material;
+	render::material menu_font_material;
+	render::material title_font_material;
 	
 	// Hierarchichal state machine
 	hsm::state_machine<game::state::base> state_machine;
@@ -179,22 +208,6 @@ struct context
 	std::filesystem::path screenshots_path;
 	std::filesystem::path controls_path;
 	std::filesystem::path data_package_path;
-	
-	// Resources
-	resource_manager* resource_manager;
-	
-	// Localization
-	std::uint16_t language_index;
-	std::uint16_t language_count;
-	i18n::string_table* string_table;
-	std::vector<i18n::string_map> string_maps;
-	std::unordered_map<std::string, type::typeface*> typefaces;
-	type::bitmap_font debug_font;
-	type::bitmap_font menu_font;
-	type::bitmap_font title_font;
-	render::material debug_font_material;
-	render::material menu_font_material;
-	render::material title_font_material;
 	
 	// Framebuffers
 	gl::texture_2d* hdr_color_texture;

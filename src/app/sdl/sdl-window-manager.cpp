@@ -154,7 +154,7 @@ void sdl_window_manager::update()
 					// Update window state
 					window->size = {event.window.data1, event.window.data2};
 					const auto window_flags = SDL_GetWindowFlags(internal_window);					
-					if (!(window_flags & SDL_WINDOW_MAXIMIZED) && !(window_flags & SDL_WINDOW_FULLSCREEN))
+					if (!(window_flags & SDL_WINDOW_MAXIMIZED) && !(window_flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)))
 					{
 						window->windowed_size = window->size;
 					}
@@ -178,7 +178,7 @@ void sdl_window_manager::update()
 					// Update window state
 					window->position = {event.window.data1, event.window.data2};
 					const auto window_flags = SDL_GetWindowFlags(internal_window);
-					if (!(window_flags & SDL_WINDOW_MAXIMIZED) && !(window_flags & SDL_WINDOW_FULLSCREEN))
+					if (!(window_flags & SDL_WINDOW_MAXIMIZED) && !(window_flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)))
 					{
 						window->windowed_position = window->position;
 					}

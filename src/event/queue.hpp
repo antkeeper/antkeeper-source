@@ -33,7 +33,7 @@
 namespace event {
 
 /**
- * Collects messages from publishers to be distributed to subscribers when desired.
+ * Collects messages from publishers to be forwarded to subscribers when desired.
  */
 class queue
 {
@@ -46,6 +46,8 @@ public:
 	 * @param subscriber Function object to subscribe.
 	 *
 	 * @return Shared subscription object which will unsubscribe the subscriber on destruction.
+	 *
+	 * @TODO This function should be available through an interface class which does not expose the queue's message-sending functions, such as event::channel for publishers.
 	 */
 	template <class T>
 	[[nodiscard]] std::shared_ptr<subscription> subscribe(subscriber<T>&& subscriber)
@@ -81,13 +83,13 @@ public:
 		(
 			[this, message]()
 			{
-				this->distribute<T>(message);
+				this->forward<T>(message);
 			}
 		);
 	}
 	
 	/**
-	 * Distributes queued messages in FIFO order to subscribers.
+	 * Forwards queued messages, in FIFO order, to subscribers.
 	 */
 	void flush()
 	{
@@ -116,14 +118,14 @@ public:
 
 private:
 	/**
-	 * Distributes a message.
+	 * Forwards a message to subscribers of the message type.
 	 *
 	 * @tparam T Message type.
 	 *
-	 * @param message Message to distribute.
+	 * @param message Message to forward.
 	 */
 	template <class T>
-	void distribute(const T& message) const
+	void forward(const T& message) const
 	{
 		// For each subscriber of the given message type
 		const auto range = subscribers.equal_range(std::type_index(typeid(T)));

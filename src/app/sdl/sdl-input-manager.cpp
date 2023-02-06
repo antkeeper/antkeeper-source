@@ -82,9 +82,15 @@ void sdl_input_manager::update()
 			throw std::runtime_error("Failed to peep SDL events");
 		}
 		
-		if (event.type == SDL_QUIT)
+		switch (event.type)
 		{
-			//...
+			case SDL_QUIT:
+				debug::log::debug("Application quit requested");
+				this->event_queue.enqueue<input::event::application_quit>({});
+				break;
+			
+			default:
+				break;
 		}
 	}
 	
