@@ -21,7 +21,8 @@
 #define ANTKEEPER_GAME_CONTEXT_HPP
 
 #include "animation/tween.hpp"
-#include "application.hpp"
+#include "app/window-manager.hpp"
+#include "app/input-manager.hpp"
 #include "debug/performance-sampler.hpp"
 #include "entity/id.hpp"
 #include "entity/registry.hpp"
@@ -43,7 +44,7 @@
 #include "render/material.hpp"
 #include "resources/json.hpp"
 #include "scene/scene.hpp"
-#include "state-machine.hpp"
+#include "utility/state-machine.hpp"
 #include "type/bitmap-font.hpp"
 #include "type/typeface.hpp"
 #include "utility/dict.hpp"
@@ -64,8 +65,6 @@
 
 // Forward declarations
 class animator;
-class application;
-
 class resource_manager;
 class screen_transition;
 class timeline;
@@ -126,22 +125,28 @@ struct context
 	// Configuration
 	dict<std::uint32_t>* settings;
 	
-	/// Hierarchichal state machine
+	// Window creation, events, and management
+	app::window_manager* window_manager;
+	app::window* window;
+	bool closed;
+	std::shared_ptr<::event::subscription> window_closed_subscription;
+	
+	// Input devices and events
+	app::input_manager* input_manager;
+	
+	// Hierarchichal state machine
 	hsm::state_machine<game::state::base> state_machine;
 	std::function<void()> resume_callback;
 	
-	/// Debugging
+	// Debugging
 	debug::performance_sampler performance_sampler;
 	debug::cli* cli;
 	
-	/// Queue for scheduling "next frame" function calls
+	// Queue for scheduling "next frame" function calls
 	std::queue<std::function<void()>> function_queue;
 	
 	// Parallel processes
 	std::unordered_map<std::string, std::function<void(double, double)>> processes;
-	
-	/// Interface for window management and input events
-	application* app;
 	
 	// Controls
 	input::mapper input_mapper;

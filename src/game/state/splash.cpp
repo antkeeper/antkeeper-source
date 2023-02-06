@@ -23,7 +23,6 @@
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
 #include "animation/ease.hpp"
-#include "application.hpp"
 #include "render/passes/clear-pass.hpp"
 #include "game/context.hpp"
 #include "debug/log.hpp"
@@ -144,9 +143,9 @@ splash::splash(game::context& ctx):
 					[&ctx = this->ctx]()
 					{
 						// Black out screen
-						ctx.rasterizer->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-						ctx.rasterizer->clear_framebuffer(true, false, false);
-						ctx.app->swap_buffers();
+						ctx.window->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+						ctx.window->get_rasterizer()->clear_framebuffer(true, false, false);
+						ctx.window->swap_buffers();
 						
 						// Change to main menu state
 						ctx.state_machine.pop();
@@ -156,7 +155,7 @@ splash::splash(game::context& ctx):
 			}
 		}
 	);
-	ctx.input_mapper.connect(ctx.app->get_device_manager().get_event_queue());
+	ctx.input_mapper.connect(ctx.input_manager->get_event_queue());
 	
 	debug::log::trace("Entered splash state");
 }

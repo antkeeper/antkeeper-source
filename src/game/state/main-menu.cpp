@@ -34,7 +34,6 @@
 #include "animation/animator.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/ease.hpp"
-#include "application.hpp"
 #include "config.hpp"
 #include "physics/light/exposure.hpp"
 #include "game/component/model.hpp"
@@ -67,7 +66,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text.get_local_bounds());
 	float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
 	float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
-	title_text.set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (ctx.app->get_viewport_size().y() / 3.0f) / 2.0f), 0.0f});
+	title_text.set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (ctx.window->get_viewport_size().y() / 3.0f) / 2.0f), 0.0f});
 	title_text.update_tweens();
 	
 	// Add title text to UI
@@ -110,7 +109,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	game::menu::update_text_color(ctx);
 	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx, true, false, (-ctx.app->get_viewport_size().y() / 3.0f) / 2.0f);
+	game::menu::align_text(ctx, true, false, (-ctx.window->get_viewport_size().y() / 3.0f) / 2.0f);
 	game::menu::update_text_tweens(ctx);
 	game::menu::add_text_to_ui(ctx);
 	game::menu::setup_animations(ctx);
@@ -208,7 +207,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 		game::menu::fade_out(ctx, nullptr);
 		
 		// Fade to black then quit
-		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, std::bind(&application::close, ctx.app));
+		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, [&ctx](){ctx.closed=true;});
 	};
 	
 	// Build list of menu select callbacks
@@ -264,7 +263,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure(ev100_sunny16);
 	
-	const auto& viewport_size = ctx.app->get_viewport_size();
+	const auto& viewport_size = ctx.window->get_viewport_size();
 	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
 	float fov = math::vertical_fov(math::radians(100.0f), aspect_ratio);

@@ -20,7 +20,6 @@
 #include "game/state/extras-menu.hpp"
 #include "game/state/main-menu.hpp"
 #include "game/state/credits.hpp"
-#include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "game/fonts.hpp"

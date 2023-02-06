@@ -20,7 +20,6 @@
 #include "game/state/gamepad-config-menu.hpp"
 #include "game/state/controls-menu.hpp"
 #include "game/context.hpp"
-#include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "resources/resource-manager.hpp"

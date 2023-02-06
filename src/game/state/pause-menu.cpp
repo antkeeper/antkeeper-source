@@ -25,7 +25,6 @@
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
-#include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "animation/screen-transition.hpp"
@@ -171,7 +170,7 @@ pause_menu::pause_menu(game::context& ctx):
 		
 		// Fade out to black then quit
 		ctx.fade_transition_color->set_value({0, 0, 0});
-		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, std::bind(&application::close, ctx.app));
+		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, [&ctx](){ctx.closed=true;});
 	};
 	
 	// Build list of menu select callbacks

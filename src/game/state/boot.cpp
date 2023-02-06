@@ -22,7 +22,6 @@
 #include "animation/ease.hpp"
 #include "animation/screen-transition.hpp"
 #include "animation/timeline.hpp"
-#include "application.hpp"
 #include "color/color.hpp"
 #include "config.hpp"
 #include "debug/cli.hpp"
@@ -109,49 +108,11 @@ boot::boot(game::context& ctx, int argc, char** argv):
 	// Boot process
 	debug::log::trace("Booting up...");
 	
-	// Parse command line arguments
 	parse_arguments(argc, argv);
-	
-	// Setup resource management
 	setup_resources();
-	
-	// Load settings
 	load_settings();
-	
-	// Default window settings
-	std::string window_title = config::application_name;
-	int window_x = -1;
-	int window_y = -1;
-	int window_w = -1;
-	int window_h = -1;
-	bool maximized = true;
-	bool fullscreen = true;
-	bool v_sync = true;
-	
-	// Read window settings
-	read_or_write_setting(ctx, "window_title"_fnv1a32, window_title);
-	read_or_write_setting(ctx, "window_x"_fnv1a32, window_x);
-	read_or_write_setting(ctx, "window_y"_fnv1a32, window_y);
-	read_or_write_setting(ctx, "window_w"_fnv1a32, window_w);
-	read_or_write_setting(ctx, "window_h"_fnv1a32, window_h);
-	read_or_write_setting(ctx, "maximized"_fnv1a32, maximized);
-	read_or_write_setting(ctx, "fullscreen"_fnv1a32, fullscreen);
-	read_or_write_setting(ctx, "v_sync"_fnv1a32, v_sync);
-	
-	// Allocate application
-	ctx.app = new application
-	(
-		window_title,
-		window_x,
-		window_y,
-		window_w,
-		window_h,
-		maximized,
-		fullscreen,
-		v_sync
-	);
-	
 	setup_window();
+	setup_input();
 	load_strings();
 	setup_rendering();
 	setup_audio();
@@ -163,6 +124,7 @@ boot::boot(game::context& ctx, int argc, char** argv):
 	setup_ui();
 	setup_debugging();
 	setup_loop();
+	
 	ctx.active_ecoregion = nullptr;
 	
 	debug::log::trace("Boot up complete");
@@ -180,10 +142,10 @@ boot::~boot()
 	debug::log::trace("Booting down...");
 	
 	// Update window settings
-	const auto& windowed_position = ctx.app->get_windowed_position();
-	const auto& windowed_size = ctx.app->get_windowed_size();
-	const bool maximized = ctx.app->is_maximized();
-	const bool fullscreen = ctx.app->is_fullscreen();
+	const auto& windowed_position = ctx.window->get_windowed_position();
+	const auto& windowed_size = ctx.window->get_windowed_size();
+	const bool maximized = ctx.window->is_maximized();
+	const bool fullscreen = ctx.window->is_fullscreen();
 	(*ctx.settings)["window_x"_fnv1a32] = windowed_position.x();
 	(*ctx.settings)["window_y"_fnv1a32] = windowed_position.y();
 	(*ctx.settings)["window_w"_fnv1a32] = windowed_size.x();
@@ -194,11 +156,12 @@ boot::~boot()
 	// Save settings
 	ctx.resource_manager->save<dict<std::uint32_t>>(ctx.settings, "settings.cfg");
 	
-	shutdown_audio();
+	// Destruct input and window managers
+	delete ctx.input_manager;
+	delete ctx.window_manager;
 	
-	// Close application
-	delete ctx.app;
-	ctx.app = nullptr;
+	// Shut down audio
+	shutdown_audio();
 	
 	debug::log::trace("Boot down complete");
 }
@@ -258,16 +221,6 @@ void boot::parse_arguments(int argc, char** argv)
 	catch (const std::exception& e)
 	{
 		debug::log::warning("Exception caught while parsing command line arguments: {}", e.what());
-	}
-}
-
-void boot::load_settings()
-{
-	ctx.settings = ctx.resource_manager->load<dict<std::uint32_t>>("settings.cfg");
-	if (!ctx.settings)
-	{
-		debug::log::info("Settings not found");
-		ctx.settings = new dict<std::uint32_t>();
 	}
 }
 
@@ -363,18 +316,85 @@ void boot::setup_resources()
 	ctx.resource_manager->include("/");
 }
 
+void boot::load_settings()
+{
+	ctx.settings = ctx.resource_manager->load<dict<std::uint32_t>>("settings.cfg");
+	if (!ctx.settings)
+	{
+		debug::log::info("Settings not found");
+		ctx.settings = new dict<std::uint32_t>();
+	}
+}
+
 void boot::setup_window()
 {
-	// debug::log::trace("Setting up window...");
+	// Construct window manager
+	ctx.window_manager = app::window_manager::instance();
 	
-	// application* app = ctx.app;
+	// Default window settings
+	std::string window_title = config::application_name;
+	int window_x = -1;
+	int window_y = -1;
+	int window_w = -1;
+	int window_h = -1;
+	bool maximized = true;
+	bool fullscreen = true;
+	bool v_sync = true;
 	
-	// ctx.app->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-	// ctx.app->get_rasterizer()->clear_framebuffer(true, false, false);
-	// app->show_window();
-	// ctx.app->swap_buffers();
+	// Read window settings
+	bool resize = false;
+	read_or_write_setting(ctx, "window_title"_fnv1a32, window_title);
+	read_or_write_setting(ctx, "window_x"_fnv1a32, window_x);
+	read_or_write_setting(ctx, "window_y"_fnv1a32, window_y);
+	if (!read_or_write_setting(ctx, "window_w"_fnv1a32, window_w) ||
+		!read_or_write_setting(ctx, "window_h"_fnv1a32, window_h))
+	{
+		resize = true;
+	}
+	read_or_write_setting(ctx, "maximized"_fnv1a32, maximized);
+	read_or_write_setting(ctx, "fullscreen"_fnv1a32, fullscreen);
+	read_or_write_setting(ctx, "v_sync"_fnv1a32, v_sync);
 	
-	// debug::log::trace("Set up window");
+	// If window size not set, resize and reposition relative to default display
+	if (resize)
+	{
+		const app::display& display = ctx.window_manager->get_display(0);
+		
+		const float windowed_size_scale = 1.0f / 1.2f;
+		window_w = static_cast<int>(display.get_size().x() * windowed_size_scale);
+		window_h = static_cast<int>(display.get_size().y() * windowed_size_scale);
+		window_x = display.get_size().x() / 2 - window_w / 2;
+		window_y = display.get_size().y() / 2 - window_h / 2;
+	}
+	
+	// Construct window
+	ctx.window = ctx.window_manager->create_window
+	(
+		window_title,
+		{window_x, window_y},
+		{window_w, window_h},
+		maximized,
+		fullscreen,
+		v_sync
+	);
+	
+	// Restrict window size
+	ctx.window->set_minimum_size({160, 144});
+	
+	// Setup window closed callback
+	ctx.window_closed_subscription = ctx.window->get_closed_channel().subscribe
+	(
+		[&](const auto& event)
+		{
+			ctx.closed = true;
+		}
+	);
+}
+
+void boot::setup_input()
+{
+	// Construct input manager
+	ctx.input_manager = app::input_manager::instance();
 }
 
 void boot::load_strings()
@@ -409,7 +429,7 @@ void boot::load_strings()
 	
 	// Change window title
 	const std::string window_title = get_string(ctx, "application_title"_fnv1a32);
-	ctx.app->set_title(window_title);
+	ctx.window->set_title(window_title);
 	
 	// Update window title setting
 	(*ctx.settings)["window_title"_fnv1a32] = window_title;
@@ -431,9 +451,6 @@ void boot::setup_rendering()
 	read_or_write_setting(ctx, "anti_aliasing_method"_fnv1a32, *reinterpret_cast<std::underlying_type_t<render::anti_aliasing_method>*>(&ctx.anti_aliasing_method));
 	read_or_write_setting(ctx, "shadow_map_resolution"_fnv1a32, ctx.shadow_map_resolution);
 	
-	// Get rasterizer from application
-	ctx.rasterizer = ctx.app->get_rasterizer();
-	
 	// Create framebuffers
 	game::graphics::create_framebuffers(ctx);
 	
@@ -446,21 +463,21 @@ void boot::setup_rendering()
 	// Setup common render passes
 	{
 		// Construct bloom pass
-		ctx.bloom_pass = new render::bloom_pass(ctx.rasterizer, ctx.resource_manager);
+		ctx.bloom_pass = new render::bloom_pass(ctx.window->get_rasterizer(), ctx.resource_manager);
 		ctx.bloom_pass->set_source_texture(ctx.hdr_color_texture);
 		ctx.bloom_pass->set_mip_chain_length(0);
 		ctx.bloom_pass->set_filter_radius(0.005f);
 		
-		ctx.common_final_pass = new render::final_pass(ctx.rasterizer, ctx.ldr_framebuffer_a, ctx.resource_manager);
+		ctx.common_final_pass = new render::final_pass(ctx.window->get_rasterizer(), ctx.ldr_framebuffer_a, ctx.resource_manager);
 		ctx.common_final_pass->set_color_texture(ctx.hdr_color_texture);
 		ctx.common_final_pass->set_bloom_texture(ctx.bloom_pass->get_bloom_texture());
 		ctx.common_final_pass->set_bloom_weight(0.04f);
 		ctx.common_final_pass->set_blue_noise_texture(blue_noise_map);
 		
-		ctx.fxaa_pass = new render::fxaa_pass(ctx.rasterizer, &ctx.rasterizer->get_default_framebuffer(), ctx.resource_manager);
+		ctx.fxaa_pass = new render::fxaa_pass(ctx.window->get_rasterizer(), &ctx.window->get_rasterizer()->get_default_framebuffer(), ctx.resource_manager);
 		ctx.fxaa_pass->set_source_texture(ctx.ldr_color_texture_a);
 		
-		ctx.resample_pass = new render::resample_pass(ctx.rasterizer, &ctx.rasterizer->get_default_framebuffer(), ctx.resource_manager);
+		ctx.resample_pass = new render::resample_pass(ctx.window->get_rasterizer(), &ctx.window->get_rasterizer()->get_default_framebuffer(), ctx.resource_manager);
 		ctx.resample_pass->set_source_texture(ctx.ldr_color_texture_b);
 		ctx.resample_pass->set_enabled(false);
 		
@@ -473,11 +490,11 @@ void boot::setup_rendering()
 	
 	// Setup UI compositor
 	{
-		ctx.ui_clear_pass = new render::clear_pass(ctx.rasterizer, &ctx.rasterizer->get_default_framebuffer());
+		ctx.ui_clear_pass = new render::clear_pass(ctx.window->get_rasterizer(), &ctx.window->get_rasterizer()->get_default_framebuffer());
 		ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 		ctx.ui_clear_pass->set_clear_depth(-1.0f);
 		
-		ctx.ui_material_pass = new render::material_pass(ctx.rasterizer, &ctx.rasterizer->get_default_framebuffer(), ctx.resource_manager);
+		ctx.ui_material_pass = new render::material_pass(ctx.window->get_rasterizer(), &ctx.window->get_rasterizer()->get_default_framebuffer(), ctx.resource_manager);
 		ctx.ui_material_pass->set_fallback_material(ctx.fallback_material);
 		
 		ctx.ui_compositor = new render::compositor();
@@ -487,12 +504,12 @@ void boot::setup_rendering()
 	
 	// Setup underground compositor
 	{
-		ctx.underground_clear_pass = new render::clear_pass(ctx.rasterizer, ctx.hdr_framebuffer);
+		ctx.underground_clear_pass = new render::clear_pass(ctx.window->get_rasterizer(), ctx.hdr_framebuffer);
 		ctx.underground_clear_pass->set_cleared_buffers(true, true, false);
 		ctx.underground_clear_pass->set_clear_color({1, 0, 1, 0});
 		ctx.underground_clear_pass->set_clear_depth(-1.0f);
 		
-		ctx.underground_material_pass = new render::material_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
+		ctx.underground_material_pass = new render::material_pass(ctx.window->get_rasterizer(), ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.underground_material_pass->set_fallback_material(ctx.fallback_material);
 		
 		ctx.underground_compositor = new render::compositor();
@@ -506,27 +523,27 @@ void boot::setup_rendering()
 	
 	// Setup surface compositor
 	{
-		ctx.surface_shadow_map_clear_pass = new render::clear_pass(ctx.rasterizer, ctx.shadow_map_framebuffer);
+		ctx.surface_shadow_map_clear_pass = new render::clear_pass(ctx.window->get_rasterizer(), ctx.shadow_map_framebuffer);
 		ctx.surface_shadow_map_clear_pass->set_cleared_buffers(false, true, false);
 		ctx.surface_shadow_map_clear_pass->set_clear_depth(1.0f);
 		
-		ctx.surface_shadow_map_pass = new render::shadow_map_pass(ctx.rasterizer, ctx.resource_manager);
+		ctx.surface_shadow_map_pass = new render::shadow_map_pass(ctx.window->get_rasterizer(), ctx.resource_manager);
 		
-		ctx.surface_clear_pass = new render::clear_pass(ctx.rasterizer, ctx.hdr_framebuffer);
+		ctx.surface_clear_pass = new render::clear_pass(ctx.window->get_rasterizer(), ctx.hdr_framebuffer);
 		ctx.surface_clear_pass->set_cleared_buffers(false, true, true);
 		ctx.surface_clear_pass->set_clear_depth(-1.0f);
 		
-		ctx.sky_pass = new render::sky_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
+		ctx.sky_pass = new render::sky_pass(ctx.window->get_rasterizer(), ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.sky_pass->set_enabled(false);
 		ctx.sky_pass->set_magnification(3.0f);
 		
-		ctx.ground_pass = new render::ground_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
+		ctx.ground_pass = new render::ground_pass(ctx.window->get_rasterizer(), ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.ground_pass->set_enabled(false);
 		
-		ctx.surface_material_pass = new render::material_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
+		ctx.surface_material_pass = new render::material_pass(ctx.window->get_rasterizer(), ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.surface_material_pass->set_fallback_material(ctx.fallback_material);
 		
-		ctx.surface_outline_pass = new render::outline_pass(ctx.rasterizer, ctx.hdr_framebuffer, ctx.resource_manager);
+		ctx.surface_outline_pass = new render::outline_pass(ctx.window->get_rasterizer(), ctx.hdr_framebuffer, ctx.resource_manager);
 		ctx.surface_outline_pass->set_outline_width(0.25f);
 		ctx.surface_outline_pass->set_outline_color(float4{1.0f, 1.0f, 1.0f, 1.0f});
 		
@@ -685,7 +702,7 @@ void boot::setup_scenes()
 	debug::log::trace("Setting up scenes...");
 	
 	// Get default framebuffer
-	const auto& viewport_size = ctx.app->get_viewport_size();
+	const auto& viewport_size = ctx.window->get_viewport_size();
 	const float viewport_aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
 	// Setup UI camera
@@ -883,7 +900,7 @@ void boot::setup_entities()
 
 void boot::setup_systems()
 {
-	const auto& viewport_size = ctx.app->get_viewport_size();
+	const auto& viewport_size = ctx.window->get_viewport_size();
 	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_size[0]), static_cast<float>(viewport_size[1])};
 	
 	// Setup terrain system
@@ -960,19 +977,19 @@ void boot::setup_systems()
 void boot::setup_controls()
 {
 	// Load SDL game controller mappings database
-	debug::log::trace("Loading SDL game controller mappings...");
-	file_buffer* game_controller_db = ctx.resource_manager->load<file_buffer>("gamecontrollerdb.txt");
-	if (!game_controller_db)
-	{
-		debug::log::error("Failed to load SDL game controller mappings");
-	}
-	else
-	{
-		ctx.app->add_game_controller_mappings(game_controller_db->data(), game_controller_db->size());
-		debug::log::trace("Loaded SDL game controller mappings");
+	// debug::log::trace("Loading SDL game controller mappings...");
+	// file_buffer* game_controller_db = ctx.resource_manager->load<file_buffer>("gamecontrollerdb.txt");
+	// if (!game_controller_db)
+	// {
+		// debug::log::error("Failed to load SDL game controller mappings");
+	// }
+	// else
+	// {
+		// ctx.app->add_game_controller_mappings(game_controller_db->data(), game_controller_db->size());
+		// debug::log::trace("Loaded SDL game controller mappings");
 		
-		ctx.resource_manager->unload("gamecontrollerdb.txt");
-	}
+		// ctx.resource_manager->unload("gamecontrollerdb.txt");
+	// }
 	
 	// Load controls
 	debug::log::trace("Loading controls...");
@@ -1023,10 +1040,10 @@ void boot::setup_controls()
 			(
 				[&ctx = this->ctx](const auto& event)
 				{
-					bool fullscreen = !ctx.app->is_fullscreen();
+					bool fullscreen = !ctx.window->is_fullscreen();
 					
 					// Toggle fullscreen
-					ctx.app->set_fullscreen(fullscreen);
+					ctx.window->set_fullscreen(fullscreen);
 					
 					// Update fullscreen setting
 					(*ctx.settings)["fullscreen"_fnv1a32] = fullscreen;
@@ -1055,7 +1072,7 @@ void boot::setup_controls()
 		// Map and enable window controls
 		ctx.window_controls.add_mapping(ctx.fullscreen_control, input::key_mapping(nullptr, input::scancode::f11, false));
 		ctx.window_controls.add_mapping(ctx.screenshot_control, input::key_mapping(nullptr, input::scancode::f12, false));
-		ctx.window_controls.connect(ctx.app->get_device_manager().get_event_queue());
+		ctx.window_controls.connect(ctx.input_manager->get_event_queue());
 		
 		// Set activation threshold for menu navigation controls to mitigate drifting gamepad axes
 		auto menu_control_threshold = [](float x) -> bool
@@ -1104,20 +1121,22 @@ void boot::setup_ui()
 	}
 	
 	// Setup UI resize handler
-	ctx.ui_resize_subscription = ctx.app->get_window_resized_channel().subscribe
-	(
-		[&](const auto& event)
-		{
-			const float clip_left = static_cast<float>(event.viewport_size.x()) * -0.5f;
-			const float clip_right = static_cast<float>(event.viewport_size.x()) * 0.5f;
-			const float clip_top = static_cast<float>(event.viewport_size.y()) * -0.5f;
-			const float clip_bottom = static_cast<float>(event.viewport_size.y()) * 0.5f;
-			const float clip_near = ctx.ui_camera->get_clip_near();
-			const float clip_far = ctx.ui_camera->get_clip_far();
+	// ctx.ui_resize_subscription = ctx.window_manager->get_event_queue().subscribe<app::window_resized_event>
+	// (
+		// [&](const auto& event)
+		// {
+			// const auto& viewport_size = event.window->get_viewport_size();
 			
-			ctx.ui_camera->set_orthographic(clip_left, clip_right, clip_top, clip_bottom, clip_near, clip_far);
-		}
-	);
+			// const float clip_left = static_cast<float>(viewport_size.x()) * -0.5f;
+			// const float clip_right = static_cast<float>(viewport_size.x()) * 0.5f;
+			// const float clip_top = static_cast<float>(viewport_size.y()) * -0.5f;
+			// const float clip_bottom = static_cast<float>(viewport_size.y()) * 0.5f;
+			// const float clip_near = ctx.ui_camera->get_clip_near();
+			// const float clip_far = ctx.ui_camera->get_clip_far();
+			
+			// ctx.ui_camera->set_orthographic(clip_left, clip_right, clip_top, clip_bottom, clip_near, clip_far);
+		// }
+	// );
 }
 
 void boot::setup_debugging()
@@ -1152,8 +1171,8 @@ void boot::setup_loop()
 			ctx.ui_scene->update_tweens();
 			
 			// Process events
-			ctx.app->process_events();
-			ctx.app->get_device_manager().get_event_queue().flush();
+			ctx.window_manager->update();
+			ctx.input_manager->update();
 			
 			// Process function queue
 			while (!ctx.function_queue.empty())
@@ -1204,14 +1223,16 @@ void boot::setup_loop()
 		[&ctx = this->ctx](double alpha)
 		{
 			ctx.render_system->draw(alpha);
-			ctx.app->swap_buffers();
+			ctx.window->swap_buffers();
 		}
 	);
 }
 
 void boot::loop()
 {
-	while (!ctx.app->was_closed())
+	ctx.closed = false;
+	
+	while (!ctx.closed)
 	{
 		// Execute main loop
 		ctx.loop.tick();

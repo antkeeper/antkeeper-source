@@ -51,8 +51,9 @@ private:
 	void parse_arguments(int argc, char** argv);
 	void setup_resources();
 	void load_settings();
-	void load_strings();
 	void setup_window();
+	void setup_input();
+	void load_strings();
 	void setup_rendering();
 	void setup_audio();
 	void setup_scenes();

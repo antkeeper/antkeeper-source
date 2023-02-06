@@ -19,7 +19,6 @@
 
 #include "game/state/keyboard-config-menu.hpp"
 #include "game/state/controls-menu.hpp"
-#include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "resources/resource-manager.hpp"

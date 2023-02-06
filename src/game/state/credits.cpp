@@ -23,7 +23,6 @@
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
-#include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "game/strings.hpp"
@@ -94,7 +93,7 @@ credits::credits(game::context& ctx):
 			}
 		}
 	);
-	ctx.input_mapper.connect(ctx.app->get_device_manager().get_event_queue());
+	ctx.input_mapper.connect(ctx.input_manager->get_event_queue());
 	
 	ctx.ui_scene->add_object(&credits_text);
 	

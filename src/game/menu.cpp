@@ -19,7 +19,6 @@
 
 #include "game/menu.hpp"
 #include "scene/text.hpp"
-#include "application.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
 #include "animation/ease.hpp"
@@ -384,7 +383,7 @@ void setup_controls(game::context& ctx)
 				max_x += padding;
 				max_y += padding;
 				
-				const auto& viewport = ctx.app->get_viewport_dimensions();
+				const auto& viewport = ctx.window->get_viewport_size();
 				const float x = static_cast<float>(event.x - viewport[0] / 2);
 				const float y = static_cast<float>((viewport[1] - event.y + 1) - viewport[1] / 2);
 				
@@ -430,7 +429,7 @@ void setup_controls(game::context& ctx)
 				max_x += padding;
 				max_y += padding;
 				
-				const auto& viewport = ctx.app->get_viewport_dimensions();
+				const auto& viewport = ctx.window->get_viewport_size();
 				const float x = static_cast<float>(event.x - viewport[0] / 2);
 				const float y = static_cast<float>((viewport[1] - event.y + 1) - viewport[1] / 2);
 				

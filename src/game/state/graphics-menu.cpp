@@ -19,7 +19,6 @@
 
 #include "game/state/graphics-menu.hpp"
 #include "game/state/options-menu.hpp"
-#include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "game/fonts.hpp"
@@ -88,9 +87,9 @@ graphics_menu::graphics_menu(game::context& ctx):
 	// Construct menu item callbacks
 	auto toggle_fullscreen_callback = [this, &ctx]()
 	{
-		bool fullscreen = !ctx.app->is_fullscreen();
+		bool fullscreen = !ctx.window->is_fullscreen();
 		
-		ctx.app->set_fullscreen(fullscreen);
+		ctx.window->set_fullscreen(fullscreen);
 		
 		
 		this->update_value_text_content();
@@ -151,12 +150,12 @@ graphics_menu::graphics_menu(game::context& ctx):
 	
 	auto toggle_v_sync_callback = [this, &ctx]()
 	{
-		bool v_sync = !ctx.app->get_v_sync();
+		bool v_sync = !ctx.window->get_v_sync();
 		
 		// Update v-sync setting
 		(*ctx.settings)["v_sync"_fnv1a32] = v_sync;
 		
-		ctx.app->set_v_sync(v_sync);
+		ctx.window->set_v_sync(v_sync);
 		
 		this->update_value_text_content();
 		game::menu::align_text(ctx);
@@ -373,9 +372,9 @@ graphics_menu::~graphics_menu()
 
 void graphics_menu::update_value_text_content()
 {
-	const bool fullscreen = ctx.app->is_fullscreen();
+	const bool fullscreen = ctx.window->is_fullscreen();
 	const float render_scale = ctx.render_scale;
-	const bool v_sync = ctx.app->get_v_sync();
+	const bool v_sync = ctx.window->get_v_sync();
 	const int aa_method_index = static_cast<int>(ctx.anti_aliasing_method);
 	const float font_scale = ctx.font_scale;
 	const bool dyslexia_font = ctx.dyslexia_font;

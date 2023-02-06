@@ -17,23 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_HSM_STATE_MACHINE_HPP
-#define ANTKEEPER_HSM_STATE_MACHINE_HPP
+#include "app/window.hpp"
 
-#include <memory>
-#include <stack>
+namespace app {
 
-/// Hierarchical State Machine (HSM)
-namespace hsm {
 
-/**
- * Stack-based hierarchical state machine.
- *
- * @tparam T State type.
- */
-template <typename T>
-using state_machine = std::stack<std::unique_ptr<T>>;
 
-} // namespace hsm
-
-#endif // ANTKEEPER_HSM_STATE_MACHINE_HPP
+} // namespace app

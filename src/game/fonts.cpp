@@ -18,7 +18,6 @@
  */
 
 #include "game/fonts.hpp"
-#include "application.hpp"
 #include "type/type.hpp"
 #include "resources/resource-manager.hpp"
 #include "gl/texture-wrapping.hpp"
@@ -126,7 +125,8 @@ void load_fonts(game::context& ctx)
 	gl::shader_program* bitmap_font_shader = ctx.resource_manager->load<gl::shader_program>("bitmap-font.glsl");
 	
 	// Point size to pixel size conversion factor
-	const float pt_to_px = (ctx.app->get_display_dpi() / 72.0f) * ctx.font_scale;
+	const float dpi = ctx.window_manager->get_display(0).get_dpi();
+	const float pt_to_px = (dpi / 72.0f) * ctx.font_scale;
 	
 	// Build debug font
 	if (auto it = ctx.typefaces.find("monospace"); it != ctx.typefaces.end())

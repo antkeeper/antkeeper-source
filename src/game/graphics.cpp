@@ -45,7 +45,7 @@ void create_framebuffers(game::context& ctx)
 	debug::log::trace("Creating framebuffers...");
 	
 	// Calculate render resolution
-	const int2& viewport_size = ctx.app->get_viewport_size();
+	const int2& viewport_size = ctx.window->get_viewport_size();
 	ctx.render_resolution = {static_cast<int>(viewport_size.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_size.y() * ctx.render_scale + 0.5f)};
 	
 	// Create HDR framebuffer (32F color, 32F depth)
@@ -128,7 +128,7 @@ void change_render_resolution(game::context& ctx, float scale)
 	ctx.render_scale = scale;
 	
 	// Recalculate render resolution
-	const int2& viewport_size = ctx.app->get_viewport_size();
+	const int2& viewport_size = ctx.window->get_viewport_size();
 	ctx.render_resolution = {static_cast<int>(viewport_size.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_size.y() * ctx.render_scale + 0.5f)};
 	
 	// Resize HDR framebuffer and attachments
@@ -171,7 +171,7 @@ void save_screenshot(game::context& ctx)
 	debug::log::debug("Saving screenshot to \"{}\"...", screenshot_filepath_string);
 	
 	// Get viewport dimensions
-	const int2& viewport_size = ctx.app->get_viewport_size();
+	const int2& viewport_size = ctx.window->get_viewport_size();
 	
 	// Allocate screenshot image
 	std::shared_ptr<image> frame = std::make_shared<image>();
@@ -231,7 +231,7 @@ void reroute_framebuffers(game::context& ctx)
 		else
 		{
 			ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_a);
-			ctx.fxaa_pass->set_framebuffer(&ctx.rasterizer->get_default_framebuffer());
+			ctx.fxaa_pass->set_framebuffer(&ctx.window->get_rasterizer()->get_default_framebuffer());
 		}
 	}
 	else
@@ -242,7 +242,7 @@ void reroute_framebuffers(game::context& ctx)
 		}
 		else
 		{
-			ctx.common_final_pass->set_framebuffer(&ctx.rasterizer->get_default_framebuffer());
+			ctx.common_final_pass->set_framebuffer(&ctx.window->get_rasterizer()->get_default_framebuffer());
 		}
 	}
 }

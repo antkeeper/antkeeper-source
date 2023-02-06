@@ -17,7 +17,6 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "application.hpp"
 #include "color/color.hpp"
 #include "config.hpp"
 #include "debug/log.hpp"

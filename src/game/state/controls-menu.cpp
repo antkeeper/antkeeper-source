@@ -21,7 +21,6 @@
 #include "game/state/keyboard-config-menu.hpp"
 #include "game/state/gamepad-config-menu.hpp"
 #include "game/state/options-menu.hpp"
-#include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "game/menu.hpp"

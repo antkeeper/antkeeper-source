@@ -20,7 +20,6 @@
 #include "game/controls.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/json.hpp"
-#include "application.hpp"
 #include "game/component/transform.hpp"
 #include "game/component/constraint/constraint.hpp"
 #include "game/component/constraint-stack.hpp"
@@ -147,8 +146,8 @@ void apply_control_profile(game::context& ctx, const json& profile)
 	}
 	
 	// Get keyboard and mouse devices
-	input::keyboard* keyboard = ctx.app->get_device_manager().get_keyboards().front();
-	input::mouse* mouse = ctx.app->get_device_manager().get_mice().front();
+	input::keyboard* keyboard = ctx.input_manager->get_keyboards().front();
+	input::mouse* mouse = ctx.input_manager->get_mice().front();
 	
 	// Find profile gamepad device
 	input::gamepad* gamepad = nullptr;
@@ -159,7 +158,7 @@ void apply_control_profile(game::context& ctx, const json& profile)
 		const std::string uuid_string = gamepad_element->get<std::string>();
 		
 		// Find gamepad with matching UUID
-		for (input::gamepad* device: ctx.app->get_device_manager().get_gamepads())
+		for (input::gamepad* device: ctx.input_manager->get_gamepads())
 		{
 			if (device->get_uuid().string() == uuid_string)
 			{

@@ -28,7 +28,6 @@
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
-#include "application.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "game/strings.hpp"

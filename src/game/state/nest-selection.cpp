@@ -40,14 +40,12 @@
 #include "animation/ease.hpp"
 #include "resources/resource-manager.hpp"
 #include "game/world.hpp"
-#include "application.hpp"
 #include "render/passes/clear-pass.hpp"
 #include "render/passes/ground-pass.hpp"
-#include "state-machine.hpp"
+#include "utility/state-machine.hpp"
 #include "config.hpp"
 #include "math/interpolation.hpp"
 #include "physics/light/exposure.hpp"
-#include "application.hpp"
 #include "input/mouse.hpp"
 #include "math/projection.hpp"
 
@@ -126,7 +124,7 @@ nest_selection::nest_selection(game::context& ctx):
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure(ev100_sunny16);
 	
-	const auto& viewport_size = ctx.app->get_viewport_size();
+	const auto& viewport_size = ctx.window->get_viewport_size();
 	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
 	// Init first person camera rig parameters
