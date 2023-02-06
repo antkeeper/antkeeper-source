@@ -21,7 +21,7 @@
 #define ANTKEEPER_INPUT_MOUSE_HPP
 
 #include "input/device.hpp"
-#include "input/event.hpp"
+#include "input/input-events.hpp"
 #include "input/mouse-button.hpp"
 #include "event/publisher.hpp"
 #include "math/vector.hpp"
@@ -79,25 +79,25 @@ public:
 	}
 	
 	/// Returns the channel through which mouse button pressed events are published.
-	[[nodiscard]] inline ::event::channel<event::mouse_button_pressed>& get_button_pressed_channel() noexcept
+	[[nodiscard]] inline ::event::channel<mouse_button_pressed_event>& get_button_pressed_channel() noexcept
 	{
 		return button_pressed_publisher.channel();
 	}
 	
 	/// Returns the channel through which mouse button released events are published.
-	[[nodiscard]] inline ::event::channel<event::mouse_button_released>& get_button_released_channel() noexcept
+	[[nodiscard]] inline ::event::channel<mouse_button_released_event>& get_button_released_channel() noexcept
 	{
 		return button_released_publisher.channel();
 	}
 	
 	/// Returns the channel through which mouse moved events are published.
-	[[nodiscard]] inline ::event::channel<event::mouse_moved>& get_moved_channel() noexcept
+	[[nodiscard]] inline ::event::channel<mouse_moved_event>& get_moved_channel() noexcept
 	{
 		return moved_publisher.channel();
 	}
 	
 	/// Returns the channel through which mouse scrolled events are published.
-	[[nodiscard]] inline ::event::channel<event::mouse_scrolled>& get_scrolled_channel() noexcept
+	[[nodiscard]] inline ::event::channel<mouse_scrolled_event>& get_scrolled_channel() noexcept
 	{
 		return scrolled_publisher.channel();
 	}
@@ -111,10 +111,10 @@ public:
 private:
 	math::vector<std::int32_t, 2> position;
 	
-	::event::publisher<event::mouse_button_pressed> button_pressed_publisher;
-	::event::publisher<event::mouse_button_released> button_released_publisher;
-	::event::publisher<event::mouse_moved> moved_publisher;
-	::event::publisher<event::mouse_scrolled> scrolled_publisher;
+	::event::publisher<mouse_button_pressed_event> button_pressed_publisher;
+	::event::publisher<mouse_button_released_event> button_released_publisher;
+	::event::publisher<mouse_moved_event> moved_publisher;
+	::event::publisher<mouse_scrolled_event> scrolled_publisher;
 };
 
 } // namespace input

@@ -23,7 +23,7 @@
 #include "event/subscription.hpp"
 #include "event/queue.hpp"
 #include "event/publisher.hpp"
-#include "input/event.hpp"
+#include "input/input-events.hpp"
 #include "input/mapping.hpp"
 #include <memory>
 #include <vector>
@@ -49,21 +49,21 @@ public:
 	void disconnect();
 	
 	/// Returns the channel through which input mapped events are published.
-	[[nodiscard]] inline ::event::channel<event::input_mapped>& get_input_mapped_channel() noexcept
+	[[nodiscard]] inline ::event::channel<input_mapped_event>& get_input_mapped_channel() noexcept
 	{
 		return input_mapped_publisher.channel();
 	}
 	
 private:
-	void handle_gamepad_axis_moved(const event::gamepad_axis_moved& event);
-	void handle_gamepad_button_pressed(const event::gamepad_button_pressed& event);
-	void handle_key_pressed(const event::key_pressed& event);
-	void handle_mouse_button_pressed(const event::mouse_button_pressed& event);
-	void handle_mouse_moved(const event::mouse_moved& event);
-	void handle_mouse_scrolled(const event::mouse_scrolled& event);
+	void handle_gamepad_axis_moved(const gamepad_axis_moved_event& event);
+	void handle_gamepad_button_pressed(const gamepad_button_pressed_event& event);
+	void handle_key_pressed(const key_pressed_event& event);
+	void handle_mouse_button_pressed(const mouse_button_pressed_event& event);
+	void handle_mouse_moved(const mouse_moved_event& event);
+	void handle_mouse_scrolled(const mouse_scrolled_event& event);
 	
 	std::vector<std::shared_ptr<::event::subscription>> subscriptions;
-	::event::publisher<event::input_mapped> input_mapped_publisher;
+	::event::publisher<input_mapped_event> input_mapped_publisher;
 };
 
 } // namespace input

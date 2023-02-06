@@ -86,7 +86,7 @@ void sdl_input_manager::update()
 		{
 			case SDL_QUIT:
 				debug::log::debug("Application quit requested");
-				this->event_queue.enqueue<input::event::application_quit>({});
+				this->event_queue.enqueue<input::application_quit_event>({});
 				break;
 			
 			default:

@@ -21,7 +21,7 @@
 #define ANTKEEPER_INPUT_DEVICE_HPP
 
 #include "input/device-type.hpp"
-#include "input/event.hpp"
+#include "input/input-events.hpp"
 #include "event/publisher.hpp"
 #include "utility/uuid.hpp"
 #include <optional>
@@ -73,13 +73,13 @@ public:
 	}
 	
 	/// Returns the channel through which device connected events are published.
-	[[nodiscard]] inline ::event::channel<event::device_connected>& get_connected_channel() noexcept
+	[[nodiscard]] inline ::event::channel<device_connected_event>& get_connected_channel() noexcept
 	{
 		return connected_publisher.channel();
 	}
 	
 	/// Returns the channel through which device disconnected events are published.
-	[[nodiscard]] inline ::event::channel<event::device_disconnected>& get_disconnected_channel() noexcept
+	[[nodiscard]] inline ::event::channel<device_disconnected_event>& get_disconnected_channel() noexcept
 	{
 		return disconnected_publisher.channel();
 	}
@@ -91,8 +91,8 @@ private:
 	::uuid uuid;
 	bool connected;
 	
-	::event::publisher<event::device_connected> connected_publisher;
-	::event::publisher<event::device_disconnected> disconnected_publisher;
+	::event::publisher<device_connected_event> connected_publisher;
+	::event::publisher<device_disconnected_event> disconnected_publisher;
 };
 
 } // namespace input

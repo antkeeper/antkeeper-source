@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_INPUT_CONTROL_HPP
 #define ANTKEEPER_INPUT_CONTROL_HPP
 
-#include "input/event.hpp"
+#include "input/input-events.hpp"
 #include "event/publisher.hpp"
 #include <functional>
 
@@ -69,19 +69,19 @@ public:
 	}
 	
 	/// Returns the channel through which control activated events are published.
-	[[nodiscard]] inline ::event::channel<event::control_activated>& get_activated_channel() noexcept
+	[[nodiscard]] inline ::event::channel<control_activated_event>& get_activated_channel() noexcept
 	{
 		return activated_publisher.channel();
 	}
 	
 	/// Returns the channel through which control active events are published.
-	[[nodiscard]] inline ::event::channel<event::control_active>& get_active_channel() noexcept
+	[[nodiscard]] inline ::event::channel<control_active_event>& get_active_channel() noexcept
 	{
 		return active_publisher.channel();
 	}
 	
 	/// Returns the channel through which control deactivated events are published.
-	[[nodiscard]] inline ::event::channel<event::control_deactivated>& get_deactivated_channel() noexcept
+	[[nodiscard]] inline ::event::channel<control_deactivated_event>& get_deactivated_channel() noexcept
 	{
 		return deactivated_publisher.channel();
 	}
@@ -90,13 +90,13 @@ private:
 	threshold_function_type threshold_function;
 	bool active;
 	
-	event::control_activated activated_event;
-	event::control_active active_event;
-	event::control_deactivated deactivated_event;
+	control_activated_event activated_event;
+	control_active_event active_event;
+	control_deactivated_event deactivated_event;
 	
-	::event::publisher<event::control_activated> activated_publisher;
-	::event::publisher<event::control_active> active_publisher;
-	::event::publisher<event::control_deactivated> deactivated_publisher;
+	::event::publisher<control_activated_event> activated_publisher;
+	::event::publisher<control_active_event> active_publisher;
+	::event::publisher<control_deactivated_event> deactivated_publisher;
 };
 
 } // namespace input

@@ -21,7 +21,7 @@
 #define ANTKEEPER_INPUT_GAMEPAD_HPP
 
 #include "input/device.hpp"
-#include "input/event.hpp"
+#include "input/input-events.hpp"
 #include "input/gamepad-axis.hpp"
 #include "input/gamepad-button.hpp"
 #include "event/publisher.hpp"
@@ -123,19 +123,19 @@ public:
 	void move(gamepad_axis axis, float position);
 	
 	/// Returns the channel through which gamepad button pressed events are published.
-	[[nodiscard]] inline ::event::channel<event::gamepad_button_pressed>& get_button_pressed_channel() noexcept
+	[[nodiscard]] inline ::event::channel<gamepad_button_pressed_event>& get_button_pressed_channel() noexcept
 	{
 		return button_pressed_publisher.channel();
 	}
 	
 	/// Returns the channel through which gamepad button released events are published.
-	[[nodiscard]] inline ::event::channel<event::gamepad_button_released>& get_button_released_channel() noexcept
+	[[nodiscard]] inline ::event::channel<gamepad_button_released_event>& get_button_released_channel() noexcept
 	{
 		return button_released_publisher.channel();
 	}
 	
 	/// Returns the channel through which gamepad axis moved events are published.
-	[[nodiscard]] inline ::event::channel<event::gamepad_axis_moved>& get_axis_moved_channel() noexcept
+	[[nodiscard]] inline ::event::channel<gamepad_axis_moved_event>& get_axis_moved_channel() noexcept
 	{
 		return axis_moved_publisher.channel();
 	}
@@ -161,9 +161,9 @@ private:
 	float left_deadzone_roundness;
 	float right_deadzone_roundness;
 	
-	::event::publisher<event::gamepad_button_pressed> button_pressed_publisher;
-	::event::publisher<event::gamepad_button_released> button_released_publisher;
-	::event::publisher<event::gamepad_axis_moved> axis_moved_publisher;
+	::event::publisher<gamepad_button_pressed_event> button_pressed_publisher;
+	::event::publisher<gamepad_button_released_event> button_released_publisher;
+	::event::publisher<gamepad_axis_moved_event> axis_moved_publisher;
 };
 
 } // namespace input

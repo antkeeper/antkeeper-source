@@ -134,6 +134,14 @@ struct context
 	
 	// Resource management and paths
 	resource_manager* resource_manager;
+	std::filesystem::path data_path;
+	std::filesystem::path local_config_path;
+	std::filesystem::path shared_config_path;
+	std::filesystem::path mods_path;
+	std::filesystem::path saves_path;
+	std::filesystem::path screenshots_path;
+	std::filesystem::path controls_path;
+	std::filesystem::path data_package_path;
 	
 	// Persistent settings
 	dict<std::uint32_t>* settings;
@@ -198,16 +206,6 @@ struct context
 	
 	/// Game loop
 	game::loop loop;
-	
-	// Paths
-	std::filesystem::path data_path;
-	std::filesystem::path local_config_path;
-	std::filesystem::path shared_config_path;
-	std::filesystem::path mods_path;
-	std::filesystem::path saves_path;
-	std::filesystem::path screenshots_path;
-	std::filesystem::path controls_path;
-	std::filesystem::path data_package_path;
 	
 	// Framebuffers
 	gl::texture_2d* hdr_color_texture;

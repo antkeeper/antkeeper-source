@@ -21,7 +21,7 @@
 #define ANTKEEPER_INPUT_KEYBOARD_HPP
 
 #include "input/device.hpp"
-#include "input/event.hpp"
+#include "input/input-events.hpp"
 #include "input/scancode.hpp"
 #include "input/modifier-key.hpp"
 #include "event/publisher.hpp"
@@ -61,13 +61,13 @@ public:
 	void release(scancode scancode, bool repeat = false, std::uint16_t modifiers = modifier_key::none);
 	
 	/// Returns the channel through which key pressed events are published.
-	[[nodiscard]] inline ::event::channel<event::key_pressed>& get_key_pressed_channel() noexcept
+	[[nodiscard]] inline ::event::channel<key_pressed_event>& get_key_pressed_channel() noexcept
 	{
 		return key_pressed_publisher.channel();
 	}
 	
 	/// Returns the channel through which key released events are published.
-	[[nodiscard]] inline ::event::channel<event::key_released>& get_key_released_channel() noexcept
+	[[nodiscard]] inline ::event::channel<key_released_event>& get_key_released_channel() noexcept
 	{
 		return key_released_publisher.channel();
 	}
@@ -79,8 +79,8 @@ public:
 	}
 
 private:
-	::event::publisher<event::key_pressed> key_pressed_publisher;
-	::event::publisher<event::key_released> key_released_publisher;
+	::event::publisher<key_pressed_event> key_pressed_publisher;
+	::event::publisher<key_released_event> key_released_publisher;
 };
 
 } // namespace input

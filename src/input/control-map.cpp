@@ -27,15 +27,15 @@ namespace input {
 
 void control_map::connect(::event::queue& queue)
 {
-	subscriptions.emplace_back(queue.subscribe<event::gamepad_axis_moved>(std::bind_front(&control_map::handle_gamepad_axis_moved, this)));
-	subscriptions.emplace_back(queue.subscribe<event::gamepad_button_pressed>(std::bind_front(&control_map::handle_gamepad_button_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<event::gamepad_button_released>(std::bind_front(&control_map::handle_gamepad_button_released, this)));
-	subscriptions.emplace_back(queue.subscribe<event::key_pressed>(std::bind_front(&control_map::handle_key_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<event::key_released>(std::bind_front(&control_map::handle_key_released, this)));
-	subscriptions.emplace_back(queue.subscribe<event::mouse_button_pressed>(std::bind_front(&control_map::handle_mouse_button_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<event::mouse_button_released>(std::bind_front(&control_map::handle_mouse_button_released, this)));
-	subscriptions.emplace_back(queue.subscribe<event::mouse_moved>(std::bind_front(&control_map::handle_mouse_moved, this)));
-	subscriptions.emplace_back(queue.subscribe<event::mouse_scrolled>(std::bind_front(&control_map::handle_mouse_scrolled, this)));
+	subscriptions.emplace_back(queue.subscribe<gamepad_axis_moved_event>(std::bind_front(&control_map::handle_gamepad_axis_moved, this)));
+	subscriptions.emplace_back(queue.subscribe<gamepad_button_pressed_event>(std::bind_front(&control_map::handle_gamepad_button_pressed, this)));
+	subscriptions.emplace_back(queue.subscribe<gamepad_button_released_event>(std::bind_front(&control_map::handle_gamepad_button_released, this)));
+	subscriptions.emplace_back(queue.subscribe<key_pressed_event>(std::bind_front(&control_map::handle_key_pressed, this)));
+	subscriptions.emplace_back(queue.subscribe<key_released_event>(std::bind_front(&control_map::handle_key_released, this)));
+	subscriptions.emplace_back(queue.subscribe<mouse_button_pressed_event>(std::bind_front(&control_map::handle_mouse_button_pressed, this)));
+	subscriptions.emplace_back(queue.subscribe<mouse_button_released_event>(std::bind_front(&control_map::handle_mouse_button_released, this)));
+	subscriptions.emplace_back(queue.subscribe<mouse_moved_event>(std::bind_front(&control_map::handle_mouse_moved, this)));
+	subscriptions.emplace_back(queue.subscribe<mouse_scrolled_event>(std::bind_front(&control_map::handle_mouse_scrolled, this)));
 }
 
 void control_map::disconnect()
@@ -171,7 +171,7 @@ void control_map::remove_mappings()
 	mouse_scroll_mappings.clear();
 }
 
-void control_map::handle_gamepad_axis_moved(const event::gamepad_axis_moved& event)
+void control_map::handle_gamepad_axis_moved(const gamepad_axis_moved_event& event)
 {
 	for (const auto& [control, mapping]: gamepad_axis_mappings)
 	{
@@ -190,7 +190,7 @@ void control_map::handle_gamepad_axis_moved(const event::gamepad_axis_moved& eve
 	}
 }
 
-void control_map::handle_gamepad_button_pressed(const event::gamepad_button_pressed& event)
+void control_map::handle_gamepad_button_pressed(const gamepad_button_pressed_event& event)
 {
 	for (const auto& [control, mapping]: gamepad_button_mappings)
 	{
@@ -202,7 +202,7 @@ void control_map::handle_gamepad_button_pressed(const event::gamepad_button_pres
 	}
 }
 
-void control_map::handle_gamepad_button_released(const event::gamepad_button_released& event)
+void control_map::handle_gamepad_button_released(const gamepad_button_released_event& event)
 {
 	for (const auto& [control, mapping]: gamepad_button_mappings)
 	{
@@ -214,7 +214,7 @@ void control_map::handle_gamepad_button_released(const event::gamepad_button_rel
 	}
 }
 
-void control_map::handle_key_pressed(const event::key_pressed& event)
+void control_map::handle_key_pressed(const key_pressed_event& event)
 {
 	for (const auto& [control, mapping]: key_mappings)
 	{
@@ -226,7 +226,7 @@ void control_map::handle_key_pressed(const event::key_pressed& event)
 	}
 }
 
-void control_map::handle_key_released(const event::key_released& event)
+void control_map::handle_key_released(const key_released_event& event)
 {
 	for (const auto& [control, mapping]: key_mappings)
 	{
@@ -238,7 +238,7 @@ void control_map::handle_key_released(const event::key_released& event)
 	}
 }
 
-void control_map::handle_mouse_moved(const event::mouse_moved& event)
+void control_map::handle_mouse_moved(const mouse_moved_event& event)
 {
 	for (const auto& [control, mapping]: mouse_motion_mappings)
 	{
@@ -255,7 +255,7 @@ void control_map::handle_mouse_moved(const event::mouse_moved& event)
 	}
 }
 
-void control_map::handle_mouse_scrolled(const event::mouse_scrolled& event)
+void control_map::handle_mouse_scrolled(const mouse_scrolled_event& event)
 {
 	for (const auto& [control, mapping]: mouse_scroll_mappings)
 	{
@@ -272,7 +272,7 @@ void control_map::handle_mouse_scrolled(const event::mouse_scrolled& event)
 	}
 }
 
-void control_map::handle_mouse_button_pressed(const event::mouse_button_pressed& event)
+void control_map::handle_mouse_button_pressed(const mouse_button_pressed_event& event)
 {
 	for (const auto& [control, mapping]: mouse_button_mappings)
 	{
@@ -284,7 +284,7 @@ void control_map::handle_mouse_button_pressed(const event::mouse_button_pressed&
 	}
 }
 
-void control_map::handle_mouse_button_released(const event::mouse_button_released& event)
+void control_map::handle_mouse_button_released(const mouse_button_released_event& event)
 {
 	for (const auto& [control, mapping]: mouse_button_mappings)
 	{

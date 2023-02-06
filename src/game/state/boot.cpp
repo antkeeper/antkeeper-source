@@ -187,7 +187,7 @@ void boot::parse_options(int argc, char** argv)
 			("n,new-game", "Starts a new game")
 			("q,quick-start", "Skips to the main menu")
 			("r,reset", "Resets all settings to default")
-			("v,vsync", "Enables or disables v-sync", cxxopts::value<int>())
+			("v,v-sync", "Enables or disables v-sync", cxxopts::value<int>())
 			("w,windowed", "Starts in windowed mode");
 		auto result = options.parse(argc, argv);
 		
@@ -227,10 +227,10 @@ void boot::parse_options(int argc, char** argv)
 			ctx.option_reset = true;
 		}
 		
-		// --v_sync
-		if (result.count("vsync"))
+		// --v-sync
+		if (result.count("v-sync"))
 		{
-			ctx.option_v_sync = result["vsync"].as<int>();
+			ctx.option_v_sync = result["v-sync"].as<int>();
 		}
 		
 		// --window
@@ -249,7 +249,7 @@ void boot::parse_options(int argc, char** argv)
 
 void boot::setup_resources()
 {
-	// Setup resource manager
+	// Allocate resource manager
 	ctx.resource_manager = new resource_manager();
 	
 	// Detect paths
@@ -312,9 +312,12 @@ void boot::setup_resources()
 	// Determine data package path
 	if (ctx.option_data)
 	{
-		ctx.data_package_path = std::filesystem::path(ctx.option_data.value());
+		// Handle command-line data package path option
+		ctx.data_package_path = ctx.option_data.value();
 		if (ctx.data_package_path.is_relative())
+		{
 			ctx.data_package_path = ctx.data_path / ctx.data_package_path;
+		}
 	}
 	else
 	{
@@ -450,7 +453,7 @@ void boot::setup_input()
 	ctx.input_manager = app::input_manager::instance();
 	
 	// Setup application quit callback
-	ctx.application_quit_subscription = ctx.input_manager->get_event_queue().subscribe<input::event::application_quit>
+	ctx.application_quit_subscription = ctx.input_manager->get_event_queue().subscribe<input::application_quit_event>
 	(
 		[&](const auto& event)
 		{

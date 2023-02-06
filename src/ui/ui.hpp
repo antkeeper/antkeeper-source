@@ -20,9 +20,7 @@
 #ifndef ANTKEEPER_UI_HPP
 #define ANTKEEPER_UI_HPP
 
-/// UI elements
+/// UI elements.
 namespace ui {}
-
-#include "ui/element.hpp"
 
 #endif // ANTKEEPER_UI_HPP

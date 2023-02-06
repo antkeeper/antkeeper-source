@@ -23,7 +23,7 @@
 #include "event/subscription.hpp"
 #include "event/queue.hpp"
 #include "input/control.hpp"
-#include "input/event.hpp"
+#include "input/input-events.hpp"
 #include "input/mapping.hpp"
 #include <memory>
 #include <tuple>
@@ -87,15 +87,15 @@ public:
 	void remove_mappings();
 	
 private:
-	void handle_gamepad_axis_moved(const event::gamepad_axis_moved& event);
-	void handle_gamepad_button_pressed(const event::gamepad_button_pressed& event);
-	void handle_gamepad_button_released(const event::gamepad_button_released& event);
-	void handle_key_pressed(const event::key_pressed& event);
-	void handle_key_released(const event::key_released& event);
-	void handle_mouse_button_pressed(const event::mouse_button_pressed& event);
-	void handle_mouse_button_released(const event::mouse_button_released& event);
-	void handle_mouse_moved(const event::mouse_moved& event);
-	void handle_mouse_scrolled(const event::mouse_scrolled& event);
+	void handle_gamepad_axis_moved(const gamepad_axis_moved_event& event);
+	void handle_gamepad_button_pressed(const gamepad_button_pressed_event& event);
+	void handle_gamepad_button_released(const gamepad_button_released_event& event);
+	void handle_key_pressed(const key_pressed_event& event);
+	void handle_key_released(const key_released_event& event);
+	void handle_mouse_button_pressed(const mouse_button_pressed_event& event);
+	void handle_mouse_button_released(const mouse_button_released_event& event);
+	void handle_mouse_moved(const mouse_moved_event& event);
+	void handle_mouse_scrolled(const mouse_scrolled_event& event);
 	
 	std::vector<std::shared_ptr<::event::subscription>> subscriptions;
 	std::vector<std::tuple<control*, gamepad_axis_mapping>> gamepad_axis_mappings;

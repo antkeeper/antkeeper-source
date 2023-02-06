@@ -24,12 +24,12 @@ namespace input {
 
 void mapper::connect(::event::queue& queue)
 {
-	subscriptions.emplace_back(queue.subscribe<event::gamepad_axis_moved>(std::bind_front(&mapper::handle_gamepad_axis_moved, this)));
-	subscriptions.emplace_back(queue.subscribe<event::gamepad_button_pressed>(std::bind_front(&mapper::handle_gamepad_button_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<event::key_pressed>(std::bind_front(&mapper::handle_key_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<event::mouse_button_pressed>(std::bind_front(&mapper::handle_mouse_button_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<event::mouse_moved>(std::bind_front(&mapper::handle_mouse_moved, this)));
-	subscriptions.emplace_back(queue.subscribe<event::mouse_scrolled>(std::bind_front(&mapper::handle_mouse_scrolled, this)));
+	subscriptions.emplace_back(queue.subscribe<gamepad_axis_moved_event>(std::bind_front(&mapper::handle_gamepad_axis_moved, this)));
+	subscriptions.emplace_back(queue.subscribe<gamepad_button_pressed_event>(std::bind_front(&mapper::handle_gamepad_button_pressed, this)));
+	subscriptions.emplace_back(queue.subscribe<key_pressed_event>(std::bind_front(&mapper::handle_key_pressed, this)));
+	subscriptions.emplace_back(queue.subscribe<mouse_button_pressed_event>(std::bind_front(&mapper::handle_mouse_button_pressed, this)));
+	subscriptions.emplace_back(queue.subscribe<mouse_moved_event>(std::bind_front(&mapper::handle_mouse_moved, this)));
+	subscriptions.emplace_back(queue.subscribe<mouse_scrolled_event>(std::bind_front(&mapper::handle_mouse_scrolled, this)));
 }
 
 void mapper::disconnect()
@@ -37,27 +37,27 @@ void mapper::disconnect()
 	subscriptions.clear();
 }
 
-void mapper::handle_gamepad_axis_moved(const event::gamepad_axis_moved& event)
+void mapper::handle_gamepad_axis_moved(const gamepad_axis_moved_event& event)
 {
 	input_mapped_publisher.publish({std::shared_ptr<mapping>(new gamepad_axis_mapping(event.gamepad, event.axis, std::signbit(event.position)))});
 }
 
-void mapper::handle_gamepad_button_pressed(const event::gamepad_button_pressed& event)
+void mapper::handle_gamepad_button_pressed(const gamepad_button_pressed_event& event)
 {
 	input_mapped_publisher.publish({std::shared_ptr<mapping>(new gamepad_button_mapping(event.gamepad, event.button))});
 }
 
-void mapper::handle_key_pressed(const event::key_pressed& event)
+void mapper::handle_key_pressed(const key_pressed_event& event)
 {
 	input_mapped_publisher.publish({std::shared_ptr<mapping>(new key_mapping(event.keyboard, event.scancode))});
 }
 
-void mapper::handle_mouse_button_pressed(const event::mouse_button_pressed& event)
+void mapper::handle_mouse_button_pressed(const mouse_button_pressed_event& event)
 {
 	input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_button_mapping(event.mouse, event.button))});
 }
 
-void mapper::handle_mouse_moved(const event::mouse_moved& event)
+void mapper::handle_mouse_moved(const mouse_moved_event& event)
 {
 	if (event.difference.x())
 	{
@@ -70,7 +70,7 @@ void mapper::handle_mouse_moved(const event::mouse_moved& event)
 	}
 }
 
-void mapper::handle_mouse_scrolled(const event::mouse_scrolled& event)
+void mapper::handle_mouse_scrolled(const mouse_scrolled_event& event)
 {
 	if (event.velocity.x())
 	{

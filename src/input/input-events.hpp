@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_INPUT_EVENT_HPP
-#define ANTKEEPER_INPUT_EVENT_HPP
+#ifndef ANTKEEPER_INPUT_INPUT_EVENTS_HPP
+#define ANTKEEPER_INPUT_INPUT_EVENTS_HPP
 
 #include "input/gamepad-axis.hpp"
 #include "input/gamepad-button.hpp"
@@ -40,14 +40,9 @@ class keyboard;
 class mouse;
 
 /**
- * Input events.
- */
-namespace event {
-
-/**
  * Event generated when a control has been activated.
  */
-struct control_activated
+struct control_activated_event
 {
 	/// Control that was activated.
 	control* control;
@@ -56,7 +51,7 @@ struct control_activated
 /**
  * Event generated while a control is active.
  */
-struct control_active
+struct control_active_event
 {
 	/// Active control.
 	control* control;
@@ -68,7 +63,7 @@ struct control_active
 /**
  * Event generated when a control has been deactivated.
  */
-struct control_deactivated
+struct control_deactivated_event
 {
 	/// Control that was deactivated.
 	control* control;
@@ -77,7 +72,7 @@ struct control_deactivated
 /**
  * Event generated when an input mapping has been generated.
  */
-struct input_mapped
+struct input_mapped_event
 {
 	/// Input mapping that was generated.
 	std::shared_ptr<mapping> mapping;
@@ -86,7 +81,7 @@ struct input_mapped
 /**
  * Event generated when an input device has been connected.
  */
-struct device_connected
+struct device_connected_event
 {
 	/// Device that was connected.
 	device* device;
@@ -95,7 +90,7 @@ struct device_connected
 /**
  * Event generated when an input device has been disconnected.
  */
-struct device_disconnected
+struct device_disconnected_event
 {
 	/// Device that was disconnected.
 	device* device;
@@ -104,7 +99,7 @@ struct device_disconnected
 /**
  * Event generated when a gamepad button has been pressed.
  */
-struct gamepad_button_pressed
+struct gamepad_button_pressed_event
 {
 	/// Gamepad that generated the event.
 	gamepad* gamepad;
@@ -116,7 +111,7 @@ struct gamepad_button_pressed
 /**
  * Event generated when a gamepad button has been released.
  */
-struct gamepad_button_released
+struct gamepad_button_released_event
 {
 	/// Gamepad that generated the event.
 	gamepad* gamepad;
@@ -128,7 +123,7 @@ struct gamepad_button_released
 /**
  * Event generated when a gamepad axis has been moved.
  */
-struct gamepad_axis_moved
+struct gamepad_axis_moved_event
 {
 	/// Gamepad that generated the event.
 	gamepad* gamepad;
@@ -143,7 +138,7 @@ struct gamepad_axis_moved
 /**
  * Event generated when a keyboard key has been pressed.
  */
-struct key_pressed
+struct key_pressed_event
 {
 	/// Keyboard that generated the event.
 	keyboard* keyboard;
@@ -161,7 +156,7 @@ struct key_pressed
 /**
  * Event generated when a keyboard key has been released.
  */
-struct key_released
+struct key_released_event
 {
 	/// Keyboard that generated the event.
 	keyboard* keyboard;
@@ -179,7 +174,7 @@ struct key_released
 /**
  * Event generated when a mouse has been moved.
  */
-struct mouse_moved
+struct mouse_moved_event
 {
 	/// Mouse that generated the event.
 	mouse* mouse;
@@ -194,7 +189,7 @@ struct mouse_moved
 /**
  * Event generated when a mouse button has been pressed.
  */
-struct mouse_button_pressed
+struct mouse_button_pressed_event
 {
 	/// Mouse that generated the event.
 	mouse* mouse;
@@ -209,7 +204,7 @@ struct mouse_button_pressed
 /**
  * Event generated when a mouse button has been released.
  */
-struct mouse_button_released
+struct mouse_button_released_event
 {
 	/// Mouse that generated the event.
 	mouse* mouse;
@@ -224,7 +219,7 @@ struct mouse_button_released
 /**
  * Event generated when a mouse has been scrolled.
  */
-struct mouse_scrolled
+struct mouse_scrolled_event
 {
 	/// Mouse that generated the event.
 	mouse* mouse;
@@ -239,9 +234,8 @@ struct mouse_scrolled
 /**
  * Event generated when the application has been requested to quit.
  */
-struct application_quit {};
+struct application_quit_event {};
 
-} // namespace event
 } // namespace input
 
-#endif // ANTKEEPER_INPUT_EVENT_HPP
+#endif // ANTKEEPER_INPUT_INPUT_EVENTS_HPP
