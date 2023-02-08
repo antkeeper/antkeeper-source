@@ -23,7 +23,6 @@
 #include "animation/tween.hpp"
 #include "app/input-manager.hpp"
 #include "app/window-manager.hpp"
-#include "debug/performance-sampler.hpp"
 #include "entity/id.hpp"
 #include "entity/registry.hpp"
 #include "event/subscription.hpp"
@@ -51,6 +50,7 @@
 #include "utility/dict.hpp"
 #include "utility/fundamental-types.hpp"
 #include "utility/state-machine.hpp"
+#include "math/moving-average.hpp"
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <entt/entt.hpp>
@@ -186,13 +186,15 @@ struct context
 	input::control menu_modifier_control;
 	std::forward_list<std::shared_ptr<::event::subscription>> menu_control_subscriptions;
 	
+	// Debugging
+	math::moving_average<float, 15> average_frame_time;
+	debug::cli* cli;
+	
 	// Hierarchichal state machine
 	hsm::state_machine<game::state::base> state_machine;
 	std::function<void()> resume_callback;
 	
-	// Debugging
-	debug::performance_sampler performance_sampler;
-	debug::cli* cli;
+
 	
 	// Queue for scheduling "next frame" function calls
 	std::queue<std::function<void()>> function_queue;

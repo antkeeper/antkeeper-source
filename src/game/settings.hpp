@@ -45,7 +45,7 @@ bool read_or_write_setting(game::context& ctx, std::uint32_t key, T& value)
 		{
 			value = std::any_cast<T>(i->second);
 		}
-		catch (const std::bad_any_cast& e)
+		catch (const std::bad_any_cast&)
 		{
 			debug::log::error("Setting type mismatch ({:x}={})", key, value);
 			i->second = value;

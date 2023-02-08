@@ -1216,9 +1216,6 @@ void boot::setup_ui()
 
 void boot::setup_debugging()
 {
-	// Setup performance sampling
-	ctx.performance_sampler.set_sample_size(15);
-	
 	ctx.cli = new debug::cli();
 	//debug::log::info(ctx.cli->interpret("echo hi 123"));
 }
@@ -1313,12 +1310,14 @@ void boot::loop()
 		ctx.loop.tick();
 		
 		// Sample frame duration
-		ctx.performance_sampler.sample(ctx.loop.get_frame_duration());
+		ctx.average_frame_time(static_cast<float>(ctx.loop.get_frame_duration()));
 	}
 	
 	// Exit all active game states
 	while (!ctx.state_machine.empty())
+	{
 		ctx.state_machine.pop();
+	}
 }
 
 void boot::shutdown_audio()
