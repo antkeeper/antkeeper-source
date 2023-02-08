@@ -17,26 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_DEBUG_CONSOLE_HPP
-#define ANTKEEPER_DEBUG_CONSOLE_HPP
+#ifndef ANTKEEPER_UI_ELEMENT_HPP
+#define ANTKEEPER_UI_ELEMENT_HPP
 
-namespace debug {
+namespace ui {}
 
-/**
- * Debug console.
- */
-namespace console {
+class element
+{
+public:
 
-/// Enables VT100 virtual terminal sequences.
-void enable_vt100();
+private:
+};
 
-/// Disables VT100 virtual terminal sequences.
-void disable_vt100();
+} // namesoace ui
 
-/// Enables UTF-8 output.
-void enable_utf8();
-
-} // namespace console
-} // namespace debug
-
-#endif // ANTKEEPER_DEBUG_CONSOLE_HPP
+#endif // ANTKEEPER_UI_ELEMENT_HPP

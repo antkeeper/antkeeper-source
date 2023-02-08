@@ -40,7 +40,7 @@ public:
 	 * @param argc Command line argument count.
 	 * @param argv Command line argument vector.
 	 */
-	boot(game::context& ctx, int argc, char** argv);
+	boot(game::context& ctx, int argc, const char* const* argv);
 	
 	/**
 	 * Boots down the game.
@@ -48,7 +48,7 @@ public:
 	virtual ~boot();
 	
 private:
-	void parse_options(int argc, char** argv);
+	void parse_options(int argc, const char* const* argv);
 	void setup_resources();
 	void load_settings();
 	void setup_window();

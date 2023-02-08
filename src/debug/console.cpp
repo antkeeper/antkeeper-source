@@ -47,5 +47,12 @@ void disable_vt100()
 	#endif
 }
 
+void enable_utf8()
+{
+	#if defined(_WIN32)
+		SetConsoleOutputCP(CP_UTF8);
+	#endif
+}
+
 } // namespace console
 } // namespace debug

@@ -119,7 +119,7 @@ void sdl_input_manager::update()
 				break;
 			}
 			
-			case SDL_KEYDOWN:
+			[[likely]] case SDL_KEYDOWN:
 			case SDL_KEYUP:
 			{
 				// Get scancode of key
@@ -153,16 +153,13 @@ void sdl_input_manager::update()
 						modifier_keys |= input::modifier_key::alt_gr;
 				}
 				
-				// Determine if event was generated from a key repeat
-				const bool repeat = event.key.repeat > 0;
-				
 				if (event.type == SDL_KEYDOWN)
 				{
-					keyboard.press(scancode, repeat, modifier_keys);
+					keyboard.press(scancode, modifier_keys, (event.key.repeat > 0));
 				}
 				else
 				{
-					keyboard.release(scancode, repeat, modifier_keys);
+					keyboard.release(scancode, modifier_keys);
 				}
 				
 				break;

@@ -46,19 +46,18 @@ public:
 	 * Simulates a key press.
 	 *
 	 * @param scancode Scancode of the key to press.
-	 * @param repeat `true` if the key press is from a key repeat, `false` otherwise.
 	 * @param modifiers Bit mask containing the active modifier keys.
+	 * @param repeat `true` if the key press is from a key repeat, `false` otherwise.
 	 */
-	void press(scancode scancode, bool repeat = false, std::uint16_t modifiers = modifier_key::none);
+	void press(scancode scancode, std::uint16_t modifiers = modifier_key::none, bool repeat = false);
 	
 	/**
 	 * Simulates a key release.
 	 *
 	 * @param scancode Scancode of the key to release.
-	 * @param repeat `true` if the key release is from a key repeat, `false` otherwise.
 	 * @param modifiers Bit mask containing the active modifier keys.
 	 */
-	void release(scancode scancode, bool repeat = false, std::uint16_t modifiers = modifier_key::none);
+	void release(scancode scancode, std::uint16_t modifiers = modifier_key::none);
 	
 	/// Returns the channel through which key pressed events are published.
 	[[nodiscard]] inline ::event::channel<key_pressed_event>& get_key_pressed_channel() noexcept

@@ -22,14 +22,14 @@
 
 namespace input {
 
-void keyboard::press(scancode scancode, bool repeat, std::uint16_t modifiers)
+void keyboard::press(scancode scancode, std::uint16_t modifiers, bool repeat)
 {
-	key_pressed_publisher.publish({this, scancode, repeat, modifiers});
+	key_pressed_publisher.publish({this, scancode, modifiers, repeat});
 }
 
-void keyboard::release(scancode scancode, bool repeat, std::uint16_t modifiers)
+void keyboard::release(scancode scancode, std::uint16_t modifiers)
 {
-	key_released_publisher.publish({this, scancode, repeat, modifiers});
+	key_released_publisher.publish({this, scancode, modifiers});
 }
 
 } // namespace input

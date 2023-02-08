@@ -221,7 +221,15 @@ void control_map::handle_key_pressed(const key_pressed_event& event)
 		if (mapping.scancode == event.scancode &&
 			(!mapping.keyboard || mapping.keyboard == event.keyboard))
 		{
-			control->evaluate(1.0f);
+			if (!event.repeat)
+			{
+				control->evaluate(1.0f);
+			}
+			else if (mapping.repeat)
+			{
+				control->evaluate(0.0f);
+				control->evaluate(1.0f);
+			}
 		}
 	}
 }

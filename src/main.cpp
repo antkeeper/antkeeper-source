@@ -37,7 +37,8 @@ int main(int argc, char* argv[])
 	// Get time at which the application launched 
 	const auto launch_time = std::chrono::system_clock::now();
 	
-	// Enable VT100 sequences in console for colored text
+	// Enable console UTF-8 output and VT100 sequences (for colored text)
+	debug::console::enable_utf8();
 	debug::console::enable_vt100();
 	
 	// Subscribe log to cout function to message logged events
@@ -141,7 +142,7 @@ int main(int argc, char* argv[])
 	{
 		// Determine log filename
 		const auto time = std::chrono::floor<std::chrono::seconds>(launch_time);
-		const std::string log_filename = std::format("{0}-{1:%Y%m%d}T{1:%H%M%S}Z.log", config::application_name, time);
+		const std::string log_filename = std::format("{0}-{1:%Y%m%d}T{1:%H%M%S}Z.log", config::application_slug, time);
 		
 		// Open log file
 		log_filepath = log_archive_path / log_filename;

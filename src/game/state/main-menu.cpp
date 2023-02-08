@@ -18,31 +18,31 @@
  */
 
 #include "game/state/main-menu.hpp"
-#include "game/state/options-menu.hpp"
+#include "animation/animation.hpp"
+#include "animation/animator.hpp"
+#include "animation/ease.hpp"
+#include "animation/screen-transition.hpp"
+#include "config.hpp"
+#include "game/ant/swarm.hpp"
+#include "game/component/model.hpp"
+#include "game/component/steering.hpp"
+#include "game/component/transform.hpp"
+#include "game/ecoregion.hpp"
+#include "game/menu.hpp"
 #include "game/state/extras-menu.hpp"
 #include "game/state/nuptial-flight.hpp"
+#include "game/state/options-menu.hpp"
+#include "game/strings.hpp"
 #include "game/world.hpp"
-#include "game/menu.hpp"
-#include "game/ecoregion.hpp"
-#include "game/ant/swarm.hpp"
+#include "math/projection.hpp"
+#include "physics/light/exposure.hpp"
+#include "render/model.hpp"
 #include "render/passes/clear-pass.hpp"
 #include "render/passes/ground-pass.hpp"
 #include "render/passes/sky-pass.hpp"
 #include "resources/resource-manager.hpp"
-#include "render/model.hpp"
-#include "animation/animation.hpp"
-#include "animation/animator.hpp"
-#include "animation/screen-transition.hpp"
-#include "animation/ease.hpp"
-#include "config.hpp"
-#include "physics/light/exposure.hpp"
-#include "game/component/model.hpp"
-#include "game/component/steering.hpp"
-#include "game/component/transform.hpp"
-#include "math/projection.hpp"
-#include <limits>
-#include "game/strings.hpp"
 #include "utility/hash/fnv1a.hpp"
+#include <limits>
 
 using namespace hash::literals;
 
@@ -116,9 +116,8 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	auto select_start_callback = [this, &ctx]()
 	{
-		// Disable controls and menu callbacks
-		game::menu::clear_controls(ctx);
-		game::menu::clear_callbacks(ctx);
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
 		
 		// Create change state function
 		auto change_state_nuptial_flight = [&ctx]()
@@ -146,7 +145,8 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	};
 	auto select_options_callback = [this, &ctx]()
 	{
-		game::menu::clear_controls(ctx);
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
 		
 		// Fade out title
 		this->fade_out_title();
@@ -171,8 +171,8 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	};
 	auto select_extras_callback = [this, &ctx]()
 	{
-		// Disable controls
-		game::menu::clear_controls(ctx);
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
 		
 		// Fade out title
 		this->fade_out_title();
@@ -197,8 +197,8 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	};
 	auto select_quit_callback = [this, &ctx]()
 	{
-		// Disable controls
-		game::menu::clear_controls(ctx);
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
 		
 		// Fade out title
 		this->fade_out_title();
@@ -230,9 +230,6 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	// Set menu back callback
 	ctx.menu_back_callback = select_quit_callback;
-	
-	// Queue menu control setup
-	ctx.function_queue.push(std::bind(game::menu::setup_controls, std::ref(ctx)));
 	
 	if (fade_in)
 	{
@@ -282,6 +279,9 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	//if (!ctx.menu_bg_billboard->is_active())
 	//	game::menu::fade_in_bg(ctx);
 	
+	// Queue enable menu controls
+	ctx.function_queue.push(std::bind(game::menu::enable_controls, std::ref(ctx)));
+	
 	debug::log::trace("Entered main menu state");
 }
 
@@ -290,7 +290,6 @@ main_menu::~main_menu()
 	debug::log::trace("Exiting main menu state...");
 	
 	// Destruct menu
-	game::menu::clear_controls(ctx);
 	game::menu::clear_callbacks(ctx);
 	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);

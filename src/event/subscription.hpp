@@ -26,7 +26,7 @@
 namespace event {
 
 /**
- * Subscription object which unsubscribes on destruction.
+ * Unsubscribes a subscriber on destruction.
  */
 class subscription
 {

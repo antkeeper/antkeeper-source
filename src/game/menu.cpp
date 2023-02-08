@@ -295,186 +295,237 @@ void fade_out_bg(game::context& ctx)
 
 void setup_controls(game::context& ctx)
 {
-	/*
-	ctx.controls["menu_up"]->set_activated_callback
+	// Map menu controls
+	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::key_mapping(nullptr, input::scancode::up, true));
+	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::key_mapping(nullptr, input::scancode::w, true));
+	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::key_mapping(nullptr, input::scancode::i, true));
+	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::key_mapping(nullptr, input::scancode::down, true));
+	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::key_mapping(nullptr, input::scancode::s, true));
+	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::key_mapping(nullptr, input::scancode::k, true));
+	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::key_mapping(nullptr, input::scancode::left, true));
+	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::key_mapping(nullptr, input::scancode::a, true));
+	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::key_mapping(nullptr, input::scancode::j, true));
+	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::key_mapping(nullptr, input::scancode::right, true));
+	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::key_mapping(nullptr, input::scancode::d, true));
+	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::key_mapping(nullptr, input::scancode::l, true));
+	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::key_mapping(nullptr, input::scancode::enter, false));
+	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::key_mapping(nullptr, input::scancode::space, false));
+	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::key_mapping(nullptr, input::scancode::e, false));
+	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::key_mapping(nullptr, input::scancode::escape, false));
+	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::key_mapping(nullptr, input::scancode::backspace, false));
+	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::key_mapping(nullptr, input::scancode::q, false));
+	ctx.menu_controls.add_mapping(ctx.menu_modifier_control, input::key_mapping(nullptr, input::scancode::left_shift, false));
+	ctx.menu_controls.add_mapping(ctx.menu_modifier_control, input::key_mapping(nullptr, input::scancode::right_shift, false));
+	
+	// Setup menu control callbacks
+	ctx.menu_control_subscriptions.emplace_front
 	(
-		[&ctx]()
-		{
-			--(*ctx.menu_item_index);
-			if (*ctx.menu_item_index < 0)
-				*ctx.menu_item_index = ctx.menu_item_texts.size() - 1;
-			
-			update_text_color(ctx);
-		}
+		ctx.menu_up_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				--(*ctx.menu_item_index);
+				if (*ctx.menu_item_index < 0)
+					*ctx.menu_item_index = static_cast<int>(ctx.menu_item_texts.size()) - 1;
+				
+				update_text_color(ctx);
+			}
+		)
 	);
-	ctx.controls["menu_down"]->set_activated_callback
+	ctx.menu_control_subscriptions.emplace_front
 	(
-		[&ctx]()
-		{
-			++(*ctx.menu_item_index);
-			if (*ctx.menu_item_index >= ctx.menu_item_texts.size())
-				*ctx.menu_item_index = 0;
-			
-			update_text_color(ctx);
-		}
+		ctx.menu_down_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				++(*ctx.menu_item_index);
+				if (*ctx.menu_item_index >= ctx.menu_item_texts.size())
+					*ctx.menu_item_index = 0;
+				
+				update_text_color(ctx);
+			}
+		)
 	);
-	ctx.controls["menu_left"]->set_activated_callback
+	ctx.menu_control_subscriptions.emplace_front
 	(
-		[&ctx]()
-		{
-			auto callback = ctx.menu_left_callbacks[*ctx.menu_item_index];
-			if (callback != nullptr)
-				callback();
-		}
+		ctx.menu_left_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				auto callback = ctx.menu_left_callbacks[*ctx.menu_item_index];
+				if (callback != nullptr)
+					callback();
+			}
+		)
 	);
-	ctx.controls["menu_right"]->set_activated_callback
+	ctx.menu_control_subscriptions.emplace_front
 	(
-		[&ctx]()
-		{
-			auto callback = ctx.menu_right_callbacks[*ctx.menu_item_index];
-			if (callback != nullptr)
-				callback();
-		}
+		ctx.menu_right_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				auto callback = ctx.menu_right_callbacks[*ctx.menu_item_index];
+				if (callback != nullptr)
+					callback();
+			}
+		)
 	);
-	ctx.controls["menu_select"]->set_activated_callback
+	ctx.menu_control_subscriptions.emplace_front
 	(
-		[&ctx]()
-		{
-			auto callback = ctx.menu_select_callbacks[*ctx.menu_item_index];
-			if (callback != nullptr)
-				callback();
-		}
+		ctx.menu_select_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				auto callback = ctx.menu_select_callbacks[*ctx.menu_item_index];
+				if (callback != nullptr)
+					callback();
+			}
+		)
 	);
-	ctx.controls["menu_back"]->set_activated_callback
+	ctx.menu_control_subscriptions.emplace_front
 	(
-		[&ctx]()
-		{
-			if (ctx.menu_back_callback != nullptr)
-				ctx.menu_back_callback();
-		}
+		ctx.menu_back_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				if (ctx.menu_back_callback != nullptr)
+					ctx.menu_back_callback();
+			}
+		)
 	);
 	
-	ctx.menu_mouse_tracker->set_mouse_moved_callback
+	// Setup mouse event callbacks
+	ctx.menu_control_subscriptions.emplace_front
 	(
-		[&ctx](const mouse_moved_event& event)
-		{
-			const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
-			
-			for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
+		ctx.input_manager->get_event_queue().subscribe<input::mouse_moved_event>
+		(
+			[&ctx](const auto& event)
 			{
-				auto [name, value] = ctx.menu_item_texts[i];
-				
-				const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
-				float min_x = name_bounds.min_point.x();
-				float min_y = name_bounds.min_point.y();
-				float max_x = name_bounds.max_point.x();
-				float max_y = name_bounds.max_point.y();
-				if (value)
+				const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
+			
+				for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 				{
-					const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_world_bounds());
-					min_x = std::min<float>(min_x, value_bounds.min_point.x());
-					min_y = std::min<float>(min_y, value_bounds.min_point.y());
-					max_x = std::max<float>(max_x, value_bounds.max_point.x());
-					max_y = std::max<float>(max_y, value_bounds.max_point.y());
-				}
-				
-				min_x -= padding;
-				min_y -= padding;
-				max_x += padding;
-				max_y += padding;
-				
-				const auto& viewport = ctx.window->get_viewport_size();
-				const float x = static_cast<float>(event.x - viewport[0] / 2);
-				const float y = static_cast<float>((viewport[1] - event.y + 1) - viewport[1] / 2);
-				
-				if (x >= min_x && x <= max_x)
-				{
-					if (y >= min_y && y <= max_y)
+					auto [name, value] = ctx.menu_item_texts[i];
+					
+					const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
+					float min_x = name_bounds.min_point.x();
+					float min_y = name_bounds.min_point.y();
+					float max_x = name_bounds.max_point.x();
+					float max_y = name_bounds.max_point.y();
+					if (value)
 					{
-						*ctx.menu_item_index = i;
-						update_text_color(ctx);
-						break;
+						const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_world_bounds());
+						min_x = std::min<float>(min_x, value_bounds.min_point.x());
+						min_y = std::min<float>(min_y, value_bounds.min_point.y());
+						max_x = std::max<float>(max_x, value_bounds.max_point.x());
+						max_y = std::max<float>(max_y, value_bounds.max_point.y());
+					}
+					
+					min_x -= padding;
+					min_y -= padding;
+					max_x += padding;
+					max_y += padding;
+					
+					const auto& viewport = ctx.window->get_viewport_size();
+					const float x = static_cast<float>(event.position.x() - viewport[0] / 2);
+					const float y = static_cast<float>((viewport[1] - event.position.y() + 1) - viewport[1] / 2);
+					
+					if (x >= min_x && x <= max_x)
+					{
+						if (y >= min_y && y <= max_y)
+						{
+							*ctx.menu_item_index = i;
+							update_text_color(ctx);
+							break;
+						}
 					}
 				}
 			}
-		}
+		)
 	);
-	
-	ctx.menu_mouse_tracker->set_mouse_button_pressed_callback
+	ctx.menu_control_subscriptions.emplace_front
 	(
-		[&ctx](const mouse_button_pressed_event& event)
-		{
-			const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
-			
-			for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
+		ctx.input_manager->get_event_queue().subscribe<input::mouse_button_pressed_event>
+		(
+			[&ctx](const auto& event)
 			{
-				auto [name, value] = ctx.menu_item_texts[i];
+				const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
 				
-				const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
-				float min_x = name_bounds.min_point.x();
-				float min_y = name_bounds.min_point.y();
-				float max_x = name_bounds.max_point.x();
-				float max_y = name_bounds.max_point.y();
-				if (value)
+				for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 				{
-					const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_world_bounds());
-					min_x = std::min<float>(min_x, value_bounds.min_point.x());
-					min_y = std::min<float>(min_y, value_bounds.min_point.y());
-					max_x = std::max<float>(max_x, value_bounds.max_point.x());
-					max_y = std::max<float>(max_y, value_bounds.max_point.y());
-				}
-				
-				min_x -= padding;
-				min_y -= padding;
-				max_x += padding;
-				max_y += padding;
-				
-				const auto& viewport = ctx.window->get_viewport_size();
-				const float x = static_cast<float>(event.x - viewport[0] / 2);
-				const float y = static_cast<float>((viewport[1] - event.y + 1) - viewport[1] / 2);
-				
-				if (x >= min_x && x <= max_x)
-				{
-					if (y >= min_y && y <= max_y)
+					auto [name, value] = ctx.menu_item_texts[i];
+					
+					const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
+					float min_x = name_bounds.min_point.x();
+					float min_y = name_bounds.min_point.y();
+					float max_x = name_bounds.max_point.x();
+					float max_y = name_bounds.max_point.y();
+					if (value)
 					{
-						*ctx.menu_item_index = i;
-						update_text_color(ctx);
-						
-						if (event.button == 1)
+						const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_world_bounds());
+						min_x = std::min<float>(min_x, value_bounds.min_point.x());
+						min_y = std::min<float>(min_y, value_bounds.min_point.y());
+						max_x = std::max<float>(max_x, value_bounds.max_point.x());
+						max_y = std::max<float>(max_y, value_bounds.max_point.y());
+					}
+					
+					min_x -= padding;
+					min_y -= padding;
+					max_x += padding;
+					max_y += padding;
+					
+					const auto& viewport = ctx.window->get_viewport_size();
+					const float x = static_cast<float>(event.position.x() - viewport[0] / 2);
+					const float y = static_cast<float>((viewport[1] - event.position.y() + 1) - viewport[1] / 2);
+					
+					if (x >= min_x && x <= max_x)
+					{
+						if (y >= min_y && y <= max_y)
 						{
-							auto callback = ctx.menu_select_callbacks[i];
-							if (callback)
-								callback();
+							*ctx.menu_item_index = i;
+							update_text_color(ctx);
+							
+							//if (event.button == input::mouse_button::left)
+							{
+								auto callback = ctx.menu_select_callbacks[i];
+								if (callback)
+									callback();
+							}
+							// else if (event.button == input::mouse_button::right)
+							// {
+								// auto callback = ctx.menu_left_callbacks[i];
+								// if (callback)
+									// callback();
+							// }
+							
+							return;
 						}
-						else if (event.button == 3)
-						{
-							auto callback = ctx.menu_left_callbacks[i];
-							if (callback)
-								callback();
-						}
-						
-						return;
 					}
 				}
 			}
-		}
+		)
 	);
-	*/
 }
 
 void clear_controls(game::context& ctx)
 {
-	/*
-	ctx.controls["menu_up"]->set_activated_callback(nullptr);
-	ctx.controls["menu_down"]->set_activated_callback(nullptr);
-	ctx.controls["menu_left"]->set_activated_callback(nullptr);
-	ctx.controls["menu_right"]->set_activated_callback(nullptr);
-	ctx.controls["menu_select"]->set_activated_callback(nullptr);
-	ctx.controls["menu_back"]->set_activated_callback(nullptr);
+	// Unsubscribe menu control event callbacks
+	ctx.menu_control_subscriptions.clear();
 	
-	ctx.menu_mouse_tracker->set_mouse_moved_callback(nullptr);
-	ctx.menu_mouse_tracker->set_mouse_button_pressed_callback(nullptr);
-	*/
+	// Clear menu control mappings
+	ctx.menu_controls.remove_mappings();
+}
+
+void enable_controls(game::context& ctx)
+{
+	// Enable menu controls
+	ctx.menu_controls.connect(ctx.input_manager->get_event_queue());
+}
+
+void disable_controls(game::context& ctx)
+{
+	// Disable menu controls
+	ctx.menu_controls.disconnect();
 }
 
 } // namespace menu

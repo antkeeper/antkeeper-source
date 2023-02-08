@@ -21,8 +21,8 @@
 #define ANTKEEPER_GAME_CONTEXT_HPP
 
 #include "animation/tween.hpp"
-#include "app/window-manager.hpp"
 #include "app/input-manager.hpp"
+#include "app/window-manager.hpp"
 #include "debug/performance-sampler.hpp"
 #include "entity/id.hpp"
 #include "entity/registry.hpp"
@@ -36,6 +36,8 @@
 #include "gl/texture-2d.hpp"
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
+#include "i18n/string-map.hpp"
+#include "i18n/string-table.hpp"
 #include "input/control-map.hpp"
 #include "input/control.hpp"
 #include "input/mapper.hpp"
@@ -44,13 +46,11 @@
 #include "render/material.hpp"
 #include "resources/json.hpp"
 #include "scene/scene.hpp"
-#include "utility/state-machine.hpp"
 #include "type/bitmap-font.hpp"
 #include "type/typeface.hpp"
 #include "utility/dict.hpp"
 #include "utility/fundamental-types.hpp"
-#include "i18n/string-table.hpp"
-#include "i18n/string-map.hpp"
+#include "utility/state-machine.hpp"
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <entt/entt.hpp>
@@ -134,25 +134,24 @@ struct context
 	
 	// Resource management and paths
 	resource_manager* resource_manager;
-	std::filesystem::path data_path;
+	std::filesystem::path data_package_path;
+	std::filesystem::path mods_path;
 	std::filesystem::path local_config_path;
 	std::filesystem::path shared_config_path;
-	std::filesystem::path mods_path;
 	std::filesystem::path saves_path;
 	std::filesystem::path screenshots_path;
 	std::filesystem::path controls_path;
-	std::filesystem::path data_package_path;
 	
 	// Persistent settings
 	dict<std::uint32_t>* settings;
 	
-	// Window management and event handling
+	// Window management and window event handling
 	app::window_manager* window_manager;
 	app::window* window;
 	bool closed;
 	std::shared_ptr<::event::subscription> window_closed_subscription;
 	
-	// Input management and event handling
+	// Input management and input event handling
 	app::input_manager* input_manager;
 	std::shared_ptr<::event::subscription> application_quit_subscription;
 	
@@ -171,6 +170,22 @@ struct context
 	render::material menu_font_material;
 	render::material title_font_material;
 	
+	// Control maps, controls, and control event handling
+	input::mapper input_mapper;
+	input::control_map window_controls;
+	input::control fullscreen_control;
+	input::control screenshot_control;
+	std::forward_list<std::shared_ptr<::event::subscription>> control_subscriptions;
+	input::control_map menu_controls;
+	input::control menu_up_control;
+	input::control menu_down_control;
+	input::control menu_left_control;
+	input::control menu_right_control;
+	input::control menu_select_control;
+	input::control menu_back_control;
+	input::control menu_modifier_control;
+	std::forward_list<std::shared_ptr<::event::subscription>> menu_control_subscriptions;
+	
 	// Hierarchichal state machine
 	hsm::state_machine<game::state::base> state_machine;
 	std::function<void()> resume_callback;
@@ -185,22 +200,6 @@ struct context
 	// Parallel processes
 	std::unordered_map<std::string, std::function<void(double, double)>> processes;
 	
-	// Controls
-	input::mapper input_mapper;
-	std::forward_list<std::shared_ptr<::event::subscription>> control_subscriptions;
-	
-	input::control_map window_controls;
-	input::control fullscreen_control;
-	input::control screenshot_control;
-	
-	input::control_map menu_controls;
-	input::control menu_up_control;
-	input::control menu_down_control;
-	input::control menu_left_control;
-	input::control menu_right_control;
-	input::control menu_select_control;
-	input::control menu_back_control;
-	input::control menu_modifier_control;
 	
 	bool mouse_look;
 	

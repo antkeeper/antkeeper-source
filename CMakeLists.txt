@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.25)
 
-option(VERSION_STRING "Project version string" "0.0.0")
+option(APPLICATION_NAME "Application name" "Antkeeper")
+option(APPLICATION_VERSION "Application version string" "0.0.0")
+option(APPLICATION_AUTHOR "Application author" "C. J. Howard")
 
-project(antkeeper VERSION ${VERSION_STRING} LANGUAGES CXX)
+# Slugify application name
+string(TOLOWER ${APPLICATION_NAME} APPLICATION_SLUG)
+string(REPLACE " " "-" APPLICATION_SLUG ${APPLICATION_SLUG})
+
+project(${APPLICATION_SLUG} VERSION ${APPLICATION_VERSION} LANGUAGES CXX)
+
+set(APPLICATION_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(APPLICATION_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(APPLICATION_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
 # Find dependency packages
 find_package(dr_wav REQUIRED CONFIG)
@@ -54,19 +64,22 @@ if(MSVC)
 	# Generate Windows icon resource file
 	set(ICON_FILE "${PROJECT_SOURCE_DIR}/../antkeeper-data/src/icons/antkeeper.ico")
 	if(EXISTS "${ICON_FILE}")
-		configure_file(${PROJECT_SOURCE_DIR}/src/platform/windows/icon.rc.in
-			${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc)
+		configure_file(${PROJECT_SOURCE_DIR}/src/platform/windows/icon.rc.in ${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc)
 		list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc")
 	endif()
 	
-	# Make DPI-aware on Windows
+	# Generate Windows version-information resource file
+	configure_file(${PROJECT_SOURCE_DIR}/src/platform/windows/version.rc.in ${PROJECT_BINARY_DIR}/src/platform/windows/version.rc)
+	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/platform/windows/version.rc")
+	
+	# Make executable DPI-aware on Windows
 	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/platform/windows/dpi-aware.manifest")
 endif()
 
 # Add executable target
-set(EXECUTABLE_TARGET ${PROJECT_NAME}-executable)
+set(EXECUTABLE_TARGET ${APPLICATION_SLUG}-executable)
 add_executable(${EXECUTABLE_TARGET} ${SOURCE_FILES})
-set_target_properties(${EXECUTABLE_TARGET} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+set_target_properties(${EXECUTABLE_TARGET} PROPERTIES OUTPUT_NAME ${APPLICATION_SLUG})
 
 if(MSVC)
 	# Select the static multithreaded MSVC runtime library

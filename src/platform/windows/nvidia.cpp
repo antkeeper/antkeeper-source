@@ -22,6 +22,6 @@
 
 extern "C"
 {
-	/// Direct Nvidia Optimus to use high-performance graphics
+	// Direct Nvidia Optimus to use high-performance graphics
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }

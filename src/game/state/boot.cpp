@@ -105,7 +105,7 @@ using namespace hash::literals;
 namespace game {
 namespace state {
 
-boot::boot(game::context& ctx, int argc, char** argv):
+boot::boot(game::context& ctx, int argc, const char* const* argv):
 	game::state::base(ctx)
 {
 	// Boot process
@@ -172,14 +172,20 @@ boot::~boot()
 	debug::log::trace("Boot down complete");
 }
 
-void boot::parse_options(int argc, char** argv)
+void boot::parse_options(int argc, const char* const* argv)
 {
+	if (argc <= 1)
+	{
+		// No command-line options specified
+		return;
+	}
+	
 	debug::log::trace("Parsing command-line options...");
 	
 	// Parse command-line options with cxxopts
 	try
 	{
-		cxxopts::Options options(config::application_name, "Ant colony simulation game");
+		cxxopts::Options options(config::application_name, config::application_name);
 		options.add_options()
 			("c,continue", "Continues from the last save")
 			("d,data", "Sets the data package path", cxxopts::value<std::string>())
@@ -233,7 +239,7 @@ void boot::parse_options(int argc, char** argv)
 			ctx.option_v_sync = result["v-sync"].as<int>();
 		}
 		
-		// --window
+		// --windowed
 		if (result.count("windowed"))
 		{
 			ctx.option_windowed = true;
@@ -252,19 +258,39 @@ void boot::setup_resources()
 	// Allocate resource manager
 	ctx.resource_manager = new resource_manager();
 	
-	// Detect paths
-	ctx.data_path = get_executable_data_path();
+	// Get executable data path
+	const auto data_path = get_executable_data_path();
+	
+	// Determine data package path
+	if (ctx.option_data)
+	{
+		// Handle command-line data path option
+		ctx.data_package_path = ctx.option_data.value();
+		if (ctx.data_package_path.is_relative())
+		{
+			ctx.data_package_path = data_path / ctx.data_package_path;
+		}
+	}
+	else
+	{
+		ctx.data_package_path = data_path / (config::application_slug + std::string("-data.zip"));
+	}
+	
+	// Determine mods path
+	ctx.mods_path = data_path / "mods";
+	
+	// Determine config paths
 	ctx.local_config_path = get_local_config_path() / config::application_name;
 	ctx.shared_config_path = get_shared_config_path() / config::application_name;
-	ctx.mods_path = ctx.data_path / "mods";
 	ctx.saves_path = ctx.shared_config_path / "saves";
 	ctx.screenshots_path = ctx.shared_config_path / "gallery";
 	ctx.controls_path = ctx.shared_config_path / "controls";
 	
-	// Log resource paths
-	debug::log::info("Data path: \"{}\"", ctx.data_path.string());
+	// Log paths
+	debug::log::info("Data package path: \"{}\"", ctx.data_package_path.string());
 	debug::log::info("Local config path: \"{}\"", ctx.local_config_path.string());
 	debug::log::info("Shared config path: \"{}\"", ctx.shared_config_path.string());
+	debug::log::info("Mods path: \"{}\"", ctx.mods_path.string());
 	
 	// Set write dir
 	ctx.resource_manager->set_write_dir(ctx.shared_config_path);
@@ -273,25 +299,21 @@ void boot::setup_resources()
 	std::vector<std::filesystem::path> config_paths;
 	config_paths.push_back(ctx.local_config_path);
 	config_paths.push_back(ctx.shared_config_path);
-	//config_paths.push_back(ctx.mods_path);
 	config_paths.push_back(ctx.saves_path);
 	config_paths.push_back(ctx.screenshots_path);
 	config_paths.push_back(ctx.controls_path);
-	for (const std::filesystem::path& path: config_paths)
+	for (const auto& path: config_paths)
 	{
-		if (!std::filesystem::exists(path))
+		try
 		{
-			const std::string path_string = path.string();
-			
-			debug::log::trace("Creating directory \"{}\"...", path_string);
 			if (std::filesystem::create_directories(path))
 			{
-				debug::log::trace("Created directory \"{}\"", path_string);
+				debug::log::info("Created directory \"{}\"", path.string());
 			}
-			else
-			{
-				debug::log::error("Failed to create directory \"{}\"", path_string);
-			}
+		}
+		catch (const std::filesystem::filesystem_error& e)
+		{
+			debug::log::error("Failed to create directory \"{}\": {}", path.string(), e.what());
 		}
 	}
 	
@@ -309,22 +331,7 @@ void boot::setup_resources()
 		}
 	}
 	
-	// Determine data package path
-	if (ctx.option_data)
-	{
-		// Handle command-line data package path option
-		ctx.data_package_path = ctx.option_data.value();
-		if (ctx.data_package_path.is_relative())
-		{
-			ctx.data_package_path = ctx.data_path / ctx.data_package_path;
-		}
-	}
-	else
-	{
-		ctx.data_package_path = ctx.data_path / "antkeeper.dat";
-	}
-	
-	// Mount mods
+	// Mount mod paths
 	for (const std::filesystem::path& mod_path: mod_paths)
 	{
 		ctx.resource_manager->mount(ctx.mods_path / mod_path);
@@ -334,7 +341,7 @@ void boot::setup_resources()
 	ctx.resource_manager->mount(ctx.local_config_path);
 	ctx.resource_manager->mount(ctx.shared_config_path);
 	
-	// Mount data package
+	// Mount data package path
 	ctx.resource_manager->mount(ctx.data_package_path);
 	
 	// Include resource search paths in order of priority
@@ -1155,6 +1162,9 @@ void boot::setup_controls()
 	{
 		debug::log::error("Failed to load controls");
 	}
+	
+	// Setup menu controls
+	game::menu::setup_controls(ctx);
 }
 
 void boot::setup_ui()
