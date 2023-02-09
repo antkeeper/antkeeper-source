@@ -26,10 +26,6 @@ namespace game {
 namespace menu {
 
 void init_menu_item_index(game::context& ctx, const std::string& menu_name);
-void setup_controls(game::context& ctx);
-void clear_controls(game::context& ctx);
-void enable_controls(game::context& ctx);
-void disable_controls(game::context& ctx);
 void setup_animations(game::context& ctx);
 
 void clear_callbacks(game::context& ctx);

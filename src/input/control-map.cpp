@@ -27,15 +27,18 @@ namespace input {
 
 void control_map::connect(::event::queue& queue)
 {
-	subscriptions.emplace_back(queue.subscribe<gamepad_axis_moved_event>(std::bind_front(&control_map::handle_gamepad_axis_moved, this)));
-	subscriptions.emplace_back(queue.subscribe<gamepad_button_pressed_event>(std::bind_front(&control_map::handle_gamepad_button_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<gamepad_button_released_event>(std::bind_front(&control_map::handle_gamepad_button_released, this)));
-	subscriptions.emplace_back(queue.subscribe<key_pressed_event>(std::bind_front(&control_map::handle_key_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<key_released_event>(std::bind_front(&control_map::handle_key_released, this)));
-	subscriptions.emplace_back(queue.subscribe<mouse_button_pressed_event>(std::bind_front(&control_map::handle_mouse_button_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<mouse_button_released_event>(std::bind_front(&control_map::handle_mouse_button_released, this)));
-	subscriptions.emplace_back(queue.subscribe<mouse_moved_event>(std::bind_front(&control_map::handle_mouse_moved, this)));
-	subscriptions.emplace_back(queue.subscribe<mouse_scrolled_event>(std::bind_front(&control_map::handle_mouse_scrolled, this)));
+	if (subscriptions.empty())
+	{
+		subscriptions.emplace_back(queue.subscribe<gamepad_axis_moved_event>(std::bind_front(&control_map::handle_gamepad_axis_moved, this)));
+		subscriptions.emplace_back(queue.subscribe<gamepad_button_pressed_event>(std::bind_front(&control_map::handle_gamepad_button_pressed, this)));
+		subscriptions.emplace_back(queue.subscribe<gamepad_button_released_event>(std::bind_front(&control_map::handle_gamepad_button_released, this)));
+		subscriptions.emplace_back(queue.subscribe<key_pressed_event>(std::bind_front(&control_map::handle_key_pressed, this)));
+		subscriptions.emplace_back(queue.subscribe<key_released_event>(std::bind_front(&control_map::handle_key_released, this)));
+		subscriptions.emplace_back(queue.subscribe<mouse_button_pressed_event>(std::bind_front(&control_map::handle_mouse_button_pressed, this)));
+		subscriptions.emplace_back(queue.subscribe<mouse_button_released_event>(std::bind_front(&control_map::handle_mouse_button_released, this)));
+		subscriptions.emplace_back(queue.subscribe<mouse_moved_event>(std::bind_front(&control_map::handle_mouse_moved, this)));
+		subscriptions.emplace_back(queue.subscribe<mouse_scrolled_event>(std::bind_front(&control_map::handle_mouse_scrolled, this)));
+	}
 }
 
 void control_map::disconnect()

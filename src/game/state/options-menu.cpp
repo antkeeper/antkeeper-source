@@ -25,6 +25,7 @@
 #include "game/state/language-menu.hpp"
 #include "game/state/pause-menu.hpp"
 #include "game/menu.hpp"
+#include "game/controls.hpp"
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
@@ -77,8 +78,8 @@ options_menu::options_menu(game::context& ctx):
 	// Construct menu item callbacks
 	auto select_controls_callback = [&ctx]()
 	{
-		// Queue disable menu controls
-		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		// Return to main menu
 		game::menu::fade_out
@@ -100,8 +101,8 @@ options_menu::options_menu(game::context& ctx):
 	};
 	auto select_graphics_callback = [&ctx]()
 	{
-		// Queue disable menu controls
-		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		// Return to main menu
 		game::menu::fade_out
@@ -123,8 +124,8 @@ options_menu::options_menu(game::context& ctx):
 	};
 	auto select_sound_callback = [&ctx]()
 	{
-		// Queue disable menu controls
-		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		// Return to main menu
 		game::menu::fade_out
@@ -146,8 +147,8 @@ options_menu::options_menu(game::context& ctx):
 	};
 	auto select_language_callback = [&ctx]()
 	{
-		// Queue disable menu controls
-		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		// Return to main menu
 		game::menu::fade_out
@@ -169,8 +170,8 @@ options_menu::options_menu(game::context& ctx):
 	};
 	auto select_back_callback = [&ctx]()
 	{
-		// Queue disable menu controls
-		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		// Save config
 		//game::save::config(ctx);
@@ -216,7 +217,7 @@ options_menu::options_menu(game::context& ctx):
 	game::menu::fade_in(ctx, nullptr);
 	
 	// Queue enable menu controls
-	ctx.function_queue.push(std::bind(game::menu::enable_controls, std::ref(ctx)));
+	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
 	
 	debug::log::trace("Entered options menu state");
 }
@@ -226,6 +227,7 @@ options_menu::~options_menu()
 	debug::log::trace("Exiting options menu state...");
 	
 	// Destruct menu
+	game::disable_menu_controls(ctx);
 	game::menu::clear_callbacks(ctx);
 	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);

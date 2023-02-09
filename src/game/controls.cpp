@@ -18,14 +18,319 @@
  */
 
 #include "game/controls.hpp"
+#include "game/graphics.hpp"
+#include "game/menu.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/json.hpp"
-#include "game/component/transform.hpp"
-#include "game/component/constraint/constraint.hpp"
-#include "game/component/constraint-stack.hpp"
-#include <fstream>
 
 namespace game {
+
+void setup_window_controls(game::context& ctx)
+{
+	// Map window controls
+	ctx.window_controls.add_mapping(ctx.fullscreen_control, input::key_mapping(nullptr, input::scancode::f11, false));
+	ctx.window_controls.add_mapping(ctx.screenshot_control, input::key_mapping(nullptr, input::scancode::f12, false));
+	
+	// Setup fullscreen control
+	ctx.window_control_subscriptions.emplace_back
+	(
+		ctx.fullscreen_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				ctx.window->set_fullscreen(!ctx.window->is_fullscreen());
+			}
+		)
+	);
+	
+	// Setup screenshot control
+	ctx.window_control_subscriptions.emplace_back
+	(
+		ctx.screenshot_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				game::graphics::save_screenshot(ctx);
+			}
+		)
+	);
+}
+
+void setup_menu_controls(game::context& ctx)
+{
+	// Map menu controls
+	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::key_mapping(nullptr, input::scancode::up, true));
+	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::key_mapping(nullptr, input::scancode::w, true));
+	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::key_mapping(nullptr, input::scancode::i, true));
+	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_y, true));
+	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_y, true));
+	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_up));
+	
+	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::key_mapping(nullptr, input::scancode::down, true));
+	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::key_mapping(nullptr, input::scancode::s, true));
+	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::key_mapping(nullptr, input::scancode::k, true));
+	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_y, false));
+	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_y, false));
+	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_down));
+	
+	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::key_mapping(nullptr, input::scancode::left, true));
+	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::key_mapping(nullptr, input::scancode::a, true));
+	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::key_mapping(nullptr, input::scancode::j, true));
+	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_x, true));
+	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_x, true));
+	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_left));
+	
+	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::key_mapping(nullptr, input::scancode::right, true));
+	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::key_mapping(nullptr, input::scancode::d, true));
+	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::key_mapping(nullptr, input::scancode::l, true));
+	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_x, false));
+	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_x, false));
+	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_right));
+	
+	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::key_mapping(nullptr, input::scancode::enter, false));
+	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::key_mapping(nullptr, input::scancode::space, false));
+	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::key_mapping(nullptr, input::scancode::e, false));
+	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::a));
+	
+	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::key_mapping(nullptr, input::scancode::escape, false));
+	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::key_mapping(nullptr, input::scancode::backspace, false));
+	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::key_mapping(nullptr, input::scancode::q, false));
+	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::b));
+	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::back));
+	
+	ctx.menu_controls.add_mapping(ctx.menu_modifier_control, input::key_mapping(nullptr, input::scancode::left_shift, false));
+	ctx.menu_controls.add_mapping(ctx.menu_modifier_control, input::key_mapping(nullptr, input::scancode::right_shift, false));
+	
+	// Setup menu controls
+	ctx.menu_control_subscriptions.emplace_back
+	(
+		ctx.menu_up_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				--(*ctx.menu_item_index);
+				if (*ctx.menu_item_index < 0)
+					*ctx.menu_item_index = static_cast<int>(ctx.menu_item_texts.size()) - 1;
+				
+				game::menu::update_text_color(ctx);
+			}
+		)
+	);
+	ctx.menu_control_subscriptions.emplace_back
+	(
+		ctx.menu_down_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				++(*ctx.menu_item_index);
+				if (*ctx.menu_item_index >= ctx.menu_item_texts.size())
+					*ctx.menu_item_index = 0;
+				
+				game::menu::update_text_color(ctx);
+			}
+		)
+	);
+	ctx.menu_control_subscriptions.emplace_back
+	(
+		ctx.menu_left_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				auto callback = ctx.menu_left_callbacks[*ctx.menu_item_index];
+				if (callback != nullptr)
+					callback();
+			}
+		)
+	);
+	ctx.menu_control_subscriptions.emplace_back
+	(
+		ctx.menu_right_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				auto callback = ctx.menu_right_callbacks[*ctx.menu_item_index];
+				if (callback != nullptr)
+					callback();
+			}
+		)
+	);
+	ctx.menu_control_subscriptions.emplace_back
+	(
+		ctx.menu_select_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				const auto& callback = ctx.menu_select_callbacks[*ctx.menu_item_index];
+				if (callback != nullptr)
+					callback();
+			}
+		)
+	);
+	ctx.menu_control_subscriptions.emplace_back
+	(
+		ctx.menu_back_control.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				if (ctx.menu_back_callback != nullptr)
+					ctx.menu_back_callback();
+			}
+		)
+	);
+	
+	// Set activation threshold for menu navigation controls to mitigate drifting gamepad axes
+	auto menu_control_threshold = [](float x) -> bool
+	{
+		return x > 0.1f;
+	};
+	ctx.menu_up_control.set_threshold_function(menu_control_threshold);
+	ctx.menu_down_control.set_threshold_function(menu_control_threshold);
+	ctx.menu_left_control.set_threshold_function(menu_control_threshold);
+	ctx.menu_right_control.set_threshold_function(menu_control_threshold);
+}
+
+void enable_window_controls(game::context& ctx)
+{
+	ctx.window_controls.connect(ctx.input_manager->get_event_queue());
+}
+
+void enable_menu_controls(game::context& ctx)
+{
+	ctx.menu_controls.connect(ctx.input_manager->get_event_queue());
+	
+	// Enable menu mouse tracking
+	ctx.menu_mouse_subscriptions.clear();
+	ctx.menu_mouse_subscriptions.emplace_back
+	(
+		ctx.input_manager->get_event_queue().subscribe<input::mouse_moved_event>
+		(
+			[&ctx](const auto& event)
+			{
+				const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
+			
+				for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
+				{
+					auto [name, value] = ctx.menu_item_texts[i];
+					
+					const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
+					float min_x = name_bounds.min_point.x();
+					float min_y = name_bounds.min_point.y();
+					float max_x = name_bounds.max_point.x();
+					float max_y = name_bounds.max_point.y();
+					if (value)
+					{
+						const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_world_bounds());
+						min_x = std::min<float>(min_x, value_bounds.min_point.x());
+						min_y = std::min<float>(min_y, value_bounds.min_point.y());
+						max_x = std::max<float>(max_x, value_bounds.max_point.x());
+						max_y = std::max<float>(max_y, value_bounds.max_point.y());
+					}
+					
+					min_x -= padding;
+					min_y -= padding;
+					max_x += padding;
+					max_y += padding;
+					
+					const auto& viewport = ctx.window->get_viewport_size();
+					const float x = static_cast<float>(event.position.x() - viewport[0] / 2);
+					const float y = static_cast<float>((viewport[1] - event.position.y() + 1) - viewport[1] / 2);
+					
+					if (x >= min_x && x <= max_x)
+					{
+						if (y >= min_y && y <= max_y)
+						{
+							*ctx.menu_item_index = i;
+							game::menu::update_text_color(ctx);
+							break;
+						}
+					}
+				}
+			}
+		)
+	);
+	ctx.menu_mouse_subscriptions.emplace_back
+	(
+		ctx.input_manager->get_event_queue().subscribe<input::mouse_button_pressed_event>
+		(
+			[&ctx](const auto& event)
+			{
+				const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
+				
+				for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
+				{
+					auto [name, value] = ctx.menu_item_texts[i];
+					
+					const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
+					float min_x = name_bounds.min_point.x();
+					float min_y = name_bounds.min_point.y();
+					float max_x = name_bounds.max_point.x();
+					float max_y = name_bounds.max_point.y();
+					if (value)
+					{
+						const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_world_bounds());
+						min_x = std::min<float>(min_x, value_bounds.min_point.x());
+						min_y = std::min<float>(min_y, value_bounds.min_point.y());
+						max_x = std::max<float>(max_x, value_bounds.max_point.x());
+						max_y = std::max<float>(max_y, value_bounds.max_point.y());
+					}
+					
+					min_x -= padding;
+					min_y -= padding;
+					max_x += padding;
+					max_y += padding;
+					
+					const auto& viewport = ctx.window->get_viewport_size();
+					const float x = static_cast<float>(event.position.x() - viewport[0] / 2);
+					const float y = static_cast<float>((viewport[1] - event.position.y() + 1) - viewport[1] / 2);
+					
+					if (x >= min_x && x <= max_x)
+					{
+						if (y >= min_y && y <= max_y)
+						{
+							*ctx.menu_item_index = i;
+							game::menu::update_text_color(ctx);
+							
+							if (event.button == input::mouse_button::left)
+							{
+								const auto& callback = ctx.menu_select_callbacks[i];
+								if (callback)
+									callback();
+							}
+							else if (event.button == input::mouse_button::right)
+							{
+								const auto& callback = ctx.menu_left_callbacks[i];
+								if (callback)
+									callback();
+							}
+							
+							return;
+						}
+					}
+				}
+			}
+		)
+	);
+}
+
+void disable_window_controls(game::context& ctx)
+{	
+	ctx.window_controls.disconnect();
+}
+
+void disable_menu_controls(game::context& ctx)
+{
+	// Reset menu control states
+	ctx.menu_up_control.reset();
+	ctx.menu_down_control.reset();
+	ctx.menu_left_control.reset();
+	ctx.menu_right_control.reset();
+	ctx.menu_select_control.reset();
+	ctx.menu_back_control.reset();
+	ctx.menu_modifier_control.reset();
+	
+	ctx.menu_controls.disconnect();
+	ctx.menu_mouse_subscriptions.clear();
+}
 
 std::filesystem::path gamepad_calibration_path(const game::context& ctx, const input::gamepad& gamepad)
 {

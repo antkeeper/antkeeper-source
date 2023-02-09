@@ -1064,6 +1064,12 @@ void boot::setup_controls()
 		// ctx.resource_manager->unload("gamecontrollerdb.txt");
 	// }
 	
+	
+	setup_window_controls(ctx);
+	setup_menu_controls(ctx);
+	
+	enable_window_controls(ctx);
+	
 	// Load controls
 	debug::log::trace("Loading controls...");
 	try
@@ -1105,57 +1111,7 @@ void boot::setup_controls()
 				// apply_gamepad_calibration(*gamepad, *calibration);
 			// }
 		// }
-		
-		// Setup fullscreen control
-		ctx.control_subscriptions.emplace_front
-		(
-			ctx.fullscreen_control.get_activated_channel().subscribe
-			(
-				[&ctx = this->ctx](const auto& event)
-				{
-					bool fullscreen = !ctx.window->is_fullscreen();
-					
-					// Toggle fullscreen
-					ctx.window->set_fullscreen(fullscreen);
-					
-					// Update fullscreen setting
-					(*ctx.settings)["fullscreen"_fnv1a32] = fullscreen;
-					
-					if (!fullscreen)
-					{
-						// Restore window size and position
-						//ctx.app->resize_window(resolution.x(), resolution.y());
-					}
-				}
-			)
-		);
-		
-		// Setup screenshot control
-		ctx.control_subscriptions.emplace_front
-		(
-			ctx.screenshot_control.get_activated_channel().subscribe
-			(
-				[&ctx = this->ctx](const auto& event)
-				{
-					game::graphics::save_screenshot(ctx);
-				}
-			)
-		);
-		
-		// Map and enable window controls
-		ctx.window_controls.add_mapping(ctx.fullscreen_control, input::key_mapping(nullptr, input::scancode::f11, false));
-		ctx.window_controls.add_mapping(ctx.screenshot_control, input::key_mapping(nullptr, input::scancode::f12, false));
-		ctx.window_controls.connect(ctx.input_manager->get_event_queue());
-		
-		// Set activation threshold for menu navigation controls to mitigate drifting gamepad axes
-		auto menu_control_threshold = [](float x) -> bool
-		{
-			return x > 0.1f;
-		};
-		ctx.menu_up_control.set_threshold_function(menu_control_threshold);
-		ctx.menu_down_control.set_threshold_function(menu_control_threshold);
-		ctx.menu_left_control.set_threshold_function(menu_control_threshold);
-		ctx.menu_right_control.set_threshold_function(menu_control_threshold);
+
 		
 		debug::log::trace("Loaded controls");
 	}
@@ -1164,8 +1120,7 @@ void boot::setup_controls()
 		debug::log::error("Failed to load controls");
 	}
 	
-	// Setup menu controls
-	game::menu::setup_controls(ctx);
+
 }
 
 void boot::setup_ui()

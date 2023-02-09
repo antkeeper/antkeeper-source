@@ -56,6 +56,11 @@ public:
 	 */
 	void evaluate(float value);
 	
+	/**
+	 * Resets the activation state of the control without publishing any events.
+	 */
+	void reset();
+	
 	/// Returns the threshold function.
 	[[nodiscard]] inline const threshold_function_type& get_threshold_function() const noexcept
 	{

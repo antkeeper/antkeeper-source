@@ -40,6 +40,7 @@
 #include "input/control-map.hpp"
 #include "input/control.hpp"
 #include "input/mapper.hpp"
+#include "math/moving-average.hpp"
 #include "render/anti-aliasing-method.hpp"
 #include "render/material-property.hpp"
 #include "render/material.hpp"
@@ -50,12 +51,10 @@
 #include "utility/dict.hpp"
 #include "utility/fundamental-types.hpp"
 #include "utility/state-machine.hpp"
-#include "math/moving-average.hpp"
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <entt/entt.hpp>
 #include <filesystem>
-#include <forward_list>
 #include <memory>
 #include <optional>
 #include <queue>
@@ -175,7 +174,7 @@ struct context
 	input::control_map window_controls;
 	input::control fullscreen_control;
 	input::control screenshot_control;
-	std::forward_list<std::shared_ptr<::event::subscription>> control_subscriptions;
+	std::vector<std::shared_ptr<::event::subscription>> window_control_subscriptions;
 	input::control_map menu_controls;
 	input::control menu_up_control;
 	input::control menu_down_control;
@@ -184,7 +183,8 @@ struct context
 	input::control menu_select_control;
 	input::control menu_back_control;
 	input::control menu_modifier_control;
-	std::forward_list<std::shared_ptr<::event::subscription>> menu_control_subscriptions;
+	std::vector<std::shared_ptr<::event::subscription>> menu_control_subscriptions;
+	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
 	
 	// Debugging
 	math::moving_average<float, 15> average_frame_time;
@@ -194,14 +194,11 @@ struct context
 	hsm::state_machine<game::state::base> state_machine;
 	std::function<void()> resume_callback;
 	
-
-	
 	// Queue for scheduling "next frame" function calls
 	std::queue<std::function<void()>> function_queue;
 	
 	// Parallel processes
 	std::unordered_map<std::string, std::function<void(double, double)>> processes;
-	
 	
 	bool mouse_look;
 	

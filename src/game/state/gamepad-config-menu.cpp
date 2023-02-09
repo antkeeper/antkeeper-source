@@ -19,6 +19,7 @@
 
 #include "game/state/gamepad-config-menu.hpp"
 #include "game/state/controls-menu.hpp"
+#include "game/controls.hpp"
 #include "game/context.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
@@ -72,8 +73,8 @@ gamepad_config_menu::gamepad_config_menu(game::context& ctx):
 	// Construct menu item callbacks
 	auto select_back_callback = [&ctx]()
 	{
-		// Disable controls
-		game::menu::clear_controls(ctx);
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		game::menu::fade_out
 		(
@@ -106,7 +107,7 @@ gamepad_config_menu::gamepad_config_menu(game::context& ctx):
 	ctx.menu_back_callback = select_back_callback;
 	
 	// Queue menu control setup
-	ctx.function_queue.push(std::bind(game::menu::setup_controls, std::ref(ctx)));
+	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
 	
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
@@ -119,7 +120,7 @@ gamepad_config_menu::~gamepad_config_menu()
 	debug::log::trace("Exiting gamepad config menu state...");
 	
 	// Destruct menu
-	game::menu::clear_controls(ctx);
+	game::disable_menu_controls(ctx);
 	game::menu::clear_callbacks(ctx);
 	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);
@@ -302,13 +303,13 @@ void gamepad_config_menu::add_control_item(const std::string& control_name)
 	
 	auto select_callback = [this, &ctx = this->ctx, value_text]()
 	{
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		
 		// Clear binding string from value text
 		value_text->set_content(get_string(ctx, "ellipsis"_fnv1a32));
 		game::menu::align_text(ctx);
 		game::menu::update_text_tweens(ctx);
-		
-		// Disable controls
-		game::menu::clear_controls(ctx);
 		
 		/*
 		// Remove gamepad event mappings from control

@@ -27,6 +27,16 @@
 
 namespace game {
 
+void setup_window_controls(game::context& ctx);
+void setup_menu_controls(game::context& ctx);
+
+void enable_window_controls(game::context& ctx);
+void enable_menu_controls(game::context& ctx);
+
+void disable_window_controls(game::context& ctx);
+void disable_menu_controls(game::context& ctx);
+
+
 /**
  * Applies a control profile to the game context.
  *

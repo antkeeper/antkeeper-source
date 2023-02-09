@@ -67,4 +67,9 @@ void control::evaluate(float value)
 	}
 }
 
+void control::reset()
+{
+	active = false;
+}
+
 } // namespace input

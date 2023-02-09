@@ -19,6 +19,7 @@
 
 #include "game/state/keyboard-config-menu.hpp"
 #include "game/state/controls-menu.hpp"
+#include "game/controls.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "resources/resource-manager.hpp"
@@ -71,8 +72,8 @@ keyboard_config_menu::keyboard_config_menu(game::context& ctx):
 	// Construct menu item callbacks
 	auto select_back_callback = [&ctx]()
 	{
-		// Disable controls
-		game::menu::clear_controls(ctx);
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		game::menu::fade_out
 		(
@@ -104,8 +105,8 @@ keyboard_config_menu::keyboard_config_menu(game::context& ctx):
 	// Set menu back callback
 	ctx.menu_back_callback = select_back_callback;
 	
-	// Queue menu control setup
-	ctx.function_queue.push(std::bind(game::menu::setup_controls, std::ref(ctx)));
+	// Enable menu controls next frame
+	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
 	
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
@@ -118,7 +119,7 @@ keyboard_config_menu::~keyboard_config_menu()
 	debug::log::trace("Exiting keyboard config menu state...");
 	
 	// Destruct menu
-	game::menu::clear_controls(ctx);
+	game::disable_menu_controls(ctx);
 	game::menu::clear_callbacks(ctx);
 	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);
@@ -244,13 +245,13 @@ void keyboard_config_menu::add_control_item(const std::string& control_name)
 	
 	auto select_callback = [this, &ctx = this->ctx, value_text]()
 	{
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		
 		// Clear binding string from value text
 		value_text->set_content(get_string(ctx, "ellipsis"_fnv1a32));
 		game::menu::align_text(ctx);
 		game::menu::update_text_tweens(ctx);
-		
-		// Disable controls
-		game::menu::clear_controls(ctx);
 		
 		/*
 		// Remove keyboard and mouse event mappings from control

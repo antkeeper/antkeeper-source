@@ -19,6 +19,7 @@
 
 #include "game/state/language-menu.hpp"
 #include "game/state/options-menu.hpp"
+#include "game/controls.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "game/fonts.hpp"
@@ -124,8 +125,8 @@ language_menu::language_menu(game::context& ctx):
 	};
 	auto select_back_callback = [&ctx]()
 	{
-		// Disable controls
-		game::menu::clear_controls(ctx);
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		game::menu::fade_out
 		(
@@ -160,8 +161,8 @@ language_menu::language_menu(game::context& ctx):
 	// Set menu back callback
 	ctx.menu_back_callback = select_back_callback;
 	
-	// Queue menu control setup
-	ctx.function_queue.push(std::bind(game::menu::setup_controls, std::ref(ctx)));
+	// Enable menu controls next frame
+	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
 	
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
@@ -174,7 +175,7 @@ language_menu::~language_menu()
 	debug::log::trace("Exiting language menu state...");
 	
 	// Destruct menu
-	game::menu::clear_controls(ctx);
+	game::disable_menu_controls(ctx);
 	game::menu::clear_callbacks(ctx);
 	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);

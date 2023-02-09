@@ -22,6 +22,7 @@
 #include "game/state/options-menu.hpp"
 #include "game/state/nuptial-flight.hpp"
 #include "game/menu.hpp"
+#include "game/controls.hpp"
 #include "animation/ease.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
@@ -77,7 +78,7 @@ pause_menu::pause_menu(game::context& ctx):
 		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
-		game::menu::clear_controls(ctx);
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		auto resume_paused_state = [&ctx]()
 		{
@@ -101,7 +102,7 @@ pause_menu::pause_menu(game::context& ctx):
 		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
-		game::menu::clear_controls(ctx);
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		// Fade out pause menu then open options menu
 		game::menu::fade_out
@@ -127,7 +128,7 @@ pause_menu::pause_menu(game::context& ctx):
 		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
-		game::menu::clear_controls(ctx);
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		// Clear resume callback
 		ctx.resume_callback = nullptr;
@@ -160,7 +161,7 @@ pause_menu::pause_menu(game::context& ctx):
 		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
-		game::menu::clear_controls(ctx);
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		// Clear paused state
 		//ctx.paused_state.reset();
@@ -197,7 +198,7 @@ pause_menu::pause_menu(game::context& ctx):
 			//ctx.controls["pause"]->set_activated_callback(select_resume_callback);
 			
 			// Enable menu controls
-			game::menu::setup_controls(ctx);
+			game::enable_menu_controls(ctx);
 		}
 	);
 	
@@ -217,7 +218,7 @@ pause_menu::~pause_menu()
 	debug::log::trace("Exiting pause menu state...");
 	
 	// Destruct menu
-	game::menu::clear_controls(ctx);
+	game::disable_menu_controls(ctx);
 	game::menu::clear_callbacks(ctx);
 	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);

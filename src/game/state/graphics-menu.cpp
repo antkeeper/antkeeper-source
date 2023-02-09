@@ -19,6 +19,7 @@
 
 #include "game/state/graphics-menu.hpp"
 #include "game/state/options-menu.hpp"
+#include "game/controls.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "game/fonts.hpp"
@@ -90,7 +91,6 @@ graphics_menu::graphics_menu(game::context& ctx):
 		bool fullscreen = !ctx.window->is_fullscreen();
 		
 		ctx.window->set_fullscreen(fullscreen);
-		
 		
 		this->update_value_text_content();
 		game::menu::align_text(ctx);
@@ -296,8 +296,8 @@ graphics_menu::graphics_menu(game::context& ctx):
 	};
 	auto select_back_callback = [&ctx]()
 	{
-		// Disable controls
-		game::menu::clear_controls(ctx);
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		game::menu::fade_out
 		(
@@ -347,8 +347,8 @@ graphics_menu::graphics_menu(game::context& ctx):
 	// Set menu back callback
 	ctx.menu_back_callback = select_back_callback;
 	
-	// Queue menu control setup
-	ctx.function_queue.push(std::bind(game::menu::setup_controls, std::ref(ctx)));
+	// Enable menu controls next frame
+	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
 	
 	// Fade in menu
 	game::menu::fade_in(ctx, nullptr);
@@ -361,7 +361,7 @@ graphics_menu::~graphics_menu()
 	debug::log::trace("Exiting graphics menu state...");
 	
 	// Destruct menu
-	game::menu::clear_controls(ctx);
+	game::disable_menu_controls(ctx);
 	game::menu::clear_callbacks(ctx);
 	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);
@@ -402,8 +402,8 @@ void graphics_menu::update_value_text_content()
 	std::get<1>(ctx.menu_item_texts[1])->set_content(std::to_string(static_cast<int>(std::round(render_scale * 100.0f))) + "%");
 	std::get<1>(ctx.menu_item_texts[2])->set_content((v_sync) ? string_on : string_off);
 	std::get<1>(ctx.menu_item_texts[3])->set_content(string_aa_methods[aa_method_index]);
-	std::get<1>(ctx.menu_item_texts[5])->set_content(std::to_string(static_cast<int>(std::round(font_scale * 100.0f))) + "%");
-	std::get<1>(ctx.menu_item_texts[6])->set_content((dyslexia_font) ? string_on : string_off);
+	std::get<1>(ctx.menu_item_texts[4])->set_content(std::to_string(static_cast<int>(std::round(font_scale * 100.0f))) + "%");
+	std::get<1>(ctx.menu_item_texts[5])->set_content((dyslexia_font) ? string_on : string_off);
 }
 
 } // namespace state

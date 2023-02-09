@@ -20,6 +20,7 @@
 #include "game/state/extras-menu.hpp"
 #include "game/state/main-menu.hpp"
 #include "game/state/credits.hpp"
+#include "game/controls.hpp"
 #include "scene/text.hpp"
 #include "debug/log.hpp"
 #include "game/fonts.hpp"
@@ -62,8 +63,8 @@ extras_menu::extras_menu(game::context& ctx):
 	// Construct menu item callbacks
 	auto select_credits_callback = [&ctx]()
 	{
-		// Queue disable menu controls
-		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		game::menu::fade_out
 		(
@@ -84,8 +85,8 @@ extras_menu::extras_menu(game::context& ctx):
 	};
 	auto select_back_callback = [&ctx]()
 	{
-		// Queue disable menu controls
-		ctx.function_queue.push(std::bind(game::menu::disable_controls, std::ref(ctx)));
+		// Disable menu controls
+		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		game::menu::fade_out
 		(
@@ -124,7 +125,7 @@ extras_menu::extras_menu(game::context& ctx):
 	game::menu::fade_in(ctx, nullptr);
 	
 	// Queue enable menu controls
-	ctx.function_queue.push(std::bind(game::menu::enable_controls, std::ref(ctx)));
+	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
 	
 	debug::log::trace("Entered extras menu state");
 }
@@ -134,6 +135,7 @@ extras_menu::~extras_menu()
 	debug::log::trace("Exiting extras menu state...");
 	
 	// Destruct menu
+	game::disable_menu_controls(ctx);
 	game::menu::clear_callbacks(ctx);
 	game::menu::delete_animations(ctx);
 	game::menu::remove_text_from_ui(ctx);
