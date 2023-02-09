@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_INPUT_CONTROL_HPP
 #define ANTKEEPER_INPUT_CONTROL_HPP
 
-#include "input/input-events.hpp"
+#include "input/control-events.hpp"
 #include "event/publisher.hpp"
 #include <functional>
 

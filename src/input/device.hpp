@@ -21,7 +21,7 @@
 #define ANTKEEPER_INPUT_DEVICE_HPP
 
 #include "input/device-type.hpp"
-#include "input/input-events.hpp"
+#include "input/device-events.hpp"
 #include "event/publisher.hpp"
 #include "utility/uuid.hpp"
 #include <optional>

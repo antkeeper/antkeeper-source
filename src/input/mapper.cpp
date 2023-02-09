@@ -39,34 +39,37 @@ void mapper::disconnect()
 
 void mapper::handle_gamepad_axis_moved(const gamepad_axis_moved_event& event)
 {
-	input_mapped_publisher.publish({std::shared_ptr<mapping>(new gamepad_axis_mapping(event.gamepad, event.axis, std::signbit(event.position)))});
+	gamepad_axis_mapped_publisher.publish({gamepad_axis_mapping(event.gamepad, event.axis, std::signbit(event.position))});
 }
 
 void mapper::handle_gamepad_button_pressed(const gamepad_button_pressed_event& event)
 {
-	input_mapped_publisher.publish({std::shared_ptr<mapping>(new gamepad_button_mapping(event.gamepad, event.button))});
+	gamepad_button_mapped_publisher.publish({gamepad_button_mapping(event.gamepad, event.button)});
 }
 
 void mapper::handle_key_pressed(const key_pressed_event& event)
 {
-	input_mapped_publisher.publish({std::shared_ptr<mapping>(new key_mapping(event.keyboard, event.scancode))});
+	if (!event.repeat)
+	{
+		key_mapped_publisher.publish({key_mapping(event.keyboard, event.scancode)});
+	}
 }
 
 void mapper::handle_mouse_button_pressed(const mouse_button_pressed_event& event)
 {
-	input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_button_mapping(event.mouse, event.button))});
+	mouse_button_mapped_publisher.publish({mouse_button_mapping(event.mouse, event.button)});
 }
 
 void mapper::handle_mouse_moved(const mouse_moved_event& event)
 {
 	if (event.difference.x())
 	{
-		input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_motion_mapping(event.mouse, mouse_motion_axis::x, std::signbit(static_cast<float>(event.difference.x()))))});
+		mouse_motion_mapped_publisher.publish({mouse_motion_mapping(event.mouse, mouse_motion_axis::x, std::signbit(static_cast<float>(event.difference.x())))});
 	}
 	
 	if (event.difference.y())
 	{
-		input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_motion_mapping(event.mouse, mouse_motion_axis::y, std::signbit(static_cast<float>(event.difference.y()))))});
+		mouse_motion_mapped_publisher.publish({mouse_motion_mapping(event.mouse, mouse_motion_axis::y, std::signbit(static_cast<float>(event.difference.y())))});
 	}
 }
 
@@ -74,12 +77,12 @@ void mapper::handle_mouse_scrolled(const mouse_scrolled_event& event)
 {
 	if (event.velocity.x())
 	{
-		input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_scroll_mapping(event.mouse, mouse_scroll_axis::x, std::signbit(event.velocity.x())))});
+		mouse_scroll_mapped_publisher.publish({mouse_scroll_mapping(event.mouse, mouse_scroll_axis::x, std::signbit(event.velocity.x()))});
 	}
 	
 	if (event.velocity.y())
 	{
-		input_mapped_publisher.publish({std::shared_ptr<mapping>(new mouse_scroll_mapping(event.mouse, mouse_scroll_axis::y, std::signbit(event.velocity.y())))});
+		mouse_scroll_mapped_publisher.publish({mouse_scroll_mapping(event.mouse, mouse_scroll_axis::y, std::signbit(event.velocity.y()))});
 	}
 }
 

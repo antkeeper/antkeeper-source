@@ -68,13 +68,14 @@ int main(int argc, char* argv[])
 			
 			std::osyncstream(std::cout) << std::format
 			(
-				"{}{:8.03f} {}:{}:{}: {}: {}{}\n",
-				colors[static_cast<int>(event.severity)],
+				"[{:8.03f}] {}{}: {}:{}:{}: {}{}\n",
 				std::chrono::duration<float>(event.time - launch_time).count(),
+				colors[static_cast<int>(event.severity)],
+				//severities[static_cast<int>(event.severity)],
+				static_cast<int>(event.severity),
 				std::filesystem::path(event.location.file_name()).filename().string(),
 				event.location.line(),
 				event.location.column(),
-				severities[static_cast<int>(event.severity)],
 				event.message,
 				ansi::reset
 			);

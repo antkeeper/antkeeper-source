@@ -21,7 +21,7 @@
 #define ANTKEEPER_INPUT_GAMEPAD_HPP
 
 #include "input/device.hpp"
-#include "input/input-events.hpp"
+#include "input/gamepad-events.hpp"
 #include "input/gamepad-axis.hpp"
 #include "input/gamepad-button.hpp"
 #include "event/publisher.hpp"
@@ -155,7 +155,6 @@ private:
 	float axis_activation_min[6];
 	float axis_activation_max[6];
 	gamepad_response_curve axis_response_curves[6];
-	
 	bool left_deadzone_cross;
 	bool right_deadzone_cross;
 	float left_deadzone_roundness;

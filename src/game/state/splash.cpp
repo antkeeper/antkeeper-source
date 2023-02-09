@@ -18,25 +18,24 @@
  */
 
 #include "game/state/splash.hpp"
-#include "game/state/main-menu.hpp"
-#include "animation/screen-transition.hpp"
 #include "animation/animation.hpp"
 #include "animation/animator.hpp"
 #include "animation/ease.hpp"
-#include "render/passes/clear-pass.hpp"
-#include "game/context.hpp"
+#include "animation/screen-transition.hpp"
 #include "debug/log.hpp"
-#include "resources/resource-manager.hpp"
-#include "render/material-flags.hpp"
+#include "game/context.hpp"
+#include "game/state/main-menu.hpp"
 #include "math/linear-algebra.hpp"
+#include "render/material-flags.hpp"
+#include "render/passes/clear-pass.hpp"
+#include "resources/resource-manager.hpp"
 
 namespace game {
 namespace state {
 
 splash::splash(game::context& ctx):
-	game::state::base(ctx),
-	skipped(false)
-{	
+	game::state::base(ctx)
+{
 	debug::log::trace("Entering splash state...");
 	
 	// Enable color buffer clearing in UI pass
@@ -124,38 +123,56 @@ splash::splash(game::context& ctx):
 	// Start splash fade in animation
 	splash_fade_in_animation.play();
 	
-	// Set up splash skipper
-	input_mapped_subscription = ctx.input_mapper.get_input_mapped_channel().subscribe
-	(
-		[this](const auto& event)
-		{
-			auto mapping_type = event.mapping->get_mapping_type();
-			
-			if (!this->skipped &&
-				mapping_type != input::mapping_type::gamepad_axis &&
-				mapping_type != input::mapping_type::mouse_motion &&
-				mapping_type != input::mapping_type::mouse_scroll)
+	// Construct splash skip function
+	auto skip = [&](const auto& event)
+	{
+		ctx.function_queue.emplace
+		(
+			[&]()
 			{
-				this->skipped = true;
+				// Black out screen
+				ctx.window->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+				ctx.window->get_rasterizer()->clear_framebuffer(true, false, false);
+				ctx.window->swap_buffers();
 				
-				this->ctx.function_queue.emplace
-				(
-					[&ctx = this->ctx]()
-					{
-						// Black out screen
-						ctx.window->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-						ctx.window->get_rasterizer()->clear_framebuffer(true, false, false);
-						ctx.window->swap_buffers();
-						
-						// Change to main menu state
-						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
-					}
-				);
+				// Change to main menu state
+				ctx.state_machine.pop();
+				ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
 			}
+		);
+	};
+	
+	// Set up splash skippers
+	input_mapped_subscriptions.emplace_back
+	(
+		ctx.input_mapper.get_gamepad_button_mapped_channel().subscribe
+		(
+			skip
+		)
+	);
+	input_mapped_subscriptions.emplace_back
+	(
+		ctx.input_mapper.get_key_mapped_channel().subscribe
+		(
+			skip
+		)
+	);
+	input_mapped_subscriptions.emplace_back
+	(
+		ctx.input_mapper.get_mouse_button_mapped_channel().subscribe
+		(
+			skip
+		)
+	);
+	
+	// Enable splash skippers next frame
+	ctx.function_queue.push
+	(
+		[&]()
+		{
+			ctx.input_mapper.connect(ctx.input_manager->get_event_queue());
 		}
 	);
-	ctx.input_mapper.connect(ctx.input_manager->get_event_queue());
 	
 	debug::log::trace("Entered splash state");
 }
@@ -164,8 +181,9 @@ splash::~splash()
 {
 	debug::log::trace("Exiting splash state...");
 	
-	// Disable splash skipper
+	// Disable splash skippers
 	ctx.input_mapper.disconnect();
+	input_mapped_subscriptions.clear();
 	
 	// Remove splash fade animations from animator
 	ctx.animator->remove_animation(&splash_fade_in_animation);

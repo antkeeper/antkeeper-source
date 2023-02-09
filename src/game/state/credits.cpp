@@ -73,27 +73,56 @@ credits::credits(game::context& ctx):
 	// Start credits fade in animation
 	credits_fade_in_animation.play();
 	
-	// Set up credits skipper
-	input_mapped_subscription = ctx.input_mapper.get_input_mapped_channel().subscribe
-	(
-		[this, &ctx](const auto& event)
-		{
-			auto mapping_type = event.mapping->get_mapping_type();
-			
-			if (mapping_type != input::mapping_type::gamepad_axis &&
-				mapping_type != input::mapping_type::mouse_motion &&
-				mapping_type != input::mapping_type::mouse_scroll)
+	// Construct splash skip function
+	auto skip = [&](const auto& event)
+	{
+		ctx.function_queue.emplace
+		(
+			[&]()
 			{
-				if (this->credits_text.get_color()[3] > 0.0f)
-				{
-					// Change state
-					ctx.state_machine.pop();
-					ctx.state_machine.emplace(new game::state::extras_menu(ctx));
-				}
+				// Black out screen
+				ctx.window->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
+				ctx.window->get_rasterizer()->clear_framebuffer(true, false, false);
+				ctx.window->swap_buffers();
+				
+				// Change to main menu state
+				ctx.state_machine.pop();
+				ctx.state_machine.emplace(new game::state::extras_menu(ctx));
 			}
+		);
+	};
+	
+	// Set up splash skippers
+	input_mapped_subscriptions.emplace_back
+	(
+		ctx.input_mapper.get_gamepad_button_mapped_channel().subscribe
+		(
+			skip
+		)
+	);
+	input_mapped_subscriptions.emplace_back
+	(
+		ctx.input_mapper.get_key_mapped_channel().subscribe
+		(
+			skip
+		)
+	);
+	input_mapped_subscriptions.emplace_back
+	(
+		ctx.input_mapper.get_mouse_button_mapped_channel().subscribe
+		(
+			skip
+		)
+	);
+	
+	// Enable credits skippers next frame
+	ctx.function_queue.push
+	(
+		[&]()
+		{
+			ctx.input_mapper.connect(ctx.input_manager->get_event_queue());
 		}
 	);
-	ctx.input_mapper.connect(ctx.input_manager->get_event_queue());
 	
 	ctx.ui_scene->add_object(&credits_text);
 	
@@ -104,8 +133,9 @@ credits::~credits()
 {
 	debug::log::trace("Exiting credits state...");
 	
-	// Disable credits skipper
+	// Disable credits skippers
 	ctx.input_mapper.disconnect();
+	input_mapped_subscriptions.clear();
 	
 	// Destruct credits text
 	ctx.ui_scene->remove_object(&credits_text);

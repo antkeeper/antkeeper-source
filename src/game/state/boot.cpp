@@ -88,6 +88,7 @@
 #include "utility/paths.hpp"
 #include "utility/dict.hpp"
 #include "utility/hash/fnv1a.hpp"
+#include "input/application-events.hpp"
 #include <algorithm>
 #include <entt/entt.hpp>
 #include <execution>

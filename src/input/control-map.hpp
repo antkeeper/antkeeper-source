@@ -23,7 +23,9 @@
 #include "event/subscription.hpp"
 #include "event/queue.hpp"
 #include "input/control.hpp"
-#include "input/input-events.hpp"
+#include "input/gamepad-events.hpp"
+#include "input/keyboard-events.hpp"
+#include "input/mouse-events.hpp"
 #include "input/mapping.hpp"
 #include <memory>
 #include <tuple>

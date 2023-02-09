@@ -17,34 +17,43 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_SPLASH_HPP
-#define ANTKEEPER_GAME_STATE_SPLASH_HPP
+#ifndef ANTKEEPER_INPUT_CONTROL_EVENTS_HPP
+#define ANTKEEPER_INPUT_CONTROL_EVENTS_HPP
 
-#include "game/state/base.hpp"
-#include "render/material.hpp"
-#include "scene/billboard.hpp"
-#include "animation/animation.hpp"
-#include "event/subscription.hpp"
-#include <vector>
+namespace input {
 
-namespace game {
-namespace state {
+class control;
 
-class splash: public game::state::base
+/**
+ * Event generated when a control has been activated.
+ */
+struct control_activated_event
 {
-public:
-	splash(game::context& ctx);
-	virtual ~splash();
-	
-private:
-	render::material splash_billboard_material;
-	scene::billboard splash_billboard;
-	animation<float> splash_fade_in_animation;
-	animation<float> splash_fade_out_animation;
-	std::vector<std::shared_ptr<::event::subscription>> input_mapped_subscriptions;
+	/// Control that was activated.
+	control* control;
 };
 
-} // namespace state
-} // namespace game
+/**
+ * Event generated while a control is active.
+ */
+struct control_active_event
+{
+	/// Active control.
+	control* control;
+	
+	/// Control input value.
+	float input_value;
+};
 
-#endif // ANTKEEPER_GAME_STATE_SPLASH_HPP
+/**
+ * Event generated when a control has been deactivated.
+ */
+struct control_deactivated_event
+{
+	/// Control that was deactivated.
+	control* control;
+};
+
+} // namespace input
+
+#endif // ANTKEEPER_INPUT_CONTROL_EVENTS_HPP

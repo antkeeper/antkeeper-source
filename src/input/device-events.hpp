@@ -17,34 +17,31 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_SPLASH_HPP
-#define ANTKEEPER_GAME_STATE_SPLASH_HPP
+#ifndef ANTKEEPER_INPUT_DEVICE_EVENTS_HPP
+#define ANTKEEPER_INPUT_DEVICE_EVENTS_HPP
 
-#include "game/state/base.hpp"
-#include "render/material.hpp"
-#include "scene/billboard.hpp"
-#include "animation/animation.hpp"
-#include "event/subscription.hpp"
-#include <vector>
+namespace input {
 
-namespace game {
-namespace state {
+class device;
 
-class splash: public game::state::base
+/**
+ * Event generated when an input device has been connected.
+ */
+struct device_connected_event
 {
-public:
-	splash(game::context& ctx);
-	virtual ~splash();
-	
-private:
-	render::material splash_billboard_material;
-	scene::billboard splash_billboard;
-	animation<float> splash_fade_in_animation;
-	animation<float> splash_fade_out_animation;
-	std::vector<std::shared_ptr<::event::subscription>> input_mapped_subscriptions;
+	/// Device that was connected.
+	device* device;
 };
 
-} // namespace state
-} // namespace game
+/**
+ * Event generated when an input device has been disconnected.
+ */
+struct device_disconnected_event
+{
+	/// Device that was disconnected.
+	device* device;
+};
 
-#endif // ANTKEEPER_GAME_STATE_SPLASH_HPP
+} // namespace input
+
+#endif // ANTKEEPER_INPUT_DEVICE_EVENTS_HPP

@@ -17,34 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_SPLASH_HPP
-#define ANTKEEPER_GAME_STATE_SPLASH_HPP
+#ifndef ANTKEEPER_INPUT_APPLICATION_EVENTS_HPP
+#define ANTKEEPER_INPUT_APPLICATION_EVENTS_HPP
 
-#include "game/state/base.hpp"
-#include "render/material.hpp"
-#include "scene/billboard.hpp"
-#include "animation/animation.hpp"
-#include "event/subscription.hpp"
-#include <vector>
+namespace input {
 
-namespace game {
-namespace state {
+/**
+ * Event generated when the application has been requested to quit.
+ */
+struct application_quit_event {};
 
-class splash: public game::state::base
-{
-public:
-	splash(game::context& ctx);
-	virtual ~splash();
-	
-private:
-	render::material splash_billboard_material;
-	scene::billboard splash_billboard;
-	animation<float> splash_fade_in_animation;
-	animation<float> splash_fade_out_animation;
-	std::vector<std::shared_ptr<::event::subscription>> input_mapped_subscriptions;
-};
+} // namespace input
 
-} // namespace state
-} // namespace game
-
-#endif // ANTKEEPER_GAME_STATE_SPLASH_HPP
+#endif // ANTKEEPER_INPUT_APPLICATION_EVENTS_HPP

@@ -21,7 +21,7 @@
 #define ANTKEEPER_INPUT_KEYBOARD_HPP
 
 #include "input/device.hpp"
-#include "input/input-events.hpp"
+#include "input/keyboard-events.hpp"
 #include "input/scancode.hpp"
 #include "input/modifier-key.hpp"
 #include "event/publisher.hpp"

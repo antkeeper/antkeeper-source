@@ -23,8 +23,10 @@
 #include "event/subscription.hpp"
 #include "event/queue.hpp"
 #include "event/publisher.hpp"
-#include "input/input-events.hpp"
-#include "input/mapping.hpp"
+#include "input/gamepad-events.hpp"
+#include "input/keyboard-events.hpp"
+#include "input/mouse-events.hpp"
+#include "input/mapping-events.hpp"
 #include <memory>
 #include <vector>
 
@@ -48,10 +50,40 @@ public:
 	 */
 	void disconnect();
 	
-	/// Returns the channel through which input mapped events are published.
-	[[nodiscard]] inline ::event::channel<input_mapped_event>& get_input_mapped_channel() noexcept
+	/// Returns the channel through which gamepad axis mapped events are published.
+	[[nodiscard]] inline ::event::channel<gamepad_axis_mapped_event>& get_gamepad_axis_mapped_channel() noexcept
 	{
-		return input_mapped_publisher.channel();
+		return gamepad_axis_mapped_publisher.channel();
+	}
+	
+	/// Returns the channel through which gamepad button mapped events are published.
+	[[nodiscard]] inline ::event::channel<gamepad_button_mapped_event>& get_gamepad_button_mapped_channel() noexcept
+	{
+		return gamepad_button_mapped_publisher.channel();
+	}
+	
+	/// Returns the channel through which key mapped events are published.
+	[[nodiscard]] inline ::event::channel<key_mapped_event>& get_key_mapped_channel() noexcept
+	{
+		return key_mapped_publisher.channel();
+	}
+	
+	/// Returns the channel through which mouse button mapped events are published.
+	[[nodiscard]] inline ::event::channel<mouse_button_mapped_event>& get_mouse_button_mapped_channel() noexcept
+	{
+		return mouse_button_mapped_publisher.channel();
+	}
+	
+	/// Returns the channel through which mouse motion mapped events are published.
+	[[nodiscard]] inline ::event::channel<mouse_motion_mapped_event>& get_mouse_motion_mapped_channel() noexcept
+	{
+		return mouse_motion_mapped_publisher.channel();
+	}
+	
+	/// Returns the channel through which mouse scroll mapped events are published.
+	[[nodiscard]] inline ::event::channel<mouse_scroll_mapped_event>& get_mouse_scroll_mapped_channel() noexcept
+	{
+		return mouse_scroll_mapped_publisher.channel();
 	}
 	
 private:
@@ -63,7 +95,12 @@ private:
 	void handle_mouse_scrolled(const mouse_scrolled_event& event);
 	
 	std::vector<std::shared_ptr<::event::subscription>> subscriptions;
-	::event::publisher<input_mapped_event> input_mapped_publisher;
+	::event::publisher<gamepad_axis_mapped_event> gamepad_axis_mapped_publisher;
+	::event::publisher<gamepad_button_mapped_event> gamepad_button_mapped_publisher;
+	::event::publisher<key_mapped_event> key_mapped_publisher;
+	::event::publisher<mouse_button_mapped_event> mouse_button_mapped_publisher;
+	::event::publisher<mouse_motion_mapped_event> mouse_motion_mapped_publisher;
+	::event::publisher<mouse_scroll_mapped_event> mouse_scroll_mapped_publisher;
 };
 
 } // namespace input

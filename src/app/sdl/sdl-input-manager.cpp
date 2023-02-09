@@ -18,6 +18,7 @@
  */
 
 #include "app/sdl/sdl-input-manager.hpp"
+#include "input/application-events.hpp"
 #include "debug/log.hpp"
 #include "math/map.hpp"
 #include <SDL2/SDL.h>

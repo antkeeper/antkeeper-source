@@ -21,7 +21,7 @@
 #define ANTKEEPER_INPUT_MOUSE_HPP
 
 #include "input/device.hpp"
-#include "input/input-events.hpp"
+#include "input/mouse-events.hpp"
 #include "input/mouse-button.hpp"
 #include "event/publisher.hpp"
 #include "math/vector.hpp"
