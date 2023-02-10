@@ -460,6 +460,9 @@ void boot::setup_input()
 	// Construct input manager
 	ctx.input_manager = app::input_manager::instance();
 	
+	// Process initial input events, such as connecting gamepads
+	ctx.input_manager->update();
+	
 	// Setup application quit callback
 	ctx.application_quit_subscription = ctx.input_manager->get_event_queue().subscribe<input::application_quit_event>
 	(
@@ -484,7 +487,7 @@ void boot::setup_input()
 	(
 		[&](const auto& event)
 		{
-			if (!ctx.gamepad_active && std::abs(event.position) > 0.1f)
+			if (!ctx.gamepad_active && std::abs(event.position) > 0.5f)
 			{
 				ctx.gamepad_active = true;
 				ctx.input_manager->hide_cursor();

@@ -257,7 +257,7 @@ void sdl_input_manager::update()
 							::uuid gamepad_uuid;
 							std::memcpy(gamepad_uuid.data.data(), sdl_guid.data, gamepad_uuid.data.size());
 							
-							debug::log::info("Connected gamepad \"{}\" with UUID {}", controller_name, gamepad_uuid.string());
+							debug::log::info("Connected gamepad \"{}\" (UUID: {})", controller_name, gamepad_uuid.string());
 							
 							// Create new gamepad
 							input::gamepad* gamepad = new input::gamepad();
@@ -276,6 +276,7 @@ void sdl_input_manager::update()
 					else
 					{
 						debug::log::error("Failed to connected gamepad \"{}\": {}", controller_name, SDL_GetError());
+						SDL_ClearError();
 					}
 				}
 
@@ -316,6 +317,7 @@ void sdl_input_manager::show_cursor()
 	if (SDL_ShowCursor(SDL_ENABLE) < 0)
 	{
 		debug::log::error("Failed to show cursor: \"{}\"", SDL_GetError());
+		SDL_ClearError();
 	}
 }
 
@@ -324,6 +326,7 @@ void sdl_input_manager::hide_cursor()
 	if (SDL_ShowCursor(SDL_DISABLE) < 0)
 	{
 		debug::log::error("Failed to hide cursor: \"{}\"", SDL_GetError());
+		SDL_ClearError();
 	}
 }
 
