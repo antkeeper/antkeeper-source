@@ -76,6 +76,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 		// Create observer
 		game::world::create_observer(ctx);
 	}
+	game::world::enter_ecoregion(ctx, *ctx.resource_manager->load<game::ecoregion>("seedy-scrub.eco"));
 	
 	// Set world time
 	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);

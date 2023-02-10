@@ -781,10 +781,10 @@ void boot::setup_scenes()
 	// Setup UI camera
 	ctx.ui_camera = new scene::camera();
 	ctx.ui_camera->set_compositor(ctx.ui_compositor);
-	float clip_left = -viewport_size[0] * 0.5f;
-	float clip_right = viewport_size[0] * 0.5f;
-	float clip_top = -viewport_size[1] * 0.5f;
-	float clip_bottom = viewport_size[1] * 0.5f;
+	float clip_left = 0.0f;
+	float clip_right = viewport_size[0];
+	float clip_top = 0.0f;
+	float clip_bottom = viewport_size[1];
 	float clip_near = 0.0f;
 	float clip_far = 1000.0f;
 	ctx.ui_camera->set_orthographic(clip_left, clip_right, clip_top, clip_bottom, clip_near, clip_far);
@@ -1151,23 +1151,41 @@ void boot::setup_ui()
 		debug::log::error("Failed to load fonts");
 	}
 	
-	// Setup UI resize handler
-	// ctx.ui_resize_subscription = ctx.window_manager->get_event_queue().subscribe<app::window_resized_event>
-	// (
-		// [&](const auto& event)
-		// {
-			// const auto& viewport_size = event.window->get_viewport_size();
+	// Setup window resized callback
+	ctx.window_resized_subscription = ctx.window->get_resized_channel().subscribe
+	(
+		[&](const auto& event)
+		{
+			const auto& viewport_size = event.window->get_viewport_size();
+			const float viewport_aspect_ratio = static_cast<float>(viewport_size.x()) / static_cast<float>(viewport_size.y());
 			
-			// const float clip_left = static_cast<float>(viewport_size.x()) * -0.5f;
-			// const float clip_right = static_cast<float>(viewport_size.x()) * 0.5f;
-			// const float clip_top = static_cast<float>(viewport_size.y()) * -0.5f;
-			// const float clip_bottom = static_cast<float>(viewport_size.y()) * 0.5f;
-			// const float clip_near = ctx.ui_camera->get_clip_near();
-			// const float clip_far = ctx.ui_camera->get_clip_far();
+			// Resize framebuffers
+			game::graphics::change_render_resolution(ctx, ctx.render_scale);
 			
-			// ctx.ui_camera->set_orthographic(clip_left, clip_right, clip_top, clip_bottom, clip_near, clip_far);
-		// }
-	// );
+			// Update camera projection matrix
+			ctx.surface_camera->set_perspective
+			(
+				ctx.surface_camera->get_fov(),
+				viewport_aspect_ratio,
+				ctx.surface_camera->get_clip_near(),
+				ctx.surface_camera->get_clip_far()
+			);
+			
+			// Update UI camera projection matrix
+			ctx.ui_camera->set_orthographic
+			(
+				0.0f,
+				viewport_size.x(),
+				0.0f,
+				viewport_size.y(),
+				ctx.ui_camera->get_clip_near(),
+				ctx.ui_camera->get_clip_far()
+			);
+			
+			// Re-align menu text
+			game::menu::align_text(ctx);
+		}
+	);
 }
 
 void boot::setup_debugging()

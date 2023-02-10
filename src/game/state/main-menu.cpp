@@ -43,9 +43,11 @@
 #include "render/passes/sky-pass.hpp"
 #include "resources/resource-manager.hpp"
 #include "utility/hash/fnv1a.hpp"
+#include "math/glsl.hpp"
 #include <limits>
 
 using namespace hash::literals;
+using namespace math::glsl;
 
 namespace game {
 namespace state {
@@ -57,6 +59,9 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
 	
+	const vec2 viewport_size = vec2(ctx.window->get_viewport_size());
+	const vec2 viewport_center = viewport_size * 0.5f;
+	
 	// Construct title text
 	title_text.set_material(&ctx.title_font_material);
 	title_text.set_color({1.0f, 1.0f, 1.0f, (fade_in) ? 1.0f : 0.0f});
@@ -67,7 +72,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text.get_local_bounds());
 	float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
 	float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
-	title_text.set_translation({std::round(-title_w * 0.5f), std::round(-title_h * 0.5f + (ctx.window->get_viewport_size().y() / 3.0f) / 2.0f), 0.0f});
+	title_text.set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
 	title_text.update_tweens();
 	
 	// Add title text to UI
@@ -110,7 +115,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	game::menu::update_text_color(ctx);
 	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx, true, false, (-ctx.window->get_viewport_size().y() / 3.0f) / 2.0f);
+	game::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);
 	game::menu::update_text_tweens(ctx);
 	game::menu::add_text_to_ui(ctx);
 	game::menu::setup_animations(ctx);
@@ -261,9 +266,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure(ev100_sunny16);
 	
-	const auto& viewport_size = ctx.window->get_viewport_size();
-	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
-	
+	const float aspect_ratio = viewport_size.x() / viewport_size.y();
 	float fov = math::vertical_fov(math::radians(100.0f), aspect_ratio);
 	
 	ctx.surface_camera->look_at({0, 2.0f, 0}, {0, 0, 0}, {0, 0, 1});
@@ -279,6 +282,25 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	
 	//if (!ctx.menu_bg_billboard->is_active())
 	//	game::menu::fade_in_bg(ctx);
+	
+	// Setup window resized callback
+	window_resized_subscription = ctx.window->get_resized_channel().subscribe
+	(
+		[&](const auto& event)
+		{
+			const vec2 viewport_size = vec2(event.window->get_viewport_size());
+			const vec2 viewport_center = viewport_size * 0.5f;
+			
+			// Re-align title text
+			const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text.get_local_bounds());
+			float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
+			float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
+			title_text.set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
+			title_text.update_tweens();
+			
+			game::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);
+		}
+	);
 	
 	// Enable menu controls
 	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));

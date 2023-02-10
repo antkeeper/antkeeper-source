@@ -40,6 +40,7 @@ private:
 	animation<float> credits_fade_in_animation;
 	animation<float> credits_scroll_animation;
 	std::vector<std::shared_ptr<::event::subscription>> input_mapped_subscriptions;
+	std::shared_ptr<event::subscription> window_resized_subscription;
 };
 
 } // namespace state

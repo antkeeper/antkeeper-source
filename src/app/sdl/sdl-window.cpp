@@ -236,7 +236,9 @@ void sdl_window::set_maximized(bool maximized)
 
 void sdl_window::set_fullscreen(bool fullscreen)
 {
+	//SDL_HideWindow(internal_window);
 	SDL_SetWindowFullscreen(internal_window, (fullscreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+	//SDL_ShowWindow(internal_window);
 	this->fullscreen = fullscreen;
 }
 

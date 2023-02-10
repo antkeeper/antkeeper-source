@@ -29,6 +29,9 @@
 #include "render/material-flags.hpp"
 #include "render/passes/clear-pass.hpp"
 #include "resources/resource-manager.hpp"
+#include "math/glsl.hpp"
+
+using namespace math::glsl;
 
 namespace game {
 namespace state {
@@ -37,6 +40,9 @@ splash::splash(game::context& ctx):
 	game::state::base(ctx)
 {
 	debug::log::trace("Entering splash state...");
+	
+	const vec2 viewport_size = vec2(ctx.window->get_viewport_size());
+	const vec2 viewport_center = viewport_size * 0.5f;
 	
 	// Enable color buffer clearing in UI pass
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
@@ -58,7 +64,7 @@ splash::splash(game::context& ctx):
 	// Construct splash billboard
 	splash_billboard.set_material(&splash_billboard_material);
 	splash_billboard.set_scale({(float)std::get<0>(splash_dimensions) * 0.5f, (float)std::get<1>(splash_dimensions) * 0.5f, 1.0f});
-	splash_billboard.set_translation({0.0f, 0.0f, 0.0f});
+	splash_billboard.set_translation({std::round(viewport_center.x()), std::round(viewport_center.y()), 0.0f});
 	splash_billboard.update_tweens();
 	
 	// Add splash billboard to UI scene
@@ -122,6 +128,18 @@ splash::splash(game::context& ctx):
 	
 	// Start splash fade in animation
 	splash_fade_in_animation.play();
+	
+	// Setup window resized callback
+	window_resized_subscription = ctx.window->get_resized_channel().subscribe
+	(
+		[&](const auto& event)
+		{
+			const vec2 viewport_size = vec2(event.window->get_viewport_size());
+			const vec2 viewport_center = viewport_size * 0.5f;
+			splash_billboard.set_translation({std::round(viewport_center.x()), std::round(viewport_center.y()), 0.0f});
+			splash_billboard.update_tweens();
+		}
+	);
 	
 	// Construct splash skip function
 	auto skip = [&](const auto& event)

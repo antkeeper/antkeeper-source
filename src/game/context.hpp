@@ -149,6 +149,7 @@ struct context
 	app::window* window;
 	bool closed;
 	std::shared_ptr<::event::subscription> window_closed_subscription;
+	std::shared_ptr<::event::subscription> window_resized_subscription;
 	
 	// Input management and input event handling
 	app::input_manager* input_manager;
@@ -331,8 +332,6 @@ struct context
 	const ecoregion* active_ecoregion;
 	
 	render::anti_aliasing_method anti_aliasing_method;
-	
-	std::shared_ptr<::event::subscription> ui_resize_subscription;
 };
 
 } // namespace game

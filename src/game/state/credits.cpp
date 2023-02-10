@@ -27,8 +27,10 @@
 #include "debug/log.hpp"
 #include "game/strings.hpp"
 #include "utility/hash/fnv1a.hpp"
+#include "math/glsl.hpp"
 
 using namespace hash::literals;
+using namespace math::glsl;
 
 namespace game {
 namespace state {
@@ -37,6 +39,9 @@ credits::credits(game::context& ctx):
 	game::state::base(ctx)
 {
 	debug::log::trace("Entering credits state...");
+	
+	const vec2 viewport_size = vec2(ctx.window->get_viewport_size());
+	const vec2 viewport_center = viewport_size * 0.5f;
 	
 	// Construct credits text
 	credits_text.set_material(&ctx.menu_font_material);
@@ -48,7 +53,7 @@ credits::credits(game::context& ctx):
 	const auto& credits_aabb = static_cast<const geom::aabb<float>&>(credits_text.get_local_bounds());
 	float credits_w = credits_aabb.max_point.x() - credits_aabb.min_point.x();
 	float credits_h = credits_aabb.max_point.y() - credits_aabb.min_point.y();
-	credits_text.set_translation({std::round(-credits_w * 0.5f), std::round(-credits_h * 0.5f), 0.0f});
+	credits_text.set_translation({std::round(viewport_center.x() - credits_w * 0.5f), std::round(viewport_center.y() - credits_h * 0.5f), 0.0f});
 	credits_text.update_tweens();
 	
 	// Set up animation timing configuration
@@ -73,26 +78,36 @@ credits::credits(game::context& ctx):
 	// Start credits fade in animation
 	credits_fade_in_animation.play();
 	
-	// Construct splash skip function
+	// Setup window resized callback
+	window_resized_subscription = ctx.window->get_resized_channel().subscribe
+	(
+		[&](const auto& event)
+		{
+			const vec2 viewport_size = vec2(event.window->get_viewport_size());
+			const vec2 viewport_center = viewport_size * 0.5f;
+			const auto& credits_aabb = static_cast<const geom::aabb<float>&>(credits_text.get_local_bounds());
+			float credits_w = credits_aabb.max_point.x() - credits_aabb.min_point.x();
+			float credits_h = credits_aabb.max_point.y() - credits_aabb.min_point.y();
+			credits_text.set_translation({std::round(viewport_center.x() - credits_w * 0.5f), std::round(viewport_center.y() - credits_h * 0.5f), 0.0f});
+			credits_text.update_tweens();
+		}
+	);
+	
+	// Construct credits skip function
 	auto skip = [&](const auto& event)
 	{
 		ctx.function_queue.emplace
 		(
 			[&]()
 			{
-				// Black out screen
-				ctx.window->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-				ctx.window->get_rasterizer()->clear_framebuffer(true, false, false);
-				ctx.window->swap_buffers();
-				
-				// Change to main menu state
+				// Change to extras menu state
 				ctx.state_machine.pop();
 				ctx.state_machine.emplace(new game::state::extras_menu(ctx));
 			}
 		);
 	};
 	
-	// Set up splash skippers
+	// Set up credits skippers
 	input_mapped_subscriptions.emplace_back
 	(
 		ctx.input_mapper.get_gamepad_button_mapped_channel().subscribe

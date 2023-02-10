@@ -24,6 +24,9 @@
 #include "animation/ease.hpp"
 #include "config.hpp"
 #include <algorithm>
+#include "math/glsl.hpp"
+
+using namespace math::glsl;
 
 namespace game {
 namespace menu {
@@ -82,6 +85,9 @@ void update_text_tweens(game::context& ctx)
 
 void align_text(game::context& ctx, bool center, bool has_back, float anchor_y)
 {
+	const vec2 viewport_size = vec2(ctx.window->get_viewport_size());
+	const vec2 viewport_center = viewport_size * 0.5f;
+	
 	// Calculate menu width
 	float menu_width = 0.0f;
 	float menu_spacing = ctx.menu_font.get_glyph_metrics(U'M').width;
@@ -114,8 +120,8 @@ void align_text(game::context& ctx, bool center, bool has_back, float anchor_y)
 	else
 		menu_height = ctx.menu_item_texts.size() * ctx.menu_font.get_font_metrics().linespace - ctx.menu_font.get_font_metrics().linegap;
 	
-	float menu_x = -menu_width * 0.5f;
-	float menu_y = anchor_y + menu_height * 0.5f - ctx.menu_font.get_font_metrics().size;
+	float menu_x = viewport_center.x() - menu_width * 0.5f;
+	float menu_y = viewport_center.y() + anchor_y + menu_height * 0.5f - ctx.menu_font.get_font_metrics().size;
 	
 	for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 	{
@@ -130,7 +136,7 @@ void align_text(game::context& ctx, bool center, bool has_back, float anchor_y)
 		{
 			const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_local_bounds());
 			const float name_width =  name_bounds.max_point.x() - name_bounds.min_point.x();
-			x = -name_width * 0.5f;
+			x = viewport_center.x() - name_width * 0.5f;
 		}
 		
 		name->set_translation({std::round(x), std::round(y), 0.0f});
@@ -141,7 +147,7 @@ void align_text(game::context& ctx, bool center, bool has_back, float anchor_y)
 			const float value_width =  value_bounds.max_point.x() - value_bounds.min_point.x();
 			
 			if (center || i == ctx.menu_item_texts.size() - 1)
-				x = -value_width * 0.5f;
+				x = viewport_center.x() - value_width * 0.5f;
 			else
 				x = menu_x + menu_width - value_width;
 			

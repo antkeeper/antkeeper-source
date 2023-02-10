@@ -42,6 +42,7 @@ private:
 	animation<float> splash_fade_in_animation;
 	animation<float> splash_fade_out_animation;
 	std::vector<std::shared_ptr<::event::subscription>> input_mapped_subscriptions;
+	std::shared_ptr<event::subscription> window_resized_subscription;
 };
 
 } // namespace state

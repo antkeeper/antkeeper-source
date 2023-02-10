@@ -232,8 +232,8 @@ void enable_menu_controls(game::context& ctx)
 					max_y += padding;
 					
 					const auto& viewport = ctx.window->get_viewport_size();
-					const float x = static_cast<float>(event.position.x() - viewport[0] / 2);
-					const float y = static_cast<float>((viewport[1] - event.position.y() + 1) - viewport[1] / 2);
+					const float x = static_cast<float>(event.position.x());
+					const float y = static_cast<float>((viewport[1] - event.position.y() + 1));
 					
 					if (x >= min_x && x <= max_x)
 					{
@@ -280,8 +280,8 @@ void enable_menu_controls(game::context& ctx)
 					max_y += padding;
 					
 					const auto& viewport = ctx.window->get_viewport_size();
-					const float x = static_cast<float>(event.position.x() - viewport[0] / 2);
-					const float y = static_cast<float>((viewport[1] - event.position.y() + 1) - viewport[1] / 2);
+					const float x = static_cast<float>(event.position.x());
+					const float y = static_cast<float>((viewport[1] - event.position.y() + 1));
 					
 					if (x >= min_x && x <= max_x)
 					{
@@ -290,17 +290,25 @@ void enable_menu_controls(game::context& ctx)
 							*ctx.menu_item_index = i;
 							game::menu::update_text_color(ctx);
 							
+							auto callback = ctx.menu_select_callbacks[i];
 							if (event.button == input::mouse_button::left)
 							{
-								const auto& callback = ctx.menu_select_callbacks[i];
-								if (callback)
-									callback();
+								if (ctx.menu_left_callbacks[i])
+								{
+									callback = ctx.menu_left_callbacks[i];
+								}
 							}
 							else if (event.button == input::mouse_button::right)
 							{
-								const auto& callback = ctx.menu_left_callbacks[i];
-								if (callback)
-									callback();
+								if (ctx.menu_right_callbacks[i])
+								{
+									callback = ctx.menu_right_callbacks[i];
+								}
+							}
+							
+							if (callback)
+							{
+								callback();
 							}
 							
 							return;
@@ -313,7 +321,7 @@ void enable_menu_controls(game::context& ctx)
 }
 
 void disable_window_controls(game::context& ctx)
-{	
+{
 	ctx.window_controls.disconnect();
 }
 
