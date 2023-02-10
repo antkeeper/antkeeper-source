@@ -51,6 +51,16 @@ public:
 	virtual void update() = 0;
 	
 	/**
+	 * Makes the cursor visible.
+	 */
+	virtual void show_cursor() = 0;
+	
+	/**
+	 * Makes the cursor invisible.
+	 */
+	virtual void hide_cursor() = 0;
+	
+	/**
 	 * Returns the event queue associated with registered input devices.
 	 */
 	[[nodiscard]] inline const ::event::queue& get_event_queue() const noexcept

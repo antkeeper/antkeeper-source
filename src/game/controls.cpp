@@ -181,7 +181,7 @@ void setup_menu_controls(game::context& ctx)
 	// Set activation threshold for menu navigation controls to mitigate drifting gamepad axes
 	auto menu_control_threshold = [](float x) -> bool
 	{
-		return x > 0.1f;
+		return x > 0.5f;
 	};
 	ctx.menu_up_control.set_threshold_function(menu_control_threshold);
 	ctx.menu_down_control.set_threshold_function(menu_control_threshold);

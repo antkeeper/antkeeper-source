@@ -43,6 +43,8 @@ public:
 	virtual ~sdl_input_manager();
 	
 	virtual void update();
+	virtual void show_cursor();
+	virtual void hide_cursor();
 
 private:
 	input::keyboard keyboard;

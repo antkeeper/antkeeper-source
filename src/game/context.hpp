@@ -154,6 +154,12 @@ struct context
 	// Input management and input event handling
 	app::input_manager* input_manager;
 	std::shared_ptr<::event::subscription> application_quit_subscription;
+	std::shared_ptr<::event::subscription> gamepad_axis_moved_subscription;
+	std::shared_ptr<::event::subscription> gamepad_button_pressed_subscription;
+	std::shared_ptr<::event::subscription> mouse_button_pressed_subscription;
+	std::shared_ptr<::event::subscription> mouse_moved_subscription;
+	std::shared_ptr<::event::subscription> mouse_scrolled_subscription;
+	bool gamepad_active;
 	
 	// Localization and internationalization
 	std::uint16_t language_index;

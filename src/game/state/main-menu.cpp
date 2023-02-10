@@ -214,6 +214,9 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 		
 		// Fade to black then quit
 		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, [&ctx](){ctx.closed=true;});
+		
+		// Quit immediately
+		//ctx.function_queue.push([&ctx](){ctx.closed=true;});
 	};
 	
 	// Build list of menu select callbacks

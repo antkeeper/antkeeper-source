@@ -298,7 +298,7 @@ void sdl_input_manager::update()
 					
 					debug::log::info("Disconnected gamepad \"{}\"", controller_name);
 				}
-
+				
 				break;
 			}
 			
@@ -309,6 +309,22 @@ void sdl_input_manager::update()
 	
 	// Flush event queue
 	this->event_queue.flush();
+}
+
+void sdl_input_manager::show_cursor()
+{
+	if (SDL_ShowCursor(SDL_ENABLE) < 0)
+	{
+		debug::log::error("Failed to show cursor: \"{}\"", SDL_GetError());
+	}
+}
+
+void sdl_input_manager::hide_cursor()
+{
+	if (SDL_ShowCursor(SDL_DISABLE) < 0)
+	{
+		debug::log::error("Failed to hide cursor: \"{}\"", SDL_GetError());
+	}
 }
 
 } // namespace app

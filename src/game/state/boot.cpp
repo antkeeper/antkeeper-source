@@ -468,6 +468,65 @@ void boot::setup_input()
 			ctx.closed = true;
 		}
 	);
+	
+	// Gamepad deactivation function
+	auto deactivate_gamepad = [&ctx = this->ctx](const auto& event)
+	{
+		if (ctx.gamepad_active)
+		{
+			ctx.gamepad_active = false;
+			ctx.input_manager->show_cursor();
+		}
+	};
+	
+	// Setup gamepad activation callbacks
+	ctx.gamepad_axis_moved_subscription = ctx.input_manager->get_event_queue().subscribe<input::gamepad_axis_moved_event>
+	(
+		[&](const auto& event)
+		{
+			if (!ctx.gamepad_active && std::abs(event.position) > 0.1f)
+			{
+				ctx.gamepad_active = true;
+				ctx.input_manager->hide_cursor();
+			}
+		}
+	);
+	ctx.gamepad_button_pressed_subscription = ctx.input_manager->get_event_queue().subscribe<input::gamepad_button_pressed_event>
+	(
+		[&ctx = this->ctx](const auto& event)
+		{
+			if (!ctx.gamepad_active)
+			{
+				ctx.gamepad_active = true;
+				ctx.input_manager->hide_cursor();
+			}
+		}
+	);
+	
+	// Setup gamepad deactivation callbacks
+	ctx.mouse_button_pressed_subscription = ctx.input_manager->get_event_queue().subscribe<input::mouse_button_pressed_event>
+	(
+		deactivate_gamepad
+	);
+	ctx.mouse_moved_subscription = ctx.input_manager->get_event_queue().subscribe<input::mouse_moved_event>
+	(
+		deactivate_gamepad
+	);
+	ctx.mouse_scrolled_subscription = ctx.input_manager->get_event_queue().subscribe<input::mouse_scrolled_event>
+	(
+		deactivate_gamepad
+	);
+	
+	// Activate gamepad if one is connected
+	if (!ctx.input_manager->get_gamepads().empty())
+	{
+		ctx.gamepad_active = true;
+		ctx.input_manager->hide_cursor();
+	}
+	else
+	{
+		ctx.gamepad_active = false;
+	}
 }
 
 void boot::load_strings()
