@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "input/control.hpp"
+#include "input/action.hpp"
 
 namespace input {
 
@@ -26,7 +26,7 @@ static bool default_threshold_function(float x) noexcept
 	return x > 0.0f;
 }
 
-control::control():
+action::action():
 	threshold_function(default_threshold_function),
 	active(false),
 	activated_event{this},
@@ -34,12 +34,12 @@ control::control():
 	deactivated_event{this}
 {}
 
-void control::set_threshold_function(const threshold_function_type& function)
+void action::set_threshold_function(const threshold_function_type& function)
 {
 	threshold_function = function;
 }
 
-void control::evaluate(float value)
+void action::evaluate(float value)
 {
 	// Store activation state
 	const bool was_active = active;
@@ -67,7 +67,7 @@ void control::evaluate(float value)
 	}
 }
 
-void control::reset()
+void action::reset()
 {
 	active = false;
 }

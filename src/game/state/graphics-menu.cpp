@@ -103,7 +103,7 @@ graphics_menu::graphics_menu(game::context& ctx):
 	auto increase_resolution_callback = [this, &ctx]()
 	{
 		// Increase resolution
-		if (ctx.menu_modifier_control.is_active())
+		if (ctx.menu_modifier_action.is_active())
 			ctx.render_scale += 0.05f;
 		else
 			ctx.render_scale += 0.25f;
@@ -127,7 +127,7 @@ graphics_menu::graphics_menu(game::context& ctx):
 	auto decrease_resolution_callback = [this, &ctx]()
 	{
 		// Increase resolution
-		if (ctx.menu_modifier_control.is_active())
+		if (ctx.menu_modifier_action.is_active())
 			ctx.render_scale -= 0.05f;
 		else
 			ctx.render_scale -= 0.25f;
@@ -219,7 +219,7 @@ graphics_menu::graphics_menu(game::context& ctx):
 	auto increase_font_scale_callback = [this, &ctx]()
 	{
 		// Increase font scale
-		if (ctx.menu_modifier_control.is_active())
+		if (ctx.menu_modifier_action.is_active())
 			ctx.font_scale += 0.01f;
 		else
 			ctx.font_scale += 0.1f;
@@ -248,7 +248,7 @@ graphics_menu::graphics_menu(game::context& ctx):
 	auto decrease_font_scale_callback = [this, &ctx]()
 	{
 		// Decrease font scale
-		if (ctx.menu_modifier_control.is_active())
+		if (ctx.menu_modifier_action.is_active())
 			ctx.font_scale -= 0.01f;
 		else
 			ctx.font_scale -= 0.1f;

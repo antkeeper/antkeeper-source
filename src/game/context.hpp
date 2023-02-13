@@ -37,8 +37,8 @@
 #include "gl/vertex-buffer.hpp"
 #include "i18n/string-map.hpp"
 #include "i18n/string-table.hpp"
-#include "input/control-map.hpp"
-#include "input/control.hpp"
+#include "input/action-map.hpp"
+#include "input/action.hpp"
 #include "input/mapper.hpp"
 #include "math/moving-average.hpp"
 #include "render/anti-aliasing-method.hpp"
@@ -176,30 +176,30 @@ struct context
 	render::material menu_font_material;
 	render::material title_font_material;
 	
-	// Control maps, controls, and control event handling
+	// Action maps, actions, and action event handling
 	input::mapper input_mapper;
-	input::control_map window_controls;
-	input::control fullscreen_control;
-	input::control screenshot_control;
-	std::vector<std::shared_ptr<::event::subscription>> window_control_subscriptions;
-	input::control_map menu_controls;
-	input::control menu_up_control;
-	input::control menu_down_control;
-	input::control menu_left_control;
-	input::control menu_right_control;
-	input::control menu_select_control;
-	input::control menu_back_control;
-	input::control menu_modifier_control;
-	std::vector<std::shared_ptr<::event::subscription>> menu_control_subscriptions;
+	input::action_map window_actions;
+	input::action fullscreen_action;
+	input::action screenshot_action;
+	std::vector<std::shared_ptr<::event::subscription>> window_action_subscriptions;
+	input::action_map menu_actions;
+	input::action menu_up_action;
+	input::action menu_down_action;
+	input::action menu_left_action;
+	input::action menu_right_action;
+	input::action menu_select_action;
+	input::action menu_back_action;
+	input::action menu_modifier_action;
+	std::vector<std::shared_ptr<::event::subscription>> menu_action_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
-	input::control_map movement_controls;
-	input::control move_forward_control;
-	input::control move_back_control;
-	input::control move_left_control;
-	input::control move_right_control;
-	input::control move_up_control;
-	input::control move_down_control;
-	input::control pause_control;
+	input::action_map movement_actions;
+	input::action move_forward_action;
+	input::action move_back_action;
+	input::action move_left_action;
+	input::action move_right_action;
+	input::action move_up_action;
+	input::action move_down_action;
+	input::action pause_action;
 	
 	// Debugging
 	math::moving_average<float, 15> average_frame_time;

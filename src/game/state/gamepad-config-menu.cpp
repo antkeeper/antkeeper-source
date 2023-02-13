@@ -132,7 +132,7 @@ gamepad_config_menu::~gamepad_config_menu()
 	debug::log::trace("Exited gamepad config menu state");
 }
 
-std::string gamepad_config_menu::get_binding_string(input::control* control)
+std::string gamepad_config_menu::get_binding_string(input::action* control)
 {
 	std::string binding_string;
 	/*
@@ -286,7 +286,7 @@ std::string gamepad_config_menu::get_binding_string(input::control* control)
 void gamepad_config_menu::add_control_item(const std::string& control_name)
 {
 	// Get pointer to control
-	//input::control* control = ctx.controls[control_name];
+	//input::action* control = ctx.controls[control_name];
 	
 	// Construct texts
 	scene::text* name_text = new scene::text();

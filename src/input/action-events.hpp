@@ -17,43 +17,43 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_INPUT_CONTROL_EVENTS_HPP
-#define ANTKEEPER_INPUT_CONTROL_EVENTS_HPP
+#ifndef ANTKEEPER_INPUT_ACTION_EVENTS_HPP
+#define ANTKEEPER_INPUT_ACTION_EVENTS_HPP
 
 namespace input {
 
-class control;
+class action;
 
 /**
- * Event generated when a control has been activated.
+ * Event generated when a action has been activated.
  */
-struct control_activated_event
+struct action_activated_event
 {
 	/// Control that was activated.
-	control* control;
+	action* action;
 };
 
 /**
- * Event generated while a control is active.
+ * Event generated while a action is active.
  */
-struct control_active_event
+struct action_active_event
 {
-	/// Active control.
-	control* control;
+	/// Active action.
+	action* action;
 	
 	/// Control input value.
 	float input_value;
 };
 
 /**
- * Event generated when a control has been deactivated.
+ * Event generated when a action has been deactivated.
  */
-struct control_deactivated_event
+struct action_deactivated_event
 {
 	/// Control that was deactivated.
-	control* control;
+	action* action;
 };
 
 } // namespace input
 
-#endif // ANTKEEPER_INPUT_CONTROL_EVENTS_HPP
+#endif // ANTKEEPER_INPUT_ACTION_EVENTS_HPP

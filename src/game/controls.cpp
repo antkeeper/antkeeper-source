@@ -29,15 +29,15 @@ namespace game {
 void setup_window_controls(game::context& ctx)
 {
 	// Map window controls
-	ctx.window_controls.add_mapping(ctx.fullscreen_control, input::key_mapping(nullptr, input::scancode::f11, false));
-	ctx.window_controls.add_mapping(ctx.fullscreen_control, input::key_mapping(nullptr, input::scancode::enter, false, input::modifier_key::alt));
-	ctx.window_controls.add_mapping(ctx.screenshot_control, input::key_mapping(nullptr, input::scancode::f12, false));
-	ctx.window_controls.add_mapping(ctx.screenshot_control, input::key_mapping(nullptr, input::scancode::print_screen, false));
+	ctx.window_actions.add_mapping(ctx.fullscreen_action, input::key_mapping(nullptr, input::scancode::f11, false));
+	ctx.window_actions.add_mapping(ctx.fullscreen_action, input::key_mapping(nullptr, input::scancode::enter, false, input::modifier_key::alt));
+	ctx.window_actions.add_mapping(ctx.screenshot_action, input::key_mapping(nullptr, input::scancode::f12, false));
+	ctx.window_actions.add_mapping(ctx.screenshot_action, input::key_mapping(nullptr, input::scancode::print_screen, false));
 	
 	// Setup fullscreen control
-	ctx.window_control_subscriptions.emplace_back
+	ctx.window_action_subscriptions.emplace_back
 	(
-		ctx.fullscreen_control.get_activated_channel().subscribe
+		ctx.fullscreen_action.get_activated_channel().subscribe
 		(
 			[&ctx](const auto& event)
 			{
@@ -47,9 +47,9 @@ void setup_window_controls(game::context& ctx)
 	);
 	
 	// Setup screenshot control
-	ctx.window_control_subscriptions.emplace_back
+	ctx.window_action_subscriptions.emplace_back
 	(
-		ctx.screenshot_control.get_activated_channel().subscribe
+		ctx.screenshot_action.get_activated_channel().subscribe
 		(
 			[&ctx](const auto& event)
 			{
@@ -62,56 +62,56 @@ void setup_window_controls(game::context& ctx)
 void setup_menu_controls(game::context& ctx)
 {
 	// Map menu controls
-	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::key_mapping(nullptr, input::scancode::up, true));
-	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::key_mapping(nullptr, input::scancode::w, true));
-	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::key_mapping(nullptr, input::scancode::i, true));
-	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_y, true));
-	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_y, true));
-	ctx.menu_controls.add_mapping(ctx.menu_up_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_up));
+	ctx.menu_actions.add_mapping(ctx.menu_up_action, input::key_mapping(nullptr, input::scancode::up, true));
+	ctx.menu_actions.add_mapping(ctx.menu_up_action, input::key_mapping(nullptr, input::scancode::w, true));
+	ctx.menu_actions.add_mapping(ctx.menu_up_action, input::key_mapping(nullptr, input::scancode::i, true));
+	ctx.menu_actions.add_mapping(ctx.menu_up_action, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_y, true));
+	ctx.menu_actions.add_mapping(ctx.menu_up_action, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_y, true));
+	ctx.menu_actions.add_mapping(ctx.menu_up_action, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_up));
 	
-	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::key_mapping(nullptr, input::scancode::down, true));
-	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::key_mapping(nullptr, input::scancode::s, true));
-	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::key_mapping(nullptr, input::scancode::k, true));
-	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_y, false));
-	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_y, false));
-	ctx.menu_controls.add_mapping(ctx.menu_down_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_down));
+	ctx.menu_actions.add_mapping(ctx.menu_down_action, input::key_mapping(nullptr, input::scancode::down, true));
+	ctx.menu_actions.add_mapping(ctx.menu_down_action, input::key_mapping(nullptr, input::scancode::s, true));
+	ctx.menu_actions.add_mapping(ctx.menu_down_action, input::key_mapping(nullptr, input::scancode::k, true));
+	ctx.menu_actions.add_mapping(ctx.menu_down_action, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_y, false));
+	ctx.menu_actions.add_mapping(ctx.menu_down_action, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_y, false));
+	ctx.menu_actions.add_mapping(ctx.menu_down_action, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_down));
 	
-	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::key_mapping(nullptr, input::scancode::left, true));
-	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::key_mapping(nullptr, input::scancode::a, true));
-	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::key_mapping(nullptr, input::scancode::j, true));
-	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_x, true));
-	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_x, true));
-	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_left));
-	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::x, true));
-	ctx.menu_controls.add_mapping(ctx.menu_left_control, input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::y, true));
+	ctx.menu_actions.add_mapping(ctx.menu_left_action, input::key_mapping(nullptr, input::scancode::left, true));
+	ctx.menu_actions.add_mapping(ctx.menu_left_action, input::key_mapping(nullptr, input::scancode::a, true));
+	ctx.menu_actions.add_mapping(ctx.menu_left_action, input::key_mapping(nullptr, input::scancode::j, true));
+	ctx.menu_actions.add_mapping(ctx.menu_left_action, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_x, true));
+	ctx.menu_actions.add_mapping(ctx.menu_left_action, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_x, true));
+	ctx.menu_actions.add_mapping(ctx.menu_left_action, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_left));
+	ctx.menu_actions.add_mapping(ctx.menu_left_action, input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::x, true));
+	ctx.menu_actions.add_mapping(ctx.menu_left_action, input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::y, true));
 	
-	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::key_mapping(nullptr, input::scancode::right, true));
-	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::key_mapping(nullptr, input::scancode::d, true));
-	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::key_mapping(nullptr, input::scancode::l, true));
-	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_x, false));
-	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_x, false));
-	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_right));
-	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::x, false));
-	ctx.menu_controls.add_mapping(ctx.menu_right_control, input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::y, false));
+	ctx.menu_actions.add_mapping(ctx.menu_right_action, input::key_mapping(nullptr, input::scancode::right, true));
+	ctx.menu_actions.add_mapping(ctx.menu_right_action, input::key_mapping(nullptr, input::scancode::d, true));
+	ctx.menu_actions.add_mapping(ctx.menu_right_action, input::key_mapping(nullptr, input::scancode::l, true));
+	ctx.menu_actions.add_mapping(ctx.menu_right_action, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_x, false));
+	ctx.menu_actions.add_mapping(ctx.menu_right_action, input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_x, false));
+	ctx.menu_actions.add_mapping(ctx.menu_right_action, input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_right));
+	ctx.menu_actions.add_mapping(ctx.menu_right_action, input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::x, false));
+	ctx.menu_actions.add_mapping(ctx.menu_right_action, input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::y, false));
 	
-	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::key_mapping(nullptr, input::scancode::enter, false));
-	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::key_mapping(nullptr, input::scancode::space, false));
-	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::key_mapping(nullptr, input::scancode::e, false));
-	ctx.menu_controls.add_mapping(ctx.menu_select_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::a));
+	ctx.menu_actions.add_mapping(ctx.menu_select_action, input::key_mapping(nullptr, input::scancode::enter, false));
+	ctx.menu_actions.add_mapping(ctx.menu_select_action, input::key_mapping(nullptr, input::scancode::space, false));
+	ctx.menu_actions.add_mapping(ctx.menu_select_action, input::key_mapping(nullptr, input::scancode::e, false));
+	ctx.menu_actions.add_mapping(ctx.menu_select_action, input::gamepad_button_mapping(nullptr, input::gamepad_button::a));
 	
-	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::key_mapping(nullptr, input::scancode::escape, false));
-	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::key_mapping(nullptr, input::scancode::backspace, false));
-	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::key_mapping(nullptr, input::scancode::q, false));
-	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::b));
-	ctx.menu_controls.add_mapping(ctx.menu_back_control, input::gamepad_button_mapping(nullptr, input::gamepad_button::back));
+	ctx.menu_actions.add_mapping(ctx.menu_back_action, input::key_mapping(nullptr, input::scancode::escape, false));
+	ctx.menu_actions.add_mapping(ctx.menu_back_action, input::key_mapping(nullptr, input::scancode::backspace, false));
+	ctx.menu_actions.add_mapping(ctx.menu_back_action, input::key_mapping(nullptr, input::scancode::q, false));
+	ctx.menu_actions.add_mapping(ctx.menu_back_action, input::gamepad_button_mapping(nullptr, input::gamepad_button::b));
+	ctx.menu_actions.add_mapping(ctx.menu_back_action, input::gamepad_button_mapping(nullptr, input::gamepad_button::back));
 	
-	ctx.menu_controls.add_mapping(ctx.menu_modifier_control, input::key_mapping(nullptr, input::scancode::left_shift, false));
-	ctx.menu_controls.add_mapping(ctx.menu_modifier_control, input::key_mapping(nullptr, input::scancode::right_shift, false));
+	ctx.menu_actions.add_mapping(ctx.menu_modifier_action, input::key_mapping(nullptr, input::scancode::left_shift, false));
+	ctx.menu_actions.add_mapping(ctx.menu_modifier_action, input::key_mapping(nullptr, input::scancode::right_shift, false));
 	
 	// Setup menu controls
-	ctx.menu_control_subscriptions.emplace_back
+	ctx.menu_action_subscriptions.emplace_back
 	(
-		ctx.menu_up_control.get_activated_channel().subscribe
+		ctx.menu_up_action.get_activated_channel().subscribe
 		(
 			[&ctx](const auto& event)
 			{
@@ -123,9 +123,9 @@ void setup_menu_controls(game::context& ctx)
 			}
 		)
 	);
-	ctx.menu_control_subscriptions.emplace_back
+	ctx.menu_action_subscriptions.emplace_back
 	(
-		ctx.menu_down_control.get_activated_channel().subscribe
+		ctx.menu_down_action.get_activated_channel().subscribe
 		(
 			[&ctx](const auto& event)
 			{
@@ -137,9 +137,9 @@ void setup_menu_controls(game::context& ctx)
 			}
 		)
 	);
-	ctx.menu_control_subscriptions.emplace_back
+	ctx.menu_action_subscriptions.emplace_back
 	(
-		ctx.menu_left_control.get_activated_channel().subscribe
+		ctx.menu_left_action.get_activated_channel().subscribe
 		(
 			[&ctx](const auto& event)
 			{
@@ -149,9 +149,9 @@ void setup_menu_controls(game::context& ctx)
 			}
 		)
 	);
-	ctx.menu_control_subscriptions.emplace_back
+	ctx.menu_action_subscriptions.emplace_back
 	(
-		ctx.menu_right_control.get_activated_channel().subscribe
+		ctx.menu_right_action.get_activated_channel().subscribe
 		(
 			[&ctx](const auto& event)
 			{
@@ -161,9 +161,9 @@ void setup_menu_controls(game::context& ctx)
 			}
 		)
 	);
-	ctx.menu_control_subscriptions.emplace_back
+	ctx.menu_action_subscriptions.emplace_back
 	(
-		ctx.menu_select_control.get_activated_channel().subscribe
+		ctx.menu_select_action.get_activated_channel().subscribe
 		(
 			[&ctx](const auto& event)
 			{
@@ -173,9 +173,9 @@ void setup_menu_controls(game::context& ctx)
 			}
 		)
 	);
-	ctx.menu_control_subscriptions.emplace_back
+	ctx.menu_action_subscriptions.emplace_back
 	(
-		ctx.menu_back_control.get_activated_channel().subscribe
+		ctx.menu_back_action.get_activated_channel().subscribe
 		(
 			[&ctx](const auto& event)
 			{
@@ -186,24 +186,24 @@ void setup_menu_controls(game::context& ctx)
 	);
 	
 	// Set activation threshold for menu navigation controls to mitigate drifting gamepad axes
-	auto menu_control_threshold = [](float x) -> bool
+	auto menu_action_threshold = [](float x) -> bool
 	{
 		return x > 0.5f;
 	};
-	ctx.menu_up_control.set_threshold_function(menu_control_threshold);
-	ctx.menu_down_control.set_threshold_function(menu_control_threshold);
-	ctx.menu_left_control.set_threshold_function(menu_control_threshold);
-	ctx.menu_right_control.set_threshold_function(menu_control_threshold);
+	ctx.menu_up_action.set_threshold_function(menu_action_threshold);
+	ctx.menu_down_action.set_threshold_function(menu_action_threshold);
+	ctx.menu_left_action.set_threshold_function(menu_action_threshold);
+	ctx.menu_right_action.set_threshold_function(menu_action_threshold);
 }
 
 void enable_window_controls(game::context& ctx)
 {
-	ctx.window_controls.connect(ctx.input_manager->get_event_queue());
+	ctx.window_actions.connect(ctx.input_manager->get_event_queue());
 }
 
 void enable_menu_controls(game::context& ctx)
 {
-	ctx.menu_controls.connect(ctx.input_manager->get_event_queue());
+	ctx.menu_actions.connect(ctx.input_manager->get_event_queue());
 	
 	// Function to select menu item at mouse position
 	auto select_menu_item = [&ctx](const math::vector<float, 2>& mouse_position) -> bool
@@ -303,21 +303,21 @@ void enable_menu_controls(game::context& ctx)
 
 void disable_window_controls(game::context& ctx)
 {
-	ctx.window_controls.disconnect();
+	ctx.window_actions.disconnect();
 }
 
 void disable_menu_controls(game::context& ctx)
 {
-	// Reset menu control states
-	ctx.menu_up_control.reset();
-	ctx.menu_down_control.reset();
-	ctx.menu_left_control.reset();
-	ctx.menu_right_control.reset();
-	ctx.menu_select_control.reset();
-	ctx.menu_back_control.reset();
-	ctx.menu_modifier_control.reset();
+	// Reset menu action states
+	ctx.menu_up_action.reset();
+	ctx.menu_down_action.reset();
+	ctx.menu_left_action.reset();
+	ctx.menu_right_action.reset();
+	ctx.menu_select_action.reset();
+	ctx.menu_back_action.reset();
+	ctx.menu_modifier_action.reset();
 	
-	ctx.menu_controls.disconnect();
+	ctx.menu_actions.disconnect();
 	ctx.menu_mouse_subscriptions.clear();
 }
 
@@ -473,14 +473,14 @@ void apply_control_profile(game::context& ctx, const json& profile)
 			std::string control_name = control_element.key();
 			
 			// Find or create control
-			input::control* control;
+			input::action* control;
 			if (ctx.controls.count(control_name))
 			{
 				control = ctx.controls[control_name];
 			}
 			else
 			{
-				control = new input::control();
+				control = new input::action();
 				ctx.controls[control_name] = control;
 			}
 			
@@ -665,7 +665,7 @@ void save_control_profile(game::context& ctx)
 		for (auto controls_it = ctx.controls.begin(); controls_it != ctx.controls.end(); ++controls_it)
 		{
 			const std::string& control_name = controls_it->first;
-			input::control* control = controls_it->second;
+			input::action* control = controls_it->second;
 			
 			// Add control element
 			auto& control_element = controls_element[control_name];

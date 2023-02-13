@@ -17,30 +17,30 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_INPUT_CONTROL_HPP
-#define ANTKEEPER_INPUT_CONTROL_HPP
+#ifndef ANTKEEPER_INPUT_ACTION_HPP
+#define ANTKEEPER_INPUT_ACTION_HPP
 
-#include "input/control-events.hpp"
+#include "input/action-events.hpp"
 #include "event/publisher.hpp"
 #include <functional>
 
 namespace input {
 
 /**
- * Generates control-related input events on activation state changes.
+ * Evaluates an activation state given input values and publishes events on activation state changes.
  */
-class control
+class action
 {
 public:
 	/**
 	 * Threshold function type.
 	 *
-	 * Given an input value, returns `true` if the control should be considered active, and `false` otherwise.
+	 * Given an input value, returns `true` if the action should be considered active, and `false` otherwise.
 	 */
 	typedef std::function<bool(float)> threshold_function_type;
 	
-	/// Constructs a control.
-	control();
+	/// Constructs a action.
+	action();
 	
 	/**
 	 * Sets the threshold function.
@@ -50,14 +50,14 @@ public:
 	void set_threshold_function(const threshold_function_type& function);
 	
 	/**
-	 * Evaluates the activation state of the control, according to its threshold function and an input value.
+	 * Evaluates the activation state of the action, according to its threshold function and an input value.
 	 *
 	 * @param value Input value.
 	 */
 	void evaluate(float value);
 	
 	/**
-	 * Resets the activation state of the control without publishing any events.
+	 * Resets the activation state of the action without publishing any events.
 	 */
 	void reset();
 	
@@ -67,26 +67,26 @@ public:
 		return threshold_function;
 	}
 	
-	/// Returns `true` if the control is active, `false` otherwise.
+	/// Returns `true` if the action is active, `false` otherwise.
 	[[nodiscard]] inline bool is_active() const noexcept
 	{
 		return active;
 	}
 	
-	/// Returns the channel through which control activated events are published.
-	[[nodiscard]] inline ::event::channel<control_activated_event>& get_activated_channel() noexcept
+	/// Returns the channel through which action activated events are published.
+	[[nodiscard]] inline ::event::channel<action_activated_event>& get_activated_channel() noexcept
 	{
 		return activated_publisher.channel();
 	}
 	
-	/// Returns the channel through which control active events are published.
-	[[nodiscard]] inline ::event::channel<control_active_event>& get_active_channel() noexcept
+	/// Returns the channel through which action active events are published.
+	[[nodiscard]] inline ::event::channel<action_active_event>& get_active_channel() noexcept
 	{
 		return active_publisher.channel();
 	}
 	
-	/// Returns the channel through which control deactivated events are published.
-	[[nodiscard]] inline ::event::channel<control_deactivated_event>& get_deactivated_channel() noexcept
+	/// Returns the channel through which action deactivated events are published.
+	[[nodiscard]] inline ::event::channel<action_deactivated_event>& get_deactivated_channel() noexcept
 	{
 		return deactivated_publisher.channel();
 	}
@@ -95,15 +95,15 @@ private:
 	threshold_function_type threshold_function;
 	bool active;
 	
-	control_activated_event activated_event;
-	control_active_event active_event;
-	control_deactivated_event deactivated_event;
+	action_activated_event activated_event;
+	action_active_event active_event;
+	action_deactivated_event deactivated_event;
 	
-	::event::publisher<control_activated_event> activated_publisher;
-	::event::publisher<control_active_event> active_publisher;
-	::event::publisher<control_deactivated_event> deactivated_publisher;
+	::event::publisher<action_activated_event> activated_publisher;
+	::event::publisher<action_active_event> active_publisher;
+	::event::publisher<action_deactivated_event> deactivated_publisher;
 };
 
 } // namespace input
 
-#endif // ANTKEEPER_INPUT_CONTROL_HPP
+#endif // ANTKEEPER_INPUT_ACTION_HPP

@@ -84,7 +84,7 @@ sound_menu::sound_menu(game::context& ctx):
 	auto increase_volume_callback = [this, &ctx](float* volume)
 	{
 		// Increase volume
-		if (ctx.menu_modifier_control.is_active())
+		if (ctx.menu_modifier_action.is_active())
 			*volume += 0.01f;
 		else
 			*volume += 0.1f;
@@ -100,7 +100,7 @@ sound_menu::sound_menu(game::context& ctx):
 	auto decrease_volume_callback = [this, &ctx](float* volume)
 	{
 		// Decrease volume
-		if (ctx.menu_modifier_control.is_active())
+		if (ctx.menu_modifier_action.is_active())
 			*volume -= 0.01f;
 		else
 			*volume -= 0.1f;
@@ -135,7 +135,7 @@ sound_menu::sound_menu(game::context& ctx):
 	auto increase_captions_size_callback = [this, &ctx]()
 	{
 		// Increase size
-		if (ctx.menu_modifier_control.is_active())
+		if (ctx.menu_modifier_action.is_active())
 			ctx.captions_size += 0.01f;
 		else
 			ctx.captions_size += 0.1f;
@@ -152,7 +152,7 @@ sound_menu::sound_menu(game::context& ctx):
 	auto decrease_captions_size_callback = [this, &ctx]()
 	{
 		// Decrease size
-		if (ctx.menu_modifier_control.is_active())
+		if (ctx.menu_modifier_action.is_active())
 			ctx.captions_size -= 0.01f;
 		else
 			ctx.captions_size -= 0.1f;

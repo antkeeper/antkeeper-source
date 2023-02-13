@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_STATE_GAMEPAD_CONFIG_MENU_HPP
 
 #include "game/state/base.hpp"
-#include "input/control.hpp"
+#include "input/action.hpp"
 #include <string>
 
 namespace game {
@@ -34,7 +34,7 @@ public:
 	virtual ~gamepad_config_menu();
 	
 private:
-	std::string get_binding_string(input::control* control);
+	std::string get_binding_string(input::action* control);
 	void add_control_item(const std::string& control_name);
 };
 
