@@ -192,6 +192,14 @@ struct context
 	input::control menu_modifier_control;
 	std::vector<std::shared_ptr<::event::subscription>> menu_control_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
+	input::control_map movement_controls;
+	input::control move_forward_control;
+	input::control move_back_control;
+	input::control move_left_control;
+	input::control move_right_control;
+	input::control move_up_control;
+	input::control move_down_control;
+	input::control pause_control;
 	
 	// Debugging
 	math::moving_average<float, 15> average_frame_time;

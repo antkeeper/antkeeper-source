@@ -32,10 +32,11 @@ gamepad_button_mapping::gamepad_button_mapping(input::gamepad* gamepad, gamepad_
 	button(button)
 {}
 
-key_mapping::key_mapping(input::keyboard* keyboard, input::scancode scancode, bool repeat):
+key_mapping::key_mapping(input::keyboard* keyboard, input::scancode scancode, bool repeat, std::uint16_t modifiers):
 	keyboard(keyboard),
 	scancode(scancode),
-	repeat(repeat)
+	repeat(repeat),
+	modifiers(modifiers)
 {}
 
 mouse_button_mapping::mouse_button_mapping(input::mouse* mouse, mouse_button button):

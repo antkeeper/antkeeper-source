@@ -35,6 +35,7 @@
 #include "game/strings.hpp"
 #include "game/state/boot.hpp"
 #include "game/state/splash.hpp"
+#include "game/state/main-menu.hpp"
 #include "game/system/astronomy.hpp"
 #include "game/system/atmosphere.hpp"
 #include "game/system/behavior.hpp"
@@ -133,8 +134,8 @@ boot::boot(game::context& ctx, int argc, const char* const* argv):
 	
 	debug::log::trace("Boot up complete");
 	
-	// Push splash state
-	ctx.state_machine.emplace(new game::state::splash(ctx));
+	// Push next state
+	ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
 	
 	// Enter main loop
 	debug::log::trace("Entered main loop");
@@ -847,8 +848,8 @@ void boot::setup_scenes()
 	float clip_right = viewport_size[0];
 	float clip_top = 0.0f;
 	float clip_bottom = viewport_size[1];
-	float clip_near = 0.0f;
-	float clip_far = 1000.0f;
+	float clip_near = -100.0f;
+	float clip_far = 100.0f;
 	ctx.ui_camera->set_orthographic(clip_left, clip_right, clip_top, clip_bottom, clip_near, clip_far);
 	ctx.ui_camera->look_at({0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
 	ctx.ui_camera->update_tweens();

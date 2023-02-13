@@ -127,7 +127,7 @@ void sdl_input_manager::update()
 				const input::scancode scancode = static_cast<input::scancode>(event.key.keysym.scancode);
 				
 				// Rebuild modifier keys bit mask
-				if (event.key.keysym.mod != sdl_key_mod)
+				if (sdl_key_mod != event.key.keysym.mod)
 				{
 					sdl_key_mod = event.key.keysym.mod;
 					
@@ -140,6 +140,10 @@ void sdl_input_manager::update()
 						modifier_keys |= input::modifier_key::left_ctrl;
 					if (sdl_key_mod & KMOD_RCTRL)
 						modifier_keys |= input::modifier_key::right_ctrl;
+					if (sdl_key_mod & KMOD_LALT)
+						modifier_keys |= input::modifier_key::left_alt;
+					if (sdl_key_mod & KMOD_RALT)
+						modifier_keys |= input::modifier_key::right_alt;
 					if (sdl_key_mod & KMOD_LGUI)
 						modifier_keys |= input::modifier_key::left_gui;
 					if (sdl_key_mod & KMOD_RGUI)
@@ -237,14 +241,19 @@ void sdl_input_manager::update()
 				if (SDL_IsGameController(event.cdevice.which))
 				{
 					SDL_GameController* sdl_controller = SDL_GameControllerOpen(event.cdevice.which);
-					const char* controller_name = SDL_GameControllerNameForIndex(event.cdevice.which);
-					
 					if (sdl_controller)
 					{
+						// Get gamepad name
+						const char* controller_name = SDL_GameControllerNameForIndex(event.cdevice.which);
+						if (!controller_name)
+						{
+							controller_name = "";
+						}
+						
 						if (auto it = gamepad_map.find(event.cdevice.which); it != gamepad_map.end())
 						{
 							// Gamepad reconnected
-							debug::log::info("Reconnected gamepad \"{}\"", controller_name);
+							debug::log::info("Reconnected gamepad {}", event.cdevice.which);
 							it->second->connect();
 						}
 						else
@@ -257,7 +266,7 @@ void sdl_input_manager::update()
 							::uuid gamepad_uuid;
 							std::memcpy(gamepad_uuid.data.data(), sdl_guid.data, gamepad_uuid.data.size());
 							
-							debug::log::info("Connected gamepad \"{}\" (UUID: {})", controller_name, gamepad_uuid.string());
+							debug::log::info("Connected gamepad {}; name: \"{}\"; UUID: {}", event.cdevice.which, controller_name, gamepad_uuid.string());
 							
 							// Create new gamepad
 							input::gamepad* gamepad = new input::gamepad();
@@ -275,7 +284,7 @@ void sdl_input_manager::update()
 					}
 					else
 					{
-						debug::log::error("Failed to connected gamepad \"{}\": {}", controller_name, SDL_GetError());
+						debug::log::error("Failed to connect gamepad {}: {}", event.cdevice.which, SDL_GetError());
 						SDL_ClearError();
 					}
 				}
@@ -289,15 +298,13 @@ void sdl_input_manager::update()
 				
 				if (sdl_controller)
 				{
-					const char* controller_name = SDL_GameControllerNameForIndex(event.cdevice.which);
-					
 					SDL_GameControllerClose(sdl_controller);
 					if (auto it = gamepad_map.find(event.cdevice.which); it != gamepad_map.end())
 					{
 						it->second->disconnect();
 					}
 					
-					debug::log::info("Disconnected gamepad \"{}\"", controller_name);
+					debug::log::info("Disconnected gamepad {}", event.cdevice.which);
 				}
 				
 				break;

@@ -85,29 +85,37 @@ void update_text_tweens(game::context& ctx)
 
 void align_text(game::context& ctx, bool center, bool has_back, float anchor_y)
 {
+	
+	
 	const vec2 viewport_size = vec2(ctx.window->get_viewport_size());
 	const vec2 viewport_center = viewport_size * 0.5f;
 	
+	const float viewport_padding = viewport_size.y() * (1.0f / 9.0f);
+	
 	// Calculate menu width
+	float m_width = ctx.menu_font.get_glyph_metrics(U'M').width;
+	float column_spacing = m_width * 2.0f;
+	const float min_two_column_row_width = m_width * 18.0f;
 	float menu_width = 0.0f;
-	float menu_spacing = ctx.menu_font.get_glyph_metrics(U'M').width;
 	
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
 		float row_width = 0.0f;
 		
-		// Add name width to width
+		// Add name width to row width
 		const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_local_bounds());
 		row_width += name_bounds.max_point.x() - name_bounds.min_point.x();
 		
 		if (value)
 		{
-			// Add value width to width
-			//const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_local_bounds());
-			//row_width += value_bounds.max_point.x() - value_bounds.min_point.x();
+			// Add value width to row width
+			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_local_bounds());
+			row_width += value_bounds.max_point.x() - value_bounds.min_point.x();
 			
-			// Add spacing to row width
-			row_width += menu_spacing * 8.0f;
+			// Add column spacing to row width
+			row_width += column_spacing;
+			
+			row_width = std::max<float>(min_two_column_row_width, row_width);
 		}
 		
 		menu_width = std::max<float>(menu_width, row_width);
@@ -130,7 +138,9 @@ void align_text(game::context& ctx, bool center, bool has_back, float anchor_y)
 		float x = menu_x;
 		float y = menu_y - ctx.menu_font.get_font_metrics().linespace * i;
 		if (has_back && i == ctx.menu_item_texts.size() - 1)
-			y -= ctx.menu_font.get_font_metrics().linespace;
+		{
+			y = viewport_padding;// + ctx.menu_font.get_font_metrics().linespace;
+		}
 		
 		if (center || i == ctx.menu_item_texts.size() - 1)
 		{

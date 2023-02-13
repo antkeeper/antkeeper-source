@@ -34,8 +34,8 @@ gamepad::gamepad():
 	for (int i = 0; i < 6; ++i)
 	{
 		axis_positions[i] = 0.0f;
-		axis_activation_min[i] = 0.0f;
-		axis_activation_max[i] = 1.0f;
+		axis_activation_min[i] = 0.15f;
+		axis_activation_max[i] = 0.98f;
 		axis_response_curves[i] = gamepad_response_curve::linear;
 	}
 }

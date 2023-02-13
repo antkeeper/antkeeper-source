@@ -17,35 +17,49 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_STATE_KEYBOARD_CONFIG_MENU_HPP
-#define ANTKEEPER_GAME_STATE_KEYBOARD_CONFIG_MENU_HPP
+#ifndef ANTKEEPER_GAME_STATE_COLLECTION_MENU_HPP
+#define ANTKEEPER_GAME_STATE_COLLECTION_MENU_HPP
 
 #include "game/state/base.hpp"
-#include "input/control.hpp"
-#include "input/control-map.hpp"
 #include "event/subscription.hpp"
-#include <cstdint>
+#include "render/material.hpp"
+#include "scene/billboard.hpp"
+#include "animation/animation.hpp"
+#include "geom/primitive/rectangle.hpp"
 #include <memory>
 
 namespace game {
 namespace state {
 
-class keyboard_config_menu: public game::state::base
+class collection_menu: public game::state::base
 {
 public:
-	keyboard_config_menu(game::context& ctx);
-	virtual ~keyboard_config_menu();
+	collection_menu(game::context& ctx);
+	virtual ~collection_menu();
 	
 private:
-	std::string get_mapping_string(const input::control_map& control_map, const input::control& control);
-	void add_control_item(input::control_map& control_map, input::control& control, std::uint32_t control_name_hash);
+	void resize_box();
 	
-	std::shared_ptr<event::subscription> key_mapped_subscription;
-	std::shared_ptr<event::subscription> mouse_button_mapped_subscription;
-	std::shared_ptr<event::subscription> mouse_scroll_mapped_subscription;
+	render::material selection_material;
+	scene::billboard selection_billboard;
+	animation<float> selection_snap_animation;
+	
+	render::material box_material;
+	scene::billboard box_billboard;
+	
+	std::shared_ptr<event::subscription> mouse_moved_subscription;
+	std::shared_ptr<event::subscription> mouse_button_pressed_subscription;
+	std::shared_ptr<event::subscription> window_resized_subscription;
+	
+	geom::primitive::rectangle<float> box_bounds;
+	int row_count;
+	int column_count;
+	int selected_row;
+	int selected_column;
+	float selection_size;
 };
 
 } // namespace state
 } // namespace game
 
-#endif // ANTKEEPER_GAME_STATE_KEYBOARD_CONFIG_MENU_HPP
+#endif // ANTKEEPER_GAME_STATE_COLLECTION_MENU_HPP

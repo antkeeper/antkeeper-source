@@ -46,71 +46,37 @@ void control_map::disconnect()
 	subscriptions.clear();
 }
 
-void control_map::add_mapping(control& control, const mapping& mapping)
+void control_map::add_mapping(control& control, gamepad_axis_mapping mapping)
 {
-	switch (mapping.get_mapping_type())
-	{
-		case mapping_type::gamepad_axis:
-			add_mapping(control, static_cast<const gamepad_axis_mapping&>(mapping));
-			break;
-		
-		case mapping_type::gamepad_button:
-			add_mapping(control, static_cast<const gamepad_button_mapping&>(mapping));
-			break;
-		
-		case mapping_type::key:
-			add_mapping(control, static_cast<const key_mapping&>(mapping));
-			break;
-		
-		case mapping_type::mouse_button:
-			add_mapping(control, static_cast<const mouse_button_mapping&>(mapping));
-			break;
-		
-		case mapping_type::mouse_motion:
-			add_mapping(control, static_cast<const mouse_motion_mapping&>(mapping));
-			break;
-		
-		case mapping_type::mouse_scroll:
-			add_mapping(control, static_cast<const mouse_scroll_mapping&>(mapping));
-			break;
-		
-		default:
-			//std::unreachable();
-			break;
-	}
+	gamepad_axis_mappings.emplace_back(&control, std::move(mapping));
 }
 
-void control_map::add_mapping(control& control, gamepad_axis_mapping&& mapping)
+void control_map::add_mapping(control& control, gamepad_button_mapping mapping)
 {
-	gamepad_axis_mappings.emplace_back(&control, mapping);
+	gamepad_button_mappings.emplace_back(&control, std::move(mapping));
 }
 
-void control_map::add_mapping(control& control, gamepad_button_mapping&& mapping)
+void control_map::add_mapping(control& control, key_mapping mapping)
 {
-	gamepad_button_mappings.emplace_back(&control, mapping);
+	key_mappings.emplace_back(&control, std::move(mapping));
 }
 
-void control_map::add_mapping(control& control, key_mapping&& mapping)
+void control_map::add_mapping(control& control, mouse_button_mapping mapping)
 {
-	key_mappings.emplace_back(&control, mapping);
+	mouse_button_mappings.emplace_back(&control, std::move(mapping));
 }
 
-void control_map::add_mapping(control& control, mouse_button_mapping&& mapping)
+void control_map::add_mapping(control& control, mouse_motion_mapping mapping)
 {
-	mouse_button_mappings.emplace_back(&control, mapping);
+	mouse_motion_mappings.emplace_back(&control, std::move(mapping));
 }
 
-void control_map::add_mapping(control& control, mouse_motion_mapping&& mapping)
+void control_map::add_mapping(control& control, mouse_scroll_mapping mapping)
 {
-	mouse_motion_mappings.emplace_back(&control, mapping);
+	mouse_scroll_mappings.emplace_back(&control, std::move(mapping));
 }
 
-void control_map::add_mapping(control& control, mouse_scroll_mapping&& mapping)
-{
-	mouse_scroll_mappings.emplace_back(&control, mapping);
-}
-
-void control_map::remove_mappings(control& control, mapping_type type)
+void control_map::remove_mappings(const control& control, mapping_type type)
 {
 	auto predicate = [&](const auto& tuple) -> bool
 	{
@@ -149,7 +115,7 @@ void control_map::remove_mappings(control& control, mapping_type type)
 	}
 }
 
-void control_map::remove_mappings(control& control)
+void control_map::remove_mappings(const control& control)
 {
 	auto predicate = [&](const auto& tuple) -> bool
 	{
@@ -222,7 +188,8 @@ void control_map::handle_key_pressed(const key_pressed_event& event)
 	for (const auto& [control, mapping]: key_mappings)
 	{
 		if (mapping.scancode == event.scancode &&
-			(!mapping.keyboard || mapping.keyboard == event.keyboard))
+			(!mapping.keyboard || mapping.keyboard == event.keyboard) &&
+			(!mapping.modifiers || (mapping.modifiers & event.modifiers)))
 		{
 			if (!event.repeat)
 			{
@@ -305,6 +272,96 @@ void control_map::handle_mouse_button_released(const mouse_button_released_event
 			control->evaluate(0.0f);
 		}
 	}
+}
+
+std::vector<gamepad_axis_mapping> control_map::get_gamepad_axis_mappings(const control& control) const
+{
+	std::vector<gamepad_axis_mapping> mappings;
+	
+	for (const auto& [mapped_control, mapping]: gamepad_axis_mappings)
+	{
+		if (mapped_control == &control)
+		{
+			mappings.emplace_back(mapping);
+		}
+	}
+	
+	return mappings;
+}
+	
+std::vector<gamepad_button_mapping> control_map::get_gamepad_button_mappings(const control& control) const
+{
+	std::vector<gamepad_button_mapping> mappings;
+	
+	for (const auto& [mapped_control, mapping]: gamepad_button_mappings)
+	{
+		if (mapped_control == &control)
+		{
+			mappings.emplace_back(mapping);
+		}
+	}
+	
+	return mappings;
+}
+
+std::vector<key_mapping> control_map::get_key_mappings(const control& control) const
+{
+	std::vector<key_mapping> mappings;
+	
+	for (const auto& [mapped_control, mapping]: key_mappings)
+	{
+		if (mapped_control == &control)
+		{
+			mappings.emplace_back(mapping);
+		}
+	}
+	
+	return mappings;
+}
+
+std::vector<mouse_button_mapping> control_map::get_mouse_button_mappings(const control& control) const
+{
+	std::vector<mouse_button_mapping> mappings;
+	
+	for (const auto& [mapped_control, mapping]: mouse_button_mappings)
+	{
+		if (mapped_control == &control)
+		{
+			mappings.emplace_back(mapping);
+		}
+	}
+	
+	return mappings;
+}
+
+std::vector<mouse_motion_mapping> control_map::get_mouse_motion_mappings(const control& control) const
+{
+	std::vector<mouse_motion_mapping> mappings;
+	
+	for (const auto& [mapped_control, mapping]: mouse_motion_mappings)
+	{
+		if (mapped_control == &control)
+		{
+			mappings.emplace_back(mapping);
+		}
+	}
+	
+	return mappings;
+}
+
+std::vector<mouse_scroll_mapping> control_map::get_mouse_scroll_mappings(const control& control) const
+{
+	std::vector<mouse_scroll_mapping> mappings;
+	
+	for (const auto& [mapped_control, mapping]: mouse_scroll_mappings)
+	{
+		if (mapped_control == &control)
+		{
+			mappings.emplace_back(mapping);
+		}
+	}
+	
+	return mappings;
 }
 
 } // namespace input

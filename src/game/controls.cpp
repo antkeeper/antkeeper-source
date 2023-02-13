@@ -22,6 +22,7 @@
 #include "game/menu.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/json.hpp"
+#include "input/modifier-key.hpp"
 
 namespace game {
 
@@ -29,7 +30,9 @@ void setup_window_controls(game::context& ctx)
 {
 	// Map window controls
 	ctx.window_controls.add_mapping(ctx.fullscreen_control, input::key_mapping(nullptr, input::scancode::f11, false));
+	ctx.window_controls.add_mapping(ctx.fullscreen_control, input::key_mapping(nullptr, input::scancode::enter, false, input::modifier_key::alt));
 	ctx.window_controls.add_mapping(ctx.screenshot_control, input::key_mapping(nullptr, input::scancode::f12, false));
+	ctx.window_controls.add_mapping(ctx.screenshot_control, input::key_mapping(nullptr, input::scancode::print_screen, false));
 	
 	// Setup fullscreen control
 	ctx.window_control_subscriptions.emplace_back
@@ -203,10 +206,10 @@ void enable_menu_controls(game::context& ctx)
 	ctx.menu_controls.connect(ctx.input_manager->get_event_queue());
 	
 	// Function to select menu item at mouse position
-	auto select_menu_item = [&ctx](const math::vector<float, 2>& mouse_position)
+	auto select_menu_item = [&ctx](const math::vector<float, 2>& mouse_position) -> bool
 	{
 		const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
-	
+		
 		for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 		{
 			auto [name, value] = ctx.menu_item_texts[i];
@@ -240,10 +243,12 @@ void enable_menu_controls(game::context& ctx)
 				{
 					*ctx.menu_item_index = static_cast<int>(i);
 					game::menu::update_text_color(ctx);
-					break;
+					return true;
 				}
 			}
 		}
+		
+		return false;
 	};
 	
 	// Enable menu mouse tracking
@@ -266,29 +271,30 @@ void enable_menu_controls(game::context& ctx)
 			[&ctx, select_menu_item](const auto& event)
 			{
 				// Select menu item at mouse position (if any)
-				select_menu_item(math::vector<float, 2>(event.position));
-				
-				// Determine appropriate menu item callback
-				auto callback = ctx.menu_select_callbacks[*ctx.menu_item_index];
-				if (event.button == input::mouse_button::left)
+				if (select_menu_item(math::vector<float, 2>(event.position)))
 				{
-					if (ctx.menu_left_callbacks[*ctx.menu_item_index])
+					// Determine appropriate menu item callback
+					auto callback = ctx.menu_select_callbacks[*ctx.menu_item_index];
+					if (event.button == input::mouse_button::left)
 					{
-						callback = ctx.menu_left_callbacks[*ctx.menu_item_index];
+						if (ctx.menu_left_callbacks[*ctx.menu_item_index])
+						{
+							callback = ctx.menu_left_callbacks[*ctx.menu_item_index];
+						}
 					}
-				}
-				else if (event.button == input::mouse_button::right)
-				{
-					if (ctx.menu_right_callbacks[*ctx.menu_item_index])
+					else if (event.button == input::mouse_button::right)
 					{
-						callback = ctx.menu_right_callbacks[*ctx.menu_item_index];
+						if (ctx.menu_right_callbacks[*ctx.menu_item_index])
+						{
+							callback = ctx.menu_right_callbacks[*ctx.menu_item_index];
+						}
 					}
-				}
-				
-				// Invoke menu item callback
-				if (callback)
-				{
-					callback();
+					
+					// Invoke menu item callback
+					if (callback)
+					{
+						callback();
+					}
 				}
 			}
 		)

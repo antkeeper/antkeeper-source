@@ -136,9 +136,10 @@ public:
 	 * @param keyboard Pointer to the keyboard to map, or `nullptr` if input from any keyboard will be mapped.
 	 * @param scancode Scancode of the key to map.
 	 * @param repeat `false` if the mapping should ignore key repeats, `true` otherwise.
+	 * @param modifiers Modifier keys bitmask.
 	 */
 	/// @{
-	key_mapping(input::keyboard* keyboard, input::scancode scancode, bool repeat = false);
+	key_mapping(input::keyboard* keyboard, input::scancode scancode, bool repeat = false, std::uint16_t modifiers = 0);
 	key_mapping() = default;
 	/// @}
 	
@@ -159,6 +160,9 @@ public:
 	
 	/// `false` if the mapping ignores key repeats, `true` otherwise.
 	bool repeat;
+	
+	/// Modifier keys bitbask.
+	std::uint16_t modifiers;
 };
 
 /**

@@ -27,14 +27,16 @@
 #include "game/component/model.hpp"
 #include "game/component/steering.hpp"
 #include "game/component/transform.hpp"
+#include "game/controls.hpp"
 #include "game/ecoregion.hpp"
 #include "game/menu.hpp"
+#include "game/state/collection-menu.hpp"
 #include "game/state/extras-menu.hpp"
 #include "game/state/nuptial-flight.hpp"
 #include "game/state/options-menu.hpp"
 #include "game/strings.hpp"
 #include "game/world.hpp"
-#include "game/controls.hpp"
+#include "math/glsl.hpp"
 #include "math/projection.hpp"
 #include "physics/light/exposure.hpp"
 #include "render/model.hpp"
@@ -43,7 +45,6 @@
 #include "render/passes/sky-pass.hpp"
 #include "resources/resource-manager.hpp"
 #include "utility/hash/fnv1a.hpp"
-#include "math/glsl.hpp"
 #include <limits>
 
 using namespace hash::literals;
@@ -126,7 +127,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
 		
 		// Create change state function
-		auto change_state_nuptial_flight = [&ctx]()
+		auto change_state = [&ctx]()
 		{
 			// Queue change to nuptial state
 			ctx.function_queue.push
@@ -134,7 +135,8 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 				[&ctx]()
 				{
 					ctx.state_machine.pop();
-					ctx.state_machine.emplace(new game::state::nuptial_flight(ctx));
+					//ctx.state_machine.emplace(new game::state::nuptial_flight(ctx));
+					ctx.state_machine.emplace(new game::state::collection_menu(ctx));
 				}
 			);
 		};
@@ -146,8 +148,9 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 		game::menu::fade_out(ctx, nullptr);
 		
 		// Start fade out to white
-		ctx.fade_transition_color->set_value({1, 1, 1});
-		ctx.fade_transition->transition(config::new_colony_fade_out_duration, false, ease<float>::out_cubic, false, change_state_nuptial_flight);
+		//ctx.fade_transition_color->set_value({1, 1, 1});
+		ctx.fade_transition_color->set_value({0, 0, 0});
+		ctx.fade_transition->transition(config::new_colony_fade_out_duration, false, ease<float>::out_cubic, false, change_state);
 	};
 	auto select_options_callback = [this, &ctx]()
 	{

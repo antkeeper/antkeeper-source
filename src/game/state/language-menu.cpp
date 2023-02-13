@@ -181,7 +181,7 @@ language_menu::~language_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	debug::log::trace("Exited language menu state...");
+	debug::log::trace("Exited language menu state");
 }
 
 void language_menu::update_text_content()
