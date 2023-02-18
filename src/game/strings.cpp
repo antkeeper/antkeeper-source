@@ -24,9 +24,7 @@ namespace game {
 
 std::string get_string(const game::context& ctx, std::uint32_t key)
 {
-	const auto& string_map = ctx.string_maps[ctx.language_index];
-	
-	if (auto i = string_map.find(key); i != string_map.end())
+	if (auto i = ctx.string_map->find(key); i != ctx.string_map->end())
 	{
 		return i->second;
 	}

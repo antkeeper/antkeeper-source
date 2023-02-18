@@ -35,21 +35,19 @@ namespace game {
 namespace state {
 
 gamepad_config_menu::gamepad_config_menu(game::context& ctx):
-	game::state::base(ctx)
+	game::state::base(ctx),
+	action_remapped(false)
 {
 	debug::log::trace("Entering gamepad config menu state...");
 	
-	// Add camera control menu items
-	add_control_item("move_forward");
-	add_control_item("move_back");
-	add_control_item("move_left");
-	add_control_item("move_right");
-	add_control_item("move_up");
-	add_control_item("move_down");
-	
-	// Add application control menu items
-	add_control_item("toggle_fullscreen");
-	add_control_item("screenshot");
+	// Add control menu items
+	add_control_item(ctx.movement_actions, ctx.move_forward_action, "control_move_forward"_fnv1a32);
+	add_control_item(ctx.movement_actions, ctx.move_back_action, "control_move_back"_fnv1a32);
+	add_control_item(ctx.movement_actions, ctx.move_left_action, "control_move_left"_fnv1a32);
+	add_control_item(ctx.movement_actions, ctx.move_right_action, "control_move_right"_fnv1a32);
+	add_control_item(ctx.movement_actions, ctx.move_up_action, "control_move_up"_fnv1a32);
+	add_control_item(ctx.movement_actions, ctx.move_down_action, "control_move_down"_fnv1a32);
+	add_control_item(ctx.movement_actions, ctx.pause_action, "control_pause"_fnv1a32);
 	
 	// Construct menu item texts
 	scene::text* back_text = new scene::text();
@@ -126,168 +124,173 @@ gamepad_config_menu::~gamepad_config_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	// Save control profile
-	game::save_control_profile(ctx);
+	if (action_remapped)
+	{
+		// Update control profile
+		game::update_control_profile(ctx, *ctx.control_profile);
+		
+		// Save control profile
+		ctx.resource_manager->set_write_dir(ctx.controls_path);
+		ctx.resource_manager->save(ctx.control_profile, ctx.control_profile_filename);
+	}
 	
 	debug::log::trace("Exited gamepad config menu state");
 }
 
-std::string gamepad_config_menu::get_binding_string(input::action* control)
+std::string gamepad_config_menu::get_mapping_string(const input::action_map& action_map, const input::action& control)
 {
-	std::string binding_string;
-	/*
-	auto mappings = ctx.input_event_router->get_mappings(control);
-	for (input::mapping* mapping: *mappings)
+	std::string mapping_string;
+	
+	if (auto gamepad_axis_mappings = action_map.get_gamepad_axis_mappings(control); !gamepad_axis_mappings.empty())
 	{
-		std::string mapping_string;
+		const auto& gamepad_axis_mapping = gamepad_axis_mappings.front();
 		
-		switch (mapping->get_type())
+		switch (gamepad_axis_mapping.axis)
 		{
-			case input::mapping_type::gamepad_axis:
-			{
-				const input::gamepad_axis_mapping* axis_mapping = static_cast<const input::gamepad_axis_mapping*>(mapping);
-				
-				switch (axis_mapping->axis)
+			case input::gamepad_axis::left_stick_x:
+				if (gamepad_axis_mapping.direction)
 				{
-					case input::gamepad_axis::left_x:
-						if (axis_mapping->negative)
-							mapping_string = (*ctx.strings)["gamepad_left_stick_left"];
-						else
-							mapping_string = (*ctx.strings)["gamepad_left_stick_right"];
-						break;
-					
-					case input::gamepad_axis::left_y:
-						if (axis_mapping->negative)
-							mapping_string = (*ctx.strings)["gamepad_left_stick_up"];
-						else
-							mapping_string = (*ctx.strings)["gamepad_left_stick_down"];
-						break;
-					
-					case input::gamepad_axis::right_x:
-						if (axis_mapping->negative)
-							mapping_string = (*ctx.strings)["gamepad_right_stick_left"];
-						else
-							mapping_string = (*ctx.strings)["gamepad_right_stick_right"];
-						break;
-					
-					case input::gamepad_axis::right_y:
-						if (axis_mapping->negative)
-							mapping_string = (*ctx.strings)["gamepad_right_stick_up"];
-						else
-							mapping_string = (*ctx.strings)["gamepad_right_stick_down"];
-						break;
-					
-					case input::gamepad_axis::left_trigger:
-						mapping_string = (*ctx.strings)["gamepad_left_trigger"];
-						break;
-						
-					case input::gamepad_axis::right_trigger:
-						mapping_string = (*ctx.strings)["gamepad_right_trigger"];
-						break;
-					
-					default:
-						break;
+					mapping_string = get_string(ctx, "gamepad_left_stick_left"_fnv1a32);
+				}
+				else
+				{
+					mapping_string = get_string(ctx, "gamepad_left_stick_right"_fnv1a32);
 				}
 				break;
-			}
 			
-			case input::mapping_type::gamepad_button:
-			{
-				const input::gamepad_button_mapping* button_mapping = static_cast<const input::gamepad_button_mapping*>(mapping);
-				
-				switch (button_mapping->button)
+			case input::gamepad_axis::left_stick_y:
+				if (gamepad_axis_mapping.direction)
 				{
-					case input::gamepad_button::a:
-						mapping_string = (*ctx.strings)["gamepad_button_a"];
-						break;
-					
-					case input::gamepad_button::b:
-						mapping_string = (*ctx.strings)["gamepad_button_b"];
-						break;
-					
-					case input::gamepad_button::x:
-						mapping_string = (*ctx.strings)["gamepad_button_x"];
-						break;
-					
-					case input::gamepad_button::y:
-						mapping_string = (*ctx.strings)["gamepad_button_y"];
-						break;
-					
-					case input::gamepad_button::back:
-						mapping_string = (*ctx.strings)["gamepad_button_back"];
-						break;
-					
-					case input::gamepad_button::guide:
-						mapping_string = (*ctx.strings)["gamepad_button_guide"];
-						break;
-					
-					case input::gamepad_button::start:
-						mapping_string = (*ctx.strings)["gamepad_button_start"];
-						break;
-					
-					case input::gamepad_button::left_stick:
-						mapping_string = (*ctx.strings)["gamepad_button_left_stick"];
-						break;
-					
-					case input::gamepad_button::right_stick:
-						mapping_string = (*ctx.strings)["gamepad_button_right_stick"];
-						break;
-					
-					case input::gamepad_button::left_shoulder:
-						mapping_string = (*ctx.strings)["gamepad_button_left_shoulder"];
-						break;
-					
-					case input::gamepad_button::right_shoulder:
-						mapping_string = (*ctx.strings)["gamepad_button_right_shoulder"];
-						break;
-					
-					case input::gamepad_button::dpad_up:
-						mapping_string = (*ctx.strings)["gamepad_button_dpad_up"];
-						break;
-					
-					case input::gamepad_button::dpad_down:
-						mapping_string = (*ctx.strings)["gamepad_button_dpad_down"];
-						break;
-					
-					case input::gamepad_button::dpad_left:
-						mapping_string = (*ctx.strings)["gamepad_button_dpad_left"];
-						break;
-					
-					case input::gamepad_button::dpad_right:
-						mapping_string = (*ctx.strings)["gamepad_button_dpad_right"];
-						break;
-					
-					default:
-						break;
+					mapping_string = get_string(ctx, "gamepad_left_stick_up"_fnv1a32);
+				}
+				else
+				{
+					mapping_string = get_string(ctx, "gamepad_left_stick_down"_fnv1a32);
 				}
 				break;
-			}
+			
+			case input::gamepad_axis::right_stick_x:
+				if (gamepad_axis_mapping.direction)
+				{
+					mapping_string = get_string(ctx, "gamepad_right_stick_left"_fnv1a32);
+				}
+				else
+				{
+					mapping_string = get_string(ctx, "gamepad_right_stick_right"_fnv1a32);
+				}
+				break;
+			
+			case input::gamepad_axis::right_stick_y:
+				if (gamepad_axis_mapping.direction)
+				{
+					mapping_string = get_string(ctx, "gamepad_right_stick_up"_fnv1a32);
+				}
+				else
+				{
+					mapping_string = get_string(ctx, "gamepad_right_stick_down"_fnv1a32);
+				}
+				break;
+			
+			case input::gamepad_axis::left_trigger:
+				mapping_string = get_string(ctx, "gamepad_left_trigger"_fnv1a32);
+				break;
+			
+			case input::gamepad_axis::right_trigger:
+				mapping_string = get_string(ctx, "gamepad_right_trigger"_fnv1a32);
+				break;
 			
 			default:
+			{
+				const char sign = (gamepad_axis_mapping.direction) ? '-' : '+';
+				const std::string format_string = get_string(ctx, "gamepad_axis_n_format"_fnv1a32);
+				mapping_string = std::vformat(format_string, std::make_format_args(std::to_underlying(gamepad_axis_mapping.axis), sign));
 				break;
-		}
-		
-		if (!mapping_string.empty())
-		{
-			if (binding_string.empty())
-			{
-				binding_string = mapping_string;
-			}
-			else
-			{
-				binding_string += " " + mapping_string;
 			}
 		}
 	}
-	*/
-	return binding_string;
+	else if (auto gamepad_button_mappings = action_map.get_gamepad_button_mappings(control); !gamepad_button_mappings.empty())
+	{
+		const auto& gamepad_button_mapping = gamepad_button_mappings.front();
+		switch (gamepad_button_mapping.button)
+		{
+			case input::gamepad_button::a:
+				mapping_string = get_string(ctx, "gamepad_button_a"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::b:
+				mapping_string = get_string(ctx, "gamepad_button_b"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::x:
+				mapping_string = get_string(ctx, "gamepad_button_x"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::y:
+				mapping_string = get_string(ctx, "gamepad_button_y"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::back:
+				mapping_string = get_string(ctx, "gamepad_button_back"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::guide:
+				mapping_string = get_string(ctx, "gamepad_button_guide"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::start:
+				mapping_string = get_string(ctx, "gamepad_button_start"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::left_stick:
+				mapping_string = get_string(ctx, "gamepad_button_left_stick"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::right_stick:
+				mapping_string = get_string(ctx, "gamepad_button_right_stick"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::left_shoulder:
+				mapping_string = get_string(ctx, "gamepad_button_left_shoulder"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::right_shoulder:
+				mapping_string = get_string(ctx, "gamepad_button_right_shoulder"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::dpad_up:
+				mapping_string = get_string(ctx, "gamepad_button_dpad_up"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::dpad_down:
+				mapping_string = get_string(ctx, "gamepad_button_dpad_down"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::dpad_left:
+				mapping_string = get_string(ctx, "gamepad_button_dpad_left"_fnv1a32);
+				break;
+			
+			case input::gamepad_button::dpad_right:
+				mapping_string = get_string(ctx, "gamepad_button_dpad_right"_fnv1a32);
+				break;
+			
+			default:
+			{
+				const std::string format_string = get_string(ctx, "gamepad_button_n_format"_fnv1a32);
+				mapping_string = std::vformat(format_string, std::make_format_args(std::to_underlying(gamepad_button_mapping.button)));
+				break;
+			}
+		}
+	}
+	else
+	{
+		mapping_string = get_string(ctx, "control_unmapped"_fnv1a32);
+	}
+	
+	return mapping_string;
 }
 
-void gamepad_config_menu::add_control_item(const std::string& control_name)
+void gamepad_config_menu::add_control_item(input::action_map& action_map, input::action& control, std::uint32_t control_name_hash)
 {
-	// Get pointer to control
-	//input::action* control = ctx.controls[control_name];
-	
 	// Construct texts
 	scene::text* name_text = new scene::text();
 	scene::text* value_text = new scene::text();
@@ -295,76 +298,71 @@ void gamepad_config_menu::add_control_item(const std::string& control_name)
 	// Add texts to list of menu item texts
 	ctx.menu_item_texts.push_back({name_text, value_text});
 	
-	// Set content of name text
-	name_text->set_content(control_name);
+	// Set control name and mapping texts
+	name_text->set_content(get_string(ctx, control_name_hash));
+	value_text->set_content(get_mapping_string(action_map, control));
 	
-	// Set content of value text
-	//value_text->set_content(get_binding_string(control));
-	
-	auto select_callback = [this, &ctx = this->ctx, value_text]()
+	// Callback invoked when an input has been mapped to the control
+	auto input_mapped_callback = [this, &ctx = this->ctx, action_map = &action_map, control = &control, value_text](const auto& event)
 	{
-		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		if (event.mapping.get_mapping_type() != input::mapping_type::key)
+		{
+			this->action_remapped = true;
+			
+			// Remove gamepad axis mappings and gamepad button mappings mapped to the control
+			action_map->remove_mappings(*control, input::mapping_type::gamepad_axis);
+			action_map->remove_mappings(*control, input::mapping_type::gamepad_button);
+			
+			action_map->add_mapping(*control, event.mapping);
+		}
 		
-		// Clear binding string from value text
-		value_text->set_content(get_string(ctx, "ellipsis"_fnv1a32));
+		// Update control mapping text
+		value_text->set_content(this->get_mapping_string(*action_map, *control));
 		game::menu::align_text(ctx);
 		game::menu::update_text_tweens(ctx);
 		
-		/*
-		// Remove gamepad event mappings from control
-		ctx.input_event_router->remove_mappings(control, input::mapping_type::gamepad_axis);
-		ctx.input_event_router->remove_mappings(control, input::mapping_type::gamepad_button);
-		
-		// Setup input binding listener
-		ctx.input_listener->set_callback
+		// Queue disabling of input mapper re-enabling of menu controls
+		ctx.function_queue.push
 		(
-			[this, &ctx, control, value_text](const event_base& event)
+			[&ctx]()
 			{
-				auto id = event.get_event_type_id();
-				if (id == gamepad_axis_moved_event::event_type_id)
-				{
-					// Map gamepad axis event to control
-					const gamepad_axis_moved_event& axis_event = static_cast<const gamepad_axis_moved_event&>(event);	
-					if (std::abs(axis_event.value) < 0.5f)
-						return;
-					
-					ctx.input_event_router->add_mapping(input::gamepad_axis_mapping(control, nullptr, axis_event.axis, (axis_event.value < 0)));
-				}
-				else if (id == gamepad_button_pressed_event::event_type_id)
-				{
-					// Map gamepad button event to control
-					const gamepad_button_pressed_event& button_event = static_cast<const gamepad_button_pressed_event&>(event);
-					ctx.input_event_router->add_mapping(input::gamepad_button_mapping(control, nullptr, button_event.button));
-				}
-				else if (id == key_pressed_event::event_type_id)
-				{
-					// Map key pressed event to control
-					const key_pressed_event& key_event = static_cast<const key_pressed_event&>(event);
-					
-					if (key_event.scancode != input::scancode::escape && key_event.scancode != input::scancode::backspace)
-						return;
-				}
-				else
-				{
-					return;
-				}
-				
-				// Update menu text
-				value_text->set_content(this->get_binding_string(control));
-				game::menu::align_text(ctx);
-				game::menu::update_text_tweens(ctx);
-				
-				// Disable input listener
-				ctx.input_listener->set_enabled(false);
-				ctx.input_listener->set_callback(nullptr);
-				
-				// Queue menu control setup
-				ctx.function_queue.push(std::bind(game::menu::setup_controls, std::ref(ctx)));
+				ctx.input_mapper.disconnect();
+				game::enable_menu_controls(ctx);
 			}
 		);
-		ctx.input_listener->set_enabled(true);
-		*/
+	};
+	
+	// Callback invoked when the control menu item has been selected
+	auto select_callback = [this, &ctx = this->ctx, action_map = &action_map, control = &control, value_text, input_mapped_callback]()
+	{
+		// Set control mapping text to "..."
+		value_text->set_content(get_string(ctx, "control_mapping"_fnv1a32));
+		game::menu::align_text(ctx);
+		game::menu::update_text_tweens(ctx);
+		
+		// Setup input mapped callbacks
+		gamepad_axis_mapped_subscription = ctx.input_mapper.get_gamepad_axis_mapped_channel().subscribe
+		(
+			input_mapped_callback
+		);
+		gamepad_button_mapped_subscription = ctx.input_mapper.get_gamepad_button_mapped_channel().subscribe
+		(
+			input_mapped_callback
+		);
+		key_mapped_subscription = ctx.input_mapper.get_key_mapped_channel().subscribe
+		(
+			input_mapped_callback
+		);
+		
+		// Queue disabling of menu controls and enabling of input mapper
+		ctx.function_queue.push
+		(
+			[&]()
+			{
+				game::disable_menu_controls(ctx);
+				ctx.input_mapper.connect(ctx.input_manager->get_event_queue());
+			}
+		);
 	};
 	
 	// Register menu item callbacks

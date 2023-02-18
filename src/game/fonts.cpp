@@ -46,7 +46,7 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	for (char32_t code: charset)
 	{
 		// Skip missing glyphs
-		if (!typeface.has_glyph(code))
+		if (!typeface.get_charset().contains(code))
 			continue;
 		
 		// Add glyph to font
@@ -101,6 +101,7 @@ void load_fonts(game::context& ctx)
 	}
 	
 	// Build character set
+	/*
 	std::unordered_set<char32_t> charset;
 	{
 		// Add all character codes from the basic Latin unicode block
@@ -108,8 +109,7 @@ void load_fonts(game::context& ctx)
 			charset.insert(code);
 		
 		// Add all character codes from game strings
-		const auto& string_map = ctx.string_maps[ctx.language_index];
-		for (auto it = string_map.begin(); it != string_map.end(); ++it)
+		for (auto it = ctx.string_map->begin(); it != ctx.string_map->end(); ++it)
 		{
 			// Convert UTF-8 string to UTF-32
 			std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
@@ -120,6 +120,7 @@ void load_fonts(game::context& ctx)
 				charset.insert(code);
 		}
 	}
+	*/
 	
 	// Load bitmap font shader
 	gl::shader_program* bitmap_font_shader = ctx.resource_manager->load<gl::shader_program>("bitmap-font.glsl");
@@ -131,19 +132,19 @@ void load_fonts(game::context& ctx)
 	// Build debug font
 	if (auto it = ctx.typefaces.find("monospace"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, ctx.debug_font_size_pt * pt_to_px, charset, ctx.debug_font, ctx.debug_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, ctx.debug_font_size_pt * pt_to_px, it->second->get_charset(), ctx.debug_font, ctx.debug_font_material, bitmap_font_shader);
 	}
 	
 	// Build menu font
 	if (auto it = ctx.typefaces.find("sans_serif"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, ctx.menu_font_size_pt * pt_to_px, charset, ctx.menu_font, ctx.menu_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, ctx.menu_font_size_pt * pt_to_px, it->second->get_charset(), ctx.menu_font, ctx.menu_font_material, bitmap_font_shader);
 	}
 	
 	// Build title font
 	if (auto it = ctx.typefaces.find("serif"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, ctx.title_font_size_pt * pt_to_px, charset, ctx.title_font, ctx.title_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, ctx.title_font_size_pt * pt_to_px, it->second->get_charset(), ctx.title_font, ctx.title_font_material, bitmap_font_shader);
 	}
 }
 

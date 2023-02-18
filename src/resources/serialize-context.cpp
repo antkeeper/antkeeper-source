@@ -47,30 +47,18 @@ std::size_t serialize_context::write8(const std::byte* data, std::size_t count)
 	return count;
 }
 
-std::size_t serialize_context::write16(const std::byte* data, std::size_t count)
+std::size_t serialize_context::write16_le(const std::byte* data, std::size_t count)
 {
 	PHYSFS_File* file = reinterpret_cast<PHYSFS_File*>(handle);
 	const PHYSFS_uint16* data16 = reinterpret_cast<const PHYSFS_uint16*>(data);
 	
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		if constexpr (serialize_context::endian == std::endian::little)
+		if (!PHYSFS_writeULE16(file, *data16))
 		{
-			if (!PHYSFS_writeULE16(file, *data16))
-			{
-				m_error = true;
-				throw serialize_error(PHYSFS_getLastError());
-				//return i;
-			}
-		}
-		else
-		{
-			if (!PHYSFS_writeUBE16(file, *data16))
-			{
-				m_error = true;
-				throw serialize_error(PHYSFS_getLastError());
-				//return i;
-			}
+			m_error = true;
+			throw serialize_error(PHYSFS_getLastError());
+			//return i;
 		}
 		
 		++data16;
@@ -79,30 +67,38 @@ std::size_t serialize_context::write16(const std::byte* data, std::size_t count)
 	return count;
 }
 
-std::size_t serialize_context::write32(const std::byte* data, std::size_t count)
+std::size_t serialize_context::write16_be(const std::byte* data, std::size_t count)
+{
+	PHYSFS_File* file = reinterpret_cast<PHYSFS_File*>(handle);
+	const PHYSFS_uint16* data16 = reinterpret_cast<const PHYSFS_uint16*>(data);
+	
+	for (std::size_t i = 0; i < count; ++i)
+	{
+		if (!PHYSFS_writeUBE16(file, *data16))
+		{
+			m_error = true;
+			throw serialize_error(PHYSFS_getLastError());
+			//return i;
+		}
+		
+		++data16;
+	}
+	
+	return count;
+}
+
+std::size_t serialize_context::write32_le(const std::byte* data, std::size_t count)
 {
 	PHYSFS_File* file = reinterpret_cast<PHYSFS_File*>(handle);
 	const PHYSFS_uint32* data32 = reinterpret_cast<const PHYSFS_uint32*>(data);
 	
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		if constexpr (serialize_context::endian == std::endian::little)
+		if (!PHYSFS_writeULE32(file, *data32))
 		{
-			if (!PHYSFS_writeULE32(file, *data32))
-			{
-				m_error = true;
-				throw serialize_error(PHYSFS_getLastError());
-				//return i;
-			}
-		}
-		else
-		{
-			if (!PHYSFS_writeUBE32(file, *data32))
-			{
-				m_error = true;
-				throw serialize_error(PHYSFS_getLastError());
-				//return i;
-			}
+			m_error = true;
+			throw serialize_error(PHYSFS_getLastError());
+			//return i;
 		}
 		
 		++data32;
@@ -111,30 +107,58 @@ std::size_t serialize_context::write32(const std::byte* data, std::size_t count)
 	return count;
 }
 
-std::size_t serialize_context::write64(const std::byte* data, std::size_t count)
+std::size_t serialize_context::write32_be(const std::byte* data, std::size_t count)
+{
+	PHYSFS_File* file = reinterpret_cast<PHYSFS_File*>(handle);
+	const PHYSFS_uint32* data32 = reinterpret_cast<const PHYSFS_uint32*>(data);
+	
+	for (std::size_t i = 0; i < count; ++i)
+	{
+		if (!PHYSFS_writeUBE32(file, *data32))
+		{
+			m_error = true;
+			throw serialize_error(PHYSFS_getLastError());
+			//return i;
+		}
+		
+		++data32;
+	}
+	
+	return count;
+}
+
+std::size_t serialize_context::write64_le(const std::byte* data, std::size_t count)
 {
 	PHYSFS_File* file = reinterpret_cast<PHYSFS_File*>(handle);
 	const PHYSFS_uint64* data64 = reinterpret_cast<const PHYSFS_uint64*>(data);
 	
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		if constexpr (serialize_context::endian == std::endian::little)
+		if (!PHYSFS_writeULE64(file, *data64))
 		{
-			if (!PHYSFS_writeULE64(file, *data64))
-			{
-				m_error = true;
-				throw serialize_error(PHYSFS_getLastError());
-				//return i;
-			}
+			m_error = true;
+			throw serialize_error(PHYSFS_getLastError());
+			//return i;
 		}
-		else
+		
+		++data64;
+	}
+	
+	return count;
+}
+
+std::size_t serialize_context::write64_be(const std::byte* data, std::size_t count)
+{
+	PHYSFS_File* file = reinterpret_cast<PHYSFS_File*>(handle);
+	const PHYSFS_uint64* data64 = reinterpret_cast<const PHYSFS_uint64*>(data);
+	
+	for (std::size_t i = 0; i < count; ++i)
+	{
+		if (!PHYSFS_writeUBE64(file, *data64))
 		{
-			if (!PHYSFS_writeUBE64(file, *data64))
-			{
-				m_error = true;
-				throw serialize_error(PHYSFS_getLastError());
-				//return i;
-			}
+			m_error = true;
+			throw serialize_error(PHYSFS_getLastError());
+			//return i;
 		}
 		
 		++data64;

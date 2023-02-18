@@ -39,7 +39,7 @@ public:
 	 */
 	typedef std::function<bool(float)> threshold_function_type;
 	
-	/// Constructs a action.
+	/// Constructs an action.
 	action();
 	
 	/**

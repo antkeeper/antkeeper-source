@@ -50,9 +50,6 @@ public:
 	/// @copydoc type::typeface::has_kerning() const
 	virtual bool has_kerning() const;
 	
-	/// @copydoc type::typeface::has_glyph(char32_t) const
-	virtual bool has_glyph(char32_t code) const;
-	
 	/// @copydoc type::typeface::get_metrics(float, font_metrics&) const
 	virtual bool get_metrics(float height, font_metrics& metrics) const;
 	

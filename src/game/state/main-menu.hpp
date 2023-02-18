@@ -43,7 +43,6 @@ private:
 	scene::text title_text;
 	animation<float> title_fade_animation;
 	
-	entity::id swarm_eid;
 	std::shared_ptr<event::subscription> window_resized_subscription;
 };
 

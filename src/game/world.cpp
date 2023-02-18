@@ -17,6 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/world.hpp"
 #include "color/color.hpp"
 #include "config.hpp"
 #include "debug/log.hpp"
@@ -33,7 +34,6 @@
 #include "game/system/atmosphere.hpp"
 #include "game/system/orbit.hpp"
 #include "game/system/terrain.hpp"
-#include "game/world.hpp"
 #include "geom/solid-angle.hpp"
 #include "geom/spherical.hpp"
 #include "gl/drawing-mode.hpp"
@@ -42,6 +42,7 @@
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-attribute.hpp"
 #include "gl/vertex-buffer.hpp"
+#include "i18n/string-table.hpp"
 #include "math/hash/hash.hpp"
 #include "math/noise/noise.hpp"
 #include "physics/light/photometry.hpp"
@@ -64,7 +65,6 @@
 #include "scene/ambient-light.hpp"
 #include "scene/directional-light.hpp"
 #include "scene/text.hpp"
-#include "i18n/string-table.hpp"
 #include <algorithm>
 #include <execution>
 #include <fstream>

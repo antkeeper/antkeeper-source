@@ -27,75 +27,38 @@
 
 namespace game {
 
+/**
+ * Resets a control profile to default settings.
+ *
+ * @param profile Control profile to reset.
+ */
+void reset_control_profile(game::control_profile& profile);
+
+/**
+ * Applies a control profile to the game context.
+ *
+ * @param ctx Game context.
+ * @param profile Control profile to apply.
+ */
+void apply_control_profile(game::context& ctx, const game::control_profile& profile);
+
+/**
+ * Updates a control profile after actions have been remapped.
+ *
+ * @param ctx Game context.
+ * @param profile Control profile to update.
+ */
+void update_control_profile(game::context& ctx, game::control_profile& profile);
+
 void setup_window_controls(game::context& ctx);
 void setup_menu_controls(game::context& ctx);
+void setup_game_controls(game::context& ctx);
 
 void enable_window_controls(game::context& ctx);
 void enable_menu_controls(game::context& ctx);
 
 void disable_window_controls(game::context& ctx);
 void disable_menu_controls(game::context& ctx);
-
-
-/**
- * Applies a control profile to the game context.
- *
- * @param ctx Game context.
- * @param profile Control profile.
- */
-void apply_control_profile(game::context& ctx, const json& profile);
-
-/**
- * Saves the current control profile.
- *
- * @param ctx Game context.
- */
-void save_control_profile(game::context& ctx);
-
-/**
- * Generates a default control profile.
- *
- * @return Default control profile.
- */
-json default_control_profile();
-
-/**
- * Returns a string containing the path to the gamepad calibration file.
- */
-std::filesystem::path gamepad_calibration_path(const game::context& ctx, const input::gamepad& gamepad);
-
-/**
- * Generates default gamepad calibration settings.
- *
- * @return Default gamepad calibration settings.
- */
-json default_gamepad_calibration();
-
-/**
- * Loads gamepad calibration settings.
- *
- * @param ctx Game context.
- * @param gamepad Gamepad for which to load calibration settings.
- * @return Gamepad calibration settings, or `nullptr` if not loaded.
- */
-json* load_gamepad_calibration(game::context& ctx, const input::gamepad& gamepad);
-
-/**
- * Saves gamepad calibration settings.
- *
- * @param ctx Game context.
- * @param gamepad Gamepad for which to save calibration settings.
- * @return `true` if calibration settings were successfully saved, `false` otherwise.
- */
-bool save_gamepad_calibration(const game::context& ctx, const input::gamepad& gamepad, const json& calibration);
-
-/**
- * Applies gamepad calibration settings.
- *
- * @param gamepad Gamepad to calibrate.
- * @param calibration JSON element containing gamepad calibration settings.
- */
-void apply_gamepad_calibration(input::gamepad& gamepad, const json& calibration);
 
 } // namespace game
 

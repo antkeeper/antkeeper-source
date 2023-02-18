@@ -24,6 +24,7 @@
 #include "type/glyph-metrics.hpp"
 #include "resources/image.hpp"
 #include "utility/fundamental-types.hpp"
+#include <unordered_set>
 
 namespace type {
 
@@ -77,21 +78,19 @@ public:
 	void set_weight(int weight);
 	
 	/// Returns the style of the typeface.
-	typeface_style get_style() const;
+	[[nodiscard]] inline typeface_style get_style() const noexcept
+	{
+		return style;
+	}
 	
 	/// Returns the weight of the typeface.
-	int get_weight() const;
+	[[nodiscard]] inline int get_weight() const noexcept
+	{
+		return weight;
+	}
 	
 	/// Returns `true` if the typeface contains kerning information, `false` otherwise.
 	virtual bool has_kerning() const = 0;
-	
-	/**
-	 * Returns `true` if the typeface contains a glyph, `false` otherwise.
-	 *
-	 * @param code UTF-32 character code of a glyph.
-	 * @return `true` if the typeface contains the glyph, `false` otherwise.
-	 */
-	virtual bool has_glyph(char32_t code) const = 0;
 	
 	/**
 	 * Gets metrics for a font of the specified size.
@@ -133,20 +132,19 @@ public:
 	 */
 	virtual bool get_kerning(float height, char32_t first, char32_t second, float2& offset) const = 0;
 	
+	/// Returns the set of characters supported by the typeface.
+	[[nodiscard]] inline const std::unordered_set<char32_t>& get_charset() const noexcept
+	{
+		return charset;
+	}
+	
+protected:
+	std::unordered_set<char32_t> charset;
+	
 private:
 	typeface_style style;
 	int weight;
 };
-
-inline typeface_style typeface::get_style() const
-{
-	return style;
-}
-
-inline int typeface::get_weight() const
-{
-	return weight;
-}
 
 } // namespace type
 

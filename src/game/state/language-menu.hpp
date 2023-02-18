@@ -21,6 +21,8 @@
 #define ANTKEEPER_GAME_STATE_LANGUAGE_MENU_HPP
 
 #include "game/state/base.hpp"
+#include <string>
+#include <vector>
 
 namespace game {
 namespace state {
@@ -33,6 +35,9 @@ public:
 	
 private:
 	void update_text_content();
+	
+	std::vector<std::string> language_tags;
+	std::size_t language_index;
 };
 
 

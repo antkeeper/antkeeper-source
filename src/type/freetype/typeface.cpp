@@ -29,7 +29,16 @@ typeface::typeface(FT_Library library, FT_Face face, unsigned char* buffer):
 	face(face),
 	buffer(buffer),
 	height(-1.0f)
-{}
+{
+	/// Build charset
+	FT_UInt index;
+	FT_ULong c = FT_Get_First_Char(face, &index);
+	while (index)
+	{
+		this->charset.insert(static_cast<char32_t>(c));
+		c = FT_Get_Next_Char(face, c, &index);
+	}
+}
 
 typeface::~typeface()
 {
@@ -41,11 +50,6 @@ typeface::~typeface()
 bool typeface::has_kerning() const
 {
 	return FT_HAS_KERNING(face);
-}
-
-bool typeface::has_glyph(char32_t code) const
-{
-	return FT_Get_Char_Index(face, static_cast<FT_ULong>(code)) != 0;
 }
 
 bool typeface::get_metrics(float height, font_metrics& metrics) const

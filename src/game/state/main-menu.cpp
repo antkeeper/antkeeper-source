@@ -23,7 +23,6 @@
 #include "animation/ease.hpp"
 #include "animation/screen-transition.hpp"
 #include "config.hpp"
-#include "game/ant/swarm.hpp"
 #include "game/component/model.hpp"
 #include "game/component/steering.hpp"
 #include "game/component/transform.hpp"
@@ -45,6 +44,7 @@
 #include "render/passes/sky-pass.hpp"
 #include "resources/resource-manager.hpp"
 #include "utility/hash/fnv1a.hpp"
+#include <format>
 #include <limits>
 
 using namespace hash::literals;
@@ -68,15 +68,13 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	title_text.set_color({1.0f, 1.0f, 1.0f, (fade_in) ? 1.0f : 0.0f});
 	title_text.set_font(&ctx.title_font);
 	title_text.set_content(get_string(ctx, "title_antkeeper"_fnv1a32));
-	
-	// Align title text
 	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text.get_local_bounds());
 	float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
 	float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
 	title_text.set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
 	title_text.update_tweens();
 	
-	// Add title text to UI
+	// Add text to UI
 	ctx.ui_scene->add_object(&title_text);
 	
 	// Construct title fade animation
@@ -331,7 +329,7 @@ main_menu::~main_menu()
 	// Destruct title animation
 	ctx.animator->remove_animation(&title_fade_animation);
 	
-	// Destruct title text
+	// Destruct text
 	ctx.ui_scene->remove_object(&title_text);
 	
 	debug::log::trace("Exited main menu state");

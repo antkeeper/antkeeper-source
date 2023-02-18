@@ -36,7 +36,6 @@
 #include "gl/vertex-array.hpp"
 #include "gl/vertex-buffer.hpp"
 #include "i18n/string-map.hpp"
-#include "i18n/string-table.hpp"
 #include "input/action-map.hpp"
 #include "input/action.hpp"
 #include "input/mapper.hpp"
@@ -97,6 +96,8 @@ namespace game
 		class steering;
 		class spring;
 	}
+	
+	struct control_profile;
 }
 
 namespace render
@@ -162,10 +163,8 @@ struct context
 	bool gamepad_active;
 	
 	// Localization and internationalization
-	std::uint16_t language_index;
-	std::uint16_t language_count;
-	i18n::string_table* string_table;
-	std::vector<i18n::string_map> string_maps;
+	std::string language_tag;
+	i18n::string_map* string_map;
 	
 	// Fonts
 	std::unordered_map<std::string, type::typeface*> typefaces;
@@ -177,6 +176,8 @@ struct context
 	render::material title_font_material;
 	
 	// Action maps, actions, and action event handling
+	std::string control_profile_filename;
+	game::control_profile* control_profile;
 	input::mapper input_mapper;
 	input::action_map window_actions;
 	input::action fullscreen_action;
@@ -202,7 +203,7 @@ struct context
 	input::action pause_action;
 	
 	// Debugging
-	math::moving_average<float, 15> average_frame_time;
+	scene::text* frame_time_text;
 	debug::cli* cli;
 	
 	// Hierarchichal state machine

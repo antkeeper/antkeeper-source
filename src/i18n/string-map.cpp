@@ -19,33 +19,79 @@
 
 #include "i18n/string-map.hpp"
 #include "utility/hash/fnv1a.hpp"
+#include "resources/serializer.hpp"
+#include "resources/serialize-error.hpp"
+#include "resources/deserializer.hpp"
+#include "resources/deserialize-error.hpp"
 #include <algorithm>
 
-namespace i18n {
-
-void build_string_map(const string_table& table, std::size_t key_column, std::size_t value_column, string_map& map)
+/**
+ * Serializes a string map.
+ *
+ * @param[in] map String map to serialize.
+ * @param[in,out] ctx Serialize context.
+ *
+ * @throw serialize_error Write error.
+ */
+template <>
+void serializer<i18n::string_map>::serialize(const i18n::string_map& map, serialize_context& ctx)
 {
-	map.clear();
+	// Write number of entries
+	std::uint32_t size = static_cast<std::uint32_t>(map.size());
+	ctx.write32<std::endian::big>(reinterpret_cast<const std::byte*>(&size), 1);
 	
-	const std::size_t max_column = std::max<std::size_t>(key_column, value_column);
-	
-	for (const auto& row: table)
+	// Write entries
+	for (const auto& [key, value]: map)
 	{
-		if (row.size() <= max_column)
-		{
-			continue;
-		}
+		// Write key
+		ctx.write32<std::endian::big>(reinterpret_cast<const std::byte*>(&key), 1);
 		
-		const auto& value_string = row[value_column];
-		if (value_string.empty())
-		{
-			continue;
-		}
+		// Write string length
+		std::uint32_t length = static_cast<std::uint32_t>(value.length());
+		ctx.write32<std::endian::big>(reinterpret_cast<const std::byte*>(&length), 1);
 		
-		const auto& key_string = row[key_column];		
-		const std::uint32_t key_hash = hash::fnv1a32(key_string.c_str(), key_string.length());	
-		map[key_hash] = row[value_column];
+		// Write string
+		ctx.write8(reinterpret_cast<const std::byte*>(value.data()), length);
 	}
 }
 
-} // namespace i18n
+/**
+ * Deserializes a string map.
+ *
+ * @param[out] map String map to deserialize.
+ * @param[in,out] ctx Deserialize context.
+ *
+ * @throw deserialize_error Read error.
+ */
+template <>
+void deserializer<i18n::string_map>::deserialize(i18n::string_map& map, deserialize_context& ctx)
+{
+	map.clear();
+	
+	// Read number of entries
+	std::uint32_t size = 0;
+	ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&size), 1);
+	
+	// Read entries
+	for (std::uint32_t i = 0; i < size; ++i)
+	{
+		// Read key
+		std::uint32_t key = 0;
+		ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&key), 1);
+		
+		// Read string length
+		std::uint32_t length = 0;
+		ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&length), 1);
+		
+		// Insert empty string into map
+		auto [iterator, inserted] = map.emplace
+		(
+			std::piecewise_construct,
+			std::forward_as_tuple(key),
+			std::forward_as_tuple(static_cast<std::size_t>(length), '\0')
+		);
+		
+		// Read string
+		ctx.read8(reinterpret_cast<std::byte*>(iterator->second.data()), length);
+	}
+}

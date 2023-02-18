@@ -48,6 +48,9 @@ static void deserialize_any(std::any& any, deserialize_context& ctx)
 /**
  * Serializes a dict with an unsigned 32-bit key.
  *
+ * @param[in] dict Dict to serialize.
+ * @param[in,out] ctx Serialize context.
+ *
  * @throw serialize_error Write error.
  * @throw serialize_error Unsupported dict value type.
  */
@@ -84,7 +87,7 @@ void serializer<dict<std::uint32_t>>::serialize(const dict<std::uint32_t>& dict,
 	
 	// Write dict size
 	std::uint64_t size = static_cast<std::uint64_t>(dict.size());
-	ctx.write64(reinterpret_cast<const std::byte*>(&size), 1);
+	ctx.write64<std::endian::big>(reinterpret_cast<const std::byte*>(&size), 1);
 	
 	// Write dict entries
 	for (const auto& [key, value]: dict)
@@ -94,8 +97,8 @@ void serializer<dict<std::uint32_t>>::serialize(const dict<std::uint32_t>& dict,
 			const auto& [type_hash, type_serializer] = i->second;
 			
 			// Write entry type hash and key
-			ctx.write32(reinterpret_cast<const std::byte*>(&type_hash), 1);
-			ctx.write32(reinterpret_cast<const std::byte*>(&key), 1);
+			ctx.write32<std::endian::big>(reinterpret_cast<const std::byte*>(&type_hash), 1);
+			ctx.write32<std::endian::big>(reinterpret_cast<const std::byte*>(&key), 1);
 			
 			// Serialize entry value
 			type_serializer(value, ctx);
@@ -105,12 +108,15 @@ void serializer<dict<std::uint32_t>>::serialize(const dict<std::uint32_t>& dict,
 			throw serialize_error("Unsupported dict value type");
 		}
 	}
-};
+}
 
 /**
  * Deserializes a dict with an unsigned 32-bit key.
  *
- * @throw deserialize_error Write error.
+ * @param[out] dict Dict to serialize.
+ * @param[in,out] ctx Deserialize context.
+ *
+ * @throw deserialize_error Read error.
  * @throw deserialize_error Unsupported dict value type.
  */
 template <>
@@ -140,22 +146,24 @@ void deserializer<dict<std::uint32_t>>::deserialize(dict<std::uint32_t>& dict, d
 		{"u32string"_fnv1a32, &deserialize_any<std::u32string>}
 	};
 	
+	dict.clear();
+	
 	// Read dict size
 	std::uint64_t size = 0;
-	ctx.read64(reinterpret_cast<std::byte*>(&size), 1);
+	ctx.read64<std::endian::big>(reinterpret_cast<std::byte*>(&size), 1);
 	
 	// Read dict entries
 	for (std::size_t i = 0; i < size; ++i)
 	{
 		// Read entry type hash
 		std::uint32_t type_hash = 0;
-		ctx.read32(reinterpret_cast<std::byte*>(&type_hash), 1);
+		ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&type_hash), 1);
 		
 		if (auto i = type_map.find(type_hash); i != type_map.end())
 		{
 			// Read entry key
 			std::uint32_t key = 0;
-			ctx.read32(reinterpret_cast<std::byte*>(&key), 1);
+			ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&key), 1);
 			
 			// Deserialize entry value
 			i->second(dict[key], ctx);
@@ -165,4 +173,4 @@ void deserializer<dict<std::uint32_t>>::deserialize(dict<std::uint32_t>& dict, d
 			throw deserialize_error("Unsupported dict value type");
 		}
 	}
-};
+}

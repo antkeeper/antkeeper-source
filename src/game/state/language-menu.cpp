@@ -26,6 +26,9 @@
 #include "game/menu.hpp"
 #include "game/strings.hpp"
 #include "utility/hash/fnv1a.hpp"
+#include "resources/resource-manager.hpp"
+#include <algorithm>
+#include <cctype>
 
 using namespace hash::literals;
 
@@ -36,6 +39,25 @@ language_menu::language_menu(game::context& ctx):
 	game::state::base(ctx)
 {
 	debug::log::trace("Entering language menu state...");
+	
+	/// @TODO Don't hardcode this
+	language_tags =
+	{
+		"en",
+		"zh-Hans",
+		"zh-Hant"
+	};
+	
+	// Determine index of current language
+	language_index = 0;
+	for (std::size_t i = 0; i < language_tags.size(); ++i)
+	{
+		if (ctx.language_tag == language_tags[i])
+		{
+			language_index = i;
+			break;
+		}
+	}
 	
 	// Construct menu item texts
 	scene::text* language_name_text = new scene::text();
@@ -59,69 +81,64 @@ language_menu::language_menu(game::context& ctx):
 	game::menu::add_text_to_ui(ctx);
 	game::menu::setup_animations(ctx);
 	
-	// Construct menu item callbacks
-	auto next_language_callback = [this, &ctx]()
+	auto change_language = [this, &ctx]()
 	{
-		// Increment language index
-		ctx.language_index = (ctx.language_index + 1) % ctx.language_count;
+		const std::string& language_tag = this->language_tags[this->language_index];
 		
-		// Update language index setting
-		(*ctx.settings)["language_index"_fnv1a32] = ctx.language_index;
+		// Slugify language tag
+		std::string language_slug = language_tag;
+		std::transform
+		(
+			language_slug.begin(),
+			language_slug.end(),
+			language_slug.begin(),
+			[](unsigned char c)
+			{
+				return std::tolower(c);
+			}
+		);
 		
-		// Build string map for current language if not built
-		if (ctx.string_maps[ctx.language_index].empty())
-		{
-			i18n::build_string_map(*ctx.string_table, 0, ctx.language_index + 2, ctx.string_maps[ctx.language_index]);
-		}
+		// Load language strings
+		ctx.string_map = ctx.resource_manager->load<i18n::string_map>(language_slug + ".str");
+		
+		// Update language settings
+		ctx.language_tag = language_tag;
+		(*ctx.settings)["language_tag"_fnv1a32] = ctx.language_tag;
 		
 		// Log language change
-		debug::log::info("Language index: {}; code: {}", ctx.language_index, get_string(ctx, "language_code"_fnv1a32));
+		debug::log::info("Language tag: {}", ctx.language_tag);
 		
 		// Reload fonts
 		debug::log::trace("Reloading fonts...");
 		game::load_fonts(ctx);
 		debug::log::trace("Reloaded fonts");
 		
+		// Update menus
 		game::menu::update_text_font(ctx);
 		this->update_text_content();
 		game::menu::refresh_text(ctx);
 		game::menu::align_text(ctx);
 		game::menu::update_text_tweens(ctx);
 	};
-	auto previous_language_callback = [this, &ctx]()
+	
+	// Construct menu item callbacks
+	auto next_language_callback = [this, &ctx, change_language]()
 	{
-		// Decrement language index
-		if (ctx.language_index > 0)
+		this->language_index = (this->language_index + 1) % this->language_tags.size();
+		change_language();
+	};
+	auto previous_language_callback = [this, &ctx, change_language]()
+	{
+		if (this->language_index > 0)
 		{
-			--ctx.language_index;
+			--this->language_index;
 		}
 		else
 		{
-			ctx.language_index = ctx.language_count - 1;
+			this->language_index = this->language_tags.size() - 1;
 		}
 		
-		// Update language index setting
-		(*ctx.settings)["language_index"_fnv1a32] = ctx.language_index;
-		
-		// Build string map for current language if not built
-		if (ctx.string_maps[ctx.language_index].empty())
-		{
-			i18n::build_string_map(*ctx.string_table, 0, ctx.language_index + 2, ctx.string_maps[ctx.language_index]);
-		}
-		
-		// Log language change
-		debug::log::info("Language index: {}; code: {}", ctx.language_index, get_string(ctx, "language_code"_fnv1a32));
-		
-		// Reload fonts
-		debug::log::trace("Reloading fonts...");
-		game::load_fonts(ctx);
-		debug::log::trace("Reloaded fonts");
-		
-		game::menu::update_text_font(ctx);
-		this->update_text_content();
-		game::menu::refresh_text(ctx);
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		change_language();
 	};
 	auto select_back_callback = [&ctx]()
 	{
@@ -190,7 +207,7 @@ void language_menu::update_text_content()
 	auto [back_name, back_value] = ctx.menu_item_texts[1];
 	
 	language_name->set_content(get_string(ctx, "language_menu_language"_fnv1a32));
-	language_value->set_content(get_string(ctx, "language_name"_fnv1a32));
+	language_value->set_content(get_string(ctx, "language_name_native"_fnv1a32));
 	back_name->set_content(get_string(ctx, "back"_fnv1a32));
 }
 

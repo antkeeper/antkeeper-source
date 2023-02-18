@@ -36,7 +36,8 @@ namespace game {
 namespace state {
 
 keyboard_config_menu::keyboard_config_menu(game::context& ctx):
-	game::state::base(ctx)
+	game::state::base(ctx),
+	action_remapped(false)
 {
 	debug::log::trace("Entering keyboard config menu state...");
 	
@@ -124,8 +125,15 @@ keyboard_config_menu::~keyboard_config_menu()
 	game::menu::remove_text_from_ui(ctx);
 	game::menu::delete_text(ctx);
 	
-	// Save control profile
-	game::save_control_profile(ctx);
+	if (action_remapped)
+	{
+		// Update control profile
+		game::update_control_profile(ctx, *ctx.control_profile);
+		
+		// Save control profile
+		ctx.resource_manager->set_write_dir(ctx.controls_path);
+		ctx.resource_manager->save(ctx.control_profile, ctx.control_profile_filename);
+	}
 	
 	debug::log::trace("Exited keyboard config menu state...");
 }
@@ -220,6 +228,8 @@ void keyboard_config_menu::add_control_item(input::action_map& action_map, input
 	// Callback invoked when an input has been mapped to the control
 	auto input_mapped_callback = [this, &ctx = this->ctx, action_map = &action_map, control = &control, value_text](const auto& event)
 	{
+		this->action_remapped = true;
+		
 		// Remove key mappings, mouse button mappings, and mouse scroll mappings mapped to the control
 		action_map->remove_mappings(*control, input::mapping_type::key);
 		action_map->remove_mappings(*control, input::mapping_type::mouse_button);

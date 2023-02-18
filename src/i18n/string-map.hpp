@@ -20,7 +20,6 @@
 #ifndef ANTKEEPER_I18N_STRING_MAP_HPP
 #define ANTKEEPER_I18N_STRING_MAP_HPP
 
-#include "i18n/string-table.hpp"
 #include <string>
 #include <unordered_map>
 
@@ -30,16 +29,6 @@ namespace i18n {
  * Maps 32-bit keys to strings.
  */
 typedef std::unordered_map<std::uint32_t, std::string> string_map;
-
-/**
- * Builds a string map from a string table. Keys are generated with the 32-bit FNV-1a hash function.
- *
- * @param[in] table String table from which the string map will be built.
- * @param[in] key_column Column containing key strings.
- * @param[in] value_column Column containing value strings.
- * @param[out] String map to build.
- */
-void build_string_map(const string_table& table, std::size_t key_column, std::size_t value_column, string_map& map);
 
 } // namespace i18n
 

@@ -53,22 +53,23 @@ public:
 	void disconnect();
 	
 	/**
-	 * Maps input to a action.
+	 * Maps input to an action.
 	 *
 	 * @param action Action to which input will be mapped.
 	 * @param mapping Input mapping to add.
 	 */
 	/// @{
-	void add_mapping(action& action, gamepad_axis_mapping mapping);
-	void add_mapping(action& action, gamepad_button_mapping mapping);
-	void add_mapping(action& action, key_mapping mapping);
-	void add_mapping(action& action, mouse_button_mapping mapping);
-	void add_mapping(action& action, mouse_motion_mapping mapping);
-	void add_mapping(action& action, mouse_scroll_mapping mapping);
+	void add_mapping(action& action, const mapping& mapping);
+	void add_gamepad_axis_mapping(action& action, gamepad_axis_mapping mapping);
+	void add_gamepad_button_mapping(action& action, gamepad_button_mapping mapping);
+	void add_key_mapping(action& action, key_mapping mapping);
+	void add_mouse_button_mapping(action& action, mouse_button_mapping mapping);
+	void add_mouse_motion_mapping(action& action, mouse_motion_mapping mapping);
+	void add_mouse_scroll_mapping(action& action, mouse_scroll_mapping mapping);
 	/// @}
 	
 	/**
-	 * Unmaps input from a action.
+	 * Unmaps input from an action.
 	 *
 	 * @param action Action from which input will be unmapped.
 	 * @param type Type of input mapping to remove.
@@ -76,7 +77,7 @@ public:
 	void remove_mappings(const action& action, mapping_type type);
 	
 	/**
-	 * Unmaps all input from a action.
+	 * Unmaps all input from an action.
 	 *
 	 * @param action Action from which input will be unmapped.
 	 */
@@ -88,42 +89,42 @@ public:
 	void remove_mappings();
 	
 	/**
-	 * Returns all of the gamepad axis mappings associated with a action.
+	 * Returns all of the gamepad axis mappings associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
 	std::vector<gamepad_axis_mapping> get_gamepad_axis_mappings(const action& action) const;
 	
 	/**
-	 * Returns all of the gamepad button mappings associated with a action.
+	 * Returns all of the gamepad button mappings associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
 	std::vector<gamepad_button_mapping> get_gamepad_button_mappings(const action& action) const;
 	
 	/**
-	 * Returns all of the key mappings associated with a action.
+	 * Returns all of the key mappings associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
 	std::vector<key_mapping> get_key_mappings(const action& action) const;
 	
 	/**
-	 * Returns all of the mouse button mappings associated with a action.
+	 * Returns all of the mouse button mappings associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
 	std::vector<mouse_button_mapping> get_mouse_button_mappings(const action& action) const;
 	
 	/**
-	 * Returns all of the mouse motion mappings associated with a action.
+	 * Returns all of the mouse motion mappings associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
 	std::vector<mouse_motion_mapping> get_mouse_motion_mappings(const action& action) const;
 	
 	/**
-	 * Returns all of the mouse scroll associated with a action.
+	 * Returns all of the mouse scroll associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */

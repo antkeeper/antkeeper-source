@@ -32,8 +32,8 @@ public:
 	/**
 	 * Reads 8-bit (byte) data.
 	 *
-	 * @param data Pointer to data source.
-	 * @param count Number of bytes to read.
+	 * @param[out] data Pointer to data destination.
+	 * @param[in] count Number of bytes to read.
 	 *
 	 * @return Number of bytes read.
 	 *
@@ -42,18 +42,42 @@ public:
 	std::size_t read8(std::byte* data, std::size_t count) noexcept(false);
 	
 	/**
-	 * Reads 16-bit (word) data.
+	 * Reads 16-bit (word) little-endian data.
 	 *
-	 * @tparam Endian Endianness of the read operation.
-	 *
-	 * @param data Pointer to data destination.
-	 * @param count Number of words to read.
+	 * @param[out] data Pointer to data destination.
+	 * @param[in] count Number of words to read.
 	 *
 	 * @return Number of words read.
 	 *
 	 * @throw deserialize_error Read error.
 	 */
-	template <std::endian Endian = std::endian::native>
+	std::size_t read16_le(std::byte* data, std::size_t count) noexcept(false);
+	
+	/**
+	 * Reads 16-bit (word) big-endian data.
+	 *
+	 * @param[out] data Pointer to data destination.
+	 * @param[in] count Number of words to read.
+	 *
+	 * @return Number of words read.
+	 *
+	 * @throw deserialize_error Read error.
+	 */
+	std::size_t read16_be(std::byte* data, std::size_t count) noexcept(false);
+	
+	/**
+	 * Reads 16-bit (word) data.
+	 *
+	 * @tparam Endian Endianness of the read operation.
+	 *
+	 * @param[out] data Pointer to data destination.
+	 * @param[in] count Number of words to read.
+	 *
+	 * @return Number of words read.
+	 *
+	 * @throw deserialize_error Read error.
+	 */
+	template <std::endian Endian>
 	inline std::size_t read16(std::byte* data, std::size_t count) noexcept(false)
 	{
 		if constexpr (Endian == std::endian::little)
@@ -67,18 +91,42 @@ public:
 	}
 	
 	/**
-	 * Reads 32-bit (double word) data.
+	 * Reads 32-bit (double word) little-endian data.
 	 *
-	 * @tparam Endian Endianness of the read operation.
-	 *
-	 * @param data Pointer to data destination.
-	 * @param count Number of double words to read.
+	 * @param[out] data Pointer to data destination.
+	 * @param[in] count Number of double words to read.
 	 *
 	 * @return Number of double words read.
 	 *
 	 * @throw deserialize_error Read error.
 	 */
-	template <std::endian Endian = std::endian::native>
+	std::size_t read32_le(std::byte* data, std::size_t count) noexcept(false);
+	
+	/**
+	 * Reads 32-bit (double word) big-endian data.
+	 *
+	 * @param[out] data Pointer to data destination.
+	 * @param[in] count Number of double words to read.
+	 *
+	 * @return Number of double words read.
+	 *
+	 * @throw deserialize_error Read error.
+	 */
+	std::size_t read32_be(std::byte* data, std::size_t count) noexcept(false);
+	
+	/**
+	 * Reads 32-bit (double word) data.
+	 *
+	 * @tparam Endian Endianness of the read operation.
+	 *
+	 * @param[out] data Pointer to data destination.
+	 * @param[in] count Number of double words to read.
+	 *
+	 * @return Number of double words read.
+	 *
+	 * @throw deserialize_error Read error.
+	 */
+	template <std::endian Endian>
 	inline std::size_t read32(std::byte* data, std::size_t count) noexcept(false)
 	{
 		if constexpr (Endian == std::endian::little)
@@ -92,18 +140,42 @@ public:
 	}
 	
 	/**
-	 * Reads 64-bit (quad word) data.
+	 * Reads 64-bit (quad word) little-endian data.
 	 *
-	 * @tparam Endian Endianness of the read operation.
-	 *
-	 * @param data Pointer to data destination.
-	 * @param count Number of quad words to read.
+	 * @param[out] data Pointer to data destination.
+	 * @param[in] count Number of quad words to read.
 	 *
 	 * @return Number of quad words read.
 	 *
 	 * @throw deserialize_error Read error.
 	 */
-	template <std::endian Endian = std::endian::native>
+	std::size_t read64_le(std::byte* data, std::size_t count) noexcept(false);
+	
+	/**
+	 * Reads 64-bit (quad word) big-endian data.
+	 *
+	 * @param[out] data Pointer to data destination.
+	 * @param[in] count Number of quad words to read.
+	 *
+	 * @return Number of quad words read.
+	 *
+	 * @throw deserialize_error Read error.
+	 */
+	std::size_t read64_be(std::byte* data, std::size_t count) noexcept(false);
+	
+	/**
+	 * Reads 64-bit (quad word) data.
+	 *
+	 * @tparam Endian Endianness of the read operation.
+	 *
+	 * @param[out] data Pointer to data destination.
+	 * @param[in] count Number of quad words to read.
+	 *
+	 * @return Number of quad words read.
+	 *
+	 * @throw deserialize_error Read error.
+	 */
+	template <std::endian Endian>
 	inline std::size_t read64(std::byte* data, std::size_t count) noexcept(false)
 	{
 		if constexpr (Endian == std::endian::little)
@@ -119,7 +191,7 @@ public:
 	/**
 	 * Returns `true` if the end of a file was reached.
 	 */
-	inline bool eof() const noexcept
+	[[nodiscard]] inline bool eof() const noexcept
 	{
 		return m_eof;
 	}
@@ -127,7 +199,7 @@ public:
 	/**
 	 * Returns `true` if an error occured during a read operation, `false` otherwise.
 	 */
-	inline bool error() const noexcept
+	[[nodiscard]] inline bool error() const noexcept
 	{
 		return m_error;
 	}
@@ -137,12 +209,6 @@ private:
 	friend class resource_loader;
 	
 	deserialize_context(void* handle);
-	std::size_t read16_le(std::byte* data, std::size_t count) noexcept(false);
-	std::size_t read16_be(std::byte* data, std::size_t count) noexcept(false);
-	std::size_t read32_le(std::byte* data, std::size_t count) noexcept(false);
-	std::size_t read32_be(std::byte* data, std::size_t count) noexcept(false);
-	std::size_t read64_le(std::byte* data, std::size_t count) noexcept(false);
-	std::size_t read64_be(std::byte* data, std::size_t count) noexcept(false);
 	
 	void* handle;
 	bool m_eof;

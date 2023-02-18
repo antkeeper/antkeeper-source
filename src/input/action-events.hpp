@@ -25,7 +25,7 @@ namespace input {
 class action;
 
 /**
- * Event generated when a action has been activated.
+ * Event generated when an action has been activated.
  */
 struct action_activated_event
 {
@@ -34,7 +34,7 @@ struct action_activated_event
 };
 
 /**
- * Event generated while a action is active.
+ * Event generated while an action is active.
  */
 struct action_active_event
 {
@@ -46,7 +46,7 @@ struct action_active_event
 };
 
 /**
- * Event generated when a action has been deactivated.
+ * Event generated when an action has been deactivated.
  */
 struct action_deactivated_event
 {

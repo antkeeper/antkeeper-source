@@ -46,32 +46,66 @@ void action_map::disconnect()
 	subscriptions.clear();
 }
 
-void action_map::add_mapping(action& action, gamepad_axis_mapping mapping)
+void action_map::add_mapping(action& action, const mapping& mapping)
+{
+	switch (mapping.get_mapping_type())
+	{
+		case mapping_type::gamepad_axis:
+			add_gamepad_axis_mapping(action, static_cast<const gamepad_axis_mapping&>(mapping));
+			break;
+		
+		case mapping_type::gamepad_button:
+			add_gamepad_button_mapping(action, static_cast<const gamepad_button_mapping&>(mapping));
+			break;
+		
+		case mapping_type::key:
+			add_key_mapping(action, static_cast<const key_mapping&>(mapping));
+			break;
+		
+		case mapping_type::mouse_button:
+			add_mouse_button_mapping(action, static_cast<const mouse_button_mapping&>(mapping));
+			break;
+		
+		case mapping_type::mouse_motion:
+			add_mouse_motion_mapping(action, static_cast<const mouse_motion_mapping&>(mapping));
+			break;
+		
+		case mapping_type::mouse_scroll:
+			add_mouse_scroll_mapping(action, static_cast<const mouse_scroll_mapping&>(mapping));
+			break;
+		
+		default:
+			//std::unreachable();
+			break;
+	}
+}
+
+void action_map::add_gamepad_axis_mapping(action& action, gamepad_axis_mapping mapping)
 {
 	gamepad_axis_mappings.emplace_back(&action, std::move(mapping));
 }
 
-void action_map::add_mapping(action& action, gamepad_button_mapping mapping)
+void action_map::add_gamepad_button_mapping(action& action, gamepad_button_mapping mapping)
 {
 	gamepad_button_mappings.emplace_back(&action, std::move(mapping));
 }
 
-void action_map::add_mapping(action& action, key_mapping mapping)
+void action_map::add_key_mapping(action& action, key_mapping mapping)
 {
 	key_mappings.emplace_back(&action, std::move(mapping));
 }
 
-void action_map::add_mapping(action& action, mouse_button_mapping mapping)
+void action_map::add_mouse_button_mapping(action& action, mouse_button_mapping mapping)
 {
 	mouse_button_mappings.emplace_back(&action, std::move(mapping));
 }
 
-void action_map::add_mapping(action& action, mouse_motion_mapping mapping)
+void action_map::add_mouse_motion_mapping(action& action, mouse_motion_mapping mapping)
 {
 	mouse_motion_mappings.emplace_back(&action, std::move(mapping));
 }
 
-void action_map::add_mapping(action& action, mouse_scroll_mapping mapping)
+void action_map::add_mouse_scroll_mapping(action& action, mouse_scroll_mapping mapping)
 {
 	mouse_scroll_mappings.emplace_back(&action, std::move(mapping));
 }

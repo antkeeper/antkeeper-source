@@ -17,39 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_INPUT_MAPPING_TYPE_HPP
-#define ANTKEEPER_INPUT_MAPPING_TYPE_HPP
+#ifndef ANTKEEER_GAME_CONTROL_PROFILE_HPP
+#define ANTKEEER_GAME_CONTROL_PROFILE_HPP
 
+#include "input/mapping.hpp"
+#include "utility/dict.hpp"
 #include <cstdint>
+#include <map>
+#include <memory>
 
-namespace input {
+namespace game {
 
-/**
- * Input mapping types.
- *
- * @see input::mapping
- */
-enum class mapping_type: std::uint8_t
+struct control_profile
 {
-	/// Gamepad axis mapping.
-	gamepad_axis,
+public:
+	/// Input mappings.
+	std::multimap<std::uint32_t, std::unique_ptr<input::mapping>> mappings;
 	
-	/// Gamepad button mapping.
-	gamepad_button,
-	
-	/// Key mapping.
-	key,
-	
-	/// Mouse button mapping.
-	mouse_button,
-	
-	/// Mouse motion mapping.
-	mouse_motion,
-	
-	/// Mouse scroll mapping.
-	mouse_scroll
+	/// Profile-specific settings.
+	dict<std::uint32_t> settings;
 };
 
-} // namespace input
+} // namespace game
 
-#endif // ANTKEEPER_INPUT_MAPPING_TYPE_HPP
+#endif // ANTKEEER_GAME_CONTROL_PROFILE_HPP

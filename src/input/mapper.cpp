@@ -39,7 +39,10 @@ void mapper::disconnect()
 
 void mapper::handle_gamepad_axis_moved(const gamepad_axis_moved_event& event)
 {
-	gamepad_axis_mapped_publisher.publish({gamepad_axis_mapping(event.gamepad, event.axis, std::signbit(event.position))});
+	if (std::abs(event.position) > 0.5f)
+	{
+		gamepad_axis_mapped_publisher.publish({gamepad_axis_mapping(event.gamepad, event.axis, std::signbit(event.position))});
+	}
 }
 
 void mapper::handle_gamepad_button_pressed(const gamepad_button_pressed_event& event)

@@ -29,8 +29,6 @@
 struct serialize_context
 {
 public:
-	static inline constexpr std::endian endian = std::endian::little;
-	
 	/**
 	 * Writes 8-bit (byte) data.
 	 *
@@ -44,7 +42,7 @@ public:
 	std::size_t write8(const std::byte* data, std::size_t count) noexcept(false);
 	
 	/**
-	 * Writes 16-bit (word) data.
+	 * Writes 16-bit (word) little-endian data.
 	 *
 	 * @param data Pointer to data source.
 	 * @param count Number of words to write.
@@ -53,10 +51,47 @@ public:
 	 *
 	 * @throw serialize_error Write error.
 	 */
-	std::size_t write16(const std::byte* data, std::size_t count) noexcept(false);
+	std::size_t write16_le(const std::byte* data, std::size_t count) noexcept(false);
 	
 	/**
-	 * Writes 32-bit (double word) data.
+	 * Writes 16-bit (word) big-endian data.
+	 *
+	 * @param data Pointer to data source.
+	 * @param count Number of words to write.
+	 *
+	 * @return Number of words written.
+	 *
+	 * @throw serialize_error Write error.
+	 */
+	std::size_t write16_be(const std::byte* data, std::size_t count) noexcept(false);
+	
+	/**
+	 * Writes 16-bit (word) data.
+	 *
+	 * @tparam Endian Endianness of the write operation.
+	 *
+	 * @param data Pointer to data source.
+	 * @param count Number of words to write.
+	 *
+	 * @return Number of words written.
+	 *
+	 * @throw serialize_error Write error.
+	 */
+	template <std::endian Endian>
+	inline std::size_t write16(const std::byte* data, std::size_t count) noexcept(false)
+	{
+		if constexpr (Endian == std::endian::little)
+		{
+			return write16_le(data, count);
+		}
+		else
+		{
+			return write16_be(data, count);
+		}
+	}
+	
+	/**
+	 * Writes 32-bit (double word) little-endian data.
 	 *
 	 * @param data Pointer to data source.
 	 * @param count Number of double words to write.
@@ -65,10 +100,47 @@ public:
 	 *
 	 * @throw serialize_error Write error.
 	 */
-	std::size_t write32(const std::byte* data, std::size_t count) noexcept(false);
+	std::size_t write32_le(const std::byte* data, std::size_t count) noexcept(false);
 	
 	/**
-	 * Writes 64-bit (quad word) data.
+	 * Writes 32-bit (double word) big-endian data.
+	 *
+	 * @param data Pointer to data source.
+	 * @param count Number of double words to write.
+	 *
+	 * @return Number of double words written.
+	 *
+	 * @throw serialize_error Write error.
+	 */
+	std::size_t write32_be(const std::byte* data, std::size_t count) noexcept(false);
+	
+	/**
+	 * Writes 32-bit (double word) data.
+	 *
+	 * @tparam Endian Endianness of the write operation.
+	 *
+	 * @param data Pointer to data source.
+	 * @param count Number of double words to write.
+	 *
+	 * @return Number of double words written.
+	 *
+	 * @throw serialize_error Write error.
+	 */
+	template <std::endian Endian>
+	inline std::size_t write32(const std::byte* data, std::size_t count) noexcept(false)
+	{
+		if constexpr (Endian == std::endian::little)
+		{
+			return write32_le(data, count);
+		}
+		else
+		{
+			return write32_be(data, count);
+		}
+	}
+	
+	/**
+	 * Writes 64-bit (quad word) little-endian data.
 	 *
 	 * @param data Pointer to data source.
 	 * @param count Number of quad words to write.
@@ -77,12 +149,49 @@ public:
 	 *
 	 * @throw serialize_error Write error.
 	 */
-	std::size_t write64(const std::byte* data, std::size_t count) noexcept(false);
+	std::size_t write64_le(const std::byte* data, std::size_t count) noexcept(false);
+	
+	/**
+	 * Writes 64-bit (quad word) big-endian data.
+	 *
+	 * @param data Pointer to data source.
+	 * @param count Number of quad words to write.
+	 *
+	 * @return Number of quad words written.
+	 *
+	 * @throw serialize_error Write error.
+	 */
+	std::size_t write64_be(const std::byte* data, std::size_t count) noexcept(false);
+	
+	/**
+	 * Writes 64-bit (quad word) data.
+	 *
+	 * @tparam Endian Endianness of the write operation.
+	 *
+	 * @param data Pointer to data source.
+	 * @param count Number of quad words to write.
+	 *
+	 * @return Number of quad words written.
+	 *
+	 * @throw serialize_error Write error.
+	 */
+	template <std::endian Endian>
+	inline std::size_t write64(const std::byte* data, std::size_t count) noexcept(false)
+	{
+		if constexpr (Endian == std::endian::little)
+		{
+			return write64_le(data, count);
+		}
+		else
+		{
+			return write64_be(data, count);
+		}
+	}
 	
 	/**
 	 * Returns `true` if an error occured during a write operation, `false` otherwise.
 	 */
-	inline bool error() const noexcept
+	[[nodiscard]] inline bool error() const noexcept
 	{
 		return m_error;
 	}

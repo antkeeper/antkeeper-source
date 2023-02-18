@@ -22,7 +22,10 @@
 
 #include "game/state/base.hpp"
 #include "input/action.hpp"
-#include <string>
+#include "input/action-map.hpp"
+#include "event/subscription.hpp"
+#include <cstdint>
+#include <memory>
 
 namespace game {
 namespace state {
@@ -34,8 +37,14 @@ public:
 	virtual ~gamepad_config_menu();
 	
 private:
-	std::string get_binding_string(input::action* control);
-	void add_control_item(const std::string& control_name);
+	std::string get_mapping_string(const input::action_map& action_map, const input::action& control);
+	void add_control_item(input::action_map& action_map, input::action& control, std::uint32_t control_name_hash);
+	
+	std::shared_ptr<event::subscription> gamepad_axis_mapped_subscription;
+	std::shared_ptr<event::subscription> gamepad_button_mapped_subscription;
+	std::shared_ptr<event::subscription> key_mapped_subscription;
+	
+	bool action_remapped;
 };
 
 } // namespace state

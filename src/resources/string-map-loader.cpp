@@ -17,39 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_INPUT_MAPPING_TYPE_HPP
-#define ANTKEEPER_INPUT_MAPPING_TYPE_HPP
+#include "resources/resource-loader.hpp"
+#include "resources/serializer.hpp"
+#include "resources/deserializer.hpp"
+#include "i18n/string-map.hpp"
 
-#include <cstdint>
-
-namespace input {
-
-/**
- * Input mapping types.
- *
- * @see input::mapping
- */
-enum class mapping_type: std::uint8_t
+template <>
+i18n::string_map* resource_loader<i18n::string_map>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
-	/// Gamepad axis mapping.
-	gamepad_axis,
+	i18n::string_map* map = new i18n::string_map();
 	
-	/// Gamepad button mapping.
-	gamepad_button,
+	deserialize_context ctx(file);
+	deserializer<i18n::string_map>().deserialize(*map, ctx);
 	
-	/// Key mapping.
-	key,
-	
-	/// Mouse button mapping.
-	mouse_button,
-	
-	/// Mouse motion mapping.
-	mouse_motion,
-	
-	/// Mouse scroll mapping.
-	mouse_scroll
-};
+	return map;
+}
 
-} // namespace input
-
-#endif // ANTKEEPER_INPUT_MAPPING_TYPE_HPP
+template <>
+void resource_loader<i18n::string_map>::save(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path, const i18n::string_map* map)
+{
+	serialize_context ctx(file);
+	serializer<i18n::string_map>().serialize(*map, ctx);
+}

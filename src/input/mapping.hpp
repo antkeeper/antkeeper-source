@@ -139,7 +139,7 @@ public:
 	 * @param modifiers Modifier keys bitmask.
 	 */
 	/// @{
-	key_mapping(input::keyboard* keyboard, input::scancode scancode, bool repeat = false, std::uint16_t modifiers = 0);
+	key_mapping(input::keyboard* keyboard, input::scancode scancode, std::uint16_t modifiers = 0, bool repeat = false);
 	key_mapping() = default;
 	/// @}
 	
@@ -158,11 +158,11 @@ public:
 	/// Scancode of the mapped key.
 	scancode scancode;
 	
-	/// `false` if the mapping ignores key repeats, `true` otherwise.
-	bool repeat;
-	
 	/// Modifier keys bitbask.
 	std::uint16_t modifiers;
+	
+	/// `false` if the mapping ignores key repeats, `true` otherwise.
+	bool repeat;
 };
 
 /**

@@ -24,7 +24,7 @@
 screen_transition::screen_transition()
 {
 	// Setup material
-	material.set_flags(MATERIAL_FLAG_X_RAY);
+	//material.set_flags(MATERIAL_FLAG_X_RAY);
 	material.set_blend_mode(render::blend_mode::translucent);
 	progress = material.add_property<float>("progress");
 	

@@ -43,6 +43,8 @@ private:
 	std::shared_ptr<event::subscription> key_mapped_subscription;
 	std::shared_ptr<event::subscription> mouse_button_mapped_subscription;
 	std::shared_ptr<event::subscription> mouse_scroll_mapped_subscription;
+	
+	bool action_remapped;
 };
 
 } // namespace state

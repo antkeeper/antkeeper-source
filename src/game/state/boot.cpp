@@ -29,6 +29,7 @@
 #include "entity/commands.hpp"
 #include "game/context.hpp"
 #include "game/controls.hpp"
+#include "game/control-profile.hpp"
 #include "game/fonts.hpp"
 #include "game/graphics.hpp"
 #include "game/menu.hpp"
@@ -91,6 +92,7 @@
 #include "utility/hash/fnv1a.hpp"
 #include "input/application-events.hpp"
 #include <algorithm>
+#include <cctype>
 #include <entt/entt.hpp>
 #include <execution>
 #include <filesystem>
@@ -162,6 +164,7 @@ boot::~boot()
 	delete ctx.window;
 	
 	// Save settings
+	ctx.resource_manager->set_write_dir(ctx.shared_config_path);
 	ctx.resource_manager->save(ctx.settings, "settings.cfg");
 	
 	// Destruct input and window managers
@@ -294,9 +297,6 @@ void boot::setup_resources()
 	debug::log::info("Shared config path: \"{}\"", ctx.shared_config_path.string());
 	debug::log::info("Mods path: \"{}\"", ctx.mods_path.string());
 	
-	// Set write dir
-	ctx.resource_manager->set_write_dir(ctx.shared_config_path);
-	
 	// Create nonexistent config directories
 	std::vector<std::filesystem::path> config_paths;
 	config_paths.push_back(ctx.local_config_path);
@@ -357,6 +357,7 @@ void boot::load_settings()
 	{
 		// Command-line reset option found, reset settings
 		ctx.settings = new dict<std::uint32_t>();
+		ctx.resource_manager->set_write_dir(ctx.shared_config_path);
 		ctx.resource_manager->save(ctx.settings, "settings.cfg");
 		debug::log::info("Settings reset");
 	}
@@ -538,33 +539,32 @@ void boot::load_strings()
 	debug::log::trace("Loading strings...");
 	
 	// Default strings settings
-	ctx.language_index = 0;
+	ctx.language_tag = "en";
 	
 	// Read strings settings
-	read_or_write_setting(ctx, "language_index"_fnv1a32, ctx.language_index);
+	read_or_write_setting(ctx, "language_tag"_fnv1a32, ctx.language_tag);
 	
-	// Load string table
-	ctx.string_table = ctx.resource_manager->load<i18n::string_table>("strings.tsv");
+	// Slugify language tag
+	std::string language_slug = ctx.language_tag;
+	std::transform
+	(
+		language_slug.begin(),
+		language_slug.end(),
+		language_slug.begin(),
+		[](unsigned char c)
+		{
+			return std::tolower(c);
+		}
+	);
 	
-	// Count languages
-	ctx.language_count = static_cast<std::uint16_t>((*ctx.string_table)[0].size() - 2);
-	
-	if (ctx.language_index >= ctx.language_count)
-	{
-		debug::log::error("Language index ({}) exceeds language count ({}). Language index reset to 0", ctx.language_index, ctx.language_count);
-		ctx.language_index = 0;
-		(*ctx.settings)["language_index"_fnv1a32] = ctx.language_index;
-	}
-	
-	// Build string map
-	ctx.string_maps.resize(ctx.language_count);
-	i18n::build_string_map(*ctx.string_table, 0, ctx.language_index + 2, ctx.string_maps[ctx.language_index]);
+	// Load string map
+	ctx.string_map = ctx.resource_manager->load<i18n::string_map>(language_slug + ".str");
 	
 	// Log language info
-	debug::log::info("Language index: {}; code: {}", ctx.language_index, get_string(ctx, "language_code"_fnv1a32));
+	debug::log::info("Language tag: {}", ctx.language_tag);
 	
 	// Change window title
-	const std::string window_title = get_string(ctx, "application_title"_fnv1a32);
+	const std::string window_title = get_string(ctx, "window_title"_fnv1a32);
 	ctx.window->set_title(window_title);
 	
 	// Update window title setting
@@ -791,9 +791,13 @@ void boot::setup_audio()
 		// Get audio device name
 		const ALCchar* alc_device_name = nullptr;
 		if (alcIsExtensionPresent(ctx.alc_device, "ALC_ENUMERATE_ALL_EXT"))
+		{
 			alc_device_name = alcGetString(ctx.alc_device, ALC_ALL_DEVICES_SPECIFIER);
+		}
 		if (alcGetError(ctx.alc_device) != AL_NO_ERROR || !alc_device_name)
+		{
 			alc_device_name = alcGetString(ctx.alc_device, ALC_DEVICE_SPECIFIER);
+		}
 		
 		// Log audio device name
 		debug::log::info("Opened audio device \"{}\"", alc_device_name);
@@ -951,6 +955,8 @@ void boot::setup_animation()
 	ctx.fade_transition->get_material()->set_shader_program(ctx.resource_manager->load<gl::shader_program>("fade-transition.glsl"));
 	ctx.fade_transition_color = ctx.fade_transition->get_material()->add_property<float3>("color");
 	ctx.fade_transition_color->set_value({0, 0, 0});
+	ctx.fade_transition->get_billboard()->set_translation({0, 0, 98});
+	ctx.fade_transition->get_billboard()->update_tweens();
 	ctx.ui_scene->add_object(ctx.fade_transition->get_billboard());
 	ctx.animator->add_animation(ctx.fade_transition->get_animation());
 	
@@ -1112,6 +1118,8 @@ void boot::setup_systems()
 
 void boot::setup_controls()
 {
+	debug::log::trace("Setting up controls...");
+	
 	// Load SDL game controller mappings database
 	// debug::log::trace("Loading SDL game controller mappings...");
 	// file_buffer* game_controller_db = ctx.resource_manager->load<file_buffer>("gamecontrollerdb.txt");
@@ -1127,70 +1135,49 @@ void boot::setup_controls()
 		// ctx.resource_manager->unload("gamecontrollerdb.txt");
 	// }
 	
+	// Default control profile settings
+	ctx.control_profile_filename = "controls.cfg";
+	ctx.control_profile = nullptr;
 	
+	// Read control profile settings
+	if (read_or_write_setting(ctx, "control_profile"_fnv1a32, ctx.control_profile_filename))
+	{
+		// Load control profile
+		//ctx.control_profile = ctx.resource_manager->load<game::control_profile>(ctx.controls_path / ctx.control_profile_filename);
+		ctx.control_profile = ctx.resource_manager->load<game::control_profile>(ctx.control_profile_filename);
+	}
+	
+	if (!ctx.control_profile)
+	{
+		// Allocate control profile
+		ctx.control_profile = new game::control_profile();
+		
+		// Reset control profile to default settings.
+		game::reset_control_profile(*ctx.control_profile);
+		
+		// Save control profile
+		ctx.resource_manager->set_write_dir(ctx.controls_path);
+		ctx.resource_manager->save(ctx.control_profile, ctx.control_profile_filename);
+	}
+	
+	// Apply control profile
+	game::apply_control_profile(ctx, *ctx.control_profile);
+	
+	// Setup action callbacks
 	setup_window_controls(ctx);
 	setup_menu_controls(ctx);
 	
+	// Enable window controls
 	enable_window_controls(ctx);
 	
-	// Load controls
-	debug::log::trace("Loading controls...");
-	try
-	{
-		// Load control profile
-		// if (ctx.config->contains("control_profile"))
-		// {
-			// json* profile = ctx.resource_manager->load<json>((*ctx.config)["control_profile"].get<std::string>());
-			
-			// if (profile)
-			// {
-				// game::apply_control_profile(ctx, *profile);
-			// }
-		// }
-		
-		// Calibrate gamepads
-		// for (input::gamepad* gamepad: ctx.app->get_gamepads())
-		// {
-			// const std::string uuid_string = gamepad->get_uuid().to_string();
-			
-			// debug::log::push_task("Loading calibration for gamepad " + uuid_string);
-			// json* calibration = game::load_gamepad_calibration(ctx, *gamepad);
-			// if (!calibration)
-			// {
-				// debug::log::pop_task(EXIT_FAILURE);
-				
-				// debug::log::push_task("Generating default calibration for gamepad " + uuid_string);
-				// json default_calibration = game::default_gamepad_calibration();
-				// apply_gamepad_calibration(*gamepad, default_calibration);
-				
-				// if (!save_gamepad_calibration(ctx, *gamepad, default_calibration))
-					// debug::log::pop_task(EXIT_FAILURE);
-				// else
-					// debug::log::pop_task(EXIT_SUCCESS);
-			// }
-			// else
-			// {
-				// debug::log::pop_task(EXIT_SUCCESS);
-				// apply_gamepad_calibration(*gamepad, *calibration);
-			// }
-		// }
-
-		
-		debug::log::trace("Loaded controls");
-	}
-	catch (...)
-	{
-		debug::log::error("Failed to load controls");
-	}
-	
-
+	debug::log::trace("Set up controls");
 }
 
 void boot::setup_ui()
 {
 	// Default UI settings
 	ctx.font_scale = 1.0f;
-	ctx.debug_font_size_pt = 12.0f;
+	ctx.debug_font_size_pt = 10.0f;
 	ctx.menu_font_size_pt = 22.0f;
 	ctx.title_font_size_pt = 80.0f;
 	ctx.dyslexia_font = false;
@@ -1245,6 +1232,10 @@ void boot::setup_ui()
 				ctx.ui_camera->get_clip_far()
 			);
 			
+			// Re-align debug text
+			ctx.frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - ctx.debug_font.get_font_metrics().size), 99.0f});
+			ctx.frame_time_text->update_tweens();
+			
 			// Re-align menu text
 			game::menu::align_text(ctx);
 		}
@@ -1255,6 +1246,17 @@ void boot::setup_debugging()
 {
 	ctx.cli = new debug::cli();
 	//debug::log::info(ctx.cli->interpret("echo hi 123"));
+	
+	const auto& viewport_size = ctx.window->get_viewport_size();
+	
+	ctx.frame_time_text = new scene::text();
+	ctx.frame_time_text->set_material(&ctx.debug_font_material);
+	ctx.frame_time_text->set_color({1.0f, 1.0f, 0.0f, 1.0f});
+	ctx.frame_time_text->set_font(&ctx.debug_font);
+	ctx.frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - ctx.debug_font.get_font_metrics().size), 99.0f});
+	ctx.frame_time_text->update_tweens();
+	
+	ctx.ui_scene->add_object(ctx.frame_time_text);
 }
 
 void boot::setup_loop()
@@ -1340,6 +1342,7 @@ void boot::setup_loop()
 void boot::loop()
 {
 	ctx.closed = false;
+	math::moving_average<float, 30> average_frame_time;
 	
 	while (!ctx.closed)
 	{
@@ -1347,7 +1350,9 @@ void boot::loop()
 		ctx.loop.tick();
 		
 		// Sample frame duration
-		ctx.average_frame_time(static_cast<float>(ctx.loop.get_frame_duration()));
+		average_frame_time(static_cast<float>(ctx.loop.get_frame_duration() * 1000.0));
+		
+		ctx.frame_time_text->set_content(std::format("◷{:5.02f}", average_frame_time.average()));
 	}
 	
 	// Exit all active game states
