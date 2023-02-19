@@ -129,11 +129,17 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	satisfy_camera_rig_constraints();
 	
 	// Queue fade in
-	ctx.fade_transition_color->set_value({1, 1, 1});
-	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, config::nuptial_flight_fade_in_duration, true, ease<float>::out_sine, true, nullptr));
+	ctx.fade_transition_color->set_value({0, 0, 0});
+	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, 1.0f, true, ease<float>::out_sine, true, nullptr));
 	
-	// Queue control setup
-	ctx.function_queue.push(std::bind(&nuptial_flight::enable_controls, this));
+	// Queue enable game controls
+	ctx.function_queue.push
+	(
+		[&ctx]()
+		{
+			game::enable_game_controls(ctx);
+		}
+	);
 	
 	debug::log::trace("Entered nuptial flight state");
 }
@@ -141,6 +147,9 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 nuptial_flight::~nuptial_flight()
 {
 	debug::log::trace("Exiting nuptial flight state...");
+	
+	// Disable game controls
+	game::disable_game_controls(ctx);
 	
 	// Deselect selected entity
 	select_entity(entt::null);

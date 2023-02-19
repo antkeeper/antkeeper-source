@@ -19,98 +19,143 @@
 
 #include "resources/resource-loader.hpp"
 #include "resources/resource-manager.hpp"
+#include "resources/deserializer.hpp"
 #include "render/model.hpp"
 #include "render/vertex-attribute.hpp"
 #include "gl/vertex-attribute.hpp"
 #include "gl/drawing-mode.hpp"
-#include "utility/fundamental-types.hpp"
 #include "math/numbers.hpp"
-#include <sstream>
-#include <stdexcept>
-#include <limits>
-#include <physfs.h>
-#include <nlohmann/json.hpp>
+#include <cstdint>
 
-static const float3 barycentric_coords[3] =
-{
-	float3{1, 0, 0},
-	float3{0, 1, 0},
-	float3{0, 0, 1}
-};
+inline constexpr std::uint16_t vertex_attribute_position     = 0b0000000000000001;
+inline constexpr std::uint16_t vertex_attribute_uv           = 0b0000000000000010;
+inline constexpr std::uint16_t vertex_attribute_normal       = 0b0000000000000100;
+inline constexpr std::uint16_t vertex_attribute_tangent      = 0b0000000000001000;
+inline constexpr std::uint16_t vertex_attribute_color        = 0b0000000000010000;
+inline constexpr std::uint16_t vertex_attribute_bone         = 0b0000000000100000;
+inline constexpr std::uint16_t vertex_attribute_barycentric  = 0b0000000001000000;
+inline constexpr std::uint16_t vertex_attribute_morph_target = 0b0000000010000000;
+inline constexpr std::uint16_t vertex_attribute_index        = 0b0000000100000000;
 
 template <>
 render::model* resource_loader<render::model>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
-	// Read file into buffer
-	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));
-	std::vector<std::uint8_t> buffer(size);
-	PHYSFS_readBytes(file, &buffer.front(), size);
+	deserialize_context ctx(file);
 	
-	// Parse CBOR in file buffer
-	nlohmann::json json = nlohmann::json::from_cbor(buffer);
+	// Read vertex format
+	std::uint16_t vertex_format_flags = 0;
+	ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&vertex_format_flags), 1);
 	
-	// Find model name
-	std::string model_name;
-	if (auto it = json.find("name"); it != json.end())
-		model_name = it.value();
-	
-	// Load attributes
-	std::unordered_map<std::string, std::tuple<std::size_t, std::vector<float>>> attributes;
-	if (auto attributes_node = json.find("attributes"); attributes_node != json.end())
+	// Read bone per vertex (if any)
+	std::uint8_t bones_per_vertex = 0;
+	if (vertex_format_flags & vertex_attribute_bone)
 	{
-		for (const auto& attribute_node: attributes_node.value().items())
+		ctx.read8(reinterpret_cast<std::byte*>(&bones_per_vertex), 1);
+	}
+	
+	// Read vertex count
+	std::uint32_t vertex_count = 0;
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&vertex_count), 1);
+	
+	// Determine vertex size
+	std::size_t vertex_size = 0;
+	if (vertex_format_flags & vertex_attribute_position)
+	{
+		vertex_size += sizeof(float) * 3;
+	}
+	if (vertex_format_flags & vertex_attribute_uv)
+	{
+		vertex_size += sizeof(float) * 2;
+	}
+	if (vertex_format_flags & vertex_attribute_normal)
+	{
+		vertex_size += sizeof(float) * 3;
+	}
+	if (vertex_format_flags & vertex_attribute_tangent)
+	{
+		vertex_size += sizeof(float) * 4;
+	}
+	if (vertex_format_flags & vertex_attribute_color)
+	{
+		vertex_size += sizeof(float) * 4;
+	}
+	if (vertex_format_flags & vertex_attribute_bone)
+	{
+		vertex_size += sizeof(std::uint32_t) * bones_per_vertex;
+		vertex_size += sizeof(float) * bones_per_vertex;
+	}
+	if (vertex_format_flags & vertex_attribute_barycentric)
+	{
+		vertex_size += sizeof(float) * 3;
+	}
+	if (vertex_format_flags & vertex_attribute_morph_target)
+	{
+		vertex_size += sizeof(float) * 3;
+	}
+	
+	// Allocate vertex data
+	std::byte* vertex_data = new std::byte[vertex_count * vertex_size];
+	
+	// Read vertices
+	if constexpr (std::endian::native == std::endian::little)
+	{
+		ctx.read8(vertex_data, vertex_count * vertex_size);
+	}
+	else
+	{
+		std::byte* vertex_data_offset = vertex_data;
+		for (std::size_t i = 0; i < vertex_count; ++i)
 		{
-			// Look up attribute name
-			std::string attribute_name;
-			if (auto type_node = attribute_node.value().find("name"); type_node != attribute_node.value().end())
-				attribute_name = type_node.value().get<std::string>();
-			
-			// Allocate attribute in attribute map
-			auto& attribute = attributes[attribute_name];
-			std::size_t& attribute_size = std::get<0>(attribute);
-			std::vector<float>& attribute_data = std::get<1>(attribute);
-			
-			// Look up attribute size (per vertex)
-			attribute_size = 0;
-			if (auto size_node = attribute_node.value().find("size"); size_node != attribute_node.value().end())
-				attribute_size = size_node.value().get<std::size_t>();
-			
-			// Look up attribute data
-			if (auto data_node = attribute_node.value().find("data"); data_node != attribute_node.value().end())
+			if (vertex_format_flags & vertex_attribute_position)
 			{
-				// Resize attribute data
-				attribute_data.resize(data_node.value().size());
+				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				vertex_data_offset += sizeof(float) * 3;
+			}
+			if (vertex_format_flags & vertex_attribute_uv)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 2);
+				vertex_data_offset += sizeof(float) * 2;
+			}
+			if (vertex_format_flags & vertex_attribute_normal)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				vertex_data_offset += sizeof(float) * 3;
+			}
+			if (vertex_format_flags & vertex_attribute_tangent)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 4);
+				vertex_data_offset += sizeof(float) * 4;
+			}
+			if (vertex_format_flags & vertex_attribute_color)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 4);
+				vertex_data_offset += sizeof(float) * 4;
+			}
+			if (vertex_format_flags & vertex_attribute_bone)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, bones_per_vertex);
+				ctx.read32<std::endian::little>(vertex_data_offset, bones_per_vertex);
 				
-				// Fill attribute data
-				float* v = &attribute_data.front();
-				for (const auto& element: data_node.value())
-					*(v++) = element.get<float>();
+				vertex_data_offset += sizeof(std::uint32_t) * bones_per_vertex;
+				vertex_data_offset += sizeof(float) * bones_per_vertex;
+			}
+			if (vertex_format_flags & vertex_attribute_barycentric)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				vertex_data_offset += sizeof(float) * 3;
+			}
+			if (vertex_format_flags & vertex_attribute_morph_target)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				vertex_data_offset += sizeof(float) * 3;
 			}
 		}
 	}
 	
-	// Load bounds
-	geom::aabb<float> bounds =
-	{
-		{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()},
-		{-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()}
-	};
-	if (auto bounds_node = json.find("bounds"); bounds_node != json.end())
-	{
-		if (auto min_node = bounds_node.value().find("min"); min_node != bounds_node.value().end())
-		{
-			float* v = &bounds.min_point.x();
-			for (const auto& element: min_node.value())
-				*(v++) = element.get<float>();
-		}
-		
-		if (auto max_node = bounds_node.value().find("max"); max_node != bounds_node.value().end())
-		{
-			float* v = &bounds.max_point.x();
-			for (const auto& element: max_node.value())
-				*(v++) = element.get<float>();
-		}
-	}
+	// Read geometry bounds
+	geom::aabb<float> bounds;
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(bounds.min_point.data()), 3);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(bounds.max_point.data()), 3);
 	
 	// Allocate a model
 	render::model* model = new render::model();
@@ -118,179 +163,171 @@ render::model* resource_loader<render::model>::load(resource_manager* resource_m
 	// Set the model bounds
 	model->set_bounds(bounds);
 	
-	// Calculate vertex size, count, and stride
-	std::size_t vertex_size = 0;
-	std::size_t vertex_count = 0;
-	for (auto it = attributes.begin(); it != attributes.end(); ++it)
-	{
-		vertex_size += std::get<0>(it->second);
-		vertex_count = std::get<1>(it->second).size() / std::get<0>(it->second);
-	}
-	std::size_t vertex_stride = sizeof(float) * vertex_size;
-	
-	// Build interleaved vertex data buffer
-	float* vertex_data = new float[vertex_size * vertex_count];
-	float* v = &vertex_data[0];
-	for (std::size_t i = 0; i < vertex_count; ++i)
-	{
-		for (auto it = attributes.begin(); it != attributes.end(); ++it)
-		{
-			std::size_t attribute_size = std::get<0>(it->second);
-			const float* a = &(std::get<1>(it->second)[i * attribute_size]);
-			
-			for (std::size_t j = 0; j < attribute_size; ++j)
-				*(v++) = *(a++);
-		}
-	}
-	
-	// Resize VBO and upload vertex data
+	// Resize model VBO and upload vertex data
 	gl::vertex_buffer* vbo = model->get_vertex_buffer();
-	vbo->resize(sizeof(float) * vertex_size * vertex_count, vertex_data);
+	vbo->resize(vertex_count * vertex_size, vertex_data);
 	
-	// Free interleaved vertex data buffer
+	// Free vertex data
 	delete[] vertex_data;
 	
-	// Map attribute names to locations
-	static const std::unordered_map<std::string, unsigned int> attribute_location_map =
-	{
-		{"position", render::vertex_attribute::position},
-		{"texcoord", render::vertex_attribute::uv},
-		{"normal", render::vertex_attribute::normal},
-		{"tangent", render::vertex_attribute::tangent},
-		{"color", render::vertex_attribute::color},
-		{"bone_index", render::vertex_attribute::bone_index},
-		{"bone_weight", render::vertex_attribute::bone_weight},
-		{"barycentric", render::vertex_attribute::barycentric},
-		{"target", render::vertex_attribute::target}
-	};
-	
-	// Bind attributes to VAO
+	// Bind vertex attributes to VAO
 	gl::vertex_array* vao = model->get_vertex_array();
-	std::size_t attribute_offset = 0;
-	for (auto attribute_it = attributes.begin(); attribute_it != attributes.end(); ++attribute_it)
+	gl::vertex_attribute attribute;
+	attribute.buffer = vbo;
+	attribute.offset = 0;
+	attribute.stride = vertex_size;
+	if (vertex_format_flags & vertex_attribute_position)
 	{
-		std::string attribute_name = attribute_it->first;
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 3;
+		vao->bind(render::vertex_attribute::position, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_uv)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 2;
+		vao->bind(render::vertex_attribute::uv, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_normal)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 3;
+		vao->bind(render::vertex_attribute::normal, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_tangent)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 4;
+		vao->bind(render::vertex_attribute::tangent, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_color)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 4;
+		vao->bind(render::vertex_attribute::color, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_bone)
+	{
+		attribute.type = gl::vertex_attribute_type::uint_16;
+		attribute.components = bones_per_vertex;
+		vao->bind(render::vertex_attribute::bone_index, attribute);
+		attribute.offset += sizeof(std::uint32_t) * attribute.components;
 		
-		if (auto location_it = attribute_location_map.find(attribute_name); location_it != attribute_location_map.end())
-		{
-			gl::vertex_attribute attribute;
-			attribute.buffer = vbo;
-			attribute.offset = attribute_offset;
-			attribute.stride = vertex_stride;
-			attribute.type = gl::vertex_attribute_type::float_32;
-			attribute.components = std::get<0>(attribute_it->second);
-			
-			vao->bind(location_it->second, attribute);
-			
-			attribute_offset += attribute.components * sizeof(float);
-		}
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = bones_per_vertex;
+		vao->bind(render::vertex_attribute::bone_weight, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_barycentric)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 3;
+		vao->bind(render::vertex_attribute::barycentric, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_morph_target)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 3;
+		vao->bind(render::vertex_attribute::target, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
 	}
 	
-	// Load materials
-	if (auto materials_node = json.find("materials"); materials_node != json.end())
+	// Read material count
+	std::uint16_t material_count = 0;
+	ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&material_count), 1);
+	
+	// Read materials
+	for (std::uint16_t i = 0; i < material_count; ++i)
 	{
-		for (const auto& material_node: materials_node.value().items())
-		{
-			std::string group_name;
-			std::size_t group_offset = 0;
-			std::size_t group_size = 0;
-			render::material* group_material = nullptr;
-			
-			if (auto name_node = material_node.value().find("name"); name_node != material_node.value().end())
-				group_name = name_node.value().get<std::string>();
-			if (auto offset_node = material_node.value().find("offset"); offset_node != material_node.value().end())
-				group_offset = offset_node.value().get<std::size_t>();
-			if (auto size_node = material_node.value().find("size"); size_node != material_node.value().end())
-				group_size = size_node.value().get<std::size_t>();
-			
-			// Slugify material filename
-			std::string material_filename = group_name + ".mtl";
-			std::replace(material_filename.begin(), material_filename.end(), '_', '-');
-			
-			// Load material from file
-			group_material = resource_manager->load<render::material>(material_filename);
-			
-			render::model_group* model_group = model->add_group(group_name);
-			model_group->set_drawing_mode(gl::drawing_mode::triangles);
-			model_group->set_start_index(group_offset * 3);
-			model_group->set_index_count(group_size * 3);
-			model_group->set_material(group_material);
-		}
+		// Read material name length
+		std::uint8_t material_name_length = 0;
+		ctx.read8(reinterpret_cast<std::byte*>(&material_name_length), 1);
+		
+		// Read material name
+		std::string material_name(static_cast<std::size_t>(material_name_length), '\0');
+		ctx.read8(reinterpret_cast<std::byte*>(material_name.data()), material_name_length);
+		
+		// Read offset to index of first vertex
+		std::uint32_t material_vertex_offset = 0;
+		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&material_vertex_offset), 1);
+		
+		// Read vertex count
+		std::uint32_t material_vertex_count = 0;
+		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&material_vertex_count), 1);
+		
+		// Slugify material filename
+		std::string material_filename = material_name + ".mtl";
+		std::replace(material_filename.begin(), material_filename.end(), '_', '-');
+		
+		// Load material from file
+		render::material* material = resource_manager->load<render::material>(material_filename);
+		
+		// Create model material group
+		render::model_group* material_group = model->add_group(material_name);
+		material_group->set_drawing_mode(gl::drawing_mode::triangles);
+		material_group->set_start_index(material_vertex_offset);
+		material_group->set_index_count(material_vertex_count);
+		material_group->set_material(material);
 	}
 	
-	// Build skeleton
-	if (auto skeleton_node = json.find("skeleton"); skeleton_node != json.end())
+	// Read skeleton
+	if (vertex_format_flags & vertex_attribute_bone)
 	{
-		if (auto bones_node = skeleton_node->find("bones"); bones_node != skeleton_node->end())
+		::skeleton& skeleton = model->get_skeleton();
+		pose& bind_pose = skeleton.bind_pose;
+		
+		// Read bone count
+		std::uint16_t bone_count = 0;
+		ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_count), 1);
+		
+		// Read bones
+		for (std::uint16_t i = 0; i < bone_count; ++i)
 		{
-			::skeleton& skeleton = model->get_skeleton();
-			pose& bind_pose = skeleton.bind_pose;
+			// Read bone name length
+			std::uint8_t bone_name_length = 0;
+			ctx.read8(reinterpret_cast<std::byte*>(&bone_name_length), 1);
 			
-			std::uint8_t bone_index = 0;
-			for (const auto& bone_node: bones_node.value())
-			{
-				// Find parent bone
-				std::uint8_t bone_parent_index = bone_index;
-				if (auto parent_node = bone_node.find("parent"); parent_node != bone_node.end())
-				{
-					if (!parent_node->is_null())
-						bone_parent_index = parent_node->get<std::uint8_t>();
-				}
-				
-				// Construct bone identifier
-				::bone bone = make_bone(bone_index, bone_parent_index);
-				
-				// Get reference to the bone's bind pose transform
-				auto& bone_transform = bind_pose[bone];
-				
-				// Get bone translation
-				if (auto translation_node = bone_node.find("translation"); translation_node != bone_node.end())
-				{
-					if (translation_node->size() == 3)
-					{
-						bone_transform.translation.x() = (*translation_node)[0].get<float>();
-						bone_transform.translation.y() = (*translation_node)[1].get<float>();
-						bone_transform.translation.z() = (*translation_node)[2].get<float>();
-					}
-				}
-				
-				// Get bone rotation
-				if (auto rotation_node = bone_node.find("rotation"); rotation_node != bone_node.end())
-				{
-					if (rotation_node->size() == 4)
-					{
-						bone_transform.rotation.w() = (*rotation_node)[0].get<float>();
-						bone_transform.rotation.x() = (*rotation_node)[1].get<float>();
-						bone_transform.rotation.y() = (*rotation_node)[2].get<float>();
-						bone_transform.rotation.z() = (*rotation_node)[3].get<float>();
-					}
-				}
-				
-				// Set bone scale
-				bone_transform.scale = {1, 1, 1};
-				
-				// Get bone length
-				/*
-				if (auto length_node = bone_node.find("length"); length_node != bone_node.end())
-					bone.length = length_node->get<float>();
-				else
-					bone.length = 0.0f;
-				*/
-				
-				// Get bone name
-				if (auto name_node = bone_node.find("name"); name_node != bone_node.end())
-				{
-					// Add bone to bone map
-					skeleton.bone_map[name_node->get<std::string>()] = bone;
-				}
-				
-				++bone_index;
-			}
+			// Read bone name
+			std::string bone_name(static_cast<std::size_t>(bone_name_length), '\0');
+			ctx.read8(reinterpret_cast<std::byte*>(bone_name.data()), bone_name_length);
 			
-			// Calculate inverse skeleton-space bind pose
-			::concatenate(skeleton.bind_pose, skeleton.inverse_bind_pose);
-			::inverse(skeleton.inverse_bind_pose, skeleton.inverse_bind_pose);
+			// Read parent bone index
+			std::uint16_t parent_bone_index = i;
+			ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&parent_bone_index), 1);
+			
+			// Construct bone identifier
+			::bone bone = make_bone(i, parent_bone_index);
+			
+			// Add bone to bone map
+			skeleton.bone_map[bone_name] = bone;
+			
+			// Get reference to the bone's bind pose transform
+			auto& bone_transform = bind_pose[bone];
+			
+			// Read bone translation
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.translation.data()), 3);
+			
+			// Read bone rotation
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_transform.rotation.r), 1);
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.rotation.i.data()), 3);
+			
+			// Set bone scale
+			bone_transform.scale = {1, 1, 1};
+			
+			// Read bone length
+			float bone_length = 0.0f;
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_length), 1);
 		}
+		
+		// Calculate inverse skeleton-space bind pose
+		::concatenate(skeleton.bind_pose, skeleton.inverse_bind_pose);
+		::inverse(skeleton.inverse_bind_pose, skeleton.inverse_bind_pose);
 	}
 	
 	return model;

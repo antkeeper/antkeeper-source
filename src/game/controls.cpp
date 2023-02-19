@@ -21,6 +21,7 @@
 #include "game/graphics.hpp"
 #include "game/menu.hpp"
 #include "game/control-profile.hpp"
+#include "game/state/pause-menu.hpp"
 #include "resources/resource-manager.hpp"
 #include "resources/json.hpp"
 #include "input/modifier-key.hpp"
@@ -320,7 +321,38 @@ void setup_menu_controls(game::context& ctx)
 
 void setup_game_controls(game::context& ctx)
 {
-	
+	// Setup pause control
+	ctx.movement_action_subscriptions.emplace_back
+	(
+		ctx.pause_action.get_activated_channel().subscribe
+		(
+			[&ctx](const auto& event)
+			{
+				if (!ctx.resume_callback)
+				{
+					// Queue disable game controls and push pause state
+					ctx.function_queue.push
+					(
+						[&ctx]()
+						{
+							// Disable game controls
+							game::disable_game_controls(ctx);
+							
+							// Push pause menu state
+							ctx.state_machine.emplace(new game::state::pause_menu(ctx));
+						}
+					);
+					
+					// Set resume callback
+					ctx.resume_callback = [&ctx]()
+					{
+						enable_game_controls(ctx);
+						ctx.resume_callback = nullptr;
+					};
+				}
+			}
+		)
+	);
 }
 
 void enable_window_controls(game::context& ctx)
@@ -429,6 +461,11 @@ void enable_menu_controls(game::context& ctx)
 	);
 }
 
+void enable_game_controls(game::context& ctx)
+{
+	ctx.movement_actions.connect(ctx.input_manager->get_event_queue());
+}
+
 void disable_window_controls(game::context& ctx)
 {
 	ctx.window_actions.disconnect();
@@ -447,6 +484,19 @@ void disable_menu_controls(game::context& ctx)
 	
 	ctx.menu_actions.disconnect();
 	ctx.menu_mouse_subscriptions.clear();
+}
+
+void disable_game_controls(game::context& ctx)
+{
+	ctx.movement_actions.disconnect();
+	
+	ctx.move_forward_action.reset();
+	ctx.move_back_action.reset();
+	ctx.move_left_action.reset();
+	ctx.move_right_action.reset();
+	ctx.move_up_action.reset();
+	ctx.move_down_action.reset();
+	ctx.pause_action.reset();
 }
 
 } // namespace game

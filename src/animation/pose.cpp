@@ -51,7 +51,7 @@ void matrix_palette(const pose& inverse_bind_pose, const pose& pose, float4x4* p
 {
 	for (auto&& [bone, transform]: pose)
 	{
-		std::uint8_t index = ::bone_index(bone);
+		auto index = ::bone_index(bone);
 		palette[index] = math::matrix_cast(inverse_bind_pose.at(bone) * transform);
 	}
 }

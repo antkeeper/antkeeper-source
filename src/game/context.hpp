@@ -201,6 +201,8 @@ struct context
 	input::action move_up_action;
 	input::action move_down_action;
 	input::action pause_action;
+	std::vector<std::shared_ptr<::event::subscription>> movement_action_subscriptions;
+
 	
 	// Debugging
 	scene::text* frame_time_text;

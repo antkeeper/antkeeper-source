@@ -32,6 +32,7 @@
 #include "game/state/collection-menu.hpp"
 #include "game/state/extras-menu.hpp"
 #include "game/state/nuptial-flight.hpp"
+#include "game/state/nest-selection.hpp"
 #include "game/state/options-menu.hpp"
 #include "game/strings.hpp"
 #include "game/world.hpp"
@@ -133,8 +134,9 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 				[&ctx]()
 				{
 					ctx.state_machine.pop();
-					//ctx.state_machine.emplace(new game::state::nuptial_flight(ctx));
-					ctx.state_machine.emplace(new game::state::collection_menu(ctx));
+					ctx.state_machine.emplace(new game::state::nuptial_flight(ctx));
+					//ctx.state_machine.emplace(new game::state::collection_menu(ctx));
+					//ctx.state_machine.emplace(new game::state::nest_selection(ctx));
 				}
 			);
 		};

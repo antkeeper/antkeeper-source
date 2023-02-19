@@ -56,9 +56,11 @@ void setup_game_controls(game::context& ctx);
 
 void enable_window_controls(game::context& ctx);
 void enable_menu_controls(game::context& ctx);
+void enable_game_controls(game::context& ctx);
 
 void disable_window_controls(game::context& ctx);
 void disable_menu_controls(game::context& ctx);
+void disable_game_controls(game::context& ctx);
 
 } // namespace game
 

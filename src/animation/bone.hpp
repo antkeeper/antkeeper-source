@@ -27,10 +27,10 @@
 /**
  * Skeletal animation bone identifier, consisting of a bone index in the lower half, and a parent bone index in the upper half.
  */
-typedef std::uint16_t bone;
+typedef std::uint32_t bone;
 
 /// Mask to extract the index of a bone.
-constexpr bone bone_index_mask = 0xFF;
+constexpr bone bone_index_mask = 0xffff;
 
 /**
  * Bone index comparison function object.
@@ -54,7 +54,7 @@ struct bone_index_compare
  * @param parent_index Index of the parent bone.
  * @return Bone identifier.
  */
-bone make_bone(std::uint8_t index, std::uint8_t parent_index);
+bone make_bone(std::uint16_t index, std::uint16_t parent_index);
 
 /**
  * Constructs an orphan bone identifier.
@@ -62,7 +62,7 @@ bone make_bone(std::uint8_t index, std::uint8_t parent_index);
  * @param index Index of the orphan bone.
  * @return Orphan bone identifier.
  */
-bone make_bone(std::uint8_t index);
+bone make_bone(std::uint16_t index);
 
 /**
  * Returns the index of a bone.
@@ -70,7 +70,7 @@ bone make_bone(std::uint8_t index);
  * @param x Bone identifier.
  * @return Index of the bone.
  */
-std::uint8_t bone_index(bone x);
+std::uint16_t bone_index(bone x);
 
 /**
  * Returns the parent index of a bone.
@@ -78,7 +78,7 @@ std::uint8_t bone_index(bone x);
  * @param x Bone identifier.
  * @return Index of the parent bone.
  */
-std::uint8_t bone_parent_index(bone x);
+std::uint16_t bone_parent_index(bone x);
 
 /**
  * Returns `true` if a bone has a parent, `false` otherwise.
@@ -93,29 +93,29 @@ inline bool bone_index_compare::operator()(const bone& lhs, const bone& rhs) con
 	return (lhs & bone_index_mask) < (rhs & bone_index_mask);
 }
 
-inline bone make_bone(std::uint8_t index, std::uint8_t parent_index)
+inline bone make_bone(std::uint16_t index, std::uint16_t parent_index)
 {
-	return (static_cast<std::uint16_t>(parent_index) << 8) | index;
+	return (static_cast<std::uint32_t>(parent_index) << 16) | index;
 }
 
-inline bone make_bone(std::uint8_t index)
+inline bone make_bone(std::uint16_t index)
 {
 	return make_bone(index, index);
 }
 
-inline std::uint8_t bone_index(bone x)
+inline std::uint16_t bone_index(bone x)
 {
-	return static_cast<std::uint8_t>(x & bone_index_mask);
+	return static_cast<std::uint16_t>(x & bone_index_mask);
 }
 
-inline std::uint8_t bone_parent_index(bone x)
+inline std::uint16_t bone_parent_index(bone x)
 {
-	return static_cast<std::uint8_t>(x >> 8);
+	return static_cast<std::uint16_t>(x >> 16);
 }
 
 inline bool bone_has_parent(bone x)
 {
-	return (x & bone_index_mask) != (x >> 8);
+	return (x & bone_index_mask) != (x >> 16);
 }
 
 #endif // ANTKEEPER_ANIMATION_BONE_HPP

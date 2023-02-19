@@ -1166,6 +1166,7 @@ void boot::setup_controls()
 	// Setup action callbacks
 	setup_window_controls(ctx);
 	setup_menu_controls(ctx);
+	setup_game_controls(ctx);
 	
 	// Enable window controls
 	enable_window_controls(ctx);
