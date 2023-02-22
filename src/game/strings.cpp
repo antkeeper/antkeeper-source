@@ -21,7 +21,7 @@
 #include <format>
 
 
-std::string get_string(const ::context& ctx, std::uint32_t key)
+std::string get_string(const ::game& ctx, std::uint32_t key)
 {
 	if (auto i = ctx.string_map->find(key); i != ctx.string_map->end())
 	{

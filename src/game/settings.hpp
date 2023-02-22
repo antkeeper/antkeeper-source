@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_SETTINGS_HPP
 #define ANTKEEPER_GAME_SETTINGS_HPP
 
-#include "game/context.hpp"
+#include "game/game.hpp"
 #include <engine/debug/log.hpp>
 
 
@@ -36,7 +36,7 @@
  * @return `true` if the setting was read, `false` if the setting was written.
  */
 template <class T>
-bool read_or_write_setting(::context& ctx, std::uint32_t key, T& value)
+bool read_or_write_setting(::game& ctx, std::uint32_t key, T& value)
 {
 	if (auto i = ctx.settings->find(key); i != ctx.settings->end())
 	{

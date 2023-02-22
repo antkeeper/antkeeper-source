@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_WORLD_HPP
 #define ANTKEEPER_GAME_WORLD_HPP
 
-#include "game/context.hpp"
+#include "game/game.hpp"
 #include "game/ecoregion.hpp"
 
 
@@ -28,10 +28,10 @@
 namespace world {
 
 /// Creates the cosmos.
-void cosmogenesis(::context& ctx);
+void cosmogenesis(::game& ctx);
 
 /// Creates the observer.
-void create_observer(::context& ctx);
+void create_observer(::game& ctx);
 
 /**
  * Sets the location of the observer.
@@ -41,7 +41,7 @@ void create_observer(::context& ctx);
  * @param latitude Latitude, in radians.
  * @param longitude Longitude, in radians.
  */
-void set_location(::context& ctx, double elevation, double latitude, double longitude);
+void set_location(::game& ctx, double elevation, double latitude, double longitude);
 
 /**
  * Sets the current time.
@@ -49,7 +49,7 @@ void set_location(::context& ctx, double elevation, double latitude, double long
  * @param ctx Game context.
  * @param t UT1 time, in days.
  */
-void set_time(::context& ctx, double t);
+void set_time(::game& ctx, double t);
 
 /**
  * Sets the current time.
@@ -62,7 +62,7 @@ void set_time(::context& ctx, double t);
  * @param minute Minute number on `[0, 59]`.
  * @param second Fractional second on `[0.0, 60.0)`.
  */
-void set_time(::context& ctx, int year, int month, int day, int hour, int minute, double second);
+void set_time(::game& ctx, int year, int month, int day, int hour, int minute, double second);
 
 /**
  * Sets rate at which time passes.
@@ -70,7 +70,7 @@ void set_time(::context& ctx, int year, int month, int day, int hour, int minute
  * @param ctx Game context.
  * @param scale Time scale.
  */
-void set_time_scale(::context& ctx, double scale);
+void set_time_scale(::game& ctx, double scale);
 
 /**
  * Enters a ecoregion.
@@ -78,7 +78,7 @@ void set_time_scale(::context& ctx, double scale);
  * @param ctx Game context.
  * @param ecoregion Ecoregion to enter.
  */
-void enter_ecoregion(::context& ctx, const ecoregion& ecoregion);
+void enter_ecoregion(::game& ctx, const ecoregion& ecoregion);
 
 } // namespace menu
 

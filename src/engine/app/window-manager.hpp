@@ -23,6 +23,7 @@
 #include <engine/app/display.hpp>
 #include <engine/app/window.hpp>
 #include <engine/math/vector.hpp>
+#include <memory>
 #include <string>
 
 namespace app {
@@ -56,7 +57,7 @@ public:
 	 * @param fullscreen `true` if the window should start fullscreen, `false` otherwise.
 	 * @param v_sync `true` if v-sync should be enabled, `false` otherwise.
 	 */
-	[[nodiscard]] virtual window* create_window
+	[[nodiscard]] virtual std::shared_ptr<window> create_window
 	(
 		const std::string& title,
 		const math::vector<int, 2>& windowed_position,

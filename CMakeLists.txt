@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
 
-
 option(APPLICATION_NAME "Application name" "Antkeeper")
 option(APPLICATION_VERSION "Application version string" "0.0.0")
 option(APPLICATION_AUTHOR "Application author" "C. J. Howard")
@@ -8,6 +7,7 @@ option(APPLICATION_AUTHOR "Application author" "C. J. Howard")
 # Slugify application name
 string(TOLOWER ${APPLICATION_NAME} APPLICATION_SLUG)
 string(REPLACE " " "-" APPLICATION_SLUG ${APPLICATION_SLUG})
+
 
 project(${APPLICATION_SLUG} VERSION ${APPLICATION_VERSION} LANGUAGES CXX)
 

@@ -92,7 +92,7 @@ sdl_window_manager::~sdl_window_manager()
 	debug::log::trace("Quit SDL video subsystem");
 }
 
-window* sdl_window_manager::create_window
+std::shared_ptr<window> sdl_window_manager::create_window
 (
 	const std::string& title,
 	const math::vector<int, 2>& windowed_position,
@@ -103,7 +103,7 @@ window* sdl_window_manager::create_window
 )
 {
 	// Create new window
-	app::sdl_window* window = new app::sdl_window
+	std::shared_ptr<app::sdl_window> window = std::make_shared<app::sdl_window>
 	(
 		title,
 		windowed_position,
@@ -114,7 +114,7 @@ window* sdl_window_manager::create_window
 	);
 	
 	// Map internal SDL window to window
-	window_map[window->internal_window] = window;
+	window_map[window->internal_window] = window.get();
 	
 	return window;
 }
@@ -394,16 +394,16 @@ void sdl_window_manager::update()
 
 sdl_window* sdl_window_manager::get_window(SDL_Window* internal_window)
 {
-	sdl_window* window = nullptr;
 	if (auto i = window_map.find(internal_window); i != window_map.end())
 	{
-		window = i->second;
+		return i->second;
 	}
 	else
 	{
 		throw std::runtime_error("SDL window unrecognized by SDL window manager");
 	}
-	return window;
+	
+	return nullptr;
 }
 
 std::size_t sdl_window_manager::get_display_count() const

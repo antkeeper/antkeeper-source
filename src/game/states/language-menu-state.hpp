@@ -17,18 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_LOAD_HPP
-#define ANTKEEPER_GAME_LOAD_HPP
+#ifndef ANTKEEPER_LANGUAGE_MENU_STATE_HPP
+#define ANTKEEPER_LANGUAGE_MENU_STATE_HPP
 
-#include "game/game.hpp"
+#include "game/states/game-state.hpp"
+#include <string>
+#include <vector>
 
-namespace load {
 
-/**
- * Loads a colony
- */
-void colony(::game& ctx, const std::filesystem::path& path);
+class language_menu_state: public game_state
+{
+public:
+	language_menu_state(::game& ctx);
+	virtual ~language_menu_state();
+	
+private:
+	void update_text_content();
+	
+	std::vector<std::string> language_tags;
+	std::size_t language_index;
+};
 
-} // namespace load
-
-#endif // ANTKEEPER_GAME_LOAD_HPP
+#endif // ANTKEEPER_LANGUAGE_MENU_STATE_HPP

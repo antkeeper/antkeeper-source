@@ -17,18 +17,31 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_LOAD_HPP
-#define ANTKEEPER_GAME_LOAD_HPP
+#ifndef ANTKEEPER_GAME_STATE_HPP
+#define ANTKEEPER_GAME_STATE_HPP
 
-#include "game/game.hpp"
-
-namespace load {
+class game;
 
 /**
- * Loads a colony
+ * Abstract base class for game states.
  */
-void colony(::game& ctx, const std::filesystem::path& path);
+class game_state
+{
+public:
+	/**
+	 * Constructs a game state.
+	 *
+	 * @param ctx Reference to the game context on which this state will operate.
+	 */
+	game_state(::game& ctx);
+	
+	/**
+	 * Destructs a game state.
+	 */
+	virtual ~game_state() = 0;
+	
+protected:
+	::game& ctx;
+};
 
-} // namespace load
-
-#endif // ANTKEEPER_GAME_LOAD_HPP
+#endif // ANTKEEPER_GAME_STATE_HPP

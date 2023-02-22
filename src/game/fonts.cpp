@@ -68,7 +68,7 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	material.set_shader_program(shader_program);
 }
 
-void load_fonts(::context& ctx)
+void load_fonts(::game& ctx)
 {
 	// Load dyslexia-friendly typeface (if enabled)
 	bool dyslexia_font_loaded = false;

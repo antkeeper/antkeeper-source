@@ -49,7 +49,7 @@ public:
 	virtual void update();
 	
 	/// @copydoc window::window()
-	[[nodiscard]] virtual window* create_window
+	[[nodiscard]] virtual std::shared_ptr<window> create_window
 	(
 		const std::string& title,
 		const math::vector<int, 2>& windowed_position,

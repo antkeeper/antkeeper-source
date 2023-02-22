@@ -20,13 +20,13 @@
 #ifndef ANTKEEPER_GAME_ANT_SWARM_HPP
 #define ANTKEEPER_GAME_ANT_SWARM_HPP
 
-#include "game/context.hpp"
+#include "game/game.hpp"
 #include <engine/entity/id.hpp>
 
 namespace ant {
 
-entity::id create_swarm(::context& ctx);
-void destroy_swarm(::context& ctx, entity::id swarm_eid);
+entity::id create_swarm(::game& ctx);
+void destroy_swarm(::game& ctx, entity::id swarm_eid);
 
 } // namespace ant
 

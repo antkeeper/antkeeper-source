@@ -17,17 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/game.hpp"
+#include <SDL2/SDL.h>
+#include <chrono>
 #include <engine/config.hpp>
 #include <engine/debug/console.hpp>
 #include <engine/debug/log.hpp>
-#include "game/context.hpp"
-#include "game/state/boot.hpp"
 #include <engine/utility/ansi.hpp>
 #include <engine/utility/paths.hpp>
-#include <chrono>
 #include <fstream>
 #include <iostream>
-#include <SDL2/SDL.h>
 #include <set>
 #include <stdexcept>
 #include <syncstream>
@@ -201,11 +200,7 @@ int main(int argc, char* argv[])
 	
 	try
 	{
-		// Allocate game context
-		::context ctx;
-		
-		// Enter boot state
-		ctx.state_machine.emplace(new ::state::boot(ctx, argc, argv));
+		game(argc, argv).execute();
 	}
 	catch (const std::exception& e)
 	{

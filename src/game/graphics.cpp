@@ -37,9 +37,9 @@
 
 namespace graphics {
 
-static void reroute_framebuffers(::context& ctx);
+static void reroute_framebuffers(::game& ctx);
 
-void create_framebuffers(::context& ctx)
+void create_framebuffers(::game& ctx)
 {
 	debug::log::trace("Creating framebuffers...");
 	
@@ -87,7 +87,7 @@ void create_framebuffers(::context& ctx)
 	debug::log::trace("Created framebuffers");
 }
 
-void destroy_framebuffers(::context& ctx)
+void destroy_framebuffers(::game& ctx)
 {
 	debug::log::trace("Destroying framebuffers...");
 	
@@ -119,7 +119,7 @@ void destroy_framebuffers(::context& ctx)
 	debug::log::trace("Destroyed framebuffers");
 }
 
-void change_render_resolution(::context& ctx, float scale)
+void change_render_resolution(::game& ctx, float scale)
 {
 	debug::log::trace("Changing render resolution to {}...", scale);
 	
@@ -160,7 +160,7 @@ void change_render_resolution(::context& ctx, float scale)
 	debug::log::trace("Changed render resolution to {}", scale);
 }
 
-void save_screenshot(::context& ctx)
+void save_screenshot(::game& ctx)
 {
 	// Determine timestamped screenshot filename
 	const auto time = std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now());
@@ -198,7 +198,7 @@ void save_screenshot(::context& ctx)
 	
 }
 
-void select_anti_aliasing_method(::context& ctx, render::anti_aliasing_method method)
+void select_anti_aliasing_method(::game& ctx, render::anti_aliasing_method method)
 {
 	// Switch AA method
 	switch (method)
@@ -222,7 +222,7 @@ void select_anti_aliasing_method(::context& ctx, render::anti_aliasing_method me
 	ctx.anti_aliasing_method = method;
 }
 
-void reroute_framebuffers(::context& ctx)
+void reroute_framebuffers(::game& ctx)
 {
 	if (ctx.fxaa_pass->is_enabled())
 	{

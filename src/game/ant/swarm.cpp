@@ -48,7 +48,7 @@ static math::vector3<T> sphere_random(Generator& rng)
 	return math::normalize(position) * std::cbrt(distribution(rng));
 }
 
-entity::id create_swarm(::context& ctx)
+entity::id create_swarm(::game& ctx)
 {
 	// Determine swarm properties
 	const float3 swarm_center = {0, 100, 0};
@@ -166,7 +166,7 @@ entity::id create_swarm(::context& ctx)
 	return swarm_eid;
 }
 
-void destroy_swarm(::context& ctx, entity::id swarm_eid)
+void destroy_swarm(::game& ctx, entity::id swarm_eid)
 {
 	// Destroy alates
 	auto view = ctx.entity_registry->view<::steering_component>();

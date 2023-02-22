@@ -17,18 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_LOAD_HPP
-#define ANTKEEPER_GAME_LOAD_HPP
+#ifndef ANTKEEPER_CREDITS_STATE_HPP
+#define ANTKEEPER_CREDITS_STATE_HPP
 
-#include "game/game.hpp"
+#include "game/states/game-state.hpp"
+#include <engine/scene/text.hpp>
+#include <engine/animation/animation.hpp>
+#include <engine/event/subscription.hpp>
+#include <vector>
 
-namespace load {
 
-/**
- * Loads a colony
- */
-void colony(::game& ctx, const std::filesystem::path& path);
+class credits_state: public game_state
+{
+public:
+	credits_state(::game& ctx);
+	virtual ~credits_state();
+	
+private:
+	scene::text credits_text;
+	animation<float> credits_fade_in_animation;
+	animation<float> credits_scroll_animation;
+	std::vector<std::shared_ptr<::event::subscription>> input_mapped_subscriptions;
+	std::shared_ptr<event::subscription> window_resized_subscription;
+};
 
-} // namespace load
-
-#endif // ANTKEEPER_GAME_LOAD_HPP
+#endif // ANTKEEPER_CREDITS_STATE_HPP

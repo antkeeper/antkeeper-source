@@ -30,7 +30,7 @@ using namespace math::glsl;
 
 namespace menu {
 
-void init_menu_item_index(::context& ctx, const std::string& menu_name)
+void init_menu_item_index(::game& ctx, const std::string& menu_name)
 {
 	if (auto it = ctx.menu_item_indices.find(menu_name); it != ctx.menu_item_indices.end())
 	{
@@ -43,7 +43,7 @@ void init_menu_item_index(::context& ctx, const std::string& menu_name)
 	}
 }
 
-void update_text_font(::context& ctx)
+void update_text_font(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
@@ -58,7 +58,7 @@ void update_text_font(::context& ctx)
 	}
 }
 
-void update_text_color(::context& ctx)
+void update_text_color(::game& ctx)
 {
 	for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
 	{
@@ -72,7 +72,7 @@ void update_text_color(::context& ctx)
 	}
 }
 
-void update_text_tweens(::context& ctx)
+void update_text_tweens(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
@@ -82,7 +82,7 @@ void update_text_tweens(::context& ctx)
 	}
 }
 
-void align_text(::context& ctx, bool center, bool has_back, float anchor_y)
+void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 {
 	
 	
@@ -165,7 +165,7 @@ void align_text(::context& ctx, bool center, bool has_back, float anchor_y)
 	}
 }
 
-void refresh_text(::context& ctx)
+void refresh_text(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
@@ -175,7 +175,7 @@ void refresh_text(::context& ctx)
 	}
 }
 
-void add_text_to_ui(::context& ctx)
+void add_text_to_ui(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
@@ -185,7 +185,7 @@ void add_text_to_ui(::context& ctx)
 	}
 }
 
-void remove_text_from_ui(::context& ctx)
+void remove_text_from_ui(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
@@ -195,7 +195,7 @@ void remove_text_from_ui(::context& ctx)
 	}
 }
 
-void delete_text(::context& ctx)
+void delete_text(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
@@ -206,14 +206,13 @@ void delete_text(::context& ctx)
 	ctx.menu_item_texts.clear();
 }
 
-void delete_animations(::context& ctx)
+void delete_animations(::game& ctx)
 {
-	ctx.animator->remove_animation(ctx.menu_fade_animation);
-	delete ctx.menu_fade_animation;
-	ctx.menu_fade_animation = nullptr;
+	ctx.animator->remove_animation(ctx.menu_fade_animation.get());
+	ctx.menu_fade_animation.reset();
 }
 
-void clear_callbacks(::context& ctx)
+void clear_callbacks(::game& ctx)
 {
 	// Clear menu item callbacks
 	ctx.menu_left_callbacks.clear();
@@ -222,9 +221,9 @@ void clear_callbacks(::context& ctx)
 	ctx.menu_back_callback = nullptr;
 }
 
-void setup_animations(::context& ctx)
+void setup_animations(::game& ctx)
 {
-	ctx.menu_fade_animation = new animation<float>();
+	ctx.menu_fade_animation = std::make_unique<animation<float>>();
 	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->add_channel(0);
 	
 	ctx.menu_fade_animation->set_frame_callback
@@ -246,10 +245,10 @@ void setup_animations(::context& ctx)
 		}
 	);
 	
-	ctx.animator->add_animation(ctx.menu_fade_animation);
+	ctx.animator->add_animation(ctx.menu_fade_animation.get());
 }
 
-void fade_in(::context& ctx, const std::function<void()>& end_callback)
+void fade_in(::game& ctx, const std::function<void()>& end_callback)
 {
 	ctx.menu_fade_animation->set_interpolator(ease<float>::out_cubic);
 	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->get_channel(0);
@@ -281,7 +280,7 @@ void fade_in(::context& ctx, const std::function<void()>& end_callback)
 	ctx.menu_fade_animation->play();
 }
 
-void fade_out(::context& ctx, const std::function<void()>& end_callback)
+void fade_out(::game& ctx, const std::function<void()>& end_callback)
 {
 	ctx.menu_fade_animation->set_interpolator(ease<float>::out_cubic);
 	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->get_channel(0);
@@ -294,14 +293,14 @@ void fade_out(::context& ctx, const std::function<void()>& end_callback)
 	ctx.menu_fade_animation->play();
 }
 
-void fade_in_bg(::context& ctx)
+void fade_in_bg(::game& ctx)
 {
 	ctx.menu_bg_fade_out_animation->stop();
 	ctx.menu_bg_fade_in_animation->stop();
 	ctx.menu_bg_fade_in_animation->play();
 }
 
-void fade_out_bg(::context& ctx)
+void fade_out_bg(::game& ctx)
 {
 	ctx.menu_bg_fade_in_animation->stop();
 	ctx.menu_bg_fade_out_animation->stop();

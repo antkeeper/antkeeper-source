@@ -20,10 +20,10 @@
 #ifndef ANTKEEPER_GAME_FONTS_HPP
 #define ANTKEEPER_GAME_FONTS_HPP
 
-#include "game/context.hpp"
+#include "game/game.hpp"
 
 
-void load_fonts(::context& ctx);
+void load_fonts(::game& ctx);
 
 
 #endif // ANTKEEPER_GAME_FONTS_HPP

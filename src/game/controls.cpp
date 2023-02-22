@@ -21,14 +21,13 @@
 #include "game/graphics.hpp"
 #include "game/menu.hpp"
 #include "game/control-profile.hpp"
-#include "game/state/pause-menu.hpp"
+#include "game/states/pause-menu-state.hpp"
 #include <engine/resources/resource-manager.hpp>
 #include <engine/resources/json.hpp>
 #include <engine/input/modifier-key.hpp>
 #include <engine/utility/hash/fnv1a.hpp>
 
 using namespace hash::literals;
-
 
 void reset_control_profile(::control_profile& profile)
 {
@@ -133,7 +132,7 @@ void reset_control_profile(::control_profile& profile)
 	mappings.emplace("pick_mate"_fnv1a32, new input::mouse_button_mapping(nullptr, input::mouse_button::right));
 }
 
-void apply_control_profile(::context& ctx, const ::control_profile& profile)
+void apply_control_profile(::game& ctx, const ::control_profile& profile)
 {
 	auto add_mappings = [&profile](input::action_map& map, input::action& action, std::uint32_t key)
 	{
@@ -173,7 +172,7 @@ void apply_control_profile(::context& ctx, const ::control_profile& profile)
 	add_mappings(ctx.nuptial_flight_action_map, ctx.pick_mate_action, "pick_mate"_fnv1a32);
 }
 
-void update_control_profile(::context& ctx, ::control_profile& profile)
+void update_control_profile(::game& ctx, ::control_profile& profile)
 {
 	auto add_mappings = [&profile](const input::action_map& map, const input::action& action, std::uint32_t key)
 	{
@@ -238,7 +237,7 @@ void update_control_profile(::context& ctx, ::control_profile& profile)
 	add_mappings(ctx.nuptial_flight_action_map, ctx.pick_mate_action, "pick_mate"_fnv1a32);
 }
 
-void setup_window_controls(::context& ctx)
+void setup_window_controls(::game& ctx)
 {
 	// Setup fullscreen control
 	ctx.window_action_subscriptions.emplace_back
@@ -265,7 +264,7 @@ void setup_window_controls(::context& ctx)
 	);
 }
 
-void setup_menu_controls(::context& ctx)
+void setup_menu_controls(::game& ctx)
 {
 	// Setup menu controls
 	ctx.menu_action_subscriptions.emplace_back
@@ -355,7 +354,7 @@ void setup_menu_controls(::context& ctx)
 	ctx.menu_right_action.set_threshold_function(menu_action_threshold);
 }
 
-void setup_game_controls(::context& ctx)
+void setup_game_controls(::game& ctx)
 {
 	// Setup pause control
 	ctx.movement_action_subscriptions.emplace_back
@@ -375,7 +374,7 @@ void setup_game_controls(::context& ctx)
 							::disable_game_controls(ctx);
 							
 							// Push pause menu state
-							ctx.state_machine.emplace(new ::state::pause_menu(ctx));
+							ctx.state_machine.emplace(std::make_unique<pause_menu_state>(ctx));
 						}
 					);
 					
@@ -391,12 +390,12 @@ void setup_game_controls(::context& ctx)
 	);
 }
 
-void enable_window_controls(::context& ctx)
+void enable_window_controls(::game& ctx)
 {
 	ctx.window_action_map.enable();
 }
 
-void enable_menu_controls(::context& ctx)
+void enable_menu_controls(::game& ctx)
 {
 	ctx.menu_action_map.enable();
 	
@@ -497,22 +496,22 @@ void enable_menu_controls(::context& ctx)
 	);
 }
 
-void enable_game_controls(::context& ctx)
+void enable_game_controls(::game& ctx)
 {
 	ctx.movement_action_map.enable();
 }
 
-void enable_nuptial_flight_controls(::context& ctx)
+void enable_nuptial_flight_controls(::game& ctx)
 {
 	ctx.nuptial_flight_action_map.enable();
 }
 
-void disable_window_controls(::context& ctx)
+void disable_window_controls(::game& ctx)
 {
 	ctx.window_action_map.disable();
 }
 
-void disable_menu_controls(::context& ctx)
+void disable_menu_controls(::game& ctx)
 {
 	ctx.menu_action_map.disable();
 	
@@ -527,7 +526,7 @@ void disable_menu_controls(::context& ctx)
 	ctx.menu_modifier_action.reset();
 }
 
-void disable_game_controls(::context& ctx)
+void disable_game_controls(::game& ctx)
 {
 	ctx.movement_action_map.disable();
 	
@@ -540,7 +539,7 @@ void disable_game_controls(::context& ctx)
 	ctx.pause_action.reset();
 }
 
-void disable_nuptial_flight_controls(::context& ctx)
+void disable_nuptial_flight_controls(::game& ctx)
 {
 	ctx.nuptial_flight_action_map.disable();
 	

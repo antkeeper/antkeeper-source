@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_STRINGS_HPP
 #define ANTKEEPER_GAME_STRINGS_HPP
 
-#include "game/context.hpp"
+#include "game/game.hpp"
 #include <cstdint>
 #include <string>
 
@@ -34,7 +34,7 @@
  *
  * @return `true` if the string was found, `false` otherwise.
  */
-[[nodiscard]] std::string get_string(const ::context& ctx, std::uint32_t key);
+[[nodiscard]] std::string get_string(const ::game& ctx, std::uint32_t key);
 
 
 #endif // ANTKEEPER_GAME_STRINGS_HPP

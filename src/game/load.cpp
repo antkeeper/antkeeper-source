@@ -24,7 +24,7 @@
 
 namespace load {
 
-void colony(::context& ctx, const std::filesystem::path& path)
+void colony(::game& ctx, const std::filesystem::path& path)
 {
 	const std::string path_string = path.string();
 	

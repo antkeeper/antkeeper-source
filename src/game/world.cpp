@@ -73,24 +73,24 @@
 namespace world {
 
 /// Loads an ephemeris.
-static void load_ephemeris(::context& ctx);
+static void load_ephemeris(::game& ctx);
 
 /// Creates the fixed stars.
-static void create_stars(::context& ctx);
+static void create_stars(::game& ctx);
 
 /// Creates the Sun.
-static void create_sun(::context& ctx);
+static void create_sun(::game& ctx);
 
 /// Creates the Earth-Moon system.
-static void create_earth_moon_system(::context& ctx);
+static void create_earth_moon_system(::game& ctx);
 
 /// Creates the Earth.
-static void create_earth(::context& ctx);
+static void create_earth(::game& ctx);
 
 /// Creates the Moon.
-static void create_moon(::context& ctx);
+static void create_moon(::game& ctx);
 
-void cosmogenesis(::context& ctx)
+void cosmogenesis(::game& ctx)
 {
 	debug::log::trace("Generating cosmos...");
 	
@@ -102,7 +102,7 @@ void cosmogenesis(::context& ctx)
 	debug::log::trace("Generated cosmos");
 }
 
-void create_observer(::context& ctx)
+void create_observer(::game& ctx)
 {
 	debug::log::trace("Creating observer...");
 	
@@ -138,7 +138,7 @@ void create_observer(::context& ctx)
 	debug::log::trace("Created observer");
 }
 
-void set_location(::context& ctx, double elevation, double latitude, double longitude)
+void set_location(::game& ctx, double elevation, double latitude, double longitude)
 {
 	if (auto it = ctx.entities.find("observer"); it != ctx.entities.end())
 	{
@@ -161,7 +161,7 @@ void set_location(::context& ctx, double elevation, double latitude, double long
 	}
 }
 
-void set_time(::context& ctx, double t)
+void set_time(::game& ctx, double t)
 {
 	try
 	{
@@ -176,7 +176,7 @@ void set_time(::context& ctx, double t)
 	}
 }
 
-void set_time(::context& ctx, int year, int month, int day, int hour, int minute, double second)
+void set_time(::game& ctx, int year, int month, int day, int hour, int minute, double second)
 {
 	double longitude = 0.0;
 	
@@ -201,7 +201,7 @@ void set_time(::context& ctx, int year, int month, int day, int hour, int minute
 	set_time(ctx, t);
 }
 
-void set_time_scale(::context& ctx, double scale)
+void set_time_scale(::game& ctx, double scale)
 {
 	// Convert time scale from seconds to days
 	const double astronomical_scale = scale / physics::time::seconds_per_day<double>;
@@ -210,12 +210,12 @@ void set_time_scale(::context& ctx, double scale)
 	ctx.astronomy_system->set_time_scale(astronomical_scale);
 }
 
-void load_ephemeris(::context& ctx)
+void load_ephemeris(::game& ctx)
 {
 	ctx.orbit_system->set_ephemeris(ctx.resource_manager->load<physics::orbit::ephemeris<double>>("de421.eph"));
 }
 
-void create_stars(::context& ctx)
+void create_stars(::game& ctx)
 {
 	debug::log::trace("Generating fixed stars...");
 	
@@ -352,7 +352,7 @@ void create_stars(::context& ctx)
 	debug::log::trace("Generated fixed stars");
 }
 
-void create_sun(::context& ctx)
+void create_sun(::game& ctx)
 {
 	debug::log::trace("Generating Sun...");
 	
@@ -398,7 +398,7 @@ void create_sun(::context& ctx)
 	debug::log::trace("Generated Sun");
 }
 
-void create_earth_moon_system(::context& ctx)
+void create_earth_moon_system(::game& ctx)
 {
 	debug::log::trace("Generating Earth-Moon system...");
 	
@@ -418,7 +418,7 @@ void create_earth_moon_system(::context& ctx)
 	debug::log::trace("Generated Earth-Moon system");
 }
 
-void create_earth(::context& ctx)
+void create_earth(::game& ctx)
 {
 	debug::log::trace("Generating Earth...");
 	
@@ -435,7 +435,7 @@ void create_earth(::context& ctx)
 	debug::log::trace("Generated Earth");
 }
 
-void create_moon(::context& ctx)
+void create_moon(::game& ctx)
 {
 	debug::log::trace("Generating Moon...");
 	
@@ -466,7 +466,7 @@ void create_moon(::context& ctx)
 	debug::log::trace("Generated Moon");
 }
 
-void enter_ecoregion(::context& ctx, const ecoregion& ecoregion)
+void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 {
 	/*
 	image img;

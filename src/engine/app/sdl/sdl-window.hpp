@@ -31,6 +31,21 @@ namespace app {
 class sdl_window: public window
 {
 public:
+	sdl_window
+	(
+		const std::string& title,
+		const math::vector<int, 2>& windowed_position,
+		const math::vector<int, 2>& windowed_size,
+		bool maximized,
+		bool fullscreen,
+		bool v_sync
+	);
+	
+	sdl_window(const sdl_window&) = delete;
+	sdl_window(sdl_window&&) = delete;
+	sdl_window& operator=(const sdl_window&) = delete;
+	sdl_window& operator=(sdl_window&&) = delete;
+	
 	virtual ~sdl_window();
 	virtual void set_title(const std::string& title);
 	virtual void set_position(const math::vector<int, 2>& position);
@@ -50,21 +65,6 @@ public:
 	
 private:
 	friend class sdl_window_manager;
-	
-	sdl_window
-	(
-		const std::string& title,
-		const math::vector<int, 2>& windowed_position,
-		const math::vector<int, 2>& windowed_size,
-		bool maximized,
-		bool fullscreen,
-		bool v_sync
-	);
-	
-	sdl_window(const sdl_window&) = delete;
-	sdl_window(sdl_window&&) = delete;
-	sdl_window& operator=(const sdl_window&) = delete;
-	sdl_window& operator=(sdl_window&&) = delete;
 	
 	SDL_Window* internal_window;
 	SDL_GLContext internal_context;

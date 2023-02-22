@@ -289,4 +289,3 @@ void render_system::on_light_destroy(entity::registry& registry, entity::id enti
 		delete light;
 	}
 }
-
