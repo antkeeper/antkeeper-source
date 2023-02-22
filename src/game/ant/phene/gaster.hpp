@@ -20,9 +20,8 @@
 #ifndef ANTKEEPER_GAME_ANT_PHENE_GASTER_HPP
 #define ANTKEEPER_GAME_ANT_PHENE_GASTER_HPP
 
-#include "render/model.hpp"
+#include <engine/render/model.hpp>
 
-namespace game {
 namespace ant {
 namespace phene {
 
@@ -42,6 +41,5 @@ struct gaster
 
 } // namespace phene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_PHENE_GASTER_HPP

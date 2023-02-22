@@ -22,10 +22,8 @@
 
 #include "game/context.hpp"
 
-namespace game {
 
-void load_fonts(game::context& ctx);
+void load_fonts(::context& ctx);
 
-} // namespace game
 
 #endif // ANTKEEPER_GAME_FONTS_HPP

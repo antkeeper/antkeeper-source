@@ -20,7 +20,6 @@
 #ifndef ANTKEEPER_GAME_ANT_PHENE_DIET_HPP
 #define ANTKEEPER_GAME_ANT_PHENE_DIET_HPP
 
-namespace game {
 namespace ant {
 namespace phene {
 
@@ -50,6 +49,5 @@ struct diet
 
 } // namespace phene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_PHENE_DIET_HPP

@@ -21,20 +21,19 @@
 #define ANTKEEPER_GAME_STATE_COLLECTION_MENU_HPP
 
 #include "game/state/base.hpp"
-#include "event/subscription.hpp"
-#include "render/material.hpp"
-#include "scene/billboard.hpp"
-#include "animation/animation.hpp"
-#include "geom/primitive/rectangle.hpp"
+#include <engine/event/subscription.hpp>
+#include <engine/render/material.hpp>
+#include <engine/scene/billboard.hpp>
+#include <engine/animation/animation.hpp>
+#include <engine/geom/primitive/rectangle.hpp>
 #include <memory>
 
-namespace game {
 namespace state {
 
-class collection_menu: public game::state::base
+class collection_menu: public ::state::base
 {
 public:
-	collection_menu(game::context& ctx);
+	collection_menu(::context& ctx);
 	virtual ~collection_menu();
 	
 private:
@@ -60,6 +59,5 @@ private:
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_COLLECTION_MENU_HPP

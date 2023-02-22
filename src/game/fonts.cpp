@@ -18,19 +18,18 @@
  */
 
 #include "game/fonts.hpp"
-#include "type/type.hpp"
-#include "resources/resource-manager.hpp"
-#include "gl/texture-wrapping.hpp"
-#include "gl/texture-filter.hpp"
-#include "render/material.hpp"
-#include "render/material-flags.hpp"
-#include "utility/hash/fnv1a.hpp"
+#include <engine/type/type.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/gl/texture-wrapping.hpp>
+#include <engine/gl/texture-filter.hpp>
+#include <engine/render/material.hpp>
+#include <engine/render/material-flags.hpp>
+#include <engine/utility/hash/fnv1a.hpp>
 #include "game/strings.hpp"
 #include <codecvt>
 
 using namespace hash::literals;
 
-namespace game {
 
 static void build_bitmap_font(const type::typeface& typeface, float size, const std::unordered_set<char32_t>& charset, type::bitmap_font& font, render::material& material, gl::shader_program* shader_program)
 {
@@ -69,7 +68,7 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	material.set_shader_program(shader_program);
 }
 
-void load_fonts(game::context& ctx)
+void load_fonts(::context& ctx)
 {
 	// Load dyslexia-friendly typeface (if enabled)
 	bool dyslexia_font_loaded = false;
@@ -148,4 +147,3 @@ void load_fonts(game::context& ctx)
 	}
 }
 
-} // namespace game

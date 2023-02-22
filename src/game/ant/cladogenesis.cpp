@@ -19,7 +19,6 @@
 
 #include "game/ant/cladogenesis.hpp"
 
-namespace game {
 namespace ant {
 
 genome* cladogenesis(const gene_pool& pool, std::random_device& rng)
@@ -55,4 +54,3 @@ genome* cladogenesis(const gene_pool& pool, std::random_device& rng)
 }
 
 } // namespace ant
-} // namespace game

@@ -22,17 +22,15 @@
 
 #include "game/state/base.hpp"
 
-namespace game {
 namespace state {
 
-class pause_menu: public game::state::base
+class pause_menu: public ::state::base
 {
 public:
-	pause_menu(game::context& ctx);
+	pause_menu(::context& ctx);
 	virtual ~pause_menu();
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_PAUSE_MENU_HPP

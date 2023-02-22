@@ -18,14 +18,14 @@
  */
 
 #include "game/state/main-menu.hpp"
-#include "animation/animation.hpp"
-#include "animation/animator.hpp"
-#include "animation/ease.hpp"
-#include "animation/screen-transition.hpp"
-#include "config.hpp"
-#include "game/component/model.hpp"
-#include "game/component/steering.hpp"
-#include "game/component/transform.hpp"
+#include <engine/animation/animation.hpp>
+#include <engine/animation/animator.hpp>
+#include <engine/animation/ease.hpp>
+#include <engine/animation/screen-transition.hpp>
+#include <engine/config.hpp>
+#include "game/components/model-component.hpp"
+#include "game/components/steering-component.hpp"
+#include "game/components/transform-component.hpp"
 #include "game/controls.hpp"
 #include "game/ecoregion.hpp"
 #include "game/menu.hpp"
@@ -36,26 +36,25 @@
 #include "game/state/options-menu.hpp"
 #include "game/strings.hpp"
 #include "game/world.hpp"
-#include "math/glsl.hpp"
-#include "math/projection.hpp"
-#include "physics/light/exposure.hpp"
-#include "render/model.hpp"
-#include "render/passes/clear-pass.hpp"
-#include "render/passes/ground-pass.hpp"
-#include "render/passes/sky-pass.hpp"
-#include "resources/resource-manager.hpp"
-#include "utility/hash/fnv1a.hpp"
+#include <engine/math/glsl.hpp>
+#include <engine/math/projection.hpp>
+#include <engine/physics/light/exposure.hpp>
+#include <engine/render/model.hpp>
+#include <engine/render/passes/clear-pass.hpp>
+#include <engine/render/passes/ground-pass.hpp>
+#include <engine/render/passes/sky-pass.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/utility/hash/fnv1a.hpp>
 #include <format>
 #include <limits>
 
 using namespace hash::literals;
 using namespace math::glsl;
 
-namespace game {
 namespace state {
 
-main_menu::main_menu(game::context& ctx, bool fade_in):
-	game::state::base(ctx)
+main_menu::main_menu(::context& ctx, bool fade_in):
+	::state::base(ctx)
 {
 	debug::log::trace("Entering main menu state...");
 	
@@ -111,19 +110,19 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	quit_text->set_content(get_string(ctx, "main_menu_quit"_fnv1a32));
 	
 	// Init menu item index
-	game::menu::init_menu_item_index(ctx, "main");
+	::menu::init_menu_item_index(ctx, "main");
 	
-	game::menu::update_text_color(ctx);
-	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);
-	game::menu::update_text_tweens(ctx);
-	game::menu::add_text_to_ui(ctx);
-	game::menu::setup_animations(ctx);
+	::menu::update_text_color(ctx);
+	::menu::update_text_font(ctx);
+	::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);
+	::menu::update_text_tweens(ctx);
+	::menu::add_text_to_ui(ctx);
+	::menu::setup_animations(ctx);
 	
 	auto select_start_callback = [this, &ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Create change state function
 		auto change_state = [&ctx]()
@@ -134,9 +133,9 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 				[&ctx]()
 				{
 					ctx.state_machine.pop();
-					ctx.state_machine.emplace(new game::state::nuptial_flight(ctx));
-					//ctx.state_machine.emplace(new game::state::collection_menu(ctx));
-					//ctx.state_machine.emplace(new game::state::nest_selection(ctx));
+					ctx.state_machine.emplace(new ::state::nuptial_flight(ctx));
+					//ctx.state_machine.emplace(new ::state::collection_menu(ctx));
+					//ctx.state_machine.emplace(new ::state::nest_selection(ctx));
 				}
 			);
 		};
@@ -145,7 +144,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 		this->fade_out_title();
 		
 		// Fade out menu
-		game::menu::fade_out(ctx, nullptr);
+		::menu::fade_out(ctx, nullptr);
 		
 		// Start fade out to white
 		//ctx.fade_transition_color->set_value({1, 1, 1});
@@ -155,13 +154,13 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	auto select_options_callback = [this, &ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Fade out title
 		this->fade_out_title();
 		
 		// Fade out menu
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -172,7 +171,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::options_menu(ctx));
+						ctx.state_machine.emplace(new ::state::options_menu(ctx));
 					}
 				);
 			}
@@ -181,13 +180,13 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	auto select_extras_callback = [this, &ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Fade out title
 		this->fade_out_title();
 		
 		// Fade out menu
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -198,7 +197,7 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::extras_menu(ctx));
+						ctx.state_machine.emplace(new ::state::extras_menu(ctx));
 					}
 				);
 			}
@@ -207,13 +206,13 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	auto select_quit_callback = [this, &ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Fade out title
 		this->fade_out_title();
 		
 		// Fade out menu
-		game::menu::fade_out(ctx, nullptr);
+		::menu::fade_out(ctx, nullptr);
 		
 		// Fade to black then quit
 		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, [&ctx](){ctx.closed=true;});
@@ -252,21 +251,21 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	{
 		// Fade in text
 		fade_in_title();
-		game::menu::fade_in(ctx, nullptr);
+		::menu::fade_in(ctx, nullptr);
 	}
 	
 	if (ctx.entities.find("earth") == ctx.entities.end())
 	{
-		game::world::cosmogenesis(ctx);
-		game::world::create_observer(ctx);
-		//game::world::enter_ecoregion(ctx, *ctx.resource_manager->load<game::ecoregion>("seedy-scrub.eco"));
+		::world::cosmogenesis(ctx);
+		::world::create_observer(ctx);
+		//::world::enter_ecoregion(ctx, *ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco"));
 	}
 	
 	// Set world time
-	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
+	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
 	
 	// Set world time scale
-	game::world::set_time_scale(ctx, 0.0);
+	::world::set_time_scale(ctx, 0.0);
 	
 	ctx.surface_camera->set_active(true);
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
@@ -286,9 +285,6 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
-	//if (!ctx.menu_bg_billboard->is_active())
-	//	game::menu::fade_in_bg(ctx);
-	
 	// Setup window resized callback
 	window_resized_subscription = ctx.window->get_resized_channel().subscribe
 	(
@@ -304,12 +300,12 @@ main_menu::main_menu(game::context& ctx, bool fade_in):
 			title_text.set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
 			title_text.update_tweens();
 			
-			game::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);
+			::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);
 		}
 	);
 	
 	// Enable menu controls
-	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
+	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
 	debug::log::trace("Entered main menu state");
 }
@@ -319,11 +315,11 @@ main_menu::~main_menu()
 	debug::log::trace("Exiting main menu state...");
 	
 	// Destruct menu
-	game::disable_menu_controls(ctx);
-	game::menu::clear_callbacks(ctx);
-	game::menu::delete_animations(ctx);
-	game::menu::remove_text_from_ui(ctx);
-	game::menu::delete_text(ctx);
+	::disable_menu_controls(ctx);
+	::menu::clear_callbacks(ctx);
+	::menu::delete_animations(ctx);
+	::menu::remove_text_from_ui(ctx);
+	::menu::delete_text(ctx);
 	
 	// Hide menu BG
 	ctx.menu_bg_billboard->set_active(false);
@@ -358,4 +354,3 @@ void main_menu::fade_out_title()
 }
 
 } // namespace state
-} // namespace game

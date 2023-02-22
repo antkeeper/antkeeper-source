@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
+
 option(APPLICATION_NAME "Application name" "Antkeeper")
 option(APPLICATION_VERSION "Application version string" "0.0.0")
 option(APPLICATION_AUTHOR "Application author" "C. J. Howard")
@@ -41,15 +42,15 @@ set(SHARED_LIBS
 	${OPENGL_gl_LIBRARY})
 
 # Generate configuration header file
-configure_file(${PROJECT_SOURCE_DIR}/src/config.hpp.in
-	${PROJECT_BINARY_DIR}/src/config.hpp)
+configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in
+	${PROJECT_BINARY_DIR}/src/engine/config.hpp)
 
 # Collect source files
 file(GLOB_RECURSE SOURCE_FILES
 	${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 # Remove platform-specific source files
-set(EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/platform/")
+set(EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/game/platform/")
 foreach(TMP_PATH ${SOURCE_FILES})
 	string(FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
 	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
@@ -59,21 +60,21 @@ endforeach(TMP_PATH)
 
 if(MSVC)
 	# Add platform-specific source files
-	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/platform/windows/nvidia.cpp")
+	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/game/platform/windows/nvidia.cpp")
 	
 	# Generate Windows icon resource file
 	set(ICON_FILE "${PROJECT_SOURCE_DIR}/../antkeeper-data/src/icons/antkeeper.ico")
 	if(EXISTS "${ICON_FILE}")
-		configure_file(${PROJECT_SOURCE_DIR}/src/platform/windows/icon.rc.in ${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc)
-		list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/platform/windows/icon.rc")
+		configure_file(${PROJECT_SOURCE_DIR}/src/game/platform/windows/icon.rc.in ${PROJECT_BINARY_DIR}/src/game/platform/windows/icon.rc)
+		list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/game/platform/windows/icon.rc")
 	endif()
 	
 	# Generate Windows version-information resource file
-	configure_file(${PROJECT_SOURCE_DIR}/src/platform/windows/version.rc.in ${PROJECT_BINARY_DIR}/src/platform/windows/version.rc)
-	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/platform/windows/version.rc")
+	configure_file(${PROJECT_SOURCE_DIR}/src/game/platform/windows/version.rc.in ${PROJECT_BINARY_DIR}/src/game/platform/windows/version.rc)
+	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/game/platform/windows/version.rc")
 	
 	# Make executable DPI-aware on Windows
-	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/platform/windows/dpi-aware.manifest")
+	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/game/platform/windows/dpi-aware.manifest")
 endif()
 
 # Add executable target

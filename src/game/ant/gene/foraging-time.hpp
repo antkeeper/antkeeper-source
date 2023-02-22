@@ -23,7 +23,6 @@
 #include "game/ant/phene/foraging-time.hpp"
 #include "game/ant/gene/monophenic-gene.hpp"
 
-namespace game {
 namespace ant {
 namespace gene {
 
@@ -32,6 +31,5 @@ typedef monophenic_gene<phene::foraging_time> foraging_time;
 
 } // namespace gene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_GENE_FORAGING_TIME_HPP

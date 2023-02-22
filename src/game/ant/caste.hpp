@@ -20,7 +20,8 @@
 #ifndef ANTKEEPER_GAME_ANT_CASTE_HPP
 #define ANTKEEPER_GAME_ANT_CASTE_HPP
 
-namespace game {
+#include <cstdint>
+
 namespace ant {
 
 /**
@@ -28,7 +29,7 @@ namespace ant {
  *
  * @see https://www.antwiki.org/wiki/Caste_Terminology
  */
-enum class caste
+enum class caste: std::uint8_t
 {
 	/// Queen caste type.
 	queen,
@@ -44,6 +45,5 @@ enum class caste
 };
 
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_CASTE_HPP

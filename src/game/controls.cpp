@@ -22,16 +22,15 @@
 #include "game/menu.hpp"
 #include "game/control-profile.hpp"
 #include "game/state/pause-menu.hpp"
-#include "resources/resource-manager.hpp"
-#include "resources/json.hpp"
-#include "input/modifier-key.hpp"
-#include "utility/hash/fnv1a.hpp"
+#include <engine/resources/resource-manager.hpp>
+#include <engine/resources/json.hpp>
+#include <engine/input/modifier-key.hpp>
+#include <engine/utility/hash/fnv1a.hpp>
 
 using namespace hash::literals;
 
-namespace game {
 
-void reset_control_profile(game::control_profile& profile)
+void reset_control_profile(::control_profile& profile)
 {
 	auto& mappings = profile.mappings;
 	auto& settings = profile.settings;
@@ -39,25 +38,31 @@ void reset_control_profile(game::control_profile& profile)
 	mappings.clear();
 	settings.clear();
 	
-	// Window controls
+	// Fullscreen
 	mappings.emplace("fullscreen"_fnv1a32, new input::key_mapping(nullptr, input::scancode::f11, 0, false));
 	mappings.emplace("fullscreen"_fnv1a32, new input::key_mapping(nullptr, input::scancode::enter, input::modifier_key::alt, false));
+	
+	// Screenshot
 	mappings.emplace("screenshot"_fnv1a32, new input::key_mapping(nullptr, input::scancode::f12, 0, false));
 	mappings.emplace("screenshot"_fnv1a32, new input::key_mapping(nullptr, input::scancode::print_screen, 0, false));
 	
-	// Menu controls
+	// Menu up
 	mappings.emplace("menu_up"_fnv1a32, new input::key_mapping(nullptr, input::scancode::up, 0, true));
 	mappings.emplace("menu_up"_fnv1a32, new input::key_mapping(nullptr, input::scancode::w, 0, true));
 	mappings.emplace("menu_up"_fnv1a32, new input::key_mapping(nullptr, input::scancode::i, 0, true));
 	mappings.emplace("menu_up"_fnv1a32, new input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_y, true));
 	mappings.emplace("menu_up"_fnv1a32, new input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_y, true));
 	mappings.emplace("menu_up"_fnv1a32, new input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_up));
+	
+	// Menu down
 	mappings.emplace("menu_down"_fnv1a32, new input::key_mapping(nullptr, input::scancode::down, 0, true));
 	mappings.emplace("menu_down"_fnv1a32, new input::key_mapping(nullptr, input::scancode::s, 0, true));
 	mappings.emplace("menu_down"_fnv1a32, new input::key_mapping(nullptr, input::scancode::k, 0, true));
 	mappings.emplace("menu_down"_fnv1a32, new input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_y, false));
 	mappings.emplace("menu_down"_fnv1a32, new input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_stick_y, false));
 	mappings.emplace("menu_down"_fnv1a32, new input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_down));
+	
+	// Menu left
 	mappings.emplace("menu_left"_fnv1a32, new input::key_mapping(nullptr, input::scancode::left, 0, true));
 	mappings.emplace("menu_left"_fnv1a32, new input::key_mapping(nullptr, input::scancode::a, 0, true));
 	mappings.emplace("menu_left"_fnv1a32, new input::key_mapping(nullptr, input::scancode::j, 0, true));
@@ -66,6 +71,8 @@ void reset_control_profile(game::control_profile& profile)
 	mappings.emplace("menu_left"_fnv1a32, new input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_left));
 	mappings.emplace("menu_left"_fnv1a32, new input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::x, true));
 	mappings.emplace("menu_left"_fnv1a32, new input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::y, true));
+	
+	// Menu right
 	mappings.emplace("menu_right"_fnv1a32, new input::key_mapping(nullptr, input::scancode::right, 0, true));
 	mappings.emplace("menu_right"_fnv1a32, new input::key_mapping(nullptr, input::scancode::d, 0, true));
 	mappings.emplace("menu_right"_fnv1a32, new input::key_mapping(nullptr, input::scancode::l, 0, true));
@@ -74,36 +81,59 @@ void reset_control_profile(game::control_profile& profile)
 	mappings.emplace("menu_right"_fnv1a32, new input::gamepad_button_mapping(nullptr, input::gamepad_button::dpad_right));
 	mappings.emplace("menu_right"_fnv1a32, new input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::x, false));
 	mappings.emplace("menu_right"_fnv1a32, new input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::y, false));
+	
+	// Menu select
 	mappings.emplace("menu_select"_fnv1a32, new input::key_mapping(nullptr, input::scancode::enter, 0, false));
 	mappings.emplace("menu_select"_fnv1a32, new input::key_mapping(nullptr, input::scancode::space, 0, false));
 	mappings.emplace("menu_select"_fnv1a32, new input::key_mapping(nullptr, input::scancode::e, 0, false));
 	mappings.emplace("menu_select"_fnv1a32, new input::gamepad_button_mapping(nullptr, input::gamepad_button::a));
+	
+	// Menu back
 	mappings.emplace("menu_back"_fnv1a32, new input::key_mapping(nullptr, input::scancode::escape, 0, false));
 	mappings.emplace("menu_back"_fnv1a32, new input::key_mapping(nullptr, input::scancode::backspace, 0, false));
 	mappings.emplace("menu_back"_fnv1a32, new input::key_mapping(nullptr, input::scancode::q, 0, false));
 	mappings.emplace("menu_back"_fnv1a32, new input::gamepad_button_mapping(nullptr, input::gamepad_button::b));
 	mappings.emplace("menu_back"_fnv1a32, new input::gamepad_button_mapping(nullptr, input::gamepad_button::back));
+	
+	// Menu modifier
 	mappings.emplace("menu_modifier"_fnv1a32, new input::key_mapping(nullptr, input::scancode::left_shift, 0, false));
 	mappings.emplace("menu_modifier"_fnv1a32, new input::key_mapping(nullptr, input::scancode::right_shift, 0, false));
 	
-	// Movement controls
+	// Move forward
 	mappings.emplace("move_forward"_fnv1a32, new input::key_mapping(nullptr, input::scancode::w, 0, false));
 	mappings.emplace("move_forward"_fnv1a32, new input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_y, true));
+	
+	// Move back
 	mappings.emplace("move_back"_fnv1a32, new input::key_mapping(nullptr, input::scancode::s, 0, false));
 	mappings.emplace("move_back"_fnv1a32, new input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_y, false));
+	
+	// Move left
 	mappings.emplace("move_left"_fnv1a32, new input::key_mapping(nullptr, input::scancode::a, 0, false));
 	mappings.emplace("move_left"_fnv1a32, new input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_x, true));
+	
+	// Move right
 	mappings.emplace("move_right"_fnv1a32, new input::key_mapping(nullptr, input::scancode::d, 0, false));
 	mappings.emplace("move_right"_fnv1a32, new input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_stick_x, false));
+	
+	// Move up
 	mappings.emplace("move_up"_fnv1a32, new input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::y, false));
 	mappings.emplace("move_up"_fnv1a32, new input::gamepad_axis_mapping(nullptr, input::gamepad_axis::right_trigger, false));
+	
+	// Move down
 	mappings.emplace("move_down"_fnv1a32, new input::mouse_scroll_mapping(nullptr, input::mouse_scroll_axis::y, true));
 	mappings.emplace("move_down"_fnv1a32, new input::gamepad_axis_mapping(nullptr, input::gamepad_axis::left_trigger, false));
+	
+	// Pause
 	mappings.emplace("pause"_fnv1a32, new input::key_mapping(nullptr, input::scancode::escape, 0, false));
 	mappings.emplace("pause"_fnv1a32, new input::gamepad_button_mapping(nullptr, input::gamepad_button::start));
+	
+	// Pick mate
+	mappings.emplace("pick_mate"_fnv1a32, new input::mouse_button_mapping(nullptr, input::mouse_button::left));
+	mappings.emplace("pick_mate"_fnv1a32, new input::mouse_button_mapping(nullptr, input::mouse_button::middle));
+	mappings.emplace("pick_mate"_fnv1a32, new input::mouse_button_mapping(nullptr, input::mouse_button::right));
 }
 
-void apply_control_profile(game::context& ctx, const game::control_profile& profile)
+void apply_control_profile(::context& ctx, const ::control_profile& profile)
 {
 	auto add_mappings = [&profile](input::action_map& map, input::action& action, std::uint32_t key)
 	{
@@ -115,32 +145,35 @@ void apply_control_profile(game::context& ctx, const game::control_profile& prof
 	};
 	
 	// Window controls
-	ctx.window_actions.remove_mappings();
-	add_mappings(ctx.window_actions, ctx.fullscreen_action, "fullscreen"_fnv1a32);
-	add_mappings(ctx.window_actions, ctx.screenshot_action, "screenshot"_fnv1a32);
+	ctx.window_action_map.remove_mappings();
+	add_mappings(ctx.window_action_map, ctx.fullscreen_action, "fullscreen"_fnv1a32);
+	add_mappings(ctx.window_action_map, ctx.screenshot_action, "screenshot"_fnv1a32);
 	
 	// Menu controls
-	ctx.menu_actions.remove_mappings();
-	add_mappings(ctx.menu_actions, ctx.menu_up_action, "menu_up"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_down_action, "menu_down"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_left_action, "menu_left"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_right_action, "menu_right"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_select_action, "menu_select"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_back_action, "menu_back"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_modifier_action, "menu_modifier"_fnv1a32);
+	ctx.menu_action_map.remove_mappings();
+	add_mappings(ctx.menu_action_map, ctx.menu_up_action, "menu_up"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_down_action, "menu_down"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_left_action, "menu_left"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_right_action, "menu_right"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_select_action, "menu_select"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_back_action, "menu_back"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_modifier_action, "menu_modifier"_fnv1a32);
 	
 	// Movement controls
-	ctx.movement_actions.remove_mappings();
-	add_mappings(ctx.movement_actions, ctx.move_forward_action, "move_forward"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.move_back_action, "move_back"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.move_left_action, "move_left"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.move_right_action, "move_right"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.move_up_action, "move_up"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.move_down_action, "move_down"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.pause_action, "pause"_fnv1a32);
+	ctx.movement_action_map.remove_mappings();
+	add_mappings(ctx.movement_action_map, ctx.move_forward_action, "move_forward"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_back_action, "move_back"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_left_action, "move_left"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_right_action, "move_right"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_up_action, "move_up"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_down_action, "move_down"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.pause_action, "pause"_fnv1a32);
+	
+	// Nuptial flight controls
+	add_mappings(ctx.nuptial_flight_action_map, ctx.pick_mate_action, "pick_mate"_fnv1a32);
 }
 
-void update_control_profile(game::context& ctx, game::control_profile& profile)
+void update_control_profile(::context& ctx, ::control_profile& profile)
 {
 	auto add_mappings = [&profile](const input::action_map& map, const input::action& action, std::uint32_t key)
 	{
@@ -180,29 +213,32 @@ void update_control_profile(game::context& ctx, game::control_profile& profile)
 	profile.mappings.clear();
 	
 	// Window controls
-	add_mappings(ctx.window_actions, ctx.fullscreen_action, "fullscreen"_fnv1a32);
-	add_mappings(ctx.window_actions, ctx.screenshot_action, "screenshot"_fnv1a32);
+	add_mappings(ctx.window_action_map, ctx.fullscreen_action, "fullscreen"_fnv1a32);
+	add_mappings(ctx.window_action_map, ctx.screenshot_action, "screenshot"_fnv1a32);
 	
 	// Menu controls
-	add_mappings(ctx.menu_actions, ctx.menu_up_action, "menu_up"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_down_action, "menu_down"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_left_action, "menu_left"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_right_action, "menu_right"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_select_action, "menu_select"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_back_action, "menu_back"_fnv1a32);
-	add_mappings(ctx.menu_actions, ctx.menu_modifier_action, "menu_modifier"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_up_action, "menu_up"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_down_action, "menu_down"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_left_action, "menu_left"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_right_action, "menu_right"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_select_action, "menu_select"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_back_action, "menu_back"_fnv1a32);
+	add_mappings(ctx.menu_action_map, ctx.menu_modifier_action, "menu_modifier"_fnv1a32);
 	
 	// Movement controls
-	add_mappings(ctx.movement_actions, ctx.move_forward_action, "move_forward"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.move_back_action, "move_back"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.move_left_action, "move_left"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.move_right_action, "move_right"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.move_up_action, "move_up"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.move_down_action, "move_down"_fnv1a32);
-	add_mappings(ctx.movement_actions, ctx.pause_action, "pause"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_forward_action, "move_forward"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_back_action, "move_back"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_left_action, "move_left"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_right_action, "move_right"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_up_action, "move_up"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.move_down_action, "move_down"_fnv1a32);
+	add_mappings(ctx.movement_action_map, ctx.pause_action, "pause"_fnv1a32);
+	
+	// Nuptial flight controls
+	add_mappings(ctx.nuptial_flight_action_map, ctx.pick_mate_action, "pick_mate"_fnv1a32);
 }
 
-void setup_window_controls(game::context& ctx)
+void setup_window_controls(::context& ctx)
 {
 	// Setup fullscreen control
 	ctx.window_action_subscriptions.emplace_back
@@ -223,13 +259,13 @@ void setup_window_controls(game::context& ctx)
 		(
 			[&ctx](const auto& event)
 			{
-				game::graphics::save_screenshot(ctx);
+				::graphics::save_screenshot(ctx);
 			}
 		)
 	);
 }
 
-void setup_menu_controls(game::context& ctx)
+void setup_menu_controls(::context& ctx)
 {
 	// Setup menu controls
 	ctx.menu_action_subscriptions.emplace_back
@@ -242,7 +278,7 @@ void setup_menu_controls(game::context& ctx)
 				if (*ctx.menu_item_index < 0)
 					*ctx.menu_item_index = static_cast<int>(ctx.menu_item_texts.size()) - 1;
 				
-				game::menu::update_text_color(ctx);
+				::menu::update_text_color(ctx);
 			}
 		)
 	);
@@ -256,7 +292,7 @@ void setup_menu_controls(game::context& ctx)
 				if (*ctx.menu_item_index >= ctx.menu_item_texts.size())
 					*ctx.menu_item_index = 0;
 				
-				game::menu::update_text_color(ctx);
+				::menu::update_text_color(ctx);
 			}
 		)
 	);
@@ -319,7 +355,7 @@ void setup_menu_controls(game::context& ctx)
 	ctx.menu_right_action.set_threshold_function(menu_action_threshold);
 }
 
-void setup_game_controls(game::context& ctx)
+void setup_game_controls(::context& ctx)
 {
 	// Setup pause control
 	ctx.movement_action_subscriptions.emplace_back
@@ -336,10 +372,10 @@ void setup_game_controls(game::context& ctx)
 						[&ctx]()
 						{
 							// Disable game controls
-							game::disable_game_controls(ctx);
+							::disable_game_controls(ctx);
 							
 							// Push pause menu state
-							ctx.state_machine.emplace(new game::state::pause_menu(ctx));
+							ctx.state_machine.emplace(new ::state::pause_menu(ctx));
 						}
 					);
 					
@@ -355,14 +391,14 @@ void setup_game_controls(game::context& ctx)
 	);
 }
 
-void enable_window_controls(game::context& ctx)
+void enable_window_controls(::context& ctx)
 {
-	ctx.window_actions.connect(ctx.input_manager->get_event_queue());
+	ctx.window_action_map.enable();
 }
 
-void enable_menu_controls(game::context& ctx)
+void enable_menu_controls(::context& ctx)
 {
-	ctx.menu_actions.connect(ctx.input_manager->get_event_queue());
+	ctx.menu_action_map.enable();
 	
 	// Function to select menu item at mouse position
 	auto select_menu_item = [&ctx](const math::vector<float, 2>& mouse_position) -> bool
@@ -402,7 +438,7 @@ void enable_menu_controls(game::context& ctx)
 				if (y >= min_y && y <= max_y)
 				{
 					*ctx.menu_item_index = static_cast<int>(i);
-					game::menu::update_text_color(ctx);
+					::menu::update_text_color(ctx);
 					return true;
 				}
 			}
@@ -461,19 +497,27 @@ void enable_menu_controls(game::context& ctx)
 	);
 }
 
-void enable_game_controls(game::context& ctx)
+void enable_game_controls(::context& ctx)
 {
-	ctx.movement_actions.connect(ctx.input_manager->get_event_queue());
+	ctx.movement_action_map.enable();
 }
 
-void disable_window_controls(game::context& ctx)
+void enable_nuptial_flight_controls(::context& ctx)
 {
-	ctx.window_actions.disconnect();
+	ctx.nuptial_flight_action_map.enable();
 }
 
-void disable_menu_controls(game::context& ctx)
+void disable_window_controls(::context& ctx)
 {
-	// Reset menu action states
+	ctx.window_action_map.disable();
+}
+
+void disable_menu_controls(::context& ctx)
+{
+	ctx.menu_action_map.disable();
+	
+	ctx.menu_mouse_subscriptions.clear();
+	
 	ctx.menu_up_action.reset();
 	ctx.menu_down_action.reset();
 	ctx.menu_left_action.reset();
@@ -481,14 +525,11 @@ void disable_menu_controls(game::context& ctx)
 	ctx.menu_select_action.reset();
 	ctx.menu_back_action.reset();
 	ctx.menu_modifier_action.reset();
-	
-	ctx.menu_actions.disconnect();
-	ctx.menu_mouse_subscriptions.clear();
 }
 
-void disable_game_controls(game::context& ctx)
+void disable_game_controls(::context& ctx)
 {
-	ctx.movement_actions.disconnect();
+	ctx.movement_action_map.disable();
 	
 	ctx.move_forward_action.reset();
 	ctx.move_back_action.reset();
@@ -499,4 +540,10 @@ void disable_game_controls(game::context& ctx)
 	ctx.pause_action.reset();
 }
 
-} // namespace game
+void disable_nuptial_flight_controls(::context& ctx)
+{
+	ctx.nuptial_flight_action_map.disable();
+	
+	ctx.pick_mate_action.reset();
+}
+

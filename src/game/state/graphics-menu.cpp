@@ -20,24 +20,23 @@
 #include "game/state/graphics-menu.hpp"
 #include "game/state/options-menu.hpp"
 #include "game/controls.hpp"
-#include "scene/text.hpp"
-#include "debug/log.hpp"
+#include <engine/scene/text.hpp>
+#include <engine/debug/log.hpp>
 #include "game/fonts.hpp"
 #include "game/menu.hpp"
 #include "game/graphics.hpp"
-#include "animation/timeline.hpp"
+#include <engine/animation/timeline.hpp>
 #include "game/strings.hpp"
-#include "utility/hash/fnv1a.hpp"
+#include <engine/utility/hash/fnv1a.hpp>
 
 using namespace hash::literals;
 
-namespace game {
 namespace state {
 
-static void update_value_text_content(game::context* ctx);
+static void update_value_text_content(::context* ctx);
 
-graphics_menu::graphics_menu(game::context& ctx):
-	game::state::base(ctx)
+graphics_menu::graphics_menu(::context& ctx):
+	::state::base(ctx)
 {
 	debug::log::trace("Entering graphics menu state...");
 	
@@ -76,14 +75,14 @@ graphics_menu::graphics_menu(game::context& ctx):
 	update_value_text_content();
 	
 	// Init menu item index
-	game::menu::init_menu_item_index(ctx, "graphics");
+	::menu::init_menu_item_index(ctx, "graphics");
 	
-	game::menu::update_text_color(ctx);
-	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx);
-	game::menu::update_text_tweens(ctx);
-	game::menu::add_text_to_ui(ctx);
-	game::menu::setup_animations(ctx);
+	::menu::update_text_color(ctx);
+	::menu::update_text_font(ctx);
+	::menu::align_text(ctx);
+	::menu::update_text_tweens(ctx);
+	::menu::add_text_to_ui(ctx);
+	::menu::setup_animations(ctx);
 	
 	// Construct menu item callbacks
 	auto toggle_fullscreen_callback = [this, &ctx]()
@@ -93,8 +92,8 @@ graphics_menu::graphics_menu(game::context& ctx):
 		ctx.window->set_fullscreen(fullscreen);
 		
 		this->update_value_text_content();
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 		
 		// Update fullscreen settings
 		(*ctx.settings)["fullscreen"_fnv1a32] = fullscreen;
@@ -116,12 +115,12 @@ graphics_menu::graphics_menu(game::context& ctx):
 		(*ctx.settings)["render_scale"_fnv1a32] = ctx.render_scale;
 		
 		// Resize framebuffers
-		game::graphics::change_render_resolution(ctx, ctx.render_scale);
+		::graphics::change_render_resolution(ctx, ctx.render_scale);
 		
 		// Update text
 		this->update_value_text_content();
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 	};
 	
 	auto decrease_resolution_callback = [this, &ctx]()
@@ -140,12 +139,12 @@ graphics_menu::graphics_menu(game::context& ctx):
 		(*ctx.settings)["render_scale"_fnv1a32] = ctx.render_scale;
 		
 		// Resize framebuffers
-		game::graphics::change_render_resolution(ctx, ctx.render_scale);
+		::graphics::change_render_resolution(ctx, ctx.render_scale);
 		
 		// Update text
 		this->update_value_text_content();
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 	};
 	
 	auto toggle_v_sync_callback = [this, &ctx]()
@@ -158,8 +157,8 @@ graphics_menu::graphics_menu(game::context& ctx):
 		ctx.window->set_v_sync(v_sync);
 		
 		this->update_value_text_content();
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 	};
 	
 	auto next_aa_method_callback = [this, &ctx]()
@@ -178,15 +177,15 @@ graphics_menu::graphics_menu(game::context& ctx):
 		// Update anti-aliasing method setting
 		(*ctx.settings)["anti_aliasing_method"_fnv1a32] = std::to_underlying(ctx.anti_aliasing_method);
 		
-		game::graphics::select_anti_aliasing_method(ctx, ctx.anti_aliasing_method);
+		::graphics::select_anti_aliasing_method(ctx, ctx.anti_aliasing_method);
 		
 		// Update value text
 		this->update_value_text_content();
 		
 		// Refresh and realign text
-		game::menu::refresh_text(ctx);
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::refresh_text(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 	};
 	
 	auto previous_aa_method_callback = [this, &ctx]()
@@ -205,15 +204,15 @@ graphics_menu::graphics_menu(game::context& ctx):
 		// Update anti-aliasing method setting
 		(*ctx.settings)["anti_aliasing_method"_fnv1a32] = std::to_underlying(ctx.anti_aliasing_method);
 		
-		game::graphics::select_anti_aliasing_method(ctx, ctx.anti_aliasing_method);
+		::graphics::select_anti_aliasing_method(ctx, ctx.anti_aliasing_method);
 		
 		// Update value text
 		this->update_value_text_content();
 		
 		// Refresh and realign text
-		game::menu::refresh_text(ctx);
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::refresh_text(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 	};
 	
 	auto increase_font_scale_callback = [this, &ctx]()
@@ -236,13 +235,13 @@ graphics_menu::graphics_menu(game::context& ctx):
 		
 		// Reload fonts
 		debug::log::trace("Reloading fonts...");
-		game::load_fonts(ctx);
+		::load_fonts(ctx);
 		debug::log::trace("Reloaded fonts");
 		
 		// Refresh and realign text
-		game::menu::refresh_text(ctx);
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::refresh_text(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 	};
 	
 	auto decrease_font_scale_callback = [this, &ctx]()
@@ -265,13 +264,13 @@ graphics_menu::graphics_menu(game::context& ctx):
 		
 		// Reload fonts
 		debug::log::trace("Reloading fonts...");
-		game::load_fonts(ctx);
+		::load_fonts(ctx);
 		debug::log::trace("Reloaded fonts");
 		
 		// Refresh and realign text
-		game::menu::refresh_text(ctx);
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::refresh_text(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 	};
 	
 	auto toggle_dyslexia_font_callback = [this, &ctx]()
@@ -286,20 +285,20 @@ graphics_menu::graphics_menu(game::context& ctx):
 		
 		// Reload fonts
 		debug::log::trace("Reloading fonts...");
-		game::load_fonts(ctx);
+		::load_fonts(ctx);
 		debug::log::trace("Reloaded fonts");
 		
 		// Refresh and realign text
-		game::menu::refresh_text(ctx);
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::refresh_text(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 	};
 	auto select_back_callback = [&ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -310,7 +309,7 @@ graphics_menu::graphics_menu(game::context& ctx):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::options_menu(ctx));
+						ctx.state_machine.emplace(new ::state::options_menu(ctx));
 					}
 				);
 			}
@@ -348,10 +347,10 @@ graphics_menu::graphics_menu(game::context& ctx):
 	ctx.menu_back_callback = select_back_callback;
 	
 	// Enable menu controls next frame
-	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
+	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
 	// Fade in menu
-	game::menu::fade_in(ctx, nullptr);
+	::menu::fade_in(ctx, nullptr);
 	
 	debug::log::trace("Entered graphics menu state");
 }
@@ -361,11 +360,11 @@ graphics_menu::~graphics_menu()
 	debug::log::trace("Exiting graphics menu state...");
 	
 	// Destruct menu
-	game::disable_menu_controls(ctx);
-	game::menu::clear_callbacks(ctx);
-	game::menu::delete_animations(ctx);
-	game::menu::remove_text_from_ui(ctx);
-	game::menu::delete_text(ctx);
+	::disable_menu_controls(ctx);
+	::menu::clear_callbacks(ctx);
+	::menu::delete_animations(ctx);
+	::menu::remove_text_from_ui(ctx);
+	::menu::delete_text(ctx);
 	
 	debug::log::trace("Exited graphics menu state");
 }
@@ -407,4 +406,3 @@ void graphics_menu::update_value_text_content()
 }
 
 } // namespace state
-} // namespace game

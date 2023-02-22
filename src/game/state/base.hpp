@@ -20,7 +20,6 @@
 #ifndef ANTKEEPER_GAME_STATE_BASE_HPP
 #define ANTKEEPER_GAME_STATE_BASE_HPP
 
-namespace game {
 
 struct context;
 
@@ -37,7 +36,7 @@ public:
 	 *
 	 * @param ctx Reference to the game context on which this state will operate.
 	 */
-	base(game::context& ctx);
+	base(::context& ctx);
 	
 	/**
 	 * Destructs a game state.
@@ -45,10 +44,9 @@ public:
 	virtual ~base() = 0;
 	
 protected:
-	game::context& ctx;
+	::context& ctx;
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_BASE_HPP

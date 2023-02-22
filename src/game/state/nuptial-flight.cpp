@@ -21,42 +21,57 @@
 #include "game/state/pause-menu.hpp"
 #include "game/state/nest-selection.hpp"
 #include "game/ant/swarm.hpp"
-#include "entity/archetype.hpp"
-#include "game/system/camera.hpp"
-#include "game/system/astronomy.hpp"
-#include "game/system/atmosphere.hpp"
-#include "game/system/collision.hpp"
-#include "game/component/locomotion.hpp"
-#include "game/component/transform.hpp"
-#include "game/component/terrain.hpp"
-#include "game/component/camera.hpp"
-#include "game/component/model.hpp"
-#include "game/component/constraint/constraint.hpp"
-#include "game/component/constraint-stack.hpp"
-#include "game/component/steering.hpp"
-#include "game/component/picking.hpp"
-#include "game/component/spring.hpp"
-#include "math/projection.hpp"
+#include <engine/entity/archetype.hpp>
+#include "game/systems/camera-system.hpp"
+#include "game/systems/astronomy-system.hpp"
+#include "game/systems/atmosphere-system.hpp"
+#include "game/systems/collision-system.hpp"
+#include "game/components/caste-component.hpp"
+#include "game/components/locomotion-component.hpp"
+#include "game/components/transform-component.hpp"
+#include "game/components/terrain-component.hpp"
+#include "game/components/camera-component.hpp"
+#include "game/components/model-component.hpp"
+#include "game/components/constraint-stack-component.hpp"
+#include "game/components/steering-component.hpp"
+#include "game/components/picking-component.hpp"
+#include "game/components/spring-component.hpp"
+#include "game/constraints/child-of-constraint.hpp"
+#include "game/constraints/copy-rotation-constraint.hpp"
+#include "game/constraints/copy-scale-constraint.hpp"
+#include "game/constraints/copy-transform-constraint.hpp"
+#include "game/constraints/copy-translation-constraint.hpp"
+#include "game/constraints/ease-to-constraint.hpp"
+#include "game/constraints/pivot-constraint.hpp"
+#include "game/constraints/spring-rotation-constraint.hpp"
+#include "game/constraints/spring-to-constraint.hpp"
+#include "game/constraints/spring-translation-constraint.hpp"
+#include "game/constraints/three-dof-constraint.hpp"
+#include "game/constraints/track-to-constraint.hpp"
+#include <engine/math/projection.hpp>
 #include "game/controls.hpp"
-#include "entity/commands.hpp"
-#include "animation/screen-transition.hpp"
-#include "animation/ease.hpp"
-#include "resources/resource-manager.hpp"
+#include "game/commands/commands.hpp"
+#include <engine/animation/screen-transition.hpp>
+#include <engine/animation/ease.hpp>
+#include <engine/resources/resource-manager.hpp>
 #include "game/world.hpp"
-#include "render/passes/clear-pass.hpp"
-#include "render/passes/ground-pass.hpp"
-#include "utility/state-machine.hpp"
-#include "config.hpp"
-#include "math/interpolation.hpp"
-#include "physics/light/exposure.hpp"
-#include "color/color.hpp"
-#include "input/mouse.hpp"
+#include "game/strings.hpp"
+#include <engine/render/passes/clear-pass.hpp>
+#include <engine/render/passes/ground-pass.hpp>
+#include <engine/utility/state-machine.hpp>
+#include <engine/config.hpp>
+#include <engine/math/interpolation.hpp>
+#include <engine/physics/light/exposure.hpp>
+#include <engine/color/color.hpp>
+#include <engine/input/mouse.hpp>
+#include <engine/utility/hash/fnv1a.hpp>
 
-namespace game {
+using namespace hash::literals;
+
 namespace state {
 
-nuptial_flight::nuptial_flight(game::context& ctx):
-	game::state::base(ctx)
+nuptial_flight::nuptial_flight(::context& ctx):
+	::state::base(ctx)
 {
 	debug::log::trace("Entering nuptial flight state...");
 	
@@ -71,25 +86,25 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	if (ctx.entities.find("earth") == ctx.entities.end())
 	{
 		// Create cosmos
-		game::world::cosmogenesis(ctx);
+		::world::cosmogenesis(ctx);
 		
 		// Create observer
-		game::world::create_observer(ctx);
+		::world::create_observer(ctx);
 	}
-	game::world::enter_ecoregion(ctx, *ctx.resource_manager->load<game::ecoregion>("seedy-scrub.eco"));
+	::world::enter_ecoregion(ctx, *ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco"));
 	
 	// Set world time
-	game::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
+	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
 	
 	// Set world time scale
-	game::world::set_time_scale(ctx, 0.0);
+	::world::set_time_scale(ctx, 0.0);
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
 	ctx.ground_pass->set_enabled(true);
 	
 	// Create mating swarm
-	swarm_eid = game::ant::create_swarm(ctx);
+	swarm_eid = ::ant::create_swarm(ctx);
 	
 	// Switch to surface camera
 	ctx.underground_camera->set_active(false);
@@ -117,7 +132,7 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	create_camera_rig();
 	
 	// Select random alate
-	ctx.entity_registry->view<component::transform, component::steering>().each
+	ctx.entity_registry->view<transform_component, steering_component>().each
 	(
 		[&](entity::id alate_eid, auto& transform, auto& steering)
 		{
@@ -128,18 +143,38 @@ nuptial_flight::nuptial_flight(game::context& ctx):
 	// Satisfy camera rig constraints
 	satisfy_camera_rig_constraints();
 	
-	// Queue fade in
-	ctx.fade_transition_color->set_value({0, 0, 0});
-	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, 1.0f, true, ease<float>::out_sine, true, nullptr));
+	// Construct selection text
+	selection_text.set_material(&ctx.menu_font_material);
+	selection_text.set_color({1.0f, 1.0f, 1.0f, 1.0f});
+	selection_text.set_font(&ctx.menu_font);
+	//selection_text.set_content(get_string(ctx, "title_antkeeper"_fnv1a32));
+	selection_text.set_content("Hello, World!");
+	const auto& text_aabb = static_cast<const geom::aabb<float>&>(selection_text.get_local_bounds());
+	float text_w = text_aabb.max_point.x() - text_aabb.min_point.x();
+	float text_h = text_aabb.max_point.y() - text_aabb.min_point.y();
+	selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(0.0f), 0.0f});
+	selection_text.update_tweens();
 	
-	// Queue enable game controls
+	// Add text to UI
+	ctx.ui_scene->add_object(&selection_text);
+	
+	// Setup controls
+	setup_controls();
+	
+	// Queue enable controls
 	ctx.function_queue.push
 	(
 		[&ctx]()
 		{
-			game::enable_game_controls(ctx);
+			
+			::enable_nuptial_flight_controls(ctx);
+			::enable_game_controls(ctx);
 		}
 	);
+	
+	// Queue fade in
+	ctx.fade_transition_color->set_value({0, 0, 0});
+	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, 1.0f, true, ease<float>::out_sine, true, nullptr));
 	
 	debug::log::trace("Entered nuptial flight state");
 }
@@ -149,13 +184,18 @@ nuptial_flight::~nuptial_flight()
 	debug::log::trace("Exiting nuptial flight state...");
 	
 	// Disable game controls
-	game::disable_game_controls(ctx);
+	::disable_nuptial_flight_controls(ctx);
+	::disable_game_controls(ctx);
+	
+	// Remove text from UI
+	ctx.ui_scene->remove_object(&selection_text);
 	
 	// Deselect selected entity
 	select_entity(entt::null);
 	
+	
 	destroy_camera_rig();
-	game::ant::destroy_swarm(ctx, swarm_eid);
+	::ant::destroy_swarm(ctx, swarm_eid);
 	
 	debug::log::trace("Exited nuptial flight state");
 }
@@ -163,50 +203,50 @@ nuptial_flight::~nuptial_flight()
 void nuptial_flight::create_camera_rig()
 {
 	// Construct camera rig focus ease to constraint
-	component::constraint::ease_to camera_rig_focus_ease_to;
+	ease_to_constraint camera_rig_focus_ease_to;
 	camera_rig_focus_ease_to.target = selected_eid;
 	camera_rig_focus_ease_to.start = {0, 0, 0};
 	camera_rig_focus_ease_to.duration = camera_rig_focus_ease_to_duration;
 	camera_rig_focus_ease_to.t = camera_rig_focus_ease_to.duration;
 	camera_rig_focus_ease_to.function = &ease<float3, float>::out_expo;
-	component::constraint_stack_node camera_rig_focus_ease_to_node;
+	constraint_stack_node_component camera_rig_focus_ease_to_node;
 	camera_rig_focus_ease_to_node.active = true;
 	camera_rig_focus_ease_to_node.weight = 1.0f;
 	camera_rig_focus_ease_to_node.next = entt::null;
 	camera_rig_focus_ease_to_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::constraint::ease_to>(camera_rig_focus_ease_to_eid, camera_rig_focus_ease_to);
-	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_focus_ease_to_eid, camera_rig_focus_ease_to_node);
+	ctx.entity_registry->emplace<ease_to_constraint>(camera_rig_focus_ease_to_eid, camera_rig_focus_ease_to);
+	ctx.entity_registry->emplace<constraint_stack_node_component>(camera_rig_focus_ease_to_eid, camera_rig_focus_ease_to_node);
 	
 	// Construct camera rig focus constraint stack
-	component::constraint_stack camera_rig_focus_constraint_stack;
+	constraint_stack_component camera_rig_focus_constraint_stack;
 	camera_rig_focus_constraint_stack.priority = 1;
 	camera_rig_focus_constraint_stack.head = camera_rig_focus_ease_to_eid;
 	
 	// Construct camera rig focus transform component
-	component::transform camera_rig_focus_transform;
+	transform_component camera_rig_focus_transform;
 	camera_rig_focus_transform.local = math::transform<float>::identity;
 	camera_rig_focus_transform.world = camera_rig_focus_transform.local;
 	camera_rig_focus_transform.warp = true;
 	
 	// Construct camera rig focus entity
 	camera_rig_focus_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::transform>(camera_rig_focus_eid, camera_rig_focus_transform);
-	ctx.entity_registry->emplace<component::constraint_stack>(camera_rig_focus_eid, camera_rig_focus_constraint_stack);
+	ctx.entity_registry->emplace<transform_component>(camera_rig_focus_eid, camera_rig_focus_transform);
+	ctx.entity_registry->emplace<constraint_stack_component>(camera_rig_focus_eid, camera_rig_focus_constraint_stack);
 	
 	// Construct camera rig pivot constraint
-	component::constraint::pivot camera_rig_pivot;
+	pivot_constraint camera_rig_pivot;
 	camera_rig_pivot.target = camera_rig_focus_eid;
 	camera_rig_pivot.offset = {0, 0, 0};
-	component::constraint_stack_node camera_rig_pivot_node;
+	constraint_stack_node_component camera_rig_pivot_node;
 	camera_rig_pivot_node.active = true;
 	camera_rig_pivot_node.weight = 1.0f;
 	camera_rig_pivot_node.next = entt::null;
 	camera_rig_pivot_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::constraint::pivot>(camera_rig_pivot_eid, camera_rig_pivot);
-	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_pivot_eid, camera_rig_pivot_node);
+	ctx.entity_registry->emplace<pivot_constraint>(camera_rig_pivot_eid, camera_rig_pivot);
+	ctx.entity_registry->emplace<constraint_stack_node_component>(camera_rig_pivot_eid, camera_rig_pivot_node);
 	
 	// Construct camera rig copy translation constraint
-	component::constraint::copy_translation camera_rig_copy_translation;
+	copy_translation_constraint camera_rig_copy_translation;
 	camera_rig_copy_translation.target = camera_rig_focus_eid;
 	camera_rig_copy_translation.copy_x = true;
 	camera_rig_copy_translation.copy_y = true;
@@ -215,16 +255,16 @@ void nuptial_flight::create_camera_rig()
 	camera_rig_copy_translation.invert_y = false;
 	camera_rig_copy_translation.invert_z = false;
 	camera_rig_copy_translation.offset = true;
-	component::constraint_stack_node camera_rig_copy_translation_node;
+	constraint_stack_node_component camera_rig_copy_translation_node;
 	camera_rig_copy_translation_node.active = true;
 	camera_rig_copy_translation_node.weight = 1.0f;
 	camera_rig_copy_translation_node.next = camera_rig_pivot_eid;
 	camera_rig_copy_translation_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::constraint::copy_translation>(camera_rig_copy_translation_eid, camera_rig_copy_translation);
-	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_copy_translation_eid, camera_rig_copy_translation_node);
+	ctx.entity_registry->emplace<copy_translation_constraint>(camera_rig_copy_translation_eid, camera_rig_copy_translation);
+	ctx.entity_registry->emplace<constraint_stack_node_component>(camera_rig_copy_translation_eid, camera_rig_copy_translation_node);
 	
 	// Construct camera rig spring rotation constraint
-	component::constraint::spring_rotation camera_rig_spring_rotation;
+	spring_rotation_constraint camera_rig_spring_rotation;
 	camera_rig_spring_rotation.spring =
 	{
 		{0.0f, 0.0f, 0.0f},
@@ -233,16 +273,16 @@ void nuptial_flight::create_camera_rig()
 		1.0f,
 		camera_rig_rotation_spring_angular_frequency
 	};
-	component::constraint_stack_node camera_rig_spring_rotation_node;
+	constraint_stack_node_component camera_rig_spring_rotation_node;
 	camera_rig_spring_rotation_node.active = true;
 	camera_rig_spring_rotation_node.weight = 1.0f;
 	camera_rig_spring_rotation_node.next = camera_rig_copy_translation_eid;
 	camera_rig_spring_rotation_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::constraint::spring_rotation>(camera_rig_spring_rotation_eid, camera_rig_spring_rotation);
-	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_spring_rotation_eid, camera_rig_spring_rotation_node);
+	ctx.entity_registry->emplace<spring_rotation_constraint>(camera_rig_spring_rotation_eid, camera_rig_spring_rotation);
+	ctx.entity_registry->emplace<constraint_stack_node_component>(camera_rig_spring_rotation_eid, camera_rig_spring_rotation_node);
 	
 	// Construct camera rig spring translation constraint
-	component::constraint::spring_translation camera_rig_spring_translation;
+	spring_translation_constraint camera_rig_spring_translation;
 	camera_rig_spring_translation.spring =
 	{
 		{0.0f, 0.0f, 0.0f},
@@ -251,37 +291,37 @@ void nuptial_flight::create_camera_rig()
 		1.0f,
 		camera_rig_translation_spring_angular_frequency
 	};
-	component::constraint_stack_node camera_rig_spring_translation_node;
+	constraint_stack_node_component camera_rig_spring_translation_node;
 	camera_rig_spring_translation_node.active = true;
 	camera_rig_spring_translation_node.weight = 1.0f;
 	camera_rig_spring_translation_node.next = camera_rig_spring_rotation_eid;
 	camera_rig_spring_translation_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::constraint::spring_translation>(camera_rig_spring_translation_eid, camera_rig_spring_translation);
-	ctx.entity_registry->emplace<component::constraint_stack_node>(camera_rig_spring_translation_eid, camera_rig_spring_translation_node);
+	ctx.entity_registry->emplace<spring_translation_constraint>(camera_rig_spring_translation_eid, camera_rig_spring_translation);
+	ctx.entity_registry->emplace<constraint_stack_node_component>(camera_rig_spring_translation_eid, camera_rig_spring_translation_node);
 	
 	// Construct camera rig constraint stack
-	component::constraint_stack camera_rig_constraint_stack;
+	constraint_stack_component camera_rig_constraint_stack;
 	camera_rig_constraint_stack.priority = 2;
 	camera_rig_constraint_stack.head = camera_rig_spring_translation_eid;
 	
 	// Construct camera rig transform component
-	component::transform camera_rig_transform;
+	transform_component camera_rig_transform;
 	camera_rig_transform.local = math::transform<float>::identity;
 	camera_rig_transform.world = camera_rig_transform.local;
 	camera_rig_transform.warp = true;
 	
 	// Construct camera rig camera component
-	component::camera camera_rig_camera;
+	camera_component camera_rig_camera;
 	camera_rig_camera.object = ctx.surface_camera;
 	
 	// Construct camera rig entity
 	camera_rig_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::camera>(camera_rig_eid, camera_rig_camera);
-	ctx.entity_registry->emplace<component::transform>(camera_rig_eid, camera_rig_transform);
-	ctx.entity_registry->emplace<component::constraint_stack>(camera_rig_eid, camera_rig_constraint_stack);
+	ctx.entity_registry->emplace<camera_component>(camera_rig_eid, camera_rig_camera);
+	ctx.entity_registry->emplace<transform_component>(camera_rig_eid, camera_rig_transform);
+	ctx.entity_registry->emplace<constraint_stack_component>(camera_rig_eid, camera_rig_constraint_stack);
 	
 	// Construct camera rig fov spring
-	component::spring1 camera_rig_fov_spring;
+	spring1_component camera_rig_fov_spring;
 	camera_rig_fov_spring.spring =
 	{
 		0.0f,
@@ -297,7 +337,7 @@ void nuptial_flight::create_camera_rig()
 	
 	// Construct camera rig fov spring entity
 	camera_rig_fov_spring_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::spring1>(camera_rig_fov_spring_eid, camera_rig_fov_spring);
+	ctx.entity_registry->emplace<spring1_component>(camera_rig_fov_spring_eid, camera_rig_fov_spring);
 	
 	set_camera_rig_zoom(0.25f);
 }
@@ -321,7 +361,7 @@ void nuptial_flight::set_camera_rig_zoom(float zoom)
 	camera_rig_zoom = zoom;
 	
 	const float distance = math::log_lerp(camera_rig_far_distance, camera_rig_near_distance, camera_rig_zoom);
-	ctx.entity_registry->patch<component::constraint::spring_translation>
+	ctx.entity_registry->patch<spring_translation_constraint>
 	(
 		camera_rig_spring_translation_eid,
 		[&](auto& component)
@@ -331,7 +371,7 @@ void nuptial_flight::set_camera_rig_zoom(float zoom)
 	);
 	
 	const float fov = math::log_lerp(camera_rig_far_fov, camera_rig_near_fov, camera_rig_zoom);	
-	ctx.entity_registry->patch<component::spring1>
+	ctx.entity_registry->patch<spring1_component>
 	(
 		camera_rig_fov_spring_eid,
 		[&](auto& component)
@@ -344,7 +384,7 @@ void nuptial_flight::set_camera_rig_zoom(float zoom)
 void nuptial_flight::satisfy_camera_rig_constraints()
 {
 	// Satisfy camera rig focus ease to constraint
-	ctx.entity_registry->patch<component::constraint::ease_to>
+	ctx.entity_registry->patch<ease_to_constraint>
 	(
 		camera_rig_focus_ease_to_eid,
 		[&](auto& component)
@@ -354,7 +394,7 @@ void nuptial_flight::satisfy_camera_rig_constraints()
 	);
 	
 	// Satisfy camera rig spring translation constraint
-	ctx.entity_registry->patch<component::constraint::spring_translation>
+	ctx.entity_registry->patch<spring_translation_constraint>
 	(
 		camera_rig_spring_translation_eid,
 		[&](auto& component)
@@ -365,7 +405,7 @@ void nuptial_flight::satisfy_camera_rig_constraints()
 	);
 	
 	// Satisfy camera rig spring rotation constraint
-	ctx.entity_registry->patch<component::constraint::spring_rotation>
+	ctx.entity_registry->patch<spring_rotation_constraint>
 	(
 		camera_rig_spring_rotation_eid,
 		[&](auto& component)
@@ -376,7 +416,7 @@ void nuptial_flight::satisfy_camera_rig_constraints()
 	);
 	
 	// Satisfycamera rig fov spring
-	ctx.entity_registry->patch<component::spring1>
+	ctx.entity_registry->patch<spring1_component>
 	(
 		camera_rig_fov_spring_eid,
 		[&](auto& component)
@@ -384,6 +424,41 @@ void nuptial_flight::satisfy_camera_rig_constraints()
 			component.spring.x0 = component.spring.x1;
 			component.spring.v *= 0.0f;
 		}
+	);
+}
+
+void nuptial_flight::setup_controls()
+{
+	action_subscriptions.emplace_back
+	(
+		ctx.pick_mate_action.get_activated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				// Get window-space mouse coordinates
+				const auto& mouse_position = (*ctx.input_manager->get_mice().begin())->get_position();
+				
+				// Get window viewport size
+				const auto& viewport_size = ctx.window->get_viewport_size();
+				
+				// Transform mouse coordinates from window space to NDC space
+				const float2 mouse_ndc =
+				{
+					static_cast<float>(mouse_position.x()) / static_cast<float>(viewport_size.x() - 1) * 2.0f - 1.0f,
+					(1.0f - static_cast<float>(mouse_position.y()) / static_cast<float>(viewport_size.y() - 1)) * 2.0f - 1.0f
+				};
+				
+				// Get picking ray from camera
+				const geom::primitive::ray<float, 3> ray = ctx.surface_camera->pick(mouse_ndc);
+				
+				// Pick entity
+				entity::id picked_eid = ctx.collision_system->pick_nearest(ray, ~selected_picking_flag);
+				if (picked_eid != entt::null)
+				{
+					select_entity(picked_eid);
+				}
+			}
+		)
 	);
 }
 
@@ -466,7 +541,7 @@ void nuptial_flight::enable_controls()
 			if (!mouse_look)
 				return;
 			
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				camera_rig_spring_rotation_eid,
 				[&, mouse_pan_factor](auto& component)
@@ -480,7 +555,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&, gamepad_pan_factor](float value)
 		{
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				camera_rig_spring_rotation_eid,
 				[&, gamepad_pan_factor](auto& component)
@@ -499,7 +574,7 @@ void nuptial_flight::enable_controls()
 			if (!mouse_look)
 				return;
 			
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				camera_rig_spring_rotation_eid,
 				[&, mouse_pan_factor](auto& component)
@@ -513,7 +588,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&, gamepad_pan_factor](float value)
 		{
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				camera_rig_spring_rotation_eid,
 				[&, gamepad_pan_factor](auto& component)
@@ -532,7 +607,7 @@ void nuptial_flight::enable_controls()
 			if (!mouse_look)
 				return;
 			
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				camera_rig_spring_rotation_eid,
 				[&, mouse_tilt_factor](auto& component)
@@ -547,7 +622,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&, gamepad_tilt_factor](float value)
 		{
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				camera_rig_spring_rotation_eid,
 				[&, gamepad_tilt_factor](auto& component)
@@ -567,7 +642,7 @@ void nuptial_flight::enable_controls()
 			if (!mouse_look)
 				return;
 			
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				camera_rig_spring_rotation_eid,
 				[&, mouse_tilt_factor](auto& component)
@@ -582,7 +657,7 @@ void nuptial_flight::enable_controls()
 	(
 		[&, gamepad_tilt_factor](float value)
 		{
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				camera_rig_spring_rotation_eid,
 				[&, gamepad_tilt_factor](auto& component)
@@ -688,7 +763,7 @@ void nuptial_flight::enable_controls()
 			
 			// Change to nest selection state
 			ctx.state_machine.pop();
-			ctx.state_machine.emplace(new game::state::nest_selection(ctx));
+			ctx.state_machine.emplace(new ::state::nest_selection(ctx));
 		}
 	);
 	
@@ -697,28 +772,28 @@ void nuptial_flight::enable_controls()
 	(
 		[&ctx = this->ctx, ff_time_scale]()
 		{
-			game::world::set_time_scale(ctx, ff_time_scale);
+			::world::set_time_scale(ctx, ff_time_scale);
 		}
 	);
 	ctx.controls["fast_forward"]->set_deactivated_callback
 	(
 		[&ctx = this->ctx, time_scale]()
 		{
-			game::world::set_time_scale(ctx, time_scale);
+			::world::set_time_scale(ctx, time_scale);
 		}
 	);
 	ctx.controls["rewind"]->set_activated_callback
 	(
 		[&ctx = this->ctx, ff_time_scale]()
 		{
-			game::world::set_time_scale(ctx, -ff_time_scale);
+			::world::set_time_scale(ctx, -ff_time_scale);
 		}
 	);
 	ctx.controls["rewind"]->set_deactivated_callback
 	(
 		[&ctx = this->ctx, time_scale]()
 		{
-			game::world::set_time_scale(ctx, time_scale);
+			::world::set_time_scale(ctx, time_scale);
 		}
 	);
 	
@@ -738,7 +813,7 @@ void nuptial_flight::enable_controls()
 			};
 			
 			// Push pause menu state
-			ctx.state_machine.emplace(new game::state::pause_menu(ctx));
+			ctx.state_machine.emplace(new ::state::pause_menu(ctx));
 		}
 	);
 	
@@ -805,10 +880,10 @@ void nuptial_flight::select_entity(entity::id entity_id)
 {
 	if (entity_id != selected_eid)
 	{
-		if (ctx.entity_registry->valid(selected_eid) && ctx.entity_registry->all_of<component::picking>(selected_eid))
+		if (ctx.entity_registry->valid(selected_eid) && ctx.entity_registry->all_of<picking_component>(selected_eid))
 		{
 			// Unset selected bit on picking flags of previously selected entity
-			ctx.entity_registry->patch<component::picking>
+			ctx.entity_registry->patch<picking_component>
 			(
 				selected_eid,
 				[&](auto& component)
@@ -821,10 +896,10 @@ void nuptial_flight::select_entity(entity::id entity_id)
 		
 		selected_eid = entity_id;
 		
-		if (ctx.entity_registry->valid(selected_eid) && ctx.entity_registry->all_of<component::picking>(selected_eid))
+		if (ctx.entity_registry->valid(selected_eid) && ctx.entity_registry->all_of<picking_component>(selected_eid))
 		{
 			// Set selected bit on picking flags of current selected entity
-			ctx.entity_registry->patch<component::picking>
+			ctx.entity_registry->patch<picking_component>
 			(
 				selected_eid,
 				[&](auto& component)
@@ -835,7 +910,7 @@ void nuptial_flight::select_entity(entity::id entity_id)
 		}
 		
 		// Update camera rig focus ease to target
-		ctx.entity_registry->patch<component::constraint::ease_to>
+		ctx.entity_registry->patch<ease_to_constraint>
 		(
 			camera_rig_focus_ease_to_eid,
 			[&](auto& component)
@@ -843,11 +918,47 @@ void nuptial_flight::select_entity(entity::id entity_id)
 				component.target = selected_eid;
 				component.t = 0.0f;
 				
-				const component::transform* transform = ctx.entity_registry->try_get<component::transform>(camera_rig_focus_eid);
+				const transform_component* transform = ctx.entity_registry->try_get<transform_component>(camera_rig_focus_eid);
 				if (transform)
 					component.start = transform->world.translation;
 			}
 		);
+		
+		// Update selection text
+		if (ctx.entity_registry->valid(selected_eid) && ctx.entity_registry->all_of<::caste_component>(selected_eid))
+		{
+			std::string format_string = "{}";
+			
+			const auto& caste = ctx.entity_registry->get<::caste_component>(selected_eid);
+			switch (caste.type)
+			{
+				case ::ant::caste::queen:
+					format_string = ::get_string(ctx, "ant_label_numbered_queen_format"_fnv1a32);
+					break;
+				
+				case ::ant::caste::worker:
+					format_string = ::get_string(ctx, "ant_label_numbered_worker_format"_fnv1a32);
+					break;
+				
+				case ::ant::caste::soldier:
+					format_string = ::get_string(ctx, "ant_label_numbered_soldier_format"_fnv1a32);
+					break;
+				
+				case ::ant::caste::male:
+					format_string = ::get_string(ctx, "ant_label_numbered_male_format"_fnv1a32);
+					break;
+				
+				default:
+					//std::unreachable();
+					break;
+			}
+			
+			selection_text.set_content(std::vformat(format_string, std::make_format_args(std::to_underlying(selected_eid))));
+		}
+		else
+		{
+			
+		}
 	}
 }
 
@@ -856,7 +967,7 @@ void nuptial_flight::select_nearest_entity(const float3& direction)
 	if (!ctx.entity_registry->valid(selected_eid))
 		return;
 	
-	const component::transform* selected_eid_transform = ctx.entity_registry->try_get<component::transform>(selected_eid);
+	const transform_component* selected_eid_transform = ctx.entity_registry->try_get<transform_component>(selected_eid);
 	if (!selected_eid_transform)
 		return;
 	
@@ -873,4 +984,3 @@ void nuptial_flight::select_nearest_entity(const float3& direction)
 }
 
 } // namespace state
-} // namespace game

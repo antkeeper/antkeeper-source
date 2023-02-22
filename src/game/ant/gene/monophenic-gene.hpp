@@ -22,7 +22,6 @@
 
 #include <string>
 
-namespace game {
 namespace ant {
 namespace gene {
 
@@ -43,6 +42,5 @@ struct monophenic_gene
 
 } // namespace gene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_GENE_MONOPHENIC_GENE_HPP 

@@ -21,19 +21,18 @@
 #define ANTKEEPER_GAME_STATE_MAIN_MENU_HPP
 
 #include "game/state/base.hpp"
-#include "scene/text.hpp"
-#include "animation/animation.hpp"
-#include "entity/id.hpp"
-#include "event/subscription.hpp"
+#include <engine/scene/text.hpp>
+#include <engine/animation/animation.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/event/subscription.hpp>
 #include <memory>
 
-namespace game {
 namespace state {
 
-class main_menu: public game::state::base
+class main_menu: public ::state::base
 {
 public:
-	main_menu(game::context& ctx, bool fade_in);
+	main_menu(::context& ctx, bool fade_in);
 	virtual ~main_menu();
 	
 private:
@@ -47,6 +46,5 @@ private:
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_MAIN_MENU_HPP

@@ -24,13 +24,12 @@
 #include <string>
 #include <vector>
 
-namespace game {
 namespace state {
 
-class language_menu: public game::state::base
+class language_menu: public ::state::base
 {
 public:
-	language_menu(game::context& ctx);
+	language_menu(::context& ctx);
 	virtual ~language_menu();
 	
 private:
@@ -42,6 +41,5 @@ private:
 
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_LANGUAGE_MENU_HPP

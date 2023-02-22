@@ -18,14 +18,14 @@
  */
 
 #include "game/ant/gene/loader/gene-loader.hpp"
-#include "resources/resource-loader.hpp"
-#include "resources/resource-manager.hpp"
-#include "resources/json.hpp"
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/resources/json.hpp>
 #include "game/ant/gene/mandibles.hpp"
-#include "render/model.hpp"
+#include <engine/render/model.hpp>
 #include <stdexcept>
 
-using namespace game::ant;
+using namespace ::ant;
 
 static void deserialize_mandibles_phene(phene::mandibles& phene, const json& phene_element, resource_manager* resource_manager)
 {

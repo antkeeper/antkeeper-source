@@ -22,9 +22,8 @@
 
 #include "game/context.hpp"
 #include "game/ant/genome.hpp"
-#include "utility/fundamental-types.hpp"
+#include <engine/utility/fundamental-types.hpp>
 
-namespace game {
 
 /**
  * Spawns an ant egg.
@@ -36,7 +35,7 @@ namespace game {
  *
  * @return Entity ID of the spawned ant egg.
  */
-entity::id spawn_ant_egg(game::context& ctx, const ant::genome& genome, bool fertilized, const float3& position);
+entity::id spawn_ant_egg(::context& ctx, const ant::genome& genome, bool fertilized, const float3& position);
 
 /**
  * Spawns an ant larva.
@@ -47,7 +46,7 @@ entity::id spawn_ant_egg(game::context& ctx, const ant::genome& genome, bool fer
  *
  * @return Entity ID of the spawned ant larva.
  */
-entity::id spawn_ant_larva(game::context& ctx, const ant::genome& genome, const float3& position);
+entity::id spawn_ant_larva(::context& ctx, const ant::genome& genome, const float3& position);
 
 /**
  * Spawns a worker ant.
@@ -58,8 +57,7 @@ entity::id spawn_ant_larva(game::context& ctx, const ant::genome& genome, const 
  *
  * @return Entity ID of the spawned worker ant.
  */
-entity::id spawn_worker_ant(game::context& ctx, const ant::genome& genome, const float3& position);
+entity::id spawn_worker_ant(::context& ctx, const ant::genome& genome, const float3& position);
 
-} // namespace game
 
 #endif // ANTKEEPER_GAME_SPAWN_HPP

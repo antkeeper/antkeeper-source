@@ -45,7 +45,6 @@
 #include "game/ant/genome.hpp"
 #include "game/ant/caste.hpp"
 
-namespace game {
 namespace ant {
 
 /**
@@ -89,6 +88,5 @@ struct phenome
 };
 
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_PHENOME_HPP

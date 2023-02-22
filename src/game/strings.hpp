@@ -24,7 +24,6 @@
 #include <cstdint>
 #include <string>
 
-namespace game {
 
 /**
  * Returns a localized string.
@@ -35,8 +34,7 @@ namespace game {
  *
  * @return `true` if the string was found, `false` otherwise.
  */
-[[nodiscard]] std::string get_string(const game::context& ctx, std::uint32_t key);
+[[nodiscard]] std::string get_string(const ::context& ctx, std::uint32_t key);
 
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STRINGS_HPP

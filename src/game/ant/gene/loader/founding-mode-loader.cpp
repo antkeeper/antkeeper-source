@@ -18,15 +18,15 @@
  */
 
 #include "game/ant/gene/loader/gene-loader.hpp"
-#include "resources/resource-loader.hpp"
-#include "resources/resource-manager.hpp"
-#include "resources/json.hpp"
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/resources/json.hpp>
 #include "game/ant/gene/founding-mode.hpp"
-#include "math/angles.hpp"
-#include "math/numbers.hpp"
+#include <engine/math/angles.hpp>
+#include <engine/math/numbers.hpp>
 #include <stdexcept>
 
-using namespace game::ant;
+using namespace ::ant;
 
 static void deserialize_founding_mode_phene(phene::founding_mode& phene, const json& phene_element, resource_manager* resource_manager)
 {

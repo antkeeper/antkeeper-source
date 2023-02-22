@@ -26,21 +26,20 @@
 #include "game/state/pause-menu.hpp"
 #include "game/menu.hpp"
 #include "game/controls.hpp"
-#include "animation/ease.hpp"
-#include "animation/animation.hpp"
-#include "animation/animator.hpp"
-#include "scene/text.hpp"
-#include "debug/log.hpp"
+#include <engine/animation/ease.hpp>
+#include <engine/animation/animation.hpp>
+#include <engine/animation/animator.hpp>
+#include <engine/scene/text.hpp>
+#include <engine/debug/log.hpp>
 #include "game/strings.hpp"
-#include "utility/hash/fnv1a.hpp"
+#include <engine/utility/hash/fnv1a.hpp>
 
 using namespace hash::literals;
 
-namespace game {
 namespace state {
 
-options_menu::options_menu(game::context& ctx):
-	game::state::base(ctx)
+options_menu::options_menu(::context& ctx):
+	::state::base(ctx)
 {
 	debug::log::trace("Entering options menu state...");
 	
@@ -66,23 +65,23 @@ options_menu::options_menu(game::context& ctx):
 	ctx.menu_item_texts.push_back({back_text, nullptr});
 	
 	// Init menu item index
-	game::menu::init_menu_item_index(ctx, "options");
+	::menu::init_menu_item_index(ctx, "options");
 	
-	game::menu::update_text_color(ctx);
-	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx, true);
-	game::menu::update_text_tweens(ctx);
-	game::menu::add_text_to_ui(ctx);
-	game::menu::setup_animations(ctx);
+	::menu::update_text_color(ctx);
+	::menu::update_text_font(ctx);
+	::menu::align_text(ctx, true);
+	::menu::update_text_tweens(ctx);
+	::menu::add_text_to_ui(ctx);
+	::menu::setup_animations(ctx);
 	
 	// Construct menu item callbacks
 	auto select_controls_callback = [&ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Return to main menu
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -93,7 +92,7 @@ options_menu::options_menu(game::context& ctx):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::controls_menu(ctx));
+						ctx.state_machine.emplace(new ::state::controls_menu(ctx));
 					}
 				);
 			}
@@ -102,10 +101,10 @@ options_menu::options_menu(game::context& ctx):
 	auto select_graphics_callback = [&ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Return to main menu
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -116,7 +115,7 @@ options_menu::options_menu(game::context& ctx):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::graphics_menu(ctx));
+						ctx.state_machine.emplace(new ::state::graphics_menu(ctx));
 					}
 				);
 			}
@@ -125,10 +124,10 @@ options_menu::options_menu(game::context& ctx):
 	auto select_sound_callback = [&ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Return to main menu
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -139,7 +138,7 @@ options_menu::options_menu(game::context& ctx):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::sound_menu(ctx));
+						ctx.state_machine.emplace(new ::state::sound_menu(ctx));
 					}
 				);
 			}
@@ -148,10 +147,10 @@ options_menu::options_menu(game::context& ctx):
 	auto select_language_callback = [&ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Return to main menu
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -162,7 +161,7 @@ options_menu::options_menu(game::context& ctx):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::language_menu(ctx));
+						ctx.state_machine.emplace(new ::state::language_menu(ctx));
 					}
 				);
 			}
@@ -171,12 +170,12 @@ options_menu::options_menu(game::context& ctx):
 	auto select_back_callback = [&ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Save config
-		//game::save::config(ctx);
+		//::save::config(ctx);
 		
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -188,9 +187,9 @@ options_menu::options_menu(game::context& ctx):
 					{
 						ctx.state_machine.pop();
 						if (ctx.resume_callback)
-							ctx.state_machine.emplace(new game::state::pause_menu(ctx));
+							ctx.state_machine.emplace(new ::state::pause_menu(ctx));
 						else
-							ctx.state_machine.emplace(new game::state::main_menu(ctx, false));
+							ctx.state_machine.emplace(new ::state::main_menu(ctx, false));
 					}
 				);
 			}
@@ -214,10 +213,10 @@ options_menu::options_menu(game::context& ctx):
 	ctx.menu_back_callback = select_back_callback;
 	
 	// Fade in menu
-	game::menu::fade_in(ctx, nullptr);
+	::menu::fade_in(ctx, nullptr);
 	
 	// Queue enable menu controls
-	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
+	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
 	debug::log::trace("Entered options menu state");
 }
@@ -227,14 +226,13 @@ options_menu::~options_menu()
 	debug::log::trace("Exiting options menu state...");
 	
 	// Destruct menu
-	game::disable_menu_controls(ctx);
-	game::menu::clear_callbacks(ctx);
-	game::menu::delete_animations(ctx);
-	game::menu::remove_text_from_ui(ctx);
-	game::menu::delete_text(ctx);
+	::disable_menu_controls(ctx);
+	::menu::clear_callbacks(ctx);
+	::menu::delete_animations(ctx);
+	::menu::remove_text_from_ui(ctx);
+	::menu::delete_text(ctx);
 	
 	debug::log::trace("Exited options menu state");
 }
 
 } // namespace state
-} // namespace game

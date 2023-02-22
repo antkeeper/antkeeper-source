@@ -20,9 +20,8 @@
 #ifndef ANTKEEPER_GAME_ANT_PHENE_PIGMENTATION_HPP
 #define ANTKEEPER_GAME_ANT_PHENE_PIGMENTATION_HPP
 
-#include "render/material.hpp"
+#include <engine/render/material.hpp>
 
-namespace game {
 namespace ant {
 namespace phene {
 
@@ -37,6 +36,5 @@ struct pigmentation
 
 } // namespace phene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_PHENE_PIGMENTATION_HPP

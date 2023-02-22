@@ -20,7 +20,6 @@
 #include "game/loop.hpp"
 #include <algorithm>
 
-namespace game {
 
 loop::loop():
 	update_callback([](double, double){}),
@@ -85,4 +84,3 @@ void loop::tick()
 	render_callback(accumulator * update_frequency);
 }
 
-} // namespace game

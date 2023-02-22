@@ -20,9 +20,8 @@
 #ifndef ANTKEEPER_GAME_ANT_PHENE_SCULPTURING_HPP
 #define ANTKEEPER_GAME_ANT_PHENE_SCULPTURING_HPP
 
-#include "gl/texture-2d.hpp"
+#include <engine/gl/texture-2d.hpp>
 
-namespace game {
 namespace ant {
 namespace phene {
 
@@ -40,6 +39,5 @@ struct sculpturing
 
 } // namespace phene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_PHENE_SCULPTURING_HPP

@@ -20,9 +20,8 @@
 #ifndef ANTKEEPER_GAME_ANT_PHENE_EGG_HPP
 #define ANTKEEPER_GAME_ANT_PHENE_EGG_HPP
 
-#include "render/model.hpp"
+#include <engine/render/model.hpp>
 
-namespace game {
 namespace ant {
 namespace phene {
 
@@ -37,6 +36,5 @@ struct egg
 
 } // namespace phene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_PHENE_EGG_HPP

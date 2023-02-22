@@ -24,13 +24,12 @@
 #include "game/context.hpp"
 #include <optional>
 
-namespace game {
 namespace state {
 
 /**
  * Boots the game up on construction, and down on destruction.
  */
-class boot: public game::state::base
+class boot: public ::state::base
 {
 public:
 	/**
@@ -40,7 +39,7 @@ public:
 	 * @param argc Command line argument count.
 	 * @param argv Command line argument vector.
 	 */
-	boot(game::context& ctx, int argc, const char* const* argv);
+	boot(::context& ctx, int argc, const char* const* argv);
 	
 	/**
 	 * Boots down the game.
@@ -71,6 +70,5 @@ private:
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_BOOT_HPP

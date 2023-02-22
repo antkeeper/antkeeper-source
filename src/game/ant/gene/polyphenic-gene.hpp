@@ -24,7 +24,6 @@
 #include <string>
 #include <unordered_map>
 
-namespace game {
 namespace ant {
 namespace gene {
 
@@ -47,6 +46,5 @@ struct polyphenic_gene
 
 } // namespace gene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_GENE_POLYPHENIC_GENE_HPP

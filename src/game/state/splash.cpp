@@ -18,26 +18,25 @@
  */
 
 #include "game/state/splash.hpp"
-#include "animation/animation.hpp"
-#include "animation/animator.hpp"
-#include "animation/ease.hpp"
-#include "animation/screen-transition.hpp"
-#include "debug/log.hpp"
+#include <engine/animation/animation.hpp>
+#include <engine/animation/animator.hpp>
+#include <engine/animation/ease.hpp>
+#include <engine/animation/screen-transition.hpp>
+#include <engine/debug/log.hpp>
 #include "game/context.hpp"
 #include "game/state/main-menu.hpp"
-#include "math/linear-algebra.hpp"
-#include "render/material-flags.hpp"
-#include "render/passes/clear-pass.hpp"
-#include "resources/resource-manager.hpp"
-#include "math/glsl.hpp"
+#include <engine/math/linear-algebra.hpp>
+#include <engine/render/material-flags.hpp>
+#include <engine/render/passes/clear-pass.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/math/glsl.hpp>
 
 using namespace math::glsl;
-
-namespace game {
+
 namespace state {
 
-splash::splash(game::context& ctx):
-	game::state::base(ctx)
+splash::splash(::context& ctx):
+	::state::base(ctx)
 {
 	debug::log::trace("Entering splash state...");
 	
@@ -116,7 +115,7 @@ splash::splash(game::context& ctx):
 				[&ctx]()
 				{
 					ctx.state_machine.pop();
-					ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
+					ctx.state_machine.emplace(new ::state::main_menu(ctx, true));
 				}
 			);
 		}
@@ -155,7 +154,7 @@ splash::splash(game::context& ctx):
 				
 				// Change to main menu state
 				ctx.state_machine.pop();
-				ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
+				ctx.state_machine.emplace(new ::state::main_menu(ctx, true));
 			}
 		);
 	};
@@ -219,5 +218,4 @@ splash::~splash()
 	debug::log::trace("Exited splash state");
 }
 
-} // namespace state
-} // namespace game
+} // namespace state

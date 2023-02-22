@@ -18,17 +18,17 @@
  */
 
 #include "game/ant/swarm.hpp"
-#include "game/component/transform.hpp"
-#include "game/component/steering.hpp"
-#include "game/component/model.hpp"
-#include "game/component/picking.hpp"
-#include "resources/resource-manager.hpp"
-#include "math/quaternion.hpp"
-#include "config.hpp"
+#include "game/components/transform-component.hpp"
+#include "game/components/steering-component.hpp"
+#include "game/components/model-component.hpp"
+#include "game/components/picking-component.hpp"
+#include "game/components/caste-component.hpp"
+#include <engine/resources/resource-manager.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/config.hpp>
 #include <cmath>
 #include <random>
-
-namespace game {
+
 namespace ant {
 
 /**
@@ -48,7 +48,7 @@ static math::vector3<T> sphere_random(Generator& rng)
 	return math::normalize(position) * std::cbrt(distribution(rng));
 }
 
-entity::id create_swarm(game::context& ctx)
+entity::id create_swarm(::context& ctx)
 {
 	// Determine swarm properties
 	const float3 swarm_center = {0, 100, 0};
@@ -61,13 +61,13 @@ entity::id create_swarm(game::context& ctx)
 	const float3 queen_scale = {1, 1, 1};
 	
 	// Init transform component
-	game::component::transform transform;
+	::transform_component transform;
 	transform.local = math::transform<float>::identity;
 	transform.world = transform.local;
 	transform.warp = true;
 	
 	// Init picking component
-	game::component::picking picking;
+	::picking_component picking;
 	picking.sphere = {float3{0, 0, 0}, 0.5f * 2.0f};
 	std::uint32_t male_picking_flags = 0b01;
 	std::uint32_t queen_picking_flags = 0b10;
@@ -77,22 +77,22 @@ entity::id create_swarm(game::context& ctx)
 	transform.local.translation = swarm_center;
 	transform.world = transform.local;
 	transform.warp = true;
-	ctx.entity_registry->emplace<game::component::transform>(swarm_eid, transform);
+	ctx.entity_registry->emplace<::transform_component>(swarm_eid, transform);
 	
 	// Init male model component
-	game::component::model male_model;
+	::model_component male_model;
 	male_model.render_model = ctx.resource_manager->load<render::model>("male-boid.mdl");
 	male_model.instance_count = 0;
 	male_model.layers = 1;
 	
 	// Init queen model component
-	game::component::model queen_model;
+	::model_component queen_model;
 	queen_model.render_model = ctx.resource_manager->load<render::model>("queen-boid.mdl");
 	queen_model.instance_count = 0;
 	queen_model.layers = 1;
 	
 	// Init steering component
-	game::component::steering steering;
+	::steering_component steering;
 	steering.agent.mass = 1.0f;
 	steering.agent.velocity = {0, 0, 0};
 	steering.agent.acceleration = {0, 0, 0};
@@ -113,6 +113,14 @@ entity::id create_swarm(game::context& ctx)
 	steering.flee_weight = 0.0f;
 	steering.sum_weights = steering.wander_weight + steering.seek_weight + steering.flee_weight;
 	
+	// Init queen caste component
+	::caste_component queen_caste;
+	queen_caste.type = ::ant::caste::queen;
+	
+	// Init male caste component
+	::caste_component male_caste;
+	male_caste.type = ::ant::caste::male;
+	
 	// Construct and seed random number generator
 	std::random_device seed;
     std::mt19937 rng(seed());
@@ -125,46 +133,47 @@ entity::id create_swarm(game::context& ctx)
 		transform.local.translation = steering.agent.position;
 		
 		entity::id alate_eid = ctx.entity_registry->create();
-		ctx.entity_registry->emplace<game::component::steering>(alate_eid, steering);
+		ctx.entity_registry->emplace<::steering_component>(alate_eid, steering);
 		
 		if (i < male_count)
 		{
 			// Create male
-			ctx.entity_registry->emplace<game::component::model>(alate_eid, male_model);
+			ctx.entity_registry->emplace<::caste_component>(alate_eid, male_caste);
+			ctx.entity_registry->emplace<::model_component>(alate_eid, male_model);
 			
 			transform.local.scale = male_scale;
 			transform.world = transform.local;
-			ctx.entity_registry->emplace<game::component::transform>(alate_eid, transform);
+			ctx.entity_registry->emplace<::transform_component>(alate_eid, transform);
 			
 			picking.flags = male_picking_flags;
-			ctx.entity_registry->emplace<game::component::picking>(alate_eid, picking);
+			ctx.entity_registry->emplace<::picking_component>(alate_eid, picking);
 		}
 		else
 		{
 			// Create queen
-			ctx.entity_registry->emplace<game::component::model>(alate_eid, queen_model);
+			ctx.entity_registry->emplace<::caste_component>(alate_eid, queen_caste);
+			ctx.entity_registry->emplace<::model_component>(alate_eid, queen_model);
 			
 			transform.local.scale = queen_scale;
 			transform.world = transform.local;
-			ctx.entity_registry->emplace<game::component::transform>(alate_eid, transform);
+			ctx.entity_registry->emplace<::transform_component>(alate_eid, transform);
 			
 			picking.flags = queen_picking_flags;
-			ctx.entity_registry->emplace<game::component::picking>(alate_eid, picking);
+			ctx.entity_registry->emplace<::picking_component>(alate_eid, picking);
 		}
 	}
 	
 	return swarm_eid;
 }
 
-void destroy_swarm(game::context& ctx, entity::id swarm_eid)
+void destroy_swarm(::context& ctx, entity::id swarm_eid)
 {
 	// Destroy alates
-	auto view = ctx.entity_registry->view<game::component::steering>();
+	auto view = ctx.entity_registry->view<::steering_component>();
 	ctx.entity_registry->destroy(view.begin(), view.end());
 	
 	// Destroy swarm
 	ctx.entity_registry->destroy(swarm_eid);
 }
 
-} // namespace ant
-} // namespace game
+} // namespace ant

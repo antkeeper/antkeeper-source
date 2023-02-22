@@ -18,14 +18,13 @@
  */
 
 #include "game/load.hpp"
-#include "debug/log.hpp"
-#include "resources/json.hpp"
-#include "resources/resource-manager.hpp"
+#include <engine/debug/log.hpp>
+#include <engine/resources/json.hpp>
+#include <engine/resources/resource-manager.hpp>
 
-namespace game {
 namespace load {
 
-void colony(game::context& ctx, const std::filesystem::path& path)
+void colony(::context& ctx, const std::filesystem::path& path)
 {
 	const std::string path_string = path.string();
 	
@@ -43,4 +42,3 @@ void colony(game::context& ctx, const std::filesystem::path& path)
 }
 
 } // namespace load
-} // namespace game

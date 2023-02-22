@@ -20,23 +20,22 @@
 #include "game/state/collection-menu.hpp"
 #include "game/state/main-menu.hpp"
 #include "game/controls.hpp"
-#include "scene/text.hpp"
-#include "debug/log.hpp"
+#include <engine/scene/text.hpp>
+#include <engine/debug/log.hpp>
 #include "game/menu.hpp"
 #include "game/strings.hpp"
-#include "utility/hash/fnv1a.hpp"
-#include "resources/resource-manager.hpp"
-#include "animation/screen-transition.hpp"
-#include "animation/ease.hpp"
-#include "render/passes/clear-pass.hpp"
+#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/animation/screen-transition.hpp>
+#include <engine/animation/ease.hpp>
+#include <engine/render/passes/clear-pass.hpp>
 
 using namespace hash::literals;
 
-namespace game {
 namespace state {
 
-collection_menu::collection_menu(game::context& ctx):
-	game::state::base(ctx)
+collection_menu::collection_menu(::context& ctx):
+	::state::base(ctx)
 {
 	debug::log::trace("Entering collection menu state...");
 	
@@ -125,7 +124,7 @@ collection_menu::collection_menu(game::context& ctx):
 	);
 	
 	// Queue enable menu controls
-	//ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
+	//ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
 	// Fade in from black
 	ctx.fade_transition->transition(config::title_fade_in_duration, true, ease<float>::out_cubic);
@@ -138,7 +137,7 @@ collection_menu::~collection_menu()
 	debug::log::trace("Exiting collection menu state...");
 	
 	// Destruct menu
-	//game::disable_menu_controls(ctx);
+	//::disable_menu_controls(ctx);
 	
 	debug::log::trace("Exited collection menu state");
 }
@@ -178,4 +177,3 @@ void collection_menu::resize_box()
 }
 
 } // namespace state
-} // namespace game

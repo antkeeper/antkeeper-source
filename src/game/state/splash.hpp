@@ -21,19 +21,18 @@
 #define ANTKEEPER_GAME_STATE_SPLASH_HPP
 
 #include "game/state/base.hpp"
-#include "render/material.hpp"
-#include "scene/billboard.hpp"
-#include "animation/animation.hpp"
-#include "event/subscription.hpp"
+#include <engine/render/material.hpp>
+#include <engine/scene/billboard.hpp>
+#include <engine/animation/animation.hpp>
+#include <engine/event/subscription.hpp>
 #include <vector>
 
-namespace game {
 namespace state {
 
-class splash: public game::state::base
+class splash: public ::state::base
 {
 public:
-	splash(game::context& ctx);
+	splash(::context& ctx);
 	virtual ~splash();
 	
 private:
@@ -46,6 +45,5 @@ private:
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_SPLASH_HPP

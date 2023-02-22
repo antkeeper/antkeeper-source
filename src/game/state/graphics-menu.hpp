@@ -22,13 +22,12 @@
 
 #include "game/state/base.hpp"
 
-namespace game {
 namespace state {
 
-class graphics_menu: public game::state::base
+class graphics_menu: public ::state::base
 {
 public:
-	graphics_menu(game::context& ctx);
+	graphics_menu(::context& ctx);
 	virtual ~graphics_menu();
 	
 private:
@@ -36,6 +35,5 @@ private:
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_GRAPHICS_MENU_HPP

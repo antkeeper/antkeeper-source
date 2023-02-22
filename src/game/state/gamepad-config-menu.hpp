@@ -21,19 +21,18 @@
 #define ANTKEEPER_GAME_STATE_GAMEPAD_CONFIG_MENU_HPP
 
 #include "game/state/base.hpp"
-#include "input/action.hpp"
-#include "input/action-map.hpp"
-#include "event/subscription.hpp"
+#include <engine/input/action.hpp>
+#include <engine/input/action-map.hpp>
+#include <engine/event/subscription.hpp>
 #include <cstdint>
 #include <memory>
 
-namespace game {
 namespace state {
 
-class gamepad_config_menu: public game::state::base
+class gamepad_config_menu: public ::state::base
 {
 public:
-	gamepad_config_menu(game::context& ctx);
+	gamepad_config_menu(::context& ctx);
 	virtual ~gamepad_config_menu();
 	
 private:
@@ -48,6 +47,5 @@ private:
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_GAMEPAD_CONFIG_MENU_HPP

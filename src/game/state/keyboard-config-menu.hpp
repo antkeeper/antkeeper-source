@@ -21,19 +21,18 @@
 #define ANTKEEPER_GAME_STATE_KEYBOARD_CONFIG_MENU_HPP
 
 #include "game/state/base.hpp"
-#include "input/action.hpp"
-#include "input/action-map.hpp"
-#include "event/subscription.hpp"
+#include <engine/input/action.hpp>
+#include <engine/input/action-map.hpp>
+#include <engine/event/subscription.hpp>
 #include <cstdint>
 #include <memory>
 
-namespace game {
 namespace state {
 
-class keyboard_config_menu: public game::state::base
+class keyboard_config_menu: public ::state::base
 {
 public:
-	keyboard_config_menu(game::context& ctx);
+	keyboard_config_menu(::context& ctx);
 	virtual ~keyboard_config_menu();
 	
 private:
@@ -48,6 +47,5 @@ private:
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_KEYBOARD_CONFIG_MENU_HPP

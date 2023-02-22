@@ -22,13 +22,12 @@
 
 #include "game/state/base.hpp"
 
-namespace game {
 namespace state {
 
-class sound_menu: public game::state::base
+class sound_menu: public ::state::base
 {
 public:
-	sound_menu(game::context& ctx);
+	sound_menu(::context& ctx);
 	virtual ~sound_menu();
 	
 private:
@@ -36,6 +35,5 @@ private:
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_SOUND_MENU_HPP

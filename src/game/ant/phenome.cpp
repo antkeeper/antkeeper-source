@@ -19,7 +19,6 @@
 
 #include "game/ant/phenome.hpp"
 
-namespace game {
 namespace ant {
 
 phenome::phenome(const genome& genome, caste caste):
@@ -112,4 +111,3 @@ phenome::phenome():
 {}
 
 } // namespace ant
-} // namespace game

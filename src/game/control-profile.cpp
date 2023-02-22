@@ -18,11 +18,11 @@
  */
 
 #include "game/control-profile.hpp"
-#include "resources/serializer.hpp"
-#include "resources/serialize-error.hpp"
-#include "resources/deserializer.hpp"
-#include "resources/deserialize-error.hpp"
-#include "debug/log.hpp"
+#include <engine/resources/serializer.hpp>
+#include <engine/resources/serialize-error.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/debug/log.hpp>
 
 /**
  * Serializes a control profile.
@@ -34,7 +34,7 @@
  * @throw serialize_error Unsupported mapping type.
  */
 template <>
-void serializer<game::control_profile>::serialize(const game::control_profile& profile, serialize_context& ctx)
+void serializer<::control_profile>::serialize(const ::control_profile& profile, serialize_context& ctx)
 {
 	// Write number of mappings
 	std::uint64_t size = static_cast<std::uint64_t>(profile.mappings.size());
@@ -97,7 +97,7 @@ void serializer<game::control_profile>::serialize(const game::control_profile& p
  * @throw deserialize_error Unsupported mapping type.
  */
 template <>
-void deserializer<game::control_profile>::deserialize(game::control_profile& profile, deserialize_context& ctx)
+void deserializer<::control_profile>::deserialize(::control_profile& profile, deserialize_context& ctx)
 {
 	profile.mappings.clear();
 	

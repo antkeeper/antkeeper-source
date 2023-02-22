@@ -18,80 +18,79 @@
  */
 
 #include "game/world.hpp"
-#include "color/color.hpp"
-#include "config.hpp"
-#include "debug/log.hpp"
-#include "entity/archetype.hpp"
-#include "entity/commands.hpp"
-#include "game/component/atmosphere.hpp"
-#include "game/component/blackbody.hpp"
-#include "game/component/celestial-body.hpp"
-#include "game/component/observer.hpp"
-#include "game/component/orbit.hpp"
-#include "game/component/terrain.hpp"
-#include "game/component/transform.hpp"
-#include "game/system/astronomy.hpp"
-#include "game/system/atmosphere.hpp"
-#include "game/system/orbit.hpp"
-#include "game/system/terrain.hpp"
-#include "geom/solid-angle.hpp"
-#include "geom/spherical.hpp"
-#include "gl/drawing-mode.hpp"
-#include "gl/texture-filter.hpp"
-#include "gl/texture-wrapping.hpp"
-#include "gl/vertex-array.hpp"
-#include "gl/vertex-attribute.hpp"
-#include "gl/vertex-buffer.hpp"
-#include "i18n/string-table.hpp"
-#include "math/hash/hash.hpp"
-#include "math/noise/noise.hpp"
-#include "physics/light/photometry.hpp"
-#include "physics/light/vmag.hpp"
-#include "physics/orbit/ephemeris.hpp"
-#include "physics/orbit/orbit.hpp"
-#include "physics/time/constants.hpp"
-#include "physics/time/gregorian.hpp"
-#include "physics/time/utc.hpp"
-#include "render/material-flags.hpp"
-#include "render/material.hpp"
-#include "render/model.hpp"
-#include "render/passes/ground-pass.hpp"
-#include "render/passes/shadow-map-pass.hpp"
-#include "render/passes/sky-pass.hpp"
-#include "render/vertex-attribute.hpp"
-#include "resources/image.hpp"
-#include "resources/json.hpp"
-#include "resources/resource-manager.hpp"
-#include "scene/ambient-light.hpp"
-#include "scene/directional-light.hpp"
-#include "scene/text.hpp"
+#include <engine/color/color.hpp>
+#include <engine/config.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/entity/archetype.hpp>
+#include "game/commands/commands.hpp"
+#include "game/components/atmosphere-component.hpp"
+#include "game/components/blackbody-component.hpp"
+#include "game/components/celestial-body-component.hpp"
+#include "game/components/observer-component.hpp"
+#include "game/components/orbit-component.hpp"
+#include "game/components/terrain-component.hpp"
+#include "game/components/transform-component.hpp"
+#include "game/systems/astronomy-system.hpp"
+#include "game/systems/atmosphere-system.hpp"
+#include "game/systems/orbit-system.hpp"
+#include "game/systems/terrain-system.hpp"
+#include <engine/geom/solid-angle.hpp>
+#include <engine/geom/spherical.hpp>
+#include <engine/gl/drawing-mode.hpp>
+#include <engine/gl/texture-filter.hpp>
+#include <engine/gl/texture-wrapping.hpp>
+#include <engine/gl/vertex-array.hpp>
+#include <engine/gl/vertex-attribute.hpp>
+#include <engine/gl/vertex-buffer.hpp>
+#include <engine/i18n/string-table.hpp>
+#include <engine/math/hash/hash.hpp>
+#include <engine/math/noise/noise.hpp>
+#include <engine/physics/light/photometry.hpp>
+#include <engine/physics/light/vmag.hpp>
+#include <engine/physics/orbit/ephemeris.hpp>
+#include <engine/physics/orbit/orbit.hpp>
+#include <engine/physics/time/constants.hpp>
+#include <engine/physics/time/gregorian.hpp>
+#include <engine/physics/time/utc.hpp>
+#include <engine/render/material-flags.hpp>
+#include <engine/render/material.hpp>
+#include <engine/render/model.hpp>
+#include <engine/render/passes/ground-pass.hpp>
+#include <engine/render/passes/shadow-map-pass.hpp>
+#include <engine/render/passes/sky-pass.hpp>
+#include <engine/render/vertex-attribute.hpp>
+#include <engine/resources/image.hpp>
+#include <engine/resources/json.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/scene/ambient-light.hpp>
+#include <engine/scene/directional-light.hpp>
+#include <engine/scene/text.hpp>
 #include <algorithm>
 #include <execution>
 #include <fstream>
 #include <stb/stb_image_write.h>
 
-namespace game {
 namespace world {
 
 /// Loads an ephemeris.
-static void load_ephemeris(game::context& ctx);
+static void load_ephemeris(::context& ctx);
 
 /// Creates the fixed stars.
-static void create_stars(game::context& ctx);
+static void create_stars(::context& ctx);
 
 /// Creates the Sun.
-static void create_sun(game::context& ctx);
+static void create_sun(::context& ctx);
 
 /// Creates the Earth-Moon system.
-static void create_earth_moon_system(game::context& ctx);
+static void create_earth_moon_system(::context& ctx);
 
 /// Creates the Earth.
-static void create_earth(game::context& ctx);
+static void create_earth(::context& ctx);
 
 /// Creates the Moon.
-static void create_moon(game::context& ctx);
+static void create_moon(::context& ctx);
 
-void cosmogenesis(game::context& ctx)
+void cosmogenesis(::context& ctx)
 {
 	debug::log::trace("Generating cosmos...");
 	
@@ -103,7 +102,7 @@ void cosmogenesis(game::context& ctx)
 	debug::log::trace("Generated cosmos");
 }
 
-void create_observer(game::context& ctx)
+void create_observer(::context& ctx)
 {
 	debug::log::trace("Creating observer...");
 	
@@ -113,7 +112,7 @@ void create_observer(game::context& ctx)
 		ctx.entities["observer"] = observer_eid;
 		
 		// Construct observer component
-		game::component::observer observer;
+		::observer_component observer;
 		
 		// Set observer reference body
 		if (auto it = ctx.entities.find("earth"); it != ctx.entities.end())
@@ -127,7 +126,7 @@ void create_observer(game::context& ctx)
 		observer.longitude = 0.0;
 		
 		// Assign observer component to observer entity
-		ctx.entity_registry->emplace<game::component::observer>(observer_eid, observer);
+		ctx.entity_registry->emplace<::observer_component>(observer_eid, observer);
 		
 		// Set atmosphere system active atmosphere
 		ctx.atmosphere_system->set_active_atmosphere(observer.reference_body_eid);
@@ -139,16 +138,16 @@ void create_observer(game::context& ctx)
 	debug::log::trace("Created observer");
 }
 
-void set_location(game::context& ctx, double elevation, double latitude, double longitude)
+void set_location(::context& ctx, double elevation, double latitude, double longitude)
 {
 	if (auto it = ctx.entities.find("observer"); it != ctx.entities.end())
 	{
 		entity::id observer_eid = it->second;
 		
-		if (ctx.entity_registry->valid(observer_eid) && ctx.entity_registry->all_of<game::component::observer>(observer_eid))
+		if (ctx.entity_registry->valid(observer_eid) && ctx.entity_registry->all_of<::observer_component>(observer_eid))
 		{
 			// Update observer location 
-			ctx.entity_registry->patch<game::component::observer>
+			ctx.entity_registry->patch<::observer_component>
 			(
 				observer_eid,
 				[&](auto& component)
@@ -162,7 +161,7 @@ void set_location(game::context& ctx, double elevation, double latitude, double 
 	}
 }
 
-void set_time(game::context& ctx, double t)
+void set_time(::context& ctx, double t)
 {
 	try
 	{
@@ -177,7 +176,7 @@ void set_time(game::context& ctx, double t)
 	}
 }
 
-void set_time(game::context& ctx, int year, int month, int day, int hour, int minute, double second)
+void set_time(::context& ctx, int year, int month, int day, int hour, int minute, double second)
 {
 	double longitude = 0.0;
 	
@@ -187,7 +186,7 @@ void set_time(game::context& ctx, int year, int month, int day, int hour, int mi
 		entity::id observer_eid = it->second;
 		if (ctx.entity_registry->valid(observer_eid))
 		{
-			const auto observer = ctx.entity_registry->try_get<game::component::observer>(observer_eid);
+			const auto observer = ctx.entity_registry->try_get<::observer_component>(observer_eid);
 			if (observer)
 				longitude = observer->longitude;
 		}
@@ -202,7 +201,7 @@ void set_time(game::context& ctx, int year, int month, int day, int hour, int mi
 	set_time(ctx, t);
 }
 
-void set_time_scale(game::context& ctx, double scale)
+void set_time_scale(::context& ctx, double scale)
 {
 	// Convert time scale from seconds to days
 	const double astronomical_scale = scale / physics::time::seconds_per_day<double>;
@@ -211,12 +210,12 @@ void set_time_scale(game::context& ctx, double scale)
 	ctx.astronomy_system->set_time_scale(astronomical_scale);
 }
 
-void load_ephemeris(game::context& ctx)
+void load_ephemeris(::context& ctx)
 {
 	ctx.orbit_system->set_ephemeris(ctx.resource_manager->load<physics::orbit::ephemeris<double>>("de421.eph"));
 }
 
-void create_stars(game::context& ctx)
+void create_stars(::context& ctx)
 {
 	debug::log::trace("Generating fixed stars...");
 	
@@ -353,7 +352,7 @@ void create_stars(game::context& ctx)
 	debug::log::trace("Generated fixed stars");
 }
 
-void create_sun(game::context& ctx)
+void create_sun(::context& ctx)
 {
 	debug::log::trace("Generating Sun...");
 	
@@ -399,7 +398,7 @@ void create_sun(game::context& ctx)
 	debug::log::trace("Generated Sun");
 }
 
-void create_earth_moon_system(game::context& ctx)
+void create_earth_moon_system(::context& ctx)
 {
 	debug::log::trace("Generating Earth-Moon system...");
 	
@@ -419,7 +418,7 @@ void create_earth_moon_system(game::context& ctx)
 	debug::log::trace("Generated Earth-Moon system");
 }
 
-void create_earth(game::context& ctx)
+void create_earth(::context& ctx)
 {
 	debug::log::trace("Generating Earth...");
 	
@@ -430,13 +429,13 @@ void create_earth(game::context& ctx)
 		ctx.entities["earth"] = earth_eid;
 		
 		// Assign orbital parent
-		ctx.entity_registry->get<game::component::orbit>(earth_eid).parent = ctx.entities["em_bary"];
+		ctx.entity_registry->get<::orbit_component>(earth_eid).parent = ctx.entities["em_bary"];
 	}
 	
 	debug::log::trace("Generated Earth");
 }
 
-void create_moon(game::context& ctx)
+void create_moon(::context& ctx)
 {
 	debug::log::trace("Generating Moon...");
 	
@@ -447,7 +446,7 @@ void create_moon(game::context& ctx)
 		ctx.entities["moon"] = moon_eid;
 		
 		// Assign orbital parent
-		ctx.entity_registry->get<game::component::orbit>(moon_eid).parent = ctx.entities["em_bary"];
+		ctx.entity_registry->get<::orbit_component>(moon_eid).parent = ctx.entities["em_bary"];
 		
 		// Pass moon model to sky pass
 		ctx.sky_pass->set_moon_model(ctx.resource_manager->load<render::model>("moon.mdl"));
@@ -467,7 +466,7 @@ void create_moon(game::context& ctx)
 	debug::log::trace("Generated Moon");
 }
 
-void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion)
+void enter_ecoregion(::context& ctx, const ecoregion& ecoregion)
 {
 	/*
 	image img;
@@ -531,7 +530,7 @@ void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion)
 		ctx.active_ecoregion = &ecoregion;
 		
 		// Set location
-		game::world::set_location(ctx, ecoregion.elevation, ecoregion.latitude, ecoregion.longitude);
+		::world::set_location(ctx, ecoregion.elevation, ecoregion.latitude, ecoregion.longitude);
 		
 		// Setup sky
 		ctx.sky_pass->set_sky_model(ctx.resource_manager->load<render::model>("celestial-hemisphere.mdl"));
@@ -571,4 +570,3 @@ void enter_ecoregion(game::context& ctx, const ecoregion& ecoregion)
 }
 
 } // namespace world
-} // namespace game

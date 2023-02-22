@@ -21,33 +21,32 @@
 #include "game/state/controls-menu.hpp"
 #include "game/controls.hpp"
 #include "game/context.hpp"
-#include "scene/text.hpp"
-#include "debug/log.hpp"
-#include "resources/resource-manager.hpp"
+#include <engine/scene/text.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/resources/resource-manager.hpp>
 #include "game/menu.hpp"
 #include "game/controls.hpp"
 #include "game/strings.hpp"
-#include "utility/hash/fnv1a.hpp"
+#include <engine/utility/hash/fnv1a.hpp>
 
 using namespace hash::literals;
 
-namespace game {
 namespace state {
 
-gamepad_config_menu::gamepad_config_menu(game::context& ctx):
-	game::state::base(ctx),
+gamepad_config_menu::gamepad_config_menu(::context& ctx):
+	::state::base(ctx),
 	action_remapped(false)
 {
 	debug::log::trace("Entering gamepad config menu state...");
 	
 	// Add control menu items
-	add_control_item(ctx.movement_actions, ctx.move_forward_action, "control_move_forward"_fnv1a32);
-	add_control_item(ctx.movement_actions, ctx.move_back_action, "control_move_back"_fnv1a32);
-	add_control_item(ctx.movement_actions, ctx.move_left_action, "control_move_left"_fnv1a32);
-	add_control_item(ctx.movement_actions, ctx.move_right_action, "control_move_right"_fnv1a32);
-	add_control_item(ctx.movement_actions, ctx.move_up_action, "control_move_up"_fnv1a32);
-	add_control_item(ctx.movement_actions, ctx.move_down_action, "control_move_down"_fnv1a32);
-	add_control_item(ctx.movement_actions, ctx.pause_action, "control_pause"_fnv1a32);
+	add_control_item(ctx.movement_action_map, ctx.move_forward_action, "control_move_forward"_fnv1a32);
+	add_control_item(ctx.movement_action_map, ctx.move_back_action, "control_move_back"_fnv1a32);
+	add_control_item(ctx.movement_action_map, ctx.move_left_action, "control_move_left"_fnv1a32);
+	add_control_item(ctx.movement_action_map, ctx.move_right_action, "control_move_right"_fnv1a32);
+	add_control_item(ctx.movement_action_map, ctx.move_up_action, "control_move_up"_fnv1a32);
+	add_control_item(ctx.movement_action_map, ctx.move_down_action, "control_move_down"_fnv1a32);
+	add_control_item(ctx.movement_action_map, ctx.pause_action, "control_pause"_fnv1a32);
 	
 	// Construct menu item texts
 	scene::text* back_text = new scene::text();
@@ -59,22 +58,22 @@ gamepad_config_menu::gamepad_config_menu(game::context& ctx):
 	back_text->set_content(get_string(ctx, "back"_fnv1a32));
 	
 	// Init menu item index
-	game::menu::init_menu_item_index(ctx, "gamepad_config");
+	::menu::init_menu_item_index(ctx, "gamepad_config");
 	
-	game::menu::update_text_color(ctx);
-	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx);
-	game::menu::update_text_tweens(ctx);
-	game::menu::add_text_to_ui(ctx);
-	game::menu::setup_animations(ctx);
+	::menu::update_text_color(ctx);
+	::menu::update_text_font(ctx);
+	::menu::align_text(ctx);
+	::menu::update_text_tweens(ctx);
+	::menu::add_text_to_ui(ctx);
+	::menu::setup_animations(ctx);
 	
 	// Construct menu item callbacks
 	auto select_back_callback = [&ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -85,7 +84,7 @@ gamepad_config_menu::gamepad_config_menu(game::context& ctx):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::controls_menu(ctx));
+						ctx.state_machine.emplace(new ::state::controls_menu(ctx));
 					}
 				);
 			}
@@ -105,10 +104,10 @@ gamepad_config_menu::gamepad_config_menu(game::context& ctx):
 	ctx.menu_back_callback = select_back_callback;
 	
 	// Queue menu control setup
-	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
+	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
 	// Fade in menu
-	game::menu::fade_in(ctx, nullptr);
+	::menu::fade_in(ctx, nullptr);
 	
 	debug::log::trace("Entered gamepad config menu state");
 }
@@ -118,16 +117,16 @@ gamepad_config_menu::~gamepad_config_menu()
 	debug::log::trace("Exiting gamepad config menu state...");
 	
 	// Destruct menu
-	game::disable_menu_controls(ctx);
-	game::menu::clear_callbacks(ctx);
-	game::menu::delete_animations(ctx);
-	game::menu::remove_text_from_ui(ctx);
-	game::menu::delete_text(ctx);
+	::disable_menu_controls(ctx);
+	::menu::clear_callbacks(ctx);
+	::menu::delete_animations(ctx);
+	::menu::remove_text_from_ui(ctx);
+	::menu::delete_text(ctx);
 	
 	if (action_remapped)
 	{
 		// Update control profile
-		game::update_control_profile(ctx, *ctx.control_profile);
+		::update_control_profile(ctx, *ctx.control_profile);
 		
 		// Save control profile
 		ctx.resource_manager->set_write_dir(ctx.controls_path);
@@ -318,8 +317,8 @@ void gamepad_config_menu::add_control_item(input::action_map& action_map, input:
 		
 		// Update control mapping text
 		value_text->set_content(this->get_mapping_string(*action_map, *control));
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 		
 		// Queue disabling of input mapper re-enabling of menu controls
 		ctx.function_queue.push
@@ -327,7 +326,7 @@ void gamepad_config_menu::add_control_item(input::action_map& action_map, input:
 			[&ctx]()
 			{
 				ctx.input_mapper.disconnect();
-				game::enable_menu_controls(ctx);
+				::enable_menu_controls(ctx);
 			}
 		);
 	};
@@ -337,8 +336,8 @@ void gamepad_config_menu::add_control_item(input::action_map& action_map, input:
 	{
 		// Set control mapping text to "..."
 		value_text->set_content(get_string(ctx, "control_mapping"_fnv1a32));
-		game::menu::align_text(ctx);
-		game::menu::update_text_tweens(ctx);
+		::menu::align_text(ctx);
+		::menu::update_text_tweens(ctx);
 		
 		// Setup input mapped callbacks
 		gamepad_axis_mapped_subscription = ctx.input_mapper.get_gamepad_axis_mapped_channel().subscribe
@@ -359,7 +358,7 @@ void gamepad_config_menu::add_control_item(input::action_map& action_map, input:
 		(
 			[&]()
 			{
-				game::disable_menu_controls(ctx);
+				::disable_menu_controls(ctx);
 				ctx.input_mapper.connect(ctx.input_manager->get_event_queue());
 			}
 		);
@@ -372,4 +371,3 @@ void gamepad_config_menu::add_control_item(input::action_map& action_map, input:
 }
 
 } // namespace state
-} // namespace game

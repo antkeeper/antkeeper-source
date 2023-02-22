@@ -23,23 +23,22 @@
 #include "game/state/nuptial-flight.hpp"
 #include "game/menu.hpp"
 #include "game/controls.hpp"
-#include "animation/ease.hpp"
-#include "animation/animation.hpp"
-#include "animation/animator.hpp"
-#include "scene/text.hpp"
-#include "debug/log.hpp"
-#include "animation/screen-transition.hpp"
-#include "config.hpp"
+#include <engine/animation/ease.hpp>
+#include <engine/animation/animation.hpp>
+#include <engine/animation/animator.hpp>
+#include <engine/scene/text.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/animation/screen-transition.hpp>
+#include <engine/config.hpp>
 #include "game/strings.hpp"
-#include "utility/hash/fnv1a.hpp"
+#include <engine/utility/hash/fnv1a.hpp>
 
 using namespace hash::literals;
 
-namespace game {
 namespace state {
 
-pause_menu::pause_menu(game::context& ctx):
-	game::state::base(ctx)
+pause_menu::pause_menu(::context& ctx):
+	::state::base(ctx)
 {
 	debug::log::trace("Entering pause menu state...");
 	
@@ -62,14 +61,14 @@ pause_menu::pause_menu(game::context& ctx):
 	ctx.menu_item_texts.push_back({quit_text, nullptr});
 	
 	// Init menu item index
-	game::menu::init_menu_item_index(ctx, "pause");
+	::menu::init_menu_item_index(ctx, "pause");
 	
-	game::menu::update_text_color(ctx);
-	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx, true, false);
-	game::menu::update_text_tweens(ctx);
-	game::menu::add_text_to_ui(ctx);
-	game::menu::setup_animations(ctx);
+	::menu::update_text_color(ctx);
+	::menu::update_text_font(ctx);
+	::menu::align_text(ctx, true, false);
+	::menu::update_text_tweens(ctx);
+	::menu::add_text_to_ui(ctx);
+	::menu::setup_animations(ctx);
 	
 	// Construct menu item callbacks
 	auto select_resume_callback = [&ctx]()
@@ -78,7 +77,7 @@ pause_menu::pause_menu(game::context& ctx):
 		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		auto resume_paused_state = [&ctx]()
 		{
@@ -93,8 +92,8 @@ pause_menu::pause_menu(game::context& ctx):
 		};
 		
 		// Fade out pause menu then resume paused state
-		game::menu::fade_out(ctx, resume_paused_state);
-		game::menu::fade_out_bg(ctx);
+		::menu::fade_out(ctx, resume_paused_state);
+		::menu::fade_out_bg(ctx);
 	};
 	auto select_options_callback = [&ctx]()
 	{
@@ -102,10 +101,10 @@ pause_menu::pause_menu(game::context& ctx):
 		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Fade out pause menu then open options menu
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -116,7 +115,7 @@ pause_menu::pause_menu(game::context& ctx):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::options_menu(ctx));
+						ctx.state_machine.emplace(new ::state::options_menu(ctx));
 					}
 				);
 			}
@@ -128,7 +127,7 @@ pause_menu::pause_menu(game::context& ctx):
 		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Clear resume callback
 		ctx.resume_callback = nullptr;
@@ -143,13 +142,13 @@ pause_menu::pause_menu(game::context& ctx):
 					ctx.menu_bg_billboard->set_active(false);
 					ctx.state_machine.pop();
 					ctx.state_machine.pop();
-					ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
+					ctx.state_machine.emplace(new ::state::main_menu(ctx, true));
 				}
 			);
 		};
 		
 		// Fade out pause menu
-		game::menu::fade_out(ctx, nullptr);
+		::menu::fade_out(ctx, nullptr);
 		
 		// Fade out to black then return to main menu
 		ctx.fade_transition_color->set_value({0, 0, 0});
@@ -161,13 +160,13 @@ pause_menu::pause_menu(game::context& ctx):
 		//ctx.controls["pause"]->set_activated_callback(nullptr);
 		
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
 		// Clear paused state
 		//ctx.paused_state.reset();
 		
 		// Fade out pause menu
-		game::menu::fade_out(ctx, nullptr);
+		::menu::fade_out(ctx, nullptr);
 		
 		// Fade out to black then quit
 		ctx.fade_transition_color->set_value({0, 0, 0});
@@ -198,17 +197,17 @@ pause_menu::pause_menu(game::context& ctx):
 			//ctx.controls["pause"]->set_activated_callback(select_resume_callback);
 			
 			// Enable menu controls
-			game::enable_menu_controls(ctx);
+			::enable_menu_controls(ctx);
 		}
 	);
 	
 	// Fade in menu and menu BG
-	game::menu::fade_in(ctx, nullptr);
+	::menu::fade_in(ctx, nullptr);
 	if (!ctx.menu_bg_billboard->is_active())
-		game::menu::fade_in_bg(ctx);
+		::menu::fade_in_bg(ctx);
 	
 	// Save colony
-	//game::save::colony(ctx);
+	//::save::colony(ctx);
 	
 	debug::log::trace("Entered pause menu state");
 }
@@ -218,14 +217,13 @@ pause_menu::~pause_menu()
 	debug::log::trace("Exiting pause menu state...");
 	
 	// Destruct menu
-	game::disable_menu_controls(ctx);
-	game::menu::clear_callbacks(ctx);
-	game::menu::delete_animations(ctx);
-	game::menu::remove_text_from_ui(ctx);
-	game::menu::delete_text(ctx);
+	::disable_menu_controls(ctx);
+	::menu::clear_callbacks(ctx);
+	::menu::delete_animations(ctx);
+	::menu::remove_text_from_ui(ctx);
+	::menu::delete_text(ctx);
 	
 	debug::log::trace("Exited pause menu state");
 }
 
 } // namespace state
-} // namespace game

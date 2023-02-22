@@ -20,7 +20,6 @@
 #ifndef ANTKEEPER_GAME_ANT_PHENE_FOUNDING_MODE_HPP
 #define ANTKEEPER_GAME_ANT_PHENE_FOUNDING_MODE_HPP
 
-namespace game {
 namespace ant {
 namespace phene {
 
@@ -43,6 +42,5 @@ enum class founding_mode
 
 } // namespace phene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_PHENE_FOUNDING_MODE_HPP

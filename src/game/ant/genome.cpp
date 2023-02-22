@@ -19,7 +19,6 @@
 
 #include "game/ant/genome.hpp"
 
-namespace game {
 namespace ant {
 
 genome::genome():
@@ -48,4 +47,3 @@ genome::genome():
 {}
 
 } // namespace ant
-} // namespace game

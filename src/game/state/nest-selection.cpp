@@ -17,53 +17,73 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/state/nest-selection.hpp"
-#include "game/state/pause-menu.hpp"
-#include "entity/archetype.hpp"
-#include "game/system/camera.hpp"
-#include "game/system/astronomy.hpp"
-#include "game/system/atmosphere.hpp"
-#include "game/system/collision.hpp"
-#include "game/component/locomotion.hpp"
-#include "game/component/transform.hpp"
-#include "game/component/terrain.hpp"
-#include "game/component/camera.hpp"
-#include "game/component/model.hpp"
-#include "game/component/constraint/constraint.hpp"
-#include "game/component/constraint-stack.hpp"
-#include "game/component/steering.hpp"
-#include "game/component/picking.hpp"
-#include "game/component/spring.hpp"
-#include "game/controls.hpp"
-#include "entity/commands.hpp"
-#include "animation/screen-transition.hpp"
-#include "animation/ease.hpp"
-#include "resources/resource-manager.hpp"
-#include "game/world.hpp"
-#include "render/passes/clear-pass.hpp"
-#include "render/passes/ground-pass.hpp"
-#include "utility/state-machine.hpp"
-#include "config.hpp"
-#include "math/interpolation.hpp"
-#include "physics/light/exposure.hpp"
-#include "input/mouse.hpp"
-#include "math/projection.hpp"
-
+#include "game/ant/cladogenesis.hpp"
+#include "game/ant/genome.hpp"
 #include "game/ant/morphogenesis.hpp"
 #include "game/ant/phenome.hpp"
-#include "game/ant/genome.hpp"
-#include "game/ant/cladogenesis.hpp"
+#include "game/commands/commands.hpp"
+#include "game/components/camera-component.hpp"
+#include "game/components/constraint-stack-component.hpp"
+#include "game/components/locomotion-component.hpp"
+#include "game/components/model-component.hpp"
+#include "game/components/picking-component.hpp"
+#include "game/components/spring-component.hpp"
+#include "game/components/steering-component.hpp"
+#include "game/components/terrain-component.hpp"
+#include "game/components/transform-component.hpp"
+#include "game/constraints/child-of-constraint.hpp"
+#include "game/constraints/copy-rotation-constraint.hpp"
+#include "game/constraints/copy-scale-constraint.hpp"
+#include "game/constraints/copy-transform-constraint.hpp"
+#include "game/constraints/copy-translation-constraint.hpp"
+#include "game/constraints/ease-to-constraint.hpp"
+#include "game/constraints/pivot-constraint.hpp"
+#include "game/constraints/spring-rotation-constraint.hpp"
+#include "game/constraints/spring-to-constraint.hpp"
+#include "game/constraints/spring-translation-constraint.hpp"
+#include "game/constraints/three-dof-constraint.hpp"
+#include "game/constraints/track-to-constraint.hpp"
+#include "game/controls.hpp"
 #include "game/spawn.hpp"
+#include "game/state/nest-selection.hpp"
+#include "game/state/pause-menu.hpp"
+#include "game/systems/astronomy-system.hpp"
+#include "game/systems/atmosphere-system.hpp"
+#include "game/systems/camera-system.hpp"
+#include "game/systems/collision-system.hpp"
+#include "game/world.hpp"
+#include <engine/animation/ease.hpp>
+#include <engine/animation/screen-transition.hpp>
+#include <engine/config.hpp>
+#include <engine/entity/archetype.hpp>
+#include <engine/input/mouse.hpp>
+#include <engine/math/interpolation.hpp>
+#include <engine/math/projection.hpp>
+#include <engine/physics/light/exposure.hpp>
+#include <engine/render/passes/clear-pass.hpp>
+#include <engine/render/passes/ground-pass.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/utility/state-machine.hpp>
 
-using namespace game::ant;
+using namespace ::ant;
 
-namespace game {
 namespace state {
 
-nest_selection::nest_selection(game::context& ctx):
-	game::state::base(ctx)
+nest_selection::nest_selection(::context& ctx):
+	::state::base(ctx)
 {
 	debug::log::trace("Entering nest selection state...");
+	
+	// Create world if not yet created
+	if (ctx.entities.find("earth") == ctx.entities.end())
+	{
+		// Create cosmos
+		::world::cosmogenesis(ctx);
+		
+		// Create observer
+		::world::create_observer(ctx);
+	}
+	::world::enter_ecoregion(ctx, *ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco"));
 	
 	debug::log::trace("Generating genome...");
 	std::random_device rng;
@@ -80,37 +100,30 @@ nest_selection::nest_selection(game::context& ctx):
 	
 	// Create worker entity(s)
 	entity::id worker_eid = ctx.entity_registry->create();
-	component::transform worker_transform_component;
+	transform_component worker_transform_component;
 	worker_transform_component.local = math::transform<float>::identity;
 	worker_transform_component.local.translation = {0, 0, -20};
 	worker_transform_component.world = worker_transform_component.local;
 	worker_transform_component.warp = true;
-	ctx.entity_registry->emplace<component::transform>(worker_eid, worker_transform_component);
+	ctx.entity_registry->emplace<transform_component>(worker_eid, worker_transform_component);
 	
-	component::model worker_model_component;
+	model_component worker_model_component;
 	worker_model_component.render_model = worker_model;
 	worker_model_component.instance_count = 0;
 	worker_model_component.layers = ~0;
-	ctx.entity_registry->emplace<component::model>(worker_eid, worker_model_component);
+	ctx.entity_registry->emplace<model_component>(worker_eid, worker_model_component);
 	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
-	// Create world if not yet created
-	if (ctx.entities.find("earth") == ctx.entities.end())
-	{
-		// Create cosmos
-		game::world::cosmogenesis(ctx);
-		
-		// Create observer
-		game::world::create_observer(ctx);
-	}
+	// Set world time
+	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
 	
 	// Init time scale
 	double time_scale = 60.0;
 	
 	// Set time scale
-	game::world::set_time_scale(ctx, time_scale);
+	::world::set_time_scale(ctx, time_scale);
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
@@ -152,34 +165,44 @@ nest_selection::nest_selection(game::context& ctx):
 	// ruler_archetype->create(*ctx.entity_registry);
 	auto yucca_archetype = ctx.resource_manager->load<entity::archetype>("yucca-plant-l.ent");
 	auto yucca_eid = yucca_archetype->create(*ctx.entity_registry);
-	entity::command::warp_to(*ctx.entity_registry, yucca_eid, {0, 4, 30});
+	::command::warp_to(*ctx.entity_registry, yucca_eid, {0, 4, 30});
 	
 	yucca_archetype = ctx.resource_manager->load<entity::archetype>("yucca-plant-m.ent");
 	yucca_eid = yucca_archetype->create(*ctx.entity_registry);
-	entity::command::warp_to(*ctx.entity_registry, yucca_eid, {400, 0, 200});
+	::command::warp_to(*ctx.entity_registry, yucca_eid, {400, 0, 200});
 	
 	yucca_archetype = ctx.resource_manager->load<entity::archetype>("yucca-plant-s.ent");
 	yucca_eid = yucca_archetype->create(*ctx.entity_registry);
-	entity::command::warp_to(*ctx.entity_registry, yucca_eid, {-300, 3, -300});
+	::command::warp_to(*ctx.entity_registry, yucca_eid, {-300, 3, -300});
 	
 	auto cactus_plant_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-plant-l.ent");
 	auto cactus_plant_eid = cactus_plant_archetype->create(*ctx.entity_registry);
-	entity::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {-100, 0, -200});
+	::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {-100, 0, -200});
 	
 	cactus_plant_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-plant-m.ent");
 	cactus_plant_eid = cactus_plant_archetype->create(*ctx.entity_registry);
-	entity::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {100, -2, -70});
+	::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {100, -2, -70});
 	
 	cactus_plant_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-plant-s.ent");
 	cactus_plant_eid = cactus_plant_archetype->create(*ctx.entity_registry);
-	entity::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {50, 2, 80});
+	::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {50, 2, 80});
 	
 	auto cactus_seed_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-seed.ent");
 	auto cactus_seed_eid = cactus_seed_archetype->create(*ctx.entity_registry);
-	entity::command::warp_to(*ctx.entity_registry, cactus_seed_eid, {10, 5, 10});
+	::command::warp_to(*ctx.entity_registry, cactus_seed_eid, {10, 5, 10});
 	
-	// Queue control setup
-	ctx.function_queue.push(std::bind(&nest_selection::enable_controls, this));
+	// Queue enable game controls
+	ctx.function_queue.push
+	(
+		[&ctx]()
+		{
+			::enable_game_controls(ctx);
+		}
+	);
+	
+	// Queue fade in
+	ctx.fade_transition_color->set_value({0, 0, 0});
+	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition, 1.0f, true, ease<float>::out_sine, true, nullptr));
 	
 	debug::log::trace("Entered nest selection state");
 }
@@ -187,6 +210,9 @@ nest_selection::nest_selection(game::context& ctx):
 nest_selection::~nest_selection()
 {
 	debug::log::trace("Exiting nest selection state...");
+	
+	// Disable game controls
+	::disable_game_controls(ctx);
 	
 	destroy_first_person_camera_rig();
 	
@@ -196,7 +222,7 @@ nest_selection::~nest_selection()
 void nest_selection::create_first_person_camera_rig()
 {	
 	// Construct first person camera rig spring rotation constraint
-	component::constraint::spring_rotation first_person_camera_rig_spring_rotation;
+	spring_rotation_constraint first_person_camera_rig_spring_rotation;
 	first_person_camera_rig_spring_rotation.spring =
 	{
 		{0.0f, 0.0f, 0.0f},
@@ -205,16 +231,16 @@ void nest_selection::create_first_person_camera_rig()
 		1.0f,
 		first_person_camera_rig_rotation_spring_angular_frequency
 	};
-	component::constraint_stack_node first_person_camera_rig_spring_rotation_node;
+	constraint_stack_node_component first_person_camera_rig_spring_rotation_node;
 	first_person_camera_rig_spring_rotation_node.active = true;
 	first_person_camera_rig_spring_rotation_node.weight = 1.0f;
 	first_person_camera_rig_spring_rotation_node.next = entt::null;
 	first_person_camera_rig_spring_rotation_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::constraint::spring_rotation>(first_person_camera_rig_spring_rotation_eid, first_person_camera_rig_spring_rotation);
-	ctx.entity_registry->emplace<component::constraint_stack_node>(first_person_camera_rig_spring_rotation_eid, first_person_camera_rig_spring_rotation_node);
+	ctx.entity_registry->emplace<spring_rotation_constraint>(first_person_camera_rig_spring_rotation_eid, first_person_camera_rig_spring_rotation);
+	ctx.entity_registry->emplace<constraint_stack_node_component>(first_person_camera_rig_spring_rotation_eid, first_person_camera_rig_spring_rotation_node);
 	
 	// Construct first person camera rig spring translation constraint
-	component::constraint::spring_translation first_person_camera_rig_spring_translation;
+	spring_translation_constraint first_person_camera_rig_spring_translation;
 	first_person_camera_rig_spring_translation.spring =
 	{
 		{0.0f, 0.0f, 0.0f},
@@ -223,37 +249,37 @@ void nest_selection::create_first_person_camera_rig()
 		1.0f,
 		first_person_camera_rig_translation_spring_angular_frequency
 	};
-	component::constraint_stack_node first_person_camera_rig_spring_translation_node;
+	constraint_stack_node_component first_person_camera_rig_spring_translation_node;
 	first_person_camera_rig_spring_translation_node.active = true;
 	first_person_camera_rig_spring_translation_node.weight = 1.0f;
 	first_person_camera_rig_spring_translation_node.next = first_person_camera_rig_spring_rotation_eid;
 	first_person_camera_rig_spring_translation_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::constraint::spring_translation>(first_person_camera_rig_spring_translation_eid, first_person_camera_rig_spring_translation);
-	ctx.entity_registry->emplace<component::constraint_stack_node>(first_person_camera_rig_spring_translation_eid, first_person_camera_rig_spring_translation_node);
+	ctx.entity_registry->emplace<spring_translation_constraint>(first_person_camera_rig_spring_translation_eid, first_person_camera_rig_spring_translation);
+	ctx.entity_registry->emplace<constraint_stack_node_component>(first_person_camera_rig_spring_translation_eid, first_person_camera_rig_spring_translation_node);
 	
 	// Construct first person camera rig constraint stack
-	component::constraint_stack first_person_camera_rig_constraint_stack;
+	constraint_stack_component first_person_camera_rig_constraint_stack;
 	first_person_camera_rig_constraint_stack.priority = 2;
 	first_person_camera_rig_constraint_stack.head = first_person_camera_rig_spring_translation_eid;
 	
 	// Construct first person camera rig transform component
-	component::transform first_person_camera_rig_transform;
+	transform_component first_person_camera_rig_transform;
 	first_person_camera_rig_transform.local = math::transform<float>::identity;
 	first_person_camera_rig_transform.world = first_person_camera_rig_transform.local;
 	first_person_camera_rig_transform.warp = true;
 	
 	// Construct first person camera rig camera component
-	component::camera first_person_camera_rig_camera;
+	camera_component first_person_camera_rig_camera;
 	first_person_camera_rig_camera.object = ctx.surface_camera;
 	
 	// Construct first person camera rig entity
 	first_person_camera_rig_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::camera>(first_person_camera_rig_eid, first_person_camera_rig_camera);
-	ctx.entity_registry->emplace<component::transform>(first_person_camera_rig_eid, first_person_camera_rig_transform);
-	ctx.entity_registry->emplace<component::constraint_stack>(first_person_camera_rig_eid, first_person_camera_rig_constraint_stack);
+	ctx.entity_registry->emplace<camera_component>(first_person_camera_rig_eid, first_person_camera_rig_camera);
+	ctx.entity_registry->emplace<transform_component>(first_person_camera_rig_eid, first_person_camera_rig_transform);
+	ctx.entity_registry->emplace<constraint_stack_component>(first_person_camera_rig_eid, first_person_camera_rig_constraint_stack);
 	
 	// Construct first person camera rig fov spring
-	component::spring1 first_person_camera_rig_fov_spring;
+	spring1_component first_person_camera_rig_fov_spring;
 	first_person_camera_rig_fov_spring.spring =
 	{
 		0.0f,
@@ -269,7 +295,7 @@ void nest_selection::create_first_person_camera_rig()
 	
 	// Construct first person camera rig fov spring entity
 	first_person_camera_rig_fov_spring_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<component::spring1>(first_person_camera_rig_fov_spring_eid, first_person_camera_rig_fov_spring);
+	ctx.entity_registry->emplace<spring1_component>(first_person_camera_rig_fov_spring_eid, first_person_camera_rig_fov_spring);
 	
 	set_first_person_camera_rig_pedestal(first_person_camera_rig_pedestal);
 }
@@ -288,7 +314,7 @@ void nest_selection::set_first_person_camera_rig_pedestal(float pedestal)
 	const float elevation = math::log_lerp(first_person_camera_rig_min_elevation, first_person_camera_rig_max_elevation, first_person_camera_rig_pedestal);
 	const float fov = math::log_lerp(first_person_camera_near_fov, first_person_camera_far_fov, first_person_camera_rig_pedestal);
 	
-	ctx.entity_registry->patch<component::constraint::spring_translation>
+	ctx.entity_registry->patch<spring_translation_constraint>
 	(
 		first_person_camera_rig_spring_translation_eid,
 		[&](auto& component)
@@ -297,7 +323,7 @@ void nest_selection::set_first_person_camera_rig_pedestal(float pedestal)
 		}
 	);
 	
-	ctx.entity_registry->patch<component::spring1>
+	ctx.entity_registry->patch<spring1_component>
 	(
 		first_person_camera_rig_fov_spring_eid,
 		[&](auto& component)
@@ -311,13 +337,13 @@ void nest_selection::move_first_person_camera_rig(const float2& direction, float
 {
 	const float speed = math::log_lerp(first_person_camera_near_speed, first_person_camera_far_speed, first_person_camera_rig_pedestal) * factor;
 	
-	const component::constraint::spring_rotation& first_person_camera_rig_spring_rotation = ctx.entity_registry->get<component::constraint::spring_rotation>(first_person_camera_rig_spring_rotation_eid);
+	const spring_rotation_constraint& first_person_camera_rig_spring_rotation = ctx.entity_registry->get<spring_rotation_constraint>(first_person_camera_rig_spring_rotation_eid);
 	
 	const math::quaternion<float> yaw_rotation = math::angle_axis(first_person_camera_rig_spring_rotation.spring.x0[0], float3{0.0f, 1.0f, 0.0f});
 	const float3 rotated_direction = math::normalize(yaw_rotation * float3{direction[0], 0.0f, direction[1]});
 	const float3 velocity = rotated_direction * speed;
 	
-	ctx.entity_registry->patch<component::constraint::spring_translation>
+	ctx.entity_registry->patch<spring_translation_constraint>
 	(
 		first_person_camera_rig_spring_translation_eid,
 		[&](auto& component)
@@ -330,7 +356,7 @@ void nest_selection::move_first_person_camera_rig(const float2& direction, float
 void nest_selection::satisfy_first_person_camera_rig_constraints()
 {
 	// Satisfy first person camera rig spring translation constraint
-	ctx.entity_registry->patch<component::constraint::spring_translation>
+	ctx.entity_registry->patch<spring_translation_constraint>
 	(
 		first_person_camera_rig_spring_translation_eid,
 		[&](auto& component)
@@ -341,7 +367,7 @@ void nest_selection::satisfy_first_person_camera_rig_constraints()
 	);
 	
 	// Satisfy first person camera rig spring rotation constraint
-	ctx.entity_registry->patch<component::constraint::spring_rotation>
+	ctx.entity_registry->patch<spring_rotation_constraint>
 	(
 		first_person_camera_rig_spring_rotation_eid,
 		[&](auto& component)
@@ -352,7 +378,7 @@ void nest_selection::satisfy_first_person_camera_rig_constraints()
 	);
 	
 	// Satisfy first person camera rig fov spring
-	ctx.entity_registry->patch<component::spring1>
+	ctx.entity_registry->patch<spring1_component>
 	(
 		first_person_camera_rig_fov_spring_eid,
 		[&](auto& component)
@@ -442,7 +468,7 @@ void nest_selection::enable_controls()
 			if (!mouse_look)
 				return;
 			
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				first_person_camera_rig_spring_rotation_eid,
 				[&, mouse_pan_factor](auto& component)
@@ -456,7 +482,7 @@ void nest_selection::enable_controls()
 	(
 		[&, gamepad_pan_factor](float value)
 		{
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				first_person_camera_rig_spring_rotation_eid,
 				[&, gamepad_pan_factor](auto& component)
@@ -475,7 +501,7 @@ void nest_selection::enable_controls()
 			if (!mouse_look)
 				return;
 			
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				first_person_camera_rig_spring_rotation_eid,
 				[&, mouse_pan_factor](auto& component)
@@ -489,7 +515,7 @@ void nest_selection::enable_controls()
 	(
 		[&, gamepad_pan_factor](float value)
 		{
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				first_person_camera_rig_spring_rotation_eid,
 				[&, gamepad_pan_factor](auto& component)
@@ -508,7 +534,7 @@ void nest_selection::enable_controls()
 			if (!mouse_look)
 				return;
 			
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				first_person_camera_rig_spring_rotation_eid,
 				[&, mouse_tilt_factor](auto& component)
@@ -523,7 +549,7 @@ void nest_selection::enable_controls()
 	(
 		[&, gamepad_tilt_factor](float value)
 		{
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				first_person_camera_rig_spring_rotation_eid,
 				[&, gamepad_tilt_factor](auto& component)
@@ -543,7 +569,7 @@ void nest_selection::enable_controls()
 			if (!mouse_look)
 				return;
 			
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				first_person_camera_rig_spring_rotation_eid,
 				[&, mouse_tilt_factor](auto& component)
@@ -558,7 +584,7 @@ void nest_selection::enable_controls()
 	(
 		[&, gamepad_tilt_factor](float value)
 		{
-			ctx.entity_registry->patch<component::constraint::spring_rotation>
+			ctx.entity_registry->patch<spring_rotation_constraint>
 			(
 				first_person_camera_rig_spring_rotation_eid,
 				[&, gamepad_tilt_factor](auto& component)
@@ -647,28 +673,28 @@ void nest_selection::enable_controls()
 	(
 		[&ctx = this->ctx, ff_time_scale]()
 		{
-			game::world::set_time_scale(ctx, ff_time_scale);
+			::world::set_time_scale(ctx, ff_time_scale);
 		}
 	);
 	ctx.controls["fast_forward"]->set_deactivated_callback
 	(
 		[&ctx = this->ctx, time_scale]()
 		{
-			game::world::set_time_scale(ctx, time_scale);
+			::world::set_time_scale(ctx, time_scale);
 		}
 	);
 	ctx.controls["rewind"]->set_activated_callback
 	(
 		[&ctx = this->ctx, ff_time_scale]()
 		{
-			game::world::set_time_scale(ctx, -ff_time_scale);
+			::world::set_time_scale(ctx, -ff_time_scale);
 		}
 	);
 	ctx.controls["rewind"]->set_deactivated_callback
 	(
 		[&ctx = this->ctx, time_scale]()
 		{
-			game::world::set_time_scale(ctx, time_scale);
+			::world::set_time_scale(ctx, time_scale);
 		}
 	);
 	
@@ -688,7 +714,7 @@ void nest_selection::enable_controls()
 			};
 			
 			// Push pause menu state
-			ctx.state_machine.emplace(new game::state::pause_menu(ctx));
+			ctx.state_machine.emplace(new ::state::pause_menu(ctx));
 		}
 	);
 	
@@ -752,4 +778,3 @@ void nest_selection::disable_controls()
 }
 
 } // namespace state
-} // namespace game

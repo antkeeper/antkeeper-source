@@ -20,23 +20,22 @@
 #include "game/state/credits.hpp"
 #include "game/state/extras-menu.hpp"
 #include "game/context.hpp"
-#include "animation/ease.hpp"
-#include "animation/animation.hpp"
-#include "animation/animator.hpp"
-#include "scene/text.hpp"
-#include "debug/log.hpp"
+#include <engine/animation/ease.hpp>
+#include <engine/animation/animation.hpp>
+#include <engine/animation/animator.hpp>
+#include <engine/scene/text.hpp>
+#include <engine/debug/log.hpp>
 #include "game/strings.hpp"
-#include "utility/hash/fnv1a.hpp"
-#include "math/glsl.hpp"
+#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/math/glsl.hpp>
 
 using namespace hash::literals;
 using namespace math::glsl;
 
-namespace game {
 namespace state {
 
-credits::credits(game::context& ctx):
-	game::state::base(ctx)
+credits::credits(::context& ctx):
+	::state::base(ctx)
 {
 	debug::log::trace("Entering credits state...");
 	
@@ -102,7 +101,7 @@ credits::credits(game::context& ctx):
 			{
 				// Change to extras menu state
 				ctx.state_machine.pop();
-				ctx.state_machine.emplace(new game::state::extras_menu(ctx));
+				ctx.state_machine.emplace(new ::state::extras_menu(ctx));
 			}
 		);
 	};
@@ -162,4 +161,3 @@ credits::~credits()
 }
 
 } // namespace state
-} // namespace game

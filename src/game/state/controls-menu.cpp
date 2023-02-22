@@ -22,19 +22,18 @@
 #include "game/state/gamepad-config-menu.hpp"
 #include "game/state/options-menu.hpp"
 #include "game/controls.hpp"
-#include "scene/text.hpp"
-#include "debug/log.hpp"
+#include <engine/scene/text.hpp>
+#include <engine/debug/log.hpp>
 #include "game/menu.hpp"
 #include "game/strings.hpp"
-#include "utility/hash/fnv1a.hpp"
+#include <engine/utility/hash/fnv1a.hpp>
 
 using namespace hash::literals;
 
-namespace game {
 namespace state {
 
-controls_menu::controls_menu(game::context& ctx):
-	game::state::base(ctx)
+controls_menu::controls_menu(::context& ctx):
+	::state::base(ctx)
 {
 	debug::log::trace("Entering controls menu state...");
 	
@@ -54,22 +53,22 @@ controls_menu::controls_menu(game::context& ctx):
 	back_text->set_content(get_string(ctx, "back"_fnv1a32));
 	
 	// Init menu item index
-	game::menu::init_menu_item_index(ctx, "controls");
+	::menu::init_menu_item_index(ctx, "controls");
 	
-	game::menu::update_text_color(ctx);
-	game::menu::update_text_font(ctx);
-	game::menu::align_text(ctx, true);
-	game::menu::update_text_tweens(ctx);
-	game::menu::add_text_to_ui(ctx);
-	game::menu::setup_animations(ctx);
+	::menu::update_text_color(ctx);
+	::menu::update_text_font(ctx);
+	::menu::align_text(ctx, true);
+	::menu::update_text_tweens(ctx);
+	::menu::add_text_to_ui(ctx);
+	::menu::setup_animations(ctx);
 	
 	// Construct menu item callbacks
 	auto select_keyboard_callback = [&ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -80,7 +79,7 @@ controls_menu::controls_menu(game::context& ctx):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::keyboard_config_menu(ctx));
+						ctx.state_machine.emplace(new ::state::keyboard_config_menu(ctx));
 					}
 				);
 			}
@@ -89,9 +88,9 @@ controls_menu::controls_menu(game::context& ctx):
 	auto select_gamepad_callback = [&ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -102,7 +101,7 @@ controls_menu::controls_menu(game::context& ctx):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::gamepad_config_menu(ctx));
+						ctx.state_machine.emplace(new ::state::gamepad_config_menu(ctx));
 					}
 				);
 			}
@@ -111,9 +110,9 @@ controls_menu::controls_menu(game::context& ctx):
 	auto select_back_callback = [&ctx]()
 	{
 		// Disable menu controls
-		ctx.function_queue.push(std::bind(game::disable_menu_controls, std::ref(ctx)));
+		ctx.function_queue.push(std::bind(::disable_menu_controls, std::ref(ctx)));
 		
-		game::menu::fade_out
+		::menu::fade_out
 		(
 			ctx,
 			[&ctx]()
@@ -124,7 +123,7 @@ controls_menu::controls_menu(game::context& ctx):
 					[&ctx]()
 					{
 						ctx.state_machine.pop();
-						ctx.state_machine.emplace(new game::state::options_menu(ctx));
+						ctx.state_machine.emplace(new ::state::options_menu(ctx));
 					}
 				);
 			}
@@ -150,10 +149,10 @@ controls_menu::controls_menu(game::context& ctx):
 	ctx.menu_back_callback = select_back_callback;
 	
 	// Queue menu control setup
-	ctx.function_queue.push(std::bind(game::enable_menu_controls, std::ref(ctx)));
+	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
 	// Fade in menu
-	game::menu::fade_in(ctx, nullptr);
+	::menu::fade_in(ctx, nullptr);
 	
 	debug::log::trace("Entered controls menu state");
 }
@@ -163,14 +162,13 @@ controls_menu::~controls_menu()
 	debug::log::trace("Exiting options menu state...");
 	
 	// Destruct menu
-	game::disable_menu_controls(ctx);
-	game::menu::clear_callbacks(ctx);
-	game::menu::delete_animations(ctx);
-	game::menu::remove_text_from_ui(ctx);
-	game::menu::delete_text(ctx);
+	::disable_menu_controls(ctx);
+	::menu::clear_callbacks(ctx);
+	::menu::delete_animations(ctx);
+	::menu::remove_text_from_ui(ctx);
+	::menu::delete_text(ctx);
 	
 	debug::log::trace("Exited controls menu state");
 }
 
 } // namespace state
-} // namespace game

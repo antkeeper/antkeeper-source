@@ -20,13 +20,12 @@
 #ifndef ANTKEEER_GAME_CONTROL_PROFILE_HPP
 #define ANTKEEER_GAME_CONTROL_PROFILE_HPP
 
-#include "input/mapping.hpp"
-#include "utility/dict.hpp"
+#include <engine/input/mapping.hpp>
+#include <engine/utility/dict.hpp>
 #include <cstdint>
 #include <map>
 #include <memory>
 
-namespace game {
 
 struct control_profile
 {
@@ -38,6 +37,5 @@ public:
 	dict<std::uint32_t> settings;
 };
 
-} // namespace game
 
 #endif // ANTKEEER_GAME_CONTROL_PROFILE_HPP

@@ -23,7 +23,6 @@
 #include <chrono>
 #include <functional>
 
-namespace game {
 
 /**
  * Game loop with fixed timestep update calls and variable timestep render calls.
@@ -107,6 +106,5 @@ inline double loop::get_update_period() const
 	return update_period;
 }
 
-} // namespace game
 
 #endif // ANTKEEPER_GAME_LOOP_HPP

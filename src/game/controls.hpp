@@ -21,18 +21,17 @@
 #define ANTKEEPER_GAME_CONTROLS_HPP
 
 #include "game/context.hpp"
-#include "resources/json.hpp"
-#include "input/gamepad.hpp"
+#include <engine/resources/json.hpp>
+#include <engine/input/gamepad.hpp>
 #include <filesystem>
 
-namespace game {
 
 /**
  * Resets a control profile to default settings.
  *
  * @param profile Control profile to reset.
  */
-void reset_control_profile(game::control_profile& profile);
+void reset_control_profile(::control_profile& profile);
 
 /**
  * Applies a control profile to the game context.
@@ -40,7 +39,7 @@ void reset_control_profile(game::control_profile& profile);
  * @param ctx Game context.
  * @param profile Control profile to apply.
  */
-void apply_control_profile(game::context& ctx, const game::control_profile& profile);
+void apply_control_profile(::context& ctx, const ::control_profile& profile);
 
 /**
  * Updates a control profile after actions have been remapped.
@@ -48,20 +47,21 @@ void apply_control_profile(game::context& ctx, const game::control_profile& prof
  * @param ctx Game context.
  * @param profile Control profile to update.
  */
-void update_control_profile(game::context& ctx, game::control_profile& profile);
+void update_control_profile(::context& ctx, ::control_profile& profile);
 
-void setup_window_controls(game::context& ctx);
-void setup_menu_controls(game::context& ctx);
-void setup_game_controls(game::context& ctx);
+void setup_window_controls(::context& ctx);
+void setup_menu_controls(::context& ctx);
+void setup_game_controls(::context& ctx);
 
-void enable_window_controls(game::context& ctx);
-void enable_menu_controls(game::context& ctx);
-void enable_game_controls(game::context& ctx);
+void enable_window_controls(::context& ctx);
+void enable_menu_controls(::context& ctx);
+void enable_game_controls(::context& ctx);
+void enable_nuptial_flight_controls(::context& ctx);
 
-void disable_window_controls(game::context& ctx);
-void disable_menu_controls(game::context& ctx);
-void disable_game_controls(game::context& ctx);
+void disable_window_controls(::context& ctx);
+void disable_menu_controls(::context& ctx);
+void disable_game_controls(::context& ctx);
+void disable_nuptial_flight_controls(::context& ctx);
 
-} // namespace game
 
 #endif // ANTKEEPER_GAME_CONTROLS_HPP

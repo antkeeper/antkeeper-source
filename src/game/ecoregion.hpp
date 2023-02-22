@@ -20,13 +20,12 @@
 #ifndef ANTKEEPER_GAME_ECOREGION_HPP
 #define ANTKEEPER_GAME_ECOREGION_HPP
 
-#include "utility/fundamental-types.hpp"
-#include "render/material.hpp"
+#include <engine/utility/fundamental-types.hpp>
+#include <engine/render/material.hpp>
 #include "game/ant/gene-pool.hpp"
 #include <string>
 #include <random>
 
-namespace game {
 
 /**
  * 
@@ -61,6 +60,5 @@ struct ecoregion
 	std::discrete_distribution<std::size_t> gene_pool_distribution;
 };
 
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ECOREGION_HPP

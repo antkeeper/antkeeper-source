@@ -21,9 +21,8 @@
 #define ANTKEEPER_GAME_SETTINGS_HPP
 
 #include "game/context.hpp"
-#include "debug/log.hpp"
+#include <engine/debug/log.hpp>
 
-namespace game {
 
 /**
  * Reads a setting if found, inserts a setting if not found, and overwrites a setting if a type mismatch occurs.
@@ -37,7 +36,7 @@ namespace game {
  * @return `true` if the setting was read, `false` if the setting was written.
  */
 template <class T>
-bool read_or_write_setting(game::context& ctx, std::uint32_t key, T& value)
+bool read_or_write_setting(::context& ctx, std::uint32_t key, T& value)
 {
 	if (auto i = ctx.settings->find(key); i != ctx.settings->end())
 	{
@@ -62,6 +61,5 @@ bool read_or_write_setting(game::context& ctx, std::uint32_t key, T& value)
 	return true;
 }
 
-} // namespace game
 
 #endif // ANTKEEPER_GAME_SETTINGS_HPP

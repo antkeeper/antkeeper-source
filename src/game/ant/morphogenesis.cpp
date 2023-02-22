@@ -18,13 +18,12 @@
  */
 
 #include "game/ant/morphogenesis.hpp"
-#include "render/material.hpp"
-#include "render/vertex-attribute.hpp"
-#include "math/transform-operators.hpp"
-#include "math/quaternion.hpp"
+#include <engine/render/material.hpp>
+#include <engine/render/vertex-attribute.hpp>
+#include <engine/math/transform-operators.hpp>
+#include <engine/math/quaternion.hpp>
 #include <unordered_set>
-
-namespace game {
+
 namespace ant {
 
 static render::material* build_exoskeleton_material
@@ -973,5 +972,4 @@ geom::aabb<float> calculate_bounds(std::uint8_t* vertex_data, std::size_t index_
 	return bounds;
 }
 
-} // namespace ant
-} // namespace game
+} // namespace ant

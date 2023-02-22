@@ -20,36 +20,36 @@
 #ifndef ANTKEEPER_GAME_CONTEXT_HPP
 #define ANTKEEPER_GAME_CONTEXT_HPP
 
-#include "animation/tween.hpp"
-#include "app/input-manager.hpp"
-#include "app/window-manager.hpp"
-#include "entity/id.hpp"
-#include "entity/registry.hpp"
-#include "event/subscription.hpp"
+#include <engine/animation/tween.hpp>
+#include <engine/app/input-manager.hpp>
+#include <engine/app/window-manager.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/entity/registry.hpp>
+#include <engine/event/subscription.hpp>
 #include "game/ecoregion.hpp"
 #include "game/loop.hpp"
 #include "game/state/base.hpp"
-#include "geom/aabb.hpp"
-#include "gl/framebuffer.hpp"
-#include "gl/rasterizer.hpp"
-#include "gl/texture-2d.hpp"
-#include "gl/vertex-array.hpp"
-#include "gl/vertex-buffer.hpp"
-#include "i18n/string-map.hpp"
-#include "input/action-map.hpp"
-#include "input/action.hpp"
-#include "input/mapper.hpp"
-#include "math/moving-average.hpp"
-#include "render/anti-aliasing-method.hpp"
-#include "render/material-property.hpp"
-#include "render/material.hpp"
-#include "resources/json.hpp"
-#include "scene/scene.hpp"
-#include "type/bitmap-font.hpp"
-#include "type/typeface.hpp"
-#include "utility/dict.hpp"
-#include "utility/fundamental-types.hpp"
-#include "utility/state-machine.hpp"
+#include <engine/geom/aabb.hpp>
+#include <engine/gl/framebuffer.hpp>
+#include <engine/gl/rasterizer.hpp>
+#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/vertex-array.hpp>
+#include <engine/gl/vertex-buffer.hpp>
+#include <engine/i18n/string-map.hpp>
+#include <engine/input/action-map.hpp>
+#include <engine/input/action.hpp>
+#include <engine/input/mapper.hpp>
+#include <engine/math/moving-average.hpp>
+#include <engine/render/anti-aliasing-method.hpp>
+#include <engine/render/material-property.hpp>
+#include <engine/render/material.hpp>
+#include <engine/resources/json.hpp>
+#include <engine/scene/scene.hpp>
+#include <engine/type/bitmap-font.hpp>
+#include <engine/type/typeface.hpp>
+#include <engine/utility/dict.hpp>
+#include <engine/utility/fundamental-types.hpp>
+#include <engine/utility/state-machine.hpp>
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <entt/entt.hpp>
@@ -74,32 +74,6 @@ namespace debug
 	class cli;
 }
 
-namespace game
-{
-	namespace system
-	{
-		class subterrain;
-		class terrain;
-		class vegetation;
-		class spatial;
-		class astronomy;
-		class blackbody;
-		class atmosphere;
-		class orbit;
-		class behavior;
-		class collision;
-		class constraint;
-		class locomotion;
-		class camera;
-		class nest;
-		class render;
-		class steering;
-		class spring;
-	}
-	
-	struct control_profile;
-}
-
 namespace render
 {
 	class bloom_pass;
@@ -117,11 +91,33 @@ namespace render
 	class ground_pass;
 }
 
-namespace game {
+
+// Forward declaration of system types.
+class subterrain_system;
+class terrain_system;
+class spatial_system;
+class astronomy_system;
+class blackbody_system;
+class atmosphere_system;
+class orbit_system;
+class behavior_system;
+class collision_system;
+class constraint_system;
+class locomotion_system;
+class camera_system;
+class nest_system;
+class render_system;
+class steering_system;
+class spring_system;
+
+struct control_profile;
 
 /// Container for data shared between game states.
 struct context
 {
+	context();
+	~context();
+	
 	// Command-line options
 	std::optional<bool> option_continue;
 	std::optional<std::string> option_data;
@@ -177,13 +173,17 @@ struct context
 	
 	// Action maps, actions, and action event handling
 	std::string control_profile_filename;
-	game::control_profile* control_profile;
+	::control_profile* control_profile;
+	
+	std::unordered_map<std::uint32_t, input::action> actions;
+	input::action_map window_action_map;
+	input::action_map menu_action_map;
+	input::action_map movement_action_map;
+	input::action_map nuptial_flight_action_map;
 	input::mapper input_mapper;
-	input::action_map window_actions;
+	
 	input::action fullscreen_action;
 	input::action screenshot_action;
-	std::vector<std::shared_ptr<::event::subscription>> window_action_subscriptions;
-	input::action_map menu_actions;
 	input::action menu_up_action;
 	input::action menu_down_action;
 	input::action menu_left_action;
@@ -191,9 +191,6 @@ struct context
 	input::action menu_select_action;
 	input::action menu_back_action;
 	input::action menu_modifier_action;
-	std::vector<std::shared_ptr<::event::subscription>> menu_action_subscriptions;
-	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
-	input::action_map movement_actions;
 	input::action move_forward_action;
 	input::action move_back_action;
 	input::action move_left_action;
@@ -201,15 +198,20 @@ struct context
 	input::action move_up_action;
 	input::action move_down_action;
 	input::action pause_action;
+	input::action pick_mate_action;
+	
+	std::vector<std::shared_ptr<::event::subscription>> window_action_subscriptions;
+	std::vector<std::shared_ptr<::event::subscription>> menu_action_subscriptions;
+	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> movement_action_subscriptions;
-
+	
 	
 	// Debugging
 	scene::text* frame_time_text;
 	debug::cli* cli;
 	
 	// Hierarchichal state machine
-	hsm::state_machine<game::state::base> state_machine;
+	hsm::state_machine<::state::base> state_machine;
 	std::function<void()> resume_callback;
 	
 	// Queue for scheduling "next frame" function calls
@@ -221,7 +223,7 @@ struct context
 	bool mouse_look;
 	
 	/// Game loop
-	game::loop loop;
+	::loop loop;
 	
 	// Framebuffers
 	gl::texture_2d* hdr_color_texture;
@@ -327,22 +329,23 @@ struct context
 	std::unordered_map<std::string, entity::id> entities;
 	
 	// Systems
-	game::system::behavior* behavior_system;
-	game::system::camera* camera_system;
-	game::system::collision* collision_system;
-	game::system::constraint* constraint_system;
-	game::system::locomotion* locomotion_system;
-	game::system::steering* steering_system;
-	game::system::render* render_system;
-	game::system::subterrain* subterrain_system;
-	game::system::terrain* terrain_system;
-	game::system::vegetation* vegetation_system;
-	game::system::spring* spring_system;
-	game::system::spatial* spatial_system;
-	game::system::blackbody* blackbody_system;
-	game::system::atmosphere* atmosphere_system;
-	game::system::astronomy* astronomy_system;
-	game::system::orbit* orbit_system;
+	::behavior_system* behavior_system;
+	::camera_system* camera_system;
+	::collision_system* collision_system;
+	::constraint_system* constraint_system;
+	::locomotion_system* locomotion_system;
+	::steering_system* steering_system;
+	::render_system* render_system;
+	::subterrain_system* subterrain_system;
+	::terrain_system* terrain_system;
+	::spring_system* spring_system;
+	::spatial_system* spatial_system;
+	::blackbody_system* blackbody_system;
+	::atmosphere_system* atmosphere_system;
+	::astronomy_system* astronomy_system;
+	::orbit_system* orbit_system;
+	
+	std::unique_ptr<::orbit_system> unique_orbit;
 	
 	double3 rgb_wavelengths;
 	
@@ -351,6 +354,5 @@ struct context
 	render::anti_aliasing_method anti_aliasing_method;
 };
 
-} // namespace game
 
 #endif // ANTKEEPER_GAME_CONTEXT_HPP

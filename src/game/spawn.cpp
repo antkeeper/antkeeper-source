@@ -18,60 +18,58 @@
  */
 
 #include "game/spawn.hpp"
-#include "game/component/transform.hpp"
-#include "game/component/model.hpp"
+#include "game/components/transform-component.hpp"
+#include "game/components/model-component.hpp"
 
-namespace game {
 
-entity::id spawn_ant_egg(game::context& ctx, const ant::genome& genome, bool fertilized, const float3& position)
+entity::id spawn_ant_egg(::context& ctx, const ant::genome& genome, bool fertilized, const float3& position)
 {
 	// Create entity
 	entity::id egg_eid = ctx.entity_registry->create();
 	
 	// Construct transform component
-	component::transform transform_component;
+	transform_component transform_component;
 	transform_component.local = math::transform<float>::identity;
 	transform_component.local.translation = position;
 	transform_component.world = transform_component.local;
 	transform_component.warp = true;
-	ctx.entity_registry->emplace<component::transform>(egg_eid, transform_component);
+	ctx.entity_registry->emplace<::transform_component>(egg_eid, transform_component);
 	
 	// Construct model component
-	component::model model_component;
+	model_component model_component;
 	model_component.render_model = genome.egg->phene.model;
 	model_component.instance_count = 0;
 	model_component.layers = ~0;
-	ctx.entity_registry->emplace<component::model>(egg_eid, model_component);
+	ctx.entity_registry->emplace<::model_component>(egg_eid, model_component);
 	
 	return egg_eid;
 }
 
-entity::id spawn_ant_larva(game::context& ctx, const ant::genome& genome, const float3& position)
+entity::id spawn_ant_larva(::context& ctx, const ant::genome& genome, const float3& position)
 {
 	// Create entity
 	entity::id larva_eid = ctx.entity_registry->create();
 	
 	// Construct transform component
-	component::transform transform_component;
+	transform_component transform_component;
 	transform_component.local = math::transform<float>::identity;
 	transform_component.local.translation = position;
 	transform_component.world = transform_component.local;
 	transform_component.warp = true;
-	ctx.entity_registry->emplace<component::transform>(larva_eid, transform_component);
+	ctx.entity_registry->emplace<::transform_component>(larva_eid, transform_component);
 	
 	// Construct model component
-	component::model model_component;
+	model_component model_component;
 	model_component.render_model = genome.larva->phene.model;
 	model_component.instance_count = 0;
 	model_component.layers = ~0;
-	ctx.entity_registry->emplace<component::model>(larva_eid, model_component);
+	ctx.entity_registry->emplace<::model_component>(larva_eid, model_component);
 	
 	return larva_eid;
 }
 
-entity::id spawn_worker_ant(game::context& ctx, const ant::genome& genome, const float3& position)
+entity::id spawn_worker_ant(::context& ctx, const ant::genome& genome, const float3& position)
 {
 	return entt::null;
 }
 
-} // namespace game

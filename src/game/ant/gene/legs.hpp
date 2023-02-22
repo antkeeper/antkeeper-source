@@ -23,7 +23,6 @@
 #include "game/ant/phene/legs.hpp"
 #include "game/ant/gene/polyphenic-gene.hpp"
 
-namespace game {
 namespace ant {
 namespace gene {
 
@@ -32,6 +31,5 @@ typedef polyphenic_gene<phene::legs> legs;
 
 } // namespace gene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_GENE_LEGS_HPP

@@ -18,13 +18,13 @@
  */
 
 #include "game/ecoregion.hpp"
-#include "resources/resource-loader.hpp"
-#include "resources/resource-manager.hpp"
-#include "resources/json.hpp"
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/resources/json.hpp>
 #include <stdexcept>
 
 template <>
-game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
+::ecoregion* resource_loader<::ecoregion>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
 {
 	// Load JSON data
 	json* data = resource_loader<json>::load(resource_manager, file, path);
@@ -35,7 +35,7 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 		throw std::runtime_error("Invalid ecoregion file.");
 	
 	// Allocate and init ecoregion
-	game::ecoregion* ecoregion = new game::ecoregion();
+	::ecoregion* ecoregion = new ::ecoregion();
 	ecoregion->elevation = 0.0f;
 	ecoregion->latitude = 0.0f;
 	ecoregion->longitude = 0.0f;
@@ -73,7 +73,7 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 		{
 			// Allocate gene pool
 			ecoregion->gene_pools.resize(ecoregion->gene_pools.size() + 1);
-			game::ant::gene_pool& gene_pool = ecoregion->gene_pools.back();
+			::ant::gene_pool& gene_pool = ecoregion->gene_pools.back();
 			
 			// Read gene pool name
 			if (auto name_element = gene_pool_element->find("name"); name_element != gene_pool_element->end())
@@ -88,12 +88,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto antennae_element = antennae_elements->begin(); antennae_element != antennae_elements->end(); ++antennae_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::antennae* gene = nullptr;
+						const ::ant::gene::antennae* gene = nullptr;
 						
 						if (auto weight_element = antennae_element->find("weight"); weight_element != antennae_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = antennae_element->find("gene"); gene_element != antennae_element->end())
-							gene = resource_manager->load<game::ant::gene::antennae>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::antennae>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -109,12 +109,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto body_size_element = body_size_elements->begin(); body_size_element != body_size_elements->end(); ++body_size_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::body_size* gene = nullptr;
+						const ::ant::gene::body_size* gene = nullptr;
 						
 						if (auto weight_element = body_size_element->find("weight"); weight_element != body_size_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = body_size_element->find("gene"); gene_element != body_size_element->end())
-							gene = resource_manager->load<game::ant::gene::body_size>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::body_size>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -130,12 +130,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto cocoon_element = cocoon_elements->begin(); cocoon_element != cocoon_elements->end(); ++cocoon_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::cocoon* gene = nullptr;
+						const ::ant::gene::cocoon* gene = nullptr;
 						
 						if (auto weight_element = cocoon_element->find("weight"); weight_element != cocoon_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = cocoon_element->find("gene"); gene_element != cocoon_element->end())
-							gene = resource_manager->load<game::ant::gene::cocoon>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::cocoon>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -151,12 +151,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto diet_element = diet_elements->begin(); diet_element != diet_elements->end(); ++diet_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::diet* gene = nullptr;
+						const ::ant::gene::diet* gene = nullptr;
 						
 						if (auto weight_element = diet_element->find("weight"); weight_element != diet_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = diet_element->find("gene"); gene_element != diet_element->end())
-							gene = resource_manager->load<game::ant::gene::diet>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::diet>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -172,12 +172,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto egg_element = egg_elements->begin(); egg_element != egg_elements->end(); ++egg_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::egg* gene = nullptr;
+						const ::ant::gene::egg* gene = nullptr;
 						
 						if (auto weight_element = egg_element->find("weight"); weight_element != egg_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = egg_element->find("gene"); gene_element != egg_element->end())
-							gene = resource_manager->load<game::ant::gene::egg>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::egg>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -193,12 +193,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto eyes_element = eyes_elements->begin(); eyes_element != eyes_elements->end(); ++eyes_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::eyes* gene = nullptr;
+						const ::ant::gene::eyes* gene = nullptr;
 						
 						if (auto weight_element = eyes_element->find("weight"); weight_element != eyes_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = eyes_element->find("gene"); gene_element != eyes_element->end())
-							gene = resource_manager->load<game::ant::gene::eyes>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::eyes>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -214,12 +214,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto foraging_time_element = foraging_time_elements->begin(); foraging_time_element != foraging_time_elements->end(); ++foraging_time_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::foraging_time* gene = nullptr;
+						const ::ant::gene::foraging_time* gene = nullptr;
 						
 						if (auto weight_element = foraging_time_element->find("weight"); weight_element != foraging_time_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = foraging_time_element->find("gene"); gene_element != foraging_time_element->end())
-							gene = resource_manager->load<game::ant::gene::foraging_time>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::foraging_time>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -235,12 +235,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto founding_mode_element = founding_mode_elements->begin(); founding_mode_element != founding_mode_elements->end(); ++founding_mode_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::founding_mode* gene = nullptr;
+						const ::ant::gene::founding_mode* gene = nullptr;
 						
 						if (auto weight_element = founding_mode_element->find("weight"); weight_element != founding_mode_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = founding_mode_element->find("gene"); gene_element != founding_mode_element->end())
-							gene = resource_manager->load<game::ant::gene::founding_mode>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::founding_mode>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -256,12 +256,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto gaster_element = gaster_elements->begin(); gaster_element != gaster_elements->end(); ++gaster_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::gaster* gene = nullptr;
+						const ::ant::gene::gaster* gene = nullptr;
 						
 						if (auto weight_element = gaster_element->find("weight"); weight_element != gaster_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = gaster_element->find("gene"); gene_element != gaster_element->end())
-							gene = resource_manager->load<game::ant::gene::gaster>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::gaster>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -277,12 +277,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto head_element = head_elements->begin(); head_element != head_elements->end(); ++head_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::head* gene = nullptr;
+						const ::ant::gene::head* gene = nullptr;
 						
 						if (auto weight_element = head_element->find("weight"); weight_element != head_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = head_element->find("gene"); gene_element != head_element->end())
-							gene = resource_manager->load<game::ant::gene::head>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::head>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -298,12 +298,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto larva_element = larva_elements->begin(); larva_element != larva_elements->end(); ++larva_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::larva* gene = nullptr;
+						const ::ant::gene::larva* gene = nullptr;
 						
 						if (auto weight_element = larva_element->find("weight"); weight_element != larva_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = larva_element->find("gene"); gene_element != larva_element->end())
-							gene = resource_manager->load<game::ant::gene::larva>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::larva>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -319,12 +319,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto legs_element = legs_elements->begin(); legs_element != legs_elements->end(); ++legs_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::legs* gene = nullptr;
+						const ::ant::gene::legs* gene = nullptr;
 						
 						if (auto weight_element = legs_element->find("weight"); weight_element != legs_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = legs_element->find("gene"); gene_element != legs_element->end())
-							gene = resource_manager->load<game::ant::gene::legs>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::legs>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -340,12 +340,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto mandibles_element = mandibles_elements->begin(); mandibles_element != mandibles_elements->end(); ++mandibles_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::mandibles* gene = nullptr;
+						const ::ant::gene::mandibles* gene = nullptr;
 						
 						if (auto weight_element = mandibles_element->find("weight"); weight_element != mandibles_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = mandibles_element->find("gene"); gene_element != mandibles_element->end())
-							gene = resource_manager->load<game::ant::gene::mandibles>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::mandibles>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -361,12 +361,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto mesosoma_element = mesosoma_elements->begin(); mesosoma_element != mesosoma_elements->end(); ++mesosoma_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::mesosoma* gene = nullptr;
+						const ::ant::gene::mesosoma* gene = nullptr;
 						
 						if (auto weight_element = mesosoma_element->find("weight"); weight_element != mesosoma_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = mesosoma_element->find("gene"); gene_element != mesosoma_element->end())
-							gene = resource_manager->load<game::ant::gene::mesosoma>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::mesosoma>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -382,12 +382,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto nest_site_element = nest_site_elements->begin(); nest_site_element != nest_site_elements->end(); ++nest_site_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::nest_site* gene = nullptr;
+						const ::ant::gene::nest_site* gene = nullptr;
 						
 						if (auto weight_element = nest_site_element->find("weight"); weight_element != nest_site_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = nest_site_element->find("gene"); gene_element != nest_site_element->end())
-							gene = resource_manager->load<game::ant::gene::nest_site>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::nest_site>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -403,12 +403,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto ocelli_element = ocelli_elements->begin(); ocelli_element != ocelli_elements->end(); ++ocelli_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::ocelli* gene = nullptr;
+						const ::ant::gene::ocelli* gene = nullptr;
 						
 						if (auto weight_element = ocelli_element->find("weight"); weight_element != ocelli_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = ocelli_element->find("gene"); gene_element != ocelli_element->end())
-							gene = resource_manager->load<game::ant::gene::ocelli>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::ocelli>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -424,12 +424,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto pigmentation_element = pigmentation_elements->begin(); pigmentation_element != pigmentation_elements->end(); ++pigmentation_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::pigmentation* gene = nullptr;
+						const ::ant::gene::pigmentation* gene = nullptr;
 						
 						if (auto weight_element = pigmentation_element->find("weight"); weight_element != pigmentation_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = pigmentation_element->find("gene"); gene_element != pigmentation_element->end())
-							gene = resource_manager->load<game::ant::gene::pigmentation>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::pigmentation>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -445,12 +445,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto pilosity_element = pilosity_elements->begin(); pilosity_element != pilosity_elements->end(); ++pilosity_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::pilosity* gene = nullptr;
+						const ::ant::gene::pilosity* gene = nullptr;
 						
 						if (auto weight_element = pilosity_element->find("weight"); weight_element != pilosity_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = pilosity_element->find("gene"); gene_element != pilosity_element->end())
-							gene = resource_manager->load<game::ant::gene::pilosity>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::pilosity>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -466,12 +466,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto sculpturing_element = sculpturing_elements->begin(); sculpturing_element != sculpturing_elements->end(); ++sculpturing_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::sculpturing* gene = nullptr;
+						const ::ant::gene::sculpturing* gene = nullptr;
 						
 						if (auto weight_element = sculpturing_element->find("weight"); weight_element != sculpturing_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = sculpturing_element->find("gene"); gene_element != sculpturing_element->end())
-							gene = resource_manager->load<game::ant::gene::sculpturing>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::sculpturing>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -487,12 +487,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto sting_element = sting_elements->begin(); sting_element != sting_elements->end(); ++sting_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::sting* gene = nullptr;
+						const ::ant::gene::sting* gene = nullptr;
 						
 						if (auto weight_element = sting_element->find("weight"); weight_element != sting_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = sting_element->find("gene"); gene_element != sting_element->end())
-							gene = resource_manager->load<game::ant::gene::sting>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::sting>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -508,12 +508,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto waist_element = waist_elements->begin(); waist_element != waist_elements->end(); ++waist_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::waist* gene = nullptr;
+						const ::ant::gene::waist* gene = nullptr;
 						
 						if (auto weight_element = waist_element->find("weight"); weight_element != waist_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = waist_element->find("gene"); gene_element != waist_element->end())
-							gene = resource_manager->load<game::ant::gene::waist>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::waist>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
@@ -529,12 +529,12 @@ game::ecoregion* resource_loader<game::ecoregion>::load(resource_manager* resour
 					for (auto wings_element = wings_elements->begin(); wings_element != wings_elements->end(); ++wings_element)
 					{
 						float weight = 0.0f;
-						const game::ant::gene::wings* gene = nullptr;
+						const ::ant::gene::wings* gene = nullptr;
 						
 						if (auto weight_element = wings_element->find("weight"); weight_element != wings_element->end())
 							weight = weight_element->get<float>();
 						if (auto gene_element = wings_element->find("gene"); gene_element != wings_element->end())
-							gene = resource_manager->load<game::ant::gene::wings>(gene_element->get<std::string>());
+							gene = resource_manager->load<::ant::gene::wings>(gene_element->get<std::string>());
 						
 						if (gene)
 						{

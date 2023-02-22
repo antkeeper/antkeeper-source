@@ -20,7 +20,6 @@
 #ifndef ANTKEEPER_GAME_ANT_PHENE_PILOSITY_HPP
 #define ANTKEEPER_GAME_ANT_PHENE_PILOSITY_HPP
 
-namespace game {
 namespace ant {
 namespace phene {
 
@@ -35,6 +34,5 @@ struct pilosity
 
 } // namespace phene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_PHENE_PILOSITY_HPP

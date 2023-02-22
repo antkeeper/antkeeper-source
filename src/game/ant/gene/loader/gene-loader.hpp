@@ -22,10 +22,9 @@
 
 #include "game/ant/gene/monophenic-gene.hpp"
 #include "game/ant/gene/polyphenic-gene.hpp"
-#include "resources/json.hpp"
-#include "resources/resource-manager.hpp"
+#include <engine/resources/json.hpp>
+#include <engine/resources/resource-manager.hpp>
 
-namespace game {
 namespace ant {
 namespace gene {
 
@@ -82,6 +81,5 @@ void deserialize_gene(polyphenic_gene<T>& gene, void (*deserialize_phene)(T&, co
 
 } // namespace gene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_GENE_GENE_LOADER_HPP

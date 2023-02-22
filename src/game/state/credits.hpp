@@ -21,18 +21,17 @@
 #define ANTKEEPER_GAME_STATE_CREDITS_HPP
 
 #include "game/state/base.hpp"
-#include "scene/text.hpp"
-#include "animation/animation.hpp"
-#include "event/subscription.hpp"
+#include <engine/scene/text.hpp>
+#include <engine/animation/animation.hpp>
+#include <engine/event/subscription.hpp>
 #include <vector>
 
-namespace game {
 namespace state {
 
-class credits: public game::state::base
+class credits: public ::state::base
 {
 public:
-	credits(game::context& ctx);
+	credits(::context& ctx);
 	virtual ~credits();
 	
 private:
@@ -44,6 +43,5 @@ private:
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_CREDITS_HPP

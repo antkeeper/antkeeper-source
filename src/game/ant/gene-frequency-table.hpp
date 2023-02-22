@@ -23,7 +23,6 @@
 #include <random>
 #include <vector>
 
-namespace game {
 namespace ant {
 	
 /**
@@ -61,6 +60,5 @@ struct gene_frequency_table
 };
 
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_GENE_FREQUENCY_TABLE_HPP

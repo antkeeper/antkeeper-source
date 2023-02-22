@@ -22,17 +22,15 @@
 
 #include "game/state/base.hpp"
 
-namespace game {
 namespace state {
 
-class controls_menu: public game::state::base
+class controls_menu: public ::state::base
 {
 public:
-	controls_menu(game::context& ctx);
+	controls_menu(::context& ctx);
 	virtual ~controls_menu();
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_CONTROLS_MENU_HPP

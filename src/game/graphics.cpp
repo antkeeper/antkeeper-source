@@ -18,16 +18,16 @@
  */
 
 #include "game/graphics.hpp"
-#include "config.hpp"
-#include "debug/log.hpp"
-#include "gl/framebuffer.hpp"
-#include "gl/texture-2d.hpp"
-#include "gl/texture-filter.hpp"
-#include "gl/texture-wrapping.hpp"
-#include "render/passes/bloom-pass.hpp"
-#include "render/passes/final-pass.hpp"
-#include "render/passes/fxaa-pass.hpp"
-#include "render/passes/resample-pass.hpp"
+#include <engine/config.hpp>
+#include <engine/debug/log.hpp>
+#include <engine/gl/framebuffer.hpp>
+#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/texture-filter.hpp>
+#include <engine/gl/texture-wrapping.hpp>
+#include <engine/render/passes/bloom-pass.hpp>
+#include <engine/render/passes/final-pass.hpp>
+#include <engine/render/passes/fxaa-pass.hpp>
+#include <engine/render/passes/resample-pass.hpp>
 #include <chrono>
 #include <filesystem>
 #include <format>
@@ -35,12 +35,11 @@
 #include <stb/stb_image_write.h>
 #include <thread>
 
-namespace game {
 namespace graphics {
 
-static void reroute_framebuffers(game::context& ctx);
+static void reroute_framebuffers(::context& ctx);
 
-void create_framebuffers(game::context& ctx)
+void create_framebuffers(::context& ctx)
 {
 	debug::log::trace("Creating framebuffers...");
 	
@@ -88,7 +87,7 @@ void create_framebuffers(game::context& ctx)
 	debug::log::trace("Created framebuffers");
 }
 
-void destroy_framebuffers(game::context& ctx)
+void destroy_framebuffers(::context& ctx)
 {
 	debug::log::trace("Destroying framebuffers...");
 	
@@ -120,7 +119,7 @@ void destroy_framebuffers(game::context& ctx)
 	debug::log::trace("Destroyed framebuffers");
 }
 
-void change_render_resolution(game::context& ctx, float scale)
+void change_render_resolution(::context& ctx, float scale)
 {
 	debug::log::trace("Changing render resolution to {}...", scale);
 	
@@ -149,17 +148,19 @@ void change_render_resolution(game::context& ctx, float scale)
 	if (viewport_size.x() != ctx.render_resolution.x() || viewport_size.y() != ctx.render_resolution.y())
 	{
 		ctx.resample_pass->set_enabled(true);
+		debug::log::debug("Resample pass enabled");
 	}
 	else
 	{
 		ctx.resample_pass->set_enabled(false);
+		debug::log::debug("Resample pass disabled");
 	}
 	reroute_framebuffers(ctx);
 	
 	debug::log::trace("Changed render resolution to {}", scale);
 }
 
-void save_screenshot(game::context& ctx)
+void save_screenshot(::context& ctx)
 {
 	// Determine timestamped screenshot filename
 	const auto time = std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now());
@@ -197,19 +198,21 @@ void save_screenshot(game::context& ctx)
 	
 }
 
-void select_anti_aliasing_method(game::context& ctx, render::anti_aliasing_method method)
+void select_anti_aliasing_method(::context& ctx, render::anti_aliasing_method method)
 {
 	// Switch AA method
 	switch (method)
 	{
 		// Off
 		case render::anti_aliasing_method::none:
+			debug::log::debug("Anti-aliasing disabled");
 			ctx.fxaa_pass->set_enabled(false);
 			reroute_framebuffers(ctx);
 			break;
 		
 		// FXAA
 		case render::anti_aliasing_method::fxaa:
+			debug::log::debug("Anti-aliasing enabled (FXAA)");
 			ctx.fxaa_pass->set_enabled(true);
 			reroute_framebuffers(ctx);
 			break;
@@ -219,7 +222,7 @@ void select_anti_aliasing_method(game::context& ctx, render::anti_aliasing_metho
 	ctx.anti_aliasing_method = method;
 }
 
-void reroute_framebuffers(game::context& ctx)
+void reroute_framebuffers(::context& ctx)
 {
 	if (ctx.fxaa_pass->is_enabled())
 	{
@@ -248,4 +251,3 @@ void reroute_framebuffers(game::context& ctx)
 }
 
 } // namespace graphics
-} // namespace game

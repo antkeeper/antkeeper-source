@@ -21,16 +21,15 @@
 #define ANTKEEPER_GAME_STATE_NEST_SELECTION_HPP
 
 #include "game/state/base.hpp"
-#include "entity/id.hpp"
-#include "utility/fundamental-types.hpp"
+#include <engine/entity/id.hpp>
+#include <engine/utility/fundamental-types.hpp>
 
-namespace game {
 namespace state {
 
-class nest_selection: public game::state::base
+class nest_selection: public ::state::base
 {
 public:
-	nest_selection(game::context& ctx);
+	nest_selection(::context& ctx);
 	virtual ~nest_selection();
 	
 private:
@@ -61,6 +60,5 @@ private:
 };
 
 } // namespace state
-} // namespace game
 
 #endif // ANTKEEPER_GAME_STATE_NEST_SELECTION_HPP

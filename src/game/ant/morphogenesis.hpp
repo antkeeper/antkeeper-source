@@ -21,9 +21,8 @@
 #define ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP
 
 #include "game/ant/phenome.hpp"
-#include "render/model.hpp"
+#include <engine/render/model.hpp>
 
-namespace game {
 namespace ant {
 
 /**
@@ -36,6 +35,5 @@ namespace ant {
 render::model* morphogenesis(const phenome& phenome);
 
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP

@@ -44,7 +44,6 @@
 #include "game/ant/gene/waist.hpp"
 #include "game/ant/gene/wings.hpp"
 
-namespace game {
 namespace ant {
 
 /**
@@ -80,6 +79,5 @@ struct gene_pool
 };
 
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_GENE_POOL_HPP

@@ -1,0 +1,74 @@
+/*
+ * Copyright (C) 2023  Christopher J. Howard
+ *
+ * This file is part of Antkeeper source code.
+ *
+ * Antkeeper source code is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Antkeeper source code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef ANTKEEPER_RENDER_FINAL_PASS_HPP
+#define ANTKEEPER_RENDER_FINAL_PASS_HPP
+
+#include <engine/render/pass.hpp>
+#include <engine/render/shader-template.hpp>
+#include <engine/gl/shader-program.hpp>
+#include <engine/gl/shader-input.hpp>
+#include <engine/gl/vertex-buffer.hpp>
+#include <engine/gl/vertex-array.hpp>
+#include <engine/gl/texture-2d.hpp>
+
+class resource_manager;
+
+namespace render {
+
+/**
+ *
+ */
+class final_pass: public pass
+{
+public:
+	final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
+	virtual ~final_pass();
+	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	
+	void set_color_texture(const gl::texture_2d* texture);
+	void set_bloom_texture(const gl::texture_2d* texture) noexcept;
+	void set_bloom_weight(float weight) noexcept;
+	void set_blue_noise_texture(const gl::texture_2d* texture);
+
+private:
+	render::shader_template* shader_template;
+	
+	gl::shader_program* shader_program;
+	const gl::shader_input* color_texture_input;
+	const gl::shader_input* bloom_texture_input;
+	const gl::shader_input* bloom_weight_input;
+	const gl::shader_input* blue_noise_texture_input;
+	const gl::shader_input* blue_noise_scale_input;
+	const gl::shader_input* resolution_input;
+	const gl::shader_input* time_input;
+	gl::vertex_buffer* quad_vbo;
+	gl::vertex_array* quad_vao;
+	
+	const gl::texture_2d* color_texture;
+	const gl::texture_2d* bloom_texture;
+	float bloom_weight;
+	const gl::texture_2d* blue_noise_texture;
+	float blue_noise_scale;
+};
+
+} // namespace render
+
+#endif // ANTKEEPER_RENDER_FINAL_PASS_HPP
+

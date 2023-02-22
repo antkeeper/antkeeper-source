@@ -22,15 +22,13 @@
 
 #include "game/context.hpp"
 
-namespace game {
 namespace load {
 
 /**
  * Loads a colony
  */
-void colony(game::context& ctx, const std::filesystem::path& path);
+void colony(::context& ctx, const std::filesystem::path& path);
 
 } // namespace load
-} // namespace game
 
 #endif // ANTKEEPER_GAME_LOAD_HPP

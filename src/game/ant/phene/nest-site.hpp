@@ -20,7 +20,6 @@
 #ifndef ANTKEEPER_GAME_ANT_NEST_SITE_HPP
 #define ANTKEEPER_GAME_ANT_NEST_SITE_HPP
 
-namespace game {
 namespace ant {
 namespace phene {
 
@@ -35,6 +34,5 @@ enum class nest_site
 
 } // namespace phene
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_NEST_SITE_HPP

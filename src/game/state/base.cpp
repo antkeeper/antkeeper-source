@@ -19,10 +19,9 @@
 
 #include "game/state/base.hpp"
 
-namespace game {
 namespace state {
 
-base::base(game::context& ctx):
+base::base(::context& ctx):
 	ctx(ctx)
 {}
 
@@ -30,4 +29,3 @@ base::~base()
 {}
 
 } // namespace state
-} // namespace game

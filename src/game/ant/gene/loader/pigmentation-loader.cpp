@@ -18,14 +18,14 @@
  */
 
 #include "game/ant/gene/loader/gene-loader.hpp"
-#include "resources/resource-loader.hpp"
-#include "resources/resource-manager.hpp"
-#include "resources/json.hpp"
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/resources/json.hpp>
 #include "game/ant/gene/pigmentation.hpp"
-#include "render/material.hpp"
+#include <engine/render/material.hpp>
 #include <stdexcept>
 
-using namespace game::ant;
+using namespace ::ant;
 
 static void deserialize_pigmentation_phene(phene::pigmentation& phene, const json& phene_element, resource_manager* resource_manager)
 {

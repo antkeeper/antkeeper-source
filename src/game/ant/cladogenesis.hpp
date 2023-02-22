@@ -24,7 +24,6 @@
 #include "game/ant/gene-pool.hpp"
 #include <random>
 
-namespace game {
 namespace ant {
 
 /**
@@ -38,6 +37,5 @@ namespace ant {
 genome* cladogenesis(const gene_pool& pool, std::random_device& rng);
 
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP

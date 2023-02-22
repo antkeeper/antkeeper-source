@@ -17,16 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "animation/animation.hpp"
-#include "animation/animator.hpp"
-#include "animation/ease.hpp"
-#include "animation/screen-transition.hpp"
-#include "animation/timeline.hpp"
-#include "color/color.hpp"
-#include "config.hpp"
-#include "debug/cli.hpp"
-#include "debug/log.hpp"
-#include "entity/commands.hpp"
+#include <engine/animation/animation.hpp>
+#include <engine/animation/animator.hpp>
+#include <engine/animation/ease.hpp>
+#include <engine/animation/screen-transition.hpp>
+#include <engine/animation/timeline.hpp>
+#include <engine/color/color.hpp>
+#include <engine/config.hpp>
+#include <engine/debug/cli.hpp>
+#include <engine/debug/log.hpp>
+#include "game/commands/commands.hpp"
 #include "game/context.hpp"
 #include "game/controls.hpp"
 #include "game/control-profile.hpp"
@@ -37,60 +37,59 @@
 #include "game/state/boot.hpp"
 #include "game/state/splash.hpp"
 #include "game/state/main-menu.hpp"
-#include "game/system/astronomy.hpp"
-#include "game/system/atmosphere.hpp"
-#include "game/system/behavior.hpp"
-#include "game/system/blackbody.hpp"
-#include "game/system/camera.hpp"
-#include "game/system/collision.hpp"
-#include "game/system/constraint.hpp"
-#include "game/system/locomotion.hpp"
-#include "game/system/orbit.hpp"
-#include "game/system/render.hpp"
-#include "game/system/spatial.hpp"
-#include "game/system/spring.hpp"
-#include "game/system/steering.hpp"
-#include "game/system/subterrain.hpp"
-#include "game/system/terrain.hpp"
-#include "game/system/vegetation.hpp"
+#include "game/systems/astronomy-system.hpp"
+#include "game/systems/atmosphere-system.hpp"
+#include "game/systems/behavior-system.hpp"
+#include "game/systems/blackbody-system.hpp"
+#include "game/systems/camera-system.hpp"
+#include "game/systems/collision-system.hpp"
+#include "game/systems/constraint-system.hpp"
+#include "game/systems/locomotion-system.hpp"
+#include "game/systems/orbit-system.hpp"
+#include "game/systems/render-system.hpp"
+#include "game/systems/spatial-system.hpp"
+#include "game/systems/spring-system.hpp"
+#include "game/systems/steering-system.hpp"
+#include "game/systems/subterrain-system.hpp"
+#include "game/systems/terrain-system.hpp"
 #include "game/settings.hpp"
-#include "gl/framebuffer.hpp"
-#include "gl/pixel-format.hpp"
-#include "gl/pixel-type.hpp"
-#include "gl/rasterizer.hpp"
-#include "gl/texture-2d.hpp"
-#include "gl/texture-filter.hpp"
-#include "gl/texture-wrapping.hpp"
-#include "gl/vertex-array.hpp"
-#include "gl/vertex-attribute.hpp"
-#include "gl/vertex-buffer.hpp"
-#include "input/gamepad.hpp"
-#include "input/keyboard.hpp"
-#include "input/mapper.hpp"
-#include "input/mouse.hpp"
-#include "input/scancode.hpp"
-#include "render/compositor.hpp"
-#include "render/material-flags.hpp"
-#include "render/material-property.hpp"
-#include "render/passes/bloom-pass.hpp"
-#include "render/passes/clear-pass.hpp"
-#include "render/passes/final-pass.hpp"
-#include "render/passes/fxaa-pass.hpp"
-#include "render/passes/ground-pass.hpp"
-#include "render/passes/material-pass.hpp"
-#include "render/passes/outline-pass.hpp"
-#include "render/passes/resample-pass.hpp"
-#include "render/passes/shadow-map-pass.hpp"
-#include "render/passes/sky-pass.hpp"
-#include "render/renderer.hpp"
-#include "render/vertex-attribute.hpp"
-#include "resources/file-buffer.hpp"
-#include "resources/resource-manager.hpp"
-#include "scene/scene.hpp"
-#include "utility/paths.hpp"
-#include "utility/dict.hpp"
-#include "utility/hash/fnv1a.hpp"
-#include "input/application-events.hpp"
+#include <engine/gl/framebuffer.hpp>
+#include <engine/gl/pixel-format.hpp>
+#include <engine/gl/pixel-type.hpp>
+#include <engine/gl/rasterizer.hpp>
+#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/texture-filter.hpp>
+#include <engine/gl/texture-wrapping.hpp>
+#include <engine/gl/vertex-array.hpp>
+#include <engine/gl/vertex-attribute.hpp>
+#include <engine/gl/vertex-buffer.hpp>
+#include <engine/input/gamepad.hpp>
+#include <engine/input/keyboard.hpp>
+#include <engine/input/mapper.hpp>
+#include <engine/input/mouse.hpp>
+#include <engine/input/scancode.hpp>
+#include <engine/render/compositor.hpp>
+#include <engine/render/material-flags.hpp>
+#include <engine/render/material-property.hpp>
+#include <engine/render/passes/bloom-pass.hpp>
+#include <engine/render/passes/clear-pass.hpp>
+#include <engine/render/passes/final-pass.hpp>
+#include <engine/render/passes/fxaa-pass.hpp>
+#include <engine/render/passes/ground-pass.hpp>
+#include <engine/render/passes/material-pass.hpp>
+#include <engine/render/passes/outline-pass.hpp>
+#include <engine/render/passes/resample-pass.hpp>
+#include <engine/render/passes/shadow-map-pass.hpp>
+#include <engine/render/passes/sky-pass.hpp>
+#include <engine/render/renderer.hpp>
+#include <engine/render/vertex-attribute.hpp>
+#include <engine/resources/file-buffer.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/scene/scene.hpp>
+#include <engine/utility/paths.hpp>
+#include <engine/utility/dict.hpp>
+#include <engine/utility/hash/fnv1a.hpp>
+#include <engine/input/application-events.hpp>
 #include <algorithm>
 #include <cctype>
 #include <entt/entt.hpp>
@@ -106,11 +105,10 @@
 
 using namespace hash::literals;
 
-namespace game {
 namespace state {
 
-boot::boot(game::context& ctx, int argc, const char* const* argv):
-	game::state::base(ctx)
+boot::boot(::context& ctx, int argc, const char* const* argv):
+	::state::base(ctx)
 {
 	// Boot process
 	debug::log::trace("Booting up...");
@@ -137,7 +135,7 @@ boot::boot(game::context& ctx, int argc, const char* const* argv):
 	debug::log::trace("Boot up complete");
 	
 	// Push next state
-	ctx.state_machine.emplace(new game::state::main_menu(ctx, true));
+	ctx.state_machine.emplace(new ::state::main_menu(ctx, true));
 	
 	// Enter main loop
 	debug::log::trace("Entered main loop");
@@ -588,7 +586,7 @@ void boot::setup_rendering()
 	read_or_write_setting(ctx, "shadow_map_resolution"_fnv1a32, ctx.shadow_map_resolution);
 	
 	// Create framebuffers
-	game::graphics::create_framebuffers(ctx);
+	::graphics::create_framebuffers(ctx);
 	
 	// Load blue noise texture
 	gl::texture_2d* blue_noise_map = ctx.resource_manager->load<gl::texture_2d>("blue-noise.tex");
@@ -601,7 +599,7 @@ void boot::setup_rendering()
 		// Construct bloom pass
 		ctx.bloom_pass = new render::bloom_pass(ctx.window->get_rasterizer(), ctx.resource_manager);
 		ctx.bloom_pass->set_source_texture(ctx.hdr_color_texture);
-		ctx.bloom_pass->set_mip_chain_length(0);
+		ctx.bloom_pass->set_mip_chain_length(5);
 		ctx.bloom_pass->set_filter_radius(0.005f);
 		
 		ctx.common_final_pass = new render::final_pass(ctx.window->get_rasterizer(), ctx.ldr_framebuffer_a, ctx.resource_manager);
@@ -886,8 +884,8 @@ void boot::setup_scenes()
 		ctx.menu_bg_billboard = new scene::billboard();
 		ctx.menu_bg_billboard->set_active(false);
 		ctx.menu_bg_billboard->set_material(menu_bg_material);
-		ctx.menu_bg_billboard->set_scale({(float)viewport_size[0] * 0.5f, (float)viewport_size[1] * 0.5f, 1.0f});
-		ctx.menu_bg_billboard->set_translation({0.0f, 0.0f, -100.0f});
+		ctx.menu_bg_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
+		ctx.menu_bg_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
 		ctx.menu_bg_billboard->update_tweens();
 		
 		// Create camera flash billboard
@@ -1046,70 +1044,62 @@ void boot::setup_systems()
 	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_size[0]), static_cast<float>(viewport_size[1])};
 	
 	// Setup terrain system
-	ctx.terrain_system = new game::system::terrain(*ctx.entity_registry);
+	ctx.terrain_system = new ::terrain_system(*ctx.entity_registry);
 	ctx.terrain_system->set_patch_side_length(31.0f);
 	ctx.terrain_system->set_patch_subdivisions(31);
 	ctx.terrain_system->set_scene_collection(ctx.surface_scene);
 	
-	// Setup vegetation system
-	//ctx.vegetation_system = new game::system::vegetation(*ctx.entity_registry);
-	//ctx.vegetation_system->set_terrain_patch_size(TERRAIN_PATCH_SIZE);
-	//ctx.vegetation_system->set_vegetation_patch_resolution(VEGETATION_PATCH_RESOLUTION);
-	//ctx.vegetation_system->set_vegetation_density(1.0f);
-	//ctx.vegetation_system->set_vegetation_model(ctx.resource_manager->load<model>("grass-tuft.mdl"));
-	//ctx.vegetation_system->set_scene(ctx.surface_scene);
-	
 	// Setup camera system
-	ctx.camera_system = new game::system::camera(*ctx.entity_registry);
+	ctx.camera_system = new ::camera_system(*ctx.entity_registry);
 	ctx.camera_system->set_viewport(viewport);
 	
 	// Setup subterrain system
-	ctx.subterrain_system = new game::system::subterrain(*ctx.entity_registry, ctx.resource_manager);
+	ctx.subterrain_system = new ::subterrain_system(*ctx.entity_registry, ctx.resource_manager);
 	ctx.subterrain_system->set_scene(ctx.underground_scene);
 	
 	// Setup collision system
-	ctx.collision_system = new game::system::collision(*ctx.entity_registry);
+	ctx.collision_system = new ::collision_system(*ctx.entity_registry);
 	
 	// Setup behavior system
-	ctx.behavior_system = new game::system::behavior(*ctx.entity_registry);
+	ctx.behavior_system = new ::behavior_system(*ctx.entity_registry);
 	
 	// Setup locomotion system
-	ctx.locomotion_system = new game::system::locomotion(*ctx.entity_registry);
+	ctx.locomotion_system = new ::locomotion_system(*ctx.entity_registry);
 	
 	// Setup steering system
-	ctx.steering_system = new game::system::steering(*ctx.entity_registry);
+	ctx.steering_system = new ::steering_system(*ctx.entity_registry);
 	
 	// Setup spring system
-	ctx.spring_system = new game::system::spring(*ctx.entity_registry);
+	ctx.spring_system = new ::spring_system(*ctx.entity_registry);
 	
 	// Setup spatial system
-	ctx.spatial_system = new game::system::spatial(*ctx.entity_registry);
+	ctx.spatial_system = new ::spatial_system(*ctx.entity_registry);
 	
 	// Setup constraint system
-	ctx.constraint_system = new game::system::constraint(*ctx.entity_registry);
+	ctx.constraint_system = new ::constraint_system(*ctx.entity_registry);
 	
 	// Setup orbit system
-	ctx.orbit_system = new game::system::orbit(*ctx.entity_registry);
+	ctx.orbit_system = new ::orbit_system(*ctx.entity_registry);
 	
 	// Setup blackbody system
-	ctx.blackbody_system = new game::system::blackbody(*ctx.entity_registry);
+	ctx.blackbody_system = new ::blackbody_system(*ctx.entity_registry);
 	ctx.blackbody_system->set_illuminant(color::illuminant::deg2::d55<double>);
 	
 	// RGB wavelengths for atmospheric scatteering
 	ctx.rgb_wavelengths = {680, 550, 440};
 	
 	// Setup atmosphere system
-	ctx.atmosphere_system = new game::system::atmosphere(*ctx.entity_registry);
+	ctx.atmosphere_system = new ::atmosphere_system(*ctx.entity_registry);
 	ctx.atmosphere_system->set_rgb_wavelengths(ctx.rgb_wavelengths * 1e-9);
 	ctx.atmosphere_system->set_sky_pass(ctx.sky_pass);
 	
 	// Setup astronomy system
-	ctx.astronomy_system = new game::system::astronomy(*ctx.entity_registry);
+	ctx.astronomy_system = new ::astronomy_system(*ctx.entity_registry);
 	ctx.astronomy_system->set_transmittance_samples(16);
 	ctx.astronomy_system->set_sky_pass(ctx.sky_pass);
 	
 	// Setup render system
-	ctx.render_system = new game::system::render(*ctx.entity_registry);
+	ctx.render_system = new ::render_system(*ctx.entity_registry);
 	//ctx.render_system->add_layer(ctx.underground_scene);
 	ctx.render_system->add_layer(ctx.surface_scene);
 	ctx.render_system->add_layer(ctx.ui_scene);
@@ -1135,6 +1125,13 @@ void boot::setup_controls()
 		// ctx.resource_manager->unload("gamecontrollerdb.txt");
 	// }
 	
+	// Pass input event queue to action maps
+	event::queue* input_event_queue = &ctx.input_manager->get_event_queue();
+	ctx.window_action_map.set_event_queue(input_event_queue);
+	ctx.menu_action_map.set_event_queue(input_event_queue);
+	ctx.movement_action_map.set_event_queue(input_event_queue);
+	ctx.nuptial_flight_action_map.set_event_queue(input_event_queue);
+	
 	// Default control profile settings
 	ctx.control_profile_filename = "controls.cfg";
 	ctx.control_profile = nullptr;
@@ -1143,17 +1140,17 @@ void boot::setup_controls()
 	if (read_or_write_setting(ctx, "control_profile"_fnv1a32, ctx.control_profile_filename))
 	{
 		// Load control profile
-		//ctx.control_profile = ctx.resource_manager->load<game::control_profile>(ctx.controls_path / ctx.control_profile_filename);
-		ctx.control_profile = ctx.resource_manager->load<game::control_profile>(ctx.control_profile_filename);
+		//ctx.control_profile = ctx.resource_manager->load<::control_profile>(ctx.controls_path / ctx.control_profile_filename);
+		ctx.control_profile = ctx.resource_manager->load<::control_profile>(ctx.control_profile_filename);
 	}
 	
 	if (!ctx.control_profile)
 	{
 		// Allocate control profile
-		ctx.control_profile = new game::control_profile();
+		ctx.control_profile = new ::control_profile();
 		
 		// Reset control profile to default settings.
-		game::reset_control_profile(*ctx.control_profile);
+		::reset_control_profile(*ctx.control_profile);
 		
 		// Save control profile
 		ctx.resource_manager->set_write_dir(ctx.controls_path);
@@ -1161,7 +1158,7 @@ void boot::setup_controls()
 	}
 	
 	// Apply control profile
-	game::apply_control_profile(ctx, *ctx.control_profile);
+	::apply_control_profile(ctx, *ctx.control_profile);
 	
 	// Setup action callbacks
 	setup_window_controls(ctx);
@@ -1194,7 +1191,7 @@ void boot::setup_ui()
 	debug::log::trace("Loading fonts...");
 	try
 	{
-		game::load_fonts(ctx);
+		::load_fonts(ctx);
 		debug::log::trace("Loaded fonts");
 	}
 	catch (...)
@@ -1211,7 +1208,7 @@ void boot::setup_ui()
 			const float viewport_aspect_ratio = static_cast<float>(viewport_size.x()) / static_cast<float>(viewport_size.y());
 			
 			// Resize framebuffers
-			game::graphics::change_render_resolution(ctx, ctx.render_scale);
+			::graphics::change_render_resolution(ctx, ctx.render_scale);
 			
 			// Update camera projection matrix
 			ctx.surface_camera->set_perspective
@@ -1233,12 +1230,16 @@ void boot::setup_ui()
 				ctx.ui_camera->get_clip_far()
 			);
 			
+			// Resize menu BG billboard
+			ctx.menu_bg_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
+			ctx.menu_bg_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
+			
 			// Re-align debug text
 			ctx.frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - ctx.debug_font.get_font_metrics().size), 99.0f});
 			ctx.frame_time_text->update_tweens();
 			
 			// Re-align menu text
-			game::menu::align_text(ctx);
+			::menu::align_text(ctx);
 		}
 	);
 }
@@ -1309,9 +1310,8 @@ void boot::setup_loop()
 			ctx.timeline->advance(dt);
 			
 			// Update entity systems
-			ctx.terrain_system->update(t, dt);
-			//ctx.vegetation_system->update(t, dt);
-			ctx.subterrain_system->update(t, dt);
+			//ctx.terrain_system->update(t, dt);
+			//ctx.subterrain_system->update(t, dt);
 			ctx.collision_system->update(t, dt);
 			ctx.behavior_system->update(t, dt);
 			ctx.steering_system->update(t, dt);
@@ -1382,4 +1382,3 @@ void boot::shutdown_audio()
 }
 
 } // namespace state
-} // namespace game

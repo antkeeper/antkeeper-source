@@ -22,10 +22,9 @@
 
 #include "game/ant/caste.hpp"
 #include "game/ant/phenome.hpp"
-#include "render/model.hpp"
+#include <engine/render/model.hpp>
 #include <unordered_map>
 
-namespace game {
 namespace ant {
 
 struct species
@@ -38,6 +37,5 @@ struct species
 };
 
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_SPECIES_HPP

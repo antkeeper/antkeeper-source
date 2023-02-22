@@ -20,7 +20,6 @@
 #ifndef ANTKEEPER_GAME_ANT_SUBCASTE_HPP
 #define ANTKEEPER_GAME_ANT_SUBCASTE_HPP
 
-namespace game {
 namespace ant {
 
 /**
@@ -54,6 +53,5 @@ enum class subcaste
 };
 
 } // namespace ant
-} // namespace game
 
 #endif // ANTKEEPER_GAME_ANT_SUBCASTE_HPP
