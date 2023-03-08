@@ -58,14 +58,24 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	// Pack glyph bitmaps into the font bitmap
 	font.pack();
 	
-	// Create font texture from bitmap
-	std::shared_ptr<gl::texture_2d> font_texture = std::make_shared<gl::texture_2d>(font_bitmap.width(), font_bitmap.height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.data());
-	font_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-	font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-	
 	// Create font material
 	material.set_blend_mode(render::material_blend_mode::translucent);
-	material.set_variable("font_bitmap", std::make_shared<render::material_texture_2d>(1, font_texture));
+	if (auto var = material.get_variable("font_bitmap"))
+	{
+		// Update font texture
+		auto texture = std::static_pointer_cast<render::material_texture_2d>(var)->get();
+		texture->resize(font_bitmap.width(), font_bitmap.height(), font_bitmap.data());
+	}
+	else
+	{
+		// Create font texture from bitmap
+		std::shared_ptr<gl::texture_2d> font_texture = std::make_shared<gl::texture_2d>(font_bitmap.width(), font_bitmap.height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.data());
+		font_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+		font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
+		
+		// Create font bitmap variable
+		material.set_variable("font_bitmap", std::make_shared<render::material_texture_2d>(1, font_texture));
+	}
 	material.set_shader_template(shader_template);
 }
 
