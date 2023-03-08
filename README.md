@@ -1,6 +1,7 @@
 # Antkeeper Source
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/ec1d9f614fdf4d5b8effa6b7b72b3d5e)](https://www.codacy.com/gh/antkeeper/antkeeper-source/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=antkeeper/antkeeper-source&amp;utm_campaign=Badge_Grade)
+[![TODOs](https://badgen.net/https/api.tickgit.com/badgen/github.com/antkeeper/antkeeper-source)](https://www.tickgit.com/browse?repo=github.com/antkeeper/antkeeper-source)
 [![Documentation](https://img.shields.io/badge/docs-doxygen-blue)](https://docs.antkeeper.com/latest/index)
 [![Discord](https://img.shields.io/discord/547138509610156036?logo=discord)](https://discord.gg/ptwHV4T)
 
