@@ -28,7 +28,7 @@
 class options_menu_state: public game_state
 {
 public:
-	options_menu_state(::game& ctx);
+	explicit options_menu_state(::game& ctx);
 	virtual ~options_menu_state();
 	
 private:

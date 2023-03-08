@@ -30,7 +30,7 @@
 class language_menu_state: public game_state
 {
 public:
-	language_menu_state(::game& ctx);
+	explicit language_menu_state(::game& ctx);
 	virtual ~language_menu_state();
 	
 private:

@@ -27,7 +27,7 @@
 class pause_menu_state: public game_state
 {
 public:
-	pause_menu_state(::game& ctx);
+	explicit pause_menu_state(::game& ctx);
 	virtual ~pause_menu_state();
 	
 private:

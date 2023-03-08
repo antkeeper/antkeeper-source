@@ -42,7 +42,7 @@
 class terrain_system: public updatable_system
 {
 public:
-	terrain_system(entity::registry& registry);
+	explicit terrain_system(entity::registry& registry);
 	~terrain_system();
 	
 	virtual void update(double t, double dt);

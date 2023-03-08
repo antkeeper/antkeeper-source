@@ -31,7 +31,7 @@
 class splash_state: public game_state
 {
 public:
-	splash_state(::game& ctx);
+	explicit splash_state(::game& ctx);
 	virtual ~splash_state();
 	
 private:

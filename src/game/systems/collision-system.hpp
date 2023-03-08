@@ -32,7 +32,7 @@
 class collision_system: public updatable_system
 {
 public:
-	collision_system(entity::registry& registry);
+	explicit collision_system(entity::registry& registry);
 	virtual void update(double t, double dt);
 	
 	/**

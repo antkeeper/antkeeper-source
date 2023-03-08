@@ -58,7 +58,7 @@ struct plane
 	 *
 	 * @param coefficients Vector containing the plane coefficients, A, B, C and D, as x, y, z, and w, respectively.
 	 */
-	plane(const math::vector<T, 4>& coefficients);
+	explicit plane(const math::vector<T, 4>& coefficients);
 	
 	/// Creates an uninitialized plane.
 	plane() = default;

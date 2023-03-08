@@ -34,7 +34,7 @@ class atmosphere_system:
 	public updatable_system
 {
 public:
-	atmosphere_system(entity::registry& registry);
+	explicit atmosphere_system(entity::registry& registry);
 	~atmosphere_system();
 	
 	virtual void update(double t, double dt);

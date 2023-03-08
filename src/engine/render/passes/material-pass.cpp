@@ -75,7 +75,7 @@ void material_pass::render(const render::context& ctx, render::queue& queue)
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
-	const gl::shader_program* active_shader_program = nullptr;
+	//const gl::shader_program* active_shader_program = nullptr;
 	const render::material* active_material = nullptr;
 	std::size_t active_material_hash = 0;
 	bool active_two_sided = false;

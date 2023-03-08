@@ -27,7 +27,7 @@ class metamorphosis_system:
 	public updatable_system
 {
 public:
-	metamorphosis_system(entity::registry& registry);
+	explicit metamorphosis_system(entity::registry& registry);
 	virtual void update(double t, double dt);
 	
 	/**

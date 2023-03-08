@@ -37,7 +37,7 @@ public:
 	 *
 	 * @throw serialize_error File open error.
 	 */
-	physfs_serialize_context(const std::filesystem::path& path) noexcept(false);
+	explicit physfs_serialize_context(const std::filesystem::path& path) noexcept(false);
 	
 	/**
 	 * Constructs a PhysicsFS serialize context.

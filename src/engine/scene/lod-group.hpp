@@ -39,7 +39,7 @@ public:
 	 *
 	 * @param level_count Number of detail levels in the group.
 	 */
-	lod_group(std::size_t level_count);
+	explicit lod_group(std::size_t level_count);
 	
 	/// Creates a LOD group with one level of detail.
 	lod_group();

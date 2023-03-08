@@ -321,7 +321,7 @@ void create_stars(::game& ctx)
 	color_attribute.stride = star_vertex_stride;
 	color_attribute.type = gl::vertex_attribute_type::float_32;
 	color_attribute.components = 4;
-	attribute_offset += color_attribute.components * sizeof(float);
+	//attribute_offset += color_attribute.components * sizeof(float);
 	
 	// Bind vertex attributes to VAO
 	vao->bind(render::vertex_attribute::position, position_attribute);

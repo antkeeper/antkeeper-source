@@ -35,7 +35,7 @@
 class render_system: public updatable_system
 {
 public:
-	render_system(entity::registry& registry);
+	explicit render_system(entity::registry& registry);
 	~render_system();
 	
 	virtual void update(double t, double dt);

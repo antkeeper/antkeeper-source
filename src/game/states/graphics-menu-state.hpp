@@ -27,7 +27,7 @@
 class graphics_menu_state: public game_state
 {
 public:
-	graphics_menu_state(::game& ctx);
+	explicit graphics_menu_state(::game& ctx);
 	virtual ~graphics_menu_state();
 	
 private:

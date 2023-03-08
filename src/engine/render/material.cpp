@@ -239,9 +239,6 @@ static bool load_vector_property(render::material& material, hash::fnv1a32_t key
 	// If JSON element is an array of arrays
 	if (json.is_array() && json.begin().value().is_array())
 	{
-		// Determine size of the array
-		std::size_t array_size = json.size();
-		
 		// Create variable
 		auto variable = std::make_shared<render::material_variable<T>>(json.size());
 		

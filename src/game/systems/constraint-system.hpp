@@ -44,7 +44,7 @@ class constraint_system:
 	public updatable_system
 {
 public:
-	constraint_system(entity::registry& registry);
+	explicit constraint_system(entity::registry& registry);
 	~constraint_system();
 	
 	virtual void update(double t, double dt);

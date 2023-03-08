@@ -27,7 +27,7 @@ class steering_system:
 	public updatable_system
 {
 public:
-	steering_system(entity::registry& registry);
+	explicit steering_system(entity::registry& registry);
 	virtual void update(double t, double dt);
 };
 

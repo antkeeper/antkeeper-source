@@ -34,7 +34,7 @@ class orbit_system:
 	public updatable_system
 {
 public:
-	orbit_system(entity::registry& registry);
+	explicit orbit_system(entity::registry& registry);
 	~orbit_system();
 	
 	/**

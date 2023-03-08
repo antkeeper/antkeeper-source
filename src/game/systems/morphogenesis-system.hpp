@@ -29,7 +29,7 @@ class morphogenesis_system:
 	public updatable_system
 {
 public:
-	morphogenesis_system(entity::registry& registry);
+	explicit morphogenesis_system(entity::registry& registry);
 	virtual void update(double t, double dt);
 	
 private:

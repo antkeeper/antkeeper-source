@@ -29,7 +29,7 @@ class spring_system:
 	public updatable_system
 {
 public:
-	spring_system(entity::registry& registry);
+	explicit spring_system(entity::registry& registry);
 	~spring_system();
 	
 	virtual void update(double t, double dt);

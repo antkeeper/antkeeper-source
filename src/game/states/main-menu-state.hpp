@@ -31,7 +31,7 @@
 class main_menu_state: public game_state
 {
 public:
-	main_menu_state(::game& ctx, bool fade_in);
+	explicit main_menu_state(::game& ctx, bool fade_in);
 	virtual ~main_menu_state();
 	
 private:

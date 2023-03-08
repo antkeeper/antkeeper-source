@@ -33,7 +33,7 @@ public:
 	 *
 	 * @param ctx Reference to the game context on which this state will operate.
 	 */
-	game_state(::game& ctx);
+	explicit game_state(::game& ctx);
 	
 	/**
 	 * Destructs a game state.

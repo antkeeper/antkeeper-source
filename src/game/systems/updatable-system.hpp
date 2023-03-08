@@ -34,7 +34,7 @@ public:
 	 *
 	 * @param registry Reference to the registry on which the system will operate.
 	 */
-	updatable_system(entity::registry& registry);
+	explicit updatable_system(entity::registry& registry);
 
 	/**
 	 * Perform's a system's update() function.

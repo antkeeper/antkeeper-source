@@ -124,7 +124,7 @@ struct fnv1a32_t
 	 * @param value 32-bit FNV-1a hash value.
 	 */
 	/// @{
-	inline constexpr fnv1a32_t(value_type value) noexcept:
+	inline constexpr explicit(false) fnv1a32_t(value_type value) noexcept:
 		value{value}
 	{}
 	fnv1a32_t() = default;
@@ -136,19 +136,19 @@ struct fnv1a32_t
 	 * @param string String to hash.
 	 */
 	/// @{
-	constexpr fnv1a32_t(const char* string) noexcept:
+	constexpr explicit(false) fnv1a32_t(const char* string) noexcept:
 		value{fnv1a32<char>({string, std::string_view(string).length()})}
 	{}
-	constexpr fnv1a32_t(const wchar_t* string) noexcept:
+	constexpr explicit(false) fnv1a32_t(const wchar_t* string) noexcept:
 		value{fnv1a32<wchar_t>({string, std::wstring_view(string).length()})}
 	{}
-	constexpr fnv1a32_t(const char8_t* string) noexcept:
+	constexpr explicit(false) fnv1a32_t(const char8_t* string) noexcept:
 		value{fnv1a32<char8_t>({string, std::u8string_view(string).length()})}
 	{}
-	constexpr fnv1a32_t(const char16_t* string) noexcept:
+	constexpr explicit(false) fnv1a32_t(const char16_t* string) noexcept:
 		value{fnv1a32<char16_t>({string, std::u16string_view(string).length()})}
 	{}
-	constexpr fnv1a32_t(const char32_t* string) noexcept:
+	constexpr explicit(false) fnv1a32_t(const char32_t* string) noexcept:
 		value{fnv1a32<char32_t>({string, std::u32string_view(string).length()})}
 	{}
 	/// @}
@@ -180,7 +180,7 @@ struct fnv1a64_t
 	 * Constructs a 64-bit FNV-1a hash value.
 	 */
 	/// @{
-	inline constexpr fnv1a64_t(value_type value) noexcept:
+	inline constexpr explicit(false) fnv1a64_t(value_type value) noexcept:
 		value{value}
 	{}
 	fnv1a64_t() = default;
@@ -192,19 +192,19 @@ struct fnv1a64_t
 	 * @param string String to hash.
 	 */
 	/// @{
-	constexpr fnv1a64_t(const char* string) noexcept:
+	constexpr explicit(false) fnv1a64_t(const char* string) noexcept:
 		value{fnv1a64<char>({string, std::string_view(string).length()})}
 	{}
-	constexpr fnv1a64_t(const wchar_t* string) noexcept:
+	constexpr explicit(false) fnv1a64_t(const wchar_t* string) noexcept:
 		value{fnv1a64<wchar_t>({string, std::wstring_view(string).length()})}
 	{}
-	constexpr fnv1a64_t(const char8_t* string) noexcept:
+	constexpr explicit(false) fnv1a64_t(const char8_t* string) noexcept:
 		value{fnv1a64<char8_t>({string, std::u8string_view(string).length()})}
 	{}
-	constexpr fnv1a64_t(const char16_t* string) noexcept:
+	constexpr explicit(false) fnv1a64_t(const char16_t* string) noexcept:
 		value{fnv1a64<char16_t>({string, std::u16string_view(string).length()})}
 	{}
-	constexpr fnv1a64_t(const char32_t* string) noexcept:
+	constexpr explicit(false) fnv1a64_t(const char32_t* string) noexcept:
 		value{fnv1a64<char32_t>({string, std::u32string_view(string).length()})}
 	{}
 	/// @}

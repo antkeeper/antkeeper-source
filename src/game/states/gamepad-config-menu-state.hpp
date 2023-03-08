@@ -33,7 +33,7 @@
 class gamepad_config_menu_state: public game_state
 {
 public:
-	gamepad_config_menu_state(::game& ctx);
+	explicit gamepad_config_menu_state(::game& ctx);
 	virtual ~gamepad_config_menu_state();
 	
 private:

@@ -37,7 +37,7 @@ public:
 	 *
 	 * @throw deserialize_error File open error.
 	 */
-	physfs_deserialize_context(const std::filesystem::path& path) noexcept(false);
+	explicit physfs_deserialize_context(const std::filesystem::path& path) noexcept(false);
 	
 	/**
 	 * Constructs a PhysicsFS deserialize context.

@@ -31,7 +31,7 @@
 class nuptial_flight_state: public game_state
 {
 public:
-	nuptial_flight_state(::game& ctx);
+	explicit nuptial_flight_state(::game& ctx);
 	virtual ~nuptial_flight_state();
 	
 private:

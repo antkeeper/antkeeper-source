@@ -32,7 +32,7 @@
 class collection_menu_state: public game_state
 {
 public:
-	collection_menu_state(::game& ctx);
+	explicit collection_menu_state(::game& ctx);
 	virtual ~collection_menu_state();
 	
 private:

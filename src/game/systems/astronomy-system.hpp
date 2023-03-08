@@ -41,7 +41,7 @@ class astronomy_system:
 	public updatable_system
 {
 public:
-	astronomy_system(entity::registry& registry);
+	explicit astronomy_system(entity::registry& registry);
 	~astronomy_system();
 	
 	/**

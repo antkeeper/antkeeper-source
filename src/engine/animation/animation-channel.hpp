@@ -41,7 +41,7 @@ public:
 	 *
 	 * @param id ID of the channel.
 	 */
-	animation_channel(int id);
+	explicit animation_channel(int id);
 	
 	/// Creates an animation channel.
 	animation_channel();

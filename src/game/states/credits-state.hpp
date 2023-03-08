@@ -30,7 +30,7 @@
 class credits_state: public game_state
 {
 public:
-	credits_state(::game& ctx);
+	explicit credits_state(::game& ctx);
 	virtual ~credits_state();
 	
 private:

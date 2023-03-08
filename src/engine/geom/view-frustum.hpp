@@ -43,7 +43,7 @@ public:
 	 *
 	 * @param view_projection View-projection matrix.
 	 */
-	view_frustum(const matrix_type& view_projection);
+	explicit view_frustum(const matrix_type& view_projection);
 	
 	/// Creates an uninitialized view frustum.
 	view_frustum();

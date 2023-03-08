@@ -35,7 +35,7 @@ class blackbody_system:
 	public updatable_system
 {
 public:
-	blackbody_system(entity::registry& registry);
+	explicit blackbody_system(entity::registry& registry);
 	~blackbody_system();
 	
 	virtual void update(double t, double dt);

@@ -94,7 +94,6 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	const auto vertex_data = std::as_bytes(std::span{vertex_positions});
 	std::size_t vertex_size = 2;
 	std::size_t vertex_stride = sizeof(float) * vertex_size;
-	std::size_t vertex_count = 6;
 	
 	quad_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, vertex_data.size(), vertex_data);
 	quad_vao = std::make_unique<gl::vertex_array>();

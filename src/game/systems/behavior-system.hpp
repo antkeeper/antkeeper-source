@@ -26,7 +26,7 @@ class behavior_system:
 	public updatable_system
 {
 public:
-	behavior_system(entity::registry& registry);
+	explicit behavior_system(entity::registry& registry);
 	virtual void update(double t, double dt);
 };
 

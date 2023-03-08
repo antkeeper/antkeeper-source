@@ -43,7 +43,7 @@ struct convex_hull: public bounding_volume<T>
 	 *
 	 * @param size Number of planes the convex hull should accommodate.
 	 */
-	convex_hull(std::size_t size);
+	explicit convex_hull(std::size_t size);
 	
 	/// Creates a convex hull.
 	convex_hull();

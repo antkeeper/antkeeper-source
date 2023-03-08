@@ -27,7 +27,7 @@
 class controls_menu_state: public game_state
 {
 public:
-	controls_menu_state(::game& ctx);
+	explicit controls_menu_state(::game& ctx);
 	virtual ~controls_menu_state();
 	
 private:

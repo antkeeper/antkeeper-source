@@ -76,7 +76,7 @@ public:
 	 * @param size Number of elements in the array, or `1` if the variable is not an array.
 	 * @param value Value with which to initialize the elements.
 	 */
-	inline material_variable(std::size_t size, const element_type& value = element_type()):
+	inline explicit material_variable(std::size_t size, const element_type& value = element_type()):
 		elements(size, value)
 	{}
 	
@@ -92,7 +92,7 @@ public:
 	 *
 	 * @param list List of element values.
 	 */
-	inline material_variable(std::initializer_list<element_type> list):
+	inline explicit material_variable(std::initializer_list<element_type> list):
 		elements(list)
 	{}
 	

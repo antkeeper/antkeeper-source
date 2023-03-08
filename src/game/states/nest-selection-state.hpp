@@ -28,7 +28,7 @@
 class nest_selection_state: public game_state
 {
 public:
-	nest_selection_state(::game& ctx);
+	explicit nest_selection_state(::game& ctx);
 	virtual ~nest_selection_state();
 	
 private:

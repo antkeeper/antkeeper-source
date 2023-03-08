@@ -27,7 +27,7 @@
 class extras_menu_state: public game_state
 {
 public:
-	extras_menu_state(::game& ctx);
+	explicit extras_menu_state(::game& ctx);
 	virtual ~extras_menu_state();
 	
 private:

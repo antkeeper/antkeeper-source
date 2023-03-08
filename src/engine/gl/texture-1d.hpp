@@ -31,7 +31,7 @@ class texture_1d: public texture
 {
 public:
 	/// @copydoc texture::texture(std::uint16_t, gl::pixel_type, gl::pixel_format, gl::color_space, const std::byte*)
-	texture_1d(std::uint16_t width, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
+	explicit texture_1d(std::uint16_t width, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
 	
 	/// Destructs a 1D texture.
 	virtual ~texture_1d();

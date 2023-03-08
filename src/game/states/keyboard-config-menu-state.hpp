@@ -32,7 +32,7 @@
 class keyboard_config_menu_state: public game_state
 {
 public:
-	keyboard_config_menu_state(::game& ctx);
+	explicit keyboard_config_menu_state(::game& ctx);
 	virtual ~keyboard_config_menu_state();
 	
 private:

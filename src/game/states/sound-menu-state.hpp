@@ -27,7 +27,7 @@
 class sound_menu_state: public game_state
 {
 public:
-	sound_menu_state(::game& ctx);
+	explicit sound_menu_state(::game& ctx);
 	virtual ~sound_menu_state();
 	
 private:

@@ -27,7 +27,7 @@ class locomotion_system:
 	public updatable_system
 {
 public:
-	locomotion_system(entity::registry& registry);
+	explicit locomotion_system(entity::registry& registry);
 	virtual void update(double t, double dt);
 };
 

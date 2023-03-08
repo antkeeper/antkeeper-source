@@ -43,7 +43,7 @@ public:
 	 *
 	 * @param metrics Metrics describing the font.
 	 */
-	bitmap_font(const font_metrics& metrics);
+	explicit bitmap_font(const font_metrics& metrics);
 	
 	/// Creates an empty bitmap font.
 	bitmap_font();
