@@ -36,14 +36,6 @@ class mouse: public device
 {
 public:
 	/**
-	 * Constructs a mouse input device.
-	 */
-	mouse() = default;
-	
-	/// Destructs a mouse input device.
-	virtual ~mouse() = default;
-	
-	/**
 	 * Simulates a mouse button press.
 	 *
 	 * @param button Button to press.
@@ -103,13 +95,13 @@ public:
 	}
 	
 	/// Returns device_type::mouse.
-	[[nodiscard]] inline virtual constexpr device_type get_device_type() const noexcept
+	[[nodiscard]] inline constexpr device_type get_device_type() const noexcept override
 	{
 		return device_type::mouse;
 	}
 	
 private:
-	math::vector<std::int32_t, 2> position;
+	math::vector<std::int32_t, 2> position{0, 0};
 	
 	::event::publisher<mouse_button_pressed_event> button_pressed_publisher;
 	::event::publisher<mouse_button_released_event> button_released_publisher;

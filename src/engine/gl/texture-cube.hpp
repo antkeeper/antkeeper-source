@@ -41,8 +41,8 @@ public:
 	/// Returns the linear size of a cube face, in pixels.
 	int get_face_size() const;
 	
-	unsigned int gl_texture_id;
-	int face_size;
+	unsigned int gl_texture_id{0};
+	int face_size{0};
 };
 
 inline int texture_cube::get_face_size() const

@@ -75,11 +75,11 @@ public:
 private:
 	friend class rasterizer;
 	
-	unsigned int gl_framebuffer_id;
-	std::array<int, 2> dimensions;
-	texture_2d* color_attachment;
-	texture_2d* depth_attachment;
-	texture_2d* stencil_attachment;
+	unsigned int gl_framebuffer_id{0};
+	std::array<int, 2> dimensions{0, 0};
+	texture_2d* color_attachment{nullptr};
+	texture_2d* depth_attachment{nullptr};
+	texture_2d* stencil_attachment{nullptr};
 };
 
 inline const std::array<int, 2>& framebuffer::get_dimensions() const

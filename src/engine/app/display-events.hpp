@@ -32,7 +32,7 @@ class display;
 struct display_connected_event
 {
 	/// Pointer to the display that has been connected.
-	const display* display;
+	const display* display{nullptr};
 };
 
 /**
@@ -41,7 +41,7 @@ struct display_connected_event
 struct display_disconnected_event
 {
 	/// Pointer to the display that has been disconnected.
-	const display* display;
+	const display* display{nullptr};
 };
 
 /**
@@ -50,10 +50,10 @@ struct display_disconnected_event
 struct display_orientation_changed_event
 {
 	/// Pointer to the display that has had it's orientation changed.
-	const display* display;
+	const display* display{nullptr};
 	
 	/// Orientation of the display.
-	display_orientation orientation;
+	display_orientation orientation{0};
 };
 
 } // namespace app

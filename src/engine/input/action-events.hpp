@@ -30,7 +30,7 @@ class action;
 struct action_activated_event
 {
 	/// Control that was activated.
-	action* action;
+	action* action{nullptr};
 };
 
 /**
@@ -39,10 +39,10 @@ struct action_activated_event
 struct action_active_event
 {
 	/// Active action.
-	action* action;
+	action* action{nullptr};
 	
 	/// Control input value.
-	float input_value;
+	float input_value{0.0f};
 };
 
 /**
@@ -51,7 +51,7 @@ struct action_active_event
 struct action_deactivated_event
 {
 	/// Control that was deactivated.
-	action* action;
+	action* action{nullptr};
 };
 
 } // namespace input

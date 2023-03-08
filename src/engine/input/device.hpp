@@ -35,12 +35,6 @@ namespace input {
 class device
 {
 public:
-	/// Constructs an input device.
-	device();
-	
-	/// Destructs an input device.
-	virtual ~device() = default;
-	
 	/**
 	 * Simulates the device being connected.
 	 */
@@ -89,7 +83,7 @@ public:
 	
 private:
 	::uuid uuid;
-	bool connected;
+	bool connected{false};
 	
 	::event::publisher<device_connected_event> connected_publisher;
 	::event::publisher<device_disconnected_event> disconnected_publisher;

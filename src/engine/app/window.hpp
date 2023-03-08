@@ -37,16 +37,6 @@ class window
 {
 public:
 	/**
-	 * Constructs a window.
-	 */
-	window() = default;
-	
-	/**
-	 * Destructs a window.
-	 */
-	virtual ~window() = default;
-	
-	/**
 	 * Changes the title of the window.
 	 *
 	 * @param title Window title.
@@ -227,16 +217,16 @@ protected:
 	friend class window_manager;
 	
 	std::string title;
-	math::vector<int, 2> windowed_position;
-	math::vector<int, 2> position;
-	math::vector<int, 2> windowed_size;
-	math::vector<int, 2> size;
-	math::vector<int, 2> minimum_size;
-	math::vector<int, 2> maximum_size;
-	math::vector<int, 2> viewport_size;
-	bool maximized;
-	bool fullscreen;
-	bool v_sync;
+	math::vector<int, 2> windowed_position{0, 0};
+	math::vector<int, 2> position{0, 0};
+	math::vector<int, 2> windowed_size{0, 0};
+	math::vector<int, 2> size{0, 0};
+	math::vector<int, 2> minimum_size{0, 0};
+	math::vector<int, 2> maximum_size{0, 0};
+	math::vector<int, 2> viewport_size{0, 0};
+	bool maximized{false};
+	bool fullscreen{false};
+	bool v_sync{false};
 	
 	event::publisher<window_closed_event> closed_publisher;
 	event::publisher<window_focus_changed_event> focus_changed_publisher;

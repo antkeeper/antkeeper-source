@@ -1,3 +1,5 @@
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ec1d9f614fdf4d5b8effa6b7b72b3d5e)](https://www.codacy.com/gh/antkeeper/antkeeper-source/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=antkeeper/antkeeper-source&amp;utm_campaign=Badge_Grade)
+
 # Antkeeper Source
 
 Antkeeper is a 3D ant colony simulation game currently in development for Windows, Mac, and Linux. This repository contains all of the source code to Antkeeper.

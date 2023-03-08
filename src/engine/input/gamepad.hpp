@@ -25,11 +25,12 @@
 #include <engine/input/gamepad-axis.hpp>
 #include <engine/input/gamepad-button.hpp>
 #include <engine/event/publisher.hpp>
+#include <cstdint>
 
 namespace input {
 
 /// Gamepad axis activation response curves.
-enum class gamepad_response_curve
+enum class gamepad_response_curve: std::uint8_t
 {
 	/// Linear response curve.
 	linear,
@@ -51,9 +52,6 @@ public:
 	 * Constructs a gamepad input device.
 	 */
 	gamepad();
-	
-	/// Destructs a gamepad input device.
-	virtual ~gamepad() = default;
 	
 	/**
 	 * Sets the activation threshold for a gamepad axis.
@@ -141,7 +139,7 @@ public:
 	}
 	
 	/// Returns device_type::gamepad.
-	[[nodiscard]] inline virtual constexpr device_type get_device_type() const noexcept
+	[[nodiscard]] inline constexpr device_type get_device_type() const noexcept override
 	{
 		return device_type::gamepad;
 	}
@@ -155,10 +153,10 @@ private:
 	float axis_activation_min[6];
 	float axis_activation_max[6];
 	gamepad_response_curve axis_response_curves[6];
-	bool left_deadzone_cross;
-	bool right_deadzone_cross;
-	float left_deadzone_roundness;
-	float right_deadzone_roundness;
+	bool left_deadzone_cross{true};
+	bool right_deadzone_cross{true};
+	float left_deadzone_roundness{0.0f};
+	float right_deadzone_roundness{0.0f};
 	
 	::event::publisher<gamepad_button_pressed_event> button_pressed_publisher;
 	::event::publisher<gamepad_button_released_event> button_released_publisher;

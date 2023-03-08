@@ -129,9 +129,9 @@ public:
 
 private:
 	std::unique_ptr<framebuffer> default_framebuffer;
-	const framebuffer* bound_framebuffer;
-	const vertex_array* bound_vao;
-	const shader_program* bound_shader_program;
+	const framebuffer* bound_framebuffer{nullptr};
+	const vertex_array* bound_vao{nullptr};
+	const shader_program* bound_shader_program{nullptr};
 };
 
 } // namespace gl

@@ -26,38 +26,38 @@
 namespace input {
 
 gamepad_axis_mapping::gamepad_axis_mapping(input::gamepad* gamepad, gamepad_axis axis, bool direction):
-	gamepad(gamepad),
-	axis(axis),
-	direction(direction)
+	gamepad{gamepad},
+	axis{axis},
+	direction{direction}
 {}
 
 gamepad_button_mapping::gamepad_button_mapping(input::gamepad* gamepad, gamepad_button button):
-	gamepad(gamepad),
-	button(button)
+	gamepad{gamepad},
+	button{button}
 {}
 
 key_mapping::key_mapping(input::keyboard* keyboard, input::scancode scancode, std::uint16_t modifiers, bool repeat):
-	keyboard(keyboard),
-	scancode(scancode),
-	repeat(repeat),
-	modifiers(modifiers)
+	keyboard{keyboard},
+	scancode{scancode},
+	repeat{repeat},
+	modifiers{modifiers}
 {}
 
 mouse_button_mapping::mouse_button_mapping(input::mouse* mouse, mouse_button button):
-	mouse(mouse),
-	button(button)
+	mouse{mouse},
+	button{button}
 {}
 
 mouse_motion_mapping::mouse_motion_mapping(input::mouse* mouse, mouse_motion_axis axis, bool direction):
-	mouse(mouse),
-	axis(axis),
-	direction(direction)
+	mouse{mouse},
+	axis{axis},
+	direction{direction}
 {}
 
 mouse_scroll_mapping::mouse_scroll_mapping(input::mouse* mouse, mouse_scroll_axis axis, bool direction):
-	mouse(mouse),
-	axis(axis),
-	direction(direction)
+	mouse{mouse},
+	axis{axis},
+	direction{direction}
 {}
 
 } // namespace input

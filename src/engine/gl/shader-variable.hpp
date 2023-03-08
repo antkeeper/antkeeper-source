@@ -40,11 +40,6 @@ class shader_variable
 {
 public:
 	/**
-	 * Destructs a shader variable.
-	 */
-	virtual ~shader_variable() = default;
-	
-	/**
 	 * Returns the shader variable data type.
 	 */
 	[[nodiscard]] virtual constexpr shader_variable_type type() const noexcept = 0;
@@ -187,7 +182,7 @@ protected:
 	explicit shader_variable(std::size_t size) noexcept;
 	
 private:
-	const std::size_t m_size;
+	const std::size_t m_size{0};
 };
 
 } // namespace gl

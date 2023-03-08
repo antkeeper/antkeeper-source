@@ -99,7 +99,7 @@ private:
 	friend class shader_program;
 	
 	unsigned int gl_shader_id{0};
-	shader_stage m_stage;
+	shader_stage m_stage{0};
 	bool m_compiled{false};
 	std::string info_log;
 };

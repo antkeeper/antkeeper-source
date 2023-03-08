@@ -164,7 +164,7 @@ struct fnv1a32_t
 	}
 	
 	/// 32-bit FNV-1a hash value.
-	value_type value;
+	value_type value{0};
 };
 static_assert(sizeof(fnv1a32_t) == sizeof(std::uint32_t));
 
@@ -220,7 +220,7 @@ struct fnv1a64_t
 	}
 	
 	/// 64-bit FNV-1a hash value.
-	value_type value;
+	value_type value{0};
 };
 static_assert(sizeof(fnv1a64_t) == sizeof(std::uint64_t));
 

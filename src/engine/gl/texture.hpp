@@ -153,15 +153,15 @@ private:
 	friend class gl_shader_texture_3d;
 	friend class gl_shader_texture_cube;
 	
-	unsigned int gl_texture_target;
-	unsigned int gl_texture_id;
-	std::array<std::uint16_t, 3> dimensions;
-	gl::pixel_type pixel_type;
-	gl::pixel_format pixel_format;
-	gl::color_space color_space;
+	unsigned int gl_texture_target{0};
+	unsigned int gl_texture_id{0};
+	std::array<std::uint16_t, 3> dimensions{0, 0, 0};
+	gl::pixel_type pixel_type{0};
+	gl::pixel_format pixel_format{0};
+	gl::color_space color_space{0};
 	std::array<texture_wrapping, 3> wrapping;
 	std::tuple<texture_min_filter, texture_mag_filter> filters;
-	float max_anisotropy;
+	float max_anisotropy{0.0f};
 };
 
 inline const std::array<std::uint16_t, 3>& texture::get_dimensions() const

@@ -36,13 +36,13 @@ class mouse;
 struct mouse_moved_event
 {
 	/// Mouse that generated the event.
-	mouse* mouse;
+	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window.
-	math::vector<std::int32_t, 2> position;
+	math::vector<std::int32_t, 2> position{0, 0};
 	
 	/// Relative movement of the mouse, in pixels.
-	math::vector<std::int32_t, 2> difference;
+	math::vector<std::int32_t, 2> difference{0, 0};
 };
 
 /**
@@ -51,13 +51,13 @@ struct mouse_moved_event
 struct mouse_button_pressed_event
 {
 	/// Mouse that generated the event.
-	mouse* mouse;
+	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window, when the button was pressed.
-	math::vector<std::int32_t, 2> position;
+	math::vector<std::int32_t, 2> position{0, 0};
 	
 	/// Mouse button being pressed.
-	mouse_button button;
+	mouse_button button{0};
 };
 
 /**
@@ -66,13 +66,13 @@ struct mouse_button_pressed_event
 struct mouse_button_released_event
 {
 	/// Mouse that generated the event.
-	mouse* mouse;
+	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window, when the button was released.
-	math::vector<std::int32_t, 2> position;
+	math::vector<std::int32_t, 2> position{0, 0};
 	
 	/// Mouse button being released.
-	mouse_button button;
+	mouse_button button{0};
 };
 
 /**
@@ -81,13 +81,13 @@ struct mouse_button_released_event
 struct mouse_scrolled_event
 {
 	/// Mouse that generated the event.
-	mouse* mouse;
+	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window, when the mouse was scrolled.
-	math::vector<std::int32_t, 2> position;
+	math::vector<std::int32_t, 2> position{0, 0};
 	
 	/// Scroll velocity.
-	math::vector<float, 2> velocity;
+	math::vector<float, 2> velocity{0.0f, 0.0f};
 };
 
 } // namespace input

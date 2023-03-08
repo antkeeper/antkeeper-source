@@ -25,11 +25,7 @@
 
 namespace input {
 
-gamepad::gamepad():
-	left_deadzone_cross(true),
-	right_deadzone_cross(true),
-	left_deadzone_roundness(0.0f),
-	right_deadzone_roundness(0.0f)
+gamepad::gamepad()
 {
 	for (int i = 0; i < 6; ++i)
 	{

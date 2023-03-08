@@ -72,23 +72,20 @@ public:
 	gamepad_axis_mapping() = default;
 	/// @}
 	
-	/// Destructs a gamepad axis mapping.
-	virtual ~gamepad_axis_mapping() = default;
-	
 	/// Returns mapping_type::gamepad_axis.
-	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
 	{
 		return mapping_type::gamepad_axis;
 	}
 	
 	/// Pointer to the mapped gamepad, or `nullptr` if input from any gamepad is accepted.
-	input::gamepad* gamepad;
+	input::gamepad* gamepad{nullptr};
 	
 	/// Mapped gamepad axis.
-	gamepad_axis axis;
+	gamepad_axis axis{0};
 	
 	/// Sign bit of the mapped direction.
-	bool direction;
+	bool direction{false};
 };
 
 /**
@@ -108,20 +105,17 @@ public:
 	gamepad_button_mapping() = default;
 	/// @}
 	
-	/// Destructs a gamepad button mapping.
-	virtual ~gamepad_button_mapping() = default;
-	
 	/// Returns mapping_type::gamepad_button.
-	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
 	{
 		return mapping_type::gamepad_button;
 	}
 	
 	/// Pointer to the mapped gamepad, or `nullptr` if input from any gamepad is accepted.
-	input::gamepad* gamepad;
+	input::gamepad* gamepad{nullptr};
 	
 	/// Mapped gamepad button.
-	gamepad_button button;
+	gamepad_button button{0};
 };
 
 /**
@@ -143,26 +137,23 @@ public:
 	key_mapping() = default;
 	/// @}
 	
-	/// Destructs a keyboard key mapping.
-	virtual ~key_mapping() = default;
-	
 	/// Returns mapping_type::key.
-	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
 	{
 		return mapping_type::key;
 	}
 	
 	/// Pointer to the mapped keyboard, or `nullptr` if input from any keyboard is accepted.
-	input::keyboard* keyboard;
+	input::keyboard* keyboard{nullptr};
 	
 	/// Scancode of the mapped key.
-	scancode scancode;
+	scancode scancode{0};
 	
 	/// Modifier keys bitbask.
-	std::uint16_t modifiers;
+	std::uint16_t modifiers{0};
 	
 	/// `false` if the mapping ignores key repeats, `true` otherwise.
-	bool repeat;
+	bool repeat{false};
 };
 
 /**
@@ -182,20 +173,17 @@ public:
 	mouse_button_mapping() = default;
 	/// @}
 	
-	/// Destructs a mouse button mapping.
-	virtual ~mouse_button_mapping() = default;
-	
 	/// Returns mapping_type::mouse_button.
-	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
 	{
 		return mapping_type::mouse_button;
 	}
 	
 	/// Pointer to the mapped mouse, or `nullptr` if input from any mouse is accepted.
-	input::mouse* mouse;
+	input::mouse* mouse{nullptr};
 	
 	/// Mapped mouse button.
-	mouse_button button;
+	mouse_button button{0};
 };
 
 /**
@@ -216,23 +204,20 @@ public:
 	mouse_motion_mapping() = default;
 	/// @}
 	
-	/// Destructs a mouse motion mapping.
-	virtual ~mouse_motion_mapping() = default;
-	
 	/// Returns mapping_type::mouse_motion.
-	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
 	{
 		return mapping_type::mouse_motion;
 	}
 	
 	/// Pointer to the mapped mouse, or `nullptr` if input from any mouse is accepted.
-	input::mouse* mouse;
+	input::mouse* mouse{nullptr};
 	
 	/// Mapped mouse motion axis.
-	mouse_motion_axis axis;
+	mouse_motion_axis axis{0};
 	
 	/// Sign bit of the mapped direction.
-	bool direction;
+	bool direction{false};
 };
 
 /**
@@ -254,23 +239,20 @@ public:
 	mouse_scroll_mapping() = default;
 	/// @}
 	
-	/// Destructs a mouse scroll mapping.
-	virtual ~mouse_scroll_mapping() = default;
-	
 	/// Returns mapping_type::mouse_scroll.
-	[[nodiscard]] inline virtual constexpr mapping_type get_mapping_type() const noexcept
+	[[nodiscard]] inline constexpr mapping_type get_mapping_type() const noexcept override
 	{
 		return mapping_type::mouse_scroll;
 	}
 	
 	/// Pointer to the mapped mouse, or `nullptr` if input from any mouse is accepted.
-	input::mouse* mouse;
+	input::mouse* mouse{nullptr};
 	
 	/// Mapped mouse scroll axis.
-	mouse_scroll_axis axis;
+	mouse_scroll_axis axis{0};
 	
 	/// Sign bit of the mapped direction.
-	bool direction;
+	bool direction{false};
 };
 
 } // namespace input

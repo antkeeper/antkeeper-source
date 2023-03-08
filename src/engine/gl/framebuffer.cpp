@@ -31,21 +31,13 @@ static constexpr GLenum attachment_lut[] =
 };
 
 framebuffer::framebuffer(int width, int height):
-	gl_framebuffer_id(0),
-	dimensions({width, height}),
-	color_attachment(nullptr),
-	depth_attachment(nullptr),
-	stencil_attachment(nullptr)
+	dimensions{width, height}
 {
 	glGenFramebuffers(1, &gl_framebuffer_id);
 }
 
 framebuffer::framebuffer():
-	gl_framebuffer_id(0),
-	dimensions({0, 0}),
-	color_attachment(nullptr),
-	depth_attachment(nullptr),
-	stencil_attachment(nullptr)
+	framebuffer(0, 0)
 {}
 
 framebuffer::~framebuffer()

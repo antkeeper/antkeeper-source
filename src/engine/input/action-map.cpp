@@ -25,11 +25,6 @@
 
 namespace input {
 
-action_map::action_map():
-	event_queue(nullptr),
-	enabled(false)
-{}
-
 void action_map::enable()
 {
 	if (!enabled)

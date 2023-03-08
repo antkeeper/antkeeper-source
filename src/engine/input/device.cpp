@@ -21,10 +21,6 @@
 
 namespace input {
 
-device::device():
-	connected(true)
-{}
-
 void device::connect()
 {
 	connected = true;

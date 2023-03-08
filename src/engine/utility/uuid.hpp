@@ -34,7 +34,7 @@ struct uuid
 	[[nodiscard]] std::string string() const;
 	
 	/// UUID data.
-	std::array<std::byte, 16> data;
+	std::array<std::byte, 16> data{};
 };
 
 /**

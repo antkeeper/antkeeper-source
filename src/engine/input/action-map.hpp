@@ -41,11 +41,6 @@ class action_map
 {
 public:
 	/**
-	 * Constructs an action map.
-	 */
-	action_map();
-	
-	/**
 	 * Enables the mapping of input events to actions.
 	 */
 	void enable();
@@ -154,8 +149,8 @@ private:
 	void handle_mouse_moved(const mouse_moved_event& event);
 	void handle_mouse_scrolled(const mouse_scrolled_event& event);
 	
-	event::queue* event_queue;
-	bool enabled;
+	event::queue* event_queue{nullptr};
+	bool enabled{false};
 	std::vector<std::shared_ptr<::event::subscription>> subscriptions;
 	std::vector<std::tuple<action*, gamepad_axis_mapping>> gamepad_axis_mappings;
 	std::vector<std::tuple<action*, gamepad_button_mapping>> gamepad_button_mappings;

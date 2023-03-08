@@ -49,19 +49,19 @@ enum class vertex_attribute_type: std::uint8_t
 struct vertex_attribute
 {
 	/// Pointer to the vertex buffer containing vertex attribute data.
-	const vertex_buffer* buffer;
+	const vertex_buffer* buffer{nullptr};
 	
 	/// Offset to the first component of the first instance of this attribute in the vertex buffer, in bytes.
-	std::size_t offset;
+	std::size_t offset{0};
 	
 	/// Number of bytes between consecutive instances of this attribute in the vertex buffer. A value of `0` indicates attribute instances are tightly packed.
-	std::size_t stride;
+	std::size_t stride{0};
 	
 	/// Data type of each component in the attribute.
-	vertex_attribute_type type;
+	vertex_attribute_type type{0};
 	
 	/// Number of components per attribute instance. Supported values are `1`, `2`, `3`, and `4`.
-	std::uint8_t components;
+	std::uint8_t components{0};
 };
 
 } // namespace gl

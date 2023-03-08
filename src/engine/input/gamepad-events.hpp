@@ -33,10 +33,10 @@ class gamepad;
 struct gamepad_button_pressed_event
 {
 	/// Gamepad that generated the event.
-	gamepad* gamepad;
+	gamepad* gamepad{nullptr};
 	
 	/// Gamepad button being pressed.
-	gamepad_button button;
+	gamepad_button button{0};
 };
 
 /**
@@ -45,10 +45,10 @@ struct gamepad_button_pressed_event
 struct gamepad_button_released_event
 {
 	/// Gamepad that generated the event.
-	gamepad* gamepad;
+	gamepad* gamepad{nullptr};
 	
 	/// Gamepad button being released.
-	gamepad_button button;
+	gamepad_button button{0};
 };
 
 /**
@@ -57,13 +57,13 @@ struct gamepad_button_released_event
 struct gamepad_axis_moved_event
 {
 	/// Gamepad that generated the event.
-	gamepad* gamepad;
+	gamepad* gamepad{nullptr};
 	
 	/// Gamepad axis being moved.
-	gamepad_axis axis;
+	gamepad_axis axis{0};
 	
 	/// Position of the gamepad axis, on `[-1, 1]`.
-	float position;
+	float position{0.0f};
 };
 
 } // namespace input

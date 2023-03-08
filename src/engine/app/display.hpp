@@ -172,14 +172,14 @@ private:
 	friend class window_manager;
 	friend class sdl_window_manager;
 	
-	int index;
+	int index{0};
 	std::string name;
-	geom::primitive::rectangle<int> bounds;
-	geom::primitive::rectangle<int> usable_bounds;
-	int refresh_rate;
-	float dpi;
-	display_orientation orientation;
-	bool connected;
+	geom::primitive::rectangle<int> bounds{0};
+	geom::primitive::rectangle<int> usable_bounds{0};
+	int refresh_rate{0};
+	float dpi{0.0f};
+	display_orientation orientation{0};
+	bool connected{false};
 	
 	event::publisher<display_connected_event> connected_publisher;
 	event::publisher<display_disconnected_event> disconnected_publisher;

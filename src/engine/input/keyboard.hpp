@@ -35,14 +35,6 @@ class keyboard: public device
 {
 public:
 	/**
-	 * Constructs a keyboard input device.
-	 */
-	keyboard() = default;
-	
-	/// Destructs a keyboard input device.
-	virtual ~keyboard() = default;
-	
-	/**
 	 * Simulates a key press.
 	 *
 	 * @param scancode Scancode of the key to press.
@@ -72,7 +64,7 @@ public:
 	}
 	
 	/// Returns device_type::keyboard.
-	[[nodiscard]] inline virtual constexpr device_type get_device_type() const noexcept
+	[[nodiscard]] inline constexpr device_type get_device_type() const noexcept override
 	{
 		return device_type::keyboard;
 	}

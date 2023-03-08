@@ -93,7 +93,7 @@ public:
 
 private:
 	threshold_function_type threshold_function;
-	bool active;
+	bool active{false};
 	
 	action_activated_event activated_event;
 	action_active_event active_event;

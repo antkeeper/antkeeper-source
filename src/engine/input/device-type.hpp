@@ -20,10 +20,12 @@
 #ifndef ANTKEEPER_INPUT_DEVICE_TYPE_HPP
 #define ANTKEEPER_INPUT_DEVICE_TYPE_HPP
 
+#include <cstdint>
+
 namespace input {
 
 /// Input device types.
-enum class device_type
+enum class device_type: std::uint8_t
 {
 	/// Gamepad input device.
 	gamepad,

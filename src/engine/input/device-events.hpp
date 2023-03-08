@@ -30,7 +30,7 @@ class device;
 struct device_connected_event
 {
 	/// Device that was connected.
-	device* device;
+	device* device{nullptr};
 };
 
 /**
@@ -39,7 +39,7 @@ struct device_connected_event
 struct device_disconnected_event
 {
 	/// Device that was disconnected.
-	device* device;
+	device* device{nullptr};
 };
 
 } // namespace input

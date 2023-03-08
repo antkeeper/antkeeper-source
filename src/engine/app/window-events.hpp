@@ -32,7 +32,7 @@ class window;
 struct window_closed_event
 {
 	/// Pointer to the window that has been requested to close.
-	window* window;
+	window* window{nullptr};
 };
 
 /**
@@ -41,10 +41,10 @@ struct window_closed_event
 struct window_focus_changed_event
 {
 	/// Pointer to the window that has gained or lost focus.
-	window* window;
+	window* window{nullptr};
 	
 	/// `true` if the window is in focus, `false` otherwise.
-	bool in_focus;
+	bool in_focus{false};
 };
 
 /**
@@ -53,10 +53,10 @@ struct window_focus_changed_event
 struct window_moved_event
 {
 	/// Pointer to the window that has been moved.
-	window* window;
+	window* window{nullptr};
 	
 	/// Position of the window, in display units.
-	math::vector<int, 2> position;
+	math::vector<int, 2> position{0, 0};
 };
 
 /**
@@ -65,7 +65,7 @@ struct window_moved_event
 struct window_maximized_event
 {
 	/// Pointer to the window that has been maximized.
-	window* window;
+	window* window{nullptr};
 };
 
 /**
@@ -74,7 +74,7 @@ struct window_maximized_event
 struct window_minimized_event
 {
 	/// Pointer to the window that has been minimized.
-	window* window;
+	window* window{nullptr};
 };
 
 /**
@@ -92,10 +92,10 @@ struct window_restored_event
 struct window_resized_event
 {
 	/// Pointer to the window that has been resized.
-	window* window;
+	window* window{nullptr};
 	
 	/// Window size, in display units.
-	math::vector<int, 2> size;
+	math::vector<int, 2> size{0, 0};
 };
 
 } // namespace app
