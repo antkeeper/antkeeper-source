@@ -40,7 +40,7 @@ public:
 	/**
 	 * Allocates and returns an input manager.
 	 */
-	static input_manager* instance();
+	static std::unique_ptr<input_manager> instance();
 
 	/// Destructs an input manager.
 	virtual ~input_manager() = default;

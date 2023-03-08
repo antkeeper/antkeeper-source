@@ -22,8 +22,6 @@
 
 namespace gl {
 
-class shader_input;
-
 /**
  * A cube texture which can be uploaded to shaders via shader inputs.
  */
@@ -43,9 +41,6 @@ public:
 	/// Returns the linear size of a cube face, in pixels.
 	int get_face_size() const;
 	
-private:
-	friend class shader_input;
-
 	unsigned int gl_texture_id;
 	int face_size;
 };

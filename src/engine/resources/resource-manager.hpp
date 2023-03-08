@@ -20,191 +20,185 @@
 #ifndef ANTKEEPER_RESOURCES_RESOURCE_MANAGER_HPP
 #define ANTKEEPER_RESOURCES_RESOURCE_MANAGER_HPP
 
-#include <engine/resources/resource-handle.hpp>
-#include <engine/resources/resource-loader.hpp>
 #include <engine/debug/log.hpp>
+#include <engine/resources/deserialize-context.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/resources/serialize-context.hpp>
+#include <engine/resources/serializer.hpp>
+#include <engine/resources/resource-loader.hpp>
 #include <filesystem>
-#include <list>
-#include <map>
-#include <physfs.h>
+#include <memory>
 #include <stdexcept>
-#include <string>
+#include <unordered_map>
 
 /**
- * Loads resources.
+ * Manages the loading, caching, and saving of resources.
  */
 class resource_manager
 {
 public:
 	/**
-	 * Creates a resource manager.
+	 * Constructs a resource manager.
+	 *
+	 * @throw std::runtime_error Failed to initialize PhysicsFS.
 	 */
 	resource_manager();
-
+	
 	/**
-	 * Destroys a resource manager and frees all of its resources.
+	 * Destructs a resource manager.
 	 */
 	~resource_manager();
 	
+	/**
+	 * Adds a directory or archive to the search path.
+	 *
+	 * @param path Path to the directory or archive to mount.
+	 *
+	 * @return `true` if the directory or archive was successfully mounted, `false` otherwise.
+	 */
 	bool mount(const std::filesystem::path& path);
 	
-	void set_write_dir(const std::filesystem::path& path);
-
 	/**
-	 * Adds a path to be searched when a resource is requested.
+	 * Removes a directory or archive from the search path.
 	 *
-	 * @param path Search path.
-	 */
-	void include(const std::filesystem::path& path);
-
-	/**
-	 * Loads the requested resource. If the resource has already been loaded it will be retrieved from the resource cache and its reference count incremented.
+	 * @param path Path to the directory or archive to unmount.
 	 *
-	 * @tparam T Resource type.
-	 * @param path Path to the resource, relative to the search paths.
-	 * @return Pointer to the requested resource, or nullptr if the resource could not be found nor loaded.
+	 * @return `true` if the directory or archive was successfully unmounted, `false` otherwise.
 	 */
-	template <typename T>
-	T* load(const std::filesystem::path& path);
-
+	bool unmount(const std::filesystem::path& path);
+	
 	/**
-	 * Decrements a resource's reference count and unloads the resource if it's unreferenced.
-	 *
-	 * @param path Path to the resource, relative to the search paths.
-	 */
-	void unload(const std::filesystem::path& path);
-
-	/**
-	 * Saves the specified resource.
+	 * Loads and caches a resource. If the resource has already been loaded the cached resource will be returned.
 	 *
 	 * @tparam T Resource type.
-	 * @param resource Pointer to the resource.
-	 * @param path Path to the resource.
+	 *
+	 * @param path Path to the resource to load.
+	 *
+	 * @return Pointer to the loaded resource, or `nullptr` if the resource could not be loaded.
 	 */
-	template <typename T>
-	void save(const T* resource, const std::filesystem::path& path);
+	template <class T>
+	std::shared_ptr<T> load(const std::filesystem::path& path);
+	
+	/**
+	 * Saves a resource to a file.
+	 *
+	 * @tparam T Resource type.
+	 *
+	 * @param resource Resource to save.
+	 * @param path Path to where the resource file should be written.
+	 *
+	 * @return `true` if the resource was successfully saved, `false` otherwise.
+	 */
+	template <class T>
+	bool save(const T& resource, const std::filesystem::path& path) const;
+	
+	/**
+	 * Sets the path to a directory or archive where files can be written.
+	 *
+	 * @param path Path to the directory or archive to which files should be written.
+	 *
+	 * @return `true` if the write path was set successfully, `false` otherwise.
+	 */
+	bool set_write_path(const std::filesystem::path& path);
+	
+	/**
+	 * Returns the path to the directory or archive to which files are written.
+	 */
+	[[nodiscard]] inline const std::filesystem::path& get_write_path() const noexcept
+	{
+		return write_path;
+	}
 
 private:
-	std::map<std::filesystem::path, resource_handle_base*> resource_cache;
-	std::list<std::filesystem::path> search_paths;
+	/**
+	 * Fetches a resource from the resource cache.
+	 *
+	 * @param path Path to a resource.
+	 *
+	 * @return Shared pointer to the cached resource, or `nullptr` if the resource was not found or has expired.
+	 */
+	[[nodiscard]] std::shared_ptr<void> fetch(const std::filesystem::path& path) const;
+	
+	/**
+	 * Constructs a deserialize context from a file path.
+	 *
+	 * @param path Path to the file to open for reading.
+	 *
+	 * @return Unique pointer to a deserialize context, or `nullptr` if the file could not be opened for reading.
+	 */
+	[[nodiscard]] std::unique_ptr<deserialize_context> open_read(const std::filesystem::path& path) const;
+	
+	/**
+	 * Constructs a serialize context from a file path.
+	 *
+	 * @param path Path to a file to open for writing.
+	 *
+	 * @return Unique pointer to a serialize context, or `nullptr` if the file could not be opened for writing.
+	 */
+	[[nodiscard]] std::unique_ptr<serialize_context> open_write(const std::filesystem::path& path) const;
+	
+	std::unordered_map<std::filesystem::path, std::weak_ptr<void>> resource_cache;
+	std::filesystem::path write_path;
 };
 
-template <typename T>
-T* resource_manager::load(const std::filesystem::path& path)
+template <class T>
+std::shared_ptr<T> resource_manager::load(const std::filesystem::path& path)
 {
-	// Check if resource is in the cache
-	auto it = resource_cache.find(path);
-	if (it != resource_cache.end())
+	// Fetch cached resource, if any
+	if (auto resource = fetch(path))
 	{
-		//debug::log::trace("Fetched cached resource \"{}\"". path.string());
-		
-		// Resource found
-		resource_handle<T>* resource = static_cast<resource_handle<T>*>(it->second);
-		
-		// Increment resource handle reference count
-		++resource->reference_count;
-		
-		// Return resource data
-		return resource->data;
+		return std::static_pointer_cast<T>(resource);
 	}
 	
-	debug::log::trace("Loading resource \"{}\"...", path.string());
+	const auto path_string = path.string();
 	
-	// Resource not cached, look for file in search paths
-	T* data = nullptr;
-	bool found = false;
-	for (const std::filesystem::path& search_path: search_paths)
-	{
-		std::filesystem::path full_path = search_path / path;
-		
-		// Check if file exists
-		if (!PHYSFS_exists(full_path.string().c_str()))
-		{
-			continue;
-		}
-		
-		// File found
-		found = true;
-		
-		// Open file for reading
-		PHYSFS_File* file = PHYSFS_openRead(full_path.string().c_str());
-		if (!file)
-		{
-			debug::log::error("Failed to load resource \"{}\": {}", path.string(), PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
-			break;
-		}
-		
-		// Load opened file
-		try
-		{
-			data = resource_loader<T>::load(this, file, full_path);
-		}
-		catch (const std::exception& e)
-		{
-			debug::log::error("Failed to load resource \"{}\": {}", path.string(), e.what());
-		}
-		
-		// Close opened file
-		if (!PHYSFS_close(file))
-		{
-			debug::log::error("Failed to close resource file \"{}\": {}", path.string(), PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
-		}
-		
-		break;
-	}
-	
-	if (!data)
-	{
-		if (!found)
-		{
-			debug::log::error("Failed to load resource \"{}\": file not found", path.string());
-		}
-		
-		return nullptr;
-	}
-
-	// Create a resource handle for the resource data
-	resource_handle<T>* resource = new resource_handle<T>();
-	resource->data = data;
-	resource->reference_count = 1;
-	
-	// Add resource to the cache
-	resource_cache[path] = resource;
-	
-	debug::log::trace("Loaded resource \"{}\"", path.string());
-
-	return resource->data;
-}
-
-template <typename T>
-void resource_manager::save(const T* resource, const std::filesystem::path& path)
-{
-	debug::log::trace("Saving resource to \"{}\"", path.string());
-	
-	// Open file for writing
-	PHYSFS_File* file = PHYSFS_openWrite(path.string().c_str());
-	if (!file)
-	{
-		debug::log::error("Failed to save resource to \"{}\": {}", path.string(), PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
-		return;
-	}
-	
-	// Save to opened file
 	try
 	{
-		resource_loader<T>::save(this, file, path, resource);
-		debug::log::trace("Saved resource to \"{}\"", path.string());
+		debug::log::trace("Loading resource \"{}\"...", path_string);
+		
+		// Open file for reading
+		auto deserialize_ctx = open_read(path);
+		
+		// Load and cache resource
+		std::shared_ptr<T> resource = resource_loader<T>::load(*this, *deserialize_ctx);
+		resource_cache[path] = resource;
+		
+		debug::log::trace("Loaded resource \"{}\"", path_string);
+		
+		return resource;
 	}
 	catch (const std::exception& e)
 	{
-		debug::log::error("Failed to save resource to \"{}\": {}", e.what());
+		debug::log::error("Failed to load resource \"{}\": {}", path_string, e.what());
 	}
 	
-	// Close opened file
-	if (!PHYSFS_close(file))
+	return nullptr;
+}
+
+template <class T>
+bool resource_manager::save(const T& resource, const std::filesystem::path& path) const
+{
+	const auto path_string = path.string();
+	
+	try
 	{
-		debug::log::error("Failed to close file \"{}\": {}", path.string(), PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		debug::log::trace("Saving resource to \"{}\"...", path_string);
+		
+		// Open file for writing
+		auto serialize_ctx = open_write(path);
+		
+		serializer<T>().serialize(resource, *serialize_ctx);
+		
+		debug::log::trace("Saved resource to \"{}\"", path_string);
+		
+		return true;
 	}
+	catch (const std::exception& e)
+	{
+		debug::log::error("Failed to save resource to \"{}\": {}", path_string, e.what());
+	}
+	
+	return false;
 }
 
 #endif // ANTKEEPER_RESOURCES_RESOURCE_MANAGER_HPP

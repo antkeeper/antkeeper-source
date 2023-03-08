@@ -25,6 +25,7 @@
 #include <engine/render/queue.hpp>
 #include <engine/render/stage/culling-stage.hpp>
 #include <engine/gl/vertex-array.hpp>
+#include <vector>
 
 namespace scene
 {
@@ -44,8 +45,10 @@ namespace render {
 class renderer
 {
 public:
+	/**
+	 * Constructs a renderer.
+	 */
 	renderer();
-	~renderer();
 	
 	/**
 	 * Renders a collection of scene objects.
@@ -55,7 +58,7 @@ public:
 	 * @param alpha Subframe interpolation factor.
 	 * @param collection Collection of scene objects to render.
 	 */
-	void render(float t, float dt, float alpha, const scene::collection& collection) const;
+	void render(float t, float dt, float alpha, const scene::collection& collection);
 	
 	/**
 	 * Sets the VAO to be used when generating render operations for billboards.
@@ -70,9 +73,8 @@ private:
 	void process_text(const render::context& ctx, render::queue& queue, const scene::text* text) const;
 
 	mutable render::operation billboard_op;
-	float4x4* skinning_palette;
-	
-	render::culling_stage* culling_stage;
+	std::vector<float4x4> skinning_palette;
+	std::unique_ptr<render::culling_stage> culling_stage;
 };
 
 } // namespace render

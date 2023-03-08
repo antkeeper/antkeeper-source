@@ -22,6 +22,7 @@
 #include <engine/resources/serialize-error.hpp>
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/resource-loader.hpp>
 #include <engine/debug/log.hpp>
 
 /**
@@ -84,7 +85,7 @@ void serializer<::control_profile>::serialize(const ::control_profile& profile, 
 	}
 	
 	// Write settings
-	serializer<dict<std::uint32_t>>().serialize(profile.settings, ctx);
+	serializer<dict<hash::fnv1a32_t>>().serialize(profile.settings, ctx);
 }
 
 /**
@@ -109,7 +110,7 @@ void deserializer<::control_profile>::deserialize(::control_profile& profile, de
 	for (std::uint64_t i = 0; i < size; ++i)
 	{
 		// Read key
-		std::uint32_t key = 0;
+		hash::fnv1a32_t key;
 		ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&key), 1);
 		
 		// Read mapping type
@@ -174,5 +175,15 @@ void deserializer<::control_profile>::deserialize(::control_profile& profile, de
 	}
 	
 	// Read settings
-	deserializer<dict<std::uint32_t>>().deserialize(profile.settings, ctx);
+	deserializer<dict<hash::fnv1a32_t>>().deserialize(profile.settings, ctx);
+}
+
+template <>
+std::unique_ptr<control_profile> resource_loader<control_profile>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+{
+	std::unique_ptr<control_profile> profile = std::make_unique<control_profile>();
+	
+	deserializer<control_profile>().deserialize(*profile, ctx);
+	
+	return profile;
 }

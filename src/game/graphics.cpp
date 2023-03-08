@@ -48,41 +48,41 @@ void create_framebuffers(::game& ctx)
 	ctx.render_resolution = {static_cast<int>(viewport_size.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_size.y() * ctx.render_scale + 0.5f)};
 	
 	// Create HDR framebuffer (32F color, 32F depth)
-	ctx.hdr_color_texture = new gl::texture_2d(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
+	ctx.hdr_color_texture = std::make_unique<gl::texture_2d>(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
 	ctx.hdr_color_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx.hdr_color_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx.hdr_color_texture->set_max_anisotropy(0.0f);
-	ctx.hdr_depth_texture = new gl::texture_2d(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::ds);
+	ctx.hdr_depth_texture = std::make_unique<gl::texture_2d>(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::ds);
 	ctx.hdr_depth_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx.hdr_depth_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx.hdr_depth_texture->set_max_anisotropy(0.0f);
-	ctx.hdr_framebuffer = new gl::framebuffer(ctx.render_resolution.x(), ctx.render_resolution.y());
-	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::color, ctx.hdr_color_texture);
-	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx.hdr_depth_texture);
-	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::stencil, ctx.hdr_depth_texture);
+	ctx.hdr_framebuffer = std::make_unique<gl::framebuffer>(ctx.render_resolution.x(), ctx.render_resolution.y());
+	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::color, ctx.hdr_color_texture.get());
+	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx.hdr_depth_texture.get());
+	ctx.hdr_framebuffer->attach(gl::framebuffer_attachment_type::stencil, ctx.hdr_depth_texture.get());
 	
 	// Create LDR framebuffers (8-bit color, no depth)
-	ctx.ldr_color_texture_a = new gl::texture_2d(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::uint_8, gl::pixel_format::rgb);
+	ctx.ldr_color_texture_a = std::make_unique<gl::texture_2d>(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::uint_8, gl::pixel_format::rgb);
 	ctx.ldr_color_texture_a->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx.ldr_color_texture_a->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx.ldr_color_texture_a->set_max_anisotropy(0.0f);
-	ctx.ldr_framebuffer_a = new gl::framebuffer(ctx.render_resolution.x(), ctx.render_resolution.y());
-	ctx.ldr_framebuffer_a->attach(gl::framebuffer_attachment_type::color, ctx.ldr_color_texture_a);
+	ctx.ldr_framebuffer_a = std::make_unique<gl::framebuffer>(ctx.render_resolution.x(), ctx.render_resolution.y());
+	ctx.ldr_framebuffer_a->attach(gl::framebuffer_attachment_type::color, ctx.ldr_color_texture_a.get());
 	
-	ctx.ldr_color_texture_b = new gl::texture_2d(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::uint_8, gl::pixel_format::rgb);
+	ctx.ldr_color_texture_b = std::make_unique<gl::texture_2d>(ctx.render_resolution.x(), ctx.render_resolution.y(), gl::pixel_type::uint_8, gl::pixel_format::rgb);
 	ctx.ldr_color_texture_b->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx.ldr_color_texture_b->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx.ldr_color_texture_b->set_max_anisotropy(0.0f);
-	ctx.ldr_framebuffer_b = new gl::framebuffer(ctx.render_resolution.x(), ctx.render_resolution.y());
-	ctx.ldr_framebuffer_b->attach(gl::framebuffer_attachment_type::color, ctx.ldr_color_texture_b);
+	ctx.ldr_framebuffer_b = std::make_unique<gl::framebuffer>(ctx.render_resolution.x(), ctx.render_resolution.y());
+	ctx.ldr_framebuffer_b->attach(gl::framebuffer_attachment_type::color, ctx.ldr_color_texture_b.get());
 	
 	// Create shadow map framebuffer
-	ctx.shadow_map_depth_texture = new gl::texture_2d(ctx.shadow_map_resolution, ctx.shadow_map_resolution, gl::pixel_type::float_32, gl::pixel_format::d);
+	ctx.shadow_map_depth_texture = std::make_unique<gl::texture_2d>(ctx.shadow_map_resolution, ctx.shadow_map_resolution, gl::pixel_type::float_32, gl::pixel_format::d);
 	ctx.shadow_map_depth_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	ctx.shadow_map_depth_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx.shadow_map_depth_texture->set_max_anisotropy(0.0f);
-	ctx.shadow_map_framebuffer = new gl::framebuffer(ctx.shadow_map_resolution, ctx.shadow_map_resolution);
-	ctx.shadow_map_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx.shadow_map_depth_texture);
+	ctx.shadow_map_framebuffer = std::make_unique<gl::framebuffer>(ctx.shadow_map_resolution, ctx.shadow_map_resolution);
+	ctx.shadow_map_framebuffer->attach(gl::framebuffer_attachment_type::depth, ctx.shadow_map_depth_texture.get());
 	
 	debug::log::trace("Created framebuffers");
 }
@@ -92,29 +92,20 @@ void destroy_framebuffers(::game& ctx)
 	debug::log::trace("Destroying framebuffers...");
 	
 	// Delete HDR framebuffer and its attachments
-	delete ctx.hdr_framebuffer;
-	ctx.hdr_framebuffer = nullptr;
-	delete ctx.hdr_color_texture;
-	ctx.hdr_color_texture = nullptr;
-	delete ctx.hdr_depth_texture;
-	ctx.hdr_depth_texture = nullptr;
+	ctx.hdr_framebuffer.reset();
+	ctx.hdr_color_texture.reset();
+	ctx.hdr_depth_texture.reset();
 	
 	// Delete LDR framebuffers and attachments
-	delete ctx.ldr_framebuffer_a;
-	ctx.ldr_framebuffer_a = nullptr;
-	delete ctx.ldr_color_texture_a;
-	ctx.ldr_color_texture_a = nullptr;
+	ctx.ldr_framebuffer_a.reset();
+	ctx.ldr_color_texture_a.reset();
 	
-	delete ctx.ldr_framebuffer_b;
-	ctx.ldr_framebuffer_b = nullptr;
-	delete ctx.ldr_color_texture_b;
-	ctx.ldr_color_texture_b = nullptr;
+	ctx.ldr_framebuffer_b.reset();
+	ctx.ldr_color_texture_b.reset();
 	
 	// Delete shadow map framebuffer and its attachments
-	delete ctx.shadow_map_framebuffer;
-	ctx.shadow_map_framebuffer = nullptr;
-	delete ctx.shadow_map_depth_texture;
-	ctx.shadow_map_depth_texture = nullptr;
+	ctx.shadow_map_framebuffer.reset();
+	ctx.shadow_map_depth_texture.reset();
 	
 	debug::log::trace("Destroyed framebuffers");
 }
@@ -189,13 +180,11 @@ void save_screenshot(::game& ctx)
 		[frame, path = std::move(screenshot_filepath_string)]
 		{
 			stbi_flip_vertically_on_write(1);
-			stbi_write_png(path.c_str(), frame->get_width(), frame->get_height(), frame->get_channel_count(), frame->data(), frame->get_width() * frame->get_channel_count());
+			stbi_write_png(path.c_str(), frame->width(), frame->height(), frame->channel_count(), frame->data(), frame->width() * frame->channel_count());
 			
 			debug::log::debug("Saved screenshot to \"{}\"", path);
 		}
 	).detach();
-	
-	
 }
 
 void select_anti_aliasing_method(::game& ctx, render::anti_aliasing_method method)
@@ -228,12 +217,12 @@ void reroute_framebuffers(::game& ctx)
 	{
 		if (ctx.resample_pass->is_enabled())
 		{
-			ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_a);
-			ctx.fxaa_pass->set_framebuffer(ctx.ldr_framebuffer_b);
+			ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_a.get());
+			ctx.fxaa_pass->set_framebuffer(ctx.ldr_framebuffer_b.get());
 		}
 		else
 		{
-			ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_a);
+			ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_a.get());
 			ctx.fxaa_pass->set_framebuffer(&ctx.window->get_rasterizer()->get_default_framebuffer());
 		}
 	}
@@ -241,7 +230,7 @@ void reroute_framebuffers(::game& ctx)
 	{
 		if (ctx.resample_pass->is_enabled())
 		{
-			ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_b);
+			ctx.common_final_pass->set_framebuffer(ctx.ldr_framebuffer_b.get());
 		}
 		else
 		{

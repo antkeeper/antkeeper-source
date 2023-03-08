@@ -22,9 +22,9 @@
 
 namespace app {
 
-input_manager* input_manager::instance()
+std::unique_ptr<input_manager> input_manager::instance()
 {
-	return new sdl_input_manager();
+	return std::make_unique<sdl_input_manager>();
 }
 
 void input_manager::register_device(input::device& device)

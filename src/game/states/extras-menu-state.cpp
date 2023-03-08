@@ -36,16 +36,16 @@ extras_menu_state::extras_menu_state(::game& ctx):
 	debug::log::trace("Entering extras menu state...");
 	
 	// Construct menu item texts
-	scene::text* credits_text = new scene::text();
-	scene::text* back_text = new scene::text();
+	credits_text = std::make_unique<scene::text>();
+	back_text = std::make_unique<scene::text>();
 	
 	// Build list of menu item texts
-	ctx.menu_item_texts.push_back({credits_text, nullptr});
-	ctx.menu_item_texts.push_back({back_text, nullptr});
+	ctx.menu_item_texts.push_back({credits_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({back_text.get(), nullptr});
 	
 	// Set content of menu item texts
-	credits_text->set_content(get_string(ctx, "extras_menu_credits"_fnv1a32));
-	back_text->set_content(get_string(ctx, "back"_fnv1a32));
+	credits_text->set_content(get_string(ctx, "extras_menu_credits"));
+	back_text->set_content(get_string(ctx, "back"));
 	
 	// Init menu item index
 	::menu::init_menu_item_index(ctx, "extras");

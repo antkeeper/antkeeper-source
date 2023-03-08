@@ -192,6 +192,7 @@ subterrain_system::subterrain_system(entity::registry& registry, ::resource_mana
 	resource_manager(resource_manager)
 {
 
+/*
 	// Load subterrain materials
 	subterrain_inside_material = nullptr;//resource_manager->load<::render::material>("subterrain-inside.mtl");
 	subterrain_outside_material = nullptr;//resource_manager->load<::render::material>("subterrain-outside.mtl");
@@ -276,16 +277,20 @@ subterrain_system::subterrain_system(entity::registry& registry, ::resource_mana
 	subterrain_mesh = new geom::mesh();
 
 	first_run = true;
+	*/
 }
 
 subterrain_system::~subterrain_system()
 {
+	/*
 	delete subterrain_model;
 	delete subterrain_mesh;
+	*/
 }
 
 void subterrain_system::update(double t, double dt)
 {
+	/*
 	if (first_run)
 	{
 		first_run = false;
@@ -318,15 +323,17 @@ void subterrain_system::update(double t, double dt)
 		regenerate_subterrain_model();
 		//std::cout << "regenerating subterrain model... done\n";
 	}
+	*/
 }
 
 void subterrain_system::set_scene(scene::collection* collection)
 {
-	this->collection = collection;
+	//this->collection = collection;
 }
 
 void subterrain_system::regenerate_subterrain_mesh()
 {
+	/*
 	delete subterrain_mesh;
 	subterrain_mesh = new geom::mesh();
 	subterrain_vertices.clear();
@@ -345,10 +352,12 @@ void subterrain_system::regenerate_subterrain_mesh()
 	//std::cout << "creating mesh...\n";
 	create_triangle_mesh(*subterrain_mesh, subterrain_vertices, subterrain_triangles);
 	//std::cout << "creating mesh... done\n";
+	*/
 }
 
 void subterrain_system::march(::cube_tree* node)
 {
+	/*
 	if (!node->is_leaf())
 	{
 		for (::cube_tree* child: node->children)
@@ -401,10 +410,12 @@ void subterrain_system::march(::cube_tree* node)
 				vertex_remap[triangle_buffer[i * 3 + 2]]
 			});
 	}
+	*/
 }
 
 void subterrain_system::regenerate_subterrain_model()
 {
+	/*
 	float3* face_normals = new float3[subterrain_mesh->get_faces().size()];
 	calculate_face_normals(face_normals, *subterrain_mesh);
 
@@ -474,10 +485,12 @@ void subterrain_system::regenerate_subterrain_model()
 	// Update model groups
 	subterrain_inside_group->set_index_count(subterrain_mesh->get_faces().size() * 3);
 	subterrain_outside_group->set_index_count(subterrain_mesh->get_faces().size() * 3);
+	*/
 }
 
 void subterrain_system::dig(const float3& position, float radius)
 {
+	/*
 	// Construct region containing the cavity sphere
 	geom::aabb<float> region = {position, position};
 	for (int i = 0; i < 3; ++i)
@@ -505,5 +518,6 @@ void subterrain_system::dig(const float3& position, float radius)
 					node.distances[i] = distance;
 			}
 		});
+	*/
 }
 

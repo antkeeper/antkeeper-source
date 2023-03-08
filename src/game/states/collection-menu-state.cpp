@@ -41,22 +41,24 @@ collection_menu_state::collection_menu_state(::game& ctx):
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
 	
 	// Construct box material
-	box_material.set_blend_mode(render::blend_mode::translucent);
-	box_material.set_shader_program(ctx.resource_manager->load<gl::shader_program>("ui-element-untextured.glsl"));
-	box_material.add_property<float4>("tint")->set_value(float4{0.5f, 0.5f, 0.5f, 1});
-	box_material.update_tweens();
+	box_material = std::make_shared<render::material>();
+	box_material->set_blend_mode(render::material_blend_mode::translucent);
+	box_material->set_shader_template(ctx.resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
+	box_material->set_variable("tint", std::make_shared<render::material_float4>(1, float4{0.5f, 0.5f, 0.5f, 1}));
+	//box_material.update_tweens();
 	
 	// Construct box billboard
-	box_billboard.set_material(&box_material);
+	box_billboard.set_material(box_material);
 	
 	// Construct selection material
-	selection_material.set_blend_mode(render::blend_mode::translucent);
-	selection_material.set_shader_program(ctx.resource_manager->load<gl::shader_program>("ui-element-untextured.glsl"));
-	selection_material.add_property<float4>("tint")->set_value(float4{1, 1, 1, 1});
-	selection_material.update_tweens();
+	selection_material = std::make_shared<render::material>();
+	selection_material->set_blend_mode(render::material_blend_mode::translucent);
+	selection_material->set_shader_template(ctx.resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
+	box_material->set_variable("tint", std::make_shared<render::material_float4>(1, float4{1, 1, 1, 1}));
+	//selection_material.update_tweens();
 	
 	// Construct selection billboard
-	selection_billboard.set_material(&selection_material);
+	selection_billboard.set_material(selection_material);
 	
 	// Add box and selection billboard to UI scene
 	ctx.ui_scene->add_object(&box_billboard);

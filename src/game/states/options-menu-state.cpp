@@ -42,25 +42,25 @@ options_menu_state::options_menu_state(::game& ctx):
 	debug::log::trace("Entering options menu state...");
 	
 	// Construct menu item texts
-	scene::text* controls_text = new scene::text();
-	scene::text* graphics_text = new scene::text();
-	scene::text* sound_text = new scene::text();
-	scene::text* language_text = new scene::text();
-	scene::text* back_text = new scene::text();
+	controls_text = std::make_unique<scene::text>();
+	graphics_text = std::make_unique<scene::text>();
+	sound_text = std::make_unique<scene::text>();
+	language_text = std::make_unique<scene::text>();
+	back_text = std::make_unique<scene::text>();
 	
 	// Set content of menu item texts
-	controls_text->set_content(get_string(ctx, "options_menu_controls"_fnv1a32));
-	graphics_text->set_content(get_string(ctx, "options_menu_graphics"_fnv1a32));
-	sound_text->set_content(get_string(ctx, "options_menu_sound"_fnv1a32));
-	language_text->set_content(get_string(ctx, "options_menu_language"_fnv1a32));
-	back_text->set_content(get_string(ctx, "back"_fnv1a32));
+	controls_text->set_content(get_string(ctx, "options_menu_controls"));
+	graphics_text->set_content(get_string(ctx, "options_menu_graphics"));
+	sound_text->set_content(get_string(ctx, "options_menu_sound"));
+	language_text->set_content(get_string(ctx, "options_menu_language"));
+	back_text->set_content(get_string(ctx, "back"));
 	
 	// Build list of menu item texts
-	ctx.menu_item_texts.push_back({controls_text, nullptr});
-	ctx.menu_item_texts.push_back({graphics_text, nullptr});
-	ctx.menu_item_texts.push_back({sound_text, nullptr});
-	ctx.menu_item_texts.push_back({language_text, nullptr});
-	ctx.menu_item_texts.push_back({back_text, nullptr});
+	ctx.menu_item_texts.push_back({controls_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({graphics_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({sound_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({language_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({back_text.get(), nullptr});
 	
 	// Init menu item index
 	::menu::init_menu_item_index(ctx, "options");

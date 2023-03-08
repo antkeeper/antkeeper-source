@@ -54,11 +54,11 @@ void bitmap_font::clear()
 bool bitmap_font::pack(bool resize)
 {
 	// Returns the smallest power of two that is not smaller than @p x.
-	auto ceil2 = [](unsigned int x) -> unsigned int
+	auto ceil2 = [](std::uint32_t x) -> std::uint32_t
 	{
 		if (x <= 1)
 			return 1;
-		unsigned int y = 2;
+		std::uint32_t y = 2;
 		--x;
 		while (x >>= 1)
 			y <<= 1;
@@ -66,17 +66,17 @@ bool bitmap_font::pack(bool resize)
 	};
 	
 	// Calculate initial size of the font bitmap
-	unsigned int bitmap_w;
-	unsigned int bitmap_h;
+	std::uint32_t bitmap_w;
+	std::uint32_t bitmap_h;
 	if (resize)
 	{
 		// Find the maximum glyph dimensions
-		unsigned int max_glyph_w = 0;
-		unsigned int max_glyph_h = 0;
+		std::uint32_t max_glyph_w = 0;
+		std::uint32_t max_glyph_h = 0;
 		for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
 		{
-			max_glyph_w = std::max(max_glyph_w, it->second.bitmap.get_width());
-			max_glyph_h = std::max(max_glyph_h, it->second.bitmap.get_height());
+			max_glyph_w = std::max(max_glyph_w, it->second.bitmap.width());
+			max_glyph_h = std::max(max_glyph_h, it->second.bitmap.height());
 		}
 		
 		// Find minimum power of two dimensions that can accommodate maximum glyph dimensions
@@ -85,13 +85,13 @@ bool bitmap_font::pack(bool resize)
 	}
 	else
 	{
-		bitmap_w = bitmap.get_width();
-		bitmap_h = bitmap.get_height();
+		bitmap_w = bitmap.width();
+		bitmap_h = bitmap.height();
 	}
 	
 	bool packed = false;
-	geom::rect_pack<unsigned int> glyph_pack(bitmap_w, bitmap_h);
-	std::unordered_map<char32_t, const typename geom::rect_pack<unsigned int>::node_type*> glyph_map;
+	geom::rect_pack<std::uint32_t> glyph_pack(bitmap_w, bitmap_h);
+	std::unordered_map<char32_t, const typename geom::rect_pack<std::uint32_t>::node_type*> glyph_map;
 	
 	while (!packed)
 	{
@@ -99,7 +99,7 @@ bool bitmap_font::pack(bool resize)
 		for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
 		{
 			// Attempt to pack glyph bitmap
-			const auto* node = glyph_pack.pack(it->second.bitmap.get_width(), it->second.bitmap.get_height());
+			const auto* node = glyph_pack.pack(it->second.bitmap.width(), it->second.bitmap.height());
 			
 			// Abort if packing failed
 			if (!node)
@@ -152,7 +152,7 @@ bool bitmap_font::pack(bool resize)
 			
 			// Copy glyph bitmap data into font bitmap
 			image& glyph_bitmap = it->second.bitmap;
-			bitmap.copy(glyph_bitmap, glyph_bitmap.get_width(), glyph_bitmap.get_height(), 0, 0, node->bounds.min.x(), node->bounds.min.y());
+			bitmap.copy(glyph_bitmap, glyph_bitmap.width(), glyph_bitmap.height(), 0, 0, node->bounds.min.x(), node->bounds.min.y());
 			
 			// Record coordinates of glyph bitmap within font bitmap
 			it->second.position = {node->bounds.min.x(), node->bounds.min.y()};
@@ -173,16 +173,20 @@ void bitmap_font::unpack(bool resize)
 		bitmap_glyph& glyph = it->second;
 		
 		// Get glyph dimensions
-		unsigned int glyph_width = static_cast<unsigned int>(glyph.metrics.width + 0.5f);
-		unsigned int glyph_height = static_cast<unsigned int>(glyph.metrics.height + 0.5f);
+		std::uint32_t glyph_width = static_cast<std::uint32_t>(glyph.metrics.width + 0.5f);
+		std::uint32_t glyph_height = static_cast<std::uint32_t>(glyph.metrics.height + 0.5f);
 		
 		// Reformat glyph bitmap if necessary
 		if (!glyph.bitmap.compatible(bitmap))
-			glyph.bitmap.format(bitmap.get_component_size(), bitmap.get_channel_count());
+		{
+			glyph.bitmap.format(bitmap.component_size(), bitmap.channel_count());
+		}
 		
 		// Resize glyph bitmap if necessary
-		if (glyph.bitmap.get_width() != glyph_width || glyph.bitmap.get_height() != glyph_height)
+		if (glyph.bitmap.width() != glyph_width || glyph.bitmap.height() != glyph_height)
+		{
 			glyph.bitmap.resize(glyph_width, glyph_height);
+		}
 		
 		// Copy pixel data from font bitmap to glyph bitmap
 		glyph.bitmap.copy(bitmap, glyph_width, glyph_height, glyph.position.x(), glyph.position.y());

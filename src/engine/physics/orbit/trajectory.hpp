@@ -56,7 +56,7 @@ struct trajectory
 	 * @param t Time, on `[t0, t1)`.
 	 * @return Trajectory position at time @p t.
 	 */
-	math::vector<T, 3> position(T t) const;
+	[[nodiscard]] math::vector<T, 3> position(T t) const;
 };
 
 template <class T>

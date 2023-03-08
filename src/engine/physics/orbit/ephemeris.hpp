@@ -21,6 +21,7 @@
 #define ANTKEEPER_PHYSICS_ORBIT_EPHEMERIS_HPP
 
 #include <engine/physics/orbit/trajectory.hpp>
+#include <vector>
 
 namespace physics {
 namespace orbit {
@@ -31,7 +32,11 @@ namespace orbit {
  * @tparam t Real type.
  */
 template <class T>
-using ephemeris = std::vector<trajectory<T>>;
+struct ephemeris
+{
+	/// Table of orbital trajectories.
+	std::vector<trajectory<T>> trajectories;
+};
 
 } // namespace orbit
 } // namespace physics

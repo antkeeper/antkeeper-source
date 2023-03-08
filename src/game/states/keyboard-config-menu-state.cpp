@@ -39,22 +39,22 @@ keyboard_config_menu_state::keyboard_config_menu_state(::game& ctx):
 	debug::log::trace("Entering keyboard config menu state...");
 	
 	// Add control menu items
-	add_control_item(ctx.movement_action_map, ctx.move_forward_action, "control_move_forward"_fnv1a32);
-	add_control_item(ctx.movement_action_map, ctx.move_back_action, "control_move_back"_fnv1a32);
-	add_control_item(ctx.movement_action_map, ctx.move_left_action, "control_move_left"_fnv1a32);
-	add_control_item(ctx.movement_action_map, ctx.move_right_action, "control_move_right"_fnv1a32);
-	add_control_item(ctx.movement_action_map, ctx.move_up_action, "control_move_up"_fnv1a32);
-	add_control_item(ctx.movement_action_map, ctx.move_down_action, "control_move_down"_fnv1a32);
-	add_control_item(ctx.movement_action_map, ctx.pause_action, "control_pause"_fnv1a32);
+	add_control_item(ctx.movement_action_map, ctx.move_forward_action, "control_move_forward");
+	add_control_item(ctx.movement_action_map, ctx.move_back_action, "control_move_back");
+	add_control_item(ctx.movement_action_map, ctx.move_left_action, "control_move_left");
+	add_control_item(ctx.movement_action_map, ctx.move_right_action, "control_move_right");
+	add_control_item(ctx.movement_action_map, ctx.move_up_action, "control_move_up");
+	add_control_item(ctx.movement_action_map, ctx.move_down_action, "control_move_down");
+	add_control_item(ctx.movement_action_map, ctx.pause_action, "control_pause");
 	
 	// Construct menu item texts
-	scene::text* back_text = new scene::text();
+	back_text = std::make_unique<scene::text>();
 	
 	// Build list of menu item texts
-	ctx.menu_item_texts.push_back({back_text, nullptr});
+	ctx.menu_item_texts.push_back({back_text.get(), nullptr});
 	
 	// Set content of menu item texts
-	back_text->set_content(get_string(ctx, "back"_fnv1a32));
+	back_text->set_content(get_string(ctx, "back"));
 	
 	// Init menu item index
 	::menu::init_menu_item_index(ctx, "keyboard_config");
@@ -128,8 +128,8 @@ keyboard_config_menu_state::~keyboard_config_menu_state()
 		::update_control_profile(ctx, *ctx.control_profile);
 		
 		// Save control profile
-		ctx.resource_manager->set_write_dir(ctx.controls_path);
-		ctx.resource_manager->save(ctx.control_profile, ctx.control_profile_filename);
+		ctx.resource_manager->set_write_path(ctx.controls_path);
+		ctx.resource_manager->save(*ctx.control_profile, ctx.control_profile_filename);
 	}
 	
 	debug::log::trace("Exited keyboard config menu state...");
@@ -147,7 +147,7 @@ std::string keyboard_config_menu_state::get_mapping_string(const input::action_m
 		std::string scancode_string_name = std::format("scancode_{:02x}", std::to_underlying(key_mapping.scancode));
 		
 		// Set mapping string to scancode string
-		mapping_string = get_string(ctx, hash::fnv1a32(scancode_string_name.data(), scancode_string_name.length()));
+		mapping_string = get_string(ctx, hash::fnv1a32<char>(scancode_string_name));
 	}
 	else if (auto mouse_button_mappings = action_map.get_mouse_button_mappings(control); !mouse_button_mappings.empty())
 	{
@@ -155,20 +155,20 @@ std::string keyboard_config_menu_state::get_mapping_string(const input::action_m
 		switch (mouse_button_mapping.button)
 		{
 			case input::mouse_button::left:
-				mapping_string = get_string(ctx, "mouse_button_left"_fnv1a32);
+				mapping_string = get_string(ctx, "mouse_button_left");
 				break;
 			
 			case input::mouse_button::middle:
-				mapping_string = get_string(ctx, "mouse_button_middle"_fnv1a32);
+				mapping_string = get_string(ctx, "mouse_button_middle");
 				break;
 			
 			case input::mouse_button::right:
-				mapping_string = get_string(ctx, "mouse_button_right"_fnv1a32);
+				mapping_string = get_string(ctx, "mouse_button_right");
 				break;
 			
 			default:
 			{
-				std::string format_string = get_string(ctx, "mouse_button_n_format"_fnv1a32);
+				std::string format_string = get_string(ctx, "mouse_button_n_format");
 				mapping_string = std::vformat(format_string, std::make_format_args(std::to_underlying(mouse_button_mapping.button)));
 				break;
 			}
@@ -182,48 +182,48 @@ std::string keyboard_config_menu_state::get_mapping_string(const input::action_m
 		{
 			if (!mouse_scroll_mapping.direction)
 			{
-				mapping_string = get_string(ctx, "mouse_scroll_left"_fnv1a32);
+				mapping_string = get_string(ctx, "mouse_scroll_left");
 			}
 			else
 			{
-				mapping_string = get_string(ctx, "mouse_scroll_right"_fnv1a32);
+				mapping_string = get_string(ctx, "mouse_scroll_right");
 			}
 		}
 		else
 		{
 			if (!mouse_scroll_mapping.direction)
 			{
-				mapping_string = get_string(ctx, "mouse_scroll_up"_fnv1a32);
+				mapping_string = get_string(ctx, "mouse_scroll_up");
 			}
 			else
 			{
-				mapping_string = get_string(ctx, "mouse_scroll_down"_fnv1a32);
+				mapping_string = get_string(ctx, "mouse_scroll_down");
 			}
 		}
 	}
 	else
 	{
-		mapping_string = get_string(ctx, "control_unmapped"_fnv1a32);
+		mapping_string = get_string(ctx, "control_unmapped");
 	}
 	
 	return mapping_string;
 }
 
-void keyboard_config_menu_state::add_control_item(input::action_map& action_map, input::action& control, std::uint32_t control_name_hash)
+void keyboard_config_menu_state::add_control_item(input::action_map& action_map, input::action& control, hash::fnv1a32_t control_name_hash)
 {
 	// Construct texts
-	scene::text* name_text = new scene::text();
-	scene::text* value_text = new scene::text();
+	auto name_text = std::make_unique<scene::text>();
+	auto value_text = std::make_unique<scene::text>();
 	
 	// Add texts to list of menu item texts
-	ctx.menu_item_texts.push_back({name_text, value_text});
+	ctx.menu_item_texts.push_back({name_text.get(), value_text.get()});
 	
 	// Set control name and mapping texts
 	name_text->set_content(get_string(ctx, control_name_hash));
 	value_text->set_content(get_mapping_string(action_map, control));
 	
 	// Callback invoked when an input has been mapped to the control
-	auto input_mapped_callback = [this, &ctx = this->ctx, action_map = &action_map, control = &control, value_text](const auto& event)
+	auto input_mapped_callback = [this, &ctx = this->ctx, action_map = &action_map, control = &control, value_text = value_text.get()](const auto& event)
 	{
 		this->action_remapped = true;
 		
@@ -255,10 +255,10 @@ void keyboard_config_menu_state::add_control_item(input::action_map& action_map,
 	};
 	
 	// Callback invoked when the control menu item has been selected
-	auto select_callback = [this, &ctx = this->ctx, action_map = &action_map, control = &control, value_text, input_mapped_callback]()
+	auto select_callback = [this, &ctx = this->ctx, action_map = &action_map, control = &control, value_text = value_text.get(), input_mapped_callback]()
 	{
 		// Set control mapping text to "..."
-		value_text->set_content(get_string(ctx, "control_mapping"_fnv1a32));
+		value_text->set_content(get_string(ctx, "control_mapping"));
 		::menu::align_text(ctx);
 		::menu::update_text_tweens(ctx);
 		
@@ -286,6 +286,9 @@ void keyboard_config_menu_state::add_control_item(input::action_map& action_map,
 			}
 		);
 	};
+	
+	control_item_texts.emplace_back(std::move(name_text));
+	control_item_texts.emplace_back(std::move(value_text));
 	
 	// Register menu item callbacks
 	ctx.menu_select_callbacks.push_back(select_callback);

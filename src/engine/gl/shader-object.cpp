@@ -31,34 +31,29 @@ static constexpr GLenum gl_shader_type_lut[] =
 };
 
 shader_object::shader_object(shader_stage stage):
-	gl_shader_id(0),
-	stage(stage),
-	compiled(false)
+	m_stage{stage}
 {
 	// Look up OpenGL shader type enumeration that corresponds to the given stage 
-	GLenum gl_shader_type = gl_shader_type_lut[static_cast<std::size_t>(stage)];
+	const GLenum gl_shader_type = gl_shader_type_lut[static_cast<std::size_t>(m_stage)];
 	
 	// Create an OpenGL shader object
 	gl_shader_id = glCreateShader(gl_shader_type);
-	
-	// Handle OpenGL errors
 	if (!gl_shader_id)
 	{
-		throw std::runtime_error("An error occurred while creating an OpenGL shader object.");
+		throw std::runtime_error("Unable to create OpenGL shader object");
 	}
 }
 
 shader_object::~shader_object()
 {
-	// Flag the OpenGL shader object for deletion
 	glDeleteShader(gl_shader_id);
 }
 
-void shader_object::source(const std::string& source_code)
+void shader_object::source(std::string_view source_code)
 {
 	// Replace OpenGL shader object source code
-	GLint gl_length = static_cast<GLint>(source_code.length());
-	const GLchar* gl_string = source_code.c_str();
+	const GLint gl_length = static_cast<GLint>(source_code.length());
+	const GLchar* gl_string = source_code.data();
 	glShaderSource(gl_shader_id, 1, &gl_string, &gl_length);
 	
 	// Handle OpenGL errors
@@ -76,6 +71,9 @@ void shader_object::source(const std::string& source_code)
 
 bool shader_object::compile()
 {
+	m_compiled = false;
+	info_log.clear();
+	
 	// Compile OpenGL shader object
 	glCompileShader(gl_shader_id);
 	
@@ -94,7 +92,7 @@ bool shader_object::compile()
 	// Get OpenGL shader object compilation status
 	GLint gl_compile_status;
 	glGetShaderiv(gl_shader_id, GL_COMPILE_STATUS, &gl_compile_status);
-	compiled = (gl_compile_status == GL_TRUE);
+	m_compiled = (gl_compile_status == GL_TRUE);
 	
 	// Get OpenGL shader object info log length
 	GLint gl_info_log_length;
@@ -111,14 +109,9 @@ bool shader_object::compile()
 		// Remove redundant null terminator from string
 		info_log.pop_back();
 	}
-	else
-	{
-		// Empty info log
-		info_log.clear();
-	}
 	
 	// Return compilation status
-	return compiled;
+	return m_compiled;
 }
 
 } // namespace gl

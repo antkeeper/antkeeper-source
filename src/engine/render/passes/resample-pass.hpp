@@ -21,12 +21,14 @@
 #define ANTKEEPER_RENDER_RESAMPLE_PASS_HPP
 
 #include <engine/render/pass.hpp>
-#include <engine/render/shader-template.hpp>
+#include <engine/gl/shader-template.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/texture-2d.hpp>
+#include <functional>
+#include <memory>
 
 class resource_manager;
 
@@ -48,17 +50,12 @@ public:
 	resample_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	
 	/**
-	 * Destructs a resample pass.
-	 */
-	virtual ~resample_pass();
-	
-	/**
 	 * Resamples a texture.
 	 *
 	 * @param ctx Render context.
 	 * @param queue Render queue.
 	 */
-	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	void render(const render::context& ctx, render::queue& queue) override;
 	
 	/**
 	 * Sets the resample source texture.
@@ -68,14 +65,15 @@ public:
 	void set_source_texture(const gl::texture_2d* texture);
 
 private:
+	void rebuild_command_buffer();
+	
+	std::unique_ptr<gl::shader_program> shader;
+	std::unique_ptr<gl::vertex_buffer> quad_vbo;
+	std::unique_ptr<gl::vertex_array> quad_vao;
+	
 	const gl::texture_2d* source_texture;
 	
-	render::shader_template* shader_template;
-	gl::shader_program* shader;
-	const gl::shader_input* source_texture_input;
-	
-	gl::vertex_buffer* quad_vbo;
-	gl::vertex_array* quad_vao;
+	std::vector<std::function<void()>> command_buffer;
 };
 
 } // namespace render

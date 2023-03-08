@@ -27,7 +27,7 @@ namespace gl {
 
 class vertex_buffer;
 
-enum class vertex_attribute_type
+enum class vertex_attribute_type: std::uint8_t
 {
 	int_8,
 	uint_8,

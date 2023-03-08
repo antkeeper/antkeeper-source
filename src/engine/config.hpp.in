@@ -126,15 +126,6 @@ inline constexpr float new_colony_fade_out_duration = 1.0f;
 /// Duration of the nuptial flight fade in, in seconds.
 inline constexpr float nuptial_flight_fade_in_duration = 5.0f;
 
-#define MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT 1
-#define MATERIAL_PASS_MAX_POINT_LIGHT_COUNT 1
-#define MATERIAL_PASS_MAX_DIRECTIONAL_LIGHT_COUNT 3
-#define MATERIAL_PASS_MAX_SPOTLIGHT_COUNT 1
-#define MATERIAL_PASS_MAX_BONE_COUNT 64
-#define TERRAIN_PATCH_SIZE 200.0f
-#define TERRAIN_PATCH_RESOLUTION 4
-#define VEGETATION_PATCH_RESOLUTION 1
-
 } // namespace config
 
 #endif // ANTKEEPER_CONFIG_HPP

@@ -128,6 +128,7 @@ animation_channel<T>& animation_channel<T>::operator=(const animation_channel& o
 {
 	id = other.id;
 	keyframes = other.keyframes;
+	return *this;
 }
 
 template <typename T>

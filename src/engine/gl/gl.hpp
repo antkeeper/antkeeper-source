@@ -23,25 +23,4 @@
 /// Graphics library interface.
 namespace gl {}
 
-#include <engine/gl/buffer-usage.hpp>
-#include <engine/gl/color-space.hpp>
-#include <engine/gl/drawing-mode.hpp>
-#include <engine/gl/element-array-type.hpp>
-#include <engine/gl/framebuffer.hpp>
-#include <engine/gl/pixel-format.hpp>
-#include <engine/gl/pixel-type.hpp>
-#include <engine/gl/rasterizer.hpp>
-#include <engine/gl/shader-input.hpp>
-#include <engine/gl/shader-object.hpp>
-#include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-stage.hpp>
-#include <engine/gl/shader-variable-type.hpp>
-#include <engine/gl/texture-2d.hpp>
-#include <engine/gl/texture-cube.hpp>
-#include <engine/gl/texture-filter.hpp>
-#include <engine/gl/texture-wrapping.hpp>
-#include <engine/gl/vertex-array.hpp>
-#include <engine/gl/vertex-attribute.hpp>
-#include <engine/gl/vertex-buffer.hpp>
-
 #endif // ANTKEEPER_GL_HPP

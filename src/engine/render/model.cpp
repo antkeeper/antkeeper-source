@@ -18,103 +18,322 @@
  */
 
 #include <engine/render/model.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/render/vertex-attribute.hpp>
+#include <engine/gl/vertex-attribute.hpp>
+#include <engine/gl/drawing-mode.hpp>
+#include <engine/math/numbers.hpp>
+#include <engine/utility/hash/fnv1a.hpp>
+#include <cstdint>
 
 namespace render {
 
-model::model():
-	bounds({0, 0, 0}, {0, 0, 0})
-{}
-
-model::~model()
+model::model()
 {
-	for (model_group* group: groups)
-	{
-		delete group;
-	}
-}
-
-model_group* model::add_group(const std::string& name)
-{
-	if (!name.empty())
-	{
-		if (auto it = group_map.find(name); it != group_map.end())
-		{
-			return it->second;
-		}
-	}
-
-	model_group* group = new model_group();
-	group->index = groups.size();
-	group->name = name;
-	group->material = nullptr;
-	group->drawing_mode = gl::drawing_mode::triangles;
-	group->start_index = 0;
-	group->index_count = 0;
-
-	groups.push_back(group);
-
-	if (!name.empty())
-	{
-		group_map[name] = group;
-	}
-
-	return group;
-}
-
-bool model::remove_group(const std::string& name)
-{
-	if (auto it = group_map.find(name); it != group_map.end())
-	{
-		return remove_group(it->second);
-	}
-
-	return false;
-}
-
-bool model::remove_group(model_group* group)
-{
-	// Remove from group map
-	if (!group->name.empty())
-	{
-		if (auto it = group_map.find(group->name); it != group_map.end())
-		{
-			group_map.erase(it);
-		}
-	}
-
-	// Adjust indices of groups after this group
-	for (std::size_t i = group->index + 1; i < groups.size(); ++i)
-	{
-		--groups[i]->index;
-	}
-
-	// Remove from groups
-	groups.erase(groups.begin() + group->index);
-
-	// Deallocate group
-	delete group;
-
-	return true;
-}
-
-const model_group* model::get_group(const std::string& name) const
-{
-	if (auto it = group_map.find(name); it != group_map.end())
-	{
-		return it->second;
-	}
-
-	return nullptr;
-}
-
-model_group* model::get_group(const std::string& name)
-{
-	if (auto it = group_map.find(name); it != group_map.end())
-	{
-		return it->second;
-	}
-
-	return nullptr;
+	vertex_array = std::make_shared<gl::vertex_array>();
+	vertex_buffer = std::make_shared<gl::vertex_buffer>();
 }
 
 } // namespace render
+
+inline constexpr std::uint16_t vertex_attribute_position     = 0b0000000000000001;
+inline constexpr std::uint16_t vertex_attribute_uv           = 0b0000000000000010;
+inline constexpr std::uint16_t vertex_attribute_normal       = 0b0000000000000100;
+inline constexpr std::uint16_t vertex_attribute_tangent      = 0b0000000000001000;
+inline constexpr std::uint16_t vertex_attribute_color        = 0b0000000000010000;
+inline constexpr std::uint16_t vertex_attribute_bone         = 0b0000000000100000;
+inline constexpr std::uint16_t vertex_attribute_barycentric  = 0b0000000001000000;
+inline constexpr std::uint16_t vertex_attribute_morph_target = 0b0000000010000000;
+inline constexpr std::uint16_t vertex_attribute_index        = 0b0000000100000000;
+
+template <>
+std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+{
+	// Read vertex format
+	std::uint16_t vertex_format_flags = 0;
+	ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&vertex_format_flags), 1);
+	
+	// Read bone per vertex (if any)
+	std::uint8_t bones_per_vertex = 0;
+	if (vertex_format_flags & vertex_attribute_bone)
+	{
+		ctx.read8(reinterpret_cast<std::byte*>(&bones_per_vertex), 1);
+	}
+	
+	// Read vertex count
+	std::uint32_t vertex_count = 0;
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&vertex_count), 1);
+	
+	// Determine vertex size
+	std::size_t vertex_size = 0;
+	if (vertex_format_flags & vertex_attribute_position)
+	{
+		vertex_size += sizeof(float) * 3;
+	}
+	if (vertex_format_flags & vertex_attribute_uv)
+	{
+		vertex_size += sizeof(float) * 2;
+	}
+	if (vertex_format_flags & vertex_attribute_normal)
+	{
+		vertex_size += sizeof(float) * 3;
+	}
+	if (vertex_format_flags & vertex_attribute_tangent)
+	{
+		vertex_size += sizeof(float) * 4;
+	}
+	if (vertex_format_flags & vertex_attribute_color)
+	{
+		vertex_size += sizeof(float) * 4;
+	}
+	if (vertex_format_flags & vertex_attribute_bone)
+	{
+		vertex_size += sizeof(std::uint32_t) * bones_per_vertex;
+		vertex_size += sizeof(float) * bones_per_vertex;
+	}
+	if (vertex_format_flags & vertex_attribute_barycentric)
+	{
+		vertex_size += sizeof(float) * 3;
+	}
+	if (vertex_format_flags & vertex_attribute_morph_target)
+	{
+		vertex_size += sizeof(float) * 3;
+	}
+	
+	// Allocate vertex data
+	std::vector<std::byte> vertex_data(vertex_count * vertex_size);
+	
+	// Read vertices
+	if constexpr (std::endian::native == std::endian::little)
+	{
+		ctx.read8(vertex_data.data(), vertex_count * vertex_size);
+	}
+	else
+	{
+		std::byte* vertex_data_offset = vertex_data.data();
+		for (std::uint32_t i = 0; i < vertex_count; ++i)
+		{
+			if (vertex_format_flags & vertex_attribute_position)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				vertex_data_offset += sizeof(float) * 3;
+			}
+			if (vertex_format_flags & vertex_attribute_uv)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 2);
+				vertex_data_offset += sizeof(float) * 2;
+			}
+			if (vertex_format_flags & vertex_attribute_normal)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				vertex_data_offset += sizeof(float) * 3;
+			}
+			if (vertex_format_flags & vertex_attribute_tangent)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 4);
+				vertex_data_offset += sizeof(float) * 4;
+			}
+			if (vertex_format_flags & vertex_attribute_color)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 4);
+				vertex_data_offset += sizeof(float) * 4;
+			}
+			if (vertex_format_flags & vertex_attribute_bone)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, bones_per_vertex);
+				ctx.read32<std::endian::little>(vertex_data_offset, bones_per_vertex);
+				
+				vertex_data_offset += sizeof(std::uint32_t) * bones_per_vertex;
+				vertex_data_offset += sizeof(float) * bones_per_vertex;
+			}
+			if (vertex_format_flags & vertex_attribute_barycentric)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				vertex_data_offset += sizeof(float) * 3;
+			}
+			if (vertex_format_flags & vertex_attribute_morph_target)
+			{
+				ctx.read32<std::endian::little>(vertex_data_offset, 3);
+				vertex_data_offset += sizeof(float) * 3;
+			}
+		}
+	}
+	
+	// Allocate model
+	std::unique_ptr<render::model> model = std::make_unique<render::model>();
+	
+	// Resize model VBO and upload vertex data
+	gl::vertex_buffer& vbo = *model->get_vertex_buffer();
+	vbo.resize(vertex_data.size(), vertex_data);
+	
+	// Free vertex data
+	vertex_data.clear();
+	
+	// Bind vertex attributes to VAO
+	gl::vertex_array& vao = *model->get_vertex_array();
+	gl::vertex_attribute attribute;
+	attribute.buffer = &vbo;
+	attribute.offset = 0;
+	attribute.stride = vertex_size;
+	if (vertex_format_flags & vertex_attribute_position)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 3;
+		vao.bind(render::vertex_attribute::position, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_uv)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 2;
+		vao.bind(render::vertex_attribute::uv, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_normal)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 3;
+		vao.bind(render::vertex_attribute::normal, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_tangent)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 4;
+		vao.bind(render::vertex_attribute::tangent, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_color)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 4;
+		vao.bind(render::vertex_attribute::color, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_bone)
+	{
+		attribute.type = gl::vertex_attribute_type::uint_16;
+		attribute.components = bones_per_vertex;
+		vao.bind(render::vertex_attribute::bone_index, attribute);
+		attribute.offset += sizeof(std::uint32_t) * attribute.components;
+		
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = bones_per_vertex;
+		vao.bind(render::vertex_attribute::bone_weight, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_barycentric)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 3;
+		vao.bind(render::vertex_attribute::barycentric, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	if (vertex_format_flags & vertex_attribute_morph_target)
+	{
+		attribute.type = gl::vertex_attribute_type::float_32;
+		attribute.components = 3;
+		vao.bind(render::vertex_attribute::target, attribute);
+		attribute.offset += sizeof(float) * attribute.components;
+	}
+	
+	// Read model bounds
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(model->get_bounds().min_point.data()), 3);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(model->get_bounds().max_point.data()), 3);
+	
+	// Read material count
+	std::uint16_t material_count = 0;
+	ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&material_count), 1);
+	
+	// Allocate material groups
+	model->get_groups().resize(material_count);
+	
+	// Read materials
+	for (auto& group: model->get_groups())
+	{
+		// Read material name length
+		std::uint8_t material_name_length = 0;
+		ctx.read8(reinterpret_cast<std::byte*>(&material_name_length), 1);
+		
+		// Read material name
+		std::string material_name(static_cast<std::size_t>(material_name_length), '\0');
+		ctx.read8(reinterpret_cast<std::byte*>(material_name.data()), material_name_length);
+		
+		// Generate group ID by hashing material name
+		group.id = hash::fnv1a32<char>(material_name);
+		
+		// Set group drawing mode
+		group.drawing_mode = gl::drawing_mode::triangles;
+		
+		// Read offset to index of first vertex
+		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&group.start_index), 1);
+		
+		// Read vertex count
+		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&group.index_count), 1);
+		
+		// Slugify material filename
+		std::string material_filename = material_name + ".mtl";
+		std::replace(material_filename.begin(), material_filename.end(), '_', '-');
+		
+		// Load group material
+		group.material = resource_manager.load<render::material>(material_filename);
+	}
+	
+	// Read skeleton
+	if (vertex_format_flags & vertex_attribute_bone)
+	{
+		::skeleton& skeleton = model->get_skeleton();
+		pose& bind_pose = skeleton.bind_pose;
+		
+		// Read bone count
+		std::uint16_t bone_count = 0;
+		ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_count), 1);
+		
+		// Read bones
+		for (std::uint16_t i = 0; i < bone_count; ++i)
+		{
+			// Read bone name length
+			std::uint8_t bone_name_length = 0;
+			ctx.read8(reinterpret_cast<std::byte*>(&bone_name_length), 1);
+			
+			// Read and hash bone name
+			std::string bone_name(static_cast<std::size_t>(bone_name_length), '\0');
+			ctx.read8(reinterpret_cast<std::byte*>(bone_name.data()), bone_name_length);
+			hash::fnv1a32_t bone_key = hash::fnv1a32<char>(bone_name);
+			
+			// Read parent bone index
+			std::uint16_t parent_bone_index = i;
+			ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&parent_bone_index), 1);
+			
+			// Construct bone identifier
+			::bone bone = make_bone(i, parent_bone_index);
+			
+			// Add bone to bone map
+			skeleton.bone_map[bone_key] = bone;
+			
+			// Get reference to the bone's bind pose transform
+			auto& bone_transform = bind_pose[bone];
+			
+			// Read bone translation
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.translation.data()), 3);
+			
+			// Read bone rotation
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_transform.rotation.r), 1);
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.rotation.i.data()), 3);
+			
+			// Set bone scale
+			bone_transform.scale = {1, 1, 1};
+			
+			// Read bone length
+			float bone_length = 0.0f;
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_length), 1);
+		}
+		
+		// Calculate inverse skeleton-space bind pose
+		::concatenate(skeleton.bind_pose, skeleton.inverse_bind_pose);
+		::inverse(skeleton.inverse_bind_pose, skeleton.inverse_bind_pose);
+	}
+	
+	return model;
+}

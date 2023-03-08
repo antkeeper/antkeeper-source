@@ -27,12 +27,16 @@
 #include <engine/gl/texture-wrapping.hpp>
 #include <array>
 #include <cstdint>
+#include <cstddef>
 #include <tuple>
 
 namespace gl {
 
 class framebuffer;
-class shader_input;
+class gl_shader_texture_1d;
+class gl_shader_texture_2d;
+class gl_shader_texture_3d;
+class gl_shader_texture_cube;
 
 /**
  * Abstract base class for 1D, 2D, 3D, and cube textures which can be uploaded to shaders via shader inputs.
@@ -54,9 +58,9 @@ public:
 	 * @warning If the sRGB color space is specified, pixel data will be stored internally as 8 bits per channel, and automatically converted to linear space before reading.
 	 */
 	/// @{
-	texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const void* data = nullptr);
-	texture(std::uint16_t width, std::uint16_t height, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const void* data = nullptr);
-	texture(std::uint16_t width, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const void* data = nullptr);
+	texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
+	texture(std::uint16_t width, std::uint16_t height, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
+	texture(std::uint16_t width, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
 	/// @}
 	
 	/**
@@ -137,14 +141,17 @@ protected:
 	 * @warning If the sRGB color space is specified, pixel data will be stored internally as 8 bits per channel, and automatically converted to linear space before reading.
 	 */
 	/// @{
-	virtual void resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data);
-	virtual void resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data);
-	virtual void resize(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data);
+	virtual void resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data);
+	virtual void resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data);
+	virtual void resize(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data);
 	/// @}
 
 private:
 	friend class framebuffer;
-	friend class shader_input;
+	friend class gl_shader_texture_1d;
+	friend class gl_shader_texture_2d;
+	friend class gl_shader_texture_3d;
+	friend class gl_shader_texture_cube;
 	
 	unsigned int gl_texture_target;
 	unsigned int gl_texture_id;

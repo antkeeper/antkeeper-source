@@ -25,8 +25,8 @@
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/event/subscription.hpp>
 #include <engine/scene/text.hpp>
+#include <engine/utility/text-file.hpp>
 #include <memory>
-
 
 class nuptial_flight_state: public game_state
 {
@@ -70,6 +70,10 @@ private:
 
 	// Ants
 	entity::id swarm_eid;
+	
+	// Name generation
+	std::shared_ptr<text_file> female_name_pool;
+	std::shared_ptr<text_file> male_name_pool;
 	
 	// Picking
 	std::uint32_t selected_picking_flag;

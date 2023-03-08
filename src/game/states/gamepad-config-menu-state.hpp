@@ -24,7 +24,9 @@
 #include <engine/input/action.hpp>
 #include <engine/input/action-map.hpp>
 #include <engine/event/subscription.hpp>
+#include <engine/utility/hash/fnv1a.hpp>
 #include <cstdint>
+#include <engine/scene/text.hpp>
 #include <memory>
 
 
@@ -36,11 +38,14 @@ public:
 	
 private:
 	std::string get_mapping_string(const input::action_map& action_map, const input::action& control);
-	void add_control_item(input::action_map& action_map, input::action& control, std::uint32_t control_name_hash);
+	void add_control_item(input::action_map& action_map, input::action& control, hash::fnv1a32_t control_name_hash);
 	
 	std::shared_ptr<event::subscription> gamepad_axis_mapped_subscription;
 	std::shared_ptr<event::subscription> gamepad_button_mapped_subscription;
 	std::shared_ptr<event::subscription> key_mapped_subscription;
+	
+	std::unique_ptr<scene::text> back_text;
+	std::vector<std::unique_ptr<scene::text>> control_item_texts;
 	
 	bool action_remapped;
 };

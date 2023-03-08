@@ -30,16 +30,6 @@ namespace render {
 class stage
 {
 public:
-	/**
-	 * Constructs a render stage and sets it priority.
-	 *
-	 * @param priority Stage execution order priority.
-	 */
-	stage(int priority);
-	
-	/// Constructs a render stage.
-	stage();
-	
 	/// Destructs a render stage.
 	virtual ~stage() = default;
 	
@@ -48,7 +38,7 @@ public:
 	 *
 	 * @param ctx Render context.
 	 */
-	virtual void execute(render::context& ctx) const = 0;
+	virtual void execute(render::context& ctx) = 0;
 	
 	/**
 	 * Sets the priority of the stage's execution order in the render pipeline.
@@ -58,16 +48,14 @@ public:
 	void set_priority(int priority);
 	
 	/// Returns the priority of the stage's execution order in the render pipeline.
-	int get_priority() const noexcept;
+	[[nodiscard]] inline int get_priority() const noexcept
+	{
+		return priority;
+	}
 	
 private:
-	int priority;
+	int priority{0};
 };
-
-inline int stage::get_priority() const noexcept
-{
-	return priority;
-}
 
 } // namespace render
 

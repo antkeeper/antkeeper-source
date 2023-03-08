@@ -39,7 +39,7 @@ class vertex_array
 {
 public:
 	/// Vertex attribute binding location type.
-	typedef std::uint_fast32_t attribute_location_type;
+	typedef unsigned int attribute_location_type;
 	
 	/// Maps vertex attribute to binding locations.
 	typedef std::unordered_map<attribute_location_type, vertex_attribute> attribute_map_type;
@@ -51,7 +51,9 @@ public:
 	~vertex_array();
 
 	vertex_array(const vertex_array&) = delete;
+	vertex_array(vertex_array&&) = delete;
 	vertex_array& operator=(const vertex_array&) = delete;
+	vertex_array& operator=(vertex_array&&) = delete;
 	
 	/**
 	 * Binds a vertex attribute to the vertex array.
@@ -74,13 +76,16 @@ public:
 	void unbind(attribute_location_type location);
 	
 	/// Returns a const reference to the map of vertex attributes bound to this vertex array.
-	const attribute_map_type& get_attributes() const;
+	[[nodiscard]] inline const attribute_map_type& attributes() const noexcept
+	{
+		return m_attributes;
+	}
 	
 private:
 	friend class rasterizer;
 	
-	attribute_map_type attributes;
-	std::uint_fast32_t gl_array_id;
+	unsigned int gl_array_id{0};
+	attribute_map_type m_attributes;
 };
 
 } // namespace gl

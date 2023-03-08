@@ -22,12 +22,12 @@
 
 #include <engine/render/model.hpp>
 #include <unordered_map>
-
+#include <memory>
 
 struct model_component
 {
-	render::model* render_model;
-	std::unordered_map<int, render::material*> materials;
+	std::shared_ptr<render::model> render_model;
+	std::unordered_map<int, std::shared_ptr<render::material>> materials;
 	int instance_count;
 	unsigned int layers;
 };

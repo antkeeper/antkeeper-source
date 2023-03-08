@@ -20,6 +20,8 @@
 #ifndef ANTKEEPER_RENDER_VERTEX_ATTRIBUTE_HPP
 #define ANTKEEPER_RENDER_VERTEX_ATTRIBUTE_HPP
 
+#include <cstdint>
+
 namespace render {
 
 /**
@@ -27,7 +29,7 @@ namespace render {
  */
 namespace vertex_attribute
 {
-	enum
+	enum: std::uint8_t
 	{
 		/// Vertex position (vec3)
 		position,
@@ -44,7 +46,7 @@ namespace vertex_attribute
 		/// Vertex color (vec4)
 		color,
 		
-		/// Vertex bone indices (vec4)
+		/// Vertex bone indices (uvec4)
 		bone_index,
 		
 		/// Vertex bone weights (vec4)

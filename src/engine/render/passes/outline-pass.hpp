@@ -23,7 +23,8 @@
 #include <engine/render/pass.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
+#include <memory>
 
 class resource_manager;
 
@@ -36,20 +37,20 @@ class outline_pass: public pass
 {
 public:
 	outline_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
-	virtual ~outline_pass();
-	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	virtual ~outline_pass() = default;
+	void render(const render::context& ctx, render::queue& queue) override;
 	
 	void set_outline_width(float width);
 	void set_outline_color(const float4& color);
 
 private:
-	gl::shader_program* fill_shader;
-	const gl::shader_input* fill_model_view_projection_input;
+	std::unique_ptr<gl::shader_program> fill_shader;
+	const gl::shader_variable* fill_model_view_projection_var;
 	
-	gl::shader_program* stroke_shader;
-	const gl::shader_input* stroke_model_view_projection_input;
-	const gl::shader_input* stroke_width_input;
-	const gl::shader_input* stroke_color_input;
+	std::unique_ptr<gl::shader_program> stroke_shader;
+	const gl::shader_variable* stroke_model_view_projection_var;
+	const gl::shader_variable* stroke_width_var;
+	const gl::shader_variable* stroke_color_var;
 	
 	float outline_width;
 	float4 outline_color;

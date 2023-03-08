@@ -24,7 +24,8 @@
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/scene/directional-light.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
+#include <memory>
 
 class resource_manager;
 
@@ -46,17 +47,12 @@ public:
 	shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager);
 	
 	/**
-	 * Destructs a shadow map pass.
-	 */
-	virtual ~shadow_map_pass();
-	
-	/**
 	 * Renders shadow maps for a single camera.
 	 *
 	 * @param ctx Render context.
 	 * @param queue Render queue.
 	 */
-	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	void render(const render::context& ctx, render::queue& queue) override;
 
 private:
 	/**
@@ -68,11 +64,11 @@ private:
 	 */
 	void render_csm(const scene::directional_light& light, const render::context& ctx, render::queue& queue) const;
 	
-	gl::shader_program* unskinned_shader_program;
-	const gl::shader_input* unskinned_model_view_projection_input;
+	std::unique_ptr<gl::shader_program> unskinned_shader_program;
+	const gl::shader_variable* unskinned_model_view_projection_var;
 	
-	gl::shader_program* skinned_shader_program;
-	const gl::shader_input* skinned_model_view_projection_input;
+	std::unique_ptr<gl::shader_program> skinned_shader_program;
+	const gl::shader_variable* skinned_model_view_projection_var;
 	
 	float4x4 bias_tile_matrices[4];
 };

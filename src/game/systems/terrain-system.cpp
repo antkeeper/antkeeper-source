@@ -41,8 +41,7 @@ terrain_system::terrain_system(entity::registry& registry):
 	scene_collection(nullptr),
 	patch_base_mesh(nullptr),
 	patch_vertex_size(0),
-	patch_vertex_stride(0),
-	patch_vertex_data(nullptr)
+	patch_vertex_stride(0)
 {
 	// Specify vertex size and stride
 	// (position + uv + normal + tangent + barycentric + target)
@@ -145,8 +144,7 @@ void terrain_system::set_patch_subdivisions(std::size_t n)
 	patch_triangle_count = patch_cell_count * 2;
 	
 	// Resize patch vertex data buffer
-	delete[] patch_vertex_data;
-	patch_vertex_data = new float[patch_triangle_count * 3 * patch_vertex_size];
+	patch_vertex_data.resize(patch_triangle_count * 3 * patch_vertex_size);
 	
 	// Resize patch buffers
 	
@@ -160,7 +158,7 @@ void terrain_system::set_patch_subdivisions(std::size_t n)
 	rebuild_patch_base_mesh();
 }
 
-void terrain_system::set_patch_material(::render::material* material)
+void terrain_system::set_patch_material(std::shared_ptr<::render::material> material)
 {
 	patch_material = material;
 }
@@ -214,7 +212,6 @@ float3 terrain_system::get_patch_center(quadtree_node_type node) const
 void terrain_system::rebuild_patch_base_mesh()
 {
 	// Rebuild grid
-	delete patch_base_mesh;
 	patch_base_mesh = geom::meshes::grid_xy(1.0f, patch_subdivisions, patch_subdivisions);
 	
 	// Convert quads to triangle fans
@@ -286,7 +283,7 @@ void terrain_system::balance_quadtree()
 	}
 }
 
-geom::mesh* terrain_system::generate_patch_mesh(quadtree_node_type node) const
+std::unique_ptr<geom::mesh> terrain_system::generate_patch_mesh(quadtree_node_type node) const
 {
 	// Extract node depth
 	const quadtree_type::node_type node_depth = quadtree_type::depth(node);
@@ -310,7 +307,7 @@ geom::mesh* terrain_system::generate_patch_mesh(quadtree_node_type node) const
 	};
 	
 	// Copy patch base mesh
-	geom::mesh* patch_mesh = new geom::mesh(*patch_base_mesh);
+	std::unique_ptr<geom::mesh> patch_mesh = std::make_unique<geom::mesh>(*patch_base_mesh);
 	
 	// Modify patch mesh vertex positions
 	for (geom::mesh::vertex* v: patch_mesh->get_vertices())
@@ -483,7 +480,7 @@ geom::mesh* terrain_system::generate_patch_mesh(quadtree_node_type node) const
 	*/
 	
 	// For each row
-	float* v = patch_vertex_data;
+	float* v = patch_vertex_data.data();
 	for (std::size_t i = 1; i < patch_vertex_buffer.size() - 2; ++i)
 	{
 		// For each column
@@ -549,6 +546,8 @@ geom::mesh* terrain_system::generate_patch_mesh(quadtree_node_type node) const
 			}
 		}
 	}
+	
+	/*
 	
 	// Allocate patch model
 	::render::model* patch_model = new ::render::model();
@@ -635,14 +634,20 @@ geom::mesh* terrain_system::generate_patch_mesh(quadtree_node_type node) const
 	patch_model->set_bounds(patch_bounds);
 	
 	return patch_model;
+	*/
+	
+	return nullptr;
 }
 
 terrain_system::patch* terrain_system::generate_patch(quadtree_node_type node)
 {
+	/*
 	patch* node_patch = new patch();
 	node_patch->mesh = nullptr;//generate_patch_mesh(node);
 	node_patch->model = generate_patch_model(node);
 	node_patch->model_instance = new scene::model_instance(node_patch->model);
 	return node_patch;
+	*/
+	return nullptr;
 }
 

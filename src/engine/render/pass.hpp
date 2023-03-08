@@ -36,7 +36,7 @@ public:
 	pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer);
 	virtual ~pass();
 
-	virtual void render(const render::context& ctx, render::queue& queue) const = 0;
+	virtual void render(const render::context& ctx, render::queue& queue) = 0;
 
 	void set_enabled(bool enabled);
 	bool is_enabled() const;

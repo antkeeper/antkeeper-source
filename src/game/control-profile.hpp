@@ -22,7 +22,7 @@
 
 #include <engine/input/mapping.hpp>
 #include <engine/utility/dict.hpp>
-#include <cstdint>
+#include <engine/utility/hash/fnv1a.hpp>
 #include <map>
 #include <memory>
 
@@ -31,10 +31,10 @@ struct control_profile
 {
 public:
 	/// Input mappings.
-	std::multimap<std::uint32_t, std::unique_ptr<input::mapping>> mappings;
+	std::multimap<hash::fnv1a32_t, std::unique_ptr<input::mapping>> mappings;
 	
 	/// Profile-specific settings.
-	dict<std::uint32_t> settings;
+	dict<hash::fnv1a32_t> settings;
 };
 
 

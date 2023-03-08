@@ -17,10 +17,10 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/ant/cladogenesis.hpp"
-#include "game/ant/genome.hpp"
-#include "game/ant/morphogenesis.hpp"
-#include "game/ant/phenome.hpp"
+#include "game/ant/ant-cladogenesis.hpp"
+#include "game/ant/ant-genome.hpp"
+#include "game/ant/ant-morphogenesis.hpp"
+#include "game/ant/ant-phenome.hpp"
 #include "game/commands/commands.hpp"
 #include "game/components/camera-component.hpp"
 #include "game/components/constraint-stack-component.hpp"
@@ -65,9 +65,6 @@
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/state-machine.hpp>
 
-using namespace ::ant;
-
-
 nest_selection_state::nest_selection_state(::game& ctx):
 	game_state(ctx)
 {
@@ -86,15 +83,15 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	debug::log::trace("Generating genome...");
 	std::random_device rng;
-	ant::genome* genome = ant::cladogenesis(ctx.active_ecoregion->gene_pools[0], rng);
+	std::unique_ptr<ant_genome> genome = ant_cladogenesis(ctx.active_ecoregion->gene_pools[0], rng);
 	debug::log::trace("Generated genome");
 	
 	debug::log::trace("Building worker phenome...");
-	ant::phenome worker_phenome = ant::phenome(*genome, ant::caste::worker);
+	ant_phenome worker_phenome = ant_phenome(*genome, ant_caste::worker);
 	debug::log::trace("Built worker phenome...");
 	
 	debug::log::trace("Generating worker model...");
-	render::model* worker_model = ant::morphogenesis(worker_phenome);
+	std::shared_ptr<render::model> worker_model = ant_morphogenesis(worker_phenome);
 	debug::log::trace("Generated worker model");
 	
 	// Create worker entity(s)
@@ -200,7 +197,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	);
 	
 	// Queue fade in
-	ctx.fade_transition_color->set_value({0, 0, 0});
+	ctx.fade_transition_color->set({0, 0, 0});
 	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition.get(), 1.0f, true, ease<float>::out_sine, true, nullptr));
 	
 	debug::log::trace("Entered nest selection state");

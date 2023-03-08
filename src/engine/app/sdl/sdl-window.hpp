@@ -22,6 +22,7 @@
 
 #include <engine/app/window.hpp>
 #include <SDL2/SDL.h>
+#include <memory>
 
 namespace app {
 
@@ -60,7 +61,7 @@ public:
 	
 	[[nodiscard]] inline virtual gl::rasterizer* get_rasterizer() noexcept
 	{
-		return rasterizer;
+		return rasterizer.get();
 	}
 	
 private:
@@ -68,7 +69,7 @@ private:
 	
 	SDL_Window* internal_window;
 	SDL_GLContext internal_context;
-	gl::rasterizer* rasterizer;
+	std::unique_ptr<gl::rasterizer> rasterizer;
 };
 
 } // namespace app

@@ -47,7 +47,7 @@ void orbit_system::update(double t, double dt)
 	
 	// Calculate positions of ephemeris items, in meters
 	for (int i: ephemeris_indices)
-		positions[i] = (*ephemeris)[i].position(time) * 1000.0;
+		positions[i] = ephemeris->trajectories[i].position(time) * 1000.0;
 	
 	// Propagate orbits
 	registry.view<orbit_component>().each(
@@ -65,10 +65,10 @@ void orbit_system::update(double t, double dt)
 	});
 }
 
-void orbit_system::set_ephemeris(const physics::orbit::ephemeris<double>* ephemeris)
+void orbit_system::set_ephemeris(std::shared_ptr<physics::orbit::ephemeris<double>> ephemeris)
 {
 	this->ephemeris = ephemeris;
-	positions.resize((ephemeris) ? ephemeris->size() : 0);
+	positions.resize((ephemeris) ? ephemeris->trajectories.size() : 0);
 }
 
 void orbit_system::set_time(double time)

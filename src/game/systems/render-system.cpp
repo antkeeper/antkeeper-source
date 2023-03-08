@@ -60,13 +60,13 @@ void render_system::update(double t, double dt)
 	(
 		[this](entity::id entity_id, auto& transform, auto& model)
 		{
-			scene::model_instance* instance = model_instances[entity_id];
+			scene::model_instance& instance = *model_instances[entity_id];
 
-			instance->set_transform(transform.world);
+			instance.set_transform(transform.world);
 			if (transform.warp)
 			{
-				instance->get_transform_tween().update();
-				instance->update_tweens();
+				instance.get_transform_tween().update();
+				instance.update_tweens();
 				transform.warp = false;
 			}
 		}
@@ -92,13 +92,13 @@ void render_system::update(double t, double dt)
 	(
 		[this](entity::id entity_id, auto& transform, auto& light)
 		{
-			scene::light* light_object = lights[entity_id];
+			scene::light& light_object = *lights[entity_id];
 
-			light_object->set_transform(transform.world);
+			light_object.set_transform(transform.world);
 			if (transform.warp)
 			{
-				light_object->get_transform_tween().update();
-				light_object->update_tweens();
+				light_object.get_transform_tween().update();
+				light_object.update_tweens();
 				transform.warp = false;
 			}
 		}
@@ -134,14 +134,14 @@ void render_system::set_renderer(render::renderer* renderer)
 scene::model_instance* render_system::get_model_instance(entity::id entity_id)
 {
 	if (auto it = model_instances.find(entity_id); it != model_instances.end())
-		return it->second;
+		return it->second.get();
 	return nullptr;
 }
 
 scene::light* render_system::get_light(entity::id entity_id)
 {
 	if (auto it = lights.find(entity_id); it != lights.end())
-		return it->second;
+		return it->second.get();
 	return nullptr;
 }
 
@@ -160,11 +160,11 @@ void render_system::update_model_and_materials(entity::id entity_id, model_compo
 		// Add model instance to its specified layers
 		for (std::size_t i = 0; i < std::min<std::size_t>(layers.size(), (sizeof(model.layers) << 3)); ++i)
 		{
-			layers[i]->remove_object(model_it->second);
+			layers[i]->remove_object(model_it->second.get());
 			
 			if ((model.layers >> i) & 1)
 			{
-				layers[i]->add_object(model_it->second);
+				layers[i]->add_object(model_it->second.get());
 			}
 		}
 	}
@@ -174,25 +174,25 @@ void render_system::update_light(entity::id entity_id, ::light_component& compon
 {
 	if (auto light_it = lights.find(entity_id); light_it != lights.end())
 	{
-		scene::light* light = light_it->second;
+		scene::light& light = *light_it->second;
 		
-		light->set_color(component.color);
-		light->set_intensity(component.intensity);
+		light.set_color(component.color);
+		light.set_intensity(component.intensity);
 		
-		switch (light->get_light_type())
+		switch (light.get_light_type())
 		{
 			case scene::light_type::point:
 			{
-				scene::point_light* point = static_cast<scene::point_light*>(light);
-				point->set_attenuation(component.attenuation);
+				scene::point_light& point = static_cast<scene::point_light&>(light);
+				point.set_attenuation(component.attenuation);
 				break;
 			}
 			
 			case scene::light_type::spot:
 			{
-				scene::spot_light* spot = static_cast<scene::spot_light*>(light);
-				spot->set_attenuation(component.attenuation);
-				spot->set_cutoff(component.cutoff);
+				scene::spot_light& spot = static_cast<scene::spot_light&>(light);
+				spot.set_attenuation(component.attenuation);
+				spot.set_cutoff(component.cutoff);
 				break;
 			}
 			
@@ -206,8 +206,7 @@ void render_system::on_model_construct(entity::registry& registry, entity::id en
 {
 	::model_component& component = registry.get<::model_component>(entity_id);
 	
-	scene::model_instance* model_instance = new scene::model_instance();	
-	model_instances[entity_id] = model_instance;
+	model_instances[entity_id] = std::make_unique<scene::model_instance>();
 	update_model_and_materials(entity_id, component);
 }
 
@@ -221,14 +220,10 @@ void render_system::on_model_destroy(entity::registry& registry, entity::id enti
 {
 	if (auto it = model_instances.find(entity_id); it != model_instances.end())
 	{
-		scene::model_instance* model_instance = it->second;
-		
-		// Remove model instance from all layers
 		for (scene::collection* layer: layers)
-			layer->remove_object(model_instance);
+			layer->remove_object(it->second.get());
 
 		model_instances.erase(it);
-		delete model_instance;
 	}
 }
 
@@ -236,24 +231,24 @@ void render_system::on_light_construct(entity::registry& registry, entity::id en
 {
 	::light_component& component = registry.get<::light_component>(entity_id);
 	
-	scene::light* light = nullptr;
+	std::unique_ptr<scene::light> light;
 	
 	switch (component.type)
 	{
 		case scene::light_type::ambient:
-			light = new scene::ambient_light();
+			light = std::make_unique<scene::ambient_light>();
 			break;
 		
 		case scene::light_type::directional:
-			light = new scene::directional_light();
+			light = std::make_unique<scene::directional_light>();
 			break;
 		
 		case scene::light_type::point:
-			light = new scene::point_light();
+			light = std::make_unique<scene::point_light>();
 			break;
 		
 		case scene::light_type::spot:
-			light = new scene::spot_light();
+			light = std::make_unique<scene::spot_light>();
 			break;
 		
 		default:
@@ -262,9 +257,10 @@ void render_system::on_light_construct(entity::registry& registry, entity::id en
 	
 	if (light)
 	{
-		lights[entity_id] = light;
 		for (scene::collection* layer: layers)
-			layer->add_object(light);
+			layer->add_object(light.get());
+		
+		lights[entity_id] = std::move(light);
 		
 		update_light(entity_id, component);
 	}
@@ -280,12 +276,9 @@ void render_system::on_light_destroy(entity::registry& registry, entity::id enti
 {
 	if (auto it = lights.find(entity_id); it != lights.end())
 	{
-		scene::light* light = it->second;
-		
 		for (scene::collection* layer: layers)
-			layer->remove_object(light);
+			layer->remove_object(it->second.get());
 		
 		lights.erase(it);
-		delete light;
 	}
 }

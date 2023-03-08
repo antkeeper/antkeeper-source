@@ -43,9 +43,8 @@
 #include <engine/input/mapper.hpp>
 #include <engine/math/moving-average.hpp>
 #include <engine/render/anti-aliasing-method.hpp>
-#include <engine/render/material-property.hpp>
+#include <engine/render/material-variable.hpp>
 #include <engine/render/material.hpp>
-#include <engine/resources/json.hpp>
 #include <engine/scene/scene.hpp>
 #include <engine/type/bitmap-font.hpp>
 #include <engine/type/typeface.hpp>
@@ -155,7 +154,7 @@ public:
 	std::filesystem::path controls_path;
 	
 	// Persistent settings
-	std::shared_ptr<dict<std::uint32_t>> settings;
+	std::shared_ptr<dict<hash::fnv1a32_t>> settings;
 	
 	// Window management and window event handling
 	std::unique_ptr<app::window_manager> window_manager;
@@ -176,22 +175,22 @@ public:
 	
 	// Localization and internationalization
 	std::string language_tag;
-	i18n::string_map* string_map;
+	std::shared_ptr<i18n::string_map> string_map;
 	
 	// Fonts
-	std::unordered_map<std::string, type::typeface*> typefaces;
+	std::unordered_map<std::string, std::shared_ptr<type::typeface>> typefaces;
 	type::bitmap_font debug_font;
 	type::bitmap_font menu_font;
 	type::bitmap_font title_font;
-	render::material debug_font_material;
-	render::material menu_font_material;
-	render::material title_font_material;
+	std::shared_ptr<render::material> debug_font_material;
+	std::shared_ptr<render::material> menu_font_material;
+	std::shared_ptr<render::material> title_font_material;
 	
 	// Action maps, actions, and action event handling
 	std::string control_profile_filename;
-	::control_profile* control_profile;
+	std::shared_ptr<::control_profile> control_profile;
 	
-	std::unordered_map<std::uint32_t, input::action> actions;
+	std::unordered_map<hash::fnv1a32_t, input::action> actions;
 	input::action_map window_action_map;
 	input::action_map menu_action_map;
 	input::action_map movement_action_map;
@@ -221,7 +220,6 @@ public:
 	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> movement_action_subscriptions;
 	
-	
 	// Debugging
 	math::moving_average<float, 30> average_frame_time;
 	std::unique_ptr<scene::text> frame_time_text;
@@ -243,15 +241,15 @@ public:
 	::loop loop;
 	
 	// Framebuffers
-	gl::texture_2d* hdr_color_texture;
-	gl::texture_2d* hdr_depth_texture;
-	gl::framebuffer* hdr_framebuffer;
-	gl::texture_2d* ldr_color_texture_a;
-	gl::framebuffer* ldr_framebuffer_a;
-	gl::texture_2d* ldr_color_texture_b;
-	gl::framebuffer* ldr_framebuffer_b;
-	gl::texture_2d* shadow_map_depth_texture;
-	gl::framebuffer* shadow_map_framebuffer;
+	std::unique_ptr<gl::texture_2d> hdr_color_texture;
+	std::unique_ptr<gl::texture_2d> hdr_depth_texture;
+	std::unique_ptr<gl::framebuffer> hdr_framebuffer;
+	std::unique_ptr<gl::texture_2d> ldr_color_texture_a;
+	std::unique_ptr<gl::framebuffer> ldr_framebuffer_a;
+	std::unique_ptr<gl::texture_2d> ldr_color_texture_b;
+	std::unique_ptr<gl::framebuffer> ldr_framebuffer_b;
+	std::unique_ptr<gl::texture_2d> shadow_map_depth_texture;
+	std::unique_ptr<gl::framebuffer> shadow_map_framebuffer;
 	
 	// Rendering
 	//gl::rasterizer* rasterizer;
@@ -260,7 +258,6 @@ public:
 	int shadow_map_resolution;
 	std::unique_ptr<gl::vertex_buffer> billboard_vbo;
 	std::unique_ptr<gl::vertex_array> billboard_vao;
-	render::material* fallback_material;
 	std::unique_ptr<render::clear_pass> ui_clear_pass;
 	std::unique_ptr<render::material_pass> ui_material_pass;
 	std::unique_ptr<render::compositor> ui_compositor;
@@ -283,12 +280,16 @@ public:
 	
 	// Scene utilities
 	scene::collection* active_scene;
+	std::unique_ptr<scene::directional_light> sun_light;
+	std::unique_ptr<scene::directional_light> moon_light;
+	std::unique_ptr<scene::ambient_light> sky_light;
+	std::unique_ptr<scene::directional_light> bounce_light;
 	
 	// UI
 	std::unique_ptr<scene::collection> ui_scene;
 	std::unique_ptr<scene::camera> ui_camera;
 	std::unique_ptr<scene::billboard> menu_bg_billboard;
-	render::material menu_bg_material;
+	std::shared_ptr<render::material> menu_bg_material;
 	std::unique_ptr<animation<float>> menu_fade_animation;
 	std::unique_ptr<animation<float>> menu_bg_fade_in_animation;
 	std::unique_ptr<animation<float>> menu_bg_fade_out_animation;
@@ -321,7 +322,7 @@ public:
 	std::unique_ptr<animation<float>> radial_transition_in;
 	std::unique_ptr<animation<float>> radial_transition_out;
 	std::unique_ptr<screen_transition> fade_transition;
-	render::material_property<float3>* fade_transition_color;
+	std::shared_ptr<render::material_float3> fade_transition_color;
 	std::unique_ptr<screen_transition> radial_transition_inner;
 	std::unique_ptr<screen_transition> radial_transition_outer;
 	std::unique_ptr<animation<float>> equip_tool_animation;
@@ -339,7 +340,7 @@ public:
 	
 	// Entities
 	std::unique_ptr<entity::registry> entity_registry;
-	std::unordered_map<std::string, entity::id> entities;
+	std::unordered_map<hash::fnv1a32_t, entity::id> entities;
 	
 	// Systems
 	std::unique_ptr<::behavior_system> behavior_system;

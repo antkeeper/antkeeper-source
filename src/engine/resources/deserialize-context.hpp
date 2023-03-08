@@ -22,6 +22,7 @@
 
 #include <cstddef>
 #include <bit>
+#include <filesystem>
 
 /**
  * Provides access to a deserialization state.
@@ -29,6 +30,42 @@
 struct deserialize_context
 {
 public:
+	/**
+	 * Returns the path associated with this deserialize context.
+	 */
+	[[nodiscard]] virtual const std::filesystem::path& path() const noexcept = 0;
+	
+	/**
+	 * Returns `true` if an error occured during a read operation or initialization, `false` otherwise.
+	 */
+	[[nodiscard]] virtual bool error() const noexcept = 0;
+	
+	/**
+	 * Returns `true` if the end of a file was reached.
+	 */
+	[[nodiscard]] virtual bool eof() const noexcept = 0;
+	
+	/**
+	 * Returns the size of the file, in bytes.
+	 */
+	[[nodiscard]] virtual std::size_t size() const noexcept = 0;
+	
+	/**
+	 * Returns the offsets from the start of the file to the current position, in bytes.
+	 *
+	 * @throw deserialize_error Tell error.
+	 */
+	[[nodiscard]] virtual std::size_t tell() const = 0;
+	
+	/**
+	 * Seeks to a position in the file.
+	 *
+	 * @param offset Offset from the start of the file, in bytes.
+	 *
+	 * @throw deserialize_error Seek error.
+	 */
+	virtual void seek(std::size_t offset) = 0;
+	
 	/**
 	 * Reads 8-bit (byte) data.
 	 *
@@ -39,7 +76,7 @@ public:
 	 *
 	 * @throw deserialize_error Read error.
 	 */
-	std::size_t read8(std::byte* data, std::size_t count) noexcept(false);
+	virtual std::size_t read8(std::byte* data, std::size_t count) noexcept(false) = 0;
 	
 	/**
 	 * Reads 16-bit (word) little-endian data.
@@ -51,7 +88,7 @@ public:
 	 *
 	 * @throw deserialize_error Read error.
 	 */
-	std::size_t read16_le(std::byte* data, std::size_t count) noexcept(false);
+	virtual std::size_t read16_le(std::byte* data, std::size_t count) noexcept(false) = 0;
 	
 	/**
 	 * Reads 16-bit (word) big-endian data.
@@ -63,7 +100,7 @@ public:
 	 *
 	 * @throw deserialize_error Read error.
 	 */
-	std::size_t read16_be(std::byte* data, std::size_t count) noexcept(false);
+	virtual std::size_t read16_be(std::byte* data, std::size_t count) noexcept(false) = 0;
 	
 	/**
 	 * Reads 16-bit (word) data.
@@ -100,7 +137,7 @@ public:
 	 *
 	 * @throw deserialize_error Read error.
 	 */
-	std::size_t read32_le(std::byte* data, std::size_t count) noexcept(false);
+	virtual std::size_t read32_le(std::byte* data, std::size_t count) noexcept(false) = 0;
 	
 	/**
 	 * Reads 32-bit (double word) big-endian data.
@@ -112,7 +149,7 @@ public:
 	 *
 	 * @throw deserialize_error Read error.
 	 */
-	std::size_t read32_be(std::byte* data, std::size_t count) noexcept(false);
+	virtual std::size_t read32_be(std::byte* data, std::size_t count) noexcept(false) = 0;
 	
 	/**
 	 * Reads 32-bit (double word) data.
@@ -149,7 +186,7 @@ public:
 	 *
 	 * @throw deserialize_error Read error.
 	 */
-	std::size_t read64_le(std::byte* data, std::size_t count) noexcept(false);
+	virtual std::size_t read64_le(std::byte* data, std::size_t count) noexcept(false) = 0;
 	
 	/**
 	 * Reads 64-bit (quad word) big-endian data.
@@ -161,7 +198,7 @@ public:
 	 *
 	 * @throw deserialize_error Read error.
 	 */
-	std::size_t read64_be(std::byte* data, std::size_t count) noexcept(false);
+	virtual std::size_t read64_be(std::byte* data, std::size_t count) noexcept(false) = 0;
 	
 	/**
 	 * Reads 64-bit (quad word) data.
@@ -187,32 +224,6 @@ public:
 			return read64_be(data, count);
 		}
 	}
-	
-	/**
-	 * Returns `true` if the end of a file was reached.
-	 */
-	[[nodiscard]] inline bool eof() const noexcept
-	{
-		return m_eof;
-	}
-	
-	/**
-	 * Returns `true` if an error occured during a read operation, `false` otherwise.
-	 */
-	[[nodiscard]] inline bool error() const noexcept
-	{
-		return m_error;
-	}
-	
-private:
-	template <class T>
-	friend class resource_loader;
-	
-	deserialize_context(void* handle);
-	
-	void* handle;
-	bool m_eof;
-	bool m_error;
 };
 
 #endif // ANTKEEPER_RESOURCES_DESERIALIZE_CONTEXT_HPP

@@ -24,7 +24,7 @@
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/animation/tween.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/drawing-mode.hpp>
@@ -44,20 +44,20 @@ class ground_pass: public pass
 public:
 	ground_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~ground_pass();
-	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	void render(const render::context& ctx, render::queue& queue) override;
 	
-	void set_ground_model(const model* model);
+	void set_ground_model(std::shared_ptr<render::model> model);
 
 private:	
-	gl::shader_program* shader_program;
-	const gl::shader_input* model_view_projection_input;
-	const gl::shader_input* view_projection_input;
-	const gl::shader_input* camera_position_input;
-	const gl::shader_input* directional_light_colors_input;
-	const gl::shader_input* directional_light_directions_input;
-	const gl::shader_input* ambient_light_colors_input;
+	std::shared_ptr<gl::shader_program> shader_program;
+	const gl::shader_variable* model_view_projection_var;
+	const gl::shader_variable* view_projection_var;
+	const gl::shader_variable* camera_position_var;
+	const gl::shader_variable* directional_light_colors_var;
+	const gl::shader_variable* directional_light_directions_var;
+	const gl::shader_variable* ambient_light_colors_var;
 	
-	const model* ground_model;
+	std::shared_ptr<model> ground_model;
 	const material* ground_material;
 	const gl::vertex_array* ground_model_vao;
 	gl::drawing_mode ground_model_drawing_mode;

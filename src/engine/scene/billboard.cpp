@@ -47,7 +47,7 @@ billboard& billboard::operator=(const billboard& other)
 	return *this;
 }
 
-void billboard::set_material(render::material* material)
+void billboard::set_material(std::shared_ptr<render::material> material)
 {
 	this->material = material;
 }
@@ -72,7 +72,7 @@ void billboard::update_tweens()
 	object_base::update_tweens();
 	if (material)
 	{
-		material->update_tweens();
+		//material->update_tweens();
 	}
 }
 

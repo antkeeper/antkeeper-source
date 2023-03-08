@@ -20,6 +20,7 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/render/model.hpp>
+#include <engine/math/angles.hpp>
 #include "game/components/atmosphere-component.hpp"
 #include "game/components/behavior-component.hpp"
 #include "game/components/collision-component.hpp"
@@ -32,7 +33,7 @@
 #include "game/components/celestial-body-component.hpp"
 #include <engine/entity/archetype.hpp>
 #include <engine/physics/orbit/elements.hpp>
-#include <engine/resources/json.hpp>
+#include <engine/utility/json.hpp>
 #include <stdexcept>
 
 static bool load_component_atmosphere(entity::archetype& archetype, const json& element)
@@ -155,7 +156,7 @@ static bool load_component_collision(entity::archetype& archetype, resource_mana
 	
 	if (element.contains("file"))
 	{
-		component.mesh = resource_manager.load<geom::mesh>(element["file"].get<std::string>());
+		//component.mesh = resource_manager.load<geom::mesh>(element["file"].get<std::string>());
 	}
 	
 	archetype.stamps.push_back
@@ -307,24 +308,18 @@ static bool load_component(entity::archetype& archetype, resource_manager& resou
 }
 
 template <>
-entity::archetype* resource_loader<entity::archetype>::load(resource_manager* resource_manager, PHYSFS_File* file, const std::filesystem::path& path)
+std::unique_ptr<entity::archetype> resource_loader<entity::archetype>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Allocate archetype
-	entity::archetype* archetype = new entity::archetype();
-
-	// Read file into buffer
-	std::size_t size = static_cast<int>(PHYSFS_fileLength(file));
-	std::string buffer;
-	buffer.resize(size);
-	PHYSFS_readBytes(file, &buffer[0], size);
+	// Load JSON data
+	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
 	
-	// Parse JSON data from file buffer
-	json data = nlohmann::json::parse(buffer, nullptr, true, true);
-
+	// Allocate archetype
+	std::unique_ptr<entity::archetype> archetype = std::make_unique<entity::archetype>();
+	
 	// Load components from table rows
-	for (json::const_iterator element = data.cbegin(); element != data.cend(); ++element)
+	for (json::const_iterator element = json_data->cbegin(); element != json_data->cend(); ++element)
 	{
-		if (!load_component(*archetype, *resource_manager, element))
+		if (!load_component(*archetype, resource_manager, element))
 		{
 			throw std::runtime_error("Failed to load component \"" + element.key() + "\"");
 		}

@@ -20,9 +20,11 @@
 #ifndef ANTKEEPER_GL_PIXEL_TYPE_HPP
 #define ANTKEEPER_GL_PIXEL_TYPE_HPP
 
+#include <cstdint>
+
 namespace gl {
 
-enum class pixel_type
+enum class pixel_type: std::uint8_t
 {
 	int_8,
 	uint_8,
@@ -37,4 +39,3 @@ enum class pixel_type
 } // namespace gl
 
 #endif // ANTKEEPER_GL_PIXEL_TYPE_HPP
-

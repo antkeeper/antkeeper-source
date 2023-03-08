@@ -22,7 +22,7 @@
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-attribute.hpp>
@@ -58,8 +58,9 @@ ground_pass::ground_pass(gl::rasterizer* rasterizer, const gl::framebuffer* fram
 ground_pass::~ground_pass()
 {}
 
-void ground_pass::render(const render::context& ctx, render::queue& queue) const
+void ground_pass::render(const render::context& ctx, render::queue& queue)
 {
+	/*
 	if (!ground_model)
 		return;
 	
@@ -90,8 +91,6 @@ void ground_pass::render(const render::context& ctx, render::queue& queue) const
 	const float4x4& projection = ctx.projection;
 	const float4x4& view_projection = ctx.view_projection;
 	float4x4 model_view_projection = projection * model_view;
-	
-	
 	
 	float3 ambient_light_color = {0.0f, 0.0f, 0.0f};
 	float3 directional_light_color = {0.0f, 0.0f, 0.0f};
@@ -140,41 +139,40 @@ void ground_pass::render(const render::context& ctx, render::queue& queue) const
 	// Draw ground
 	rasterizer->use_program(*shader_program);
 	
-	if (model_view_projection_input)
-		model_view_projection_input->upload(model_view_projection);
-	if (view_projection_input)
-		view_projection_input->upload(view_projection);
-	if (camera_position_input)
-		camera_position_input->upload(ctx.camera_transform.translation);
-	if (directional_light_colors_input)
-		directional_light_colors_input->upload(0, &directional_light_color, 1);
-	if (directional_light_directions_input)
-		directional_light_directions_input->upload(0, &directional_light_direction, 1);
-	if (ambient_light_colors_input)
-		ambient_light_colors_input->upload(0, &ambient_light_color, 1);
+	if (model_view_projection_var)
+		model_view_projection_var->update(model_view_projection);
+	if (view_projection_var)
+		view_projection_var->update(view_projection);
+	if (camera_position_var)
+		camera_position_var->update(ctx.camera_transform.translation);
+	if (directional_light_colors_var)
+		directional_light_colors_var->update(0, &directional_light_color, 1);
+	if (directional_light_directions_var)
+		directional_light_directions_var->update(0, &directional_light_direction, 1);
+	if (ambient_light_colors_var)
+		ambient_light_colors_var->update(0, &ambient_light_color, 1);
 	
-	ground_material->upload(ctx.alpha);
-	
-	
+	ground_material->update(ctx.alpha);
 
 	rasterizer->draw_arrays(*ground_model_vao, ground_model_drawing_mode, ground_model_start_index, ground_model_index_count);
+	*/
 }
 
-void ground_pass::set_ground_model(const model* model)
+void ground_pass::set_ground_model(std::shared_ptr<render::model> model)
 {
+	/*
 	ground_model = model;
 	
 	if (ground_model)
 	{
-		ground_model_vao = model->get_vertex_array();
-
-		const std::vector<model_group*>& groups = *model->get_groups();
-		for (model_group* group: groups)
+		ground_model_vao = model->get_vertex_array().get();
+		
+		for (const auto& group: model->get_groups())
 		{
-			ground_material = group->get_material();
-			ground_model_drawing_mode = group->get_drawing_mode();
-			ground_model_start_index = group->get_start_index();
-			ground_model_index_count = group->get_index_count();
+			ground_material = group.material;
+			ground_model_drawing_mode = group.drawing_mode;
+			ground_model_start_index = group.start_index;
+			ground_model_index_count = group.index_count;
 		}
 		
 		if (ground_material)
@@ -183,12 +181,12 @@ void ground_pass::set_ground_model(const model* model)
 			
 			if (shader_program)
 			{
-				model_view_projection_input = shader_program->get_input("model_view_projection");
-				view_projection_input = shader_program->get_input("view_projection");
-				camera_position_input = shader_program->get_input("camera.position");
-				directional_light_colors_input = shader_program->get_input("directional_light_colors");
-				directional_light_directions_input = shader_program->get_input("directional_light_directions");
-				ambient_light_colors_input = shader_program->get_input("ambient_light_colors");
+				model_view_projection_var = shader_program->get_var("model_view_projection");
+				view_projection_var = shader_program->get_var("view_projection");
+				camera_position_var = shader_program->get_var("camera.position");
+				directional_light_colors_var = shader_program->get_var("directional_light_colors");
+				directional_light_directions_var = shader_program->get_var("directional_light_directions");
+				ambient_light_colors_var = shader_program->get_var("ambient_light_colors");
 			}
 		}
 	}
@@ -196,6 +194,7 @@ void ground_pass::set_ground_model(const model* model)
 	{
 		ground_model_vao = nullptr;
 	}
+	*/
 }
 
 } // namespace render

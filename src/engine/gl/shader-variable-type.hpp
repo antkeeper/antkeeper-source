@@ -20,9 +20,14 @@
 #ifndef ANTKEEPER_GL_SHADER_VARIABLE_TYPE_HPP
 #define ANTKEEPER_GL_SHADER_VARIABLE_TYPE_HPP
 
+#include <cstdint>
+
 namespace gl {
 
-enum class shader_variable_type
+/**
+ * Shader variable data types.
+ */
+enum class shader_variable_type: std::uint8_t
 {
 	bool1,
 	bool2,
@@ -52,4 +57,3 @@ enum class shader_variable_type
 } // namespace gl
 
 #endif // ANTKEEPER_GL_SHADER_VARIABLE_TYPE_HPP
-

@@ -56,18 +56,16 @@ rasterizer::rasterizer():
 	glGetIntegerv(GL_SCISSOR_BOX, scissor_box);
 	
 	// Setup default framebuffer
-	default_framebuffer = new framebuffer();
+	default_framebuffer = std::make_unique<framebuffer>();
 	default_framebuffer->gl_framebuffer_id = 0;
 	default_framebuffer->dimensions = {scissor_box[2], scissor_box[3]};
 	
 	// Bind default framebuffer
-	bound_framebuffer = default_framebuffer;
+	bound_framebuffer = default_framebuffer.get();
 }
 
 rasterizer::~rasterizer()
-{
-	delete default_framebuffer;
-}
+{}
 
 void rasterizer::context_resized(int width, int height)
 {

@@ -21,12 +21,14 @@
 #define ANTKEEPER_RENDER_FINAL_PASS_HPP
 
 #include <engine/render/pass.hpp>
-#include <engine/render/shader-template.hpp>
+#include <engine/gl/shader-template.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/texture-2d.hpp>
+#include <functional>
+#include <memory>
 
 class resource_manager;
 
@@ -39,33 +41,29 @@ class final_pass: public pass
 {
 public:
 	final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
-	virtual ~final_pass();
-	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	void render(const render::context& ctx, render::queue& queue) override;
 	
 	void set_color_texture(const gl::texture_2d* texture);
 	void set_bloom_texture(const gl::texture_2d* texture) noexcept;
 	void set_bloom_weight(float weight) noexcept;
-	void set_blue_noise_texture(const gl::texture_2d* texture);
+	void set_blue_noise_texture(std::shared_ptr<gl::texture_2d> texture);
 
 private:
-	render::shader_template* shader_template;
+	void rebuild_command_buffer();
 	
-	gl::shader_program* shader_program;
-	const gl::shader_input* color_texture_input;
-	const gl::shader_input* bloom_texture_input;
-	const gl::shader_input* bloom_weight_input;
-	const gl::shader_input* blue_noise_texture_input;
-	const gl::shader_input* blue_noise_scale_input;
-	const gl::shader_input* resolution_input;
-	const gl::shader_input* time_input;
-	gl::vertex_buffer* quad_vbo;
-	gl::vertex_array* quad_vao;
+	std::unique_ptr<gl::shader_program> shader_program;	
+	std::unique_ptr<gl::vertex_buffer> quad_vbo;
+	std::unique_ptr<gl::vertex_array> quad_vao;
 	
 	const gl::texture_2d* color_texture;
 	const gl::texture_2d* bloom_texture;
 	float bloom_weight;
-	const gl::texture_2d* blue_noise_texture;
+	std::shared_ptr<gl::texture_2d> blue_noise_texture;
 	float blue_noise_scale;
+	float2 resolution;
+	float time;
+	
+	std::vector<std::function<void()>> command_buffer;
 };
 
 } // namespace render

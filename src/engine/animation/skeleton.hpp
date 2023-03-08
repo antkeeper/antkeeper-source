@@ -22,6 +22,7 @@
 
 #include <engine/animation/bone.hpp>
 #include <engine/animation/pose.hpp>
+#include <engine/utility/hash/fnv1a.hpp>
 #include <string>
 #include <unordered_map>
 
@@ -37,7 +38,7 @@ struct skeleton
 	pose inverse_bind_pose;
 	
 	/// Maps bone names to bone identifiers.
-	std::unordered_map<std::string, bone> bone_map;
+	std::unordered_map<hash::fnv1a32_t, bone> bone_map;
 };
 
 #endif // ANTKEEPER_ANIMATION_SKELETON_HPP

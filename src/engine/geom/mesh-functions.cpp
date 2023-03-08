@@ -20,6 +20,7 @@
 #include <engine/geom/mesh-functions.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <unordered_map>
+#include <vector>
 
 namespace geom {
 
@@ -101,13 +102,8 @@ void calculate_vertex_tangents(float4* tangents, const float2* texcoords, const 
 	const std::vector<mesh::vertex*>& vertices = mesh.get_vertices();
 	
 	// Allocate tangent and bitangent buffers
-	float3* tangent_buffer = new float3[vertices.size()];
-	float3* bitangent_buffer = new float3[vertices.size()];
-	for (std::size_t i = 0; i < vertices.size(); ++i)
-	{
-		tangent_buffer[i] = {0.0f, 0.0f, 0.0f};
-		bitangent_buffer[i] = {0.0f, 0.0f, 0.0f};
-	}
+	std::vector<float3> tangent_buffer(vertices.size(), float3{0.0f, 0.0f, 0.0f});
+	std::vector<float3> bitangent_buffer(vertices.size(), float3{0.0f, 0.0f, 0.0f});
 	
 	// Accumulate tangents and bitangents
 	for (std::size_t i = 0; i < faces.size(); ++i)
@@ -155,10 +151,6 @@ void calculate_vertex_tangents(float4* tangents, const float2* texcoords, const 
 		
 		tangents[i] = {tangent.x(), tangent.y(), tangent.z(), bitangent_sign};
 	}
-	
-	// Free faceted tangents and bitangents
-	delete[] tangent_buffer;
-	delete[] bitangent_buffer;
 }
 
 aabb<float> calculate_bounds(const mesh& mesh)

@@ -38,7 +38,12 @@ private:
 	void fade_in_title();
 	void fade_out_title();
 	
-	scene::text title_text;
+	std::unique_ptr<scene::text> title_text;
+	std::unique_ptr<scene::text> start_text;
+	std::unique_ptr<scene::text> options_text;
+	std::unique_ptr<scene::text> extras_text;
+	std::unique_ptr<scene::text> quit_text;
+	
 	animation<float> title_fade_animation;
 	
 	std::shared_ptr<event::subscription> window_resized_subscription;

@@ -179,13 +179,13 @@ sdl_window::sdl_window
 	SDL_GL_GetDrawableSize(internal_window, &this->viewport_size.x(), &this->viewport_size.y());
 	
 	// Allocate rasterizer
-	this->rasterizer = new gl::rasterizer();
+	this->rasterizer = std::make_unique<gl::rasterizer>();
 }
 
 sdl_window::~sdl_window()
 {
-	// Destruct rasterizer
-	delete rasterizer;
+	// Deallocate rasterizer
+	rasterizer.reset();
 	
 	// Destruct the OpenGL context
 	SDL_GL_DeleteContext(internal_context);

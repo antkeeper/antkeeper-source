@@ -21,6 +21,7 @@
 #define ANTKEEPER_APP_SDL_INPUT_MANAGER_HPP
 
 #include <engine/app/input-manager.hpp>
+#include <memory>
 
 namespace app {
 
@@ -49,7 +50,7 @@ public:
 private:
 	input::keyboard keyboard;
 	input::mouse mouse;
-	std::unordered_map<int, input::gamepad*> gamepad_map;
+	std::unordered_map<int, std::unique_ptr<input::gamepad>> gamepad_map;
 };
 
 } // namespace app

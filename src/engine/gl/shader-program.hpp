@@ -20,16 +20,18 @@
 #ifndef ANTKEEPER_GL_SHADER_PROGRAM_HPP
 #define ANTKEEPER_GL_SHADER_PROGRAM_HPP
 
-#include <list>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <cstdint>
+#include <memory>
+#include <engine/utility/hash/fnv1a.hpp>
 
 namespace gl {
 
 class shader_object;
 class rasterizer;
-class shader_input;
+class shader_variable;
 
 /**
  * Shader program which can be linked to shader objects and executed.
@@ -51,6 +53,11 @@ public:
 	 */
 	~shader_program();
 	
+	shader_program(const shader_program&) = delete;
+	shader_program(shader_program&&) = delete;
+	shader_program& operator=(const shader_program&) = delete;
+	shader_program& operator=(shader_program&&) = delete;
+	
 	/**
 	 * Attaches a shader object to the shader program. Attaching a shader object has no effect on a shader program until shader_program::link() is called.
 	 *
@@ -63,7 +70,7 @@ public:
 	 *
 	 * @see shader_program::link()
 	 */
-	void attach(const shader_object* object);
+	void attach(const shader_object& object);
 	
 	/**
 	 * Detaches a shader object from the shader program. Detaching a shader object has no effect on a shader program until shader_program::link() is called.
@@ -77,7 +84,7 @@ public:
 	 *
 	 * @see shader_program::link()
 	 */
-	void detach(const shader_object* object);
+	void detach(const shader_object& object);
 	
 	/**
 	 * Detaches all shader objects from the shader program.
@@ -94,65 +101,64 @@ public:
 	/**
 	 * Links all attached shader objects to create an executable shader program.
 	 *
-	 * @warning All existing pointers to a shader program's shader inputs will be invalidated if the program is re-linked.
+	 * @return `true` if the attached shader objects were successfully linked into the shader program, `false` otherwise.
 	 *
-	 * @return `true` if the attached shader objects were successfully linked into the shader program, `false` otherwise. If linking fails, check the info log via shader_program::get_info_log() for more information.
+	 * @warning All existing of the shader program's variables will be invalidated if the program is re-linked.
 	 */
 	bool link();
 	
-	/// Returns the shader program info log, which is updated when the shader program is linked.
-	const std::string& get_info_log() const;
-	
 	/// Returns `true` if the shader program has been successfully linked, `false` otherwise.
-	bool was_linked() const;
-
-	shader_program(const shader_program&) = delete;
-	shader_program& operator=(const shader_program&) = delete;
-
-	const std::list<shader_input*>* get_inputs() const;
-	const shader_input* get_input(const std::string& name) const;
+	[[nodiscard]] inline bool linked() const noexcept
+	{
+		return m_linked;
+	}
+	
+	/**
+	 * Returns all active shader variables in the shader program.
+	 *
+	 * @return Map of 32-bit FNV-1a hash values of shader variable names to shader variables.
+	 */
+	[[nodiscard]] inline const std::unordered_map<hash::fnv1a32_t, const std::unique_ptr<const shader_variable>>& variables() const noexcept
+	{
+		return variable_map;
+	}
+	
+	/**
+	 * Returns a pointer to an active shader variable with the given name, or `nullptr` if not found.
+	 *
+	 * @param key 32-bit FNV-1a hash value of a shader variable name.
+	 *
+	 * @return Pointer to the active shader variable with the given name, or `nullptr` if not found.
+	 */
+	[[nodiscard]] inline const shader_variable* variable(hash::fnv1a32_t key) const
+	{
+		if (auto i = variable_map.find(key); i != variable_map.end())
+		{
+			return i->second.get();
+		}
+		
+		return nullptr;
+	}
+	
+	/**
+	 * Returns the info log that contains debug information when linking fails.
+	 */
+	[[nodiscard]] inline const std::string& info() const noexcept
+	{
+		return info_log;
+	}
 
 private:
 	friend class rasterizer;
 	
-	unsigned int gl_program_id;
-	std::string info_log;
-	bool linked;
+	void load_variables();
+	
+	unsigned int gl_program_id{0};
+	bool m_linked{false};
 	std::unordered_set<const shader_object*> attached_objects;
-
-	void find_inputs();
-	void free_inputs();
-	
-	std::list<shader_input*> inputs;
-	std::unordered_map<std::string, shader_input*> input_map;
-	
+	std::unordered_map<hash::fnv1a32_t, const std::unique_ptr<const shader_variable>> variable_map;
+	std::string info_log;
 };
-
-inline const std::string& shader_program::get_info_log() const
-{
-	return info_log;
-}
-
-inline bool shader_program::was_linked() const
-{
-	return linked;
-}
-
-inline const std::list<shader_input*>* shader_program::get_inputs() const
-{
-	return &inputs;
-}
-
-inline const shader_input* shader_program::get_input(const std::string& name) const
-{
-	auto it = input_map.find(name);
-	if (it == input_map.end())
-	{
-		return nullptr;
-	}
-
-	return it->second;
-}
 
 } // namespace gl
 

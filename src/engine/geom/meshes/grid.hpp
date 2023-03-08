@@ -21,6 +21,7 @@
 #define ANTKEEPER_GEOM_MESHES_GRID_HPP
 
 #include <engine/geom/mesh.hpp>
+#include <memory>
 
 namespace geom {
 namespace meshes {
@@ -33,7 +34,7 @@ namespace meshes {
  * @param subdivisions_y Number of subdivisions on the y-axis.
  * @return Grid mesh on the XY plane.
  */
-geom::mesh* grid_xy(float length, std::size_t subdivisions_x, std::size_t subdivisions_y);
+[[nodiscard]] std::unique_ptr<geom::mesh> grid_xy(float length, std::size_t subdivisions_x, std::size_t subdivisions_y);
 
 } // namespace meshes
 } // namespace geom

@@ -38,11 +38,11 @@ public:
 private:
 	void resize_box();
 	
-	render::material selection_material;
+	std::shared_ptr<render::material> selection_material;
 	scene::billboard selection_billboard;
 	animation<float> selection_snap_animation;
 	
-	render::material box_material;
+	std::shared_ptr<render::material> box_material;
 	scene::billboard box_billboard;
 	
 	std::shared_ptr<event::subscription> mouse_moved_subscription;

@@ -20,9 +20,11 @@
 #ifndef ANTKEEPER_GL_TEXTURE_WRAPPING_HPP
 #define ANTKEEPER_GL_TEXTURE_WRAPPING_HPP
 
+#include <cstdint>
+
 namespace gl {
 
-enum class texture_wrapping
+enum class texture_wrapping: std::uint8_t
 {
 	clip,
 	extend,
@@ -33,4 +35,3 @@ enum class texture_wrapping
 } // namespace gl
 
 #endif // ANTKEEPER_GL_TEXTURE_WRAPPING_HPP
-

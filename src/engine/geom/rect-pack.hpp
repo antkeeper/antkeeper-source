@@ -21,6 +21,7 @@
 #define ANTKEEPER_GEOM_RECT_PACK_HPP
 
 #include <engine/geom/rect.hpp>
+#include <memory>
 
 namespace geom {
 
@@ -38,37 +39,15 @@ struct rect_pack_node
 	/// Rect type.
 	typedef rect<T> rect_type;
 	
-	/// Creates a rect pack node.
-	rect_pack_node();
-	
-	/// Destroys a rect pack node and its children.
-	~rect_pack_node();
-	
 	/// Pointers to the two children of the node, if any.
-	rect_pack_node* children[2];
+	std::unique_ptr<rect_pack_node> children[2];
 	
 	/// Bounds of the node.
-	rect_type bounds;
+	rect_type bounds{T{0}, T{0}, T{0}, T{0}};
 	
 	/// `true` if the node is occupied, `false` otherwise.
-	bool occupied;
+	bool occupied{false};
 };
-
-template <class T>
-rect_pack_node<T>::rect_pack_node():
-	bounds{T(0), T(0), T(0), T(0)},
-	occupied(false)
-{
-	children[0] = nullptr;
-	children[1] = nullptr;
-}
-
-template <class T>
-rect_pack_node<T>::~rect_pack_node()
-{
-	delete children[0];
-	delete children[1];
-}
 
 /**
  * Packs 2D rectangles.
@@ -136,7 +115,7 @@ private:
 template <class T>
 rect_pack<T>::rect_pack(scalar_type w, scalar_type h)
 {
-	root.bounds = {T(0), T(0), w, h};
+	root.bounds = {T{0}, T{0}, w, h};
 }
 
 template <class T>
@@ -154,10 +133,8 @@ void rect_pack<T>::resize(scalar_type w, scalar_type h)
 template <class T>
 void rect_pack<T>::clear()
 {
-	delete root.children[0];
-	delete root.children[1];
-	root.children[0] = nullptr;
-	root.children[1] = nullptr;
+	root.children[0].reset();
+	root.children[1].reset();
 	root.occupied = false;
 }
 
@@ -209,8 +186,8 @@ typename rect_pack<T>::node_type* rect_pack<T>::insert(node_type& node, scalar_t
 	}
 	
 	// Split the node
-	node.children[0] = new node_type();
-	node.children[1] = new node_type();
+	node.children[0] = std::make_unique<node_type>();
+	node.children[1] = std::make_unique<node_type>();
 	
 	// Determine split direction
 	scalar_type dw = node_w - w;

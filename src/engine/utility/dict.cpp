@@ -22,6 +22,7 @@
 #include <engine/resources/serialize-error.hpp>
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/resource-loader.hpp>
 #include <engine/utility/hash/fnv1a.hpp>
 #include <cstdint>
 #include <string>
@@ -46,7 +47,7 @@ static void deserialize_any(std::any& any, deserialize_context& ctx)
 }
 
 /**
- * Serializes a dict with an unsigned 32-bit key.
+ * Serializes a dict with a 32-bit FNV-1a hash key.
  *
  * @param[in] dict Dict to serialize.
  * @param[in,out] ctx Serialize context.
@@ -55,7 +56,7 @@ static void deserialize_any(std::any& any, deserialize_context& ctx)
  * @throw serialize_error Unsupported dict value type.
  */
 template <>
-void serializer<dict<std::uint32_t>>::serialize(const dict<std::uint32_t>& dict, serialize_context& ctx)
+void serializer<dict<hash::fnv1a32_t>>::serialize(const dict<hash::fnv1a32_t>& dict, serialize_context& ctx)
 {
 	// Map type indices to tuples containing a type hash and serialize function pointer
 	static const std::unordered_map
@@ -63,26 +64,26 @@ void serializer<dict<std::uint32_t>>::serialize(const dict<std::uint32_t>& dict,
 		std::type_index,
 		std::tuple
 		<
-			std::uint32_t,
+			hash::fnv1a32_t,
 			void (*)(const std::any&, serialize_context&)
 		>
 	> type_map
 	{
-		{std::type_index(typeid(bool)), {"bool"_fnv1a32, &serialize_any<bool>}},
-		{std::type_index(typeid(std::uint8_t)), {"uint8"_fnv1a32, &serialize_any<std::uint8_t>}},
-		{std::type_index(typeid(std::uint16_t)), {"uint16"_fnv1a32, &serialize_any<std::uint16_t>}},
-		{std::type_index(typeid(std::uint32_t)), {"uint32"_fnv1a32, &serialize_any<std::uint32_t>}},
-		{std::type_index(typeid(std::uint64_t)), {"uint64"_fnv1a32, &serialize_any<std::uint64_t>}},
-		{std::type_index(typeid(std::int8_t)), {"int8"_fnv1a32, &serialize_any<std::int8_t>}},
-		{std::type_index(typeid(std::int16_t)), {"int16"_fnv1a32, &serialize_any<std::int16_t>}},
-		{std::type_index(typeid(std::int32_t)), {"int32"_fnv1a32, &serialize_any<std::int32_t>}},
-		{std::type_index(typeid(std::int64_t)), {"int64"_fnv1a32, &serialize_any<std::int64_t>}},
-		{std::type_index(typeid(float)), {"float"_fnv1a32, &serialize_any<float>}},
-		{std::type_index(typeid(double)), {"double"_fnv1a32, &serialize_any<double>}},
-		{std::type_index(typeid(std::string)), {"string"_fnv1a32, &serialize_any<std::string>}},
-		{std::type_index(typeid(std::u8string)), {"u8string"_fnv1a32, &serialize_any<std::u8string>}},
-		{std::type_index(typeid(std::u16string)), {"u16string"_fnv1a32, &serialize_any<std::u16string>}},
-		{std::type_index(typeid(std::u32string)), {"u32string"_fnv1a32, &serialize_any<std::u32string>}}
+		{std::type_index(typeid(bool)), {"bool", &serialize_any<bool>}},
+		{std::type_index(typeid(std::uint8_t)), {"uint8", &serialize_any<std::uint8_t>}},
+		{std::type_index(typeid(std::uint16_t)), {"uint16", &serialize_any<std::uint16_t>}},
+		{std::type_index(typeid(std::uint32_t)), {"uint32", &serialize_any<std::uint32_t>}},
+		{std::type_index(typeid(std::uint64_t)), {"uint64", &serialize_any<std::uint64_t>}},
+		{std::type_index(typeid(std::int8_t)), {"int8", &serialize_any<std::int8_t>}},
+		{std::type_index(typeid(std::int16_t)), {"int16", &serialize_any<std::int16_t>}},
+		{std::type_index(typeid(std::int32_t)), {"int32", &serialize_any<std::int32_t>}},
+		{std::type_index(typeid(std::int64_t)), {"int64", &serialize_any<std::int64_t>}},
+		{std::type_index(typeid(float)), {"float", &serialize_any<float>}},
+		{std::type_index(typeid(double)), {"double", &serialize_any<double>}},
+		{std::type_index(typeid(std::string)), {"string", &serialize_any<std::string>}},
+		{std::type_index(typeid(std::u8string)), {"u8string", &serialize_any<std::u8string>}},
+		{std::type_index(typeid(std::u16string)), {"u16string", &serialize_any<std::u16string>}},
+		{std::type_index(typeid(std::u32string)), {"u32string", &serialize_any<std::u32string>}}
 	};
 	
 	// Write dict size
@@ -111,39 +112,39 @@ void serializer<dict<std::uint32_t>>::serialize(const dict<std::uint32_t>& dict,
 }
 
 /**
- * Deserializes a dict with an unsigned 32-bit key.
+ * Deserializes a dict with a 32-bit FNV-1a hash key.
  *
- * @param[out] dict Dict to serialize.
+ * @param[out] dict Dict to deserialize.
  * @param[in,out] ctx Deserialize context.
  *
  * @throw deserialize_error Read error.
  * @throw deserialize_error Unsupported dict value type.
  */
 template <>
-void deserializer<dict<std::uint32_t>>::deserialize(dict<std::uint32_t>& dict, deserialize_context& ctx)
+void deserializer<dict<hash::fnv1a32_t>>::deserialize(dict<hash::fnv1a32_t>& dict, deserialize_context& ctx)
 {
 	// Map type hashes to deserialize function pointers
 	static const std::unordered_map
 	<
-		std::uint32_t,
+		hash::fnv1a32_t,
 		void (*)(std::any&, deserialize_context&)
 	> type_map
 	{
-		{"bool"_fnv1a32, &deserialize_any<bool>},
-		{"uint8"_fnv1a32, &deserialize_any<std::uint8_t>},
-		{"uint16"_fnv1a32, &deserialize_any<std::uint16_t>},
-		{"uint32"_fnv1a32, &deserialize_any<std::uint32_t>},
-		{"uint64"_fnv1a32, &deserialize_any<std::uint64_t>},
-		{"int8"_fnv1a32, &deserialize_any<std::int8_t>},
-		{"int16"_fnv1a32, &deserialize_any<std::int16_t>},
-		{"int32"_fnv1a32, &deserialize_any<std::int32_t>},
-		{"int64"_fnv1a32, &deserialize_any<std::int64_t>},
-		{"float"_fnv1a32, &deserialize_any<float>},
-		{"double"_fnv1a32, &deserialize_any<double>},
-		{"string"_fnv1a32, &deserialize_any<std::string>},
-		{"u8string"_fnv1a32, &deserialize_any<std::u8string>},
-		{"u16string"_fnv1a32, &deserialize_any<std::u16string>},
-		{"u32string"_fnv1a32, &deserialize_any<std::u32string>}
+		{"bool", &deserialize_any<bool>},
+		{"uint8", &deserialize_any<std::uint8_t>},
+		{"uint16", &deserialize_any<std::uint16_t>},
+		{"uint32", &deserialize_any<std::uint32_t>},
+		{"uint64", &deserialize_any<std::uint64_t>},
+		{"int8", &deserialize_any<std::int8_t>},
+		{"int16", &deserialize_any<std::int16_t>},
+		{"int32", &deserialize_any<std::int32_t>},
+		{"int64", &deserialize_any<std::int64_t>},
+		{"float", &deserialize_any<float>},
+		{"double", &deserialize_any<double>},
+		{"string", &deserialize_any<std::string>},
+		{"u8string", &deserialize_any<std::u8string>},
+		{"u16string", &deserialize_any<std::u16string>},
+		{"u32string", &deserialize_any<std::u32string>}
 	};
 	
 	dict.clear();
@@ -162,7 +163,7 @@ void deserializer<dict<std::uint32_t>>::deserialize(dict<std::uint32_t>& dict, d
 		if (auto i = type_map.find(type_hash); i != type_map.end())
 		{
 			// Read entry key
-			std::uint32_t key = 0;
+			hash::fnv1a32_t key;
 			ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&key), 1);
 			
 			// Deserialize entry value
@@ -173,4 +174,14 @@ void deserializer<dict<std::uint32_t>>::deserialize(dict<std::uint32_t>& dict, d
 			throw deserialize_error("Unsupported dict value type");
 		}
 	}
+}
+
+template <>
+std::unique_ptr<dict<hash::fnv1a32_t>> resource_loader<dict<hash::fnv1a32_t>>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+{
+	auto resource = std::make_unique<dict<hash::fnv1a32_t>>();
+	
+	deserializer<dict<hash::fnv1a32_t>>().deserialize(*resource, ctx);
+	
+	return resource;
 }

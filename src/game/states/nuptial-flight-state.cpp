@@ -20,18 +20,19 @@
 #include "game/states/nuptial-flight-state.hpp"
 #include "game/states/pause-menu-state.hpp"
 #include "game/states/nest-selection-state.hpp"
-#include "game/ant/swarm.hpp"
+#include "game/ant/ant-swarm.hpp"
 #include <engine/entity/archetype.hpp>
 #include "game/systems/camera-system.hpp"
 #include "game/systems/astronomy-system.hpp"
 #include "game/systems/atmosphere-system.hpp"
 #include "game/systems/collision-system.hpp"
-#include "game/components/caste-component.hpp"
+#include "game/components/ant-caste-component.hpp"
 #include "game/components/locomotion-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/terrain-component.hpp"
 #include "game/components/camera-component.hpp"
 #include "game/components/model-component.hpp"
+#include "game/components/name-component.hpp"
 #include "game/components/constraint-stack-component.hpp"
 #include "game/components/steering-component.hpp"
 #include "game/components/picking-component.hpp"
@@ -65,6 +66,7 @@
 #include <engine/color/color.hpp>
 #include <engine/input/mouse.hpp>
 #include <engine/utility/hash/fnv1a.hpp>
+#include <random>
 
 using namespace hash::literals;
 
@@ -102,7 +104,41 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	ctx.ground_pass->set_enabled(true);
 	
 	// Create mating swarm
-	swarm_eid = ::ant::create_swarm(ctx);
+	swarm_eid = create_ant_swarm(ctx);
+	
+	// Load name pools
+	female_name_pool = ctx.resource_manager->load<text_file>("female-names-en.txt");
+	male_name_pool = ctx.resource_manager->load<text_file>("male-names-en.txt");
+	
+	// Init RNG
+	std::random_device random_device;
+	std::mt19937 rng(random_device());
+	
+	// Assign random ant names
+	std::uniform_int_distribution<> female_name_pool_distribution(0, female_name_pool->lines.size() - 1);
+	std::uniform_int_distribution<> male_name_pool_distribution(0, male_name_pool->lines.size() - 1);
+	ctx.entity_registry->view<ant_caste_component>().each
+	(
+		[&](entity::id entity_id, const auto& caste)
+		{
+			if (caste.type == ant_caste::male)
+			{
+				ctx.entity_registry->emplace_or_replace<name_component>
+				(
+					entity_id,
+					male_name_pool->lines[male_name_pool_distribution(rng)]
+				);
+			}
+			else
+			{
+				ctx.entity_registry->emplace_or_replace<name_component>
+				(
+					entity_id,
+					female_name_pool->lines[female_name_pool_distribution(rng)]
+				);
+			}
+		}
+	);
 	
 	// Switch to surface camera
 	ctx.underground_camera->set_active(false);
@@ -129,32 +165,32 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	// Create camera rig
 	create_camera_rig();
 	
-	// Select random alate
-	ctx.entity_registry->view<transform_component, steering_component>().each
-	(
-		[&](entity::id alate_eid, auto& transform, auto& steering)
-		{
-			select_entity(alate_eid);
-		}
-	);
-	
-	// Satisfy camera rig constraints
-	satisfy_camera_rig_constraints();
-	
 	// Construct selection text
-	selection_text.set_material(&ctx.menu_font_material);
+	selection_text.set_material(ctx.menu_font_material);
 	selection_text.set_color({1.0f, 1.0f, 1.0f, 1.0f});
 	selection_text.set_font(&ctx.menu_font);
-	//selection_text.set_content(get_string(ctx, "title_antkeeper"_fnv1a32));
-	selection_text.set_content("Hello, World!");
 	const auto& text_aabb = static_cast<const geom::aabb<float>&>(selection_text.get_local_bounds());
 	float text_w = text_aabb.max_point.x() - text_aabb.min_point.x();
 	float text_h = text_aabb.max_point.y() - text_aabb.min_point.y();
-	selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(0.0f), 0.0f});
+	selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font.get_font_metrics().size), 0.0f});
 	selection_text.update_tweens();
 	
 	// Add text to UI
 	ctx.ui_scene->add_object(&selection_text);
+	
+	// Select random alate
+	entity::id random_alate_eid;
+	ctx.entity_registry->view<transform_component, steering_component>().each
+	(
+		[&](entity::id entity_id, auto& transform, auto& steering)
+		{
+			random_alate_eid = entity_id;
+		}
+	);
+	select_entity(random_alate_eid);
+	
+	// Satisfy camera rig constraints
+	satisfy_camera_rig_constraints();
 	
 	// Setup controls
 	setup_controls();
@@ -171,8 +207,11 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	);
 	
 	// Queue fade in
-	ctx.fade_transition_color->set_value({0, 0, 0});
+	ctx.fade_transition_color->set({0, 0, 0});
 	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition.get(), 1.0f, true, ease<float>::out_sine, true, nullptr));
+	
+	// Reset loop timing
+	ctx.loop.reset();
 	
 	debug::log::trace("Entered nuptial flight state");
 }
@@ -193,7 +232,7 @@ nuptial_flight_state::~nuptial_flight_state()
 	
 	
 	destroy_camera_rig();
-	::ant::destroy_swarm(ctx, swarm_eid);
+	destroy_ant_swarm(ctx, swarm_eid);
 	
 	debug::log::trace("Exited nuptial flight state");
 }
@@ -923,39 +962,65 @@ void nuptial_flight_state::select_entity(entity::id entity_id)
 		);
 		
 		// Update selection text
-		if (ctx.entity_registry->valid(selected_eid) && ctx.entity_registry->all_of<::caste_component>(selected_eid))
+		if (ctx.entity_registry->valid(selected_eid) && ctx.entity_registry->all_of<::ant_caste_component>(selected_eid))
 		{
-			std::string format_string = "{}";
+			const auto& caste = ctx.entity_registry->get<::ant_caste_component>(selected_eid);
 			
-			const auto& caste = ctx.entity_registry->get<::caste_component>(selected_eid);
-			switch (caste.type)
+			if (ctx.entity_registry->all_of<::name_component>(selected_eid))
 			{
-				case ::ant::caste::queen:
-					format_string = ::get_string(ctx, "ant_label_numbered_queen_format"_fnv1a32);
-					break;
+				const auto& name = ctx.entity_registry->get<::name_component>(selected_eid).name;
 				
-				case ::ant::caste::worker:
-					format_string = ::get_string(ctx, "ant_label_numbered_worker_format"_fnv1a32);
-					break;
+				std::string format_string;
+				switch (caste.type)
+				{
+					case ::ant_caste::queen:
+						format_string = ::get_string(ctx, "named_queen_label_format");
+						break;
+					
+					case ::ant_caste::worker:
+						format_string = ::get_string(ctx, "named_worker_label_format");
+						break;
+					
+					case ::ant_caste::soldier:
+						format_string = ::get_string(ctx, "named_soldier_label_format");
+						break;
+					
+					case ::ant_caste::male:
+						format_string = ::get_string(ctx, "named_male_label_format");
+						break;
+					
+					default:
+						//std::unreachable();
+						break;
+				}
 				
-				case ::ant::caste::soldier:
-					format_string = ::get_string(ctx, "ant_label_numbered_soldier_format"_fnv1a32);
-					break;
-				
-				case ::ant::caste::male:
-					format_string = ::get_string(ctx, "ant_label_numbered_male_format"_fnv1a32);
-					break;
-				
-				default:
-					//std::unreachable();
-					break;
+				selection_text.set_content(std::vformat(format_string, std::make_format_args(name)));
 			}
-			
-			selection_text.set_content(std::vformat(format_string, std::make_format_args(std::to_underlying(selected_eid))));
-		}
-		else
-		{
-			
+			else
+			{
+				switch (caste.type)
+				{
+					case ::ant_caste::queen:
+						selection_text.set_content(get_string(ctx, "queen_caste_name"));
+						break;
+					
+					case ::ant_caste::worker:
+						selection_text.set_content(get_string(ctx, "worker_caste_name"));
+						break;
+					
+					case ::ant_caste::soldier:
+						selection_text.set_content(get_string(ctx, "soldier_caste_name"));
+						break;
+					
+					case ::ant_caste::male:
+						selection_text.set_content(get_string(ctx, "male_caste_name"));
+						break;
+					
+					default:
+						//std::unreachable();
+						break;
+				}
+			}
 		}
 	}
 }

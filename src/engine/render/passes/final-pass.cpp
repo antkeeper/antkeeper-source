@@ -22,7 +22,7 @@
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-attribute.hpp>
@@ -34,6 +34,7 @@
 #include <engine/render/context.hpp>
 #include <cmath>
 #include <glad/glad.h>
+#include <engine/utility/hash/fnv1a.hpp>
 
 namespace render {
 
@@ -45,39 +46,31 @@ final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	blue_noise_texture(nullptr),
 	blue_noise_scale(1.0f)
 {
-	// Load shader template
-	shader_template = resource_manager->load<render::shader_template>("final.glsl");
-	
-	// Build shader program
+	// Load shader template and build shader program
+	auto shader_template = resource_manager->load<gl::shader_template>("final.glsl");
 	shader_program = shader_template->build();
-	color_texture_input = shader_program->get_input("color_texture");
-	bloom_texture_input = shader_program->get_input("bloom_texture");
-	bloom_weight_input = shader_program->get_input("bloom_weight");
-	blue_noise_texture_input = shader_program->get_input("blue_noise_texture");
-	blue_noise_scale_input = shader_program->get_input("blue_noise_scale");
-	resolution_input = shader_program->get_input("resolution");
-	time_input = shader_program->get_input("time");
-
-	const float vertex_data[] =
+	
+	const float2 vertex_positions[] =
 	{
-		-1.0f,  1.0f,
-		-1.0f, -1.0f,
-		 1.0f,  1.0f,
-		 1.0f,  1.0f,
-		-1.0f, -1.0f,
-		 1.0f, -1.0f
+		{-1.0f,  1.0f},
+		{-1.0f, -1.0f},
+		{ 1.0f,  1.0f},
+		{ 1.0f,  1.0f},
+		{-1.0f, -1.0f},
+		{ 1.0f, -1.0f}
 	};
 	
+	const auto vertex_data = std::as_bytes(std::span{vertex_positions});
 	std::size_t vertex_size = 2;
 	std::size_t vertex_stride = sizeof(float) * vertex_size;
 	std::size_t vertex_count = 6;
-
-	quad_vbo = new gl::vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
-	quad_vao = new gl::vertex_array();
+	
+	quad_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, vertex_data.size(), vertex_data);
+	quad_vao = std::make_unique<gl::vertex_array>();
 	
 	// Define position vertex attribute
 	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = quad_vbo;
+	position_attribute.buffer = quad_vbo.get();
 	position_attribute.offset = 0;
 	position_attribute.stride = vertex_stride;
 	position_attribute.type = gl::vertex_attribute_type::float_32;
@@ -87,62 +80,34 @@ final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 }
 
-final_pass::~final_pass()
+void final_pass::render(const render::context& ctx, render::queue& queue)
 {
-	delete quad_vao;
-	delete quad_vbo;
+	// Update resolution
+	const auto viewport_size = framebuffer->get_dimensions();
+	resolution = {static_cast<float>(std::get<0>(viewport_size)), static_cast<float>(std::get<1>(viewport_size))};
 	
-	delete shader_program;
+	// Update time
+	time = ctx.t;
 	
-	/// @TODO
-	// resource_manager->unload("final.glsl");
-}
-
-void final_pass::render(const render::context& ctx, render::queue& queue) const
-{
-	rasterizer->use_framebuffer(*framebuffer);
-	
-	glDisable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-
-	auto viewport = framebuffer->get_dimensions();
-	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
-	
-	float2 resolution = {std::get<0>(viewport), std::get<1>(viewport)};
-
-	// Change shader program
-	rasterizer->use_program(*shader_program);
-
-	// Upload shader parameters
-	color_texture_input->upload(color_texture);
-	if (bloom_texture && bloom_texture_input)
-		bloom_texture_input->upload(bloom_texture);
-	if (bloom_weight_input)
-		bloom_weight_input->upload(bloom_weight);
-	if (blue_noise_texture && blue_noise_texture_input)
-		blue_noise_texture_input->upload(blue_noise_texture);
-	if (blue_noise_scale_input)
-		blue_noise_scale_input->upload(blue_noise_scale);
-	if (resolution_input)
-		resolution_input->upload(resolution);
-	if (time_input)
-		time_input->upload(ctx.t);
-
-	// Draw quad
-	rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+	// Execute render commands
+	for (const auto& command: command_buffer)
+	{
+		command();
+	}
 }
 
 void final_pass::set_color_texture(const gl::texture_2d* texture)
 {
 	this->color_texture = texture;
+	
+	rebuild_command_buffer();
 }
 
 void final_pass::set_bloom_texture(const gl::texture_2d* texture) noexcept
 {
 	this->bloom_texture = texture;
+	
+	rebuild_command_buffer();
 }
 
 void final_pass::set_bloom_weight(float weight) noexcept
@@ -150,10 +115,81 @@ void final_pass::set_bloom_weight(float weight) noexcept
 	this->bloom_weight = weight;
 }
 
-void final_pass::set_blue_noise_texture(const gl::texture_2d* texture)
+void final_pass::set_blue_noise_texture(std::shared_ptr<gl::texture_2d> texture)
 {
 	this->blue_noise_texture = texture;
 	blue_noise_scale = 1.0f / static_cast<float>(texture->get_dimensions()[0]);
+	
+	rebuild_command_buffer();
+}
+
+void final_pass::rebuild_command_buffer()
+{
+	command_buffer.clear();
+	
+	command_buffer.emplace_back
+	(
+		[&]()
+		{
+			rasterizer->use_framebuffer(*framebuffer);
+			rasterizer->set_viewport(0, 0, static_cast<int>(resolution.x()), static_cast<int>(resolution.y()));
+			
+			glDisable(GL_BLEND);
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			
+			rasterizer->use_program(*shader_program);
+		}
+	);
+	
+	if (color_texture)
+	{
+		if (const auto var = shader_program->variable("color_texture"))
+		{
+			command_buffer.emplace_back([&, var](){var->update(*color_texture);});
+		}
+	}
+	if (bloom_texture)
+	{
+		if (const auto var = shader_program->variable("bloom_texture"))
+		{
+			command_buffer.emplace_back([&, var](){var->update(*bloom_texture);});
+		}
+	}
+	if (blue_noise_texture)
+	{
+		if (const auto var = shader_program->variable("blue_noise_texture"))
+		{
+			command_buffer.emplace_back([&, var](){var->update(*blue_noise_texture);});
+		}
+	}
+	
+	if (const auto var = shader_program->variable("bloom_weight"))
+	{
+		command_buffer.emplace_back([&, var](){var->update(bloom_weight);});
+	}
+	if (const auto var = shader_program->variable("blue_noise_scale"))
+	{
+		command_buffer.emplace_back([&, var](){var->update(blue_noise_scale);});
+	}
+	if (const auto var = shader_program->variable("resolution"))
+	{
+		command_buffer.emplace_back([&, var](){var->update(resolution);});
+	}
+	if (const auto var = shader_program->variable("time"))
+	{
+		command_buffer.emplace_back([&, var](){var->update(time);});
+	}
+	
+	command_buffer.emplace_back
+	(
+		[&]()
+		{
+			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+		}
+	);
 }
 
 } // namespace render

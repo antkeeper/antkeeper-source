@@ -30,14 +30,7 @@ namespace render {
 class culling_stage: public stage
 {
 public:
-	/// Constructs a culling stage.
-	culling_stage() = default;
-	
-	/// Destructs a culling stage.
-	virtual ~culling_stage() = default;
-	
-	/// @copydoc render::stage::execute(render::context&)
-	virtual void execute(render::context& ctx) const final;
+	void execute(render::context& ctx) override;
 };
 
 } // namespace render

@@ -21,13 +21,19 @@
 #define ANTKEEPER_CONTROLS_MENU_STATE_HPP
 
 #include "game/states/game-state.hpp"
-
+#include <engine/scene/text.hpp>
+#include <memory>
 
 class controls_menu_state: public game_state
 {
 public:
 	controls_menu_state(::game& ctx);
 	virtual ~controls_menu_state();
+	
+private:
+	std::unique_ptr<scene::text> keyboard_text;
+	std::unique_ptr<scene::text> gamepad_text;
+	std::unique_ptr<scene::text> back_text;
 };
 
 #endif // ANTKEEPER_CONTROLS_MENU_STATE_HPP

@@ -18,12 +18,13 @@
  */
 
 #include <engine/i18n/string-map.hpp>
-#include <engine/utility/hash/fnv1a.hpp>
 #include <engine/resources/serializer.hpp>
 #include <engine/resources/serialize-error.hpp>
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/resource-loader.hpp>
 #include <algorithm>
+#include <utility>
 
 /**
  * Serializes a string map.
@@ -76,7 +77,7 @@ void deserializer<i18n::string_map>::deserialize(i18n::string_map& map, deserial
 	for (std::uint32_t i = 0; i < size; ++i)
 	{
 		// Read key
-		std::uint32_t key = 0;
+		hash::fnv1a32_t key;
 		ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&key), 1);
 		
 		// Read string length
@@ -94,4 +95,14 @@ void deserializer<i18n::string_map>::deserialize(i18n::string_map& map, deserial
 		// Read string
 		ctx.read8(reinterpret_cast<std::byte*>(iterator->second.data()), length);
 	}
+}
+
+template <>
+std::unique_ptr<i18n::string_map> resource_loader<i18n::string_map>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+{
+	auto resource = std::make_unique<i18n::string_map>();
+	
+	deserializer<i18n::string_map>().deserialize(*resource, ctx);
+	
+	return resource;
 }

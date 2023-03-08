@@ -23,13 +23,15 @@
 
 screen_transition::screen_transition()
 {
+	progress = std::make_shared<render::material_float>(1, 0.0f);
+	
 	// Setup material
-	//material.set_flags(MATERIAL_FLAG_X_RAY);
-	material.set_blend_mode(render::blend_mode::translucent);
-	progress = material.add_property<float>("progress");
+	material = std::make_shared<render::material>();
+	material->set_blend_mode(render::material_blend_mode::translucent);
+	material->set_variable("progress", progress);
 	
 	// Setup billboard
-	billboard.set_material(&material);
+	billboard.set_material(material);
 	billboard.set_active(false);
 	
 	// Add single channel to transition animation
@@ -52,7 +54,7 @@ screen_transition::screen_transition()
 	(
 		[this](int channel, float progress)
 		{
-			this->progress->set_value(progress);
+			this->progress->set(progress);
 		}
 	);
 	
@@ -61,7 +63,7 @@ screen_transition::screen_transition()
 	(
 		[this](int channel, float progress)
 		{
-			this->progress->set_value(progress);
+			this->progress->set(progress);
 		}
 	);
 }
@@ -104,8 +106,8 @@ void screen_transition::transition(float duration, bool reverse, ::animation<flo
 	}
 	
 	// Update tweens
-	progress->set_value(initial_state);
-	material.update_tweens();
+	progress->set(initial_state);
+	//material.update_tweens();
 	
 	// Reset and play transition animation
 	animation.stop();

@@ -30,14 +30,14 @@ namespace gl {
 class texture_2d: public texture
 {
 public:
-	/// @copydoc texture::texture(std::uint16_t, std::uint16_t, gl::pixel_type, gl::pixel_format, gl::color_space, const void*)
-	texture_2d(std::uint16_t width, std::uint16_t height, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const void* data = nullptr);
+	/// @copydoc texture::texture(std::uint16_t, std::uint16_t, gl::pixel_type, gl::pixel_format, gl::color_space, const std::byte*)
+	texture_2d(std::uint16_t width, std::uint16_t height, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
 	
 	/// Destructs a 2D texture.
 	virtual ~texture_2d();
 	
-	/// @copydoc texture::resize(std::uint16_t, std::uint16_t, gl::pixel_type, gl::pixel_format, gl::color_space, const void*)
-	virtual void resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data);
+	/// @copydoc texture::resize(std::uint16_t, std::uint16_t, gl::pixel_type, gl::pixel_format, gl::color_space, const std::byte*)
+	virtual void resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data);
 	
 	/**
 	 * Resizes the texture.
@@ -46,7 +46,7 @@ public:
 	 * @param height Texture height, in pixels.
 	 * @param data Pointer to pixel data.
 	 */
-	void resize(std::uint16_t width, std::uint16_t height, const void* data);
+	void resize(std::uint16_t width, std::uint16_t height, const std::byte* data);
 	
 	/// @copydoc texture::set_wrapping(gl::texture_wrapping, gl::texture_wrapping)
 	virtual void set_wrapping(gl::texture_wrapping wrap_s, texture_wrapping wrap_t);

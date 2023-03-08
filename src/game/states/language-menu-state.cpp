@@ -57,13 +57,13 @@ language_menu_state::language_menu_state(::game& ctx):
 	}
 	
 	// Construct menu item texts
-	scene::text* language_name_text = new scene::text();
-	scene::text* language_value_text = new scene::text();
-	scene::text* back_text = new scene::text();
+	language_name_text = std::make_unique<scene::text>();
+	language_value_text = std::make_unique<scene::text>();
+	back_text = std::make_unique<scene::text>();
 	
 	// Build list of menu item texts
-	ctx.menu_item_texts.push_back({language_name_text, language_value_text});
-	ctx.menu_item_texts.push_back({back_text, nullptr});
+	ctx.menu_item_texts.push_back({language_name_text.get(), language_value_text.get()});
+	ctx.menu_item_texts.push_back({back_text.get(), nullptr});
 	
 	// Set content of menu item texts
 	update_text_content();
@@ -100,7 +100,7 @@ language_menu_state::language_menu_state(::game& ctx):
 		
 		// Update language settings
 		ctx.language_tag = language_tag;
-		(*ctx.settings)["language_tag"_fnv1a32] = ctx.language_tag;
+		(*ctx.settings)["language_tag"] = ctx.language_tag;
 		
 		// Log language change
 		debug::log::info("Language tag: {}", ctx.language_tag);
@@ -203,7 +203,7 @@ void language_menu_state::update_text_content()
 	auto [language_name, language_value] = ctx.menu_item_texts[0];
 	auto [back_name, back_value] = ctx.menu_item_texts[1];
 	
-	language_name->set_content(get_string(ctx, "language_menu_language"_fnv1a32));
-	language_value->set_content(get_string(ctx, "language_name_native"_fnv1a32));
-	back_name->set_content(get_string(ctx, "back"_fnv1a32));
+	language_name->set_content(get_string(ctx, "language_menu_language"));
+	language_value->set_content(get_string(ctx, "language_name_native"));
+	back_name->set_content(get_string(ctx, "back"));
 }

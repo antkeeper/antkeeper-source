@@ -20,6 +20,8 @@
 #ifndef ANTKEEPER_GL_BUFFER_USAGE_HPP
 #define ANTKEEPER_GL_BUFFER_USAGE_HPP
 
+#include <cstdint>
+
 namespace gl {
 
 /**
@@ -27,7 +29,7 @@ namespace gl {
  *
  * @see gl::vertex_buffer
  */
-enum class buffer_usage
+enum class buffer_usage: std::uint8_t
 {
 	/// Data will be modified once, by the application, and used at most a few times, for drawing commands.
 	stream_draw,

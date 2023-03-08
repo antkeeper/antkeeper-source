@@ -21,12 +21,12 @@
 #define ANTKEEPER_RENDER_SKY_PASS_HPP
 
 #include <engine/render/pass.hpp>
-#include <engine/render/shader-template.hpp>
+#include <engine/gl/shader-template.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/animation/tween.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/texture-2d.hpp>
@@ -48,16 +48,16 @@ class sky_pass: public pass
 {
 public:
 	sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
-	virtual ~sky_pass();
-	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	virtual ~sky_pass() = default;
+	void render(const render::context& ctx, render::queue& queue) override;
 	
 	void update_tweens();
 	
 	void set_magnification(float scale);
 	
-	void set_sky_model(const model* model);
-	void set_moon_model(const model* model);
-	void set_stars_model(const model* model);
+	void set_sky_model(std::shared_ptr<render::model> model);
+	void set_moon_model(std::shared_ptr<render::model> model);
+	void set_stars_model(std::shared_ptr<render::model> model);
 	
 	void set_icrf_to_eus(const math::transformation::se3<float>& transformation);
 	
@@ -91,87 +91,79 @@ public:
 	void set_transmittance_lut_resolution(std::uint16_t width, std::uint16_t height);
 
 private:
-	gl::vertex_buffer* quad_vbo;
-	gl::vertex_array* quad_vao;
+	void rebuild_transmittance_lut_command_buffer();
+	void rebuild_sky_lut_command_buffer();
 	
-	gl::texture_2d* transmittance_lut_texture;
-	gl::framebuffer* transmittance_lut_framebuffer;
+	std::unique_ptr<gl::vertex_buffer> quad_vbo;
+	std::unique_ptr<gl::vertex_array> quad_vao;
+	
+	std::unique_ptr<gl::texture_2d> transmittance_lut_texture;
+	std::unique_ptr<gl::framebuffer> transmittance_lut_framebuffer;
 	float2 transmittance_lut_resolution;
-	render::shader_template* transmittance_shader_template;
-	gl::shader_program* transmittance_shader_program;
-	const gl::shader_input* transmittance_atmosphere_radii_input;
-	const gl::shader_input* transmittance_rayleigh_parameters_input;
-	const gl::shader_input* transmittance_mie_parameters_input;
-	const gl::shader_input* transmittance_ozone_distribution_input;
-	const gl::shader_input* transmittance_ozone_absorption_input;
-	const gl::shader_input* transmittance_resolution_input;
-	mutable bool render_transmittance_lut;
+	std::shared_ptr<gl::shader_template> transmittance_lut_shader_template;
+	std::unique_ptr<gl::shader_program> transmittance_lut_shader_program;
+	bool render_transmittance_lut;
+	std::vector<std::function<void()>> transmittance_lut_command_buffer;
 	
-	gl::texture_2d* sky_lut_texture;
-	gl::framebuffer* sky_lut_framebuffer;
-	render::shader_template* sky_lut_shader_template;
-	gl::shader_program* sky_lut_shader_program;
+	std::unique_ptr<gl::texture_2d> sky_lut_texture;
+	std::unique_ptr<gl::framebuffer> sky_lut_framebuffer;
+	std::shared_ptr<gl::shader_template> sky_lut_shader_template;
+	std::unique_ptr<gl::shader_program> sky_lut_shader_program;
 	float2 sky_lut_resolution;
-	const gl::shader_input* sky_lut_light_direction_input;
-	const gl::shader_input* sky_lut_light_illuminance_input;
-	const gl::shader_input* sky_lut_atmosphere_radii_input;
-	const gl::shader_input* sky_lut_observer_position_input;
-	const gl::shader_input* sky_lut_rayleigh_parameters_input;
-	const gl::shader_input* sky_lut_mie_parameters_input;
-	const gl::shader_input* sky_lut_ozone_distribution_input;
-	const gl::shader_input* sky_lut_ozone_absorption_input;
-	const gl::shader_input* sky_lut_airglow_illuminance_input;
-	const gl::shader_input* sky_lut_resolution_input;
-	const gl::shader_input* sky_lut_transmittance_lut_input;
-	const gl::shader_input* sky_lut_transmittance_lut_resolution_input;
+	std::vector<std::function<void()>> sky_lut_command_buffer;
+	
+	float3 dominant_light_direction;
+	float3 dominant_light_illuminance;
+	float3 observer_position;
+	float camera_exposure;
 
-	gl::shader_program* sky_shader_program;
-	const gl::shader_input* model_view_projection_input;
-	const gl::shader_input* mouse_input;
-	const gl::shader_input* resolution_input;
-	const gl::shader_input* light_direction_input;
-	const gl::shader_input* sun_luminance_input;
-	const gl::shader_input* sun_angular_radius_input;
-	const gl::shader_input* atmosphere_radii_input;
-	const gl::shader_input* observer_position_input;
-	const gl::shader_input* sky_illuminance_lut_input;
-	const gl::shader_input* sky_illuminance_lut_resolution_input;
+	std::shared_ptr<gl::shader_program> sky_shader_program;
+	const gl::shader_variable* model_view_projection_var;
+	const gl::shader_variable* mouse_var;
+	const gl::shader_variable* resolution_var;
+	const gl::shader_variable* light_direction_var;
+	const gl::shader_variable* sun_luminance_var;
+	const gl::shader_variable* sun_angular_radius_var;
+	const gl::shader_variable* atmosphere_radii_var;
+	const gl::shader_variable* observer_position_var;
+	const gl::shader_variable* sky_illuminance_lut_var;
+	const gl::shader_variable* sky_illuminance_lut_resolution_var;
 	
-	gl::shader_program* moon_shader_program;
-	const gl::shader_input* moon_model_input;
-	const gl::shader_input* moon_view_projection_input;
-	const gl::shader_input* moon_normal_model_input;
-	const gl::shader_input* moon_camera_position_input;
-	const gl::shader_input* moon_sunlight_direction_input;
-	const gl::shader_input* moon_sunlight_illuminance_input;
-	const gl::shader_input* moon_planetlight_direction_input;
-	const gl::shader_input* moon_planetlight_illuminance_input;
+	std::shared_ptr<gl::shader_program> moon_shader_program;
+	const gl::shader_variable* moon_model_var;
+	const gl::shader_variable* moon_view_projection_var;
+	const gl::shader_variable* moon_normal_model_var;
+	const gl::shader_variable* moon_camera_position_var;
+	const gl::shader_variable* moon_sunlight_direction_var;
+	const gl::shader_variable* moon_sunlight_illuminance_var;
+	const gl::shader_variable* moon_planetlight_direction_var;
+	const gl::shader_variable* moon_planetlight_illuminance_var;
 	
-	const model* sky_model;
+	std::shared_ptr<render::model> sky_model;
 	const material* sky_material;
 	const gl::vertex_array* sky_model_vao;
 	gl::drawing_mode sky_model_drawing_mode;
 	std::size_t sky_model_start_index;
 	std::size_t sky_model_index_count;
 	
-	const model* moon_model;
+	std::shared_ptr<render::model> moon_model;
 	const material* moon_material;
 	const gl::vertex_array* moon_model_vao;
 	gl::drawing_mode moon_model_drawing_mode;
 	std::size_t moon_model_start_index;
 	std::size_t moon_model_index_count;
 	
-	const model* stars_model;
+	std::shared_ptr<render::model> stars_model;
 	const material* star_material;
 	const gl::vertex_array* stars_model_vao;
 	gl::drawing_mode stars_model_drawing_mode;
 	std::size_t stars_model_start_index;
 	std::size_t stars_model_index_count;
-	gl::shader_program* star_shader_program;
-	const gl::shader_input* star_model_view_input;
-	const gl::shader_input* star_projection_input;
-	const gl::shader_input* star_exposure_input;
-	const gl::shader_input* star_distance_input;
+	std::unique_ptr<gl::shader_program> star_shader_program;
+	const gl::shader_variable* star_model_view_var;
+	const gl::shader_variable* star_projection_var;
+	const gl::shader_variable* star_exposure_var;
+	const gl::shader_variable* star_distance_var;
 
 	float2 mouse_position;
 	

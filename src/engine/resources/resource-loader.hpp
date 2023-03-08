@@ -20,41 +20,29 @@
 #ifndef ANTKEEPER_RESOURCES_RESOURCE_LOADER_HPP
 #define ANTKEEPER_RESOURCES_RESOURCE_LOADER_HPP
 
-#include <filesystem>
-#include <string>
+#include <engine/resources/deserialize-context.hpp>
+#include <memory>
 
 class resource_manager;
-struct PHYSFS_File;
 
 /**
  * Templated resource loader.
  *
- * @tparam Type of resource which this loader handles.
+ * @tparam T Resource type.
  */
 template <typename T>
 class resource_loader
 {
 public:
 	/**
-	 * Loads resource data.
+	 * Loads a resource.
 	 *
-	 * @param resourceManager Pointer to a resource manager which will manage this resource.
-	 * @param file PhysicsFS file handle.
-	 * @return Pointer to the loaded resource.
-	 */
-	static T* load(resource_manager* resourceManager, PHYSFS_File* file, const std::filesystem::path& path);
-
-	/**
-	 * Saves resource data.
+	 * @param ctx Deserialize context.
+	 * @param resource_manager Resource manager to load resource dependencies.
 	 *
-	 * @param resourceManager Pointer to a resource manager.
-	 * @param file PhysicsFS file handle.
-	 * @param resource Pointer to the resource data.
+	 * @return Unique pointer to the loaded resource.
 	 */
-	static void save(resource_manager* resourceManager, PHYSFS_File* file, const std::filesystem::path& path, const T* resource);
+	[[nodiscard]] static std::unique_ptr<T> load(::resource_manager& resource_manager, deserialize_context& ctx);
 };
-
-/// getline function for PhysicsFS file handles
-void physfs_getline(PHYSFS_File* file, std::string& line);
 
 #endif // ANTKEEPER_RESOURCES_RESOURCE_LOADER_HPP

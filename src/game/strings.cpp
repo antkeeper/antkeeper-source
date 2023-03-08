@@ -20,14 +20,12 @@
 #include "game/strings.hpp"
 #include <format>
 
-
-std::string get_string(const ::game& ctx, std::uint32_t key)
+std::string get_string(const ::game& ctx, hash::fnv1a32_t key)
 {
 	if (auto i = ctx.string_map->find(key); i != ctx.string_map->end())
 	{
 		return i->second;
 	}
 	
-	return std::format("${:x}", key);
+	return std::format("${:x}", key.value);
 }
-

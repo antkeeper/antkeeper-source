@@ -23,7 +23,7 @@
 namespace geom {
 namespace mc {
 
-static constexpr std::uint_fast8_t vertex_table[12][2] =
+static constexpr std::uint8_t vertex_table[12][2] =
 {
 	{0, 1},
 	{1, 2},
@@ -39,7 +39,7 @@ static constexpr std::uint_fast8_t vertex_table[12][2] =
 	{3, 7}
 };
 
-static constexpr std::uint_fast16_t edge_table[256] =
+static constexpr std::uint16_t edge_table[256] =
 {
 	0x000, 0x109, 0x203, 0x30A, 0x406, 0x50F, 0x605, 0x70C,
 	0x80C, 0x905, 0xA0F, 0xB06, 0xC0A, 0xD03, 0xE09, 0xF00,
@@ -75,7 +75,7 @@ static constexpr std::uint_fast16_t edge_table[256] =
 	0x70C, 0x605, 0x50F, 0x406, 0x30A, 0x203, 0x109, 0x000
 };
 
-static constexpr std::int_fast8_t triangle_table[256][16] =
+static constexpr std::int8_t triangle_table[256][16] =
 {                            
 	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 	{ 0,  8,  3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -335,34 +335,34 @@ static constexpr std::int_fast8_t triangle_table[256][16] =
 	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
 };
 
-void polygonize(float* vertices, std::uint_fast8_t* vertex_count, std::int_fast8_t* triangles, std::uint_fast8_t* triangle_count, const float* corners, const float* distances)
+void polygonize(float* vertices, std::uint8_t* vertex_count, std::int8_t* triangles, std::uint8_t* triangle_count, const float* corners, const float* distances)
 {
 	*vertex_count = 0;
 	*triangle_count = 0;
 
 	// Calculate signed distances for each cube corner and form an edge table index.
-	std::uint_fast8_t edge_index = 0;
-	for (std::uint_fast8_t i = 0; i < 8; ++i)
+	std::uint8_t edge_index = 0;
+	for (std::uint8_t i = 0; i < 8; ++i)
 		edge_index |= (distances[i] < 0.0f) ? (1 << i) : 0;
 	
 	// Get edge flags from edge table
-	const std::uint_fast16_t edge_flags = edge_table[edge_index];
+	const std::uint16_t edge_flags = edge_table[edge_index];
 	if (!edge_flags)
 		return;
 	
 	// Get vertex indices of the case
-	const std::int_fast8_t* indices = triangle_table[edge_index];
+	const std::int8_t* indices = triangle_table[edge_index];
 	
 	// Calculate vertices and store in vertex buffer
 	float vertex_buffer[12 * 3];
-	for (std::uint_fast16_t i = 0; i < 12; ++i)
+	for (std::uint16_t i = 0; i < 12; ++i)
 	{
 		// If this edge is intersected
 		if (edge_flags & (1 << i))
 		{
 			// Find the two vertices which make up edge ab
-			std::uint_fast8_t a = vertex_table[i][0];
-			std::uint_fast8_t b = vertex_table[i][1];
+			std::uint8_t a = vertex_table[i][0];
+			std::uint8_t b = vertex_table[i][1];
 			const float* v_a = corners + a * 3;
 			const float* v_b = corners + b * 3;
 			float f_a = distances[a];
@@ -389,14 +389,14 @@ void polygonize(float* vertices, std::uint_fast8_t* vertex_count, std::int_fast8
 	}
 
 	// Remap vertex buffer to be stored contiguously
-	std::int_fast8_t vertex_remap[12];
-	for (std::uint_fast8_t i = 0; i < 12; ++i)
+	std::int8_t vertex_remap[12];
+	for (std::uint8_t i = 0; i < 12; ++i)
 		vertex_remap[i] = -1;
-	for (std::uint_fast8_t i = 0; indices[i] != -1; ++i)
+	for (std::uint8_t i = 0; indices[i] != -1; ++i)
 	{
 		if (vertex_remap[indices[i]] == -1)
 		{
-			std::int_fast8_t index = indices[i] * 3;
+			std::int8_t index = indices[i] * 3;
 			*(vertices++) = vertex_buffer[  index];
 			*(vertices++) = vertex_buffer[++index];
 			*(vertices++) = vertex_buffer[++index];
@@ -405,7 +405,7 @@ void polygonize(float* vertices, std::uint_fast8_t* vertex_count, std::int_fast8
 	}
 	
 	// Form triangles
-	for (std::uint_fast8_t i = 0; indices[i] != -1;)
+	for (std::uint8_t i = 0; indices[i] != -1;)
 	{
 		*(triangles++) = vertex_remap[indices[i++]];
 		*(triangles++) = vertex_remap[indices[i++]];

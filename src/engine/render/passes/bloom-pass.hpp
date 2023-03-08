@@ -21,12 +21,14 @@
 #define ANTKEEPER_RENDER_BLOOM_PASS_HPP
 
 #include <engine/render/pass.hpp>
-#include <engine/render/shader-template.hpp>
+#include <engine/gl/shader-template.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/texture-2d.hpp>
+#include <memory>
+#include <functional>
 
 class resource_manager;
 
@@ -50,17 +52,12 @@ public:
 	bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager);
 	
 	/**
-	 * Destructs a bloom pass.
-	 */
-	virtual ~bloom_pass();
-	
-	/**
 	 * Renders a bloom texture.
 	 *
 	 * @param ctx Render context.
 	 * @param queue Render queue.
 	 */
-	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	void render(const render::context& ctx, render::queue& queue) override;
 	
 	/**
 	 * Resizes the mip chain resolution according to the resolution of the source texture.
@@ -94,34 +91,29 @@ public:
 	const gl::texture_2d* get_bloom_texture() const;
 
 private:
+	void rebuild_command_buffer();
+	
 	const gl::texture_2d* source_texture;
 	
-	shader_template* downsample_shader_template;
-	shader_template* upsample_shader_template;
+	std::unique_ptr<gl::shader_program> downsample_karis_shader;
+	std::unique_ptr<gl::shader_program> downsample_shader;
+	std::unique_ptr<gl::shader_program> upsample_shader;
 	
-	gl::shader_program* downsample_karis_shader;
-	const gl::shader_input* downsample_karis_source_texture_input;
-	
-	gl::shader_program* downsample_shader;
-	const gl::shader_input* downsample_source_texture_input;
-	
-	gl::shader_program* upsample_shader;
-	const gl::shader_input* upsample_source_texture_input;
-	const gl::shader_input* upsample_filter_radius_input;
-	
-	gl::vertex_buffer* quad_vbo;
-	gl::vertex_array* quad_vao;
+	std::unique_ptr<gl::vertex_buffer> quad_vbo;
+	std::unique_ptr<gl::vertex_array> quad_vao;
 	
 	unsigned int mip_chain_length;
-	std::vector<gl::framebuffer*> framebuffers;
-	std::vector<gl::texture_2d*> textures;
+	std::vector<std::unique_ptr<gl::framebuffer>> framebuffers;
+	std::vector<std::unique_ptr<gl::texture_2d>> textures;
 	float filter_radius;
 	float2 corrected_filter_radius;
+	
+	std::vector<std::function<void()>> command_buffer;
 };
 
 inline const gl::texture_2d* bloom_pass::get_bloom_texture() const
 {
-	return textures.empty() ? nullptr : textures.front();
+	return textures.empty() ? nullptr : textures.front().get();
 }
 
 } // namespace render

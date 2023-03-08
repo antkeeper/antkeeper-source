@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_CONTROLS_HPP
 
 #include "game/game.hpp"
-#include <engine/resources/json.hpp>
+#include <engine/utility/json.hpp>
 #include <engine/input/gamepad.hpp>
 #include <filesystem>
 

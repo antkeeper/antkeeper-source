@@ -19,26 +19,26 @@
 
 #include "game/load.hpp"
 #include <engine/debug/log.hpp>
-#include <engine/resources/json.hpp>
+#include <engine/utility/json.hpp>
 #include <engine/resources/resource-manager.hpp>
 
 namespace load {
 
 void colony(::game& ctx, const std::filesystem::path& path)
 {
-	const std::string path_string = path.string();
+	// const std::string path_string = path.string();
 	
-	debug::log::trace("Loading colony from \"{}\"...", path_string);
-	try
-	{
-		json* data = ctx.resource_manager->load<json>(path);
+	// debug::log::trace("Loading colony from \"{}\"...", path_string);
+	// try
+	// {
+		// json* data = ctx.resource_manager->load<json>(path);
 		
-		debug::log::trace("Loaded colony from \"{}\"", path_string);
-	}
-	catch (...)
-	{
-		debug::log::error("Failed to load colony from \"{}\"", path_string);
-	}
+		// debug::log::trace("Loaded colony from \"{}\"", path_string);
+	// }
+	// catch (...)
+	// {
+		// debug::log::error("Failed to load colony from \"{}\"", path_string);
+	// }
 }
 
 } // namespace load

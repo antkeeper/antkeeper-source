@@ -268,12 +268,10 @@ void sdl_input_manager::update()
 							
 							debug::log::info("Connected gamepad {}; name: \"{}\"; UUID: {}", event.cdevice.which, controller_name, gamepad_uuid.string());
 							
-							// Create new gamepad
-							input::gamepad* gamepad = new input::gamepad();
+							// Allocate gamepad
+							auto& gamepad = gamepad_map[event.cdevice.which];
+							gamepad = std::make_unique<input::gamepad>();						
 							gamepad->set_uuid(gamepad_uuid);
-							
-							// Add gamepad to gamepad map
-							gamepad_map[event.cdevice.which] = gamepad;
 							
 							// Register gamepad
 							register_device(*gamepad);

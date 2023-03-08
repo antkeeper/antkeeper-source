@@ -21,8 +21,9 @@
 
 namespace render {
 
-stage::stage():
-	priority(0)
-{}
+void stage::set_priority(int priority)
+{
+	this->priority = priority;
+}
 
 } // namespace render

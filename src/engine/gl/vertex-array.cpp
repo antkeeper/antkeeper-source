@@ -38,8 +38,7 @@ static constexpr GLenum vertex_attribute_type_lut[] =
 	GL_DOUBLE
 };
 
-vertex_array::vertex_array():
-	gl_array_id(0)
+vertex_array::vertex_array()
 {
 	glGenVertexArrays(1, &gl_array_id);
 }
@@ -61,39 +60,36 @@ void vertex_array::bind(attribute_location_type location, const vertex_attribute
 		throw std::invalid_argument("Cannot bind vertex attribute that has an unsupported number of components (" + std::to_string(attribute.components) + ")");
 	}
 	
-	attributes[location] = attribute;
+	m_attributes[location] = attribute;
 	
 	GLenum gl_type = vertex_attribute_type_lut[static_cast<std::size_t>(attribute.type)];
 	glBindVertexArray(gl_array_id);
 	glBindBuffer(GL_ARRAY_BUFFER, attribute.buffer->gl_buffer_id);
-	glVertexAttribPointer(
+	glVertexAttribPointer
+	(
 		static_cast<GLuint>(location),
 		static_cast<GLint>(attribute.components),
 		gl_type,
 		GL_FALSE,
 		static_cast<GLsizei>(attribute.stride),
-		(const GLvoid*)attribute.offset); 
+		(const GLvoid*)attribute.offset
+	); 
 	glEnableVertexAttribArray(static_cast<GLuint>(location));
 }
 
 void vertex_array::unbind(attribute_location_type location)
 {
-	if (auto it = attributes.find(location); it != attributes.end())
+	if (auto it = m_attributes.find(location); it != m_attributes.end())
 	{
 		glBindVertexArray(gl_array_id);
 		glDisableVertexAttribArray(static_cast<GLuint>(location));
 		
-		attributes.erase(it);
+		m_attributes.erase(it);
 	}
 	else
 	{
 		throw std::invalid_argument("Non-existent vertex attribute cannot be unbound.");
 	}
-}
-
-const typename vertex_array::attribute_map_type& vertex_array::get_attributes() const
-{
-	return attributes;
 }
 
 } // namespace gl

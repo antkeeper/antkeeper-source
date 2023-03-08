@@ -25,10 +25,10 @@
 namespace geom {
 namespace meshes {
 
-geom::mesh* grid_xy(float length, std::size_t subdivisions_x, std::size_t subdivisions_y)
+std::unique_ptr<geom::mesh> grid_xy(float length, std::size_t subdivisions_x, std::size_t subdivisions_y)
 {
 	// Allocate new mesh
-	geom::mesh* mesh = new geom::mesh();
+	std::unique_ptr<geom::mesh> mesh = std::make_unique<geom::mesh>();
 
 	// Determine vertex count and placement
 	std::size_t columns = subdivisions_x + 1;
@@ -94,7 +94,7 @@ geom::mesh* grid_xy(float length, std::size_t subdivisions_x, std::size_t subdiv
 			mesh->add_face({ab, bd, dc, ca});
 		}
 	}
-
+	
 	return mesh;
 }
 

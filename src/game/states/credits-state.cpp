@@ -29,7 +29,6 @@
 #include <engine/utility/hash/fnv1a.hpp>
 #include <engine/math/glsl.hpp>
 
-using namespace hash::literals;
 using namespace math::glsl;
 
 credits_state::credits_state(::game& ctx):
@@ -41,10 +40,10 @@ credits_state::credits_state(::game& ctx):
 	const vec2 viewport_center = viewport_size * 0.5f;
 	
 	// Construct credits text
-	credits_text.set_material(&ctx.menu_font_material);
+	credits_text.set_material(ctx.menu_font_material);
 	credits_text.set_font(&ctx.menu_font);
 	credits_text.set_color({1.0f, 1.0f, 1.0f, 0.0f});
-	credits_text.set_content(get_string(ctx, "credits"_fnv1a32));
+	credits_text.set_content(get_string(ctx, "credits"));
 	
 	// Align credits text
 	const auto& credits_aabb = static_cast<const geom::aabb<float>&>(credits_text.get_local_bounds());

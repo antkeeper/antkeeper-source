@@ -20,15 +20,19 @@
 #ifndef ANTKEEPER_GL_COLOR_SPACE_HPP
 #define ANTKEEPER_GL_COLOR_SPACE_HPP
 
+#include <cstdint>
+
 namespace gl {
 
-enum class color_space
+enum class color_space: std::uint8_t
 {
-	linear, ///< Linear color space
-	srgb ///< sRGB color space
+	/// Linear color space.
+	linear,
+	
+	/// sRGB color space.
+	srgb
 };
 
 } // namespace gl
 
 #endif // ANTKEEPER_GL_COLOR_SPACE_HPP
-

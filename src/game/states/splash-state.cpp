@@ -45,21 +45,23 @@ splash_state::splash_state(::game& ctx):
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
 	
 	// Load splash texture
-	const gl::texture_2d* splash_texture = ctx.resource_manager->load<gl::texture_2d>("splash.tex");
+	auto splash_texture = ctx.resource_manager->load<gl::texture_2d>("splash.tex");
 	
 	// Get splash texture dimensions
 	auto splash_dimensions = splash_texture->get_dimensions();
 	
 	// Construct splash billboard material
-	splash_billboard_material.set_blend_mode(render::blend_mode::translucent);
-	splash_billboard_material.set_shader_program(ctx.resource_manager->load<gl::shader_program>("ui-element-textured.glsl"));
-	splash_billboard_material.add_property<const gl::texture_2d*>("background")->set_value(splash_texture);
-	render::material_property<float4>* splash_tint = splash_billboard_material.add_property<float4>("tint");
-	splash_tint->set_value(float4{1, 1, 1, 0});
-	splash_billboard_material.update_tweens();
+	splash_billboard_material = std::make_shared<render::material>();
+	splash_billboard_material->set_blend_mode(render::material_blend_mode::translucent);
+	splash_billboard_material->set_shader_template(ctx.resource_manager->load<gl::shader_template>("ui-element-textured.glsl"));
+	splash_billboard_material->set_variable("background", std::make_shared<render::material_texture_2d>(1, splash_texture));
+	
+	auto splash_tint = std::make_shared<render::material_float4>(1, float4{1, 1, 1, 0});
+	splash_billboard_material->set_variable("tint", splash_tint);
+	//splash_billboard_material.update_tweens();
 	
 	// Construct splash billboard
-	splash_billboard.set_material(&splash_billboard_material);
+	splash_billboard.set_material(splash_billboard_material);
 	splash_billboard.set_scale({(float)std::get<0>(splash_dimensions) * 0.5f, (float)std::get<1>(splash_dimensions) * 0.5f, 1.0f});
 	splash_billboard.set_translation({std::round(viewport_center.x()), std::round(viewport_center.y()), 0.0f});
 	splash_billboard.update_tweens();
@@ -88,7 +90,7 @@ splash_state::splash_state(::game& ctx):
 	// Setup animation frame callbacks
 	auto set_splash_opacity = [splash_tint](int channel, const float& opacity)
 	{
-		splash_tint->set_value(float4{1, 1, 1, opacity});
+		splash_tint->set(float4{1, 1, 1, opacity});
 	};
 	splash_fade_in_animation.set_frame_callback(set_splash_opacity);
 	splash_fade_out_animation.set_frame_callback(set_splash_opacity);
@@ -206,9 +208,6 @@ splash_state::~splash_state()
 	
 	// Remove splash billboard from UI scene
 	ctx.ui_scene->remove_object(&splash_billboard);
-	
-	// Unload splash texture
-	ctx.resource_manager->unload("splash.tex");
 	
 	// Disable color buffer clearing in UI pass
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);

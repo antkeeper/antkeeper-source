@@ -22,7 +22,7 @@
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-attribute.hpp>
@@ -31,6 +31,7 @@
 #include <engine/render/context.hpp>
 #include <engine/render/material.hpp>
 #include <engine/render/material-flags.hpp>
+#include <engine/gl/shader-template.hpp>
 #include <engine/scene/camera.hpp>
 #include <cmath>
 #include <glad/glad.h>
@@ -42,21 +43,24 @@ outline_pass::outline_pass(gl::rasterizer* rasterizer, const gl::framebuffer* fr
 	fill_shader(nullptr),
 	stroke_shader(nullptr)
 {
-	// Load fill shader
-	fill_shader = resource_manager->load<gl::shader_program>("outline-fill-unskinned.glsl");
-	fill_model_view_projection_input = fill_shader->get_input("model_view_projection");
+	// Load fill shader template
+	auto fill_shader_template = resource_manager->load<gl::shader_template>("outline-fill-unskinned.glsl");
 	
-	// Load stroke shader
-	stroke_shader = resource_manager->load<gl::shader_program>("outline-stroke-unskinned.glsl");
-	stroke_model_view_projection_input = stroke_shader->get_input("model_view_projection");
-	stroke_width_input = stroke_shader->get_input("width");
-	stroke_color_input = stroke_shader->get_input("color");
+	// Build fill shader
+	fill_shader = fill_shader_template->build({});
+	fill_model_view_projection_var = fill_shader->variable("model_view_projection");
+	
+	// Load stroke shader template
+	auto stroke_shader_template = resource_manager->load<gl::shader_template>("outline-stroke-unskinned.glsl");
+	
+	// Build stroke shader
+	stroke_shader = stroke_shader_template->build({});
+	stroke_model_view_projection_var = stroke_shader->variable("model_view_projection");
+	stroke_width_var = stroke_shader->variable("width");
+	stroke_color_var = stroke_shader->variable("color");
 }
 
-outline_pass::~outline_pass()
-{}
-
-void outline_pass::render(const render::context& ctx, render::queue& queue) const
+void outline_pass::render(const render::context& ctx, render::queue& queue)
 {
 	rasterizer->use_framebuffer(*framebuffer);
 	
@@ -91,10 +95,12 @@ void outline_pass::render(const render::context& ctx, render::queue& queue) cons
 		{
 			const render::material* material = operation.material;
 			if (!material || !(material->get_flags() & MATERIAL_FLAG_OUTLINE))
+			{
 				continue;
+			}
 			
 			model_view_projection = view_projection * operation.transform;
-			fill_model_view_projection_input->upload(model_view_projection);
+			fill_model_view_projection_var->update(model_view_projection);
 			
 			rasterizer->draw_arrays(*operation.vertex_array, operation.drawing_mode, operation.start_index, operation.index_count);
 		}
@@ -119,8 +125,8 @@ void outline_pass::render(const render::context& ctx, render::queue& queue) cons
 		
 		// Setup stroke shader
 		rasterizer->use_program(*stroke_shader);
-		stroke_width_input->upload(outline_width);
-		stroke_color_input->upload(outline_color);
+		stroke_width_var->update(outline_width);
+		stroke_color_var->update(outline_color);
 		
 		// Render strokes
 		for (const render::operation& operation: queue)
@@ -130,7 +136,7 @@ void outline_pass::render(const render::context& ctx, render::queue& queue) cons
 				continue;
 			
 			model_view_projection = view_projection * operation.transform;
-			stroke_model_view_projection_input->upload(model_view_projection);
+			stroke_model_view_projection_var->update(model_view_projection);
 			
 			rasterizer->draw_arrays(*operation.vertex_array, operation.drawing_mode, operation.start_index, operation.index_count);
 		}

@@ -47,12 +47,12 @@ void update_text_font(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
-		name->set_material(&ctx.menu_font_material);
+		name->set_material(ctx.menu_font_material);
 		name->set_font(&ctx.menu_font);
 		
 		if (value)
 		{
-			value->set_material(&ctx.menu_font_material);
+			value->set_material(ctx.menu_font_material);
 			value->set_font(&ctx.menu_font);
 		}
 	}
@@ -197,12 +197,6 @@ void remove_text_from_ui(::game& ctx)
 
 void delete_text(::game& ctx)
 {
-	for (auto [name, value]: ctx.menu_item_texts)
-	{
-		delete name;
-		if (value)
-			delete value;
-	}
 	ctx.menu_item_texts.clear();
 }
 

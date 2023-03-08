@@ -37,7 +37,7 @@ public:
 	/**
 	 * Allocates and returns a window manager.
 	 */
-	static window_manager* instance();
+	static std::unique_ptr<window_manager> instance();
 	
 	/// Destructs a window manager.
 	virtual ~window_manager() = default;

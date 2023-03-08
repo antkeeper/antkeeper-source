@@ -26,7 +26,7 @@
 
 namespace render {
 
-void culling_stage::execute(render::context& ctx) const
+void culling_stage::execute(render::context& ctx)
 {
 	// Get list of all objects in the collection
 	const std::list<scene::object_base*>& objects = *(ctx.collection->get_objects());
@@ -34,7 +34,9 @@ void culling_stage::execute(render::context& ctx) const
 	// Get camera culling volume
 	ctx.camera_culling_volume = ctx.camera->get_culling_mask();
 	if (!ctx.camera_culling_volume)
+	{
 		ctx.camera_culling_volume = &ctx.camera->get_world_bounds();
+	}
 	
 	// Clear set of visible objects
 	ctx.visible_objects.clear();
@@ -52,7 +54,9 @@ void culling_stage::execute(render::context& ctx) const
 		{
 			// Ignore inactive objects and cameras
 			if (!object->is_active() || object->get_object_type_id() == scene::camera::object_type_id)
+			{
 				return;
+			}
 			
 			// Cull object if it doesn't share any common layers with the camera
 			//if (!(object->get_layer_mask() & camera_layer_mask))
@@ -61,11 +65,15 @@ void culling_stage::execute(render::context& ctx) const
 			// Get object culling volume
 			const geom::bounding_volume<float>* object_culling_volume = object->get_culling_mask();
 			if (!object_culling_volume)
+			{
 				object_culling_volume = &object->get_world_bounds();
+			}
 			
 			// Cull object if it's outside of the camera culling volume
 			if (!ctx.camera_culling_volume->intersects(*object_culling_volume))
+			{
 				return;
+			}
 			
 			// Insert object into set of visible objects
 			std::lock_guard<std::mutex> guard(mutex);

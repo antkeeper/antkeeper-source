@@ -22,7 +22,7 @@
 
 #include <engine/type/font-metrics.hpp>
 #include <engine/type/glyph-metrics.hpp>
-#include <engine/resources/image.hpp>
+#include <engine/utility/image.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <unordered_set>
 

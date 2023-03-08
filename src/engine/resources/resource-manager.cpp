@@ -19,6 +19,9 @@
 
 #include <engine/resources/resource-manager.hpp>
 #include <engine/debug/log.hpp>
+#include <engine/resources/physfs/physfs-deserialize-context.hpp>
+#include <engine/resources/physfs/physfs-serialize-context.hpp>
+#include <physfs.h>
 #include <stdexcept>
 
 resource_manager::resource_manager()
@@ -54,16 +57,6 @@ resource_manager::resource_manager()
 
 resource_manager::~resource_manager()
 {
-	debug::log::trace("Deleting cached resources...");
-	
-	// Delete cached resources
-	for (auto it = resource_cache.begin(); it != resource_cache.end(); ++it)
-	{
-		delete it->second;
-	}
-	
-	debug::log::trace("Deleted cached resources");
-	
 	// Deinit PhysicsFS
 	debug::log::trace("Deinitializing PhysicsFS...");
 	if (!PHYSFS_deinit())
@@ -78,56 +71,92 @@ resource_manager::~resource_manager()
 
 bool resource_manager::mount(const std::filesystem::path& path)
 {
-	debug::log::trace("Mounting path \"{}\"...", path.string());
-	if (!PHYSFS_mount(path.string().c_str(), nullptr, 1))
+	const std::string path_string = path.string();
+	
+	debug::log::trace("Mounting path \"{}\"...", path_string);
+	
+	if (!PHYSFS_mount(path_string.c_str(), nullptr, 1))
 	{
-		debug::log::error("Failed to mount path \"{}\": {}", path.string(), PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		debug::log::error("Failed to mount path \"{}\": {}", path_string, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 		return false;
 	}
-	else
-	{
-		debug::log::trace("Mounted path \"{}\"", path.string());
-		return true;
-	}
+	
+	debug::log::trace("Mounted path \"{}\"", path_string);
+	
+	return true;
 }
 
-void resource_manager::set_write_dir(const std::filesystem::path& path)
+bool resource_manager::unmount(const std::filesystem::path& path)
 {
-	if (!PHYSFS_setWriteDir(path.string().c_str()))
+	const std::string path_string = path.string();
+	
+	debug::log::trace("Unmounting path \"{}\"...", path_string);
+	
+	if (!PHYSFS_unmount(path_string.c_str()))
 	{
-		debug::log::error("Failed set write directory to \"{}\": {}", path.string(), PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		debug::log::error("Failed to unmount path \"{}\": {}", path_string, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		return false;
 	}
-	else
-	{
-		debug::log::trace("Set write directory to \"{}\"", path.string());
-	}
+	
+	debug::log::trace("Unmounted path \"{}\"", path_string);
+	
+	return true;
 }
 
-void resource_manager::unload(const std::filesystem::path& path)
+bool resource_manager::set_write_path(const std::filesystem::path& path)
 {
-	// Check if resource is in the cache
-	auto it = resource_cache.find(path);
-	if (it != resource_cache.end())
+	const std::string path_string = path.string();
+	
+	if (!PHYSFS_setWriteDir(path_string.c_str()))
 	{
-		// Decrement the resource handle reference count
-		--it->second->reference_count;
-		
-		// Free the resource if the resource handle is unreferenced
-		if (it->second->reference_count <= 0)
+		debug::log::error("Failed set write path to \"{}\": {}", path_string, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		return false;
+	}
+	
+	write_path = path;
+	
+	debug::log::trace("Set write path to \"{}\"", path_string);
+	
+	return true;
+}
+
+std::shared_ptr<void> resource_manager::fetch(const std::filesystem::path& path) const
+{
+	if (auto i = resource_cache.find(path); i != resource_cache.end())
+	{
+		if (!i->second.expired())
 		{
-			debug::log::trace("Unloading resource \"{}\"...", path.string());
-			
-			delete it->second;
-			
-			debug::log::trace("Unloaded resource \"{}\"", path.string());
+			return i->second.lock();
 		}
-		
-		// Remove resource from the cache
-		resource_cache.erase(it);
+		else
+		{
+			debug::log::trace("Fetched expired resource from cache \"{}\"", path.string());
+		}
 	}
+	
+	return nullptr;
 }
 
-void resource_manager::include(const std::filesystem::path& search_path)
+std::unique_ptr<deserialize_context> resource_manager::open_read(const std::filesystem::path& path) const
 {
-	search_paths.push_back(search_path);
+	auto ctx = std::make_unique<physfs_deserialize_context>(path);
+	if (!ctx->is_open())
+	{
+		debug::log::error("Failed to open file \"{}\" for reading: {}", path.string(), PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		return nullptr;
+	}
+	
+	return ctx;
+}
+
+std::unique_ptr<serialize_context> resource_manager::open_write(const std::filesystem::path& path) const
+{
+	auto ctx = std::make_unique<physfs_serialize_context>(path);
+	if (!ctx->is_open())
+	{
+		debug::log::error("Failed to open file \"{}\" for writing: {}", path.string(), PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+		return nullptr;
+	}
+	
+	return ctx;
 }

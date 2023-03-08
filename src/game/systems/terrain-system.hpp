@@ -66,7 +66,7 @@ public:
 	 *
 	 * @param material Patch material.
 	 */
-	void set_patch_material(::render::material* material);
+	void set_patch_material(std::shared_ptr<::render::material> material);
 	
 	/**
 	 * Sets the terrain elevation function.
@@ -105,7 +105,7 @@ private:
 	/**
 	 * Generates a mesh for a terrain patch given the patch's quadtree node
 	 */
-	geom::mesh* generate_patch_mesh(quadtree_node_type node) const;
+	std::unique_ptr<geom::mesh> generate_patch_mesh(quadtree_node_type node) const;
 	
 	/**
 	 * Generates a model for a terrain patch given the patch's mesh.
@@ -120,7 +120,7 @@ private:
 	std::size_t patch_triangle_count;
 	std::size_t patch_vertex_size;
 	std::size_t patch_vertex_stride;
-	float* patch_vertex_data;
+	mutable std::vector<float> patch_vertex_data;
 	
 	struct patch_vertex
 	{
@@ -135,11 +135,11 @@ private:
 	mutable std::vector<std::vector<patch_vertex>> patch_vertex_buffer;
 
 	
-	::render::material* patch_material;
+	std::shared_ptr<::render::material> patch_material;
 	std::function<float(float, float)> elevation_function;
 	scene::collection* scene_collection;
 	
-	geom::mesh* patch_base_mesh;
+	std::unique_ptr<geom::mesh> patch_base_mesh;
 	
 	/// Quadtree describing level of detail
 	quadtree_type quadtree;

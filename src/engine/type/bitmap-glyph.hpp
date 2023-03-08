@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_TYPE_BITMAP_GLYPH_HPP
 #define ANTKEEPER_TYPE_BITMAP_GLYPH_HPP
 
-#include <engine/resources/image.hpp>
+#include <engine/utility/image.hpp>
 #include <engine/type/glyph-metrics.hpp>
 #include <engine/utility/fundamental-types.hpp>
 

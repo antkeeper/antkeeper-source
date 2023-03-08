@@ -30,7 +30,7 @@
 #include <engine/render/renderer.hpp>
 #include <unordered_map>
 #include <vector>
-
+#include <memory>
 
 class render_system: public updatable_system
 {
@@ -66,8 +66,8 @@ private:
 	double dt;
 	::render::renderer* renderer;
 	std::vector<scene::collection*> layers;
-	std::unordered_map<entity::id, scene::model_instance*> model_instances;
-	std::unordered_map<entity::id, scene::light*> lights;
+	std::unordered_map<entity::id, std::unique_ptr<scene::model_instance>> model_instances;
+	std::unordered_map<entity::id, std::unique_ptr<scene::light>> lights;
 };
 
 

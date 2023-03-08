@@ -34,27 +34,12 @@ clear_pass::clear_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	clear_stencil(0)
 {}
 
-clear_pass::~clear_pass()
-{}
-
-void clear_pass::render(const render::context& ctx, render::queue& queue) const
+void clear_pass::render(const render::context& ctx, render::queue& queue)
 {
-	if (clear_color_buffer)
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	if (clear_depth_buffer)
-		glDepthMask(GL_TRUE);
-	if (clear_stencil_buffer)
-		glStencilMask(0xFF);
-	
-	rasterizer->use_framebuffer(*framebuffer);
-
-	auto viewport = framebuffer->get_dimensions();
-	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
-	
-	rasterizer->set_clear_color(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
-	rasterizer->set_clear_depth(clear_depth);
-	rasterizer->set_clear_stencil(clear_stencil);
-	rasterizer->clear_framebuffer(clear_color_buffer, clear_depth_buffer, clear_stencil_buffer);
+	for (const auto& command: command_buffer)
+	{
+		command();
+	}
 }
 
 void clear_pass::set_cleared_buffers(bool color, bool depth, bool stencil)
@@ -62,6 +47,8 @@ void clear_pass::set_cleared_buffers(bool color, bool depth, bool stencil)
 	clear_color_buffer = color;
 	clear_depth_buffer = depth;
 	clear_stencil_buffer = stencil;
+	
+	rebuild_command_buffer();
 }
 
 void clear_pass::set_clear_color(const float4& color)
@@ -77,6 +64,77 @@ void clear_pass::set_clear_depth(float depth)
 void clear_pass::set_clear_stencil(int stencil)
 {
 	clear_stencil = stencil;
+}
+
+void clear_pass::rebuild_command_buffer()
+{
+	command_buffer.clear();
+	
+	if (!clear_color_buffer &&
+		!clear_depth_buffer &&
+		!clear_stencil_buffer)
+	{
+		return;
+	}
+	
+	command_buffer.emplace_back
+	(
+		[&]()
+		{
+			rasterizer->use_framebuffer(*framebuffer);
+			
+			auto viewport = framebuffer->get_dimensions();
+			rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
+		}
+	);
+	
+	if (clear_color_buffer)
+	{
+		// Update color buffer clear state
+		command_buffer.emplace_back
+		(
+			[&]()
+			{
+				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+				rasterizer->set_clear_color(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
+			}
+		);
+	}
+	
+	if (clear_depth_buffer)
+	{
+		// Update depth buffer clear state
+		command_buffer.emplace_back
+		(
+			[&]()
+			{
+				glDepthMask(GL_TRUE);
+				rasterizer->set_clear_depth(clear_depth);
+			}
+		);
+	}
+	
+	if (clear_stencil_buffer)
+	{
+		// Update stencil buffer clear state
+		command_buffer.emplace_back
+		(
+			[&]()
+			{
+				glStencilMask(0xFF);
+				rasterizer->set_clear_stencil(clear_stencil);
+			}
+		);
+	}
+	
+	// Clear buffers
+	command_buffer.emplace_back
+	(
+		[&]()
+		{
+			rasterizer->clear_framebuffer(clear_color_buffer, clear_depth_buffer, clear_stencil_buffer);
+		}
+	);
 }
 
 } // namespace render

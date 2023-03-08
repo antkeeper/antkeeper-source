@@ -22,7 +22,7 @@
 #include "game/components/model-component.hpp"
 
 
-entity::id spawn_ant_egg(::game& ctx, const ant::genome& genome, bool fertilized, const float3& position)
+entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, bool fertilized, const float3& position)
 {
 	// Create entity
 	entity::id egg_eid = ctx.entity_registry->create();
@@ -45,7 +45,7 @@ entity::id spawn_ant_egg(::game& ctx, const ant::genome& genome, bool fertilized
 	return egg_eid;
 }
 
-entity::id spawn_ant_larva(::game& ctx, const ant::genome& genome, const float3& position)
+entity::id spawn_ant_larva(::game& ctx, const ant_genome& genome, const float3& position)
 {
 	// Create entity
 	entity::id larva_eid = ctx.entity_registry->create();
@@ -68,7 +68,7 @@ entity::id spawn_ant_larva(::game& ctx, const ant::genome& genome, const float3&
 	return larva_eid;
 }
 
-entity::id spawn_worker_ant(::game& ctx, const ant::genome& genome, const float3& position)
+entity::id spawn_worker_ant(::game& ctx, const ant_genome& genome, const float3& position)
 {
 	return entt::null;
 }

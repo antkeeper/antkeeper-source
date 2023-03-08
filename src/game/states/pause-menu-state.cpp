@@ -41,22 +41,22 @@ pause_menu_state::pause_menu_state(::game& ctx):
 	debug::log::trace("Entering pause menu state...");
 	
 	// Construct menu item texts
-	scene::text* resume_text = new scene::text();
-	scene::text* options_text = new scene::text();
-	scene::text* main_menu_text = new scene::text();
-	scene::text* quit_text = new scene::text();
+	resume_text = std::make_unique<scene::text>();;
+	options_text = std::make_unique<scene::text>();;
+	main_menu_text = std::make_unique<scene::text>();;
+	quit_text = std::make_unique<scene::text>();;
 	
 	// Set content of menu item texts
-	resume_text->set_content(get_string(ctx, "pause_menu_resume"_fnv1a32));
-	options_text->set_content(get_string(ctx, "pause_menu_options"_fnv1a32));
-	main_menu_text->set_content(get_string(ctx, "pause_menu_main_menu"_fnv1a32));
-	quit_text->set_content(get_string(ctx, "pause_menu_quit"_fnv1a32));
+	resume_text->set_content(get_string(ctx, "pause_menu_resume"));
+	options_text->set_content(get_string(ctx, "pause_menu_options"));
+	main_menu_text->set_content(get_string(ctx, "pause_menu_main_menu"));
+	quit_text->set_content(get_string(ctx, "pause_menu_quit"));
 	
 	// Build list of menu item texts
-	ctx.menu_item_texts.push_back({resume_text, nullptr});
-	ctx.menu_item_texts.push_back({options_text, nullptr});
-	ctx.menu_item_texts.push_back({main_menu_text, nullptr});
-	ctx.menu_item_texts.push_back({quit_text, nullptr});
+	ctx.menu_item_texts.push_back({resume_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({options_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({main_menu_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({quit_text.get(), nullptr});
 	
 	// Init menu item index
 	::menu::init_menu_item_index(ctx, "pause");
@@ -149,7 +149,7 @@ pause_menu_state::pause_menu_state(::game& ctx):
 		::menu::fade_out(ctx, nullptr);
 		
 		// Fade out to black then return to main menu
-		ctx.fade_transition_color->set_value({0, 0, 0});
+		ctx.fade_transition_color->set({0, 0, 0});
 		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, fade_out_callback);
 	};
 	auto select_quit_callback = [&ctx]()
@@ -167,7 +167,7 @@ pause_menu_state::pause_menu_state(::game& ctx):
 		::menu::fade_out(ctx, nullptr);
 		
 		// Fade out to black then quit
-		ctx.fade_transition_color->set_value({0, 0, 0});
+		ctx.fade_transition_color->set({0, 0, 0});
 		ctx.fade_transition->transition(config::quit_fade_out_duration, false, ease<float>::out_cubic, false, [&ctx](){ctx.closed=true;});
 	};
 	

@@ -22,7 +22,7 @@
 
 #include <engine/type/font.hpp>
 #include <engine/type/bitmap-glyph.hpp>
-#include <engine/resources/image.hpp>
+#include <engine/utility/image.hpp>
 #include <unordered_map>
 
 namespace type {

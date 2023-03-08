@@ -35,37 +35,37 @@ sound_menu_state::sound_menu_state(::game& ctx):
 	debug::log::trace("Entering sound menu state...");
 	
 	// Construct menu item texts
-	scene::text* master_volume_name_text = new scene::text();
-	scene::text* master_volume_value_text = new scene::text();
-	scene::text* ambience_volume_name_text = new scene::text();
-	scene::text* ambience_volume_value_text = new scene::text();
-	scene::text* effects_volume_name_text = new scene::text();
-	scene::text* effects_volume_value_text = new scene::text();
-	scene::text* mono_audio_name_text = new scene::text();
-	scene::text* mono_audio_value_text = new scene::text();
-	scene::text* captions_name_text = new scene::text();
-	scene::text* captions_value_text = new scene::text();
-	scene::text* captions_size_name_text = new scene::text();
-	scene::text* captions_size_value_text = new scene::text();
-	scene::text* back_text = new scene::text();
+	master_volume_name_text = std::make_unique<scene::text>();
+	master_volume_value_text = std::make_unique<scene::text>();
+	ambience_volume_name_text = std::make_unique<scene::text>();
+	ambience_volume_value_text = std::make_unique<scene::text>();
+	effects_volume_name_text = std::make_unique<scene::text>();
+	effects_volume_value_text = std::make_unique<scene::text>();
+	mono_audio_name_text = std::make_unique<scene::text>();
+	mono_audio_value_text = std::make_unique<scene::text>();
+	captions_name_text = std::make_unique<scene::text>();
+	captions_value_text = std::make_unique<scene::text>();
+	captions_size_name_text = std::make_unique<scene::text>();
+	captions_size_value_text = std::make_unique<scene::text>();
+	back_text = std::make_unique<scene::text>();
 	
 	// Build list of menu item texts
-	ctx.menu_item_texts.push_back({master_volume_name_text, master_volume_value_text});
-	ctx.menu_item_texts.push_back({ambience_volume_name_text, ambience_volume_value_text});
-	ctx.menu_item_texts.push_back({effects_volume_name_text, effects_volume_value_text});
-	ctx.menu_item_texts.push_back({mono_audio_name_text, mono_audio_value_text});
-	ctx.menu_item_texts.push_back({captions_name_text, captions_value_text});
-	ctx.menu_item_texts.push_back({captions_size_name_text, captions_size_value_text});
-	ctx.menu_item_texts.push_back({back_text, nullptr});
+	ctx.menu_item_texts.push_back({master_volume_name_text.get(), master_volume_value_text.get()});
+	ctx.menu_item_texts.push_back({ambience_volume_name_text.get(), ambience_volume_value_text.get()});
+	ctx.menu_item_texts.push_back({effects_volume_name_text.get(), effects_volume_value_text.get()});
+	ctx.menu_item_texts.push_back({mono_audio_name_text.get(), mono_audio_value_text.get()});
+	ctx.menu_item_texts.push_back({captions_name_text.get(), captions_value_text.get()});
+	ctx.menu_item_texts.push_back({captions_size_name_text.get(), captions_size_value_text.get()});
+	ctx.menu_item_texts.push_back({back_text.get(), nullptr});
 	
 	// Set content of menu item texts
-	master_volume_name_text->set_content(get_string(ctx, "sound_menu_master_volume"_fnv1a32));
-	ambience_volume_name_text->set_content(get_string(ctx, "sound_menu_ambience_volume"_fnv1a32));
-	effects_volume_name_text->set_content(get_string(ctx, "sound_menu_effects_volume"_fnv1a32));
-	mono_audio_name_text->set_content(get_string(ctx, "sound_menu_mono_audio"_fnv1a32));
-	captions_name_text->set_content(get_string(ctx, "sound_menu_captions"_fnv1a32));
-	captions_size_name_text->set_content(get_string(ctx, "sound_menu_captions_size"_fnv1a32));
-	back_text->set_content(get_string(ctx, "back"_fnv1a32));
+	master_volume_name_text->set_content(get_string(ctx, "sound_menu_master_volume"));
+	ambience_volume_name_text->set_content(get_string(ctx, "sound_menu_ambience_volume"));
+	effects_volume_name_text->set_content(get_string(ctx, "sound_menu_effects_volume"));
+	mono_audio_name_text->set_content(get_string(ctx, "sound_menu_mono_audio"));
+	captions_name_text->set_content(get_string(ctx, "sound_menu_captions"));
+	captions_size_name_text->set_content(get_string(ctx, "sound_menu_captions_size"));
+	back_text->set_content(get_string(ctx, "back"));
 	update_value_text_content();
 	
 	// Init menu item index
@@ -241,8 +241,8 @@ sound_menu_state::~sound_menu_state()
 
 void sound_menu_state::update_value_text_content()
 {
-	const std::string string_on = get_string(ctx, "on"_fnv1a32);
-	const std::string string_off = get_string(ctx, "off"_fnv1a32);
+	const std::string string_on = get_string(ctx, "on");
+	const std::string string_off = get_string(ctx, "off");
 	
 	std::get<1>(ctx.menu_item_texts[0])->set_content(std::to_string(static_cast<int>(std::round(ctx.master_volume * 100.0f))) + "%");
 	std::get<1>(ctx.menu_item_texts[1])->set_content(std::to_string(static_cast<int>(std::round(ctx.ambience_volume * 100.0f))) + "%");

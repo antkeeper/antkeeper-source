@@ -42,9 +42,6 @@ public:
 	/// Constructs a text object.
 	text();
 	
-	/// Destructs a text object.
-	~text();
-	
 	/// @copydoc scene::object_base::render(const render::context&, render::queue&) const
 	virtual void render(const render::context& ctx, render::queue& queue) const;
 	
@@ -58,7 +55,7 @@ public:
 	 *
 	 * @param material Text material.
 	 */
-	void set_material(render::material* material);
+	void set_material(std::shared_ptr<render::material> material);
 	
 	/**
 	 * Sets the text font.
@@ -91,7 +88,7 @@ public:
 	void set_color(const float4& color);
 	
 	/// Returns the text material.
-	render::material* get_material() const;
+	const std::shared_ptr<render::material>& get_material() const;
 	
 	/// Returns the text font.
 	const type::bitmap_font* get_font() const;
@@ -123,7 +120,7 @@ private:
 	mutable render::operation render_op;
 	aabb_type local_bounds;
 	aabb_type world_bounds;
-	render::material* material;
+	std::shared_ptr<render::material> material;
 	const type::bitmap_font* font;
 	type::text_direction direction;
 	std::string content_u8;
@@ -132,11 +129,11 @@ private:
 	std::size_t vertex_stride;
 	std::size_t vertex_count;
 	std::vector<std::byte> vertex_data;
-	gl::vertex_array* vao;
-	gl::vertex_buffer* vbo;
+	std::unique_ptr<gl::vertex_array> vao;
+	std::unique_ptr<gl::vertex_buffer> vbo;
 };
 
-inline render::material* text::get_material() const
+inline const std::shared_ptr<render::material>& text::get_material() const
 {
 	return material;
 }

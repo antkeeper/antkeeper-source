@@ -28,14 +28,13 @@
 #include "game/strings.hpp"
 #include <codecvt>
 
-using namespace hash::literals;
-
-
-static void build_bitmap_font(const type::typeface& typeface, float size, const std::unordered_set<char32_t>& charset, type::bitmap_font& font, render::material& material, gl::shader_program* shader_program)
+static void build_bitmap_font(const type::typeface& typeface, float size, const std::unordered_set<char32_t>& charset, type::bitmap_font& font, render::material& material, std::shared_ptr<gl::shader_template> shader_template)
 {
 	// Get font metrics for given size
 	if (type::font_metrics metrics; typeface.get_metrics(size, metrics))
+	{
 		font.set_font_metrics(metrics);
+	}
 	
 	// Format font bitmap
 	image& font_bitmap = font.get_bitmap();
@@ -46,7 +45,9 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	{
 		// Skip missing glyphs
 		if (!typeface.get_charset().contains(code))
+		{
 			continue;
+		}
 		
 		// Add glyph to font
 		type::bitmap_glyph& glyph = font[code];
@@ -58,14 +59,14 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	font.pack();
 	
 	// Create font texture from bitmap
-	gl::texture_2d* font_texture = new gl::texture_2d(font_bitmap.get_width(), font_bitmap.get_height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.data());
+	std::shared_ptr<gl::texture_2d> font_texture = std::make_shared<gl::texture_2d>(font_bitmap.width(), font_bitmap.height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.data());
 	font_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 	font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	
 	// Create font material
-	material.set_blend_mode(render::blend_mode::translucent);
-	material.add_property<const gl::texture_2d*>("font_bitmap")->set_value(font_texture);
-	material.set_shader_program(shader_program);
+	material.set_blend_mode(render::material_blend_mode::translucent);
+	material.set_variable("font_bitmap", std::make_shared<render::material_texture_2d>(1, font_texture));
+	material.set_shader_template(shader_template);
 }
 
 void load_fonts(::game& ctx)
@@ -74,7 +75,7 @@ void load_fonts(::game& ctx)
 	bool dyslexia_font_loaded = false;
 	if (ctx.dyslexia_font)
 	{
-		const auto dyslexia_font_path = get_string(ctx, "font_dyslexia"_fnv1a32);
+		const auto dyslexia_font_path = get_string(ctx, "font_dyslexia");
 		ctx.typefaces["dyslexia"] = ctx.resource_manager->load<type::typeface>(dyslexia_font_path);
 		dyslexia_font_loaded = true;
 	}
@@ -90,9 +91,9 @@ void load_fonts(::game& ctx)
 	else
 	{
 		// Load standard typefaces
-		const auto serif_font_path = get_string(ctx, "font_serif"_fnv1a32);
-		const auto sans_serif_font_path = get_string(ctx, "font_sans_serif"_fnv1a32);
-		const auto monospace_font_path = get_string(ctx, "font_monospace"_fnv1a32);
+		const auto serif_font_path = get_string(ctx, "font_serif");
+		const auto sans_serif_font_path = get_string(ctx, "font_sans_serif");
+		const auto monospace_font_path = get_string(ctx, "font_monospace");
 		
 		ctx.typefaces["serif"] = ctx.resource_manager->load<type::typeface>(serif_font_path);
 		ctx.typefaces["sans_serif"] = ctx.resource_manager->load<type::typeface>(sans_serif_font_path);
@@ -122,7 +123,7 @@ void load_fonts(::game& ctx)
 	*/
 	
 	// Load bitmap font shader
-	gl::shader_program* bitmap_font_shader = ctx.resource_manager->load<gl::shader_program>("bitmap-font.glsl");
+	std::shared_ptr<gl::shader_template> font_shader_template = ctx.resource_manager->load<gl::shader_template>("bitmap-font.glsl");
 	
 	// Point size to pixel size conversion factor
 	const float dpi = ctx.window_manager->get_display(0).get_dpi();
@@ -131,19 +132,19 @@ void load_fonts(::game& ctx)
 	// Build debug font
 	if (auto it = ctx.typefaces.find("monospace"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, ctx.debug_font_size_pt * pt_to_px, it->second->get_charset(), ctx.debug_font, ctx.debug_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, ctx.debug_font_size_pt * pt_to_px, it->second->get_charset(), ctx.debug_font, *ctx.debug_font_material, font_shader_template);
 	}
 	
 	// Build menu font
 	if (auto it = ctx.typefaces.find("sans_serif"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, ctx.menu_font_size_pt * pt_to_px, it->second->get_charset(), ctx.menu_font, ctx.menu_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, ctx.menu_font_size_pt * pt_to_px, it->second->get_charset(), ctx.menu_font, *ctx.menu_font_material, font_shader_template);
 	}
 	
 	// Build title font
 	if (auto it = ctx.typefaces.find("serif"); it != ctx.typefaces.end())
 	{
-		build_bitmap_font(*it->second, ctx.title_font_size_pt * pt_to_px, it->second->get_charset(), ctx.title_font, ctx.title_font_material, bitmap_font_shader);
+		build_bitmap_font(*it->second, ctx.title_font_size_pt * pt_to_px, it->second->get_charset(), ctx.title_font, *ctx.title_font_material, font_shader_template);
 	}
 }
 

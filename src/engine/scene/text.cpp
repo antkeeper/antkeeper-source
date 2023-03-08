@@ -39,8 +39,8 @@ text::text():
 	vbo(nullptr)
 {
 	// Allocate VBO and VAO
-	vbo = new gl::vertex_buffer(0, nullptr, gl::buffer_usage::static_draw);
-	vao = new gl::vertex_array();
+	vbo = std::make_unique<gl::vertex_buffer>();
+	vao = std::make_unique<gl::vertex_array>();
 	
 	// Calculate vertex stride
 	vertex_stride = (3 + 2 + 4) * sizeof(float);
@@ -50,7 +50,7 @@ text::text():
 	
 	// Define vertex position attribute
 	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = vbo;
+	position_attribute.buffer = vbo.get();
 	position_attribute.offset = attribute_offset;
 	position_attribute.stride = vertex_stride;
 	position_attribute.type = gl::vertex_attribute_type::float_32;
@@ -59,7 +59,7 @@ text::text():
 	
 	// Define vertex UV attribute
 	gl::vertex_attribute uv_attribute;
-	uv_attribute.buffer = vbo;
+	uv_attribute.buffer = vbo.get();
 	uv_attribute.offset = attribute_offset;
 	uv_attribute.stride = vertex_stride;
 	uv_attribute.type = gl::vertex_attribute_type::float_32;
@@ -68,7 +68,7 @@ text::text():
 	
 	// Define vertex color attribute
 	gl::vertex_attribute color_attribute;
-	color_attribute.buffer = vbo;
+	color_attribute.buffer = vbo.get();
 	color_attribute.offset = attribute_offset;
 	color_attribute.stride = vertex_stride;
 	color_attribute.type = gl::vertex_attribute_type::float_32;
@@ -84,24 +84,19 @@ text::text():
 	render_op.material = nullptr;
 	render_op.bone_count = 0;
 	render_op.skinning_palette = nullptr;
-	render_op.vertex_array = vao;
+	render_op.vertex_array = vao.get();
 	render_op.drawing_mode = gl::drawing_mode::triangles;
 	render_op.start_index = 0;
 	render_op.index_count = 0;
 	render_op.instance_count = 0;
 }
 
-text::~text()
-{
-	// Free VAO and VBO
-	delete vao;
-	delete vbo;
-}
-
 void text::render(const render::context& ctx, render::queue& queue) const
 {
 	if (!vertex_count)
+	{
 		return;
+	}
 	
 	render_op.transform = math::matrix_cast(get_transform_tween().interpolate(ctx.alpha));
 	render_op.depth = ctx.clip_near.signed_distance(math::vector<float, 3>(render_op.transform[3]));
@@ -113,10 +108,10 @@ void text::refresh()
 	update_content();
 }
 
-void text::set_material(render::material* material)
+void text::set_material(std::shared_ptr<render::material> material)
 {
 	this->material = material;
-	render_op.material = material;
+	render_op.material = material.get();
 }
 
 void text::set_font(const type::bitmap_font* font)
@@ -175,7 +170,7 @@ void text::update_tweens()
 	object_base::update_tweens();
 	if (material)
 	{
-		material->update_tweens();
+		//material->update_tweens();
 	}
 }
 
@@ -197,7 +192,9 @@ void text::update_content()
 	
 	// Expand vertex data buffer to accommodate vertices
 	if (vertex_data.size() < min_vertex_buffer_size)
+	{
 		vertex_data.resize(min_vertex_buffer_size);
+	}
 	
 	// Get font metrics and bitmap
 	const type::font_metrics& font_metrics = font->get_font_metrics();
@@ -250,8 +247,8 @@ void text::update_content()
 				positions[i].y() = std::round(positions[i].y());
 				
 				// Normalize UVs
-				uvs[i].x() = uvs[i].x() / static_cast<float>(font_bitmap.get_width());
-				uvs[i].y() = uvs[i].y() / static_cast<float>(font_bitmap.get_height());
+				uvs[i].x() = uvs[i].x() / static_cast<float>(font_bitmap.width());
+				uvs[i].y() = uvs[i].y() / static_cast<float>(font_bitmap.height());
 			}
 			
 			// Add vertex to vertex data buffer
@@ -304,11 +301,11 @@ void text::update_content()
 	if (vertex_count > this->vertex_count)
 	{
 		this->vertex_count = vertex_count;
-		vbo->resize(min_vertex_buffer_size, vertex_data.data());
+		vbo->resize(min_vertex_buffer_size, vertex_data);
 	}
 	else
 	{
-		vbo->write(0, min_vertex_buffer_size, vertex_data.data());
+		vbo->write({vertex_data.data(), min_vertex_buffer_size});
 	}
 	
 	// Update vertex count
@@ -335,7 +332,7 @@ void text::update_color()
 	}
 	
 	// Update VBO
-	vbo->write(0, vertex_count * vertex_stride, vertex_data.data());
+	vbo->write({vertex_data.data(), vertex_count * vertex_stride});
 }
 
 } // namespace scene

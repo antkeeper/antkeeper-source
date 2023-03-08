@@ -23,7 +23,7 @@
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-attribute.hpp>
@@ -31,6 +31,7 @@
 #include <engine/gl/texture-2d.hpp>
 #include <engine/gl/texture-wrapping.hpp>
 #include <engine/gl/texture-filter.hpp>
+#include <engine/gl/shader-variable-type.hpp>
 #include <engine/render/vertex-attribute.hpp>
 #include <engine/render/material-flags.hpp>
 #include <engine/render/model.hpp>
@@ -44,6 +45,7 @@
 #include <engine/config.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/projection.hpp>
+#include <engine/utility/hash/combine.hpp>
 #include <cmath>
 #include <glad/glad.h>
 
@@ -52,51 +54,10 @@ namespace render {
 static bool operation_compare(const render::operation& a, const render::operation& b);
 
 material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
-	pass(rasterizer, framebuffer),
-	fallback_material(nullptr),
-	mouse_position({0.0f, 0.0f})
-{
-	max_ambient_light_count = MATERIAL_PASS_MAX_AMBIENT_LIGHT_COUNT;
-	max_point_light_count = MATERIAL_PASS_MAX_POINT_LIGHT_COUNT;
-	max_directional_light_count = MATERIAL_PASS_MAX_DIRECTIONAL_LIGHT_COUNT;
-	max_spot_light_count = MATERIAL_PASS_MAX_SPOTLIGHT_COUNT;
-	
-	ambient_light_colors = new float3[max_ambient_light_count];
-	point_light_colors = new float3[max_point_light_count];
-	point_light_positions = new float3[max_point_light_count];
-	point_light_attenuations = new float3[max_point_light_count];
-	directional_light_colors = new float3[max_directional_light_count];
-	directional_light_directions = new float3[max_directional_light_count];
-	directional_light_textures = new const gl::texture_2d*[max_directional_light_count];
-	directional_light_texture_matrices = new float4x4[max_directional_light_count];
-	directional_light_texture_opacities = new float[max_directional_light_count];
-	
-	spot_light_colors = new float3[max_spot_light_count];
-	spot_light_positions = new float3[max_spot_light_count];
-	spot_light_directions = new float3[max_spot_light_count];
-	spot_light_attenuations = new float3[max_spot_light_count];
-	spot_light_cutoffs = new float2[max_spot_light_count];
-}
+	pass(rasterizer, framebuffer)
+{}
 
-material_pass::~material_pass()
-{
-	delete[] ambient_light_colors;
-	delete[] point_light_colors;
-	delete[] point_light_positions;
-	delete[] point_light_attenuations;
-	delete[] directional_light_colors;
-	delete[] directional_light_directions;
-	delete[] directional_light_textures;
-	delete[] directional_light_texture_matrices;
-	delete[] directional_light_texture_opacities;
-	delete[] spot_light_colors;
-	delete[] spot_light_positions;
-	delete[] spot_light_directions;
-	delete[] spot_light_attenuations;
-	delete[] spot_light_cutoffs;
-}
-
-void material_pass::render(const render::context& ctx, render::queue& queue) const
+void material_pass::render(const render::context& ctx, render::queue& queue)
 {
 	rasterizer->use_framebuffer(*framebuffer);
 	
@@ -107,165 +68,25 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glDisable(GL_STENCIL_TEST);
-	glStencilMask(0x00);
 	
 	// For half-z buffer
 	glDepthRange(-1.0f, 1.0f);
-
+	
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
-	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
-	
-	const float3& camera_position = ctx.camera_transform.translation;
-	const float4x4& view = ctx.view;
-	const float4x4& projection = ctx.projection;
-	const float4x4& view_projection = ctx.view_projection;
-	float4x4 model_view_projection;
-	float4x4 model;
-	float4x4 model_view;
-	float3x3 normal_model;
-	float3x3 normal_model_view;
-	float2 clip_depth;
-	clip_depth[0] = ctx.camera->get_clip_near_tween().interpolate(ctx.alpha);
-	clip_depth[1] = ctx.camera->get_clip_far_tween().interpolate(ctx.alpha);
-	float log_depth_coef = 2.0f / std::log2(clip_depth[1] + 1.0f);
-
-	int active_material_flags = 0;
 	const gl::shader_program* active_shader_program = nullptr;
 	const render::material* active_material = nullptr;
-	const parameter_set* parameters = nullptr;
-	blend_mode active_blend_mode = blend_mode::opaque;
+	std::size_t active_material_hash = 0;
 	bool active_two_sided = false;
+	material_blend_mode active_blend_mode = material_blend_mode::opaque;
+	std::size_t active_cache_key = 0;
+	shader_cache_entry* active_cache_entry = nullptr;
 	
-	// Reset light counts
-	ambient_light_count = 0;
-	point_light_count = 0;
-	directional_light_count = 0;
-	spot_light_count = 0;
-	const gl::texture_2d* shadow_map_texture = nullptr;
-	unsigned int shadow_cascade_count = 0;
-	const float* shadow_splits_directional = nullptr;
-	const float4x4* shadow_matrices_directional = nullptr;
-	float shadow_bias_directional = 0.0f;
-	
-	// Collect lights
-	const std::list<scene::object_base*>* lights = ctx.collection->get_objects(scene::light::object_type_id);
-	for (const scene::object_base* object: *lights)
-	{
-		// Skip inactive lights
-		if (!object->is_active())
-				continue;
-		
-		const scene::light* light = static_cast<const scene::light*>(object);
-		switch (light->get_light_type())
-		{
-			// Add ambient light
-			case scene::light_type::ambient:
-			{
-				if (ambient_light_count < max_ambient_light_count)
-				{
-					// Pre-expose light
-					ambient_light_colors[ambient_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
-					++ambient_light_count;
-				}
-				break;
-			}
-			
-			// Add point light
-			case scene::light_type::point:
-			{
-				if (point_light_count < max_point_light_count)
-				{
-					// Pre-expose light
-					point_light_colors[point_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
-					
-					float3 position = light->get_transform_tween().interpolate(ctx.alpha).translation;
-					point_light_positions[point_light_count] = position;
-					
-					point_light_attenuations[point_light_count] = static_cast<const scene::point_light*>(light)->get_attenuation_tween().interpolate(ctx.alpha);
-					++point_light_count;
-				}
-				break;
-			}
-			
-			// Add directional light
-			case scene::light_type::directional:
-			{
-				if (directional_light_count < max_directional_light_count)
-				{
-					const scene::directional_light* directional_light = static_cast<const scene::directional_light*>(light);
-
-					// Pre-expose light
-					directional_light_colors[directional_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
-					
-					float3 direction = static_cast<const scene::directional_light*>(light)->get_direction_tween().interpolate(ctx.alpha);
-					directional_light_directions[directional_light_count] = direction;
-					
-					if (directional_light->is_shadow_caster())
-					{
-						if (directional_light->get_shadow_framebuffer())
-							shadow_map_texture = directional_light->get_shadow_framebuffer()->get_depth_attachment();
-						shadow_bias_directional = directional_light->get_shadow_bias();
-						shadow_cascade_count = directional_light->get_shadow_cascade_count();
-						shadow_splits_directional = directional_light->get_shadow_cascade_distances();
-						shadow_matrices_directional = directional_light->get_shadow_cascade_matrices();
-					}
-					
-					if (directional_light->get_light_texture())
-					{
-						directional_light_textures[directional_light_count] = directional_light->get_light_texture();
-						directional_light_texture_opacities[directional_light_count] = directional_light->get_light_texture_opacity_tween().interpolate(ctx.alpha);
-						
-						math::transform<float> light_transform = light->get_transform_tween().interpolate(ctx.alpha);
-						float3 forward = light_transform.rotation * config::global_forward;
-						float3 up = light_transform.rotation * config::global_up;
-						float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
-						
-						float2 scale = directional_light->get_light_texture_scale_tween().interpolate(ctx.alpha);
-						float4x4 light_projection = math::ortho(-scale.x(), scale.x(), -scale.y(), scale.y(), -1.0f, 1.0f);
-						
-						directional_light_texture_matrices[directional_light_count] = light_projection * light_view;
-					}
-					else
-					{
-						directional_light_textures[directional_light_count] = nullptr;
-						directional_light_texture_opacities[directional_light_count] = 0.0f;
-					}
-					
-					++directional_light_count;
-				}
-				break;
-			}
-			
-			// Add spot_light
-			case scene::light_type::spot:
-			{
-				if (spot_light_count < max_spot_light_count)
-				{
-					const scene::spot_light* spot_light = static_cast<const scene::spot_light*>(light);
-
-					// Pre-expose light
-					spot_light_colors[spot_light_count] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
-					
-					float3 position = light->get_transform_tween().interpolate(ctx.alpha).translation;
-					spot_light_positions[spot_light_count] = position;
-					
-					float3 direction = spot_light->get_direction_tween().interpolate(ctx.alpha);
-					spot_light_directions[spot_light_count] = direction;
-					
-					spot_light_attenuations[spot_light_count] = spot_light->get_attenuation_tween().interpolate(ctx.alpha);
-					spot_light_cutoffs[spot_light_count] = spot_light->get_cosine_cutoff_tween().interpolate(ctx.alpha);
-					
-					++spot_light_count;
-				}
-				break;
-			}
-
-			default:
-				break;
-		}
-	}
+	// Gather information
+	evaluate_camera(ctx);
+	evaluate_lighting(ctx);
+	evaluate_misc(ctx);
 	
 	// Sort render queue
 	queue.sort(operation_compare);
@@ -276,454 +97,925 @@ void material_pass::render(const render::context& ctx, render::queue& queue) con
 		const render::material* material = operation.material;
 		if (!material)
 		{
-			if (fallback_material)
-			{
-				// No material specified, use fallback material
-				material = fallback_material;
-			}
-			else
+			if (!fallback_material)
 			{
 				// No material specified and no fallback material, skip operation
 				continue;
 			}
+			
+			// Use fallback material
+			material = fallback_material.get();
 		}
 		
 		// Switch materials if necessary
 		if (active_material != material)
 		{
+			if (!material->get_shader_template())
+			{
+				continue;
+			}
+			
+			if (active_material_hash != material->hash())
+			{
+				// Set culling mode
+				if (active_two_sided != material->is_two_sided())
+				{
+					if (material->is_two_sided())
+					{
+						glDisable(GL_CULL_FACE);
+					}
+					else
+					{
+						glEnable(GL_CULL_FACE);
+					}
+					
+					active_two_sided = material->is_two_sided();
+				}
+				
+				// Set blend mode
+				if (active_blend_mode != material->get_blend_mode())
+				{
+					if (material->get_blend_mode() == material_blend_mode::translucent)
+					{
+						glEnable(GL_BLEND);
+						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					}
+					else
+					{
+						glDisable(GL_BLEND);
+					}
+					
+					active_blend_mode = material->get_blend_mode();
+				}
+				
+				active_material_hash = material->hash();
+			}
+			
+			// Calculate shader cache key
+			std::size_t cache_key = hash::combine(lighting_state_hash, material->get_shader_template()->hash());
+			if (active_cache_key != cache_key)
+			{
+				// Lookup shader cache entry
+				if (auto i = shader_cache.find(cache_key); i != shader_cache.end())
+				{
+					active_cache_entry = &i->second;
+				}
+				else
+				{
+					// Construct cache entry
+					active_cache_entry = &shader_cache[cache_key];
+					active_cache_entry->shader_program = generate_shader_program(*material->get_shader_template());
+					build_shader_command_buffer(active_cache_entry->shader_command_buffer, *active_cache_entry->shader_program);
+					build_geometry_command_buffer(active_cache_entry->geometry_command_buffer, *active_cache_entry->shader_program);
+					
+					debug::log::trace("Generated material cache entry {:x}", cache_key);
+				}
+				
+				// Bind shader and update shader-specific variables
+				for (const auto& command: active_cache_entry->shader_command_buffer)
+				{
+					command();
+				}
+				
+				active_cache_key = cache_key;
+			}
+			
+			// Find or build material command buffer
+			std::vector<std::function<void()>>* material_command_buffer;
+			if (auto i = active_cache_entry->material_command_buffers.find(material); i != active_cache_entry->material_command_buffers.end())
+			{
+				material_command_buffer = &i->second;
+			}
+			else
+			{
+				material_command_buffer = &active_cache_entry->material_command_buffers[material];
+				build_material_command_buffer(*material_command_buffer, *active_cache_entry->shader_program, *material);
+				
+				debug::log::trace("Generated material command buffer");
+			}
+			
+			// Update material-dependent shader variables
+			for (const auto& command: *material_command_buffer)
+			{
+				command();
+			}
+			
 			active_material = material;
-			
-			// Set blend mode
-			const blend_mode material_blend_mode = active_material->get_blend_mode();
-			if (material_blend_mode != active_blend_mode)
-			{
-				if (material_blend_mode == blend_mode::translucent)
-				{
-					glEnable(GL_BLEND);
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				}
-				else if (active_blend_mode == blend_mode::translucent && (material_blend_mode == blend_mode::opaque || material_blend_mode == blend_mode::masked))
-				{
-					glDisable(GL_BLEND);
-				}
-				
-				active_blend_mode = material_blend_mode;
-			}
-			
-			// Set back-face culling mode
-			const bool material_two_sided = active_material->is_two_sided();
-			if (material_two_sided != active_two_sided)
-			{
-				if (material_two_sided)
-				{
-					glDisable(GL_CULL_FACE);
-				}
-				else
-				{
-					glEnable(GL_CULL_FACE);
-				}
-				
-				active_two_sided = material_two_sided;
-			}
-			
-			// Change rasterizer state according to material flags
-			std::uint32_t material_flags = active_material->get_flags();
-			if (active_material_flags != material_flags)
-			{
-				if ((material_flags & MATERIAL_FLAG_X_RAY) != (active_material_flags & MATERIAL_FLAG_X_RAY))
-				{
-					if (material_flags & MATERIAL_FLAG_X_RAY)
-					{
-						glDisable(GL_DEPTH_TEST);
-
-					}
-					else
-					{
-						glEnable(GL_DEPTH_TEST);
-					}
-				}
-				
-				if ((material_flags & MATERIAL_FLAG_DECAL_SURFACE) != (active_material_flags & MATERIAL_FLAG_DECAL_SURFACE))
-				{
-					if (material_flags & MATERIAL_FLAG_DECAL_SURFACE)
-					{
-						glEnable(GL_STENCIL_TEST);
-						glStencilFunc(GL_ALWAYS, 1, ~0);
-						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-						glStencilMask(~0);
-					}
-					else
-					{
-						glDisable(GL_STENCIL_TEST);
-						glStencilMask(0);
-					}
-				}
-				
-				if ((material_flags & MATERIAL_FLAG_DECAL) != (active_material_flags & MATERIAL_FLAG_DECAL))
-				{
-					if (material_flags & MATERIAL_FLAG_DECAL)
-					{
-						glEnable(GL_DEPTH_TEST);
-						glDepthFunc(GL_GEQUAL);
-						glDepthMask(GL_FALSE);
-						
-						glEnable(GL_STENCIL_TEST);
-						glStencilFunc(GL_EQUAL, 1, ~0);
-						//glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
-						//glStencilMask(~0);
-						glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-						glStencilMask(0);
-					}
-					else
-					{
-						glEnable(GL_DEPTH_TEST);
-						glDepthFunc(GL_GREATER);
-						glDepthMask(GL_TRUE);
-						glDisable(GL_STENCIL_TEST);
-						glStencilMask(0);
-					}
-				}
-				
-				/*
-				if ((material_flags & MATERIAL_FLAG_OUTLINE) != (active_material_flags & MATERIAL_FLAG_OUTLINE))
-				{
-					if (material_flags & MATERIAL_FLAG_OUTLINE)
-					{
-						glEnable(GL_STENCIL_TEST);
-						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
-						glStencilFunc(GL_ALWAYS, 2, 0xFF);
-						glStencilMask(0xFF);
-					}
-					else
-					{
-						glDisable(GL_STENCIL_TEST);
-						glStencilMask(0x00);
-					}
-				}
-				*/
-
-				active_material_flags = material_flags;
-			}
-			
-			// Switch shaders if necessary
-			const gl::shader_program* shader_program = active_material->get_shader_program();
-			if (active_shader_program != shader_program)
-			{
-				active_shader_program = shader_program;
-				if (!active_shader_program)
-				{
-					continue;
-				}
-				
-				// Change shader program
-				rasterizer->use_program(*active_shader_program);
-
-				// Get set of known shader input parameters
-				if (auto it = parameter_sets.find(active_shader_program); it != parameter_sets.end())
-				{
-					parameters = it->second;
-				}
-				else
-				{
-					parameters = load_parameter_set(active_shader_program);
-				}
-
-				// Upload context-dependent shader parameters
-				if (parameters->time)
-					parameters->time->upload(ctx.t);
-				if (parameters->mouse)
-					parameters->mouse->upload(mouse_position);
-				if (parameters->resolution)
-					parameters->resolution->upload(resolution);
-				if (parameters->camera_position)
-					parameters->camera_position->upload(camera_position);
-				if (parameters->camera_exposure)
-					parameters->camera_exposure->upload(ctx.exposure);
-				if (parameters->view)
-					parameters->view->upload(view);
-				if (parameters->view_projection)
-					parameters->view_projection->upload(view_projection);
-				if (parameters->ambient_light_count)
-					parameters->ambient_light_count->upload(ambient_light_count);
-				if (parameters->ambient_light_colors)
-					parameters->ambient_light_colors->upload(0, ambient_light_colors, ambient_light_count);
-				if (parameters->point_light_count)
-					parameters->point_light_count->upload(point_light_count);
-				if (parameters->point_light_colors)
-					parameters->point_light_colors->upload(0, point_light_colors, point_light_count);
-				if (parameters->point_light_positions)
-					parameters->point_light_positions->upload(0, point_light_positions, point_light_count);
-				if (parameters->point_light_attenuations)
-					parameters->point_light_attenuations->upload(0, point_light_attenuations, point_light_count);
-				if (parameters->directional_light_count)
-					parameters->directional_light_count->upload(directional_light_count);
-				if (parameters->directional_light_colors)
-					parameters->directional_light_colors->upload(0, directional_light_colors, directional_light_count);
-				if (parameters->directional_light_directions)
-					parameters->directional_light_directions->upload(0, directional_light_directions, directional_light_count);
-				
-				if (parameters->directional_light_textures)
-					parameters->directional_light_textures->upload(0, directional_light_textures, directional_light_count);
-				if (parameters->directional_light_texture_matrices)
-					parameters->directional_light_texture_matrices->upload(0, directional_light_texture_matrices, directional_light_count);
-				if (parameters->directional_light_texture_opacities)
-					parameters->directional_light_texture_opacities->upload(0, directional_light_texture_opacities, directional_light_count);
-				
-				if (parameters->shadow_map_directional && shadow_map_texture)
-					parameters->shadow_map_directional->upload(shadow_map_texture);
-				if (parameters->shadow_bias_directional)
-					parameters->shadow_bias_directional->upload(shadow_bias_directional);
-				if (parameters->shadow_matrices_directional)
-					parameters->shadow_matrices_directional->upload(0, shadow_matrices_directional, shadow_cascade_count);
-				if (parameters->shadow_splits_directional)
-					parameters->shadow_splits_directional->upload(0, shadow_splits_directional, shadow_cascade_count);
-				
-				if (parameters->spot_light_count)
-					parameters->spot_light_count->upload(spot_light_count);
-				if (parameters->spot_light_colors)
-					parameters->spot_light_colors->upload(0, spot_light_colors, spot_light_count);
-				if (parameters->spot_light_positions)
-					parameters->spot_light_positions->upload(0, spot_light_positions, spot_light_count);
-				if (parameters->spot_light_directions)
-					parameters->spot_light_directions->upload(0, spot_light_directions, spot_light_count);
-				if (parameters->spot_light_attenuations)
-					parameters->spot_light_attenuations->upload(0, spot_light_attenuations, spot_light_count);
-				if (parameters->spot_light_cutoffs)
-					parameters->spot_light_cutoffs->upload(0, spot_light_cutoffs, spot_light_count);
-			}
-			
-			// Upload material properties to shader
-			active_material->upload(ctx.alpha);
 		}
-
-		// Calculate operation-dependent parameters
-		model = operation.transform;
-		model_view_projection = view_projection * model;
-		model_view = view * model;
-		normal_model = math::transpose(math::inverse(math::matrix<float, 3, 3>(model)));
-		normal_model_view = math::transpose(math::inverse(math::matrix<float, 3, 3>(model_view)));
 		
-		// Skinning palette
-		if (operation.bone_count && parameters->skinning_palette)
+		// Update geometry-dependent shader variables
+		model = &operation.transform;
+		for (const auto& command: active_cache_entry->geometry_command_buffer)
 		{
-			parameters->skinning_palette->upload(0, operation.skinning_palette, operation.bone_count);
+			command();
 		}
-
-		// Upload operation-dependent parameters
-		if (parameters->model)
-			parameters->model->upload(model);
-		if (parameters->model_view)
-			parameters->model_view->upload(model_view);
-		if (parameters->model_view_projection)
-			parameters->model_view_projection->upload(model_view_projection);
-		if (parameters->normal_model)
-			parameters->normal_model->upload(normal_model);
-		if (parameters->normal_model_view)
-			parameters->normal_model_view->upload(normal_model_view);
-		if (parameters->clip_depth)
-			parameters->clip_depth->upload(clip_depth);
-		if (parameters->log_depth_coef)
-			parameters->log_depth_coef->upload(log_depth_coef);
-
+		
 		// Draw geometry
 		if (operation.instance_count)
+		{
 			rasterizer->draw_arrays_instanced(*operation.vertex_array, operation.drawing_mode, operation.start_index, operation.index_count, operation.instance_count);
+		}
 		else
+		{
 			rasterizer->draw_arrays(*operation.vertex_array, operation.drawing_mode, operation.start_index, operation.index_count);
+		}
 	}
+	
+	++frame;
 }
 
-void material_pass::set_fallback_material(const material* fallback)
+void material_pass::set_fallback_material(std::shared_ptr<render::material> fallback)
 {
 	this->fallback_material = fallback;
 }
 
-const material_pass::parameter_set* material_pass::load_parameter_set(const gl::shader_program* program) const
+void material_pass::evaluate_camera(const render::context& ctx)
 {
-	// Allocate a new parameter set
-	parameter_set* parameters = new parameter_set();
+	view = &ctx.view;
+	projection = &ctx.projection;
+	view_projection = &ctx.view_projection;
+	camera_position = &ctx.camera_transform.translation;
+	camera_exposure = ctx.exposure;
+	clip_depth =
+	{
+		ctx.camera->get_clip_near_tween().interpolate(ctx.alpha),
+		ctx.camera->get_clip_far_tween().interpolate(ctx.alpha)
+	};
+	log_depth_coef = 2.0f / std::log2(clip_depth[1] + 1.0f);
+}
 
-	// Connect inputs
-	parameters->time = program->get_input("time");
-	parameters->mouse = program->get_input("mouse");
-	parameters->resolution = program->get_input("resolution");
-	parameters->camera_position = program->get_input("camera.position");
-	parameters->camera_exposure = program->get_input("camera.exposure");
-	parameters->model = program->get_input("model");
-	parameters->view = program->get_input("view");
-	parameters->projection = program->get_input("projection");
-	parameters->model_view = program->get_input("model_view");
-	parameters->view_projection = program->get_input("view_projection");
-	parameters->model_view_projection = program->get_input("model_view_projection");
-	parameters->normal_model = program->get_input("normal_model");
-	parameters->normal_model_view = program->get_input("normal_model_view");
-	parameters->clip_depth = program->get_input("clip_depth");
-	parameters->log_depth_coef = program->get_input("log_depth_coef");
-	parameters->ambient_light_count = program->get_input("ambient_light_count");
-	parameters->ambient_light_colors = program->get_input("ambient_light_colors");
-	parameters->point_light_count = program->get_input("point_light_count");
-	parameters->point_light_colors = program->get_input("point_light_colors");
-	parameters->point_light_positions = program->get_input("point_light_positions");
-	parameters->point_light_attenuations = program->get_input("point_light_attenuations");
-	parameters->directional_light_count = program->get_input("directional_light_count");
-	parameters->directional_light_colors = program->get_input("directional_light_colors");
-	parameters->directional_light_directions = program->get_input("directional_light_directions");
-	parameters->directional_light_textures = program->get_input("directional_light_textures");
-	parameters->directional_light_texture_matrices = program->get_input("directional_light_texture_matrices");
-	parameters->directional_light_texture_opacities = program->get_input("directional_light_texture_opacities");
-	parameters->spot_light_count = program->get_input("spot_light_count");
-	parameters->spot_light_colors = program->get_input("spot_light_colors");
-	parameters->spot_light_positions = program->get_input("spot_light_positions");
-	parameters->spot_light_directions = program->get_input("spot_light_directions");
-	parameters->spot_light_attenuations = program->get_input("spot_light_attenuations");
-	parameters->spot_light_cutoffs = program->get_input("spot_light_cutoffs");
-	parameters->shadow_map_directional = program->get_input("shadow_map_directional");
-	parameters->shadow_bias_directional = program->get_input("shadow_bias_directional");
-	parameters->shadow_splits_directional = program->get_input("shadow_splits_directional");
-	parameters->shadow_matrices_directional = program->get_input("shadow_matrices_directional");
-	parameters->skinning_palette = program->get_input("skinning_palette");
+void material_pass::evaluate_lighting(const render::context& ctx)
+{
+	// Reset light and shadow counts
+	ambient_light_count = 0;
+	point_light_count = 0;
+	directional_light_count = 0;
+	directional_shadow_count = 0;
+	spot_light_count = 0;
+	
+	const std::list<scene::object_base*>* lights = ctx.collection->get_objects(scene::light::object_type_id);
+	for (const scene::object_base* object: *lights)
+	{
+		// Ignore inactive lights
+		if (!object->is_active())
+		{
+			continue;
+		}
+		
+		const scene::light* light = static_cast<const scene::light*>(object);
+		switch (light->get_light_type())
+		{
+			// Add ambient light
+			case scene::light_type::ambient:
+			{
+				const std::size_t index = ambient_light_count;
+				
+				++ambient_light_count;
+				if (ambient_light_count > ambient_light_colors.size())
+				{
+					ambient_light_colors.resize(ambient_light_count);
+				}
+				
+				ambient_light_colors[index] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
+				break;
+			}
+			
+			// Add point light
+			case scene::light_type::point:
+			{
+				const std::size_t index = point_light_count;
+				
+				++point_light_count;
+				if (point_light_count > point_light_colors.size())
+				{
+					point_light_colors.resize(point_light_count);
+					point_light_positions.resize(point_light_count);
+					point_light_attenuations.resize(point_light_count);
+				}
+				
+				point_light_colors[index] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
+				point_light_positions[index] = light->get_transform_tween().interpolate(ctx.alpha).translation;
+				point_light_attenuations[index] = static_cast<const scene::point_light*>(light)->get_attenuation_tween().interpolate(ctx.alpha);
+				break;
+			}
+			
+			// Add directional light
+			case scene::light_type::directional:
+			{
+				const scene::directional_light& directional_light = static_cast<const scene::directional_light&>(*light);
+				
+				const std::size_t index = directional_light_count;
+				
+				++directional_light_count;
+				if (directional_light_count > directional_light_colors.size())
+				{
+					directional_light_colors.resize(directional_light_count);
+					directional_light_directions.resize(directional_light_count);
+				}
+				
+				directional_light_colors[index] = directional_light.get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
+				directional_light_directions[index] = directional_light.get_direction_tween().interpolate(ctx.alpha);
+				
+				// Add directional shadow
+				if (directional_light.is_shadow_caster() && directional_light.get_shadow_framebuffer())
+				{
+					const std::size_t index = directional_shadow_count;
+					
+					++directional_shadow_count;
+					if (directional_shadow_count > directional_shadow_maps.size())
+					{
+						directional_shadow_maps.resize(directional_shadow_count);
+						directional_shadow_biases.resize(directional_shadow_count);
+						directional_shadow_splits.resize(directional_shadow_count);
+						directional_shadow_matrices.resize(directional_shadow_count);
+					}
+					
+					directional_shadow_maps[index] = directional_light.get_shadow_framebuffer()->get_depth_attachment();
+					directional_shadow_biases[index] = directional_light.get_shadow_bias();
+					directional_shadow_splits[index] = &directional_light.get_shadow_cascade_distances();
+					directional_shadow_matrices[index] = &directional_light.get_shadow_cascade_matrices();
+				}
+				break;
+			}
+			
+			// Add spot_light
+			case scene::light_type::spot:
+			{
+				const scene::spot_light& spot_light = static_cast<const scene::spot_light&>(*light);
+				
+				const std::size_t index = spot_light_count;
+				
+				++spot_light_count;
+				if (spot_light_count > spot_light_colors.size())
+				{
+					spot_light_colors.resize(spot_light_count);
+					spot_light_positions.resize(spot_light_count);
+					spot_light_directions.resize(spot_light_count);
+					spot_light_attenuations.resize(spot_light_count);
+					spot_light_cutoffs.resize(spot_light_count);
+				}
+				
+				spot_light_colors[spot_light_count] = spot_light.get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
+				spot_light_positions[spot_light_count] = spot_light.get_transform_tween().interpolate(ctx.alpha).translation;
+				spot_light_directions[spot_light_count] = spot_light.get_direction_tween().interpolate(ctx.alpha);
+				spot_light_attenuations[spot_light_count] = spot_light.get_attenuation_tween().interpolate(ctx.alpha);
+				spot_light_cutoffs[spot_light_count] = spot_light.get_cosine_cutoff_tween().interpolate(ctx.alpha);
+				break;
+			}
+			
+			default:
+				break;
+		}
+	}
+	
+	// Generate lighting state hash
+	lighting_state_hash = std::hash<std::size_t>{}(ambient_light_count);
+	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(directional_light_count));
+	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(directional_shadow_count));
+	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(point_light_count));
+	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(spot_light_count));
+}
 
-	// Add parameter set to map of parameter sets
-	parameter_sets[program] = parameters;
+void material_pass::evaluate_misc(const render::context& ctx)
+{
+	time = ctx.t;
+	timestep = ctx.dt;
+	subframe = ctx.alpha;
+	
+	const auto viewport_size = framebuffer->get_dimensions();
+	resolution = 
+	{
+		static_cast<float>(std::get<0>(viewport_size)),
+		static_cast<float>(std::get<1>(viewport_size))
+	};
+	
+	///mouse_position = ...
+}
 
-	return parameters;
+std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const gl::shader_template& shader_template) const
+{
+	std::unordered_map<std::string, std::string> definitions;
+	
+	definitions["VERTEX_POSITION"]    = std::to_string(vertex_attribute::position);
+	definitions["VERTEX_UV"]          = std::to_string(vertex_attribute::uv);
+	definitions["VERTEX_NORMAL"]      = std::to_string(vertex_attribute::normal);
+	definitions["VERTEX_TANGENT"]     = std::to_string(vertex_attribute::tangent);
+	definitions["VERTEX_COLOR"]       = std::to_string(vertex_attribute::color);
+	definitions["VERTEX_BONE_INDEX"]  = std::to_string(vertex_attribute::bone_index);
+	definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute::bone_weight);
+	definitions["VERTEX_BARYCENTRIC"] = std::to_string(vertex_attribute::barycentric);
+	definitions["VERTEX_TARGET"]      = std::to_string(vertex_attribute::target);
+	
+	definitions["FRAGMENT_OUTPUT_COLOR"] = std::to_string(0);
+	
+	definitions["AMBIENT_LIGHT_COUNT"] = std::to_string(ambient_light_count);
+	definitions["DIRECTIONAL_LIGHT_COUNT"] = std::to_string(directional_light_count);
+	definitions["DIRECTIONAL_SHADOW_COUNT"] = std::to_string(directional_shadow_count);
+	definitions["POINT_LIGHT_COUNT"] = std::to_string(point_light_count);
+	definitions["SPOT_LIGHT_COUNT"] = std::to_string(spot_light_count);
+	
+	auto shader_program = shader_template.build(definitions);
+	
+	if (!shader_program->linked())
+	{
+		debug::log::error("Failed to link material shader program: {}", shader_program->info());
+		debug::log::warning("{}", shader_template.configure(gl::shader_stage::fragment, definitions));
+	}
+	
+	return shader_program;
+}
+
+void material_pass::build_shader_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program) const
+{
+	// Bind shader program
+	command_buffer.emplace_back([&](){rasterizer->use_program(shader_program);});
+	
+	// Update camera variables
+	if (auto view_var = shader_program.variable("view"))
+	{
+		command_buffer.emplace_back([&, view_var](){view_var->update(*view);});
+	}
+	if (auto projection_var = shader_program.variable("projection"))
+	{
+		command_buffer.emplace_back([&, projection_var](){projection_var->update(*projection);});
+	}
+	if (auto view_projection_var = shader_program.variable("view_projection"))
+	{
+		command_buffer.emplace_back([&, view_projection_var](){view_projection_var->update(*view_projection);});
+	}
+	if (auto camera_position_var = shader_program.variable("camera_position"))
+	{
+		command_buffer.emplace_back([&, camera_position_var](){camera_position_var->update(*camera_position);});
+	}
+	if (auto camera_exposure_var = shader_program.variable("camera_exposure"))
+	{
+		command_buffer.emplace_back([&, camera_exposure_var](){camera_exposure_var->update(camera_exposure);});
+	}
+	if (auto clip_depth_var = shader_program.variable("clip_depth"))
+	{
+		command_buffer.emplace_back([&, clip_depth_var](){clip_depth_var->update(clip_depth);});
+	}
+	
+	// Update ambient light variables
+	if (ambient_light_count)
+	{
+		if (auto ambient_light_colors_var = shader_program.variable("ambient_light_colors"))
+		{
+			command_buffer.emplace_back([&, ambient_light_colors_var](){ambient_light_colors_var->update(std::span<const float3>{ambient_light_colors.data(), ambient_light_count});});
+		}
+	}
+	
+	// Update directional light variables
+	if (directional_light_count)
+	{
+		if (auto directional_light_colors_var = shader_program.variable("directional_light_colors"))
+		{
+			if (auto directional_light_directions_var = shader_program.variable("directional_light_directions"))
+			{
+				command_buffer.emplace_back
+				(
+					[&, directional_light_colors_var, directional_light_directions_var]()
+					{
+						directional_light_colors_var->update(std::span<const float3>{directional_light_colors.data(), directional_light_count});
+						directional_light_directions_var->update(std::span<const float3>{directional_light_directions.data(), directional_light_count});
+					}
+				);
+			}
+		}
+	}
+	
+	// Update directional shadow variables
+	if (directional_shadow_count)
+	{
+		if (auto directional_shadow_maps_var = shader_program.variable("directional_shadow_maps"))
+		{
+			auto directional_shadow_biases_var = shader_program.variable("directional_shadow_biases");
+			auto directional_shadow_splits_var = shader_program.variable("directional_shadow_splits");
+			auto directional_shadow_matrices_var = shader_program.variable("directional_shadow_matrices");
+			
+			if (directional_shadow_maps_var && directional_shadow_biases_var && directional_shadow_splits_var && directional_shadow_matrices_var)
+			{
+				command_buffer.emplace_back
+				(
+					[&, directional_shadow_maps_var, directional_shadow_biases_var, directional_shadow_splits_var, directional_shadow_matrices_var]()
+					{
+						directional_shadow_maps_var->update(std::span<const gl::texture_2d* const>{directional_shadow_maps.data(), directional_shadow_count});
+						directional_shadow_biases_var->update(std::span<const float>{directional_shadow_biases.data(), directional_shadow_count});
+						
+						std::size_t offset = 0;
+						for (std::size_t i = 0; i < directional_shadow_count; ++i)
+						{
+							directional_shadow_splits_var->update(*directional_shadow_splits[i], offset * 4);
+							directional_shadow_matrices_var->update(*directional_shadow_matrices[i], offset);
+							offset += directional_shadow_splits[i]->size();
+						}
+					}
+				);
+			}
+		}
+	}
+	
+	// Update point light variables
+	if (point_light_count)
+	{
+		if (auto point_light_colors_var = shader_program.variable("point_light_colors"))
+		{
+			auto point_light_positions_var = shader_program.variable("point_light_positions");
+			auto point_light_attenuations_var = shader_program.variable("point_light_attenuations");
+			
+			if (point_light_positions_var && point_light_attenuations_var)
+			{
+				command_buffer.emplace_back
+				(
+					[&, point_light_colors_var, point_light_positions_var, point_light_attenuations_var]()
+					{
+						point_light_colors_var->update(std::span<const float3>{point_light_colors.data(), point_light_count});
+						point_light_positions_var->update(std::span<const float3>{point_light_positions.data(), point_light_count});
+						point_light_attenuations_var->update(std::span<const float3>{point_light_attenuations.data(), point_light_count});
+					}
+				);
+			}
+		}
+	}
+	
+	// Update spot light variables
+	if (spot_light_count)
+	{
+		if (auto spot_light_colors_var = shader_program.variable("spot_light_colors"))
+		{
+			auto spot_light_positions_var = shader_program.variable("spot_light_positions");
+			auto spot_light_directions_var = shader_program.variable("spot_light_directions");
+			auto spot_light_attenuations_var = shader_program.variable("spot_light_attenuations");
+			auto spot_light_cutoffs_var = shader_program.variable("spot_light_cutoffs");
+			
+			if (spot_light_positions_var && spot_light_directions_var && spot_light_attenuations_var && spot_light_cutoffs_var)
+			{
+				command_buffer.emplace_back
+				(
+					[&, spot_light_colors_var, spot_light_positions_var, spot_light_directions_var, spot_light_attenuations_var, spot_light_cutoffs_var]()
+					{
+						spot_light_colors_var->update(std::span<const float3>{spot_light_colors.data(), spot_light_count});
+						spot_light_positions_var->update(std::span<const float3>{spot_light_positions.data(), spot_light_count});
+						spot_light_directions_var->update(std::span<const float3>{spot_light_directions.data(), spot_light_count});
+						spot_light_attenuations_var->update(std::span<const float3>{spot_light_attenuations.data(), spot_light_count});
+						spot_light_cutoffs_var->update(std::span<const float2>{spot_light_cutoffs.data(), spot_light_count});
+					}
+				);
+			}
+		}
+	}
+	
+	// Update time variable
+	if (auto time_var = shader_program.variable("time"))
+	{
+		command_buffer.emplace_back([&, time_var](){time_var->update(time);});
+	}
+	
+	// Update timestep variable
+	if (auto timestep_var = shader_program.variable("timestep"))
+	{
+		command_buffer.emplace_back([&, timestep_var](){timestep_var->update(timestep);});
+	}
+	
+	// Update frame variable
+	if (auto frame_var = shader_program.variable("frame"))
+	{
+		command_buffer.emplace_back([&, frame_var](){frame_var->update(frame);});
+	}
+	
+	// Update subframe variable
+	if (auto subframe_var = shader_program.variable("subframe"))
+	{
+		command_buffer.emplace_back([&, subframe_var](){subframe_var->update(subframe);});
+	}
+	
+	// Update resolution variable
+	if (auto resolution_var = shader_program.variable("resolution"))
+	{
+		command_buffer.emplace_back([&, resolution_var](){resolution_var->update(resolution);});
+	}
+	
+	// Update mouse position variable
+	if (auto mouse_position_var = shader_program.variable("mouse_position"))
+	{
+		command_buffer.emplace_back([&, mouse_position_var](){mouse_position_var->update(mouse_position);});
+	}
+}
+
+void material_pass::build_geometry_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program) const
+{
+	// Update model matrix variable
+	if (auto model_var = shader_program.variable("model"))
+	{
+		command_buffer.emplace_back([&, model_var](){model_var->update(*model);});
+	}
+	
+	// Update normal-model matrix variable
+	if (auto normal_model_var = shader_program.variable("normal_model"))
+	{
+		command_buffer.emplace_back
+		(
+			[&, normal_model_var]()
+			{
+				normal_model_var->update(math::transpose(math::inverse(math::matrix<float, 3, 3>(*model))));
+			}
+		);
+	}
+	
+	// Update model-view matrix and normal-model-view matrix variables
+	auto model_view_var = shader_program.variable("model_view");
+	auto normal_model_view_var = shader_program.variable("normal_model_view");
+	if (model_view_var && normal_model_view_var)
+	{
+		command_buffer.emplace_back
+		(
+			[&, model_view_var, normal_model_view_var]()
+			{
+				const auto model_view = (*view) * (*model);
+				model_view_var->update(model_view);
+				normal_model_view_var->update(math::transpose(math::inverse(math::matrix<float, 3, 3>(model_view))));
+			}
+		);
+	}
+	else
+	{
+		if (model_view_var)
+		{
+			command_buffer.emplace_back([&, model_view_var](){model_view_var->update((*view) * (*model));});
+		}
+		else if (normal_model_view_var)
+		{
+			command_buffer.emplace_back
+			(
+				[&, normal_model_view_var]()
+				{
+					const auto model_view = (*view) * (*model);
+					normal_model_view_var->update(math::transpose(math::inverse(math::matrix<float, 3, 3>(model_view))));
+				}
+			);
+		}
+	}
+	
+	// Update model-view-projection matrix variable
+	if (auto model_view_projection_var = shader_program.variable("model_view_projection"))
+	{
+		command_buffer.emplace_back([&, model_view_projection_var](){model_view_projection_var->update((*view_projection) * (*model));});
+	}
+}
+
+void material_pass::build_material_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program, const material& material) const
+{
+	for (const auto& [key, material_var]: material.get_variables())
+	{
+		if (!material_var)
+		{
+			continue;
+		}
+		
+		const auto shader_var = shader_program.variable(key);
+		if (!shader_var)
+		{
+			continue;
+		}
+		
+		const std::size_t size = std::min<std::size_t>(material_var->size(), shader_var->size());
+		
+		switch (shader_var->type())
+		{
+			/// @TODO render::material_bool is broken due to the std::vector<bool> specialization.
+			// case gl::shader_variable_type::bool1:
+				// if (material_var->type() == material_variable_type::bool1)
+				// {
+					// command_buffer.emplace_back
+					// (
+						// [size, shader_var, material_var = std::static_pointer_cast<material_bool>(material_var)]()
+						// {
+							// shader_var->update(std::span<const bool>{material_var->data(), size});
+						// }
+					// );
+				// }
+				// break;
+			case gl::shader_variable_type::bool2:
+				if (material_var->type() == material_variable_type::bool2)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_bool2>(material_var)]()
+						{
+							shader_var->update(std::span<const bool2>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::bool3:
+				if (material_var->type() == material_variable_type::bool3)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_bool3>(material_var)]()
+						{
+							shader_var->update(std::span<const bool3>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::bool4:
+				if (material_var->type() == material_variable_type::bool4)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_bool4>(material_var)]()
+						{
+							shader_var->update(std::span<const bool4>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::int1:
+				if (material_var->type() == material_variable_type::int1)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_int>(material_var)]()
+						{
+							shader_var->update(std::span<const int>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::int2:
+				if (material_var->type() == material_variable_type::int2)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_int2>(material_var)]()
+						{
+							shader_var->update(std::span<const int2>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::int3:
+				if (material_var->type() == material_variable_type::int3)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_int3>(material_var)]()
+						{
+							shader_var->update(std::span<const int3>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::int4:
+				if (material_var->type() == material_variable_type::int4)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_int4>(material_var)]()
+						{
+							shader_var->update(std::span<const int4>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::uint1:
+				if (material_var->type() == material_variable_type::uint1)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_uint>(material_var)]()
+						{
+							shader_var->update(std::span<const unsigned int>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::uint2:
+				if (material_var->type() == material_variable_type::uint2)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_uint2>(material_var)]()
+						{
+							shader_var->update(std::span<const uint2>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::uint3:
+				if (material_var->type() == material_variable_type::uint3)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_uint3>(material_var)]()
+						{
+							shader_var->update(std::span<const uint3>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::uint4:
+				if (material_var->type() == material_variable_type::uint4)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_uint4>(material_var)]()
+						{
+							shader_var->update(std::span<const uint4>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::float1:
+				if (material_var->type() == material_variable_type::float1)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_float>(material_var)]()
+						{
+							shader_var->update(std::span<const float>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::float2:
+				if (material_var->type() == material_variable_type::float2)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_float2>(material_var)]()
+						{
+							shader_var->update(std::span<const float2>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::float3:
+				if (material_var->type() == material_variable_type::float3)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_float3>(material_var)]()
+						{
+							shader_var->update(std::span<const float3>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::float4:
+				if (material_var->type() == material_variable_type::float4)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_float4>(material_var)]()
+						{
+							shader_var->update(std::span<const float4>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::float2x2:
+				if (material_var->type() == material_variable_type::float2x2)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_float2x2>(material_var)]()
+						{
+							shader_var->update(std::span<const float2x2>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::float3x3:
+				if (material_var->type() == material_variable_type::float3x3)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_float3x3>(material_var)]()
+						{
+							shader_var->update(std::span<const float3x3>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::float4x4:
+				if (material_var->type() == material_variable_type::float4x4)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_float4x4>(material_var)]()
+						{
+							shader_var->update(std::span<const float4x4>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::texture_1d:
+				if (material_var->type() == material_variable_type::texture_1d)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_texture_1d>(material_var)]()
+						{
+							shader_var->update(std::span<const std::shared_ptr<gl::texture_1d>>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::texture_2d:
+				if (material_var->type() == material_variable_type::texture_2d)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_texture_2d>(material_var)]()
+						{
+							shader_var->update(std::span<const std::shared_ptr<gl::texture_2d>>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::texture_3d:
+				if (material_var->type() == material_variable_type::texture_3d)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_texture_3d>(material_var)]()
+						{
+							shader_var->update(std::span<const std::shared_ptr<gl::texture_3d>>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			case gl::shader_variable_type::texture_cube:
+				if (material_var->type() == material_variable_type::texture_cube)
+				{
+					command_buffer.emplace_back
+					(
+						[size, shader_var, material_var = std::static_pointer_cast<material_texture_cube>(material_var)]()
+						{
+							shader_var->update(std::span<const std::shared_ptr<gl::texture_cube>>{material_var->data(), size});
+						}
+					);
+				}
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 bool operation_compare(const render::operation& a, const render::operation& b)
 {
+	// Render operations with materials first
 	if (!a.material)
-		return false;
-	else if (!b.material)
-		return true;
-	
-	bool xray_a = a.material->get_flags() & MATERIAL_FLAG_X_RAY;
-	bool xray_b = b.material->get_flags() & MATERIAL_FLAG_X_RAY;
-	
-	const bool two_sided_a = (a.material) ? a.material->is_two_sided() : false;
-	const bool two_sided_b = (b.material) ? b.material->is_two_sided() : false;
-	
-	if (xray_a)
 	{
-		if (xray_b)
+		return false;
+	}
+	else if (!b.material)
+	{
+		return true;
+	}
+	
+	const bool translucent_a = a.material->get_blend_mode() == material_blend_mode::translucent;
+	const bool translucent_b = b.material->get_blend_mode() == material_blend_mode::translucent;
+	
+	if (translucent_a)
+	{
+		if (translucent_b)
 		{
-			// A and B are both xray, render back to front
-			return (a.depth > b.depth);
+			// A and B are both translucent, render back to front
+			return (a.depth < b.depth);
 		}
 		else
 		{
-			// A is xray, B is not. Render B first
+			// A is translucent, B is opaque. Render B first
 			return false;
 		}
 	}
 	else
 	{
-		if (xray_b)
+		if (translucent_b)
 		{
-			// A is opaque, B is xray. Render A first
+			// A is opaque, B is translucent. Render A first
 			return true;
 		}
 		else
 		{
-			// Determine transparency
-			bool transparent_a = a.material->get_blend_mode() == blend_mode::translucent;
-			bool transparent_b = b.material->get_blend_mode() == blend_mode::translucent;
+			// A and B are both opaque
 			
-			if (transparent_a)
+			const std::size_t hash_a = a.material->hash();
+			const std::size_t hash_b = b.material->hash();
+			
+			if (hash_a == hash_b)
 			{
-				if (transparent_b)
-				{
-					// Determine decal status
-					bool decal_a = a.material->get_flags() & MATERIAL_FLAG_DECAL;
-					bool decal_b = b.material->get_flags() & MATERIAL_FLAG_DECAL;
-					
-					if (decal_a)
-					{
-						if (decal_b)
-						{
-							// A and B are both transparent decals, render back to front
-							return (a.depth > b.depth);
-						}
-						else
-						{
-							// A is a transparent decal, B is transparent but not a decal, render A first
-							return true;
-						}
-					}
-					else
-					{
-						if (decal_b)
-						{
-							// A is transparent but not a decal, B is a transparent decal, render B first
-							return false;
-						}
-						else
-						{
-							// A and B are both transparent, but not decals, render back to front
-							return (a.depth < b.depth);
-						}
-					}
-				}
-				else
-				{
-					// A is transparent, B is opaque. Render B first
-					return false;
-				}
+				// A and B have same material hash, sort by VAO
+				return (a.vertex_array < b.vertex_array);
 			}
 			else
 			{
-				if (transparent_b)
-				{
-					// A is opaque, B is transparent. Render A first
-					return true;
-				}
-				else
-				{
-					// A and B are both opaque
-					if (a.material->get_shader_program() == b.material->get_shader_program())
-					{
-						// A and B have the same shader
-						if (a.vertex_array == b.vertex_array)
-						{
-							// A and B have the same VAO, render front to back
-							return (a.depth < b.depth);
-						}
-						else
-						{
-							// A and B have different VAOs, sort by two-sided
-							if (two_sided_a)
-							{
-								if (two_sided_b)
-								{
-									// A and B are both two-sided, sort by VAO
-									return (a.vertex_array < b.vertex_array);
-								}
-								else
-								{
-									// A is two-sided, B is one-sided. Render B first
-									return false;
-								}
-							}
-							else
-							{
-								if (two_sided_b)
-								{
-									// A is one-sided, B is two-sided. Render A first
-									return true;
-								}
-								else
-								{
-									// A and B are both one-sided, sort by VAO
-									return (a.vertex_array < b.vertex_array);
-								}
-							}
-						}
-					}
-					else
-					{
-						// A and B are both opaque and have different shaders, sort by shader
-						return (a.material->get_shader_program() < b.material->get_shader_program());
-					}
-				}
+				// A and B have different material hashes, sort by hash
+				return (hash_a < hash_b);
 			}
 		}
 	}

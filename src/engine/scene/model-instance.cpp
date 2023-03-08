@@ -23,45 +23,18 @@
 
 namespace scene {
 
-model_instance::model_instance(render::model* model):
-	model(nullptr),
-	local_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-	world_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-	instanced(false),
-	instance_count(0)
+model_instance::model_instance(std::shared_ptr<render::model> model)
 {
 	set_model(model);
-	update_bounds();
 }
 
-model_instance::model_instance():
-	model_instance(nullptr)
-{}
-
-model_instance::model_instance(const model_instance& other)
-{
-	*this = other;
-}
-
-model_instance& model_instance::operator=(const model_instance& other)
-{
-	local_bounds = other.local_bounds;
-	world_bounds = other.world_bounds;
-	model = other.model;
-	pose = other.pose;
-	materials = other.materials;
-	instanced = other.instanced;
-	instance_count = other.instance_count;
-	return *this;
-}
-
-void model_instance::set_model(render::model* model)
+void model_instance::set_model(std::shared_ptr<render::model> model)
 {
 	this->model = model;
-
+	
 	if (model)
 	{
-		materials.resize(model->get_groups()->size());
+		materials.resize(model->get_groups().size());
 		reset_materials();
 		
 		pose = model->get_skeleton().bind_pose;
@@ -75,7 +48,7 @@ void model_instance::set_model(render::model* model)
 	update_bounds();
 }
 
-void model_instance::set_material(std::size_t group_index, render::material* material)
+void model_instance::set_material(std::size_t group_index, std::shared_ptr<render::material> material)
 {
 	materials[group_index] = material;
 }
@@ -114,25 +87,12 @@ void model_instance::update_tweens()
 {
 	object_base::update_tweens();
 	
-	// Update model material tweens
-	if (model)
-	{
-		for (render::model_group* group: *model->get_groups())
-		{
-			render::material* material = group->get_material();
-			if (material)
-			{
-				material->update_tweens();
-			}
-		}
-	}
-	
 	// Update material override tweens
-	for (render::material* material: materials)
+	for (auto& material: materials)
 	{
 		if (material)
 		{
-			material->update_tweens();
+			//material->update_tweens();
 		}
 	}
 }

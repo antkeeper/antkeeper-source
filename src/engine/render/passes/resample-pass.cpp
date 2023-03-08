@@ -22,7 +22,7 @@
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-attribute.hpp>
@@ -36,35 +36,35 @@ namespace render {
 
 resample_pass::resample_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	pass(rasterizer, framebuffer),
-	source_texture(nullptr)
+	source_texture{nullptr}
 {
 	// Load resample shader template
-	shader_template = resource_manager->load<render::shader_template>("resample.glsl");
+	auto shader_template = resource_manager->load<gl::shader_template>("resample.glsl");
 	
 	// Build resample shader program
 	shader = shader_template->build();
-	source_texture_input = shader->get_input("source_texture");
-
-	const float vertex_data[] =
+	
+	const float2 vertex_positions[] =
 	{
-		-1.0f,  1.0f,
-		-1.0f, -1.0f,
-		 1.0f,  1.0f,
-		 1.0f,  1.0f,
-		-1.0f, -1.0f,
-		 1.0f, -1.0f
+		{-1.0f,  1.0f},
+		{-1.0f, -1.0f},
+		{ 1.0f,  1.0f},
+		{ 1.0f,  1.0f},
+		{-1.0f, -1.0f},
+		{ 1.0f, -1.0f}
 	};
 	
+	const auto vertex_data = std::as_bytes(std::span{vertex_positions});
 	std::size_t vertex_size = 2;
 	std::size_t vertex_stride = sizeof(float) * vertex_size;
 	std::size_t vertex_count = 6;
-
-	quad_vbo = new gl::vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
-	quad_vao = new gl::vertex_array();
+	
+	quad_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, vertex_data.size(), vertex_data);
+	quad_vao = std::make_unique<gl::vertex_array>();
 	
 	// Define position vertex attribute
 	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = quad_vbo;
+	position_attribute.buffer = quad_vbo.get();
 	position_attribute.offset = 0;
 	position_attribute.stride = vertex_stride;
 	position_attribute.type = gl::vertex_attribute_type::float_32;
@@ -74,40 +74,61 @@ resample_pass::resample_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 }
 
-resample_pass::~resample_pass()
+void resample_pass::render(const render::context& ctx, render::queue& queue)
 {
-	delete quad_vao;
-	delete quad_vbo;
-	
-	delete shader;
-	
-	/// @TODO
-	// resource_manager->unload("resample.glsl");
-}
-
-void resample_pass::render(const render::context& ctx, render::queue& queue) const
-{
-	if (!source_texture)
-		return;
-	
-	// Set rasterizer state
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glDisable(GL_BLEND);
-	
-	// Render FXAA
-	rasterizer->use_framebuffer(*framebuffer);
-	rasterizer->set_viewport(0, 0, framebuffer->get_dimensions()[0], framebuffer->get_dimensions()[1]);
-	rasterizer->use_program(*shader);
-	source_texture_input->upload(source_texture);
-	rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+	for (const auto& command: command_buffer)
+	{
+		command();
+	}
 }
 
 void resample_pass::set_source_texture(const gl::texture_2d* texture)
 {
 	source_texture = texture;
+	
+	rebuild_command_buffer();
+}
+
+void resample_pass::rebuild_command_buffer()
+{
+	command_buffer.clear();
+	
+	if (!source_texture || !shader)
+	{
+		return;
+	}
+	
+	// Setup resample state
+	command_buffer.emplace_back
+	(
+		[&]()
+		{
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			glDisable(GL_BLEND);
+			
+			rasterizer->use_framebuffer(*framebuffer);
+			rasterizer->set_viewport(0, 0, framebuffer->get_dimensions()[0], framebuffer->get_dimensions()[1]);
+			rasterizer->use_program(*shader);
+		}
+	);
+	
+	// Update shader variables
+	if (auto source_texture_var = shader->variable("source_texture"))
+	{
+		command_buffer.emplace_back([&, source_texture_var](){source_texture_var->update(*source_texture);});
+	}
+	
+	// Draw quad
+	command_buffer.emplace_back
+	(
+		[&]()
+		{
+			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+		}
+	);
 }
 
 } // namespace render

@@ -18,10 +18,21 @@
  */
 
 #include <engine/gl/texture.hpp>
-#include <engine/gl/texture-wrapping.hpp>
-#include <engine/gl/texture-filter.hpp>
-#include <glad/glad.h>
+#include <engine/gl/texture-1d.hpp>
+#include <engine/gl/texture-2d.hpp>
 #include <algorithm>
+#include <engine/gl/color-space.hpp>
+#include <engine/gl/pixel-format.hpp>
+#include <engine/gl/pixel-type.hpp>
+#include <engine/gl/texture-filter.hpp>
+#include <engine/gl/texture-wrapping.hpp>
+#include <engine/resources/deserialize-error.hpp>
+#include <engine/resources/deserializer.hpp>
+#include <engine/utility/image.hpp>
+#include <engine/resources/resource-loader.hpp>
+#include <engine/resources/resource-manager.hpp>
+#include <engine/utility/json.hpp>
+#include <glad/glad.h>
 
 namespace gl {
 
@@ -112,7 +123,7 @@ static constexpr GLenum mag_filter_lut[] =
 	GL_LINEAR
 };
 
-texture::texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data):
+texture::texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data):
 	gl_texture_target((depth) ? GL_TEXTURE_3D : (height) ? GL_TEXTURE_2D : GL_TEXTURE_1D),
 	gl_texture_id(0),
 	dimensions({0, 0, 0}),
@@ -127,11 +138,11 @@ texture::texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth,
 	set_max_anisotropy(max_anisotropy);
 }
 
-texture::texture(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data):
+texture::texture(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data):
 	texture(width, height, 0, type, format, color_space, data)
 {}
 
-texture::texture(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data):
+texture::texture(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data):
 	texture(width, 0, 0, type, format, color_space, data)
 {}
 
@@ -204,7 +215,7 @@ void texture::set_wrapping(gl::texture_wrapping wrap_s)
 	glTexParameteri(gl_texture_target, GL_TEXTURE_WRAP_S, gl_wrap_s);
 }
 
-void texture::resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data)
+void texture::resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)
 {
 	dimensions = {width, height, depth};
 	pixel_type = type;
@@ -246,7 +257,7 @@ void texture::resize(std::uint16_t width, std::uint16_t height, std::uint16_t de
 	glGenerateMipmap(gl_texture_target);
 	glTexParameteriv(gl_texture_target, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle_mask);
 	
-	/// TODO: remove this
+	/// @TODO: remove this
 	if (format == pixel_format::d)
 	{
 		glTexParameteri(gl_texture_target, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
@@ -254,14 +265,210 @@ void texture::resize(std::uint16_t width, std::uint16_t height, std::uint16_t de
 	}
 }
 
-void texture::resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data)
+void texture::resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)
 {
 	resize(width, height, 0, type, format, color_space, data);
 }
 
-void texture::resize(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const void* data)
+void texture::resize(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)
 {
 	resize(width, 0, 0, type, format, color_space, data);
 }
 
 } // namespace gl
+
+template <>
+std::unique_ptr<gl::texture_1d> resource_loader<gl::texture_1d>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+{
+	// Load JSON data
+	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	
+	// Read image filename
+	std::string image_filename;
+	if (auto element = json_data->find("image"); element != json_data->end())
+		image_filename = element.value().get<std::string>();
+	
+	// Load image
+	auto image = resource_manager.load<::image>(image_filename);
+	
+	// Read color space
+	gl::color_space color_space = gl::color_space::linear;
+	if (auto element = json_data->find("color_space"); element != json_data->end())
+	{
+		std::string value = element.value().get<std::string>();
+		if (value == "linear")
+			color_space = gl::color_space::linear;
+		else if (value == "srgb")
+			color_space = gl::color_space::srgb;
+	}
+	
+	// Read extension mode
+	gl::texture_wrapping wrapping = gl::texture_wrapping::repeat;
+	if (auto element = json_data->find("extension"); element != json_data->end())
+	{
+		std::string value = element.value().get<std::string>();
+		if (value == "clip")
+			wrapping = gl::texture_wrapping::clip;
+		else if (value == "extend")
+			wrapping = gl::texture_wrapping::extend;
+		else if (value == "repeat")
+			wrapping = gl::texture_wrapping::repeat;
+		else if (value == "mirrored_repeat")
+			wrapping = gl::texture_wrapping::mirrored_repeat;
+	}
+	
+	// Read interpolation mode
+	gl::texture_min_filter min_filter = gl::texture_min_filter::linear_mipmap_linear;
+	gl::texture_mag_filter mag_filter = gl::texture_mag_filter::linear;
+	if (auto element = json_data->find("interpolation"); element != json_data->end())
+	{
+		std::string value = element.value().get<std::string>();
+		if (value == "linear")
+		{
+			min_filter = gl::texture_min_filter::linear_mipmap_linear;
+			mag_filter = gl::texture_mag_filter::linear;
+		}
+		else if (value == "closest")
+		{
+			min_filter = gl::texture_min_filter::nearest_mipmap_nearest;
+			mag_filter = gl::texture_mag_filter::nearest;
+		}
+	}
+	
+	// Read max anisotropy
+	float max_anisotropy = 0.0f;
+	if (auto element = json_data->find("max_anisotropy"); element != json_data->end())
+		max_anisotropy = element.value().get<float>();
+	
+	// Determine pixel type
+	gl::pixel_type type = (image->component_size() == sizeof(float)) ? gl::pixel_type::float_32 : gl::pixel_type::uint_8;
+
+	// Determine pixel format
+	gl::pixel_format format;
+	if (image->channel_count() == 1)
+	{
+		format = gl::pixel_format::r;
+	}
+	else if (image->channel_count() == 2)
+	{
+		format = gl::pixel_format::rg;
+	}
+	else if (image->channel_count() == 3)
+	{
+		format = gl::pixel_format::rgb;
+	}
+	else if (image->channel_count() == 4)
+	{
+		format = gl::pixel_format::rgba;
+	}
+	else
+	{
+		throw std::runtime_error(std::format("Texture image has unsupported number of channels ({})", image->channel_count()));
+	}
+	
+	// Create texture
+	auto texture = std::make_unique<gl::texture_1d>(image->width(), type, format, color_space, image->data());
+	texture->set_wrapping(wrapping);
+	texture->set_filters(min_filter, mag_filter);
+	texture->set_max_anisotropy(max_anisotropy);
+	
+	return texture;
+}
+
+template <>
+std::unique_ptr<gl::texture_2d> resource_loader<gl::texture_2d>::load(::resource_manager& resource_manager, deserialize_context& ctx)
+{
+	// Load JSON data
+	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	
+	// Read image filename
+	std::string image_filename;
+	if (auto element = json_data->find("image"); element != json_data->end())
+		image_filename = element.value().get<std::string>();
+	
+	// Load image
+	auto image = resource_manager.load<::image>(image_filename);
+	
+	// Read color space
+	gl::color_space color_space = gl::color_space::linear;
+	if (auto element = json_data->find("color_space"); element != json_data->end())
+	{
+		std::string value = element.value().get<std::string>();
+		if (value == "linear")
+			color_space = gl::color_space::linear;
+		else if (value == "srgb")
+			color_space = gl::color_space::srgb;
+	}
+	
+	// Read extension mode
+	gl::texture_wrapping wrapping = gl::texture_wrapping::repeat;
+	if (auto element = json_data->find("extension"); element != json_data->end())
+	{
+		std::string value = element.value().get<std::string>();
+		if (value == "clip")
+			wrapping = gl::texture_wrapping::clip;
+		else if (value == "extend")
+			wrapping = gl::texture_wrapping::extend;
+		else if (value == "repeat")
+			wrapping = gl::texture_wrapping::repeat;
+		else if (value == "mirrored_repeat")
+			wrapping = gl::texture_wrapping::mirrored_repeat;
+	}
+	
+	// Read interpolation mode
+	gl::texture_min_filter min_filter = gl::texture_min_filter::linear_mipmap_linear;
+	gl::texture_mag_filter mag_filter = gl::texture_mag_filter::linear;
+	if (auto element = json_data->find("interpolation"); element != json_data->end())
+	{
+		std::string value = element.value().get<std::string>();
+		if (value == "linear")
+		{
+			min_filter = gl::texture_min_filter::linear_mipmap_linear;
+			mag_filter = gl::texture_mag_filter::linear;
+		}
+		else if (value == "closest")
+		{
+			min_filter = gl::texture_min_filter::nearest_mipmap_nearest;
+			mag_filter = gl::texture_mag_filter::nearest;
+		}
+	}
+	
+	// Read max anisotropy
+	float max_anisotropy = 0.0f;
+	if (auto element = json_data->find("max_anisotropy"); element != json_data->end())
+		max_anisotropy = element.value().get<float>();
+	
+	// Determine pixel type
+	gl::pixel_type type = (image->component_size() == sizeof(float)) ? gl::pixel_type::float_32 : gl::pixel_type::uint_8;
+
+	// Determine pixel format
+	gl::pixel_format format;
+	if (image->channel_count() == 1)
+	{
+		format = gl::pixel_format::r;
+	}
+	else if (image->channel_count() == 2)
+	{
+		format = gl::pixel_format::rg;
+	}
+	else if (image->channel_count() == 3)
+	{
+		format = gl::pixel_format::rgb;
+	}
+	else if (image->channel_count() == 4)
+	{
+		format = gl::pixel_format::rgba;
+	}
+	else
+	{
+		throw std::runtime_error(std::format("Texture image has unsupported number of channels ({})", image->channel_count()));
+	}
+	
+	// Create texture
+	auto texture = std::make_unique<gl::texture_2d>(image->width(), image->height(), type, format, color_space, image->data());
+	texture->set_wrapping(wrapping, wrapping);
+	texture->set_filters(min_filter, mag_filter);
+	texture->set_max_anisotropy(max_anisotropy);
+	
+	return texture;
+}

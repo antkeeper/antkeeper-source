@@ -21,13 +21,14 @@
 #define ANTKEEPER_GL_FRAMEBUFFER_HPP
 
 #include <array>
+#include <cstdint>
 
 namespace gl {
 
 class rasterizer;
 class texture_2d;
 
-enum class framebuffer_attachment_type
+enum class framebuffer_attachment_type: std::uint8_t
 {
 	color,
 	depth,
@@ -41,6 +42,7 @@ public:
 	 * Creates a framebuffer.
 	 */
 	framebuffer(int width, int height);
+	framebuffer();
 	
 	/// Destroys a framebuffer.
 	~framebuffer();
@@ -73,8 +75,6 @@ public:
 private:
 	friend class rasterizer;
 	
-	framebuffer();
-
 	unsigned int gl_framebuffer_id;
 	std::array<int, 2> dimensions;
 	texture_2d* color_attachment;
@@ -120,4 +120,3 @@ inline texture_2d* framebuffer::get_stencil_attachment()
 } // namespace gl
 
 #endif // ANTKEEPER_GL_FRAMEBUFFER_HPP
-

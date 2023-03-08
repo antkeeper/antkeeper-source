@@ -22,10 +22,10 @@
 
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/render/material.hpp>
-#include "game/ant/gene-pool.hpp"
+#include "game/ant/ant-gene-pool.hpp"
 #include <string>
 #include <random>
-
+#include <memory>
 
 /**
  * 
@@ -45,16 +45,16 @@ struct ecoregion
 	float longitude;
 	
 	/// Terrain material.
-	render::material* terrain_material;
+	std::shared_ptr<render::material> terrain_material;
 	
 	/// Terrain albedo.
 	float3 terrain_albedo;
 	
 	/// Horizon material.
-	render::material* horizon_material;
+	std::shared_ptr<render::material> horizon_material;
 	
 	/// Array of gene pools.
-	std::vector<ant::gene_pool> gene_pools;
+	std::vector<ant_gene_pool> gene_pools;
 	
 	/// Discrete probability distribution of gene pools.
 	std::discrete_distribution<std::size_t> gene_pool_distribution;

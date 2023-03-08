@@ -26,14 +26,13 @@
 namespace i18n {
 
 /**
- * A single row in a string table.
+ * Table of strings.
  */
-typedef std::vector<std::string> string_table_row;
-
-/**
- * A table of strings.
- */
-typedef std::vector<string_table_row> string_table;
+struct string_table
+{
+	/// Rows of column strings.
+	std::vector<std::vector<std::string>> rows;
+};
 
 } // namespace i18n
 

@@ -22,7 +22,7 @@
 
 #include <engine/animation/animation.hpp>
 #include <engine/render/material.hpp>
-#include <engine/render/material-property.hpp>
+#include <engine/render/material-variable.hpp>
 #include <engine/scene/billboard.hpp>
 
 /**
@@ -38,13 +38,13 @@ public:
 	void transition(float duration, bool reverse, animation<float>::interpolator_type interpolator, bool hide = true, const std::function<void()>& callback = nullptr);
 	
 	scene::billboard* get_billboard();
-	render::material* get_material();
+	std::shared_ptr<render::material> get_material();
 	::animation<float>* get_animation();
 	
 private:
 	scene::billboard billboard;
-	render::material material;
-	render::material_property<float>* progress;
+	std::shared_ptr<render::material> material;
+	std::shared_ptr<render::material_float> progress;
 	::animation<float> animation;
 	::animation<float>::channel* channel;
 	std::function<void()> callback;
@@ -55,9 +55,9 @@ inline scene::billboard* screen_transition::get_billboard()
 	return &billboard;
 }
 
-inline render::material* screen_transition::get_material()
+inline std::shared_ptr<render::material> screen_transition::get_material()
 {
-	return &material;
+	return material;
 }
 
 inline animation<float>* screen_transition::get_animation()

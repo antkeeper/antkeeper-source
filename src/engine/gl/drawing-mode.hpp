@@ -20,9 +20,11 @@
 #ifndef ANTKEEPER_GL_DRAWING_MODE_HPP
 #define ANTKEEPER_GL_DRAWING_MODE_HPP
 
+#include <cstdint>
+
 namespace gl {
 
-enum class drawing_mode
+enum class drawing_mode: std::uint8_t
 {
 	points,
 	line_strip,
@@ -40,4 +42,3 @@ enum class drawing_mode
 } // namespace gl
 
 #endif // ANTKEEPER_GL_DRAWING_MODE_HPP
-

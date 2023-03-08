@@ -64,18 +64,17 @@ public:
 	 *
 	 * @param ephemeris Ephemeris.
 	 */
-	void set_ephemeris(const physics::orbit::ephemeris<double>* ephemeris);
+	void set_ephemeris(std::shared_ptr<physics::orbit::ephemeris<double>> ephemeris);
 	
 private:
 	void on_orbit_construct(entity::registry& registry, entity::id entity_id);
 	void on_orbit_update(entity::registry& registry, entity::id entity_id);
 	
-	const physics::orbit::ephemeris<double>* ephemeris;
+	std::shared_ptr<physics::orbit::ephemeris<double>> ephemeris;
 	double time;
 	double time_scale;
 	std::vector<double3> positions;
 	std::unordered_set<int> ephemeris_indices;
 };
-
 
 #endif // ANTKEEPER_GAME_ORBIT_SYSTEM_HPP

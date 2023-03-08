@@ -20,12 +20,14 @@
 #ifndef ANTKEEPER_GL_TEXTURE_FILTER_HPP
 #define ANTKEEPER_GL_TEXTURE_FILTER_HPP
 
+#include <cstdint>
+
 namespace gl {
 
 /**
  * Texture minification filter modes.
  */
-enum class texture_min_filter
+enum class texture_min_filter: std::uint8_t
 {
 	nearest,
 	linear,
@@ -38,7 +40,7 @@ enum class texture_min_filter
 /**
  * Texture magnification filter modes.
  */
-enum class texture_mag_filter
+enum class texture_mag_filter: std::uint8_t
 {
 	nearest,
 	linear
@@ -47,4 +49,3 @@ enum class texture_mag_filter
 } // namespace gl
 
 #endif // ANTKEEPER_GL_TEXTURE_FILTER_HPP
-

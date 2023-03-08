@@ -21,6 +21,8 @@
 #define ANTKEEPER_LANGUAGE_MENU_STATE_HPP
 
 #include "game/states/game-state.hpp"
+#include <engine/scene/text.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -36,6 +38,10 @@ private:
 	
 	std::vector<std::string> language_tags;
 	std::size_t language_index;
+	
+	std::unique_ptr<scene::text> language_name_text;
+	std::unique_ptr<scene::text> language_value_text;
+	std::unique_ptr<scene::text> back_text;
 };
 
 #endif // ANTKEEPER_LANGUAGE_MENU_STATE_HPP

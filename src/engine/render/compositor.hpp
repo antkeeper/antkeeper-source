@@ -38,7 +38,7 @@ public:
 	void remove_pass(pass* pass);
 	void remove_passes();
 
-	void composite(const render::context& ctx, render::queue& queue) const;
+	void composite(const render::context& ctx, render::queue& queue);
 
 	const std::list<pass*>* get_passes() const;
 

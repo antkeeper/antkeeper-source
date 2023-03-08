@@ -22,9 +22,9 @@
 
 namespace app {
 
-window_manager* window_manager::instance()
+std::unique_ptr<window_manager> window_manager::instance()
 {
-	return new sdl_window_manager();
+	return std::make_unique<sdl_window_manager>();
 }
 
 } // namespace app

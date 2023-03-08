@@ -35,7 +35,7 @@ namespace mc {
  * @param[out] triangles Array which can hold 5 at least triangles (15 ints).
  * @param[out] triangle_count Number of generated triangles. The maximum number triangles generated for a single cell is 5.
  */
-void polygonize(float* vertices, std::uint_fast8_t* vertex_count, std::int_fast8_t* triangles, std::uint_fast8_t* triangle_count, const float* corners, const float* distances);
+void polygonize(float* vertices, std::uint8_t* vertex_count, std::int8_t* triangles, std::uint8_t* triangle_count, const float* corners, const float* distances);
 
 /**
  * Vertices of a unit cube.

@@ -24,11 +24,13 @@
 #include <engine/geom/aabb.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/render/material.hpp>
+#include <cstdint>
+#include <memory>
 
 namespace scene {
 
 /// Enumerates billboard types.
-enum class billboard_type
+enum class billboard_type: std::uint8_t
 {
 	// No alignment
 	flat,
@@ -52,7 +54,7 @@ public:
 	billboard(const billboard& other);
 	billboard& operator=(const billboard& other);
 
-	void set_material(render::material* material);
+	void set_material(std::shared_ptr<render::material> material);
 	
 	/// Sets the billboard alignment mode.
 	void set_billboard_type(billboard_type type);
@@ -60,12 +62,30 @@ public:
 	/// Sets the axis around which the billboard will be rotated when the alignment is set to billboard_alignment::cylindrical.
 	void set_alignment_axis(const float3& axis);
 	
-	virtual const bounding_volume_type& get_local_bounds() const;
-	virtual const bounding_volume_type& get_world_bounds() const;
+	[[nodiscard]] inline virtual const bounding_volume_type& get_local_bounds() const noexcept
+	{
+		return local_bounds;
+	}
+	
+	[[nodiscard]] inline virtual const bounding_volume_type& get_world_bounds() const noexcept
+	{
+		return world_bounds;
+	}
 
-	render::material* get_material() const;
-	billboard_type get_billboard_type() const;
-	const float3& get_alignment_axis() const;
+	[[nodiscard]] inline const std::shared_ptr<render::material>& get_material() const noexcept
+	{
+		return material;
+	}
+	
+	[[nodiscard]] inline billboard_type get_billboard_type() const noexcept
+	{
+		return type;
+	}
+	
+	[[nodiscard]] inline const float3& get_alignment_axis() const noexcept
+	{
+		return alignment_axis;
+	}
 	
 	virtual void update_tweens();
 
@@ -73,40 +93,13 @@ private:
 	static const aabb_type local_bounds;
 	
 	virtual void transformed();
-	
-	
+		
 	aabb_type world_bounds;
-	render::material* material;
+	std::shared_ptr<render::material> material;
 	billboard_type type;
 	float3 alignment_axis;
 };
 
-inline const typename object_base::bounding_volume_type& billboard::get_local_bounds() const
-{
-	return local_bounds;
-}
-
-inline const typename object_base::bounding_volume_type& billboard::get_world_bounds() const
-{
-	return world_bounds;
-}
-
-inline render::material* billboard::get_material() const
-{
-	return material;
-}
-
-inline billboard_type billboard::get_billboard_type() const
-{
-	return type;
-}
-
-inline const float3& billboard::get_alignment_axis() const
-{
-	return alignment_axis;
-}
-
 } // namespace scene
 
 #endif // ANTKEEPER_SCENE_BILLBOARD_HPP
-

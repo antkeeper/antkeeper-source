@@ -72,7 +72,7 @@
 #include <engine/input/scancode.hpp>
 #include <engine/render/compositor.hpp>
 #include <engine/render/material-flags.hpp>
-#include <engine/render/material-property.hpp>
+#include <engine/render/material-variable.hpp>
 #include <engine/render/passes/bloom-pass.hpp>
 #include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/final-pass.hpp>
@@ -85,7 +85,6 @@
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/render/renderer.hpp>
 #include <engine/render/vertex-attribute.hpp>
-#include <engine/resources/file-buffer.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/scene/scene.hpp>
 #include <engine/utility/dict.hpp>
@@ -136,24 +135,30 @@ game::~game()
 {
 	debug::log::trace("Booting down...");
 	
+	// Exit all active game states
+	while (!state_machine.empty())
+	{
+		state_machine.pop();
+	}
+	
 	// Update window settings
 	const auto& windowed_position = window->get_windowed_position();
 	const auto& windowed_size = window->get_windowed_size();
 	const bool maximized = window->is_maximized();
 	const bool fullscreen = window->is_fullscreen();
-	(*settings)["window_x"_fnv1a32] = windowed_position.x();
-	(*settings)["window_y"_fnv1a32] = windowed_position.y();
-	(*settings)["window_w"_fnv1a32] = windowed_size.x();
-	(*settings)["window_h"_fnv1a32] = windowed_size.y();
-	(*settings)["maximized"_fnv1a32] = maximized;
-	(*settings)["fullscreen"_fnv1a32] = fullscreen;
+	(*settings)["window_x"] = windowed_position.x();
+	(*settings)["window_y"] = windowed_position.y();
+	(*settings)["window_w"] = windowed_size.x();
+	(*settings)["window_h"] = windowed_size.y();
+	(*settings)["maximized"] = maximized;
+	(*settings)["fullscreen"] = fullscreen;
 	
 	// Destruct window
 	window.reset();
 	
 	// Save settings
-	resource_manager->set_write_dir(shared_config_path);
-	resource_manager->save(settings.get(), "settings.cfg");
+	resource_manager->set_write_path(shared_config_path);
+	resource_manager->save(*settings, "settings.cfg");
 	
 	// Destruct input and window managers
 	input_manager.reset();
@@ -361,9 +366,8 @@ void game::setup_resources()
 	// Mount data package path
 	resource_manager->mount(data_package_path);
 	
-	// Include resource search paths in order of priority
-	resource_manager->include("/controls/");
-	resource_manager->include("/");
+	// Mount controls path
+	resource_manager->mount(shared_config_path / "controls");
 }
 
 void game::load_settings()
@@ -371,24 +375,18 @@ void game::load_settings()
 	if (option_reset)
 	{
 		// Command-line reset option found, reset settings
-		settings = std::make_shared<dict<std::uint32_t>>();
-		resource_manager->set_write_dir(shared_config_path);
-		resource_manager->save(settings.get(), "settings.cfg");
+		settings = std::make_shared<dict<hash::fnv1a32_t>>();
+		resource_manager->set_write_path(shared_config_path);
+		resource_manager->save(*settings, "settings.cfg");
 		debug::log::info("Settings reset");
 	}
 	else
 	{
-		settings = std::make_shared<dict<std::uint32_t>>();
-		
-		dict<std::uint32_t>* loaded_settings = resource_manager->load<dict<std::uint32_t>>("settings.cfg");
-		if (loaded_settings)
-		{
-			/// @TODO: don't copy loaded settings, rather return a shared_ptr from the resource manager
-			*settings = *loaded_settings;
-		}
-		else
+		settings = resource_manager->load<dict<hash::fnv1a32_t>>("settings.cfg");
+		if (!settings)
 		{
 			debug::log::info("Settings not found");
+			settings = std::make_shared<dict<hash::fnv1a32_t>>();
 		}
 	}
 }
@@ -396,7 +394,7 @@ void game::load_settings()
 void game::setup_window()
 {
 	// Construct window manager
-	window_manager.reset(app::window_manager::instance());
+	window_manager = app::window_manager::instance();
 	
 	// Default window settings
 	std::string window_title = config::application_name;
@@ -410,17 +408,17 @@ void game::setup_window()
 	
 	// Read window settings
 	bool resize = false;
-	read_or_write_setting(*this, "window_title"_fnv1a32, window_title);
-	read_or_write_setting(*this, "window_x"_fnv1a32, window_x);
-	read_or_write_setting(*this, "window_y"_fnv1a32, window_y);
-	if (!read_or_write_setting(*this, "window_w"_fnv1a32, window_w) ||
-		!read_or_write_setting(*this, "window_h"_fnv1a32, window_h))
+	read_or_write_setting(*this, "window_title", window_title);
+	read_or_write_setting(*this, "window_x", window_x);
+	read_or_write_setting(*this, "window_y", window_y);
+	if (!read_or_write_setting(*this, "window_w", window_w) ||
+		!read_or_write_setting(*this, "window_h", window_h))
 	{
 		resize = true;
 	}
-	read_or_write_setting(*this, "maximized"_fnv1a32, maximized);
-	read_or_write_setting(*this, "fullscreen"_fnv1a32, fullscreen);
-	read_or_write_setting(*this, "v_sync"_fnv1a32, v_sync);
+	read_or_write_setting(*this, "maximized", maximized);
+	read_or_write_setting(*this, "fullscreen", fullscreen);
+	read_or_write_setting(*this, "v_sync", v_sync);
 	
 	// If window size not set, resize and reposition relative to default display
 	if (resize)
@@ -491,12 +489,12 @@ void game::setup_audio()
 	captions_size = 1.0f;
 	
 	// Read audio settings
-	read_or_write_setting(*this, "master_volume"_fnv1a32, master_volume);
-	read_or_write_setting(*this, "ambience_volume"_fnv1a32, ambience_volume);
-	read_or_write_setting(*this, "effects_volume"_fnv1a32, effects_volume);
-	read_or_write_setting(*this, "mono_audio"_fnv1a32, mono_audio);
-	read_or_write_setting(*this, "captions"_fnv1a32, captions);
-	read_or_write_setting(*this, "captions_size"_fnv1a32, captions_size);
+	read_or_write_setting(*this, "master_volume", master_volume);
+	read_or_write_setting(*this, "ambience_volume", ambience_volume);
+	read_or_write_setting(*this, "effects_volume", effects_volume);
+	read_or_write_setting(*this, "mono_audio", mono_audio);
+	read_or_write_setting(*this, "captions", captions);
+	read_or_write_setting(*this, "captions_size", captions_size);
 	
 	// Open audio device
 	debug::log::trace("Opening audio device...");
@@ -560,7 +558,7 @@ void game::setup_audio()
 void game::setup_input()
 {
 	// Construct input manager
-	input_manager.reset(app::input_manager::instance());
+	input_manager = app::input_manager::instance();
 	
 	// Process initial input events, such as connecting gamepads
 	input_manager->update();
@@ -642,7 +640,7 @@ void game::load_strings()
 	language_tag = "en";
 	
 	// Read strings settings
-	read_or_write_setting(*this, "language_tag"_fnv1a32, language_tag);
+	read_or_write_setting(*this, "language_tag", language_tag);
 	
 	// Slugify language tag
 	std::string language_slug = language_tag;
@@ -664,11 +662,11 @@ void game::load_strings()
 	debug::log::info("Language tag: {}", language_tag);
 	
 	// Change window title
-	const std::string window_title = get_string(*this, "window_title"_fnv1a32);
+	const std::string window_title = get_string(*this, "window_title");
 	window->set_title(window_title);
 	
 	// Update window title setting
-	(*settings)["window_title"_fnv1a32] = window_title;
+	(*settings)["window_title"] = window_title;
 	
 	debug::log::trace("Loaded strings");
 }
@@ -683,38 +681,37 @@ void game::setup_rendering()
 	shadow_map_resolution = 4096;
 	
 	// Read rendering settings
-	read_or_write_setting(*this, "render_scale"_fnv1a32, render_scale);
-	read_or_write_setting(*this, "anti_aliasing_method"_fnv1a32, *reinterpret_cast<std::underlying_type_t<render::anti_aliasing_method>*>(&anti_aliasing_method));
-	read_or_write_setting(*this, "shadow_map_resolution"_fnv1a32, shadow_map_resolution);
+	read_or_write_setting(*this, "render_scale", render_scale);
+	read_or_write_setting(*this, "anti_aliasing_method", *reinterpret_cast<std::underlying_type_t<render::anti_aliasing_method>*>(&anti_aliasing_method));
+	read_or_write_setting(*this, "shadow_map_resolution", shadow_map_resolution);
 	
 	// Create framebuffers
 	::graphics::create_framebuffers(*this);
 	
-	// Load blue noise texture
-	gl::texture_2d* blue_noise_map = resource_manager->load<gl::texture_2d>("blue-noise.tex");
-	
 	// Load fallback material
-	fallback_material = resource_manager->load<render::material>("fallback.mtl");
+	auto fallback_material = resource_manager->load<render::material>("fallback.mtl");
 	
 	// Setup common render passes
 	{
 		// Construct bloom pass
 		bloom_pass = std::make_unique<render::bloom_pass>(window->get_rasterizer(), resource_manager.get());
-		bloom_pass->set_source_texture(hdr_color_texture);
+		bloom_pass->set_source_texture(hdr_color_texture.get());
 		bloom_pass->set_mip_chain_length(5);
+		//bloom_pass->set_mip_chain_length(0);
 		bloom_pass->set_filter_radius(0.005f);
 		
-		common_final_pass = std::make_unique<render::final_pass>(window->get_rasterizer(), ldr_framebuffer_a, resource_manager.get());
-		common_final_pass->set_color_texture(hdr_color_texture);
+		common_final_pass = std::make_unique<render::final_pass>(window->get_rasterizer(), ldr_framebuffer_a.get(), resource_manager.get());
+		common_final_pass->set_color_texture(hdr_color_texture.get());
 		common_final_pass->set_bloom_texture(bloom_pass->get_bloom_texture());
 		common_final_pass->set_bloom_weight(0.04f);
-		common_final_pass->set_blue_noise_texture(blue_noise_map);
+		//common_final_pass->set_bloom_weight(0.0f);
+		common_final_pass->set_blue_noise_texture(resource_manager->load<gl::texture_2d>("blue-noise.tex"));
 		
 		fxaa_pass = std::make_unique<render::fxaa_pass>(window->get_rasterizer(), &window->get_rasterizer()->get_default_framebuffer(), resource_manager.get());
-		fxaa_pass->set_source_texture(ldr_color_texture_a);
+		fxaa_pass->set_source_texture(ldr_color_texture_a.get());
 		
 		resample_pass = std::make_unique<render::resample_pass>(window->get_rasterizer(), &window->get_rasterizer()->get_default_framebuffer(), resource_manager.get());
-		resample_pass->set_source_texture(ldr_color_texture_b);
+		resample_pass->set_source_texture(ldr_color_texture_b.get());
 		resample_pass->set_enabled(false);
 		
 		// Configure anti-aliasing according to settings
@@ -740,12 +737,12 @@ void game::setup_rendering()
 	
 	// Setup underground compositor
 	{
-		underground_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer);
+		underground_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
 		underground_clear_pass->set_cleared_buffers(true, true, false);
 		underground_clear_pass->set_clear_color({1, 0, 1, 0});
 		underground_clear_pass->set_clear_depth(-1.0f);
 		
-		underground_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), hdr_framebuffer, resource_manager.get());
+		underground_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
 		underground_material_pass->set_fallback_material(fallback_material);
 		
 		underground_compositor = std::make_unique<render::compositor>();
@@ -759,27 +756,26 @@ void game::setup_rendering()
 	
 	// Setup surface compositor
 	{
-		surface_shadow_map_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), shadow_map_framebuffer);
+		surface_shadow_map_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), shadow_map_framebuffer.get());
 		surface_shadow_map_clear_pass->set_cleared_buffers(false, true, false);
 		surface_shadow_map_clear_pass->set_clear_depth(1.0f);
 		
 		surface_shadow_map_pass = std::make_unique<render::shadow_map_pass>(window->get_rasterizer(), resource_manager.get());
 		
-		surface_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer);
-		surface_clear_pass->set_cleared_buffers(false, true, true);
+		surface_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
+		surface_clear_pass->set_clear_color({0.0f, 0.0f, 0.0f, 1.0f});
+		surface_clear_pass->set_cleared_buffers(true, true, true);
 		surface_clear_pass->set_clear_depth(-1.0f);
 		
-		sky_pass = std::make_unique<render::sky_pass>(window->get_rasterizer(), hdr_framebuffer, resource_manager.get());
-		sky_pass->set_enabled(false);
+		sky_pass = std::make_unique<render::sky_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
 		sky_pass->set_magnification(3.0f);
 		
-		ground_pass = std::make_unique<render::ground_pass>(window->get_rasterizer(), hdr_framebuffer, resource_manager.get());
-		ground_pass->set_enabled(false);
+		ground_pass = std::make_unique<render::ground_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
 		
-		surface_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), hdr_framebuffer, resource_manager.get());
+		surface_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
 		surface_material_pass->set_fallback_material(fallback_material);
 		
-		surface_outline_pass = std::make_unique<render::outline_pass>(window->get_rasterizer(), hdr_framebuffer, resource_manager.get());
+		surface_outline_pass = std::make_unique<render::outline_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
 		surface_outline_pass->set_outline_width(0.25f);
 		surface_outline_pass->set_outline_color(float4{1.0f, 1.0f, 1.0f, 1.0f});
 		
@@ -788,7 +784,7 @@ void game::setup_rendering()
 		surface_compositor->add_pass(surface_shadow_map_pass.get());
 		surface_compositor->add_pass(surface_clear_pass.get());
 		surface_compositor->add_pass(sky_pass.get());
-		surface_compositor->add_pass(ground_pass.get());
+		//surface_compositor->add_pass(ground_pass.get());
 		surface_compositor->add_pass(surface_material_pass.get());
 		//surface_compositor->add_pass(surface_outline_pass.get());
 		surface_compositor->add_pass(bloom_pass.get());
@@ -813,7 +809,7 @@ void game::setup_rendering()
 		std::size_t billboard_vertex_stride = sizeof(float) * billboard_vertex_size;
 		std::size_t billboard_vertex_count = 6;
 		
-		billboard_vbo = std::make_unique<gl::vertex_buffer>(sizeof(float) * billboard_vertex_size * billboard_vertex_count, billboard_vertex_data);
+		billboard_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, sizeof(float) * billboard_vertex_size * billboard_vertex_count, std::as_bytes(std::span{billboard_vertex_data}));
 		billboard_vao = std::make_unique<gl::vertex_array>();
 		
 		std::size_t attribute_offset = 0;
@@ -918,11 +914,16 @@ void game::setup_ui()
 	dyslexia_font = false;
 	
 	// Read UI settings
-	read_or_write_setting(*this, "font_scale"_fnv1a32, font_scale);
-	read_or_write_setting(*this, "debug_font_size_pt"_fnv1a32, debug_font_size_pt);
-	read_or_write_setting(*this, "menu_font_size_pt"_fnv1a32, menu_font_size_pt);
-	read_or_write_setting(*this, "title_font_size_pt"_fnv1a32, title_font_size_pt);
-	read_or_write_setting(*this, "dyslexia_font"_fnv1a32, dyslexia_font);
+	read_or_write_setting(*this, "font_scale", font_scale);
+	read_or_write_setting(*this, "debug_font_size_pt", debug_font_size_pt);
+	read_or_write_setting(*this, "menu_font_size_pt", menu_font_size_pt);
+	read_or_write_setting(*this, "title_font_size_pt", title_font_size_pt);
+	read_or_write_setting(*this, "dyslexia_font", dyslexia_font);
+	
+	// Allocate font materials
+	debug_font_material = std::make_shared<render::material>();
+	menu_font_material = std::make_shared<render::material>();
+	title_font_material = std::make_shared<render::material>();
 	
 	// Load fonts
 	debug::log::trace("Loading fonts...");
@@ -957,41 +958,41 @@ void game::setup_ui()
 	ui_camera->update_tweens();
 	
 	// Menu BG material
-	menu_bg_material.set_shader_program(resource_manager->load<gl::shader_program>("ui-element-untextured.glsl"));
-	auto menu_bg_tint = menu_bg_material.add_property<float4>("tint");
-	menu_bg_tint->set_value(float4{0.0f, 0.0f, 0.0f, 0.5f});
-	menu_bg_material.set_blend_mode(render::blend_mode::translucent);
-	menu_bg_material.update_tweens();
+	menu_bg_material = std::make_shared<render::material>();
+	menu_bg_material->set_shader_template(resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
+	std::shared_ptr<render::material_float4> menu_bg_tint = std::make_shared<render::material_float4>(1, float4{0.0f, 0.0f, 0.0f, 0.5f});
+	menu_bg_material->set_variable("tint", menu_bg_tint);
+	menu_bg_material->set_blend_mode(render::material_blend_mode::translucent);
 	
 	// Menu BG billboard
 	menu_bg_billboard = std::make_unique<scene::billboard>();
 	menu_bg_billboard->set_active(false);
-	menu_bg_billboard->set_material(&menu_bg_material);
+	menu_bg_billboard->set_material(menu_bg_material);
 	menu_bg_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
 	menu_bg_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
 	menu_bg_billboard->update_tweens();
 	
 	// Create fade transition
 	fade_transition = std::make_unique<screen_transition>();
-	fade_transition->get_material()->set_shader_program(resource_manager->load<gl::shader_program>("fade-transition.glsl"));
-	fade_transition_color = fade_transition->get_material()->add_property<float3>("color");
-	fade_transition_color->set_value({0, 0, 0});
+	fade_transition->get_material()->set_shader_template(resource_manager->load<gl::shader_template>("fade-transition.glsl"));
+	fade_transition_color = std::make_shared<render::material_float3>(1, float3{0, 0, 0});
+	fade_transition->get_material()->set_variable("color", fade_transition_color);
 	fade_transition->get_billboard()->set_translation({0, 0, 98});
 	fade_transition->get_billboard()->update_tweens();
 	
 	// Create inner radial transition
 	radial_transition_inner = std::make_unique<screen_transition>();
-	radial_transition_inner->get_material()->set_shader_program(resource_manager->load<gl::shader_program>("radial-transition-inner.glsl"));
+	radial_transition_inner->get_material()->set_shader_template(resource_manager->load<gl::shader_template>("radial-transition-inner.glsl"));
 	
 	// Create outer radial transition
 	radial_transition_outer = std::make_unique<screen_transition>();
-	radial_transition_outer->get_material()->set_shader_program(resource_manager->load<gl::shader_program>("radial-transition-outer.glsl"));
+	radial_transition_outer->get_material()->set_shader_template(resource_manager->load<gl::shader_template>("radial-transition-outer.glsl"));
 	
 	// Menu BG animations
 	{
 		auto menu_bg_frame_callback = [menu_bg_tint](int channel, const float& opacity)
 		{
-			menu_bg_tint->set_value(float4{0.0f, 0.0f, 0.0f, opacity});
+			menu_bg_tint->set(float4{0.0f, 0.0f, 0.0f, opacity});
 		};
 		
 		// Menu BG fade in animation
@@ -1008,8 +1009,8 @@ void game::setup_ui()
 				{
 					ui_scene->add_object(menu_bg_billboard.get());
 					
-					menu_bg_tint->set_value(float4{0.0f, 0.0f, 0.0f, 0.0f});
-					menu_bg_tint->update_tweens();
+					menu_bg_tint->set(float4{0.0f, 0.0f, 0.0f, 0.0f});
+					//menu_bg_tint->update_tweens();
 					menu_bg_billboard->set_active(true);
 				}
 			);
@@ -1190,26 +1191,24 @@ void game::setup_controls()
 	
 	// Default control profile settings
 	control_profile_filename = "controls.cfg";
-	control_profile = nullptr;
 	
 	// Read control profile settings
-	if (read_or_write_setting(*this, "control_profile"_fnv1a32, control_profile_filename))
+	if (read_or_write_setting(*this, "control_profile", control_profile_filename))
 	{
-		/// @TODO: return a shared_ptr from the resource manager
 		control_profile = resource_manager->load<::control_profile>(control_profile_filename);
 	}
 	
 	if (!control_profile)
 	{
 		// Allocate control profile
-		control_profile = new ::control_profile();
+		control_profile = std::make_shared<::control_profile>();
 		
 		// Reset control profile to default settings.
 		::reset_control_profile(*control_profile);
 		
 		// Save control profile
-		resource_manager->set_write_dir(controls_path);
-		resource_manager->save(control_profile, control_profile_filename);
+		resource_manager->set_write_path(controls_path);
+		resource_manager->save(*control_profile, control_profile_filename);
 	}
 	
 	// Apply control profile
@@ -1233,7 +1232,7 @@ void game::setup_debugging()
 	const auto& viewport_size = window->get_viewport_size();
 	
 	frame_time_text = std::make_unique<scene::text>();
-	frame_time_text->set_material(&debug_font_material);
+	frame_time_text->set_material(debug_font_material);
 	frame_time_text->set_color({1.0f, 1.0f, 0.0f, 1.0f});
 	frame_time_text->set_font(&debug_font);
 	frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font.get_font_metrics().size), 99.0f});
@@ -1248,7 +1247,7 @@ void game::setup_loop()
 	double update_frequency = 60.0;
 	
 	// Read loop settings
-	read_or_write_setting(*this, "update_frequency"_fnv1a32, update_frequency);
+	read_or_write_setting(*this, "update_frequency", update_frequency);
 	
 	// Set update frequency
 	loop.set_update_frequency(update_frequency);

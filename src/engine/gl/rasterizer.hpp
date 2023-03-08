@@ -20,15 +20,16 @@
 #ifndef ANTKEEPER_GL_RASTERIZER_HPP
 #define ANTKEEPER_GL_RASTERIZER_HPP
 
+#include <engine/gl/drawing-mode.hpp>
+#include <engine/gl/element-array-type.hpp>
 #include <cstddef>
+#include <memory>
 
 namespace gl {
 
 class framebuffer;
 class vertex_array;
 class shader_program;
-enum class drawing_mode;
-enum class element_array_type;
 
 /**
  * Interface to the OpenGL state and drawing functions.
@@ -121,21 +122,18 @@ public:
 	/**
 	 * Returns the default framebuffer associated with the OpenGL context of a window.
 	 */
-	const framebuffer& get_default_framebuffer() const;
+	[[nodiscard]] inline const framebuffer& get_default_framebuffer() const noexcept
+	{
+		return *default_framebuffer;
+	}
 
 private:
-	framebuffer* default_framebuffer;
+	std::unique_ptr<framebuffer> default_framebuffer;
 	const framebuffer* bound_framebuffer;
 	const vertex_array* bound_vao;
 	const shader_program* bound_shader_program;
 };
 
-inline const framebuffer& rasterizer::get_default_framebuffer() const
-{
-	return *default_framebuffer;
-}
-
 } // namespace gl
 
 #endif // ANTKEEPER_GL_RASTERIZER_HPP
-

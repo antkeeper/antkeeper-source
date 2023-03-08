@@ -45,6 +45,7 @@
 #include <engine/i18n/string-table.hpp>
 #include <engine/math/hash/hash.hpp>
 #include <engine/math/noise/noise.hpp>
+#include <engine/math/angles.hpp>
 #include <engine/physics/light/photometry.hpp>
 #include <engine/physics/light/vmag.hpp>
 #include <engine/physics/orbit/ephemeris.hpp>
@@ -59,8 +60,8 @@
 #include <engine/render/passes/shadow-map-pass.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/render/vertex-attribute.hpp>
-#include <engine/resources/image.hpp>
-#include <engine/resources/json.hpp>
+#include <engine/utility/image.hpp>
+#include <engine/utility/json.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/scene/ambient-light.hpp>
 #include <engine/scene/directional-light.hpp>
@@ -220,25 +221,24 @@ void create_stars(::game& ctx)
 	debug::log::trace("Generating fixed stars...");
 	
 	// Load star catalog
-	i18n::string_table* star_catalog = nullptr;
-	star_catalog = ctx.resource_manager->load<i18n::string_table>("hipparcos-7.tsv");
+	auto star_catalog = ctx.resource_manager->load<i18n::string_table>("hipparcos-7.tsv");
 	
 	// Allocate star catalog vertex data
 	std::size_t star_count = 0;
-	if (star_catalog->size() > 0)
-		star_count = star_catalog->size() - 1;
+	if (star_catalog->rows.size() > 0)
+		star_count = star_catalog->rows.size() - 1;
 	std::size_t star_vertex_size = 7;
 	std::size_t star_vertex_stride = star_vertex_size * sizeof(float);
-	float* star_vertex_data = new float[star_count * star_vertex_size];
-	float* star_vertex = star_vertex_data;
+	std::vector<float> star_vertex_data(star_count * star_vertex_size);
+	float* star_vertex = star_vertex_data.data();
 	
 	// Init starlight illuminance
 	double3 starlight_illuminance = {0, 0, 0};
 	
 	// Build star catalog vertex data
-	for (std::size_t i = 1; i < star_catalog->size(); ++i)
+	for (std::size_t i = 1; i < star_catalog->rows.size(); ++i)
 	{
-		const i18n::string_table_row& catalog_row = (*star_catalog)[i];
+		const auto& row = star_catalog->rows[i];
 		
 		// Parse star catalog item
 		float ra = 0.0;
@@ -247,10 +247,10 @@ void create_stars(::game& ctx)
 		float bv = 0.0;
 		try
 		{
-			ra = std::stof(catalog_row[1]);
-			dec = std::stof(catalog_row[2]);
-			vmag = std::stof(catalog_row[3]);
-			bv = std::stof(catalog_row[4]);
+			ra = std::stof(row[1]);
+			dec = std::stof(row[2]);
+			vmag = std::stof(row[3]);
+			bv = std::stof(row[4]);
 		}
 		catch (const std::exception&)
 		{
@@ -293,27 +293,21 @@ void create_stars(::game& ctx)
 		starlight_illuminance += illuminance;
 	}
 	
-	// Unload star catalog
-	ctx.resource_manager->unload("hipparcos-7.tsv");
-	
 	// Allocate stars model
-	render::model* stars_model = new render::model();
+	std::shared_ptr<render::model> stars_model = std::make_shared<render::model>();
 	
 	// Get model VBO and VAO
-	gl::vertex_buffer* vbo = stars_model->get_vertex_buffer();
-	gl::vertex_array* vao = stars_model->get_vertex_array();
+	auto& vbo = stars_model->get_vertex_buffer();
+	auto& vao = stars_model->get_vertex_array();
 	
 	// Resize model VBO and upload vertex data
-	vbo->resize(star_count * star_vertex_stride, star_vertex_data);
-	
-	// Free star catalog vertex data
-	delete[] star_vertex_data;
+	vbo->resize(star_vertex_data.size(), std::as_bytes(std::span{star_vertex_data}));
 	
 	std::size_t attribute_offset = 0;
 	
 	// Define position vertex attribute
 	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = vbo;
+	position_attribute.buffer = vbo.get();
 	position_attribute.offset = attribute_offset;
 	position_attribute.stride = star_vertex_stride;
 	position_attribute.type = gl::vertex_attribute_type::float_32;
@@ -322,7 +316,7 @@ void create_stars(::game& ctx)
 	
 	// Define color vertex attribute
 	gl::vertex_attribute color_attribute;
-	color_attribute.buffer = vbo;
+	color_attribute.buffer = vbo.get();
 	color_attribute.offset = attribute_offset;
 	color_attribute.stride = star_vertex_stride;
 	color_attribute.type = gl::vertex_attribute_type::float_32;
@@ -334,14 +328,17 @@ void create_stars(::game& ctx)
 	vao->bind(render::vertex_attribute::color, color_attribute);
 	
 	// Load star material
-	render::material* star_material = ctx.resource_manager->load<render::material>("fixed-star.mtl");
+	std::shared_ptr<render::material> star_material = ctx.resource_manager->load<render::material>("fixed-star.mtl");
 	
 	// Create model group
-	render::model_group* stars_model_group = stars_model->add_group("stars");
-	stars_model_group->set_material(star_material);
-	stars_model_group->set_drawing_mode(gl::drawing_mode::points);
-	stars_model_group->set_start_index(0);
-	stars_model_group->set_index_count(star_count);
+	stars_model->get_groups().resize(1);
+	render::model_group& stars_model_group = stars_model->get_groups().back();
+	
+	stars_model_group.id = "stars";
+	stars_model_group.material = star_material;
+	stars_model_group.drawing_mode = gl::drawing_mode::points;
+	stars_model_group.start_index = 0;
+	stars_model_group.index_count = static_cast<std::uint32_t>(star_count);
 	
 	// Pass stars model to sky pass
 	ctx.sky_pass->set_stars_model(stars_model);
@@ -358,41 +355,41 @@ void create_sun(::game& ctx)
 	
 	{
 		// Create sun entity
-		entity::archetype* sun_archetype = ctx.resource_manager->load<entity::archetype>("sun.ent");
+		auto sun_archetype = ctx.resource_manager->load<entity::archetype>("sun.ent");
 		entity::id sun_eid = sun_archetype->create(*ctx.entity_registry);
 		ctx.entities["sun"] = sun_eid;
 		
 		// Create sun directional light scene object
-		scene::directional_light* sun_light = new scene::directional_light();
-		sun_light->set_color({0, 0, 0});
-		sun_light->set_shadow_caster(true);
-		sun_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer);
-		sun_light->set_shadow_bias(0.005f);
-		sun_light->set_shadow_cascade_count(4);
-		sun_light->set_shadow_cascade_coverage(0.15f);
-		sun_light->set_shadow_cascade_distribution(0.8f);
-		sun_light->update_tweens();
+		ctx.sun_light = std::make_unique<scene::directional_light>();
+		ctx.sun_light->set_color({0, 0, 0});
+		ctx.sun_light->set_shadow_caster(true);
+		ctx.sun_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer.get());
+		ctx.sun_light->set_shadow_bias(0.005f);
+		ctx.sun_light->set_shadow_cascade_count(4);
+		ctx.sun_light->set_shadow_cascade_coverage(0.15f);
+		ctx.sun_light->set_shadow_cascade_distribution(0.8f);
+		ctx.sun_light->update_tweens();
 		
 		// Create sky ambient light scene object
-		scene::ambient_light* sky_light = new scene::ambient_light();
-		sky_light->set_color({0, 0, 0});
-		sky_light->update_tweens();
+		ctx.sky_light = std::make_unique<scene::ambient_light>();
+		ctx.sky_light->set_color({0, 0, 0});
+		ctx.sky_light->update_tweens();
 		
 		// Create bounce directional light scene object
-		scene::directional_light* bounce_light = new scene::directional_light();
-		bounce_light->set_color({0, 0, 0});
-		bounce_light->look_at({0, 0, 0}, {0, 1, 0}, {1, 0, 0});
-		bounce_light->update_tweens();
+		ctx.bounce_light = std::make_unique<scene::directional_light>();
+		ctx.bounce_light->set_color({0, 0, 0});
+		ctx.bounce_light->look_at({0, 0, 0}, {0, 1, 0}, {1, 0, 0});
+		ctx.bounce_light->update_tweens();
 		
 		// Add sun light scene objects to surface scene
-		ctx.surface_scene->add_object(sun_light);
-		ctx.surface_scene->add_object(sky_light);
-		//ctx.surface_scene->add_object(bounce_light);
+		ctx.surface_scene->add_object(ctx.sun_light.get());
+		ctx.surface_scene->add_object(ctx.sky_light.get());
+		//ctx.surface_scene->add_object(ctx.bounce_light);
 		
 		// Pass direct sun light scene object to shadow map pass and astronomy system
-		ctx.astronomy_system->set_sun_light(sun_light);
-		ctx.astronomy_system->set_sky_light(sky_light);
-		ctx.astronomy_system->set_bounce_light(bounce_light);
+		ctx.astronomy_system->set_sun_light(ctx.sun_light.get());
+		ctx.astronomy_system->set_sky_light(ctx.sky_light.get());
+		ctx.astronomy_system->set_bounce_light(ctx.bounce_light.get());
 	}
 	
 	debug::log::trace("Generated Sun");
@@ -404,7 +401,7 @@ void create_earth_moon_system(::game& ctx)
 	
 	{
 		// Create Earth-Moon barycenter entity
-		entity::archetype* em_bary_archetype = ctx.resource_manager->load<entity::archetype>("em-bary.ent");
+		auto em_bary_archetype = ctx.resource_manager->load<entity::archetype>("em-bary.ent");
 		entity::id em_bary_eid = em_bary_archetype->create(*ctx.entity_registry);
 		ctx.entities["em_bary"] = em_bary_eid;
 		
@@ -424,7 +421,7 @@ void create_earth(::game& ctx)
 	
 	{
 		// Create earth entity
-		entity::archetype* earth_archetype = ctx.resource_manager->load<entity::archetype>("earth.ent");
+		auto earth_archetype = ctx.resource_manager->load<entity::archetype>("earth.ent");
 		entity::id earth_eid = earth_archetype->create(*ctx.entity_registry);
 		ctx.entities["earth"] = earth_eid;
 		
@@ -441,7 +438,7 @@ void create_moon(::game& ctx)
 	
 	{
 		// Create lunar entity
-		entity::archetype* moon_archetype = ctx.resource_manager->load<entity::archetype>("moon.ent");
+		auto moon_archetype = ctx.resource_manager->load<entity::archetype>("moon.ent");
 		entity::id moon_eid = moon_archetype->create(*ctx.entity_registry);
 		ctx.entities["moon"] = moon_eid;
 		
@@ -452,15 +449,15 @@ void create_moon(::game& ctx)
 		ctx.sky_pass->set_moon_model(ctx.resource_manager->load<render::model>("moon.mdl"));
 		
 		// Create moon directional light scene object
-		scene::directional_light* moon_light = new scene::directional_light();
-		moon_light->set_color({0, 0, 0});
-		moon_light->update_tweens();
+		ctx.moon_light = std::make_unique<scene::directional_light>();
+		ctx.moon_light->set_color({0, 0, 0});
+		ctx.moon_light->update_tweens();
 		
 		// Add moon light scene objects to surface scene
-		ctx.surface_scene->add_object(moon_light);
+		ctx.surface_scene->add_object(ctx.moon_light.get());
 		
 		// Pass moon light scene object to astronomy system
-		ctx.astronomy_system->set_moon_light(moon_light);
+		ctx.astronomy_system->set_moon_light(ctx.moon_light.get());
 	}
 	
 	debug::log::trace("Generated Moon");
@@ -534,8 +531,8 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 		
 		// Setup sky
 		ctx.sky_pass->set_sky_model(ctx.resource_manager->load<render::model>("celestial-hemisphere.mdl"));
-		render::model* terrestrial_hemisphere_model = ctx.resource_manager->load<render::model>("terrestrial-hemisphere.mdl");
-		(*terrestrial_hemisphere_model->get_groups())[0]->set_material(ecoregion.horizon_material);
+		auto terrestrial_hemisphere_model = ctx.resource_manager->load<render::model>("terrestrial-hemisphere.mdl");
+		terrestrial_hemisphere_model->get_groups().front().material = ecoregion.horizon_material;
 		ctx.ground_pass->set_ground_model(terrestrial_hemisphere_model);
 		
 		// Setup terrain

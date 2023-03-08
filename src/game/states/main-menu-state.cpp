@@ -48,7 +48,6 @@
 #include <format>
 #include <limits>
 
-using namespace hash::literals;
 using namespace math::glsl;
 
 main_menu_state::main_menu_state(::game& ctx, bool fade_in):
@@ -62,18 +61,19 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	const vec2 viewport_center = viewport_size * 0.5f;
 	
 	// Construct title text
-	title_text.set_material(&ctx.title_font_material);
-	title_text.set_color({1.0f, 1.0f, 1.0f, (fade_in) ? 1.0f : 0.0f});
-	title_text.set_font(&ctx.title_font);
-	title_text.set_content(get_string(ctx, "title_antkeeper"_fnv1a32));
-	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text.get_local_bounds());
+	title_text = std::make_unique<scene::text>();
+	title_text->set_material(ctx.title_font_material);
+	title_text->set_color({1.0f, 1.0f, 1.0f, (fade_in) ? 1.0f : 0.0f});
+	title_text->set_font(&ctx.title_font);
+	title_text->set_content(get_string(ctx, "title_antkeeper"));
+	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text->get_local_bounds());
 	float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
 	float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
-	title_text.set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
-	title_text.update_tweens();
+	title_text->set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
+	title_text->update_tweens();
 	
 	// Add text to UI
-	ctx.ui_scene->add_object(&title_text);
+	ctx.ui_scene->add_object(title_text.get());
 	
 	// Construct title fade animation
 	title_fade_animation.set_interpolator(ease<float>::out_cubic);
@@ -82,30 +82,30 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	(
 		[this, &ctx](int channel, const float& opacity)
 		{
-			float4 color = this->title_text.get_color();
+			float4 color = this->title_text->get_color();
 			color[3] = opacity;
-			this->title_text.set_color(color);
+			this->title_text->set_color(color);
 		}
 	);
 	ctx.animator->add_animation(&title_fade_animation);
 	
 	// Construct menu item texts
-	scene::text* start_text = new scene::text();
-	scene::text* options_text = new scene::text();
-	scene::text* extras_text = new scene::text();
-	scene::text* quit_text = new scene::text();
+	start_text = std::make_unique<scene::text>();
+	options_text = std::make_unique<scene::text>();
+	extras_text = std::make_unique<scene::text>();
+	quit_text = std::make_unique<scene::text>();
 	
 	// Build list of menu item texts
-	ctx.menu_item_texts.push_back({start_text, nullptr});
-	ctx.menu_item_texts.push_back({options_text, nullptr});
-	ctx.menu_item_texts.push_back({extras_text, nullptr});
-	ctx.menu_item_texts.push_back({quit_text, nullptr});
+	ctx.menu_item_texts.push_back({start_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({options_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({extras_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({quit_text.get(), nullptr});
 	
 	// Set content of menu item texts
-	start_text->set_content(get_string(ctx, "main_menu_start"_fnv1a32));
-	options_text->set_content(get_string(ctx, "main_menu_options"_fnv1a32));
-	extras_text->set_content(get_string(ctx, "main_menu_extras"_fnv1a32));
-	quit_text->set_content(get_string(ctx, "main_menu_quit"_fnv1a32));
+	start_text->set_content(get_string(ctx, "main_menu_start"));
+	options_text->set_content(get_string(ctx, "main_menu_options"));
+	extras_text->set_content(get_string(ctx, "main_menu_extras"));
+	quit_text->set_content(get_string(ctx, "main_menu_quit"));
 	
 	// Init menu item index
 	::menu::init_menu_item_index(ctx, "main");
@@ -146,7 +146,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 		
 		// Start fade out to white
 		//ctx.fade_transition_color->set_value({1, 1, 1});
-		ctx.fade_transition_color->set_value({0, 0, 0});
+		ctx.fade_transition_color->set({0, 0, 0});
 		ctx.fade_transition->transition(config::new_colony_fade_out_duration, false, ease<float>::out_cubic, false, change_state);
 	};
 	auto select_options_callback = [this, &ctx]()
@@ -292,11 +292,11 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 			const vec2 viewport_center = viewport_size * 0.5f;
 			
 			// Re-align title text
-			const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text.get_local_bounds());
+			const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text->get_local_bounds());
 			float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
 			float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
-			title_text.set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
-			title_text.update_tweens();
+			title_text->set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
+			title_text->update_tweens();
 			
 			::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);
 		}
@@ -326,7 +326,7 @@ main_menu_state::~main_menu_state()
 	ctx.animator->remove_animation(&title_fade_animation);
 	
 	// Destruct text
-	ctx.ui_scene->remove_object(&title_text);
+	ctx.ui_scene->remove_object(title_text.get());
 	
 	debug::log::trace("Exited main menu state");
 }

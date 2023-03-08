@@ -20,9 +20,11 @@
 #ifndef ANTKEEPER_GL_ELEMENT_ARRAY_TYPE_HPP
 #define ANTKEEPER_GL_ELEMENT_ARRAY_TYPE_HPP
 
+#include <cstdint>
+
 namespace gl {
 
-enum class element_array_type
+enum class element_array_type: std::uint8_t
 {
 	uint_8,
 	uint_16,
@@ -32,4 +34,3 @@ enum class element_array_type
 } // namespace gl
 
 #endif // ANTKEEPER_GL_ELEMENT_ARRAY_TYPE_HPP
-

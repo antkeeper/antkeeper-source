@@ -22,6 +22,7 @@
 
 #include <engine/render/pass.hpp>
 #include <engine/utility/fundamental-types.hpp>
+#include <functional>
 
 namespace render {
 
@@ -32,8 +33,8 @@ class clear_pass: public pass
 {
 public:
 	clear_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer);
-	virtual ~clear_pass();
-	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	
+	void render(const render::context& ctx, render::queue& queue) override;
 	
 	/**
 	 * Sets the buffers to be cleared.
@@ -66,15 +67,18 @@ public:
 	void set_clear_stencil(int stencil);
 
 private:
+	void rebuild_command_buffer();
+	
 	bool clear_color_buffer;
 	bool clear_depth_buffer;
 	bool clear_stencil_buffer;
 	float4 clear_color;
 	float clear_depth;
 	int clear_stencil;
+	
+	std::vector<std::function<void()>> command_buffer;
 };
 
 } // namespace render
 
 #endif // ANTKEEPER_RENDER_CLEAR_PASS_HPP
-

@@ -21,20 +21,18 @@
 #define ANTKEEPER_GAME_STRINGS_HPP
 
 #include "game/game.hpp"
+#include <engine/utility/hash/fnv1a.hpp>
 #include <cstdint>
 #include <string>
-
 
 /**
  * Returns a localized string.
  *
- * @param[in] ctx Game context.
- * @param[in] key String key.
- * @param[out] string String value.
+ * @param ctx Game context.
+ * @param key String key.
  *
- * @return `true` if the string was found, `false` otherwise.
+ * @return String value.
  */
-[[nodiscard]] std::string get_string(const ::game& ctx, std::uint32_t key);
-
+[[nodiscard]] std::string get_string(const ::game& ctx, hash::fnv1a32_t key);
 
 #endif // ANTKEEPER_GAME_STRINGS_HPP

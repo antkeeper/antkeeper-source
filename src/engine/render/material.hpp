@@ -20,15 +20,13 @@
 #ifndef ANTKEEPER_RENDER_MATERIAL_HPP
 #define ANTKEEPER_RENDER_MATERIAL_HPP
 
-#include <engine/render/blend-mode.hpp>
-#include <engine/render/material-property.hpp>
-#include <engine/render/shadow-mode.hpp>
-#include <engine/gl/shader-program.hpp>
 #include <cstdint>
-#include <cstddef>
-#include <list>
+#include <engine/gl/shader-template.hpp>
+#include <engine/render/material-blend-mode.hpp>
+#include <engine/render/material-variable.hpp>
+#include <engine/render/material-shadow-mode.hpp>
+#include <engine/utility/hash/fnv1a.hpp>
 #include <unordered_map>
-#include <string>
 
 namespace render {
 
@@ -39,29 +37,22 @@ class material
 {
 public:
 	/**
-	 * Creates a material.
-	 *
-	 * @param program Shader program with which to associate this material.
+	 * Constructs a material.
 	 */
-	explicit material(gl::shader_program* program);
-
+	material() = default;
+	
 	/**
-	 * Creates a material.
-	 */
-	material();
-
-	/**
-	 * Creates a copy of another material.
+	 * Constructs a copy of another material.
 	 *
 	 * @param other Material to copy.
 	 */
 	material(const material& other);
-
+	
 	/**
 	 * Destroys a material.
 	 */
-	~material();
-
+	~material() = default;
+	
 	/**
 	 * Makes this material a copy of aother material.
 	 *
@@ -70,48 +61,8 @@ public:
 	 */
 	material& operator=(const material& other);
 	
-	/**
-	 * Sets state 0 = state 1 for each material property tween.
-	 */
-	void update_tweens();
-
-	/**
-	 * Uploads each material property to the material's shader program.
-	 *
-	 * @param a Interpolation factor. Should be on `[0.0, 1.0]`.
-	 * @return Number of material property uploads which failed.
-	 */
-	std::size_t upload(double a) const;
-
-	/**
-	 * Sets the material's shader program and reconnects all shader properties to their corresponding shader inputs.
-	 *
-	 * @param program Shader program with which to associate the material.
-	 */
-	void set_shader_program(gl::shader_program* program);
-
-	/**
-	 * Sets the material flags.
-	 *
-	 * @param flags Material flags.
-	 */
-	void set_flags(std::uint32_t flags) noexcept;
-	
-	/**
-	 * Sets the material blend mode.
-	 *
-	 * @param mode Blend mode.
-	 */
-	void set_blend_mode(blend_mode mode) noexcept;
-	
-	/**
-	 * Sets the opacity mask threshold value for masked blend mode.
-	 *
-	 * @param threshold Opacity mask threshold value, above which the surface is considered opaque.
-	 *
-	 * @see render::blend_mode::masked
-	 */
-	void set_opacity_threshold(float threshold) noexcept;
+	/// @name Settings
+	/// @{
 	
 	/**
 	 * Enables or disables back-face culling of the material surface.
@@ -121,133 +72,129 @@ public:
 	void set_two_sided(bool two_sided) noexcept;
 	
 	/**
+	 * Sets the material blend mode.
+	 *
+	 * @param mode Blend mode.
+	 */
+	void set_blend_mode(material_blend_mode mode) noexcept;
+	
+	/**
 	 * Sets the material shadow mode.
 	 *
 	 * @param mode Shadow mode.
 	 */
-	void set_shadow_mode(shadow_mode mode) noexcept;
-
+	void set_shadow_mode(material_shadow_mode mode) noexcept;
+	
 	/**
-	 * Adds a material array property to the material.
+	 * Sets the material flags.
 	 *
-	 * @param name Name of the material array property.
-	 * @param element_count Number of elements in the array.
-	 * @return Pointer to the added material property.
+	 * @param flags Material flags.
 	 */
-	template <typename T>
-	material_property<T>* add_property(const std::string& name, std::size_t element_count = 1);
-
-	/**
-	 * Returns the shader program with which this material is associated.
-	 */
-	gl::shader_program* get_shader_program() const;
-
-	/// Returns the material flags.
-	std::uint32_t get_flags() const noexcept;
-	
-	/// Returns the material blend mode.
-	blend_mode get_blend_mode() const noexcept;
-	
-	/// Returns the opacity mask threshold value.
-	float get_opacity_threshold() const noexcept;
+	void set_flags(std::uint32_t flags) noexcept;
 	
 	/// Returns `true` if the material surface is two-sided, and `false` otherwise.
-	bool is_two_sided() const noexcept;
+	[[nodiscard]] inline bool is_two_sided() const noexcept
+	{
+		return two_sided;
+	}
+	
+	/// Returns the material blend mode.
+	[[nodiscard]] inline material_blend_mode get_blend_mode() const noexcept
+	{
+		return blend_mode;
+	}
 	
 	/// Returns the material shadow mode.
-	shadow_mode get_shadow_mode() const noexcept;
-
+	[[nodiscard]] inline material_shadow_mode get_shadow_mode() const noexcept
+	{
+		return shadow_mode;
+	}
+	
+	/// Returns the material flags.
+	[[nodiscard]] inline std::uint32_t get_flags() const noexcept
+	{
+		return flags;
+	}
+	
+	/// @}
+	
+	/// @name Shading
+	/// @{
+	
 	/**
-	 * Returns the material property with the specified name, or `nullptr` if the material could not be found.
+	 * Sets the material's shader template.
+	 *
+	 * @param shader_template Shader template with which to associate the material.
 	 */
-	material_property_base* get_property(const std::string& name) const;
-
+	void set_shader_template(std::shared_ptr<gl::shader_template> shader_template);
+	
 	/**
-	 * Returns a list of all material properties in the material.
+	 * Returns the shader template with which this material is associated.
 	 */
-	const std::list<material_property_base*>* get_properties() const;
-
+	[[nodiscard]] inline const std::shared_ptr<gl::shader_template>& get_shader_template() const noexcept
+	{
+		return shader_template;
+	}
+	
+	/**
+	 * Sets the value of a material variable with the given name.
+	 *
+	 * @param key 32-bit FNV-1a hash value of the variable name.
+	 * @param value Shared pointer to the material variable value.
+	 */
+	void set_variable(hash::fnv1a32_t key, std::shared_ptr<material_variable_base> value);
+	
+	/**
+	 * Returns a shared pointer to the material variable with the given name, or `nullptr` if not found.
+	 *
+	 * @param key 32-bit FNV-1a hash value of the variable name.
+	 *
+	 * @return Shared pointer to the material variable with the given name, or `nullptr` if not found.
+	 */
+	[[nodiscard]] std::shared_ptr<material_variable_base> get_variable(hash::fnv1a32_t key) const;
+	
+	/**
+	 * Returns all material variables.
+	 *
+	 * @return Map of 32-bit FNV-1a hash values of variable names to variables.
+	 */
+	[[nodiscard]] inline const std::unordered_map<hash::fnv1a32_t, std::shared_ptr<material_variable_base>>& get_variables() const noexcept
+	{
+		return variable_map;
+	}
+	
+	/// @}
+	
+	/**
+	 * Returns a hash of the material state.
+	 *
+	 * The followings functions may change the material hash:
+	 *
+	 * * material::set_shader_template
+	 * * material::set_flags
+	 * * material::set_blend_mode
+	 * * material::set_two_sided
+	 * * material::set_shadow_mode
+	 */
+	[[nodiscard]] inline std::size_t hash() const noexcept
+	{
+		return m_hash;
+	}
+	
 private:
 	/**
-	 * Attempts to reconnect all material properties to their corresponding shader inputs.
-	 *
-	 * @return Number of disconnected properties.
+	 * Recalculates the material state hash.
 	 */
-	std::size_t reconnect_properties();
-
-	gl::shader_program* program;
-	std::uint32_t flags;
-	blend_mode blend_mode;
-	float opacity_threshold;
-	bool two_sided;
-	shadow_mode shadow_mode;
-	std::list<material_property_base*> properties;
-	std::unordered_map<std::string, material_property_base*> property_map;
+	void rehash() noexcept;
+	
+	bool two_sided{false};
+	material_blend_mode blend_mode{material_blend_mode::opaque};
+	material_shadow_mode shadow_mode{material_shadow_mode::opaque};
+	std::uint32_t flags{0};
+	std::shared_ptr<gl::shader_template> shader_template;
+	std::unordered_map<hash::fnv1a32_t, std::shared_ptr<material_variable_base>> variable_map;
+	std::size_t m_hash{0};
 };
-
-template <typename T>
-material_property<T>* material::add_property(const std::string& name, std::size_t element_count)
-{
-	// Allocate property
-	material_property<T>* property = new material_property<T>(element_count);
-
-	// Add to property list and map
-	properties.push_back(property);
-	property_map[name] = property;
-
-	// Attempt to connect property to its corresponding shader input
-	if (program)
-	{
-		property->connect(program->get_input(name));
-	}
-
-	return property;
-}
-
-inline gl::shader_program* material::get_shader_program() const
-{
-	return program;
-}
-
-inline std::uint32_t material::get_flags() const noexcept
-{
-	return flags;
-}
-
-inline blend_mode material::get_blend_mode() const noexcept
-{
-	return blend_mode;
-}
-
-inline float material::get_opacity_threshold() const noexcept
-{
-	return opacity_threshold;
-}
-
-inline bool material::is_two_sided() const noexcept
-{
-	return two_sided;
-}
-
-inline shadow_mode material::get_shadow_mode() const noexcept
-{
-	return shadow_mode;
-}
-
-inline material_property_base* material::get_property(const std::string& name) const
-{
-	if (auto it = property_map.find(name); it != property_map.end())
-	{
-		return it->second;
-	}
-
-	return nullptr;
-}
-
-inline const std::list<material_property_base*>* material::get_properties() const
-{
-	return &properties;
-}
 
 } // namespace render
 

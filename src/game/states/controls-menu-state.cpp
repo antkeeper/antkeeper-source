@@ -36,19 +36,19 @@ controls_menu_state::controls_menu_state(::game& ctx):
 	debug::log::trace("Entering controls menu state...");
 	
 	// Construct menu item texts
-	scene::text* keyboard_text = new scene::text();
-	scene::text* gamepad_text = new scene::text();
-	scene::text* back_text = new scene::text();
+	keyboard_text = std::make_unique<scene::text>();
+	gamepad_text = std::make_unique<scene::text>();
+	back_text = std::make_unique<scene::text>();
 	
 	// Build list of menu item texts
-	ctx.menu_item_texts.push_back({keyboard_text, nullptr});
-	ctx.menu_item_texts.push_back({gamepad_text, nullptr});
-	ctx.menu_item_texts.push_back({back_text, nullptr});
+	ctx.menu_item_texts.push_back({keyboard_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({gamepad_text.get(), nullptr});
+	ctx.menu_item_texts.push_back({back_text.get(), nullptr});
 	
 	// Set content of menu item texts
-	keyboard_text->set_content(get_string(ctx, "controls_menu_keyboard"_fnv1a32));
-	gamepad_text->set_content(get_string(ctx, "controls_menu_gamepad"_fnv1a32));
-	back_text->set_content(get_string(ctx, "back"_fnv1a32));
+	keyboard_text->set_content(get_string(ctx, "controls_menu_keyboard"));
+	gamepad_text->set_content(get_string(ctx, "controls_menu_gamepad"));
+	back_text->set_content(get_string(ctx, "back"));
 	
 	// Init menu item index
 	::menu::init_menu_item_index(ctx, "controls");

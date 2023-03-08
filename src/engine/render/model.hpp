@@ -21,12 +21,14 @@
 #define ANTKEEPER_RENDER_MODEL_HPP
 
 #include <engine/animation/skeleton.hpp>
+#include <engine/geom/aabb.hpp>
+#include <engine/gl/drawing-mode.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
-#include <engine/gl/drawing-mode.hpp>
 #include <engine/render/material.hpp>
-#include <engine/geom/aabb.hpp>
-#include <unordered_map>
+#include <engine/utility/hash/fnv1a.hpp>
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -35,175 +37,106 @@ namespace render {
 /**
  * Part of a model which is associated with exactly one material.
  */
-class model_group
+struct model_group
 {
-public:
-	void set_material(material* material);
-	void set_drawing_mode(gl::drawing_mode mode);
-	void set_start_index(std::size_t index);
-	void set_index_count(std::size_t count);
-
-	std::size_t get_index() const;
-	const std::string& get_name() const;
-	const material* get_material() const;
-	material* get_material();
-	gl::drawing_mode get_drawing_mode() const;
-	std::size_t get_start_index() const;
-	std::size_t get_index_count() const;
-
-private:
-	friend class model;
-
-	std::size_t index;
-	std::string name;
-	material* material;
+	hash::fnv1a32_t id;
 	gl::drawing_mode drawing_mode;
-	std::size_t start_index;
-	std::size_t index_count;
+	std::uint32_t start_index;
+	std::uint32_t index_count;
+	std::shared_ptr<material> material;
 };
 
-inline void model_group::set_material(render::material* material)
-{
-	this->material = material;
-}
-
-inline void model_group::set_drawing_mode(gl::drawing_mode mode)
-{
-	this->drawing_mode = mode;
-}
-
-inline void model_group::set_start_index(std::size_t index)
-{
-	this->start_index = index;
-}
-
-inline void model_group::set_index_count(std::size_t count)
-{
-	this->index_count = count;
-}
-
-inline std::size_t model_group::get_index() const
-{
-	return index;
-}
-
-inline const std::string& model_group::get_name() const
-{
-	return name;
-}
-
-inline const material* model_group::get_material() const
-{
-	return material;
-}
-
-inline material* model_group::get_material()
-{
-	return material;
-}
-
-inline gl::drawing_mode model_group::get_drawing_mode() const
-{
-	return drawing_mode;
-}
-
-inline std::size_t model_group::get_start_index() const
-{
-	return start_index;
-}
-
-inline std::size_t model_group::get_index_count() const
-{
-	return index_count;
-}
-
 /**
- *
+ * 
  */
 class model
 {
 public:
+	/// AABB type.
 	typedef geom::aabb<float> aabb_type;
 	
+	/**
+	 * Constructs a model.
+	 */
 	model();
-	~model();
 	
-	void set_bounds(const aabb_type& bounds);
-
-	model_group* add_group(const std::string& name = std::string());
-
-	bool remove_group(const std::string& name);
-	bool remove_group(model_group* group);
+	/**
+	 * Returns the vertex array associated with this model.
+	 */
+	/// @{
+	[[nodiscard]] inline const std::shared_ptr<gl::vertex_array>& get_vertex_array() const noexcept
+	{
+		return vertex_array;
+	}
+	[[nodiscard]] inline std::shared_ptr<gl::vertex_array>& get_vertex_array() noexcept
+	{
+		return vertex_array;
+	}
+	/// @}
 	
-	const aabb_type& get_bounds() const;
-
-	const model_group* get_group(const std::string& name) const;
-	model_group* get_group(const std::string& name);
-
-	const std::vector<model_group*>* get_groups() const;
-
-	const gl::vertex_array* get_vertex_array() const;
-	gl::vertex_array* get_vertex_array();
-
-	const gl::vertex_buffer* get_vertex_buffer() const;
-	gl::vertex_buffer* get_vertex_buffer();
+	/**
+	 * Returns the vertex buffer associated with this model.
+	 */
+	/// @{
+	[[nodiscard]] inline const std::shared_ptr<gl::vertex_buffer>& get_vertex_buffer() const noexcept
+	{
+		return vertex_buffer;
+	}
+	[[nodiscard]] inline std::shared_ptr<gl::vertex_buffer>& get_vertex_buffer() noexcept
+	{
+		return vertex_buffer;
+	}
+	/// @}
 	
-	const skeleton& get_skeleton() const;
-	skeleton& get_skeleton();
-
+	/**
+	 * Returns the bounds of the model.
+	 */
+	/// @{
+	[[nodiscard]] inline const aabb_type& get_bounds() const noexcept
+	{
+		return bounds;
+	}
+	[[nodiscard]] inline aabb_type& get_bounds() noexcept
+	{
+		return bounds;
+	}
+	/// @}
+	
+	/**
+	 * Returns the model's model groups.
+	 */
+	/// @{
+	[[nodiscard]] inline const std::vector<model_group>& get_groups() const noexcept
+	{
+		return groups;
+	}
+	[[nodiscard]] inline std::vector<model_group>& get_groups() noexcept
+	{
+		return groups;
+	}
+	/// @}
+	
+	/**
+	 * Returns the skeleton associated with this model.
+	 */
+	/// @{
+	[[nodiscard]] inline const ::skeleton& get_skeleton() const noexcept
+	{
+		return skeleton;
+	}
+	[[nodiscard]] inline ::skeleton& get_skeleton() noexcept
+	{
+		return skeleton;
+	}
+	/// @}
+	
 private:
-	aabb_type bounds;
-	std::vector<model_group*> groups;
-	std::unordered_map<std::string, model_group*> group_map;
-	gl::vertex_array vao;
-	gl::vertex_buffer vbo;
+	std::shared_ptr<gl::vertex_array> vertex_array;
+	std::shared_ptr<gl::vertex_buffer> vertex_buffer;
+	aabb_type bounds{{0, 0, 0}, {0, 0, 0}};
+	std::vector<model_group> groups;
 	::skeleton skeleton;
 };
-
-inline void model::set_bounds(const aabb_type& bounds)
-{
-	this->bounds = bounds;
-}
-
-inline const typename model::aabb_type& model::get_bounds() const
-{
-	return bounds;
-}
-
-inline const std::vector<model_group*>* model::get_groups() const
-{
-	return &groups;
-}
-
-inline const gl::vertex_array* model::get_vertex_array() const
-{
-	return &vao;
-}
-
-inline gl::vertex_array* model::get_vertex_array()
-{
-	return &vao;
-}
-
-inline const gl::vertex_buffer* model::get_vertex_buffer() const
-{
-	return &vbo;
-}
-
-inline gl::vertex_buffer* model::get_vertex_buffer()
-{
-	return &vbo;
-}
-
-inline const skeleton& model::get_skeleton() const
-{
-	return skeleton;
-}
-
-inline skeleton& model::get_skeleton()
-{
-	return skeleton;
-}
 
 } // namespace render
 

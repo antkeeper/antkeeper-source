@@ -22,10 +22,10 @@
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
 #include <engine/gl/drawing-mode.hpp>
 #include <engine/render/context.hpp>
 #include <engine/render/material.hpp>
+#include <engine/gl/shader-template.hpp>
 #include <engine/scene/camera.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/scene/light.hpp>
@@ -47,13 +47,19 @@ static bool operation_compare(const render::operation& a, const render::operatio
 shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager):
 	pass(rasterizer, nullptr)
 {
-	// Load skinned shader program
-	unskinned_shader_program = resource_manager->load<gl::shader_program>("depth-unskinned.glsl");
-	unskinned_model_view_projection_input = unskinned_shader_program->get_input("model_view_projection");
+	// Load unskinned shader template
+	auto unskinned_shader_template = resource_manager->load<gl::shader_template>("depth-unskinned.glsl");
 	
-	// Load unskinned shader program
-	skinned_shader_program = resource_manager->load<gl::shader_program>("depth-skinned.glsl");
-	skinned_model_view_projection_input = skinned_shader_program->get_input("model_view_projection");
+	// Build unskinned shader program
+	unskinned_shader_program = unskinned_shader_template->build({});
+	unskinned_model_view_projection_var = unskinned_shader_program->variable("model_view_projection");
+	
+	// Load skinned shader template
+	auto skinned_shader_template = resource_manager->load<gl::shader_template>("depth-skinned.glsl");
+	
+	// Build skinned shader program
+	skinned_shader_program = skinned_shader_template->build({});
+	skinned_model_view_projection_var = skinned_shader_program->variable("model_view_projection");
 	
 	// Calculate bias-tile matrices
 	float4x4 bias_matrix = math::translate(math::matrix4<float>::identity(), float3{0.5f, 0.5f, 0.5f}) * math::scale(math::matrix4<float>::identity(), float3{0.5f, 0.5f, 0.5f});
@@ -67,35 +73,40 @@ shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* r
 	}
 }
 
-shadow_map_pass::~shadow_map_pass()
-{}
-
-void shadow_map_pass::render(const render::context& ctx, render::queue& queue) const
+void shadow_map_pass::render(const render::context& ctx, render::queue& queue)
 {
-	// Collect lights
+	// For each light
 	const std::list<scene::object_base*>* lights = ctx.collection->get_objects(scene::light::object_type_id);
 	for (const scene::object_base* object: *lights)
 	{
 		// Ignore inactive lights
 		if (!object->is_active())
-				continue;
+		{
+			continue;
+		}
 		
 		// Ignore non-directional lights
-		const scene::light* light = static_cast<const scene::light*>(object);
-		if (light->get_light_type() != scene::light_type::directional)
+		const scene::light& light = static_cast<const scene::light&>(*object);
+		if (light.get_light_type() != scene::light_type::directional)
+		{
 			continue;
+		}
 		
 		// Ignore non-shadow casters
-		const scene::directional_light* directional_light = static_cast<const scene::directional_light*>(light);
-		if (!directional_light->is_shadow_caster())
+		const scene::directional_light& directional_light = static_cast<const scene::directional_light&>(light);
+		if (!directional_light.is_shadow_caster())
+		{
 			continue;
+		}
 		
 		// Ignore improperly-configured lights
-		if (!directional_light->get_shadow_cascade_count() || !directional_light->get_shadow_framebuffer())
+		if (!directional_light.get_shadow_cascade_count() || !directional_light.get_shadow_framebuffer())
+		{
 			continue;
+		}
 		
-		// Render cascaded shadow maps for light
-		render_csm(*directional_light, ctx, queue);
+		// Render cascaded shadow maps
+		render_csm(directional_light, ctx, queue);
 	}
 }
 
@@ -132,8 +143,10 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 	const float shadow_clip_far = math::lerp(camera_clip_near, camera_clip_far, light.get_shadow_cascade_coverage());
 	
 	const unsigned int cascade_count = light.get_shadow_cascade_count();
-	float* cascade_distances = light.get_shadow_cascade_distances();
-	float4x4* cascade_matrices = light.get_shadow_cascade_matrices();
+	
+	/// @TODO: don't const_cast
+	auto& cascade_distances = const_cast<std::vector<float>&>(light.get_shadow_cascade_distances());
+	auto& cascade_matrices = const_cast<std::vector<float4x4>&>(light.get_shadow_cascade_matrices());
 	
 	// Calculate cascade far clipping plane distances
 	cascade_distances[cascade_count - 1] = shadow_clip_far;
@@ -235,7 +248,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 			if (material)
 			{
 				// Skip materials which don't cast shadows
-				if (material->get_shadow_mode() == shadow_mode::none)
+				if (material->get_shadow_mode() == material_shadow_mode::none)
 					continue;
 				
 				if (material->is_two_sided() != two_sided)
@@ -254,7 +267,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 			}
 			
 			// Switch shader programs if necessary
-			gl::shader_program* shader_program = (operation.bone_count) ? skinned_shader_program : unskinned_shader_program;
+			gl::shader_program* shader_program = (operation.bone_count) ? skinned_shader_program.get() : unskinned_shader_program.get();
 			if (active_shader_program != shader_program)
 			{
 				active_shader_program = shader_program;
@@ -265,13 +278,13 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 			model_view_projection = cropped_view_projection * operation.transform;
 			
 			// Upload operation-dependent parameters to shader program
-			if (active_shader_program == unskinned_shader_program)
+			if (active_shader_program == unskinned_shader_program.get())
 			{
-				unskinned_model_view_projection_input->upload(model_view_projection);
+				unskinned_model_view_projection_var->update(model_view_projection);
 			}
-			else if (active_shader_program == skinned_shader_program)
+			else if (active_shader_program == skinned_shader_program.get())
 			{
-				skinned_model_view_projection_input->upload(model_view_projection);
+				skinned_model_view_projection_var->update(model_view_projection);
 			}
 
 			// Draw geometry

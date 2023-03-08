@@ -24,8 +24,9 @@
 #include <engine/render/material.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/texture-2d.hpp>
+#include <functional>
 #include <unordered_map>
 
 class resource_manager;
@@ -39,92 +40,102 @@ class material_pass: public pass
 {
 public:
 	material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
-	virtual ~material_pass();
-	virtual void render(const render::context& ctx, render::queue& queue) const final;
+	
+	void render(const render::context& ctx, render::queue& queue) override;
 	
 	/// Sets the material to be used when a render operation is missing a material. If no fallback material is specified, render operations without materials will not be processed.
-	void set_fallback_material(const material* fallback);
+	void set_fallback_material(std::shared_ptr<render::material> fallback);
 	
 private:
-	/**
-	 * Sets of known shader input parameters. Each time a new shader is encountered, a parameter set will be created and its inputs connected to the shader program. A null input indiciates that the shader doesn't have that parameter.
-	 */
-	struct parameter_set
+	struct shader_cache_entry
 	{
-		const gl::shader_input* time;
-		const gl::shader_input* mouse;
-		const gl::shader_input* resolution;
-		const gl::shader_input* camera_position;
-		const gl::shader_input* camera_exposure;
-		const gl::shader_input* model;
-		const gl::shader_input* view;
-		const gl::shader_input* projection;
-		const gl::shader_input* model_view;
-		const gl::shader_input* view_projection;
-		const gl::shader_input* model_view_projection;
-		const gl::shader_input* normal_model;
-		const gl::shader_input* normal_model_view;
-		const gl::shader_input* clip_depth;
-		const gl::shader_input* log_depth_coef;
+		std::unique_ptr<gl::shader_program> shader_program;
 		
-		const gl::shader_input* ambient_light_count;
-		const gl::shader_input* ambient_light_colors;
-		const gl::shader_input* point_light_count;
-		const gl::shader_input* point_light_colors;
-		const gl::shader_input* point_light_positions;
-		const gl::shader_input* point_light_attenuations;
-		const gl::shader_input* directional_light_count;
-		const gl::shader_input* directional_light_colors;
-		const gl::shader_input* directional_light_directions;
-		const gl::shader_input* directional_light_textures;
-		const gl::shader_input* directional_light_texture_matrices;
-		const gl::shader_input* directional_light_texture_opacities;
-		const gl::shader_input* spot_light_count;
-		const gl::shader_input* spot_light_colors;
-		const gl::shader_input* spot_light_positions;
-		const gl::shader_input* spot_light_directions;
-		const gl::shader_input* spot_light_attenuations;
-		const gl::shader_input* spot_light_cutoffs;
+		/// Command buffer which enables the shader and updates render state-related shader variables.
+		std::vector<std::function<void()>> shader_command_buffer;
 		
-		const gl::shader_input* shadow_map_directional;
-		const gl::shader_input* shadow_bias_directional;
-		const gl::shader_input* shadow_splits_directional;
-		const gl::shader_input* shadow_matrices_directional;
+		/// Command buffer which updates geometry-related shader variables.
+		std::vector<std::function<void()>> geometry_command_buffer;
 		
-		const gl::shader_input* skinning_palette;
+		/// Map of materials to command buffers which update corresponding material shader variables.
+		std::unordered_map<const material*, std::vector<std::function<void()>>> material_command_buffers;
 	};
-
-	const parameter_set* load_parameter_set(const gl::shader_program* program) const;
-
-	mutable std::unordered_map<const gl::shader_program*, parameter_set*> parameter_sets;
-	const material* fallback_material;
+	
+	/// Map of state hashes to shader cache entries.
+	std::unordered_map<std::size_t, shader_cache_entry> shader_cache;
+	
+	/**
+	 * Evaluates the active camera and stores camera information in local variables to be passed to shaders.
+	 */
+	void evaluate_camera(const render::context& ctx);
+	
+	/**
+	 * Evaluates scene lights and stores lighting information in local variables to be passed to shaders.
+	 */
+	void evaluate_lighting(const render::context& ctx);
+	
+	void evaluate_misc(const render::context& ctx);
+	
+	[[nodiscard]] std::unique_ptr<gl::shader_program> generate_shader_program(const gl::shader_template& shader_template) const;
+	
+	void build_shader_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program) const;
+	void build_geometry_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program) const;
+	void build_material_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program, const material& material) const;
+	
+	// Camera
+	const float4x4* view;
+	const float4x4* projection;
+	const float4x4* view_projection;
+	const float3* camera_position;
+	float camera_exposure;
+	float2 clip_depth;
+	float log_depth_coef;
+	
+	// Ambient lights
+	std::vector<float3> ambient_light_colors;
+	std::size_t ambient_light_count;
+	
+	// Point lights
+	std::vector<float3> point_light_colors;
+	std::vector<float3> point_light_positions;
+	std::vector<float3> point_light_attenuations;
+	std::size_t point_light_count;
+	
+	// Directional lights
+	std::vector<float3> directional_light_colors;
+	std::vector<float3> directional_light_directions;
+	std::size_t directional_light_count;
+	
+	// Directional shadows
+	std::vector<const gl::texture_2d*> directional_shadow_maps;
+	std::vector<float> directional_shadow_biases;
+	std::vector<const std::vector<float>*> directional_shadow_splits;
+	std::vector<const std::vector<float4x4>*> directional_shadow_matrices;
+	std::size_t directional_shadow_count;
+	
+	// Spot lights
+	std::vector<float3> spot_light_colors;
+	std::vector<float3> spot_light_positions;
+	std::vector<float3> spot_light_directions;
+	std::vector<float3> spot_light_attenuations;
+	std::vector<float2> spot_light_cutoffs;
+	std::size_t spot_light_count;
+	
+	// Misc
+	float time;
+	float timestep;
+	unsigned int frame{0};
+	float subframe;
+	float2 resolution;
 	float2 mouse_position;
 	
-	int max_ambient_light_count;
-	int max_point_light_count;
-	int max_directional_light_count;
-	int max_spot_light_count;
-	int max_bone_count;
+	// Geometry
+	const float4x4* model;
 	
-	mutable int ambient_light_count;
-	mutable int point_light_count;
-	mutable int directional_light_count;
-	mutable int spot_light_count;
-
-	float3* ambient_light_colors;
-	float3* point_light_colors;
-	float3* point_light_positions;
-	float3* point_light_attenuations;
-	float3* directional_light_colors;
-	float3* directional_light_directions;
-	const gl::texture_2d** directional_light_textures;
-	float4x4* directional_light_texture_matrices;
-	float* directional_light_texture_opacities;
-	float3* spot_light_colors;
-	float3* spot_light_positions;
-	float3* spot_light_directions;
-	float3* spot_light_attenuations;
-	float2* spot_light_cutoffs;
+	/// Hash of the lighting state.
+	std::size_t lighting_state_hash;
+	
+	std::shared_ptr<render::material> fallback_material;
 };
 
 } // namespace render

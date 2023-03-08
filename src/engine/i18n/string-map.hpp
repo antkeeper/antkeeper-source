@@ -22,13 +22,14 @@
 
 #include <string>
 #include <unordered_map>
+#include <engine/utility/hash/fnv1a.hpp>
 
 namespace i18n {
 
 /**
  * Maps 32-bit keys to strings.
  */
-typedef std::unordered_map<std::uint32_t, std::string> string_map;
+typedef std::unordered_map<hash::fnv1a32_t, std::string> string_map;
 
 } // namespace i18n
 

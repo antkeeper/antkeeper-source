@@ -20,12 +20,14 @@
 #ifndef ANTKEEPER_GL_SHADER_STAGE_HPP
 #define ANTKEEPER_GL_SHADER_STAGE_HPP
 
+#include <cstdint>
+
 namespace gl {
 
 /**
  * Enumerates all supported shader stages.
  */
-enum class shader_stage
+enum class shader_stage: std::uint8_t
 {
 	/// Vertex shader stage.
 	vertex,
@@ -40,4 +42,3 @@ enum class shader_stage
 } // namespace gl
 
 #endif // ANTKEEPER_GL_SHADER_STAGE_HPP
-

@@ -22,7 +22,7 @@
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/shader-input.hpp>
+#include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-attribute.hpp>
@@ -46,7 +46,7 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 	corrected_filter_radius{filter_radius, filter_radius}
 {
 	// Load downsample shader template
-	downsample_shader_template = resource_manager->load<shader_template>("bloom-downsample.glsl");
+	auto downsample_shader_template = resource_manager->load<gl::shader_template>("bloom-downsample.glsl");
 	
 	// Build downsample shader program with Karis averaging
 	downsample_karis_shader = downsample_shader_template->build
@@ -55,40 +55,37 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 			{"KARIS_AVERAGE", std::string()}
 		}
 	);
-	downsample_karis_source_texture_input = downsample_karis_shader->get_input("source_texture");
 	
 	// Build downsample shader program without Karis averaging
 	downsample_shader = downsample_shader_template->build();
-	downsample_source_texture_input = downsample_shader->get_input("source_texture");
 	
 	// Load upsample shader template
-	upsample_shader_template = resource_manager->load<shader_template>("bloom-upsample.glsl");
+	auto upsample_shader_template = resource_manager->load<gl::shader_template>("bloom-upsample.glsl");
 	
 	// Build upsample shader program
 	upsample_shader = upsample_shader_template->build();
-	upsample_source_texture_input = upsample_shader->get_input("source_texture");
-	upsample_filter_radius_input = upsample_shader->get_input("filter_radius");
 	
-	const float vertex_data[] =
+	const float2 vertex_positions[] =
 	{
-		-1.0f,  1.0f,
-		-1.0f, -1.0f,
-		 1.0f,  1.0f,
-		 1.0f,  1.0f,
-		-1.0f, -1.0f,
-		 1.0f, -1.0f
+		{-1.0f,  1.0f},
+		{-1.0f, -1.0f},
+		{ 1.0f,  1.0f},
+		{ 1.0f,  1.0f},
+		{-1.0f, -1.0f},
+		{ 1.0f, -1.0f}
 	};
 	
+	const auto vertex_data = std::as_bytes(std::span{vertex_positions});
 	std::size_t vertex_size = 2;
 	std::size_t vertex_stride = sizeof(float) * vertex_size;
 	std::size_t vertex_count = 6;
 	
-	quad_vbo = new gl::vertex_buffer(sizeof(float) * vertex_size * vertex_count, vertex_data);
-	quad_vao = new gl::vertex_array();
+	quad_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, vertex_data.size(), vertex_data);
+	quad_vao = std::make_unique<gl::vertex_array>();
 	
 	// Define position vertex attribute
 	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = quad_vbo;
+	position_attribute.buffer = quad_vbo.get();
 	position_attribute.offset = 0;
 	position_attribute.stride = vertex_stride;
 	position_attribute.type = gl::vertex_attribute_type::float_32;
@@ -98,79 +95,12 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 }
 
-bloom_pass::~bloom_pass()
+void bloom_pass::render(const render::context& ctx, render::queue& queue)
 {
-	delete quad_vao;
-	delete quad_vbo;
-	
-	set_mip_chain_length(0);
-	
-	delete downsample_karis_shader;
-	delete downsample_shader;
-	delete upsample_shader;
-	
-	/// @TODO
-	//resource_manager->unload("bloom-downsample.glsl");
-	//resource_manager->unload("bloom-upsample.glsl");
-}
-
-void bloom_pass::render(const render::context& ctx, render::queue& queue) const
-{
-	if (!source_texture || !mip_chain_length)
-		return;
-	
-	// Disable depth testing
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-	
-	// Enable back-face culling
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	
-	// Disable blending
-	glDisable(GL_BLEND);
-	
-	// Downsample first mip with Karis average
+	// Execute command buffer
+	for (const auto& command: command_buffer)
 	{
-		rasterizer->use_program(*downsample_karis_shader);
-		downsample_karis_source_texture_input->upload(source_texture);
-		
-		rasterizer->use_framebuffer(*framebuffers[0]);
-		rasterizer->set_viewport(0, 0, textures[0]->get_width(), textures[0]->get_height());
-		
-		rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
-	}
-	
-	// Downsample remaining mips
-	rasterizer->use_program(*downsample_shader);
-	for (int i = 1; i < static_cast<int>(mip_chain_length); ++i)
-	{
-		rasterizer->use_framebuffer(*framebuffers[i]);
-		rasterizer->set_viewport(0, 0, textures[i]->get_width(), textures[i]->get_height());
-		
-		// Use previous downsample texture as downsample source
-		downsample_source_texture_input->upload(textures[i - 1]);
-		
-		rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
-	}
-	
-	// Enable additive blending
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
-	glBlendEquation(GL_FUNC_ADD);
-	
-	// Upsample
-	rasterizer->use_program(*upsample_shader);
-	upsample_filter_radius_input->upload(corrected_filter_radius);
-	for (int i = static_cast<int>(mip_chain_length) - 1; i > 0; --i)
-	{
-		const int j = i - 1;
-		rasterizer->use_framebuffer(*framebuffers[j]);
-		rasterizer->set_viewport(0, 0, textures[j]->get_width(), textures[j]->get_height());
-		
-		upsample_source_texture_input->upload(textures[i]);
-		
-		rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+		command();
 	}
 }
 
@@ -226,11 +156,13 @@ void bloom_pass::set_source_texture(const gl::texture_2d* texture)
 			{
 				source_texture = texture;
 				resize();
+				rebuild_command_buffer();
 			}
 		}
 		else
 		{
-			source_texture = texture;
+			source_texture = nullptr;
+			rebuild_command_buffer();
 		}
 	}
 }
@@ -256,33 +188,30 @@ void bloom_pass::set_mip_chain_length(unsigned int length)
 			unsigned int mip_height = std::max<unsigned int>(1, source_height >> (i + 1));
 			
 			// Generate mip texture
-			gl::texture_2d* texture = new gl::texture_2d(mip_width, mip_height, gl::pixel_type::float_16, gl::pixel_format::rgb);
+			auto texture = std::make_unique<gl::texture_2d>(mip_width, mip_height, gl::pixel_type::float_16, gl::pixel_format::rgb);
 			texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 			texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 			texture->set_max_anisotropy(0.0f);
-			textures.push_back(texture);
 			
 			// Generate mip framebuffer
-			gl::framebuffer* framebuffer = new gl::framebuffer(mip_width, mip_height);
-			framebuffer->attach(gl::framebuffer_attachment_type::color, texture);
-			framebuffers.push_back(framebuffer);
+			auto framebuffer = std::make_unique<gl::framebuffer>(mip_width, mip_height);
+			framebuffer->attach(gl::framebuffer_attachment_type::color, texture.get());
+			
+			textures.push_back(std::move(texture));
+			framebuffers.emplace_back(std::move(framebuffer));
 		}
 	}
 	else if (length < mip_chain_length)
 	{
-		// Free excess framebuffers
-		while (framebuffers.size() > length)
-		{
-			delete framebuffers.back();
-			framebuffers.pop_back();
-			
-			delete textures.back();
-			textures.pop_back();
-		}
+		framebuffers.resize(length);
+		textures.resize(length);
 	}
 	
 	// Update mip chain length
 	mip_chain_length = length;
+	
+	// Rebuild command buffer
+	rebuild_command_buffer();
 }
 
 void bloom_pass::set_filter_radius(float radius)
@@ -298,6 +227,120 @@ void bloom_pass::set_filter_radius(float radius)
 	
 	// Correct filter radius according to source texture aspect ratio
 	corrected_filter_radius = {filter_radius * aspect_ratio, filter_radius};
+}
+
+void bloom_pass::rebuild_command_buffer()
+{
+	command_buffer.clear();
+	
+	if (!source_texture ||
+		!mip_chain_length ||
+		!downsample_karis_shader ||
+		!downsample_shader ||
+		!upsample_shader)
+	{
+		return;
+	}
+	
+	// Setup downsample state
+	command_buffer.emplace_back
+	(
+		[]()
+		{
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			glDisable(GL_BLEND);
+		}
+	);
+	
+	// Downsample first mip with Karis average
+	if (auto source_texture_var = downsample_karis_shader->variable("source_texture"))
+	{
+		command_buffer.emplace_back
+		(
+			[&, source_texture_var]()
+			{
+				rasterizer->use_program(*downsample_karis_shader);
+				rasterizer->use_framebuffer(*framebuffers[0]);
+				rasterizer->set_viewport(0, 0, textures[0]->get_width(), textures[0]->get_height());
+				
+				source_texture_var->update(*source_texture);
+				
+				rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+			}
+		);
+	}
+	
+	// Downsample remaining mips
+	if (mip_chain_length > 1)
+	{
+		if (auto source_texture_var = downsample_shader->variable("source_texture"))
+		{
+			command_buffer.emplace_back([&](){rasterizer->use_program(*downsample_shader);});
+			
+			for (int i = 1; i < static_cast<int>(mip_chain_length); ++i)
+			{
+				command_buffer.emplace_back
+				(
+					[&, source_texture_var, i]()
+					{
+						rasterizer->use_framebuffer(*framebuffers[i]);
+						rasterizer->set_viewport(0, 0, textures[i]->get_width(), textures[i]->get_height());
+						
+						// Use previous downsample texture as downsample source
+						source_texture_var->update(*textures[i - 1]);
+						
+						rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+					}
+				);
+			}
+		}
+	}
+	
+	// Setup upsample state
+	command_buffer.emplace_back
+	(
+		[&]()
+		{
+			// Enable additive blending
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_ONE, GL_ONE);
+			glBlendEquation(GL_FUNC_ADD);
+			
+			// Bind upsample shader
+			rasterizer->use_program(*upsample_shader);
+		}
+	);
+	
+	// Update upsample filter radius
+	if (auto filter_radius_var = upsample_shader->variable("filter_radius"))
+	{
+		command_buffer.emplace_back([&, filter_radius_var](){filter_radius_var->update(corrected_filter_radius);});
+	}
+	
+	// Upsample
+	if (auto source_texture_var = upsample_shader->variable("source_texture"))
+	{
+		for (int i = static_cast<int>(mip_chain_length) - 1; i > 0; --i)
+		{
+			const int j = i - 1;
+			
+			command_buffer.emplace_back
+			(
+				[&, source_texture_var, i, j]()
+				{
+					rasterizer->use_framebuffer(*framebuffers[j]);
+					rasterizer->set_viewport(0, 0, textures[j]->get_width(), textures[j]->get_height());
+					
+					source_texture_var->update(*textures[i]);
+					
+					rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+				}
+			);
+		}
+	}
 }
 
 } // namespace render
