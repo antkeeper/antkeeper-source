@@ -1274,18 +1274,6 @@ void game::setup_loop()
 				function_queue.pop();
 			}
 			
-			// Update processes
-			std::for_each
-			(
-				std::execution::par,
-				processes.begin(),
-				processes.end(),
-				[t, dt](const auto& process)
-				{
-					process.second(t, dt);
-				}
-			);
-			
 			// Advance timeline
 			timeline->advance(dt);
 			

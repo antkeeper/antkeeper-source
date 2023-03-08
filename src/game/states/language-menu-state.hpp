@@ -22,6 +22,7 @@
 
 #include "game/states/game-state.hpp"
 #include <engine/scene/text.hpp>
+#include <engine/utility/text-file.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -36,7 +37,7 @@ public:
 private:
 	void update_text_content();
 	
-	std::vector<std::string> language_tags;
+	std::shared_ptr<text_file> language_manifest;
 	std::size_t language_index;
 	
 	std::unique_ptr<scene::text> language_name_text;

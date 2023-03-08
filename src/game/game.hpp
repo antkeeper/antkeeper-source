@@ -178,7 +178,7 @@ public:
 	std::shared_ptr<i18n::string_map> string_map;
 	
 	// Fonts
-	std::unordered_map<std::string, std::shared_ptr<type::typeface>> typefaces;
+	std::unordered_map<hash::fnv1a32_t, std::shared_ptr<type::typeface>> typefaces;
 	type::bitmap_font debug_font;
 	type::bitmap_font menu_font;
 	type::bitmap_font title_font;
@@ -231,9 +231,6 @@ public:
 	
 	// Queue for scheduling "next frame" function calls
 	std::queue<std::function<void()>> function_queue;
-	
-	// Parallel processes
-	std::unordered_map<std::string, std::function<void(double, double)>> processes;
 	
 	bool mouse_look;
 	
@@ -305,7 +302,7 @@ public:
 	std::vector<std::function<void()>> menu_right_callbacks;
 	std::function<void()> menu_back_callback;
 	std::vector<std::tuple<scene::text*, scene::text*>> menu_item_texts;
-	std::unordered_map<std::string, int> menu_item_indices;
+	std::unordered_map<hash::fnv1a32_t, int> menu_item_indices;
 	int* menu_item_index;
 	
 	// Scene

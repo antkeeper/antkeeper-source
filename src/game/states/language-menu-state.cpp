@@ -37,19 +37,18 @@ language_menu_state::language_menu_state(::game& ctx):
 {
 	debug::log::trace("Entering language menu state...");
 	
-	/// @TODO Don't hardcode this
-	language_tags =
+	// Load language manifest
+	language_manifest = ctx.resource_manager->load<text_file>("languages.txt");
+	if (!language_manifest)
 	{
-		"en",
-		"zh-Hans",
-		"zh-Hant"
-	};
+		throw std::runtime_error("Failed to load language manifest");
+	}
 	
 	// Determine index of current language
 	language_index = 0;
-	for (std::size_t i = 0; i < language_tags.size(); ++i)
+	for (std::size_t i = 0; i < language_manifest->lines.size(); ++i)
 	{
-		if (ctx.language_tag == language_tags[i])
+		if (ctx.language_tag == language_manifest->lines[i])
 		{
 			language_index = i;
 			break;
@@ -80,7 +79,7 @@ language_menu_state::language_menu_state(::game& ctx):
 	
 	auto change_language = [this, &ctx]()
 	{
-		const std::string& language_tag = this->language_tags[this->language_index];
+		const std::string& language_tag = this->language_manifest->lines[this->language_index];
 		
 		// Slugify language tag
 		std::string language_slug = language_tag;
@@ -121,7 +120,7 @@ language_menu_state::language_menu_state(::game& ctx):
 	// Construct menu item callbacks
 	auto next_language_callback = [this, &ctx, change_language]()
 	{
-		this->language_index = (this->language_index + 1) % this->language_tags.size();
+		this->language_index = (this->language_index + 1) % this->language_manifest->lines.size();
 		change_language();
 	};
 	auto previous_language_callback = [this, &ctx, change_language]()
@@ -132,7 +131,7 @@ language_menu_state::language_menu_state(::game& ctx):
 		}
 		else
 		{
-			this->language_index = this->language_tags.size() - 1;
+			this->language_index = this->language_manifest->lines.size() - 1;
 		}
 		
 		change_language();
