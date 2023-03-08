@@ -31,7 +31,7 @@ namespace unicode {
  * @param u8 UTF-8 string.
  * @return UTF-32 string.
  */
-std::u32string u32(const std::string& u8);
+[[nodiscard]] std::u32string u32(const std::string& u8);
 
 /**
  * Converts a UTF-32 string to UTF-8.
@@ -39,7 +39,7 @@ std::u32string u32(const std::string& u8);
  * @param u32 UTF-32 string.
  * @return UTF-8 string.
  */
-std::string u8(const std::u32string& u32);
+[[nodiscard]] std::string u8(const std::u32string& u32);
 
 } // namespace unicode
 } // namespace type
