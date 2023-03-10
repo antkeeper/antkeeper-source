@@ -28,7 +28,7 @@
 enum class ant_subcaste: std::uint8_t
 {
 	/// Worker from the queen's first batch of eggs, smaller than normal workers.
-	nanitic,
+	nanitic = 1,
 	
 	/// Small worker or soldier.
 	minor,

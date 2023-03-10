@@ -20,74 +20,96 @@
 #ifndef ANTKEEPER_GAME_ANT_GENE_LOADER_HPP
 #define ANTKEEPER_GAME_ANT_GENE_LOADER_HPP
 
-#include "game/ant/genes/monophenic-ant-gene.hpp"
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
-#include <engine/utility/json.hpp>
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/resources/resource-manager.hpp>
+#include <engine/resources/deserialize-context.hpp>
+#include <engine/resources/deserialize-error.hpp>
 
 /**
- * Deserializes an ant gene.
+ * Loads an ant gene.
  *
- * @tparam T Ant phene type.
+ * @tparam T Phene type.
  *
- * @param gene Ant gene to deserialize.
- * @param deserialize_phene Ant phene deserialization function.
- * @param gene_element JSON element containing an ant gene definition.
+ * @param gene Gene to load.
  * @param resource_manager Resource manager.
+ * @param ctx Deserialize context.
+ * @param load_phene Pointer to phene load function.
  */
-/// @{
 template <class T>
-void deserialize_ant_gene(monophenic_ant_gene<T>& gene, void (*deserialize_phene)(T&, const json&, resource_manager&), const json& gene_element, resource_manager& resource_manager)
+void load_ant_gene(ant_gene<T>& gene, resource_manager& resource_manager, deserialize_context& ctx, void (*load_phene)(T&, ::resource_manager&, deserialize_context&))
 {
-	// Read gene name
-	if (auto element = gene_element.find("name"); element != gene_element.end())
+	// Read file format identifier
+	std::uint32_t format_identifier{0};
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&format_identifier), 1);
+	
+	// Validate file format identifier
+	if (format_identifier != 0xaca79ff0)
 	{
-		gene.name = element->get<std::string>();
+		throw deserialize_error("Invalid ant gene file");
 	}
 	
-	// Deserialize phene
-	if (auto element = gene_element.find("phene"); element != gene_element.end())
+	// Read file format version
+	std::uint16_t format_version{0};
+	ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&format_version), 1);
+	
+	// Validate file format version
+	if (format_version != 1)
 	{
-		deserialize_phene(gene.phene, *element, resource_manager);
-	}
-}
-
-template <class T>
-void deserialize_ant_gene(polyphenic_ant_gene<T>& gene, void (*deserialize_phene)(T&, const json&, resource_manager&), const json& gene_element, resource_manager& resource_manager)
-{
-	// Read gene name
-	if (auto element = gene_element.find("name"); element != gene_element.end())
-	{
-		gene.name = element->get<std::string>();
+		throw deserialize_error("Unsupported ant gene format");
 	}
 	
-	// Deserialize phenes
-	if (auto phenes_element = gene_element.find("phenes"); phenes_element != gene_element.end())
+	// Read gene type
+	ant_gene_type gene_type{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&gene_type), 1);
+	
+	// Validate gene type
+	if (gene_type != gene.type())
 	{
-		if (auto element = phenes_element->find("female"); element != phenes_element->end())
+		throw deserialize_error("Mismatched ant gene type");
+	}
+	
+	// Read gene name
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&gene.name), 1);
+	
+	// Read phene count
+	std::uint8_t phene_count{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&phene_count), 1);
+	
+	// Allocate phenes
+	gene.phenes.resize(phene_count);
+	
+	// Load phenes
+	for (auto& phene: gene.phenes)
+	{
+		// Read phene caste flags
+		std::uint8_t caste_flags{0};
+		ctx.read8(reinterpret_cast<std::byte*>(&caste_flags), 1);
+		
+		// Load phene
+		load_phene(phene, resource_manager, ctx);
+		
+		// Map flagged castes to phene
+		int caste_count = std::popcount(caste_flags);
+		if (caste_count == 1)
 		{
-			deserialize_phene(gene.phenes[ant_caste::queen], *element, resource_manager);
-			deserialize_phene(gene.phenes[ant_caste::worker], *element, resource_manager);
-			deserialize_phene(gene.phenes[ant_caste::soldier], *element, resource_manager);
+			gene.phene_map[static_cast<ant_caste_type>(caste_flags)] = &phene;
 		}
-		if (auto element = phenes_element->find("male"); element != phenes_element->end())
+		else
 		{
-			deserialize_phene(gene.phenes[ant_caste::male], *element, resource_manager);
-		}
-		if (auto element = phenes_element->find("queen"); element != phenes_element->end())
-		{
-			deserialize_phene(gene.phenes[ant_caste::queen], *element, resource_manager);
-		}
-		if (auto element = phenes_element->find("worker"); element != phenes_element->end())
-		{
-			deserialize_phene(gene.phenes[ant_caste::worker], *element, resource_manager);
-		}
-		if (auto element = phenes_element->find("soldier"); element != phenes_element->end())
-		{
-			deserialize_phene(gene.phenes[ant_caste::soldier], *element, resource_manager);
+			for (std::uint8_t i = 0; i < 8; ++i)
+			{
+				const std::uint8_t caste_mask = 1 << i;
+				if (caste_flags & caste_mask)
+				{
+					gene.phene_map[static_cast<ant_caste_type>(caste_mask)] = &phene;
+					if (--caste_count; !caste_count)
+					{
+						break;
+					}
+				}
+			}
 		}
 	}
 }
-/// @}
 
 #endif // ANTKEEPER_GAME_ANT_GENE_LOADER_HPP

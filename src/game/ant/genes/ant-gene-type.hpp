@@ -17,24 +17,38 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_MONOPHENIC_ANT_GENE_HPP
-#define ANTKEEPER_GAME_MONOPHENIC_ANT_GENE_HPP
+#ifndef ANTKEEPER_GAME_ANT_GENE_TYPE_HPP
+#define ANTKEEPER_GAME_ANT_GENE_TYPE_HPP
 
-#include <string>
+#include <cstdint>
 
 /**
- * Ant gene with a single phene.
- *
- * @tparam T Ant phene type.
+ * Ant gene types.
  */
-template <class T>
-struct monophenic_ant_gene
+enum class ant_gene_type: std::uint8_t
 {
-	/// Gene name.
-	std::string name;
-	
-	/// Phene definition.
-	T phene;
+	antennae = 1,
+	body_size,
+	cocoon,
+	diet,
+	egg,
+	eyes,
+	foraging_time,
+	founding_mode,
+	gaster,
+	head,
+	larva,
+	legs,
+	mandibles,
+	mesosoma,
+	nest_site,
+	ocelli,
+	pigmentation,
+	pilosity,
+	sculpturing,
+	sting,
+	waist,
+	wings
 };
 
-#endif // ANTKEEPER_GAME_MONOPHENIC_ANT_GENE_HPP 
+#endif // ANTKEEPER_GAME_ANT_GENE_TYPE_HPP

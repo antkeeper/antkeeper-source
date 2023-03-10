@@ -114,11 +114,11 @@ entity::id create_ant_swarm(::game& ctx)
 	
 	// Init queen caste component
 	ant_caste_component queen_caste;
-	queen_caste.type = ant_caste::queen;
+	queen_caste.caste_type = ant_caste_type::queen;
 	
 	// Init male caste component
 	ant_caste_component male_caste;
-	male_caste.type = ant_caste::male;
+	male_caste.caste_type = ant_caste_type::male;
 	
 	// Construct and seed random number generator
 	std::random_device seed;

@@ -17,45 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-foraging-time-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-foraging-time-gene.hpp"
-#include <engine/math/angles.hpp>
-#include <engine/math/numbers.hpp>
-#include <stdexcept>
 
-static void deserialize_ant_foraging_time_phene(ant_foraging_time_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_foraging_time_phene(ant_foraging_time_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	phene.min_solar_altitude = -math::half_pi<float>;
-	phene.max_solar_altitude = math::half_pi<float>;
-	
-	// Parse min solar altitude
-	if (auto element = phene_element.find("min_solar_altitude"); element != phene_element.end())
-		phene.min_solar_altitude = math::radians(element->get<float>());
-	
-	// Parse max solar altitude
-	if (auto element = phene_element.find("max_solar_altitude"); element != phene_element.end())
-		phene.max_solar_altitude = math::radians(element->get<float>());
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.min_solar_altitude), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.max_solar_altitude), 1);
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_foraging_time_gene> resource_loader<ant_foraging_time_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_foraging_time_gene> gene = std::make_unique<ant_foraging_time_gene>();
 	
-	// Validate gene file
-	auto foraging_time_element = json_data->find("foraging_time");
-	if (foraging_time_element == json_data->end())
-		throw std::runtime_error("Invalid foraging_time gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_foraging_time_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_foraging_time_gene> foraging_time = std::make_unique<ant_foraging_time_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*foraging_time, &deserialize_ant_foraging_time_phene, *foraging_time_element, resource_manager);
-	
-	return foraging_time;
+	return gene;
 }

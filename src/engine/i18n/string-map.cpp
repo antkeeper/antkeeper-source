@@ -39,17 +39,17 @@ void serializer<i18n::string_map>::serialize(const i18n::string_map& map, serial
 {
 	// Write number of entries
 	std::uint32_t size = static_cast<std::uint32_t>(map.size());
-	ctx.write32<std::endian::big>(reinterpret_cast<const std::byte*>(&size), 1);
+	ctx.write32<std::endian::little>(reinterpret_cast<const std::byte*>(&size), 1);
 	
 	// Write entries
 	for (const auto& [key, value]: map)
 	{
 		// Write key
-		ctx.write32<std::endian::big>(reinterpret_cast<const std::byte*>(&key), 1);
+		ctx.write32<std::endian::little>(reinterpret_cast<const std::byte*>(&key), 1);
 		
 		// Write string length
 		std::uint32_t length = static_cast<std::uint32_t>(value.length());
-		ctx.write32<std::endian::big>(reinterpret_cast<const std::byte*>(&length), 1);
+		ctx.write32<std::endian::little>(reinterpret_cast<const std::byte*>(&length), 1);
 		
 		// Write string
 		ctx.write8(reinterpret_cast<const std::byte*>(value.data()), length);
@@ -71,18 +71,18 @@ void deserializer<i18n::string_map>::deserialize(i18n::string_map& map, deserial
 	
 	// Read number of entries
 	std::uint32_t size = 0;
-	ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&size), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&size), 1);
 	
 	// Read entries
 	for (std::uint32_t i = 0; i < size; ++i)
 	{
 		// Read key
 		hash::fnv1a32_t key;
-		ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&key), 1);
+		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&key), 1);
 		
 		// Read string length
 		std::uint32_t length = 0;
-		ctx.read32<std::endian::big>(reinterpret_cast<std::byte*>(&length), 1);
+		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&length), 1);
 		
 		// Insert empty string into map
 		auto [iterator, inserted] = map.emplace

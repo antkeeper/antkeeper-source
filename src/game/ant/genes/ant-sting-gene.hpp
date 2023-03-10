@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_STING_GENE_HPP
 #define ANTKEEPER_GAME_ANT_STING_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <memory>
 
@@ -30,13 +30,19 @@
 struct ant_sting_phene
 {
 	/// Indicates whether a sting present or not.
-	bool present;
+	bool present{false};
 	
 	/// 3D model of the sting.
 	std::shared_ptr<render::model> model;
 };
 
-/// Polyphenic sting gene.
-using ant_sting_gene = polyphenic_ant_gene<ant_sting_phene>;
+/// Ant sting gene.
+using ant_sting_gene = ant_gene<ant_sting_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_sting_gene::type() const noexcept
+{
+	return ant_gene_type::sting;
+}
 
 #endif // ANTKEEPER_GAME_ANT_STING_GENE_HPP

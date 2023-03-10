@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_CASTE_HPP
-#define ANTKEEPER_GAME_ANT_CASTE_HPP
+#ifndef ANTKEEPER_GAME_ANT_CASTE_TYPE_HPP
+#define ANTKEEPER_GAME_ANT_CASTE_TYPE_HPP
 
 #include <cstdint>
 
@@ -27,19 +27,19 @@
  *
  * @see https://www.antwiki.org/wiki/Caste_Terminology
  */
-enum class ant_caste: std::uint8_t
+enum class ant_caste_type: std::uint8_t
 {
 	/// Queen caste.
-	queen,
+	queen   = 0b0001,
 	
 	/// Worker caste.
-	worker,
+	worker  = 0b0010,
 	
 	/// Soldier caste.
-	soldier,
+	soldier = 0b0100,
 	
 	/// Male caste.
-	male
+	male    = 0b1000
 };
 
-#endif // ANTKEEPER_GAME_ANT_CASTE_HPP
+#endif // ANTKEEPER_GAME_ANT_CASTE_TYPE_HPP

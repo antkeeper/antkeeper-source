@@ -17,38 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-pilosity-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-pilosity-gene.hpp"
-#include <stdexcept>
 
-static void deserialize_ant_pilosity_phene(ant_pilosity_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_pilosity_phene(ant_pilosity_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	phene.density = 0.0f;
-	
-	// Parse density
-	if (auto element = phene_element.find("density"); element != phene_element.end())
-		phene.density = element->get<float>();
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.density), 1);
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_pilosity_gene> resource_loader<ant_pilosity_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_pilosity_gene> gene = std::make_unique<ant_pilosity_gene>();
 	
-	// Validate gene file
-	auto pilosity_element = json_data->find("pilosity");
-	if (pilosity_element == json_data->end())
-		throw std::runtime_error("Invalid pilosity gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_pilosity_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_pilosity_gene> pilosity = std::make_unique<ant_pilosity_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*pilosity, &deserialize_ant_pilosity_phene, *pilosity_element, resource_manager);
-	
-	return pilosity;
+	return gene;
 }

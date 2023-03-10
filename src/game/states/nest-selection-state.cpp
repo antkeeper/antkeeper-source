@@ -79,7 +79,9 @@ nest_selection_state::nest_selection_state(::game& ctx):
 		// Create observer
 		::world::create_observer(ctx);
 	}
-	::world::enter_ecoregion(ctx, *ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco"));
+	
+	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco");
+	::world::enter_ecoregion(ctx, *ctx.active_ecoregion);
 	
 	debug::log::trace("Generating genome...");
 	std::random_device rng;
@@ -87,7 +89,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	debug::log::trace("Generated genome");
 	
 	debug::log::trace("Building worker phenome...");
-	ant_phenome worker_phenome = ant_phenome(*genome, ant_caste::worker);
+	ant_phenome worker_phenome = ant_phenome(*genome, ant_caste_type::worker);
 	debug::log::trace("Built worker phenome...");
 	
 	debug::log::trace("Generating worker model...");
@@ -98,7 +100,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	entity::id worker_eid = ctx.entity_registry->create();
 	transform_component worker_transform_component;
 	worker_transform_component.local = math::transform<float>::identity;
-	worker_transform_component.local.translation = {0, 0, -20};
+	worker_transform_component.local.translation = {0, 0, -4};
 	worker_transform_component.world = worker_transform_component.local;
 	worker_transform_component.warp = true;
 	ctx.entity_registry->emplace<transform_component>(worker_eid, worker_transform_component);

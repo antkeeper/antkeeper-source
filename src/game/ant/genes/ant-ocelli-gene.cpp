@@ -17,70 +17,59 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-ocelli-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-ocelli-gene.hpp"
 #include <engine/render/model.hpp>
-#include <stdexcept>
 
-static void deserialize_ant_ocelli_phene(ant_ocelli_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_ocelli_phene(ant_ocelli_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	phene.lateral_ocelli_present = false;
-	phene.median_ocellus_present = false;
-	phene.lateral_ocelli_model = nullptr;
-	phene.median_ocellus_model = nullptr;
-	phene.width = 0.0f;
-	phene.height = 0.0f;
+	std::uint8_t lateral_ocelli_present{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&lateral_ocelli_present), 1);
+	phene.lateral_ocelli_present = static_cast<bool>(lateral_ocelli_present);
 	
-	// Parse lateral ocelli present
-	if (auto element = phene_element.find("lateral_ocelli_present"); element != phene_element.end())
-		phene.lateral_ocelli_present = element->get<bool>();
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.lateral_ocelli_width), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.lateral_ocelli_height), 1);
 	
-	// Parse median ocelli present
-	if (auto element = phene_element.find("median_ocellus_present"); element != phene_element.end())
-		phene.median_ocellus_present = element->get<bool>();
+	std::uint8_t lateral_ocelli_model_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&lateral_ocelli_model_filename_length), 1);
+	std::string lateral_ocelli_model_filename(lateral_ocelli_model_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(lateral_ocelli_model_filename.data()), lateral_ocelli_model_filename_length);
 	
-	// Parse width
-	if (auto element = phene_element.find("width"); element != phene_element.end())
-		phene.width = element->get<float>();
-	
-	// Parse height
-	if (auto element = phene_element.find("height"); element != phene_element.end())
-		phene.height = element->get<float>();
-	
-	// Load lateral ocelli model, if present
 	if (phene.lateral_ocelli_present)
 	{
-		if (auto element = phene_element.find("lateral_ocelli_model"); element != phene_element.end())
-			phene.lateral_ocelli_model = resource_manager.load<render::model>(element->get<std::string>());
+		phene.lateral_ocelli_model = resource_manager.load<render::model>(lateral_ocelli_model_filename);
 	}
 	
-	// Load median ocellus model, if present
+	std::uint8_t median_ocellus_present{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&median_ocellus_present), 1);
+	phene.median_ocellus_present = static_cast<bool>(median_ocellus_present);
+	
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.median_ocellus_width), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.median_ocellus_height), 1);
+	
+	std::uint8_t median_ocellus_model_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&median_ocellus_model_filename_length), 1);
+	std::string median_ocellus_model_filename(median_ocellus_model_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(median_ocellus_model_filename.data()), median_ocellus_model_filename_length);
+	
 	if (phene.median_ocellus_present)
 	{
-		if (auto element = phene_element.find("median_ocellus_model"); element != phene_element.end())
-			phene.median_ocellus_model = resource_manager.load<render::model>(element->get<std::string>());
+		phene.median_ocellus_model = resource_manager.load<render::model>(median_ocellus_model_filename);
 	}
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_ocelli_gene> resource_loader<ant_ocelli_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_ocelli_gene> gene = std::make_unique<ant_ocelli_gene>();
 	
-	// Validate gene file
-	auto ocelli_element = json_data->find("ocelli");
-	if (ocelli_element == json_data->end())
-		throw std::runtime_error("Invalid ocelli gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_ocelli_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_ocelli_gene> ocelli = std::make_unique<ant_ocelli_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*ocelli, &deserialize_ant_ocelli_phene, *ocelli_element, resource_manager);
-	
-	return ocelli;
+	return gene;
 }

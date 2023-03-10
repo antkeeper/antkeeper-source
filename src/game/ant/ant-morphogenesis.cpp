@@ -22,6 +22,7 @@
 #include <engine/render/vertex-attribute.hpp>
 #include <engine/math/transform-operators.hpp>
 #include <engine/math/quaternion.hpp>
+#include <engine/debug/log.hpp>
 #include <unordered_set>
 
 static void reskin_vertices
@@ -79,13 +80,13 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	std::shared_ptr<render::material> exoskeleton_material = build_exoskeleton_material(*phenome.pigmentation, *phenome.sculpturing);
 	
 	// Determine presence of optional parts
-	bool eyes_present = phenome.eyes->present;
-	bool lateral_ocelli_present = phenome.ocelli->lateral_ocelli_present;
-	bool median_ocellus_present = phenome.ocelli->median_ocellus_present;
-	bool petiole_present = phenome.waist->petiole_present;
-	bool postpetiole_present = phenome.waist->postpetiole_present;
-	bool sting_present = phenome.sting->present;
-	bool wings_present = phenome.wings->present;
+	const bool eyes_present = phenome.eyes->present;
+	const bool lateral_ocelli_present = phenome.ocelli->lateral_ocelli_present;
+	const bool median_ocellus_present = phenome.ocelli->median_ocellus_present;
+	const bool petiole_present = phenome.waist->petiole_present;
+	const bool postpetiole_present = phenome.waist->postpetiole_present;
+	const bool sting_present = phenome.sting->present;
+	const bool wings_present = phenome.wings->present;
 	
 	// Get body part models
 	const render::model* antennae_model = phenome.antennae->model.get();
@@ -102,6 +103,56 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	const render::model* sting_model = phenome.sting->model.get();
 	const render::model* waist_model = phenome.waist->model.get();
 	
+	// Check for presence of required part models
+	if (!antennae_model)
+	{
+		throw std::runtime_error("Ant phenome missing antennae model");
+	}
+	if (eyes_present && !eyes_model)
+	{
+		throw std::runtime_error("Ant phenome missing eyes model");
+	}
+	if (wings_present && !forewings_model)
+	{
+		throw std::runtime_error("Ant phenome missing forewings model");
+	}
+	if (!gaster_model)
+	{
+		throw std::runtime_error("Ant phenome missing gaster model");
+	}
+	if (wings_present && !hindwings_model)
+	{
+		throw std::runtime_error("Ant phenome missing hindwings model");
+	}
+	if (lateral_ocelli_present && !lateral_ocelli_model)
+	{
+		throw std::runtime_error("Ant phenome missing lateral ocelli model");
+	}
+	if (!legs_model)
+	{
+		throw std::runtime_error("Ant phenome missing legs model");
+	}
+	if (!mandibles_model)
+	{
+		throw std::runtime_error("Ant phenome missing mandibles model");
+	}
+	if (median_ocellus_present && !median_ocellus_model)
+	{
+		throw std::runtime_error("Ant phenome missing median ocellus model");
+	}
+	if (!mesosoma_model)
+	{
+		throw std::runtime_error("Ant phenome missing mesosoma model");
+	}
+	if (sting_present && !sting_model)
+	{
+		throw std::runtime_error("Ant phenome missing sting model");
+	}
+	if (!waist_model)
+	{
+		throw std::runtime_error("Ant phenome missing waist model");
+	}
+	
 	// Get body part vertex buffers
 	const gl::vertex_buffer* antennae_vbo = antennae_model->get_vertex_buffer().get();
 	const gl::vertex_buffer* eyes_vbo = (eyes_present) ? eyes_model->get_vertex_buffer().get() : nullptr;
@@ -109,10 +160,10 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	const gl::vertex_buffer* gaster_vbo = gaster_model->get_vertex_buffer().get();
 	const gl::vertex_buffer* head_vbo = head_model->get_vertex_buffer().get();
 	const gl::vertex_buffer* hindwings_vbo = (wings_present) ? hindwings_model->get_vertex_buffer().get() : nullptr;
-	const gl::vertex_buffer* lateral_ocelli_vbo = (lateral_ocelli_model) ? lateral_ocelli_model->get_vertex_buffer().get() : nullptr;
+	const gl::vertex_buffer* lateral_ocelli_vbo = (lateral_ocelli_present) ? lateral_ocelli_model->get_vertex_buffer().get() : nullptr;
 	const gl::vertex_buffer* legs_vbo = legs_model->get_vertex_buffer().get();
 	const gl::vertex_buffer* mandibles_vbo = mandibles_model->get_vertex_buffer().get();
-	const gl::vertex_buffer* median_ocellus_vbo = (median_ocellus_model) ? median_ocellus_model->get_vertex_buffer().get() : nullptr;
+	const gl::vertex_buffer* median_ocellus_vbo = (median_ocellus_present) ? median_ocellus_model->get_vertex_buffer().get() : nullptr;
 	const gl::vertex_buffer* mesosoma_vbo = mesosoma_model->get_vertex_buffer().get();
 	const gl::vertex_buffer* sting_vbo = (sting_present) ? sting_model->get_vertex_buffer().get() : nullptr;
 	const gl::vertex_buffer* waist_vbo = waist_model->get_vertex_buffer().get();
@@ -135,22 +186,34 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	vertex_buffer_size += gaster_vbo->size();
 	std::size_t sting_vbo_offset = vertex_buffer_size;
 	if (sting_present)
+	{
 		vertex_buffer_size += sting_vbo->size();
+	}
 	std::size_t eyes_vbo_offset = vertex_buffer_size;
 	if (eyes_present)
+	{
 		vertex_buffer_size += eyes_vbo->size();
+	}
 	std::size_t lateral_ocelli_vbo_offset = vertex_buffer_size;
 	if (lateral_ocelli_present)
+	{
 		vertex_buffer_size += lateral_ocelli_vbo->size();
+	}
 	std::size_t median_ocellus_vbo_offset = vertex_buffer_size;
 	if (median_ocellus_present)
+	{
 		vertex_buffer_size += median_ocellus_vbo->size();
+	}
 	std::size_t forewings_vbo_offset = vertex_buffer_size;
 	if (wings_present)
+	{
 		vertex_buffer_size += forewings_vbo->size();
+	}
 	std::size_t hindwings_vbo_offset = vertex_buffer_size;
 	if (wings_present)
+	{
 		vertex_buffer_size += hindwings_vbo->size();
+	}
 	
 	// Allocate combined vertex buffer data
 	std::vector<std::byte> vertex_buffer_data(vertex_buffer_size);
@@ -681,29 +744,45 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	reskin_vertices(vertex_buffer_data.data() + antennae_vbo_offset, antennae_index_count, *position_attribute, *normal_attribute, *tangent_attribute, *bone_index_attribute, old_antennomere1_r_indices, antennomere1_r_bone_index, antenna_r_to_body);
 	
 	// Reskin antennomere2+ bones
-	const std::vector<hash::fnv1a32_t> antennomere_bone_names =
+	const std::vector<hash::fnv1a32_t> antennomere_l_bone_keys =
 	{
-		"antennomere2",
-		"antennomere3",
-		"antennomere4",
-		"antennomere5",
-		"antennomere6",
-		"antennomere7",
-		"antennomere8",
-		"antennomere9",
-		"antennomere10",
-		"antennomere11",
-		"antennomere12",
-		"antennomere13"
+		"antennomere2_l",
+		"antennomere3_l",
+		"antennomere4_l",
+		"antennomere5_l",
+		"antennomere6_l",
+		"antennomere7_l",
+		"antennomere8_l",
+		"antennomere9_l",
+		"antennomere10_l",
+		"antennomere11_l",
+		"antennomere12_l",
+		"antennomere13_l"
 	};
+	const std::vector<hash::fnv1a32_t> antennomere_r_bone_keys =
+	{
+		"antennomere2_r",
+		"antennomere3_r",
+		"antennomere4_r",
+		"antennomere5_r",
+		"antennomere6_r",
+		"antennomere7_r",
+		"antennomere8_r",
+		"antennomere9_r",
+		"antennomere10_r",
+		"antennomere11_r",
+		"antennomere12_r",
+		"antennomere13_r"
+	};
+	
 	std::unordered_set<std::uint8_t> old_antennomere_l_indices;
-	for (const auto& bone_name: antennomere_bone_names)
-		if (auto it = antennae_skeleton.bone_map.find(bone_name + "_l"); it != antennae_skeleton.bone_map.end())
+	for (const auto& bone_key: antennomere_l_bone_keys)
+		if (auto it = antennae_skeleton.bone_map.find(bone_key); it != antennae_skeleton.bone_map.end())
 			old_antennomere_l_indices.emplace(it->second);
 	reskin_vertices(vertex_buffer_data.data() + antennae_vbo_offset, antennae_index_count, *position_attribute, *normal_attribute, *tangent_attribute, *bone_index_attribute, old_antennomere_l_indices, antennomere2_l_bone_index, antenna_l_to_body);
 	std::unordered_set<std::uint8_t> old_antennomere_r_indices;
-	for (const auto& bone_name: antennomere_bone_names)
-		if (auto it = antennae_skeleton.bone_map.find(bone_name + "_r"); it != antennae_skeleton.bone_map.end())
+	for (const auto& bone_key: antennomere_r_bone_keys)
+		if (auto it = antennae_skeleton.bone_map.find(bone_key); it != antennae_skeleton.bone_map.end())
 			old_antennomere_r_indices.emplace(it->second);
 	reskin_vertices(vertex_buffer_data.data() + antennae_vbo_offset, antennae_index_count, *position_attribute, *normal_attribute, *tangent_attribute, *bone_index_attribute, old_antennomere_r_indices, antennomere2_r_bone_index, antenna_r_to_body);
 	

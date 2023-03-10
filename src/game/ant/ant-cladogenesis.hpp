@@ -33,6 +33,6 @@
  *
  * @return New genome.
  */
-std::unique_ptr<ant_genome> ant_cladogenesis(const ant_gene_pool& pool, std::random_device& rng);
+[[nodiscard]] std::unique_ptr<ant_genome> ant_cladogenesis(const ant_gene_pool& pool, std::random_device& rng);
 
 #endif // ANTKEEPER_GAME_ANT_CLADOGENESIS_HPP

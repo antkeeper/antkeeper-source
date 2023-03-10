@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_COCOON_GENE_HPP
 #define ANTKEEPER_GAME_ANT_COCOON_GENE_HPP
 
-#include "game/ant/genes/monophenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <memory>
 
@@ -29,14 +29,20 @@
  */
 struct ant_cocoon_phene
 {
+	/// Indicates whether a cocoon is formed by the larvae or not.
+	bool present{false};
+	
 	/// 3D model of the cocoon, if present.
 	std::shared_ptr<render::model> model;
-	
-	/// Indicates whether a cocoon is formed by the larvae or not.
-	bool present;
 };
 
 /// Ant cocoon gene.
-using ant_cocoon_gene = monophenic_ant_gene<ant_cocoon_phene>;
+using ant_cocoon_gene = ant_gene<ant_cocoon_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_cocoon_gene::type() const noexcept
+{
+	return ant_gene_type::cocoon;
+}
 
 #endif // ANTKEEPER_GAME_ANT_COCOON_GENE_HPP

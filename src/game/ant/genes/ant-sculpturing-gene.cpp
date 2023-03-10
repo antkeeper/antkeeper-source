@@ -17,44 +17,34 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-sculpturing-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-sculpturing-gene.hpp"
 #include <engine/gl/texture-2d.hpp>
-#include <stdexcept>
 
-static void deserialize_ant_sculpturing_phene(ant_sculpturing_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_sculpturing_phene(ant_sculpturing_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	phene.normal_map = nullptr;
-	phene.roughness = 0.0f;
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.roughness), 1);
 	
-	// Load normal map
-	if (auto element = phene_element.find("normal_map"); element != phene_element.end())
-		phene.normal_map = resource_manager.load<gl::texture_2d>(element->get<std::string>());
+	std::uint8_t normal_map_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&normal_map_filename_length), 1);
+	std::string normal_map_filename(normal_map_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(normal_map_filename.data()), normal_map_filename_length);
 	
-	// Parse roughness
-	if (auto element = phene_element.find("roughness"); element != phene_element.end())
-		phene.roughness = element->get<float>();
+	phene.normal_map = resource_manager.load<gl::texture_2d>(normal_map_filename);
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_sculpturing_gene> resource_loader<ant_sculpturing_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_sculpturing_gene> gene = std::make_unique<ant_sculpturing_gene>();
 	
-	// Validate gene file
-	auto sculpturing_element = json_data->find("sculpturing");
-	if (sculpturing_element == json_data->end())
-		throw std::runtime_error("Invalid sculpturing gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_sculpturing_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_sculpturing_gene> sculpturing = std::make_unique<ant_sculpturing_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*sculpturing, &deserialize_ant_sculpturing_phene, *sculpturing_element, resource_manager);
-	
-	return sculpturing;
+	return gene;
 }

@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_ANTENNAE_GENE_HPP
 #define ANTKEEPER_GAME_ANT_ANTENNAE_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <memory>
 #include <cstdint>
@@ -33,17 +33,23 @@
  */
 struct ant_antennae_phene
 {
-	/// 3D model of the antennae.
-	std::shared_ptr<render::model> model;
-	
 	/// Total number of antennal segments per antenna.
-	std::uint8_t total_antennomere_count;
+	std::uint8_t total_antennomere_count{0};
 	
 	/// Number of antennal segments that constitute a club.
-	std::uint8_t club_antennomere_count;
+	std::uint8_t club_antennomere_count{0};
+	
+	/// 3D model of the antennae.
+	std::shared_ptr<render::model> model;
 };
 
 /// Ant antennae gene.
-using ant_antennae_gene = polyphenic_ant_gene<ant_antennae_phene>;
+using ant_antennae_gene = ant_gene<ant_antennae_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_antennae_gene::type() const noexcept
+{
+	return ant_gene_type::antennae;
+}
 
 #endif // ANTKEEPER_GAME_ANT_ANTENNAE_GENE_HPP

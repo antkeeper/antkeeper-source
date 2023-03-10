@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_EGG_GENE_HPP
 #define ANTKEEPER_GAME_ANT_EGG_GENE_HPP
 
-#include "game/ant/genes/monophenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <memory>
 
@@ -34,6 +34,12 @@ struct ant_egg_phene
 };
 
 /// Ant egg gene.
-using ant_egg_gene = monophenic_ant_gene<ant_egg_phene>;
+using ant_egg_gene = ant_gene<ant_egg_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_egg_gene::type() const noexcept
+{
+	return ant_gene_type::egg;
+}
 
 #endif // ANTKEEPER_GAME_ANT_EGG_GENE_HPP

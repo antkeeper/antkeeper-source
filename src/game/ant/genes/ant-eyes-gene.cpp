@@ -17,67 +17,44 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-eyes-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-eyes-gene.hpp"
 #include <engine/render/model.hpp>
-#include <stdexcept>
 
-static void deserialize_ant_eyes_phene(ant_eyes_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_eyes_phene(ant_eyes_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	phene.present = false;
-	phene.model = nullptr;
-	phene.length = 0.0f;
-	phene.width = 0.0f;
-	phene.height = 0.0f;
-	phene.ommatidia_count = 0;
+	std::uint8_t present{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&present), 1);
+	phene.present = static_cast<bool>(present);
 	
-	// Parse present
-	if (auto element = phene_element.find("present"); element != phene_element.end())
-		phene.present = element->get<bool>();
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.ommatidia_count), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.length), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.width), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.height), 1);
+	
+	std::uint8_t model_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&model_filename_length), 1);
+	std::string model_filename(model_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(model_filename.data()), model_filename_length);
 	
 	if (phene.present)
 	{
-		// Load eyes model
-		if (auto element = phene_element.find("model"); element != phene_element.end())
-			phene.model = resource_manager.load<render::model>(element->get<std::string>());
-		
-		// Parse length
-		if (auto element = phene_element.find("length"); element != phene_element.end())
-			phene.length = element->get<float>();
-		
-		// Parse width
-		if (auto element = phene_element.find("width"); element != phene_element.end())
-			phene.width = element->get<float>();
-		
-		// Parse height
-		if (auto element = phene_element.find("height"); element != phene_element.end())
-			phene.height = element->get<float>();
-		
-		// Parse ommatidia count
-		if (auto element = phene_element.find("ommatidia_count"); element != phene_element.end())
-			phene.ommatidia_count = element->get<int>();
+		phene.model = resource_manager.load<render::model>(model_filename);
 	}
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_eyes_gene> resource_loader<ant_eyes_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_eyes_gene> gene = std::make_unique<ant_eyes_gene>();
 	
-	// Validate gene file
-	auto eyes_element = json_data->find("eyes");
-	if (eyes_element == json_data->end())
-		throw std::runtime_error("Invalid eyes gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_eyes_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_eyes_gene> eyes = std::make_unique<ant_eyes_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*eyes, &deserialize_ant_eyes_phene, *eyes_element, resource_manager);
-	
-	return eyes;
+	return gene;
 }

@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_NEST_SITE_GENE_HPP
 #define ANTKEEPER_GAME_ANT_NEST_SITE_GENE_HPP
 
-#include "game/ant/genes/monophenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <cstdint>
 
 /**
@@ -33,6 +33,12 @@ enum class ant_nest_site_phene: std::uint8_t
 };
 
 /// Ant nest site gene.
-using ant_nest_site_gene = monophenic_ant_gene<ant_nest_site_phene>;
+using ant_nest_site_gene = ant_gene<ant_nest_site_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_nest_site_gene::type() const noexcept
+{
+	return ant_gene_type::nest_site;
+}
 
 #endif // ANTKEEPER_GAME_ANT_NEST_SITE_GENE_HPP

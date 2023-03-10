@@ -121,7 +121,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	(
 		[&](entity::id entity_id, const auto& caste)
 		{
-			if (caste.type == ant_caste::male)
+			if (caste.caste_type == ant_caste_type::male)
 			{
 				ctx.entity_registry->emplace_or_replace<name_component>
 				(
@@ -971,21 +971,21 @@ void nuptial_flight_state::select_entity(entity::id entity_id)
 				const auto& name = ctx.entity_registry->get<::name_component>(selected_eid).name;
 				
 				std::string format_string;
-				switch (caste.type)
+				switch (caste.caste_type)
 				{
-					case ::ant_caste::queen:
+					case ::ant_caste_type::queen:
 						format_string = ::get_string(ctx, "named_queen_label_format");
 						break;
 					
-					case ::ant_caste::worker:
+					case ::ant_caste_type::worker:
 						format_string = ::get_string(ctx, "named_worker_label_format");
 						break;
 					
-					case ::ant_caste::soldier:
+					case ::ant_caste_type::soldier:
 						format_string = ::get_string(ctx, "named_soldier_label_format");
 						break;
 					
-					case ::ant_caste::male:
+					case ::ant_caste_type::male:
 						format_string = ::get_string(ctx, "named_male_label_format");
 						break;
 					
@@ -998,21 +998,21 @@ void nuptial_flight_state::select_entity(entity::id entity_id)
 			}
 			else
 			{
-				switch (caste.type)
+				switch (caste.caste_type)
 				{
-					case ::ant_caste::queen:
+					case ::ant_caste_type::queen:
 						selection_text.set_content(get_string(ctx, "queen_caste_name"));
 						break;
 					
-					case ::ant_caste::worker:
+					case ::ant_caste_type::worker:
 						selection_text.set_content(get_string(ctx, "worker_caste_name"));
 						break;
 					
-					case ::ant_caste::soldier:
+					case ::ant_caste_type::soldier:
 						selection_text.set_content(get_string(ctx, "soldier_caste_name"));
 						break;
 					
-					case ::ant_caste::male:
+					case ::ant_caste_type::male:
 						selection_text.set_content(get_string(ctx, "male_caste_name"));
 						break;
 					

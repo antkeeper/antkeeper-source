@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_GASTER_GENE_HPP
 #define ANTKEEPER_GAME_ANT_GASTER_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <memory>
 
@@ -31,14 +31,20 @@
  */
 struct ant_gaster_phene
 {
+	/// Degree of phragmosis.
+	float phragmosis{0.0f};
+	
 	/// 3D model of the gaster.
 	std::shared_ptr<render::model> model;
-	
-	/// Degree of phragmosis.
-	float phragmosis;
 };
 
 /// Ant gaster gene.
-using ant_gaster_gene = polyphenic_ant_gene<ant_gaster_phene>;
+using ant_gaster_gene = ant_gene<ant_gaster_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_gaster_gene::type() const noexcept
+{
+	return ant_gene_type::gaster;
+}
 
 #endif // ANTKEEPER_GAME_ANT_GASTER_GENE_HPP

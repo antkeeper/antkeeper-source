@@ -358,7 +358,7 @@ public:
 	
 	double3 rgb_wavelengths;
 	
-	const ecoregion* active_ecoregion;
+	std::shared_ptr<ecoregion> active_ecoregion;
 	
 	render::anti_aliasing_method anti_aliasing_method;
 	

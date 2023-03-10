@@ -31,6 +31,6 @@
  *
  * @return 3D model of the given phenome.
  */
-std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome);
+[[nodiscard]] std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome);
 
 #endif // ANTKEEPER_GAME_ANT_MORPHOGENESIS_HPP

@@ -17,39 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-pigmentation-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-pigmentation-gene.hpp"
 #include <engine/render/material.hpp>
-#include <stdexcept>
 
-static void deserialize_ant_pigmentation_phene(ant_pigmentation_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_pigmentation_phene(ant_pigmentation_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	phene.material = nullptr;
+	std::uint8_t material_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&material_filename_length), 1);
+	std::string material_filename(material_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(material_filename.data()), material_filename_length);
 	
-	// Load pigmentation material
-	if (auto element = phene_element.find("material"); element != phene_element.end())
-		phene.material = resource_manager.load<render::material>(element->get<std::string>());
+	phene.material = resource_manager.load<render::material>(material_filename);
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_pigmentation_gene> resource_loader<ant_pigmentation_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_pigmentation_gene> gene = std::make_unique<ant_pigmentation_gene>();
 	
-	// Validate gene file
-	auto pigmentation_element = json_data->find("pigmentation");
-	if (pigmentation_element == json_data->end())
-		throw std::runtime_error("Invalid pigmentation gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_pigmentation_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_pigmentation_gene> pigmentation = std::make_unique<ant_pigmentation_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*pigmentation, &deserialize_ant_pigmentation_phene, *pigmentation_element, resource_manager);
-	
-	return pigmentation;
+	return gene;
 }

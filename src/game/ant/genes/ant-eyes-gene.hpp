@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_EYES_GENE_HPP
 #define ANTKEEPER_GAME_ANT_EYES_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <cstdint>
 #include <memory>
@@ -32,26 +32,32 @@
  */
 struct ant_eyes_phene
 {
-	/// 3D model of the eyes, if present.
-	std::shared_ptr<render::model> model;
-	
 	/// Indicates whether eyes are present.
-	bool present;
-	
-	/// Eye length, in mesosomal lengths.
-	float length;
-	
-	/// Eye width, in mesosomal lengths.
-	float width;
-	
-	/// Eye height, in mesosomal lengths.
-	float height;
+	bool present{false};
 	
 	/// Number of ommatidia.
-	std::uint32_t ommatidia_count;
+	std::uint32_t ommatidia_count{0};
+	
+	/// Eye length, in mesosomal lengths.
+	float length{0.0f};
+	
+	/// Eye width, in mesosomal lengths.
+	float width{0.0f};
+	
+	/// Eye height, in mesosomal lengths.
+	float height{0.0f};
+	
+	/// 3D model of the eyes, if present.
+	std::shared_ptr<render::model> model;
 };
 
 /// Ant eyes gene.
-using ant_eyes_gene = polyphenic_ant_gene<ant_eyes_phene>;
+using ant_eyes_gene = ant_gene<ant_eyes_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_eyes_gene::type() const noexcept
+{
+	return ant_gene_type::eyes;
+}
 
 #endif // ANTKEEPER_GAME_ANT_EYES_GENE_HPP

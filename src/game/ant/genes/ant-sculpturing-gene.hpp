@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_SCULPTURING_GENE_HPP
 #define ANTKEEPER_GAME_ANT_SCULPTURING_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/gl/texture-2d.hpp>
 #include <memory>
 
@@ -30,13 +30,19 @@
 struct ant_sculpturing_phene
 {
 	/// Surface roughness.
-	float roughness;
+	float roughness{0.0f};
 	
 	/// Surface culpturing normal map.
 	std::shared_ptr<gl::texture_2d> normal_map;
 };
 
-/// Polyphenic sculpturing gene.
-using ant_sculpturing_gene = polyphenic_ant_gene<ant_sculpturing_phene>;
+/// Ant sculpturing gene.
+using ant_sculpturing_gene = ant_gene<ant_sculpturing_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_sculpturing_gene::type() const noexcept
+{
+	return ant_gene_type::sculpturing;
+}
 
 #endif // ANTKEEPER_GAME_ANT_SCULPTURING_GENE_HPP

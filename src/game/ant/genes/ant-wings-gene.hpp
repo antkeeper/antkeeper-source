@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_WINGS_GENE_HPP
 #define ANTKEEPER_GAME_ANT_WINGS_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <memory>
 
@@ -29,35 +29,41 @@
  */
 struct ant_wings_phene
 {
+	/// Wings presence.
+	bool present{false};
+	
+	/// Forewing length, in mesosomal lengths.
+	float forewing_length{0.0f};
+	
+	/// Forewing width, in mesosomal lengths.
+	float forewing_width{0.0f};
+	
+	/// Degree of forewing venation. A value of `1.0` indicates a highly-developed venation pattern, while `0.0` indicates a complete absence of visible venation.
+	float forewing_venation{0.0f};
+	
 	/// 3D model of the forewings.
 	std::shared_ptr<render::model> forewings_model;
 	
-	/// 3D model of the hindwings.
-	std::shared_ptr<render::model> hindwings_model;
+	/// Hindwing length, in mesosomal lengths.
+	float hindwing_length{0.0f};
 	
-	/// Wings presence.
-	bool present;
-	
-	/// Forewing length, in mesosomal lengths.
-	float forewing_length;
-	
-	/// Forewing width, in mesosomal lengths.
-	float forewing_width;
-	
-	/// Degree of forewing venation. A value of `1.0` indicates a highly-developed venation pattern, while `0.0` indicates a complete absence of visible venation.
-	float forewing_venation;
-	
-	/// Forewing length, in mesosomal lengths.
-	float hindwing_length;
-	
-	/// Forewing width, in mesosomal lengths.
-	float hindwing_width;
+	/// Hindwing width, in mesosomal lengths.
+	float hindwing_width{0.0f};
 	
 	/// Degree of hindwing venation. A value of `1.0` indicates a highly-developed venation pattern, while `0.0` indicates a complete absence of visible venation.
-	float hindwing_venation;
+	float hindwing_venation{0.0f};
+	
+	/// 3D model of the hindwings.
+	std::shared_ptr<render::model> hindwings_model;
 };
 
-/// Polyphenic wings gene.
-using ant_wings_gene = polyphenic_ant_gene<ant_wings_phene>;
+/// Ant wings gene.
+using ant_wings_gene = ant_gene<ant_wings_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_wings_gene::type() const noexcept
+{
+	return ant_gene_type::wings;
+}
 
 #endif // ANTKEEPER_GAME_ANT_WINGS_GENE_HPP

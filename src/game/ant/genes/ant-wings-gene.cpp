@@ -17,82 +17,57 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-wings-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-wings-gene.hpp"
 #include <engine/render/model.hpp>
-#include <stdexcept>
 
-static void deserialize_ant_wings_phene(ant_wings_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_wings_phene(ant_wings_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	phene.present = false;
-	phene.forewings_model = nullptr;
-	phene.hindwings_model = nullptr;
-	phene.forewing_length = 0.0f;
-	phene.forewing_width = 0.0f;
-	phene.forewing_venation = 0.0f;
-	phene.hindwing_length = 0.0f;
-	phene.hindwing_width = 0.0f;
-	phene.hindwing_venation = 0.0f;
+	std::uint8_t present{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&present), 1);
+	phene.present = static_cast<bool>(present);
 	
-	// Parse present
-	if (auto element = phene_element.find("present"); element != phene_element.end())
-		phene.present = element->get<bool>();
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.forewing_length), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.forewing_width), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.forewing_venation), 1);
+	
+	std::uint8_t forewings_model_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&forewings_model_filename_length), 1);
+	std::string forewings_model_filename(forewings_model_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(forewings_model_filename.data()), forewings_model_filename_length);
 	
 	if (phene.present)
 	{
-		// Load forewings model
-		if (auto element = phene_element.find("forewings_model"); element != phene_element.end())
-			phene.forewings_model = resource_manager.load<render::model>(element->get<std::string>());
-		
-		// Load hindwings model
-		if (auto element = phene_element.find("hindwings_model"); element != phene_element.end())
-			phene.hindwings_model = resource_manager.load<render::model>(element->get<std::string>());
-		
-		// Parse forewing length
-		if (auto element = phene_element.find("forewing_length"); element != phene_element.end())
-			phene.forewing_length = element->get<float>();
-		
-		// Parse forewing width
-		if (auto element = phene_element.find("forewing_width"); element != phene_element.end())
-			phene.forewing_width = element->get<float>();
-		
-		// Parse forewing venation
-		if (auto element = phene_element.find("forewing_venation"); element != phene_element.end())
-			phene.forewing_venation = element->get<float>();
-		
-		// Parse hindwing length
-		if (auto element = phene_element.find("hindwing_length"); element != phene_element.end())
-			phene.hindwing_length = element->get<float>();
-		
-		// Parse hindwing width
-		if (auto element = phene_element.find("hindwing_width"); element != phene_element.end())
-			phene.hindwing_width = element->get<float>();
-		
-		// Parse hindwing venation
-		if (auto element = phene_element.find("hindwing_venation"); element != phene_element.end())
-			phene.hindwing_venation = element->get<float>();
+		phene.forewings_model = resource_manager.load<render::model>(forewings_model_filename);
+	}
+	
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.hindwing_length), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.hindwing_width), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.hindwing_venation), 1);
+	
+	std::uint8_t hindwings_model_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&hindwings_model_filename_length), 1);
+	std::string hindwings_model_filename(hindwings_model_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(hindwings_model_filename.data()), hindwings_model_filename_length);
+	
+	if (phene.present)
+	{
+		phene.hindwings_model = resource_manager.load<render::model>(hindwings_model_filename);
 	}
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_wings_gene> resource_loader<ant_wings_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_wings_gene> gene = std::make_unique<ant_wings_gene>();
 	
-	// Validate gene file
-	auto wings_element = json_data->find("wings");
-	if (wings_element == json_data->end())
-		throw std::runtime_error("Invalid wings gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_wings_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_wings_gene> wings = std::make_unique<ant_wings_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*wings, &deserialize_ant_wings_phene, *wings_element, resource_manager);
-	
-	return wings;
+	return gene;
 }

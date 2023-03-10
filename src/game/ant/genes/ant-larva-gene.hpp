@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_LARVA_GENE_HPP
 #define ANTKEEPER_GAME_ANT_LARVA_GENE_HPP
 
-#include "game/ant/genes/monophenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <cstdint>
 #include <memory>
@@ -30,14 +30,20 @@
  */
 struct ant_larva_phene
 {
+	/// Number of larval instars before pupation.
+	std::uint8_t instar_count{0};
+	
 	/// 3D model of the larva.
 	std::shared_ptr<render::model> model;
-	
-	/// Number of larval instars before pupation.
-	std::uint8_t instar_count;
 };
 
 /// Ant larva gene.
-using ant_larva_gene = monophenic_ant_gene<ant_larva_phene>;
+using ant_larva_gene = ant_gene<ant_larva_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_larva_gene::type() const noexcept
+{
+	return ant_gene_type::larva;
+}
 
 #endif // ANTKEEPER_GAME_ANT_LARVA_GENE_HPP

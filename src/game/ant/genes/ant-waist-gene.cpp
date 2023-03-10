@@ -17,95 +17,50 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-waist-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-waist-gene.hpp"
 #include <engine/render/model.hpp>
-#include <stdexcept>
 
-static void deserialize_ant_waist_phene(ant_waist_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_waist_phene(ant_waist_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	phene.model = nullptr;
-	phene.petiole_present = false;
-	phene.petiole_length = 0.0f;
-	phene.petiole_width = 0.0f;
-	phene.petiole_height = 0.0f;
-	phene.petiole_spinescence = 0.0f;
-	phene.postpetiole_present = false;
-	phene.postpetiole_length = 0.0f;
-	phene.postpetiole_width = 0.0f;
-	phene.postpetiole_height = 0.0f;
-	phene.postpetiole_spinescence = 0.0f;
+	std::uint8_t petiole_present{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&petiole_present), 1);
+	phene.petiole_present = static_cast<bool>(petiole_present);
 	
-	// Load waist model
-	if (auto element = phene_element.find("model"); element != phene_element.end())
-		phene.model = resource_manager.load<render::model>(element->get<std::string>());
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.petiole_length), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.petiole_width), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.petiole_height), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.petiole_spinescence), 1);
 	
-	// Parse petiole present
-	if (auto element = phene_element.find("petiole_present"); element != phene_element.end())
-		phene.petiole_present = element->get<bool>();
+	std::uint8_t postpetiole_present{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&postpetiole_present), 1);
+	phene.postpetiole_present = static_cast<bool>(postpetiole_present);
 	
-	// Parse postpetiole present
-	if (auto element = phene_element.find("postpetiole_present"); element != phene_element.end())
-		phene.postpetiole_present = element->get<bool>();
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.postpetiole_length), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.postpetiole_width), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.postpetiole_height), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.postpetiole_spinescence), 1);
 	
-	if (phene.petiole_present)
-	{
-		// Parse petiole length
-		if (auto element = phene_element.find("petiole_length"); element != phene_element.end())
-			phene.petiole_length = element->get<float>();
-		
-		// Parse petiole width
-		if (auto element = phene_element.find("petiole_width"); element != phene_element.end())
-			phene.petiole_width = element->get<float>();
-		
-		// Parse petiole height
-		if (auto element = phene_element.find("petiole_height"); element != phene_element.end())
-			phene.petiole_height = element->get<float>();
-		
-		// Parse petiole spinescence
-		if (auto element = phene_element.find("petiole_spinescence"); element != phene_element.end())
-			phene.petiole_spinescence = element->get<float>();
-	}
+	std::uint8_t model_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&model_filename_length), 1);
+	std::string model_filename(model_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(model_filename.data()), model_filename_length);
 	
-	if (phene.postpetiole_present)
-	{
-		// Parse postpetiole length
-		if (auto element = phene_element.find("postpetiole_length"); element != phene_element.end())
-			phene.postpetiole_length = element->get<float>();
-		
-		// Parse postpetiole width
-		if (auto element = phene_element.find("postpetiole_width"); element != phene_element.end())
-			phene.postpetiole_width = element->get<float>();
-		
-		// Parse postpetiole height
-		if (auto element = phene_element.find("postpetiole_height"); element != phene_element.end())
-			phene.postpetiole_height = element->get<float>();
-		
-		// Parse postpetiole spinescence
-		if (auto element = phene_element.find("postpetiole_spinescence"); element != phene_element.end())
-			phene.postpetiole_spinescence = element->get<float>();
-	}
+	phene.model = resource_manager.load<render::model>(model_filename);
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_waist_gene> resource_loader<ant_waist_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_waist_gene> gene = std::make_unique<ant_waist_gene>();
 	
-	// Validate gene file
-	auto waist_element = json_data->find("waist");
-	if (waist_element == json_data->end())
-		throw std::runtime_error("Invalid waist gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_waist_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_waist_gene> waist = std::make_unique<ant_waist_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*waist, &deserialize_ant_waist_phene, *waist_element, resource_manager);
-	
-	return waist;
+	return gene;
 }

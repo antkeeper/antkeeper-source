@@ -20,12 +20,12 @@
 #ifndef ANTKEEPER_GAME_ANT_CASTE_COMPONENT_HPP
 #define ANTKEEPER_GAME_ANT_CASTE_COMPONENT_HPP
 
-#include "game/ant/ant-caste.hpp"
+#include "game/ant/ant-caste-type.hpp"
 
 struct ant_caste_component
 {
 	/// Caste type.
-	ant_caste type;
+	ant_caste_type caste_type;
 	
 	/// Subcaste type.
 	//ant_subcaste subtype;

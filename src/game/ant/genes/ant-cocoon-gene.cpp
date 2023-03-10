@@ -17,47 +17,39 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-cocoon-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-cocoon-gene.hpp"
 #include <engine/render/model.hpp>
-#include <stdexcept>
 
-static void deserialize_ant_cocoon_phene(ant_cocoon_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_cocoon_phene(ant_cocoon_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	phene.present = false;
-	phene.model = nullptr;
+	std::uint8_t present{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&present), 1);
+	phene.present = static_cast<bool>(present);
 	
-	// Parse cocoon present
-	if (auto element = phene_element.find("present"); element != phene_element.end())
-		phene.present = element->get<bool>();
+	std::uint8_t model_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&model_filename_length), 1);
+	std::string model_filename(model_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(model_filename.data()), model_filename_length);
 	
-	// Load cocoon model
 	if (phene.present)
 	{
-		if (auto element = phene_element.find("model"); element != phene_element.end())
-			phene.model = resource_manager.load<render::model>(element->get<std::string>());
+		phene.model = resource_manager.load<render::model>(model_filename);
 	}
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_cocoon_gene> resource_loader<ant_cocoon_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_cocoon_gene> gene = std::make_unique<ant_cocoon_gene>();
 	
-	// Validate gene file
-	auto cocoon_element = json_data->find("cocoon");
-	if (cocoon_element == json_data->end())
-		throw std::runtime_error("Invalid cocoon gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_cocoon_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_cocoon_gene> cocoon = std::make_unique<ant_cocoon_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*cocoon, &deserialize_ant_cocoon_phene, *cocoon_element, resource_manager);
-	
-	return cocoon;
+	return gene;
 }

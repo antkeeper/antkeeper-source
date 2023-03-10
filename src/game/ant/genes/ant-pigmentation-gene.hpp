@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_PIGMENTATION_GENE_HPP
 #define ANTKEEPER_GAME_ANT_PIGMENTATION_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/material.hpp>
 #include <memory>
 
@@ -34,6 +34,12 @@ struct ant_pigmentation_phene
 };
 
 /// Ant pigmentation gene.
-using ant_pigmentation_gene = polyphenic_ant_gene<ant_pigmentation_phene>;
+using ant_pigmentation_gene = ant_gene<ant_pigmentation_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_pigmentation_gene::type() const noexcept
+{
+	return ant_gene_type::pigmentation;
+}
 
 #endif // ANTKEEPER_GAME_ANT_PIGMENTATION_GENE_HPP

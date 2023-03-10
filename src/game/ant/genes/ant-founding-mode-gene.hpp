@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_FOUNDING_MODE_GENE_HPP
 #define ANTKEEPER_GAME_ANT_FOUNDING_MODE_GENE_HPP
 
-#include "game/ant/genes/monophenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <cstdint>
 
 /**
@@ -40,7 +40,13 @@ enum class ant_founding_mode_phene: std::uint8_t
 	fission
 };
 
-/// Monophenic founding mode gene.
-using ant_founding_mode_gene = monophenic_ant_gene<ant_founding_mode_phene>;
+/// Ant founding mode gene.
+using ant_founding_mode_gene = ant_gene<ant_founding_mode_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_founding_mode_gene::type() const noexcept
+{
+	return ant_gene_type::founding_mode;
+}
 
 #endif // ANTKEEPER_GAME_ANT_FOUNDING_MODE_GENE_HPP

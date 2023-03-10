@@ -524,7 +524,7 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 	debug::log::trace("Entering ecoregion {}...", ecoregion.name);
 	{
 		// Set active ecoregion
-		ctx.active_ecoregion = &ecoregion;
+		//ctx.active_ecoregion = &ecoregion;
 		
 		// Set location
 		::world::set_location(ctx, ecoregion.elevation, ecoregion.latitude, ecoregion.longitude);

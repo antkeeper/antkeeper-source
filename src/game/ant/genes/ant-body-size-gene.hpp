@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_BODY_SIZE_GENE_HPP
 #define ANTKEEPER_GAME_ANT_BODY_SIZE_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 
 /**
  * Ant body size phene.
@@ -30,16 +30,22 @@
 struct ant_body_size_phene
 {
 	/// Minimum mesosoma length (Weber's length), in centimeters.
-	float min_mesosoma_length;
+	float min_mesosoma_length{0.0f};
 	
 	/// Maximum mesosoma length (Weber's length), in centimeters.
-	float max_mesosoma_length;
+	float max_mesosoma_length{0.0f};
 	
 	/// Mean mesosoma length (Weber's length), in centimeters.
-	float mean_mesosoma_length;
+	float mean_mesosoma_length{0.0f};
 };
 
 /// Ant body size gene.
-using ant_body_size_gene = polyphenic_ant_gene<ant_body_size_phene>;
+using ant_body_size_gene = ant_gene<ant_body_size_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_body_size_gene::type() const noexcept
+{
+	return ant_gene_type::body_size;
+}
 
 #endif // ANTKEEPER_GAME_ANT_BODY_SIZE_GENE_HPP

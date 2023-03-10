@@ -19,65 +19,72 @@
 
 #include "game/ant/ant-phenome.hpp"
 
-ant_phenome::ant_phenome(const ant_genome& genome, ant_caste caste)
+ant_phenome::ant_phenome(const ant_genome& genome, ant_caste_type caste)
 {
 	if (genome.antennae)
-		if (auto it = genome.antennae->phenes.find(caste); it != genome.antennae->phenes.end())
-			antennae = &it->second;
+		if (auto i = genome.antennae->phene_map.find(caste); i != genome.antennae->phene_map.end())
+			antennae = i->second;
 	if (genome.body_size)
-		if (auto it = genome.body_size->phenes.find(caste); it != genome.body_size->phenes.end())
-			body_size = &it->second;
+		if (auto i = genome.body_size->phene_map.find(caste); i != genome.body_size->phene_map.end())
+			body_size = i->second;
 	if (genome.cocoon)
-		cocoon = &genome.cocoon->phene;
+		if (auto i = genome.cocoon->phene_map.find(caste); i != genome.cocoon->phene_map.end())
+			cocoon = i->second;
 	if (genome.diet)
-		diet = &genome.diet->phene;
+		if (auto i = genome.diet->phene_map.find(caste); i != genome.diet->phene_map.end())
+			diet = i->second;
 	if (genome.egg)
-		egg = &genome.egg->phene;
+		if (auto i = genome.egg->phene_map.find(caste); i != genome.egg->phene_map.end())
+			egg = i->second;
 	if (genome.eyes)
-		if (auto it = genome.eyes->phenes.find(caste); it != genome.eyes->phenes.end())
-			eyes = &it->second;
+		if (auto i = genome.eyes->phene_map.find(caste); i != genome.eyes->phene_map.end())
+			eyes = i->second;
 	if (genome.foraging_time)
-		foraging_time = &genome.foraging_time->phene;
+		if (auto i = genome.foraging_time->phene_map.find(caste); i != genome.foraging_time->phene_map.end())
+			foraging_time = i->second;
 	if (genome.founding_mode)
-		founding_mode = &genome.founding_mode->phene;
+		if (auto i = genome.founding_mode->phene_map.find(caste); i != genome.founding_mode->phene_map.end())
+			founding_mode = i->second;
 	if (genome.gaster)
-		if (auto it = genome.gaster->phenes.find(caste); it != genome.gaster->phenes.end())
-			gaster = &it->second;
+		if (auto i = genome.gaster->phene_map.find(caste); i != genome.gaster->phene_map.end())
+			gaster = i->second;
 	if (genome.head)
-		if (auto it = genome.head->phenes.find(caste); it != genome.head->phenes.end())
-			head = &it->second;
+		if (auto i = genome.head->phene_map.find(caste); i != genome.head->phene_map.end())
+			head = i->second;
 	if (genome.larva)
-		larva = &genome.larva->phene;
+		if (auto i = genome.larva->phene_map.find(caste); i != genome.larva->phene_map.end())
+			larva = i->second;
 	if (genome.legs)
-		if (auto it = genome.legs->phenes.find(caste); it != genome.legs->phenes.end())
-			legs = &it->second;
+		if (auto i = genome.legs->phene_map.find(caste); i != genome.legs->phene_map.end())
+			legs = i->second;
 	if (genome.mandibles)
-		if (auto it = genome.mandibles->phenes.find(caste); it != genome.mandibles->phenes.end())
-			mandibles = &it->second;
+		if (auto i = genome.mandibles->phene_map.find(caste); i != genome.mandibles->phene_map.end())
+			mandibles = i->second;
 	if (genome.mesosoma)
-		if (auto it = genome.mesosoma->phenes.find(caste); it != genome.mesosoma->phenes.end())
-			mesosoma = &it->second;
+		if (auto i = genome.mesosoma->phene_map.find(caste); i != genome.mesosoma->phene_map.end())
+			mesosoma = i->second;
 	if (genome.nest_site)
-		nest_site = &genome.nest_site->phene;
+		if (auto i = genome.nest_site->phene_map.find(caste); i != genome.nest_site->phene_map.end())
+			nest_site = i->second;
 	if (genome.ocelli)
-		if (auto it = genome.ocelli->phenes.find(caste); it != genome.ocelli->phenes.end())
-			ocelli = &it->second;
+		if (auto i = genome.ocelli->phene_map.find(caste); i != genome.ocelli->phene_map.end())
+			ocelli = i->second;
 	if (genome.pigmentation)
-		if (auto it = genome.pigmentation->phenes.find(caste); it != genome.pigmentation->phenes.end())
-			pigmentation = &it->second;
+		if (auto i = genome.pigmentation->phene_map.find(caste); i != genome.pigmentation->phene_map.end())
+			pigmentation = i->second;
 	if (genome.pilosity)
-		if (auto it = genome.pilosity->phenes.find(caste); it != genome.pilosity->phenes.end())
-			pilosity = &it->second;
+		if (auto i = genome.pilosity->phene_map.find(caste); i != genome.pilosity->phene_map.end())
+			pilosity = i->second;
 	if (genome.sculpturing)
-		if (auto it = genome.sculpturing->phenes.find(caste); it != genome.sculpturing->phenes.end())
-			sculpturing = &it->second;
+		if (auto i = genome.sculpturing->phene_map.find(caste); i != genome.sculpturing->phene_map.end())
+			sculpturing = i->second;
 	if (genome.sting)
-		if (auto it = genome.sting->phenes.find(caste); it != genome.sting->phenes.end())
-			sting = &it->second;
+		if (auto i = genome.sting->phene_map.find(caste); i != genome.sting->phene_map.end())
+			sting = i->second;
 	if (genome.waist)
-		if (auto it = genome.waist->phenes.find(caste); it != genome.waist->phenes.end())
-			waist = &it->second;
+		if (auto i = genome.waist->phene_map.find(caste); i != genome.waist->phene_map.end())
+			waist = i->second;
 	if (genome.wings)
-		if (auto it = genome.wings->phenes.find(caste); it != genome.wings->phenes.end())
-			wings = &it->second;
+		if (auto i = genome.wings->phene_map.find(caste); i != genome.wings->phene_map.end())
+			wings = i->second;
 }

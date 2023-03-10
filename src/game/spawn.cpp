@@ -37,7 +37,7 @@ entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, bool fertilized,
 	
 	// Construct model component
 	model_component model_component;
-	model_component.render_model = genome.egg->phene.model;
+	model_component.render_model = genome.egg->phenes.front().model;
 	model_component.instance_count = 0;
 	model_component.layers = ~0;
 	ctx.entity_registry->emplace<::model_component>(egg_eid, model_component);
@@ -60,7 +60,7 @@ entity::id spawn_ant_larva(::game& ctx, const ant_genome& genome, const float3& 
 	
 	// Construct model component
 	model_component model_component;
-	model_component.render_model = genome.larva->phene.model;
+	model_component.render_model = genome.larva->phenes.front().model;
 	model_component.instance_count = 0;
 	model_component.layers = ~0;
 	ctx.entity_registry->emplace<::model_component>(larva_eid, model_component);

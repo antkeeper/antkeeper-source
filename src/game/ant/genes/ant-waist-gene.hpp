@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_WAIST_GENE_HPP
 #define ANTKEEPER_GAME_ANT_WAIST_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <memory>
 
@@ -31,41 +31,47 @@
  */
 struct ant_waist_phene
 {
-	/// 3D model of the waist.
-	std::shared_ptr<render::model> model;
-	
 	//// Petiole presence.
-	bool petiole_present;
+	bool petiole_present{false};
 	
 	/// Petiole length, in mesosomal lengths.
-	float petiole_length;
+	float petiole_length{0.0f};
 	
 	/// Petiole width, in mesosomal lengths.
-	float petiole_width;
+	float petiole_width{0.0f};
 	
 	/// Petiole height, in mesosomal lengths.
-	float petiole_height;
+	float petiole_height{0.0f};
 	
 	/// Degree of petiole spinescence.
-	float petiole_spinescence;
+	float petiole_spinescence{0.0f};
 	
 	/// Postpetiole presence.
-	bool postpetiole_present;
+	bool postpetiole_present{false};
 	
 	/// Postpetiole length, in mesosomal lengths.
-	float postpetiole_length;
+	float postpetiole_length{0.0f};
 	
 	/// Postpetiole width, in mesosomal lengths.
-	float postpetiole_width;
+	float postpetiole_width{0.0f};
 	
 	/// Postpetiole height, in mesosomal lengths.
-	float postpetiole_height;
+	float postpetiole_height{0.0f};
 	
 	/// Degree of postpetiole spinescence
-	float postpetiole_spinescence;
+	float postpetiole_spinescence{0.0f};
+	
+	/// 3D model of the waist.
+	std::shared_ptr<render::model> model;
 };
 
-/// Polyphenic waist gene.
-using ant_waist_gene = polyphenic_ant_gene<ant_waist_phene>;
+/// Ant waist gene.
+using ant_waist_gene = ant_gene<ant_waist_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_waist_gene::type() const noexcept
+{
+	return ant_gene_type::waist;
+}
 
 #endif // ANTKEEPER_GAME_ANT_WAIST_GENE_HPP

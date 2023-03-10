@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_MESOSOMA_GENE_HPP
 #define ANTKEEPER_GAME_ANT_MESOSOMA_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <memory>
 
@@ -31,23 +31,29 @@
  */
 struct ant_mesosoma_phene
 {
-	/// 3D model of the mesosoma.
-	std::shared_ptr<render::model> model;
-	
 	/// Pronotum width, in mesosomal lengths.
-	float pronotum_width;
+	float pronotum_width{0.0f};
 	
 	/// Degree of spinescence on the pronotum.
-	float pronotum_spinescence;
+	float pronotum_spinescence{0.0f};
 	
 	/// Degree of spinescence on the mesonotum.
-	float mesonotum_spinescence;
+	float mesonotum_spinescence{0.0f};
 	
 	/// Degree of spinescence on the propodeum.
-	float propodeum_spinescence;
+	float propodeum_spinescence{0.0f};
+	
+	/// 3D model of the mesosoma.
+	std::shared_ptr<render::model> model;
 };
 
 /// Ant mesosoma gene.
-using ant_mesosoma_gene = polyphenic_ant_gene<ant_mesosoma_phene>;
+using ant_mesosoma_gene = ant_gene<ant_mesosoma_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_mesosoma_gene::type() const noexcept
+{
+	return ant_gene_type::mesosoma;
+}
 
 #endif // ANTKEEPER_GAME_ANT_MESOSOMA_GENE_HPP

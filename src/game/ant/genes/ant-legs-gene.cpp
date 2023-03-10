@@ -17,49 +17,35 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-legs-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-legs-gene.hpp"
 #include <engine/render/model.hpp>
-#include <stdexcept>
 
-static void deserialize_ant_legs_phene(ant_legs_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_legs_phene(ant_legs_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	phene.model = nullptr;
-	phene.speed = 0.0f;
-	phene.grip = 0.0f;
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.speed), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.grip), 1);
 	
-	// Load legs model
-	if (auto element = phene_element.find("model"); element != phene_element.end())
-		phene.model = resource_manager.load<render::model>(element->get<std::string>());
+	std::uint8_t model_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&model_filename_length), 1);
+	std::string model_filename(model_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(model_filename.data()), model_filename_length);
 	
-	// Parse speed
-	if (auto element = phene_element.find("speed"); element != phene_element.end())
-		phene.speed = element->get<float>();
-	
-	// Parse grip
-	if (auto element = phene_element.find("grip"); element != phene_element.end())
-		phene.grip = element->get<float>();
+	phene.model = resource_manager.load<render::model>(model_filename);
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_legs_gene> resource_loader<ant_legs_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_legs_gene> gene = std::make_unique<ant_legs_gene>();
 	
-	// Validate gene file
-	auto legs_element = json_data->find("legs");
-	if (legs_element == json_data->end())
-		throw std::runtime_error("Invalid legs gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_legs_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_legs_gene> legs = std::make_unique<ant_legs_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*legs, &deserialize_ant_legs_phene, *legs_element, resource_manager);
-	
-	return legs;
+	return gene;
 }

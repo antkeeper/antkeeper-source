@@ -43,7 +43,7 @@
 #include "game/ant/genes/ant-waist-gene.hpp"
 #include "game/ant/genes/ant-wings-gene.hpp"
 #include "game/ant/ant-genome.hpp"
-#include "game/ant/ant-caste.hpp"
+#include "game/ant/ant-caste-type.hpp"
 
 /**
  * Complete set of ant phenes.
@@ -56,7 +56,7 @@ struct ant_phenome
 	 * @param genome Ant genome.
 	 * @param caste Ant caste.
 	 */
-	ant_phenome(const ant_genome& genome, ant_caste caste);
+	ant_phenome(const ant_genome& genome, ant_caste_type caste);
 	
 	/// Constructs an empty ant phenome.
 	ant_phenome() = default;

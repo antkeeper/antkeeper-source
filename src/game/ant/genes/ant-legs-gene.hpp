@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ANT_LEGS_GENE_HPP
 #define ANTKEEPER_GAME_ANT_LEGS_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <memory>
 
@@ -31,17 +31,23 @@
  */
 struct ant_legs_phene
 {
-	/// 3D model of the legs.
-	std::shared_ptr<render::model> model;
-	
 	/// Running speed, in mesosomal lengths per second.
-	float speed;
+	float speed{0.0f};
 	
 	/// Grip factor.
-	float grip;
+	float grip{0.0f};
+	
+	/// 3D model of the legs.
+	std::shared_ptr<render::model> model;
 };
 
-/// Polyphenic legs gene.
-using ant_legs_gene = polyphenic_ant_gene<ant_legs_phene>;
+/// Ant legs gene.
+using ant_legs_gene = ant_gene<ant_legs_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_legs_gene::type() const noexcept
+{
+	return ant_gene_type::legs;
+}
 
 #endif // ANTKEEPER_GAME_ANT_LEGS_GENE_HPP

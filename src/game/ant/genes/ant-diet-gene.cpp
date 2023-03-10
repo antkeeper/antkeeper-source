@@ -17,34 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "game/ant/genes/ant-diet-gene.hpp"
 #include "game/ant/genes/ant-gene-loader.hpp"
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/utility/json.hpp>
-#include "game/ant/genes/ant-diet-gene.hpp"
-#include <stdexcept>
 
-static void deserialize_ant_diet_phene(ant_diet_phene& phene, const json& phene_element, resource_manager& resource_manager)
+namespace {
+
+void load_ant_diet_phene(ant_diet_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	
+
 }
+
+} // namespace
 
 template <>
 std::unique_ptr<ant_diet_gene> resource_loader<ant_diet_gene>::load(::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	// Load JSON data
-	auto json_data = resource_loader<nlohmann::json>::load(resource_manager, ctx);
+	std::unique_ptr<ant_diet_gene> gene = std::make_unique<ant_diet_gene>();
 	
-	// Validate gene file
-	auto diet_element = json_data->find("diet");
-	if (diet_element == json_data->end())
-		throw std::runtime_error("Invalid diet gene.");
+	load_ant_gene(*gene, resource_manager, ctx, &load_ant_diet_phene);
 	
-	// Allocate gene
-	std::unique_ptr<ant_diet_gene> diet = std::make_unique<ant_diet_gene>();
-	
-	// Deserialize gene
-	deserialize_ant_gene(*diet, &deserialize_ant_diet_phene, *diet_element, resource_manager);
-	
-	return diet;
+	return gene;
 }

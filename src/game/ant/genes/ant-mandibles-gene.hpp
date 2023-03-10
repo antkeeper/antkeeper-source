@@ -20,9 +20,10 @@
 #ifndef ANTKEEPER_GAME_ANT_MANDIBLES_GENE_HPP
 #define ANTKEEPER_GAME_ANT_MANDIBLES_GENE_HPP
 
-#include "game/ant/genes/polyphenic-ant-gene.hpp"
+#include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
 #include <memory>
+#include <cstdint>
 
 /**
  * Ant mandibles phene.
@@ -33,20 +34,26 @@
  */
 struct ant_mandibles_phene
 {
-	/// 3D model of the mandibles.
-	std::shared_ptr<render::model> model;
-	
 	/// Mandible length at closure, in mesosomal lengths.
-	float length;
+	float length{0.0f};
 	
 	/// Number of teeth and denticles on the masticatory (apical) margin of the mandible.
-	int apical_dental_count;
+	std::uint8_t apical_dental_count{0};
 	
 	/// Number of teeth and denticles on the basal margin of the mandible.
-	int basal_dental_count;
+	std::uint8_t basal_dental_count{0};
+	
+	/// 3D model of the mandibles.
+	std::shared_ptr<render::model> model;
 };
 
 /// Ant mandibles gene.
-using ant_mandibles_gene = polyphenic_ant_gene<ant_mandibles_phene>;
+using ant_mandibles_gene = ant_gene<ant_mandibles_phene>;
+
+template <>
+inline constexpr ant_gene_type ant_mandibles_gene::type() const noexcept
+{
+	return ant_gene_type::mandibles;
+}
 
 #endif // ANTKEEPER_GAME_ANT_MANDIBLES_GENE_HPP
