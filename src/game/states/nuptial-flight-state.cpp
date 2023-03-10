@@ -201,7 +201,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 		[&ctx]()
 		{
 			
-			::enable_nuptial_flight_controls(ctx);
+			::enable_keeper_controls(ctx);
 			::enable_game_controls(ctx);
 		}
 	);
@@ -221,7 +221,7 @@ nuptial_flight_state::~nuptial_flight_state()
 	debug::log::trace("Exiting nuptial flight state...");
 	
 	// Disable game controls
-	::disable_nuptial_flight_controls(ctx);
+	::disable_keeper_controls(ctx);
 	::disable_game_controls(ctx);
 	
 	// Remove text from UI
@@ -468,7 +468,7 @@ void nuptial_flight_state::setup_controls()
 {
 	action_subscriptions.emplace_back
 	(
-		ctx.pick_mate_action.get_activated_channel().subscribe
+		ctx.mouse_pick_action.get_activated_channel().subscribe
 		(
 			[&](const auto& event)
 			{

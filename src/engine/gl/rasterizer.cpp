@@ -161,7 +161,7 @@ void rasterizer::draw_elements(const vertex_array& vao, drawing_mode mode, std::
 		bound_vao = &vao;
 	}
 
-	glDrawElements(gl_mode, static_cast<GLsizei>(count), gl_type, (const GLvoid*)offset);
+	glDrawElements(gl_mode, static_cast<GLsizei>(count), gl_type, reinterpret_cast<const GLvoid*>(offset));
 }
 
 } // namespace gl

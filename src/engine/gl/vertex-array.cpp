@@ -72,7 +72,7 @@ void vertex_array::bind(attribute_location_type location, const vertex_attribute
 		gl_type,
 		GL_FALSE,
 		static_cast<GLsizei>(attribute.stride),
-		(const GLvoid*)attribute.offset
+		reinterpret_cast<const GLvoid*>(attribute.offset)
 	); 
 	glEnableVertexAttribArray(static_cast<GLuint>(location));
 }

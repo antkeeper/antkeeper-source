@@ -27,9 +27,9 @@
 /**
  * Generates a 3D model of an ant given its phenome.
  *
- * @param phenome Phenome of an ant.
+ * @param phenome Ant phenome.
  *
- * @return 3D model of the given phenome.
+ * @return Generated 3D model of the given phenome.
  */
 [[nodiscard]] std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome);
 

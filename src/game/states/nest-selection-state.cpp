@@ -157,6 +157,9 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	// Satisfy first person camera rig constraints
 	satisfy_first_person_camera_rig_constraints();
 	
+	// Setup controls
+	setup_controls();
+	
 	// auto color_checker_archetype = ctx.resource_manager->load<entity::archetype>("color-checker.ent");
 	// color_checker_archetype->create(*ctx.entity_registry);
 	// auto ruler_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
@@ -195,6 +198,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 		[&ctx]()
 		{
 			::enable_game_controls(ctx);
+			::enable_keeper_controls(ctx);
 		}
 	);
 	
@@ -211,6 +215,7 @@ nest_selection_state::~nest_selection_state()
 	
 	// Disable game controls
 	::disable_game_controls(ctx);
+	::disable_keeper_controls(ctx);
 	
 	destroy_first_person_camera_rig();
 	
@@ -387,6 +392,120 @@ void nest_selection_state::satisfy_first_person_camera_rig_constraints()
 	);
 }
 
+void nest_selection_state::setup_controls()
+{
+	// Enable/toggle mouse look
+	action_subscriptions.emplace_back
+	(
+		ctx.mouse_look_action.get_activated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				if (ctx.toggle_mouse_look)
+				{
+					mouse_look = !mouse_look;
+				}
+				else
+				{
+					mouse_look = true;
+				}
+				
+				//ctx.app->set_relative_mouse_mode(mouse_look);
+			}
+		)
+	);
+	
+	// Disable mouse look
+	action_subscriptions.emplace_back
+	(
+		ctx.mouse_look_action.get_deactivated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				if (!ctx.toggle_mouse_look && mouse_look)
+				{
+					mouse_look = false;
+					//ctx.app->set_relative_mouse_mode(false);
+				}
+			}
+		)
+	);
+	
+	// Mouse look
+	mouse_motion_subscription = ctx.input_manager->get_event_queue().subscribe<input::mouse_moved_event>
+	(
+		[&](const auto& event)
+		{
+			if (!mouse_look)
+			{
+				return;
+			}
+			
+			const float mouse_tilt_factor = ctx.mouse_tilt_sensitivity * 0.01f * (ctx.invert_mouse_tilt ? -1.0f : 1.0f);
+			const float mouse_pan_factor = ctx.mouse_pan_sensitivity * 0.01f * (ctx.invert_mouse_pan ? -1.0f : 1.0f);
+			
+			ctx.entity_registry->patch<spring_rotation_constraint>
+			(
+				first_person_camera_rig_spring_rotation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[0] -= mouse_pan_factor * static_cast<float>(event.difference.x());
+					component.spring.x1[1] += mouse_tilt_factor * static_cast<float>(event.difference.y());
+					component.spring.x1[1] = std::min(math::half_pi<float>, std::max(-math::half_pi<float>, component.spring.x1[1]));
+				}
+			);
+		}
+	);
+	
+	// Move forward
+	action_subscriptions.emplace_back
+	(
+		ctx.move_forward_action.get_active_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				move_first_person_camera_rig({0, -1}, event.input_value);
+			}
+		)
+	);
+	
+	// Move back
+	action_subscriptions.emplace_back
+	(
+		ctx.move_back_action.get_active_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				move_first_person_camera_rig({0, 1}, event.input_value);
+			}
+		)
+	);
+	
+	// Move left
+	action_subscriptions.emplace_back
+	(
+		ctx.move_left_action.get_active_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				move_first_person_camera_rig({-1, 0}, event.input_value);
+			}
+		)
+	);
+	
+	// Move right
+	action_subscriptions.emplace_back
+	(
+		ctx.move_right_action.get_active_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				move_first_person_camera_rig({1, 0}, event.input_value);
+			}
+		)
+	);
+}
+
 void nest_selection_state::enable_controls()
 {
 	/*
@@ -433,49 +552,7 @@ void nest_selection_state::enable_controls()
 	const float gamepad_tilt_factor = gamepad_tilt_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
 	const float gamepad_pan_factor = gamepad_pan_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
 	
-	// Mouse look control
-	ctx.controls["mouse_look"]->set_activated_callback
-	(
-		[&, mouse_look_toggle]()
-		{
-			if (mouse_look_toggle)
-				mouse_look = !mouse_look;
-			else
-				mouse_look = true;
-			
-			ctx.app->set_relative_mouse_mode(mouse_look);
-		}
-	);
-	ctx.controls["mouse_look"]->set_deactivated_callback
-	(
-		[&, mouse_look_toggle]()
-		{
-			if (!mouse_look_toggle && mouse_look)
-			{
-				mouse_look = false;
-				ctx.app->set_relative_mouse_mode(false);
-			}
-		}
-	);
 	
-	// Look right control
-	ctx.controls["look_right_mouse"]->set_active_callback
-	(
-		[&, mouse_pan_factor](float value)
-		{
-			if (!mouse_look)
-				return;
-			
-			ctx.entity_registry->patch<spring_rotation_constraint>
-			(
-				first_person_camera_rig_spring_rotation_eid,
-				[&, mouse_pan_factor](auto& component)
-				{
-					component.spring.x1[0] -= mouse_pan_factor * value;
-				}
-			);
-		}
-	);
 	ctx.controls["look_right_gamepad"]->set_active_callback
 	(
 		[&, gamepad_pan_factor](float value)
@@ -486,25 +563,6 @@ void nest_selection_state::enable_controls()
 				[&, gamepad_pan_factor](auto& component)
 				{
 					component.spring.x1[0] -= gamepad_pan_factor * value * static_cast<float>(ctx.loop.get_update_period());
-				}
-			);
-		}
-	);
-	
-	// Look left control
-	ctx.controls["look_left_mouse"]->set_active_callback
-	(
-		[&, mouse_pan_factor](float value)
-		{
-			if (!mouse_look)
-				return;
-			
-			ctx.entity_registry->patch<spring_rotation_constraint>
-			(
-				first_person_camera_rig_spring_rotation_eid,
-				[&, mouse_pan_factor](auto& component)
-				{
-					component.spring.x1[0] += mouse_pan_factor * value;
 				}
 			);
 		}
@@ -523,26 +581,6 @@ void nest_selection_state::enable_controls()
 			);
 		}
 	);
-	
-	// Look up control
-	ctx.controls["look_up_mouse"]->set_active_callback
-	(
-		[&, mouse_tilt_factor](float value)
-		{
-			if (!mouse_look)
-				return;
-			
-			ctx.entity_registry->patch<spring_rotation_constraint>
-			(
-				first_person_camera_rig_spring_rotation_eid,
-				[&, mouse_tilt_factor](auto& component)
-				{
-					component.spring.x1[1] -= mouse_tilt_factor * value;
-					component.spring.x1[1] = std::max(-math::half_pi<float>, component.spring.x1[1]);
-				}
-			);
-		}
-	);
 	ctx.controls["look_up_gamepad"]->set_active_callback
 	(
 		[&, gamepad_tilt_factor](float value)
@@ -554,26 +592,6 @@ void nest_selection_state::enable_controls()
 				{
 					component.spring.x1[1] -= gamepad_tilt_factor * value * static_cast<float>(ctx.loop.get_update_period());
 					component.spring.x1[1] = std::max(-math::half_pi<float>, component.spring.x1[1]);
-				}
-			);
-		}
-	);
-	
-	// Look down control
-	ctx.controls["look_down_mouse"]->set_active_callback
-	(
-		[&, mouse_tilt_factor](float value)
-		{
-			if (!mouse_look)
-				return;
-			
-			ctx.entity_registry->patch<spring_rotation_constraint>
-			(
-				first_person_camera_rig_spring_rotation_eid,
-				[&, mouse_tilt_factor](auto& component)
-				{
-					component.spring.x1[1] += mouse_tilt_factor * value;
-					component.spring.x1[1] = std::min(math::half_pi<float>, component.spring.x1[1]);
 				}
 			);
 		}
@@ -612,59 +630,6 @@ void nest_selection_state::enable_controls()
 		}
 	);
 	
-	// Mouse select control
-	ctx.controls["select_mouse"]->set_activated_callback
-	(
-		[&]()
-		{
-			
-		}
-	);
-	
-	// Move forward control
-	ctx.controls["move_forward"]->set_active_callback
-	(
-		[&](float value)
-		{
-			move_first_person_camera_rig({0, -1}, value);
-		}
-	);
-	
-	// Move back control
-	ctx.controls["move_back"]->set_active_callback
-	(
-		[&](float value)
-		{
-			move_first_person_camera_rig({0, 1}, value);
-		}
-	);
-	
-	// Move right control
-	ctx.controls["move_right"]->set_active_callback
-	(
-		[&](float value)
-		{
-			move_first_person_camera_rig({1, 0}, value);
-		}
-	);
-	
-	// Move left control
-	ctx.controls["move_left"]->set_active_callback
-	(
-		[&](float value)
-		{
-			move_first_person_camera_rig({-1, 0}, value);
-		}
-	);
-	
-	// Action control
-	ctx.controls["action"]->set_activated_callback
-	(
-		[&]()
-		{
-			
-		}
-	);
 	
 	// Fast-forward
 	ctx.controls["fast_forward"]->set_activated_callback
@@ -695,83 +660,10 @@ void nest_selection_state::enable_controls()
 			::world::set_time_scale(ctx, time_scale);
 		}
 	);
-	
-	// Setup pause control
-	ctx.controls["pause"]->set_activated_callback
-	(
-		[this, &ctx = this->ctx]()
-		{
-			// Disable controls
-			this->disable_controls();
-			
-			// Set resume callback
-			ctx.resume_callback = [this, &ctx]()
-			{
-				this->enable_controls();
-				ctx.resume_callback = nullptr;
-			};
-			
-			// Push pause menu state
-			ctx.state_machine.emplace(std::make_unique<pause_menu_state>(ctx));
-		}
-	);
-	
-	ctx.controls["increase_exposure"]->set_active_callback
-	(
-		[&ctx = this->ctx](float)
-		{
-			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() - 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 2.0f * static_cast<float>(ctx.loop.get_update_period()));
-			debug::log::info("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
-		}
-	);
-	
-	ctx.controls["decrease_exposure"]->set_active_callback
-	(
-		[&ctx = this->ctx](float)
-		{
-			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() + 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 2.0f * static_cast<float>(ctx.loop.get_update_period()));
-			debug::log::info("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
-		}
-	);
 	*/
 }
 
 void nest_selection_state::disable_controls()
 {
-	/*
-	if (mouse_look)
-	{
-		mouse_look = false;
-		ctx.app->set_relative_mouse_mode(false);
-	}
-	
-	ctx.controls["mouse_look"]->set_activated_callback(nullptr);
-	ctx.controls["mouse_look"]->set_deactivated_callback(nullptr);
-	ctx.controls["look_right_mouse"]->set_active_callback(nullptr);
-	ctx.controls["look_right_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_left_mouse"]->set_active_callback(nullptr);
-	ctx.controls["look_left_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_up_mouse"]->set_active_callback(nullptr);
-	ctx.controls["look_up_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["look_down_mouse"]->set_active_callback(nullptr);
-	ctx.controls["look_down_gamepad"]->set_active_callback(nullptr);
-	ctx.controls["move_up"]->set_active_callback(nullptr);
-	ctx.controls["move_down"]->set_active_callback(nullptr);
-	ctx.controls["select_mouse"]->set_activated_callback(nullptr);
-	ctx.controls["move_forward"]->set_active_callback(nullptr);
-	ctx.controls["move_back"]->set_active_callback(nullptr);
-	ctx.controls["move_right"]->set_active_callback(nullptr);
-	ctx.controls["move_left"]->set_active_callback(nullptr);
-	ctx.controls["action"]->set_activated_callback(nullptr);
-	ctx.controls["fast_forward"]->set_activated_callback(nullptr);
-	ctx.controls["fast_forward"]->set_deactivated_callback(nullptr);
-	ctx.controls["rewind"]->set_activated_callback(nullptr);
-	ctx.controls["rewind"]->set_deactivated_callback(nullptr);
-	ctx.controls["pause"]->set_activated_callback(nullptr);
-	ctx.controls["increase_exposure"]->set_active_callback(nullptr);
-	ctx.controls["decrease_exposure"]->set_active_callback(nullptr);
-	*/
 }
 

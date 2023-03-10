@@ -83,7 +83,7 @@ private:
 	scene::text selection_text;
 	
 	// Controls
-	bool mouse_look;
+	bool mouse_look{false};
 	std::vector<std::shared_ptr<::event::subscription>> action_subscriptions;
 };
 

@@ -839,7 +839,7 @@ void game::setup_rendering()
 		barycentric_attribute.stride = billboard_vertex_stride;
 		barycentric_attribute.type = gl::vertex_attribute_type::float_32;
 		barycentric_attribute.components = 3;
-		attribute_offset += barycentric_attribute.components * sizeof(float);
+		//attribute_offset += barycentric_attribute.components * sizeof(float);
 		
 		// Bind vertex attributes to VAO
 		billboard_vao->bind(render::vertex_attribute::position, position_attribute);
@@ -1187,7 +1187,7 @@ void game::setup_controls()
 	window_action_map.set_event_queue(input_event_queue);
 	menu_action_map.set_event_queue(input_event_queue);
 	movement_action_map.set_event_queue(input_event_queue);
-	nuptial_flight_action_map.set_event_queue(input_event_queue);
+	keeper_action_map.set_event_queue(input_event_queue);
 	
 	// Default control profile settings
 	control_profile_filename = "controls.cfg";

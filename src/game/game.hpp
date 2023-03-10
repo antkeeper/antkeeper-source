@@ -194,7 +194,7 @@ public:
 	input::action_map window_action_map;
 	input::action_map menu_action_map;
 	input::action_map movement_action_map;
-	input::action_map nuptial_flight_action_map;
+	input::action_map keeper_action_map;
 	input::mapper input_mapper;
 	
 	input::action fullscreen_action;
@@ -213,12 +213,20 @@ public:
 	input::action move_up_action;
 	input::action move_down_action;
 	input::action pause_action;
-	input::action pick_mate_action;
+	input::action mouse_pick_action;
+	input::action mouse_look_action;
 	
 	std::vector<std::shared_ptr<::event::subscription>> window_action_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> menu_action_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> movement_action_subscriptions;
+	
+	// Control settings
+	float mouse_pan_sensitivity{1.0f};
+	float mouse_tilt_sensitivity{1.0f};
+	bool toggle_mouse_look{false};
+	bool invert_mouse_pan{false};
+	bool invert_mouse_tilt{false};
 	
 	// Debugging
 	math::moving_average<float, 30> average_frame_time;
@@ -232,7 +240,7 @@ public:
 	// Queue for scheduling "next frame" function calls
 	std::queue<std::function<void()>> function_queue;
 	
-	bool mouse_look;
+	
 	
 	/// Game loop
 	::loop loop;

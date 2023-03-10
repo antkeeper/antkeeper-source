@@ -56,12 +56,12 @@ void setup_game_controls(::game& ctx);
 void enable_window_controls(::game& ctx);
 void enable_menu_controls(::game& ctx);
 void enable_game_controls(::game& ctx);
-void enable_nuptial_flight_controls(::game& ctx);
+void enable_keeper_controls(::game& ctx);
 
 void disable_window_controls(::game& ctx);
 void disable_menu_controls(::game& ctx);
 void disable_game_controls(::game& ctx);
-void disable_nuptial_flight_controls(::game& ctx);
+void disable_keeper_controls(::game& ctx);
 
 
 #endif // ANTKEEPER_GAME_CONTROLS_HPP

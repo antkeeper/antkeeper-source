@@ -63,6 +63,17 @@ struct bone_index_compare
 }
 
 /**
+ * Sets the parent of a bone.
+ *
+ * @param[out] child Bone to reparent.
+ * @param[in] parent New parent bone.
+ */
+inline void reparent_bone(bone& child, bone parent) noexcept
+{
+	child = ((parent & bone_index_mask) << 16) | (child & bone_index_mask);
+}
+
+/**
  * Constructs an orphan bone identifier.
  *
  * @param index Index of the orphan bone.

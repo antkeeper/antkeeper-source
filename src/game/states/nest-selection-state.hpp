@@ -37,8 +37,15 @@ private:
 	void set_first_person_camera_rig_pedestal(float pedestal);
 	void move_first_person_camera_rig(const float2& direction, float factor);
 	void satisfy_first_person_camera_rig_constraints();
+	
+	void setup_controls();
 	void enable_controls();
 	void disable_controls();
+	
+	std::vector<std::shared_ptr<::event::subscription>> action_subscriptions;
+	std::shared_ptr<::event::subscription> mouse_motion_subscription;
+	
+	bool mouse_look{false};
 	
 	entity::id first_person_camera_rig_eid;
 	entity::id first_person_camera_rig_spring_translation_eid;
@@ -55,7 +62,6 @@ private:
 	float first_person_camera_far_speed;
 	float first_person_camera_rig_pedestal_speed;
 	float first_person_camera_rig_pedestal;
-	bool mouse_look;
 };
 
 #endif // ANTKEEPER_NEST_SELECTION_STATE_HPP

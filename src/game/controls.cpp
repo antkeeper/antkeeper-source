@@ -125,10 +125,11 @@ void reset_control_profile(::control_profile& profile)
 	mappings.emplace("pause", std::make_unique<input::key_mapping>(nullptr, input::scancode::escape, 0, false));
 	mappings.emplace("pause", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::start));
 	
-	// Pick mate
-	mappings.emplace("pick_mate", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::left));
-	mappings.emplace("pick_mate", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::middle));
-	mappings.emplace("pick_mate", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::right));
+	// Mouse pick
+	mappings.emplace("mouse_pick", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::left));
+	
+	// Mouse look
+	mappings.emplace("mouse_look", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::right));
 }
 
 void apply_control_profile(::game& ctx, const ::control_profile& profile)
@@ -167,8 +168,10 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.movement_action_map, ctx.move_down_action, "move_down");
 	add_mappings(ctx.movement_action_map, ctx.pause_action, "pause");
 	
-	// Nuptial flight controls
-	add_mappings(ctx.nuptial_flight_action_map, ctx.pick_mate_action, "pick_mate");
+	// Keeper controls
+	ctx.keeper_action_map.remove_mappings();
+	add_mappings(ctx.keeper_action_map, ctx.mouse_pick_action, "mouse_pick");
+	add_mappings(ctx.keeper_action_map, ctx.mouse_look_action, "mouse_look");
 }
 
 void update_control_profile(::game& ctx, ::control_profile& profile)
@@ -232,8 +235,9 @@ void update_control_profile(::game& ctx, ::control_profile& profile)
 	add_mappings(ctx.movement_action_map, ctx.move_down_action, "move_down");
 	add_mappings(ctx.movement_action_map, ctx.pause_action, "pause");
 	
-	// Nuptial flight controls
-	add_mappings(ctx.nuptial_flight_action_map, ctx.pick_mate_action, "pick_mate");
+	// Keeper controls
+	add_mappings(ctx.keeper_action_map, ctx.mouse_pick_action, "mouse_pick");
+	add_mappings(ctx.keeper_action_map, ctx.mouse_look_action, "mouse_look");
 }
 
 void setup_window_controls(::game& ctx)
@@ -500,9 +504,9 @@ void enable_game_controls(::game& ctx)
 	ctx.movement_action_map.enable();
 }
 
-void enable_nuptial_flight_controls(::game& ctx)
+void enable_keeper_controls(::game& ctx)
 {
-	ctx.nuptial_flight_action_map.enable();
+	ctx.keeper_action_map.enable();
 }
 
 void disable_window_controls(::game& ctx)
@@ -538,10 +542,11 @@ void disable_game_controls(::game& ctx)
 	ctx.pause_action.reset();
 }
 
-void disable_nuptial_flight_controls(::game& ctx)
+void disable_keeper_controls(::game& ctx)
 {
-	ctx.nuptial_flight_action_map.disable();
+	ctx.keeper_action_map.disable();
 	
-	ctx.pick_mate_action.reset();
+	ctx.mouse_pick_action.reset();
+	ctx.mouse_look_action.reset();
 }
 

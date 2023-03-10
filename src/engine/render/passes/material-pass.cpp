@@ -355,11 +355,11 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					spot_light_cutoffs.resize(spot_light_count);
 				}
 				
-				spot_light_colors[spot_light_count] = spot_light.get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
-				spot_light_positions[spot_light_count] = spot_light.get_transform_tween().interpolate(ctx.alpha).translation;
-				spot_light_directions[spot_light_count] = spot_light.get_direction_tween().interpolate(ctx.alpha);
-				spot_light_attenuations[spot_light_count] = spot_light.get_attenuation_tween().interpolate(ctx.alpha);
-				spot_light_cutoffs[spot_light_count] = spot_light.get_cosine_cutoff_tween().interpolate(ctx.alpha);
+				spot_light_colors[index] = spot_light.get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
+				spot_light_positions[index] = spot_light.get_transform_tween().interpolate(ctx.alpha).translation;
+				spot_light_directions[index] = spot_light.get_direction_tween().interpolate(ctx.alpha);
+				spot_light_attenuations[index] = spot_light.get_attenuation_tween().interpolate(ctx.alpha);
+				spot_light_cutoffs[index] = spot_light.get_cosine_cutoff_tween().interpolate(ctx.alpha);
 				break;
 			}
 			

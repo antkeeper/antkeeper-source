@@ -25,6 +25,7 @@
 #include <engine/utility/hash/fnv1a.hpp>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 /**
  * Skeletal animation skeleton.
@@ -36,6 +37,8 @@ struct skeleton
 	
 	/// Inverse skeleton-space bind pose of the skeleton.
 	pose inverse_bind_pose;
+	
+	std::vector<bone> bones;
 	
 	/// Maps bone names to bone identifiers.
 	std::unordered_map<hash::fnv1a32_t, bone> bone_map;
