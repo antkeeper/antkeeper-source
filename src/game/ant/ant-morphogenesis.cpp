@@ -481,9 +481,6 @@ void build_ant_bind_pose(const ant_phenome& phenome, const ant_bone_set& bones, 
 	const ::skeleton& waist_skeleton = phenome.waist->model->get_skeleton();
 	const ::skeleton& gaster_skeleton = phenome.gaster->model->get_skeleton();
 	const ::skeleton* sting_skeleton = (phenome.sting->present) ? &phenome.sting->model->get_skeleton() : nullptr;
-	const ::skeleton* eyes_skeleton = (phenome.eyes->present) ? &phenome.eyes->model->get_skeleton() : nullptr;
-	const ::skeleton* lateral_ocelli_skeleton = (phenome.ocelli->lateral_ocelli_present) ? &phenome.ocelli->lateral_ocelli_model->get_skeleton() : nullptr;
-	const ::skeleton* median_ocellus_skeleton = (phenome.ocelli->median_ocellus_present) ? &phenome.ocelli->median_ocellus_model->get_skeleton() : nullptr;
 	const ::skeleton* forewings_skeleton = (phenome.wings->present) ? &phenome.wings->forewings_model->get_skeleton() : nullptr;
 	const ::skeleton* hindwings_skeleton = (phenome.wings->present) ? &phenome.wings->hindwings_model->get_skeleton() : nullptr;
 	
