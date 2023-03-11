@@ -37,7 +37,7 @@ public:
 	explicit atmosphere_system(entity::registry& registry);
 	~atmosphere_system();
 	
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
 	/**
 	 * Sets the wavelengths of red, green, and blue light.

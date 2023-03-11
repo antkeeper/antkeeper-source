@@ -41,9 +41,8 @@ public:
 	 *
 	 * @param t Total elapsed time, in seconds.
 	 * @param dt Delta time, in seconds.
-	 * @param registry Entity registry.
 	 */
-	virtual void update(double t, double dt) = 0;
+	virtual void update(float t, float dt) = 0;
 	
 protected:
 	/// Registry on which the system operate

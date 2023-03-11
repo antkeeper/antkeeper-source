@@ -25,7 +25,7 @@ animator::animator():
 	animating(0)
 {}
 
-void animator::animate(double dt)
+void animator::animate(float dt)
 {
 	// Advance animations
 	++animating;

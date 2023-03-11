@@ -62,7 +62,7 @@ splash_state::splash_state(::game& ctx):
 	
 	// Construct splash billboard
 	splash_billboard.set_material(splash_billboard_material);
-	splash_billboard.set_scale({(float)std::get<0>(splash_dimensions) * 0.5f, (float)std::get<1>(splash_dimensions) * 0.5f, 1.0f});
+	splash_billboard.set_scale({static_cast<float>(std::get<0>(splash_dimensions)) * 0.5f, static_cast<float>(std::get<1>(splash_dimensions)) * 0.5f, 1.0f});
 	splash_billboard.set_translation({std::round(viewport_center.x()), std::round(viewport_center.y()), 0.0f});
 	splash_billboard.update_tweens();
 	
@@ -70,21 +70,21 @@ splash_state::splash_state(::game& ctx):
 	ctx.ui_scene->add_object(&splash_billboard);
 	
 	// Load animation timing configuration
-	const double splash_fade_in_duration = 0.5;
-	const double splash_duration = 2.0;
-	const double splash_fade_out_duration = 0.5;
+	const float splash_fade_in_duration = 0.5;
+	const float splash_duration = 2.0;
+	const float splash_fade_out_duration = 0.5;
 	
 	// Construct splash fade in animation
 	splash_fade_in_animation.set_interpolator(ease<float>::out_cubic);
 	animation_channel<float>* splash_fade_in_opacity_channel = splash_fade_in_animation.add_channel(0);
-	splash_fade_in_opacity_channel->insert_keyframe({0.0, 0.0f});
+	splash_fade_in_opacity_channel->insert_keyframe({0.0f, 0.0f});
 	splash_fade_in_opacity_channel->insert_keyframe({splash_fade_in_duration, 1.0f});
 	splash_fade_in_opacity_channel->insert_keyframe({splash_fade_in_duration + splash_duration, 1.0f});
 	
 	// Build splash fade out animation
 	splash_fade_out_animation.set_interpolator(ease<float>::out_cubic);
 	animation_channel<float>* splash_fade_out_opacity_channel = splash_fade_out_animation.add_channel(0);
-	splash_fade_out_opacity_channel->insert_keyframe({0.0, 1.0f});
+	splash_fade_out_opacity_channel->insert_keyframe({0.0f, 1.0f});
 	splash_fade_out_opacity_channel->insert_keyframe({splash_fade_out_duration, 0.0f});
 	
 	// Setup animation frame callbacks

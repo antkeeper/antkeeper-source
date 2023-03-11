@@ -335,7 +335,7 @@ void main_menu_state::fade_in_title()
 {
 	animation_channel<float>* opacity_channel = title_fade_animation.get_channel(0);
 	opacity_channel->remove_keyframes();
-	opacity_channel->insert_keyframe({0.0, 0.0f});
+	opacity_channel->insert_keyframe({0.0f, 0.0f});
 	opacity_channel->insert_keyframe({config::menu_fade_in_duration, 1.0f});
 	title_fade_animation.stop();
 	title_fade_animation.play();
@@ -345,7 +345,7 @@ void main_menu_state::fade_out_title()
 {
 	animation_channel<float>* opacity_channel = title_fade_animation.get_channel(0);
 	opacity_channel->remove_keyframes();
-	opacity_channel->insert_keyframe({0.0, 1.0f});
+	opacity_channel->insert_keyframe({0.0f, 1.0f});
 	opacity_channel->insert_keyframe({config::menu_fade_out_duration, 0.0f});
 	title_fade_animation.stop();
 	title_fade_animation.play();

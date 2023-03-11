@@ -28,7 +28,7 @@ class locomotion_system:
 {
 public:
 	explicit locomotion_system(entity::registry& registry);
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 };
 
 

@@ -27,7 +27,7 @@ spatial_system::spatial_system(entity::registry& registry):
 	updated_unconstrained_transforms(registry, entt::collector.update<transform_component>().where(entt::exclude<constraint_stack_component>))
 {}
 
-void spatial_system::update(double t, double dt)
+void spatial_system::update(float t, float dt)
 {
 	// Update world-space transforms of all updated, unconstrained transforms
 	for (const auto transform_eid: updated_unconstrained_transforms)

@@ -33,7 +33,7 @@ class collision_system: public updatable_system
 {
 public:
 	explicit collision_system(entity::registry& registry);
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
 	/**
 	 * Picks the nearest entity with the specified picking flags that intersects a ray.

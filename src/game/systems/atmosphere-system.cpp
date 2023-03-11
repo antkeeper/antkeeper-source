@@ -42,7 +42,7 @@ atmosphere_system::~atmosphere_system()
 	registry.on_destroy<::atmosphere_component>().disconnect<&atmosphere_system::on_atmosphere_destroy>(this);
 }
 
-void atmosphere_system::update(double t, double dt)
+void atmosphere_system::update(float t, float dt)
 {}
 
 void atmosphere_system::set_rgb_wavelengths(const double3& wavelengths)

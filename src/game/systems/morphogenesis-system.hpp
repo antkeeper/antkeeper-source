@@ -30,7 +30,7 @@ class morphogenesis_system:
 {
 public:
 	explicit morphogenesis_system(entity::registry& registry);
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
 private:
 };

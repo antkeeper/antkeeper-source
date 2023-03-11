@@ -32,7 +32,7 @@ public:
 	explicit spring_system(entity::registry& registry);
 	~spring_system();
 	
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 };
 
 

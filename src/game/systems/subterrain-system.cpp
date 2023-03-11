@@ -288,7 +288,7 @@ subterrain_system::~subterrain_system()
 	*/
 }
 
-void subterrain_system::update(double t, double dt)
+void subterrain_system::update(float t, float dt)
 {
 	/*
 	if (first_run)

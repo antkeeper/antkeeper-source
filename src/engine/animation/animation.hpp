@@ -39,14 +39,14 @@ public:
 	 *
 	 * @param dt Delta time by which the animation position will be advanced.
 	 */
-	virtual void advance(double dt) = 0;
+	virtual void advance(float dt) = 0;
 	
 	/**
 	 * Sets the animation position to @p t.
 	 *
 	 * @param t Position in time to which the animation position will be set.
 	 */
-	void seek(double t);
+	void seek(float t);
 	
 	/// Sets the animation position to `0.0`.
 	void rewind();
@@ -68,7 +68,7 @@ public:
 	 *
 	 * @param speed Speed multiplier.
 	 */
-	void set_speed(double speed);
+	void set_speed(float speed);
 	
 	/// Returns `true` if looping of the animation is enabled, `false` otherwise.
 	bool is_looped() const;
@@ -80,13 +80,13 @@ public:
 	bool is_stopped() const;
 	
 	/// Returns the current position in time of the animation.
-	double get_position() const;
+	float get_position() const;
 	
 	/// Returns the current loop count of the animation.
 	int get_loop_count() const;
 	
 	/// Returns the duration of the animation.
-	virtual double get_duration() const = 0;
+	virtual float get_duration() const = 0;
 	
 	/// Sets the callback that's executed when the animation is started from a stopped state.
 	void set_start_callback(std::function<void()> callback);
@@ -106,8 +106,8 @@ protected:
 	int loop_count;
 	bool paused;
 	bool stopped;
-	double position;
-	double speed;
+	float position;
+	float speed;
 
 	std::function<void()> start_callback;
 	std::function<void()> end_callback;
@@ -129,7 +129,7 @@ inline bool animation_base::is_stopped() const
 	return stopped;
 }
 
-inline double animation_base::get_position() const
+inline float animation_base::get_position() const
 {
 	return position;
 }
@@ -155,13 +155,13 @@ public:
 	typedef typename channel::keyframe keyframe;
 	
 	/// Interpolator function type.
-	typedef typename std::decay<std::function<T(const T&, const T&, double)>>::type interpolator_type;
+	typedef typename std::decay<std::function<T(const T&, const T&, float)>>::type interpolator_type;
 	
 	/// Creates an animation.
 	animation();
 	
 	/// @copydoc animation_base::advance()
-	virtual void advance(double dt);
+	virtual void advance(float dt);
 	
 	/**
 	 * Adds a channel to the animation.
@@ -206,7 +206,7 @@ public:
 	channel* get_channel(int id);
 	
 	/// @copydoc animation_base::get_duration() const
-	virtual double get_duration() const;
+	virtual float get_duration() const;
 
 private:
 	std::unordered_map<int, channel> channels;
@@ -221,7 +221,7 @@ animation<T>::animation():
 {}
 
 template <typename T>
-void animation<T>::advance(double dt)
+void animation<T>::advance(float dt)
 {
 	if (paused || stopped)
 	{
@@ -232,36 +232,36 @@ void animation<T>::advance(double dt)
 	position += dt * speed;
 	
 	// Determine duration of the animation
-	double duration = get_duration();
+	float duration = get_duration();
 	
 	if (position < duration)
 	{
 		if (frame_callback != nullptr && interpolator != nullptr)
 		{
-			for (std::size_t i = 0; i < channels.size(); ++i)
+			for (const auto& channel: channels)
 			{
-				auto frames = channels[i].find_keyframes(position);
+				auto frames = channel.second.find_keyframes(position);
 				
 				if (frames[0] != nullptr && frames[1] != nullptr)
 				{
 					// Calculate interpolated frame
-					double t0 = std::get<0>(*frames[0]);
-					double t1 = std::get<0>(*frames[1]);
-					double alpha = (position - t0) / (t1 - t0);
+					float t0 = std::get<0>(*frames[0]);
+					float t1 = std::get<0>(*frames[1]);
+					float alpha = (position - t0) / (t1 - t0);
 					T frame = interpolator(std::get<1>(*frames[0]), std::get<1>(*frames[1]), alpha);
 					
 					// Pass frame to frame callback
-					frame_callback(static_cast<int>(i), frame);
+					frame_callback(channel.first, frame);
 				}
 				else if (frames[0] != nullptr)
 				{
 					// Pass frame to frame callback
-					frame_callback(static_cast<int>(i), std::get<1>(*frames[0]));
+					frame_callback(channel.first, std::get<1>(*frames[0]));
 				}
 				else if (frames[1] != nullptr)
 				{
 					// Pass frame to frame callback
-					frame_callback(static_cast<int>(i), std::get<1>(*frames[1]));
+					frame_callback(channel.first, std::get<1>(*frames[1]));
 				}
 			}
 		}
@@ -292,12 +292,12 @@ void animation<T>::advance(double dt)
 			// Call frame callback for end frame
 			if (frame_callback != nullptr)
 			{
-				for (std::size_t i = 0; i < channels.size(); ++i)
+				for (auto& channel: channels)
 				{
-					auto frames = channels[i].find_keyframes(channels[i].get_duration());
+					auto frames = channel.second.find_keyframes(channel.second.get_duration());
 					if (frames[0] != nullptr)
 					{
-						frame_callback(static_cast<int>(i), std::get<1>(*frames[0]));
+						frame_callback(channel.first, std::get<1>(*frames[0]));
 					}
 				}
 			}
@@ -372,13 +372,13 @@ typename animation<T>::channel* animation<T>::get_channel(int id)
 }
 
 template <typename T>
-double animation<T>::get_duration() const
+float animation<T>::get_duration() const
 {
-	double duration = 0.0;
+	float duration = 0.0;
 	
 	for (auto it = channels.begin(); it != channels.end(); ++it)
 	{
-		duration = std::max<double>(duration, it->second.get_duration());
+		duration = std::max<float>(duration, it->second.get_duration());
 	}
 	
 	return duration;

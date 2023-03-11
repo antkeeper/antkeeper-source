@@ -38,7 +38,7 @@ public:
 	explicit blackbody_system(entity::registry& registry);
 	~blackbody_system();
 	
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
 	/**
 	 * Sets the blackbody illuminant.

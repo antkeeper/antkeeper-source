@@ -31,7 +31,7 @@ animation_base::animation_base():
 	loop_callback(nullptr)
 {}
 
-void animation_base::seek(double t)
+void animation_base::seek(float t)
 {
 	position = t;
 }
@@ -74,7 +74,7 @@ void animation_base::stop()
 	loop_count = 0;
 }
 
-void animation_base::set_speed(double speed)
+void animation_base::set_speed(float speed)
 {
 	this->speed = speed;
 }

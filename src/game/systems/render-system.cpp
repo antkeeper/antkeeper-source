@@ -50,7 +50,7 @@ render_system::~render_system()
 	registry.on_destroy<light_component>().disconnect<&render_system::on_light_destroy>(this);
 }
 
-void render_system::update(double t, double dt)
+void render_system::update(float t, float dt)
 {
 	this->t = t;
 	this->dt = dt;
@@ -105,13 +105,13 @@ void render_system::update(double t, double dt)
 	);
 }
 
-void render_system::draw(double alpha)
+void render_system::draw(float alpha)
 {
 	if (renderer)
 	{
 		for (const scene::collection* collection: layers)
 		{
-			renderer->render(static_cast<float>(t + dt * alpha), static_cast<float>(dt), static_cast<float>(alpha), *collection);
+			renderer->render(t + dt * alpha, dt, alpha, *collection);
 		}
 	}
 }

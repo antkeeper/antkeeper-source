@@ -37,7 +37,7 @@ orbit_system::~orbit_system()
 	registry.on_update<::orbit_component>().disconnect<&orbit_system::on_orbit_update>(this);
 }
 
-void orbit_system::update(double t, double dt)
+void orbit_system::update(float t, float dt)
 {
 	// Add scaled timestep to current time
 	set_time(time + dt * time_scale);

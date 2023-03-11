@@ -67,7 +67,7 @@ terrain_system::~terrain_system()
 	// registry.on_destroy<terrain_component>().disconnect<&terrain_system::on_terrain_destroy>(this);
 }
 
-void terrain_system::update(double t, double dt)
+void terrain_system::update(float t, float dt)
 {
 	/*
 	// Clear quadtree
@@ -131,7 +131,7 @@ void terrain_system::set_patch_side_length(float length)
 	// Recalculate node sizes at each quadtree depth
 	for (std::size_t i = 0; i <= quadtree_type::max_depth; ++i)
 	{
-		quadtree_node_size[i] = std::exp2(quadtree_type::max_depth - i) * patch_side_length;
+		quadtree_node_size[i] = std::exp2(static_cast<float>(quadtree_type::max_depth - i)) * patch_side_length;
 	}
 }
 

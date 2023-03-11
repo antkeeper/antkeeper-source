@@ -39,7 +39,7 @@ public:
 	 *
 	 * @param dt Delta time by which the animations will be progressed.
 	 */
-	void animate(double dt);
+	void animate(float dt);
 	
 	/**
 	 * Adds an animation to the animator.

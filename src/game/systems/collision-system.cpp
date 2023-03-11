@@ -34,7 +34,7 @@ collision_system::collision_system(entity::registry& registry):
 	registry.on_destroy<collision_component>().connect<&collision_system::on_collision_destroy>(this);
 }
 
-void collision_system::update(double t, double dt)
+void collision_system::update(float t, float dt)
 {
 	registry.on_construct<collision_component>().disconnect<&collision_system::on_collision_construct>(this);
 	registry.on_update<collision_component>().disconnect<&collision_system::on_collision_update>(this);

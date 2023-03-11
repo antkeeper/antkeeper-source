@@ -27,7 +27,7 @@ class behavior_system:
 {
 public:
 	explicit behavior_system(entity::registry& registry);
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 };
 
 

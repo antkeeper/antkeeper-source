@@ -25,7 +25,7 @@ camera_system::camera_system(entity::registry& registry):
 	viewport{0, 0, 0, 0}
 {}
 
-void camera_system::update(double t, double dt)
+void camera_system::update(float t, float dt)
 {
 
 }

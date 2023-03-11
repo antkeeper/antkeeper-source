@@ -53,8 +53,8 @@ credits_state::credits_state(::game& ctx):
 	credits_text.update_tweens();
 	
 	// Set up animation timing configuration
-	const double credits_fade_in_duration = 0.5;
-	const double credits_scroll_duration = 5.0;
+	const float credits_fade_in_duration = 0.5;
+	const float credits_scroll_duration = 5.0;
 	
 	auto set_credits_opacity = [this](int channel, const float& opacity)
 	{
@@ -64,7 +64,7 @@ credits_state::credits_state(::game& ctx):
 	// Build credits fade in animation
 	credits_fade_in_animation.set_interpolator(ease<float>::in_quad);
 	animation_channel<float>* credits_fade_in_opacity_channel = credits_fade_in_animation.add_channel(0);
-	credits_fade_in_opacity_channel->insert_keyframe({0.0, 0.0f});
+	credits_fade_in_opacity_channel->insert_keyframe({0.0f, 0.0f});
 	credits_fade_in_opacity_channel->insert_keyframe({credits_fade_in_duration, 1.0f});
 	credits_fade_in_animation.set_frame_callback(set_credits_opacity);
 	

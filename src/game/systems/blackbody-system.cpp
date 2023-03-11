@@ -47,7 +47,7 @@ blackbody_system::~blackbody_system()
 	registry.on_update<::celestial_body_component>().disconnect<&blackbody_system::on_celestial_body_update>(this);
 }
 
-void blackbody_system::update(double t, double dt)
+void blackbody_system::update(float t, float dt)
 {}
 
 void blackbody_system::set_illuminant(const math::vector2<double>& illuminant)

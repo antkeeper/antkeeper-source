@@ -29,15 +29,13 @@ spring_system::spring_system(entity::registry& registry):
 spring_system::~spring_system()
 {}
 
-void spring_system::update(double t, double dt)
+void spring_system::update(float t, float dt)
 {
-	const float dtf = static_cast<float>(dt);
-	
 	registry.view<spring1_component>().each
 	(
 		[&](entity::id spring_eid, auto& component)
 		{
-			solve_numeric_spring<float, float>(component.spring, dtf);
+			solve_numeric_spring<float, float>(component.spring, dt);
 			if (component.callback)
 				component.callback(component.spring.x0);
 		}
@@ -47,7 +45,7 @@ void spring_system::update(double t, double dt)
 	(
 		[&](entity::id spring_eid, auto& component)
 		{
-			solve_numeric_spring<float2, float>(component.spring, dtf);
+			solve_numeric_spring<float2, float>(component.spring, dt);
 			if (component.callback)
 				component.callback(component.spring.x0);
 		}
@@ -57,7 +55,7 @@ void spring_system::update(double t, double dt)
 	(
 		[&](entity::id spring_eid, auto& component)
 		{
-			solve_numeric_spring<float3, float>(component.spring, dtf);
+			solve_numeric_spring<float3, float>(component.spring, dt);
 			if (component.callback)
 				component.callback(component.spring.x0);
 		}
@@ -67,7 +65,7 @@ void spring_system::update(double t, double dt)
 	(
 		[&](entity::id spring_eid, auto& component)
 		{
-			solve_numeric_spring<float4, float>(component.spring, dtf);
+			solve_numeric_spring<float4, float>(component.spring, dt);
 			if (component.callback)
 				component.callback(component.spring.x0);
 		}

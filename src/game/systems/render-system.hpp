@@ -38,9 +38,9 @@ public:
 	explicit render_system(entity::registry& registry);
 	~render_system();
 	
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
-	void draw(double alpha);
+	void draw(float alpha);
 	
 	
 	void add_layer(scene::collection* layer);
@@ -62,8 +62,8 @@ private:
 	void on_light_update(entity::registry& registry, entity::id entity_id);
 	void on_light_destroy(entity::registry& registry, entity::id entity_id);
 	
-	double t;
-	double dt;
+	float t;
+	float dt;
 	::render::renderer* renderer;
 	std::vector<scene::collection*> layers;
 	std::unordered_map<entity::id, std::unique_ptr<scene::model_instance>> model_instances;

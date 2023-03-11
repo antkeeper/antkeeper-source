@@ -28,7 +28,7 @@ locomotion_system::locomotion_system(entity::registry& registry):
 	updatable_system(registry)
 {}
 
-void locomotion_system::update(double t, double dt)
+void locomotion_system::update(float t, float dt)
 {
 	registry.view<transform_component, locomotion_component>().each(
 		[&](entity::id entity_id, auto& transform, auto& locomotion)

@@ -29,7 +29,7 @@ class spatial_system:
 {
 public:
 	explicit spatial_system(entity::registry& registry);
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
 private:
 	/// Observes entities with updated, unconstrained transforms.

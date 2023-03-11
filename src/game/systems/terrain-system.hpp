@@ -45,7 +45,7 @@ public:
 	explicit terrain_system(entity::registry& registry);
 	~terrain_system();
 	
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
 	/**
 	 * Sets the size of a patch.

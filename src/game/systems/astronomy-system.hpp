@@ -50,7 +50,7 @@ public:
 	 * @param t Time, in seconds.
 	 * @param dt Delta time, in seconds.
 	 */
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
 	/**
 	 * Sets the current time.

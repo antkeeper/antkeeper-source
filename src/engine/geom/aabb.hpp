@@ -76,7 +76,7 @@ struct aabb: public bounding_volume<T>
 	 * @param index Index of a corner.
 	 * @return Position of the specified corner.
 	 */
-	vector_type corner(int index) const noexcept;
+	vector_type corner(std::size_t index) const noexcept;
 };
 
 template <class T>
@@ -108,7 +108,7 @@ aabb<T> aabb<T>::transform(const aabb& a, const matrix_type& m)
 	for (std::size_t i = 0; i < 8; ++i)
 	{
 		vector_type corner = a.corner(i);
-		math::vector<T, 4> transformed_corner = math::mul(m, math::vector<T, 4>{corner.x(), corner.y(), corner.z(), T(1)});
+		math::vector<T, 4> transformed_corner = math::mul(m, math::vector<T, 4>{corner.x(), corner.y(), corner.z(), T{1}});
 
 		for (std::size_t j = 0; j < 3; ++j)
 		{
@@ -192,7 +192,7 @@ bool aabb<T>::contains(const vector_type& point) const
 }
 
 template <class T>
-typename aabb<T>::vector_type aabb<T>::corner(int index) const noexcept
+typename aabb<T>::vector_type aabb<T>::corner(std::size_t index) const noexcept
 {
 	return
 		{

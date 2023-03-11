@@ -28,7 +28,7 @@ class steering_system:
 {
 public:
 	explicit steering_system(entity::registry& registry);
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 };
 
 

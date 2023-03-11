@@ -40,7 +40,7 @@ template <class T>
 T to_brightness(T mv)
 {
 	// 100^(1/5)
-	static constexpr double fifth_root_100 = 2.5118864315095801110850320677993;
+	static constexpr T fifth_root_100 = T{2.5118864315095801110850320677993};
 	return std::pow(fifth_root_100, -mv);
 }
 
@@ -55,7 +55,7 @@ T to_brightness(T mv)
 template <class T>
 T to_illuminance(T mv)
 {
-	return std::pow(10.0, (-14.18 - mv) * 0.4);
+	return std::pow(T{10}, (T{-14.18} - mv) * T{0.4});
 }
 
 /**
@@ -69,7 +69,7 @@ T to_illuminance(T mv)
 template <class T>
 T from_illuminance(T ev)
 {
-	return -14.18 - 2.5 * std::log10(ev);
+	return T{-14.18} - T{2.5} * std::log10(ev);
 }
 
 } // namespace vmag

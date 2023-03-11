@@ -37,7 +37,7 @@ constraint_system::~constraint_system()
 	registry.on_destroy<constraint_stack_component>().disconnect<&constraint_system::on_constraint_stack_update>(this);
 }
 
-void constraint_system::update(double t, double dt)
+void constraint_system::update(float t, float dt)
 {
 	// For each entity with transform and constraint stack components
 	registry.view<transform_component, constraint_stack_component>().each
@@ -62,7 +62,7 @@ void constraint_system::update(double t, double dt)
 				
 				// Apply constraint if enabled
 				if (node->active)
-					handle_constraint(transform, constraint_eid, static_cast<float>(dt));
+					handle_constraint(transform, constraint_eid, dt);
 				
 				// Get entity ID of next constraint in the stack
 				constraint_eid = node->next;

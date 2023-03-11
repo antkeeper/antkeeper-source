@@ -247,7 +247,7 @@ void fade_in(::game& ctx, const std::function<void()>& end_callback)
 	ctx.menu_fade_animation->set_interpolator(ease<float>::out_cubic);
 	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->get_channel(0);
 	opacity_channel->remove_keyframes();
-	opacity_channel->insert_keyframe({0.0, 0.0f});
+	opacity_channel->insert_keyframe({0.0f, 0.0f});
 	opacity_channel->insert_keyframe({config::menu_fade_in_duration, 1.0f});
 	ctx.menu_fade_animation->set_end_callback(end_callback);
 	
@@ -279,7 +279,7 @@ void fade_out(::game& ctx, const std::function<void()>& end_callback)
 	ctx.menu_fade_animation->set_interpolator(ease<float>::out_cubic);
 	animation_channel<float>* opacity_channel = ctx.menu_fade_animation->get_channel(0);
 	opacity_channel->remove_keyframes();
-	opacity_channel->insert_keyframe({0.0, 1.0f});
+	opacity_channel->insert_keyframe({0.0f, 1.0f});
 	opacity_channel->insert_keyframe({config::menu_fade_out_duration, 0.0f});
 	ctx.menu_fade_animation->set_end_callback(end_callback);
 	

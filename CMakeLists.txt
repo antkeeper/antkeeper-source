@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
 
-
 option(APPLICATION_NAME "Application name" "Antkeeper")
 option(APPLICATION_VERSION "Application version string" "0.0.0")
 option(APPLICATION_AUTHOR "Application author" "C. J. Howard")
@@ -8,7 +7,6 @@ option(APPLICATION_AUTHOR "Application author" "C. J. Howard")
 # Slugify application name
 string(TOLOWER ${APPLICATION_NAME} APPLICATION_SLUG)
 string(REPLACE " " "-" APPLICATION_SLUG ${APPLICATION_SLUG})
-
 
 project(${APPLICATION_SLUG} VERSION ${APPLICATION_VERSION} LANGUAGES CXX)
 
@@ -43,8 +41,7 @@ set(SHARED_LIBS
 	${OPENGL_gl_LIBRARY})
 
 # Generate configuration header file
-configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in
-	${PROJECT_BINARY_DIR}/src/engine/config.hpp)
+configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_DIR}/src/engine/config.hpp)
 
 # Collect source files
 file(GLOB_RECURSE SOURCE_FILES
@@ -81,11 +78,22 @@ endif()
 # Add executable target
 set(EXECUTABLE_TARGET ${APPLICATION_SLUG}-executable)
 add_executable(${EXECUTABLE_TARGET} ${SOURCE_FILES})
-set_target_properties(${EXECUTABLE_TARGET} PROPERTIES OUTPUT_NAME ${APPLICATION_SLUG})
+set_target_properties(${EXECUTABLE_TARGET} PROPERTIES
+	OUTPUT_NAME ${APPLICATION_SLUG}
+	COMPILE_WARNING_AS_ERROR ON
+	CXX_STANDARD 23
+	CXX_STANDARD_REQUIRED ON
+	CXX_EXTENSIONS OFF)
 
+target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
 if(MSVC)
-	# Select the static multithreaded MSVC runtime library
-	set_property(TARGET ${EXECUTABLE_TARGET} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+	target_compile_options(${EXECUTABLE_TARGET} PRIVATE /W3)
+	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES
+		LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE"
+		LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:\"mainCRTStartup\""
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+else()
+	target_compile_options(${EXECUTABLE_TARGET} PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 # Add compile definitions
@@ -95,24 +103,10 @@ else()
 	target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE NDEBUG)
 endif()
 
-# Set C++ standard
-set_target_properties(${EXECUTABLE_TARGET} PROPERTIES
-	CXX_STANDARD 23
-	CXX_STANDARD_REQUIRED ON
-	CXX_EXTENSIONS OFF)
-
-# Set link flags to show console window on debug builds and hide it on release builds
-if(MSVC)
-	#set_target_properties(${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS "/NODEFAULTLIB:libvcruntime.lib")
-	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
-	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:\"mainCRTStartup\"")
-endif(MSVC)
-
 # Set include directories
-target_include_directories(${EXECUTABLE_TARGET}
-	PUBLIC
-		${PROJECT_SOURCE_DIR}/src
-		${PROJECT_BINARY_DIR}/src)
+target_include_directories(${EXECUTABLE_TARGET} PUBLIC
+	${PROJECT_SOURCE_DIR}/src
+	${PROJECT_BINARY_DIR}/src)
 
 # Link to dependencies
 target_link_libraries(${EXECUTABLE_TARGET} ${STATIC_LIBS} ${SHARED_LIBS})
@@ -121,22 +115,5 @@ target_link_libraries(${EXECUTABLE_TARGET} ${STATIC_LIBS} ${SHARED_LIBS})
 if(PACKAGE_PLATFORM MATCHES "linux")
 	install(TARGETS ${EXECUTABLE_TARGET} DESTINATION bin)
 elseif(PACKAGE_PLATFORM MATCHES "win")
-	# Install executable
 	install(TARGETS ${EXECUTABLE_TARGET} DESTINATION .)
-
-	# Install SDL2 DLLs
-	#if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	#	get_target_property(SDL2_DLL SDL2::SDL2 IMPORTED_LOCATION_DEBUG)
-	#else()
-	#	get_target_property(SDL2_DLL SDL2::SDL2 IMPORTED_LOCATION_RELEASE)
-	#endif()
-	#install(FILES ${SDL2_DLL} DESTINATION .)
-	
-	# Install OpenAL DLL
-	#if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	#	get_target_property(OPENAL_DLL OpenAL::OpenAL IMPORTED_LOCATION_DEBUG)
-	#else()
-	#	get_target_property(OPENAL_DLL OpenAL::OpenAL IMPORTED_LOCATION_RELEASE)
-	#endif()
-	#install(FILES ${OPENAL_DLL} DESTINATION .)
 endif()

@@ -28,7 +28,7 @@ class camera_system: public updatable_system
 {
 public:
 	explicit camera_system(entity::registry& registry);
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
 	void set_viewport(const float4& viewport);
 

@@ -90,7 +90,7 @@ astronomy_system::~astronomy_system()
 	registry.on_destroy<::atmosphere_component>().disconnect<&astronomy_system::on_atmosphere_destroyed>(this);
 }
 
-void astronomy_system::update(double t, double dt)
+void astronomy_system::update(float t, float dt)
 {
 	double3 sky_light_illuminance = {0.0, 0.0, 0.0};
 	

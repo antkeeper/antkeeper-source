@@ -47,7 +47,7 @@ public:
 	explicit constraint_system(entity::registry& registry);
 	~constraint_system();
 	
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
 	/**
 	 * Manually evaluates an entity's constraints.

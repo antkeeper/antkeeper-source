@@ -115,8 +115,8 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	std::mt19937 rng(random_device());
 	
 	// Assign random ant names
-	std::uniform_int_distribution<> female_name_pool_distribution(0, female_name_pool->lines.size() - 1);
-	std::uniform_int_distribution<> male_name_pool_distribution(0, male_name_pool->lines.size() - 1);
+	std::uniform_int_distribution<> female_name_pool_distribution(0, static_cast<int>(female_name_pool->lines.size() - 1));
+	std::uniform_int_distribution<> male_name_pool_distribution(0, static_cast<int>(male_name_pool->lines.size() - 1));
 	ctx.entity_registry->view<ant_caste_component>().each
 	(
 		[&](entity::id entity_id, const auto& caste)

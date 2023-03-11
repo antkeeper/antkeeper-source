@@ -30,7 +30,7 @@ steering_system::steering_system(entity::registry& registry):
 	updatable_system(registry)
 {}
 
-void steering_system::update(double t, double dt)
+void steering_system::update(float t, float dt)
 {
 	registry.view<steering_component, transform_component>().each
 	(
@@ -59,7 +59,7 @@ void steering_system::update(double t, double dt)
 			
 			// Accelerate
 			agent.acceleration = force / agent.mass;
-			agent.velocity += agent.acceleration * static_cast<float>(dt);
+			agent.velocity += agent.acceleration * dt;
 			
 			// Limit speed
 			const float speed_squared = math::sqr_length(agent.velocity);
@@ -70,7 +70,7 @@ void steering_system::update(double t, double dt)
 			}
 			
 			// Move agent
-			agent.position += agent.velocity * static_cast<float>(dt);
+			agent.position += agent.velocity * dt;
 			
 			// Rotate agent
 			if (speed_squared)

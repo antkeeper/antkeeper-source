@@ -1257,6 +1257,9 @@ void game::setup_loop()
 	(
 		[&](double t, double dt)
 		{
+			const float time = static_cast<float>(t);
+			const float timestep = static_cast<float>(dt);
+			
 			// Update tweens
 			sky_pass->update_tweens();
 			surface_scene->update_tweens();
@@ -1275,25 +1278,25 @@ void game::setup_loop()
 			}
 			
 			// Advance timeline
-			timeline->advance(dt);
+			timeline->advance(timestep);
 			
 			// Update entity systems
-			//terrain_system->update(t, dt);
-			//subterrain_system->update(t, dt);
-			collision_system->update(t, dt);
-			behavior_system->update(t, dt);
-			steering_system->update(t, dt);
-			locomotion_system->update(t, dt);
-			camera_system->update(t, dt);
-			orbit_system->update(t, dt);
-			blackbody_system->update(t, dt);
-			atmosphere_system->update(t, dt);
-			astronomy_system->update(t, dt);
-			spring_system->update(t, dt);
-			spatial_system->update(t, dt);
-			constraint_system->update(t, dt);
-			animator->animate(dt);
-			render_system->update(t, dt);
+			//terrain_system->update(time, timestep);
+			//subterrain_system->update(time, timestep);
+			collision_system->update(time, timestep);
+			behavior_system->update(time, timestep);
+			steering_system->update(time, timestep);
+			locomotion_system->update(time, timestep);
+			camera_system->update(time, timestep);
+			orbit_system->update(time, timestep);
+			blackbody_system->update(time, timestep);
+			atmosphere_system->update(time, timestep);
+			astronomy_system->update(time, timestep);
+			spring_system->update(time, timestep);
+			spatial_system->update(time, timestep);
+			constraint_system->update(time, timestep);
+			animator->animate(timestep);
+			render_system->update(time, timestep);
 		}
 	);
 	
@@ -1302,7 +1305,7 @@ void game::setup_loop()
 	(
 		[&](double alpha)
 		{
-			render_system->draw(alpha);
+			render_system->draw(static_cast<float>(alpha));
 			window->swap_buffers();
 		}
 	);

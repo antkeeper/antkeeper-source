@@ -87,7 +87,7 @@ class subterrain_system: public updatable_system
 public:
 	subterrain_system(entity::registry& registry, ::resource_manager* resource_manager);
 	~subterrain_system();
-	virtual void update(double t, double dt);
+	virtual void update(float t, float dt);
 	
 	void set_scene(scene::collection* collection);
 

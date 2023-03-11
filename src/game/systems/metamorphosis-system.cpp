@@ -26,7 +26,7 @@ metamorphosis_system::metamorphosis_system(entity::registry& registry):
 	time_scale(1.0f)
 {}
 
-void metamorphosis_system::update(double t, double dt)
+void metamorphosis_system::update(float t, float dt)
 {
 
 }

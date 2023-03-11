@@ -34,7 +34,7 @@ class animation_channel
 {
 public:
 	/// Keyframe consisting of a time and a value.
-	typedef std::tuple<double, T> keyframe;
+	typedef std::tuple<float, T> keyframe;
 	
 	/**
 	 * Creates an animation channel.
@@ -65,7 +65,7 @@ public:
 	 * @param start Starting position in time (inclusive).
 	 * @param end Ending position in time (non-inclusive).
 	 */
-	void remove_keyframes(double start, double end);
+	void remove_keyframes(float start, float end);
 	
 	/// Removes all keyframes from the animation.
 	void remove_keyframes();
@@ -76,7 +76,7 @@ public:
 	 * @param position Position in time.
 	 * @return Array containing the the keyframes on the left and right of @p position.
 	 */
-	std::array<const keyframe*, 2> find_keyframes(double position) const;
+	std::array<const keyframe*, 2> find_keyframes(float position) const;
 	
 	/**
 	 * Finds all the keyframes on `[start, end)`.
@@ -85,13 +85,13 @@ public:
 	 * @param end Ending position in time (non-inclusive).
 	 * @return All keyframes on `[start, end)`.
 	 */
-	std::list<keyframe> find_keyframes(double start, double end) const;
+	std::list<keyframe> find_keyframes(float start, float end) const;
 	
 	/// Returns the ID of the animation channel.
 	int get_id() const;
 	
 	/// Returns the duration of the animation channel.
-	double get_duration() const;
+	float get_duration() const;
 	
 private:
 	struct keyframe_compare
@@ -138,7 +138,7 @@ void animation_channel<T>::insert_keyframe(const keyframe& k)
 }
 
 template <typename T>
-void animation_channel<T>::remove_keyframes(double start, double end)
+void animation_channel<T>::remove_keyframes(float start, float end)
 {
 	auto lower_bound = keyframes.lower_bound({start, T()});
 	auto upper_bound = keyframes.upper_bound({end, T()});
@@ -152,7 +152,7 @@ void animation_channel<T>::remove_keyframes()
 }
 
 template <typename T>
-std::array<const typename animation_channel<T>::keyframe*, 2> animation_channel<T>::find_keyframes(double position) const
+std::array<const typename animation_channel<T>::keyframe*, 2> animation_channel<T>::find_keyframes(float position) const
 {
 	// Find the following keyframe
 	auto upper_bound = keyframes.upper_bound({position, T()});
@@ -169,7 +169,7 @@ std::array<const typename animation_channel<T>::keyframe*, 2> animation_channel<
 }
 
 template <typename T>
-std::list<typename animation_channel<T>::keyframe> animation_channel<T>::find_keyframes(double start, double end) const
+std::list<typename animation_channel<T>::keyframe> animation_channel<T>::find_keyframes(float start, float end) const
 {
 	std::list<keyframe> keyframe_list;
 
@@ -190,7 +190,7 @@ inline int animation_channel<T>::get_id() const
 }
 
 template <typename T>
-double animation_channel<T>::get_duration() const
+float animation_channel<T>::get_duration() const
 {
 	if (keyframes.empty())
 	{
