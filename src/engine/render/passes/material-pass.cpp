@@ -48,16 +48,78 @@
 #include <engine/utility/hash/combine.hpp>
 #include <cmath>
 #include <glad/glad.h>
+#include <execution>
 
 namespace render {
 
-static bool operation_compare(const render::operation& a, const render::operation& b);
+namespace {
+
+/**
+ * Sorts render operations for the material pass.
+ */
+bool operation_compare(const render::operation* a, const render::operation* b)
+{
+	// Render operations with materials first
+	if (!a->material)
+	{
+		return false;
+	}
+	else if (!b->material)
+	{
+		return true;
+	}
+	
+	const bool translucent_a = a->material->get_blend_mode() == material_blend_mode::translucent;
+	const bool translucent_b = b->material->get_blend_mode() == material_blend_mode::translucent;
+	
+	if (translucent_a)
+	{
+		if (translucent_b)
+		{
+			// A and B are both translucent, render back to front
+			return (a->depth < b->depth);
+		}
+		else
+		{
+			// A is translucent, B is opaque. Render B first
+			return false;
+		}
+	}
+	else
+	{
+		if (translucent_b)
+		{
+			// A is opaque, B is translucent. Render A first
+			return true;
+		}
+		else
+		{
+			// A and B are both opaque
+			
+			const std::size_t hash_a = a->material->hash();
+			const std::size_t hash_b = b->material->hash();
+			
+			if (hash_a == hash_b)
+			{
+				// A and B have same material hash, sort by VAO
+				return (a->vertex_array < b->vertex_array);
+			}
+			else
+			{
+				// A and B have different material hashes, sort by hash
+				return (hash_a < hash_b);
+			}
+		}
+	}
+}
+
+} // namespace
 
 material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	pass(rasterizer, framebuffer)
 {}
 
-void material_pass::render(const render::context& ctx, render::queue& queue)
+void material_pass::render(render::context& ctx)
 {
 	rasterizer->use_framebuffer(*framebuffer);
 	
@@ -88,13 +150,13 @@ void material_pass::render(const render::context& ctx, render::queue& queue)
 	evaluate_lighting(ctx);
 	evaluate_misc(ctx);
 	
-	// Sort render queue
-	queue.sort(operation_compare);
+	// Sort render operations
+	std::sort(std::execution::par_unseq, ctx.operations.begin(), ctx.operations.end(), operation_compare);
 	
-	for (const render::operation& operation: queue)
+	for (const render::operation* operation: ctx.operations)
 	{
 		// Get operation material
-		const render::material* material = operation.material;
+		const render::material* material = operation->material.get();
 		if (!material)
 		{
 			if (!fallback_material)
@@ -204,20 +266,20 @@ void material_pass::render(const render::context& ctx, render::queue& queue)
 		}
 		
 		// Update geometry-dependent shader variables
-		model = &operation.transform;
+		model = &operation->transform;
 		for (const auto& command: active_cache_entry->geometry_command_buffer)
 		{
 			command();
 		}
 		
 		// Draw geometry
-		if (operation.instance_count)
+		if (operation->instance_count)
 		{
-			rasterizer->draw_arrays_instanced(*operation.vertex_array, operation.drawing_mode, operation.start_index, operation.index_count, operation.instance_count);
+			rasterizer->draw_arrays_instanced(*operation->vertex_array, operation->drawing_mode, operation->start_index, operation->index_count, operation->instance_count);
 		}
 		else
 		{
-			rasterizer->draw_arrays(*operation.vertex_array, operation.drawing_mode, operation.start_index, operation.index_count);
+			rasterizer->draw_arrays(*operation->vertex_array, operation->drawing_mode, operation->start_index, operation->index_count);
 		}
 	}
 	
@@ -253,8 +315,8 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 	directional_shadow_count = 0;
 	spot_light_count = 0;
 	
-	const std::list<scene::object_base*>* lights = ctx.collection->get_objects(scene::light::object_type_id);
-	for (const scene::object_base* object: *lights)
+	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
+	for (const scene::object_base* object: lights)
 	{
 		// Ignore inactive lights
 		if (!object->is_active())
@@ -961,62 +1023,6 @@ void material_pass::build_material_command_buffer(std::vector<std::function<void
 				break;
 			default:
 				break;
-		}
-	}
-}
-
-bool operation_compare(const render::operation& a, const render::operation& b)
-{
-	// Render operations with materials first
-	if (!a.material)
-	{
-		return false;
-	}
-	else if (!b.material)
-	{
-		return true;
-	}
-	
-	const bool translucent_a = a.material->get_blend_mode() == material_blend_mode::translucent;
-	const bool translucent_b = b.material->get_blend_mode() == material_blend_mode::translucent;
-	
-	if (translucent_a)
-	{
-		if (translucent_b)
-		{
-			// A and B are both translucent, render back to front
-			return (a.depth < b.depth);
-		}
-		else
-		{
-			// A is translucent, B is opaque. Render B first
-			return false;
-		}
-	}
-	else
-	{
-		if (translucent_b)
-		{
-			// A is opaque, B is translucent. Render A first
-			return true;
-		}
-		else
-		{
-			// A and B are both opaque
-			
-			const std::size_t hash_a = a.material->hash();
-			const std::size_t hash_b = b.material->hash();
-			
-			if (hash_a == hash_b)
-			{
-				// A and B have same material hash, sort by VAO
-				return (a.vertex_array < b.vertex_array);
-			}
-			else
-			{
-				// A and B have different material hashes, sort by hash
-				return (hash_a < hash_b);
-			}
 		}
 	}
 }

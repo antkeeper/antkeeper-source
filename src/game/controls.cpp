@@ -130,6 +130,9 @@ void reset_control_profile(::control_profile& profile)
 	
 	// Mouse look
 	mappings.emplace("mouse_look", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::right));
+	
+	// Focus
+	mappings.emplace("focus", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
 }
 
 void apply_control_profile(::game& ctx, const ::control_profile& profile)
@@ -172,6 +175,7 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	ctx.keeper_action_map.remove_mappings();
 	add_mappings(ctx.keeper_action_map, ctx.mouse_pick_action, "mouse_pick");
 	add_mappings(ctx.keeper_action_map, ctx.mouse_look_action, "mouse_look");
+	add_mappings(ctx.keeper_action_map, ctx.focus_action, "focus");
 }
 
 void update_control_profile(::game& ctx, ::control_profile& profile)
@@ -238,6 +242,7 @@ void update_control_profile(::game& ctx, ::control_profile& profile)
 	// Keeper controls
 	add_mappings(ctx.keeper_action_map, ctx.mouse_pick_action, "mouse_pick");
 	add_mappings(ctx.keeper_action_map, ctx.mouse_look_action, "mouse_look");
+	add_mappings(ctx.keeper_action_map, ctx.focus_action, "focus");
 }
 
 void setup_window_controls(::game& ctx)
@@ -548,5 +553,6 @@ void disable_keeper_controls(::game& ctx)
 	
 	ctx.mouse_pick_action.reset();
 	ctx.mouse_look_action.reset();
+	ctx.focus_action.reset();
 }
 

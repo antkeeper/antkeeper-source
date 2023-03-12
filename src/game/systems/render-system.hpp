@@ -22,10 +22,9 @@
 
 #include "game/systems/updatable-system.hpp"
 #include <engine/scene/collection.hpp>
-#include <engine/scene/model-instance.hpp>
+#include <engine/scene/static-mesh.hpp>
 #include <engine/scene/light.hpp>
-#include "game/components/model-component.hpp"
-#include "game/components/light-component.hpp"
+#include "game/components/scene-component.hpp"
 #include <engine/entity/id.hpp>
 #include <engine/render/renderer.hpp>
 #include <unordered_map>
@@ -42,32 +41,24 @@ public:
 	
 	void draw(float alpha);
 	
-	
 	void add_layer(scene::collection* layer);
 	void remove_layers();
 	
 	void set_renderer(::render::renderer* renderer);
-	
-	scene::model_instance* get_model_instance(entity::id entity_id);
-	scene::light* get_light(entity::id entity_id);
 
-private:	
-	void update_model_and_materials(entity::id entity_id, ::model_component& model);
-	void update_light(entity::id entity_id, ::light_component& component);
+private:
+	void on_scene_construct(entity::registry& registry, entity::id entity_id);
+	void on_scene_update(entity::registry& registry, entity::id entity_id);
+	void on_scene_destroy(entity::registry& registry, entity::id entity_id);
 	
-	void on_model_construct(entity::registry& registry, entity::id entity_id);
-	void on_model_update(entity::registry& registry, entity::id entity_id);
-	void on_model_destroy(entity::registry& registry, entity::id entity_id);
-	void on_light_construct(entity::registry& registry, entity::id entity_id);
-	void on_light_update(entity::registry& registry, entity::id entity_id);
-	void on_light_destroy(entity::registry& registry, entity::id entity_id);
+	void on_transform_construct(entity::registry& registry, entity::id entity_id);
+	
+	entt::observer updated_scene_transforms;
 	
 	float t;
 	float dt;
 	::render::renderer* renderer;
 	std::vector<scene::collection*> layers;
-	std::unordered_map<entity::id, std::unique_ptr<scene::model_instance>> model_instances;
-	std::unordered_map<entity::id, std::unique_ptr<scene::light>> lights;
 };
 
 

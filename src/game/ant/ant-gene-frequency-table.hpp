@@ -41,14 +41,14 @@ struct ant_gene_frequency_table
 	/**
 	 * Samples a gene from the frequency table.
 	 *
-	 * @tparam Generator Uniform random bit generator type.
+	 * @tparam URBG Uniform random bit generator type.
 	 *
-	 * @param g Uniform random bit generator object.
+	 * @param urbg Uniform random bit generator object.
 	 *
 	 * @return Randomly sampled gene.
 	 */
-	template <class Generator>
-	[[nodiscard]] std::shared_ptr<T> sample(Generator& g) const
+	template <class URBG>
+	[[nodiscard]] std::shared_ptr<T> sample(URBG& urbg) const
 	{
 		if (genes.empty())
 		{
@@ -57,7 +57,7 @@ struct ant_gene_frequency_table
 		
 		std::discrete_distribution<std::size_t> distribution(weights.begin(), weights.end());
 		
-		return genes[distribution(g)];
+		return genes[distribution(urbg)];
 	}
 };
 

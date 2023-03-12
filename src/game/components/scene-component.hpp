@@ -17,22 +17,17 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_LIGHT_COMPONENT_HPP
-#define ANTKEEPER_GAME_LIGHT_COMPONENT_HPP
+#ifndef ANTKEEPER_GAME_SCENE_COMPONENT_HPP
+#define ANTKEEPER_GAME_SCENE_COMPONENT_HPP
 
-#include <engine/utility/fundamental-types.hpp>
-#include <engine/scene/light.hpp>
+#include <engine/scene/object.hpp>
+#include <cstdint>
+#include <memory>
 
-
-struct light_component
+struct scene_component
 {
-	scene::light_type type;
-	float3 color;
-	float intensity;
-	float3 attenuation;
-	float2 cutoff;
+	std::unique_ptr<scene::object_base> object;
+	std::uint8_t layer_mask{0b11111111};
 };
 
-
-#endif // ANTKEEPER_GAME_LIGHT_COMPONENT_HPP
-
+#endif // ANTKEEPER_GAME_SCENE_COMPONENT_HPP

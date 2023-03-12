@@ -73,7 +73,7 @@ fxaa_pass::fxaa_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuf
 	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 }
 
-void fxaa_pass::render(const render::context& ctx, render::queue& queue)
+void fxaa_pass::render(render::context& ctx)
 {
 	for (const auto& command: command_buffer)
 	{

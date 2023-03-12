@@ -35,8 +35,6 @@
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/texture-2d.hpp>
-#include <engine/gl/vertex-array.hpp>
-#include <engine/gl/vertex-buffer.hpp>
 #include <engine/i18n/string-map.hpp>
 #include <engine/input/action-map.hpp>
 #include <engine/input/action.hpp>
@@ -58,6 +56,7 @@
 #include <queue>
 #include <string>
 #include <unordered_map>
+#include <random>
 #include <vector>
 
 // Forward declarations
@@ -106,6 +105,7 @@ class render_system;
 class spatial_system;
 class spring_system;
 class steering_system;
+class physics_system;
 class subterrain_system;
 class terrain_system;
 
@@ -215,6 +215,7 @@ public:
 	input::action pause_action;
 	input::action mouse_pick_action;
 	input::action mouse_look_action;
+	input::action focus_action;
 	
 	std::vector<std::shared_ptr<::event::subscription>> window_action_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> menu_action_subscriptions;
@@ -261,8 +262,6 @@ public:
 	int2 render_resolution;
 	float render_scale;
 	int shadow_map_resolution;
-	std::unique_ptr<gl::vertex_buffer> billboard_vbo;
-	std::unique_ptr<gl::vertex_array> billboard_vao;
 	std::unique_ptr<render::clear_pass> ui_clear_pass;
 	std::unique_ptr<render::material_pass> ui_material_pass;
 	std::unique_ptr<render::compositor> ui_compositor;
@@ -343,6 +342,9 @@ public:
 	bool captions;
 	float captions_size;
 	
+	// Random number generation
+	std::mt19937 rng;
+	
 	// Entities
 	std::unique_ptr<entity::registry> entity_registry;
 	std::unordered_map<hash::fnv1a32_t, entity::id> entities;
@@ -352,8 +354,9 @@ public:
 	std::unique_ptr<::camera_system> camera_system;
 	std::unique_ptr<::collision_system> collision_system;
 	std::unique_ptr<::constraint_system> constraint_system;
-	std::unique_ptr<::locomotion_system> locomotion_system;
 	std::unique_ptr<::steering_system> steering_system;
+	std::unique_ptr<::locomotion_system> locomotion_system;
+	std::unique_ptr<::physics_system> physics_system;
 	std::unique_ptr<::render_system> render_system;
 	std::unique_ptr<::subterrain_system> subterrain_system;
 	std::unique_ptr<::terrain_system> terrain_system;
@@ -363,6 +366,8 @@ public:
 	std::unique_ptr<::atmosphere_system> atmosphere_system;
 	std::unique_ptr<::astronomy_system> astronomy_system;
 	std::unique_ptr<::orbit_system> orbit_system;
+	
+
 	
 	double3 rgb_wavelengths;
 	
@@ -382,6 +387,7 @@ private:
 	void setup_scenes();
 	void setup_animation();
 	void setup_ui();
+	void setup_rng();
 	void setup_entities();
 	void setup_systems();
 	void setup_controls();

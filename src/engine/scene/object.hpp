@@ -26,7 +26,6 @@
 #include <engine/math/quaternion.hpp>
 #include <engine/math/transform-type.hpp>
 #include <engine/render/context.hpp>
-#include <engine/render/queue.hpp>
 #include <atomic>
 #include <cstddef>
 
@@ -44,28 +43,19 @@ public:
 	typedef geom::bounding_volume<float> bounding_volume_type;
 	
 	/// Returns the type ID for this scene object type.
-	virtual const std::size_t get_object_type_id() const = 0;
+	virtual const std::size_t get_object_type_id() const noexcept = 0;
 
 	/**
 	 * Creates a scene object base.
 	 */
 	object_base();
-
-	/**
-	 * Destroys a scene object base.
-	 */
-	virtual ~object_base() = default;
 	
 	/**
-	 * Adds a render operation describing this object to a render queue.
+	 * Adds render operations to a render context.
 	 *
 	 * @param ctx Render context.
-	 * @param queue Render queue.
-	 *
-	 * @see render::context
-	 * @see render::operation
 	 */
-	virtual void render(const render::context& ctx, render::queue& queue) const;
+	inline virtual void render(render::context& ctx) const {}
 
 	/**
 	 * Updates all tweens in the scene object.
@@ -75,7 +65,10 @@ public:
 	/**
 	 * Activates or deactivates the scene object.
 	 */
-	void set_active(bool active);
+	inline void set_active(bool active) noexcept
+	{
+		this->active = active;
+	}
 
 	/**
 	 *
@@ -85,71 +78,116 @@ public:
 	/**
 	 * Sets the scene object's transform.
 	 */
-	void set_transform(const transform_type& transform);
+	inline void set_transform(const transform_type& transform)
+	{
+		this->transform[1] = transform;
+		transformed();
+	}
 
 	/**
 	 * Sets the scene object's translation.
 	 */
-	void set_translation(const vector_type& translation);
+	inline void set_translation(const vector_type& translation)
+	{
+		transform[1].translation = translation;
+		transformed();
+	}
 	
 	/**
 	 * Sets the scene object's rotation.
 	 */
-	void set_rotation(const quaternion_type& rotation);
+	inline void set_rotation(const quaternion_type& rotation)
+	{
+		transform[1].rotation = rotation;
+		transformed();
+	}
 
 	/**
 	 * Sets the scene object's scale.
 	 */
-	void set_scale(const vector_type& scale);
+	inline void set_scale(const vector_type& scale)
+	{
+		transform[1].scale = scale;
+		transformed();
+	}
 	
 	/**
 	 * Sets a culling mask for the object, which will be used for view-frustum culling instead of the object's bounds.
 	 */
-	void set_culling_mask(const bounding_volume_type* culling_mask);
+	inline void set_culling_mask(const bounding_volume_type* culling_mask) noexcept
+	{
+		this->culling_mask = culling_mask;
+	}
 	
 	/// Returns whether the scene object is active.
-	bool is_active() const;
+	[[nodiscard]] inline bool is_active() const noexcept
+	{
+		return active;
+	}
 
 	/**
 	 * Returns the transform.
 	 */
-	const transform_type& get_transform() const;
+	[[nodiscard]] inline const transform_type& get_transform() const noexcept
+	{
+		return transform[1];
+	}
 
 	/**
 	 * Returns the transform's translation vector.
 	 */
-	const vector_type& get_translation() const;
+	[[nodiscard]] inline const vector_type& get_translation() const noexcept
+	{
+		return transform[1].translation;
+	}
 
 	/**
 	 * Returns the transform's rotation quaternion.
 	 */
-	const quaternion_type& get_rotation() const;
+	[[nodiscard]] inline const quaternion_type& get_rotation() const noexcept
+	{
+		return transform[1].rotation;
+	}
 
 	/**
 	 * Returns the transform's scale vector.
 	 */
-	const vector_type& get_scale() const;
+	[[nodiscard]] inline const vector_type& get_scale() const noexcept
+	{
+		return transform[1].scale;
+	}
 
 	/**
 	 * Returns the transform tween.
 	 */
-	const tween<transform_type>& get_transform_tween() const;
-	tween<transform_type>& get_transform_tween();
+	/// @{
+	[[nodiscard]] inline const tween<transform_type>& get_transform_tween() const noexcept
+	{
+		return transform;
+	}
+	[[nodiscard]] inline tween<transform_type>& get_transform_tween() noexcept
+	{
+		return transform;
+	}
+	/// @}
 
 	/**
 	 * Returns the local-space (untransformed) bounds of the object.
 	 */
-	virtual const bounding_volume_type& get_local_bounds() const = 0;
+	[[nodiscard]] virtual const bounding_volume_type& get_local_bounds() const = 0;
 	
 	/**
 	 * Returns the world-space (transformed) bounds of the object.
 	 */
-	virtual const bounding_volume_type& get_world_bounds() const = 0;
+	[[nodiscard]] virtual const bounding_volume_type& get_world_bounds() const = 0;
 	
 	/**
 	 * Returns the culling mask of the object.
 	 */
-	const bounding_volume_type* get_culling_mask() const;
+	[[nodiscard]] inline const bounding_volume_type* get_culling_mask() const noexcept
+	{
+		return culling_mask;
+	}
 
 protected:
 	static std::size_t next_object_type_id();
@@ -163,79 +201,10 @@ private:
 	 */
 	virtual void transformed();
 
-	bool active;
+	bool active{true};
 	tween<transform_type> transform;
-	const bounding_volume_type* culling_mask;
+	const bounding_volume_type* culling_mask{nullptr};
 };
-
-inline void object_base::set_active(bool active)
-{
-	this->active = active;
-}
-
-inline void object_base::set_transform(const transform_type& transform)
-{
-	this->transform[1] = transform;
-	transformed();
-}
-
-inline void object_base::set_translation(const vector_type& translation)
-{
-	transform[1].translation = translation;
-	transformed();
-}
-
-inline void object_base::set_rotation(const quaternion_type& rotation)
-{
-	transform[1].rotation = rotation;
-	transformed();
-}
-
-inline void object_base::set_scale(const vector_type& scale)
-{
-	transform[1].scale = scale;
-	transformed();
-}
-
-inline bool object_base::is_active() const
-{
-	return active;
-}
-
-inline const typename object_base::transform_type& object_base::get_transform() const
-{
-	return transform[1];
-}
-
-inline const typename object_base::vector_type& object_base::get_translation() const
-{
-	return get_transform().translation;
-}
-
-inline const typename object_base::quaternion_type& object_base::get_rotation() const
-{
-	return get_transform().rotation;
-}
-
-inline const typename object_base::vector_type& object_base::get_scale() const
-{
-	return get_transform().scale;
-}
-
-inline const tween<typename object_base::transform_type>& object_base::get_transform_tween() const
-{
-	return transform;
-}
-
-inline tween<typename object_base::transform_type>& object_base::get_transform_tween()
-{
-	return transform;
-}
-
-inline const typename object_base::bounding_volume_type* object_base::get_culling_mask() const
-{
-	return culling_mask;
-}
 
 /**
  * Abstract base class for lights, cameras, model instances, and other scene objects.
@@ -249,20 +218,15 @@ public:
 	/// Unique type ID for this scene object type.
 	static const std::atomic<std::size_t> object_type_id;
 	
-	/// @copydoc object_base::get_object_type_id() const
-	virtual const std::size_t get_object_type_id() const final;
+	inline const std::size_t get_object_type_id() const noexcept final
+	{
+		return object_type_id;
+	}
 };
 
 template <typename T>
 const std::atomic<std::size_t> object<T>::object_type_id{object_base::next_object_type_id()};
 
-template <typename T>
-inline const std::size_t object<T>::get_object_type_id() const
-{
-	return object_type_id;
-}
-
 } // namespace scene
 
 #endif // ANTKEEPER_SCENE_OBJECT_HPP
-

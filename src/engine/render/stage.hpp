@@ -39,22 +39,6 @@ public:
 	 * @param ctx Render context.
 	 */
 	virtual void execute(render::context& ctx) = 0;
-	
-	/**
-	 * Sets the priority of the stage's execution order in the render pipeline.
-	 *
-	 * @param priority Stage execution order priority. Stages with lower priorities are executed first.
-	 */
-	void set_priority(int priority);
-	
-	/// Returns the priority of the stage's execution order in the render pipeline.
-	[[nodiscard]] inline int get_priority() const noexcept
-	{
-		return priority;
-	}
-	
-private:
-	int priority{0};
 };
 
 } // namespace render

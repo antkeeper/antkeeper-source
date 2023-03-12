@@ -32,13 +32,7 @@ static float3 interpolate_direction(const float3& x, const float3& y, float a)
 }
 
 directional_light::directional_light():
-	direction(config::global_forward, interpolate_direction),
-	shadow_caster(false),
-	shadow_framebuffer(nullptr),
-	shadow_bias(0.005f),
-	shadow_cascade_count(4),
-	shadow_cascade_coverage(1.0f),
-	shadow_cascade_distribution(0.8f)
+	direction(config::global_forward, interpolate_direction)
 {
 	shadow_cascade_distances.resize(shadow_cascade_count);
 	shadow_cascade_matrices.resize(shadow_cascade_count);

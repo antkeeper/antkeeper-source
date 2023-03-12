@@ -73,7 +73,7 @@ resample_pass::resample_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 }
 
-void resample_pass::render(const render::context& ctx, render::queue& queue)
+void resample_pass::render(render::context& ctx)
 {
 	for (const auto& command: command_buffer)
 	{

@@ -50,19 +50,21 @@ void orbit_system::update(float t, float dt)
 		positions[i] = ephemeris->trajectories[i].position(time) * 1000.0;
 	
 	// Propagate orbits
-	registry.view<orbit_component>().each(
-	[&](entity::id entity_eid, auto& orbit)
-	{
-		orbit.position = positions[orbit.ephemeris_index] * orbit.scale;
-		
-		entity::id parent_id = orbit.parent;
-		while (parent_id != entt::null)
+	registry.view<orbit_component>().each
+	(
+		[&](entity::id entity_eid, auto& orbit)
 		{
-			const orbit_component& parent_orbit = registry.get<orbit_component>(parent_id);
-			orbit.position += positions[parent_orbit.ephemeris_index] * parent_orbit.scale;
-			parent_id = parent_orbit.parent;
+			orbit.position = positions[orbit.ephemeris_index] * orbit.scale;
+			
+			entity::id parent_id = orbit.parent;
+			while (parent_id != entt::null)
+			{
+				const orbit_component& parent_orbit = registry.get<orbit_component>(parent_id);
+				orbit.position += positions[parent_orbit.ephemeris_index] * parent_orbit.scale;
+				parent_id = parent_orbit.parent;
+			}
 		}
-	});
+	);
 }
 
 void orbit_system::set_ephemeris(std::shared_ptr<physics::orbit::ephemeris<double>> ephemeris)

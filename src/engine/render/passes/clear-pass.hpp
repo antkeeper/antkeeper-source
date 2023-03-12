@@ -34,7 +34,7 @@ class clear_pass: public pass
 public:
 	clear_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer);
 	
-	void render(const render::context& ctx, render::queue& queue) override;
+	void render(render::context& ctx) override;
 	
 	/**
 	 * Sets the buffers to be cleared.

@@ -52,7 +52,7 @@ public:
 	 * @param ctx Render context.
 	 * @param queue Render queue.
 	 */
-	void render(const render::context& ctx, render::queue& queue) override;
+	void render(render::context& ctx) override;
 
 private:
 	/**
@@ -62,7 +62,7 @@ private:
 	 * @param ctx Render context.
 	 * @param queue Render queue.
 	 */
-	void render_csm(const scene::directional_light& light, const render::context& ctx, render::queue& queue) const;
+	void render_csm(const scene::directional_light& light, render::context& ctx);
 	
 	std::unique_ptr<gl::shader_program> unskinned_shader_program;
 	const gl::shader_variable* unskinned_model_view_projection_var;

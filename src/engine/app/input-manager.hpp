@@ -51,14 +51,18 @@ public:
 	virtual void update() = 0;
 	
 	/**
-	 * Makes the cursor visible.
+	 * Shows or hides the cursor.
+	 *
+	 * @param visible `true` to show the cursor, `false` to hide it.
 	 */
-	virtual void show_cursor() = 0;
+	virtual void set_cursor_visible(bool visible) = 0;
 	
 	/**
-	 * Makes the cursor invisible.
+	 * Enables or disables relative mouse mode.
+	 *
+	 * @param enabled `true` to enable relative mouse mode, `false` to disable it.
 	 */
-	virtual void hide_cursor() = 0;
+	virtual void set_relative_mouse_mode(bool enabled) = 0;
 	
 	/**
 	 * Returns the event queue associated with registered input devices.

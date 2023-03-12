@@ -60,8 +60,9 @@ outline_pass::outline_pass(gl::rasterizer* rasterizer, const gl::framebuffer* fr
 	stroke_color_var = stroke_shader->variable("color");
 }
 
-void outline_pass::render(const render::context& ctx, render::queue& queue)
+void outline_pass::render(render::context& ctx)
 {
+	/*
 	rasterizer->use_framebuffer(*framebuffer);
 	
 	// Determine viewport based on framebuffer resolution
@@ -89,6 +90,7 @@ void outline_pass::render(const render::context& ctx, render::queue& queue)
 		
 		// Setup fill shader
 		rasterizer->use_program(*fill_shader);
+		
 		
 		// Render fills
 		for (const render::operation& operation: queue)
@@ -143,6 +145,7 @@ void outline_pass::render(const render::context& ctx, render::queue& queue)
 	}
 	
 	glDisable(GL_STENCIL_TEST);
+	*/
 }
 
 void outline_pass::set_outline_width(float width)

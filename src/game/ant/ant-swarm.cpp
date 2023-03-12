@@ -20,7 +20,7 @@
 #include "game/ant/ant-swarm.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/steering-component.hpp"
-#include "game/components/model-component.hpp"
+#include "game/components/scene-component.hpp"
 #include "game/components/picking-component.hpp"
 #include "game/components/ant-caste-component.hpp"
 #include <engine/resources/resource-manager.hpp>
@@ -35,16 +35,16 @@
  *
  * @see https://math.stackexchange.com/questions/87230/picking-random-points-in-the-volume-of-sphere-with-uniform-probability/87238#87238
  */
-template <class T, class Generator>
-static math::vector3<T> sphere_random(Generator& rng)
+template <class T, class URBG>
+static math::vector3<T> sphere_random(URBG& urbg)
 {
 	std::uniform_real_distribution<T> distribution(T{-1}, T{1});
 	
 	math::vector3<T> position;
 	for (std::size_t i = 0; i < 3; ++i)
-		position[i] = distribution(rng);
+		position[i] = distribution(urbg);
 	
-	return math::normalize(position) * std::cbrt(distribution(rng));
+	return math::normalize(position) * std::cbrt(distribution(urbg));
 }
 
 entity::id create_ant_swarm(::game& ctx)
@@ -78,17 +78,11 @@ entity::id create_ant_swarm(::game& ctx)
 	transform.warp = true;
 	ctx.entity_registry->emplace<::transform_component>(swarm_eid, transform);
 	
-	// Init male model component
-	::model_component male_model;
-	male_model.render_model = ctx.resource_manager->load<render::model>("male-boid.mdl");
-	male_model.instance_count = 0;
-	male_model.layers = 1;
+	// Load male model
+	std::shared_ptr<render::model> male_model = ctx.resource_manager->load<render::model>("male-boid.mdl");
 	
-	// Init queen model component
-	::model_component queen_model;
-	queen_model.render_model = ctx.resource_manager->load<render::model>("queen-boid.mdl");
-	queen_model.instance_count = 0;
-	queen_model.layers = 1;
+	// Load queen model
+	std::shared_ptr<render::model> queen_model = ctx.resource_manager->load<render::model>("queen-boid.mdl");
 	
 	// Init steering component
 	::steering_component steering;
@@ -120,15 +114,11 @@ entity::id create_ant_swarm(::game& ctx)
 	ant_caste_component male_caste;
 	male_caste.caste_type = ant_caste_type::male;
 	
-	// Construct and seed random number generator
-	std::random_device seed;
-    std::mt19937 rng(seed());
-	
 	// Create alates
 	for (std::size_t i = 0; i < alate_count; ++i)
 	{
 		// Generate random position in swarm sphere
-		steering.agent.position = swarm_center + sphere_random<float>(rng) * swarm_radius;
+		steering.agent.position = swarm_center + sphere_random<float>(ctx.rng) * swarm_radius;
 		transform.local.translation = steering.agent.position;
 		
 		entity::id alate_eid = ctx.entity_registry->create();
@@ -138,7 +128,7 @@ entity::id create_ant_swarm(::game& ctx)
 		{
 			// Create male
 			ctx.entity_registry->emplace<ant_caste_component>(alate_eid, male_caste);
-			ctx.entity_registry->emplace<::model_component>(alate_eid, male_model);
+			ctx.entity_registry->emplace<::scene_component>(alate_eid, std::make_unique<scene::static_mesh>(male_model), std::uint8_t{1});
 			
 			transform.local.scale = male_scale;
 			transform.world = transform.local;
@@ -151,7 +141,7 @@ entity::id create_ant_swarm(::game& ctx)
 		{
 			// Create queen
 			ctx.entity_registry->emplace<ant_caste_component>(alate_eid, queen_caste);
-			ctx.entity_registry->emplace<::model_component>(alate_eid, queen_model);
+			ctx.entity_registry->emplace<::scene_component>(alate_eid, std::make_unique<scene::static_mesh>(queen_model), std::uint8_t{1});
 			
 			transform.local.scale = queen_scale;
 			transform.world = transform.local;

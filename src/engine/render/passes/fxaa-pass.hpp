@@ -56,7 +56,7 @@ public:
 	 * @param ctx Render context.
 	 * @param queue Render queue.
 	 */
-	void render(const render::context& ctx, render::queue& queue) override;
+	void render(render::context& ctx) override;
 	
 	/**
 	 * Sets the FXAA source texture.

@@ -17,21 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_PLACEMENT_COMPONENT_HPP
-#define ANTKEEPER_GAME_PLACEMENT_COMPONENT_HPP
+#include <engine/render/stages/queue-stage.hpp>
+#include <engine/scene/object.hpp>
+#include <algorithm>
+#include <execution>
 
-#include <engine/geom/mesh.hpp>
-#include <engine/utility/fundamental-types.hpp>
+namespace render {
 
-
-struct locomotion_component
+void queue_stage::execute(render::context& ctx)
 {
-	//const geom::mesh::face* triangle;
-	//float3 barycentric_position;
-	
-	float yaw;
-};
+	// For each visible object in the render context
+	std::for_each
+	(
+		std::execution::seq,
+		std::begin(ctx.objects),
+		std::end(ctx.objects),
+		[&ctx](scene::object_base* object)
+		{
+			object->render(ctx);
+		}
+	);
+}
 
-
-#endif // ANTKEEPER_GAME_PLACEMENT_COMPONENT_HPP
-
+} // namespace render

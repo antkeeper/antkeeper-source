@@ -120,29 +120,29 @@ void constraint_system::on_constraint_stack_update(entity::registry& registry, e
 
 void constraint_system::handle_constraint(transform_component& transform, entity::id constraint_eid, float dt)
 {
-	if (auto constraint = registry.try_get<copy_translation_constraint>(constraint_eid); constraint)
+	if (auto constraint = registry.try_get<copy_translation_constraint>(constraint_eid))
 		handle_copy_translation_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<copy_rotation_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<copy_rotation_constraint>(constraint_eid))
 		handle_copy_rotation_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<copy_scale_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<copy_scale_constraint>(constraint_eid))
 		handle_copy_scale_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<copy_transform_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<copy_transform_constraint>(constraint_eid))
 		handle_copy_transform_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<track_to_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<track_to_constraint>(constraint_eid))
 		handle_track_to_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<three_dof_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<three_dof_constraint>(constraint_eid))
 		handle_three_dof_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<pivot_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<pivot_constraint>(constraint_eid))
 		handle_pivot_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<child_of_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<child_of_constraint>(constraint_eid))
 		handle_child_of_constraint(transform, *constraint);
-	else if (auto constraint = registry.try_get<spring_to_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<spring_to_constraint>(constraint_eid))
 		handle_spring_to_constraint(transform, *constraint, dt);
-	else if (auto constraint = registry.try_get<spring_translation_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<spring_translation_constraint>(constraint_eid))
 		handle_spring_translation_constraint(transform, *constraint, dt);
-	else if (auto constraint = registry.try_get<spring_rotation_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<spring_rotation_constraint>(constraint_eid))
 		handle_spring_rotation_constraint(transform, *constraint, dt);
-	else if (auto constraint = registry.try_get<ease_to_constraint>(constraint_eid); constraint)
+	else if (auto constraint = registry.try_get<ease_to_constraint>(constraint_eid))
 		handle_ease_to_constraint(transform, *constraint, dt);
 }
 

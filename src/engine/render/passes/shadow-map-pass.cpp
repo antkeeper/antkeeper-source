@@ -39,10 +39,11 @@
 #include <engine/math/projection.hpp>
 #include <cmath>
 #include <glad/glad.h>
+#include <execution>
 
 namespace render {
 
-static bool operation_compare(const render::operation& a, const render::operation& b);
+static bool operation_compare(const render::operation* a, const render::operation* b);
 
 shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager):
 	pass(rasterizer, nullptr)
@@ -73,11 +74,11 @@ shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* r
 	}
 }
 
-void shadow_map_pass::render(const render::context& ctx, render::queue& queue)
+void shadow_map_pass::render(render::context& ctx)
 {
 	// For each light
-	const std::list<scene::object_base*>* lights = ctx.collection->get_objects(scene::light::object_type_id);
-	for (const scene::object_base* object: *lights)
+	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
+	for (const scene::object_base* object: lights)
 	{
 		// Ignore inactive lights
 		if (!object->is_active())
@@ -106,11 +107,11 @@ void shadow_map_pass::render(const render::context& ctx, render::queue& queue)
 		}
 		
 		// Render cascaded shadow maps
-		render_csm(directional_light, ctx, queue);
+		render_csm(directional_light, ctx);
 	}
 }
 
-void shadow_map_pass::render_csm(const scene::directional_light& light, const render::context& ctx, render::queue& queue) const
+void shadow_map_pass::render_csm(const scene::directional_light& light, render::context& ctx)
 {
 	rasterizer->use_framebuffer(*light.get_shadow_framebuffer());
 	
@@ -189,8 +190,8 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 	float4x4 cropped_view_projection;
 	float4x4 model_view_projection;
 	
-	// Sort render queue
-	queue.sort(operation_compare);
+	// Sort render operations
+	std::sort(std::execution::par_unseq, ctx.operations.begin(), ctx.operations.end(), operation_compare);
 	
 	gl::shader_program* active_shader_program = nullptr;
 	
@@ -242,9 +243,9 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 		// Calculate world-space to cascade texture-space transformation matrix
 		cascade_matrices[i] = bias_tile_matrices[i] * cropped_view_projection;
 		
-		for (const render::operation& operation: queue)
+		for (const render::operation* operation: ctx.operations)
 		{
-			const render::material* material = operation.material;
+			const render::material* material = operation->material.get();
 			if (material)
 			{
 				// Skip materials which don't cast shadows
@@ -267,7 +268,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 			}
 			
 			// Switch shader programs if necessary
-			gl::shader_program* shader_program = (operation.bone_count) ? skinned_shader_program.get() : unskinned_shader_program.get();
+			gl::shader_program* shader_program = (operation->skinning_palette.empty()) ? unskinned_shader_program.get() : skinned_shader_program.get();
 			if (active_shader_program != shader_program)
 			{
 				active_shader_program = shader_program;
@@ -275,7 +276,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 			}
 			
 			// Calculate model-view-projection matrix
-			model_view_projection = cropped_view_projection * operation.transform;
+			model_view_projection = cropped_view_projection * operation->transform;
 			
 			// Upload operation-dependent parameters to shader program
 			if (active_shader_program == unskinned_shader_program.get())
@@ -288,17 +289,17 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, const re
 			}
 
 			// Draw geometry
-			rasterizer->draw_arrays(*operation.vertex_array, operation.drawing_mode, operation.start_index, operation.index_count);
+			rasterizer->draw_arrays(*operation->vertex_array, operation->drawing_mode, operation->start_index, operation->index_count);
 		}
 	}
 }
 
-bool operation_compare(const render::operation& a, const render::operation& b)
+bool operation_compare(const render::operation* a, const render::operation* b)
 {
-	const bool skinned_a = (a.bone_count);
-	const bool skinned_b = (b.bone_count);
-	const bool two_sided_a = (a.material) ? a.material->is_two_sided() : false;
-	const bool two_sided_b = (b.material) ? b.material->is_two_sided() : false;
+	const bool skinned_a = !a->skinning_palette.empty();
+	const bool skinned_b = !b->skinning_palette.empty();
+	const bool two_sided_a = (a->material) ? a->material->is_two_sided() : false;
+	const bool two_sided_b = (b->material) ? b->material->is_two_sided() : false;
 	
 	if (skinned_a)
 	{
@@ -310,7 +311,7 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 				if (two_sided_b)
 				{
 					// A and B are both two-sided, sort by VAO
-					return (a.vertex_array < b.vertex_array);
+					return (a->vertex_array < b->vertex_array);
 				}
 				else
 				{
@@ -328,7 +329,7 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 				else
 				{
 					// A and B are both one-sided, sort by VAO
-					return (a.vertex_array < b.vertex_array);
+					return (a->vertex_array < b->vertex_array);
 				}
 			}
 		}
@@ -353,7 +354,7 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 				if (two_sided_b)
 				{
 					// A and B are both two-sided, sort by VAO
-					return (a.vertex_array < b.vertex_array);
+					return (a->vertex_array < b->vertex_array);
 				}
 				else
 				{
@@ -371,7 +372,7 @@ bool operation_compare(const render::operation& a, const render::operation& b)
 				else
 				{
 					// A and B are both one-sided, sort by VAO
-					return (a.vertex_array < b.vertex_array);
+					return (a->vertex_array < b->vertex_array);
 				}
 			}
 		}

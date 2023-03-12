@@ -23,7 +23,6 @@
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/render/context.hpp>
-#include <engine/render/queue.hpp>
 
 namespace render {
 
@@ -36,7 +35,7 @@ public:
 	pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer);
 	virtual ~pass();
 
-	virtual void render(const render::context& ctx, render::queue& queue) = 0;
+	virtual void render(render::context& ctx) = 0;
 
 	void set_enabled(bool enabled);
 	bool is_enabled() const;

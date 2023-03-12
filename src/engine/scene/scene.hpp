@@ -30,7 +30,7 @@ namespace scene {}
 #include <engine/scene/directional-light.hpp>
 #include <engine/scene/light.hpp>
 #include <engine/scene/lod-group.hpp>
-#include <engine/scene/model-instance.hpp>
+#include <engine/scene/static-mesh.hpp>
 #include <engine/scene/object.hpp>
 #include <engine/scene/point-light.hpp>
 #include <engine/scene/spot-light.hpp>

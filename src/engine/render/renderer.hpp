@@ -20,22 +20,11 @@
 #ifndef ANTKEEPER_RENDER_RENDERER_HPP
 #define ANTKEEPER_RENDER_RENDERER_HPP
 
-#include <engine/render/operation.hpp>
 #include <engine/render/context.hpp>
-#include <engine/render/queue.hpp>
-#include <engine/render/stage/culling-stage.hpp>
-#include <engine/gl/vertex-array.hpp>
-#include <vector>
-
-namespace scene
-{
-	class collection;
-	class object_base;
-	class model_instance;
-	class billboard;
-	class lod_group;
-	class text;
-}
+#include <engine/render/stages/culling-stage.hpp>
+#include <engine/render/stages/queue-stage.hpp>
+#include <engine/scene/collection.hpp>
+#include <memory>
 
 namespace render {
 
@@ -60,21 +49,11 @@ public:
 	 */
 	void render(float t, float dt, float alpha, const scene::collection& collection);
 	
-	/**
-	 * Sets the VAO to be used when generating render operations for billboards.
-	 */
-	void set_billboard_vao(gl::vertex_array* vao);
-	
 private:
-	void process_object(const render::context& ctx, render::queue& queue, const scene::object_base* object) const;
-	void process_model_instance(const render::context& ctx, render::queue& queue, const scene::model_instance* model_instance) const;
-	void process_billboard(const render::context& ctx, render::queue& queue, const scene::billboard* billboard) const;
-	void process_lod_group(const render::context& ctx, render::queue& queue, const scene::lod_group* lod_group) const;
-	void process_text(const render::context& ctx, render::queue& queue, const scene::text* text) const;
-
-	mutable render::operation billboard_op;
-	std::vector<float4x4> skinning_palette;
+	render::context ctx;
+	
 	std::unique_ptr<render::culling_stage> culling_stage;
+	std::unique_ptr<render::queue_stage> queue_stage;
 };
 
 } // namespace render

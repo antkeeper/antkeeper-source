@@ -124,40 +124,39 @@ void astronomy_system::update(float t, float dt)
 	update_icrf_to_eus(*reference_body, *reference_orbit);
 	
 	// Set the transform component translations of orbiting bodies to their topocentric positions
-	registry.view<celestial_body_component, orbit_component, transform_component>().each(
-	[&](entity::id entity_id, const auto& body, const auto& orbit, auto& transform)
-	{
-		// Skip reference body entity
-		if (entity_id == reference_body_eid)
-			return;
-		
-		// Transform orbital Cartesian position (r) from the ICRF frame to the EUS frame
-		const double3 r_eus = icrf_to_eus * orbit.position;
-		
-		// Evaluate body orientation polynomials
-		const double body_pole_ra = math::polynomial::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
-		const double body_pole_dec = math::polynomial::horner(body.pole_dec.begin(), body.pole_dec.end(), time_centuries);
-		const double body_prime_meridian = math::polynomial::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
-		
-		// Determine body orientation in the ICRF frame
-		math::quaternion<double> rotation_icrf = physics::orbit::frame::bcbf::to_bci
-		(
-			body_pole_ra,
-			body_pole_dec,
-			body_prime_meridian
-		).r;
-		
-		// Transform body orientation from the ICRF frame to the EUS frame.
-		math::quaternion<double> rotation_eus = math::normalize(icrf_to_eus.r * rotation_icrf);
-		
-		// Update local transform
-		if (orbit.parent != entt::null)
+	registry.view<celestial_body_component, orbit_component, transform_component>().each
+	(
+		[&](entity::id entity_id, const auto& body, const auto& orbit, auto& transform)
 		{
+			// Skip reference body entity
+			if (entity_id == reference_body_eid || orbit.parent == entt::null)
+				return;
+			
+			// Transform orbital Cartesian position (r) from the ICRF frame to the EUS frame
+			const double3 r_eus = icrf_to_eus * orbit.position;
+			
+			// Evaluate body orientation polynomials
+			const double body_pole_ra = math::polynomial::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
+			const double body_pole_dec = math::polynomial::horner(body.pole_dec.begin(), body.pole_dec.end(), time_centuries);
+			const double body_prime_meridian = math::polynomial::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
+			
+			// Determine body orientation in the ICRF frame
+			math::quaternion<double> rotation_icrf = physics::orbit::frame::bcbf::to_bci
+			(
+				body_pole_ra,
+				body_pole_dec,
+				body_prime_meridian
+			).r;
+			
+			// Transform body orientation from the ICRF frame to the EUS frame.
+			math::quaternion<double> rotation_eus = math::normalize(icrf_to_eus.r * rotation_icrf);
+			
+			// Update local transform
 			transform.local.translation = math::normalize(float3(r_eus));
 			transform.local.rotation = math::quaternion<float>(rotation_eus);
 			transform.local.scale = {1.0f, 1.0f, 1.0f};
 		}
-	});
+	);
 	
 	constexpr double3 bounce_normal = {0, 1, 0};
 	double3 bounce_illuminance = {0, 0, 0};

@@ -317,20 +317,20 @@ void sdl_input_manager::update()
 	this->event_queue.flush();
 }
 
-void sdl_input_manager::show_cursor()
+void sdl_input_manager::set_cursor_visible(bool visible)
 {
-	if (SDL_ShowCursor(SDL_ENABLE) < 0)
+	if (SDL_ShowCursor((visible) ? SDL_ENABLE : SDL_DISABLE) < 0)
 	{
-		debug::log::error("Failed to show cursor: \"{}\"", SDL_GetError());
+		debug::log::error("Failed to set cursor visibility: \"{}\"", SDL_GetError());
 		SDL_ClearError();
 	}
 }
 
-void sdl_input_manager::hide_cursor()
+void sdl_input_manager::set_relative_mouse_mode(bool enabled)
 {
-	if (SDL_ShowCursor(SDL_DISABLE) < 0)
+	if (SDL_SetRelativeMouseMode((enabled) ? SDL_TRUE : SDL_FALSE) < 0)
 	{
-		debug::log::error("Failed to hide cursor: \"{}\"", SDL_GetError());
+		debug::log::error("Failed to set relative mouse mode: \"{}\"", SDL_GetError());
 		SDL_ClearError();
 	}
 }

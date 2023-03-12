@@ -17,48 +17,50 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SCENE_MODEL_INSTANCE_HPP
-#define ANTKEEPER_SCENE_MODEL_INSTANCE_HPP
+#ifndef ANTKEEPER_SCENE_STATIC_MESH_HPP
+#define ANTKEEPER_SCENE_STATIC_MESH_HPP
 
 #include <engine/scene/object.hpp>
 #include <engine/animation/pose.hpp>
 #include <engine/geom/aabb.hpp>
 #include <engine/render/model.hpp>
+#include <engine/render/operation.hpp>
 #include <vector>
 
 namespace scene {
 
-class model_instance: public object<model_instance>
+/**
+ *
+ */
+class static_mesh: public object<static_mesh>
 {
 public:
 	typedef geom::aabb<float> aabb_type;
 	
 	/**
-	 * Constructs a model instance and sets its model.
+	 * Constructs a static mesh from a model.
 	 *
-	 * @param model Model with which to associate the model instance.
+	 * @param model Model from which the static mesh will be constructed.
 	 */
-	explicit model_instance(std::shared_ptr<render::model> model);
+	explicit static_mesh(std::shared_ptr<render::model> model);
 	
 	/**
 	 * Constructs a model instance.
 	 */
-	model_instance() = default;
-
+	static_mesh() = default;
+	
 	/**
 	 * Sets the model with which this model instance is associated. This will reset the pose and all overwritten materials.
 	 */
 	void set_model(std::shared_ptr<render::model> model);
-
+	
 	/**
 	 * Overwrites the material of a model group for this model instance.
 	 *
-	 * @param group_index Index of a model group.
+	 * @param index Index of a model group.
 	 * @param material Pointer to the material which should overwrite the model group's material. A value of `nullptr` indicates the material will not be overwritten.
 	 */
-	void set_material(std::size_t group_index, std::shared_ptr<render::material> material);
-	
-	void set_instanced(bool instanced, std::size_t instance_count = 1);
+	void set_material(std::size_t index, std::shared_ptr<render::material> material);
 	
 	/**
 	 * Resets all overwritten materials.
@@ -103,46 +105,23 @@ public:
 	}
 	/// @}
 	
-	/**
-	 * Returns the materials of this model instance.
-	 */
-	[[nodiscard]] inline const std::vector<std::shared_ptr<render::material>>& get_materials() const noexcept
-	{
-		return materials;
-	}
+	void render(render::context& ctx) const override;
 	
-	/**
-	 * Returns `true` if the model instance is instanced, `false` otherwise.
-	 */
-	[[nodiscard]] inline bool is_instanced() const noexcept
-	{
-		return instanced;
-	}
-	
-	/**
-	 * Returns the number of instances, if the model is instanced.
-	 */
-	[[nodiscard]] inline std::size_t get_instance_count() const noexcept
-	{
-		return instance_count;
-	}
-	
-	virtual void update_tweens();
+	void update_tweens() override;
 	
 	void update_bounds();
 
 private:
-	virtual void transformed();
+	void transformed() override;
 	
 	std::shared_ptr<render::model> model;
+	mutable std::vector<render::operation> operations;
 	::pose pose;
-	std::vector<std::shared_ptr<render::material>> materials;
+	
 	aabb_type local_bounds{{0, 0, 0}, {0, 0, 0}};
 	aabb_type world_bounds{{0, 0, 0}, {0, 0, 0}};
-	bool instanced{false};
-	std::size_t instance_count{0};
 };
 
 } // namespace scene
 
-#endif // ANTKEEPER_SCENE_MODEL_INSTANCE_HPP
+#endif // ANTKEEPER_SCENE_STATIC_MESH_HPP

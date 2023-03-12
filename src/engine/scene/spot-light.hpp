@@ -35,7 +35,10 @@ public:
 	spot_light();
 	
 	/// Returns light_type::spot
-	virtual light_type get_light_type() const;
+	[[nodiscard]] inline light_type get_light_type() const noexcept override
+	{
+		return light_type::spot;
+	}
 	
 	/**
 	 * Sets the attenuation factors of the light.
@@ -52,85 +55,63 @@ public:
 	void set_cutoff(const float2& cutoff);
 	
 	/// Returns the direction vector.
-	const float3& get_direction() const;
+	[[nodiscard]] inline const float3& get_direction() const noexcept
+	{
+		return direction[1];
+	}
 	
 	/// Returns the attenuation factors of the light.
-	const float3& get_attenuation() const;
+	[[nodiscard]] inline const float3& get_attenuation() const noexcept
+	{
+		return attenuation[1];
+	}
 	
 	/// Returns the spot light cutoff angles.
-	const float2& get_cutoff() const;
+	[[nodiscard]] inline const float2& get_cutoff() const noexcept
+	{
+		return cutoff[1];
+	}
 	
 	/// Returns the cosine of the spot light cutoff angles.
-	const float2& get_cosine_cutoff() const;
+	[[nodiscard]] inline const float2& get_cosine_cutoff() const noexcept
+	{
+		return cosine_cutoff[1];
+	}
 	
 	/// Returns the direction tween.
-	const tween<float3>& get_direction_tween() const;
+	[[nodiscard]] inline const tween<float3>& get_direction_tween() const noexcept
+	{
+		return direction;
+	}
 	
 	/// Returns the attenuation tween.
-	const tween<float3>& get_attenuation_tween() const;
+	[[nodiscard]] inline const tween<float3>& get_attenuation_tween() const noexcept
+	{
+		return attenuation;
+	}
 	
 	/// Returns the cutoff tween.
-	const tween<float2>& get_cutoff_tween() const;
+	[[nodiscard]] inline const tween<float2>& get_cutoff_tween() const noexcept
+	{
+		return cutoff;
+	}
 	
 	/// Returns the cosine cutoff tween.
-	const tween<float2>& get_cosine_cutoff_tween() const;
+	[[nodiscard]] inline const tween<float2>& get_cosine_cutoff_tween() const noexcept
+	{
+		return cosine_cutoff;
+	}
 
-	/// @copydoc object_base::update_tweens();
-	virtual void update_tweens();
+	void update_tweens() override;
 
 private:
-	virtual void transformed();
+	void transformed() override;
 
 	tween<float3> direction;
 	tween<float3> attenuation;
 	tween<float2> cutoff;
 	tween<float2> cosine_cutoff;
 };
-
-inline light_type spot_light::get_light_type() const
-{
-	return light_type::spot;
-}
-
-inline const float3& spot_light::get_direction() const
-{
-	return direction[1];
-}
-
-inline const float3& spot_light::get_attenuation() const
-{
-	return attenuation[1];
-}
-
-inline const float2& spot_light::get_cutoff() const
-{
-	return cutoff[1];
-}
-
-inline const float2& spot_light::get_cosine_cutoff() const
-{
-	return cosine_cutoff[1];
-}
-
-inline const tween<float3>& spot_light::get_direction_tween() const
-{
-	return direction;
-}
-
-inline const tween<float3>& spot_light::get_attenuation_tween() const
-{
-	return attenuation;
-}
-
-inline const tween<float2>& spot_light::get_cutoff_tween() const
-{
-	return cutoff;
-}
-
-inline const tween<float2>& spot_light::get_cosine_cutoff_tween() const
-{
-	return cosine_cutoff;
-}
 
 } // namespace scene
 

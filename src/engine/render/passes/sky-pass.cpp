@@ -168,7 +168,7 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	rebuild_sky_lut_command_buffer();
 }
 
-void sky_pass::render(const render::context& ctx, render::queue& queue)
+void sky_pass::render(render::context& ctx)
 {
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);

@@ -107,7 +107,7 @@ void terrain_system::update(float t, float dt)
 				{
 					patch* node_patch = generate_patch(node);
 					patches[node] = node_patch;
-					scene_collection->add_object(node_patch->model_instance);
+					scene_collection->add_object(node_patch->static_mesh);
 				}
 			}
 		}
@@ -119,7 +119,7 @@ void terrain_system::update(float t, float dt)
 	for (auto it = patches.begin(); it != patches.end(); ++it)
 	{
 		bool active = (quadtree.contains(it->first) && quadtree.is_leaf(it->first));
-		it->second->model_instance->set_active(active);
+		it->second->static_mesh->set_active(active);
 	}
 	*/
 }
@@ -645,7 +645,7 @@ terrain_system::patch* terrain_system::generate_patch(quadtree_node_type node)
 	patch* node_patch = new patch();
 	node_patch->mesh = nullptr;//generate_patch_mesh(node);
 	node_patch->model = generate_patch_model(node);
-	node_patch->model_instance = new scene::model_instance(node_patch->model);
+	node_patch->static_mesh = new scene::static_mesh(node_patch->model);
 	return node_patch;
 	*/
 	return nullptr;

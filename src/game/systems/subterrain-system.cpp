@@ -18,7 +18,6 @@
  */
 
 #include "game/systems/subterrain-system.hpp"
-#include "game/components/model-component.hpp"
 #include "game/components/cavity-component.hpp"
 #include <engine/entity/id.hpp>
 #include <engine/render/model.hpp>
@@ -297,8 +296,8 @@ void subterrain_system::update(float t, float dt)
 		//auto subterrain_entity = registry.create();
 		//registry.assign<model_component>(subterrain_entity, subterrain_model);
 		
-		subterrain_model_instance = new scene::model_instance(subterrain_model);
-		collection->add_object(subterrain_model_instance);
+		subterrain_static_mesh = new scene::static_mesh(subterrain_model);
+		collection->add_object(subterrain_static_mesh);
 	}
 
 	bool digging = false;

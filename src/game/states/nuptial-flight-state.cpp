@@ -27,11 +27,9 @@
 #include "game/systems/atmosphere-system.hpp"
 #include "game/systems/collision-system.hpp"
 #include "game/components/ant-caste-component.hpp"
-#include "game/components/locomotion-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/terrain-component.hpp"
 #include "game/components/camera-component.hpp"
-#include "game/components/model-component.hpp"
 #include "game/components/name-component.hpp"
 #include "game/components/constraint-stack-component.hpp"
 #include "game/components/steering-component.hpp"
@@ -110,10 +108,6 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	female_name_pool = ctx.resource_manager->load<text_file>("female-names-en.txt");
 	male_name_pool = ctx.resource_manager->load<text_file>("male-names-en.txt");
 	
-	// Init RNG
-	std::random_device random_device;
-	std::mt19937 rng(random_device());
-	
 	// Assign random ant names
 	std::uniform_int_distribution<> female_name_pool_distribution(0, static_cast<int>(female_name_pool->lines.size() - 1));
 	std::uniform_int_distribution<> male_name_pool_distribution(0, static_cast<int>(male_name_pool->lines.size() - 1));
@@ -126,7 +120,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 				ctx.entity_registry->emplace_or_replace<name_component>
 				(
 					entity_id,
-					male_name_pool->lines[male_name_pool_distribution(rng)]
+					male_name_pool->lines[male_name_pool_distribution(ctx.rng)]
 				);
 			}
 			else
@@ -134,7 +128,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 				ctx.entity_registry->emplace_or_replace<name_component>
 				(
 					entity_id,
-					female_name_pool->lines[female_name_pool_distribution(rng)]
+					female_name_pool->lines[female_name_pool_distribution(ctx.rng)]
 				);
 			}
 		}

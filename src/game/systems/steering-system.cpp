@@ -25,14 +25,14 @@
 #include <engine/ai/steering/behavior/seek.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/config.hpp>
-
+
 steering_system::steering_system(entity::registry& registry):
 	updatable_system(registry)
 {}
 
 void steering_system::update(float t, float dt)
 {
-	registry.view<steering_component, transform_component>().each
+	registry.group<steering_component>(entt::get<transform_component>).each
 	(
 		[&](entity::id entity_id, auto& steering, auto& transform)
 		{
@@ -93,4 +93,3 @@ void steering_system::update(float t, float dt)
 		}
 	);
 }
-

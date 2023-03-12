@@ -79,7 +79,7 @@ final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 }
 
-void final_pass::render(const render::context& ctx, render::queue& queue)
+void final_pass::render(render::context& ctx)
 {
 	// Update resolution
 	const auto viewport_size = framebuffer->get_dimensions();

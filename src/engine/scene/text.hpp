@@ -42,8 +42,7 @@ public:
 	/// Constructs a text object.
 	text();
 	
-	/// @copydoc scene::object_base::render(const render::context&, render::queue&) const
-	virtual void render(const render::context& ctx, render::queue& queue) const;
+	void render(render::context& ctx) const override;
 	
 	/**
 	 * Manually updates the text object if its font has been updated or altered in any way.
@@ -88,7 +87,7 @@ public:
 	void set_color(const float4& color);
 	
 	/// Returns the text material.
-	const std::shared_ptr<render::material>& get_material() const;
+	std::shared_ptr<render::material> get_material() const;
 	
 	/// Returns the text font.
 	const type::bitmap_font* get_font() const;
@@ -120,7 +119,6 @@ private:
 	mutable render::operation render_op;
 	aabb_type local_bounds;
 	aabb_type world_bounds;
-	std::shared_ptr<render::material> material;
 	const type::bitmap_font* font;
 	type::text_direction direction;
 	std::string content_u8;
@@ -133,9 +131,9 @@ private:
 	std::unique_ptr<gl::vertex_buffer> vbo;
 };
 
-inline const std::shared_ptr<render::material>& text::get_material() const
+inline  std::shared_ptr<render::material> text::get_material() const
 {
-	return material;
+	return render_op.material;
 }
 
 inline const type::bitmap_font* text::get_font() const

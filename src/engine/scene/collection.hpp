@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_SCENE_COLLECTION_HPP
 #define ANTKEEPER_SCENE_COLLECTION_HPP
 
-#include <list>
+#include <vector>
 #include <unordered_map>
 
 namespace scene {
@@ -52,32 +52,30 @@ public:
 	
 	/// Updates the tweens of all objects in the collection.
 	void update_tweens();
-
-	/// Returns a list of all objects in the collection.
-	const std::list<object_base*>* get_objects() const;
+	
+	/// Returns all objects in the collection.
+	[[nodiscard]] inline const std::vector<object_base*>& get_objects() const noexcept
+	{
+		return objects;
+	}
 	
 	/**
-	 * Returns a list of all objects in the collection with the specified type ID.
+	 * Returns all objects in the collection with the given type ID.
 	 *
 	 * @param type_id Scene object type ID.
-	 * @return List of scene objects with the specified type ID.
+	 *
+	 * @return Scene objects with the given type ID.
 	 */
-	const std::list<object_base*>* get_objects(std::size_t type_id) const;
+	[[nodiscard]] inline const std::vector<object_base*>& get_objects(std::size_t type_id) const
+	{
+		return object_map[type_id];
+	}
 
 private:
-	std::list<object_base*> objects;
-	mutable std::unordered_map<std::size_t, std::list<object_base*>> object_map;
+	std::vector<object_base*> objects;
+	
+	mutable std::unordered_map<std::size_t, std::vector<object_base*>> object_map;
 };
-
-inline const std::list<object_base*>* collection::get_objects() const
-{
-	return &objects;
-}
-
-inline const std::list<object_base*>* collection::get_objects(std::size_t type_id) const
-{
-	return &object_map[type_id];
-}
 
 } // namespace scene
 

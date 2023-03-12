@@ -37,13 +37,13 @@ void compositor::remove_passes()
 	passes.clear();
 }
 
-void compositor::composite(const render::context& ctx, render::queue& queue)
+void compositor::composite(render::context& ctx)
 {
 	for (pass* pass: passes)
 	{
 		if (pass->is_enabled())
 		{
-			pass->render(ctx, queue);
+			pass->render(ctx);
 		}
 	}
 }

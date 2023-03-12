@@ -28,7 +28,7 @@ namespace app {
 class sdl_window;
 
 /**
- * 
+ * Input manager implementation using SDL2.
  */
 class sdl_input_manager: public input_manager
 {
@@ -43,9 +43,9 @@ public:
 	 */
 	virtual ~sdl_input_manager();
 	
-	virtual void update();
-	virtual void show_cursor();
-	virtual void hide_cursor();
+	void update() override;
+	void set_cursor_visible(bool visible) override;
+	void set_relative_mouse_mode(bool enabled) override;
 
 private:
 	input::keyboard keyboard;

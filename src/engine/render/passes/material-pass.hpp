@@ -41,7 +41,7 @@ class material_pass: public pass
 public:
 	material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	
-	void render(const render::context& ctx, render::queue& queue) override;
+	void render(render::context& ctx) override;
 	
 	/// Sets the material to be used when a render operation is missing a material. If no fallback material is specified, render operations without materials will not be processed.
 	void set_fallback_material(std::shared_ptr<render::material> fallback);

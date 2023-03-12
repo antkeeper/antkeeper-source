@@ -27,16 +27,12 @@ namespace scene {
 class ambient_light: public light
 {
 public:
-	/// Returns light_type::ambient
-	virtual light_type get_light_type() const;
+	[[nodiscard]] inline light_type get_light_type() const noexcept override
+	{
+		return light_type::ambient;
+	}
 };
-
-inline light_type ambient_light::get_light_type() const
-{
-	return light_type::ambient;
-}
 
 } // namespace scene
 
 #endif // ANTKEEPER_SCENE_AMBIENT_LIGHT_HPP
-

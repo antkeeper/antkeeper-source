@@ -17,35 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/scene/collection.hpp>
-#include <engine/scene/object.hpp>
+#ifndef ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
+#define ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
 
-namespace scene {
+#include <engine/math/vector.hpp>
 
-void collection::add_object(object_base* object)
+/**
+ * Legged terrestrial locomotion.
+ */
+struct legged_locomotion_component
 {
-	objects.emplace_back(object);
-	object_map[object->get_object_type_id()].emplace_back(object);
-}
+	/// Force vector.
+	math::vector<float, 3> force{0.0f, 0.0f, 0.0f};
+};
 
-void collection::remove_object(object_base* object)
-{
-	std::erase(objects, object);
-	std::erase(object_map[object->get_object_type_id()], object);
-}
-
-void collection::remove_objects()
-{
-	objects.clear();
-	object_map.clear();
-}
-
-void collection::update_tweens()
-{
-	for (object_base* object: objects)
-	{
-		object->update_tweens();
-	}
-}
-
-} // namespace scene
+#endif // ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP

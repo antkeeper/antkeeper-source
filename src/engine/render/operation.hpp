@@ -24,27 +24,29 @@
 #include <engine/animation/pose.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/drawing-mode.hpp>
-#include <cstddef>
+#include <engine/render/material.hpp>
+#include <cstdint>
+#include <memory>
+#include <span>
 
 namespace render {
 
-class material;
-
 /**
- * Encapsulates an atomic render operation.
+ * Atomic render operation.
  */
 struct operation
 {
-	const float4x4* skinning_palette;
-	std::size_t bone_count;
-	const material* material;
-	const gl::vertex_array* vertex_array;
-	gl::drawing_mode drawing_mode;
-	std::size_t start_index;
-	std::size_t index_count;
-	float4x4 transform;
-	float depth;
-	std::size_t instance_count;
+	const gl::vertex_array* vertex_array{nullptr};
+	gl::drawing_mode drawing_mode{gl::drawing_mode::triangles};
+	std::size_t start_index{0};
+	std::size_t index_count{0};
+	std::shared_ptr<render::material> material;
+	
+	float4x4 transform{float4x4::identity()};
+	float depth{0.0f};
+	
+	std::size_t instance_count{0};
+	std::span<const float4x4> skinning_palette{};
 };
 
 } // namespace render

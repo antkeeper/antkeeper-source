@@ -18,13 +18,13 @@
  */
 
 #include "game/commands/commands.hpp"
-#include "game/components/model-component.hpp"
+#include "game/components/scene-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/celestial-body-component.hpp"
 #include "game/components/terrain-component.hpp"
 #include <engine/math/quaternion.hpp>
 #include <limits>
-
+
 namespace command {
 
 void translate(entity::registry& registry, entity::id eid, const float3& translation)
@@ -130,17 +130,17 @@ void place(entity::registry& registry, entity::id eid, entity::id celestial_body
 
 }
 
-void assign_render_layers(entity::registry& registry, entity::id eid, unsigned int layers)
+void assign_render_layers(entity::registry& registry, entity::id eid, std::uint8_t layer_mask)
 {
-	const ::model_component* model = registry.try_get<::model_component>(eid);
-	if (model)
+	const ::scene_component* component = registry.try_get<::scene_component>(eid);
+	if (component)
 	{
-		registry.patch<::model_component>
+		registry.patch<::scene_component>
 		(
 			eid,
-			[layers](auto& model)
+			[layer_mask](auto& component)
 			{
-				model.layers = layers;
+				component.layer_mask = layer_mask;
 			}
 		);
 	}

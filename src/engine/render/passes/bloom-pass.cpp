@@ -94,7 +94,7 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 }
 
-void bloom_pass::render(const render::context& ctx, render::queue& queue)
+void bloom_pass::render(render::context& ctx)
 {
 	// Execute command buffer
 	for (const auto& command: command_buffer)

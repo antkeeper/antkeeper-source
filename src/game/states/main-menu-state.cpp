@@ -23,7 +23,6 @@
 #include <engine/animation/ease.hpp>
 #include <engine/animation/screen-transition.hpp>
 #include <engine/config.hpp>
-#include "game/components/model-component.hpp"
 #include "game/components/steering-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/controls.hpp"

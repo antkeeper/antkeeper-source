@@ -58,7 +58,7 @@ ground_pass::ground_pass(gl::rasterizer* rasterizer, const gl::framebuffer* fram
 ground_pass::~ground_pass()
 {}
 
-void ground_pass::render(const render::context& ctx, render::queue& queue)
+void ground_pass::render(render::context& ctx)
 {
 	/*
 	if (!ground_model)

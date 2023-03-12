@@ -24,12 +24,13 @@
 #include "game/commands/commands.hpp"
 #include "game/components/camera-component.hpp"
 #include "game/components/constraint-stack-component.hpp"
-#include "game/components/locomotion-component.hpp"
-#include "game/components/model-component.hpp"
+#include "game/components/scene-component.hpp"
 #include "game/components/picking-component.hpp"
 #include "game/components/spring-component.hpp"
+#include "game/components/physics-component.hpp"
 #include "game/components/steering-component.hpp"
 #include "game/components/terrain-component.hpp"
+#include "game/components/legged-locomotion-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/constraints/child-of-constraint.hpp"
 #include "game/constraints/copy-rotation-constraint.hpp"
@@ -84,8 +85,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	::world::enter_ecoregion(ctx, *ctx.active_ecoregion);
 	
 	debug::log::trace("Generating genome...");
-	std::random_device rng;
-	std::unique_ptr<ant_genome> genome = ant_cladogenesis(ctx.active_ecoregion->gene_pools[0], rng);
+	std::unique_ptr<ant_genome> genome = ant_cladogenesis(ctx.active_ecoregion->gene_pools[0], ctx.rng);
 	debug::log::trace("Generated genome");
 	
 	debug::log::trace("Building worker phenome...");
@@ -97,19 +97,15 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	debug::log::trace("Generated worker model");
 	
 	// Create worker entity(s)
-	entity::id worker_eid = ctx.entity_registry->create();
+	worker_ant_eid = ctx.entity_registry->create();
 	transform_component worker_transform_component;
 	worker_transform_component.local = math::transform<float>::identity;
-	worker_transform_component.local.translation = {0, 0, -4};
+	worker_transform_component.local.translation = {0, 0.5f, -4};
 	worker_transform_component.world = worker_transform_component.local;
 	worker_transform_component.warp = true;
-	ctx.entity_registry->emplace<transform_component>(worker_eid, worker_transform_component);
+	ctx.entity_registry->emplace<transform_component>(worker_ant_eid, worker_transform_component);
 	
-	model_component worker_model_component;
-	worker_model_component.render_model = worker_model;
-	worker_model_component.instance_count = 0;
-	worker_model_component.layers = ~0;
-	ctx.entity_registry->emplace<model_component>(worker_eid, worker_model_component);
+	ctx.entity_registry->emplace<scene_component>(worker_ant_eid, std::make_unique<scene::static_mesh>(worker_model), std::uint8_t{1});
 	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
@@ -164,9 +160,13 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	// color_checker_archetype->create(*ctx.entity_registry);
 	// auto ruler_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
 	// ruler_archetype->create(*ctx.entity_registry);
+	
+	auto plane_archetype = ctx.resource_manager->load<entity::archetype>("desert-scrub-plane.ent");
+	auto plane_eid = plane_archetype->create(*ctx.entity_registry);
+	
 	auto yucca_archetype = ctx.resource_manager->load<entity::archetype>("yucca-plant-l.ent");
 	auto yucca_eid = yucca_archetype->create(*ctx.entity_registry);
-	::command::warp_to(*ctx.entity_registry, yucca_eid, {0, 4, 30});
+	::command::warp_to(*ctx.entity_registry, yucca_eid, {0, 0, 30});
 	
 	yucca_archetype = ctx.resource_manager->load<entity::archetype>("yucca-plant-m.ent");
 	yucca_eid = yucca_archetype->create(*ctx.entity_registry);
@@ -174,7 +174,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	yucca_archetype = ctx.resource_manager->load<entity::archetype>("yucca-plant-s.ent");
 	yucca_eid = yucca_archetype->create(*ctx.entity_registry);
-	::command::warp_to(*ctx.entity_registry, yucca_eid, {-300, 3, -300});
+	::command::warp_to(*ctx.entity_registry, yucca_eid, {-300, 0, -300});
 	
 	auto cactus_plant_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-plant-l.ent");
 	auto cactus_plant_eid = cactus_plant_archetype->create(*ctx.entity_registry);
@@ -182,15 +182,15 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	cactus_plant_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-plant-m.ent");
 	cactus_plant_eid = cactus_plant_archetype->create(*ctx.entity_registry);
-	::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {100, -2, -70});
+	::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {100, 0, -70});
 	
 	cactus_plant_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-plant-s.ent");
 	cactus_plant_eid = cactus_plant_archetype->create(*ctx.entity_registry);
-	::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {50, 2, 80});
+	::command::warp_to(*ctx.entity_registry, cactus_plant_eid, {50, 0, 80});
 	
 	auto cactus_seed_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-seed.ent");
 	auto cactus_seed_eid = cactus_seed_archetype->create(*ctx.entity_registry);
-	::command::warp_to(*ctx.entity_registry, cactus_seed_eid, {10, 5, 10});
+	::command::warp_to(*ctx.entity_registry, cactus_seed_eid, {10, 0, 10});
 	
 	// Queue enable game controls
 	ctx.function_queue.push
@@ -223,7 +223,20 @@ nest_selection_state::~nest_selection_state()
 }
 
 void nest_selection_state::create_first_person_camera_rig()
-{	
+{
+	// Construct first person camera rig track to constraint
+	track_to_constraint first_person_camera_rig_track_to;
+	first_person_camera_rig_track_to.target = worker_ant_eid;
+	first_person_camera_rig_track_to.up = {0.0f, 1.0f, 0.0f};
+	
+	constraint_stack_node_component first_person_camera_rig_track_to_node;
+	first_person_camera_rig_track_to_node.active = false;
+	first_person_camera_rig_track_to_node.weight = 1.0f;
+	first_person_camera_rig_track_to_node.next = entt::null;
+	first_person_camera_rig_track_to_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<track_to_constraint>(first_person_camera_rig_track_to_eid, first_person_camera_rig_track_to);
+	ctx.entity_registry->emplace<constraint_stack_node_component>(first_person_camera_rig_track_to_eid, first_person_camera_rig_track_to_node);
+	
 	// Construct first person camera rig spring rotation constraint
 	spring_rotation_constraint first_person_camera_rig_spring_rotation;
 	first_person_camera_rig_spring_rotation.spring =
@@ -237,7 +250,7 @@ void nest_selection_state::create_first_person_camera_rig()
 	constraint_stack_node_component first_person_camera_rig_spring_rotation_node;
 	first_person_camera_rig_spring_rotation_node.active = true;
 	first_person_camera_rig_spring_rotation_node.weight = 1.0f;
-	first_person_camera_rig_spring_rotation_node.next = entt::null;
+	first_person_camera_rig_spring_rotation_node.next = first_person_camera_rig_track_to_eid;
 	first_person_camera_rig_spring_rotation_eid = ctx.entity_registry->create();
 	ctx.entity_registry->emplace<spring_rotation_constraint>(first_person_camera_rig_spring_rotation_eid, first_person_camera_rig_spring_rotation);
 	ctx.entity_registry->emplace<constraint_stack_node_component>(first_person_camera_rig_spring_rotation_eid, first_person_camera_rig_spring_rotation_node);
@@ -253,7 +266,7 @@ void nest_selection_state::create_first_person_camera_rig()
 		first_person_camera_rig_translation_spring_angular_frequency
 	};
 	constraint_stack_node_component first_person_camera_rig_spring_translation_node;
-	first_person_camera_rig_spring_translation_node.active = true;
+	first_person_camera_rig_spring_translation_node.active = false;
 	first_person_camera_rig_spring_translation_node.weight = 1.0f;
 	first_person_camera_rig_spring_translation_node.next = first_person_camera_rig_spring_rotation_eid;
 	first_person_camera_rig_spring_translation_eid = ctx.entity_registry->create();
@@ -271,6 +284,13 @@ void nest_selection_state::create_first_person_camera_rig()
 	first_person_camera_rig_transform.world = first_person_camera_rig_transform.local;
 	first_person_camera_rig_transform.warp = true;
 	
+	// Construct first person camera rig legged locomotion component
+	legged_locomotion_component first_person_camera_rig_locomotion;
+	
+	// Construct first person camera rig physics component
+	physics_component first_person_camera_rig_physics;
+	first_person_camera_rig_physics.mass = 90.0f;
+	
 	// Construct first person camera rig camera component
 	camera_component first_person_camera_rig_camera;
 	first_person_camera_rig_camera.object = ctx.surface_camera.get();
@@ -279,6 +299,8 @@ void nest_selection_state::create_first_person_camera_rig()
 	first_person_camera_rig_eid = ctx.entity_registry->create();
 	ctx.entity_registry->emplace<camera_component>(first_person_camera_rig_eid, first_person_camera_rig_camera);
 	ctx.entity_registry->emplace<transform_component>(first_person_camera_rig_eid, first_person_camera_rig_transform);
+	ctx.entity_registry->emplace<physics_component>(first_person_camera_rig_eid, first_person_camera_rig_physics);
+	ctx.entity_registry->emplace<legged_locomotion_component>(first_person_camera_rig_eid, first_person_camera_rig_locomotion);
 	ctx.entity_registry->emplace<constraint_stack_component>(first_person_camera_rig_eid, first_person_camera_rig_constraint_stack);
 	
 	// Construct first person camera rig fov spring
@@ -410,7 +432,8 @@ void nest_selection_state::setup_controls()
 					mouse_look = true;
 				}
 				
-				//ctx.app->set_relative_mouse_mode(mouse_look);
+				//ctx.input_manager->set_cursor_visible(!mouse_look);
+				ctx.input_manager->set_relative_mouse_mode(mouse_look);
 			}
 		)
 	);
@@ -425,7 +448,8 @@ void nest_selection_state::setup_controls()
 				if (!ctx.toggle_mouse_look && mouse_look)
 				{
 					mouse_look = false;
-					//ctx.app->set_relative_mouse_mode(false);
+					//ctx.input_manager->set_cursor_visible(true);
+					ctx.input_manager->set_relative_mouse_mode(false);
 				}
 			}
 		)
@@ -457,14 +481,57 @@ void nest_selection_state::setup_controls()
 		}
 	);
 	
+	constexpr float movement_speed = 10000.0f;
+	
+	auto move_first_person_camera_rig = [&](const float2& direction, float speed)
+	{
+		const spring_rotation_constraint& first_person_camera_rig_spring_rotation = ctx.entity_registry->get<spring_rotation_constraint>(first_person_camera_rig_spring_rotation_eid);
+		
+		const math::quaternion<float> yaw_rotation = math::angle_axis(first_person_camera_rig_spring_rotation.spring.x0[0], float3{0.0f, 1.0f, 0.0f});
+		const float3 rotated_direction = yaw_rotation * float3{direction[0], 0.0f, direction[1]};
+		
+		const float3 force = rotated_direction * speed;
+		
+		ctx.entity_registry->patch<legged_locomotion_component>
+		(
+			first_person_camera_rig_eid,
+			[&](auto& component)
+			{
+				component.force = force;
+			}
+		);
+	};
+	
+	auto stop_first_person_camera_rig = [&]()
+	{
+		ctx.entity_registry->patch<legged_locomotion_component>
+		(
+			first_person_camera_rig_eid,
+			[&](auto& component)
+			{
+				component.force = {0.0f, 0.0f, 0.0f};
+			}
+		);
+	};
+	
 	// Move forward
 	action_subscriptions.emplace_back
 	(
 		ctx.move_forward_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&, move_first_person_camera_rig](const auto& event)
 			{
-				move_first_person_camera_rig({0, -1}, event.input_value);
+				move_first_person_camera_rig({0.0f, -1.0f}, movement_speed * event.input_value);
+			}
+		)
+	);
+	action_subscriptions.emplace_back
+	(
+		ctx.move_forward_action.get_deactivated_channel().subscribe
+		(
+			[&, stop_first_person_camera_rig](const auto& event)
+			{
+				stop_first_person_camera_rig();
 			}
 		)
 	);
@@ -474,9 +541,19 @@ void nest_selection_state::setup_controls()
 	(
 		ctx.move_back_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&, move_first_person_camera_rig](const auto& event)
 			{
-				move_first_person_camera_rig({0, 1}, event.input_value);
+				move_first_person_camera_rig({0, 1}, movement_speed * event.input_value);
+			}
+		)
+	);
+	action_subscriptions.emplace_back
+	(
+		ctx.move_back_action.get_deactivated_channel().subscribe
+		(
+			[&, stop_first_person_camera_rig](const auto& event)
+			{
+				stop_first_person_camera_rig();
 			}
 		)
 	);
@@ -486,9 +563,19 @@ void nest_selection_state::setup_controls()
 	(
 		ctx.move_left_action.get_active_channel().subscribe
 		(
-			[&](const auto& event)
+			[&, move_first_person_camera_rig](const auto& event)
 			{
-				move_first_person_camera_rig({-1, 0}, event.input_value);
+				move_first_person_camera_rig({-1, 0}, movement_speed * event.input_value);
+			}
+		)
+	);
+	action_subscriptions.emplace_back
+	(
+		ctx.move_left_action.get_deactivated_channel().subscribe
+		(
+			[&, stop_first_person_camera_rig](const auto& event)
+			{
+				stop_first_person_camera_rig();
 			}
 		)
 	);
@@ -498,9 +585,93 @@ void nest_selection_state::setup_controls()
 	(
 		ctx.move_right_action.get_active_channel().subscribe
 		(
+			[&, move_first_person_camera_rig](const auto& event)
+			{
+				move_first_person_camera_rig({1, 0}, movement_speed * event.input_value);
+			}
+		)
+	);
+	action_subscriptions.emplace_back
+	(
+		ctx.move_right_action.get_deactivated_channel().subscribe
+		(
+			[&, stop_first_person_camera_rig](const auto& event)
+			{
+				stop_first_person_camera_rig();
+			}
+		)
+	);
+	
+	// Move up
+	action_subscriptions.emplace_back
+	(
+		ctx.move_up_action.get_active_channel().subscribe
+		(
 			[&](const auto& event)
 			{
-				move_first_person_camera_rig({1, 0}, event.input_value);
+				ctx.entity_registry->patch<physics_component>
+				(
+					first_person_camera_rig_eid,
+					[&](auto& component)
+					{
+						component.force += float3{0, movement_speed * event.input_value, 0};
+					}
+				);
+			}
+		)
+	);
+	
+	// Move down
+	action_subscriptions.emplace_back
+	(
+		ctx.move_down_action.get_active_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				ctx.entity_registry->patch<physics_component>
+				(
+					first_person_camera_rig_eid,
+					[&](auto& component)
+					{
+						component.force -= float3{0, movement_speed * event.input_value, 0};
+					}
+				);
+			}
+		)
+	);
+	
+	// Focus
+	action_subscriptions.emplace_back
+	(
+		ctx.focus_action.get_activated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				ctx.entity_registry->patch<constraint_stack_node_component>
+				(
+					first_person_camera_rig_track_to_eid,
+					[&](auto& component)
+					{
+						component.active = true;
+					}
+				);
+			}
+		)
+	);
+	action_subscriptions.emplace_back
+	(
+		ctx.focus_action.get_deactivated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				ctx.entity_registry->patch<constraint_stack_node_component>
+				(
+					first_person_camera_rig_track_to_eid,
+					[&](auto& component)
+					{
+						component.active = false;
+					}
+				);
 			}
 		)
 	);

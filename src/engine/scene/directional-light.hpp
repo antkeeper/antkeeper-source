@@ -37,10 +37,16 @@ public:
 	directional_light();
 	
 	/// Returns light_type::directional.
-	virtual light_type get_light_type() const;
+	[[nodiscard]] inline light_type get_light_type() const noexcept override
+	{
+		return light_type::directional;
+	}
 
 	/// Returns the normalized direction vector of the light.
-	const float3& get_direction() const;
+	[[nodiscard]] inline const float3& get_direction() const noexcept
+	{
+		return direction[1];
+	}
 	
 	inline const tween<float3>& get_direction_tween() const noexcept
 	{
@@ -48,7 +54,7 @@ public:
 	}
 	
 	/// @copydoc object_base::update_tweens();
-	virtual void update_tweens();
+	void update_tweens() override;
 	
 	/// @name Shadow
 	/// @{
@@ -96,107 +102,81 @@ public:
 	void set_shadow_cascade_distribution(float weight) noexcept;
 	
 	/// Returns `true` if the light casts shadows, `false` otherwise.
-	bool is_shadow_caster() const noexcept;
+	[[nodiscard]] inline bool is_shadow_caster() const noexcept
+	{
+		return shadow_caster;
+	}
 	
 	/// Returns the shadow map framebuffer, of `nullptr` if no shadow map framebuffer is set.
-	const gl::framebuffer* get_shadow_framebuffer() const noexcept;
+	[[nodiscard]] inline const gl::framebuffer* get_shadow_framebuffer() const noexcept
+	{
+		return shadow_framebuffer;
+	}
 	
 	/// Returns the shadow bias factor.
-	float get_shadow_bias() const noexcept;
+	[[nodiscard]] inline float get_shadow_bias() const noexcept
+	{
+		return shadow_bias;
+	}
 	
 	/// Returns the number of shadow cascades.
-	unsigned int get_shadow_cascade_count() const noexcept;
+	[[nodiscard]] inline unsigned int get_shadow_cascade_count() const noexcept
+	{
+		return shadow_cascade_count;
+	}
 	
 	/// Returns the shadow cascade coverage factor.
-	float get_shadow_cascade_coverage() const noexcept;
+	[[nodiscard]] inline float get_shadow_cascade_coverage() const noexcept
+	{
+		return shadow_cascade_coverage;
+	}
 	
 	/// Returns the shadow cascade distribution weight.
-	float get_shadow_cascade_distribution() const noexcept;
+	[[nodiscard]] inline float get_shadow_cascade_distribution() const noexcept
+	{
+		return shadow_cascade_distribution;
+	}
 	
 	/// Returns the array of shadow cascade far clipping plane distances.
-	const std::vector<float>& get_shadow_cascade_distances() const noexcept;
-	std::vector<float>& get_shadow_cascade_distances() noexcept;
+	/// @{
+	[[nodiscard]] inline const std::vector<float>& get_shadow_cascade_distances() const noexcept
+	{
+		return shadow_cascade_distances;
+	}
+	[[nodiscard]] inline std::vector<float>& get_shadow_cascade_distances() noexcept
+	{
+		return shadow_cascade_distances;
+	}
+	/// @}
 	
 	/// Returns the array of world-space to cascade texture-space transformation matrices.
-	const std::vector<float4x4>& get_shadow_cascade_matrices() const noexcept;
-	std::vector<float4x4>& get_shadow_cascade_matrices() noexcept;
+	/// @{
+	[[nodiscard]] inline const std::vector<float4x4>& get_shadow_cascade_matrices() const noexcept
+	{
+		return shadow_cascade_matrices;
+	}
+	[[nodiscard]] inline std::vector<float4x4>& get_shadow_cascade_matrices() noexcept
+	{
+		return shadow_cascade_matrices;
+	}
+	/// @}
 	
 	/// @}
 
 private:
-	virtual void transformed();
+	void transformed() override;
 
 	tween<float3> direction;
 	
-	bool shadow_caster;
-	const gl::framebuffer* shadow_framebuffer;
-	float shadow_bias;
-	unsigned int shadow_cascade_count;
-	float shadow_cascade_coverage;
-	float shadow_cascade_distribution;
+	bool shadow_caster{false};
+	const gl::framebuffer* shadow_framebuffer{nullptr};
+	float shadow_bias{0.005f};
+	unsigned int shadow_cascade_count{4};
+	float shadow_cascade_coverage{1.0f};
+	float shadow_cascade_distribution{0.8f};
 	mutable std::vector<float> shadow_cascade_distances;
 	mutable std::vector<float4x4> shadow_cascade_matrices;
 };
-
-inline light_type directional_light::get_light_type() const
-{
-	return light_type::directional;
-}
-
-inline const float3& directional_light::get_direction() const
-{
-	return direction[1];
-}
-
-inline bool directional_light::is_shadow_caster() const noexcept
-{
-	return shadow_caster;
-}
-
-inline const gl::framebuffer* directional_light::get_shadow_framebuffer() const noexcept
-{
-	return shadow_framebuffer;
-}
-
-inline float directional_light::get_shadow_bias() const noexcept
-{
-	return shadow_bias;
-}
-
-inline unsigned int directional_light::get_shadow_cascade_count() const noexcept
-{
-	return shadow_cascade_count;
-}
-
-inline float directional_light::get_shadow_cascade_coverage() const noexcept
-{
-	return shadow_cascade_coverage;
-}
-
-inline float directional_light::get_shadow_cascade_distribution() const noexcept
-{
-	return shadow_cascade_distribution;
-}
-
-inline const std::vector<float>& directional_light::get_shadow_cascade_distances() const noexcept
-{
-	return shadow_cascade_distances;
-}
-
-inline std::vector<float>& directional_light::get_shadow_cascade_distances() noexcept
-{
-	return shadow_cascade_distances;
-}
-	
-inline const std::vector<float4x4>& directional_light::get_shadow_cascade_matrices() const noexcept
-{
-	return shadow_cascade_matrices;
-}
-
-inline std::vector<float4x4>& directional_light::get_shadow_cascade_matrices() noexcept
-{
-	return shadow_cascade_matrices;
-}
 
 } // namespace scene
 

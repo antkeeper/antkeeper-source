@@ -49,7 +49,7 @@ class sky_pass: public pass
 public:
 	sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~sky_pass() = default;
-	void render(const render::context& ctx, render::queue& queue) override;
+	void render(render::context& ctx) override;
 	
 	void update_tweens();
 	

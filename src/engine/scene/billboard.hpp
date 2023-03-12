@@ -24,6 +24,9 @@
 #include <engine/geom/aabb.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/render/material.hpp>
+#include <engine/render/operation.hpp>
+#include <engine/gl/vertex-array.hpp>
+#include <engine/gl/vertex-buffer.hpp>
 #include <cstdint>
 #include <memory>
 
@@ -32,13 +35,13 @@ namespace scene {
 /// Enumerates billboard types.
 enum class billboard_type: std::uint8_t
 {
-	// No alignment
+	/// No alignment
 	flat,
 	
-	// Aligns to face camera
+	/// Aligns to face camera
 	spherical,
 	
-	// Rotates about an alignment axis to face camera
+	/// Rotates about an alignment axis to face camera
 	cylindrical
 };
 
@@ -51,8 +54,8 @@ public:
 	typedef geom::aabb<float> aabb_type;
 	
 	billboard();
-	billboard(const billboard& other);
-	billboard& operator=(const billboard& other);
+	
+	void render(render::context& ctx) const override;
 
 	void set_material(std::shared_ptr<render::material> material);
 	
@@ -72,9 +75,9 @@ public:
 		return world_bounds;
 	}
 
-	[[nodiscard]] inline const std::shared_ptr<render::material>& get_material() const noexcept
+	[[nodiscard]] inline std::shared_ptr<render::material> get_material() const noexcept
 	{
-		return material;
+		return render_op.material;
 	}
 	
 	[[nodiscard]] inline billboard_type get_billboard_type() const noexcept
@@ -93,9 +96,12 @@ private:
 	static const aabb_type local_bounds;
 	
 	virtual void transformed();
-		
+	
+	std::unique_ptr<gl::vertex_buffer> vbo;
+	std::unique_ptr<gl::vertex_array> vao;
+	
+	mutable render::operation render_op;
 	aabb_type world_bounds;
-	std::shared_ptr<render::material> material;
 	billboard_type type;
 	float3 alignment_axis;
 };

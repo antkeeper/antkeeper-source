@@ -18,11 +18,11 @@
  */
 
 #include "game/systems/locomotion-system.hpp"
-#include "game/components/collision-component.hpp"
-#include "game/components/locomotion-component.hpp"
-#include "game/components/transform-component.hpp"
+#include "game/components/legged-locomotion-component.hpp"
+#include "game/components/physics-component.hpp"
 #include <engine/entity/id.hpp>
-
+#include <algorithm>
+#include <execution>
 
 locomotion_system::locomotion_system(entity::registry& registry):
 	updatable_system(registry)
@@ -30,9 +30,23 @@ locomotion_system::locomotion_system(entity::registry& registry):
 
 void locomotion_system::update(float t, float dt)
 {
-	registry.view<transform_component, locomotion_component>().each(
-		[&](entity::id entity_id, auto& transform, auto& locomotion)
+	auto group = registry.group<legged_locomotion_component>(entt::get<physics_component>);
+	std::for_each
+	(
+		std::execution::par_unseq,
+		group.begin(),
+		group.end(),
+		[&](auto entity_id)
 		{
-		});
+			const auto& locomotion = group.get<legged_locomotion_component>(entity_id);
+			auto& body = group.get<physics_component>(entity_id);
+			
+			// Apply locomotion force
+			body.force += locomotion.force;
+			
+			// Apply friction
+			const float friction_coef = 2.0f;
+			body.force -= body.velocity * friction_coef * body.mass;
+		}
+	);
 }
-

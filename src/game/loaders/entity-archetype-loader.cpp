@@ -27,13 +27,14 @@
 #include "game/components/diffuse-reflector-component.hpp"
 #include "game/components/terrain-component.hpp"
 #include "game/components/transform-component.hpp"
-#include "game/components/model-component.hpp"
+#include "game/components/scene-component.hpp"
 #include "game/components/orbit-component.hpp"
 #include "game/components/blackbody-component.hpp"
 #include "game/components/celestial-body-component.hpp"
 #include <engine/entity/archetype.hpp>
 #include <engine/physics/orbit/elements.hpp>
 #include <engine/utility/json.hpp>
+#include <engine/scene/static-mesh.hpp>
 #include <stdexcept>
 
 static bool load_component_atmosphere(entity::archetype& archetype, const json& element)
@@ -191,21 +192,21 @@ static bool load_component_diffuse_reflector(entity::archetype& archetype, const
 
 static bool load_component_model(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
 {
-	::model_component component;
-	component.instance_count = 0;
-	//component.layers = ~0;
-	component.layers = 1;
-	
+	std::shared_ptr<render::model> model;
 	if (element.contains("file"))
 	{
-		component.render_model = resource_manager.load<render::model>(element["file"].get<std::string>());
+		model = resource_manager.load<render::model>(element["file"].get<std::string>());
 	}
 	
 	archetype.stamps.push_back
 	(
-		[component](entt::handle& handle)
+		[model](entt::handle& handle)
 		{
-			handle.emplace_or_replace<decltype(component)>(component);
+			handle.emplace_or_replace<scene_component>
+			(
+				std::make_unique<scene::static_mesh>(model),
+				std::uint8_t{0b00000001}
+			);
 		}
 	);
 	

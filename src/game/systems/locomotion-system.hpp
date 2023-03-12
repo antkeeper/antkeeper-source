@@ -22,14 +22,15 @@
 
 #include "game/systems/updatable-system.hpp"
 
-
+/**
+ * 
+ */
 class locomotion_system:
 	public updatable_system
 {
 public:
 	explicit locomotion_system(entity::registry& registry);
-	virtual void update(float t, float dt);
+	void update(float t, float dt) override;
 };
-
 
 #endif // ANTKEEPER_GAME_LOCOMOTION_SYSTEM_HPP

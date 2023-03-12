@@ -34,7 +34,7 @@ clear_pass::clear_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	clear_stencil(0)
 {}
 
-void clear_pass::render(const render::context& ctx, render::queue& queue)
+void clear_pass::render(render::context& ctx)
 {
 	for (const auto& command: command_buffer)
 	{

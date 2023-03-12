@@ -17,17 +17,22 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RENDER_QUEUE_HPP
-#define ANTKEEPER_RENDER_QUEUE_HPP
+#ifndef ANTKEEPER_RENDER_QUEUE_STAGE_HPP
+#define ANTKEEPER_RENDER_QUEUE_STAGE_HPP
 
-#include <engine/render/operation.hpp>
-#include <list>
+#include <engine/render/stage.hpp>
 
 namespace render {
 
-/// Queue of render operations
-typedef std::list<render::operation> queue;
+/**
+ * Builds render queues.
+ */
+class queue_stage: public stage
+{
+public:
+	void execute(render::context& ctx) override;
+};
 
 } // namespace render
 
-#endif // ANTKEEPER_RENDER_QUEUE_HPP
+#endif // ANTKEEPER_RENDER_QUEUE_STAGE_HPP

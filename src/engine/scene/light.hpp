@@ -54,7 +54,7 @@ public:
 	light();
 
 	/// Returns an enumeration denoting the light object type.
-	virtual light_type get_light_type() const = 0;
+	[[nodiscard]] virtual light_type get_light_type() const noexcept = 0;
 	
 	/**
 	 * Sets the color of the light.
@@ -71,23 +71,49 @@ public:
 	void set_intensity(float intensity);
 	
 	/// Returns the local-space bounding volume of the light.
-	virtual const bounding_volume_type& get_local_bounds() const;
+	inline const bounding_volume_type& get_local_bounds() const noexcept override
+	{
+		return local_bounds;
+	}
 	
 	/// Returns the world-space bounding volume of the light.
-	virtual const bounding_volume_type& get_world_bounds() const;
+	inline const bounding_volume_type& get_world_bounds() const noexcept override
+	{
+		return world_bounds;
+	}
 	
 	/// Returns the light color.
-	const float3& get_color() const;
+	[[nodiscard]] inline const float3& get_color() const noexcept
+	{
+		return color[1];
+	}
 	
 	/// Returns the light intensity.
-	float get_intensity() const;
+	[[nodiscard]] inline float get_intensity() const noexcept
+	{
+		return intensity[1];
+	}
 	
 	/// Returns the intensity-scaled light color.
-	const float3& get_scaled_color() const;
+	[[nodiscard]] inline const float3& get_scaled_color() const noexcept
+	{
+		return scaled_color[1];
+	}
 
-	const tween<float3>& get_color_tween() const;
-	const tween<float>& get_intensity_tween() const;
-	const tween<float3>& get_scaled_color_tween() const;
+	[[nodiscard]] inline const tween<float3>& get_color_tween() const noexcept
+	{
+		return color;
+	}
+	
+	[[nodiscard]] inline const tween<float>& get_intensity_tween() const noexcept
+	{
+		return intensity;
+	}
+	
+	[[nodiscard]] inline const tween<float3>& get_scaled_color_tween() const noexcept
+	{
+		return scaled_color;
+	}
 
 	/// @copydoc object_base::update_tweens();
 	virtual void update_tweens();
@@ -101,46 +127,6 @@ private:
 	sphere_type local_bounds;
 	sphere_type world_bounds;
 };
-
-inline const typename object_base::bounding_volume_type& light::get_local_bounds() const
-{
-	return local_bounds;
-}
-
-inline const typename object_base::bounding_volume_type& light::get_world_bounds() const
-{
-	return world_bounds;
-}
-
-inline const float3& light::get_color() const
-{
-	return color[1];
-}
-
-inline float light::get_intensity() const
-{
-	return intensity[1];
-}
-
-inline const float3& light::get_scaled_color() const
-{
-	return scaled_color[1];
-}
-
-inline const tween<float3>& light::get_color_tween() const
-{
-	return color;
-}
-
-inline const tween<float>& light::get_intensity_tween() const
-{
-	return intensity;
-}
-
-inline const tween<float3>& light::get_scaled_color_tween() const
-{
-	return scaled_color;
-}
 
 } // namespace scene
 

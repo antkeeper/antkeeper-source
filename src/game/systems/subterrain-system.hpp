@@ -24,7 +24,7 @@
 #include <engine/geom/mesh.hpp>
 #include <engine/geom/aabb.hpp>
 #include <engine/scene/collection.hpp>
-#include <engine/scene/model-instance.hpp>
+#include <engine/scene/static-mesh.hpp>
 #include <engine/render/model.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <unordered_map>
@@ -122,7 +122,7 @@ private:
 		vector_equals<epsilon_1en5, float, 3>> subterrain_vertex_map;
 	
 	scene::collection* collection;
-	scene::model_instance* subterrain_model_instance;
+	scene::static_mesh* subterrain_static_mesh;
 };
 
 

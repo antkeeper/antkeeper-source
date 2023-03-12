@@ -17,20 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_MODEL_COMPONENT_HPP
-#define ANTKEEPER_GAME_MODEL_COMPONENT_HPP
+#ifndef ANTKEEPER_GAME_PHYSICS_COMPONENT_HPP
+#define ANTKEEPER_GAME_PHYSICS_COMPONENT_HPP
 
-#include <engine/render/model.hpp>
-#include <unordered_map>
-#include <memory>
+#include <engine/math/vector.hpp>
 
-struct model_component
+struct physics_component
 {
-	std::shared_ptr<render::model> render_model;
-	std::unordered_map<int, std::shared_ptr<render::material>> materials;
-	int instance_count;
-	unsigned int layers;
+	/// Mass, in kg.
+	float mass;
+	
+	/// Inverse mass, in kg^-1.
+	//float inverse_mass{0.0f};
+	
+	/// Force vector, in newtons.
+	math::vector<float, 3> force{0.0f, 0.0f, 0.0f};
+	
+	/// Acceleration vector, in m/s^2.
+	math::vector<float, 3> acceleration{0.0f, 0.0f, 0.0f};
+	
+	/// Velocity vector, in m/s.
+	math::vector<float, 3> velocity{0.0f, 0.0f, 0.0f};
 };
 
-
-#endif // ANTKEEPER_GAME_MODEL_COMPONENT_HPP
+#endif // ANTKEEPER_GAME_PHYSICS_COMPONENT_HPP

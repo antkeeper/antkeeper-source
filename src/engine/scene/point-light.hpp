@@ -34,7 +34,10 @@ public:
 	point_light();
 	
 	/// Returns light_type::point
-	virtual light_type get_light_type() const;
+	[[nodiscard]] inline light_type get_light_type() const noexcept override
+	{
+		return light_type::point;
+	}
 	
 	/**
 	 * Sets the attenuation factors of the light.
@@ -44,32 +47,22 @@ public:
 	void set_attenuation(const float3& attenuation);
 
 	/// Returns the attenuation factors of the light.
-	const float3& get_attenuation() const;
+	[[nodiscard]] inline const float3& get_attenuation() const noexcept
+	{
+		return attenuation[1];
+	}
 
 	/// Returns the attenuation tween.
-	const tween<float3>& get_attenuation_tween() const;
+	[[nodiscard]] inline const tween<float3>& get_attenuation_tween() const noexcept
+	{
+		return attenuation;
+	}
 
-	/// @copydoc object_base::update_tweens();
-	virtual void update_tweens();
+	void update_tweens() override;
 
 private:
 	tween<float3> attenuation;
 };
-
-inline light_type point_light::get_light_type() const
-{
-	return light_type::point;
-}
-
-inline const float3& point_light::get_attenuation() const
-{
-	return attenuation[1];
-}
-
-inline const tween<float3>& point_light::get_attenuation_tween() const
-{
-	return attenuation;
-}
 
 } // namespace scene
 

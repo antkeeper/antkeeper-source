@@ -17,14 +17,34 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_PORTAL_COMPONENT_HPP
-#define ANTKEEPER_GAME_PORTAL_COMPONENT_HPP
+#ifndef ANTKEEPER_GAME_PHYSICS_SYSTEM_HPP
+#define ANTKEEPER_GAME_PHYSICS_SYSTEM_HPP
 
+#include "game/systems/updatable-system.hpp"
+#include <entt/entt.hpp>
+#include <engine/math/vector.hpp>
 
-struct portal_component
+/**
+ *
+ */
+class physics_system:
+	public updatable_system
 {
+public:
+	explicit physics_system(entity::registry& registry);
+	void update(float t, float dt) override;
 	
+private:
+	/**
+	 * Semi-implicit Euler integration.
+	 *
+	 * @param dt Timestep, in seconds.
+	 *
+	 * @see https://gafferongames.com/post/integration_basics/
+	 */
+	void integrate(float dt);
+	
+	math::vector<float, 3> gravity{0.0f, -9.80665f, 0.0f};
 };
 
-
-#endif // ANTKEEPER_GAME_PORTAL_COMPONENT_HPP
+#endif // ANTKEEPER_GAME_PHYSICS_SYSTEM_HPP

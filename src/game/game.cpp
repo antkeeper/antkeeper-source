@@ -41,6 +41,7 @@
 #include "game/systems/spatial-system.hpp"
 #include "game/systems/spring-system.hpp"
 #include "game/systems/steering-system.hpp"
+#include "game/systems/physics-system.hpp"
 #include "game/systems/subterrain-system.hpp"
 #include "game/systems/terrain-system.hpp"
 #include <algorithm>
@@ -119,6 +120,7 @@ game::game(int argc, const char* const* argv)
 	setup_scenes();
 	setup_animation();
 	setup_ui();
+	setup_rng();
 	setup_entities();
 	setup_systems();
 	setup_controls();
@@ -578,7 +580,7 @@ void game::setup_input()
 		if (gamepad_active)
 		{
 			gamepad_active = false;
-			input_manager->show_cursor();
+			input_manager->set_cursor_visible(true);
 		}
 	};
 	
@@ -590,7 +592,7 @@ void game::setup_input()
 			if (!gamepad_active && std::abs(event.position) > 0.5f)
 			{
 				gamepad_active = true;
-				input_manager->hide_cursor();
+				input_manager->set_cursor_visible(false);
 			}
 		}
 	);
@@ -601,7 +603,7 @@ void game::setup_input()
 			if (!gamepad_active)
 			{
 				gamepad_active = true;
-				input_manager->hide_cursor();
+				input_manager->set_cursor_visible(false);
 			}
 		}
 	);
@@ -624,7 +626,7 @@ void game::setup_input()
 	if (!input_manager->get_gamepads().empty())
 	{
 		gamepad_active = true;
-		input_manager->hide_cursor();
+		input_manager->set_cursor_visible(false);
 	}
 	else
 	{
@@ -793,63 +795,8 @@ void game::setup_rendering()
 		surface_compositor->add_pass(resample_pass.get());
 	}
 	
-	// Create billboard VAO
-	{
-		const float billboard_vertex_data[] =
-		{
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f
-		};
-
-		std::size_t billboard_vertex_size = 8;
-		std::size_t billboard_vertex_stride = sizeof(float) * billboard_vertex_size;
-		std::size_t billboard_vertex_count = 6;
-		
-		billboard_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, sizeof(float) * billboard_vertex_size * billboard_vertex_count, std::as_bytes(std::span{billboard_vertex_data}));
-		billboard_vao = std::make_unique<gl::vertex_array>();
-		
-		std::size_t attribute_offset = 0;
-		
-		// Define position vertex attribute
-		gl::vertex_attribute position_attribute;
-		position_attribute.buffer = billboard_vbo.get();
-		position_attribute.offset = attribute_offset;
-		position_attribute.stride = billboard_vertex_stride;
-		position_attribute.type = gl::vertex_attribute_type::float_32;
-		position_attribute.components = 3;
-		attribute_offset += position_attribute.components * sizeof(float);
-		
-		// Define UV vertex attribute
-		gl::vertex_attribute uv_attribute;
-		uv_attribute.buffer = billboard_vbo.get();
-		uv_attribute.offset = attribute_offset;
-		uv_attribute.stride = billboard_vertex_stride;
-		uv_attribute.type = gl::vertex_attribute_type::float_32;
-		uv_attribute.components = 2;
-		attribute_offset += uv_attribute.components * sizeof(float);
-		
-		// Define barycentric vertex attribute
-		gl::vertex_attribute barycentric_attribute;
-		barycentric_attribute.buffer = billboard_vbo.get();
-		barycentric_attribute.offset = attribute_offset;
-		barycentric_attribute.stride = billboard_vertex_stride;
-		barycentric_attribute.type = gl::vertex_attribute_type::float_32;
-		barycentric_attribute.components = 3;
-		//attribute_offset += barycentric_attribute.components * sizeof(float);
-		
-		// Bind vertex attributes to VAO
-		billboard_vao->bind(render::vertex_attribute::position, position_attribute);
-		billboard_vao->bind(render::vertex_attribute::uv, uv_attribute);
-		billboard_vao->bind(render::vertex_attribute::barycentric, barycentric_attribute);
-	}
-	
 	// Create renderer
 	renderer = std::make_unique<render::renderer>();
-	renderer->set_billboard_vao(billboard_vao.get());
 	
 	debug::log::trace("Set up rendering");
 }
@@ -1089,6 +1036,12 @@ void game::setup_ui()
 	);
 }
 
+void game::setup_rng()
+{
+	std::random_device rd;
+	rng.seed(rd());
+}
+
 void game::setup_entities()
 {
 	// Create entity registry
@@ -1120,11 +1073,14 @@ void game::setup_systems()
 	// Setup behavior system
 	behavior_system = std::make_unique<::behavior_system>(*entity_registry);
 	
+	// Setup steering system
+	steering_system = std::make_unique<::steering_system>(*entity_registry);
+	
 	// Setup locomotion system
 	locomotion_system = std::make_unique<::locomotion_system>(*entity_registry);
 	
-	// Setup steering system
-	steering_system = std::make_unique<::steering_system>(*entity_registry);
+	// Setup physics system
+	physics_system = std::make_unique<::physics_system>(*entity_registry);
 	
 	// Setup spring system
 	spring_system = std::make_unique<::spring_system>(*entity_registry);
@@ -1287,6 +1243,7 @@ void game::setup_loop()
 			behavior_system->update(time, timestep);
 			steering_system->update(time, timestep);
 			locomotion_system->update(time, timestep);
+			physics_system->update(time, timestep);
 			camera_system->update(time, timestep);
 			orbit_system->update(time, timestep);
 			blackbody_system->update(time, timestep);

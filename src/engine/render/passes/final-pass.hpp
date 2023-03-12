@@ -41,7 +41,7 @@ class final_pass: public pass
 {
 public:
 	final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
-	void render(const render::context& ctx, render::queue& queue) override;
+	void render(render::context& ctx) override;
 	
 	void set_color_texture(const gl::texture_2d* texture);
 	void set_bloom_texture(const gl::texture_2d* texture) noexcept;

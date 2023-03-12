@@ -27,7 +27,6 @@ namespace scene {
 text::text():
 	local_bounds{{0, 0, 0}, {0, 0, 0}},
 	world_bounds{{0, 0, 0}, {0, 0, 0}},
-	material(nullptr),
 	font(nullptr),
 	direction(type::text_direction::ltr),
 	content_u8(std::string()),
@@ -81,26 +80,18 @@ text::text():
 	vao->bind(render::vertex_attribute::color, color_attribute);
 	
 	// Init render operation
-	render_op.material = nullptr;
-	render_op.bone_count = 0;
-	render_op.skinning_palette = nullptr;
 	render_op.vertex_array = vao.get();
 	render_op.drawing_mode = gl::drawing_mode::triangles;
-	render_op.start_index = 0;
-	render_op.index_count = 0;
-	render_op.instance_count = 0;
 }
 
-void text::render(const render::context& ctx, render::queue& queue) const
+void text::render(render::context& ctx) const
 {
-	if (!vertex_count)
+	if (vertex_count)
 	{
-		return;
+		render_op.transform = math::matrix_cast(get_transform_tween().interpolate(ctx.alpha));
+		render_op.depth = ctx.clip_near.signed_distance(math::vector<float, 3>(render_op.transform[3]));
+		ctx.operations.push_back(&render_op);
 	}
-	
-	render_op.transform = math::matrix_cast(get_transform_tween().interpolate(ctx.alpha));
-	render_op.depth = ctx.clip_near.signed_distance(math::vector<float, 3>(render_op.transform[3]));
-	queue.push_back(render_op);
 }
 
 void text::refresh()
@@ -110,8 +101,7 @@ void text::refresh()
 
 void text::set_material(std::shared_ptr<render::material> material)
 {
-	this->material = material;
-	render_op.material = material.get();
+	render_op.material = material;
 }
 
 void text::set_font(const type::bitmap_font* font)
@@ -168,10 +158,6 @@ void text::transformed()
 void text::update_tweens()
 {
 	object_base::update_tweens();
-	if (material)
-	{
-		//material->update_tweens();
-	}
 }
 
 void text::update_content()

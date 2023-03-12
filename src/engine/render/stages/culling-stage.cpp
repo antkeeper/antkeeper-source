@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/render/stage/culling-stage.hpp>
+#include <engine/render/stages/culling-stage.hpp>
 #include <engine/scene/camera.hpp>
 #include <engine/scene/collection.hpp>
 #include <algorithm>
@@ -28,8 +28,8 @@ namespace render {
 
 void culling_stage::execute(render::context& ctx)
 {
-	// Get list of all objects in the collection
-	const std::list<scene::object_base*>& objects = *(ctx.collection->get_objects());
+	// Get all objects in the collection
+	const auto& objects = ctx.collection->get_objects();
 	
 	// Get camera culling volume
 	ctx.camera_culling_volume = ctx.camera->get_culling_mask();
@@ -37,9 +37,6 @@ void culling_stage::execute(render::context& ctx)
 	{
 		ctx.camera_culling_volume = &ctx.camera->get_world_bounds();
 	}
-	
-	// Clear set of visible objects
-	ctx.visible_objects.clear();
 	
 	// Construct mutex to guard set of visible objects
 	std::mutex mutex;
@@ -77,7 +74,7 @@ void culling_stage::execute(render::context& ctx)
 			
 			// Insert object into set of visible objects
 			std::lock_guard<std::mutex> guard(mutex);
-			ctx.visible_objects.push_back(object);
+			ctx.objects.push_back(object);
 		}
 	);
 }

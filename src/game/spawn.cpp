@@ -19,7 +19,7 @@
 
 #include "game/spawn.hpp"
 #include "game/components/transform-component.hpp"
-#include "game/components/model-component.hpp"
+#include "game/components/scene-component.hpp"
 
 
 entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, bool fertilized, const float3& position)
@@ -35,12 +35,8 @@ entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, bool fertilized,
 	transform_component.warp = true;
 	ctx.entity_registry->emplace<::transform_component>(egg_eid, transform_component);
 	
-	// Construct model component
-	model_component model_component;
-	model_component.render_model = genome.egg->phenes.front().model;
-	model_component.instance_count = 0;
-	model_component.layers = ~0;
-	ctx.entity_registry->emplace<::model_component>(egg_eid, model_component);
+	// Construct scene component
+	ctx.entity_registry->emplace<::scene_component>(egg_eid, std::make_unique<scene::static_mesh>(genome.egg->phenes.front().model), std::uint8_t{1});
 	
 	return egg_eid;
 }
@@ -58,12 +54,8 @@ entity::id spawn_ant_larva(::game& ctx, const ant_genome& genome, const float3& 
 	transform_component.warp = true;
 	ctx.entity_registry->emplace<::transform_component>(larva_eid, transform_component);
 	
-	// Construct model component
-	model_component model_component;
-	model_component.render_model = genome.larva->phenes.front().model;
-	model_component.instance_count = 0;
-	model_component.layers = ~0;
-	ctx.entity_registry->emplace<::model_component>(larva_eid, model_component);
+	// Construct scene component
+	ctx.entity_registry->emplace<::scene_component>(larva_eid, std::make_unique<scene::static_mesh>(genome.larva->phenes.front().model), std::uint8_t{1});
 	
 	return larva_eid;
 }

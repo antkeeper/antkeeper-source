@@ -33,24 +33,14 @@ typename object_base::transform_type object_base::interpolate_transforms(const t
 }
 
 object_base::object_base():
-	active(true),
-	transform(math::transform<float>::identity, interpolate_transforms),
-	culling_mask(nullptr)
+	transform(math::transform<float>::identity, interpolate_transforms)
 {}
-
-void object_base::set_culling_mask(const bounding_volume_type* culling_mask)
-{
-	this->culling_mask = culling_mask;
-}
 
 std::size_t object_base::next_object_type_id()
 {
 	static std::atomic<std::size_t> id{0};
 	return id++;
 }
-
-void object_base::render(const render::context& ctx, render::queue& queue) const
-{}
 
 void object_base::update_tweens()
 {
