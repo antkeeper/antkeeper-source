@@ -44,7 +44,7 @@ public:
 	 * @param capacity Sample capacity.
 	 */
 	/// @{
-	moving_average(std::size_t capacity):
+	explicit moving_average(std::size_t capacity):
 		m_samples(capacity)
 	{}
 	moving_average() noexcept = default;
