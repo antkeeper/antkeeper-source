@@ -37,7 +37,7 @@ namespace scene {
 class text: public object<text>
 {
 public:
-	typedef geom::aabb<float> aabb_type;
+	using aabb_type = geom::aabb<float>;
 	
 	/// Constructs a text object.
 	text();
@@ -87,28 +87,39 @@ public:
 	void set_color(const float4& color);
 	
 	/// Returns the text material.
-	std::shared_ptr<render::material> get_material() const;
+	[[nodiscard]] inline std::shared_ptr<render::material> get_material() const noexcept
+	{
+		return m_render_op.material;
+	}
 	
 	/// Returns the text font.
-	const type::bitmap_font* get_font() const;
+	[[nodiscard]] inline const type::bitmap_font* get_font() const noexcept
+	{
+		return m_font;
+	}
 	
 	/// Returns the text direction.
-	const type::text_direction& get_direction() const;
+	[[nodiscard]] inline const type::text_direction& get_direction() const noexcept
+	{
+		return m_direction;
+	}
 	
 	/// Returns the text content.
-	const std::string& get_content() const;
+	[[nodiscard]] inline const std::string& get_content() const noexcept
+	{
+		return m_content_u8;
+	}
 	
 	/// Returns the text color.
-	const float4& get_color() const;
+	[[nodiscard]] inline const float4& get_color() const noexcept
+	{
+		return m_color;
+	}
 	
-	/// @copydoc scene::object::get_local_bounds() const
-	virtual const bounding_volume_type& get_local_bounds() const;
-	
-	/// @copydoc scene::object::get_world_bounds() const
-	virtual const bounding_volume_type& get_world_bounds() const;
-	
-	/// @copydoc scene::object::update_tweens()
-	virtual void update_tweens();
+	[[nodiscard]] inline virtual const bounding_volume_type& get_bounds() const noexcept
+	{
+		return m_world_bounds;
+	}
 
 private:
 	void update_content();
@@ -116,55 +127,20 @@ private:
 	
 	virtual void transformed();
 	
-	mutable render::operation render_op;
-	aabb_type local_bounds;
-	aabb_type world_bounds;
-	const type::bitmap_font* font;
-	type::text_direction direction;
-	std::string content_u8;
-	std::u32string content_u32;
-	float4 color;
-	std::size_t vertex_stride;
-	std::size_t vertex_count;
-	std::vector<std::byte> vertex_data;
-	std::unique_ptr<gl::vertex_array> vao;
-	std::unique_ptr<gl::vertex_buffer> vbo;
+	mutable render::operation m_render_op;
+	aabb_type m_local_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
+	aabb_type m_world_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
+	const type::bitmap_font* m_font{nullptr};
+	type::text_direction m_direction{type::text_direction::ltr};
+	std::string m_content_u8;
+	std::u32string m_content_u32;
+	float4 m_color{1.0f, 0.0f, 1.0f, 1.0f};
+	std::size_t m_vertex_stride{0};
+	std::size_t m_vertex_count{0};
+	std::vector<std::byte> m_vertex_data;
+	std::unique_ptr<gl::vertex_array> m_vao;
+	std::unique_ptr<gl::vertex_buffer> m_vbo;
 };
-
-inline  std::shared_ptr<render::material> text::get_material() const
-{
-	return render_op.material;
-}
-
-inline const type::bitmap_font* text::get_font() const
-{
-	return font;
-}
-
-inline const type::text_direction& text::get_direction() const
-{
-	return direction;
-}
-
-inline const std::string& text::get_content() const
-{
-	return content_u8;
-}
-
-inline const float4& text::get_color() const
-{
-	return color;
-}
-
-inline const typename object_base::bounding_volume_type& text::get_local_bounds() const
-{
-	return local_bounds;
-}
-
-inline const typename object_base::bounding_volume_type& text::get_world_bounds() const
-{
-	return world_bounds;
-}
 
 } // namespace scene
 

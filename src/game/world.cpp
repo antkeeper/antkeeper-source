@@ -361,29 +361,26 @@ void create_sun(::game& ctx)
 		
 		// Create sun directional light scene object
 		ctx.sun_light = std::make_unique<scene::directional_light>();
-		ctx.sun_light->set_color({0, 0, 0});
+		ctx.sun_light->set_illuminance({0, 0, 0});
 		ctx.sun_light->set_shadow_caster(true);
 		ctx.sun_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer.get());
 		ctx.sun_light->set_shadow_bias(0.005f);
 		ctx.sun_light->set_shadow_cascade_count(4);
 		ctx.sun_light->set_shadow_cascade_coverage(0.15f);
 		ctx.sun_light->set_shadow_cascade_distribution(0.8f);
-		ctx.sun_light->update_tweens();
 		
 		// Create sky ambient light scene object
 		ctx.sky_light = std::make_unique<scene::ambient_light>();
-		ctx.sky_light->set_color({0, 0, 0});
-		ctx.sky_light->update_tweens();
+		ctx.sky_light->set_illuminance({0, 0, 0});
 		
 		// Create bounce directional light scene object
 		ctx.bounce_light = std::make_unique<scene::directional_light>();
-		ctx.bounce_light->set_color({0, 0, 0});
+		ctx.bounce_light->set_illuminance({0, 0, 0});
 		ctx.bounce_light->look_at({0, 0, 0}, {0, 1, 0}, {1, 0, 0});
-		ctx.bounce_light->update_tweens();
 		
 		// Add sun light scene objects to surface scene
-		ctx.surface_scene->add_object(ctx.sun_light.get());
-		ctx.surface_scene->add_object(ctx.sky_light.get());
+		ctx.surface_scene->add_object(*ctx.sun_light);
+		ctx.surface_scene->add_object(*ctx.sky_light);
 		//ctx.surface_scene->add_object(ctx.bounce_light);
 		
 		// Pass direct sun light scene object to shadow map pass and astronomy system
@@ -450,11 +447,10 @@ void create_moon(::game& ctx)
 		
 		// Create moon directional light scene object
 		ctx.moon_light = std::make_unique<scene::directional_light>();
-		ctx.moon_light->set_color({0, 0, 0});
-		ctx.moon_light->update_tweens();
+		ctx.moon_light->set_illuminance({0, 0, 0});
 		
 		// Add moon light scene objects to surface scene
-		ctx.surface_scene->add_object(ctx.moon_light.get());
+		ctx.surface_scene->add_object(*ctx.moon_light);
 		
 		// Pass moon light scene object to astronomy system
 		ctx.astronomy_system->set_moon_light(ctx.moon_light.get());

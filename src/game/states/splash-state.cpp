@@ -58,16 +58,14 @@ splash_state::splash_state(::game& ctx):
 	
 	auto splash_tint = std::make_shared<render::material_float4>(1, float4{1, 1, 1, 0});
 	splash_billboard_material->set_variable("tint", splash_tint);
-	//splash_billboard_material.update_tweens();
 	
 	// Construct splash billboard
 	splash_billboard.set_material(splash_billboard_material);
 	splash_billboard.set_scale({static_cast<float>(std::get<0>(splash_dimensions)) * 0.5f, static_cast<float>(std::get<1>(splash_dimensions)) * 0.5f, 1.0f});
 	splash_billboard.set_translation({std::round(viewport_center.x()), std::round(viewport_center.y()), 0.0f});
-	splash_billboard.update_tweens();
 	
 	// Add splash billboard to UI scene
-	ctx.ui_scene->add_object(&splash_billboard);
+	ctx.ui_scene->add_object(splash_billboard);
 	
 	// Load animation timing configuration
 	const float splash_fade_in_duration = 0.5;
@@ -136,7 +134,6 @@ splash_state::splash_state(::game& ctx):
 			const vec2 viewport_size = vec2(event.window->get_viewport_size());
 			const vec2 viewport_center = viewport_size * 0.5f;
 			splash_billboard.set_translation({std::round(viewport_center.x()), std::round(viewport_center.y()), 0.0f});
-			splash_billboard.update_tweens();
 		}
 	);
 	
@@ -207,7 +204,7 @@ splash_state::~splash_state()
 	ctx.animator->remove_animation(&splash_fade_out_animation);
 	
 	// Remove splash billboard from UI scene
-	ctx.ui_scene->remove_object(&splash_billboard);
+	ctx.ui_scene->remove_object(splash_billboard);
 	
 	// Disable color buffer clearing in UI pass
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);

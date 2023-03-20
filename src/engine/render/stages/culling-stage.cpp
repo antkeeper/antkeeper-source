@@ -35,8 +35,9 @@ void culling_stage::execute(render::context& ctx)
 	ctx.camera_culling_volume = ctx.camera->get_culling_mask();
 	if (!ctx.camera_culling_volume)
 	{
-		ctx.camera_culling_volume = &ctx.camera->get_world_bounds();
+		ctx.camera_culling_volume = &ctx.camera->get_view_frustum().get_bounds();
 	}
+	const auto& culling_volume = *ctx.camera_culling_volume;
 	
 	// Construct mutex to guard set of visible objects
 	std::mutex mutex;
@@ -63,11 +64,11 @@ void culling_stage::execute(render::context& ctx)
 			const geom::bounding_volume<float>* object_culling_volume = object->get_culling_mask();
 			if (!object_culling_volume)
 			{
-				object_culling_volume = &object->get_world_bounds();
+				object_culling_volume = &object->get_bounds();
 			}
 			
 			// Cull object if it's outside of the camera culling volume
-			if (!ctx.camera_culling_volume->intersects(*object_culling_volume))
+			if (!culling_volume.intersects(*object_culling_volume))
 			{
 				return;
 			}

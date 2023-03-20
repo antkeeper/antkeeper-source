@@ -64,7 +64,6 @@ pause_menu_state::pause_menu_state(::game& ctx):
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);
 	::menu::align_text(ctx, true, false);
-	::menu::update_text_tweens(ctx);
 	::menu::add_text_to_ui(ctx);
 	::menu::setup_animations(ctx);
 	

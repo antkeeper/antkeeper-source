@@ -20,7 +20,7 @@
 #include "game/spawn.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/scene-component.hpp"
-
+#include <engine/scene/static-mesh.hpp>
 
 entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, bool fertilized, const float3& position)
 {
@@ -32,7 +32,6 @@ entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, bool fertilized,
 	transform_component.local = math::transform<float>::identity;
 	transform_component.local.translation = position;
 	transform_component.world = transform_component.local;
-	transform_component.warp = true;
 	ctx.entity_registry->emplace<::transform_component>(egg_eid, transform_component);
 	
 	// Construct scene component
@@ -51,7 +50,6 @@ entity::id spawn_ant_larva(::game& ctx, const ant_genome& genome, const float3& 
 	transform_component.local = math::transform<float>::identity;
 	transform_component.local.translation = position;
 	transform_component.world = transform_component.local;
-	transform_component.warp = true;
 	ctx.entity_registry->emplace<::transform_component>(larva_eid, transform_component);
 	
 	// Construct scene component

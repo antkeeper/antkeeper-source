@@ -21,7 +21,7 @@
 #define ANTKEEPER_SCENE_POINT_LIGHT_HPP
 
 #include <engine/scene/light.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 namespace scene {
 
@@ -31,8 +31,6 @@ namespace scene {
 class point_light: public light
 {
 public:
-	point_light();
-	
 	/// Returns light_type::point
 	[[nodiscard]] inline light_type get_light_type() const noexcept override
 	{
@@ -40,31 +38,42 @@ public:
 	}
 	
 	/**
+	 * Sets the luminous flux of the point light.
+	 *
+	 * @param luminous_flux Luminous flux, in *lm*.
+	 */
+	inline void set_luminous_flux(const math::vector<float, 3>& luminous_flux) noexcept
+	{
+		m_luminous_flux = luminous_flux;
+	}
+	
+	/// Returns the luminous flux of the point light, in *lm*.
+	[[nodiscard]] inline const math::vector<float, 3>& get_luminous_flux() const noexcept
+	{
+		return m_luminous_flux;
+	}
+	
+	/**
 	 * Sets the attenuation factors of the light.
 	 *
 	 * @param attenuation Vector containing the constant, linear, and quadratic attenuation factors, as x, y, and z, respectively.
 	 */
-	void set_attenuation(const float3& attenuation);
+	inline void set_attenuation(const float3& attenuation) noexcept
+	{
+		m_attenuation = attenuation;
+	}
 
 	/// Returns the attenuation factors of the light.
-	[[nodiscard]] inline const float3& get_attenuation() const noexcept
+	[[nodiscard]] inline const math::vector<float, 3>& get_attenuation() const noexcept
 	{
-		return attenuation[1];
+		return m_attenuation;
 	}
-
-	/// Returns the attenuation tween.
-	[[nodiscard]] inline const tween<float3>& get_attenuation_tween() const noexcept
-	{
-		return attenuation;
-	}
-
-	void update_tweens() override;
 
 private:
-	tween<float3> attenuation;
+	math::vector<float, 3> m_luminous_flux{0.0f, 0.0f, 0.0f};
+	math::vector<float, 3> m_attenuation{1.0f, 0.0f, 0.0f};
 };
 
 } // namespace scene
 
 #endif // ANTKEEPER_SCENE_POINT_LIGHT_HPP
-

@@ -18,67 +18,51 @@
  */
 
 #include <engine/scene/directional-light.hpp>
-#include <engine/config.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/interpolation.hpp>
 
 namespace scene {
 
-static float3 interpolate_direction(const float3& x, const float3& y, float a)
-{
-	math::quaternion<float> q0 = math::rotation(config::global_forward, x);
-	math::quaternion<float> q1 = math::rotation(config::global_forward, y);
-	return math::normalize(math::slerp(q0, q1, a) * config::global_forward);
-}
-
 directional_light::directional_light():
-	direction(config::global_forward, interpolate_direction)
-{
-	shadow_cascade_distances.resize(shadow_cascade_count);
-	shadow_cascade_matrices.resize(shadow_cascade_count);
-}
+	m_shadow_cascade_distances(m_shadow_cascade_count),
+	m_shadow_cascade_matrices(m_shadow_cascade_count)
+{}
 
 void directional_light::set_shadow_caster(bool caster) noexcept
 {
-	shadow_caster = caster;
+	m_shadow_caster = caster;
 }
 
 void directional_light::set_shadow_framebuffer(const gl::framebuffer* framebuffer) noexcept
 {
-	shadow_framebuffer = framebuffer;
+	m_shadow_framebuffer = framebuffer;
 }
 
 void directional_light::set_shadow_bias(float bias) noexcept
 {
-	shadow_bias = bias;
+	m_shadow_bias = bias;
 }
 
 void directional_light::set_shadow_cascade_count(unsigned int count) noexcept
 {
-	shadow_cascade_count = count;
-	shadow_cascade_distances.resize(shadow_cascade_count);
-	shadow_cascade_matrices.resize(shadow_cascade_count);
+	m_shadow_cascade_count = count;
+	m_shadow_cascade_distances.resize(m_shadow_cascade_count);
+	m_shadow_cascade_matrices.resize(m_shadow_cascade_count);
 }
 
 void directional_light::set_shadow_cascade_coverage(float factor) noexcept
 {
-	shadow_cascade_coverage = factor;
+	m_shadow_cascade_coverage = factor;
 }
 
 void directional_light::set_shadow_cascade_distribution(float weight) noexcept
 {
-	shadow_cascade_distribution = weight;
-}
-
-void directional_light::update_tweens()
-{
-	light::update_tweens();
-	direction.update();
+	m_shadow_cascade_distribution = weight;
 }
 
 void directional_light::transformed()
 {
-	direction[1] = math::normalize(get_transform().rotation * config::global_forward);
+	m_direction = get_rotation() * math::vector<float, 3>{0.0f, 0.0f, -1.0f};
 }
 
 } // namespace scene

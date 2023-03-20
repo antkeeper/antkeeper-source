@@ -38,6 +38,8 @@ public:
 	explicit physics_system(entity::registry& registry);
 	void update(float t, float dt) override;
 	
+	void interpolate(float alpha);
+	
 	/**
 	 * Sets the gravity vector.
 	 *
@@ -51,8 +53,7 @@ public:
 private:
 	using collision_manifold_type = physics::collision_manifold<4>;
 	
-	void integrate_forces(float dt);
-	void integrate_velocities(float dt);
+	void integrate(float dt);
 	
 	void solve_constraints(float dt);
 	

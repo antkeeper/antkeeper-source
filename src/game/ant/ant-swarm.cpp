@@ -28,6 +28,7 @@
 #include <engine/resources/resource-manager.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/angles.hpp>
+#include <engine/scene/static-mesh.hpp>
 #include <engine/config.hpp>
 #include <cmath>
 #include <random>
@@ -65,7 +66,6 @@ entity::id create_ant_swarm(::game& ctx)
 	::transform_component transform;
 	transform.local = math::transform<float>::identity;
 	transform.world = transform.local;
-	transform.warp = true;
 	
 	// Init picking component
 	::picking_component picking;
@@ -77,7 +77,6 @@ entity::id create_ant_swarm(::game& ctx)
 	entity::id swarm_eid = ctx.entity_registry->create();
 	transform.local.translation = swarm_center;
 	transform.world = transform.local;
-	transform.warp = true;
 	ctx.entity_registry->emplace<::transform_component>(swarm_eid, transform);
 	
 	// Load male model

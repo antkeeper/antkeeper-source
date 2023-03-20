@@ -62,7 +62,6 @@ gamepad_config_menu_state::gamepad_config_menu_state(::game& ctx):
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);
 	::menu::align_text(ctx);
-	::menu::update_text_tweens(ctx);
 	::menu::add_text_to_ui(ctx);
 	::menu::setup_animations(ctx);
 	
@@ -317,7 +316,6 @@ void gamepad_config_menu_state::add_control_item(input::action_map& action_map, 
 		// Update control mapping text
 		value_text->set_content(this->get_mapping_string(*action_map, *control));
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 		
 		// Queue disabling of input mapper re-enabling of menu controls
 		ctx.function_queue.push
@@ -336,7 +334,6 @@ void gamepad_config_menu_state::add_control_item(input::action_map& action_map, 
 		// Set control mapping text to "..."
 		value_text->set_content(get_string(ctx, "control_mapping"));
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 		
 		// Setup input mapped callbacks
 		gamepad_axis_mapped_subscription = ctx.input_mapper.get_gamepad_axis_mapped_channel().subscribe

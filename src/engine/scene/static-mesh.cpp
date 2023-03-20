@@ -20,6 +20,7 @@
 #include <engine/scene/static-mesh.hpp>
 #include <engine/render/model.hpp>
 #include <engine/render/material.hpp>
+#include <engine/scene/camera.hpp>
 
 namespace scene {
 
@@ -30,87 +31,83 @@ static_mesh::static_mesh(std::shared_ptr<render::model> model)
 
 void static_mesh::set_model(std::shared_ptr<render::model> model)
 {
-	this->model = model;
+	m_model = model;
 	
-	if (model)
+	if (m_model)
 	{
-		operations.resize(model->get_groups().size());
-		for (std::size_t i = 0; i < operations.size(); ++i)
+		m_operations.resize(m_model->get_groups().size());
+		for (std::size_t i = 0; i < m_operations.size(); ++i)
 		{
-			const auto& group = model->get_groups()[i];
+			const auto& group = m_model->get_groups()[i];
 			
-			auto& operation = operations[i];
-			operation.vertex_array = model->get_vertex_array().get();
+			auto& operation = m_operations[i];
+			operation.vertex_array = m_model->get_vertex_array().get();
 			operation.drawing_mode = group.drawing_mode;
 			operation.start_index = group.start_index;
 			operation.index_count = group.index_count;
 			operation.material = group.material;
 		}
 		
-		pose = model->get_skeleton().bind_pose;
-		::concatenate(pose, pose);
+		::concatenate(m_model->get_skeleton().bind_pose, m_pose);
 	}
 	else
 	{
-		operations.clear();
-		pose.clear();
+		m_operations.clear();
+		m_pose.clear();
 	}
 	
-	update_bounds();
+	transformed();
 }
 
 void static_mesh::set_material(std::size_t index, std::shared_ptr<render::material> material)
 {
 	if (material)
 	{
-		operations[index].material = material;
+		m_operations[index].material = material;
 	}
 	else
 	{
-		operations[index].material = model->get_groups()[index].material;
+		m_operations[index].material = m_model->get_groups()[index].material;
 	}
 }
 
 void static_mesh::reset_materials()
 {
-	for (std::size_t i = 0; i < operations.size(); ++i)
+	for (std::size_t i = 0; i < m_operations.size(); ++i)
 	{
-		operations[i].material = model->get_groups()[i].material;
+		m_operations[i].material = m_model->get_groups()[i].material;
 	}
 }
 
 void static_mesh::update_bounds()
 {
-	if (model)
+	if (m_model)
 	{
-		local_bounds = aabb_type::transform(model->get_bounds(), get_transform());
-		transformed();
+		m_bounds = aabb_type::transform(m_model->get_bounds(), get_transform());
 	}
 	else
 	{
-		local_bounds = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
-		world_bounds = {get_translation(), get_translation()};
+		m_bounds = {get_translation(), get_translation()};
 	}
 }
 
 void static_mesh::transformed()
 {
-	world_bounds = aabb_type::transform(local_bounds, get_transform());
-}
-
-void static_mesh::update_tweens()
-{
-	object_base::update_tweens();
+	update_bounds();
+	
+	const float4x4 transform_matrix = math::matrix_cast(get_transform());
+	for (auto& operation: m_operations)
+	{
+		operation.transform = transform_matrix;
+	}
 }
 
 void static_mesh::render(render::context& ctx) const
 {
-	const float4x4 transform = math::matrix_cast(get_transform_tween().interpolate(ctx.alpha));
-	
-	for (auto& operation: operations)
+	const float depth = ctx.camera->get_view_frustum().get_near().signed_distance(get_translation());
+	for (auto& operation: m_operations)
 	{
-		operation.transform = transform;
-		operation.depth = ctx.clip_near.signed_distance(float3(operation.transform[3]));
+		operation.depth = depth;
 		ctx.operations.push_back(&operation);
 	}
 }

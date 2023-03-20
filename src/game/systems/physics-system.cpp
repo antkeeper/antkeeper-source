@@ -22,6 +22,7 @@
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/rigid-body-constraint-component.hpp"
 #include "game/components/transform-component.hpp"
+#include "game/components/scene-component.hpp"
 #include <algorithm>
 #include <engine/debug/log.hpp>
 #include <engine/entity/id.hpp>
@@ -77,33 +78,15 @@ physics_system::physics_system(entity::registry& registry):
 
 void physics_system::update(float t, float dt)
 {
-	/// Update rigid body transforms
-	auto transform_view = registry.view<rigid_body_component, transform_component>();
-	std::for_each
-	(
-		std::execution::par_unseq,
-		transform_view.begin(),
-		transform_view.end(),
-		[&](auto entity_id)
-		{
-			auto& body = *(transform_view.get<rigid_body_component>(entity_id).body);
-			auto& transform = transform_view.get<transform_component>(entity_id);
-			
-			// Update body center of mass and orientation
-			body.set_center_of_mass(transform.local.translation);
-			body.set_orientation(transform.local.rotation);
-		}
-	);
-	
 	detect_collisions_broad();
 	detect_collisions_narrow();
 	solve_constraints(dt);
 	resolve_collisions();
-	integrate_forces(dt);
-	integrate_velocities(dt);
+	integrate(dt);
 	correct_positions();
 	
 	// Update transform component transforms
+	auto transform_view = registry.view<rigid_body_component, transform_component>();
 	for (const auto entity_id: transform_view)
 	{
 		const auto& body = *(transform_view.get<rigid_body_component>(entity_id).body);
@@ -115,14 +98,32 @@ void physics_system::update(float t, float dt)
 			[&, dt](auto& transform)
 			{
 				// Integrate position
-				transform.local.translation = body.get_center_of_mass();
-				transform.local.rotation = body.get_orientation();
+				transform.local = body.get_transform();
 			}
 		);
 	}
 }
 
-void physics_system::integrate_forces(float dt)
+void physics_system::interpolate(float alpha)
+{
+	// Interpolate rigid body states
+	auto view = registry.view<rigid_body_component, scene_component>();
+	std::for_each
+	(
+		std::execution::par_unseq,
+		view.begin(),
+		view.end(),
+		[&, alpha](auto entity_id)
+		{
+			const auto& rigid_body = *(view.get<rigid_body_component>(entity_id).body);
+			auto& scene_object = *(view.get<scene_component>(entity_id).object);
+			
+			scene_object.set_transform(rigid_body.interpolate(alpha));
+		}
+	);
+}
+
+void physics_system::integrate(float dt)
 {
 	// Drag
 	/*
@@ -152,24 +153,7 @@ void physics_system::integrate_forces(float dt)
 			// Apply gravity
 			body.apply_central_force(gravity / 10.0f * body.get_mass());
 			
-			body.integrate_forces(dt);
-		}
-	);
-}
-
-void physics_system::integrate_velocities(float dt)
-{
-	auto view = registry.view<rigid_body_component>();
-	std::for_each
-	(
-		std::execution::par_unseq,
-		view.begin(),
-		view.end(),
-		[&](auto entity_id)
-		{
-			auto& body = *(view.get<rigid_body_component>(entity_id).body);
-			
-			body.integrate_velocities(dt);
+			body.integrate(dt);
 		}
 	);
 }
@@ -312,8 +296,8 @@ void physics_system::resolve_collisions()
 		{
 			const physics::collision_contact& contact = manifold.contacts[i];
 			
-			const math::vector<float, 3> radius_a = contact.point - body_a.get_center_of_mass();
-			const math::vector<float, 3> radius_b = contact.point - body_b.get_center_of_mass();
+			const math::vector<float, 3> radius_a = contact.point - body_a.get_position();
+			const math::vector<float, 3> radius_b = contact.point - body_b.get_position();
 			
 			math::vector<float, 3> relative_velocity = body_b.get_point_velocity(radius_b) - body_a.get_point_velocity(radius_a);
 			
@@ -391,8 +375,8 @@ void physics_system::correct_positions()
 			
 			math::vector<float, 3> correction = contact.normal * (std::max<float>(0.0f, contact.depth - depth_threshold) / sum_inverse_mass) * correction_factor;
 			
-			body_a.set_center_of_mass(body_a.get_center_of_mass() - correction * body_a.get_inverse_mass());
-			body_b.set_center_of_mass(body_b.get_center_of_mass() + correction * body_b.get_inverse_mass());
+			body_a.set_position(body_a.get_position() - correction * body_a.get_inverse_mass());
+			body_b.set_position(body_b.get_position() + correction * body_b.get_inverse_mass());
 		}
 	}
 }
@@ -409,9 +393,9 @@ void physics_system::narrow_phase_plane_sphere(physics::rigid_body& body_a, phys
 	
 	// Transform plane into world-space
 	const math::vector<float, 3> plane_normal = body_a.get_orientation() * plane_a.get_normal();
-	const float plane_constant = plane_a.get_constant() - math::dot(plane_normal, body_a.get_center_of_mass());
+	const float plane_constant = plane_a.get_constant() - math::dot(plane_normal, body_a.get_position());
 	
-	const float signed_distance = math::dot(plane_normal, body_b.get_center_of_mass()) + plane_constant;
+	const float signed_distance = math::dot(plane_normal, body_b.get_position()) + plane_constant;
 	if (signed_distance > sphere_b.get_radius())
 	{
 		return;
@@ -425,7 +409,7 @@ void physics_system::narrow_phase_plane_sphere(physics::rigid_body& body_a, phys
 	
 	// Generate collision contact
 	auto& contact = manifold.contacts[0];
-	contact.point = body_b.get_center_of_mass() - plane_normal * sphere_b.get_radius();
+	contact.point = body_b.get_position() - plane_normal * sphere_b.get_radius();
 	contact.normal = plane_normal * -normal_sign;
 	contact.depth = std::abs(signed_distance - sphere_b.get_radius());
 	
@@ -439,7 +423,7 @@ void physics_system::narrow_phase_plane_box(physics::rigid_body& body_a, physics
 	
 	// Transform plane into world-space
 	const math::vector<float, 3> plane_normal = body_a.get_orientation() * plane_a.get_normal();
-	const float plane_constant = plane_a.get_constant() - math::dot(plane_normal, body_a.get_center_of_mass());
+	const float plane_constant = plane_a.get_constant() - math::dot(plane_normal, body_a.get_position());
 	
 	const auto& box_min = box_b.get_min();
 	const auto& box_max = box_b.get_max();
@@ -463,7 +447,7 @@ void physics_system::narrow_phase_plane_box(physics::rigid_body& body_a, physics
 	for (std::size_t i = 0; i < 8; ++i)
 	{
 		// Transform corner into world-space
-		const math::vector<float, 3> point = body_b.get_center_of_mass() + body_b.get_orientation() * corners[i];
+		const math::vector<float, 3> point = body_b.get_transform() * corners[i];
 		
 		const float signed_distance = math::dot(plane_normal, point) + plane_constant;
 		
@@ -504,7 +488,7 @@ void physics_system::narrow_phase_sphere_sphere(physics::rigid_body& body_a, phy
 	const float sum_radii = sphere_a.get_radius() + sphere_b.get_radius();
 	const float sqr_sum_radii = sum_radii * sum_radii;
 	
-	const math::vector<float, 3> difference = body_b.get_center_of_mass() - body_a.get_center_of_mass();
+	const math::vector<float, 3> difference = body_b.get_position() - body_a.get_position();
 	
 	const float sqr_distance = math::dot(difference, difference);
 	if (sqr_distance > sqr_sum_radii)
@@ -531,7 +515,7 @@ void physics_system::narrow_phase_sphere_sphere(physics::rigid_body& body_a, phy
 		contact.normal = {1.0f, 0.0f, 0.0f};
 		contact.depth = sum_radii;
 	}
-	contact.point = body_a.get_center_of_mass() + contact.normal * sphere_a.get_radius();
+	contact.point = body_a.get_position() + contact.normal * sphere_a.get_radius();
 	
 	narrow_phase_manifolds.emplace_back(std::move(manifold));
 }

@@ -293,15 +293,15 @@ void material_pass::set_fallback_material(std::shared_ptr<render::material> fall
 
 void material_pass::evaluate_camera(const render::context& ctx)
 {
-	view = &ctx.view;
-	projection = &ctx.projection;
-	view_projection = &ctx.view_projection;
-	camera_position = &ctx.camera_transform.translation;
-	camera_exposure = ctx.exposure;
+	view = &ctx.camera->get_view();
+	projection = &ctx.camera->get_projection();
+	view_projection = &ctx.camera->get_view_projection();
+	camera_position = &ctx.camera->get_translation();
+	camera_exposure = ctx.camera->get_exposure_normalization();
 	clip_depth =
 	{
-		ctx.camera->get_clip_near_tween().interpolate(ctx.alpha),
-		ctx.camera->get_clip_far_tween().interpolate(ctx.alpha)
+		ctx.camera->get_clip_near(),
+		ctx.camera->get_clip_far()
 	};
 	log_depth_coef = 2.0f / std::log2(clip_depth[1] + 1.0f);
 }
@@ -324,8 +324,8 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 			continue;
 		}
 		
-		const scene::light* light = static_cast<const scene::light*>(object);
-		switch (light->get_light_type())
+		const scene::light& light = static_cast<const scene::light&>(*object);
+		switch (light.get_light_type())
 		{
 			// Add ambient light
 			case scene::light_type::ambient:
@@ -338,13 +338,17 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					ambient_light_colors.resize(ambient_light_count);
 				}
 				
-				ambient_light_colors[index] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
+				
+				
+				ambient_light_colors[index] = static_cast<const scene::ambient_light&>(light).get_illuminance() * ctx.camera->get_exposure_normalization();
 				break;
 			}
 			
 			// Add point light
 			case scene::light_type::point:
 			{
+				const scene::point_light& point_light = static_cast<const scene::point_light&>(light);
+				
 				const std::size_t index = point_light_count;
 				
 				++point_light_count;
@@ -355,16 +359,16 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					point_light_attenuations.resize(point_light_count);
 				}
 				
-				point_light_colors[index] = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
-				point_light_positions[index] = light->get_transform_tween().interpolate(ctx.alpha).translation;
-				point_light_attenuations[index] = static_cast<const scene::point_light*>(light)->get_attenuation_tween().interpolate(ctx.alpha);
+				point_light_colors[index] = point_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
+				point_light_positions[index] = point_light.get_translation();
+				point_light_attenuations[index] = point_light.get_attenuation();
 				break;
 			}
 			
 			// Add directional light
 			case scene::light_type::directional:
 			{
-				const scene::directional_light& directional_light = static_cast<const scene::directional_light&>(*light);
+				const scene::directional_light& directional_light = static_cast<const scene::directional_light&>(light);
 				
 				const std::size_t index = directional_light_count;
 				
@@ -375,8 +379,8 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					directional_light_directions.resize(directional_light_count);
 				}
 				
-				directional_light_colors[index] = directional_light.get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
-				directional_light_directions[index] = directional_light.get_direction_tween().interpolate(ctx.alpha);
+				directional_light_colors[index] = directional_light.get_illuminance() * ctx.camera->get_exposure_normalization();
+				directional_light_directions[index] = directional_light.get_direction();
 				
 				// Add directional shadow
 				if (directional_light.is_shadow_caster() && directional_light.get_shadow_framebuffer())
@@ -403,7 +407,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 			// Add spot_light
 			case scene::light_type::spot:
 			{
-				const scene::spot_light& spot_light = static_cast<const scene::spot_light&>(*light);
+				const scene::spot_light& spot_light = static_cast<const scene::spot_light&>(light);
 				
 				const std::size_t index = spot_light_count;
 				
@@ -417,11 +421,11 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					spot_light_cutoffs.resize(spot_light_count);
 				}
 				
-				spot_light_colors[index] = spot_light.get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
-				spot_light_positions[index] = spot_light.get_transform_tween().interpolate(ctx.alpha).translation;
-				spot_light_directions[index] = spot_light.get_direction_tween().interpolate(ctx.alpha);
-				spot_light_attenuations[index] = spot_light.get_attenuation_tween().interpolate(ctx.alpha);
-				spot_light_cutoffs[index] = spot_light.get_cosine_cutoff_tween().interpolate(ctx.alpha);
+				spot_light_colors[index] = spot_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
+				spot_light_positions[index] = spot_light.get_translation();
+				spot_light_directions[index] = spot_light.get_direction();
+				spot_light_attenuations[index] = spot_light.get_attenuation();
+				spot_light_cutoffs[index] = spot_light.get_cosine_cutoff();
 				break;
 			}
 			

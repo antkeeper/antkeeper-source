@@ -53,7 +53,6 @@ extras_menu_state::extras_menu_state(::game& ctx):
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);
 	::menu::align_text(ctx);
-	::menu::update_text_tweens(ctx);
 	::menu::add_text_to_ui(ctx);
 	::menu::setup_animations(ctx);
 	

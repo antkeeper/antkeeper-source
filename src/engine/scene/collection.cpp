@@ -18,34 +18,25 @@
  */
 
 #include <engine/scene/collection.hpp>
-#include <engine/scene/object.hpp>
 
 namespace scene {
 
-void collection::add_object(object_base* object)
+void collection::add_object(object_base& object)
 {
-	objects.emplace_back(object);
-	object_map[object->get_object_type_id()].emplace_back(object);
+	m_objects.emplace_back(&object);
+	m_object_map[object.get_object_type_id()].emplace_back(&object);
 }
 
-void collection::remove_object(object_base* object)
+void collection::remove_object(const object_base& object)
 {
-	std::erase(objects, object);
-	std::erase(object_map[object->get_object_type_id()], object);
+	std::erase(m_objects, &object);
+	std::erase(m_object_map[object.get_object_type_id()], &object);
 }
 
 void collection::remove_objects()
 {
-	objects.clear();
-	object_map.clear();
-}
-
-void collection::update_tweens()
-{
-	for (object_base* object: objects)
-	{
-		object->update_tweens();
-	}
+	m_objects.clear();
+	m_object_map.clear();
 }
 
 } // namespace scene

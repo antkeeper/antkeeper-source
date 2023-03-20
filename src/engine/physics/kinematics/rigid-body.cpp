@@ -18,6 +18,7 @@
  */
 
 #include <engine/physics/kinematics/rigid-body.hpp>
+#include <engine/math/interpolation.hpp>
 #include <algorithm>
 
 namespace physics {
@@ -43,12 +44,25 @@ void rigid_body::integrate_forces(float dt) noexcept
 
 void rigid_body::integrate_velocities(float dt) noexcept
 {
-	// Update center of mass
-	m_center_of_mass += m_linear_velocity * dt;
+	// Record previous state
+	m_previous_transform = m_current_transform;
+	
+	// Update position
+	m_current_transform.translation += m_linear_velocity * dt;
 	
 	// Update orientation
-	const math::quaternion<float> spin = math::quaternion<float>{0.0f, m_angular_velocity * 0.5f} * m_orientation;
-	m_orientation = math::normalize(m_orientation + spin * dt);
+	const math::quaternion<float> spin = math::quaternion<float>{0.0f, m_angular_velocity * 0.5f} * m_current_transform.rotation;
+	m_current_transform.rotation = math::normalize(m_current_transform.rotation + spin * dt);
+}
+
+math::transform<float> rigid_body::interpolate(float alpha) const
+{
+	return
+	{
+		math::lerp(m_previous_transform.translation, m_current_transform.translation, alpha),
+		math::nlerp(m_previous_transform.rotation, m_current_transform.rotation, alpha),
+		math::lerp(m_previous_transform.scale, m_current_transform.scale, alpha),
+	};
 }
 
 } // namespace physics

@@ -74,7 +74,6 @@ sound_menu_state::sound_menu_state(::game& ctx):
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);
 	::menu::align_text(ctx);
-	::menu::update_text_tweens(ctx);
 	::menu::add_text_to_ui(ctx);
 	::menu::setup_animations(ctx);
 	
@@ -93,7 +92,6 @@ sound_menu_state::sound_menu_state(::game& ctx):
 		
 		this->update_value_text_content();
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	auto decrease_volume_callback = [this, &ctx](float* volume)
 	{
@@ -109,7 +107,6 @@ sound_menu_state::sound_menu_state(::game& ctx):
 		
 		this->update_value_text_content();
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto toggle_mono_audio_callback = [this, &ctx]()
@@ -118,7 +115,6 @@ sound_menu_state::sound_menu_state(::game& ctx):
 		
 		this->update_value_text_content();
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto toggle_captions_callback = [this, &ctx]()
@@ -127,7 +123,6 @@ sound_menu_state::sound_menu_state(::game& ctx):
 		
 		this->update_value_text_content();
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto increase_captions_size_callback = [this, &ctx]()
@@ -144,7 +139,6 @@ sound_menu_state::sound_menu_state(::game& ctx):
 		
 		this->update_value_text_content();
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto decrease_captions_size_callback = [this, &ctx]()
@@ -161,7 +155,6 @@ sound_menu_state::sound_menu_state(::game& ctx):
 		
 		this->update_value_text_content();
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	auto select_back_callback = [&ctx]()
 	{

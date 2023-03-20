@@ -21,9 +21,13 @@
 #define ANTKEEPER_SCENE_AMBIENT_LIGHT_HPP
 
 #include <engine/scene/light.hpp>
+#include <engine/math/vector.hpp>
 
 namespace scene {
 
+/**
+ * Omnidirectional source of illuminance.
+ */
 class ambient_light: public light
 {
 public:
@@ -31,6 +35,25 @@ public:
 	{
 		return light_type::ambient;
 	}
+	
+	/**
+	 * Sets the illuminance of the ambient light.
+	 *
+	 * @param illuminance Illuminance, in *lx*.
+	 */
+	inline void set_illuminance(const math::vector<float, 3>& illuminance) noexcept
+	{
+		m_illuminance = illuminance;
+	}
+	
+	/// Returns the illuminance of the ambient light, in *lx*.
+	[[nodiscard]] inline const math::vector<float, 3>& get_illuminance() const noexcept
+	{
+		return m_illuminance;
+	}
+	
+private:
+	math::vector<float, 3> m_illuminance{0.0f, 0.0f, 0.0f};
 };
 
 } // namespace scene

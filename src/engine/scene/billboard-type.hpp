@@ -17,14 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/scene/light.hpp>
-#include <engine/math/interpolation.hpp>
+#ifndef ANTKEEPER_SCENE_BILLBOARD_TYPE_HPP
+#define ANTKEEPER_SCENE_BILLBOARD_TYPE_HPP
+
+#include <cstdint>
 
 namespace scene {
 
-void light::transformed()
+/// Billboard types.
+enum class billboard_type: std::uint8_t
 {
-	m_bounds = {get_translation(), 0.0f};
-}
+	/// Billboard is unaligned.
+	flat,
+	
+	/// Billboard aligns to face camera.
+	spherical,
+	
+	/// Billboard rotates about an alignment axis to face camera.
+	cylindrical
+};
 
 } // namespace scene
+
+#endif // ANTKEEPER_SCENE_BILLBOARD_TYPE_HPP

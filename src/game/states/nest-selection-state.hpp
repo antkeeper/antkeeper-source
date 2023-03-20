@@ -54,10 +54,6 @@ private:
 	entity::id worker_ant_eid;
 	
 	entity::id first_person_camera_rig_eid;
-	entity::id first_person_camera_rig_spring_translation_eid;
-	entity::id first_person_camera_rig_spring_rotation_eid;
-	entity::id first_person_camera_rig_track_to_eid;
-	entity::id first_person_camera_rig_fov_spring_eid;
 	float first_person_camera_rig_translation_spring_angular_frequency;
 	float first_person_camera_rig_rotation_spring_angular_frequency;
 	float first_person_camera_rig_fov_spring_angular_frequency;

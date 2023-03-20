@@ -17,19 +17,29 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_CAMERA_COMPONENT_HPP
-#define ANTKEEPER_GAME_CAMERA_COMPONENT_HPP
+#ifndef ANTKEEPER_SCENE_LIGHT_TYPE_HPP
+#define ANTKEEPER_SCENE_LIGHT_TYPE_HPP
 
-#include <engine/scene/camera.hpp>
+#include <cstdint>
 
+namespace scene {
 
-/// Camera scene object component.
-struct camera_component
+/// Light types.
+enum class light_type: std::uint8_t
 {
-	/// Pointer to camera scene object
-	scene::camera* object;
+	/// Ambient light.
+	ambient,
+	
+	/// Directional light.
+	directional,
+	
+	/// Point light.
+	point,
+	
+	/// Spot light.
+	spot
 };
 
+} // namespace scene
 
-#endif // ANTKEEPER_GAME_CAMERA_COMPONENT_HPP
-
+#endif // ANTKEEPER_SCENE_LIGHT_TYPE_HPP

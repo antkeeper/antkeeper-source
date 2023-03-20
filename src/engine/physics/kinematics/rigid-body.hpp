@@ -23,6 +23,7 @@
 #include <engine/math/vector.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/physics/kinematics/collider.hpp>
+#include <engine/math/transform-type.hpp>
 #include <memory>
 
 namespace physics {
@@ -34,6 +35,66 @@ class rigid_body
 {
 public:
 	/**
+	 * Sets the transformation representing the current state of the rigid body.
+	 *
+	 * @param transform Transformation representing the current state of the rigid body.
+	 */
+	inline void set_transform(const math::transform<float>& transform) noexcept
+	{
+		m_current_transform = transform;
+	}
+	
+	/**
+	 * Sets the current position of the rigid body.
+	 *
+	 * @param position Position of the rigid body.
+	 */
+	inline void set_position(const math::vector<float, 3>& position) noexcept
+	{
+		m_current_transform.translation = position;
+	}
+	
+	/**
+	 * Sets the current orientation of the rigid body.
+	 *
+	 * @param orientation Orientation of the rigid body.
+	 */
+	inline void set_orientation(const math::quaternion<float>& orientation) noexcept
+	{
+		m_current_transform.rotation = orientation;
+	}
+	
+	/**
+	 * Sets the transformation representing the previous state of the rigid body.
+	 *
+	 * @param transform Transformation representing the previous state of the rigid body.
+	 */
+	inline void set_previous_transform(const math::transform<float>& transform) noexcept
+	{
+		m_previous_transform = transform;
+	}
+	
+	/**
+	 * Sets the previous position of the rigid body.
+	 *
+	 * @param position Position of the rigid body.
+	 */
+	inline void set_previous_position(const math::vector<float, 3>& position) noexcept
+	{
+		m_previous_transform.translation = position;
+	}
+	
+	/**
+	 * Sets the previous orientation of the rigid body.
+	 *
+	 * @param orientation Orientation of the rigid body.
+	 */
+	inline void set_previous_orientation(const math::quaternion<float>& orientation) noexcept
+	{
+		m_previous_transform.rotation = orientation;
+	}
+	
+	/**
 	 * Sets the center of mass of the rigid body.
 	 *
 	 * @param point World-space center of mass.
@@ -41,16 +102,6 @@ public:
 	inline void set_center_of_mass(const math::vector<float, 3>& point) noexcept
 	{
 		m_center_of_mass = point;
-	}
-	
-	/**
-	 * Sets the world-space orientation of the rigid body.
-	 *
-	 * @param orientation World-space orientation.
-	 */
-	inline void set_orientation(const math::quaternion<float>& orientation) noexcept
-	{
-		m_orientation = orientation;
 	}
 	
 	/**
@@ -149,16 +200,46 @@ public:
 		m_angular_momentum = m_inertia * m_angular_velocity;
 	}
 	
-	/// Returns the world-space center of mass of the rigid body.
+	/// Returns the transformation representing the current state of the rigid body.
+	[[nodiscard]] inline const math::transform<float>& get_transform() const noexcept
+	{
+		return m_current_transform;
+	}
+	
+	/// Returns the current position of the rigid body.
+	[[nodiscard]] inline const math::vector<float, 3>& get_position() const noexcept
+	{
+		return m_current_transform.translation;
+	}
+	
+	/// Returns the current orientation of the rigid body.
+	[[nodiscard]] inline const math::quaternion<float>& get_orientation() const noexcept
+	{
+		return m_current_transform.rotation;
+	}
+	
+	/// Returns the transformation representing the previous state of the rigid body.
+	[[nodiscard]] inline const math::transform<float>& get_previous_transform() const noexcept
+	{
+		return m_previous_transform;
+	}
+	
+	/// Returns the previous position of the rigid body.
+	[[nodiscard]] inline const math::vector<float, 3>& get_previous_position() const noexcept
+	{
+		return m_previous_transform.translation;
+	}
+	
+	/// Returns the previous orientation of the rigid body.
+	[[nodiscard]] inline const math::quaternion<float>& get_previous_orientation() const noexcept
+	{
+		return m_previous_transform.rotation;
+	}
+	
+	/// Returns the center of mass of the rigid body.
 	[[nodiscard]] inline const math::vector<float, 3>& get_center_of_mass() const noexcept
 	{
 		return m_center_of_mass;
-	}
-	
-	/// Returns the world-space orientation of the rigid body.
-	[[nodiscard]] inline const math::quaternion<float>& get_orientation() const noexcept
-	{
-		return m_orientation;
 	}
 	
 	/// Returns the mass of the rigid body, in kg.
@@ -365,12 +446,24 @@ public:
 		integrate_velocities(dt);
 	}
 	
-private:
-	/// World-space center of mass.
-	math::vector<float, 3> m_center_of_mass{math::vector<float, 3>::zero()};
+	/**
+	 * Returns a transformation representing a state of the rigid body between its current and previous states.
+	 *
+	 * @param alpha State interpolation factor.
+	 *
+	 * @return Interpolated transformation.
+	 */
+	[[nodiscard]] math::transform<float> interpolate(float alpha) const;
 	
-	/// World-space orientation.
-	math::quaternion<float> m_orientation{math::quaternion<float>::identity()};
+private:
+	/// Transformation representing the current state of the rigid body.
+	math::transform<float> m_current_transform{math::transform<float>::identity};
+	
+	/// Transformation representing the previous state of the rigid body.
+	math::transform<float> m_previous_transform{math::transform<float>::identity};
+	
+	/// Center of mass.
+	math::vector<float, 3> m_center_of_mass{math::vector<float, 3>::zero()};
 	
 	/// Mass, in kg.
 	float m_mass{1.0f};

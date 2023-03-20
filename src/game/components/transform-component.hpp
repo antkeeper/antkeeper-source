@@ -27,9 +27,7 @@ struct transform_component
 {
 	math::transform<float> local;
 	math::transform<float> world;
-	bool warp;
 };
-
 
 #endif // ANTKEEPER_GAME_TRANSFORM_COMPONENT_HPP
 

@@ -20,12 +20,11 @@
 #ifndef ANTKEEPER_SCENE_COLLECTION_HPP
 #define ANTKEEPER_SCENE_COLLECTION_HPP
 
+#include <engine/scene/object.hpp>
 #include <vector>
 #include <unordered_map>
 
 namespace scene {
-
-class object_base;
 
 /**
  * Collection of scene objects.
@@ -38,25 +37,22 @@ public:
 	 *
 	 * @param object Object to add.
 	 */
-	void add_object(object_base* object);
+	void add_object(object_base& object);
 	
 	/**
 	 * Removes an object from the collection.
 	 *
 	 * @param object Object to remove.
 	 */
-	void remove_object(object_base* object);
+	void remove_object(const object_base& object);
 	
 	/// Removes all objects from the collection.
 	void remove_objects();
 	
-	/// Updates the tweens of all objects in the collection.
-	void update_tweens();
-	
 	/// Returns all objects in the collection.
 	[[nodiscard]] inline const std::vector<object_base*>& get_objects() const noexcept
 	{
-		return objects;
+		return m_objects;
 	}
 	
 	/**
@@ -68,13 +64,12 @@ public:
 	 */
 	[[nodiscard]] inline const std::vector<object_base*>& get_objects(std::size_t type_id) const
 	{
-		return object_map[type_id];
+		return m_object_map[type_id];
 	}
 
 private:
-	std::vector<object_base*> objects;
-	
-	mutable std::unordered_map<std::size_t, std::vector<object_base*>> object_map;
+	std::vector<object_base*> m_objects;
+	mutable std::unordered_map<std::size_t, std::vector<object_base*>> m_object_map;
 };
 
 } // namespace scene

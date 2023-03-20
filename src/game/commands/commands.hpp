@@ -34,7 +34,7 @@ void rotate(entity::registry& registry, entity::id eid, float angle, const float
 void move_to(entity::registry& registry, entity::id eid, const float3& position);
 void warp_to(entity::registry& registry, entity::id eid, const float3& position);
 void set_scale(entity::registry& registry, entity::id eid, const float3& scale);
-void set_transform(entity::registry& registry, entity::id eid, const math::transform<float>& transform, bool warp = false);
+void set_transform(entity::registry& registry, entity::id eid, const math::transform<float>& transform);
 void place(entity::registry& registry, entity::id eid, entity::id celestial_body_id, double altitude, double latitude, double longitude);
 void assign_render_layers(entity::registry& registry, entity::id eid, unsigned int layers);
 math::transform<float> get_local_transform(entity::registry& registry, entity::id eid);

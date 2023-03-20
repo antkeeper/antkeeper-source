@@ -416,7 +416,7 @@ void enable_menu_controls(::game& ctx)
 		{
 			auto [name, value] = ctx.menu_item_texts[i];
 			
-			const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_world_bounds());
+			const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_bounds());
 			float min_x = name_bounds.min_point.x();
 			float min_y = name_bounds.min_point.y();
 			float max_x = name_bounds.max_point.x();
@@ -424,7 +424,7 @@ void enable_menu_controls(::game& ctx)
 			
 			if (value)
 			{
-				const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_world_bounds());
+				const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_bounds());
 				min_x = std::min<float>(min_x, value_bounds.min_point.x());
 				min_y = std::min<float>(min_y, value_bounds.min_point.y());
 				max_x = std::max<float>(max_x, value_bounds.max_point.x());

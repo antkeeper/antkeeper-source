@@ -21,15 +21,11 @@
 #include <engine/config.hpp>
 #include <engine/render/vertex-attribute.hpp>
 #include <engine/geom/projection.hpp>
+#include <engine/scene/camera.hpp>
 
 namespace scene {
 
-const typename billboard::aabb_type billboard::local_bounds = {{-1, -1, -1}, {1, 1, 1}};
-
-billboard::billboard():
-	world_bounds(local_bounds),
-	type(billboard_type::flat),
-	alignment_axis(config::global_up)
+billboard::billboard()
 {
 	const float vertex_data[] =
 	{
@@ -45,13 +41,13 @@ billboard::billboard():
 	const std::size_t vertex_stride = sizeof(float) * vertex_size;
 	const std::size_t vertex_count = 6;
 	
-	vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, sizeof(float) * vertex_size * vertex_count, std::as_bytes(std::span{vertex_data}));
+	m_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, sizeof(float) * vertex_size * vertex_count, std::as_bytes(std::span{vertex_data}));
 	
 	std::size_t attribute_offset = 0;
 	
 	// Define position vertex attribute
 	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = vbo.get();
+	position_attribute.buffer = m_vbo.get();
 	position_attribute.offset = attribute_offset;
 	position_attribute.stride = vertex_stride;
 	position_attribute.type = gl::vertex_attribute_type::float_32;
@@ -60,7 +56,7 @@ billboard::billboard():
 	
 	// Define UV vertex attribute
 	gl::vertex_attribute uv_attribute;
-	uv_attribute.buffer = vbo.get();
+	uv_attribute.buffer = m_vbo.get();
 	uv_attribute.offset = attribute_offset;
 	uv_attribute.stride = vertex_stride;
 	uv_attribute.type = gl::vertex_attribute_type::float_32;
@@ -69,7 +65,7 @@ billboard::billboard():
 	
 	// Define barycentric vertex attribute
 	gl::vertex_attribute barycentric_attribute;
-	barycentric_attribute.buffer = vbo.get();
+	barycentric_attribute.buffer = m_vbo.get();
 	barycentric_attribute.offset = attribute_offset;
 	barycentric_attribute.stride = vertex_stride;
 	barycentric_attribute.type = gl::vertex_attribute_type::float_32;
@@ -77,65 +73,87 @@ billboard::billboard():
 	//attribute_offset += barycentric_attribute.components * sizeof(float);
 	
 	// Bind vertex attributes to VAO
-	vao = std::make_unique<gl::vertex_array>();
-	vao->bind(render::vertex_attribute::position, position_attribute);
-	vao->bind(render::vertex_attribute::uv, uv_attribute);
-	vao->bind(render::vertex_attribute::barycentric, barycentric_attribute);
+	m_vao = std::make_unique<gl::vertex_array>();
+	m_vao->bind(render::vertex_attribute::position, position_attribute);
+	m_vao->bind(render::vertex_attribute::uv, uv_attribute);
+	m_vao->bind(render::vertex_attribute::barycentric, barycentric_attribute);
 	
 	// Init render operation
-	render_op.vertex_array = vao.get();
-	render_op.drawing_mode = gl::drawing_mode::triangles;
-	render_op.start_index = 0;
-	render_op.index_count = 6;
+	m_render_op.vertex_array = m_vao.get();
+	m_render_op.drawing_mode = gl::drawing_mode::triangles;
+	m_render_op.start_index = 0;
+	m_render_op.index_count = 6;
+	m_render_op.transform = float4x4::identity();
 }
 
 void billboard::render(render::context& ctx) const
 {
-	auto transform = get_transform_tween().interpolate(ctx.alpha);
-	
 	// Align billboard
-	if (type == scene::billboard_type::spherical)
+	switch (m_billboard_type)
 	{
-		transform.rotation = math::normalize(math::look_rotation(ctx.camera_forward, ctx.camera_up) * transform.rotation);
-	}
-	else if (type == scene::billboard_type::cylindrical)
-	{
-		float3 look = math::normalize(geom::project_on_plane(transform.translation - ctx.camera_transform.translation, {0.0f, 0.0f, 0.0f}, alignment_axis));
-		float3 right = math::normalize(math::cross(alignment_axis, look));
-		look = math::cross(right, alignment_axis);
-		float3 up = math::cross(look, right);
-		transform.rotation = math::normalize(math::look_rotation(look, up) * transform.rotation);
+		case scene::billboard_type::spherical:
+		{
+			auto transform = get_transform();
+			
+			transform.rotation = math::normalize(math::look_rotation(ctx.camera->get_forward(), ctx.camera->get_up()) * transform.rotation);
+			
+			m_render_op.transform = math::matrix_cast(transform);
+			
+			break;
+		}
+		
+		case scene::billboard_type::cylindrical:
+		{
+			auto transform = get_transform();
+			
+			auto look = math::normalize(geom::project_on_plane(transform.translation - ctx.camera->get_translation(), {0.0f, 0.0f, 0.0f}, m_alignment_axis));
+			const auto right = math::normalize(math::cross(m_alignment_axis, look));
+			look = math::cross(right, m_alignment_axis);
+			const auto up = math::cross(look, right);
+			transform.rotation = math::normalize(math::look_rotation(look, up) * transform.rotation);
+			
+			m_render_op.transform = math::matrix_cast(transform);
+			
+			break;
+		}
+		
+		case scene::billboard_type::flat:
+			break;
+		
+		default:
+			break;
 	}
 	
-	render_op.transform = math::matrix_cast(transform);
-	render_op.depth = ctx.clip_near.signed_distance(transform.translation);
+	m_render_op.depth = ctx.camera->get_view_frustum().get_near().signed_distance(get_translation());
 	
-	ctx.operations.emplace_back(&render_op);
+	ctx.operations.emplace_back(&m_render_op);
 }
 
 void billboard::set_material(std::shared_ptr<render::material> material)
 {
-	render_op.material = material;
+	m_render_op.material = material;
 }
 
 void billboard::set_billboard_type(billboard_type type)
 {
-	this->type = type;
-}
-
-void billboard::set_alignment_axis(const float3& axis)
-{
-	this->alignment_axis = axis;
+	m_billboard_type = type;
+	
+	if (m_billboard_type == scene::billboard_type::flat)
+	{
+		m_render_op.transform = math::matrix_cast(get_transform());
+	}
 }
 
 void billboard::transformed()
 {
-	world_bounds = aabb_type::transform(local_bounds, get_transform());
-}
-
-void billboard::update_tweens()
-{
-	object_base::update_tweens();
+	static const aabb_type untransformed_bounds{{-1, -1, -1}, {1, 1, 1}};
+	
+	m_bounds = aabb_type::transform(untransformed_bounds, get_transform());
+	
+	if (m_billboard_type == scene::billboard_type::flat)
+	{
+		m_render_op.transform = math::matrix_cast(get_transform());
+	}
 }
 
 } // namespace scene

@@ -25,6 +25,7 @@
 #include <engine/geom/primitives/ray.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/render/compositor.hpp>
+#include <engine/math/numbers.hpp>
 
 namespace scene {
 
@@ -34,9 +35,7 @@ namespace scene {
 class camera: public object<camera>
 {
 public:
-	typedef geom::view_frustum<float> view_frustum_type;
-	
-	camera();
+	using view_frustum_type = geom::view_frustum<float>;
 	
 	/**
 	 * Constructs a picking ray from normalized device coordinates (NDC).
@@ -45,7 +44,7 @@ public:
 	 *
 	 * @return Picking ray.
 	 */
-	geom::primitive::ray<float, 3> pick(const float2& ndc) const;
+	[[nodiscard]] geom::primitive::ray<float, 3> pick(const float2& ndc) const;
 
 	/**
 	 * Maps object coordinates to window coordinates.
@@ -54,7 +53,7 @@ public:
 	 * @param viewport Vector containing the `x`, `y`, `w`, and `h` of the viewport.
 	 * @return Projected window coordinates.
 	 */
-	float3 project(const float3& object, const float4& viewport) const;
+	[[nodiscard]] float3 project(const float3& object, const float4& viewport) const;
 
 	/**
 	 * Maps window coordinates to object coordinates.
@@ -63,7 +62,7 @@ public:
 	 * @param viewport Vector containing the `x`, `y`, `w`, and `h` of the viewport.
 	 * @return Unprojected object coordinates.
 	 */
-	float3 unproject(const float3& window, const float4& viewport) const;
+	[[nodiscard]] float3 unproject(const float3& window, const float4& viewport) const;
 
 	/**
 	 * Sets the camera's projection matrix using perspective projection.
@@ -88,240 +87,187 @@ public:
 	void set_orthographic(float clip_left, float clip_right, float clip_bottom, float clip_top, float clip_near, float clip_far);
 
 	/**
-	 * Sets the camera's ISO 100 exposure value directly
+	 * Sets the camera's ISO 100 exposure value.
 	 *
 	 * @param ev100 ISO 100 exposure value.
 	 */
-	void set_exposure(float ev100);
-
-	void set_compositor(render::compositor* compositor);
-	void set_composite_index(int index);
+	void set_exposure_value(float ev100);
 	
+	/**
+	 * Sets the camera's compositor.
+	 *
+	 * @param compositor Compositor.
+	 */
+	inline void set_compositor(render::compositor* compositor) noexcept
+	{
+		m_compositor = compositor;
+	}
 	
-	virtual const bounding_volume_type& get_local_bounds() const;
-	virtual const bounding_volume_type& get_world_bounds() const;
-
-	float is_orthographic() const;
-	float get_clip_left() const;
-	float get_clip_right() const;
-	float get_clip_bottom() const;
-	float get_clip_top() const;
-	float get_clip_near() const;
-	float get_clip_far() const;
-	float get_fov() const;
-	float get_aspect_ratio() const;
-
-	/// Returns the camera's view matrix.
-	const float4x4& get_view() const;
-
-	/// Returns the camera's projection matrix.
-	const float4x4& get_projection() const;
-
-	/// Returns the camera's view-projection matrix.
-	const float4x4& get_view_projection() const;
+	/**
+	 * Sets the composite index of the camera.
+	 *
+	 * @param index Composite index.
+	 */
+	inline void set_composite_index(int index) noexcept
+	{
+		m_composite_index = index;
+	}
 	
-	/// Returns the camera's view frustum.
-	const view_frustum_type& get_view_frustum() const;
+	/**
+	 * Returns the camera's compositor.
+	 */
+	/// @{
+	[[nodiscard]] inline const render::compositor* get_compositor() const noexcept
+	{
+		return m_compositor;
+	}
+	[[nodiscard]] inline render::compositor* get_compositor() noexcept
+	{
+		return m_compositor;
+	}
+	/// @}
+	
+	/// Returns the composite index of the camera.
+	[[nodiscard]] inline int get_composite_index() const noexcept
+	{
+		return m_composite_index;
+	}
+	
+	[[nodiscard]] inline const bounding_volume_type& get_bounds() const noexcept override
+	{
+		return m_view_frustum.get_bounds();
+	}
+	
+	/// Returns `true` if the camera uses an orthographic projection matrix, `false` otherwise.
+	[[nodiscard]] inline bool is_orthographic() const noexcept
+	{
+		return m_orthographic;
+	}
+
+	/// Returns the signed distance to the camera's left clipping plane.
+	[[nodiscard]] inline float get_clip_left() const noexcept
+	{
+		return m_clip_left;
+	}
+	
+	/// Returns the signed distance to the camera's right clipping plane.
+	[[nodiscard]] inline float get_clip_right() const noexcept
+	{
+		return m_clip_right;
+	}
+	
+	/// Returns the signed distance to the camera's bottom clipping plane.
+	[[nodiscard]] inline float get_clip_bottom() const noexcept
+	{
+		return m_clip_bottom;
+	}
+	
+	/// Returns the signed distance to the camera's top clipping plane.
+	[[nodiscard]] inline float get_clip_top() const noexcept
+	{
+		return m_clip_top;
+	}
+	
+	/// Returns the signed distance to the camera's near clipping plane.
+	[[nodiscard]] inline float get_clip_near() const noexcept
+	{
+		return m_clip_near;
+	}
+	
+	/// Returns the signed distance to the camera's far clipping plane.
+	[[nodiscard]] inline float get_clip_far() const noexcept
+	{
+		return m_clip_far;
+	}
+	
+	/// Returns the camera's field of view, in radians.
+	[[nodiscard]] inline float get_fov() const noexcept
+	{
+		return m_fov;
+	}
+	
+	/// Returns the camera's aspect ratio.
+	[[nodiscard]] inline float get_aspect_ratio() const noexcept
+	{
+		return m_aspect_ratio;
+	}
 	
 	/// Returns the camera's ISO 100 exposure value.
-	float get_exposure() const;
-
-	const render::compositor* get_compositor() const;
-	render::compositor* get_compositor();
-	int get_composite_index() const;
-
-	const tween<float>& get_clip_left_tween() const;
-	const tween<float>& get_clip_right_tween() const;
-	const tween<float>& get_clip_bottom_tween() const;
-	const tween<float>& get_clip_top_tween() const;
-	const tween<float>& get_clip_near_tween() const;
-	const tween<float>& get_clip_far_tween() const;
-	const tween<float>& get_fov_tween() const;
-	const tween<float>& get_aspect_ratio_tween() const;
-	const tween<float4x4>& get_view_tween() const;
-	const tween<float4x4>& get_projection_tween() const;
-	const tween<float4x4>& get_view_projection_tween() const;
-	const tween<float>& get_exposure_tween() const;
-
-	/// @copydoc object_base::update_tweens();
-	virtual void update_tweens();
+	[[nodiscard]] inline float get_exposure_value() const noexcept
+	{
+		return m_exposure_value;
+	}
+	
+	/// Returns the camera's exposure normalization factor.
+	[[nodiscard]] inline float get_exposure_normalization() const noexcept
+	{
+		return m_exposure_normalization;
+	}
+	
+	/// Returns the camera's view matrix.
+	[[nodiscard]] inline const float4x4& get_view() const noexcept
+	{
+		return m_view;
+	}
+	
+	/// Returns the camera's projection matrix.
+	[[nodiscard]] inline const float4x4& get_projection() const noexcept
+	{
+		return m_projection;
+	}
+	
+	/// Returns the camera's view-projection matrix.
+	[[nodiscard]] inline const float4x4& get_view_projection() const noexcept
+	{
+		return m_view_projection;
+	}
+	
+	/// Returns the camera's forward vector.
+	[[nodiscard]] inline const math::vector<float, 3>& get_forward() const noexcept
+	{
+		return m_forward;
+	}
+	
+	/// Returns the camera's up vector.
+	[[nodiscard]] inline const math::vector<float, 3>& get_up() const noexcept
+	{
+		return m_up;
+	}
+	
+	/// Returns the camera's view frustum.
+	[[nodiscard]] inline const view_frustum_type& get_view_frustum() const noexcept
+	{
+		return m_view_frustum;
+	}
 
 private:
 	virtual void transformed();
 
-	render::compositor* compositor;
-	int composite_index;
-	bool orthographic;
-	tween<float> clip_left;
-	tween<float> clip_right;
-	tween<float> clip_bottom;
-	tween<float> clip_top;
-	tween<float> clip_near;
-	tween<float> clip_far;
-	tween<float> fov;
-	tween<float> aspect_ratio;
-	tween<float4x4> view;
-	tween<float4x4> projection;
-	tween<float4x4> view_projection;
-	tween<float> exposure;
-	view_frustum_type view_frustum;
+	render::compositor* m_compositor{nullptr};
+	int m_composite_index{0};
+	
+	bool m_orthographic{true};
+	
+	float m_clip_left{-1.0f};
+	float m_clip_right{1.0f};
+	float m_clip_bottom{-1.0f};
+	float m_clip_top{1.0f};
+	float m_clip_near{-1.0f};
+	float m_clip_far{1.0f};
+	float m_fov{math::half_pi<float>};
+	float m_aspect_ratio{1.0f};
+	float m_exposure_value{0.0f};
+	float m_exposure_normalization{1.0f / 1.2f};
+	
+	float4x4 m_view{float4x4::identity()};
+	float4x4 m_projection{float4x4::identity()};
+	float4x4 m_view_projection{float4x4::identity()};
+	
+	math::vector<float, 3> m_forward{0.0f, 0.0f, -1.0f};
+	math::vector<float, 3> m_up{0.0f, 1.0f, 0.0f};
+	
+	view_frustum_type m_view_frustum;
 };
-
-inline const typename object_base::bounding_volume_type& camera::get_local_bounds() const
-{
-	/// @TODO: return local bounds, not world bounds
-	return view_frustum.get_bounds();
-}
-
-inline const typename object_base::bounding_volume_type& camera::get_world_bounds() const
-{
-	return view_frustum.get_bounds();
-}
-
-inline float camera::is_orthographic() const
-{
-	return orthographic;
-}
-
-inline float camera::get_clip_left() const
-{	
-	return clip_left[1];
-}
-
-inline float camera::get_clip_right() const
-{
-	return clip_right[1];
-}
-
-inline float camera::get_clip_bottom() const
-{
-	return clip_bottom[1];
-}
-
-inline float camera::get_clip_top() const
-{
-	return clip_top[1];
-}
-
-inline float camera::get_clip_near() const
-{
-	return clip_near[1];
-}
-
-inline float camera::get_clip_far() const
-{
-	return clip_far[1];
-}
-
-inline float camera::get_fov() const
-{
-	return fov[1];
-}
-
-inline float camera::get_aspect_ratio() const
-{
-	return aspect_ratio[1];
-}
-
-inline const float4x4& camera::get_view() const
-{
-	return view[1];
-}
-
-inline const float4x4& camera::get_projection() const
-{
-	return projection[1];
-}
-
-inline const float4x4& camera::get_view_projection() const
-{
-	return view_projection[1];
-}
-
-inline const typename camera::view_frustum_type& camera::get_view_frustum() const
-{
-	return view_frustum;
-}
-
-inline float camera::get_exposure() const
-{
-	return exposure[1];
-}
-
-inline const render::compositor* camera::get_compositor() const
-{
-	return compositor;
-}
-
-inline render::compositor* camera::get_compositor()
-{
-	return compositor;
-}
-
-inline int camera::get_composite_index() const
-{
-	return composite_index;
-}
-
-inline const tween<float>& camera::get_clip_left_tween() const
-{
-	return clip_left;
-}
-
-inline const tween<float>& camera::get_clip_right_tween() const
-{
-	return clip_right;
-}
-
-inline const tween<float>& camera::get_clip_bottom_tween() const
-{
-	return clip_bottom;
-}
-
-inline const tween<float>& camera::get_clip_top_tween() const
-{
-	return clip_top;
-}
-
-inline const tween<float>& camera::get_clip_near_tween() const
-{
-	return clip_near;
-}
-
-inline const tween<float>& camera::get_clip_far_tween() const
-{
-	return clip_far;
-}
-
-inline const tween<float>& camera::get_fov_tween() const
-{
-	return fov;
-}
-
-inline const tween<float>& camera::get_aspect_ratio_tween() const
-{
-	return aspect_ratio;
-}
-
-inline const tween<float4x4>& camera::get_view_tween() const
-{
-	return view;
-}
-
-inline const tween<float4x4>& camera::get_projection_tween() const
-{
-	return projection;
-}
-
-inline const tween<float4x4>& camera::get_view_projection_tween() const
-{
-	return view_projection;
-}
-
-inline const tween<float>& camera::get_exposure_tween() const
-{
-	return exposure;
-}
 
 } // namespace scene
 

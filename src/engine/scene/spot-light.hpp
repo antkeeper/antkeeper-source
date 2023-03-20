@@ -21,7 +21,8 @@
 #define ANTKEEPER_SCENE_SPOT_LIGHT_HPP
 
 #include <engine/scene/light.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/numbers.hpp>
+#include <engine/math/vector.hpp>
 
 namespace scene {
 
@@ -31,13 +32,26 @@ namespace scene {
 class spot_light: public light
 {
 public:
-	/// Creates a spot light.
-	spot_light();
-	
-	/// Returns light_type::spot
+	/// Returns light_type::spot.
 	[[nodiscard]] inline light_type get_light_type() const noexcept override
 	{
 		return light_type::spot;
+	}
+	
+	/**
+	 * Sets the luminous flux of the spot light.
+	 *
+	 * @param luminous_flux Luminous flux, in *lm*.
+	 */
+	inline void set_luminous_flux(const math::vector<float, 3>& luminous_flux) noexcept
+	{
+		m_luminous_flux = luminous_flux;
+	}
+	
+	/// Returns the luminous flux of the spot light, in *lm*.
+	[[nodiscard]] inline const math::vector<float, 3>& get_luminous_flux() const noexcept
+	{
+		return m_luminous_flux;
 	}
 	
 	/**
@@ -45,72 +59,50 @@ public:
 	 *
 	 * @param attenuation Vector containing the constant, linear, and quadratic attenuation factors, as x, y, and z, respectively.
 	 */
-	void set_attenuation(const float3& attenuation);
+	inline void set_attenuation(const math::vector<float, 3>& attenuation) noexcept
+	{
+		m_attenuation = attenuation;
+	}
 	
 	/**
 	 * Sets the spot light cutoff angles.
 	 *
 	 * @param cutoff Vector containing the inner and outer cutoff angles, as x and y, respectively.
 	 */
-	void set_cutoff(const float2& cutoff);
+	void set_cutoff(const math::vector<float, 2>& cutoff);
 	
 	/// Returns the direction vector.
-	[[nodiscard]] inline const float3& get_direction() const noexcept
+	[[nodiscard]] inline const math::vector<float, 3>& get_direction() const noexcept
 	{
-		return direction[1];
+		return m_direction;
 	}
 	
 	/// Returns the attenuation factors of the light.
-	[[nodiscard]] inline const float3& get_attenuation() const noexcept
+	[[nodiscard]] inline const math::vector<float, 3>& get_attenuation() const noexcept
 	{
-		return attenuation[1];
+		return m_attenuation;
 	}
 	
 	/// Returns the spot light cutoff angles.
-	[[nodiscard]] inline const float2& get_cutoff() const noexcept
+	[[nodiscard]] inline const math::vector<float, 2>& get_cutoff() const noexcept
 	{
-		return cutoff[1];
+		return m_cutoff;
 	}
 	
 	/// Returns the cosine of the spot light cutoff angles.
-	[[nodiscard]] inline const float2& get_cosine_cutoff() const noexcept
+	[[nodiscard]] inline const math::vector<float, 2>& get_cosine_cutoff() const noexcept
 	{
-		return cosine_cutoff[1];
+		return m_cosine_cutoff;
 	}
-	
-	/// Returns the direction tween.
-	[[nodiscard]] inline const tween<float3>& get_direction_tween() const noexcept
-	{
-		return direction;
-	}
-	
-	/// Returns the attenuation tween.
-	[[nodiscard]] inline const tween<float3>& get_attenuation_tween() const noexcept
-	{
-		return attenuation;
-	}
-	
-	/// Returns the cutoff tween.
-	[[nodiscard]] inline const tween<float2>& get_cutoff_tween() const noexcept
-	{
-		return cutoff;
-	}
-	
-	/// Returns the cosine cutoff tween.
-	[[nodiscard]] inline const tween<float2>& get_cosine_cutoff_tween() const noexcept
-	{
-		return cosine_cutoff;
-	}
-
-	void update_tweens() override;
 
 private:
 	void transformed() override;
-
-	tween<float3> direction;
-	tween<float3> attenuation;
-	tween<float2> cutoff;
-	tween<float2> cosine_cutoff;
+	
+	math::vector<float, 3> m_luminous_flux{0.0f, 0.0f, 0.0f};
+	math::vector<float, 3> m_direction{0.0f, 0.0f, -1.0f};
+	math::vector<float, 3> m_attenuation{1.0f, 0.0f, 0.0f};
+	math::vector<float, 2> m_cutoff{math::pi<float>, math::pi<float>};
+	math::vector<float, 2> m_cosine_cutoff{-1.0f, -1.0f};
 };
 
 } // namespace scene

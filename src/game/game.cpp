@@ -802,27 +802,19 @@ void game::setup_scenes()
 	surface_scene = std::make_unique<scene::collection>();
 	
 	// Setup surface camera
-	surface_camera = std::make_unique<scene::camera>();
+	surface_camera = std::make_shared<scene::camera>();
 	surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 5000.0f);
 	surface_camera->set_compositor(surface_compositor.get());
 	surface_camera->set_composite_index(0);
-	surface_camera->set_active(false);
-	
-	// Add surface scene objects to surface scene
-	surface_scene->add_object(surface_camera.get());
 	
 	// Setup underground scene
 	underground_scene = std::make_unique<scene::collection>();
 	
 	// Setup underground camera
-	underground_camera = std::make_unique<scene::camera>();
+	underground_camera = std::make_shared<scene::camera>();
 	underground_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
 	underground_camera->set_compositor(underground_compositor.get());
 	underground_camera->set_composite_index(0);
-	underground_camera->set_active(false);
-	
-	// Add underground scene objects to underground scene
-	underground_scene->add_object(underground_camera.get());
 	
 	// Clear active scene
 	active_scene = nullptr;
@@ -891,7 +883,6 @@ void game::setup_ui()
 	const float clip_far = 100.0f;
 	ui_camera->set_orthographic(clip_left, clip_right, clip_top, clip_bottom, clip_near, clip_far);
 	ui_camera->look_at({0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
-	ui_camera->update_tweens();
 	
 	// Menu BG material
 	menu_bg_material = std::make_shared<render::material>();
@@ -906,7 +897,6 @@ void game::setup_ui()
 	menu_bg_billboard->set_material(menu_bg_material);
 	menu_bg_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
 	menu_bg_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
-	menu_bg_billboard->update_tweens();
 	
 	// Create fade transition
 	fade_transition = std::make_unique<screen_transition>();
@@ -914,7 +904,6 @@ void game::setup_ui()
 	fade_transition_color = std::make_shared<render::material_float3>(1, float3{0, 0, 0});
 	fade_transition->get_material()->set_variable("color", fade_transition_color);
 	fade_transition->get_billboard()->set_translation({0, 0, 98});
-	fade_transition->get_billboard()->update_tweens();
 	
 	// Create inner radial transition
 	radial_transition_inner = std::make_unique<screen_transition>();
@@ -943,10 +932,9 @@ void game::setup_ui()
 			(
 				[&, menu_bg_tint]()
 				{
-					ui_scene->add_object(menu_bg_billboard.get());
+					ui_scene->add_object(*menu_bg_billboard);
 					
 					menu_bg_tint->set(float4{0.0f, 0.0f, 0.0f, 0.0f});
-					//menu_bg_tint->update_tweens();
 					menu_bg_billboard->set_active(true);
 				}
 			);
@@ -964,7 +952,7 @@ void game::setup_ui()
 			(
 				[&]()
 				{
-					ui_scene->remove_object(menu_bg_billboard.get());
+					ui_scene->remove_object(*menu_bg_billboard);
 					menu_bg_billboard->set_active(false);
 				}
 			);
@@ -972,8 +960,8 @@ void game::setup_ui()
 	}
 	
 	// Add UI scene objects to UI scene
-	ui_scene->add_object(ui_camera.get());
-	ui_scene->add_object(fade_transition->get_billboard());
+	ui_scene->add_object(*ui_camera);
+	ui_scene->add_object(*fade_transition->get_billboard());
 	
 	// Add UI animations to animator
 	animator->add_animation(fade_transition->get_animation());
@@ -1017,7 +1005,6 @@ void game::setup_ui()
 			
 			// Re-align debug text
 			frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font.get_font_metrics().size), 99.0f});
-			frame_time_text->update_tweens();
 			
 			// Re-align menu text
 			::menu::align_text(*this);
@@ -1186,9 +1173,8 @@ void game::setup_debugging()
 	frame_time_text->set_color({1.0f, 1.0f, 0.0f, 1.0f});
 	frame_time_text->set_font(&debug_font);
 	frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font.get_font_metrics().size), 99.0f});
-	frame_time_text->update_tweens();
 	
-	ui_scene->add_object(frame_time_text.get());
+	ui_scene->add_object(*frame_time_text);
 }
 
 void game::setup_timing()
@@ -1241,9 +1227,6 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	
 	// Update tweens
 	sky_pass->update_tweens();
-	surface_scene->update_tweens();
-	underground_scene->update_tweens();
-	ui_scene->update_tweens();
 	
 	// Process window events
 	window_manager->update();
@@ -1290,12 +1273,15 @@ void game::variable_update(::frame_scheduler::duration_type fixed_update_time, :
 	// Update frame rate display
 	frame_time_text->set_content(std::format("{:5.02f}ms / {:5.02f} FPS", average_frame_ms, average_frame_fps));
 	
+	// Process input events
+	input_manager->update();
+	
+	// Interpolate physics
+	physics_system->interpolate(alpha);
+	
 	// Render
 	render_system->draw(alpha);
 	window->swap_buffers();
-	
-	// Process input events
-	input_manager->update();
 }
 
 void game::execute()

@@ -22,25 +22,9 @@
 
 #include <engine/scene/object.hpp>
 #include <engine/geom/sphere.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/scene/light-type.hpp>
 
 namespace scene {
-
-/// Light object type enumerations.
-enum class light_type
-{
-	/// Denotes an ambient light.
-	ambient,
-	
-	/// Denotes a directional light.
-	directional,
-	
-	/// Denotes a point light.
-	point,
-	
-	/// Denotes a spot light.
-	spot
-};
 
 /**
  * Abstract base class for light objects.
@@ -49,83 +33,19 @@ class light: public object<light>
 {
 public:
 	typedef geom::sphere<float> sphere_type;
-	
-	/// Creates a light.
-	light();
 
 	/// Returns an enumeration denoting the light object type.
 	[[nodiscard]] virtual light_type get_light_type() const noexcept = 0;
 	
-	/**
-	 * Sets the color of the light.
-	 *
-	 * @param color Scene-linear light color.
-	 */
-	void set_color(const float3& color);
-	
-	/**
-	 * Sets the intensity of the light.
-	 *
-	 * @param intensity Light intensity.
-	 */
-	void set_intensity(float intensity);
-	
-	/// Returns the local-space bounding volume of the light.
-	inline const bounding_volume_type& get_local_bounds() const noexcept override
+	inline const bounding_volume_type& get_bounds() const noexcept override
 	{
-		return local_bounds;
+		return m_bounds;
 	}
-	
-	/// Returns the world-space bounding volume of the light.
-	inline const bounding_volume_type& get_world_bounds() const noexcept override
-	{
-		return world_bounds;
-	}
-	
-	/// Returns the light color.
-	[[nodiscard]] inline const float3& get_color() const noexcept
-	{
-		return color[1];
-	}
-	
-	/// Returns the light intensity.
-	[[nodiscard]] inline float get_intensity() const noexcept
-	{
-		return intensity[1];
-	}
-	
-	/// Returns the intensity-scaled light color.
-	[[nodiscard]] inline const float3& get_scaled_color() const noexcept
-	{
-		return scaled_color[1];
-	}
-
-	[[nodiscard]] inline const tween<float3>& get_color_tween() const noexcept
-	{
-		return color;
-	}
-	
-	[[nodiscard]] inline const tween<float>& get_intensity_tween() const noexcept
-	{
-		return intensity;
-	}
-	
-	[[nodiscard]] inline const tween<float3>& get_scaled_color_tween() const noexcept
-	{
-		return scaled_color;
-	}
-
-	/// @copydoc object_base::update_tweens();
-	virtual void update_tweens();
 
 private:
 	virtual void transformed();
 	
-	tween<float3> color;
-	tween<float> intensity;
-	tween<float3> scaled_color;
-	sphere_type local_bounds;
-	sphere_type world_bounds;
+	sphere_type m_bounds{{0.0f, 0.0f, 0.0f}, 0.0f};
 };
 
 } // namespace scene

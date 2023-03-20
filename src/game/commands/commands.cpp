@@ -86,7 +86,6 @@ void warp_to(entity::registry& registry, entity::id eid, const float3& position)
 			[&position](auto& transform)
 			{
 				transform.local.translation = position;
-				transform.warp = true;
 			}
 		);
 	}
@@ -108,7 +107,7 @@ void set_scale(entity::registry& registry, entity::id eid, const float3& scale)
 	}
 }
 
-void set_transform(entity::registry& registry, entity::id eid, const math::transform<float>& transform, bool warp)
+void set_transform(entity::registry& registry, entity::id eid, const math::transform<float>& transform)
 {
 	const ::transform_component* transform_component = registry.try_get<::transform_component>(eid);
 	if (transform_component)
@@ -116,10 +115,9 @@ void set_transform(entity::registry& registry, entity::id eid, const math::trans
 		registry.patch<::transform_component>
 		(
 			eid,
-			[&other_transform = transform, warp](auto& transform)
+			[&other_transform = transform](auto& transform)
 			{
 				transform.local = other_transform;
-				transform.warp = warp;
 			}
 		);
 	}

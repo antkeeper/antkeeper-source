@@ -45,7 +45,6 @@ collection_menu_state::collection_menu_state(::game& ctx):
 	box_material->set_blend_mode(render::material_blend_mode::translucent);
 	box_material->set_shader_template(ctx.resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
 	box_material->set_variable("tint", std::make_shared<render::material_float4>(1, float4{0.5f, 0.5f, 0.5f, 1}));
-	//box_material.update_tweens();
 	
 	// Construct box billboard
 	box_billboard.set_material(box_material);
@@ -55,14 +54,13 @@ collection_menu_state::collection_menu_state(::game& ctx):
 	selection_material->set_blend_mode(render::material_blend_mode::translucent);
 	selection_material->set_shader_template(ctx.resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
 	box_material->set_variable("tint", std::make_shared<render::material_float4>(1, float4{1, 1, 1, 1}));
-	//selection_material.update_tweens();
 	
 	// Construct selection billboard
 	selection_billboard.set_material(selection_material);
 	
 	// Add box and selection billboard to UI scene
-	ctx.ui_scene->add_object(&box_billboard);
-	ctx.ui_scene->add_object(&selection_billboard);
+	ctx.ui_scene->add_object(box_billboard);
+	ctx.ui_scene->add_object(selection_billboard);
 	
 	row_count = 64;
 	column_count = 6;
@@ -107,7 +105,6 @@ collection_menu_state::collection_menu_state(::game& ctx):
 							0.0f
 						}
 					);
-					selection_billboard.update_tweens();
 					
 					debug::log::debug("selected colony: ({}, {})", selected_column, selected_row);
 				}
@@ -161,7 +158,6 @@ void collection_menu_state::resize_box()
 	// Resize box
 	box_billboard.set_scale({box_size.x() * 0.5f, box_size.y() * 0.5f, 1.0f});
 	box_billboard.set_translation({box_center.x(), box_center.y(), -1.0f});
-	box_billboard.update_tweens();
 	
 	// Resize selection
 	selection_billboard.set_scale({selection_size * 0.5f, selection_size * 0.5f, 1.0f});
@@ -173,5 +169,4 @@ void collection_menu_state::resize_box()
 			0.0f
 		}
 	);
-	selection_billboard.update_tweens();
 }

@@ -20,20 +20,7 @@
 #ifndef ANTKEEPER_SCENE_HPP
 #define ANTKEEPER_SCENE_HPP
 
-/// 3D scene
+/// 3D scene.
 namespace scene {}
-
-#include <engine/scene/ambient-light.hpp>
-#include <engine/scene/billboard.hpp>
-#include <engine/scene/camera.hpp>
-#include <engine/scene/collection.hpp>
-#include <engine/scene/directional-light.hpp>
-#include <engine/scene/light.hpp>
-#include <engine/scene/lod-group.hpp>
-#include <engine/scene/static-mesh.hpp>
-#include <engine/scene/object.hpp>
-#include <engine/scene/point-light.hpp>
-#include <engine/scene/spot-light.hpp>
-#include <engine/scene/text.hpp>
 
 #endif // ANTKEEPER_SCENE_HPP

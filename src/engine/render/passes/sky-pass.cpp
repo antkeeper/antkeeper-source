@@ -191,13 +191,11 @@ void sky_pass::render(render::context& ctx)
 	
 	// Construct matrices
 	const scene::camera& camera = *ctx.camera;
-	float clip_near = camera.get_clip_near_tween().interpolate(ctx.alpha);
-	float clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
-	float3 model_scale = float3{1.0f, 1.0f, 1.0f} * (clip_near + clip_far) * 0.5f;
+	float3 model_scale = float3{1.0f, 1.0f, 1.0f} * (camera.get_clip_near() + camera.get_clip_far()) * 0.5f;
 	float4x4 model = math::scale(math::matrix4<float>::identity(), model_scale);
-	float4x4 view = float4x4(float3x3(ctx.view));
+	float4x4 view = float4x4(float3x3(camera.get_view()));
 	float4x4 model_view = view * model;
-	const float4x4& projection = ctx.projection;
+	const float4x4& projection = camera.get_projection();
 	float4x4 view_projection = projection * view;
 	float4x4 model_view_projection = projection * model_view;
 	
@@ -216,12 +214,12 @@ void sky_pass::render(render::context& ctx)
 	float3 sun_direction = math::normalize(sun_position);
 	
 	// Interpolate and expose sun luminance and illuminance
-	float3 sun_illuminance = sun_illuminance_tween.interpolate(ctx.alpha) * ctx.exposure;
-	float3 sun_luminance = sun_luminance_tween.interpolate(ctx.alpha) * ctx.exposure;
+	float3 sun_illuminance = sun_illuminance_tween.interpolate(ctx.alpha) * camera_exposure;
+	float3 sun_luminance = sun_luminance_tween.interpolate(ctx.alpha) * camera_exposure;
 	
 	float3 moon_position = moon_position_tween.interpolate(ctx.alpha);
 	float3 moon_direction = math::normalize(moon_position);
-	float3 moon_illuminance = moon_illuminance_tween.interpolate(ctx.alpha) * ctx.exposure;
+	float3 moon_illuminance = moon_illuminance_tween.interpolate(ctx.alpha) * camera_exposure;
 	float moon_angular_radius = moon_angular_radius_tween.interpolate(ctx.alpha) * magnification;
 	
 	float sun_y = color::aces::ap1<float>.luminance(sun_transmitted_illuminance);
@@ -234,7 +232,7 @@ void sky_pass::render(render::context& ctx)
 		sun_luminance *= 0.0f;
 	}
 	
-	camera_exposure = ctx.exposure;
+	camera_exposure = camera.get_exposure_normalization();
 	
 	// Render sky illuminance LUT
 	for (const auto& command: sky_lut_command_buffer)
@@ -286,7 +284,7 @@ void sky_pass::render(render::context& ctx)
 	// Draw stars
 	if (star_shader_program)
 	{
-		float star_distance = (clip_near + clip_far) * 0.5f;
+		float star_distance = (camera.get_clip_near() + camera.get_clip_far()) * 0.5f;
 		
 		model = float4x4(float3x3(icrf_to_eus.r));
 		model = math::scale(model, {star_distance, star_distance, star_distance});
@@ -301,7 +299,7 @@ void sky_pass::render(render::context& ctx)
 		if (star_distance_var)
 			star_distance_var->update(star_distance);
 		if (star_exposure_var)
-			star_exposure_var->update(ctx.exposure);
+			star_exposure_var->update(camera_exposure);
 		
 		//star_material->update(ctx.alpha);
 		
@@ -312,7 +310,7 @@ void sky_pass::render(render::context& ctx)
 	//if (moon_position.y() >= -moon_angular_radius)
 	if (moon_shader_program)
 	{
-		float moon_distance = (clip_near + clip_far) * 0.5f;		
+		float moon_distance = (camera.get_clip_near() + camera.get_clip_far()) * 0.5f;
 		float moon_radius = moon_angular_radius * moon_distance;
 		
 		math::transform<float> moon_transform;
@@ -331,15 +329,15 @@ void sky_pass::render(render::context& ctx)
 		if (moon_normal_model_var)
 			moon_normal_model_var->update(normal_model);
 		if (moon_camera_position_var)
-			moon_camera_position_var->update(ctx.camera_transform.translation);
+			moon_camera_position_var->update(camera.get_translation());
 		if (moon_sunlight_direction_var)
 			moon_sunlight_direction_var->update(math::normalize(moon_sunlight_direction_tween.interpolate(ctx.alpha)));
 		if (moon_sunlight_illuminance_var)
-			moon_sunlight_illuminance_var->update(moon_sunlight_illuminance_tween.interpolate(ctx.alpha) * ctx.exposure);
+			moon_sunlight_illuminance_var->update(moon_sunlight_illuminance_tween.interpolate(ctx.alpha) * camera_exposure);
 		if (moon_planetlight_direction_var)
 			moon_planetlight_direction_var->update(math::normalize(moon_planetlight_direction_tween.interpolate(ctx.alpha)));
 		if (moon_planetlight_illuminance_var)
-			moon_planetlight_illuminance_var->update(moon_planetlight_illuminance_tween.interpolate(ctx.alpha) * ctx.exposure);
+			moon_planetlight_illuminance_var->update(moon_planetlight_illuminance_tween.interpolate(ctx.alpha) * camera_exposure);
 		
 		//moon_material->update(ctx.alpha);
 		rasterizer->draw_arrays(*moon_model_vao, moon_model_drawing_mode, moon_model_start_index, moon_model_index_count);

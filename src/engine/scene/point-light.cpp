@@ -18,23 +18,9 @@
  */
 
 #include <engine/scene/point-light.hpp>
-#include <engine/math/interpolation.hpp>
 
 namespace scene {
 
-point_light::point_light():
-	attenuation(float3{1, 0, 0}, math::lerp<float3, float>)
-{}
 
-void point_light::set_attenuation(const float3& attenuation)
-{
-	this->attenuation[1] = attenuation;
-}
-
-void point_light::update_tweens()
-{
-	light::update_tweens();
-	attenuation.update();
-}
 
 } // namespace scene

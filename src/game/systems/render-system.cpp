@@ -19,7 +19,6 @@
 
 #include "game/systems/render-system.hpp"
 #include "game/components/transform-component.hpp"
-#include "game/components/camera-component.hpp"
 #include <algorithm>
 #include <execution>
 
@@ -63,30 +62,9 @@ void render_system::update(float t, float dt)
 			
 			// WARNING: could potentially lead to multithreading issues with scene::object_base::transformed()
 			scene.object->set_transform(transform.world);
-			
-			if (transform.warp)
-			{
-				scene.object->get_transform_tween().update();
-				transform.warp = false;
-			}
 		}
 	);
 	updated_scene_transforms.clear();
-	
-	// Update camera transforms
-	registry.view<transform_component, camera_component>().each
-	(
-		[this](entity::id entity_id, auto& transform, auto& camera)
-		{
-			camera.object->set_transform(transform.world);
-			if (transform.warp)
-			{
-				camera.object->get_transform_tween().update();
-				camera.object->update_tweens();
-				transform.warp = false;
-			}
-		}
-	);
 }
 
 void render_system::draw(float alpha)
@@ -123,14 +101,13 @@ void render_system::on_scene_construct(entity::registry& registry, entity::id en
 	if (const auto transform = registry.try_get<transform_component>(entity_id))
 	{
 		component.object->set_transform(transform->world);
-		component.object->get_transform_tween().update();
 	}
 	
 	for (std::size_t i = 0; i < layers.size(); ++i)
 	{
 		if (component.layer_mask & static_cast<std::uint8_t>(1 << i))
 		{
-			layers[i]->add_object(component.object.get());
+			layers[i]->add_object(*component.object);
 		}
 	}
 }
@@ -143,12 +120,12 @@ void render_system::on_scene_update(entity::registry& registry, entity::id entit
 	{
 		// Remove from layer
 		scene::collection* layer = layers[i];
-		layer->remove_object(component.object.get());
+		layer->remove_object(*component.object);
 		
 		if (component.layer_mask & static_cast<std::uint8_t>(1 << i))
 		{
 			// Add to layer
-			layer->add_object(component.object.get());
+			layer->add_object(*component.object);
 		}
 	}
 }
@@ -161,7 +138,7 @@ void render_system::on_scene_destroy(entity::registry& registry, entity::id enti
 	{
 		if (component.layer_mask & static_cast<std::uint8_t>(1 << i))
 		{
-			layers[i]->remove_object(component.object.get());
+			layers[i]->remove_object(*component.object);
 		}
 	}
 }
@@ -174,6 +151,5 @@ void render_system::on_transform_construct(entity::registry& registry, entity::i
 		const auto& transform = registry.get<transform_component>(entity_id);
 		
 		scene->object->set_transform(transform.world);
-		scene->object->get_transform_tween().update();
 	}
 }

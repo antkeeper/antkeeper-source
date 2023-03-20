@@ -72,16 +72,6 @@ void update_text_color(::game& ctx)
 	}
 }
 
-void update_text_tweens(::game& ctx)
-{
-	for (auto [name, value]: ctx.menu_item_texts)
-	{
-		name->update_tweens();
-		if (value)
-			value->update_tweens();
-	}
-}
-
 void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 {
 	
@@ -102,13 +92,13 @@ void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 		float row_width = 0.0f;
 		
 		// Add name width to row width
-		const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_local_bounds());
+		const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_bounds());
 		row_width += name_bounds.max_point.x() - name_bounds.min_point.x();
 		
 		if (value)
 		{
 			// Add value width to row width
-			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_local_bounds());
+			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_bounds());
 			row_width += value_bounds.max_point.x() - value_bounds.min_point.x();
 			
 			// Add column spacing to row width
@@ -143,7 +133,7 @@ void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 		
 		if (center || i == ctx.menu_item_texts.size() - 1)
 		{
-			const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_local_bounds());
+			const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_bounds());
 			const float name_width =  name_bounds.max_point.x() - name_bounds.min_point.x();
 			x = viewport_center.x() - name_width * 0.5f;
 		}
@@ -152,7 +142,7 @@ void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 		
 		if (value)
 		{
-			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_local_bounds());
+			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_bounds());
 			const float value_width =  value_bounds.max_point.x() - value_bounds.min_point.x();
 			
 			if (center || i == ctx.menu_item_texts.size() - 1)
@@ -179,9 +169,9 @@ void add_text_to_ui(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
-		ctx.ui_scene->add_object(name);
+		ctx.ui_scene->add_object(*name);
 		if (value)
-			ctx.ui_scene->add_object(value);
+			ctx.ui_scene->add_object(*value);
 	}
 }
 
@@ -189,9 +179,9 @@ void remove_text_from_ui(::game& ctx)
 {
 	for (auto [name, value]: ctx.menu_item_texts)
 	{
-		ctx.ui_scene->remove_object(name);
+		ctx.ui_scene->remove_object(*name);
 		if (value)
-			ctx.ui_scene->remove_object(value);
+			ctx.ui_scene->remove_object(*value);
 	}
 }
 
@@ -261,12 +251,10 @@ void fade_in(::game& ctx, const std::function<void()>& end_callback)
 		if (name)
 		{
 			name->set_color(color);
-			name->update_tweens();
 		}
 		if (value)
 		{
 			value->set_color(color);
-			value->update_tweens();
 		}
 	}
 	

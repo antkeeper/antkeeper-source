@@ -26,8 +26,8 @@
 
 struct scene_component
 {
-	std::unique_ptr<scene::object_base> object;
-	std::uint8_t layer_mask{0b11111111};
+	std::shared_ptr<scene::object_base> object;
+	std::uint8_t layer_mask{0b00000001};
 };
 
 #endif // ANTKEEPER_GAME_SCENE_COMPONENT_HPP

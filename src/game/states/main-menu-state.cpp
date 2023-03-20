@@ -65,14 +65,13 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	title_text->set_color({1.0f, 1.0f, 1.0f, (fade_in) ? 1.0f : 0.0f});
 	title_text->set_font(&ctx.title_font);
 	title_text->set_content(get_string(ctx, "title_antkeeper"));
-	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text->get_local_bounds());
+	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text->get_bounds());
 	float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
 	float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
 	title_text->set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
-	title_text->update_tweens();
 	
 	// Add text to UI
-	ctx.ui_scene->add_object(title_text.get());
+	ctx.ui_scene->add_object(*title_text);
 	
 	// Construct title fade animation
 	title_fade_animation.set_interpolator(ease<float>::out_cubic);
@@ -112,7 +111,6 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);
 	::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);
-	::menu::update_text_tweens(ctx);
 	::menu::add_text_to_ui(ctx);
 	::menu::setup_animations(ctx);
 	
@@ -266,14 +264,13 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	
 	ctx.surface_camera->set_active(true);
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
-	ctx.surface_camera->set_exposure(ev100_sunny16);
+	ctx.surface_camera->set_exposure_value(ev100_sunny16);
 	
 	const float aspect_ratio = viewport_size.x() / viewport_size.y();
 	float fov = math::vertical_fov(math::radians(100.0f), aspect_ratio);
 	
 	ctx.surface_camera->look_at({0, 2.0f, 0}, {0, 0, 0}, {0, 0, 1});
 	ctx.surface_camera->set_perspective(fov, ctx.surface_camera->get_aspect_ratio(), ctx.surface_camera->get_clip_near(), ctx.surface_camera->get_clip_far());
-	ctx.surface_camera->update_tweens();
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
@@ -291,11 +288,10 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 			const vec2 viewport_center = viewport_size * 0.5f;
 			
 			// Re-align title text
-			const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text->get_local_bounds());
+			const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text->get_bounds());
 			float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
 			float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
 			title_text->set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
-			title_text->update_tweens();
 			
 			::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);
 		}
@@ -325,7 +321,7 @@ main_menu_state::~main_menu_state()
 	ctx.animator->remove_animation(&title_fade_animation);
 	
 	// Destruct text
-	ctx.ui_scene->remove_object(title_text.get());
+	ctx.ui_scene->remove_object(*title_text);
 	
 	debug::log::trace("Exited main menu state");
 }

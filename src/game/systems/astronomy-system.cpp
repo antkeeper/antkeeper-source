@@ -206,7 +206,7 @@ void astronomy_system::update(float t, float dt)
 				)
 			);
 			
-			sun_light->set_color(float3(observer_blackbody_transmitted_illuminance));
+			sun_light->set_illuminance(float3(observer_blackbody_transmitted_illuminance));
 			
 			// Bounce sun light
 			bounce_illuminance += std::max(0.0, math::dot(bounce_normal, -observer_blackbody_direction_eus)) * observer_blackbody_transmitted_illuminance * bounce_albedo;
@@ -226,7 +226,7 @@ void astronomy_system::update(float t, float dt)
 			sky_light_illuminance += starlight_illuminance;
 			
 			// Update sky light
-			sky_light->set_color(float3(sky_light_illuminance));
+			sky_light->set_illuminance(float3(sky_light_illuminance));
 			
 			// Bounce sky light
 			bounce_illuminance += sky_light_illuminance * bounce_albedo;
@@ -314,7 +314,7 @@ void astronomy_system::update(float t, float dt)
 			{
 				const float3 reflector_up_eus = float3(icrf_to_eus.r * double3{0, 0, 1});
 				
-				this->moon_light->set_color(float3(observer_reflector_illuminance));
+				this->moon_light->set_illuminance(float3(observer_reflector_illuminance));
 				this->moon_light->set_rotation
 				(
 					math::look_rotation
@@ -332,7 +332,7 @@ void astronomy_system::update(float t, float dt)
 	
 	if (bounce_light)
 	{
-		bounce_light->set_color(float3(bounce_illuminance));
+		bounce_light->set_illuminance(float3(bounce_illuminance));
 	}
 }
 

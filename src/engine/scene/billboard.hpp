@@ -22,88 +22,82 @@
 
 #include <engine/scene/object.hpp>
 #include <engine/geom/aabb.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/render/material.hpp>
 #include <engine/render/operation.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
-#include <cstdint>
+#include <engine/scene/billboard-type.hpp>
 #include <memory>
 
 namespace scene {
 
-/// Enumerates billboard types.
-enum class billboard_type: std::uint8_t
-{
-	/// No alignment
-	flat,
-	
-	/// Aligns to face camera
-	spherical,
-	
-	/// Rotates about an alignment axis to face camera
-	cylindrical
-};
-
 /**
- * A 2D unit quad with one material.
+ * 2D unit quad with a single material.
  */
 class billboard: public object<billboard>
 {
 public:
-	typedef geom::aabb<float> aabb_type;
+	using aabb_type = geom::aabb<float>;
 	
+	/// Constructs a billboard.
 	billboard();
 	
 	void render(render::context& ctx) const override;
-
+	
+	/**
+	 * Sets the billboard material.
+	 *
+	 * @param material Billboard material.
+	 */
 	void set_material(std::shared_ptr<render::material> material);
 	
-	/// Sets the billboard alignment mode.
+	/**
+	 * Sets the billboard type.
+	 *
+	 * @param type Billboard type.
+	 */
 	void set_billboard_type(billboard_type type);
 	
-	/// Sets the axis around which the billboard will be rotated when the alignment is set to billboard_alignment::cylindrical.
-	void set_alignment_axis(const float3& axis);
-	
-	[[nodiscard]] inline virtual const bounding_volume_type& get_local_bounds() const noexcept
+	/**
+	 * Sets alignment axis for cylindrical billboards.
+	 *
+	 * @param axis Cylindral billboard aligmment axis.
+	 */
+	inline void set_alignment_axis(const math::vector<float, 3>& axis) noexcept
 	{
-		return local_bounds;
+		m_alignment_axis = axis;
 	}
 	
-	[[nodiscard]] inline virtual const bounding_volume_type& get_world_bounds() const noexcept
+	[[nodiscard]] inline const bounding_volume_type& get_bounds() const noexcept override
 	{
-		return world_bounds;
+		return m_bounds;
 	}
-
+	
 	[[nodiscard]] inline std::shared_ptr<render::material> get_material() const noexcept
 	{
-		return render_op.material;
+		return m_render_op.material;
 	}
 	
 	[[nodiscard]] inline billboard_type get_billboard_type() const noexcept
 	{
-		return type;
+		return m_billboard_type;
 	}
 	
-	[[nodiscard]] inline const float3& get_alignment_axis() const noexcept
+	[[nodiscard]] inline const math::vector<float, 3>& get_alignment_axis() const noexcept
 	{
-		return alignment_axis;
+		return m_alignment_axis;
 	}
-	
-	virtual void update_tweens();
 
 private:
-	static const aabb_type local_bounds;
+	void transformed() override;
 	
-	virtual void transformed();
-	
-	std::unique_ptr<gl::vertex_buffer> vbo;
-	std::unique_ptr<gl::vertex_array> vao;
-	
-	mutable render::operation render_op;
-	aabb_type world_bounds;
-	billboard_type type;
-	float3 alignment_axis;
+	std::unique_ptr<gl::vertex_buffer> m_vbo;
+	std::unique_ptr<gl::vertex_array> m_vao;
+	mutable render::operation m_render_op;
+	aabb_type m_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
+	billboard_type m_billboard_type{billboard_type::flat};
+	math::vector<float, 3> m_alignment_axis{0.0f, 1.0f, 0.0f};
 };
 
 } // namespace scene

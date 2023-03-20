@@ -42,13 +42,20 @@
 #include <engine/render/anti-aliasing-method.hpp>
 #include <engine/render/material-variable.hpp>
 #include <engine/render/material.hpp>
-#include <engine/scene/scene.hpp>
 #include <engine/type/bitmap-font.hpp>
 #include <engine/type/typeface.hpp>
 #include <engine/utility/dict.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/utility/state-machine.hpp>
 #include <engine/utility/frame-scheduler.hpp>
+#include <engine/scene/text.hpp>
+#include <engine/scene/directional-light.hpp>
+#include <engine/scene/spot-light.hpp>
+#include <engine/scene/ambient-light.hpp>
+#include <engine/scene/camera.hpp>
+#include <engine/scene/billboard.hpp>
+#include <engine/scene/collection.hpp>
+#include <engine/scene/text.hpp>
 #include <engine/math/angles.hpp>
 #include <entt/entt.hpp>
 #include <filesystem>
@@ -312,9 +319,9 @@ public:
 	
 	// Scene
 	std::unique_ptr<scene::collection> surface_scene;
-	std::unique_ptr<scene::camera> surface_camera;
+	std::shared_ptr<scene::camera> surface_camera;
 	std::unique_ptr<scene::collection> underground_scene;
-	std::unique_ptr<scene::camera> underground_camera;
+	std::shared_ptr<scene::camera> underground_camera;
 	std::unique_ptr<scene::ambient_light> underground_ambient_light;
 	std::unique_ptr<scene::spot_light> flashlight_spot_light;
 	

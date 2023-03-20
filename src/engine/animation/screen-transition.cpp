@@ -107,7 +107,6 @@ void screen_transition::transition(float duration, bool reverse, ::animation<flo
 	
 	// Update tweens
 	progress->set(initial_state);
-	//material.update_tweens();
 	
 	// Reset and play transition animation
 	animation.stop();

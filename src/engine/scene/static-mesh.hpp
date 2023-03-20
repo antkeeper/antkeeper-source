@@ -67,20 +67,9 @@ public:
 	 */
 	void reset_materials();
 	
-	/**
-	 * Returns the local bounds of the model instance.
-	 */
-	[[nodiscard]] inline virtual const bounding_volume_type& get_local_bounds() const noexcept
+	[[nodiscard]] inline const bounding_volume_type& get_bounds() const noexcept override
 	{
-		return local_bounds;
-	}
-	
-	/**
-	 * Returns the world bounds of the model instance.
-	 */
-	[[nodiscard]] inline virtual const bounding_volume_type& get_world_bounds() const noexcept
-	{
-		return world_bounds;
+		return m_bounds;
 	}
 	
 	/**
@@ -88,7 +77,7 @@ public:
 	 */
 	[[nodiscard]] inline const std::shared_ptr<render::model>& get_model() const noexcept
 	{
-		return model;
+		return m_model;
 	}
 	
 	/**
@@ -97,29 +86,24 @@ public:
 	/// @{
 	[[nodiscard]] inline const pose& get_pose() const noexcept
 	{
-		return pose;
+		return m_pose;
 	}
 	[[nodiscard]] inline pose& get_pose() noexcept
 	{
-		return pose;
+		return m_pose;
 	}
 	/// @}
 	
 	void render(render::context& ctx) const override;
 	
-	void update_tweens() override;
-	
-	void update_bounds();
-
 private:
+	void update_bounds();
 	void transformed() override;
 	
-	std::shared_ptr<render::model> model;
-	mutable std::vector<render::operation> operations;
-	::pose pose;
-	
-	aabb_type local_bounds{{0, 0, 0}, {0, 0, 0}};
-	aabb_type world_bounds{{0, 0, 0}, {0, 0, 0}};
+	std::shared_ptr<render::model> m_model;
+	mutable std::vector<render::operation> m_operations;
+	::pose m_pose;
+	aabb_type m_bounds{{0, 0, 0}, {0, 0, 0}};
 };
 
 } // namespace scene

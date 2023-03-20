@@ -19,7 +19,6 @@
 
 #include "game/systems/terrain-system.hpp"
 #include "game/components/terrain-component.hpp"
-#include "game/components/camera-component.hpp"
 #include <engine/geom/meshes/grid.hpp>
 #include <engine/geom/mesh-functions.hpp>
 #include <engine/geom/morton.hpp>

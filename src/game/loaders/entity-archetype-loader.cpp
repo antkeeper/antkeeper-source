@@ -204,7 +204,7 @@ static bool load_component_model(entity::archetype& archetype, resource_manager&
 		{
 			handle.emplace_or_replace<scene_component>
 			(
-				std::make_unique<scene::static_mesh>(model),
+				std::make_shared<scene::static_mesh>(model),
 				std::uint8_t{0b00000001}
 			);
 		}
@@ -242,7 +242,6 @@ static bool load_component_transform(entity::archetype& archetype, const json& e
 {
 	::transform_component component;
 	component.local = math::transform<float>::identity;
-	component.warp = true;
 	
 	if (element.contains("translation"))
 	{

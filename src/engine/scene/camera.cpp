@@ -18,70 +18,14 @@
  */
 
 #include <engine/scene/camera.hpp>
-#include <engine/config.hpp>
-#include <engine/math/numbers.hpp>
-#include <engine/math/interpolation.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/projection.hpp>
 
 namespace scene {
 
-static float4x4 interpolate_view(const camera* camera, const float4x4& x, const float4x4& y, float a)
-{
-	math::transform<float> transform = camera->get_transform_tween().interpolate(a);
-	float3 forward = transform.rotation * config::global_forward;
-	float3 up = transform.rotation * config::global_up;
-	return math::look_at(transform.translation, transform.translation + forward, up);
-}
-
-static float4x4 interpolate_projection(const camera* camera, const float4x4& x, const float4x4& y, float a)
-{
-	if (camera->is_orthographic())
-	{
-		return math::ortho(
-			camera->get_clip_left_tween().interpolate(a),
-			camera->get_clip_right_tween().interpolate(a),
-			camera->get_clip_bottom_tween().interpolate(a),
-			camera->get_clip_top_tween().interpolate(a),
-			camera->get_clip_far_tween().interpolate(a),
-			camera->get_clip_near_tween().interpolate(a));
-	}
-	else
-	{
-		return math::perspective(
-			camera->get_fov_tween().interpolate(a),
-			camera->get_aspect_ratio_tween().interpolate(a),
-			camera->get_clip_far_tween().interpolate(a),
-			camera->get_clip_near_tween().interpolate(a));
-	}
-}
-
-static float4x4 interpolate_view_projection(const camera* camera, const float4x4& x, const float4x4& y, float a)
-{
-	return camera->get_projection_tween().interpolate(a) * camera->get_view_tween().interpolate(a);
-}
-
-camera::camera():
-	compositor(nullptr),
-	composite_index(0),
-	orthographic(true),
-	clip_left(-1.0f, math::lerp<float, float>),
-	clip_right(1.0f, math::lerp<float, float>),
-	clip_bottom(-1.0f, math::lerp<float, float>),
-	clip_top(1.0f, math::lerp<float, float>),
-	clip_near(-1.0f, math::lerp<float, float>),
-	clip_far(1.0f, math::lerp<float, float>),
-	fov(math::half_pi<float>, math::lerp<float, float>),
-	aspect_ratio(1.0f, math::lerp<float, float>),
-	view(math::matrix4<float>::identity(), std::bind(&interpolate_view, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-	projection(math::matrix4<float>::identity(), std::bind(&interpolate_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-	view_projection(math::matrix4<float>::identity(), std::bind(&interpolate_view_projection, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-	exposure(0.0f, math::lerp<float, float>)
-{}
-
 geom::primitive::ray<float, 3> camera::pick(const float2& ndc) const
 {
-	const float4x4 inverse_view_projection = math::inverse(view_projection[1]);
+	const float4x4 inverse_view_projection = math::inverse(m_view_projection);
 	
 	const float4 near = inverse_view_projection * float4{ndc[0], ndc[1], 1.0f, 1.0f};
 	const float4 far = inverse_view_projection * float4{ndc[0], ndc[1], 0.0f, 1.0f};
@@ -94,7 +38,7 @@ geom::primitive::ray<float, 3> camera::pick(const float2& ndc) const
 
 float3 camera::project(const float3& object, const float4& viewport) const
 {
-	float4 result = view_projection[1] * float4{object[0], object[1], object[2], 1.0f};
+	float4 result = m_view_projection * float4{object[0], object[1], object[2], 1.0f};
 	result[0] = (result[0] / result[3]) * 0.5f + 0.5f;
 	result[1] = (result[1] / result[3]) * 0.5f + 0.5f;
 	result[2] = (result[2] / result[3]) * 0.5f + 0.5f;
@@ -115,96 +59,78 @@ float3 camera::unproject(const float3& window, const float4& viewport) const
 	result[2] = 1.0f - window[2]; // z: [1, 0]
 	result[3] = 1.0f;
 	
-	result = math::inverse(view_projection[1]) * result;
+	result = math::inverse(m_view_projection) * result;
 
 	return math::vector<float, 3>(result) * (1.0f / result[3]);
 }
 
 void camera::set_perspective(float fov, float aspect_ratio, float clip_near, float clip_far)
 {
-	orthographic = false;
-
-	this->fov[1] = fov;
-	this->aspect_ratio[1] = aspect_ratio;
-	this->clip_near[1] = clip_near;
-	this->clip_far[1] = clip_far;
-
-	projection[1] = math::perspective_half_z(fov, aspect_ratio, clip_far, clip_near);
+	m_orthographic = false;
+	
+	// Update perspective projection parameters
+	m_fov = fov;
+	m_aspect_ratio = aspect_ratio;
+	m_clip_near = clip_near;
+	m_clip_far = clip_far;
+	
+	// Recalculate projection matrix
+	m_projection = math::perspective_half_z(m_fov, m_aspect_ratio, m_clip_far, m_clip_near);
 	
 	// Recalculate view-projection matrix
-	view_projection[1] = projection[1] * view[1];
+	m_view_projection = m_projection * m_view;
 	
 	// Recalculate view frustum
 	/// @TODO: this is a hack to fix the half z projection matrix view frustum
-	view_frustum.set_matrix(math::perspective(this->fov[1], this->aspect_ratio[1], this->clip_near[1], this->clip_far[1]) * view[1]);
+	m_view_frustum.set_matrix(math::perspective(m_fov, m_aspect_ratio, m_clip_near, m_clip_far) * m_view);
 }
 
 void camera::set_orthographic(float clip_left, float clip_right, float clip_bottom, float clip_top, float clip_near, float clip_far)
 {
-	orthographic = true;
-
-	this->clip_left[1] = clip_left;
-	this->clip_right[1] = clip_right;
-	this->clip_bottom[1] = clip_bottom;
-	this->clip_top[1] = clip_top;
-	this->clip_near[1] = clip_near;
-	this->clip_far[1] = clip_far;
-
-	projection[1] = math::ortho_half_z(clip_left, clip_right, clip_bottom, clip_top, clip_far, clip_near);
+	m_orthographic = true;
+	
+	// Update signed distances to clipping planes
+	m_clip_left = clip_left;
+	m_clip_right = clip_right;
+	m_clip_bottom = clip_bottom;
+	m_clip_top = clip_top;
+	m_clip_near = clip_near;
+	m_clip_far = clip_far;
+	
+	// Update projection matrix
+	m_projection = math::ortho_half_z(m_clip_left, m_clip_right, m_clip_bottom, m_clip_top, m_clip_far, m_clip_near);
 	
 	// Recalculate view-projection matrix
-	view_projection[1] = projection[1] * view[1];
+	m_view_projection = m_projection * m_view;
 	
 	// Recalculate view frustum
-	view_frustum.set_matrix(view_projection[1]);
+	m_view_frustum.set_matrix(m_view_projection);
 }
 
-void camera::set_exposure(float ev100)
+void camera::set_exposure_value(float ev100)
 {
-	exposure[1] = ev100;
-}
-
-void camera::set_compositor(render::compositor* compositor)
-{
-	this->compositor = compositor;
-}
-
-void camera::set_composite_index(int index)
-{
-	composite_index = index;
-}
-
-void camera::update_tweens()
-{
-	object_base::update_tweens();
-	clip_left.update();
-	clip_right.update();
-	clip_bottom.update();
-	clip_top.update();
-	clip_near.update();
-	clip_far.update();
-	fov.update();
-	aspect_ratio.update();
-	view.update();
-	projection.update();
-	view_projection.update();
-	exposure.update();
+	m_exposure_value = ev100;
+	m_exposure_normalization = 1.0f / (std::exp2(m_exposure_value) * 1.2f);
 }
 
 void camera::transformed()
 {
 	// Recalculate view and view-projection matrices
-	float3 forward = get_rotation() * config::global_forward;
-	float3 up = get_rotation() * config::global_up;
-	view[1] = math::look_at(get_translation(), get_translation() + forward, up);
-	view_projection[1] = projection[1] * view[1];
+	m_forward = get_rotation() * math::vector<float, 3>{0.0f, 0.0f, -1.0f};
+	m_up = get_rotation() * math::vector<float, 3>{0.0f, 1.0f, 0.0f};
+	m_view = math::look_at(get_translation(), get_translation() + m_forward, m_up);
+	m_view_projection = m_projection * m_view;
 	
 	// Recalculate view frustum
-	/// @TODO: this is a hack to fix the half z projection matrix view frustum
-	if (orthographic)
-		view_frustum.set_matrix(view_projection[1]);
+	if (m_orthographic)
+	{
+		m_view_frustum.set_matrix(m_view_projection);
+	}
 	else
-		view_frustum.set_matrix(math::perspective(fov[1], aspect_ratio[1], clip_near[1], clip_far[1]) * view[1]);
+	{
+		/// @TODO: this is a hack to fix the half z projection matrix view frustum
+		m_view_frustum.set_matrix(math::perspective(m_fov, m_aspect_ratio, m_clip_near, m_clip_far) * m_view);
+	}
 }
 
 } // namespace scene

@@ -77,7 +77,6 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 	::menu::update_text_color(ctx);
 	::menu::update_text_font(ctx);
 	::menu::align_text(ctx);
-	::menu::update_text_tweens(ctx);
 	::menu::add_text_to_ui(ctx);
 	::menu::setup_animations(ctx);
 	
@@ -90,7 +89,6 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		
 		this->update_value_text_content();
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 		
 		// Update fullscreen settings
 		(*ctx.settings)["fullscreen"] = fullscreen;
@@ -117,7 +115,6 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		// Update text
 		this->update_value_text_content();
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto decrease_resolution_callback = [this, &ctx]()
@@ -141,7 +138,6 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		// Update text
 		this->update_value_text_content();
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto toggle_v_sync_callback = [this, &ctx]()
@@ -155,7 +151,6 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		
 		this->update_value_text_content();
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto next_aa_method_callback = [this, &ctx]()
@@ -182,7 +177,6 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		// Refresh and realign text
 		::menu::refresh_text(ctx);
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto previous_aa_method_callback = [this, &ctx]()
@@ -209,7 +203,6 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		// Refresh and realign text
 		::menu::refresh_text(ctx);
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto increase_font_scale_callback = [this, &ctx]()
@@ -238,7 +231,6 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		// Refresh and realign text
 		::menu::refresh_text(ctx);
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto decrease_font_scale_callback = [this, &ctx]()
@@ -267,7 +259,6 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		// Refresh and realign text
 		::menu::refresh_text(ctx);
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	
 	auto toggle_dyslexia_font_callback = [this, &ctx]()
@@ -288,7 +279,6 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		// Refresh and realign text
 		::menu::refresh_text(ctx);
 		::menu::align_text(ctx);
-		::menu::update_text_tweens(ctx);
 	};
 	auto select_back_callback = [&ctx]()
 	{

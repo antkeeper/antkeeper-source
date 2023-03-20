@@ -42,7 +42,6 @@ void fade_out_bg(::game& ctx);
 
 void update_text_color(::game& ctx);
 void update_text_font(::game& ctx);
-void update_text_tweens(::game& ctx);
 void align_text(::game& ctx, bool center = false, bool has_back = true, float anchor_y = 0.0f);
 void refresh_text(::game& ctx);
 void add_text_to_ui(::game& ctx);

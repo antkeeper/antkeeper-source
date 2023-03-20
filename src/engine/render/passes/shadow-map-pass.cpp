@@ -134,14 +134,8 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 	// Get camera
 	const scene::camera& camera = *ctx.camera;
 	
-	// Get tweened camera parameters
-	const float camera_fov = camera.get_fov_tween().interpolate(ctx.alpha);
-	const float camera_aspect_ratio = camera.get_aspect_ratio_tween().interpolate(ctx.alpha);
-	const float camera_clip_near = camera.get_clip_near_tween().interpolate(ctx.alpha);
-	const float camera_clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
-	
 	// Calculate distance to shadow cascade depth clipping planes
-	const float shadow_clip_far = math::lerp(camera_clip_near, camera_clip_far, light.get_shadow_cascade_coverage());
+	const float shadow_clip_far = math::lerp(camera.get_clip_near(), camera.get_clip_far(), light.get_shadow_cascade_coverage());
 	
 	const unsigned int cascade_count = light.get_shadow_cascade_count();
 	
@@ -156,8 +150,8 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 		const float weight = static_cast<float>(i + 1) / static_cast<float>(cascade_count);
 		
 		// Calculate linear and logarithmic distribution distances
-		const float linear_distance = math::lerp(camera_clip_near, shadow_clip_far, weight);
-		const float log_distance = math::log_lerp(camera_clip_near, shadow_clip_far, weight);
+		const float linear_distance = math::lerp(camera.get_clip_near(), shadow_clip_far, weight);
+		const float log_distance = math::log_lerp(camera.get_clip_near(), shadow_clip_far, weight);
 		
 		// Interpolate between linear and logarithmic distribution distances
 		cascade_distances[i] = math::lerp(linear_distance, log_distance, light.get_shadow_cascade_distribution());
@@ -180,7 +174,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 	}
 	
 	// Calculate a view-projection matrix from the directional light's transform
-	math::transform<float> light_transform = light.get_transform_tween().interpolate(ctx.alpha);
+	const auto& light_transform = light.get_transform();
 	float3 forward = light_transform.rotation * config::global_forward;
 	float3 up = light_transform.rotation * config::global_up;
 	float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
@@ -202,12 +196,12 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 		rasterizer->set_viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 		
 		// Calculate projection matrix for view camera subfrustum
-		const float subfrustum_near = (i) ? cascade_distances[i - 1] : camera_clip_near;
+		const float subfrustum_near = (i) ? cascade_distances[i - 1] : camera.get_clip_near();
 		const float subfrustum_far = cascade_distances[i];
-		float4x4 subfrustum_projection = math::perspective_half_z(camera_fov, camera_aspect_ratio, subfrustum_near, subfrustum_far);
+		float4x4 subfrustum_projection = math::perspective_half_z(camera.get_fov(), camera.get_aspect_ratio(), subfrustum_near, subfrustum_far);
 		
 		// Calculate view camera subfrustum
-		geom::view_frustum<float> subfrustum(subfrustum_projection * ctx.view);
+		geom::view_frustum<float> subfrustum(subfrustum_projection * camera.get_view());
 		
 		// Create AABB containing the view camera subfrustum corners
 		const std::array<float3, 8>& subfrustum_corners = subfrustum.get_corners();

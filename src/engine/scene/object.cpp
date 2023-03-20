@@ -18,23 +18,8 @@
  */
 
 #include <engine/scene/object.hpp>
-#include <engine/math/interpolation.hpp>
 
 namespace scene {
-
-typename object_base::transform_type object_base::interpolate_transforms(const transform_type& x, const transform_type& y, float a)
-{
-	return
-		{
-			math::lerp(x.translation, y.translation, a),
-			math::nlerp(x.rotation, y.rotation, a),
-			math::lerp(x.scale, y.scale, a),
-		};
-}
-
-object_base::object_base():
-	transform(math::transform<float>::identity, interpolate_transforms)
-{}
 
 std::size_t object_base::next_object_type_id()
 {
@@ -42,19 +27,11 @@ std::size_t object_base::next_object_type_id()
 	return id++;
 }
 
-void object_base::update_tweens()
-{
-	transform.update();
-}
-
 void object_base::look_at(const vector_type& position, const vector_type& target, const vector_type& up)
 {
-	transform[1].translation = position;
-	transform[1].rotation = math::look_rotation(math::normalize(math::sub(target, position)), up);
+	m_transform.translation = position;
+	m_transform.rotation = math::look_rotation(math::normalize(math::sub(target, position)), up);
 	transformed();
 }
-
-void object_base::transformed()
-{}
 
 } // namespace scene

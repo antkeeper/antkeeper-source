@@ -29,12 +29,12 @@
 #include "game/components/ant-caste-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/terrain-component.hpp"
-#include "game/components/camera-component.hpp"
 #include "game/components/name-component.hpp"
 #include "game/components/constraint-stack-component.hpp"
 #include "game/components/steering-component.hpp"
 #include "game/components/picking-component.hpp"
 #include "game/components/spring-component.hpp"
+#include "game/components/scene-component.hpp"
 #include "game/constraints/child-of-constraint.hpp"
 #include "game/constraints/copy-rotation-constraint.hpp"
 #include "game/constraints/copy-scale-constraint.hpp"
@@ -140,7 +140,7 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	
 	// Set camera exposure
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
-	ctx.surface_camera->set_exposure(ev100_sunny16);
+	ctx.surface_camera->set_exposure_value(ev100_sunny16);
 	
 	const auto& viewport_size = ctx.window->get_viewport_size();
 	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
@@ -163,14 +163,13 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	selection_text.set_material(ctx.menu_font_material);
 	selection_text.set_color({1.0f, 1.0f, 1.0f, 1.0f});
 	selection_text.set_font(&ctx.menu_font);
-	const auto& text_aabb = static_cast<const geom::aabb<float>&>(selection_text.get_local_bounds());
+	const auto& text_aabb = static_cast<const geom::aabb<float>&>(selection_text.get_bounds());
 	float text_w = text_aabb.max_point.x() - text_aabb.min_point.x();
 	float text_h = text_aabb.max_point.y() - text_aabb.min_point.y();
 	selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font.get_font_metrics().size), 0.0f});
-	selection_text.update_tweens();
 	
 	// Add text to UI
-	ctx.ui_scene->add_object(&selection_text);
+	ctx.ui_scene->add_object(selection_text);
 	
 	// Select random alate
 	entity::id random_alate_eid;
@@ -219,7 +218,7 @@ nuptial_flight_state::~nuptial_flight_state()
 	::disable_game_controls(ctx);
 	
 	// Remove text from UI
-	ctx.ui_scene->remove_object(&selection_text);
+	ctx.ui_scene->remove_object(selection_text);
 	
 	// Deselect selected entity
 	select_entity(entt::null);
@@ -257,7 +256,6 @@ void nuptial_flight_state::create_camera_rig()
 	transform_component camera_rig_focus_transform;
 	camera_rig_focus_transform.local = math::transform<float>::identity;
 	camera_rig_focus_transform.world = camera_rig_focus_transform.local;
-	camera_rig_focus_transform.warp = true;
 	
 	// Construct camera rig focus entity
 	camera_rig_focus_eid = ctx.entity_registry->create();
@@ -339,15 +337,14 @@ void nuptial_flight_state::create_camera_rig()
 	transform_component camera_rig_transform;
 	camera_rig_transform.local = math::transform<float>::identity;
 	camera_rig_transform.world = camera_rig_transform.local;
-	camera_rig_transform.warp = true;
 	
 	// Construct camera rig camera component
-	camera_component camera_rig_camera;
-	camera_rig_camera.object = ctx.surface_camera.get();
+	scene_component camera_rig_camera;
+	camera_rig_camera.object = ctx.surface_camera;
 	
 	// Construct camera rig entity
 	camera_rig_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<camera_component>(camera_rig_eid, camera_rig_camera);
+	ctx.entity_registry->emplace<scene_component>(camera_rig_eid, camera_rig_camera);
 	ctx.entity_registry->emplace<transform_component>(camera_rig_eid, camera_rig_transform);
 	ctx.entity_registry->emplace<constraint_stack_component>(camera_rig_eid, camera_rig_constraint_stack);
 	
@@ -1104,11 +1101,10 @@ void nuptial_flight_state::select_entity(entity::id entity_id)
 			}
 			
 			const auto& viewport_size = ctx.window->get_viewport_size();
-			const auto& text_aabb = static_cast<const geom::aabb<float>&>(selection_text.get_local_bounds());
+			const auto& text_aabb = static_cast<const geom::aabb<float>&>(selection_text.get_bounds());
 			float text_w = text_aabb.max_point.x() - text_aabb.min_point.x();
 			float text_h = text_aabb.max_point.y() - text_aabb.min_point.y();
 			selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font.get_font_metrics().size), 0.0f});
-			selection_text.update_tweens();
 		}
 	}
 }

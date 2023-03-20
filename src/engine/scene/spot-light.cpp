@@ -18,50 +18,19 @@
  */
 
 #include <engine/scene/spot-light.hpp>
-#include <engine/config.hpp>
-#include <engine/math/quaternion.hpp>
-#include <engine/math/interpolation.hpp>
 #include <cmath>
 
 namespace scene {
 
-static float3 interpolate_direction(const float3& x, const float3& y, float a)
+void spot_light::set_cutoff(const math::vector<float, 2>& cutoff)
 {
-	math::quaternion<float> q0 = math::rotation(config::global_forward, x);
-	math::quaternion<float> q1 = math::rotation(config::global_forward, y);
-	return math::normalize(math::slerp(q0, q1, a) * config::global_forward);
-}
-
-spot_light::spot_light():
-	direction(config::global_forward, interpolate_direction),
-	attenuation(float3{1, 0, 0}, math::lerp<float3, float>),
-	cutoff(float2{math::pi<float>, math::pi<float>}, math::lerp<float2, float>),
-	cosine_cutoff(float2{std::cos(math::pi<float>), std::cos(math::pi<float>)}, math::lerp<float2, float>)
-{}
-
-void spot_light::set_attenuation(const float3& attenuation)
-{
-	this->attenuation[1] = attenuation;
-}
-
-void spot_light::set_cutoff(const float2& cutoff)
-{
-	this->cutoff[1] = cutoff;
-	this->cosine_cutoff[1] = {std::cos(cutoff.x()), std::cos(cutoff.y())};
-}
-
-void spot_light::update_tweens()
-{
-	light::update_tweens();
-	direction.update();
-	attenuation.update();
-	cutoff.update();
-	cosine_cutoff.update();
+	m_cutoff = cutoff;
+	m_cosine_cutoff = {std::cos(m_cutoff.x()), std::cos(m_cutoff.y())};
 }
 
 void spot_light::transformed()
 {
-	direction[1] = math::normalize(get_transform().rotation * config::global_forward);
+	m_direction = get_transform().rotation * math::vector<float, 3>{0.0f, 0.0f, -1.0f};
 }
 
 } // namespace scene

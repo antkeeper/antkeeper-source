@@ -44,32 +44,8 @@ struct context
 	/// Pointer to the camera.
 	const scene::camera* camera;
 	
-	/// Camera transform.
-	math::transform<float> camera_transform;
-	
-	/// Camera forward vector
-	float3 camera_forward;
-	
-	/// Camera up vector.
-	float3 camera_up;
-	
 	/// Camera culling volume.
 	const geom::bounding_volume<float>* camera_culling_volume;
-	
-	/// Near clipping plane of the camera.
-	geom::plane<float> clip_near;
-	
-	/// Camera view matrix.
-	float4x4 view;
-	
-	/// Camera projection matrix.
-	float4x4 projection;
-	
-	/// Camera view projection matrix.
-	float4x4 view_projection;
-	
-	/// Camera exposure normalization factor.
-	float exposure;
 	
 	/// Collection of scene objects being rendered.
 	const scene::collection* collection;
