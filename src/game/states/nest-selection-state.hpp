@@ -47,6 +47,10 @@ private:
 	
 	bool mouse_look{false};
 	
+	bool moving{false};
+	float2 movement_direction{0.0f, 0.0f};
+	float movement_speed{0.0f};
+	
 	entity::id worker_ant_eid;
 	
 	entity::id first_person_camera_rig_eid;
@@ -65,6 +69,9 @@ private:
 	float first_person_camera_far_speed;
 	float first_person_camera_rig_pedestal_speed;
 	float first_person_camera_rig_pedestal;
+	
+	double first_person_camera_yaw{0.0};
+	double first_person_camera_pitch{0.0};
 };
 
 #endif // ANTKEEPER_NEST_SELECTION_STATE_HPP

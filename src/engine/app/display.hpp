@@ -22,7 +22,7 @@
 
 #include <engine/app/display-orientation.hpp>
 #include <engine/app/display-events.hpp>
-#include <engine/geom/primitive/rectangle.hpp>
+#include <engine/geom/primitives/rectangle.hpp>
 #include <engine/event/publisher.hpp>
 #include <string>
 
@@ -41,7 +41,7 @@ public:
 	 */
 	inline void set_index(int index) noexcept
 	{
-		this->index = index;
+		m_index = index;
 	}
 	
 	/**
@@ -51,7 +51,7 @@ public:
 	 */
 	inline void set_name(const std::string& name) noexcept
 	{
-		this->name = name;
+		m_name = name;
 	}
 	
 	/**
@@ -61,7 +61,7 @@ public:
 	 */
 	inline void set_bounds(const geom::primitive::rectangle<int>& bounds) noexcept
 	{
-		this->bounds = bounds;
+		m_bounds = bounds;
 	}
 	
 	/**
@@ -69,7 +69,7 @@ public:
 	 */
 	inline void set_usable_bounds(const geom::primitive::rectangle<int>& bounds) noexcept
 	{
-		this->usable_bounds = bounds;
+		m_usable_bounds = bounds;
 	}
 	
 	/**
@@ -79,7 +79,7 @@ public:
 	 */
 	inline void set_refresh_rate(int rate) noexcept
 	{
-		this->refresh_rate = rate;
+		m_refresh_rate = rate;
 	}
 	
 	/**
@@ -89,7 +89,7 @@ public:
 	 */
 	inline void set_dpi(float dpi) noexcept
 	{
-		this->dpi = dpi;
+		m_dpi = dpi;
 	}
 	
 	/**
@@ -99,91 +99,91 @@ public:
 	 */
 	inline void set_orientation(display_orientation orientation) noexcept
 	{
-		this->orientation = orientation;
+		m_orientation = orientation;
 	}
 
 	/// Returns the index of the display.
 	[[nodiscard]] inline const int& get_index() const noexcept
 	{
-		return index;
+		return m_index;
 	}
 	
 	/// Returns the name of the display.
 	[[nodiscard]] inline const std::string& get_name() const noexcept
 	{
-		return name;
+		return m_name;
 	}
 	
 	/// Returns the bounds of the display, in display units.
 	[[nodiscard]] inline const geom::primitive::rectangle<int>& get_bounds() const noexcept
 	{
-		return bounds;
+		return m_bounds;
 	}
 	
 	/// Returns the usable bounds of the display, which excludes areas reserved by the OS for things like menus or docks, in display units.
 	[[nodiscard]] inline const geom::primitive::rectangle<int>& get_usable_bounds() const noexcept
 	{
-		return usable_bounds;
+		return m_usable_bounds;
 	}
 	
 	/// Returns the refresh rate of the display, in Hz.
 	[[nodiscard]] inline const int& get_refresh_rate() const noexcept
 	{
-		return refresh_rate;
+		return m_refresh_rate;
 	}
 	
 	/// Returns the DPI of the display.
 	[[nodiscard]] inline const float& get_dpi() const noexcept
 	{
-		return dpi;
+		return m_dpi;
 	}
 	
 	/// Returns the current orientation of the display.
 	[[nodiscard]] inline const display_orientation& get_orientation() const noexcept
 	{
-		return orientation;
+		return m_orientation;
 	}
 	
 	/// Returns `true` if the display is connected, `false` otherwise.
 	[[nodiscard]] inline const bool& is_connected() const noexcept
 	{
-		return connected;
+		return m_connected;
 	}
 	
 	/// Returns the channel through which display connected events are published.
 	[[nodiscard]] inline event::channel<display_connected_event>& get_connected_channel() noexcept
 	{
-		return connected_publisher.channel();
+		return m_connected_publisher.channel();
 	}
 	
 	/// Returns the channel through which display disconnected events are published.
 	[[nodiscard]] inline event::channel<display_disconnected_event>& get_disconnected_channel() noexcept
 	{
-		return disconnected_publisher.channel();
+		return m_disconnected_publisher.channel();
 	}
 	
 	/// Returns the channel through which display orientation changed events are published.
 	[[nodiscard]] inline event::channel<display_orientation_changed_event>& get_orientation_changed_channel() noexcept
 	{
-		return orientation_changed_publisher.channel();
+		return m_orientation_changed_publisher.channel();
 	}
 	
 private:
 	friend class window_manager;
 	friend class sdl_window_manager;
 	
-	int index{0};
-	std::string name;
-	geom::primitive::rectangle<int> bounds{0};
-	geom::primitive::rectangle<int> usable_bounds{0};
-	int refresh_rate{0};
-	float dpi{0.0f};
-	display_orientation orientation{0};
-	bool connected{false};
+	int m_index{0};
+	std::string m_name;
+	geom::primitive::rectangle<int> m_bounds{0};
+	geom::primitive::rectangle<int> m_usable_bounds{0};
+	int m_refresh_rate{0};
+	float m_dpi{0.0f};
+	display_orientation m_orientation{0};
+	bool m_connected{false};
 	
-	event::publisher<display_connected_event> connected_publisher;
-	event::publisher<display_disconnected_event> disconnected_publisher;
-	event::publisher<display_orientation_changed_event> orientation_changed_publisher;
+	event::publisher<display_connected_event> m_connected_publisher;
+	event::publisher<display_disconnected_event> m_disconnected_publisher;
+	event::publisher<display_orientation_changed_event> m_orientation_changed_publisher;
 };
 
 } // namespace app

@@ -21,7 +21,7 @@
 #define ANTKEEER_INPUT_ACTION_MAP_HPP
 
 #include <engine/event/subscription.hpp>
-#include <engine/event/queue.hpp>
+#include <engine/event/dispatcher.hpp>
 #include <engine/input/action.hpp>
 #include <engine/input/gamepad-events.hpp>
 #include <engine/input/keyboard-events.hpp>
@@ -51,11 +51,11 @@ public:
 	void disable();
 	
 	/**
-	 * Sets the event queue from which this action map will receive input events.
+	 * Sets the event dispatcher from which this action map will receive input events.
 	 *
-	 * @param queue Event queue from which this action map will receive input events.
+	 * @param dispatcher Event dispatcher from which this action map will receive input events.
 	 */
-	void set_event_queue(event::queue* queue);
+	void set_event_dispatcher(event::dispatcher* dispatcher);
 	
 	/**
 	 * Maps input to an action.
@@ -149,7 +149,7 @@ private:
 	void handle_mouse_moved(const mouse_moved_event& event);
 	void handle_mouse_scrolled(const mouse_scrolled_event& event);
 	
-	event::queue* event_queue{nullptr};
+	event::dispatcher* event_dispatcher{nullptr};
 	bool enabled{false};
 	std::vector<std::shared_ptr<::event::subscription>> subscriptions;
 	std::vector<std::tuple<action*, gamepad_axis_mapping>> gamepad_axis_mappings;

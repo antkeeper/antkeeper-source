@@ -23,7 +23,7 @@
 #include "game/systems/updatable-system.hpp"
 #include <engine/entity/id.hpp>
 #include "game/components/collision-component.hpp"
-#include <engine/geom/primitive/ray.hpp>
+#include <engine/geom/primitives/ray.hpp>
 
 
 /**
@@ -33,6 +33,8 @@ class collision_system: public updatable_system
 {
 public:
 	explicit collision_system(entity::registry& registry);
+	~collision_system();
+	
 	virtual void update(float t, float dt);
 	
 	/**

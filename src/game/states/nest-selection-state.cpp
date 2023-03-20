@@ -22,15 +22,18 @@
 #include "game/ant/ant-morphogenesis.hpp"
 #include "game/ant/ant-phenome.hpp"
 #include "game/commands/commands.hpp"
+#include "game/components/collision-component.hpp"
 #include "game/components/camera-component.hpp"
 #include "game/components/constraint-stack-component.hpp"
 #include "game/components/scene-component.hpp"
 #include "game/components/picking-component.hpp"
 #include "game/components/spring-component.hpp"
-#include "game/components/physics-component.hpp"
+#include "game/components/rigid-body-component.hpp"
+#include "game/components/rigid-body-constraint-component.hpp"
 #include "game/components/steering-component.hpp"
 #include "game/components/terrain-component.hpp"
 #include "game/components/legged-locomotion-component.hpp"
+#include "game/components/winged-locomotion-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/constraints/child-of-constraint.hpp"
 #include "game/constraints/copy-rotation-constraint.hpp"
@@ -61,6 +64,10 @@
 #include <engine/math/interpolation.hpp>
 #include <engine/math/projection.hpp>
 #include <engine/physics/light/exposure.hpp>
+#include <engine/physics/kinematics/constraints/spring-constraint.hpp>
+#include <engine/physics/kinematics/colliders/sphere-collider.hpp>
+#include <engine/physics/kinematics/colliders/plane-collider.hpp>
+#include <engine/physics/kinematics/colliders/box-collider.hpp>
 #include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/ground-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
@@ -96,6 +103,29 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	std::shared_ptr<render::model> worker_model = ant_morphogenesis(worker_phenome);
 	debug::log::trace("Generated worker model");
 	
+	// Create floor plane
+	
+	auto floor_archetype = ctx.resource_manager->load<entity::archetype>("desert-scrub-plane.ent");
+	auto floor_eid = floor_archetype->create(*ctx.entity_registry);
+	
+	ctx.entity_registry->patch<transform_component>
+	(
+		floor_eid,
+		[](auto& component)
+		{
+			component.local.rotation = math::angle_axis(math::radians(3.0f), float3{1.0f, 0.0f, 0.0f});
+		}
+	);
+	
+	auto floor_body = std::make_unique<physics::rigid_body>();
+	auto floor_collider = std::make_shared<physics::plane_collider>(float3{0.0f, 1.0f, 0.0f});
+	floor_collider->set_layer_mask(0b11);
+	floor_collider->set_material(std::make_shared<physics::collider_material>(1.0f, 0.5f, 1.0f));
+	floor_body->set_mass(0.0f);
+	floor_body->set_inertia(0.0f);
+	floor_body->set_collider(std::move(floor_collider));
+	ctx.entity_registry->emplace<rigid_body_component>(floor_eid, std::move(floor_body));
+	
 	// Create worker entity(s)
 	worker_ant_eid = ctx.entity_registry->create();
 	transform_component worker_transform_component;
@@ -104,8 +134,12 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	worker_transform_component.world = worker_transform_component.local;
 	worker_transform_component.warp = true;
 	ctx.entity_registry->emplace<transform_component>(worker_ant_eid, worker_transform_component);
-	
 	ctx.entity_registry->emplace<scene_component>(worker_ant_eid, std::make_unique<scene::static_mesh>(worker_model), std::uint8_t{1});
+	
+	// auto worker_body = std::make_unique<physics::rigid_body>();
+	// worker_body->set_mass(0.005f);
+	// worker_body->set_collider(std::make_shared<physics::sphere_collider>(1.0f));
+	//ctx.entity_registry->emplace<rigid_body_component>(worker_ant_eid, std::move(worker_body));
 	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
@@ -161,8 +195,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	// auto ruler_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
 	// ruler_archetype->create(*ctx.entity_registry);
 	
-	auto plane_archetype = ctx.resource_manager->load<entity::archetype>("desert-scrub-plane.ent");
-	auto plane_eid = plane_archetype->create(*ctx.entity_registry);
+
 	
 	auto yucca_archetype = ctx.resource_manager->load<entity::archetype>("yucca-plant-l.ent");
 	auto yucca_eid = yucca_archetype->create(*ctx.entity_registry);
@@ -191,6 +224,20 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	auto cactus_seed_archetype = ctx.resource_manager->load<entity::archetype>("barrel-cactus-seed.ent");
 	auto cactus_seed_eid = cactus_seed_archetype->create(*ctx.entity_registry);
 	::command::warp_to(*ctx.entity_registry, cactus_seed_eid, {10, 0, 10});
+	::command::warp_to(*ctx.entity_registry, cactus_seed_eid, {0, 1, -5});
+	
+	
+	// Create spring
+	/*
+	auto spring_eid = ctx.entity_registry->create();
+	auto spring = std::make_unique<physics::spring_constraint>();
+	spring->attach_a();
+	spring->attach_b();
+	spring->set_resting_length(10.0f);
+	spring->set_stiffness(2.0f);
+	spring->set_damping(1.0f);
+	ctx.entity_registry->emplace<rigid_body_constraint_component>(spring_eid, std::move(spring));
+	*/
 	
 	// Queue enable game controls
 	ctx.function_queue.push
@@ -205,6 +252,9 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	// Queue fade in
 	ctx.fade_transition_color->set({0, 0, 0});
 	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition.get(), 1.0f, true, ease<float>::out_sine, true, nullptr));
+	
+	// Refresh frame scheduler
+	ctx.frame_scheduler.refresh();
 	
 	debug::log::trace("Entered nest selection state");
 }
@@ -248,7 +298,7 @@ void nest_selection_state::create_first_person_camera_rig()
 		first_person_camera_rig_rotation_spring_angular_frequency
 	};
 	constraint_stack_node_component first_person_camera_rig_spring_rotation_node;
-	first_person_camera_rig_spring_rotation_node.active = true;
+	first_person_camera_rig_spring_rotation_node.active = false;
 	first_person_camera_rig_spring_rotation_node.weight = 1.0f;
 	first_person_camera_rig_spring_rotation_node.next = first_person_camera_rig_track_to_eid;
 	first_person_camera_rig_spring_rotation_eid = ctx.entity_registry->create();
@@ -281,15 +331,26 @@ void nest_selection_state::create_first_person_camera_rig()
 	// Construct first person camera rig transform component
 	transform_component first_person_camera_rig_transform;
 	first_person_camera_rig_transform.local = math::transform<float>::identity;
+	first_person_camera_rig_transform.local.translation = {0, 10, 0};
 	first_person_camera_rig_transform.world = first_person_camera_rig_transform.local;
 	first_person_camera_rig_transform.warp = true;
 	
-	// Construct first person camera rig legged locomotion component
-	legged_locomotion_component first_person_camera_rig_locomotion;
+	// Construct first person camera rig locomotion component
+	winged_locomotion_component first_person_camera_rig_locomotion;
 	
 	// Construct first person camera rig physics component
-	physics_component first_person_camera_rig_physics;
-	first_person_camera_rig_physics.mass = 90.0f;
+	auto first_person_camera_rig_body = std::make_unique<physics::rigid_body>();
+	first_person_camera_rig_body->set_mass(1.0f);
+	first_person_camera_rig_body->set_linear_damping(10.0f);
+	first_person_camera_rig_body->set_angular_damping(0.5f);
+	auto first_person_camera_rig_collider = std::make_shared<physics::sphere_collider>(1.0f);
+	auto camera_collider_material = std::make_shared<physics::collider_material>(0.0f, 0.0f, 0.0f);
+	camera_collider_material->set_restitution_combine_mode(physics::restitution_combine_mode::minimum);
+	camera_collider_material->set_friction_combine_mode(physics::friction_combine_mode::minimum);
+	
+	first_person_camera_rig_collider->set_layer_mask(0b10);
+	first_person_camera_rig_collider->set_material(std::move(camera_collider_material));
+	first_person_camera_rig_body->set_collider(std::move(first_person_camera_rig_collider));
 	
 	// Construct first person camera rig camera component
 	camera_component first_person_camera_rig_camera;
@@ -299,8 +360,8 @@ void nest_selection_state::create_first_person_camera_rig()
 	first_person_camera_rig_eid = ctx.entity_registry->create();
 	ctx.entity_registry->emplace<camera_component>(first_person_camera_rig_eid, first_person_camera_rig_camera);
 	ctx.entity_registry->emplace<transform_component>(first_person_camera_rig_eid, first_person_camera_rig_transform);
-	ctx.entity_registry->emplace<physics_component>(first_person_camera_rig_eid, first_person_camera_rig_physics);
-	ctx.entity_registry->emplace<legged_locomotion_component>(first_person_camera_rig_eid, first_person_camera_rig_locomotion);
+	ctx.entity_registry->emplace<rigid_body_component>(first_person_camera_rig_eid, std::move(first_person_camera_rig_body));
+	ctx.entity_registry->emplace<winged_locomotion_component>(first_person_camera_rig_eid, first_person_camera_rig_locomotion);
 	ctx.entity_registry->emplace<constraint_stack_component>(first_person_camera_rig_eid, first_person_camera_rig_constraint_stack);
 	
 	// Construct first person camera rig fov spring
@@ -373,7 +434,7 @@ void nest_selection_state::move_first_person_camera_rig(const float2& direction,
 		first_person_camera_rig_spring_translation_eid,
 		[&](auto& component)
 		{
-			component.spring.x1 += velocity * static_cast<float>(ctx.loop.get_update_period());
+			component.spring.x1 += velocity * static_cast<float>(1.0 / ctx.fixed_update_rate);
 		}
 	);
 }
@@ -455,44 +516,27 @@ void nest_selection_state::setup_controls()
 		)
 	);
 	
-	// Mouse look
-	mouse_motion_subscription = ctx.input_manager->get_event_queue().subscribe<input::mouse_moved_event>
-	(
-		[&](const auto& event)
-		{
-			if (!mouse_look)
-			{
-				return;
-			}
-			
-			const float mouse_tilt_factor = ctx.mouse_tilt_sensitivity * 0.01f * (ctx.invert_mouse_tilt ? -1.0f : 1.0f);
-			const float mouse_pan_factor = ctx.mouse_pan_sensitivity * 0.01f * (ctx.invert_mouse_pan ? -1.0f : 1.0f);
-			
-			ctx.entity_registry->patch<spring_rotation_constraint>
-			(
-				first_person_camera_rig_spring_rotation_eid,
-				[&](auto& component)
-				{
-					component.spring.x1[0] -= mouse_pan_factor * static_cast<float>(event.difference.x());
-					component.spring.x1[1] += mouse_tilt_factor * static_cast<float>(event.difference.y());
-					component.spring.x1[1] = std::min(math::half_pi<float>, std::max(-math::half_pi<float>, component.spring.x1[1]));
-				}
-			);
-		}
-	);
-	
-	constexpr float movement_speed = 10000.0f;
+	constexpr float movement_speed = 200.0f;
 	
 	auto move_first_person_camera_rig = [&](const float2& direction, float speed)
 	{
+		const transform_component& first_person_camera_rig_transform = ctx.entity_registry->get<transform_component>(first_person_camera_rig_eid);
+		
 		const spring_rotation_constraint& first_person_camera_rig_spring_rotation = ctx.entity_registry->get<spring_rotation_constraint>(first_person_camera_rig_spring_rotation_eid);
 		
 		const math::quaternion<float> yaw_rotation = math::angle_axis(first_person_camera_rig_spring_rotation.spring.x0[0], float3{0.0f, 1.0f, 0.0f});
-		const float3 rotated_direction = yaw_rotation * float3{direction[0], 0.0f, direction[1]};
+		//const float3 rotated_direction = yaw_rotation * float3{direction[0], 0.0f, direction[1]};
+		
+		const float3 rotated_direction = first_person_camera_rig_transform.world.rotation * float3{direction[0], 0.0f, direction[1]};
 		
 		const float3 force = rotated_direction * speed;
 		
-		ctx.entity_registry->patch<legged_locomotion_component>
+		
+		moving = true;
+		movement_direction = direction;
+		this->movement_speed = speed;
+		
+		ctx.entity_registry->patch<winged_locomotion_component>
 		(
 			first_person_camera_rig_eid,
 			[&](auto& component)
@@ -504,7 +548,9 @@ void nest_selection_state::setup_controls()
 	
 	auto stop_first_person_camera_rig = [&]()
 	{
-		ctx.entity_registry->patch<legged_locomotion_component>
+		moving = false;
+		
+		ctx.entity_registry->patch<winged_locomotion_component>
 		(
 			first_person_camera_rig_eid,
 			[&](auto& component)
@@ -513,6 +559,60 @@ void nest_selection_state::setup_controls()
 			}
 		);
 	};
+	
+	// Mouse look
+	mouse_motion_subscription = ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
+	(
+		[&, move_first_person_camera_rig](const auto& event)
+		{
+			if (!mouse_look)
+			{
+				return;
+			}
+			
+			first_person_camera_yaw -= ctx.mouse_pan_factor * static_cast<double>(event.difference.x());
+			first_person_camera_pitch += ctx.mouse_tilt_factor * static_cast<double>(event.difference.y());
+			first_person_camera_pitch = std::min(math::half_pi<double>, std::max(-math::half_pi<double>, first_person_camera_pitch));
+			
+			const math::quaternion<double> yaw_rotation = math::angle_axis(first_person_camera_yaw, {0.0f, 1.0, 0.0});
+			const math::quaternion<double> pitch_rotation = math::angle_axis(first_person_camera_pitch, {-1.0, 0.0, 0.0});
+			const math::quaternion<float> first_person_camera_orientation = math::quaternion<float>(math::normalize(yaw_rotation * pitch_rotation));
+			
+			ctx.entity_registry->patch<camera_component>
+			(
+				first_person_camera_rig_eid,
+				[&](auto& component)
+				{
+					component.object->set_rotation(first_person_camera_orientation);
+					component.object->update_tweens();
+				}
+			);
+			
+			ctx.entity_registry->patch<rigid_body_component>
+			(
+				first_person_camera_rig_eid,
+				[&](auto& component)
+				{
+					component.body->set_orientation(first_person_camera_orientation);
+				}
+			);
+			
+			ctx.entity_registry->patch<transform_component>
+			(
+				first_person_camera_rig_eid,
+				[&](auto& component)
+				{
+					component.local.rotation = first_person_camera_orientation;
+					component.world.rotation = first_person_camera_orientation;
+				}
+			);
+			
+			if (moving)
+			{
+				move_first_person_camera_rig(movement_direction, this->movement_speed);
+			}
+		}
+	);
 	
 	// Move forward
 	action_subscriptions.emplace_back
@@ -609,12 +709,12 @@ void nest_selection_state::setup_controls()
 		(
 			[&](const auto& event)
 			{
-				ctx.entity_registry->patch<physics_component>
+				ctx.entity_registry->patch<rigid_body_component>
 				(
 					first_person_camera_rig_eid,
 					[&](auto& component)
 					{
-						component.force += float3{0, movement_speed * event.input_value, 0};
+						component.body->apply_central_impulse({0, 50.0f, 0});
 					}
 				);
 			}
@@ -628,12 +728,12 @@ void nest_selection_state::setup_controls()
 		(
 			[&](const auto& event)
 			{
-				ctx.entity_registry->patch<physics_component>
+				ctx.entity_registry->patch<rigid_body_component>
 				(
 					first_person_camera_rig_eid,
 					[&](auto& component)
 					{
-						component.force -= float3{0, movement_speed * event.input_value, 0};
+						component.body->apply_central_impulse({0, -50.0f, 0});
 					}
 				);
 			}
@@ -647,14 +747,64 @@ void nest_selection_state::setup_controls()
 		(
 			[&](const auto& event)
 			{
-				ctx.entity_registry->patch<constraint_stack_node_component>
-				(
-					first_person_camera_rig_track_to_eid,
-					[&](auto& component)
-					{
-						component.active = true;
-					}
-				);
+				auto projectile_eid = ctx.entity_registry->create();
+				
+				const auto& camera_transform = ctx.entity_registry->get<transform_component>(first_person_camera_rig_eid);
+				
+				scene_component projectile_scene;
+				projectile_scene.object = std::make_unique<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
+				//projectile_scene.object = std::make_unique<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube.mdl"));
+				
+				transform_component projectile_transform;
+				projectile_transform.local = camera_transform.world;
+				projectile_transform.world = projectile_transform.local;
+				projectile_transform.warp = true;
+				
+				auto projectile_body = std::make_unique<physics::rigid_body>();
+				projectile_body->set_center_of_mass(camera_transform.world.translation);
+				projectile_body->set_mass(0.1f);
+				projectile_body->set_inertia(0.05f);
+				projectile_body->set_angular_damping(0.5f);
+				
+				//auto projectile_collider = std::make_shared<physics::box_collider>(float3{-0.5f, -0.5f, -0.5f}, float3{0.5f, 0.5f, 0.5f});
+				auto projectile_collider = std::make_shared<physics::sphere_collider>(1.0f);
+				
+				
+				projectile_collider->set_material(std::make_shared<physics::collider_material>(0.4f, 0.1f, 0.2f));
+				
+				projectile_body->set_collider(std::move(projectile_collider));
+				projectile_body->apply_central_impulse(camera_transform.world.rotation * float3{0.0f, 0.0f, -10.0f});
+				
+				
+				// auto spring_eid = ctx.entity_registry->create();
+				// auto spring = std::make_unique<physics::spring_constraint>();
+				// spring->attach_a(*ctx.entity_registry->get<rigid_body_component>(first_person_camera_rig_eid).body, {0.0f, 0.0f, 0.0f});
+				// spring->attach_b(*projectile_body, {0.0f, 0.0f, 0.0f});
+				// spring->set_resting_length(10.0f);
+				// spring->set_stiffness(2.0f);
+				// spring->set_damping(1.0f);
+				// ctx.entity_registry->emplace<rigid_body_constraint_component>(spring_eid, std::move(spring));
+				
+				ctx.entity_registry->emplace<transform_component>(projectile_eid, projectile_transform);
+				ctx.entity_registry->emplace<scene_component>(projectile_eid, std::move(projectile_scene));
+				ctx.entity_registry->emplace<rigid_body_component>(projectile_eid, std::move(projectile_body));
+				
+				
+				// body.linear_momentum = math::vector<float, 3>::zero();
+				// body.angular_momentum = math::vector<float, 3>::zero();
+				// body.linear_velocity = math::vector<float, 3>::zero();
+				// body.angular_velocity = math::vector<float, 3>::zero();
+				
+				//body.apply_central_impulse({0.0f, 100.5f, 0.0f});
+				
+				// ctx.entity_registry->patch<constraint_stack_node_component>
+				// (
+					// first_person_camera_rig_track_to_eid,
+					// [&](auto& component)
+					// {
+						// component.active = true;
+					// }
+				// );
 			}
 		)
 	);
@@ -733,7 +883,7 @@ void nest_selection_state::enable_controls()
 				first_person_camera_rig_spring_rotation_eid,
 				[&, gamepad_pan_factor](auto& component)
 				{
-					component.spring.x1[0] -= gamepad_pan_factor * value * static_cast<float>(ctx.loop.get_update_period());
+					component.spring.x1[0] -= gamepad_pan_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
 				}
 			);
 		}
@@ -747,7 +897,7 @@ void nest_selection_state::enable_controls()
 				first_person_camera_rig_spring_rotation_eid,
 				[&, gamepad_pan_factor](auto& component)
 				{
-					component.spring.x1[0] += gamepad_pan_factor * value * static_cast<float>(ctx.loop.get_update_period());
+					component.spring.x1[0] += gamepad_pan_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
 				}
 			);
 		}
@@ -761,7 +911,7 @@ void nest_selection_state::enable_controls()
 				first_person_camera_rig_spring_rotation_eid,
 				[&, gamepad_tilt_factor](auto& component)
 				{
-					component.spring.x1[1] -= gamepad_tilt_factor * value * static_cast<float>(ctx.loop.get_update_period());
+					component.spring.x1[1] -= gamepad_tilt_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
 					component.spring.x1[1] = std::max(-math::half_pi<float>, component.spring.x1[1]);
 				}
 			);
@@ -776,7 +926,7 @@ void nest_selection_state::enable_controls()
 				first_person_camera_rig_spring_rotation_eid,
 				[&, gamepad_tilt_factor](auto& component)
 				{
-					component.spring.x1[1] += gamepad_tilt_factor * value * static_cast<float>(ctx.loop.get_update_period());
+					component.spring.x1[1] += gamepad_tilt_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
 					component.spring.x1[1] = std::min(math::half_pi<float>, component.spring.x1[1]);
 				}
 			);
@@ -788,7 +938,7 @@ void nest_selection_state::enable_controls()
 	(
 		[&](float value)
 		{
-			set_first_person_camera_rig_pedestal(std::min(1.0f, first_person_camera_rig_pedestal + first_person_camera_rig_pedestal_speed * static_cast<float>(ctx.loop.get_update_period())));
+			set_first_person_camera_rig_pedestal(std::min(1.0f, first_person_camera_rig_pedestal + first_person_camera_rig_pedestal_speed * static_cast<float>(1.0 / ctx.fixed_update_rate)));
 		}
 	);
 	
@@ -797,7 +947,7 @@ void nest_selection_state::enable_controls()
 	(
 		[&](float value)
 		{
-			set_first_person_camera_rig_pedestal(std::max(0.0f, first_person_camera_rig_pedestal - first_person_camera_rig_pedestal_speed * static_cast<float>(ctx.loop.get_update_period())));
+			set_first_person_camera_rig_pedestal(std::max(0.0f, first_person_camera_rig_pedestal - first_person_camera_rig_pedestal_speed * static_cast<float>(1.0 / ctx.fixed_update_rate)));
 		}
 	);
 	

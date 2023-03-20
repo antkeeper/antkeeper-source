@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_HYPERSPHERE_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_HYPERSPHERE_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_HYPERSPHERE_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_HYPERSPHERE_HPP
 
 #include <engine/math/numbers.hpp>
 #include <engine/math/vector.hpp>
@@ -35,7 +35,8 @@ namespace primitive {
 template <class T, std::size_t N>
 struct hypersphere
 {
-	typedef math::vector<T, N> vector_type;
+	/// Vector type.
+	using vector_type = math::vector<T, N>;
 	
 	/// Hypersphere center.
 	vector_type center;
@@ -50,7 +51,7 @@ struct hypersphere
 	 *
 	 * @return `true` if the point is contained within this hypersphere, `false` otherwise.
 	 */
-	constexpr bool contains(const vector_type& point) const noexcept
+	[[nodiscard]] inline constexpr bool contains(const vector_type& point) const noexcept
 	{
 		return math::sqr_distance(center, point) <= radius * radius;
 	}
@@ -62,11 +63,13 @@ struct hypersphere
 	 *
 	 * @return `true` if the hypersphere is contained within this hypersphere, `false` otherwise.
 	 */
-	constexpr bool contains(const hypersphere& other) const noexcept
+	[[nodiscard]] constexpr bool contains(const hypersphere& other) const noexcept
 	{
 		const T containment_radius = radius - other.radius;
 		if (containment_radius < T{0})
+		{
 			return false;
+		}
 		
 		return math::sqr_distance(center, other.center) <= containment_radius * containment_radius;
 	}
@@ -78,9 +81,22 @@ struct hypersphere
 	 *
 	 * @return Signed distance from the hypersphere to @p point.
 	 */
-	T distance(const vector_type& point) const noexcept
+	[[nodiscard]] inline T distance(const vector_type& point) const noexcept
 	{
-		return math::distance(center, point) - radius;
+		const T d = math::sqr_distance(center, point);
+		return (d ? std::sqrt(d) : d) - radius;
+	}
+	
+	/**
+	 * Calculates the closest point on the hypersphere to a point.
+	 *
+	 * @param point Input point.
+	 *
+	 * @return Closest point on the hypersphere to @p point.
+	 */
+	[[nodiscard]] inline vector_type closest_point(const vector_type& point) const noexcept
+	{
+		return center + math::normalize(point - center) * radius;
 	}
 	
 	/**
@@ -90,7 +106,7 @@ struct hypersphere
 	 *
 	 * @return `true` if the hypersphere intersects this hypersphere, `false` otherwise.
 	 */
-	constexpr bool intersects(const hypersphere& other) const noexcept
+	[[nodiscard]] constexpr bool intersects(const hypersphere& other) const noexcept
 	{
 		const T intersection_radius = radius + other.radius;
 		return math::sqr_distance(center, other.center) <= intersection_radius * intersection_radius;
@@ -108,26 +124,26 @@ struct hypersphere
 	/// @private
 	/// @{
 	template <std::size_t M>
-	static constexpr T volume(T r) noexcept
+	[[nodiscard]] static constexpr T volume(T r) noexcept
 	{
 		return (math::two_pi<T> / static_cast<T>(M)) * r * r * volume<M - 2>(r);
 	}
 	
 	template <>
-	static constexpr T volume<1>(T r) noexcept
+	[[nodiscard]] static constexpr T volume<1>(T r) noexcept
 	{
 		return r * T{2};
 	}
 	
 	template <>
-	static constexpr T volume<0>(T r) noexcept
+	[[nodiscard]] static constexpr T volume<0>(T r) noexcept
 	{
 		return T{1};
 	}
 	/// @}
 	
 	/// Calculates the volume of the hypersphere.
-	inline constexpr T volume() const noexcept
+	[[nodiscard]] inline constexpr T volume() const noexcept
 	{
 		return volume<N>(radius);
 	}
@@ -136,4 +152,4 @@ struct hypersphere
 } // namespace primitive
 } // namespace geom
 
-#endif // ANTKEEPER_GEOM_PRIMITIVE_HYPERSPHERE_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_HYPERSPHERE_HPP

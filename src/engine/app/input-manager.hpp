@@ -24,7 +24,7 @@
 #include <engine/input/gamepad.hpp>
 #include <engine/input/keyboard.hpp>
 #include <engine/input/mouse.hpp>
-#include <engine/event/queue.hpp>
+#include <engine/event/dispatcher.hpp>
 #include <map>
 #include <memory>
 #include <unordered_set>
@@ -65,37 +65,35 @@ public:
 	virtual void set_relative_mouse_mode(bool enabled) = 0;
 	
 	/**
-	 * Returns the event queue associated with registered input devices.
+	 * Returns the event dispatcher associated with registered input devices.
 	 */
-	[[nodiscard]] inline const ::event::queue& get_event_queue() const noexcept
+	/// @{
+	[[nodiscard]] inline const ::event::dispatcher& get_event_dispatcher() const noexcept
 	{
-		return event_queue;
+		return m_event_dispatcher;
 	}
-	
-	/**
-	 * Returns the event queue associated with registered input devices.
-	 */
-	[[nodiscard]] inline ::event::queue& get_event_queue() noexcept
+	[[nodiscard]] inline ::event::dispatcher& get_event_dispatcher() noexcept
 	{
-		return event_queue;
+		return m_event_dispatcher;
 	}
+	/// @}
 	
 	/// Returns the set of registered gamepads.
 	[[nodiscard]] inline const std::unordered_set<input::gamepad*>& get_gamepads() noexcept
 	{
-		return gamepads;
+		return m_gamepads;
 	}
 	
 	/// Returns the set of registered keyboards.
 	[[nodiscard]] inline const std::unordered_set<input::keyboard*>& get_keyboards() noexcept
 	{
-		return keyboards;
+		return m_keyboards;
 	}
 	
 	/// Returns the set of registered mice.
 	[[nodiscard]] inline const std::unordered_set<input::mouse*>& get_mice() noexcept
 	{
-		return mice;
+		return m_mice;
 	}
 	
 protected:
@@ -123,13 +121,13 @@ protected:
 	void unregister_mouse(input::mouse& device);
 	/// @}
 	
-	::event::queue event_queue;
+	::event::dispatcher m_event_dispatcher;
 	
 private:
-	std::multimap<input::device*, std::shared_ptr<::event::subscription>> subscriptions;
-	std::unordered_set<input::gamepad*> gamepads;
-	std::unordered_set<input::keyboard*> keyboards;
-	std::unordered_set<input::mouse*> mice;
+	std::multimap<input::device*, std::shared_ptr<::event::subscription>> m_subscriptions;
+	std::unordered_set<input::gamepad*> m_gamepads;
+	std::unordered_set<input::keyboard*> m_keyboards;
+	std::unordered_set<input::mouse*> m_mice;
 };
 
 } // namespace app

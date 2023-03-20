@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_PICKING_COMPONENT_HPP
 #define ANTKEEPER_GAME_PICKING_COMPONENT_HPP
 
-#include <engine/geom/primitive/sphere.hpp>
+#include <engine/geom/primitives/sphere.hpp>
 #include <cstdint>
 
 

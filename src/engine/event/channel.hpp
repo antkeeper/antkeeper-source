@@ -26,6 +26,7 @@
 #include <utility>
 #include <engine/event/subscriber.hpp>
 #include <engine/event/subscription.hpp>
+#include <engine/event/dispatcher.hpp>
 #include <engine/event/queue.hpp>
 
 namespace event {
@@ -70,6 +71,24 @@ public:
 			[this, iterator = std::move(iterator)]
 			{
 				this->subscribers.erase(iterator);
+			}
+		);
+	}
+	
+	/**
+	 * Subscribes a message dispatcher to messages published through this channel.
+	 *
+	 * @param dispatcher Message dispatcher which will received published messages.
+	 *
+	 * @return Shared subscription object which will unsubscribe the queue on destruction.
+	 */
+	[[nodiscard]] std::shared_ptr<subscription> subscribe(event::dispatcher& dispatcher)
+	{
+		return subscribe
+		(
+			[&dispatcher](const message_type& message)
+			{
+				dispatcher.dispatch<message_type>(message);
 			}
 		);
 	}

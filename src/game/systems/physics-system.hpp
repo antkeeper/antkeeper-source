@@ -23,6 +23,10 @@
 #include "game/systems/updatable-system.hpp"
 #include <entt/entt.hpp>
 #include <engine/math/vector.hpp>
+#include <engine/physics/kinematics/rigid-body.hpp>
+#include <engine/physics/kinematics/collision-manifold.hpp>
+#include <array>
+#include <functional>
 
 /**
  *
@@ -34,17 +38,47 @@ public:
 	explicit physics_system(entity::registry& registry);
 	void update(float t, float dt) override;
 	
-private:
 	/**
-	 * Semi-implicit Euler integration.
+	 * Sets the gravity vector.
 	 *
-	 * @param dt Timestep, in seconds.
-	 *
-	 * @see https://gafferongames.com/post/integration_basics/
+	 * @param gravity Gravity vector.
 	 */
-	void integrate(float dt);
+	inline void set_gravity(const math::vector<float, 3>& gravity) noexcept
+	{
+		this->gravity = gravity;
+	}
+	
+private:
+	using collision_manifold_type = physics::collision_manifold<4>;
+	
+	void integrate_forces(float dt);
+	void integrate_velocities(float dt);
+	
+	void solve_constraints(float dt);
+	
+	void detect_collisions_broad();
+	void detect_collisions_narrow();
+	void resolve_collisions();
+	void correct_positions();
+	
+	void narrow_phase_plane_plane(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_plane_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b, float normal_sign);
+	void narrow_phase_plane_box(physics::rigid_body& body_a, physics::rigid_body& body_b, float normal_sign);
+	
+	void narrow_phase_sphere_plane(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_sphere_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_sphere_box(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	
+	void narrow_phase_box_plane(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_box_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_box_box(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	
+	std::array<std::array<std::function<void(physics::rigid_body&, physics::rigid_body&)>, 3>, 3> narrow_phase_table;
 	
 	math::vector<float, 3> gravity{0.0f, -9.80665f, 0.0f};
+	
+	std::vector<std::pair<physics::rigid_body*, physics::rigid_body*>> broad_phase_pairs;
+	std::vector<collision_manifold_type> narrow_phase_manifolds;
 };
 
 #endif // ANTKEEPER_GAME_PHYSICS_SYSTEM_HPP

@@ -29,7 +29,7 @@ void action_map::enable()
 {
 	if (!enabled)
 	{
-		if (event_queue)
+		if (event_dispatcher)
 		{
 			subscribe();
 		}
@@ -42,7 +42,7 @@ void action_map::disable()
 {
 	if (enabled)
 	{
-		if (event_queue)
+		if (event_dispatcher)
 		{
 			unsubscribe();
 		}
@@ -51,27 +51,27 @@ void action_map::disable()
 	}
 }
 
-void action_map::set_event_queue(event::queue* queue)
+void action_map::set_event_dispatcher(event::dispatcher* dispatcher)
 {
-	if (event_queue != queue)
+	if (event_dispatcher != dispatcher)
 	{
 		if (enabled)
 		{
-			if (event_queue)
+			if (event_dispatcher)
 			{
 				unsubscribe();
 			}
 			
-			event_queue = queue;
+			event_dispatcher = dispatcher;
 			
-			if (event_queue)
+			if (event_dispatcher)
 			{
 				subscribe();
 			}
 		}
 		else
 		{
-			event_queue = queue;
+			event_dispatcher = dispatcher;
 		}
 	}
 }
@@ -430,15 +430,15 @@ std::vector<mouse_scroll_mapping> action_map::get_mouse_scroll_mappings(const ac
 
 void action_map::subscribe()
 {
-	subscriptions.emplace_back(event_queue->subscribe<gamepad_axis_moved_event>(std::bind_front(&action_map::handle_gamepad_axis_moved, this)));
-	subscriptions.emplace_back(event_queue->subscribe<gamepad_button_pressed_event>(std::bind_front(&action_map::handle_gamepad_button_pressed, this)));
-	subscriptions.emplace_back(event_queue->subscribe<gamepad_button_released_event>(std::bind_front(&action_map::handle_gamepad_button_released, this)));
-	subscriptions.emplace_back(event_queue->subscribe<key_pressed_event>(std::bind_front(&action_map::handle_key_pressed, this)));
-	subscriptions.emplace_back(event_queue->subscribe<key_released_event>(std::bind_front(&action_map::handle_key_released, this)));
-	subscriptions.emplace_back(event_queue->subscribe<mouse_button_pressed_event>(std::bind_front(&action_map::handle_mouse_button_pressed, this)));
-	subscriptions.emplace_back(event_queue->subscribe<mouse_button_released_event>(std::bind_front(&action_map::handle_mouse_button_released, this)));
-	subscriptions.emplace_back(event_queue->subscribe<mouse_moved_event>(std::bind_front(&action_map::handle_mouse_moved, this)));
-	subscriptions.emplace_back(event_queue->subscribe<mouse_scrolled_event>(std::bind_front(&action_map::handle_mouse_scrolled, this)));
+	subscriptions.emplace_back(event_dispatcher->subscribe<gamepad_axis_moved_event>(std::bind_front(&action_map::handle_gamepad_axis_moved, this)));
+	subscriptions.emplace_back(event_dispatcher->subscribe<gamepad_button_pressed_event>(std::bind_front(&action_map::handle_gamepad_button_pressed, this)));
+	subscriptions.emplace_back(event_dispatcher->subscribe<gamepad_button_released_event>(std::bind_front(&action_map::handle_gamepad_button_released, this)));
+	subscriptions.emplace_back(event_dispatcher->subscribe<key_pressed_event>(std::bind_front(&action_map::handle_key_pressed, this)));
+	subscriptions.emplace_back(event_dispatcher->subscribe<key_released_event>(std::bind_front(&action_map::handle_key_released, this)));
+	subscriptions.emplace_back(event_dispatcher->subscribe<mouse_button_pressed_event>(std::bind_front(&action_map::handle_mouse_button_pressed, this)));
+	subscriptions.emplace_back(event_dispatcher->subscribe<mouse_button_released_event>(std::bind_front(&action_map::handle_mouse_button_released, this)));
+	subscriptions.emplace_back(event_dispatcher->subscribe<mouse_moved_event>(std::bind_front(&action_map::handle_mouse_moved, this)));
+	subscriptions.emplace_back(event_dispatcher->subscribe<mouse_scrolled_event>(std::bind_front(&action_map::handle_mouse_scrolled, this)));
 }
 
 void action_map::unsubscribe()

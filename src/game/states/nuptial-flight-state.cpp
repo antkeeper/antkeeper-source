@@ -204,8 +204,8 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	ctx.fade_transition_color->set({0, 0, 0});
 	ctx.function_queue.push(std::bind(&screen_transition::transition, ctx.fade_transition.get(), 1.0f, true, ease<float>::out_sine, true, nullptr));
 	
-	// Reset loop timing
-	ctx.loop.reset();
+	// Refresh frame scheduler
+	ctx.frame_scheduler.refresh();
 	
 	debug::log::trace("Entered nuptial flight state");
 }
@@ -460,6 +460,93 @@ void nuptial_flight_state::satisfy_camera_rig_constraints()
 
 void nuptial_flight_state::setup_controls()
 {
+	// Enable/toggle mouse look
+	action_subscriptions.emplace_back
+	(
+		ctx.mouse_look_action.get_activated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				if (ctx.toggle_mouse_look)
+				{
+					mouse_look = !mouse_look;
+				}
+				else
+				{
+					mouse_look = true;
+				}
+				
+				//ctx.input_manager->set_cursor_visible(!mouse_look);
+				ctx.input_manager->set_relative_mouse_mode(mouse_look);
+			}
+		)
+	);
+	
+	// Disable mouse look
+	action_subscriptions.emplace_back
+	(
+		ctx.mouse_look_action.get_deactivated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				if (!ctx.toggle_mouse_look && mouse_look)
+				{
+					mouse_look = false;
+					//ctx.input_manager->set_cursor_visible(true);
+					ctx.input_manager->set_relative_mouse_mode(false);
+				}
+			}
+		)
+	);
+	
+	// Mouse look
+	mouse_motion_subscription = ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
+	(
+		[&](const auto& event)
+		{
+			if (!mouse_look)
+			{
+				return;
+			}
+			
+			ctx.entity_registry->patch<spring_rotation_constraint>
+			(
+				camera_rig_spring_rotation_eid,
+				[&](auto& component)
+				{
+					component.spring.x1[0] += static_cast<float>(ctx.mouse_pan_factor) * static_cast<float>(event.difference.x());					
+					component.spring.x1[1] -= static_cast<float>(ctx.mouse_tilt_factor) * static_cast<float>(event.difference.y());
+					component.spring.x1[1] = std::min(math::half_pi<float>, std::max(-math::half_pi<float>, component.spring.x1[1]));
+				}
+			);
+		}
+	);
+	
+	// Dolly in control
+	action_subscriptions.emplace_back
+	(
+		ctx.move_up_action.get_active_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				set_camera_rig_zoom(std::min(1.0f, camera_rig_zoom + camera_rig_zoom_speed * event.input_value * static_cast<float>(1.0 / ctx.fixed_update_rate)));
+			}
+		)
+	);
+	
+	// Dolly out control
+	action_subscriptions.emplace_back
+	(
+		ctx.move_down_action.get_active_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				set_camera_rig_zoom(std::max(0.0f, camera_rig_zoom - camera_rig_zoom_speed * event.input_value * static_cast<float>(1.0 / ctx.fixed_update_rate)));
+			}
+		)
+	);
+	
+	// Pick alate
 	action_subscriptions.emplace_back
 	(
 		ctx.mouse_pick_action.get_activated_channel().subscribe
@@ -591,7 +678,7 @@ void nuptial_flight_state::enable_controls()
 				camera_rig_spring_rotation_eid,
 				[&, gamepad_pan_factor](auto& component)
 				{
-					component.spring.x1[0] -= gamepad_pan_factor * value * static_cast<float>(ctx.loop.get_update_period());
+					component.spring.x1[0] -= gamepad_pan_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
 				}
 			);
 		}
@@ -624,7 +711,7 @@ void nuptial_flight_state::enable_controls()
 				camera_rig_spring_rotation_eid,
 				[&, gamepad_pan_factor](auto& component)
 				{
-					component.spring.x1[0] += gamepad_pan_factor * value * static_cast<float>(ctx.loop.get_update_period());
+					component.spring.x1[0] += gamepad_pan_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
 				}
 			);
 		}
@@ -658,7 +745,7 @@ void nuptial_flight_state::enable_controls()
 				camera_rig_spring_rotation_eid,
 				[&, gamepad_tilt_factor](auto& component)
 				{
-					component.spring.x1[1] -= gamepad_tilt_factor * value * static_cast<float>(ctx.loop.get_update_period());
+					component.spring.x1[1] -= gamepad_tilt_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
 					component.spring.x1[1] = std::max(-math::half_pi<float>, component.spring.x1[1]);
 				}
 			);
@@ -693,7 +780,7 @@ void nuptial_flight_state::enable_controls()
 				camera_rig_spring_rotation_eid,
 				[&, gamepad_tilt_factor](auto& component)
 				{
-					component.spring.x1[1] += gamepad_tilt_factor * value * static_cast<float>(ctx.loop.get_update_period());
+					component.spring.x1[1] += gamepad_tilt_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
 					component.spring.x1[1] = std::min(math::half_pi<float>, component.spring.x1[1]);
 				}
 			);
@@ -705,7 +792,7 @@ void nuptial_flight_state::enable_controls()
 	(
 		[&](float value)
 		{
-			set_camera_rig_zoom(std::min(1.0f, camera_rig_zoom + camera_rig_zoom_speed * static_cast<float>(ctx.loop.get_update_period())));
+			set_camera_rig_zoom(std::min(1.0f, camera_rig_zoom + camera_rig_zoom_speed * static_cast<float>(1.0 / ctx.fixed_update_rate)));
 		}
 	);
 	
@@ -714,7 +801,7 @@ void nuptial_flight_state::enable_controls()
 	(
 		[&](float value)
 		{
-			set_camera_rig_zoom(std::max(0.0f, camera_rig_zoom - camera_rig_zoom_speed * static_cast<float>(ctx.loop.get_update_period())));
+			set_camera_rig_zoom(std::max(0.0f, camera_rig_zoom - camera_rig_zoom_speed * static_cast<float>(1.0 / ctx.fixed_update_rate)));
 		}
 	);
 	
@@ -853,7 +940,7 @@ void nuptial_flight_state::enable_controls()
 		[&ctx = this->ctx](float)
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() - 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 3.0f * static_cast<float>(ctx.loop.get_update_period()));
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() + 3.0f * static_cast<float>(1.0 / ctx.fixed_update_rate));
 			debug::log::info("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
@@ -863,7 +950,7 @@ void nuptial_flight_state::enable_controls()
 		[&ctx = this->ctx](float)
 		{
 			//ctx.astronomy_system->set_exposure_offset(ctx.astronomy_system->get_exposure_offset() + 1.0f);
-			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 3.0f * static_cast<float>(ctx.loop.get_update_period()));
+			ctx.surface_camera->set_exposure(ctx.surface_camera->get_exposure() - 3.0f * static_cast<float>(1.0 / ctx.fixed_update_rate));
 			debug::log::info("EV100: " + std::to_string(ctx.surface_camera->get_exposure()));
 		}
 	);
@@ -1015,6 +1102,13 @@ void nuptial_flight_state::select_entity(entity::id entity_id)
 						break;
 				}
 			}
+			
+			const auto& viewport_size = ctx.window->get_viewport_size();
+			const auto& text_aabb = static_cast<const geom::aabb<float>&>(selection_text.get_local_bounds());
+			float text_w = text_aabb.max_point.x() - text_aabb.min_point.x();
+			float text_h = text_aabb.max_point.y() - text_aabb.min_point.y();
+			selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font.get_font_metrics().size), 0.0f});
+			selection_text.update_tweens();
 		}
 	}
 }

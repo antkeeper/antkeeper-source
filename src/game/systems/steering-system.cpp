@@ -20,6 +20,8 @@
 #include "game/systems/steering-system.hpp"
 #include "game/components/steering-component.hpp"
 #include "game/components/transform-component.hpp"
+#include "game/components/winged-locomotion-component.hpp"
+#include "game/components/rigid-body-component.hpp"
 #include <engine/entity/id.hpp>
 #include <engine/ai/steering/behavior/wander.hpp>
 #include <engine/ai/steering/behavior/seek.hpp>
@@ -32,16 +34,19 @@ steering_system::steering_system(entity::registry& registry):
 
 void steering_system::update(float t, float dt)
 {
-	registry.group<steering_component>(entt::get<transform_component>).each
+	registry.group<steering_component>(entt::get<transform_component, winged_locomotion_component, rigid_body_component>).each
 	(
-		[&](entity::id entity_id, auto& steering, auto& transform)
+		[&](entity::id entity_id, auto& steering, auto& transform, auto& locomotion, const auto& body_component)
 		{
 			auto& agent = steering.agent;
+			auto& body = *body_component.body;
 			
-			// Update agent orientation
+			// Update agent parameters
+			agent.position = transform.local.translation;
 			agent.orientation = transform.local.rotation;
+			agent.velocity = body.get_linear_velocity();
 			
-			// Accumulate forces
+			// Accumulate steering forces
 			float3 force = {0, 0, 0};
 			if (steering.wander_weight)
 			{
@@ -55,24 +60,22 @@ void steering_system::update(float t, float dt)
 			
 			// Normalize force
 			if (steering.sum_weights)
-				force /= steering.sum_weights;
-			
-			// Accelerate
-			agent.acceleration = force / agent.mass;
-			agent.velocity += agent.acceleration * dt;
-			
-			// Limit speed
-			const float speed_squared = math::sqr_length(agent.velocity);
-			if (speed_squared > agent.max_speed_squared)
 			{
-				const float speed = std::sqrt(speed_squared);
-				agent.velocity = (agent.velocity / speed) * agent.max_speed;
+				force /= steering.sum_weights;
 			}
 			
-			// Move agent
-			agent.position += agent.velocity * dt;
+			// Pass force to winged locomotion component
+			registry.patch<::winged_locomotion_component>
+			(
+				entity_id,
+				[&](auto& component)
+				{
+					component.force = force;
+				}
+			);
 			
 			// Rotate agent
+			const float speed_squared = math::sqr_length(agent.velocity);
 			if (speed_squared)
 			{
 				agent.orientation = math::look_rotation(agent.velocity / std::sqrt(speed_squared), agent.up);
@@ -80,13 +83,12 @@ void steering_system::update(float t, float dt)
 				agent.up = agent.orientation * config::global_up;
 			}
 			
-			// Update transform
+			// Update orientation
 			registry.patch<::transform_component>
 			(
 				entity_id,
 				[&agent](auto& component)
 				{
-					component.local.translation = agent.position;
 					component.local.rotation = agent.orientation;
 				}
 			);

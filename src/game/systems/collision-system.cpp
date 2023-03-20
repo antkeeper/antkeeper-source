@@ -20,8 +20,10 @@
 #include "game/systems/collision-system.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/picking-component.hpp"
-#include <engine/geom/primitive/intersection.hpp>
-#include <engine/geom/primitive/plane.hpp>
+#include "game/components/collision-component.hpp"
+#include "game/components/rigid-body-component.hpp"
+#include <engine/geom/primitives/intersection.hpp>
+#include <engine/geom/primitives/plane.hpp>
 #include <engine/math/transform-operators.hpp>
 #include <limits>
 
@@ -34,11 +36,16 @@ collision_system::collision_system(entity::registry& registry):
 	registry.on_destroy<collision_component>().connect<&collision_system::on_collision_destroy>(this);
 }
 
-void collision_system::update(float t, float dt)
+collision_system::~collision_system()
 {
 	registry.on_construct<collision_component>().disconnect<&collision_system::on_collision_construct>(this);
 	registry.on_update<collision_component>().disconnect<&collision_system::on_collision_update>(this);
 	registry.on_destroy<collision_component>().disconnect<&collision_system::on_collision_destroy>(this);
+}
+
+void collision_system::update(float t, float dt)
+{
+
 }
 
 entity::id collision_system::pick_nearest(const geom::primitive::ray<float, 3>& ray, std::uint32_t flags) const

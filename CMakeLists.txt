@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
+
 option(APPLICATION_NAME "Application name" "Antkeeper")
 option(APPLICATION_VERSION "Application version string" "0.0.0")
 option(APPLICATION_AUTHOR "Application author" "C. J. Howard")
@@ -58,7 +59,7 @@ endforeach(TMP_PATH)
 
 if(MSVC)
 	# Add platform-specific source files
-	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/game/platform/windows/nvidia.cpp")
+	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/game/platform/windows/high-performance-graphics.cpp")
 	
 	# Generate Windows icon resource file
 	set(ICON_FILE "${PROJECT_SOURCE_DIR}/../antkeeper-data/src/icons/antkeeper.ico")

@@ -187,7 +187,7 @@ splash_state::splash_state(::game& ctx):
 	(
 		[&]()
 		{
-			ctx.input_mapper.connect(ctx.input_manager->get_event_queue());
+			ctx.input_mapper.connect(ctx.input_manager->get_event_dispatcher());
 		}
 	);
 	

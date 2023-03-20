@@ -22,6 +22,8 @@
 #include "game/components/steering-component.hpp"
 #include "game/components/scene-component.hpp"
 #include "game/components/picking-component.hpp"
+#include "game/components/winged-locomotion-component.hpp"
+#include "game/components/rigid-body-component.hpp"
 #include "game/components/ant-caste-component.hpp"
 #include <engine/resources/resource-manager.hpp>
 #include <engine/math/quaternion.hpp>
@@ -106,6 +108,13 @@ entity::id create_ant_swarm(::game& ctx)
 	steering.flee_weight = 0.0f;
 	steering.sum_weights = steering.wander_weight + steering.seek_weight + steering.flee_weight;
 	
+	// Init rigid body
+	physics::rigid_body rigid_body;
+	rigid_body.set_mass(1.0f);
+	
+	// Init winged locomotion component
+	winged_locomotion_component winged_locomotion;
+	
 	// Init queen caste component
 	ant_caste_component queen_caste;
 	queen_caste.caste_type = ant_caste_type::queen;
@@ -123,12 +132,15 @@ entity::id create_ant_swarm(::game& ctx)
 		
 		entity::id alate_eid = ctx.entity_registry->create();
 		ctx.entity_registry->emplace<::steering_component>(alate_eid, steering);
+		ctx.entity_registry->emplace<::rigid_body_component>(alate_eid, std::make_unique<physics::rigid_body>(rigid_body));
+		ctx.entity_registry->emplace<::winged_locomotion_component>(alate_eid, winged_locomotion);
 		
 		if (i < male_count)
 		{
 			// Create male
 			ctx.entity_registry->emplace<ant_caste_component>(alate_eid, male_caste);
 			ctx.entity_registry->emplace<::scene_component>(alate_eid, std::make_unique<scene::static_mesh>(male_model), std::uint8_t{1});
+
 			
 			transform.local.scale = male_scale;
 			transform.world = transform.local;

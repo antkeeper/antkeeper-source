@@ -61,15 +61,15 @@ public:
 	
 	[[nodiscard]] inline virtual gl::rasterizer* get_rasterizer() noexcept
 	{
-		return rasterizer.get();
+		return m_rasterizer.get();
 	}
 	
 private:
 	friend class sdl_window_manager;
 	
-	SDL_Window* internal_window;
-	SDL_GLContext internal_context;
-	std::unique_ptr<gl::rasterizer> rasterizer;
+	SDL_Window* m_internal_window;
+	SDL_GLContext m_internal_context;
+	std::unique_ptr<gl::rasterizer> m_rasterizer;
 };
 
 } // namespace app

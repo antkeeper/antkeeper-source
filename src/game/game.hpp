@@ -21,7 +21,6 @@
 #define ANTKEEPER_GAME_HPP
 
 #include "game/ecoregion.hpp"
-#include "game/loop.hpp"
 #include "game/states/game-state.hpp"
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -49,6 +48,8 @@
 #include <engine/utility/dict.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/utility/state-machine.hpp>
+#include <engine/utility/frame-scheduler.hpp>
+#include <engine/math/angles.hpp>
 #include <entt/entt.hpp>
 #include <filesystem>
 #include <memory>
@@ -223,14 +224,16 @@ public:
 	std::vector<std::shared_ptr<::event::subscription>> movement_action_subscriptions;
 	
 	// Control settings
-	float mouse_pan_sensitivity{1.0f};
-	float mouse_tilt_sensitivity{1.0f};
-	bool toggle_mouse_look{false};
+	double mouse_radians_per_pixel{math::radians(0.1)};
+	double mouse_pan_sensitivity{1.0};
+	double mouse_tilt_sensitivity{1.0};
 	bool invert_mouse_pan{false};
 	bool invert_mouse_tilt{false};
+	bool toggle_mouse_look{false};
+	double mouse_pan_factor{1.0};
+	double mouse_tilt_factor{1.0};
 	
 	// Debugging
-	math::moving_average<float, 30> average_frame_time;
 	std::unique_ptr<scene::text> frame_time_text;
 	std::unique_ptr<debug::cli> cli;
 	
@@ -240,11 +243,6 @@ public:
 	
 	// Queue for scheduling "next frame" function calls
 	std::queue<std::function<void()>> function_queue;
-	
-	
-	
-	/// Game loop
-	::loop loop;
 	
 	// Framebuffers
 	std::unique_ptr<gl::texture_2d> hdr_color_texture;
@@ -367,12 +365,15 @@ public:
 	std::unique_ptr<::astronomy_system> astronomy_system;
 	std::unique_ptr<::orbit_system> orbit_system;
 	
-
+	// Frame timing
+	float fixed_update_rate{60.0};
+	float max_frame_rate{120.0};
+	bool limit_frame_rate{false};
+	::frame_scheduler frame_scheduler;
+	math::moving_average<float> average_frame_duration;
 	
 	double3 rgb_wavelengths;
-	
 	std::shared_ptr<ecoregion> active_ecoregion;
-	
 	render::anti_aliasing_method anti_aliasing_method;
 	
 private:
@@ -392,9 +393,12 @@ private:
 	void setup_systems();
 	void setup_controls();
 	void setup_debugging();
-	void setup_loop();
+	void setup_timing();
 	
 	void shutdown_audio();
+	
+	void fixed_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval);
+	void variable_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval, ::frame_scheduler::duration_type accumulated_time);
 };
 
 #endif // ANTKEEPER_GAME_HPP

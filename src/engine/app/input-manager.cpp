@@ -51,46 +51,46 @@ void input_manager::register_device(input::device& device)
 
 void input_manager::register_gamepad(input::gamepad& device)
 {
-	// Connect gamepad event signals to the event queue
-	subscriptions.emplace(&device, device.get_connected_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_disconnected_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_axis_moved_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_button_pressed_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_button_released_channel().subscribe(event_queue));
+	// Connect gamepad event signals to the event dispatcher
+	m_subscriptions.emplace(&device, device.get_connected_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_disconnected_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_axis_moved_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_button_pressed_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_button_released_channel().subscribe(m_event_dispatcher));
 	
 	// Add gamepad to list of gamepads
-	gamepads.emplace(&device);
+	m_gamepads.emplace(&device);
 }
 
 void input_manager::register_keyboard(input::keyboard& device)
 {
-	// Connect keyboard event signals to the event queue
-	subscriptions.emplace(&device, device.get_connected_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_disconnected_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_key_pressed_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_key_released_channel().subscribe(event_queue));
+	// Connect keyboard event signals to the event dispatcher
+	m_subscriptions.emplace(&device, device.get_connected_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_disconnected_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_key_pressed_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_key_released_channel().subscribe(m_event_dispatcher));
 	
 	// Add keyboard to list of keyboards
-	keyboards.emplace(&device);
+	m_keyboards.emplace(&device);
 }
 
 void input_manager::register_mouse(input::mouse& device)
 {
-	// Connect mouse event signals to the event queue
-	subscriptions.emplace(&device, device.get_connected_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_disconnected_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_button_pressed_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_button_released_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_moved_channel().subscribe(event_queue));
-	subscriptions.emplace(&device, device.get_scrolled_channel().subscribe(event_queue));
+	// Connect mouse event signals to the event dispatcher
+	m_subscriptions.emplace(&device, device.get_connected_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_disconnected_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_button_pressed_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_button_released_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_moved_channel().subscribe(m_event_dispatcher));
+	m_subscriptions.emplace(&device, device.get_scrolled_channel().subscribe(m_event_dispatcher));
 	
 	// Add mouse to list of mice
-	mice.emplace(&device);
+	m_mice.emplace(&device);
 }
 
 void input_manager::unregister_device(input::device& device)
 {
-	subscriptions.erase(&device);
+	m_subscriptions.erase(&device);
 	
 	switch (device.get_device_type())
 	{
@@ -114,17 +114,17 @@ void input_manager::unregister_device(input::device& device)
 
 void input_manager::unregister_gamepad(input::gamepad& gamepad)
 {
-	gamepads.erase(&gamepad);
+	m_gamepads.erase(&gamepad);
 }
 
 void input_manager::unregister_keyboard(input::keyboard& keyboard)
 {
-	keyboards.erase(&keyboard);
+	m_keyboards.erase(&keyboard);
 }
 
 void input_manager::unregister_mouse(input::mouse& mouse)
 {
-	mice.erase(&mouse);
+	m_mice.erase(&mouse);
 }
 
 } // namespace app

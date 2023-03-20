@@ -1,0 +1,417 @@
+/*
+ * Copyright (C) 2023  Christopher J. Howard
+ *
+ * This file is part of Antkeeper source code.
+ *
+ * Antkeeper source code is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Antkeeper source code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef ANTKEEPER_PHYSICS_RIGID_BODY_HPP
+#define ANTKEEPER_PHYSICS_RIGID_BODY_HPP
+
+#include <engine/math/vector.hpp>
+#include <engine/math/quaternion.hpp>
+#include <engine/physics/kinematics/collider.hpp>
+#include <memory>
+
+namespace physics {
+
+/**
+ * Rigid body.
+ */
+class rigid_body
+{
+public:
+	/**
+	 * Sets the center of mass of the rigid body.
+	 *
+	 * @param point World-space center of mass.
+	 */
+	inline void set_center_of_mass(const math::vector<float, 3>& point) noexcept
+	{
+		m_center_of_mass = point;
+	}
+	
+	/**
+	 * Sets the world-space orientation of the rigid body.
+	 *
+	 * @param orientation World-space orientation.
+	 */
+	inline void set_orientation(const math::quaternion<float>& orientation) noexcept
+	{
+		m_orientation = orientation;
+	}
+	
+	/**
+	 * Sets mass of the rigid body.
+	 *
+	 * @param mass Mass, in kg.
+	 */
+	inline void set_mass(float mass) noexcept
+	{
+		m_mass = mass;
+		m_inverse_mass = (mass) ? 1.0f / mass : 0.0f;
+	}
+	
+	/**
+	 * Sets the moment of inertia of the rigid body.
+	 *
+	 * @param inertia Moment of inertia, in kg⋅m^2.
+	 */
+	inline void set_inertia(float inertia) noexcept
+	{
+		m_inertia = inertia;
+		m_inverse_inertia = (inertia) ? 1.0f / inertia : 0.0f;
+	}
+	
+	/**
+	 * Sets the collider of the rigid body.
+	 *
+	 * @param collider Shared pointer to a collider.
+	 */
+	inline void set_collider(std::shared_ptr<collider> collider) noexcept
+	{
+		m_collider = collider;
+	}
+	
+	/**
+	 * Sets the linear damping factor of the rigid body.
+	 *
+	 * @param damping Linear damping factor.
+	 */
+	inline void set_linear_damping(float damping) noexcept
+	{
+		m_linear_damping = damping;
+	}
+	
+	/**
+	 * Sets the angular damping factor of the rigid body.
+	 *
+	 * @param damping Angular damping factor.
+	 */
+	inline void set_angular_damping(float damping) noexcept
+	{
+		m_angular_damping = damping;
+	}
+	
+	/**
+	 * Sets the linear momentum of the rigid body.
+	 *
+	 * @param momentum Linear momentum, in kg⋅m/s.
+	 */
+	inline void set_linear_momentum(const math::vector<float, 3>& momentum) noexcept
+	{
+		m_linear_momentum = momentum;
+		m_linear_velocity = m_inverse_mass * m_linear_momentum;
+	}
+	
+	/**
+	 * Sets the angular momentum of the rigid body.
+	 *
+	 * @param momentum Angular momentum, in kg⋅m^2⋅s^-1.
+	 */
+	inline void set_angular_momentum(const math::vector<float, 3>& momentum) noexcept
+	{
+		m_angular_momentum = momentum;
+		m_angular_velocity = m_inverse_inertia * m_angular_momentum;
+	}
+	
+	/**
+	 * Sets the linear velocity of the rigid body.
+	 *
+	 * @param velocity Linear velocity, in m/s.
+	 */
+	inline void set_linear_velocity(const math::vector<float, 3>& velocity) noexcept
+	{
+		m_linear_velocity = velocity;
+		m_linear_momentum = m_mass * m_linear_velocity;
+	}
+	
+	/**
+	 * Sets the angular velocity of the rigid body.
+	 *
+	 * @param velocity Angular velocity, rad/s.
+	 */
+	inline void set_angular_velocity(const math::vector<float, 3>& velocity) noexcept
+	{
+		m_angular_velocity = velocity;
+		m_angular_momentum = m_inertia * m_angular_velocity;
+	}
+	
+	/// Returns the world-space center of mass of the rigid body.
+	[[nodiscard]] inline const math::vector<float, 3>& get_center_of_mass() const noexcept
+	{
+		return m_center_of_mass;
+	}
+	
+	/// Returns the world-space orientation of the rigid body.
+	[[nodiscard]] inline const math::quaternion<float>& get_orientation() const noexcept
+	{
+		return m_orientation;
+	}
+	
+	/// Returns the mass of the rigid body, in kg.
+	[[nodiscard]] inline float get_mass() const noexcept
+	{
+		return m_mass;
+	}
+	
+	/// Returns the inverse mass of the rigid body, in kg^-1.
+	[[nodiscard]] inline float get_inverse_mass() const noexcept
+	{
+		return m_inverse_mass;
+	}
+	
+	/// Returns the moment of inertia of the rigid body, in kg⋅m^2.
+	[[nodiscard]] inline float get_inertia() const noexcept
+	{
+		return m_inertia;
+	}
+	
+	/// Returns the inverse moment of inertia of the rigid body, in kg⋅m^2^-1.
+	[[nodiscard]] inline float get_inverse_inertia() const noexcept
+	{
+		return m_inverse_inertia;
+	}
+	
+	/// Returns the linear damping factor of the rigid body.
+	[[nodiscard]] inline float get_linear_damping() const noexcept
+	{
+		return m_linear_damping;
+	}
+	
+	/// Returns the angular damping factor of the rigid body.
+	[[nodiscard]] inline float get_angular_damping() const noexcept
+	{
+		return m_angular_damping;
+	}
+	
+	/// Returns the collider of the rigid body.
+	[[nodiscard]] inline const std::shared_ptr<collider>& get_collider() const noexcept
+	{
+		return m_collider;
+	}
+	
+	/// Returns the linear momentum of the rigid body, in kg⋅m/s.
+	[[nodiscard]] inline const math::vector<float, 3>& get_linear_momentum() const noexcept
+	{
+		return m_linear_momentum;
+	}
+	
+	/// Returns the angular momentum of the rigid body, in kg⋅m^2⋅s^-1.
+	[[nodiscard]] inline const math::vector<float, 3>& get_angular_momentum() const noexcept
+	{
+		return m_angular_momentum;
+	}
+	
+	/// Returns the linear velocity of the rigid body, in m/s.
+	[[nodiscard]] inline const math::vector<float, 3>& get_linear_velocity() const noexcept
+	{
+		return m_linear_velocity;
+	}
+	
+	/// Returns the angular velocity of the rigid body, in rad/s.
+	[[nodiscard]] inline const math::vector<float, 3>& get_angular_velocity() const noexcept
+	{
+		return m_angular_velocity;
+	}
+	
+	/// Returns the total pre-integrated force, in N.
+	[[nodiscard]] inline const math::vector<float, 3>& get_applied_force() const noexcept
+	{
+		return m_applied_force;
+	}
+	
+	/// Returns the total pre-integrated torque, in N⋅m.
+	[[nodiscard]] inline const math::vector<float, 3>& get_applied_torque() const noexcept
+	{
+		return m_applied_torque;
+	}
+	
+	/**
+	 * Calculates the total velocity at a point on the rigid body.
+	 *
+	 * @param radius Radius vector from the center of mass to the point at which the velocity should be calculated.
+	 *
+	 * @return Point velocity.
+	 */
+	[[nodiscard]] inline math::vector<float, 3> get_point_velocity(const math::vector<float, 3>& radius) const noexcept
+	{
+		return m_linear_velocity + math::cross(m_angular_velocity, radius);
+	}
+	
+	/**
+	 * Returns `true` if the rigid body is static, `false` otherwise.
+	 */
+	[[nodiscard]] inline bool is_static() const noexcept
+	{
+		return (m_mass == 0.0f);
+	}
+	
+	/**
+	 * Applies a force at a point on the rigid body.
+	 *
+	 * @param force Force to apply, in N.
+	 * @param radius Radius vector from the center of mass to the point at which the force should be applied.
+	 */
+	inline void apply_force(const math::vector<float, 3>& force, const math::vector<float, 3>& radius) noexcept
+	{
+		m_applied_force += force;
+		m_applied_torque += math::cross(radius, force);
+	}
+	
+	/**
+	 * Applies a force at the center of mass of the rigid body.
+	 *
+	 * @param force Force to apply, in N.
+	 */
+	inline void apply_central_force(const math::vector<float, 3>& force) noexcept
+	{
+		m_applied_force += force;
+	}
+	
+	/**
+	 * Applies a torque to the rigid body.
+	 *
+	 * @param torque Torque to apply.
+	 */
+	inline void apply_torque(const math::vector<float, 3>& torque) noexcept
+	{
+		m_applied_torque += torque;
+	}
+	
+	/**
+	 * Applies an impulse at a point on the rigid body.
+	 *
+	 * @param impulse Impulse to apply, in N⋅s.
+	 * @param radius Radius vector from the center of mass to the point at which the impulse should be applied.
+	 */
+	inline void apply_impulse(const math::vector<float, 3>& impulse, const math::vector<float, 3>& radius) noexcept
+	{
+		m_linear_momentum += impulse;
+		m_angular_momentum += math::cross(radius, impulse);
+		
+		// Update velocities
+		m_linear_velocity = m_inverse_mass * m_linear_momentum;
+		m_angular_velocity = m_inverse_inertia * m_angular_momentum;
+	}
+	
+	/**
+	 * Applies an impulse at the center of mass of the rigid body.
+	 *
+	 * @param impulse Impulse to apply, in N⋅s.
+	 */
+	inline void apply_central_impulse(const math::vector<float, 3>& impulse) noexcept
+	{
+		m_linear_momentum += impulse;
+		
+		// Update linear velocity
+		m_linear_velocity = m_inverse_mass * m_linear_momentum;
+	}
+	
+	/**
+	 * Applies a torque impulse to the rigid body.
+	 *
+	 * @param torque Torque impulse to apply.
+	 */
+	inline void apply_torque_impulse(const math::vector<float, 3>& torque) noexcept
+	{
+		m_angular_momentum += torque;
+		
+		// Update angular velocity
+		m_angular_velocity = m_inverse_inertia * m_angular_momentum;
+	}
+	
+	/// Clears all pre-integrated forces.
+	inline void clear_applied_forces() noexcept
+	{
+		m_applied_force = math::vector<float, 3>::zero();
+		m_applied_torque = math::vector<float, 3>::zero();
+	}
+	
+	/**
+	 * Integrates forces, updating the momentums and velocities of the rigid body.
+	 *
+	 * @param dt Timestep, in seconds.
+	 */
+	void integrate_forces(float dt) noexcept;
+	
+	/**
+	 * Integrates velocities, updating the center of mass and orientation of the rigid body.
+	 *
+	 * @param dt Timestep, in seconds.
+	 */
+	void integrate_velocities(float dt) noexcept;
+	
+	/**
+	 * Integrates forces and velocities.
+	 *
+	 * @param dt Timestep, in seconds.
+	 */
+	inline void integrate(float dt) noexcept
+	{
+		integrate_forces(dt);
+		integrate_velocities(dt);
+	}
+	
+private:
+	/// World-space center of mass.
+	math::vector<float, 3> m_center_of_mass{math::vector<float, 3>::zero()};
+	
+	/// World-space orientation.
+	math::quaternion<float> m_orientation{math::quaternion<float>::identity()};
+	
+	/// Mass, in kg.
+	float m_mass{1.0f};
+	
+	/// Inverse mass, in kg^-1.
+	float m_inverse_mass{1.0f};
+	
+	/// Moment of inertia, in kg⋅m^2.
+	float m_inertia{1.0f};
+	
+	/// Inverse moment of inertia, in kg⋅m^2^-1.
+	float m_inverse_inertia{1.0f};
+	
+	/// Linear damping factor.
+	float m_linear_damping{0.0f};
+	
+	/// Angular damping factor.
+	float m_angular_damping{0.0f};
+	
+	/// Collider object.
+	std::shared_ptr<collider> m_collider;
+	
+	/// Linear momentum, in kg⋅m/s.
+	math::vector<float, 3> m_linear_momentum{math::vector<float, 3>::zero()};
+	
+	/// Angular momentum, in kg⋅m^2⋅s^-1.
+	math::vector<float, 3> m_angular_momentum{math::vector<float, 3>::zero()};
+	
+	/// Linear velocity, in m/s.
+	math::vector<float, 3> m_linear_velocity{math::vector<float, 3>::zero()};
+	
+	/// Angular velocity, in rad/s.
+	math::vector<float, 3> m_angular_velocity{math::vector<float, 3>::zero()};
+	
+	/// Applied force, in N.
+	math::vector<float, 3> m_applied_force{math::vector<float, 3>::zero()};
+	
+	/// Applied torque, in N⋅m.
+	math::vector<float, 3> m_applied_torque{math::vector<float, 3>::zero()};
+};
+
+} // namespace physics
+
+#endif // ANTKEEPER_PHYSICS_RIGID_BODY_HPP

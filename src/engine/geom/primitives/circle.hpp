@@ -17,19 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_SPHERE_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_SPHERE_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_CIRCLE_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_CIRCLE_HPP
 
-#include <engine/geom/primitive/hypersphere.hpp>
+#include <engine/geom/primitives/hypersphere.hpp>
 
 namespace geom {
 namespace primitive {
 
-/// 3-dimensional hypersphere.
+/**
+ * 2-dimensional hypersphere.
+ *
+ * @tparam T Real type.
+ */
 template <class T>
-using sphere = hypersphere<T, 3>;
+using circle = hypersphere<T, 2>;
 
 } // namespace primitive
 } // namespace geom
 
-#endif // ANTKEEPER_GEOM_PRIMITIVE_SPHERE_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_CIRCLE_HPP

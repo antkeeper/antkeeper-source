@@ -30,6 +30,8 @@ struct collision_component
 	geom::mesh* mesh;
 	geom::aabb<float> bounds;
 	geom::mesh_accelerator mesh_accelerator;
+	
+	float radius{0.0f};
 };
 
 

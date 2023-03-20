@@ -17,27 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_PHYSICS_COMPONENT_HPP
-#define ANTKEEPER_GAME_PHYSICS_COMPONENT_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_RECTANGLE_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_RECTANGLE_HPP
 
-#include <engine/math/vector.hpp>
+#include <engine/geom/primitives/hyperrectangle.hpp>
 
-struct physics_component
-{
-	/// Mass, in kg.
-	float mass;
-	
-	/// Inverse mass, in kg^-1.
-	//float inverse_mass{0.0f};
-	
-	/// Force vector, in newtons.
-	math::vector<float, 3> force{0.0f, 0.0f, 0.0f};
-	
-	/// Acceleration vector, in m/s^2.
-	math::vector<float, 3> acceleration{0.0f, 0.0f, 0.0f};
-	
-	/// Velocity vector, in m/s.
-	math::vector<float, 3> velocity{0.0f, 0.0f, 0.0f};
-};
+namespace geom {
+namespace primitive {
 
-#endif // ANTKEEPER_GAME_PHYSICS_COMPONENT_HPP
+/**
+ * 2-dimensional hyperrectangle.
+ *
+ * @tparam T Real type.
+ */
+template <class T>
+using rectangle = hyperrectangle<T, 2>;
+
+} // namespace primitive
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_PRIMITIVES_RECTANGLE_HPP

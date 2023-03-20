@@ -48,7 +48,7 @@ sdl_window::sdl_window
 	
 	// Create SDL window
 	debug::log::trace("Creating SDL window...");
-	internal_window = SDL_CreateWindow
+	m_internal_window = SDL_CreateWindow
 	(
 		title.c_str(),
     	windowed_position.x(),
@@ -57,7 +57,7 @@ sdl_window::sdl_window
 	    windowed_size.y(),
 		window_flags
 	);
-	if (!internal_window)
+	if (!m_internal_window)
 	{
 		debug::log::fatal("Failed to create SDL window: {}", SDL_GetError());
 		throw std::runtime_error("Failed to create SDL window");
@@ -66,8 +66,8 @@ sdl_window::sdl_window
 	
 	// Create OpenGL context
 	debug::log::trace("Creating OpenGL context...");
-	internal_context = SDL_GL_CreateContext(internal_window);
-	if (!internal_context)
+	m_internal_context = SDL_GL_CreateContext(m_internal_window);
+	if (!m_internal_context)
 	{
 		debug::log::fatal("Failed to create OpenGL context: {}", SDL_GetError());
 		throw std::runtime_error("Failed to create OpenGL context");
@@ -167,79 +167,79 @@ sdl_window::sdl_window
 	set_v_sync(v_sync);
 	
 	// Update window state
-	this->title = title;
-	this->windowed_position = windowed_position;
-	this->windowed_size = windowed_size;
-	this->maximized = maximized;
-	this->fullscreen = fullscreen;
-	SDL_GetWindowPosition(internal_window, &this->position.x(), &this->position.y());
-	SDL_GetWindowSize(internal_window, &this->size.x(), &this->size.y());
-	SDL_GetWindowMinimumSize(internal_window, &this->minimum_size.x(), &this->minimum_size.y());
-	SDL_GetWindowMaximumSize(internal_window, &this->maximum_size.x(), &this->maximum_size.y());
-	SDL_GL_GetDrawableSize(internal_window, &this->viewport_size.x(), &this->viewport_size.y());
+	this->m_title = title;
+	this->m_windowed_position = windowed_position;
+	this->m_windowed_size = windowed_size;
+	this->m_maximized = maximized;
+	this->m_fullscreen = fullscreen;
+	SDL_GetWindowPosition(m_internal_window, &this->m_position.x(), &this->m_position.y());
+	SDL_GetWindowSize(m_internal_window, &this->m_size.x(), &this->m_size.y());
+	SDL_GetWindowMinimumSize(m_internal_window, &this->m_minimum_size.x(), &this->m_minimum_size.y());
+	SDL_GetWindowMaximumSize(m_internal_window, &this->m_maximum_size.x(), &this->m_maximum_size.y());
+	SDL_GL_GetDrawableSize(m_internal_window, &this->m_viewport_size.x(), &this->m_viewport_size.y());
 	
-	// Allocate rasterizer
-	this->rasterizer = std::make_unique<gl::rasterizer>();
+	// Allocate m_rasterizer
+	this->m_rasterizer = std::make_unique<gl::rasterizer>();
 }
 
 sdl_window::~sdl_window()
 {
-	// Deallocate rasterizer
-	rasterizer.reset();
+	// Deallocate m_rasterizer
+	m_rasterizer.reset();
 	
 	// Destruct the OpenGL context
-	SDL_GL_DeleteContext(internal_context);
+	SDL_GL_DeleteContext(m_internal_context);
 	
 	// Destruct the SDL window
-	SDL_DestroyWindow(internal_window);
+	SDL_DestroyWindow(m_internal_window);
 }
 
 void sdl_window::set_title(const std::string& title)
 {
-	SDL_SetWindowTitle(internal_window, title.c_str());
-	this->title = title;
+	SDL_SetWindowTitle(m_internal_window, title.c_str());
+	this->m_title = title;
 }
 
 void sdl_window::set_position(const math::vector<int, 2>& position)
 {
-	SDL_SetWindowPosition(internal_window, position.x(), position.y());
+	SDL_SetWindowPosition(m_internal_window, position.x(), position.y());
 }
 
 void sdl_window::set_size(const math::vector<int, 2>& size)
 {
-	SDL_SetWindowSize(internal_window, size.x(), size.y());
+	SDL_SetWindowSize(m_internal_window, size.x(), size.y());
 }
 
 void sdl_window::set_minimum_size(const math::vector<int, 2>& size)
 {
-	SDL_SetWindowMinimumSize(internal_window, size.x(), size.y());
-	this->minimum_size = size;
+	SDL_SetWindowMinimumSize(m_internal_window, size.x(), size.y());
+	this->m_minimum_size = size;
 }
 
 void sdl_window::set_maximum_size(const math::vector<int, 2>& size)
 {
-	SDL_SetWindowMaximumSize(internal_window, size.x(), size.y());
-	this->maximum_size = size;
+	SDL_SetWindowMaximumSize(m_internal_window, size.x(), size.y());
+	this->m_maximum_size = size;
 }
 
 void sdl_window::set_maximized(bool maximized)
 {
 	if (maximized)
 	{
-		SDL_MaximizeWindow(internal_window);
+		SDL_MaximizeWindow(m_internal_window);
 	}
 	else
 	{
-		SDL_RestoreWindow(internal_window);
+		SDL_RestoreWindow(m_internal_window);
 	}
 }
 
 void sdl_window::set_fullscreen(bool fullscreen)
 {
-	//SDL_HideWindow(internal_window);
-	SDL_SetWindowFullscreen(internal_window, (fullscreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-	//SDL_ShowWindow(internal_window);
-	this->fullscreen = fullscreen;
+	//SDL_HideWindow(m_internal_window);
+	SDL_SetWindowFullscreen(m_internal_window, (fullscreen) ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+	//SDL_ShowWindow(m_internal_window);
+	this->m_fullscreen = fullscreen;
 }
 
 void sdl_window::set_v_sync(bool v_sync)
@@ -280,17 +280,17 @@ void sdl_window::set_v_sync(bool v_sync)
 		}
 	}
 	
-	this->v_sync = v_sync;
+	this->m_v_sync = v_sync;
 }
 
 void sdl_window::make_current()
 {
-	SDL_GL_MakeCurrent(internal_window, internal_context);
+	SDL_GL_MakeCurrent(m_internal_window, m_internal_context);
 }
 
 void sdl_window::swap_buffers()
 {
-	SDL_GL_SwapWindow(internal_window);
+	SDL_GL_SwapWindow(m_internal_window);
 }
 
 } // namespace app

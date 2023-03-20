@@ -17,19 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_CIRCLE_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_CIRCLE_HPP
+#ifndef ANTKEEPER_GAME_RIGID_BODY_COMPONENT_HPP
+#define ANTKEEPER_GAME_RIGID_BODY_COMPONENT_HPP
 
-#include <engine/geom/primitive/hypersphere.hpp>
+#include <engine/physics/kinematics/rigid-body.hpp>
+#include <memory>
 
-namespace geom {
-namespace primitive {
+struct rigid_body_component
+{
+	std::unique_ptr<physics::rigid_body> body;
+};
 
-/// 2-dimensional hypersphere.
-template <class T>
-using circle = hypersphere<T, 2>;
-
-} // namespace primitive
-} // namespace geom
-
-#endif // ANTKEEPER_GEOM_PRIMITIVE_CIRCLE_HPP
+#endif // ANTKEEPER_GAME_RIGID_BODY_COMPONENT_HPP

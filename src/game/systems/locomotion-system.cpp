@@ -19,7 +19,8 @@
 
 #include "game/systems/locomotion-system.hpp"
 #include "game/components/legged-locomotion-component.hpp"
-#include "game/components/physics-component.hpp"
+#include "game/components/winged-locomotion-component.hpp"
+#include "game/components/rigid-body-component.hpp"
 #include <engine/entity/id.hpp>
 #include <algorithm>
 #include <execution>
@@ -30,23 +31,40 @@ locomotion_system::locomotion_system(entity::registry& registry):
 
 void locomotion_system::update(float t, float dt)
 {
-	auto group = registry.group<legged_locomotion_component>(entt::get<physics_component>);
+	// Legged locomotion
+	auto legged_group = registry.group<legged_locomotion_component>(entt::get<rigid_body_component>);
 	std::for_each
 	(
 		std::execution::par_unseq,
-		group.begin(),
-		group.end(),
+		legged_group.begin(),
+		legged_group.end(),
 		[&](auto entity_id)
 		{
-			const auto& locomotion = group.get<legged_locomotion_component>(entity_id);
-			auto& body = group.get<physics_component>(entity_id);
+			const auto& locomotion = legged_group.get<legged_locomotion_component>(entity_id);
+			auto& body = *(legged_group.get<rigid_body_component>(entity_id).body);
 			
-			// Apply locomotion force
-			body.force += locomotion.force;
+			// Apply locomotive force
+			body.apply_central_force(locomotion.force);
+		}
+	);
+	
+	// Winged locomotion
+	auto winged_group = registry.group<winged_locomotion_component>(entt::get<rigid_body_component>);
+	std::for_each
+	(
+		std::execution::par_unseq,
+		winged_group.begin(),
+		winged_group.end(),
+		[&](auto entity_id)
+		{
+			const auto& locomotion = winged_group.get<winged_locomotion_component>(entity_id);
+			auto& body = *(winged_group.get<rigid_body_component>(entity_id).body);
 			
-			// Apply friction
-			const float friction_coef = 2.0f;
-			body.force -= body.velocity * friction_coef * body.mass;
+			const math::vector<float, 3> gravity{0.0f, 9.80665f * 10.0f, 0.0f};
+			//const math::vector<float, 3> gravity{0.0f, 0.0f, 0.0f};
+			
+			// Apply locomotive force
+			body.apply_central_force(locomotion.force + gravity * body.get_mass());
 		}
 	);
 }

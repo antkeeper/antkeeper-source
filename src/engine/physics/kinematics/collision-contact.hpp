@@ -17,19 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_BOX_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_BOX_HPP
+#ifndef ANTKEEPER_PHYSICS_COLLISION_CONTACT_HPP
+#define ANTKEEPER_PHYSICS_COLLISION_CONTACT_HPP
 
-#include <engine/geom/primitive/hyperrectangle.hpp>
+#include <engine/math/vector.hpp>
 
-namespace geom {
-namespace primitive {
+namespace physics {
 
-/// 3-dimensional hyperrectangle.
-template <class T>
-using box = hyperrectangle<T, 3>;
+/**
+ * Point of contact between two colliding bodies.
+ */
+struct collision_contact
+{
+	/// World-space contact point.
+	math::vector<float, 3> point{math::vector<float, 3>::zero()};
+	
+	/// Contact normal, pointing from body a to body b.
+	math::vector<float, 3> normal{math::vector<float, 3>::zero()};
+	
+	/// Contact penetration depth.
+	float depth{0.0f};
+};
 
-} // namespace primitive
-} // namespace geom
+} // namespace physics
 
-#endif // ANTKEEPER_GEOM_PRIMITIVE_BOX_HPP
+#endif // ANTKEEPER_PHYSICS_COLLISION_CONTACT_HPP

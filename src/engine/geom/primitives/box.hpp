@@ -17,43 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_LINE_SEGMENT_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_LINE_SEGMENT_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_BOX_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_BOX_HPP
 
-#include <engine/math/vector.hpp>
+#include <engine/geom/primitives/hyperrectangle.hpp>
 
 namespace geom {
 namespace primitive {
 
 /**
- * *n*-dimensional line segment.
+ * 3-dimensional hyperrectangle.
  *
  * @tparam T Real type.
- * @tparam N Number of dimensions.
  */
-template <class T, std::size_t N>
-struct line_segment
-{
-	typedef math::vector<T, N> vector_type;
-	
-	/// First endpoint.
-	vector_type a;
-	
-	/// Second endpoint.
-	vector_type b;
-	
-	/**
-	 * Calculates the length of the line segment.
-	 *
-	 * @return Length of the line segment.
-	 */
-	T length() const noexcept
-	{
-		return math::distance(a, b);
-	}
-};
+template <class T>
+using box = hyperrectangle<T, 3>;
 
 } // namespace primitive
 } // namespace geom
 
-#endif // ANTKEEPER_GEOM_PRIMITIVE_LINE_SEGMENT_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_BOX_HPP

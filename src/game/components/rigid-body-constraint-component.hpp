@@ -17,19 +17,15 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_RECTANGLE_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_RECTANGLE_HPP
+#ifndef ANTKEEPER_GAME_RIGID_BODY_CONSTRAINT_COMPONENT_HPP
+#define ANTKEEPER_GAME_RIGID_BODY_CONSTRAINT_COMPONENT_HPP
 
-#include <engine/geom/primitive/hyperrectangle.hpp>
+#include <engine/physics/kinematics/constraint.hpp>
+#include <memory>
 
-namespace geom {
-namespace primitive {
+struct rigid_body_constraint_component
+{
+	std::unique_ptr<physics::constraint> constraint;
+};
 
-/// 2-dimensional hyperrectangle.
-template <class T>
-using rectangle = hyperrectangle<T, 2>;
-
-} // namespace primitive
-} // namespace geom
-
-#endif // ANTKEEPER_GEOM_PRIMITIVE_RECTANGLE_HPP
+#endif // ANTKEEPER_GAME_RIGID_BODY_CONSTRAINT_COMPONENT_HPP

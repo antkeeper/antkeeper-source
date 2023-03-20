@@ -25,7 +25,7 @@
 #include <engine/render/material.hpp>
 #include <engine/scene/billboard.hpp>
 #include <engine/animation/animation.hpp>
-#include <engine/geom/primitive/rectangle.hpp>
+#include <engine/geom/primitives/rectangle.hpp>
 #include <memory>
 
 

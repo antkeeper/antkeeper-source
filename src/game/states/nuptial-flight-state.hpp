@@ -84,7 +84,8 @@ private:
 	
 	// Controls
 	bool mouse_look{false};
-	std::vector<std::shared_ptr<::event::subscription>> action_subscriptions;
+	std::vector<std::shared_ptr<::event::subscription>> action_subscriptions;	
+	std::shared_ptr<::event::subscription> mouse_motion_subscription;
 };
 
 #endif // ANTKEEPER_NUPTIAL_FLIGHT_STATE_HPP

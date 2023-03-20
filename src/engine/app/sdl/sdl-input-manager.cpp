@@ -41,12 +41,12 @@ sdl_input_manager::sdl_input_manager()
 	}
 	
 	// Register keyboard and mouse
-	register_keyboard(keyboard);
-	register_mouse(mouse);
+	register_keyboard(m_keyboard);
+	register_mouse(m_mouse);
 	
 	// Generate keyboard and mouse device connected events
-	keyboard.connect();
-	mouse.connect();
+	m_keyboard.connect();
+	m_mouse.connect();
 }
 
 sdl_input_manager::~sdl_input_manager()
@@ -71,7 +71,7 @@ void sdl_input_manager::update()
 	{
 		// Get next display or window event
 		SDL_Event event;
-		int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LOCALECHANGED);
+		const int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LOCALECHANGED);
 		
 		if (!status)
 		{
@@ -87,7 +87,7 @@ void sdl_input_manager::update()
 		{
 			case SDL_QUIT:
 				debug::log::debug("Application quit requested");
-				this->event_queue.enqueue<input::application_quit_event>({});
+				this->m_event_dispatcher.dispatch<input::application_quit_event>({});
 				break;
 			
 			default:
@@ -100,7 +100,7 @@ void sdl_input_manager::update()
 	{
 		// Get next display or window event
 		SDL_Event event;
-		int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYDOWN, SDL_LASTEVENT);
+		const int status = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYDOWN, SDL_LASTEVENT);
 		
 		if (!status)
 		{
@@ -116,7 +116,7 @@ void sdl_input_manager::update()
 		{
 			[[likely]] case SDL_MOUSEMOTION:
 			{
-				mouse.move({event.motion.x, event.motion.y}, {event.motion.xrel, event.motion.yrel});
+				m_mouse.move({event.motion.x, event.motion.y}, {event.motion.xrel, event.motion.yrel});
 				break;
 			}
 			
@@ -160,11 +160,11 @@ void sdl_input_manager::update()
 				
 				if (event.type == SDL_KEYDOWN)
 				{
-					keyboard.press(scancode, modifier_keys, (event.key.repeat > 0));
+					m_keyboard.press(scancode, modifier_keys, (event.key.repeat > 0));
 				}
 				else
 				{
-					keyboard.release(scancode, modifier_keys);
+					m_keyboard.release(scancode, modifier_keys);
 				}
 				
 				break;
@@ -173,19 +173,19 @@ void sdl_input_manager::update()
 			case SDL_MOUSEWHEEL:
 			{
 				const float flip = (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) ? -1.0f : 1.0f;
-				mouse.scroll({event.wheel.preciseX * flip, event.wheel.preciseY * flip});
+				m_mouse.scroll({event.wheel.preciseX * flip, event.wheel.preciseY * flip});
 				break;
 			}
 			
 			case SDL_MOUSEBUTTONDOWN:
 			{
-				mouse.press(static_cast<input::mouse_button>(event.button.button));
+				m_mouse.press(static_cast<input::mouse_button>(event.button.button));
 				break;
 			}
 			
 			case SDL_MOUSEBUTTONUP:
 			{
-				mouse.release(static_cast<input::mouse_button>(event.button.button));
+				m_mouse.release(static_cast<input::mouse_button>(event.button.button));
 				break;
 			}
 			
@@ -193,7 +193,7 @@ void sdl_input_manager::update()
 			{
 				if (event.caxis.axis != SDL_CONTROLLER_AXIS_INVALID)
 				{
-					if (auto it = gamepad_map.find(event.cdevice.which); it != gamepad_map.end())
+					if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
 					{
 						// Map axis position onto `[-1, 1]`.
 						const float position = math::map
@@ -216,7 +216,7 @@ void sdl_input_manager::update()
 			{
 				if (event.cbutton.button != SDL_CONTROLLER_BUTTON_INVALID)
 				{
-					if (auto it = gamepad_map.find(event.cdevice.which); it != gamepad_map.end())
+					if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
 					{
 						it->second->press(static_cast<input::gamepad_button>(event.cbutton.button));
 					}
@@ -228,7 +228,7 @@ void sdl_input_manager::update()
 			{
 				if (event.cbutton.button != SDL_CONTROLLER_BUTTON_INVALID)
 				{
-					if (auto it = gamepad_map.find(event.cdevice.which); it != gamepad_map.end())
+					if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
 					{
 						it->second->release(static_cast<input::gamepad_button>(event.cbutton.button));
 					}
@@ -250,7 +250,7 @@ void sdl_input_manager::update()
 							controller_name = "";
 						}
 						
-						if (auto it = gamepad_map.find(event.cdevice.which); it != gamepad_map.end())
+						if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
 						{
 							// Gamepad reconnected
 							debug::log::info("Reconnected gamepad {}", event.cdevice.which);
@@ -269,7 +269,7 @@ void sdl_input_manager::update()
 							debug::log::info("Connected gamepad {}; name: \"{}\"; UUID: {}", event.cdevice.which, controller_name, gamepad_uuid.string());
 							
 							// Allocate gamepad
-							auto& gamepad = gamepad_map[event.cdevice.which];
+							auto& gamepad = m_gamepad_map[event.cdevice.which];
 							gamepad = std::make_unique<input::gamepad>();						
 							gamepad->set_uuid(gamepad_uuid);
 							
@@ -297,7 +297,7 @@ void sdl_input_manager::update()
 				if (sdl_controller)
 				{
 					SDL_GameControllerClose(sdl_controller);
-					if (auto it = gamepad_map.find(event.cdevice.which); it != gamepad_map.end())
+					if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
 					{
 						it->second->disconnect();
 					}
@@ -312,9 +312,6 @@ void sdl_input_manager::update()
 				break;
 		}
 	}
-	
-	// Flush event queue
-	this->event_queue.flush();
 }
 
 void sdl_input_manager::set_cursor_visible(bool visible)

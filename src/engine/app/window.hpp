@@ -105,67 +105,67 @@ public:
 	/// Returns the title of the window.
 	[[nodiscard]] inline const std::string& get_title() const noexcept
 	{
-		return title;
+		return m_title;
 	}
 	
 	/// Returns the windowed (non-maximized, non-fullscreen) position of the window, in display units.
 	[[nodiscard]] inline const math::vector<int, 2>& get_windowed_position() const noexcept
 	{
-		return windowed_position;
+		return m_windowed_position;
 	}
 	
 	/// Returns the current position of the window, in display units.
 	[[nodiscard]] inline const math::vector<int, 2>& get_position() const noexcept
 	{
-		return position;
+		return m_position;
 	}
 	
 	/// Returns the windowed (non-maximized, non-fullscreen) size of the window, in display units.
 	[[nodiscard]] inline const math::vector<int, 2>& get_windowed_size() const noexcept
 	{
-		return windowed_size;
+		return m_windowed_size;
 	}
 	
 	/// Returns the current size of the window, in display units.
 	[[nodiscard]] inline const math::vector<int, 2>& get_size() const noexcept
 	{
-		return size;
+		return m_size;
 	}
 	
 	/// Returns the minimum size of the window, in display units.
 	[[nodiscard]] inline const math::vector<int, 2>& get_minimum_size() const noexcept
 	{
-		return minimum_size;
+		return m_minimum_size;
 	}
 	
 	/// Returns the maximum size of the window, in display units.
 	[[nodiscard]] inline const math::vector<int, 2>& get_maximum_size() const noexcept
 	{
-		return minimum_size;
+		return m_minimum_size;
 	}
 	
 	/// Returns the current size of the window's drawable viewport, in pixels.
 	[[nodiscard]] inline const math::vector<int, 2>& get_viewport_size() const noexcept
 	{
-		return viewport_size;
+		return m_viewport_size;
 	}
 	
 	/// Returns `true` if the window is maximized, `false` otherwise.
 	[[nodiscard]] inline bool is_maximized() const noexcept
 	{
-		return maximized;
+		return m_maximized;
 	}
 	
 	/// Returns `true` if the window is in fullscreen mode, `false` otherwise.
 	[[nodiscard]] inline bool is_fullscreen() const noexcept
 	{
-		return fullscreen;
+		return m_fullscreen;
 	}
 	
 	/// Returns `true` if the v-sync is enabled, `false` otherwise.
 	[[nodiscard]] inline bool get_v_sync() const noexcept
 	{
-		return v_sync;
+		return m_v_sync;
 	}
 	
 	/// Returns the rasterizer associated with this window.
@@ -174,67 +174,67 @@ public:
 	/// Returns the channel through which window closed events are published.
 	[[nodiscard]] inline event::channel<window_closed_event>& get_closed_channel() noexcept
 	{
-		return closed_publisher.channel();
+		return m_closed_publisher.channel();
 	}
 	
 	/// Returns the channel through which window focus changed events are published.
 	[[nodiscard]] inline event::channel<window_focus_changed_event>& get_focus_changed_channel() noexcept
 	{
-		return focus_changed_publisher.channel();
+		return m_focus_changed_publisher.channel();
 	}
 	
 	/// Returns the channel through which window maximized events are published.
 	[[nodiscard]] inline event::channel<window_maximized_event>& get_maximized_channel() noexcept
 	{
-		return maximized_publisher.channel();
+		return m_maximized_publisher.channel();
 	}
 	
 	/// Returns the channel through which window minimized events are published.
 	[[nodiscard]] inline event::channel<window_minimized_event>& get_minimized_channel() noexcept
 	{
-		return minimized_publisher.channel();
+		return m_minimized_publisher.channel();
 	}
 	
 	/// Returns the channel through which window moved events are published.
 	[[nodiscard]] inline event::channel<window_moved_event>& get_moved_channel() noexcept
 	{
-		return moved_publisher.channel();
+		return m_moved_publisher.channel();
 	}
 	
 	/// Returns the channel through which window resized events are published.
 	[[nodiscard]] inline event::channel<window_resized_event>& get_resized_channel() noexcept
 	{
-		return resized_publisher.channel();
+		return m_resized_publisher.channel();
 	}
 	
 	/// Returns the channel through which window restored events are published.
 	[[nodiscard]] inline event::channel<window_restored_event>& get_restored_channel() noexcept
 	{
-		return restored_publisher.channel();
+		return m_restored_publisher.channel();
 	}
 	
 protected:
 	friend class window_manager;
 	
-	std::string title;
-	math::vector<int, 2> windowed_position{0, 0};
-	math::vector<int, 2> position{0, 0};
-	math::vector<int, 2> windowed_size{0, 0};
-	math::vector<int, 2> size{0, 0};
-	math::vector<int, 2> minimum_size{0, 0};
-	math::vector<int, 2> maximum_size{0, 0};
-	math::vector<int, 2> viewport_size{0, 0};
-	bool maximized{false};
-	bool fullscreen{false};
-	bool v_sync{false};
+	std::string m_title;
+	math::vector<int, 2> m_windowed_position{0, 0};
+	math::vector<int, 2> m_position{0, 0};
+	math::vector<int, 2> m_windowed_size{0, 0};
+	math::vector<int, 2> m_size{0, 0};
+	math::vector<int, 2> m_minimum_size{0, 0};
+	math::vector<int, 2> m_maximum_size{0, 0};
+	math::vector<int, 2> m_viewport_size{0, 0};
+	bool m_maximized{false};
+	bool m_fullscreen{false};
+	bool m_v_sync{false};
 	
-	event::publisher<window_closed_event> closed_publisher;
-	event::publisher<window_focus_changed_event> focus_changed_publisher;
-	event::publisher<window_maximized_event> maximized_publisher;
-	event::publisher<window_minimized_event> minimized_publisher;
-	event::publisher<window_moved_event> moved_publisher;
-	event::publisher<window_resized_event> resized_publisher;
-	event::publisher<window_restored_event> restored_publisher;
+	event::publisher<window_closed_event> m_closed_publisher;
+	event::publisher<window_focus_changed_event> m_focus_changed_publisher;
+	event::publisher<window_maximized_event> m_maximized_publisher;
+	event::publisher<window_minimized_event> m_minimized_publisher;
+	event::publisher<window_moved_event> m_moved_publisher;
+	event::publisher<window_resized_event> m_resized_publisher;
+	event::publisher<window_restored_event> m_restored_publisher;
 };
 
 } // namespace app

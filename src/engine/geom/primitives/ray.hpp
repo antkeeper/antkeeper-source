@@ -17,10 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_RAY_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_RAY_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_RAY_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_RAY_HPP
 
 #include <engine/math/vector.hpp>
+#include <algorithm>
+#include <cmath>
 
 namespace geom {
 namespace primitive {
@@ -34,7 +36,8 @@ namespace primitive {
 template <class T, std::size_t N>
 struct ray
 {
-	typedef math::vector<T, N> vector_type;
+	/// Vector type.
+	using vector_type = math::vector<T, N>;
 	
 	/// Ray origin position.
 	vector_type origin;
@@ -49,13 +52,50 @@ struct ray
 	 *
 	 * @return Extrapolated coordinates.
 	 */
-	constexpr vector_type extrapolate(T distance) const noexcept
+	[[nodiscard]] inline constexpr vector_type extrapolate(T distance) const noexcept
 	{
 		return origin + direction * distance;
+	}
+	
+	/**
+	 * Calculates the closest point on the ray to a point.
+	 *
+	 * @param point Input point.
+	 *
+	 * @return Closest point on the ray to @p point.
+	 */
+	[[nodiscard]] inline constexpr vector_type closest_point(const vector_type& point) const noexcept
+	{
+		return extrapolate(std::max<T>(T{0}, math::dot(point - origin, direction)));
+	}
+	
+	/**
+	 * Calculates the square distance from the ray to a point.
+	 *
+	 * @param point Input point.
+	 *
+	 * @return Square distance from the ray to @p point.
+	 */
+	[[nodiscard]] inline constexpr T sqr_distance(const vector_type& point) const noexcept
+	{
+		return math::sqr_distance(point, closest_point(point));
+	}
+	
+	/**
+	 * Calculates the distance from the ray to a point.
+	 *
+	 * @param point Input point.
+	 *
+	 * @return Distance from the ray to @p point.
+	 */
+	[[nodiscard]] inline T distance(const vector_type& point) const noexcept
+	{
+		const T d = sqr_distance(point);
+		return (d) ? std::sqrt(d) : d;
 	}
 };
 
 } // namespace primitive
 } // namespace geom
 
-#endif // ANTKEEPER_GEOM_PRIMITIVE_RAY_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_RAY_HPP

@@ -97,6 +97,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <chrono>
 
 // Prevent cxxopts from using RTTI
 #define CXXOPTS_NO_RTTI
@@ -108,6 +109,11 @@ game::game(int argc, const char* const* argv)
 {
 	// Boot process
 	debug::log::trace("Booting up...");
+	
+	// Profile boot duration
+	#if !defined(NDEBUG)
+		auto boot_t0 = std::chrono::high_resolution_clock::now();
+	#endif
 	
 	parse_options(argc, argv);
 	setup_resources();
@@ -125,12 +131,22 @@ game::game(int argc, const char* const* argv)
 	setup_systems();
 	setup_controls();
 	setup_debugging();
-	setup_loop();
+	setup_timing();
 	
 	active_ecoregion = nullptr;
 	closed = false;
 	
+	// Profile boot duration
+	#if !defined(NDEBUG)
+		auto boot_t1 = std::chrono::high_resolution_clock::now();
+	#endif
+	
 	debug::log::trace("Boot up complete");
+	
+	// Print boot duration
+	#if !defined(NDEBUG)
+		debug::log::info("Boot duration: {}", std::chrono::duration_cast<std::chrono::duration<double>>(boot_t1 - boot_t0));
+	#endif
 }
 
 game::~game()
@@ -170,33 +186,6 @@ game::~game()
 	shutdown_audio();
 	
 	debug::log::trace("Boot down complete");
-}
-
-void game::execute()
-{
-	// Change to initial state
-	state_machine.emplace(std::make_unique<main_menu_state>(*this, true));
-	
-	debug::log::trace("Entered main loop");
-	
-	while (!closed)
-	{
-		// Execute main loop
-		loop.tick();
-		
-		// Sample frame duration
-		average_frame_time(static_cast<float>(loop.get_frame_duration() * 1000.0));
-		
-		frame_time_text->set_content(std::format("◷{:5.02f}", average_frame_time.average()));
-	}
-	
-	debug::log::trace("Exited main loop");
-	
-	// Exit all active game states
-	while (!state_machine.empty())
-	{
-		state_machine.pop();
-	}
 }
 
 void game::parse_options(int argc, const char* const* argv)
@@ -566,7 +555,7 @@ void game::setup_input()
 	input_manager->update();
 	
 	// Setup application quit callback
-	application_quit_subscription = input_manager->get_event_queue().subscribe<input::application_quit_event>
+	application_quit_subscription = input_manager->get_event_dispatcher().subscribe<input::application_quit_event>
 	(
 		[&](const auto& event)
 		{
@@ -585,7 +574,7 @@ void game::setup_input()
 	};
 	
 	// Setup gamepad activation callbacks
-	gamepad_axis_moved_subscription = input_manager->get_event_queue().subscribe<input::gamepad_axis_moved_event>
+	gamepad_axis_moved_subscription = input_manager->get_event_dispatcher().subscribe<input::gamepad_axis_moved_event>
 	(
 		[&](const auto& event)
 		{
@@ -596,7 +585,7 @@ void game::setup_input()
 			}
 		}
 	);
-	gamepad_button_pressed_subscription = input_manager->get_event_queue().subscribe<input::gamepad_button_pressed_event>
+	gamepad_button_pressed_subscription = input_manager->get_event_dispatcher().subscribe<input::gamepad_button_pressed_event>
 	(
 		[&](const auto& event)
 		{
@@ -609,15 +598,15 @@ void game::setup_input()
 	);
 	
 	// Setup gamepad deactivation callbacks
-	mouse_button_pressed_subscription = input_manager->get_event_queue().subscribe<input::mouse_button_pressed_event>
+	mouse_button_pressed_subscription = input_manager->get_event_dispatcher().subscribe<input::mouse_button_pressed_event>
 	(
 		deactivate_gamepad
 	);
-	mouse_moved_subscription = input_manager->get_event_queue().subscribe<input::mouse_moved_event>
+	mouse_moved_subscription = input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
 	(
 		deactivate_gamepad
 	);
-	mouse_scrolled_subscription = input_manager->get_event_queue().subscribe<input::mouse_scrolled_event>
+	mouse_scrolled_subscription = input_manager->get_event_dispatcher().subscribe<input::mouse_scrolled_event>
 	(
 		deactivate_gamepad
 	);
@@ -766,7 +755,7 @@ void game::setup_rendering()
 		
 		surface_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
 		surface_clear_pass->set_clear_color({0.0f, 0.0f, 0.0f, 1.0f});
-		surface_clear_pass->set_cleared_buffers(true, true, true);
+		surface_clear_pass->set_cleared_buffers(true, true, false);
 		surface_clear_pass->set_clear_depth(-1.0f);
 		
 		sky_pass = std::make_unique<render::sky_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
@@ -1081,6 +1070,7 @@ void game::setup_systems()
 	
 	// Setup physics system
 	physics_system = std::make_unique<::physics_system>(*entity_registry);
+	physics_system->set_gravity({0.0f, -9.80665f * 100.0f, 0.0f});
 	
 	// Setup spring system
 	spring_system = std::make_unique<::spring_system>(*entity_registry);
@@ -1139,11 +1129,11 @@ void game::setup_controls()
 	// }
 	
 	// Pass input event queue to action maps
-	event::queue* input_event_queue = &input_manager->get_event_queue();
-	window_action_map.set_event_queue(input_event_queue);
-	menu_action_map.set_event_queue(input_event_queue);
-	movement_action_map.set_event_queue(input_event_queue);
-	keeper_action_map.set_event_queue(input_event_queue);
+	event::dispatcher* input_event_dispatcher = &input_manager->get_event_dispatcher();
+	window_action_map.set_event_dispatcher(input_event_dispatcher);
+	menu_action_map.set_event_dispatcher(input_event_dispatcher);
+	movement_action_map.set_event_dispatcher(input_event_dispatcher);
+	keeper_action_map.set_event_dispatcher(input_event_dispatcher);
 	
 	// Default control profile settings
 	control_profile_filename = "controls.cfg";
@@ -1169,6 +1159,10 @@ void game::setup_controls()
 	
 	// Apply control profile
 	::apply_control_profile(*this, *control_profile);
+	
+	// Setup mouse sensitivity
+	mouse_pan_factor = mouse_radians_per_pixel * mouse_pan_sensitivity * (invert_mouse_pan ? -1.0 : 1.0);
+	mouse_tilt_factor = mouse_radians_per_pixel * mouse_tilt_sensitivity * (invert_mouse_tilt ? -1.0 : 1.0);
 	
 	// Setup action callbacks
 	setup_window_controls(*this);
@@ -1197,75 +1191,29 @@ void game::setup_debugging()
 	ui_scene->add_object(frame_time_text.get());
 }
 
-void game::setup_loop()
+void game::setup_timing()
 {
-	// Default loop settings
-	double update_frequency = 60.0;
+	// Init default settings
+	max_frame_rate = static_cast<float>(window_manager->get_display(0).get_refresh_rate() * 2);
 	
-	// Read loop settings
-	read_or_write_setting(*this, "update_frequency", update_frequency);
+	// Read settings
+	read_or_write_setting(*this, "fixed_update_rate", fixed_update_rate);
+	read_or_write_setting(*this, "max_frame_rate", max_frame_rate);
+	read_or_write_setting(*this, "limit_frame_rate", limit_frame_rate);
 	
-	// Set update frequency
-	loop.set_update_frequency(update_frequency);
+	const auto fixed_update_interval = std::chrono::duration_cast<::frame_scheduler::duration_type>(std::chrono::duration<double>(1.0 / fixed_update_rate));
+	const auto min_frame_duration = (limit_frame_rate) ? std::chrono::duration_cast<::frame_scheduler::duration_type>(std::chrono::duration<double>(1.0 / max_frame_rate)) : frame_scheduler::duration_type::zero();
+	const auto max_frame_duration = fixed_update_interval * 15;
 	
-	// Set update callback
-	loop.set_update_callback
-	(
-		[&](double t, double dt)
-		{
-			const float time = static_cast<float>(t);
-			const float timestep = static_cast<float>(dt);
-			
-			// Update tweens
-			sky_pass->update_tweens();
-			surface_scene->update_tweens();
-			underground_scene->update_tweens();
-			ui_scene->update_tweens();
-			
-			// Process events
-			window_manager->update();
-			input_manager->update();
-			
-			// Process function queue
-			while (!function_queue.empty())
-			{
-				function_queue.front()();
-				function_queue.pop();
-			}
-			
-			// Advance timeline
-			timeline->advance(timestep);
-			
-			// Update entity systems
-			//terrain_system->update(time, timestep);
-			//subterrain_system->update(time, timestep);
-			collision_system->update(time, timestep);
-			behavior_system->update(time, timestep);
-			steering_system->update(time, timestep);
-			locomotion_system->update(time, timestep);
-			physics_system->update(time, timestep);
-			camera_system->update(time, timestep);
-			orbit_system->update(time, timestep);
-			blackbody_system->update(time, timestep);
-			atmosphere_system->update(time, timestep);
-			astronomy_system->update(time, timestep);
-			spring_system->update(time, timestep);
-			spatial_system->update(time, timestep);
-			constraint_system->update(time, timestep);
-			animator->animate(timestep);
-			render_system->update(time, timestep);
-		}
-	);
+	// Configure frame scheduler
+	frame_scheduler.set_fixed_update_interval(fixed_update_interval);
+	frame_scheduler.set_min_frame_duration(min_frame_duration);
+	frame_scheduler.set_max_frame_duration(max_frame_duration);
+	frame_scheduler.set_fixed_update_callback(std::bind_front(&game::fixed_update, this));
+	frame_scheduler.set_variable_update_callback(std::bind_front(&game::variable_update, this));
 	
-	// Set render callback
-	loop.set_render_callback
-	(
-		[&](double alpha)
-		{
-			render_system->draw(static_cast<float>(alpha));
-			window->swap_buffers();
-		}
-	);
+	// Init frame duration average
+	average_frame_duration.reserve(15);
 }
 
 void game::shutdown_audio()
@@ -1284,4 +1232,91 @@ void game::shutdown_audio()
 	}
 	
 	debug::log::trace("Shut down audio");
+}
+
+void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval)
+{
+	const float t = std::chrono::duration<float>(fixed_update_time).count();
+	const float dt = std::chrono::duration<float>(fixed_update_interval).count();
+	
+	// Update tweens
+	sky_pass->update_tweens();
+	surface_scene->update_tweens();
+	underground_scene->update_tweens();
+	ui_scene->update_tweens();
+	
+	// Process window events
+	window_manager->update();
+	
+	// Process function queue
+	while (!function_queue.empty())
+	{
+		function_queue.front()();
+		function_queue.pop();
+	}
+	
+	// Advance tline
+	//timeline->advance(dt);
+	
+	// Update entity systems
+	//terrain_system->update(t, dt);
+	//subterrain_system->update(t, dt);
+	collision_system->update(t, dt);
+	behavior_system->update(t, dt);
+	steering_system->update(t, dt);
+	locomotion_system->update(t, dt);
+	physics_system->update(t, dt);
+	camera_system->update(t, dt);
+	orbit_system->update(t, dt);
+	blackbody_system->update(t, dt);
+	atmosphere_system->update(t, dt);
+	astronomy_system->update(t, dt);
+	spring_system->update(t, dt);
+	spatial_system->update(t, dt);
+	constraint_system->update(t, dt);
+	animator->animate(dt);
+	render_system->update(t, dt);
+}
+
+void game::variable_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval, ::frame_scheduler::duration_type accumulated_time)
+{
+	// Calculate subframe interpolation factor (`alpha`)
+	const float alpha = static_cast<float>(std::chrono::duration<double, ::frame_scheduler::duration_type::period>{accumulated_time} / fixed_update_interval);
+	
+	// Sample average frame duration
+	const float average_frame_ms = average_frame_duration(std::chrono::duration<float, std::milli>(frame_scheduler.get_frame_duration()).count());
+	const float average_frame_fps = 1000.0f / average_frame_ms;
+	
+	// Update frame rate display
+	frame_time_text->set_content(std::format("{:5.02f}ms / {:5.02f} FPS", average_frame_ms, average_frame_fps));
+	
+	// Render
+	render_system->draw(alpha);
+	window->swap_buffers();
+	
+	// Process input events
+	input_manager->update();
+}
+
+void game::execute()
+{
+	// Change to initial state
+	state_machine.emplace(std::make_unique<main_menu_state>(*this, true));
+	
+	debug::log::trace("Entered main loop");
+	
+	frame_scheduler.refresh();
+	
+	while (!closed)
+	{
+		frame_scheduler.tick();
+	}
+	
+	debug::log::trace("Exited main loop");
+	
+	// Exit all active game states
+	while (!state_machine.empty())
+	{
+		state_machine.pop();
+	}
 }

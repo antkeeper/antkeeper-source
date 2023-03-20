@@ -358,7 +358,7 @@ void gamepad_config_menu_state::add_control_item(input::action_map& action_map, 
 			[&]()
 			{
 				::disable_menu_controls(ctx);
-				ctx.input_mapper.connect(ctx.input_manager->get_event_queue());
+				ctx.input_mapper.connect(ctx.input_manager->get_event_dispatcher());
 			}
 		);
 	};

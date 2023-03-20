@@ -22,14 +22,14 @@
 
 namespace input {
 
-void mapper::connect(::event::queue& queue)
+void mapper::connect(::event::dispatcher& dispatcher)
 {
-	subscriptions.emplace_back(queue.subscribe<gamepad_axis_moved_event>(std::bind_front(&mapper::handle_gamepad_axis_moved, this)));
-	subscriptions.emplace_back(queue.subscribe<gamepad_button_pressed_event>(std::bind_front(&mapper::handle_gamepad_button_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<key_pressed_event>(std::bind_front(&mapper::handle_key_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<mouse_button_pressed_event>(std::bind_front(&mapper::handle_mouse_button_pressed, this)));
-	subscriptions.emplace_back(queue.subscribe<mouse_moved_event>(std::bind_front(&mapper::handle_mouse_moved, this)));
-	subscriptions.emplace_back(queue.subscribe<mouse_scrolled_event>(std::bind_front(&mapper::handle_mouse_scrolled, this)));
+	subscriptions.emplace_back(dispatcher.subscribe<gamepad_axis_moved_event>(std::bind_front(&mapper::handle_gamepad_axis_moved, this)));
+	subscriptions.emplace_back(dispatcher.subscribe<gamepad_button_pressed_event>(std::bind_front(&mapper::handle_gamepad_button_pressed, this)));
+	subscriptions.emplace_back(dispatcher.subscribe<key_pressed_event>(std::bind_front(&mapper::handle_key_pressed, this)));
+	subscriptions.emplace_back(dispatcher.subscribe<mouse_button_pressed_event>(std::bind_front(&mapper::handle_mouse_button_pressed, this)));
+	subscriptions.emplace_back(dispatcher.subscribe<mouse_moved_event>(std::bind_front(&mapper::handle_mouse_moved, this)));
+	subscriptions.emplace_back(dispatcher.subscribe<mouse_scrolled_event>(std::bind_front(&mapper::handle_mouse_scrolled, this)));
 }
 
 void mapper::disconnect()

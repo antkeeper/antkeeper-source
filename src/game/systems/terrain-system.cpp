@@ -24,7 +24,7 @@
 #include <engine/geom/mesh-functions.hpp>
 #include <engine/geom/morton.hpp>
 #include <engine/geom/quadtree.hpp>
-#include <engine/geom/primitive/ray.hpp>
+#include <engine/geom/primitives/ray.hpp>
 #include <engine/gl/vertex-attribute.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/render/vertex-attribute.hpp>

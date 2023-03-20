@@ -70,7 +70,7 @@ collection_menu_state::collection_menu_state(::game& ctx):
 	selected_column = 0;
 	resize_box();
 	
-	mouse_moved_subscription = ctx.input_manager->get_event_queue().subscribe<input::mouse_moved_event>
+	mouse_moved_subscription = ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
 	(
 		[&](const auto& event)
 		{
@@ -78,7 +78,7 @@ collection_menu_state::collection_menu_state(::game& ctx):
 		}
 	);
 	
-	mouse_button_pressed_subscription = ctx.input_manager->get_event_queue().subscribe<input::mouse_button_pressed_event>
+	mouse_button_pressed_subscription = ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_button_pressed_event>
 	(
 		[&](const auto& event)
 		{

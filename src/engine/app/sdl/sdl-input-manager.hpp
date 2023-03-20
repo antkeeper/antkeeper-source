@@ -48,9 +48,9 @@ public:
 	void set_relative_mouse_mode(bool enabled) override;
 
 private:
-	input::keyboard keyboard;
-	input::mouse mouse;
-	std::unordered_map<int, std::unique_ptr<input::gamepad>> gamepad_map;
+	input::keyboard m_keyboard;
+	input::mouse m_mouse;
+	std::unordered_map<int, std::unique_ptr<input::gamepad>> m_gamepad_map;
 };
 
 } // namespace app

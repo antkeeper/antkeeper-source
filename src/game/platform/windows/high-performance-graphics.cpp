@@ -17,19 +17,22 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_PLANE_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_PLANE_HPP
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
-#include <engine/geom/primitive/hyperplane.hpp>
-
-namespace geom {
-namespace primitive {
-
-/// 3-dimensional hyperplane.
-template <class T>
-using plane = hyperplane<T, 3>;
-
-} // namespace primitive
-} // namespace geom
-
-#endif // ANTKEEPER_GEOM_PRIMITIVE_PLANE_HPP
+extern "C"
+{
+	/**
+	 * Requests NVIDIA Optimus to use high performance graphics.
+	 *
+	 * @see https://docs.nvidia.com/gameworks/content/technologies/desktop/optimus.htm
+	 */
+	_declspec(dllexport) DWORD NvOptimusEnablement = 1;
+	
+	/**
+	 * Requests AMD PowerXpress to use high performance graphics.
+	 *
+	 * @see https://gpuopen.com/learn/amdpowerxpressrequesthighperformance/
+	 */
+	_declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 1;
+}

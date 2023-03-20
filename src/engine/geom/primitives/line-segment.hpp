@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_HYPERPLANE_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_HYPERPLANE_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_LINE_SEGMENT_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_LINE_SEGMENT_HPP
 
 #include <engine/math/vector.hpp>
 
@@ -26,50 +26,35 @@ namespace geom {
 namespace primitive {
 
 /**
- * *n*-dimensional plane.
+ * *n*-dimensional line segment.
  *
  * @tparam T Real type.
  * @tparam N Number of dimensions.
  */
 template <class T, std::size_t N>
-struct hyperplane
+struct line_segment
 {
-	typedef math::vector<T, N> vector_type;
+	/// Vector type.
+	using vector_type = math::vector<T, N>;
 	
-	/// Hyperplane normal.
-	vector_type normal;
+	/// First endpoint.
+	vector_type a;
 	
-	/// Hyperplane constant.
-	T constant;
-	
-	/// Constructs a hyperplane.
-	constexpr hyperplane() noexcept = default;
+	/// Second endpoint.
+	vector_type b;
 	
 	/**
-	 * Constructs a hyperplane given a point and a normal.
+	 * Calculates the length of the line segment.
 	 *
-	 * @param point Point.
-	 * @param normal Normal.
+	 * @return Length of the line segment.
 	 */
-	constexpr hyperplane(const vector_type& point, const vector_type& normal) noexcept:
-		normal(normal),
-		constant(-math::dot(normal, point))
-	{}
-	
-	/**
-	 * Calculates the signed distance from the hyperplane to a point.
-	 *
-	 * @param point Input point.
-	 *
-	 * @return Signed distance from the hyperplane to @p point.
-	 */
-	constexpr T distance(const vector_type& point) const noexcept
+	[[nodiscard]] inline T length() const noexcept
 	{
-		return math::dot(normal, point) + constant;
+		return math::distance(a, b);
 	}
 };
 
 } // namespace primitive
 } // namespace geom
 
-#endif // ANTKEEPER_GEOM_PRIMITIVE_HYPERPLANE_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_LINE_SEGMENT_HPP

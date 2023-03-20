@@ -17,11 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_HYPERRECTANGLE_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_HYPERRECTANGLE_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_HYPERRECTANGLE_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_HYPERRECTANGLE_HPP
 
 #include <engine/math/vector.hpp>
 #include <algorithm>
+#include <cmath>
 
 namespace geom {
 namespace primitive {
@@ -35,7 +36,8 @@ namespace primitive {
 template <class T, std::size_t N>
 struct hyperrectangle
 {
-	typedef math::vector<T, N> vector_type;
+	/// Vector type.
+	using vector_type = math::vector<T, N>;
 	
 	/// Minimum extent of the hyperrectangle.
 	vector_type min;
@@ -50,11 +52,15 @@ struct hyperrectangle
 	 *
 	 * @return `true` if the point is contained within this hyperrectangle, `false` otherwise.
 	 */
-	constexpr bool contains(const vector_type& point) const noexcept
+	[[nodiscard]] constexpr bool contains(const vector_type& point) const noexcept
 	{
 		for (std::size_t i = 0; i < N; ++i)
+		{
 			if (point[i] < min[i] || point[i] > max[i])
+			{
 				return false;
+			}
+		}
 		return true;
 	}
 	
@@ -65,16 +71,20 @@ struct hyperrectangle
 	 *
 	 * @return `true` if the hyperrectangle is contained within this hyperrectangle, `false` otherwise.
 	 */
-	constexpr bool contains(const hyperrectangle& other) const noexcept
+	[[nodiscard]] constexpr bool contains(const hyperrectangle& other) const noexcept
 	{
 		for (std::size_t i = 0; i < N; ++i)
+		{
 			if (other.min[i] < min[i] || other.max[i] > max[i])
+			{
 				return false;
+			}
+		}
 		return true;
 	}
 	
 	/// Returns the center position of the hyperrectangle.
-	constexpr vector_type center() const noexcept
+	[[nodiscard]] inline constexpr vector_type center() const noexcept
 	{
 		return (min + max) / T{2};
 	}
@@ -86,10 +96,33 @@ struct hyperrectangle
 	 *
 	 * @return Signed distance from the hyperrectangle to @p point.
 	 */
-	T distance(const vector_type& point) const noexcept
+	[[nodiscard]] T distance(const vector_type& point) const noexcept
 	{
-		vector_type d = math::abs(point - center()) - size() * T{0.5};
+		const vector_type d = math::abs(point - center()) - extents();
 		return math::length(math::max(vector_type::zero(), d)) + std::min<T>(T{0}, math::max(d));
+	}
+	
+	/**
+	 * Calculates the closest point on the hyperrectangle to a point.
+	 *
+	 * @param point Input point.
+	 *
+	 * @return Closest point on the hyperrectangle to @p point.
+	 */
+	[[nodiscard]] constexpr vector_type closest_point(const vector_type& point) const noexcept
+	{
+		const vector_type c = center();		
+		const vector_type p = point - c;
+		const vector_type d = math::abs(p) - extents();
+		const T m = std::min<T>(T{0}, math::max(d));
+		
+		vector_type r;
+		for (std::size_t i = 0; i < N; ++i)
+		{
+			r[i] = c[i] + std::copysign(d[i] >= m ? d[i] : T{0}, p[i]);
+		}
+		
+		return r;
 	}
 	
 	/**
@@ -121,37 +154,53 @@ struct hyperrectangle
 	 *
 	 * @return `true` if the hyperrectangle intersects this hyperrectangle, `false` otherwise.
 	 */
-	constexpr bool intersects(const hyperrectangle& other) const noexcept
+	[[nodiscard]] constexpr bool intersects(const hyperrectangle& other) const noexcept
 	{
 		for (std::size_t i = 0; i < N; ++i)
+		{
 			if (other.min[i] > max[i] || other.max[i] < min[i])
+			{
 				return false;
+			}
+		}
 		return true;
 	}
 	
-	/// Returns the size of the hyperrectangle.
-	constexpr vector_type size() const noexcept
+	/// Calculates the size of the hyperrectangle.
+	[[nodiscard]] inline constexpr vector_type size() const noexcept
 	{
 		return max - min;
+	}
+	
+	/// Calculates the extents of the hyperrectangle.
+	[[nodiscard]] inline constexpr vector_type extents() const noexcept
+	{
+		return size() / T{2};
 	}
 	
 	/**
 	 * Returns `false` if any coordinates of `min` are greater than `max`.
 	 */
-	constexpr bool valid() const noexcept
+	[[nodiscard]] constexpr bool valid() const noexcept
 	{
 		for (std::size_t i = 0; i < N; ++i)
+		{
 			if (min[i] > max[i])
+			{
 				return false;
+			}
+		}
 		return true;
 	}
 	
 	/// Calculates the volume of the hyperrectangle.
-	constexpr T volume() const noexcept
+	[[nodiscard]] constexpr T volume() const noexcept
 	{
 		T v = max[0] - min[0];
 		for (std::size_t i = 1; i < N; ++i)
+		{
 			v *= max[i] - min[i];
+		}
 		return v;
 	}
 };
@@ -159,4 +208,4 @@ struct hyperrectangle
 } // namespace primitive
 } // namespace geom
 
-#endif // ANTKEEPER_GEOM_PRIMITIVE_HYPERRECTANGLE_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_HYPERRECTANGLE_HPP

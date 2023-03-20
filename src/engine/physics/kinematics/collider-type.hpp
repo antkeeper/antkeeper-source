@@ -17,11 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#ifndef ANTKEEPER_PHYSICS_COLLIDER_TYPE_HPP
+#define ANTKEEPER_PHYSICS_COLLIDER_TYPE_HPP
 
-extern "C"
+#include <cstdint>
+
+namespace physics {
+
+/**
+ * Collider types.
+ */
+enum class collider_type: std::uint8_t
 {
-	// Direct Nvidia Optimus to use high-performance graphics
-	_declspec(dllexport) DWORD NvOptimusEnablement = 1;
-}
+	/// Plane collider.
+	plane,
+	
+	/// Sphere collider.
+	sphere,
+	
+	/// Box collider.
+	box
+};
+
+} // namespace physics
+
+#endif // ANTKEEPER_PHYSICS_COLLIDER_TYPE_HPP

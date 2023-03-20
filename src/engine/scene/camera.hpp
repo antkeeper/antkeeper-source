@@ -22,7 +22,7 @@
 
 #include <engine/scene/object.hpp>
 #include <engine/geom/view-frustum.hpp>
-#include <engine/geom/primitive/ray.hpp>
+#include <engine/geom/primitives/ray.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/render/compositor.hpp>
 

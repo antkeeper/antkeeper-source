@@ -29,22 +29,26 @@ namespace math {
 /**
  * Calculates a moving average.
  * 
- * @tparam T Value type.
- * @tparam N Sample capacity.
+ * @tparam T Sample value type.
  */
-template <class T, std::size_t N>
+template <class T>
 class moving_average
 {
 public:
 	/// Type of value to average.
-	typedef T value_type;
+	using sample_type = T;
 	
-	/// Constructs a moving average
-	moving_average():
-		m_sample_index{0},
-		m_sum{0},
-		m_average{0}
+	/**
+	 * Constructs a moving average
+	 *
+	 * @param capacity Sample capacity.
+	 */
+	/// @{
+	moving_average(std::size_t capacity):
+		m_samples(capacity)
 	{}
+	moving_average() noexcept = default;
+	/// @}
 	
 	/**
 	 * Adds a sample to the moving average. If the moving average has reached its sample capacity, the oldest sample will be discarded.
@@ -53,22 +57,22 @@ public:
 	 *
 	 * @return Current average value.
 	 */
-	value_type operator()(value_type value) noexcept
+	sample_type operator()(sample_type value) noexcept
 	{
 		m_sum += value;
-		if (m_sample_index < N)
+		if (m_sample_index < m_samples.size())
 		{
 			m_samples[m_sample_index] = value;
 			++m_sample_index;
-			m_average = m_sum / static_cast<value_type>(m_sample_index);
+			m_average = m_sum / static_cast<sample_type>(m_sample_index);
 		}
 		else
 		{
-			value_type& sample = m_samples[m_sample_index % N];
+			sample_type& sample = m_samples[m_sample_index % m_samples.size()];
 			m_sum -= sample;
 			sample = value;
 			++m_sample_index;
-			m_average = m_sum / static_cast<value_type>(N);
+			m_average = m_sum / static_cast<sample_type>(m_samples.size());
 		}
 		
 		return m_average;
@@ -80,24 +84,48 @@ public:
 	void reset() noexcept
 	{
 		m_sample_index = 0;
-		m_sum = value_type{0};
-		m_average = value_type{0};
+		m_sum = sample_type{0};
+		m_average = sample_type{0};
+	}
+	
+	/**
+	 * Changes the sample capacity of the moving average.
+	 *
+	 * @param capacity Sample capacity.
+	 */
+	void reserve(std::size_t capacity)
+	{
+		m_samples.resize(capacity, sample_type{0});
+	}
+	
+	/**
+	 * Changes the current number of samples of the moving average.
+	 *
+	 * @param size Number of samples
+	 */
+	void resize(std::size_t size)
+	{
+		if (size > m_samples.size())
+		{
+			m_samples.resize(size);
+		}
+		m_sample_index = size;
 	}
 	
 	/// Returns a pointer to the sample data.
-	[[nodiscard]] inline constexpr value_type* data() const noexcept
+	[[nodiscard]] inline constexpr sample_type* data() const noexcept
 	{
 		return m_samples.data();
 	}
 	
 	/// Returns the current moving average value.
-	[[nodiscard]] inline value_type average() const noexcept
+	[[nodiscard]] inline sample_type average() const noexcept
 	{
 		return m_average;
 	}
 	
 	///Returns the sum of all current samples.
-	[[nodiscard]] inline value_type sum() const noexcept
+	[[nodiscard]] inline sample_type sum() const noexcept
 	{
 		return m_sum;
 	}
@@ -105,13 +133,13 @@ public:
 	/// Returns the current number of samples.
 	[[nodiscard]] inline std::size_t size() const noexcept
 	{
-		return std::min<std::size_t>(m_sample_index, N);
+		return std::min<std::size_t>(m_sample_index, m_samples.size());
 	}
 	
 	/// Returns the maximum number of samples.
 	[[nodiscard]] inline constexpr std::size_t capacity() const noexcept
 	{
-		return N;
+		return m_samples.size();
 	}
 	
 	/// Return `true` if there are currently no samples in the average, `false` otherwise.
@@ -123,14 +151,14 @@ public:
 	/// Return `true` if the number of samples in the average has reached its capacity, `false` otherwise.
 	[[nodiscard]] inline constexpr bool full() const noexcept
 	{
-		return m_sample_index >= N;
+		return m_sample_index >= m_samples.size();
 	}
 	
 private:
-	std::size_t m_sample_index;
-	value_type m_samples[N];
-	value_type m_sum;
-	value_type m_average;
+	std::vector<sample_type> m_samples;
+	std::size_t m_sample_index{0};
+	sample_type m_sum{0};
+	sample_type m_average{0};
 };
 
 } // namespace math

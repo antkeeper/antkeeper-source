@@ -21,7 +21,7 @@
 #define ANTKEEPER_INPUT_MAPPER_HPP
 
 #include <engine/event/subscription.hpp>
-#include <engine/event/queue.hpp>
+#include <engine/event/dispatcher.hpp>
 #include <engine/event/publisher.hpp>
 #include <engine/input/gamepad-events.hpp>
 #include <engine/input/keyboard-events.hpp>
@@ -39,11 +39,11 @@ class mapper
 {
 public:
 	/**
-	 * Connects the input event signals of an event queue to the mapper.
+	 * Connects the input event signals of an event dispatcher to the mapper.
 	 *
-	 * @param queue Event queue to connect.
+	 * @param dispatcher Event dispatcher to connect.
 	 */
-	void connect(::event::queue& queue);
+	void connect(::event::dispatcher& dispatcher);
 	
 	/**
 	 * Disconnects all input event signals from the mapper.

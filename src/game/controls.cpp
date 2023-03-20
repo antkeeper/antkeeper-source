@@ -458,7 +458,7 @@ void enable_menu_controls(::game& ctx)
 	ctx.menu_mouse_subscriptions.clear();
 	ctx.menu_mouse_subscriptions.emplace_back
 	(
-		ctx.input_manager->get_event_queue().subscribe<input::mouse_moved_event>
+		ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
 		(
 			[&ctx, select_menu_item](const auto& event)
 			{
@@ -469,7 +469,7 @@ void enable_menu_controls(::game& ctx)
 	);
 	ctx.menu_mouse_subscriptions.emplace_back
 	(
-		ctx.input_manager->get_event_queue().subscribe<input::mouse_button_pressed_event>
+		ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_button_pressed_event>
 		(
 			[&ctx, select_menu_item](const auto& event)
 			{

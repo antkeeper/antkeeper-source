@@ -17,19 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_LINE_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_LINE_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_PLANE_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_PLANE_HPP
 
-#include <engine/geom/primitive/hyperplane.hpp>
+#include <engine/geom/primitives/hyperplane.hpp>
 
 namespace geom {
 namespace primitive {
 
-/// 2-dimensional hyperplane.
+/**
+ * 3-dimensional hyperplane.
+ *
+ * @tparam T Real type.
+ */
 template <class T>
-using line = hyperplane<T, 2>;
+using plane = hyperplane<T, 3>;
 
 } // namespace primitive
 } // namespace geom
 
-#endif // ANTKEEPER_GEOM_PRIMITIVE_LINE_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_PLANE_HPP

@@ -17,13 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVE_INTERSECTION_HPP
-#define ANTKEEPER_GEOM_PRIMITIVE_INTERSECTION_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_INTERSECTION_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_INTERSECTION_HPP
 
-#include <engine/geom/primitive/hyperplane.hpp>
-#include <engine/geom/primitive/hyperrectangle.hpp>
-#include <engine/geom/primitive/hypersphere.hpp>
-#include <engine/geom/primitive/ray.hpp>
+#include <engine/geom/primitives/hyperplane.hpp>
+#include <engine/geom/primitives/hyperrectangle.hpp>
+#include <engine/geom/primitives/hypersphere.hpp>
+#include <engine/geom/primitives/ray.hpp>
 #include <algorithm>
 #include <optional>
 
@@ -204,4 +204,4 @@ inline constexpr bool intersection(const hypersphere<T, N>& a, const hypersphere
 } // namespace primitive
 } // namespace geom
 
-#endif // ANTKEEPER_GEOM_PRIMITIVE_INTERSECTION_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_INTERSECTION_HPP
