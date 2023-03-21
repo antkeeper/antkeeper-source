@@ -32,7 +32,7 @@ class sphere_collider: public collider
 {
 public:
 	/// Sphere type.
-	using sphere_type = geom::primitive::sphere<float>;
+	using sphere_type = geom::sphere<float>;
 	
 	[[nodiscard]] inline constexpr collider_type type() const noexcept override
 	{

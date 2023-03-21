@@ -21,7 +21,6 @@
 #define ANTKEEPER_SCENE_BILLBOARD_HPP
 
 #include <engine/scene/object.hpp>
-#include <engine/geom/aabb.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/render/material.hpp>
 #include <engine/render/operation.hpp>
@@ -38,8 +37,6 @@ namespace scene {
 class billboard: public object<billboard>
 {
 public:
-	using aabb_type = geom::aabb<float>;
-	
 	/// Constructs a billboard.
 	billboard();
 	
@@ -69,7 +66,7 @@ public:
 		m_alignment_axis = axis;
 	}
 	
-	[[nodiscard]] inline const bounding_volume_type& get_bounds() const noexcept override
+	[[nodiscard]] inline const aabb_type& get_bounds() const noexcept override
 	{
 		return m_bounds;
 	}
@@ -95,7 +92,7 @@ private:
 	std::unique_ptr<gl::vertex_buffer> m_vbo;
 	std::unique_ptr<gl::vertex_array> m_vao;
 	mutable render::operation m_render_op;
-	aabb_type m_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
+	aabb_type m_bounds{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}};
 	billboard_type m_billboard_type{billboard_type::flat};
 	math::vector<float, 3> m_alignment_axis{0.0f, 1.0f, 0.0f};
 };

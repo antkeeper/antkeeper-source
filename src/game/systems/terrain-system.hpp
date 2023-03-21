@@ -31,7 +31,6 @@
 #include <engine/render/material.hpp>
 #include <engine/scene/static-mesh.hpp>
 #include <engine/scene/collection.hpp>
-#include <engine/geom/view-frustum.hpp>
 #include <unordered_map>
 #include <stack>
 

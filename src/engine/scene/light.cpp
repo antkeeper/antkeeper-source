@@ -18,13 +18,12 @@
  */
 
 #include <engine/scene/light.hpp>
-#include <engine/math/interpolation.hpp>
 
 namespace scene {
 
 void light::transformed()
 {
-	m_bounds = {get_translation(), 0.0f};
+	m_bounds = {get_translation(), get_translation()};
 }
 
 } // namespace scene

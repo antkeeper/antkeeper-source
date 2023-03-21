@@ -92,14 +92,14 @@ void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 		float row_width = 0.0f;
 		
 		// Add name width to row width
-		const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_bounds());
-		row_width += name_bounds.max_point.x() - name_bounds.min_point.x();
+		const auto& name_bounds = name->get_bounds();
+		row_width += name_bounds.max.x() - name_bounds.min.x();
 		
 		if (value)
 		{
 			// Add value width to row width
-			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_bounds());
-			row_width += value_bounds.max_point.x() - value_bounds.min_point.x();
+			const auto& value_bounds = value->get_bounds();
+			row_width += value_bounds.max.x() - value_bounds.min.x();
 			
 			// Add column spacing to row width
 			row_width += column_spacing;
@@ -133,8 +133,8 @@ void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 		
 		if (center || i == ctx.menu_item_texts.size() - 1)
 		{
-			const auto& name_bounds = static_cast<const geom::aabb<float>&>(name->get_bounds());
-			const float name_width =  name_bounds.max_point.x() - name_bounds.min_point.x();
+			const auto& name_bounds = name->get_bounds();
+			const float name_width =  name_bounds.max.x() - name_bounds.min.x();
 			x = viewport_center.x() - name_width * 0.5f;
 		}
 		
@@ -142,8 +142,8 @@ void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 		
 		if (value)
 		{
-			const auto& value_bounds = static_cast<const geom::aabb<float>&>(value->get_bounds());
-			const float value_width =  value_bounds.max_point.x() - value_bounds.min_point.x();
+			const auto& value_bounds = value->get_bounds();
+			const float value_width =  value_bounds.max.x() - value_bounds.min.x();
 			
 			if (center || i == ctx.menu_item_texts.size() - 1)
 				x = viewport_center.x() - value_width * 0.5f;

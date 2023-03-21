@@ -239,8 +239,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	}
 	
 	// Read model bounds
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(model->get_bounds().min_point.data()), 3);
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(model->get_bounds().max_point.data()), 3);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&model->get_bounds()), 6);
 	
 	// Read material count
 	std::uint16_t material_count = 0;

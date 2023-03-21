@@ -29,8 +29,7 @@
 #include <engine/scene/camera.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/scene/light.hpp>
-#include <engine/geom/view-frustum.hpp>
-#include <engine/geom/aabb.hpp>
+#include <engine/geom/primitives/view-frustum.hpp>
 #include <engine/config.hpp>
 #include <engine/math/interpolation.hpp>
 #include <engine/math/vector.hpp>
@@ -159,7 +158,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 	
 	// Calculate viewports for each shadow map
 	const int shadow_map_resolution = static_cast<int>(light.get_shadow_framebuffer()->get_depth_attachment()->get_width());
-	const int cascade_resolution = shadow_map_resolution / 2;
+	const int cascade_resolution = shadow_map_resolution >> 1;
 	int4 shadow_map_viewports[4];
 	for (int i = 0; i < 4; ++i)
 	{
@@ -173,16 +172,26 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 		viewport[3] = cascade_resolution;
 	}
 	
-	// Calculate a view-projection matrix from the directional light's transform
-	const auto& light_transform = light.get_transform();
-	float3 forward = light_transform.rotation * config::global_forward;
-	float3 up = light_transform.rotation * config::global_up;
-	float4x4 light_view = math::look_at(light_transform.translation, light_transform.translation + forward, up);
-	float4x4 light_projection = math::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-	float4x4 light_view_projection = light_projection * light_view;
+	// Reverse half z clip-space coordinates of a cube
+	constexpr math::vector<float, 4> clip_space_cube[8] =
+	{
+		{-1, -1, 1, 1}, // NBL
+		{ 1, -1, 1, 1}, // NBR
+		{-1,  1, 1, 1}, // NTL
+		{ 1,  1, 1, 1}, // NTR
+		{-1, -1, 0, 1}, // FBL
+		{ 1, -1, 0, 1}, // FBR
+		{-1,  1, 0, 1}, // FTL
+		{ 1,  1, 0, 1}  // FTR
+	};
 	
-	float4x4 cropped_view_projection;
-	float4x4 model_view_projection;
+	// Calculate world-space corners of camera view frustum
+	math::vector<float, 3> view_frustum_corners[8];
+	for (std::size_t i = 0; i < 8; ++i)
+	{
+		math::vector<float, 4> corner = camera.get_inverse_view_projection() * clip_space_cube[i];
+		view_frustum_corners[i] = math::vector<float, 3>(corner) / corner[3];
+	}
 	
 	// Sort render operations
 	std::sort(std::execution::par_unseq, ctx.operations.begin(), ctx.operations.end(), operation_compare);
@@ -195,47 +204,68 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 		const int4& viewport = shadow_map_viewports[i];
 		rasterizer->set_viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 		
-		// Calculate projection matrix for view camera subfrustum
-		const float subfrustum_near = (i) ? cascade_distances[i - 1] : camera.get_clip_near();
-		const float subfrustum_far = cascade_distances[i];
-		float4x4 subfrustum_projection = math::perspective_half_z(camera.get_fov(), camera.get_aspect_ratio(), subfrustum_near, subfrustum_far);
-		
-		// Calculate view camera subfrustum
-		geom::view_frustum<float> subfrustum(subfrustum_projection * camera.get_view());
-		
-		// Create AABB containing the view camera subfrustum corners
-		const std::array<float3, 8>& subfrustum_corners = subfrustum.get_corners();
-		geom::aabb<float> subfrustum_aabb = {subfrustum_corners[0], subfrustum_corners[0]};
-		for (int j = 1; j < 8; ++j)
+		// Calculate world-space corners and center of camera subfrustum
+		const float t_near = (i) ? cascade_distances[i - 1] / camera.get_clip_far() : 0.0f;
+		const float t_far = cascade_distances[i] / camera.get_clip_far();
+		math::vector<float, 3> subfrustum_center{0, 0, 0};
+		math::vector<float, 3> subfrustum_corners[8];
+		for (std::size_t i = 0; i < 4; ++i)
 		{
-			subfrustum_aabb.min_point = math::min(subfrustum_aabb.min_point, subfrustum_corners[j]);
-			subfrustum_aabb.max_point = math::max(subfrustum_aabb.max_point, subfrustum_corners[j]);
+			subfrustum_corners[i] = math::lerp(view_frustum_corners[i], view_frustum_corners[i + 4], t_near);
+			subfrustum_corners[i + 4] = math::lerp(view_frustum_corners[i], view_frustum_corners[i + 4], t_far);
+			
+			subfrustum_center += subfrustum_corners[i];
+			subfrustum_center += subfrustum_corners[i + 4];
+		}
+		subfrustum_center *= (1.0f / 8.0f);
+		
+		// Calculate a view-projection matrix from the light's point-of-view
+		const float3 light_up = light.get_rotation() * config::global_up;
+		float4x4 light_view = math::look_at(subfrustum_center, subfrustum_center + light.get_direction(), light_up);
+		float4x4 light_projection = math::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+		float4x4 light_view_projection = light_projection * light_view;
+		
+		// Calculate AABB of the subfrustum corners in light clip-space
+		geom::box<float> cropping_bounds;
+		cropping_bounds.min = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
+		cropping_bounds.max = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+		for (std::size_t i = 0; i < 8; ++i)
+		{
+			math::vector<float, 4> corner4 = math::vector<float, 4>(subfrustum_corners[i]);
+			corner4[3] = 1.0f;
+			corner4 = light_view_projection * corner4;
+			
+			const math::vector<float, 3> corner3 = math::vector<float, 3>(corner4) / corner4[3];
+			
+			cropping_bounds.min = math::min(cropping_bounds.min, corner3);
+			cropping_bounds.max = math::max(cropping_bounds.max, corner3);
 		}
 		
-		// Transform subfrustum AABB into the light clip-space
-		geom::aabb<float> cropping_bounds = geom::aabb<float>::transform(subfrustum_aabb, light_view_projection);
-		
 		// Quantize clip-space coordinates
-		const float texel_scale_x = (cropping_bounds.max_point.x() - cropping_bounds.min_point.x()) / static_cast<float>(cascade_resolution);
-		const float texel_scale_y = (cropping_bounds.max_point.y() - cropping_bounds.min_point.y()) / static_cast<float>(cascade_resolution);
-		cropping_bounds.min_point.x() = std::floor(cropping_bounds.min_point.x() / texel_scale_x) * texel_scale_x;
-		cropping_bounds.max_point.x() = std::floor(cropping_bounds.max_point.x() / texel_scale_x) * texel_scale_x;
-		cropping_bounds.min_point.y() = std::floor(cropping_bounds.min_point.y() / texel_scale_y) * texel_scale_y;
-		cropping_bounds.max_point.y() = std::floor(cropping_bounds.max_point.y() / texel_scale_y) * texel_scale_y;
+		const float texel_scale_x = (cropping_bounds.max.x() - cropping_bounds.min.x()) / static_cast<float>(cascade_resolution);
+		const float texel_scale_y = (cropping_bounds.max.y() - cropping_bounds.min.y()) / static_cast<float>(cascade_resolution);
+		cropping_bounds.min.x() = std::floor(cropping_bounds.min.x() / texel_scale_x) * texel_scale_x;
+		cropping_bounds.max.x() = std::floor(cropping_bounds.max.x() / texel_scale_x) * texel_scale_x;
+		cropping_bounds.min.y() = std::floor(cropping_bounds.min.y() / texel_scale_y) * texel_scale_y;
+		cropping_bounds.max.y() = std::floor(cropping_bounds.max.y() / texel_scale_y) * texel_scale_y;
 		
-		// Recalculate light projection matrix with quantized coordinates
+		/// @NOTE: light z should be modified here to included shadow casters outside the view frustum
+		// cropping_bounds.min.z() -= 10.0f;
+		// cropping_bounds.max.z() += 10.0f;
+		
+		// Crop light projection matrix
 		light_projection = math::ortho_half_z
 		(
-			cropping_bounds.min_point.x(), cropping_bounds.max_point.x(),
-			cropping_bounds.min_point.y(), cropping_bounds.max_point.y(),
-			cropping_bounds.min_point.z(), cropping_bounds.max_point.z()
+			cropping_bounds.min.x(), cropping_bounds.max.x(),
+			cropping_bounds.min.y(), cropping_bounds.max.y(),
+			cropping_bounds.min.z(), cropping_bounds.max.z()
 		);
 		
-		// Calculate cropped view projection matrix
-		cropped_view_projection = light_projection * light_view;
+		// Recalculate light view projection matrix
+		light_view_projection = light_projection * light_view;
 		
 		// Calculate world-space to cascade texture-space transformation matrix
-		cascade_matrices[i] = bias_tile_matrices[i] * cropped_view_projection;
+		cascade_matrices[i] = bias_tile_matrices[i] * light_view_projection;
 		
 		for (const render::operation* operation: ctx.operations)
 		{
@@ -244,7 +274,9 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 			{
 				// Skip materials which don't cast shadows
 				if (material->get_shadow_mode() == material_shadow_mode::none)
+				{
 					continue;
+				}
 				
 				if (material->is_two_sided() != two_sided)
 				{
@@ -270,7 +302,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 			}
 			
 			// Calculate model-view-projection matrix
-			model_view_projection = cropped_view_projection * operation->transform;
+			float4x4 model_view_projection = light_view_projection * operation->transform;
 			
 			// Upload operation-dependent parameters to shader program
 			if (active_shader_program == unskinned_shader_program.get())

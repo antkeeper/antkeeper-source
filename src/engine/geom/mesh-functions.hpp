@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GEOM_MESH_FUNCTIONS_HPP
 #define ANTKEEPER_GEOM_MESH_FUNCTIONS_HPP
 
-#include <engine/geom/aabb.hpp>
+#include <engine/geom/primitives/box.hpp>
 #include <engine/geom/mesh.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <array>
@@ -59,7 +59,7 @@ void calculate_vertex_tangents(float4* tangents, const float2* texcoords, const 
 /**
  * Calculates the AABB bounds of a mesh.
  */
-aabb<float> calculate_bounds(const mesh& mesh);
+box<float> calculate_bounds(const mesh& mesh);
 
 /**
  * Triangulates a face by adding a new vertex in the center, then creating triangles between the edges of the original face and the new vertex.

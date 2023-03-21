@@ -124,7 +124,7 @@ void billboard::render(render::context& ctx) const
 			break;
 	}
 	
-	m_render_op.depth = ctx.camera->get_view_frustum().get_near().signed_distance(get_translation());
+	m_render_op.depth = ctx.camera->get_view_frustum().near().distance(get_translation());
 	
 	ctx.operations.emplace_back(&m_render_op);
 }
@@ -146,9 +146,7 @@ void billboard::set_billboard_type(billboard_type type)
 
 void billboard::transformed()
 {
-	static const aabb_type untransformed_bounds{{-1, -1, -1}, {1, 1, 1}};
-	
-	m_bounds = aabb_type::transform(untransformed_bounds, get_transform());
+	m_bounds = {get_translation() - get_scale(), get_translation() + get_scale()};
 	
 	if (m_billboard_type == scene::billboard_type::flat)
 	{

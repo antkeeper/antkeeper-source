@@ -23,7 +23,7 @@
 #include <engine/geom/primitives/hypersphere.hpp>
 
 namespace geom {
-namespace primitive {
+namespace primitives {
 
 /**
  * 3-dimensional hypersphere.
@@ -33,7 +33,7 @@ namespace primitive {
 template <class T>
 using sphere = hypersphere<T, 3>;
 
-} // namespace primitive
+} // namespace primitives
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_PRIMITIVES_SPHERE_HPP

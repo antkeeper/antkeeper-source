@@ -22,7 +22,6 @@
 
 #include "game/systems/updatable-system.hpp"
 #include <engine/entity/id.hpp>
-#include "game/components/collision-component.hpp"
 #include <engine/geom/primitives/ray.hpp>
 
 
@@ -45,7 +44,7 @@ public:
 	 *
 	 * @return ID of the picked entity, or `entt::null` if no entity was picked.
 	 */
-	entity::id pick_nearest(const geom::primitive::ray<float, 3>& ray, std::uint32_t flags) const;
+	entity::id pick_nearest(const geom::ray<float, 3>& ray, std::uint32_t flags) const;
 	
 	/**
 	 * Picks the nearest entity with the specified picking flags that has a non-negative distance from a plane.
@@ -56,12 +55,7 @@ public:
 	 *
 	 * @return ID of the picked entity, or `entt::null` if no entity was picked.
 	 */
-	entity::id pick_nearest(const float3& origin, const float3& normal, std::uint32_t flags) const;
-
-private:	
-	void on_collision_construct(entity::registry& registry, entity::id entity_id);
-	void on_collision_update(entity::registry& registry, entity::id entity_id);
-	void on_collision_destroy(entity::registry& registry, entity::id entity_id);
+	entity::id pick_nearest(const math::vector<float, 3>& origin, const math::vector<float, 3>& normal, std::uint32_t flags) const;
 };
 
 

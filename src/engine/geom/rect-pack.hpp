@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GEOM_RECT_PACK_HPP
 #define ANTKEEPER_GEOM_RECT_PACK_HPP
 
-#include <engine/geom/rect.hpp>
+#include <engine/geom/primitives/rectangle.hpp>
 #include <memory>
 
 namespace geom {
@@ -34,16 +34,16 @@ template <class T>
 struct rect_pack_node
 {
 	/// Scalar type.
-	typedef T scalar_type;
+	using scalar_type = T;
 	
 	/// Rect type.
-	typedef rect<T> rect_type;
+	using rect_type = rectangle<T>;
 	
 	/// Pointers to the two children of the node, if any.
 	std::unique_ptr<rect_pack_node> children[2];
 	
 	/// Bounds of the node.
-	rect_type bounds{T{0}, T{0}, T{0}, T{0}};
+	rect_type bounds{{T{0}, T{0}}, {T{0}, T{0}}};
 	
 	/// `true` if the node is occupied, `false` otherwise.
 	bool occupied{false};
@@ -61,10 +61,10 @@ class rect_pack
 {
 public:
 	/// Scalar type.
-	typedef T scalar_type;
+	using scalar_type = T;
 	
 	/// Node type.
-	typedef rect_pack_node<T> node_type;
+	using node_type = rect_pack_node<T>;
 	
 	/**
 	 * Creates a rect pack and sets the bounds of the root node.
@@ -127,7 +127,7 @@ template <class T>
 void rect_pack<T>::resize(scalar_type w, scalar_type h)
 {
 	clear();
-	root.bounds = {T(0), T(0), w, h};
+	root.bounds = {{T{0}, T{0}}, {w, h}};
 }
 
 template <class T>
@@ -159,7 +159,9 @@ typename rect_pack<T>::node_type* rect_pack<T>::insert(node_type& node, scalar_t
 		// Attempt to insert into first child
 		node_type* result = insert(*node.children[0], w, h);
 		if (result)
+		{
 			return result;
+		}
 		
 		// Cannot fit in first child, attempt to insert into second child
 		return insert(*node.children[1], w, h);
@@ -168,7 +170,9 @@ typename rect_pack<T>::node_type* rect_pack<T>::insert(node_type& node, scalar_t
 	
 	// Abort if node occupied
 	if (node.occupied)
+	{
 		return nullptr;
+	}
 	
 	// Determine node dimensions
 	scalar_type node_w = node.bounds.max.x() - node.bounds.min.x();
@@ -176,7 +180,9 @@ typename rect_pack<T>::node_type* rect_pack<T>::insert(node_type& node, scalar_t
 	
 	// Check if rect is larger than node
 	if (w > node_w || h > node_h)
+	{
 		return nullptr;
+	}
 	
 	// Check for a perfect fit
 	if (w == node_w && h == node_h)

@@ -163,9 +163,9 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	selection_text.set_material(ctx.menu_font_material);
 	selection_text.set_color({1.0f, 1.0f, 1.0f, 1.0f});
 	selection_text.set_font(&ctx.menu_font);
-	const auto& text_aabb = static_cast<const geom::aabb<float>&>(selection_text.get_bounds());
-	float text_w = text_aabb.max_point.x() - text_aabb.min_point.x();
-	float text_h = text_aabb.max_point.y() - text_aabb.min_point.y();
+	const auto& text_aabb = selection_text.get_bounds();
+	float text_w = text_aabb.max.x() - text_aabb.min.x();
+	float text_h = text_aabb.max.y() - text_aabb.min.y();
 	selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font.get_font_metrics().size), 0.0f});
 	
 	// Add text to UI
@@ -564,7 +564,7 @@ void nuptial_flight_state::setup_controls()
 				};
 				
 				// Get picking ray from camera
-				const geom::primitive::ray<float, 3> ray = ctx.surface_camera->pick(mouse_ndc);
+				const geom::ray<float, 3> ray = ctx.surface_camera->pick(mouse_ndc);
 				
 				// Pick entity
 				entity::id picked_eid = ctx.collision_system->pick_nearest(ray, ~selected_picking_flag);
@@ -821,7 +821,7 @@ void nuptial_flight_state::enable_controls()
 			};
 			
 			// Get picking ray from camera
-			const geom::primitive::ray<float, 3> ray = ctx.surface_camera->pick(mouse_ndc);
+			const geom::ray<float, 3> ray = ctx.surface_camera->pick(mouse_ndc);
 			
 			// Pick entity
 			entity::id picked_eid = ctx.collision_system->pick_nearest(ray, ~selected_picking_flag);
@@ -1101,9 +1101,9 @@ void nuptial_flight_state::select_entity(entity::id entity_id)
 			}
 			
 			const auto& viewport_size = ctx.window->get_viewport_size();
-			const auto& text_aabb = static_cast<const geom::aabb<float>&>(selection_text.get_bounds());
-			float text_w = text_aabb.max_point.x() - text_aabb.min_point.x();
-			float text_h = text_aabb.max_point.y() - text_aabb.min_point.y();
+			const auto& text_aabb = selection_text.get_bounds();
+			float text_w = text_aabb.max.x() - text_aabb.min.x();
+			float text_h = text_aabb.max.y() - text_aabb.min.y();
 			selection_text.set_translation({std::round(viewport_size.x() * 0.5f - text_w * 0.5f), std::round(ctx.menu_font.get_font_metrics().size), 0.0f});
 		}
 	}

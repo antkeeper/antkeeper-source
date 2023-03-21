@@ -23,7 +23,7 @@
 #include <engine/math/vector.hpp>
 
 namespace geom {
-namespace primitive {
+namespace primitives {
 
 /**
  * *n*-dimensional line segment.
@@ -54,7 +54,10 @@ struct line_segment
 	}
 };
 
-} // namespace primitive
+} // namespace primitives
+
+using namespace primitives;
+
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_PRIMITIVES_LINE_SEGMENT_HPP

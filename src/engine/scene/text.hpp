@@ -21,7 +21,6 @@
 #define ANTKEEPER_SCENE_TEXT_HPP
 
 #include <engine/scene/object.hpp>
-#include <engine/geom/aabb.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
@@ -37,8 +36,6 @@ namespace scene {
 class text: public object<text>
 {
 public:
-	using aabb_type = geom::aabb<float>;
-	
 	/// Constructs a text object.
 	text();
 	
@@ -116,7 +113,7 @@ public:
 		return m_color;
 	}
 	
-	[[nodiscard]] inline virtual const bounding_volume_type& get_bounds() const noexcept
+	[[nodiscard]] inline const aabb_type& get_bounds() const noexcept override
 	{
 		return m_world_bounds;
 	}

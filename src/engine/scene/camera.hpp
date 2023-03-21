@@ -21,7 +21,7 @@
 #define ANTKEEPER_SCENE_CAMERA_HPP
 
 #include <engine/scene/object.hpp>
-#include <engine/geom/view-frustum.hpp>
+#include <engine/geom/primitives/view-frustum.hpp>
 #include <engine/geom/primitives/ray.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/render/compositor.hpp>
@@ -35,6 +35,7 @@ namespace scene {
 class camera: public object<camera>
 {
 public:
+	/// Camera view frustum type.
 	using view_frustum_type = geom::view_frustum<float>;
 	
 	/**
@@ -44,7 +45,7 @@ public:
 	 *
 	 * @return Picking ray.
 	 */
-	[[nodiscard]] geom::primitive::ray<float, 3> pick(const float2& ndc) const;
+	[[nodiscard]] geom::ray<float, 3> pick(const float2& ndc) const;
 
 	/**
 	 * Maps object coordinates to window coordinates.
@@ -133,9 +134,9 @@ public:
 		return m_composite_index;
 	}
 	
-	[[nodiscard]] inline const bounding_volume_type& get_bounds() const noexcept override
+	[[nodiscard]] inline const aabb_type& get_bounds() const noexcept override
 	{
-		return m_view_frustum.get_bounds();
+		return m_bounds;
 	}
 	
 	/// Returns `true` if the camera uses an orthographic projection matrix, `false` otherwise.
@@ -222,6 +223,12 @@ public:
 		return m_view_projection;
 	}
 	
+	/// Returns the camera's inverse view-projection matrix.
+	[[nodiscard]] inline const float4x4& get_inverse_view_projection() const noexcept
+	{
+		return m_inverse_view_projection;
+	}
+	
 	/// Returns the camera's forward vector.
 	[[nodiscard]] inline const math::vector<float, 3>& get_forward() const noexcept
 	{
@@ -242,6 +249,7 @@ public:
 
 private:
 	virtual void transformed();
+	void update_frustum();
 
 	render::compositor* m_compositor{nullptr};
 	int m_composite_index{0};
@@ -262,11 +270,14 @@ private:
 	float4x4 m_view{float4x4::identity()};
 	float4x4 m_projection{float4x4::identity()};
 	float4x4 m_view_projection{float4x4::identity()};
+	float4x4 m_inverse_view_projection{float4x4::identity()};
 	
 	math::vector<float, 3> m_forward{0.0f, 0.0f, -1.0f};
 	math::vector<float, 3> m_up{0.0f, 1.0f, 0.0f};
 	
 	view_frustum_type m_view_frustum;
+	
+	aabb_type m_bounds{{0, 0, 0}, {0, 0, 0}};
 };
 
 } // namespace scene

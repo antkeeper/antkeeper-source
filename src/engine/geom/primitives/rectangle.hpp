@@ -23,7 +23,7 @@
 #include <engine/geom/primitives/hyperrectangle.hpp>
 
 namespace geom {
-namespace primitive {
+namespace primitives {
 
 /**
  * 2-dimensional hyperrectangle.
@@ -33,7 +33,7 @@ namespace primitive {
 template <class T>
 using rectangle = hyperrectangle<T, 2>;
 
-} // namespace primitive
+} // namespace primitives
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_PRIMITIVES_RECTANGLE_HPP

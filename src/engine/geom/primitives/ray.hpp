@@ -25,7 +25,7 @@
 #include <cmath>
 
 namespace geom {
-namespace primitive {
+namespace primitives {
 
 /**
  * Half of a line proceeding from an initial point.
@@ -95,7 +95,10 @@ struct ray
 	}
 };
 
-} // namespace primitive
+} // namespace primitives
+
+using namespace primitives;
+
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_PRIMITIVES_RAY_HPP

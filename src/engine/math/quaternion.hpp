@@ -24,8 +24,6 @@
 #include <engine/math/matrix.hpp>
 #include <engine/math/vector.hpp>
 #include <cmath>
-#include <istream>
-#include <ostream>
 
 namespace math {
 
@@ -38,13 +36,13 @@ template <class T>
 struct quaternion
 {
 	/// Scalar type.
-	typedef T scalar_type;
+	using scalar_type = T;
 	
 	/// Vector type.
-	typedef vector<T, 3> vector_type;
+	using vector_type = vector<T, 3>;
 	
 	/// Rotation matrix type.
-	typedef matrix<T, 3, 3> matrix_type;
+	using matrix_type = matrix<T, 3, 3>;
 	
 	/// Quaternion real part.
 	scalar_type r;
@@ -109,7 +107,7 @@ struct quaternion
 	 */
 	[[nodiscard]] static quaternion rotate_x(scalar_type angle)
 	{
-		return {std::cos(angle * T(0.5)), std::sin(angle * T(0.5)), T(0), T(0)};
+		return {std::cos(angle * T{0.5}), std::sin(angle * T{0.5}), T{0}, T{0}};
 	}
 	
 	/**
@@ -121,7 +119,7 @@ struct quaternion
 	 */
 	[[nodiscard]] static quaternion rotate_y(scalar_type angle)
 	{
-		return {std::cos(angle * T(0.5)), T(0), std::sin(angle * T(0.5)), T(0)};
+		return {std::cos(angle * T{0.5}), T{0}, std::sin(angle * T{0.5}), T{0}};
 	}
 	
 	/**
@@ -132,7 +130,7 @@ struct quaternion
 	 */
 	[[nodiscard]] static quaternion rotate_z(scalar_type angle)
 	{
-		return {std::cos(angle * T(0.5)), T(0), T(0), std::sin(angle * T(0.5))};
+		return {std::cos(angle * T{0.5}), T{0}, T{0}, std::sin(angle * T{0.5})};
 	}
 	
 	/**
@@ -167,9 +165,9 @@ struct quaternion
 
 		return
 		{
-			T(1) - (yy + zz) * T(2), (xy + zw) * T(2), (xz - yw) * T(2),
-			(xy - zw) * T(2), T(1) - (xx + zz) * T(2), (yz + xw) * T(2),
-			(xz + yw) * T(2), (yz - xw) * T(2), T(1) - (xx + yy) * T(2)
+			T{1} - (yy + zz) * T{2}, (xy + zw) * T{2}, (xz - yw) * T{2},
+			(xy - zw) * T{2}, T{1} - (xx + zz) * T{2}, (yz + xw) * T{2},
+			(xz + yw) * T{2}, (yz - xw) * T{2}, T{1} - (xx + yy) * T{2}
 		};
 	}
 	
@@ -580,7 +578,7 @@ inline constexpr quaternion<T> mul(const quaternion<T>& a, T b) noexcept
 template <class T>
 constexpr vector<T, 3> mul(const quaternion<T>& a, const vector<T, 3>& b) noexcept
 {
-	return a.i * dot(a.i, b) * T(2) + b * (a.r * a.r - sqr_length(a.i)) + cross(a.i, b) * a.r * T(2);
+	return a.i * dot(a.i, b) * T{2} + b * (a.r * a.r - sqr_length(a.i)) + cross(a.i, b) * a.r * T{2};
 }
 
 template <class T>
@@ -598,7 +596,7 @@ inline constexpr quaternion<T> negate(const quaternion<T>& q) noexcept
 template <class T>
 quaternion<T> nlerp(const quaternion<T>& a, const quaternion<T>& b, T t)
 {
-	return normalize(add(mul(a, T(1) - t), mul(b, t * std::copysign(T(1), dot(a, b)))));
+	return normalize(add(mul(a, T{1} - t), mul(b, t * std::copysign(T{1}, dot(a, b)))));
 }
 
 template <class T>
@@ -610,8 +608,7 @@ inline quaternion<T> normalize(const quaternion<T>& q)
 template <class T>
 quaternion<T> angle_axis(T angle, const vector<T, 3>& axis)
 {
-	angle *= T{0.5};
-	return {std::cos(angle), axis * std::sin(angle)};
+	return {std::cos(angle * T{0.5}), axis * std::sin(angle * T{0.5})};
 }
 
 template <class T>
@@ -626,14 +623,16 @@ template <class T>
 quaternion<T> slerp(const quaternion<T>& a, const quaternion<T>& b, T t, T error)
 {
 	T cos_theta = dot(a, b);
-
-	if (cos_theta > T(1) - error)
+	if (cos_theta > T{1} - error)
+	{
 		return normalize(lerp(a, b, t));
+	}
 
-	cos_theta = std::max<T>(T(-1), std::min<T>(T(1), cos_theta));
+	cos_theta = std::max<T>(T{-1}, std::min<T>(T{1}, cos_theta));
+	
 	const T theta = std::acos(cos_theta) * t;
 	
-	quaternion<T> c = normalize(sub(b, mul(a, cos_theta)));
+	const quaternion<T> c = normalize(sub(b, mul(a, cos_theta)));
 	
 	return add(mul(a, std::cos(theta)), mul(c, std::sin(theta)));
 }
@@ -677,9 +676,13 @@ void swing_twist(const quaternion<T>& q, const vector<T, 3>& a, quaternion<T>& q
 		const vector<T, 3> qa = mul(q, a);
 		const vector<T, 3> sa = cross(a, qa);
 		if (sqr_length(sa) > error)
+		{
 			qs = angle_axis(std::acos(dot(a, qa)), sa);
+		}
 		else
+		{
 			qs = quaternion<T>::identity();
+		}
 	}
 }
 
@@ -688,12 +691,12 @@ quaternion<T> quaternion_cast(const matrix<T, 3, 3>& m)
 {
 	const T t = trace(m);
 	
-	if (t > T(0))
+	if (t > T{0})
 	{
-		T s = T(0.5) / std::sqrt(t + T(1));
+		const T s = T{0.5} / std::sqrt(t + T{1});
 		return
 		{
-			T(0.25) / s,
+			T{0.25} / s,
 			(m[1][2] - m[2][1]) * s,
 			(m[2][0] - m[0][2]) * s,
 			(m[0][1] - m[1][0]) * s
@@ -703,36 +706,36 @@ quaternion<T> quaternion_cast(const matrix<T, 3, 3>& m)
 	{
 		if (m[0][0] > m[1][1] && m[0][0] > m[2][2])
 		{
-			T s = T(2) * std::sqrt(T(1) + m[0][0] - m[1][1] - m[2][2]);
+			const T s = T{2} * std::sqrt(T{1} + m[0][0] - m[1][1] - m[2][2]);
 			
 			return
 			{
 				(m[1][2] - m[2][1]) / s,
-				T(0.25) * s,
+				T{0.25} * s,
 				(m[1][0] + m[0][1]) / s,
 				(m[2][0] + m[0][2]) / s
 			};
 		}
 		else if (m[1][1] > m[2][2])
 		{
-			T s = T(2) * std::sqrt(T(1) + m[1][1] - m[0][0] - m[2][2]);
+			const T s = T{2} * std::sqrt(T{1} + m[1][1] - m[0][0] - m[2][2]);
 			return
 			{
 				(m[2][0] - m[0][2]) / s,
 				(m[1][0] + m[0][1]) / s,
-				T(0.25) * s,
+				T{0.25} * s,
 				(m[2][1] + m[1][2]) / s
 			};
 		}
 		else
 		{
-			T s = T(2) * std::sqrt(T(1) + m[2][2] - m[0][0] - m[1][1]);
+			const T s = T{2} * std::sqrt(T{1} + m[2][2] - m[0][0] - m[1][1]);
 			return
 			{
 				(m[0][1] - m[1][0]) / s,
 				(m[2][0] + m[0][2]) / s,
 				(m[2][1] + m[1][2]) / s,
-				T(0.25) * s
+				T{0.25} * s
 			};
 		}
 	}
@@ -928,37 +931,6 @@ inline constexpr quaternion<T>& operator/=(quaternion<T>& a, T b) noexcept
 	return (a = a / b);
 }
 /// @}
-
-/**
- * Writes the real and imaginary parts of a quaternion to an output stream, with each number delimeted by a space.
- *
- * @param os Output stream.
- * @param q Quaternion.
- *
- * @return Output stream.
- */
-template <class T>
-std::ostream& operator<<(std::ostream& os, const math::quaternion<T>& q)
-{
-	os << q.r << ' ' << q.i;
-	return os;
-}
-
-/**
- * Reads the real and imaginary parts of a quaternion from an input stream, with each number delimeted by a space.
- *
- * @param is Input stream.
- * @param q Quaternion.
- *
- * @return Input stream.
- */
-template <class T>
-std::istream& operator>>(std::istream& is, const math::quaternion<T>& q)
-{
-	is >> q.r;
-	is >> q.i;
-	return is;
-}
 
 } // namespace operators
 

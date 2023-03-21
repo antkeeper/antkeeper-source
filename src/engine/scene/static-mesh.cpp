@@ -83,7 +83,16 @@ void static_mesh::update_bounds()
 {
 	if (m_model)
 	{
-		m_bounds = aabb_type::transform(m_model->get_bounds(), get_transform());
+		// Get model bounds
+		const auto& model_bounds = m_model->get_bounds();
+		
+		// Naive algorithm: transform each corner of the model AABB
+		m_bounds.min = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
+		m_bounds.max = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+		for (std::size_t i = 0; i < 8; ++i)
+		{
+			m_bounds.extend(get_transform() * model_bounds.corner(i));
+		}
 	}
 	else
 	{
@@ -104,7 +113,7 @@ void static_mesh::transformed()
 
 void static_mesh::render(render::context& ctx) const
 {
-	const float depth = ctx.camera->get_view_frustum().get_near().signed_distance(get_translation());
+	const float depth = ctx.camera->get_view_frustum().near().distance(get_translation());
 	for (auto& operation: m_operations)
 	{
 		operation.depth = depth;

@@ -20,15 +20,14 @@
 #include <engine/scene/camera.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/projection.hpp>
+#include <engine/debug/log.hpp>
 
 namespace scene {
 
-geom::primitive::ray<float, 3> camera::pick(const float2& ndc) const
+geom::ray<float, 3> camera::pick(const float2& ndc) const
 {
-	const float4x4 inverse_view_projection = math::inverse(m_view_projection);
-	
-	const float4 near = inverse_view_projection * float4{ndc[0], ndc[1], 1.0f, 1.0f};
-	const float4 far = inverse_view_projection * float4{ndc[0], ndc[1], 0.0f, 1.0f};
+	const float4 near = m_inverse_view_projection * float4{ndc[0], ndc[1], 1.0f, 1.0f};
+	const float4 far = m_inverse_view_projection * float4{ndc[0], ndc[1], 0.0f, 1.0f};
 	
 	const float3 origin = float3{near[0], near[1], near[2]} / near[3];
 	const float3 direction = math::normalize(float3{far[0], far[1], far[2]} / far[3] - origin);
@@ -59,7 +58,7 @@ float3 camera::unproject(const float3& window, const float4& viewport) const
 	result[2] = 1.0f - window[2]; // z: [1, 0]
 	result[3] = 1.0f;
 	
-	result = math::inverse(m_view_projection) * result;
+	result = m_inverse_view_projection * result;
 
 	return math::vector<float, 3>(result) * (1.0f / result[3]);
 }
@@ -79,10 +78,10 @@ void camera::set_perspective(float fov, float aspect_ratio, float clip_near, flo
 	
 	// Recalculate view-projection matrix
 	m_view_projection = m_projection * m_view;
+	m_inverse_view_projection = math::inverse(m_view_projection);
 	
 	// Recalculate view frustum
-	/// @TODO: this is a hack to fix the half z projection matrix view frustum
-	m_view_frustum.set_matrix(math::perspective(m_fov, m_aspect_ratio, m_clip_near, m_clip_far) * m_view);
+	update_frustum();
 }
 
 void camera::set_orthographic(float clip_left, float clip_right, float clip_bottom, float clip_top, float clip_near, float clip_far)
@@ -102,9 +101,10 @@ void camera::set_orthographic(float clip_left, float clip_right, float clip_bott
 	
 	// Recalculate view-projection matrix
 	m_view_projection = m_projection * m_view;
+	m_inverse_view_projection = math::inverse(m_view_projection);
 	
 	// Recalculate view frustum
-	m_view_frustum.set_matrix(m_view_projection);
+	update_frustum();
 }
 
 void camera::set_exposure_value(float ev100)
@@ -120,16 +120,36 @@ void camera::transformed()
 	m_up = get_rotation() * math::vector<float, 3>{0.0f, 1.0f, 0.0f};
 	m_view = math::look_at(get_translation(), get_translation() + m_forward, m_up);
 	m_view_projection = m_projection * m_view;
+	m_inverse_view_projection = math::inverse(m_view_projection);
 	
+	update_frustum();
+}
+
+void camera::update_frustum()
+{
 	// Recalculate view frustum
-	if (m_orthographic)
+	m_view_frustum.extract(m_view_projection);
+	
+	// Reverse half z clip-space coordinates of a cube
+	constexpr math::vector<float, 4> clip_space_cube[8] =
 	{
-		m_view_frustum.set_matrix(m_view_projection);
-	}
-	else
+		{-1, -1, 1, 1}, // NBL
+		{ 1, -1, 1, 1}, // NBR
+		{-1,  1, 1, 1}, // NTL
+		{ 1,  1, 1, 1}, // NTR
+		{-1, -1, 0, 1}, // FBL
+		{ 1, -1, 0, 1}, // FBR
+		{-1,  1, 0, 1}, // FTL
+		{ 1,  1, 0, 1}  // FTR
+	};
+	
+	// Update bounds
+	m_bounds.min = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
+	m_bounds.max = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+	for (std::size_t i = 0; i < 8; ++i)
 	{
-		/// @TODO: this is a hack to fix the half z projection matrix view frustum
-		m_view_frustum.set_matrix(math::perspective(m_fov, m_aspect_ratio, m_clip_near, m_clip_far) * m_view);
+		const math::vector<float, 4> frustum_corner = m_inverse_view_projection * clip_space_cube[i];
+		m_bounds.extend(math::vector<float, 3>(frustum_corner) / frustum_corner[3]);
 	}
 }
 

@@ -23,7 +23,6 @@
 #include <engine/math/angles.hpp>
 #include "game/components/atmosphere-component.hpp"
 #include "game/components/behavior-component.hpp"
-#include "game/components/collision-component.hpp"
 #include "game/components/diffuse-reflector-component.hpp"
 #include "game/components/terrain-component.hpp"
 #include "game/components/transform-component.hpp"
@@ -150,27 +149,6 @@ static bool load_component_celestial_body(entity::archetype& archetype, const js
 	return true;
 }
 
-static bool load_component_collision(entity::archetype& archetype, resource_manager& resource_manager, const json& element)
-{
-	::collision_component component;
-	component.mesh = nullptr;
-	
-	if (element.contains("file"))
-	{
-		//component.mesh = resource_manager.load<geom::mesh>(element["file"].get<std::string>());
-	}
-	
-	archetype.stamps.push_back
-	(
-		[component](entt::handle& handle)
-		{
-			handle.emplace_or_replace<decltype(component)>(component);
-		}
-	);
-	
-	return (component.mesh != nullptr);
-}
-
 static bool load_component_diffuse_reflector(entity::archetype& archetype, const json& element)
 {
 	::diffuse_reflector_component component;
@@ -291,8 +269,6 @@ static bool load_component(entity::archetype& archetype, resource_manager& resou
 		return load_component_blackbody(archetype, element.value());
 	if (element.key() == "celestial_body")
 		return load_component_celestial_body(archetype, element.value());
-	if (element.key() == "collision")
-		return load_component_collision(archetype, resource_manager, element.value());
 	if (element.key() == "diffuse_reflector")
 		return load_component_diffuse_reflector(archetype, element.value());
 	if (element.key() == "model")

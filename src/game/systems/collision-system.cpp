@@ -20,9 +20,8 @@
 #include "game/systems/collision-system.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/picking-component.hpp"
-#include "game/components/collision-component.hpp"
 #include "game/components/rigid-body-component.hpp"
-#include <engine/geom/primitives/intersection.hpp>
+#include <engine/geom/intersection.hpp>
 #include <engine/geom/primitives/plane.hpp>
 #include <engine/math/transform-operators.hpp>
 #include <limits>
@@ -31,16 +30,10 @@
 collision_system::collision_system(entity::registry& registry):
 	updatable_system(registry)
 {
-	registry.on_construct<collision_component>().connect<&collision_system::on_collision_construct>(this);
-	registry.on_update<collision_component>().connect<&collision_system::on_collision_update>(this);
-	registry.on_destroy<collision_component>().connect<&collision_system::on_collision_destroy>(this);
 }
 
 collision_system::~collision_system()
 {
-	registry.on_construct<collision_component>().disconnect<&collision_system::on_collision_construct>(this);
-	registry.on_update<collision_component>().disconnect<&collision_system::on_collision_update>(this);
-	registry.on_destroy<collision_component>().disconnect<&collision_system::on_collision_destroy>(this);
 }
 
 void collision_system::update(float t, float dt)
@@ -48,7 +41,7 @@ void collision_system::update(float t, float dt)
 
 }
 
-entity::id collision_system::pick_nearest(const geom::primitive::ray<float, 3>& ray, std::uint32_t flags) const
+entity::id collision_system::pick_nearest(const geom::ray<float, 3>& ray, std::uint32_t flags) const
 {
 	entity::id nearest_eid = entt::null;
 	float nearest_distance = std::numeric_limits<float>::infinity();
@@ -63,14 +56,14 @@ entity::id collision_system::pick_nearest(const geom::primitive::ray<float, 3>& 
 				return;
 			
 			// Transform picking sphere
-			const geom::primitive::sphere<float> sphere =
+			const geom::sphere<float> sphere =
 			{
 				transform.world * picking.sphere.center,
 				picking.sphere.radius * math::max(transform.world.scale)
 			};
 			
 			// Test for intersection between ray and sphere
-			auto result = geom::primitive::intersection(ray, sphere);
+			auto result = geom::intersection(ray, sphere);
 			if (result)
 			{
 				float t0 = std::get<0>(*result);
@@ -88,13 +81,13 @@ entity::id collision_system::pick_nearest(const geom::primitive::ray<float, 3>& 
 	return nearest_eid;
 }
 
-entity::id collision_system::pick_nearest(const float3& origin, const float3& normal, std::uint32_t flags) const
+entity::id collision_system::pick_nearest(const math::vector<float, 3>& origin, const math::vector<float, 3>& normal, std::uint32_t flags) const
 {
 	entity::id nearest_eid = entt::null;
 	float nearest_sqr_distance = std::numeric_limits<float>::infinity();
 	
 	// Construct picking plane
-	const geom::primitive::plane<float> picking_plane = geom::primitive::plane<float>(origin, normal);
+	const geom::plane<float> picking_plane = geom::plane<float>(origin, normal);
 	
 	// For each entity with picking and transform components
 	registry.view<picking_component, transform_component>().each
@@ -106,7 +99,7 @@ entity::id collision_system::pick_nearest(const float3& origin, const float3& no
 				return;
 			
 			// Transform picking sphere center
-			float3 picking_sphere_center = transform.world * picking.sphere.center;
+			math::vector<float, 3> picking_sphere_center = transform.world * picking.sphere.center;
 			
 			// Skip entity if picking sphere center has negative distance from picking plane
 			if (picking_plane.distance(picking_sphere_center) < 0.0f)
@@ -126,13 +119,4 @@ entity::id collision_system::pick_nearest(const float3& origin, const float3& no
 	
 	return nearest_eid;
 }
-
-void collision_system::on_collision_construct(entity::registry& registry, entity::id entity_id)
-{}
-
-void collision_system::on_collision_update(entity::registry& registry, entity::id entity_id)
-{}
-
-void collision_system::on_collision_destroy(entity::registry& registry, entity::id entity_id)
-{}
 

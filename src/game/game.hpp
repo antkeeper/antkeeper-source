@@ -30,7 +30,6 @@
 #include <engine/entity/id.hpp>
 #include <engine/entity/registry.hpp>
 #include <engine/event/subscription.hpp>
-#include <engine/geom/aabb.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/texture-2d.hpp>

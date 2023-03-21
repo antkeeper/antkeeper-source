@@ -22,7 +22,6 @@
 
 #include "game/systems/updatable-system.hpp"
 #include <engine/geom/mesh.hpp>
-#include <engine/geom/aabb.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/scene/static-mesh.hpp>
 #include <engine/render/model.hpp>
@@ -107,7 +106,7 @@ private:
 	::render::model_group* subterrain_outside_group;
 	int subterrain_model_vertex_size;
 	int subterrain_model_vertex_stride;
-	geom::aabb<float> subterrain_bounds;
+	geom::box<float> subterrain_bounds;
 	cube_tree* cube_tree;
 	std::vector<float3> subterrain_vertices;
 	std::vector<std::array<std::uint_fast32_t, 3>> subterrain_triangles;

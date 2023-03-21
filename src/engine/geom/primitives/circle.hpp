@@ -23,7 +23,7 @@
 #include <engine/geom/primitives/hypersphere.hpp>
 
 namespace geom {
-namespace primitive {
+namespace primitives {
 
 /**
  * 2-dimensional hypersphere.
@@ -33,7 +33,7 @@ namespace primitive {
 template <class T>
 using circle = hypersphere<T, 2>;
 
-} // namespace primitive
+} // namespace primitives
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_PRIMITIVES_CIRCLE_HPP

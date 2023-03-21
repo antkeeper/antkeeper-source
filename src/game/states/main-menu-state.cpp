@@ -65,9 +65,9 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	title_text->set_color({1.0f, 1.0f, 1.0f, (fade_in) ? 1.0f : 0.0f});
 	title_text->set_font(&ctx.title_font);
 	title_text->set_content(get_string(ctx, "title_antkeeper"));
-	const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text->get_bounds());
-	float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
-	float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
+	const auto& title_aabb = title_text->get_bounds();
+	float title_w = title_aabb.max.x() - title_aabb.min.x();
+	float title_h = title_aabb.max.y() - title_aabb.min.y();
 	title_text->set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
 	
 	// Add text to UI
@@ -288,9 +288,9 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 			const vec2 viewport_center = viewport_size * 0.5f;
 			
 			// Re-align title text
-			const auto& title_aabb = static_cast<const geom::aabb<float>&>(title_text->get_bounds());
-			float title_w = title_aabb.max_point.x() - title_aabb.min_point.x();
-			float title_h = title_aabb.max_point.y() - title_aabb.min_point.y();
+			const auto& title_aabb = title_text->get_bounds();
+			float title_w = title_aabb.max.x() - title_aabb.min.x();
+			float title_h = title_aabb.max.y() - title_aabb.min.y();
 			title_text->set_translation({std::round(viewport_center.x() - title_w * 0.5f), std::round(viewport_center.y() - title_h * 0.5f + (viewport_size.y() / 3.0f) / 2.0f), 0.0f});
 			
 			::menu::align_text(ctx, true, false, (-viewport_size.y() / 3.0f) / 2.0f);

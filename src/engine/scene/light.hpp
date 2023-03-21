@@ -21,7 +21,6 @@
 #define ANTKEEPER_SCENE_LIGHT_HPP
 
 #include <engine/scene/object.hpp>
-#include <engine/geom/sphere.hpp>
 #include <engine/scene/light-type.hpp>
 
 namespace scene {
@@ -32,20 +31,17 @@ namespace scene {
 class light: public object<light>
 {
 public:
-	typedef geom::sphere<float> sphere_type;
-
 	/// Returns an enumeration denoting the light object type.
 	[[nodiscard]] virtual light_type get_light_type() const noexcept = 0;
 	
-	inline const bounding_volume_type& get_bounds() const noexcept override
+	inline const aabb_type& get_bounds() const noexcept override
 	{
 		return m_bounds;
 	}
 
 private:
 	virtual void transformed();
-	
-	sphere_type m_bounds{{0.0f, 0.0f, 0.0f}, 0.0f};
+	aabb_type m_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
 };
 
 } // namespace scene

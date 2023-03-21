@@ -24,7 +24,7 @@
 #include <engine/math/vector.hpp>
 
 namespace geom {
-namespace primitive {
+namespace primitives {
 
 /**
  * *n*-dimensional sphere.
@@ -149,7 +149,10 @@ struct hypersphere
 	}
 };
 
-} // namespace primitive
+} // namespace primitives
+
+using namespace primitives;
+
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_PRIMITIVES_HYPERSPHERE_HPP

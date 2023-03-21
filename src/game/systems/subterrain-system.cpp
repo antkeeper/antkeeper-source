@@ -34,158 +34,6 @@
 #include <array>
 #include <limits>
 
-
-/**
- * An octree containing cubes for the marching cubes algorithm.
- */
-struct cube_tree
-{
-public:
-	cube_tree(const geom::aabb<float>& bounds, int max_depth);
-	~cube_tree();
-
-	const bool is_leaf() const;
-	const geom::aabb<float>& get_bounds() const;
-
-	/// Subdivides all nodes intersecting with a region to the max depth.
-	void subdivide_max(const geom::aabb<float>& region);
-
-	/// Fills a list with all leaf nodes that intersect with a region.
-	void query_leaves(std::list<cube_tree*>& nodes, const geom::aabb<float>& region);
-	void visit_leaves(const geom::aabb<float>& region, const std::function<void(cube_tree&)>& f);
-
-	/// Counts then number of nodes in the octree.
-	std::size_t size() const;
-
-	cube_tree* children[8];
-	float3 corners[8];
-	float distances[8];
-	const int max_depth;
-	const int depth;
-	const geom::aabb<float> bounds;
-
-private:
-	cube_tree(const geom::aabb<float>& bounds, int max_depth, int depth);
-	void subdivide();
-};
-
-cube_tree::cube_tree(const geom::aabb<float>& bounds, int max_depth):
-	cube_tree(bounds, max_depth, 0)
-{}
-
-cube_tree::cube_tree(const geom::aabb<float>& bounds, int max_depth, int depth):
-	bounds(bounds),
-	max_depth(max_depth),
-	depth(depth)
-{
-	corners[0] = {bounds.min_point.x(), bounds.min_point.y(), bounds.min_point.z()};
-	corners[1] = {bounds.max_point.x(), bounds.min_point.y(), bounds.min_point.z()};
-	corners[2] = {bounds.max_point.x(), bounds.max_point.y(), bounds.min_point.z()};
-	corners[3] = {bounds.min_point.x(), bounds.max_point.y(), bounds.min_point.z()};
-	corners[4] = {bounds.min_point.x(), bounds.min_point.y(), bounds.max_point.z()};
-	corners[5] = {bounds.max_point.x(), bounds.min_point.y(), bounds.max_point.z()};
-	corners[6] = {bounds.max_point.x(), bounds.max_point.y(), bounds.max_point.z()};
-	corners[7] = {bounds.min_point.x(), bounds.max_point.y(), bounds.max_point.z()};
-
-	for (int i = 0; i < 8; ++i)
-	{
-		children[i] = nullptr;
-		distances[i] = -std::numeric_limits<float>::infinity();
-
-		// For outside normals
-		//distances[i] = std::numeric_limits<float>::infinity();
-	}
-}
-
-cube_tree::~cube_tree()
-{
-	for (cube_tree* child: children)
-		delete child;
-}
-
-void cube_tree::subdivide_max(const geom::aabb<float>& region)
-{
-	if (depth != max_depth && aabb_aabb_intersection(bounds, region))
-	{
-		if (is_leaf())
-			subdivide();
-
-		for (cube_tree* child: children)
-			child->subdivide_max(region);
-	}
-}
-
-void cube_tree::query_leaves(std::list<cube_tree*>& nodes, const geom::aabb<float>& region)
-{
-	if (aabb_aabb_intersection(bounds, region))
-	{
-		if (is_leaf())
-		{
-			nodes.push_back(this);
-		}
-		else
-		{
-			for (cube_tree* child: children)
-				child->query_leaves(nodes, region);
-		}
-	}
-}
-
-void cube_tree::visit_leaves(const geom::aabb<float>& region, const std::function<void(cube_tree&)>& f)
-{
-	if (aabb_aabb_intersection(bounds, region))
-	{
-		if (is_leaf())
-		{
-			f(*this);
-		}
-		else
-		{
-			for (cube_tree* child: children)
-				child->visit_leaves(region, f);
-		}
-	}
-}
-
-std::size_t cube_tree::size() const
-{
-	std::size_t node_count = 1;
-	if (!is_leaf())
-	{
-		for (cube_tree* child: children)
-			node_count += child->size();
-	}
-
-	return node_count;
-}
-
-inline const bool cube_tree::is_leaf() const
-{
-	return (children[0] == nullptr);
-}
-
-inline const geom::aabb<float>& cube_tree::get_bounds() const
-{
-	return bounds;
-}
-
-void cube_tree::subdivide()
-{
-	const float3 center = (bounds.min_point + bounds.max_point) * 0.5f;
-
-	for (int i = 0; i < 8; ++i)
-	{
-		geom::aabb<float> child_bounds;
-		for (int j = 0; j < 3; ++j)
-		{
-			child_bounds.min_point[j] = std::min<float>(corners[i][j], center[j]);
-			child_bounds.max_point[j] = std::max<float>(corners[i][j], center[j]);
-		}
-
-		children[i] = new cube_tree(child_bounds, max_depth, depth + 1);
-	}
-}
-
 subterrain_system::subterrain_system(entity::registry& registry, ::resource_manager* resource_manager):
 	updatable_system(registry),
 	resource_manager(resource_manager)
@@ -263,8 +111,8 @@ subterrain_system::subterrain_system(entity::registry& registry, ::resource_mana
 	float adjusted_volume_size = std::pow(2.0f, octree_depth) * isosurface_resolution;
 
 	// Set subterrain bounds
-	subterrain_bounds.min_point = float3{-0.5f, -1.0f, -0.5f} * adjusted_volume_size;
-	subterrain_bounds.max_point = float3{ 0.5f,  0.0f,  0.5f} * adjusted_volume_size;
+	subterrain_bounds.min = float3{-0.5f, -1.0f, -0.5f} * adjusted_volume_size;
+	subterrain_bounds.max = float3{ 0.5f,  0.0f,  0.5f} * adjusted_volume_size;
 	
 	// Set subterrain model bounds
 	subterrain_model->set_bounds(subterrain_bounds);
@@ -369,7 +217,7 @@ void subterrain_system::march(::cube_tree* node)
 	}
 
 	// Get node bounds
-	const geom::aabb<float>& bounds = node->get_bounds();
+	const geom::box<float>& bounds = node->get_bounds();
 
 	// Polygonize cube
 	float vertex_buffer[12 * 3];
@@ -491,11 +339,11 @@ void subterrain_system::dig(const float3& position, float radius)
 {
 	/*
 	// Construct region containing the cavity sphere
-	geom::aabb<float> region = {position, position};
+	geom::box<float> region = {position, position};
 	for (int i = 0; i < 3; ++i)
 	{
-		region.min_point[i] -= radius + isosurface_resolution;
-		region.max_point[i] += radius + isosurface_resolution;
+		region.min[i] -= radius + isosurface_resolution;
+		region.max[i] += radius + isosurface_resolution;
 	}
 
 	// Subdivide the octree to the maximum depth within the region

@@ -20,8 +20,6 @@
 #ifndef ANTKEEPER_RENDER_CONTEXT_HPP
 #define ANTKEEPER_RENDER_CONTEXT_HPP
 
-#include <engine/geom/plane.hpp>
-#include <engine/geom/bounding-volume.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/math/transform-operators.hpp>
 #include <engine/render/operation.hpp>
@@ -43,9 +41,6 @@ struct context
 {
 	/// Pointer to the camera.
 	const scene::camera* camera;
-	
-	/// Camera culling volume.
-	const geom::bounding_volume<float>* camera_culling_volume;
 	
 	/// Collection of scene objects being rendered.
 	const scene::collection* collection;

@@ -22,7 +22,6 @@
 #include "game/ant/ant-morphogenesis.hpp"
 #include "game/ant/ant-phenome.hpp"
 #include "game/commands/commands.hpp"
-#include "game/components/collision-component.hpp"
 #include "game/components/constraint-stack-component.hpp"
 #include "game/components/scene-component.hpp"
 #include "game/components/picking-component.hpp"
@@ -683,11 +682,12 @@ void nest_selection_state::setup_controls()
 				
 				auto projectile_body = std::make_unique<physics::rigid_body>();
 				projectile_body->set_position(camera_transform.world.translation);
+				projectile_body->set_previous_position(camera_transform.world.translation);
 				projectile_body->set_mass(0.1f);
 				projectile_body->set_inertia(0.05f);
 				projectile_body->set_angular_damping(0.5f);
 				
-				//auto projectile_collider = std::make_shared<physics::box_collider>(float3{-0.5f, -0.5f, -0.5f}, float3{0.5f, 0.5f, 0.5f});
+				//auto projectile_collider = std::make_shared<physics::box_collider>(float3{-1.0f, -1.0f, -1.0f}, float3{1.0f, 1.0f, 1.0f});
 				auto projectile_collider = std::make_shared<physics::sphere_collider>(1.0f);
 				
 				

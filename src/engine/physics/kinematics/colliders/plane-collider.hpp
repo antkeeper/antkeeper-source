@@ -32,7 +32,7 @@ class plane_collider: public collider
 {
 public:
 	/// Plane type.
-	using plane_type = geom::primitive::plane<float>;
+	using plane_type = geom::plane<float>;
 	
 	[[nodiscard]] inline constexpr collider_type type() const noexcept override
 	{

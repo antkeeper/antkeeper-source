@@ -24,6 +24,7 @@
 #include "game/components/diffuse-reflector-component.hpp"
 #include <engine/geom/intersection.hpp>
 #include <engine/geom/cartesian.hpp>
+#include <engine/geom/primitives/sphere.hpp>
 #include <engine/color/color.hpp>
 #include <engine/physics/orbit/orbit.hpp>
 #include <engine/physics/time/ut1.hpp>
@@ -184,7 +185,7 @@ void astronomy_system::update(float t, float dt)
 		if (reference_atmosphere)
 		{
 			// Construct ray at observer pointing towards the blackbody
-			const geom::ray<double> ray = {{0, 0, 0}, observer_blackbody_direction_eus};
+			const geom::ray<double, 3> ray = {{0, 0, 0}, observer_blackbody_direction_eus};
 			
 			// Integrate atmospheric spectral transmittance factor between observer and blackbody
 			const double3 transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
@@ -282,7 +283,7 @@ void astronomy_system::update(float t, float dt)
 			double3 observer_reflector_transmittance = {1, 1, 1};
 			if (reference_atmosphere)
 			{
-				const geom::ray<double> ray = {{0, 0, 0}, observer_reflector_direction_eus};
+				const geom::ray<double, 3> ray = {{0, 0, 0}, observer_reflector_direction_eus};
 				observer_reflector_transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
 			}
 			
@@ -582,7 +583,7 @@ void astronomy_system::update_icrf_to_eus(const ::celestial_body_component& body
 	}
 }
 
-double3 astronomy_system::integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double> ray) const
+double3 astronomy_system::integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const
 {
 	double3 transmittance = {1, 1, 1};
 	
@@ -595,11 +596,11 @@ double3 astronomy_system::integrate_transmittance(const ::observer_component& ob
 	atmosphere_sphere.radius = body.radius + atmosphere.upper_limit;
 	
 	// Check for intersection between the ray and atmosphere
-	auto intersection = geom::ray_sphere_intersection(ray, atmosphere_sphere);
-	if (std::get<0>(intersection))
+	auto intersection = geom::intersection(ray, atmosphere_sphere);
+	if (intersection)
 	{
 		// Get point of intersection
-		const double3 intersection_point = ray.extrapolate(std::get<2>(intersection));
+		const double3 intersection_point = ray.extrapolate(std::get<1>(*intersection));
 		
 		// Integrate optical of Rayleigh, Mie, and ozone particles
 		const double optical_depth_r = physics::gas::atmosphere::optical_depth_exp(ray.origin, intersection_point, body.radius, atmosphere.rayleigh_scale_height, transmittance_samples);
@@ -618,4 +619,3 @@ double3 astronomy_system::integrate_transmittance(const ::observer_component& ob
 	
 	return transmittance;
 }
-

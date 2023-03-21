@@ -31,7 +31,7 @@
 #include "game/components/atmosphere-component.hpp"
 #include "game/components/celestial-body-component.hpp"
 #include "game/components/orbit-component.hpp"
-#include <engine/geom/ray.hpp>
+#include <engine/geom/primitives/ray.hpp>
 
 
 /**
@@ -124,7 +124,7 @@ private:
 	 *
 	 * @return Spectral transmittance factor.
 	 */
-	double3 integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double> ray) const;
+	double3 integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const;
 	
 	/// Time since epoch, in days.
 	double time_days;

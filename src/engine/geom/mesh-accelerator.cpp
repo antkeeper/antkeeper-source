@@ -34,9 +34,9 @@ void mesh_accelerator::build(const mesh& mesh)
 	face_map.clear();
 
 	// Calculate mesh dimensions
-	aabb<float> bounds = calculate_bounds(mesh);
-	float3 mesh_dimensions = bounds.max_point - bounds.min_point;
-	center_offset = mesh_dimensions * 0.5f - (bounds.min_point + bounds.max_point) * 0.5f;
+	box<float> bounds = calculate_bounds(mesh);
+	float3 mesh_dimensions = bounds.max - bounds.min;
+	center_offset = mesh_dimensions * 0.5f - (bounds.min + bounds.max) * 0.5f;
 
 	// Calculate node dimensions at each octree depth
 	for (auto i = 0; i <= octree_type::max_depth; ++i)
@@ -79,7 +79,7 @@ void mesh_accelerator::build(const mesh& mesh)
 	}
 }
 
-std::optional<mesh_accelerator::ray_query_result> mesh_accelerator::query_nearest(const ray<float>& ray) const
+std::optional<mesh_accelerator::ray_query_result> mesh_accelerator::query_nearest(const ray<float, 3>& ray) const
 {
 	ray_query_result result;
 	result.t = std::numeric_limits<float>::infinity();
@@ -92,16 +92,13 @@ std::optional<mesh_accelerator::ray_query_result> mesh_accelerator::query_neares
 	return std::nullopt;
 }
 
-void mesh_accelerator::query_nearest_recursive(float& nearest_t, geom::mesh::face*& nearest_face, typename octree_type::node_type node, const ray<float>& ray) const
+void mesh_accelerator::query_nearest_recursive(float& nearest_t, geom::mesh::face*& nearest_face, typename octree_type::node_type node, const ray<float, 3>& ray) const
 {
 	// Get node bounds
-	const aabb<float> node_bounds = get_node_bounds(node);
-
-	// Test for intersection with node bounds
-	auto aabb_intersection = ray_aabb_intersection(ray, node_bounds);
-
+	const box<float> node_bounds = get_node_bounds(node);
+	
 	// If ray passed through this node
-	if (std::get<0>(aabb_intersection))
+	if (intersection(ray, node_bounds))
 	{
 		// Test all triangles in the node
 		if (auto it = face_map.find(node); it != face_map.end())
@@ -116,10 +113,10 @@ void mesh_accelerator::query_nearest_recursive(float& nearest_t, geom::mesh::fac
 				const float3& c = reinterpret_cast<const float3&>(face->edge->previous->vertex->position);
 
 				// Test for intersection with triangle
-				auto triangle_intersection = ray_triangle_intersection(ray, a, b, c);
-				if (std::get<0>(triangle_intersection))
+				auto triangle_intersection = intersection(ray, a, b, c);
+				if (triangle_intersection)
 				{
-					float t = std::get<1>(triangle_intersection);
+					const float t = std::get<0>(*triangle_intersection);
 					if (t < nearest_t)
 					{
 						nearest_t = t;
@@ -133,12 +130,14 @@ void mesh_accelerator::query_nearest_recursive(float& nearest_t, geom::mesh::fac
 		if (!octree.is_leaf(node))
 		{
 			for (int i = 0; i < 8; ++i)
+			{
 				query_nearest_recursive(nearest_t, nearest_face, octree.child(node, i), ray);
+			}
 		}
 	}
 }
 
-aabb<float> mesh_accelerator::get_node_bounds(typename octree_type::node_type node) const
+box<float> mesh_accelerator::get_node_bounds(typename octree_type::node_type node) const
 {
 	// Decode Morton location of node
 	std::uint32_t x, y, z;
@@ -150,7 +149,7 @@ aabb<float> mesh_accelerator::get_node_bounds(typename octree_type::node_type no
 
 	// Calculate AABB
 	float3 min_point = (node_location * dimensions) - center_offset;
-	return aabb<float>{min_point, min_point + dimensions};
+	return box<float>{min_point, min_point + dimensions};
 }
 
 typename mesh_accelerator::octree_type::node_type mesh_accelerator::find_node(const float3& point) const

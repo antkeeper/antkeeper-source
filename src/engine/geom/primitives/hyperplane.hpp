@@ -23,7 +23,7 @@
 #include <engine/math/vector.hpp>
 
 namespace geom {
-namespace primitive {
+namespace primitives {
 
 /**
  * *n*-dimensional plane.
@@ -93,7 +93,10 @@ struct hyperplane
 	}
 };
 
-} // namespace primitive
+} // namespace primitives
+
+using namespace primitives;
+
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_PRIMITIVES_HYPERPLANE_HPP

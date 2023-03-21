@@ -329,20 +329,20 @@ std::unique_ptr<geom::mesh> terrain_system::generate_patch_mesh(quadtree_node_ty
 	const float cell_size = patch_size / static_cast<float>(patch_subdivisions + 1);
 	
 	// Init patch bounds
-	geom::aabb<float> patch_bounds;
-	patch_bounds.min_point.x() = patch_center.x() - patch_size * 0.5f;
-	patch_bounds.min_point.y() = std::numeric_limits<float>::infinity();
-	patch_bounds.min_point.z() = patch_center.z() - patch_size * 0.5f;
-	patch_bounds.max_point.x() = patch_center.x() + patch_size * 0.5f;
-	patch_bounds.max_point.y() = -std::numeric_limits<float>::infinity();
-	patch_bounds.max_point.z() = patch_center.z() + patch_size * 0.5f;
+	geom::box<float> patch_bounds;
+	patch_bounds.min.x() = patch_center.x() - patch_size * 0.5f;
+	patch_bounds.min.y() = std::numeric_limits<float>::infinity();
+	patch_bounds.min.z() = patch_center.z() - patch_size * 0.5f;
+	patch_bounds.max.x() = patch_center.x() + patch_size * 0.5f;
+	patch_bounds.max.y() = -std::numeric_limits<float>::infinity();
+	patch_bounds.max.z() = patch_center.z() + patch_size * 0.5f;
 	
 	// Calculate positions and UVs of patch vertices and immediately neighboring vertices
 	float3 first_vertex_position =
 	{
-		patch_bounds.min_point.x() - cell_size,
+		patch_bounds.min.x() - cell_size,
 		patch_center.y(),
-		patch_bounds.min_point.z() - cell_size
+		patch_bounds.min.z() - cell_size
 	};
 	float3 vertex_position = first_vertex_position;
 	for (std::size_t i = 0; i < patch_vertex_buffer.size(); ++i)
@@ -354,15 +354,15 @@ std::unique_ptr<geom::mesh> terrain_system::generate_patch_mesh(quadtree_node_ty
 			vertex_position.y() = elevation_function(vertex_position.x(), vertex_position.z());
 			
 			// Update patch bounds
-			patch_bounds.min_point.y() = std::min(patch_bounds.min_point.y(), vertex_position.y());
-			patch_bounds.max_point.y() = std::max(patch_bounds.max_point.y(), vertex_position.y());
+			patch_bounds.min.y() = std::min(patch_bounds.min.y(), vertex_position.y());
+			patch_bounds.max.y() = std::max(patch_bounds.max.y(), vertex_position.y());
 			
 			// Update patch vertex position
 			patch_vertex_buffer[i][j].position = vertex_position;
 			
 			// Calculate patch vertex UV
-			patch_vertex_buffer[i][j].uv.x() = (vertex_position.x() - patch_bounds.min_point.x()) / patch_size;
-			patch_vertex_buffer[i][j].uv.y() = (vertex_position.z() - patch_bounds.min_point.z()) / patch_size;
+			patch_vertex_buffer[i][j].uv.x() = (vertex_position.x() - patch_bounds.min.x()) / patch_size;
+			patch_vertex_buffer[i][j].uv.y() = (vertex_position.z() - patch_bounds.min.z()) / patch_size;
 			
 			// Init patch vertex normal, tangent, and bitangent
 			patch_vertex_buffer[i][j].normal = {0, 0, 0};

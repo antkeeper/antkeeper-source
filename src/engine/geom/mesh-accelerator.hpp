@@ -22,7 +22,7 @@
 
 #include <engine/geom/mesh.hpp>
 #include <engine/geom/octree.hpp>
-#include <engine/geom/aabb.hpp>
+#include <engine/geom/primitives/box.hpp>
 #include <engine/geom/intersection.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <list>
@@ -56,14 +56,14 @@ public:
 	 * @param ray Ray to test for intersection.
 	 * @return Ray query result on intersection, and `std::nullopt` if no intersection occurred.
 	 */
-	std::optional<ray_query_result> query_nearest(const ray<float>& ray) const;
+	std::optional<ray_query_result> query_nearest(const ray<float, 3>& ray) const;
 	
 private:
 	typedef unordered_octree32 octree_type;
 	
-	aabb<float> get_node_bounds(typename octree_type::node_type node) const;
+	box<float> get_node_bounds(typename octree_type::node_type node) const;
 
-	void query_nearest_recursive(float& nearest_t, geom::mesh::face*& nearest_face, typename octree_type::node_type node, const ray<float>& ray) const;
+	void query_nearest_recursive(float& nearest_t, geom::mesh::face*& nearest_face, typename octree_type::node_type node, const ray<float, 3>& ray) const;
 
 	/// Returns the max-depth node in which the point is located
 	typename octree_type::node_type find_node(const float3& point) const;

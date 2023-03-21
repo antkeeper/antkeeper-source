@@ -19,12 +19,13 @@
 
 #include "game/systems/render-system.hpp"
 #include "game/components/transform-component.hpp"
+#include "game/components/rigid-body-component.hpp"
 #include <algorithm>
 #include <execution>
 
 render_system::render_system(entity::registry& registry):
 	updatable_system(registry),
-	updated_scene_transforms(registry, entt::collector.update<transform_component>().where<scene_component>()),
+	updated_scene_transforms(registry, entt::collector.update<transform_component>().where<scene_component>(entt::exclude<rigid_body_component>)),
 	t(0.0),
 	dt(0.0),
 	renderer(nullptr)

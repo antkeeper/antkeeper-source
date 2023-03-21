@@ -32,7 +32,7 @@ class box_collider: public collider
 {
 public:
 	/// Box type.
-	using box_type = geom::primitive::box<float>;
+	using box_type = geom::box<float>;
 	
 	[[nodiscard]] inline constexpr collider_type type() const noexcept override
 	{

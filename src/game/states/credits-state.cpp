@@ -46,9 +46,9 @@ credits_state::credits_state(::game& ctx):
 	credits_text.set_content(get_string(ctx, "credits"));
 	
 	// Align credits text
-	const auto& credits_aabb = static_cast<const geom::aabb<float>&>(credits_text.get_bounds());
-	float credits_w = credits_aabb.max_point.x() - credits_aabb.min_point.x();
-	float credits_h = credits_aabb.max_point.y() - credits_aabb.min_point.y();
+	const auto& credits_aabb = credits_text.get_bounds();
+	float credits_w = credits_aabb.max.x() - credits_aabb.min.x();
+	float credits_h = credits_aabb.max.y() - credits_aabb.min.y();
 	credits_text.set_translation({std::round(viewport_center.x() - credits_w * 0.5f), std::round(viewport_center.y() - credits_h * 0.5f), 0.0f});
 	
 	// Set up animation timing configuration
@@ -80,9 +80,9 @@ credits_state::credits_state(::game& ctx):
 		{
 			const vec2 viewport_size = vec2(event.window->get_viewport_size());
 			const vec2 viewport_center = viewport_size * 0.5f;
-			const auto& credits_aabb = static_cast<const geom::aabb<float>&>(credits_text.get_bounds());
-			float credits_w = credits_aabb.max_point.x() - credits_aabb.min_point.x();
-			float credits_h = credits_aabb.max_point.y() - credits_aabb.min_point.y();
+			const auto& credits_aabb = credits_text.get_bounds();
+			float credits_w = credits_aabb.max.x() - credits_aabb.min.x();
+			float credits_h = credits_aabb.max.y() - credits_aabb.min.y();
 			credits_text.set_translation({std::round(viewport_center.x() - credits_w * 0.5f), std::round(viewport_center.y() - credits_h * 0.5f), 0.0f});
 		}
 	);

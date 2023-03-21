@@ -59,7 +59,7 @@ public:
 	 *
 	 * @param bounds Bounds of the display, in display units.
 	 */
-	inline void set_bounds(const geom::primitive::rectangle<int>& bounds) noexcept
+	inline void set_bounds(const geom::rectangle<int>& bounds) noexcept
 	{
 		m_bounds = bounds;
 	}
@@ -67,7 +67,7 @@ public:
 	/**
 	 * Sets the usable bounds of the display, which excludes areas reserved by the OS for things like menus or docks.
 	 */
-	inline void set_usable_bounds(const geom::primitive::rectangle<int>& bounds) noexcept
+	inline void set_usable_bounds(const geom::rectangle<int>& bounds) noexcept
 	{
 		m_usable_bounds = bounds;
 	}
@@ -115,13 +115,13 @@ public:
 	}
 	
 	/// Returns the bounds of the display, in display units.
-	[[nodiscard]] inline const geom::primitive::rectangle<int>& get_bounds() const noexcept
+	[[nodiscard]] inline const geom::rectangle<int>& get_bounds() const noexcept
 	{
 		return m_bounds;
 	}
 	
 	/// Returns the usable bounds of the display, which excludes areas reserved by the OS for things like menus or docks, in display units.
-	[[nodiscard]] inline const geom::primitive::rectangle<int>& get_usable_bounds() const noexcept
+	[[nodiscard]] inline const geom::rectangle<int>& get_usable_bounds() const noexcept
 	{
 		return m_usable_bounds;
 	}
@@ -174,8 +174,8 @@ private:
 	
 	int m_index{0};
 	std::string m_name;
-	geom::primitive::rectangle<int> m_bounds{0};
-	geom::primitive::rectangle<int> m_usable_bounds{0};
+	geom::rectangle<int> m_bounds{0};
+	geom::rectangle<int> m_usable_bounds{0};
 	int m_refresh_rate{0};
 	float m_dpi{0.0f};
 	display_orientation m_orientation{0};

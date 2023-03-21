@@ -20,55 +20,252 @@
 #ifndef ANTKEEPER_GEOM_INTERSECTION_HPP
 #define ANTKEEPER_GEOM_INTERSECTION_HPP
 
-#include <engine/geom/aabb.hpp>
-#include <engine/geom/mesh.hpp>
-#include <engine/geom/plane.hpp>
-#include <engine/geom/ray.hpp>
-#include <engine/geom/sphere.hpp>
-#include <engine/utility/fundamental-types.hpp>
-#include <tuple>
+#include <engine/geom/primitives/hyperplane.hpp>
+#include <engine/geom/primitives/hyperrectangle.hpp>
+#include <engine/geom/primitives/hypersphere.hpp>
+#include <engine/geom/primitives/ray.hpp>
+#include <algorithm>
+#include <optional>
 
 namespace geom {
 
 /**
- * Tests for intersection between a ray and a plane.
+ * Ray-hyperplane intersection test.
  *
- * @param ray Ray to test for intersection.
- * @param plane Plane to test for intersection.
- * @return Tuple containing a boolean indicating whether intersection occurred, and a float indicating the signed distance along the ray to the point of intersection.
+ * @param ray Ray.
+ * @param hyperplane Hyperplane.
+ *
+ * @return Distance along the ray to the point of intersection, or `std::nullopt` if no intersection occurred.
  */
-std::tuple<bool, float> ray_plane_intersection(const ray<float>& ray, const plane<float>& plane);
+/// @{
+template <class T, std::size_t N>
+[[nodiscard]] constexpr std::optional<T> intersection(const ray<T, N>& ray, const hyperplane<T, N>& hyperplane) noexcept
+{
+	const T cos_theta = math::dot(ray.direction, hyperplane.normal);
+	if (cos_theta != T{0})
+	{
+		const T t = -hyperplane.distance(ray.origin) / cos_theta;
+		if (t >= T{0})
+		{
+			return t;
+		}
+	}
+	
+	return std::nullopt;
+}
 
-std::tuple<bool, float, float, float> ray_triangle_intersection(const ray<float>& ray, const float3& a, const float3& b, const float3& c);
-
-std::tuple<bool, float, float> ray_aabb_intersection(const ray<float>& ray, const aabb<float>& aabb);
-
-std::tuple<bool, float, float, std::size_t, std::size_t> ray_mesh_intersection(const ray<float>& ray, const mesh& mesh);
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr std::optional<T> intersection(const hyperplane<T, N>& hyperplane, const ray<T, N>& ray) noexcept
+{
+	return intersection<T, N>(ray, hyperplane);
+}
+/// @}
 
 /**
- * Ray-sphere intersection test.
+ * Ray-hyperrectangle intersection test.
+ *
+ * @param ray Ray.
+ * @param hyperrectangle Hyperrectangle.
+ *
+ * @return Tuple containing the distances along the ray to the first and second points of intersection, or `std::nullopt` if no intersection occurred.
  */
-template <class T>
-std::tuple<bool, T, T> ray_sphere_intersection(const ray<T>& ray, const sphere<T>& sphere)
+/// @{
+template <class T, std::size_t N>
+[[nodiscard]] constexpr std::optional<std::tuple<T, T>> intersection(const ray<T, N>& ray, const hyperrectangle<T, N>& hyperrectangle) noexcept
 {
-    const auto d = ray.origin - sphere.center;
-    const T b = math::dot(d, ray.direction);
-	const T c = math::dot(d, d) - sphere.radius * sphere.radius;
+	T t0 = -std::numeric_limits<T>::infinity();
+	T t1 = std::numeric_limits<T>::infinity();
+	
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		if (!ray.direction[i])
+		{
+			if (ray.origin[i] < hyperrectangle.min[i] || ray.origin[i] > hyperrectangle.max[i])
+			{
+				return std::nullopt;
+			}
+		}
+		else
+		{
+			T min = (hyperrectangle.min[i] - ray.origin[i]) / ray.direction[i];
+			T max = (hyperrectangle.max[i] - ray.origin[i]) / ray.direction[i];
+			t0 = std::max(t0, std::min(min, max));
+			t1 = std::min(t1, std::max(min, max));
+		}
+	}
+	
+	if (t0 > t1 || t1 < T{0})
+	{
+		return std::nullopt;
+	}
+	
+	return std::tuple<T, T>{t0, t1};
+}
+
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr std::optional<std::tuple<T, T>> intersection(const hyperrectangle<T, N>& hyperrectangle, const ray<T, N>& ray) noexcept
+{
+	return intersection<T, N>(ray, hyperrectangle);
+}
+/// @}
+
+/**
+ * Ray-hypersphere intersection test.
+ *
+ * @param ray Ray.
+ * @param hypersphere Hypersphere.
+ *
+ * @return Tuple containing the distances along the ray to the first and second points of intersection, or `std::nullopt` if no intersection occurred.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] std::optional<std::tuple<T, T>> intersection(const ray<T, N>& ray, const hypersphere<T, N>& hypersphere) noexcept
+{
+	const math::vector<T, N> displacement = ray.origin - hypersphere.center;
+	const T b = math::dot(displacement, ray.direction);
+	const T c = math::sqr_length(displacement) - hypersphere.radius * hypersphere.radius;
 	T h = b * b - c;
 	
-	if (h < T(0))
-		return {false, T(0), T(0)};
+	if (h < T{0})
+	{
+		return std::nullopt;
+	}
 	
 	h = std::sqrt(h);
 	
-	return {true, -b - h, -b + h};
+	T t0 = -b - h;
+	T t1 = -b + h;
+	if (t0 > t1)
+	{
+		std::swap(t0, t1);
+	}
+	
+	if (t0 < T{0})
+	{
+		return std::nullopt;
+	}
+	
+	return std::tuple<T, T>{t0, t1};
 }
 
-bool aabb_sphere_intersection(const aabb<float>& aabb, const float3& center, float radius);
+/**
+ * Ray-triangle intersection test.
+ *
+ * @param ray Ray.
+ * @param a,b,c Triangle points.
+ *
+ * @return Tuple containing the distance along the ray to the point of intersection, followed by two barycentric coordinates of the point of intersection, or `std::nullopt` if no intersection occurred.
+ */
+template <class T>
+[[nodiscard]] std::optional<std::tuple<T, T, T>> intersection(const ray<T, 3>& ray, const math::vector<T, 3>& a, const math::vector<T, 3>& b, const math::vector<T, 3>& c)
+{
+	// Find edges
+	const math::vector<T, 3> edge10 = b - a;
+	const math::vector<T, 3> edge20 = c - a;
 
-bool aabb_aabb_intersection(const aabb<float>& a, const aabb<float>& b);
+	// Calculate determinant
+	const math::vector<T, 3> pv = math::cross(ray.direction, edge20);
+	const T det = math::dot(edge10, pv);
+	if (!det)
+	{
+		return std::nullopt;
+	}
+
+	const T inverse_det = T{1} / det;
+
+	// Calculate u
+	const math::vector<T, 3> tv = ray.origin - a;
+	const T u = math::dot(tv, pv) * inverse_det;
+	
+	if (u < T{0} || u > T{1})
+	{
+		return std::nullopt;
+	}
+
+	// Calculate v
+	const math::vector<T, 3> qv = math::cross(tv, edge10);
+	const T v = math::dot(ray.direction, qv) * inverse_det;
+
+	if (v < T{0} || u + v > T{1})
+	{
+		return std::nullopt;
+	}
+
+	// Calculate t
+	const T t = math::dot(edge20, qv) * inverse_det;
+
+	if (t > T{0})
+	{
+		return std::tuple<T, T, T>{t, u, v};
+	}
+
+	return std::nullopt;
+}
+
+/**
+ * Hyperrectangle-hyperrectangle intersection test.
+ *
+ * @param a First hyperrectangle.
+ * @param b Second hyperrectangle.
+ *
+ * @return `true` if an intersection occurred, `false` otherwise.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr bool intersection(const hyperrectangle<T, N>& a, const hyperrectangle<T, N>& b) noexcept
+{
+	return a.intersects(b);
+}
+
+/**
+ * Hyperrectangle-hypersphere intersection test.
+ *
+ * @param hyperrectangle Hyperrectangle.
+ * @param hypersphere Hypersphere.
+ *
+ * @return `true` if an intersection occurred, `false` otherwise.
+ */
+/// @{
+template <class T, std::size_t N>
+[[nodiscard]] constexpr bool intersection(const hyperrectangle<T, N>& hyperrectangle, const hypersphere<T, N>& hypersphere) noexcept
+{
+	T sqr_distance{0};
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		if (hypersphere.center[i] < hyperrectangle.min[i])
+		{
+			const T difference = hyperrectangle.min[i] - hypersphere.center[i];
+			sqr_distance += difference * difference;
+		}
+		else if (hypersphere.center[i] > hyperrectangle.max[i])
+		{
+			const T difference = hypersphere.center[i] - hyperrectangle.max[i];
+			sqr_distance += difference * difference;
+		}
+	}
+	
+	return sqr_distance <= hypersphere.radius * hypersphere.radius;
+}
+
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr bool intersection(const hypersphere<T, N>& hypersphere, const hyperrectangle<T, N>& hyperrectangle) noexcept
+{
+	return intersection<T, N>(hyperrectangle, hypersphere);
+}
+/// @}
+
+/**
+ * Hypersphere-hypersphere intersection test.
+ *
+ * @param a First hypersphere.
+ * @param b Second hypersphere.
+ *
+ * @return `true` if an intersection occurred, `false` otherwise.
+ */
+template <class T, std::size_t N>
+[[nodiscard]] inline constexpr bool intersection(const hypersphere<T, N>& a, const hypersphere<T, N>& b) noexcept
+{
+	return a.intersects(b);
+}
 
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_INTERSECTION_HPP
-

@@ -25,7 +25,7 @@
 #include <cmath>
 
 namespace geom {
-namespace primitive {
+namespace primitives {
 
 /**
  * *n*-dimensional axis-aligned rectangle.
@@ -203,9 +203,29 @@ struct hyperrectangle
 		}
 		return v;
 	}
+	
+	/**
+	 * Returns the nth corner of the hyperrectangle.
+	 *
+	 * @param index Index of a corner.
+	 */
+	[[nodiscard]] constexpr vector_type corner(std::size_t index) const noexcept
+	{
+		vector_type p;
+		
+		for (std::size_t i = 0; i < N; ++i)
+		{
+			p[i] = ((index >> ((N - 1) - i)) & 1) ? max[i] : min[i];
+		}
+		
+		return p;
+	}
 };
 
-} // namespace primitive
+} // namespace primitives
+
+using namespace primitives;
+
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_PRIMITIVES_HYPERRECTANGLE_HPP

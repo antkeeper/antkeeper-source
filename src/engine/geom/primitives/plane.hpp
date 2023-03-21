@@ -23,7 +23,7 @@
 #include <engine/geom/primitives/hyperplane.hpp>
 
 namespace geom {
-namespace primitive {
+namespace primitives {
 
 /**
  * 3-dimensional hyperplane.
@@ -33,7 +33,7 @@ namespace primitive {
 template <class T>
 using plane = hyperplane<T, 3>;
 
-} // namespace primitive
+} // namespace primitives
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_PRIMITIVES_PLANE_HPP

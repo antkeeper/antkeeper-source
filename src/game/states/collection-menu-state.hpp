@@ -49,7 +49,7 @@ private:
 	std::shared_ptr<event::subscription> mouse_button_pressed_subscription;
 	std::shared_ptr<event::subscription> window_resized_subscription;
 	
-	geom::primitive::rectangle<float> box_bounds;
+	geom::rectangle<float> box_bounds;
 	int row_count;
 	int column_count;
 	int selected_row;

@@ -153,27 +153,22 @@ void calculate_vertex_tangents(float4* tangents, const float2* texcoords, const 
 	}
 }
 
-aabb<float> calculate_bounds(const mesh& mesh)
+box<float> calculate_bounds(const mesh& mesh)
 {
-	float3 bounds_min;
-	float3 bounds_max;
+	box<float> bounds;
 	for (int i = 0; i < 3; ++i)
 	{
-		bounds_min[i] = std::numeric_limits<float>::infinity();
-		bounds_max[i] = -std::numeric_limits<float>::infinity();
+		bounds.min[i] = std::numeric_limits<float>::infinity();
+		bounds.max[i] = -std::numeric_limits<float>::infinity();
 	}
 
 	for (const mesh::vertex* vertex: mesh.get_vertices())
 	{
 		const auto& position = vertex->position;
-		for (int i = 0; i < 3; ++i)
-		{
-			bounds_min[i] = std::min<float>(bounds_min[i], position[i]);
-			bounds_max[i] = std::max<float>(bounds_max[i], position[i]);
-		}
+		bounds.extend(position);
 	}
 
-	return aabb<float>{bounds_min, bounds_max};
+	return bounds;
 }
 
 mesh::vertex* poke_face(mesh& mesh, std::size_t index)

@@ -21,7 +21,7 @@
 #define ANTKEEPER_RENDER_MODEL_HPP
 
 #include <engine/animation/skeleton.hpp>
-#include <engine/geom/aabb.hpp>
+#include <engine/geom/primitives/box.hpp>
 #include <engine/gl/drawing-mode.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
@@ -53,7 +53,7 @@ class model
 {
 public:
 	/// AABB type.
-	typedef geom::aabb<float> aabb_type;
+	using aabb_type = geom::box<float>;
 	
 	/**
 	 * Constructs a model.

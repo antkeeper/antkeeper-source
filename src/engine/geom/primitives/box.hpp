@@ -23,7 +23,7 @@
 #include <engine/geom/primitives/hyperrectangle.hpp>
 
 namespace geom {
-namespace primitive {
+namespace primitives {
 
 /**
  * 3-dimensional hyperrectangle.
@@ -33,7 +33,7 @@ namespace primitive {
 template <class T>
 using box = hyperrectangle<T, 3>;
 
-} // namespace primitive
+} // namespace primitives
 } // namespace geom
 
 #endif // ANTKEEPER_GEOM_PRIMITIVES_BOX_HPP

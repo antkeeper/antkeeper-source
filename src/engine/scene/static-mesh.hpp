@@ -22,7 +22,6 @@
 
 #include <engine/scene/object.hpp>
 #include <engine/animation/pose.hpp>
-#include <engine/geom/aabb.hpp>
 #include <engine/render/model.hpp>
 #include <engine/render/operation.hpp>
 #include <vector>
@@ -35,8 +34,6 @@ namespace scene {
 class static_mesh: public object<static_mesh>
 {
 public:
-	typedef geom::aabb<float> aabb_type;
-	
 	/**
 	 * Constructs a static mesh from a model.
 	 *
@@ -67,7 +64,7 @@ public:
 	 */
 	void reset_materials();
 	
-	[[nodiscard]] inline const bounding_volume_type& get_bounds() const noexcept override
+	[[nodiscard]] inline const aabb_type& get_bounds() const noexcept override
 	{
 		return m_bounds;
 	}

@@ -27,7 +27,7 @@
 struct picking_component
 {
 	/// Picking sphere.
-	geom::primitive::sphere<float> sphere;
+	geom::sphere<float> sphere;
 	
 	/// Picking flags.
 	std::uint32_t flags;

@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_SCENE_OBJECT_HPP
 #define ANTKEEPER_SCENE_OBJECT_HPP
 
-#include <engine/geom/bounding-volume.hpp>
+#include <engine/geom/primitives/box.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/transform-type.hpp>
@@ -39,7 +39,7 @@ public:
 	using vector_type = math::vector<float, 3>;
 	using quaternion_type = math::quaternion<float>;
 	using transform_type = math::transform<float>;
-	using bounding_volume_type = geom::bounding_volume<float>;
+	using aabb_type = geom::box<float>;
 	
 	/// Returns the type ID for this scene object type.
 	virtual const std::size_t get_object_type_id() const noexcept = 0;
@@ -100,14 +100,6 @@ public:
 		transformed();
 	}
 	
-	/**
-	 * Sets a culling mask for the object, which will be used for view-frustum culling instead of the object's bounds.
-	 */
-	inline void set_culling_mask(const bounding_volume_type* culling_mask) noexcept
-	{
-		m_culling_mask = culling_mask;
-	}
-	
 	/// Returns whether the scene object is active.
 	[[nodiscard]] inline bool is_active() const noexcept
 	{
@@ -149,15 +141,7 @@ public:
 	/**
 	 * Returns the bounds of the object.
 	 */
-	[[nodiscard]] virtual const bounding_volume_type& get_bounds() const noexcept = 0;
-	
-	/**
-	 * Returns the culling mask of the object.
-	 */
-	[[nodiscard]] inline const bounding_volume_type* get_culling_mask() const noexcept
-	{
-		return m_culling_mask;
-	}
+	[[nodiscard]] virtual const aabb_type& get_bounds() const noexcept = 0;
 
 protected:
 	static std::size_t next_object_type_id();
@@ -173,7 +157,6 @@ private:
 	
 	bool m_active{true};
 	transform_type m_transform{transform_type::identity};
-	const bounding_volume_type* m_culling_mask{nullptr};
 };
 
 /**

@@ -78,7 +78,7 @@ void text::render(render::context& ctx) const
 {
 	if (m_vertex_count)
 	{
-		m_render_op.depth = ctx.camera->get_view_frustum().get_near().signed_distance(get_translation());
+		m_render_op.depth = ctx.camera->get_view_frustum().near().distance(get_translation());
 		ctx.operations.push_back(&m_render_op);
 	}
 }
@@ -129,7 +129,14 @@ void text::set_color(const float4& color)
 
 void text::transformed()
 {
-	m_world_bounds = aabb_type::transform(m_local_bounds, get_transform());
+	// Naive algorithm: transform each corner of the AABB
+	m_world_bounds.min = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
+	m_world_bounds.max = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+	for (std::size_t i = 0; i < 8; ++i)
+	{
+		m_world_bounds.extend(get_transform() * m_local_bounds.corner(i));
+	}
+	
 	m_render_op.transform = math::matrix_cast(get_transform());
 }
 
@@ -163,7 +170,8 @@ void text::update_content()
 	float2 pen_position = {0.0f, 0.0f};
 	
 	// Reset local-space bounds
-	m_local_bounds = {{0, 0, 0}, {0, 0, 0}};
+	m_local_bounds.min = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), 0.0f};
+	m_local_bounds.max = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), 0.0f};
 	
 	// Generate vertex data
 	char32_t previous_code = 0;
@@ -233,8 +241,8 @@ void text::update_content()
 				const float2& position = positions[i];
 				for (int j = 0; j < 2; ++j)
 				{
-					m_local_bounds.min_point[j] = std::min<float>(m_local_bounds.min_point[j], position[j]);
-					m_local_bounds.max_point[j] = std::max<float>(m_local_bounds.max_point[j], position[j]);
+					m_local_bounds.min[j] = std::min<float>(m_local_bounds.min[j], position[j]);
+					m_local_bounds.max[j] = std::max<float>(m_local_bounds.max[j], position[j]);
 				}
 			}
 		}

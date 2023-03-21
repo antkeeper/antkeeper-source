@@ -18,7 +18,6 @@
  */
 
 #include "game/systems/physics-system.hpp"
-#include "game/components/collision-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/rigid-body-constraint-component.hpp"
 #include "game/components/transform-component.hpp"

@@ -23,6 +23,7 @@
 #include <engine/math/transform-operators.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/debug/log.hpp>
+#include <engine/geom/primitives/box.hpp>
 #include <unordered_set>
 
 namespace {
@@ -137,7 +138,7 @@ void reskin_vertices
  *
  * @return Bounds of the vertex data.
  */
-[[nodiscard]] geom::aabb<float> calculate_bounds
+[[nodiscard]] geom::box<float> calculate_bounds
 (
 	const std::byte* vertex_data,
 	std::size_t vertex_count,
@@ -146,17 +147,16 @@ void reskin_vertices
 {
 	const std::byte* position_data = vertex_data + position_attribute.offset;
 	
-	geom::aabb<float> bounds;
-	bounds.min_point = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
-	bounds.max_point = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+	geom::box<float> bounds
+	{
+		{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()},
+		{-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()}
+	};
 	
 	for (std::size_t i = 0; i < vertex_count; ++i)
 	{
-		// Get vertex position
-		const float3& position = reinterpret_cast<const float3&>(*(position_data + position_attribute.stride * i));
-		
-		bounds.min_point = math::min(bounds.min_point, position);
-		bounds.max_point = math::max(bounds.max_point, position);
+		const float3& position = reinterpret_cast<const float3&>(*(position_data + position_attribute.stride * i));	
+		bounds.extend(position);
 	}
 	
 	return bounds;
