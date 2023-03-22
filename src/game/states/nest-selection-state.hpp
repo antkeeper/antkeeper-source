@@ -23,6 +23,7 @@
 #include "game/states/game-state.hpp"
 #include <engine/entity/id.hpp>
 #include <engine/utility/fundamental-types.hpp>
+#include <engine/render/model.hpp>
 
 
 class nest_selection_state: public game_state
@@ -44,6 +45,7 @@ private:
 	
 	std::vector<std::shared_ptr<::event::subscription>> action_subscriptions;
 	std::shared_ptr<::event::subscription> mouse_motion_subscription;
+	std::shared_ptr<render::model> worker_model;
 	
 	bool mouse_look{false};
 	

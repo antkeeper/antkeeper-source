@@ -893,7 +893,6 @@ void game::setup_ui()
 	
 	// Menu BG billboard
 	menu_bg_billboard = std::make_unique<scene::billboard>();
-	menu_bg_billboard->set_active(false);
 	menu_bg_billboard->set_material(menu_bg_material);
 	menu_bg_billboard->set_scale({std::ceil(viewport_size.x() * 0.5f), std::ceil(viewport_size.y() * 0.5f), 1.0f});
 	menu_bg_billboard->set_translation({std::floor(viewport_size.x() * 0.5f), std::floor(viewport_size.y() * 0.5f), -100.0f});
@@ -935,7 +934,7 @@ void game::setup_ui()
 					ui_scene->add_object(*menu_bg_billboard);
 					
 					menu_bg_tint->set(float4{0.0f, 0.0f, 0.0f, 0.0f});
-					menu_bg_billboard->set_active(true);
+					//menu_bg_billboard->set_active(true);
 				}
 			);
 		}
@@ -953,7 +952,7 @@ void game::setup_ui()
 				[&]()
 				{
 					ui_scene->remove_object(*menu_bg_billboard);
-					menu_bg_billboard->set_active(false);
+					//menu_bg_billboard->set_active(false);
 				}
 			);
 		}

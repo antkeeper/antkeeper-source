@@ -23,6 +23,7 @@
 #include <engine/scene/light.hpp>
 #include <engine/gl/texture-2d.hpp>
 #include <engine/utility/fundamental-types.hpp>
+#include <memory>
 #include <vector>
 
 namespace scene {
@@ -84,7 +85,7 @@ public:
 	 *
 	 * @param framebuffer Pointer to a shadow map framebuffer.
 	 */
-	void set_shadow_framebuffer(const gl::framebuffer* framebuffer) noexcept;
+	void set_shadow_framebuffer(std::shared_ptr<gl::framebuffer> framebuffer) noexcept;
 	
 	/**
 	 * Sets the shadow bias factor for reducing self-shadowing.
@@ -121,7 +122,7 @@ public:
 	}
 	
 	/// Returns the shadow map framebuffer, of `nullptr` if no shadow map framebuffer is set.
-	[[nodiscard]] inline const gl::framebuffer* get_shadow_framebuffer() const noexcept
+	[[nodiscard]] inline const std::shared_ptr<gl::framebuffer>& get_shadow_framebuffer() const noexcept
 	{
 		return m_shadow_framebuffer;
 	}
@@ -182,7 +183,7 @@ private:
 	math::vector<float, 3> m_illuminance{0.0f, 0.0f, 0.0f};
 	math::vector<float, 3> m_direction{0.0f, 0.0f, -1.0f};
 	bool m_shadow_caster{false};
-	const gl::framebuffer* m_shadow_framebuffer{nullptr};
+	std::shared_ptr<gl::framebuffer> m_shadow_framebuffer{nullptr};
 	float m_shadow_bias{0.005f};
 	unsigned int m_shadow_cascade_count{4};
 	float m_shadow_cascade_coverage{1.0f};

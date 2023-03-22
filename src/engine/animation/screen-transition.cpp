@@ -32,22 +32,22 @@ screen_transition::screen_transition()
 	
 	// Setup billboard
 	billboard.set_material(material);
-	billboard.set_active(false);
+	//billboard.set_active(false);
 	
 	// Add single channel to transition animation
 	channel = animation.add_channel(0);
 	
 	// Setup animation start callback to show transition billboard
-	animation.set_start_callback
-	(
-		std::bind(&scene::object_base::set_active, &billboard, true)
-	);
+	// animation.set_start_callback
+	// (
+		// std::bind(&scene::object_base::set_active, &billboard, true)
+	// );
 	
 	// Setup animation end callback to hide transition billboard
-	animation.set_end_callback
-	(
-		std::bind(&scene::object_base::set_active, &billboard, false)
-	);
+	// animation.set_end_callback
+	// (
+		// std::bind(&scene::object_base::set_active, &billboard, false)
+	// );
 	
 	// Setup animation frame callback to update transition progress material property
 	animation.set_frame_callback
@@ -70,7 +70,7 @@ screen_transition::screen_transition()
 
 void screen_transition::set_visible(bool visible)
 {
-	billboard.set_active(visible);
+	//billboard.set_active(visible);
 }
 
 void screen_transition::transition(float duration, bool reverse, ::animation<float>::interpolator_type interpolator, bool hide, const std::function<void()>& callback)
@@ -94,7 +94,7 @@ void screen_transition::transition(float duration, bool reverse, ::animation<flo
 		(
 			[this]()
 			{
-				this->billboard.set_active(false);
+				//this->billboard.set_active(false);
 				if (this->callback)
 					this->callback();
 			}

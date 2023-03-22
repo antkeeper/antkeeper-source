@@ -262,7 +262,6 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	// Set world time scale
 	::world::set_time_scale(ctx, 0.0);
 	
-	ctx.surface_camera->set_active(true);
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure_value(ev100_sunny16);
 	
@@ -315,7 +314,7 @@ main_menu_state::~main_menu_state()
 	::menu::delete_text(ctx);
 	
 	// Hide menu BG
-	ctx.menu_bg_billboard->set_active(false);
+	//ctx.menu_bg_billboard->set_active(false);
 	
 	// Destruct title animation
 	ctx.animator->remove_animation(&title_fade_animation);

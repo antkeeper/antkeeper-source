@@ -79,12 +79,6 @@ void shadow_map_pass::render(render::context& ctx)
 	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
 	for (const scene::object_base* object: lights)
 	{
-		// Ignore inactive lights
-		if (!object->is_active())
-		{
-			continue;
-		}
-		
 		// Ignore non-directional lights
 		const scene::light& light = static_cast<const scene::light&>(*object);
 		if (light.get_light_type() != scene::light_type::directional)

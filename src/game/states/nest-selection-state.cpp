@@ -99,7 +99,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	debug::log::trace("Built worker phenome...");
 	
 	debug::log::trace("Generating worker model...");
-	std::shared_ptr<render::model> worker_model = ant_morphogenesis(worker_phenome);
+	worker_model = ant_morphogenesis(worker_phenome);
 	debug::log::trace("Generated worker model");
 	
 	// Create floor plane
@@ -134,10 +134,21 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	ctx.entity_registry->emplace<transform_component>(worker_ant_eid, worker_transform_component);
 	ctx.entity_registry->emplace<scene_component>(worker_ant_eid, std::make_unique<scene::static_mesh>(worker_model), std::uint8_t{1});
 	
-	// auto worker_body = std::make_unique<physics::rigid_body>();
-	// worker_body->set_mass(0.005f);
-	// worker_body->set_collider(std::make_shared<physics::sphere_collider>(1.0f));
-	//ctx.entity_registry->emplace<rigid_body_component>(worker_ant_eid, std::move(worker_body));
+
+	
+	auto worker_collider = std::make_shared<physics::box_collider>(float3{-1.0f, -1.0f, -1.0f}, float3{1.0f, 1.0f, 1.0f});
+	//auto worker_collider = std::make_shared<physics::sphere_collider>(1.0f);
+	worker_collider->set_material(std::make_shared<physics::collider_material>(0.4f, 0.1f, 0.2f));
+	
+	auto worker_body = std::make_unique<physics::rigid_body>();
+	worker_body->set_position(worker_transform_component.local.translation);
+	worker_body->set_previous_position(worker_transform_component.local.translation);
+	worker_body->set_mass(0.1f);
+	worker_body->set_inertia(0.05f);
+	worker_body->set_angular_damping(0.5f);
+	worker_body->set_collider(std::move(worker_collider));
+	
+	ctx.entity_registry->emplace<rigid_body_component>(worker_ant_eid, std::move(worker_body));
 	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
@@ -154,10 +165,6 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
 	ctx.ground_pass->set_enabled(true);
-	
-	// Switch to surface camera
-	ctx.underground_camera->set_active(false);
-	ctx.surface_camera->set_active(true);
 	
 	// Set camera exposure
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
@@ -673,8 +680,9 @@ void nest_selection_state::setup_controls()
 				const auto& camera_transform = ctx.entity_registry->get<transform_component>(first_person_camera_rig_eid);
 				
 				scene_component projectile_scene;
-				projectile_scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
-				//projectile_scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube.mdl"));
+				//projectile_scene.object = std::make_shared<scene::static_mesh>(worker_model);
+				//projectile_scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
+				projectile_scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube.mdl"));
 				
 				transform_component projectile_transform;
 				projectile_transform.local = camera_transform.world;
@@ -687,8 +695,8 @@ void nest_selection_state::setup_controls()
 				projectile_body->set_inertia(0.05f);
 				projectile_body->set_angular_damping(0.5f);
 				
-				//auto projectile_collider = std::make_shared<physics::box_collider>(float3{-1.0f, -1.0f, -1.0f}, float3{1.0f, 1.0f, 1.0f});
-				auto projectile_collider = std::make_shared<physics::sphere_collider>(1.0f);
+				auto projectile_collider = std::make_shared<physics::box_collider>(float3{-1.0f, -1.0f, -1.0f}, float3{1.0f, 1.0f, 1.0f});
+				//auto projectile_collider = std::make_shared<physics::sphere_collider>(1.0f);
 				
 				
 				projectile_collider->set_material(std::make_shared<physics::collider_material>(0.4f, 0.1f, 0.2f));

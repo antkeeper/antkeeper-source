@@ -318,13 +318,8 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
 	for (const scene::object_base* object: lights)
 	{
-		// Ignore inactive lights
-		if (!object->is_active())
-		{
-			continue;
-		}
-		
 		const scene::light& light = static_cast<const scene::light&>(*object);
+		
 		switch (light.get_light_type())
 		{
 			// Add ambient light

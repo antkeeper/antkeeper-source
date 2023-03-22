@@ -18,8 +18,6 @@
  */
 
 #include <engine/scene/directional-light.hpp>
-#include <engine/math/quaternion.hpp>
-#include <engine/math/interpolation.hpp>
 
 namespace scene {
 
@@ -33,9 +31,9 @@ void directional_light::set_shadow_caster(bool caster) noexcept
 	m_shadow_caster = caster;
 }
 
-void directional_light::set_shadow_framebuffer(const gl::framebuffer* framebuffer) noexcept
+void directional_light::set_shadow_framebuffer(std::shared_ptr<gl::framebuffer> framebuffer) noexcept
 {
-	m_shadow_framebuffer = framebuffer;
+	m_shadow_framebuffer = std::move(framebuffer);
 }
 
 void directional_light::set_shadow_bias(float bias) noexcept

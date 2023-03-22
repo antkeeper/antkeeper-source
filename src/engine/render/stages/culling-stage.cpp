@@ -45,8 +45,8 @@ void culling_stage::execute(render::context& ctx)
 		std::end(objects),
 		[&](scene::object_base* object)
 		{
-			// Ignore inactive objects and cameras
-			if (!object->is_active() || object->get_object_type_id() == scene::camera::object_type_id)
+			// Ignore cameras
+			if (object->get_object_type_id() == scene::camera::object_type_id)
 			{
 				return;
 			}

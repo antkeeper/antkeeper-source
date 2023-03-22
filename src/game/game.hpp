@@ -258,8 +258,8 @@ public:
 	std::unique_ptr<gl::framebuffer> ldr_framebuffer_a;
 	std::unique_ptr<gl::texture_2d> ldr_color_texture_b;
 	std::unique_ptr<gl::framebuffer> ldr_framebuffer_b;
-	std::unique_ptr<gl::texture_2d> shadow_map_depth_texture;
-	std::unique_ptr<gl::framebuffer> shadow_map_framebuffer;
+	std::shared_ptr<gl::texture_2d> shadow_map_depth_texture;
+	std::shared_ptr<gl::framebuffer> shadow_map_framebuffer;
 	
 	// Rendering
 	//gl::rasterizer* rasterizer;

@@ -136,7 +136,7 @@ pause_menu_state::pause_menu_state(::game& ctx):
 			(
 				[&ctx]()
 				{
-					ctx.menu_bg_billboard->set_active(false);
+					//ctx.menu_bg_billboard->set_active(false);
 					ctx.state_machine.pop();
 					ctx.state_machine.pop();
 					ctx.state_machine.emplace(std::make_unique<main_menu_state>(ctx, true));
@@ -200,7 +200,7 @@ pause_menu_state::pause_menu_state(::game& ctx):
 	
 	// Fade in menu and menu BG
 	::menu::fade_in(ctx, nullptr);
-	if (!ctx.menu_bg_billboard->is_active())
+	//if (!ctx.menu_bg_billboard->is_active())
 		::menu::fade_in_bg(ctx);
 	
 	// Save colony

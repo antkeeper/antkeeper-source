@@ -57,12 +57,6 @@ void renderer::render(float t, float dt, float alpha, const scene::collection& c
 	// Process cameras in order
 	for (scene::object_base* camera_object: cameras)
 	{
-		// Skip inactive cameras
-		if (!camera_object->is_active())
-		{
-			continue;
-		}
-		
 		scene::camera& camera = static_cast<scene::camera&>(*camera_object);
 		
 		// Skip cameras with no compositors

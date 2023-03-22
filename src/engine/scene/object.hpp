@@ -26,7 +26,7 @@
 #include <engine/math/transform-type.hpp>
 #include <engine/render/context.hpp>
 #include <atomic>
-#include <cstddef>
+#include <cstdint>
 
 namespace scene {
 
@@ -51,14 +51,6 @@ public:
 	 */
 	inline virtual void render(render::context& ctx) const {}
 	
-	/**
-	 * Activates or deactivates the scene object.
-	 */
-	inline void set_active(bool active) noexcept
-	{
-		m_active = active;
-	}
-
 	/**
 	 *
 	 */
@@ -98,12 +90,6 @@ public:
 	{
 		m_transform.scale = scale;
 		transformed();
-	}
-	
-	/// Returns whether the scene object is active.
-	[[nodiscard]] inline bool is_active() const noexcept
-	{
-		return m_active;
 	}
 
 	/**
@@ -155,7 +141,6 @@ private:
 	 */
 	inline virtual void transformed() {}
 	
-	bool m_active{true};
 	transform_type m_transform{transform_type::identity};
 };
 

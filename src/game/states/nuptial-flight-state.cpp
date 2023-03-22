@@ -134,10 +134,6 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 		}
 	);
 	
-	// Switch to surface camera
-	ctx.underground_camera->set_active(false);
-	ctx.surface_camera->set_active(true);
-	
 	// Set camera exposure
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure_value(ev100_sunny16);

@@ -363,7 +363,7 @@ void create_sun(::game& ctx)
 		ctx.sun_light = std::make_unique<scene::directional_light>();
 		ctx.sun_light->set_illuminance({0, 0, 0});
 		ctx.sun_light->set_shadow_caster(true);
-		ctx.sun_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer.get());
+		ctx.sun_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer);
 		ctx.sun_light->set_shadow_bias(0.005f);
 		ctx.sun_light->set_shadow_cascade_count(4);
 		ctx.sun_light->set_shadow_cascade_coverage(0.15f);
