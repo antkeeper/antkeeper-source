@@ -23,7 +23,7 @@
 #include <engine/math/vector.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/physics/kinematics/collider.hpp>
-#include <engine/math/transform-type.hpp>
+#include <engine/math/transform.hpp>
 #include <memory>
 
 namespace physics {
@@ -457,10 +457,10 @@ public:
 	
 private:
 	/// Transformation representing the current state of the rigid body.
-	math::transform<float> m_current_transform{math::transform<float>::identity};
+	math::transform<float> m_current_transform{math::transform<float>::identity()};
 	
 	/// Transformation representing the previous state of the rigid body.
-	math::transform<float> m_previous_transform{math::transform<float>::identity};
+	math::transform<float> m_previous_transform{math::transform<float>::identity()};
 	
 	/// Center of mass.
 	math::vector<float, 3> m_center_of_mass{math::vector<float, 3>::zero()};

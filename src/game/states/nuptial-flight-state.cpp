@@ -250,7 +250,7 @@ void nuptial_flight_state::create_camera_rig()
 	
 	// Construct camera rig focus transform component
 	transform_component camera_rig_focus_transform;
-	camera_rig_focus_transform.local = math::transform<float>::identity;
+	camera_rig_focus_transform.local = math::transform<float>::identity();
 	camera_rig_focus_transform.world = camera_rig_focus_transform.local;
 	
 	// Construct camera rig focus entity
@@ -331,7 +331,7 @@ void nuptial_flight_state::create_camera_rig()
 	
 	// Construct camera rig transform component
 	transform_component camera_rig_transform;
-	camera_rig_transform.local = math::transform<float>::identity;
+	camera_rig_transform.local = math::transform<float>::identity();
 	camera_rig_transform.world = camera_rig_transform.local;
 	
 	// Construct camera rig camera component

@@ -28,9 +28,7 @@ namespace math {}
 #include <engine/math/quaternion.hpp>
 
 #include <engine/math/se3.hpp>
-#include <engine/math/transform-type.hpp>
-#include <engine/math/transform-functions.hpp>
-#include <engine/math/transform-operators.hpp>
+#include <engine/math/transform.hpp>
 
 #include <engine/math/angles.hpp>
 #include <engine/math/numbers.hpp>

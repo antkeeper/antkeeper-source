@@ -18,8 +18,6 @@
  */
 
 #include <engine/animation/pose.hpp>
-#include <engine/math/transform-operators.hpp>
-#include <engine/math/transform-functions.hpp>
 
 void concatenate(const pose& bone_space, pose& skeleton_space)
 {
@@ -52,6 +50,6 @@ void matrix_palette(const pose& inverse_bind_pose, const pose& pose, float4x4* p
 	for (auto&& [bone, transform]: pose)
 	{
 		auto index = ::bone_index(bone);
-		palette[index] = math::matrix_cast(inverse_bind_pose.at(bone) * transform);
+		palette[index] = (inverse_bind_pose.at(bone) * transform).matrix();
 	}
 }

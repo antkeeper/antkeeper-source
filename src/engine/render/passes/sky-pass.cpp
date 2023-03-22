@@ -318,7 +318,7 @@ void sky_pass::render(render::context& ctx)
 		moon_transform.rotation = moon_rotation_tween.interpolate(ctx.alpha);
 		moon_transform.scale = {moon_radius, moon_radius, moon_radius};
 		
-		model = math::matrix_cast(moon_transform);		
+		model = moon_transform.matrix();		
 		float3x3 normal_model = math::transpose(math::inverse(float3x3(model)));
 		
 		rasterizer->use_program(*moon_shader_program);

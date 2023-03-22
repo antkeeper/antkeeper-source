@@ -21,7 +21,7 @@
 #define ANTKEEPER_ANIMATION_POSE_HPP
 
 #include <engine/animation/bone.hpp>
-#include <engine/math/transform-type.hpp>
+#include <engine/math/transform.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <map>
 

@@ -20,7 +20,6 @@
 #include "game/ant/ant-morphogenesis.hpp"
 #include <engine/render/material.hpp>
 #include <engine/render/vertex-attribute.hpp>
-#include <engine/math/transform-operators.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/geom/primitives/box.hpp>
@@ -816,7 +815,7 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	const ::skeleton* hindwings_skeleton = (phenome.wings->present) ? &phenome.wings->hindwings_model->get_skeleton() : nullptr;
 	
 	// Calculate transformations from part space to body space
-	const math::transform<float> legs_to_body = math::transform<float>::identity;
+	const math::transform<float> legs_to_body = math::transform<float>::identity();
 	const math::transform<float> head_to_body = bind_pose_ss.at(*bones.mesosoma) * mesosoma_skeleton.bind_pose.at(mesosoma_skeleton.bone_map.at("head"));
 	const math::transform<float> mandible_l_to_body = bind_pose_ss.at(*bones.head) * head_skeleton.bind_pose.at(head_skeleton.bone_map.at("mandible_l"));
 	const math::transform<float> mandible_r_to_body = bind_pose_ss.at(*bones.head) * head_skeleton.bind_pose.at(head_skeleton.bone_map.at("mandible_r"));

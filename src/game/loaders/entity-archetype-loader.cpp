@@ -219,7 +219,7 @@ static bool load_component_orbit(entity::archetype& archetype, const json& eleme
 static bool load_component_transform(entity::archetype& archetype, const json& element)
 {
 	::transform_component component;
-	component.local = math::transform<float>::identity;
+	component.local = math::transform<float>::identity();
 	
 	if (element.contains("translation"))
 	{

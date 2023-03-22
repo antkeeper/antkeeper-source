@@ -102,6 +102,8 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	worker_model = ant_morphogenesis(worker_phenome);
 	debug::log::trace("Generated worker model");
 	
+	
+	
 	// Create floor plane
 	
 	auto floor_archetype = ctx.resource_manager->load<entity::archetype>("desert-scrub-plane.ent");
@@ -128,7 +130,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	// Create worker entity(s)
 	worker_ant_eid = ctx.entity_registry->create();
 	transform_component worker_transform_component;
-	worker_transform_component.local = math::transform<float>::identity;
+	worker_transform_component.local = math::transform<float>::identity();
 	worker_transform_component.local.translation = {0, 0.5f, -4};
 	worker_transform_component.world = worker_transform_component.local;
 	ctx.entity_registry->emplace<transform_component>(worker_ant_eid, worker_transform_component);
@@ -281,7 +283,7 @@ void nest_selection_state::create_first_person_camera_rig()
 {
 	// Construct first person camera rig transform component
 	transform_component first_person_camera_rig_transform;
-	first_person_camera_rig_transform.local = math::transform<float>::identity;
+	first_person_camera_rig_transform.local = math::transform<float>::identity();
 	first_person_camera_rig_transform.local.translation = {0, 10, 0};
 	first_person_camera_rig_transform.world = first_person_camera_rig_transform.local;
 	

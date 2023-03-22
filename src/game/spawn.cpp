@@ -29,7 +29,7 @@ entity::id spawn_ant_egg(::game& ctx, const ant_genome& genome, bool fertilized,
 	
 	// Construct transform component
 	transform_component transform_component;
-	transform_component.local = math::transform<float>::identity;
+	transform_component.local = math::transform<float>::identity();
 	transform_component.local.translation = position;
 	transform_component.world = transform_component.local;
 	ctx.entity_registry->emplace<::transform_component>(egg_eid, transform_component);
@@ -47,7 +47,7 @@ entity::id spawn_ant_larva(::game& ctx, const ant_genome& genome, const float3& 
 	
 	// Construct transform component
 	transform_component transform_component;
-	transform_component.local = math::transform<float>::identity;
+	transform_component.local = math::transform<float>::identity();
 	transform_component.local.translation = position;
 	transform_component.world = transform_component.local;
 	ctx.entity_registry->emplace<::transform_component>(larva_eid, transform_component);

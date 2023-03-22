@@ -23,7 +23,7 @@
 #include <engine/geom/primitives/box.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/quaternion.hpp>
-#include <engine/math/transform-type.hpp>
+#include <engine/math/transform.hpp>
 #include <engine/render/context.hpp>
 #include <atomic>
 #include <cstdint>
@@ -141,7 +141,7 @@ private:
 	 */
 	inline virtual void transformed() {}
 	
-	transform_type m_transform{transform_type::identity};
+	transform_type m_transform{transform_type::identity()};
 };
 
 /**

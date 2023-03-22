@@ -64,7 +64,7 @@ entity::id create_ant_swarm(::game& ctx)
 	
 	// Init transform component
 	::transform_component transform;
-	transform.local = math::transform<float>::identity;
+	transform.local = math::transform<float>::identity();
 	transform.world = transform.local;
 	
 	// Init picking component

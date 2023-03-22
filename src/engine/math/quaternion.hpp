@@ -151,6 +151,7 @@ struct quaternion
 	 *
 	 * @return Rotation matrix.
 	 */
+	/// @{
 	[[nodiscard]] constexpr explicit operator matrix_type() const noexcept
 	{
 		const T xx = x() * x();
@@ -170,6 +171,12 @@ struct quaternion
 			(xz + yw) * T{2}, (yz - xw) * T{2}, T{1} - (xx + yy) * T{2}
 		};
 	}
+	
+	[[nodiscard]] inline constexpr matrix_type matrix() const noexcept
+	{
+		return matrix_type(*this);
+	}
+	/// @}
 	
 	/**
 	 * Casts the quaternion to a 4-element vector, with the real part as the first element and the imaginary part as the following three elements.

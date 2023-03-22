@@ -19,9 +19,7 @@
 
 #include "game/systems/constraint-system.hpp"
 #include "game/components/constraint-stack-component.hpp"
-#include <engine/math/quaternion.hpp>
-#include <engine/math/transform-operators.hpp>
-
+#include <engine/math/quaternion.hpp>
 constraint_system::constraint_system(entity::registry& registry):
 	updatable_system(registry)
 {

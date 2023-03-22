@@ -104,7 +104,7 @@ void static_mesh::transformed()
 {
 	update_bounds();
 	
-	const float4x4 transform_matrix = math::matrix_cast(get_transform());
+	const float4x4 transform_matrix = get_transform().matrix();
 	for (auto& operation: m_operations)
 	{
 		operation.transform = transform_matrix;

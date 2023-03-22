@@ -23,7 +23,7 @@
 #include <engine/entity/id.hpp>
 #include <engine/entity/registry.hpp>
 #include <engine/utility/fundamental-types.hpp>
-#include <engine/math/transform-type.hpp>
+#include <engine/math/transform.hpp>
 
 
 /// Commands which operate on entity::id components

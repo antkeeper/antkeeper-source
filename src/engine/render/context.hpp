@@ -21,7 +21,6 @@
 #define ANTKEEPER_RENDER_CONTEXT_HPP
 
 #include <engine/utility/fundamental-types.hpp>
-#include <engine/math/transform-operators.hpp>
 #include <engine/render/operation.hpp>
 #include <vector>
 

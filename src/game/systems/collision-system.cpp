@@ -23,7 +23,6 @@
 #include "game/components/rigid-body-component.hpp"
 #include <engine/geom/intersection.hpp>
 #include <engine/geom/primitives/plane.hpp>
-#include <engine/math/transform-operators.hpp>
 #include <limits>
 
 

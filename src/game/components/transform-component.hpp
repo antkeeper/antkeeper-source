@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_TRANSFORM_COMPONENT_HPP
 #define ANTKEEPER_GAME_TRANSFORM_COMPONENT_HPP
 
-#include <engine/math/transform-type.hpp>
+#include <engine/math/transform.hpp>
 
 
 struct transform_component

@@ -91,9 +91,13 @@ struct matrix
 	[[nodiscard]] inline constexpr matrix<T, P, O> size_cast(std::index_sequence<I...>) const noexcept
 	{
 		if constexpr (O == M)
+		{
 			return {((I < N) ? columns[I] : matrix<T, P, O>::identity()[I]) ...};
+		}
 		else
+		{
 			return {((I < N) ? vector<T, O>(columns[I]) : matrix<T, P, O>::identity()[I]) ...};
+		}
 	}
 	
 	/**

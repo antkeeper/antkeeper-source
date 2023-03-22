@@ -137,7 +137,7 @@ void text::transformed()
 		m_world_bounds.extend(get_transform() * m_local_bounds.corner(i));
 	}
 	
-	m_render_op.transform = math::matrix_cast(get_transform());
+	m_render_op.transform = get_transform().matrix();
 }
 
 void text::update_content()

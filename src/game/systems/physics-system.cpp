@@ -25,7 +25,6 @@
 #include <algorithm>
 #include <engine/debug/log.hpp>
 #include <engine/entity/id.hpp>
-#include <engine/math/transform-operators.hpp>
 #include <engine/physics/kinematics/colliders/plane-collider.hpp>
 #include <engine/physics/kinematics/colliders/sphere-collider.hpp>
 #include <engine/physics/kinematics/colliders/box-collider.hpp>

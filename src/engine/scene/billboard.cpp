@@ -97,7 +97,7 @@ void billboard::render(render::context& ctx) const
 			
 			transform.rotation = math::normalize(math::look_rotation(ctx.camera->get_forward(), ctx.camera->get_up()) * transform.rotation);
 			
-			m_render_op.transform = math::matrix_cast(transform);
+			m_render_op.transform = transform.matrix();
 			
 			break;
 		}
@@ -112,7 +112,7 @@ void billboard::render(render::context& ctx) const
 			const auto up = math::cross(look, right);
 			transform.rotation = math::normalize(math::look_rotation(look, up) * transform.rotation);
 			
-			m_render_op.transform = math::matrix_cast(transform);
+			m_render_op.transform = transform.matrix();
 			
 			break;
 		}
@@ -140,7 +140,7 @@ void billboard::set_billboard_type(billboard_type type)
 	
 	if (m_billboard_type == scene::billboard_type::flat)
 	{
-		m_render_op.transform = math::matrix_cast(get_transform());
+		m_render_op.transform = get_transform().matrix();
 	}
 }
 
@@ -150,7 +150,7 @@ void billboard::transformed()
 	
 	if (m_billboard_type == scene::billboard_type::flat)
 	{
-		m_render_op.transform = math::matrix_cast(get_transform());
+		m_render_op.transform = get_transform().matrix();
 	}
 }
 
