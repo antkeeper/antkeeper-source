@@ -89,7 +89,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	}
 	if (vertex_format_flags & vertex_attribute_bone)
 	{
-		vertex_size += sizeof(std::uint32_t) * bones_per_vertex;
+		vertex_size += sizeof(std::uint16_t) * bones_per_vertex;
 		vertex_size += sizeof(float) * bones_per_vertex;
 	}
 	if (vertex_format_flags & vertex_attribute_barycentric)
@@ -144,7 +144,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 				ctx.read32<std::endian::little>(vertex_data_offset, bones_per_vertex);
 				ctx.read32<std::endian::little>(vertex_data_offset, bones_per_vertex);
 				
-				vertex_data_offset += sizeof(std::uint32_t) * bones_per_vertex;
+				vertex_data_offset += sizeof(std::uint16_t) * bones_per_vertex;
 				vertex_data_offset += sizeof(float) * bones_per_vertex;
 			}
 			if (vertex_format_flags & vertex_attribute_barycentric)
@@ -213,10 +213,10 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	}
 	if (vertex_format_flags & vertex_attribute_bone)
 	{
-		attribute.type = gl::vertex_attribute_type::uint_32;
+		attribute.type = gl::vertex_attribute_type::uint_16;
 		attribute.components = bones_per_vertex;
 		vao.bind(render::vertex_attribute::bone_index, attribute);
-		attribute.offset += sizeof(std::uint32_t) * attribute.components;
+		attribute.offset += sizeof(std::uint16_t) * attribute.components;
 		
 		attribute.type = gl::vertex_attribute_type::float_32;
 		attribute.components = bones_per_vertex;
@@ -303,7 +303,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 			ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_parent_index), 1);
 			
 			// Construct bone transform
-			skeleton::bone_transform_type bone_transform;
+			bone_transform_type bone_transform;
 			
 			// Read bone translation
 			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.translation.data()), 3);
@@ -325,8 +325,8 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 			skeleton.set_bone_transform(i, bone_transform);
 		}
 		
-		// Update skeleton
-		skeleton.update_bind_pose();
+		// Update skeleton's rest pose
+		skeleton.update_rest_pose();
 	}
 	
 	return model;

@@ -17,13 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SCENE_RIGGED_MESH_HPP
-#define ANTKEEPER_SCENE_RIGGED_MESH_HPP
+#ifndef ANTKEEPER_SCENE_SKELETAL_MESH_HPP
+#define ANTKEEPER_SCENE_SKELETAL_MESH_HPP
 
 #include <engine/scene/object.hpp>
 #include <engine/render/model.hpp>
 #include <engine/render/operation.hpp>
-#include <engine/animation/skeleton-pose.hpp>
+#include <engine/animation/animation-pose.hpp>
 #include <vector>
 
 namespace scene {
@@ -31,20 +31,20 @@ namespace scene {
 /**
  *
  */
-class rigged_mesh: public object<rigged_mesh>
+class skeletal_mesh: public object<skeletal_mesh>
 {
 public:
 	/**
-	 * Constructs a rigged mesh from a model.
+	 * Constructs a skeletal mesh from a model.
 	 *
-	 * @param model Model from which the rigged mesh will be constructed.
+	 * @param model Model from which the skeletal mesh will be constructed.
 	 */
-	explicit rigged_mesh(std::shared_ptr<render::model> model);
+	explicit skeletal_mesh(std::shared_ptr<render::model> model);
 	
 	/**
 	 * Constructs a model instance.
 	 */
-	rigged_mesh() = default;
+	skeletal_mesh() = default;
 	
 	/**
 	 * Sets the model with which this model instance is associated.
@@ -81,14 +81,14 @@ public:
 	
 	void render(render::context& ctx) const override;
 	
-	/// Returns the pose of the rigged mesh.
+	/// Returns the animation pose of the skeletal mesh.
 	/// @{
-	[[nodiscard]] inline const skeleton_pose& get_pose() const noexcept
+	[[nodiscard]] inline const animation_pose& get_pose() const noexcept
 	{
 		return m_pose;
 	}
 	
-	[[nodiscard]] inline skeleton_pose& get_pose() noexcept
+	[[nodiscard]] inline animation_pose& get_pose() noexcept
 	{
 		return m_pose;
 	}
@@ -101,9 +101,9 @@ private:
 	std::shared_ptr<render::model> m_model;
 	mutable std::vector<render::operation> m_operations;
 	aabb_type m_bounds{{0, 0, 0}, {0, 0, 0}};
-	skeleton_pose m_pose;
+	animation_pose m_pose;
 };
 
 } // namespace scene
 
-#endif // ANTKEEPER_SCENE_RIGGED_MESH_HPP
+#endif // ANTKEEPER_SCENE_SKELETAL_MESH_HPP

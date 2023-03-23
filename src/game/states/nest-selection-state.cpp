@@ -71,7 +71,7 @@
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/state-machine.hpp>
 #include <engine/scene/static-mesh.hpp>
-#include <engine/scene/rigged-mesh.hpp>
+#include <engine/scene/skeletal-mesh.hpp>
 
 nest_selection_state::nest_selection_state(::game& ctx):
 	game_state(ctx)
@@ -128,11 +128,11 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	// Create worker entity(s)
 	
-	auto worker_rigged_mesh = std::make_unique<scene::rigged_mesh>(worker_model);
+	auto worker_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_model);
 	
 	const auto& worker_skeleton = worker_model->get_skeleton();
-	const auto& worker_bind_pose = worker_skeleton.get_bind_pose();
-	auto& worker_pose = worker_rigged_mesh->get_pose();
+	const auto& worker_rest_pose = worker_skeleton.get_rest_pose();
+	auto& worker_pose = worker_skeletal_mesh->get_pose();
 	
 	const float mandibles_open_angle = math::radians(32.0f);
 	auto open_left_mandible = math::transform<float>::identity();
@@ -143,8 +143,8 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	auto mandible_l_bone = *worker_skeleton.get_bone_index("mandible_l");
 	auto mandible_r_bone = *worker_skeleton.get_bone_index("mandible_r");
 	
-	worker_pose.set_relative_transform(mandible_l_bone, worker_bind_pose.get_relative_transform(mandible_l_bone) * open_left_mandible);
-	worker_pose.set_relative_transform(mandible_r_bone, worker_bind_pose.get_relative_transform(mandible_r_bone) * open_right_mandible);
+	worker_pose.set_relative_transform(mandible_l_bone, worker_rest_pose.get_relative_transform(mandible_l_bone) * open_left_mandible);
+	worker_pose.set_relative_transform(mandible_r_bone, worker_rest_pose.get_relative_transform(mandible_r_bone) * open_right_mandible);
 	worker_pose.update();
 	
 	worker_ant_eid = ctx.entity_registry->create();
@@ -153,7 +153,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	worker_transform_component.local.translation = {0, 0.5f, -4};
 	worker_transform_component.world = worker_transform_component.local;
 	ctx.entity_registry->emplace<transform_component>(worker_ant_eid, worker_transform_component);
-	ctx.entity_registry->emplace<scene_component>(worker_ant_eid, std::move(worker_rigged_mesh), std::uint8_t{1});
+	ctx.entity_registry->emplace<scene_component>(worker_ant_eid, std::move(worker_skeletal_mesh), std::uint8_t{1});
 	
 
 	

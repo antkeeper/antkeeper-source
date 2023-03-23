@@ -17,23 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/scene/rigged-mesh.hpp>
+#include <engine/scene/skeletal-mesh.hpp>
 #include <engine/scene/camera.hpp>
 
 namespace scene {
 
-rigged_mesh::rigged_mesh(std::shared_ptr<render::model> model)
+skeletal_mesh::skeletal_mesh(std::shared_ptr<render::model> model)
 {
 	set_model(model);
 }
 
-void rigged_mesh::set_model(std::shared_ptr<render::model> model)
+void skeletal_mesh::set_model(std::shared_ptr<render::model> model)
 {
 	m_model = model;
 	
 	if (m_model)
 	{
-		m_pose.set_skeleton(&model->get_skeleton());
+		m_pose = animation_pose(model->get_skeleton());
 		
 		m_operations.resize(m_model->get_groups().size());
 		for (std::size_t i = 0; i < m_operations.size(); ++i)
@@ -58,7 +58,7 @@ void rigged_mesh::set_model(std::shared_ptr<render::model> model)
 	transformed();
 }
 
-void rigged_mesh::set_material(std::size_t index, std::shared_ptr<render::material> material)
+void skeletal_mesh::set_material(std::size_t index, std::shared_ptr<render::material> material)
 {
 	if (material)
 	{
@@ -70,7 +70,7 @@ void rigged_mesh::set_material(std::size_t index, std::shared_ptr<render::materi
 	}
 }
 
-void rigged_mesh::reset_materials()
+void skeletal_mesh::reset_materials()
 {
 	for (std::size_t i = 0; i < m_operations.size(); ++i)
 	{
@@ -78,7 +78,7 @@ void rigged_mesh::reset_materials()
 	}
 }
 
-void rigged_mesh::update_bounds()
+void skeletal_mesh::update_bounds()
 {
 	if (m_model)
 	{
@@ -99,7 +99,7 @@ void rigged_mesh::update_bounds()
 	}
 }
 
-void rigged_mesh::transformed()
+void skeletal_mesh::transformed()
 {
 	update_bounds();
 	
@@ -110,7 +110,7 @@ void rigged_mesh::transformed()
 	}
 }
 
-void rigged_mesh::render(render::context& ctx) const
+void skeletal_mesh::render(render::context& ctx) const
 {
 	const float depth = ctx.camera->get_view_frustum().near().distance(get_translation());
 	for (auto& operation: m_operations)

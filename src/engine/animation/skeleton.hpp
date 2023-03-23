@@ -20,12 +20,12 @@
 #ifndef ANTKEEPER_ANIMATION_SKELETON_HPP
 #define ANTKEEPER_ANIMATION_SKELETON_HPP
 
-#include <engine/animation/skeleton-bind-pose.hpp>
+#include <engine/animation/bone.hpp>
+#include <engine/animation/rest-pose.hpp>
 #include <engine/utility/hash/fnv1a.hpp>
 #include <unordered_map>
 #include <vector>
 #include <optional>
-#include <cstdint>
 
 /**
  * Skeletal animation skeleton.
@@ -33,12 +33,6 @@
 class skeleton
 {
 public:
-	/// Bone index type.
-	using bone_index_type = std::uint16_t;
-	
-	/// Bone transform type.
-	using bone_transform_type = skeleton_pose::bone_transform_type;
-	
 	/**
 	 * Constructs a skeleton.
 	 *
@@ -50,9 +44,9 @@ public:
 	skeleton();
 	
 	/**
-	 * Updates the bind pose of the skeleton.
+	 * Updates the rest pose of the skeleton.
 	 */
-	void update_bind_pose();
+	void update_rest_pose();
 	
 	/**
 	 * Sets the number of bones in the skeleton.
@@ -82,7 +76,7 @@ public:
 	 */
 	inline void set_bone_transform(bone_index_type index, const bone_transform_type& transform)
 	{
-		m_bind_pose.set_relative_transform(index, transform);
+		m_rest_pose.set_relative_transform(index, transform);
 	}
 	
 	/**
@@ -125,18 +119,18 @@ public:
 	 */
 	[[nodiscard]] std::optional<bone_index_type> get_bone_index(hash::fnv1a32_t name) const;
 	
-	/// Returns the skeleton's bind pose.
-	[[nodiscard]] inline const skeleton_bind_pose& get_bind_pose() const noexcept
+	/// Returns the skeleton's rest pose.
+	[[nodiscard]] inline const rest_pose& get_rest_pose() const noexcept
 	{
-		return m_bind_pose;
+		return m_rest_pose;
 	}
 	
 private:
 	/// Indices of bone parents.
 	std::vector<bone_index_type> m_bone_parents;
 	
-	/// Bind pose of the skeleton.
-	skeleton_bind_pose m_bind_pose;
+	/// Rest pose of the skeleton.
+	rest_pose m_rest_pose;
 	
 	/// Map of bone names to bone indices.
 	std::unordered_map<hash::fnv1a32_t, bone_index_type> m_bone_map;

@@ -17,57 +17,44 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ANIMATION_SKELETON_POSE_HPP
-#define ANTKEEPER_ANIMATION_SKELETON_POSE_HPP
+#ifndef ANTKEEPER_ANIMATION_POSE_HPP
+#define ANTKEEPER_ANIMATION_POSE_HPP
 
-#include <engine/math/transform.hpp>
-#include <engine/math/matrix.hpp>
-#include <cstdint>
+#include <engine/animation/bone.hpp>
 #include <vector>
 
 class skeleton;
 
 /**
- * Skeleton pose.
+ * Base class for skeleton poses.
  */
-class skeleton_pose
+class pose
 {
 public:
-	/// Bone index type.
-	using bone_index_type = std::uint16_t;
-	
-	/// Bone transform type.
-	using bone_transform_type = math::transform<float>;
-	
-	/// Matrix type.
-	using bone_matrix_type = math::matrix<float, 4, 4>;
-	
 	/**
-	 * Constructs a skeleton pose.
+	 * Constructs a pose.
 	 *
 	 * @param skeleton Skeleton with which to associate the pose.
 	 */
-	explicit skeleton_pose(const skeleton& skeleton);
+	explicit pose(const skeleton& skeleton);
 	
-	/// Constructs an empty skeleton pose.
-	skeleton_pose() noexcept = default;
+	/// Constructs an empty pose.
+	pose() noexcept = default;
 	
 	/**
-	 * Updates the absolute transforms and matrix palette of the pose.
+	 * Updates the pose after one or more relative transforms have been changed.
 	 */
-	virtual void update();
+	void update();
 	
 	/**
-	 * Resets all bone transforms to identity transforms.
-	 */
-	virtual void reset_bone_transforms();
-	
-	/**
-	 * Sets the number of bones in the pose.
+	 * Updates a subset of the pose after one or more relative transforms have been changed.
 	 *
-	 * @param skeleton Skeleton with which to associate the pose.
+	 * @param first_index Index of the first bone in the chain to update.
+	 * @param bone_count Number of bones in the chain to update.
+	 *
+	 * @warning It's the caller's responsibility to ensure that any ancestors of the bone chain are up to date before the call, and any descendants are updated after the call.
 	 */
-	void set_skeleton(const skeleton* skeleton);
+	virtual void update(bone_index_type first_index, std::size_t bone_count);
 	
 	/**
 	 * Sets the relative transform describing a bone pose.
@@ -110,17 +97,6 @@ public:
 		return m_absolute_transforms[index];
 	}
 	
-	/**
-	 * Returns the matrix palette of the pose.
-	 *
-	 * @note The matrix palette of a standard skeleton pose will contain its skinning matrices.
-	 * @note The matrix palette of a skeleton bind pose will contain the inverses of its absolute transforms.
-	 */
-	[[nodiscard]] inline const std::vector<bone_matrix_type>& get_matrix_palette() const noexcept
-	{
-		return m_matrix_palette;
-	}
-	
 protected:
 	/// Skeleton with which the pose is associated.
 	const skeleton* m_skeleton{nullptr};
@@ -130,9 +106,6 @@ protected:
 	
 	/// Absolute transforms for each bone in a skeleton.
 	std::vector<bone_transform_type> m_absolute_transforms;
-	
-	/// Skinning matrix palette.
-	std::vector<bone_matrix_type> m_matrix_palette;
 };
 
-#endif // ANTKEEPER_ANIMATION_SKELETON_POSE_HPP
+#endif // ANTKEEPER_ANIMATION_POSE_HPP

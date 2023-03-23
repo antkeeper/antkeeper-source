@@ -17,26 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_ANIMATION_SKELETON_BIND_POSE_HPP
-#define ANTKEEPER_ANIMATION_SKELETON_BIND_POSE_HPP
+#ifndef ANTKEEPER_ANIMATION_BONE_HPP
+#define ANTKEEPER_ANIMATION_BONE_HPP
 
-#include <engine/animation/skeleton-pose.hpp>
+#include <engine/math/transform.hpp>
+#include <cstdint>
 
 /**
- * Skeleton bind pose.
+ * Bone index type.
+ *
+ * @note The maximum number of bones per skeleton is 65,536.
  */
-class skeleton_bind_pose: public skeleton_pose
-{
-public:
-	/**
-	 * Constructs a skeleton bind pose.
-	 *
-	 * @param skeleton Skeleton with which to associate the bind pose.
-	 */
-	skeleton_bind_pose(const skeleton& skeleton);
-	
-	void update() override;
-	void reset_bone_transforms() override;
-};
+using bone_index_type = std::uint16_t;
 
-#endif // ANTKEEPER_ANIMATION_SKELETON_BIND_POSE_HPP
+/**
+ * Bone transform type.
+ */
+using bone_transform_type = math::transform<float>;
+
+/**
+ * Bone skinning matrix type.
+ */
+using bone_matrix_type = bone_transform_type::matrix_type;
+
+#endif // ANTKEEPER_ANIMATION_BONE_HPP

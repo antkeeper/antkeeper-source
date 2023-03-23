@@ -23,10 +23,9 @@
 #include <engine/math/quaternion.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/geom/primitives/box.hpp>
+#include <engine/animation/bone.hpp>
 #include <unordered_set>
 #include <optional>
-
-using bone_index_type = skeleton::bone_index_type;
 
 namespace {
 
@@ -480,9 +479,8 @@ void build_ant_skeleton(const ant_phenome& phenome, ::skeleton& skeleton, ant_bo
  * @param[in] phenome Ant phenome.
  * @param[in] bones Set of ant skeleton bones.
  * @param[in,out] skeleton Ant skeleton.
- * @param[out] bind_pose_ss Skeleton-space bind pose.
  */
-void build_ant_bind_pose(const ant_phenome& phenome, const ant_bone_set& bones, ::skeleton& skeleton)
+void build_ant_rest_pose(const ant_phenome& phenome, const ant_bone_set& bones, ::skeleton& skeleton)
 {
 	// Get body part skeletons
 	const ::skeleton& mesosoma_skeleton = phenome.mesosoma->model->get_skeleton();
@@ -498,10 +496,10 @@ void build_ant_bind_pose(const ant_phenome& phenome, const ant_bone_set& bones, 
 	
 	auto get_bone_transform = [](const ::skeleton& skeleton, hash::fnv1a32_t bone_name)
 	{
-		return skeleton.get_bind_pose().get_relative_transform(*skeleton.get_bone_index(bone_name));
+		return skeleton.get_rest_pose().get_relative_transform(*skeleton.get_bone_index(bone_name));
 	};
 	
-	// Build skeleton bind pose
+	// Build skeleton rest pose
 	skeleton.set_bone_transform(*bones.mesosoma, get_bone_transform(mesosoma_skeleton, "mesosoma"));
 	skeleton.set_bone_transform(*bones.procoxa_l, get_bone_transform(legs_skeleton, "procoxa_l"));
 	skeleton.set_bone_transform(*bones.profemur_l, get_bone_transform(legs_skeleton, "profemur_l"));
@@ -567,7 +565,7 @@ void build_ant_bind_pose(const ant_phenome& phenome, const ant_bone_set& bones, 
 		skeleton.set_bone_transform(*bones.hindwing_r, get_bone_transform(mesosoma_skeleton, "hindwing_r") * get_bone_transform(*hindwings_skeleton, "hindwing_r"));
 	}
 	
-	skeleton.update_bind_pose();
+	skeleton.update_rest_pose();
 }
 
 } // namespace
@@ -782,9 +780,9 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	ant_bone_set bones;
 	build_ant_skeleton(phenome, skeleton, bones);
 	
-	// Build ant bind pose
-	build_ant_bind_pose(phenome, bones, skeleton);
-	const auto& bind_pose = skeleton.get_bind_pose();
+	// Build ant rest pose
+	build_ant_rest_pose(phenome, bones, skeleton);
+	const auto& rest_pose = skeleton.get_rest_pose();
 	
 	// Get number of vertices for each body part
 	const std::uint32_t mesosoma_vertex_count = (mesosoma_model->get_groups()).front().index_count;
@@ -827,30 +825,30 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	
 	auto get_bone_transform = [](const ::skeleton& skeleton, hash::fnv1a32_t bone_name)
 	{
-		return skeleton.get_bind_pose().get_relative_transform(*skeleton.get_bone_index(bone_name));
+		return skeleton.get_rest_pose().get_relative_transform(*skeleton.get_bone_index(bone_name));
 	};
 	
 	// Calculate transformations from part space to body space
 	const math::transform<float> legs_to_body = math::transform<float>::identity();
-	const math::transform<float> head_to_body = bind_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "head");
-	const math::transform<float> mandible_l_to_body = bind_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "mandible_l");
-	const math::transform<float> mandible_r_to_body = bind_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "mandible_r");
-	const math::transform<float> antenna_l_to_body = bind_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "antenna_l");
-	const math::transform<float> antenna_r_to_body = bind_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "antenna_r");
-	const math::transform<float> waist_to_body = bind_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "petiole");
+	const math::transform<float> head_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "head");
+	const math::transform<float> mandible_l_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "mandible_l");
+	const math::transform<float> mandible_r_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "mandible_r");
+	const math::transform<float> antenna_l_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "antenna_l");
+	const math::transform<float> antenna_r_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "antenna_r");
+	const math::transform<float> waist_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "petiole");
 	
 	math::transform<float> gaster_to_body;
 	if (phenome.waist->postpetiole_present)
 	{
-		gaster_to_body = bind_pose.get_absolute_transform(*bones.postpetiole) * get_bone_transform(waist_skeleton, "gaster");
+		gaster_to_body = rest_pose.get_absolute_transform(*bones.postpetiole) * get_bone_transform(waist_skeleton, "gaster");
 	}
 	else if (phenome.waist->petiole_present)
 	{
-		gaster_to_body = bind_pose.get_absolute_transform(*bones.petiole) * get_bone_transform(waist_skeleton, "gaster");
+		gaster_to_body = rest_pose.get_absolute_transform(*bones.petiole) * get_bone_transform(waist_skeleton, "gaster");
 	}
 	else
 	{
-		gaster_to_body = bind_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(waist_skeleton, "gaster");
+		gaster_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(waist_skeleton, "gaster");
 	}
 	
 	math::transform<float> sting_to_body;
@@ -863,8 +861,8 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	math::transform<float> eye_r_to_body;
 	if (phenome.eyes->present)
 	{
-		eye_l_to_body = bind_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "eye_l");
-		eye_r_to_body = bind_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "eye_r");
+		eye_l_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "eye_l");
+		eye_r_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "eye_r");
 	}
 	
 	math::transform<float> ocellus_l_to_body;
@@ -872,12 +870,12 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	math::transform<float> ocellus_m_to_body;
 	if (phenome.ocelli->lateral_ocelli_present)
 	{
-		ocellus_l_to_body = bind_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "ocellus_l");
-		ocellus_r_to_body = bind_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "ocellus_r");
+		ocellus_l_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "ocellus_l");
+		ocellus_r_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "ocellus_r");
 	}
 	if (phenome.ocelli->median_ocellus_present)
 	{
-		ocellus_m_to_body = bind_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "ocellus_m");
+		ocellus_m_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "ocellus_m");
 	}
 	
 	math::transform<float> forewing_l_to_body;
@@ -886,10 +884,10 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	math::transform<float> hindwing_r_to_body;
 	if (phenome.wings->present)
 	{
-		forewing_l_to_body = bind_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "forewing_l");
-		forewing_r_to_body = bind_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "forewing_r");
-		hindwing_l_to_body = bind_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "hindwing_l");
-		hindwing_r_to_body = bind_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "hindwing_r");
+		forewing_l_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "forewing_l");
+		forewing_r_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "forewing_r");
+		hindwing_l_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "hindwing_l");
+		hindwing_r_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "hindwing_r");
 	}
 	
 	// Build legs vertex reskin map

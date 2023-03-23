@@ -21,25 +21,25 @@
 
 skeleton::skeleton(std::size_t bone_count):
 	m_bone_parents(bone_count, 0),
-	m_bind_pose(*this)
+	m_rest_pose(*this)
 {}
 
 skeleton::skeleton():
 	skeleton(0)
 {}
 
-void skeleton::update_bind_pose()
+void skeleton::update_rest_pose()
 {
-	m_bind_pose.update();
+	m_rest_pose.update();
 }
 
 void skeleton::set_bone_count(std::size_t bone_count)
 {
 	m_bone_parents.resize(bone_count, 0);
-	m_bind_pose.set_skeleton(this);
+	m_rest_pose.resize();
 }
 
-std::optional<typename skeleton::bone_index_type> skeleton::get_bone_index(hash::fnv1a32_t name) const
+std::optional<bone_index_type> skeleton::get_bone_index(hash::fnv1a32_t name) const
 {
 	if (auto i = m_bone_map.find(name); i != m_bone_map.end())
 	{
