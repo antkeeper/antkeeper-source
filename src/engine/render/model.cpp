@@ -289,7 +289,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 		ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_count), 1);
 		
 		// Resize skeleton
-		skeleton.set_bone_count(bone_count);
+		skeleton.add_bones(bone_count);
 		
 		// Read bones
 		for (std::uint16_t i = 0; i < bone_count; ++i)

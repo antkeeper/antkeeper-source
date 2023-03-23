@@ -277,7 +277,7 @@ void reskin_vertices
 void build_ant_skeleton(const ant_phenome& phenome, ::skeleton& skeleton, ant_bone_set& bones)
 {
 	// Allocate bones
-	skeleton.set_bone_count(count_ant_skeleton_bones(phenome));
+	skeleton.add_bones(count_ant_skeleton_bones(phenome));
 	
 	// Construct ant bone set
 	bone_index_type bone_index = 0;

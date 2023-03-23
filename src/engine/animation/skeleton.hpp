@@ -49,11 +49,39 @@ public:
 	void update_rest_pose();
 	
 	/**
-	 * Sets the number of bones in the skeleton.
+	 * Add one or more bones to the skeleton.
 	 *
-	 * @param size Number of bones in the skeleton.
+	 * @param bone_count Number of bones to add.
+	 *
+	 * @return Index of the first added bone.
 	 */
-	void set_bone_count(std::size_t size);
+	bone_index_type add_bones(std::size_t bone_count);
+	
+	/**
+	 * Adds a single bone to the skeleton.
+	 *
+	 * @return Index of the added bone.
+	 */
+	inline bone_index_type add_bone()
+	{
+		return add_bones(1);
+	}
+	
+	/**
+	 * Adds a single named bone to the skeleton.
+	 *
+	 * @param name Name of the bone.
+	 *
+	 * @return Index of the added bone.
+	 *
+	 * @throw std::invalid_argument Duplicate bone name.
+	 */
+	bone_index_type add_bone(hash::fnv1a32_t name);
+	
+	/**
+	 * Removes all bones from the skeleton.
+	 */
+	void remove_bones();
 	
 	/**
 	 * Sets the parent of a bone.
@@ -61,12 +89,11 @@ public:
 	 * @param child_index Index of the child bone.
 	 * @param parent_index Index of the parent bone.
 	 *
-	 * @warning The index of a child bone must be greater than the index of its parent. Failure to properly index bones will result in incorrect pose concatenation.
+	 * @warning The index of a child bone must be greater than the index of its parent.
+	 *
+	 * @throw std::invalid_argument Child bone index precedes parent bone index.
 	 */
-	inline void set_bone_parent(bone_index_type child_index, bone_index_type parent_index)
-	{
-		m_bone_parents[child_index] = parent_index;
-	}
+	void set_bone_parent(bone_index_type child_index, bone_index_type parent_index);
 	
 	/**
 	 * Sets the transform of a bone, relative to its parent bone.
@@ -84,11 +111,10 @@ public:
 	 *
 	 * @param index Index of a bone.
 	 * @param name Name of the bone.
+	 *
+	 * @throw std::invalid_argument Duplicate bone name.
 	 */
-	inline void set_bone_name(bone_index_type index, hash::fnv1a32_t name)
-	{
-		m_bone_map[name] = index;
-	}
+	void set_bone_name(bone_index_type index, hash::fnv1a32_t name);
 	
 	/**
 	 * Returns the number of bones in the skeleton.
