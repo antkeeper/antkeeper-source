@@ -38,7 +38,7 @@ namespace math {
  * @tparam S Scalar type.
  */
 template <typename T, typename S = float>
-[[nodiscard]] constexpr T lerp(const T& x, const T& y, S a)
+[[nodiscard]] constexpr T lerp(const T& x, const T& y, S a) noexcept
 {
 	return x + (y - x) * a;
 }

@@ -288,7 +288,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 			}
 			
 			// Switch shader programs if necessary
-			gl::shader_program* shader_program = (operation->skinning_palette.empty()) ? unskinned_shader_program.get() : skinned_shader_program.get();
+			gl::shader_program* shader_program = (operation->matrix_palette.empty()) ? unskinned_shader_program.get() : skinned_shader_program.get();
 			if (active_shader_program != shader_program)
 			{
 				active_shader_program = shader_program;
@@ -316,8 +316,8 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 
 bool operation_compare(const render::operation* a, const render::operation* b)
 {
-	const bool skinned_a = !a->skinning_palette.empty();
-	const bool skinned_b = !b->skinning_palette.empty();
+	const bool skinned_a = !a->matrix_palette.empty();
+	const bool skinned_b = !b->matrix_palette.empty();
 	const bool two_sided_a = (a->material) ? a->material->is_two_sided() : false;
 	const bool two_sided_b = (b->material) ? b->material->is_two_sided() : false;
 	

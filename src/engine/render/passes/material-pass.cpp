@@ -267,6 +267,7 @@ void material_pass::render(render::context& ctx)
 		
 		// Update geometry-dependent shader variables
 		model = &operation->transform;
+		matrix_palette = operation->matrix_palette;
 		for (const auto& command: active_cache_entry->geometry_command_buffer)
 		{
 			command();
@@ -721,6 +722,12 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 	if (auto model_view_projection_var = shader_program.variable("model_view_projection"))
 	{
 		command_buffer.emplace_back([&, model_view_projection_var](){model_view_projection_var->update((*view_projection) * (*model));});
+	}
+	
+	// Update matrix palette variable
+	if (auto matrix_palette_var = shader_program.variable("matrix_palette"))
+	{
+		command_buffer.emplace_back([&, matrix_palette_var](){matrix_palette_var->update(matrix_palette);});
 	}
 }
 

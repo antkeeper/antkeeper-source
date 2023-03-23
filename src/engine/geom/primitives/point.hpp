@@ -17,10 +17,27 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_HPP
-#define ANTKEEPER_MATH_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_POINT_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_POINT_HPP
 
-/// Mathematical functions and data types.
-namespace math {}
+#include <engine/math/vector.hpp>
 
-#endif // ANTKEEPER_MATH_HPP
+namespace geom {
+namespace primitives {
+
+/**
+ * *n*-dimensional point.
+ *
+ * @tparam T Real type.
+ * @tparam N Number of dimensions.
+ */
+template <class T, std::size_t N>
+using point = vector<T, N>;
+
+} // namespace primitives
+
+using namespace primitives;
+
+} // namespace geom
+
+#endif // ANTKEEPER_GEOM_PRIMITIVES_POINT_HPP

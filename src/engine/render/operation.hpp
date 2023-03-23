@@ -21,7 +21,6 @@
 #define ANTKEEPER_RENDER_OPERATION_HPP
 
 #include <engine/utility/fundamental-types.hpp>
-#include <engine/animation/pose.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/drawing-mode.hpp>
 #include <engine/render/material.hpp>
@@ -46,7 +45,7 @@ struct operation
 	float depth{0.0f};
 	
 	std::size_t instance_count{0};
-	std::span<const float4x4> skinning_palette{};
+	std::span<const float4x4> matrix_palette{};
 };
 
 } // namespace render

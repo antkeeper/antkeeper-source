@@ -17,12 +17,13 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SCENE_STATIC_MESH_HPP
-#define ANTKEEPER_SCENE_STATIC_MESH_HPP
+#ifndef ANTKEEPER_SCENE_RIGGED_MESH_HPP
+#define ANTKEEPER_SCENE_RIGGED_MESH_HPP
 
 #include <engine/scene/object.hpp>
 #include <engine/render/model.hpp>
 #include <engine/render/operation.hpp>
+#include <engine/animation/skeleton-pose.hpp>
 #include <vector>
 
 namespace scene {
@@ -30,20 +31,20 @@ namespace scene {
 /**
  *
  */
-class static_mesh: public object<static_mesh>
+class rigged_mesh: public object<rigged_mesh>
 {
 public:
 	/**
-	 * Constructs a static mesh from a model.
+	 * Constructs a rigged mesh from a model.
 	 *
-	 * @param model Model from which the static mesh will be constructed.
+	 * @param model Model from which the rigged mesh will be constructed.
 	 */
-	explicit static_mesh(std::shared_ptr<render::model> model);
+	explicit rigged_mesh(std::shared_ptr<render::model> model);
 	
 	/**
 	 * Constructs a model instance.
 	 */
-	static_mesh() = default;
+	rigged_mesh() = default;
 	
 	/**
 	 * Sets the model with which this model instance is associated.
@@ -80,6 +81,19 @@ public:
 	
 	void render(render::context& ctx) const override;
 	
+	/// Returns the pose of the rigged mesh.
+	/// @{
+	[[nodiscard]] inline const skeleton_pose& get_pose() const noexcept
+	{
+		return m_pose;
+	}
+	
+	[[nodiscard]] inline skeleton_pose& get_pose() noexcept
+	{
+		return m_pose;
+	}
+	/// @}
+	
 private:
 	void update_bounds();
 	void transformed() override;
@@ -87,8 +101,9 @@ private:
 	std::shared_ptr<render::model> m_model;
 	mutable std::vector<render::operation> m_operations;
 	aabb_type m_bounds{{0, 0, 0}, {0, 0, 0}};
+	skeleton_pose m_pose;
 };
 
 } // namespace scene
 
-#endif // ANTKEEPER_SCENE_STATIC_MESH_HPP
+#endif // ANTKEEPER_SCENE_RIGGED_MESH_HPP

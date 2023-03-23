@@ -17,10 +17,26 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_HPP
-#define ANTKEEPER_MATH_HPP
+#ifndef ANTKEEPER_ANIMATION_SKELETON_BIND_POSE_HPP
+#define ANTKEEPER_ANIMATION_SKELETON_BIND_POSE_HPP
 
-/// Mathematical functions and data types.
-namespace math {}
+#include <engine/animation/skeleton-pose.hpp>
 
-#endif // ANTKEEPER_MATH_HPP
+/**
+ * Skeleton bind pose.
+ */
+class skeleton_bind_pose: public skeleton_pose
+{
+public:
+	/**
+	 * Constructs a skeleton bind pose.
+	 *
+	 * @param skeleton Skeleton with which to associate the bind pose.
+	 */
+	skeleton_bind_pose(const skeleton& skeleton);
+	
+	void update() override;
+	void reset_bone_transforms() override;
+};
+
+#endif // ANTKEEPER_ANIMATION_SKELETON_BIND_POSE_HPP

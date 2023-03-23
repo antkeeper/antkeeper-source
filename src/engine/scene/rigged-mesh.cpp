@@ -17,24 +17,24 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/scene/static-mesh.hpp>
-#include <engine/render/model.hpp>
-#include <engine/render/material.hpp>
+#include <engine/scene/rigged-mesh.hpp>
 #include <engine/scene/camera.hpp>
 
 namespace scene {
 
-static_mesh::static_mesh(std::shared_ptr<render::model> model)
+rigged_mesh::rigged_mesh(std::shared_ptr<render::model> model)
 {
 	set_model(model);
 }
 
-void static_mesh::set_model(std::shared_ptr<render::model> model)
+void rigged_mesh::set_model(std::shared_ptr<render::model> model)
 {
 	m_model = model;
 	
 	if (m_model)
 	{
+		m_pose.set_skeleton(&model->get_skeleton());
+		
 		m_operations.resize(m_model->get_groups().size());
 		for (std::size_t i = 0; i < m_operations.size(); ++i)
 		{
@@ -46,7 +46,9 @@ void static_mesh::set_model(std::shared_ptr<render::model> model)
 			operation.start_index = group.start_index;
 			operation.index_count = group.index_count;
 			operation.material = group.material;
+			operation.matrix_palette = m_pose.get_matrix_palette();
 		}
+		
 	}
 	else
 	{
@@ -56,7 +58,7 @@ void static_mesh::set_model(std::shared_ptr<render::model> model)
 	transformed();
 }
 
-void static_mesh::set_material(std::size_t index, std::shared_ptr<render::material> material)
+void rigged_mesh::set_material(std::size_t index, std::shared_ptr<render::material> material)
 {
 	if (material)
 	{
@@ -68,7 +70,7 @@ void static_mesh::set_material(std::size_t index, std::shared_ptr<render::materi
 	}
 }
 
-void static_mesh::reset_materials()
+void rigged_mesh::reset_materials()
 {
 	for (std::size_t i = 0; i < m_operations.size(); ++i)
 	{
@@ -76,7 +78,7 @@ void static_mesh::reset_materials()
 	}
 }
 
-void static_mesh::update_bounds()
+void rigged_mesh::update_bounds()
 {
 	if (m_model)
 	{
@@ -97,7 +99,7 @@ void static_mesh::update_bounds()
 	}
 }
 
-void static_mesh::transformed()
+void rigged_mesh::transformed()
 {
 	update_bounds();
 	
@@ -108,7 +110,7 @@ void static_mesh::transformed()
 	}
 }
 
-void static_mesh::render(render::context& ctx) const
+void rigged_mesh::render(render::context& ctx) const
 {
 	const float depth = ctx.camera->get_view_frustum().near().distance(get_translation());
 	for (auto& operation: m_operations)

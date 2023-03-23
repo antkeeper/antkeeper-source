@@ -28,6 +28,7 @@
 #include <engine/gl/texture-2d.hpp>
 #include <functional>
 #include <unordered_map>
+#include <span>
 
 class resource_manager;
 
@@ -131,6 +132,7 @@ private:
 	
 	// Geometry
 	const float4x4* model;
+	std::span<const float4x4> matrix_palette;
 	
 	/// Hash of the lighting state.
 	std::size_t lighting_state_hash;

@@ -213,7 +213,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	}
 	if (vertex_format_flags & vertex_attribute_bone)
 	{
-		attribute.type = gl::vertex_attribute_type::uint_16;
+		attribute.type = gl::vertex_attribute_type::uint_32;
 		attribute.components = bones_per_vertex;
 		vao.bind(render::vertex_attribute::bone_index, attribute);
 		attribute.offset += sizeof(std::uint32_t) * attribute.components;
@@ -235,7 +235,7 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 		attribute.type = gl::vertex_attribute_type::float_32;
 		attribute.components = 3;
 		vao.bind(render::vertex_attribute::target, attribute);
-		attribute.offset += sizeof(float) * attribute.components;
+		//attribute.offset += sizeof(float) * attribute.components;
 	}
 	
 	// Read model bounds
@@ -283,31 +283,27 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 	if (vertex_format_flags & vertex_attribute_bone)
 	{
 		::skeleton& skeleton = model->get_skeleton();
-		pose& bind_pose = skeleton.bind_pose;
 		
 		// Read bone count
 		std::uint16_t bone_count = 0;
 		ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_count), 1);
 		
+		// Resize skeleton
+		skeleton.set_bone_count(bone_count);
+		
 		// Read bones
 		for (std::uint16_t i = 0; i < bone_count; ++i)
 		{
-			// Read bone key
-			hash::fnv1a32_t bone_key = {};
-			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_key), 1);
+			// Read bone name
+			hash::fnv1a32_t bone_name = {};
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_name), 1);
 			
-			// Read parent bone index
-			std::uint16_t parent_bone_index = i;
-			ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&parent_bone_index), 1);
+			// Read bone parent index
+			std::uint16_t bone_parent_index = i;
+			ctx.read16<std::endian::little>(reinterpret_cast<std::byte*>(&bone_parent_index), 1);
 			
-			// Construct bone identifier
-			::bone bone = make_bone(i, parent_bone_index);
-			
-			// Add bone to bone map
-			skeleton.bone_map[bone_key] = bone;
-			
-			// Get reference to the bone's bind pose transform
-			auto& bone_transform = bind_pose[bone];
+			// Construct bone transform
+			skeleton::bone_transform_type bone_transform;
 			
 			// Read bone translation
 			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(bone_transform.translation.data()), 3);
@@ -322,11 +318,15 @@ std::unique_ptr<render::model> resource_loader<render::model>::load(::resource_m
 			// Read bone length
 			float bone_length = 0.0f;
 			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&bone_length), 1);
+			
+			// Set bone properties
+			skeleton.set_bone_name(i, bone_name);
+			skeleton.set_bone_parent(i, bone_parent_index);
+			skeleton.set_bone_transform(i, bone_transform);
 		}
 		
-		// Calculate inverse skeleton-space bind pose
-		::concatenate(skeleton.bind_pose, skeleton.inverse_bind_pose);
-		::inverse(skeleton.inverse_bind_pose, skeleton.inverse_bind_pose);
+		// Update skeleton
+		skeleton.update_bind_pose();
 	}
 	
 	return model;

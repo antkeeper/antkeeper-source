@@ -65,15 +65,30 @@ void vertex_array::bind(attribute_location_type location, const vertex_attribute
 	GLenum gl_type = vertex_attribute_type_lut[static_cast<std::size_t>(attribute.type)];
 	glBindVertexArray(gl_array_id);
 	glBindBuffer(GL_ARRAY_BUFFER, attribute.buffer->gl_buffer_id);
-	glVertexAttribPointer
-	(
-		static_cast<GLuint>(location),
-		static_cast<GLint>(attribute.components),
-		gl_type,
-		GL_FALSE,
-		static_cast<GLsizei>(attribute.stride),
-		reinterpret_cast<const GLvoid*>(attribute.offset)
-	); 
+	
+	if (gl_type == GL_FLOAT || gl_type == GL_HALF_FLOAT || gl_type == GL_DOUBLE)
+	{
+		glVertexAttribPointer
+		(
+			static_cast<GLuint>(location),
+			static_cast<GLint>(attribute.components),
+			gl_type,
+			GL_FALSE,
+			static_cast<GLsizei>(attribute.stride),
+			reinterpret_cast<const GLvoid*>(attribute.offset)
+		); 
+	}
+	else
+	{
+		glVertexAttribIPointer
+		(
+			static_cast<GLuint>(location),
+			static_cast<GLint>(attribute.components),
+			gl_type,
+			static_cast<GLsizei>(attribute.stride),
+			reinterpret_cast<const GLvoid*>(attribute.offset)
+		); 
+	}
 	glEnableVertexAttribArray(static_cast<GLuint>(location));
 }
 
