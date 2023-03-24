@@ -60,6 +60,31 @@ void skeleton::remove_bones()
 	m_rest_pose.resize();
 }
 
+animation_pose& skeleton::add_pose(hash::fnv1a32_t name)
+{
+	const auto [iterator, inserted] = m_pose_map.emplace(name, *this);
+	
+	if (!inserted)
+	{
+		throw std::invalid_argument("Duplicate pose name");
+	}
+	
+	return iterator->second;
+}
+
+void skeleton::remove_pose(hash::fnv1a32_t name)
+{
+	if (!m_pose_map.erase(name))
+	{
+		throw std::invalid_argument("Pose not found");
+	}	
+}
+
+void skeleton::remove_poses()
+{
+	m_pose_map.clear();
+}
+
 void skeleton::set_bone_parent(bone_index_type child_index, bone_index_type parent_index)
 {
 	if (child_index < parent_index)
@@ -93,4 +118,24 @@ std::optional<bone_index_type> skeleton::get_bone_index(hash::fnv1a32_t name) co
 	}
 	
 	return std::nullopt;
+}
+
+const animation_pose* skeleton::get_pose(hash::fnv1a32_t name) const
+{
+	if (auto i = m_pose_map.find(name); i != m_pose_map.end())
+	{
+		return &i->second;
+	}
+	
+	return nullptr;
+}
+
+animation_pose* skeleton::get_pose(hash::fnv1a32_t name)
+{
+	if (auto i = m_pose_map.find(name); i != m_pose_map.end())
+	{
+		return &i->second;
+	}
+	
+	return nullptr;
 }
