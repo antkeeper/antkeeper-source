@@ -66,6 +66,7 @@
 #include <engine/physics/kinematics/colliders/sphere-collider.hpp>
 #include <engine/physics/kinematics/colliders/plane-collider.hpp>
 #include <engine/physics/kinematics/colliders/box-collider.hpp>
+#include <engine/physics/kinematics/colliders/capsule-collider.hpp>
 #include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/ground-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
@@ -360,7 +361,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	
 	auto worker_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_model);
-	worker_skeletal_mesh->get_pose() = pupal_pose;
+	//worker_skeletal_mesh->get_pose() = pupal_pose;
 	
 	
 	worker_ant_eid = ctx.entity_registry->create();
@@ -917,11 +918,6 @@ void nest_selection_state::setup_controls()
 				
 				scene_component projectile_scene;
 				
-				auto projectile_mesh = std::make_shared<scene::skeletal_mesh>(worker_model);
-				projectile_mesh->get_pose() = *worker_model->get_skeleton().get_pose("pupal");
-				projectile_scene.object = projectile_mesh;
-				//projectile_scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
-				//projectile_scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube.mdl"));
 				
 				transform_component projectile_transform;
 				projectile_transform.local = camera_transform.world;
@@ -934,13 +930,30 @@ void nest_selection_state::setup_controls()
 				projectile_body->set_inertia(0.05f);
 				projectile_body->set_angular_damping(0.5f);
 				
-				auto projectile_collider = std::make_shared<physics::box_collider>(float3{-1.0f, -1.0f, -1.0f}, float3{1.0f, 1.0f, 1.0f});
-				//auto projectile_collider = std::make_shared<physics::sphere_collider>(1.0f);
+				if (ctx.mouse_look_action.is_active())
+				{
+					auto projectile_collider = std::make_shared<physics::sphere_collider>(1.0f);
+					//auto projectile_collider = std::make_shared<physics::box_collider>(float3{-1.0f, -1.0f, -1.0f}, float3{1.0f, 1.0f, 1.0f});
+					projectile_collider->set_material(std::make_shared<physics::collider_material>(0.4f, 0.1f, 0.2f));
+					projectile_body->set_collider(std::move(projectile_collider));
+					
+					projectile_scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
+					//projectile_scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube.mdl"));
+				}
+				else
+				{
+					auto projectile_collider = std::make_shared<physics::capsule_collider>(geom::capsule<float>{{{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}}, 0.6f});
+					projectile_collider->set_material(std::make_shared<physics::collider_material>(0.4f, 0.1f, 0.2f));
+					projectile_body->set_collider(std::move(projectile_collider));
+					
+					
+					//projectile_scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("capsule.mdl"));
+					
+					auto projectile_mesh = std::make_shared<scene::skeletal_mesh>(worker_model);
+					projectile_mesh->get_pose() = *worker_model->get_skeleton().get_pose("pupal");
+					projectile_scene.object = projectile_mesh;
+				}
 				
-				
-				projectile_collider->set_material(std::make_shared<physics::collider_material>(0.4f, 0.1f, 0.2f));
-				
-				projectile_body->set_collider(std::move(projectile_collider));
 				projectile_body->apply_central_impulse(camera_transform.world.rotation * float3{0.0f, 0.0f, -10.0f});
 				
 				

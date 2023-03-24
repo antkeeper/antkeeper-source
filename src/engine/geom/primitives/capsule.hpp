@@ -17,31 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_COLLIDER_TYPE_HPP
-#define ANTKEEPER_PHYSICS_COLLIDER_TYPE_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_CAPSULE_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_CAPSULE_HPP
 
-#include <cstdint>
+#include <engine/geom/primitives/hypercapsule.hpp>
 
-namespace physics {
+namespace geom {
+namespace primitives {
 
 /**
- * Collider types.
+ * 3-dimensional capsule.
+ *
+ * @tparam T Real type.
  */
-enum class collider_type: std::uint8_t
-{
-	/// Plane collider.
-	plane,
-	
-	/// Sphere collider.
-	sphere,
-	
-	/// Box collider.
-	box,
-	
-	/// Capsule collider.
-	capsule
-};
+template <class T>
+using capsule = hypercapsule<T, 3>;
 
-} // namespace physics
+} // namespace primitives
+} // namespace geom
 
-#endif // ANTKEEPER_PHYSICS_COLLIDER_TYPE_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_CAPSULE_HPP

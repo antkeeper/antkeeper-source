@@ -63,18 +63,26 @@ private:
 	void correct_positions();
 	
 	void narrow_phase_plane_plane(physics::rigid_body& body_a, physics::rigid_body& body_b);
-	void narrow_phase_plane_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b, float normal_sign);
-	void narrow_phase_plane_box(physics::rigid_body& body_a, physics::rigid_body& body_b, float normal_sign);
+	void narrow_phase_plane_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_plane_box(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_plane_capsule(physics::rigid_body& body_a, physics::rigid_body& body_b);
 	
 	void narrow_phase_sphere_plane(physics::rigid_body& body_a, physics::rigid_body& body_b);
 	void narrow_phase_sphere_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b);
 	void narrow_phase_sphere_box(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_sphere_capsule(physics::rigid_body& body_a, physics::rigid_body& body_b);
 	
 	void narrow_phase_box_plane(physics::rigid_body& body_a, physics::rigid_body& body_b);
 	void narrow_phase_box_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b);
 	void narrow_phase_box_box(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_box_capsule(physics::rigid_body& body_a, physics::rigid_body& body_b);
 	
-	std::array<std::array<std::function<void(physics::rigid_body&, physics::rigid_body&)>, 3>, 3> narrow_phase_table;
+	void narrow_phase_capsule_plane(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_capsule_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_capsule_box(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	void narrow_phase_capsule_capsule(physics::rigid_body& body_a, physics::rigid_body& body_b);
+	
+	std::array<std::array<std::function<void(physics::rigid_body&, physics::rigid_body&)>, 4>, 4> narrow_phase_table;
 	
 	math::vector<float, 3> gravity{0.0f, -9.80665f, 0.0f};
 	

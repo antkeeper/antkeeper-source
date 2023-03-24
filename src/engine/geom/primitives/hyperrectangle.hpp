@@ -103,29 +103,6 @@ struct hyperrectangle
 	}
 	
 	/**
-	 * Calculates the closest point on the hyperrectangle to a point.
-	 *
-	 * @param point Input point.
-	 *
-	 * @return Closest point on the hyperrectangle to @p point.
-	 */
-	[[nodiscard]] constexpr vector_type closest_point(const vector_type& point) const noexcept
-	{
-		const vector_type c = center();		
-		const vector_type p = point - c;
-		const vector_type d = math::abs(p) - extents();
-		const T m = std::min<T>(T{0}, math::max(d));
-		
-		vector_type r;
-		for (std::size_t i = 0; i < N; ++i)
-		{
-			r[i] = c[i] + std::copysign(d[i] >= m ? d[i] : T{0}, p[i]);
-		}
-		
-		return r;
-	}
-	
-	/**
 	 * Extends the hyperrectangle to include a point.
 	 *
 	 * @param point Point to include in the hyperrectangle.

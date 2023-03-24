@@ -17,69 +17,59 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_PRIMITIVES_RAY_HPP
-#define ANTKEEPER_GEOM_PRIMITIVES_RAY_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_HYPERCAPSULE_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_HYPERCAPSULE_HPP
 
+#include <engine/geom/primitives/line-segment.hpp>
 #include <engine/math/vector.hpp>
-#include <algorithm>
-#include <cmath>
 
 namespace geom {
 namespace primitives {
 
 /**
- * Half of a line proceeding from an initial point.
+ * *n*-dimensional capsule.
  *
  * @tparam T Real type.
  * @tparam N Number of dimensions.
  */
 template <class T, std::size_t N>
-struct ray
+struct hypercapsule
 {
 	/// Vector type.
 	using vector_type = math::vector<T, N>;
 	
-	/// Ray origin position.
-	vector_type origin;
+	/// Line segment type.
+	using segment_type = geom::line_segment<T, N>;
 	
-	/// Ray direction vector.
-	vector_type direction;
+	/// Medial line segment.
+	segment_type segment;
+	
+	/// Radius of the hemi-hyperspheres.
+	T radius;
 	
 	/**
-	 * Extrapolates from the ray origin along the ray direction vector.
+	 * Tests whether a point is contained within this hypercapsule.
 	 *
-	 * @param distance Signed extrapolation distance.
+	 * @param point Point to test for containment.
 	 *
-	 * @return Extrapolated coordinates.
+	 * @return `true` if the point is contained within this hypercapsule, `false` otherwise.
 	 */
-	[[nodiscard]] inline constexpr vector_type extrapolate(T distance) const noexcept
+	[[nodiscard]] inline constexpr bool contains(const vector_type& point) const noexcept
 	{
-		return origin + direction * distance;
+		return segment.sqr_distance(point) <= radius * radius;
 	}
 	
 	/**
-	 * Calculates the square distance from the ray to a point.
+	 * Calculates the signed distance from the hypercapsule to a point.
 	 *
 	 * @param point Input point.
 	 *
-	 * @return Square distance from the ray to @p point.
-	 */
-	[[nodiscard]] inline constexpr T sqr_distance(const vector_type& point) const noexcept
-	{
-		return math::sqr_distance(point, closest_point(point));
-	}
-	
-	/**
-	 * Calculates the distance from the ray to a point.
-	 *
-	 * @param point Input point.
-	 *
-	 * @return Distance from the ray to @p point.
+	 * @return Signed distance from the hypercapsule to @p point.
 	 */
 	[[nodiscard]] inline T distance(const vector_type& point) const noexcept
 	{
-		const T d = sqr_distance(point);
-		return (d) ? std::sqrt(d) : d;
+		const T d = segment.sqr_distance(point);
+		return (d ? std::sqrt(d) : d) - radius;
 	}
 };
 
@@ -89,4 +79,4 @@ using namespace primitives;
 
 } // namespace geom
 
-#endif // ANTKEEPER_GEOM_PRIMITIVES_RAY_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_HYPERCAPSULE_HPP

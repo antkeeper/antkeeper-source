@@ -79,18 +79,6 @@ struct hyperplane
 	{
 		return math::dot(normal, point) + constant;
 	}
-	
-	/**
-	 * Calculates the closest point on the hyperplane to a point.
-	 *
-	 * @param point Input point.
-	 *
-	 * @return Closest point on the hyperplane to @p point.
-	 */
-	[[nodiscard]] inline constexpr vector_type closest_point(const vector_type& point) const noexcept
-	{
-		return point - normal * distance(point);
-	}
 };
 
 } // namespace primitives

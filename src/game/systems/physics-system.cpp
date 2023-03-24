@@ -28,6 +28,8 @@
 #include <engine/physics/kinematics/colliders/plane-collider.hpp>
 #include <engine/physics/kinematics/colliders/sphere-collider.hpp>
 #include <engine/physics/kinematics/colliders/box-collider.hpp>
+#include <engine/physics/kinematics/colliders/capsule-collider.hpp>
+#include <engine/geom/closest-point.hpp>
 #include <execution>
 
 namespace {
@@ -60,18 +62,27 @@ physics_system::physics_system(entity::registry& registry):
 	constexpr auto plane_i = std::to_underlying(physics::collider_type::plane);
 	constexpr auto sphere_i = std::to_underlying(physics::collider_type::sphere);
 	constexpr auto box_i = std::to_underlying(physics::collider_type::box);
+	constexpr auto capsule_i = std::to_underlying(physics::collider_type::capsule);
 	
 	narrow_phase_table[plane_i][plane_i] = std::bind_front(&physics_system::narrow_phase_plane_plane, this);
-	narrow_phase_table[plane_i][sphere_i] = std::bind(&physics_system::narrow_phase_plane_sphere, this, std::placeholders::_1, std::placeholders::_2, 1.0f);
-	narrow_phase_table[plane_i][box_i] = std::bind(&physics_system::narrow_phase_plane_box, this, std::placeholders::_1, std::placeholders::_2, 1.0f);
+	narrow_phase_table[plane_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_plane_sphere, this);
+	narrow_phase_table[plane_i][box_i] = std::bind_front(&physics_system::narrow_phase_plane_box, this);
+	narrow_phase_table[plane_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_plane_capsule, this);
 	
 	narrow_phase_table[sphere_i][plane_i] = std::bind_front(&physics_system::narrow_phase_sphere_plane, this);
 	narrow_phase_table[sphere_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_sphere_sphere, this);
 	narrow_phase_table[sphere_i][box_i] = std::bind_front(&physics_system::narrow_phase_sphere_box, this);
+	narrow_phase_table[sphere_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_sphere_capsule, this);
 	
 	narrow_phase_table[box_i][plane_i] = std::bind_front(&physics_system::narrow_phase_box_plane, this);
 	narrow_phase_table[box_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_box_sphere, this);
 	narrow_phase_table[box_i][box_i] = std::bind_front(&physics_system::narrow_phase_box_box, this);
+	narrow_phase_table[box_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_box_capsule, this);
+	
+	narrow_phase_table[capsule_i][plane_i] = std::bind_front(&physics_system::narrow_phase_capsule_plane, this);
+	narrow_phase_table[capsule_i][sphere_i] = std::bind_front(&physics_system::narrow_phase_capsule_sphere, this);
+	narrow_phase_table[capsule_i][box_i] = std::bind_front(&physics_system::narrow_phase_capsule_box, this);
+	narrow_phase_table[capsule_i][capsule_i] = std::bind_front(&physics_system::narrow_phase_capsule_capsule, this);
 }
 
 void physics_system::update(float t, float dt)
@@ -384,7 +395,7 @@ void physics_system::narrow_phase_plane_plane(physics::rigid_body& body_a, physi
 	return;
 }
 
-void physics_system::narrow_phase_plane_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b, float normal_sign)
+void physics_system::narrow_phase_plane_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b)
 {
 	const auto& plane_a = static_cast<const physics::plane_collider&>(*body_a.get_collider());
 	const auto& sphere_b = static_cast<const physics::sphere_collider&>(*body_b.get_collider());
@@ -408,13 +419,13 @@ void physics_system::narrow_phase_plane_sphere(physics::rigid_body& body_a, phys
 	// Generate collision contact
 	auto& contact = manifold.contacts[0];
 	contact.point = body_b.get_position() - plane_normal * sphere_b.get_radius();
-	contact.normal = plane_normal * -normal_sign;
+	contact.normal = plane_normal;
 	contact.depth = std::abs(signed_distance - sphere_b.get_radius());
 	
 	narrow_phase_manifolds.emplace_back(std::move(manifold));
 }
 
-void physics_system::narrow_phase_plane_box(physics::rigid_body& body_a, physics::rigid_body& body_b, float normal_sign)
+void physics_system::narrow_phase_plane_box(physics::rigid_body& body_a, physics::rigid_body& body_b)
 {
 	const auto& plane_a = static_cast<const physics::plane_collider&>(*body_a.get_collider());
 	const auto& box_b = static_cast<const physics::box_collider&>(*body_b.get_collider());
@@ -453,7 +464,7 @@ void physics_system::narrow_phase_plane_box(physics::rigid_body& body_a, physics
 		{
 			auto& contact = manifold.contacts[manifold.contact_count];
 			contact.point = point;
-			contact.normal = plane_normal * -normal_sign;
+			contact.normal = plane_normal;
 			contact.depth = std::abs(signed_distance);
 			
 			++manifold.contact_count;
@@ -473,23 +484,93 @@ void physics_system::narrow_phase_plane_box(physics::rigid_body& body_a, physics
 	}
 }
 
+void physics_system::narrow_phase_plane_capsule(physics::rigid_body& body_a, physics::rigid_body& body_b)
+{
+	const auto& plane_a = static_cast<const physics::plane_collider&>(*body_a.get_collider());
+	const auto& capsule_b = static_cast<const physics::capsule_collider&>(*body_b.get_collider());
+	
+	// Transform plane into world-space
+	geom::plane<float> plane;
+	plane.normal = body_a.get_orientation() * plane_a.get_normal();
+	plane.constant = plane_a.get_constant() - math::dot(plane.normal, body_a.get_position());
+	
+	// Transform capsule into world-space
+	const geom::capsule<float> capsule
+	{
+		{
+			body_b.get_transform() * capsule_b.get_segment().a,
+			body_b.get_transform() * capsule_b.get_segment().b
+		},
+		capsule_b.get_radius()
+	};
+	
+	// Calculate signed distances to capsule segment endpoints
+	const float distance_a = plane.distance(capsule.segment.a);
+	const float distance_b = plane.distance(capsule.segment.b);
+	
+	collision_manifold_type manifold;
+	manifold.contact_count = 0;
+	
+	if (distance_a <= capsule.radius)
+	{
+		auto& contact = manifold.contacts[manifold.contact_count];
+		
+		contact.point = capsule.segment.a - plane.normal * capsule.radius;
+		contact.normal = plane.normal;
+		contact.depth = std::abs(distance_a - capsule.radius);
+		
+		++manifold.contact_count;
+	}
+	
+	if (distance_b <= capsule.radius)
+	{
+		auto& contact = manifold.contacts[manifold.contact_count];
+		
+		contact.point = capsule.segment.b - plane.normal * capsule.radius;
+		contact.normal = plane.normal;
+		contact.depth = std::abs(distance_b - capsule.radius);
+		
+		++manifold.contact_count;
+	}
+	
+	if (manifold.contact_count)
+	{
+		manifold.body_a = &body_a;
+		manifold.body_b = &body_b;
+		narrow_phase_manifolds.emplace_back(std::move(manifold));
+	}
+}
+
 void physics_system::narrow_phase_sphere_plane(physics::rigid_body& body_a, physics::rigid_body& body_b)
 {
-	narrow_phase_plane_sphere(body_b, body_a, -1.0f);
+	narrow_phase_plane_sphere(body_b, body_a);
 }
 
 void physics_system::narrow_phase_sphere_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b)
 {
-	const auto& sphere_a = static_cast<const physics::sphere_collider&>(*body_a.get_collider());
-	const auto& sphere_b = static_cast<const physics::sphere_collider&>(*body_b.get_collider());
+	const auto& collider_a = static_cast<const physics::sphere_collider&>(*body_a.get_collider());
+	const auto& collider_b = static_cast<const physics::sphere_collider&>(*body_b.get_collider());
 	
-	const float sum_radii = sphere_a.get_radius() + sphere_b.get_radius();
-	const float sqr_sum_radii = sum_radii * sum_radii;
+	// Transform spheres into world-space
+	const math::vector<float, 3> center_a = body_a.get_transform() * collider_a.get_center();
+	const math::vector<float, 3> center_b = body_b.get_transform() * collider_b.get_center();
+	const float radius_a = collider_a.get_radius();
+	const float radius_b = collider_b.get_radius();
 	
-	const math::vector<float, 3> difference = body_b.get_position() - body_a.get_position();
+	// Sum sphere radii
+	const float sum_radii = radius_a + radius_b;
 	
-	const float sqr_distance = math::dot(difference, difference);
-	if (sqr_distance > sqr_sum_radii)
+	// Get vector from center a to center b
+	const math::vector<float, 3> difference = center_b - center_a;
+	
+	const float sqr_distance = math::sqr_length(difference);
+	if (sqr_distance > sum_radii * sum_radii)
+	{
+		return;
+	}
+	
+	// Ignore degenerate case (sphere centers identical)
+	if (!sqr_distance)
 	{
 		return;
 	}
@@ -502,18 +583,12 @@ void physics_system::narrow_phase_sphere_sphere(physics::rigid_body& body_a, phy
 	
 	// Generate collision contact
 	auto& contact = manifold.contacts[0];
-	if (sqr_distance != 0.0f)
-	{
-		const float distance = std::sqrt(sqr_distance);
-		contact.normal = difference / distance;
-		contact.depth = sum_radii - distance;
-	}
-	else
-	{
-		contact.normal = {1.0f, 0.0f, 0.0f};
-		contact.depth = sum_radii;
-	}
-	contact.point = body_a.get_position() + contact.normal * sphere_a.get_radius();
+	
+	const float distance = std::sqrt(sqr_distance);
+	
+	contact.normal = difference / distance;
+	contact.depth = sum_radii - distance;
+	contact.point = center_a + contact.normal * (radius_a - contact.depth * 0.5f);
 	
 	narrow_phase_manifolds.emplace_back(std::move(manifold));
 }
@@ -523,9 +598,63 @@ void physics_system::narrow_phase_sphere_box(physics::rigid_body& body_a, physic
 	return;
 }
 
+void physics_system::narrow_phase_sphere_capsule(physics::rigid_body& body_a, physics::rigid_body& body_b)
+{
+	const auto& collider_a = static_cast<const physics::sphere_collider&>(*body_a.get_collider());
+	const auto& collider_b = static_cast<const physics::capsule_collider&>(*body_b.get_collider());
+	
+	// Transform sphere into world-space
+	const math::vector<float, 3> center_a = body_a.get_transform() * collider_a.get_center();
+	const float radius_a = collider_a.get_radius();
+	
+	// Transform capsule into world-space
+	const geom::line_segment<float, 3> segment_b
+	{
+		body_b.get_transform() * collider_b.get_segment().a,
+		body_b.get_transform() * collider_b.get_segment().b
+	};
+	const float radius_b = collider_b.get_radius();
+	
+	// Sum the two radii
+	const float sum_radii = radius_a + radius_b;
+	
+	// Find closest point on capsule segment to sphere center
+	const auto closest_point = geom::closest_point(segment_b, center_a);
+	
+	// Get vector from sphere center to point to on capsule segment
+	const math::vector<float, 3> difference = closest_point - center_a;
+	
+	const float sqr_distance = math::sqr_length(difference);
+	if (sqr_distance > sum_radii * sum_radii)
+	{
+		return;
+	}
+	
+	// Ignore degenerate case (sphere center on capsule segment)
+	if (!sqr_distance)
+	{
+		return;
+	}
+	
+	collision_manifold_type manifold;
+	manifold.contact_count = 1;
+	manifold.body_a = &body_a;
+	manifold.body_b = &body_b;
+	
+	auto& contact = manifold.contacts[0];
+	
+	const float distance = std::sqrt(sqr_distance);
+	
+	contact.depth = sum_radii - distance;
+	contact.normal = difference / distance;
+	contact.point = center_a + contact.normal * (radius_a - contact.depth * 0.5f);
+	
+	narrow_phase_manifolds.emplace_back(std::move(manifold));
+}
+
 void physics_system::narrow_phase_box_plane(physics::rigid_body& body_a, physics::rigid_body& body_b)
 {
-	narrow_phase_plane_box(body_b, body_a, -1.0f);
+	narrow_phase_plane_box(body_b, body_a);
 }
 
 void physics_system::narrow_phase_box_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b)
@@ -536,4 +665,86 @@ void physics_system::narrow_phase_box_sphere(physics::rigid_body& body_a, physic
 void physics_system::narrow_phase_box_box(physics::rigid_body& body_a, physics::rigid_body& body_b)
 {
 	return;
+}
+
+void physics_system::narrow_phase_box_capsule(physics::rigid_body& body_a, physics::rigid_body& body_b)
+{
+	return;
+}
+
+void physics_system::narrow_phase_capsule_plane(physics::rigid_body& body_a, physics::rigid_body& body_b)
+{
+	narrow_phase_plane_capsule(body_b, body_a);
+}
+
+void physics_system::narrow_phase_capsule_sphere(physics::rigid_body& body_a, physics::rigid_body& body_b)
+{
+	narrow_phase_sphere_capsule(body_b, body_a);
+}
+
+void physics_system::narrow_phase_capsule_box(physics::rigid_body& body_a, physics::rigid_body& body_b)
+{
+	return;
+}
+
+void physics_system::narrow_phase_capsule_capsule(physics::rigid_body& body_a, physics::rigid_body& body_b)
+{
+	const auto& collider_a = static_cast<const physics::capsule_collider&>(*body_a.get_collider());
+	const auto& collider_b = static_cast<const physics::capsule_collider&>(*body_b.get_collider());
+	
+	// Transform capsules into world-space
+	const geom::capsule<float> capsule_a
+	{
+		{
+			body_a.get_transform() * collider_a.get_segment().a,
+			body_a.get_transform() * collider_a.get_segment().b
+		},
+		collider_a.get_radius()
+	};
+	const geom::capsule<float> capsule_b
+	{
+		{
+			body_b.get_transform() * collider_b.get_segment().a,
+			body_b.get_transform() * collider_b.get_segment().b
+		},
+		collider_b.get_radius()
+	};
+	
+	// Calculate closest points between capsule segments
+	const auto [closest_a, closest_b] = geom::closest_point(capsule_a.segment, capsule_b.segment);
+	
+	// Sum sphere radii
+	const float sum_radii = capsule_a.radius + capsule_b.radius;
+	
+	// Get vector from closest point on segment a to closest point on segment b
+	const math::vector<float, 3> difference = closest_b - closest_a;
+	
+	const float sqr_distance = math::sqr_length(difference);
+	if (sqr_distance > sum_radii * sum_radii)
+	{
+		return;
+	}
+	
+	// Ignore degenerate case (closest points identical)
+	if (!sqr_distance)
+	{
+		return;
+	}
+	
+	// Init collision manifold
+	collision_manifold_type manifold;
+	manifold.body_a = &body_a;
+	manifold.body_b = &body_b;
+	manifold.contact_count = 1;
+	
+	// Generate collision contact
+	auto& contact = manifold.contacts[0];
+	
+	const float distance = std::sqrt(sqr_distance);
+	
+	contact.normal = difference / distance;
+	contact.depth = sum_radii - distance;
+	contact.point = closest_a + contact.normal * (capsule_a.radius - contact.depth * 0.5f);
+	
+	narrow_phase_manifolds.emplace_back(std::move(manifold));
 }

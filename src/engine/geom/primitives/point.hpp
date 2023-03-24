@@ -32,7 +32,7 @@ namespace primitives {
  * @tparam N Number of dimensions.
  */
 template <class T, std::size_t N>
-using point = vector<T, N>;
+using point = math::vector<T, N>;
 
 } // namespace primitives
 

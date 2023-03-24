@@ -88,18 +88,6 @@ struct hypersphere
 	}
 	
 	/**
-	 * Calculates the closest point on the hypersphere to a point.
-	 *
-	 * @param point Input point.
-	 *
-	 * @return Closest point on the hypersphere to @p point.
-	 */
-	[[nodiscard]] inline vector_type closest_point(const vector_type& point) const noexcept
-	{
-		return center + math::normalize(point - center) * radius;
-	}
-	
-	/**
 	 * Tests whether another hypersphere intersects this hypersphere.
 	 *
 	 * @param other Hypersphere to test for intersection.
