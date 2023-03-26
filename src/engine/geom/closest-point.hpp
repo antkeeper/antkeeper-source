@@ -45,7 +45,7 @@ namespace geom {
  * @return Closest point on ray a to point b.
  */
 template <class T, std::size_t N>
-[[nodiscard]] point<T, N> closest_point(const ray<T, N>& a, const point<T, N>& b) noexcept
+[[nodiscard]] constexpr point<T, N> closest_point(const ray<T, N>& a, const point<T, N>& b) noexcept
 {
 	return a.extrapolate(std::max<T>(T{0}, math::dot(b - a.origin, a.direction)));
 }
@@ -62,7 +62,7 @@ template <class T, std::size_t N>
  * @return Closest point on line segment ab to point c.
  */
 template <class T, std::size_t N>
-[[nodiscard]] point<T, N> closest_point(const line_segment<T, N>& ab, const point<T, N>& c) noexcept
+[[nodiscard]] constexpr point<T, N> closest_point(const line_segment<T, N>& ab, const point<T, N>& c) noexcept
 {
 	const auto direction_ab = ab.b - ab.a;
 	
@@ -96,9 +96,8 @@ template <class T, std::size_t N>
  *
  * @return Tuple containing the closest point on segment ab to segment cd, followed by the closest point on segment cd to segment ab.
  */
-/// @{
 template <class T, std::size_t N>
-[[nodiscard]] std::tuple<point<T, N>, point<T, N>> closest_point(const line_segment<T, N>& ab, const line_segment<T, N>& cd) noexcept
+[[nodiscard]] constexpr std::tuple<point<T, N>, point<T, N>> closest_point(const line_segment<T, N>& ab, const line_segment<T, N>& cd) noexcept
 {
 	const auto direction_ab = ab.b - ab.a;
 	const auto direction_cd = cd.b - cd.a;
@@ -185,13 +184,13 @@ template <class T, std::size_t N>
  * @return Closest point on hyperplane a to point b.
  */
 template <class T, std::size_t N>
-[[nodiscard]] point<T, N> closest_point(const hyperplane<T, N>& a, const point<T, N>& b) noexcept
+[[nodiscard]] constexpr point<T, N> closest_point(const hyperplane<T, N>& a, const point<T, N>& b) noexcept
 {
 	return b - a.normal * (math::dot(a.normal, b) + a.constant);
 }
 
 /**
- * Calculates the closest point on a hypersphere to a point.
+ * Calculates the closest point on or in a hypersphere to a point.
  *
  * @tparam T Real type.
  * @tparam N Number of dimensions.
@@ -199,18 +198,18 @@ template <class T, std::size_t N>
  * @param a Hypersphere a.
  * @param b Point b.
  *
- * @return Closest point on hypersphere a to point b.
+ * @return Closest point on or in hypersphere a to point b.
  */
 template <class T, std::size_t N>
 [[nodiscard]] point<T, N> closest_point(const hypersphere<T, N>& a, const point<T, N>& b)
 {
 	const auto ab = b - a.center;
 	const auto d = math::sqr_length(ab);
-	return a.center + ab * (d ? a.radius / std::sqrt(d) : d);
+	return d > a.radius * a.radius ? a.center + ab * (a.radius / std::sqrt(d)) : b;
 }
 
 /**
- * Calculates the closest point on a hypercapsule to a point.
+ * Calculates the closest point on or in a hypercapsule to a point.
  *
  * @tparam T Real type.
  * @tparam N Number of dimensions.
@@ -218,7 +217,7 @@ template <class T, std::size_t N>
  * @param a Hypercapsule a.
  * @param b Point b.
  *
- * @return Closest point on hypercapsule a to point b.
+ * @return Closest point on or in hypercapsule a to point b.
  */
 template <class T, std::size_t N>
 [[nodiscard]] point<T, N> closest_point(const hypercapsule<T, N>& a, const point<T, N>& b)
@@ -226,11 +225,11 @@ template <class T, std::size_t N>
 	const auto c = closest_point(a.segment, b);
 	const auto cb = b - c;
 	const auto d = math::sqr_length(cb);
-	return c + cb * (d ? a.radius / std::sqrt(d) : d);
+	return d > a.radius * a.radius ? c + cb * (a.radius / std::sqrt(d)) : b;
 }
 
 /**
- * Calculates the closest point on a hyperrectangle to a point.
+ * Calculates the closest point on or in a hyperrectangle to a point.
  *
  * @tparam T Real type.
  * @tparam N Number of dimensions.
@@ -238,23 +237,12 @@ template <class T, std::size_t N>
  * @param a Hyperrectangle a.
  * @param b Point b.
  *
- * @return Closest point on hyperrectangle a to point b.
+ * @return Closest point on or in hyperrectangle a to point b.
  */
 template <class T, std::size_t N>
-[[nodiscard]] point<T, N> closest_point(const hyperrectangle<T, N>& a, const point<T, N>& b) noexcept
+[[nodiscard]] constexpr point<T, N> closest_point(const hyperrectangle<T, N>& a, const point<T, N>& b) noexcept
 {
-	const auto c = a.center();
-	const auto p = b - c;
-	const auto d = math::abs(p) - a.extents();
-	const auto m = std::min<T>(math::max(d), T{0});
-	
-	point<T, N> r;
-	for (std::size_t i = 0; i < N; ++i)
-	{
-		r[i] = c[i] + std::copysign(d[i] >= m ? d[i] : T{0}, p[i]);
-	}
-	
-	return r;
+	return math::min(math::max(b, a.min), a.max);
 }
 
 } // namespace geom

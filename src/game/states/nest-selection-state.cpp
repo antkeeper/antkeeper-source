@@ -130,239 +130,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	// Create worker entity(s)
 	
 
-	
-	auto& worker_skeleton = worker_model->get_skeleton();
-	const auto& worker_rest_pose = worker_skeleton.get_rest_pose();
-	
-	auto& pupal_pose = worker_skeleton.add_pose("pupal");
-	
-	// Fold forelegs
-	{
-		const float procoxa_fold_angle_y = math::radians(30.0f);
-		const float procoxa_fold_angle_z = math::radians(25.0f);
-		const float procoxa_fold_angle_x = math::radians(15.0f);
-		auto fold_procoxa_l = math::transform<float>::identity();
-		auto fold_procoxa_r = math::transform<float>::identity();
-		fold_procoxa_l.rotation = math::angle_axis(procoxa_fold_angle_y, float3{0, 1, 0}) * math::angle_axis(procoxa_fold_angle_z, float3{0, 0, 1}) * math::angle_axis(procoxa_fold_angle_x, float3{1, 0, 0});
-		fold_procoxa_r.rotation = math::angle_axis(-procoxa_fold_angle_y, float3{0, 1, 0}) * math::angle_axis(-procoxa_fold_angle_z, float3{0, 0, 1}) * math::angle_axis(procoxa_fold_angle_x, float3{1, 0, 0});
-		
-		const float profemur_fold_angle_z = math::radians(20.0f);
-		const float profemur_fold_angle_x = math::radians(80.0f);
-		auto fold_profemur_l = math::transform<float>::identity();
-		auto fold_profemur_r = math::transform<float>::identity();
-		fold_profemur_l.rotation = math::angle_axis(profemur_fold_angle_z, float3{0, 0, 1}) * math::angle_axis(profemur_fold_angle_x, float3{1, 0, 0});
-		fold_profemur_r.rotation = math::angle_axis(-profemur_fold_angle_z, float3{0, 0, 1}) * math::angle_axis(profemur_fold_angle_x, float3{1, 0, 0});
-		
-		const float protibia_fold_angle = math::radians(165.0f);
-		auto fold_protibia_l = math::transform<float>::identity();
-		auto fold_protibia_r = math::transform<float>::identity();
-		fold_protibia_l.rotation = math::angle_axis(-protibia_fold_angle, float3{1, 0, 0});
-		fold_protibia_r.rotation = math::angle_axis(-protibia_fold_angle, float3{1, 0, 0});
-		
-		const float protarsus_fold_angle = math::radians(20.0f);
-		auto fold_protarsus_l = math::transform<float>::identity();
-		auto fold_protarsus_r = math::transform<float>::identity();
-		fold_protarsus_l.rotation = math::angle_axis(-protarsus_fold_angle, float3{1, 0, 0});
-		fold_protarsus_r.rotation = math::angle_axis(-protarsus_fold_angle, float3{1, 0, 0});
-		
-		auto procoxa_l_bone = *worker_skeleton.get_bone_index("procoxa_l");
-		auto procoxa_r_bone = *worker_skeleton.get_bone_index("procoxa_r");
-		auto profemur_l_bone = *worker_skeleton.get_bone_index("profemur_l");
-		auto profemur_r_bone = *worker_skeleton.get_bone_index("profemur_r");
-		auto protibia_l_bone = *worker_skeleton.get_bone_index("protibia_l");
-		auto protibia_r_bone = *worker_skeleton.get_bone_index("protibia_r");
-		auto protarsus_l_bone = *worker_skeleton.get_bone_index("protarsus_l");
-		auto protarsus_r_bone = *worker_skeleton.get_bone_index("protarsus_r");
-		
-		pupal_pose.set_relative_transform(procoxa_l_bone, worker_rest_pose.get_relative_transform(procoxa_l_bone) * fold_procoxa_l);
-		pupal_pose.set_relative_transform(procoxa_r_bone, worker_rest_pose.get_relative_transform(procoxa_r_bone) * fold_procoxa_r);
-		pupal_pose.set_relative_transform(profemur_l_bone, worker_rest_pose.get_relative_transform(profemur_l_bone) * fold_profemur_l);
-		pupal_pose.set_relative_transform(profemur_r_bone, worker_rest_pose.get_relative_transform(profemur_r_bone) * fold_profemur_r);
-		pupal_pose.set_relative_transform(protibia_l_bone, worker_rest_pose.get_relative_transform(protibia_l_bone) * fold_protibia_l);
-		pupal_pose.set_relative_transform(protibia_r_bone, worker_rest_pose.get_relative_transform(protibia_r_bone) * fold_protibia_r);
-		pupal_pose.set_relative_transform(protarsus_l_bone, worker_rest_pose.get_relative_transform(protarsus_l_bone) * fold_protarsus_l);
-		pupal_pose.set_relative_transform(protarsus_r_bone, worker_rest_pose.get_relative_transform(protarsus_r_bone) * fold_protarsus_r);
-	}
-	
-	// Fold midlegs
-	{
-		const float mesocoxa_fold_angle_z = math::radians(45.0f);
-		const float mesocoxa_fold_angle_y = math::radians(45.0f);
-		const float mesocoxa_fold_angle_x = math::radians(10.0f);
-		auto fold_mesocoxa_l = math::transform<float>::identity();
-		auto fold_mesocoxa_r = math::transform<float>::identity();
-		fold_mesocoxa_l.rotation = math::angle_axis(-mesocoxa_fold_angle_z, float3{0, 0, 1}) * math::angle_axis(mesocoxa_fold_angle_y, float3{0, 1, 0}) * math::angle_axis(-mesocoxa_fold_angle_x, float3{1, 0, 0});
-		fold_mesocoxa_r.rotation = math::angle_axis(mesocoxa_fold_angle_z, float3{0, 0, 1}) * math::angle_axis(-mesocoxa_fold_angle_y, float3{0, 1, 0}) * math::angle_axis(-mesocoxa_fold_angle_x, float3{1, 0, 0});
-		
-		const float mesofemur_fold_angle = math::radians(90.0f);
-		auto fold_mesofemur_l = math::transform<float>::identity();
-		auto fold_mesofemur_r = math::transform<float>::identity();
-		fold_mesofemur_l.rotation = math::angle_axis(mesofemur_fold_angle, float3{1, 0, 0});
-		fold_mesofemur_r.rotation = math::angle_axis(mesofemur_fold_angle, float3{1, 0, 0});
-		
-		const float mesotibia_fold_angle = math::radians(162.0f);
-		auto fold_mesotibia_l = math::transform<float>::identity();
-		auto fold_mesotibia_r = math::transform<float>::identity();
-		fold_mesotibia_l.rotation = math::angle_axis(-mesotibia_fold_angle, float3{1, 0, 0});
-		fold_mesotibia_r.rotation = math::angle_axis(-mesotibia_fold_angle, float3{1, 0, 0});
-		
-		const float mesotarsus_fold_angle = math::radians(20.0f);
-		auto fold_mesotarsus_l = math::transform<float>::identity();
-		auto fold_mesotarsus_r = math::transform<float>::identity();
-		fold_mesotarsus_l.rotation = math::angle_axis(-mesotarsus_fold_angle, float3{1, 0, 0});
-		fold_mesotarsus_r.rotation = math::angle_axis(-mesotarsus_fold_angle, float3{1, 0, 0});
-		
-		auto mesocoxa_l_bone = *worker_skeleton.get_bone_index("mesocoxa_l");
-		auto mesocoxa_r_bone = *worker_skeleton.get_bone_index("mesocoxa_r");
-		auto mesofemur_l_bone = *worker_skeleton.get_bone_index("mesofemur_l");
-		auto mesofemur_r_bone = *worker_skeleton.get_bone_index("mesofemur_r");
-		auto mesotibia_l_bone = *worker_skeleton.get_bone_index("mesotibia_l");
-		auto mesotibia_r_bone = *worker_skeleton.get_bone_index("mesotibia_r");
-		auto mesotarsus_l_bone = *worker_skeleton.get_bone_index("mesotarsus_l");
-		auto mesotarsus_r_bone = *worker_skeleton.get_bone_index("mesotarsus_r");
-		
-		pupal_pose.set_relative_transform(mesocoxa_l_bone, worker_rest_pose.get_relative_transform(mesocoxa_l_bone) * fold_mesocoxa_l);
-		pupal_pose.set_relative_transform(mesocoxa_r_bone, worker_rest_pose.get_relative_transform(mesocoxa_r_bone) * fold_mesocoxa_r);
-		pupal_pose.set_relative_transform(mesofemur_l_bone, worker_rest_pose.get_relative_transform(mesofemur_l_bone) * fold_mesofemur_l);
-		pupal_pose.set_relative_transform(mesofemur_r_bone, worker_rest_pose.get_relative_transform(mesofemur_r_bone) * fold_mesofemur_r);
-		pupal_pose.set_relative_transform(mesotibia_l_bone, worker_rest_pose.get_relative_transform(mesotibia_l_bone) * fold_mesotibia_l);
-		pupal_pose.set_relative_transform(mesotibia_r_bone, worker_rest_pose.get_relative_transform(mesotibia_r_bone) * fold_mesotibia_r);
-		pupal_pose.set_relative_transform(mesotarsus_l_bone, worker_rest_pose.get_relative_transform(mesotarsus_l_bone) * fold_mesotarsus_l);
-		pupal_pose.set_relative_transform(mesotarsus_r_bone, worker_rest_pose.get_relative_transform(mesotarsus_r_bone) * fold_mesotarsus_r);
-	}
-	
-	// Fold hindlegs
-	{
-		const float metacoxa_fold_angle_z = math::radians(15.0f);
-		const float metacoxa_fold_angle_y = math::radians(10.0f);
-		const float metacoxa_fold_angle_x = math::radians(25.0f);
-		auto fold_metacoxa_l = math::transform<float>::identity();
-		auto fold_metacoxa_r = math::transform<float>::identity();
-		fold_metacoxa_l.rotation = math::angle_axis(-metacoxa_fold_angle_z, float3{0, 0, 1}) * math::angle_axis(-metacoxa_fold_angle_y, float3{0, 1, 0}) * math::angle_axis(metacoxa_fold_angle_x, float3{1, 0, 0});
-		fold_metacoxa_r.rotation = math::angle_axis(metacoxa_fold_angle_z, float3{0, 0, 1}) * math::angle_axis(metacoxa_fold_angle_y, float3{0, 1, 0}) * math::angle_axis(metacoxa_fold_angle_x, float3{1, 0, 0});
-		
-		const float metafemur_fold_angle = math::radians(105.0f);
-		auto fold_metafemur_l = math::transform<float>::identity();
-		auto fold_metafemur_r = math::transform<float>::identity();
-		fold_metafemur_l.rotation = math::angle_axis(metafemur_fold_angle, float3{1, 0, 0});
-		fold_metafemur_r.rotation = math::angle_axis(metafemur_fold_angle, float3{1, 0, 0});
-		
-		const float metatibia_fold_angle = math::radians(165.0f);
-		auto fold_metatibia_l = math::transform<float>::identity();
-		auto fold_metatibia_r = math::transform<float>::identity();
-		fold_metatibia_l.rotation = math::angle_axis(-metatibia_fold_angle, float3{1, 0, 0});
-		fold_metatibia_r.rotation = math::angle_axis(-metatibia_fold_angle, float3{1, 0, 0});
-		
-		const float metatarsus_fold_angle = math::radians(0.0f);
-		auto fold_metatarsus_l = math::transform<float>::identity();
-		auto fold_metatarsus_r = math::transform<float>::identity();
-		fold_metatarsus_l.rotation = math::angle_axis(-metatarsus_fold_angle, float3{1, 0, 0});
-		fold_metatarsus_r.rotation = math::angle_axis(-metatarsus_fold_angle, float3{1, 0, 0});
-		
-		auto metacoxa_l_bone = *worker_skeleton.get_bone_index("metacoxa_l");
-		auto metacoxa_r_bone = *worker_skeleton.get_bone_index("metacoxa_r");
-		auto metafemur_l_bone = *worker_skeleton.get_bone_index("metafemur_l");
-		auto metafemur_r_bone = *worker_skeleton.get_bone_index("metafemur_r");
-		auto metatibia_l_bone = *worker_skeleton.get_bone_index("metatibia_l");
-		auto metatibia_r_bone = *worker_skeleton.get_bone_index("metatibia_r");
-		auto metatarsus_l_bone = *worker_skeleton.get_bone_index("metatarsus_l");
-		auto metatarsus_r_bone = *worker_skeleton.get_bone_index("metatarsus_r");
-		
-		pupal_pose.set_relative_transform(metacoxa_l_bone, worker_rest_pose.get_relative_transform(metacoxa_l_bone) * fold_metacoxa_l);
-		pupal_pose.set_relative_transform(metacoxa_r_bone, worker_rest_pose.get_relative_transform(metacoxa_r_bone) * fold_metacoxa_r);
-		pupal_pose.set_relative_transform(metafemur_l_bone, worker_rest_pose.get_relative_transform(metafemur_l_bone) * fold_metafemur_l);
-		pupal_pose.set_relative_transform(metafemur_r_bone, worker_rest_pose.get_relative_transform(metafemur_r_bone) * fold_metafemur_r);
-		pupal_pose.set_relative_transform(metatibia_l_bone, worker_rest_pose.get_relative_transform(metatibia_l_bone) * fold_metatibia_l);
-		pupal_pose.set_relative_transform(metatibia_r_bone, worker_rest_pose.get_relative_transform(metatibia_r_bone) * fold_metatibia_r);
-		pupal_pose.set_relative_transform(metatarsus_l_bone, worker_rest_pose.get_relative_transform(metatarsus_l_bone) * fold_metatarsus_l);
-		pupal_pose.set_relative_transform(metatarsus_r_bone, worker_rest_pose.get_relative_transform(metatarsus_r_bone) * fold_metatarsus_r);
-	}
-	
-	// Fold head
-	{
-		const float head_fold_angle = math::radians(80.0f);
-		auto fold_head = math::transform<float>::identity();
-		fold_head.rotation = math::angle_axis(-head_fold_angle, float3{1, 0, 0});
-		
-		auto head_bone = *worker_skeleton.get_bone_index("head");
-		
-		pupal_pose.set_relative_transform(head_bone, worker_rest_pose.get_relative_transform(head_bone) * fold_head);
-	}
-	
-	// Fold antennae
-	{
-		const float antennomere1_fold_angle_y = math::radians(70.0f);
-		const float antennomere1_fold_angle_x = math::radians(45.0f);
-		auto fold_antennomere1_l = math::transform<float>::identity();
-		auto fold_antennomere1_r = math::transform<float>::identity();
-		fold_antennomere1_l.rotation = math::angle_axis(-antennomere1_fold_angle_y, float3{0, 1, 0}) * math::angle_axis(-antennomere1_fold_angle_x, float3{1, 0, 0});
-		fold_antennomere1_r.rotation = math::angle_axis(antennomere1_fold_angle_y, float3{0, 1, 0}) * math::angle_axis(-antennomere1_fold_angle_x, float3{1, 0, 0});
-		
-		const float antennomere2_fold_angle_y = math::radians(75.0f);
-		const float antennomere2_fold_angle_x = math::radians(25.0f);
-		auto fold_antennomere2_l = math::transform<float>::identity();
-		auto fold_antennomere2_r = math::transform<float>::identity();
-		fold_antennomere2_l.rotation = math::angle_axis(antennomere2_fold_angle_y, float3{0, 1, 0}) * math::angle_axis(-antennomere2_fold_angle_x, float3{1, 0, 0});
-		fold_antennomere2_r.rotation = math::angle_axis(-antennomere2_fold_angle_y, float3{0, 1, 0}) * math::angle_axis(-antennomere2_fold_angle_x, float3{1, 0, 0});
-		
-		auto antennomere1_l_bone = *worker_skeleton.get_bone_index("antennomere1_l");
-		auto antennomere1_r_bone = *worker_skeleton.get_bone_index("antennomere1_r");
-		auto antennomere2_l_bone = *worker_skeleton.get_bone_index("antennomere2_l");
-		auto antennomere2_r_bone = *worker_skeleton.get_bone_index("antennomere2_r");
-		
-		pupal_pose.set_relative_transform(antennomere1_l_bone, worker_rest_pose.get_relative_transform(antennomere1_l_bone) * fold_antennomere1_l);
-		pupal_pose.set_relative_transform(antennomere1_r_bone, worker_rest_pose.get_relative_transform(antennomere1_r_bone) * fold_antennomere1_r);
-		pupal_pose.set_relative_transform(antennomere2_l_bone, worker_rest_pose.get_relative_transform(antennomere2_l_bone) * fold_antennomere2_l);
-		pupal_pose.set_relative_transform(antennomere2_r_bone, worker_rest_pose.get_relative_transform(antennomere2_r_bone) * fold_antennomere2_r);
-	}
-	
-	// Fold waist + gaster
-	{
-		const float petiole_fold_angle = math::radians(40.0f);
-		auto fold_petiole = math::transform<float>::identity();
-		fold_petiole.rotation = math::angle_axis(petiole_fold_angle, float3{1, 0, 0});
-		
-		const float postpetiole_fold_angle = math::radians(35.0f);
-		auto fold_postpetiole = math::transform<float>::identity();
-		fold_postpetiole.rotation = math::angle_axis(-postpetiole_fold_angle, float3{1, 0, 0});
-		
-		const float gaster_fold_angle = math::radians(0.0f);
-		auto fold_gaster = math::transform<float>::identity();
-		fold_gaster.rotation = math::angle_axis(-gaster_fold_angle, float3{1, 0, 0});
-		
-		auto petiole_bone = worker_skeleton.get_bone_index("petiole");
-		auto postpetiole_bone = worker_skeleton.get_bone_index("postpetiole");
-		auto gaster_bone = *worker_skeleton.get_bone_index("gaster");
-		
-		if (petiole_bone)
-		{
-			pupal_pose.set_relative_transform(*petiole_bone, worker_rest_pose.get_relative_transform(*petiole_bone) * fold_petiole);
-		}
-		
-		if (postpetiole_bone)
-		{
-			pupal_pose.set_relative_transform(*postpetiole_bone, worker_rest_pose.get_relative_transform(*postpetiole_bone) * fold_postpetiole);
-		}
-		
-		pupal_pose.set_relative_transform(gaster_bone, worker_rest_pose.get_relative_transform(gaster_bone) * fold_gaster);
-	}
-	
-	// Invert mesosoma
-	{
-		const float mesosoma_invert_angle = math::radians(90.0f);
-		auto invert_mesosoma = math::transform<float>::identity();
-		invert_mesosoma.rotation = math::angle_axis(mesosoma_invert_angle, float3{0, 0, 1});
-		
-		auto mesosoma_bone = *worker_skeleton.get_bone_index("mesosoma");
-		pupal_pose.set_relative_transform(mesosoma_bone, invert_mesosoma * worker_rest_pose.get_relative_transform(mesosoma_bone));
-	}
-	
-	pupal_pose.update();
-	
-	
 	auto worker_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_model);
-	//worker_skeletal_mesh->get_pose() = pupal_pose;
-	
 	
 	worker_ant_eid = ctx.entity_registry->create();
 	transform_component worker_transform_component;
@@ -385,8 +153,13 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	worker_body->set_inertia(0.05f);
 	worker_body->set_angular_damping(0.5f);
 	worker_body->set_collider(std::move(worker_collider));
-	
 	//ctx.entity_registry->emplace<rigid_body_component>(worker_ant_eid, std::move(worker_body));
+	
+	larva_eid = ctx.entity_registry->create();
+	
+	auto larva_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_phenome.larva->model);
+	ctx.entity_registry->emplace<scene_component>(larva_eid, std::move(larva_skeletal_mesh), std::uint8_t{1});
+	
 	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
@@ -950,7 +723,7 @@ void nest_selection_state::setup_controls()
 					//projectile_scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("capsule.mdl"));
 					
 					auto projectile_mesh = std::make_shared<scene::skeletal_mesh>(worker_model);
-					projectile_mesh->get_pose() = *worker_model->get_skeleton().get_pose("pupal");
+					projectile_mesh->get_pose() = *worker_model->get_skeleton().get_pose("pupa");
 					projectile_scene.object = projectile_mesh;
 				}
 				
