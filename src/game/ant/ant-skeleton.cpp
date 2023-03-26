@@ -117,10 +117,10 @@ void generate_ant_rest_pose(::skeleton& skeleton, const ant_bone_set& bones, con
 	
 	if (bones.forewing_l)
 	{
-		skeleton.set_bone_transform(*bones.forewing_l, get_bone_transform(mesosoma_skeleton, "forewing_l_socket") * get_bone_transform(*forewings_skeleton, "forewing_l"));
-		skeleton.set_bone_transform(*bones.forewing_r, get_bone_transform(mesosoma_skeleton, "forewing_r_socket") * get_bone_transform(*forewings_skeleton, "forewing_r"));
-		skeleton.set_bone_transform(*bones.hindwing_l, get_bone_transform(mesosoma_skeleton, "hindwing_l_socket") * get_bone_transform(*hindwings_skeleton, "hindwing_l"));
-		skeleton.set_bone_transform(*bones.hindwing_r, get_bone_transform(mesosoma_skeleton, "hindwing_r_socket") * get_bone_transform(*hindwings_skeleton, "hindwing_r"));
+		skeleton.set_bone_transform(*bones.forewing_l, get_bone_transform(mesosoma_skeleton, "forewing_socket_l") * get_bone_transform(*forewings_skeleton, "forewing_l"));
+		skeleton.set_bone_transform(*bones.forewing_r, get_bone_transform(mesosoma_skeleton, "forewing_socket_r") * get_bone_transform(*forewings_skeleton, "forewing_r"));
+		skeleton.set_bone_transform(*bones.hindwing_l, get_bone_transform(mesosoma_skeleton, "hindwing_socket_l") * get_bone_transform(*hindwings_skeleton, "hindwing_l"));
+		skeleton.set_bone_transform(*bones.hindwing_r, get_bone_transform(mesosoma_skeleton, "hindwing_socket_r") * get_bone_transform(*hindwings_skeleton, "hindwing_r"));
 	}
 	
 	skeleton.update_rest_pose();
