@@ -442,12 +442,12 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	
 	// Calculate transformations from part space to body space
 	const math::transform<float> legs_to_body = math::transform<float>::identity();
-	const math::transform<float> head_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "head");
-	const math::transform<float> mandible_l_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "mandible_l");
-	const math::transform<float> mandible_r_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "mandible_r");
-	const math::transform<float> antenna_l_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "antenna_l");
-	const math::transform<float> antenna_r_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "antenna_r");
-	const math::transform<float> waist_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "petiole");
+	const math::transform<float> head_to_body = rest_pose.get_absolute_transform(bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "head");
+	const math::transform<float> mandible_l_to_body = rest_pose.get_absolute_transform(bones.head) * get_bone_transform(head_skeleton, "mandible_l");
+	const math::transform<float> mandible_r_to_body = rest_pose.get_absolute_transform(bones.head) * get_bone_transform(head_skeleton, "mandible_r");
+	const math::transform<float> antenna_l_to_body = rest_pose.get_absolute_transform(bones.head) * get_bone_transform(head_skeleton, "antenna_l");
+	const math::transform<float> antenna_r_to_body = rest_pose.get_absolute_transform(bones.head) * get_bone_transform(head_skeleton, "antenna_r");
+	const math::transform<float> waist_to_body = rest_pose.get_absolute_transform(bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "petiole");
 	
 	math::transform<float> gaster_to_body;
 	if (phenome.waist->postpetiole_present)
@@ -460,7 +460,7 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	}
 	else
 	{
-		gaster_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(waist_skeleton, "gaster");
+		gaster_to_body = rest_pose.get_absolute_transform(bones.mesosoma) * get_bone_transform(waist_skeleton, "gaster");
 	}
 	
 	math::transform<float> sting_to_body;
@@ -473,8 +473,8 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	math::transform<float> eye_r_to_body;
 	if (phenome.eyes->present)
 	{
-		eye_l_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "eye_l");
-		eye_r_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "eye_r");
+		eye_l_to_body = rest_pose.get_absolute_transform(bones.head) * get_bone_transform(head_skeleton, "eye_l");
+		eye_r_to_body = rest_pose.get_absolute_transform(bones.head) * get_bone_transform(head_skeleton, "eye_r");
 	}
 	
 	math::transform<float> ocellus_l_to_body;
@@ -482,12 +482,12 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	math::transform<float> ocellus_m_to_body;
 	if (phenome.ocelli->lateral_ocelli_present)
 	{
-		ocellus_l_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "ocellus_l");
-		ocellus_r_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "ocellus_r");
+		ocellus_l_to_body = rest_pose.get_absolute_transform(bones.head) * get_bone_transform(head_skeleton, "ocellus_l");
+		ocellus_r_to_body = rest_pose.get_absolute_transform(bones.head) * get_bone_transform(head_skeleton, "ocellus_r");
 	}
 	if (phenome.ocelli->median_ocellus_present)
 	{
-		ocellus_m_to_body = rest_pose.get_absolute_transform(*bones.head) * get_bone_transform(head_skeleton, "ocellus_m");
+		ocellus_m_to_body = rest_pose.get_absolute_transform(bones.head) * get_bone_transform(head_skeleton, "ocellus_m");
 	}
 	
 	math::transform<float> forewing_l_to_body;
@@ -496,85 +496,85 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	math::transform<float> hindwing_r_to_body;
 	if (phenome.wings->present)
 	{
-		forewing_l_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "forewing_l");
-		forewing_r_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "forewing_r");
-		hindwing_l_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "hindwing_l");
-		hindwing_r_to_body = rest_pose.get_absolute_transform(*bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "hindwing_r");
+		forewing_l_to_body = rest_pose.get_absolute_transform(bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "forewing_l");
+		forewing_r_to_body = rest_pose.get_absolute_transform(bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "forewing_r");
+		hindwing_l_to_body = rest_pose.get_absolute_transform(bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "hindwing_l");
+		hindwing_r_to_body = rest_pose.get_absolute_transform(bones.mesosoma) * get_bone_transform(mesosoma_skeleton, "hindwing_r");
 	}
 	
 	// Build legs vertex reskin map
 	const std::unordered_map<bone_index_type, std::tuple<bone_index_type, const math::transform<float>*>> legs_reskin_map
 	{
-		{*legs_skeleton.get_bone_index("procoxa_l"),     {*bones.procoxa_l,    &legs_to_body}},
-		{*legs_skeleton.get_bone_index("profemur_l"),    {*bones.profemur_l,   &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protibia_l"),    {*bones.protibia_l,   &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protarsus1_l"),  {*bones.protarsus_l,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protarsus2_l"),  {*bones.protarsus_l,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protarsus3_l"),  {*bones.protarsus_l,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protarsus4_l"),  {*bones.protarsus_l,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protarsus5_l"),  {*bones.protarsus_l,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("procoxa_r"),     {*bones.procoxa_r,    &legs_to_body}},
-		{*legs_skeleton.get_bone_index("profemur_r"),    {*bones.profemur_r,   &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protibia_r"),    {*bones.protibia_r,   &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protarsus1_r"),  {*bones.protarsus_r,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protarsus2_r"),  {*bones.protarsus_r,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protarsus3_r"),  {*bones.protarsus_r,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protarsus4_r"),  {*bones.protarsus_r,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("protarsus5_r"),  {*bones.protarsus_r,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesocoxa_l"),    {*bones.mesocoxa_l,   &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesofemur_l"),   {*bones.mesofemur_l,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotibia_l"),   {*bones.mesotibia_l,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotarsus1_l"), {*bones.mesotarsus_l, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotarsus2_l"), {*bones.mesotarsus_l, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotarsus3_l"), {*bones.mesotarsus_l, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotarsus4_l"), {*bones.mesotarsus_l, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotarsus5_l"), {*bones.mesotarsus_l, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesocoxa_r"),    {*bones.mesocoxa_r,   &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesofemur_r"),   {*bones.mesofemur_r,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotibia_r"),   {*bones.mesotibia_r,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotarsus1_r"), {*bones.mesotarsus_r, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotarsus2_r"), {*bones.mesotarsus_r, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotarsus3_r"), {*bones.mesotarsus_r, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotarsus4_r"), {*bones.mesotarsus_r, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("mesotarsus5_r"), {*bones.mesotarsus_r, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metacoxa_l"),    {*bones.metacoxa_l,   &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metafemur_l"),   {*bones.metafemur_l,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatibia_l"),   {*bones.metatibia_l,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatarsus1_l"), {*bones.metatarsus_l, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatarsus2_l"), {*bones.metatarsus_l, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatarsus3_l"), {*bones.metatarsus_l, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatarsus4_l"), {*bones.metatarsus_l, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatarsus5_l"), {*bones.metatarsus_l, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metacoxa_r"),    {*bones.metacoxa_r,   &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metafemur_r"),   {*bones.metafemur_r,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatibia_r"),   {*bones.metatibia_r,  &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatarsus1_r"), {*bones.metatarsus_r, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatarsus2_r"), {*bones.metatarsus_r, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatarsus3_r"), {*bones.metatarsus_r, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatarsus4_r"), {*bones.metatarsus_r, &legs_to_body}},
-		{*legs_skeleton.get_bone_index("metatarsus5_r"), {*bones.metatarsus_r, &legs_to_body}}
+		{*legs_skeleton.get_bone_index("procoxa_l"),     {bones.procoxa_l,    &legs_to_body}},
+		{*legs_skeleton.get_bone_index("profemur_l"),    {bones.profemur_l,   &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protibia_l"),    {bones.protibia_l,   &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protarsus1_l"),  {bones.protarsus_l,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protarsus2_l"),  {bones.protarsus_l,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protarsus3_l"),  {bones.protarsus_l,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protarsus4_l"),  {bones.protarsus_l,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protarsus5_l"),  {bones.protarsus_l,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("procoxa_r"),     {bones.procoxa_r,    &legs_to_body}},
+		{*legs_skeleton.get_bone_index("profemur_r"),    {bones.profemur_r,   &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protibia_r"),    {bones.protibia_r,   &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protarsus1_r"),  {bones.protarsus_r,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protarsus2_r"),  {bones.protarsus_r,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protarsus3_r"),  {bones.protarsus_r,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protarsus4_r"),  {bones.protarsus_r,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("protarsus5_r"),  {bones.protarsus_r,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesocoxa_l"),    {bones.mesocoxa_l,   &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesofemur_l"),   {bones.mesofemur_l,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotibia_l"),   {bones.mesotibia_l,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotarsus1_l"), {bones.mesotarsus_l, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotarsus2_l"), {bones.mesotarsus_l, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotarsus3_l"), {bones.mesotarsus_l, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotarsus4_l"), {bones.mesotarsus_l, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotarsus5_l"), {bones.mesotarsus_l, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesocoxa_r"),    {bones.mesocoxa_r,   &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesofemur_r"),   {bones.mesofemur_r,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotibia_r"),   {bones.mesotibia_r,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotarsus1_r"), {bones.mesotarsus_r, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotarsus2_r"), {bones.mesotarsus_r, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotarsus3_r"), {bones.mesotarsus_r, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotarsus4_r"), {bones.mesotarsus_r, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("mesotarsus5_r"), {bones.mesotarsus_r, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metacoxa_l"),    {bones.metacoxa_l,   &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metafemur_l"),   {bones.metafemur_l,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatibia_l"),   {bones.metatibia_l,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatarsus1_l"), {bones.metatarsus_l, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatarsus2_l"), {bones.metatarsus_l, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatarsus3_l"), {bones.metatarsus_l, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatarsus4_l"), {bones.metatarsus_l, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatarsus5_l"), {bones.metatarsus_l, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metacoxa_r"),    {bones.metacoxa_r,   &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metafemur_r"),   {bones.metafemur_r,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatibia_r"),   {bones.metatibia_r,  &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatarsus1_r"), {bones.metatarsus_r, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatarsus2_r"), {bones.metatarsus_r, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatarsus3_r"), {bones.metatarsus_r, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatarsus4_r"), {bones.metatarsus_r, &legs_to_body}},
+		{*legs_skeleton.get_bone_index("metatarsus5_r"), {bones.metatarsus_r, &legs_to_body}}
 	};
 	
 	// Build head vertex reskin map
 	const std::unordered_map<bone_index_type, std::tuple<bone_index_type, const math::transform<float>*>> head_reskin_map
 	{
-		{*head_skeleton.get_bone_index("head"), {*bones.head, &head_to_body}}
+		{*head_skeleton.get_bone_index("head"), {bones.head, &head_to_body}}
 	};
 	
 	// Build mandibles vertex reskin map
 	const std::unordered_map<bone_index_type, std::tuple<bone_index_type, const math::transform<float>*>> mandibles_reskin_map
 	{
-		{*mandibles_skeleton.get_bone_index("mandible_l"), {*bones.mandible_l, &mandible_l_to_body}},
-		{*mandibles_skeleton.get_bone_index("mandible_r"), {*bones.mandible_r, &mandible_r_to_body}}
+		{*mandibles_skeleton.get_bone_index("mandible_l"), {bones.mandible_l, &mandible_l_to_body}},
+		{*mandibles_skeleton.get_bone_index("mandible_r"), {bones.mandible_r, &mandible_r_to_body}}
 	};
 	
 	// Build antennae vertex reskin map
 	std::unordered_map<bone_index_type, std::tuple<bone_index_type, const math::transform<float>*>> antennae_reskin_map
 	{
-		{*antennae_skeleton.get_bone_index("antennomere1_l"), {*bones.antennomere1_l, &antenna_l_to_body}},
-		{*antennae_skeleton.get_bone_index("antennomere2_l"), {*bones.antennomere2_l, &antenna_l_to_body}},
-		{*antennae_skeleton.get_bone_index("antennomere1_r"), {*bones.antennomere1_r, &antenna_r_to_body}},
-		{*antennae_skeleton.get_bone_index("antennomere2_r"), {*bones.antennomere2_r, &antenna_r_to_body}}
+		{*antennae_skeleton.get_bone_index("antennomere1_l"), {bones.antennomere1_l, &antenna_l_to_body}},
+		{*antennae_skeleton.get_bone_index("antennomere2_l"), {bones.antennomere2_l, &antenna_l_to_body}},
+		{*antennae_skeleton.get_bone_index("antennomere1_r"), {bones.antennomere1_r, &antenna_r_to_body}},
+		{*antennae_skeleton.get_bone_index("antennomere2_r"), {bones.antennomere2_r, &antenna_r_to_body}}
 	};
 	for (std::uint8_t i = 3; i <= phenome.antennae->total_antennomere_count; ++i)
 	{
@@ -584,8 +584,8 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 		const hash::fnv1a32_t antennomere_l_key = hash::fnv1a32<char>(antennomere_l_name);
 		const hash::fnv1a32_t antennomere_r_key = hash::fnv1a32<char>(antennomere_r_name);
 		
-		antennae_reskin_map.emplace(*antennae_skeleton.get_bone_index(antennomere_l_key), std::tuple(*bones.antennomere2_l, &antenna_l_to_body));
-		antennae_reskin_map.emplace(*antennae_skeleton.get_bone_index(antennomere_r_key), std::tuple(*bones.antennomere2_r, &antenna_r_to_body));
+		antennae_reskin_map.emplace(*antennae_skeleton.get_bone_index(antennomere_l_key), std::tuple(bones.antennomere2_l, &antenna_l_to_body));
+		antennae_reskin_map.emplace(*antennae_skeleton.get_bone_index(antennomere_r_key), std::tuple(bones.antennomere2_r, &antenna_r_to_body));
 	}
 	
 	// Build waist vertex reskin map
@@ -602,7 +602,7 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	// Build gaster vertex reskin map
 	const std::unordered_map<bone_index_type, std::tuple<bone_index_type, const math::transform<float>*>> gaster_reskin_map
 	{
-		{*gaster_skeleton.get_bone_index("gaster"), {*bones.gaster, &gaster_to_body}}
+		{*gaster_skeleton.get_bone_index("gaster"), {bones.gaster, &gaster_to_body}}
 	};
 	
 	// Build sting vertex reskin map
@@ -616,23 +616,23 @@ std::unique_ptr<render::model> ant_morphogenesis(const ant_phenome& phenome)
 	std::unordered_map<bone_index_type, std::tuple<bone_index_type, const math::transform<float>*>> eyes_reskin_map;
 	if (phenome.eyes->present)
 	{
-		eyes_reskin_map.emplace(*eyes_skeleton->get_bone_index("eye_l"), std::tuple(*bones.head, &eye_l_to_body));
-		eyes_reskin_map.emplace(*eyes_skeleton->get_bone_index("eye_r"), std::tuple(*bones.head, &eye_r_to_body));
+		eyes_reskin_map.emplace(*eyes_skeleton->get_bone_index("eye_l"), std::tuple(bones.head, &eye_l_to_body));
+		eyes_reskin_map.emplace(*eyes_skeleton->get_bone_index("eye_r"), std::tuple(bones.head, &eye_r_to_body));
 	}
 	
 	// Build lateral ocelli vertex reskin map
 	std::unordered_map<bone_index_type, std::tuple<bone_index_type, const math::transform<float>*>> lateral_ocelli_reskin_map;
 	if (phenome.ocelli->lateral_ocelli_present)
 	{
-		lateral_ocelli_reskin_map.emplace(*lateral_ocelli_skeleton->get_bone_index("ocellus_l"), std::tuple(*bones.head, &ocellus_l_to_body));
-		lateral_ocelli_reskin_map.emplace(*lateral_ocelli_skeleton->get_bone_index("ocellus_r"), std::tuple(*bones.head, &ocellus_r_to_body));
+		lateral_ocelli_reskin_map.emplace(*lateral_ocelli_skeleton->get_bone_index("ocellus_l"), std::tuple(bones.head, &ocellus_l_to_body));
+		lateral_ocelli_reskin_map.emplace(*lateral_ocelli_skeleton->get_bone_index("ocellus_r"), std::tuple(bones.head, &ocellus_r_to_body));
 	}
 	
 	// Build median ocellus vertex reskin map
 	std::unordered_map<bone_index_type, std::tuple<bone_index_type, const math::transform<float>*>> median_ocellus_reskin_map;
 	if (phenome.ocelli->median_ocellus_present)
 	{
-		median_ocellus_reskin_map.emplace(*median_ocellus_skeleton->get_bone_index("ocellus_m"), std::tuple(*bones.head, &ocellus_m_to_body));
+		median_ocellus_reskin_map.emplace(*median_ocellus_skeleton->get_bone_index("ocellus_m"), std::tuple(bones.head, &ocellus_m_to_body));
 	}
 	
 	// Build wings vertex reskin maps
