@@ -31,56 +31,54 @@
  * @param[out] bones Ant bone set.
  * @param[in] phenome Ant phenome.
  *
- * The following bones will always be present:
+ * The following bone hierarchy will be constructed:
  *
- * * antennomere1_l
- * * antennomere1_r
- * * antennomere2_l
- * * antennomere2_r
- * * gaster
- * * head
- * * mandible_l
- * * mandible_r
- * * mesocoxa_l
- * * mesocoxa_r
- * * mesofemur_l
- * * mesofemur_r
  * * mesosoma
- * * mesotarsus_l
- * * mesotarsus_r
- * * mesotibia_l
- * * mesotibia_r
- * * metacoxa_l
- * * metacoxa_r
- * * metafemur_l
- * * metafemur_r
- * * metatarsus_l
- * * metatarsus_r
- * * metatibia_l
- * * metatibia_r
- * * procoxa_l
- * * procoxa_r
- * * profemur_l
- * * profemur_r
- * * protarsus_l
- * * protarsus_r
- * * protibia_l
- * * protibia_r
+ * * * procoxa_l
+ * * * * profemur_l
+ * * * * * protibia_l
+ * * * * * * protarsomere1_l
+ * * * procoxa_r
+ * * * * profemur_r
+ * * * * * protibia_r
+ * * * * * * protarsomere1_r
+ * * * mesocoxa_l
+ * * * * mesofemur_l
+ * * * * * mesotibia_l
+ * * * * * * mesotarsomere1_l
+ * * * mesocoxa_r
+ * * * * mesofemur_r
+ * * * * * mesotibia_r
+ * * * * * * mesotarsomere1_r
+ * * * metacoxa_l
+ * * * * metafemur_l
+ * * * * * metatibia_l
+ * * * * * * metatarsomere1_l
+ * * * metacoxa_r
+ * * * * metafemur_r
+ * * * * * metatibia_r
+ * * * * * * metatarsomere1_r
+ * * * head
+ * * * * mandible_l
+ * * * * mandible_r
+ * * * * antennomere1_l
+ * * * * * antennomere2_l
+ * * * * antennomere1_r
+ * * * * * antennomere2_r
+ * * * petiole
+ * * * * †postpetiole
+ * * * * * gaster
+ * * * * * * sting
+ * * * †forewing_l
+ * * * †forewing_r
+ * * * †hindwing_l
+ * * * †hindwing_r
  *
- * The presence of the following bones depend on the ant phenome:
- *
- * * forewing_l
- * * forewing_r
- * * hindwing_l
- * * hindwing_r
- * * petiole
- * * postpetiole
- * * sting
+ * †: bone presence dependent on phenome.
  *
  * The following poses will be generated:
  *
- * * rest pose
- * * "pupa"
+ * * pupa
  */
 void generate_ant_skeleton(skeleton& skeleton, ant_bone_set& bones, const ant_phenome& phenome);
 

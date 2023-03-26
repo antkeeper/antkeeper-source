@@ -23,7 +23,6 @@
 
 namespace {
 
-
 /**
  * Generates the rest pose of ant skeleton.
  *
@@ -51,8 +50,6 @@ void generate_ant_rest_pose(::skeleton& skeleton, const ant_bone_set& bones, con
 	};
 	
 	const auto& mesosoma_transform = get_bone_transform(mesosoma_skeleton, "mesosoma");
-	const auto& head_socket_transform = get_bone_transform(mesosoma_skeleton, "head");
-	const auto& head_transform = get_bone_transform(head_skeleton, "head");
 	
 	const auto inverse_mesosoma_transform = math::inverse(mesosoma_transform);
 	
@@ -62,64 +59,68 @@ void generate_ant_rest_pose(::skeleton& skeleton, const ant_bone_set& bones, con
 	skeleton.set_bone_transform(bones.procoxa_l, inverse_mesosoma_transform * get_bone_transform(legs_skeleton, "procoxa_l"));
 	skeleton.set_bone_transform(bones.profemur_l, get_bone_transform(legs_skeleton, "profemur_l"));
 	skeleton.set_bone_transform(bones.protibia_l, get_bone_transform(legs_skeleton, "protibia_l"));
-	skeleton.set_bone_transform(bones.protarsus_l, get_bone_transform(legs_skeleton, "protarsus1_l"));
+	skeleton.set_bone_transform(bones.protarsomere1_l, get_bone_transform(legs_skeleton, "protarsomere1_l"));
 	
 	skeleton.set_bone_transform(bones.procoxa_r, inverse_mesosoma_transform * get_bone_transform(legs_skeleton, "procoxa_r"));
 	skeleton.set_bone_transform(bones.profemur_r, get_bone_transform(legs_skeleton, "profemur_r"));
 	skeleton.set_bone_transform(bones.protibia_r, get_bone_transform(legs_skeleton, "protibia_r"));
-	skeleton.set_bone_transform(bones.protarsus_r, get_bone_transform(legs_skeleton, "protarsus1_r"));
+	skeleton.set_bone_transform(bones.protarsomere1_r, get_bone_transform(legs_skeleton, "protarsomere1_r"));
 	
 	skeleton.set_bone_transform(bones.mesocoxa_l, inverse_mesosoma_transform * get_bone_transform(legs_skeleton, "mesocoxa_l"));
 	skeleton.set_bone_transform(bones.mesofemur_l, get_bone_transform(legs_skeleton, "mesofemur_l"));
 	skeleton.set_bone_transform(bones.mesotibia_l, get_bone_transform(legs_skeleton, "mesotibia_l"));
-	skeleton.set_bone_transform(bones.mesotarsus_l, get_bone_transform(legs_skeleton, "mesotarsus1_l"));
+	skeleton.set_bone_transform(bones.mesotarsomere1_l, get_bone_transform(legs_skeleton, "mesotarsomere1_l"));
 	
 	skeleton.set_bone_transform(bones.mesocoxa_r, inverse_mesosoma_transform * get_bone_transform(legs_skeleton, "mesocoxa_r"));
 	skeleton.set_bone_transform(bones.mesofemur_r, get_bone_transform(legs_skeleton, "mesofemur_r"));
 	skeleton.set_bone_transform(bones.mesotibia_r, get_bone_transform(legs_skeleton, "mesotibia_r"));
-	skeleton.set_bone_transform(bones.mesotarsus_r, get_bone_transform(legs_skeleton, "mesotarsus1_r"));
+	skeleton.set_bone_transform(bones.mesotarsomere1_r, get_bone_transform(legs_skeleton, "mesotarsomere1_r"));
 	
 	skeleton.set_bone_transform(bones.metacoxa_l, inverse_mesosoma_transform * get_bone_transform(legs_skeleton, "metacoxa_l"));
 	skeleton.set_bone_transform(bones.metafemur_l, get_bone_transform(legs_skeleton, "metafemur_l"));
 	skeleton.set_bone_transform(bones.metatibia_l, get_bone_transform(legs_skeleton, "metatibia_l"));
-	skeleton.set_bone_transform(bones.metatarsus_l, get_bone_transform(legs_skeleton, "metatarsus1_l"));
+	skeleton.set_bone_transform(bones.metatarsomere1_l, get_bone_transform(legs_skeleton, "metatarsomere1_l"));
 	
 	skeleton.set_bone_transform(bones.metacoxa_r, inverse_mesosoma_transform * get_bone_transform(legs_skeleton, "metacoxa_r"));
 	skeleton.set_bone_transform(bones.metafemur_r, get_bone_transform(legs_skeleton, "metafemur_r"));
 	skeleton.set_bone_transform(bones.metatibia_r, get_bone_transform(legs_skeleton, "metatibia_r"));
-	skeleton.set_bone_transform(bones.metatarsus_r, get_bone_transform(legs_skeleton, "metatarsus1_r"));
+	skeleton.set_bone_transform(bones.metatarsomere1_r, get_bone_transform(legs_skeleton, "metatarsomere1_r"));
 	
-	skeleton.set_bone_transform(bones.head, head_socket_transform * head_transform);
-	skeleton.set_bone_transform(bones.mandible_l, get_bone_transform(head_skeleton, "mandible_l") * get_bone_transform(mandibles_skeleton, "mandible_l"));
-	skeleton.set_bone_transform(bones.mandible_r, get_bone_transform(head_skeleton, "mandible_r") * get_bone_transform(mandibles_skeleton, "mandible_r"));
-	skeleton.set_bone_transform(bones.antennomere1_l, get_bone_transform(head_skeleton, "antenna_l") * get_bone_transform(antennae_skeleton, "antennomere1_l"));
+	skeleton.set_bone_transform(bones.head, get_bone_transform(mesosoma_skeleton, "head_socket") * get_bone_transform(head_skeleton, "head"));
+	skeleton.set_bone_transform(bones.mandible_l, get_bone_transform(head_skeleton, "mandible_socket_l") * get_bone_transform(mandibles_skeleton, "mandible_l"));
+	skeleton.set_bone_transform(bones.mandible_r, get_bone_transform(head_skeleton, "mandible_socket_r") * get_bone_transform(mandibles_skeleton, "mandible_r"));
+	skeleton.set_bone_transform(bones.antennomere1_l, get_bone_transform(head_skeleton, "antenna_socket_l") * get_bone_transform(antennae_skeleton, "antennomere1_l"));
 	skeleton.set_bone_transform(bones.antennomere2_l, get_bone_transform(antennae_skeleton, "antennomere2_l"));
-	skeleton.set_bone_transform(bones.antennomere1_r, get_bone_transform(head_skeleton, "antenna_r") * get_bone_transform(antennae_skeleton, "antennomere1_r"));
+	skeleton.set_bone_transform(bones.antennomere1_r, get_bone_transform(head_skeleton, "antenna_socket_r") * get_bone_transform(antennae_skeleton, "antennomere1_r"));
 	skeleton.set_bone_transform(bones.antennomere2_r, get_bone_transform(antennae_skeleton, "antennomere2_r"));
 	
-	if (bones.petiole)
+	if (phenome.waist->present)
 	{
-		skeleton.set_bone_transform(*bones.petiole, get_bone_transform(mesosoma_skeleton, "petiole") * get_bone_transform(waist_skeleton, "petiole"));
+		skeleton.set_bone_transform(*bones.petiole, get_bone_transform(mesosoma_skeleton, "petiole_socket") * get_bone_transform(waist_skeleton, "petiole"));
+		
+		if (phenome.waist->postpetiole_present)
+		{
+			skeleton.set_bone_transform(*bones.postpetiole, get_bone_transform(waist_skeleton, "postpetiole"));
+		}
+		
+		skeleton.set_bone_transform(bones.gaster, get_bone_transform(waist_skeleton, "gaster_socket") * get_bone_transform(gaster_skeleton, "gaster"));
 	}
-	
-	if (bones.postpetiole)
+	else
 	{
-		skeleton.set_bone_transform(*bones.postpetiole, get_bone_transform(waist_skeleton, "postpetiole"));
+		skeleton.set_bone_transform(bones.gaster, get_bone_transform(mesosoma_skeleton, "petiole_socket") * get_bone_transform(gaster_skeleton, "gaster"));
 	}
-	
-	skeleton.set_bone_transform(bones.gaster, get_bone_transform(waist_skeleton, "gaster") * get_bone_transform(gaster_skeleton, "gaster"));
 	
 	if (bones.sting)
 	{
-		skeleton.set_bone_transform(*bones.sting, get_bone_transform(gaster_skeleton, "sting") * get_bone_transform(*sting_skeleton, "sting"));
+		skeleton.set_bone_transform(*bones.sting, get_bone_transform(gaster_skeleton, "sting_socket") * get_bone_transform(*sting_skeleton, "sting"));
 	}
 	
 	if (bones.forewing_l)
 	{
-		skeleton.set_bone_transform(*bones.forewing_l, get_bone_transform(mesosoma_skeleton, "forewing_l") * get_bone_transform(*forewings_skeleton, "forewing_l"));
-		skeleton.set_bone_transform(*bones.forewing_r, get_bone_transform(mesosoma_skeleton, "forewing_r") * get_bone_transform(*forewings_skeleton, "forewing_r"));
-		skeleton.set_bone_transform(*bones.hindwing_l, get_bone_transform(mesosoma_skeleton, "hindwing_l") * get_bone_transform(*hindwings_skeleton, "hindwing_l"));
-		skeleton.set_bone_transform(*bones.hindwing_r, get_bone_transform(mesosoma_skeleton, "hindwing_r") * get_bone_transform(*hindwings_skeleton, "hindwing_r"));
+		skeleton.set_bone_transform(*bones.forewing_l, get_bone_transform(mesosoma_skeleton, "forewing_l_socket") * get_bone_transform(*forewings_skeleton, "forewing_l"));
+		skeleton.set_bone_transform(*bones.forewing_r, get_bone_transform(mesosoma_skeleton, "forewing_r_socket") * get_bone_transform(*forewings_skeleton, "forewing_r"));
+		skeleton.set_bone_transform(*bones.hindwing_l, get_bone_transform(mesosoma_skeleton, "hindwing_l_socket") * get_bone_transform(*hindwings_skeleton, "hindwing_l"));
+		skeleton.set_bone_transform(*bones.hindwing_r, get_bone_transform(mesosoma_skeleton, "hindwing_r_socket") * get_bone_transform(*hindwings_skeleton, "hindwing_r"));
 	}
 	
 	skeleton.update_rest_pose();
@@ -159,11 +160,11 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 		fold_protibia_l.rotation = math::angle_axis(-protibia_fold_angle, float3{1, 0, 0});
 		fold_protibia_r.rotation = math::angle_axis(-protibia_fold_angle, float3{1, 0, 0});
 		
-		constexpr float protarsus_fold_angle = math::radians(20.0f);
-		auto fold_protarsus_l = math::transform<float>::identity();
-		auto fold_protarsus_r = math::transform<float>::identity();
-		fold_protarsus_l.rotation = math::angle_axis(-protarsus_fold_angle, float3{1, 0, 0});
-		fold_protarsus_r.rotation = math::angle_axis(-protarsus_fold_angle, float3{1, 0, 0});
+		constexpr float protarsomere1_fold_angle = math::radians(20.0f);
+		auto fold_protarsomere1_l = math::transform<float>::identity();
+		auto fold_protarsomere1_r = math::transform<float>::identity();
+		fold_protarsomere1_l.rotation = math::angle_axis(-protarsomere1_fold_angle, float3{1, 0, 0});
+		fold_protarsomere1_r.rotation = math::angle_axis(-protarsomere1_fold_angle, float3{1, 0, 0});
 		
 		pupa_pose.set_relative_transform(bones.procoxa_l, rest_pose.get_relative_transform(bones.procoxa_l) * fold_procoxa_l);
 		pupa_pose.set_relative_transform(bones.procoxa_r, rest_pose.get_relative_transform(bones.procoxa_r) * fold_procoxa_r);
@@ -171,8 +172,8 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 		pupa_pose.set_relative_transform(bones.profemur_r, rest_pose.get_relative_transform(bones.profemur_r) * fold_profemur_r);
 		pupa_pose.set_relative_transform(bones.protibia_l, rest_pose.get_relative_transform(bones.protibia_l) * fold_protibia_l);
 		pupa_pose.set_relative_transform(bones.protibia_r, rest_pose.get_relative_transform(bones.protibia_r) * fold_protibia_r);
-		pupa_pose.set_relative_transform(bones.protarsus_l, rest_pose.get_relative_transform(bones.protarsus_l) * fold_protarsus_l);
-		pupa_pose.set_relative_transform(bones.protarsus_r, rest_pose.get_relative_transform(bones.protarsus_r) * fold_protarsus_r);
+		pupa_pose.set_relative_transform(bones.protarsomere1_l, rest_pose.get_relative_transform(bones.protarsomere1_l) * fold_protarsomere1_l);
+		pupa_pose.set_relative_transform(bones.protarsomere1_r, rest_pose.get_relative_transform(bones.protarsomere1_r) * fold_protarsomere1_r);
 	}
 	
 	// Fold midlegs
@@ -197,11 +198,11 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 		fold_mesotibia_l.rotation = math::angle_axis(-mesotibia_fold_angle, float3{1, 0, 0});
 		fold_mesotibia_r.rotation = math::angle_axis(-mesotibia_fold_angle, float3{1, 0, 0});
 		
-		constexpr float mesotarsus_fold_angle = math::radians(20.0f);
-		auto fold_mesotarsus_l = math::transform<float>::identity();
-		auto fold_mesotarsus_r = math::transform<float>::identity();
-		fold_mesotarsus_l.rotation = math::angle_axis(-mesotarsus_fold_angle, float3{1, 0, 0});
-		fold_mesotarsus_r.rotation = math::angle_axis(-mesotarsus_fold_angle, float3{1, 0, 0});
+		constexpr float mesotarsomere1_fold_angle = math::radians(20.0f);
+		auto fold_mesotarsomere1_l = math::transform<float>::identity();
+		auto fold_mesotarsomere1_r = math::transform<float>::identity();
+		fold_mesotarsomere1_l.rotation = math::angle_axis(-mesotarsomere1_fold_angle, float3{1, 0, 0});
+		fold_mesotarsomere1_r.rotation = math::angle_axis(-mesotarsomere1_fold_angle, float3{1, 0, 0});
 		
 		pupa_pose.set_relative_transform(bones.mesocoxa_l, rest_pose.get_relative_transform(bones.mesocoxa_l) * fold_mesocoxa_l);
 		pupa_pose.set_relative_transform(bones.mesocoxa_r, rest_pose.get_relative_transform(bones.mesocoxa_r) * fold_mesocoxa_r);
@@ -209,8 +210,8 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 		pupa_pose.set_relative_transform(bones.mesofemur_r, rest_pose.get_relative_transform(bones.mesofemur_r) * fold_mesofemur_r);
 		pupa_pose.set_relative_transform(bones.mesotibia_l, rest_pose.get_relative_transform(bones.mesotibia_l) * fold_mesotibia_l);
 		pupa_pose.set_relative_transform(bones.mesotibia_r, rest_pose.get_relative_transform(bones.mesotibia_r) * fold_mesotibia_r);
-		pupa_pose.set_relative_transform(bones.mesotarsus_l, rest_pose.get_relative_transform(bones.mesotarsus_l) * fold_mesotarsus_l);
-		pupa_pose.set_relative_transform(bones.mesotarsus_r, rest_pose.get_relative_transform(bones.mesotarsus_r) * fold_mesotarsus_r);
+		pupa_pose.set_relative_transform(bones.mesotarsomere1_l, rest_pose.get_relative_transform(bones.mesotarsomere1_l) * fold_mesotarsomere1_l);
+		pupa_pose.set_relative_transform(bones.mesotarsomere1_r, rest_pose.get_relative_transform(bones.mesotarsomere1_r) * fold_mesotarsomere1_r);
 	}
 	
 	// Fold hindlegs
@@ -235,11 +236,11 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 		fold_metatibia_l.rotation = math::angle_axis(-metatibia_fold_angle, float3{1, 0, 0});
 		fold_metatibia_r.rotation = math::angle_axis(-metatibia_fold_angle, float3{1, 0, 0});
 		
-		constexpr float metatarsus_fold_angle = math::radians(0.0f);
-		auto fold_metatarsus_l = math::transform<float>::identity();
-		auto fold_metatarsus_r = math::transform<float>::identity();
-		fold_metatarsus_l.rotation = math::angle_axis(-metatarsus_fold_angle, float3{1, 0, 0});
-		fold_metatarsus_r.rotation = math::angle_axis(-metatarsus_fold_angle, float3{1, 0, 0});
+		constexpr float metatarsomere1_fold_angle = math::radians(0.0f);
+		auto fold_metatarsomere1_l = math::transform<float>::identity();
+		auto fold_metatarsomere1_r = math::transform<float>::identity();
+		fold_metatarsomere1_l.rotation = math::angle_axis(-metatarsomere1_fold_angle, float3{1, 0, 0});
+		fold_metatarsomere1_r.rotation = math::angle_axis(-metatarsomere1_fold_angle, float3{1, 0, 0});
 		
 		pupa_pose.set_relative_transform(bones.metacoxa_l, rest_pose.get_relative_transform(bones.metacoxa_l) * fold_metacoxa_l);
 		pupa_pose.set_relative_transform(bones.metacoxa_r, rest_pose.get_relative_transform(bones.metacoxa_r) * fold_metacoxa_r);
@@ -247,8 +248,8 @@ void generate_ant_pupa_pose(skeleton& skeleton, const ant_bone_set& bones)
 		pupa_pose.set_relative_transform(bones.metafemur_r, rest_pose.get_relative_transform(bones.metafemur_r) * fold_metafemur_r);
 		pupa_pose.set_relative_transform(bones.metatibia_l, rest_pose.get_relative_transform(bones.metatibia_l) * fold_metatibia_l);
 		pupa_pose.set_relative_transform(bones.metatibia_r, rest_pose.get_relative_transform(bones.metatibia_r) * fold_metatibia_r);
-		pupa_pose.set_relative_transform(bones.metatarsus_l, rest_pose.get_relative_transform(bones.metatarsus_l) * fold_metatarsus_l);
-		pupa_pose.set_relative_transform(bones.metatarsus_r, rest_pose.get_relative_transform(bones.metatarsus_r) * fold_metatarsus_r);
+		pupa_pose.set_relative_transform(bones.metatarsomere1_l, rest_pose.get_relative_transform(bones.metatarsomere1_l) * fold_metatarsomere1_l);
+		pupa_pose.set_relative_transform(bones.metatarsomere1_r, rest_pose.get_relative_transform(bones.metatarsomere1_r) * fold_metatarsomere1_r);
 	}
 	
 	// Fold head
@@ -332,27 +333,27 @@ void generate_ant_skeleton(skeleton& skeleton, ant_bone_set& bones, const ant_ph
 	bones.procoxa_l = ++bone_index;
 	bones.profemur_l = ++bone_index;
 	bones.protibia_l = ++bone_index;
-	bones.protarsus_l = ++bone_index;
+	bones.protarsomere1_l = ++bone_index;
 	bones.procoxa_r = ++bone_index;
 	bones.profemur_r = ++bone_index;
 	bones.protibia_r = ++bone_index;
-	bones.protarsus_r = ++bone_index;
+	bones.protarsomere1_r = ++bone_index;
 	bones.mesocoxa_l = ++bone_index;
 	bones.mesofemur_l = ++bone_index;
 	bones.mesotibia_l = ++bone_index;
-	bones.mesotarsus_l = ++bone_index;
+	bones.mesotarsomere1_l = ++bone_index;
 	bones.mesocoxa_r = ++bone_index;
 	bones.mesofemur_r = ++bone_index;
 	bones.mesotibia_r = ++bone_index;
-	bones.mesotarsus_r = ++bone_index;
+	bones.mesotarsomere1_r = ++bone_index;
 	bones.metacoxa_l = ++bone_index;
 	bones.metafemur_l = ++bone_index;
 	bones.metatibia_l = ++bone_index;
-	bones.metatarsus_l = ++bone_index;
+	bones.metatarsomere1_l = ++bone_index;
 	bones.metacoxa_r = ++bone_index;
 	bones.metafemur_r = ++bone_index;
 	bones.metatibia_r = ++bone_index;
-	bones.metatarsus_r = ++bone_index;
+	bones.metatarsomere1_r = ++bone_index;
 	bones.head = ++bone_index;
 	bones.mandible_l = ++bone_index;
 	bones.mandible_r = ++bone_index;
@@ -361,14 +362,14 @@ void generate_ant_skeleton(skeleton& skeleton, ant_bone_set& bones, const ant_ph
 	bones.antennomere1_r = ++bone_index;
 	bones.antennomere2_r = ++bone_index;
 	
-	if (phenome.waist->petiole_present)
+	if (phenome.waist->present)
 	{
 		bones.petiole = ++bone_index;
-	}
-	
-	if (phenome.waist->postpetiole_present)
-	{
-		bones.postpetiole = ++bone_index;
+		
+		if (phenome.waist->postpetiole_present)
+		{
+			bones.postpetiole = ++bone_index;
+		}
 	}
 	
 	bones.gaster = ++bone_index;
@@ -390,69 +391,56 @@ void generate_ant_skeleton(skeleton& skeleton, ant_bone_set& bones, const ant_ph
 	skeleton.add_bones(bone_index + 1);
 	
 	// Assign bone parents
-	skeleton.set_bone_parent(bones.mesosoma,       bones.mesosoma);
-	skeleton.set_bone_parent(bones.procoxa_l,      bones.mesosoma);
-	skeleton.set_bone_parent(bones.profemur_l,     bones.procoxa_l);
-	skeleton.set_bone_parent(bones.protibia_l,     bones.profemur_l);
-	skeleton.set_bone_parent(bones.protarsus_l,    bones.protibia_l);
-	skeleton.set_bone_parent(bones.procoxa_r,      bones.mesosoma);
-	skeleton.set_bone_parent(bones.profemur_r,     bones.procoxa_r);
-	skeleton.set_bone_parent(bones.protibia_r,     bones.profemur_r);
-	skeleton.set_bone_parent(bones.protarsus_r,    bones.protibia_r);
-	skeleton.set_bone_parent(bones.mesocoxa_l,     bones.mesosoma);
-	skeleton.set_bone_parent(bones.mesofemur_l,    bones.mesocoxa_l);
-	skeleton.set_bone_parent(bones.mesotibia_l,    bones.mesofemur_l);
-	skeleton.set_bone_parent(bones.mesotarsus_l,   bones.mesotibia_l);
-	skeleton.set_bone_parent(bones.mesocoxa_r,     bones.mesosoma);
-	skeleton.set_bone_parent(bones.mesofemur_r,    bones.mesocoxa_r);
-	skeleton.set_bone_parent(bones.mesotibia_r,    bones.mesofemur_r);
-	skeleton.set_bone_parent(bones.mesotarsus_r,   bones.mesotibia_r);
-	skeleton.set_bone_parent(bones.metacoxa_l,     bones.mesosoma);
-	skeleton.set_bone_parent(bones.metafemur_l,    bones.metacoxa_l);
-	skeleton.set_bone_parent(bones.metatibia_l,    bones.metafemur_l);
-	skeleton.set_bone_parent(bones.metatarsus_l,   bones.metatibia_l);
-	skeleton.set_bone_parent(bones.metacoxa_r,     bones.mesosoma);
-	skeleton.set_bone_parent(bones.metafemur_r,    bones.metacoxa_r);
-	skeleton.set_bone_parent(bones.metatibia_r,    bones.metafemur_r);
-	skeleton.set_bone_parent(bones.metatarsus_r,   bones.metatibia_r);
-	skeleton.set_bone_parent(bones.head,           bones.mesosoma);
-	skeleton.set_bone_parent(bones.mandible_l,     bones.head);
-	skeleton.set_bone_parent(bones.mandible_r,     bones.head);
-	skeleton.set_bone_parent(bones.antennomere1_l, bones.head);
-	skeleton.set_bone_parent(bones.antennomere2_l, bones.antennomere1_l);
-	skeleton.set_bone_parent(bones.antennomere1_r, bones.head);
-	skeleton.set_bone_parent(bones.antennomere2_r, bones.antennomere1_r);
+	skeleton.set_bone_parent(bones.mesosoma,         bones.mesosoma);
+	skeleton.set_bone_parent(bones.procoxa_l,        bones.mesosoma);
+	skeleton.set_bone_parent(bones.profemur_l,       bones.procoxa_l);
+	skeleton.set_bone_parent(bones.protibia_l,       bones.profemur_l);
+	skeleton.set_bone_parent(bones.protarsomere1_l,  bones.protibia_l);
+	skeleton.set_bone_parent(bones.procoxa_r,        bones.mesosoma);
+	skeleton.set_bone_parent(bones.profemur_r,       bones.procoxa_r);
+	skeleton.set_bone_parent(bones.protibia_r,       bones.profemur_r);
+	skeleton.set_bone_parent(bones.protarsomere1_r,  bones.protibia_r);
+	skeleton.set_bone_parent(bones.mesocoxa_l,       bones.mesosoma);
+	skeleton.set_bone_parent(bones.mesofemur_l,      bones.mesocoxa_l);
+	skeleton.set_bone_parent(bones.mesotibia_l,      bones.mesofemur_l);
+	skeleton.set_bone_parent(bones.mesotarsomere1_l, bones.mesotibia_l);
+	skeleton.set_bone_parent(bones.mesocoxa_r,       bones.mesosoma);
+	skeleton.set_bone_parent(bones.mesofemur_r,      bones.mesocoxa_r);
+	skeleton.set_bone_parent(bones.mesotibia_r,      bones.mesofemur_r);
+	skeleton.set_bone_parent(bones.mesotarsomere1_r, bones.mesotibia_r);
+	skeleton.set_bone_parent(bones.metacoxa_l,       bones.mesosoma);
+	skeleton.set_bone_parent(bones.metafemur_l,      bones.metacoxa_l);
+	skeleton.set_bone_parent(bones.metatibia_l,      bones.metafemur_l);
+	skeleton.set_bone_parent(bones.metatarsomere1_l, bones.metatibia_l);
+	skeleton.set_bone_parent(bones.metacoxa_r,       bones.mesosoma);
+	skeleton.set_bone_parent(bones.metafemur_r,      bones.metacoxa_r);
+	skeleton.set_bone_parent(bones.metatibia_r,      bones.metafemur_r);
+	skeleton.set_bone_parent(bones.metatarsomere1_r, bones.metatibia_r);
+	skeleton.set_bone_parent(bones.head,             bones.mesosoma);
+	skeleton.set_bone_parent(bones.mandible_l,       bones.head);
+	skeleton.set_bone_parent(bones.mandible_r,       bones.head);
+	skeleton.set_bone_parent(bones.antennomere1_l,   bones.head);
+	skeleton.set_bone_parent(bones.antennomere2_l,   bones.antennomere1_l);
+	skeleton.set_bone_parent(bones.antennomere1_r,   bones.head);
+	skeleton.set_bone_parent(bones.antennomere2_r,   bones.antennomere1_r);
 	
-	if (bones.petiole)
+	if (phenome.waist->present)
 	{
 		skeleton.set_bone_parent(*bones.petiole, bones.mesosoma);
-	}
-	if (bones.postpetiole)
-	{
-		if (bones.petiole)
+		
+		if (phenome.waist->postpetiole_present)
 		{
 			skeleton.set_bone_parent(*bones.postpetiole, *bones.petiole);
+			skeleton.set_bone_parent(bones.gaster, *bones.postpetiole);
 		}
 		else
-		{
-			skeleton.set_bone_parent(*bones.postpetiole, bones.mesosoma);
-		}
-	}
-	
-	if (bones.postpetiole)
-	{
-		skeleton.set_bone_parent(bones.gaster, *bones.postpetiole);
-	}
-	else
-	{
-		if (bones.petiole)
 		{
 			skeleton.set_bone_parent(bones.gaster, *bones.petiole);
 		}
-		else
-		{
-			skeleton.set_bone_parent(bones.gaster, bones.mesosoma);
-		}
+	}
+	else
+	{
+		skeleton.set_bone_parent(bones.gaster, bones.mesosoma);
 	}
 	
 	if (bones.sting)
@@ -473,27 +461,27 @@ void generate_ant_skeleton(skeleton& skeleton, ant_bone_set& bones, const ant_ph
 	skeleton.set_bone_name(bones.procoxa_l, "procoxa_l");
 	skeleton.set_bone_name(bones.profemur_l, "profemur_l");
 	skeleton.set_bone_name(bones.protibia_l, "protibia_l");
-	skeleton.set_bone_name(bones.protarsus_l, "protarsus_l");
+	skeleton.set_bone_name(bones.protarsomere1_l, "protarsomere1_l");
 	skeleton.set_bone_name(bones.procoxa_r, "procoxa_r");
 	skeleton.set_bone_name(bones.profemur_r, "profemur_r");
 	skeleton.set_bone_name(bones.protibia_r, "protibia_r");
-	skeleton.set_bone_name(bones.protarsus_r, "protarsus_r");
+	skeleton.set_bone_name(bones.protarsomere1_r, "protarsomere1_r");
 	skeleton.set_bone_name(bones.mesocoxa_l, "mesocoxa_l");
 	skeleton.set_bone_name(bones.mesofemur_l, "mesofemur_l");
 	skeleton.set_bone_name(bones.mesotibia_l, "mesotibia_l");
-	skeleton.set_bone_name(bones.mesotarsus_l, "mesotarsus_l");
+	skeleton.set_bone_name(bones.mesotarsomere1_l, "mesotarsomere1_l");
 	skeleton.set_bone_name(bones.mesocoxa_r, "mesocoxa_r");
 	skeleton.set_bone_name(bones.mesofemur_r, "mesofemur_r");
 	skeleton.set_bone_name(bones.mesotibia_r, "mesotibia_r");
-	skeleton.set_bone_name(bones.mesotarsus_r, "mesotarsus_r");
+	skeleton.set_bone_name(bones.mesotarsomere1_r, "mesotarsomere1_r");
 	skeleton.set_bone_name(bones.metacoxa_l, "metacoxa_l");
 	skeleton.set_bone_name(bones.metafemur_l, "metafemur_l");
 	skeleton.set_bone_name(bones.metatibia_l, "metatibia_l");
-	skeleton.set_bone_name(bones.metatarsus_l, "metatarsus_l");
+	skeleton.set_bone_name(bones.metatarsomere1_l, "metatarsomere1_l");
 	skeleton.set_bone_name(bones.metacoxa_r, "metacoxa_r");
 	skeleton.set_bone_name(bones.metafemur_r, "metafemur_r");
 	skeleton.set_bone_name(bones.metatibia_r, "metatibia_r");
-	skeleton.set_bone_name(bones.metatarsus_r, "metatarsus_r");
+	skeleton.set_bone_name(bones.metatarsomere1_r, "metatarsomere1_r");
 	skeleton.set_bone_name(bones.head, "head");
 	skeleton.set_bone_name(bones.mandible_l, "mandible_l");
 	skeleton.set_bone_name(bones.mandible_r, "mandible_r");
@@ -501,20 +489,25 @@ void generate_ant_skeleton(skeleton& skeleton, ant_bone_set& bones, const ant_ph
 	skeleton.set_bone_name(bones.antennomere2_l, "antennomere2_l");
 	skeleton.set_bone_name(bones.antennomere1_r, "antennomere1_r");
 	skeleton.set_bone_name(bones.antennomere2_r, "antennomere2_r");
-	if (bones.petiole)
+	
+	if (phenome.waist->present)
 	{
 		skeleton.set_bone_name(*bones.petiole, "petiole");
+		
+		if (phenome.waist->postpetiole_present)
+		{
+			skeleton.set_bone_name(*bones.postpetiole, "postpetiole");
+		}
 	}
-	if (bones.postpetiole)
-	{
-		skeleton.set_bone_name(*bones.postpetiole, "postpetiole");
-	}
+	
 	skeleton.set_bone_name(bones.gaster, "gaster");
-	if (bones.sting)
+	
+	if (phenome.sting->present)
 	{
 		skeleton.set_bone_name(*bones.sting, "sting");
 	}
-	if (bones.forewing_l)
+	
+	if (phenome.wings->present)
 	{
 		skeleton.set_bone_name(*bones.forewing_l, "forewing_l");
 		skeleton.set_bone_name(*bones.forewing_r, "forewing_r");

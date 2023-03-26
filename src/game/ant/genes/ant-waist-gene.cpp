@@ -27,9 +27,9 @@ namespace {
 
 void load_ant_waist_phene(ant_waist_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
-	std::uint8_t petiole_present{0};
-	ctx.read8(reinterpret_cast<std::byte*>(&petiole_present), 1);
-	phene.petiole_present = static_cast<bool>(petiole_present);
+	std::uint8_t present{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&present), 1);
+	phene.present = static_cast<bool>(present);
 	
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.petiole_length), 1);
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.petiole_width), 1);
@@ -50,7 +50,10 @@ void load_ant_waist_phene(ant_waist_phene& phene, ::resource_manager& resource_m
 	std::string model_filename(model_filename_length, '\0');
 	ctx.read8(reinterpret_cast<std::byte*>(model_filename.data()), model_filename_length);
 	
-	phene.model = resource_manager.load<render::model>(model_filename);
+	if (phene.present)
+	{
+		phene.model = resource_manager.load<render::model>(model_filename);
+	}
 }
 
 } // namespace

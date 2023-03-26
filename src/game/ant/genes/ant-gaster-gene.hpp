@@ -34,7 +34,14 @@ struct ant_gaster_phene
 	/// Degree of phragmosis.
 	float phragmosis{0.0f};
 	
-	/// 3D model of the gaster.
+	/**
+	 * 3D model of the gaster.
+	 *
+	 * The gaster model skeleton must contain the following bones:
+	 *
+	 * * gaster
+	 * * * sting_socket
+	 */
 	std::shared_ptr<render::model> model;
 };
 

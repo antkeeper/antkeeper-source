@@ -31,8 +31,8 @@
  */
 struct ant_waist_phene
 {
-	//// Petiole presence.
-	bool petiole_present{false};
+	//// Waist presence.
+	bool present{false};
 	
 	/// Petiole length, in mesosomal lengths.
 	float petiole_length{0.0f};
@@ -61,7 +61,22 @@ struct ant_waist_phene
 	/// Degree of postpetiole spinescence
 	float postpetiole_spinescence{0.0f};
 	
-	/// 3D model of the waist.
+	/**
+	 * 3D model of the waist.
+	 *
+	 * If the waist is present, the waist model skeleton can have one of two forms: single-segmented or double-segmented.
+	 *
+	 * If the postpetiole is absent, the waist is single-segmented and its skeleton must contain the following bones:
+	 *
+	 * * petiole
+	 * * * gaster_socket
+	 *
+	 * If the postpetiole is present, the waist is double-segmented and its skeleton must contains the following bones:
+	 *
+	 * * petiole
+	 * * * postpetiole
+	 * * * * gaster_socket
+	 */
 	std::shared_ptr<render::model> model;
 };
 

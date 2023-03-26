@@ -39,7 +39,22 @@ struct ant_antennae_phene
 	/// Number of antennal segments that constitute a club.
 	std::uint8_t club_antennomere_count{0};
 	
-	/// 3D model of the antennae.
+	/**
+	 * 3D model of the antennae.
+	 *
+	 * The antennae model skeleton must contain the following bones:
+	 *
+	 * * antennomere1_l
+	 * * * antennomere2_l
+	 * * * * ...
+	 * * * * * antennomere`<n>`_l
+	 * * antennomere1_r
+	 * * * antennomere2_r
+	 * * * * ...
+	 * * * * * antennomere`<n>`_r
+	 *
+	 * Where `<n>` is the total number of antennal segments per antenna. 
+	 */
 	std::shared_ptr<render::model> model;
 };
 

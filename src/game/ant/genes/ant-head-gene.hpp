@@ -41,7 +41,22 @@ struct ant_head_phene
 	/// Degree of phragmosis.
 	float phragmosis{0.0f};
 	
-	/// 3D model of the head.
+	/**
+	 * 3D model of the head.
+	 *
+	 * The head model skeleton must contain the following bones:
+	 *
+	 * * head
+	 * * * mandible_socket_l
+	 * * * mandible_socket_r
+	 * * * antenna_socket_l
+	 * * * antenna_socket_r
+	 * * * eye_socket_l
+	 * * * eye_socket_r
+	 * * * ocellus_socket_l
+	 * * * ocellus_socket_r
+	 * * * ocellus_socket_m
+	 */
 	std::shared_ptr<render::model> model;
 };
 
