@@ -24,9 +24,7 @@
 #include <cstddef>
 #include <cmath>
 #include <concepts>
-#include <istream>
 #include <iterator>
-#include <ostream>
 #include <type_traits>
 #include <utility>
 
@@ -38,11 +36,11 @@ namespace math {
  * @tparam T Element type.
  * @tparam N Number of elements.
  */
-template <typename T, std::size_t N>
+template <class T, std::size_t N>
 struct vector
 {
 	/// Element type.
-	typedef T element_type;
+	using element_type = T;
 	
 	/// Number of elements.
 	static constexpr std::size_t element_count = N;
@@ -329,15 +327,15 @@ struct vector
 };
 
 /// Vector with two elements.
-template <typename T>
+template <class T>
 using vector2 = vector<T, 2>;
 
 /// Vector with three elements.
-template <typename T>
+template <class T>
 using vector3 = vector<T, 3>;
 
 /// Vector with four elements.
-template <typename T>
+template <class T>
 using vector4 = vector<T, 4>;
 
 /**
@@ -692,7 +690,7 @@ template <class T, std::size_t N>
  *
  * @param x Vector to normalize.
  *
- * @return Normalized vector.
+ * @return Unit vector.
  */
 template <class T, std::size_t N>
 [[nodiscard]] vector<T, N> normalize(const vector<T, N>& x);
@@ -1628,44 +1626,6 @@ inline constexpr vector<T, N>& operator/=(vector<T, N>& x, T y) noexcept
 	return (x = x / y);
 }
 /// @}
-
-/**
- * Writes the elements of a vector to an output stream, with each element delimeted by a space.
- *
- * @param os Output stream.
- * @param x Vector.
- *
- * @return Output stream.
- */
-template <class T, std::size_t N>
-std::ostream& operator<<(std::ostream& os, const vector<T, N>& x)
-{
-	for (std::size_t i = 0; i < N; ++i)
-	{
-		if (i)
-			os << ' ';
-		os << x[i];
-	}
-	
-	return os;
-}
-
-/**
- * Reads the elements of a vector from an input stream, with each element delimeted by a space.
- *
- * @param is Input stream.
- * @param x Vector.
- *
- * @return Input stream.
- */
-template <class T, std::size_t N>
-std::istream& operator>>(std::istream& is, vector<T, N>& x)
-{
-	for (std::size_t i = 0; i < N; ++i)
-		is >> x[i];
-	
-	return is;
-}
 
 } // namespace operators
 

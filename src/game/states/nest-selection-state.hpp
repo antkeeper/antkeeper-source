@@ -24,7 +24,7 @@
 #include <engine/entity/id.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/render/model.hpp>
-
+#include <engine/animation/ik/solvers/ccd-ik-solver.hpp>
 
 class nest_selection_state: public game_state
 {
@@ -72,6 +72,8 @@ private:
 	
 	double first_person_camera_yaw{0.0};
 	double first_person_camera_pitch{0.0};
+	
+	std::shared_ptr<ccd_ik_solver> larva_ik_solver;
 };
 
 #endif // ANTKEEPER_NEST_SELECTION_STATE_HPP

@@ -42,7 +42,9 @@ template <class InputIt, class T>
 {
 	T y = *first;
 	for (++first; first != last; ++first)
+	{
 		y = y * x + *first;
+	}
 	return y;
 }
 
@@ -66,8 +68,11 @@ namespace chebyshev {
 		T y = *(first++);
 		y += *(first++) * x;
 		
-		T n2 = T(1), n1 = x, n0;
-		x *= T(2);
+		T n2 = T{1};
+		T n1 = x;
+		T n0;
+		
+		x += x;
 		
 		for (; first != last; n2 = n1, n1 = n0)
 		{
@@ -77,7 +82,7 @@ namespace chebyshev {
 		
 		return y;
 	}
-
+	
 	/**
 	 * Evaluates a Chebyshev polynomial.
 	 *
@@ -90,7 +95,7 @@ namespace chebyshev {
 	template <class InputIt, class T>
 	[[nodiscard]] T evaluate(InputIt first, InputIt last, T min, T max, T x)
 	{
-		return evaluate<InputIt, T>(first, last, math::map<T>(x, min, max, T(-1), T(1)));
+		return evaluate<InputIt, T>(first, last, math::map<T>(x, min, max, T{-1}, T{1}));
 	}
 
 } // namespace chebyshev

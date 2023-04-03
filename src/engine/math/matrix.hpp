@@ -22,9 +22,7 @@
 
 #include <engine/math/vector.hpp>
 #include <cstddef>
-#include <istream>
 #include <iterator>
-#include <ostream>
 #include <type_traits>
 #include <utility>
 
@@ -39,11 +37,11 @@ namespace math {
  *
  * @see https://en.wikipedia.org/wiki/Row-_and_column-major_order
  */
-template <typename T, std::size_t N, std::size_t M>
+template <class T, std::size_t N, std::size_t M>
 struct matrix
 {
 	/// Element type.
-	typedef T element_type;
+	using element_type = T;
 	
 	/// Number of columns.
 	static constexpr std::size_t column_count = N;
@@ -55,10 +53,10 @@ struct matrix
 	static constexpr std::size_t element_count = column_count * row_count;
 	
 	/// Matrix column vector data type.
-	typedef vector<element_type, row_count> column_vector_type;
+	using column_vector_type = vector<element_type, row_count>;
 	
 	/// Matrix row vector data type.
-	typedef vector<element_type, column_count> row_vector_type;
+	using row_vector_type = vector<element_type, column_count>;
 	
 	/// Array of matrix column vectors.
 	column_vector_type columns[column_count];
@@ -359,27 +357,27 @@ struct matrix
 };
 
 /// 2x2 matrix.
-template <typename T>
+template <class T>
 using matrix2 = matrix<T, 2, 2>;
 
 /// 2x2 matrix.
-template <typename T>
+template <class T>
 using matrix2x2 = matrix<T, 2, 2>;
 
 /// 3x3 matrix.
-template <typename T>
+template <class T>
 using matrix3 = matrix<T, 3, 3>;
 
 /// 3x3 matrix.
-template <typename T>
+template <class T>
 using matrix3x3 = matrix<T, 3, 3>;
 
 /// 4x4 matrix.
-template <typename T>
+template <class T>
 using matrix4 = matrix<T, 4, 4>;
 
 /// 4x4 matrix.
-template <typename T>
+template <class T>
 using matrix4x4 = matrix<T, 4, 4>;
 
 /**
@@ -500,7 +498,7 @@ template <class T, std::size_t N>
  *
  * @param position Position of the view point.
  * @param target Position of the target.
- * @param up Normalized direction of the up vector.
+ * @param up Unit vector pointing in the up direction.
  *
  * @return Viewing transformation matrix.
  */
@@ -520,7 +518,7 @@ template <class T>
  *
  * @return Product of `a * b`.
  */
-template <typename T, std::size_t N, std::size_t M, std::size_t P>
+template <class T, std::size_t N, std::size_t M, std::size_t P>
 [[nodiscard]] constexpr matrix<T, P, M> mul(const matrix<T, N, M>& a, const matrix<T, P, N>& b) noexcept;
 
 /**
@@ -542,7 +540,7 @@ template <class T, std::size_t N, std::size_t M>
  *
  * @return Product of the matrix and the row vector.
  */
-template <typename T, std::size_t N, std::size_t M>
+template <class T, std::size_t N, std::size_t M>
 [[nodiscard]] constexpr typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b) noexcept;
 
 /**
@@ -553,7 +551,7 @@ template <typename T, std::size_t N, std::size_t M>
  *
  * @return Product of the column vector and the matrix.
  */
-template <typename T, std::size_t N, std::size_t M>
+template <class T, std::size_t N, std::size_t M>
 [[nodiscard]] constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b) noexcept;
 
 /**
@@ -669,7 +667,7 @@ template <class T>
  *
  * @return Transposed matrix.
  */
-template <typename T, std::size_t N, std::size_t M>
+template <class T, std::size_t N, std::size_t M>
 [[nodiscard]] constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m) noexcept;
 
 /// @private
@@ -893,18 +891,18 @@ constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 
 	vector<T, 3> right = normalize(cross(forward, up));
 	up = cross(right, forward);
 
-	matrix<T, 4, 4> m = 
-		{{
-			{right[0], up[0], -forward[0], T(0)},
-			{right[1], up[1], -forward[1], T(0)},
-			{right[2], up[2], -forward[2], T(0)},
-			{T(0), T(0), T(0), T(1)}
-		}};
+	matrix<T, 4, 4> m
+	{{
+		{right[0], up[0], -forward[0], T{0}},
+		{right[1], up[1], -forward[1], T{0}},
+		{right[2], up[2], -forward[2], T{0}},
+		{T{0}, T{0}, T{0}, T{1}}
+	}};
 	
 	return translate(m, negate(position));
 }
 
-template <typename T, std::size_t N, std::size_t M, std::size_t P>
+template <class T, std::size_t N, std::size_t M, std::size_t P>
 constexpr matrix<T, P, M> mul(const matrix<T, N, M>& a, const matrix<T, P, N>& b) noexcept
 {
 	matrix<T, P, M> c = matrix<T, P, M>::zero();
@@ -937,26 +935,26 @@ constexpr matrix<T, N, M> mul(const matrix<T, N, M>& a, T b) noexcept
 }
 
 /// @private
-template <typename T, std::size_t N, std::size_t M, std::size_t... I>
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
 inline constexpr typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b, std::index_sequence<I...>) noexcept
 {
 	return ((a[I] * b[I]) + ...);
 }
 
-template <typename T, std::size_t N, std::size_t M>
+template <class T, std::size_t N, std::size_t M>
 constexpr typename matrix<T, N, M>::column_vector_type mul(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b) noexcept
 {
 	return mul(a, b, std::make_index_sequence<N>{});
 }
 
 /// @private
-template <typename T, std::size_t N, std::size_t M, std::size_t... I>
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
 inline constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b, std::index_sequence<I...>) noexcept
 {
 	return {dot(a, b[I]) ...};
 }
 
-template <typename T, std::size_t N, std::size_t M>
+template <class T, std::size_t N, std::size_t M>
 constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b) noexcept
 {
 	return mul(a, b, std::make_index_sequence<N>{});
@@ -967,8 +965,8 @@ matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis)
 {
 	const T c = std::cos(angle);
 	const T s = std::sin(angle);
-	const vector<T, 3> temp = mul(axis, T(1) - c);
-
+	const vector<T, 3> temp = mul(axis, T{1} - c);
+	
 	matrix<T, 3, 3> rotation;
 	rotation[0][0] = axis[0] * temp[0] + c;
 	rotation[0][1] = axis[1] * temp[0] + axis[2] * s;
@@ -979,7 +977,7 @@ matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis)
 	rotation[2][0] = axis[0] * temp[2] + axis[1] * s;
 	rotation[2][1] = axis[1] * temp[2] - axis[0] * s;
 	rotation[2][2] = axis[2] * temp[2] + c;
-
+	
 	return rotation;
 }
 
@@ -991,9 +989,9 @@ matrix3<T> rotate_x(T angle)
 	
 	return matrix3<T>
 	{
-		T(1), T(0), T(0),
-		T(0), c, s,
-		T(0), -s, c
+		T{1}, T{0}, T{0},
+		T{0}, c, s,
+		T{0}, -s, c
 	};
 }
 
@@ -1005,9 +1003,9 @@ matrix3<T> rotate_y(T angle)
 	
 	return matrix3<T>
 	{
-		c, T(0), -s,
-		T(0), T(1), T(0),
-		s, T(0), c
+		c, T{0}, -s,
+		T{0}, T{1}, T{0},
+		s, T{0}, c
 	};
 }
 
@@ -1019,22 +1017,26 @@ matrix3<T> rotate_z(T angle)
 	
 	return matrix3<T>
 	{
-		c, s, T(0),
-		-s, c, T(0),
-		T(0), T(0), T(1)
+		c, s, T{0},
+		-s, c, T{0},
+		T{0}, T{0}, T{1}
 	};
 }
 
 template <class T>
 constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
 {
-	return mul(m, matrix<T, 4, 4>
+	return mul
+	(
+		m,
+		matrix<T, 4, 4>
 		{{
-			{v[0], T(0), T(0), T(0)},
-			{T(0), v[1], T(0), T(0)},
-			{T(0), T(0), v[2], T(0)},
-			{T(0), T(0), T(0), T(1)}
-		}});
+			{v[0], T{0}, T{0}, T{0}},
+			{T{0}, v[1], T{0}, T{0}},
+			{T{0}, T{0}, v[2], T{0}},
+			{T{0}, T{0}, T{0}, T{1}}
+		}}
+	);
 }
 
 /// @private
@@ -1093,29 +1095,29 @@ template <class T>
 constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
 {
 	return mul(m, matrix<T, 4, 4>
-		{{
-			{T(1), T(0), T(0), T(0)},
-			{T(0), T(1), T(0), T(0)},
-			{T(0), T(0), T(1), T(0)},
-			{v[0], v[1], v[2], T(1)}
-		}});
+	{{
+		{T{1}, T{0}, T{0}, T{0}},
+		{T{0}, T{1}, T{0}, T{0}},
+		{T{0}, T{0}, T{1}, T{0}},
+		{v[0], v[1], v[2], T{1}}
+	}});
 }
 
 /// @private
-template <typename T, std::size_t N, std::size_t M, std::size_t... I>
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
 inline constexpr typename matrix<T, M, N>::column_vector_type transpose_column(const matrix<T, N, M>& m, std::size_t i, std::index_sequence<I...>) noexcept
 {
 	return {m[I][i] ...};
 }
 
 /// @private
-template <typename T, std::size_t N, std::size_t M, std::size_t... I>
+template <class T, std::size_t N, std::size_t M, std::size_t... I>
 inline constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m, std::index_sequence<I...>) noexcept
 {
 	return {transpose_column(m, I, std::make_index_sequence<N>{}) ...};
 }
 
-template <typename T, std::size_t N, std::size_t M>
+template <class T, std::size_t N, std::size_t M>
 constexpr matrix<T, M, N> transpose(const matrix<T, N, M>& m) noexcept
 {
 	return transpose(m, std::make_index_sequence<M>{});
@@ -1166,7 +1168,7 @@ inline constexpr matrix<T, N, M> operator/(T a, const matrix<T, N, M>& b) noexce
 }
 
 /// @copydoc mul(const matrix<T, N, M>&, const matrix<T, P, N>&)
-template <typename T, std::size_t N, std::size_t M, std::size_t P>
+template <class T, std::size_t N, std::size_t M, std::size_t P>
 inline constexpr matrix<T, P, M> operator*(const matrix<T, N, M>& a, const matrix<T, P, N>& b) noexcept
 {
 	return mul(a, b);
@@ -1187,14 +1189,14 @@ inline constexpr matrix<T, N, M> operator*(T a, const matrix<T, N, M>& b) noexce
 /// @}
 
 /// @copydoc mul(const matrix<T, N, M>&, const typename matrix<T, N, M>::row_vector_type&)
-template <typename T, std::size_t N, std::size_t M>
+template <class T, std::size_t N, std::size_t M>
 inline constexpr typename matrix<T, N, M>::column_vector_type operator*(const matrix<T, N, M>& a, const typename matrix<T, N, M>::row_vector_type& b) noexcept
 {
 	return mul(a, b);
 }
 
 /// @copydoc mul(const typename matrix<T, N, M>::column_vector_type&, const matrix<T, N, M>&)
-template <typename T, std::size_t N, std::size_t M>
+template <class T, std::size_t N, std::size_t M>
 inline constexpr typename matrix<T, N, M>::row_vector_type operator*(const typename matrix<T, N, M>::column_vector_type& a, const matrix<T, N, M>& b) noexcept
 {
 	return mul(a, b);
@@ -1304,44 +1306,6 @@ inline constexpr matrix<T, N, M>& operator/=(matrix<T, N, M>& a, T b) noexcept
 	return (a = a / b);
 }
 /// @}
-
-/**
- * Writes the elements of a matrix to an output stream, with each element delimeted by a space.
- *
- * @param os Output stream.
- * @param m Matrix.
- *
- * @return Output stream.
- */
-template <class T, std::size_t N, std::size_t M>
-std::ostream& operator<<(std::ostream& os, const matrix<T, N, M>& m)
-{
-	for (std::size_t i = 0; i < m.size(); ++i)
-	{
-		if (i)
-			os << ' ';
-		os << m.element(i);
-	}
-	
-	return os;
-}
-
-/**
- * Reads the elements of a matrix from an input stream, with each element delimeted by a space.
- *
- * @param is Input stream.
- * @param m Matrix.
- *
- * @return Input stream.
- */
-template <class T, std::size_t N, std::size_t M>
-std::istream& operator>>(std::istream& is, matrix<T, N, M>& m)
-{
-	for (std::size_t i = 0; i < m.size(); ++i)
-		is >> m.element(i);
-	
-	return is;
-}
 
 } // namespace operators
 

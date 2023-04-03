@@ -37,7 +37,7 @@ void rest_pose::update(bone_index_type first_index, std::size_t bone_count)
 	(
 		std::execution::par_unseq,
 		m_inverse_absolute_transforms.begin() + first_index,
-		m_inverse_absolute_transforms.begin() + bone_count,
+		m_inverse_absolute_transforms.begin() + (first_index + bone_count),
 		[&](auto& inverse_absolute_transform)
 		{
 			bone_index_type bone_index = static_cast<bone_index_type>(&inverse_absolute_transform - m_inverse_absolute_transforms.data());

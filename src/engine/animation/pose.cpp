@@ -41,7 +41,7 @@ void pose::update(bone_index_type first_index, std::size_t bone_count)
 	(
 		std::execution::seq,
 		m_absolute_transforms.begin() + first_index,
-		m_absolute_transforms.begin() + bone_count,
+		m_absolute_transforms.begin() + (first_index + bone_count),
 		[&](auto& child_absolute_transform)
 		{
 			const bone_index_type parent_index = m_skeleton->get_bone_parent(child_index);

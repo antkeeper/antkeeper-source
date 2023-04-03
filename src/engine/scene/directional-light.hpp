@@ -43,7 +43,7 @@ public:
 		return light_type::directional;
 	}
 	
-	/// Returns the normalized direction vector of the light.
+	/// Returns a unit vector pointing in the light direction.
 	[[nodiscard]] inline const math::vector<float, 3>& get_direction() const noexcept
 	{
 		return m_direction;

@@ -27,9 +27,11 @@
 #include <engine/input/keyboard-events.hpp>
 #include <engine/input/mouse-events.hpp>
 #include <engine/input/mapping.hpp>
+#include <engine/input/input-update-event.hpp>
 #include <memory>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace input {
@@ -49,6 +51,11 @@ public:
 	 * Disables the mapping of input events to actions.
 	 */
 	void disable();
+	
+	/**
+	 * Resets the activation states of each action in the action map.
+	 */
+	void reset();
 	
 	/**
 	 * Sets the event dispatcher from which this action map will receive input events.
@@ -79,14 +86,14 @@ public:
 	 * @param action Action from which input will be unmapped.
 	 * @param type Type of input mapping to remove.
 	 */
-	void remove_mappings(const action& action, mapping_type type);
+	void remove_mappings(action& action, mapping_type type);
 	
 	/**
 	 * Unmaps all input from an action.
 	 *
 	 * @param action Action from which input will be unmapped.
 	 */
-	void remove_mappings(const action& action);
+	void remove_mappings(action& action);
 	
 	/**
 	 * Unmaps all input from all actions in the action map.
@@ -98,42 +105,42 @@ public:
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
-	std::vector<gamepad_axis_mapping> get_gamepad_axis_mappings(const action& action) const;
+	[[nodiscard]] std::vector<gamepad_axis_mapping> get_gamepad_axis_mappings(const action& action) const;
 	
 	/**
 	 * Returns all of the gamepad button mappings associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
-	std::vector<gamepad_button_mapping> get_gamepad_button_mappings(const action& action) const;
+	[[nodiscard]] std::vector<gamepad_button_mapping> get_gamepad_button_mappings(const action& action) const;
 	
 	/**
 	 * Returns all of the key mappings associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
-	std::vector<key_mapping> get_key_mappings(const action& action) const;
+	[[nodiscard]] std::vector<key_mapping> get_key_mappings(const action& action) const;
 	
 	/**
 	 * Returns all of the mouse button mappings associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
-	std::vector<mouse_button_mapping> get_mouse_button_mappings(const action& action) const;
+	[[nodiscard]] std::vector<mouse_button_mapping> get_mouse_button_mappings(const action& action) const;
 	
 	/**
 	 * Returns all of the mouse motion mappings associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
-	std::vector<mouse_motion_mapping> get_mouse_motion_mappings(const action& action) const;
+	[[nodiscard]] std::vector<mouse_motion_mapping> get_mouse_motion_mappings(const action& action) const;
 	
 	/**
 	 * Returns all of the mouse scroll associated with an action.
 	 *
 	 * @param action Action with which associated mappings will be returned.
 	 */
-	std::vector<mouse_scroll_mapping> get_mouse_scroll_mappings(const action& action) const;
+	[[nodiscard]] std::vector<mouse_scroll_mapping> get_mouse_scroll_mappings(const action& action) const;
 	
 private:
 	void subscribe();
@@ -148,16 +155,18 @@ private:
 	void handle_mouse_button_released(const mouse_button_released_event& event);
 	void handle_mouse_moved(const mouse_moved_event& event);
 	void handle_mouse_scrolled(const mouse_scrolled_event& event);
+	void handle_update(const update_event& event);
 	
-	event::dispatcher* event_dispatcher{nullptr};
-	bool enabled{false};
-	std::vector<std::shared_ptr<::event::subscription>> subscriptions;
-	std::vector<std::tuple<action*, gamepad_axis_mapping>> gamepad_axis_mappings;
-	std::vector<std::tuple<action*, gamepad_button_mapping>> gamepad_button_mappings;
-	std::vector<std::tuple<action*, key_mapping>> key_mappings;
-	std::vector<std::tuple<action*, mouse_button_mapping>> mouse_button_mappings;
-	std::vector<std::tuple<action*, mouse_motion_mapping>> mouse_motion_mappings;
-	std::vector<std::tuple<action*, mouse_scroll_mapping>> mouse_scroll_mappings;
+	event::dispatcher* m_event_dispatcher{nullptr};
+	bool m_enabled{false};
+	std::unordered_set<action*> m_actions;
+	std::vector<std::shared_ptr<::event::subscription>> m_subscriptions;
+	std::vector<std::tuple<action*, gamepad_axis_mapping>> m_gamepad_axis_mappings;
+	std::vector<std::tuple<action*, gamepad_button_mapping>> m_gamepad_button_mappings;
+	std::vector<std::tuple<action*, key_mapping>> m_key_mappings;
+	std::vector<std::tuple<action*, mouse_button_mapping>> m_mouse_button_mappings;
+	std::vector<std::tuple<action*, mouse_motion_mapping>> m_mouse_motion_mappings;
+	std::vector<std::tuple<action*, mouse_scroll_mapping>> m_mouse_scroll_mappings;
 };
 
 } // namespace input

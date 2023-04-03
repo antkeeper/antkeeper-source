@@ -21,55 +21,61 @@
 
 namespace input {
 
-static bool default_threshold_function(float x) noexcept
+namespace {
+
+inline bool default_threshold_function(float x) noexcept
 {
 	return x > 0.0f;
 }
 
-action::action():
-	threshold_function(default_threshold_function),
-	active(false),
-	activated_event{this},
-	active_event{this, 0.0f},
-	deactivated_event{this}
-{}
+} // namespace
 
-void action::set_threshold_function(const threshold_function_type& function)
-{
-	threshold_function = function;
-}
+action::action():
+	m_threshold_function(default_threshold_function)
+{}
 
 void action::evaluate(float value)
 {
+	// Update input value
+	m_active_event.input_value = value;
+	
 	// Store activation state
-	const bool was_active = active;
+	const bool was_active = m_active;
 	
 	// Re-evaluate activation state
-	active = threshold_function(value);
+	m_active = m_threshold_function(value);
 	
-	// Emit events
-	if (active)
+	if (m_active)
 	{
 		if (!was_active)
 		{
-			activated_publisher.publish(activated_event);
+			// Publish activated event
+			m_activated_publisher.publish(m_activated_event);
 		}
-		
-		active_event.input_value = value;
-		active_publisher.publish(active_event);
 	}
 	else
 	{
 		if (was_active)
 		{
-			deactivated_publisher.publish(deactivated_event);
+			// Publish deactivated event
+			m_deactivated_publisher.publish(m_deactivated_event);
 		}
 	}
 }
 
-void action::reset()
+void action::update() const
 {
-	active = false;
+	if (m_active)
+	{
+		// Publish active event
+		m_active_publisher.publish(m_active_event);
+	}
+}
+
+void action::reset() noexcept
+{
+	m_active = false;
+	m_active_event.input_value = 0.0f;
 }
 
 } // namespace input

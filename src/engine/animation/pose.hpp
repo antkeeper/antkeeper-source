@@ -67,6 +67,39 @@ public:
 		m_relative_transforms[index] = transform;
 	}
 	
+	/**
+	 * Sets the relative translation of a bone pose.
+	 *
+	 * @param index Index of a bone.
+	 * @param translation Relative translation of the bone pose.
+	 */
+	inline void set_relative_translation(bone_index_type index, const bone_transform_type::vector_type& translation)
+	{
+		m_relative_transforms[index].translation = translation;
+	}
+	
+	/**
+	 * Sets the relative rotation of a bone pose.
+	 *
+	 * @param index Index of a bone.
+	 * @param translation Relative rotation of the bone pose.
+	 */
+	inline void set_relative_rotation(bone_index_type index, const bone_transform_type::quaternion_type& rotation)
+	{
+		m_relative_transforms[index].rotation = rotation;
+	}
+	
+	/**
+	 * Sets the relative scale of a bone pose.
+	 *
+	 * @param index Index of a bone.
+	 * @param scale Relative scale of the bone pose.
+	 */
+	inline void set_relative_scale(bone_index_type index, const bone_transform_type::vector_type& scale)
+	{
+		m_relative_transforms[index].scale = scale;
+	}
+	
 	/// Returns the skeleton with which the pose is associated.
 	[[nodiscard]] inline const skeleton* get_skeleton() const noexcept
 	{

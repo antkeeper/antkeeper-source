@@ -36,6 +36,7 @@
 #include "game/systems/collision-system.hpp"
 #include "game/systems/constraint-system.hpp"
 #include "game/systems/locomotion-system.hpp"
+#include "game/systems/ik-system.hpp"
 #include "game/systems/orbit-system.hpp"
 #include "game/systems/render-system.hpp"
 #include "game/systems/spatial-system.hpp"
@@ -1054,6 +1055,9 @@ void game::setup_systems()
 	// Setup locomotion system
 	locomotion_system = std::make_unique<::locomotion_system>(*entity_registry);
 	
+	// Setup IK system
+	ik_system = std::make_unique<::ik_system>(*entity_registry);
+	
 	// Setup physics system
 	physics_system = std::make_unique<::physics_system>(*entity_registry);
 	physics_system->set_gravity({0.0f, -9.80665f * 100.0f, 0.0f});
@@ -1120,6 +1124,7 @@ void game::setup_controls()
 	menu_action_map.set_event_dispatcher(input_event_dispatcher);
 	movement_action_map.set_event_dispatcher(input_event_dispatcher);
 	keeper_action_map.set_event_dispatcher(input_event_dispatcher);
+	ant_action_map.set_event_dispatcher(input_event_dispatcher);
 	
 	// Default control profile settings
 	control_profile_filename = "controls.cfg";
@@ -1247,6 +1252,7 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	behavior_system->update(t, dt);
 	steering_system->update(t, dt);
 	locomotion_system->update(t, dt);
+	ik_system->update(t, dt);
 	physics_system->update(t, dt);
 	camera_system->update(t, dt);
 	orbit_system->update(t, dt);

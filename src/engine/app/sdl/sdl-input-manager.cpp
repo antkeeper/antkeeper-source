@@ -19,6 +19,7 @@
 
 #include <engine/app/sdl/sdl-input-manager.hpp>
 #include <engine/input/application-events.hpp>
+#include <engine/input/input-update-event.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/math/map.hpp>
 #include <SDL2/SDL.h>
@@ -312,6 +313,9 @@ void sdl_input_manager::update()
 				break;
 		}
 	}
+	
+	// Dispatch input update event
+	this->m_event_dispatcher.dispatch<input::update_event>({});
 }
 
 void sdl_input_manager::set_cursor_visible(bool visible)

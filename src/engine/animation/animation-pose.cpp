@@ -42,7 +42,7 @@ void animation_pose::update(bone_index_type first_index, std::size_t bone_count)
 	(
 		std::execution::par_unseq,
 		m_matrix_palette.begin() + first_index,
-		m_matrix_palette.begin() + bone_count,
+		m_matrix_palette.begin() + (first_index + bone_count),
 		[&](auto& skinning_matrix)
 		{
 			const bone_index_type bone_index = static_cast<bone_index_type>(&skinning_matrix - m_matrix_palette.data());

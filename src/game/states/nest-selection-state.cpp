@@ -32,6 +32,7 @@
 #include "game/components/terrain-component.hpp"
 #include "game/components/legged-locomotion-component.hpp"
 #include "game/components/winged-locomotion-component.hpp"
+#include "game/components/ik-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/constraints/child-of-constraint.hpp"
 #include "game/constraints/copy-rotation-constraint.hpp"
@@ -73,11 +74,13 @@
 #include <engine/utility/state-machine.hpp>
 #include <engine/scene/static-mesh.hpp>
 #include <engine/scene/skeletal-mesh.hpp>
+#include <engine/animation/ik/constraints/swing-twist-ik-constraint.hpp>
+#include <engine/animation/ik/constraints/euler-ik-constraint.hpp>
 
 nest_selection_state::nest_selection_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering nest selection state...");
+	debug::log::trace("Entering nest selection state...");	
 	
 	// Create world if not yet created
 	if (ctx.entities.find("earth") == ctx.entities.end())
@@ -157,8 +160,42 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	larva_eid = ctx.entity_registry->create();
 	
-	auto larva_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_phenome.larva->model);
+	auto larva_skeletal_mesh = std::make_shared<scene::skeletal_mesh>(worker_phenome.larva->model);
+	//auto larva_skeletal_mesh = std::make_shared<scene::skeletal_mesh>(ctx.resource_manager->load<render::model>("snake.mdl"));
+	const auto& larva_skeleton = larva_skeletal_mesh->get_model()->get_skeleton();
+	
+	auto larva_ik_rig = std::make_shared<ik_rig>(*larva_skeletal_mesh);
+	
+	auto no_twist_constraint = std::make_shared<swing_twist_ik_constraint>();
+	no_twist_constraint->set_twist_limit(0.0f, 0.0f);
+	
+	//auto euler_constraint = std::make_shared<euler_ik_constraint>();
+	//euler_constraint->set_limits({0.0f, -math::radians(90.0f), 0.0f}, {math::radians(90.0f), math::radians(90.0f), 0.0f});
+	
+	for (std::size_t i = 0; i < larva_skeleton.get_bone_count(); ++i)
+	{
+		larva_ik_rig->set_constraint(static_cast<bone_index_type>(i), no_twist_constraint);
+	}
+	
+	const auto larva_ik_root_bone_index = *larva_skeleton.get_bone_index("abdomen3");
+	const auto larva_ik_effector_bone_index = *larva_skeleton.get_bone_index("head");
+	
+	const auto& larva_head_absolute_transform = larva_skeletal_mesh->get_pose().get_absolute_transform(larva_ik_effector_bone_index);
+	const auto& larva_head_relative_transform = larva_skeletal_mesh->get_pose().get_relative_transform(larva_ik_effector_bone_index);
+	
+	larva_ik_solver = std::make_shared<ccd_ik_solver>(*larva_ik_rig, larva_ik_root_bone_index, larva_ik_effector_bone_index);
+	larva_ik_solver->set_effector_position(larva_head_relative_transform * float3{0.0f, 0.0f, -0.0f});
+	larva_ik_solver->set_goal_position(larva_head_absolute_transform.translation + float3{0.2f, 0.2f, 0.5f});
+	
+
+	
+	larva_ik_rig->add_solver(larva_ik_solver);
+	
+	//larva_skeletal_mesh->get_pose().set_relative_rotation(larva_ik_root_bone_index, math::angle_axis(math::radians(45.0f), float3{1.0f, 0.0f, 0.0f}));
+	//larva_skeletal_mesh->get_pose().update();
+	
 	ctx.entity_registry->emplace<scene_component>(larva_eid, std::move(larva_skeletal_mesh), std::uint8_t{1});
+	ctx.entity_registry->emplace<ik_component>(larva_eid, std::move(larva_ik_rig));
 	
 	
 	// Disable UI color clear
@@ -643,7 +680,7 @@ void nest_selection_state::setup_controls()
 	// Move up
 	action_subscriptions.emplace_back
 	(
-		ctx.move_up_action.get_active_channel().subscribe
+		ctx.move_up_action.get_activated_channel().subscribe
 		(
 			[&](const auto& event)
 			{
@@ -662,7 +699,7 @@ void nest_selection_state::setup_controls()
 	// Move down
 	action_subscriptions.emplace_back
 	(
-		ctx.move_down_action.get_active_channel().subscribe
+		ctx.move_down_action.get_activated_channel().subscribe
 		(
 			[&](const auto& event)
 			{

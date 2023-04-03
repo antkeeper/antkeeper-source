@@ -115,6 +115,7 @@ class steering_system;
 class physics_system;
 class subterrain_system;
 class terrain_system;
+class ik_system;
 
 struct control_profile;
 
@@ -202,6 +203,7 @@ public:
 	input::action_map menu_action_map;
 	input::action_map movement_action_map;
 	input::action_map keeper_action_map;
+	input::action_map ant_action_map;
 	input::mapper input_mapper;
 	
 	input::action fullscreen_action;
@@ -360,6 +362,7 @@ public:
 	std::unique_ptr<::constraint_system> constraint_system;
 	std::unique_ptr<::steering_system> steering_system;
 	std::unique_ptr<::locomotion_system> locomotion_system;
+	std::unique_ptr<::ik_system> ik_system;
 	std::unique_ptr<::physics_system> physics_system;
 	std::unique_ptr<::render_system> render_system;
 	std::unique_ptr<::subterrain_system> subterrain_system;
