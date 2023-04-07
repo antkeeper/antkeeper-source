@@ -34,29 +34,18 @@ void load_ant_wings_phene(ant_wings_phene& phene, ::resource_manager& resource_m
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.forewing_length), 1);
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.forewing_width), 1);
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.forewing_venation), 1);
-	
-	std::uint8_t forewings_model_filename_length{0};
-	ctx.read8(reinterpret_cast<std::byte*>(&forewings_model_filename_length), 1);
-	std::string forewings_model_filename(forewings_model_filename_length, '\0');
-	ctx.read8(reinterpret_cast<std::byte*>(forewings_model_filename.data()), forewings_model_filename_length);
-	
-	if (phene.present)
-	{
-		phene.forewings_model = resource_manager.load<render::model>(forewings_model_filename);
-	}
-	
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.hindwing_length), 1);
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.hindwing_width), 1);
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.hindwing_venation), 1);
 	
-	std::uint8_t hindwings_model_filename_length{0};
-	ctx.read8(reinterpret_cast<std::byte*>(&hindwings_model_filename_length), 1);
-	std::string hindwings_model_filename(hindwings_model_filename_length, '\0');
-	ctx.read8(reinterpret_cast<std::byte*>(hindwings_model_filename.data()), hindwings_model_filename_length);
+	std::uint8_t model_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&model_filename_length), 1);
+	std::string model_filename(model_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(model_filename.data()), model_filename_length);
 	
 	if (phene.present)
 	{
-		phene.hindwings_model = resource_manager.load<render::model>(hindwings_model_filename);
+		phene.model = resource_manager.load<render::model>(model_filename);
 	}
 }
 

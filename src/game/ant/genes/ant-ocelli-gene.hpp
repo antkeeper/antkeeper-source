@@ -38,9 +38,6 @@ struct ant_ocelli_phene
 	/// Lateral ocelli height, in mesosomal lengths.
 	float lateral_ocelli_height{0.0f};
 	
-	/// 3D model of the lateral ocelli, if present.
-	std::shared_ptr<render::model> lateral_ocelli_model;
-	
 	/// Median ocellus present.
 	bool median_ocellus_present{false};
 	
@@ -50,8 +47,8 @@ struct ant_ocelli_phene
 	/// Median ocellus height, in mesosomal lengths.
 	float median_ocellus_height{0.0f};
 	
-	/// 3D model of the median ocellus, if present.
-	std::shared_ptr<render::model> median_ocellus_model;
+	/// 3D model of the ocelli, if present.
+	std::shared_ptr<render::model> model;
 };
 
 /// Ant ocelli gene.

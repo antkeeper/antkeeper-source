@@ -34,16 +34,6 @@ void load_ant_ocelli_phene(ant_ocelli_phene& phene, ::resource_manager& resource
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.lateral_ocelli_width), 1);
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.lateral_ocelli_height), 1);
 	
-	std::uint8_t lateral_ocelli_model_filename_length{0};
-	ctx.read8(reinterpret_cast<std::byte*>(&lateral_ocelli_model_filename_length), 1);
-	std::string lateral_ocelli_model_filename(lateral_ocelli_model_filename_length, '\0');
-	ctx.read8(reinterpret_cast<std::byte*>(lateral_ocelli_model_filename.data()), lateral_ocelli_model_filename_length);
-	
-	if (phene.lateral_ocelli_present)
-	{
-		phene.lateral_ocelli_model = resource_manager.load<render::model>(lateral_ocelli_model_filename);
-	}
-	
 	std::uint8_t median_ocellus_present{0};
 	ctx.read8(reinterpret_cast<std::byte*>(&median_ocellus_present), 1);
 	phene.median_ocellus_present = static_cast<bool>(median_ocellus_present);
@@ -51,14 +41,14 @@ void load_ant_ocelli_phene(ant_ocelli_phene& phene, ::resource_manager& resource
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.median_ocellus_width), 1);
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.median_ocellus_height), 1);
 	
-	std::uint8_t median_ocellus_model_filename_length{0};
-	ctx.read8(reinterpret_cast<std::byte*>(&median_ocellus_model_filename_length), 1);
-	std::string median_ocellus_model_filename(median_ocellus_model_filename_length, '\0');
-	ctx.read8(reinterpret_cast<std::byte*>(median_ocellus_model_filename.data()), median_ocellus_model_filename_length);
+	std::uint8_t model_filename_length{0};
+	ctx.read8(reinterpret_cast<std::byte*>(&model_filename_length), 1);
+	std::string model_filename(model_filename_length, '\0');
+	ctx.read8(reinterpret_cast<std::byte*>(model_filename.data()), model_filename_length);
 	
-	if (phene.median_ocellus_present)
+	if (phene.lateral_ocelli_present || phene.median_ocellus_present)
 	{
-		phene.median_ocellus_model = resource_manager.load<render::model>(median_ocellus_model_filename);
+		phene.model = resource_manager.load<render::model>(model_filename);
 	}
 }
 

@@ -41,9 +41,6 @@ struct ant_wings_phene
 	/// Degree of forewing venation. A value of `1.0` indicates a highly-developed venation pattern, while `0.0` indicates a complete absence of visible venation.
 	float forewing_venation{0.0f};
 	
-	/// 3D model of the forewings.
-	std::shared_ptr<render::model> forewings_model;
-	
 	/// Hindwing length, in mesosomal lengths.
 	float hindwing_length{0.0f};
 	
@@ -53,8 +50,8 @@ struct ant_wings_phene
 	/// Degree of hindwing venation. A value of `1.0` indicates a highly-developed venation pattern, while `0.0` indicates a complete absence of visible venation.
 	float hindwing_venation{0.0f};
 	
-	/// 3D model of the hindwings.
-	std::shared_ptr<render::model> hindwings_model;
+	/// 3D model of the wings.
+	std::shared_ptr<render::model> model;
 };
 
 /// Ant wings gene.
