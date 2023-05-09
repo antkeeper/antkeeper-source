@@ -68,6 +68,13 @@ public:
 		return m_illuminance;
 	}
 	
+	/**
+	 * Sets the direction of the directional light.
+	 *
+	 * @param direction Unit-length light direction vector.
+	 */
+	void set_direction(const math::vector<float, 3>& direction);
+	
 	/// @}
 	
 	/// @name Shadow

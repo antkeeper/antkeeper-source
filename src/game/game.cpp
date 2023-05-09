@@ -669,7 +669,7 @@ void game::setup_rendering()
 	
 	// Default rendering settings
 	render_scale = 1.0f;
-	anti_aliasing_method = render::anti_aliasing_method::fxaa;
+	anti_aliasing_method = render::anti_aliasing_method::none;
 	shadow_map_resolution = 4096;
 	
 	// Read rendering settings
@@ -727,25 +727,6 @@ void game::setup_rendering()
 		ui_compositor->add_pass(ui_material_pass.get());
 	}
 	
-	// Setup underground compositor
-	{
-		underground_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
-		underground_clear_pass->set_cleared_buffers(true, true, false);
-		underground_clear_pass->set_clear_color({1, 0, 1, 0});
-		underground_clear_pass->set_clear_depth(-1.0f);
-		
-		underground_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
-		underground_material_pass->set_fallback_material(fallback_material);
-		
-		underground_compositor = std::make_unique<render::compositor>();
-		underground_compositor->add_pass(underground_clear_pass.get());
-		underground_compositor->add_pass(underground_material_pass.get());
-		underground_compositor->add_pass(bloom_pass.get());
-		underground_compositor->add_pass(common_final_pass.get());
-		underground_compositor->add_pass(fxaa_pass.get());
-		underground_compositor->add_pass(resample_pass.get());
-	}
-	
 	// Setup surface compositor
 	{
 		surface_shadow_map_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), shadow_map_framebuffer.get());
@@ -785,6 +766,25 @@ void game::setup_rendering()
 		surface_compositor->add_pass(resample_pass.get());
 	}
 	
+	// Setup underground compositor
+	{
+		underground_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
+		underground_clear_pass->set_cleared_buffers(true, true, false);
+		underground_clear_pass->set_clear_color({0, 0, 0, 1});
+		underground_clear_pass->set_clear_depth(-1.0f);
+		
+		underground_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
+		underground_material_pass->set_fallback_material(fallback_material);
+		
+		underground_compositor = std::make_unique<render::compositor>();
+		underground_compositor->add_pass(underground_clear_pass.get());
+		underground_compositor->add_pass(underground_material_pass.get());
+		underground_compositor->add_pass(bloom_pass.get());
+		underground_compositor->add_pass(common_final_pass.get());
+		underground_compositor->add_pass(fxaa_pass.get());
+		underground_compositor->add_pass(resample_pass.get());
+	}
+	
 	// Create renderer
 	renderer = std::make_unique<render::renderer>();
 	
@@ -799,21 +799,21 @@ void game::setup_scenes()
 	const auto& viewport_size = window->get_viewport_size();
 	const float viewport_aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
-	// Setup surface scene
+	// Allocate surface scene
 	surface_scene = std::make_unique<scene::collection>();
 	
-	// Setup surface camera
+	// Allocate and init surface camera
 	surface_camera = std::make_shared<scene::camera>();
 	surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 5000.0f);
 	surface_camera->set_compositor(surface_compositor.get());
 	surface_camera->set_composite_index(0);
 	
-	// Setup underground scene
+	// Allocate underground scene
 	underground_scene = std::make_unique<scene::collection>();
 	
-	// Setup underground camera
+	// Allocate and init underground camera
 	underground_camera = std::make_shared<scene::camera>();
-	underground_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
+	underground_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 200.0f);
 	underground_camera->set_compositor(underground_compositor.get());
 	underground_camera->set_composite_index(0);
 	
@@ -1094,8 +1094,8 @@ void game::setup_systems()
 	// Setup render system
 	render_system = std::make_unique<::render_system>(*entity_registry);
 	render_system->set_renderer(renderer.get());
-	//render_system->add_layer(underground_scene.get());
 	render_system->add_layer(surface_scene.get());
+	render_system->add_layer(underground_scene.get());
 	render_system->add_layer(ui_scene.get());
 }
 

@@ -72,8 +72,7 @@ private:
 	entity::id swarm_eid;
 	
 	// Name generation
-	std::shared_ptr<text_file> female_name_pool;
-	std::shared_ptr<text_file> male_name_pool;
+	std::shared_ptr<text_file> name_pool;
 	
 	// Picking
 	std::uint32_t selected_picking_flag;

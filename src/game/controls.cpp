@@ -127,12 +127,38 @@ void reset_control_profile(::control_profile& profile)
 	
 	// Mouse pick
 	mappings.emplace("mouse_pick", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::left));
+	mappings.emplace("mouse_pick", std::make_unique<input::key_mapping>(nullptr, input::scancode::space, 0, false));
 	
 	// Mouse look
 	mappings.emplace("mouse_look", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::right));
+	mappings.emplace("mouse_look", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_alt, 0, false));
+	
+	// Mouse grip
+	mappings.emplace("mouse_grip", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::left));
+	mappings.emplace("mouse_grip", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
+	
+	// Mouse zoom
+	mappings.emplace("mouse_zoom", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::middle));
+	mappings.emplace("mouse_zoom", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, 0, false));
 	
 	// Focus
 	mappings.emplace("focus", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
+	
+	// Load camera
+	mappings.emplace("camera_1", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_1, 0, false));
+	mappings.emplace("camera_2", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_2, 0, false));
+	mappings.emplace("camera_3", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_3, 0, false));
+	mappings.emplace("camera_4", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_4, 0, false));
+	mappings.emplace("camera_5", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_5, 0, false));
+	mappings.emplace("camera_6", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_6, 0, false));
+	mappings.emplace("camera_7", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_7, 0, false));
+	mappings.emplace("camera_8", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_8, 0, false));
+	mappings.emplace("camera_9", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_9, 0, false));
+	mappings.emplace("camera_10", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_0, 0, false));
+	
+	// Save camera
+	mappings.emplace("save_camera", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, 0, false));
+	mappings.emplace("save_camera", std::make_unique<input::key_mapping>(nullptr, input::scancode::right_ctrl, 0, false));
 }
 
 void apply_control_profile(::game& ctx, const ::control_profile& profile)
@@ -175,7 +201,20 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	ctx.keeper_action_map.remove_mappings();
 	add_mappings(ctx.keeper_action_map, ctx.mouse_pick_action, "mouse_pick");
 	add_mappings(ctx.keeper_action_map, ctx.mouse_look_action, "mouse_look");
+	add_mappings(ctx.keeper_action_map, ctx.mouse_grip_action, "mouse_grip");
+	add_mappings(ctx.keeper_action_map, ctx.mouse_zoom_action, "mouse_zoom");
 	add_mappings(ctx.keeper_action_map, ctx.focus_action, "focus");
+	add_mappings(ctx.keeper_action_map, ctx.camera_1_action, "camera_1");
+	add_mappings(ctx.keeper_action_map, ctx.camera_2_action, "camera_2");
+	add_mappings(ctx.keeper_action_map, ctx.camera_3_action, "camera_3");
+	add_mappings(ctx.keeper_action_map, ctx.camera_4_action, "camera_4");
+	add_mappings(ctx.keeper_action_map, ctx.camera_5_action, "camera_5");
+	add_mappings(ctx.keeper_action_map, ctx.camera_6_action, "camera_6");
+	add_mappings(ctx.keeper_action_map, ctx.camera_7_action, "camera_7");
+	add_mappings(ctx.keeper_action_map, ctx.camera_8_action, "camera_8");
+	add_mappings(ctx.keeper_action_map, ctx.camera_9_action, "camera_9");
+	add_mappings(ctx.keeper_action_map, ctx.camera_10_action, "camera_10");
+	add_mappings(ctx.keeper_action_map, ctx.save_camera_action, "save_camera");
 }
 
 void update_control_profile(::game& ctx, ::control_profile& profile)
@@ -242,7 +281,20 @@ void update_control_profile(::game& ctx, ::control_profile& profile)
 	// Keeper controls
 	add_mappings(ctx.keeper_action_map, ctx.mouse_pick_action, "mouse_pick");
 	add_mappings(ctx.keeper_action_map, ctx.mouse_look_action, "mouse_look");
+	add_mappings(ctx.keeper_action_map, ctx.mouse_grip_action, "mouse_grip");
+	add_mappings(ctx.keeper_action_map, ctx.mouse_zoom_action, "mouse_zoom");
 	add_mappings(ctx.keeper_action_map, ctx.focus_action, "focus");
+	add_mappings(ctx.keeper_action_map, ctx.camera_1_action, "camera_1");
+	add_mappings(ctx.keeper_action_map, ctx.camera_2_action, "camera_2");
+	add_mappings(ctx.keeper_action_map, ctx.camera_3_action, "camera_3");
+	add_mappings(ctx.keeper_action_map, ctx.camera_4_action, "camera_4");
+	add_mappings(ctx.keeper_action_map, ctx.camera_5_action, "camera_5");
+	add_mappings(ctx.keeper_action_map, ctx.camera_6_action, "camera_6");
+	add_mappings(ctx.keeper_action_map, ctx.camera_7_action, "camera_7");
+	add_mappings(ctx.keeper_action_map, ctx.camera_8_action, "camera_8");
+	add_mappings(ctx.keeper_action_map, ctx.camera_9_action, "camera_9");
+	add_mappings(ctx.keeper_action_map, ctx.camera_10_action, "camera_10");
+	add_mappings(ctx.keeper_action_map, ctx.save_camera_action, "save_camera");
 }
 
 void setup_window_controls(::game& ctx)
@@ -553,6 +605,8 @@ void disable_keeper_controls(::game& ctx)
 	
 	ctx.mouse_pick_action.reset();
 	ctx.mouse_look_action.reset();
+	ctx.mouse_grip_action.reset();
+	ctx.mouse_zoom_action.reset();
 	ctx.focus_action.reset();
 }
 

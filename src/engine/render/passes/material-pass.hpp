@@ -99,7 +99,6 @@ private:
 	// Point lights
 	std::vector<float3> point_light_colors;
 	std::vector<float3> point_light_positions;
-	std::vector<float3> point_light_attenuations;
 	std::size_t point_light_count;
 	
 	// Directional lights
@@ -118,7 +117,6 @@ private:
 	std::vector<float3> spot_light_colors;
 	std::vector<float3> spot_light_positions;
 	std::vector<float3> spot_light_directions;
-	std::vector<float3> spot_light_attenuations;
 	std::vector<float2> spot_light_cutoffs;
 	std::size_t spot_light_count;
 	

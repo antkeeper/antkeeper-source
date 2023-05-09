@@ -100,7 +100,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	debug::log::trace("Generated genome");
 	
 	debug::log::trace("Building worker phenome...");
-	ant_phenome worker_phenome = ant_phenome(*genome, ant_caste_type::worker);
+	ant_phenome worker_phenome = ant_phenome(*genome, ant_caste_type::queen);
 	debug::log::trace("Built worker phenome...");
 	
 	debug::log::trace("Generating worker model...");
@@ -157,6 +157,11 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	worker_body->set_angular_damping(0.5f);
 	worker_body->set_collider(std::move(worker_collider));
 	//ctx.entity_registry->emplace<rigid_body_component>(worker_ant_eid, std::move(worker_body));
+	
+	
+	auto cocoon_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<scene_component>(cocoon_eid, std::make_shared<scene::static_mesh>(worker_phenome.cocoon->model), std::uint8_t{1});
+	
 	
 	larva_eid = ctx.entity_registry->create();
 	

@@ -55,16 +55,6 @@ public:
 	}
 	
 	/**
-	 * Sets the attenuation factors of the light.
-	 *
-	 * @param attenuation Vector containing the constant, linear, and quadratic attenuation factors, as x, y, and z, respectively.
-	 */
-	inline void set_attenuation(const math::vector<float, 3>& attenuation) noexcept
-	{
-		m_attenuation = attenuation;
-	}
-	
-	/**
 	 * Sets the spot light cutoff angles.
 	 *
 	 * @param cutoff Vector containing the inner and outer cutoff angles, as x and y, respectively.
@@ -75,12 +65,6 @@ public:
 	[[nodiscard]] inline const math::vector<float, 3>& get_direction() const noexcept
 	{
 		return m_direction;
-	}
-	
-	/// Returns the attenuation factors of the light.
-	[[nodiscard]] inline const math::vector<float, 3>& get_attenuation() const noexcept
-	{
-		return m_attenuation;
 	}
 	
 	/// Returns the spot light cutoff angles.
@@ -100,7 +84,6 @@ private:
 	
 	math::vector<float, 3> m_luminous_flux{0.0f, 0.0f, 0.0f};
 	math::vector<float, 3> m_direction{0.0f, 0.0f, -1.0f};
-	math::vector<float, 3> m_attenuation{1.0f, 0.0f, 0.0f};
 	math::vector<float, 2> m_cutoff{math::pi<float>, math::pi<float>};
 	math::vector<float, 2> m_cosine_cutoff{-1.0f, -1.0f};
 };

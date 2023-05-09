@@ -26,6 +26,11 @@ directional_light::directional_light():
 	m_shadow_cascade_matrices(m_shadow_cascade_count)
 {}
 
+void directional_light::set_direction(const math::vector<float, 3>& direction)
+{
+	set_rotation(math::rotation(math::vector<float, 3>{0.0f, 0.0f, -1.0f}, direction));
+}
+
 void directional_light::set_shadow_caster(bool caster) noexcept
 {
 	m_shadow_caster = caster;

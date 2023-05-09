@@ -52,26 +52,9 @@ public:
 	{
 		return m_luminous_flux;
 	}
-	
-	/**
-	 * Sets the attenuation factors of the light.
-	 *
-	 * @param attenuation Vector containing the constant, linear, and quadratic attenuation factors, as x, y, and z, respectively.
-	 */
-	inline void set_attenuation(const float3& attenuation) noexcept
-	{
-		m_attenuation = attenuation;
-	}
-
-	/// Returns the attenuation factors of the light.
-	[[nodiscard]] inline const math::vector<float, 3>& get_attenuation() const noexcept
-	{
-		return m_attenuation;
-	}
 
 private:
 	math::vector<float, 3> m_luminous_flux{0.0f, 0.0f, 0.0f};
-	math::vector<float, 3> m_attenuation{1.0f, 0.0f, 0.0f};
 };
 
 } // namespace scene

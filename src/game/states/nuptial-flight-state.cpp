@@ -104,33 +104,20 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	// Create mating swarm
 	swarm_eid = create_ant_swarm(ctx);
 	
-	// Load name pools
-	female_name_pool = ctx.resource_manager->load<text_file>("female-names-en.txt");
-	male_name_pool = ctx.resource_manager->load<text_file>("male-names-en.txt");
+	// Load name pool
+	name_pool = ctx.resource_manager->load<text_file>("name-pool-en.txt");
 	
 	// Assign random ant names
-	std::uniform_int_distribution<> female_name_pool_distribution(0, static_cast<int>(female_name_pool->lines.size() - 1));
-	std::uniform_int_distribution<> male_name_pool_distribution(0, static_cast<int>(male_name_pool->lines.size() - 1));
+	std::uniform_int_distribution<> name_pool_distribution(0, static_cast<int>(name_pool->lines.size() - 1));
 	ctx.entity_registry->view<ant_caste_component>().each
 	(
 		[&](entity::id entity_id, const auto& caste)
 		{
-			if (caste.caste_type == ant_caste_type::male)
-			{
-				ctx.entity_registry->emplace_or_replace<name_component>
-				(
-					entity_id,
-					male_name_pool->lines[male_name_pool_distribution(ctx.rng)]
-				);
-			}
-			else
-			{
-				ctx.entity_registry->emplace_or_replace<name_component>
-				(
-					entity_id,
-					female_name_pool->lines[female_name_pool_distribution(ctx.rng)]
-				);
-			}
+			ctx.entity_registry->emplace_or_replace<name_component>
+			(
+				entity_id,
+				name_pool->lines[name_pool_distribution(ctx.rng)]
+			);
 		}
 	);
 	
@@ -189,7 +176,6 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	(
 		[&ctx]()
 		{
-			
 			::enable_keeper_controls(ctx);
 			::enable_game_controls(ctx);
 		}

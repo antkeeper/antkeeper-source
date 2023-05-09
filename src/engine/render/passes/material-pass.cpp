@@ -352,12 +352,10 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 				{
 					point_light_colors.resize(point_light_count);
 					point_light_positions.resize(point_light_count);
-					point_light_attenuations.resize(point_light_count);
 				}
 				
 				point_light_colors[index] = point_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
 				point_light_positions[index] = point_light.get_translation();
-				point_light_attenuations[index] = point_light.get_attenuation();
 				break;
 			}
 			
@@ -413,14 +411,12 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					spot_light_colors.resize(spot_light_count);
 					spot_light_positions.resize(spot_light_count);
 					spot_light_directions.resize(spot_light_count);
-					spot_light_attenuations.resize(spot_light_count);
 					spot_light_cutoffs.resize(spot_light_count);
 				}
 				
 				spot_light_colors[index] = spot_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
 				spot_light_positions[index] = spot_light.get_translation();
 				spot_light_directions[index] = spot_light.get_direction();
-				spot_light_attenuations[index] = spot_light.get_attenuation();
 				spot_light_cutoffs[index] = spot_light.get_cosine_cutoff();
 				break;
 			}
@@ -583,17 +579,15 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 		if (auto point_light_colors_var = shader_program.variable("point_light_colors"))
 		{
 			auto point_light_positions_var = shader_program.variable("point_light_positions");
-			auto point_light_attenuations_var = shader_program.variable("point_light_attenuations");
 			
-			if (point_light_positions_var && point_light_attenuations_var)
+			if (point_light_positions_var)
 			{
 				command_buffer.emplace_back
 				(
-					[&, point_light_colors_var, point_light_positions_var, point_light_attenuations_var]()
+					[&, point_light_colors_var, point_light_positions_var]()
 					{
 						point_light_colors_var->update(std::span<const float3>{point_light_colors.data(), point_light_count});
 						point_light_positions_var->update(std::span<const float3>{point_light_positions.data(), point_light_count});
-						point_light_attenuations_var->update(std::span<const float3>{point_light_attenuations.data(), point_light_count});
 					}
 				);
 			}
@@ -607,19 +601,17 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 		{
 			auto spot_light_positions_var = shader_program.variable("spot_light_positions");
 			auto spot_light_directions_var = shader_program.variable("spot_light_directions");
-			auto spot_light_attenuations_var = shader_program.variable("spot_light_attenuations");
 			auto spot_light_cutoffs_var = shader_program.variable("spot_light_cutoffs");
 			
-			if (spot_light_positions_var && spot_light_directions_var && spot_light_attenuations_var && spot_light_cutoffs_var)
+			if (spot_light_positions_var && spot_light_directions_var && spot_light_cutoffs_var)
 			{
 				command_buffer.emplace_back
 				(
-					[&, spot_light_colors_var, spot_light_positions_var, spot_light_directions_var, spot_light_attenuations_var, spot_light_cutoffs_var]()
+					[&, spot_light_colors_var, spot_light_positions_var, spot_light_directions_var, spot_light_cutoffs_var]()
 					{
 						spot_light_colors_var->update(std::span<const float3>{spot_light_colors.data(), spot_light_count});
 						spot_light_positions_var->update(std::span<const float3>{spot_light_positions.data(), spot_light_count});
 						spot_light_directions_var->update(std::span<const float3>{spot_light_directions.data(), spot_light_count});
-						spot_light_attenuations_var->update(std::span<const float3>{spot_light_attenuations.data(), spot_light_count});
 						spot_light_cutoffs_var->update(std::span<const float2>{spot_light_cutoffs.data(), spot_light_count});
 					}
 				);

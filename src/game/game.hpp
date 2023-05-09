@@ -49,6 +49,7 @@
 #include <engine/utility/frame-scheduler.hpp>
 #include <engine/scene/text.hpp>
 #include <engine/scene/directional-light.hpp>
+#include <engine/scene/point-light.hpp>
 #include <engine/scene/spot-light.hpp>
 #include <engine/scene/ambient-light.hpp>
 #include <engine/scene/camera.hpp>
@@ -224,7 +225,20 @@ public:
 	input::action pause_action;
 	input::action mouse_pick_action;
 	input::action mouse_look_action;
+	input::action mouse_grip_action;
+	input::action mouse_zoom_action;
 	input::action focus_action;
+	input::action camera_1_action;
+	input::action camera_2_action;
+	input::action camera_3_action;
+	input::action camera_4_action;
+	input::action camera_5_action;
+	input::action camera_6_action;
+	input::action camera_7_action;
+	input::action camera_8_action;
+	input::action camera_9_action;
+	input::action camera_10_action;
+	input::action save_camera_action;
 	
 	std::vector<std::shared_ptr<::event::subscription>> window_action_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> menu_action_subscriptions;
@@ -238,6 +252,8 @@ public:
 	bool invert_mouse_pan{false};
 	bool invert_mouse_tilt{false};
 	bool toggle_mouse_look{false};
+	bool toggle_mouse_grip{false};
+	bool toggle_mouse_zoom{false};
 	double mouse_pan_factor{1.0};
 	double mouse_tilt_factor{1.0};
 	
@@ -288,13 +304,6 @@ public:
 	std::unique_ptr<render::ground_pass> ground_pass;
 	std::unique_ptr<render::renderer> renderer;
 	
-	// Scene utilities
-	scene::collection* active_scene;
-	std::unique_ptr<scene::directional_light> sun_light;
-	std::unique_ptr<scene::directional_light> moon_light;
-	std::unique_ptr<scene::ambient_light> sky_light;
-	std::unique_ptr<scene::directional_light> bounce_light;
-	
 	// UI
 	std::unique_ptr<scene::collection> ui_scene;
 	std::unique_ptr<scene::camera> ui_camera;
@@ -321,10 +330,16 @@ public:
 	// Scene
 	std::unique_ptr<scene::collection> surface_scene;
 	std::shared_ptr<scene::camera> surface_camera;
+	std::unique_ptr<scene::directional_light> sun_light;
+	std::unique_ptr<scene::directional_light> moon_light;
+	std::unique_ptr<scene::ambient_light> sky_light;
+	std::unique_ptr<scene::directional_light> bounce_light;
 	std::unique_ptr<scene::collection> underground_scene;
 	std::shared_ptr<scene::camera> underground_camera;
+	std::unique_ptr<scene::directional_light> underground_directional_light;
 	std::unique_ptr<scene::ambient_light> underground_ambient_light;
-	std::unique_ptr<scene::spot_light> flashlight_spot_light;
+	std::unique_ptr<scene::point_light> underground_point_light;
+	scene::collection* active_scene;
 	
 	// Animation
 	std::unique_ptr<timeline> timeline;
