@@ -68,6 +68,10 @@ inline constexpr T inv_pi = std::numbers::inv_pi_v<T>;
 template <class T>
 inline constexpr T inv_sqrt_pi = std::numbers::inv_sqrtpi_v<T>;
 
+/// Pi^2.
+template <class T>
+inline constexpr T sqr_pi = std::numbers::pi_v<T> * std::numbers::pi_v<T>;
+
 /// ln(2).
 template <class T>
 inline constexpr T ln_2 = std::numbers::ln2_v<T>;

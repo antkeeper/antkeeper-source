@@ -49,7 +49,7 @@
 #include <engine/utility/frame-scheduler.hpp>
 #include <engine/scene/text.hpp>
 #include <engine/scene/directional-light.hpp>
-#include <engine/scene/point-light.hpp>
+#include <engine/scene/sphere-light.hpp>
 #include <engine/scene/spot-light.hpp>
 #include <engine/scene/ambient-light.hpp>
 #include <engine/scene/camera.hpp>
@@ -338,7 +338,7 @@ public:
 	std::shared_ptr<scene::camera> underground_camera;
 	std::unique_ptr<scene::directional_light> underground_directional_light;
 	std::unique_ptr<scene::ambient_light> underground_ambient_light;
-	std::unique_ptr<scene::point_light> underground_point_light;
+	std::unique_ptr<scene::sphere_light> underground_sphere_light;
 	scene::collection* active_scene;
 	
 	// Animation

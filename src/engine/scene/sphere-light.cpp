@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/scene/point-light.hpp>
+#include <engine/scene/sphere-light.hpp>
 
 namespace scene {
 

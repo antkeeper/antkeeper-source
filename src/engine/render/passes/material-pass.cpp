@@ -40,8 +40,8 @@
 #include <engine/scene/collection.hpp>
 #include <engine/scene/ambient-light.hpp>
 #include <engine/scene/directional-light.hpp>
-#include <engine/scene/point-light.hpp>
 #include <engine/scene/spot-light.hpp>
+#include <engine/scene/sphere-light.hpp>
 #include <engine/config.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/projection.hpp>
@@ -315,6 +315,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 	directional_light_count = 0;
 	directional_shadow_count = 0;
 	spot_light_count = 0;
+	sphere_light_count = 0;
 	
 	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
 	for (const scene::object_base* object: lights)
@@ -337,25 +338,6 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 				
 				
 				ambient_light_colors[index] = static_cast<const scene::ambient_light&>(light).get_illuminance() * ctx.camera->get_exposure_normalization();
-				break;
-			}
-			
-			// Add point light
-			case scene::light_type::point:
-			{
-				const scene::point_light& point_light = static_cast<const scene::point_light&>(light);
-				
-				const std::size_t index = point_light_count;
-				
-				++point_light_count;
-				if (point_light_count > point_light_colors.size())
-				{
-					point_light_colors.resize(point_light_count);
-					point_light_positions.resize(point_light_count);
-				}
-				
-				point_light_colors[index] = point_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
-				point_light_positions[index] = point_light.get_translation();
 				break;
 			}
 			
@@ -421,6 +403,49 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 				break;
 			}
 			
+			// Add sphere light
+			case scene::light_type::sphere:
+			{
+				const scene::sphere_light& sphere_light = static_cast<const scene::sphere_light&>(light);
+				
+				if (sphere_light.get_radius() == 0.0f)
+				{
+					const std::size_t index = point_light_count;
+					
+					++point_light_count;
+					if (point_light_count > point_light_colors.size())
+					{
+						point_light_colors.resize(point_light_count);
+						point_light_positions.resize(point_light_count);
+					}
+					
+					point_light_colors[index] = sphere_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
+					point_light_positions[index] = sphere_light.get_translation();
+				}
+				else
+				{
+					const std::size_t index = sphere_light_count;
+					
+					++sphere_light_count;
+					if (sphere_light_count > sphere_light_colors.size())
+					{
+						sphere_light_colors.resize(sphere_light_count);
+						sphere_light_positions_radii.resize(sphere_light_count);
+					}
+					
+					sphere_light_colors[index] = sphere_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
+					
+					const auto& position = sphere_light.get_translation();
+					auto& position_radius = sphere_light_positions_radii[index];
+					position_radius[0] = position.x();
+					position_radius[1] = position.y();
+					position_radius[2] = position.z();
+					position_radius[3] = sphere_light.get_radius();
+				}
+				
+				break;
+			}
+			
 			default:
 				break;
 		}
@@ -432,6 +457,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(directional_shadow_count));
 	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(point_light_count));
 	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(spot_light_count));
+	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(sphere_light_count));
 }
 
 void material_pass::evaluate_misc(const render::context& ctx)
@@ -471,6 +497,7 @@ std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const
 	definitions["DIRECTIONAL_SHADOW_COUNT"] = std::to_string(directional_shadow_count);
 	definitions["POINT_LIGHT_COUNT"] = std::to_string(point_light_count);
 	definitions["SPOT_LIGHT_COUNT"] = std::to_string(spot_light_count);
+	definitions["SPHERE_LIGHT_COUNT"] = std::to_string(sphere_light_count);
 	
 	auto shader_program = shader_template.build(definitions);
 	
@@ -613,6 +640,27 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 						spot_light_positions_var->update(std::span<const float3>{spot_light_positions.data(), spot_light_count});
 						spot_light_directions_var->update(std::span<const float3>{spot_light_directions.data(), spot_light_count});
 						spot_light_cutoffs_var->update(std::span<const float2>{spot_light_cutoffs.data(), spot_light_count});
+					}
+				);
+			}
+		}
+	}
+	
+	// Update sphere light variables
+	if (sphere_light_count)
+	{
+		if (auto sphere_light_colors_var = shader_program.variable("sphere_light_colors"))
+		{
+			auto sphere_light_positions_radii_var = shader_program.variable("sphere_light_positions_radii");
+			
+			if (sphere_light_positions_radii_var)
+			{
+				command_buffer.emplace_back
+				(
+					[&, sphere_light_colors_var, sphere_light_positions_radii_var]()
+					{
+						sphere_light_colors_var->update(std::span<const float3>{sphere_light_colors.data(), sphere_light_count});
+						sphere_light_positions_radii_var->update(std::span<const float4>{sphere_light_positions_radii.data(), sphere_light_count});
 					}
 				);
 			}

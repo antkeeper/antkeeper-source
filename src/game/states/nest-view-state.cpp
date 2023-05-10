@@ -75,6 +75,7 @@
 #include <engine/utility/state-machine.hpp>
 #include <engine/scene/static-mesh.hpp>
 #include <engine/scene/skeletal-mesh.hpp>
+#include <engine/scene/sphere-light.hpp>
 #include <engine/geom/intersection.hpp>
 #include <engine/animation/ease.hpp>
 
@@ -122,14 +123,15 @@ nest_view_state::nest_view_state(::game& ctx):
 	
 	// Create ambient light
 	ctx.underground_ambient_light = std::make_unique<scene::ambient_light>();
-	ctx.underground_ambient_light->set_illuminance(float3{1.0f, 1.0f, 1.0f} * 0.025f);
+	ctx.underground_ambient_light->set_illuminance(float3{1.0f, 1.0f, 1.0f} * 0.075f);
 	ctx.underground_scene->add_object(*ctx.underground_ambient_light);
 	
-	// Create point light
-	ctx.underground_point_light = std::make_unique<scene::point_light>();
-	ctx.underground_point_light->set_luminous_flux(float3{1.0f, 1.0f, 1.0f} * 200.0f);
-	ctx.underground_point_light->set_translation(float3{-13.0f, 7.0f, -6.0f});
-	ctx.underground_scene->add_object(*ctx.underground_point_light);
+	// Create sphere light
+	ctx.underground_sphere_light = std::make_unique<scene::sphere_light>();
+	ctx.underground_sphere_light->set_luminous_flux(float3{0.8f, 0.88f, 1.0f} * 250.0f);
+	ctx.underground_sphere_light->set_radius(3.0f);
+	ctx.underground_sphere_light->set_translation(float3{-13.0f, 7.0f, -6.0f});
+	ctx.underground_scene->add_object(*ctx.underground_sphere_light);
 	
 	// Create chamber
 	auto chamber_eid = ctx.entity_registry->create();
@@ -162,6 +164,19 @@ nest_view_state::nest_view_state(::game& ctx):
 		[&](auto& component)
 		{
 			component.object->set_translation({-10.0f, -1.5f, -10.0f});
+		}
+	);
+	
+	// Create suzanne
+	auto suzanne_eid = ctx.entity_registry->create();
+	auto suzanne_static_mesh = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("suzanne.mdl"));
+	ctx.entity_registry->emplace<scene_component>(suzanne_eid, std::move(suzanne_static_mesh), std::uint8_t{2});
+	ctx.entity_registry->patch<scene_component>
+	(
+		suzanne_eid,
+		[&](auto& component)
+		{
+			component.object->set_translation({-13.0f, -1.0f, -6.0f});
 		}
 	);
 	

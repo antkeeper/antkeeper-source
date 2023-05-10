@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SCENE_POINT_LIGHT_HPP
-#define ANTKEEPER_SCENE_POINT_LIGHT_HPP
+#ifndef ANTKEEPER_SCENE_SPHERE_LIGHT_HPP
+#define ANTKEEPER_SCENE_SPHERE_LIGHT_HPP
 
 #include <engine/scene/light.hpp>
 #include <engine/math/vector.hpp>
@@ -26,19 +26,19 @@
 namespace scene {
 
 /**
- * Light source that radiates outward from a point.
+ * Light source that radiates outward from a sphere.
  */
-class point_light: public light
+class sphere_light: public light
 {
 public:
-	/// Returns light_type::point
+	/// Returns light_type::sphere.
 	[[nodiscard]] inline light_type get_light_type() const noexcept override
 	{
-		return light_type::point;
+		return light_type::sphere;
 	}
 	
 	/**
-	 * Sets the luminous flux of the point light.
+	 * Sets the luminous flux of the sphere light.
 	 *
 	 * @param luminous_flux Luminous flux, in *lm*.
 	 */
@@ -47,16 +47,33 @@ public:
 		m_luminous_flux = luminous_flux;
 	}
 	
-	/// Returns the luminous flux of the point light, in *lm*.
+	/**
+	 * Sets the radius of the sphere light.
+	 *
+	 * @param radius Radius of the sphere light.
+	 */
+	inline void set_radius(float radius) noexcept
+	{
+		m_radius = radius;
+	}
+	
+	/// Returns the luminous flux of the sphere light, in *lm*.
 	[[nodiscard]] inline const math::vector<float, 3>& get_luminous_flux() const noexcept
 	{
 		return m_luminous_flux;
 	}
+	
+	/// Returns the radius of the sphere light.
+	[[nodiscard]] inline float get_radius() const noexcept
+	{
+		return m_radius;
+	}
 
 private:
 	math::vector<float, 3> m_luminous_flux{0.0f, 0.0f, 0.0f};
+	float m_radius{0.0f};
 };
 
 } // namespace scene
 
-#endif // ANTKEEPER_SCENE_POINT_LIGHT_HPP
+#endif // ANTKEEPER_SCENE_SPHERE_LIGHT_HPP

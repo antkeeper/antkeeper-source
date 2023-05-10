@@ -33,11 +33,11 @@ enum class light_type: std::uint8_t
 	/// Directional light.
 	directional,
 	
-	/// Point light.
-	point,
-	
 	/// Spot light.
-	spot
+	spot,
+	
+	/// Sphere light.
+	sphere
 };
 
 } // namespace scene

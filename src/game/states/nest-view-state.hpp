@@ -79,8 +79,8 @@ private:
 	double third_person_camera_near_focal_plane_height{2.0f};
 	double third_person_camera_far_focal_plane_height{50.0f};
 	
-	double third_person_camera_near_hfov{math::radians(45.0)};
-	double third_person_camera_far_hfov{math::radians(90.0)};
+	double third_person_camera_near_hfov{math::radians(90.0)};
+	double third_person_camera_far_hfov{math::radians(45.0)};
 	
 	/// In focal plane heights per second.
 	double third_person_camera_speed{1.0f};

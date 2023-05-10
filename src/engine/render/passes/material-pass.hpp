@@ -120,6 +120,11 @@ private:
 	std::vector<float2> spot_light_cutoffs;
 	std::size_t spot_light_count;
 	
+	// Sphere lights
+	std::vector<float3> sphere_light_colors;
+	std::vector<float4> sphere_light_positions_radii;
+	std::size_t sphere_light_count;
+	
 	// Misc
 	float time;
 	float timestep;
