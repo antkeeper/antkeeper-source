@@ -38,13 +38,25 @@ public:
 	}
 	
 	/**
-	 * Sets the luminous flux of the sphere light.
+	 * Sets the color of the sphere light.
 	 *
-	 * @param luminous_flux Luminous flux, in *lm*.
+	 * @param color Light color.
 	 */
-	inline void set_luminous_flux(const math::vector<float, 3>& luminous_flux) noexcept
+	inline void set_color(const math::vector<float, 3>& color) noexcept
 	{
-		m_luminous_flux = luminous_flux;
+		m_color = color;
+		update_spectral_luminous_power();
+	}
+	
+	/**
+	 * Sets the luminous power of the sphere light.
+	 *
+	 * @param luminous_power Luminous power.
+	 */
+	inline void set_luminous_power(float luminous_power) noexcept
+	{
+		m_luminous_power = luminous_power;
+		update_spectral_luminous_power();
 	}
 	
 	/**
@@ -57,10 +69,22 @@ public:
 		m_radius = radius;
 	}
 	
-	/// Returns the luminous flux of the sphere light, in *lm*.
-	[[nodiscard]] inline const math::vector<float, 3>& get_luminous_flux() const noexcept
+	/// Returns the color of the sphere light.
+	[[nodiscard]] inline const math::vector<float, 3>& get_color() const noexcept
 	{
-		return m_luminous_flux;
+		return m_color;
+	}
+	
+	/// Returns the luminous power of the sphere light.
+	[[nodiscard]] inline float get_luminous_power() const noexcept
+	{
+		return m_luminous_power;
+	}
+	
+	/// Returns the spectral luminous power of the sphere light.
+	[[nodiscard]] inline const math::vector<float, 3>& get_spectral_luminous_power() const noexcept
+	{
+		return m_spectral_luminous_power;
 	}
 	
 	/// Returns the radius of the sphere light.
@@ -68,10 +92,23 @@ public:
 	{
 		return m_radius;
 	}
+	
+	/// Calculates and returns the luminance of the sphere light.
+	[[nodiscard]] float get_luminance() const noexcept;
+	
+	/// Calculates and returns the spectral luminance of the sphere light.
+	[[nodiscard]] math::vector<float, 3> get_spectral_luminance() const noexcept;
 
 private:
-	math::vector<float, 3> m_luminous_flux{0.0f, 0.0f, 0.0f};
-	float m_radius{0.0f};
+	inline void update_spectral_luminous_power() noexcept
+	{
+		m_spectral_luminous_power = m_color * m_luminous_power;
+	}
+	
+	math::vector<float, 3> m_color{1.0f, 1.0f, 1.0f};
+	float m_luminous_power{};
+	math::vector<float, 3> m_spectral_luminous_power{};
+	float m_radius{};
 };
 
 } // namespace scene

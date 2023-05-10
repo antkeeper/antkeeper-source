@@ -18,9 +18,18 @@
  */
 
 #include <engine/scene/sphere-light.hpp>
+#include <engine/math/numbers.hpp>
 
 namespace scene {
 
+float sphere_light::get_luminance() const noexcept
+{
+	return m_luminous_power / (4.0f * m_radius * m_radius * math::sqr_pi<float>);
+}
 
+math::vector<float, 3> sphere_light::get_spectral_luminance() const noexcept
+{
+	return m_color * get_luminance();
+}
 
 } // namespace scene

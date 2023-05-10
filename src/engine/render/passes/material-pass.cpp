@@ -396,7 +396,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					spot_light_cutoffs.resize(spot_light_count);
 				}
 				
-				spot_light_colors[index] = spot_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
+				spot_light_colors[index] = spot_light.get_luminous_power() * ctx.camera->get_exposure_normalization();
 				spot_light_positions[index] = spot_light.get_translation();
 				spot_light_directions[index] = spot_light.get_direction();
 				spot_light_cutoffs[index] = spot_light.get_cosine_cutoff();
@@ -419,7 +419,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 						point_light_positions.resize(point_light_count);
 					}
 					
-					point_light_colors[index] = sphere_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
+					point_light_colors[index] = sphere_light.get_spectral_luminous_power() * ctx.camera->get_exposure_normalization();
 					point_light_positions[index] = sphere_light.get_translation();
 				}
 				else
@@ -433,7 +433,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 						sphere_light_positions_radii.resize(sphere_light_count);
 					}
 					
-					sphere_light_colors[index] = sphere_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
+					sphere_light_colors[index] = sphere_light.get_spectral_luminous_power() * ctx.camera->get_exposure_normalization();
 					
 					const auto& position = sphere_light.get_translation();
 					auto& position_radius = sphere_light_positions_radii[index];

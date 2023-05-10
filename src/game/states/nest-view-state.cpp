@@ -128,7 +128,8 @@ nest_view_state::nest_view_state(::game& ctx):
 	
 	// Create sphere light
 	ctx.underground_sphere_light = std::make_unique<scene::sphere_light>();
-	ctx.underground_sphere_light->set_luminous_flux(float3{0.8f, 0.88f, 1.0f} * 250.0f);
+	ctx.underground_sphere_light->set_color({0.8f, 0.88f, 1.0f});
+	ctx.underground_sphere_light->set_luminous_power(300.0f);
 	ctx.underground_sphere_light->set_radius(3.0f);
 	ctx.underground_sphere_light->set_translation(float3{-13.0f, 7.0f, -6.0f});
 	ctx.underground_scene->add_object(*ctx.underground_sphere_light);
@@ -177,6 +178,26 @@ nest_view_state::nest_view_state(::game& ctx):
 		[&](auto& component)
 		{
 			component.object->set_translation({-13.0f, -1.0f, -6.0f});
+		}
+	);
+	
+	// Create light sphere
+	auto light_sphere_model = ctx.resource_manager->load<render::model>("light-sphere.mdl");
+	auto light_sphere_material = std::make_shared<render::material>(*light_sphere_model->get_groups().front().material);
+	
+	static_cast<render::material_float3&>(*light_sphere_material->get_variable("emissive")).set(ctx.underground_sphere_light->get_spectral_luminance());
+	auto light_sphere_static_mesh = std::make_shared<scene::static_mesh>(light_sphere_model);
+	light_sphere_static_mesh->set_material(0, light_sphere_material);
+	
+	auto light_sphere_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<scene_component>(light_sphere_eid, std::move(light_sphere_static_mesh), std::uint8_t{2});
+	ctx.entity_registry->patch<scene_component>
+	(
+		light_sphere_eid,
+		[&](auto& component)
+		{
+			component.object->set_translation(ctx.underground_sphere_light->get_translation());
+			component.object->set_scale(math::vector<float, 3>{1, 1, 1} * ctx.underground_sphere_light->get_radius());
 		}
 	);
 	
