@@ -37,7 +37,7 @@
 #include <engine/astro/apparent-size.hpp>
 #include <engine/geom/solid-angle.hpp>
 #include <engine/math/polynomial.hpp>
-
+#include <engine/debug/log.hpp>
 astronomy_system::astronomy_system(entity::registry& registry):
 	updatable_system(registry),
 	time_days(0.0),
@@ -49,8 +49,6 @@ astronomy_system::astronomy_system(entity::registry& registry):
 	sun_light(nullptr),
 	sky_light(nullptr),
 	moon_light(nullptr),
-	bounce_light(nullptr),
-	bounce_albedo{0, 0, 0},
 	sky_pass(nullptr),
 	starlight_illuminance{0, 0, 0}
 {
@@ -159,12 +157,9 @@ void astronomy_system::update(float t, float dt)
 		}
 	);
 	
-	constexpr double3 bounce_normal = {0, 1, 0};
-	double3 bounce_illuminance = {0, 0, 0};
-	
 	// Update blackbody lighting
 	registry.view<celestial_body_component, orbit_component, blackbody_component>().each(
-	[&, bounce_normal](entity::id entity_id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
+	[&](entity::id entity_id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
 	{
 		// Transform blackbody position from ICRF frame to EUS frame
 		const double3 blackbody_position_eus = icrf_to_eus * blackbody_orbit.position;
@@ -178,7 +173,7 @@ void astronomy_system::update(float t, float dt)
 		const double observer_blackbody_solid_angle = geom::solid_angle::cone(observer_blackbody_angular_radius);
 		
 		// Calculate illuminance from blackbody reaching observer
-		const double3 observer_blackbody_illuminance = blackbody.luminance * observer_blackbody_solid_angle;
+		const double3 observer_blackbody_illuminance = blackbody.color * blackbody.luminance * observer_blackbody_solid_angle;
 		
 		// Calculate illuminance from blackbody reaching observer after atmospheric extinction
 		double3 observer_blackbody_transmitted_illuminance = observer_blackbody_illuminance;
@@ -207,10 +202,8 @@ void astronomy_system::update(float t, float dt)
 				)
 			);
 			
-			sun_light->set_illuminance(float3(observer_blackbody_transmitted_illuminance));
-			
-			// Bounce sun light
-			bounce_illuminance += std::max(0.0, math::dot(bounce_normal, -observer_blackbody_direction_eus)) * observer_blackbody_transmitted_illuminance * bounce_albedo;
+			sun_light->set_illuminance(static_cast<float>(math::max(observer_blackbody_transmitted_illuminance)));
+			sun_light->set_color(math::vector3<float>(observer_blackbody_transmitted_illuminance / math::max(observer_blackbody_transmitted_illuminance)));
 		}
 		
 		// Update sky light
@@ -227,24 +220,22 @@ void astronomy_system::update(float t, float dt)
 			sky_light_illuminance += starlight_illuminance;
 			
 			// Update sky light
-			sky_light->set_illuminance(float3(sky_light_illuminance));
-			
-			// Bounce sky light
-			bounce_illuminance += sky_light_illuminance * bounce_albedo;
+			sky_light->set_illuminance(static_cast<float>(math::max(sky_light_illuminance)));
+			sky_light->set_color(math::vector3<float>(sky_light_illuminance / math::max(sky_light_illuminance)));
 		}
 		
 		// Upload blackbody params to sky pass
 		if (this->sky_pass)
 		{
 			this->sky_pass->set_sun_position(float3(blackbody_position_eus));
-			this->sky_pass->set_sun_luminance(float3(blackbody.luminance));
+			this->sky_pass->set_sun_luminance(float3(blackbody.color * blackbody.luminance));
 			this->sky_pass->set_sun_illuminance(float3(observer_blackbody_illuminance), float3(observer_blackbody_transmitted_illuminance));
 			this->sky_pass->set_sun_angular_radius(static_cast<float>(observer_blackbody_angular_radius));
 		}
 		
 		// Update diffuse reflectors
 		this->registry.view<celestial_body_component, orbit_component, diffuse_reflector_component, transform_component>().each(
-		[&, bounce_normal](entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
+		[&](entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
 		{
 			// Transform reflector position from ICRF frame to EUS frame
 			const double3 reflector_position_eus = icrf_to_eus * reflector_orbit.position;
@@ -263,7 +254,7 @@ void astronomy_system::update(float t, float dt)
 			const double reflector_blackbody_solid_angle = geom::solid_angle::cone(reflector_blackbody_angular_radius);
 			
 			// Calculate blackbody illuminance reaching reflector
-			const double3 reflector_blackbody_illuminance = blackbody.luminance * reflector_blackbody_solid_angle;
+			const double3 reflector_blackbody_illuminance = blackbody.color * blackbody.luminance * reflector_blackbody_solid_angle;
 			
 			// Measure reflector solid angle as seen by observer
 			const double observer_reflector_angular_radius = astro::angular_radius(reflector_body.radius, observer_reflector_distance);
@@ -315,7 +306,9 @@ void astronomy_system::update(float t, float dt)
 			{
 				const float3 reflector_up_eus = float3(icrf_to_eus.r * double3{0, 0, 1});
 				
-				this->moon_light->set_illuminance(float3(observer_reflector_illuminance));
+				this->moon_light->set_illuminance(static_cast<float>(math::max(observer_reflector_illuminance)));
+				this->moon_light->set_color(math::vector3<float>(observer_reflector_illuminance / math::max(observer_reflector_illuminance)));
+				
 				this->moon_light->set_rotation
 				(
 					math::look_rotation
@@ -324,17 +317,9 @@ void astronomy_system::update(float t, float dt)
 						reflector_up_eus
 					)
 				);
-				
-				// Bounce moon light
-				bounce_illuminance += std::max(0.0, math::dot(bounce_normal, -observer_reflector_direction_eus)) * observer_reflector_illuminance * bounce_albedo;
 			}
 		});
 	});
-	
-	if (bounce_light)
-	{
-		bounce_light->set_illuminance(float3(bounce_illuminance));
-	}
 }
 
 void astronomy_system::set_time(double t)
@@ -379,16 +364,6 @@ void astronomy_system::set_sky_light(scene::ambient_light* light)
 void astronomy_system::set_moon_light(scene::directional_light* light)
 {
 	moon_light = light;
-}
-
-void astronomy_system::set_bounce_light(scene::directional_light* light)
-{
-	bounce_light = light;
-}
-
-void astronomy_system::set_bounce_albedo(const double3& albedo)
-{
-	bounce_albedo = albedo;
 }
 
 void astronomy_system::set_starlight_illuminance(const double3& illuminance)

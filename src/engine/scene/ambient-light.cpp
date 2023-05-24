@@ -17,19 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/scene/sphere-light.hpp>
-#include <engine/math/numbers.hpp>
+#include <engine/scene/ambient-light.hpp>
 
 namespace scene {
 
-float sphere_light::get_luminance() const noexcept
+void ambient_light::color_updated()
 {
-	return m_luminous_power / (4.0f * m_radius * m_radius * math::sqr_pi<float>);
+	m_colored_illuminance = m_color * m_illuminance;
 }
 
-math::vector<float, 3> sphere_light::get_spectral_luminance() const noexcept
+void ambient_light::illuminance_updated()
 {
-	return m_color * get_luminance();
+	m_colored_illuminance = m_color * m_illuminance;
 }
 
 } // namespace scene

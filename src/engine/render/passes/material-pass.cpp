@@ -41,7 +41,8 @@
 #include <engine/scene/ambient-light.hpp>
 #include <engine/scene/directional-light.hpp>
 #include <engine/scene/spot-light.hpp>
-#include <engine/scene/sphere-light.hpp>
+#include <engine/scene/point-light.hpp>
+#include <engine/scene/rectangle-light.hpp>
 #include <engine/config.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/projection.hpp>
@@ -117,7 +118,11 @@ bool operation_compare(const render::operation* a, const render::operation* b)
 
 material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
 	pass(rasterizer, framebuffer)
-{}
+{
+	// Load LTC LUT textures
+	ltc_lut_1 = resource_manager->load<gl::texture_2d>("ltc-lut-1.tex");
+	ltc_lut_2 = resource_manager->load<gl::texture_2d>("ltc-lut-2.tex");
+}
 
 void material_pass::render(render::context& ctx)
 {
@@ -315,7 +320,8 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 	directional_light_count = 0;
 	directional_shadow_count = 0;
 	spot_light_count = 0;
-	sphere_light_count = 0;
+	point_light_count = 0;
+	rectangle_light_count = 0;
 	
 	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
 	for (const scene::object_base* object: lights)
@@ -335,9 +341,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					ambient_light_colors.resize(ambient_light_count);
 				}
 				
-				
-				
-				ambient_light_colors[index] = static_cast<const scene::ambient_light&>(light).get_illuminance() * ctx.camera->get_exposure_normalization();
+				ambient_light_colors[index] = static_cast<const scene::ambient_light&>(light).get_colored_illuminance() * ctx.camera->get_exposure_normalization();
 				break;
 			}
 			
@@ -355,7 +359,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					directional_light_directions.resize(directional_light_count);
 				}
 				
-				directional_light_colors[index] = directional_light.get_illuminance() * ctx.camera->get_exposure_normalization();
+				directional_light_colors[index] = directional_light.get_colored_illuminance() * ctx.camera->get_exposure_normalization();
 				directional_light_directions[index] = directional_light.get_direction();
 				
 				// Add directional shadow
@@ -396,51 +400,53 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					spot_light_cutoffs.resize(spot_light_count);
 				}
 				
-				spot_light_colors[index] = spot_light.get_luminous_power() * ctx.camera->get_exposure_normalization();
+				spot_light_colors[index] = spot_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
 				spot_light_positions[index] = spot_light.get_translation();
 				spot_light_directions[index] = spot_light.get_direction();
 				spot_light_cutoffs[index] = spot_light.get_cosine_cutoff();
 				break;
 			}
 			
-			// Add sphere light
-			case scene::light_type::sphere:
+			// Add point light
+			case scene::light_type::point:
 			{
-				const scene::sphere_light& sphere_light = static_cast<const scene::sphere_light&>(light);
+				const scene::point_light& point_light = static_cast<const scene::point_light&>(light);
 				
-				if (sphere_light.get_radius() == 0.0f)
+				const std::size_t index = point_light_count;
+				
+				++point_light_count;
+				if (point_light_count > point_light_colors.size())
 				{
-					const std::size_t index = point_light_count;
-					
-					++point_light_count;
-					if (point_light_count > point_light_colors.size())
-					{
-						point_light_colors.resize(point_light_count);
-						point_light_positions.resize(point_light_count);
-					}
-					
-					point_light_colors[index] = sphere_light.get_spectral_luminous_power() * ctx.camera->get_exposure_normalization();
-					point_light_positions[index] = sphere_light.get_translation();
+					point_light_colors.resize(point_light_count);
+					point_light_positions.resize(point_light_count);
 				}
-				else
+				
+				point_light_colors[index] = point_light.get_colored_luminous_flux() * ctx.camera->get_exposure_normalization();
+				point_light_positions[index] = point_light.get_translation();
+				
+				break;
+			}
+			
+			// Add rectangle light
+			case scene::light_type::rectangle:
+			{
+				const scene::rectangle_light& rectangle_light = static_cast<const scene::rectangle_light&>(light);
+				
+				const std::size_t index = rectangle_light_count;
+				
+				++rectangle_light_count;
+				if (rectangle_light_count > rectangle_light_colors.size())
 				{
-					const std::size_t index = sphere_light_count;
-					
-					++sphere_light_count;
-					if (sphere_light_count > sphere_light_colors.size())
-					{
-						sphere_light_colors.resize(sphere_light_count);
-						sphere_light_positions_radii.resize(sphere_light_count);
-					}
-					
-					sphere_light_colors[index] = sphere_light.get_spectral_luminous_power() * ctx.camera->get_exposure_normalization();
-					
-					const auto& position = sphere_light.get_translation();
-					auto& position_radius = sphere_light_positions_radii[index];
-					position_radius[0] = position.x();
-					position_radius[1] = position.y();
-					position_radius[2] = position.z();
-					position_radius[3] = sphere_light.get_radius();
+					rectangle_light_colors.resize(rectangle_light_count);
+					rectangle_light_corners.resize(rectangle_light_count * 4);
+				}
+				
+				rectangle_light_colors[index] = rectangle_light.get_colored_luminance() * ctx.camera->get_exposure_normalization();
+				
+				const auto corners = rectangle_light.get_corners();
+				for (std::size_t i = 0; i < 4; ++i)
+				{
+					rectangle_light_corners[index * 4 + i] = corners[i];
 				}
 				
 				break;
@@ -457,7 +463,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(directional_shadow_count));
 	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(point_light_count));
 	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(spot_light_count));
-	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(sphere_light_count));
+	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(point_light_count));
 }
 
 void material_pass::evaluate_misc(const render::context& ctx)
@@ -497,7 +503,7 @@ std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const
 	definitions["DIRECTIONAL_SHADOW_COUNT"] = std::to_string(directional_shadow_count);
 	definitions["POINT_LIGHT_COUNT"] = std::to_string(point_light_count);
 	definitions["SPOT_LIGHT_COUNT"] = std::to_string(spot_light_count);
-	definitions["SPHERE_LIGHT_COUNT"] = std::to_string(sphere_light_count);
+	definitions["RECTANGLE_LIGHT_COUNT"] = std::to_string(rectangle_light_count);
 	
 	auto shader_program = shader_template.build(definitions);
 	
@@ -539,6 +545,21 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	if (auto clip_depth_var = shader_program.variable("clip_depth"))
 	{
 		command_buffer.emplace_back([&, clip_depth_var](){clip_depth_var->update(clip_depth);});
+	}
+	
+	if (auto ltc_lut_1_var = shader_program.variable("ltc_lut_1"))
+	{
+		if (auto ltc_lut_2_var = shader_program.variable("ltc_lut_2"))
+		{
+			command_buffer.emplace_back
+			(
+				[&, ltc_lut_1_var, ltc_lut_2_var]()
+				{
+					ltc_lut_1_var->update(*ltc_lut_1);
+					ltc_lut_2_var->update(*ltc_lut_2);
+				}
+			);
+		}
 	}
 	
 	// Update ambient light variables
@@ -646,21 +667,20 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 		}
 	}
 	
-	// Update sphere light variables
-	if (sphere_light_count)
+	if (rectangle_light_count)
 	{
-		if (auto sphere_light_colors_var = shader_program.variable("sphere_light_colors"))
+		if (auto rectangle_light_colors_var = shader_program.variable("rectangle_light_colors"))
 		{
-			auto sphere_light_positions_radii_var = shader_program.variable("sphere_light_positions_radii");
+			auto rectangle_light_corners_var = shader_program.variable("rectangle_light_corners");
 			
-			if (sphere_light_positions_radii_var)
+			if (rectangle_light_corners_var)
 			{
 				command_buffer.emplace_back
 				(
-					[&, sphere_light_colors_var, sphere_light_positions_radii_var]()
+					[&, rectangle_light_colors_var, rectangle_light_corners_var]()
 					{
-						sphere_light_colors_var->update(std::span<const float3>{sphere_light_colors.data(), sphere_light_count});
-						sphere_light_positions_radii_var->update(std::span<const float4>{sphere_light_positions_radii.data(), sphere_light_count});
+						rectangle_light_colors_var->update(std::span<const float3>{rectangle_light_colors.data(), rectangle_light_count});
+						rectangle_light_corners_var->update(std::span<const float3>{rectangle_light_corners.data(), rectangle_light_count * 4});
 					}
 				);
 			}

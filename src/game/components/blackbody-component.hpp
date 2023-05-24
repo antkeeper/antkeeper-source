@@ -20,16 +20,19 @@
 #ifndef ANTKEEPER_GAME_BLACKBODY_COMPONENT_HPP
 #define ANTKEEPER_GAME_BLACKBODY_COMPONENT_HPP
 
+#include <engine/math/vector.hpp>
 
 /// Blackbody radiator
 struct blackbody_component
 {
 	/// Effective temperature, in Kelvin.
-	double temperature;
+	double temperature{};
 	
-	/// (Dependent) RGB spectral luminance, in cd/m^2.
-	double3 luminance;
+	/// Luminance of the blackbody.
+	double luminance{};
+	
+	/// Color of the blackbody.
+	math::vector<double, 3> color{};
 };
-
 
 #endif // ANTKEEPER_GAME_BLACKBODY_COMPONENT_HPP

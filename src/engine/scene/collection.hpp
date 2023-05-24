@@ -32,6 +32,9 @@ namespace scene {
 class collection
 {
 public:
+	/// @name Objects
+	/// @{
+	
 	/**
 	 * Adds an object to the collection.
 	 *
@@ -66,10 +69,33 @@ public:
 	{
 		return m_object_map[type_id];
 	}
+	
+	/// @}
+	/// @name Settings
+	/// @{
+	
+	/**
+	 * Sets the scale of the scene.
+	 *
+	 * @param scale Ratio of meters to scene units.
+	 */
+	inline void set_scale(float scale) noexcept
+	{
+		m_scale = scale;
+	}
+	
+	/// Returns the ratio of meters to scene units.
+	[[nodiscard]] inline float get_scale() const noexcept
+	{
+		return m_scale;
+	}
+	
+	/// @}
 
 private:
 	std::vector<object_base*> m_objects;
 	mutable std::unordered_map<std::size_t, std::vector<object_base*>> m_object_map;
+	float m_scale{1.0f};
 };
 
 } // namespace scene

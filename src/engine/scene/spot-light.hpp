@@ -39,19 +39,19 @@ public:
 	}
 	
 	/**
-	 * Sets the luminous power of the spot light.
+	 * Sets the luminous flux of the spot light.
 	 *
-	 * @param luminous_power Luminous power, in *lm*.
+	 * @param luminous_flux Luminous flux, in *lm*.
 	 */
-	inline void set_luminous_power(const math::vector<float, 3>& luminous_power) noexcept
+	inline void set_luminous_flux(const math::vector<float, 3>& luminous_flux) noexcept
 	{
-		m_luminous_power = luminous_power;
+		m_luminous_flux = luminous_flux;
 	}
 	
-	/// Returns the luminous power of the spot light, in *lm*.
-	[[nodiscard]] inline const math::vector<float, 3>& get_luminous_power() const noexcept
+	/// Returns the luminous flux of the spot light, in *lm*.
+	[[nodiscard]] inline const math::vector<float, 3>& get_luminous_flux() const noexcept
 	{
-		return m_luminous_power;
+		return m_luminous_flux;
 	}
 	
 	/**
@@ -82,7 +82,7 @@ public:
 private:
 	void transformed() override;
 	
-	math::vector<float, 3> m_luminous_power{0.0f, 0.0f, 0.0f};
+	math::vector<float, 3> m_luminous_flux{0.0f, 0.0f, 0.0f};
 	math::vector<float, 3> m_direction{0.0f, 0.0f, -1.0f};
 	math::vector<float, 2> m_cutoff{math::pi<float>, math::pi<float>};
 	math::vector<float, 2> m_cosine_cutoff{-1.0f, -1.0f};

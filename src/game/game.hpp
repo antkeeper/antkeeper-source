@@ -49,7 +49,7 @@
 #include <engine/utility/frame-scheduler.hpp>
 #include <engine/scene/text.hpp>
 #include <engine/scene/directional-light.hpp>
-#include <engine/scene/sphere-light.hpp>
+#include <engine/scene/rectangle-light.hpp>
 #include <engine/scene/spot-light.hpp>
 #include <engine/scene/ambient-light.hpp>
 #include <engine/scene/camera.hpp>
@@ -333,12 +333,11 @@ public:
 	std::unique_ptr<scene::directional_light> sun_light;
 	std::unique_ptr<scene::directional_light> moon_light;
 	std::unique_ptr<scene::ambient_light> sky_light;
-	std::unique_ptr<scene::directional_light> bounce_light;
 	std::unique_ptr<scene::collection> underground_scene;
 	std::shared_ptr<scene::camera> underground_camera;
 	std::unique_ptr<scene::directional_light> underground_directional_light;
 	std::unique_ptr<scene::ambient_light> underground_ambient_light;
-	std::unique_ptr<scene::sphere_light> underground_sphere_light;
+	std::unique_ptr<scene::rectangle_light> underground_rectangle_light;
 	scene::collection* active_scene;
 	
 	// Animation

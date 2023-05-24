@@ -24,27 +24,24 @@
 #include <engine/math/quadrature.hpp>
 #include <numeric>
 
-
 blackbody_system::blackbody_system(entity::registry& registry):
-	updatable_system(registry),
-	illuminant(color::illuminant::deg2::d50<double>)
+	updatable_system(registry)
 {
 	// Construct a range of sample wavelengths in the visible spectrum
-	visible_wavelengths_nm.resize(780 - 280);
-	std::iota(visible_wavelengths_nm.begin(), visible_wavelengths_nm.end(), 280);
+	m_visible_wavelengths_nm.resize(780 - 280);
+	std::iota(m_visible_wavelengths_nm.begin(), m_visible_wavelengths_nm.end(), 280);
+	
+	// Set illuminant
+	set_illuminant(color::illuminant::deg2::d50<double>);
 	
 	registry.on_construct<::blackbody_component>().connect<&blackbody_system::on_blackbody_construct>(this);
 	registry.on_update<::blackbody_component>().connect<&blackbody_system::on_blackbody_update>(this);
-	registry.on_construct<::celestial_body_component>().connect<&blackbody_system::on_celestial_body_construct>(this);
-	registry.on_update<::celestial_body_component>().connect<&blackbody_system::on_celestial_body_update>(this);
 }
 
 blackbody_system::~blackbody_system()
 {
 	registry.on_construct<::blackbody_component>().disconnect<&blackbody_system::on_blackbody_construct>(this);
 	registry.on_update<::blackbody_component>().disconnect<&blackbody_system::on_blackbody_update>(this);
-	registry.on_construct<::celestial_body_component>().disconnect<&blackbody_system::on_celestial_body_construct>(this);
-	registry.on_update<::celestial_body_component>().disconnect<&blackbody_system::on_celestial_body_update>(this);
 }
 
 void blackbody_system::update(float t, float dt)
@@ -52,59 +49,48 @@ void blackbody_system::update(float t, float dt)
 
 void blackbody_system::set_illuminant(const math::vector2<double>& illuminant)
 {
-	this->illuminant = illuminant;
+	m_illuminant = illuminant;
+	m_xyz_to_rgb = color::aces::ap1<double>.from_xyz * color::cat::matrix(m_illuminant, color::aces::white_point<double>);
 }
 
-void blackbody_system::update_luminance(entity::id entity_id)
+void blackbody_system::update_blackbody(entity::id entity_id)
 {
-	// Get blackbody and celestial body components of the entity
-	auto [blackbody, celestial_body] = registry.try_get<blackbody_component, celestial_body_component>(entity_id);
-	
-	// Abort if entity is missing a blackbody or celestial body component
-	if (!blackbody || !celestial_body)
-		return;
-	
-	// Construct chromatic adaptation transform
-	const double3x3 cat = color::cat::matrix(illuminant, color::aces::white_point<double>);
+	// Get blackbody component
+	auto& blackbody = registry.get<blackbody_component>(entity_id);
 	
 	// Construct a lambda function which calculates the blackbody's RGB luminance of a given wavelength
-	auto rgb_luminance = [temperature = blackbody->temperature, cat](double wavelength_nm) -> double3
+	auto rgb_spectral_luminance = [&](double wavelength_nm) -> math::vector3<double>
 	{
 		// Convert wavelength from nanometers to meters
 		const double wavelength_m = wavelength_nm * 1e-9;
 		
-		// Calculate the spectral intensity of the wavelength
-		const double spectral_radiance = physics::light::blackbody::spectral_radiance<double>(temperature, wavelength_m);
+		// Calculate the spectral radiance of the wavelength
+		const double spectral_radiance = physics::light::blackbody::spectral_radiance<double>(blackbody.temperature, wavelength_m);
 		
+		// Convert spectral radiance to spectral luminance
+		const double spectral_luminance = spectral_radiance * 1e-9 * physics::light::max_luminous_efficacy<double>;
 		
-		// Calculate the ACEScg color of the wavelength using CIE color matching functions
-		double3 spectral_color = color::aces::ap1<double>.from_xyz * cat * color::xyz::match(wavelength_nm);
+		// Calculate the XYZ color of the wavelength using CIE color matching functions then transform to RGB
+		const math::vector3<double> rgb_color = m_xyz_to_rgb * color::xyz::match(wavelength_nm);
 		
-		// Scale the spectral color by spectral intensity
-		return spectral_color * spectral_radiance * 1e-9 * physics::light::max_luminous_efficacy<double>;
+		// Scale RGB color by spectral luminance
+		return rgb_color * spectral_luminance;
 	};
 	
-	// Integrate the blackbody RGB luminance over wavelengths in the visible spectrum
-	blackbody->luminance = math::quadrature::simpson(rgb_luminance, visible_wavelengths_nm.begin(), visible_wavelengths_nm.end());
+	// Integrate the blackbody RGB spectral luminance over wavelengths in the visible spectrum
+	const math::vector3<double> rgb_luminance = math::quadrature::simpson(rgb_spectral_luminance, m_visible_wavelengths_nm.begin(), m_visible_wavelengths_nm.end());
+	
+	// Extract luminance and color from RGB luminance
+	blackbody.luminance = math::max(rgb_luminance);
+	blackbody.color = rgb_luminance / blackbody.luminance;
 }
 
 void blackbody_system::on_blackbody_construct(entity::registry& registry, entity::id entity_id)
 {
-	update_luminance(entity_id);
+	update_blackbody(entity_id);
 }
 
 void blackbody_system::on_blackbody_update(entity::registry& registry, entity::id entity_id)
 {
-	update_luminance(entity_id);
+	update_blackbody(entity_id);
 }
-
-void blackbody_system::on_celestial_body_construct(entity::registry& registry, entity::id entity_id)
-{
-	update_luminance(entity_id);
-}
-
-void blackbody_system::on_celestial_body_update(entity::registry& registry, entity::id entity_id)
-{
-	update_luminance(entity_id);
-}
-

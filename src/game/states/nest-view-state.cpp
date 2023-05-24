@@ -71,13 +71,16 @@
 #include <engine/physics/kinematics/colliders/capsule-collider.hpp>
 #include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/ground-pass.hpp>
+#include <engine/render/passes/material-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/state-machine.hpp>
 #include <engine/scene/static-mesh.hpp>
 #include <engine/scene/skeletal-mesh.hpp>
-#include <engine/scene/sphere-light.hpp>
+#include <engine/scene/rectangle-light.hpp>
+#include <engine/scene/point-light.hpp>
 #include <engine/geom/intersection.hpp>
 #include <engine/animation/ease.hpp>
+#include <engine/color/color.hpp>
 
 nest_view_state::nest_view_state(::game& ctx):
 	game_state(ctx)
@@ -110,9 +113,10 @@ nest_view_state::nest_view_state(::game& ctx):
 	debug::log::trace("Generated worker model");
 	
 	// Create directional light
-	ctx.underground_directional_light = std::make_unique<scene::directional_light>();
-	ctx.underground_directional_light->set_illuminance(float3{0.747f, 0.756f, 1.0f} * 2.0f);
-	ctx.underground_directional_light->set_direction(math::normalize(math::vector<float, 3>{1, -1, 0}));
+	// ctx.underground_directional_light = std::make_unique<scene::directional_light>();
+	// ctx.underground_directional_light->set_color({1.0f, 1.0f, 1.0f});
+	// ctx.underground_directional_light->set_illuminance(2.0f);
+	// ctx.underground_directional_light->set_direction(math::normalize(math::vector<float, 3>{0, -1, 0}));
 	// ctx.underground_directional_light->set_shadow_caster(true);
 	// ctx.underground_directional_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer);
 	// ctx.underground_directional_light->set_shadow_bias(0.005f);
@@ -123,16 +127,41 @@ nest_view_state::nest_view_state(::game& ctx):
 	
 	// Create ambient light
 	ctx.underground_ambient_light = std::make_unique<scene::ambient_light>();
-	ctx.underground_ambient_light->set_illuminance(float3{1.0f, 1.0f, 1.0f} * 0.075f);
+	ctx.underground_ambient_light->set_color({1.0f, 1.0f, 1.0f});
+	ctx.underground_ambient_light->set_illuminance(0.075f);
 	ctx.underground_scene->add_object(*ctx.underground_ambient_light);
 	
-	// Create sphere light
-	ctx.underground_sphere_light = std::make_unique<scene::sphere_light>();
-	ctx.underground_sphere_light->set_color({0.8f, 0.88f, 1.0f});
-	ctx.underground_sphere_light->set_luminous_power(300.0f);
-	ctx.underground_sphere_light->set_radius(3.0f);
-	ctx.underground_sphere_light->set_translation(float3{-13.0f, 7.0f, -6.0f});
-	ctx.underground_scene->add_object(*ctx.underground_sphere_light);
+	//const float color_temperature = 5000.0f;
+	//const math::vector3<float> light_color = color::aces::ap1<float>.from_xyz * color::cat::matrix(color::illuminant::deg2::d50<float>, color::aces::white_point<float>) * color::cct::to_xyz(color_temperature);
+	const math::vector3<float> light_color{1.0f, 1.0f, 1.0f}; 
+	
+	// Create rectangle light
+	ctx.underground_rectangle_light = std::make_unique<scene::rectangle_light>();
+	ctx.underground_rectangle_light->set_color(light_color);
+	ctx.underground_rectangle_light->set_luminous_flux(1000.0f);
+	ctx.underground_rectangle_light->set_translation({-13.0f, 5.0f, -5.0f});
+	ctx.underground_rectangle_light->set_rotation(math::quaternion<float>::rotate_x(math::radians(90.0f)));
+	ctx.underground_rectangle_light->set_scale(7.0f);
+	ctx.underground_scene->add_object(*ctx.underground_rectangle_light);
+	
+	// Create light rectangle
+	auto light_rectangle_model = ctx.resource_manager->load<render::model>("light-rectangle.mdl");
+	auto light_rectangle_material = std::make_shared<render::material>(*light_rectangle_model->get_groups().front().material);
+	light_rectangle_emissive = std::static_pointer_cast<render::material_float3>(light_rectangle_material->get_variable("emissive"));
+	light_rectangle_emissive->set(ctx.underground_rectangle_light->get_colored_luminance());
+	auto light_rectangle_static_mesh = std::make_shared<scene::static_mesh>(light_rectangle_model);
+	light_rectangle_static_mesh->set_material(0, light_rectangle_material);
+	
+	auto light_rectangle_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<scene_component>(light_rectangle_eid, std::move(light_rectangle_static_mesh), std::uint8_t{2});
+	ctx.entity_registry->patch<scene_component>
+	(
+		light_rectangle_eid,
+		[&](auto& component)
+		{
+			component.object->set_transform(ctx.underground_rectangle_light->get_transform());
+		}
+	);
 	
 	// Create chamber
 	auto chamber_eid = ctx.entity_registry->create();
@@ -177,27 +206,7 @@ nest_view_state::nest_view_state(::game& ctx):
 		suzanne_eid,
 		[&](auto& component)
 		{
-			component.object->set_translation({-13.0f, -1.0f, -6.0f});
-		}
-	);
-	
-	// Create light sphere
-	auto light_sphere_model = ctx.resource_manager->load<render::model>("light-sphere.mdl");
-	auto light_sphere_material = std::make_shared<render::material>(*light_sphere_model->get_groups().front().material);
-	
-	static_cast<render::material_float3&>(*light_sphere_material->get_variable("emissive")).set(ctx.underground_sphere_light->get_spectral_luminance());
-	auto light_sphere_static_mesh = std::make_shared<scene::static_mesh>(light_sphere_model);
-	light_sphere_static_mesh->set_material(0, light_sphere_material);
-	
-	auto light_sphere_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<scene_component>(light_sphere_eid, std::move(light_sphere_static_mesh), std::uint8_t{2});
-	ctx.entity_registry->patch<scene_component>
-	(
-		light_sphere_eid,
-		[&](auto& component)
-		{
-			component.object->set_translation(ctx.underground_sphere_light->get_translation());
-			component.object->set_scale(math::vector<float, 3>{1, 1, 1} * ctx.underground_sphere_light->get_radius());
+			component.object->set_translation({-13.0f, 0.5f, -6.0f});
 		}
 	);
 	
@@ -336,6 +345,8 @@ void nest_view_state::rotate_third_person_camera(const input::mouse_moved_event&
 
 void nest_view_state::handle_mouse_motion(const input::mouse_moved_event& event)
 {
+	ctx.underground_material_pass->set_mouse_position(float2(event.position));
+	
 	if (!mouse_look && !mouse_grip && !mouse_zoom)
 	{
 		return;

@@ -207,7 +207,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
 	// Set world time
-	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
+	::world::set_time(ctx, 2022, 6, 21, 18, 0, 0.0);
 	
 	// Init time scale
 	double time_scale = 60.0;

@@ -795,12 +795,16 @@ void game::setup_scenes()
 {
 	debug::log::trace("Setting up scenes...");
 	
+	// Ratio of meters to scene units.
+	constexpr float scene_scale = 1.0f / 100.0f;
+	
 	// Get default framebuffer
 	const auto& viewport_size = window->get_viewport_size();
 	const float viewport_aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
-	// Allocate surface scene
+	// Allocate and init surface scene
 	surface_scene = std::make_unique<scene::collection>();
+	surface_scene->set_scale(scene_scale);
 	
 	// Allocate and init surface camera
 	surface_camera = std::make_shared<scene::camera>();
@@ -808,8 +812,9 @@ void game::setup_scenes()
 	surface_camera->set_compositor(surface_compositor.get());
 	surface_camera->set_composite_index(0);
 	
-	// Allocate underground scene
+	// Allocate and init underground scene
 	underground_scene = std::make_unique<scene::collection>();
+	underground_scene->set_scale(scene_scale);
 	
 	// Allocate and init underground camera
 	underground_camera = std::make_shared<scene::camera>();

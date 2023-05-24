@@ -86,8 +86,8 @@ struct color_space
 	/// Function pointer to the electro-optical transfer function.
 	const transfer_function_type eotf;
 	
-	/// Function pointer to the inverse electro-optical transfer function.
-	const transfer_function_type inverse_eotf;
+	/// Function pointer to the opto-electrical transfer function.
+	const transfer_function_type oetf;
 	
 	/// Matrix which transforms an RGB color to a CIE XYZ color.
 	const math::matrix3x3<T> to_xyz;
@@ -106,7 +106,7 @@ struct color_space
 	 * @param b CIE xy chromaticity coordinates of the blue primary.
 	 * @param w CIE xy chromaticity coordinates of the white point.
 	 */
-	constexpr color_space(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w, transfer_function_type eotf, transfer_function_type inverse_eotf);
+	constexpr color_space(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w, transfer_function_type eotf, transfer_function_type oetf);
 	
 	/**
 	 * Measures the luminance of a linear RGB color.
@@ -118,13 +118,13 @@ struct color_space
 };
 
 template <class T>
-constexpr color_space<T>::color_space(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w, transfer_function_type eotf, transfer_function_type inverse_eotf):
+constexpr color_space<T>::color_space(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w, transfer_function_type eotf, transfer_function_type oetf):
 	r(r),
 	g(g),
 	b(b),
 	w(w),
 	eotf(eotf),
-	inverse_eotf(inverse_eotf),
+	oetf(oetf),
 	to_xyz(color::rgb::to_xyz<T>(r, g, b, w)),
 	from_xyz(math::inverse(to_xyz)),
 	to_y{to_xyz[0][1], to_xyz[1][1], to_xyz[2][1]}

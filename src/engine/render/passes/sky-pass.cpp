@@ -366,7 +366,7 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 		{
 			sky_shader_program = sky_material->get_shader_template()->build();
 			
-			if (sky_shader_program)
+			if (sky_shader_program->linked())
 			{
 				model_view_projection_var = sky_shader_program->variable("model_view_projection");
 				mouse_var = sky_shader_program->variable("mouse");
@@ -378,6 +378,11 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 				observer_position_var = sky_shader_program->variable("observer_position");
 				sky_illuminance_lut_var = sky_shader_program->variable("sky_illuminance_lut");
 				sky_illuminance_lut_resolution_var = sky_shader_program->variable("sky_illuminance_lut_resolution");
+			}
+			else
+			{
+				debug::log::error("Failed to build sky shader program: {}", sky_shader_program->info());
+				debug::log::warning("{}", sky_material->get_shader_template()->configure(gl::shader_stage::vertex));
 			}
 		}
 	}
@@ -408,7 +413,7 @@ void sky_pass::set_moon_model(std::shared_ptr<render::model> model)
 		{
 			moon_shader_program = moon_material->get_shader_template()->build();	
 			
-			if (moon_shader_program)
+			if (moon_shader_program->linked())
 			{
 				moon_model_var = moon_shader_program->variable("model");
 				moon_view_projection_var = moon_shader_program->variable("view_projection");
@@ -418,6 +423,11 @@ void sky_pass::set_moon_model(std::shared_ptr<render::model> model)
 				moon_sunlight_illuminance_var = moon_shader_program->variable("sunlight_illuminance");
 				moon_planetlight_direction_var = moon_shader_program->variable("planetlight_direction");
 				moon_planetlight_illuminance_var = moon_shader_program->variable("planetlight_illuminance");
+			}
+			else
+			{
+				debug::log::error("Failed to build moon shader program: {}", moon_shader_program->info());
+				debug::log::warning("{}", moon_material->get_shader_template()->configure(gl::shader_stage::vertex));
 			}
 		}
 	}
@@ -447,12 +457,17 @@ void sky_pass::set_stars_model(std::shared_ptr<render::model> model)
 		{
 			star_shader_program = star_material->get_shader_template()->build();
 			
-			if (star_shader_program)
+			if (star_shader_program->linked())
 			{
 				star_model_view_var = star_shader_program->variable("model_view");
 				star_projection_var = star_shader_program->variable("projection");
 				star_distance_var = star_shader_program->variable("star_distance");
 				star_exposure_var = star_shader_program->variable("camera.exposure");
+			}
+			else
+			{
+				debug::log::error("Failed to build star shader program: {}", star_shader_program->info());
+				debug::log::warning("{}", star_material->get_shader_template()->configure(gl::shader_stage::vertex));
 			}
 		}
 	}

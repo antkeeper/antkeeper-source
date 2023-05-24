@@ -35,6 +35,7 @@
 #include <cmath>
 #include <glad/glad.h>
 #include <engine/utility/hash/fnv1a.hpp>
+#include <engine/debug/log.hpp>
 
 namespace render {
 
@@ -49,6 +50,11 @@ final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 	// Load shader template and build shader program
 	auto shader_template = resource_manager->load<gl::shader_template>("final.glsl");
 	shader_program = shader_template->build();
+	if (!shader_program->linked())
+	{
+		debug::log::error("Failed to final pass shader program: {}", shader_program->info());
+		debug::log::warning("{}", shader_template->configure(gl::shader_stage::vertex));
+	}
 	
 	const float2 vertex_positions[] =
 	{

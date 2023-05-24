@@ -26,9 +26,9 @@ directional_light::directional_light():
 	m_shadow_cascade_matrices(m_shadow_cascade_count)
 {}
 
-void directional_light::set_direction(const math::vector<float, 3>& direction)
+void directional_light::set_direction(const math::vector3<float>& direction)
 {
-	set_rotation(math::rotation(math::vector<float, 3>{0.0f, 0.0f, -1.0f}, direction));
+	set_rotation(math::rotation(math::vector3<float>{0.0f, 0.0f, -1.0f}, direction));
 }
 
 void directional_light::set_shadow_caster(bool caster) noexcept
@@ -65,7 +65,17 @@ void directional_light::set_shadow_cascade_distribution(float weight) noexcept
 
 void directional_light::transformed()
 {
-	m_direction = get_rotation() * math::vector<float, 3>{0.0f, 0.0f, -1.0f};
+	m_direction = get_rotation() * math::vector3<float>{0.0f, 0.0f, -1.0f};
+}
+
+void directional_light::color_updated()
+{
+	m_colored_illuminance = m_color * m_illuminance;
+}
+
+void directional_light::illuminance_updated()
+{
+	m_colored_illuminance = m_color * m_illuminance;
 }
 
 } // namespace scene

@@ -17,32 +17,18 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SCENE_LIGHT_TYPE_HPP
-#define ANTKEEPER_SCENE_LIGHT_TYPE_HPP
-
-#include <cstdint>
+#include <engine/scene/point-light.hpp>
 
 namespace scene {
 
-/// Light types.
-enum class light_type: std::uint8_t
+void point_light::color_updated()
 {
-	/// Ambient light.
-	ambient,
-	
-	/// Directional light.
-	directional,
-	
-	/// Spot light.
-	spot,
-	
-	/// Point light.
-	point,
-	
-	/// Rectangle light.
-	rectangle
-};
+	m_colored_luminous_flux = m_color * m_luminous_flux;
+}
+
+void point_light::luminous_flux_updated()
+{
+	m_colored_luminous_flux = m_color * m_luminous_flux;
+}
 
 } // namespace scene
-
-#endif // ANTKEEPER_SCENE_LIGHT_TYPE_HPP

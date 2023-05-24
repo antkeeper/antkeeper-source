@@ -43,37 +43,61 @@ public:
 		return light_type::directional;
 	}
 	
-	/// Returns a unit vector pointing in the light direction.
-	[[nodiscard]] inline const math::vector<float, 3>& get_direction() const noexcept
-	{
-		return m_direction;
-	}
-	
 	/// @name Light
 	/// @{
-	
-	/**
-	 * Sets the illuminance of the directional light.
-	 *
-	 * @param illuminance Illuminance, in *lx*.
-	 */
-	inline void set_illuminance(const math::vector<float, 3>& illuminance) noexcept
-	{
-		m_illuminance = illuminance;
-	}
-	
-	/// Returns the illuminance of the directional light, in *lx*.
-	[[nodiscard]] inline const math::vector<float, 3>& get_illuminance() const noexcept
-	{
-		return m_illuminance;
-	}
 	
 	/**
 	 * Sets the direction of the directional light.
 	 *
 	 * @param direction Unit-length light direction vector.
 	 */
-	void set_direction(const math::vector<float, 3>& direction);
+	void set_direction(const math::vector3<float>& direction);
+	
+	/**
+	 * Sets the color of the light.
+	 *
+	 * @param color Light color.
+	 */
+	inline void set_color(const math::vector3<float>& color) noexcept
+	{
+		m_color = color;
+		color_updated();
+	}
+	
+	/**
+	 * Sets the illuminance of the light on a surface perpendicular to the light direction.
+	 *
+	 * @param illuminance Illuminance on a surface perpendicular to the light direction.
+	 */
+	inline void set_illuminance(float illuminance) noexcept
+	{
+		m_illuminance = illuminance;
+		illuminance_updated();
+	}
+	
+	/// Returns a unit vector pointing in the light direction.
+	[[nodiscard]] inline const math::vector3<float>& get_direction() const noexcept
+	{
+		return m_direction;
+	}
+	
+	/// Returns the color of the light.
+	[[nodiscard]] inline const math::vector3<float>& get_color() const noexcept
+	{
+		return m_color;
+	}
+	
+	/// Returns the illuminance of the light on a surface perpendicular to the light direction.
+	[[nodiscard]] inline float get_illuminance() const noexcept
+	{
+		return m_illuminance;
+	}
+	
+	/// Returns the color-modulated illuminance of the light on a surface perpendicular to the light direction.
+	[[nodiscard]] inline const math::vector3<float>& get_colored_illuminance() const noexcept
+	{
+		return m_colored_illuminance;
+	}
 	
 	/// @}
 	
@@ -186,9 +210,14 @@ public:
 
 private:
 	void transformed() override;
+	void color_updated();
+	void illuminance_updated();
 	
-	math::vector<float, 3> m_illuminance{0.0f, 0.0f, 0.0f};
-	math::vector<float, 3> m_direction{0.0f, 0.0f, -1.0f};
+	math::vector3<float> m_direction{0.0f, 0.0f, -1.0f};
+	math::vector3<float> m_color{1.0f, 1.0f, 1.0f};
+	float m_illuminance{};
+	math::vector3<float> m_colored_illuminance{};
+	
 	bool m_shadow_caster{false};
 	std::shared_ptr<gl::framebuffer> m_shadow_framebuffer{nullptr};
 	float m_shadow_bias{0.005f};

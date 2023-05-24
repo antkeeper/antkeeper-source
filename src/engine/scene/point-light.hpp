@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_SCENE_AMBIENT_LIGHT_HPP
-#define ANTKEEPER_SCENE_AMBIENT_LIGHT_HPP
+#ifndef ANTKEEPER_SCENE_POINT_LIGHT_HPP
+#define ANTKEEPER_SCENE_POINT_LIGHT_HPP
 
 #include <engine/scene/light.hpp>
 #include <engine/math/vector.hpp>
@@ -26,14 +26,15 @@
 namespace scene {
 
 /**
- * Omnidirectional source of illuminance.
+ * Light source that radiates outward from a point.
  */
-class ambient_light: public light
+class point_light: public light
 {
 public:
+	/// Returns light_type::point.
 	[[nodiscard]] inline light_type get_light_type() const noexcept override
 	{
-		return light_type::ambient;
+		return light_type::point;
 	}
 	
 	/**
@@ -41,21 +42,21 @@ public:
 	 *
 	 * @param color Light color.
 	 */
-	inline void set_color(const math::vector3<float>& color) noexcept
+	inline void set_color(const math::vector<float, 3>& color) noexcept
 	{
 		m_color = color;
 		color_updated();
 	}
 	
 	/**
-	 * Sets the illuminance of the light on a surface perpendicular to the light direction.
+	 * Sets the luminous flux of the light.
 	 *
-	 * @param illuminance Illuminance on a surface perpendicular to the light direction.
+	 * @param luminous_flux Luminous flux.
 	 */
-	inline void set_illuminance(float illuminance) noexcept
+	inline void set_luminous_flux(float luminous_flux) noexcept
 	{
-		m_illuminance = illuminance;
-		illuminance_updated();
+		m_luminous_flux = luminous_flux;
+		luminous_flux_updated();
 	}
 	
 	/// Returns the color of the light.
@@ -64,27 +65,27 @@ public:
 		return m_color;
 	}
 	
-	/// Returns the illuminance of the light on a surface perpendicular to the light direction.
-	[[nodiscard]] inline float get_illuminance() const noexcept
+	/// Returns the luminous flux of the light.
+	[[nodiscard]] inline float get_luminous_flux() const noexcept
 	{
-		return m_illuminance;
+		return m_luminous_flux;
 	}
 	
-	/// Returns the color-modulated illuminance of the light on a surface perpendicular to the light direction.
-	[[nodiscard]] inline const math::vector3<float>& get_colored_illuminance() const noexcept
+	/// Returns the color-modulated luminous flux of light.
+	[[nodiscard]] inline const math::vector3<float>& get_colored_luminous_flux() const noexcept
 	{
-		return m_colored_illuminance;
+		return m_colored_luminous_flux;
 	}
-	
+
 private:
 	void color_updated();
-	void illuminance_updated();
+	void luminous_flux_updated();
 	
 	math::vector3<float> m_color{1.0f, 1.0f, 1.0f};
-	float m_illuminance{};
-	math::vector3<float> m_colored_illuminance{};
+	float m_luminous_flux{};
+	math::vector3<float> m_colored_luminous_flux{};
 };
 
 } // namespace scene
 
-#endif // ANTKEEPER_SCENE_AMBIENT_LIGHT_HPP
+#endif // ANTKEEPER_SCENE_POINT_LIGHT_HPP

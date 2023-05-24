@@ -103,6 +103,8 @@ private:
 	};
 	
 	std::vector<std::optional<camera_preset>> camera_presets{10};
+	
+	std::shared_ptr<render::material_float3> light_rectangle_emissive;
 };
 
 #endif // ANTKEEPER_NEST_VIEW_STATE_HPP

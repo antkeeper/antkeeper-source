@@ -28,14 +28,14 @@
 namespace color {
 
 /**
- * sRGB electro-optical transfer function (EOTF), also known as the sRGB decoding function.
+ * Maps a non-linear sRGB signal to a linear sRGB color.
  *
- * @param v sRGB electrical signal (gamma-encoded sRGB).
+ * @param x Non-linear sRGB signal.
  *
- * @return Corresponding luminance of the signal (linear sRGB).
+ * @return Linear sRGB color.
  */
 template <class T>
-math::vector3<T> srgb_eotf(const math::vector3<T>& v)
+math::vector3<T> srgb_eotf(const math::vector3<T>& x)
 {
 	auto f = [](T x) -> T
 	{
@@ -44,21 +44,21 @@ math::vector3<T> srgb_eotf(const math::vector3<T>& v)
 	
 	return math::vector3<T>
 	{
-		f(v[0]),
-		f(v[1]),
-		f(v[2])
+		f(x[0]),
+		f(x[1]),
+		f(x[2])
 	};
 }
 
 /**
- * sRGB inverse electro-optical transfer function (EOTF), also known as the sRGB encoding function.
+ * Maps a linear sRGB color to a non-linear sRGB signal.
  *
- * @param l sRGB luminance (linear sRGB).
+ * @param x Linear sRGB color.
  *
- * @return Corresponding electrical signal (gamma-encoded sRGB).
+ * @return Non-linear sRGB signal.
  */
 template <class T>
-math::vector3<T> srgb_inverse_eotf(const math::vector3<T>& l)
+math::vector3<T> srgb_oetf(const math::vector3<T>& x)
 {
 	auto f = [](T x) -> T
 	{
@@ -67,9 +67,9 @@ math::vector3<T> srgb_inverse_eotf(const math::vector3<T>& l)
 	
 	return math::vector3<T>
 	{
-		f(l[0]),
-		f(l[1]),
-		f(l[2])
+		f(x[0]),
+		f(x[1]),
+		f(x[2])
 	};
 }
 
@@ -82,7 +82,7 @@ constexpr rgb::color_space<T> srgb
 	{T{0.15}, T{0.06}},
 	color::illuminant::deg2::d65<T>,
 	&srgb_eotf<T>,
-	&srgb_inverse_eotf
+	&srgb_oetf<T>
 );
 
 } // namespace color

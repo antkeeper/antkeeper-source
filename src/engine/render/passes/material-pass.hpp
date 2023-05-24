@@ -47,6 +47,11 @@ public:
 	/// Sets the material to be used when a render operation is missing a material. If no fallback material is specified, render operations without materials will not be processed.
 	void set_fallback_material(std::shared_ptr<render::material> fallback);
 	
+	inline void set_mouse_position(const float2& position)
+	{
+		mouse_position = position;
+	}
+	
 private:
 	struct shader_cache_entry
 	{
@@ -120,10 +125,14 @@ private:
 	std::vector<float2> spot_light_cutoffs;
 	std::size_t spot_light_count;
 	
-	// Sphere lights
-	std::vector<float3> sphere_light_colors;
-	std::vector<float4> sphere_light_positions_radii;
-	std::size_t sphere_light_count;
+	// Rectangle lights
+	std::vector<float3> rectangle_light_colors;
+	std::vector<float3> rectangle_light_corners;
+	std::size_t rectangle_light_count;
+	
+	// LTC
+	std::shared_ptr<gl::texture_2d> ltc_lut_1;
+	std::shared_ptr<gl::texture_2d> ltc_lut_2;
 	
 	// Misc
 	float time;

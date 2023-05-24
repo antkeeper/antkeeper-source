@@ -83,8 +83,6 @@ public:
 	void set_sun_light(scene::directional_light* light);
 	void set_sky_light(scene::ambient_light* light);
 	void set_moon_light(scene::directional_light* light);
-	void set_bounce_light(scene::directional_light* light);
-	void set_bounce_albedo(const double3& albedo);
 	void set_starlight_illuminance(const double3& illuminance);
 	void set_sky_pass(::render::sky_pass* pass);
 	
@@ -156,8 +154,6 @@ private:
 	scene::directional_light* sun_light;
 	scene::ambient_light* sky_light;
 	scene::directional_light* moon_light;
-	scene::directional_light* bounce_light;
-	double3 bounce_albedo;
 	::render::sky_pass* sky_pass;
 	double3 starlight_illuminance;
 };

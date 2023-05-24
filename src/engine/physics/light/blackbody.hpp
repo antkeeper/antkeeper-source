@@ -64,17 +64,6 @@ template <class T>
 T radiant_intensity(T t, T a, T omega);
 
 /**
- * Calculates the spectral exitance of a blackbody for the given wavelength.
- *
- * @param t Temperature of the blackbody, in kelvin.
- * @param lambda Wavelength of light, in meters.
- * @param c Speed of light in medium.
- * @return Spectral exitance, in watt per square meter, per meter.
- */
-template <class T>
-T spectral_exitance(T t, T lambda, T c = constants::speed_of_light<T>);
-
-/**
  * Calculates the spectral flux of a blackbody for the given wavelength.
  *
  * @param t Temperature of the blackbody, in kelvin.
@@ -84,7 +73,7 @@ T spectral_exitance(T t, T lambda, T c = constants::speed_of_light<T>);
  * @return Spectral flux of the blackbody, in watt per meter.
  */
 template <class T>
-T spectral_flux(T t, T a, T lambda, T c  = constants::speed_of_light<T>);
+T spectral_flux(T t, T a, T lambda, T c = constants::speed_of_light<T>);
 
 /**
  * Calculates the spectral intensity of a blackbody for the given wavelength.
@@ -97,7 +86,7 @@ T spectral_flux(T t, T a, T lambda, T c  = constants::speed_of_light<T>);
  * @return Spectral intensity of the blackbody for the given wavelength, in watt per steradian per meter.
  */
 template <class T>
-T spectral_intensity(T t, T a, T lambda, T omega, T c  = constants::speed_of_light<T>);
+T spectral_intensity(T t, T a, T lambda, T omega, T c = constants::speed_of_light<T>);
 
 /**
  * Calculates the spectral radiance of a blackbody for the given wavelength.
@@ -136,7 +125,7 @@ T spectral_exitance(T t, T lambda, T c)
 	const T lambda2 = lambda * lambda;
 	
 	// First radiation constant (c1)
-	const T c1 = T(2) * math::pi<T> * hc * c;
+	const T c1 = math::two_pi<T> * hc * c;
 	
 	// Second radiation constant (c2)
 	const T c2 = hc / constants::boltzmann<T>;
@@ -163,7 +152,7 @@ T spectral_radiance(T t, T lambda, T c)
 	const T lambda2 = lambda * lambda;
 	
 	// First radiation constant (c1L)
-	const T c1l = T(2) * hc * c;
+	const T c1l = T{2} * hc * c;
 	
 	// Second radiation constant (c2)
 	const T c2 = hc / constants::boltzmann<T>;

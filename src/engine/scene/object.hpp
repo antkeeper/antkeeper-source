@@ -57,7 +57,9 @@ public:
 	void look_at(const vector_type& position, const vector_type& target, const vector_type& up);
 
 	/**
-	 * Sets the scene object's transform.
+	 * Sets the transform of the object.
+	 *
+	 * @param transform Object transform.
 	 */
 	inline void set_transform(const transform_type& transform)
 	{
@@ -66,7 +68,9 @@ public:
 	}
 
 	/**
-	 * Sets the scene object's translation.
+	 * Sets the translation of the object.
+	 *
+	 * @param translation Object translation.
 	 */
 	inline void set_translation(const vector_type& translation)
 	{
@@ -75,58 +79,59 @@ public:
 	}
 	
 	/**
-	 * Sets the scene object's rotation.
+	 * Sets the rotation of the object.
+	 *
+	 * @param rotation Object rotation.
 	 */
 	inline void set_rotation(const quaternion_type& rotation)
 	{
 		m_transform.rotation = rotation;
 		transformed();
 	}
-
+	
 	/**
-	 * Sets the scene object's scale.
+	 * Sets the scale of the object.
+	 *
+	 * @params scale Object scale.
 	 */
+	/// @{
 	inline void set_scale(const vector_type& scale)
 	{
 		m_transform.scale = scale;
 		transformed();
 	}
+	inline void set_scale(float scale)
+	{
+		m_transform.scale = {scale, scale, scale};
+		transformed();
+	}
+	/// @}
 
-	/**
-	 * Returns the transform.
-	 */
+	/// Returns the transform of the object.
 	[[nodiscard]] inline const transform_type& get_transform() const noexcept
 	{
 		return m_transform;
 	}
 
-	/**
-	 * Returns the transform's translation vector.
-	 */
+	/// Returns the translation of the object.
 	[[nodiscard]] inline const vector_type& get_translation() const noexcept
 	{
 		return m_transform.translation;
 	}
 
-	/**
-	 * Returns the transform's rotation quaternion.
-	 */
+	/// Returns the rotation of the object.
 	[[nodiscard]] inline const quaternion_type& get_rotation() const noexcept
 	{
 		return m_transform.rotation;
 	}
 
-	/**
-	 * Returns the transform's scale vector.
-	 */
+	/// Returns the scale of the object.
 	[[nodiscard]] inline const vector_type& get_scale() const noexcept
 	{
 		return m_transform.scale;
 	}
 	
-	/**
-	 * Returns the bounds of the object.
-	 */
+	/// Returns the bounds of the object.
 	[[nodiscard]] virtual const aabb_type& get_bounds() const noexcept = 0;
 
 protected:

@@ -22,14 +22,13 @@
 
 #include "game/systems/updatable-system.hpp"
 #include <engine/entity/id.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/matrix.hpp>
 #include "game/components/blackbody-component.hpp"
-#include "game/components/celestial-body-component.hpp"
 #include <vector>
 
-
 /**
- * Calculates the RGB luminous intensity of blackbody radiators.
+ * Calculates the color and luminance of blackbody radiators.
  */
 class blackbody_system:
 	public updatable_system
@@ -38,7 +37,7 @@ public:
 	explicit blackbody_system(entity::registry& registry);
 	~blackbody_system();
 	
-	virtual void update(float t, float dt);
+	void update(float t, float dt) override;
 	
 	/**
 	 * Sets the blackbody illuminant.
@@ -48,16 +47,14 @@ public:
 	void set_illuminant(const math::vector2<double>& illuminant);
 	
 private:
-	void update_luminance(entity::id entity_id);
+	void update_blackbody(entity::id entity_id);
 	
 	void on_blackbody_construct(entity::registry& registry, entity::id entity_id);
 	void on_blackbody_update(entity::registry& registry, entity::id entity_id);
 	
-	void on_celestial_body_construct(entity::registry& registry, entity::id entity_id);
-	void on_celestial_body_update(entity::registry& registry, entity::id entity_id);
-	
-	math::vector2<double> illuminant;
-	std::vector<double> visible_wavelengths_nm;
+	std::vector<double> m_visible_wavelengths_nm;
+	math::vector2<double> m_illuminant;
+	math::matrix3x3<double> m_xyz_to_rgb;
 };
 
 
