@@ -22,10 +22,7 @@
 namespace gl {
 
 texture_1d::texture_1d(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data):
-	texture(width, type, format, color_space, data)
-{}
-
-texture_1d::~texture_1d()
+	texture(width, false, type, format, color_space, data)
 {}
 
 void texture_1d::resize(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)

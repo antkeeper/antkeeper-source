@@ -199,9 +199,68 @@ static bool load_texture_2d_property(resource_manager& resource_manager, render:
 	return true;
 }
 
+static bool load_texture_3d_property(resource_manager& resource_manager, render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
+{
+	// If JSON element is an array
+	if (json.is_array())
+	{
+		// Create variable
+		auto variable = std::make_shared<render::material_texture_3d>(json.size());
+		
+		// Load textures
+		std::size_t i = 0;
+		for (const auto& element: json)
+		{
+			variable->set(i, resource_manager.load<gl::texture_3d>(element.get<std::string>()));
+			++i;
+		}
+		
+		material.set_variable(key, variable);
+	}
+	else
+	{
+		// Create variable
+		auto variable = std::make_shared<render::material_texture_3d>(json.size());
+		
+		// Load texture
+		variable->set(resource_manager.load<gl::texture_3d>(json.get<std::string>()));
+		
+		material.set_variable(key, variable);
+	}
+	
+	return true;
+}
+
 static bool load_texture_cube_property(resource_manager& resource_manager, render::material& material, hash::fnv1a32_t key, const nlohmann::json& json)
 {
-	return false;
+	// If JSON element is an array
+	if (json.is_array())
+	{
+		// Create variable
+		auto variable = std::make_shared<render::material_texture_cube>(json.size());
+		
+		// Load textures
+		std::size_t i = 0;
+		for (const auto& element: json)
+		{
+			variable->set(i, resource_manager.load<gl::texture_cube>(element.get<std::string>()));
+			++i;
+		}
+		
+		material.set_variable(key, variable);
+	}
+	else
+	{
+		// Create variable
+		auto variable = std::make_shared<render::material_texture_cube>(json.size());
+		
+		// Load texture
+		variable->set(resource_manager.load<gl::texture_cube>(json.get<std::string>()));
+		
+		material.set_variable(key, variable);
+	}
+	
+	return true;
 }
 
 template <typename T>
@@ -444,6 +503,10 @@ std::unique_ptr<render::material> resource_loader<render::material>::load(::reso
 			else if (type == "texture_2d")
 			{
 				load_texture_2d_property(resource_manager, *material, key, value_element.value());
+			}
+			else if (type == "texture_3d")
+			{
+				load_texture_3d_property(resource_manager, *material, key, value_element.value());
 			}
 			else if (type == "texture_cube")
 			{

@@ -30,11 +30,12 @@ namespace gl {
 class texture_3d: public texture
 {
 public:
-	/// @copydoc texture::texture(std::uint16_t, std::uint16_t, std::uint16_t, gl::pixel_type, gl::pixel_format, gl::color_space, const std::byte*)
 	texture_3d(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
 	
-	/// Destructs a 3D texture.
-	virtual ~texture_3d();
+	[[nodiscard]] inline constexpr texture_type get_texture_type() const noexcept override
+	{
+		return texture_type::three_dimensional;
+	}
 	
 	/// @copydoc texture::resize(std::uint16_t, std::uint16_t, std::uint16_t, gl::pixel_type, gl::pixel_format, gl::color_space, const std::byte*)
 	virtual void resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data);

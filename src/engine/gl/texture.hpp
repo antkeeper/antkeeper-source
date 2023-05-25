@@ -24,6 +24,7 @@
 #include <engine/gl/pixel-format.hpp>
 #include <engine/gl/pixel-type.hpp>
 #include <engine/gl/texture-filter.hpp>
+#include <engine/gl/texture-type.hpp>
 #include <engine/gl/texture-wrapping.hpp>
 #include <array>
 #include <cstdint>
@@ -45,28 +46,9 @@ class texture
 {
 public:
 	/**
-	 * Constructs a texture.
-	 *
-	 * @param width Texture width, in pixels.
-	 * @param height Texture height, in pixels. For 2D or 3D textures.
-	 * @param depth Texture depth, in pixels. For 3D textures only.
-	 * @param type Pixel component data type.
-	 * @param format Pixel format.
-	 * @param color_space Color space of the pixel data.
-	 * @param data Pointer to pixel data.
-	 *
-	 * @warning If the sRGB color space is specified, pixel data will be stored internally as 8 bits per channel, and automatically converted to linear space before reading.
-	 */
-	/// @{
-	texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
-	texture(std::uint16_t width, std::uint16_t height, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
-	explicit texture(std::uint16_t width, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
-	/// @}
-	
-	/**
 	 * Destructs a texture.
 	 */
-	virtual ~texture() = 0;
+	virtual ~texture();
 	
 	/**
 	 * Sets the texture filtering modes.
@@ -83,37 +65,89 @@ public:
 	 */
 	void set_max_anisotropy(float anisotropy);
 	
+	/// Returns the texture type.
+	[[nodiscard]] virtual constexpr texture_type get_texture_type() const noexcept = 0;
+	
 	/// Returns the dimensions of the texture, in pixels.
-	const std::array<std::uint16_t, 3>& get_dimensions() const;
+	[[nodiscard]] inline const std::array<std::uint16_t, 3>& get_dimensions() const noexcept
+	{
+		return m_dimensions;
+	}
 	
 	/// Returns the width of the texture, in pixels.
-	const std::uint16_t& get_width() const;
+	[[nodiscard]] inline std::uint16_t get_width() const noexcept
+	{
+		return m_dimensions[0];
+	}
 	
 	/// Returns the height of the texture, in pixels.
-	const std::uint16_t& get_height() const;
+	[[nodiscard]] inline std::uint16_t get_height() const noexcept
+	{
+		return m_dimensions[1];
+	}
 	
 	/// Returns the depth of the texture, in pixels.
-	const std::uint16_t& get_depth() const;
+	[[nodiscard]] inline std::uint16_t get_depth() const noexcept
+	{
+		return m_dimensions[2];
+	}
 	
 	/// Returns the pixel type enumeration.
-	const pixel_type& get_pixel_type() const;
+	[[nodiscard]] inline pixel_type get_pixel_type() const noexcept
+	{
+		return m_pixel_type;
+	}
 	
 	/// Returns the pixel format enumeration.
-	const pixel_format& get_pixel_format() const;
+	[[nodiscard]] inline pixel_format get_pixel_format() const noexcept
+	{
+		return m_pixel_format;
+	}
 	
 	/// Returns the color space enumeration.
-	const color_space& get_color_space() const;
+	[[nodiscard]] inline color_space get_color_space() const noexcept
+	{
+		return m_color_space;
+	}
 	
 	/// Returns the wrapping modes of the texture.
-	const std::array<texture_wrapping, 3>& get_wrapping() const;
+	[[nodiscard]] inline const std::array<texture_wrapping, 3>& get_wrapping() const noexcept
+	{
+		return m_wrapping;
+	}
 	
 	/// Returns the filtering modes of the texture.
-	const std::tuple<texture_min_filter, texture_mag_filter>& get_filters() const;
+	[[nodiscard]] inline const std::tuple<texture_min_filter, texture_mag_filter>& get_filters() const noexcept
+	{
+		return m_filters;
+	}
 	
 	/// Returns the maximum anisotropy.
-	float get_max_anisotropy() const;
+	[[nodiscard]] inline float get_max_anisotropy() const noexcept
+	{
+		return m_max_anisotropy;
+	}
 	
 protected:
+	/**
+	 * Constructs a texture.
+	 *
+	 * @param width Texture width, in pixels.
+	 * @param height Texture height, in pixels. For 2D or 3D textures.
+	 * @param depth Texture depth, in pixels. For 3D textures only.
+	 * @param type Pixel component data type.
+	 * @param format Pixel format.
+	 * @param color_space Color space of the pixel data.
+	 * @param data Pointer to pixel data.
+	 *
+	 * @warning If the sRGB color space is specified, pixel data will be stored internally as 8 bits per channel, and automatically converted to linear space before reading.
+	 */
+	/// @{
+	texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth, bool cube = false, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
+	texture(std::uint16_t width, std::uint16_t height, bool cube = false, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
+	explicit texture(std::uint16_t width, bool cube = false, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
+	/// @}
+	
 	/**
 	 * Sets the texture wrapping modes.
 	 *
@@ -147,72 +181,24 @@ protected:
 	/// @}
 
 private:
+	void update_cube_faces(unsigned int gl_internal_format, unsigned int gl_format, unsigned int gl_type, const std::byte* data);
+	
 	friend class framebuffer;
 	friend class gl_shader_texture_1d;
 	friend class gl_shader_texture_2d;
 	friend class gl_shader_texture_3d;
 	friend class gl_shader_texture_cube;
 	
-	unsigned int gl_texture_target{0};
-	unsigned int gl_texture_id{0};
-	std::array<std::uint16_t, 3> dimensions{0, 0, 0};
-	gl::pixel_type pixel_type{0};
-	gl::pixel_format pixel_format{0};
-	gl::color_space color_space{0};
-	std::array<texture_wrapping, 3> wrapping;
-	std::tuple<texture_min_filter, texture_mag_filter> filters;
-	float max_anisotropy{0.0f};
+	unsigned int m_gl_texture_target{};
+	unsigned int m_gl_texture_id{};
+	std::array<std::uint16_t, 3> m_dimensions{};
+	gl::pixel_type m_pixel_type{};
+	gl::pixel_format m_pixel_format{};
+	gl::color_space m_color_space{};
+	std::array<texture_wrapping, 3> m_wrapping{texture_wrapping::repeat, texture_wrapping::repeat, texture_wrapping::repeat};
+	std::tuple<texture_min_filter, texture_mag_filter> m_filters{texture_min_filter::linear_mipmap_linear, texture_mag_filter::linear};
+	float m_max_anisotropy{};
 };
-
-inline const std::array<std::uint16_t, 3>& texture::get_dimensions() const
-{
-	return dimensions;
-}
-
-inline const std::uint16_t& texture::get_width() const
-{
-	return dimensions[0];
-}
-
-inline const std::uint16_t& texture::get_height() const
-{
-	return dimensions[1];
-}
-
-inline const std::uint16_t& texture::get_depth() const
-{
-	return dimensions[2];
-}
-
-inline const pixel_type& texture::get_pixel_type() const
-{
-	return pixel_type;
-}
-
-inline const pixel_format& texture::get_pixel_format() const
-{
-	return pixel_format;
-}
-
-inline const color_space& texture::get_color_space() const
-{
-	return color_space;
-}
-
-inline const std::array<texture_wrapping, 3>& texture::get_wrapping() const
-{
-	return wrapping;
-}
-
-inline const std::tuple<texture_min_filter, texture_mag_filter>& texture::get_filters() const
-{
-	return filters;
-}
-
-inline float texture::get_max_anisotropy() const
-{
-	return max_anisotropy;
-}
 
 } // namespace gl
 

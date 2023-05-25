@@ -40,7 +40,10 @@ enum class light_type: std::uint8_t
 	point,
 	
 	/// Rectangle light.
-	rectangle
+	rectangle,
+	
+	/// Sky light.
+	sky
 };
 
 } // namespace scene

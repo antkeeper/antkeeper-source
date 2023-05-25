@@ -129,8 +129,8 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 				[&ctx]()
 				{
 					ctx.state_machine.pop();
-					//ctx.state_machine.emplace(std::make_unique<nuptial_flight_state>(ctx));
-					//ctx.state_machine.emplace(std::make_unique<collection_menu_state>(ctx));
+					// ctx.state_machine.emplace(std::make_unique<nuptial_flight_state>(ctx));
+					// ctx.state_machine.emplace(std::make_unique<collection_menu_state>(ctx));
 					// ctx.state_machine.emplace(std::make_unique<nest_selection_state>(ctx));
 					ctx.state_machine.emplace(std::make_unique<nest_view_state>(ctx));
 				}

@@ -58,14 +58,20 @@ void framebuffer::attach(framebuffer_attachment_type attachment_type, texture_2d
 	glBindFramebuffer(GL_FRAMEBUFFER, gl_framebuffer_id);
 	
 	GLenum gl_attachment = attachment_lut[static_cast<std::size_t>(attachment_type)];
-	glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment, GL_TEXTURE_2D, texture->gl_texture_id, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment, GL_TEXTURE_2D, texture->m_gl_texture_id, 0);
 	
 	if (attachment_type == framebuffer_attachment_type::color)
+	{
 		color_attachment = texture;
+	}
 	else if (attachment_type == framebuffer_attachment_type::depth)
+	{
 		depth_attachment = texture;
+	}
 	else if (attachment_type == framebuffer_attachment_type::stencil)
+	{
 		stencil_attachment = texture;
+	}
 	
 	if (!color_attachment)
 	{

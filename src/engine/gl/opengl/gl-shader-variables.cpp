@@ -451,7 +451,7 @@ void gl_shader_texture_1d::update(const texture_1d& value) const noexcept
 {
 	// Bind texture to texture unit
 	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices.front()));
-	glBindTexture(GL_TEXTURE_1D, value.gl_texture_id);
+	glBindTexture(GL_TEXTURE_1D, value.m_gl_texture_id);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location, gl_texture_unit_indices.front());
@@ -463,7 +463,7 @@ void gl_shader_texture_1d::update(const texture_1d& value, std::size_t index) co
 	
 	// Bind texture to texture unit
 	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_index));
-	glBindTexture(GL_TEXTURE_1D, value.gl_texture_id);
+	glBindTexture(GL_TEXTURE_1D, value.m_gl_texture_id);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location + static_cast<GLint>(index), gl_texture_index);
@@ -475,7 +475,7 @@ void gl_shader_texture_1d::update(std::span<const texture_1d* const> values, std
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_1D, values[i]->gl_texture_id);
+		glBindTexture(GL_TEXTURE_1D, values[i]->m_gl_texture_id);
 	}
 	
 	// Pass texture unit indices to shader
@@ -488,7 +488,7 @@ void gl_shader_texture_1d::update(std::span<const std::shared_ptr<texture_1d>> v
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_1D, values[i]->gl_texture_id);
+		glBindTexture(GL_TEXTURE_1D, values[i]->m_gl_texture_id);
 	}
 	
 	// Pass texture unit indices to shader
@@ -507,7 +507,7 @@ void gl_shader_texture_2d::update(const texture_2d& value) const noexcept
 {
 	// Bind texture to texture unit
 	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices.front()));
-	glBindTexture(GL_TEXTURE_2D, value.gl_texture_id);
+	glBindTexture(GL_TEXTURE_2D, value.m_gl_texture_id);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location, gl_texture_unit_indices.front());
@@ -519,7 +519,7 @@ void gl_shader_texture_2d::update(const texture_2d& value, std::size_t index) co
 	
 	// Bind texture to texture unit
 	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_index));
-	glBindTexture(GL_TEXTURE_2D, value.gl_texture_id);
+	glBindTexture(GL_TEXTURE_2D, value.m_gl_texture_id);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location + static_cast<GLint>(index), gl_texture_index);
@@ -531,7 +531,7 @@ void gl_shader_texture_2d::update(std::span<const texture_2d* const> values, std
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_2D, values[i]->gl_texture_id);
+		glBindTexture(GL_TEXTURE_2D, values[i]->m_gl_texture_id);
 	}
 	
 	// Pass texture unit indices to shader
@@ -544,7 +544,7 @@ void gl_shader_texture_2d::update(std::span<const std::shared_ptr<texture_2d>> v
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_2D, values[i]->gl_texture_id);
+		glBindTexture(GL_TEXTURE_2D, values[i]->m_gl_texture_id);
 	}
 	
 	// Pass texture unit indices to shader
@@ -563,7 +563,7 @@ void gl_shader_texture_3d::update(const texture_3d& value) const noexcept
 {
 	// Bind texture to texture unit
 	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices.front()));
-	glBindTexture(GL_TEXTURE_3D, value.gl_texture_id);
+	glBindTexture(GL_TEXTURE_3D, value.m_gl_texture_id);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location, gl_texture_unit_indices.front());
@@ -575,7 +575,7 @@ void gl_shader_texture_3d::update(const texture_3d& value, std::size_t index) co
 	
 	// Bind texture to texture unit
 	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_index));
-	glBindTexture(GL_TEXTURE_3D, value.gl_texture_id);
+	glBindTexture(GL_TEXTURE_3D, value.m_gl_texture_id);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location + static_cast<GLint>(index), gl_texture_index);
@@ -587,7 +587,7 @@ void gl_shader_texture_3d::update(std::span<const texture_3d* const> values, std
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_3D, values[i]->gl_texture_id);
+		glBindTexture(GL_TEXTURE_3D, values[i]->m_gl_texture_id);
 	}
 	
 	// Pass texture unit indices to shader
@@ -600,7 +600,7 @@ void gl_shader_texture_3d::update(std::span<const std::shared_ptr<texture_3d>> v
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_3D, values[i]->gl_texture_id);
+		glBindTexture(GL_TEXTURE_3D, values[i]->m_gl_texture_id);
 	}
 	
 	// Pass texture unit indices to shader
@@ -619,7 +619,7 @@ void gl_shader_texture_cube::update(const texture_cube& value) const noexcept
 {
 	// Bind texture to texture unit
 	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices.front()));
-	glBindTexture(GL_TEXTURE_CUBE_MAP, value.gl_texture_id);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, value.m_gl_texture_id);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location, gl_texture_unit_indices.front());
@@ -631,7 +631,7 @@ void gl_shader_texture_cube::update(const texture_cube& value, std::size_t index
 	
 	// Bind texture to texture unit
 	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_index));
-	glBindTexture(GL_TEXTURE_CUBE_MAP, value.gl_texture_id);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, value.m_gl_texture_id);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location + static_cast<GLint>(index), gl_texture_index);
@@ -643,7 +643,7 @@ void gl_shader_texture_cube::update(std::span<const texture_cube* const> values,
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_CUBE_MAP, values[i]->gl_texture_id);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, values[i]->m_gl_texture_id);
 	}
 	
 	// Pass texture unit indices to shader
@@ -656,7 +656,7 @@ void gl_shader_texture_cube::update(std::span<const std::shared_ptr<texture_cube
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
 		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_CUBE_MAP, values[i]->gl_texture_id);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, values[i]->m_gl_texture_id);
 	}
 	
 	// Pass texture unit indices to shader

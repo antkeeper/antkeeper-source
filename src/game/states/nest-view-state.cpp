@@ -193,7 +193,7 @@ nest_view_state::nest_view_state(::game& ctx):
 		larva_eid,
 		[&](auto& component)
 		{
-			component.object->set_translation({-10.0f, -1.5f, -10.0f});
+			component.object->set_translation({5.0f, 0.0f, 5.0f});
 		}
 	);
 	
@@ -206,7 +206,20 @@ nest_view_state::nest_view_state(::game& ctx):
 		suzanne_eid,
 		[&](auto& component)
 		{
-			component.object->set_translation({-13.0f, 0.5f, -6.0f});
+			component.object->set_translation({0.0f, 0.0f, 0.0f});
+		}
+	);
+	
+	// Create sphere
+	auto sphere_eid = ctx.entity_registry->create();
+	auto sphere_static_mesh = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
+	ctx.entity_registry->emplace<scene_component>(sphere_eid, std::move(sphere_static_mesh), std::uint8_t{2});
+	ctx.entity_registry->patch<scene_component>
+	(
+		sphere_eid,
+		[&](auto& component)
+		{
+			component.object->set_translation({0.0f, 0.0f, 0.0f});
 		}
 	);
 	
