@@ -26,7 +26,7 @@
 namespace gl {
 
 class rasterizer;
-class texture_2d;
+class texture;
 
 enum class framebuffer_attachment_type: std::uint8_t
 {
@@ -59,63 +59,62 @@ public:
 	 * Attaches a color, depth, or stencil texture to the framebuffer.
 	 *
 	 * @param attachment_type Type of attachment.
+	 * @param texture Texture to attach.
+	 * @param level Mip level of the texture to attach.
 	 */
-	void attach(framebuffer_attachment_type attachment_type, texture_2d* texture);
+	void attach(framebuffer_attachment_type attachment_type, texture* texture, std::uint8_t level = 0);
 	
 	/// Returns the dimensions of the framebuffer, in pixels.
-	const std::array<int, 2>& get_dimensions() const;
+	[[nodiscard]] inline const std::array<int, 2>& get_dimensions() const noexcept
+	{
+		return m_dimensions;
+	}
 	
-	const texture_2d* get_color_attachment() const;
-	texture_2d* get_color_attachment();
-	const texture_2d* get_depth_attachment() const;
-	texture_2d* get_depth_attachment();
-	const texture_2d* get_stencil_attachment() const;
-	texture_2d* get_stencil_attachment();
+	/// Returns the attached color texture, if any.
+	/// @{
+	[[nodiscard]] inline const texture* get_color_attachment() const noexcept
+	{
+		return m_color_attachment;
+	}
+	[[nodiscard]] inline texture* get_color_attachment() noexcept
+	{
+		return m_color_attachment;
+	}
+	/// @}
+	
+	/// Returns the attached depth texture, if any.
+	/// @{
+	[[nodiscard]] inline const texture* get_depth_attachment() const noexcept
+	{
+		return m_depth_attachment;
+	}
+	[[nodiscard]] inline texture* get_depth_attachment() noexcept
+	{
+		return m_depth_attachment;
+	}
+	/// @}
+	
+	/// Returns the attached stencil texture, if any.
+	/// @{
+	[[nodiscard]] inline const texture* get_stencil_attachment() const noexcept
+	{
+		return m_stencil_attachment;
+	}
+	[[nodiscard]] inline texture* get_stencil_attachment() noexcept
+	{
+		return m_stencil_attachment;
+	}
+	/// @}
 
 private:
 	friend class rasterizer;
 	
-	unsigned int gl_framebuffer_id{0};
-	std::array<int, 2> dimensions{0, 0};
-	texture_2d* color_attachment{nullptr};
-	texture_2d* depth_attachment{nullptr};
-	texture_2d* stencil_attachment{nullptr};
+	unsigned int m_gl_framebuffer_id{0};
+	std::array<int, 2> m_dimensions{0, 0};
+	texture* m_color_attachment{nullptr};
+	texture* m_depth_attachment{nullptr};
+	texture* m_stencil_attachment{nullptr};
 };
-
-inline const std::array<int, 2>& framebuffer::get_dimensions() const
-{
-	return dimensions;
-}
-
-inline const texture_2d* framebuffer::get_color_attachment() const
-{
-	return color_attachment;
-}
-
-inline texture_2d* framebuffer::get_color_attachment()
-{
-	return color_attachment;
-}
-
-inline const texture_2d* framebuffer::get_depth_attachment() const
-{
-	return depth_attachment;
-}
-
-inline texture_2d* framebuffer::get_depth_attachment()
-{
-	return depth_attachment;
-}
-
-inline const texture_2d* framebuffer::get_stencil_attachment() const
-{
-	return stencil_attachment;
-}
-
-inline texture_2d* framebuffer::get_stencil_attachment()
-{
-	return stencil_attachment;
-}
 
 } // namespace gl
 

@@ -99,6 +99,9 @@ void final_pass::render(render::context& ctx)
 	{
 		command();
 	}
+	
+	// Increment current frame
+	++frame;
 }
 
 void final_pass::set_color_texture(const gl::texture_2d* texture)
@@ -186,6 +189,10 @@ void final_pass::rebuild_command_buffer()
 	if (const auto var = shader_program->variable("time"))
 	{
 		command_buffer.emplace_back([&, var](){var->update(time);});
+	}
+	if (const auto frame_var = shader_program->variable("frame"))
+	{
+		command_buffer.emplace_back([&, frame_var](){frame_var->update(frame);});
 	}
 	
 	command_buffer.emplace_back

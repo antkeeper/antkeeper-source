@@ -144,7 +144,7 @@ void atmosphere_system::update_sky_pass()
 	sky_pass->set_rayleigh_parameters(static_cast<float>(component->rayleigh_scale_height), math::vector<float, 3>(component->rayleigh_scattering));
 	sky_pass->set_mie_parameters(static_cast<float>(component->mie_scale_height), static_cast<float>(component->mie_scattering), static_cast<float>(component->mie_extinction), static_cast<float>(component->mie_anisotropy));
 	sky_pass->set_ozone_parameters(static_cast<float>(component->ozone_lower_limit), static_cast<float>(component->ozone_upper_limit), static_cast<float>(component->ozone_mode), math::vector<float, 3>(component->ozone_absorption));
-	sky_pass->set_airglow_illuminance(math::vector<float, 3>(component->airglow_illuminance));
+	sky_pass->set_airglow_luminance(math::vector<float, 3>(component->airglow_luminance));
 }
 
 void atmosphere_system::on_atmosphere_construct(entity::registry& registry, entity::id entity_id)

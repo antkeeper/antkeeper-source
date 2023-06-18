@@ -737,11 +737,12 @@ void game::setup_rendering()
 		
 		surface_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
 		surface_clear_pass->set_clear_color({0.0f, 0.0f, 0.0f, 1.0f});
-		surface_clear_pass->set_cleared_buffers(true, true, false);
 		surface_clear_pass->set_clear_depth(-1.0f);
+		surface_clear_pass->set_clear_stencil(0);
+		surface_clear_pass->set_cleared_buffers(true, true, true);
 		
 		sky_pass = std::make_unique<render::sky_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
-		sky_pass->set_magnification(3.0f);
+		// sky_pass->set_magnification(3.0f);
 		
 		ground_pass = std::make_unique<render::ground_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
 		
@@ -786,7 +787,7 @@ void game::setup_rendering()
 	}
 	
 	// Create renderer
-	renderer = std::make_unique<render::renderer>();
+	renderer = std::make_unique<render::renderer>(*window->get_rasterizer(), *resource_manager);
 	
 	debug::log::trace("Set up rendering");
 }
@@ -987,7 +988,7 @@ void game::setup_ui()
 			// Update camera projection matrix
 			surface_camera->set_perspective
 			(
-				surface_camera->get_fov(),
+				surface_camera->get_vertical_fov(),
 				viewport_aspect_ratio,
 				surface_camera->get_clip_near(),
 				surface_camera->get_clip_far()
@@ -1085,6 +1086,7 @@ void game::setup_systems()
 	
 	// RGB wavelengths for atmospheric scatteering
 	rgb_wavelengths = {680, 550, 440};
+	// rgb_wavelengths = {602.21436, 541.0647, 448.14404};
 	
 	// Setup atmosphere system
 	atmosphere_system = std::make_unique<::atmosphere_system>(*entity_registry);

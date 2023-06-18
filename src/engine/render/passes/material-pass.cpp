@@ -38,11 +38,11 @@
 #include <engine/render/context.hpp>
 #include <engine/scene/camera.hpp>
 #include <engine/scene/collection.hpp>
-#include <engine/scene/ambient-light.hpp>
 #include <engine/scene/directional-light.hpp>
 #include <engine/scene/spot-light.hpp>
 #include <engine/scene/point-light.hpp>
 #include <engine/scene/rectangle-light.hpp>
+#include <engine/scene/light-probe.hpp>
 #include <engine/config.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/projection.hpp>
@@ -122,6 +122,9 @@ material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	// Load LTC LUT textures
 	ltc_lut_1 = resource_manager->load<gl::texture_2d>("ltc-lut-1.tex");
 	ltc_lut_2 = resource_manager->load<gl::texture_2d>("ltc-lut-2.tex");
+	
+	// Load IBL BRDF LUT texture
+	brdf_lut = resource_manager->load<gl::texture_2d>("brdf-lut.tex");
 }
 
 void material_pass::render(render::context& ctx)
@@ -315,13 +318,24 @@ void material_pass::evaluate_camera(const render::context& ctx)
 void material_pass::evaluate_lighting(const render::context& ctx)
 {
 	// Reset light and shadow counts
-	ambient_light_count = 0;
-	point_light_count = 0;
+	light_probe_count = 0;
 	directional_light_count = 0;
 	directional_shadow_count = 0;
 	spot_light_count = 0;
 	point_light_count = 0;
 	rectangle_light_count = 0;
+	
+	const auto& light_probes = ctx.collection->get_objects(scene::light_probe::object_type_id);
+	for (const scene::object_base* object: light_probes)
+	{
+		if (!light_probe_count)
+		{
+			const scene::light_probe& light_probe = static_cast<const scene::light_probe&>(*object);
+			++light_probe_count;
+			light_probe_luminance_texture = light_probe.get_luminance_texture().get();
+			light_probe_illuminance_texture = light_probe.get_illuminance_texture().get();
+		}
+	}
 	
 	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
 	for (const scene::object_base* object: lights)
@@ -329,22 +343,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 		const scene::light& light = static_cast<const scene::light&>(*object);
 		
 		switch (light.get_light_type())
-		{
-			// Add ambient light
-			case scene::light_type::ambient:
-			{
-				const std::size_t index = ambient_light_count;
-				
-				++ambient_light_count;
-				if (ambient_light_count > ambient_light_colors.size())
-				{
-					ambient_light_colors.resize(ambient_light_count);
-				}
-				
-				ambient_light_colors[index] = static_cast<const scene::ambient_light&>(light).get_colored_illuminance() * ctx.camera->get_exposure_normalization();
-				break;
-			}
-			
+		{	
 			// Add directional light
 			case scene::light_type::directional:
 			{
@@ -376,7 +375,7 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 						directional_shadow_matrices.resize(directional_shadow_count);
 					}
 					
-					directional_shadow_maps[index] = directional_light.get_shadow_framebuffer()->get_depth_attachment();
+					directional_shadow_maps[index] = static_cast<const gl::texture_2d*>(directional_light.get_shadow_framebuffer()->get_depth_attachment());
 					directional_shadow_biases[index] = directional_light.get_shadow_bias();
 					directional_shadow_splits[index] = &directional_light.get_shadow_cascade_distances();
 					directional_shadow_matrices[index] = &directional_light.get_shadow_cascade_matrices();
@@ -458,12 +457,12 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 	}
 	
 	// Generate lighting state hash
-	lighting_state_hash = std::hash<std::size_t>{}(ambient_light_count);
+	lighting_state_hash = std::hash<std::size_t>{}(light_probe_count);
 	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(directional_light_count));
 	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(directional_shadow_count));
 	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(point_light_count));
 	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(spot_light_count));
-	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(point_light_count));
+	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(rectangle_light_count));
 }
 
 void material_pass::evaluate_misc(const render::context& ctx)
@@ -498,7 +497,7 @@ std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const
 	
 	definitions["FRAGMENT_OUTPUT_COLOR"] = std::to_string(0);
 	
-	definitions["AMBIENT_LIGHT_COUNT"] = std::to_string(ambient_light_count);
+	definitions["LIGHT_PROBE_COUNT"] = std::to_string(light_probe_count);
 	definitions["DIRECTIONAL_LIGHT_COUNT"] = std::to_string(directional_light_count);
 	definitions["DIRECTIONAL_SHADOW_COUNT"] = std::to_string(directional_shadow_count);
 	definitions["POINT_LIGHT_COUNT"] = std::to_string(point_light_count);
@@ -547,6 +546,7 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 		command_buffer.emplace_back([&, clip_depth_var](){clip_depth_var->update(clip_depth);});
 	}
 	
+	// LTC variables
 	if (auto ltc_lut_1_var = shader_program.variable("ltc_lut_1"))
 	{
 		if (auto ltc_lut_2_var = shader_program.variable("ltc_lut_2"))
@@ -562,12 +562,41 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 		}
 	}
 	
-	// Update ambient light variables
-	if (ambient_light_count)
+	// IBL variables
+	if (auto brdf_lut_var = shader_program.variable("brdf_lut"))
 	{
-		if (auto ambient_light_colors_var = shader_program.variable("ambient_light_colors"))
+		command_buffer.emplace_back
+		(
+			[&, brdf_lut_var]()
+			{
+				brdf_lut_var->update(*brdf_lut);
+			}
+		);
+	}
+	
+	// Update light probe variables
+	if (light_probe_count)
+	{
+		if (auto light_probe_luminance_texture_var = shader_program.variable("light_probe_luminance_texture"))
 		{
-			command_buffer.emplace_back([&, ambient_light_colors_var](){ambient_light_colors_var->update(std::span<const float3>{ambient_light_colors.data(), ambient_light_count});});
+			command_buffer.emplace_back
+			(
+				[&, light_probe_luminance_texture_var]()
+				{
+					light_probe_luminance_texture_var->update(*light_probe_luminance_texture);
+				}
+			);
+		}
+		
+		if (auto light_probe_illuminance_texture_var = shader_program.variable("light_probe_illuminance_texture"))
+		{
+			command_buffer.emplace_back
+			(
+				[&, light_probe_illuminance_texture_var]()
+				{
+					light_probe_illuminance_texture_var->update(*light_probe_illuminance_texture);
+				}
+			);
 		}
 	}
 	

@@ -29,6 +29,7 @@
 #include <array>
 #include <cstdint>
 #include <cstddef>
+#include <span>
 #include <tuple>
 
 namespace gl {
@@ -51,12 +52,58 @@ public:
 	virtual ~texture();
 	
 	/**
-	 * Sets the texture filtering modes.
+	 * Reads texture pixel data from the GPU.
+	 *
+	 * @param[out] data Pixel data buffer.
+	 * @param[in] type Returned pixel component data type.
+	 * @param[in] format Returned pixel format.
+	 * @param[in] level Mip level to read.
+	 */
+	void read(std::span<std::byte> data, gl::pixel_type type, gl::pixel_format format, std::uint8_t level = 0) const;
+	
+	/**
+	 * Sets the texture filter modes.
 	 *
 	 * @param min_filter Texture minification filter mode.
 	 * @param mag_filter Texture magnification filter mode.
 	 */
 	void set_filters(texture_min_filter min_filter, texture_mag_filter mag_filter);
+	
+	/**
+	 * Sets the texture minification filter mode.
+	 *
+	 * @param filter Texture minification filter mode.
+	 */
+	void set_min_filter(texture_min_filter filter);
+	
+	/**
+	 * Sets the texture magnification filter mode.
+	 *
+	 * @param filter Texture magnification filter mode.
+	 */
+	void set_mag_filter(texture_mag_filter filter);
+	
+	/**
+	 * Sets the index of lowest mipmap level.
+	 *
+	 * @param level Index of the lowest mipmap level.
+	 */
+	void set_base_level(std::uint8_t level);
+	
+	/**
+	 * Sets the index of highest mipmap level.
+	 *
+	 * @param level Index of the highest mipmap level.
+	 */
+	void set_max_level(std::uint8_t level);
+	
+	/**
+	 * Sets the range of mipmap levels.
+	 *
+	 * @param base Index of the lowest mipmap level
+	 * @param max Index of the highest mipmap level.
+	 */
+	void set_mipmap_range(std::uint8_t base_level, std::uint8_t max_level);
 	
 	/**
 	 * Sets the maximum anisotropy.
@@ -120,6 +167,18 @@ public:
 	[[nodiscard]] inline const std::tuple<texture_min_filter, texture_mag_filter>& get_filters() const noexcept
 	{
 		return m_filters;
+	}
+	
+	/// Returns the index of the lowest mipmap level.
+	[[nodiscard]] inline std::uint8_t get_base_level() const noexcept
+	{
+		return m_base_level;
+	}
+	
+	/// Returns the index of the highest mipmap level.
+	[[nodiscard]] inline std::uint8_t get_max_level() const noexcept
+	{
+		return m_max_level;
 	}
 	
 	/// Returns the maximum anisotropy.
@@ -197,6 +256,8 @@ private:
 	gl::color_space m_color_space{};
 	std::array<texture_wrapping, 3> m_wrapping{texture_wrapping::repeat, texture_wrapping::repeat, texture_wrapping::repeat};
 	std::tuple<texture_min_filter, texture_mag_filter> m_filters{texture_min_filter::linear_mipmap_linear, texture_mag_filter::linear};
+	std::uint8_t m_base_level{};
+	std::uint8_t m_max_level{255};
 	float m_max_anisotropy{};
 };
 

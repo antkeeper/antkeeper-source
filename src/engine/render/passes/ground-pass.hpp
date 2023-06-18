@@ -55,7 +55,6 @@ private:
 	const gl::shader_variable* camera_position_var;
 	const gl::shader_variable* directional_light_colors_var;
 	const gl::shader_variable* directional_light_directions_var;
-	const gl::shader_variable* ambient_light_colors_var;
 	
 	std::shared_ptr<model> ground_model;
 	const material* ground_material;

@@ -159,6 +159,15 @@ void reset_control_profile(::control_profile& profile)
 	// Save camera
 	mappings.emplace("save_camera", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, 0, false));
 	mappings.emplace("save_camera", std::make_unique<input::key_mapping>(nullptr, input::scancode::right_ctrl, 0, false));
+	
+	// Adjust exposure
+	mappings.emplace("adjust_exposure", std::make_unique<input::key_mapping>(nullptr, input::scancode::b, 0, false));
+	
+	// Adjust time
+	mappings.emplace("adjust_time", std::make_unique<input::key_mapping>(nullptr, input::scancode::t, 0, false));
+	
+	// Adjust time
+	mappings.emplace("adjust_zoom", std::make_unique<input::key_mapping>(nullptr, input::scancode::z, 0, false));
 }
 
 void apply_control_profile(::game& ctx, const ::control_profile& profile)
@@ -215,6 +224,9 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.keeper_action_map, ctx.camera_9_action, "camera_9");
 	add_mappings(ctx.keeper_action_map, ctx.camera_10_action, "camera_10");
 	add_mappings(ctx.keeper_action_map, ctx.save_camera_action, "save_camera");
+	add_mappings(ctx.keeper_action_map, ctx.adjust_exposure_action, "adjust_exposure");
+	add_mappings(ctx.keeper_action_map, ctx.adjust_time_action, "adjust_time");
+	add_mappings(ctx.keeper_action_map, ctx.adjust_zoom_action, "adjust_zoom");
 }
 
 void update_control_profile(::game& ctx, ::control_profile& profile)
@@ -295,6 +307,9 @@ void update_control_profile(::game& ctx, ::control_profile& profile)
 	add_mappings(ctx.keeper_action_map, ctx.camera_9_action, "camera_9");
 	add_mappings(ctx.keeper_action_map, ctx.camera_10_action, "camera_10");
 	add_mappings(ctx.keeper_action_map, ctx.save_camera_action, "save_camera");
+	add_mappings(ctx.keeper_action_map, ctx.adjust_exposure_action, "adjust_exposure");
+	add_mappings(ctx.keeper_action_map, ctx.adjust_time_action, "adjust_time");
+	add_mappings(ctx.keeper_action_map, ctx.adjust_zoom_action, "adjust_zoom");
 }
 
 void setup_window_controls(::game& ctx)
@@ -608,5 +623,8 @@ void disable_keeper_controls(::game& ctx)
 	ctx.mouse_grip_action.reset();
 	ctx.mouse_zoom_action.reset();
 	ctx.focus_action.reset();
+	ctx.adjust_exposure_action.reset();
+	ctx.adjust_time_action.reset();
+	ctx.adjust_zoom_action.reset();
 }
 

@@ -27,9 +27,6 @@ namespace scene {
 /// Light types.
 enum class light_type: std::uint8_t
 {
-	/// Ambient light.
-	ambient,
-	
 	/// Directional light.
 	directional,
 	
@@ -40,10 +37,7 @@ enum class light_type: std::uint8_t
 	point,
 	
 	/// Rectangle light.
-	rectangle,
-	
-	/// Sky light.
-	sky
+	rectangle
 };
 
 } // namespace scene

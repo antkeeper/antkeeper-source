@@ -81,7 +81,7 @@ constexpr math::matrix<T, 3, 3> xyz_scaling =
  * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
  */
 template <class T>
-constexpr math::matrix<T, 3, 3> matrix(const math::vector2<T>& w0, const math::vector2<T>& w1, const math::matrix<T, 3, 3>& cone_response = bradford<T>)
+[[nodiscard]] constexpr math::matrix<T, 3, 3> matrix(const math::vector2<T>& w0, const math::vector2<T>& w1, const math::matrix<T, 3, 3>& cone_response = bradford<T>) noexcept
 {
 	// Convert CIE xy chromaticity coordinates to CIE XYZ colors
 	const math::vector3<T> w0_xyz = {w0[0] / w0[1], T{1}, (T{1} - w0[0] - w0[1]) / w0[1]};

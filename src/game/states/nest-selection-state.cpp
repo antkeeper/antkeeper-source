@@ -207,7 +207,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
 	// Set world time
-	::world::set_time(ctx, 2022, 6, 21, 18, 0, 0.0);
+	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
 	
 	// Init time scale
 	double time_scale = 60.0;
@@ -295,6 +295,24 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	spring->set_damping(1.0f);
 	ctx.entity_registry->emplace<rigid_body_constraint_component>(spring_eid, std::move(spring));
 	*/
+	
+	sky_probe = std::make_shared<scene::light_probe>();
+	sky_probe->set_luminance_texture(std::make_shared<gl::texture_cube>(384, 512, gl::pixel_type::float_16, gl::pixel_format::rgb));
+	ctx.sky_pass->set_sky_probe(sky_probe);
+	ctx.surface_scene->add_object(*sky_probe);
+	
+	// Create sphere
+	auto sphere_eid = ctx.entity_registry->create();
+	auto sphere_static_mesh = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
+	ctx.entity_registry->emplace<scene_component>(sphere_eid, std::move(sphere_static_mesh), std::uint8_t{1});
+	ctx.entity_registry->patch<scene_component>
+	(
+		sphere_eid,
+		[&](auto& component)
+		{
+			component.object->set_translation({0.0f, 10.0f, 0.0f});
+		}
+	);
 	
 	// Queue enable game controls
 	ctx.function_queue.push
@@ -494,6 +512,102 @@ void nest_selection_state::setup_controls()
 		)
 	);
 	
+	// Enable/toggle mouse look
+	action_subscriptions.emplace_back
+	(
+		ctx.mouse_pick_action.get_activated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				mouse_drag = true;
+			}
+		)
+	);
+	
+	// Disable mouse look
+	action_subscriptions.emplace_back
+	(
+		ctx.mouse_pick_action.get_deactivated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				mouse_drag = false;
+			}
+		)
+	);
+	
+	// Enable/toggle adjust exposure
+	action_subscriptions.emplace_back
+	(
+		ctx.adjust_exposure_action.get_activated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				adjust_exposure = true;
+			}
+		)
+	);
+	
+	// Disable adjust exposure
+	action_subscriptions.emplace_back
+	(
+		ctx.adjust_exposure_action.get_deactivated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				adjust_exposure = false;
+			}
+		)
+	);
+	
+	// Enable/toggle adjust time
+	action_subscriptions.emplace_back
+	(
+		ctx.adjust_time_action.get_activated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				adjust_time = true;
+			}
+		)
+	);
+	
+	// Disable adjust time
+	action_subscriptions.emplace_back
+	(
+		ctx.adjust_time_action.get_deactivated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				adjust_time = false;
+			}
+		)
+	);
+	
+	// Enable/toggle adjust zoom
+	action_subscriptions.emplace_back
+	(
+		ctx.adjust_zoom_action.get_activated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				adjust_zoom = true;
+			}
+		)
+	);
+	
+	// Disable adjust zoom
+	action_subscriptions.emplace_back
+	(
+		ctx.adjust_zoom_action.get_deactivated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				adjust_zoom = false;
+			}
+		)
+	);
+	
 	constexpr float movement_speed = 200.0f;
 	
 	auto move_first_person_camera_rig = [&](const float2& direction, float speed)
@@ -545,6 +659,42 @@ void nest_selection_state::setup_controls()
 	(
 		[&, move_first_person_camera_rig](const auto& event)
 		{
+			if (adjust_time)
+			{
+				const double sensitivity = 1.0 / static_cast<double>(ctx.window->get_viewport_size().x());
+				const double t = ctx.astronomy_system->get_time();
+				::world::set_time(ctx, t + static_cast<double>(event.difference.x()) * sensitivity);
+				
+				/*
+				sky_probe->update_illuminance_matrices();
+				
+				const auto matrices = sky_probe->get_illuminance_matrices();
+				for (std::size_t i = 0; i < 3; ++i)
+				{
+					const auto m = matrices[i];
+					debug::log::warning("\nmat4({},{},{},{},\n{},{},{},{},\n{},{},{},{},\n{},{},{},{});", m[0][0], m[0][1], m[0][2], m[0][3], m[1][0], m[1][1], m[1][2], m[1][3], m[2][0], m[2][1], m[2][2], m[2][3], m[3][0], m[3][1], m[3][2], m[3][3]);
+				}
+				*/
+			}
+			
+			if (adjust_exposure)
+			{
+				const float sensitivity = 8.0f / static_cast<float>(ctx.window->get_viewport_size().y());
+				ctx.surface_camera->set_exposure_value(ctx.surface_camera->get_exposure_value() + static_cast<float>(event.difference.y()) * sensitivity);
+			}
+			
+			if (adjust_zoom)
+			{
+				const float sensitivity = math::radians(45.0f) / static_cast<float>(ctx.window->get_viewport_size().y());
+				const float min_hfov = math::radians(1.0f);
+				const float max_hfov = math::radians(90.0f);
+				
+				const float aspect_ratio = ctx.surface_camera->get_aspect_ratio();
+				const float hfov = std::min<float>(std::max<float>(math::horizontal_fov(ctx.surface_camera->get_vertical_fov(), aspect_ratio) + static_cast<float>(event.difference.y()) * sensitivity, min_hfov), max_hfov);
+				const float vfov = math::vertical_fov(hfov, aspect_ratio);
+				ctx.surface_camera->set_vertical_fov(vfov);
+			}
+			
 			if (!mouse_look)
 			{
 				return;

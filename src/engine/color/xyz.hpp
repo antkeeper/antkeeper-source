@@ -38,7 +38,7 @@ namespace xyz {
  * @return return Luminance of @p x.
  */
 template <class T>
-inline constexpr T luminance(const math::vector3<T>& x)
+[[nodiscard]] inline constexpr T luminance(const math::vector3<T>& x) noexcept
 {
 	return x[1];
 }
@@ -50,7 +50,7 @@ inline constexpr T luminance(const math::vector3<T>& x)
  * @return CIE xyY color.
  */
 template <class T>
-constexpr math::vector3<T> to_xyy(const math::vector3<T>& x)
+[[nodiscard]] constexpr math::vector3<T> to_xyy(const math::vector3<T>& x) noexcept
 {
 	const T sum = x[0] + x[1] + x[2];
 	return math::vector3<T>{x[0] / sum, x[1] / sum, x[1]};
@@ -65,15 +65,15 @@ constexpr math::vector3<T> to_xyy(const math::vector3<T>& x)
  * @see match(T)
  */
 template <class T>
-T match_x(T lambda)
+[[nodiscard]] T match_x(T lambda)
 {
-	const T t0 = (lambda - T(442.0)) * ((lambda < T(442.0)) ? T(0.0624) : T(0.0374));
-	const T t1 = (lambda - T(599.8)) * ((lambda < T(599.8)) ? T(0.0264) : T(0.0323));
-	const T t2 = (lambda - T(501.1)) * ((lambda < T(501.1)) ? T(0.0490) : T(0.0382));
+	const T t0 = (lambda - T{442.0}) * ((lambda < T{442.0}) ? T{0.0624} : T{0.0374});
+	const T t1 = (lambda - T{599.8}) * ((lambda < T{599.8}) ? T{0.0264} : T{0.0323});
+	const T t2 = (lambda - T{501.1}) * ((lambda < T{501.1}) ? T{0.0490} : T{0.0382});
 	
-	const T x0 = T( 0.362) * std::exp(T(-0.5) * t0 * t0);
-	const T x1 = T( 1.056) * std::exp(T(-0.5) * t1 * t1);
-	const T x2 = T(-0.065) * std::exp(T(-0.5) * t2 * t2);
+	const T x0 = T{ 0.362} * std::exp(T{-0.5} * t0 * t0);
+	const T x1 = T{ 1.056} * std::exp(T{-0.5} * t1 * t1);
+	const T x2 = T{-0.065} * std::exp(T{-0.5} * t2 * t2);
 	
 	return x0 + x1 + x2;
 }
@@ -87,13 +87,13 @@ T match_x(T lambda)
  * @see match(T)
  */
 template <class T>
-T match_y(T lambda)
+[[nodiscard]] T match_y(T lambda)
 {
-	const T t0 = (lambda - T(568.8)) * ((lambda < T(568.8)) ? T(0.0213) : T(0.0247));
-	const T t1 = (lambda - T(530.9)) * ((lambda < T(530.9)) ? T(0.0613) : T(0.0322));
+	const T t0 = (lambda - T{568.8}) * ((lambda < T{568.8}) ? T{0.0213} : T{0.0247});
+	const T t1 = (lambda - T{530.9}) * ((lambda < T{530.9}) ? T{0.0613} : T{0.0322});
 	
-	const T y0 = T(0.821) * std::exp(T(-0.5) * t0 * t0);
-	const T y1 = T(0.286) * std::exp(T(-0.5) * t1 * t1);
+	const T y0 = T{0.821} * std::exp(T{-0.5} * t0 * t0);
+	const T y1 = T{0.286} * std::exp(T{-0.5} * t1 * t1);
 	
 	return y0 + y1;
 }
@@ -107,13 +107,13 @@ T match_y(T lambda)
  * @see match(T)
  */
 template <class T>
-T match_z(T lambda)
+[[nodiscard]] T match_z(T lambda)
 {
-	const T t0 = (lambda - T(437.0)) * ((lambda < T(437.0)) ? T(0.0845) : T(0.0278));
-	const T t1 = (lambda - T(459.0)) * ((lambda < T(459.0)) ? T(0.0385) : T(0.0725));
+	const T t0 = (lambda - T{437.0}) * ((lambda < T{437.0}) ? T{0.0845} : T{0.0278});
+	const T t1 = (lambda - T{459.0}) * ((lambda < T{459.0}) ? T{0.0385} : T{0.0725});
 	
-	const T z0 = T(1.217) * std::exp(T(-0.5) * t0 * t0);
-	const T z1 = T(0.681) * std::exp(T(-0.5) * t1 * t1);
+	const T z0 = T{1.217} * std::exp(T{-0.5} * t0 * t0);
+	const T z1 = T{0.681} * std::exp(T{-0.5} * t1 * t1);
 	
 	return z0 + z1;
 }
@@ -131,7 +131,7 @@ T match_z(T lambda)
  * @see Wyman, C., Sloan, P.J., & Shirley, P. (2013). Simple Analytic Approximations to the CIE XYZ Color Matching Functions.
  */
 template <class T>
-math::vector3<T> match(T lambda)
+[[nodiscard]] math::vector3<T> match(T lambda)
 {
 	return math::vector3<T>
 	{

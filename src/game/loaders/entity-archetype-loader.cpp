@@ -68,12 +68,12 @@ static bool load_component_atmosphere(entity::archetype& archetype, const json& 
 	if (element.contains("ozone_mode"))
 		component.ozone_mode = element["ozone_mode"].get<double>();
 	
-	if (element.contains("airglow_illuminance"))
+	if (element.contains("airglow_luminance"))
 	{
-		const auto& airglow_illuminance = element["airglow_illuminance"];
-		component.airglow_illuminance.x() = airglow_illuminance[0].get<double>();
-		component.airglow_illuminance.y() = airglow_illuminance[1].get<double>();
-		component.airglow_illuminance.z() = airglow_illuminance[2].get<double>();
+		const auto& airglow_luminance = element["airglow_luminance"];
+		component.airglow_luminance.x() = airglow_luminance[0].get<double>();
+		component.airglow_luminance.y() = airglow_luminance[1].get<double>();
+		component.airglow_luminance.z() = airglow_luminance[2].get<double>();
 	}
 	
 	archetype.stamps.push_back

@@ -239,7 +239,7 @@ namespace density {
 	template <class T>
 	T triangular(T d0, T z, T a, T b, T c)
 	{
-		return d0 * max(T(0), max(T(0), c - z) / (a - c) - max(T(0), z - c) / (b - c) + T(1));
+		return d0 * std::max(T(0), std::max(T(0), c - z) / (a - c) - std::max(T(0), z - c) / (b - c) + T(1));
 	}
 
 } // namespace density

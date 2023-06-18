@@ -23,7 +23,6 @@
 #include "game/systems/updatable-system.hpp"
 #include <engine/entity/id.hpp>
 #include <engine/scene/directional-light.hpp>
-#include <engine/scene/ambient-light.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/math/se3.hpp>
 #include <engine/render/passes/sky-pass.hpp>
@@ -81,10 +80,14 @@ public:
 	void set_transmittance_samples(std::size_t samples);
 	
 	void set_sun_light(scene::directional_light* light);
-	void set_sky_light(scene::ambient_light* light);
 	void set_moon_light(scene::directional_light* light);
 	void set_starlight_illuminance(const double3& illuminance);
 	void set_sky_pass(::render::sky_pass* pass);
+	
+	[[nodiscard]] inline double get_time() const noexcept
+	{
+		return time_days;
+	}
 	
 private:
 	void on_observer_modified(entity::registry& registry, entity::id entity_id);
@@ -152,7 +155,6 @@ private:
 	math::transformation::se3<double> icrf_to_eus;
 	
 	scene::directional_light* sun_light;
-	scene::ambient_light* sky_light;
 	scene::directional_light* moon_light;
 	::render::sky_pass* sky_pass;
 	double3 starlight_illuminance;

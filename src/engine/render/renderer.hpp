@@ -23,7 +23,10 @@
 #include <engine/render/context.hpp>
 #include <engine/render/stages/culling-stage.hpp>
 #include <engine/render/stages/queue-stage.hpp>
+#include <engine/render/stages/light-probe-stage.hpp>
 #include <engine/scene/collection.hpp>
+#include <engine/gl/rasterizer.hpp>
+#include <engine/resources/resource-manager.hpp>
 #include <memory>
 
 namespace render {
@@ -36,8 +39,11 @@ class renderer
 public:
 	/**
 	 * Constructs a renderer.
+	 *
+	 * @param rasterizer GL rasterizer.
+	 * @param resource_maanger Resource manager for loading shader templates.
 	 */
-	renderer();
+	renderer(gl::rasterizer& rasterizer, ::resource_manager& resource_manager);
 	
 	/**
 	 * Renders a collection of scene objects.
@@ -50,10 +56,10 @@ public:
 	void render(float t, float dt, float alpha, const scene::collection& collection);
 	
 private:
-	render::context ctx;
-	
-	std::unique_ptr<render::culling_stage> culling_stage;
-	std::unique_ptr<render::queue_stage> queue_stage;
+	render::context m_ctx;
+	std::unique_ptr<render::light_probe_stage> m_light_probe_stage;
+	std::unique_ptr<render::culling_stage> m_culling_stage;
+	std::unique_ptr<render::queue_stage> m_queue_stage;
 };
 
 } // namespace render

@@ -116,35 +116,24 @@ template <class T, std::size_t N>
  * @param hypersphere Hypersphere.
  *
  * @return Tuple containing the distances along the ray to the first and second points of intersection, or `std::nullopt` if no intersection occurred.
+ *
+ * @see Haines, E., Günther, J., & Akenine-Möller, T. (2019). Precision improvements for ray/sphere intersection. Ray Tracing Gems: High-Quality and Real-Time Rendering with DXR and Other APIs, 87-94.
  */
 template <class T, std::size_t N>
 [[nodiscard]] std::optional<std::tuple<T, T>> intersection(const ray<T, N>& ray, const hypersphere<T, N>& hypersphere) noexcept
 {
-	const math::vector<T, N> displacement = ray.origin - hypersphere.center;
-	const T b = math::dot(displacement, ray.direction);
-	const T c = math::sqr_length(displacement) - hypersphere.radius * hypersphere.radius;
-	T h = b * b - c;
+	const math::vector<T, N> d = ray.origin - hypersphere.center;
+	const T b = math::dot(d, ray.direction);
+	const math::vector<T, N> qc = d - ray.direction * b;
+	const T h = hypersphere.radius * hypersphere.radius - math::dot(qc, qc);
 	
 	if (h < T{0})
 	{
 		return std::nullopt;
 	}
 	
-	h = std::sqrt(h);
-	
-	T t0 = -b - h;
-	T t1 = -b + h;
-	if (t0 > t1)
-	{
-		std::swap(t0, t1);
-	}
-	
-	if (t0 < T{0})
-	{
-		return std::nullopt;
-	}
-	
-	return std::tuple<T, T>{t0, t1};
+	const T sqrt_h = std::sqrt(h);
+	return std::tuple<T, T>{-b - sqrt_h, -b + sqrt_h};
 }
 
 /**

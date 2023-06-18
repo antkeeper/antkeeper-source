@@ -38,7 +38,7 @@ namespace cct {
  * @see Krystek, M. (1985), An algorithm to calculate correlated colour temperature. Color Res. Appl., 10: 38-40.
  */
 template <class T>
-math::vector2<T> to_ucs(T t)
+[[nodiscard]] math::vector2<T> to_ucs(T t) noexcept
 {
 	const T tt = t * t;
 	return math::vector2<T>

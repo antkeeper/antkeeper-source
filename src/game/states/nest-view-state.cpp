@@ -85,7 +85,7 @@
 nest_view_state::nest_view_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering nest selection state...");	
+	debug::log::trace("Entering nest view state...");	
 	
 	// Create world if not yet created
 	if (ctx.entities.find("earth") == ctx.entities.end())
@@ -125,11 +125,10 @@ nest_view_state::nest_view_state(::game& ctx):
 	// ctx.underground_directional_light->set_shadow_cascade_distribution(0.8f);
 	// ctx.underground_scene->add_object(*ctx.underground_directional_light);
 	
-	// Create ambient light
-	ctx.underground_ambient_light = std::make_unique<scene::ambient_light>();
-	ctx.underground_ambient_light->set_color({1.0f, 1.0f, 1.0f});
-	ctx.underground_ambient_light->set_illuminance(0.075f);
-	ctx.underground_scene->add_object(*ctx.underground_ambient_light);
+	ctx.underground_clear_pass->set_clear_color({0.214f, 0.214f, 0.214f, 1.0f});
+	light_probe = std::make_shared<scene::light_probe>();
+	light_probe->set_luminance_texture(ctx.resource_manager->load<gl::texture_cube>("grey-furnace.tex"));
+	ctx.underground_scene->add_object(*light_probe);
 	
 	//const float color_temperature = 5000.0f;
 	//const math::vector3<float> light_color = color::aces::ap1<float>.from_xyz * color::cat::matrix(color::illuminant::deg2::d50<float>, color::aces::white_point<float>) * color::cct::to_xyz(color_temperature);
@@ -183,6 +182,14 @@ nest_view_state::nest_view_state(::game& ctx):
 	// Create cocoon
 	auto cocoon_eid = ctx.entity_registry->create();
 	ctx.entity_registry->emplace<scene_component>(cocoon_eid, std::make_shared<scene::static_mesh>(worker_phenome.cocoon->model), std::uint8_t{2});
+	ctx.entity_registry->patch<scene_component>
+	(
+		cocoon_eid,
+		[&](auto& component)
+		{
+			component.object->set_translation({-5.0f, 0.0f, 5.0f});
+		}
+	);
 	
 	// Create larva
 	auto larva_eid = ctx.entity_registry->create();
@@ -206,7 +213,7 @@ nest_view_state::nest_view_state(::game& ctx):
 		suzanne_eid,
 		[&](auto& component)
 		{
-			component.object->set_translation({0.0f, 0.0f, 0.0f});
+			component.object->set_translation({-13.0f, 0.0f, -5.0f});
 		}
 	);
 	
@@ -264,12 +271,12 @@ nest_view_state::nest_view_state(::game& ctx):
 	// Refresh frame scheduler
 	ctx.frame_scheduler.refresh();
 	
-	debug::log::trace("Entered nest selection state");
+	debug::log::trace("Entered nest view state");
 }
 
 nest_view_state::~nest_view_state()
 {
-	debug::log::trace("Exiting nest selection state...");
+	debug::log::trace("Exiting nest view state...");
 	
 	// Disable game controls
 	::disable_game_controls(ctx);
@@ -277,7 +284,7 @@ nest_view_state::~nest_view_state()
 	
 	destroy_third_person_camera_rig();
 	
-	debug::log::trace("Exited nest selection state");
+	debug::log::trace("Exited nest view state");
 }
 
 void nest_view_state::create_third_person_camera_rig()

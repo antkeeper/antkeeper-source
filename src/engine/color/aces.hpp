@@ -66,7 +66,7 @@ constexpr rgb::color_space<T> ap1
  * @return Saturation adjustment matrix.
  */
 template <class T>
-constexpr math::matrix<T, 3, 3> adjust_saturation(T s, const math::vector3<T>& to_y)
+[[nodiscard]] constexpr math::matrix<T, 3, 3> adjust_saturation(T s, const math::vector3<T>& to_y) noexcept
 {
 	const math::vector3<T> v = to_y * (T{1} - s);
 	return math::matrix<T, 3, 3>

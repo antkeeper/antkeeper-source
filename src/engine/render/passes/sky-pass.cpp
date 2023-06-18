@@ -42,6 +42,7 @@
 #include <engine/geom/spherical.hpp>
 #include <engine/physics/orbit/orbit.hpp>
 #include <engine/physics/light/photometry.hpp>
+#include <bit>
 #include <cmath>
 #include <stdexcept>
 #include <glad/glad.h>
@@ -54,7 +55,6 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	sky_model(nullptr),
 	sky_material(nullptr),
 	sky_model_vao(nullptr),
-	sky_lut_shader_program(nullptr),
 	moon_model(nullptr),
 	moon_model_vao(nullptr),
 	moon_material(nullptr),
@@ -77,7 +77,6 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	moon_planetlight_direction_tween(float3{0, 0, 0}, math::lerp<float3, float>),
 	moon_planetlight_illuminance_tween(float3{0, 0, 0}, math::lerp<float3, float>),
 	moon_illuminance_tween(float3{0.0f, 0.0f, 0.0f}, math::lerp<float3, float>),
-	render_transmittance_lut(false),
 	magnification(1.0f)
 {
 	// Build quad VBO and VAO
@@ -86,8 +85,6 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		{-1.0f,  1.0f},
 		{-1.0f, -1.0f},
 		{ 1.0f,  1.0f},
-		{ 1.0f,  1.0f},
-		{-1.0f, -1.0f},
 		{ 1.0f, -1.0f}
 	};
 	
@@ -109,63 +106,97 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	// Bind vertex attributes to VAO
 	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 	
-	// Create transmittance LUT texture and framebuffer (32F color, no depth)
-	transmittance_lut_texture = std::make_unique<gl::texture_2d>(256, 64, gl::pixel_type::float_32, gl::pixel_format::rgb);
-	transmittance_lut_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-	transmittance_lut_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-	transmittance_lut_texture->set_max_anisotropy(0.0f);
-	transmittance_lut_framebuffer = std::make_unique<gl::framebuffer>(transmittance_lut_texture->get_width(), transmittance_lut_texture->get_height());
-	transmittance_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, transmittance_lut_texture.get());
-	transmittance_lut_resolution = {static_cast<float>(transmittance_lut_texture->get_width()), static_cast<float>(transmittance_lut_texture->get_height())};
-	
-	// Load transmittance LUT shader template
-	transmittance_lut_shader_template = resource_manager->load<gl::shader_template>("transmittance-lut.glsl");
-	
-	// Build transmittance LUT shader program
-	transmittance_lut_shader_program = transmittance_lut_shader_template->build
-	(
-		{
-			{"TRANSMITTANCE_LUT_SAMPLES", std::to_string(40)}
-		}
-	);
-	if (!transmittance_lut_shader_program->linked())
+	// Transmittance LUT
 	{
-		debug::log::error("Failed to build transmittance LUT shader program: {}", transmittance_lut_shader_program->info());
-		debug::log::warning("{}", transmittance_lut_shader_template->configure(gl::shader_stage::vertex));
+		// Construct transmittance LUT texture
+		m_transmittance_lut_texture = std::make_unique<gl::texture_2d>(m_transmittance_lut_resolution.x(), m_transmittance_lut_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
+		m_transmittance_lut_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+		m_transmittance_lut_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
+		m_transmittance_lut_texture->set_max_anisotropy(0.0f);
+		
+		// Construct transmittance LUT framebuffer and attach texture
+		m_transmittance_lut_framebuffer = std::make_unique<gl::framebuffer>(m_transmittance_lut_resolution.x(), m_transmittance_lut_resolution.y());
+		m_transmittance_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, m_transmittance_lut_texture.get());
+		
+		// Load transmittance LUT shader template
+		m_transmittance_lut_shader_template = resource_manager->load<gl::shader_template>("sky-transmittance-lut.glsl");
+		
+		// Build transmittance LUT shader program
+		rebuild_transmittance_lut_shader_program();
+		
+		// Build transmittance LUT command buffer
+		rebuild_transmittance_lut_command_buffer();
 	}
 	
-	// Build transmittance LUT command buffer
-	rebuild_transmittance_lut_command_buffer();
-	
-	// Create sky LUT texture and framebuffer (32F color, no depth)
-	int sky_lut_width = 200;
-	int sky_lut_height = 100;
-	sky_lut_resolution = {static_cast<float>(sky_lut_width), static_cast<float>(sky_lut_height)};
-	sky_lut_texture = std::make_unique<gl::texture_2d>(sky_lut_width, sky_lut_height, gl::pixel_type::float_32, gl::pixel_format::rgb);
-	sky_lut_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-	sky_lut_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-	sky_lut_texture->set_max_anisotropy(0.0f);
-	sky_lut_framebuffer = std::make_unique<gl::framebuffer>(sky_lut_width, sky_lut_height);
-	sky_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, sky_lut_texture.get());
-	
-	// Load sky LUT shader template
-	sky_lut_shader_template = resource_manager->load<gl::shader_template>("sky-illuminance-lut.glsl");
-	
-	// Build sky LUT shader program
-	sky_lut_shader_program = sky_lut_shader_template->build
-	(
-		{
-			{"SKY_ILLUMINANCE_SAMPLES", std::to_string(30)}
-		}
-	);
-	if (!sky_lut_shader_program->linked())
+	// Multiscattering LUT
 	{
-		debug::log::error("Failed to by sky LUT shader program: {}", sky_lut_shader_program->info());
-		debug::log::warning("{}", sky_lut_shader_template->configure(gl::shader_stage::vertex));
+		// Construct multiscattering LUT texture
+		m_multiscattering_lut_texture = std::make_unique<gl::texture_2d>(m_multiscattering_lut_resolution.x(), m_multiscattering_lut_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
+		m_multiscattering_lut_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+		m_multiscattering_lut_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
+		m_multiscattering_lut_texture->set_max_anisotropy(0.0f);
+		
+		// Construct multiscattering LUT framebuffer and attach texture
+		m_multiscattering_lut_framebuffer = std::make_unique<gl::framebuffer>(m_multiscattering_lut_resolution.x(), m_multiscattering_lut_resolution.y());
+		m_multiscattering_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, m_multiscattering_lut_texture.get());
+		
+		// Load multiscattering LUT shader template
+		m_multiscattering_lut_shader_template = resource_manager->load<gl::shader_template>("sky-multiscattering-lut.glsl");
+		
+		// Build multiscattering LUT shader program
+		rebuild_multiscattering_lut_shader_program();
+		
+		// Build multiscattering LUT command buffer
+		rebuild_multiscattering_lut_command_buffer();
 	}
 	
-	// Build sky LUT command buffer
-	rebuild_sky_lut_command_buffer();
+	// Luminance LUT
+	{
+		// Construct luminance LUT texture
+		m_luminance_lut_texture = std::make_unique<gl::texture_2d>(m_luminance_lut_resolution.x(), m_luminance_lut_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
+		m_luminance_lut_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+		m_luminance_lut_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
+		m_luminance_lut_texture->set_max_anisotropy(0.0f);
+		
+		// Construct luminance LUT framebuffer and attach texture
+		m_luminance_lut_framebuffer = std::make_unique<gl::framebuffer>(m_luminance_lut_resolution.x(), m_luminance_lut_resolution.y());
+		m_luminance_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, m_luminance_lut_texture.get());
+		
+		// Load luminance LUT shader template
+		m_luminance_lut_shader_template = resource_manager->load<gl::shader_template>("sky-luminance-lut.glsl");
+		
+		// Build luminance LUT shader program
+		rebuild_luminance_lut_shader_program();
+		
+		// Build luminance LUT command buffer
+		rebuild_luminance_lut_command_buffer();
+	}
+	
+	// Load sky probe shader template
+	m_sky_probe_shader_template = resource_manager->load<gl::shader_template>("sky-probe.glsl");
+	
+	// Build sky probe shader program
+	m_sky_probe_shader_program = m_sky_probe_shader_template->build({});
+	if (!m_sky_probe_shader_program->linked())
+	{
+		debug::log::error("Failed to build sky probe shader program: {}", m_sky_probe_shader_program->info());
+		debug::log::warning("{}", m_sky_probe_shader_template->configure(gl::shader_stage::vertex));
+	}
+	
+	// Load cubemap downsample shader template
+	m_cubemap_downsample_shader_template = resource_manager->load<gl::shader_template>("cubemap-downsample.glsl");
+	
+	// Build cubemap downsample shader program
+	m_cubemap_downsample_shader_program = m_cubemap_downsample_shader_template->build({});
+	if (!m_cubemap_downsample_shader_program->linked())
+	{
+		debug::log::error("Failed to build cubemap downsample shader program: {}", m_cubemap_downsample_shader_program->info());
+		debug::log::warning("{}", m_cubemap_downsample_shader_template->configure(gl::shader_stage::vertex));
+	}
+	
+	// Load moon textures
+	m_moon_albedo_map = resource_manager->load<gl::texture_2d>("moon-albedo.tex");
+	m_moon_normal_map = resource_manager->load<gl::texture_2d>("moon-normal.tex");
 }
 
 void sky_pass::render(render::context& ctx)
@@ -176,17 +207,26 @@ void sky_pass::render(render::context& ctx)
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	
-	// Render transmittance LUT if transmittance parameters have been altered.
-	if (render_transmittance_lut)
+	// Render transmittance LUT (if parameters have changed)
+	if (m_render_transmittance_lut)
 	{
-		// Render transmittance LUT
-		for (const auto& command: transmittance_lut_command_buffer)
+		for (const auto& command: m_transmittance_lut_command_buffer)
 		{
 			command();
 		}
 		
-		// Don't render transmittance LUT next frame unless parameters have changed.
-		render_transmittance_lut = false;
+		m_render_transmittance_lut = false;
+	}
+	
+	// Render multiscattering LUT (if parameters have changed)
+	if (m_render_multiscattering_lut)
+	{
+		for (const auto& command: m_multiscattering_lut_command_buffer)
+		{
+			command();
+		}
+		
+		m_render_multiscattering_lut = false;
 	}
 	
 	// Construct matrices
@@ -198,6 +238,7 @@ void sky_pass::render(render::context& ctx)
 	const float4x4& projection = camera.get_projection();
 	float4x4 view_projection = projection * view;
 	float4x4 model_view_projection = projection * model_view;
+	camera_exposure = camera.get_exposure_normalization();
 	
 	// Interpolate observer position
 	observer_position = observer_position_tween.interpolate(ctx.alpha);
@@ -224,18 +265,30 @@ void sky_pass::render(render::context& ctx)
 	
 	float sun_y = color::aces::ap1<float>.luminance(sun_transmitted_illuminance);
 	float moon_y = color::aces::ap1<float>.luminance(moon_transmitted_illuminance);
-	dominant_light_direction = (sun_y > moon_y) ? sun_direction : moon_direction;
-	dominant_light_illuminance = (sun_y > moon_y) ? sun_illuminance : moon_illuminance;
 	
-	if (moon_y > sun_y)
+	// if (math::max(sun_illuminance) > math::max(moon_illuminance))
+	// {
+		dominant_light_direction = sun_direction;
+		dominant_light_illuminance = sun_illuminance;
+	// }
+	// else
+	// {
+		// dominant_light_direction = moon_direction;
+		// dominant_light_illuminance = moon_illuminance;
+	// }
+	
+	
+	// Render luminance LUT
+	// if (m_render_luminance_lut)
 	{
-		sun_luminance *= 0.0f;
+		for (const auto& command: m_luminance_lut_command_buffer)
+		{
+			command();
+		}
 	}
 	
-	camera_exposure = camera.get_exposure_normalization();
-	
-	// Render sky illuminance LUT
-	for (const auto& command: sky_lut_command_buffer)
+	// Render sky probe
+	for (const auto& command: m_sky_probe_command_buffer)
 	{
 		command();
 	}
@@ -267,10 +320,14 @@ void sky_pass::render(render::context& ctx)
 			atmosphere_radii_var->update(atmosphere_radii);
 		if (observer_position_var)
 			observer_position_var->update(observer_position);
-		if (sky_illuminance_lut_var)
-			sky_illuminance_lut_var->update(*sky_lut_texture);
-		if (sky_illuminance_lut_resolution_var)
-			sky_illuminance_lut_resolution_var->update(sky_lut_resolution);
+		if (sky_transmittance_lut_var)
+			sky_transmittance_lut_var->update(*m_transmittance_lut_texture);
+		if (sky_transmittance_lut_resolution_var)
+			sky_transmittance_lut_resolution_var->update(math::vector2<float>(m_transmittance_lut_resolution));
+		if (sky_luminance_lut_var)
+			sky_luminance_lut_var->update(*m_luminance_lut_texture);
+		if (sky_luminance_lut_resolution_var)
+			sky_luminance_lut_resolution_var->update(math::vector2<float>(m_luminance_lut_resolution));
 		
 		//sky_material->update(ctx.alpha);
 
@@ -278,33 +335,14 @@ void sky_pass::render(render::context& ctx)
 	}
 	
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	//glBlendFunc(GL_ONE, GL_ONE);
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glBlendFunc(GL_ONE, GL_ONE);
 	
-	// Draw stars
-	if (star_shader_program)
-	{
-		float star_distance = (camera.get_clip_near() + camera.get_clip_far()) * 0.5f;
-		
-		model = float4x4(float3x3(icrf_to_eus.r));
-		model = math::scale(model, {star_distance, star_distance, star_distance});
-		
-		model_view = view * model;
-		
-		rasterizer->use_program(*star_shader_program);
-		if (star_model_view_var)
-			star_model_view_var->update(model_view);
-		if (star_projection_var)
-			star_projection_var->update(projection);
-		if (star_distance_var)
-			star_distance_var->update(star_distance);
-		if (star_exposure_var)
-			star_exposure_var->update(camera_exposure);
-		
-		//star_material->update(ctx.alpha);
-		
-		rasterizer->draw_arrays(*stars_model_vao, stars_model_drawing_mode, stars_model_start_index, stars_model_index_count);
-	}
+	// Flag moon pixels in stencil buffer
+	glEnable(GL_STENCIL_TEST);
+	glStencilMask(0xff);
+	glStencilFunc(GL_ALWAYS, 1, 0xff);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	
 	// Draw moon model
 	//if (moon_position.y() >= -moon_angular_radius)
@@ -338,9 +376,149 @@ void sky_pass::render(render::context& ctx)
 			moon_planetlight_direction_var->update(math::normalize(moon_planetlight_direction_tween.interpolate(ctx.alpha)));
 		if (moon_planetlight_illuminance_var)
 			moon_planetlight_illuminance_var->update(moon_planetlight_illuminance_tween.interpolate(ctx.alpha) * camera_exposure);
+		if (moon_albedo_map_var && m_moon_albedo_map)
+			moon_albedo_map_var->update(*m_moon_albedo_map);
+		if (moon_normal_map_var && m_moon_normal_map)
+			moon_normal_map_var->update(*m_moon_normal_map);
+		if (moon_observer_position_var)
+			moon_observer_position_var->update(observer_position);
+		if (moon_sky_transmittance_lut_var)
+			moon_sky_transmittance_lut_var->update(*m_transmittance_lut_texture);
+		if (moon_atmosphere_radii_var)
+			moon_atmosphere_radii_var->update(atmosphere_radii);
 		
 		//moon_material->update(ctx.alpha);
 		rasterizer->draw_arrays(*moon_model_vao, moon_model_drawing_mode, moon_model_start_index, moon_model_index_count);
+	}
+	
+	// Prevent stars from being drawn in front of the moon
+	glStencilMask(0x00);
+	glStencilFunc(GL_NOTEQUAL, 1, 0xff);
+	
+	// Draw stars
+	if (star_shader_program)
+	{
+		float star_distance = (camera.get_clip_near() + camera.get_clip_far()) * 0.5f;
+		
+		model = float4x4(float3x3(icrf_to_eus.r));
+		model = math::scale(model, {star_distance, star_distance, star_distance});
+		
+		model_view_projection = view_projection * model;
+		
+		rasterizer->use_program(*star_shader_program);
+		if (star_model_view_projection_var)
+			star_model_view_projection_var->update(model_view_projection);
+		if (star_distance_var)
+			star_distance_var->update(star_distance);
+		if (star_exposure_var)
+			star_exposure_var->update(camera_exposure);
+		if (star_inv_resolution_var)
+			star_inv_resolution_var->update(1.0f / resolution);
+		
+		//star_material->update(ctx.alpha);
+		
+		rasterizer->draw_arrays(*stars_model_vao, stars_model_drawing_mode, stars_model_start_index, stars_model_index_count);
+	}
+	
+	glDisable(GL_STENCIL_TEST);
+}
+
+void sky_pass::set_transmittance_lut_sample_count(std::uint16_t count)
+{
+	if (m_transmittance_lut_sample_count != count)
+	{
+		m_transmittance_lut_sample_count = count;
+		
+		// Rebuild transmittance LUT shader program and command buffer
+		rebuild_transmittance_lut_shader_program();
+		rebuild_transmittance_lut_command_buffer();
+		
+		// Trigger rendering of transmittance LUT
+		m_render_transmittance_lut = true;
+	}
+}
+
+void sky_pass::set_transmittance_lut_resolution(const math::vector2<std::uint16_t>& resolution)
+{
+	if (m_transmittance_lut_resolution.x() != resolution.x() || m_transmittance_lut_resolution.y() != resolution.y())
+	{
+		m_transmittance_lut_resolution = resolution;
+		m_transmittance_lut_texture->resize(resolution.x(), resolution.y(), nullptr);
+		m_transmittance_lut_framebuffer->resize({resolution.x(), resolution.y()});
+		
+		// Trigger rendering of transmittance LUT
+		m_render_transmittance_lut = true;
+	}
+}
+
+void sky_pass::set_multiscattering_lut_direction_sample_count(std::uint16_t count)
+{
+	if (m_multiscattering_lut_direction_sample_count != count)
+	{
+		m_multiscattering_lut_direction_sample_count = count;
+		
+		// Rebuild multiscattering LUT shader program and command buffer
+		rebuild_multiscattering_lut_shader_program();
+		rebuild_multiscattering_lut_command_buffer();
+		
+		// Trigger rendering of multiscattering LUT
+		m_render_multiscattering_lut = true;
+	}
+}
+
+void sky_pass::set_multiscattering_lut_scatter_sample_count(std::uint16_t count)
+{
+	if (m_multiscattering_lut_scatter_sample_count != count)
+	{
+		m_multiscattering_lut_scatter_sample_count = count;
+		
+		// Rebuild multiscattering LUT shader program and command buffer
+		rebuild_multiscattering_lut_shader_program();
+		rebuild_multiscattering_lut_command_buffer();
+		
+		// Trigger rendering of multiscattering LUT
+		m_render_multiscattering_lut = true;
+	}
+}
+
+void sky_pass::set_multiscattering_lut_resolution(const math::vector2<std::uint16_t>& resolution)
+{
+	if (m_multiscattering_lut_resolution.x() != resolution.x() || m_multiscattering_lut_resolution.y() != resolution.y())
+	{
+		m_multiscattering_lut_resolution = resolution;
+		m_multiscattering_lut_texture->resize(resolution.x(), resolution.y(), nullptr);
+		m_multiscattering_lut_framebuffer->resize({resolution.x(), resolution.y()});
+		
+		// Trigger rendering of multiscattering LUT
+		m_render_multiscattering_lut = true;
+	}
+}
+
+void sky_pass::set_luminance_lut_sample_count(std::uint16_t count)
+{
+	if (m_luminance_lut_sample_count != count)
+	{
+		m_luminance_lut_sample_count = count;
+		
+		// Rebuild luminance LUT shader program and command buffer
+		rebuild_luminance_lut_shader_program();
+		rebuild_luminance_lut_command_buffer();
+		
+		// Trigger rendering of luminance LUT
+		m_render_luminance_lut = true;
+	}
+}
+
+void sky_pass::set_luminance_lut_resolution(const math::vector2<std::uint16_t>& resolution)
+{
+	if (m_luminance_lut_resolution.x() != resolution.x() || m_luminance_lut_resolution.y() != resolution.y())
+	{
+		m_luminance_lut_resolution = resolution;
+		m_luminance_lut_texture->resize(resolution.x(), resolution.y(), nullptr);
+		m_luminance_lut_framebuffer->resize({resolution.x(), resolution.y()});
+		
+		// Trigger rendering of luminance LUT
+		m_render_luminance_lut = true;
 	}
 }
 
@@ -361,7 +539,6 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 			sky_model_index_count = group.index_count;
 		}
 		
-		
 		if (sky_material)
 		{
 			sky_shader_program = sky_material->get_shader_template()->build();
@@ -376,8 +553,10 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 				sun_angular_radius_var = sky_shader_program->variable("sun_angular_radius");
 				atmosphere_radii_var = sky_shader_program->variable("atmosphere_radii");
 				observer_position_var = sky_shader_program->variable("observer_position");
-				sky_illuminance_lut_var = sky_shader_program->variable("sky_illuminance_lut");
-				sky_illuminance_lut_resolution_var = sky_shader_program->variable("sky_illuminance_lut_resolution");
+				sky_transmittance_lut_var = sky_shader_program->variable("sky_transmittance_lut");
+				sky_transmittance_lut_resolution_var = sky_shader_program->variable("sky_transmittance_lut_resolution");
+				sky_luminance_lut_var = sky_shader_program->variable("sky_luminance_lut");
+				sky_luminance_lut_resolution_var = sky_shader_program->variable("sky_luminance_lut_resolution");
 			}
 			else
 			{
@@ -423,6 +602,11 @@ void sky_pass::set_moon_model(std::shared_ptr<render::model> model)
 				moon_sunlight_illuminance_var = moon_shader_program->variable("sunlight_illuminance");
 				moon_planetlight_direction_var = moon_shader_program->variable("planetlight_direction");
 				moon_planetlight_illuminance_var = moon_shader_program->variable("planetlight_illuminance");
+				moon_albedo_map_var = moon_shader_program->variable("albedo_map");
+				moon_normal_map_var = moon_shader_program->variable("normal_map");
+				moon_observer_position_var = moon_shader_program->variable("observer_position");
+				moon_sky_transmittance_lut_var = moon_shader_program->variable("sky_transmittance_lut");
+				moon_atmosphere_radii_var = moon_shader_program->variable("atmosphere_radii");
 			}
 			else
 			{
@@ -451,6 +635,7 @@ void sky_pass::set_stars_model(std::shared_ptr<render::model> model)
 			stars_model_drawing_mode = group.drawing_mode;
 			stars_model_start_index = group.start_index;
 			stars_model_index_count = group.index_count;
+			star_material = group.material.get();
 		}
 		
 		if (star_material)
@@ -459,10 +644,10 @@ void sky_pass::set_stars_model(std::shared_ptr<render::model> model)
 			
 			if (star_shader_program->linked())
 			{
-				star_model_view_var = star_shader_program->variable("model_view");
-				star_projection_var = star_shader_program->variable("projection");
+				star_model_view_projection_var = star_shader_program->variable("model_view_projection");
 				star_distance_var = star_shader_program->variable("star_distance");
-				star_exposure_var = star_shader_program->variable("camera.exposure");
+				star_exposure_var = star_shader_program->variable("camera_exposure");
+				star_inv_resolution_var = star_shader_program->variable("inv_resolution");
 			}
 			else
 			{
@@ -530,23 +715,27 @@ void sky_pass::set_sun_angular_radius(float radius)
 
 void sky_pass::set_planet_radius(float radius)
 {
-	atmosphere_radii.x() = radius;
-	atmosphere_radii.y() = atmosphere_radii.x() + atmosphere_upper_limit;
-	atmosphere_radii.z() = atmosphere_radii.y() * atmosphere_radii.y();
+	atmosphere_radii[0] = radius;
+	atmosphere_radii[1] = atmosphere_radii[0] + atmosphere_upper_limit;
+	atmosphere_radii[2] = atmosphere_radii[0] * atmosphere_radii[0];
+	atmosphere_radii[3] = atmosphere_radii[1] * atmosphere_radii[1];
+	
 	observer_position_tween[1] = {0.0f, atmosphere_radii.x() + observer_elevation, 0.0f};
 	
-	// Trigger transmittance LUT render
-	render_transmittance_lut = true;
+	// Trigger transmittance and multiscattering LUT render
+	m_render_transmittance_lut = true;
+	m_render_multiscattering_lut = true;
 }
 
 void sky_pass::set_atmosphere_upper_limit(float limit)
 {
 	atmosphere_upper_limit = limit;
-	atmosphere_radii.y() = atmosphere_radii.x() + atmosphere_upper_limit;
-	atmosphere_radii.z() = atmosphere_radii.y() * atmosphere_radii.y();
+	atmosphere_radii[1] = atmosphere_radii[0] + atmosphere_upper_limit;
+	atmosphere_radii[3] = atmosphere_radii[1] * atmosphere_radii[1];
 	
-	// Trigger transmittance LUT render
-	render_transmittance_lut = true;
+	// Trigger transmittance and multiscattering LUT render
+	m_render_transmittance_lut = true;
+	m_render_multiscattering_lut = true;
 }
 
 void sky_pass::set_observer_elevation(float elevation)
@@ -565,8 +754,9 @@ void sky_pass::set_rayleigh_parameters(float scale_height, const float3& scatter
 		scattering.z()
 	};
 	
-	// Trigger transmittance LUT render
-	render_transmittance_lut = true;
+	// Trigger transmittance and multiscattering LUT render
+	m_render_transmittance_lut = true;
+	m_render_multiscattering_lut = true;
 }
 
 void sky_pass::set_mie_parameters(float scale_height, float scattering, float extinction, float anisotropy)
@@ -579,8 +769,9 @@ void sky_pass::set_mie_parameters(float scale_height, float scattering, float ex
 		anisotropy
 	};
 	
-	// Trigger transmittance LUT render
-	render_transmittance_lut = true;
+	// Trigger transmittance and multiscattering LUT render
+	m_render_transmittance_lut = true;
+	m_render_multiscattering_lut = true;
 }
 
 void sky_pass::set_ozone_parameters(float lower_limit, float upper_limit, float mode, const float3& absorption)
@@ -593,13 +784,22 @@ void sky_pass::set_ozone_parameters(float lower_limit, float upper_limit, float 
 	};
 	ozone_absorption = absorption;
 	
-	// Trigger transmittance LUT render
-	render_transmittance_lut = true;
+	// Trigger transmittance and multiscattering LUT render
+	m_render_transmittance_lut = true;
+	m_render_multiscattering_lut = true;
 }
 
-void sky_pass::set_airglow_illuminance(const float3& illuminance)
+void sky_pass::set_airglow_luminance(const float3& luminance)
 {
-	airglow_illuminance = illuminance;
+	airglow_luminance = luminance;
+}
+
+void sky_pass::set_ground_albedo(const float3& albedo)
+{
+	m_ground_albedo = albedo;
+	
+	// Trigger multiscattering LUT render
+	m_render_multiscattering_lut = true;
 }
 
 void sky_pass::set_moon_position(const float3& position)
@@ -643,150 +843,394 @@ void sky_pass::set_moon_illuminance(const float3& illuminance, const float3& tra
 	moon_transmitted_illuminance = transmitted_illuminance;
 }
 
-void sky_pass::set_transmittance_lut_resolution(std::uint16_t width, std::uint16_t height)
+void sky_pass::set_sky_probe(std::shared_ptr<scene::light_probe> probe)
 {
-	transmittance_lut_texture->resize(width, height, nullptr);
-	transmittance_lut_framebuffer->resize({transmittance_lut_texture->get_width(), transmittance_lut_texture->get_height()});
-	transmittance_lut_resolution = {static_cast<float>(width), static_cast<float>(height)};
+	m_sky_probe = probe;
 	
-	// Trigger transmittance LUT render
-	render_transmittance_lut = true;
+	if (m_sky_probe && m_sky_probe->get_luminance_texture())
+	{
+		auto& luminance_texture = *m_sky_probe->get_luminance_texture();
+		
+		std::uint16_t face_size = luminance_texture.get_face_size();
+		const std::uint8_t mip_count = static_cast<std::uint8_t>(std::bit_width(face_size));
+		
+		m_sky_probe_framebuffers.resize(mip_count);
+		for (std::uint8_t i = 0; i < mip_count; ++i)
+		{
+			m_sky_probe_framebuffers[i] = std::make_unique<gl::framebuffer>(face_size, face_size);
+			m_sky_probe_framebuffers[i]->attach(gl::framebuffer_attachment_type::color, &luminance_texture, i);
+			face_size >>= 1;
+		}
+	}
+	else
+	{
+		m_sky_probe_framebuffers.clear();
+	}
+	
+	rebuild_sky_probe_command_buffer();
+}
+
+void sky_pass::rebuild_transmittance_lut_shader_program()
+{
+	m_transmittance_lut_shader_program = m_transmittance_lut_shader_template->build
+	(
+		{
+			{"SAMPLE_COUNT", std::to_string(m_transmittance_lut_sample_count)}
+		}
+	);
+	if (!m_transmittance_lut_shader_program->linked())
+	{
+		debug::log::error("Failed to build sky transmittance LUT shader program: {}", m_transmittance_lut_shader_program->info());
+		debug::log::warning("{}", m_transmittance_lut_shader_template->configure(gl::shader_stage::vertex));
+	}
 }
 
 void sky_pass::rebuild_transmittance_lut_command_buffer()
 {
-	transmittance_lut_command_buffer.clear();
+	m_transmittance_lut_command_buffer.clear();
 	
-	if (!transmittance_lut_shader_program->linked() || !transmittance_lut_texture)
+	if (!m_transmittance_lut_shader_program->linked() || !m_transmittance_lut_texture)
 	{
 		return;
 	}
 	
 	// Bind framebuffer and shader program
-	transmittance_lut_command_buffer.emplace_back
+	m_transmittance_lut_command_buffer.emplace_back
 	(
 		[&]()
 		{
-			rasterizer->set_viewport(0, 0, transmittance_lut_texture->get_width(), transmittance_lut_texture->get_height());
-			rasterizer->use_framebuffer(*transmittance_lut_framebuffer);
-			rasterizer->use_program(*transmittance_lut_shader_program);
+			rasterizer->set_viewport(0, 0, m_transmittance_lut_resolution.x(), m_transmittance_lut_resolution.y());
+			rasterizer->use_framebuffer(*m_transmittance_lut_framebuffer);
+			rasterizer->use_program(*m_transmittance_lut_shader_program);
 		}
 	);
 	
 	// Update shader variables
-	if (auto atmosphere_radii_var = transmittance_lut_shader_program->variable("atmosphere_radii"))
+	if (auto atmosphere_radii_var = m_transmittance_lut_shader_program->variable("atmosphere_radii"))
 	{
-		transmittance_lut_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
+		m_transmittance_lut_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
 	}
-	if (auto rayleigh_parameters_var = transmittance_lut_shader_program->variable("rayleigh_parameters"))
+	if (auto rayleigh_parameters_var = m_transmittance_lut_shader_program->variable("rayleigh_parameters"))
 	{
-		transmittance_lut_command_buffer.emplace_back([&, rayleigh_parameters_var](){rayleigh_parameters_var->update(rayleigh_parameters);});
+		m_transmittance_lut_command_buffer.emplace_back([&, rayleigh_parameters_var](){rayleigh_parameters_var->update(rayleigh_parameters);});
 	}
-	if (auto mie_parameters_var = transmittance_lut_shader_program->variable("mie_parameters"))
+	if (auto mie_parameters_var = m_transmittance_lut_shader_program->variable("mie_parameters"))
 	{
-		transmittance_lut_command_buffer.emplace_back([&, mie_parameters_var](){mie_parameters_var->update(mie_parameters);});
+		m_transmittance_lut_command_buffer.emplace_back([&, mie_parameters_var](){mie_parameters_var->update(mie_parameters);});
 	}
-	if (auto ozone_distribution_var = transmittance_lut_shader_program->variable("ozone_distribution"))
+	if (auto ozone_distribution_var = m_transmittance_lut_shader_program->variable("ozone_distribution"))
 	{
-		transmittance_lut_command_buffer.emplace_back([&, ozone_distribution_var](){ozone_distribution_var->update(ozone_distribution);});
+		m_transmittance_lut_command_buffer.emplace_back([&, ozone_distribution_var](){ozone_distribution_var->update(ozone_distribution);});
 	}
-	if (auto ozone_absorption_var = transmittance_lut_shader_program->variable("ozone_absorption"))
+	if (auto ozone_absorption_var = m_transmittance_lut_shader_program->variable("ozone_absorption"))
 	{
-		transmittance_lut_command_buffer.emplace_back([&, ozone_absorption_var](){ozone_absorption_var->update(ozone_absorption);});
+		m_transmittance_lut_command_buffer.emplace_back([&, ozone_absorption_var](){ozone_absorption_var->update(ozone_absorption);});
 	}
-	if (auto resolution_var = transmittance_lut_shader_program->variable("resolution"))
+	if (auto resolution_var = m_transmittance_lut_shader_program->variable("resolution"))
 	{
-		transmittance_lut_command_buffer.emplace_back([&, resolution_var](){resolution_var->update(transmittance_lut_resolution);});
+		m_transmittance_lut_command_buffer.emplace_back([&, resolution_var](){resolution_var->update(math::vector2<float>(m_transmittance_lut_resolution));});
 	}
 	
 	// Draw quad
-	transmittance_lut_command_buffer.emplace_back
+	m_transmittance_lut_command_buffer.emplace_back
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangle_strip, 0, 4);
 		}
 	);
 }
 
-void sky_pass::rebuild_sky_lut_command_buffer()
+void sky_pass::rebuild_multiscattering_lut_shader_program()
 {
-	sky_lut_command_buffer.clear();
+	m_multiscattering_lut_shader_program = m_multiscattering_lut_shader_template->build
+	(
+		{
+			{"DIRECTION_SAMPLE_COUNT", std::to_string(m_multiscattering_lut_direction_sample_count)},
+			{"SCATTER_SAMPLE_COUNT", std::to_string(m_multiscattering_lut_scatter_sample_count)}
+		}
+	);
+	if (!m_multiscattering_lut_shader_program->linked())
+	{
+		debug::log::error("Failed to build sky multiscattering LUT shader program: {}", m_multiscattering_lut_shader_program->info());
+		debug::log::warning("{}", m_multiscattering_lut_shader_template->configure(gl::shader_stage::vertex));
+	}
+}
+
+void sky_pass::rebuild_multiscattering_lut_command_buffer()
+{
+	m_multiscattering_lut_command_buffer.clear();
 	
-	if (!sky_lut_shader_program->linked() || !sky_lut_texture)
+	if (!m_multiscattering_lut_shader_program->linked() || !m_multiscattering_lut_texture)
 	{
 		return;
 	}
 	
 	// Bind framebuffer and shader program
-	sky_lut_command_buffer.emplace_back
+	m_multiscattering_lut_command_buffer.emplace_back
 	(
 		[&]()
 		{
-			rasterizer->set_viewport(0, 0, sky_lut_texture->get_width(), sky_lut_texture->get_height());
-			rasterizer->use_framebuffer(*sky_lut_framebuffer);
-			rasterizer->use_program(*sky_lut_shader_program);
+			rasterizer->set_viewport(0, 0, m_multiscattering_lut_resolution.x(), m_multiscattering_lut_resolution.y());
+			rasterizer->use_framebuffer(*m_multiscattering_lut_framebuffer);
+			rasterizer->use_program(*m_multiscattering_lut_shader_program);
 		}
 	);
 	
 	// Update shader variables
-	if (auto light_direction_var = sky_lut_shader_program->variable("light_direction"))
+	if (auto atmosphere_radii_var = m_multiscattering_lut_shader_program->variable("atmosphere_radii"))
 	{
-		sky_lut_command_buffer.emplace_back([&, light_direction_var](){light_direction_var->update(dominant_light_direction);});
+		m_multiscattering_lut_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
 	}
-	if (auto light_illuminance_var = sky_lut_shader_program->variable("light_illuminance"))
+	if (auto rayleigh_parameters_var = m_multiscattering_lut_shader_program->variable("rayleigh_parameters"))
 	{
-		sky_lut_command_buffer.emplace_back([&, light_illuminance_var](){light_illuminance_var->update(dominant_light_illuminance);});
+		m_multiscattering_lut_command_buffer.emplace_back([&, rayleigh_parameters_var](){rayleigh_parameters_var->update(rayleigh_parameters);});
 	}
-	if (auto atmosphere_radii_var = sky_lut_shader_program->variable("atmosphere_radii"))
+	if (auto mie_parameters_var = m_multiscattering_lut_shader_program->variable("mie_parameters"))
 	{
-		sky_lut_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
+		m_multiscattering_lut_command_buffer.emplace_back([&, mie_parameters_var](){mie_parameters_var->update(mie_parameters);});
 	}
-	if (auto observer_position_var = sky_lut_shader_program->variable("observer_position"))
+	if (auto ozone_distribution_var = m_multiscattering_lut_shader_program->variable("ozone_distribution"))
 	{
-		sky_lut_command_buffer.emplace_back([&, observer_position_var](){observer_position_var->update(observer_position);});
+		m_multiscattering_lut_command_buffer.emplace_back([&, ozone_distribution_var](){ozone_distribution_var->update(ozone_distribution);});
 	}
-	if (auto rayleigh_parameters_var = sky_lut_shader_program->variable("rayleigh_parameters"))
+	if (auto ozone_absorption_var = m_multiscattering_lut_shader_program->variable("ozone_absorption"))
 	{
-		sky_lut_command_buffer.emplace_back([&, rayleigh_parameters_var](){rayleigh_parameters_var->update(rayleigh_parameters);});
+		m_multiscattering_lut_command_buffer.emplace_back([&, ozone_absorption_var](){ozone_absorption_var->update(ozone_absorption);});
 	}
-	if (auto mie_parameters_var = sky_lut_shader_program->variable("mie_parameters"))
+	if (auto ground_albedo_var = m_multiscattering_lut_shader_program->variable("ground_albedo"))
 	{
-		sky_lut_command_buffer.emplace_back([&, mie_parameters_var](){mie_parameters_var->update(mie_parameters);});
+		m_multiscattering_lut_command_buffer.emplace_back([&, ground_albedo_var](){ground_albedo_var->update(m_ground_albedo);});
 	}
-	if (auto ozone_distribution_var = sky_lut_shader_program->variable("ozone_distribution"))
+	if (auto resolution_var = m_multiscattering_lut_shader_program->variable("resolution"))
 	{
-		sky_lut_command_buffer.emplace_back([&, ozone_distribution_var](){ozone_distribution_var->update(ozone_distribution);});
+		m_multiscattering_lut_command_buffer.emplace_back([&, resolution_var](){resolution_var->update(math::vector2<float>(m_multiscattering_lut_resolution));});
 	}
-	if (auto ozone_absorption_var = sky_lut_shader_program->variable("ozone_absorption"))
+	if (auto transmittance_lut_var = m_multiscattering_lut_shader_program->variable("transmittance_lut"))
 	{
-		sky_lut_command_buffer.emplace_back([&, ozone_absorption_var](){ozone_absorption_var->update(ozone_absorption);});
-	}
-	if (auto airglow_illuminance_var = sky_lut_shader_program->variable("airglow_illuminance"))
-	{
-		sky_lut_command_buffer.emplace_back([&, airglow_illuminance_var](){airglow_illuminance_var->update(airglow_illuminance * camera_exposure);});
-	}
-	if (auto resolution_var = sky_lut_shader_program->variable("resolution"))
-	{
-		sky_lut_command_buffer.emplace_back([&, resolution_var](){resolution_var->update(sky_lut_resolution);});
-	}
-	if (auto transmittance_lut_var = sky_lut_shader_program->variable("transmittance_lut"))
-	{
-		sky_lut_command_buffer.emplace_back([&, transmittance_lut_var](){transmittance_lut_var->update(*transmittance_lut_texture);});
-	}
-	if (auto transmittance_lut_resolution_var = sky_lut_shader_program->variable("transmittance_lut_resolution"))
-	{
-		sky_lut_command_buffer.emplace_back([&, transmittance_lut_resolution_var](){transmittance_lut_resolution_var->update(transmittance_lut_resolution);});
+		m_multiscattering_lut_command_buffer.emplace_back([&, transmittance_lut_var](){transmittance_lut_var->update(*m_transmittance_lut_texture);});
 	}
 	
 	// Draw quad
-	sky_lut_command_buffer.emplace_back
+	m_multiscattering_lut_command_buffer.emplace_back
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangle_strip, 0, 4);
 		}
 	);
+}
+
+void sky_pass::rebuild_luminance_lut_shader_program()
+{
+	m_luminance_lut_shader_program = m_luminance_lut_shader_template->build
+	(
+		{
+			{"SAMPLE_COUNT", std::to_string(m_luminance_lut_sample_count)}
+		}
+	);
+	if (!m_luminance_lut_shader_program->linked())
+	{
+		debug::log::error("Failed to build sky luminance LUT shader program: {}", m_luminance_lut_shader_program->info());
+		debug::log::warning("{}", m_luminance_lut_shader_template->configure(gl::shader_stage::vertex));
+	}
+}
+
+void sky_pass::rebuild_luminance_lut_command_buffer()
+{
+	m_luminance_lut_command_buffer.clear();
+	
+	if (!m_luminance_lut_shader_program->linked() || !m_luminance_lut_texture)
+	{
+		return;
+	}
+	
+	// Bind framebuffer and shader program
+	m_luminance_lut_command_buffer.emplace_back
+	(
+		[&]()
+		{
+			rasterizer->set_viewport(0, 0, m_luminance_lut_resolution.x(), m_luminance_lut_resolution.y());
+			rasterizer->use_framebuffer(*m_luminance_lut_framebuffer);
+			rasterizer->use_program(*m_luminance_lut_shader_program);
+		}
+	);
+	
+	// Update shader variables
+	if (auto light_direction_var = m_luminance_lut_shader_program->variable("light_direction"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, light_direction_var](){light_direction_var->update(dominant_light_direction);});
+	}
+	if (auto light_illuminance_var = m_luminance_lut_shader_program->variable("light_illuminance"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, light_illuminance_var](){light_illuminance_var->update(dominant_light_illuminance);});
+	}
+	if (auto atmosphere_radii_var = m_luminance_lut_shader_program->variable("atmosphere_radii"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
+	}
+	if (auto observer_position_var = m_luminance_lut_shader_program->variable("observer_position"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, observer_position_var](){observer_position_var->update(observer_position);});
+	}
+	if (auto rayleigh_parameters_var = m_luminance_lut_shader_program->variable("rayleigh_parameters"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, rayleigh_parameters_var](){rayleigh_parameters_var->update(rayleigh_parameters);});
+	}
+	if (auto mie_parameters_var = m_luminance_lut_shader_program->variable("mie_parameters"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, mie_parameters_var](){mie_parameters_var->update(mie_parameters);});
+	}
+	if (auto ozone_distribution_var = m_luminance_lut_shader_program->variable("ozone_distribution"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, ozone_distribution_var](){ozone_distribution_var->update(ozone_distribution);});
+	}
+	if (auto ozone_absorption_var = m_luminance_lut_shader_program->variable("ozone_absorption"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, ozone_absorption_var](){ozone_absorption_var->update(ozone_absorption);});
+	}
+	if (auto airglow_luminance_var = m_luminance_lut_shader_program->variable("airglow_luminance"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, airglow_luminance_var](){airglow_luminance_var->update(airglow_luminance * camera_exposure);});
+	}
+	if (auto resolution_var = m_luminance_lut_shader_program->variable("resolution"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, resolution_var](){resolution_var->update(math::vector2<float>(m_luminance_lut_resolution));});
+	}
+	if (auto transmittance_lut_var = m_luminance_lut_shader_program->variable("transmittance_lut"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, transmittance_lut_var](){transmittance_lut_var->update(*m_transmittance_lut_texture);});
+	}
+	if (auto multiscattering_lut_var = m_luminance_lut_shader_program->variable("multiscattering_lut"))
+	{
+		m_luminance_lut_command_buffer.emplace_back([&, multiscattering_lut_var](){multiscattering_lut_var->update(*m_multiscattering_lut_texture);});
+	}
+	
+	// Draw quad
+	m_luminance_lut_command_buffer.emplace_back
+	(
+		[&]()
+		{
+			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangle_strip, 0, 4);
+		}
+	);
+}
+
+void sky_pass::rebuild_sky_probe_command_buffer()
+{
+	m_sky_probe_command_buffer.clear();
+	
+	if (!m_sky_probe_shader_program->linked() || m_sky_probe_framebuffers.empty())
+	{
+		return;
+	}
+	
+	// Bind sky probe framebuffer and shader program
+	m_sky_probe_command_buffer.emplace_back
+	(
+		[&]()
+		{
+			const auto resolution = m_sky_probe->get_luminance_texture()->get_face_size();
+			rasterizer->set_viewport(0, 0, resolution, resolution);
+			rasterizer->use_framebuffer(*m_sky_probe_framebuffers[0]);
+			rasterizer->use_program(*m_sky_probe_shader_program);
+		}
+	);
+	
+	if (auto luminance_lut_var = m_sky_probe_shader_program->variable("luminance_lut"))
+	{
+		m_sky_probe_command_buffer.emplace_back([&, luminance_lut_var](){luminance_lut_var->update(*m_luminance_lut_texture);});
+	}
+	if (auto light_direction_var = m_sky_probe_shader_program->variable("light_direction"))
+	{
+		m_sky_probe_command_buffer.emplace_back([&, light_direction_var](){light_direction_var->update(dominant_light_direction);});
+	}
+	if (auto observer_position_var = m_sky_probe_shader_program->variable("observer_position"))
+	{
+		m_sky_probe_command_buffer.emplace_back([&, observer_position_var](){observer_position_var->update(observer_position);});
+	}
+	if (auto atmosphere_radii_var = m_sky_probe_shader_program->variable("atmosphere_radii"))
+	{
+		m_sky_probe_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
+	}
+	
+	// Draw point
+	m_sky_probe_command_buffer.emplace_back
+	(
+		[&]()
+		{
+			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::points, 0, 1);
+			m_sky_probe->set_luminance_outdated(true);
+			m_sky_probe->set_illuminance_outdated(true);
+		}
+	);
+	
+	if (!m_cubemap_downsample_shader_program->linked())
+	{
+		return;
+	}
+	
+	auto cubemap_var = m_cubemap_downsample_shader_program->variable("cubemap");
+	if (!cubemap_var)
+	{
+		return;
+	}
+	
+	m_sky_probe_command_buffer.emplace_back
+	(
+		[&, cubemap_var]()
+		{
+			// Bind downsample shader program
+			rasterizer->use_program(*m_cubemap_downsample_shader_program);
+			
+			// Change texture filter mode to linear to prevent undefined access when reading and writing to different mip levels of the same texture
+			// m_sky_probe->get_luminance_texture()->set_min_filter(gl::texture_min_filter::linear);
+			
+			// Update cubemap shader variable
+			cubemap_var->update(*m_sky_probe->get_luminance_texture());
+		}
+	);
+	
+	for (std::size_t i = 1; i < m_sky_probe_framebuffers.size(); ++i)
+	{
+		const auto resolution = m_sky_probe->get_luminance_texture()->get_face_size() >> i;
+		
+		// Bind sky probe mip framebuffer
+		m_sky_probe_command_buffer.emplace_back
+		(
+			[&, resolution, i]()
+			{
+				rasterizer->set_viewport(0, 0, resolution, resolution);
+				
+				// Restrict mipmap range
+				const std::uint8_t base_mip_level = static_cast<std::uint8_t>(i - 1);
+				m_sky_probe->get_luminance_texture()->set_mipmap_range(base_mip_level, base_mip_level);
+				
+				rasterizer->use_framebuffer(*m_sky_probe_framebuffers[i]);
+				rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::points, 0, 1);
+			}
+		);
+	}
+	
+	// Restore mipmap range
+	m_sky_probe_command_buffer.emplace_back
+	(
+		[&]()
+		{
+			m_sky_probe->get_luminance_texture()->set_mipmap_range(0, 255);
+		}
+	);
+	
+	
+	
+	// Restore texture filter mode
+	// m_sky_probe_command_buffer.emplace_back
+	// (
+		// [&]()
+		// {
+			// m_sky_probe->get_luminance_texture()->set_min_filter(gl::texture_min_filter::linear_mipmap_linear);
+		// }
+	// );
 }
 
 } // namespace render

@@ -57,11 +57,13 @@ rasterizer::rasterizer():
 	
 	// Setup default framebuffer
 	default_framebuffer = std::make_unique<framebuffer>();
-	default_framebuffer->gl_framebuffer_id = 0;
-	default_framebuffer->dimensions = {scissor_box[2], scissor_box[3]};
+	default_framebuffer->m_gl_framebuffer_id = 0;
+	default_framebuffer->m_dimensions = {scissor_box[2], scissor_box[3]};
 	
 	// Bind default framebuffer
 	bound_framebuffer = default_framebuffer.get();
+	
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 rasterizer::~rasterizer()
@@ -69,14 +71,14 @@ rasterizer::~rasterizer()
 
 void rasterizer::context_resized(int width, int height)
 {
-	default_framebuffer->dimensions = {width, height};
+	default_framebuffer->m_dimensions = {width, height};
 }
 
 void rasterizer::use_framebuffer(const gl::framebuffer& framebuffer)
 {
 	if (bound_framebuffer != &framebuffer)
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.gl_framebuffer_id);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.m_gl_framebuffer_id);
 		bound_framebuffer = &framebuffer;
 	}
 }

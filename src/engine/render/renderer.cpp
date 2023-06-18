@@ -24,6 +24,7 @@
 #include <engine/scene/camera.hpp>
 #include <engine/scene/static-mesh.hpp>
 #include <engine/scene/billboard.hpp>
+#include <engine/scene/light-probe.hpp>
 #include <engine/scene/text.hpp>
 #include <engine/render/model.hpp>
 #include <engine/gl/drawing-mode.hpp>
@@ -37,19 +38,23 @@
 
 namespace render {
 
-renderer::renderer()
-{	
-	culling_stage = std::make_unique<render::culling_stage>();
-	queue_stage = std::make_unique<render::queue_stage>();
+renderer::renderer(gl::rasterizer& rasterizer, ::resource_manager& resource_manager)
+{
+	m_light_probe_stage = std::make_unique<render::light_probe_stage>(rasterizer, resource_manager);
+	m_culling_stage = std::make_unique<render::culling_stage>();
+	m_queue_stage = std::make_unique<render::queue_stage>();
 }
 
 void renderer::render(float t, float dt, float alpha, const scene::collection& collection)
 {
 	// Init render context
-	ctx.collection = &collection;
-	ctx.t = t;
-	ctx.dt = dt;
-	ctx.alpha = alpha;
+	m_ctx.collection = &collection;
+	m_ctx.t = t;
+	m_ctx.dt = dt;
+	m_ctx.alpha = alpha;
+	
+	// Execute light probe stage
+	m_light_probe_stage->execute(m_ctx);
 	
 	// Get list of cameras to be sorted
 	const auto& cameras = collection.get_objects(scene::camera::object_type_id);
@@ -67,20 +72,20 @@ void renderer::render(float t, float dt, float alpha, const scene::collection& c
 		}
 		
 		// Update render context camera
-		ctx.camera = &camera;
+		m_ctx.camera = &camera;
 		
 		// Clear render queues
-		ctx.objects.clear();
-		ctx.operations.clear();
+		m_ctx.objects.clear();
+		m_ctx.operations.clear();
 		
 		// Execute culling stage
-		culling_stage->execute(ctx);
+		m_culling_stage->execute(m_ctx);
 		
 		// Execute queue stage
-		queue_stage->execute(ctx);
+		m_queue_stage->execute(m_ctx);
 		
 		// Pass render context to the camera's compositor
-		compositor->composite(ctx);
+		compositor->composite(m_ctx);
 	}
 }
 

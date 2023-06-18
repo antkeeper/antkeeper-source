@@ -68,13 +68,20 @@ public:
 	/**
 	 * Sets the camera's projection matrix using perspective projection.
 	 *
-	 * @param fov Vertical field of view.
+	 * @param vertical_fov Vertical field of view, in radians.
 	 * @param aspect_ratio Aspect ratio.
 	 * @param clip_near Distance to near clipping plane.
 	 * @param clip_far Distance to far clipping plane.
 	 */
-	void set_perspective(float fov, float aspect_ratio, float clip_near, float clip_far);
-
+	void set_perspective(float vertical_fov, float aspect_ratio, float clip_near, float clip_far);
+	
+	/**
+	 * Sets the camera's vertical field of view.
+	 *
+	 * @param vertical_fov Vertical field of view, in radians.
+	 */
+	void set_vertical_fov(float vertical_fov);
+	
 	/**
 	 * Sets the camera's projection matrix using orthographic projection.
 	 *
@@ -181,10 +188,10 @@ public:
 		return m_clip_far;
 	}
 	
-	/// Returns the camera's field of view, in radians.
-	[[nodiscard]] inline float get_fov() const noexcept
+	/// Returns the camera's vertical field of view, in radians.
+	[[nodiscard]] inline float get_vertical_fov() const noexcept
 	{
-		return m_fov;
+		return m_vertical_fov;
 	}
 	
 	/// Returns the camera's aspect ratio.
@@ -262,7 +269,7 @@ private:
 	float m_clip_top{1.0f};
 	float m_clip_near{-1.0f};
 	float m_clip_far{1.0f};
-	float m_fov{math::half_pi<float>};
+	float m_vertical_fov{math::half_pi<float>};
 	float m_aspect_ratio{1.0f};
 	float m_exposure_value{0.0f};
 	float m_exposure_normalization{1.0f / 1.2f};

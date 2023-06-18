@@ -34,14 +34,14 @@ public:
 	/// Returns an enumeration denoting the light object type.
 	[[nodiscard]] virtual light_type get_light_type() const noexcept = 0;
 	
-	inline const aabb_type& get_bounds() const noexcept override
+	[[nodiscard]] inline const aabb_type& get_bounds() const noexcept override
 	{
 		return m_bounds;
 	}
 
 private:
-	virtual void transformed();
-	aabb_type m_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
+	void transformed() override;
+	aabb_type m_bounds{};
 };
 
 } // namespace scene

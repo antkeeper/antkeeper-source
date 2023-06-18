@@ -47,7 +47,6 @@ astronomy_system::astronomy_system(entity::registry& registry):
 	reference_body_eid(entt::null),
 	transmittance_samples(0),
 	sun_light(nullptr),
-	sky_light(nullptr),
 	moon_light(nullptr),
 	sky_pass(nullptr),
 	starlight_illuminance{0, 0, 0}
@@ -91,8 +90,6 @@ astronomy_system::~astronomy_system()
 
 void astronomy_system::update(float t, float dt)
 {
-	double3 sky_light_illuminance = {0.0, 0.0, 0.0};
-	
 	// Add scaled timestep to current time
 	set_time(time_days + dt * time_scale);
 	
@@ -118,6 +115,11 @@ void astronomy_system::update(float t, float dt)
 	// Abort if no reference body or reference orbit
 	if (!reference_body || !reference_orbit)
 		return;
+	
+	// if (sky_pass)
+	// {
+		// sky_pass->set_ground_albedo(math::vector3<float>{1.0f, 1.0f, 1.0f} * static_cast<float>(reference_body->albedo));
+	// }
 	
 	// Update ICRF to EUS transformation
 	update_icrf_to_eus(*reference_body, *reference_orbit);
@@ -183,7 +185,7 @@ void astronomy_system::update(float t, float dt)
 			const geom::ray<double, 3> ray = {{0, 0, 0}, observer_blackbody_direction_eus};
 			
 			// Integrate atmospheric spectral transmittance factor between observer and blackbody
-			const double3 transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
+			double3 transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
 			
 			// Attenuate illuminance from blackbody reaching observer by spectral transmittance factor
 			observer_blackbody_transmitted_illuminance *= transmittance;
@@ -203,25 +205,16 @@ void astronomy_system::update(float t, float dt)
 			);
 			
 			sun_light->set_illuminance(static_cast<float>(math::max(observer_blackbody_transmitted_illuminance)));
-			sun_light->set_color(math::vector3<float>(observer_blackbody_transmitted_illuminance / math::max(observer_blackbody_transmitted_illuminance)));
-		}
-		
-		// Update sky light
-		if (sky_light != nullptr)
-		{
-			// Calculate sky illuminance
-			double3 blackbody_position_enu_spherical = physics::orbit::frame::enu::spherical(enu_to_eus.inverse() * blackbody_position_eus);
-			const double sky_illuminance = 25000.0 * std::max<double>(0.0, std::sin(blackbody_position_enu_spherical.y()));
 			
-			// Add sky illuminance to sky light illuminance
-			sky_light_illuminance += {sky_illuminance, sky_illuminance, sky_illuminance};
-			
-			// Add starlight illuminance to sky light illuminance
-			sky_light_illuminance += starlight_illuminance;
-			
-			// Update sky light
-			sky_light->set_illuminance(static_cast<float>(math::max(sky_light_illuminance)));
-			sky_light->set_color(math::vector3<float>(sky_light_illuminance / math::max(sky_light_illuminance)));
+			const auto max_component = math::max(observer_blackbody_transmitted_illuminance);
+			if (max_component > 0.0)
+			{
+				sun_light->set_color(math::vector3<float>(observer_blackbody_transmitted_illuminance / max_component));
+			}
+			else
+			{
+				sun_light->set_color({});
+			}
 		}
 		
 		// Upload blackbody params to sky pass
@@ -274,8 +267,8 @@ void astronomy_system::update(float t, float dt)
 			double3 observer_reflector_transmittance = {1, 1, 1};
 			if (reference_atmosphere)
 			{
-				const geom::ray<double, 3> ray = {{0, 0, 0}, observer_reflector_direction_eus};
-				observer_reflector_transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
+				// const geom::ray<double, 3> ray = {{0, 0, 0}, observer_reflector_direction_eus};
+				// observer_reflector_transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
 			}
 			
 			// Measure luminance of observer reference body as seen by reflector
@@ -302,14 +295,23 @@ void astronomy_system::update(float t, float dt)
 				this->sky_pass->set_moon_illuminance(float3(observer_reflector_illuminance / observer_reflector_transmittance), float3(observer_reflector_illuminance));
 			}
 			
-			if (this->moon_light)
+			if (moon_light)
 			{
 				const float3 reflector_up_eus = float3(icrf_to_eus.r * double3{0, 0, 1});
 				
-				this->moon_light->set_illuminance(static_cast<float>(math::max(observer_reflector_illuminance)));
-				this->moon_light->set_color(math::vector3<float>(observer_reflector_illuminance / math::max(observer_reflector_illuminance)));
+				moon_light->set_illuminance(static_cast<float>(math::max(observer_reflector_illuminance)));
 				
-				this->moon_light->set_rotation
+				const auto max_component = math::max(observer_reflector_illuminance);
+				if (max_component > 0.0)
+				{
+					moon_light->set_color(math::vector3<float>(observer_reflector_illuminance / max_component));
+				}
+				else
+				{
+					moon_light->set_color({});
+				}
+				
+				moon_light->set_rotation
 				(
 					math::look_rotation
 					(
@@ -356,11 +358,6 @@ void astronomy_system::set_sun_light(scene::directional_light* light)
 	sun_light = light;
 }
 
-void astronomy_system::set_sky_light(scene::ambient_light* light)
-{
-	sky_light = light;
-}
-
 void astronomy_system::set_moon_light(scene::directional_light* light)
 {
 	moon_light = light;
@@ -391,9 +388,15 @@ void astronomy_system::set_sky_pass(::render::sky_pass* pass)
 			const auto reference_body = registry.try_get<celestial_body_component>(reference_body_eid);
 			
 			if (reference_body)
+			{
 				sky_pass->set_planet_radius(static_cast<float>(reference_body->radius));
+				// sky_pass->set_ground_albedo(math::vector3<float>{1.0f, 1.0f, 1.0f} * static_cast<float>(reference_body->albedo));
+			}
 			else
+			{
 				sky_pass->set_planet_radius(0.0f);
+				// sky_pass->set_ground_albedo({0.0f, 0.0f, 0.0f});
+			}
 		}
 	}
 }
@@ -560,7 +563,7 @@ void astronomy_system::update_icrf_to_eus(const ::celestial_body_component& body
 
 double3 astronomy_system::integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const
 {
-	double3 transmittance = {1, 1, 1};
+	math::vector3<double> transmittance = {1, 1, 1};
 	
 	// Make ray height relative to center of reference body
 	ray.origin.y() += body.radius + observer.elevation;
@@ -572,24 +575,47 @@ double3 astronomy_system::integrate_transmittance(const ::observer_component& ob
 	
 	// Check for intersection between the ray and atmosphere
 	auto intersection = geom::intersection(ray, atmosphere_sphere);
-	if (intersection)
+	if (intersection && std::get<1>(*intersection) > 0.0)
 	{
-		// Get point of intersection
-		const double3 intersection_point = ray.extrapolate(std::get<1>(*intersection));
+		// Determine height at ray origin and cosine of the angle between the ray direction and local zenith direction at ray origin
+		const double height = math::length(ray.origin);
+		const double cos_view_zenith = math::dot(ray.direction, ray.origin) / height;
 		
-		// Integrate optical of Rayleigh, Mie, and ozone particles
-		const double optical_depth_r = physics::gas::atmosphere::optical_depth_exp(ray.origin, intersection_point, body.radius, atmosphere.rayleigh_scale_height, transmittance_samples);
-		const double optical_depth_m = physics::gas::atmosphere::optical_depth_exp(ray.origin, intersection_point, body.radius, atmosphere.mie_scale_height, transmittance_samples);
-		const double optical_depth_o = physics::gas::atmosphere::optical_depth_tri(ray.origin, intersection_point, body.radius, atmosphere.ozone_lower_limit, atmosphere.ozone_upper_limit, atmosphere.ozone_mode, transmittance_samples);
+		// Precalculate terms re-used in sample height calculation
+		const double sqr_height = height * height;
+		const double height_cos_view_zenith = height * cos_view_zenith;
+		const double two_height_cos_view_zenith = 2.0 * height_cos_view_zenith;
 		
-		// Calculate transmittance factor due to scattering and absorption
-		const double3 extinction_r = atmosphere.rayleigh_scattering * optical_depth_r;
-		const double extinction_m = atmosphere.mie_extinction * optical_depth_m;
-		const double3 extinction_o = atmosphere.ozone_absorption * optical_depth_o;
-		transmittance = extinction_r + double3{extinction_m, extinction_m, extinction_m} + extinction_o;
-		transmittance.x() = std::exp(-transmittance.x());
-		transmittance.y() = std::exp(-transmittance.y());
-		transmittance.z() = std::exp(-transmittance.z());
+		// Get distance to upper limit of atmosphere
+		const double sample_end_distance = std::get<1>(*intersection);
+		
+		// Integrate atmospheric particle densities
+		math::vector3<double> densities{};
+		double previous_sample_distance = 0.0;
+		for (std::size_t i = 0; i < transmittance_samples; ++i)
+		{
+			// Determine distance along sample ray to sample point and length of the sample
+			const double sample_distance = (static_cast<double>(i) + 0.5) / static_cast<double>(transmittance_samples) * sample_end_distance;
+			const double sample_length = sample_distance - previous_sample_distance;
+			previous_sample_distance = sample_distance;
+			
+			// Calculate sample elevation
+			const double sample_height = std::sqrt(sample_distance * sample_distance + sqr_height + two_height_cos_view_zenith * sample_distance);
+			const double sample_elevation = sample_height - body.radius;
+			
+			// Weigh and sum atmospheric particle densities at sample elevation
+			densities.x() += physics::gas::atmosphere::density::exponential(1.0, sample_elevation, atmosphere.rayleigh_scale_height) * sample_length;
+			densities.y() += physics::gas::atmosphere::density::exponential(1.0, sample_elevation, atmosphere.mie_scale_height) * sample_length;
+			densities.x() += physics::gas::atmosphere::density::triangular(1.0, sample_elevation, atmosphere.ozone_lower_limit, atmosphere.ozone_upper_limit, atmosphere.ozone_mode) * sample_length;
+		}
+		
+		// Calculate extinction coefficients from integrated atmospheric particle densities
+		const math::vector3<double> extinction = densities.x() * atmosphere.rayleigh_scattering +
+			densities.y() * atmosphere.mie_extinction +
+			densities.z() * atmosphere.ozone_absorption;
+		
+		// Calculate transmittance factor from extinction coefficients
+		transmittance = {std::exp(-extinction.x()), std::exp(-extinction.y()), std::exp(-extinction.z())};
 	}
 	
 	return transmittance;

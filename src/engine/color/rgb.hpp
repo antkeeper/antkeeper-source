@@ -43,7 +43,7 @@ namespace rgb {
  * @see https://mina86.com/2019/srgb-xyz-matrix/
  */
 template <class T>
-constexpr math::matrix<T, 3, 3> to_xyz(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w)
+[[nodiscard]] constexpr math::matrix<T, 3, 3> to_xyz(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w)
 {
 	const math::matrix<T, 3, 3> m = 
 	{
@@ -106,7 +106,17 @@ struct color_space
 	 * @param b CIE xy chromaticity coordinates of the blue primary.
 	 * @param w CIE xy chromaticity coordinates of the white point.
 	 */
-	constexpr color_space(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w, transfer_function_type eotf, transfer_function_type oetf);
+	constexpr color_space(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w, transfer_function_type eotf, transfer_function_type oetf):
+		r(r),
+		g(g),
+		b(b),
+		w(w),
+		eotf(eotf),
+		oetf(oetf),
+		to_xyz(color::rgb::to_xyz<T>(r, g, b, w)),
+		from_xyz(math::inverse(to_xyz)),
+		to_y{to_xyz[0][1], to_xyz[1][1], to_xyz[2][1]}
+	{}
 	
 	/**
 	 * Measures the luminance of a linear RGB color.
@@ -114,27 +124,11 @@ struct color_space
 	 * @param x Linear RGB color.
 	 * @return return Luminance of @p x.
 	 */
-	constexpr T luminance(const math::vector3<T>& x) const;
+	[[nodiscard]] inline constexpr T luminance(const math::vector3<T>& x) const noexcept
+	{
+		return math::dot(x, to_y);
+	}
 };
-
-template <class T>
-constexpr color_space<T>::color_space(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w, transfer_function_type eotf, transfer_function_type oetf):
-	r(r),
-	g(g),
-	b(b),
-	w(w),
-	eotf(eotf),
-	oetf(oetf),
-	to_xyz(color::rgb::to_xyz<T>(r, g, b, w)),
-	from_xyz(math::inverse(to_xyz)),
-	to_y{to_xyz[0][1], to_xyz[1][1], to_xyz[2][1]}
-{}
-
-template <class T>
-constexpr T color_space<T>::luminance(const math::vector3<T>& x) const
-{
-	return math::dot(x, to_y);
-}
 
 /**
  * Constructs a matrix which transforms a color from one RGB color space to another RGB color space.
@@ -146,7 +140,7 @@ constexpr T color_space<T>::luminance(const math::vector3<T>& x) const
  * @return Color space transformation matrix.
  */
 template <class T>
-constexpr math::matrix3x3<T> to_rgb(const color_space<T>& s0, const color_space<T>& s1, const math::matrix3x3<T>& cone_response = color::cat::bradford<T>)
+[[nodiscard]] constexpr math::matrix3x3<T> to_rgb(const color_space<T>& s0, const color_space<T>& s1, const math::matrix3x3<T>& cone_response = color::cat::bradford<T>)
 {
 	return s1.from_xyz * color::cat::matrix(s0.w, s1.w, cone_response) * s0.to_xyz;
 }

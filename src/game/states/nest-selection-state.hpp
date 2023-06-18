@@ -25,6 +25,7 @@
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/render/model.hpp>
 #include <engine/animation/ik/solvers/ccd-ik-solver.hpp>
+#include <engine/scene/light-probe.hpp>
 
 class nest_selection_state: public game_state
 {
@@ -48,6 +49,10 @@ private:
 	std::shared_ptr<render::model> worker_model;
 	
 	bool mouse_look{false};
+	bool mouse_drag{false};
+	bool adjust_exposure{false};
+	bool adjust_time{false};
+	bool adjust_zoom{false};
 	
 	bool moving{false};
 	float2 movement_direction{0.0f, 0.0f};
@@ -74,6 +79,8 @@ private:
 	double first_person_camera_pitch{0.0};
 	
 	std::shared_ptr<ccd_ik_solver> larva_ik_solver;
+	
+	std::shared_ptr<scene::light_probe> sky_probe;
 };
 
 #endif // ANTKEEPER_NEST_SELECTION_STATE_HPP

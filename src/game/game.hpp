@@ -51,7 +51,6 @@
 #include <engine/scene/directional-light.hpp>
 #include <engine/scene/rectangle-light.hpp>
 #include <engine/scene/spot-light.hpp>
-#include <engine/scene/ambient-light.hpp>
 #include <engine/scene/camera.hpp>
 #include <engine/scene/billboard.hpp>
 #include <engine/scene/collection.hpp>
@@ -239,6 +238,9 @@ public:
 	input::action camera_9_action;
 	input::action camera_10_action;
 	input::action save_camera_action;
+	input::action adjust_exposure_action;
+	input::action adjust_time_action;
+	input::action adjust_zoom_action;
 	
 	std::vector<std::shared_ptr<::event::subscription>> window_action_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> menu_action_subscriptions;
@@ -332,11 +334,9 @@ public:
 	std::shared_ptr<scene::camera> surface_camera;
 	std::unique_ptr<scene::directional_light> sun_light;
 	std::unique_ptr<scene::directional_light> moon_light;
-	std::unique_ptr<scene::ambient_light> sky_light;
 	std::unique_ptr<scene::collection> underground_scene;
 	std::shared_ptr<scene::camera> underground_camera;
 	std::unique_ptr<scene::directional_light> underground_directional_light;
-	std::unique_ptr<scene::ambient_light> underground_ambient_light;
 	std::unique_ptr<scene::rectangle_light> underground_rectangle_light;
 	scene::collection* active_scene;
 	

@@ -33,6 +33,7 @@
 #include <engine/gl/drawing-mode.hpp>
 #include <engine/math/se3.hpp>
 #include <engine/scene/object.hpp>
+#include <engine/scene/light-probe.hpp>
 
 class resource_manager;
 
@@ -43,6 +44,8 @@ class model;
 
 /**
  *
+ *
+ * @see Hillaire, Sébastien. "A scalable and production ready sky and atmosphere rendering technique." Computer Graphics Forum. Vol. 39. No. 4. 2020.
  */
 class sky_pass: public pass
 {
@@ -50,6 +53,128 @@ public:
 	sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~sky_pass() = default;
 	void render(render::context& ctx) override;
+	
+	/// @name Transmittance LUT
+	/// @{
+	
+	/**
+	 * Sets the number of transmittance integration samples.
+	 *
+	 * @param count Integration sample count.
+	 *
+	 * @note Triggers rebuilding of transmittance LUT shader.
+	 * @note Triggers rendering of transmittance LUT.
+	 */
+	void set_transmittance_lut_sample_count(std::uint16_t count);
+	
+	/**
+	 * Sets the resolution of the transmittance LUT.
+	 *
+	 * @param resolution Resolution of the transmittance LUT texture, in pixels.
+	 *
+	 * @note Triggers rendering of transmittance LUT.
+	 */
+	void set_transmittance_lut_resolution(const math::vector2<std::uint16_t>& resolution);
+	
+	/// Returns the number of transmittance integration samples.
+	[[nodiscard]] inline std::uint16_t get_transmittance_lut_sample_count() const noexcept
+	{
+		return m_transmittance_lut_sample_count;
+	}
+	
+	/// Returns the resolution of the transmittance LUT texture, in pixels.
+	[[nodiscard]] inline const math::vector2<std::uint16_t>& get_transmittance_lut_resolution() const noexcept
+	{
+		return m_transmittance_lut_resolution;
+	}
+	
+	/// @}
+	/// @name Multiscattering LUT
+	/// @{
+	
+	/**
+	 * Sets the number of multiscattering directions to sample.
+	 *
+	 * @param count Multiscattering direction sample count.
+	 *
+	 * @note Triggers rebuilding of multiscattering LUT shader.
+	 * @note Triggers rendering of multiscattering LUT.
+	 */
+	void set_multiscattering_lut_direction_sample_count(std::uint16_t count);
+	
+	/**
+	 * Sets the number of multiscattering scatter events to sample per sample direction.
+	 *
+	 * @param count Multiscattering scatter sample count.
+	 *
+	 * @note Triggers rebuilding of multiscattering LUT shader.
+	 * @note Triggers rendering of multiscattering LUT.
+	 */
+	void set_multiscattering_lut_scatter_sample_count(std::uint16_t count);
+	
+	/**
+	 * Sets the resolution of the multiscattering LUT.
+	 *
+	 * @param resolution Resolution of the multiscattering LUT texture, in pixels.
+	 *
+	 * @note Triggers rendering of multiscattering LUT.
+	 */
+	void set_multiscattering_lut_resolution(const math::vector2<std::uint16_t>& resolution);
+	
+	/// Returns the number of multiscattering direction samples.
+	[[nodiscard]] inline std::uint16_t get_multiscattering_lut_direction_sample_count() const noexcept
+	{
+		return m_multiscattering_lut_direction_sample_count;
+	}
+	
+	/// Returns the number of multiscattering scatter samples per direction.
+	[[nodiscard]] inline std::uint16_t get_multiscattering_lut_scatter_sample_count() const noexcept
+	{
+		return m_multiscattering_lut_scatter_sample_count;
+	}
+	
+	/// Returns the resolution of the multiscattering LUT texture, in pixels.
+	[[nodiscard]] inline const math::vector2<std::uint16_t>& get_multiscattering_lut_resolution() const noexcept
+	{
+		return m_multiscattering_lut_resolution;
+	}
+	
+	/// @}
+	/// @name Luminance LUT
+	/// @{
+	
+	/**
+	 * Sets the number of luminance integration samples.
+	 *
+	 * @param count Integration sample count.
+	 *
+	 * @note Triggers rebuilding of luminance LUT shader.
+	 * @note Triggers rendering of luminance LUT.
+	 */
+	void set_luminance_lut_sample_count(std::uint16_t count);
+	
+	/**
+	 * Sets the resolution of the luminance LUT.
+	 *
+	 * @param resolution Resolution of the luminance LUT texture, in pixels.
+	 *
+	 * @note Triggers rendering of luminance LUT.
+	 */
+	void set_luminance_lut_resolution(const math::vector2<std::uint16_t>& resolution);
+	
+	/// Returns the number of luminance integration samples.
+	[[nodiscard]] inline std::uint16_t get_luminance_lut_sample_count() const noexcept
+	{
+		return m_luminance_lut_sample_count;
+	}
+	
+	/// Returns the resolution of the luminance LUT texture, in pixels.
+	[[nodiscard]] inline const math::vector2<std::uint16_t>& get_luminance_lut_resolution() const noexcept
+	{
+		return m_luminance_lut_resolution;
+	}
+	
+	/// @}
 	
 	void update_tweens();
 	
@@ -71,7 +196,8 @@ public:
 	void set_rayleigh_parameters(float scale_height, const float3& scattering);
 	void set_mie_parameters(float scale_height, float scattering, float extinction, float anisotropy);
 	void set_ozone_parameters(float lower_limit, float upper_limit, float mode, const float3& absorption);
-	void set_airglow_illuminance(const float3& illuminance);
+	void set_airglow_luminance(const float3& luminance);
+	void set_ground_albedo(const float3& albedo);
 	
 	void set_moon_position(const float3& position);
 	void set_moon_rotation(const math::quaternion<float>& rotation);
@@ -82,35 +208,63 @@ public:
 	void set_moon_planetlight_illuminance(const float3& illuminance);
 	void set_moon_illuminance(const float3& illuminance, const float3& transmitted_illuminance);
 	
-	/**
-	 * Sets the resolution of transmittance LUT.
-	 *
-	 * @param width Transmittance LUT width, in pixels.
-	 * @param height Transmittance LUT height, in pixels.
-	 */
-	void set_transmittance_lut_resolution(std::uint16_t width, std::uint16_t height);
+
+	
+	void set_sky_probe(std::shared_ptr<scene::light_probe> probe);
 
 private:
+	void rebuild_transmittance_lut_shader_program();
 	void rebuild_transmittance_lut_command_buffer();
+	void rebuild_multiscattering_lut_shader_program();
+	void rebuild_multiscattering_lut_command_buffer();
+	void rebuild_luminance_lut_shader_program();
+	void rebuild_luminance_lut_command_buffer();
+	
 	void rebuild_sky_lut_command_buffer();
+	void rebuild_sky_probe_command_buffer();
 	
 	std::unique_ptr<gl::vertex_buffer> quad_vbo;
 	std::unique_ptr<gl::vertex_array> quad_vao;
 	
-	std::unique_ptr<gl::texture_2d> transmittance_lut_texture;
-	std::unique_ptr<gl::framebuffer> transmittance_lut_framebuffer;
-	float2 transmittance_lut_resolution;
-	std::shared_ptr<gl::shader_template> transmittance_lut_shader_template;
-	std::unique_ptr<gl::shader_program> transmittance_lut_shader_program;
-	bool render_transmittance_lut;
-	std::vector<std::function<void()>> transmittance_lut_command_buffer;
+	// Transmittance
+	std::uint16_t m_transmittance_lut_sample_count{40};
+	math::vector2<std::uint16_t> m_transmittance_lut_resolution{256, 64};
+	std::unique_ptr<gl::texture_2d> m_transmittance_lut_texture;
+	std::unique_ptr<gl::framebuffer> m_transmittance_lut_framebuffer;
+	std::shared_ptr<gl::shader_template> m_transmittance_lut_shader_template;
+	std::unique_ptr<gl::shader_program> m_transmittance_lut_shader_program;
+	std::vector<std::function<void()>> m_transmittance_lut_command_buffer;
+	bool m_render_transmittance_lut{false};
 	
-	std::unique_ptr<gl::texture_2d> sky_lut_texture;
-	std::unique_ptr<gl::framebuffer> sky_lut_framebuffer;
-	std::shared_ptr<gl::shader_template> sky_lut_shader_template;
-	std::unique_ptr<gl::shader_program> sky_lut_shader_program;
-	float2 sky_lut_resolution;
-	std::vector<std::function<void()>> sky_lut_command_buffer;
+	// Multiscattering
+	std::uint16_t m_multiscattering_lut_direction_sample_count{64};
+	std::uint16_t m_multiscattering_lut_scatter_sample_count{20};
+	math::vector2<std::uint16_t> m_multiscattering_lut_resolution{32, 32};
+	std::unique_ptr<gl::texture_2d> m_multiscattering_lut_texture;
+	std::unique_ptr<gl::framebuffer> m_multiscattering_lut_framebuffer;
+	std::shared_ptr<gl::shader_template> m_multiscattering_lut_shader_template;
+	std::unique_ptr<gl::shader_program> m_multiscattering_lut_shader_program;
+	std::vector<std::function<void()>> m_multiscattering_lut_command_buffer;
+	bool m_render_multiscattering_lut{false};
+	
+	// Luminance
+	std::uint16_t m_luminance_lut_sample_count{30};
+	math::vector2<std::uint16_t> m_luminance_lut_resolution{200, 100};
+	std::unique_ptr<gl::texture_2d> m_luminance_lut_texture;
+	std::unique_ptr<gl::framebuffer> m_luminance_lut_framebuffer;
+	std::shared_ptr<gl::shader_template> m_luminance_lut_shader_template;
+	std::unique_ptr<gl::shader_program> m_luminance_lut_shader_program;
+	std::vector<std::function<void()>> m_luminance_lut_command_buffer;
+	bool m_render_luminance_lut{false};
+	
+	// Sky probe
+	std::shared_ptr<scene::light_probe> m_sky_probe;
+	std::vector<std::unique_ptr<gl::framebuffer>> m_sky_probe_framebuffers;
+	std::shared_ptr<gl::shader_template> m_sky_probe_shader_template;
+	std::unique_ptr<gl::shader_program> m_sky_probe_shader_program;
+	std::shared_ptr<gl::shader_template> m_cubemap_downsample_shader_template;
+	std::unique_ptr<gl::shader_program> m_cubemap_downsample_shader_program;
+	std::vector<std::function<void()>> m_sky_probe_command_buffer;
 	
 	float3 dominant_light_direction;
 	float3 dominant_light_illuminance;
@@ -126,8 +280,10 @@ private:
 	const gl::shader_variable* sun_angular_radius_var;
 	const gl::shader_variable* atmosphere_radii_var;
 	const gl::shader_variable* observer_position_var;
-	const gl::shader_variable* sky_illuminance_lut_var;
-	const gl::shader_variable* sky_illuminance_lut_resolution_var;
+	const gl::shader_variable* sky_transmittance_lut_var;
+	const gl::shader_variable* sky_transmittance_lut_resolution_var;
+	const gl::shader_variable* sky_luminance_lut_var;
+	const gl::shader_variable* sky_luminance_lut_resolution_var;
 	
 	std::shared_ptr<gl::shader_program> moon_shader_program;
 	const gl::shader_variable* moon_model_var;
@@ -138,6 +294,11 @@ private:
 	const gl::shader_variable* moon_sunlight_illuminance_var;
 	const gl::shader_variable* moon_planetlight_direction_var;
 	const gl::shader_variable* moon_planetlight_illuminance_var;
+	const gl::shader_variable* moon_albedo_map_var;
+	const gl::shader_variable* moon_normal_map_var;
+	const gl::shader_variable* moon_observer_position_var;
+	const gl::shader_variable* moon_sky_transmittance_lut_var;
+	const gl::shader_variable* moon_atmosphere_radii_var;
 	
 	std::shared_ptr<render::model> sky_model;
 	const material* sky_material;
@@ -152,6 +313,9 @@ private:
 	gl::drawing_mode moon_model_drawing_mode;
 	std::size_t moon_model_start_index;
 	std::size_t moon_model_index_count;
+	std::shared_ptr<gl::texture_2d> m_moon_albedo_map;
+	std::shared_ptr<gl::texture_2d> m_moon_normal_map;
+
 	
 	std::shared_ptr<render::model> stars_model;
 	const material* star_material;
@@ -160,10 +324,10 @@ private:
 	std::size_t stars_model_start_index;
 	std::size_t stars_model_index_count;
 	std::unique_ptr<gl::shader_program> star_shader_program;
-	const gl::shader_variable* star_model_view_var;
-	const gl::shader_variable* star_projection_var;
+	const gl::shader_variable* star_model_view_projection_var;
 	const gl::shader_variable* star_exposure_var;
 	const gl::shader_variable* star_distance_var;
+	const gl::shader_variable* star_inv_resolution_var;
 
 	float2 mouse_position;
 	
@@ -186,14 +350,15 @@ private:
 	
 	float sun_angular_radius;
 	float atmosphere_upper_limit;
-	float3 atmosphere_radii;
+	float4 atmosphere_radii;
 	float observer_elevation;
 	tween<float3> observer_position_tween;
 	float4 rayleigh_parameters;
 	float4 mie_parameters;
 	float3 ozone_distribution;
 	float3 ozone_absorption;
-	float3 airglow_illuminance;
+	float3 airglow_luminance;
+	math::vector3<float> m_ground_albedo{};
 	
 	float magnification;
 };

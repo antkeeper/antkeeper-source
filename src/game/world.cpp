@@ -63,7 +63,6 @@
 #include <engine/utility/image.hpp>
 #include <engine/utility/json.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/scene/ambient-light.hpp>
 #include <engine/scene/directional-light.hpp>
 #include <engine/scene/text.hpp>
 #include <algorithm>
@@ -169,7 +168,7 @@ void set_time(::game& ctx, double t)
 		ctx.astronomy_system->set_time(t);
 		ctx.orbit_system->set_time(t);
 		
-		debug::log::info("Set time to UT1 {}", t);
+		// debug::log::info("Set time to UT1 {}", t);
 	}
 	catch (const std::exception& e)
 	{
@@ -368,16 +367,11 @@ void create_sun(::game& ctx)
 		ctx.sun_light->set_shadow_cascade_coverage(0.15f);
 		ctx.sun_light->set_shadow_cascade_distribution(0.8f);
 		
-		// Create sky ambient light scene object
-		ctx.sky_light = std::make_unique<scene::ambient_light>();
-		
 		// Add sun light scene objects to surface scene
 		ctx.surface_scene->add_object(*ctx.sun_light);
-		ctx.surface_scene->add_object(*ctx.sky_light);
 		
 		// Pass direct sun light scene object to shadow map pass and astronomy system
 		ctx.astronomy_system->set_sun_light(ctx.sun_light.get());
-		ctx.astronomy_system->set_sky_light(ctx.sky_light.get());
 	}
 	
 	debug::log::trace("Generated Sun");
@@ -517,6 +511,7 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 		
 		// Setup sky
 		ctx.sky_pass->set_sky_model(ctx.resource_manager->load<render::model>("celestial-hemisphere.mdl"));
+		ctx.sky_pass->set_ground_albedo(ecoregion.terrain_albedo);
 		auto terrestrial_hemisphere_model = ctx.resource_manager->load<render::model>("terrestrial-hemisphere.mdl");
 		terrestrial_hemisphere_model->get_groups().front().material = ecoregion.horizon_material;
 		ctx.ground_pass->set_ground_model(terrestrial_hemisphere_model);

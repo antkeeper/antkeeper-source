@@ -63,18 +63,38 @@ float3 camera::unproject(const float3& window, const float4& viewport) const
 	return math::vector<float, 3>(result) * (1.0f / result[3]);
 }
 
-void camera::set_perspective(float fov, float aspect_ratio, float clip_near, float clip_far)
+void camera::set_perspective(float vertical_fov, float aspect_ratio, float clip_near, float clip_far)
 {
 	m_orthographic = false;
 	
 	// Update perspective projection parameters
-	m_fov = fov;
+	m_vertical_fov = vertical_fov;
 	m_aspect_ratio = aspect_ratio;
 	m_clip_near = clip_near;
 	m_clip_far = clip_far;
 	
 	// Recalculate projection matrix
-	m_projection = math::perspective_half_z(m_fov, m_aspect_ratio, m_clip_far, m_clip_near);
+	m_projection = math::perspective_half_z(m_vertical_fov, m_aspect_ratio, m_clip_far, m_clip_near);
+	
+	// Recalculate view-projection matrix
+	m_view_projection = m_projection * m_view;
+	m_inverse_view_projection = math::inverse(m_view_projection);
+	
+	// Recalculate view frustum
+	update_frustum();
+}
+
+void camera::set_vertical_fov(float vertical_fov)
+{
+	if (m_orthographic)
+	{
+		return;
+	}
+	
+	m_vertical_fov = vertical_fov;
+	
+	// Recalculate projection matrix
+	m_projection = math::perspective_half_z(m_vertical_fov, m_aspect_ratio, m_clip_far, m_clip_near);
 	
 	// Recalculate view-projection matrix
 	m_view_projection = m_projection * m_view;
@@ -110,7 +130,8 @@ void camera::set_orthographic(float clip_left, float clip_right, float clip_bott
 void camera::set_exposure_value(float ev100)
 {
 	m_exposure_value = ev100;
-	m_exposure_normalization = 1.0f / (std::exp2(m_exposure_value) * 1.2f);
+	// m_exposure_normalization = 1.0f / (std::exp2(m_exposure_value) * 1.2f);
+	m_exposure_normalization = 1.0f / (std::exp2(m_exposure_value));
 }
 
 void camera::transformed()

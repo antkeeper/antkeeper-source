@@ -97,9 +97,10 @@ private:
 	float2 clip_depth;
 	float log_depth_coef;
 	
-	// Ambient lights
-	std::vector<float3> ambient_light_colors;
-	std::size_t ambient_light_count;
+	// Light probes
+	const gl::texture_cube* light_probe_luminance_texture{};
+	const gl::texture_1d* light_probe_illuminance_texture{};
+	std::size_t light_probe_count;
 	
 	// Point lights
 	std::vector<float3> point_light_colors;
@@ -133,6 +134,9 @@ private:
 	// LTC
 	std::shared_ptr<gl::texture_2d> ltc_lut_1;
 	std::shared_ptr<gl::texture_2d> ltc_lut_2;
+	
+	// IBL
+	std::shared_ptr<gl::texture_2d> brdf_lut;
 	
 	// Misc
 	float time;

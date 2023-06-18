@@ -62,6 +62,7 @@ private:
 	float blue_noise_scale;
 	float2 resolution;
 	float time;
+	int frame{};
 	
 	std::vector<std::function<void()>> command_buffer;
 };

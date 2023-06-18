@@ -18,7 +18,7 @@
  */
 
 #include <engine/gl/framebuffer.hpp>
-#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/texture.hpp>
 #include <glad/glad.h>
 
 namespace gl {
@@ -31,9 +31,9 @@ static constexpr GLenum attachment_lut[] =
 };
 
 framebuffer::framebuffer(int width, int height):
-	dimensions{width, height}
+	m_dimensions{width, height}
 {
-	glGenFramebuffers(1, &gl_framebuffer_id);
+	glGenFramebuffers(1, &m_gl_framebuffer_id);
 }
 
 framebuffer::framebuffer():
@@ -42,38 +42,38 @@ framebuffer::framebuffer():
 
 framebuffer::~framebuffer()
 {
-	if (gl_framebuffer_id)
+	if (m_gl_framebuffer_id)
 	{
-		glDeleteFramebuffers(1, &gl_framebuffer_id);
+		glDeleteFramebuffers(1, &m_gl_framebuffer_id);
 	}
 }
 
 void framebuffer::resize(const std::array<int, 2>& dimensions)
 {
-	this->dimensions = dimensions;
+	m_dimensions = dimensions;
 }
 
-void framebuffer::attach(framebuffer_attachment_type attachment_type, texture_2d* texture)
+void framebuffer::attach(framebuffer_attachment_type attachment_type, texture* texture, std::uint8_t level)
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, gl_framebuffer_id);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_gl_framebuffer_id);
 	
 	GLenum gl_attachment = attachment_lut[static_cast<std::size_t>(attachment_type)];
-	glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment, GL_TEXTURE_2D, texture->m_gl_texture_id, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, gl_attachment, texture->m_gl_texture_id, level);
 	
 	if (attachment_type == framebuffer_attachment_type::color)
 	{
-		color_attachment = texture;
+		m_color_attachment = texture;
 	}
 	else if (attachment_type == framebuffer_attachment_type::depth)
 	{
-		depth_attachment = texture;
+		m_depth_attachment = texture;
 	}
 	else if (attachment_type == framebuffer_attachment_type::stencil)
 	{
-		stencil_attachment = texture;
+		m_stencil_attachment = texture;
 	}
 	
-	if (!color_attachment)
+	if (!m_color_attachment)
 	{
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);

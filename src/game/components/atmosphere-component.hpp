@@ -74,8 +74,8 @@ struct atmosphere_component
 	/// (Dependent) Ozone absorption coefficients.
 	double3 ozone_absorption;
 	
-	/// Airglow illuminance, in lux.
-	double3 airglow_illuminance;
+	/// Airglow luminance, in cd/m^2.
+	double3 airglow_luminance;
 };
 
 

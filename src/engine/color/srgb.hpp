@@ -28,49 +28,43 @@
 namespace color {
 
 /**
- * Maps a non-linear sRGB signal to a linear sRGB color.
- *
- * @param x Non-linear sRGB signal.
- *
- * @return Linear sRGB color.
- */
-template <class T>
-math::vector3<T> srgb_eotf(const math::vector3<T>& x)
-{
-	auto f = [](T x) -> T
-	{
-		return x < T{0.04045} ? x / T{12.92} : std::pow((x + T{0.055}) / T{1.055}, T{2.4});
-	};
-	
-	return math::vector3<T>
-	{
-		f(x[0]),
-		f(x[1]),
-		f(x[2])
-	};
-}
-
-/**
- * Maps a linear sRGB color to a non-linear sRGB signal.
+ * sRGB opto-electronic transfer function (OETF). Maps a linear sRGB color to a non-linear sRGB signal.
  *
  * @param x Linear sRGB color.
  *
  * @return Non-linear sRGB signal.
+ *
+ * @see IEC 61966-2-1:1999
  */
 template <class T>
-math::vector3<T> srgb_oetf(const math::vector3<T>& x)
+[[nodiscard]] math::vector3<T> srgb_oetf(const math::vector3<T>& x)
 {
 	auto f = [](T x) -> T
 	{
-		return x <= T{0.0031308} ? x * T{12.92} : std::pow(x, T{1} / T{2.4}) * T{1.055} - T{0.055};
+		return x > T{0.0031308} ? std::pow(x, T{1.0 / 2.4}) * T{1.055} - T{0.055} : x * T{12.92};
 	};
 	
-	return math::vector3<T>
+	return {f(x[0]), f(x[1]), f(x[2])};
+}
+
+/**
+ * sRGB electro-optical transfer function (EOTF). Maps a non-linear sRGB signal to a linear sRGB color.
+ *
+ * @param x Non-linear sRGB signal.
+ *
+ * @return Linear sRGB color.
+ *
+ * @see IEC 61966-2-1:1999
+ */
+template <class T>
+[[nodiscard]] math::vector3<T> srgb_eotf(const math::vector3<T>& x)
+{
+	auto f = [](T x) -> T
 	{
-		f(x[0]),
-		f(x[1]),
-		f(x[2])
+		return x > T{0.0031308 * 12.92} ? std::pow((x + T{0.055}) / T{1.055}, T{2.4}) : x / T{12.92};
 	};
+	
+	return {f(x[0]), f(x[1]), f(x[2])};
 }
 
 /// sRGB color space.

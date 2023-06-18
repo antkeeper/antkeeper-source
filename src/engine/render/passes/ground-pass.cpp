@@ -37,7 +37,6 @@
 #include <engine/scene/camera.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/scene/directional-light.hpp>
-#include <engine/scene/ambient-light.hpp>
 #include <engine/utility/fundamental-types.hpp>
 #include <engine/color/color.hpp>
 #include <engine/math/interpolation.hpp>
@@ -92,7 +91,6 @@ void ground_pass::render(render::context& ctx)
 	const float4x4& view_projection = ctx.view_projection;
 	float4x4 model_view_projection = projection * model_view;
 	
-	float3 ambient_light_color = {0.0f, 0.0f, 0.0f};
 	float3 directional_light_color = {0.0f, 0.0f, 0.0f};
 	float3 directional_light_direction = {0.0f, 0.0f, 0.0f};
 	
@@ -107,14 +105,6 @@ void ground_pass::render(render::context& ctx)
 		const scene::light* light = static_cast<const scene::light*>(object);
 		switch (light->get_light_type())
 		{
-			// Add ambient light
-			case scene::light_type::ambient:
-			{
-				// Pre-expose light
-				ambient_light_color = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
-				break;
-			}
-			
 			// Add directional light
 			case scene::light_type::directional:
 			{
@@ -149,8 +139,6 @@ void ground_pass::render(render::context& ctx)
 		directional_light_colors_var->update(0, &directional_light_color, 1);
 	if (directional_light_directions_var)
 		directional_light_directions_var->update(0, &directional_light_direction, 1);
-	if (ambient_light_colors_var)
-		ambient_light_colors_var->update(0, &ambient_light_color, 1);
 	
 	ground_material->update(ctx.alpha);
 
@@ -186,7 +174,6 @@ void ground_pass::set_ground_model(std::shared_ptr<render::model> model)
 				camera_position_var = shader_program->get_var("camera.position");
 				directional_light_colors_var = shader_program->get_var("directional_light_colors");
 				directional_light_directions_var = shader_program->get_var("directional_light_directions");
-				ambient_light_colors_var = shader_program->get_var("ambient_light_colors");
 			}
 		}
 	}

@@ -149,16 +149,67 @@ texture::~texture()
 	glDeleteTextures(1, &m_gl_texture_id);
 }
 
+void texture::read(std::span<std::byte> data, gl::pixel_type type, gl::pixel_format format, std::uint8_t level) const
+{
+	const GLenum gl_format = pixel_format_lut[std::to_underlying(format)];
+	const GLenum gl_type = pixel_type_lut[std::to_underlying(type)];
+	
+	glBindTexture(m_gl_texture_target, m_gl_texture_id);
+	glGetTexImage(m_gl_texture_target, static_cast<GLint>(level), gl_format, gl_type, data.data());
+}
+
 void texture::set_filters(texture_min_filter min_filter, texture_mag_filter mag_filter)
 {
 	m_filters = {min_filter, mag_filter};
 	
-	GLenum gl_min_filter = min_filter_lut[std::to_underlying(min_filter)];
-	GLenum gl_mag_filter = mag_filter_lut[std::to_underlying(mag_filter)];
+	const GLenum gl_min_filter = min_filter_lut[std::to_underlying(min_filter)];
+	const GLenum gl_mag_filter = mag_filter_lut[std::to_underlying(mag_filter)];
 	
 	glBindTexture(m_gl_texture_target, m_gl_texture_id);
 	glTexParameteri(m_gl_texture_target, GL_TEXTURE_MIN_FILTER, gl_min_filter);
 	glTexParameteri(m_gl_texture_target, GL_TEXTURE_MAG_FILTER, gl_mag_filter);
+}
+
+void texture::set_min_filter(texture_min_filter filter)
+{
+	const GLenum gl_min_filter = min_filter_lut[std::to_underlying(filter)];
+	
+	glBindTexture(m_gl_texture_target, m_gl_texture_id);
+	glTexParameteri(m_gl_texture_target, GL_TEXTURE_MIN_FILTER, gl_min_filter);
+}
+
+void texture::set_mag_filter(texture_mag_filter filter)
+{
+	const GLenum gl_mag_filter = mag_filter_lut[std::to_underlying(filter)];
+	
+	glBindTexture(m_gl_texture_target, m_gl_texture_id);
+	glTexParameteri(m_gl_texture_target, GL_TEXTURE_MAG_FILTER, gl_mag_filter);
+}
+
+void texture::set_base_level(std::uint8_t level)
+{
+	m_base_level = level;
+	
+	glBindTexture(m_gl_texture_target, m_gl_texture_id);
+	glTexParameteri(m_gl_texture_target, GL_TEXTURE_BASE_LEVEL, static_cast<GLint>(m_base_level));
+}
+
+void texture::set_max_level(std::uint8_t level)
+{
+	m_max_level = level;
+	
+	glBindTexture(m_gl_texture_target, m_gl_texture_id);
+	glTexParameteri(m_gl_texture_target, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(m_max_level));
+}
+
+void texture::set_mipmap_range(std::uint8_t base_level, std::uint8_t max_level)
+{
+	m_base_level = base_level;
+	m_max_level = max_level;
+	
+	glBindTexture(m_gl_texture_target, m_gl_texture_id);
+	glTexParameteri(m_gl_texture_target, GL_TEXTURE_BASE_LEVEL, static_cast<GLint>(m_base_level));
+	glTexParameteri(m_gl_texture_target, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(m_max_level));
 }
 
 void texture::set_max_anisotropy(float anisotropy)
@@ -273,6 +324,7 @@ void texture::resize(std::uint16_t width, std::uint16_t height, std::uint16_t de
 	}
 	
 	glGenerateMipmap(m_gl_texture_target);
+	
 	glTexParameteriv(m_gl_texture_target, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle_mask);
 	
 	/// @TODO: remove this
@@ -299,6 +351,16 @@ void texture::update_cube_faces(unsigned int gl_internal_format, unsigned int gl
 	const auto height = get_height();
 	const auto layout = texture_cube::infer_cube_map_layout(width, height);
 	const auto face_size = texture_cube::infer_cube_map_face_size(layout, width, height);
+	
+	if (!data)
+	{
+		for (int i = 0; i < 6; ++i)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl_internal_format, face_size, face_size, 0, gl_format, gl_type, nullptr);
+		}
+		
+		return;
+	}
 	
 	std::size_t channel_count = 0;
 	switch (m_pixel_format)
