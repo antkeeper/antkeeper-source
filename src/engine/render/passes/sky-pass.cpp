@@ -183,17 +183,6 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 		debug::log::warning("{}", m_sky_probe_shader_template->configure(gl::shader_stage::vertex));
 	}
 	
-	// Load cubemap downsample shader template
-	m_cubemap_downsample_shader_template = resource_manager->load<gl::shader_template>("cubemap-downsample.glsl");
-	
-	// Build cubemap downsample shader program
-	m_cubemap_downsample_shader_program = m_cubemap_downsample_shader_template->build({});
-	if (!m_cubemap_downsample_shader_program->linked())
-	{
-		debug::log::error("Failed to build cubemap downsample shader program: {}", m_cubemap_downsample_shader_program->info());
-		debug::log::warning("{}", m_cubemap_downsample_shader_template->configure(gl::shader_stage::vertex));
-	}
-	
 	// Load moon textures
 	m_moon_albedo_map = resource_manager->load<gl::texture_2d>("moon-albedo.tex");
 	m_moon_normal_map = resource_manager->load<gl::texture_2d>("moon-normal.tex");
@@ -408,8 +397,6 @@ void sky_pass::render(render::context& ctx)
 		rasterizer->use_program(*star_shader_program);
 		if (star_model_view_projection_var)
 			star_model_view_projection_var->update(model_view_projection);
-		if (star_distance_var)
-			star_distance_var->update(star_distance);
 		if (star_exposure_var)
 			star_exposure_var->update(camera_exposure);
 		if (star_inv_resolution_var)
@@ -645,7 +632,6 @@ void sky_pass::set_stars_model(std::shared_ptr<render::model> model)
 			if (star_shader_program->linked())
 			{
 				star_model_view_projection_var = star_shader_program->variable("model_view_projection");
-				star_distance_var = star_shader_program->variable("star_distance");
 				star_exposure_var = star_shader_program->variable("camera_exposure");
 				star_inv_resolution_var = star_shader_program->variable("inv_resolution");
 			}
@@ -1145,6 +1131,10 @@ void sky_pass::rebuild_sky_probe_command_buffer()
 	{
 		m_sky_probe_command_buffer.emplace_back([&, light_direction_var](){light_direction_var->update(dominant_light_direction);});
 	}
+	if (auto light_illuminance_var = m_sky_probe_shader_program->variable("light_illuminance"))
+	{
+		m_sky_probe_command_buffer.emplace_back([&, light_illuminance_var](){light_illuminance_var->update(dominant_light_illuminance);});
+	}
 	if (auto observer_position_var = m_sky_probe_shader_program->variable("observer_position"))
 	{
 		m_sky_probe_command_buffer.emplace_back([&, observer_position_var](){observer_position_var->update(observer_position);});
@@ -1152,6 +1142,10 @@ void sky_pass::rebuild_sky_probe_command_buffer()
 	if (auto atmosphere_radii_var = m_sky_probe_shader_program->variable("atmosphere_radii"))
 	{
 		m_sky_probe_command_buffer.emplace_back([&, atmosphere_radii_var](){atmosphere_radii_var->update(atmosphere_radii);});
+	}
+	if (auto ground_albedo_var = m_sky_probe_shader_program->variable("ground_albedo"))
+	{
+		m_sky_probe_command_buffer.emplace_back([&, ground_albedo_var](){ground_albedo_var->update(m_ground_albedo);});
 	}
 	
 	// Draw point
@@ -1164,73 +1158,6 @@ void sky_pass::rebuild_sky_probe_command_buffer()
 			m_sky_probe->set_illuminance_outdated(true);
 		}
 	);
-	
-	if (!m_cubemap_downsample_shader_program->linked())
-	{
-		return;
-	}
-	
-	auto cubemap_var = m_cubemap_downsample_shader_program->variable("cubemap");
-	if (!cubemap_var)
-	{
-		return;
-	}
-	
-	m_sky_probe_command_buffer.emplace_back
-	(
-		[&, cubemap_var]()
-		{
-			// Bind downsample shader program
-			rasterizer->use_program(*m_cubemap_downsample_shader_program);
-			
-			// Change texture filter mode to linear to prevent undefined access when reading and writing to different mip levels of the same texture
-			// m_sky_probe->get_luminance_texture()->set_min_filter(gl::texture_min_filter::linear);
-			
-			// Update cubemap shader variable
-			cubemap_var->update(*m_sky_probe->get_luminance_texture());
-		}
-	);
-	
-	for (std::size_t i = 1; i < m_sky_probe_framebuffers.size(); ++i)
-	{
-		const auto resolution = m_sky_probe->get_luminance_texture()->get_face_size() >> i;
-		
-		// Bind sky probe mip framebuffer
-		m_sky_probe_command_buffer.emplace_back
-		(
-			[&, resolution, i]()
-			{
-				rasterizer->set_viewport(0, 0, resolution, resolution);
-				
-				// Restrict mipmap range
-				const std::uint8_t base_mip_level = static_cast<std::uint8_t>(i - 1);
-				m_sky_probe->get_luminance_texture()->set_mipmap_range(base_mip_level, base_mip_level);
-				
-				rasterizer->use_framebuffer(*m_sky_probe_framebuffers[i]);
-				rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::points, 0, 1);
-			}
-		);
-	}
-	
-	// Restore mipmap range
-	m_sky_probe_command_buffer.emplace_back
-	(
-		[&]()
-		{
-			m_sky_probe->get_luminance_texture()->set_mipmap_range(0, 255);
-		}
-	);
-	
-	
-	
-	// Restore texture filter mode
-	// m_sky_probe_command_buffer.emplace_back
-	// (
-		// [&]()
-		// {
-			// m_sky_probe->get_luminance_texture()->set_min_filter(gl::texture_min_filter::linear_mipmap_linear);
-		// }
-	// );
 }
 
 } // namespace render

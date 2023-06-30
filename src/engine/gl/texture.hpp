@@ -84,26 +84,26 @@ public:
 	void set_mag_filter(texture_mag_filter filter);
 	
 	/**
-	 * Sets the index of lowest mipmap level.
+	 * Sets the index of lowest accessible mip level.
 	 *
-	 * @param level Index of the lowest mipmap level.
+	 * @param level Index of the lowest accessible mip level.
 	 */
 	void set_base_level(std::uint8_t level);
 	
 	/**
-	 * Sets the index of highest mipmap level.
+	 * Sets the index of highest accessible mip level.
 	 *
-	 * @param level Index of the highest mipmap level.
+	 * @param level Index of the highest accessible mip level.
 	 */
 	void set_max_level(std::uint8_t level);
 	
 	/**
-	 * Sets the range of mipmap levels.
+	 * Sets the range of accessible mip levels.
 	 *
-	 * @param base Index of the lowest mipmap level
-	 * @param max Index of the highest mipmap level.
+	 * @param base Index of the lowest accessible mip level.
+	 * @param max Index of the highest accessible mip level.
 	 */
-	void set_mipmap_range(std::uint8_t base_level, std::uint8_t max_level);
+	void set_mip_range(std::uint8_t base_level, std::uint8_t max_level);
 	
 	/**
 	 * Sets the maximum anisotropy.
@@ -169,13 +169,19 @@ public:
 		return m_filters;
 	}
 	
-	/// Returns the index of the lowest mipmap level.
+	/// Returns the number of available mip levels.
+	[[nodiscard]] inline std::uint16_t get_mip_count() const noexcept
+	{
+		return m_mip_count;
+	}
+	
+	/// Returns the index of the lowest accessible mip level.
 	[[nodiscard]] inline std::uint8_t get_base_level() const noexcept
 	{
 		return m_base_level;
 	}
 	
-	/// Returns the index of the highest mipmap level.
+	/// Returns the index of the highest accessible mip level.
 	[[nodiscard]] inline std::uint8_t get_max_level() const noexcept
 	{
 		return m_max_level;
@@ -259,6 +265,9 @@ private:
 	std::uint8_t m_base_level{};
 	std::uint8_t m_max_level{255};
 	float m_max_anisotropy{};
+	
+protected:
+	std::uint16_t m_mip_count{};
 };
 
 } // namespace gl

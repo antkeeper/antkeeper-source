@@ -18,6 +18,7 @@
  */
 
 #include <engine/gl/texture-cube.hpp>
+#include <cmath>
 
 namespace gl {
 
@@ -103,6 +104,7 @@ void texture_cube::resized()
 	const auto h = get_height();
 	const auto layout = infer_cube_map_layout(w, h);
 	m_face_size = infer_cube_map_face_size(layout, w, h);
+	m_mip_count = 1 + static_cast<std::uint16_t>(std::log2(m_face_size));
 }
 
 } // namespace gl

@@ -202,7 +202,7 @@ void texture::set_max_level(std::uint8_t level)
 	glTexParameteri(m_gl_texture_target, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(m_max_level));
 }
 
-void texture::set_mipmap_range(std::uint8_t base_level, std::uint8_t max_level)
+void texture::set_mip_range(std::uint8_t base_level, std::uint8_t max_level)
 {
 	m_base_level = base_level;
 	m_max_level = max_level;
@@ -323,6 +323,7 @@ void texture::resize(std::uint16_t width, std::uint16_t height, std::uint16_t de
 			break;
 	}
 	
+	m_mip_count = 1 + static_cast<std::uint16_t>(std::log2(std::max<std::uint16_t>(std::max<std::uint16_t>(width, height), depth)));
 	glGenerateMipmap(m_gl_texture_target);
 	
 	glTexParameteriv(m_gl_texture_target, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle_mask);

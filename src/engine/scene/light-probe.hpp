@@ -27,6 +27,7 @@
 #include <engine/math/matrix.hpp>
 #include <memory>
 #include <span>
+#include <vector>
 
 namespace scene {
 
@@ -74,6 +75,12 @@ public:
 	[[nodiscard]] inline const std::shared_ptr<gl::texture_cube>& get_luminance_texture() const noexcept
 	{
 		return m_luminance_texture;
+	}
+	
+	/// Returns the light probe's luminance framebuffers.
+	[[nodiscard]] inline const std::vector<std::shared_ptr<gl::framebuffer>>& get_luminance_framebuffers() const noexcept
+	{
+		return m_luminance_framebuffers;
 	}
 	
 	/**
@@ -127,6 +134,7 @@ private:
 	void transformed() override;
 	aabb_type m_bounds{};
 	std::shared_ptr<gl::texture_cube> m_luminance_texture;
+	std::vector<std::shared_ptr<gl::framebuffer>> m_luminance_framebuffers;
 	std::shared_ptr<gl::texture_1d> m_illuminance_texture;
 	std::shared_ptr<gl::framebuffer> m_illuminance_framebuffer;
 	math::matrix4<float> m_illuminance_matrices[3];

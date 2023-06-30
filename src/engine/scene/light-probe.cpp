@@ -47,6 +47,27 @@ void light_probe::set_luminance_texture(std::shared_ptr<gl::texture_cube> textur
 	if (m_luminance_texture != texture)
 	{
 		m_luminance_texture = texture;
+		
+		// Update luminance framebuffers
+		if (m_luminance_texture)
+		{
+			const std::uint8_t mip_count = 1 + static_cast<std::uint8_t>(std::log2(texture->get_face_size()));
+			for (std::uint8_t i = 0; i < mip_count; ++i)
+			{
+				if (i >= m_luminance_framebuffers.size())
+				{
+					m_luminance_framebuffers.emplace_back(std::make_shared<gl::framebuffer>());
+				}
+				
+				m_luminance_framebuffers[i]->attach(gl::framebuffer_attachment_type::color, m_luminance_texture.get(), i);
+			}
+			
+			if (m_luminance_framebuffers.size() > mip_count)
+			{
+				m_luminance_framebuffers.resize(mip_count);
+			}
+		}
+		
 		set_luminance_outdated(true);
 		set_illuminance_outdated(true);
 	}

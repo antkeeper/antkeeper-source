@@ -303,7 +303,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	// Create sphere
 	auto sphere_eid = ctx.entity_registry->create();
-	auto sphere_static_mesh = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
+	auto sphere_static_mesh = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("diffuse-spheres.mdl"));
 	ctx.entity_registry->emplace<scene_component>(sphere_eid, std::move(sphere_static_mesh), std::uint8_t{1});
 	ctx.entity_registry->patch<scene_component>
 	(

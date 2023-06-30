@@ -262,8 +262,6 @@ private:
 	std::vector<std::unique_ptr<gl::framebuffer>> m_sky_probe_framebuffers;
 	std::shared_ptr<gl::shader_template> m_sky_probe_shader_template;
 	std::unique_ptr<gl::shader_program> m_sky_probe_shader_program;
-	std::shared_ptr<gl::shader_template> m_cubemap_downsample_shader_template;
-	std::unique_ptr<gl::shader_program> m_cubemap_downsample_shader_program;
 	std::vector<std::function<void()>> m_sky_probe_command_buffer;
 	
 	float3 dominant_light_direction;
@@ -326,7 +324,6 @@ private:
 	std::unique_ptr<gl::shader_program> star_shader_program;
 	const gl::shader_variable* star_model_view_projection_var;
 	const gl::shader_variable* star_exposure_var;
-	const gl::shader_variable* star_distance_var;
 	const gl::shader_variable* star_inv_resolution_var;
 
 	float2 mouse_position;

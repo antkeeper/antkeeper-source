@@ -546,23 +546,7 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 		command_buffer.emplace_back([&, clip_depth_var](){clip_depth_var->update(clip_depth);});
 	}
 	
-	// LTC variables
-	if (auto ltc_lut_1_var = shader_program.variable("ltc_lut_1"))
-	{
-		if (auto ltc_lut_2_var = shader_program.variable("ltc_lut_2"))
-		{
-			command_buffer.emplace_back
-			(
-				[&, ltc_lut_1_var, ltc_lut_2_var]()
-				{
-					ltc_lut_1_var->update(*ltc_lut_1);
-					ltc_lut_2_var->update(*ltc_lut_2);
-				}
-			);
-		}
-	}
-	
-	// IBL variables
+	// Update IBL variables
 	if (auto brdf_lut_var = shader_program.variable("brdf_lut"))
 	{
 		command_buffer.emplace_back
@@ -588,6 +572,17 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 			);
 		}
 		
+		if (auto light_probe_luminance_mip_scale_var = shader_program.variable("light_probe_luminance_mip_scale"))
+		{
+			command_buffer.emplace_back
+			(
+				[&, light_probe_luminance_mip_scale_var]()
+				{
+					light_probe_luminance_mip_scale_var->update(std::max<float>(static_cast<float>(light_probe_luminance_texture->get_mip_count()) - 4.0f, 0.0f));
+				}
+			);
+		}
+		
 		if (auto light_probe_illuminance_texture_var = shader_program.variable("light_probe_illuminance_texture"))
 		{
 			command_buffer.emplace_back
@@ -597,6 +592,41 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 					light_probe_illuminance_texture_var->update(*light_probe_illuminance_texture);
 				}
 			);
+		}
+	}
+	
+	// Update LTC variables
+	if (auto ltc_lut_1_var = shader_program.variable("ltc_lut_1"))
+	{
+		if (auto ltc_lut_2_var = shader_program.variable("ltc_lut_2"))
+		{
+			command_buffer.emplace_back
+			(
+				[&, ltc_lut_1_var, ltc_lut_2_var]()
+				{
+					ltc_lut_1_var->update(*ltc_lut_1);
+					ltc_lut_2_var->update(*ltc_lut_2);
+				}
+			);
+		}
+	}
+	if (rectangle_light_count)
+	{
+		if (auto rectangle_light_colors_var = shader_program.variable("rectangle_light_colors"))
+		{
+			auto rectangle_light_corners_var = shader_program.variable("rectangle_light_corners");
+			
+			if (rectangle_light_corners_var)
+			{
+				command_buffer.emplace_back
+				(
+					[&, rectangle_light_colors_var, rectangle_light_corners_var]()
+					{
+						rectangle_light_colors_var->update(std::span<const float3>{rectangle_light_colors.data(), rectangle_light_count});
+						rectangle_light_corners_var->update(std::span<const float3>{rectangle_light_corners.data(), rectangle_light_count * 4});
+					}
+				);
+			}
 		}
 	}
 	
@@ -690,26 +720,6 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 						spot_light_positions_var->update(std::span<const float3>{spot_light_positions.data(), spot_light_count});
 						spot_light_directions_var->update(std::span<const float3>{spot_light_directions.data(), spot_light_count});
 						spot_light_cutoffs_var->update(std::span<const float2>{spot_light_cutoffs.data(), spot_light_count});
-					}
-				);
-			}
-		}
-	}
-	
-	if (rectangle_light_count)
-	{
-		if (auto rectangle_light_colors_var = shader_program.variable("rectangle_light_colors"))
-		{
-			auto rectangle_light_corners_var = shader_program.variable("rectangle_light_corners");
-			
-			if (rectangle_light_corners_var)
-			{
-				command_buffer.emplace_back
-				(
-					[&, rectangle_light_colors_var, rectangle_light_corners_var]()
-					{
-						rectangle_light_colors_var->update(std::span<const float3>{rectangle_light_colors.data(), rectangle_light_count});
-						rectangle_light_corners_var->update(std::span<const float3>{rectangle_light_corners.data(), rectangle_light_count * 4});
 					}
 				);
 			}
