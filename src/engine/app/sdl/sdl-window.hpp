@@ -35,8 +35,8 @@ public:
 	sdl_window
 	(
 		const std::string& title,
-		const math::vector<int, 2>& windowed_position,
-		const math::vector<int, 2>& windowed_size,
+		const math::ivec2& windowed_position,
+		const math::ivec2& windowed_size,
 		bool maximized,
 		bool fullscreen,
 		bool v_sync
@@ -49,10 +49,10 @@ public:
 	
 	virtual ~sdl_window();
 	virtual void set_title(const std::string& title);
-	virtual void set_position(const math::vector<int, 2>& position);
-	virtual void set_size(const math::vector<int, 2>& size);
-	virtual void set_minimum_size(const math::vector<int, 2>& size);
-	virtual void set_maximum_size(const math::vector<int, 2>& size);
+	virtual void set_position(const math::ivec2& position);
+	virtual void set_size(const math::ivec2& size);
+	virtual void set_minimum_size(const math::ivec2& size);
+	virtual void set_maximum_size(const math::ivec2& size);
 	virtual void set_maximized(bool maximized);
 	virtual void set_fullscreen(bool fullscreen);
 	virtual void set_v_sync(bool v_sync);

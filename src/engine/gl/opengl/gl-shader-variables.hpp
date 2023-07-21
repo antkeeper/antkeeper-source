@@ -36,7 +36,7 @@ public:
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::bool1;
+		return shader_variable_type::bvec1;
 	}
 	
 	void update(bool value) const noexcept override;
@@ -51,19 +51,19 @@ private:
 /**
  * 2-dimensional boolean vector shader variable implementation using OpenGL.
  */
-class gl_shader_bool2: public shader_variable
+class gl_shader_bvec2: public shader_variable
 {
 public:
-	gl_shader_bool2(std::size_t size, GLint gl_uniform_location);
+	gl_shader_bvec2(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::bool2;
+		return shader_variable_type::bvec2;
 	}
 	
-	void update(const bool2& value) const noexcept override;
-	void update(const bool2& value, std::size_t index) const override;
-	void update(std::span<const bool2> values, std::size_t index = 0) const override;
+	void update(const math::bvec2& value) const noexcept override;
+	void update(const math::bvec2& value, std::size_t index) const override;
+	void update(std::span<const math::bvec2> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -73,19 +73,19 @@ private:
 /**
  * 3-dimensional boolean vector shader variable implementation using OpenGL.
  */
-class gl_shader_bool3: public shader_variable
+class gl_shader_bvec3: public shader_variable
 {
 public:
-	gl_shader_bool3(std::size_t size, GLint gl_uniform_location);
+	gl_shader_bvec3(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::bool3;
+		return shader_variable_type::bvec3;
 	}
 	
-	void update(const bool3& value) const noexcept override;
-	void update(const bool3& value, std::size_t index) const override;
-	void update(std::span<const bool3> values, std::size_t index = 0) const override;
+	void update(const math::bvec3& value) const noexcept override;
+	void update(const math::bvec3& value, std::size_t index) const override;
+	void update(std::span<const math::bvec3> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -95,19 +95,19 @@ private:
 /**
  * 4-dimensional boolean vector shader variable implementation using OpenGL.
  */
-class gl_shader_bool4: public shader_variable
+class gl_shader_bvec4: public shader_variable
 {
 public:
-	gl_shader_bool4(std::size_t size, GLint gl_uniform_location);
+	gl_shader_bvec4(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::bool4;
+		return shader_variable_type::bvec4;
 	}
 	
-	void update(const bool4& value) const noexcept override;
-	void update(const bool4& value, std::size_t index) const override;
-	void update(std::span<const bool4> values, std::size_t index = 0) const override;
+	void update(const math::bvec4& value) const noexcept override;
+	void update(const math::bvec4& value, std::size_t index) const override;
+	void update(std::span<const math::bvec4> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -124,7 +124,7 @@ public:
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::int1;
+		return shader_variable_type::ivec1;
 	}
 	
 	void update(int value) const noexcept override;
@@ -138,19 +138,19 @@ private:
 /**
  * 2-dimensional signed integer vector shader variable implementation using OpenGL.
  */
-class gl_shader_int2: public shader_variable
+class gl_shader_ivec2: public shader_variable
 {
 public:
-	gl_shader_int2(std::size_t size, GLint gl_uniform_location);
+	gl_shader_ivec2(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::int2;
+		return shader_variable_type::ivec2;
 	}
 	
-	void update(const int2& value) const noexcept override;
-	void update(const int2& value, std::size_t index) const override;
-	void update(std::span<const int2> values, std::size_t index = 0) const override;
+	void update(const math::ivec2& value) const noexcept override;
+	void update(const math::ivec2& value, std::size_t index) const override;
+	void update(std::span<const math::ivec2> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -159,19 +159,19 @@ private:
 /**
  * 3-dimensional signed integer vector shader variable implementation using OpenGL.
  */
-class gl_shader_int3: public shader_variable
+class gl_shader_ivec3: public shader_variable
 {
 public:
-	gl_shader_int3(std::size_t size, GLint gl_uniform_location);
+	gl_shader_ivec3(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::int3;
+		return shader_variable_type::ivec3;
 	}
 	
-	void update(const int3& value) const noexcept override;
-	void update(const int3& value, std::size_t index) const override;
-	void update(std::span<const int3> values, std::size_t index = 0) const override;
+	void update(const math::ivec3& value) const noexcept override;
+	void update(const math::ivec3& value, std::size_t index) const override;
+	void update(std::span<const math::ivec3> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -180,19 +180,19 @@ private:
 /**
  * 4-dimensional signed integer vector shader variable implementation using OpenGL.
  */
-class gl_shader_int4: public shader_variable
+class gl_shader_ivec4: public shader_variable
 {
 public:
-	gl_shader_int4(std::size_t size, GLint gl_uniform_location);
+	gl_shader_ivec4(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::int4;
+		return shader_variable_type::ivec4;
 	}
 	
-	void update(const int4& value) const noexcept override;
-	void update(const int4& value, std::size_t index) const override;
-	void update(std::span<const int4> values, std::size_t index = 0) const override;
+	void update(const math::ivec4& value) const noexcept override;
+	void update(const math::ivec4& value, std::size_t index) const override;
+	void update(std::span<const math::ivec4> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -208,7 +208,7 @@ public:
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::uint1;
+		return shader_variable_type::uvec1;
 	}
 	
 	void update(unsigned int value) const noexcept override;
@@ -222,19 +222,19 @@ private:
 /**
  * 2-dimensional unsigned integer vector shader variable implementation using OpenGL.
  */
-class gl_shader_uint2: public shader_variable
+class gl_shader_uvec2: public shader_variable
 {
 public:
-	gl_shader_uint2(std::size_t size, GLint gl_uniform_location);
+	gl_shader_uvec2(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::uint2;
+		return shader_variable_type::uvec2;
 	}
 	
-	void update(const uint2& value) const noexcept override;
-	void update(const uint2& value, std::size_t index) const override;
-	void update(std::span<const uint2> values, std::size_t index = 0) const override;
+	void update(const math::uvec2& value) const noexcept override;
+	void update(const math::uvec2& value, std::size_t index) const override;
+	void update(std::span<const math::uvec2> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -243,19 +243,19 @@ private:
 /**
  * 3-dimensional unsigned integer vector shader variable implementation using OpenGL.
  */
-class gl_shader_uint3: public shader_variable
+class gl_shader_uvec3: public shader_variable
 {
 public:
-	gl_shader_uint3(std::size_t size, GLint gl_uniform_location);
+	gl_shader_uvec3(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::uint3;
+		return shader_variable_type::uvec3;
 	}
 	
-	void update(const uint3& value) const noexcept override;
-	void update(const uint3& value, std::size_t index) const override;
-	void update(std::span<const uint3> values, std::size_t index = 0) const override;
+	void update(const math::uvec3& value) const noexcept override;
+	void update(const math::uvec3& value, std::size_t index) const override;
+	void update(std::span<const math::uvec3> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -264,19 +264,19 @@ private:
 /**
  * 4-dimensional unsigned integer vector shader variable implementation using OpenGL.
  */
-class gl_shader_uint4: public shader_variable
+class gl_shader_uvec4: public shader_variable
 {
 public:
-	gl_shader_uint4(std::size_t size, GLint gl_uniform_location);
+	gl_shader_uvec4(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::uint4;
+		return shader_variable_type::uvec4;
 	}
 	
-	void update(const uint4& value) const noexcept override;
-	void update(const uint4& value, std::size_t index) const override;
-	void update(std::span<const uint4> values, std::size_t index = 0) const override;
+	void update(const math::uvec4& value) const noexcept override;
+	void update(const math::uvec4& value, std::size_t index) const override;
+	void update(std::span<const math::uvec4> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -292,7 +292,7 @@ public:
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::float1;
+		return shader_variable_type::fvec1;
 	}
 	
 	void update(float value) const noexcept override;
@@ -306,19 +306,19 @@ private:
 /**
  * 2-dimensional floating-point vector shader variable implementation using OpenGL.
  */
-class gl_shader_float2: public shader_variable
+class gl_shader_fvec2: public shader_variable
 {
 public:
-	gl_shader_float2(std::size_t size, GLint gl_uniform_location);
+	gl_shader_fvec2(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::float2;
+		return shader_variable_type::fvec2;
 	}
 	
-	void update(const float2& value) const noexcept override;
-	void update(const float2& value, std::size_t index) const override;
-	void update(std::span<const float2> values, std::size_t index = 0) const override;
+	void update(const math::fvec2& value) const noexcept override;
+	void update(const math::fvec2& value, std::size_t index) const override;
+	void update(std::span<const math::fvec2> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -327,19 +327,19 @@ private:
 /**
  * 3-dimensional floating-point vector shader variable implementation using OpenGL.
  */
-class gl_shader_float3: public shader_variable
+class gl_shader_fvec3: public shader_variable
 {
 public:
-	gl_shader_float3(std::size_t size, GLint gl_uniform_location);
+	gl_shader_fvec3(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::float3;
+		return shader_variable_type::fvec3;
 	}
 	
-	void update(const float3& value) const noexcept override;
-	void update(const float3& value, std::size_t index) const override;
-	void update(std::span<const float3> values, std::size_t index = 0) const override;
+	void update(const math::fvec3& value) const noexcept override;
+	void update(const math::fvec3& value, std::size_t index) const override;
+	void update(std::span<const math::fvec3> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -348,19 +348,19 @@ private:
 /**
  * 4-dimensional floating-point vector shader variable implementation using OpenGL.
  */
-class gl_shader_float4: public shader_variable
+class gl_shader_fvec4: public shader_variable
 {
 public:
-	gl_shader_float4(std::size_t size, GLint gl_uniform_location);
+	gl_shader_fvec4(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::float4;
+		return shader_variable_type::fvec4;
 	}
 	
-	void update(const float4& value) const noexcept override;
-	void update(const float4& value, std::size_t index) const override;
-	void update(std::span<const float4> values, std::size_t index = 0) const override;
+	void update(const math::fvec4& value) const noexcept override;
+	void update(const math::fvec4& value, std::size_t index) const override;
+	void update(std::span<const math::fvec4> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -369,19 +369,19 @@ private:
 /**
  * 2x2 floating-point matrix shader variable implementation using OpenGL.
  */
-class gl_shader_float2x2: public shader_variable
+class gl_shader_fmat2: public shader_variable
 {
 public:
-	gl_shader_float2x2(std::size_t size, GLint gl_uniform_location);
+	gl_shader_fmat2(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::float2x2;
+		return shader_variable_type::fmat2;
 	}
 	
-	void update(const float2x2& value) const noexcept override;
-	void update(const float2x2& value, std::size_t index) const override;
-	void update(std::span<const float2x2> values, std::size_t index = 0) const override;
+	void update(const math::fmat2& value) const noexcept override;
+	void update(const math::fmat2& value, std::size_t index) const override;
+	void update(std::span<const math::fmat2> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -390,19 +390,19 @@ private:
 /**
  * 3x3 floating-point matrix shader variable implementation using OpenGL.
  */
-class gl_shader_float3x3: public shader_variable
+class gl_shader_fmat3: public shader_variable
 {
 public:
-	gl_shader_float3x3(std::size_t size, GLint gl_uniform_location);
+	gl_shader_fmat3(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::float3x3;
+		return shader_variable_type::fmat3;
 	}
 	
-	void update(const float3x3& value) const noexcept override;
-	void update(const float3x3& value, std::size_t index) const override;
-	void update(std::span<const float3x3> values, std::size_t index = 0) const override;
+	void update(const math::fmat3& value) const noexcept override;
+	void update(const math::fmat3& value, std::size_t index) const override;
+	void update(std::span<const math::fmat3> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;
@@ -411,19 +411,19 @@ private:
 /**
  * 4x4 floating-point matrix shader variable implementation using OpenGL.
  */
-class gl_shader_float4x4: public shader_variable
+class gl_shader_fmat4: public shader_variable
 {
 public:
-	gl_shader_float4x4(std::size_t size, GLint gl_uniform_location);
+	gl_shader_fmat4(std::size_t size, GLint gl_uniform_location);
 	
 	[[nodiscard]] inline constexpr shader_variable_type type() const noexcept override
 	{
-		return shader_variable_type::float4x4;
+		return shader_variable_type::fmat4;
 	}
 	
-	void update(const float4x4& value) const noexcept override;
-	void update(const float4x4& value, std::size_t index) const override;
-	void update(std::span<const float4x4> values, std::size_t index = 0) const override;
+	void update(const math::fmat4& value) const noexcept override;
+	void update(const math::fmat4& value, std::size_t index) const override;
+	void update(std::span<const math::fmat4> values, std::size_t index = 0) const override;
 	
 private:
 	GLint gl_uniform_location;

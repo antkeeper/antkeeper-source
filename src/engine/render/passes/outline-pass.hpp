@@ -21,7 +21,7 @@
 #define ANTKEEPER_RENDER_OUTLINE_PASS_HPP
 
 #include <engine/render/pass.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
 #include <memory>
@@ -41,7 +41,7 @@ public:
 	void render(render::context& ctx) override;
 	
 	void set_outline_width(float width);
-	void set_outline_color(const float4& color);
+	void set_outline_color(const math::fvec4& color);
 
 private:
 	std::unique_ptr<gl::shader_program> fill_shader;
@@ -53,7 +53,7 @@ private:
 	const gl::shader_variable* stroke_color_var;
 	
 	float outline_width;
-	float4 outline_color;
+	math::fvec4 outline_color;
 };
 
 } // namespace render

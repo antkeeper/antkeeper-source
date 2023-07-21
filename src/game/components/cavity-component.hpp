@@ -20,12 +20,12 @@
 #ifndef ANTKEEPER_GAME_CAVITY_COMPONENT_HPP
 #define ANTKEEPER_GAME_CAVITY_COMPONENT_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 
 struct cavity_component
 {
-	float3 position;
+	math::fvec3 position;
 	float radius;
 };
 

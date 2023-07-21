@@ -32,7 +32,7 @@ struct blackbody_component
 	double luminance{};
 	
 	/// Color of the blackbody.
-	math::vector<double, 3> color{};
+	math::dvec3 color{};
 };
 
 #endif // ANTKEEPER_GAME_BLACKBODY_COMPONENT_HPP

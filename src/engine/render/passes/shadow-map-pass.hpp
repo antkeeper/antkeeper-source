@@ -21,7 +21,7 @@
 #define ANTKEEPER_RENDER_SHADOW_MAP_PASS_HPP
 
 #include <engine/render/pass.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/scene/directional-light.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
@@ -70,7 +70,7 @@ private:
 	std::unique_ptr<gl::shader_program> skinned_shader_program;
 	const gl::shader_variable* skinned_model_view_projection_var;
 	
-	float4x4 bias_tile_matrices[4];
+	math::fmat4 bias_tile_matrices[4];
 };
 
 } // namespace render

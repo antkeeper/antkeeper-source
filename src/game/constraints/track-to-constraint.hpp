@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_TRACK_TO_CONSTRAINT_HPP
 
 #include <engine/entity/id.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 
 /**
@@ -33,7 +33,7 @@ struct track_to_constraint
 	entity::id target;
 	
 	/// Up direction vector.
-	float3 up;
+	math::fvec3 up;
 };
 
 

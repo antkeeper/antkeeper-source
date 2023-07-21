@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_SPRING_COMPONENT_HPP
 
 #include <engine/animation/spring.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <functional>
 
 
@@ -43,10 +43,10 @@ struct spring1_component
 struct spring2_component
 {
 	/// Numeric spring with two components.
-	numeric_spring<float2, float> spring;
+	numeric_spring<math::fvec2, float> spring;
 	
 	/// Spring solved callback.
-	std::function<void(const float2&)> callback;
+	std::function<void(const math::fvec2&)> callback;
 };
 
 /**
@@ -55,10 +55,10 @@ struct spring2_component
 struct spring3_component
 {
 	/// Numeric spring with three components.
-	numeric_spring<float3, float> spring;
+	numeric_spring<math::fvec3, float> spring;
 	
 	/// Spring solved callback.
-	std::function<void(const float3&)> callback;
+	std::function<void(const math::fvec3&)> callback;
 };
 
 /**
@@ -67,10 +67,10 @@ struct spring3_component
 struct spring4_component
 {
 	/// Numeric spring with four components.
-	numeric_spring<float4, float> spring;
+	numeric_spring<math::fvec4, float> spring;
 	
 	/// Spring solved callback.
-	std::function<void(const float4&)> callback;
+	std::function<void(const math::fvec4&)> callback;
 };
 
 

@@ -30,7 +30,7 @@ void camera_system::update(float t, float dt)
 
 }
 
-void camera_system::set_viewport(const float4& viewport)
+void camera_system::set_viewport(const math::fvec4& viewport)
 {
 	this->viewport = viewport;
 }

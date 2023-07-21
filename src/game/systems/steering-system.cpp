@@ -47,7 +47,7 @@ void steering_system::update(float t, float dt)
 			agent.velocity = body.get_linear_velocity();
 			
 			// Accumulate steering forces
-			float3 force = {0, 0, 0};
+			math::fvec3 force = {0, 0, 0};
 			if (steering.wander_weight)
 			{
 				//force += ai::steering::behavior::wander_2d(agent, steering.wander_noise * dt, steering.wander_distance, steering.wander_radius, steering.wander_angle) * steering.wander_weight;

@@ -22,7 +22,7 @@
 
 #include <engine/entity/id.hpp>
 #include <engine/animation/spring.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 
 /**
@@ -34,10 +34,10 @@ struct spring_to_constraint
 	entity::id target;
 	
 	/// Translation spring.
-	numeric_spring<float3, float> translation;
+	numeric_spring<math::fvec3, float> translation;
 	
 	/// Rotation spring.
-	numeric_spring<float4, float> rotation;
+	numeric_spring<math::fvec4, float> rotation;
 	
 	/// Spring translation.
 	bool spring_translation;

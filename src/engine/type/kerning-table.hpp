@@ -20,13 +20,13 @@
 #ifndef ANTKEEPER_TYPE_KERNING_TABLE_HPP
 #define ANTKEEPER_TYPE_KERNING_TABLE_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <unordered_map>
 
 namespace type {
 
 /// Table containing kerning offsets for pairs of glyphs.
-typedef std::unordered_map<char32_t, std::unordered_map<char32_t, float2>> kerning_table;
+typedef std::unordered_map<char32_t, std::unordered_map<char32_t, math::fvec2>> kerning_table;
 
 } // namespace type
 

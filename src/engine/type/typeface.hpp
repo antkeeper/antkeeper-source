@@ -23,7 +23,7 @@
 #include <engine/type/font-metrics.hpp>
 #include <engine/type/glyph-metrics.hpp>
 #include <engine/utility/image.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <unordered_set>
 
 namespace type {
@@ -130,7 +130,7 @@ public:
 	 * @param[out] offset Kerning offset.
 	 * @return `true` if a kerning offset was returned, `false` otherwise.
 	 */
-	virtual bool get_kerning(float height, char32_t first, char32_t second, float2& offset) const = 0;
+	virtual bool get_kerning(float height, char32_t first, char32_t second, math::fvec2& offset) const = 0;
 	
 	/// Returns the set of characters supported by the typeface.
 	[[nodiscard]] inline const std::unordered_set<char32_t>& get_charset() const noexcept

@@ -44,7 +44,7 @@ void create_framebuffers(::game& ctx)
 	debug::log::trace("Creating framebuffers...");
 	
 	// Calculate render resolution
-	const int2& viewport_size = ctx.window->get_viewport_size();
+	const math::ivec2& viewport_size = ctx.window->get_viewport_size();
 	ctx.render_resolution = {static_cast<int>(viewport_size.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_size.y() * ctx.render_scale + 0.5f)};
 	
 	// Create HDR framebuffer (32F color, 32F depth)
@@ -118,7 +118,7 @@ void change_render_resolution(::game& ctx, float scale)
 	ctx.render_scale = scale;
 	
 	// Recalculate render resolution
-	const int2& viewport_size = ctx.window->get_viewport_size();
+	const math::ivec2& viewport_size = ctx.window->get_viewport_size();
 	ctx.render_resolution = {static_cast<int>(viewport_size.x() * ctx.render_scale + 0.5f), static_cast<int>(viewport_size.y() * ctx.render_scale + 0.5f)};
 	
 	// Resize HDR framebuffer and attachments
@@ -163,7 +163,7 @@ void save_screenshot(::game& ctx)
 	debug::log::debug("Saving screenshot to \"{}\"...", screenshot_filepath_string);
 	
 	// Get viewport dimensions
-	const int2& viewport_size = ctx.window->get_viewport_size();
+	const math::ivec2& viewport_size = ctx.window->get_viewport_size();
 	
 	// Allocate screenshot image
 	std::shared_ptr<image> frame = std::make_shared<image>();

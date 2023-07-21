@@ -29,7 +29,7 @@
 class euler_ik_constraint: public ik_constraint
 {
 public:
-	void solve(math::quaternion<float>& q) override;
+	void solve(math::fquat& q) override;
 	
 	/**
 	 * Sets the angular limits.
@@ -37,15 +37,15 @@ public:
 	 * @param min Minimum angles of the x-, y-, and z-axes, in radians.
 	 * @param max Maximum angles of the x-, y-, and z-axes, in radians.
 	 */
-	inline void set_limits(const math::vector<float, 3>& min, const math::vector<float, 3>& max) noexcept
+	inline void set_limits(const math::fvec3& min, const math::fvec3& max) noexcept
 	{
 		m_min = min;
 		m_max = max;
 	}
 	
 private:
-	math::vector<float, 3> m_min{-math::pi<float>, -math::pi<float>, -math::pi<float>};
-	math::vector<float, 3> m_max{ math::pi<float>,  math::pi<float>,  math::pi<float>};
+	math::fvec3 m_min{-math::pi<float>, -math::pi<float>, -math::pi<float>};
+	math::fvec3 m_max{ math::pi<float>,  math::pi<float>,  math::pi<float>};
 };
 
 #endif // ANTKEEPER_ANIMATION_EULER_IK_CONSTRAINT_HPP

@@ -17,26 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_MESHES_GRID_HPP
-#define ANTKEEPER_GEOM_MESHES_GRID_HPP
-
-#include <engine/geom/mesh.hpp>
-#include <memory>
+#include <engine/geom/brep/brep-loop.hpp>
 
 namespace geom {
-namespace meshes {
 
-/**
- * Generates a grid mesh on the XY plane.
- *
- * @param length Side length of the grid.
- * @param subdivisions_x Number of subdivisions on the x-axis.
- * @param subdivisions_y Number of subdivisions on the y-axis.
- * @return Grid mesh on the XY plane.
- */
-[[nodiscard]] std::unique_ptr<geom::mesh> grid_xy(float length, std::size_t subdivisions_x, std::size_t subdivisions_y);
+brep_loop* brep_loop_container::emplace_back()
+{
+	brep_loop* loop = brep_element_container<brep_loop>::emplace_back();
+	loop->m_index = size() - 1;
+	
+	return loop;
+};
 
-} // namespace meshes
 } // namespace geom
-
-#endif // ANTKEEPER_GEOM_MESHES_GRID_HPP

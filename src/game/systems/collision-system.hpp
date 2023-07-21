@@ -55,7 +55,7 @@ public:
 	 *
 	 * @return ID of the picked entity, or `entt::null` if no entity was picked.
 	 */
-	entity::id pick_nearest(const math::vector<float, 3>& origin, const math::vector<float, 3>& normal, std::uint32_t flags) const;
+	entity::id pick_nearest(const math::fvec3& origin, const math::fvec3& normal, std::uint32_t flags) const;
 };
 
 

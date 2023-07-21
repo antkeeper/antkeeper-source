@@ -117,12 +117,12 @@ nest_selection_state::nest_selection_state(::game& ctx):
 		floor_eid,
 		[](auto& component)
 		{
-			component.local.rotation = math::angle_axis(math::radians(3.0f), float3{1.0f, 0.0f, 0.0f});
+			component.local.rotation = math::angle_axis(math::radians(3.0f), math::fvec3{1.0f, 0.0f, 0.0f});
 		}
 	);
 	
 	auto floor_body = std::make_unique<physics::rigid_body>();
-	auto floor_collider = std::make_shared<physics::plane_collider>(float3{0.0f, 1.0f, 0.0f});
+	auto floor_collider = std::make_shared<physics::plane_collider>(math::fvec3{0.0f, 1.0f, 0.0f});
 	floor_collider->set_layer_mask(0b11);
 	floor_collider->set_material(std::make_shared<physics::collider_material>(1.0f, 0.5f, 1.0f));
 	floor_body->set_mass(0.0f);
@@ -145,7 +145,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 
 	
-	auto worker_collider = std::make_shared<physics::box_collider>(float3{-1.0f, -1.0f, -1.0f}, float3{1.0f, 1.0f, 1.0f});
+	auto worker_collider = std::make_shared<physics::box_collider>(math::fvec3{-1.0f, -1.0f, -1.0f}, math::fvec3{1.0f, 1.0f, 1.0f});
 	//auto worker_collider = std::make_shared<physics::sphere_collider>(1.0f);
 	worker_collider->set_material(std::make_shared<physics::collider_material>(0.4f, 0.1f, 0.2f));
 	
@@ -189,14 +189,14 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	const auto& larva_head_relative_transform = larva_skeletal_mesh->get_pose().get_relative_transform(larva_ik_effector_bone_index);
 	
 	larva_ik_solver = std::make_shared<ccd_ik_solver>(*larva_ik_rig, larva_ik_root_bone_index, larva_ik_effector_bone_index);
-	larva_ik_solver->set_effector_position(larva_head_relative_transform * float3{0.0f, 0.0f, -0.0f});
-	larva_ik_solver->set_goal_position(larva_head_absolute_transform.translation + float3{0.2f, 0.2f, 0.5f});
+	larva_ik_solver->set_effector_position(larva_head_relative_transform * math::fvec3{0.0f, 0.0f, -0.0f});
+	larva_ik_solver->set_goal_position(larva_head_absolute_transform.translation + math::fvec3{0.2f, 0.2f, 0.5f});
 	
 
 	
 	larva_ik_rig->add_solver(larva_ik_solver);
 	
-	//larva_skeletal_mesh->get_pose().set_relative_rotation(larva_ik_root_bone_index, math::angle_axis(math::radians(45.0f), float3{1.0f, 0.0f, 0.0f}));
+	//larva_skeletal_mesh->get_pose().set_relative_rotation(larva_ik_root_bone_index, math::angle_axis(math::radians(45.0f), math::fvec3{1.0f, 0.0f, 0.0f}));
 	//larva_skeletal_mesh->get_pose().update();
 	
 	ctx.entity_registry->emplace<scene_component>(larva_eid, std::move(larva_skeletal_mesh), std::uint8_t{1});
@@ -248,8 +248,8 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	// Setup controls
 	setup_controls();
 	
-	// auto color_checker_archetype = ctx.resource_manager->load<entity::archetype>("color-checker.ent");
-	// color_checker_archetype->create(*ctx.entity_registry);
+	auto color_checker_archetype = ctx.resource_manager->load<entity::archetype>("color-checker.ent");
+	color_checker_archetype->create(*ctx.entity_registry);
 	// auto ruler_archetype = ctx.resource_manager->load<entity::archetype>("ruler-10cm.ent");
 	// ruler_archetype->create(*ctx.entity_registry);
 	
@@ -415,15 +415,15 @@ void nest_selection_state::set_first_person_camera_rig_pedestal(float pedestal)
 	// );
 }
 
-void nest_selection_state::move_first_person_camera_rig(const float2& direction, float factor)
+void nest_selection_state::move_first_person_camera_rig(const math::fvec2& direction, float factor)
 {
 	// const float speed = math::log_lerp(first_person_camera_near_speed, first_person_camera_far_speed, first_person_camera_rig_pedestal) * factor;
 	
 	// const spring_rotation_constraint& first_person_camera_rig_spring_rotation = ctx.entity_registry->get<spring_rotation_constraint>(first_person_camera_rig_spring_rotation_eid);
 	
-	// const math::quaternion<float> yaw_rotation = math::angle_axis(first_person_camera_rig_spring_rotation.spring.x0[0], float3{0.0f, 1.0f, 0.0f});
-	// const float3 rotated_direction = math::normalize(yaw_rotation * float3{direction[0], 0.0f, direction[1]});
-	// const float3 velocity = rotated_direction * speed;
+	// const math::fquat yaw_rotation = math::angle_axis(first_person_camera_rig_spring_rotation.spring.x0[0], math::fvec3{0.0f, 1.0f, 0.0f});
+	// const math::fvec3 rotated_direction = math::normalize(yaw_rotation * math::fvec3{direction[0], 0.0f, direction[1]});
+	// const math::fvec3 velocity = rotated_direction * speed;
 	
 	// ctx.entity_registry->patch<spring_translation_constraint>
 	// (
@@ -610,20 +610,20 @@ void nest_selection_state::setup_controls()
 	
 	constexpr float movement_speed = 200.0f;
 	
-	auto move_first_person_camera_rig = [&](const float2& direction, float speed)
+	auto move_first_person_camera_rig = [&](const math::fvec2& direction, float speed)
 	{
 		const transform_component& first_person_camera_rig_transform = ctx.entity_registry->get<transform_component>(first_person_camera_rig_eid);
 		
 		//const spring_rotation_constraint& first_person_camera_rig_spring_rotation = ctx.entity_registry->get<spring_rotation_constraint>(first_person_camera_rig_spring_rotation_eid);
 		
-		//const math::quaternion<float> yaw_rotation = math::angle_axis(first_person_camera_rig_spring_rotation.spring.x0[0], float3{0.0f, 1.0f, 0.0f});
-		//const float3 rotated_direction = yaw_rotation * float3{direction[0], 0.0f, direction[1]};
+		//const math::fquat yaw_rotation = math::angle_axis(first_person_camera_rig_spring_rotation.spring.x0[0], math::fvec3{0.0f, 1.0f, 0.0f});
+		//const math::fvec3 rotated_direction = yaw_rotation * math::fvec3{direction[0], 0.0f, direction[1]};
 		
-		const math::quaternion<float> yaw_rotation = math::angle_axis(static_cast<float>(first_person_camera_yaw), float3{0.0f, 1.0f, 0.0f});
+		const math::fquat yaw_rotation = math::angle_axis(static_cast<float>(first_person_camera_yaw), math::fvec3{0.0f, 1.0f, 0.0f});
 		
-		const float3 rotated_direction = yaw_rotation * float3{direction[0], 0.0f, direction[1]};
+		const math::fvec3 rotated_direction = yaw_rotation * math::fvec3{direction[0], 0.0f, direction[1]};
 		
-		const float3 force = rotated_direction * speed;
+		const math::fvec3 force = rotated_direction * speed;
 		
 		
 		moving = true;
@@ -704,9 +704,9 @@ void nest_selection_state::setup_controls()
 			first_person_camera_pitch += ctx.mouse_tilt_factor * static_cast<double>(event.difference.y());
 			first_person_camera_pitch = std::min(math::half_pi<double>, std::max(-math::half_pi<double>, first_person_camera_pitch));
 			
-			const math::quaternion<double> yaw_rotation = math::angle_axis(first_person_camera_yaw, {0.0f, 1.0, 0.0});
-			const math::quaternion<double> pitch_rotation = math::angle_axis(first_person_camera_pitch, {-1.0, 0.0, 0.0});
-			const math::quaternion<float> first_person_camera_orientation = math::quaternion<float>(math::normalize(yaw_rotation * pitch_rotation));
+			const math::dquat yaw_rotation = math::angle_axis(first_person_camera_yaw, {0.0f, 1.0, 0.0});
+			const math::dquat pitch_rotation = math::angle_axis(first_person_camera_pitch, {-1.0, 0.0, 0.0});
+			const math::fquat first_person_camera_orientation = math::fquat(math::normalize(yaw_rotation * pitch_rotation));
 			
 			ctx.entity_registry->patch<scene_component>
 			(
@@ -898,7 +898,7 @@ void nest_selection_state::setup_controls()
 				if (ctx.mouse_look_action.is_active())
 				{
 					auto projectile_collider = std::make_shared<physics::sphere_collider>(1.0f);
-					//auto projectile_collider = std::make_shared<physics::box_collider>(float3{-1.0f, -1.0f, -1.0f}, float3{1.0f, 1.0f, 1.0f});
+					//auto projectile_collider = std::make_shared<physics::box_collider>(math::fvec3{-1.0f, -1.0f, -1.0f}, math::fvec3{1.0f, 1.0f, 1.0f});
 					projectile_collider->set_material(std::make_shared<physics::collider_material>(0.4f, 0.1f, 0.2f));
 					projectile_body->set_collider(std::move(projectile_collider));
 					
@@ -919,7 +919,7 @@ void nest_selection_state::setup_controls()
 					projectile_scene.object = projectile_mesh;
 				}
 				
-				projectile_body->apply_central_impulse(camera_transform.world.rotation * float3{0.0f, 0.0f, -10.0f});
+				projectile_body->apply_central_impulse(camera_transform.world.rotation * math::fvec3{0.0f, 0.0f, -10.0f});
 				
 				
 				// auto spring_eid = ctx.entity_registry->create();
@@ -936,10 +936,10 @@ void nest_selection_state::setup_controls()
 				ctx.entity_registry->emplace<rigid_body_component>(projectile_eid, std::move(projectile_body));
 				
 				
-				// body.linear_momentum = math::vector<float, 3>::zero();
-				// body.angular_momentum = math::vector<float, 3>::zero();
-				// body.linear_velocity = math::vector<float, 3>::zero();
-				// body.angular_velocity = math::vector<float, 3>::zero();
+				// body.linear_momentum = math::fvec3::zero();
+				// body.angular_momentum = math::fvec3::zero();
+				// body.linear_velocity = math::fvec3::zero();
+				// body.angular_velocity = math::fvec3::zero();
 				
 				//body.apply_central_impulse({0.0f, 100.5f, 0.0f});
 				

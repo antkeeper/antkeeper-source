@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ECOREGION_HPP
 #define ANTKEEPER_GAME_ECOREGION_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/render/material.hpp>
 #include "game/ant/ant-gene-pool.hpp"
 #include <string>
@@ -48,7 +48,7 @@ struct ecoregion
 	std::shared_ptr<render::material> terrain_material;
 	
 	/// Terrain albedo.
-	float3 terrain_albedo;
+	math::fvec3 terrain_albedo;
 	
 	/// Horizon material.
 	std::shared_ptr<render::material> horizon_material;

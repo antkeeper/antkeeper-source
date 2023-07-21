@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GEOM_SPHERICAL_HPP
 #define ANTKEEPER_GEOM_SPHERICAL_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <cmath>
 
 namespace geom {
@@ -37,14 +37,14 @@ namespace spherical {
  * @see geom::coordinates::cartesian
  */
 template <class T>
-math::vector3<T> to_cartesian(const math::vector3<T>& v);
+math::vec3<T> to_cartesian(const math::vec3<T>& v);
 
 template <class T>
-math::vector3<T> to_cartesian(const math::vector3<T>& v)
+math::vec3<T> to_cartesian(const math::vec3<T>& v)
 {
 	const T x = v[0] * std::cos(v[1]);
 	
-	return math::vector3<T>
+	return math::vec3<T>
 	{
 		x * std::cos(v[2]),
 		x * std::sin(v[2]),

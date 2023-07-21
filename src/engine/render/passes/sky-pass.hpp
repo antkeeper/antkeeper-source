@@ -22,7 +22,7 @@
 
 #include <engine/render/pass.hpp>
 #include <engine/gl/shader-template.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/animation/tween.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/gl/shader-program.hpp>
@@ -74,7 +74,7 @@ public:
 	 *
 	 * @note Triggers rendering of transmittance LUT.
 	 */
-	void set_transmittance_lut_resolution(const math::vector2<std::uint16_t>& resolution);
+	void set_transmittance_lut_resolution(const math::vec2<std::uint16_t>& resolution);
 	
 	/// Returns the number of transmittance integration samples.
 	[[nodiscard]] inline std::uint16_t get_transmittance_lut_sample_count() const noexcept
@@ -83,7 +83,7 @@ public:
 	}
 	
 	/// Returns the resolution of the transmittance LUT texture, in pixels.
-	[[nodiscard]] inline const math::vector2<std::uint16_t>& get_transmittance_lut_resolution() const noexcept
+	[[nodiscard]] inline const math::vec2<std::uint16_t>& get_transmittance_lut_resolution() const noexcept
 	{
 		return m_transmittance_lut_resolution;
 	}
@@ -119,7 +119,7 @@ public:
 	 *
 	 * @note Triggers rendering of multiscattering LUT.
 	 */
-	void set_multiscattering_lut_resolution(const math::vector2<std::uint16_t>& resolution);
+	void set_multiscattering_lut_resolution(const math::vec2<std::uint16_t>& resolution);
 	
 	/// Returns the number of multiscattering direction samples.
 	[[nodiscard]] inline std::uint16_t get_multiscattering_lut_direction_sample_count() const noexcept
@@ -134,7 +134,7 @@ public:
 	}
 	
 	/// Returns the resolution of the multiscattering LUT texture, in pixels.
-	[[nodiscard]] inline const math::vector2<std::uint16_t>& get_multiscattering_lut_resolution() const noexcept
+	[[nodiscard]] inline const math::vec2<std::uint16_t>& get_multiscattering_lut_resolution() const noexcept
 	{
 		return m_multiscattering_lut_resolution;
 	}
@@ -160,7 +160,7 @@ public:
 	 *
 	 * @note Triggers rendering of luminance LUT.
 	 */
-	void set_luminance_lut_resolution(const math::vector2<std::uint16_t>& resolution);
+	void set_luminance_lut_resolution(const math::vec2<std::uint16_t>& resolution);
 	
 	/// Returns the number of luminance integration samples.
 	[[nodiscard]] inline std::uint16_t get_luminance_lut_sample_count() const noexcept
@@ -169,7 +169,7 @@ public:
 	}
 	
 	/// Returns the resolution of the luminance LUT texture, in pixels.
-	[[nodiscard]] inline const math::vector2<std::uint16_t>& get_luminance_lut_resolution() const noexcept
+	[[nodiscard]] inline const math::vec2<std::uint16_t>& get_luminance_lut_resolution() const noexcept
 	{
 		return m_luminance_lut_resolution;
 	}
@@ -186,27 +186,27 @@ public:
 	
 	void set_icrf_to_eus(const math::transformation::se3<float>& transformation);
 	
-	void set_sun_position(const float3& position);
-	void set_sun_luminance(const float3& luminance);
-	void set_sun_illuminance(const float3& illuminance, const float3& transmitted_illuminance);
+	void set_sun_position(const math::fvec3& position);
+	void set_sun_luminance(const math::fvec3& luminance);
+	void set_sun_illuminance(const math::fvec3& illuminance, const math::fvec3& transmitted_illuminance);
 	void set_sun_angular_radius(float radius);
 	void set_planet_radius(float radius);
 	void set_atmosphere_upper_limit(float limit);
 	void set_observer_elevation(float elevation);
-	void set_rayleigh_parameters(float scale_height, const float3& scattering);
+	void set_rayleigh_parameters(float scale_height, const math::fvec3& scattering);
 	void set_mie_parameters(float scale_height, float scattering, float extinction, float anisotropy);
-	void set_ozone_parameters(float lower_limit, float upper_limit, float mode, const float3& absorption);
-	void set_airglow_luminance(const float3& luminance);
-	void set_ground_albedo(const float3& albedo);
+	void set_ozone_parameters(float lower_limit, float upper_limit, float mode, const math::fvec3& absorption);
+	void set_airglow_luminance(const math::fvec3& luminance);
+	void set_ground_albedo(const math::fvec3& albedo);
 	
-	void set_moon_position(const float3& position);
-	void set_moon_rotation(const math::quaternion<float>& rotation);
+	void set_moon_position(const math::fvec3& position);
+	void set_moon_rotation(const math::fquat& rotation);
 	void set_moon_angular_radius(float angular_radius);
-	void set_moon_sunlight_direction(const float3& direction);
-	void set_moon_sunlight_illuminance(const float3& illuminance);
-	void set_moon_planetlight_direction(const float3& direction);
-	void set_moon_planetlight_illuminance(const float3& illuminance);
-	void set_moon_illuminance(const float3& illuminance, const float3& transmitted_illuminance);
+	void set_moon_sunlight_direction(const math::fvec3& direction);
+	void set_moon_sunlight_illuminance(const math::fvec3& illuminance);
+	void set_moon_planetlight_direction(const math::fvec3& direction);
+	void set_moon_planetlight_illuminance(const math::fvec3& illuminance);
+	void set_moon_illuminance(const math::fvec3& illuminance, const math::fvec3& transmitted_illuminance);
 	
 
 	
@@ -228,7 +228,7 @@ private:
 	
 	// Transmittance
 	std::uint16_t m_transmittance_lut_sample_count{40};
-	math::vector2<std::uint16_t> m_transmittance_lut_resolution{256, 64};
+	math::vec2<std::uint16_t> m_transmittance_lut_resolution{256, 64};
 	std::unique_ptr<gl::texture_2d> m_transmittance_lut_texture;
 	std::unique_ptr<gl::framebuffer> m_transmittance_lut_framebuffer;
 	std::shared_ptr<gl::shader_template> m_transmittance_lut_shader_template;
@@ -239,7 +239,7 @@ private:
 	// Multiscattering
 	std::uint16_t m_multiscattering_lut_direction_sample_count{64};
 	std::uint16_t m_multiscattering_lut_scatter_sample_count{20};
-	math::vector2<std::uint16_t> m_multiscattering_lut_resolution{32, 32};
+	math::vec2<std::uint16_t> m_multiscattering_lut_resolution{32, 32};
 	std::unique_ptr<gl::texture_2d> m_multiscattering_lut_texture;
 	std::unique_ptr<gl::framebuffer> m_multiscattering_lut_framebuffer;
 	std::shared_ptr<gl::shader_template> m_multiscattering_lut_shader_template;
@@ -249,7 +249,7 @@ private:
 	
 	// Luminance
 	std::uint16_t m_luminance_lut_sample_count{30};
-	math::vector2<std::uint16_t> m_luminance_lut_resolution{200, 100};
+	math::vec2<std::uint16_t> m_luminance_lut_resolution{200, 100};
 	std::unique_ptr<gl::texture_2d> m_luminance_lut_texture;
 	std::unique_ptr<gl::framebuffer> m_luminance_lut_framebuffer;
 	std::shared_ptr<gl::shader_template> m_luminance_lut_shader_template;
@@ -264,9 +264,9 @@ private:
 	std::unique_ptr<gl::shader_program> m_sky_probe_shader_program;
 	std::vector<std::function<void()>> m_sky_probe_command_buffer;
 	
-	float3 dominant_light_direction;
-	float3 dominant_light_illuminance;
-	float3 observer_position;
+	math::fvec3 dominant_light_direction;
+	math::fvec3 dominant_light_illuminance;
+	math::fvec3 observer_position;
 	float camera_exposure;
 
 	std::shared_ptr<gl::shader_program> sky_shader_program;
@@ -326,36 +326,36 @@ private:
 	const gl::shader_variable* star_exposure_var;
 	const gl::shader_variable* star_inv_resolution_var;
 
-	float2 mouse_position;
+	math::fvec2 mouse_position;
 	
-	tween<float3> sun_position_tween;
-	tween<float3> sun_luminance_tween;
-	tween<float3> sun_illuminance_tween;
-	float3 sun_transmitted_illuminance;
-	tween<float3> icrf_to_eus_translation;
-	tween<math::quaternion<float>> icrf_to_eus_rotation;
+	tween<math::fvec3> sun_position_tween;
+	tween<math::fvec3> sun_luminance_tween;
+	tween<math::fvec3> sun_illuminance_tween;
+	math::fvec3 sun_transmitted_illuminance;
+	tween<math::fvec3> icrf_to_eus_translation;
+	tween<math::fquat> icrf_to_eus_rotation;
 	
-	tween<float3> moon_position_tween;
-	tween<math::quaternion<float>> moon_rotation_tween;
+	tween<math::fvec3> moon_position_tween;
+	tween<math::fquat> moon_rotation_tween;
 	tween<float> moon_angular_radius_tween;
-	tween<float3> moon_sunlight_direction_tween;
-	tween<float3> moon_sunlight_illuminance_tween;
-	tween<float3> moon_planetlight_direction_tween;
-	tween<float3> moon_planetlight_illuminance_tween;
-	tween<float3> moon_illuminance_tween;
-	float3 moon_transmitted_illuminance;
+	tween<math::fvec3> moon_sunlight_direction_tween;
+	tween<math::fvec3> moon_sunlight_illuminance_tween;
+	tween<math::fvec3> moon_planetlight_direction_tween;
+	tween<math::fvec3> moon_planetlight_illuminance_tween;
+	tween<math::fvec3> moon_illuminance_tween;
+	math::fvec3 moon_transmitted_illuminance;
 	
 	float sun_angular_radius;
 	float atmosphere_upper_limit;
-	float4 atmosphere_radii;
+	math::fvec4 atmosphere_radii;
 	float observer_elevation;
-	tween<float3> observer_position_tween;
-	float4 rayleigh_parameters;
-	float4 mie_parameters;
-	float3 ozone_distribution;
-	float3 ozone_absorption;
-	float3 airglow_luminance;
-	math::vector3<float> m_ground_albedo{};
+	tween<math::fvec3> observer_position_tween;
+	math::fvec4 rayleigh_parameters;
+	math::fvec4 mie_parameters;
+	math::fvec3 ozone_distribution;
+	math::fvec3 ozone_absorption;
+	math::fvec3 airglow_luminance;
+	math::fvec3 m_ground_albedo{};
 	
 	float magnification;
 };

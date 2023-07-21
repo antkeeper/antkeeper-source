@@ -24,9 +24,7 @@
 #include <engine/animation/ease.hpp>
 #include <engine/config.hpp>
 #include <algorithm>
-#include <engine/math/glsl.hpp>
-
-using namespace math::glsl;
+#include <engine/math/vector.hpp>
 
 namespace menu {
 
@@ -64,7 +62,7 @@ void update_text_color(::game& ctx)
 	{
 		auto [name, value] = ctx.menu_item_texts[i];
 		
-		const float4& color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
+		const math::fvec4& color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
 		
 		name->set_color(color);
 		if (value)
@@ -76,8 +74,8 @@ void align_text(::game& ctx, bool center, bool has_back, float anchor_y)
 {
 	
 	
-	const vec2 viewport_size = vec2(ctx.window->get_viewport_size());
-	const vec2 viewport_center = viewport_size * 0.5f;
+	const math::fvec2 viewport_size = math::fvec2(ctx.window->get_viewport_size());
+	const math::fvec2 viewport_center = viewport_size * 0.5f;
 	
 	const float viewport_padding = viewport_size.y() * (1.0f / 9.0f);
 	
@@ -218,7 +216,7 @@ void setup_animations(::game& ctx)
 			{
 				auto [name, value] = ctx.menu_item_texts[i];
 				
-				float4 color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
+				math::fvec4 color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
 				color[3] = color[3] * opacity;
 				
 				if (name)
@@ -245,7 +243,7 @@ void fade_in(::game& ctx, const std::function<void()>& end_callback)
 	{
 		auto [name, value] = ctx.menu_item_texts[i];
 		
-		float4 color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
+		math::fvec4 color = (i == *ctx.menu_item_index) ? config::menu_active_color : config::menu_inactive_color;
 		color[3] = 0.0f;
 		
 		if (name)

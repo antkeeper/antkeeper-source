@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_CHILD_OF_CONSTRAINT_HPP
 
 #include <engine/entity/id.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 
 /**

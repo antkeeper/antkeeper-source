@@ -37,7 +37,7 @@ namespace color {
  * @see IEC 61966-2-1:1999
  */
 template <class T>
-[[nodiscard]] math::vector3<T> srgb_oetf(const math::vector3<T>& x)
+[[nodiscard]] math::vec3<T> srgb_oetf(const math::vec3<T>& x)
 {
 	auto f = [](T x) -> T
 	{
@@ -57,7 +57,7 @@ template <class T>
  * @see IEC 61966-2-1:1999
  */
 template <class T>
-[[nodiscard]] math::vector3<T> srgb_eotf(const math::vector3<T>& x)
+[[nodiscard]] math::vec3<T> srgb_eotf(const math::vec3<T>& x)
 {
 	auto f = [](T x) -> T
 	{

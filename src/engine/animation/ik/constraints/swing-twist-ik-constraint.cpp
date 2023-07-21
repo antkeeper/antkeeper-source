@@ -28,13 +28,13 @@ void swing_twist_ik_constraint::set_twist_limit(float angle_min, float angle_max
 	m_sin_half_twist_max = std::sin(angle_max * 0.5f);
 }
 
-void swing_twist_ik_constraint::solve(math::quaternion<float>& q)
+void swing_twist_ik_constraint::solve(math::fquat& q)
 {
-	constexpr math::vector<float, 3> twist_axis{0.0f, 0.0f, 1.0f};
+	constexpr math::fvec3 twist_axis{0.0f, 0.0f, 1.0f};
 	
 	// Decompose rotation into swing and twist components
-	math::quaternion<float> swing;
-	math::quaternion<float> twist;
+	math::fquat swing;
+	math::fquat twist;
 	math::swing_twist(q, twist_axis, swing, twist);
 	
 	// Limit twist

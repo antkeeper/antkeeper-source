@@ -141,7 +141,7 @@ static bool load_texture_1d_property(resource_manager& resource_manager, render:
 	if (json.is_array())
 	{
 		// Create variable
-		auto variable = std::make_shared<render::material_texture_1d>(json.size());
+		auto variable = std::make_shared<render::matvar_texture_1d>(json.size());
 		
 		// Load textures
 		std::size_t i = 0;
@@ -156,7 +156,7 @@ static bool load_texture_1d_property(resource_manager& resource_manager, render:
 	else
 	{
 		// Create variable
-		auto variable = std::make_shared<render::material_texture_1d>(json.size());
+		auto variable = std::make_shared<render::matvar_texture_1d>(json.size());
 		
 		// Load texture
 		variable->set(resource_manager.load<gl::texture_1d>(json.get<std::string>()));
@@ -173,7 +173,7 @@ static bool load_texture_2d_property(resource_manager& resource_manager, render:
 	if (json.is_array())
 	{
 		// Create variable
-		auto variable = std::make_shared<render::material_texture_2d>(json.size());
+		auto variable = std::make_shared<render::matvar_texture_2d>(json.size());
 		
 		// Load textures
 		std::size_t i = 0;
@@ -188,7 +188,7 @@ static bool load_texture_2d_property(resource_manager& resource_manager, render:
 	else
 	{
 		// Create variable
-		auto variable = std::make_shared<render::material_texture_2d>(json.size());
+		auto variable = std::make_shared<render::matvar_texture_2d>(json.size());
 		
 		// Load texture
 		variable->set(resource_manager.load<gl::texture_2d>(json.get<std::string>()));
@@ -205,7 +205,7 @@ static bool load_texture_3d_property(resource_manager& resource_manager, render:
 	if (json.is_array())
 	{
 		// Create variable
-		auto variable = std::make_shared<render::material_texture_3d>(json.size());
+		auto variable = std::make_shared<render::matvar_texture_3d>(json.size());
 		
 		// Load textures
 		std::size_t i = 0;
@@ -220,7 +220,7 @@ static bool load_texture_3d_property(resource_manager& resource_manager, render:
 	else
 	{
 		// Create variable
-		auto variable = std::make_shared<render::material_texture_3d>(json.size());
+		auto variable = std::make_shared<render::matvar_texture_3d>(json.size());
 		
 		// Load texture
 		variable->set(resource_manager.load<gl::texture_3d>(json.get<std::string>()));
@@ -237,7 +237,7 @@ static bool load_texture_cube_property(resource_manager& resource_manager, rende
 	if (json.is_array())
 	{
 		// Create variable
-		auto variable = std::make_shared<render::material_texture_cube>(json.size());
+		auto variable = std::make_shared<render::matvar_texture_cube>(json.size());
 		
 		// Load textures
 		std::size_t i = 0;
@@ -252,7 +252,7 @@ static bool load_texture_cube_property(resource_manager& resource_manager, rende
 	else
 	{
 		// Create variable
-		auto variable = std::make_shared<render::material_texture_cube>(json.size());
+		auto variable = std::make_shared<render::matvar_texture_cube>(json.size());
 		
 		// Load texture
 		variable->set(resource_manager.load<gl::texture_cube>(json.get<std::string>()));
@@ -523,11 +523,11 @@ std::unique_ptr<render::material> resource_loader<render::material>::load(::reso
 				if (type.find("float") != std::string::npos)
 				{
 					if (columns == 2 && rows == 2)
-						load_matrix_property<float2x2>(*material, key, columns, rows, value_element.value());
+						load_matrix_property<math::fmat2>(*material, key, columns, rows, value_element.value());
 					else if (columns == 3 && rows == 3)
-						load_matrix_property<float3x3>(*material, key, columns, rows, value_element.value());
+						load_matrix_property<math::fmat3>(*material, key, columns, rows, value_element.value());
 					else if (columns == 4 && rows == 4)
-						load_matrix_property<float4x4>(*material, key, columns, rows, value_element.value());
+						load_matrix_property<math::fmat4>(*material, key, columns, rows, value_element.value());
 				}
 			}
 			// If variable type is a vector
@@ -538,38 +538,38 @@ std::unique_ptr<render::material> resource_loader<render::material>::load(::reso
 				if (type.find("float") != std::string::npos)
 				{
 					if (size == 2)
-						load_vector_property<float2>(*material, key, size, value_element.value());
+						load_vector_property<math::fvec2>(*material, key, size, value_element.value());
 					else if (size == 3)
-						load_vector_property<float3>(*material, key, size, value_element.value());
+						load_vector_property<math::fvec3>(*material, key, size, value_element.value());
 					else if (size == 4)
-						load_vector_property<float4>(*material, key, size, value_element.value());
+						load_vector_property<math::fvec4>(*material, key, size, value_element.value());
 				}
 				else if (type.find("uint") != std::string::npos)
 				{
 					if (size == 2)
-						load_vector_property<uint2>(*material, key, size, value_element.value());
+						load_vector_property<math::uvec2>(*material, key, size, value_element.value());
 					else if (size == 3)
-						load_vector_property<uint3>(*material, key, size, value_element.value());
+						load_vector_property<math::uvec3>(*material, key, size, value_element.value());
 					else if (size == 4)
-						load_vector_property<uint4>(*material, key, size, value_element.value());
+						load_vector_property<math::uvec4>(*material, key, size, value_element.value());
 				}
 				else if (type.find("int") != std::string::npos)
 				{
 					if (size == 2)
-						load_vector_property<int2>(*material, key, size, value_element.value());
+						load_vector_property<math::ivec2>(*material, key, size, value_element.value());
 					else if (size == 3)
-						load_vector_property<int3>(*material, key, size, value_element.value());
+						load_vector_property<math::ivec3>(*material, key, size, value_element.value());
 					else if (size == 4)
-						load_vector_property<int4>(*material, key, size, value_element.value());
+						load_vector_property<math::ivec4>(*material, key, size, value_element.value());
 				}
 				else if (type.find("bool") != std::string::npos)
 				{
 					if (size == 2)
-						load_vector_property<bool2>(*material, key, size, value_element.value());
+						load_vector_property<math::bvec2>(*material, key, size, value_element.value());
 					else if (size == 3)
-						load_vector_property<bool3>(*material, key, size, value_element.value());
+						load_vector_property<math::bvec3>(*material, key, size, value_element.value());
 					else if (size == 4)
-						load_vector_property<bool4>(*material, key, size, value_element.value());
+						load_vector_property<math::bvec4>(*material, key, size, value_element.value());
 				}
 			}
 			// If variable type is a scalar

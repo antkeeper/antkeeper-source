@@ -27,6 +27,9 @@
 
 namespace math {
 
+/// Quaternion types.
+namespace quaternion_types {
+
 /**
  * Quaternion composed of a real scalar part and imaginary vector part.
  *
@@ -39,10 +42,10 @@ struct quaternion
 	using scalar_type = T;
 	
 	/// Vector type.
-	using vector_type = vector<T, 3>;
+	using vector_type = vec3<T>;
 	
 	/// Rotation matrix type.
-	using matrix_type = matrix<T, 3, 3>;
+	using matrix_type = mat3<T>;
 	
 	/// Quaternion real part.
 	scalar_type r;
@@ -143,7 +146,7 @@ struct quaternion
 	template <class U>
 	[[nodiscard]] inline constexpr explicit operator quaternion<U>() const noexcept
 	{
-		return {static_cast<U>(r), vector<U, 3>(i)};
+		return {static_cast<U>(r), vec3<U>(i)};
 	}
 	
 	/**
@@ -183,7 +186,7 @@ struct quaternion
 	 *
 	 * @return Vector containing the real and imaginary parts of the quaternion.
 	 */
-	[[nodiscard]] inline constexpr explicit operator vector<T, 4>() const noexcept
+	[[nodiscard]] inline constexpr explicit operator vec4<T>() const noexcept
 	{
 		return {r, i.x(), i.y(), i.z()};
 	}
@@ -200,6 +203,32 @@ struct quaternion
 		return {T{1}, vector_type::zero()};
 	}
 };
+
+/// @copydoc math::quaternion_types::quaternion
+template <class T>
+using quat = quaternion<T>;
+
+/**
+ * Quaternion with single-precision floating-point scalars.
+ *
+ * @tparam T Scalar type.
+ */
+using fquat = quat<float>;
+
+/**
+ * Quaternion with double-precision floating-point scalars.
+ *
+ * @tparam T Scalar type.
+ */
+using dquat = quat<double>;
+
+} // namespace quaternion_types
+
+// Bring quaternion types into math namespace
+using namespace quaternion_types;
+
+// Bring quaternion types into math::types namespace
+namespace types { using namespace math::quaternion_types; }
 
 /**
  * Adds two quaternions.
@@ -318,7 +347,7 @@ template <class T>
  * @return Unit rotation quaternion.
  */
 template <class T>
-[[nodiscard]] quaternion<T> look_rotation(const vector<T, 3>& forward, vector<T, 3> up);
+[[nodiscard]] quaternion<T> look_rotation(const vec3<T>& forward, vec3<T> up);
 
 /**
  * Multiplies two quaternions.
@@ -355,7 +384,7 @@ template <class T>
  * @see https://fgiesen.wordpress.com/2019/02/09/rotating-a-single-vector-using-a-quaternion/
  */
 template <class T>
-[[nodiscard]] constexpr vector<T, 3> mul(const quaternion<T>& q, const vector<T, 3>& v) noexcept;
+[[nodiscard]] constexpr vec3<T> mul(const quaternion<T>& q, const vec3<T>& v) noexcept;
 
 /**
  * Rotates a vector by the inverse of a unit quaternion.
@@ -368,7 +397,7 @@ template <class T>
  * @warning @p q must be a unit quaternion.
  */
 template <class T>
-[[nodiscard]] constexpr vector<T, 3> mul(const vector<T, 3>& v, const quaternion<T>& q) noexcept;
+[[nodiscard]] constexpr vec3<T> mul(const vec3<T>& v, const quaternion<T>& q) noexcept;
 
 /**
  * Negates a quaternion.
@@ -411,7 +440,7 @@ template <class T>
  * @return Quaternion representing the rotation.
  */
 template <class T>
-[[nodiscard]] quaternion<T> angle_axis(T angle, const vector<T, 3>& axis);
+[[nodiscard]] quaternion<T> angle_axis(T angle, const vec3<T>& axis);
 
 /**
  * Calculates a quaternion representing the minimum rotation from one direction to another directions.
@@ -425,7 +454,7 @@ template <class T>
  * @warning @p from and @p to must be unit vectors.
  */
 template <class T>
-[[nodiscard]] quaternion<T> rotation(const vector<T, 3>& from, const vector<T, 3>& to, T tolerance = T{1e-6});
+[[nodiscard]] quaternion<T> rotation(const vec3<T>& from, const vec3<T>& to, T tolerance = T{1e-6});
 
 /**
  * Performs spherical linear interpolation between two quaternions.
@@ -491,7 +520,7 @@ template <class T>
  * @see https://www.euclideanspace.com/maths/geometry/rotations/for/decomposition/
  */
 template <class T>
-void swing_twist(const quaternion<T>& q, const vector<T, 3>& twist_axis, quaternion<T>& swing, quaternion<T>& twist, T tolerance = T{1e-6});
+void swing_twist(const quaternion<T>& q, const vec3<T>& twist_axis, quaternion<T>& swing, quaternion<T>& twist, T tolerance = T{1e-6});
 
 /**
  * Converts a 3x3 rotation matrix to a quaternion.
@@ -501,7 +530,7 @@ void swing_twist(const quaternion<T>& q, const vector<T, 3>& twist_axis, quatern
  * @return Unit quaternion representing the rotation described by @p m.
  */
 template <class T>
-[[nodiscard]] quaternion<T> quaternion_cast(const matrix<T, 3, 3>& m);
+[[nodiscard]] quaternion<T> quaternion_cast(const mat3<T>& m);
 
 template <class T>
 inline constexpr quaternion<T> add(const quaternion<T>& a, const quaternion<T>& b) noexcept
@@ -568,12 +597,12 @@ inline constexpr quaternion<T> lerp(const quaternion<T>& a, const quaternion<T>&
 }
 
 template <class T>
-quaternion<T> look_rotation(const vector<T, 3>& forward, vector<T, 3> up)
+quaternion<T> look_rotation(const vec3<T>& forward, vec3<T> up)
 {
-	const vector<T, 3> right = normalize(cross(forward, up));
+	const vec3<T> right = normalize(cross(forward, up));
 	up = cross(right, forward);
 	
-	const matrix<T, 3, 3> m =
+	const mat3<T> m =
 	{
 		right,
 		up,
@@ -603,14 +632,14 @@ inline constexpr quaternion<T> mul(const quaternion<T>& a, T b) noexcept
 }
 
 template <class T>
-constexpr vector<T, 3> mul(const quaternion<T>& q, const vector<T, 3>& v) noexcept
+constexpr vec3<T> mul(const quaternion<T>& q, const vec3<T>& v) noexcept
 {
 	const auto t = cross(q.i, v) * T{2};
 	return v + q.r * t + cross(q.i, t);
 }
 
 template <class T>
-inline constexpr vector<T, 3> mul(const vector<T, 3>& v, const quaternion<T>& q) noexcept
+inline constexpr vec3<T> mul(const vec3<T>& v, const quaternion<T>& q) noexcept
 {
 	return mul(conjugate(q), v);
 }
@@ -634,13 +663,13 @@ inline quaternion<T> normalize(const quaternion<T>& q)
 }
 
 template <class T>
-quaternion<T> angle_axis(T angle, const vector<T, 3>& axis)
+quaternion<T> angle_axis(T angle, const vec3<T>& axis)
 {
 	return {std::cos(angle * T{0.5}), axis * std::sin(angle * T{0.5})};
 }
 
 template <class T>
-quaternion<T> rotation(const vector<T, 3>& from, const vector<T, 3>& to, T tolerance)
+quaternion<T> rotation(const vec3<T>& from, const vec3<T>& to, T tolerance)
 {
 	const auto cos_theta = dot(from, to);
 	
@@ -709,7 +738,7 @@ inline constexpr quaternion<T> sub(T a, const quaternion<T>& b) noexcept
 }
 
 template <class T>
-void swing_twist(const quaternion<T>& q, const vector<T, 3>& twist_axis, quaternion<T>& swing, quaternion<T>& twist, T tolerance)
+void swing_twist(const quaternion<T>& q, const vec3<T>& twist_axis, quaternion<T>& swing, quaternion<T>& twist, T tolerance)
 {
 	if (sqr_length(q.i) <= tolerance)
 	{
@@ -740,7 +769,7 @@ void swing_twist(const quaternion<T>& q, const vector<T, 3>& twist_axis, quatern
 }
 
 template <class T>
-quaternion<T> quaternion_cast(const matrix<T, 3, 3>& m)
+quaternion<T> quaternion_cast(const mat3<T>& m)
 {
 	const T t = trace(m);
 	
@@ -859,16 +888,16 @@ inline constexpr quaternion<T> operator*(T a, const quaternion<T>& b) noexcept
 }
 /// @}
 
-/// @copydoc mul(const quaternion<T>&, const vector<T, 3>&)
+/// @copydoc mul(const quaternion<T>&, const vec3<T>&)
 template <class T>
-inline constexpr vector<T, 3> operator*(const quaternion<T>& q, const vector<T, 3>& v) noexcept
+inline constexpr vec3<T> operator*(const quaternion<T>& q, const vec3<T>& v) noexcept
 {
 	return mul(q, v);
 }
 
-/// @copydoc mul(const vector<T, 3>&, const quaternion<T>&)
+/// @copydoc mul(const vec3<T>&, const quaternion<T>&)
 template <class T>
-inline constexpr vector<T, 3> operator*(const vector<T, 3>& v, const quaternion<T>& q) noexcept
+inline constexpr vec3<T> operator*(const vec3<T>& v, const quaternion<T>& q) noexcept
 {
 	return mul(v, q);
 }
@@ -989,6 +1018,7 @@ inline constexpr quaternion<T>& operator/=(quaternion<T>& a, T b) noexcept
 
 } // namespace math
 
+// Bring quaternion operators into global namespace
 using namespace math::operators;
 
 #endif // ANTKEEPER_MATH_QUATERNION_HPP

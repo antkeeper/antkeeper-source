@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_EASE_TO_CONSTRAINT_HPP
 
 #include <engine/entity/id.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 
 /**
@@ -33,7 +33,7 @@ struct ease_to_constraint
 	entity::id target;
 	
 	/// Start position.
-	float3 start;
+	math::fvec3 start;
 	
 	/// Total duration of the ease.
 	float duration;
@@ -42,7 +42,7 @@ struct ease_to_constraint
 	float t;
 	
 	/// Pointer to the interpolation function.
-	float3 (*function)(const float3&, const float3&, float);
+	math::fvec3 (*function)(const math::fvec3&, const math::fvec3&, float);
 };
 
 

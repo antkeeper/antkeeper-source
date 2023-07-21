@@ -22,7 +22,6 @@
 
 #include <engine/math/vector.hpp>
 #include <algorithm>
-#include <cmath>
 
 namespace geom {
 namespace primitives {
@@ -156,18 +155,19 @@ struct hyperrectangle
 	}
 	
 	/**
-	 * Returns `false` if any coordinates of `min` are greater than `max`.
+	 * Returns `true` if any coordinates of `min` are greater than `max`, `false` otherwise.
 	 */
-	[[nodiscard]] constexpr bool valid() const noexcept
+	[[nodiscard]] constexpr bool degenerate() const noexcept
 	{
 		for (std::size_t i = 0; i < N; ++i)
 		{
 			if (min[i] > max[i])
 			{
-				return false;
+				return true;
 			}
 		}
-		return true;
+		
+		return false;
 	}
 	
 	/// Calculates the volume of the hyperrectangle.

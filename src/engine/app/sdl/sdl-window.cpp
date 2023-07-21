@@ -28,8 +28,8 @@ namespace app {
 sdl_window::sdl_window
 (
 	const std::string& title,
-	const math::vector<int, 2>& windowed_position,
-	const math::vector<int, 2>& windowed_size,
+	const math::ivec2& windowed_position,
+	const math::ivec2& windowed_size,
 	bool maximized,
 	bool fullscreen,
 	bool v_sync
@@ -200,23 +200,23 @@ void sdl_window::set_title(const std::string& title)
 	this->m_title = title;
 }
 
-void sdl_window::set_position(const math::vector<int, 2>& position)
+void sdl_window::set_position(const math::ivec2& position)
 {
 	SDL_SetWindowPosition(m_internal_window, position.x(), position.y());
 }
 
-void sdl_window::set_size(const math::vector<int, 2>& size)
+void sdl_window::set_size(const math::ivec2& size)
 {
 	SDL_SetWindowSize(m_internal_window, size.x(), size.y());
 }
 
-void sdl_window::set_minimum_size(const math::vector<int, 2>& size)
+void sdl_window::set_minimum_size(const math::ivec2& size)
 {
 	SDL_SetWindowMinimumSize(m_internal_window, size.x(), size.y());
 	this->m_minimum_size = size;
 }
 
-void sdl_window::set_maximum_size(const math::vector<int, 2>& size)
+void sdl_window::set_maximum_size(const math::ivec2& size)
 {
 	SDL_SetWindowMaximumSize(m_internal_window, size.x(), size.y());
 	this->m_maximum_size = size;

@@ -36,8 +36,8 @@ namespace scene {
 class object_base
 {
 public:
-	using vector_type = math::vector<float, 3>;
-	using quaternion_type = math::quaternion<float>;
+	using vector_type = math::fvec3;
+	using quaternion_type = math::fquat;
 	using transform_type = math::transform<float>;
 	using aabb_type = geom::box<float>;
 	

@@ -106,7 +106,7 @@ private:
 	std::vector<std::unique_ptr<gl::framebuffer>> framebuffers;
 	std::vector<std::unique_ptr<gl::texture_2d>> textures;
 	float filter_radius;
-	float2 corrected_filter_radius;
+	math::fvec2 corrected_filter_radius;
 	
 	std::vector<std::function<void()>> command_buffer;
 };

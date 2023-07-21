@@ -39,11 +39,11 @@
  * @see https://math.stackexchange.com/questions/87230/picking-random-points-in-the-volume-of-sphere-with-uniform-probability/87238#87238
  */
 template <class T, class URBG>
-static math::vector3<T> sphere_random(URBG& urbg)
+static math::vec3<T> sphere_random(URBG& urbg)
 {
 	std::uniform_real_distribution<T> distribution(T{-1}, T{1});
 	
-	math::vector3<T> position;
+	math::vec3<T> position;
 	for (std::size_t i = 0; i < 3; ++i)
 		position[i] = distribution(urbg);
 	
@@ -53,14 +53,14 @@ static math::vector3<T> sphere_random(URBG& urbg)
 entity::id create_ant_swarm(::game& ctx)
 {
 	// Determine swarm properties
-	const float3 swarm_center = {0, 100, 0};
+	const math::fvec3 swarm_center = {0, 100, 0};
 	const float swarm_radius = 25.0f;
 	const std::size_t male_count = 50;
 	const std::size_t queen_count = 50;
 	const std::size_t alate_count = male_count + queen_count;
 	
-	const float3 male_scale = {0.5, 0.5, 0.5};
-	const float3 queen_scale = {1, 1, 1};
+	const math::fvec3 male_scale = {0.5, 0.5, 0.5};
+	const math::fvec3 queen_scale = {1, 1, 1};
 	
 	// Init transform component
 	::transform_component transform;
@@ -69,7 +69,7 @@ entity::id create_ant_swarm(::game& ctx)
 	
 	// Init picking component
 	::picking_component picking;
-	picking.sphere = {float3{0, 0, 0}, 0.5f * 2.0f};
+	picking.sphere = {math::fvec3{0, 0, 0}, 0.5f * 2.0f};
 	std::uint32_t male_picking_flags = 0b01;
 	std::uint32_t queen_picking_flags = 0b10;
 	
@@ -93,7 +93,7 @@ entity::id create_ant_swarm(::game& ctx)
 	steering.agent.max_force = 4.0f;
 	steering.agent.max_speed = 5.0f;
 	steering.agent.max_speed_squared = steering.agent.max_speed * steering.agent.max_speed;
-	steering.agent.orientation = math::quaternion<float>::identity();
+	steering.agent.orientation = math::fquat::identity();
 	steering.agent.forward = steering.agent.orientation * config::global_forward;
 	steering.agent.up = steering.agent.orientation * config::global_up;
 	steering.wander_weight = 1.0f;

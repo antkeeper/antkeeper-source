@@ -52,7 +52,7 @@ public:
 	virtual bool get_metrics(float height, font_metrics& metrics) const;
 	virtual bool get_metrics(float height, char32_t code, glyph_metrics& metrics) const;
 	virtual bool get_bitmap(float height, char32_t code, image& bitmap) const;
-	virtual bool get_kerning(float height, char32_t first, char32_t second, float2& offset) const;
+	virtual bool get_kerning(float height, char32_t first, char32_t second, math::fvec2& offset) const;
 	
 private:
 	void set_face_pixel_size(float height) const;

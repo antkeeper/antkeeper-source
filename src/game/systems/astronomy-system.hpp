@@ -23,7 +23,7 @@
 #include "game/systems/updatable-system.hpp"
 #include <engine/entity/id.hpp>
 #include <engine/scene/directional-light.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/math/se3.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include "game/components/observer-component.hpp"
@@ -81,7 +81,7 @@ public:
 	
 	void set_sun_light(scene::directional_light* light);
 	void set_moon_light(scene::directional_light* light);
-	void set_starlight_illuminance(const double3& illuminance);
+	void set_starlight_illuminance(const math::dvec3& illuminance);
 	void set_sky_pass(::render::sky_pass* pass);
 	
 	[[nodiscard]] inline double get_time() const noexcept
@@ -125,7 +125,7 @@ private:
 	 *
 	 * @return Spectral transmittance factor.
 	 */
-	double3 integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const;
+	math::dvec3 integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const;
 	
 	/// Time since epoch, in days.
 	double time_days;
@@ -157,7 +157,7 @@ private:
 	scene::directional_light* sun_light;
 	scene::directional_light* moon_light;
 	::render::sky_pass* sky_pass;
-	double3 starlight_illuminance;
+	math::dvec3 starlight_illuminance;
 };
 
 

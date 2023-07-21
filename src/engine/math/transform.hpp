@@ -197,16 +197,16 @@ template <class T>
 	return mul(x, y);
 }
 
-/// @copydoc math::mul(const math::transform<T>&, const math::vector<T, 3>&)
+/// @copydoc math::mul(const math::transform<T>&, const math::vec3<T>&)
 template <class T>
-[[nodiscard]] inline constexpr math::vector<T, 3> operator*(const math::transform<T>& t, const math::vector<T, 3>& v) noexcept
+[[nodiscard]] inline constexpr math::vec3<T> operator*(const math::transform<T>& t, const math::vec3<T>& v) noexcept
 {
 	return mul(t, v);
 }
 
-/// @copydoc math::mul(const math::vector<T, 3>&, const math::transform<T>&)
+/// @copydoc math::mul(const math::vec3<T>&, const math::transform<T>&)
 template <class T>
-[[nodiscard]] inline constexpr math::vector<T, 3> operator*(const math::vector<T, 3>& v, const math::transform<T>& t) noexcept
+[[nodiscard]] inline constexpr math::vec3<T> operator*(const math::vec3<T>& v, const math::transform<T>& t) noexcept
 {
 	return mul(v, t);
 }

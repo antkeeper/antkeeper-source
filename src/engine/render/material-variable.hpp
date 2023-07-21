@@ -20,7 +20,8 @@
 #ifndef ANTKEEPER_RENDER_MATERIAL_VARIABLE_HPP
 #define ANTKEEPER_RENDER_MATERIAL_VARIABLE_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/math/matrix.hpp>
 #include <engine/gl/texture-1d.hpp>
 #include <engine/gl/texture-2d.hpp>
 #include <engine/gl/texture-3d.hpp>
@@ -162,208 +163,208 @@ private:
 };
 
 /// Boolean material variable.
-using material_bool = material_variable<bool>;
+using matvar_bool = material_variable<bool>;
 
 /// 2-dimensional boolean vector material variable.
-using material_bool2 = material_variable<bool2>;
+using matvar_bvec2 = material_variable<math::bvec2>;
 
 /// 3-dimensional boolean vector material variable.
-using material_bool3 = material_variable<bool3>;
+using matvar_bvec3 = material_variable<math::bvec3>;
 
 /// 4-dimensional boolean vector material variable.
-using material_bool4 = material_variable<bool4>;
+using matvar_bvec4 = material_variable<math::bvec4>;
 
 /// Integer material variable.
-using material_int = material_variable<int>;
+using matvar_int = material_variable<int>;
 
 /// 2-dimensional integer vector material variable.
-using material_int2 = material_variable<int2>;
+using matvar_ivec2 = material_variable<math::ivec2>;
 
 /// 3-dimensional integer vector material variable.
-using material_int3 = material_variable<int3>;
+using matvar_ivec3 = material_variable<math::ivec3>;
 
 /// 4-dimensional integer vector material variable.
-using material_int4 = material_variable<int4>;
+using matvar_ivec4 = material_variable<math::ivec4>;
 
 /// Unsigned integer material variable.
-using material_uint = material_variable<unsigned int>;
+using matvar_uint = material_variable<unsigned int>;
 
 /// 2-dimensional unsigned integer vector material variable.
-using material_uint2 = material_variable<uint2>;
+using matvar_uvec2 = material_variable<math::uvec2>;
 
 /// 3-dimensional unsigned integer vector material variable.
-using material_uint3 = material_variable<uint3>;
+using matvar_uvec3 = material_variable<math::uvec3>;
 
 /// 4-dimensional unsigned integer vector material variable.
-using material_uint4 = material_variable<uint4>;
+using matvar_uvec4 = material_variable<math::uvec4>;
 
 /// Floating-point material variable.
-using material_float = material_variable<float>;
+using matvar_float = material_variable<float>;
 
 /// 2-dimensional floating-point vector material variable.
-using material_float2 = material_variable<float2>;
+using matvar_fvec2 = material_variable<math::fvec2>;
 
 /// 3-dimensional floating-point vector material variable.
-using material_float3 = material_variable<float3>;
+using matvar_fvec3 = material_variable<math::fvec3>;
 
 /// 4-dimensional floating-point vector material variable.
-using material_float4 = material_variable<float4>;
+using matvar_fvec4 = material_variable<math::fvec4>;
 
 /// 2x2 floating-point matrix material variable.
-using material_float2x2 = material_variable<float2x2>;
+using matvar_fmat2 = material_variable<math::fmat2>;
 
 /// 3x3 floating-point matrix material variable.
-using material_float3x3 = material_variable<float3x3>;
+using matvar_fmat3 = material_variable<math::fmat3>;
 
 /// 4x4 floating-point matrix material variable.
-using material_float4x4 = material_variable<float4x4>;
+using matvar_fmat4 = material_variable<math::fmat4>;
 
 /// 1-dimensional texture material variable.
-using material_texture_1d = material_variable<std::shared_ptr<gl::texture_1d>>;
+using matvar_texture_1d = material_variable<std::shared_ptr<gl::texture_1d>>;
 
 /// 2-dimensional texture material variable.
-using material_texture_2d = material_variable<std::shared_ptr<gl::texture_2d>>;
+using matvar_texture_2d = material_variable<std::shared_ptr<gl::texture_2d>>;
 
 /// 3-dimensional texture material variable.
-using material_texture_3d = material_variable<std::shared_ptr<gl::texture_3d>>;
+using matvar_texture_3d = material_variable<std::shared_ptr<gl::texture_3d>>;
 
 /// Cube texture material variable.
-using material_texture_cube = material_variable<std::shared_ptr<gl::texture_cube>>;
+using matvar_texture_cube = material_variable<std::shared_ptr<gl::texture_cube>>;
 
 template <>
-inline constexpr material_variable_type material_bool::type() const noexcept
+inline constexpr material_variable_type matvar_bool::type() const noexcept
 {
-	return material_variable_type::bool1;
+	return material_variable_type::bvec1;
 }
 
 template <>
-inline constexpr material_variable_type material_bool2::type() const noexcept
+inline constexpr material_variable_type matvar_bvec2::type() const noexcept
 {
-	return material_variable_type::bool2;
+	return material_variable_type::bvec2;
 }
 
 template <>
-inline constexpr material_variable_type material_bool3::type() const noexcept
+inline constexpr material_variable_type matvar_bvec3::type() const noexcept
 {
-	return material_variable_type::bool3;
+	return material_variable_type::bvec3;
 }
 
 template <>
-inline constexpr material_variable_type material_bool4::type() const noexcept
+inline constexpr material_variable_type matvar_bvec4::type() const noexcept
 {
-	return material_variable_type::bool4;
+	return material_variable_type::bvec4;
 }
 
 template <>
-inline constexpr material_variable_type material_int::type() const noexcept
+inline constexpr material_variable_type matvar_int::type() const noexcept
 {
-	return material_variable_type::int1;
+	return material_variable_type::ivec1;
 }
 
 template <>
-inline constexpr material_variable_type material_int2::type() const noexcept
+inline constexpr material_variable_type matvar_ivec2::type() const noexcept
 {
-	return material_variable_type::int2;
+	return material_variable_type::ivec2;
 }
 
 template <>
-inline constexpr material_variable_type material_int3::type() const noexcept
+inline constexpr material_variable_type matvar_ivec3::type() const noexcept
 {
-	return material_variable_type::int3;
+	return material_variable_type::ivec3;
 }
 
 template <>
-inline constexpr material_variable_type material_int4::type() const noexcept
+inline constexpr material_variable_type matvar_ivec4::type() const noexcept
 {
-	return material_variable_type::int4;
+	return material_variable_type::ivec4;
 }
 
 template <>
-inline constexpr material_variable_type material_uint::type() const noexcept
+inline constexpr material_variable_type matvar_uint::type() const noexcept
 {
-	return material_variable_type::uint1;
+	return material_variable_type::uvec1;
 }
 
 template <>
-inline constexpr material_variable_type material_uint2::type() const noexcept
+inline constexpr material_variable_type matvar_uvec2::type() const noexcept
 {
-	return material_variable_type::uint2;
+	return material_variable_type::uvec2;
 }
 
 template <>
-inline constexpr material_variable_type material_uint3::type() const noexcept
+inline constexpr material_variable_type matvar_uvec3::type() const noexcept
 {
-	return material_variable_type::uint3;
+	return material_variable_type::uvec3;
 }
 
 template <>
-inline constexpr material_variable_type material_uint4::type() const noexcept
+inline constexpr material_variable_type matvar_uvec4::type() const noexcept
 {
-	return material_variable_type::uint4;
+	return material_variable_type::uvec4;
 }
 
 template <>
-inline constexpr material_variable_type material_float::type() const noexcept
+inline constexpr material_variable_type matvar_float::type() const noexcept
 {
-	return material_variable_type::float1;
+	return material_variable_type::fvec1;
 }
 
 template <>
-inline constexpr material_variable_type material_float2::type() const noexcept
+inline constexpr material_variable_type matvar_fvec2::type() const noexcept
 {
-	return material_variable_type::float2;
+	return material_variable_type::fvec2;
 }
 
 template <>
-inline constexpr material_variable_type material_float3::type() const noexcept
+inline constexpr material_variable_type matvar_fvec3::type() const noexcept
 {
-	return material_variable_type::float3;
+	return material_variable_type::fvec3;
 }
 
 template <>
-inline constexpr material_variable_type material_float4::type() const noexcept
+inline constexpr material_variable_type matvar_fvec4::type() const noexcept
 {
-	return material_variable_type::float4;
+	return material_variable_type::fvec4;
 }
 
 template <>
-inline constexpr material_variable_type material_float2x2::type() const noexcept
+inline constexpr material_variable_type matvar_fmat2::type() const noexcept
 {
-	return material_variable_type::float2x2;
+	return material_variable_type::fmat2;
 }
 
 template <>
-inline constexpr material_variable_type material_float3x3::type() const noexcept
+inline constexpr material_variable_type matvar_fmat3::type() const noexcept
 {
-	return material_variable_type::float3x3;
+	return material_variable_type::fmat3;
 }
 
 template <>
-inline constexpr material_variable_type material_float4x4::type() const noexcept
+inline constexpr material_variable_type matvar_fmat4::type() const noexcept
 {
-	return material_variable_type::float4x4;
+	return material_variable_type::fmat4;
 }
 
 template <>
-inline constexpr material_variable_type material_texture_1d::type() const noexcept
+inline constexpr material_variable_type matvar_texture_1d::type() const noexcept
 {
 	return material_variable_type::texture_1d;
 }
 
 template <>
-inline constexpr material_variable_type material_texture_2d::type() const noexcept
+inline constexpr material_variable_type matvar_texture_2d::type() const noexcept
 {
 	return material_variable_type::texture_2d;
 }
 
 template <>
-inline constexpr material_variable_type material_texture_3d::type() const noexcept
+inline constexpr material_variable_type matvar_texture_3d::type() const noexcept
 {
 	return material_variable_type::texture_3d;
 }
 
 template <>
-inline constexpr material_variable_type material_texture_cube::type() const noexcept
+inline constexpr material_variable_type matvar_texture_cube::type() const noexcept
 {
 	return material_variable_type::texture_cube;
 }

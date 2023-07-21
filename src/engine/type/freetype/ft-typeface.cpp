@@ -121,7 +121,7 @@ bool ft_typeface::get_bitmap(float height, char32_t code, image& bitmap) const
 	return true;
 }
 
-bool ft_typeface::get_kerning(float height, char32_t first, char32_t second, float2& offset) const
+bool ft_typeface::get_kerning(float height, char32_t first, char32_t second, math::fvec2& offset) const
 {
 	// Check if typeface has kerning information
 	if (!has_kerning())
@@ -143,7 +143,7 @@ bool ft_typeface::get_kerning(float height, char32_t first, char32_t second, flo
 		throw std::runtime_error("FreeType failed to get kerning vector (error code " + std::to_string(error) + ")");
 	}
 	
-	offset = float2{static_cast<float>(kerning.x), static_cast<float>(kerning.y)} / 64.0f;
+	offset = math::fvec2{static_cast<float>(kerning.x), static_cast<float>(kerning.y)} / 64.0f;
 	
 	return true;
 }

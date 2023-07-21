@@ -35,10 +35,10 @@ namespace ucs {
  * @return CIE xyY color.
  */
 template <class T>
-[[nodiscard]] constexpr math::vector3<T> to_xyy(const math::vector2<T>& uv, T y = T{1}) noexcept
+[[nodiscard]] constexpr math::vec3<T> to_xyy(const math::vec2<T>& uv, T y = T{1}) noexcept
 {
 	const T d = T{1} / (T{2} * uv[0] - T{8} * uv[1] + T{4});
-	return math::vector3<T>{(T{3} * uv[0]) * d, (T{2} * uv[1]) * d, y};
+	return math::vec3<T>{(T{3} * uv[0]) * d, (T{2} * uv[1]) * d, y};
 }
 
 } // namespace ucs

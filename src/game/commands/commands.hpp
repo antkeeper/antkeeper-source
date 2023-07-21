@@ -22,18 +22,18 @@
 
 #include <engine/entity/id.hpp>
 #include <engine/entity/registry.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/math/transform.hpp>
 
 
 /// Commands which operate on entity::id components
 namespace command {
 
-void translate(entity::registry& registry, entity::id eid, const float3& translation);
-void rotate(entity::registry& registry, entity::id eid, float angle, const float3& axis);
-void move_to(entity::registry& registry, entity::id eid, const float3& position);
-void warp_to(entity::registry& registry, entity::id eid, const float3& position);
-void set_scale(entity::registry& registry, entity::id eid, const float3& scale);
+void translate(entity::registry& registry, entity::id eid, const math::fvec3& translation);
+void rotate(entity::registry& registry, entity::id eid, float angle, const math::fvec3& axis);
+void move_to(entity::registry& registry, entity::id eid, const math::fvec3& position);
+void warp_to(entity::registry& registry, entity::id eid, const math::fvec3& position);
+void set_scale(entity::registry& registry, entity::id eid, const math::fvec3& scale);
 void set_transform(entity::registry& registry, entity::id eid, const math::transform<float>& transform);
 void place(entity::registry& registry, entity::id eid, entity::id celestial_body_id, double altitude, double latitude, double longitude);
 void assign_render_layers(entity::registry& registry, entity::id eid, unsigned int layers);

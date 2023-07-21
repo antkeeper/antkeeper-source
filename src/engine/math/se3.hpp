@@ -39,13 +39,13 @@ public:
 	typedef T scalar_type;
 	
 	/// Vector type.
-	typedef math::vector3<T> vector_type;
+	typedef math::vec3<T> vector_type;
 	
 	/// Quaternion type.
 	typedef math::quaternion<T> quaternion_type;
 	
 	/// Transformation matrix type.
-	typedef math::matrix<T, 4, 4> matrix_type;
+	typedef math::mat4<T> matrix_type;
 	
 	/// Vector representing the translation component of this SE(3) transformation.
 	vector_type t;
@@ -93,7 +93,7 @@ se3<T> se3<T>::inverse() const
 template <class T>
 typename se3<T>::matrix_type se3<T>::matrix() const
 {
-	matrix_type m = math::matrix<T, 4, 4>(math::matrix<T, 3, 3>(r));
+	matrix_type m = math::mat4<T>(math::mat3<T>(r));
 	
 	m[3].x() = t.x();
 	m[3].y() = t.y();

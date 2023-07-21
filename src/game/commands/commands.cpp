@@ -27,7 +27,7 @@
 
 namespace command {
 
-void translate(entity::registry& registry, entity::id eid, const float3& translation)
+void translate(entity::registry& registry, entity::id eid, const math::fvec3& translation)
 {
 	const ::transform_component* transform = registry.try_get<::transform_component>(eid);
 	if (transform)
@@ -43,7 +43,7 @@ void translate(entity::registry& registry, entity::id eid, const float3& transla
 	}
 }
 
-void rotate(entity::registry& registry, entity::id eid, float angle, const float3& axis)
+void rotate(entity::registry& registry, entity::id eid, float angle, const math::fvec3& axis)
 {
 	const ::transform_component* transform = registry.try_get<::transform_component>(eid);
 	if (transform)
@@ -59,7 +59,7 @@ void rotate(entity::registry& registry, entity::id eid, float angle, const float
 	}
 }
 
-void move_to(entity::registry& registry, entity::id eid, const float3& position)
+void move_to(entity::registry& registry, entity::id eid, const math::fvec3& position)
 {
 	const ::transform_component* transform = registry.try_get<::transform_component>(eid);
 	if (transform)
@@ -75,7 +75,7 @@ void move_to(entity::registry& registry, entity::id eid, const float3& position)
 	}
 }
 
-void warp_to(entity::registry& registry, entity::id eid, const float3& position)
+void warp_to(entity::registry& registry, entity::id eid, const math::fvec3& position)
 {
 	const ::transform_component* transform = registry.try_get<::transform_component>(eid);
 	if (transform)
@@ -91,7 +91,7 @@ void warp_to(entity::registry& registry, entity::id eid, const float3& position)
 	}
 }
 
-void set_scale(entity::registry& registry, entity::id eid, const float3& scale)
+void set_scale(entity::registry& registry, entity::id eid, const math::fvec3& scale)
 {
 	const ::transform_component* transform = registry.try_get<::transform_component>(eid);
 	if (transform)

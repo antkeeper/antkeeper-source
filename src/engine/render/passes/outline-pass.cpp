@@ -70,10 +70,10 @@ void outline_pass::render(render::context& ctx)
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
 	// Get camera matrices
-	float4x4 view = ctx.camera->get_view_tween().interpolate(ctx.alpha);
-	float4x4 view_projection = ctx.camera->get_view_projection_tween().interpolate(ctx.alpha);
+	math::fmat4 view = ctx.camera->get_view_tween().interpolate(ctx.alpha);
+	math::fmat4 view_projection = ctx.camera->get_view_projection_tween().interpolate(ctx.alpha);
 	
-	float4x4 model_view_projection;
+	math::fmat4 model_view_projection;
 	
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -153,7 +153,7 @@ void outline_pass::set_outline_width(float width)
 	outline_width = width;
 }
 
-void outline_pass::set_outline_color(const float4& color)
+void outline_pass::set_outline_color(const math::fvec4& color)
 {
 	outline_color = color;
 }

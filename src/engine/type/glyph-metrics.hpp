@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_TYPE_GLYPH_METRICS_HPP
 #define ANTKEEPER_TYPE_GLYPH_METRICS_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 namespace type {
 
@@ -36,10 +36,10 @@ struct glyph_metrics
 	float height;
 	
 	/// Offset from the pen position to the glyph's top-left edge, in horizontal layouts.
-	float2 horizontal_bearing;
+	math::fvec2 horizontal_bearing;
 	
 	/// Offset from the pen position to the glph's top-left edge, in vertical layouts.
-	float2 vertical_bearing;
+	math::fvec2 vertical_bearing;
 	
 	/// Distance to move the pen position after the glyph has been rendered, in horizontal layouts.
 	float horizontal_advance;

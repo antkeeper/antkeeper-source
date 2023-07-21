@@ -42,7 +42,7 @@ public:
 	 *
 	 * @param color Light color.
 	 */
-	inline void set_color(const math::vector<float, 3>& color) noexcept
+	inline void set_color(const math::fvec3& color) noexcept
 	{
 		m_color = color;
 		color_updated();
@@ -60,7 +60,7 @@ public:
 	}
 	
 	/// Returns the color of the light.
-	[[nodiscard]] inline const math::vector3<float>& get_color() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_color() const noexcept
 	{
 		return m_color;
 	}
@@ -72,7 +72,7 @@ public:
 	}
 	
 	/// Returns the color-modulated luminous flux of light.
-	[[nodiscard]] inline const math::vector3<float>& get_colored_luminous_flux() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_colored_luminous_flux() const noexcept
 	{
 		return m_colored_luminous_flux;
 	}
@@ -81,9 +81,9 @@ private:
 	void color_updated();
 	void luminous_flux_updated();
 	
-	math::vector3<float> m_color{1.0f, 1.0f, 1.0f};
+	math::fvec3 m_color{1.0f, 1.0f, 1.0f};
 	float m_luminous_flux{};
-	math::vector3<float> m_colored_luminous_flux{};
+	math::fvec3 m_colored_luminous_flux{};
 };
 
 } // namespace scene

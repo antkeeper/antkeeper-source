@@ -63,7 +63,7 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	if (auto var = material.get_variable("font_bitmap"))
 	{
 		// Update font texture
-		auto texture = std::static_pointer_cast<render::material_texture_2d>(var)->get();
+		auto texture = std::static_pointer_cast<render::matvar_texture_2d>(var)->get();
 		texture->resize(font_bitmap.width(), font_bitmap.height(), font_bitmap.data());
 	}
 	else
@@ -74,7 +74,7 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 		font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 		
 		// Create font bitmap variable
-		material.set_variable("font_bitmap", std::make_shared<render::material_texture_2d>(1, font_texture));
+		material.set_variable("font_bitmap", std::make_shared<render::matvar_texture_2d>(1, font_texture));
 	}
 	material.set_shader_template(shader_template);
 }

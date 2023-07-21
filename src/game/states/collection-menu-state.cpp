@@ -44,7 +44,7 @@ collection_menu_state::collection_menu_state(::game& ctx):
 	box_material = std::make_shared<render::material>();
 	box_material->set_blend_mode(render::material_blend_mode::translucent);
 	box_material->set_shader_template(ctx.resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
-	box_material->set_variable("tint", std::make_shared<render::material_float4>(1, float4{0.5f, 0.5f, 0.5f, 1}));
+	box_material->set_variable("tint", std::make_shared<render::matvar_fvec4>(1, math::fvec4{0.5f, 0.5f, 0.5f, 1}));
 	
 	// Construct box billboard
 	box_billboard.set_material(box_material);
@@ -53,7 +53,7 @@ collection_menu_state::collection_menu_state(::game& ctx):
 	selection_material = std::make_shared<render::material>();
 	selection_material->set_blend_mode(render::material_blend_mode::translucent);
 	selection_material->set_shader_template(ctx.resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
-	box_material->set_variable("tint", std::make_shared<render::material_float4>(1, float4{1, 1, 1, 1}));
+	box_material->set_variable("tint", std::make_shared<render::matvar_fvec4>(1, math::fvec4{1, 1, 1, 1}));
 	
 	// Construct selection billboard
 	selection_billboard.set_material(selection_material);
@@ -81,7 +81,7 @@ collection_menu_state::collection_menu_state(::game& ctx):
 		[&](const auto& event)
 		{
 			const auto& viewport_size = ctx.window->get_viewport_size();
-			const float2 mouse_position =
+			const math::fvec2 mouse_position =
 			{
 				static_cast<float>(event.position.x()),
 				static_cast<float>(viewport_size.y() - event.position.y() + 1)
@@ -142,7 +142,7 @@ collection_menu_state::~collection_menu_state()
 void collection_menu_state::resize_box()
 {
 	const float padding = 64.0f;
-	const auto viewport_size = float2(ctx.window->get_viewport_size());
+	const auto viewport_size = math::fvec2(ctx.window->get_viewport_size());
 	
 	box_bounds.min.x() = viewport_size.x() * 0.5f + padding;
 	box_bounds.max.x() = viewport_size.x() - padding;
@@ -152,8 +152,8 @@ void collection_menu_state::resize_box()
 	box_bounds.max.y() = viewport_size.y() - padding;
 	box_bounds.min.y() = std::max<float>(padding, box_bounds.max.y() - selection_size * row_count);
 	
-	const float2 box_size = box_bounds.size();
-	const float2 box_center = box_bounds.center();
+	const math::fvec2 box_size = box_bounds.size();
+	const math::fvec2 box_center = box_bounds.center();
 	
 	// Resize box
 	box_billboard.set_scale({box_size.x() * 0.5f, box_size.y() * 0.5f, 1.0f});

@@ -55,7 +55,7 @@ public:
 	 * @param max Maximum extent of the box, in object space.
 	 */
 	/// @{
-	inline box_collider(const math::vector<float, 3>& min, const math::vector<float, 3>& max) noexcept:
+	inline box_collider(const math::fvec3& min, const math::fvec3& max) noexcept:
 		m_box{min, max}
 	{}
 	box_collider() noexcept = default;
@@ -76,7 +76,7 @@ public:
 	 *
 	 * @param min Minimum extent of the box, in object space.
 	 */
-	inline void set_min(const math::vector<float, 3>& min) noexcept
+	inline void set_min(const math::fvec3& min) noexcept
 	{
 		m_box.min = min;
 	}
@@ -86,7 +86,7 @@ public:
 	 *
 	 * @param max Maximum extent of the box, in object space.
 	 */
-	inline void set_max(const math::vector<float, 3>& max) noexcept
+	inline void set_max(const math::fvec3& max) noexcept
 	{
 		m_box.max = max;
 	}
@@ -98,13 +98,13 @@ public:
 	}
 	
 	/// Returns the minimum extent of the box, in object space.
-	[[nodiscard]] inline const math::vector<float, 3>& get_min() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_min() const noexcept
 	{
 		return m_box.min;
 	}
 	
 	/// Returns the maximum extent of the box, in object space.
-	[[nodiscard]] inline const math::vector<float, 3>& get_max() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_max() const noexcept
 	{
 		return m_box.max;
 	}

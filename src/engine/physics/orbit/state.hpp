@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_PHYSICS_ORBIT_STATE_HPP
 #define ANTKEEPER_PHYSICS_ORBIT_STATE_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 namespace physics {
 namespace orbit {
@@ -37,7 +37,7 @@ struct state
 	typedef T scalar_type;
 	
 	/// Vector type.
-	typedef math::vector3<T> vector_type;
+	typedef math::vec3<T> vector_type;
 	
 	/// Cartesian orbital position vector (r).
 	vector_type r;

@@ -21,7 +21,7 @@
 #define ANTKEEPER_SCENE_TEXT_HPP
 
 #include <engine/scene/object.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/render/material.hpp>
@@ -81,7 +81,7 @@ public:
 	 *
 	 * @param color RGBA color.
 	 */
-	void set_color(const float4& color);
+	void set_color(const math::fvec4& color);
 	
 	/// Returns the text material.
 	[[nodiscard]] inline std::shared_ptr<render::material> get_material() const noexcept
@@ -108,7 +108,7 @@ public:
 	}
 	
 	/// Returns the text color.
-	[[nodiscard]] inline const float4& get_color() const noexcept
+	[[nodiscard]] inline const math::fvec4& get_color() const noexcept
 	{
 		return m_color;
 	}
@@ -131,7 +131,7 @@ private:
 	type::text_direction m_direction{type::text_direction::ltr};
 	std::string m_content_u8;
 	std::u32string m_content_u32;
-	float4 m_color{1.0f, 0.0f, 1.0f, 1.0f};
+	math::fvec4 m_color{1.0f, 0.0f, 1.0f, 1.0f};
 	std::size_t m_vertex_stride{0};
 	std::size_t m_vertex_count{0};
 	std::vector<std::byte> m_vertex_data;

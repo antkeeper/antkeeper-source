@@ -38,7 +38,7 @@ struct steering_component
 	
 	// Seek behavior
 	float seek_weight;
-	float3 seek_target;
+	math::fvec3 seek_target;
 	
 	// Flee behavior
 	float flee_weight;

@@ -62,13 +62,13 @@ shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* r
 	skinned_model_view_projection_var = skinned_shader_program->variable("model_view_projection");
 	
 	// Calculate bias-tile matrices
-	float4x4 bias_matrix = math::translate(math::matrix4<float>::identity(), float3{0.5f, 0.5f, 0.5f}) * math::scale(math::matrix4<float>::identity(), float3{0.5f, 0.5f, 0.5f});
-	float4x4 tile_scale = math::scale(math::matrix4<float>::identity(), float3{0.5f, 0.5f, 1.0f});
+	math::fmat4 bias_matrix = math::translate(math::fmat4::identity(), math::fvec3{0.5f, 0.5f, 0.5f}) * math::scale(math::fmat4::identity(), math::fvec3{0.5f, 0.5f, 0.5f});
+	math::fmat4 tile_scale = math::scale(math::fmat4::identity(), math::fvec3{0.5f, 0.5f, 1.0f});
 	for (int i = 0; i < 4; ++i)
 	{
 		float x = static_cast<float>(i % 2) * 0.5f;
 		float y = static_cast<float>(i / 2) * 0.5f;
-		float4x4 tile_matrix = math::translate(math::matrix4<float>::identity(), float3{x, y, 0.0f}) * tile_scale;
+		math::fmat4 tile_matrix = math::translate(math::fmat4::identity(), math::fvec3{x, y, 0.0f}) * tile_scale;
 		bias_tile_matrices[i] = tile_matrix * bias_matrix;
 	}
 }
@@ -134,7 +134,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 	
 	/// @TODO: don't const_cast
 	auto& cascade_distances = const_cast<std::vector<float>&>(light.get_shadow_cascade_distances());
-	auto& cascade_matrices = const_cast<std::vector<float4x4>&>(light.get_shadow_cascade_matrices());
+	auto& cascade_matrices = const_cast<std::vector<math::fmat4>&>(light.get_shadow_cascade_matrices());
 	
 	// Calculate cascade far clipping plane distances
 	cascade_distances[cascade_count - 1] = shadow_clip_far;
@@ -153,13 +153,13 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 	// Calculate viewports for each shadow map
 	const int shadow_map_resolution = static_cast<int>(light.get_shadow_framebuffer()->get_depth_attachment()->get_width());
 	const int cascade_resolution = shadow_map_resolution >> 1;
-	int4 shadow_map_viewports[4];
+	math::ivec4 shadow_map_viewports[4];
 	for (int i = 0; i < 4; ++i)
 	{
 		int x = i % 2;
 		int y = i / 2;
 		
-		int4& viewport = shadow_map_viewports[i];
+		math::ivec4& viewport = shadow_map_viewports[i];
 		viewport[0] = x * cascade_resolution;
 		viewport[1] = y * cascade_resolution;
 		viewport[2] = cascade_resolution;
@@ -167,7 +167,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 	}
 	
 	// Reverse half z clip-space coordinates of a cube
-	constexpr math::vector<float, 4> clip_space_cube[8] =
+	constexpr math::fvec4 clip_space_cube[8] =
 	{
 		{-1, -1, 1, 1}, // NBL
 		{ 1, -1, 1, 1}, // NBR
@@ -180,11 +180,11 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 	};
 	
 	// Calculate world-space corners of camera view frustum
-	math::vector<float, 3> view_frustum_corners[8];
+	math::fvec3 view_frustum_corners[8];
 	for (std::size_t i = 0; i < 8; ++i)
 	{
-		math::vector<float, 4> corner = camera.get_inverse_view_projection() * clip_space_cube[i];
-		view_frustum_corners[i] = math::vector<float, 3>(corner) / corner[3];
+		math::fvec4 corner = camera.get_inverse_view_projection() * clip_space_cube[i];
+		view_frustum_corners[i] = math::fvec3(corner) / corner[3];
 	}
 	
 	// Sort render operations
@@ -195,14 +195,14 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 	for (unsigned int i = 0; i < cascade_count; ++i)
 	{
 		// Set viewport for this shadow map
-		const int4& viewport = shadow_map_viewports[i];
+		const math::ivec4& viewport = shadow_map_viewports[i];
 		rasterizer->set_viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 		
 		// Calculate world-space corners and center of camera subfrustum
 		const float t_near = (i) ? cascade_distances[i - 1] / camera.get_clip_far() : 0.0f;
 		const float t_far = cascade_distances[i] / camera.get_clip_far();
-		math::vector<float, 3> subfrustum_center{0, 0, 0};
-		math::vector<float, 3> subfrustum_corners[8];
+		math::fvec3 subfrustum_center{0, 0, 0};
+		math::fvec3 subfrustum_corners[8];
 		for (std::size_t i = 0; i < 4; ++i)
 		{
 			subfrustum_corners[i] = math::lerp(view_frustum_corners[i], view_frustum_corners[i + 4], t_near);
@@ -214,22 +214,20 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 		subfrustum_center *= (1.0f / 8.0f);
 		
 		// Calculate a view-projection matrix from the light's point-of-view
-		const float3 light_up = light.get_rotation() * config::global_up;
-		float4x4 light_view = math::look_at(subfrustum_center, subfrustum_center + light.get_direction(), light_up);
-		float4x4 light_projection = math::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-		float4x4 light_view_projection = light_projection * light_view;
+		const math::fvec3 light_up = light.get_rotation() * config::global_up;
+		math::fmat4 light_view = math::look_at(subfrustum_center, subfrustum_center + light.get_direction(), light_up);
+		math::fmat4 light_projection = math::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+		math::fmat4 light_view_projection = light_projection * light_view;
 		
 		// Calculate AABB of the subfrustum corners in light clip-space
-		geom::box<float> cropping_bounds;
-		cropping_bounds.min = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
-		cropping_bounds.max = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+		geom::box<float> cropping_bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
 		for (std::size_t i = 0; i < 8; ++i)
 		{
-			math::vector<float, 4> corner4 = math::vector<float, 4>(subfrustum_corners[i]);
+			math::fvec4 corner4 = math::fvec4(subfrustum_corners[i]);
 			corner4[3] = 1.0f;
 			corner4 = light_view_projection * corner4;
 			
-			const math::vector<float, 3> corner3 = math::vector<float, 3>(corner4) / corner4[3];
+			const math::fvec3 corner3 = math::fvec3(corner4) / corner4[3];
 			
 			cropping_bounds.min = math::min(cropping_bounds.min, corner3);
 			cropping_bounds.max = math::max(cropping_bounds.max, corner3);
@@ -296,7 +294,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 			}
 			
 			// Calculate model-view-projection matrix
-			float4x4 model_view_projection = light_view_projection * operation->transform;
+			math::fmat4 model_view_projection = light_view_projection * operation->transform;
 			
 			// Upload operation-dependent parameters to shader program
 			if (active_shader_program == unskinned_shader_program.get())

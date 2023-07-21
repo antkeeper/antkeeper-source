@@ -22,7 +22,7 @@
 
 #include "game/states/game-state.hpp"
 #include <engine/entity/id.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/render/model.hpp>
 #include <engine/event/subscription.hpp>
 #include <engine/input/mouse-events.hpp>
@@ -30,6 +30,8 @@
 #include <engine/geom/primitives/plane.hpp>
 #include <engine/math/angles.hpp>
 #include <engine/scene/light-probe.hpp>
+#include <engine/geom/bvh/bvh.hpp>
+#include <engine/geom/brep/brep-mesh.hpp>
 
 class nest_view_state: public game_state
 {
@@ -45,7 +47,7 @@ private:
 	void set_third_person_camera_rotation(double yaw, double pitch);
 	
 	void zoom_third_person_camera(double zoom);
-	void translate_third_person_camera(const math::vector<double, 3>& direction, double magnitude);
+	void translate_third_person_camera(const math::dvec3& direction, double magnitude);
 	void rotate_third_person_camera(const input::mouse_moved_event& event);
 	
 	void handle_mouse_motion(const input::mouse_moved_event& event);
@@ -55,7 +57,7 @@ private:
 	void save_camera_preset(std::uint8_t index);
 	void load_or_save_camera_preset(std::uint8_t index);
 	
-	[[nodiscard]] geom::ray<float, 3> get_mouse_ray(const math::vector<std::int32_t, 2>& mouse_position) const;
+	[[nodiscard]] geom::ray<float, 3> get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const;
 	
 	void setup_controls();
 	
@@ -66,14 +68,14 @@ private:
 	bool mouse_grip{false};
 	bool mouse_zoom{false};
 	geom::plane<float> mouse_grip_plane{{0.0, 1.0, 0.0}, 0.0};
-	math::vector<float, 3> mouse_grip_point{};
+	math::fvec3 mouse_grip_point{};
 	
 	bool moving{false};
 	
 	entity::id third_person_camera_rig_eid{entt::null};
 	double third_person_camera_yaw{0.0};
 	double third_person_camera_pitch{math::radians(45.0)};
-	math::vector<double, 3> third_person_camera_focal_point{0.0, 0.0, 0.0};
+	math::dvec3 third_person_camera_focal_point{0.0, 0.0, 0.0};
 	double third_person_camera_zoom{0.25};
 	std::uint32_t third_person_camera_zoom_step_count{6};
 	
@@ -91,22 +93,27 @@ private:
 	double third_person_camera_focal_plane_width{};
 	double third_person_camera_focal_plane_height{};
 	double third_person_camera_focal_distance{};
-	math::quaternion<double> third_person_camera_yaw_rotation{math::quaternion<double>::identity()};
-	math::quaternion<double> third_person_camera_pitch_rotation{math::quaternion<double>::identity()};
-	math::quaternion<double> third_person_camera_orientation{math::quaternion<double>::identity()};
+	math::dquat third_person_camera_yaw_rotation{math::dquat::identity()};
+	math::dquat third_person_camera_pitch_rotation{math::dquat::identity()};
+	math::dquat third_person_camera_orientation{math::dquat::identity()};
 	
 	struct camera_preset
 	{
 		double yaw{};
 		double pitch{};
-		math::vector<double, 3> focal_point{};
+		math::dvec3 focal_point{};
 		double zoom{0.25};
 	};
 	
 	std::vector<std::optional<camera_preset>> camera_presets{10};
 	
-	std::shared_ptr<render::material_float3> light_rectangle_emissive;
+	std::shared_ptr<render::matvar_fvec3> light_rectangle_emissive;
 	std::shared_ptr<scene::light_probe> light_probe;
+	
+	std::shared_ptr<geom::brep_mesh> navmesh;
+	std::unique_ptr<geom::bvh> navmesh_bvh;
+	entity::id larva_eid;
+	entity::id worker_eid;
 };
 
 #endif // ANTKEEPER_NEST_VIEW_STATE_HPP

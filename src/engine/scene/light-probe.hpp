@@ -108,7 +108,7 @@ public:
 	 *
 	 * @see light_probe::update_illuminance_matrices()
 	 */
-	[[nodiscard]] inline std::span<const math::matrix4<float>, 3> get_illuminance_matrices() const noexcept
+	[[nodiscard]] inline std::span<const math::fmat4, 3> get_illuminance_matrices() const noexcept
 	{
 		return m_illuminance_matrices;
 	}
@@ -137,7 +137,7 @@ private:
 	std::vector<std::shared_ptr<gl::framebuffer>> m_luminance_framebuffers;
 	std::shared_ptr<gl::texture_1d> m_illuminance_texture;
 	std::shared_ptr<gl::framebuffer> m_illuminance_framebuffer;
-	math::matrix4<float> m_illuminance_matrices[3];
+	math::fmat4 m_illuminance_matrices[3];
 	bool m_luminance_outdated{};
 	bool m_illuminance_outdated{};
 };

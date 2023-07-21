@@ -39,11 +39,11 @@ namespace pqw {
 	 * @return PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
 	 */
 	template <class T>
-	math::vector3<T> spherical(const math::vector3<T>& v)
+	math::vec3<T> spherical(const math::vec3<T>& v)
 	{
 		const T xx_yy = v.x() * v.x() + v.y() * v.y();
 		
-		return math::vector3<T>
+		return math::vec3<T>
 		{
 			std::sqrt(xx_yy + v.z() * v.z()),
 			std::atan2(v.z(), std::sqrt(xx_yy)),
@@ -61,14 +61,14 @@ namespace pqw {
 	 * @return PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
 	 */
 	template <class T>
-	math::vector3<T> spherical(T ec, T a, T ea, T b)
+	math::vec3<T> spherical(T ec, T a, T ea, T b)
 	{
 		const T x = a * (std::cos(ea) - ec);
 		const T y = b * std::sin(ea);
 		const T d = std::sqrt(x * x + y * y);
 		const T ta = std::atan2(y, x);
 		
-		return math::vector3<T>{d, T(0), ta};
+		return math::vec3<T>{d, T(0), ta};
 	}
 	
 	/**
@@ -80,7 +80,7 @@ namespace pqw {
 	 * @return PQW spherical coordinates, in the ISO order of radial distance, inclination (radians), and true anomaly (radians).
 	 */
 	template <class T>
-	math::vector3<T> spherical(T ec, T a, T ea)
+	math::vec3<T> spherical(T ec, T a, T ea)
 	{
 		const T b = a * std::sqrt(T(1) - ec * ec);
 		return spherical<T>(ec, a, ea, b);
@@ -93,11 +93,11 @@ namespace pqw {
 	 * @return PQW Cartesian coordinates.
 	 */
 	template <class T>
-	math::vector3<T> cartesian(const math::vector3<T>& v)
+	math::vec3<T> cartesian(const math::vec3<T>& v)
 	{
 		const T x = v[0] * std::cos(v[1]);
 		
-		return math::vector3<T>
+		return math::vec3<T>
 		{
 			x * std::cos(v[2]),
 			x * std::sin(v[2]),
@@ -115,7 +115,7 @@ namespace pqw {
 	 * @return PQW Cartesian coordinates.
 	 */
 	template <class T>
-	math::vector3<T> cartesian(T ec, T a, T ea, T b)
+	math::vec3<T> cartesian(T ec, T a, T ea, T b)
 	{
 		return cartesian<T>(spherical<T>(ec, a, ea, b));
 	}
@@ -129,7 +129,7 @@ namespace pqw {
 	 * @return PQW Cartesian coordinates.
 	 */
 	template <class T>
-	math::vector3<T> cartesian(T ec, T a, T ea)
+	math::vec3<T> cartesian(T ec, T a, T ea)
 	{
 		return cartesian<T>(spherical<T>(ec, a, ea));
 	}
@@ -167,11 +167,11 @@ namespace bci {
 	 * @return BCI Cartesian coordinates.
 	 */
 	template <class T>
-	math::vector3<T> cartesian(const math::vector3<T>& v)
+	math::vec3<T> cartesian(const math::vec3<T>& v)
 	{
 		const T x = v[0] * std::cos(v[1]);
 		
-		return math::vector3<T>
+		return math::vec3<T>
 		{
 			x * std::cos(v[2]),
 			x * std::sin(v[2]),
@@ -186,11 +186,11 @@ namespace bci {
 	 * @return BCI spherical coordinates, in the ISO order of radial distance, declination (radians), and right ascension (radians).
 	 */
 	template <class T>
-	math::vector3<T> spherical(const math::vector3<T>& v)
+	math::vec3<T> spherical(const math::vec3<T>& v)
 	{
 		const T xx_yy = v.x() * v.x() + v.y() * v.y();
 		
-		return math::vector3<T>
+		return math::vec3<T>
 		{
 			std::sqrt(xx_yy + v.z() * v.z()),
 			std::atan2(v.z(), std::sqrt(xx_yy)),
@@ -255,11 +255,11 @@ namespace bcbf {
 	 * @return BCBF Cartesian coordinates.
 	 */
 	template <class T>
-	math::vector3<T> cartesian(const math::vector3<T>& v)
+	math::vec3<T> cartesian(const math::vec3<T>& v)
 	{
 		const T x = v[0] * std::cos(v[1]);
 		
-		return math::vector3<T>
+		return math::vec3<T>
 		{
 			x * std::cos(v[2]),
 			x * std::sin(v[2]),
@@ -274,11 +274,11 @@ namespace bcbf {
 	 * @return BCBF spherical coordinates, in the ISO order of radial distance, latitude (radians), and longitude (radians).
 	 */
 	template <class T>
-	math::vector3<T> spherical(const math::vector3<T>& v)
+	math::vec3<T> spherical(const math::vec3<T>& v)
 	{
 		const T xx_yy = v.x() * v.x() + v.y() * v.y();
 		
-		return math::vector3<T>
+		return math::vec3<T>
 		{
 			std::sqrt(xx_yy + v.z() * v.z()),
 			std::atan2(v.z(), std::sqrt(xx_yy)),
@@ -322,7 +322,7 @@ namespace bcbf {
 	template <typename T>
 	math::transformation::se3<T> to_enu(T distance, T latitude, T longitude)
 	{
-		const math::vector3<T> t = {T(0), T(0), -distance};
+		const math::vec3<T> t = {T(0), T(0), -distance};
 		const math::quaternion<T> r = math::normalize
 		(
 			math::quaternion<T>::rotate_x(-math::half_pi<T> + latitude) *
@@ -344,12 +344,12 @@ namespace enu {
 	 * @return ENU Cartesian coordinates.
 	 */
 	template <class T>
-	math::vector3<T> cartesian(const math::vector3<T>& v)
+	math::vec3<T> cartesian(const math::vec3<T>& v)
 	{
 		const T x = v[0] * std::cos(v[1]);
 		const T y = math::half_pi<T> - v[2];
 		
-		return math::vector3<T>
+		return math::vec3<T>
 		{
 			x * std::cos(y),
 			x * std::sin(y),
@@ -364,11 +364,11 @@ namespace enu {
 	 * @return ENU spherical coordinates, in the ISO order of radial distance, elevation (radians), and azimuth (radians).
 	 */
 	template <class T>
-	math::vector3<T> spherical(const math::vector3<T>& v)
+	math::vec3<T> spherical(const math::vec3<T>& v)
 	{
 		const T xx_yy = v.x() * v.x() + v.y() * v.y();
 		
-		return math::vector3<T>
+		return math::vec3<T>
 		{
 			std::sqrt(xx_yy + v.z() * v.z()),
 			std::atan2(v.z(), std::sqrt(xx_yy)),
@@ -387,7 +387,7 @@ namespace enu {
 	template <typename T>
 	math::transformation::se3<T> to_bcbf(T distance, T latitude, T longitude)
 	{
-		const math::vector3<T> t = {T(0), T(0), distance};
+		const math::vec3<T> t = {T(0), T(0), distance};
 		const math::quaternion<T> r = math::normalize
 		(
 			math::quaternion<T>::rotate_z(longitude + math::half_pi<T>) *

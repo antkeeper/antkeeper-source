@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <cmath>
 
-void euler_ik_constraint::solve(math::quaternion<float>& q)
+void euler_ik_constraint::solve(math::fquat& q)
 {
 	// Derive XYZ angles from quaternion
 	const auto x = std::atan2(2.0f * (q.w() * q.x() + q.y() * q.z()), 1.0f - 2.0f * (q.x() * q.x() + q.y() * q.y()));
@@ -42,7 +42,7 @@ void euler_ik_constraint::solve(math::quaternion<float>& q)
 	const auto sz = std::sin(half_constrained_z);
 	q = math::normalize
 	(
-		math::quaternion<float>
+		math::fquat
 		{
 			cx * cy * cz + sx * sy * sz,
 			sx * cy * cz - cx * sy * sz,

@@ -751,7 +751,7 @@ void game::setup_rendering()
 		
 		surface_outline_pass = std::make_unique<render::outline_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
 		surface_outline_pass->set_outline_width(0.25f);
-		surface_outline_pass->set_outline_color(float4{1.0f, 1.0f, 1.0f, 1.0f});
+		surface_outline_pass->set_outline_color(math::fvec4{1.0f, 1.0f, 1.0f, 1.0f});
 		
 		surface_compositor = std::make_unique<render::compositor>();
 		surface_compositor->add_pass(surface_shadow_map_clear_pass.get());
@@ -894,7 +894,7 @@ void game::setup_ui()
 	// Menu BG material
 	menu_bg_material = std::make_shared<render::material>();
 	menu_bg_material->set_shader_template(resource_manager->load<gl::shader_template>("ui-element-untextured.glsl"));
-	std::shared_ptr<render::material_float4> menu_bg_tint = std::make_shared<render::material_float4>(1, float4{0.0f, 0.0f, 0.0f, 0.5f});
+	std::shared_ptr<render::matvar_fvec4> menu_bg_tint = std::make_shared<render::matvar_fvec4>(1, math::fvec4{0.0f, 0.0f, 0.0f, 0.5f});
 	menu_bg_material->set_variable("tint", menu_bg_tint);
 	menu_bg_material->set_blend_mode(render::material_blend_mode::translucent);
 	
@@ -907,7 +907,7 @@ void game::setup_ui()
 	// Create fade transition
 	fade_transition = std::make_unique<screen_transition>();
 	fade_transition->get_material()->set_shader_template(resource_manager->load<gl::shader_template>("fade-transition.glsl"));
-	fade_transition_color = std::make_shared<render::material_float3>(1, float3{0, 0, 0});
+	fade_transition_color = std::make_shared<render::matvar_fvec3>(1, math::fvec3{0, 0, 0});
 	fade_transition->get_material()->set_variable("color", fade_transition_color);
 	fade_transition->get_billboard()->set_translation({0, 0, 98});
 	
@@ -923,7 +923,7 @@ void game::setup_ui()
 	{
 		auto menu_bg_frame_callback = [menu_bg_tint](int channel, const float& opacity)
 		{
-			menu_bg_tint->set(float4{0.0f, 0.0f, 0.0f, opacity});
+			menu_bg_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, opacity});
 		};
 		
 		// Menu BG fade in animation
@@ -940,7 +940,7 @@ void game::setup_ui()
 				{
 					ui_scene->add_object(*menu_bg_billboard);
 					
-					menu_bg_tint->set(float4{0.0f, 0.0f, 0.0f, 0.0f});
+					menu_bg_tint->set(math::fvec4{0.0f, 0.0f, 0.0f, 0.0f});
 					//menu_bg_billboard->set_active(true);
 				}
 			);
@@ -1033,13 +1033,10 @@ void game::setup_entities()
 void game::setup_systems()
 {
 	const auto& viewport_size = window->get_viewport_size();
-	float4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_size[0]), static_cast<float>(viewport_size[1])};
+	math::fvec4 viewport = {0.0f, 0.0f, static_cast<float>(viewport_size[0]), static_cast<float>(viewport_size[1])};
 	
 	// Setup terrain system
 	terrain_system = std::make_unique<::terrain_system>(*entity_registry);
-	terrain_system->set_patch_side_length(31.0f);
-	terrain_system->set_patch_subdivisions(31);
-	terrain_system->set_scene_collection(surface_scene.get());
 	
 	// Setup camera system
 	camera_system = std::make_unique<::camera_system>(*entity_registry);
@@ -1047,7 +1044,6 @@ void game::setup_systems()
 	
 	// Setup subterrain system
 	subterrain_system = std::make_unique<::subterrain_system>(*entity_registry, resource_manager.get());
-	subterrain_system->set_scene(underground_scene.get());
 	
 	// Setup collision system
 	collision_system = std::make_unique<::collision_system>(*entity_registry);

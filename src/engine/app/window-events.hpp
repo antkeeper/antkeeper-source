@@ -56,7 +56,7 @@ struct window_moved_event
 	window* window{nullptr};
 	
 	/// Position of the window, in display units.
-	math::vector<int, 2> position{0, 0};
+	math::ivec2 position{0, 0};
 };
 
 /**
@@ -95,7 +95,7 @@ struct window_resized_event
 	window* window{nullptr};
 	
 	/// Window size, in display units.
-	math::vector<int, 2> size{0, 0};
+	math::ivec2 size{0, 0};
 };
 
 } // namespace app

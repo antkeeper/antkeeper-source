@@ -22,7 +22,7 @@
 
 namespace scene {
 
-void spot_light::set_cutoff(const math::vector<float, 2>& cutoff)
+void spot_light::set_cutoff(const math::fvec2& cutoff)
 {
 	m_cutoff = cutoff;
 	m_cosine_cutoff = {std::cos(m_cutoff.x()), std::cos(m_cutoff.y())};
@@ -30,7 +30,7 @@ void spot_light::set_cutoff(const math::vector<float, 2>& cutoff)
 
 void spot_light::transformed()
 {
-	m_direction = get_transform().rotation * math::vector<float, 3>{0.0f, 0.0f, -1.0f};
+	m_direction = get_transform().rotation * math::fvec3{0.0f, 0.0f, -1.0f};
 }
 
 } // namespace scene

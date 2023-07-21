@@ -22,7 +22,7 @@
 
 #include "game/states/game-state.hpp"
 #include <engine/entity/id.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/event/subscription.hpp>
 #include <engine/scene/text.hpp>
 #include <engine/utility/text-file.hpp>
@@ -46,7 +46,7 @@ private:
 	void disable_controls();
 	
 	void select_entity(entity::id entity_id);
-	void select_nearest_entity(const float3& direction);
+	void select_nearest_entity(const math::fvec3& direction);
 	
 	// Camera
 	entity::id camera_rig_focus_eid;

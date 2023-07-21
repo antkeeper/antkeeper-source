@@ -23,7 +23,7 @@
 #include <engine/scene/object.hpp>
 #include <engine/geom/primitives/view-frustum.hpp>
 #include <engine/geom/primitives/ray.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/render/compositor.hpp>
 #include <engine/math/numbers.hpp>
 
@@ -45,7 +45,7 @@ public:
 	 *
 	 * @return Picking ray.
 	 */
-	[[nodiscard]] geom::ray<float, 3> pick(const float2& ndc) const;
+	[[nodiscard]] geom::ray<float, 3> pick(const math::fvec2& ndc) const;
 
 	/**
 	 * Maps object coordinates to window coordinates.
@@ -54,7 +54,7 @@ public:
 	 * @param viewport Vector containing the `x`, `y`, `w`, and `h` of the viewport.
 	 * @return Projected window coordinates.
 	 */
-	[[nodiscard]] float3 project(const float3& object, const float4& viewport) const;
+	[[nodiscard]] math::fvec3 project(const math::fvec3& object, const math::fvec4& viewport) const;
 
 	/**
 	 * Maps window coordinates to object coordinates.
@@ -63,7 +63,7 @@ public:
 	 * @param viewport Vector containing the `x`, `y`, `w`, and `h` of the viewport.
 	 * @return Unprojected object coordinates.
 	 */
-	[[nodiscard]] float3 unproject(const float3& window, const float4& viewport) const;
+	[[nodiscard]] math::fvec3 unproject(const math::fvec3& window, const math::fvec4& viewport) const;
 
 	/**
 	 * Sets the camera's projection matrix using perspective projection.
@@ -213,37 +213,37 @@ public:
 	}
 	
 	/// Returns the camera's view matrix.
-	[[nodiscard]] inline const float4x4& get_view() const noexcept
+	[[nodiscard]] inline const math::fmat4& get_view() const noexcept
 	{
 		return m_view;
 	}
 	
 	/// Returns the camera's projection matrix.
-	[[nodiscard]] inline const float4x4& get_projection() const noexcept
+	[[nodiscard]] inline const math::fmat4& get_projection() const noexcept
 	{
 		return m_projection;
 	}
 	
 	/// Returns the camera's view-projection matrix.
-	[[nodiscard]] inline const float4x4& get_view_projection() const noexcept
+	[[nodiscard]] inline const math::fmat4& get_view_projection() const noexcept
 	{
 		return m_view_projection;
 	}
 	
 	/// Returns the camera's inverse view-projection matrix.
-	[[nodiscard]] inline const float4x4& get_inverse_view_projection() const noexcept
+	[[nodiscard]] inline const math::fmat4& get_inverse_view_projection() const noexcept
 	{
 		return m_inverse_view_projection;
 	}
 	
 	/// Returns the camera's forward vector.
-	[[nodiscard]] inline const math::vector<float, 3>& get_forward() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_forward() const noexcept
 	{
 		return m_forward;
 	}
 	
 	/// Returns the camera's up vector.
-	[[nodiscard]] inline const math::vector<float, 3>& get_up() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_up() const noexcept
 	{
 		return m_up;
 	}
@@ -274,13 +274,13 @@ private:
 	float m_exposure_value{0.0f};
 	float m_exposure_normalization{1.0f / 1.2f};
 	
-	float4x4 m_view{float4x4::identity()};
-	float4x4 m_projection{float4x4::identity()};
-	float4x4 m_view_projection{float4x4::identity()};
-	float4x4 m_inverse_view_projection{float4x4::identity()};
+	math::fmat4 m_view{math::fmat4::identity()};
+	math::fmat4 m_projection{math::fmat4::identity()};
+	math::fmat4 m_view_projection{math::fmat4::identity()};
+	math::fmat4 m_inverse_view_projection{math::fmat4::identity()};
 	
-	math::vector<float, 3> m_forward{0.0f, 0.0f, -1.0f};
-	math::vector<float, 3> m_up{0.0f, 1.0f, 0.0f};
+	math::fvec3 m_forward{0.0f, 0.0f, -1.0f};
+	math::fvec3 m_up{0.0f, 1.0f, 0.0f};
 	
 	view_frustum_type m_view_frustum;
 	

@@ -55,17 +55,17 @@ public:
 	 * @param position Mouse position, in pixels, relative to the window.
 	 * @param difference Relative movement of the mouse, in pixels.
 	 */
-	void move(const math::vector<std::int32_t, 2>& position, const math::vector<std::int32_t, 2>& difference);
+	void move(const math::vec2<std::int32_t>& position, const math::vec2<std::int32_t>& difference);
 	
 	/**
 	 * Simulates mouse scrolling.
 	 *
 	 * @param velocity Scroll velocity.
 	 */
-	void scroll(const math::vector<float, 2>& velocity);
+	void scroll(const math::fvec2& velocity);
 	
 	/// Returns the current mouse position, in pixels, relative to the window.
-	[[nodiscard]] inline const math::vector<std::int32_t, 2>& get_position() const noexcept
+	[[nodiscard]] inline const math::vec2<std::int32_t>& get_position() const noexcept
 	{
 		return position;
 	}
@@ -101,7 +101,7 @@ public:
 	}
 	
 private:
-	math::vector<std::int32_t, 2> position{0, 0};
+	math::vec2<std::int32_t> position{0, 0};
 	
 	::event::publisher<mouse_button_pressed_event> button_pressed_publisher;
 	::event::publisher<mouse_button_released_event> button_released_publisher;

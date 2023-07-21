@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
 
 #include "game/systems/updatable-system.hpp"
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 
 class camera_system: public updatable_system
@@ -30,10 +30,10 @@ public:
 	explicit camera_system(entity::registry& registry);
 	virtual void update(float t, float dt);
 	
-	void set_viewport(const float4& viewport);
+	void set_viewport(const math::fvec4& viewport);
 
 private:
-	float4 viewport;
+	math::fvec4 viewport;
 };
 
 

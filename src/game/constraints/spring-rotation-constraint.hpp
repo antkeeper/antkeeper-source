@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_SPRING_ROTATION_CONSTRAINT_HPP
 
 #include <engine/animation/spring.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 
 /**
@@ -30,7 +30,7 @@
 struct spring_rotation_constraint
 {
 	/// Yaw, pitch, and roll angle spring.
-	numeric_spring<float3, float> spring;
+	numeric_spring<math::fvec3, float> spring;
 };
 
 

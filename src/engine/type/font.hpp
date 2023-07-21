@@ -64,7 +64,7 @@ public:
 	 * @param second UTF-32 character code of the second glyph.
 	 * @param offset Kerning offset.
 	 */
-	void kern(char32_t first, char32_t second, const float2& offset);
+	void kern(char32_t first, char32_t second, const math::fvec2& offset);
 	
 	/**
 	 * Sets the font metrics
@@ -88,7 +88,7 @@ public:
 	 * @param second UTF-32 character code of the second glyph.
 	 * @return Kerning offset.
 	 */
-	const float2& get_kerning(char32_t first, char32_t second) const;
+	const math::fvec2& get_kerning(char32_t first, char32_t second) const;
 	
 	/// Returns the font's kerning table.
 	const kerning_table& get_kerning_table() const;

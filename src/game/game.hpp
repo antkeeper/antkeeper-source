@@ -44,7 +44,7 @@
 #include <engine/type/bitmap-font.hpp>
 #include <engine/type/typeface.hpp>
 #include <engine/utility/dict.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/utility/state-machine.hpp>
 #include <engine/utility/frame-scheduler.hpp>
 #include <engine/scene/text.hpp>
@@ -283,7 +283,7 @@ public:
 	
 	// Rendering
 	//gl::rasterizer* rasterizer;
-	int2 render_resolution;
+	math::ivec2 render_resolution;
 	float render_scale;
 	int shadow_map_resolution;
 	std::unique_ptr<render::clear_pass> ui_clear_pass;
@@ -346,7 +346,7 @@ public:
 	std::unique_ptr<animation<float>> radial_transition_in;
 	std::unique_ptr<animation<float>> radial_transition_out;
 	std::unique_ptr<screen_transition> fade_transition;
-	std::shared_ptr<render::material_float3> fade_transition_color;
+	std::shared_ptr<render::matvar_fvec3> fade_transition_color;
 	std::unique_ptr<screen_transition> radial_transition_inner;
 	std::unique_ptr<screen_transition> radial_transition_outer;
 	std::unique_ptr<animation<float>> equip_tool_animation;
@@ -395,7 +395,7 @@ public:
 	::frame_scheduler frame_scheduler;
 	math::moving_average<float> average_frame_duration;
 	
-	double3 rgb_wavelengths;
+	math::dvec3 rgb_wavelengths;
 	std::shared_ptr<ecoregion> active_ecoregion;
 	render::anti_aliasing_method anti_aliasing_method;
 	

@@ -43,18 +43,18 @@ namespace rgb {
  * @see https://mina86.com/2019/srgb-xyz-matrix/
  */
 template <class T>
-[[nodiscard]] constexpr math::matrix<T, 3, 3> to_xyz(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w)
+[[nodiscard]] constexpr math::mat3<T> to_xyz(const math::vec2<T>& r, const math::vec2<T>& g, const math::vec2<T>& b, const math::vec2<T>& w)
 {
-	const math::matrix<T, 3, 3> m = 
+	const math::mat3<T> m = 
 	{
 		r[0], r[1], T{1} - (r[0] + r[1]),
 		g[0], g[1], T{1} - (g[0] + g[1]),
 		b[0], b[1], T{1} - (b[0] + b[1])
 	};
 	
-	const math::vector3<T> scale = math::inverse(m) * math::vector3<T>{w[0] / w[1], T{1}, (T{1} - (w[0] + w[1])) / w[1]};
+	const math::vec3<T> scale = math::inverse(m) * math::vec3<T>{w[0] / w[1], T{1}, (T{1} - (w[0] + w[1])) / w[1]};
 	
-	return math::matrix<T, 3, 3>
+	return math::mat3<T>
 	{
 		m[0][0] * scale[0], m[0][1] * scale[0], m[0][2] * scale[0],
 		m[1][0] * scale[1], m[1][1] * scale[1], m[1][2] * scale[1],
@@ -69,19 +69,19 @@ template <class T>
 struct color_space
 {
 	/// Transfer function function pointer type.
-	typedef math::vector3<T> (*transfer_function_type)(const math::vector3<T>&);
+	typedef math::vec3<T> (*transfer_function_type)(const math::vec3<T>&);
 	
 	/// CIE xy chromaticity coordinates of the red primary.
-	const math::vector2<T> r;
+	const math::vec2<T> r;
 	
 	/// CIE xy chromaticity coordinates of the green primary.
-	const math::vector2<T> g;
+	const math::vec2<T> g;
 	
 	/// CIE xy chromaticity coordinates of the blue primary.
-	const math::vector2<T> b;
+	const math::vec2<T> b;
 	
 	/// CIE xy chromaticity coordinates of the white point.
-	const math::vector2<T> w;
+	const math::vec2<T> w;
 	
 	/// Function pointer to the electro-optical transfer function.
 	const transfer_function_type eotf;
@@ -90,13 +90,13 @@ struct color_space
 	const transfer_function_type oetf;
 	
 	/// Matrix which transforms an RGB color to a CIE XYZ color.
-	const math::matrix3x3<T> to_xyz;
+	const math::mat3<T> to_xyz;
 	
 	/// Matrix which transforms a CIE XYZ color to an RGB color.
-	const math::matrix3x3<T> from_xyz;
+	const math::mat3<T> from_xyz;
 	
 	/// Vector which gives the luminance of an RGB color via dot product.
-	const math::vector3<T> to_y;
+	const math::vec3<T> to_y;
 	
 	/**
 	 * Constructs an RGB color space.
@@ -106,7 +106,7 @@ struct color_space
 	 * @param b CIE xy chromaticity coordinates of the blue primary.
 	 * @param w CIE xy chromaticity coordinates of the white point.
 	 */
-	constexpr color_space(const math::vector2<T>& r, const math::vector2<T>& g, const math::vector2<T>& b, const math::vector2<T>& w, transfer_function_type eotf, transfer_function_type oetf):
+	constexpr color_space(const math::vec2<T>& r, const math::vec2<T>& g, const math::vec2<T>& b, const math::vec2<T>& w, transfer_function_type eotf, transfer_function_type oetf):
 		r(r),
 		g(g),
 		b(b),
@@ -124,7 +124,7 @@ struct color_space
 	 * @param x Linear RGB color.
 	 * @return return Luminance of @p x.
 	 */
-	[[nodiscard]] inline constexpr T luminance(const math::vector3<T>& x) const noexcept
+	[[nodiscard]] inline constexpr T luminance(const math::vec3<T>& x) const noexcept
 	{
 		return math::dot(x, to_y);
 	}
@@ -140,7 +140,7 @@ struct color_space
  * @return Color space transformation matrix.
  */
 template <class T>
-[[nodiscard]] constexpr math::matrix3x3<T> to_rgb(const color_space<T>& s0, const color_space<T>& s1, const math::matrix3x3<T>& cone_response = color::cat::bradford<T>)
+[[nodiscard]] constexpr math::mat3<T> to_rgb(const color_space<T>& s0, const color_space<T>& s1, const math::mat3<T>& cone_response = color::cat::bradford<T>)
 {
 	return s1.from_xyz * color::cat::matrix(s0.w, s1.w, cone_response) * s0.to_xyz;
 }

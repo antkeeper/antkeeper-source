@@ -56,7 +56,7 @@ final_pass::final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* frameb
 		debug::log::warning("{}", shader_template->configure(gl::shader_stage::vertex));
 	}
 	
-	const float2 vertex_positions[] =
+	const math::fvec2 vertex_positions[] =
 	{
 		{-1.0f,  1.0f},
 		{-1.0f, -1.0f},

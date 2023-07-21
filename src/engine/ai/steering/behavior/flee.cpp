@@ -23,10 +23,10 @@ namespace ai {
 namespace steering {
 namespace behavior {
 
-float3 flee(const agent& agent, const float3& target)
+math::fvec3 flee(const agent& agent, const math::fvec3& target)
 {
-	float3 force = {0, 0, 0};
-	const float3 difference = target - agent.position;
+	math::fvec3 force = {0, 0, 0};
+	const math::fvec3 difference = target - agent.position;
 	const float sqr_distance = math::dot(difference, difference);
 	
 	if (sqr_distance)

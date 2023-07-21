@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_RENDER_OPERATION_HPP
 #define ANTKEEPER_RENDER_OPERATION_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/drawing-mode.hpp>
 #include <engine/render/material.hpp>
@@ -41,11 +41,11 @@ struct operation
 	std::size_t index_count{0};
 	std::shared_ptr<render::material> material;
 	
-	float4x4 transform{float4x4::identity()};
+	math::fmat4 transform{math::fmat4::identity()};
 	float depth{0.0f};
 	
 	std::size_t instance_count{0};
-	std::span<const float4x4> matrix_palette{};
+	std::span<const math::fmat4> matrix_palette{};
 };
 
 } // namespace render

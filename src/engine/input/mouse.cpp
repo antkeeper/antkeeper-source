@@ -31,13 +31,13 @@ void mouse::release(mouse_button button)
 	button_released_publisher.publish({this, position, button});
 }
 
-void mouse::move(const math::vector<std::int32_t, 2>& position, const math::vector<std::int32_t, 2>& difference)
+void mouse::move(const math::vec2<std::int32_t>& position, const math::vec2<std::int32_t>& difference)
 {
 	this->position = position;
 	moved_publisher.publish({this, position, difference});
 }
 
-void mouse::scroll(const math::vector<float, 2>& velocity)
+void mouse::scroll(const math::fvec2& velocity)
 {
 	scrolled_publisher.publish({this, position, velocity});
 }

@@ -21,7 +21,7 @@
 #define ANTKEEPER_RENDER_CLEAR_PASS_HPP
 
 #include <engine/render/pass.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <functional>
 
 namespace render {
@@ -50,7 +50,7 @@ public:
 	 *
 	 * @param color Clear color.
 	 */
-	void set_clear_color(const float4& color);
+	void set_clear_color(const math::fvec4& color);
 	
 	/**
 	 * Sets the depth buffer clear value.
@@ -72,7 +72,7 @@ private:
 	bool clear_color_buffer;
 	bool clear_depth_buffer;
 	bool clear_stencil_buffer;
-	float4 clear_color;
+	math::fvec4 clear_color;
 	float clear_depth;
 	int clear_stencil;
 	

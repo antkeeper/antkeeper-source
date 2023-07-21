@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_RENDER_CONTEXT_HPP
 #define ANTKEEPER_RENDER_CONTEXT_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/render/operation.hpp>
 #include <vector>
 

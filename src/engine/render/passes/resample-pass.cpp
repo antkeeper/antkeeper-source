@@ -44,7 +44,7 @@ resample_pass::resample_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 	// Build resample shader program
 	shader = shader_template->build();
 	
-	const float2 vertex_positions[] =
+	const math::fvec2 vertex_positions[] =
 	{
 		{-1.0f,  1.0f},
 		{-1.0f, -1.0f},

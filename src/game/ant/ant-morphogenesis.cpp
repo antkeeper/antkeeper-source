@@ -87,9 +87,9 @@ void reskin_vertices
 		float* tz = ty + 1;
 		
 		// Transform vertex attributes
-		const float3 position = (*transform) * float3{*px, *py, *pz};
-		const float3 normal = math::normalize(transform->rotation * float3{*nx, *ny, *nz});
-		const float3 tangent = math::normalize(transform->rotation * float3{*tx, *ty, *tz});
+		const math::fvec3 position = (*transform) * math::fvec3{*px, *py, *pz};
+		const math::fvec3 normal = math::normalize(transform->rotation * math::fvec3{*nx, *ny, *nz});
+		const math::fvec3 tangent = math::normalize(transform->rotation * math::fvec3{*tx, *ty, *tz});
 		
 		// Update vertex attributes
 		*px = position.x();
@@ -154,12 +154,12 @@ float calculate_uv_area
 		const float* uv_data_b = reinterpret_cast<const float*>(uv_data + uv_attribute.stride * (i + 1));
 		const float* uv_data_c = reinterpret_cast<const float*>(uv_data + uv_attribute.stride * (i + 2));
 		
-		const float3 uva = {uv_data_a[0], uv_data_a[1], 0.0f};
-		const float3 uvb = {uv_data_b[0], uv_data_b[1], 0.0f};
-		const float3 uvc = {uv_data_c[0], uv_data_c[1], 0.0f};
+		const math::fvec3 uva = {uv_data_a[0], uv_data_a[1], 0.0f};
+		const math::fvec3 uvb = {uv_data_b[0], uv_data_b[1], 0.0f};
+		const math::fvec3 uvc = {uv_data_c[0], uv_data_c[1], 0.0f};
 		
-		const float3 uvab = uvb - uva;
-		const float3 uvac = uvc - uva;
+		const math::fvec3 uvab = uvb - uva;
+		const math::fvec3 uvac = uvc - uva;
 		
 		sum_area += math::length(math::cross(uvab, uvac)) * 0.5f;
 	}
@@ -185,19 +185,14 @@ float calculate_uv_area
 {
 	const std::byte* position_data = vertex_data + position_attribute.offset;
 	
-	geom::box<float> bounds
-	{
-		{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()},
-		{-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()}
-	};
-	
+	geom::box<float> bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
 	for (std::size_t i = 0; i < vertex_count; ++i)
 	{
 		const float* px = reinterpret_cast<const float*>(position_data + position_attribute.stride * i);
 		const float* py = px + 1;
 		const float* pz = py + 1;
 		
-		bounds.extend(float3{*px, *py, *pz});
+		bounds.extend(math::fvec3{*px, *py, *pz});
 	}
 	
 	return bounds;
@@ -240,16 +235,16 @@ float calculate_uv_area
 	std::unique_ptr<render::material> exoskeleton_material = std::make_unique<render::material>(*phenome.pigmentation->material);
 	
 	// Set roughness variable
-	exoskeleton_material->set_variable("exoskeleton_roughness", std::make_shared<render::material_float>(1, phenome.sculpturing->roughness));
+	exoskeleton_material->set_variable("exoskeleton_roughness", std::make_shared<render::matvar_float>(1, phenome.sculpturing->roughness));
 	
 	// Set normal map variable
-	exoskeleton_material->set_variable("exoskeleton_normal_map", std::make_shared<render::material_texture_2d>(1, phenome.sculpturing->normal_map));
+	exoskeleton_material->set_variable("exoskeleton_normal_map", std::make_shared<render::matvar_texture_2d>(1, phenome.sculpturing->normal_map));
 	
 	if (phenome.eyes->present)
 	{
 		// Set ommatidia scale variable
 		const float ommatidia_scale = calculate_ommatidia_scale(eye_uv_area, static_cast<float>(phenome.eyes->ommatidia_count));
-		exoskeleton_material->set_variable("ommatidia_scale", std::make_shared<render::material_float>(1, ommatidia_scale));
+		exoskeleton_material->set_variable("ommatidia_scale", std::make_shared<render::matvar_float>(1, ommatidia_scale));
 	}
 	
 	return exoskeleton_material;

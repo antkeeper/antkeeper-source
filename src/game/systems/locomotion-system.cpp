@@ -60,8 +60,8 @@ void locomotion_system::update(float t, float dt)
 			const auto& locomotion = winged_group.get<winged_locomotion_component>(entity_id);
 			auto& body = *(winged_group.get<rigid_body_component>(entity_id).body);
 			
-			const math::vector<float, 3> gravity{0.0f, 9.80665f * 10.0f, 0.0f};
-			//const math::vector<float, 3> gravity{0.0f, 0.0f, 0.0f};
+			const math::fvec3 gravity{0.0f, 9.80665f * 10.0f, 0.0f};
+			//const math::fvec3 gravity{0.0f, 0.0f, 0.0f};
 			
 			// Apply locomotive force
 			body.apply_central_force(locomotion.force + gravity * body.get_mass());

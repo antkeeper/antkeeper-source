@@ -22,7 +22,7 @@
 
 #include <engine/utility/image.hpp>
 #include <engine/type/glyph-metrics.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 namespace type {
 
@@ -40,7 +40,7 @@ struct bitmap_glyph
 	image bitmap;
 	
 	/// Position of the packed glyph bitmap within the font bitmap.
-	uint2 position;
+	math::uvec2 position;
 };
 
 } // namespace type

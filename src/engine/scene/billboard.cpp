@@ -83,7 +83,7 @@ billboard::billboard()
 	m_render_op.drawing_mode = gl::drawing_mode::triangles;
 	m_render_op.start_index = 0;
 	m_render_op.index_count = 6;
-	m_render_op.transform = float4x4::identity();
+	m_render_op.transform = math::fmat4::identity();
 }
 
 void billboard::render(render::context& ctx) const

@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_SPRING_TRANSLATION_CONSTRAINT_HPP
 
 #include <engine/animation/spring.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 
 /**
@@ -30,7 +30,7 @@
 struct spring_translation_constraint
 {
 	/// Translation spring.
-	numeric_spring<float3, float> spring;
+	numeric_spring<math::fvec3, float> spring;
 };
 
 

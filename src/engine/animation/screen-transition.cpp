@@ -23,7 +23,7 @@
 
 screen_transition::screen_transition()
 {
-	progress = std::make_shared<render::material_float>(1, 0.0f);
+	progress = std::make_shared<render::matvar_float>(1, 0.0f);
 	
 	// Setup material
 	material = std::make_shared<render::material>();

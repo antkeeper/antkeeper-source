@@ -29,21 +29,21 @@ void spring_constraint::solve(float dt)
 	}
 	
 	// Get radius vectors from centers of mass to spring attachment points
-	const math::vector<float, 3> radius_a = m_body_a->get_orientation() * m_point_a;
-	const math::vector<float, 3> radius_b = m_body_b->get_orientation() * m_point_b;
+	const math::fvec3 radius_a = m_body_a->get_orientation() * m_point_a;
+	const math::fvec3 radius_b = m_body_b->get_orientation() * m_point_b;
 	
 	// Get world-space spring attachment points
-	const math::vector<float, 3> point_a = m_body_a->get_position() + radius_a;
-	const math::vector<float, 3> point_b = m_body_b->get_position() + radius_b;
+	const math::fvec3 point_a = m_body_a->get_position() + radius_a;
+	const math::fvec3 point_b = m_body_b->get_position() + radius_b;
 	
 	// Calculate relative velocity between the attachment points
-	const math::vector<float, 3> velocity = m_body_b->get_point_velocity(radius_b) - m_body_a->get_point_velocity(radius_a);
+	const math::fvec3 velocity = m_body_b->get_point_velocity(radius_b) - m_body_a->get_point_velocity(radius_a);
 	
 	// Calculate spring force
 	// F = -k * (|x| - d) * (x / |x|) - bv
-	const math::vector<float, 3> difference = point_b - point_a;
+	const math::fvec3 difference = point_b - point_a;
 	const float distance = std::sqrt(math::dot(difference, difference));
-	const math::vector<float, 3> force = -m_stiffness * (distance - m_resting_length) * (difference / distance) - velocity * m_damping;
+	const math::fvec3 force = -m_stiffness * (distance - m_resting_length) * (difference / distance) - velocity * m_damping;
 	
 	// Apply spring force to bodies at attachment points
 	m_body_a->apply_force(-force, radius_a);

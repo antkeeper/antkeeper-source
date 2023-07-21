@@ -475,7 +475,7 @@ void enable_menu_controls(::game& ctx)
 	ctx.menu_action_map.enable();
 	
 	// Function to select menu item at mouse position
-	auto select_menu_item = [&ctx](const math::vector<float, 2>& mouse_position) -> bool
+	auto select_menu_item = [&ctx](const math::fvec2& mouse_position) -> bool
 	{
 		const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
 		
@@ -530,7 +530,7 @@ void enable_menu_controls(::game& ctx)
 			[&ctx, select_menu_item](const auto& event)
 			{
 				// Select menu item at mouse position (if any)
-				select_menu_item(math::vector<float, 2>(event.position));
+				select_menu_item(math::fvec2(event.position));
 			}
 		)
 	);
@@ -541,7 +541,7 @@ void enable_menu_controls(::game& ctx)
 			[&ctx, select_menu_item](const auto& event)
 			{
 				// Select menu item at mouse position (if any)
-				if (select_menu_item(math::vector<float, 2>(event.position)))
+				if (select_menu_item(math::fvec2(event.position)))
 				{
 					// Determine appropriate menu item callback
 					auto callback = ctx.menu_select_callbacks[*ctx.menu_item_index];

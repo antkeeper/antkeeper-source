@@ -28,7 +28,7 @@
 struct winged_locomotion_component
 {
 	/// Force vector.
-	math::vector<float, 3> force{0.0f, 0.0f, 0.0f};
+	math::fvec3 force{0.0f, 0.0f, 0.0f};
 };
 
 #endif // ANTKEEPER_GAME_WINGED_LOCOMOTION_COMPONENT_HPP

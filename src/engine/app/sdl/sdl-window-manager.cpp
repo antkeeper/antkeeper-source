@@ -95,8 +95,8 @@ sdl_window_manager::~sdl_window_manager()
 std::shared_ptr<window> sdl_window_manager::create_window
 (
 	const std::string& title,
-	const math::vector<int, 2>& windowed_position,
-	const math::vector<int, 2>& windowed_size,
+	const math::ivec2& windowed_position,
+	const math::ivec2& windowed_size,
 	bool maximized,
 	bool fullscreen,
 	bool v_sync

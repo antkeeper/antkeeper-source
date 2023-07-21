@@ -24,20 +24,20 @@
 
 namespace scene {
 
-geom::ray<float, 3> camera::pick(const float2& ndc) const
+geom::ray<float, 3> camera::pick(const math::fvec2& ndc) const
 {
-	const float4 near = m_inverse_view_projection * float4{ndc[0], ndc[1], 1.0f, 1.0f};
-	const float4 far = m_inverse_view_projection * float4{ndc[0], ndc[1], 0.0f, 1.0f};
+	const math::fvec4 near = m_inverse_view_projection * math::fvec4{ndc[0], ndc[1], 1.0f, 1.0f};
+	const math::fvec4 far = m_inverse_view_projection * math::fvec4{ndc[0], ndc[1], 0.0f, 1.0f};
 	
-	const float3 origin = float3{near[0], near[1], near[2]} / near[3];
-	const float3 direction = math::normalize(float3{far[0], far[1], far[2]} / far[3] - origin);
+	const math::fvec3 origin = math::fvec3{near[0], near[1], near[2]} / near[3];
+	const math::fvec3 direction = math::normalize(math::fvec3{far[0], far[1], far[2]} / far[3] - origin);
 	
 	return {origin, direction};
 }
 
-float3 camera::project(const float3& object, const float4& viewport) const
+math::fvec3 camera::project(const math::fvec3& object, const math::fvec4& viewport) const
 {
-	float4 result = m_view_projection * float4{object[0], object[1], object[2], 1.0f};
+	math::fvec4 result = m_view_projection * math::fvec4{object[0], object[1], object[2], 1.0f};
 	result[0] = (result[0] / result[3]) * 0.5f + 0.5f;
 	result[1] = (result[1] / result[3]) * 0.5f + 0.5f;
 	result[2] = (result[2] / result[3]) * 0.5f + 0.5f;
@@ -45,12 +45,12 @@ float3 camera::project(const float3& object, const float4& viewport) const
 	result[0] = result[0] * viewport[2] + viewport[0];
 	result[1] = result[1] * viewport[3] + viewport[1];
 	
-	return math::vector<float, 3>(result);
+	return math::fvec3(result);
 }
 
-float3 camera::unproject(const float3& window, const float4& viewport) const
+math::fvec3 camera::unproject(const math::fvec3& window, const math::fvec4& viewport) const
 {
-	float4 result;
+	math::fvec4 result;
 	result[0] = ((window[0] - viewport[0]) / viewport[2]) * 2.0f - 1.0f;
 	result[1] = ((window[1] - viewport[1]) / viewport[3]) * 2.0f - 1.0f;
 	//result[2] = window[2] * 2.0f - 1.0f; z: [-1, 1]
@@ -60,7 +60,7 @@ float3 camera::unproject(const float3& window, const float4& viewport) const
 	
 	result = m_inverse_view_projection * result;
 
-	return math::vector<float, 3>(result) * (1.0f / result[3]);
+	return math::fvec3(result) * (1.0f / result[3]);
 }
 
 void camera::set_perspective(float vertical_fov, float aspect_ratio, float clip_near, float clip_far)
@@ -137,8 +137,8 @@ void camera::set_exposure_value(float ev100)
 void camera::transformed()
 {
 	// Recalculate view and view-projection matrices
-	m_forward = get_rotation() * math::vector<float, 3>{0.0f, 0.0f, -1.0f};
-	m_up = get_rotation() * math::vector<float, 3>{0.0f, 1.0f, 0.0f};
+	m_forward = get_rotation() * math::fvec3{0.0f, 0.0f, -1.0f};
+	m_up = get_rotation() * math::fvec3{0.0f, 1.0f, 0.0f};
 	m_view = math::look_at(get_translation(), get_translation() + m_forward, m_up);
 	m_view_projection = m_projection * m_view;
 	m_inverse_view_projection = math::inverse(m_view_projection);
@@ -152,7 +152,7 @@ void camera::update_frustum()
 	m_view_frustum.extract(m_view_projection);
 	
 	// Reverse half z clip-space coordinates of a cube
-	constexpr math::vector<float, 4> clip_space_cube[8] =
+	constexpr math::fvec4 clip_space_cube[8] =
 	{
 		{-1, -1, 1, 1}, // NBL
 		{ 1, -1, 1, 1}, // NBR
@@ -165,12 +165,11 @@ void camera::update_frustum()
 	};
 	
 	// Update bounds
-	m_bounds.min = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
-	m_bounds.max = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+	m_bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
 	for (std::size_t i = 0; i < 8; ++i)
 	{
-		const math::vector<float, 4> frustum_corner = m_inverse_view_projection * clip_space_cube[i];
-		m_bounds.extend(math::vector<float, 3>(frustum_corner) / frustum_corner[3]);
+		const math::fvec4 frustum_corner = m_inverse_view_projection * clip_space_cube[i];
+		m_bounds.extend(math::fvec3(frustum_corner) / frustum_corner[3]);
 	}
 }
 

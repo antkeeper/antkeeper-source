@@ -39,10 +39,10 @@ struct mouse_moved_event
 	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window.
-	math::vector<std::int32_t, 2> position{0, 0};
+	math::vec2<std::int32_t> position{0, 0};
 	
 	/// Relative movement of the mouse, in pixels.
-	math::vector<std::int32_t, 2> difference{0, 0};
+	math::vec2<std::int32_t> difference{0, 0};
 };
 
 /**
@@ -54,7 +54,7 @@ struct mouse_button_pressed_event
 	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window, when the button was pressed.
-	math::vector<std::int32_t, 2> position{0, 0};
+	math::vec2<std::int32_t> position{0, 0};
 	
 	/// Mouse button being pressed.
 	mouse_button button{0};
@@ -69,7 +69,7 @@ struct mouse_button_released_event
 	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window, when the button was released.
-	math::vector<std::int32_t, 2> position{0, 0};
+	math::vec2<std::int32_t> position{0, 0};
 	
 	/// Mouse button being released.
 	mouse_button button{0};
@@ -84,10 +84,10 @@ struct mouse_scrolled_event
 	mouse* mouse{nullptr};
 	
 	/// Mouse position, in pixels, relative to the window, when the mouse was scrolled.
-	math::vector<std::int32_t, 2> position{0, 0};
+	math::vec2<std::int32_t> position{0, 0};
 	
 	/// Scroll velocity.
-	math::vector<float, 2> velocity{0.0f, 0.0f};
+	math::fvec2 velocity{0.0f, 0.0f};
 };
 
 } // namespace input

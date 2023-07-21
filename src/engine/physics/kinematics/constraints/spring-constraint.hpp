@@ -40,7 +40,7 @@ public:
 	 * @param body_a Body to which the spring should be attached.
 	 * @param point_a Point on body a, in body-space, at which the spring should be attached.
 	 */
-	inline void attach_a(rigid_body& body_a, const math::vector<float, 3>& point_a) noexcept
+	inline void attach_a(rigid_body& body_a, const math::fvec3& point_a) noexcept
 	{
 		m_body_a = &body_a;
 		m_point_a = point_a;
@@ -52,7 +52,7 @@ public:
 	 * @param body_b Body to which the spring should be attached.
 	 * @param point_b Point on body b, in body-space, at which the spring should be attached.
 	 */
-	inline void attach_b(rigid_body& body_b, const math::vector<float, 3>& point_b) noexcept
+	inline void attach_b(rigid_body& body_b, const math::fvec3& point_b) noexcept
 	{
 		m_body_b = &body_b;
 		m_point_b = point_b;
@@ -126,13 +126,13 @@ public:
 	}
 	
 	/// Returns the point at which the spring is attached to body a, in body-space.
-	[[nodiscard]] inline const math::vector<float, 3>& get_point_a() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_point_a() const noexcept
 	{
 		return m_point_a;
 	}
 	
 	/// Returns the point at which the spring is attached to body b, in body-space.
-	[[nodiscard]] inline const math::vector<float, 3>& get_point_b() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_point_b() const noexcept
 	{
 		return m_point_b;
 	}
@@ -163,10 +163,10 @@ private:
 	rigid_body* m_body_b{nullptr};
 	
 	/// Point at which the spring is attached to body a, in body-space.
-	math::vector<float, 3> m_point_a{0.0f, 0.0f, 0.0f};
+	math::fvec3 m_point_a{0.0f, 0.0f, 0.0f};
 	
 	/// Point at which the spring is attached to body b, in body-space.
-	math::vector<float, 3> m_point_b{0.0f, 0.0f, 0.0f};
+	math::fvec3 m_point_b{0.0f, 0.0f, 0.0f};
 	
 	/// Resting length of the spring, in meters.
 	float m_resting_length{0.0f};

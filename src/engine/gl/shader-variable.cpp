@@ -33,17 +33,17 @@ void shader_variable::update(bool value) const
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const bool2& value) const
+void shader_variable::update(const math::bvec2& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const bool3& value) const
+void shader_variable::update(const math::bvec3& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const bool4& value) const
+void shader_variable::update(const math::bvec4& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -53,17 +53,17 @@ void shader_variable::update(int value) const
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const int2& value) const
+void shader_variable::update(const math::ivec2& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const int3& value) const
+void shader_variable::update(const math::ivec3& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const int4& value) const
+void shader_variable::update(const math::ivec4& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -73,17 +73,17 @@ void shader_variable::update(unsigned int value) const
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const uint2& value) const
+void shader_variable::update(const math::uvec2& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const uint3& value) const
+void shader_variable::update(const math::uvec3& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const uint4& value) const
+void shader_variable::update(const math::uvec4& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -93,32 +93,32 @@ void shader_variable::update(float value) const
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float2& value) const
+void shader_variable::update(const math::fvec2& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float3& value) const
+void shader_variable::update(const math::fvec3& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float4& value) const
+void shader_variable::update(const math::fvec4& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float2x2& value) const
+void shader_variable::update(const math::fmat2& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float3x3& value) const
+void shader_variable::update(const math::fmat3& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float4x4& value) const
+void shader_variable::update(const math::fmat4& value) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -148,17 +148,17 @@ void shader_variable::update(bool value, std::size_t index) const
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const bool2& value, std::size_t index) const
+void shader_variable::update(const math::bvec2& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const bool3& value, std::size_t index) const
+void shader_variable::update(const math::bvec3& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const bool4& value, std::size_t index) const
+void shader_variable::update(const math::bvec4& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -168,17 +168,17 @@ void shader_variable::update(int value, std::size_t index) const
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const int2& value, std::size_t index) const
+void shader_variable::update(const math::ivec2& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const int3& value, std::size_t index) const
+void shader_variable::update(const math::ivec3& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const int4& value, std::size_t index) const
+void shader_variable::update(const math::ivec4& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -188,17 +188,17 @@ void shader_variable::update(unsigned int value, std::size_t index) const
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const uint2& value, std::size_t index) const
+void shader_variable::update(const math::uvec2& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const uint3& value, std::size_t index) const
+void shader_variable::update(const math::uvec3& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const uint4& value, std::size_t index) const
+void shader_variable::update(const math::uvec4& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -208,32 +208,32 @@ void shader_variable::update(float value, std::size_t index) const
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float2& value, std::size_t index) const
+void shader_variable::update(const math::fvec2& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float3& value, std::size_t index) const
+void shader_variable::update(const math::fvec3& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float4& value, std::size_t index) const
+void shader_variable::update(const math::fvec4& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float2x2& value, std::size_t index) const
+void shader_variable::update(const math::fmat2& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float3x3& value, std::size_t index) const
+void shader_variable::update(const math::fmat3& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(const float4x4& value, std::size_t index) const
+void shader_variable::update(const math::fmat4& value, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -263,17 +263,17 @@ void shader_variable::update(std::span<const bool> values, std::size_t index) co
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const bool2> values, std::size_t index) const
+void shader_variable::update(std::span<const math::bvec2> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const bool3> values, std::size_t index) const
+void shader_variable::update(std::span<const math::bvec3> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const bool4> values, std::size_t index) const
+void shader_variable::update(std::span<const math::bvec4> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -283,17 +283,17 @@ void shader_variable::update(std::span<const int> values, std::size_t index) con
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const int2> values, std::size_t index) const
+void shader_variable::update(std::span<const math::ivec2> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const int3> values, std::size_t index) const
+void shader_variable::update(std::span<const math::ivec3> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const int4> values, std::size_t index) const
+void shader_variable::update(std::span<const math::ivec4> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -303,17 +303,17 @@ void shader_variable::update(std::span<const unsigned int> values, std::size_t i
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const uint2> values, std::size_t index) const
+void shader_variable::update(std::span<const math::uvec2> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const uint3> values, std::size_t index) const
+void shader_variable::update(std::span<const math::uvec3> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const uint4> values, std::size_t index) const
+void shader_variable::update(std::span<const math::uvec4> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
@@ -323,32 +323,32 @@ void shader_variable::update(std::span<const float> values, std::size_t index) c
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const float2> values, std::size_t index) const
+void shader_variable::update(std::span<const math::fvec2> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const float3> values, std::size_t index) const
+void shader_variable::update(std::span<const math::fvec3> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const float4> values, std::size_t index) const
+void shader_variable::update(std::span<const math::fvec4> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const float2x2> values, std::size_t index) const
+void shader_variable::update(std::span<const math::fmat2> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const float3x3> values, std::size_t index) const
+void shader_variable::update(std::span<const math::fmat3> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }
 
-void shader_variable::update(std::span<const float4x4> values, std::size_t index) const
+void shader_variable::update(std::span<const math::fmat4> values, std::size_t index) const
 {
 	throw std::invalid_argument(type_mismatch_error);
 }

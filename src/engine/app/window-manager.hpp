@@ -60,8 +60,8 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<window> create_window
 	(
 		const std::string& title,
-		const math::vector<int, 2>& windowed_position,
-		const math::vector<int, 2>& windowed_size,
+		const math::ivec2& windowed_position,
+		const math::ivec2& windowed_size,
 		bool maximized,
 		bool fullscreen,
 		bool v_sync

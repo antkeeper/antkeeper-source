@@ -22,7 +22,7 @@
 
 #include <engine/scene/light.hpp>
 #include <engine/gl/texture-2d.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <memory>
 #include <vector>
 
@@ -51,14 +51,14 @@ public:
 	 *
 	 * @param direction Unit-length light direction vector.
 	 */
-	void set_direction(const math::vector3<float>& direction);
+	void set_direction(const math::fvec3& direction);
 	
 	/**
 	 * Sets the color of the light.
 	 *
 	 * @param color Light color.
 	 */
-	inline void set_color(const math::vector3<float>& color) noexcept
+	inline void set_color(const math::fvec3& color) noexcept
 	{
 		m_color = color;
 		color_updated();
@@ -76,13 +76,13 @@ public:
 	}
 	
 	/// Returns a unit vector pointing in the light direction.
-	[[nodiscard]] inline const math::vector3<float>& get_direction() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_direction() const noexcept
 	{
 		return m_direction;
 	}
 	
 	/// Returns the color of the light.
-	[[nodiscard]] inline const math::vector3<float>& get_color() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_color() const noexcept
 	{
 		return m_color;
 	}
@@ -94,7 +94,7 @@ public:
 	}
 	
 	/// Returns the color-modulated illuminance of the light on a surface perpendicular to the light direction.
-	[[nodiscard]] inline const math::vector3<float>& get_colored_illuminance() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_colored_illuminance() const noexcept
 	{
 		return m_colored_illuminance;
 	}
@@ -196,11 +196,11 @@ public:
 	
 	/// Returns the array of world-space to cascade texture-space transformation matrices.
 	/// @{
-	[[nodiscard]] inline const std::vector<float4x4>& get_shadow_cascade_matrices() const noexcept
+	[[nodiscard]] inline const std::vector<math::fmat4>& get_shadow_cascade_matrices() const noexcept
 	{
 		return m_shadow_cascade_matrices;
 	}
-	[[nodiscard]] inline std::vector<float4x4>& get_shadow_cascade_matrices() noexcept
+	[[nodiscard]] inline std::vector<math::fmat4>& get_shadow_cascade_matrices() noexcept
 	{
 		return m_shadow_cascade_matrices;
 	}
@@ -213,10 +213,10 @@ private:
 	void color_updated();
 	void illuminance_updated();
 	
-	math::vector3<float> m_direction{0.0f, 0.0f, -1.0f};
-	math::vector3<float> m_color{1.0f, 1.0f, 1.0f};
+	math::fvec3 m_direction{0.0f, 0.0f, -1.0f};
+	math::fvec3 m_color{1.0f, 1.0f, 1.0f};
 	float m_illuminance{};
-	math::vector3<float> m_colored_illuminance{};
+	math::fvec3 m_colored_illuminance{};
 	
 	bool m_shadow_caster{false};
 	std::shared_ptr<gl::framebuffer> m_shadow_framebuffer{nullptr};
@@ -225,7 +225,7 @@ private:
 	float m_shadow_cascade_coverage{1.0f};
 	float m_shadow_cascade_distribution{0.8f};
 	mutable std::vector<float> m_shadow_cascade_distances;
-	mutable std::vector<float4x4> m_shadow_cascade_matrices;
+	mutable std::vector<math::fmat4> m_shadow_cascade_matrices;
 };
 
 } // namespace scene

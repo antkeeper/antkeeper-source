@@ -22,7 +22,7 @@
 
 #include <engine/render/pass.hpp>
 #include <engine/render/material.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
 #include <engine/gl/texture-2d.hpp>
@@ -47,7 +47,7 @@ public:
 	/// Sets the material to be used when a render operation is missing a material. If no fallback material is specified, render operations without materials will not be processed.
 	void set_fallback_material(std::shared_ptr<render::material> fallback);
 	
-	inline void set_mouse_position(const float2& position)
+	inline void set_mouse_position(const math::fvec2& position)
 	{
 		mouse_position = position;
 	}
@@ -89,12 +89,12 @@ private:
 	void build_material_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program, const material& material) const;
 	
 	// Camera
-	const float4x4* view;
-	const float4x4* projection;
-	const float4x4* view_projection;
-	const float3* camera_position;
+	const math::fmat4* view;
+	const math::fmat4* projection;
+	const math::fmat4* view_projection;
+	const math::fvec3* camera_position;
 	float camera_exposure;
-	float2 clip_depth;
+	math::fvec2 clip_depth;
 	float log_depth_coef;
 	
 	// Light probes
@@ -103,32 +103,32 @@ private:
 	std::size_t light_probe_count;
 	
 	// Point lights
-	std::vector<float3> point_light_colors;
-	std::vector<float3> point_light_positions;
+	std::vector<math::fvec3> point_light_colors;
+	std::vector<math::fvec3> point_light_positions;
 	std::size_t point_light_count;
 	
 	// Directional lights
-	std::vector<float3> directional_light_colors;
-	std::vector<float3> directional_light_directions;
+	std::vector<math::fvec3> directional_light_colors;
+	std::vector<math::fvec3> directional_light_directions;
 	std::size_t directional_light_count;
 	
 	// Directional shadows
 	std::vector<const gl::texture_2d*> directional_shadow_maps;
 	std::vector<float> directional_shadow_biases;
 	std::vector<const std::vector<float>*> directional_shadow_splits;
-	std::vector<const std::vector<float4x4>*> directional_shadow_matrices;
+	std::vector<const std::vector<math::fmat4>*> directional_shadow_matrices;
 	std::size_t directional_shadow_count;
 	
 	// Spot lights
-	std::vector<float3> spot_light_colors;
-	std::vector<float3> spot_light_positions;
-	std::vector<float3> spot_light_directions;
-	std::vector<float2> spot_light_cutoffs;
+	std::vector<math::fvec3> spot_light_colors;
+	std::vector<math::fvec3> spot_light_positions;
+	std::vector<math::fvec3> spot_light_directions;
+	std::vector<math::fvec2> spot_light_cutoffs;
 	std::size_t spot_light_count;
 	
 	// Rectangle lights
-	std::vector<float3> rectangle_light_colors;
-	std::vector<float3> rectangle_light_corners;
+	std::vector<math::fvec3> rectangle_light_colors;
+	std::vector<math::fvec3> rectangle_light_corners;
 	std::size_t rectangle_light_count;
 	
 	// LTC
@@ -143,12 +143,12 @@ private:
 	float timestep;
 	unsigned int frame{0};
 	float subframe;
-	float2 resolution;
-	float2 mouse_position;
+	math::fvec2 resolution;
+	math::fvec2 mouse_position;
 	
 	// Geometry
-	const float4x4* model;
-	std::span<const float4x4> matrix_palette;
+	const math::fmat4* model;
+	std::span<const math::fmat4> matrix_palette;
 	
 	/// Hash of the lighting state.
 	std::size_t lighting_state_hash;

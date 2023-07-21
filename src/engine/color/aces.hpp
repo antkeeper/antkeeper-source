@@ -31,7 +31,7 @@ namespace aces {
 
 /// CIE xy chromaticity coordinates of the ACES white point (~D60).
 template <class T>
-constexpr math::vector2<T> white_point = {T{0.32168}, T{0.33767}};
+constexpr math::vec2<T> white_point = {T{0.32168}, T{0.33767}};
 
 /// ACES AP0 color space.
 template <class T>
@@ -66,10 +66,10 @@ constexpr rgb::color_space<T> ap1
  * @return Saturation adjustment matrix.
  */
 template <class T>
-[[nodiscard]] constexpr math::matrix<T, 3, 3> adjust_saturation(T s, const math::vector3<T>& to_y) noexcept
+[[nodiscard]] constexpr math::mat3<T> adjust_saturation(T s, const math::vec3<T>& to_y) noexcept
 {
-	const math::vector3<T> v = to_y * (T{1} - s);
-	return math::matrix<T, 3, 3>
+	const math::vec3<T> v = to_y * (T{1} - s);
+	return math::mat3<T>
 	{
 		v[0] + s, v[0],     v[0],
 		v[1],     v[1] + s, v[1],
@@ -79,11 +79,11 @@ template <class T>
 
 /// ACES AP1 RRT saturation adjustment matrix.
 template <class T>
-constexpr math::matrix<T, 3, 3> ap1_rrt_sat = aces::adjust_saturation(T{0.96}, ap1<T>.to_y);
+constexpr math::mat3<T> ap1_rrt_sat = aces::adjust_saturation(T{0.96}, ap1<T>.to_y);
 
 /// ACES AP1 ODT saturation adjustment matrix.
 template <class T>
-constexpr math::matrix<T, 3, 3> ap1_odt_sat = aces::adjust_saturation(T{0.93}, ap1<T>.to_y);
+constexpr math::mat3<T> ap1_odt_sat = aces::adjust_saturation(T{0.93}, ap1<T>.to_y);
 
 } // namespace aces
 

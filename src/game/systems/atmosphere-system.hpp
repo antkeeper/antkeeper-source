@@ -22,7 +22,7 @@
 
 #include "game/systems/updatable-system.hpp"
 #include <engine/entity/id.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include "game/components/atmosphere-component.hpp"
 #include <engine/render/passes/sky-pass.hpp>
 
@@ -44,7 +44,7 @@ public:
 	 *
 	 * @param wavelengths Vector containing the wavelengths of red (x), green (y), and blue (z) light, in meters.
 	 */
-	void set_rgb_wavelengths(const double3& wavelengths);
+	void set_rgb_wavelengths(const math::dvec3& wavelengths);
 	
 	void set_sky_pass(::render::sky_pass* pass);
 	
@@ -64,8 +64,8 @@ private:
 	void on_atmosphere_destroy(entity::registry& registry, entity::id entity_id);
 	
 	entity::id active_atmosphere_eid;
-	double3 rgb_wavelengths;
-	double3 rgb_ozone_cross_sections;
+	math::dvec3 rgb_wavelengths;
+	math::dvec3 rgb_ozone_cross_sections;
 	::atmosphere_component* atmosphere_component;
 	::render::sky_pass* sky_pass;
 };

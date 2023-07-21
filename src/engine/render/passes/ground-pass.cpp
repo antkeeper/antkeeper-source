@@ -37,7 +37,7 @@
 #include <engine/scene/camera.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/scene/directional-light.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/color/color.hpp>
 #include <engine/math/interpolation.hpp>
 #include <cmath>
@@ -78,21 +78,21 @@ void ground_pass::render(render::context& ctx)
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
 	
-	float2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
+	math::fvec2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
 	
 	const scene::camera& camera = *ctx.camera;
 	float clip_near = camera.get_clip_near_tween().interpolate(ctx.alpha);
 	float clip_far = camera.get_clip_far_tween().interpolate(ctx.alpha);
-	float3 model_scale = float3{1.0f, 1.0f, 1.0f} * (clip_near + clip_far) * 0.5f;
-	float4x4 model = math::scale(math::matrix4<float>::identity(), model_scale);
-	float4x4 view = float4x4(float3x3(ctx.view));
-	float4x4 model_view = view * model;
-	const float4x4& projection = ctx.projection;
-	const float4x4& view_projection = ctx.view_projection;
-	float4x4 model_view_projection = projection * model_view;
+	math::fvec3 model_scale = math::fvec3{1.0f, 1.0f, 1.0f} * (clip_near + clip_far) * 0.5f;
+	math::fmat4 model = math::scale(math::fmat4::identity(), model_scale);
+	math::fmat4 view = math::fmat4(math::fmat3(ctx.view));
+	math::fmat4 model_view = view * model;
+	const math::fmat4& projection = ctx.projection;
+	const math::fmat4& view_projection = ctx.view_projection;
+	math::fmat4 model_view_projection = projection * model_view;
 	
-	float3 directional_light_color = {0.0f, 0.0f, 0.0f};
-	float3 directional_light_direction = {0.0f, 0.0f, 0.0f};
+	math::fvec3 directional_light_color = {0.0f, 0.0f, 0.0f};
+	math::fvec3 directional_light_direction = {0.0f, 0.0f, 0.0f};
 	
 	// Collect lights
 	const std::list<scene::object_base*>* lights = ctx.collection->get_objects(scene::light::object_type_id);
@@ -111,7 +111,7 @@ void ground_pass::render(render::context& ctx)
 				const scene::directional_light* directional_light = static_cast<const scene::directional_light*>(light);
 
 				// Pre-expose light
-				float3 light_color = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
+				math::fvec3 light_color = light->get_scaled_color_tween().interpolate(ctx.alpha) * ctx.exposure;
 				if (light_color.x() < directional_light_color.x())
 					break;
 				

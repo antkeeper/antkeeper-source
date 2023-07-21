@@ -45,7 +45,7 @@ void spring_system::update(float t, float dt)
 	(
 		[&](entity::id spring_eid, auto& component)
 		{
-			solve_numeric_spring<float2, float>(component.spring, dt);
+			solve_numeric_spring<math::fvec2, float>(component.spring, dt);
 			if (component.callback)
 				component.callback(component.spring.x0);
 		}
@@ -55,7 +55,7 @@ void spring_system::update(float t, float dt)
 	(
 		[&](entity::id spring_eid, auto& component)
 		{
-			solve_numeric_spring<float3, float>(component.spring, dt);
+			solve_numeric_spring<math::fvec3, float>(component.spring, dt);
 			if (component.callback)
 				component.callback(component.spring.x0);
 		}
@@ -65,7 +65,7 @@ void spring_system::update(float t, float dt)
 	(
 		[&](entity::id spring_eid, auto& component)
 		{
-			solve_numeric_spring<float4, float>(component.spring, dt);
+			solve_numeric_spring<math::fvec4, float>(component.spring, dt);
 			if (component.callback)
 				component.callback(component.spring.x0);
 		}

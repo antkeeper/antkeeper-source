@@ -48,28 +48,28 @@ public:
 	 *
 	 * @param position Position of the window, in display units.
 	 */
-	virtual void set_position(const math::vector<int, 2>& position) = 0;
+	virtual void set_position(const math::ivec2& position) = 0;
 	
 	/**
 	 * Changes the size of the window.
 	 *
 	 * @param size Size of the window, in display units.
 	 */
-	virtual void set_size(const math::vector<int, 2>& size) = 0;
+	virtual void set_size(const math::ivec2& size) = 0;
 	
 	/**
 	 * Sets the minimum size of the window.
 	 *
 	 * @param size Minimum size of the window, in display units.
 	 */
-	virtual void set_minimum_size(const math::vector<int, 2>& size) = 0;
+	virtual void set_minimum_size(const math::ivec2& size) = 0;
 	
 	/**
 	 * Sets the maximum size of the window.
 	 *
 	 * @param size Maximum size of the window, in display units.
 	 */
-	virtual void set_maximum_size(const math::vector<int, 2>& size) = 0;
+	virtual void set_maximum_size(const math::ivec2& size) = 0;
 	
 	/**
 	 * Maximizes or unmaximizes the window.
@@ -109,43 +109,43 @@ public:
 	}
 	
 	/// Returns the windowed (non-maximized, non-fullscreen) position of the window, in display units.
-	[[nodiscard]] inline const math::vector<int, 2>& get_windowed_position() const noexcept
+	[[nodiscard]] inline const math::ivec2& get_windowed_position() const noexcept
 	{
 		return m_windowed_position;
 	}
 	
 	/// Returns the current position of the window, in display units.
-	[[nodiscard]] inline const math::vector<int, 2>& get_position() const noexcept
+	[[nodiscard]] inline const math::ivec2& get_position() const noexcept
 	{
 		return m_position;
 	}
 	
 	/// Returns the windowed (non-maximized, non-fullscreen) size of the window, in display units.
-	[[nodiscard]] inline const math::vector<int, 2>& get_windowed_size() const noexcept
+	[[nodiscard]] inline const math::ivec2& get_windowed_size() const noexcept
 	{
 		return m_windowed_size;
 	}
 	
 	/// Returns the current size of the window, in display units.
-	[[nodiscard]] inline const math::vector<int, 2>& get_size() const noexcept
+	[[nodiscard]] inline const math::ivec2& get_size() const noexcept
 	{
 		return m_size;
 	}
 	
 	/// Returns the minimum size of the window, in display units.
-	[[nodiscard]] inline const math::vector<int, 2>& get_minimum_size() const noexcept
+	[[nodiscard]] inline const math::ivec2& get_minimum_size() const noexcept
 	{
 		return m_minimum_size;
 	}
 	
 	/// Returns the maximum size of the window, in display units.
-	[[nodiscard]] inline const math::vector<int, 2>& get_maximum_size() const noexcept
+	[[nodiscard]] inline const math::ivec2& get_maximum_size() const noexcept
 	{
 		return m_minimum_size;
 	}
 	
 	/// Returns the current size of the window's drawable viewport, in pixels.
-	[[nodiscard]] inline const math::vector<int, 2>& get_viewport_size() const noexcept
+	[[nodiscard]] inline const math::ivec2& get_viewport_size() const noexcept
 	{
 		return m_viewport_size;
 	}
@@ -217,13 +217,13 @@ protected:
 	friend class window_manager;
 	
 	std::string m_title;
-	math::vector<int, 2> m_windowed_position{0, 0};
-	math::vector<int, 2> m_position{0, 0};
-	math::vector<int, 2> m_windowed_size{0, 0};
-	math::vector<int, 2> m_size{0, 0};
-	math::vector<int, 2> m_minimum_size{0, 0};
-	math::vector<int, 2> m_maximum_size{0, 0};
-	math::vector<int, 2> m_viewport_size{0, 0};
+	math::ivec2 m_windowed_position{0, 0};
+	math::ivec2 m_position{0, 0};
+	math::ivec2 m_windowed_size{0, 0};
+	math::ivec2 m_size{0, 0};
+	math::ivec2 m_minimum_size{0, 0};
+	math::ivec2 m_maximum_size{0, 0};
+	math::ivec2 m_viewport_size{0, 0};
 	bool m_maximized{false};
 	bool m_fullscreen{false};
 	bool m_v_sync{false};

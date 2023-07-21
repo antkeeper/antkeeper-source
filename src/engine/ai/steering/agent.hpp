@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_AI_STEERING_AGENT_HPP
 #define ANTKEEPER_AI_STEERING_AGENT_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/math/quaternion.hpp>
 
 namespace ai {
@@ -35,13 +35,13 @@ struct agent
 	float mass;
 	
 	/// Cartesian position vector.
-	float3 position;
+	math::fvec3 position;
 	
 	/// Velocity vector.
-	float3 velocity;
+	math::fvec3 velocity;
 	
 	/// Acceleration vector.
-	float3 acceleration;
+	math::fvec3 acceleration;
 	
 	/// Maximum force.
 	float max_force;
@@ -53,13 +53,13 @@ struct agent
 	float max_speed_squared;
 	
 	/// Orientation quaternion.
-	math::quaternion<float> orientation;
+	math::fquat orientation;
 	
 	/// Orthonormal basis forward direction vector.
-	float3 forward;
+	math::fvec3 forward;
 	
 	/// Orthonormal basis up direction vector.
-	float3 up;
+	math::fvec3 up;
 };
 
 } // namespace steering

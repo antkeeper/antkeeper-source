@@ -27,17 +27,15 @@
 #include <engine/debug/log.hpp>
 #include "game/strings.hpp"
 #include <engine/utility/hash/fnv1a.hpp>
-#include <engine/math/glsl.hpp>
-
-using namespace math::glsl;
+#include <engine/math/vector.hpp>
 
 credits_state::credits_state(::game& ctx):
 	game_state(ctx)
 {
 	debug::log::trace("Entering credits state...");
 	
-	const vec2 viewport_size = vec2(ctx.window->get_viewport_size());
-	const vec2 viewport_center = viewport_size * 0.5f;
+	const math::fvec2 viewport_size = math::fvec2(ctx.window->get_viewport_size());
+	const math::fvec2 viewport_center = viewport_size * 0.5f;
 	
 	// Construct credits text
 	credits_text.set_material(ctx.menu_font_material);
@@ -78,8 +76,8 @@ credits_state::credits_state(::game& ctx):
 	(
 		[&](const auto& event)
 		{
-			const vec2 viewport_size = vec2(event.window->get_viewport_size());
-			const vec2 viewport_center = viewport_size * 0.5f;
+			const math::fvec2 viewport_size = math::fvec2(event.window->get_viewport_size());
+			const math::fvec2 viewport_center = viewport_size * 0.5f;
 			const auto& credits_aabb = credits_text.get_bounds();
 			float credits_w = credits_aabb.max.x() - credits_aabb.min.x();
 			float credits_h = credits_aabb.max.y() - credits_aabb.min.y();
@@ -154,4 +152,3 @@ credits_state::~credits_state()
 	
 	debug::log::trace("Exited credits state");
 }
-

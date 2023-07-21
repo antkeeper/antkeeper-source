@@ -134,14 +134,14 @@ T extinction(T scattering, T albedo)
  * @return Optical depth between @p a and @p b.
  */
 template <class T>
-T optical_depth_exp(const math::vector3<T>& a, const math::vector3<T>& b, T r, T sh, std::size_t n)
+T optical_depth_exp(const math::vec3<T>& a, const math::vec3<T>& b, T r, T sh, std::size_t n)
 {
 	sh = T(-1) / sh;
 	
 	const T h = math::length(b - a) / T(n);
 	
-	math::vector3<T> dy = (b - a) / T(n);
-	math::vector3<T> y = a + dy;
+	math::vec3<T> dy = (b - a) / T(n);
+	math::vec3<T> y = a + dy;
 	
 	T f_x = std::exp((math::length(a) - r) * sh);
 	T f_y = std::exp((math::length(y) - r) * sh);
@@ -171,15 +171,15 @@ T optical_depth_exp(const math::vector3<T>& a, const math::vector3<T>& b, T r, T
  * @return Optical depth between @p a and @p b.
  */
 template <class T>
-T optical_depth_tri(const math::vector3<T>& p0, const math::vector3<T>& p1, T r, T a, T b, T c, std::size_t n)
+T optical_depth_tri(const math::vec3<T>& p0, const math::vec3<T>& p1, T r, T a, T b, T c, std::size_t n)
 {
 	a = T(1) / (a - c);
 	b = T(1) / (b - c);
 	
 	const T h = math::length(p1 - p0) / T(n);
 	
-	math::vector3<T> dy = (p1 - p0) / T(n);
-	math::vector3<T> y = p0 + dy;
+	math::vec3<T> dy = (p1 - p0) / T(n);
+	math::vec3<T> y = p0 + dy;
 	
 	T z = math::length(p0) - r;
 	T f_x = std::max(T(0), std::max(T(0), c - z) * a - std::max(T(0), z - c) * b + T(1));

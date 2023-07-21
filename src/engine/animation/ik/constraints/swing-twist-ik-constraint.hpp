@@ -29,7 +29,7 @@
 class swing_twist_ik_constraint: public ik_constraint
 {
 public:
-	void solve(math::quaternion<float>& q) override;
+	void solve(math::fquat& q) override;
 	
 	/**
 	 * Sets the twist rotation limit.

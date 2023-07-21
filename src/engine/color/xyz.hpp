@@ -38,7 +38,7 @@ namespace xyz {
  * @return return Luminance of @p x.
  */
 template <class T>
-[[nodiscard]] inline constexpr T luminance(const math::vector3<T>& x) noexcept
+[[nodiscard]] inline constexpr T luminance(const math::vec3<T>& x) noexcept
 {
 	return x[1];
 }
@@ -50,10 +50,10 @@ template <class T>
  * @return CIE xyY color.
  */
 template <class T>
-[[nodiscard]] constexpr math::vector3<T> to_xyy(const math::vector3<T>& x) noexcept
+[[nodiscard]] constexpr math::vec3<T> to_xyy(const math::vec3<T>& x) noexcept
 {
 	const T sum = x[0] + x[1] + x[2];
-	return math::vector3<T>{x[0] / sum, x[1] / sum, x[1]};
+	return math::vec3<T>{x[0] / sum, x[1] / sum, x[1]};
 }
 
 /**
@@ -131,9 +131,9 @@ template <class T>
  * @see Wyman, C., Sloan, P.J., & Shirley, P. (2013). Simple Analytic Approximations to the CIE XYZ Color Matching Functions.
  */
 template <class T>
-[[nodiscard]] math::vector3<T> match(T lambda)
+[[nodiscard]] math::vec3<T> match(T lambda)
 {
-	return math::vector3<T>
+	return math::vec3<T>
 	{
 		match_x<T>(lambda),
 		match_y<T>(lambda),

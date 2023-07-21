@@ -47,7 +47,7 @@ blackbody_system::~blackbody_system()
 void blackbody_system::update(float t, float dt)
 {}
 
-void blackbody_system::set_illuminant(const math::vector2<double>& illuminant)
+void blackbody_system::set_illuminant(const math::vec2<double>& illuminant)
 {
 	m_illuminant = illuminant;
 	m_xyz_to_rgb = color::aces::ap1<double>.from_xyz * color::cat::matrix(m_illuminant, color::aces::white_point<double>);
@@ -59,7 +59,7 @@ void blackbody_system::update_blackbody(entity::id entity_id)
 	auto& blackbody = registry.get<blackbody_component>(entity_id);
 	
 	// Construct a lambda function which calculates the blackbody's RGB luminance of a given wavelength
-	auto rgb_spectral_luminance = [&](double wavelength_nm) -> math::vector3<double>
+	auto rgb_spectral_luminance = [&](double wavelength_nm) -> math::dvec3
 	{
 		// Convert wavelength from nanometers to meters
 		const double wavelength_m = wavelength_nm * 1e-9;
@@ -71,14 +71,14 @@ void blackbody_system::update_blackbody(entity::id entity_id)
 		const double spectral_luminance = spectral_radiance * 1e-9 * physics::light::max_luminous_efficacy<double>;
 		
 		// Calculate the XYZ color of the wavelength using CIE color matching functions then transform to RGB
-		const math::vector3<double> rgb_color = m_xyz_to_rgb * color::xyz::match(wavelength_nm);
+		const math::dvec3 rgb_color = m_xyz_to_rgb * color::xyz::match(wavelength_nm);
 		
 		// Scale RGB color by spectral luminance
 		return rgb_color * spectral_luminance;
 	};
 	
 	// Integrate the blackbody RGB spectral luminance over wavelengths in the visible spectrum
-	const math::vector3<double> rgb_luminance = math::quadrature::simpson(rgb_spectral_luminance, m_visible_wavelengths_nm.begin(), m_visible_wavelengths_nm.end());
+	const math::dvec3 rgb_luminance = math::quadrature::simpson(rgb_spectral_luminance, m_visible_wavelengths_nm.begin(), m_visible_wavelengths_nm.end());
 	
 	// Extract luminance and color from RGB luminance
 	blackbody.luminance = math::max(rgb_luminance);

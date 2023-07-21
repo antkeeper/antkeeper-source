@@ -21,7 +21,7 @@
 #define ANTKEEPER_AI_STEERING_BEHAVIOR_SEEK_HPP
 
 #include <engine/ai/steering/agent.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 namespace ai {
 namespace steering {
@@ -34,7 +34,7 @@ namespace behavior {
  * @param target Target position.
  * @return Seek force.
  */
-float3 seek(const agent& agent, const float3& target);
+[[nodiscard]] math::fvec3 seek(const agent& agent, const math::fvec3& target);
 
 } // namespace behavior
 } // namespace steering

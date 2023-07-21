@@ -45,7 +45,7 @@ public:
 	 *
 	 * @param gravity Gravity vector.
 	 */
-	inline void set_gravity(const math::vector<float, 3>& gravity) noexcept
+	inline void set_gravity(const math::fvec3& gravity) noexcept
 	{
 		this->gravity = gravity;
 	}
@@ -84,7 +84,7 @@ private:
 	
 	std::array<std::array<std::function<void(physics::rigid_body&, physics::rigid_body&)>, 4>, 4> narrow_phase_table;
 	
-	math::vector<float, 3> gravity{0.0f, -9.80665f, 0.0f};
+	math::fvec3 gravity{0.0f, -9.80665f, 0.0f};
 	
 	std::vector<std::pair<physics::rigid_body*, physics::rigid_body*>> broad_phase_pairs;
 	std::vector<collision_manifold_type> narrow_phase_manifolds;

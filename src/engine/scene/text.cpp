@@ -121,7 +121,7 @@ void text::set_content(const std::string& content)
 	}
 }
 
-void text::set_color(const float4& color)
+void text::set_color(const math::fvec4& color)
 {
 	m_color = color;
 	update_color();
@@ -130,8 +130,7 @@ void text::set_color(const float4& color)
 void text::transformed()
 {
 	// Naive algorithm: transform each corner of the AABB
-	m_world_bounds.min = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
-	m_world_bounds.max = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+	m_world_bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
 	for (std::size_t i = 0; i < 8; ++i)
 	{
 		m_world_bounds.extend(get_transform() * m_local_bounds.corner(i));
@@ -167,7 +166,7 @@ void text::update_content()
 	const image& font_bitmap = m_font->get_bitmap();
 	
 	// Init pen position
-	float2 pen_position = {0.0f, 0.0f};
+	math::fvec2 pen_position = {0.0f, 0.0f};
 	
 	// Reset local-space bounds
 	m_local_bounds.min = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), 0.0f};
@@ -190,7 +189,7 @@ void text::update_content()
 			const type::bitmap_glyph& glyph = m_font->get_glyph(code);
 			
 			// Calculate vertex positions
-			float2 positions[6];
+			math::fvec2 positions[6];
 			positions[0] = pen_position + glyph.metrics.horizontal_bearing;
 			positions[1] = {positions[0].x(), positions[0].y() - glyph.metrics.height};
 			positions[2] = {positions[0].x() + glyph.metrics.width, positions[1].y()};
@@ -199,7 +198,7 @@ void text::update_content()
 			positions[5] = positions[2];
 			
 			// Calculate vertex UVs
-			float2 uvs[6];
+			math::fvec2 uvs[6];
 			uvs[0] = {static_cast<float>(glyph.position.x()), static_cast<float>(glyph.position.y())};
 			uvs[1] = {uvs[0].x(), uvs[0].y() + glyph.metrics.height};
 			uvs[2] = {uvs[0].x() + glyph.metrics.width, uvs[1].y()};
@@ -238,7 +237,7 @@ void text::update_content()
 			// Update local-space bounds
 			for (int i = 0; i < 4; ++i)
 			{
-				const float2& position = positions[i];
+				const math::fvec2& position = positions[i];
 				for (int j = 0; j < 2; ++j)
 				{
 					m_local_bounds.min[j] = std::min<float>(m_local_bounds.min[j], position[j]);

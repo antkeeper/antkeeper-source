@@ -33,7 +33,7 @@ public:
 	 *
 	 * @param[in,out] q Unit quaternion representing the rotation of a joint.
 	 */
-	virtual void solve(math::quaternion<float>& q) = 0;
+	virtual void solve(math::fquat& q) = 0;
 };
 
 #endif // ANTKEEPER_ANIMATION_IK_CONSTRAINT_HPP

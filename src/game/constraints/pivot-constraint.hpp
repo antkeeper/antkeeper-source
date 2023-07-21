@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_PIVOT_CONSTRAINT_HPP
 
 #include <engine/entity/id.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 
 /**
@@ -33,7 +33,7 @@ struct pivot_constraint
 	entity::id target;
 	
 	/// Pivot point offset.
-	float3 offset;
+	math::fvec3 offset;
 };
 
 

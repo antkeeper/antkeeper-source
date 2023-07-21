@@ -33,7 +33,7 @@ light_probe_stage::light_probe_stage(gl::rasterizer& rasterizer, ::resource_mana
 {
 	// Build quad VBO and VAO
 	{
-		const math::vector2<float> vertex_positions[] =
+		const math::fvec2 vertex_positions[] =
 		{
 			{-1.0f,  1.0f},
 			{-1.0f, -1.0f},
@@ -331,7 +331,7 @@ void light_probe_stage::rebuild_cubemap_filter_lut_texture()
 	m_rasterizer->use_framebuffer(*m_cubemap_filter_lut_framebuffer);
 	m_rasterizer->set_viewport(0, 0, m_cubemap_filter_lut_texture->get_width(), m_cubemap_filter_lut_texture->get_height());
 	m_rasterizer->use_program(*m_cubemap_filter_lut_shader_program);
-	m_cubemap_filter_lut_resolution_var->update(math::vector2<float>{static_cast<float>(m_cubemap_filter_lut_texture->get_width()), static_cast<float>(m_cubemap_filter_lut_texture->get_height())});
+	m_cubemap_filter_lut_resolution_var->update(math::fvec2{static_cast<float>(m_cubemap_filter_lut_texture->get_width()), static_cast<float>(m_cubemap_filter_lut_texture->get_height())});
 	m_cubemap_filter_lut_face_size_var->update(128.0f);
 	m_cubemap_filter_lut_mip_bias_var->update(m_cubemap_filter_mip_bias);
 	m_rasterizer->draw_arrays(*m_quad_vao, gl::drawing_mode::triangle_strip, 0, 4);

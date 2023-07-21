@@ -36,7 +36,7 @@ struct orbit_component
 	double scale;
 	
 	/// Cartesian position of the orbit, w.r.t. the ICRF frame.
-	math::vector3<double> position;
+	math::dvec3 position;
 };
 
 

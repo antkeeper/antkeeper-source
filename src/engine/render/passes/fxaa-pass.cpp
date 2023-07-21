@@ -44,7 +44,7 @@ fxaa_pass::fxaa_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuf
 	// Build FXAA shader program
 	shader = shader_template->build();
 
-	const float2 vertex_positions[] =
+	const math::fvec2 vertex_positions[] =
 	{
 		{-1.0f,  1.0f},
 		{-1.0f, -1.0f},
@@ -125,7 +125,7 @@ void fxaa_pass::rebuild_command_buffer()
 		(
 			[&, texel_size_var]()
 			{
-				const float2 texel_size = 1.0f / float2{static_cast<float>(source_texture->get_width()), static_cast<float>(source_texture->get_height())};
+				const math::fvec2 texel_size = 1.0f / math::fvec2{static_cast<float>(source_texture->get_width()), static_cast<float>(source_texture->get_height())};
 				texel_size_var->update(texel_size);
 			}
 		);

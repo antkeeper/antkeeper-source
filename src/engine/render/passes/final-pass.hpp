@@ -60,7 +60,7 @@ private:
 	float bloom_weight;
 	std::shared_ptr<gl::texture_2d> blue_noise_texture;
 	float blue_noise_scale;
-	float2 resolution;
+	math::fvec2 resolution;
 	float time;
 	int frame{};
 	

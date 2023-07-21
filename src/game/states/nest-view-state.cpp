@@ -81,6 +81,7 @@
 #include <engine/geom/intersection.hpp>
 #include <engine/animation/ease.hpp>
 #include <engine/color/color.hpp>
+#include <engine/geom/brep/brep-operations.hpp>
 
 nest_view_state::nest_view_state(::game& ctx):
 	game_state(ctx)
@@ -105,7 +106,7 @@ nest_view_state::nest_view_state(::game& ctx):
 	debug::log::trace("Generated genome");
 	
 	debug::log::trace("Building worker phenome...");
-	ant_phenome worker_phenome = ant_phenome(*genome, ant_caste_type::queen);
+	ant_phenome worker_phenome = ant_phenome(*genome, ant_caste_type::worker);
 	debug::log::trace("Built worker phenome...");
 	
 	debug::log::trace("Generating worker model...");
@@ -116,7 +117,7 @@ nest_view_state::nest_view_state(::game& ctx):
 	// ctx.underground_directional_light = std::make_unique<scene::directional_light>();
 	// ctx.underground_directional_light->set_color({1.0f, 1.0f, 1.0f});
 	// ctx.underground_directional_light->set_illuminance(2.0f);
-	// ctx.underground_directional_light->set_direction(math::normalize(math::vector<float, 3>{0, -1, 0}));
+	// ctx.underground_directional_light->set_direction(math::normalize(math::fvec3{0, -1, 0}));
 	// ctx.underground_directional_light->set_shadow_caster(true);
 	// ctx.underground_directional_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer);
 	// ctx.underground_directional_light->set_shadow_bias(0.005f);
@@ -126,27 +127,28 @@ nest_view_state::nest_view_state(::game& ctx):
 	// ctx.underground_scene->add_object(*ctx.underground_directional_light);
 	
 	ctx.underground_clear_pass->set_clear_color({0.214f, 0.214f, 0.214f, 1.0f});
+	// ctx.underground_clear_pass->set_clear_color({});
 	light_probe = std::make_shared<scene::light_probe>();
 	light_probe->set_luminance_texture(ctx.resource_manager->load<gl::texture_cube>("grey-furnace.tex"));
 	ctx.underground_scene->add_object(*light_probe);
 	
 	//const float color_temperature = 5000.0f;
-	//const math::vector3<float> light_color = color::aces::ap1<float>.from_xyz * color::cat::matrix(color::illuminant::deg2::d50<float>, color::aces::white_point<float>) * color::cct::to_xyz(color_temperature);
-	const math::vector3<float> light_color{1.0f, 1.0f, 1.0f}; 
+	//const math::fvec3 light_color = color::aces::ap1<float>.from_xyz * color::cat::matrix(color::illuminant::deg2::d50<float>, color::aces::white_point<float>) * color::cct::to_xyz(color_temperature);
+	const math::fvec3 light_color{1.0f, 1.0f, 1.0f}; 
 	
 	// Create rectangle light
 	ctx.underground_rectangle_light = std::make_unique<scene::rectangle_light>();
 	ctx.underground_rectangle_light->set_color(light_color);
-	ctx.underground_rectangle_light->set_luminous_flux(1000.0f);
-	ctx.underground_rectangle_light->set_translation({-13.0f, 5.0f, -5.0f});
-	ctx.underground_rectangle_light->set_rotation(math::quaternion<float>::rotate_x(math::radians(90.0f)));
+	ctx.underground_rectangle_light->set_luminous_flux(1500.0f);
+	ctx.underground_rectangle_light->set_translation({0.0f, 10.0f, 0.0f});
+	ctx.underground_rectangle_light->set_rotation(math::fquat::rotate_x(math::radians(90.0f)));
 	ctx.underground_rectangle_light->set_scale(7.0f);
 	ctx.underground_scene->add_object(*ctx.underground_rectangle_light);
 	
 	// Create light rectangle
 	auto light_rectangle_model = ctx.resource_manager->load<render::model>("light-rectangle.mdl");
 	auto light_rectangle_material = std::make_shared<render::material>(*light_rectangle_model->get_groups().front().material);
-	light_rectangle_emissive = std::static_pointer_cast<render::material_float3>(light_rectangle_material->get_variable("emissive"));
+	light_rectangle_emissive = std::static_pointer_cast<render::matvar_fvec3>(light_rectangle_material->get_variable("emissive"));
 	light_rectangle_emissive->set(ctx.underground_rectangle_light->get_colored_luminance());
 	auto light_rectangle_static_mesh = std::make_shared<scene::static_mesh>(light_rectangle_model);
 	light_rectangle_static_mesh->set_material(0, light_rectangle_material);
@@ -162,73 +164,79 @@ nest_view_state::nest_view_state(::game& ctx):
 		}
 	);
 	
-	// Create chamber
-	auto chamber_eid = ctx.entity_registry->create();
-	scene_component chamber_scene_component;
-	chamber_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("soil-nest.mdl"));
-	chamber_scene_component.layer_mask = 2;
-	ctx.entity_registry->emplace<scene_component>(chamber_eid, std::move(chamber_scene_component));
+	// Create petri dish
+	auto petri_dish_eid = ctx.entity_registry->create();
+	scene_component petri_dish_scene_component;
+	petri_dish_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("square-petri-dish.mdl"));
+	petri_dish_scene_component.layer_mask = 2;
+	ctx.entity_registry->emplace<scene_component>(petri_dish_eid, std::move(petri_dish_scene_component));
+	
+	// Create petri dish cement
+	auto petri_dish_cement_eid = ctx.entity_registry->create();
+	scene_component petri_dish_cement_scene_component;
+	petri_dish_cement_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("square-petri-dish-cement.mdl"));
+	petri_dish_cement_scene_component.layer_mask = 2;
+	ctx.entity_registry->emplace<scene_component>(petri_dish_cement_eid, std::move(petri_dish_cement_scene_component));
 	
 	// Create worker
 	auto worker_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_model);
-	auto worker_ant_eid = ctx.entity_registry->create();
+	worker_eid = ctx.entity_registry->create();
 	transform_component worker_transform_component;
 	worker_transform_component.local = math::transform<float>::identity();
-	worker_transform_component.local.translation = {0, 0.5f, -4};
+	worker_transform_component.local.translation = {0, 0.1f, 0};
+	worker_transform_component.local.scale = math::fvec3::one() * worker_phenome.body_size->mean_mesosoma_length;
 	worker_transform_component.world = worker_transform_component.local;
-	ctx.entity_registry->emplace<transform_component>(worker_ant_eid, worker_transform_component);
-	ctx.entity_registry->emplace<scene_component>(worker_ant_eid, std::move(worker_skeletal_mesh), std::uint8_t{1});
+	ctx.entity_registry->emplace<transform_component>(worker_eid, worker_transform_component);
+	ctx.entity_registry->emplace<scene_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{2});
 	
 	// Create cocoon
 	auto cocoon_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<scene_component>(cocoon_eid, std::make_shared<scene::static_mesh>(worker_phenome.cocoon->model), std::uint8_t{2});
+	auto cocoon_static_mesh = std::make_shared<scene::static_mesh>(worker_phenome.cocoon->model);
+	cocoon_static_mesh->set_scale(worker_phenome.body_size->mean_mesosoma_length);
+	ctx.entity_registry->emplace<scene_component>(cocoon_eid, std::move(cocoon_static_mesh), std::uint8_t{2});
 	ctx.entity_registry->patch<scene_component>
 	(
 		cocoon_eid,
 		[&](auto& component)
 		{
-			component.object->set_translation({-5.0f, 0.0f, 5.0f});
+			component.object->set_translation({-4.0f, 0.0f, 4.0f});
 		}
 	);
 	
+	// Create color checker
+	auto color_checker_eid = ctx.entity_registry->create();
+	scene_component color_checker_scene_component;
+	color_checker_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("color-checker.mdl"));
+	color_checker_scene_component.object->set_translation({0, 0, 4});
+	color_checker_scene_component.layer_mask = 2;
+	ctx.entity_registry->emplace<scene_component>(color_checker_eid, std::move(color_checker_scene_component));
+	
 	// Create larva
-	auto larva_eid = ctx.entity_registry->create();
+	larva_eid = ctx.entity_registry->create();
 	auto larva_skeletal_mesh = std::make_shared<scene::skeletal_mesh>(worker_phenome.larva->model);
+	larva_skeletal_mesh->set_scale(worker_phenome.body_size->mean_mesosoma_length);
 	ctx.entity_registry->emplace<scene_component>(larva_eid, std::move(larva_skeletal_mesh), std::uint8_t{2});
 	ctx.entity_registry->patch<scene_component>
 	(
 		larva_eid,
 		[&](auto& component)
 		{
-			component.object->set_translation({5.0f, 0.0f, 5.0f});
-		}
-	);
-	
-	// Create suzanne
-	auto suzanne_eid = ctx.entity_registry->create();
-	auto suzanne_static_mesh = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("suzanne.mdl"));
-	ctx.entity_registry->emplace<scene_component>(suzanne_eid, std::move(suzanne_static_mesh), std::uint8_t{2});
-	ctx.entity_registry->patch<scene_component>
-	(
-		suzanne_eid,
-		[&](auto& component)
-		{
-			component.object->set_translation({-13.0f, 0.0f, -5.0f});
+			component.object->set_translation({4.0f, 0.0f, 4.0f});
 		}
 	);
 	
 	// Create sphere
-	auto sphere_eid = ctx.entity_registry->create();
-	auto sphere_static_mesh = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
-	ctx.entity_registry->emplace<scene_component>(sphere_eid, std::move(sphere_static_mesh), std::uint8_t{2});
-	ctx.entity_registry->patch<scene_component>
-	(
-		sphere_eid,
-		[&](auto& component)
-		{
-			component.object->set_translation({0.0f, 0.0f, 0.0f});
-		}
-	);
+	// auto sphere_eid = ctx.entity_registry->create();
+	// auto sphere_static_mesh = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
+	// ctx.entity_registry->emplace<scene_component>(sphere_eid, std::move(sphere_static_mesh), std::uint8_t{2});
+	// ctx.entity_registry->patch<scene_component>
+	// (
+		// sphere_eid,
+		// [&](auto& component)
+		// {
+			// component.object->set_translation({0.0f, 0.0f, 0.0f});
+		// }
+	// );
 	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
@@ -244,7 +252,7 @@ nest_view_state::nest_view_state(::game& ctx):
 	
 	// Setup camera
 	ctx.underground_camera->set_exposure_value(0.0f);
-		
+	
 	const auto& viewport_size = ctx.window->get_viewport_size();
 	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
@@ -270,6 +278,17 @@ nest_view_state::nest_view_state(::game& ctx):
 	
 	// Refresh frame scheduler
 	ctx.frame_scheduler.refresh();
+	
+	// Load navmesh
+	navmesh = ctx.resource_manager->load<geom::brep_mesh>("square-petri-dish-navmesh.msh");
+	
+	// Generate navmesh attributes
+	geom::generate_face_normals(*navmesh);
+	
+	// Build navmesh BVH
+	debug::log::info("building bvh");
+	navmesh_bvh = std::make_unique<geom::bvh>(*navmesh);
+	debug::log::info("building bvh done");
 	
 	debug::log::trace("Entered nest view state");
 }
@@ -342,13 +361,13 @@ void nest_view_state::zoom_third_person_camera(double zoom)
 	set_third_person_camera_zoom(third_person_camera_zoom + zoom);
 }
 
-void nest_view_state::translate_third_person_camera(const math::vector<double, 3>& direction, double magnitude)
+void nest_view_state::translate_third_person_camera(const math::dvec3& direction, double magnitude)
 {
 	// Scale translation magnitude by factor of focal plane height
 	magnitude *= third_person_camera_focal_plane_height * third_person_camera_speed;
 	
 	// Rotate translation direction according to camera yaw
-	const math::vector<double, 3> rotated_direction = third_person_camera_yaw_rotation * direction;
+	const math::dvec3 rotated_direction = third_person_camera_yaw_rotation * direction;
 	
 	third_person_camera_focal_point += rotated_direction * magnitude;
 	
@@ -365,7 +384,7 @@ void nest_view_state::rotate_third_person_camera(const input::mouse_moved_event&
 
 void nest_view_state::handle_mouse_motion(const input::mouse_moved_event& event)
 {
-	ctx.underground_material_pass->set_mouse_position(float2(event.position));
+	ctx.underground_material_pass->set_mouse_position(math::fvec2(event.position));
 	
 	if (!mouse_look && !mouse_grip && !mouse_zoom)
 	{
@@ -374,9 +393,9 @@ void nest_view_state::handle_mouse_motion(const input::mouse_moved_event& event)
 	
 	if (mouse_grip)
 	{
-		const math::vector<double, 2> viewport_size = math::vector<double, 2>(ctx.window->get_viewport_size());
+		const math::dvec2 viewport_size = math::dvec2(ctx.window->get_viewport_size());
 		
-		math::vector<double, 3> translation
+		math::dvec3 translation
 		{
 			third_person_camera_focal_plane_width * (static_cast<double>(-event.difference.x()) / (viewport_size.x() - 1.0)),
 			0.0,
@@ -407,7 +426,7 @@ void nest_view_state::handle_mouse_motion(const input::mouse_moved_event& event)
 
 void nest_view_state::update_third_person_camera()
 {
-	const math::vector<double, 3> camera_position = third_person_camera_focal_point + third_person_camera_orientation * math::vector<double, 3>{0.0f, 0.0f, third_person_camera_focal_distance};
+	const math::dvec3 camera_position = third_person_camera_focal_point + third_person_camera_orientation * math::dvec3{0.0f, 0.0f, third_person_camera_focal_distance};
 	
 	ctx.entity_registry->patch<scene_component>
 	(
@@ -416,8 +435,8 @@ void nest_view_state::update_third_person_camera()
 		{
 			auto& camera = static_cast<scene::camera&>(*component.object);
 			
-			camera.set_translation(math::vector<float, 3>(camera_position));
-			camera.set_rotation(math::quaternion<float>(third_person_camera_orientation));
+			camera.set_translation(math::fvec3(camera_position));
+			camera.set_rotation(math::fquat(third_person_camera_orientation));
 			camera.set_perspective(static_cast<float>(third_person_camera_vfov), camera.get_aspect_ratio(), camera.get_clip_near(), camera.get_clip_far());
 		}
 	);
@@ -467,13 +486,13 @@ void nest_view_state::load_or_save_camera_preset(std::uint8_t index)
 	}
 }
 
-geom::ray<float, 3> nest_view_state::get_mouse_ray(const math::vector<std::int32_t, 2>& mouse_position) const
+geom::ray<float, 3> nest_view_state::get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const
 {
 	// Get window viewport size
 	const auto& viewport_size = ctx.window->get_viewport_size();
 	
 	// Transform mouse coordinates from window space to NDC space
-	const math::vector<float, 2> mouse_ndc =
+	const math::fvec2 mouse_ndc =
 	{
 		static_cast<float>(mouse_position.x()) / static_cast<float>(viewport_size.x() - 1) * 2.0f - 1.0f,
 		(1.0f - static_cast<float>(mouse_position.y()) / static_cast<float>(viewport_size.y() - 1)) * 2.0f - 1.0f
@@ -542,6 +561,76 @@ void nest_view_state::setup_controls()
 				}
 				
 				ctx.input_manager->set_relative_mouse_mode(mouse_look || mouse_grip || mouse_zoom);
+				
+				// BVH picking test
+				const auto& mouse_position = (*ctx.input_manager->get_mice().begin())->get_position();
+				const auto mouse_ray = get_mouse_ray(mouse_position);
+				
+				debug::log::info("pick:");
+				float nearest_hit = std::numeric_limits<float>::infinity();
+				bool hit = false;
+				std::uint32_t hit_index;
+				const auto& vertex_positions = navmesh->vertices().attributes().at<math::fvec3>("position");
+				std::size_t test_count = 0;
+				
+				
+				int box_test_passed = 0;
+				navmesh_bvh->visit
+				(
+					mouse_ray,
+					[&](std::uint32_t index)
+					{
+						++box_test_passed;
+						
+						geom::brep_face* face = navmesh->faces()[index];
+						auto loop = face->loops().begin();
+						const auto& a = vertex_positions[loop->vertex()->index()];
+						const auto& b = vertex_positions[(++loop)->vertex()->index()];
+						const auto& c = vertex_positions[(++loop)->vertex()->index()];
+						
+						if (auto intersection = geom::intersection(mouse_ray, a, b, c))
+						{
+							++test_count;
+							float t = std::get<0>(*intersection);
+							if (t < nearest_hit)
+							{
+								hit = true;
+								nearest_hit = t;
+								hit_index = index;
+							}
+						}
+						
+						
+					}
+				);
+				
+				debug::log::info("box tests passed: {}", box_test_passed);
+				
+				if (hit)
+				{
+					const auto& navmesh_face_normals = navmesh->faces().attributes().at<math::fvec3>("normal");
+					
+					const auto& hit_normal = navmesh_face_normals[hit_index];
+					
+					const math::fvec3 translation = mouse_ray.origin + mouse_ray.direction * nearest_hit;
+					const math::fquat rotation = math::rotation(math::fvec3{0, 1, 0}, hit_normal);
+					
+					ctx.entity_registry->patch<scene_component>
+					(
+						larva_eid,
+						[&](auto& component)
+						{
+							component.object->set_translation(translation);
+							component.object->set_rotation(rotation);
+						}
+					);
+					
+					debug::log::info("hit! test count: {}", test_count);
+				}
+				else
+				{
+					debug::log::info("no hit");
+				}
 			}
 		)
 	);

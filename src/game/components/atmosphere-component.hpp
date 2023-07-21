@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_ATMOSPHERE_COMPONENT_HPP
 #define ANTKEEPER_GAME_ATMOSPHERE_COMPONENT_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 
 /// Atmosphere
@@ -39,7 +39,7 @@ struct atmosphere_component
 	double rayleigh_scale_height;
 	
 	/// (Dependent) Rayleigh scattering coefficients.
-	double3 rayleigh_scattering;
+	math::dvec3 rayleigh_scattering;
 	
 	/// Molar concentration of Mie particles at sea level, in mol/m-3.
 	double mie_concentration;
@@ -72,10 +72,10 @@ struct atmosphere_component
 	double ozone_mode;
 	
 	/// (Dependent) Ozone absorption coefficients.
-	double3 ozone_absorption;
+	math::dvec3 ozone_absorption;
 	
 	/// Airglow luminance, in cd/m^2.
-	double3 airglow_luminance;
+	math::dvec3 airglow_luminance;
 };
 
 

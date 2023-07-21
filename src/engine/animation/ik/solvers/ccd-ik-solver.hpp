@@ -83,13 +83,13 @@ public:
 	 *
 	 * @param position Position of the end effector, relative to the tip bone.
 	 */
-	inline void set_effector_position(const math::vector<float, 3>& position) noexcept
+	inline void set_effector_position(const math::fvec3& position) noexcept
 	{
 		m_effector_position = position;
 	}
 	
 	/// Returns the position of the end effector, relative to the tip bone.
-	[[nodiscard]] inline const math::vector<float, 3>& get_effector_position() const
+	[[nodiscard]] inline const math::fvec3& get_effector_position() const
 	{
 		return m_effector_position;
 	}
@@ -104,13 +104,13 @@ public:
 	 *
 	 * @param position IK goal position, in world-space.
 	 */
-	inline void set_goal_position(const math::vector<float, 3>& position) noexcept
+	inline void set_goal_position(const math::fvec3& position) noexcept
 	{
 		m_goal_position = position;
 	}
 	
 	/// Returns the position of goal, in world-space.
-	[[nodiscard]] inline const math::vector<float, 3>& get_goal_position() const
+	[[nodiscard]] inline const math::fvec3& get_goal_position() const
 	{
 		return m_goal_position;
 	}
@@ -121,8 +121,8 @@ private:
 	ik_rig* m_ik_rig{nullptr};
 	std::size_t m_max_iterations{10};
 	std::vector<bone_index_type> m_bone_indices;
-	math::vector<float, 3> m_effector_position{0.0f, 0.0f, 0.0f};
-	math::vector<float, 3> m_goal_position{0.0f, 0.0f, 0.0f};
+	math::fvec3 m_effector_position{0.0f, 0.0f, 0.0f};
+	math::fvec3 m_goal_position{0.0f, 0.0f, 0.0f};
 	float m_sqr_distance_tolerance{1e-5f};
 };
 

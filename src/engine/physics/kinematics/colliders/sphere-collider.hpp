@@ -55,7 +55,7 @@ public:
 	 * @param radius Sphere radius.
 	 */
 	/// @{
-	inline sphere_collider(const math::vector<float, 3>& center, float radius) noexcept:
+	inline sphere_collider(const math::fvec3& center, float radius) noexcept:
 		m_sphere{center, radius}
 	{}
 	inline explicit sphere_collider(float radius) noexcept:
@@ -79,7 +79,7 @@ public:
 	 *
 	 * @param center Sphere center, in object space.
 	 */
-	inline void set_center(const math::vector<float, 3>& center) noexcept
+	inline void set_center(const math::fvec3& center) noexcept
 	{
 		m_sphere.center = center;
 	}
@@ -101,7 +101,7 @@ public:
 	}
 	
 	/// Returns the center of the sphere, in object space.
-	[[nodiscard]] inline const math::vector<float, 3>& get_center() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_center() const noexcept
 	{
 		return m_sphere.center;
 	}

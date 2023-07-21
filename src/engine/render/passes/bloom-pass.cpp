@@ -65,7 +65,7 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 	// Build upsample shader program
 	upsample_shader = upsample_shader_template->build();
 	
-	const float2 vertex_positions[] =
+	const math::fvec2 vertex_positions[] =
 	{
 		{-1.0f,  1.0f},
 		{-1.0f, -1.0f},

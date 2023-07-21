@@ -234,62 +234,62 @@ void shader_program::load_variables()
 				variable = std::make_unique<const gl_shader_bool>(variable_size, uniform_location);
 				break;
 			case GL_BOOL_VEC2:
-				variable = std::make_unique<const gl_shader_bool2>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_bvec2>(variable_size, uniform_location);
 				break;
 			case GL_BOOL_VEC3:
-				variable = std::make_unique<const gl_shader_bool3>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_bvec3>(variable_size, uniform_location);
 				break;
 			case GL_BOOL_VEC4:
-				variable = std::make_unique<const gl_shader_bool4>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_bvec4>(variable_size, uniform_location);
 				break;
 			
 			case GL_INT:
 				variable = std::make_unique<const gl_shader_int>(variable_size, uniform_location);
 				break;
 			case GL_INT_VEC2:
-				variable = std::make_unique<const gl_shader_int2>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_ivec2>(variable_size, uniform_location);
 				break;
 			case GL_INT_VEC3:
-				variable = std::make_unique<const gl_shader_int3>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_ivec3>(variable_size, uniform_location);
 				break;
 			case GL_INT_VEC4:
-				variable = std::make_unique<const gl_shader_int4>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_ivec4>(variable_size, uniform_location);
 				break;
 			
 			case GL_UNSIGNED_INT:
 				variable = std::make_unique<const gl_shader_uint>(variable_size, uniform_location);
 				break;
 			case GL_UNSIGNED_INT_VEC2:
-				variable = std::make_unique<const gl_shader_uint2>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_uvec2>(variable_size, uniform_location);
 				break;
 			case GL_UNSIGNED_INT_VEC3:
-				variable = std::make_unique<const gl_shader_uint3>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_uvec3>(variable_size, uniform_location);
 				break;
 			case GL_UNSIGNED_INT_VEC4:
-				variable = std::make_unique<const gl_shader_uint4>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_uvec4>(variable_size, uniform_location);
 				break;
 			
 			case GL_FLOAT:
 				variable = std::make_unique<const gl_shader_float>(variable_size, uniform_location);
 				break;
 			case GL_FLOAT_VEC2:
-				variable = std::make_unique<const gl_shader_float2>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_fvec2>(variable_size, uniform_location);
 				break;
 			case GL_FLOAT_VEC3:
-				variable = std::make_unique<const gl_shader_float3>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_fvec3>(variable_size, uniform_location);
 				break;
 			case GL_FLOAT_VEC4:
-				variable = std::make_unique<const gl_shader_float4>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_fvec4>(variable_size, uniform_location);
 				break;
 			
 			case GL_FLOAT_MAT2:
-				variable = std::make_unique<const gl_shader_float2x2>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_fmat2>(variable_size, uniform_location);
 				break;
 			case GL_FLOAT_MAT3:
-				variable = std::make_unique<const gl_shader_float3x3>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_fmat3>(variable_size, uniform_location);
 				break;
 			case GL_FLOAT_MAT4:
-				variable = std::make_unique<const gl_shader_float4x4>(variable_size, uniform_location);
+				variable = std::make_unique<const gl_shader_fmat4>(variable_size, uniform_location);
 				break;
 			
 			case GL_SAMPLER_1D:

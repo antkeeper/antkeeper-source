@@ -80,7 +80,7 @@ entity::id collision_system::pick_nearest(const geom::ray<float, 3>& ray, std::u
 	return nearest_eid;
 }
 
-entity::id collision_system::pick_nearest(const math::vector<float, 3>& origin, const math::vector<float, 3>& normal, std::uint32_t flags) const
+entity::id collision_system::pick_nearest(const math::fvec3& origin, const math::fvec3& normal, std::uint32_t flags) const
 {
 	entity::id nearest_eid = entt::null;
 	float nearest_sqr_distance = std::numeric_limits<float>::infinity();
@@ -98,7 +98,7 @@ entity::id collision_system::pick_nearest(const math::vector<float, 3>& origin, 
 				return;
 			
 			// Transform picking sphere center
-			math::vector<float, 3> picking_sphere_center = transform.world * picking.sphere.center;
+			math::fvec3 picking_sphere_center = transform.world * picking.sphere.center;
 			
 			// Skip entity if picking sphere center has negative distance from picking plane
 			if (picking_plane.distance(picking_sphere_center) < 0.0f)

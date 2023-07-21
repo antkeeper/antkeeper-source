@@ -86,8 +86,7 @@ void skeletal_mesh::update_bounds()
 		const auto& model_bounds = m_model->get_bounds();
 		
 		// Naive algorithm: transform each corner of the model AABB
-		m_bounds.min = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
-		m_bounds.max = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+		m_bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
 		for (std::size_t i = 0; i < 8; ++i)
 		{
 			m_bounds.extend(get_transform() * model_bounds.corner(i));
@@ -103,7 +102,7 @@ void skeletal_mesh::transformed()
 {
 	update_bounds();
 	
-	const float4x4 transform_matrix = get_transform().matrix();
+	const math::fmat4 transform_matrix = get_transform().matrix();
 	for (auto& operation: m_operations)
 	{
 		operation.transform = transform_matrix;

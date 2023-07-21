@@ -56,11 +56,11 @@ struct trajectory
 	 * @param t Time, on `[t0, t1)`.
 	 * @return Trajectory position at time @p t.
 	 */
-	[[nodiscard]] math::vector<T, 3> position(T t) const;
+	[[nodiscard]] math::vec3<T> position(T t) const;
 };
 
 template <class T>
-math::vector<T, 3> trajectory<T>::position(T t) const
+math::vec3<T> trajectory<T>::position(T t) const
 {
 	t -= t0;
 	std::size_t i = static_cast<std::size_t>(t / dt);
@@ -71,7 +71,7 @@ math::vector<T, 3> trajectory<T>::position(T t) const
 	
 	t = (t / dt - i) * T(2) - T(1);
 	
-	math::vector3<T> r;
+	math::vec3<T> r;
 	r.x() = math::polynomial::chebyshev::evaluate(ax, ay, t);
 	r.y() = math::polynomial::chebyshev::evaluate(ay, az, t);
 	r.z() = math::polynomial::chebyshev::evaluate(az, az + n, t);

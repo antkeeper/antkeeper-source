@@ -36,7 +36,7 @@
 #include "game/states/options-menu-state.hpp"
 #include "game/strings.hpp"
 #include "game/world.hpp"
-#include <engine/math/glsl.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/math/projection.hpp>
 #include <engine/physics/light/exposure.hpp>
 #include <engine/render/model.hpp>
@@ -48,8 +48,6 @@
 #include <format>
 #include <limits>
 
-using namespace math::glsl;
-
 main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	game_state(ctx)
 {
@@ -57,8 +55,8 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
 	
-	const vec2 viewport_size = vec2(ctx.window->get_viewport_size());
-	const vec2 viewport_center = viewport_size * 0.5f;
+	const math::fvec2 viewport_size = math::fvec2(ctx.window->get_viewport_size());
+	const math::fvec2 viewport_center = viewport_size * 0.5f;
 	
 	// Construct title text
 	title_text = std::make_unique<scene::text>();
@@ -81,7 +79,7 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	(
 		[this, &ctx](int channel, const float& opacity)
 		{
-			float4 color = this->title_text->get_color();
+			math::fvec4 color = this->title_text->get_color();
 			color[3] = opacity;
 			this->title_text->set_color(color);
 		}
@@ -131,8 +129,8 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 					ctx.state_machine.pop();
 					// ctx.state_machine.emplace(std::make_unique<nuptial_flight_state>(ctx));
 					// ctx.state_machine.emplace(std::make_unique<collection_menu_state>(ctx));
-					ctx.state_machine.emplace(std::make_unique<nest_selection_state>(ctx));
-					// ctx.state_machine.emplace(std::make_unique<nest_view_state>(ctx));
+					// ctx.state_machine.emplace(std::make_unique<nest_selection_state>(ctx));
+					ctx.state_machine.emplace(std::make_unique<nest_view_state>(ctx));
 				}
 			);
 		};
@@ -285,8 +283,8 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	(
 		[&](const auto& event)
 		{
-			const vec2 viewport_size = vec2(event.window->get_viewport_size());
-			const vec2 viewport_center = viewport_size * 0.5f;
+			const math::fvec2 viewport_size = math::fvec2(event.window->get_viewport_size());
+			const math::fvec2 viewport_center = viewport_size * 0.5f;
 			
 			// Re-align title text
 			const auto& title_aabb = title_text->get_bounds();

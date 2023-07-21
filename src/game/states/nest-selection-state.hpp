@@ -22,7 +22,7 @@
 
 #include "game/states/game-state.hpp"
 #include <engine/entity/id.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/render/model.hpp>
 #include <engine/animation/ik/solvers/ccd-ik-solver.hpp>
 #include <engine/scene/light-probe.hpp>
@@ -37,7 +37,7 @@ private:
 	void create_first_person_camera_rig();
 	void destroy_first_person_camera_rig();
 	void set_first_person_camera_rig_pedestal(float pedestal);
-	void move_first_person_camera_rig(const float2& direction, float factor);
+	void move_first_person_camera_rig(const math::fvec2& direction, float factor);
 	void satisfy_first_person_camera_rig_constraints();
 	
 	void setup_controls();
@@ -55,7 +55,7 @@ private:
 	bool adjust_zoom{false};
 	
 	bool moving{false};
-	float2 movement_direction{0.0f, 0.0f};
+	math::fvec2 movement_direction{0.0f, 0.0f};
 	float movement_speed{0.0f};
 	
 	entity::id worker_ant_eid;

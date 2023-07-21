@@ -44,7 +44,7 @@ public:
 private:
 	scene::billboard billboard;
 	std::shared_ptr<render::material> material;
-	std::shared_ptr<render::material_float> progress;
+	std::shared_ptr<render::matvar_float> progress;
 	::animation<float> animation;
 	::animation<float>::channel* channel;
 	std::function<void()> callback;

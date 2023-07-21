@@ -25,21 +25,19 @@
 #include <engine/animation/ease.hpp>
 #include <engine/animation/screen-transition.hpp>
 #include <engine/debug/log.hpp>
-#include <engine/math/glsl.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/math/linear-algebra.hpp>
 #include <engine/render/material-flags.hpp>
 #include <engine/render/passes/clear-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
-
-using namespace math::glsl;
 
 splash_state::splash_state(::game& ctx):
 	game_state(ctx)
 {
 	debug::log::trace("Entering splash state...");
 	
-	const vec2 viewport_size = vec2(ctx.window->get_viewport_size());
-	const vec2 viewport_center = viewport_size * 0.5f;
+	const math::fvec2 viewport_size = math::fvec2(ctx.window->get_viewport_size());
+	const math::fvec2 viewport_center = viewport_size * 0.5f;
 	
 	// Enable color buffer clearing in UI pass
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
@@ -54,9 +52,9 @@ splash_state::splash_state(::game& ctx):
 	splash_billboard_material = std::make_shared<render::material>();
 	splash_billboard_material->set_blend_mode(render::material_blend_mode::translucent);
 	splash_billboard_material->set_shader_template(ctx.resource_manager->load<gl::shader_template>("ui-element-textured.glsl"));
-	splash_billboard_material->set_variable("background", std::make_shared<render::material_texture_2d>(1, splash_texture));
+	splash_billboard_material->set_variable("background", std::make_shared<render::matvar_texture_2d>(1, splash_texture));
 	
-	auto splash_tint = std::make_shared<render::material_float4>(1, float4{1, 1, 1, 0});
+	auto splash_tint = std::make_shared<render::matvar_fvec4>(1, math::fvec4{1, 1, 1, 0});
 	splash_billboard_material->set_variable("tint", splash_tint);
 	
 	// Construct splash billboard
@@ -88,7 +86,7 @@ splash_state::splash_state(::game& ctx):
 	// Setup animation frame callbacks
 	auto set_splash_opacity = [splash_tint](int channel, const float& opacity)
 	{
-		splash_tint->set(float4{1, 1, 1, opacity});
+		splash_tint->set(math::fvec4{1, 1, 1, opacity});
 	};
 	splash_fade_in_animation.set_frame_callback(set_splash_opacity);
 	splash_fade_out_animation.set_frame_callback(set_splash_opacity);
@@ -131,8 +129,8 @@ splash_state::splash_state(::game& ctx):
 	(
 		[&](const auto& event)
 		{
-			const vec2 viewport_size = vec2(event.window->get_viewport_size());
-			const vec2 viewport_center = viewport_size * 0.5f;
+			const math::fvec2 viewport_size = math::fvec2(event.window->get_viewport_size());
+			const math::fvec2 viewport_center = viewport_size * 0.5f;
 			splash_billboard.set_translation({std::round(viewport_center.x()), std::round(viewport_center.y()), 0.0f});
 		}
 	);

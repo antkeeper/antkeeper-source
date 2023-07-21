@@ -21,7 +21,7 @@
 #define ANTKEEPER_AI_STEERING_BEHAVIOR_FLEE_HPP
 
 #include <engine/ai/steering/agent.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 namespace ai {
 namespace steering {
@@ -34,7 +34,7 @@ namespace behavior {
  * @param target Target position.
  * @return Flee force.
  */
-float3 flee(const agent& agent, const float3& target);
+math::fvec3 flee(const agent& agent, const math::fvec3& target);
 
 } // namespace behavior
 } // namespace steering

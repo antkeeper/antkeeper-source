@@ -55,7 +55,7 @@ astronomy_system::astronomy_system(entity::registry& registry):
 	enu_to_eus = math::transformation::se3<double>
 	{
 		{0, 0, 0},
-		math::quaternion<double>::rotate_x(-math::half_pi<double>)
+		math::dquat::rotate_x(-math::half_pi<double>)
 	};
 	
 	registry.on_construct<::observer_component>().connect<&astronomy_system::on_observer_modified>(this);
@@ -118,7 +118,7 @@ void astronomy_system::update(float t, float dt)
 	
 	// if (sky_pass)
 	// {
-		// sky_pass->set_ground_albedo(math::vector3<float>{1.0f, 1.0f, 1.0f} * static_cast<float>(reference_body->albedo));
+		// sky_pass->set_ground_albedo(math::fvec3{1.0f, 1.0f, 1.0f} * static_cast<float>(reference_body->albedo));
 	// }
 	
 	// Update ICRF to EUS transformation
@@ -134,7 +134,7 @@ void astronomy_system::update(float t, float dt)
 				return;
 			
 			// Transform orbital Cartesian position (r) from the ICRF frame to the EUS frame
-			const double3 r_eus = icrf_to_eus * orbit.position;
+			const math::dvec3 r_eus = icrf_to_eus * orbit.position;
 			
 			// Evaluate body orientation polynomials
 			const double body_pole_ra = math::polynomial::horner(body.pole_ra.begin(), body.pole_ra.end(), time_centuries);
@@ -142,7 +142,7 @@ void astronomy_system::update(float t, float dt)
 			const double body_prime_meridian = math::polynomial::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
 			
 			// Determine body orientation in the ICRF frame
-			math::quaternion<double> rotation_icrf = physics::orbit::frame::bcbf::to_bci
+			math::dquat rotation_icrf = physics::orbit::frame::bcbf::to_bci
 			(
 				body_pole_ra,
 				body_pole_dec,
@@ -150,11 +150,11 @@ void astronomy_system::update(float t, float dt)
 			).r;
 			
 			// Transform body orientation from the ICRF frame to the EUS frame.
-			math::quaternion<double> rotation_eus = math::normalize(icrf_to_eus.r * rotation_icrf);
+			math::dquat rotation_eus = math::normalize(icrf_to_eus.r * rotation_icrf);
 			
 			// Update local transform
-			transform.local.translation = math::normalize(float3(r_eus));
-			transform.local.rotation = math::quaternion<float>(rotation_eus);
+			transform.local.translation = math::normalize(math::fvec3(r_eus));
+			transform.local.rotation = math::fquat(rotation_eus);
 			transform.local.scale = {1.0f, 1.0f, 1.0f};
 		}
 	);
@@ -164,28 +164,28 @@ void astronomy_system::update(float t, float dt)
 	[&](entity::id entity_id, const auto& blackbody_body, const auto& blackbody_orbit, const auto& blackbody)
 	{
 		// Transform blackbody position from ICRF frame to EUS frame
-		const double3 blackbody_position_eus = icrf_to_eus * blackbody_orbit.position;
+		const math::dvec3 blackbody_position_eus = icrf_to_eus * blackbody_orbit.position;
 		
 		// Measure distance and direction, in EUS frame, from observer to blackbody
 		const double observer_blackbody_distance = math::length(blackbody_position_eus);
-		const double3 observer_blackbody_direction_eus = blackbody_position_eus / observer_blackbody_distance;
+		const math::dvec3 observer_blackbody_direction_eus = blackbody_position_eus / observer_blackbody_distance;
 		
 		// Measure blackbody solid angle as seen by observer
 		const double observer_blackbody_angular_radius = astro::angular_radius(blackbody_body.radius, observer_blackbody_distance);
 		const double observer_blackbody_solid_angle = geom::solid_angle::cone(observer_blackbody_angular_radius);
 		
 		// Calculate illuminance from blackbody reaching observer
-		const double3 observer_blackbody_illuminance = blackbody.color * blackbody.luminance * observer_blackbody_solid_angle;
+		const math::dvec3 observer_blackbody_illuminance = blackbody.color * blackbody.luminance * observer_blackbody_solid_angle;
 		
 		// Calculate illuminance from blackbody reaching observer after atmospheric extinction
-		double3 observer_blackbody_transmitted_illuminance = observer_blackbody_illuminance;
+		math::dvec3 observer_blackbody_transmitted_illuminance = observer_blackbody_illuminance;
 		if (reference_atmosphere)
 		{
 			// Construct ray at observer pointing towards the blackbody
 			const geom::ray<double, 3> ray = {{0, 0, 0}, observer_blackbody_direction_eus};
 			
 			// Integrate atmospheric spectral transmittance factor between observer and blackbody
-			double3 transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
+			math::dvec3 transmittance = integrate_transmittance(*observer, *reference_body, *reference_atmosphere, ray);
 			
 			// Attenuate illuminance from blackbody reaching observer by spectral transmittance factor
 			observer_blackbody_transmitted_illuminance *= transmittance;
@@ -194,13 +194,13 @@ void astronomy_system::update(float t, float dt)
 		// Update sun light
 		if (sun_light != nullptr)
 		{
-			const double3 blackbody_up_eus = icrf_to_eus.r * double3{0, 0, 1};
+			const math::dvec3 blackbody_up_eus = icrf_to_eus.r * math::dvec3{0, 0, 1};
 			sun_light->set_rotation
 			(
 				math::look_rotation
 				(
-					float3(-observer_blackbody_direction_eus),
-					float3(blackbody_up_eus)
+					math::fvec3(-observer_blackbody_direction_eus),
+					math::fvec3(blackbody_up_eus)
 				)
 			);
 			
@@ -209,7 +209,7 @@ void astronomy_system::update(float t, float dt)
 			const auto max_component = math::max(observer_blackbody_transmitted_illuminance);
 			if (max_component > 0.0)
 			{
-				sun_light->set_color(math::vector3<float>(observer_blackbody_transmitted_illuminance / max_component));
+				sun_light->set_color(math::fvec3(observer_blackbody_transmitted_illuminance / max_component));
 			}
 			else
 			{
@@ -220,9 +220,9 @@ void astronomy_system::update(float t, float dt)
 		// Upload blackbody params to sky pass
 		if (this->sky_pass)
 		{
-			this->sky_pass->set_sun_position(float3(blackbody_position_eus));
-			this->sky_pass->set_sun_luminance(float3(blackbody.color * blackbody.luminance));
-			this->sky_pass->set_sun_illuminance(float3(observer_blackbody_illuminance), float3(observer_blackbody_transmitted_illuminance));
+			this->sky_pass->set_sun_position(math::fvec3(blackbody_position_eus));
+			this->sky_pass->set_sun_luminance(math::fvec3(blackbody.color * blackbody.luminance));
+			this->sky_pass->set_sun_illuminance(math::fvec3(observer_blackbody_illuminance), math::fvec3(observer_blackbody_transmitted_illuminance));
 			this->sky_pass->set_sun_angular_radius(static_cast<float>(observer_blackbody_angular_radius));
 		}
 		
@@ -231,14 +231,14 @@ void astronomy_system::update(float t, float dt)
 		[&](entity::id entity_id, const auto& reflector_body, const auto& reflector_orbit, const auto& reflector, const auto& transform)
 		{
 			// Transform reflector position from ICRF frame to EUS frame
-			const double3 reflector_position_eus = icrf_to_eus * reflector_orbit.position;
+			const math::dvec3 reflector_position_eus = icrf_to_eus * reflector_orbit.position;
 			
 			// Measure distance and direction, in EUS frame, from observer to reflector
 			const double observer_reflector_distance = math::length(reflector_position_eus);
-			const double3 observer_reflector_direction_eus = reflector_position_eus / observer_reflector_distance;
+			const math::dvec3 observer_reflector_direction_eus = reflector_position_eus / observer_reflector_distance;
 			
 			// Measure distance and direction, in EUS frame, from reflector to blackbody
-			double3 reflector_blackbody_direction_eus = blackbody_position_eus - reflector_position_eus;
+			math::dvec3 reflector_blackbody_direction_eus = blackbody_position_eus - reflector_position_eus;
 			const double reflector_blackbody_distance = math::length(reflector_blackbody_direction_eus);
 			reflector_blackbody_direction_eus /= reflector_blackbody_distance;
 			
@@ -247,24 +247,24 @@ void astronomy_system::update(float t, float dt)
 			const double reflector_blackbody_solid_angle = geom::solid_angle::cone(reflector_blackbody_angular_radius);
 			
 			// Calculate blackbody illuminance reaching reflector
-			const double3 reflector_blackbody_illuminance = blackbody.color * blackbody.luminance * reflector_blackbody_solid_angle;
+			const math::dvec3 reflector_blackbody_illuminance = blackbody.color * blackbody.luminance * reflector_blackbody_solid_angle;
 			
 			// Measure reflector solid angle as seen by observer
 			const double observer_reflector_angular_radius = astro::angular_radius(reflector_body.radius, observer_reflector_distance);
 			const double observer_reflector_solid_angle = geom::solid_angle::cone(observer_reflector_angular_radius);
 			
 			// Determine phase factor of reflector as seen by observer
-			const double observer_reflector_phase_factor = dot(observer_reflector_direction_eus, -reflector_blackbody_direction_eus) * 0.5 + 0.5;
+			const double observer_reflector_phase_factor = math::dot(observer_reflector_direction_eus, -reflector_blackbody_direction_eus) * 0.5 + 0.5;
 			
 			// Measure observer reference body solid angle as seen by reflector
 			const double reflector_observer_angular_radius = astro::angular_radius(reference_body->radius, observer_reflector_distance);
 			const double reflector_observer_solid_angle = geom::solid_angle::cone(reflector_observer_angular_radius);
 			
 			// Determine phase factor of observer reference body as by reflector
-			const double reflector_observer_phase_factor = dot(-observer_reflector_direction_eus, -observer_blackbody_direction_eus) * 0.5 + 0.5;
+			const double reflector_observer_phase_factor = math::dot(-observer_reflector_direction_eus, -observer_blackbody_direction_eus) * 0.5 + 0.5;
 			
 			// Calculate spectral transmittance between observer and reflector factor due to atmospheric extinction
-			double3 observer_reflector_transmittance = {1, 1, 1};
+			math::dvec3 observer_reflector_transmittance = {1, 1, 1};
 			if (reference_atmosphere)
 			{
 				// const geom::ray<double, 3> ray = {{0, 0, 0}, observer_reflector_direction_eus};
@@ -272,39 +272,39 @@ void astronomy_system::update(float t, float dt)
 			}
 			
 			// Measure luminance of observer reference body as seen by reflector
-			const double3 reflector_observer_luminance = observer_blackbody_illuminance * reference_body->albedo * observer_reflector_transmittance * reflector_observer_phase_factor * math::inv_pi<double>;
+			const math::dvec3 reflector_observer_luminance = observer_blackbody_illuminance * reference_body->albedo * observer_reflector_transmittance * reflector_observer_phase_factor * math::inv_pi<double>;
 			
 			// Measure illuminance from observer reference body reaching reflector
-			const double3 reflector_observer_illuminance = reflector_observer_luminance * reflector_observer_solid_angle;
+			const math::dvec3 reflector_observer_illuminance = reflector_observer_luminance * reflector_observer_solid_angle;
 			
 			// Measure luminance of reflector as seen by observer
-			const double3 observer_reflector_luminance = (reflector_blackbody_illuminance * observer_reflector_phase_factor + reflector_observer_illuminance) * reflector.albedo * observer_reflector_transmittance * math::inv_pi<double>;
+			const math::dvec3 observer_reflector_luminance = (reflector_blackbody_illuminance * observer_reflector_phase_factor + reflector_observer_illuminance) * reflector.albedo * observer_reflector_transmittance * math::inv_pi<double>;
 			
 			// Measure illuminance from reflector reaching observer
-			const double3 observer_reflector_illuminance = observer_reflector_luminance * observer_reflector_solid_angle;
+			const math::dvec3 observer_reflector_illuminance = observer_reflector_luminance * observer_reflector_solid_angle;
 			
 			if (this->sky_pass)
 			{
 				this->sky_pass->set_moon_position(transform.local.translation);
 				this->sky_pass->set_moon_rotation(transform.local.rotation);
 				this->sky_pass->set_moon_angular_radius(static_cast<float>(observer_reflector_angular_radius));
-				this->sky_pass->set_moon_sunlight_direction(float3(-reflector_blackbody_direction_eus));
-				this->sky_pass->set_moon_sunlight_illuminance(float3(reflector_blackbody_illuminance * observer_reflector_transmittance));
-				this->sky_pass->set_moon_planetlight_direction(float3(observer_reflector_direction_eus));
-				this->sky_pass->set_moon_planetlight_illuminance(float3(reflector_observer_illuminance * observer_reflector_transmittance));
-				this->sky_pass->set_moon_illuminance(float3(observer_reflector_illuminance / observer_reflector_transmittance), float3(observer_reflector_illuminance));
+				this->sky_pass->set_moon_sunlight_direction(math::fvec3(-reflector_blackbody_direction_eus));
+				this->sky_pass->set_moon_sunlight_illuminance(math::fvec3(reflector_blackbody_illuminance * observer_reflector_transmittance));
+				this->sky_pass->set_moon_planetlight_direction(math::fvec3(observer_reflector_direction_eus));
+				this->sky_pass->set_moon_planetlight_illuminance(math::fvec3(reflector_observer_illuminance * observer_reflector_transmittance));
+				this->sky_pass->set_moon_illuminance(math::fvec3(observer_reflector_illuminance / observer_reflector_transmittance), math::fvec3(observer_reflector_illuminance));
 			}
 			
 			if (moon_light)
 			{
-				const float3 reflector_up_eus = float3(icrf_to_eus.r * double3{0, 0, 1});
+				const math::fvec3 reflector_up_eus = math::fvec3(icrf_to_eus.r * math::dvec3{0, 0, 1});
 				
 				moon_light->set_illuminance(static_cast<float>(math::max(observer_reflector_illuminance)));
 				
 				const auto max_component = math::max(observer_reflector_illuminance);
 				if (max_component > 0.0)
 				{
-					moon_light->set_color(math::vector3<float>(observer_reflector_illuminance / max_component));
+					moon_light->set_color(math::fvec3(observer_reflector_illuminance / max_component));
 				}
 				else
 				{
@@ -315,7 +315,7 @@ void astronomy_system::update(float t, float dt)
 				(
 					math::look_rotation
 					(
-						float3(-observer_reflector_direction_eus),
+						math::fvec3(-observer_reflector_direction_eus),
 						reflector_up_eus
 					)
 				);
@@ -363,7 +363,7 @@ void astronomy_system::set_moon_light(scene::directional_light* light)
 	moon_light = light;
 }
 
-void astronomy_system::set_starlight_illuminance(const double3& illuminance)
+void astronomy_system::set_starlight_illuminance(const math::dvec3& illuminance)
 {
 	starlight_illuminance = illuminance;
 }
@@ -390,7 +390,7 @@ void astronomy_system::set_sky_pass(::render::sky_pass* pass)
 			if (reference_body)
 			{
 				sky_pass->set_planet_radius(static_cast<float>(reference_body->radius));
-				// sky_pass->set_ground_albedo(math::vector3<float>{1.0f, 1.0f, 1.0f} * static_cast<float>(reference_body->albedo));
+				// sky_pass->set_ground_albedo(math::fvec3{1.0f, 1.0f, 1.0f} * static_cast<float>(reference_body->albedo));
 			}
 			else
 			{
@@ -554,16 +554,16 @@ void astronomy_system::update_icrf_to_eus(const ::celestial_body_component& body
 		(
 			math::transformation::se3<float>
 			{
-				float3(icrf_to_eus.t),
-				math::quaternion<float>(icrf_to_eus.r)
+				math::fvec3(icrf_to_eus.t),
+				math::fquat(icrf_to_eus.r)
 			}
 		);
 	}
 }
 
-double3 astronomy_system::integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const
+math::dvec3 astronomy_system::integrate_transmittance(const ::observer_component& observer, const ::celestial_body_component& body, const ::atmosphere_component& atmosphere, geom::ray<double, 3> ray) const
 {
-	math::vector3<double> transmittance = {1, 1, 1};
+	math::dvec3 transmittance = {1, 1, 1};
 	
 	// Make ray height relative to center of reference body
 	ray.origin.y() += body.radius + observer.elevation;
@@ -590,7 +590,7 @@ double3 astronomy_system::integrate_transmittance(const ::observer_component& ob
 		const double sample_end_distance = std::get<1>(*intersection);
 		
 		// Integrate atmospheric particle densities
-		math::vector3<double> densities{};
+		math::dvec3 densities{};
 		double previous_sample_distance = 0.0;
 		for (std::size_t i = 0; i < transmittance_samples; ++i)
 		{
@@ -610,7 +610,7 @@ double3 astronomy_system::integrate_transmittance(const ::observer_component& ob
 		}
 		
 		// Calculate extinction coefficients from integrated atmospheric particle densities
-		const math::vector3<double> extinction = densities.x() * atmosphere.rayleigh_scattering +
+		const math::dvec3 extinction = densities.x() * atmosphere.rayleigh_scattering +
 			densities.y() * atmosphere.mie_extinction +
 			densities.z() * atmosphere.ozone_absorption;
 		

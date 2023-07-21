@@ -25,10 +25,14 @@
 #include <cmath>
 #include <concepts>
 #include <iterator>
+#include <limits>
 #include <type_traits>
 #include <utility>
 
 namespace math {
+
+/// Vector types.
+namespace vector_types {
 
 /**
  * *n*-dimensional vector.
@@ -309,10 +313,10 @@ struct vector
 	template <std::size_t... I>
 	[[nodiscard]] static constexpr vector one(std::index_sequence<I...>) noexcept
 	{
-		//return {T{1}...};
+		//return {element_type{1}...};
 		
 		// MSVC bug workaround (I must be referenced for parameter pack expansion)
-		return {(I ? T{1} : T{1})...};
+		return {(I ? element_type{1} : element_type{1})...};
 	}
 	
 	/**
@@ -323,20 +327,123 @@ struct vector
 		return one(std::make_index_sequence<N>{});
 	}
 	
+	/// @private
+	template <std::size_t... I>
+	[[nodiscard]] static constexpr vector infinity(std::index_sequence<I...>) noexcept
+	{
+		//return {element_type{1}...};
+		
+		// MSVC bug workaround (I must be referenced for parameter pack expansion)
+		return {(I ? std::numeric_limits<element_type>::infinity() : std::numeric_limits<element_type>::infinity())...};
+	}
+	
+	/**
+	 * Returns a vector of infinities, where every element is equal to infinity.
+	 */
+	[[nodiscard]] static constexpr vector infinity() noexcept
+	{
+		return infinity(std::make_index_sequence<N>{});
+	}
+	
 	/// @}
 };
 
-/// Vector with two elements.
+/**
+ * 2-dimensional vector.
+ *
+ * @tparam T Element type.
+ */
 template <class T>
-using vector2 = vector<T, 2>;
+using vec2 = vector<T, 2>;
 
-/// Vector with three elements.
+/**
+ * 3-dimensional vector.
+ *
+ * @tparam T Element type.
+ */
 template <class T>
-using vector3 = vector<T, 3>;
+using vec3 = vector<T, 3>;
 
-/// Vector with four elements.
+/**
+ * 4-dimensional vector.
+ *
+ * @tparam T Element type.
+ */
 template <class T>
-using vector4 = vector<T, 4>;
+using vec4 = vector<T, 4>;
+
+/**
+ * *n*-dimensional vector of Boolean values.
+ *
+ * @tparam N Number of elements
+ */
+/// @{
+template <std::size_t N>
+using bvec = vector<bool, N>;
+using bvec2 = bvec<2>;
+using bvec3 = bvec<3>;
+using bvec4 = bvec<4>;
+/// @}
+
+/**
+ * *n*-dimensional vector of signed integers.
+ *
+ * @tparam N Number of elements
+ */
+/// @{
+template <std::size_t N>
+using ivec = vector<int, N>;
+using ivec2 = ivec<2>;
+using ivec3 = ivec<3>;
+using ivec4 = ivec<4>;
+/// @}
+
+/**
+ * *n*-dimensional vector of unsigned integers.
+ *
+ * @tparam N Number of elements
+ */
+/// @{
+template <std::size_t N>
+using uvec = vector<unsigned int, N>;
+using uvec2 = uvec<2>;
+using uvec3 = uvec<3>;
+using uvec4 = uvec<4>;
+/// @}
+
+/**
+ * *n*-dimensional vector of single-precision floating-point numbers.
+ *
+ * @tparam N Number of elements
+ */
+/// @{
+template <std::size_t N>
+using fvec = vector<float, N>;
+using fvec2 = fvec<2>;
+using fvec3 = fvec<3>;
+using fvec4 = fvec<4>;
+/// @}
+
+/**
+ * *n*-dimensional vector of double-precision floating-point numbers.
+ *
+ * @tparam N Number of elements
+ */
+/// @{
+template <std::size_t N>
+using dvec = vector<double, N>;
+using dvec2 = dvec<2>;
+using dvec3 = dvec<3>;
+using dvec4 = dvec<4>;
+/// @}
+
+} // namespace vector_types
+
+// Bring vector types into math namespace
+using namespace vector_types;
+
+// Bring vector types into math::types namespace
+namespace types { using namespace math::vector_types; }
 
 /**
  * Returns the absolute values of each element.

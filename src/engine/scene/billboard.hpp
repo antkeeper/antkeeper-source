@@ -61,7 +61,7 @@ public:
 	 *
 	 * @param axis Cylindral billboard aligmment axis.
 	 */
-	inline void set_alignment_axis(const math::vector<float, 3>& axis) noexcept
+	inline void set_alignment_axis(const math::fvec3& axis) noexcept
 	{
 		m_alignment_axis = axis;
 	}
@@ -81,7 +81,7 @@ public:
 		return m_billboard_type;
 	}
 	
-	[[nodiscard]] inline const math::vector<float, 3>& get_alignment_axis() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_alignment_axis() const noexcept
 	{
 		return m_alignment_axis;
 	}
@@ -94,7 +94,7 @@ private:
 	mutable render::operation m_render_op;
 	aabb_type m_bounds{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}};
 	billboard_type m_billboard_type{billboard_type::flat};
-	math::vector<float, 3> m_alignment_axis{0.0f, 1.0f, 0.0f};
+	math::fvec3 m_alignment_axis{0.0f, 1.0f, 0.0f};
 };
 
 } // namespace scene

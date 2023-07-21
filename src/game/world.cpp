@@ -232,7 +232,7 @@ void create_stars(::game& ctx)
 	float* star_vertex = star_vertex_data.data();
 	
 	// Init starlight illuminance
-	double3 starlight_illuminance = {0, 0, 0};
+	math::dvec3 starlight_illuminance = {0, 0, 0};
 	
 	// Build star catalog vertex data
 	for (std::size_t i = 1; i < star_catalog->rows.size(); ++i)
@@ -262,16 +262,16 @@ void create_stars(::game& ctx)
 		dec = math::wrap_radians(math::radians(dec));
 		
 		// Convert ICRF coordinates from spherical to Cartesian
-		float3 position = physics::orbit::frame::bci::cartesian(float3{1.0f, dec, ra});
+		math::fvec3 position = physics::orbit::frame::bci::cartesian(math::fvec3{1.0f, dec, ra});
 		
 		// Convert color index to color temperature
 		float cct = color::index::bv_to_cct(bv);
 		
 		// Calculate XYZ color from color temperature
-		float3 color_xyz = color::cct::to_xyz(cct);
+		math::fvec3 color_xyz = color::cct::to_xyz(cct);
 		
 		// Transform XYZ color to ACEScg colorspace
-		float3 color_acescg = color::aces::ap1<float>.from_xyz * color_xyz;
+		math::fvec3 color_acescg = color::aces::ap1<float>.from_xyz * color_xyz;
 		
 		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
 		float brightness = physics::light::vmag::to_brightness(vmag);
@@ -286,7 +286,7 @@ void create_stars(::game& ctx)
 		*(star_vertex++) = brightness;
 		
 		// Calculate spectral illuminance
-		double3 illuminance = double3(color_acescg * physics::light::vmag::to_illuminance(vmag));
+		math::dvec3 illuminance = math::dvec3(color_acescg * physics::light::vmag::to_illuminance(vmag));
 		
 		// Add spectral illuminance to total starlight illuminance
 		starlight_illuminance += illuminance;
@@ -461,15 +461,15 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 	std::for_each
 	(
 		std::execution::par_unseq,
-		img.begin<math::vector<unsigned char, 4>>(),
-		img.end<math::vector<unsigned char, 4>>(),
+		img.begin<math::vec4<unsigned char>>(),
+		img.end<math::vec4<unsigned char>>(),
 		[pixels, width, height, scale_x, scale_y, frequency](auto& pixel)
 		{
-			const std::size_t i = &pixel - (math::vector<unsigned char, 4>*)pixels;
+			const std::size_t i = &pixel - (math::vec4<unsigned char>*)pixels;
 			const std::size_t y = i / width;
 			const std::size_t x = i % width;
 			
-			const float2 position =
+			const math::fvec2 position =
 			{
 				static_cast<float>(x) * scale_x,
 				static_cast<float>(y) * scale_y
@@ -484,7 +484,7 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 			
 			const float f1_distance = std::sqrt(f1_sqr_distance);
 			
-			const float2 uv = (position + f1_displacement) / frequency;
+			const math::fvec2 uv = (position + f1_displacement) / frequency;
 			
 			pixel = 
 			{
@@ -517,30 +517,30 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 		ctx.ground_pass->set_ground_model(terrestrial_hemisphere_model);
 		
 		// Setup terrain
-		ctx.terrain_system->set_patch_material(ecoregion.terrain_material);
-		ctx.terrain_system->set_elevation_function
-		(
-			[](float x, float z) -> float
-			{
-				const float2 position = float2{x, z};
+		// ctx.terrain_system->set_patch_material(ecoregion.terrain_material);
+		// ctx.terrain_system->set_elevation_function
+		// (
+			// [](float x, float z) -> float
+			// {
+				// const math::fvec2 position = math::fvec2{x, z};
 
-				const std::size_t octaves = 3;
-				const float lacunarity = 1.5f;
-				const float gain = 0.5f;
+				// const std::size_t octaves = 3;
+				// const float lacunarity = 1.5f;
+				// const float gain = 0.5f;
 				
-				const float fbm = math::noise::fbm
-				(
-					position * 0.005f,
-					octaves,
-					lacunarity,
-					gain
-				);
+				// const float fbm = math::noise::fbm
+				// (
+					// position * 0.005f,
+					// octaves,
+					// lacunarity,
+					// gain
+				// );
 				
-				float y = fbm * 4.0f;
+				// float y = fbm * 4.0f;
 				
-				return y;
-			}
-		);
+				// return y;
+			// }
+		// );
 	}
 	
 	debug::log::trace("Entered ecoregion {}", ecoregion.name);

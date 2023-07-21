@@ -220,7 +220,7 @@ void nuptial_flight_state::create_camera_rig()
 	camera_rig_focus_ease_to.start = {0, 0, 0};
 	camera_rig_focus_ease_to.duration = camera_rig_focus_ease_to_duration;
 	camera_rig_focus_ease_to.t = camera_rig_focus_ease_to.duration;
-	camera_rig_focus_ease_to.function = &ease<float3, float>::out_expo;
+	camera_rig_focus_ease_to.function = &ease<math::fvec3, float>::out_expo;
 	constraint_stack_node_component camera_rig_focus_ease_to_node;
 	camera_rig_focus_ease_to_node.active = true;
 	camera_rig_focus_ease_to_node.weight = 1.0f;
@@ -539,7 +539,7 @@ void nuptial_flight_state::setup_controls()
 				const auto& viewport_size = ctx.window->get_viewport_size();
 				
 				// Transform mouse coordinates from window space to NDC space
-				const float2 mouse_ndc =
+				const math::fvec2 mouse_ndc =
 				{
 					static_cast<float>(mouse_position.x()) / static_cast<float>(viewport_size.x() - 1) * 2.0f - 1.0f,
 					(1.0f - static_cast<float>(mouse_position.y()) / static_cast<float>(viewport_size.y() - 1)) * 2.0f - 1.0f
@@ -796,7 +796,7 @@ void nuptial_flight_state::enable_controls()
 			const auto viewport_size = ctx.window->get_viewport_size();
 			
 			// Transform mouse coordinates from window space to NDC space
-			const float2 mouse_ndc =
+			const math::fvec2 mouse_ndc =
 			{
 				static_cast<float>(mouse_x) / static_cast<float>(viewport_size[0] - 1) * 2.0f - 1.0f,
 				(1.0f - static_cast<float>(mouse_y) / static_cast<float>(viewport_size[1] - 1)) * 2.0f - 1.0f
@@ -1091,7 +1091,7 @@ void nuptial_flight_state::select_entity(entity::id entity_id)
 	}
 }
 
-void nuptial_flight_state::select_nearest_entity(const float3& direction)
+void nuptial_flight_state::select_nearest_entity(const math::fvec3& direction)
 {
 	if (!ctx.entity_registry->valid(selected_eid))
 		return;
@@ -1101,8 +1101,8 @@ void nuptial_flight_state::select_nearest_entity(const float3& direction)
 		return;
 	
 	// Construct picking plane
-	const float3 picking_normal = math::normalize(ctx.surface_camera->get_rotation() * direction);
-	const float3 picking_origin = selected_eid_transform->world.translation;
+	const math::fvec3 picking_normal = math::normalize(ctx.surface_camera->get_rotation() * direction);
+	const math::fvec3 picking_origin = selected_eid_transform->world.translation;
 	
 	// Pick entity
 	entity::id picked_eid = ctx.collision_system->pick_nearest(picking_origin, picking_normal, ~selected_picking_flag);

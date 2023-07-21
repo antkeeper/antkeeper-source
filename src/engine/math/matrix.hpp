@@ -28,6 +28,9 @@
 
 namespace math {
 
+/// Matrix types.
+namespace matrix_types {
+
 /**
  * *n* by *m* column-major matrix.
  *
@@ -356,29 +359,107 @@ struct matrix
 	/// @}
 };
 
-/// 2x2 matrix.
+/**
+ * *n* by *m* matrix.
+ *
+ * @tparam T Element type.
+ */
+/// @{
 template <class T>
-using matrix2 = matrix<T, 2, 2>;
+using mat2x2 = matrix<T, 2, 2>;
+template <class T>
+using mat2x3 = matrix<T, 2, 3>;
+template <class T>
+using mat2x4 = matrix<T, 2, 4>;
+template <class T>
+using mat3x2 = matrix<T, 3, 2>;
+template <class T>
+using mat3x3 = matrix<T, 3, 3>;
+template <class T>
+using mat3x4 = matrix<T, 3, 4>;
+template <class T>
+using mat4x2 = matrix<T, 4, 2>;
+template <class T>
+using mat4x3 = matrix<T, 4, 3>;
+template <class T>
+using mat4x4 = matrix<T, 4, 4>;
+/// @}
 
-/// 2x2 matrix.
+/**
+ * *n* by *n* square matrix.
+ *
+ * @tparam T Element type.
+ */
+/// @{
 template <class T>
-using matrix2x2 = matrix<T, 2, 2>;
+using mat2 = mat2x2<T>;
+template <class T>
+using mat3 = mat3x3<T>;
+template <class T>
+using mat4 = mat4x4<T>;
+/// @}
 
-/// 3x3 matrix.
-template <class T>
-using matrix3 = matrix<T, 3, 3>;
+/**
+ * *n* by *m* matrix of single-precision floating-point numbers.
+ *
+ * @tparam N Number of columns.
+ * @tparam M Number of rows.
+ */
+/// @{
+template <std::size_t N, std::size_t M>
+using fmat = matrix<float, N, M>;
+using fmat2x2 = fmat<2, 2>;
+using fmat2x3 = fmat<2, 3>;
+using fmat2x4 = fmat<2, 4>;
+using fmat3x2 = fmat<3, 2>;
+using fmat3x3 = fmat<3, 3>;
+using fmat3x4 = fmat<3, 4>;
+using fmat4x2 = fmat<4, 2>;
+using fmat4x3 = fmat<4, 3>;
+using fmat4x4 = fmat<4, 4>;
+/// @}
 
-/// 3x3 matrix.
-template <class T>
-using matrix3x3 = matrix<T, 3, 3>;
+/// *n* by *n* square matrix of single-precision floating-point numbers.
+/// @{
+using fmat2 = fmat2x2;
+using fmat3 = fmat3x3;
+using fmat4 = fmat4x4;
+/// @}
 
-/// 4x4 matrix.
-template <class T>
-using matrix4 = matrix<T, 4, 4>;
+/**
+ * *n* by *m* matrix of double-precision floating-point numbers.
+ *
+ * @tparam N Number of columns.
+ * @tparam M Number of rows.
+ */
+/// @{
+template <std::size_t N, std::size_t M>
+using dmat = matrix<double, N, M>;
+using dmat2x2 = dmat<2, 2>;
+using dmat2x3 = dmat<2, 3>;
+using dmat2x4 = dmat<2, 4>;
+using dmat3x2 = dmat<3, 2>;
+using dmat3x3 = dmat<3, 3>;
+using dmat3x4 = dmat<3, 4>;
+using dmat4x2 = dmat<4, 2>;
+using dmat4x3 = dmat<4, 3>;
+using dmat4x4 = dmat<4, 4>;
+/// @}
 
-/// 4x4 matrix.
-template <class T>
-using matrix4x4 = matrix<T, 4, 4>;
+/// *n* by *n* square matrix of double-precision floating-point numbers.
+/// @{
+using dmat2 = dmat2x2;
+using dmat3 = dmat3x3;
+using dmat4 = dmat4x4;
+/// @}
+
+} // namespace matrix_types
+
+// Bring matrix types into math namespace
+using namespace matrix_types;
+
+// Bring matrix types into math::types namespace
+namespace types { using namespace matrix_types; }
 
 /**
  * Adds two matrices.
@@ -472,13 +553,13 @@ template <class T, std::size_t N, std::size_t M>
  */
 /// @{
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr typename matrix<T, N, M>::column_vector_type& get(math::matrix<T, N, M>& m) noexcept;
+[[nodiscard]] constexpr typename matrix<T, N, M>::column_vector_type& get(matrix<T, N, M>& m) noexcept;
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr typename matrix<T, N, M>::column_vector_type&& get(math::matrix<T, N, M>&& m) noexcept;
+[[nodiscard]] constexpr typename matrix<T, N, M>::column_vector_type&& get(matrix<T, N, M>&& m) noexcept;
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr const typename matrix<T, N, M>::column_vector_type& get(const math::matrix<T, N, M>& m) noexcept;
+[[nodiscard]] constexpr const typename matrix<T, N, M>::column_vector_type& get(const matrix<T, N, M>& m) noexcept;
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr const typename matrix<T, N, M>::column_vector_type&& get(const math::matrix<T, N, M>&& m) noexcept;
+[[nodiscard]] constexpr const typename matrix<T, N, M>::column_vector_type&& get(const matrix<T, N, M>&& m) noexcept;
 /// @}
 
 /**
@@ -563,7 +644,7 @@ template <class T, std::size_t N, std::size_t M>
  * @return Rotation matrix.
  */
 template <class T>
-[[nodiscard]] matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis);
+[[nodiscard]] mat3<T> rotate(T angle, const vector<T, 3>& axis);
 
 /**
  * Produces a matrix which rotates Cartesian coordinates about the x-axis by a given angle.
@@ -573,7 +654,7 @@ template <class T>
  * @return Rotation matrix.
  */
 template <class T>
-[[nodiscard]] matrix3<T> rotate_x(T angle);
+[[nodiscard]] mat3<T> rotate_x(T angle);
 
 /**
  * Produces a matrix which rotates Cartesian coordinates about the y-axis by a given angle.
@@ -583,7 +664,7 @@ template <class T>
  * @return Rotation matrix.
  */
 template <class T>
-[[nodiscard]] matrix3<T> rotate_y(T angle);
+[[nodiscard]] mat3<T> rotate_y(T angle);
 
 /**
  * Produces a matrix which rotates Cartesian coordinates about the z-axis by a given angle.
@@ -593,7 +674,7 @@ template <class T>
  * @return Rotation matrix.
  */
 template <class T>
-[[nodiscard]] matrix3<T> rotate_z(T angle);
+[[nodiscard]] mat3<T> rotate_z(T angle);
 
 /**
  * Scales a matrix.
@@ -707,7 +788,7 @@ constexpr T determinant(const matrix<T, 2, 2>& m) noexcept
 
 /// @private
 template <class T>
-constexpr T determinant(const matrix<T, 3, 3>& m) noexcept
+constexpr T determinant(const mat3<T>& m) noexcept
 {
 	return
 		m[0][0] * m[1][1] * m[2][2] +
@@ -790,28 +871,28 @@ constexpr matrix<T, N, M> div(T a, const matrix<T, N, M>& b) noexcept
 }
 
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-inline constexpr typename matrix<T, N, M>::column_vector_type& get(math::matrix<T, N, M>& m) noexcept
+inline constexpr typename matrix<T, N, M>::column_vector_type& get(matrix<T, N, M>& m) noexcept
 {
 	static_assert(I < N);
 	return m.columns[I];
 }
 
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-inline constexpr typename matrix<T, N, M>::column_vector_type&& get(math::matrix<T, N, M>&& m) noexcept
+inline constexpr typename matrix<T, N, M>::column_vector_type&& get(matrix<T, N, M>&& m) noexcept
 {
 	static_assert(I < N);
 	return std::move(m.columns[I]);
 }
 
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-inline constexpr const typename matrix<T, N, M>::column_vector_type& get(const math::matrix<T, N, M>& m) noexcept
+inline constexpr const typename matrix<T, N, M>::column_vector_type& get(const matrix<T, N, M>& m) noexcept
 {
 	static_assert(I < N);
 	return m.columns[I];
 }
 
 template<std::size_t I, class T, std::size_t N, std::size_t M>
-inline constexpr const typename matrix<T, N, M>::column_vector_type&& get(const math::matrix<T, N, M>&& m) noexcept
+inline constexpr const typename matrix<T, N, M>::column_vector_type&& get(const matrix<T, N, M>&& m) noexcept
 {
 	static_assert(I < N);
 	return std::move(m.columns[I]);
@@ -834,7 +915,7 @@ constexpr matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m) noexcept
 
 /// @private
 template <class T>
-constexpr matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m) noexcept
+constexpr mat3<T> inverse(const mat3<T>& m) noexcept
 {
 	const T inv_det = T{1} / determinant(m);
 
@@ -961,13 +1042,13 @@ constexpr typename matrix<T, N, M>::row_vector_type mul(const typename matrix<T,
 }
 
 template <class T>
-matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis)
+mat3<T> rotate(T angle, const vector<T, 3>& axis)
 {
 	const T c = std::cos(angle);
 	const T s = std::sin(angle);
 	const vector<T, 3> temp = mul(axis, T{1} - c);
 	
-	matrix<T, 3, 3> rotation;
+	mat3<T> rotation;
 	rotation[0][0] = axis[0] * temp[0] + c;
 	rotation[0][1] = axis[1] * temp[0] + axis[2] * s;
 	rotation[0][2] = axis[2] * temp[0] - axis[1] * s;
@@ -982,12 +1063,12 @@ matrix<T, 3, 3> rotate(T angle, const vector<T, 3>& axis)
 }
 
 template <class T>
-matrix3<T> rotate_x(T angle)
+mat3<T> rotate_x(T angle)
 {
 	const T c = std::cos(angle);
 	const T s = std::sin(angle);
 	
-	return matrix3<T>
+	return mat3<T>
 	{
 		T{1}, T{0}, T{0},
 		T{0}, c, s,
@@ -996,12 +1077,12 @@ matrix3<T> rotate_x(T angle)
 }
 
 template <class T>
-matrix3<T> rotate_y(T angle)
+mat3<T> rotate_y(T angle)
 {
 	const T c = std::cos(angle);
 	const T s = std::sin(angle);
 	
-	return matrix3<T>
+	return mat3<T>
 	{
 		c, T{0}, -s,
 		T{0}, T{1}, T{0},
@@ -1010,12 +1091,12 @@ matrix3<T> rotate_y(T angle)
 }
 
 template <class T>
-matrix3<T> rotate_z(T angle)
+mat3<T> rotate_z(T angle)
 {
 	const T c = std::cos(angle);
 	const T s = std::sin(angle);
 	
-	return matrix3<T>
+	return mat3<T>
 	{
 		c, s, T{0},
 		-s, c, T{0},
@@ -1311,13 +1392,14 @@ inline constexpr matrix<T, N, M>& operator/=(matrix<T, N, M>& a, T b) noexcept
 
 } // namespace math
 
+// Bring matrix operators into global namespace
 using namespace math::operators;
 
 // Structured binding support
 namespace std
 {
 	/**
-	 * Provides access to the number of columns in a math::matrix as a compile-time constant expression.
+	 * Provides access to the number of columns in a matrix as a compile-time constant expression.
 	 *
 	 * @tparam T Element type.
 	 * @tparam N Number of columns.
@@ -1331,7 +1413,7 @@ namespace std
 	};
 	
 	/**
-	 * Provides compile-time indexed access to the type of the columns in a math::matrix using a tuple-like interface.
+	 * Provides compile-time indexed access to the type of the columns in a matrix using a tuple-like interface.
 	 *
 	 * @tparam I Index of a column.
 	 * @tparam T Element type.

@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_PHYSICS_ORBIT_ELEMENTS_HPP
 #define ANTKEEPER_PHYSICS_ORBIT_ELEMENTS_HPP
 
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/math/numbers.hpp>
 #include <cmath>
 

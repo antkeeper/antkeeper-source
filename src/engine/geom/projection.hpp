@@ -25,7 +25,7 @@
 namespace geom {
 
 template <class T>
-math::vector<T, 3> project_on_plane(const math::vector<T, 3>& v, const math::vector<T, 3>& p, const math::vector<T, 3>& n)
+math::vec3<T> project_on_plane(const math::vec3<T>& v, const math::vec3<T>& p, const math::vec3<T>& n)
 {
 	return v - n * math::dot(v - p, n);
 }

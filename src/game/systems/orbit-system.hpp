@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_ORBIT_SYSTEM_HPP
 
 #include "game/systems/updatable-system.hpp"
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/entity/id.hpp>
 #include "game/components/orbit-component.hpp"
 #include <engine/physics/orbit/ephemeris.hpp>
@@ -73,7 +73,7 @@ private:
 	std::shared_ptr<physics::orbit::ephemeris<double>> ephemeris;
 	double time;
 	double time_scale;
-	std::vector<double3> positions;
+	std::vector<math::dvec3> positions;
 	std::unordered_set<int> ephemeris_indices;
 };
 

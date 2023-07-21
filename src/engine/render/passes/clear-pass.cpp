@@ -51,7 +51,7 @@ void clear_pass::set_cleared_buffers(bool color, bool depth, bool stencil)
 	rebuild_command_buffer();
 }
 
-void clear_pass::set_clear_color(const float4& color)
+void clear_pass::set_clear_color(const math::fvec4& color)
 {
 	clear_color = color;
 }

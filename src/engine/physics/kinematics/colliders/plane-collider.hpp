@@ -55,10 +55,10 @@ public:
 	 * @param constant Plane constant.
 	 */
 	/// @{
-	inline plane_collider(const math::vector<float, 3>& normal, float constant) noexcept:
+	inline plane_collider(const math::fvec3& normal, float constant) noexcept:
 		m_plane{normal, constant}
 	{}
-	inline explicit plane_collider(const math::vector<float, 3>& normal) noexcept:
+	inline explicit plane_collider(const math::fvec3& normal) noexcept:
 		m_plane{normal, 0.0f}
 	{}
 	plane_collider() noexcept = default;
@@ -70,7 +70,7 @@ public:
 	 * @param normal Plane normal, in object space.
 	 * @param offset Offset from the origin, in object space.
 	 */
-	inline plane_collider(const math::vector<float, 3>& normal, const math::vector<float, 3>& offset) noexcept:
+	inline plane_collider(const math::fvec3& normal, const math::fvec3& offset) noexcept:
 		m_plane(normal, offset)
 	{}
 	
@@ -89,7 +89,7 @@ public:
 	 *
 	 * @param normal Plane normal, in object space.
 	 */
-	inline void set_normal(const math::vector<float, 3>& normal) noexcept
+	inline void set_normal(const math::fvec3& normal) noexcept
 	{
 		m_plane.normal = normal;
 	}
@@ -111,7 +111,7 @@ public:
 	}
 	
 	/// Returns the plane normal, in object space.
-	[[nodiscard]] inline const math::vector<float, 3>& get_normal() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_normal() const noexcept
 	{
 		return m_plane.normal;
 	}

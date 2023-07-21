@@ -144,51 +144,55 @@ template <class T, std::size_t N>
  *
  * @return Tuple containing the distance along the ray to the point of intersection, followed by two barycentric coordinates of the point of intersection, or `std::nullopt` if no intersection occurred.
  */
+/// @{
 template <class T>
-[[nodiscard]] std::optional<std::tuple<T, T, T>> intersection(const ray<T, 3>& ray, const math::vector<T, 3>& a, const math::vector<T, 3>& b, const math::vector<T, 3>& c)
+[[nodiscard]] constexpr std::optional<std::tuple<T, T, T>> intersection(const ray<T, 3>& ray, const math::vec3<T>& a, const math::vec3<T>& b, const math::vec3<T>& c) noexcept
 {
 	// Find edges
-	const math::vector<T, 3> edge10 = b - a;
-	const math::vector<T, 3> edge20 = c - a;
-
+	const math::vec3<T> edge_ab = b - a;
+	const math::vec3<T> edge_ac = c - a;
+	
 	// Calculate determinant
-	const math::vector<T, 3> pv = math::cross(ray.direction, edge20);
-	const T det = math::dot(edge10, pv);
+	const math::vec3<T> pv = math::cross(ray.direction, edge_ac);
+	const T det = math::dot(edge_ab, pv);
 	if (!det)
 	{
 		return std::nullopt;
 	}
-
-	const T inverse_det = T{1} / det;
-
-	// Calculate u
-	const math::vector<T, 3> tv = ray.origin - a;
-	const T u = math::dot(tv, pv) * inverse_det;
 	
+	const T inverse_det = T{1} / det;
+	
+	// Calculate u
+	const math::vec3<T> tv = ray.origin - a;
+	const T u = math::dot(tv, pv) * inverse_det;
 	if (u < T{0} || u > T{1})
 	{
 		return std::nullopt;
 	}
-
+	
 	// Calculate v
-	const math::vector<T, 3> qv = math::cross(tv, edge10);
+	const math::vec3<T> qv = math::cross(tv, edge_ab);
 	const T v = math::dot(ray.direction, qv) * inverse_det;
-
 	if (v < T{0} || u + v > T{1})
 	{
 		return std::nullopt;
 	}
-
+	
 	// Calculate t
-	const T t = math::dot(edge20, qv) * inverse_det;
-
-	if (t > T{0})
+	const T t = math::dot(edge_ac, qv) * inverse_det;
+	if (t < T{0})
 	{
-		return std::tuple<T, T, T>{t, u, v};
+		return std::nullopt;
 	}
-
-	return std::nullopt;
+	
+	return std::tuple<T, T, T>{t, u, v};
 }
+template <class T>
+[[nodiscard]] inline constexpr std::optional<std::tuple<T, T, T>> intersection(const math::vec3<T>& a, const math::vec3<T>& b, const math::vec3<T>& c, const ray<T, 3>& ray) noexcept
+{
+	return intersection(ray, a, b, c);
+}
+/// @}
 
 /**
  * Hyperrectangle-hyperrectangle intersection test.

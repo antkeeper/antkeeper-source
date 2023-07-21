@@ -43,13 +43,13 @@ public:
 	 *
 	 * @param luminous_flux Luminous flux, in *lm*.
 	 */
-	inline void set_luminous_flux(const math::vector<float, 3>& luminous_flux) noexcept
+	inline void set_luminous_flux(const math::fvec3& luminous_flux) noexcept
 	{
 		m_luminous_flux = luminous_flux;
 	}
 	
 	/// Returns the luminous flux of the spot light, in *lm*.
-	[[nodiscard]] inline const math::vector<float, 3>& get_luminous_flux() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_luminous_flux() const noexcept
 	{
 		return m_luminous_flux;
 	}
@@ -59,22 +59,22 @@ public:
 	 *
 	 * @param cutoff Vector containing the inner and outer cutoff angles, as x and y, respectively.
 	 */
-	void set_cutoff(const math::vector<float, 2>& cutoff);
+	void set_cutoff(const math::fvec2& cutoff);
 	
 	/// Returns the direction vector.
-	[[nodiscard]] inline const math::vector<float, 3>& get_direction() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_direction() const noexcept
 	{
 		return m_direction;
 	}
 	
 	/// Returns the spot light cutoff angles.
-	[[nodiscard]] inline const math::vector<float, 2>& get_cutoff() const noexcept
+	[[nodiscard]] inline const math::fvec2& get_cutoff() const noexcept
 	{
 		return m_cutoff;
 	}
 	
 	/// Returns the cosine of the spot light cutoff angles.
-	[[nodiscard]] inline const math::vector<float, 2>& get_cosine_cutoff() const noexcept
+	[[nodiscard]] inline const math::fvec2& get_cosine_cutoff() const noexcept
 	{
 		return m_cosine_cutoff;
 	}
@@ -82,10 +82,10 @@ public:
 private:
 	void transformed() override;
 	
-	math::vector<float, 3> m_luminous_flux{0.0f, 0.0f, 0.0f};
-	math::vector<float, 3> m_direction{0.0f, 0.0f, -1.0f};
-	math::vector<float, 2> m_cutoff{math::pi<float>, math::pi<float>};
-	math::vector<float, 2> m_cosine_cutoff{-1.0f, -1.0f};
+	math::fvec3 m_luminous_flux{0.0f, 0.0f, 0.0f};
+	math::fvec3 m_direction{0.0f, 0.0f, -1.0f};
+	math::fvec2 m_cutoff{math::pi<float>, math::pi<float>};
+	math::fvec2 m_cosine_cutoff{-1.0f, -1.0f};
 };
 
 } // namespace scene

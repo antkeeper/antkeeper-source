@@ -32,14 +32,14 @@ void rectangle_light::transformed()
 	const auto& transform = get_transform();
 	
 	// Update corner positions
-	// m_corners[0] = transform * math::vector3<float>{-0.5f, 0.0f, -0.5f};
-	// m_corners[1] = transform * math::vector3<float>{ 0.5f, 0.0f, -0.5f};
-	// m_corners[2] = transform * math::vector3<float>{ 0.5f, 0.0f,  0.5f};
-	// m_corners[3] = transform * math::vector3<float>{-0.5f, 0.0f,  0.5f};
-	m_corners[0] = transform * math::vector3<float>{-0.5f, -0.5f, 0.0f};
-	m_corners[1] = transform * math::vector3<float>{-0.5f,  0.5f, 0.0f};
-	m_corners[2] = transform * math::vector3<float>{ 0.5f,  0.5f, 0.0f};
-	m_corners[3] = transform * math::vector3<float>{ 0.5f, -0.5f, 0.0f};
+	// m_corners[0] = transform * math::fvec3{-0.5f, 0.0f, -0.5f};
+	// m_corners[1] = transform * math::fvec3{ 0.5f, 0.0f, -0.5f};
+	// m_corners[2] = transform * math::fvec3{ 0.5f, 0.0f,  0.5f};
+	// m_corners[3] = transform * math::fvec3{-0.5f, 0.0f,  0.5f};
+	m_corners[0] = transform * math::fvec3{-0.5f, -0.5f, 0.0f};
+	m_corners[1] = transform * math::fvec3{-0.5f,  0.5f, 0.0f};
+	m_corners[2] = transform * math::fvec3{ 0.5f,  0.5f, 0.0f};
+	m_corners[3] = transform * math::fvec3{ 0.5f, -0.5f, 0.0f};
 	
 	// Update area
 	m_area = get_scale().x() * get_scale().z();

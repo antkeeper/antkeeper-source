@@ -260,7 +260,7 @@ void constraint_system::handle_pivot_constraint(transform_component& transform, 
 		if (target_transform)
 		{
 			// Get pivot center point
-			const float3 pivot_center = target_transform->world.translation + constraint.offset;
+			const math::fvec3 pivot_center = target_transform->world.translation + constraint.offset;
 			
 			// Pivot translation
 			transform.world.translation = pivot_center + transform.world.rotation * (transform.world.translation - pivot_center);
@@ -271,12 +271,12 @@ void constraint_system::handle_pivot_constraint(transform_component& transform, 
 void constraint_system::handle_spring_rotation_constraint(transform_component& transform, spring_rotation_constraint& constraint, float dt)
 {
 	// Solve yaw, pitch, and roll angle spring
-	solve_numeric_spring<float3, float>(constraint.spring, dt);
+	solve_numeric_spring<math::fvec3, float>(constraint.spring, dt);
 	
 	// Build yaw, pitch, and roll quaternions
-	const math::quaternion<float> yaw = math::angle_axis(constraint.spring.x0[0], {0.0f, 1.0f, 0.0f});
-	const math::quaternion<float> pitch = math::angle_axis(constraint.spring.x0[1], {-1.0f, 0.0f, 0.0f});
-	const math::quaternion<float> roll = math::angle_axis(constraint.spring.x0[2], {0.0f, 0.0f, -1.0f});
+	const math::fquat yaw = math::angle_axis(constraint.spring.x0[0], {0.0f, 1.0f, 0.0f});
+	const math::fquat pitch = math::angle_axis(constraint.spring.x0[1], {-1.0f, 0.0f, 0.0f});
+	const math::fquat roll = math::angle_axis(constraint.spring.x0[2], {0.0f, 0.0f, -1.0f});
 	
 	// Update transform rotation
 	transform.world.rotation = math::normalize(yaw * pitch * roll);
@@ -296,7 +296,7 @@ void constraint_system::handle_spring_to_constraint(transform_component& transfo
 				constraint.translation.x1 = target_transform->world.translation;
 				
 				// Solve translation spring
-				solve_numeric_spring<float3, float>(constraint.translation, dt);
+				solve_numeric_spring<math::fvec3, float>(constraint.translation, dt);
 				
 				// Update transform translation
 				transform.world.translation = constraint.translation.x0;
@@ -306,13 +306,13 @@ void constraint_system::handle_spring_to_constraint(transform_component& transfo
 			if (constraint.spring_rotation)
 			{
 				// Update rotation spring target
-				constraint.rotation.x1 = float4(target_transform->world.rotation);
+				constraint.rotation.x1 = math::fvec4(target_transform->world.rotation);
 				
 				// Solve rotation spring
-				solve_numeric_spring<float4, float>(constraint.rotation, dt);
+				solve_numeric_spring<math::fvec4, float>(constraint.rotation, dt);
 				
 				// Update transform rotation
-				transform.world.rotation = math::normalize(math::quaternion<float>{constraint.rotation.x0[0], constraint.rotation.x0[1], constraint.rotation.x0[2], constraint.rotation.x0[3]});
+				transform.world.rotation = math::normalize(math::fquat{constraint.rotation.x0[0], constraint.rotation.x0[1], constraint.rotation.x0[2], constraint.rotation.x0[3]});
 			}
 		}
 	}
@@ -321,7 +321,7 @@ void constraint_system::handle_spring_to_constraint(transform_component& transfo
 void constraint_system::handle_spring_translation_constraint(transform_component& transform, spring_translation_constraint& constraint, float dt)
 {
 	// Solve translation spring
-	solve_numeric_spring<float3, float>(constraint.spring, dt);
+	solve_numeric_spring<math::fvec3, float>(constraint.spring, dt);
 	
 	// Update transform translation
 	transform.world.translation = constraint.spring.x0;
@@ -329,9 +329,9 @@ void constraint_system::handle_spring_translation_constraint(transform_component
 
 void constraint_system::handle_three_dof_constraint(transform_component& transform, const three_dof_constraint& constraint)
 {
-	const math::quaternion<float> yaw = math::angle_axis(constraint.yaw, {0.0f, 1.0f, 0.0f});
-	const math::quaternion<float> pitch = math::angle_axis(constraint.pitch, {-1.0f, 0.0f, 0.0f});
-	const math::quaternion<float> roll = math::angle_axis(constraint.roll, {0.0f, 0.0f, -1.0f});
+	const math::fquat yaw = math::angle_axis(constraint.yaw, {0.0f, 1.0f, 0.0f});
+	const math::fquat pitch = math::angle_axis(constraint.pitch, {-1.0f, 0.0f, 0.0f});
+	const math::fquat roll = math::angle_axis(constraint.roll, {0.0f, 0.0f, -1.0f});
 	transform.world.rotation = math::normalize(yaw * pitch * roll);
 }
 

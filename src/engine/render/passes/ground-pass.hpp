@@ -21,7 +21,7 @@
 #define ANTKEEPER_RENDER_GROUND_PASS_HPP
 
 #include <engine/render/pass.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 #include <engine/animation/tween.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>

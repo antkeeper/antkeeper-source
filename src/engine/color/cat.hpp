@@ -35,7 +35,7 @@ namespace cat {
  * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
  */
 template <class T>
-constexpr math::matrix<T, 3, 3> bradford =
+constexpr math::mat3<T> bradford =
 {
 	T{ 0.8951}, T{-0.7502}, T{ 0.0389},
 	T{ 0.2664}, T{ 1.7135}, T{-0.0685},
@@ -48,7 +48,7 @@ constexpr math::matrix<T, 3, 3> bradford =
  * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
  */
 template <class T>
-constexpr math::matrix<T, 3, 3> von_kries =
+constexpr math::mat3<T> von_kries =
 {
 	T{ 0.40024}, T{-0.22630}, T{0.00000},
 	T{ 0.70760}, T{ 1.16532}, T{0.00000},
@@ -61,7 +61,7 @@ constexpr math::matrix<T, 3, 3> von_kries =
  * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
  */
 template <class T>
-constexpr math::matrix<T, 3, 3> xyz_scaling =
+constexpr math::mat3<T> xyz_scaling =
 {
 	T{1}, T{0}, T{0},
 	T{0}, T{1}, T{0},
@@ -81,17 +81,17 @@ constexpr math::matrix<T, 3, 3> xyz_scaling =
  * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
  */
 template <class T>
-[[nodiscard]] constexpr math::matrix<T, 3, 3> matrix(const math::vector2<T>& w0, const math::vector2<T>& w1, const math::matrix<T, 3, 3>& cone_response = bradford<T>) noexcept
+[[nodiscard]] constexpr math::mat3<T> matrix(const math::vec2<T>& w0, const math::vec2<T>& w1, const math::mat3<T>& cone_response = bradford<T>) noexcept
 {
 	// Convert CIE xy chromaticity coordinates to CIE XYZ colors
-	const math::vector3<T> w0_xyz = {w0[0] / w0[1], T{1}, (T{1} - w0[0] - w0[1]) / w0[1]};
-	const math::vector3<T> w1_xyz = {w1[0] / w1[1], T{1}, (T{1} - w1[0] - w1[1]) / w1[1]};
+	const math::vec3<T> w0_xyz = {w0[0] / w0[1], T{1}, (T{1} - w0[0] - w0[1]) / w0[1]};
+	const math::vec3<T> w1_xyz = {w1[0] / w1[1], T{1}, (T{1} - w1[0] - w1[1]) / w1[1]};
 	
 	// Calculate cone response of CIE XYZ colors
-	const math::vector3<T> w0_cone_response = cone_response * w0_xyz;
-	const math::vector3<T> w1_cone_response = cone_response * w1_xyz;
+	const math::vec3<T> w0_cone_response = cone_response * w0_xyz;
+	const math::vec3<T> w1_cone_response = cone_response * w1_xyz;
 	
-	const math::matrix<T, 3, 3> scale =
+	const math::mat3<T> scale =
 	{
 		w1_cone_response[0] / w0_cone_response[0], T{0}, T{0},
 		T{0}, w1_cone_response[1] / w0_cone_response[1], T{0},

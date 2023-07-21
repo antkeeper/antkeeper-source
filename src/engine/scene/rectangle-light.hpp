@@ -44,7 +44,7 @@ public:
 	 *
 	 * @param color Light color.
 	 */
-	inline void set_color(const math::vector<float, 3>& color) noexcept
+	inline void set_color(const math::fvec3& color) noexcept
 	{
 		m_color = color;
 		color_updated();
@@ -73,7 +73,7 @@ public:
 	}
 	
 	/// Returns the color of the light.
-	[[nodiscard]] inline const math::vector<float, 3>& get_color() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_color() const noexcept
 	{
 		return m_color;
 	}
@@ -85,7 +85,7 @@ public:
 	}
 	
 	/// Returns the color-modulated luminous flux of the light.
-	[[nodiscard]] inline const math::vector<float, 3>& get_colored_luminous_flux() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_colored_luminous_flux() const noexcept
 	{
 		return m_colored_luminous_flux;
 	}
@@ -97,13 +97,13 @@ public:
 	}
 	
 	/// Returns the color-modulated luminance of the light.
-	[[nodiscard]] inline const math::vector<float, 3>& get_colored_luminance() const noexcept
+	[[nodiscard]] inline const math::fvec3& get_colored_luminance() const noexcept
 	{
 		return m_colored_luminance;
 	}
 	
 	/// Returns the positions of the light corners.
-	[[nodiscard]] inline std::span<const math::vector3<float>, 4> get_corners() const noexcept
+	[[nodiscard]] inline std::span<const math::fvec3, 4> get_corners() const noexcept
 	{
 		return m_corners;
 	}
@@ -116,12 +116,12 @@ private:
 	void luminance_updated();
 	
 	float m_area{1.0f};
-	math::vector3<float> m_corners[4];
-	math::vector3<float> m_color{1.0f, 1.0f, 1.0f};
+	math::fvec3 m_corners[4];
+	math::fvec3 m_color{1.0f, 1.0f, 1.0f};
 	float m_luminous_flux{};
-	math::vector3<float> m_colored_luminous_flux{};
+	math::fvec3 m_colored_luminous_flux{};
 	float m_luminance{};
-	math::vector3<float> m_colored_luminance;
+	math::fvec3 m_colored_luminance;
 };
 
 } // namespace scene

@@ -622,8 +622,8 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 				(
 					[&, rectangle_light_colors_var, rectangle_light_corners_var]()
 					{
-						rectangle_light_colors_var->update(std::span<const float3>{rectangle_light_colors.data(), rectangle_light_count});
-						rectangle_light_corners_var->update(std::span<const float3>{rectangle_light_corners.data(), rectangle_light_count * 4});
+						rectangle_light_colors_var->update(std::span<const math::fvec3>{rectangle_light_colors.data(), rectangle_light_count});
+						rectangle_light_corners_var->update(std::span<const math::fvec3>{rectangle_light_corners.data(), rectangle_light_count * 4});
 					}
 				);
 			}
@@ -641,8 +641,8 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 				(
 					[&, directional_light_colors_var, directional_light_directions_var]()
 					{
-						directional_light_colors_var->update(std::span<const float3>{directional_light_colors.data(), directional_light_count});
-						directional_light_directions_var->update(std::span<const float3>{directional_light_directions.data(), directional_light_count});
+						directional_light_colors_var->update(std::span<const math::fvec3>{directional_light_colors.data(), directional_light_count});
+						directional_light_directions_var->update(std::span<const math::fvec3>{directional_light_directions.data(), directional_light_count});
 					}
 				);
 			}
@@ -693,8 +693,8 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 				(
 					[&, point_light_colors_var, point_light_positions_var]()
 					{
-						point_light_colors_var->update(std::span<const float3>{point_light_colors.data(), point_light_count});
-						point_light_positions_var->update(std::span<const float3>{point_light_positions.data(), point_light_count});
+						point_light_colors_var->update(std::span<const math::fvec3>{point_light_colors.data(), point_light_count});
+						point_light_positions_var->update(std::span<const math::fvec3>{point_light_positions.data(), point_light_count});
 					}
 				);
 			}
@@ -716,10 +716,10 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 				(
 					[&, spot_light_colors_var, spot_light_positions_var, spot_light_directions_var, spot_light_cutoffs_var]()
 					{
-						spot_light_colors_var->update(std::span<const float3>{spot_light_colors.data(), spot_light_count});
-						spot_light_positions_var->update(std::span<const float3>{spot_light_positions.data(), spot_light_count});
-						spot_light_directions_var->update(std::span<const float3>{spot_light_directions.data(), spot_light_count});
-						spot_light_cutoffs_var->update(std::span<const float2>{spot_light_cutoffs.data(), spot_light_count});
+						spot_light_colors_var->update(std::span<const math::fvec3>{spot_light_colors.data(), spot_light_count});
+						spot_light_positions_var->update(std::span<const math::fvec3>{spot_light_positions.data(), spot_light_count});
+						spot_light_directions_var->update(std::span<const math::fvec3>{spot_light_directions.data(), spot_light_count});
+						spot_light_cutoffs_var->update(std::span<const math::fvec2>{spot_light_cutoffs.data(), spot_light_count});
 					}
 				);
 			}
@@ -778,7 +778,7 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 		(
 			[&, normal_model_var]()
 			{
-				normal_model_var->update(math::transpose(math::inverse(math::matrix<float, 3, 3>(*model))));
+				normal_model_var->update(math::transpose(math::inverse(math::fmat3(*model))));
 			}
 		);
 	}
@@ -794,7 +794,7 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 			{
 				const auto model_view = (*view) * (*model);
 				model_view_var->update(model_view);
-				normal_model_view_var->update(math::transpose(math::inverse(math::matrix<float, 3, 3>(model_view))));
+				normal_model_view_var->update(math::transpose(math::inverse(math::fmat3(model_view))));
 			}
 		);
 	}
@@ -811,7 +811,7 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 				[&, normal_model_view_var]()
 				{
 					const auto model_view = (*view) * (*model);
-					normal_model_view_var->update(math::transpose(math::inverse(math::matrix<float, 3, 3>(model_view))));
+					normal_model_view_var->update(math::transpose(math::inverse(math::fmat3(model_view))));
 				}
 			);
 		}
@@ -849,231 +849,231 @@ void material_pass::build_material_command_buffer(std::vector<std::function<void
 		
 		switch (shader_var->type())
 		{
-			/// @TODO render::material_bool is broken due to the std::vector<bool> specialization.
-			// case gl::shader_variable_type::bool1:
-				// if (material_var->type() == material_variable_type::bool1)
+			/// @TODO render::matvar_bool is broken due to the std::vector<bool> specialization.
+			// case gl::shader_variable_type::bvec1:
+				// if (material_var->type() == material_variable_type::bvec1)
 				// {
 					// command_buffer.emplace_back
 					// (
-						// [size, shader_var, material_var = std::static_pointer_cast<material_bool>(material_var)]()
+						// [size, shader_var, material_var = std::static_pointer_cast<matvar_bool>(material_var)]()
 						// {
 							// shader_var->update(std::span<const bool>{material_var->data(), size});
 						// }
 					// );
 				// }
 				// break;
-			case gl::shader_variable_type::bool2:
-				if (material_var->type() == material_variable_type::bool2)
+			case gl::shader_variable_type::bvec2:
+				if (material_var->type() == material_variable_type::bvec2)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_bool2>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_bvec2>(material_var)]()
 						{
-							shader_var->update(std::span<const bool2>{material_var->data(), size});
+							shader_var->update(std::span<const math::bvec2>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::bool3:
-				if (material_var->type() == material_variable_type::bool3)
+			case gl::shader_variable_type::bvec3:
+				if (material_var->type() == material_variable_type::bvec3)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_bool3>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_bvec3>(material_var)]()
 						{
-							shader_var->update(std::span<const bool3>{material_var->data(), size});
+							shader_var->update(std::span<const math::bvec3>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::bool4:
-				if (material_var->type() == material_variable_type::bool4)
+			case gl::shader_variable_type::bvec4:
+				if (material_var->type() == material_variable_type::bvec4)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_bool4>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_bvec4>(material_var)]()
 						{
-							shader_var->update(std::span<const bool4>{material_var->data(), size});
+							shader_var->update(std::span<const math::bvec4>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::int1:
-				if (material_var->type() == material_variable_type::int1)
+			case gl::shader_variable_type::ivec1:
+				if (material_var->type() == material_variable_type::ivec1)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_int>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_int>(material_var)]()
 						{
 							shader_var->update(std::span<const int>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::int2:
-				if (material_var->type() == material_variable_type::int2)
+			case gl::shader_variable_type::ivec2:
+				if (material_var->type() == material_variable_type::ivec2)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_int2>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_ivec2>(material_var)]()
 						{
-							shader_var->update(std::span<const int2>{material_var->data(), size});
+							shader_var->update(std::span<const math::ivec2>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::int3:
-				if (material_var->type() == material_variable_type::int3)
+			case gl::shader_variable_type::ivec3:
+				if (material_var->type() == material_variable_type::ivec3)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_int3>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_ivec3>(material_var)]()
 						{
-							shader_var->update(std::span<const int3>{material_var->data(), size});
+							shader_var->update(std::span<const math::ivec3>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::int4:
-				if (material_var->type() == material_variable_type::int4)
+			case gl::shader_variable_type::ivec4:
+				if (material_var->type() == material_variable_type::ivec4)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_int4>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_ivec4>(material_var)]()
 						{
-							shader_var->update(std::span<const int4>{material_var->data(), size});
+							shader_var->update(std::span<const math::ivec4>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::uint1:
-				if (material_var->type() == material_variable_type::uint1)
+			case gl::shader_variable_type::uvec1:
+				if (material_var->type() == material_variable_type::uvec1)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_uint>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_uint>(material_var)]()
 						{
 							shader_var->update(std::span<const unsigned int>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::uint2:
-				if (material_var->type() == material_variable_type::uint2)
+			case gl::shader_variable_type::uvec2:
+				if (material_var->type() == material_variable_type::uvec2)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_uint2>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_uvec2>(material_var)]()
 						{
-							shader_var->update(std::span<const uint2>{material_var->data(), size});
+							shader_var->update(std::span<const math::uvec2>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::uint3:
-				if (material_var->type() == material_variable_type::uint3)
+			case gl::shader_variable_type::uvec3:
+				if (material_var->type() == material_variable_type::uvec3)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_uint3>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_uvec3>(material_var)]()
 						{
-							shader_var->update(std::span<const uint3>{material_var->data(), size});
+							shader_var->update(std::span<const math::uvec3>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::uint4:
-				if (material_var->type() == material_variable_type::uint4)
+			case gl::shader_variable_type::uvec4:
+				if (material_var->type() == material_variable_type::uvec4)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_uint4>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_uvec4>(material_var)]()
 						{
-							shader_var->update(std::span<const uint4>{material_var->data(), size});
+							shader_var->update(std::span<const math::uvec4>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::float1:
-				if (material_var->type() == material_variable_type::float1)
+			case gl::shader_variable_type::fvec1:
+				if (material_var->type() == material_variable_type::fvec1)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_float>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_float>(material_var)]()
 						{
 							shader_var->update(std::span<const float>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::float2:
-				if (material_var->type() == material_variable_type::float2)
+			case gl::shader_variable_type::fvec2:
+				if (material_var->type() == material_variable_type::fvec2)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_float2>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_fvec2>(material_var)]()
 						{
-							shader_var->update(std::span<const float2>{material_var->data(), size});
+							shader_var->update(std::span<const math::fvec2>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::float3:
-				if (material_var->type() == material_variable_type::float3)
+			case gl::shader_variable_type::fvec3:
+				if (material_var->type() == material_variable_type::fvec3)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_float3>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_fvec3>(material_var)]()
 						{
-							shader_var->update(std::span<const float3>{material_var->data(), size});
+							shader_var->update(std::span<const math::fvec3>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::float4:
-				if (material_var->type() == material_variable_type::float4)
+			case gl::shader_variable_type::fvec4:
+				if (material_var->type() == material_variable_type::fvec4)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_float4>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_fvec4>(material_var)]()
 						{
-							shader_var->update(std::span<const float4>{material_var->data(), size});
+							shader_var->update(std::span<const math::fvec4>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::float2x2:
-				if (material_var->type() == material_variable_type::float2x2)
+			case gl::shader_variable_type::fmat2:
+				if (material_var->type() == material_variable_type::fmat2)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_float2x2>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_fmat2>(material_var)]()
 						{
-							shader_var->update(std::span<const float2x2>{material_var->data(), size});
+							shader_var->update(std::span<const math::fmat2>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::float3x3:
-				if (material_var->type() == material_variable_type::float3x3)
+			case gl::shader_variable_type::fmat3:
+				if (material_var->type() == material_variable_type::fmat3)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_float3x3>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_fmat3>(material_var)]()
 						{
-							shader_var->update(std::span<const float3x3>{material_var->data(), size});
+							shader_var->update(std::span<const math::fmat3>{material_var->data(), size});
 						}
 					);
 				}
 				break;
-			case gl::shader_variable_type::float4x4:
-				if (material_var->type() == material_variable_type::float4x4)
+			case gl::shader_variable_type::fmat4:
+				if (material_var->type() == material_variable_type::fmat4)
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_float4x4>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_fmat4>(material_var)]()
 						{
-							shader_var->update(std::span<const float4x4>{material_var->data(), size});
+							shader_var->update(std::span<const math::fmat4>{material_var->data(), size});
 						}
 					);
 				}
@@ -1083,7 +1083,7 @@ void material_pass::build_material_command_buffer(std::vector<std::function<void
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_texture_1d>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_texture_1d>(material_var)]()
 						{
 							shader_var->update(std::span<const std::shared_ptr<gl::texture_1d>>{material_var->data(), size});
 						}
@@ -1095,7 +1095,7 @@ void material_pass::build_material_command_buffer(std::vector<std::function<void
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_texture_2d>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_texture_2d>(material_var)]()
 						{
 							shader_var->update(std::span<const std::shared_ptr<gl::texture_2d>>{material_var->data(), size});
 						}
@@ -1107,7 +1107,7 @@ void material_pass::build_material_command_buffer(std::vector<std::function<void
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_texture_3d>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_texture_3d>(material_var)]()
 						{
 							shader_var->update(std::span<const std::shared_ptr<gl::texture_3d>>{material_var->data(), size});
 						}
@@ -1119,7 +1119,7 @@ void material_pass::build_material_command_buffer(std::vector<std::function<void
 				{
 					command_buffer.emplace_back
 					(
-						[size, shader_var, material_var = std::static_pointer_cast<material_texture_cube>(material_var)]()
+						[size, shader_var, material_var = std::static_pointer_cast<matvar_texture_cube>(material_var)]()
 						{
 							shader_var->update(std::span<const std::shared_ptr<gl::texture_cube>>{material_var->data(), size});
 						}

@@ -144,7 +144,7 @@ void physics_system::integrate(float dt)
 	if (sqr_speed)
 	{
 		const float drag_magnitude = -0.5f * air_density * sqr_speed * sphere_drag_coef * sphere_cross_section_area;
-		const math::vector<float, 3> drag_force = math::normalize(body.linear_velocity) * drag_magnitude;
+		const math::fvec3 drag_force = math::normalize(body.linear_velocity) * drag_magnitude;
 		body.apply_central_force(drag_force);
 	}
 	*/
@@ -305,10 +305,10 @@ void physics_system::resolve_collisions()
 		{
 			const physics::collision_contact& contact = manifold.contacts[i];
 			
-			const math::vector<float, 3> radius_a = contact.point - body_a.get_position();
-			const math::vector<float, 3> radius_b = contact.point - body_b.get_position();
+			const math::fvec3 radius_a = contact.point - body_a.get_position();
+			const math::fvec3 radius_b = contact.point - body_b.get_position();
 			
-			math::vector<float, 3> relative_velocity = body_b.get_point_velocity(radius_b) - body_a.get_point_velocity(radius_a);
+			math::fvec3 relative_velocity = body_b.get_point_velocity(radius_b) - body_a.get_point_velocity(radius_a);
 			
 			const float contact_velocity = math::dot(relative_velocity, contact.normal);
 			if (contact_velocity > 0.0f)
@@ -317,8 +317,8 @@ void physics_system::resolve_collisions()
 			}
 			
 			const float reaction_impulse_num = -(1.0f + restitution_coef) * contact_velocity;
-			const math::vector<float, 3> ra_cross_n = math::cross(radius_a, contact.normal);
-			const math::vector<float, 3> rb_cross_n = math::cross(radius_b, contact.normal);
+			const math::fvec3 ra_cross_n = math::cross(radius_a, contact.normal);
+			const math::fvec3 rb_cross_n = math::cross(radius_b, contact.normal);
 			const float reaction_impulse_den = sum_inverse_mass +
 				math::dot
 				(
@@ -327,7 +327,7 @@ void physics_system::resolve_collisions()
 					contact.normal
 				);
 			const float reaction_impulse_mag = (reaction_impulse_num / reaction_impulse_den) * impulse_scale;
-			const math::vector<float, 3> reaction_impulse = contact.normal * reaction_impulse_mag;
+			const math::fvec3 reaction_impulse = contact.normal * reaction_impulse_mag;
 			
 			// Apply reaction impulses
 			body_a.apply_impulse(-reaction_impulse, radius_a);
@@ -335,7 +335,7 @@ void physics_system::resolve_collisions()
 			
 			//relative_velocity = body_b.get_point_velocity(radius_b) - body_a.get_point_velocity(radius_a);
 			
-			math::vector<float, 3> contact_tangent = relative_velocity - contact.normal * contact_velocity;
+			math::fvec3 contact_tangent = relative_velocity - contact.normal * contact_velocity;
 			const float sqr_tangent_length = math::sqr_length(contact_tangent);
 			if (sqr_tangent_length > 0.0f)
 			{
@@ -343,8 +343,8 @@ void physics_system::resolve_collisions()
 			}
 					
 			const float friction_impulse_num = math::dot(relative_velocity, -contact_tangent);
-			const math::vector<float, 3> ra_cross_t = math::cross(radius_a, contact_tangent);
-			const math::vector<float, 3> rb_cross_t = math::cross(radius_b, contact_tangent);
+			const math::fvec3 ra_cross_t = math::cross(radius_a, contact_tangent);
+			const math::fvec3 rb_cross_t = math::cross(radius_b, contact_tangent);
 			const float friction_impulse_den = sum_inverse_mass +
 				math::dot
 				(
@@ -359,7 +359,7 @@ void physics_system::resolve_collisions()
 				friction_impulse_mag = -reaction_impulse_mag * dynamic_friction_coef;
 			}
 			
-			const math::vector<float, 3> friction_impulse = contact_tangent * friction_impulse_mag;
+			const math::fvec3 friction_impulse = contact_tangent * friction_impulse_mag;
 			
 			body_a.apply_impulse(-friction_impulse, radius_a);
 			body_b.apply_impulse(friction_impulse, radius_b);
@@ -382,7 +382,7 @@ void physics_system::correct_positions()
 		{
 			const physics::collision_contact& contact = manifold.contacts[i];
 			
-			math::vector<float, 3> correction = contact.normal * (std::max<float>(0.0f, contact.depth - depth_threshold) / sum_inverse_mass) * correction_factor;
+			math::fvec3 correction = contact.normal * (std::max<float>(0.0f, contact.depth - depth_threshold) / sum_inverse_mass) * correction_factor;
 			
 			body_a.set_position(body_a.get_position() - correction * body_a.get_inverse_mass());
 			body_b.set_position(body_b.get_position() + correction * body_b.get_inverse_mass());
@@ -401,7 +401,7 @@ void physics_system::narrow_phase_plane_sphere(physics::rigid_body& body_a, phys
 	const auto& sphere_b = static_cast<const physics::sphere_collider&>(*body_b.get_collider());
 	
 	// Transform plane into world-space
-	const math::vector<float, 3> plane_normal = body_a.get_orientation() * plane_a.get_normal();
+	const math::fvec3 plane_normal = body_a.get_orientation() * plane_a.get_normal();
 	const float plane_constant = plane_a.get_constant() - math::dot(plane_normal, body_a.get_position());
 	
 	const float signed_distance = math::dot(plane_normal, body_b.get_position()) + plane_constant;
@@ -431,12 +431,12 @@ void physics_system::narrow_phase_plane_box(physics::rigid_body& body_a, physics
 	const auto& box_b = static_cast<const physics::box_collider&>(*body_b.get_collider());
 	
 	// Transform plane into world-space
-	const math::vector<float, 3> plane_normal = body_a.get_orientation() * plane_a.get_normal();
+	const math::fvec3 plane_normal = body_a.get_orientation() * plane_a.get_normal();
 	const float plane_constant = plane_a.get_constant() - math::dot(plane_normal, body_a.get_position());
 	
 	const auto& box_min = box_b.get_min();
 	const auto& box_max = box_b.get_max();
-	const math::vector<float, 3> corners[8] =
+	const math::fvec3 corners[8] =
 	{
 		{box_min.x(), box_min.y(), box_min.z()},
 		{box_min.x(), box_min.y(), box_max.z()},
@@ -456,7 +456,7 @@ void physics_system::narrow_phase_plane_box(physics::rigid_body& body_a, physics
 	for (std::size_t i = 0; i < 8; ++i)
 	{
 		// Transform corner into world-space
-		const math::vector<float, 3> point = body_b.get_transform() * corners[i];
+		const math::fvec3 point = body_b.get_transform() * corners[i];
 		
 		const float signed_distance = math::dot(plane_normal, point) + plane_constant;
 		
@@ -552,8 +552,8 @@ void physics_system::narrow_phase_sphere_sphere(physics::rigid_body& body_a, phy
 	const auto& collider_b = static_cast<const physics::sphere_collider&>(*body_b.get_collider());
 	
 	// Transform spheres into world-space
-	const math::vector<float, 3> center_a = body_a.get_transform() * collider_a.get_center();
-	const math::vector<float, 3> center_b = body_b.get_transform() * collider_b.get_center();
+	const math::fvec3 center_a = body_a.get_transform() * collider_a.get_center();
+	const math::fvec3 center_b = body_b.get_transform() * collider_b.get_center();
 	const float radius_a = collider_a.get_radius();
 	const float radius_b = collider_b.get_radius();
 	
@@ -561,7 +561,7 @@ void physics_system::narrow_phase_sphere_sphere(physics::rigid_body& body_a, phy
 	const float sum_radii = radius_a + radius_b;
 	
 	// Get vector from center a to center b
-	const math::vector<float, 3> difference = center_b - center_a;
+	const math::fvec3 difference = center_b - center_a;
 	
 	const float sqr_distance = math::sqr_length(difference);
 	if (sqr_distance > sum_radii * sum_radii)
@@ -604,7 +604,7 @@ void physics_system::narrow_phase_sphere_capsule(physics::rigid_body& body_a, ph
 	const auto& collider_b = static_cast<const physics::capsule_collider&>(*body_b.get_collider());
 	
 	// Transform sphere into world-space
-	const math::vector<float, 3> center_a = body_a.get_transform() * collider_a.get_center();
+	const math::fvec3 center_a = body_a.get_transform() * collider_a.get_center();
 	const float radius_a = collider_a.get_radius();
 	
 	// Transform capsule into world-space
@@ -622,7 +622,7 @@ void physics_system::narrow_phase_sphere_capsule(physics::rigid_body& body_a, ph
 	const auto closest_point = geom::closest_point(segment_b, center_a);
 	
 	// Get vector from sphere center to point to on capsule segment
-	const math::vector<float, 3> difference = closest_point - center_a;
+	const math::fvec3 difference = closest_point - center_a;
 	
 	const float sqr_distance = math::sqr_length(difference);
 	if (sqr_distance > sum_radii * sum_radii)
@@ -717,7 +717,7 @@ void physics_system::narrow_phase_capsule_capsule(physics::rigid_body& body_a, p
 	const float sum_radii = capsule_a.radius + capsule_b.radius;
 	
 	// Get vector from closest point on segment a to closest point on segment b
-	const math::vector<float, 3> difference = closest_b - closest_a;
+	const math::fvec3 difference = closest_b - closest_a;
 	
 	const float sqr_distance = math::sqr_length(difference);
 	if (sqr_distance > sum_radii * sum_radii)

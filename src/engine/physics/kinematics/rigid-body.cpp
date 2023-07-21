@@ -38,8 +38,8 @@ void rigid_body::integrate_forces(float dt) noexcept
 	m_angular_velocity = m_inverse_inertia * m_angular_momentum;
 	
 	// Clear forces
-	m_applied_force = math::vector<float, 3>::zero();
-	m_applied_torque = math::vector<float, 3>::zero();
+	m_applied_force = math::fvec3::zero();
+	m_applied_torque = math::fvec3::zero();
 }
 
 void rigid_body::integrate_velocities(float dt) noexcept
@@ -51,7 +51,7 @@ void rigid_body::integrate_velocities(float dt) noexcept
 	m_current_transform.translation += m_linear_velocity * dt;
 	
 	// Update orientation
-	const math::quaternion<float> spin = math::quaternion<float>{0.0f, m_angular_velocity * 0.5f} * m_current_transform.rotation;
+	const math::fquat spin = math::fquat{0.0f, m_angular_velocity * 0.5f} * m_current_transform.rotation;
 	m_current_transform.rotation = math::normalize(m_current_transform.rotation + spin * dt);
 }
 

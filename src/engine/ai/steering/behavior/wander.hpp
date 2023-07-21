@@ -21,7 +21,7 @@
 #define ANTKEEPER_AI_STEERING_BEHAVIOR_WANDER_HPP
 
 #include <engine/ai/steering/agent.hpp>
-#include <engine/utility/fundamental-types.hpp>
+#include <engine/math/vector.hpp>
 
 namespace ai {
 namespace steering {
@@ -38,7 +38,7 @@ namespace behavior {
  *
  * @return Wander force.
  */
-float3 wander_2d(const agent& agent, float noise, float distance, float radius, float& angle);
+math::fvec3 wander_2d(const agent& agent, float noise, float distance, float radius, float& angle);
 
 /**
  * Steers an agent in a continuously shifting random direction.
@@ -52,7 +52,7 @@ float3 wander_2d(const agent& agent, float noise, float distance, float radius, 
  *
  * @return Wander force.
  */
-float3 wander_3d(const agent& agent, float noise, float distance, float radius, float& theta, float& phi);
+math::fvec3 wander_3d(const agent& agent, float noise, float distance, float radius, float& theta, float& phi);
 
 } // namespace behavior
 } // namespace steering

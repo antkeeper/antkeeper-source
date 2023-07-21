@@ -38,13 +38,13 @@ template <class T>
 struct view_frustum
 {
 	/// Vector type.
-	using vector_type = math::vector<T, 3>;
+	using vector_type = math::vec3<T>;
 	
 	/// Plane type.
 	using plane_type = geom::plane<T>;
 	
 	/// View-projection matrix type.
-	using matrix_type = math::matrix<T, 4, 4>;
+	using matrix_type = math::mat4<T>;
 	
 	/// Box type.
 	using box_type = geom::box<T>;
