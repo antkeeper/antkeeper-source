@@ -23,7 +23,6 @@
 #include "game/components/transform-component.hpp"
 #include "game/components/diffuse-reflector-component.hpp"
 #include <engine/geom/intersection.hpp>
-#include <engine/geom/cartesian.hpp>
 #include <engine/geom/primitives/sphere.hpp>
 #include <engine/color/color.hpp>
 #include <engine/physics/orbit/orbit.hpp>
@@ -33,7 +32,6 @@
 #include <engine/physics/light/luminosity.hpp>
 #include <engine/physics/light/refraction.hpp>
 #include <engine/physics/gas/atmosphere.hpp>
-#include <engine/geom/cartesian.hpp>
 #include <engine/astro/apparent-size.hpp>
 #include <engine/geom/solid-angle.hpp>
 #include <engine/math/polynomial.hpp>
@@ -52,7 +50,7 @@ astronomy_system::astronomy_system(entity::registry& registry):
 	starlight_illuminance{0, 0, 0}
 {
 	// Construct ENU to EUS transformation
-	enu_to_eus = math::transformation::se3<double>
+	enu_to_eus = math::se3<double>
 	{
 		{0, 0, 0},
 		math::dquat::rotate_x(-math::half_pi<double>)
@@ -535,7 +533,7 @@ void astronomy_system::update_icrf_to_eus(const ::celestial_body_component& body
 	const double body_prime_meridian = math::polynomial::horner(body.prime_meridian.begin(), body.prime_meridian.end(), time_days);
 	
 	// Construct ICRF frame to BCBF transformation
-	math::transformation::se3<double> icrf_to_bcbf = physics::orbit::frame::bci::to_bcbf
+	math::se3<double> icrf_to_bcbf = physics::orbit::frame::bci::to_bcbf
 	(
 		body_pole_ra,
 		body_pole_dec,
@@ -552,7 +550,7 @@ void astronomy_system::update_icrf_to_eus(const ::celestial_body_component& body
 		// Upload topocentric frame to sky pass
 		sky_pass->set_icrf_to_eus
 		(
-			math::transformation::se3<float>
+			math::se3<float>
 			{
 				math::fvec3(icrf_to_eus.t),
 				math::fquat(icrf_to_eus.r)

@@ -27,6 +27,7 @@
 #include <engine/geom/primitives/line-segment.hpp>
 #include <engine/geom/primitives/point.hpp>
 #include <engine/geom/primitives/ray.hpp>
+#include <engine/geom/primitives/triangle.hpp>
 #include <algorithm>
 #include <cmath>
 #include <tuple>
@@ -188,6 +189,58 @@ template <class T, std::size_t N>
 {
 	return b - a.normal * (math::dot(a.normal, b) + a.constant);
 }
+
+/**
+ * Calculates the closest point on a triangle to a point.
+ *
+ * @tparam T Real type.
+ *
+ * @param tri Triangle.
+ * @param a First point of triangle.
+ * @param b Second point of triangle.
+ * @param c Third point of triangle.
+ * @param p Point.
+ *
+ * @return Closest point on the triangle to point @p p, followed by the index of the edge on which the point lies (`-1` if not on an edge).
+ */
+/// @{
+template <class T>
+[[nodiscard]] constexpr point<T, 3> closest_point(const point<T, 3>& a, const point<T, 3>& b, const point<T, 3>& c, const point<T, 3>& p) noexcept
+{
+	const auto ab = b - a;
+	const auto ca = a - c;
+	const auto ap = p - a;
+	const auto n = math::cross(ab, ca);
+	const auto d = math::sqr_length(n);
+	const auto q = math::cross(n, ap);
+	
+	T u, v, w;
+	if ((w = math::dot(q, ab) / d) < T{0})
+	{
+		v = std::min<T>(std::max<T>(math::dot(ab, ap) / math::sqr_length(ab), T{0}), T{1});
+		return {a * (T{1} - v) + b * v};
+	}
+	else if ((v = math::dot(q, ca) / d) < T{0})
+	{
+		u = std::min<T>(std::max<T>(math::dot(ca, p - c) / math::sqr_length(ca), T{0}), T{1});
+		return {a * u + c * (T{1} - u)};
+	}
+	else if ((u = T{1} - v - w) < T{0})
+	{
+		const auto bc = c - b;
+		w = std::min<T>(std::max<T>(math::dot(bc, p - b) / math::sqr_length(bc), T{0}), T{1});
+		return {b * (T{1} - w) + c * w};
+	}
+	
+	return {a * u + b * v + c * w};
+}
+
+template <class T>
+[[nodiscard]] inline constexpr point<T, 3> closest_point(const triangle<T, 3>& tri, const point<T, 3>& p) noexcept
+{
+	return closest_point(tri.a, tri.b, tri.c, p);
+}
+/// @}
 
 /**
  * Calculates the closest point on or in a hypersphere to a point.

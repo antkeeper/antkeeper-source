@@ -143,7 +143,7 @@ namespace pqw {
 	 * @return PQW to BCI transformation.
 	 */
 	template <typename T>
-	math::transformation::se3<T> to_bci(T om, T in, T w)
+	math::se3<T> to_bci(T om, T in, T w)
 	{
 		const math::quaternion<T> r = math::normalize
 		(
@@ -152,7 +152,7 @@ namespace pqw {
 				math::quaternion<T>::rotate_z(w)
 		);
 		
-		return math::transformation::se3<T>{{T(0), T(0), T(0)}, r};
+		return math::se3<T>{{T(0), T(0), T(0)}, r};
 	}
 
 } // namespace pqw
@@ -210,7 +210,7 @@ namespace bci {
 	 * @see Archinal, B.A., A’Hearn, M.F., Bowell, E. et al. Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009. Celest Mech Dyn Astr 109, 101–135 (2011). https://doi.org/10.1007/s10569-010-9320-4
 	 */
 	template <typename T>
-	math::transformation::se3<T> to_bcbf(T ra, T dec, T w)
+	math::se3<T> to_bcbf(T ra, T dec, T w)
 	{
 		const math::quaternion<T> r = math::normalize
 		(
@@ -219,7 +219,7 @@ namespace bci {
 				math::quaternion<T>::rotate_z(-w)
 		);
 		
-		return math::transformation::se3<T>{{T(0), T(0), T(0)}, r};
+		return math::se3<T>{{T(0), T(0), T(0)}, r};
 	}
 	
 	/**
@@ -231,7 +231,7 @@ namespace bci {
 	 * @return BCI to PQW transformation.
 	 */
 	template <typename T>
-	math::transformation::se3<T> to_pqw(T om, T in, T w)
+	math::se3<T> to_pqw(T om, T in, T w)
 	{
 		const math::quaternion<T> r = math::normalize
 		(
@@ -240,7 +240,7 @@ namespace bci {
 				math::quaternion<T>::rotate_z(-om)
 		);
 		
-		return math::transformation::se3<T>{{T(0), T(0), T(0)}, r};
+		return math::se3<T>{{T(0), T(0), T(0)}, r};
 	}
 	
 } // namespace bci
@@ -298,7 +298,7 @@ namespace bcbf {
 	 * @see Archinal, B.A., A’Hearn, M.F., Bowell, E. et al. Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009. Celest Mech Dyn Astr 109, 101–135 (2011). https://doi.org/10.1007/s10569-010-9320-4
 	 */
 	template <typename T>
-	math::transformation::se3<T> to_bci(T ra, T dec, T w)
+	math::se3<T> to_bci(T ra, T dec, T w)
 	{
 		const math::quaternion<T> r = math::normalize
 		(
@@ -308,7 +308,7 @@ namespace bcbf {
 
 		);
 		
-		return math::transformation::se3<T>{{T(0), T(0), T(0)}, r};
+		return math::se3<T>{{T(0), T(0), T(0)}, r};
 	}
 	
 	/**
@@ -320,7 +320,7 @@ namespace bcbf {
 	 * @return BCBF to ENU transformation.
 	 */
 	template <typename T>
-	math::transformation::se3<T> to_enu(T distance, T latitude, T longitude)
+	math::se3<T> to_enu(T distance, T latitude, T longitude)
 	{
 		const math::vec3<T> t = {T(0), T(0), -distance};
 		const math::quaternion<T> r = math::normalize
@@ -329,7 +329,7 @@ namespace bcbf {
 				math::quaternion<T>::rotate_z(-longitude - math::half_pi<T>)
 		);
 		
-		return math::transformation::se3<T>{t, r};
+		return math::se3<T>{t, r};
 	}
 
 } // namespace bcbf
@@ -385,7 +385,7 @@ namespace enu {
 	 * @return ENU to BCBF transformation.
 	 */
 	template <typename T>
-	math::transformation::se3<T> to_bcbf(T distance, T latitude, T longitude)
+	math::se3<T> to_bcbf(T distance, T latitude, T longitude)
 	{
 		const math::vec3<T> t = {T(0), T(0), distance};
 		const math::quaternion<T> r = math::normalize
@@ -394,7 +394,7 @@ namespace enu {
 				math::quaternion<T>::rotate_x(math::half_pi<T> - latitude)
 		);
 		
-		return math::transformation::se3<T>{r * t, r};
+		return math::se3<T>{r * t, r};
 	}
 	
 } // namespace enu

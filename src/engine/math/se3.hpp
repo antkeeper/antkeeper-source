@@ -24,10 +24,12 @@
 #include <engine/math/quaternion.hpp>
 
 namespace math {
-namespace transformation {
+
+/// Transformation types
+namespace transformation_types {
 
 /**
- * 3-dimensional Euclidean proper rigid transformation in SE(3).
+ * SE(3) proper rigid transformation (rototranslation).
  *
  * @tparam T Scalar type.
  */
@@ -36,101 +38,116 @@ struct se3
 {
 public:
 	/// Scalar type.
-	typedef T scalar_type;
+	using scalar_type = T;
 	
 	/// Vector type.
-	typedef math::vec3<T> vector_type;
+	using vector_type = vec3<T>;
 	
 	/// Quaternion type.
-	typedef math::quaternion<T> quaternion_type;
+	using quaternion_type = quat<T>;
 	
 	/// Transformation matrix type.
-	typedef math::mat4<T> matrix_type;
+	using matrix_type = mat4<T>;
 	
-	/// Vector representing the translation component of this SE(3) transformation.
+	/// Vector representing the translation component of the transformation.
 	vector_type t;
 	
-	/// Quaternion representing the rotation component of this SE(3) transformation.
+	/// Quaternion representing the rotation component of the transformation.
 	quaternion_type r;
 	
-	/// Returns the inverse of this SE(3) transformation.
-	[[nodiscard]] se3 inverse() const;
+	/// Returns the inverse of this transformation.
+	[[nodiscard]] constexpr se3 inverse() const noexcept
+	{
+		const quaternion_type inverse_r = conjugate(r);
+		const vector_type inverse_t = -(inverse_r * t);
+		return {inverse_t, inverse_r};
+	}
 	
-	/// Returns a matrix representation of the SE(3) transformation.
-	[[nodiscard]] matrix_type matrix() const;
+	/// Returns a matrix representation of this transformation.
+	/// @{
+	[[nodiscard]] constexpr matrix_type matrix() const noexcept
+	{
+		matrix_type m = mat4<T>(mat3<T>(r));
+		
+		m[3].x() = t.x();
+		m[3].y() = t.y();
+		m[3].z() = t.z();
+		
+		return m;
+	}
+	
+	[[nodiscard]] inline constexpr explicit operator matrix_type() const noexcept
+	{
+		return matrix();
+	}
+	/// @}
 	
 	/**
-	 * Transforms a vector by this SE(3) transformation.
+	 * Transforms a vector by this transformation.
 	 *
-	 * @param x Untransformed vector.
+	 * @param v Untransformed vector.
+	 *
 	 * @return Transformed vector.
 	 */
-	[[nodiscard]] vector_type transform(const vector_type& x) const;
+	/// @{
+	[[nodiscard]] inline constexpr vector_type transform(const vector_type& v) const noexcept
+	{
+		return r * v + t;
+	}
+	
+	[[nodiscard]] inline constexpr vector_type operator*(const vector_type& v) const noexcept
+	{
+		return transform(v);
+	}
+	/// @}
 	
 	/**
-	 * Transforms an SE(3) transformation by this SE(3) transformation.
+	 * Transforms an SE(3) transformation by this transformation.
 	 *
-	 * @param x Other SE(3) transformation.
+	 * @param xf SE(3) transformation.
+	 *
 	 * @return Frame in this se3's space.
 	 */
-	[[nodiscard]] se3 transform(const se3& x) const;
+	/// @{
+	[[nodiscard]] constexpr se3 transform(const se3& xf) const noexcept
+	{
+		return {xf.transform(t), normalize(xf.r * r)};
+	}
 	
-	/// @copydoc se3::transform(const vector_type&) const
-	[[nodiscard]] vector_type operator*(const vector_type& x) const;
+	[[nodiscard]] inline constexpr se3 operator*(const se3& xf) const noexcept
+	{
+		return transform(xf);
+	}
+	/// @}
 	
-	/// @copydoc se3::transform(const se3&) const
-	[[nodiscard]] se3 operator*(const se3& x) const;
+	/*
+	 * Type-casts the transform scalars using `static_cast`.
+	 *
+	 * @tparam U Target scalar type.
+	 *
+	 * @return Type-casted transform.
+	 */
+	template <class U>
+	[[nodiscard]] inline constexpr explicit operator se3<U>() const noexcept
+	{
+		return {vec3<U>(t), quat<U>(r)};
+	}
+	
+	/// Returns an identity transformation.
+	[[nodiscard]] static inline constexpr se3 identity() noexcept
+	{
+		return {vector_type::zero(), quaternion_type::identity()};
+	}
 };
 
-template <class T>
-se3<T> se3<T>::inverse() const
-{
-	const quaternion_type inverse_r = math::conjugate(r);
-	const vector_type inverse_t = -(inverse_r * t);
-	return se3{inverse_t, inverse_r};
-}
+} // namespace transformation_types
 
-template <class T>
-typename se3<T>::matrix_type se3<T>::matrix() const
-{
-	matrix_type m = math::mat4<T>(math::mat3<T>(r));
-	
-	m[3].x() = t.x();
-	m[3].y() = t.y();
-	m[3].z() = t.z();
-	
-	return m;
-}
+// Bring transformation types into math namespace
+using namespace transformation_types;
 
-template <class T>
-typename se3<T>::vector_type se3<T>::transform(const vector_type& x) const
-{
-	return r * x + t;
-}
+// Bring transformation types into math::types namespace
+namespace types { using namespace math::transformation_types; }
 
-template <class T>
-se3<T> se3<T>::transform(const se3& x) const
-{
-	return se3
-	{
-		x.transform(t),
-		math::normalize(x.r * r)
-	};
-}
-
-template <class T>
-typename se3<T>::vector_type se3<T>::operator*(const vector_type& x) const
-{
-	return transform(x);
-}
-
-template <class T>
-se3<T> se3<T>::operator*(const se3& x) const
-{
-	return transform(x);
-}
-
-} // namespace transformation
 } // namespace math
 
 #endif // ANTKEEPER_MATH_TRANSFORMATION_SE3_HPP

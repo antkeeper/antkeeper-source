@@ -26,7 +26,6 @@
 #include <engine/animation/screen-transition.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/math/vector.hpp>
-#include <engine/math/linear-algebra.hpp>
 #include <engine/render/material-flags.hpp>
 #include <engine/render/passes/clear-pass.hpp>
 #include <engine/resources/resource-manager.hpp>

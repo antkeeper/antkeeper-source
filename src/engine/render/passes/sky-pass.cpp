@@ -38,8 +38,6 @@
 #include <engine/math/vector.hpp>
 #include <engine/color/color.hpp>
 #include <engine/math/interpolation.hpp>
-#include <engine/geom/cartesian.hpp>
-#include <engine/geom/spherical.hpp>
 #include <engine/physics/orbit/orbit.hpp>
 #include <engine/physics/light/photometry.hpp>
 #include <bit>
@@ -233,7 +231,7 @@ void sky_pass::render(render::context& ctx)
 	observer_position = observer_position_tween.interpolate(ctx.alpha);
 	
 	// Construct tweened ICRF to EUS transformation
-	math::transformation::se3<float> icrf_to_eus =
+	math::se3<float> icrf_to_eus =
 	{
 		icrf_to_eus_translation.interpolate(ctx.alpha),
 		icrf_to_eus_rotation.interpolate(ctx.alpha)
@@ -672,7 +670,7 @@ void sky_pass::set_magnification(float magnification)
 	this->magnification = magnification;
 }
 
-void sky_pass::set_icrf_to_eus(const math::transformation::se3<float>& transformation)
+void sky_pass::set_icrf_to_eus(const math::se3<float>& transformation)
 {
 	icrf_to_eus_translation[1] = transformation.t;
 	icrf_to_eus_rotation[1] = transformation.r;

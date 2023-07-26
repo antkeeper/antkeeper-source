@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_NEST_VIEW_STATE_HPP
-#define ANTKEEPER_NEST_VIEW_STATE_HPP
+#ifndef ANTKEEPER_TREADMILL_EXPERIMENT_STATE_HPP
+#define ANTKEEPER_TREADMILL_EXPERIMENT_STATE_HPP
 
 #include "game/states/game-state.hpp"
 #include <engine/entity/id.hpp>
@@ -34,11 +34,11 @@
 #include <engine/geom/brep/brep-mesh.hpp>
 #include "game/ant/ant-phenome.hpp"
 
-class nest_view_state: public game_state
+class treadmill_experiment_state: public game_state
 {
 public:
-	explicit nest_view_state(::game& ctx);
-	virtual ~nest_view_state();
+	explicit treadmill_experiment_state(::game& ctx);
+	~treadmill_experiment_state() override;
 	
 private:
 	void create_third_person_camera_rig();
@@ -120,6 +120,8 @@ private:
 	geom::brep_face* navmesh_agent_face{};
 	math::fvec3 navmesh_agent_position{};
 	math::fvec3 navmesh_agent_normal{};
+	
+	std::shared_ptr<scene::light_probe> sky_probe;
 };
 
-#endif // ANTKEEPER_NEST_VIEW_STATE_HPP
+#endif // ANTKEEPER_TREADMILL_EXPERIMENT_STATE_HPP

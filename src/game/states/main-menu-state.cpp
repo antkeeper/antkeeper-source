@@ -34,6 +34,7 @@
 #include "game/states/nest-selection-state.hpp"
 #include "game/states/nest-view-state.hpp"
 #include "game/states/options-menu-state.hpp"
+#include "game/states/experiments/treadmill-experiment-state.hpp"
 #include "game/strings.hpp"
 #include "game/world.hpp"
 #include <engine/math/vector.hpp>
@@ -130,7 +131,8 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 					// ctx.state_machine.emplace(std::make_unique<nuptial_flight_state>(ctx));
 					// ctx.state_machine.emplace(std::make_unique<collection_menu_state>(ctx));
 					// ctx.state_machine.emplace(std::make_unique<nest_selection_state>(ctx));
-					ctx.state_machine.emplace(std::make_unique<nest_view_state>(ctx));
+					// ctx.state_machine.emplace(std::make_unique<nest_view_state>(ctx));
+					ctx.state_machine.emplace(std::make_unique<treadmill_experiment_state>(ctx));
 				}
 			);
 		};

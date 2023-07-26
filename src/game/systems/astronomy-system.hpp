@@ -146,13 +146,13 @@ private:
 	entity::id reference_body_eid;
 	
 	/// ENU to EUS transformation.
-	math::transformation::se3<double> enu_to_eus;
+	math::se3<double> enu_to_eus;
 	
 	/// BCBF to EUS transformation.
-	math::transformation::se3<double> bcbf_to_eus;
+	math::se3<double> bcbf_to_eus;
 	
 	/// ICRF to EUS tranformation.
-	math::transformation::se3<double> icrf_to_eus;
+	math::se3<double> icrf_to_eus;
 	
 	scene::directional_light* sun_light;
 	scene::directional_light* moon_light;

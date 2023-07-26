@@ -184,7 +184,7 @@ public:
 	void set_moon_model(std::shared_ptr<render::model> model);
 	void set_stars_model(std::shared_ptr<render::model> model);
 	
-	void set_icrf_to_eus(const math::transformation::se3<float>& transformation);
+	void set_icrf_to_eus(const math::se3<float>& transformation);
 	
 	void set_sun_position(const math::fvec3& position);
 	void set_sun_luminance(const math::fvec3& luminance);

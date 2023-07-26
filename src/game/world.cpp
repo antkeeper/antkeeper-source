@@ -35,7 +35,6 @@
 #include "game/systems/orbit-system.hpp"
 #include "game/systems/terrain-system.hpp"
 #include <engine/geom/solid-angle.hpp>
-#include <engine/geom/spherical.hpp>
 #include <engine/gl/drawing-mode.hpp>
 #include <engine/gl/texture-filter.hpp>
 #include <engine/gl/texture-wrapping.hpp>

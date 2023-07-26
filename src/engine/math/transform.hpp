@@ -27,9 +27,7 @@
 namespace math {
 
 /**
- * 3D transformation.
- *
- * Transformations are applied in the following order: scale, rotation, translation.
+ * SRT transformation.
  *
  * @tparam T Scalar type.
  */
@@ -40,13 +38,13 @@ struct transform
 	using scalar_type = T;
 	
 	/// Vector type.
-	using vector_type = vector<T, 3>;
+	using vector_type = vec3<T>;
 	
 	/// Quaternion type.
-	using quaternion_type = quaternion<T>;
+	using quaternion_type = quat<T>;
 	
 	/// Transformation matrix type.
-	using matrix_type = matrix<T, 4, 4>;
+	using matrix_type = mat4<T>;
 	
 	/// Translation vector.
 	vector_type translation;
@@ -102,7 +100,7 @@ struct transform
 	template <class U>
 	[[nodiscard]] inline constexpr explicit operator transform<U>() const noexcept
 	{
-		return {math::vector<U, 3>(translation), math::quaternion<U>(rotation), math::vector<U, 3>(scale)};
+		return {vec3<U>(translation), quat<U>(rotation), vec3<U>(scale)};
 	}
 	
 	/// Returns an identity transform.

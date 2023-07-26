@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "game/states/nest-view-state.hpp"
+#include "game/states/experiments/treadmill-experiment-state.hpp"
 
 #include "game/ant/ant-cladogenesis.hpp"
 #include "game/ant/ant-genome.hpp"
@@ -85,7 +85,7 @@
 #include <engine/geom/coordinates.hpp>
 #include <engine/ai/navmesh.hpp>
 
-nest_view_state::nest_view_state(::game& ctx):
+treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	game_state(ctx)
 {
 	debug::log::trace("Entering nest view state...");	
@@ -128,49 +128,49 @@ nest_view_state::nest_view_state(::game& ctx):
 	// ctx.underground_directional_light->set_shadow_cascade_distribution(0.8f);
 	// ctx.underground_scene->add_object(*ctx.underground_directional_light);
 	
-	ctx.underground_clear_pass->set_clear_color({0.214f, 0.214f, 0.214f, 1.0f});
+	// ctx.underground_clear_pass->set_clear_color({0.214f, 0.214f, 0.214f, 1.0f});
 	// ctx.underground_clear_pass->set_clear_color({});
-	light_probe = std::make_shared<scene::light_probe>();
-	light_probe->set_luminance_texture(ctx.resource_manager->load<gl::texture_cube>("grey-furnace.tex"));
-	ctx.underground_scene->add_object(*light_probe);
+	// light_probe = std::make_shared<scene::light_probe>();
+	// light_probe->set_luminance_texture(ctx.resource_manager->load<gl::texture_cube>("grey-furnace.tex"));
+	// ctx.underground_scene->add_object(*light_probe);
 	
 	//const float color_temperature = 5000.0f;
 	//const math::fvec3 light_color = color::aces::ap1<float>.from_xyz * color::cat::matrix(color::illuminant::deg2::d50<float>, color::aces::white_point<float>) * color::cct::to_xyz(color_temperature);
 	const math::fvec3 light_color{1.0f, 1.0f, 1.0f}; 
 	
 	// Create rectangle light
-	ctx.underground_rectangle_light = std::make_unique<scene::rectangle_light>();
-	ctx.underground_rectangle_light->set_color(light_color);
-	ctx.underground_rectangle_light->set_luminous_flux(1500.0f);
-	ctx.underground_rectangle_light->set_translation({0.0f, 10.0f, 0.0f});
-	ctx.underground_rectangle_light->set_rotation(math::fquat::rotate_x(math::radians(90.0f)));
-	ctx.underground_rectangle_light->set_scale(7.0f);
-	ctx.underground_scene->add_object(*ctx.underground_rectangle_light);
+	// ctx.underground_rectangle_light = std::make_unique<scene::rectangle_light>();
+	// ctx.underground_rectangle_light->set_color(light_color);
+	// ctx.underground_rectangle_light->set_luminous_flux(1500.0f);
+	// ctx.underground_rectangle_light->set_translation({0.0f, 10.0f, 0.0f});
+	// ctx.underground_rectangle_light->set_rotation(math::fquat::rotate_x(math::radians(90.0f)));
+	// ctx.underground_rectangle_light->set_scale(7.0f);
+	// ctx.underground_scene->add_object(*ctx.underground_rectangle_light);
 	
 	// Create light rectangle
-	auto light_rectangle_model = ctx.resource_manager->load<render::model>("light-rectangle.mdl");
-	auto light_rectangle_material = std::make_shared<render::material>(*light_rectangle_model->get_groups().front().material);
-	light_rectangle_emissive = std::static_pointer_cast<render::matvar_fvec3>(light_rectangle_material->get_variable("emissive"));
-	light_rectangle_emissive->set(ctx.underground_rectangle_light->get_colored_luminance());
-	auto light_rectangle_static_mesh = std::make_shared<scene::static_mesh>(light_rectangle_model);
-	light_rectangle_static_mesh->set_material(0, light_rectangle_material);
+	// auto light_rectangle_model = ctx.resource_manager->load<render::model>("light-rectangle.mdl");
+	// auto light_rectangle_material = std::make_shared<render::material>(*light_rectangle_model->get_groups().front().material);
+	// light_rectangle_emissive = std::static_pointer_cast<render::matvar_fvec3>(light_rectangle_material->get_variable("emissive"));
+	// light_rectangle_emissive->set(ctx.underground_rectangle_light->get_colored_luminance());
+	// auto light_rectangle_static_mesh = std::make_shared<scene::static_mesh>(light_rectangle_model);
+	// light_rectangle_static_mesh->set_material(0, light_rectangle_material);
 	
-	auto light_rectangle_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<scene_component>(light_rectangle_eid, std::move(light_rectangle_static_mesh), std::uint8_t{2});
-	ctx.entity_registry->patch<scene_component>
-	(
-		light_rectangle_eid,
-		[&](auto& component)
-		{
-			component.object->set_transform(ctx.underground_rectangle_light->get_transform());
-		}
-	);
+	// auto light_rectangle_eid = ctx.entity_registry->create();
+	// ctx.entity_registry->emplace<scene_component>(light_rectangle_eid, std::move(light_rectangle_static_mesh), std::uint8_t{1});
+	// ctx.entity_registry->patch<scene_component>
+	// (
+		// light_rectangle_eid,
+		// [&](auto& component)
+		// {
+			// component.object->set_transform(ctx.underground_rectangle_light->get_transform());
+		// }
+	// );
 	
 	// Create treadmill
 	auto treadmill_eid = ctx.entity_registry->create();
 	scene_component treadmill_scene_component;
-	treadmill_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("treadmill-5cm.mdl"));
-	treadmill_scene_component.layer_mask = 2;
+	treadmill_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube-15cm.mdl"));
+	treadmill_scene_component.layer_mask = 1;
 	ctx.entity_registry->emplace<scene_component>(treadmill_eid, std::move(treadmill_scene_component));
 	
 	// Create worker
@@ -182,56 +182,15 @@ nest_view_state::nest_view_state(::game& ctx):
 	worker_transform_component.local.scale = math::fvec3::one() * worker_phenome.body_size->mean_mesosoma_length;
 	worker_transform_component.world = worker_transform_component.local;
 	ctx.entity_registry->emplace<transform_component>(worker_eid, worker_transform_component);
-	ctx.entity_registry->emplace<scene_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{2});
-	
-	// Create cocoon
-	auto cocoon_eid = ctx.entity_registry->create();
-	auto cocoon_static_mesh = std::make_shared<scene::static_mesh>(worker_phenome.cocoon->model);
-	cocoon_static_mesh->set_scale(worker_phenome.body_size->mean_mesosoma_length);
-	ctx.entity_registry->emplace<scene_component>(cocoon_eid, std::move(cocoon_static_mesh), std::uint8_t{2});
-	ctx.entity_registry->patch<scene_component>
-	(
-		cocoon_eid,
-		[&](auto& component)
-		{
-			component.object->set_translation({-4.0f, 0.0f, 4.0f});
-		}
-	);
+	ctx.entity_registry->emplace<scene_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{1});
 	
 	// Create color checker
 	auto color_checker_eid = ctx.entity_registry->create();
 	scene_component color_checker_scene_component;
 	color_checker_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("color-checker.mdl"));
 	color_checker_scene_component.object->set_translation({0, 0, 4});
-	color_checker_scene_component.layer_mask = 2;
+	color_checker_scene_component.layer_mask = 1;
 	ctx.entity_registry->emplace<scene_component>(color_checker_eid, std::move(color_checker_scene_component));
-	
-	// Create larva
-	larva_eid = ctx.entity_registry->create();
-	auto larva_skeletal_mesh = std::make_shared<scene::skeletal_mesh>(worker_phenome.larva->model);
-	larva_skeletal_mesh->set_scale(worker_phenome.body_size->mean_mesosoma_length);
-	ctx.entity_registry->emplace<scene_component>(larva_eid, std::move(larva_skeletal_mesh), std::uint8_t{2});
-	ctx.entity_registry->patch<scene_component>
-	(
-		larva_eid,
-		[&](auto& component)
-		{
-			component.object->set_translation({4.0f, 0.0f, 4.0f});
-		}
-	);
-	
-	// Create sphere
-	// auto sphere_eid = ctx.entity_registry->create();
-	// auto sphere_static_mesh = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere.mdl"));
-	// ctx.entity_registry->emplace<scene_component>(sphere_eid, std::move(sphere_static_mesh), std::uint8_t{2});
-	// ctx.entity_registry->patch<scene_component>
-	// (
-		// sphere_eid,
-		// [&](auto& component)
-		// {
-			// component.object->set_translation({0.0f, 0.0f, 0.0f});
-		// }
-	// );
 	
 	// Disable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
@@ -245,8 +204,18 @@ nest_view_state::nest_view_state(::game& ctx):
 	// Set time scale
 	::world::set_time_scale(ctx, time_scale);
 	
-	// Setup camera
-	ctx.underground_camera->set_exposure_value(0.0f);
+	// Setup and enable sky and ground passes
+	ctx.sky_pass->set_enabled(true);
+	ctx.ground_pass->set_enabled(true);
+	
+	sky_probe = std::make_shared<scene::light_probe>();
+	sky_probe->set_luminance_texture(std::make_shared<gl::texture_cube>(384, 512, gl::pixel_type::float_16, gl::pixel_format::rgb));
+	ctx.sky_pass->set_sky_probe(sky_probe);
+	ctx.surface_scene->add_object(*sky_probe);
+	
+	// Set camera exposure
+	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
+	ctx.surface_camera->set_exposure_value(ev100_sunny16);
 	
 	const auto& viewport_size = ctx.window->get_viewport_size();
 	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
@@ -275,7 +244,7 @@ nest_view_state::nest_view_state(::game& ctx):
 	ctx.frame_scheduler.refresh();
 	
 	// Load navmesh
-	navmesh = ctx.resource_manager->load<geom::brep_mesh>("treadmill-5cm.msh");
+	navmesh = ctx.resource_manager->load<geom::brep_mesh>("cube-15cm.msh");
 	
 	// Generate navmesh attributes
 	geom::generate_face_normals(*navmesh);
@@ -289,7 +258,7 @@ nest_view_state::nest_view_state(::game& ctx):
 	debug::log::trace("Entered nest view state");
 }
 
-nest_view_state::~nest_view_state()
+treadmill_experiment_state::~treadmill_experiment_state()
 {
 	debug::log::trace("Exiting nest view state...");
 	
@@ -302,12 +271,12 @@ nest_view_state::~nest_view_state()
 	debug::log::trace("Exited nest view state");
 }
 
-void nest_view_state::create_third_person_camera_rig()
+void treadmill_experiment_state::create_third_person_camera_rig()
 {
 	// Construct third person camera rig scene component
 	scene_component third_person_camera_rig_camera;
-	third_person_camera_rig_camera.object = ctx.underground_camera;
-	third_person_camera_rig_camera.layer_mask = 2;
+	third_person_camera_rig_camera.object = ctx.surface_camera;
+	third_person_camera_rig_camera.layer_mask = 1;
 	
 	// Construct third person camera rig entity
 	third_person_camera_rig_eid = ctx.entity_registry->create();
@@ -318,23 +287,23 @@ void nest_view_state::create_third_person_camera_rig()
 	update_third_person_camera();
 }
 
-void nest_view_state::destroy_third_person_camera_rig()
+void treadmill_experiment_state::destroy_third_person_camera_rig()
 {
 	ctx.entity_registry->destroy(third_person_camera_rig_eid);
 }
 
-void nest_view_state::set_third_person_camera_zoom(double zoom)
+void treadmill_experiment_state::set_third_person_camera_zoom(double zoom)
 {
 	// Clamp zoom
 	third_person_camera_zoom = std::min<double>(std::max<double>(zoom, 0.0), 1.0);
 	
 	// Update FoV
 	third_person_camera_hfov = ease<double, double>::out_sine(third_person_camera_far_hfov, third_person_camera_near_hfov, third_person_camera_zoom);
-	third_person_camera_vfov = math::vertical_fov(third_person_camera_hfov, static_cast<double>(ctx.underground_camera->get_aspect_ratio()));
+	third_person_camera_vfov = math::vertical_fov(third_person_camera_hfov, static_cast<double>(ctx.surface_camera->get_aspect_ratio()));
 	
 	// Update focal plane size
 	third_person_camera_focal_plane_height = ease<double, double>::out_sine(third_person_camera_far_focal_plane_height, third_person_camera_near_focal_plane_height, third_person_camera_zoom);
-	third_person_camera_focal_plane_width = third_person_camera_focal_plane_height * ctx.underground_camera->get_aspect_ratio();
+	third_person_camera_focal_plane_width = third_person_camera_focal_plane_height * ctx.surface_camera->get_aspect_ratio();
 	
 	// Update focal distance
 	third_person_camera_focal_distance = third_person_camera_focal_plane_height * 0.5 / std::tan(third_person_camera_vfov * 0.5);
@@ -342,7 +311,7 @@ void nest_view_state::set_third_person_camera_zoom(double zoom)
 	// update_third_person_camera();
 }
 
-void nest_view_state::set_third_person_camera_rotation(double yaw, double pitch)
+void treadmill_experiment_state::set_third_person_camera_rotation(double yaw, double pitch)
 {
 	third_person_camera_yaw = yaw;
 	third_person_camera_pitch = std::min(math::half_pi<double>, std::max(-math::half_pi<double>, pitch));
@@ -352,12 +321,12 @@ void nest_view_state::set_third_person_camera_rotation(double yaw, double pitch)
 	third_person_camera_orientation = math::normalize(third_person_camera_yaw_rotation * third_person_camera_pitch_rotation);
 }
 
-void nest_view_state::zoom_third_person_camera(double zoom)
+void treadmill_experiment_state::zoom_third_person_camera(double zoom)
 {
 	set_third_person_camera_zoom(third_person_camera_zoom + zoom);
 }
 
-void nest_view_state::translate_third_person_camera(const math::dvec3& direction, double magnitude)
+void treadmill_experiment_state::translate_third_person_camera(const math::dvec3& direction, double magnitude)
 {
 	// Scale translation magnitude by factor of focal plane height
 	magnitude *= third_person_camera_focal_plane_height * third_person_camera_speed;
@@ -370,7 +339,7 @@ void nest_view_state::translate_third_person_camera(const math::dvec3& direction
 	// update_third_person_camera();
 }
 
-void nest_view_state::rotate_third_person_camera(const input::mouse_moved_event& event)
+void treadmill_experiment_state::rotate_third_person_camera(const input::mouse_moved_event& event)
 {
 	const double yaw = third_person_camera_yaw - ctx.mouse_pan_factor * static_cast<double>(event.difference.x());
 	const double pitch = third_person_camera_pitch + ctx.mouse_tilt_factor * static_cast<double>(event.difference.y());
@@ -378,9 +347,9 @@ void nest_view_state::rotate_third_person_camera(const input::mouse_moved_event&
 	set_third_person_camera_rotation(yaw, pitch);
 }
 
-void nest_view_state::handle_mouse_motion(const input::mouse_moved_event& event)
+void treadmill_experiment_state::handle_mouse_motion(const input::mouse_moved_event& event)
 {
-	ctx.underground_material_pass->set_mouse_position(math::fvec2(event.position));
+	ctx.surface_material_pass->set_mouse_position(math::fvec2(event.position));
 	
 	if (!mouse_look && !mouse_grip && !mouse_zoom)
 	{
@@ -420,9 +389,12 @@ void nest_view_state::handle_mouse_motion(const input::mouse_moved_event& event)
 	update_third_person_camera();
 }
 
-void nest_view_state::update_third_person_camera()
+void treadmill_experiment_state::update_third_person_camera()
 {
-	const math::dvec3 camera_position = third_person_camera_focal_point + third_person_camera_orientation * math::dvec3{0.0f, 0.0f, third_person_camera_focal_distance};
+	const auto worker_rotation = ctx.entity_registry->get<::scene_component>(worker_eid).object->get_rotation();
+	
+	const auto camera_rotation = math::normalize(math::dquat(worker_rotation) * third_person_camera_orientation);
+	const math::dvec3 camera_position = third_person_camera_focal_point + camera_rotation * math::dvec3{0.0f, 0.0f, third_person_camera_focal_distance};
 	
 	ctx.entity_registry->patch<scene_component>
 	(
@@ -432,13 +404,13 @@ void nest_view_state::update_third_person_camera()
 			auto& camera = static_cast<scene::camera&>(*component.object);
 			
 			camera.set_translation(math::fvec3(camera_position));
-			camera.set_rotation(math::fquat(third_person_camera_orientation));
+			camera.set_rotation(math::fquat(camera_rotation));
 			camera.set_perspective(static_cast<float>(third_person_camera_vfov), camera.get_aspect_ratio(), camera.get_clip_near(), camera.get_clip_far());
 		}
 	);
 }
 
-void nest_view_state::load_camera_preset(std::uint8_t index)
+void treadmill_experiment_state::load_camera_preset(std::uint8_t index)
 {
 	if (!camera_presets[index])
 	{
@@ -459,7 +431,7 @@ void nest_view_state::load_camera_preset(std::uint8_t index)
 	update_third_person_camera();
 }
 
-void nest_view_state::save_camera_preset(std::uint8_t index)
+void treadmill_experiment_state::save_camera_preset(std::uint8_t index)
 {
 	camera_presets[index] =
 	{
@@ -470,7 +442,7 @@ void nest_view_state::save_camera_preset(std::uint8_t index)
 	};
 }
 
-void nest_view_state::load_or_save_camera_preset(std::uint8_t index)
+void treadmill_experiment_state::load_or_save_camera_preset(std::uint8_t index)
 {
 	if (ctx.save_camera_action.is_active())
 	{
@@ -482,7 +454,7 @@ void nest_view_state::load_or_save_camera_preset(std::uint8_t index)
 	}
 }
 
-geom::ray<float, 3> nest_view_state::get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const
+geom::ray<float, 3> treadmill_experiment_state::get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const
 {
 	// Get window viewport size
 	const auto& viewport_size = ctx.window->get_viewport_size();
@@ -500,7 +472,7 @@ geom::ray<float, 3> nest_view_state::get_mouse_ray(const math::vec2<std::int32_t
 	return camera.pick(mouse_ndc);
 }
 
-void nest_view_state::setup_controls()
+void treadmill_experiment_state::setup_controls()
 {
 	// Enable/toggle mouse look
 	action_subscriptions.emplace_back
@@ -681,7 +653,7 @@ void nest_view_state::setup_controls()
 	// Mouse look
 	mouse_motion_subscription = ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
 	(
-		std::bind_front(&nest_view_state::handle_mouse_motion, this)
+		std::bind_front(&treadmill_experiment_state::handle_mouse_motion, this)
 	);
 	
 	// Move forward
@@ -701,7 +673,7 @@ void nest_view_state::setup_controls()
 					ray.origin = navmesh_agent_position;
 					ray.direction = scene_component.object->get_rotation() * math::fvec3{0, 0, 1};
 					
-					auto traversal = ai::traverse_navmesh(*navmesh, navmesh_agent_face, ray, event.input_value / ctx.fixed_update_rate);
+					auto traversal = ai::traverse_navmesh(*navmesh, navmesh_agent_face, ray, event.input_value / ctx.fixed_update_rate * 0.75f);
 					navmesh_agent_face = traversal.face;
 					navmesh_agent_position = traversal.cartesian;
 					
@@ -738,6 +710,9 @@ void nest_view_state::setup_controls()
 							transform.rotation = math::normalize(rotation * transform.rotation);
 							
 							component.object->set_transform(transform);
+							
+							third_person_camera_focal_point = math::dvec3(transform.translation);
+							update_third_person_camera();
 						}
 					);
 				}
@@ -752,8 +727,8 @@ void nest_view_state::setup_controls()
 		(
 			[&](const auto& event)
 			{
-				translate_third_person_camera({0.0, 0.0, 1.0}, event.input_value / ctx.fixed_update_rate);
-				update_third_person_camera();
+				// translate_third_person_camera({0.0, 0.0, 1.0}, event.input_value / ctx.fixed_update_rate);
+				// update_third_person_camera();
 			}
 		)
 	);
@@ -777,6 +752,8 @@ void nest_view_state::setup_controls()
 						component.object->set_rotation(math::normalize(rotation * component.object->get_rotation()));
 					}
 				);
+				
+				update_third_person_camera();
 			}
 		)
 	);
@@ -800,6 +777,7 @@ void nest_view_state::setup_controls()
 						component.object->set_rotation(math::normalize(rotation * component.object->get_rotation()));
 					}
 				);
+				update_third_person_camera();
 			}
 		)
 	);

@@ -17,11 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_MATH_LINEAR_ALGEBRA_HPP
-#define ANTKEEPER_MATH_LINEAR_ALGEBRA_HPP
+#ifndef ANTKEEPER_AI_NAVMESH_HPP
+#define ANTKEEPER_AI_NAVMESH_HPP
 
-#include <engine/math/matrix.hpp>
-#include <engine/math/quaternion.hpp>
 #include <engine/math/vector.hpp>
+#include <engine/math/se3.hpp>
+#include <engine/geom/brep/brep-mesh.hpp>
+#include <engine/geom/primitives/point.hpp>
+#include <engine/geom/primitives/ray.hpp>
+#include <vector>
 
-#endif // ANTKEEPER_MATH_LINEAR_ALGEBRA_HPP
+namespace ai {
+
+struct navmesh_traversal
+{
+	geom::brep_face* face;
+	geom::brep_edge* edge;
+	geom::point<float, 3> barycentric;
+	geom::point<float, 3> cartesian;
+	float remaining_distance;
+};
+
+/**
+ * 
+ */
+[[nodiscard]] navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face* face, geom::ray<float, 3> ray, float distance);
+
+} // namespace ai
+
+#endif // ANTKEEPER_AI_NAVMESH_HPP

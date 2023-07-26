@@ -17,42 +17,40 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GEOM_SPHERICAL_HPP
-#define ANTKEEPER_GEOM_SPHERICAL_HPP
+#ifndef ANTKEEPER_GEOM_PRIMITIVES_TRIANGLE_HPP
+#define ANTKEEPER_GEOM_PRIMITIVES_TRIANGLE_HPP
 
 #include <engine/math/vector.hpp>
-#include <cmath>
 
 namespace geom {
-
-/// Functions which operate on spherical coordinates.
-namespace spherical {
+namespace primitives {
 
 /**
- * Converts spherical coordinates to Cartesian (rectangular) coordinates.
+ * *n*-dimensional triangle.
  *
- * @param v Spherical coordinates, in the ISO order of radial distance, polar angle (radians), and azimuthal angle (radians).
- * @return Cartesian coordinates.
- *
- * @see geom::coordinates::cartesian
+ * @tparam T Real type.
+ * @tparam N Number of dimensions.
  */
-template <class T>
-math::vec3<T> to_cartesian(const math::vec3<T>& v);
-
-template <class T>
-math::vec3<T> to_cartesian(const math::vec3<T>& v)
+template <class T, std::size_t N>
+struct triangle
 {
-	const T x = v[0] * std::cos(v[1]);
+	/// Vector type.
+	using vector_type = math::vector<T, N>;
 	
-	return math::vec3<T>
-	{
-		x * std::cos(v[2]),
-		x * std::sin(v[2]),
-		v[0] * std::sin(v[1])
-	};
-}
+	/// First point.
+	vector_type a;
+	
+	/// Second point.
+	vector_type b;
+	
+	/// Third point.
+	vector_type c;
+};
 
-} // namespace spherical
+} // namespace primitives
+
+using namespace primitives;
+
 } // namespace geom
 
-#endif // ANTKEEPER_GEOM_SPHERICAL_HPP
+#endif // ANTKEEPER_GEOM_PRIMITIVES_TRIANGLE_HPP
