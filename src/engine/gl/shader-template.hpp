@@ -50,7 +50,7 @@ class shader_template
 {
 public:
 	/// Container of definitions used to generate `#pragma define <key> <value>` directives.
-	typedef std::unordered_map<std::string, std::string> dictionary_type;
+	using dictionary_type = std::unordered_map<std::string, std::string>;
 	
 	/**
 	 * Constructs a shader template and sets its source code.
@@ -63,9 +63,19 @@ public:
 	/// @}
 	
 	/**
+	 * Constructs a shader template and sets its source code.
+	 *
+	 * @param source_code Shader template source code.
+	 * @param include_files Shader template include files.
+	 *
+	 * @note This constuctor is used to keep the loaded include files cached.
+	 */
+	shader_template(text_file&& source_code, std::vector<std::shared_ptr<text_file>>&& include_files);
+	
+	/**
 	 * Constructs an empty shader template.
 	 */
-	shader_template() = default;
+	constexpr shader_template() noexcept = default;
 	
 	/**
 	 * Replaces the source code of the shader template.
@@ -115,13 +125,22 @@ public:
 	[[nodiscard]] std::unique_ptr<gl::shader_program> build(const dictionary_type& definitions = {}) const;
 	
 	/// Returns `true` if the template source contains one or more `#pragma vertex` directive.
-	[[nodiscard]] bool has_vertex_directive() const noexcept;
+	[[nodiscard]] inline bool has_vertex_directive() const noexcept
+	{
+		return !m_vertex_directives.empty();
+	}
 	
 	/// Returns `true` if the template source contains one or more `#pragma fragment` directive.
-	[[nodiscard]] bool has_fragment_directive() const noexcept;
+	[[nodiscard]] inline bool has_fragment_directive() const noexcept
+	{
+		return !m_fragment_directives.empty();
+	}
 	
 	/// Returns `true` if the template source contains one or more `#pragma geometry` directive.
-	[[nodiscard]] bool has_geometry_directive() const noexcept;
+	[[nodiscard]] inline bool has_geometry_directive() const noexcept
+	{
+		return !m_geometry_directives.empty();
+	}
 	
 	/**
 	 * Returns `true` if the template source contains one or more instance of `#pragma define <key>`.
@@ -131,7 +150,7 @@ public:
 	[[nodiscard]] bool has_define_directive(const std::string& key) const;
 	
 	/// Returns a hash of the template source code.
-	[[nodiscard]] inline std::size_t hash() const noexcept
+	[[nodiscard]] inline constexpr std::size_t hash() const noexcept
 	{
 		return m_hash;
 	}
@@ -142,12 +161,13 @@ private:
 	void replace_stage_directives(gl::shader_stage stage) const;
 	void replace_define_directives(const dictionary_type& definitions) const;
 	
-	mutable text_file template_source;
-	std::unordered_set<std::size_t> vertex_directives;
-	std::unordered_set<std::size_t> fragment_directives;
-	std::unordered_set<std::size_t> geometry_directives;
-	std::multimap<std::string, std::size_t> define_directives;
+	mutable text_file m_template_source;
+	std::unordered_set<std::size_t> m_vertex_directives;
+	std::unordered_set<std::size_t> m_fragment_directives;
+	std::unordered_set<std::size_t> m_geometry_directives;
+	std::multimap<std::string, std::size_t> m_define_directives;
 	std::size_t m_hash{0};
+	std::vector<std::shared_ptr<text_file>> m_include_files;
 };
 
 } // namespace gl

@@ -84,6 +84,7 @@
 #include <engine/geom/brep/brep-operations.hpp>
 #include <engine/geom/coordinates.hpp>
 #include <engine/ai/navmesh.hpp>
+#include <engine/animation/ik/constraints/euler-ik-constraint.hpp>
 
 treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	game_state(ctx)
@@ -136,7 +137,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	
 	//const float color_temperature = 5000.0f;
 	//const math::fvec3 light_color = color::aces::ap1<float>.from_xyz * color::cat::matrix(color::illuminant::deg2::d50<float>, color::aces::white_point<float>) * color::cct::to_xyz(color_temperature);
-	const math::fvec3 light_color{1.0f, 1.0f, 1.0f}; 
+	// const math::fvec3 light_color{1.0f, 1.0f, 1.0f}; 
 	
 	// Create rectangle light
 	// ctx.underground_rectangle_light = std::make_unique<scene::rectangle_light>();
@@ -169,20 +170,61 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	// Create treadmill
 	auto treadmill_eid = ctx.entity_registry->create();
 	scene_component treadmill_scene_component;
-	treadmill_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube-15cm.mdl"));
+	treadmill_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube-500mm.mdl"));
 	treadmill_scene_component.layer_mask = 1;
 	ctx.entity_registry->emplace<scene_component>(treadmill_eid, std::move(treadmill_scene_component));
 	
 	// Create worker
 	auto worker_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_model);
+	
+	// Create worker IK rig
+	const auto& worker_skeleton = worker_model->get_skeleton();
+	worker_ik_rig = std::make_shared<ik_rig>(*worker_skeletal_mesh);
+	auto mesocoxa_ik_constraint = std::make_shared<euler_ik_constraint>();
+	mesocoxa_ik_constraint->set_min_angles({-math::pi<float>, -math::pi<float>, -math::pi<float>});
+	mesocoxa_ik_constraint->set_max_angles({ math::pi<float>,  math::pi<float>,  math::pi<float>});
+	worker_ik_rig->set_constraint(*worker_skeleton.get_bone_index("mesocoxa_l"), std::move(mesocoxa_ik_constraint));
+	
+	// Pose worker
+	worker_skeletal_mesh->get_pose() = *worker_model->get_skeleton().get_pose("midswing");
+	
 	worker_eid = ctx.entity_registry->create();
 	transform_component worker_transform_component;
 	worker_transform_component.local = math::transform<float>::identity();
 	worker_transform_component.local.translation = {0, 0.1f, 0};
 	worker_transform_component.local.scale = math::fvec3::one() * worker_phenome.body_size->mean_mesosoma_length;
 	worker_transform_component.world = worker_transform_component.local;
+
+	legged_locomotion_component worker_locomotion_component;
+	worker_locomotion_component.current_pose = &worker_skeletal_mesh->get_pose();
+	worker_locomotion_component.midstance_pose = worker_model->get_skeleton().get_pose("midstance");
+	worker_locomotion_component.midswing_pose = worker_model->get_skeleton().get_pose("midswing");
+	worker_locomotion_component.liftoff_pose = worker_model->get_skeleton().get_pose("liftoff");
+	worker_locomotion_component.touchdown_pose = worker_model->get_skeleton().get_pose("touchdown");
+	
+	worker_locomotion_component.tip_bones =
+	{
+		*worker_skeleton.get_bone_index("protarsomere1_l"),
+		*worker_skeleton.get_bone_index("mesotarsomere1_l"),
+		*worker_skeleton.get_bone_index("metatarsomere1_l"),
+		*worker_skeleton.get_bone_index("protarsomere1_r"),
+		*worker_skeleton.get_bone_index("mesotarsomere1_r"),
+		*worker_skeleton.get_bone_index("metatarsomere1_r")
+	};
+	worker_locomotion_component.leg_bone_count = 4;
+	worker_locomotion_component.gait = std::make_shared<::gait>();
+	worker_locomotion_component.gait->frequency = 4.0f;
+	worker_locomotion_component.gait->steps.resize(6);
+	for (std::size_t i = 0; i < 6; ++i)
+	{
+		auto& step = worker_locomotion_component.gait->steps[i];
+		step.duty_factor = 0.5f;
+		step.delay = (i % 2) ? 0.5f : 0.0f;
+	}
+	
 	ctx.entity_registry->emplace<transform_component>(worker_eid, worker_transform_component);
 	ctx.entity_registry->emplace<scene_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{1});
+	ctx.entity_registry->emplace<legged_locomotion_component>(worker_eid, std::move(worker_locomotion_component));
 	
 	// Create color checker
 	auto color_checker_eid = ctx.entity_registry->create();
@@ -244,16 +286,16 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	ctx.frame_scheduler.refresh();
 	
 	// Load navmesh
-	navmesh = ctx.resource_manager->load<geom::brep_mesh>("cube-15cm.msh");
+	navmesh = ctx.resource_manager->load<geom::brep_mesh>("cube-500mm.msh");
 	
 	// Generate navmesh attributes
 	geom::generate_face_normals(*navmesh);
 	geom::generate_vertex_normals(*navmesh);
 	
 	// Build navmesh BVH
-	debug::log::info("building bvh");
+	debug::log::info("Building BVH...");
 	navmesh_bvh = std::make_unique<geom::bvh>(*navmesh);
-	debug::log::info("building bvh done");
+	debug::log::info("Built BVH");
 	
 	debug::log::trace("Entered nest view state");
 }
@@ -715,7 +757,32 @@ void treadmill_experiment_state::setup_controls()
 							update_third_person_camera();
 						}
 					);
+					ctx.entity_registry->patch<::legged_locomotion_component>
+					(
+						worker_eid,
+						[&](auto& component)
+						{
+							component.moving = true;
+						}
+					);
 				}
+			}
+		)
+	);
+	action_subscriptions.emplace_back
+	(
+		ctx.move_forward_action.get_deactivated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				ctx.entity_registry->patch<::legged_locomotion_component>
+				(
+					worker_eid,
+					[&](auto& component)
+					{
+						component.moving = false;
+					}
+				);
 			}
 		)
 	);

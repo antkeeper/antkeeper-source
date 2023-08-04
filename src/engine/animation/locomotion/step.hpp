@@ -17,24 +17,29 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/animation/ik/constraints/euler-ik-constraint.hpp>
-#include <algorithm>
-#include <cmath>
+#ifndef ANTKEEPER_ANIMATION_STEP_HPP
+#define ANTKEEPER_ANIMATION_STEP_HPP
 
-void euler_ik_constraint::solve(math::fquat& q)
+/**
+ * Describes the timing of a single step in a gait.
+ */
+struct step
 {
-	// Store w-component of quaternion
-	float old_w = q.w();
+public:
+	/// Fraction of the gait cycle, on `[0, 1]`, in which the limb is in the stance phase.
+	float duty_factor{};
 	
-	// Derive Euler angles from quaternion
-	auto angles = math::euler_from_quat(m_rotation_sequence, q);
+	/// Fraction of the gait cycle, on `[0, 1]`, at which the limb enters the swing phase.
+	float delay{};
 	
-	// Constrain Euler angles
-	angles = math::clamp(angles, m_min_angles, m_max_angles);
-	
-	// Rebuild quaternion from constrained Euler angles
-	q = math::euler_to_quat(m_rotation_sequence, angles);
-	
-	// Restore quaternion sign
-	q.w() = std::copysign(q.w(), old_w);
-}
+	/**
+	 * Returns the phase of the step at the given gait phase.
+	 *
+	 * @param t Gait phase, on `[0, 1]`.
+	 *
+	 * @return Step phase, on `[-1, 1]`. Values on `[-1, 0)` indicate a stance phase, while values on `[0, 1]` indicate a swing phase.
+	 */
+	[[nodiscard]] float phase(float t) const noexcept;
+};
+
+#endif // ANTKEEPER_ANIMATION_STEP_HPP

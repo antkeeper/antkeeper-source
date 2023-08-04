@@ -17,38 +17,11 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
-#define ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
-
-#include <engine/math/vector.hpp>
-#include <engine/animation/pose.hpp>
 #include <engine/animation/locomotion/gait.hpp>
-#include <memory>
-#include <vector>
+#include <cmath>
 
-/**
- * Legged terrestrial locomotion.
- */
-struct legged_locomotion_component
+float gait::phase(float t) const noexcept
 {
-	/// Force vector.
-	math::fvec3 force{0.0f, 0.0f, 0.0f};
-	
-	pose* current_pose{};
-	const pose* midstance_pose{};
-	const pose* midswing_pose{};
-	const pose* liftoff_pose{};
-	const pose* touchdown_pose{};
-	
-	/// Indices of the the final bones in the legs.
-	std::vector<bone_index_type> tip_bones;
-	
-	/// Number of bones per leg.
-	std::uint8_t leg_bone_count{};
-	
-	std::shared_ptr<::gait> gait;
-	
-	bool moving{};
-};
-
-#endif // ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
+	float i;
+	return std::modf(t * frequency, &i);
+}

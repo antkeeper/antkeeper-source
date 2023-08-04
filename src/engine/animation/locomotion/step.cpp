@@ -17,24 +17,23 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/animation/ik/constraints/euler-ik-constraint.hpp>
-#include <algorithm>
+#include <engine/animation/locomotion/step.hpp>
 #include <cmath>
 
-void euler_ik_constraint::solve(math::fquat& q)
+float step::phase(float t) const noexcept
 {
-	// Store w-component of quaternion
-	float old_w = q.w();
+	// Make phase relative to step stance
+	float i;
+	t = std::modf(1.0f + t + delay - duty_factor, &i);
 	
-	// Derive Euler angles from quaternion
-	auto angles = math::euler_from_quat(m_rotation_sequence, q);
-	
-	// Constrain Euler angles
-	angles = math::clamp(angles, m_min_angles, m_max_angles);
-	
-	// Rebuild quaternion from constrained Euler angles
-	q = math::euler_to_quat(m_rotation_sequence, angles);
-	
-	// Restore quaternion sign
-	q.w() = std::copysign(q.w(), old_w);
+	if (t < duty_factor)
+	{
+		// Stance phase, on `[-1, 0)`
+		return (t - duty_factor) / duty_factor;
+	}
+	else
+	{
+		// Swing phase, on `[0, 1]`
+		return (t - duty_factor) / (1.0f - duty_factor);
+	}
 }

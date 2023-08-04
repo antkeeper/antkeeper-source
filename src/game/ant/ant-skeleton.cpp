@@ -20,6 +20,7 @@
 #include "game/ant/ant-skeleton.hpp"
 #include "game/ant/ant-bone-set.hpp"
 #include <engine/math/angles.hpp>
+#include <engine/math/euler-angles.hpp>
 
 namespace {
 
@@ -119,6 +120,530 @@ void generate_ant_rest_pose(::skeleton& skeleton, const ant_bone_set& bones, con
 	}
 	
 	skeleton.update_rest_pose();
+}
+
+/**
+ * Generates a standing pose (named "midstance") for an ant skeleton.
+ *
+ * @param[in,out] skeleton Ant skeleton.
+ * @parma bones Set of ant bone indices.
+ */
+void generate_ant_midstance_pose(skeleton& skeleton, const ant_bone_set& bones)
+{
+	auto& pose = skeleton.add_pose("midstance");
+	const auto& rest_pose = skeleton.get_rest_pose();
+	
+	// Pose forelegs
+	{
+		const auto procoxa_l_angles = math::fvec3{0.0f, 40.0f, 0.0f} * math::deg2rad<float>;
+		const auto procoxa_r_angles = procoxa_l_angles * math::fvec3{1, -1, 1};
+		const auto profemur_l_angles = math::fvec3{31.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto profemur_r_angles = profemur_l_angles * math::fvec3{1, 1, 1};
+		const auto protibia_l_angles = math::fvec3{-90.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto protibia_r_angles = protibia_l_angles * math::fvec3{1, 1, 1};
+		const auto protarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto protarsomere1_r_angles = protarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto procoxa_l_xf = math::transform<float>::identity();
+		auto procoxa_r_xf = math::transform<float>::identity();
+		auto profemur_l_xf = math::transform<float>::identity();
+		auto profemur_r_xf = math::transform<float>::identity();
+		auto protibia_l_xf = math::transform<float>::identity();
+		auto protibia_r_xf = math::transform<float>::identity();
+		auto protarsomere1_l_xf = math::transform<float>::identity();
+		auto protarsomere1_r_xf = math::transform<float>::identity();
+		
+		procoxa_l_xf.rotation = math::euler_xyz_to_quat(procoxa_l_angles);
+		procoxa_r_xf.rotation = math::euler_xyz_to_quat(procoxa_r_angles);
+		profemur_l_xf.rotation = math::euler_xyz_to_quat(profemur_l_angles);
+		profemur_r_xf.rotation = math::euler_xyz_to_quat(profemur_r_angles);
+		protibia_l_xf.rotation = math::euler_xyz_to_quat(protibia_l_angles);
+		protibia_r_xf.rotation = math::euler_xyz_to_quat(protibia_r_angles);
+		protarsomere1_l_xf.rotation = math::euler_xyz_to_quat(protarsomere1_l_angles);
+		protarsomere1_r_xf.rotation = math::euler_xyz_to_quat(protarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.procoxa_l, rest_pose.get_relative_transform(bones.procoxa_l) * procoxa_l_xf);
+		pose.set_relative_transform(bones.procoxa_r, rest_pose.get_relative_transform(bones.procoxa_r) * procoxa_r_xf);
+		pose.set_relative_transform(bones.profemur_l, rest_pose.get_relative_transform(bones.profemur_l) * profemur_l_xf);
+		pose.set_relative_transform(bones.profemur_r, rest_pose.get_relative_transform(bones.profemur_r) * profemur_r_xf);
+		pose.set_relative_transform(bones.protibia_l, rest_pose.get_relative_transform(bones.protibia_l) * protibia_l_xf);
+		pose.set_relative_transform(bones.protibia_r, rest_pose.get_relative_transform(bones.protibia_r) * protibia_r_xf);
+		pose.set_relative_transform(bones.protarsomere1_l, rest_pose.get_relative_transform(bones.protarsomere1_l) * protarsomere1_l_xf);
+		pose.set_relative_transform(bones.protarsomere1_r, rest_pose.get_relative_transform(bones.protarsomere1_r) * protarsomere1_r_xf);
+	}
+	
+	// Pose midlegs
+	{
+		const auto mesocoxa_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesocoxa_r_angles = mesocoxa_l_angles * math::fvec3{1, 1, 1};
+		const auto mesofemur_l_angles = math::fvec3{38.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesofemur_r_angles = mesofemur_l_angles * math::fvec3{1, 1, 1};
+		const auto mesotibia_l_angles = math::fvec3{-100.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesotibia_r_angles = mesotibia_l_angles * math::fvec3{1, 1, 1};
+		const auto mesotarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesotarsomere1_r_angles = mesotarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto mesocoxa_l_xf = math::transform<float>::identity();
+		auto mesocoxa_r_xf = math::transform<float>::identity();
+		auto mesofemur_l_xf = math::transform<float>::identity();
+		auto mesofemur_r_xf = math::transform<float>::identity();
+		auto mesotibia_l_xf = math::transform<float>::identity();
+		auto mesotibia_r_xf = math::transform<float>::identity();
+		auto mesotarsomere1_l_xf = math::transform<float>::identity();
+		auto mesotarsomere1_r_xf = math::transform<float>::identity();
+		
+		mesocoxa_l_xf.rotation = math::euler_xyz_to_quat(mesocoxa_l_angles);
+		mesocoxa_r_xf.rotation = math::euler_xyz_to_quat(mesocoxa_r_angles);
+		mesofemur_l_xf.rotation = math::euler_xyz_to_quat(mesofemur_l_angles);
+		mesofemur_r_xf.rotation = math::euler_xyz_to_quat(mesofemur_r_angles);
+		mesotibia_l_xf.rotation = math::euler_xyz_to_quat(mesotibia_l_angles);
+		mesotibia_r_xf.rotation = math::euler_xyz_to_quat(mesotibia_r_angles);
+		mesotarsomere1_l_xf.rotation = math::euler_xyz_to_quat(mesotarsomere1_l_angles);
+		mesotarsomere1_r_xf.rotation = math::euler_xyz_to_quat(mesotarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.mesocoxa_l, rest_pose.get_relative_transform(bones.mesocoxa_l) * mesocoxa_l_xf);
+		pose.set_relative_transform(bones.mesocoxa_r, rest_pose.get_relative_transform(bones.mesocoxa_r) * mesocoxa_r_xf);
+		pose.set_relative_transform(bones.mesofemur_l, rest_pose.get_relative_transform(bones.mesofemur_l) * mesofemur_l_xf);
+		pose.set_relative_transform(bones.mesofemur_r, rest_pose.get_relative_transform(bones.mesofemur_r) * mesofemur_r_xf);
+		pose.set_relative_transform(bones.mesotibia_l, rest_pose.get_relative_transform(bones.mesotibia_l) * mesotibia_l_xf);
+		pose.set_relative_transform(bones.mesotibia_r, rest_pose.get_relative_transform(bones.mesotibia_r) * mesotibia_r_xf);
+		pose.set_relative_transform(bones.mesotarsomere1_l, rest_pose.get_relative_transform(bones.mesotarsomere1_l) * mesotarsomere1_l_xf);
+		pose.set_relative_transform(bones.mesotarsomere1_r, rest_pose.get_relative_transform(bones.mesotarsomere1_r) * mesotarsomere1_r_xf);
+	}
+	
+	// Pose hindlegs
+	{
+		const auto metacoxa_l_angles = math::fvec3{0.0f, -34.0f, 0.0f} * math::deg2rad<float>;
+		const auto metacoxa_r_angles = metacoxa_l_angles * math::fvec3{1, -1, 1};
+		const auto metafemur_l_angles = math::fvec3{48.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metafemur_r_angles = metafemur_l_angles * math::fvec3{1, 1, 1};
+		const auto metatibia_l_angles = math::fvec3{-100.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metatibia_r_angles = metatibia_l_angles * math::fvec3{1, 1, 1};
+		const auto metatarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metatarsomere1_r_angles = metatarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto metacoxa_l_xf = math::transform<float>::identity();
+		auto metacoxa_r_xf = math::transform<float>::identity();
+		auto metafemur_l_xf = math::transform<float>::identity();
+		auto metafemur_r_xf = math::transform<float>::identity();
+		auto metatibia_l_xf = math::transform<float>::identity();
+		auto metatibia_r_xf = math::transform<float>::identity();
+		auto metatarsomere1_l_xf = math::transform<float>::identity();
+		auto metatarsomere1_r_xf = math::transform<float>::identity();
+		
+		metacoxa_l_xf.rotation = math::euler_xyz_to_quat(metacoxa_l_angles);
+		metacoxa_r_xf.rotation = math::euler_xyz_to_quat(metacoxa_r_angles);
+		metafemur_l_xf.rotation = math::euler_xyz_to_quat(metafemur_l_angles);
+		metafemur_r_xf.rotation = math::euler_xyz_to_quat(metafemur_r_angles);
+		metatibia_l_xf.rotation = math::euler_xyz_to_quat(metatibia_l_angles);
+		metatibia_r_xf.rotation = math::euler_xyz_to_quat(metatibia_r_angles);
+		metatarsomere1_l_xf.rotation = math::euler_xyz_to_quat(metatarsomere1_l_angles);
+		metatarsomere1_r_xf.rotation = math::euler_xyz_to_quat(metatarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.metacoxa_l, rest_pose.get_relative_transform(bones.metacoxa_l) * metacoxa_l_xf);
+		pose.set_relative_transform(bones.metacoxa_r, rest_pose.get_relative_transform(bones.metacoxa_r) * metacoxa_r_xf);
+		pose.set_relative_transform(bones.metafemur_l, rest_pose.get_relative_transform(bones.metafemur_l) * metafemur_l_xf);
+		pose.set_relative_transform(bones.metafemur_r, rest_pose.get_relative_transform(bones.metafemur_r) * metafemur_r_xf);
+		pose.set_relative_transform(bones.metatibia_l, rest_pose.get_relative_transform(bones.metatibia_l) * metatibia_l_xf);
+		pose.set_relative_transform(bones.metatibia_r, rest_pose.get_relative_transform(bones.metatibia_r) * metatibia_r_xf);
+		pose.set_relative_transform(bones.metatarsomere1_l, rest_pose.get_relative_transform(bones.metatarsomere1_l) * metatarsomere1_l_xf);
+		pose.set_relative_transform(bones.metatarsomere1_r, rest_pose.get_relative_transform(bones.metatarsomere1_r) * metatarsomere1_r_xf);
+	}
+	
+	pose.update();
+}
+
+/**
+ * Generates a lift-off pose (named "liftoff") for an ant skeleton.
+ *
+ * @param[in,out] skeleton Ant skeleton.
+ * @parma bones Set of ant bone indices.
+ */
+void generate_ant_liftoff_pose(skeleton& skeleton, const ant_bone_set& bones)
+{
+	auto& pose = skeleton.add_pose("liftoff");
+	const auto& rest_pose = skeleton.get_rest_pose();
+	
+	// Pose forelegs
+	{
+		const auto procoxa_l_angles = math::fvec3{0.0f, 50.0f, 0.0f} * math::deg2rad<float>;
+		const auto procoxa_r_angles = procoxa_l_angles * math::fvec3{1, -1, 1};
+		const auto profemur_l_angles = math::fvec3{34.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto profemur_r_angles = profemur_l_angles * math::fvec3{1, 1, 1};
+		const auto protibia_l_angles = math::fvec3{-118.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto protibia_r_angles = protibia_l_angles * math::fvec3{1, 1, 1};
+		const auto protarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto protarsomere1_r_angles = protarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto procoxa_l_xf = math::transform<float>::identity();
+		auto procoxa_r_xf = math::transform<float>::identity();
+		auto profemur_l_xf = math::transform<float>::identity();
+		auto profemur_r_xf = math::transform<float>::identity();
+		auto protibia_l_xf = math::transform<float>::identity();
+		auto protibia_r_xf = math::transform<float>::identity();
+		auto protarsomere1_l_xf = math::transform<float>::identity();
+		auto protarsomere1_r_xf = math::transform<float>::identity();
+		
+		procoxa_l_xf.rotation = math::euler_xyz_to_quat(procoxa_l_angles);
+		procoxa_r_xf.rotation = math::euler_xyz_to_quat(procoxa_r_angles);
+		profemur_l_xf.rotation = math::euler_xyz_to_quat(profemur_l_angles);
+		profemur_r_xf.rotation = math::euler_xyz_to_quat(profemur_r_angles);
+		protibia_l_xf.rotation = math::euler_xyz_to_quat(protibia_l_angles);
+		protibia_r_xf.rotation = math::euler_xyz_to_quat(protibia_r_angles);
+		protarsomere1_l_xf.rotation = math::euler_xyz_to_quat(protarsomere1_l_angles);
+		protarsomere1_r_xf.rotation = math::euler_xyz_to_quat(protarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.procoxa_l, rest_pose.get_relative_transform(bones.procoxa_l) * procoxa_l_xf);
+		pose.set_relative_transform(bones.procoxa_r, rest_pose.get_relative_transform(bones.procoxa_r) * procoxa_r_xf);
+		pose.set_relative_transform(bones.profemur_l, rest_pose.get_relative_transform(bones.profemur_l) * profemur_l_xf);
+		pose.set_relative_transform(bones.profemur_r, rest_pose.get_relative_transform(bones.profemur_r) * profemur_r_xf);
+		pose.set_relative_transform(bones.protibia_l, rest_pose.get_relative_transform(bones.protibia_l) * protibia_l_xf);
+		pose.set_relative_transform(bones.protibia_r, rest_pose.get_relative_transform(bones.protibia_r) * protibia_r_xf);
+		pose.set_relative_transform(bones.protarsomere1_l, rest_pose.get_relative_transform(bones.protarsomere1_l) * protarsomere1_l_xf);
+		pose.set_relative_transform(bones.protarsomere1_r, rest_pose.get_relative_transform(bones.protarsomere1_r) * protarsomere1_r_xf);
+	}
+	
+	// Pose midlegs
+	{
+		const auto mesocoxa_l_angles = math::fvec3{0.0f, 30.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesocoxa_r_angles = mesocoxa_l_angles * math::fvec3{1, -1, 1};
+		const auto mesofemur_l_angles = math::fvec3{36.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesofemur_r_angles = mesofemur_l_angles * math::fvec3{1, 1, 1};
+		const auto mesotibia_l_angles = math::fvec3{-110.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesotibia_r_angles = mesotibia_l_angles * math::fvec3{1, 1, 1};
+		const auto mesotarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesotarsomere1_r_angles = mesotarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto mesocoxa_l_xf = math::transform<float>::identity();
+		auto mesocoxa_r_xf = math::transform<float>::identity();
+		auto mesofemur_l_xf = math::transform<float>::identity();
+		auto mesofemur_r_xf = math::transform<float>::identity();
+		auto mesotibia_l_xf = math::transform<float>::identity();
+		auto mesotibia_r_xf = math::transform<float>::identity();
+		auto mesotarsomere1_l_xf = math::transform<float>::identity();
+		auto mesotarsomere1_r_xf = math::transform<float>::identity();
+		
+		mesocoxa_l_xf.rotation = math::euler_xyz_to_quat(mesocoxa_l_angles);
+		mesocoxa_r_xf.rotation = math::euler_xyz_to_quat(mesocoxa_r_angles);
+		mesofemur_l_xf.rotation = math::euler_xyz_to_quat(mesofemur_l_angles);
+		mesofemur_r_xf.rotation = math::euler_xyz_to_quat(mesofemur_r_angles);
+		mesotibia_l_xf.rotation = math::euler_xyz_to_quat(mesotibia_l_angles);
+		mesotibia_r_xf.rotation = math::euler_xyz_to_quat(mesotibia_r_angles);
+		mesotarsomere1_l_xf.rotation = math::euler_xyz_to_quat(mesotarsomere1_l_angles);
+		mesotarsomere1_r_xf.rotation = math::euler_xyz_to_quat(mesotarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.mesocoxa_l, rest_pose.get_relative_transform(bones.mesocoxa_l) * mesocoxa_l_xf);
+		pose.set_relative_transform(bones.mesocoxa_r, rest_pose.get_relative_transform(bones.mesocoxa_r) * mesocoxa_r_xf);
+		pose.set_relative_transform(bones.mesofemur_l, rest_pose.get_relative_transform(bones.mesofemur_l) * mesofemur_l_xf);
+		pose.set_relative_transform(bones.mesofemur_r, rest_pose.get_relative_transform(bones.mesofemur_r) * mesofemur_r_xf);
+		pose.set_relative_transform(bones.mesotibia_l, rest_pose.get_relative_transform(bones.mesotibia_l) * mesotibia_l_xf);
+		pose.set_relative_transform(bones.mesotibia_r, rest_pose.get_relative_transform(bones.mesotibia_r) * mesotibia_r_xf);
+		pose.set_relative_transform(bones.mesotarsomere1_l, rest_pose.get_relative_transform(bones.mesotarsomere1_l) * mesotarsomere1_l_xf);
+		pose.set_relative_transform(bones.mesotarsomere1_r, rest_pose.get_relative_transform(bones.mesotarsomere1_r) * mesotarsomere1_r_xf);
+	}
+	
+	// Pose hindlegs
+	{
+		const auto metacoxa_l_angles = math::fvec3{0.0f, -27.5f, 0.0f} * math::deg2rad<float>;
+		const auto metacoxa_r_angles = metacoxa_l_angles * math::fvec3{1, -1, 1};
+		const auto metafemur_l_angles = math::fvec3{6.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metafemur_r_angles = metafemur_l_angles * math::fvec3{1, 1, 1};
+		const auto metatibia_l_angles = math::fvec3{-39.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metatibia_r_angles = metatibia_l_angles * math::fvec3{1, 1, 1};
+		const auto metatarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metatarsomere1_r_angles = metatarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto metacoxa_l_xf = math::transform<float>::identity();
+		auto metacoxa_r_xf = math::transform<float>::identity();
+		auto metafemur_l_xf = math::transform<float>::identity();
+		auto metafemur_r_xf = math::transform<float>::identity();
+		auto metatibia_l_xf = math::transform<float>::identity();
+		auto metatibia_r_xf = math::transform<float>::identity();
+		auto metatarsomere1_l_xf = math::transform<float>::identity();
+		auto metatarsomere1_r_xf = math::transform<float>::identity();
+		
+		metacoxa_l_xf.rotation = math::euler_xyz_to_quat(metacoxa_l_angles);
+		metacoxa_r_xf.rotation = math::euler_xyz_to_quat(metacoxa_r_angles);
+		metafemur_l_xf.rotation = math::euler_xyz_to_quat(metafemur_l_angles);
+		metafemur_r_xf.rotation = math::euler_xyz_to_quat(metafemur_r_angles);
+		metatibia_l_xf.rotation = math::euler_xyz_to_quat(metatibia_l_angles);
+		metatibia_r_xf.rotation = math::euler_xyz_to_quat(metatibia_r_angles);
+		metatarsomere1_l_xf.rotation = math::euler_xyz_to_quat(metatarsomere1_l_angles);
+		metatarsomere1_r_xf.rotation = math::euler_xyz_to_quat(metatarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.metacoxa_l, rest_pose.get_relative_transform(bones.metacoxa_l) * metacoxa_l_xf);
+		pose.set_relative_transform(bones.metacoxa_r, rest_pose.get_relative_transform(bones.metacoxa_r) * metacoxa_r_xf);
+		pose.set_relative_transform(bones.metafemur_l, rest_pose.get_relative_transform(bones.metafemur_l) * metafemur_l_xf);
+		pose.set_relative_transform(bones.metafemur_r, rest_pose.get_relative_transform(bones.metafemur_r) * metafemur_r_xf);
+		pose.set_relative_transform(bones.metatibia_l, rest_pose.get_relative_transform(bones.metatibia_l) * metatibia_l_xf);
+		pose.set_relative_transform(bones.metatibia_r, rest_pose.get_relative_transform(bones.metatibia_r) * metatibia_r_xf);
+		pose.set_relative_transform(bones.metatarsomere1_l, rest_pose.get_relative_transform(bones.metatarsomere1_l) * metatarsomere1_l_xf);
+		pose.set_relative_transform(bones.metatarsomere1_r, rest_pose.get_relative_transform(bones.metatarsomere1_r) * metatarsomere1_r_xf);
+	}
+	
+	pose.update();
+}
+
+/**
+ * Generates a touchdown pose (named "touchdown") for an ant skeleton.
+ *
+ * @param[in,out] skeleton Ant skeleton.
+ * @parma bones Set of ant bone indices.
+ */
+void generate_ant_touchdown_pose(skeleton& skeleton, const ant_bone_set& bones)
+{
+	auto& pose = skeleton.add_pose("touchdown");
+	const auto& rest_pose = skeleton.get_rest_pose();
+	
+	// Pose forelegs
+	{
+		const auto procoxa_l_angles = math::fvec3{0.0f, 25.0f, 0.0f} * math::deg2rad<float>;
+		const auto procoxa_r_angles = procoxa_l_angles * math::fvec3{1, -1, 1};
+		const auto profemur_l_angles = math::fvec3{10.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto profemur_r_angles = profemur_l_angles * math::fvec3{1, 1, 1};
+		const auto protibia_l_angles = math::fvec3{-60.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto protibia_r_angles = protibia_l_angles * math::fvec3{1, 1, 1};
+		const auto protarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto protarsomere1_r_angles = protarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto procoxa_l_xf = math::transform<float>::identity();
+		auto procoxa_r_xf = math::transform<float>::identity();
+		auto profemur_l_xf = math::transform<float>::identity();
+		auto profemur_r_xf = math::transform<float>::identity();
+		auto protibia_l_xf = math::transform<float>::identity();
+		auto protibia_r_xf = math::transform<float>::identity();
+		auto protarsomere1_l_xf = math::transform<float>::identity();
+		auto protarsomere1_r_xf = math::transform<float>::identity();
+		
+		procoxa_l_xf.rotation = math::euler_xyz_to_quat(procoxa_l_angles);
+		procoxa_r_xf.rotation = math::euler_xyz_to_quat(procoxa_r_angles);
+		profemur_l_xf.rotation = math::euler_xyz_to_quat(profemur_l_angles);
+		profemur_r_xf.rotation = math::euler_xyz_to_quat(profemur_r_angles);
+		protibia_l_xf.rotation = math::euler_xyz_to_quat(protibia_l_angles);
+		protibia_r_xf.rotation = math::euler_xyz_to_quat(protibia_r_angles);
+		protarsomere1_l_xf.rotation = math::euler_xyz_to_quat(protarsomere1_l_angles);
+		protarsomere1_r_xf.rotation = math::euler_xyz_to_quat(protarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.procoxa_l, rest_pose.get_relative_transform(bones.procoxa_l) * procoxa_l_xf);
+		pose.set_relative_transform(bones.procoxa_r, rest_pose.get_relative_transform(bones.procoxa_r) * procoxa_r_xf);
+		pose.set_relative_transform(bones.profemur_l, rest_pose.get_relative_transform(bones.profemur_l) * profemur_l_xf);
+		pose.set_relative_transform(bones.profemur_r, rest_pose.get_relative_transform(bones.profemur_r) * profemur_r_xf);
+		pose.set_relative_transform(bones.protibia_l, rest_pose.get_relative_transform(bones.protibia_l) * protibia_l_xf);
+		pose.set_relative_transform(bones.protibia_r, rest_pose.get_relative_transform(bones.protibia_r) * protibia_r_xf);
+		pose.set_relative_transform(bones.protarsomere1_l, rest_pose.get_relative_transform(bones.protarsomere1_l) * protarsomere1_l_xf);
+		pose.set_relative_transform(bones.protarsomere1_r, rest_pose.get_relative_transform(bones.protarsomere1_r) * protarsomere1_r_xf);
+	}
+	
+	// Pose midlegs
+	{
+		const auto mesocoxa_l_angles = math::fvec3{0.0f, -22.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesocoxa_r_angles = mesocoxa_l_angles * math::fvec3{1, -1, 1};
+		const auto mesofemur_l_angles = math::fvec3{21.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesofemur_r_angles = mesofemur_l_angles * math::fvec3{1, 1, 1};
+		const auto mesotibia_l_angles = math::fvec3{-80.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesotibia_r_angles = mesotibia_l_angles * math::fvec3{1, 1, 1};
+		const auto mesotarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesotarsomere1_r_angles = mesotarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto mesocoxa_l_xf = math::transform<float>::identity();
+		auto mesocoxa_r_xf = math::transform<float>::identity();
+		auto mesofemur_l_xf = math::transform<float>::identity();
+		auto mesofemur_r_xf = math::transform<float>::identity();
+		auto mesotibia_l_xf = math::transform<float>::identity();
+		auto mesotibia_r_xf = math::transform<float>::identity();
+		auto mesotarsomere1_l_xf = math::transform<float>::identity();
+		auto mesotarsomere1_r_xf = math::transform<float>::identity();
+		
+		mesocoxa_l_xf.rotation = math::euler_xyz_to_quat(mesocoxa_l_angles);
+		mesocoxa_r_xf.rotation = math::euler_xyz_to_quat(mesocoxa_r_angles);
+		mesofemur_l_xf.rotation = math::euler_xyz_to_quat(mesofemur_l_angles);
+		mesofemur_r_xf.rotation = math::euler_xyz_to_quat(mesofemur_r_angles);
+		mesotibia_l_xf.rotation = math::euler_xyz_to_quat(mesotibia_l_angles);
+		mesotibia_r_xf.rotation = math::euler_xyz_to_quat(mesotibia_r_angles);
+		mesotarsomere1_l_xf.rotation = math::euler_xyz_to_quat(mesotarsomere1_l_angles);
+		mesotarsomere1_r_xf.rotation = math::euler_xyz_to_quat(mesotarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.mesocoxa_l, rest_pose.get_relative_transform(bones.mesocoxa_l) * mesocoxa_l_xf);
+		pose.set_relative_transform(bones.mesocoxa_r, rest_pose.get_relative_transform(bones.mesocoxa_r) * mesocoxa_r_xf);
+		pose.set_relative_transform(bones.mesofemur_l, rest_pose.get_relative_transform(bones.mesofemur_l) * mesofemur_l_xf);
+		pose.set_relative_transform(bones.mesofemur_r, rest_pose.get_relative_transform(bones.mesofemur_r) * mesofemur_r_xf);
+		pose.set_relative_transform(bones.mesotibia_l, rest_pose.get_relative_transform(bones.mesotibia_l) * mesotibia_l_xf);
+		pose.set_relative_transform(bones.mesotibia_r, rest_pose.get_relative_transform(bones.mesotibia_r) * mesotibia_r_xf);
+		pose.set_relative_transform(bones.mesotarsomere1_l, rest_pose.get_relative_transform(bones.mesotarsomere1_l) * mesotarsomere1_l_xf);
+		pose.set_relative_transform(bones.mesotarsomere1_r, rest_pose.get_relative_transform(bones.mesotarsomere1_r) * mesotarsomere1_r_xf);
+	}
+	
+	// Pose hindlegs
+	{
+		const auto metacoxa_l_angles = math::fvec3{0.0f, -42.0f, 0.0f} * math::deg2rad<float>;
+		const auto metacoxa_r_angles = metacoxa_l_angles * math::fvec3{1, -1, 1};
+		const auto metafemur_l_angles = math::fvec3{60.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metafemur_r_angles = metafemur_l_angles * math::fvec3{1, 1, 1};
+		const auto metatibia_l_angles = math::fvec3{-125.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metatibia_r_angles = metatibia_l_angles * math::fvec3{1, 1, 1};
+		const auto metatarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metatarsomere1_r_angles = metatarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto metacoxa_l_xf = math::transform<float>::identity();
+		auto metacoxa_r_xf = math::transform<float>::identity();
+		auto metafemur_l_xf = math::transform<float>::identity();
+		auto metafemur_r_xf = math::transform<float>::identity();
+		auto metatibia_l_xf = math::transform<float>::identity();
+		auto metatibia_r_xf = math::transform<float>::identity();
+		auto metatarsomere1_l_xf = math::transform<float>::identity();
+		auto metatarsomere1_r_xf = math::transform<float>::identity();
+		
+		metacoxa_l_xf.rotation = math::euler_xyz_to_quat(metacoxa_l_angles);
+		metacoxa_r_xf.rotation = math::euler_xyz_to_quat(metacoxa_r_angles);
+		metafemur_l_xf.rotation = math::euler_xyz_to_quat(metafemur_l_angles);
+		metafemur_r_xf.rotation = math::euler_xyz_to_quat(metafemur_r_angles);
+		metatibia_l_xf.rotation = math::euler_xyz_to_quat(metatibia_l_angles);
+		metatibia_r_xf.rotation = math::euler_xyz_to_quat(metatibia_r_angles);
+		metatarsomere1_l_xf.rotation = math::euler_xyz_to_quat(metatarsomere1_l_angles);
+		metatarsomere1_r_xf.rotation = math::euler_xyz_to_quat(metatarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.metacoxa_l, rest_pose.get_relative_transform(bones.metacoxa_l) * metacoxa_l_xf);
+		pose.set_relative_transform(bones.metacoxa_r, rest_pose.get_relative_transform(bones.metacoxa_r) * metacoxa_r_xf);
+		pose.set_relative_transform(bones.metafemur_l, rest_pose.get_relative_transform(bones.metafemur_l) * metafemur_l_xf);
+		pose.set_relative_transform(bones.metafemur_r, rest_pose.get_relative_transform(bones.metafemur_r) * metafemur_r_xf);
+		pose.set_relative_transform(bones.metatibia_l, rest_pose.get_relative_transform(bones.metatibia_l) * metatibia_l_xf);
+		pose.set_relative_transform(bones.metatibia_r, rest_pose.get_relative_transform(bones.metatibia_r) * metatibia_r_xf);
+		pose.set_relative_transform(bones.metatarsomere1_l, rest_pose.get_relative_transform(bones.metatarsomere1_l) * metatarsomere1_l_xf);
+		pose.set_relative_transform(bones.metatarsomere1_r, rest_pose.get_relative_transform(bones.metatarsomere1_r) * metatarsomere1_r_xf);
+	}
+	
+	pose.update();
+}
+
+/**
+ * Generates a pose in which each leg is lifted to its step height (named "midswing") for an ant skeleton.
+ *
+ * @param[in,out] skeleton Ant skeleton.
+ * @parma bones Set of ant bone indices.
+ */
+void generate_ant_midswing_pose(skeleton& skeleton, const ant_bone_set& bones)
+{
+	auto& pose = skeleton.add_pose("midswing");
+	const auto& rest_pose = skeleton.get_rest_pose();
+	
+	// Pose forelegs
+	{
+		const auto procoxa_l_angles = math::fvec3{0.0f, 37.5f, 0.0f} * math::deg2rad<float>;
+		const auto procoxa_r_angles = procoxa_l_angles * math::fvec3{1, -1, 1};
+		const auto profemur_l_angles = math::fvec3{60.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto profemur_r_angles = profemur_l_angles * math::fvec3{1, 1, 1};
+		const auto protibia_l_angles = math::fvec3{-100.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto protibia_r_angles = protibia_l_angles * math::fvec3{1, 1, 1};
+		const auto protarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto protarsomere1_r_angles = protarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto procoxa_l_xf = math::transform<float>::identity();
+		auto procoxa_r_xf = math::transform<float>::identity();
+		auto profemur_l_xf = math::transform<float>::identity();
+		auto profemur_r_xf = math::transform<float>::identity();
+		auto protibia_l_xf = math::transform<float>::identity();
+		auto protibia_r_xf = math::transform<float>::identity();
+		auto protarsomere1_l_xf = math::transform<float>::identity();
+		auto protarsomere1_r_xf = math::transform<float>::identity();
+		
+		procoxa_l_xf.rotation = math::euler_xyz_to_quat(procoxa_l_angles);
+		procoxa_r_xf.rotation = math::euler_xyz_to_quat(procoxa_r_angles);
+		profemur_l_xf.rotation = math::euler_xyz_to_quat(profemur_l_angles);
+		profemur_r_xf.rotation = math::euler_xyz_to_quat(profemur_r_angles);
+		protibia_l_xf.rotation = math::euler_xyz_to_quat(protibia_l_angles);
+		protibia_r_xf.rotation = math::euler_xyz_to_quat(protibia_r_angles);
+		protarsomere1_l_xf.rotation = math::euler_xyz_to_quat(protarsomere1_l_angles);
+		protarsomere1_r_xf.rotation = math::euler_xyz_to_quat(protarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.procoxa_l, rest_pose.get_relative_transform(bones.procoxa_l) * procoxa_l_xf);
+		pose.set_relative_transform(bones.procoxa_r, rest_pose.get_relative_transform(bones.procoxa_r) * procoxa_r_xf);
+		pose.set_relative_transform(bones.profemur_l, rest_pose.get_relative_transform(bones.profemur_l) * profemur_l_xf);
+		pose.set_relative_transform(bones.profemur_r, rest_pose.get_relative_transform(bones.profemur_r) * profemur_r_xf);
+		pose.set_relative_transform(bones.protibia_l, rest_pose.get_relative_transform(bones.protibia_l) * protibia_l_xf);
+		pose.set_relative_transform(bones.protibia_r, rest_pose.get_relative_transform(bones.protibia_r) * protibia_r_xf);
+		pose.set_relative_transform(bones.protarsomere1_l, rest_pose.get_relative_transform(bones.protarsomere1_l) * protarsomere1_l_xf);
+		pose.set_relative_transform(bones.protarsomere1_r, rest_pose.get_relative_transform(bones.protarsomere1_r) * protarsomere1_r_xf);
+	}
+	
+	// Pose midlegs
+	{
+		const auto mesocoxa_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesocoxa_r_angles = mesocoxa_l_angles * math::fvec3{1, 1, 1};
+		const auto mesofemur_l_angles = math::fvec3{60.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesofemur_r_angles = mesofemur_l_angles * math::fvec3{1, 1, 1};
+		const auto mesotibia_l_angles = math::fvec3{-100.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesotibia_r_angles = mesotibia_l_angles * math::fvec3{1, 1, 1};
+		const auto mesotarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto mesotarsomere1_r_angles = mesotarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto mesocoxa_l_xf = math::transform<float>::identity();
+		auto mesocoxa_r_xf = math::transform<float>::identity();
+		auto mesofemur_l_xf = math::transform<float>::identity();
+		auto mesofemur_r_xf = math::transform<float>::identity();
+		auto mesotibia_l_xf = math::transform<float>::identity();
+		auto mesotibia_r_xf = math::transform<float>::identity();
+		auto mesotarsomere1_l_xf = math::transform<float>::identity();
+		auto mesotarsomere1_r_xf = math::transform<float>::identity();
+		
+		mesocoxa_l_xf.rotation = math::euler_xyz_to_quat(mesocoxa_l_angles);
+		mesocoxa_r_xf.rotation = math::euler_xyz_to_quat(mesocoxa_r_angles);
+		mesofemur_l_xf.rotation = math::euler_xyz_to_quat(mesofemur_l_angles);
+		mesofemur_r_xf.rotation = math::euler_xyz_to_quat(mesofemur_r_angles);
+		mesotibia_l_xf.rotation = math::euler_xyz_to_quat(mesotibia_l_angles);
+		mesotibia_r_xf.rotation = math::euler_xyz_to_quat(mesotibia_r_angles);
+		mesotarsomere1_l_xf.rotation = math::euler_xyz_to_quat(mesotarsomere1_l_angles);
+		mesotarsomere1_r_xf.rotation = math::euler_xyz_to_quat(mesotarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.mesocoxa_l, rest_pose.get_relative_transform(bones.mesocoxa_l) * mesocoxa_l_xf);
+		pose.set_relative_transform(bones.mesocoxa_r, rest_pose.get_relative_transform(bones.mesocoxa_r) * mesocoxa_r_xf);
+		pose.set_relative_transform(bones.mesofemur_l, rest_pose.get_relative_transform(bones.mesofemur_l) * mesofemur_l_xf);
+		pose.set_relative_transform(bones.mesofemur_r, rest_pose.get_relative_transform(bones.mesofemur_r) * mesofemur_r_xf);
+		pose.set_relative_transform(bones.mesotibia_l, rest_pose.get_relative_transform(bones.mesotibia_l) * mesotibia_l_xf);
+		pose.set_relative_transform(bones.mesotibia_r, rest_pose.get_relative_transform(bones.mesotibia_r) * mesotibia_r_xf);
+		pose.set_relative_transform(bones.mesotarsomere1_l, rest_pose.get_relative_transform(bones.mesotarsomere1_l) * mesotarsomere1_l_xf);
+		pose.set_relative_transform(bones.mesotarsomere1_r, rest_pose.get_relative_transform(bones.mesotarsomere1_r) * mesotarsomere1_r_xf);
+	}
+	
+	// Pose hindlegs
+	{
+		const auto metacoxa_l_angles = math::fvec3{0.0f, -37.5f, 0.0f} * math::deg2rad<float>;
+		const auto metacoxa_r_angles = metacoxa_l_angles * math::fvec3{1, -1, 1};
+		const auto metafemur_l_angles = math::fvec3{60.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metafemur_r_angles = metafemur_l_angles * math::fvec3{1, 1, 1};
+		const auto metatibia_l_angles = math::fvec3{-100.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metatibia_r_angles = metatibia_l_angles * math::fvec3{1, 1, 1};
+		const auto metatarsomere1_l_angles = math::fvec3{0.0f, 0.0f, 0.0f} * math::deg2rad<float>;
+		const auto metatarsomere1_r_angles = metatarsomere1_l_angles * math::fvec3{1, 1, 1};
+		
+		auto metacoxa_l_xf = math::transform<float>::identity();
+		auto metacoxa_r_xf = math::transform<float>::identity();
+		auto metafemur_l_xf = math::transform<float>::identity();
+		auto metafemur_r_xf = math::transform<float>::identity();
+		auto metatibia_l_xf = math::transform<float>::identity();
+		auto metatibia_r_xf = math::transform<float>::identity();
+		auto metatarsomere1_l_xf = math::transform<float>::identity();
+		auto metatarsomere1_r_xf = math::transform<float>::identity();
+		
+		metacoxa_l_xf.rotation = math::euler_xyz_to_quat(metacoxa_l_angles);
+		metacoxa_r_xf.rotation = math::euler_xyz_to_quat(metacoxa_r_angles);
+		metafemur_l_xf.rotation = math::euler_xyz_to_quat(metafemur_l_angles);
+		metafemur_r_xf.rotation = math::euler_xyz_to_quat(metafemur_r_angles);
+		metatibia_l_xf.rotation = math::euler_xyz_to_quat(metatibia_l_angles);
+		metatibia_r_xf.rotation = math::euler_xyz_to_quat(metatibia_r_angles);
+		metatarsomere1_l_xf.rotation = math::euler_xyz_to_quat(metatarsomere1_l_angles);
+		metatarsomere1_r_xf.rotation = math::euler_xyz_to_quat(metatarsomere1_r_angles);
+		
+		pose.set_relative_transform(bones.metacoxa_l, rest_pose.get_relative_transform(bones.metacoxa_l) * metacoxa_l_xf);
+		pose.set_relative_transform(bones.metacoxa_r, rest_pose.get_relative_transform(bones.metacoxa_r) * metacoxa_r_xf);
+		pose.set_relative_transform(bones.metafemur_l, rest_pose.get_relative_transform(bones.metafemur_l) * metafemur_l_xf);
+		pose.set_relative_transform(bones.metafemur_r, rest_pose.get_relative_transform(bones.metafemur_r) * metafemur_r_xf);
+		pose.set_relative_transform(bones.metatibia_l, rest_pose.get_relative_transform(bones.metatibia_l) * metatibia_l_xf);
+		pose.set_relative_transform(bones.metatibia_r, rest_pose.get_relative_transform(bones.metatibia_r) * metatibia_r_xf);
+		pose.set_relative_transform(bones.metatarsomere1_l, rest_pose.get_relative_transform(bones.metatarsomere1_l) * metatarsomere1_l_xf);
+		pose.set_relative_transform(bones.metatarsomere1_r, rest_pose.get_relative_transform(bones.metatarsomere1_r) * metatarsomere1_r_xf);
+	}
+	
+	pose.update();
 }
 
 /**
@@ -512,5 +1037,9 @@ void generate_ant_skeleton(skeleton& skeleton, ant_bone_set& bones, const ant_ph
 	
 	// Generate poses
 	generate_ant_rest_pose(skeleton, bones, phenome);
+	generate_ant_midstance_pose(skeleton, bones);
+	generate_ant_midswing_pose(skeleton, bones);
+	generate_ant_liftoff_pose(skeleton, bones);
+	generate_ant_touchdown_pose(skeleton, bones);
 	generate_ant_pupa_pose(skeleton, bones);
 }

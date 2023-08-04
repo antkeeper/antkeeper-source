@@ -25,9 +25,6 @@
 
 namespace math {
 
-/// Transformation types
-namespace transformation_types {
-
 /**
  * SE(3) proper rigid transformation (rototranslation).
  *
@@ -139,14 +136,6 @@ public:
 		return {vector_type::zero(), quaternion_type::identity()};
 	}
 };
-
-} // namespace transformation_types
-
-// Bring transformation types into math namespace
-using namespace transformation_types;
-
-// Bring transformation types into math::types namespace
-namespace types { using namespace math::transformation_types; }
 
 } // namespace math
 

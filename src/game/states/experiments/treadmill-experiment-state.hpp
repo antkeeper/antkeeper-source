@@ -32,6 +32,7 @@
 #include <engine/scene/light-probe.hpp>
 #include <engine/geom/bvh/bvh.hpp>
 #include <engine/geom/brep/brep-mesh.hpp>
+#include <engine/animation/ik/ik-rig.hpp>
 #include "game/ant/ant-phenome.hpp"
 
 class treadmill_experiment_state: public game_state
@@ -80,7 +81,7 @@ private:
 	double third_person_camera_zoom{0.25};
 	std::uint32_t third_person_camera_zoom_step_count{6};
 	
-	double third_person_camera_near_focal_plane_height{2.0f};
+	double third_person_camera_near_focal_plane_height{1.0f};
 	double third_person_camera_far_focal_plane_height{50.0f};
 	
 	double third_person_camera_near_hfov{math::radians(90.0)};
@@ -120,6 +121,7 @@ private:
 	geom::brep_face* navmesh_agent_face{};
 	math::fvec3 navmesh_agent_position{};
 	math::fvec3 navmesh_agent_normal{};
+	std::shared_ptr<ik_rig> worker_ik_rig;
 	
 	std::shared_ptr<scene::light_probe> sky_probe;
 };

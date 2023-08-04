@@ -31,9 +31,6 @@
 
 namespace math {
 
-/// Vector types.
-namespace vector_types {
-
 /**
  * *n*-dimensional vector.
  *
@@ -347,6 +344,9 @@ struct vector
 	
 	/// @}
 };
+
+/// Vector types.
+namespace vector_types {
 
 /**
  * 2-dimensional vector.

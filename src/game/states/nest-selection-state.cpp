@@ -190,7 +190,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	larva_ik_solver = std::make_shared<ccd_ik_solver>(*larva_ik_rig, larva_ik_root_bone_index, larva_ik_effector_bone_index);
 	larva_ik_solver->set_effector_position(larva_head_relative_transform * math::fvec3{0.0f, 0.0f, -0.0f});
-	larva_ik_solver->set_goal_position(larva_head_absolute_transform.translation + math::fvec3{0.2f, 0.2f, 0.5f});
+	larva_ik_solver->set_goal_center(larva_head_absolute_transform.translation + math::fvec3{0.2f, 0.2f, 0.5f});
 	
 
 	

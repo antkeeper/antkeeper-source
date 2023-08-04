@@ -35,8 +35,7 @@ math::fvec3 wander_2d(const agent& agent, float noise, float distance, float rad
 	const math::fvec3 center = agent.position + agent.forward * distance;
 	
 	// Decompose orientation into swing and twist rotations
-	math::fquat swing, twist;
-	math::swing_twist(agent.orientation, agent.up, swing, twist);
+	auto [swing, twist] = math::swing_twist(agent.orientation, agent.up);
 	
 	// Calculate offset to point on wander circle
 	const math::fvec3 offset = math::conjugate(twist) * (math::angle_axis(angle, agent.up) * agent.forward * radius);

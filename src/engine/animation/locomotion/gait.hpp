@@ -17,38 +17,32 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
-#define ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
+#ifndef ANTKEEPER_ANIMATION_GAIT_HPP
+#define ANTKEEPER_ANIMATION_GAIT_HPP
 
-#include <engine/math/vector.hpp>
-#include <engine/animation/pose.hpp>
-#include <engine/animation/locomotion/gait.hpp>
-#include <memory>
+#include <engine/animation/locomotion/step.hpp>
 #include <vector>
 
 /**
- * Legged terrestrial locomotion.
+ * Describes the synchronized timing of limbs in a locomotion pattern.
  */
-struct legged_locomotion_component
+struct gait
 {
-	/// Force vector.
-	math::fvec3 force{0.0f, 0.0f, 0.0f};
+public:
+	/// Frequency of the gait cycle, in Hz.
+	float frequency{};
 	
-	pose* current_pose{};
-	const pose* midstance_pose{};
-	const pose* midswing_pose{};
-	const pose* liftoff_pose{};
-	const pose* touchdown_pose{};
+	/// Array of steps for each limb.
+	std::vector<step> steps;
 	
-	/// Indices of the the final bones in the legs.
-	std::vector<bone_index_type> tip_bones;
-	
-	/// Number of bones per leg.
-	std::uint8_t leg_bone_count{};
-	
-	std::shared_ptr<::gait> gait;
-	
-	bool moving{};
+	/**
+	 * Returns the phase of the gait at the elapsed time.
+	 *
+	 * @param t Elapsed time, in seconds.
+	 *
+	 * @return Gait phase, on `[0, 1]`.
+	 */
+	[[nodiscard]] float phase(float t) const noexcept;
 };
 
-#endif // ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP
+#endif // ANTKEEPER_ANIMATION_GAIT_HPP

@@ -34,10 +34,10 @@ public:
 	/**
 	 * Sets the twist rotation limit.
 	 *
-	 * @param angle_min Minimum twist angle, in radians.
-	 * @param angle_max Maximum twist angle, in radians.
+	 * @param min_angle Minimum twist angle, in radians.
+	 * @param max_angle Maximum twist angle, in radians.
 	 */
-	void set_twist_limit(float angle_min, float angle_max);
+	void set_twist_limit(float min_angle, float max_angle);
 	
 private:
 	float m_cos_half_twist_min{ 0};

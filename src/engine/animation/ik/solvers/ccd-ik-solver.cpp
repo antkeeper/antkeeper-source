@@ -60,36 +60,36 @@ void ccd_ik_solver::solve()
 	const auto& ps_effector_bone_transform = pose.get_absolute_transform(m_bone_indices.front());
 	
 	// Transform goal position into pose-space
-	const auto ps_goal_position = m_goal_position * skeletal_mesh.get_transform();
+	const auto ps_goal_center = m_goal_center * skeletal_mesh.get_transform();
 	
 	for (std::size_t i = 0; i < m_max_iterations; ++i)
 	{
 		for (std::size_t j = 0; j < m_bone_indices.size(); ++j)
 		{
 			// Transform end effector position into pose-space
-			auto ps_effector_position = ps_effector_bone_transform * m_effector_position;
+			const auto ps_effector_position = ps_effector_bone_transform * m_effector_position;
 			
-			// Check if end effector is within tolerable distance to goal position
-			const auto sqr_distance = math::sqr_distance(ps_effector_position, ps_goal_position);
-			if (sqr_distance <= m_sqr_distance_tolerance)
+			// Check if end effector is within goal radius
+			const auto sqr_distance = math::sqr_distance(ps_effector_position, ps_goal_center);
+			if (sqr_distance <= m_sqr_goal_radius)
 			{
 				return;
 			}
 			
 			// Get index of current bone
-			bone_index_type bone_index = m_bone_indices[j];
+			const auto bone_index = m_bone_indices[j];
 			
 			// Get pose-space and bone-space transforms of current bone
 			const auto& ps_bone_transform = pose.get_absolute_transform(bone_index);
 			const auto& bs_bone_transform = pose.get_relative_transform(bone_index);
 			 
-			// Find pose-space direction vector from current bone to end effector
+			// Find pose-space direction vector from current bone to effector
 			const auto ps_effector_direction = math::normalize(ps_effector_position - ps_bone_transform.translation);
 			
-			// Find pose-space direction vector from current bone to IK goal
-			const auto ps_goal_direction = math::normalize(ps_goal_position - ps_bone_transform.translation);
+			// Find pose-space direction vector from current bone to center of goal
+			const auto ps_goal_direction = math::normalize(ps_goal_center - ps_bone_transform.translation);
 			
-			// Calculate rotation of current bone that brings effector closer to goal
+			// Find rotation for current bone that brings effector closer to goal
 			auto bone_rotation = math::normalize(math::rotation(ps_effector_direction, ps_goal_direction, 1e-5f) * bs_bone_transform.rotation);
 			
 			// Apply current bone constraints to rotation
@@ -100,6 +100,8 @@ void ccd_ik_solver::solve()
 			
 			// Rotate current bone
 			pose.set_relative_rotation(bone_index, bone_rotation);
+			
+			// Update pose
 			//pose.update(bone_index, j + 1);
 			pose.update();
 		}

@@ -57,16 +57,6 @@ public:
 		m_max_iterations = iterations;
 	}
 	
-	/**
-	 * Sets the maximum tolerable distance between the goal and end effector.
-	 *
-	 * @param tolerance Tolerable distance between the goal and end effector.
-	 */
-	inline void set_distance_tolerance(float distance) noexcept
-	{
-		m_sqr_distance_tolerance = distance * distance;
-	}
-	
 	/// Returns the maximum number of solving iterations.
 	[[nodiscard]] inline std::size_t get_max_iterations() const noexcept
 	{
@@ -100,19 +90,29 @@ public:
 	/// @{
 	
 	/**
-	 * Thes the position of the IK goal.
+	 * Sets the center of the IK goal.
 	 *
-	 * @param position IK goal position, in world-space.
+	 * @param center IK goal center, in world-space.
 	 */
-	inline void set_goal_position(const math::fvec3& position) noexcept
+	inline void set_goal_center(const math::fvec3& center) noexcept
 	{
-		m_goal_position = position;
+		m_goal_center = center;
 	}
 	
-	/// Returns the position of goal, in world-space.
-	[[nodiscard]] inline const math::fvec3& get_goal_position() const
+	/**
+	 * Sets the radius of the IK goal.
+	 *
+	 * @param radius IK goal radius.
+	 */
+	inline void set_goal_radius(float radius) noexcept
 	{
-		return m_goal_position;
+		m_sqr_goal_radius = radius * radius;
+	}
+	
+	/// Returns the center of the IK goal, in world-space.
+	[[nodiscard]] inline const math::fvec3& get_goal_center() const
+	{
+		return m_goal_center;
 	}
 	
 	/// @}
@@ -122,8 +122,8 @@ private:
 	std::size_t m_max_iterations{10};
 	std::vector<bone_index_type> m_bone_indices;
 	math::fvec3 m_effector_position{0.0f, 0.0f, 0.0f};
-	math::fvec3 m_goal_position{0.0f, 0.0f, 0.0f};
-	float m_sqr_distance_tolerance{1e-5f};
+	math::fvec3 m_goal_center{0.0f, 0.0f, 0.0f};
+	float m_sqr_goal_radius{1e-5f};
 };
 
 #endif // ANTKEEPER_ANIMATION_CCD_IK_SOLVER_HPP

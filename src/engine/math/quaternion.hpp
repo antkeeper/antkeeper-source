@@ -23,12 +23,11 @@
 #include <engine/math/numbers.hpp>
 #include <engine/math/matrix.hpp>
 #include <engine/math/vector.hpp>
+#include <array>
 #include <cmath>
+#include <utility>
 
 namespace math {
-
-/// Quaternion types.
-namespace quaternion_types {
 
 /**
  * Quaternion composed of a real scalar part and imaginary vector part.
@@ -150,7 +149,7 @@ struct quaternion
 	}
 	
 	/**
-	 * Constructs a matrix representing the rotation described the quaternion.
+	 * Constructs a matrix representing the rotation described by the quaternion.
 	 *
 	 * @return Rotation matrix.
 	 */
@@ -204,7 +203,10 @@ struct quaternion
 	}
 };
 
-/// @copydoc math::quaternion_types::quaternion
+/// Quaternion types.
+namespace quaternion_types {
+
+/// @copydoc math::quaternion
 template <class T>
 using quat = quaternion<T>;
 
@@ -514,13 +516,15 @@ template <class T>
  * @param[out] twist Twist rotation component.
  * @param[in] tolerance Floating-point tolerance.
  *
+ * @return Array containing the swing rotation component, followed by the twist rotation component.
+ *
  * @warning @p q must be a unit quaternion.
  * @warning @p twist_axis must be a unit vector.
  *
  * @see https://www.euclideanspace.com/maths/geometry/rotations/for/decomposition/
  */
 template <class T>
-void swing_twist(const quaternion<T>& q, const vec3<T>& twist_axis, quaternion<T>& swing, quaternion<T>& twist, T tolerance = T{1e-6});
+[[nodiscard]] std::array<quaternion<T>, 2> swing_twist(const quaternion<T>& q, const vec3<T>& twist_axis, T tolerance = T{1e-6});
 
 /**
  * Converts a 3x3 rotation matrix to a quaternion.
@@ -653,7 +657,7 @@ inline constexpr quaternion<T> negate(const quaternion<T>& q) noexcept
 template <class T>
 quaternion<T> nlerp(const quaternion<T>& a, const quaternion<T>& b, T t)
 {
-	return normalize(add(mul(a, T{1} - t), mul(b, t * std::copysign(T{1}, dot(a, b)))));
+	return normalize(add(mul(a, T{1} - t), mul(b, std::copysign(t, dot(a, b)))));
 }
 
 template <class T>
@@ -738,16 +742,18 @@ inline constexpr quaternion<T> sub(T a, const quaternion<T>& b) noexcept
 }
 
 template <class T>
-void swing_twist(const quaternion<T>& q, const vec3<T>& twist_axis, quaternion<T>& swing, quaternion<T>& twist, T tolerance)
+std::array<quaternion<T>, 2> swing_twist(const quaternion<T>& q, const vec3<T>& twist_axis, T tolerance)
 {
+	quaternion<T> swing;
+	quaternion<T> twist;
+	
 	if (sqr_length(q.i) <= tolerance)
 	{
 		// Singularity, rotate 180 degrees about twist axis
 		twist = angle_axis(pi<T>, twist_axis);
 		
 		const auto rotated_twist_axis = mul(q, twist_axis);
-		
-		auto swing_axis = cross(twist_axis, rotated_twist_axis);
+		const auto swing_axis = cross(twist_axis, rotated_twist_axis);
 		const auto swing_axis_sqr_length = sqr_length(swing_axis);
 		
 		if (swing_axis_sqr_length <= tolerance)
@@ -766,6 +772,8 @@ void swing_twist(const quaternion<T>& q, const vec3<T>& twist_axis, quaternion<T
 		twist = normalize(quaternion<T>{q.r, twist_axis * dot(twist_axis, q.i)});
 		swing = mul(q, conjugate(twist));
 	}
+	
+	return {std::move(swing), std::move(twist)};
 }
 
 template <class T>

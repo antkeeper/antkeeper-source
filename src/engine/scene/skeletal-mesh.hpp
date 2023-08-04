@@ -81,6 +81,12 @@ public:
 	
 	void render(render::context& ctx) const override;
 	
+	/// Returns the skeleton of the skeletal mesh.
+	[[nodiscard]] inline const skeleton* get_skeleton() const noexcept
+	{
+		return m_pose.get_skeleton();
+	}
+	
 	/// Returns the animation pose of the skeletal mesh.
 	/// @{
 	[[nodiscard]] inline const animation_pose& get_pose() const noexcept

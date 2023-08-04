@@ -28,9 +28,6 @@
 
 namespace math {
 
-/// Matrix types.
-namespace matrix_types {
-
 /**
  * *n* by *m* column-major matrix.
  *
@@ -358,6 +355,9 @@ struct matrix
 	
 	/// @}
 };
+
+/// Matrix types.
+namespace matrix_types {
 
 /**
  * *n* by *m* matrix.
