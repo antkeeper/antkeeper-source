@@ -54,9 +54,6 @@ private:
 	void handle_mouse_motion(const input::mouse_moved_event& event);
 	
 	void update_third_person_camera();
-	void load_camera_preset(std::uint8_t index);
-	void save_camera_preset(std::uint8_t index);
-	void load_or_save_camera_preset(std::uint8_t index);
 	
 	[[nodiscard]] geom::ray<float, 3> get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const;
 	
@@ -97,16 +94,6 @@ private:
 	math::dquat third_person_camera_yaw_rotation{math::dquat::identity()};
 	math::dquat third_person_camera_pitch_rotation{math::dquat::identity()};
 	math::dquat third_person_camera_orientation{math::dquat::identity()};
-	
-	struct camera_preset
-	{
-		double yaw{};
-		double pitch{};
-		math::dvec3 focal_point{};
-		double zoom{0.25};
-	};
-	
-	std::vector<std::optional<camera_preset>> camera_presets{10};
 	
 	std::shared_ptr<render::matvar_fvec3> light_rectangle_emissive;
 	std::shared_ptr<scene::light_probe> light_probe;

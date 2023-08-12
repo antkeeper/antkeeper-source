@@ -263,7 +263,6 @@ nest_view_state::nest_view_state(::game& ctx):
 		[&ctx]()
 		{
 			::enable_game_controls(ctx);
-			::enable_keeper_controls(ctx);
 		}
 	);
 	
@@ -295,7 +294,6 @@ nest_view_state::~nest_view_state()
 	
 	// Disable game controls
 	::disable_game_controls(ctx);
-	::disable_keeper_controls(ctx);
 	
 	destroy_third_person_camera_rig();
 	
@@ -438,50 +436,6 @@ void nest_view_state::update_third_person_camera()
 	);
 }
 
-void nest_view_state::load_camera_preset(std::uint8_t index)
-{
-	if (!camera_presets[index])
-	{
-		return;
-	}
-	
-	const auto& preset = *camera_presets[index];
-	
-	third_person_camera_yaw = preset.yaw;
-	third_person_camera_pitch = preset.pitch;
-	third_person_camera_focal_point = preset.focal_point;
-	zoom_third_person_camera(preset.zoom - third_person_camera_zoom);
-	
-	third_person_camera_yaw_rotation = math::angle_axis(third_person_camera_yaw, {0.0, 1.0, 0.0});
-	third_person_camera_pitch_rotation = math::angle_axis(third_person_camera_pitch, {-1.0, 0.0, 0.0});
-	third_person_camera_orientation = math::normalize(third_person_camera_yaw_rotation * third_person_camera_pitch_rotation);
-	
-	update_third_person_camera();
-}
-
-void nest_view_state::save_camera_preset(std::uint8_t index)
-{
-	camera_presets[index] =
-	{
-		third_person_camera_yaw,
-		third_person_camera_pitch,
-		third_person_camera_focal_point,
-		third_person_camera_zoom
-	};
-}
-
-void nest_view_state::load_or_save_camera_preset(std::uint8_t index)
-{
-	if (ctx.save_camera_action.is_active())
-	{
-		save_camera_preset(index);
-	}
-	else
-	{
-		load_camera_preset(index);
-	}
-}
-
 geom::ray<float, 3> nest_view_state::get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const
 {
 	// Get window viewport size
@@ -502,6 +456,7 @@ geom::ray<float, 3> nest_view_state::get_mouse_ray(const math::vec2<std::int32_t
 
 void nest_view_state::setup_controls()
 {
+	/*
 	// Enable/toggle mouse look
 	action_subscriptions.emplace_back
 	(
@@ -650,33 +605,7 @@ void nest_view_state::setup_controls()
 			}
 		)
 	);
-	
-	
-	// Enable/toggle mouse zoom
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_zoom_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				mouse_zoom = ctx.toggle_mouse_zoom ? !mouse_zoom : true;
-				ctx.input_manager->set_relative_mouse_mode(mouse_look || mouse_grip || mouse_zoom);
-			}
-		)
-	);
-	
-	// Disable mouse zoom
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_zoom_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				mouse_zoom = false;
-				ctx.input_manager->set_relative_mouse_mode(mouse_look || mouse_grip || mouse_zoom);
-			}
-		)
-	);
+	*/
 	
 	// Mouse look
 	mouse_motion_subscription = ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
@@ -684,66 +613,6 @@ void nest_view_state::setup_controls()
 		std::bind_front(&nest_view_state::handle_mouse_motion, this)
 	);
 	
-	// Move forward
-	action_subscriptions.emplace_back
-	(
-		ctx.move_forward_action.get_active_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				// translate_third_person_camera({0.0, 0.0, -1.0}, event.input_value / ctx.fixed_update_rate);
-				// update_third_person_camera();
-				
-				if (navmesh_agent_face)
-				{
-					const auto& scene_component = ctx.entity_registry->get<::scene_component>(worker_eid);
-					geom::ray<float, 3> ray;
-					ray.origin = navmesh_agent_position;
-					ray.direction = scene_component.object->get_rotation() * math::fvec3{0, 0, 1};
-					
-					auto traversal = ai::traverse_navmesh(*navmesh, navmesh_agent_face, ray, event.input_value / ctx.fixed_update_rate);
-					navmesh_agent_face = traversal.face;
-					navmesh_agent_position = traversal.cartesian;
-					
-					const float standing_height = worker_phenome.legs->standing_height * worker_phenome.body_size->mean_mesosoma_length;
-					
-					// Interpolate vertex normals
-					const auto& vertex_positions = navmesh->vertices().attributes().at<math::fvec3>("position");
-					const auto& vertex_normals = navmesh->vertices().attributes().at<math::fvec3>("normal");
-					
-					auto loop = traversal.face->loops().begin();
-					const auto& na = vertex_normals[loop->vertex()->index()];
-					const auto& nb = vertex_normals[(++loop)->vertex()->index()];
-					const auto& nc = vertex_normals[(++loop)->vertex()->index()];
-					
-					const auto& uvw = traversal.barycentric;
-					const auto smooth_normal = math::normalize(na * uvw.x() + nb * uvw.y() + nc * uvw.z());
-					
-					navmesh_agent_normal = smooth_normal;
-					
-					
-					ctx.entity_registry->patch<::scene_component>
-					(
-						worker_eid,
-						[&](auto& component)
-						{
-							
-							auto transform = component.object->get_transform();
-							transform.translation = navmesh_agent_position + smooth_normal * standing_height;
-							
-							// Find rotation from local up vector to vertex-interpolated surface normal
-							auto rotation = math::rotation(transform.rotation * math::fvec3{0, 1, 0}, navmesh_agent_normal);
-							
-							// Rotate object
-							transform.rotation = math::normalize(rotation * transform.rotation);
-							
-							component.object->set_transform(transform);
-						}
-					);
-				}
-			}
-		)
-	);
 	
 	// Move back
 	action_subscriptions.emplace_back
@@ -827,100 +696,6 @@ void nest_view_state::setup_controls()
 				zoom_third_person_camera(-1.0 / static_cast<double>(third_person_camera_zoom_step_count));
 				update_third_person_camera();
 			}
-		)
-	);
-	
-	// Focus
-	action_subscriptions.emplace_back
-	(
-		ctx.focus_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				
-			}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.focus_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				
-			}
-		)
-	);
-	
-	// Camera presets
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_1_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(0);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_2_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(1);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_3_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(2);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_4_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(3);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_5_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(4);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_6_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(5);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_7_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(6);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_8_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(7);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_9_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(8);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_10_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(9);}
 		)
 	);
 }

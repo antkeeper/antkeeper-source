@@ -25,6 +25,7 @@
 #include <engine/geom/brep/brep-mesh.hpp>
 #include <engine/geom/primitives/point.hpp>
 #include <engine/geom/primitives/ray.hpp>
+#include <engine/geom/coordinates.hpp>
 #include <vector>
 
 namespace ai {
@@ -34,12 +35,14 @@ struct navmesh_traversal
 	geom::brep_face* face;
 	geom::brep_edge* edge;
 	geom::point<float, 3> barycentric;
-	geom::point<float, 3> cartesian;
-	float remaining_distance;
+	
+	geom::point<float, 3> target_point;
+	geom::point<float, 3> closest_point;
+	geom::triangle_region closest_region;
 };
 
 /**
- * 
+ * Moves a point along the surface of a mesh.
  */
 [[nodiscard]] navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face* face, geom::ray<float, 3> ray, float distance);
 

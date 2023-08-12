@@ -19,14 +19,16 @@
 
 #include <engine/geom/brep/brep-operations.hpp>
 #include <engine/math/vector.hpp>
+#include <engine/debug/log.hpp>
 #include <algorithm>
+#include <cmath>
 
 namespace geom {
 
 void generate_face_normals(brep_mesh& mesh)
 {
 	const auto& vertex_positions = mesh.vertices().attributes().at<math::fvec3>("position");
-	auto& face_normals =  static_cast<brep_attribute<math::fvec3>&>(*mesh.faces().attributes().try_emplace<math::fvec3>("normal").first);
+	auto& face_normals = static_cast<brep_attribute<math::fvec3>&>(*mesh.faces().attributes().try_emplace<math::fvec3>("normal").first);
 	
 	for (brep_face* face: mesh.faces())
 	{
@@ -41,51 +43,78 @@ void generate_face_normals(brep_mesh& mesh)
 
 void generate_vertex_normals(brep_mesh& mesh)
 {
+	// Generate face normals if they don't exist
+	if (!mesh.faces().attributes().contains("normal"))
+	{
+		generate_face_normals(mesh);
+	}
+	
 	const auto& vertex_positions = mesh.vertices().attributes().at<math::fvec3>("position");
-	auto& vertex_normals =  static_cast<brep_attribute<math::fvec3>&>(*mesh.vertices().attributes().try_emplace<math::fvec3>("normal").first);
+	const auto& face_normals = mesh.faces().attributes().at<math::fvec3>("normal");
+	auto& vertex_normals = static_cast<brep_attribute<math::fvec3>&>(*mesh.vertices().attributes().try_emplace<math::fvec3>("normal").first);
 	
-	// Init vertex normals to zero
-	std::fill(vertex_normals.begin(), vertex_normals.end(), math::fvec3::zero());
-	
-	if (auto face_normals_it = mesh.faces().attributes().find("normals"); face_normals_it != mesh.faces().attributes().end())
+	for (brep_vertex* vertex: mesh.vertices())
 	{
-		const auto& face_normals = static_cast<const brep_attribute<math::fvec3>&>(*face_normals_it);
+		// Zero vertex normal
+		auto& vertex_normal = vertex_normals[vertex->index()];
+		vertex_normal = {};
 		
-		for (brep_face* face: mesh.faces())
+		// Skip vertices with no edges
+		if (vertex->edges().empty())
 		{
-			// Get face normal from face normal attribute
-			const auto& face_normal = face_normals[face->index()];
-			
-			// Accumulate vertex normals
-			for (brep_loop* loop: face->loops())
+			continue;
+		}
+		
+		// Get vertex position
+		const auto& vertex_position = vertex_positions[vertex->index()];
+		
+		// For each edge bounded by this vertex
+		for (brep_edge* edge: vertex->edges())
+		{
+			// Skip edges with no associated face
+			if (edge->loops().empty())
 			{
-				vertex_normals[loop->vertex()->index()] += face_normal;
+				continue;
+			}
+			
+			// Calculate direction vector of current edge
+			const auto direction0 = math::normalize
+			(
+				vertex_positions[edge->vertices()[edge->vertices().front() == vertex]->index()] -
+				vertex_position
+			);
+			
+			// For each edge loop
+			for (brep_loop* loop: edge->loops())
+			{
+				// Skip loops not originating at vertex
+				if (loop->vertex() != vertex)
+				{
+					continue;
+				}
+				
+				// Calculate direction vector of previous edge
+				const auto direction1 = math::normalize
+				(
+					vertex_positions[loop->previous()->vertex()->index()] -
+					vertex_position
+				);
+				
+				// Find angle between two edges
+				const auto cos_edge_angle = math::dot(direction0, direction1);
+				const auto edge_angle = std::acos(cos_edge_angle);
+				
+				// Weigh face normal by edge angle and add to vertex normal
+				vertex_normal += face_normals[loop->face()->index()] * edge_angle;
 			}
 		}
-	}
-	else
-	{
-		for (brep_face* face: mesh.faces())
+		
+		// Normalize vertex normal
+		const auto sqr_length = math::sqr_length(vertex_normal);
+		if (sqr_length)
 		{
-			// Calculate face normal
-			auto loop = face->loops().begin();
-			const auto& a = vertex_positions[loop->vertex()->index()];
-			const auto& b = vertex_positions[(++loop)->vertex()->index()];
-			const auto& c = vertex_positions[(++loop)->vertex()->index()];
-			const auto face_normal = math::normalize(math::cross(b - a, c - a));
-			
-			// Accumulate vertex normals
-			for (brep_loop* loop: face->loops())
-			{
-				vertex_normals[loop->vertex()->index()] += face_normal;
-			}
+			vertex_normal /= std::sqrt(sqr_length);
 		}
-	}
-	
-	// Normalize vertex normals
-	for (auto& vertex_normal: vertex_normals)
-	{
-		vertex_normal = math::normalize(vertex_normal);
 	}
 }
 

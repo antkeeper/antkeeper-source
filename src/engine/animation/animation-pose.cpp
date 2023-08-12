@@ -40,7 +40,8 @@ void animation_pose::update(bone_index_type first_index, std::size_t bone_count)
 	// Update skinning matrix palette
 	std::for_each
 	(
-		std::execution::par_unseq,
+		// std::execution::par_unseq,
+		std::execution::seq,
 		m_matrix_palette.begin() + first_index,
 		m_matrix_palette.begin() + (first_index + bone_count),
 		[&](auto& skinning_matrix)
@@ -64,7 +65,8 @@ void animation_pose::reset()
 	// Reset transforms and skinning matrix palette
 	std::for_each
 	(
-		std::execution::par_unseq,
+		// std::execution::par_unseq,
+		std::execution::seq,
 		m_relative_transforms.begin(),
 		m_relative_transforms.end(),
 		[&](auto& relative_transform)

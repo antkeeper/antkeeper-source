@@ -35,7 +35,8 @@ void rest_pose::update(bone_index_type first_index, std::size_t bone_count)
 	// Update inverse absolute transforms
 	std::for_each
 	(
-		std::execution::par_unseq,
+		// std::execution::par_unseq,
+		std::execution::seq,
 		m_inverse_absolute_transforms.begin() + first_index,
 		m_inverse_absolute_transforms.begin() + (first_index + bone_count),
 		[&](auto& inverse_absolute_transform)

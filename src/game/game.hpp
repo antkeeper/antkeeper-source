@@ -106,12 +106,15 @@ class camera_system;
 class collision_system;
 class constraint_system;
 class locomotion_system;
+class animation_system;
 class nest_system;
 class orbit_system;
 class render_system;
 class spatial_system;
 class spring_system;
 class steering_system;
+class reproductive_system;
+class metamorphosis_system;
 class physics_system;
 class subterrain_system;
 class terrain_system;
@@ -199,15 +202,12 @@ public:
 	std::shared_ptr<::control_profile> control_profile;
 	
 	std::unordered_map<hash::fnv1a32_t, input::action> actions;
-	input::action_map window_action_map;
-	input::action_map menu_action_map;
-	input::action_map movement_action_map;
-	input::action_map keeper_action_map;
-	input::action_map ant_action_map;
-	input::mapper input_mapper;
 	
+	input::action_map window_action_map;
 	input::action fullscreen_action;
 	input::action screenshot_action;
+	
+	input::action_map menu_action_map;
 	input::action menu_up_action;
 	input::action menu_down_action;
 	input::action menu_left_action;
@@ -215,34 +215,59 @@ public:
 	input::action menu_select_action;
 	input::action menu_back_action;
 	input::action menu_modifier_action;
+	
+	input::action_map movement_action_map;
+	input::mapper input_mapper;
+
 	input::action move_forward_action;
 	input::action move_back_action;
 	input::action move_left_action;
 	input::action move_right_action;
 	input::action move_up_action;
 	input::action move_down_action;
+	input::action move_fast_action;
+	input::action move_slow_action;
 	input::action pause_action;
-	input::action mouse_pick_action;
-	input::action mouse_look_action;
-	input::action mouse_grip_action;
-	input::action mouse_zoom_action;
-	input::action focus_action;
-	input::action camera_1_action;
-	input::action camera_2_action;
-	input::action camera_3_action;
-	input::action camera_4_action;
-	input::action camera_5_action;
-	input::action camera_6_action;
-	input::action camera_7_action;
-	input::action camera_8_action;
-	input::action camera_9_action;
-	input::action camera_10_action;
-	input::action save_camera_action;
+	
+	input::action_map camera_action_map;
+	input::action camera_mouse_pick_action;
+	input::action camera_mouse_look_action;
+	input::action camera_mouse_drag_action;
+	input::action camera_mouse_zoom_action;
+	input::action camera_zoom_in_action;
+	input::action camera_zoom_out_action;
+	input::action camera_orbit_left_action;
+	input::action camera_orbit_right_action;
+	input::action camera_orbit_up_action;
+	input::action camera_orbit_down_action;
+	input::action camera_preset_1_action;
+	input::action camera_preset_2_action;
+	input::action camera_preset_3_action;
+	input::action camera_preset_4_action;
+	input::action camera_preset_5_action;
+	input::action camera_preset_6_action;
+	input::action camera_preset_7_action;
+	input::action camera_preset_8_action;
+	input::action camera_preset_9_action;
+	input::action camera_preset_10_action;
+	input::action camera_save_preset_action;
+	
+	input::action_map ant_action_map;
+	input::action ant_move_forward_action;
+	input::action ant_move_back_action;
+	input::action ant_move_left_action;
+	input::action ant_move_right_action;
+	input::action ant_move_fast_action;
+	input::action ant_move_slow_action;
+	input::action ant_oviposit_action;
+	
+	input::action_map debug_action_map;
+	input::action toggle_debug_ui_action;
 	input::action adjust_exposure_action;
 	input::action adjust_time_action;
-	input::action adjust_zoom_action;
 	
-	std::vector<std::shared_ptr<::event::subscription>> window_action_subscriptions;
+	std::vector<std::shared_ptr<::event::subscription>> event_subscriptions;
+	
 	std::vector<std::shared_ptr<::event::subscription>> menu_action_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> movement_action_subscriptions;
@@ -260,6 +285,7 @@ public:
 	double mouse_tilt_factor{1.0};
 	
 	// Debugging
+	bool debug_ui_visible{false};
 	std::unique_ptr<scene::text> frame_time_text;
 	std::unique_ptr<debug::cli> cli;
 	
@@ -368,6 +394,8 @@ public:
 	// Entities
 	std::unique_ptr<entity::registry> entity_registry;
 	std::unordered_map<hash::fnv1a32_t, entity::id> entities;
+	entity::id controlled_ant_eid{entt::null};
+	entity::id active_camera_eid{entt::null};
 	
 	// Systems
 	std::unique_ptr<::behavior_system> behavior_system;
@@ -375,8 +403,11 @@ public:
 	std::unique_ptr<::collision_system> collision_system;
 	std::unique_ptr<::constraint_system> constraint_system;
 	std::unique_ptr<::steering_system> steering_system;
+	std::unique_ptr<::reproductive_system> reproductive_system;
+	std::unique_ptr<::metamorphosis_system> metamorphosis_system;
 	std::unique_ptr<::locomotion_system> locomotion_system;
 	std::unique_ptr<::ik_system> ik_system;
+	std::unique_ptr<::animation_system> animation_system;
 	std::unique_ptr<::physics_system> physics_system;
 	std::unique_ptr<::render_system> render_system;
 	std::unique_ptr<::subterrain_system> subterrain_system;
@@ -395,7 +426,6 @@ public:
 	::frame_scheduler frame_scheduler;
 	math::moving_average<float> average_frame_duration;
 	
-	math::dvec3 rgb_wavelengths;
 	std::shared_ptr<ecoregion> active_ecoregion;
 	render::anti_aliasing_method anti_aliasing_method;
 	

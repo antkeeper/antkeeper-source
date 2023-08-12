@@ -39,7 +39,7 @@ public:
 	explicit pose(const skeleton& skeleton);
 	
 	/// Constructs an empty pose.
-	pose() noexcept = default;
+	constexpr pose() noexcept = default;
 	
 	/**
 	 * Updates the pose after one or more relative transforms have been changed.

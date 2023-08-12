@@ -20,8 +20,8 @@
 #ifndef ANTKEEPER_PHYSICS_COLLIDER_MATERIAL_HPP
 #define ANTKEEPER_PHYSICS_COLLIDER_MATERIAL_HPP
 
-#include <engine/physics/kinematics/friction-combine-mode.hpp>
-#include <engine/physics/kinematics/restitution-combine-mode.hpp>
+#include <engine/physics/kinematics/friction.hpp>
+#include <engine/physics/kinematics/restitution.hpp>
 
 namespace physics {
 
@@ -39,12 +39,12 @@ public:
 	 * @param dynamic_friction Dynamic friction value.
 	 */
 	/// @{
-	inline collider_material(float restitution, float static_friction, float dynamic_friction) noexcept:
+	inline constexpr collider_material(float restitution, float static_friction, float dynamic_friction) noexcept:
 		m_restitution{restitution},
 		m_static_friction{static_friction},
 		m_dynamic_friction{dynamic_friction}
 	{}
-	collider_material() noexcept = default;
+	constexpr collider_material() noexcept = default;
 	/// @}
 	
 	/**
@@ -52,7 +52,7 @@ public:
 	 *
 	 * @param restitution Restitution value.
 	 */
-	inline void set_restitution(float restitution) noexcept
+	inline constexpr void set_restitution(float restitution) noexcept
 	{
 		m_restitution = restitution;
 	}
@@ -62,7 +62,7 @@ public:
 	 *
 	 * @param friction Static friction value.
 	 */
-	inline void set_static_friction(float friction) noexcept
+	inline constexpr void set_static_friction(float friction) noexcept
 	{
 		m_static_friction = friction;
 	}
@@ -72,7 +72,7 @@ public:
 	 *
 	 * @param friction Dynamic friction value.
 	 */
-	inline void set_dynamic_friction(float friction) noexcept
+	inline constexpr void set_dynamic_friction(float friction) noexcept
 	{
 		m_dynamic_friction = friction;
 	}
@@ -82,7 +82,7 @@ public:
 	 *
 	 * @param mode Restitution combine mode.
 	 */
-	inline void set_restitution_combine_mode(restitution_combine_mode mode) noexcept
+	inline constexpr void set_restitution_combine_mode(restitution_combine_mode mode) noexcept
 	{
 		m_restitution_combine_mode = mode;
 	}
@@ -92,50 +92,50 @@ public:
 	 *
 	 * @param mode Friction combine mode.
 	 */
-	inline void set_friction_combine_mode(friction_combine_mode mode) noexcept
+	inline constexpr void set_friction_combine_mode(friction_combine_mode mode) noexcept
 	{
 		m_friction_combine_mode = mode;
 	}
 	
 	/// Returns the restitution of the material.
-	[[nodiscard]] inline float get_restitution() const noexcept
+	[[nodiscard]] inline constexpr float get_restitution() const noexcept
 	{
 		return m_restitution;
 	}
 	
 	/// Returns the static friction of the material.
-	[[nodiscard]] inline float get_static_friction() const noexcept
+	[[nodiscard]] inline constexpr float get_static_friction() const noexcept
 	{
 		return m_static_friction;
 	}
 	
 	/// Returns the dynamic friction of the material.
-	[[nodiscard]] inline float get_dynamic_friction() const noexcept
+	[[nodiscard]] inline constexpr float get_dynamic_friction() const noexcept
 	{
 		return m_dynamic_friction;
 	}
 	
 	/// Returns the restitution combine mode.
-	[[nodiscard]] inline restitution_combine_mode get_restitution_combine_mode() const noexcept
+	[[nodiscard]] inline constexpr restitution_combine_mode get_restitution_combine_mode() const noexcept
 	{
 		return m_restitution_combine_mode;
 	}
 	
 	/// Returns the friction combine mode.
-	[[nodiscard]] inline friction_combine_mode get_friction_combine_mode() const noexcept
+	[[nodiscard]] inline constexpr friction_combine_mode get_friction_combine_mode() const noexcept
 	{
 		return m_friction_combine_mode;
 	}
 	
 private:
 	/// Restitution value.
-	float m_restitution{0.0f};
+	float m_restitution{};
 	
 	/// Static friction value.
-	float m_static_friction{0.0f};
+	float m_static_friction{};
 	
 	/// Dynamic friction value.
-	float m_dynamic_friction{0.0f};
+	float m_dynamic_friction{};
 	
 	/// Restitution combine mode.
 	restitution_combine_mode m_restitution_combine_mode{restitution_combine_mode::average};

@@ -44,7 +44,7 @@ public:
 	 *
 	 * @param sphere Sphere shape.
 	 */
-	inline explicit sphere_collider(const sphere_type& sphere) noexcept:
+	inline constexpr explicit sphere_collider(const sphere_type& sphere) noexcept:
 		m_sphere{sphere}
 	{}
 	
@@ -55,13 +55,13 @@ public:
 	 * @param radius Sphere radius.
 	 */
 	/// @{
-	inline sphere_collider(const math::fvec3& center, float radius) noexcept:
+	inline constexpr sphere_collider(const math::fvec3& center, float radius) noexcept:
 		m_sphere{center, radius}
 	{}
-	inline explicit sphere_collider(float radius) noexcept:
-		m_sphere{{0.0f, 0.0f, 0.0f}, radius}
+	inline constexpr explicit sphere_collider(float radius) noexcept:
+		m_sphere{{}, radius}
 	{}
-	sphere_collider() noexcept = default;
+	constexpr sphere_collider() noexcept = default;
 	/// @}
 	
 	/**
@@ -69,7 +69,7 @@ public:
 	 *
 	 * @param sphere Sphere shape.
 	 */
-	inline void set_sphere(const sphere_type& sphere) noexcept
+	inline constexpr void set_sphere(const sphere_type& sphere) noexcept
 	{
 		m_sphere = sphere;
 	}
@@ -79,7 +79,7 @@ public:
 	 *
 	 * @param center Sphere center, in object space.
 	 */
-	inline void set_center(const math::fvec3& center) noexcept
+	inline constexpr void set_center(const math::fvec3& center) noexcept
 	{
 		m_sphere.center = center;
 	}
@@ -89,31 +89,31 @@ public:
 	 *
 	 * @param radius Sphere radius.
 	 */
-	inline void set_radius(float radius) noexcept
+	inline constexpr void set_radius(float radius) noexcept
 	{
 		m_sphere.radius = radius;
 	}
 	
 	/// Returns the sphere shape.
-	[[nodiscard]] inline const sphere_type& get_sphere() const noexcept
+	[[nodiscard]] inline constexpr const sphere_type& get_sphere() const noexcept
 	{
 		return m_sphere;
 	}
 	
 	/// Returns the center of the sphere, in object space.
-	[[nodiscard]] inline const math::fvec3& get_center() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_center() const noexcept
 	{
 		return m_sphere.center;
 	}
 	
 	/// Returns the radius of the sphere.
-	[[nodiscard]] inline float get_radius() const noexcept
+	[[nodiscard]] inline constexpr float get_radius() const noexcept
 	{
 		return m_sphere.radius;
 	}
 	
 private:
-	sphere_type m_sphere{{0.0f, 0.0f, 0.0f}, 0.0f};
+	sphere_type m_sphere{};
 };
 
 } // namespace physics

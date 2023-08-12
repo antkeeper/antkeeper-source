@@ -52,16 +52,22 @@ void update_control_profile(::game& ctx, ::control_profile& profile);
 void setup_window_controls(::game& ctx);
 void setup_menu_controls(::game& ctx);
 void setup_game_controls(::game& ctx);
+void setup_camera_controls(::game& ctx);
+void setup_ant_controls(::game& ctx);
+void setup_debug_controls(::game& ctx);
 
 void enable_window_controls(::game& ctx);
 void enable_menu_controls(::game& ctx);
 void enable_game_controls(::game& ctx);
-void enable_keeper_controls(::game& ctx);
+void enable_camera_controls(::game& ctx);
+void enable_ant_controls(::game& ctx);
+void enable_debug_controls(::game& ctx);
 
 void disable_window_controls(::game& ctx);
 void disable_menu_controls(::game& ctx);
 void disable_game_controls(::game& ctx);
-void disable_keeper_controls(::game& ctx);
-
+void disable_camera_controls(::game& ctx);
+void disable_ant_controls(::game& ctx);
+void disable_debug_controls(::game& ctx);
 
 #endif // ANTKEEPER_GAME_CONTROLS_HPP

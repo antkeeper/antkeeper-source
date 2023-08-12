@@ -44,7 +44,7 @@ public:
 	 *
 	 * @param capsule Capsule shape.
 	 */
-	inline explicit capsule_collider(const capsule_type& capsule) noexcept:
+	inline constexpr explicit capsule_collider(const capsule_type& capsule) noexcept:
 		m_capsule{capsule}
 	{}
 	
@@ -55,10 +55,10 @@ public:
 	 * @param radius Capsule hemisphere radius.
 	 */
 	/// @{
-	inline capsule_collider(const capsule_type::segment_type& segment, float radius) noexcept:
+	inline constexpr capsule_collider(const capsule_type::segment_type& segment, float radius) noexcept:
 		m_capsule{segment, radius}
 	{}
-	capsule_collider() noexcept = default;
+	constexpr capsule_collider() noexcept = default;
 	/// @}
 	
 	/**
@@ -66,7 +66,7 @@ public:
 	 *
 	 * @param capsule Capsule shape.
 	 */
-	inline void set_capsule(const capsule_type& capsule) noexcept
+	inline constexpr void set_capsule(const capsule_type& capsule) noexcept
 	{
 		m_capsule = capsule;
 	}
@@ -76,7 +76,7 @@ public:
 	 *
 	 * @param segment Capsule segment, in object space.
 	 */
-	inline void set_segment(const capsule_type::segment_type& segment) noexcept
+	inline constexpr void set_segment(const capsule_type::segment_type& segment) noexcept
 	{
 		m_capsule.segment = segment;
 	}
@@ -86,31 +86,31 @@ public:
 	 *
 	 * @param radius Capsule hemisphere radius.
 	 */
-	inline void set_radius(float radius) noexcept
+	inline constexpr void set_radius(float radius) noexcept
 	{
 		m_capsule.radius = radius;
 	}
 	
 	/// Returns the capsule shape.
-	[[nodiscard]] inline const capsule_type& get_capsule() const noexcept
+	[[nodiscard]] inline constexpr const capsule_type& get_capsule() const noexcept
 	{
 		return m_capsule;
 	}
 	
 	/// Returns the segment of the capsule, in object space.
-	[[nodiscard]] inline const capsule_type::segment_type& get_segment() const noexcept
+	[[nodiscard]] inline constexpr const capsule_type::segment_type& get_segment() const noexcept
 	{
 		return m_capsule.segment;
 	}
 	
 	/// Returns the radius of the capsule hemispheres.
-	[[nodiscard]] inline float get_radius() const noexcept
+	[[nodiscard]] inline constexpr float get_radius() const noexcept
 	{
 		return m_capsule.radius;
 	}
 	
 private:
-	capsule_type m_capsule{{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}, 0.0f};
+	capsule_type m_capsule{};
 };
 
 } // namespace physics

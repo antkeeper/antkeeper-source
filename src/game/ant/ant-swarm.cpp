@@ -116,11 +116,11 @@ entity::id create_ant_swarm(::game& ctx)
 	
 	// Init queen caste component
 	ant_caste_component queen_caste;
-	queen_caste.caste_type = ant_caste_type::queen;
+	queen_caste.type = ant_caste_type::queen;
 	
 	// Init male caste component
 	ant_caste_component male_caste;
-	male_caste.caste_type = ant_caste_type::male;
+	male_caste.type = ant_caste_type::male;
 	
 	// Create alates
 	for (std::size_t i = 0; i < alate_count; ++i)

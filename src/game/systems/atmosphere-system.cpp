@@ -22,17 +22,14 @@
 #include <engine/physics/gas/ozone.hpp>
 #include <engine/physics/number-density.hpp>
 
-
 atmosphere_system::atmosphere_system(entity::registry& registry):
-	updatable_system(registry),
-	rgb_wavelengths{0, 0, 0},
-	rgb_ozone_cross_sections{0, 0, 0},
-	active_atmosphere_eid(entt::null),
-	sky_pass(nullptr)
+	updatable_system(registry)
 {
 	registry.on_construct<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_construct>(this);
 	registry.on_update<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_update>(this);
 	registry.on_destroy<::atmosphere_component>().connect<&atmosphere_system::on_atmosphere_destroy>(this);
+	
+	set_rgb_wavelengths({680, 550, 440});
 }
 
 atmosphere_system::~atmosphere_system()
@@ -47,14 +44,15 @@ void atmosphere_system::update(float t, float dt)
 
 void atmosphere_system::set_rgb_wavelengths(const math::dvec3& wavelengths)
 {
-	rgb_wavelengths = wavelengths;
+	m_rgb_wavelengths_nm = wavelengths;
+	m_rgb_wavelengths_m = m_rgb_wavelengths_nm * 1e-9;
 	
 	// Update ozone cross sections
-	rgb_ozone_cross_sections =
+	m_rgb_ozone_cross_sections =
 	{
-		physics::gas::ozone::cross_section_293k<double>(wavelengths.x() * 1e9),
-		physics::gas::ozone::cross_section_293k<double>(wavelengths.y() * 1e9),
-		physics::gas::ozone::cross_section_293k<double>(wavelengths.z() * 1e9)
+		physics::gas::ozone::cross_section_293k<double>(m_rgb_wavelengths_nm.x()),
+		physics::gas::ozone::cross_section_293k<double>(m_rgb_wavelengths_nm.y()),
+		physics::gas::ozone::cross_section_293k<double>(m_rgb_wavelengths_nm.z())
 	};
 	
 	// Update atmosphere components
@@ -69,15 +67,15 @@ void atmosphere_system::set_rgb_wavelengths(const math::dvec3& wavelengths)
 
 void atmosphere_system::set_sky_pass(::render::sky_pass* pass)
 {
-	sky_pass = pass;
+	m_sky_pass = pass;
 	update_sky_pass();
 }
 
 void atmosphere_system::set_active_atmosphere(entity::id entity_id)
 {
-	if (entity_id != active_atmosphere_eid)
+	if (entity_id != m_active_atmosphere_eid)
 	{
-		active_atmosphere_eid = entity_id;
+		m_active_atmosphere_eid = entity_id;
 		update_sky_pass();
 	}
 }
@@ -89,16 +87,18 @@ void atmosphere_system::update_atmosphere(entity::id entity_id)
 	
 	// Abort if entity has no atmosphere component
 	if (!component)
+	{
 		return;
+	}
 	
 	// Calculate Rayleigh scattering coefficients
 	const double rayleigh_density = physics::number_density(component->rayleigh_concentration);
 	const double rayleigh_polarization = physics::gas::atmosphere::polarization(component->index_of_refraction, rayleigh_density);
 	component->rayleigh_scattering =
 	{
-		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, rgb_wavelengths.x()),
-		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, rgb_wavelengths.y()),
-		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, rgb_wavelengths.z())
+		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, m_rgb_wavelengths_m.x()),
+		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, m_rgb_wavelengths_m.y()),
+		physics::gas::atmosphere::scattering(rayleigh_density, rayleigh_polarization, m_rgb_wavelengths_m.z())
 	};
 	
 	// Calculate Mie scattering and extinction coefficients
@@ -111,13 +111,13 @@ void atmosphere_system::update_atmosphere(entity::id entity_id)
 	const double ozone_density = physics::number_density(component->ozone_concentration);
 	component->ozone_absorption =
 	{
-		physics::gas::ozone::absorption(rgb_ozone_cross_sections.x(), ozone_density),
-		physics::gas::ozone::absorption(rgb_ozone_cross_sections.y(), ozone_density),
-		physics::gas::ozone::absorption(rgb_ozone_cross_sections.z(), ozone_density)
+		physics::gas::ozone::absorption(m_rgb_ozone_cross_sections.x(), ozone_density),
+		physics::gas::ozone::absorption(m_rgb_ozone_cross_sections.y(), ozone_density),
+		physics::gas::ozone::absorption(m_rgb_ozone_cross_sections.z(), ozone_density)
 	};
 	
 	// Update sky pass parameters
-	if (entity_id == active_atmosphere_eid)
+	if (entity_id == m_active_atmosphere_eid)
 	{
 		update_sky_pass();
 	}
@@ -126,25 +126,31 @@ void atmosphere_system::update_atmosphere(entity::id entity_id)
 void atmosphere_system::update_sky_pass()
 {
 	// Abort if no sky pass set
-	if (!sky_pass)
+	if (!m_sky_pass)
+	{
 		return;
+	}
 	
 	// Abort if active atmosphere entity is not valid
-	if (!registry.valid(active_atmosphere_eid))
+	if (!registry.valid(m_active_atmosphere_eid))
+	{
 		return;
+	}
 	
 	// Get atmosphere component of the entity
-	::atmosphere_component* component = registry.try_get<::atmosphere_component>(active_atmosphere_eid);
+	::atmosphere_component* component = registry.try_get<::atmosphere_component>(m_active_atmosphere_eid);
 	
 	// Abort if entity has no atmosphere component
 	if (!component)
+	{
 		return;
+	}
 	
-	sky_pass->set_atmosphere_upper_limit(static_cast<float>(component->upper_limit));
-	sky_pass->set_rayleigh_parameters(static_cast<float>(component->rayleigh_scale_height), math::fvec3(component->rayleigh_scattering));
-	sky_pass->set_mie_parameters(static_cast<float>(component->mie_scale_height), static_cast<float>(component->mie_scattering), static_cast<float>(component->mie_extinction), static_cast<float>(component->mie_anisotropy));
-	sky_pass->set_ozone_parameters(static_cast<float>(component->ozone_lower_limit), static_cast<float>(component->ozone_upper_limit), static_cast<float>(component->ozone_mode), math::fvec3(component->ozone_absorption));
-	sky_pass->set_airglow_luminance(math::fvec3(component->airglow_luminance));
+	m_sky_pass->set_atmosphere_upper_limit(static_cast<float>(component->upper_limit));
+	m_sky_pass->set_rayleigh_parameters(static_cast<float>(component->rayleigh_scale_height), math::fvec3(component->rayleigh_scattering));
+	m_sky_pass->set_mie_parameters(static_cast<float>(component->mie_scale_height), static_cast<float>(component->mie_scattering), static_cast<float>(component->mie_extinction), static_cast<float>(component->mie_anisotropy));
+	m_sky_pass->set_ozone_parameters(static_cast<float>(component->ozone_lower_limit), static_cast<float>(component->ozone_upper_limit), static_cast<float>(component->ozone_mode), math::fvec3(component->ozone_absorption));
+	m_sky_pass->set_airglow_luminance(math::fvec3(component->airglow_luminance));
 }
 
 void atmosphere_system::on_atmosphere_construct(entity::registry& registry, entity::id entity_id)
@@ -159,7 +165,8 @@ void atmosphere_system::on_atmosphere_update(entity::registry& registry, entity:
 
 void atmosphere_system::on_atmosphere_destroy(entity::registry& registry, entity::id entity_id)
 {
-	if (entity_id == active_atmosphere_eid)
-		active_atmosphere_eid = entt::null;
+	if (entity_id == m_active_atmosphere_eid)
+	{
+		m_active_atmosphere_eid = entt::null;
+	}
 }
-

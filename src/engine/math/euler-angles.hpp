@@ -38,40 +38,40 @@ namespace math {
 enum class rotation_sequence: std::uint8_t
 {
 	/// *z-x-z* rotation sequence (proper Euler angles).
-	zxz = 2 | (0 << 2) | (2 << 4),
+	zxz = 0b100010,
 	
 	/// *x-y-x* rotation sequence (proper Euler angles).
-	xyx = 0 | (1 << 2) | (0 << 4),
+	xyx = 0b000100,
 	
 	/// *y-z-y* rotation sequence (proper Euler angles).
-	yzy = 1 | (2 << 2) | (1 << 4),
+	yzy = 0b011001,
 	
 	/// *z-y-z* rotation sequence (proper Euler angles).
-	zyz = 2 | (1 << 2) | (2 << 4),
+	zyz = 0b100110,
 	
 	/// *x-z-x* rotation sequence (proper Euler angles).
-	xzx = 0 | (2 << 2) | (0 << 4),
+	xzx = 0b001000,
 	
 	/// *y-x-y* rotation sequence (proper Euler angles).
-	yxy = 1 | (0 << 2) | (1 << 4),
+	yxy = 0b010001,
 	
 	/// *x-y-z* rotation sequence (Tait-Bryan angles).
-	xyz = 0 | (1 << 2) | (2 << 4),
+	xyz = 0b100100,
 	
 	/// *y-z-x* rotation sequence (Tait-Bryan angles).
-	yzx = 1 | (2 << 2) | (0 << 4),
+	yzx = 0b001001,
 	
 	/// *z-x-y* rotation sequence (Tait-Bryan angles).
-	zxy = 2 | (0 << 2) | (1 << 4),
+	zxy = 0b010010,
 	
 	/// *x-z-y* rotation sequence (Tait-Bryan angles).
-	xzy = 0 | (2 << 2) | (1 << 4),
+	xzy = 0b011000,
 	
 	/// *z-y-x* rotation sequence (Tait-Bryan angles).
-	zyx = 2 | (1 << 2) | (0 << 4),
+	zyx = 0b000110,
 	
 	/// *y-x-z* rotation sequence (Tait-Bryan angles).
-	yxz = 1 | (0 << 2) | (2 << 4)
+	yxz = 0b100001
 };
 
 /**

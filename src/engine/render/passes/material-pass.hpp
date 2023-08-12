@@ -22,6 +22,7 @@
 
 #include <engine/render/pass.hpp>
 #include <engine/render/material.hpp>
+#include <engine/render/material-blend-mode.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
@@ -82,7 +83,7 @@ private:
 	
 	void evaluate_misc(const render::context& ctx);
 	
-	[[nodiscard]] std::unique_ptr<gl::shader_program> generate_shader_program(const gl::shader_template& shader_template) const;
+	[[nodiscard]] std::unique_ptr<gl::shader_program> generate_shader_program(const gl::shader_template& shader_template, material_blend_mode blend_mode) const;
 	
 	void build_shader_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program) const;
 	void build_geometry_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program) const;

@@ -18,21 +18,42 @@
  */
 
 #include "game/systems/metamorphosis-system.hpp"
-#include <engine/entity/id.hpp>
-
+#include "game/components/egg-component.hpp"
+#include "game/components/scene-component.hpp"
+#include "game/components/ant-genome-component.hpp"
+#include <engine/scene/skeletal-mesh.hpp>
+#include <engine/debug/log.hpp>
+#include <execution>
 
 metamorphosis_system::metamorphosis_system(entity::registry& registry):
-	updatable_system(registry),
-	time_scale(1.0f)
+	updatable_system(registry)
 {}
 
 void metamorphosis_system::update(float t, float dt)
 {
-
+	auto egg_group = registry.group<egg_component>(entt::get<ant_genome_component>);
+	std::for_each
+	(
+		std::execution::seq,
+		egg_group.begin(),
+		egg_group.end(),
+		[&](auto entity_id)
+		{
+			auto& egg = egg_group.get<egg_component>(entity_id);
+			if (egg.elapsed_incubation_time >= egg.incubation_period)
+			{
+				return;
+			}
+			
+			egg.elapsed_incubation_time += dt * m_time_scale;
+			if (egg.elapsed_incubation_time >= egg.incubation_period)
+			{
+				const auto& genome = *egg_group.get<ant_genome_component>(entity_id).genome;
+				const auto layer_mask = registry.get<scene_component>(entity_id).layer_mask;
+				
+				registry.erase<scene_component>(entity_id);
+				registry.emplace<scene_component>(entity_id, std::make_shared<scene::skeletal_mesh>(genome.larva->phenes.front().model), layer_mask);
+			}
+		}
+	);
 }
-
-void metamorphosis_system::set_time_scale(float scale)
-{
-	time_scale = scale;
-}
-

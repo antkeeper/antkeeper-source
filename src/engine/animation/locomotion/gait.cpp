@@ -18,10 +18,10 @@
  */
 
 #include <engine/animation/locomotion/gait.hpp>
+#include <engine/math/fract.hpp>
 #include <cmath>
 
 float gait::phase(float t) const noexcept
 {
-	float i;
-	return std::modf(t * frequency, &i);
+	return math::fract(t * frequency);
 }

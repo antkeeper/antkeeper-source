@@ -18,13 +18,13 @@
  */
 
 #include <engine/animation/locomotion/step.hpp>
+#include <engine/math/fract.hpp>
 #include <cmath>
 
 float step::phase(float t) const noexcept
 {
 	// Make phase relative to step stance
-	float i;
-	t = std::modf(1.0f + t + delay - duty_factor, &i);
+	t = math::fract(1.0f + t + delay - duty_factor);
 	
 	if (t < duty_factor)
 	{

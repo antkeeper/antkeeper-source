@@ -142,6 +142,12 @@ public:
 	 */
 	[[nodiscard]] std::vector<mouse_scroll_mapping> get_mouse_scroll_mappings(const action& action) const;
 	
+	/// Returns `true` if the action map is enabled, `false` otherwise.
+	[[nodiscard]] inline constexpr bool is_enabled() const noexcept
+	{
+		return m_enabled;
+	}
+	
 private:
 	void subscribe();
 	void unsubscribe();

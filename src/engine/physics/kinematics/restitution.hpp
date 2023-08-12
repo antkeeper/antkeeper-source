@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_RESTITUTION_COMBINE_MODE_HPP
-#define ANTKEEPER_PHYSICS_RESTITUTION_COMBINE_MODE_HPP
+#ifndef ANTKEEPER_PHYSICS_RESTITUTION_HPP
+#define ANTKEEPER_PHYSICS_RESTITUTION_HPP
 
 #include <cstdint>
 
@@ -58,6 +58,17 @@ enum class restitution_combine_mode: std::uint8_t
 	maximum
 };
 
+/**
+ * Combines two restitution values into a coefficient of restitution.
+ *
+ * @param a First restitution value.
+ * @param b Second restitution value.
+ * @param mode Restitution combine mode.
+ *
+ * @return Coefficient of restitution of @p a and @p b.
+ */
+[[nodiscard]] float combine_restitution(float a, float b, restitution_combine_mode mode) noexcept;
+
 } // namespace physics
 
-#endif // ANTKEEPER_PHYSICS_RESTITUTION_COMBINE_MODE_HPP
+#endif // ANTKEEPER_PHYSICS_RESTITUTION_HPP

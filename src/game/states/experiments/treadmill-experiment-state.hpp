@@ -117,10 +117,7 @@ private:
 	entity::id larva_eid;
 	entity::id worker_eid;
 	
-	ant_phenome worker_phenome;
-	geom::brep_face* navmesh_agent_face{};
-	math::fvec3 navmesh_agent_position{};
-	math::fvec3 navmesh_agent_normal{};
+	std::shared_ptr<ant_phenome> worker_phenome;
 	std::shared_ptr<ik_rig> worker_ik_rig;
 	
 	std::shared_ptr<scene::light_probe> sky_probe;

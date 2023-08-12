@@ -39,7 +39,10 @@ enum class collider_type: std::uint8_t
 	box,
 	
 	/// Capsule collider.
-	capsule
+	capsule,
+	
+	/// Mesh collider.
+	mesh
 };
 
 } // namespace physics

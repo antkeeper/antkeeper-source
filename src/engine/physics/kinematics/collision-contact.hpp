@@ -30,13 +30,13 @@ namespace physics {
 struct collision_contact
 {
 	/// World-space contact point.
-	math::fvec3 point{math::fvec3::zero()};
+	math::fvec3 point{};
 	
 	/// Contact normal, pointing from body a to body b.
-	math::fvec3 normal{math::fvec3::zero()};
+	math::fvec3 normal{};
 	
 	/// Contact penetration depth.
-	float depth{0.0f};
+	float depth{};
 };
 
 } // namespace physics

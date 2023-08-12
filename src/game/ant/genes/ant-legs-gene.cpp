@@ -28,7 +28,10 @@ namespace {
 void load_ant_legs_phene(ant_legs_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.standing_height), 1);
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.speed), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.creeping_speed), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.walking_speed), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.running_speed), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.stride_length), 1);
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.grip), 1);
 	
 	std::uint8_t model_filename_length{0};

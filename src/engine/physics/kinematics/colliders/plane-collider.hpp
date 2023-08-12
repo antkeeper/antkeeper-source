@@ -44,7 +44,7 @@ public:
 	 *
 	 * @param plane Plane shape.
 	 */
-	inline explicit plane_collider(const plane_type& plane) noexcept:
+	inline constexpr explicit plane_collider(const plane_type& plane) noexcept:
 		m_plane{plane}
 	{}
 	
@@ -55,13 +55,13 @@ public:
 	 * @param constant Plane constant.
 	 */
 	/// @{
-	inline plane_collider(const math::fvec3& normal, float constant) noexcept:
+	inline constexpr plane_collider(const math::fvec3& normal, float constant) noexcept:
 		m_plane{normal, constant}
 	{}
-	inline explicit plane_collider(const math::fvec3& normal) noexcept:
+	inline constexpr explicit plane_collider(const math::fvec3& normal) noexcept:
 		m_plane{normal, 0.0f}
 	{}
-	plane_collider() noexcept = default;
+	constexpr plane_collider() noexcept = default;
 	/// @}
 	
 	/**
@@ -70,7 +70,7 @@ public:
 	 * @param normal Plane normal, in object space.
 	 * @param offset Offset from the origin, in object space.
 	 */
-	inline plane_collider(const math::fvec3& normal, const math::fvec3& offset) noexcept:
+	inline constexpr plane_collider(const math::fvec3& normal, const math::fvec3& offset) noexcept:
 		m_plane(normal, offset)
 	{}
 	
@@ -79,7 +79,7 @@ public:
 	 *
 	 * @param plane Plane shape.
 	 */
-	inline void set_plane(const plane_type& plane) noexcept
+	inline constexpr void set_plane(const plane_type& plane) noexcept
 	{
 		m_plane = plane;
 	}
@@ -89,7 +89,7 @@ public:
 	 *
 	 * @param normal Plane normal, in object space.
 	 */
-	inline void set_normal(const math::fvec3& normal) noexcept
+	inline constexpr void set_normal(const math::fvec3& normal) noexcept
 	{
 		m_plane.normal = normal;
 	}
@@ -99,31 +99,31 @@ public:
 	 *
 	 * @param constant Plane constant.
 	 */
-	inline void set_constant(float constant) noexcept
+	inline constexpr void set_constant(float constant) noexcept
 	{
 		m_plane.constant = constant;
 	}
 	
 	/// Returns the plane shape.
-	[[nodiscard]] inline const plane_type& get_plane() const noexcept
+	[[nodiscard]] inline constexpr const plane_type& get_plane() const noexcept
 	{
 		return m_plane;
 	}
 	
 	/// Returns the plane normal, in object space.
-	[[nodiscard]] inline const math::fvec3& get_normal() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_normal() const noexcept
 	{
 		return m_plane.normal;
 	}
 	
 	/// Returns the plane constant.
-	[[nodiscard]] inline float get_constant() const noexcept
+	[[nodiscard]] inline constexpr float get_constant() const noexcept
 	{
 		return m_plane.constant;
 	}
 	
 private:
-	plane_type m_plane{{0.0f, 0.0f, 0.0f}, 0.0f};
+	plane_type m_plane{};
 };
 
 } // namespace physics

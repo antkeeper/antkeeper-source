@@ -40,9 +40,7 @@ void bvh::build(std::span<const bvh_primitive> primitives)
 {
 	if (primitives.empty())
 	{
-		m_primitive_indices.clear();
-		m_nodes.clear();
-		m_node_count = 0;
+		clear();
 	}
 	else
 	{
@@ -93,6 +91,13 @@ void bvh::build(const brep_mesh& mesh)
 	
 	// Build BVH from the bounding boxes of the mesh faces
 	build(primitives);
+}
+
+void bvh::clear()
+{
+	m_primitive_indices.clear();
+	m_nodes.clear();
+	m_node_count = 0;
 }
 
 void bvh::update_bounds(bvh_node& node, const std::span<const bvh_primitive>& primitives)

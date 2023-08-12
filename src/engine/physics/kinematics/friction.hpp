@@ -17,8 +17,8 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_PHYSICS_FRICTION_COMBINE_MODE_HPP
-#define ANTKEEPER_PHYSICS_FRICTION_COMBINE_MODE_HPP
+#ifndef ANTKEEPER_PHYSICS_FRICTION_HPP
+#define ANTKEEPER_PHYSICS_FRICTION_HPP
 
 #include <cstdint>
 
@@ -58,6 +58,17 @@ enum class friction_combine_mode: std::uint8_t
 	maximum
 };
 
+/**
+ * Combines two friction values into a coefficient of friction.
+ *
+ * @param a First friction value.
+ * @param b Second friction value.
+ * @param mode Friction combine mode.
+ *
+ * @return Coefficient of friction of @p a and @p b.
+ */
+[[nodiscard]] float combine_friction(float a, float b, friction_combine_mode mode) noexcept;
+
 } // namespace physics
 
-#endif // ANTKEEPER_PHYSICS_FRICTION_COMBINE_MODE_HPP
+#endif // ANTKEEPER_PHYSICS_FRICTION_MODE_HPP

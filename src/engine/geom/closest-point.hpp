@@ -28,6 +28,7 @@
 #include <engine/geom/primitives/point.hpp>
 #include <engine/geom/primitives/ray.hpp>
 #include <engine/geom/primitives/triangle.hpp>
+#include <engine/geom/coordinates.hpp>
 #include <algorithm>
 #include <cmath>
 #include <tuple>
@@ -96,6 +97,8 @@ template <class T, std::size_t N>
  * @param cd Line segment cd.
  *
  * @return Tuple containing the closest point on segment ab to segment cd, followed by the closest point on segment cd to segment ab.
+ *
+ * @see Ericson, C. (2004). Real-time collision detection. Crc Press.
  */
 template <class T, std::size_t N>
 [[nodiscard]] constexpr std::tuple<point<T, N>, point<T, N>> closest_point(const line_segment<T, N>& ab, const line_segment<T, N>& cd) noexcept
@@ -201,42 +204,72 @@ template <class T, std::size_t N>
  * @param c Third point of triangle.
  * @param p Point.
  *
- * @return Closest point on the triangle to point @p p, followed by the index of the edge on which the point lies (`-1` if not on an edge).
+ * @return Closest point on the triangle to point @p p, followed by the Voronoi region of the point.
+ *
+ * @see Ericson, C. (2004). Real-time collision detection. Crc Press.
  */
 /// @{
 template <class T>
-[[nodiscard]] constexpr point<T, 3> closest_point(const point<T, 3>& a, const point<T, 3>& b, const point<T, 3>& c, const point<T, 3>& p) noexcept
+[[nodiscard]] constexpr std::tuple<point<T, 3>, triangle_region> closest_point(const point<T, 3>& a, const point<T, 3>& b, const point<T, 3>& c, const point<T, 3>& p) noexcept
 {
 	const auto ab = b - a;
-	const auto ca = a - c;
+	const auto ac = c - a;
 	const auto ap = p - a;
-	const auto n = math::cross(ab, ca);
-	const auto d = math::sqr_length(n);
-	const auto q = math::cross(n, ap);
-	
-	T u, v, w;
-	if ((w = math::dot(q, ab) / d) < T{0})
+	const auto ap_dot_ab = math::dot(ap, ab);
+	const auto ap_dot_ac = math::dot(ap, ac);
+	if (ap_dot_ab <= T{0} && ap_dot_ac <= T{0})
 	{
-		v = std::min<T>(std::max<T>(math::dot(ab, ap) / math::sqr_length(ab), T{0}), T{1});
-		return {a * (T{1} - v) + b * v};
-	}
-	else if ((v = math::dot(q, ca) / d) < T{0})
-	{
-		u = std::min<T>(std::max<T>(math::dot(ca, p - c) / math::sqr_length(ca), T{0}), T{1});
-		return {a * u + c * (T{1} - u)};
-	}
-	else if ((u = T{1} - v - w) < T{0})
-	{
-		const auto bc = c - b;
-		w = std::min<T>(std::max<T>(math::dot(bc, p - b) / math::sqr_length(bc), T{0}), T{1});
-		return {b * (T{1} - w) + c * w};
+		return {a, triangle_region::a};
 	}
 	
-	return {a * u + b * v + c * w};
+	const auto bc = c - b;
+	const auto bp = p - b;
+	const auto bp_dot_ba = math::dot(bp, a - b);
+	const auto bp_dot_bc = math::dot(bp, bc);
+	if (bp_dot_ba <= T{0} && bp_dot_bc <= T{0})
+	{
+		return {b, triangle_region::b};
+	}
+	
+	const auto cp = p - c;
+	const auto cp_dot_ca = math::dot(cp, a - c);
+	const auto cp_dot_cb = math::dot(cp, b - c);
+	if (cp_dot_ca <= T{0} && cp_dot_cb <= T{0})
+	{
+		return {c, triangle_region::c};
+	}
+	
+	const auto n = math::cross(ab, ac);
+	const auto pa = a - p;
+	const auto pb = b - p;
+	const auto vc = math::dot(n, math::cross(pa, pb));
+	if (vc <= T{0} && ap_dot_ab >= T{0} && bp_dot_ba >= T{0})
+	{
+		return {a + ap_dot_ab / (ap_dot_ab + bp_dot_ba) * ab, triangle_region::ab};
+	}
+	
+	const auto pc = c - p;
+	const auto va = math::dot(n, math::cross(pb, pc));
+	if (va <= T{0} && bp_dot_bc >= T{0} && cp_dot_cb >= T{0})
+	{
+		return {b + bp_dot_bc / (bp_dot_bc + cp_dot_cb) * bc, triangle_region::bc};
+	}
+	
+	const auto vb = math::dot(n, math::cross(pc, pa));
+	if (vb <= T{0} && ap_dot_ac >= T{0} && cp_dot_ca >= T{0})
+	{
+		return {a + ap_dot_ac / (ap_dot_ac + cp_dot_ca) * ac, triangle_region::ca};
+	}
+	
+	const auto u = va / (va + vb + vc);
+	const auto v = vb / (va + vb + vc);
+	const auto w = T{1} - u - v;
+	
+	return {a * u + b * v + c * w, triangle_region::abc};
 }
 
 template <class T>
-[[nodiscard]] inline constexpr point<T, 3> closest_point(const triangle<T, 3>& tri, const point<T, 3>& p) noexcept
+[[nodiscard]] inline constexpr std::tuple<point<T, 3>, triangle_region> closest_point(const triangle<T, 3>& tri, const point<T, 3>& p) noexcept
 {
 	return closest_point(tri.a, tri.b, tri.c, p);
 }

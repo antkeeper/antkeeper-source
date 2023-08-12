@@ -52,7 +52,6 @@ private:
 	bool mouse_drag{false};
 	bool adjust_exposure{false};
 	bool adjust_time{false};
-	bool adjust_zoom{false};
 	
 	bool moving{false};
 	math::fvec2 movement_direction{0.0f, 0.0f};

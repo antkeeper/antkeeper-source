@@ -34,7 +34,6 @@ struct legged_locomotion_component
 	/// Force vector.
 	math::fvec3 force{0.0f, 0.0f, 0.0f};
 	
-	pose* current_pose{};
 	const pose* midstance_pose{};
 	const pose* midswing_pose{};
 	const pose* liftoff_pose{};
@@ -43,12 +42,24 @@ struct legged_locomotion_component
 	/// Indices of the the final bones in the legs.
 	std::vector<bone_index_type> tip_bones;
 	
+	bone_index_type body_bone{};
+	
 	/// Number of bones per leg.
 	std::uint8_t leg_bone_count{};
 	
 	std::shared_ptr<::gait> gait;
 	
-	bool moving{};
+	float standing_height{};
+	
+	/// Distance covered in a single gait cycle.
+	float stride_length{};
+	
+	float speed{};
+	
+	float angular_velocity{};
+	
+	/// Current phase of the gait cycle, on `[0, 1]`.
+	float gait_phase{};
 };
 
 #endif // ANTKEEPER_GAME_LEGGED_LOCOMOTION_COMPONENT_HPP

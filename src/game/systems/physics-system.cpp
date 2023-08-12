@@ -32,30 +32,6 @@
 #include <engine/geom/closest-point.hpp>
 #include <execution>
 
-namespace {
-
-inline constexpr float coefficient_combine_average(float a, float b) noexcept
-{
-	return (a + b) * 0.5f;
-}
-
-inline constexpr float coefficient_combine_minimum(float a, float b) noexcept
-{
-	return std::min(a, b);
-}
-
-inline constexpr float coefficient_combine_multiply(float a, float b) noexcept
-{
-	return a * b;
-}
-
-inline constexpr float coefficient_combine_maximum(float a, float b) noexcept
-{
-	return std::max(a, b);
-}
-
-} // namespace
-
 physics_system::physics_system(entity::registry& registry):
 	updatable_system(registry)
 {
@@ -244,59 +220,13 @@ void physics_system::resolve_collisions()
 		const auto& material_b = *body_b.get_collider()->get_material();
 		
 		// Calculate coefficient of restitution
-		const auto restitution_combine = std::max(material_a.get_restitution_combine_mode(), material_b.get_restitution_combine_mode());
-		float restitution_coef{0.0f};
-		switch (restitution_combine)
-		{
-			case physics::restitution_combine_mode::average:
-				restitution_coef = coefficient_combine_average(material_a.get_restitution(), material_b.get_restitution());
-				break;
-			
-			case physics::restitution_combine_mode::minimum:
-				restitution_coef = coefficient_combine_minimum(material_a.get_restitution(), material_b.get_restitution());
-				break;
-			
-			case physics::restitution_combine_mode::multiply:
-				restitution_coef = coefficient_combine_multiply(material_a.get_restitution(), material_b.get_restitution());
-				break;
-			
-			case physics::restitution_combine_mode::maximum:
-				restitution_coef = coefficient_combine_maximum(material_a.get_restitution(), material_b.get_restitution());
-				break;
-			
-			default:
-				break;
-		}
+		const auto restitution_combine_mode = std::max(material_a.get_restitution_combine_mode(), material_b.get_restitution_combine_mode());
+		float restitution_coef = physics::combine_restitution(material_a.get_restitution(), material_b.get_restitution(), restitution_combine_mode);
 		
 		// Calculate coefficients of friction
-		const auto friction_combine = std::max(material_a.get_friction_combine_mode(), material_b.get_friction_combine_mode());
-		float static_friction_coef{0.0f};
-		float dynamic_friction_coef{0.0f};
-		switch (restitution_combine)
-		{
-			case physics::restitution_combine_mode::average:
-				static_friction_coef = coefficient_combine_average(material_a.get_static_friction(), material_b.get_static_friction());
-				dynamic_friction_coef = coefficient_combine_average(material_a.get_dynamic_friction(), material_b.get_dynamic_friction());
-				break;
-			
-			case physics::restitution_combine_mode::minimum:
-				static_friction_coef = coefficient_combine_minimum(material_a.get_static_friction(), material_b.get_static_friction());
-				dynamic_friction_coef = coefficient_combine_minimum(material_a.get_dynamic_friction(), material_b.get_dynamic_friction());
-				break;
-			
-			case physics::restitution_combine_mode::multiply:
-				static_friction_coef = coefficient_combine_multiply(material_a.get_static_friction(), material_b.get_static_friction());
-				dynamic_friction_coef = coefficient_combine_multiply(material_a.get_dynamic_friction(), material_b.get_dynamic_friction());
-				break;
-			
-			case physics::restitution_combine_mode::maximum:
-				static_friction_coef = coefficient_combine_maximum(material_a.get_static_friction(), material_b.get_static_friction());
-				dynamic_friction_coef = coefficient_combine_maximum(material_a.get_dynamic_friction(), material_b.get_dynamic_friction());
-				break;
-			
-			default:
-				break;
-		}
+		const auto friction_combine_mode = std::max(material_a.get_friction_combine_mode(), material_b.get_friction_combine_mode());
+		float static_friction_coef = physics::combine_friction(material_a.get_static_friction(), material_b.get_static_friction(), friction_combine_mode);
+		float dynamic_friction_coef = physics::combine_friction(material_a.get_dynamic_friction(), material_b.get_dynamic_friction(), friction_combine_mode);
 		
 		const float sum_inverse_mass = body_a.get_inverse_mass() + body_b.get_inverse_mass();
 		const float impulse_scale = 1.0f / static_cast<float>(manifold.contact_count);

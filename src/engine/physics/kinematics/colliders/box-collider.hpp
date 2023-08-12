@@ -44,7 +44,7 @@ public:
 	 *
 	 * @param box Box shape.
 	 */
-	inline explicit box_collider(const box_type& box) noexcept:
+	inline constexpr explicit box_collider(const box_type& box) noexcept:
 		m_box{box}
 	{}
 	
@@ -55,10 +55,10 @@ public:
 	 * @param max Maximum extent of the box, in object space.
 	 */
 	/// @{
-	inline box_collider(const math::fvec3& min, const math::fvec3& max) noexcept:
+	inline constexpr box_collider(const math::fvec3& min, const math::fvec3& max) noexcept:
 		m_box{min, max}
 	{}
-	box_collider() noexcept = default;
+	constexpr box_collider() noexcept = default;
 	/// @}
 	
 	/**
@@ -66,7 +66,7 @@ public:
 	 *
 	 * @param box Box shape.
 	 */
-	inline void set_box(const box_type& box) noexcept
+	inline constexpr void set_box(const box_type& box) noexcept
 	{
 		m_box = box;
 	}
@@ -76,7 +76,7 @@ public:
 	 *
 	 * @param min Minimum extent of the box, in object space.
 	 */
-	inline void set_min(const math::fvec3& min) noexcept
+	inline constexpr void set_min(const math::fvec3& min) noexcept
 	{
 		m_box.min = min;
 	}
@@ -86,31 +86,31 @@ public:
 	 *
 	 * @param max Maximum extent of the box, in object space.
 	 */
-	inline void set_max(const math::fvec3& max) noexcept
+	inline constexpr void set_max(const math::fvec3& max) noexcept
 	{
 		m_box.max = max;
 	}
 	
 	/// Returns the box shape.
-	[[nodiscard]] inline const box_type& get_box() const noexcept
+	[[nodiscard]] inline constexpr const box_type& get_box() const noexcept
 	{
 		return m_box;
 	}
 	
 	/// Returns the minimum extent of the box, in object space.
-	[[nodiscard]] inline const math::fvec3& get_min() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_min() const noexcept
 	{
 		return m_box.min;
 	}
 	
 	/// Returns the maximum extent of the box, in object space.
-	[[nodiscard]] inline const math::fvec3& get_max() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_max() const noexcept
 	{
 		return m_box.max;
 	}
 	
 private:
-	box_type m_box{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
+	box_type m_box{};
 };
 
 } // namespace physics

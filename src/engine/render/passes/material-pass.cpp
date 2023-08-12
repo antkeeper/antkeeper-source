@@ -234,7 +234,7 @@ void material_pass::render(render::context& ctx)
 				{
 					// Construct cache entry
 					active_cache_entry = &shader_cache[cache_key];
-					active_cache_entry->shader_program = generate_shader_program(*material->get_shader_template());
+					active_cache_entry->shader_program = generate_shader_program(*material->get_shader_template(), material->get_blend_mode());
 					build_shader_command_buffer(active_cache_entry->shader_command_buffer, *active_cache_entry->shader_program);
 					build_geometry_command_buffer(active_cache_entry->geometry_command_buffer, *active_cache_entry->shader_program);
 					
@@ -481,7 +481,7 @@ void material_pass::evaluate_misc(const render::context& ctx)
 	///mouse_position = ...
 }
 
-std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const gl::shader_template& shader_template) const
+std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const gl::shader_template& shader_template, material_blend_mode blend_mode) const
 {
 	std::unordered_map<std::string, std::string> definitions;
 	
@@ -495,7 +495,7 @@ std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const
 	definitions["VERTEX_BARYCENTRIC"] = std::to_string(vertex_attribute::barycentric);
 	definitions["VERTEX_TARGET"]      = std::to_string(vertex_attribute::target);
 	
-	definitions["FRAGMENT_OUTPUT_COLOR"] = std::to_string(0);
+	definitions["FRAGMENT_OUTPUT_COLOR"] = "0";
 	
 	definitions["LIGHT_PROBE_COUNT"] = std::to_string(light_probe_count);
 	definitions["DIRECTIONAL_LIGHT_COUNT"] = std::to_string(directional_light_count);
@@ -503,6 +503,11 @@ std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const
 	definitions["POINT_LIGHT_COUNT"] = std::to_string(point_light_count);
 	definitions["SPOT_LIGHT_COUNT"] = std::to_string(spot_light_count);
 	definitions["RECTANGLE_LIGHT_COUNT"] = std::to_string(rectangle_light_count);
+	
+	if (blend_mode == material_blend_mode::masked)
+	{
+		definitions["MASKED_OPACITY"] = "1";
+	}
 	
 	auto shader_program = shader_template.build(definitions);
 	

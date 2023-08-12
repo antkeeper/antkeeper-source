@@ -43,7 +43,7 @@ public:
 	 *
 	 * @param mask 32-bit layer mask in which each bit represents a layer with which the collider can interact.
 	 */
-	inline void set_layer_mask(std::uint32_t mask) noexcept
+	inline constexpr void set_layer_mask(std::uint32_t mask) noexcept
 	{
 		m_layer_mask = mask;
 	}
@@ -57,13 +57,13 @@ public:
 	}
 	
 	/// Returns the layer mask of the collider.
-	[[nodiscard]] inline std::uint32_t get_layer_mask() const noexcept
+	[[nodiscard]] inline constexpr std::uint32_t get_layer_mask() const noexcept
 	{
 		return m_layer_mask;
 	}
 	
 	/// Returns the collider material.
-	[[nodiscard]] inline const std::shared_ptr<collider_material>& get_material() const noexcept
+	[[nodiscard]] inline constexpr const std::shared_ptr<collider_material>& get_material() const noexcept
 	{
 		return m_material;
 	}

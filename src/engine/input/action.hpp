@@ -81,7 +81,7 @@ public:
 		return m_active;
 	}
 	
-	/// Returns the msot recently evaluated input value.
+	/// Returns the most recently evaluated input value.
 	[[nodiscard]] inline float get_input_value() const noexcept
 	{
 		return m_active_event.input_value;

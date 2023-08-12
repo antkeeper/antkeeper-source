@@ -71,6 +71,9 @@ public:
 	 */
 	void build(const brep_mesh& mesh);
 	
+	/// Clears the BVH.
+	void clear();
+	
 	/**
 	 * Visits the primitive indices of all BVH nodes that intersect a ray.
 	 *

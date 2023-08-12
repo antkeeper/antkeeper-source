@@ -24,6 +24,7 @@
 #include "game/ant/ant-morphogenesis.hpp"
 #include "game/ant/ant-phenome.hpp"
 #include "game/commands/commands.hpp"
+#include "game/components/pose-component.hpp"
 #include "game/components/constraint-stack-component.hpp"
 #include "game/components/scene-component.hpp"
 #include "game/components/picking-component.hpp"
@@ -32,10 +33,15 @@
 #include "game/components/rigid-body-constraint-component.hpp"
 #include "game/components/steering-component.hpp"
 #include "game/components/terrain-component.hpp"
+#include "game/components/navmesh-agent-component.hpp"
 #include "game/components/legged-locomotion-component.hpp"
 #include "game/components/winged-locomotion-component.hpp"
+#include "game/components/ant-caste-component.hpp"
 #include "game/components/ik-component.hpp"
 #include "game/components/transform-component.hpp"
+#include "game/components/ovary-component.hpp"
+#include "game/components/orbit-camera-component.hpp"
+#include "game/components/ant-genome-component.hpp"
 #include "game/constraints/child-of-constraint.hpp"
 #include "game/constraints/copy-rotation-constraint.hpp"
 #include "game/constraints/copy-scale-constraint.hpp"
@@ -101,19 +107,21 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 		::world::create_observer(ctx);
 	}
 	
+	ctx.active_scene = ctx.surface_scene.get();
+	
 	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco");
 	::world::enter_ecoregion(ctx, *ctx.active_ecoregion);
 	
 	debug::log::trace("Generating genome...");
-	std::unique_ptr<ant_genome> genome = ant_cladogenesis(ctx.active_ecoregion->gene_pools[0], ctx.rng);
+	std::shared_ptr<ant_genome> genome = ant_cladogenesis(ctx.active_ecoregion->gene_pools[0], ctx.rng);
 	debug::log::trace("Generated genome");
 	
 	debug::log::trace("Building worker phenome...");
-	worker_phenome = ant_phenome(*genome, ant_caste_type::worker);
+	worker_phenome = std::make_shared<ant_phenome>(*genome, ant_caste_type::worker);
 	debug::log::trace("Built worker phenome...");
 	
 	debug::log::trace("Generating worker model...");
-	std::shared_ptr<render::model> worker_model = ant_morphogenesis(worker_phenome);
+	std::shared_ptr<render::model> worker_model = ant_morphogenesis(*worker_phenome);
 	debug::log::trace("Generated worker model");
 	
 	// Create directional light
@@ -170,9 +178,20 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	// Create treadmill
 	auto treadmill_eid = ctx.entity_registry->create();
 	scene_component treadmill_scene_component;
-	treadmill_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube-500mm.mdl"));
+	treadmill_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("mobius-strip-nest-400mm.mdl"));
 	treadmill_scene_component.layer_mask = 1;
 	ctx.entity_registry->emplace<scene_component>(treadmill_eid, std::move(treadmill_scene_component));
+	
+	// Load navmesh
+	navmesh = ctx.resource_manager->load<geom::brep_mesh>("mobius-strip-nest-400mm.msh");
+	
+	// Generate navmesh attributes
+	geom::generate_vertex_normals(*navmesh);
+	
+	// Build navmesh BVH
+	debug::log::info("Building BVH...");
+	navmesh_bvh = std::make_unique<geom::bvh>(*navmesh);
+	debug::log::info("Built BVH");
 	
 	// Create worker
 	auto worker_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_model);
@@ -189,19 +208,31 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	worker_skeletal_mesh->get_pose() = *worker_model->get_skeleton().get_pose("midswing");
 	
 	worker_eid = ctx.entity_registry->create();
-	transform_component worker_transform_component;
-	worker_transform_component.local = math::transform<float>::identity();
-	worker_transform_component.local.translation = {0, 0.1f, 0};
-	worker_transform_component.local.scale = math::fvec3::one() * worker_phenome.body_size->mean_mesosoma_length;
-	worker_transform_component.world = worker_transform_component.local;
 
+
+	pose_component worker_pose_component;
+	worker_pose_component.current_pose = worker_skeletal_mesh->get_skeleton()->get_rest_pose();
+	worker_pose_component.previous_pose = worker_pose_component.current_pose;
+	
+
+	
+	ant_caste_component worker_caste_component;
+	worker_caste_component.type = ant_caste_type::worker;
+	worker_caste_component.phenome = worker_phenome;
+	
+	rigid_body_component worker_rigid_body_component;
+	worker_rigid_body_component.body = std::make_unique<physics::rigid_body>();
+	worker_rigid_body_component.body->set_mass(0.0f);
+	auto rigid_body_transform = worker_rigid_body_component.body->get_transform();
+	rigid_body_transform.scale = math::fvec3::one() * worker_phenome->body_size->mean_mesosoma_length;
+	worker_rigid_body_component.body->set_transform(rigid_body_transform);
+	
 	legged_locomotion_component worker_locomotion_component;
-	worker_locomotion_component.current_pose = &worker_skeletal_mesh->get_pose();
 	worker_locomotion_component.midstance_pose = worker_model->get_skeleton().get_pose("midstance");
 	worker_locomotion_component.midswing_pose = worker_model->get_skeleton().get_pose("midswing");
 	worker_locomotion_component.liftoff_pose = worker_model->get_skeleton().get_pose("liftoff");
 	worker_locomotion_component.touchdown_pose = worker_model->get_skeleton().get_pose("touchdown");
-	
+	worker_locomotion_component.body_bone = *worker_skeleton.get_bone_index("mesosoma");
 	worker_locomotion_component.tip_bones =
 	{
 		*worker_skeleton.get_bone_index("protarsomere1_l"),
@@ -217,14 +248,34 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	worker_locomotion_component.gait->steps.resize(6);
 	for (std::size_t i = 0; i < 6; ++i)
 	{
+		const float duty_factors[3] = {0.52f, 0.62f, 0.54f};
 		auto& step = worker_locomotion_component.gait->steps[i];
-		step.duty_factor = 0.5f;
+		step.duty_factor = duty_factors[i % 3];
 		step.delay = (i % 2) ? 0.5f : 0.0f;
 	}
+	worker_locomotion_component.standing_height = worker_phenome->legs->standing_height;
+	worker_locomotion_component.stride_length = worker_phenome->legs->stride_length * worker_rigid_body_component.body->get_transform().scale.x();
 	
-	ctx.entity_registry->emplace<transform_component>(worker_eid, worker_transform_component);
+	navmesh_agent_component worker_navmesh_agent_component;
+	
+	ovary_component worker_ovary_component;
+	worker_ovary_component.egg_capacity = 4;
+	worker_ovary_component.egg_production_duration = 1.0f;
+	worker_ovary_component.oviposition_duration = 3.0f;
+	worker_ovary_component.ovipositor_bone = *worker_skeleton.get_bone_index("gaster");
+	worker_ovary_component.oviposition_path = {{0.0f, -0.141708f, -0.799793f}, {0.0f, -0.187388f, -1.02008f}};
+	
 	ctx.entity_registry->emplace<scene_component>(worker_eid, std::move(worker_skeletal_mesh), std::uint8_t{1});
+	ctx.entity_registry->emplace<navmesh_agent_component>(worker_eid, std::move(worker_navmesh_agent_component));
+	ctx.entity_registry->emplace<pose_component>(worker_eid, std::move(worker_pose_component));
 	ctx.entity_registry->emplace<legged_locomotion_component>(worker_eid, std::move(worker_locomotion_component));
+	ctx.entity_registry->emplace<ant_caste_component>(worker_eid, std::move(worker_caste_component));
+	ctx.entity_registry->emplace<rigid_body_component>(worker_eid, std::move(worker_rigid_body_component));
+	ctx.entity_registry->emplace<ovary_component>(worker_eid, std::move(worker_ovary_component));
+	ctx.entity_registry->emplace<ant_genome_component>(worker_eid, genome);
+	
+	// Set ant as controlled ant
+	ctx.controlled_ant_eid = worker_eid;
 	
 	// Create color checker
 	auto color_checker_eid = ctx.entity_registry->create();
@@ -274,7 +325,8 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 		[&ctx]()
 		{
 			::enable_game_controls(ctx);
-			::enable_keeper_controls(ctx);
+			::enable_camera_controls(ctx);
+			::enable_ant_controls(ctx);
 		}
 	);
 	
@@ -285,18 +337,6 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	// Refresh frame scheduler
 	ctx.frame_scheduler.refresh();
 	
-	// Load navmesh
-	navmesh = ctx.resource_manager->load<geom::brep_mesh>("cube-500mm.msh");
-	
-	// Generate navmesh attributes
-	geom::generate_face_normals(*navmesh);
-	geom::generate_vertex_normals(*navmesh);
-	
-	// Build navmesh BVH
-	debug::log::info("Building BVH...");
-	navmesh_bvh = std::make_unique<geom::bvh>(*navmesh);
-	debug::log::info("Built BVH");
-	
 	debug::log::trace("Entered nest view state");
 }
 
@@ -306,7 +346,10 @@ treadmill_experiment_state::~treadmill_experiment_state()
 	
 	// Disable game controls
 	::disable_game_controls(ctx);
-	::disable_keeper_controls(ctx);
+	::disable_camera_controls(ctx);
+	::disable_ant_controls(ctx);
+	
+	ctx.controlled_ant_eid = entt::null;
 	
 	destroy_third_person_camera_rig();
 	
@@ -315,11 +358,25 @@ treadmill_experiment_state::~treadmill_experiment_state()
 
 void treadmill_experiment_state::create_third_person_camera_rig()
 {
-	// Construct third person camera rig scene component
-	scene_component third_person_camera_rig_camera;
-	third_person_camera_rig_camera.object = ctx.surface_camera;
-	third_person_camera_rig_camera.layer_mask = 1;
+	const auto& subject_rigid_body = *ctx.entity_registry->get<rigid_body_component>(ctx.controlled_ant_eid).body;
+	orbit_camera_component orbit_cam;
+	orbit_cam.subject_eid = ctx.controlled_ant_eid;
+	orbit_cam.yaw = math::radians(0.0);
+	orbit_cam.pitch = math::radians(45.0);
+	orbit_cam.near_focal_plane_height = {1.0};
+	orbit_cam.far_focal_plane_height = {50.0};
+	orbit_cam.near_hfov = math::radians(90.0);
+	orbit_cam.far_hfov = math::radians(45.0);
+	orbit_cam.zoom = 0.25;
+	orbit_cam.focal_point = {0, worker_phenome->legs->standing_height * subject_rigid_body.get_transform().scale.x(), 0};
 	
+	third_person_camera_rig_eid = ctx.entity_registry->create();
+	ctx.entity_registry->emplace<scene_component>(third_person_camera_rig_eid, ctx.surface_camera, std::uint8_t{1});
+	ctx.entity_registry->emplace<orbit_camera_component>(third_person_camera_rig_eid, std::move(orbit_cam));
+	
+	ctx.active_camera_eid = third_person_camera_rig_eid;
+	
+	/*
 	// Construct third person camera rig entity
 	third_person_camera_rig_eid = ctx.entity_registry->create();
 	ctx.entity_registry->emplace<scene_component>(third_person_camera_rig_eid, third_person_camera_rig_camera);
@@ -327,6 +384,7 @@ void treadmill_experiment_state::create_third_person_camera_rig()
 	set_third_person_camera_zoom(third_person_camera_zoom);
 	set_third_person_camera_rotation(third_person_camera_yaw, third_person_camera_pitch);
 	update_third_person_camera();
+	*/
 }
 
 void treadmill_experiment_state::destroy_third_person_camera_rig()
@@ -336,55 +394,47 @@ void treadmill_experiment_state::destroy_third_person_camera_rig()
 
 void treadmill_experiment_state::set_third_person_camera_zoom(double zoom)
 {
-	// Clamp zoom
-	third_person_camera_zoom = std::min<double>(std::max<double>(zoom, 0.0), 1.0);
+	zoom = std::min<double>(std::max<double>(zoom, 0.0), 1.0);
 	
-	// Update FoV
-	third_person_camera_hfov = ease<double, double>::out_sine(third_person_camera_far_hfov, third_person_camera_near_hfov, third_person_camera_zoom);
-	third_person_camera_vfov = math::vertical_fov(third_person_camera_hfov, static_cast<double>(ctx.surface_camera->get_aspect_ratio()));
-	
-	// Update focal plane size
-	third_person_camera_focal_plane_height = ease<double, double>::out_sine(third_person_camera_far_focal_plane_height, third_person_camera_near_focal_plane_height, third_person_camera_zoom);
-	third_person_camera_focal_plane_width = third_person_camera_focal_plane_height * ctx.surface_camera->get_aspect_ratio();
-	
-	// Update focal distance
-	third_person_camera_focal_distance = third_person_camera_focal_plane_height * 0.5 / std::tan(third_person_camera_vfov * 0.5);
-	
-	// update_third_person_camera();
+	auto& orbit_cam = ctx.entity_registry->get<orbit_camera_component>(third_person_camera_rig_eid);
+	orbit_cam.zoom = zoom;
 }
 
 void treadmill_experiment_state::set_third_person_camera_rotation(double yaw, double pitch)
 {
-	third_person_camera_yaw = yaw;
-	third_person_camera_pitch = std::min(math::half_pi<double>, std::max(-math::half_pi<double>, pitch));
+	pitch = std::min(math::half_pi<double>, std::max(-math::half_pi<double>, pitch));
 	
-	third_person_camera_yaw_rotation = math::angle_axis(third_person_camera_yaw, {0.0, 1.0, 0.0});
-	third_person_camera_pitch_rotation = math::angle_axis(third_person_camera_pitch, {-1.0, 0.0, 0.0});
-	third_person_camera_orientation = math::normalize(third_person_camera_yaw_rotation * third_person_camera_pitch_rotation);
+	auto& orbit_cam = ctx.entity_registry->get<orbit_camera_component>(third_person_camera_rig_eid);
+	orbit_cam.yaw = yaw;
+	orbit_cam.pitch = pitch;
 }
 
 void treadmill_experiment_state::zoom_third_person_camera(double zoom)
 {
-	set_third_person_camera_zoom(third_person_camera_zoom + zoom);
+	const auto& orbit_cam = ctx.entity_registry->get<orbit_camera_component>(third_person_camera_rig_eid);
+
+	set_third_person_camera_zoom(orbit_cam.zoom + zoom);
 }
 
 void treadmill_experiment_state::translate_third_person_camera(const math::dvec3& direction, double magnitude)
 {
+	auto& orbit_cam = ctx.entity_registry->get<orbit_camera_component>(third_person_camera_rig_eid);
+	
 	// Scale translation magnitude by factor of focal plane height
-	magnitude *= third_person_camera_focal_plane_height * third_person_camera_speed;
+	const auto scaled_magnitude = magnitude * orbit_cam.focal_plane_height;
 	
 	// Rotate translation direction according to camera yaw
-	const math::dvec3 rotated_direction = third_person_camera_yaw_rotation * direction;
+	const math::dvec3 rotated_direction = orbit_cam.yaw_rotation * direction;
 	
-	third_person_camera_focal_point += rotated_direction * magnitude;
-	
-	// update_third_person_camera();
+	orbit_cam.focal_point += rotated_direction * scaled_magnitude * third_person_camera_speed;
 }
 
 void treadmill_experiment_state::rotate_third_person_camera(const input::mouse_moved_event& event)
 {
-	const double yaw = third_person_camera_yaw - ctx.mouse_pan_factor * static_cast<double>(event.difference.x());
-	const double pitch = third_person_camera_pitch + ctx.mouse_tilt_factor * static_cast<double>(event.difference.y());
+	const auto& orbit_cam = ctx.entity_registry->get<orbit_camera_component>(third_person_camera_rig_eid);
+	
+	const double yaw = orbit_cam.yaw - ctx.mouse_pan_factor * static_cast<double>(event.difference.x());
+	const double pitch = orbit_cam.pitch + ctx.mouse_tilt_factor * static_cast<double>(event.difference.y());
 	
 	set_third_person_camera_rotation(yaw, pitch);
 }
@@ -433,67 +483,21 @@ void treadmill_experiment_state::handle_mouse_motion(const input::mouse_moved_ev
 
 void treadmill_experiment_state::update_third_person_camera()
 {
-	const auto worker_rotation = ctx.entity_registry->get<::scene_component>(worker_eid).object->get_rotation();
-	
-	const auto camera_rotation = math::normalize(math::dquat(worker_rotation) * third_person_camera_orientation);
-	const math::dvec3 camera_position = third_person_camera_focal_point + camera_rotation * math::dvec3{0.0f, 0.0f, third_person_camera_focal_distance};
-	
-	ctx.entity_registry->patch<scene_component>
-	(
-		third_person_camera_rig_eid,
-		[&](auto& component)
-		{
-			auto& camera = static_cast<scene::camera&>(*component.object);
-			
-			camera.set_translation(math::fvec3(camera_position));
-			camera.set_rotation(math::fquat(camera_rotation));
-			camera.set_perspective(static_cast<float>(third_person_camera_vfov), camera.get_aspect_ratio(), camera.get_clip_near(), camera.get_clip_far());
-		}
-	);
 }
 
 void treadmill_experiment_state::load_camera_preset(std::uint8_t index)
 {
-	if (!camera_presets[index])
-	{
-		return;
-	}
-	
-	const auto& preset = *camera_presets[index];
-	
-	third_person_camera_yaw = preset.yaw;
-	third_person_camera_pitch = preset.pitch;
-	third_person_camera_focal_point = preset.focal_point;
-	zoom_third_person_camera(preset.zoom - third_person_camera_zoom);
-	
-	third_person_camera_yaw_rotation = math::angle_axis(third_person_camera_yaw, {0.0, 1.0, 0.0});
-	third_person_camera_pitch_rotation = math::angle_axis(third_person_camera_pitch, {-1.0, 0.0, 0.0});
-	third_person_camera_orientation = math::normalize(third_person_camera_yaw_rotation * third_person_camera_pitch_rotation);
-	
-	update_third_person_camera();
+
 }
 
 void treadmill_experiment_state::save_camera_preset(std::uint8_t index)
 {
-	camera_presets[index] =
-	{
-		third_person_camera_yaw,
-		third_person_camera_pitch,
-		third_person_camera_focal_point,
-		third_person_camera_zoom
-	};
+
 }
 
 void treadmill_experiment_state::load_or_save_camera_preset(std::uint8_t index)
 {
-	if (ctx.save_camera_action.is_active())
-	{
-		save_camera_preset(index);
-	}
-	else
-	{
-		load_camera_preset(index);
-	}
+
 }
 
 geom::ray<float, 3> treadmill_experiment_state::get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const
@@ -516,42 +520,10 @@ geom::ray<float, 3> treadmill_experiment_state::get_mouse_ray(const math::vec2<s
 
 void treadmill_experiment_state::setup_controls()
 {
-	// Enable/toggle mouse look
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_look_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				mouse_look = ctx.toggle_mouse_look ? !mouse_look : true;
-				
-				//ctx.input_manager->set_cursor_visible(!mouse_look);
-				ctx.input_manager->set_relative_mouse_mode(mouse_look || mouse_grip || mouse_zoom);
-			}
-		)
-	);
-	
-	// Disable mouse look
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_look_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				if (!ctx.toggle_mouse_look && mouse_look)
-				{
-					mouse_look = false;
-					//ctx.input_manager->set_cursor_visible(true);
-					ctx.input_manager->set_relative_mouse_mode(mouse_look || mouse_grip || mouse_zoom);
-				}
-			}
-		)
-	);
-	
 	// Enable/toggle mouse grip
 	action_subscriptions.emplace_back
 	(
-		ctx.mouse_grip_action.get_activated_channel().subscribe
+		ctx.camera_mouse_pick_action.get_activated_channel().subscribe
 		(
 			[&](const auto& event)
 			{
@@ -570,8 +542,6 @@ void treadmill_experiment_state::setup_controls()
 					}
 				}
 				
-				ctx.input_manager->set_relative_mouse_mode(mouse_look || mouse_grip || mouse_zoom);
-				
 				// BVH picking test
 				const auto& mouse_position = (*ctx.input_manager->get_mice().begin())->get_position();
 				const auto mouse_ray = get_mouse_ray(mouse_position);
@@ -581,6 +551,7 @@ void treadmill_experiment_state::setup_controls()
 				bool hit = false;
 				std::uint32_t hit_index;
 				const auto& vertex_positions = navmesh->vertices().attributes().at<math::fvec3>("position");
+				const auto& face_normals = navmesh->faces().attributes().at<math::fvec3>("normal");
 				std::size_t test_count = 0;
 				
 				
@@ -593,6 +564,12 @@ void treadmill_experiment_state::setup_controls()
 						++box_test_passed;
 						
 						geom::brep_face* face = navmesh->faces()[index];
+						const auto& n = face_normals[index];
+						if (math::dot(n, mouse_ray.direction) > 0.0f)
+						{
+							return;
+						}
+						
 						auto loop = face->loops().begin();
 						const auto& a = vertex_positions[loop->vertex()->index()];
 						const auto& b = vertex_positions[(++loop)->vertex()->index()];
@@ -609,8 +586,6 @@ void treadmill_experiment_state::setup_controls()
 								hit_index = index;
 							}
 						}
-						
-						
 					}
 				);
 				
@@ -620,25 +595,23 @@ void treadmill_experiment_state::setup_controls()
 				{
 					const auto& navmesh_face_normals = navmesh->faces().attributes().at<math::fvec3>("normal");
 					
-					navmesh_agent_face = navmesh->faces()[hit_index];
-					navmesh_agent_position = mouse_ray.extrapolate(nearest_hit);
-					navmesh_agent_normal = navmesh_face_normals[hit_index];
+					// Update agent transform
+					auto& agent_rigid_body = *ctx.entity_registry->get<::rigid_body_component>(worker_eid).body;
+					auto agent_transform = agent_rigid_body.get_transform();
+					agent_transform.translation = mouse_ray.extrapolate(nearest_hit);
+					agent_transform.rotation = math::rotation(math::fvec3{0, 1, 0}, navmesh_face_normals[hit_index]);
+					agent_rigid_body.set_transform(agent_transform);
+					agent_rigid_body.set_previous_transform(agent_transform);
 					
-					
-					const auto& hit_normal = navmesh_face_normals[hit_index];
-					
-					const float standing_height = worker_phenome.legs->standing_height * worker_phenome.body_size->mean_mesosoma_length;
-					const math::fvec3 translation = navmesh_agent_position + hit_normal * standing_height;
-					
-					const math::fquat rotation = math::rotation(math::fvec3{0, 1, 0}, hit_normal);
-					
-					ctx.entity_registry->patch<scene_component>
+					// Update agent navmesh
+					ctx.entity_registry->patch<navmesh_agent_component>
 					(
 						worker_eid,
 						[&](auto& component)
 						{
-							component.object->set_translation(translation);
-							component.object->set_rotation(rotation);
+							component.mesh = navmesh.get();
+							component.face = navmesh->faces()[hit_index];
+							component.surface_normal = navmesh_face_normals[hit_index];
 						}
 					);
 					
@@ -649,323 +622,6 @@ void treadmill_experiment_state::setup_controls()
 					debug::log::info("no hit");
 				}
 			}
-		)
-	);
-	
-	// Disable mouse grip
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_grip_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				mouse_grip = false;
-				ctx.input_manager->set_relative_mouse_mode(mouse_look || mouse_grip || mouse_zoom);
-			}
-		)
-	);
-	
-	
-	// Enable/toggle mouse zoom
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_zoom_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				mouse_zoom = ctx.toggle_mouse_zoom ? !mouse_zoom : true;
-				ctx.input_manager->set_relative_mouse_mode(mouse_look || mouse_grip || mouse_zoom);
-			}
-		)
-	);
-	
-	// Disable mouse zoom
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_zoom_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				mouse_zoom = false;
-				ctx.input_manager->set_relative_mouse_mode(mouse_look || mouse_grip || mouse_zoom);
-			}
-		)
-	);
-	
-	// Mouse look
-	mouse_motion_subscription = ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
-	(
-		std::bind_front(&treadmill_experiment_state::handle_mouse_motion, this)
-	);
-	
-	// Move forward
-	action_subscriptions.emplace_back
-	(
-		ctx.move_forward_action.get_active_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				// translate_third_person_camera({0.0, 0.0, -1.0}, event.input_value / ctx.fixed_update_rate);
-				// update_third_person_camera();
-				
-				if (navmesh_agent_face)
-				{
-					const auto& scene_component = ctx.entity_registry->get<::scene_component>(worker_eid);
-					geom::ray<float, 3> ray;
-					ray.origin = navmesh_agent_position;
-					ray.direction = scene_component.object->get_rotation() * math::fvec3{0, 0, 1};
-					
-					auto traversal = ai::traverse_navmesh(*navmesh, navmesh_agent_face, ray, event.input_value / ctx.fixed_update_rate * 0.75f);
-					navmesh_agent_face = traversal.face;
-					navmesh_agent_position = traversal.cartesian;
-					
-					const float standing_height = worker_phenome.legs->standing_height * worker_phenome.body_size->mean_mesosoma_length;
-					
-					// Interpolate vertex normals
-					const auto& vertex_positions = navmesh->vertices().attributes().at<math::fvec3>("position");
-					const auto& vertex_normals = navmesh->vertices().attributes().at<math::fvec3>("normal");
-					
-					auto loop = traversal.face->loops().begin();
-					const auto& na = vertex_normals[loop->vertex()->index()];
-					const auto& nb = vertex_normals[(++loop)->vertex()->index()];
-					const auto& nc = vertex_normals[(++loop)->vertex()->index()];
-					
-					const auto& uvw = traversal.barycentric;
-					const auto smooth_normal = math::normalize(na * uvw.x() + nb * uvw.y() + nc * uvw.z());
-					
-					navmesh_agent_normal = smooth_normal;
-					
-					
-					ctx.entity_registry->patch<::scene_component>
-					(
-						worker_eid,
-						[&](auto& component)
-						{
-							
-							auto transform = component.object->get_transform();
-							transform.translation = navmesh_agent_position + smooth_normal * standing_height;
-							
-							// Find rotation from local up vector to vertex-interpolated surface normal
-							auto rotation = math::rotation(transform.rotation * math::fvec3{0, 1, 0}, navmesh_agent_normal);
-							
-							// Rotate object
-							transform.rotation = math::normalize(rotation * transform.rotation);
-							
-							component.object->set_transform(transform);
-							
-							third_person_camera_focal_point = math::dvec3(transform.translation);
-							update_third_person_camera();
-						}
-					);
-					ctx.entity_registry->patch<::legged_locomotion_component>
-					(
-						worker_eid,
-						[&](auto& component)
-						{
-							component.moving = true;
-						}
-					);
-				}
-			}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.move_forward_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				ctx.entity_registry->patch<::legged_locomotion_component>
-				(
-					worker_eid,
-					[&](auto& component)
-					{
-						component.moving = false;
-					}
-				);
-			}
-		)
-	);
-	
-	// Move back
-	action_subscriptions.emplace_back
-	(
-		ctx.move_back_action.get_active_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				// translate_third_person_camera({0.0, 0.0, 1.0}, event.input_value / ctx.fixed_update_rate);
-				// update_third_person_camera();
-			}
-		)
-	);
-	
-	// Move left
-	action_subscriptions.emplace_back
-	(
-		ctx.move_left_action.get_active_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				// translate_third_person_camera({-1.0, 0.0, 0.0}, event.input_value / ctx.fixed_update_rate);
-				// update_third_person_camera();
-				
-				ctx.entity_registry->patch<::scene_component>
-				(
-					worker_eid,
-					[&](auto& component)
-					{
-						auto rotation = math::angle_axis(math::radians(30.0f) * event.input_value / ctx.fixed_update_rate, navmesh_agent_normal);
-						component.object->set_rotation(math::normalize(rotation * component.object->get_rotation()));
-					}
-				);
-				
-				update_third_person_camera();
-			}
-		)
-	);
-	
-	// Move right
-	action_subscriptions.emplace_back
-	(
-		ctx.move_right_action.get_active_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				// translate_third_person_camera({1.0, 0.0, 0.0}, event.input_value / ctx.fixed_update_rate);
-				// update_third_person_camera();
-				
-				ctx.entity_registry->patch<::scene_component>
-				(
-					worker_eid,
-					[&](auto& component)
-					{
-						auto rotation = math::angle_axis(math::radians(-30.0f) * event.input_value / ctx.fixed_update_rate, navmesh_agent_normal);
-						component.object->set_rotation(math::normalize(rotation * component.object->get_rotation()));
-					}
-				);
-				update_third_person_camera();
-			}
-		)
-	);
-	
-	// Zoom in
-	action_subscriptions.emplace_back
-	(
-		ctx.move_up_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				zoom_third_person_camera(1.0 / static_cast<double>(third_person_camera_zoom_step_count));
-				update_third_person_camera();
-			}
-		)
-	);
-	
-	// Zoom out
-	action_subscriptions.emplace_back
-	(
-		ctx.move_down_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				zoom_third_person_camera(-1.0 / static_cast<double>(third_person_camera_zoom_step_count));
-				update_third_person_camera();
-			}
-		)
-	);
-	
-	// Focus
-	action_subscriptions.emplace_back
-	(
-		ctx.focus_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				
-			}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.focus_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				
-			}
-		)
-	);
-	
-	// Camera presets
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_1_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(0);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_2_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(1);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_3_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(2);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_4_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(3);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_5_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(4);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_6_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(5);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_7_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(6);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_8_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(7);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_9_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(8);}
-		)
-	);
-	action_subscriptions.emplace_back
-	(
-		ctx.camera_10_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event) {load_or_save_camera_preset(9);}
 		)
 	);
 }

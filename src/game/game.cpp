@@ -37,6 +37,7 @@
 #include "game/systems/constraint-system.hpp"
 #include "game/systems/locomotion-system.hpp"
 #include "game/systems/ik-system.hpp"
+#include "game/systems/animation-system.hpp"
 #include "game/systems/orbit-system.hpp"
 #include "game/systems/render-system.hpp"
 #include "game/systems/spatial-system.hpp"
@@ -45,6 +46,8 @@
 #include "game/systems/physics-system.hpp"
 #include "game/systems/subterrain-system.hpp"
 #include "game/systems/terrain-system.hpp"
+#include "game/systems/reproductive-system.hpp"
+#include "game/systems/metamorphosis-system.hpp"
 #include <algorithm>
 #include <cctype>
 #include <engine/animation/animation.hpp>
@@ -1060,6 +1063,15 @@ void game::setup_systems()
 	// Setup IK system
 	ik_system = std::make_unique<::ik_system>(*entity_registry);
 	
+	// Setup reproductive system
+	reproductive_system = std::make_unique<::reproductive_system>(*entity_registry);
+	
+	// Setup metamorphosis system
+	metamorphosis_system = std::make_unique<::metamorphosis_system>(*entity_registry);
+	
+	// Setup animation system
+	animation_system = std::make_unique<::animation_system>(*entity_registry);
+	
 	// Setup physics system
 	physics_system = std::make_unique<::physics_system>(*entity_registry);
 	physics_system->set_gravity({0.0f, -9.80665f * 100.0f, 0.0f});
@@ -1080,13 +1092,8 @@ void game::setup_systems()
 	blackbody_system = std::make_unique<::blackbody_system>(*entity_registry);
 	blackbody_system->set_illuminant(color::illuminant::deg2::d55<double>);
 	
-	// RGB wavelengths for atmospheric scatteering
-	rgb_wavelengths = {680, 550, 440};
-	// rgb_wavelengths = {602.21436, 541.0647, 448.14404};
-	
 	// Setup atmosphere system
 	atmosphere_system = std::make_unique<::atmosphere_system>(*entity_registry);
-	atmosphere_system->set_rgb_wavelengths(rgb_wavelengths * 1e-9);
 	atmosphere_system->set_sky_pass(sky_pass.get());
 	
 	// Setup astronomy system
@@ -1126,8 +1133,9 @@ void game::setup_controls()
 	window_action_map.set_event_dispatcher(input_event_dispatcher);
 	menu_action_map.set_event_dispatcher(input_event_dispatcher);
 	movement_action_map.set_event_dispatcher(input_event_dispatcher);
-	keeper_action_map.set_event_dispatcher(input_event_dispatcher);
+	camera_action_map.set_event_dispatcher(input_event_dispatcher);
 	ant_action_map.set_event_dispatcher(input_event_dispatcher);
+	debug_action_map.set_event_dispatcher(input_event_dispatcher);
 	
 	// Default control profile settings
 	control_profile_filename = "controls.cfg";
@@ -1161,10 +1169,18 @@ void game::setup_controls()
 	// Setup action callbacks
 	setup_window_controls(*this);
 	setup_menu_controls(*this);
+	setup_camera_controls(*this);
 	setup_game_controls(*this);
+	setup_ant_controls(*this);
 	
 	// Enable window controls
 	enable_window_controls(*this);
+	
+	#if defined(DEBUG)
+		// Setup and enable debug controls
+		setup_debug_controls(*this);
+		enable_debug_controls(*this);
+	#endif
 	
 	debug::log::trace("Set up controls");
 }
@@ -1181,7 +1197,10 @@ void game::setup_debugging()
 	frame_time_text->set_font(&debug_font);
 	frame_time_text->set_translation({std::round(0.0f), std::round(viewport_size.y() - debug_font.get_font_metrics().size), 99.0f});
 	
-	ui_scene->add_object(*frame_time_text);
+	#if defined(DEBUG)
+		ui_scene->add_object(*frame_time_text);
+		debug_ui_visible = true;
+	#endif
 }
 
 void game::setup_timing()
@@ -1249,6 +1268,10 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	//timeline->advance(dt);
 	
 	// Update entity systems
+	animation_system->update(t, dt);
+	
+	physics_system->update(t, dt);
+	
 	//terrain_system->update(t, dt);
 	//subterrain_system->update(t, dt);
 	collision_system->update(t, dt);
@@ -1256,8 +1279,9 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	steering_system->update(t, dt);
 	locomotion_system->update(t, dt);
 	ik_system->update(t, dt);
-	physics_system->update(t, dt);
-	camera_system->update(t, dt);
+	reproductive_system->update(t, dt);
+	metamorphosis_system->update(t, dt);
+	// physics_system->update(t, dt);
 	orbit_system->update(t, dt);
 	blackbody_system->update(t, dt);
 	atmosphere_system->update(t, dt);
@@ -1266,6 +1290,7 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	spatial_system->update(t, dt);
 	constraint_system->update(t, dt);
 	animator->animate(dt);
+	camera_system->update(t, dt);
 	render_system->update(t, dt);
 }
 
@@ -1287,7 +1312,11 @@ void game::variable_update(::frame_scheduler::duration_type fixed_update_time, :
 	// Interpolate physics
 	physics_system->interpolate(alpha);
 	
+	// Interpolate animation
+	animation_system->interpolate(alpha);
+	
 	// Render
+	camera_system->interpolate(alpha);
 	render_system->draw(alpha);
 	window->swap_buffers();
 }

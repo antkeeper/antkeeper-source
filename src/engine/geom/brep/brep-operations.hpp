@@ -38,6 +38,7 @@ void generate_face_normals(brep_mesh& mesh);
  *
  * @param mesh Mesh for which to generate normals.
  *
+ * @note The math::fvec3 face attribute "normal" will also be generated if not found.
  * @warning Requires the math::fvec3 vertex attribute "position".
  */
 void generate_vertex_normals(brep_mesh& mesh);

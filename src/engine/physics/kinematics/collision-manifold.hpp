@@ -30,22 +30,22 @@ namespace physics {
 /**
  * Collection of contact points between two colliding bodies.
  *
- * @param N Maximum number of contact points.
+ * @tparam N Maximum number of contact points.
  */
 template <std::uint8_t N>
 struct collision_manifold
 {
 	/// First colliding body.
-	rigid_body* body_a{nullptr};
+	rigid_body* body_a{};
 	
 	/// Second colliding body.
-	rigid_body* body_b{nullptr};
+	rigid_body* body_b{};
 	
 	/// Set of contact points between body a and body b.
 	std::array<collision_contact, N> contacts;
 	
 	/// Number of contact points between body a and body b.
-	std::uint8_t contact_count{0};
+	std::uint8_t contact_count{};
 };
 
 } // namespace physics

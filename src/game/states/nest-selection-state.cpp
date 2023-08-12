@@ -320,7 +320,6 @@ nest_selection_state::nest_selection_state(::game& ctx):
 		[&ctx]()
 		{
 			::enable_game_controls(ctx);
-			::enable_keeper_controls(ctx);
 		}
 	);
 	
@@ -340,7 +339,6 @@ nest_selection_state::~nest_selection_state()
 	
 	// Disable game controls
 	::disable_game_controls(ctx);
-	::disable_keeper_controls(ctx);
 	
 	destroy_first_person_camera_rig();
 	
@@ -473,140 +471,6 @@ void nest_selection_state::satisfy_first_person_camera_rig_constraints()
 
 void nest_selection_state::setup_controls()
 {
-	// Enable/toggle mouse look
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_look_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				if (ctx.toggle_mouse_look)
-				{
-					mouse_look = !mouse_look;
-				}
-				else
-				{
-					mouse_look = true;
-				}
-				
-				//ctx.input_manager->set_cursor_visible(!mouse_look);
-				ctx.input_manager->set_relative_mouse_mode(mouse_look);
-			}
-		)
-	);
-	
-	// Disable mouse look
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_look_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				if (!ctx.toggle_mouse_look && mouse_look)
-				{
-					mouse_look = false;
-					//ctx.input_manager->set_cursor_visible(true);
-					ctx.input_manager->set_relative_mouse_mode(false);
-				}
-			}
-		)
-	);
-	
-	// Enable/toggle mouse look
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_pick_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				mouse_drag = true;
-			}
-		)
-	);
-	
-	// Disable mouse look
-	action_subscriptions.emplace_back
-	(
-		ctx.mouse_pick_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				mouse_drag = false;
-			}
-		)
-	);
-	
-	// Enable/toggle adjust exposure
-	action_subscriptions.emplace_back
-	(
-		ctx.adjust_exposure_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				adjust_exposure = true;
-			}
-		)
-	);
-	
-	// Disable adjust exposure
-	action_subscriptions.emplace_back
-	(
-		ctx.adjust_exposure_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				adjust_exposure = false;
-			}
-		)
-	);
-	
-	// Enable/toggle adjust time
-	action_subscriptions.emplace_back
-	(
-		ctx.adjust_time_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				adjust_time = true;
-			}
-		)
-	);
-	
-	// Disable adjust time
-	action_subscriptions.emplace_back
-	(
-		ctx.adjust_time_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				adjust_time = false;
-			}
-		)
-	);
-	
-	// Enable/toggle adjust zoom
-	action_subscriptions.emplace_back
-	(
-		ctx.adjust_zoom_action.get_activated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				adjust_zoom = true;
-			}
-		)
-	);
-	
-	// Disable adjust zoom
-	action_subscriptions.emplace_back
-	(
-		ctx.adjust_zoom_action.get_deactivated_channel().subscribe
-		(
-			[&](const auto& event)
-			{
-				adjust_zoom = false;
-			}
-		)
-	);
 	
 	constexpr float movement_speed = 200.0f;
 	
@@ -681,18 +545,6 @@ void nest_selection_state::setup_controls()
 			{
 				const float sensitivity = 8.0f / static_cast<float>(ctx.window->get_viewport_size().y());
 				ctx.surface_camera->set_exposure_value(ctx.surface_camera->get_exposure_value() + static_cast<float>(event.difference.y()) * sensitivity);
-			}
-			
-			if (adjust_zoom)
-			{
-				const float sensitivity = math::radians(45.0f) / static_cast<float>(ctx.window->get_viewport_size().y());
-				const float min_hfov = math::radians(1.0f);
-				const float max_hfov = math::radians(90.0f);
-				
-				const float aspect_ratio = ctx.surface_camera->get_aspect_ratio();
-				const float hfov = std::min<float>(std::max<float>(math::horizontal_fov(ctx.surface_camera->get_vertical_fov(), aspect_ratio) + static_cast<float>(event.difference.y()) * sensitivity, min_hfov), max_hfov);
-				const float vfov = math::vertical_fov(hfov, aspect_ratio);
-				ctx.surface_camera->set_vertical_fov(vfov);
 			}
 			
 			if (!mouse_look)
@@ -870,6 +722,7 @@ void nest_selection_state::setup_controls()
 		)
 	);
 	
+	/*
 	// Focus
 	action_subscriptions.emplace_back
 	(
@@ -964,6 +817,7 @@ void nest_selection_state::setup_controls()
 			}
 		)
 	);
+	*/
 }
 
 void nest_selection_state::enable_controls()

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
+
 option(APPLICATION_NAME "Application name" "Antkeeper")
 option(APPLICATION_VERSION "Application version string" "0.0.0")
 option(APPLICATION_AUTHOR "Application author" "C. J. Howard")

@@ -32,13 +32,22 @@
 struct ant_legs_phene
 {
 	/// Distance from the mesosoma to the ground when standing, in mesosomal lengths.
-	float standing_height{0.0f};
+	float standing_height{};
+	
+	/// Creeping speed, in mesosomal lengths per second.
+	float creeping_speed{};
+	
+	/// Walking speed, in mesosomal lengths per second.
+	float walking_speed{};
 	
 	/// Running speed, in mesosomal lengths per second.
-	float speed{0.0f};
+	float running_speed{};
+	
+	/// Distance covered in a single gait cycle, in mesosomal lengths.
+	float stride_length{};
 	
 	/// Grip factor.
-	float grip{0.0f};
+	float grip{};
 	
 	/**
 	 * 3D model of the legs.

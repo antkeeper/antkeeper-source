@@ -40,7 +40,7 @@ public:
 	 * @param body_a Body to which the spring should be attached.
 	 * @param point_a Point on body a, in body-space, at which the spring should be attached.
 	 */
-	inline void attach_a(rigid_body& body_a, const math::fvec3& point_a) noexcept
+	inline constexpr void attach_a(rigid_body& body_a, const math::fvec3& point_a) noexcept
 	{
 		m_body_a = &body_a;
 		m_point_a = point_a;
@@ -52,7 +52,7 @@ public:
 	 * @param body_b Body to which the spring should be attached.
 	 * @param point_b Point on body b, in body-space, at which the spring should be attached.
 	 */
-	inline void attach_b(rigid_body& body_b, const math::fvec3& point_b) noexcept
+	inline constexpr void attach_b(rigid_body& body_b, const math::fvec3& point_b) noexcept
 	{
 		m_body_b = &body_b;
 		m_point_b = point_b;
@@ -61,7 +61,7 @@ public:
 	/**
 	 * Detaches the spring from body a.
 	 */
-	inline void detach_a() noexcept
+	inline constexpr void detach_a() noexcept
 	{
 		m_body_a = nullptr;
 	}
@@ -69,7 +69,7 @@ public:
 	/**
 	 * Detaches the spring from body b.
 	 */
-	inline void detach_b() noexcept
+	inline constexpr void detach_b() noexcept
 	{
 		m_body_b = nullptr;
 	}
@@ -77,7 +77,7 @@ public:
 	/**
 	 * Detaches the spring from bodies a and b.
 	 */
-	inline void detach() noexcept
+	inline constexpr void detach() noexcept
 	{
 		detach_a();
 		detach_b();
@@ -88,7 +88,7 @@ public:
 	 *
 	 * @param length Resting length, in meters.
 	 */
-	inline void set_resting_length(float length) noexcept
+	inline constexpr void set_resting_length(float length) noexcept
 	{
 		m_resting_length = length;
 	}
@@ -98,7 +98,7 @@ public:
 	 *
 	 * @param stiffness Stiffness constant.
 	 */
-	inline void set_stiffness(float stiffness) noexcept
+	inline constexpr void set_stiffness(float stiffness) noexcept
 	{
 		m_stiffness = stiffness;
 	}
@@ -108,68 +108,68 @@ public:
 	 *
 	 * @param damping Damping constant.
 	 */
-	inline void set_damping(float damping) noexcept
+	inline constexpr void set_damping(float damping) noexcept
 	{
 		m_damping = damping;
 	}
 	
 	/// Returns the body to which the spring is attached at point a.
-	[[nodiscard]] inline rigid_body* get_body_a() const noexcept
+	[[nodiscard]] inline constexpr rigid_body* get_body_a() const noexcept
 	{
 		return m_body_a;
 	}
 	
 	/// Returns the body to which the spring is attached at point b.
-	[[nodiscard]] inline rigid_body* get_body_b() const noexcept
+	[[nodiscard]] inline constexpr rigid_body* get_body_b() const noexcept
 	{
 		return m_body_b;
 	}
 	
 	/// Returns the point at which the spring is attached to body a, in body-space.
-	[[nodiscard]] inline const math::fvec3& get_point_a() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_point_a() const noexcept
 	{
 		return m_point_a;
 	}
 	
 	/// Returns the point at which the spring is attached to body b, in body-space.
-	[[nodiscard]] inline const math::fvec3& get_point_b() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_point_b() const noexcept
 	{
 		return m_point_b;
 	}
 	
 	/// Returns the resting length of the spring, in meters.
-	[[nodiscard]] inline float get_resting_length() const noexcept
+	[[nodiscard]] inline constexpr float get_resting_length() const noexcept
 	{
 		return m_resting_length;
 	}
 	
 	/// Returns the stiffness constant of the spring.
-	[[nodiscard]] inline float get_stiffness() const noexcept
+	[[nodiscard]] inline constexpr float get_stiffness() const noexcept
 	{
 		return m_stiffness;
 	}
 	
 	/// Returns the damping constant of the spring.
-	[[nodiscard]] inline float get_damping() const noexcept
+	[[nodiscard]] inline constexpr float get_damping() const noexcept
 	{
 		return m_damping;
 	}
 	
 private:
 	/// Rigid body to which the spring is attached at point a.
-	rigid_body* m_body_a{nullptr};
+	rigid_body* m_body_a{};
 	
 	/// Rigid body to which the spring is attached at point b.
-	rigid_body* m_body_b{nullptr};
+	rigid_body* m_body_b{};
 	
 	/// Point at which the spring is attached to body a, in body-space.
-	math::fvec3 m_point_a{0.0f, 0.0f, 0.0f};
+	math::fvec3 m_point_a{};
 	
 	/// Point at which the spring is attached to body b, in body-space.
-	math::fvec3 m_point_b{0.0f, 0.0f, 0.0f};
+	math::fvec3 m_point_b{};
 	
 	/// Resting length of the spring, in meters.
-	float m_resting_length{0.0f};
+	float m_resting_length{};
 	
 	/// Stiffness constant of the spring.
 	float m_stiffness{1.0f};

@@ -35,11 +35,13 @@ public:
 	 *
 	 * @param scale Factor by which to scale the timestep.
 	 */
-	void set_time_scale(float scale);
+	inline constexpr void set_time_scale(float scale) noexcept
+	{
+		m_time_scale = scale;
+	}
 	
 private:
-	float time_scale;
+	float m_time_scale{1.0f};
 };
-
 
 #endif // ANTKEEPER_GAME_METAMORPHOSIS_SYSTEM_HPP

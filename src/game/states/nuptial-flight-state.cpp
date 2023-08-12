@@ -176,7 +176,6 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	(
 		[&ctx]()
 		{
-			::enable_keeper_controls(ctx);
 			::enable_game_controls(ctx);
 		}
 	);
@@ -196,7 +195,6 @@ nuptial_flight_state::~nuptial_flight_state()
 	debug::log::trace("Exiting nuptial flight state...");
 	
 	// Disable game controls
-	::disable_keeper_controls(ctx);
 	::disable_game_controls(ctx);
 	
 	// Remove text from UI
@@ -439,6 +437,7 @@ void nuptial_flight_state::satisfy_camera_rig_constraints()
 
 void nuptial_flight_state::setup_controls()
 {
+	/*
 	// Enable/toggle mouse look
 	action_subscriptions.emplace_back
 	(
@@ -557,6 +556,7 @@ void nuptial_flight_state::setup_controls()
 			}
 		)
 	);
+	*/
 }
 
 void nuptial_flight_state::enable_controls()
@@ -1031,7 +1031,7 @@ void nuptial_flight_state::select_entity(entity::id entity_id)
 				const auto& name = ctx.entity_registry->get<::name_component>(selected_eid).name;
 				
 				std::string format_string;
-				switch (caste.caste_type)
+				switch (caste.type)
 				{
 					case ::ant_caste_type::queen:
 						format_string = ::get_string(ctx, "named_queen_label_format");
@@ -1058,7 +1058,7 @@ void nuptial_flight_state::select_entity(entity::id entity_id)
 			}
 			else
 			{
-				switch (caste.caste_type)
+				switch (caste.type)
 				{
 					case ::ant_caste_type::queen:
 						selection_text.set_content(get_string(ctx, "queen_caste_name"));

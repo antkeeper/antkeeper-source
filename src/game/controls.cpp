@@ -121,53 +121,65 @@ void reset_control_profile(::control_profile& profile)
 	mappings.emplace("move_down", std::make_unique<input::mouse_scroll_mapping>(nullptr, input::mouse_scroll_axis::y, true));
 	mappings.emplace("move_down", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_trigger, false));
 	
+	// Move fast
+	mappings.emplace("move_fast", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
+	
+	// Move slow
+	mappings.emplace("move_slow", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, 0, false));
+	
+	// Camera mouse pick
+	mappings.emplace("camera_mouse_pick", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::left));
+	
+	// Camera mouse look
+	mappings.emplace("camera_mouse_look", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::right));
+	
+	// Camera mouse drag
+	mappings.emplace("camera_mouse_drag", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::middle));
+	
+	// Camera zoom
+	mappings.emplace("camera_mouse_zoom", std::make_unique<input::key_mapping>(nullptr, input::scancode::z, 0, false));
+	mappings.emplace("camera_zoom_in", std::make_unique<input::mouse_scroll_mapping>(nullptr, input::mouse_scroll_axis::y, false));
+	mappings.emplace("camera_zoom_out", std::make_unique<input::mouse_scroll_mapping>(nullptr, input::mouse_scroll_axis::y, true));
+	
+	// Camera orbit
+	mappings.emplace("camera_orbit_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::left, 0, false));
+	mappings.emplace("camera_orbit_left", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_x, true));
+	mappings.emplace("camera_orbit_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::right, 0, false));
+	mappings.emplace("camera_orbit_right", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_x, false));
+	mappings.emplace("camera_orbit_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, 0, false));
+	mappings.emplace("camera_orbit_up", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_y, false));
+	mappings.emplace("camera_orbit_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, 0, false));
+	mappings.emplace("camera_orbit_down", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_y, true));
+	
+	// Camera presets 
+	mappings.emplace("camera_preset_1", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_1, 0, false));
+	mappings.emplace("camera_preset_2", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_2, 0, false));
+	mappings.emplace("camera_preset_3", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_3, 0, false));
+	mappings.emplace("camera_preset_4", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_4, 0, false));
+	mappings.emplace("camera_preset_5", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_5, 0, false));
+	mappings.emplace("camera_preset_6", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_6, 0, false));
+	mappings.emplace("camera_preset_7", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_7, 0, false));
+	mappings.emplace("camera_preset_8", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_8, 0, false));
+	mappings.emplace("camera_preset_9", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_9, 0, false));
+	mappings.emplace("camera_preset_10", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_0, 0, false));
+	mappings.emplace("camera_save_preset", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, 0, false));
+	mappings.emplace("camera_save_preset", std::make_unique<input::key_mapping>(nullptr, input::scancode::right_ctrl, 0, false));
+	
+	// Oviposit
+	mappings.emplace("oviposit", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_alt, 0, false));
+	
 	// Pause
 	mappings.emplace("pause", std::make_unique<input::key_mapping>(nullptr, input::scancode::escape, 0, false));
 	mappings.emplace("pause", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::start));
 	
-	// Mouse pick
-	mappings.emplace("mouse_pick", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::left));
-	mappings.emplace("mouse_pick", std::make_unique<input::key_mapping>(nullptr, input::scancode::space, 0, false));
-	
-	// Mouse look
-	mappings.emplace("mouse_look", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::right));
-	mappings.emplace("mouse_look", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_alt, 0, false));
-	
-	// Mouse grip
-	mappings.emplace("mouse_grip", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::left));
-	mappings.emplace("mouse_grip", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
-	
-	// Mouse zoom
-	mappings.emplace("mouse_zoom", std::make_unique<input::mouse_button_mapping>(nullptr, input::mouse_button::middle));
-	mappings.emplace("mouse_zoom", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, 0, false));
-	
-	// Focus
-	mappings.emplace("focus", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
-	
-	// Load camera
-	mappings.emplace("camera_1", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_1, 0, false));
-	mappings.emplace("camera_2", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_2, 0, false));
-	mappings.emplace("camera_3", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_3, 0, false));
-	mappings.emplace("camera_4", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_4, 0, false));
-	mappings.emplace("camera_5", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_5, 0, false));
-	mappings.emplace("camera_6", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_6, 0, false));
-	mappings.emplace("camera_7", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_7, 0, false));
-	mappings.emplace("camera_8", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_8, 0, false));
-	mappings.emplace("camera_9", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_9, 0, false));
-	mappings.emplace("camera_10", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_0, 0, false));
-	
-	// Save camera
-	mappings.emplace("save_camera", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, 0, false));
-	mappings.emplace("save_camera", std::make_unique<input::key_mapping>(nullptr, input::scancode::right_ctrl, 0, false));
+	// Toggle debug UI
+	mappings.emplace("toggle_debug", std::make_unique<input::key_mapping>(nullptr, input::scancode::grave, 0, false));
 	
 	// Adjust exposure
 	mappings.emplace("adjust_exposure", std::make_unique<input::key_mapping>(nullptr, input::scancode::b, 0, false));
 	
 	// Adjust time
 	mappings.emplace("adjust_time", std::make_unique<input::key_mapping>(nullptr, input::scancode::t, 0, false));
-	
-	// Adjust time
-	mappings.emplace("adjust_zoom", std::make_unique<input::key_mapping>(nullptr, input::scancode::z, 0, false));
 }
 
 void apply_control_profile(::game& ctx, const ::control_profile& profile)
@@ -204,29 +216,48 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.movement_action_map, ctx.move_right_action, "move_right");
 	add_mappings(ctx.movement_action_map, ctx.move_up_action, "move_up");
 	add_mappings(ctx.movement_action_map, ctx.move_down_action, "move_down");
+	add_mappings(ctx.movement_action_map, ctx.move_fast_action, "move_fast");
+	add_mappings(ctx.movement_action_map, ctx.move_slow_action, "move_slow");
 	add_mappings(ctx.movement_action_map, ctx.pause_action, "pause");
 	
-	// Keeper controls
-	ctx.keeper_action_map.remove_mappings();
-	add_mappings(ctx.keeper_action_map, ctx.mouse_pick_action, "mouse_pick");
-	add_mappings(ctx.keeper_action_map, ctx.mouse_look_action, "mouse_look");
-	add_mappings(ctx.keeper_action_map, ctx.mouse_grip_action, "mouse_grip");
-	add_mappings(ctx.keeper_action_map, ctx.mouse_zoom_action, "mouse_zoom");
-	add_mappings(ctx.keeper_action_map, ctx.focus_action, "focus");
-	add_mappings(ctx.keeper_action_map, ctx.camera_1_action, "camera_1");
-	add_mappings(ctx.keeper_action_map, ctx.camera_2_action, "camera_2");
-	add_mappings(ctx.keeper_action_map, ctx.camera_3_action, "camera_3");
-	add_mappings(ctx.keeper_action_map, ctx.camera_4_action, "camera_4");
-	add_mappings(ctx.keeper_action_map, ctx.camera_5_action, "camera_5");
-	add_mappings(ctx.keeper_action_map, ctx.camera_6_action, "camera_6");
-	add_mappings(ctx.keeper_action_map, ctx.camera_7_action, "camera_7");
-	add_mappings(ctx.keeper_action_map, ctx.camera_8_action, "camera_8");
-	add_mappings(ctx.keeper_action_map, ctx.camera_9_action, "camera_9");
-	add_mappings(ctx.keeper_action_map, ctx.camera_10_action, "camera_10");
-	add_mappings(ctx.keeper_action_map, ctx.save_camera_action, "save_camera");
-	add_mappings(ctx.keeper_action_map, ctx.adjust_exposure_action, "adjust_exposure");
-	add_mappings(ctx.keeper_action_map, ctx.adjust_time_action, "adjust_time");
-	add_mappings(ctx.keeper_action_map, ctx.adjust_zoom_action, "adjust_zoom");
+	// Camera controls
+	ctx.camera_action_map.remove_mappings();
+	add_mappings(ctx.camera_action_map, ctx.camera_mouse_pick_action, "camera_mouse_pick");
+	add_mappings(ctx.camera_action_map, ctx.camera_mouse_look_action, "camera_mouse_look");
+	add_mappings(ctx.camera_action_map, ctx.camera_mouse_drag_action, "camera_mouse_drag");
+	add_mappings(ctx.camera_action_map, ctx.camera_mouse_zoom_action, "camera_mouse_zoom");
+	add_mappings(ctx.camera_action_map, ctx.camera_zoom_in_action, "camera_zoom_in");
+	add_mappings(ctx.camera_action_map, ctx.camera_zoom_out_action, "camera_zoom_out");
+	add_mappings(ctx.camera_action_map, ctx.camera_orbit_left_action, "camera_orbit_left");
+	add_mappings(ctx.camera_action_map, ctx.camera_orbit_right_action, "camera_orbit_right");
+	add_mappings(ctx.camera_action_map, ctx.camera_orbit_up_action, "camera_orbit_up");
+	add_mappings(ctx.camera_action_map, ctx.camera_orbit_down_action, "camera_orbit_down");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_1_action, "camera_preset_1");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_2_action, "camera_preset_2");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_3_action, "camera_preset_3");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_4_action, "camera_preset_4");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_5_action, "camera_preset_5");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_6_action, "camera_preset_6");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_7_action, "camera_preset_7");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_8_action, "camera_preset_8");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_9_action, "camera_preset_9");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_10_action, "camera_preset_10");
+	add_mappings(ctx.camera_action_map, ctx.camera_save_preset_action, "camera_save_preset");
+	
+	// Ant controls
+	ctx.ant_action_map.remove_mappings();
+	add_mappings(ctx.ant_action_map, ctx.ant_move_forward_action, "move_forward");
+	add_mappings(ctx.ant_action_map, ctx.ant_move_back_action, "move_back");
+	add_mappings(ctx.ant_action_map, ctx.ant_move_left_action, "move_left");
+	add_mappings(ctx.ant_action_map, ctx.ant_move_right_action, "move_right");
+	add_mappings(ctx.ant_action_map, ctx.ant_move_fast_action, "move_fast");
+	add_mappings(ctx.ant_action_map, ctx.ant_move_slow_action, "move_slow");
+	add_mappings(ctx.ant_action_map, ctx.ant_oviposit_action, "oviposit");
+	
+	// Debug controls
+	add_mappings(ctx.debug_action_map, ctx.toggle_debug_ui_action, "toggle_debug");
+	add_mappings(ctx.debug_action_map, ctx.adjust_exposure_action, "adjust_exposure");
+	add_mappings(ctx.debug_action_map, ctx.adjust_time_action, "adjust_time");
 }
 
 void update_control_profile(::game& ctx, ::control_profile& profile)
@@ -288,145 +319,46 @@ void update_control_profile(::game& ctx, ::control_profile& profile)
 	add_mappings(ctx.movement_action_map, ctx.move_right_action, "move_right");
 	add_mappings(ctx.movement_action_map, ctx.move_up_action, "move_up");
 	add_mappings(ctx.movement_action_map, ctx.move_down_action, "move_down");
+	add_mappings(ctx.movement_action_map, ctx.move_fast_action, "move_fast");
+	add_mappings(ctx.movement_action_map, ctx.move_slow_action, "move_slow");
 	add_mappings(ctx.movement_action_map, ctx.pause_action, "pause");
 	
-	// Keeper controls
-	add_mappings(ctx.keeper_action_map, ctx.mouse_pick_action, "mouse_pick");
-	add_mappings(ctx.keeper_action_map, ctx.mouse_look_action, "mouse_look");
-	add_mappings(ctx.keeper_action_map, ctx.mouse_grip_action, "mouse_grip");
-	add_mappings(ctx.keeper_action_map, ctx.mouse_zoom_action, "mouse_zoom");
-	add_mappings(ctx.keeper_action_map, ctx.focus_action, "focus");
-	add_mappings(ctx.keeper_action_map, ctx.camera_1_action, "camera_1");
-	add_mappings(ctx.keeper_action_map, ctx.camera_2_action, "camera_2");
-	add_mappings(ctx.keeper_action_map, ctx.camera_3_action, "camera_3");
-	add_mappings(ctx.keeper_action_map, ctx.camera_4_action, "camera_4");
-	add_mappings(ctx.keeper_action_map, ctx.camera_5_action, "camera_5");
-	add_mappings(ctx.keeper_action_map, ctx.camera_6_action, "camera_6");
-	add_mappings(ctx.keeper_action_map, ctx.camera_7_action, "camera_7");
-	add_mappings(ctx.keeper_action_map, ctx.camera_8_action, "camera_8");
-	add_mappings(ctx.keeper_action_map, ctx.camera_9_action, "camera_9");
-	add_mappings(ctx.keeper_action_map, ctx.camera_10_action, "camera_10");
-	add_mappings(ctx.keeper_action_map, ctx.save_camera_action, "save_camera");
-	add_mappings(ctx.keeper_action_map, ctx.adjust_exposure_action, "adjust_exposure");
-	add_mappings(ctx.keeper_action_map, ctx.adjust_time_action, "adjust_time");
-	add_mappings(ctx.keeper_action_map, ctx.adjust_zoom_action, "adjust_zoom");
-}
-
-void setup_window_controls(::game& ctx)
-{
-	// Setup fullscreen control
-	ctx.window_action_subscriptions.emplace_back
-	(
-		ctx.fullscreen_action.get_activated_channel().subscribe
-		(
-			[&ctx](const auto& event)
-			{
-				ctx.window->set_fullscreen(!ctx.window->is_fullscreen());
-			}
-		)
-	);
+	// Ant controls
+	add_mappings(ctx.ant_action_map, ctx.ant_move_forward_action, "move_forward");
+	add_mappings(ctx.ant_action_map, ctx.ant_move_back_action, "move_back");
+	add_mappings(ctx.ant_action_map, ctx.ant_move_left_action, "move_left");
+	add_mappings(ctx.ant_action_map, ctx.ant_move_right_action, "move_right");
+	add_mappings(ctx.ant_action_map, ctx.ant_move_fast_action, "move_fast");
+	add_mappings(ctx.ant_action_map, ctx.ant_move_slow_action, "move_slow");
+	add_mappings(ctx.ant_action_map, ctx.ant_oviposit_action, "oviposit");
 	
-	// Setup screenshot control
-	ctx.window_action_subscriptions.emplace_back
-	(
-		ctx.screenshot_action.get_activated_channel().subscribe
-		(
-			[&ctx](const auto& event)
-			{
-				::graphics::save_screenshot(ctx);
-			}
-		)
-	);
-}
-
-void setup_menu_controls(::game& ctx)
-{
-	// Setup menu controls
-	ctx.menu_action_subscriptions.emplace_back
-	(
-		ctx.menu_up_action.get_activated_channel().subscribe
-		(
-			[&ctx](const auto& event)
-			{
-				--(*ctx.menu_item_index);
-				if (*ctx.menu_item_index < 0)
-					*ctx.menu_item_index = static_cast<int>(ctx.menu_item_texts.size()) - 1;
-				
-				::menu::update_text_color(ctx);
-			}
-		)
-	);
-	ctx.menu_action_subscriptions.emplace_back
-	(
-		ctx.menu_down_action.get_activated_channel().subscribe
-		(
-			[&ctx](const auto& event)
-			{
-				++(*ctx.menu_item_index);
-				if (*ctx.menu_item_index >= ctx.menu_item_texts.size())
-					*ctx.menu_item_index = 0;
-				
-				::menu::update_text_color(ctx);
-			}
-		)
-	);
-	ctx.menu_action_subscriptions.emplace_back
-	(
-		ctx.menu_left_action.get_activated_channel().subscribe
-		(
-			[&ctx](const auto& event)
-			{
-				auto callback = ctx.menu_left_callbacks[*ctx.menu_item_index];
-				if (callback != nullptr)
-					callback();
-			}
-		)
-	);
-	ctx.menu_action_subscriptions.emplace_back
-	(
-		ctx.menu_right_action.get_activated_channel().subscribe
-		(
-			[&ctx](const auto& event)
-			{
-				auto callback = ctx.menu_right_callbacks[*ctx.menu_item_index];
-				if (callback != nullptr)
-					callback();
-			}
-		)
-	);
-	ctx.menu_action_subscriptions.emplace_back
-	(
-		ctx.menu_select_action.get_activated_channel().subscribe
-		(
-			[&ctx](const auto& event)
-			{
-				const auto& callback = ctx.menu_select_callbacks[*ctx.menu_item_index];
-				if (callback != nullptr)
-					callback();
-			}
-		)
-	);
-	ctx.menu_action_subscriptions.emplace_back
-	(
-		ctx.menu_back_action.get_activated_channel().subscribe
-		(
-			[&ctx](const auto& event)
-			{
-				if (ctx.menu_back_callback != nullptr)
-					ctx.menu_back_callback();
-			}
-		)
-	);
+	// Camera controls
+	add_mappings(ctx.camera_action_map, ctx.camera_mouse_pick_action, "camera_mouse_pick");
+	add_mappings(ctx.camera_action_map, ctx.camera_mouse_look_action, "camera_mouse_look");
+	add_mappings(ctx.camera_action_map, ctx.camera_mouse_drag_action, "camera_mouse_drag");
+	add_mappings(ctx.camera_action_map, ctx.camera_mouse_zoom_action, "camera_mouse_zoom");
+	add_mappings(ctx.camera_action_map, ctx.camera_zoom_in_action, "camera_zoom_in");
+	add_mappings(ctx.camera_action_map, ctx.camera_zoom_out_action, "camera_zoom_out");
+	add_mappings(ctx.camera_action_map, ctx.camera_orbit_left_action, "camera_orbit_left");
+	add_mappings(ctx.camera_action_map, ctx.camera_orbit_right_action, "camera_orbit_right");
+	add_mappings(ctx.camera_action_map, ctx.camera_orbit_up_action, "camera_orbit_up");
+	add_mappings(ctx.camera_action_map, ctx.camera_orbit_down_action, "camera_orbit_down");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_1_action, "camera_preset_1");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_2_action, "camera_preset_2");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_3_action, "camera_preset_3");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_4_action, "camera_preset_4");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_5_action, "camera_preset_5");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_6_action, "camera_preset_6");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_7_action, "camera_preset_7");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_8_action, "camera_preset_8");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_9_action, "camera_preset_9");
+	add_mappings(ctx.camera_action_map, ctx.camera_preset_10_action, "camera_preset_10");
+	add_mappings(ctx.camera_action_map, ctx.camera_save_preset_action, "camera_save_preset");
 	
-	// Set activation threshold for menu navigation controls to mitigate drifting gamepad axes
-	auto menu_action_threshold = [](float x) -> bool
-	{
-		return x > 0.5f;
-	};
-	ctx.menu_up_action.set_threshold_function(menu_action_threshold);
-	ctx.menu_down_action.set_threshold_function(menu_action_threshold);
-	ctx.menu_left_action.set_threshold_function(menu_action_threshold);
-	ctx.menu_right_action.set_threshold_function(menu_action_threshold);
+	// Debug controls
+	add_mappings(ctx.debug_action_map, ctx.toggle_debug_ui_action, "toggle_debug");
+	add_mappings(ctx.debug_action_map, ctx.adjust_exposure_action, "adjust_exposure");
+	add_mappings(ctx.debug_action_map, ctx.adjust_time_action, "adjust_time");
 }
 
 void setup_game_controls(::game& ctx)
@@ -465,140 +397,9 @@ void setup_game_controls(::game& ctx)
 	);
 }
 
-void enable_window_controls(::game& ctx)
-{
-	ctx.window_action_map.enable();
-}
-
-void enable_menu_controls(::game& ctx)
-{
-	ctx.menu_action_map.enable();
-	
-	// Function to select menu item at mouse position
-	auto select_menu_item = [&ctx](const math::fvec2& mouse_position) -> bool
-	{
-		const float padding = config::menu_mouseover_padding * ctx.menu_font.get_font_metrics().size;
-		
-		for (std::size_t i = 0; i < ctx.menu_item_texts.size(); ++i)
-		{
-			auto [name, value] = ctx.menu_item_texts[i];
-			
-			const auto& name_bounds = name->get_bounds();
-			float min_x = name_bounds.min.x();
-			float min_y = name_bounds.min.y();
-			float max_x = name_bounds.max.x();
-			float max_y = name_bounds.max.y();
-			
-			if (value)
-			{
-				const auto& value_bounds = value->get_bounds();
-				min_x = std::min<float>(min_x, value_bounds.min.x());
-				min_y = std::min<float>(min_y, value_bounds.min.y());
-				max_x = std::max<float>(max_x, value_bounds.max.x());
-				max_y = std::max<float>(max_y, value_bounds.max.y());
-			}
-			
-			min_x -= padding;
-			min_y -= padding;
-			max_x += padding;
-			max_y += padding;
-			
-			const auto& viewport = ctx.window->get_viewport_size();
-			const float x = mouse_position.x();
-			const float y = static_cast<float>((viewport[1] - mouse_position.y() + 1));
-			
-			if (x >= min_x && x <= max_x)
-			{
-				if (y >= min_y && y <= max_y)
-				{
-					*ctx.menu_item_index = static_cast<int>(i);
-					::menu::update_text_color(ctx);
-					return true;
-				}
-			}
-		}
-		
-		return false;
-	};
-	
-	// Enable menu mouse tracking
-	ctx.menu_mouse_subscriptions.clear();
-	ctx.menu_mouse_subscriptions.emplace_back
-	(
-		ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_moved_event>
-		(
-			[&ctx, select_menu_item](const auto& event)
-			{
-				// Select menu item at mouse position (if any)
-				select_menu_item(math::fvec2(event.position));
-			}
-		)
-	);
-	ctx.menu_mouse_subscriptions.emplace_back
-	(
-		ctx.input_manager->get_event_dispatcher().subscribe<input::mouse_button_pressed_event>
-		(
-			[&ctx, select_menu_item](const auto& event)
-			{
-				// Select menu item at mouse position (if any)
-				if (select_menu_item(math::fvec2(event.position)))
-				{
-					// Determine appropriate menu item callback
-					auto callback = ctx.menu_select_callbacks[*ctx.menu_item_index];
-					if (event.button == input::mouse_button::left)
-					{
-						if (ctx.menu_left_callbacks[*ctx.menu_item_index])
-						{
-							callback = ctx.menu_left_callbacks[*ctx.menu_item_index];
-						}
-					}
-					else if (event.button == input::mouse_button::right)
-					{
-						if (ctx.menu_right_callbacks[*ctx.menu_item_index])
-						{
-							callback = ctx.menu_right_callbacks[*ctx.menu_item_index];
-						}
-					}
-					
-					// Invoke menu item callback
-					if (callback)
-					{
-						callback();
-					}
-				}
-			}
-		)
-	);
-}
-
 void enable_game_controls(::game& ctx)
 {
 	ctx.movement_action_map.enable();
-}
-
-void enable_keeper_controls(::game& ctx)
-{
-	ctx.keeper_action_map.enable();
-}
-
-void disable_window_controls(::game& ctx)
-{
-	ctx.window_action_map.disable();
-}
-
-void disable_menu_controls(::game& ctx)
-{
-	ctx.menu_action_map.disable();
-	
-	ctx.menu_mouse_subscriptions.clear();
-	
-	ctx.menu_up_action.reset();
-	ctx.menu_down_action.reset();
-	ctx.menu_left_action.reset();
-	ctx.menu_right_action.reset();
-	ctx.menu_select_action.reset();
-	ctx.menu_back_action.reset();
-	ctx.menu_modifier_action.reset();
 }
 
 void disable_game_controls(::game& ctx)
@@ -611,20 +412,7 @@ void disable_game_controls(::game& ctx)
 	ctx.move_right_action.reset();
 	ctx.move_up_action.reset();
 	ctx.move_down_action.reset();
+	ctx.move_fast_action.reset();
+	ctx.move_slow_action.reset();
 	ctx.pause_action.reset();
 }
-
-void disable_keeper_controls(::game& ctx)
-{
-	ctx.keeper_action_map.disable();
-	
-	ctx.mouse_pick_action.reset();
-	ctx.mouse_look_action.reset();
-	ctx.mouse_grip_action.reset();
-	ctx.mouse_zoom_action.reset();
-	ctx.focus_action.reset();
-	ctx.adjust_exposure_action.reset();
-	ctx.adjust_time_action.reset();
-	ctx.adjust_zoom_action.reset();
-}
-

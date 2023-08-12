@@ -72,6 +72,18 @@ public:
 		return m_face;
 	}
 	
+	/// Returns a pointer to the next loop.
+	[[nodiscard]] inline constexpr brep_loop* next() const noexcept
+	{
+		return m_face_next;
+	}
+	
+	/// Returns a pointer to the previous loop.
+	[[nodiscard]] inline constexpr brep_loop* previous() const noexcept
+	{
+		return m_face_previous;
+	}
+	
 private:
 	std::size_t m_index;
 	brep_vertex* m_vertex;
