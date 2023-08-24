@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_SPRING_TO_CONSTRAINT_HPP
 
 #include <engine/entity/id.hpp>
-#include <engine/animation/spring.hpp>
+#include <engine/physics/spring.hpp>
 #include <engine/math/vector.hpp>
 
 
@@ -34,10 +34,10 @@ struct spring_to_constraint
 	entity::id target;
 	
 	/// Translation spring.
-	numeric_spring<math::fvec3, float> translation;
+	physics::numeric_spring<math::fvec3, float> translation;
 	
 	/// Rotation spring.
-	numeric_spring<math::fvec4, float> rotation;
+	physics::numeric_spring<math::fvec4, float> rotation;
 	
 	/// Spring translation.
 	bool spring_translation;

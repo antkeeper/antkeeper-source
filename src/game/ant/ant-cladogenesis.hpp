@@ -44,7 +44,7 @@ template <class URBG>
 	// Randomly sample genes
 	genome->antennae = pool.antennae.sample(urbg);
 	genome->body_size = pool.body_size.sample(urbg);
-	genome->cocoon = pool.cocoon.sample(urbg);
+	genome->pupa = pool.pupa.sample(urbg);
 	genome->diet = pool.diet.sample(urbg);
 	genome->egg = pool.egg.sample(urbg);
 	genome->eyes = pool.eyes.sample(urbg);

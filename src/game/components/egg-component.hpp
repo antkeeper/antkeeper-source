@@ -20,22 +20,16 @@
 #ifndef ANTKEEPER_GAME_EGG_COMPONENT_HPP
 #define ANTKEEPER_GAME_EGG_COMPONENT_HPP
 
-#include <engine/render/model.hpp>
-#include <memory>
-
 /**
- * 
+ * Egg incubation parameters.
  */
 struct egg_component
 {
-	/// Duration of the incubation period, in seconds.
+	/// Duration of the incubation period, in days.
 	float incubation_period{};
 	
-	/// Elapsed time the egg has been in incubation, in seconds.
-	float elapsed_incubation_time{};
-	
-	/// Model of the larval form.
-	std::shared_ptr<render::model> larva_model;
+	/// Current incubation phase, on `[0, 1]`.
+	float incubation_phase{};
 };
 
 #endif // ANTKEEPER_GAME_EGG_COMPONENT_HPP

@@ -17,42 +17,38 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_LARVA_GENE_HPP
-#define ANTKEEPER_GAME_ANT_LARVA_GENE_HPP
+#ifndef ANTKEEPER_GAME_ANT_PUPA_GENE_HPP
+#define ANTKEEPER_GAME_ANT_PUPA_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
 #include <engine/render/model.hpp>
-#include <cstdint>
 #include <memory>
 
 /**
- * Ant larva phene.
+ * Ant pupa phene.
  */
-struct ant_larva_phene
+struct ant_pupa_phene
 {
-	/// Duration required for the larva to develop into a pupa, in days.
+	/// Duration required for the pupa to develop into an adult, in days.
 	float development_period{};
 	
-	/// Duration required for the larva to spin a cocoon, in days.
-	float spinning_period{};
+	/// Duration required for the callow to emerge from the cocoon or become mobile, in days.
+	float eclosion_period{};
 	
-	/// Number of larval instars before pupation.
-	std::uint8_t instar_count{};
+	/// Indicates whether a cocoon is formed by the larvae or not.
+	bool cocoon_present{false};
 	
-	/// Scale of the first larva instar, relative to the final larval instar.
-	float first_instar_scale{};
-	
-	/// 3D model of the larva.
-	std::shared_ptr<render::model> model;
+	/// 3D model of the cocoon, if present.
+	std::shared_ptr<render::model> cocoon_model;
 };
 
-/// Ant larva gene.
-using ant_larva_gene = ant_gene<ant_larva_phene>;
+/// Ant pupa gene.
+using ant_pupa_gene = ant_gene<ant_pupa_phene>;
 
 template <>
-inline constexpr ant_gene_type ant_larva_gene::type() const noexcept
+inline constexpr ant_gene_type ant_pupa_gene::type() const noexcept
 {
-	return ant_gene_type::larva;
+	return ant_gene_type::pupa;
 }
 
-#endif // ANTKEEPER_GAME_ANT_LARVA_GENE_HPP
+#endif // ANTKEEPER_GAME_ANT_PUPA_GENE_HPP

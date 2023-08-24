@@ -445,7 +445,7 @@ template <class T>
 [[nodiscard]] quaternion<T> angle_axis(T angle, const vec3<T>& axis);
 
 /**
- * Calculates a quaternion representing the minimum rotation from one direction to another directions.
+ * Constructs a quaternion representing the minimum rotation from one direction to another direction.
  *
  * @param from Unit vector pointing in the source direction.
  * @param to Unit vector pointing in the target direction.
@@ -457,6 +457,20 @@ template <class T>
  */
 template <class T>
 [[nodiscard]] quaternion<T> rotation(const vec3<T>& from, const vec3<T>& to, T tolerance = T{1e-6});
+
+/**
+ * Constructs a quaternion representing an angle-limited rotation from one direction towards another direction.
+ *
+ * @param from Unit vector pointing in the source direction.
+ * @param to Unit vector pointing in the target direction.
+ * @param max_angle Maximum angle of rotation, in radians.
+ *
+ * @return Unit quaternion representing a rotation from direction @p from towards direction @p to.
+ *
+ * @warning @p from and @p to must be unit vectors.
+ */
+template <class T>
+[[nodiscard]] quaternion<T> rotate_towards(const vec3<T>& from, const vec3<T>& to, T max_angle);
 
 /**
  * Performs spherical linear interpolation between two quaternions.
@@ -695,6 +709,14 @@ quaternion<T> rotation(const vec3<T>& from, const vec3<T>& to, T tolerance)
 		
 		return quaternion<T>{r * inv_length, i * inv_length};
 	}
+}
+
+template <class T>
+quaternion<T> rotate_towards(const vec3<T>& from, const vec3<T>& to, T max_angle)
+{
+	const auto angle = std::acos(dot(from, to));
+	const auto axis = cross(from, to);
+	return angle_axis(std::min(max_angle, angle), axis);
 }
 
 template <class T>

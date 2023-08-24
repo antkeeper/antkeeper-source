@@ -17,23 +17,33 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_SPRING_SYSTEM_HPP
-#define ANTKEEPER_GAME_SPRING_SYSTEM_HPP
+#ifndef ANTKEEPER_GAME_METABOLIC_SYSTEM_HPP
+#define ANTKEEPER_GAME_METABOLIC_SYSTEM_HPP
 
 #include "game/systems/updatable-system.hpp"
 
 /**
- * Solves numeric springs.
+ * 
  */
-class spring_system:
+class metabolic_system:
 	public updatable_system
 {
 public:
-	explicit spring_system(entity::registry& registry);
-	~spring_system();
-	
+	explicit metabolic_system(entity::registry& registry);
 	virtual void update(float t, float dt);
+	
+	/**
+	 * Sets the factor by which the timestep `dt` will be scaled.
+	 *
+	 * @param scale Factor by which to scale the timestep.
+	 */
+	inline constexpr void set_time_scale(float scale) noexcept
+	{
+		m_time_scale = scale;
+	}
+	
+private:
+	float m_time_scale{1.0f};
 };
 
-
-#endif // ANTKEEPER_GAME_SPRING_SYSTEM_HPP
+#endif // ANTKEEPER_GAME_METABOLIC_SYSTEM_HPP

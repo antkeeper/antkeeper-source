@@ -46,6 +46,9 @@ struct ant_legs_phene
 	/// Distance covered in a single gait cycle, in mesosomal lengths.
 	float stride_length{};
 	
+	/// Maximum angular frequency when turning, in radians per second.
+	float max_angular_frequency{};
+	
 	/// Grip factor.
 	float grip{};
 	

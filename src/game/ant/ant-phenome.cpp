@@ -27,9 +27,9 @@ ant_phenome::ant_phenome(const ant_genome& genome, ant_caste_type caste)
 	if (genome.body_size)
 		if (auto i = genome.body_size->phene_map.find(caste); i != genome.body_size->phene_map.end())
 			body_size = i->second;
-	if (genome.cocoon)
-		if (auto i = genome.cocoon->phene_map.find(caste); i != genome.cocoon->phene_map.end())
-			cocoon = i->second;
+	if (genome.pupa)
+		if (auto i = genome.pupa->phene_map.find(caste); i != genome.pupa->phene_map.end())
+			pupa = i->second;
 	if (genome.diet)
 		if (auto i = genome.diet->phene_map.find(caste); i != genome.diet->phene_map.end())
 			diet = i->second;

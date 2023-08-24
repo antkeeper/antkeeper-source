@@ -41,12 +41,12 @@
 #include "game/systems/orbit-system.hpp"
 #include "game/systems/render-system.hpp"
 #include "game/systems/spatial-system.hpp"
-#include "game/systems/spring-system.hpp"
 #include "game/systems/steering-system.hpp"
 #include "game/systems/physics-system.hpp"
 #include "game/systems/subterrain-system.hpp"
 #include "game/systems/terrain-system.hpp"
 #include "game/systems/reproductive-system.hpp"
+#include "game/systems/metabolic-system.hpp"
 #include "game/systems/metamorphosis-system.hpp"
 #include <algorithm>
 #include <cctype>
@@ -567,12 +567,15 @@ void game::setup_input()
 		}
 	);
 	
+	/*
 	// Gamepad deactivation function
 	auto deactivate_gamepad = [&](const auto& event)
 	{
 		if (gamepad_active)
 		{
 			gamepad_active = false;
+			
+			// WARNING: huge source of lag
 			input_manager->set_cursor_visible(true);
 		}
 	};
@@ -625,6 +628,7 @@ void game::setup_input()
 	{
 		gamepad_active = false;
 	}
+	*/
 }
 
 void game::load_strings()
@@ -1063,8 +1067,8 @@ void game::setup_systems()
 	// Setup IK system
 	ik_system = std::make_unique<::ik_system>(*entity_registry);
 	
-	// Setup reproductive system
-	reproductive_system = std::make_unique<::reproductive_system>(*entity_registry);
+	// Setup metabolic system
+	metabolic_system = std::make_unique<::metabolic_system>(*entity_registry);
 	
 	// Setup metamorphosis system
 	metamorphosis_system = std::make_unique<::metamorphosis_system>(*entity_registry);
@@ -1076,8 +1080,9 @@ void game::setup_systems()
 	physics_system = std::make_unique<::physics_system>(*entity_registry);
 	physics_system->set_gravity({0.0f, -9.80665f * 100.0f, 0.0f});
 	
-	// Setup spring system
-	spring_system = std::make_unique<::spring_system>(*entity_registry);
+	// Setup reproductive system
+	reproductive_system = std::make_unique<::reproductive_system>(*entity_registry);
+	reproductive_system->set_physics_system(physics_system.get());
 	
 	// Setup spatial system
 	spatial_system = std::make_unique<::spatial_system>(*entity_registry);
@@ -1163,8 +1168,12 @@ void game::setup_controls()
 	::apply_control_profile(*this, *control_profile);
 	
 	// Setup mouse sensitivity
-	mouse_pan_factor = mouse_radians_per_pixel * mouse_pan_sensitivity * (invert_mouse_pan ? -1.0 : 1.0);
-	mouse_tilt_factor = mouse_radians_per_pixel * mouse_tilt_sensitivity * (invert_mouse_tilt ? -1.0 : 1.0);
+	mouse_pan_factor = mouse_radians_per_pixel * mouse_pan_sensitivity * (mouse_invert_pan ? -1.0 : 1.0);
+	mouse_tilt_factor = mouse_radians_per_pixel * mouse_tilt_sensitivity * (mouse_invert_tilt ? -1.0 : 1.0);
+	
+	// Setup gamepad sensitivity
+	gamepad_pan_factor = gamepad_radians_per_second * gamepad_pan_sensitivity * (gamepad_invert_pan ? -1.0 : 1.0);
+	gamepad_tilt_factor = gamepad_radians_per_second * gamepad_tilt_sensitivity * (gamepad_invert_tilt ? -1.0 : 1.0);
 	
 	// Setup action callbacks
 	setup_window_controls(*this);
@@ -1280,13 +1289,13 @@ void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::fr
 	locomotion_system->update(t, dt);
 	ik_system->update(t, dt);
 	reproductive_system->update(t, dt);
+	metabolic_system->update(t, dt);
 	metamorphosis_system->update(t, dt);
 	// physics_system->update(t, dt);
 	orbit_system->update(t, dt);
 	blackbody_system->update(t, dt);
 	atmosphere_system->update(t, dt);
 	astronomy_system->update(t, dt);
-	spring_system->update(t, dt);
 	spatial_system->update(t, dt);
 	constraint_system->update(t, dt);
 	animator->animate(dt);

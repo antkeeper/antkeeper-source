@@ -17,32 +17,11 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_ANT_COCOON_GENE_HPP
-#define ANTKEEPER_GAME_ANT_COCOON_GENE_HPP
+#ifndef ANTKEEPER_RGB_VORONOI_NOISE_HPP
+#define ANTKEEPER_RGB_VORONOI_NOISE_HPP
 
-#include "game/ant/genes/ant-gene.hpp"
-#include <engine/render/model.hpp>
-#include <memory>
+#include <filesystem>
 
-/**
- * Ant cocoon phene.
- */
-struct ant_cocoon_phene
-{
-	/// Indicates whether a cocoon is formed by the larvae or not.
-	bool present{false};
-	
-	/// 3D model of the cocoon, if present.
-	std::shared_ptr<render::model> model;
-};
+void generate_rgb_voronoi_noise(std::filesystem::path path);
 
-/// Ant cocoon gene.
-using ant_cocoon_gene = ant_gene<ant_cocoon_phene>;
-
-template <>
-inline constexpr ant_gene_type ant_cocoon_gene::type() const noexcept
-{
-	return ant_gene_type::cocoon;
-}
-
-#endif // ANTKEEPER_GAME_ANT_COCOON_GENE_HPP
+#endif // ANTKEEPER_RGB_VORONOI_NOISE_HPP

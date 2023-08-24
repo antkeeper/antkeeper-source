@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GAME_SPRING_TRANSLATION_CONSTRAINT_HPP
 #define ANTKEEPER_GAME_SPRING_TRANSLATION_CONSTRAINT_HPP
 
-#include <engine/animation/spring.hpp>
+#include <engine/physics/spring.hpp>
 #include <engine/math/vector.hpp>
 
 
@@ -30,7 +30,7 @@
 struct spring_translation_constraint
 {
 	/// Translation spring.
-	numeric_spring<math::fvec3, float> spring;
+	physics::numeric_spring<math::fvec3, float> spring;
 };
 
 

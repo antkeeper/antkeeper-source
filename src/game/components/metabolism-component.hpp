@@ -17,27 +17,16 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
-#define ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
+#ifndef ANTKEEPER_GAME_METABOLISM_COMPONENT_HPP
+#define ANTKEEPER_GAME_METABOLISM_COMPONENT_HPP
 
-#include "game/systems/updatable-system.hpp"
-#include <engine/math/vector.hpp>
-
-class camera_system: public updatable_system
+/**
+ * 
+ */
+struct metabolism_component
 {
-public:
-	explicit camera_system(entity::registry& registry);
-	void update(float t, float dt) override;
-	void interpolate(float alpha);
-	
-	void set_viewport(const math::fvec4& viewport);
-
-private:
-	math::dvec4 m_viewport{};
-	double m_aspect_ratio{};
-	double m_fixed_update_time{};
-	double m_fixed_timestep{};
-	double m_variable_update_time{};
+	/// Growth rate multiplier.
+	float growth_multiplier{1};
 };
 
-#endif // ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
+#endif // ANTKEEPER_GAME_METABOLISM_COMPONENT_HPP

@@ -27,6 +27,7 @@
 #include <engine/animation/skeleton.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/math/fract.hpp>
+#include <engine/math/angles.hpp>
 #include <engine/ai/navmesh.hpp>
 #include <algorithm>
 #include <execution>
@@ -53,17 +54,34 @@ void locomotion_system::update_legged(float t, float dt)
 		{
 			auto& locomotion = legged_group.get<legged_locomotion_component>(entity_id);
 			
-			if (locomotion.angular_velocity != 0.0f)
+			
+			float cos_target_direction{};
+			if (locomotion.speed != 0.0f)
 			{
 				auto& rigid_body = *legged_group.get<rigid_body_component>(entity_id).body;
-				const auto up = rigid_body.get_orientation() * math::fvec3{0, 1, 0};
-				const auto rotation = math::angle_axis(locomotion.angular_velocity * dt, up);
-				rigid_body.set_orientation(math::normalize(rotation * rigid_body.get_orientation()));
+				
+				const auto max_steering_angle = locomotion.max_angular_frequency * dt;
+				
+				const auto current_direction = rigid_body.get_orientation() * math::fvec3{0, 0, 1};
+				
+				math::fquat steering_rotation;
+				cos_target_direction = math::dot(current_direction, locomotion.target_direction);
+				if (cos_target_direction < -0.999f)
+				{
+					steering_rotation = math::angle_axis(max_steering_angle, rigid_body.get_orientation() * math::fvec3{0, 1, 0});
+				}
+				else
+				{
+					steering_rotation = math::rotate_towards(current_direction, locomotion.target_direction, max_steering_angle);
+				}
+				
+				rigid_body.set_orientation(math::normalize(steering_rotation * rigid_body.get_orientation()));
 			}
+			
 			
 			// Traverse navmesh
 			auto& navmesh_agent = legged_group.get<navmesh_agent_component>(entity_id);
-			if (locomotion.speed != 0.0f && navmesh_agent.face)
+			if (locomotion.speed != 0.0f/* && cos_target_direction >= 0.0f*/ && navmesh_agent.face)
 			{
 				// Get rigid body
 				auto& rigid_body = *legged_group.get<rigid_body_component>(entity_id).body;

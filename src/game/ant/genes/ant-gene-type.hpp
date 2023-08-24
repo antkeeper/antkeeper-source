@@ -29,7 +29,7 @@ enum class ant_gene_type: std::uint8_t
 {
 	antennae = 1,
 	body_size,
-	cocoon,
+	pupa,
 	diet,
 	egg,
 	eyes,

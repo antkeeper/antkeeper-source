@@ -111,9 +111,9 @@ class nest_system;
 class orbit_system;
 class render_system;
 class spatial_system;
-class spring_system;
 class steering_system;
 class reproductive_system;
+class metabolic_system;
 class metamorphosis_system;
 class physics_system;
 class subterrain_system;
@@ -240,6 +240,7 @@ public:
 	input::action camera_orbit_right_action;
 	input::action camera_orbit_up_action;
 	input::action camera_orbit_down_action;
+	input::action camera_look_ahead_action;
 	input::action camera_preset_1_action;
 	input::action camera_preset_2_action;
 	input::action camera_preset_3_action;
@@ -259,6 +260,7 @@ public:
 	input::action ant_move_right_action;
 	input::action ant_move_fast_action;
 	input::action ant_move_slow_action;
+	input::action ant_interact_action;
 	input::action ant_oviposit_action;
 	
 	input::action_map debug_action_map;
@@ -272,17 +274,27 @@ public:
 	std::vector<std::shared_ptr<::event::subscription>> menu_mouse_subscriptions;
 	std::vector<std::shared_ptr<::event::subscription>> movement_action_subscriptions;
 	
-	// Control settings
+	// Mouse settings
 	double mouse_radians_per_pixel{math::radians(0.1)};
 	double mouse_pan_sensitivity{1.0};
 	double mouse_tilt_sensitivity{1.0};
-	bool invert_mouse_pan{false};
-	bool invert_mouse_tilt{false};
+	bool mouse_invert_pan{false};
+	bool mouse_invert_tilt{false};
+	double mouse_pan_factor{1.0};
+	double mouse_tilt_factor{1.0};
 	bool toggle_mouse_look{false};
 	bool toggle_mouse_grip{false};
 	bool toggle_mouse_zoom{false};
-	double mouse_pan_factor{1.0};
-	double mouse_tilt_factor{1.0};
+	float zoom_steps{6.0};
+	
+	// Gamepad settings
+	double gamepad_radians_per_second{math::radians(180.0)};
+	double gamepad_pan_sensitivity{1.0};
+	double gamepad_tilt_sensitivity{1.0};
+	bool gamepad_invert_pan{false};
+	bool gamepad_invert_tilt{false};
+	double gamepad_pan_factor{1.0};
+	double gamepad_tilt_factor{1.0};
 	
 	// Debugging
 	bool debug_ui_visible{false};
@@ -404,6 +416,7 @@ public:
 	std::unique_ptr<::constraint_system> constraint_system;
 	std::unique_ptr<::steering_system> steering_system;
 	std::unique_ptr<::reproductive_system> reproductive_system;
+	std::unique_ptr<::metabolic_system> metabolic_system;
 	std::unique_ptr<::metamorphosis_system> metamorphosis_system;
 	std::unique_ptr<::locomotion_system> locomotion_system;
 	std::unique_ptr<::ik_system> ik_system;
@@ -412,7 +425,6 @@ public:
 	std::unique_ptr<::render_system> render_system;
 	std::unique_ptr<::subterrain_system> subterrain_system;
 	std::unique_ptr<::terrain_system> terrain_system;
-	std::unique_ptr<::spring_system> spring_system;
 	std::unique_ptr<::spatial_system> spatial_system;
 	std::unique_ptr<::blackbody_system> blackbody_system;
 	std::unique_ptr<::atmosphere_system> atmosphere_system;

@@ -66,7 +66,7 @@ void frame_scheduler::tick()
 	}
 	
 	// Perform variable-rate update
-	m_variable_update_callback(m_fixed_update_time + m_accumulated_time, m_fixed_update_interval, m_accumulated_time);
+	m_variable_update_callback(m_fixed_update_time, m_fixed_update_interval, m_accumulated_time);
 }
 
 void frame_scheduler::refresh() noexcept

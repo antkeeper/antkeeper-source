@@ -18,11 +18,13 @@
  */
 
 #include "game/systems/camera-system.hpp"
-#include "game/components/orbit-camera-component.hpp"
+#include "game/components/autofocus-component.hpp"
+#include "game/components/spring-arm-component.hpp"
 #include "game/components/scene-component.hpp"
 #include <engine/animation/ease.hpp>
 #include <engine/math/projection.hpp>
 #include <engine/scene/camera.hpp>
+#include <engine/math/euler-angles.hpp>
 #include <execution>
 
 camera_system::camera_system(entity::registry& registry):
@@ -31,76 +33,124 @@ camera_system::camera_system(entity::registry& registry):
 
 void camera_system::update(float t, float dt)
 {
-
+	m_fixed_update_time = static_cast<double>(t);
+	m_fixed_timestep = static_cast<double>(dt);
 }
 
 void camera_system::interpolate(float alpha)
 {
-	auto orbit_cam_group = registry.group<orbit_camera_component>(entt::get<scene_component>);
+	const double variable_update_time = m_fixed_update_time + m_fixed_timestep * static_cast<double>(alpha);
+	const double variable_timestep = std::max(0.0, variable_update_time - m_variable_update_time);
+	m_variable_update_time = variable_update_time;
+	
+	/*
+	auto autofocus_group = registry.group<autofocus_component>(entt::get<scene_component>);
 	std::for_each
 	(
 		std::execution::seq,
-		orbit_cam_group.begin(),
-		orbit_cam_group.end(),
+		autofocus_group.begin(),
+		autofocus_group.end(),
 		[&](auto entity_id)
 		{
-			auto& orbit_cam = orbit_cam_group.get<orbit_camera_component>(entity_id);
-			auto& scene = orbit_cam_group.get<scene_component>(entity_id);
-			auto& camera = static_cast<scene::camera&>(*scene.object);
+			auto& autofocus = autofocus_group.get<autofocus_component>(entity_id);
+			auto& camera = static_cast<scene::camera&>(*autofocus_group.get<scene_component>(entity_id).object);
 			
-			math::transform<double> subject_transform = math::transform<double>::identity();
-			if (orbit_cam.subject_eid != entt::null)
+			// Clamp zoom factor
+			autofocus.zoom = std::min<double>(std::max<double>(autofocus.zoom, 0.0), 1.0);
+			
+			// Calculate horizontal and vertical FoV
+			autofocus.hfov = ease<double, double>::out_sine(autofocus.far_hfov, autofocus.near_hfov, autofocus.zoom);
+			autofocus.vfov = math::vertical_fov(autofocus.hfov, static_cast<double>(camera.get_aspect_ratio()));
+			
+			// Calculate focal plane dimensions
+			autofocus.focal_plane_size.y() = ease<double, double>::out_sine(autofocus.far_focal_plane_height, autofocus.near_focal_plane_height, autofocus.zoom);
+			autofocus.focal_plane_size.x() = autofocus.focal_plane_size.y() * static_cast<double>(camera.get_aspect_ratio());
+			
+			// Calculate focal distance
+			autofocus.focal_distance = autofocus.focal_plane_height * 0.5 / std::tan(autofocus.vfov * 0.5);
+			
+			// Update camera projection matrix
+			camera.set_perspective(static_cast<float>(autofocus.vfov), camera.get_aspect_ratio(), camera.get_clip_near(), camera.get_clip_far());
+		}
+	);
+	*/
+	
+	auto spring_arm_group = registry.group<spring_arm_component>(entt::get<scene_component>);
+	std::for_each
+	(
+		std::execution::seq,
+		spring_arm_group.begin(),
+		spring_arm_group.end(),
+		[&](auto entity_id)
+		{
+			auto& spring_arm = spring_arm_group.get<spring_arm_component>(entity_id);
+			auto& camera = static_cast<scene::camera&>(*spring_arm_group.get<scene_component>(entity_id).object);
+			
+			math::transform<double> parent_transform = math::transform<double>::identity();
+			if (spring_arm.parent_eid != entt::null)
 			{
-				const auto subject_scene = registry.try_get<scene_component>(orbit_cam.subject_eid);
-				if (subject_scene)
+				const auto parent_scene = registry.try_get<scene_component>(spring_arm.parent_eid);
+				if (parent_scene)
 				{
-					subject_transform.translation = math::dvec3(subject_scene->object->get_translation());
-					subject_transform.rotation = math::dquat(subject_scene->object->get_rotation());
+					parent_transform.translation = math::dvec3(parent_scene->object->get_translation());
+					parent_transform.rotation = math::dquat(parent_scene->object->get_rotation());
 				}
 			}
 			
 			// Calculate focal point
-			const auto focal_point = subject_transform * orbit_cam.focal_point;
+			spring_arm.focal_point_spring.set_target_value(parent_transform * spring_arm.focal_point_offset);
+			
+			// Integrate angular velocities
+			spring_arm.angles_spring.set_target_value(spring_arm.angles_spring.get_target_value() + spring_arm.angular_velocities * variable_timestep);
+			
+			// Apply angular constraints
+			spring_arm.angles_spring.set_target_value(math::clamp(spring_arm.angles_spring.get_target_value(), spring_arm.min_angles, spring_arm.max_angles));
+			
+			// Solve springs
+			spring_arm.focal_point_spring.solve(variable_timestep);
+			spring_arm.angles_spring.solve(variable_timestep);
+			
+			// Recalculate zoom
+			// if (spring_arm.pitch_velocity)
+			{
+				spring_arm.zoom = ease<double, double>::in_sine(1.0, 0.0, spring_arm.angles_spring.get_value().x() / -math::half_pi<double>);
+			}
 			
 			// Clamp zoom
-			orbit_cam.zoom = std::min<double>(std::max<double>(orbit_cam.zoom, 0.0), 1.0);
+			spring_arm.zoom = std::min<double>(std::max<double>(spring_arm.zoom, 0.0), 1.0);
 			
 			// Update FoV
-			orbit_cam.hfov = ease<double, double>::out_sine(orbit_cam.far_hfov, orbit_cam.near_hfov, orbit_cam.zoom);
-			orbit_cam.vfov = math::vertical_fov(orbit_cam.hfov, static_cast<double>(camera.get_aspect_ratio()));
+			spring_arm.hfov = ease<double, double>::out_sine(spring_arm.far_hfov, spring_arm.near_hfov, spring_arm.zoom);
+			spring_arm.vfov = math::vertical_fov(spring_arm.hfov, static_cast<double>(camera.get_aspect_ratio()));
 			
 			// Update focal plane size
-			orbit_cam.focal_plane_height = ease<double, double>::out_sine(orbit_cam.far_focal_plane_height, orbit_cam.near_focal_plane_height, orbit_cam.zoom);
-			orbit_cam.focal_plane_width = orbit_cam.focal_plane_height * static_cast<double>(camera.get_aspect_ratio());
+			spring_arm.focal_plane_height = ease<double, double>::out_sine(spring_arm.far_focal_plane_height, spring_arm.near_focal_plane_height, spring_arm.zoom);
+			spring_arm.focal_plane_width = spring_arm.focal_plane_height * static_cast<double>(camera.get_aspect_ratio());
 			
 			// Update focal distance
-			orbit_cam.focal_distance = orbit_cam.focal_plane_height * 0.5 / std::tan(orbit_cam.vfov * 0.5);
+			spring_arm.focal_distance = spring_arm.focal_plane_height * 0.5 / std::tan(spring_arm.vfov * 0.5);
 			
-			const auto camera_up = orbit_cam.up_rotation * math::dvec3{0, 1, 0};
-			const auto subject_up = subject_transform.rotation * math::dvec3{0, 1, 0};
-			orbit_cam.up_rotation = math::normalize(math::rotation(camera_up, subject_up) * orbit_cam.up_rotation);
+			const auto camera_up = spring_arm.up_rotation * math::dvec3{0, 1, 0};
+			const auto parent_up = parent_transform.rotation * math::dvec3{0, 1, 0};
+			spring_arm.up_rotation = math::normalize(math::rotation(camera_up, parent_up) * spring_arm.up_rotation);
 			
-			// Update orientation
-			orbit_cam.yaw_rotation = math::angle_axis(orbit_cam.yaw, {0.0, 1.0, 0.0});
-			orbit_cam.pitch_rotation = math::angle_axis(orbit_cam.pitch, {-1.0, 0.0, 0.0});
-			orbit_cam.orientation = math::normalize(orbit_cam.up_rotation * math::normalize(orbit_cam.yaw_rotation * orbit_cam.pitch_rotation));
-			// orbit_cam.orientation = math::normalize(subject_transform.rotation * math::normalize(orbit_cam.yaw_rotation * orbit_cam.pitch_rotation));
-			// orbit_cam.orientation = math::normalize(math::normalize(orbit_cam.yaw_rotation * orbit_cam.pitch_rotation));
+			// Update camera rotation
+			spring_arm.camera_rotation = math::normalize(spring_arm.up_rotation * math::euler_xyz_to_quat(spring_arm.angles_spring.get_value()));
 			
 			// Update transform
-			const auto camera_translation = focal_point + orbit_cam.orientation * math::dvec3{0.0f, 0.0f, orbit_cam.focal_distance};
+			const auto camera_translation = spring_arm.focal_point_spring.get_value() + spring_arm.camera_rotation * math::dvec3{0.0f, 0.0f, spring_arm.focal_distance};
 			
 			math::transform<float> camera_transform;
 			camera_transform.translation = math::fvec3(camera_translation);
-			camera_transform.rotation = math::fquat(orbit_cam.orientation);
+			camera_transform.rotation = math::fquat(spring_arm.camera_rotation);
 			camera_transform.scale = {1, 1, 1};
 			
 			
-			// double center_offset = (1.0 - std::abs(orbit_cam.pitch) / math::half_pi<double>) * (orbit_cam.focal_plane_height / 3.0 * 0.5);
-			// camera_transform.translation += math::fvec3(orbit_cam.orientation * math::dvec3{0, center_offset, 0});
+			double center_offset = (1.0 - std::abs(spring_arm.angles_spring.get_value().x()) / math::half_pi<double>) * (spring_arm.focal_plane_height / 3.0 * 0.5);
+			camera_transform.translation += math::fvec3(spring_arm.camera_rotation * math::dvec3{0, center_offset, 0});
 			
 			camera.set_transform(camera_transform);
-			camera.set_perspective(static_cast<float>(orbit_cam.vfov), camera.get_aspect_ratio(), camera.get_clip_near(), camera.get_clip_far());
+			camera.set_perspective(static_cast<float>(spring_arm.vfov), camera.get_aspect_ratio(), camera.get_clip_near(), camera.get_clip_far());
 		}
 	);
 }

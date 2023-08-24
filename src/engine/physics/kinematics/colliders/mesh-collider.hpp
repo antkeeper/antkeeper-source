@@ -25,7 +25,6 @@
 #include <engine/geom/bvh/bvh.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/geom/primitives/ray.hpp>
-#include <engine/math/transform.hpp>
 #include <memory>
 #include <optional>
 
@@ -87,13 +86,18 @@ public:
 	void rebuild_bvh();
 	
 	/**
+	 * Finds the nearest point of intersection between a ray and this collision mesh.
 	 *
+	 * @param ray Mesh-space ray.
+	 *
+	 * @return Tuple containing the distance along the ray to the nearest point of intersection, the index of the nearest mesh face, and the surface normal of the intersected face; or std::nullopt if no intersection occurred.
 	 */
-	[[nodiscard]] std::optional<std::tuple<float, std::uint32_t>> intersection(const math::transform<float>& mesh_transform, const geom::ray<float, 3>& ray) const;
+	[[nodiscard]] std::optional<std::tuple<float, std::uint32_t, math::fvec3>> intersection(const geom::ray<float, 3>& ray) const;
 	
 private:
 	std::shared_ptr<mesh_type> m_mesh;
 	const geom::brep_attribute<math::fvec3>* m_vertex_positions{};
+	const geom::brep_attribute<math::fvec3>* m_face_normals{};
 	bvh_type m_bvh;
 };
 

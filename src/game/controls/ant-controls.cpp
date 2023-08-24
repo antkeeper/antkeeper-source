@@ -18,11 +18,14 @@
  */
 
 #include "game/controls.hpp"
+#include "game/world.hpp"
 #include "game/components/ant-caste-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/legged-locomotion-component.hpp"
 #include "game/components/ovary-component.hpp"
+#include "game/components/spring-arm-component.hpp"
 #include <engine/math/interpolation.hpp>
+#include <engine/math/euler-angles.hpp>
 #include <engine/debug/log.hpp>
 
 namespace {
@@ -32,15 +35,37 @@ namespace {
 	 *
 	 * @param ctx Game context.
 	 */
-	void update_controlled_ant_speed(::game& ctx)
+	void steer_controlled_ant(::game& ctx)
 	{
 		if (ctx.controlled_ant_eid == entt::null)
 		{
 			return;
 		}
 		
+		// Build control vector
+		math::fvec2 control_vector = {};
+		control_vector.x() -= ctx.ant_move_left_action.get_input_value();
+		control_vector.x() += ctx.ant_move_right_action.get_input_value();
+		control_vector.y() -= ctx.ant_move_forward_action.get_input_value();
+		control_vector.y() += ctx.ant_move_back_action.get_input_value();
+		
+		// Get locomotion component of controlled ant
+		auto& locomotion = ctx.entity_registry->get<legged_locomotion_component>(ctx.controlled_ant_eid);
+		
 		// Get phenome of controlled ant caste
 		const auto& caste_phenome = *ctx.entity_registry->get<::ant_caste_component>(ctx.controlled_ant_eid).phenome;
+		
+		// Determine control direction and magnitude
+		math::fvec2 control_direction{};
+		float control_magnitude = 0.0f;
+		if (auto sqr_length = math::sqr_length(control_vector))
+		{
+			control_magnitude = std::sqrt(sqr_length);
+			control_direction = control_vector / control_magnitude;
+		}
+		
+		// Clamp control magnitude
+		const auto clamped_control_magnitude = std::min(1.0f, control_magnitude);
 		
 		// Determine locomotive speed
 		float locomotive_speed;
@@ -60,21 +85,26 @@ namespace {
 			locomotive_speed = caste_phenome.legs->walking_speed;
 		}
 		
-		// Scale locomotive speed by move ant forward action input value
-		locomotive_speed *= ctx.ant_move_forward_action.get_input_value();
+		// Scale locomotive speed by clamped control magnitude
+		locomotive_speed *= clamped_control_magnitude;
 		
 		// Scale locomotive speed by scale of controlled ant
-		locomotive_speed *= ctx.entity_registry->get<rigid_body_component>(ctx.controlled_ant_eid).body->get_transform().scale.x();
+		auto& rigid_body = *ctx.entity_registry->get<rigid_body_component>(ctx.controlled_ant_eid).body;
+		locomotive_speed *= rigid_body.get_scale().x();
 		
-		// Update speed of legged locomotion component
-		ctx.entity_registry->patch<::legged_locomotion_component>
-		(
-			ctx.controlled_ant_eid,
-			[&](auto& component)
-			{
-				component.speed = locomotive_speed;
-			}
-		);
+		locomotion.speed = locomotive_speed;
+		locomotion.angular_velocity = 0.0f;
+		
+		if (!locomotive_speed || ctx.active_camera_eid == entt::null)
+		{
+			return;
+		}
+		
+		const auto& spring_arm = ctx.entity_registry->get<spring_arm_component>(ctx.active_camera_eid);
+		
+		// Calculate steering direction
+		const auto spring_arm_yaw_rotation = math::angle_axis(spring_arm.angles_spring.get_value().y(), {0.0, 1.0, 0.0});
+		locomotion.target_direction = math::fquat(math::normalize(spring_arm.up_rotation * spring_arm_yaw_rotation)) * math::fvec3{control_direction.x(), 0.0f, (spring_arm.angles_spring.get_value().x() > 0.0) ? -control_direction.y() : control_direction.y()};
 	}
 	
 	/**
@@ -110,7 +140,7 @@ void setup_ant_controls(::game& ctx)
 		(
 			[&](const auto& event)
 			{
-				update_controlled_ant_speed(ctx);
+				steer_controlled_ant(ctx);
 			}
 		)
 	);
@@ -120,7 +150,7 @@ void setup_ant_controls(::game& ctx)
 		(
 			[&](const auto& event)
 			{
-				update_controlled_ant_speed(ctx);
+				steer_controlled_ant(ctx);
 			}
 		)
 	);
@@ -132,7 +162,17 @@ void setup_ant_controls(::game& ctx)
 		(
 			[&](const auto& event)
 			{
-				update_controlled_ant_speed(ctx);
+				steer_controlled_ant(ctx);
+			}
+		)
+	);
+	ctx.event_subscriptions.emplace_back
+	(
+		ctx.ant_move_back_action.get_deactivated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				steer_controlled_ant(ctx);
 			}
 		)
 	);
@@ -144,7 +184,7 @@ void setup_ant_controls(::game& ctx)
 		(
 			[&](const auto& event)
 			{
-				turn_controlled_ant(ctx, event.input_value);
+				steer_controlled_ant(ctx);
 			}
 		)
 	);
@@ -154,7 +194,7 @@ void setup_ant_controls(::game& ctx)
 		(
 			[&](const auto& event)
 			{
-				turn_controlled_ant(ctx, 0.0f);
+				steer_controlled_ant(ctx);
 			}
 		)
 	);
@@ -166,7 +206,7 @@ void setup_ant_controls(::game& ctx)
 		(
 			[&](const auto& event)
 			{
-				turn_controlled_ant(ctx, -event.input_value);
+				steer_controlled_ant(ctx);
 			}
 		)
 	);
@@ -176,7 +216,19 @@ void setup_ant_controls(::game& ctx)
 		(
 			[&](const auto& event)
 			{
-				turn_controlled_ant(ctx, 0.0f);
+				steer_controlled_ant(ctx);
+			}
+		)
+	);
+	
+	// Ant interact
+	ctx.event_subscriptions.emplace_back
+	(
+		ctx.ant_interact_action.get_activated_channel().subscribe
+		(
+			[&](const auto& event)
+			{
+				world::switch_scene(ctx);
 			}
 		)
 	);

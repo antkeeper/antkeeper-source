@@ -68,6 +68,8 @@
 #include <execution>
 #include <fstream>
 #include <stb/stb_image_write.h>
+#include <engine/animation/screen-transition.hpp>
+#include <engine/animation/ease.hpp>
 
 namespace world {
 
@@ -443,63 +445,7 @@ void create_moon(::game& ctx)
 }
 
 void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
-{
-	/*
-	image img;
-	img.format(1, 4);
-	img.resize(2048, 2048);
-	
-	auto width = img.get_width();
-	auto height = img.get_height();
-	unsigned char* pixels = (unsigned char*)img.data();
-	
-	const float frequency = 400.0f;
-	float scale_x = 1.0f / static_cast<float>(width - 1) * frequency;
-	float scale_y = 1.0f / static_cast<float>(height - 1) * frequency;
-	
-	std::for_each
-	(
-		std::execution::par_unseq,
-		img.begin<math::vec4<unsigned char>>(),
-		img.end<math::vec4<unsigned char>>(),
-		[pixels, width, height, scale_x, scale_y, frequency](auto& pixel)
-		{
-			const std::size_t i = &pixel - (math::vec4<unsigned char>*)pixels;
-			const std::size_t y = i / width;
-			const std::size_t x = i % width;
-			
-			const math::fvec2 position =
-			{
-				static_cast<float>(x) * scale_x,
-				static_cast<float>(y) * scale_y
-			};
-			
-			const auto
-			[
-				f1_sqr_distance,
-				f1_displacement,
-				f1_id
-			] = math::noise::voronoi::f1<float, 2>(position, 1.0f, {frequency, frequency});
-			
-			const float f1_distance = std::sqrt(f1_sqr_distance);
-			
-			const math::fvec2 uv = (position + f1_displacement) / frequency;
-			
-			pixel = 
-			{
-				static_cast<unsigned char>(std::min(255.0f, f1_distance * 255.0f)),
-				static_cast<unsigned char>(std::min(255.0f, uv[0] * 255.0f)),
-				static_cast<unsigned char>(std::min(255.0f, uv[1] * 255.0f)),
-				static_cast<unsigned char>(f1_id % 256)
-			};
-		}
-	);
-	
-	stbi_flip_vertically_on_write(1);
-	stbi_write_tga((ctx.screenshots_path / "voronoi-f1-400-nc8-2k.tga").string().c_str(), img.get_width(), img.get_height(), img.get_channel_count(), img.data());
-	*/
-
-	
+{	
 	debug::log::trace("Entering ecoregion {}...", ecoregion.name);
 	{
 		// Set active ecoregion
@@ -543,6 +489,12 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 	}
 	
 	debug::log::trace("Entered ecoregion {}", ecoregion.name);
+}
+
+void switch_scene(::game& ctx)
+{
+	ctx.fade_transition_color->set({0, 0, 0});
+	ctx.fade_transition->transition(1.0f, false, ease<float>::out_cubic, false, [](){});
 }
 
 } // namespace world

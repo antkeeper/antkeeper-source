@@ -27,7 +27,7 @@
 /**
  * Schedules fixed- and variable-rate updates.
  *
- * @see https://gafferongames.com/post/fix_your_timestep/
+ * @see Fiedler, G. (2004). Fix your timestep. Gaffer On Games.
  */
 class frame_scheduler
 {

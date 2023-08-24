@@ -23,7 +23,7 @@
 #include "game/ant/ant-gene-frequency-table.hpp"
 #include "game/ant/genes/ant-antennae-gene.hpp"
 #include "game/ant/genes/ant-body-size-gene.hpp"
-#include "game/ant/genes/ant-cocoon-gene.hpp"
+#include "game/ant/genes/ant-pupa-gene.hpp"
 #include "game/ant/genes/ant-diet-gene.hpp"
 #include "game/ant/genes/ant-egg-gene.hpp"
 #include "game/ant/genes/ant-eyes-gene.hpp"
@@ -54,7 +54,7 @@ struct ant_gene_pool
 	
 	ant_gene_frequency_table<ant_antennae_gene> antennae;
 	ant_gene_frequency_table<ant_body_size_gene> body_size;
-	ant_gene_frequency_table<ant_cocoon_gene> cocoon;
+	ant_gene_frequency_table<ant_pupa_gene> pupa;
 	ant_gene_frequency_table<ant_diet_gene> diet;
 	ant_gene_frequency_table<ant_egg_gene> egg;
 	ant_gene_frequency_table<ant_eyes_gene> eyes;

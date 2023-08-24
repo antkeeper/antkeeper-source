@@ -271,12 +271,12 @@ void constraint_system::handle_pivot_constraint(transform_component& transform, 
 void constraint_system::handle_spring_rotation_constraint(transform_component& transform, spring_rotation_constraint& constraint, float dt)
 {
 	// Solve yaw, pitch, and roll angle spring
-	solve_numeric_spring<math::fvec3, float>(constraint.spring, dt);
+	constraint.spring.solve(dt);
 	
 	// Build yaw, pitch, and roll quaternions
-	const math::fquat yaw = math::angle_axis(constraint.spring.x0[0], {0.0f, 1.0f, 0.0f});
-	const math::fquat pitch = math::angle_axis(constraint.spring.x0[1], {-1.0f, 0.0f, 0.0f});
-	const math::fquat roll = math::angle_axis(constraint.spring.x0[2], {0.0f, 0.0f, -1.0f});
+	const math::fquat yaw = math::angle_axis(constraint.spring.get_value()[0], {0.0f, 1.0f, 0.0f});
+	const math::fquat pitch = math::angle_axis(constraint.spring.get_value()[1], {-1.0f, 0.0f, 0.0f});
+	const math::fquat roll = math::angle_axis(constraint.spring.get_value()[2], {0.0f, 0.0f, -1.0f});
 	
 	// Update transform rotation
 	transform.world.rotation = math::normalize(yaw * pitch * roll);
@@ -293,26 +293,26 @@ void constraint_system::handle_spring_to_constraint(transform_component& transfo
 			if (constraint.spring_translation)
 			{
 				// Update translation spring target
-				constraint.translation.x1 = target_transform->world.translation;
+				constraint.translation.set_target_value(target_transform->world.translation);
 				
 				// Solve translation spring
-				solve_numeric_spring<math::fvec3, float>(constraint.translation, dt);
+				constraint.translation.solve(dt);
 				
 				// Update transform translation
-				transform.world.translation = constraint.translation.x0;
+				transform.world.translation = constraint.translation.get_value();
 			}
 			
 			// Spring rotation
 			if (constraint.spring_rotation)
 			{
 				// Update rotation spring target
-				constraint.rotation.x1 = math::fvec4(target_transform->world.rotation);
+				constraint.rotation.set_target_value(math::fvec4(target_transform->world.rotation));
 				
 				// Solve rotation spring
-				solve_numeric_spring<math::fvec4, float>(constraint.rotation, dt);
+				constraint.rotation.solve(dt);
 				
 				// Update transform rotation
-				transform.world.rotation = math::normalize(math::fquat{constraint.rotation.x0[0], constraint.rotation.x0[1], constraint.rotation.x0[2], constraint.rotation.x0[3]});
+				transform.world.rotation = math::normalize(math::fquat{constraint.rotation.get_value()[0], constraint.rotation.get_value()[1], constraint.rotation.get_value()[2], constraint.rotation.get_value()[3]});
 			}
 		}
 	}
@@ -321,10 +321,10 @@ void constraint_system::handle_spring_to_constraint(transform_component& transfo
 void constraint_system::handle_spring_translation_constraint(transform_component& transform, spring_translation_constraint& constraint, float dt)
 {
 	// Solve translation spring
-	solve_numeric_spring<math::fvec3, float>(constraint.spring, dt);
+	constraint.spring.solve(dt);
 	
 	// Update transform translation
-	transform.world.translation = constraint.spring.x0;
+	transform.world.translation = constraint.spring.get_value();
 }
 
 void constraint_system::handle_three_dof_constraint(transform_component& transform, const three_dof_constraint& constraint)

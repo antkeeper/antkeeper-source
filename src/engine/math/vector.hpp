@@ -301,14 +301,14 @@ struct vector
 	/**
 	 * Returns a zero vector, where every element is equal to zero.
 	 */
-	[[nodiscard]] static constexpr vector zero() noexcept
+	[[nodiscard]] inline static constexpr vector zero() noexcept
 	{
 		return {};
 	}
 	
 	/// @private
 	template <std::size_t... I>
-	[[nodiscard]] static constexpr vector one(std::index_sequence<I...>) noexcept
+	[[nodiscard]] inline static constexpr vector one(std::index_sequence<I...>) noexcept
 	{
 		//return {element_type{1}...};
 		
@@ -319,14 +319,14 @@ struct vector
 	/**
 	 * Returns a vector of ones, where every element is equal to one.
 	 */
-	[[nodiscard]] static constexpr vector one() noexcept
+	[[nodiscard]] inline static constexpr vector one() noexcept
 	{
 		return one(std::make_index_sequence<N>{});
 	}
 	
 	/// @private
 	template <std::size_t... I>
-	[[nodiscard]] static constexpr vector infinity(std::index_sequence<I...>) noexcept
+	[[nodiscard]] inline static constexpr vector infinity(std::index_sequence<I...>) noexcept
 	{
 		//return {element_type{1}...};
 		
@@ -337,7 +337,7 @@ struct vector
 	/**
 	 * Returns a vector of infinities, where every element is equal to infinity.
 	 */
-	[[nodiscard]] static constexpr vector infinity() noexcept
+	[[nodiscard]] inline static constexpr vector infinity() noexcept
 	{
 		return infinity(std::make_index_sequence<N>{});
 	}
@@ -481,6 +481,17 @@ template <std::size_t N>
 [[nodiscard]] constexpr bool all(const vector<bool, N>& x) noexcept;
 
 /**
+ * Calculates the angle between two direction vectors.
+ *
+ * @param from First direction vector.
+ * @param to Second direction vector.
+ *
+ * @return Angle between the two direction vectors, in radians.
+ */
+template <std::floating_point T, std::size_t N>
+[[nodiscard]] T angle(const vector<T, N>& from, const vector<T, N>& to);
+
+/**
  * Checks if any elements of a boolean vector are `true`.
  *
  * @param x Vector to be tested for truth.
@@ -491,13 +502,13 @@ template <std::size_t N>
 [[nodiscard]] constexpr bool any(const vector<bool, N>& x) noexcept;
 
 /**
- * Performs a element-wise ceil operation.
+ * Performs an element-wise ceil operation.
  *
  * @param x Input vector.
  *
  * @return Component-wise ceil of input vector.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] constexpr vector<T, N> ceil(const vector<T, N>& x);
 
 /**
@@ -524,11 +535,11 @@ template <class T, std::size_t N>
  *
  * @return Length-clamped vector.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] vector<T, N> clamp_length(const vector<T, N>& x, T max_length);
 
 /**
- * Calculate the cross product of two vectors.
+ * Calculates the cross product of two vectors.
  *
  * @param x First vector.
  * @param y Second vector.
@@ -546,7 +557,7 @@ template <class T>
  *
  * @return Distance between the two points.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] T distance(const vector<T, N>& p0, const vector<T, N>& p1);
 
 /**
@@ -595,7 +606,7 @@ template <class T, std::size_t N>
  *
  * @return Component-wise floor of input vector.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] constexpr vector<T, N> floor(const vector<T, N>& x);
 
 /**
@@ -621,7 +632,7 @@ template <class T, std::size_t N>
  *
  * @return Fractional parts of input vector.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] constexpr vector<T, N> fract(const vector<T, N>& x);
 
 /**
@@ -675,7 +686,7 @@ template <class T, std::size_t N>
  *
  * @return Inverse length of the vector.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] T inv_length(const vector<T, N>& x);
 
 /**
@@ -685,7 +696,7 @@ template <class T, std::size_t N>
  *
  * @return Length of the vector.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] T length(const vector<T, N>& x);
 
 /**
@@ -761,9 +772,9 @@ template <class T, std::size_t N>
  * @return Remainders of `x / y`.
  */
 /// @{
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] constexpr vector<T, N> mod(const vector<T, N>& x, const vector<T, N>& y);
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] constexpr vector<T, N> mod(const vector<T, N>& x, T y);
 /// @}
 
@@ -799,7 +810,7 @@ template <class T, std::size_t N>
  *
  * @return Unit vector.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] vector<T, N> normalize(const vector<T, N>& x);
 
 /**
@@ -832,9 +843,9 @@ template <class T, std::size_t N>
  * @return Vector with its elements raised to the given power.
  */
 /// @{
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] vector<T, N> pow(const vector<T, N>& x, const vector<T, N>& y);
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] vector<T, N> pow(const vector<T, N>& x, T y);
 /// @}
 
@@ -845,7 +856,7 @@ template <class T, std::size_t N>
  *
  * @return Component-wise round of input vector.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] constexpr vector<T, N> round(const vector<T, N>& x);
 
 /**
@@ -854,8 +865,20 @@ template <class T, std::size_t N>
  * @param x Input vector
  * @return Signs of input vector elements.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] constexpr vector<T, N> sign(const vector<T, N>& x);
+
+/**
+ * Calculates the signed angle between two direction vectors about axis.
+ *
+ * @param from First direction vector.
+ * @param to Second direction vector.
+ * @param axis Axis direction vector.
+ *
+ * @return Signed angle between @p from and @p to about @p axis, in radians.
+ */
+template <std::floating_point T>
+[[nodiscard]] T signed_angle(const vector<T, 3>& x, const vector<T, 3>& y, const vector<T, 3>& n);
 
 /**
  * Calculates the square distance between two points. The square distance can be calculated faster than the distance because a call to `std::sqrt` is saved.
@@ -885,7 +908,7 @@ template <class T, std::size_t N>
  *
  * @return Square roots of the input vector elements.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] vector<T, N> sqrt(const vector<T, N>& x);
 
 /**
@@ -929,12 +952,24 @@ template <std::size_t... Indices, class T, std::size_t N>
 [[nodiscard]] constexpr vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) noexcept;
 
 /**
+ * Calculates the triple product of three vectors.
+ *
+ * @param x First vector.
+ * @param y Second vector.
+ * @param z Third vector.
+ *
+ * @return Triple product of the three vectors (`dot(x, cross(y, z)`).
+ */
+template <class T>
+[[nodiscard]] constexpr T triple(const vector<T, 3>& x, const vector<T, 3>& y, const vector<T, 3>& z) noexcept;
+
+/**
  * Performs a element-wise trunc operation.
  *
  * @param x Input vector
  * @return Component-wise trunc of input vector.
  */
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 [[nodiscard]] constexpr vector<T, N> trunc(const vector<T, N>& x);
 
 /// @private
@@ -987,6 +1022,12 @@ template <std::size_t N>
 inline constexpr bool all(const vector<bool, N>& x) noexcept
 {
 	return all(x, std::make_index_sequence<N>{});
+}
+
+template <std::floating_point T, std::size_t N>
+T angle(const vector<T, N>& from, const vector<T, N>& to)
+{
+	return std::acos(std::min<T>(std::max<T>(dot(from, to), T{-1}), T{1}));
 }
 
 /// @private
@@ -1044,7 +1085,7 @@ inline constexpr vector<T, N> clamp(const vector<T, N>& x, T min, T max)
 template <std::floating_point T, std::size_t N>
 vector<T, N> clamp_length(const vector<T, N>& x, T max_length)
 {
-	T length2 = sqr_length(x);
+	const auto length2 = sqr_length(x);
 	return (length2 > max_length * max_length) ? (x * (max_length / std::sqrt(length2))) : x;
 }
 
@@ -1059,7 +1100,7 @@ inline constexpr vector<T, 3> cross(const vector<T, 3>& x, const vector<T, 3>& y
 	};
 }
 
-template <class T, std::size_t N>
+template <std::floating_point T, std::size_t N>
 inline T distance(const vector<T, N>& p0, const vector<T, N>& p1)
 {
 	return length(sub(p0, p1));
@@ -1461,6 +1502,12 @@ inline constexpr vector<T, N> sign(const vector<T, N>& x)
 	return sign(x, std::make_index_sequence<N>{});
 }
 
+template <std::floating_point T>
+T signed_angle(const vector<T, 3>& from, const vector<T, 3>& to, const vector<T, 3>& axis)
+{
+	return std::atan2(triple(axis, from, to), dot(from, to));
+}
+
 template <class T, std::size_t N>
 inline constexpr T sqr_distance(const vector<T, N>& p0, const vector<T, N>& p1) noexcept
 {
@@ -1544,6 +1591,12 @@ inline constexpr vector<T, sizeof...(Indices)> swizzle(const vector<T, N>& x) no
 	return {x[Indices]...};
 }
 
+template <class T>
+inline constexpr T triple(const vector<T, 3>& x, const vector<T, 3>& y, const vector<T, 3>& z) noexcept
+{
+	return dot(x, cross(y, z));
+}
+
 /// @private
 template <std::floating_point T, std::size_t N, std::size_t... I>
 inline constexpr vector<T, N> trunc(const vector<T, N>& x, std::index_sequence<I...>)
@@ -1561,7 +1614,7 @@ namespace operators {
 
 /// @copydoc add(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator+(const vector<T, N>& x, const vector<T, N>& y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator+(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return add(x, y);
 }
@@ -1569,12 +1622,12 @@ inline constexpr vector<T, N> operator+(const vector<T, N>& x, const vector<T, N
 /// @copydoc add(const vector<T, N>&, T)
 /// @{
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator+(const vector<T, N>& x, T y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator+(const vector<T, N>& x, T y) noexcept
 {
 	return add(x, y);
 }
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator+(T x, const vector<T, N>& y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator+(T x, const vector<T, N>& y) noexcept
 {
 	return add(y, x);
 }
@@ -1582,28 +1635,28 @@ inline constexpr vector<T, N> operator+(T x, const vector<T, N>& y) noexcept
 
 /// @copydoc div(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator/(const vector<T, N>& x, const vector<T, N>& y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator/(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return div(x, y);
 }
 
 /// @copydoc div(const vector<T, N>&, T)
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator/(const vector<T, N>& x, T y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator/(const vector<T, N>& x, T y) noexcept
 {
 	return div(x, y);
 }
 
 /// @copydoc div(T, const vector<T, N>&)
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator/(T x, const vector<T, N>& y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator/(T x, const vector<T, N>& y) noexcept
 {
 	return div(x, y);
 }
 
 /// @copydoc mul(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator*(const vector<T, N>& x, const vector<T, N>& y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator*(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return mul(x, y);
 }
@@ -1611,12 +1664,12 @@ inline constexpr vector<T, N> operator*(const vector<T, N>& x, const vector<T, N
 /// @copydoc mul(const vector<T, N>&, T)
 /// @{
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator*(const vector<T, N>& x, T y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator*(const vector<T, N>& x, T y) noexcept
 {
 	return mul(x, y);
 }
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator*(T x, const vector<T, N>& y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator*(T x, const vector<T, N>& y) noexcept
 {
 	return mul(y, x);
 }
@@ -1624,28 +1677,28 @@ inline constexpr vector<T, N> operator*(T x, const vector<T, N>& y) noexcept
 
 /// @copydoc negate(const vector<T, N>&)
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator-(const vector<T, N>& x) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator-(const vector<T, N>& x) noexcept
 {
 	return negate(x);
 }
 
 /// @copydoc sub(const vector<T, N>&, const vector<T, N>&)
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator-(const vector<T, N>& x, const vector<T, N>& y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator-(const vector<T, N>& x, const vector<T, N>& y) noexcept
 {
 	return sub(x, y);
 }
 
 /// @copydoc sub(const vector<T, N>&, T)
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator-(const vector<T, N>& x, T y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator-(const vector<T, N>& x, T y) noexcept
 {
 	return sub(x, y);
 }
 
 /// @copydoc sub(T, const vector<T, N>&)
 template <class T, std::size_t N>
-inline constexpr vector<T, N> operator-(T x, const vector<T, N>& y) noexcept
+[[nodiscard]] inline constexpr vector<T, N> operator-(T x, const vector<T, N>& y) noexcept
 {
 	return sub(x, y);
 }
@@ -1771,5 +1824,9 @@ namespace std
 		using type = math::vector<T, N>::element_type;
 	};
 }
+
+// Ensure vectors are POD types
+static_assert(std::is_standard_layout_v<math::fvec3>);
+static_assert(std::is_trivial_v<math::fvec3>);
 
 #endif // ANTKEEPER_MATH_VECTOR_HPP

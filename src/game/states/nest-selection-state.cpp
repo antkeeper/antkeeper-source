@@ -25,7 +25,6 @@
 #include "game/components/constraint-stack-component.hpp"
 #include "game/components/scene-component.hpp"
 #include "game/components/picking-component.hpp"
-#include "game/components/spring-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/rigid-body-constraint-component.hpp"
 #include "game/components/steering-component.hpp"
@@ -160,7 +159,7 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	
 	auto cocoon_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<scene_component>(cocoon_eid, std::make_shared<scene::static_mesh>(worker_phenome.cocoon->model), std::uint8_t{1});
+	ctx.entity_registry->emplace<scene_component>(cocoon_eid, std::make_shared<scene::static_mesh>(worker_phenome.pupa->cocoon_model), std::uint8_t{1});
 	
 	
 	larva_eid = ctx.entity_registry->create();
@@ -227,9 +226,9 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	const float aspect_ratio = static_cast<float>(viewport_size[0]) / static_cast<float>(viewport_size[1]);
 	
 	// Init first person camera rig parameters
-	first_person_camera_rig_translation_spring_angular_frequency = period_to_rads(0.125f);
-	first_person_camera_rig_rotation_spring_angular_frequency = period_to_rads(0.125f);
-	first_person_camera_rig_fov_spring_angular_frequency = period_to_rads(0.125f);
+	first_person_camera_rig_translation_spring_angular_frequency = physics::s_to_rads(0.125f);
+	first_person_camera_rig_rotation_spring_angular_frequency = physics::s_to_rads(0.125f);
+	first_person_camera_rig_fov_spring_angular_frequency = physics::s_to_rads(0.125f);
 	first_person_camera_rig_min_elevation = 0.25f;
 	first_person_camera_rig_max_elevation = 150.0f;
 	first_person_camera_near_fov = math::vertical_fov(math::radians(100.0f), aspect_ratio);
@@ -390,83 +389,17 @@ void nest_selection_state::destroy_first_person_camera_rig()
 
 void nest_selection_state::set_first_person_camera_rig_pedestal(float pedestal)
 {
-	// first_person_camera_rig_pedestal = pedestal;
-	// const float elevation = math::log_lerp(first_person_camera_rig_min_elevation, first_person_camera_rig_max_elevation, first_person_camera_rig_pedestal);
-	// const float fov = math::log_lerp(first_person_camera_near_fov, first_person_camera_far_fov, first_person_camera_rig_pedestal);
-	
-	// ctx.entity_registry->patch<spring_translation_constraint>
-	// (
-		// first_person_camera_rig_spring_translation_eid,
-		// [&](auto& component)
-		// {
-			// component.spring.x1[1] = elevation;
-		// }
-	// );
-	
-	// ctx.entity_registry->patch<spring1_component>
-	// (
-		// first_person_camera_rig_fov_spring_eid,
-		// [&](auto& component)
-		// {
-			// component.spring.x1 = fov;
-		// }
-	// );
+
 }
 
 void nest_selection_state::move_first_person_camera_rig(const math::fvec2& direction, float factor)
 {
-	// const float speed = math::log_lerp(first_person_camera_near_speed, first_person_camera_far_speed, first_person_camera_rig_pedestal) * factor;
-	
-	// const spring_rotation_constraint& first_person_camera_rig_spring_rotation = ctx.entity_registry->get<spring_rotation_constraint>(first_person_camera_rig_spring_rotation_eid);
-	
-	// const math::fquat yaw_rotation = math::angle_axis(first_person_camera_rig_spring_rotation.spring.x0[0], math::fvec3{0.0f, 1.0f, 0.0f});
-	// const math::fvec3 rotated_direction = math::normalize(yaw_rotation * math::fvec3{direction[0], 0.0f, direction[1]});
-	// const math::fvec3 velocity = rotated_direction * speed;
-	
-	// ctx.entity_registry->patch<spring_translation_constraint>
-	// (
-		// first_person_camera_rig_spring_translation_eid,
-		// [&](auto& component)
-		// {
-			// component.spring.x1 += velocity * static_cast<float>(1.0 / ctx.fixed_update_rate);
-		// }
-	// );
+
 }
 
 void nest_selection_state::satisfy_first_person_camera_rig_constraints()
 {
-	// Satisfy first person camera rig spring translation constraint
-	// ctx.entity_registry->patch<spring_translation_constraint>
-	// (
-		// first_person_camera_rig_spring_translation_eid,
-		// [&](auto& component)
-		// {
-			// component.spring.x0 = component.spring.x1;
-			// component.spring.v *= 0.0f;
-		// }
-	// );
-	
-	// Satisfy first person camera rig spring rotation constraint
-	// ctx.entity_registry->patch<spring_rotation_constraint>
-	// (
-		// first_person_camera_rig_spring_rotation_eid,
-		// [&](auto& component)
-		// {
-			// component.spring.x0 = component.spring.x1;
-			// component.spring.v *= 0.0f;
-		// }
-	// );
-	
-	// Satisfy first person camera rig fov spring
-	// ctx.entity_registry->patch<spring1_component>
-	// (
-		// first_person_camera_rig_fov_spring_eid,
-		// [&](auto& component)
-		// {
-			// component.spring.x0 = component.spring.x1;
-			// component.spring.v *= 0.0f;
-		// }
-	// );
+
 }
 
 void nest_selection_state::setup_controls()
@@ -477,11 +410,6 @@ void nest_selection_state::setup_controls()
 	auto move_first_person_camera_rig = [&](const math::fvec2& direction, float speed)
 	{
 		const transform_component& first_person_camera_rig_transform = ctx.entity_registry->get<transform_component>(first_person_camera_rig_eid);
-		
-		//const spring_rotation_constraint& first_person_camera_rig_spring_rotation = ctx.entity_registry->get<spring_rotation_constraint>(first_person_camera_rig_spring_rotation_eid);
-		
-		//const math::fquat yaw_rotation = math::angle_axis(first_person_camera_rig_spring_rotation.spring.x0[0], math::fvec3{0.0f, 1.0f, 0.0f});
-		//const math::fvec3 rotated_direction = yaw_rotation * math::fvec3{direction[0], 0.0f, direction[1]};
 		
 		const math::fquat yaw_rotation = math::angle_axis(static_cast<float>(first_person_camera_yaw), math::fvec3{0.0f, 1.0f, 0.0f});
 		
@@ -822,159 +750,7 @@ void nest_selection_state::setup_controls()
 
 void nest_selection_state::enable_controls()
 {
-	/*
-	// Reset mouse look
-	mouse_look = false;
-	
-	double time_scale = 0.0;
-	double ff_time_scale = 60.0 * 200.0;
-	
-	// Init control settings
-	float mouse_tilt_sensitivity = 1.0f;
-	float mouse_pan_sensitivity = 1.0f;
-	bool mouse_invert_tilt = false;
-	bool mouse_invert_pan = false;
-	bool mouse_look_toggle = false;
-	float gamepad_tilt_sensitivity = 1.0f;
-	float gamepad_pan_sensitivity = 1.0f;
-	bool gamepad_invert_tilt = false;
-	bool gamepad_invert_pan = false;
-	
-	// Read control settings
-	if (ctx.config->contains("mouse_tilt_sensitivity"))
-		mouse_tilt_sensitivity = math::radians((*ctx.config)["mouse_tilt_sensitivity"].get<float>());
-	if (ctx.config->contains("mouse_pan_sensitivity"))
-		mouse_pan_sensitivity = math::radians((*ctx.config)["mouse_pan_sensitivity"].get<float>());
-	if (ctx.config->contains("mouse_invert_tilt"))
-		mouse_invert_tilt = (*ctx.config)["mouse_invert_tilt"].get<bool>();
-	if (ctx.config->contains("mouse_invert_pan"))
-		mouse_invert_pan = (*ctx.config)["mouse_invert_pan"].get<bool>();
-	if (ctx.config->contains("mouse_look_toggle"))
-		mouse_look_toggle = (*ctx.config)["mouse_look_toggle"].get<bool>();
-	if (ctx.config->contains("gamepad_tilt_sensitivity"))
-		gamepad_tilt_sensitivity = math::radians((*ctx.config)["gamepad_tilt_sensitivity"].get<float>());
-	if (ctx.config->contains("gamepad_pan_sensitivity"))
-		gamepad_pan_sensitivity = math::radians((*ctx.config)["gamepad_pan_sensitivity"].get<float>());
-	if (ctx.config->contains("gamepad_invert_tilt"))
-		gamepad_invert_tilt = (*ctx.config)["gamepad_invert_tilt"].get<bool>();
-	if (ctx.config->contains("gamepad_invert_pan"))
-		gamepad_invert_pan = (*ctx.config)["gamepad_invert_pan"].get<bool>();
-	
-	// Determine tilt and pan factors according to sensitivity and inversion
-	const float mouse_tilt_factor = mouse_tilt_sensitivity * (mouse_invert_tilt ? -1.0f : 1.0f);
-	const float mouse_pan_factor = mouse_pan_sensitivity * (mouse_invert_pan ? -1.0f : 1.0f);
-	const float gamepad_tilt_factor = gamepad_tilt_sensitivity * (gamepad_invert_tilt ? -1.0f : 1.0f);
-	const float gamepad_pan_factor = gamepad_pan_sensitivity * (gamepad_invert_pan ? -1.0f : 1.0f);
-	
-	
-	ctx.controls["look_right_gamepad"]->set_active_callback
-	(
-		[&, gamepad_pan_factor](float value)
-		{
-			ctx.entity_registry->patch<spring_rotation_constraint>
-			(
-				first_person_camera_rig_spring_rotation_eid,
-				[&, gamepad_pan_factor](auto& component)
-				{
-					component.spring.x1[0] -= gamepad_pan_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
-				}
-			);
-		}
-	);
-	ctx.controls["look_left_gamepad"]->set_active_callback
-	(
-		[&, gamepad_pan_factor](float value)
-		{
-			ctx.entity_registry->patch<spring_rotation_constraint>
-			(
-				first_person_camera_rig_spring_rotation_eid,
-				[&, gamepad_pan_factor](auto& component)
-				{
-					component.spring.x1[0] += gamepad_pan_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
-				}
-			);
-		}
-	);
-	ctx.controls["look_up_gamepad"]->set_active_callback
-	(
-		[&, gamepad_tilt_factor](float value)
-		{
-			ctx.entity_registry->patch<spring_rotation_constraint>
-			(
-				first_person_camera_rig_spring_rotation_eid,
-				[&, gamepad_tilt_factor](auto& component)
-				{
-					component.spring.x1[1] -= gamepad_tilt_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
-					component.spring.x1[1] = std::max(-math::half_pi<float>, component.spring.x1[1]);
-				}
-			);
-		}
-	);
-	ctx.controls["look_down_gamepad"]->set_active_callback
-	(
-		[&, gamepad_tilt_factor](float value)
-		{
-			ctx.entity_registry->patch<spring_rotation_constraint>
-			(
-				first_person_camera_rig_spring_rotation_eid,
-				[&, gamepad_tilt_factor](auto& component)
-				{
-					component.spring.x1[1] += gamepad_tilt_factor * value * static_cast<float>(1.0 / ctx.fixed_update_rate);
-					component.spring.x1[1] = std::min(math::half_pi<float>, component.spring.x1[1]);
-				}
-			);
-		}
-	);
-	
-	// Pedestal up control
-	ctx.controls["move_up"]->set_active_callback
-	(
-		[&](float value)
-		{
-			set_first_person_camera_rig_pedestal(std::min(1.0f, first_person_camera_rig_pedestal + first_person_camera_rig_pedestal_speed * static_cast<float>(1.0 / ctx.fixed_update_rate)));
-		}
-	);
-	
-	// Pedestal down control
-	ctx.controls["move_down"]->set_active_callback
-	(
-		[&](float value)
-		{
-			set_first_person_camera_rig_pedestal(std::max(0.0f, first_person_camera_rig_pedestal - first_person_camera_rig_pedestal_speed * static_cast<float>(1.0 / ctx.fixed_update_rate)));
-		}
-	);
-	
-	
-	// Fast-forward
-	ctx.controls["fast_forward"]->set_activated_callback
-	(
-		[&ctx = this->ctx, ff_time_scale]()
-		{
-			::world::set_time_scale(ctx, ff_time_scale);
-		}
-	);
-	ctx.controls["fast_forward"]->set_deactivated_callback
-	(
-		[&ctx = this->ctx, time_scale]()
-		{
-			::world::set_time_scale(ctx, time_scale);
-		}
-	);
-	ctx.controls["rewind"]->set_activated_callback
-	(
-		[&ctx = this->ctx, ff_time_scale]()
-		{
-			::world::set_time_scale(ctx, -ff_time_scale);
-		}
-	);
-	ctx.controls["rewind"]->set_deactivated_callback
-	(
-		[&ctx = this->ctx, time_scale]()
-		{
-			::world::set_time_scale(ctx, time_scale);
-		}
-	);
-	*/
+
 }
 
 void nest_selection_state::disable_controls()

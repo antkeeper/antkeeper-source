@@ -80,6 +80,8 @@ void set_time_scale(::game& ctx, double scale);
  */
 void enter_ecoregion(::game& ctx, const ecoregion& ecoregion);
 
+void switch_scene(::game& ctx);
+
 } // namespace menu
 
 #endif // ANTKEEPER_GAME_WORLD_HPP

@@ -17,41 +17,34 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_REPRODUCTIVE_SYSTEM_HPP
-#define ANTKEEPER_GAME_REPRODUCTIVE_SYSTEM_HPP
+#ifndef ANTKEEPER_GAME_LARVA_COMPONENT_HPP
+#define ANTKEEPER_GAME_LARVA_COMPONENT_HPP
 
-#include "game/systems/updatable-system.hpp"
-
-class physics_system;
+#include <engine/entity/id.hpp>
+#include <engine/render/material-variable.hpp>
 
 /**
- * 
+ * Larval development parameters.
  */
-class reproductive_system:
-	public updatable_system
+struct larva_component
 {
-public:
-	explicit reproductive_system(entity::registry& registry);
-	void update(float t, float dt) override;
+	/// Duration of the development period, in days.
+	float development_period{};
 	
-	/**
-	 * Sets the factor by which the timestep `dt` will be scaled.
-	 *
-	 * @param scale Factor by which to scale the timestep.
-	 */
-	inline constexpr void set_time_scale(float scale) noexcept
-	{
-		m_time_scale = scale;
-	}
+	/// Current development phase, on `[0, 1]`.
+	float development_phase{};
 	
-	inline constexpr void set_physics_system(physics_system* physics_system) noexcept
-	{
-		m_physics_system = physics_system;
-	}
+	/// Duration of the cocoon-spinning period, in days.
+	float spinning_period{};
 	
-private:
-	float m_time_scale{1.0f};
-	physics_system* m_physics_system{};
+	/// Current phase of the cocoon-spinning, on `[0, 1]`.
+	float spinning_phase{};
+	
+	/// ID of the cocoon entity.
+	entity::id cocoon_eid{entt::null};
+	
+	/// Material variable associated with the cocoon-spinning phase.
+	std::shared_ptr<render::matvar_float> spinning_phase_matvar;
 };
 
-#endif // ANTKEEPER_GAME_REPRODUCTIVE_SYSTEM_HPP
+#endif // ANTKEEPER_GAME_LARVA_COMPONENT_HPP

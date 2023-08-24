@@ -125,23 +125,23 @@ std::unique_ptr<ecoregion> resource_loader<ecoregion>::load(::resource_manager& 
 					}
 				}
 				
-				// Load cocoon genes
-				if (auto cocoon_elements = genes_element->find("cocoon"); cocoon_elements != genes_element->end())
+				// Load pupa genes
+				if (auto pupa_elements = genes_element->find("pupa"); pupa_elements != genes_element->end())
 				{
-					for (auto cocoon_element = cocoon_elements->begin(); cocoon_element != cocoon_elements->end(); ++cocoon_element)
+					for (auto pupa_element = pupa_elements->begin(); pupa_element != pupa_elements->end(); ++pupa_element)
 					{
 						float weight = 0.0f;
-						std::shared_ptr<ant_cocoon_gene> gene;
+						std::shared_ptr<ant_pupa_gene> gene;
 						
-						if (auto weight_element = cocoon_element->find("weight"); weight_element != cocoon_element->end())
+						if (auto weight_element = pupa_element->find("weight"); weight_element != pupa_element->end())
 							weight = weight_element->get<float>();
-						if (auto gene_element = cocoon_element->find("gene"); gene_element != cocoon_element->end())
-							gene = resource_manager.load<ant_cocoon_gene>(gene_element->get<std::string>());
+						if (auto gene_element = pupa_element->find("gene"); gene_element != pupa_element->end())
+							gene = resource_manager.load<ant_pupa_gene>(gene_element->get<std::string>());
 						
 						if (gene)
 						{
-							gene_pool.cocoon.weights.push_back(weight);
-							gene_pool.cocoon.genes.push_back(gene);
+							gene_pool.pupa.weights.push_back(weight);
+							gene_pool.pupa.genes.push_back(gene);
 						}
 					}
 				}

@@ -24,6 +24,7 @@
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/egg-component.hpp"
 #include "game/components/ant-genome-component.hpp"
+#include "game/systems/physics-system.hpp"
 #include <engine/math/fract.hpp>
 #include <engine/math/interpolation.hpp>
 #include <engine/scene/static-mesh.hpp>
@@ -115,16 +116,27 @@ void reproductive_system::update(float t, float dt)
 				
 				if (ovary.elapsed_oviposition_time >= ovary.oviposition_duration)
 				{
-					// Construct egg component
-					egg_component egg;
-					egg.incubation_period = 5.0f;
-					registry.emplace<egg_component>(ovary.ovipositor_egg_eid, std::move(egg));
-					
-					// Oviposition complete
-					ovary.ovipositing = false;
-					ovary.elapsed_oviposition_time = 0.0f;
-					--ovary.egg_count;
-					ovary.ovipositor_egg_eid = entt::null;
+					// Place egg
+					auto& egg_rigid_body = *registry.get<rigid_body_component>(ovary.ovipositor_egg_eid).body;
+					const auto oviposition_ray = geom::ray<float, 3>{egg_transform.translation, egg_transform.rotation * math::fvec3{0, 0, -1}};
+					if (auto trace = m_physics_system->trace(oviposition_ray, ovary.ovipositor_egg_eid, ~std::uint32_t{0}))
+					{
+						egg_transform.translation = oviposition_ray.extrapolate(std::get<1>(*trace));
+						egg_transform.rotation = math::normalize(math::rotation(egg_transform.rotation * math::fvec3{0, 1, 0}, std::get<3>(*trace)) * egg_transform.rotation);
+						egg_rigid_body.set_transform(egg_transform);
+						
+						// Get genome of egg
+						const auto& genome = *registry.get<ant_genome_component>(ovary.ovipositor_egg_eid).genome;
+						
+						// Construct egg component
+						registry.emplace<egg_component>(ovary.ovipositor_egg_eid, genome.egg->phenes.front().incubation_period, 0.0f);
+						
+						// Oviposition complete
+						ovary.ovipositing = false;
+						ovary.elapsed_oviposition_time = 0.0f;
+						--ovary.egg_count;
+						ovary.ovipositor_egg_eid = entt::null;
+					}
 				}
 			}
 		}

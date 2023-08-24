@@ -112,8 +112,6 @@ private:
 	std::shared_ptr<render::matvar_fvec3> light_rectangle_emissive;
 	std::shared_ptr<scene::light_probe> light_probe;
 	
-	std::shared_ptr<geom::brep_mesh> navmesh;
-	std::unique_ptr<geom::bvh> navmesh_bvh;
 	entity::id larva_eid;
 	entity::id worker_eid;
 	

@@ -29,6 +29,12 @@
  */
 struct ant_egg_phene
 {
+	/// Duration required for the embryo to develop into a larva, in days.
+	float incubation_period{};
+	
+	/// Duration required for the contained larva to hatch, in days.
+	float eclosion_period{};
+	
 	/// 3D model of the egg.
 	std::shared_ptr<render::model> model;
 };

@@ -17,27 +17,12 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
-#define ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
+#ifndef ANTKEEPER_COCOON_SILK_SDF_HPP
+#define ANTKEEPER_COCOON_SILK_SDF_HPP
 
-#include "game/systems/updatable-system.hpp"
-#include <engine/math/vector.hpp>
+#include <filesystem>
 
-class camera_system: public updatable_system
-{
-public:
-	explicit camera_system(entity::registry& registry);
-	void update(float t, float dt) override;
-	void interpolate(float alpha);
-	
-	void set_viewport(const math::fvec4& viewport);
+/// Generates the cocoon silk signed distance field texture.
+void generate_silk_sdf_image(std::filesystem::path path);
 
-private:
-	math::dvec4 m_viewport{};
-	double m_aspect_ratio{};
-	double m_fixed_update_time{};
-	double m_fixed_timestep{};
-	double m_variable_update_time{};
-};
-
-#endif // ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
+#endif // ANTKEEPER_COCOON_SILK_SDF_HPP

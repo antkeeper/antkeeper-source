@@ -121,8 +121,12 @@ void reset_control_profile(::control_profile& profile)
 	mappings.emplace("move_down", std::make_unique<input::mouse_scroll_mapping>(nullptr, input::mouse_scroll_axis::y, true));
 	mappings.emplace("move_down", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_trigger, false));
 	
+	// Interact
+	mappings.emplace("interact", std::make_unique<input::key_mapping>(nullptr, input::scancode::e, 0, false));
+	mappings.emplace("interact", std::make_unique<input::gamepad_button_mapping>(nullptr, input::gamepad_button::a));
+	
 	// Move fast
-	mappings.emplace("move_fast", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
+	// mappings.emplace("move_fast", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
 	
 	// Move slow
 	mappings.emplace("move_slow", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_ctrl, 0, false));
@@ -143,13 +147,17 @@ void reset_control_profile(::control_profile& profile)
 	
 	// Camera orbit
 	mappings.emplace("camera_orbit_left", std::make_unique<input::key_mapping>(nullptr, input::scancode::left, 0, false));
-	mappings.emplace("camera_orbit_left", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_x, true));
+	mappings.emplace("camera_orbit_left", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_x, false));
 	mappings.emplace("camera_orbit_right", std::make_unique<input::key_mapping>(nullptr, input::scancode::right, 0, false));
-	mappings.emplace("camera_orbit_right", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_x, false));
+	mappings.emplace("camera_orbit_right", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_x, true));
 	mappings.emplace("camera_orbit_up", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, 0, false));
-	mappings.emplace("camera_orbit_up", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_y, false));
+	mappings.emplace("camera_orbit_up", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_y, true));
 	mappings.emplace("camera_orbit_down", std::make_unique<input::key_mapping>(nullptr, input::scancode::up, 0, false));
-	mappings.emplace("camera_orbit_down", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_y, true));
+	mappings.emplace("camera_orbit_down", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::right_stick_y, false));
+	
+	// Camera look ahead
+	mappings.emplace("camera_look_ahead", std::make_unique<input::key_mapping>(nullptr, input::scancode::left_shift, 0, false));
+	mappings.emplace("camera_look_ahead", std::make_unique<input::gamepad_axis_mapping>(nullptr, input::gamepad_axis::left_trigger, false));
 	
 	// Camera presets 
 	mappings.emplace("camera_preset_1", std::make_unique<input::key_mapping>(nullptr, input::scancode::digit_1, 0, false));
@@ -232,6 +240,7 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.camera_action_map, ctx.camera_orbit_right_action, "camera_orbit_right");
 	add_mappings(ctx.camera_action_map, ctx.camera_orbit_up_action, "camera_orbit_up");
 	add_mappings(ctx.camera_action_map, ctx.camera_orbit_down_action, "camera_orbit_down");
+	add_mappings(ctx.camera_action_map, ctx.camera_look_ahead_action, "camera_look_ahead");
 	add_mappings(ctx.camera_action_map, ctx.camera_preset_1_action, "camera_preset_1");
 	add_mappings(ctx.camera_action_map, ctx.camera_preset_2_action, "camera_preset_2");
 	add_mappings(ctx.camera_action_map, ctx.camera_preset_3_action, "camera_preset_3");
@@ -252,6 +261,7 @@ void apply_control_profile(::game& ctx, const ::control_profile& profile)
 	add_mappings(ctx.ant_action_map, ctx.ant_move_right_action, "move_right");
 	add_mappings(ctx.ant_action_map, ctx.ant_move_fast_action, "move_fast");
 	add_mappings(ctx.ant_action_map, ctx.ant_move_slow_action, "move_slow");
+	add_mappings(ctx.ant_action_map, ctx.ant_interact_action, "interact");
 	add_mappings(ctx.ant_action_map, ctx.ant_oviposit_action, "oviposit");
 	
 	// Debug controls
@@ -330,6 +340,7 @@ void update_control_profile(::game& ctx, ::control_profile& profile)
 	add_mappings(ctx.ant_action_map, ctx.ant_move_right_action, "move_right");
 	add_mappings(ctx.ant_action_map, ctx.ant_move_fast_action, "move_fast");
 	add_mappings(ctx.ant_action_map, ctx.ant_move_slow_action, "move_slow");
+	add_mappings(ctx.ant_action_map, ctx.ant_interact_action, "interact");
 	add_mappings(ctx.ant_action_map, ctx.ant_oviposit_action, "oviposit");
 	
 	// Camera controls
@@ -343,6 +354,7 @@ void update_control_profile(::game& ctx, ::control_profile& profile)
 	add_mappings(ctx.camera_action_map, ctx.camera_orbit_right_action, "camera_orbit_right");
 	add_mappings(ctx.camera_action_map, ctx.camera_orbit_up_action, "camera_orbit_up");
 	add_mappings(ctx.camera_action_map, ctx.camera_orbit_down_action, "camera_orbit_down");
+	add_mappings(ctx.camera_action_map, ctx.camera_look_ahead_action, "camera_look_ahead");
 	add_mappings(ctx.camera_action_map, ctx.camera_preset_1_action, "camera_preset_1");
 	add_mappings(ctx.camera_action_map, ctx.camera_preset_2_action, "camera_preset_2");
 	add_mappings(ctx.camera_action_map, ctx.camera_preset_3_action, "camera_preset_3");

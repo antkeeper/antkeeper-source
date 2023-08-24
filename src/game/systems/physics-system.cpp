@@ -29,6 +29,7 @@
 #include <engine/physics/kinematics/colliders/sphere-collider.hpp>
 #include <engine/physics/kinematics/colliders/box-collider.hpp>
 #include <engine/physics/kinematics/colliders/capsule-collider.hpp>
+#include <engine/physics/kinematics/colliders/mesh-collider.hpp>
 #include <engine/geom/closest-point.hpp>
 #include <execution>
 
@@ -108,23 +109,71 @@ void physics_system::interpolate(float alpha)
 	);
 }
 
+std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> physics_system::trace(const geom::ray<float, 3>& ray, entity::id ignore_eid, std::uint32_t layer_mask) const
+{
+	entity::id nearest_entity_id = entt::null;
+	float nearest_hit_distance = std::numeric_limits<float>::infinity();
+	std::uint32_t nearest_face_index = 0;
+	math::fvec3 nearest_hit_normal;
+	
+	// For each entity with a rigid body
+	auto rigid_body_view = registry.view<rigid_body_component>();
+	for (const auto entity_id: rigid_body_view)
+	{
+		if (entity_id == ignore_eid)
+		{
+			// Ignore a specific entity
+			continue;
+		}
+		
+		// Get rigid body and collider of the entity
+		const auto& rigid_body = *rigid_body_view.get<rigid_body_component>(entity_id).body;
+		const auto& collider = rigid_body.get_collider();
+		
+		if (!collider)
+		{
+			// Ignore rigid bodies without colliders
+			continue;
+		}
+		
+		if (!(collider->get_layer_mask() & layer_mask))
+		{
+			// Ignore rigid bodies without a common collision layer
+			continue;
+		}
+		
+		// Transform ray into rigid body space
+		const auto inv_transform = math::inverse(rigid_body.get_transform());
+		geom::ray<float, 3> bs_ray;
+		bs_ray.origin = inv_transform * ray.origin;
+		bs_ray.direction = inv_transform.rotation * ray.direction;
+		
+		if (collider->type() == physics::collider_type::mesh)
+		{
+			const auto& mesh = static_cast<const physics::mesh_collider&>(*collider);
+			if (auto intersection = mesh.intersection(bs_ray))
+			{
+				if (std::get<0>(*intersection) < nearest_hit_distance)
+				{
+					nearest_entity_id = entity_id;
+					
+					/// @TODO: doesn't take into account rigid body scale
+					std::tie(nearest_hit_distance, nearest_face_index, nearest_hit_normal) = *intersection;
+				}
+			}
+		}
+	}
+	
+	if (nearest_entity_id == entt::null)
+	{
+		return std::nullopt;
+	}
+	
+	return std::make_tuple(nearest_entity_id, nearest_hit_distance, nearest_face_index, nearest_hit_normal);
+}
+
 void physics_system::integrate(float dt)
 {
-	// Drag
-	/*
-	const float air_density = 1.293f;// * 100.0f;
-	const float radius = 1.0f;
-	const float sphere_cross_section_area = radius * radius * math::pi<float>;
-	const float sphere_drag_coef = 0.47f;
-	const float sqr_speed = math::sqr_length(body.linear_velocity);
-	if (sqr_speed)
-	{
-		const float drag_magnitude = -0.5f * air_density * sqr_speed * sphere_drag_coef * sphere_cross_section_area;
-		const math::fvec3 drag_force = math::normalize(body.linear_velocity) * drag_magnitude;
-		body.apply_central_force(drag_force);
-	}
-	*/
-	
 	auto view = registry.view<rigid_body_component>();
 	std::for_each
 	(
@@ -136,7 +185,7 @@ void physics_system::integrate(float dt)
 			auto& body = *(view.get<rigid_body_component>(entity_id).body);
 			
 			// Apply gravity
-			body.apply_central_force(gravity / 10.0f * body.get_mass());
+			//body.apply_central_force(gravity / 10.0f * body.get_mass());
 			
 			body.integrate(dt);
 		}

@@ -17,27 +17,28 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
-#define ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
+#ifndef ANTKEEPER_GAME_PUPA_COMPONENT_HPP
+#define ANTKEEPER_GAME_PUPA_COMPONENT_HPP
 
-#include "game/systems/updatable-system.hpp"
-#include <engine/math/vector.hpp>
+#include <engine/entity/id.hpp>
+#include <engine/render/material-variable.hpp>
 
-class camera_system: public updatable_system
+/**
+ * Pupal development parameters.
+ */
+struct pupa_component
 {
-public:
-	explicit camera_system(entity::registry& registry);
-	void update(float t, float dt) override;
-	void interpolate(float alpha);
+	/// Duration of the development period, in days.
+	float development_period{};
 	
-	void set_viewport(const math::fvec4& viewport);
-
-private:
-	math::dvec4 m_viewport{};
-	double m_aspect_ratio{};
-	double m_fixed_update_time{};
-	double m_fixed_timestep{};
-	double m_variable_update_time{};
+	/// Current development phase, on `[0, 1]`.
+	float development_phase{};
+	
+	/// ID of the cocoon entity.
+	entity::id cocoon_eid{entt::null};
+	
+	/// Material variable associated with the cocoon decay phase.
+	std::shared_ptr<render::matvar_float> decay_phase_matvar;
 };
 
-#endif // ANTKEEPER_GAME_CAMERA_SYSTEM_HPP
+#endif // ANTKEEPER_GAME_PUPA_COMPONENT_HPP

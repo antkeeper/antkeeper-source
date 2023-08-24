@@ -27,7 +27,6 @@
 #include "game/components/constraint-stack-component.hpp"
 #include "game/components/scene-component.hpp"
 #include "game/components/picking-component.hpp"
-#include "game/components/spring-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/rigid-body-constraint-component.hpp"
 #include "game/components/steering-component.hpp"
@@ -186,7 +185,7 @@ nest_view_state::nest_view_state(::game& ctx):
 	
 	// Create cocoon
 	auto cocoon_eid = ctx.entity_registry->create();
-	auto cocoon_static_mesh = std::make_shared<scene::static_mesh>(worker_phenome.cocoon->model);
+	auto cocoon_static_mesh = std::make_shared<scene::static_mesh>(worker_phenome.pupa->cocoon_model);
 	cocoon_static_mesh->set_scale(worker_phenome.body_size->mean_mesosoma_length);
 	ctx.entity_registry->emplace<scene_component>(cocoon_eid, std::move(cocoon_static_mesh), std::uint8_t{2});
 	ctx.entity_registry->patch<scene_component>

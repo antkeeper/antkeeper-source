@@ -97,6 +97,16 @@ public:
 		m_friction_combine_mode = mode;
 	}
 	
+	/**
+	 * Sets the density of the material.
+	 *
+	 * @param density Material density.
+	 */
+	inline constexpr void set_density(float density) noexcept
+	{
+		m_density = density;
+	}
+	
 	/// Returns the restitution of the material.
 	[[nodiscard]] inline constexpr float get_restitution() const noexcept
 	{
@@ -127,6 +137,12 @@ public:
 		return m_friction_combine_mode;
 	}
 	
+	/// Returns the density of the material.
+	[[nodiscard]] inline constexpr float get_density() const noexcept
+	{
+		return m_density;
+	}
+	
 private:
 	/// Restitution value.
 	float m_restitution{};
@@ -142,6 +158,9 @@ private:
 	
 	/// Friction combine mode.
 	friction_combine_mode m_friction_combine_mode{friction_combine_mode::average};
+	
+	/// Density.
+	float m_density{1.0f};
 };
 
 } // namespace physics

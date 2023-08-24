@@ -65,6 +65,22 @@ public:
 	}
 	
 	/**
+	 * Sets the current scale of the rigid body.
+	 *
+	 * @param scale Scale of the rigid body.
+	 */
+	/// @{
+	inline constexpr void set_scale(const math::fvec3& scale) noexcept
+	{
+		m_current_transform.scale = scale;
+	}
+	inline constexpr void set_scale(float scale) noexcept
+	{
+		m_current_transform.scale = {scale, scale, scale};
+	}
+	/// @}
+	
+	/**
 	 * Sets the transformation representing the previous state of the rigid body.
 	 *
 	 * @param transform Transformation representing the previous state of the rigid body.
@@ -93,6 +109,22 @@ public:
 	{
 		m_previous_transform.rotation = orientation;
 	}
+	
+	/**
+	 * Sets the previous scale of the rigid body.
+	 *
+	 * @param scale Scale of the rigid body.
+	 */
+	/// @{
+	inline constexpr void set_previous_scale(const math::fvec3& scale) noexcept
+	{
+		m_previous_transform.scale = scale;
+	}
+	inline constexpr void set_previous_scale(float scale) noexcept
+	{
+		m_previous_transform.scale = {scale, scale, scale};
+	}
+	/// @}
 	
 	/**
 	 * Sets the center of mass of the rigid body.
@@ -218,6 +250,12 @@ public:
 		return m_current_transform.rotation;
 	}
 	
+	/// Returns the current scale of the rigid body.
+	[[nodiscard]] inline constexpr const math::fvec3& get_scale() const noexcept
+	{
+		return m_current_transform.scale;
+	}
+	
 	/// Returns the transformation representing the previous state of the rigid body.
 	[[nodiscard]] inline constexpr const math::transform<float>& get_previous_transform() const noexcept
 	{
@@ -234,6 +272,12 @@ public:
 	[[nodiscard]] inline constexpr const math::fquat& get_previous_orientation() const noexcept
 	{
 		return m_previous_transform.rotation;
+	}
+	
+	/// Returns the previous scale of the rigid body.
+	[[nodiscard]] inline constexpr const math::fvec3& get_previous_scale() const noexcept
+	{
+		return m_previous_transform.scale;
 	}
 	
 	/// Returns the center of mass of the rigid body.

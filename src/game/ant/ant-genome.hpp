@@ -22,7 +22,7 @@
 
 #include "game/ant/genes/ant-antennae-gene.hpp"
 #include "game/ant/genes/ant-body-size-gene.hpp"
-#include "game/ant/genes/ant-cocoon-gene.hpp"
+#include "game/ant/genes/ant-pupa-gene.hpp"
 #include "game/ant/genes/ant-diet-gene.hpp"
 #include "game/ant/genes/ant-egg-gene.hpp"
 #include "game/ant/genes/ant-eyes-gene.hpp"
@@ -50,7 +50,7 @@ struct ant_genome
 {
 	std::shared_ptr<ant_antennae_gene> antennae;
 	std::shared_ptr<ant_body_size_gene> body_size;
-	std::shared_ptr<ant_cocoon_gene> cocoon;
+	std::shared_ptr<ant_pupa_gene> pupa;
 	std::shared_ptr<ant_diet_gene> diet;
 	std::shared_ptr<ant_egg_gene> egg;
 	std::shared_ptr<ant_eyes_gene> eyes;

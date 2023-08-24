@@ -54,9 +54,14 @@ struct legged_locomotion_component
 	/// Distance covered in a single gait cycle.
 	float stride_length{};
 	
+	/// Maximum angular frequency when turning, in radians per second.
+	float max_angular_frequency{};
+	
 	float speed{};
 	
 	float angular_velocity{};
+	
+	math::fvec3 target_direction{};
 	
 	/// Current phase of the gait cycle, on `[0, 1]`.
 	float gait_phase{};

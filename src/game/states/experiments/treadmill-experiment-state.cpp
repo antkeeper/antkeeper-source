@@ -28,7 +28,6 @@
 #include "game/components/constraint-stack-component.hpp"
 #include "game/components/scene-component.hpp"
 #include "game/components/picking-component.hpp"
-#include "game/components/spring-component.hpp"
 #include "game/components/rigid-body-component.hpp"
 #include "game/components/rigid-body-constraint-component.hpp"
 #include "game/components/steering-component.hpp"
@@ -40,7 +39,7 @@
 #include "game/components/ik-component.hpp"
 #include "game/components/transform-component.hpp"
 #include "game/components/ovary-component.hpp"
-#include "game/components/orbit-camera-component.hpp"
+#include "game/components/spring-arm-component.hpp"
 #include "game/components/ant-genome-component.hpp"
 #include "game/constraints/child-of-constraint.hpp"
 #include "game/constraints/copy-rotation-constraint.hpp"
@@ -61,6 +60,7 @@
 #include "game/systems/atmosphere-system.hpp"
 #include "game/systems/camera-system.hpp"
 #include "game/systems/collision-system.hpp"
+#include "game/systems/physics-system.hpp"
 #include "game/world.hpp"
 #include <engine/animation/ease.hpp>
 #include <engine/animation/screen-transition.hpp>
@@ -75,6 +75,7 @@
 #include <engine/physics/kinematics/colliders/plane-collider.hpp>
 #include <engine/physics/kinematics/colliders/box-collider.hpp>
 #include <engine/physics/kinematics/colliders/capsule-collider.hpp>
+#include <engine/physics/kinematics/colliders/mesh-collider.hpp>
 #include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/ground-pass.hpp>
 #include <engine/render/passes/material-pass.hpp>
@@ -96,16 +97,6 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	game_state(ctx)
 {
 	debug::log::trace("Entering nest view state...");	
-	
-	// Create world if not yet created
-	if (ctx.entities.find("earth") == ctx.entities.end())
-	{
-		// Create cosmos
-		::world::cosmogenesis(ctx);
-		
-		// Create observer
-		::world::create_observer(ctx);
-	}
 	
 	ctx.active_scene = ctx.surface_scene.get();
 	
@@ -175,23 +166,49 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 		// }
 	// );
 	
-	// Create treadmill
-	auto treadmill_eid = ctx.entity_registry->create();
-	scene_component treadmill_scene_component;
-	treadmill_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("mobius-strip-nest-400mm.mdl"));
-	treadmill_scene_component.layer_mask = 1;
-	ctx.entity_registry->emplace<scene_component>(treadmill_eid, std::move(treadmill_scene_component));
+	// Create nest exterior
+	// {
+		// scene_component nest_exterior_scene_component;
+		// nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("round-petri-dish-nest-100mm-exterior.mdl"));
+		// nest_exterior_scene_component.layer_mask = 1;
+		
+		// auto nest_exterior_eid = ctx.entity_registry->create();
+		// ctx.entity_registry->emplace<scene_component>(nest_exterior_eid, std::move(nest_exterior_scene_component));
+	// }
 	
-	// Load navmesh
-	navmesh = ctx.resource_manager->load<geom::brep_mesh>("mobius-strip-nest-400mm.msh");
+	// Create nest interior
+	// {
+		// scene_component nest_interior_scene_component;
+		// nest_interior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("round-petri-dish-nest-100mm-interior.mdl"));
+		// nest_interior_scene_component.layer_mask = 1;
+		
+		// auto nest_interior_mesh = ctx.resource_manager->load<geom::brep_mesh>("round-petri-dish-nest-100mm-interior.msh");
+		// geom::generate_vertex_normals(*nest_interior_mesh);
+		
+		// auto nest_interior_rigid_body = std::make_unique<physics::rigid_body>();
+		// nest_interior_rigid_body->set_mass(0.0f);
+		// nest_interior_rigid_body->set_collider(std::make_shared<physics::mesh_collider>(std::move(nest_interior_mesh)));
+		
+		// auto nest_interior_eid = ctx.entity_registry->create();
+		// ctx.entity_registry->emplace<scene_component>(nest_interior_eid, std::move(nest_interior_scene_component));
+		// ctx.entity_registry->emplace<rigid_body_component>(nest_interior_eid, std::move(nest_interior_rigid_body));
+	// }
 	
-	// Generate navmesh attributes
-	geom::generate_vertex_normals(*navmesh);
-	
-	// Build navmesh BVH
-	debug::log::info("Building BVH...");
-	navmesh_bvh = std::make_unique<geom::bvh>(*navmesh);
-	debug::log::info("Built BVH");
+	{
+		scene_component nest_interior_scene_component;
+		nest_interior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("soil-nest.mdl"));
+		nest_interior_scene_component.layer_mask = 1;
+		
+		auto nest_interior_mesh = ctx.resource_manager->load<geom::brep_mesh>("soil-nest.msh");
+		
+		auto nest_interior_rigid_body = std::make_unique<physics::rigid_body>();
+		nest_interior_rigid_body->set_mass(0.0f);
+		nest_interior_rigid_body->set_collider(std::make_shared<physics::mesh_collider>(std::move(nest_interior_mesh)));
+		
+		auto nest_interior_eid = ctx.entity_registry->create();
+		ctx.entity_registry->emplace<scene_component>(nest_interior_eid, std::move(nest_interior_scene_component));
+		ctx.entity_registry->emplace<rigid_body_component>(nest_interior_eid, std::move(nest_interior_rigid_body));
+	}
 	
 	// Create worker
 	auto worker_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_model);
@@ -255,6 +272,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	}
 	worker_locomotion_component.standing_height = worker_phenome->legs->standing_height;
 	worker_locomotion_component.stride_length = worker_phenome->legs->stride_length * worker_rigid_body_component.body->get_transform().scale.x();
+	worker_locomotion_component.max_angular_frequency = worker_phenome->legs->max_angular_frequency;
 	
 	navmesh_agent_component worker_navmesh_agent_component;
 	
@@ -302,7 +320,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	ctx.ground_pass->set_enabled(true);
 	
 	sky_probe = std::make_shared<scene::light_probe>();
-	sky_probe->set_luminance_texture(std::make_shared<gl::texture_cube>(384, 512, gl::pixel_type::float_16, gl::pixel_format::rgb));
+	sky_probe->set_luminance_texture(std::make_shared<gl::texture_cube>(512, 384, gl::pixel_type::float_16, gl::pixel_format::rgb));
 	ctx.sky_pass->set_sky_probe(sky_probe);
 	ctx.surface_scene->add_object(*sky_probe);
 	
@@ -359,32 +377,30 @@ treadmill_experiment_state::~treadmill_experiment_state()
 void treadmill_experiment_state::create_third_person_camera_rig()
 {
 	const auto& subject_rigid_body = *ctx.entity_registry->get<rigid_body_component>(ctx.controlled_ant_eid).body;
-	orbit_camera_component orbit_cam;
-	orbit_cam.subject_eid = ctx.controlled_ant_eid;
-	orbit_cam.yaw = math::radians(0.0);
-	orbit_cam.pitch = math::radians(45.0);
-	orbit_cam.near_focal_plane_height = {1.0};
-	orbit_cam.far_focal_plane_height = {50.0};
-	orbit_cam.near_hfov = math::radians(90.0);
-	orbit_cam.far_hfov = math::radians(45.0);
-	orbit_cam.zoom = 0.25;
-	orbit_cam.focal_point = {0, worker_phenome->legs->standing_height * subject_rigid_body.get_transform().scale.x(), 0};
+	const auto subject_scale = static_cast<double>(subject_rigid_body.get_transform().scale.x());
+	
+	spring_arm_component spring_arm;
+	spring_arm.parent_eid = ctx.controlled_ant_eid;
+	spring_arm.near_focal_plane_height = 8.0 * subject_scale;
+	spring_arm.far_focal_plane_height = 80.0 * subject_scale;
+	spring_arm.near_hfov = math::radians(90.0);
+	spring_arm.far_hfov = math::radians(45.0);
+	spring_arm.zoom = 0.25;
+	spring_arm.focal_point_offset = {0, static_cast<double>(worker_phenome->legs->standing_height) * subject_scale, 0};
+	
+	spring_arm.focal_point_spring.set_damping_ratio(1.0);
+	spring_arm.focal_point_spring.set_period(0.01);
+	
+	spring_arm.angles_spring.set_damping_ratio(1.0);
+	spring_arm.angles_spring.set_period(0.25);
+	
+	spring_arm.min_angles.x() = -math::half_pi<double>;
+	spring_arm.max_angles.x() = 0.0;
 	
 	third_person_camera_rig_eid = ctx.entity_registry->create();
 	ctx.entity_registry->emplace<scene_component>(third_person_camera_rig_eid, ctx.surface_camera, std::uint8_t{1});
-	ctx.entity_registry->emplace<orbit_camera_component>(third_person_camera_rig_eid, std::move(orbit_cam));
-	
+	ctx.entity_registry->emplace<spring_arm_component>(third_person_camera_rig_eid, std::move(spring_arm));
 	ctx.active_camera_eid = third_person_camera_rig_eid;
-	
-	/*
-	// Construct third person camera rig entity
-	third_person_camera_rig_eid = ctx.entity_registry->create();
-	ctx.entity_registry->emplace<scene_component>(third_person_camera_rig_eid, third_person_camera_rig_camera);
-	
-	set_third_person_camera_zoom(third_person_camera_zoom);
-	set_third_person_camera_rotation(third_person_camera_yaw, third_person_camera_pitch);
-	update_third_person_camera();
-	*/
 }
 
 void treadmill_experiment_state::destroy_third_person_camera_rig()
@@ -394,49 +410,22 @@ void treadmill_experiment_state::destroy_third_person_camera_rig()
 
 void treadmill_experiment_state::set_third_person_camera_zoom(double zoom)
 {
-	zoom = std::min<double>(std::max<double>(zoom, 0.0), 1.0);
-	
-	auto& orbit_cam = ctx.entity_registry->get<orbit_camera_component>(third_person_camera_rig_eid);
-	orbit_cam.zoom = zoom;
 }
 
 void treadmill_experiment_state::set_third_person_camera_rotation(double yaw, double pitch)
 {
-	pitch = std::min(math::half_pi<double>, std::max(-math::half_pi<double>, pitch));
-	
-	auto& orbit_cam = ctx.entity_registry->get<orbit_camera_component>(third_person_camera_rig_eid);
-	orbit_cam.yaw = yaw;
-	orbit_cam.pitch = pitch;
 }
 
 void treadmill_experiment_state::zoom_third_person_camera(double zoom)
 {
-	const auto& orbit_cam = ctx.entity_registry->get<orbit_camera_component>(third_person_camera_rig_eid);
-
-	set_third_person_camera_zoom(orbit_cam.zoom + zoom);
 }
 
 void treadmill_experiment_state::translate_third_person_camera(const math::dvec3& direction, double magnitude)
 {
-	auto& orbit_cam = ctx.entity_registry->get<orbit_camera_component>(third_person_camera_rig_eid);
-	
-	// Scale translation magnitude by factor of focal plane height
-	const auto scaled_magnitude = magnitude * orbit_cam.focal_plane_height;
-	
-	// Rotate translation direction according to camera yaw
-	const math::dvec3 rotated_direction = orbit_cam.yaw_rotation * direction;
-	
-	orbit_cam.focal_point += rotated_direction * scaled_magnitude * third_person_camera_speed;
 }
 
 void treadmill_experiment_state::rotate_third_person_camera(const input::mouse_moved_event& event)
 {
-	const auto& orbit_cam = ctx.entity_registry->get<orbit_camera_component>(third_person_camera_rig_eid);
-	
-	const double yaw = orbit_cam.yaw - ctx.mouse_pan_factor * static_cast<double>(event.difference.x());
-	const double pitch = orbit_cam.pitch + ctx.mouse_tilt_factor * static_cast<double>(event.difference.y());
-	
-	set_third_person_camera_rotation(yaw, pitch);
 }
 
 void treadmill_experiment_state::handle_mouse_motion(const input::mouse_moved_event& event)
@@ -546,60 +535,28 @@ void treadmill_experiment_state::setup_controls()
 				const auto& mouse_position = (*ctx.input_manager->get_mice().begin())->get_position();
 				const auto mouse_ray = get_mouse_ray(mouse_position);
 				
-				debug::log::info("pick:");
-				float nearest_hit = std::numeric_limits<float>::infinity();
-				bool hit = false;
-				std::uint32_t hit_index;
-				const auto& vertex_positions = navmesh->vertices().attributes().at<math::fvec3>("position");
-				const auto& face_normals = navmesh->faces().attributes().at<math::fvec3>("normal");
-				std::size_t test_count = 0;
-				
-				
-				int box_test_passed = 0;
-				navmesh_bvh->visit
-				(
-					mouse_ray,
-					[&](std::uint32_t index)
-					{
-						++box_test_passed;
-						
-						geom::brep_face* face = navmesh->faces()[index];
-						const auto& n = face_normals[index];
-						if (math::dot(n, mouse_ray.direction) > 0.0f)
-						{
-							return;
-						}
-						
-						auto loop = face->loops().begin();
-						const auto& a = vertex_positions[loop->vertex()->index()];
-						const auto& b = vertex_positions[(++loop)->vertex()->index()];
-						const auto& c = vertex_positions[(++loop)->vertex()->index()];
-						
-						if (auto intersection = geom::intersection(mouse_ray, a, b, c))
-						{
-							++test_count;
-							float t = std::get<0>(*intersection);
-							if (t < nearest_hit)
-							{
-								hit = true;
-								nearest_hit = t;
-								hit_index = index;
-							}
-						}
-					}
-				);
-				
-				debug::log::info("box tests passed: {}", box_test_passed);
-				
-				if (hit)
+				if (auto trace = ctx.physics_system->trace(mouse_ray))
 				{
-					const auto& navmesh_face_normals = navmesh->faces().attributes().at<math::fvec3>("normal");
+					// debug::log::debug("HIT! EID: {}; distance: {}; face: {}", static_cast<int>(std::get<0>(*trace)), std::get<1>(*trace), std::get<2>(*trace));
+					
+					const auto& hit_rigid_body = *ctx.entity_registry->get<rigid_body_component>(std::get<0>(*trace)).body;
+					const auto& hit_collider = *hit_rigid_body.get_collider();
+					const auto hit_distance = std::get<1>(*trace);
+					const auto& hit_normal = std::get<3>(*trace);
+					
+					geom::brep_mesh* hit_mesh = nullptr;
+					geom::brep_face* hit_face = nullptr;
+					if (hit_collider.type() == physics::collider_type::mesh)
+					{
+						hit_mesh = static_cast<const physics::mesh_collider&>(hit_collider).get_mesh().get();
+						hit_face = hit_mesh->faces()[std::get<2>(*trace)];
+					}
 					
 					// Update agent transform
-					auto& agent_rigid_body = *ctx.entity_registry->get<::rigid_body_component>(worker_eid).body;
+					auto& agent_rigid_body = *ctx.entity_registry->get<rigid_body_component>(worker_eid).body;
 					auto agent_transform = agent_rigid_body.get_transform();
-					agent_transform.translation = mouse_ray.extrapolate(nearest_hit);
-					agent_transform.rotation = math::rotation(math::fvec3{0, 1, 0}, navmesh_face_normals[hit_index]);
+					agent_transform.translation = mouse_ray.extrapolate(hit_distance);
+					agent_transform.rotation = math::rotation(math::fvec3{0, 1, 0}, hit_normal);
 					agent_rigid_body.set_transform(agent_transform);
 					agent_rigid_body.set_previous_transform(agent_transform);
 					
@@ -609,17 +566,11 @@ void treadmill_experiment_state::setup_controls()
 						worker_eid,
 						[&](auto& component)
 						{
-							component.mesh = navmesh.get();
-							component.face = navmesh->faces()[hit_index];
-							component.surface_normal = navmesh_face_normals[hit_index];
+							component.mesh = hit_mesh;
+							component.face = hit_face;
+							component.surface_normal = hit_normal;
 						}
 					);
-					
-					debug::log::info("hit! test count: {}", test_count);
-				}
-				else
-				{
-					debug::log::info("no hit");
 				}
 			}
 		)

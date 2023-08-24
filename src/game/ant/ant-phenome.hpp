@@ -22,7 +22,7 @@
 
 #include "game/ant/genes/ant-antennae-gene.hpp"
 #include "game/ant/genes/ant-body-size-gene.hpp"
-#include "game/ant/genes/ant-cocoon-gene.hpp"
+#include "game/ant/genes/ant-pupa-gene.hpp"
 #include "game/ant/genes/ant-diet-gene.hpp"
 #include "game/ant/genes/ant-egg-gene.hpp"
 #include "game/ant/genes/ant-eyes-gene.hpp"
@@ -63,7 +63,7 @@ struct ant_phenome
 	
 	const ant_antennae_phene* antennae{nullptr};
 	const ant_body_size_phene* body_size{nullptr};
-	const ant_cocoon_phene* cocoon{nullptr};
+	const ant_pupa_phene* pupa{nullptr};
 	const ant_diet_phene* diet{nullptr};
 	const ant_egg_phene* egg{nullptr};
 	const ant_eyes_phene* eyes{nullptr};

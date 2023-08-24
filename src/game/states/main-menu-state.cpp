@@ -277,8 +277,8 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	ctx.sky_pass->set_enabled(true);
 	ctx.ground_pass->set_enabled(true);
 	
-	// Disable UI color clear
-	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
+	// Enable UI color clear
+	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
 	
 	// Setup window resized callback
 	window_resized_subscription = ctx.window->get_resized_channel().subscribe

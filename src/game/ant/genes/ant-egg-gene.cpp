@@ -27,6 +27,9 @@ namespace {
 
 void load_ant_egg_phene(ant_egg_phene& phene, ::resource_manager& resource_manager, deserialize_context& ctx)
 {
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.incubation_period), 1);
+	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&phene.eclosion_period), 1);
+	
 	std::uint8_t model_filename_length{0};
 	ctx.read8(reinterpret_cast<std::byte*>(&model_filename_length), 1);
 	std::string model_filename(model_filename_length, '\0');
