@@ -42,7 +42,7 @@ public:
 	using aabb_type = geom::box<float>;
 	
 	/// Returns the type ID for this scene object type.
-	virtual const std::size_t get_object_type_id() const noexcept = 0;
+	[[nodiscard]] virtual const std::size_t get_object_type_id() const noexcept = 0;
 	
 	/**
 	 * Adds render operations to a render context.
@@ -55,7 +55,17 @@ public:
 	 *
 	 */
 	void look_at(const vector_type& position, const vector_type& target, const vector_type& up);
-
+	
+	/**
+	 * Sets the layer mask of the object.
+	 *
+	 * @param mask 32-bit layer mask in which each set bit represents a layer in which the object is visible.
+	 */
+	inline constexpr void set_layer_mask(std::uint32_t mask) noexcept
+	{
+		m_layer_mask = mask;
+	}
+	
 	/**
 	 * Sets the transform of the object.
 	 *
@@ -106,27 +116,33 @@ public:
 		transformed();
 	}
 	/// @}
+	
+	/// Returns the layer mask of the object.
+	[[nodiscard]] inline constexpr std::uint32_t get_layer_mask() const noexcept
+	{
+		return m_layer_mask;
+	}
 
 	/// Returns the transform of the object.
-	[[nodiscard]] inline const transform_type& get_transform() const noexcept
+	[[nodiscard]] inline constexpr const transform_type& get_transform() const noexcept
 	{
 		return m_transform;
 	}
 
 	/// Returns the translation of the object.
-	[[nodiscard]] inline const vector_type& get_translation() const noexcept
+	[[nodiscard]] inline constexpr const vector_type& get_translation() const noexcept
 	{
 		return m_transform.translation;
 	}
 
 	/// Returns the rotation of the object.
-	[[nodiscard]] inline const quaternion_type& get_rotation() const noexcept
+	[[nodiscard]] inline constexpr const quaternion_type& get_rotation() const noexcept
 	{
 		return m_transform.rotation;
 	}
 
 	/// Returns the scale of the object.
-	[[nodiscard]] inline const vector_type& get_scale() const noexcept
+	[[nodiscard]] inline constexpr const vector_type& get_scale() const noexcept
 	{
 		return m_transform.scale;
 	}
@@ -136,16 +152,13 @@ public:
 
 protected:
 	static std::size_t next_object_type_id();
-
-private:
-	/// Interpolates between two transforms.
-	static transform_type interpolate_transforms(const transform_type& x, const transform_type& y, float a);
 	
 	/**
 	 * Called every time the scene object's tranform is changed.
 	 */
 	inline virtual void transformed() {}
 	
+	std::uint32_t m_layer_mask{1};
 	transform_type m_transform{transform_type::identity()};
 };
 
@@ -161,7 +174,7 @@ public:
 	/// Unique type ID for this scene object type.
 	static const std::atomic<std::size_t> object_type_id;
 	
-	inline const std::size_t get_object_type_id() const noexcept final
+	[[nodiscard]] inline const std::size_t get_object_type_id() const noexcept final
 	{
 		return object_type_id;
 	}

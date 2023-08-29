@@ -53,7 +53,7 @@ public:
 	 * @param alpha Subframe interpolation factor.
 	 * @param collection Collection of scene objects to render.
 	 */
-	void render(float t, float dt, float alpha, const scene::collection& collection);
+	void render(float t, float dt, float alpha, scene::collection& collection);
 	
 private:
 	render::context m_ctx;

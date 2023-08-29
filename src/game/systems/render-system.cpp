@@ -72,7 +72,7 @@ void render_system::draw(float alpha)
 {
 	if (renderer)
 	{
-		for (const scene::collection* collection: layers)
+		for (scene::collection* collection: layers)
 		{
 			renderer->render(t + dt * alpha, dt, alpha, *collection);
 		}

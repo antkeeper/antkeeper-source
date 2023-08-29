@@ -188,6 +188,11 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 
 void sky_pass::render(render::context& ctx)
 {
+	if (!(m_layer_mask & ctx.camera->get_layer_mask()))
+	{
+		return;
+	}
+	
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
@@ -219,7 +224,7 @@ void sky_pass::render(render::context& ctx)
 	// Construct matrices
 	const scene::camera& camera = *ctx.camera;
 	math::fvec3 model_scale = math::fvec3{1.0f, 1.0f, 1.0f} * (camera.get_clip_near() + camera.get_clip_far()) * 0.5f;
-	math::fmat4 model = math::scale(math::fmat4::identity(), model_scale);
+	math::fmat4 model = math::scale(model_scale);
 	math::fmat4 view = math::fmat4(math::fmat3(camera.get_view()));
 	math::fmat4 model_view = view * model;
 	const math::fmat4& projection = camera.get_projection();
@@ -387,8 +392,7 @@ void sky_pass::render(render::context& ctx)
 	{
 		float star_distance = (camera.get_clip_near() + camera.get_clip_far()) * 0.5f;
 		
-		model = math::fmat4(math::fmat3(icrf_to_eus.r));
-		model = math::scale(model, {star_distance, star_distance, star_distance});
+		model = math::fmat4(math::fmat3(icrf_to_eus.r)) * math::scale(math::fvec3{star_distance, star_distance, star_distance});
 		
 		model_view_projection = view_projection * model;
 		

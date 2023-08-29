@@ -25,6 +25,7 @@
 #include <engine/math/vector.hpp>
 #include <memory>
 #include <vector>
+#include <span>
 
 namespace scene {
 
@@ -76,25 +77,25 @@ public:
 	}
 	
 	/// Returns a unit vector pointing in the light direction.
-	[[nodiscard]] inline const math::fvec3& get_direction() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_direction() const noexcept
 	{
 		return m_direction;
 	}
 	
 	/// Returns the color of the light.
-	[[nodiscard]] inline const math::fvec3& get_color() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_color() const noexcept
 	{
 		return m_color;
 	}
 	
 	/// Returns the illuminance of the light on a surface perpendicular to the light direction.
-	[[nodiscard]] inline float get_illuminance() const noexcept
+	[[nodiscard]] inline constexpr float get_illuminance() const noexcept
 	{
 		return m_illuminance;
 	}
 	
 	/// Returns the color-modulated illuminance of the light on a surface perpendicular to the light direction.
-	[[nodiscard]] inline const math::fvec3& get_colored_illuminance() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_colored_illuminance() const noexcept
 	{
 		return m_colored_illuminance;
 	}
@@ -184,23 +185,29 @@ public:
 	
 	/// Returns the array of shadow cascade far clipping plane distances.
 	/// @{
-	[[nodiscard]] inline const std::vector<float>& get_shadow_cascade_distances() const noexcept
+	[[nodiscard]] inline constexpr std::span<const float> get_shadow_cascade_distances() const noexcept
 	{
 		return m_shadow_cascade_distances;
 	}
-	[[nodiscard]] inline std::vector<float>& get_shadow_cascade_distances() noexcept
+	[[nodiscard]] inline constexpr std::span<float> get_shadow_cascade_distances() noexcept
 	{
 		return m_shadow_cascade_distances;
 	}
 	/// @}
 	
+	/// Returns the array of shadow cascade bias-scale matrices.
+	[[nodiscard]] inline constexpr std::span<const math::fmat4> get_shadow_bias_scale_matrices() const noexcept
+	{
+		return m_shadow_bias_scale_matrices;
+	}
+	
 	/// Returns the array of world-space to cascade texture-space transformation matrices.
 	/// @{
-	[[nodiscard]] inline const std::vector<math::fmat4>& get_shadow_cascade_matrices() const noexcept
+	[[nodiscard]] inline constexpr std::span<const math::fmat4> get_shadow_cascade_matrices() const noexcept
 	{
 		return m_shadow_cascade_matrices;
 	}
-	[[nodiscard]] inline std::vector<math::fmat4>& get_shadow_cascade_matrices() noexcept
+	[[nodiscard]] inline constexpr std::span<math::fmat4> get_shadow_cascade_matrices() noexcept
 	{
 		return m_shadow_cascade_matrices;
 	}
@@ -212,6 +219,7 @@ private:
 	void transformed() override;
 	void color_updated();
 	void illuminance_updated();
+	void update_shadow_bias_scale_matrices();
 	
 	math::fvec3 m_direction{0.0f, 0.0f, -1.0f};
 	math::fvec3 m_color{1.0f, 1.0f, 1.0f};
@@ -220,12 +228,13 @@ private:
 	
 	bool m_shadow_caster{false};
 	std::shared_ptr<gl::framebuffer> m_shadow_framebuffer{nullptr};
-	float m_shadow_bias{0.005f};
+	float m_shadow_bias{0.001f};
 	unsigned int m_shadow_cascade_count{4};
 	float m_shadow_cascade_coverage{1.0f};
 	float m_shadow_cascade_distribution{0.8f};
-	mutable std::vector<float> m_shadow_cascade_distances;
-	mutable std::vector<math::fmat4> m_shadow_cascade_matrices;
+	std::vector<float> m_shadow_cascade_distances;
+	std::vector<math::fmat4> m_shadow_cascade_matrices;
+	std::vector<math::fmat4> m_shadow_bias_scale_matrices;
 };
 
 } // namespace scene

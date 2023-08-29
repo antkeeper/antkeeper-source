@@ -25,12 +25,12 @@
 #include <engine/gl/drawing-mode.hpp>
 #include <engine/render/context.hpp>
 #include <engine/render/material.hpp>
+#include <engine/render/vertex-attribute.hpp>
 #include <engine/gl/shader-template.hpp>
 #include <engine/scene/camera.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/scene/light.hpp>
 #include <engine/geom/primitives/view-frustum.hpp>
-#include <engine/config.hpp>
 #include <engine/math/interpolation.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/math/matrix.hpp>
@@ -47,54 +47,65 @@ static bool operation_compare(const render::operation* a, const render::operatio
 shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager):
 	pass(rasterizer, nullptr)
 {
+	std::unordered_map<std::string, std::string> definitions;
+	definitions["VERTEX_POSITION"]    = std::to_string(vertex_attribute::position);
+	definitions["VERTEX_UV"]          = std::to_string(vertex_attribute::uv);
+	definitions["VERTEX_NORMAL"]      = std::to_string(vertex_attribute::normal);
+	definitions["VERTEX_TANGENT"]     = std::to_string(vertex_attribute::tangent);
+	definitions["VERTEX_COLOR"]       = std::to_string(vertex_attribute::color);
+	definitions["VERTEX_BONE_INDEX"]  = std::to_string(vertex_attribute::bone_index);
+	definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute::bone_weight);
+	definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute::bone_weight);
+	definitions["MAX_BONE_COUNT"] = std::to_string(64);
+	
 	// Load unskinned shader template
 	auto unskinned_shader_template = resource_manager->load<gl::shader_template>("depth-unskinned.glsl");
 	
 	// Build unskinned shader program
-	unskinned_shader_program = unskinned_shader_template->build({});
+	unskinned_shader_program = unskinned_shader_template->build(definitions);
+	if (!unskinned_shader_program->linked())
+	{
+		debug::log::error("Failed to build unskinned shadow map shader program: {}", unskinned_shader_program->info());
+		debug::log::warning("{}", unskinned_shader_template->configure(gl::shader_stage::vertex));
+	}
 	unskinned_model_view_projection_var = unskinned_shader_program->variable("model_view_projection");
 	
 	// Load skinned shader template
 	auto skinned_shader_template = resource_manager->load<gl::shader_template>("depth-skinned.glsl");
 	
 	// Build skinned shader program
-	skinned_shader_program = skinned_shader_template->build({});
-	skinned_model_view_projection_var = skinned_shader_program->variable("model_view_projection");
-	
-	// Calculate bias-tile matrices
-	math::fmat4 bias_matrix = math::translate(math::fmat4::identity(), math::fvec3{0.5f, 0.5f, 0.5f}) * math::scale(math::fmat4::identity(), math::fvec3{0.5f, 0.5f, 0.5f});
-	math::fmat4 tile_scale = math::scale(math::fmat4::identity(), math::fvec3{0.5f, 0.5f, 1.0f});
-	for (int i = 0; i < 4; ++i)
+	skinned_shader_program = skinned_shader_template->build(definitions);
+	if (!skinned_shader_program->linked())
 	{
-		float x = static_cast<float>(i % 2) * 0.5f;
-		float y = static_cast<float>(i / 2) * 0.5f;
-		math::fmat4 tile_matrix = math::translate(math::fmat4::identity(), math::fvec3{x, y, 0.0f}) * tile_scale;
-		bias_tile_matrices[i] = tile_matrix * bias_matrix;
+		debug::log::error("Failed to build skinned shadow map shader program: {}", skinned_shader_program->info());
+		debug::log::warning("{}", skinned_shader_template->configure(gl::shader_stage::vertex));
 	}
+	skinned_model_view_projection_var = skinned_shader_program->variable("model_view_projection");
+	skinned_matrix_palette_var = skinned_shader_program->variable("matrix_palette");
 }
 
 void shadow_map_pass::render(render::context& ctx)
 {
 	// For each light
 	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
-	for (const scene::object_base* object: lights)
+	for (scene::object_base* object: lights)
 	{
 		// Ignore non-directional lights
-		const scene::light& light = static_cast<const scene::light&>(*object);
+		auto& light = static_cast<scene::light&>(*object);
 		if (light.get_light_type() != scene::light_type::directional)
 		{
 			continue;
 		}
 		
 		// Ignore non-shadow casters
-		const scene::directional_light& directional_light = static_cast<const scene::directional_light&>(light);
+		auto& directional_light = static_cast<scene::directional_light&>(light);
 		if (!directional_light.is_shadow_caster())
 		{
 			continue;
 		}
 		
 		// Ignore improperly-configured lights
-		if (!directional_light.get_shadow_cascade_count() || !directional_light.get_shadow_framebuffer())
+		if (!directional_light.get_shadow_framebuffer() || !directional_light.get_shadow_cascade_count())
 		{
 			continue;
 		}
@@ -104,8 +115,16 @@ void shadow_map_pass::render(render::context& ctx)
 	}
 }
 
-void shadow_map_pass::render_csm(const scene::directional_light& light, render::context& ctx)
+void shadow_map_pass::render_csm(scene::directional_light& light, render::context& ctx)
 {
+	// Get light layer mask
+	const auto light_layer_mask = light.get_layer_mask();
+	
+	if (!light_layer_mask & ctx.camera->get_layer_mask())
+	{
+		return;
+	}
+	
 	rasterizer->use_framebuffer(*light.get_shadow_framebuffer());
 	
 	// Disable blending
@@ -113,7 +132,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 	
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	glDepthFunc(GL_GREATER);
 	glDepthMask(GL_TRUE);
 	
 	// Enable back-face culling
@@ -124,17 +143,18 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 	// For half-z buffer
 	glDepthRange(-1.0f, 1.0f);
 	
+
+	
 	// Get camera
 	const scene::camera& camera = *ctx.camera;
 	
 	// Calculate distance to shadow cascade depth clipping planes
 	const float shadow_clip_far = math::lerp(camera.get_clip_near(), camera.get_clip_far(), light.get_shadow_cascade_coverage());
 	
-	const unsigned int cascade_count = light.get_shadow_cascade_count();
-	
-	/// @TODO: don't const_cast
-	auto& cascade_distances = const_cast<std::vector<float>&>(light.get_shadow_cascade_distances());
-	auto& cascade_matrices = const_cast<std::vector<math::fmat4>&>(light.get_shadow_cascade_matrices());
+	// Get light shadow cascade distances and matrices
+	const auto cascade_count = light.get_shadow_cascade_count();
+	const auto cascade_distances = light.get_shadow_cascade_distances();
+	const auto cascade_matrices = light.get_shadow_cascade_matrices();
 	
 	// Calculate cascade far clipping plane distances
 	cascade_distances[cascade_count - 1] = shadow_clip_far;
@@ -166,31 +186,15 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 		viewport[3] = cascade_resolution;
 	}
 	
-	// Reverse half z clip-space coordinates of a cube
-	constexpr math::fvec4 clip_space_cube[8] =
-	{
-		{-1, -1, 1, 1}, // NBL
-		{ 1, -1, 1, 1}, // NBR
-		{-1,  1, 1, 1}, // NTL
-		{ 1,  1, 1, 1}, // NTR
-		{-1, -1, 0, 1}, // FBL
-		{ 1, -1, 0, 1}, // FBR
-		{-1,  1, 0, 1}, // FTL
-		{ 1,  1, 0, 1}  // FTR
-	};
-	
-	// Calculate world-space corners of camera view frustum
-	math::fvec3 view_frustum_corners[8];
-	for (std::size_t i = 0; i < 8; ++i)
-	{
-		math::fvec4 corner = camera.get_inverse_view_projection() * clip_space_cube[i];
-		view_frustum_corners[i] = math::fvec3(corner) / corner[3];
-	}
-	
 	// Sort render operations
 	std::sort(std::execution::par_unseq, ctx.operations.begin(), ctx.operations.end(), operation_compare);
 	
 	gl::shader_program* active_shader_program = nullptr;
+	
+	// Precalculate frustum minimal bounding sphere terms
+	const auto k = std::sqrt(1.0f + camera.get_aspect_ratio() * camera.get_aspect_ratio()) * std::tan(camera.get_vertical_fov() * 0.5f);
+	const auto k2 = k * k;
+	const auto k4 = k2 * k2;
 	
 	for (unsigned int i = 0; i < cascade_count; ++i)
 	{
@@ -198,69 +202,60 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 		const math::ivec4& viewport = shadow_map_viewports[i];
 		rasterizer->set_viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 		
-		// Calculate world-space corners and center of camera subfrustum
-		const float t_near = (i) ? cascade_distances[i - 1] / camera.get_clip_far() : 0.0f;
-		const float t_far = cascade_distances[i] / camera.get_clip_far();
-		math::fvec3 subfrustum_center{0, 0, 0};
-		math::fvec3 subfrustum_corners[8];
-		for (std::size_t i = 0; i < 4; ++i)
+		// Find minimal bounding sphere of subfrustum in view-space
+		// @see https://lxjk.github.io/2017/04/15/Calculate-Minimal-Bounding-Sphere-of-Frustum.html
+		geom::sphere<float> subfrustum_bounds;
 		{
-			subfrustum_corners[i] = math::lerp(view_frustum_corners[i], view_frustum_corners[i + 4], t_near);
-			subfrustum_corners[i + 4] = math::lerp(view_frustum_corners[i], view_frustum_corners[i + 4], t_far);
+			// Get subfrustum near and far distances
+			const auto n = (i) ? cascade_distances[i - 1] : camera.get_clip_near();
+			const auto f = cascade_distances[i];
 			
-			subfrustum_center += subfrustum_corners[i];
-			subfrustum_center += subfrustum_corners[i + 4];
-		}
-		subfrustum_center *= (1.0f / 8.0f);
-		
-		// Calculate a view-projection matrix from the light's point-of-view
-		const math::fvec3 light_up = light.get_rotation() * config::global_up;
-		math::fmat4 light_view = math::look_at(subfrustum_center, subfrustum_center + light.get_direction(), light_up);
-		math::fmat4 light_projection = math::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-		math::fmat4 light_view_projection = light_projection * light_view;
-		
-		// Calculate AABB of the subfrustum corners in light clip-space
-		geom::box<float> cropping_bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
-		for (std::size_t i = 0; i < 8; ++i)
-		{
-			math::fvec4 corner4 = math::fvec4(subfrustum_corners[i]);
-			corner4[3] = 1.0f;
-			corner4 = light_view_projection * corner4;
-			
-			const math::fvec3 corner3 = math::fvec3(corner4) / corner4[3];
-			
-			cropping_bounds.min = math::min(cropping_bounds.min, corner3);
-			cropping_bounds.max = math::max(cropping_bounds.max, corner3);
+			if (k2 >= (f - n) / (f + n))
+			{
+				subfrustum_bounds.center = {0, 0, -f};
+				subfrustum_bounds.radius = f * k;
+			}
+			else
+			{
+				subfrustum_bounds.center = {0, 0, -0.5f * (f + n) * (1.0f + k2)};
+				subfrustum_bounds.radius = 0.5f * std::sqrt((k4 + 2.0f * k2 + 1.0f) * (f * f + n * n) + 2.0f * f * (k4 - 1.0f) * n);
+			}
 		}
 		
-		// Quantize clip-space coordinates
-		const float texel_scale_x = (cropping_bounds.max.x() - cropping_bounds.min.x()) / static_cast<float>(cascade_resolution);
-		const float texel_scale_y = (cropping_bounds.max.y() - cropping_bounds.min.y()) / static_cast<float>(cascade_resolution);
-		cropping_bounds.min.x() = std::floor(cropping_bounds.min.x() / texel_scale_x) * texel_scale_x;
-		cropping_bounds.max.x() = std::floor(cropping_bounds.max.x() / texel_scale_x) * texel_scale_x;
-		cropping_bounds.min.y() = std::floor(cropping_bounds.min.y() / texel_scale_y) * texel_scale_y;
-		cropping_bounds.max.y() = std::floor(cropping_bounds.max.y() / texel_scale_y) * texel_scale_y;
+		// Transform subfrustum bounds into world-space
+		subfrustum_bounds.center = camera.get_translation() + camera.get_rotation() * subfrustum_bounds.center;
 		
-		/// @NOTE: light z should be modified here to included shadow casters outside the view frustum
-		// cropping_bounds.min.z() -= 10.0f;
-		// cropping_bounds.max.z() += 10.0f;
+		// Discretize view-space subfrustum bounds
+		const auto texel_scale = static_cast<float>(cascade_resolution) / (subfrustum_bounds.radius * 2.0f);
+		subfrustum_bounds.center = math::conjugate(light.get_rotation()) * subfrustum_bounds.center;
+		subfrustum_bounds.center = math::floor(subfrustum_bounds.center * texel_scale) / texel_scale;
+		subfrustum_bounds.center = light.get_rotation() * subfrustum_bounds.center;
 		
-		// Crop light projection matrix
-		light_projection = math::ortho_half_z
+		// Construct light view matrix
+		const auto light_view = math::look_at(subfrustum_bounds.center, subfrustum_bounds.center + light.get_direction(), light.get_rotation() * math::fvec3{0, 1, 0});
+		
+		// Construct light projection matrix (reversed half-z)
+		const auto light_projection = math::ortho_half_z
 		(
-			cropping_bounds.min.x(), cropping_bounds.max.x(),
-			cropping_bounds.min.y(), cropping_bounds.max.y(),
-			cropping_bounds.min.z(), cropping_bounds.max.z()
+			-subfrustum_bounds.radius, subfrustum_bounds.radius,
+			-subfrustum_bounds.radius, subfrustum_bounds.radius,
+			subfrustum_bounds.radius, -subfrustum_bounds.radius
 		);
 		
-		// Recalculate light view projection matrix
-		light_view_projection = light_projection * light_view;
+		// Construct light view-projection matrix
+		const auto light_view_projection = light_projection * light_view;
 		
-		// Calculate world-space to cascade texture-space transformation matrix
-		cascade_matrices[i] = bias_tile_matrices[i] * light_view_projection;
+		// Update world-space to cascade texture-space transformation matrix
+		cascade_matrices[i] = light.get_shadow_bias_scale_matrices()[i] * light_view_projection;
 		
 		for (const render::operation* operation: ctx.operations)
 		{
+			// Skip operations which don't share any layers with the shadow-casting light
+			if (!(operation->layer_mask & light_layer_mask))
+			{
+				continue;
+			}
+			
 			const render::material* material = operation->material.get();
 			if (material)
 			{
@@ -304,6 +299,7 @@ void shadow_map_pass::render_csm(const scene::directional_light& light, render::
 			else if (active_shader_program == skinned_shader_program.get())
 			{
 				skinned_model_view_projection_var->update(model_view_projection);
+				skinned_matrix_palette_var->update(operation->matrix_palette);
 			}
 
 			// Draw geometry

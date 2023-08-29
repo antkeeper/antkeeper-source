@@ -584,7 +584,7 @@ template <class T, std::size_t N>
  * @return Viewing transformation matrix.
  */
 template <class T>
-[[nodiscard]] constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target, vector<T, 3> up);
+[[nodiscard]] constexpr mat4<T> look_at(const vec3<T>& position, const vec3<T>& target, vec3<T> up);
 
 /**
  * Multiplies two matrices
@@ -677,15 +677,14 @@ template <class T>
 [[nodiscard]] mat3<T> rotate_z(T angle);
 
 /**
- * Scales a matrix.
+ * Constructs a scale matrix.
  *
- * @param m Matrix to scale.
  * @param v Scale vector.
  *
- * @return Scaled matrix.
+ * @return Scale matrix.
  */
 template <class T>
-[[nodiscard]] constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
+[[nodiscard]] constexpr mat4<T> scale(const vec3<T>& v);
 
 /**
  * Subtracts a matrix from another matrix.
@@ -731,15 +730,14 @@ template <class T, std::size_t N>
 [[nodiscard]] constexpr T trace(const matrix<T, N, N>& m) noexcept;
 
 /**
- * Translates a matrix.
+ * Constructs a translation matrix.
  *
- * @param m Matrix to translate.
  * @param v Translation vector.
  *
- * @return Translated matrix.
+ * @return Translation matrix.
  */
 template <class T>
-[[nodiscard]] constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v);
+[[nodiscard]] constexpr mat4<T> translate(const vec3<T>& v);
 
 /**
  * Calculates the transpose of a matrix.
@@ -966,13 +964,12 @@ constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m) noexcept
 }
 
 template <class T>
-constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 3>& target, vector<T, 3> up)
+constexpr mat4<T> look_at(const vec3<T>& position, const vec3<T>& target, vec3<T> up)
 {
-	vector<T, 3> forward = normalize(sub(target, position));
-	vector<T, 3> right = normalize(cross(forward, up));
+	const auto forward = normalize(sub(target, position));
+	const auto right = normalize(cross(forward, up));
 	up = cross(right, forward);
-
-	matrix<T, 4, 4> m
+	const auto m = mat4<T>
 	{{
 		{right[0], up[0], -forward[0], T{0}},
 		{right[1], up[1], -forward[1], T{0}},
@@ -980,7 +977,7 @@ constexpr matrix<T, 4, 4> look_at(const vector<T, 3>& position, const vector<T, 
 		{T{0}, T{0}, T{0}, T{1}}
 	}};
 	
-	return translate(m, negate(position));
+	return mul(m, translate(-position));
 }
 
 template <class T, std::size_t N, std::size_t M, std::size_t P>
@@ -1105,19 +1102,15 @@ mat3<T> rotate_z(T angle)
 }
 
 template <class T>
-constexpr matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
+constexpr mat4<T> scale(const vec3<T>& v)
 {
-	return mul
-	(
-		m,
-		matrix<T, 4, 4>
-		{{
-			{v[0], T{0}, T{0}, T{0}},
-			{T{0}, v[1], T{0}, T{0}},
-			{T{0}, T{0}, v[2], T{0}},
-			{T{0}, T{0}, T{0}, T{1}}
-		}}
-	);
+	return
+	{{
+		{v[0], T{0}, T{0}, T{0}},
+		{T{0}, v[1], T{0}, T{0}},
+		{T{0}, T{0}, v[2], T{0}},
+		{T{0}, T{0}, T{0}, T{1}}
+	}};
 }
 
 /// @private
@@ -1173,15 +1166,15 @@ constexpr T trace(const matrix<T, N, N>& m) noexcept
 }
 
 template <class T>
-constexpr matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
+constexpr mat4<T> translate(const vec3<T>& v)
 {
-	return mul(m, matrix<T, 4, 4>
+	return
 	{{
 		{T{1}, T{0}, T{0}, T{0}},
 		{T{0}, T{1}, T{0}, T{0}},
 		{T{0}, T{0}, T{1}, T{0}},
 		{v[0], v[1], v[2], T{1}}
-	}});
+	}};
 }
 
 /// @private

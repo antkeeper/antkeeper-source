@@ -31,7 +31,8 @@ void culling_stage::execute(render::context& ctx)
 	// Get all objects in the collection
 	const auto& objects = ctx.collection->get_objects();
 	
-	// Get camera view frustum
+	// Get camera layer mask and view frustum
+	const auto camera_layer_mask = ctx.camera->get_layer_mask();
 	const auto& view_frustum = ctx.camera->get_view_frustum();
 	
 	// Construct mutex to guard set of visible objects
@@ -52,8 +53,10 @@ void culling_stage::execute(render::context& ctx)
 			}
 			
 			// Cull object if it doesn't share any common layers with the camera
-			//if (!(object->get_layer_mask() & camera_layer_mask))
-			//	return;
+			if (!(object->get_layer_mask() & camera_layer_mask))
+			{
+				return;
+			}
 			
 			// Cull object if it's outside of the camera view frustum
 			if (!view_frustum.intersects(object->get_bounds()))

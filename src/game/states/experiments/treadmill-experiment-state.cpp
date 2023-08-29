@@ -176,42 +176,69 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 		// ctx.entity_registry->emplace<scene_component>(nest_exterior_eid, std::move(nest_exterior_scene_component));
 	// }
 	
-	// Create nest interior
-	// {
-		// scene_component nest_interior_scene_component;
-		// nest_interior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("round-petri-dish-nest-100mm-interior.mdl"));
-		// nest_interior_scene_component.layer_mask = 1;
+	// Create nest exterior
+	{
+		scene_component nest_exterior_scene_component;
+		nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere-nest-100mm-exterior.mdl"));
+		nest_exterior_scene_component.layer_mask = 1;
 		
-		// auto nest_interior_mesh = ctx.resource_manager->load<geom::brep_mesh>("round-petri-dish-nest-100mm-interior.msh");
-		// geom::generate_vertex_normals(*nest_interior_mesh);
+		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("sphere-nest-100mm-exterior.msh");
 		
-		// auto nest_interior_rigid_body = std::make_unique<physics::rigid_body>();
-		// nest_interior_rigid_body->set_mass(0.0f);
-		// nest_interior_rigid_body->set_collider(std::make_shared<physics::mesh_collider>(std::move(nest_interior_mesh)));
+		auto nest_exterior_rigid_body = std::make_unique<physics::rigid_body>();
+		nest_exterior_rigid_body->set_mass(0.0f);
+		nest_exterior_rigid_body->set_collider(std::make_shared<physics::mesh_collider>(std::move(nest_exterior_mesh)));
 		
-		// auto nest_interior_eid = ctx.entity_registry->create();
-		// ctx.entity_registry->emplace<scene_component>(nest_interior_eid, std::move(nest_interior_scene_component));
-		// ctx.entity_registry->emplace<rigid_body_component>(nest_interior_eid, std::move(nest_interior_rigid_body));
-	// }
+		auto nest_exterior_eid = ctx.entity_registry->create();
+		ctx.entity_registry->emplace<scene_component>(nest_exterior_eid, std::move(nest_exterior_scene_component));
+		ctx.entity_registry->emplace<rigid_body_component>(nest_exterior_eid, std::move(nest_exterior_rigid_body));
+	}
 	
+	// Create nest interior
 	{
 		scene_component nest_interior_scene_component;
-		nest_interior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("soil-nest.mdl"));
+		nest_interior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere-nest-100mm-interior.mdl"));
+		nest_interior_scene_component.object->set_layer_mask(0b10);
 		nest_interior_scene_component.layer_mask = 1;
 		
-		auto nest_interior_mesh = ctx.resource_manager->load<geom::brep_mesh>("soil-nest.msh");
+		auto nest_interior_mesh = ctx.resource_manager->load<geom::brep_mesh>("sphere-nest-100mm-interior.msh");
 		
 		auto nest_interior_rigid_body = std::make_unique<physics::rigid_body>();
 		nest_interior_rigid_body->set_mass(0.0f);
 		nest_interior_rigid_body->set_collider(std::make_shared<physics::mesh_collider>(std::move(nest_interior_mesh)));
+		nest_interior_rigid_body->get_collider()->set_layer_mask(0b10);
 		
 		auto nest_interior_eid = ctx.entity_registry->create();
 		ctx.entity_registry->emplace<scene_component>(nest_interior_eid, std::move(nest_interior_scene_component));
 		ctx.entity_registry->emplace<rigid_body_component>(nest_interior_eid, std::move(nest_interior_rigid_body));
 	}
 	
+	
+	// Create rectangle light
+	{
+		area_light = std::make_unique<scene::rectangle_light>();
+		area_light->set_luminous_flux(5000000.0f);
+		area_light->set_translation({0.0f, 0.0f, 0.0f});
+		area_light->set_rotation(math::fquat::rotate_x(math::radians(90.0f)));
+		area_light->set_scale(5.0f);
+		area_light->set_layer_mask(0b10);
+		ctx.surface_scene->add_object(*area_light);
+		
+		// Create light rectangle
+		auto light_rectangle_model = ctx.resource_manager->load<render::model>("light-rectangle.mdl");
+		auto light_rectangle_material = std::make_shared<render::material>(*light_rectangle_model->get_groups().front().material);
+		light_rectangle_emissive = std::static_pointer_cast<render::matvar_fvec3>(light_rectangle_material->get_variable("emissive"));
+		light_rectangle_emissive->set(area_light->get_colored_luminance());
+		auto light_rectangle_static_mesh = std::make_shared<scene::static_mesh>(light_rectangle_model);
+		light_rectangle_static_mesh->set_material(0, light_rectangle_material);
+		light_rectangle_static_mesh->set_transform(area_light->get_transform());
+		light_rectangle_static_mesh->set_layer_mask(area_light->get_layer_mask());
+		auto light_rectangle_eid = ctx.entity_registry->create();
+		ctx.entity_registry->emplace<scene_component>(light_rectangle_eid, std::move(light_rectangle_static_mesh), std::uint8_t{1});
+	}
+	
 	// Create worker
 	auto worker_skeletal_mesh = std::make_unique<scene::skeletal_mesh>(worker_model);
+	worker_skeletal_mesh->set_layer_mask(0b11);
 	
 	// Create worker IK rig
 	const auto& worker_skeleton = worker_model->get_skeleton();
@@ -310,7 +337,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
 	
 	// Init time scale
-	double time_scale = 60.0;
+	double time_scale = 0.0;
 	
 	// Set time scale
 	::world::set_time_scale(ctx, time_scale);
@@ -385,6 +412,7 @@ void treadmill_experiment_state::create_third_person_camera_rig()
 	spring_arm.far_focal_plane_height = 80.0 * subject_scale;
 	spring_arm.near_hfov = math::radians(90.0);
 	spring_arm.far_hfov = math::radians(45.0);
+	// spring_arm.far_hfov = math::radians(90.0);
 	spring_arm.zoom = 0.25;
 	spring_arm.focal_point_offset = {0, static_cast<double>(worker_phenome->legs->standing_height) * subject_scale, 0};
 	
@@ -535,7 +563,9 @@ void treadmill_experiment_state::setup_controls()
 				const auto& mouse_position = (*ctx.input_manager->get_mice().begin())->get_position();
 				const auto mouse_ray = get_mouse_ray(mouse_position);
 				
-				if (auto trace = ctx.physics_system->trace(mouse_ray))
+				const auto& camera_object = *ctx.entity_registry->get<::scene_component>(ctx.active_camera_eid).object;
+				
+				if (auto trace = ctx.physics_system->trace(mouse_ray, entt::null, camera_object.get_layer_mask()))
 				{
 					// debug::log::debug("HIT! EID: {}; distance: {}; face: {}", static_cast<int>(std::get<0>(*trace)), std::get<1>(*trace), std::get<2>(*trace));
 					

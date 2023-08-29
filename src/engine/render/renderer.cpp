@@ -45,7 +45,7 @@ renderer::renderer(gl::rasterizer& rasterizer, ::resource_manager& resource_mana
 	m_queue_stage = std::make_unique<render::queue_stage>();
 }
 
-void renderer::render(float t, float dt, float alpha, const scene::collection& collection)
+void renderer::render(float t, float dt, float alpha, scene::collection& collection)
 {
 	// Init render context
 	m_ctx.collection = &collection;

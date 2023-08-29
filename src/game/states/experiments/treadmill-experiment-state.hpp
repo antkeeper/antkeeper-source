@@ -30,6 +30,7 @@
 #include <engine/geom/primitives/plane.hpp>
 #include <engine/math/angles.hpp>
 #include <engine/scene/light-probe.hpp>
+#include <engine/scene/rectangle-light.hpp>
 #include <engine/geom/bvh/bvh.hpp>
 #include <engine/geom/brep/brep-mesh.hpp>
 #include <engine/animation/ik/ik-rig.hpp>
@@ -119,6 +120,7 @@ private:
 	std::shared_ptr<ik_rig> worker_ik_rig;
 	
 	std::shared_ptr<scene::light_probe> sky_probe;
+	std::shared_ptr<scene::rectangle_light> area_light;
 };
 
 #endif // ANTKEEPER_TREADMILL_EXPERIMENT_STATE_HPP

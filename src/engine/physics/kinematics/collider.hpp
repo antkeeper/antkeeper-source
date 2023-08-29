@@ -41,7 +41,7 @@ public:
 	/**
 	 * Sets the layer mask of the collider.
 	 *
-	 * @param mask 32-bit layer mask in which each bit represents a layer with which the collider can interact.
+	 * @param mask 32-bit layer mask in which each set bit represents a layer with which the collider can interact.
 	 */
 	inline constexpr void set_layer_mask(std::uint32_t mask) noexcept
 	{

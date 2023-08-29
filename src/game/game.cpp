@@ -738,13 +738,13 @@ void game::setup_rendering()
 	{
 		surface_shadow_map_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), shadow_map_framebuffer.get());
 		surface_shadow_map_clear_pass->set_cleared_buffers(false, true, false);
-		surface_shadow_map_clear_pass->set_clear_depth(1.0f);
+		surface_shadow_map_clear_pass->set_clear_depth(0.0f);
 		
 		surface_shadow_map_pass = std::make_unique<render::shadow_map_pass>(window->get_rasterizer(), resource_manager.get());
 		
 		surface_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
 		surface_clear_pass->set_clear_color({0.0f, 0.0f, 0.0f, 1.0f});
-		surface_clear_pass->set_clear_depth(-1.0f);
+		surface_clear_pass->set_clear_depth(0.0f);
 		surface_clear_pass->set_clear_stencil(0);
 		surface_clear_pass->set_cleared_buffers(true, true, true);
 		
@@ -816,7 +816,7 @@ void game::setup_scenes()
 	
 	// Allocate and init surface camera
 	surface_camera = std::make_shared<scene::camera>();
-	surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 5000.0f);
+	surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
 	surface_camera->set_compositor(surface_compositor.get());
 	surface_camera->set_composite_index(0);
 	

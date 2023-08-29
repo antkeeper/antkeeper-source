@@ -37,15 +37,17 @@ struct operation
 {
 	const gl::vertex_array* vertex_array{nullptr};
 	gl::drawing_mode drawing_mode{gl::drawing_mode::triangles};
-	std::size_t start_index{0};
-	std::size_t index_count{0};
+	std::size_t start_index{};
+	std::size_t index_count{};
 	std::shared_ptr<render::material> material;
 	
 	math::fmat4 transform{math::fmat4::identity()};
-	float depth{0.0f};
+	float depth{};
 	
-	std::size_t instance_count{0};
+	std::size_t instance_count{};
 	std::span<const math::fmat4> matrix_palette{};
+	
+	std::uint32_t layer_mask{};
 };
 
 } // namespace render

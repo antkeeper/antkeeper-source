@@ -125,6 +125,7 @@ void billboard::render(render::context& ctx) const
 	}
 	
 	m_render_op.depth = ctx.camera->get_view_frustum().near().distance(get_translation());
+	m_render_op.layer_mask = get_layer_mask();
 	
 	ctx.operations.emplace_back(&m_render_op);
 }

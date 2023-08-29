@@ -79,7 +79,7 @@ private:
 	/**
 	 * Evaluates scene lights and stores lighting information in local variables to be passed to shaders.
 	 */
-	void evaluate_lighting(const render::context& ctx);
+	void evaluate_lighting(const render::context& ctx, std::uint32_t layer_mask);
 	
 	void evaluate_misc(const render::context& ctx);
 	
@@ -115,9 +115,8 @@ private:
 	
 	// Directional shadows
 	std::vector<const gl::texture_2d*> directional_shadow_maps;
-	std::vector<float> directional_shadow_biases;
-	std::vector<const std::vector<float>*> directional_shadow_splits;
-	std::vector<const std::vector<math::fmat4>*> directional_shadow_matrices;
+	std::vector<std::span<const float>> directional_shadow_splits;
+	std::vector<std::span<const math::fmat4>> directional_shadow_matrices;
 	std::size_t directional_shadow_count;
 	
 	// Spot lights

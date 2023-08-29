@@ -79,6 +79,7 @@ void text::render(render::context& ctx) const
 	if (m_vertex_count)
 	{
 		m_render_op.depth = ctx.camera->get_view_frustum().near().distance(get_translation());
+		m_render_op.layer_mask = get_layer_mask();
 		ctx.operations.push_back(&m_render_op);
 	}
 }

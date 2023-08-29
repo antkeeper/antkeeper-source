@@ -42,7 +42,7 @@ struct context
 	const scene::camera* camera;
 	
 	/// Collection of scene objects being rendered.
-	const scene::collection* collection;
+	scene::collection* collection;
 	
 	/// Current time, in seconds.
 	float t;

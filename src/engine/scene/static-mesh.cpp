@@ -113,6 +113,7 @@ void static_mesh::render(render::context& ctx) const
 	for (auto& operation: m_operations)
 	{
 		operation.depth = depth;
+		operation.layer_mask = get_layer_mask();
 		ctx.operations.push_back(&operation);
 	}
 }

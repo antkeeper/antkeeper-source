@@ -62,15 +62,14 @@ private:
 	 * @param ctx Render context.
 	 * @param queue Render queue.
 	 */
-	void render_csm(const scene::directional_light& light, render::context& ctx);
+	void render_csm(scene::directional_light& light, render::context& ctx);
 	
 	std::unique_ptr<gl::shader_program> unskinned_shader_program;
 	const gl::shader_variable* unskinned_model_view_projection_var;
 	
 	std::unique_ptr<gl::shader_program> skinned_shader_program;
 	const gl::shader_variable* skinned_model_view_projection_var;
-	
-	math::fmat4 bias_tile_matrices[4];
+	const gl::shader_variable* skinned_matrix_palette_var;
 };
 
 } // namespace render

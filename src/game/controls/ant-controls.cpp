@@ -24,6 +24,7 @@
 #include "game/components/legged-locomotion-component.hpp"
 #include "game/components/ovary-component.hpp"
 #include "game/components/spring-arm-component.hpp"
+#include "game/components/scene-component.hpp"
 #include <engine/math/interpolation.hpp>
 #include <engine/math/euler-angles.hpp>
 #include <engine/debug/log.hpp>
@@ -228,7 +229,14 @@ void setup_ant_controls(::game& ctx)
 		(
 			[&](const auto& event)
 			{
-				world::switch_scene(ctx);
+				if (ctx.active_camera_eid == entt::null)
+				{
+					return;
+				}
+				
+				auto& camera_object = *ctx.entity_registry->get<scene_component>(ctx.active_camera_eid).object;
+				
+				camera_object.set_layer_mask(camera_object.get_layer_mask() == 1 ? 2 : 1);
 			}
 		)
 	);

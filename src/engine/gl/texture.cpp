@@ -331,7 +331,7 @@ void texture::resize(std::uint16_t width, std::uint16_t height, std::uint16_t de
 	/// @TODO: remove this
 	if (format == pixel_format::d)
 	{
-		glTexParameteri(m_gl_texture_target, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+		glTexParameteri(m_gl_texture_target, GL_TEXTURE_COMPARE_FUNC, GL_GREATER);
 		glTexParameteri(m_gl_texture_target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	}
 }

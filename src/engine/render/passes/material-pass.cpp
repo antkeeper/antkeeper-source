@@ -95,20 +95,27 @@ bool operation_compare(const render::operation* a, const render::operation* b)
 		}
 		else
 		{
-			// A and B are both opaque
-			
+			// A and B are both opaque, sort by material hash
 			const std::size_t hash_a = a->material->hash();
 			const std::size_t hash_b = b->material->hash();
 			
-			if (hash_a == hash_b)
-			{
-				// A and B have same material hash, sort by VAO
-				return (a->vertex_array < b->vertex_array);
-			}
-			else
+			if (hash_a != hash_b)
 			{
 				// A and B have different material hashes, sort by hash
 				return (hash_a < hash_b);
+			}
+			else
+			{
+				// A and B have the same material hash, sort by layer mask
+				if (a->layer_mask != b->layer_mask)
+				{
+					return (a->layer_mask < b->layer_mask);
+				}
+				else
+				{
+					// A and B have the same layer mask, sort by VAO
+					return (a->vertex_array < b->vertex_array);
+				}
 			}
 		}
 	}
@@ -152,10 +159,11 @@ void material_pass::render(render::context& ctx)
 	material_blend_mode active_blend_mode = material_blend_mode::opaque;
 	std::size_t active_cache_key = 0;
 	shader_cache_entry* active_cache_entry = nullptr;
+	std::uint32_t active_layer_mask = 0;
+	std::size_t active_lighting_state_hash = 0;
 	
 	// Gather information
 	evaluate_camera(ctx);
-	evaluate_lighting(ctx);
 	evaluate_misc(ctx);
 	
 	// Sort render operations
@@ -177,13 +185,20 @@ void material_pass::render(render::context& ctx)
 			material = fallback_material.get();
 		}
 		
-		// Switch materials if necessary
-		if (active_material != material)
+		// Evaluate visible lights
+		if (active_layer_mask != operation->layer_mask)
 		{
-			if (!material->get_shader_template())
-			{
-				continue;
-			}
+			evaluate_lighting(ctx, operation->layer_mask & ctx.camera->get_layer_mask());
+			active_layer_mask = operation->layer_mask;
+		}
+		
+		// Switch materials if necessary
+		if (active_material != material || active_lighting_state_hash != lighting_state_hash)
+		{
+			// if (!material->get_shader_template())
+			// {
+				// continue;
+			// }
 			
 			if (active_material_hash != material->hash())
 			{
@@ -271,6 +286,7 @@ void material_pass::render(render::context& ctx)
 			}
 			
 			active_material = material;
+			active_lighting_state_hash = lighting_state_hash;
 		}
 		
 		// Update geometry-dependent shader variables
@@ -315,7 +331,7 @@ void material_pass::evaluate_camera(const render::context& ctx)
 	log_depth_coef = 2.0f / std::log2(clip_depth[1] + 1.0f);
 }
 
-void material_pass::evaluate_lighting(const render::context& ctx)
+void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t layer_mask)
 {
 	// Reset light and shadow counts
 	light_probe_count = 0;
@@ -328,6 +344,11 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 	const auto& light_probes = ctx.collection->get_objects(scene::light_probe::object_type_id);
 	for (const scene::object_base* object: light_probes)
 	{
+		if (!(object->get_layer_mask() & layer_mask))
+		{
+			continue;
+		}
+		
 		if (!light_probe_count)
 		{
 			const scene::light_probe& light_probe = static_cast<const scene::light_probe&>(*object);
@@ -340,6 +361,11 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
 	for (const scene::object_base* object: lights)
 	{
+		if (!(object->get_layer_mask() & layer_mask))
+		{
+			continue;
+		}
+		
 		const scene::light& light = static_cast<const scene::light&>(*object);
 		
 		switch (light.get_light_type())
@@ -370,15 +396,13 @@ void material_pass::evaluate_lighting(const render::context& ctx)
 					if (directional_shadow_count > directional_shadow_maps.size())
 					{
 						directional_shadow_maps.resize(directional_shadow_count);
-						directional_shadow_biases.resize(directional_shadow_count);
 						directional_shadow_splits.resize(directional_shadow_count);
 						directional_shadow_matrices.resize(directional_shadow_count);
 					}
 					
 					directional_shadow_maps[index] = static_cast<const gl::texture_2d*>(directional_light.get_shadow_framebuffer()->get_depth_attachment());
-					directional_shadow_biases[index] = directional_light.get_shadow_bias();
-					directional_shadow_splits[index] = &directional_light.get_shadow_cascade_distances();
-					directional_shadow_matrices[index] = &directional_light.get_shadow_cascade_matrices();
+					directional_shadow_splits[index] = directional_light.get_shadow_cascade_distances();
+					directional_shadow_matrices[index] = directional_light.get_shadow_cascade_matrices();
 				}
 				break;
 			}
@@ -659,25 +683,23 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	{
 		if (auto directional_shadow_maps_var = shader_program.variable("directional_shadow_maps"))
 		{
-			auto directional_shadow_biases_var = shader_program.variable("directional_shadow_biases");
 			auto directional_shadow_splits_var = shader_program.variable("directional_shadow_splits");
 			auto directional_shadow_matrices_var = shader_program.variable("directional_shadow_matrices");
 			
-			if (directional_shadow_maps_var && directional_shadow_biases_var && directional_shadow_splits_var && directional_shadow_matrices_var)
+			if (directional_shadow_maps_var && directional_shadow_splits_var && directional_shadow_matrices_var)
 			{
 				command_buffer.emplace_back
 				(
-					[&, directional_shadow_maps_var, directional_shadow_biases_var, directional_shadow_splits_var, directional_shadow_matrices_var]()
+					[&, directional_shadow_maps_var, directional_shadow_splits_var, directional_shadow_matrices_var]()
 					{
 						directional_shadow_maps_var->update(std::span<const gl::texture_2d* const>{directional_shadow_maps.data(), directional_shadow_count});
-						directional_shadow_biases_var->update(std::span<const float>{directional_shadow_biases.data(), directional_shadow_count});
 						
 						std::size_t offset = 0;
 						for (std::size_t i = 0; i < directional_shadow_count; ++i)
 						{
-							directional_shadow_splits_var->update(*directional_shadow_splits[i], offset * 4);
-							directional_shadow_matrices_var->update(*directional_shadow_matrices[i], offset);
-							offset += directional_shadow_splits[i]->size();
+							directional_shadow_splits_var->update(directional_shadow_splits[i], offset * 4);
+							directional_shadow_matrices_var->update(directional_shadow_matrices[i], offset);
+							offset += directional_shadow_splits[i].size();
 						}
 					}
 				);

@@ -211,6 +211,16 @@ public:
 
 	
 	void set_sky_probe(std::shared_ptr<scene::light_probe> probe);
+	
+	/**
+	 * Sets the layer mask of the sky.
+	 *
+	 * @param mask 32-bit layer mask in which each set bit represents a layer in which the sky is visible.
+	 */
+	inline constexpr void set_layer_mask(std::uint32_t mask) noexcept
+	{
+		m_layer_mask = mask;
+	}
 
 private:
 	void rebuild_transmittance_lut_shader_program();
@@ -358,6 +368,8 @@ private:
 	math::fvec3 m_ground_albedo{};
 	
 	float magnification;
+	
+	std::uint32_t m_layer_mask{1};
 };
 
 } // namespace render

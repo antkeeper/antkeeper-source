@@ -78,7 +78,7 @@ void create_framebuffers(::game& ctx)
 	
 	// Create shadow map framebuffer
 	ctx.shadow_map_depth_texture = std::make_shared<gl::texture_2d>(ctx.shadow_map_resolution, ctx.shadow_map_resolution, gl::pixel_type::float_32, gl::pixel_format::d);
-	ctx.shadow_map_depth_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
+	ctx.shadow_map_depth_texture->set_wrapping(gl::texture_wrapping::clip, gl::texture_wrapping::clip);
 	ctx.shadow_map_depth_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 	ctx.shadow_map_depth_texture->set_max_anisotropy(0.0f);
 	ctx.shadow_map_framebuffer = std::make_shared<gl::framebuffer>(ctx.shadow_map_resolution, ctx.shadow_map_resolution);
