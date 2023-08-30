@@ -140,11 +140,6 @@ void shadow_map_pass::render_csm(scene::directional_light& light, render::contex
 	glCullFace(GL_BACK);
 	bool two_sided = false;
 	
-	// For half-z buffer
-	glDepthRange(-1.0f, 1.0f);
-	
-
-	
 	// Get camera
 	const scene::camera& camera = *ctx.camera;
 	
@@ -234,7 +229,7 @@ void shadow_map_pass::render_csm(scene::directional_light& light, render::contex
 		// Construct light view matrix
 		const auto light_view = math::look_at_rh(subfrustum_bounds.center, subfrustum_bounds.center + light.get_direction(), light.get_rotation() * math::fvec3{0, 1, 0});
 		
-		// Construct light projection matrix (reversed half-z)
+		// Construct light projection matrix (reversed depth)
 		const auto light_projection = math::ortho_half_z
 		(
 			-subfrustum_bounds.radius, subfrustum_bounds.radius,
@@ -246,7 +241,7 @@ void shadow_map_pass::render_csm(scene::directional_light& light, render::contex
 		const auto light_view_projection = light_projection * light_view;
 		
 		// Update world-space to cascade texture-space transformation matrix
-		cascade_matrices[i] = light.get_shadow_bias_scale_matrices()[i] * light_view_projection;
+		cascade_matrices[i] = light.get_shadow_scale_bias_matrices()[i] * light_view_projection;
 		
 		for (const render::operation* operation: ctx.operations)
 		{

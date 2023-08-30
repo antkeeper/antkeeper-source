@@ -195,10 +195,10 @@ public:
 	}
 	/// @}
 	
-	/// Returns the array of shadow cascade bias-scale matrices.
-	[[nodiscard]] inline constexpr std::span<const math::fmat4> get_shadow_bias_scale_matrices() const noexcept
+	/// Returns the array of shadow cascade scale-bias matrices.
+	[[nodiscard]] inline constexpr std::span<const math::fmat4> get_shadow_scale_bias_matrices() const noexcept
 	{
-		return m_shadow_bias_scale_matrices;
+		return m_shadow_scale_bias_matrices;
 	}
 	
 	/// Returns the array of world-space to cascade texture-space transformation matrices.
@@ -219,7 +219,7 @@ private:
 	void transformed() override;
 	void color_updated();
 	void illuminance_updated();
-	void update_shadow_bias_scale_matrices();
+	void update_shadow_scale_bias_matrices();
 	
 	math::fvec3 m_direction{0.0f, 0.0f, -1.0f};
 	math::fvec3 m_color{1.0f, 1.0f, 1.0f};
@@ -234,7 +234,7 @@ private:
 	float m_shadow_cascade_distribution{0.8f};
 	std::vector<float> m_shadow_cascade_distances;
 	std::vector<math::fmat4> m_shadow_cascade_matrices;
-	std::vector<math::fmat4> m_shadow_bias_scale_matrices;
+	std::vector<math::fmat4> m_shadow_scale_bias_matrices;
 };
 
 } // namespace scene

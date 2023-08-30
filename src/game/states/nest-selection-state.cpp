@@ -68,7 +68,6 @@
 #include <engine/physics/kinematics/colliders/box-collider.hpp>
 #include <engine/physics/kinematics/colliders/capsule-collider.hpp>
 #include <engine/render/passes/clear-pass.hpp>
-#include <engine/render/passes/ground-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/state-machine.hpp>
 #include <engine/scene/static-mesh.hpp>
@@ -216,7 +215,6 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
-	ctx.ground_pass->set_enabled(true);
 	
 	// Set camera exposure
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);

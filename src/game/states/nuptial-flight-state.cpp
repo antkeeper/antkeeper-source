@@ -55,7 +55,6 @@
 #include "game/world.hpp"
 #include "game/strings.hpp"
 #include <engine/render/passes/clear-pass.hpp>
-#include <engine/render/passes/ground-pass.hpp>
 #include <engine/utility/state-machine.hpp>
 #include <engine/config.hpp>
 #include <engine/math/interpolation.hpp>
@@ -98,7 +97,6 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
-	ctx.ground_pass->set_enabled(true);
 	
 	// Create mating swarm
 	swarm_eid = create_ant_swarm(ctx);

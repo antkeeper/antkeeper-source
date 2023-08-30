@@ -72,7 +72,7 @@ void camera::set_perspective(float vertical_fov, float aspect_ratio, float clip_
 	m_clip_near = clip_near;
 	m_clip_far = clip_far;
 	
-	// Recalculate projection matrix and its inverse
+	// Recalculate projection matrix (reversed depth) and its inverse
 	std::tie(m_projection, m_inv_projection) = math::perspective_half_z_inv(m_vertical_fov, m_aspect_ratio, m_clip_far, m_clip_near);
 	
 	// Recalculate view-projection matrix
@@ -104,7 +104,7 @@ void camera::set_orthographic(float clip_left, float clip_right, float clip_bott
 	m_clip_near = clip_near;
 	m_clip_far = clip_far;
 	
-	// Recalculate projection matrix and its inverse
+	// Recalculate projection matrix (reversed depth) and its inverse
 	std::tie(m_projection, m_inv_projection) = math::ortho_half_z_inv(m_clip_left, m_clip_right, m_clip_bottom, m_clip_top, m_clip_far, m_clip_near);
 	
 	// Update view-projection matrix and its inverse

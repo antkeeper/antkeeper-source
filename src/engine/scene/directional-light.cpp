@@ -24,7 +24,7 @@ namespace scene {
 directional_light::directional_light():
 	m_shadow_cascade_distances(m_shadow_cascade_count),
 	m_shadow_cascade_matrices(m_shadow_cascade_count),
-	m_shadow_bias_scale_matrices(m_shadow_cascade_count)
+	m_shadow_scale_bias_matrices(m_shadow_cascade_count)
 {
 	set_shadow_bias(m_shadow_bias);
 }
@@ -47,7 +47,7 @@ void directional_light::set_shadow_framebuffer(std::shared_ptr<gl::framebuffer> 
 void directional_light::set_shadow_bias(float bias) noexcept
 {
 	m_shadow_bias = bias;
-	update_shadow_bias_scale_matrices();
+	update_shadow_scale_bias_matrices();
 }
 
 void directional_light::set_shadow_cascade_count(unsigned int count) noexcept
@@ -55,8 +55,8 @@ void directional_light::set_shadow_cascade_count(unsigned int count) noexcept
 	m_shadow_cascade_count = count;
 	m_shadow_cascade_distances.resize(m_shadow_cascade_count);
 	m_shadow_cascade_matrices.resize(m_shadow_cascade_count);
-	m_shadow_bias_scale_matrices.resize(m_shadow_cascade_count);
-	update_shadow_bias_scale_matrices();
+	m_shadow_scale_bias_matrices.resize(m_shadow_cascade_count);
+	update_shadow_scale_bias_matrices();
 }
 
 void directional_light::set_shadow_cascade_coverage(float factor) noexcept
@@ -84,18 +84,21 @@ void directional_light::illuminance_updated()
 	m_colored_illuminance = m_color * m_illuminance;
 }
 
-void directional_light::update_shadow_bias_scale_matrices()
+void directional_light::update_shadow_scale_bias_matrices()
 {
-	// Construct shadow bias-scale matrix
-	auto m = math::translate(math::fvec3{0.5f, 0.5f, 0.5f + m_shadow_bias}) * math::scale(math::fvec3{0.5f, 0.5f, 0.5f});
+	// Construct shadow scale-bias matrix (depth range `[-1, 1]`)
+	// auto m = math::translate(math::fvec3{0.5f, 0.5f, 0.5f + m_shadow_bias}) * math::scale(math::fvec3{0.5f, 0.5f, 0.5f});
+	
+	// Construct shadow scale-bias matrix (depth range `[0, 1]`)
+	auto m = math::translate(math::fvec3{0.5f, 0.5f, m_shadow_bias}) * math::scale(math::fvec3{0.5f, 0.5f, 1.0f});
 	
 	// Apply cascade scale
 	m = math::scale(math::fvec3{0.5f, 0.5f, 1.0f}) * m;
 	
 	for (unsigned int i = 0; i < m_shadow_cascade_count; ++i)
 	{
-		// Apply cascade translation
-		m_shadow_bias_scale_matrices[i] = math::translate(math::fvec3{static_cast<float>(i % 2) * 0.5f, static_cast<float>(i / 2) * 0.5f, 0.0f}) * m;
+		// Apply cascade bias
+		m_shadow_scale_bias_matrices[i] = math::translate(math::fvec3{static_cast<float>(i % 2) * 0.5f, static_cast<float>(i / 2) * 0.5f, 0.0f}) * m;
 	}
 }
 

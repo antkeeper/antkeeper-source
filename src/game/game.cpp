@@ -82,7 +82,6 @@
 #include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/final-pass.hpp>
 #include <engine/render/passes/fxaa-pass.hpp>
-#include <engine/render/passes/ground-pass.hpp>
 #include <engine/render/passes/material-pass.hpp>
 #include <engine/render/passes/outline-pass.hpp>
 #include <engine/render/passes/resample-pass.hpp>
@@ -724,7 +723,7 @@ void game::setup_rendering()
 	{
 		ui_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), &window->get_rasterizer()->get_default_framebuffer());
 		ui_clear_pass->set_cleared_buffers(false, true, false);
-		ui_clear_pass->set_clear_depth(-1.0f);
+		ui_clear_pass->set_clear_depth(0.0f);
 		
 		ui_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), &window->get_rasterizer()->get_default_framebuffer(), resource_manager.get());
 		ui_material_pass->set_fallback_material(fallback_material);
@@ -751,8 +750,6 @@ void game::setup_rendering()
 		sky_pass = std::make_unique<render::sky_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
 		// sky_pass->set_magnification(3.0f);
 		
-		ground_pass = std::make_unique<render::ground_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
-		
 		surface_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
 		surface_material_pass->set_fallback_material(fallback_material);
 		
@@ -765,7 +762,6 @@ void game::setup_rendering()
 		surface_compositor->add_pass(surface_shadow_map_pass.get());
 		surface_compositor->add_pass(surface_clear_pass.get());
 		surface_compositor->add_pass(sky_pass.get());
-		//surface_compositor->add_pass(ground_pass.get());
 		surface_compositor->add_pass(surface_material_pass.get());
 		//surface_compositor->add_pass(surface_outline_pass.get());
 		surface_compositor->add_pass(bloom_pass.get());
@@ -779,7 +775,7 @@ void game::setup_rendering()
 		underground_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
 		underground_clear_pass->set_cleared_buffers(true, true, false);
 		underground_clear_pass->set_clear_color({0, 0, 0, 1});
-		underground_clear_pass->set_clear_depth(-1.0f);
+		underground_clear_pass->set_clear_depth(0.0f);
 		
 		underground_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
 		underground_material_pass->set_fallback_material(fallback_material);

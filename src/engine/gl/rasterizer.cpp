@@ -22,6 +22,8 @@
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <glad/glad.h>
+#include <engine/debug/log.hpp>
+#include <stdexcept>
 
 namespace gl {
 
@@ -63,7 +65,25 @@ rasterizer::rasterizer():
 	// Bind default framebuffer
 	bound_framebuffer = default_framebuffer.get();
 	
+	// Enable seamless filtering across cubemap faces
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	
+	if (GLAD_GL_ARB_clip_control)
+	{
+		// Improve depth buffer precision by setting depth range to `[0, 1]`.
+		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+	}
+	else
+	{
+		debug::log::error("glClipControl not supported");
+		throw std::runtime_error("glClipControl not supported");
+	}
+	
+	// glClipControl alternative for OpenGL < v4.5 (need to adjust shadow scale-bias matrix too)
+	// glDepthRange(-1.0f, 1.0f);
+	
+	// Set clear depth to `0` for reversed depth
+	glClearDepth(0.0f);
 }
 
 rasterizer::~rasterizer()

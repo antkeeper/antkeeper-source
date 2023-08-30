@@ -55,7 +55,6 @@
 #include <engine/render/material-flags.hpp>
 #include <engine/render/material.hpp>
 #include <engine/render/model.hpp>
-#include <engine/render/passes/ground-pass.hpp>
 #include <engine/render/passes/shadow-map-pass.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/render/vertex-attribute.hpp>
@@ -363,7 +362,7 @@ void create_sun(::game& ctx)
 		ctx.sun_light = std::make_unique<scene::directional_light>();
 		ctx.sun_light->set_shadow_caster(true);
 		ctx.sun_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer);
-		ctx.sun_light->set_shadow_bias(0.001f);
+		ctx.sun_light->set_shadow_bias(0.0025f);
 		ctx.sun_light->set_shadow_cascade_count(4);
 		ctx.sun_light->set_shadow_cascade_coverage(0.05f);
 		ctx.sun_light->set_shadow_cascade_distribution(0.8f);
@@ -457,9 +456,6 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 		// Setup sky
 		ctx.sky_pass->set_sky_model(ctx.resource_manager->load<render::model>("celestial-hemisphere.mdl"));
 		ctx.sky_pass->set_ground_albedo(ecoregion.terrain_albedo);
-		auto terrestrial_hemisphere_model = ctx.resource_manager->load<render::model>("terrestrial-hemisphere.mdl");
-		terrestrial_hemisphere_model->get_groups().front().material = ecoregion.horizon_material;
-		ctx.ground_pass->set_ground_model(terrestrial_hemisphere_model);
 		
 		// Setup terrain
 		// ctx.terrain_system->set_patch_material(ecoregion.terrain_material);

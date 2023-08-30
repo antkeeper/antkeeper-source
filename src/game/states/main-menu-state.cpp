@@ -42,7 +42,6 @@
 #include <engine/physics/light/exposure.hpp>
 #include <engine/render/model.hpp>
 #include <engine/render/passes/clear-pass.hpp>
-#include <engine/render/passes/ground-pass.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/hash/fnv1a.hpp>
@@ -275,7 +274,6 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
-	ctx.ground_pass->set_enabled(true);
 	
 	// Enable UI color clear
 	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);

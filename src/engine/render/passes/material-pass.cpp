@@ -141,13 +141,10 @@ void material_pass::render(render::context& ctx)
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_GREATER);
+	glDepthFunc(GL_GEQUAL);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glDisable(GL_STENCIL_TEST);
-	
-	// For half-z buffer
-	glDepthRange(-1.0f, 1.0f);
 	
 	auto viewport = framebuffer->get_dimensions();
 	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));

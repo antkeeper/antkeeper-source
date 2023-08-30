@@ -77,7 +77,6 @@
 #include <engine/physics/kinematics/colliders/capsule-collider.hpp>
 #include <engine/physics/kinematics/colliders/mesh-collider.hpp>
 #include <engine/render/passes/clear-pass.hpp>
-#include <engine/render/passes/ground-pass.hpp>
 #include <engine/render/passes/material-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/state-machine.hpp>
@@ -344,7 +343,6 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
-	ctx.ground_pass->set_enabled(true);
 	
 	sky_probe = std::make_shared<scene::light_probe>();
 	sky_probe->set_luminance_texture(std::make_shared<gl::texture_cube>(512, 384, gl::pixel_type::float_16, gl::pixel_format::rgb));

@@ -20,6 +20,7 @@
 #include "game/controls.hpp"
 #include "game/components/spring-arm-component.hpp"
 #include "game/components/rigid-body-component.hpp"
+#include "game/components/scene-component.hpp"
 #include <engine/debug/log.hpp>
 
 namespace {

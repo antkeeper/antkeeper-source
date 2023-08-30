@@ -93,7 +93,6 @@ namespace render
 	class shadow_map_pass;
 	class simple_render_pass;
 	class sky_pass;
-	class ground_pass;
 }
 
 
@@ -341,7 +340,6 @@ public:
 	std::unique_ptr<render::material_pass> surface_material_pass;
 	std::unique_ptr<render::outline_pass> surface_outline_pass;
 	std::unique_ptr<render::compositor> surface_compositor;
-	std::unique_ptr<render::ground_pass> ground_pass;
 	std::unique_ptr<render::renderer> renderer;
 	
 	// UI
