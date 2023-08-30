@@ -96,7 +96,7 @@
 treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering nest view state...");	
+	debug::log::trace("Entering nest view state...");
 	
 	ctx.active_scene = ctx.surface_scene.get();
 	

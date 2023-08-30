@@ -24,6 +24,7 @@
 #include <cstddef>
 #include <cmath>
 #include <concepts>
+#include <format>
 #include <iterator>
 #include <limits>
 #include <type_traits>
@@ -1794,7 +1795,6 @@ inline constexpr vector<T, N>& operator/=(vector<T, N>& x, T y) noexcept
 // Bring vector operators into global namespace
 using namespace math::operators;
 
-// Structured binding support
 namespace std
 {
 	/**
@@ -1823,6 +1823,33 @@ namespace std
 		/// Type of elements in the vector.
 		using type = math::vector<T, N>::element_type;
 	};
+	
+	/**
+	 * Specialization of std::formatter for math::vector.
+	 *
+	 * @tparam T Element type.
+	 * @tparam N Number of elements.
+	 */
+    template <class T, std::size_t N>
+    struct formatter<math::vector<T, N>>: formatter<T>
+    {
+		auto format(const math::vector<T, N>& t, format_context& fc) const
+		{
+			auto&& out = fc.out();
+			format_to(out, "{{");
+			
+			for (std::size_t i = 0; i < N; ++i)
+			{
+				formatter<T>::format(t[i], fc);
+				if (i < N - 1)
+				{
+					format_to(out, ", ");
+				}
+			}
+			
+			return format_to(out, "}}");
+		}
+    };
 }
 
 // Ensure vectors are POD types

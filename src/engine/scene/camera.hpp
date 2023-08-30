@@ -125,139 +125,151 @@ public:
 	 * Returns the camera's compositor.
 	 */
 	/// @{
-	[[nodiscard]] inline const render::compositor* get_compositor() const noexcept
+	[[nodiscard]] inline constexpr const render::compositor* get_compositor() const noexcept
 	{
 		return m_compositor;
 	}
-	[[nodiscard]] inline render::compositor* get_compositor() noexcept
+	[[nodiscard]] inline constexpr render::compositor* get_compositor() noexcept
 	{
 		return m_compositor;
 	}
 	/// @}
 	
 	/// Returns the composite index of the camera.
-	[[nodiscard]] inline int get_composite_index() const noexcept
+	[[nodiscard]] inline constexpr int get_composite_index() const noexcept
 	{
 		return m_composite_index;
 	}
 	
-	[[nodiscard]] inline const aabb_type& get_bounds() const noexcept override
+	[[nodiscard]] inline constexpr const aabb_type& get_bounds() const noexcept override
 	{
 		return m_bounds;
 	}
 	
 	/// Returns `true` if the camera uses an orthographic projection matrix, `false` otherwise.
-	[[nodiscard]] inline bool is_orthographic() const noexcept
+	[[nodiscard]] inline constexpr bool is_orthographic() const noexcept
 	{
 		return m_orthographic;
 	}
 
 	/// Returns the signed distance to the camera's left clipping plane.
-	[[nodiscard]] inline float get_clip_left() const noexcept
+	[[nodiscard]] inline constexpr float get_clip_left() const noexcept
 	{
 		return m_clip_left;
 	}
 	
 	/// Returns the signed distance to the camera's right clipping plane.
-	[[nodiscard]] inline float get_clip_right() const noexcept
+	[[nodiscard]] inline constexpr float get_clip_right() const noexcept
 	{
 		return m_clip_right;
 	}
 	
 	/// Returns the signed distance to the camera's bottom clipping plane.
-	[[nodiscard]] inline float get_clip_bottom() const noexcept
+	[[nodiscard]] inline constexpr float get_clip_bottom() const noexcept
 	{
 		return m_clip_bottom;
 	}
 	
 	/// Returns the signed distance to the camera's top clipping plane.
-	[[nodiscard]] inline float get_clip_top() const noexcept
+	[[nodiscard]] inline constexpr float get_clip_top() const noexcept
 	{
 		return m_clip_top;
 	}
 	
 	/// Returns the signed distance to the camera's near clipping plane.
-	[[nodiscard]] inline float get_clip_near() const noexcept
+	[[nodiscard]] inline constexpr float get_clip_near() const noexcept
 	{
 		return m_clip_near;
 	}
 	
 	/// Returns the signed distance to the camera's far clipping plane.
-	[[nodiscard]] inline float get_clip_far() const noexcept
+	[[nodiscard]] inline constexpr float get_clip_far() const noexcept
 	{
 		return m_clip_far;
 	}
 	
 	/// Returns the camera's vertical field of view, in radians.
-	[[nodiscard]] inline float get_vertical_fov() const noexcept
+	[[nodiscard]] inline constexpr float get_vertical_fov() const noexcept
 	{
 		return m_vertical_fov;
 	}
 	
 	/// Returns the camera's aspect ratio.
-	[[nodiscard]] inline float get_aspect_ratio() const noexcept
+	[[nodiscard]] inline constexpr float get_aspect_ratio() const noexcept
 	{
 		return m_aspect_ratio;
 	}
 	
 	/// Returns the camera's ISO 100 exposure value.
-	[[nodiscard]] inline float get_exposure_value() const noexcept
+	[[nodiscard]] inline constexpr float get_exposure_value() const noexcept
 	{
 		return m_exposure_value;
 	}
 	
 	/// Returns the camera's exposure normalization factor.
-	[[nodiscard]] inline float get_exposure_normalization() const noexcept
+	[[nodiscard]] inline constexpr float get_exposure_normalization() const noexcept
 	{
 		return m_exposure_normalization;
 	}
 	
 	/// Returns the camera's view matrix.
-	[[nodiscard]] inline const math::fmat4& get_view() const noexcept
+	[[nodiscard]] inline constexpr const math::fmat4& get_view() const noexcept
 	{
 		return m_view;
 	}
 	
+	/// Returns the inverse of the camera's view matrix.
+	[[nodiscard]] inline constexpr const math::fmat4& get_inv_view() const noexcept
+	{
+		return m_inv_view;
+	}
+	
 	/// Returns the camera's projection matrix.
-	[[nodiscard]] inline const math::fmat4& get_projection() const noexcept
+	[[nodiscard]] inline constexpr const math::fmat4& get_projection() const noexcept
 	{
 		return m_projection;
 	}
 	
+	/// Returns the inverse of the camera's projection matrix.
+	[[nodiscard]] inline constexpr const math::fmat4& get_inv_projection() const noexcept
+	{
+		return m_inv_projection;
+	}
+	
 	/// Returns the camera's view-projection matrix.
-	[[nodiscard]] inline const math::fmat4& get_view_projection() const noexcept
+	[[nodiscard]] inline constexpr const math::fmat4& get_view_projection() const noexcept
 	{
 		return m_view_projection;
 	}
 	
-	/// Returns the camera's inverse view-projection matrix.
-	[[nodiscard]] inline const math::fmat4& get_inverse_view_projection() const noexcept
+	/// Returns the inverse of the camera's view-projection matrix.
+	[[nodiscard]] inline constexpr const math::fmat4& get_inv_view_projection() const noexcept
 	{
-		return m_inverse_view_projection;
+		return m_inv_view_projection;
 	}
 	
 	/// Returns the camera's forward vector.
-	[[nodiscard]] inline const math::fvec3& get_forward() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_forward() const noexcept
 	{
 		return m_forward;
 	}
 	
 	/// Returns the camera's up vector.
-	[[nodiscard]] inline const math::fvec3& get_up() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_up() const noexcept
 	{
 		return m_up;
 	}
 	
 	/// Returns the camera's view frustum.
-	[[nodiscard]] inline const view_frustum_type& get_view_frustum() const noexcept
+	[[nodiscard]] inline constexpr const view_frustum_type& get_view_frustum() const noexcept
 	{
 		return m_view_frustum;
 	}
 
 private:
-	virtual void transformed();
+	void transformed() override;
 	void update_frustum();
-
+	
 	render::compositor* m_compositor{nullptr};
 	int m_composite_index{0};
 	
@@ -272,19 +284,20 @@ private:
 	float m_vertical_fov{math::half_pi<float>};
 	float m_aspect_ratio{1.0f};
 	float m_exposure_value{0.0f};
-	float m_exposure_normalization{1.0f / 1.2f};
-	
-	math::fmat4 m_view{math::fmat4::identity()};
-	math::fmat4 m_projection{math::fmat4::identity()};
-	math::fmat4 m_view_projection{math::fmat4::identity()};
-	math::fmat4 m_inverse_view_projection{math::fmat4::identity()};
+	float m_exposure_normalization{1.0f};
 	
 	math::fvec3 m_forward{0.0f, 0.0f, -1.0f};
 	math::fvec3 m_up{0.0f, 1.0f, 0.0f};
 	
-	view_frustum_type m_view_frustum;
+	math::fmat4 m_view{math::fmat4::identity()};
+	math::fmat4 m_inv_view{math::fmat4::identity()};
+	math::fmat4 m_projection{math::fmat4::identity()};
+	math::fmat4 m_inv_projection{math::fmat4::identity()};
+	math::fmat4 m_view_projection{math::fmat4::identity()};
+	math::fmat4 m_inv_view_projection{math::fmat4::identity()};
 	
-	aabb_type m_bounds{{0, 0, 0}, {0, 0, 0}};
+	view_frustum_type m_view_frustum;
+	aabb_type m_bounds{{}, {}};
 };
 
 } // namespace scene

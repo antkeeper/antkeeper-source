@@ -22,7 +22,9 @@
 
 #include <engine/math/vector.hpp>
 #include <cstddef>
+#include <format>
 #include <iterator>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -575,7 +577,7 @@ template <class T, std::size_t N>
 [[nodiscard]] constexpr matrix<T, N, N> inverse(const matrix<T, N, N>& m) noexcept;
 
 /**
- * Creates a viewing transformation matrix.
+ * Constructs a right-handed viewing transformation matrix.
  *
  * @param position Position of the view point.
  * @param target Position of the target.
@@ -584,7 +586,21 @@ template <class T, std::size_t N>
  * @return Viewing transformation matrix.
  */
 template <class T>
-[[nodiscard]] constexpr mat4<T> look_at(const vec3<T>& position, const vec3<T>& target, vec3<T> up);
+[[nodiscard]] constexpr mat4<T> look_at_rh(const vec3<T>& position, const vec3<T>& target, const vec3<T>& up);
+
+/**
+ * Constructs a right-handed viewing transformation matrix and its inverse.
+ *
+ * @param position Position of the view point.
+ * @param target Position of the target.
+ * @param up Unit vector pointing in the up direction.
+ *
+ * @return Tuple containing the viewing transformation matrix, followed by its inverse.
+ *
+ * @note Constructing the inverse viewing transformation matrix from viewing parameters is faster and more precise than inverting matrix.
+ */
+template <class T>
+[[nodiscard]] constexpr std::tuple<mat4<T>, mat4<T>> look_at_rh_inv(const vec3<T>& position, const vec3<T>& target, const vec3<T>& up);
 
 /**
  * Multiplies two matrices
@@ -964,20 +980,47 @@ constexpr matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m) noexcept
 }
 
 template <class T>
-constexpr mat4<T> look_at(const vec3<T>& position, const vec3<T>& target, vec3<T> up)
+constexpr mat4<T> look_at_rh(const vec3<T>& position, const vec3<T>& target, const vec3<T>& up)
 {
-	const auto forward = normalize(sub(target, position));
-	const auto right = normalize(cross(forward, up));
-	up = cross(right, forward);
-	const auto m = mat4<T>
-	{{
-		{right[0], up[0], -forward[0], T{0}},
-		{right[1], up[1], -forward[1], T{0}},
-		{right[2], up[2], -forward[2], T{0}},
-		{T{0}, T{0}, T{0}, T{1}}
-	}};
+	const auto f = normalize(sub(target, position));
+	const auto r = normalize(cross(f, up));
+	const auto u = cross(r, f);
+	const auto t = vec3<T>{dot(position, r), dot(position, u), dot(position, f)};
 	
-	return mul(m, translate(-position));
+	return
+	{{
+		{ r.x(),  u.x(), -f.x(), T{0}},
+		{ r.y(),  u.y(), -f.y(), T{0}},
+		{ r.z(),  u.z(), -f.z(), T{0}},
+		{-t.x(), -t.y(),  t.z(), T{1}}
+	}};
+}
+
+template <class T>
+constexpr std::tuple<mat4<T>, mat4<T>> look_at_rh_inv(const vec3<T>& position, const vec3<T>& target, const vec3<T>& up)
+{
+	const auto f = normalize(sub(target, position));
+	const auto r = normalize(cross(f, up));
+	const auto u = cross(r, f);
+	
+	return
+	{
+		mat4<T>
+		{{
+			{ r.x(),  u.x(), -f.x(), T{0}},
+			{ r.y(),  u.y(), -f.y(), T{0}},
+			{ r.z(),  u.z(), -f.z(), T{0}},
+			{-dot(position, r), -dot(position, u), dot(position, f), T{1}}
+		}},
+		
+		mat4<T>
+		{{
+			{ r.x(),  r.y(),  r.z(), T{0}},
+			{ u.x(),  u.y(),  u.z(), T{0}},
+			{-f.x(), -f.y(), -f.z(), T{0}},
+			{position.x(), position.y(), position.z(), T{1}}
+		}}
+	};
 }
 
 template <class T, std::size_t N, std::size_t M, std::size_t P>
@@ -1388,7 +1431,6 @@ inline constexpr matrix<T, N, M>& operator/=(matrix<T, N, M>& a, T b) noexcept
 // Bring matrix operators into global namespace
 using namespace math::operators;
 
-// Structured binding support
 namespace std
 {
 	/**
@@ -1419,6 +1461,38 @@ namespace std
 		/// Type of columns in the matrix.
 		using type = math::matrix<T, N, M>::column_vector_type;
 	};
+	
+	/**
+	 * Specialization of std::formatter for math::matrix.
+	 *
+	 * @tparam T Element type.
+	 * @tparam N Number of columns.
+	 * @tparam M Number of rows.
+	 */
+    template <class T, std::size_t N, std::size_t M>
+    struct formatter<math::matrix<T, N, M>>: formatter<math::vector<T, M>>
+    {
+		auto format(const math::matrix<T, N, M>& t, format_context& fc) const
+		{
+			auto&& out = fc.out();
+			format_to(out, "{{");
+			
+			for (std::size_t i = 0; i < N; ++i)
+			{
+				formatter<math::vector<T, M>>::format(t[i], fc);
+				if (i < N - 1)
+				{
+					format_to(out, ", ");
+				}
+			}
+			
+			return format_to(out, "}}");
+		}
+    };
 }
+
+// Ensure matrices are POD types
+static_assert(std::is_standard_layout_v<math::fmat3>);
+static_assert(std::is_trivial_v<math::fmat3>);
 
 #endif // ANTKEEPER_MATH_MATRIX_HPP

@@ -120,7 +120,7 @@ void shadow_map_pass::render_csm(scene::directional_light& light, render::contex
 	// Get light layer mask
 	const auto light_layer_mask = light.get_layer_mask();
 	
-	if (!light_layer_mask & ctx.camera->get_layer_mask())
+	if (!(light_layer_mask & ctx.camera->get_layer_mask()))
 	{
 		return;
 	}
@@ -232,7 +232,7 @@ void shadow_map_pass::render_csm(scene::directional_light& light, render::contex
 		subfrustum_bounds.center = light.get_rotation() * subfrustum_bounds.center;
 		
 		// Construct light view matrix
-		const auto light_view = math::look_at(subfrustum_bounds.center, subfrustum_bounds.center + light.get_direction(), light.get_rotation() * math::fvec3{0, 1, 0});
+		const auto light_view = math::look_at_rh(subfrustum_bounds.center, subfrustum_bounds.center + light.get_direction(), light.get_rotation() * math::fvec3{0, 1, 0});
 		
 		// Construct light projection matrix (reversed half-z)
 		const auto light_projection = math::ortho_half_z

@@ -255,7 +255,7 @@ private:
 	{
 		auto copy = std::make_unique<brep_attribute<T>>(name(), 0);
 		copy->m_values = m_values;
-		return std::move(copy);
+		return copy;
 	}
 	
 	std::vector<value_type> m_values;
