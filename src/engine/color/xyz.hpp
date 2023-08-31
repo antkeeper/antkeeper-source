@@ -24,12 +24,8 @@
 
 namespace color {
 
-/**
- * CIE XYZ color space.
- *
- * @see https://en.wikipedia.org/wiki/CIE_1931_color_space
- */
-namespace xyz {
+/// @name CIE XYZ color space
+/// @{
 
 /**
  * Returns the luminance of a CIE XYZ color.
@@ -38,7 +34,7 @@ namespace xyz {
  * @return return Luminance of @p x.
  */
 template <class T>
-[[nodiscard]] inline constexpr T luminance(const math::vec3<T>& x) noexcept
+[[nodiscard]] inline constexpr T xyz_to_luminance(const math::vec3<T>& x) noexcept
 {
 	return x[1];
 }
@@ -50,7 +46,7 @@ template <class T>
  * @return CIE xyY color.
  */
 template <class T>
-[[nodiscard]] constexpr math::vec3<T> to_xyy(const math::vec3<T>& x) noexcept
+[[nodiscard]] constexpr math::vec3<T> xyz_to_xyy(const math::vec3<T>& x) noexcept
 {
 	const T sum = x[0] + x[1] + x[2];
 	return math::vec3<T>{x[0] / sum, x[1] / sum, x[1]};
@@ -65,7 +61,7 @@ template <class T>
  * @see match(T)
  */
 template <class T>
-[[nodiscard]] T match_x(T lambda)
+[[nodiscard]] T xyz_match_x(T lambda)
 {
 	const T t0 = (lambda - T{442.0}) * ((lambda < T{442.0}) ? T{0.0624} : T{0.0374});
 	const T t1 = (lambda - T{599.8}) * ((lambda < T{599.8}) ? T{0.0264} : T{0.0323});
@@ -87,7 +83,7 @@ template <class T>
  * @see match(T)
  */
 template <class T>
-[[nodiscard]] T match_y(T lambda)
+[[nodiscard]] T xyz_match_y(T lambda)
 {
 	const T t0 = (lambda - T{568.8}) * ((lambda < T{568.8}) ? T{0.0213} : T{0.0247});
 	const T t1 = (lambda - T{530.9}) * ((lambda < T{530.9}) ? T{0.0613} : T{0.0322});
@@ -107,7 +103,7 @@ template <class T>
  * @see match(T)
  */
 template <class T>
-[[nodiscard]] T match_z(T lambda)
+[[nodiscard]] T xyz_match_z(T lambda)
 {
 	const T t0 = (lambda - T{437.0}) * ((lambda < T{437.0}) ? T{0.0845} : T{0.0278});
 	const T t1 = (lambda - T{459.0}) * ((lambda < T{459.0}) ? T{0.0385} : T{0.0725});
@@ -131,17 +127,18 @@ template <class T>
  * @see Wyman, C., Sloan, P.J., & Shirley, P. (2013). Simple Analytic Approximations to the CIE XYZ Color Matching Functions.
  */
 template <class T>
-[[nodiscard]] math::vec3<T> match(T lambda)
+[[nodiscard]] math::vec3<T> xyz_match(T lambda)
 {
 	return math::vec3<T>
 	{
-		match_x<T>(lambda),
-		match_y<T>(lambda),
-		match_z<T>(lambda)
+		xyz_match_x<T>(lambda),
+		xyz_match_y<T>(lambda),
+		xyz_match_z<T>(lambda)
 	};
 }
 
-} // namespace xyz
+/// @}
+
 } // namespace color
 
 #endif // ANTKEEPER_COLOR_XYZ_HPP

@@ -23,12 +23,12 @@ namespace scene {
 
 void point_light::color_updated()
 {
-	m_colored_luminous_flux = m_color * m_luminous_flux;
+	m_colored_luminous_flux = get_color() * m_luminous_flux;
 }
 
 void point_light::luminous_flux_updated()
 {
-	m_colored_luminous_flux = m_color * m_luminous_flux;
+	m_colored_luminous_flux = get_color() * m_luminous_flux;
 }
 
 } // namespace scene

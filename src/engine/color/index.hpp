@@ -22,8 +22,8 @@
 
 namespace color {
 
-/// Color indices.
-namespace index {
+/// @name Color indices.
+/// @{
 
 /**
  * Approximates the temperature of a star, given its B-V index.
@@ -39,7 +39,8 @@ template <class T>
 	return T{4600} * (T{1} / (T{0.92} * bv + T{1.7}) + T{1} / (T{0.92} * bv + T{0.62}));
 }
 
-} // namespace index
+/// @}
+
 } // namespace color
 
 #endif // ANTKEEPER_COLOR_INDEX_HPP

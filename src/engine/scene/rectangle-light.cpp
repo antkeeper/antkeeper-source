@@ -27,6 +27,11 @@ rectangle_light::rectangle_light()
 	transformed();
 }
 
+void rectangle_light::set_size(const math::fvec2& size)
+{
+	set_scale({size.x(), size.y(), 1.0f});
+}
+
 void rectangle_light::transformed()
 {
 	const auto& transform = get_transform();
@@ -42,39 +47,39 @@ void rectangle_light::transformed()
 	m_corners[3] = transform * math::fvec3{ 0.5f, -0.5f, 0.0f};
 	
 	// Update area
-	m_area = get_scale().x() * get_scale().z();
+	m_area = get_scale().x() * get_scale().y();
 	area_updated();
-}
-
-void rectangle_light::area_updated()
-{
-	// Calculate luminance from luminous flux
-	m_luminance = m_luminous_flux / (m_area * math::pi<float>);
-	m_colored_luminance = m_color * m_luminance;
 }
 
 void rectangle_light::color_updated()
 {
-	m_colored_luminous_flux = m_color * m_luminous_flux;
-	m_colored_luminance = m_color * m_luminance;
+	m_colored_luminous_flux = get_color() * m_luminous_flux;
+	m_colored_luminance = get_color() * m_luminance;
 }
 
-void rectangle_light::luminous_flux_updated()
+void rectangle_light::area_updated() noexcept
 {
-	m_colored_luminous_flux = m_color * m_luminous_flux;
+	// Calculate luminance from luminous flux
+	m_luminance = m_luminous_flux / (m_area * math::pi<float>);
+	m_colored_luminance = get_color() * m_luminance;
+}
+
+void rectangle_light::luminous_flux_updated() noexcept
+{
+	m_colored_luminous_flux = get_color() * m_luminous_flux;
 	
 	// Calculate luminance from luminous flux
 	m_luminance = m_luminous_flux / (m_area * math::pi<float>);
-	m_colored_luminance = m_color * m_luminance;
+	m_colored_luminance = get_color() * m_luminance;
 }
 
-void rectangle_light::luminance_updated()
+void rectangle_light::luminance_updated() noexcept
 {
-	m_colored_luminance = m_color * m_luminance;
+	m_colored_luminance = get_color() * m_luminance;
 	
 	// Calculate luminous flux from luminance
 	m_luminous_flux = m_luminance * (m_area * math::pi<float>);
-	m_colored_luminous_flux = m_color * m_luminous_flux;
+	m_colored_luminous_flux = get_color() * m_luminous_flux;
 }
 
 } // namespace scene

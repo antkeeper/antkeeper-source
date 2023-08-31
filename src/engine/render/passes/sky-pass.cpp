@@ -255,9 +255,6 @@ void sky_pass::render(render::context& ctx)
 	math::fvec3 moon_illuminance = moon_illuminance_tween.interpolate(ctx.alpha) * camera_exposure;
 	float moon_angular_radius = moon_angular_radius_tween.interpolate(ctx.alpha) * magnification;
 	
-	float sun_y = color::aces::ap1<float>.luminance(sun_transmitted_illuminance);
-	float moon_y = color::aces::ap1<float>.luminance(moon_transmitted_illuminance);
-	
 	// if (math::max(sun_illuminance) > math::max(moon_illuminance))
 	// {
 		dominant_light_direction = sun_direction;

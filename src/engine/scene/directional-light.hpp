@@ -129,16 +129,18 @@ public:
 	/**
 	 * Sets the number of shadow cascades.
 	 *
-	 * @param count Number of shadow cascades.
+	 * @param count Number of shadow cascades, on `[1, 4]`.
+	 *
+	 * @note The number of shadow cascades will be clamped to `[1, 4]`.
 	 */
 	void set_shadow_cascade_count(unsigned int count) noexcept;
 	
 	/**
-	 * Sets the shadow cascade coverage factor.
+	 * Sets the distance from the camera up to which shadows are visible.
 	 *
-	 * @param factor Percentage of the view frustum clipping range covered by shadow cascades. A value of `1.0` results in full coverage of the view frustum clipping range, `0.5` results in coverage of half of the clipping range, etc.
+	 * @param distance Shadow distance.
 	 */
-	void set_shadow_cascade_coverage(float factor) noexcept;
+	void set_shadow_distance(float distance) noexcept;
 	
 	/**
 	 * Sets the shadow cascade distribution.
@@ -148,37 +150,37 @@ public:
 	void set_shadow_cascade_distribution(float weight) noexcept;
 	
 	/// Returns `true` if the light casts shadows, `false` otherwise.
-	[[nodiscard]] inline bool is_shadow_caster() const noexcept
+	[[nodiscard]] inline constexpr bool is_shadow_caster() const noexcept
 	{
 		return m_shadow_caster;
 	}
 	
 	/// Returns the shadow map framebuffer, of `nullptr` if no shadow map framebuffer is set.
-	[[nodiscard]] inline const std::shared_ptr<gl::framebuffer>& get_shadow_framebuffer() const noexcept
+	[[nodiscard]] inline constexpr const std::shared_ptr<gl::framebuffer>& get_shadow_framebuffer() const noexcept
 	{
 		return m_shadow_framebuffer;
 	}
 	
 	/// Returns the shadow bias factor.
-	[[nodiscard]] inline float get_shadow_bias() const noexcept
+	[[nodiscard]] inline constexpr float get_shadow_bias() const noexcept
 	{
 		return m_shadow_bias;
 	}
 	
 	/// Returns the number of shadow cascades.
-	[[nodiscard]] inline unsigned int get_shadow_cascade_count() const noexcept
+	[[nodiscard]] inline constexpr unsigned int get_shadow_cascade_count() const noexcept
 	{
 		return m_shadow_cascade_count;
 	}
 	
-	/// Returns the shadow cascade coverage factor.
-	[[nodiscard]] inline float get_shadow_cascade_coverage() const noexcept
+	/// Returns the distance from the camera up to which shadows are visible.
+	[[nodiscard]] inline constexpr float get_shadow_distance() const noexcept
 	{
-		return m_shadow_cascade_coverage;
+		return m_shadow_distance;
 	}
 	
 	/// Returns the shadow cascade distribution weight.
-	[[nodiscard]] inline float get_shadow_cascade_distribution() const noexcept
+	[[nodiscard]] inline constexpr float get_shadow_cascade_distribution() const noexcept
 	{
 		return m_shadow_cascade_distribution;
 	}
@@ -220,6 +222,7 @@ private:
 	void color_updated();
 	void illuminance_updated();
 	void update_shadow_scale_bias_matrices();
+	void update_shadow_cascade_distances();
 	
 	math::fvec3 m_direction{0.0f, 0.0f, -1.0f};
 	math::fvec3 m_color{1.0f, 1.0f, 1.0f};
@@ -228,9 +231,9 @@ private:
 	
 	bool m_shadow_caster{false};
 	std::shared_ptr<gl::framebuffer> m_shadow_framebuffer{nullptr};
-	float m_shadow_bias{0.001f};
+	float m_shadow_bias{0.005f};
 	unsigned int m_shadow_cascade_count{4};
-	float m_shadow_cascade_coverage{1.0f};
+	float m_shadow_distance{1000.0f};
 	float m_shadow_cascade_distribution{0.8f};
 	std::vector<float> m_shadow_cascade_distances;
 	std::vector<math::fmat4> m_shadow_cascade_matrices;

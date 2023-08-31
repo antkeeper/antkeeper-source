@@ -39,13 +39,6 @@ public:
 	
 	void update(float t, float dt) override;
 	
-	/**
-	 * Sets the blackbody illuminant.
-	 *
-	 * @param illuminant CIE chromaticity coordinates of an illuminant.
-	 */
-	void set_illuminant(const math::vec2<double>& illuminant);
-	
 private:
 	void update_blackbody(entity::id entity_id);
 	
@@ -53,8 +46,6 @@ private:
 	void on_blackbody_update(entity::registry& registry, entity::id entity_id);
 	
 	std::vector<double> m_visible_wavelengths_nm;
-	math::vec2<double> m_illuminant;
-	math::mat3<double> m_xyz_to_rgb;
 };
 
 

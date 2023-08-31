@@ -55,7 +55,6 @@
 #include <engine/render/material-flags.hpp>
 #include <engine/render/material.hpp>
 #include <engine/render/model.hpp>
-#include <engine/render/passes/shadow-map-pass.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/render/vertex-attribute.hpp>
 #include <engine/utility/image.hpp>
@@ -265,13 +264,13 @@ void create_stars(::game& ctx)
 		math::fvec3 position = physics::orbit::frame::bci::cartesian(math::fvec3{1.0f, dec, ra});
 		
 		// Convert color index to color temperature
-		float cct = color::index::bv_to_cct(bv);
+		float cct = color::bv_to_cct(bv);
 		
 		// Calculate XYZ color from color temperature
-		math::fvec3 color_xyz = color::cct::to_xyz(cct);
+		math::fvec3 color_xyz = color::cct_to_xyz(cct);
 		
-		// Transform XYZ color to ACEScg colorspace
-		math::fvec3 color_acescg = color::aces::ap1<float>.from_xyz * color_xyz;
+		// Transform XYZ color to RGB
+		math::fvec3 color_rgb = config::scene_linear_color_space<float>.from_xyz * color_xyz;
 		
 		// Convert apparent magnitude to brightness factor relative to a 0th magnitude star
 		float brightness = physics::light::vmag::to_brightness(vmag);
@@ -280,13 +279,13 @@ void create_stars(::game& ctx)
 		*(star_vertex++) = position.x();
 		*(star_vertex++) = position.y();
 		*(star_vertex++) = position.z();
-		*(star_vertex++) = color_acescg.x();
-		*(star_vertex++) = color_acescg.y();
-		*(star_vertex++) = color_acescg.z();
+		*(star_vertex++) = color_rgb.x();
+		*(star_vertex++) = color_rgb.y();
+		*(star_vertex++) = color_rgb.z();
 		*(star_vertex++) = brightness;
 		
 		// Calculate spectral illuminance
-		math::dvec3 illuminance = math::dvec3(color_acescg * physics::light::vmag::to_illuminance(vmag));
+		math::dvec3 illuminance = math::dvec3(color_rgb * physics::light::vmag::to_illuminance(vmag));
 		
 		// Add spectral illuminance to total starlight illuminance
 		starlight_illuminance += illuminance;
@@ -362,9 +361,9 @@ void create_sun(::game& ctx)
 		ctx.sun_light = std::make_unique<scene::directional_light>();
 		ctx.sun_light->set_shadow_caster(true);
 		ctx.sun_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer);
-		ctx.sun_light->set_shadow_bias(0.0025f);
+		ctx.sun_light->set_shadow_bias(0.005f);
+		ctx.sun_light->set_shadow_distance(50.0f);
 		ctx.sun_light->set_shadow_cascade_count(4);
-		ctx.sun_light->set_shadow_cascade_coverage(0.05f);
 		ctx.sun_light->set_shadow_cascade_distribution(0.8f);
 		
 		// Add sun light scene objects to surface scene

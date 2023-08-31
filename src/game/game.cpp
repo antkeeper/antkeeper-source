@@ -85,7 +85,7 @@
 #include <engine/render/passes/material-pass.hpp>
 #include <engine/render/passes/outline-pass.hpp>
 #include <engine/render/passes/resample-pass.hpp>
-#include <engine/render/passes/shadow-map-pass.hpp>
+#include <engine/render/passes/cascaded-shadow-map-pass.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/render/renderer.hpp>
 #include <engine/render/vertex-attribute.hpp>
@@ -735,11 +735,7 @@ void game::setup_rendering()
 	
 	// Setup surface compositor
 	{
-		surface_shadow_map_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), shadow_map_framebuffer.get());
-		surface_shadow_map_clear_pass->set_cleared_buffers(false, true, false);
-		surface_shadow_map_clear_pass->set_clear_depth(0.0f);
-		
-		surface_shadow_map_pass = std::make_unique<render::shadow_map_pass>(window->get_rasterizer(), resource_manager.get());
+		surface_cascaded_shadow_map_pass = std::make_unique<render::cascaded_shadow_map_pass>(window->get_rasterizer(), resource_manager.get());
 		
 		surface_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
 		surface_clear_pass->set_clear_color({0.0f, 0.0f, 0.0f, 1.0f});
@@ -758,8 +754,7 @@ void game::setup_rendering()
 		surface_outline_pass->set_outline_color(math::fvec4{1.0f, 1.0f, 1.0f, 1.0f});
 		
 		surface_compositor = std::make_unique<render::compositor>();
-		surface_compositor->add_pass(surface_shadow_map_clear_pass.get());
-		surface_compositor->add_pass(surface_shadow_map_pass.get());
+		surface_compositor->add_pass(surface_cascaded_shadow_map_pass.get());
 		surface_compositor->add_pass(surface_clear_pass.get());
 		surface_compositor->add_pass(sky_pass.get());
 		surface_compositor->add_pass(surface_material_pass.get());
@@ -812,7 +807,7 @@ void game::setup_scenes()
 	
 	// Allocate and init surface camera
 	surface_camera = std::make_shared<scene::camera>();
-	surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 1000.0f);
+	surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.5f, 1000.0f);
 	surface_camera->set_compositor(surface_compositor.get());
 	surface_camera->set_composite_index(0);
 	
@@ -1091,7 +1086,6 @@ void game::setup_systems()
 	
 	// Setup blackbody system
 	blackbody_system = std::make_unique<::blackbody_system>(*entity_registry);
-	blackbody_system->set_illuminant(color::illuminant::deg2::d55<double>);
 	
 	// Setup atmosphere system
 	atmosphere_system = std::make_unique<::atmosphere_system>(*entity_registry);

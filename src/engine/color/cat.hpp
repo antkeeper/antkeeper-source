@@ -25,8 +25,8 @@
 
 namespace color {
 
-/// Chromatic adaption transforms (CAT).
-namespace cat {
+/// @name Chromatic adaption transforms (CAT)
+/// @{
 
 /**
  * Bradford cone response matrix.
@@ -35,7 +35,7 @@ namespace cat {
  * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
  */
 template <class T>
-constexpr math::mat3<T> bradford =
+constexpr math::mat3<T> bradford_cone_response =
 {
 	T{ 0.8951}, T{-0.7502}, T{ 0.0389},
 	T{ 0.2664}, T{ 1.7135}, T{-0.0685},
@@ -48,7 +48,7 @@ constexpr math::mat3<T> bradford =
  * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
  */
 template <class T>
-constexpr math::mat3<T> von_kries =
+constexpr math::mat3<T> von_kries_cone_response =
 {
 	T{ 0.40024}, T{-0.22630}, T{0.00000},
 	T{ 0.70760}, T{ 1.16532}, T{0.00000},
@@ -61,12 +61,7 @@ constexpr math::mat3<T> von_kries =
  * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
  */
 template <class T>
-constexpr math::mat3<T> xyz_scaling =
-{
-	T{1}, T{0}, T{0},
-	T{0}, T{1}, T{0},
-	T{0}, T{0}, T{1}
-};
+constexpr math::mat3<T> xyz_scaling_cone_response = math::mat3<T>::identity();
 
 /**
  * Constructs a chromatic adaptation transform (CAT) matrix.
@@ -81,7 +76,7 @@ constexpr math::mat3<T> xyz_scaling =
  * @see http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
  */
 template <class T>
-[[nodiscard]] constexpr math::mat3<T> matrix(const math::vec2<T>& w0, const math::vec2<T>& w1, const math::mat3<T>& cone_response = bradford<T>) noexcept
+[[nodiscard]] constexpr math::mat3<T> cat_matrix(const math::vec2<T>& w0, const math::vec2<T>& w1, const math::mat3<T>& cone_response = bradford_cone_response<T>) noexcept
 {
 	// Convert CIE xy chromaticity coordinates to CIE XYZ colors
 	const math::vec3<T> w0_xyz = {w0[0] / w0[1], T{1}, (T{1} - w0[0] - w0[1]) / w0[1]};
@@ -101,7 +96,8 @@ template <class T>
 	return math::inverse(cone_response) * scale * cone_response;
 }
 
-} // namespace cat
+/// @}
+
 } // namespace color
 
 #endif // ANTKEEPER_COLOR_CAT_HPP

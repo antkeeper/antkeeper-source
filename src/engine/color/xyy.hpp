@@ -24,17 +24,18 @@
 
 namespace color {
 
-/// CIE xyY color space.
-namespace xyy {
+/// @name CIE xyY color space.
+/// @{
 
 /**
  * Returns the luminance of a CIE xyY color.
  *
  * @param x CIE xyY color.
+ *
  * @return return Luminance of @p x.
  */
 template <class T>
-[[nodiscard]] inline constexpr T luminance(const math::vec3<T>& x) noexcept
+[[nodiscard]] inline constexpr T xyy_to_luminance(const math::vec3<T>& x) noexcept
 {
 	return x[2];
 }
@@ -43,10 +44,11 @@ template <class T>
  * Transforms a CIE xyY color into the CIE 1960 UCS colorspace.
  *
  * @param x CIE xyY color.
+ *
  * @return CIE 1960 UCS color.
  */
 template <class T>
-[[nodiscard]] constexpr math::vec2<T> to_ucs(const math::vec3<T>& x) noexcept
+[[nodiscard]] constexpr math::vec2<T> xyy_to_ucs(const math::vec3<T>& x) noexcept
 {
 	const T d = (T{1} / (T{-2} * x[0] + T{12} * x[1] + T{3}));
 	return math::vec2<T>{(T{4} * x[0]) * d, (T{6} * x[1]) * d};
@@ -56,15 +58,17 @@ template <class T>
  * Transforms a CIE xyY color into the CIE XYZ colorspace.
  *
  * @param x CIE xyY color.
+ *
  * @return CIE XYZ color.
  */
 template <class T>
-[[nodiscard]] constexpr math::vec3<T> to_xyz(const math::vec3<T>& x) noexcept
+[[nodiscard]] constexpr math::vec3<T> xyy_to_xyz(const math::vec3<T>& x) noexcept
 {
 	return math::vec3<T>{(x[0] * x[2]) / x[1], x[2], ((T{1} - x[0] - x[1]) * x[2]) / x[1]};
 }
 
-} // namespace xyy
+/// @}
+
 } // namespace color
 
 #endif // ANTKEEPER_COLOR_XYY_HPP

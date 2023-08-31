@@ -21,11 +21,14 @@
 #define ANTKEEPER_COLOR_SRGB_HPP
 
 #include <engine/color/rgb.hpp>
-#include <engine/color/illuminant.hpp>
+#include <engine/color/illuminants.hpp>
 #include <engine/math/vector.hpp>
 #include <cmath>
 
 namespace color {
+
+/// @name sRGB color space
+/// @{
 
 /**
  * sRGB opto-electronic transfer function (OETF). Maps a linear sRGB color to a non-linear sRGB signal.
@@ -69,15 +72,17 @@ template <class T>
 
 /// sRGB color space.
 template <class T>
-constexpr rgb::color_space<T> srgb
+constexpr rgb_color_space<T> srgb
 (
 	{T{0.64}, T{0.33}},
 	{T{0.30}, T{0.60}},
 	{T{0.15}, T{0.06}},
-	color::illuminant::deg2::d65<T>,
+	deg2_d65<T>,
 	&srgb_eotf<T>,
 	&srgb_oetf<T>
 );
+
+/// @}
 
 } // namespace color
 

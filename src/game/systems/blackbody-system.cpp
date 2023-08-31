@@ -18,10 +18,11 @@
  */
 
 #include "game/systems/blackbody-system.hpp"
-#include <engine/color/color.hpp>
 #include <engine/physics/light/blackbody.hpp>
 #include <engine/physics/light/photometry.hpp>
 #include <engine/math/quadrature.hpp>
+#include <engine/config.hpp>
+#include <engine/color/xyz.hpp>
 #include <numeric>
 
 blackbody_system::blackbody_system(entity::registry& registry):
@@ -30,9 +31,6 @@ blackbody_system::blackbody_system(entity::registry& registry):
 	// Construct a range of sample wavelengths in the visible spectrum
 	m_visible_wavelengths_nm.resize(780 - 280);
 	std::iota(m_visible_wavelengths_nm.begin(), m_visible_wavelengths_nm.end(), 280);
-	
-	// Set illuminant
-	set_illuminant(color::illuminant::deg2::d50<double>);
 	
 	registry.on_construct<::blackbody_component>().connect<&blackbody_system::on_blackbody_construct>(this);
 	registry.on_update<::blackbody_component>().connect<&blackbody_system::on_blackbody_update>(this);
@@ -46,12 +44,6 @@ blackbody_system::~blackbody_system()
 
 void blackbody_system::update(float t, float dt)
 {}
-
-void blackbody_system::set_illuminant(const math::vec2<double>& illuminant)
-{
-	m_illuminant = illuminant;
-	m_xyz_to_rgb = color::aces::ap1<double>.from_xyz * color::cat::matrix(m_illuminant, color::aces::white_point<double>);
-}
 
 void blackbody_system::update_blackbody(entity::id entity_id)
 {
@@ -71,10 +63,11 @@ void blackbody_system::update_blackbody(entity::id entity_id)
 		const double spectral_luminance = spectral_radiance * 1e-9 * physics::light::max_luminous_efficacy<double>;
 		
 		// Calculate the XYZ color of the wavelength using CIE color matching functions then transform to RGB
-		const math::dvec3 rgb_color = m_xyz_to_rgb * color::xyz::match(wavelength_nm);
+		const auto color_xyz = color::xyz_match(wavelength_nm);
+		const auto color_rgb = config::scene_linear_color_space<double>.from_xyz * color_xyz;
 		
 		// Scale RGB color by spectral luminance
-		return rgb_color * spectral_luminance;
+		return color_rgb * spectral_luminance;
 	};
 	
 	// Integrate the blackbody RGB spectral luminance over wavelengths in the visible spectrum

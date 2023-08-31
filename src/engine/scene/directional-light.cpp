@@ -27,6 +27,7 @@ directional_light::directional_light():
 	m_shadow_scale_bias_matrices(m_shadow_cascade_count)
 {
 	set_shadow_bias(m_shadow_bias);
+	update_shadow_cascade_distances();
 }
 
 void directional_light::set_direction(const math::fvec3& direction)
@@ -52,21 +53,24 @@ void directional_light::set_shadow_bias(float bias) noexcept
 
 void directional_light::set_shadow_cascade_count(unsigned int count) noexcept
 {
-	m_shadow_cascade_count = count;
+	m_shadow_cascade_count = std::min(std::max(count, 1u), 4u);
 	m_shadow_cascade_distances.resize(m_shadow_cascade_count);
 	m_shadow_cascade_matrices.resize(m_shadow_cascade_count);
 	m_shadow_scale_bias_matrices.resize(m_shadow_cascade_count);
 	update_shadow_scale_bias_matrices();
+	update_shadow_cascade_distances();
 }
 
-void directional_light::set_shadow_cascade_coverage(float factor) noexcept
+void directional_light::set_shadow_distance(float distance) noexcept
 {
-	m_shadow_cascade_coverage = factor;
+	m_shadow_distance = distance;
+	update_shadow_cascade_distances();
 }
 
 void directional_light::set_shadow_cascade_distribution(float weight) noexcept
 {
 	m_shadow_cascade_distribution = weight;
+	update_shadow_cascade_distances();
 }
 
 void directional_light::transformed()
@@ -99,6 +103,29 @@ void directional_light::update_shadow_scale_bias_matrices()
 	{
 		// Apply cascade bias
 		m_shadow_scale_bias_matrices[i] = math::translate(math::fvec3{static_cast<float>(i % 2) * 0.5f, static_cast<float>(i / 2) * 0.5f, 0.0f}) * m;
+	}
+}
+
+void directional_light::update_shadow_cascade_distances()
+{
+	if (!m_shadow_cascade_count)
+	{
+		return;
+	}
+	
+	m_shadow_cascade_distances[m_shadow_cascade_count - 1] = m_shadow_distance;
+	for (unsigned int i = 0; i < m_shadow_cascade_count - 1; ++i)
+	{
+		const auto weight = static_cast<float>(i + 1) / static_cast<float>(m_shadow_cascade_count);
+		
+		// Calculate linear and logarithmic distribution distances
+		const auto linear_distance = m_shadow_distance * weight;
+		// const auto log_distance = math::log_lerp(0.0f, m_shadow_distance, weight);
+		
+		// Interpolate between linear and logarithmic distribution distances
+		// cascade_distances[i] = math::lerp(linear_distance, log_distance, light.get_shadow_cascade_distribution());
+		
+		m_shadow_cascade_distances[i] = linear_distance;
 	}
 }
 

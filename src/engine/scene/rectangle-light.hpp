@@ -31,6 +31,7 @@ namespace scene {
 class rectangle_light: public light
 {
 public:
+	/// Constructs a rectangular area light.
 	rectangle_light();
 	
 	/// Returns light_type::rectangle.
@@ -40,15 +41,11 @@ public:
 	}
 	
 	/**
-	 * Sets the color of the light.
+	 * Sets the size of the light.
 	 *
-	 * @param color Light color.
+	 * @param size Dimensions of the light.
 	 */
-	inline void set_color(const math::fvec3& color) noexcept
-	{
-		m_color = color;
-		color_updated();
-	}
+	void set_size(const math::fvec2& size);
 	
 	/**
 	 * Sets the luminous flux of the light.
@@ -72,56 +69,55 @@ public:
 		luminance_updated();
 	}
 	
-	/// Returns the color of the light.
-	[[nodiscard]] inline const math::fvec3& get_color() const noexcept
+	/// Returns the dimensions of the light.
+	[[nodiscard]] inline constexpr math::fvec2 get_size() const noexcept
 	{
-		return m_color;
+		return math::fvec2(get_scale());
 	}
 	
 	/// Returns the luminous flux of the light.
-	[[nodiscard]] inline float get_luminous_flux() const noexcept
+	[[nodiscard]] inline constexpr float get_luminous_flux() const noexcept
 	{
 		return m_luminous_flux;
 	}
 	
 	/// Returns the color-modulated luminous flux of the light.
-	[[nodiscard]] inline const math::fvec3& get_colored_luminous_flux() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_colored_luminous_flux() const noexcept
 	{
 		return m_colored_luminous_flux;
 	}
 	
 	/// Returns the luminance of the light.
-	[[nodiscard]] inline float get_luminance() const noexcept
+	[[nodiscard]] inline constexpr float get_luminance() const noexcept
 	{
 		return m_luminance;
 	}
 	
 	/// Returns the color-modulated luminance of the light.
-	[[nodiscard]] inline const math::fvec3& get_colored_luminance() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec3& get_colored_luminance() const noexcept
 	{
 		return m_colored_luminance;
 	}
 	
-	/// Returns the positions of the light corners.
-	[[nodiscard]] inline std::span<const math::fvec3, 4> get_corners() const noexcept
+	/// Returns the world-space positions of the light corners.
+	[[nodiscard]] inline constexpr std::span<const math::fvec3, 4> get_corners() const noexcept
 	{
 		return m_corners;
 	}
 
 private:
 	void transformed() override;
-	void area_updated();
-	void color_updated();
-	void luminous_flux_updated();
-	void luminance_updated();
+	void color_updated() override;
+	void area_updated() noexcept;
+	void luminous_flux_updated() noexcept;
+	void luminance_updated() noexcept;
 	
 	float m_area{1.0f};
 	math::fvec3 m_corners[4];
-	math::fvec3 m_color{1.0f, 1.0f, 1.0f};
 	float m_luminous_flux{};
 	math::fvec3 m_colored_luminous_flux{};
 	float m_luminance{};
-	math::fvec3 m_colored_luminance;
+	math::fvec3 m_colored_luminance{};
 };
 
 } // namespace scene

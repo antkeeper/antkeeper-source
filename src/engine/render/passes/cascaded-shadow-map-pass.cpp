@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/render/passes/shadow-map-pass.hpp>
+#include <engine/render/passes/cascaded-shadow-map-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
@@ -44,47 +44,40 @@ namespace render {
 
 static bool operation_compare(const render::operation* a, const render::operation* b);
 
-shadow_map_pass::shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager):
+cascaded_shadow_map_pass::cascaded_shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager):
 	pass(rasterizer, nullptr)
 {
-	std::unordered_map<std::string, std::string> definitions;
-	definitions["VERTEX_POSITION"]    = std::to_string(vertex_attribute::position);
-	definitions["VERTEX_UV"]          = std::to_string(vertex_attribute::uv);
-	definitions["VERTEX_NORMAL"]      = std::to_string(vertex_attribute::normal);
-	definitions["VERTEX_TANGENT"]     = std::to_string(vertex_attribute::tangent);
-	definitions["VERTEX_COLOR"]       = std::to_string(vertex_attribute::color);
-	definitions["VERTEX_BONE_INDEX"]  = std::to_string(vertex_attribute::bone_index);
-	definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute::bone_weight);
-	definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute::bone_weight);
-	definitions["MAX_BONE_COUNT"] = std::to_string(64);
+	// Init shader template definitions
+	m_shader_template_definitions["VERTEX_POSITION"]    = std::to_string(vertex_attribute::position);
+	m_shader_template_definitions["VERTEX_UV"]          = std::to_string(vertex_attribute::uv);
+	m_shader_template_definitions["VERTEX_NORMAL"]      = std::to_string(vertex_attribute::normal);
+	m_shader_template_definitions["VERTEX_TANGENT"]     = std::to_string(vertex_attribute::tangent);
+	m_shader_template_definitions["VERTEX_COLOR"]       = std::to_string(vertex_attribute::color);
+	m_shader_template_definitions["VERTEX_BONE_INDEX"]  = std::to_string(vertex_attribute::bone_index);
+	m_shader_template_definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute::bone_weight);
+	m_shader_template_definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute::bone_weight);
+	m_shader_template_definitions["MAX_BONE_COUNT"] = std::to_string(m_max_bone_count);
 	
-	// Load unskinned shader template
-	auto unskinned_shader_template = resource_manager->load<gl::shader_template>("depth-unskinned.glsl");
-	
-	// Build unskinned shader program
-	unskinned_shader_program = unskinned_shader_template->build(definitions);
-	if (!unskinned_shader_program->linked())
+	// Static mesh shader
 	{
-		debug::log::error("Failed to build unskinned shadow map shader program: {}", unskinned_shader_program->info());
-		debug::log::warning("{}", unskinned_shader_template->configure(gl::shader_stage::vertex));
+		// Load static mesh shader template
+		m_static_mesh_shader_template = resource_manager->load<gl::shader_template>("shadow-cascade-static-mesh.glsl");
+		
+		// Build static mesh shader program
+		rebuild_static_mesh_shader_program();
 	}
-	unskinned_model_view_projection_var = unskinned_shader_program->variable("model_view_projection");
 	
-	// Load skinned shader template
-	auto skinned_shader_template = resource_manager->load<gl::shader_template>("depth-skinned.glsl");
-	
-	// Build skinned shader program
-	skinned_shader_program = skinned_shader_template->build(definitions);
-	if (!skinned_shader_program->linked())
+	// Skeletal mesh shader
 	{
-		debug::log::error("Failed to build skinned shadow map shader program: {}", skinned_shader_program->info());
-		debug::log::warning("{}", skinned_shader_template->configure(gl::shader_stage::vertex));
+		// Load skeletal mesh shader template
+		m_skeletal_mesh_shader_template = resource_manager->load<gl::shader_template>("shadow-cascade-skeletal-mesh.glsl");
+		
+		// Build static mesh shader program
+		rebuild_skeletal_mesh_shader_program();
 	}
-	skinned_model_view_projection_var = skinned_shader_program->variable("model_view_projection");
-	skinned_matrix_palette_var = skinned_shader_program->variable("matrix_palette");
 }
 
-void shadow_map_pass::render(render::context& ctx)
+void cascaded_shadow_map_pass::render(render::context& ctx)
 {
 	// For each light
 	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
@@ -104,29 +97,39 @@ void shadow_map_pass::render(render::context& ctx)
 			continue;
 		}
 		
+		// Ignore lights that don't share a common layer with the camera
+		if (!(directional_light.get_layer_mask() & ctx.camera->get_layer_mask()))
+		{
+			return;
+		}
+		
 		// Ignore improperly-configured lights
-		if (!directional_light.get_shadow_framebuffer() || !directional_light.get_shadow_cascade_count())
+		if (!directional_light.get_shadow_framebuffer())
 		{
 			continue;
 		}
 		
-		// Render cascaded shadow maps
-		render_csm(directional_light, ctx);
+		// Render shadow atlas
+		render_atlas(directional_light, ctx);
 	}
 }
 
-void shadow_map_pass::render_csm(scene::directional_light& light, render::context& ctx)
+void cascaded_shadow_map_pass::set_max_bone_count(std::size_t bone_count)
 {
-	// Get light layer mask
-	const auto light_layer_mask = light.get_layer_mask();
-	
-	if (!(light_layer_mask & ctx.camera->get_layer_mask()))
+	if (m_max_bone_count != bone_count)
 	{
-		return;
+		m_max_bone_count = bone_count;
+		
+		// Update max bone count shader template definition
+		m_shader_template_definitions["MAX_BONE_COUNT"] = std::to_string(m_max_bone_count);
+		
+		// Rebuild skeletal mesh shader
+		rebuild_skeletal_mesh_shader_program();
 	}
-	
-	rasterizer->use_framebuffer(*light.get_shadow_framebuffer());
-	
+}
+
+void cascaded_shadow_map_pass::render_atlas(scene::directional_light& light, render::context& ctx)
+{
 	// Disable blending
 	glDisable(GL_BLEND);
 	
@@ -140,11 +143,19 @@ void shadow_map_pass::render_csm(scene::directional_light& light, render::contex
 	glCullFace(GL_BACK);
 	bool two_sided = false;
 	
+	// Bind and clear shadow atlas framebuffer
+	rasterizer->use_framebuffer(*light.get_shadow_framebuffer());
+	rasterizer->clear_framebuffer(false, true, false);
+	
+	// Get light layer mask
+	const auto light_layer_mask = light.get_layer_mask();
+	
 	// Get camera
 	const scene::camera& camera = *ctx.camera;
 	
 	// Calculate distance to shadow cascade depth clipping planes
-	const float shadow_clip_far = math::lerp(camera.get_clip_near(), camera.get_clip_far(), light.get_shadow_cascade_coverage());
+	const auto shadow_clip_near = camera.get_clip_near();
+	const auto shadow_clip_far = camera.get_clip_near() + light.get_shadow_distance();
 	
 	// Get light shadow cascade distances and matrices
 	const auto cascade_count = light.get_shadow_cascade_count();
@@ -157,11 +168,11 @@ void shadow_map_pass::render_csm(scene::directional_light& light, render::contex
 	{
 		const float weight = static_cast<float>(i + 1) / static_cast<float>(cascade_count);
 		
-		// Calculate linear and logarithmic distribution distances
-		const float linear_distance = math::lerp(camera.get_clip_near(), shadow_clip_far, weight);
-		const float log_distance = math::log_lerp(camera.get_clip_near(), shadow_clip_far, weight);
+		// Calculate linear and logarithmic split distances
+		const float linear_distance = math::lerp(shadow_clip_near, shadow_clip_far, weight);
+		const float log_distance = math::log_lerp(shadow_clip_near, shadow_clip_far, weight);
 		
-		// Interpolate between linear and logarithmic distribution distances
+		// Interpolate between linear and logarithmic split distances
 		cascade_distances[i] = math::lerp(linear_distance, log_distance, light.get_shadow_cascade_distribution());
 	}
 	
@@ -276,7 +287,7 @@ void shadow_map_pass::render_csm(scene::directional_light& light, render::contex
 			}
 			
 			// Switch shader programs if necessary
-			gl::shader_program* shader_program = (operation->matrix_palette.empty()) ? unskinned_shader_program.get() : skinned_shader_program.get();
+			gl::shader_program* shader_program = (operation->matrix_palette.empty()) ? m_static_mesh_shader_program.get() : m_skeletal_mesh_shader_program.get();
 			if (active_shader_program != shader_program)
 			{
 				active_shader_program = shader_program;
@@ -287,19 +298,53 @@ void shadow_map_pass::render_csm(scene::directional_light& light, render::contex
 			math::fmat4 model_view_projection = light_view_projection * operation->transform;
 			
 			// Upload operation-dependent parameters to shader program
-			if (active_shader_program == unskinned_shader_program.get())
+			if (active_shader_program == m_static_mesh_shader_program.get())
 			{
-				unskinned_model_view_projection_var->update(model_view_projection);
+				m_static_mesh_model_view_projection_var->update(model_view_projection);
 			}
-			else if (active_shader_program == skinned_shader_program.get())
+			else if (active_shader_program == m_skeletal_mesh_shader_program.get())
 			{
-				skinned_model_view_projection_var->update(model_view_projection);
-				skinned_matrix_palette_var->update(operation->matrix_palette);
+				m_skeletal_mesh_model_view_projection_var->update(model_view_projection);
+				m_skeletal_mesh_matrix_palette_var->update(operation->matrix_palette);
 			}
 
 			// Draw geometry
 			rasterizer->draw_arrays(*operation->vertex_array, operation->drawing_mode, operation->start_index, operation->index_count);
 		}
+	}
+}
+
+void cascaded_shadow_map_pass::rebuild_static_mesh_shader_program()
+{
+	m_static_mesh_shader_program = m_static_mesh_shader_template->build(m_shader_template_definitions);
+	if (!m_static_mesh_shader_program->linked())
+	{
+		debug::log::error("Failed to build cascaded shadow map shader program for static meshes: {}", m_static_mesh_shader_program->info());
+		debug::log::warning("{}", m_static_mesh_shader_template->configure(gl::shader_stage::vertex));
+		
+		m_static_mesh_model_view_projection_var = nullptr;
+	}
+	else
+	{
+		m_static_mesh_model_view_projection_var = m_static_mesh_shader_program->variable("model_view_projection");
+	}
+}
+
+void cascaded_shadow_map_pass::rebuild_skeletal_mesh_shader_program()
+{
+	m_skeletal_mesh_shader_program = m_skeletal_mesh_shader_template->build(m_shader_template_definitions);
+	if (!m_skeletal_mesh_shader_program->linked())
+	{
+		debug::log::error("Failed to build cascaded shadow map shader program for skeletal meshes: {}", m_skeletal_mesh_shader_program->info());
+		debug::log::warning("{}", m_skeletal_mesh_shader_template->configure(gl::shader_stage::vertex));
+		
+		m_skeletal_mesh_model_view_projection_var = nullptr;
+		m_skeletal_mesh_matrix_palette_var = nullptr;
+	}
+	else
+	{
+		m_skeletal_mesh_model_view_projection_var = m_skeletal_mesh_shader_program->variable("model_view_projection");
+		m_skeletal_mesh_matrix_palette_var = m_skeletal_mesh_shader_program->variable("matrix_palette");
 	}
 }
 

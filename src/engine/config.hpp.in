@@ -28,6 +28,7 @@
 #endif
 
 #include <engine/math/vector.hpp>
+#include <engine/color/aces.hpp>
 
 /// Global configuration constants.
 namespace config {
@@ -89,6 +90,19 @@ inline constexpr int opengl_min_depth_size = 0;
 
 /// Minimum number of bits in the stencil attachment, if any, of the OpenGL default framebuffer.
 inline constexpr int opengl_min_stencil_size = 0;
+
+/// @}
+
+/// @name Rendering config
+/// @{
+
+/**
+ * Scene-linear color space.
+ *
+ * @tparam T Scalar type.
+ */
+template <class T>
+inline constexpr color::rgb_color_space<T> scene_linear_color_space = color::aces_ap1<T>;
 
 /// @}
 

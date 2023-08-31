@@ -26,8 +26,8 @@
 
 namespace color {
 
-/// Correlated color temperature (CCT).
-namespace cct {
+/// @name Correlated color temperature (CCT)
+/// @{
 
 /**
  * Calculates CIE 1960 UCS colorspace chromaticity coordinates given a correlated color temperature using Krystek's algorithm.
@@ -38,7 +38,7 @@ namespace cct {
  * @see Krystek, M. (1985), An algorithm to calculate correlated colour temperature. Color Res. Appl., 10: 38-40.
  */
 template <class T>
-[[nodiscard]] math::vec2<T> to_ucs(T t) noexcept
+[[nodiscard]] math::vec2<T> cct_to_ucs(T t) noexcept
 {
 	const T tt = t * t;
 	return math::vec2<T>
@@ -55,9 +55,9 @@ template <class T>
  * @return CIE xyY color with `Y = 1`.
  */
 template <class T>
-math::vec3<T> to_xyy(T t)
+math::vec3<T> cct_to_xyy(T t)
 {
-	return ucs::to_xyy(to_ucs(t), T{1});
+	return ucs_to_xyy(cct_to_ucs(t), T{1});
 }
 
 /**
@@ -67,12 +67,11 @@ math::vec3<T> to_xyy(T t)
  * @return CIE XYZ color with `Y = 1`.
  */
 template <class T>
-math::vec3<T> to_xyz(T t)
+math::vec3<T> cct_to_xyz(T t)
 {
-	return xyy::to_xyz(to_xyy(t));
+	return xyy_to_xyz(cct_to_xyy(t));
 }
 
-} // namespace cct
 } // namespace color
 
 #endif // ANTKEEPER_COLOR_CCT_HPP

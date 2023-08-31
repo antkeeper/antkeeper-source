@@ -114,74 +114,13 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	std::shared_ptr<render::model> worker_model = ant_morphogenesis(*worker_phenome);
 	debug::log::trace("Generated worker model");
 	
-	// Create directional light
-	// ctx.underground_directional_light = std::make_unique<scene::directional_light>();
-	// ctx.underground_directional_light->set_color({1.0f, 1.0f, 1.0f});
-	// ctx.underground_directional_light->set_illuminance(2.0f);
-	// ctx.underground_directional_light->set_direction(math::normalize(math::fvec3{0, -1, 0}));
-	// ctx.underground_directional_light->set_shadow_caster(true);
-	// ctx.underground_directional_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer);
-	// ctx.underground_directional_light->set_shadow_bias(0.005f);
-	// ctx.underground_directional_light->set_shadow_cascade_count(4);
-	// ctx.underground_directional_light->set_shadow_cascade_coverage(0.15f);
-	// ctx.underground_directional_light->set_shadow_cascade_distribution(0.8f);
-	// ctx.underground_scene->add_object(*ctx.underground_directional_light);
-	
-	// ctx.underground_clear_pass->set_clear_color({0.214f, 0.214f, 0.214f, 1.0f});
-	// ctx.underground_clear_pass->set_clear_color({});
-	// light_probe = std::make_shared<scene::light_probe>();
-	// light_probe->set_luminance_texture(ctx.resource_manager->load<gl::texture_cube>("grey-furnace.tex"));
-	// ctx.underground_scene->add_object(*light_probe);
-	
-	//const float color_temperature = 5000.0f;
-	//const math::fvec3 light_color = color::aces::ap1<float>.from_xyz * color::cat::matrix(color::illuminant::deg2::d50<float>, color::aces::white_point<float>) * color::cct::to_xyz(color_temperature);
-	// const math::fvec3 light_color{1.0f, 1.0f, 1.0f}; 
-	
-	// Create rectangle light
-	// ctx.underground_rectangle_light = std::make_unique<scene::rectangle_light>();
-	// ctx.underground_rectangle_light->set_color(light_color);
-	// ctx.underground_rectangle_light->set_luminous_flux(1500.0f);
-	// ctx.underground_rectangle_light->set_translation({0.0f, 10.0f, 0.0f});
-	// ctx.underground_rectangle_light->set_rotation(math::fquat::rotate_x(math::radians(90.0f)));
-	// ctx.underground_rectangle_light->set_scale(7.0f);
-	// ctx.underground_scene->add_object(*ctx.underground_rectangle_light);
-	
-	// Create light rectangle
-	// auto light_rectangle_model = ctx.resource_manager->load<render::model>("light-rectangle.mdl");
-	// auto light_rectangle_material = std::make_shared<render::material>(*light_rectangle_model->get_groups().front().material);
-	// light_rectangle_emissive = std::static_pointer_cast<render::matvar_fvec3>(light_rectangle_material->get_variable("emissive"));
-	// light_rectangle_emissive->set(ctx.underground_rectangle_light->get_colored_luminance());
-	// auto light_rectangle_static_mesh = std::make_shared<scene::static_mesh>(light_rectangle_model);
-	// light_rectangle_static_mesh->set_material(0, light_rectangle_material);
-	
-	// auto light_rectangle_eid = ctx.entity_registry->create();
-	// ctx.entity_registry->emplace<scene_component>(light_rectangle_eid, std::move(light_rectangle_static_mesh), std::uint8_t{1});
-	// ctx.entity_registry->patch<scene_component>
-	// (
-		// light_rectangle_eid,
-		// [&](auto& component)
-		// {
-			// component.object->set_transform(ctx.underground_rectangle_light->get_transform());
-		// }
-	// );
-	
-	// Create nest exterior
-	// {
-		// scene_component nest_exterior_scene_component;
-		// nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("round-petri-dish-nest-100mm-exterior.mdl"));
-		// nest_exterior_scene_component.layer_mask = 1;
-		
-		// auto nest_exterior_eid = ctx.entity_registry->create();
-		// ctx.entity_registry->emplace<scene_component>(nest_exterior_eid, std::move(nest_exterior_scene_component));
-	// }
-	
 	// Create nest exterior
 	{
 		scene_component nest_exterior_scene_component;
-		nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere-nest-100mm-exterior.mdl"));
+		nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube-nest-200mm-exterior.mdl"));
 		nest_exterior_scene_component.layer_mask = 1;
 		
-		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("sphere-nest-100mm-exterior.msh");
+		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("cube-nest-200mm-exterior.msh");
 		
 		auto nest_exterior_rigid_body = std::make_unique<physics::rigid_body>();
 		nest_exterior_rigid_body->set_mass(0.0f);
@@ -195,11 +134,11 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	// Create nest interior
 	{
 		scene_component nest_interior_scene_component;
-		nest_interior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("sphere-nest-100mm-interior.mdl"));
+		nest_interior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("soil-nest.mdl"));
 		nest_interior_scene_component.object->set_layer_mask(0b10);
 		nest_interior_scene_component.layer_mask = 1;
 		
-		auto nest_interior_mesh = ctx.resource_manager->load<geom::brep_mesh>("sphere-nest-100mm-interior.msh");
+		auto nest_interior_mesh = ctx.resource_manager->load<geom::brep_mesh>("soil-nest.msh");
 		
 		auto nest_interior_rigid_body = std::make_unique<physics::rigid_body>();
 		nest_interior_rigid_body->set_mass(0.0f);
@@ -215,10 +154,11 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	// Create rectangle light
 	{
 		area_light = std::make_unique<scene::rectangle_light>();
-		area_light->set_luminous_flux(5000000.0f);
+		area_light->set_luminous_flux(12.57f * 100.0f);
+		area_light->set_color_temperature(20000.0f);
 		area_light->set_translation({0.0f, 0.0f, 0.0f});
 		area_light->set_rotation(math::fquat::rotate_x(math::radians(90.0f)));
-		area_light->set_scale(5.0f);
+		area_light->set_size({1.0f, 2.0f});
 		area_light->set_layer_mask(0b10);
 		ctx.surface_scene->add_object(*area_light);
 		

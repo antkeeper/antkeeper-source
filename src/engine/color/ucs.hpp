@@ -24,8 +24,8 @@
 
 namespace color {
 
-/// CIE 1960 UCS color space.
-namespace ucs {
+/// @name CIE 1960 UCS color space
+/// @{
 
 /**
  * Transforms CIE 1960 UCS chromaticity coordinates into the CIE xyY colorspace.
@@ -35,13 +35,14 @@ namespace ucs {
  * @return CIE xyY color.
  */
 template <class T>
-[[nodiscard]] constexpr math::vec3<T> to_xyy(const math::vec2<T>& uv, T y = T{1}) noexcept
+[[nodiscard]] constexpr math::vec3<T> ucs_to_xyy(const math::vec2<T>& uv, T y = T{1}) noexcept
 {
 	const T d = T{1} / (T{2} * uv[0] - T{8} * uv[1] + T{4});
 	return math::vec3<T>{(T{3} * uv[0]) * d, (T{2} * uv[1]) * d, y};
 }
 
-} // namespace ucs
+/// @}
+
 } // namespace color
 
 #endif // ANTKEEPER_COLOR_UCS_HPP

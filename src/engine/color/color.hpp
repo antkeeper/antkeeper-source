@@ -20,13 +20,13 @@
 #ifndef ANTKEEPER_COLOR_HPP
 #define ANTKEEPER_COLOR_HPP
 
-/// Color manipulation.
+/// Color science.
 namespace color {}
 
 #include <engine/color/aces.hpp>
 #include <engine/color/cat.hpp>
 #include <engine/color/cct.hpp>
-#include <engine/color/illuminant.hpp>
+#include <engine/color/illuminants.hpp>
 #include <engine/color/index.hpp>
 #include <engine/color/rgb.hpp>
 #include <engine/color/srgb.hpp>

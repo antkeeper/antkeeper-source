@@ -26,8 +26,8 @@
 
 namespace color {
 
-/// RGB color spaces.
-namespace rgb {
+/// @name RGB color spaces
+/// @{
 
 /**
  * Constructs a matrix which transforms an RGB color into a CIE XYZ color.
@@ -43,7 +43,7 @@ namespace rgb {
  * @see https://mina86.com/2019/srgb-xyz-matrix/
  */
 template <class T>
-[[nodiscard]] constexpr math::mat3<T> to_xyz(const math::vec2<T>& r, const math::vec2<T>& g, const math::vec2<T>& b, const math::vec2<T>& w)
+[[nodiscard]] constexpr math::mat3<T> rgb_to_xyz(const math::vec2<T>& r, const math::vec2<T>& g, const math::vec2<T>& b, const math::vec2<T>& w)
 {
 	const math::mat3<T> m = 
 	{
@@ -66,10 +66,10 @@ template <class T>
  * RGB color space.
  */
 template <class T>
-struct color_space
+struct rgb_color_space
 {
 	/// Transfer function function pointer type.
-	typedef math::vec3<T> (*transfer_function_type)(const math::vec3<T>&);
+	using transfer_function_type = math::vec3<T> (*)(const math::vec3<T>&);
 	
 	/// CIE xy chromaticity coordinates of the red primary.
 	const math::vec2<T> r;
@@ -106,14 +106,14 @@ struct color_space
 	 * @param b CIE xy chromaticity coordinates of the blue primary.
 	 * @param w CIE xy chromaticity coordinates of the white point.
 	 */
-	constexpr color_space(const math::vec2<T>& r, const math::vec2<T>& g, const math::vec2<T>& b, const math::vec2<T>& w, transfer_function_type eotf, transfer_function_type oetf):
+	constexpr rgb_color_space(const math::vec2<T>& r, const math::vec2<T>& g, const math::vec2<T>& b, const math::vec2<T>& w, transfer_function_type eotf, transfer_function_type oetf):
 		r(r),
 		g(g),
 		b(b),
 		w(w),
 		eotf(eotf),
 		oetf(oetf),
-		to_xyz(color::rgb::to_xyz<T>(r, g, b, w)),
+		to_xyz(rgb_to_xyz<T>(r, g, b, w)),
 		from_xyz(math::inverse(to_xyz)),
 		to_y{to_xyz[0][1], to_xyz[1][1], to_xyz[2][1]}
 	{}
@@ -140,12 +140,13 @@ struct color_space
  * @return Color space transformation matrix.
  */
 template <class T>
-[[nodiscard]] constexpr math::mat3<T> to_rgb(const color_space<T>& s0, const color_space<T>& s1, const math::mat3<T>& cone_response = color::cat::bradford<T>)
+[[nodiscard]] constexpr math::mat3<T> rgb_to_rgb(const rgb_color_space<T>& s0, const rgb_color_space<T>& s1, const math::mat3<T>& cone_response = bradford_cone_response<T>)
 {
-	return s1.from_xyz * color::cat::matrix(s0.w, s1.w, cone_response) * s0.to_xyz;
+	return s1.from_xyz * cat_matrix(s0.w, s1.w, cone_response) * s0.to_xyz;
 }
 
-} // namespace rgb
+/// @}
+
 } // namespace color
 
 #endif // ANTKEEPER_COLOR_RGB_HPP

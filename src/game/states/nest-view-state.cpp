@@ -132,8 +132,6 @@ nest_view_state::nest_view_state(::game& ctx):
 	light_probe->set_luminance_texture(ctx.resource_manager->load<gl::texture_cube>("grey-furnace.tex"));
 	ctx.underground_scene->add_object(*light_probe);
 	
-	//const float color_temperature = 5000.0f;
-	//const math::fvec3 light_color = color::aces::ap1<float>.from_xyz * color::cat::matrix(color::illuminant::deg2::d50<float>, color::aces::white_point<float>) * color::cct::to_xyz(color_temperature);
 	const math::fvec3 light_color{1.0f, 1.0f, 1.0f}; 
 	
 	// Create rectangle light
