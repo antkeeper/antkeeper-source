@@ -90,7 +90,6 @@ namespace render
 	class material_pass;
 	class renderer;
 	class outline_pass;
-	class cascaded_shadow_map_pass;
 	class simple_render_pass;
 	class sky_pass;
 }
@@ -333,7 +332,6 @@ public:
 	std::unique_ptr<render::clear_pass> underground_clear_pass;
 	std::unique_ptr<render::material_pass> underground_material_pass;
 	std::unique_ptr<render::compositor> underground_compositor;
-	std::unique_ptr<render::cascaded_shadow_map_pass> surface_cascaded_shadow_map_pass;
 	std::unique_ptr<render::clear_pass> surface_clear_pass;
 	std::unique_ptr<render::sky_pass> sky_pass;
 	std::unique_ptr<render::material_pass> surface_material_pass;

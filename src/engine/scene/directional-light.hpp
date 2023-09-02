@@ -24,7 +24,6 @@
 #include <engine/gl/texture-2d.hpp>
 #include <engine/math/vector.hpp>
 #include <memory>
-#include <vector>
 #include <span>
 
 namespace scene {
@@ -136,11 +135,18 @@ public:
 	void set_shadow_cascade_count(unsigned int count) noexcept;
 	
 	/**
-	 * Sets the distance from the camera up to which shadows are visible.
+	 * Sets the maximum distance from a camera's near clipping plane up to which shadows are visible.
 	 *
-	 * @param distance Shadow distance.
+	 * @param distance Maximum shadow distance.
 	 */
-	void set_shadow_distance(float distance) noexcept;
+	void set_shadow_max_distance(float distance) noexcept;
+	
+	/**
+	 * Sets the distance from the maximum shadow distance at which shadows will begin to fade out.
+	 *
+	 * @param range Shadow fade range.
+	 */
+	void set_shadow_fade_range(float range) noexcept;
 	
 	/**
 	 * Sets the shadow cascade distribution.
@@ -173,10 +179,16 @@ public:
 		return m_shadow_cascade_count;
 	}
 	
-	/// Returns the distance from the camera up to which shadows are visible.
-	[[nodiscard]] inline constexpr float get_shadow_distance() const noexcept
+	/// Returns the maximum distance from a camera's near clipping plane up to which shadows are visible.
+	[[nodiscard]] inline constexpr float get_shadow_max_distance() const noexcept
 	{
-		return m_shadow_distance;
+		return m_shadow_max_distance;
+	}
+	
+	/// Returns the distance from the maximum shadow distance at which shadows will begin to fade out.
+	[[nodiscard]] inline constexpr float get_shadow_fade_range() const noexcept
+	{
+		return m_shadow_fade_range;
 	}
 	
 	/// Returns the shadow cascade distribution weight.
@@ -187,11 +199,11 @@ public:
 	
 	/// Returns the array of shadow cascade far clipping plane distances.
 	/// @{
-	[[nodiscard]] inline constexpr std::span<const float> get_shadow_cascade_distances() const noexcept
+	[[nodiscard]] inline constexpr const math::fvec4& get_shadow_cascade_distances() const noexcept
 	{
 		return m_shadow_cascade_distances;
 	}
-	[[nodiscard]] inline constexpr std::span<float> get_shadow_cascade_distances() noexcept
+	[[nodiscard]] inline constexpr math::fvec4& get_shadow_cascade_distances() noexcept
 	{
 		return m_shadow_cascade_distances;
 	}
@@ -233,11 +245,12 @@ private:
 	std::shared_ptr<gl::framebuffer> m_shadow_framebuffer{nullptr};
 	float m_shadow_bias{0.005f};
 	unsigned int m_shadow_cascade_count{4};
-	float m_shadow_distance{1000.0f};
+	float m_shadow_max_distance{100.0f};
+	float m_shadow_fade_range{0.0f};
 	float m_shadow_cascade_distribution{0.8f};
-	std::vector<float> m_shadow_cascade_distances;
-	std::vector<math::fmat4> m_shadow_cascade_matrices;
-	std::vector<math::fmat4> m_shadow_scale_bias_matrices;
+	math::fvec4 m_shadow_cascade_distances;
+	math::fmat4 m_shadow_cascade_matrices[4];
+	math::fmat4 m_shadow_scale_bias_matrices[4];
 };
 
 } // namespace scene

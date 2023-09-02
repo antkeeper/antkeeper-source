@@ -362,7 +362,8 @@ void create_sun(::game& ctx)
 		ctx.sun_light->set_shadow_caster(true);
 		ctx.sun_light->set_shadow_framebuffer(ctx.shadow_map_framebuffer);
 		ctx.sun_light->set_shadow_bias(0.005f);
-		ctx.sun_light->set_shadow_distance(50.0f);
+		ctx.sun_light->set_shadow_max_distance(20.0f);
+		ctx.sun_light->set_shadow_fade_range(5.0f);
 		ctx.sun_light->set_shadow_cascade_count(4);
 		ctx.sun_light->set_shadow_cascade_distribution(0.8f);
 		

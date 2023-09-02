@@ -115,7 +115,8 @@ private:
 	
 	// Directional shadows
 	std::vector<const gl::texture_2d*> directional_shadow_maps;
-	std::vector<std::span<const float>> directional_shadow_splits;
+	std::vector<math::fvec4> directional_shadow_splits;
+	std::vector<float> directional_shadow_fade_ranges;
 	std::vector<std::span<const math::fmat4>> directional_shadow_matrices;
 	std::size_t directional_shadow_count;
 	

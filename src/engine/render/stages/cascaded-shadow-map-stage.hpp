@@ -17,44 +17,37 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_RENDER_CASCADED_SHADOW_MAP_PASS_HPP
-#define ANTKEEPER_RENDER_CASCADED_SHADOW_MAP_PASS_HPP
+#ifndef ANTKEEPER_RENDER_CASCADED_SHADOW_MAP_STAGE_HPP
+#define ANTKEEPER_RENDER_CASCADED_SHADOW_MAP_STAGE_HPP
 
-#include <engine/render/pass.hpp>
-#include <engine/math/vector.hpp>
-#include <engine/scene/directional-light.hpp>
+#include <engine/render/stage.hpp>
+#include <engine/gl/shader-template.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
+#include <engine/gl/rasterizer.hpp>
+#include <engine/scene/directional-light.hpp>
+#include <engine/resources/resource-manager.hpp>
 #include <memory>
 #include <string>
 #include <unordered_map>
-
-class resource_manager;
 
 namespace render {
 
 /**
  * Renders cascaded shadow maps for directional lights.
  */
-class cascaded_shadow_map_pass: public pass
+class cascaded_shadow_map_stage: public stage
 {
 public:
 	/**
-	 * Constructs a shadow map pass.
+	 * Constructs a cascaded shadow map stage.
 	 *
-	 * @param rasterizer Rasterizer.
-	 * @param framebuffer Shadow map framebuffer.
-	 * @param resource_manage Resource manager.
+	 * @param rasterizer GL rasterizer.
+	 * @param resource_manager Resource manager for loading shader templates.
 	 */
-	cascaded_shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager);
+	cascaded_shadow_map_stage(gl::rasterizer& rasterizer, ::resource_manager& resource_manager);
 	
-	/**
-	 * Renders shadow maps for a single camera.
-	 *
-	 * @param ctx Render context.
-	 * @param queue Render queue.
-	 */
-	void render(render::context& ctx) override;
+	void execute(render::context& ctx) override;
 	
 	/**
 	 * Sets the maximum bone count for shadow-casting skeletal meshes.
@@ -73,18 +66,25 @@ public:
 
 private:
 	/**
+	 * Queues render operations of objects that may cast shadows visible to the current camera.
+	 */
+	void queue(render::context& ctx, scene::directional_light& light, const math::fmat4& light_view_projection);
+	
+	/**
 	 * Renders an atlas of cascaded shadow maps for a single directional light.
 	 *
 	 * @param light Shadow-casting directional light.
 	 * @param ctx Render context.
 	 */
-	void render_atlas(scene::directional_light& light, render::context& ctx);
+	void render_shadow_atlas(render::context& ctx, scene::directional_light& light);
 	
 	/// Rebuilds the shader program for static meshes.
 	void rebuild_static_mesh_shader_program();
 	
 	/// Rebuilds the shader program for skeletal meshes.
 	void rebuild_skeletal_mesh_shader_program();
+	
+	gl::rasterizer* m_rasterizer;
 	
 	std::size_t m_max_bone_count{64};
 	
@@ -102,4 +102,4 @@ private:
 
 } // namespace render
 
-#endif // ANTKEEPER_RENDER_CASCADED_SHADOW_MAP_PASS_HPP
+#endif // ANTKEEPER_RENDER_CASCADED_SHADOW_MAP_STAGE_HPP

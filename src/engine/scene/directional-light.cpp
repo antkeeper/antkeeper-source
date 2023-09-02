@@ -21,10 +21,7 @@
 
 namespace scene {
 
-directional_light::directional_light():
-	m_shadow_cascade_distances(m_shadow_cascade_count),
-	m_shadow_cascade_matrices(m_shadow_cascade_count),
-	m_shadow_scale_bias_matrices(m_shadow_cascade_count)
+directional_light::directional_light()
 {
 	set_shadow_bias(m_shadow_bias);
 	update_shadow_cascade_distances();
@@ -54,17 +51,19 @@ void directional_light::set_shadow_bias(float bias) noexcept
 void directional_light::set_shadow_cascade_count(unsigned int count) noexcept
 {
 	m_shadow_cascade_count = std::min(std::max(count, 1u), 4u);
-	m_shadow_cascade_distances.resize(m_shadow_cascade_count);
-	m_shadow_cascade_matrices.resize(m_shadow_cascade_count);
-	m_shadow_scale_bias_matrices.resize(m_shadow_cascade_count);
 	update_shadow_scale_bias_matrices();
 	update_shadow_cascade_distances();
 }
 
-void directional_light::set_shadow_distance(float distance) noexcept
+void directional_light::set_shadow_max_distance(float distance) noexcept
 {
-	m_shadow_distance = distance;
+	m_shadow_max_distance = distance;
 	update_shadow_cascade_distances();
+}
+
+void directional_light::set_shadow_fade_range(float range) noexcept
+{
+	m_shadow_fade_range = range;
 }
 
 void directional_light::set_shadow_cascade_distribution(float weight) noexcept
@@ -90,10 +89,7 @@ void directional_light::illuminance_updated()
 
 void directional_light::update_shadow_scale_bias_matrices()
 {
-	// Construct shadow scale-bias matrix (depth range `[-1, 1]`)
-	// auto m = math::translate(math::fvec3{0.5f, 0.5f, 0.5f + m_shadow_bias}) * math::scale(math::fvec3{0.5f, 0.5f, 0.5f});
-	
-	// Construct shadow scale-bias matrix (depth range `[0, 1]`)
+	// Transform coordinate range from `[-1, 1]` to `[0, 1]` and apply shadow bias
 	auto m = math::translate(math::fvec3{0.5f, 0.5f, m_shadow_bias}) * math::scale(math::fvec3{0.5f, 0.5f, 1.0f});
 	
 	// Apply cascade scale
@@ -113,14 +109,14 @@ void directional_light::update_shadow_cascade_distances()
 		return;
 	}
 	
-	m_shadow_cascade_distances[m_shadow_cascade_count - 1] = m_shadow_distance;
+	m_shadow_cascade_distances[m_shadow_cascade_count - 1] = m_shadow_max_distance;
 	for (unsigned int i = 0; i < m_shadow_cascade_count - 1; ++i)
 	{
 		const auto weight = static_cast<float>(i + 1) / static_cast<float>(m_shadow_cascade_count);
 		
 		// Calculate linear and logarithmic distribution distances
-		const auto linear_distance = m_shadow_distance * weight;
-		// const auto log_distance = math::log_lerp(0.0f, m_shadow_distance, weight);
+		const auto linear_distance = m_shadow_max_distance * weight;
+		// const auto log_distance = math::log_lerp(0.0f, m_shadow_max_distance, weight);
 		
 		// Interpolate between linear and logarithmic distribution distances
 		// cascade_distances[i] = math::lerp(linear_distance, log_distance, light.get_shadow_cascade_distribution());

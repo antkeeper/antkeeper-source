@@ -27,8 +27,8 @@ geom::ray<float, 3> camera::pick(const math::fvec2& ndc) const
 {
 	const auto near = m_inv_view_projection * math::fvec4{ndc[0], ndc[1], 1.0f, 1.0f};
 	const auto far = m_inv_view_projection * math::fvec4{ndc[0], ndc[1], 0.0f, 1.0f};
-	const auto origin = math::fvec3{near[0], near[1], near[2]} / near[3];
-	const auto direction = math::normalize(math::fvec3{far[0], far[1], far[2]} / far[3] - origin);
+	const auto origin = math::fvec3(near) / near[3];
+	const auto direction = math::normalize(math::fvec3(far) / far[3] - origin);
 	
 	return {origin, direction};
 }
@@ -36,12 +36,10 @@ geom::ray<float, 3> camera::pick(const math::fvec2& ndc) const
 math::fvec3 camera::project(const math::fvec3& object, const math::fvec4& viewport) const
 {
 	math::fvec4 result = m_view_projection * math::fvec4{object[0], object[1], object[2], 1.0f};
-	result[0] = (result[0] / result[3]) * 0.5f + 0.5f;
-	result[1] = (result[1] / result[3]) * 0.5f + 0.5f;
-	result[2] = (result[2] / result[3]) * 0.5f + 0.5f;
+	result /= result[3];
 	
-	result[0] = result[0] * viewport[2] + viewport[0];
-	result[1] = result[1] * viewport[3] + viewport[1];
+	result.x() = result.x() * viewport[2] + viewport[0];
+	result.y() = result.y() * viewport[3] + viewport[1];
 	
 	return math::fvec3(result);
 }

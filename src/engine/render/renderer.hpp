@@ -23,6 +23,7 @@
 #include <engine/render/context.hpp>
 #include <engine/render/stages/culling-stage.hpp>
 #include <engine/render/stages/queue-stage.hpp>
+#include <engine/render/stages/cascaded-shadow-map-stage.hpp>
 #include <engine/render/stages/light-probe-stage.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/gl/rasterizer.hpp>
@@ -58,6 +59,7 @@ public:
 private:
 	render::context m_ctx;
 	std::unique_ptr<render::light_probe_stage> m_light_probe_stage;
+	std::unique_ptr<render::cascaded_shadow_map_stage> m_cascaded_shadow_map_stage;
 	std::unique_ptr<render::culling_stage> m_culling_stage;
 	std::unique_ptr<render::queue_stage> m_queue_stage;
 };

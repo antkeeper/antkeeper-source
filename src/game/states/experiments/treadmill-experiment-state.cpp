@@ -117,10 +117,10 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	// Create nest exterior
 	{
 		scene_component nest_exterior_scene_component;
-		nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube-nest-200mm-exterior.mdl"));
+		nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube-nest-200mm-interior.mdl"));
 		nest_exterior_scene_component.layer_mask = 1;
 		
-		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("cube-nest-200mm-exterior.msh");
+		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("cube-nest-200mm-interior.msh");
 		
 		auto nest_exterior_rigid_body = std::make_unique<physics::rigid_body>();
 		nest_exterior_rigid_body->set_mass(0.0f);
@@ -349,8 +349,8 @@ void treadmill_experiment_state::create_third_person_camera_rig()
 	spring_arm.near_focal_plane_height = 8.0 * subject_scale;
 	spring_arm.far_focal_plane_height = 80.0 * subject_scale;
 	spring_arm.near_hfov = math::radians(90.0);
-	spring_arm.far_hfov = math::radians(45.0);
-	// spring_arm.far_hfov = math::radians(90.0);
+	// spring_arm.far_hfov = math::radians(45.0);
+	spring_arm.far_hfov = math::radians(90.0);
 	spring_arm.zoom = 0.25;
 	spring_arm.focal_point_offset = {0, static_cast<double>(worker_phenome->legs->standing_height) * subject_scale, 0};
 	

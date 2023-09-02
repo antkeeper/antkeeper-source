@@ -394,11 +394,13 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 					{
 						directional_shadow_maps.resize(directional_shadow_count);
 						directional_shadow_splits.resize(directional_shadow_count);
+						directional_shadow_fade_ranges.resize(directional_shadow_count);
 						directional_shadow_matrices.resize(directional_shadow_count);
 					}
 					
 					directional_shadow_maps[index] = static_cast<const gl::texture_2d*>(directional_light.get_shadow_framebuffer()->get_depth_attachment());
 					directional_shadow_splits[index] = directional_light.get_shadow_cascade_distances();
+					directional_shadow_fade_ranges[index] = directional_light.get_shadow_fade_range();
 					directional_shadow_matrices[index] = directional_light.get_shadow_cascade_matrices();
 				}
 				break;
@@ -681,22 +683,24 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 		if (auto directional_shadow_maps_var = shader_program.variable("directional_shadow_maps"))
 		{
 			auto directional_shadow_splits_var = shader_program.variable("directional_shadow_splits");
+			auto directional_shadow_fade_ranges_var = shader_program.variable("directional_shadow_fade_ranges");
 			auto directional_shadow_matrices_var = shader_program.variable("directional_shadow_matrices");
 			
-			if (directional_shadow_maps_var && directional_shadow_splits_var && directional_shadow_matrices_var)
+			if (directional_shadow_maps_var && directional_shadow_splits_var && directional_shadow_fade_ranges_var && directional_shadow_matrices_var)
 			{
 				command_buffer.emplace_back
 				(
-					[&, directional_shadow_maps_var, directional_shadow_splits_var, directional_shadow_matrices_var]()
+					[&, directional_shadow_maps_var, directional_shadow_splits_var, directional_shadow_fade_ranges_var, directional_shadow_matrices_var]()
 					{
 						directional_shadow_maps_var->update(std::span<const gl::texture_2d* const>{directional_shadow_maps.data(), directional_shadow_count});
 						
 						std::size_t offset = 0;
 						for (std::size_t i = 0; i < directional_shadow_count; ++i)
 						{
-							directional_shadow_splits_var->update(directional_shadow_splits[i], offset * 4);
+							directional_shadow_splits_var->update(directional_shadow_splits[i], i);
+							directional_shadow_fade_ranges_var->update(directional_shadow_fade_ranges[i], i);
 							directional_shadow_matrices_var->update(directional_shadow_matrices[i], offset);
-							offset += directional_shadow_splits[i].size();
+							offset += directional_shadow_matrices[i].size();
 						}
 					}
 				);

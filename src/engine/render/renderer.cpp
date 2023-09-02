@@ -41,6 +41,7 @@ namespace render {
 renderer::renderer(gl::rasterizer& rasterizer, ::resource_manager& resource_manager)
 {
 	m_light_probe_stage = std::make_unique<render::light_probe_stage>(rasterizer, resource_manager);
+	m_cascaded_shadow_map_stage = std::make_unique<render::cascaded_shadow_map_stage>(rasterizer, resource_manager);
 	m_culling_stage = std::make_unique<render::culling_stage>();
 	m_queue_stage = std::make_unique<render::queue_stage>();
 }
@@ -77,6 +78,9 @@ void renderer::render(float t, float dt, float alpha, scene::collection& collect
 		// Clear render queues
 		m_ctx.objects.clear();
 		m_ctx.operations.clear();
+		
+		// Execute cascaded shadow map stage
+		m_cascaded_shadow_map_stage->execute(m_ctx);
 		
 		// Execute culling stage
 		m_culling_stage->execute(m_ctx);

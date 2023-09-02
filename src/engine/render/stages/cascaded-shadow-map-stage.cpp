@@ -17,7 +17,7 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <engine/render/passes/cascaded-shadow-map-pass.hpp>
+#include <engine/render/stages/cascaded-shadow-map-stage.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
@@ -26,7 +26,6 @@
 #include <engine/render/context.hpp>
 #include <engine/render/material.hpp>
 #include <engine/render/vertex-attribute.hpp>
-#include <engine/gl/shader-template.hpp>
 #include <engine/scene/camera.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/scene/light.hpp>
@@ -36,16 +35,19 @@
 #include <engine/math/matrix.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/projection.hpp>
+#include <engine/geom/primitives/view-frustum.hpp>
 #include <cmath>
 #include <glad/glad.h>
+#include <algorithm>
 #include <execution>
+#include <mutex>
 
 namespace render {
 
 static bool operation_compare(const render::operation* a, const render::operation* b);
 
-cascaded_shadow_map_pass::cascaded_shadow_map_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager):
-	pass(rasterizer, nullptr)
+cascaded_shadow_map_stage::cascaded_shadow_map_stage(gl::rasterizer& rasterizer, ::resource_manager& resource_manager):
+	m_rasterizer(&rasterizer)
 {
 	// Init shader template definitions
 	m_shader_template_definitions["VERTEX_POSITION"]    = std::to_string(vertex_attribute::position);
@@ -61,7 +63,7 @@ cascaded_shadow_map_pass::cascaded_shadow_map_pass(gl::rasterizer* rasterizer, r
 	// Static mesh shader
 	{
 		// Load static mesh shader template
-		m_static_mesh_shader_template = resource_manager->load<gl::shader_template>("shadow-cascade-static-mesh.glsl");
+		m_static_mesh_shader_template = resource_manager.load<gl::shader_template>("shadow-cascade-static-mesh.glsl");
 		
 		// Build static mesh shader program
 		rebuild_static_mesh_shader_program();
@@ -70,14 +72,14 @@ cascaded_shadow_map_pass::cascaded_shadow_map_pass(gl::rasterizer* rasterizer, r
 	// Skeletal mesh shader
 	{
 		// Load skeletal mesh shader template
-		m_skeletal_mesh_shader_template = resource_manager->load<gl::shader_template>("shadow-cascade-skeletal-mesh.glsl");
+		m_skeletal_mesh_shader_template = resource_manager.load<gl::shader_template>("shadow-cascade-skeletal-mesh.glsl");
 		
 		// Build static mesh shader program
 		rebuild_skeletal_mesh_shader_program();
 	}
 }
 
-void cascaded_shadow_map_pass::render(render::context& ctx)
+void cascaded_shadow_map_stage::execute(render::context& ctx)
 {
 	// For each light
 	const auto& lights = ctx.collection->get_objects(scene::light::object_type_id);
@@ -110,11 +112,13 @@ void cascaded_shadow_map_pass::render(render::context& ctx)
 		}
 		
 		// Render shadow atlas
-		render_atlas(directional_light, ctx);
+		render_shadow_atlas(ctx, directional_light);
 	}
+	
+	ctx.operations.clear();
 }
 
-void cascaded_shadow_map_pass::set_max_bone_count(std::size_t bone_count)
+void cascaded_shadow_map_stage::set_max_bone_count(std::size_t bone_count)
 {
 	if (m_max_bone_count != bone_count)
 	{
@@ -128,7 +132,69 @@ void cascaded_shadow_map_pass::set_max_bone_count(std::size_t bone_count)
 	}
 }
 
-void cascaded_shadow_map_pass::render_atlas(scene::directional_light& light, render::context& ctx)
+void cascaded_shadow_map_stage::queue(render::context& ctx, scene::directional_light& light, const math::fmat4& light_view_projection)
+{
+	// Clear pre-existing render operations
+	ctx.operations.clear();
+	
+	// Combine camera and light layer masks
+	const auto camera_light_layer_mask = ctx.camera->get_layer_mask() & light.get_layer_mask();
+	
+	// Build light view frustum from light view projection matrix
+	const geom::view_frustum<float> light_view_frustum(light_view_projection);
+	
+	// Tests whether a box is completely outside a plane
+	auto box_outside_plane = [](const geom::box<float>& box, const geom::plane<float>& plane) -> bool
+	{
+		const math::fvec3 p =
+		{
+			(plane.normal.x() > 0.0f) ? box.max.x() : box.min.x(),
+			(plane.normal.y() > 0.0f) ? box.max.y() : box.min.y(),
+			(plane.normal.z() > 0.0f) ? box.max.z() : box.min.z()
+		};
+		
+		return plane.distance(p) < 0.0f;
+	};
+	
+	// For each object in the scene collection
+	const auto& objects = ctx.collection->get_objects();
+	std::for_each
+	(
+		std::execution::seq,
+		std::begin(objects),
+		std::end(objects),
+		[&](scene::object_base* object)
+		{
+			// Cull object if it doesn't share a common layer with the camera and light
+			if (!(object->get_layer_mask() & camera_light_layer_mask))
+			{
+				return;
+			}
+			
+			// Ignore cameras and lights
+			if (object->get_object_type_id() == scene::camera::object_type_id || object->get_object_type_id() == scene::light::object_type_id)
+			{
+				return;
+			}
+			
+			// Cull object if it's outside of the light view frustum (excluding near plane [reverse-z, so far=near])
+			const auto& object_bounds = object->get_bounds();
+			if (box_outside_plane(object_bounds, light_view_frustum.left()) ||
+				box_outside_plane(object_bounds, light_view_frustum.right()) ||
+				box_outside_plane(object_bounds, light_view_frustum.bottom()) ||
+				box_outside_plane(object_bounds, light_view_frustum.top()) ||
+				box_outside_plane(object_bounds, light_view_frustum.near()))
+			{
+				return;
+			}
+			
+			// Add object render operations to render context
+			object->render(ctx);
+		}
+	);
+}
+
+void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene::directional_light& light)
 {
 	// Disable blending
 	glDisable(GL_BLEND);
@@ -138,114 +204,98 @@ void cascaded_shadow_map_pass::render_atlas(scene::directional_light& light, ren
 	glDepthFunc(GL_GREATER);
 	glDepthMask(GL_TRUE);
 	
+	// Disable depth clipping (enable "pancaking")
+	glEnable(GL_DEPTH_CLAMP);
+	
 	// Enable back-face culling
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	bool two_sided = false;
 	
 	// Bind and clear shadow atlas framebuffer
-	rasterizer->use_framebuffer(*light.get_shadow_framebuffer());
-	rasterizer->clear_framebuffer(false, true, false);
-	
-	// Get light layer mask
-	const auto light_layer_mask = light.get_layer_mask();
+	m_rasterizer->use_framebuffer(*light.get_shadow_framebuffer());
+	m_rasterizer->clear_framebuffer(false, true, false);
 	
 	// Get camera
 	const scene::camera& camera = *ctx.camera;
 	
-	// Calculate distance to shadow cascade depth clipping planes
-	const auto shadow_clip_near = camera.get_clip_near();
-	const auto shadow_clip_far = camera.get_clip_near() + light.get_shadow_distance();
-	
 	// Get light shadow cascade distances and matrices
 	const auto cascade_count = light.get_shadow_cascade_count();
-	const auto cascade_distances = light.get_shadow_cascade_distances();
+	auto& cascade_distances = light.get_shadow_cascade_distances();
 	const auto cascade_matrices = light.get_shadow_cascade_matrices();
 	
 	// Calculate cascade far clipping plane distances
-	cascade_distances[cascade_count - 1] = shadow_clip_far;
+	cascade_distances[cascade_count - 1] = light.get_shadow_max_distance();
 	for (unsigned int i = 0; i < cascade_count - 1; ++i)
 	{
 		const float weight = static_cast<float>(i + 1) / static_cast<float>(cascade_count);
 		
 		// Calculate linear and logarithmic split distances
-		const float linear_distance = math::lerp(shadow_clip_near, shadow_clip_far, weight);
-		const float log_distance = math::log_lerp(shadow_clip_near, shadow_clip_far, weight);
+		const float linear_distance = math::lerp(camera.get_clip_near(), camera.get_clip_near() + light.get_shadow_max_distance(), weight);
+		const float log_distance = math::log_lerp(camera.get_clip_near(), camera.get_clip_near() + light.get_shadow_max_distance(), weight);
 		
 		// Interpolate between linear and logarithmic split distances
 		cascade_distances[i] = math::lerp(linear_distance, log_distance, light.get_shadow_cascade_distribution());
 	}
 	
-	// Calculate viewports for each shadow map
-	const int shadow_map_resolution = static_cast<int>(light.get_shadow_framebuffer()->get_depth_attachment()->get_width());
-	const int cascade_resolution = shadow_map_resolution >> 1;
-	math::ivec4 shadow_map_viewports[4];
-	for (int i = 0; i < 4; ++i)
-	{
-		int x = i % 2;
-		int y = i / 2;
-		
-		math::ivec4& viewport = shadow_map_viewports[i];
-		viewport[0] = x * cascade_resolution;
-		viewport[1] = y * cascade_resolution;
-		viewport[2] = cascade_resolution;
-		viewport[3] = cascade_resolution;
-	}
+	// Determine resolution of shadow atlas and cascades
+	const auto atlas_resolution = static_cast<int>(light.get_shadow_framebuffer()->get_depth_attachment()->get_width());
+	const auto cascade_resolution = atlas_resolution >> 1;
 	
 	// Sort render operations
 	std::sort(std::execution::par_unseq, ctx.operations.begin(), ctx.operations.end(), operation_compare);
 	
 	gl::shader_program* active_shader_program = nullptr;
 	
-	// Precalculate frustum minimal bounding sphere terms
-	const auto k = std::sqrt(1.0f + camera.get_aspect_ratio() * camera.get_aspect_ratio()) * std::tan(camera.get_vertical_fov() * 0.5f);
-	const auto k2 = k * k;
-	const auto k4 = k2 * k2;
-	
 	for (unsigned int i = 0; i < cascade_count; ++i)
 	{
-		// Set viewport for this shadow map
-		const math::ivec4& viewport = shadow_map_viewports[i];
-		rasterizer->set_viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+		// Get distances to near and far clipping planes of camera subfrustum
+		const auto subfrustum_near = i ? cascade_distances[i - 1] : camera.get_clip_near();
+		const auto subfrustum_far = cascade_distances[i];
 		
-		// Find minimal bounding sphere of subfrustum in view-space
-		// @see https://lxjk.github.io/2017/04/15/Calculate-Minimal-Bounding-Sphere-of-Frustum.html
-		geom::sphere<float> subfrustum_bounds;
-		{
-			// Get subfrustum near and far distances
-			const auto n = (i) ? cascade_distances[i - 1] : camera.get_clip_near();
-			const auto f = cascade_distances[i];
-			
-			if (k2 >= (f - n) / (f + n))
-			{
-				subfrustum_bounds.center = {0, 0, -f};
-				subfrustum_bounds.radius = f * k;
-			}
-			else
-			{
-				subfrustum_bounds.center = {0, 0, -0.5f * (f + n) * (1.0f + k2)};
-				subfrustum_bounds.radius = 0.5f * std::sqrt((k4 + 2.0f * k2 + 1.0f) * (f * f + n * n) + 2.0f * f * (k4 - 1.0f) * n);
-			}
-		}
-		
-		// Transform subfrustum bounds into world-space
-		subfrustum_bounds.center = camera.get_translation() + camera.get_rotation() * subfrustum_bounds.center;
-		
-		// Discretize view-space subfrustum bounds
-		const auto texel_scale = static_cast<float>(cascade_resolution) / (subfrustum_bounds.radius * 2.0f);
-		subfrustum_bounds.center = math::conjugate(light.get_rotation()) * subfrustum_bounds.center;
-		subfrustum_bounds.center = math::floor(subfrustum_bounds.center * texel_scale) / texel_scale;
-		subfrustum_bounds.center = light.get_rotation() * subfrustum_bounds.center;
+		// Find centroid of camera subfrustum
+		const auto subfrustum_centroid = camera.get_translation() + camera.get_forward() * ((subfrustum_near + subfrustum_far) * 0.5f);
 		
 		// Construct light view matrix
-		const auto light_view = math::look_at_rh(subfrustum_bounds.center, subfrustum_bounds.center + light.get_direction(), light.get_rotation() * math::fvec3{0, 1, 0});
+		const auto light_view = math::look_at_rh(subfrustum_centroid, subfrustum_centroid + light.get_direction(), light.get_rotation() * math::fvec3{0, 1, 0});
 		
-		// Construct light projection matrix (reversed depth)
+		// Construct subfrustum inverse view-projection matrix
+		const auto [subfrustum_projection, subfrustum_inv_projection] = math::perspective_half_z_inv(camera.get_vertical_fov(), camera.get_aspect_ratio(), subfrustum_far, subfrustum_near);
+		const auto subfrustum_inv_view_projection = camera.get_inv_view() * subfrustum_inv_projection;
+		
+		// Construct matrix which transforms clip space coordinates to light view space
+		const auto ndc_to_light_view = light_view * subfrustum_inv_view_projection;
+		
+		// Construct AABB containing subfrustum corners in light view space
+		geom::box<float> light_projection_bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
+		for (std::size_t j = 0; j < 8; ++j)
+		{
+			// Reverse half z clip-space coordinates of a cube
+			constexpr math::fvec4 ndc_cube[8] =
+			{
+				{-1, -1, 1, 1}, // NBL
+				{ 1, -1, 1, 1}, // NBR
+				{-1,  1, 1, 1}, // NTL
+				{ 1,  1, 1, 1}, // NTR
+				{-1, -1, 0, 1}, // FBL
+				{ 1, -1, 0, 1}, // FBR
+				{-1,  1, 0, 1}, // FTL
+				{ 1,  1, 0, 1}  // FTR
+			};
+			
+			// Find light view space coordinates of subfrustum corner
+			const auto corner = ndc_to_light_view * ndc_cube[j];
+			
+			// Expand light projection bounds to contain corner
+			light_projection_bounds.extend(math::fvec3(corner) / corner[3]);
+		}
+		
+		// Construct light projection matrix
 		const auto light_projection = math::ortho_half_z
 		(
-			-subfrustum_bounds.radius, subfrustum_bounds.radius,
-			-subfrustum_bounds.radius, subfrustum_bounds.radius,
-			subfrustum_bounds.radius, -subfrustum_bounds.radius
+			light_projection_bounds.min.x(), light_projection_bounds.max.x(),
+			light_projection_bounds.min.y(), light_projection_bounds.max.y(),
+			-light_projection_bounds.min.z(), -light_projection_bounds.max.z()
 		);
 		
 		// Construct light view-projection matrix
@@ -254,14 +304,21 @@ void cascaded_shadow_map_pass::render_atlas(scene::directional_light& light, ren
 		// Update world-space to cascade texture-space transformation matrix
 		cascade_matrices[i] = light.get_shadow_scale_bias_matrices()[i] * light_view_projection;
 		
+		// Queue render operations
+		queue(ctx, light, light_view_projection);
+		if (ctx.operations.empty())
+		{
+			continue;
+		}
+		
+		// Set viewport for this cascade
+		const auto viewport_x = static_cast<int>(i % 2) * cascade_resolution;
+		const auto viewport_y = static_cast<int>(i >> 1) * cascade_resolution;
+		m_rasterizer->set_viewport(viewport_x, viewport_y, cascade_resolution, cascade_resolution);
+		
+		// Render geometry
 		for (const render::operation* operation: ctx.operations)
 		{
-			// Skip operations which don't share any layers with the shadow-casting light
-			if (!(operation->layer_mask & light_layer_mask))
-			{
-				continue;
-			}
-			
 			const render::material* material = operation->material.get();
 			if (material)
 			{
@@ -291,11 +348,11 @@ void cascaded_shadow_map_pass::render_atlas(scene::directional_light& light, ren
 			if (active_shader_program != shader_program)
 			{
 				active_shader_program = shader_program;
-				rasterizer->use_program(*active_shader_program);
+				m_rasterizer->use_program(*active_shader_program);
 			}
 			
 			// Calculate model-view-projection matrix
-			math::fmat4 model_view_projection = light_view_projection * operation->transform;
+			const auto model_view_projection = light_view_projection * operation->transform;
 			
 			// Upload operation-dependent parameters to shader program
 			if (active_shader_program == m_static_mesh_shader_program.get())
@@ -309,12 +366,15 @@ void cascaded_shadow_map_pass::render_atlas(scene::directional_light& light, ren
 			}
 
 			// Draw geometry
-			rasterizer->draw_arrays(*operation->vertex_array, operation->drawing_mode, operation->start_index, operation->index_count);
+			m_rasterizer->draw_arrays(*operation->vertex_array, operation->drawing_mode, operation->start_index, operation->index_count);
 		}
 	}
+	
+	// Re-enable depth clipping (disable "pancaking")
+	glDisable(GL_DEPTH_CLAMP);
 }
 
-void cascaded_shadow_map_pass::rebuild_static_mesh_shader_program()
+void cascaded_shadow_map_stage::rebuild_static_mesh_shader_program()
 {
 	m_static_mesh_shader_program = m_static_mesh_shader_template->build(m_shader_template_definitions);
 	if (!m_static_mesh_shader_program->linked())
@@ -330,7 +390,7 @@ void cascaded_shadow_map_pass::rebuild_static_mesh_shader_program()
 	}
 }
 
-void cascaded_shadow_map_pass::rebuild_skeletal_mesh_shader_program()
+void cascaded_shadow_map_stage::rebuild_skeletal_mesh_shader_program()
 {
 	m_skeletal_mesh_shader_program = m_skeletal_mesh_shader_template->build(m_shader_template_definitions);
 	if (!m_skeletal_mesh_shader_program->linked())
