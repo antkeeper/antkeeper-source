@@ -28,10 +28,11 @@
 
 void generate_cocoon_silk_sdf(std::filesystem::path path)
 {
+	/*
 	debug::log::info("Generating cocoon silk SDF image...");
 	
 	image img;
-	img.format(1, 4);
+	img.format(4, 8);
 	img.resize(2048, 2048);
 	
 	auto width = img.width();
@@ -98,4 +99,5 @@ void generate_cocoon_silk_sdf(std::filesystem::path path)
 	stbi_write_png(path.string().c_str(), img.width(), img.height(), img.channel_count(), img.data(), img.width() * img.channel_count());
 	
 	debug::log::info("Saved cocoon silk SDF image to \"{}\"", path.string());
+	*/
 }

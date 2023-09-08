@@ -300,9 +300,20 @@ void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene:
 		
 		// Construct light view-projection matrix
 		const auto light_view_projection = light_projection * light_view;
+		const auto light_view_translation = math::fvec4(subfrustum_centroid);
+		const auto light_view_rotation = math::fmat4(math::fmat3(light_view));
 		
-		// Update world-space to cascade texture-space transformation matrix
-		cascade_matrices[i] = light.get_shadow_scale_bias_matrices()[i] * light_view_projection;
+		// Update view-space to cascade texture-space transformation matrix
+		{
+			const auto vs_subfrustum_centroid = math::fvec3{0.0f, 0.0f, ((subfrustum_near + subfrustum_far) * -0.5f)};
+			const auto vs_light_direction = light.get_direction() * camera.get_rotation();
+			const auto vs_light_up = (light.get_rotation() * math::fvec3{0, 1, 0}) * camera.get_rotation();
+			
+			const auto vs_light_view = math::look_at_rh(vs_subfrustum_centroid, vs_subfrustum_centroid + vs_light_direction, vs_light_up);
+			const auto vs_light_view_projection = light_projection * vs_light_view;
+			
+			cascade_matrices[i] = light.get_shadow_scale_bias_matrices()[i] * vs_light_view_projection;
+		}
 		
 		// Queue render operations
 		queue(ctx, light, light_view_projection);
@@ -352,7 +363,11 @@ void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene:
 			}
 			
 			// Calculate model-view-projection matrix
-			const auto model_view_projection = light_view_projection * operation->transform;
+			// @see Persson, E., & Studios, A. (2012). Creating vast game worlds: Experiences from avalanche studios. In ACM SIGGRAPH 2012 Talks (pp. 1-1).
+			auto model_view = operation->transform;
+			model_view[3] -= light_view_translation;
+			model_view = light_view_rotation * model_view;
+			const auto model_view_projection = light_projection * model_view;
 			
 			// Upload operation-dependent parameters to shader program
 			if (active_shader_program == m_static_mesh_shader_program.get())

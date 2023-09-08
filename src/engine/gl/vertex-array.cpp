@@ -66,14 +66,14 @@ void vertex_array::bind(attribute_location_type location, const vertex_attribute
 	glBindVertexArray(gl_array_id);
 	glBindBuffer(GL_ARRAY_BUFFER, attribute.buffer->gl_buffer_id);
 	
-	if (gl_type == GL_FLOAT || gl_type == GL_HALF_FLOAT || gl_type == GL_DOUBLE)
+	if (attribute.normalized || gl_type == GL_FLOAT || gl_type == GL_HALF_FLOAT || gl_type == GL_DOUBLE)
 	{
 		glVertexAttribPointer
 		(
 			static_cast<GLuint>(location),
 			static_cast<GLint>(attribute.components),
 			gl_type,
-			GL_FALSE,
+			attribute.normalized ? GL_TRUE : GL_FALSE,
 			static_cast<GLsizei>(attribute.stride),
 			reinterpret_cast<const GLvoid*>(attribute.offset)
 		); 

@@ -154,13 +154,7 @@ template <class T>
 template <class T>
 transform<T> inverse(const transform<T>& t) noexcept
 {
-	transform<T> inverse_t;
-	
-	inverse_t.scale = T{1} / t.scale;
-	inverse_t.rotation = conjugate(t.rotation);
-	inverse_t.translation = -(inverse_t.rotation * t.translation);
-	
-	return inverse_t;
+	return {-t.translation * t.rotation, conjugate(t.rotation), T{1} / t.scale};
 }
 
 template <class T>

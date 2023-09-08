@@ -23,6 +23,13 @@
 #include "game/systems/updatable-system.hpp"
 #include "game/components/terrain-component.hpp"
 #include <engine/entity/id.hpp>
+#include <engine/utility/image.hpp>
+#include <engine/math/transform.hpp>
+#include <engine/math/vector.hpp>
+#include <engine/render/model.hpp>
+#include <engine/render/material.hpp>
+#include <engine/geom/brep/brep-mesh.hpp>
+#include <memory>
 
 /**
  * Generates terrain patches and performs terrain patch LOD selection.
@@ -34,9 +41,25 @@ public:
 	~terrain_system();
 	
 	virtual void update(float t, float dt);
+	
+	/**
+	 * Generates terrain entities from a heightmap.
+	 *
+	 * @param heightmap Heightmap from which the terrain should be generated.
+	 * @param subdivisions Number of heightmap subdivisions on the x- and z-axes. Determines the number of terrain entities generated.
+	 * @param transform Translation, rotation, and scale of the terrain.
+	 * @param material Terrain material.
+	 *
+	 * @return Entity ID of the generated terrain grid.
+	 *
+	 * @except std::invalid_argument Failed to generate terrain from null heightmap.
+	 * @except std::runtime_error Heightmap size less than 2x2.
+	 * @except std::runtime_error Heightmap subdivision failed.
+	 */
+	entity::id generate(std::shared_ptr<image> heightmap, const math::uvec2& subdivisions, const math::transform<float>& transform, std::shared_ptr<render::material> material);
 
 private:
-
+	[[nodiscard]] std::unique_ptr<render::model> generate_terrain_model(const geom::brep_mesh& mesh, std::shared_ptr<render::material> material, const math::uvec2& quad_dimensions) const;
 };
 
 #endif // ANTKEEPER_GAME_TERRAIN_SYSTEM_HPP

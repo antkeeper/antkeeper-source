@@ -83,7 +83,7 @@ public:
 	std::size_t read64_be(std::byte* data, std::size_t count) noexcept(false) override;
 	
 private:
-	PHYSFS_File* file{nullptr};
+	PHYSFS_File* m_file{nullptr};
 	std::filesystem::path m_path;
 	bool m_eof{true};
 	bool m_error{false};

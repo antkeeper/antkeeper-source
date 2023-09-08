@@ -299,7 +299,7 @@ void create_stars(::game& ctx)
 	auto& vao = stars_model->get_vertex_array();
 	
 	// Resize model VBO and upload vertex data
-	vbo->resize(star_vertex_data.size(), std::as_bytes(std::span{star_vertex_data}));
+	vbo->resize(star_vertex_data.size() * sizeof(float), std::as_bytes(std::span{star_vertex_data}));
 	
 	std::size_t attribute_offset = 0;
 	
@@ -330,7 +330,7 @@ void create_stars(::game& ctx)
 	
 	// Create model group
 	stars_model->get_groups().resize(1);
-	render::model_group& stars_model_group = stars_model->get_groups().back();
+	render::model_group& stars_model_group = stars_model->get_groups().front();
 	
 	stars_model_group.id = "stars";
 	stars_model_group.material = star_material;

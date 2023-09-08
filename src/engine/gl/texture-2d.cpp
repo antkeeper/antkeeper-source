@@ -21,18 +21,18 @@
 
 namespace gl {
 
-texture_2d::texture_2d(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data):
-	texture(width, height, false, type, format, color_space, data)
+texture_2d::texture_2d(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data):
+	texture(width, height, false, type, format, transfer_function, data)
 {}
 
-void texture_2d::resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)
+void texture_2d::resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data)
 {
-	texture::resize(width, height, type, format, color_space, data);
+	texture::resize(width, height, type, format, transfer_function, data);
 }
 
 void texture_2d::resize(std::uint16_t width, std::uint16_t height, const std::byte* data)
 {
-	texture::resize(width, height, get_pixel_type(), get_pixel_format(), get_color_space(), data);
+	texture::resize(width, height, get_pixel_type(), get_pixel_format(), get_transfer_function(), data);
 }
 
 void texture_2d::set_wrapping(gl::texture_wrapping wrap_s, texture_wrapping wrap_t)

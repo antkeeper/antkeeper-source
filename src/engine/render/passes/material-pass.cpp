@@ -286,9 +286,18 @@ void material_pass::render(render::context& ctx)
 			active_lighting_state_hash = lighting_state_hash;
 		}
 		
-		// Update geometry-dependent shader variables
+		
 		model = &operation->transform;
+		
+		// @see Persson, E., & Studios, A. (2012). Creating vast game worlds: Experiences from avalanche studios. In ACM SIGGRAPH 2012 Talks (pp. 1-1).
+		model_view = *model;
+		model_view[3] -= view_translation;
+		model_view = view_rotation * model_view;
+		// model_view = (*view) * (*model);
+		
 		matrix_palette = operation->matrix_palette;
+		
+		// Update geometry-dependent shader variables
 		for (const auto& command: active_cache_entry->geometry_command_buffer)
 		{
 			command();
@@ -316,16 +325,13 @@ void material_pass::set_fallback_material(std::shared_ptr<render::material> fall
 void material_pass::evaluate_camera(const render::context& ctx)
 {
 	view = &ctx.camera->get_view();
+	inv_view = &ctx.camera->get_inv_view();
+	view_translation = math::fvec4(ctx.camera->get_translation());
+	view_rotation = math::fmat4(math::fmat3(*view));
 	projection = &ctx.camera->get_projection();
 	view_projection = &ctx.camera->get_view_projection();
 	camera_position = &ctx.camera->get_translation();
 	camera_exposure = ctx.camera->get_exposure_normalization();
-	clip_depth =
-	{
-		ctx.camera->get_clip_near(),
-		ctx.camera->get_clip_far()
-	};
-	log_depth_coef = 2.0f / std::log2(clip_depth[1] + 1.0f);
 }
 
 void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t layer_mask)
@@ -382,7 +388,7 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 				}
 				
 				directional_light_colors[index] = directional_light.get_colored_illuminance() * ctx.camera->get_exposure_normalization();
-				directional_light_directions[index] = directional_light.get_direction();
+				directional_light_directions[index] = directional_light.get_direction() * ctx.camera->get_rotation();
 				
 				// Add directional shadow
 				if (directional_light.is_shadow_caster() && directional_light.get_shadow_framebuffer())
@@ -423,8 +429,8 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 				}
 				
 				spot_light_colors[index] = spot_light.get_luminous_flux() * ctx.camera->get_exposure_normalization();
-				spot_light_positions[index] = spot_light.get_translation();
-				spot_light_directions[index] = spot_light.get_direction();
+				spot_light_positions[index] = spot_light.get_translation() - ctx.camera->get_translation();
+				spot_light_directions[index] = spot_light.get_direction() * ctx.camera->get_rotation();
 				spot_light_cutoffs[index] = spot_light.get_cosine_cutoff();
 				break;
 			}
@@ -444,7 +450,7 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 				}
 				
 				point_light_colors[index] = point_light.get_colored_luminous_flux() * ctx.camera->get_exposure_normalization();
-				point_light_positions[index] = point_light.get_translation();
+				point_light_positions[index] = point_light.get_translation() - ctx.camera->get_translation();
 				
 				break;
 			}
@@ -468,7 +474,7 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 				const auto corners = rectangle_light.get_corners();
 				for (std::size_t i = 0; i < 4; ++i)
 				{
-					rectangle_light_corners[index * 4 + i] = corners[i];
+					rectangle_light_corners[index * 4 + i] = (corners[i] - ctx.camera->get_translation()) * ctx.camera->get_rotation();
 				}
 				
 				break;
@@ -553,6 +559,10 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	{
 		command_buffer.emplace_back([&, view_var](){view_var->update(*view);});
 	}
+	if (auto inv_view_var = shader_program.variable("inv_view"))
+	{
+		command_buffer.emplace_back([&, inv_view_var](){inv_view_var->update(*inv_view);});
+	}
 	if (auto projection_var = shader_program.variable("projection"))
 	{
 		command_buffer.emplace_back([&, projection_var](){projection_var->update(*projection);});
@@ -568,10 +578,6 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 	if (auto camera_exposure_var = shader_program.variable("camera_exposure"))
 	{
 		command_buffer.emplace_back([&, camera_exposure_var](){camera_exposure_var->update(camera_exposure);});
-	}
-	if (auto clip_depth_var = shader_program.variable("clip_depth"))
-	{
-		command_buffer.emplace_back([&, clip_depth_var](){clip_depth_var->update(clip_depth);});
 	}
 	
 	// Update IBL variables
@@ -820,7 +826,6 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 		(
 			[&, model_view_var, normal_model_view_var]()
 			{
-				const auto model_view = (*view) * (*model);
 				model_view_var->update(model_view);
 				normal_model_view_var->update(math::transpose(math::inverse(math::fmat3(model_view))));
 			}
@@ -830,7 +835,7 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 	{
 		if (model_view_var)
 		{
-			command_buffer.emplace_back([&, model_view_var](){model_view_var->update((*view) * (*model));});
+			command_buffer.emplace_back([&, model_view_var](){model_view_var->update(model_view);});
 		}
 		else if (normal_model_view_var)
 		{
@@ -838,7 +843,6 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 			(
 				[&, normal_model_view_var]()
 				{
-					const auto model_view = (*view) * (*model);
 					normal_model_view_var->update(math::transpose(math::inverse(math::fmat3(model_view))));
 				}
 			);
@@ -848,7 +852,7 @@ void material_pass::build_geometry_command_buffer(std::vector<std::function<void
 	// Update model-view-projection matrix variable
 	if (auto model_view_projection_var = shader_program.variable("model_view_projection"))
 	{
-		command_buffer.emplace_back([&, model_view_projection_var](){model_view_projection_var->update((*view_projection) * (*model));});
+		command_buffer.emplace_back([&, model_view_projection_var](){model_view_projection_var->update((*projection) * model_view);});
 	}
 	
 	// Update matrix palette variable

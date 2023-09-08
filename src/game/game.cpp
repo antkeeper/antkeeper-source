@@ -803,7 +803,7 @@ void game::setup_scenes()
 	
 	// Allocate and init surface camera
 	surface_camera = std::make_shared<scene::camera>();
-	surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.5f, 1000.0f);
+	surface_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.5f);
 	surface_camera->set_compositor(surface_compositor.get());
 	surface_camera->set_composite_index(0);
 	
@@ -813,7 +813,7 @@ void game::setup_scenes()
 	
 	// Allocate and init underground camera
 	underground_camera = std::make_shared<scene::camera>();
-	underground_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.1f, 200.0f);
+	underground_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.5f);
 	underground_camera->set_compositor(underground_compositor.get());
 	underground_camera->set_composite_index(0);
 	
@@ -980,13 +980,7 @@ void game::setup_ui()
 			::graphics::change_render_resolution(*this, render_scale);
 			
 			// Update camera projection matrix
-			surface_camera->set_perspective
-			(
-				surface_camera->get_vertical_fov(),
-				viewport_aspect_ratio,
-				surface_camera->get_clip_near(),
-				surface_camera->get_clip_far()
-			);
+			surface_camera->set_aspect_ratio(viewport_aspect_ratio);
 			
 			// Update UI camera projection matrix
 			ui_camera->set_orthographic

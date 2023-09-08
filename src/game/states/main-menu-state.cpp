@@ -266,11 +266,6 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure_value(ev100_sunny16);
 	
-	const float aspect_ratio = viewport_size.x() / viewport_size.y();
-	float fov = math::vertical_fov(math::radians(100.0f), aspect_ratio);
-	
-	ctx.surface_camera->look_at({0, 2.0f, 0}, {0, 0, 0}, {0, 0, 1});
-	ctx.surface_camera->set_perspective(fov, ctx.surface_camera->get_aspect_ratio(), ctx.surface_camera->get_clip_near(), ctx.surface_camera->get_clip_far());
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);

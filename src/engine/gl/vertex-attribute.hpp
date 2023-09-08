@@ -62,6 +62,9 @@ struct vertex_attribute
 	
 	/// Number of components per attribute instance. Supported values are `1`, `2`, `3`, and `4`.
 	std::uint8_t components{0};
+	
+	/// `true` if fixed point data should be normalized, `false` otherwise.
+	bool normalized{};
 };
 
 } // namespace gl

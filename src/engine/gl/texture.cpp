@@ -23,7 +23,7 @@
 #include <engine/gl/texture-3d.hpp>
 #include <engine/gl/texture-cube.hpp>
 #include <algorithm>
-#include <engine/gl/color-space.hpp>
+#include <engine/gl/transfer-function.hpp>
 #include <engine/gl/pixel-format.hpp>
 #include <engine/gl/pixel-type.hpp>
 #include <engine/gl/texture-filter.hpp>
@@ -125,23 +125,23 @@ static constexpr GLenum mag_filter_lut[] =
 	GL_LINEAR
 };
 
-texture::texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth, bool cube, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)
+texture::texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth, bool cube, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data)
 {
 	m_gl_texture_target = static_cast<unsigned int>(cube ? GL_TEXTURE_CUBE_MAP : (depth) ? GL_TEXTURE_3D : (height) ? GL_TEXTURE_2D : GL_TEXTURE_1D);
 	
 	glGenTextures(1, &m_gl_texture_id);
-	resize(width, height, depth, type, format, color_space, data);
+	resize(width, height, depth, type, format, transfer_function, data);
 	set_wrapping(m_wrapping[0], m_wrapping[1], m_wrapping[2]);
 	set_filters(std::get<0>(m_filters), std::get<1>(m_filters));
 	set_max_anisotropy(m_max_anisotropy);
 }
 
-texture::texture(std::uint16_t width, std::uint16_t height, bool cube, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data):
-	texture(width, height, 0, cube, type, format, color_space, data)
+texture::texture(std::uint16_t width, std::uint16_t height, bool cube, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data):
+	texture(width, height, 0, cube, type, format, transfer_function, data)
 {}
 
-texture::texture(std::uint16_t width, bool cube, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data):
-	texture(width, 0, 0, cube, type, format, color_space, data)
+texture::texture(std::uint16_t width, bool cube, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data):
+	texture(width, 0, 0, cube, type, format, transfer_function, data)
 {}
 
 texture::~texture()
@@ -264,15 +264,15 @@ void texture::set_wrapping(gl::texture_wrapping wrap_s)
 	glTexParameteri(m_gl_texture_target, GL_TEXTURE_WRAP_S, gl_wrap_s);
 }
 
-void texture::resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)
+void texture::resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data)
 {
 	m_dimensions = {width, height, depth};
 	m_pixel_type = type;
 	m_pixel_format = format;
-	m_color_space = color_space;
+	m_transfer_function = transfer_function;
 
 	GLenum gl_internal_format;
-	if (m_color_space == gl::color_space::srgb)
+	if (m_transfer_function == gl::transfer_function::srgb)
 	{
 		gl_internal_format = srgb_internal_format_lut[std::to_underlying(format)][std::to_underlying(type)];
 	}
@@ -336,14 +336,14 @@ void texture::resize(std::uint16_t width, std::uint16_t height, std::uint16_t de
 	}
 }
 
-void texture::resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)
+void texture::resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data)
 {
-	resize(width, height, 0, type, format, color_space, data);
+	resize(width, height, 0, type, format, transfer_function, data);
 }
 
-void texture::resize(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)
+void texture::resize(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data)
 {
-	resize(width, 0, 0, type, format, color_space, data);
+	resize(width, 0, 0, type, format, transfer_function, data);
 }
 
 void texture::update_cube_faces(unsigned int gl_internal_format, unsigned int gl_format, unsigned int gl_type, const std::byte* data)
@@ -363,27 +363,27 @@ void texture::update_cube_faces(unsigned int gl_internal_format, unsigned int gl
 		return;
 	}
 	
-	std::size_t channel_count = 0;
+	std::size_t channels = 0;
 	switch (m_pixel_format)
 	{
 		case pixel_format::d:
 		case pixel_format::r:
-			channel_count = 1;
+			channels = 1;
 			break;
 		
 		case pixel_format::ds:
 		case pixel_format::rg:
-			channel_count = 2;
+			channels = 2;
 			break;
 		
 		case pixel_format::rgb:
 		case pixel_format::bgr:
-			channel_count = 3;
+			channels = 3;
 			break;
 		
 		case pixel_format::rgba:
 		case pixel_format::bgra:
-			channel_count = 4;
+			channels = 4;
 			break;
 		
 		default:
@@ -414,7 +414,7 @@ void texture::update_cube_faces(unsigned int gl_internal_format, unsigned int gl
 			break;
 	}
 	
-	const std::size_t pixel_stride = channel_count * channel_size;
+	const std::size_t pixel_stride = channels * channel_size;
 	const std::size_t row_stride = static_cast<std::size_t>(face_size) * pixel_stride;
 	const std::size_t face_stride = static_cast<std::size_t>(face_size) * row_stride;
 	
@@ -552,18 +552,14 @@ std::unique_ptr<gl::texture_1d> resource_loader<gl::texture_1d>::load(::resource
 	// Load image
 	auto image = resource_manager.load<::image>(image_filename);
 	
-	// Read color space
-	gl::color_space color_space = gl::color_space::linear;
-	if (auto element = json_data->find("color_space"); element != json_data->end())
+	// Read transfer function
+	gl::transfer_function transfer_function = gl::transfer_function::linear;
+	if (auto element = json_data->find("transfer_function"); element != json_data->end())
 	{
 		std::string value = element.value().get<std::string>();
-		if (value == "linear")
+		if (value == "srgb")
 		{
-			color_space = gl::color_space::linear;
-		}
-		else if (value == "srgb")
-		{
-			color_space = gl::color_space::srgb;
+			transfer_function = gl::transfer_function::srgb;
 		}
 	}
 	
@@ -616,33 +612,33 @@ std::unique_ptr<gl::texture_1d> resource_loader<gl::texture_1d>::load(::resource
 	}
 	
 	// Determine pixel type
-	gl::pixel_type type = (image->component_size() == sizeof(float)) ? gl::pixel_type::float_32 : gl::pixel_type::uint_8;
+	gl::pixel_type type = (image->bit_depth() >> 3 == sizeof(float)) ? gl::pixel_type::float_32 : gl::pixel_type::uint_8;
 
 	// Determine pixel format
 	gl::pixel_format format;
-	if (image->channel_count() == 1)
+	if (image->channels() == 1)
 	{
 		format = gl::pixel_format::r;
 	}
-	else if (image->channel_count() == 2)
+	else if (image->channels() == 2)
 	{
 		format = gl::pixel_format::rg;
 	}
-	else if (image->channel_count() == 3)
+	else if (image->channels() == 3)
 	{
 		format = gl::pixel_format::rgb;
 	}
-	else if (image->channel_count() == 4)
+	else if (image->channels() == 4)
 	{
 		format = gl::pixel_format::rgba;
 	}
 	else
 	{
-		throw std::runtime_error(std::format("Texture image has unsupported number of channels ({})", image->channel_count()));
+		throw std::runtime_error(std::format("Texture image has unsupported number of channels ({})", image->channels()));
 	}
 	
 	// Create texture
-	auto texture = std::make_unique<gl::texture_1d>(image->width(), type, format, color_space, image->data());
+	auto texture = std::make_unique<gl::texture_1d>(static_cast<std::uint16_t>(image->size().x()), type, format, transfer_function, image->data());
 	texture->set_wrapping(wrapping);
 	texture->set_filters(min_filter, mag_filter);
 	texture->set_max_anisotropy(max_anisotropy);
@@ -667,17 +663,13 @@ std::unique_ptr<gl::texture_2d> resource_loader<gl::texture_2d>::load(::resource
 	auto image = resource_manager.load<::image>(image_filename);
 	
 	// Read color space
-	gl::color_space color_space = gl::color_space::linear;
-	if (auto element = json_data->find("color_space"); element != json_data->end())
+	gl::transfer_function transfer_function = gl::transfer_function::linear;
+	if (auto element = json_data->find("transfer_function"); element != json_data->end())
 	{
 		std::string value = element.value().get<std::string>();
-		if (value == "linear")
+		if (value == "srgb")
 		{
-			color_space = gl::color_space::linear;
-		}
-		else if (value == "srgb")
-		{
-			color_space = gl::color_space::srgb;
+			transfer_function = gl::transfer_function::srgb;
 		}
 	}
 	
@@ -730,33 +722,33 @@ std::unique_ptr<gl::texture_2d> resource_loader<gl::texture_2d>::load(::resource
 	}
 	
 	// Determine pixel type
-	gl::pixel_type type = (image->component_size() == sizeof(float)) ? gl::pixel_type::float_32 : gl::pixel_type::uint_8;
+	gl::pixel_type type = (image->bit_depth() >> 3 == sizeof(float)) ? gl::pixel_type::float_32 : gl::pixel_type::uint_8;
 
 	// Determine pixel format
 	gl::pixel_format format;
-	if (image->channel_count() == 1)
+	if (image->channels() == 1)
 	{
 		format = gl::pixel_format::r;
 	}
-	else if (image->channel_count() == 2)
+	else if (image->channels() == 2)
 	{
 		format = gl::pixel_format::rg;
 	}
-	else if (image->channel_count() == 3)
+	else if (image->channels() == 3)
 	{
 		format = gl::pixel_format::rgb;
 	}
-	else if (image->channel_count() == 4)
+	else if (image->channels() == 4)
 	{
 		format = gl::pixel_format::rgba;
 	}
 	else
 	{
-		throw std::runtime_error(std::format("Texture image has unsupported number of channels ({})", image->channel_count()));
+		throw std::runtime_error(std::format("Texture image has unsupported number of channels ({})", image->channels()));
 	}
 	
 	// Create texture
-	auto texture = std::make_unique<gl::texture_2d>(image->width(), image->height(), type, format, color_space, image->data());
+	auto texture = std::make_unique<gl::texture_2d>(static_cast<std::uint16_t>(image->size().x()), static_cast<std::uint16_t>(image->size().y()), type, format, transfer_function, image->data());
 	texture->set_wrapping(wrapping, wrapping);
 	texture->set_filters(min_filter, mag_filter);
 	texture->set_max_anisotropy(max_anisotropy);
@@ -787,17 +779,13 @@ std::unique_ptr<gl::texture_cube> resource_loader<gl::texture_cube>::load(::reso
 	auto image = resource_manager.load<::image>(image_filename);
 	
 	// Read color space
-	gl::color_space color_space = gl::color_space::linear;
-	if (auto element = json_data->find("color_space"); element != json_data->end())
+	gl::transfer_function transfer_function = gl::transfer_function::linear;
+	if (auto element = json_data->find("transfer_function"); element != json_data->end())
 	{
 		std::string value = element.value().get<std::string>();
-		if (value == "linear")
+		if (value == "srgb")
 		{
-			color_space = gl::color_space::linear;
-		}
-		else if (value == "srgb")
-		{
-			color_space = gl::color_space::srgb;
+			transfer_function = gl::transfer_function::srgb;
 		}
 	}
 	
@@ -850,33 +838,46 @@ std::unique_ptr<gl::texture_cube> resource_loader<gl::texture_cube>::load(::reso
 	}
 	
 	// Determine pixel type
-	gl::pixel_type type = (image->component_size() == sizeof(float)) ? gl::pixel_type::float_32 : gl::pixel_type::uint_8;
-
+	gl::pixel_type type;
+	switch (image->bit_depth())
+	{
+		case 32u:
+			type = gl::pixel_type::float_32;
+			break;
+		case 16u:
+			type = gl::pixel_type::uint_16;
+			break;
+		case 8u:
+		default:
+			type = gl::pixel_type::uint_8;
+			break;
+	}
+	
 	// Determine pixel format
 	gl::pixel_format format;
-	if (image->channel_count() == 1)
+	if (image->channels() == 1)
 	{
 		format = gl::pixel_format::r;
 	}
-	else if (image->channel_count() == 2)
+	else if (image->channels() == 2)
 	{
 		format = gl::pixel_format::rg;
 	}
-	else if (image->channel_count() == 3)
+	else if (image->channels() == 3)
 	{
 		format = gl::pixel_format::rgb;
 	}
-	else if (image->channel_count() == 4)
+	else if (image->channels() == 4)
 	{
 		format = gl::pixel_format::rgba;
 	}
 	else
 	{
-		throw std::runtime_error(std::format("Texture image has unsupported number of channels ({})", image->channel_count()));
+		throw std::runtime_error(std::format("Texture image has unsupported number of channels ({})", image->channels()));
 	}
 	
 	// Create texture
-	auto texture = std::make_unique<gl::texture_cube>(image->width(), image->height(), type, format, color_space, image->data());
+	auto texture = std::make_unique<gl::texture_cube>(static_cast<std::uint16_t>(image->size().x()), static_cast<std::uint16_t>(image->size().y()), type, format, transfer_function, image->data());
 	texture->set_wrapping(wrapping, wrapping, wrapping);
 	texture->set_filters(min_filter, mag_filter);
 	texture->set_max_anisotropy(max_anisotropy);

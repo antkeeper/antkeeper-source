@@ -31,35 +31,6 @@ namespace render {
 light_probe_stage::light_probe_stage(gl::rasterizer& rasterizer, ::resource_manager& resource_manager):
 	m_rasterizer(&rasterizer)
 {
-	// Build quad VBO and VAO
-	{
-		const math::fvec2 vertex_positions[] =
-		{
-			{-1.0f,  1.0f},
-			{-1.0f, -1.0f},
-			{ 1.0f,  1.0f},
-			{ 1.0f, -1.0f}
-		};
-		
-		const auto vertex_data = std::as_bytes(std::span{vertex_positions});
-		const std::size_t vertex_size = 2;
-		const std::size_t vertex_stride = sizeof(float) * vertex_size;
-		
-		m_quad_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, vertex_data.size(), vertex_data);
-		m_quad_vao = std::make_unique<gl::vertex_array>();
-		
-		// Define position vertex attribute
-		gl::vertex_attribute position_attribute;
-		position_attribute.buffer = m_quad_vbo.get();
-		position_attribute.offset = 0;
-		position_attribute.stride = vertex_stride;
-		position_attribute.type = gl::vertex_attribute_type::float_32;
-		position_attribute.components = 2;
-		
-		// Bind vertex attributes to VAO
-		m_quad_vao->bind(render::vertex_attribute::position, position_attribute);
-	}
-	
 	// Load cubemap to spherical harmonics shader template and build shader program
 	m_cubemap_to_sh_shader_template = resource_manager.load<gl::shader_template>("cubemap-to-sh.glsl");
 	rebuild_cubemap_to_sh_shader_program();
@@ -148,7 +119,7 @@ void light_probe_stage::update_light_probes_luminance(const std::vector<scene::o
 				m_rasterizer->use_framebuffer(*light_probe.get_luminance_framebuffers()[i]);
 				
 				// Downsample
-				m_rasterizer->draw_arrays(*m_quad_vao, gl::drawing_mode::points, 0, 1);
+				m_rasterizer->draw_arrays(gl::drawing_mode::points, 0, 1);
 			}
 			
 			// Bind cubemap filter shader program
@@ -175,7 +146,7 @@ void light_probe_stage::update_light_probes_luminance(const std::vector<scene::o
 				m_rasterizer->use_framebuffer(*light_probe.get_luminance_framebuffers()[i]);
 				
 				// Filter
-				m_rasterizer->draw_arrays(*m_quad_vao, gl::drawing_mode::points, 0, 1);
+				m_rasterizer->draw_arrays(gl::drawing_mode::points, 0, 1);
 			}
 			
 			// Restore cubemap mipmap range
@@ -221,7 +192,7 @@ void light_probe_stage::update_light_probes_illuminance(const std::vector<scene:
 			m_cubemap_to_sh_cubemap_var->update(*light_probe.get_luminance_texture());
 			
 			// Draw quad
-			m_rasterizer->draw_arrays(*m_quad_vao, gl::drawing_mode::triangle_strip, 0, 4);
+			m_rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
 			
 			// Mark light probe illuminance as current
 			light_probe.set_illuminance_outdated(false);
@@ -334,7 +305,7 @@ void light_probe_stage::rebuild_cubemap_filter_lut_texture()
 	m_cubemap_filter_lut_resolution_var->update(math::fvec2{static_cast<float>(m_cubemap_filter_lut_texture->get_width()), static_cast<float>(m_cubemap_filter_lut_texture->get_height())});
 	m_cubemap_filter_lut_face_size_var->update(128.0f);
 	m_cubemap_filter_lut_mip_bias_var->update(m_cubemap_filter_mip_bias);
-	m_rasterizer->draw_arrays(*m_quad_vao, gl::drawing_mode::triangle_strip, 0, 4);
+	m_rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
 }
 
 void light_probe_stage::rebuild_cubemap_filter_shader_program()

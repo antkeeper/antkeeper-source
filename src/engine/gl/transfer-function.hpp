@@ -17,22 +17,25 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_GL_COLOR_SPACE_HPP
-#define ANTKEEPER_GL_COLOR_SPACE_HPP
+#ifndef ANTKEEPER_GL_TRANSFER_FUNCTION_HPP
+#define ANTKEEPER_GL_TRANSFER_FUNCTION_HPP
 
 #include <cstdint>
 
 namespace gl {
 
-enum class color_space: std::uint8_t
+/**
+ * Texture sampling transfer function.
+ */
+enum class transfer_function: std::uint8_t
 {
-	/// Linear color space.
+	/// Linear transfer function.
 	linear,
 	
-	/// sRGB color space.
+	/// sRGB transfer function.
 	srgb
 };
 
 } // namespace gl
 
-#endif // ANTKEEPER_GL_COLOR_SPACE_HPP
+#endif // ANTKEEPER_GL_TRANSFER_FUNCTION_HPP

@@ -77,32 +77,6 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	moon_illuminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<math::fvec3, float>),
 	magnification(1.0f)
 {
-	// Build quad VBO and VAO
-	const math::fvec2 vertex_positions[] =
-	{
-		{-1.0f,  1.0f},
-		{-1.0f, -1.0f},
-		{ 1.0f,  1.0f},
-		{ 1.0f, -1.0f}
-	};
-	
-	const auto vertex_data = std::as_bytes(std::span{vertex_positions});
-	std::size_t vertex_size = 2;
-	std::size_t vertex_stride = sizeof(float) * vertex_size;
-	
-	quad_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, vertex_data.size(), vertex_data);
-	quad_vao = std::make_unique<gl::vertex_array>();
-	
-	// Define position vertex attribute
-	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = quad_vbo.get();
-	position_attribute.offset = 0;
-	position_attribute.stride = vertex_stride;
-	position_attribute.type = gl::vertex_attribute_type::float_32;
-	position_attribute.components = 2;
-	
-	// Bind vertex attributes to VAO
-	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 	
 	// Transmittance LUT
 	{
@@ -223,7 +197,7 @@ void sky_pass::render(render::context& ctx)
 	
 	// Construct matrices
 	const scene::camera& camera = *ctx.camera;
-	math::fvec3 model_scale = math::fvec3{1.0f, 1.0f, 1.0f} * (camera.get_clip_near() + camera.get_clip_far()) * 0.5f;
+	math::fvec3 model_scale = math::fvec3{1.0f, 1.0f, 1.0f} * camera.get_clip_near() * 2.0f;
 	math::fmat4 model = math::scale(model_scale);
 	math::fmat4 view = math::fmat4(math::fmat3(camera.get_view()));
 	math::fmat4 model_view = view * model;
@@ -337,7 +311,7 @@ void sky_pass::render(render::context& ctx)
 	//if (moon_position.y() >= -moon_angular_radius)
 	if (moon_shader_program)
 	{
-		float moon_distance = (camera.get_clip_near() + camera.get_clip_far()) * 0.5f;
+		float moon_distance = camera.get_clip_near() * 2.0f;
 		float moon_radius = moon_angular_radius * moon_distance;
 		
 		math::transform<float> moon_transform;
@@ -387,7 +361,7 @@ void sky_pass::render(render::context& ctx)
 	// Draw stars
 	if (star_shader_program)
 	{
-		float star_distance = (camera.get_clip_near() + camera.get_clip_far()) * 0.5f;
+		float star_distance = camera.get_clip_near() * 2.0f;
 		
 		model = math::fmat4(math::fmat3(icrf_to_eus.r)) * math::scale(math::fvec3{star_distance, star_distance, star_distance});
 		
@@ -921,7 +895,7 @@ void sky_pass::rebuild_transmittance_lut_command_buffer()
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangle_strip, 0, 4);
+			rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
 		}
 	);
 }
@@ -1001,7 +975,7 @@ void sky_pass::rebuild_multiscattering_lut_command_buffer()
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangle_strip, 0, 4);
+			rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
 		}
 	);
 }
@@ -1096,7 +1070,7 @@ void sky_pass::rebuild_luminance_lut_command_buffer()
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangle_strip, 0, 4);
+			rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
 		}
 	);
 }
@@ -1152,7 +1126,7 @@ void sky_pass::rebuild_sky_probe_command_buffer()
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::points, 0, 1);
+			rasterizer->draw_arrays(gl::drawing_mode::points, 0, 1);
 			m_sky_probe->set_luminance_outdated(true);
 			m_sky_probe->set_illuminance_outdated(true);
 		}

@@ -167,8 +167,8 @@ void save_screenshot(::game& ctx)
 	
 	// Allocate screenshot image
 	std::shared_ptr<image> frame = std::make_shared<image>();
-	frame->format(1, 3);
-	frame->resize(viewport_size.x(), viewport_size.y());
+	frame->format(3, 8);
+	frame->resize({static_cast<std::size_t>(viewport_size.x()), static_cast<std::size_t>(viewport_size.y()), 1});
 	
 	// Read pixel data from backbuffer into image
 	glReadBuffer(GL_BACK);
@@ -177,10 +177,10 @@ void save_screenshot(::game& ctx)
 	// Write screenshot file in separate thread
 	std::thread
 	(
-		[frame, path = std::move(screenshot_filepath_string)]
+		[frame = std::move(frame), path = std::move(screenshot_filepath_string)]
 		{
 			stbi_flip_vertically_on_write(1);
-			stbi_write_png(path.c_str(), frame->width(), frame->height(), frame->channel_count(), frame->data(), frame->width() * frame->channel_count());
+			stbi_write_png(path.c_str(), static_cast<int>(frame->size().x()), static_cast<int>(frame->size().y()), static_cast<int>(frame->channels()), frame->data(), static_cast<int>(frame->size().x() * frame->channels()));
 			
 			debug::log::debug("Saved screenshot to \"{}\"", path);
 		}

@@ -99,9 +99,6 @@ private:
 	std::unique_ptr<gl::shader_program> downsample_shader;
 	std::unique_ptr<gl::shader_program> upsample_shader;
 	
-	std::unique_ptr<gl::vertex_buffer> quad_vbo;
-	std::unique_ptr<gl::vertex_array> quad_vao;
-	
 	unsigned int mip_chain_length;
 	std::vector<std::unique_ptr<gl::framebuffer>> framebuffers;
 	std::vector<std::unique_ptr<gl::texture_2d>> textures;

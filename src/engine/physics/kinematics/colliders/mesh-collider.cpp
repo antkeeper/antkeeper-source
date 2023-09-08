@@ -41,8 +41,15 @@ void mesh_collider::set_mesh(std::shared_ptr<mesh_type> mesh)
 		// If mesh has no face normals
 		if (!m_mesh->faces().attributes().contains("normal"))
 		{
-			// Generate normals
-			// generate_face_normals(*m_mesh);
+			// Generate face normals
+			generate_face_normals(*m_mesh);
+		}
+		
+		/// @TODO: vertex normals aren't needed for mesh colliders, they're generated here for the locomotion system (remove later)
+		// If mesh has no vertex normals
+		if (!m_mesh->vertices().attributes().contains("normal"))
+		{
+			// Generate vertex normals
 			generate_vertex_normals(*m_mesh);
 		}
 		
@@ -77,8 +84,7 @@ std::optional<std::tuple<float, std::uint32_t, math::fvec3>> mesh_collider::inte
 		return std::nullopt;
 	}
 	
-	std::size_t box_hit_count = 0;
-	std::size_t triangle_hit_count = 0;
+	bool triangle_hit = false;
 	float nearest_face_distance = std::numeric_limits<float>::infinity();
 	std::uint32_t nearest_face_index;
 	
@@ -88,8 +94,6 @@ std::optional<std::tuple<float, std::uint32_t, math::fvec3>> mesh_collider::inte
 		ray,
 		[&](std::uint32_t index)
 		{
-			++box_hit_count;
-			
 			// If ray is facing backside of face
 			if (math::dot((*m_face_normals)[index], ray.direction) > 0.0f)
 			{
@@ -109,8 +113,6 @@ std::optional<std::tuple<float, std::uint32_t, math::fvec3>> mesh_collider::inte
 			// If ray intersects face
 			if (const auto intersection = geom::intersection(ray, a, b, c))
 			{
-				++triangle_hit_count;
-				
 				// If distance to point of intersection is nearer than nearest intersection
 				float t = std::get<0>(*intersection);
 				if (t < nearest_face_distance)
@@ -118,14 +120,14 @@ std::optional<std::tuple<float, std::uint32_t, math::fvec3>> mesh_collider::inte
 					// Update nearest intersection
 					nearest_face_distance = t;
 					nearest_face_index = index;
+					
+					triangle_hit = true;
 				}
 			}
 		}
 	);
 	
-	// debug::log::debug("mesh collider intersection test:\n\tboxes hit: {}\n\ttriangles hit: {}", box_hit_count, triangle_hit_count);
-	
-	if (!triangle_hit_count)
+	if (!triangle_hit)
 	{
 		return std::nullopt;
 	}

@@ -38,7 +38,7 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	
 	// Format font bitmap
 	image& font_bitmap = font.get_bitmap();
-	font_bitmap.format(sizeof(std::byte), 1);
+	font_bitmap.format(1, sizeof(std::byte) * 8);
 	
 	// For each UTF-32 character code in the character set
 	for (char32_t code: charset)
@@ -64,12 +64,12 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	{
 		// Update font texture
 		auto texture = std::static_pointer_cast<render::matvar_texture_2d>(var)->get();
-		texture->resize(font_bitmap.width(), font_bitmap.height(), font_bitmap.data());
+		texture->resize(static_cast<std::uint16_t>(font_bitmap.size().x()), static_cast<std::uint16_t>(font_bitmap.size().y()), font_bitmap.data());
 	}
 	else
 	{
 		// Create font texture from bitmap
-		std::shared_ptr<gl::texture_2d> font_texture = std::make_shared<gl::texture_2d>(font_bitmap.width(), font_bitmap.height(), gl::pixel_type::uint_8, gl::pixel_format::r, gl::color_space::linear, font_bitmap.data());
+		std::shared_ptr<gl::texture_2d> font_texture = std::make_shared<gl::texture_2d>(static_cast<std::uint16_t>(font_bitmap.size().x()), static_cast<std::uint16_t>(font_bitmap.size().y()), gl::pixel_type::uint_8, gl::pixel_format::r, gl::transfer_function::linear, font_bitmap.data());
 		font_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
 		font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
 		

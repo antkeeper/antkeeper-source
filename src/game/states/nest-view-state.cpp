@@ -416,20 +416,7 @@ void nest_view_state::handle_mouse_motion(const input::mouse_moved_event& event)
 
 void nest_view_state::update_third_person_camera()
 {
-	const math::dvec3 camera_position = third_person_camera_focal_point + third_person_camera_orientation * math::dvec3{0.0f, 0.0f, third_person_camera_focal_distance};
-	
-	ctx.entity_registry->patch<scene_component>
-	(
-		third_person_camera_rig_eid,
-		[&](auto& component)
-		{
-			auto& camera = static_cast<scene::camera&>(*component.object);
-			
-			camera.set_translation(math::fvec3(camera_position));
-			camera.set_rotation(math::fquat(third_person_camera_orientation));
-			camera.set_perspective(static_cast<float>(third_person_camera_vfov), camera.get_aspect_ratio(), camera.get_clip_near(), camera.get_clip_far());
-		}
-	);
+
 }
 
 geom::ray<float, 3> nest_view_state::get_mouse_ray(const math::vec2<std::int32_t>& mouse_position) const

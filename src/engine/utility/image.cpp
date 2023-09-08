@@ -22,24 +22,22 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/resources/deserializer.hpp>
+#include <engine/debug/log.hpp>
 #include <stb/stb_image.h>
 #include <stdexcept>
 #include <tinyexr.h>
 
 bool image::compatible(const image& other) const noexcept
 {
-	return (other.m_component_size == m_component_size && other.m_channel_count == m_channel_count);
+	return (other.m_channels == m_channels && other.m_bit_depth == m_bit_depth);
 }
 
 void image::copy
 (
 	const image& source,
-	std::uint32_t w,
-	std::uint32_t h,
-	std::uint32_t from_x,
-	std::uint32_t from_y,
-	std::uint32_t to_x,
-	std::uint32_t to_y
+	const math::uvec2& dimensions,
+	const math::uvec2& from,
+	const math::uvec2& to
 )
 {
 	if (!compatible(source))
@@ -47,62 +45,79 @@ void image::copy
 		throw std::runtime_error("Cannot copy image with mismatched format");
 	}
 	
-	const std::byte* from_pixels = source.pixels.data();
-	std::byte* to_pixels = pixels.data();
-	
-	for (std::uint32_t i = 0; i < h; ++i)
+	for (auto i = 0u; i < dimensions.y(); ++i)
 	{
 		// Calculate vertical pixel offset
-		std::uint32_t from_i = from_y + i;
-		std::uint32_t to_i = to_y + i;
+		const auto from_i = from.y() + i;
+		const auto to_i = to.y() + i;
 		
 		// Bounds check
-		if (from_i >= source.m_height || to_i >= m_height)
+		if (from_i >= source.m_size.y() || to_i >= m_size.y())
 		{
 			break;
 		}
 		
-		for (std::uint32_t j = 0; j < w; ++j)
+		for (auto j = 0u; j < dimensions.x(); ++j)
 		{
 			// Calculate horizontal pixel offsets
-			std::uint32_t from_j = from_x + j;
-			std::uint32_t to_j = to_x + j;
+			const auto from_j = from.x() + j;
+			const auto to_j = to.x() + j;
 			
 			// Bounds check
-			if (from_j >= source.m_width || to_j >= m_width)
+			if (from_j >= source.m_size.x() || to_j >= m_size.x())
 			{
 				continue;
 			}
 			
 			// Calculate pixel data offset (in bytes)
-			std::size_t from_offset = (from_i * source.m_width + from_j) * m_pixel_size;
-			std::size_t to_offset = (to_i * m_width + to_j) * m_pixel_size;
+			const auto from_offset = (static_cast<std::size_t>(from_i) * source.m_size.x() + from_j) * m_pixel_stride;
+			const auto to_offset = (static_cast<std::size_t>(to_i) * m_size.x() + to_j) * m_pixel_stride;
 			
 			// Copy single pixel
-			std::memcpy(to_pixels + to_offset, from_pixels + from_offset, m_pixel_size);
+			std::memcpy(data() + to_offset, source.data() + from_offset, m_pixel_stride);
 		}
 	}
 }
 
-void image::format(std::size_t component_size, std::uint8_t channel_count)
+void image::format(unsigned int channels, unsigned int bit_depth)
 {
-	if (m_component_size != component_size || m_channel_count != channel_count)
+	if (bit_depth % 8 != 0)
 	{
-		m_component_size = component_size;
-		m_channel_count = channel_count;
-		m_pixel_size = m_component_size * m_channel_count;
-		pixels.resize(m_width * m_height * m_pixel_size);
+		throw std::runtime_error("Image bit depth must be byte-aligned");
+	}
+	
+	if (m_channels != channels || m_bit_depth != bit_depth)
+	{
+		m_channels = channels;
+		m_bit_depth = bit_depth;
+		m_pixel_stride = m_channels * (m_bit_depth >> 3);
+		m_sample_scale = static_cast<float>(1.0 / (std::exp2(m_bit_depth) - 1.0));
+		m_data.resize(static_cast<std::size_t>(m_size.x()) * m_size.y() * m_size.z() * m_pixel_stride);
 	}
 }
 
-void image::resize(std::uint32_t width, std::uint32_t height)
+void image::resize(const math::uvec3& size)
 {
-	if (m_width != width || m_height == height)
+	if (m_size.x() != size.x() || m_size.y() != size.y() || m_size.z() != size.z())
 	{
-		m_width = width;
-		m_height = height;
-		pixels.resize(m_width * m_height * m_pixel_size);
+		m_size = size;
+		m_data.resize(static_cast<std::size_t>(m_size.x()) * m_size.y() * m_size.z() * m_pixel_stride);
 	}
+}
+
+math::fvec4 image::sample(std::size_t index) const
+{
+	math::fvec4 color{0, 0, 0, 1};
+	
+	const auto pixel_data = data() + index * m_pixel_stride;
+	for (auto i = 0u; i < std::min(4u, m_channels); ++i)
+	{
+		std::uint32_t value = 0u;
+		std::memcpy(&value, pixel_data + (m_bit_depth >> 3) * i, m_bit_depth >> 3);
+		color[i] = static_cast<float>(value) * m_sample_scale;
+	}
+	
+	return color;
 }
 
 static void deserialize_tinyexr(image& image, deserialize_context& ctx)
@@ -167,11 +182,11 @@ static void deserialize_tinyexr(image& image, deserialize_context& ctx)
 	file_buffer.clear();
 	
 	// Format and resize image
-	image.format(sizeof(float), static_cast<std::uint8_t>(exr_image.num_channels));
-	image.resize(static_cast<std::uint32_t>(exr_image.width), static_cast<std::uint32_t>(exr_image.height));
+	image.format(exr_image.num_channels, sizeof(float) * 8);
+	image.resize({static_cast<unsigned int>(exr_image.width), static_cast<unsigned int>(exr_image.height), 1u});
 	
 	// Fill image pixels
-	float* component = reinterpret_cast<float*>(image.data());
+	std::byte* component = image.data();
 	for (int y = exr_image.height - 1; y >= 0; --y)
 	{
 		int row_offset = y * exr_image.width;
@@ -182,7 +197,8 @@ static void deserialize_tinyexr(image& image, deserialize_context& ctx)
 			
 			for (int c = exr_image.num_channels - 1; c >= 0; --c)
 			{
-				*(component++) = reinterpret_cast<float**>(exr_image.images)[c][pixel_index];
+				std::memcpy(component, exr_image.images[c] + pixel_index * sizeof(float), sizeof(float));
+				component += sizeof(float);
 			}
 		}
 	}
@@ -223,23 +239,46 @@ static void deserialize_stb_image(image& image, deserialize_context& ctx)
 		&stb_io_eof
 	};
 	
-	// Load image data
 	int width = 0;
 	int height = 0;
 	int channels = 0;
-	stbi_uc* pixels = stbi_load_from_callbacks(&io_callbacks, &ctx, &width, &height, &channels, 0);
-	if (!pixels)
+	
+	if (stbi_is_16_bit_from_callbacks(&io_callbacks, &ctx))
 	{
-		throw deserialize_error(stbi_failure_reason());
+		// Load 16-bit image
+		ctx.seek(0);
+		stbi_us* pixels = stbi_load_16_from_callbacks(&io_callbacks, &ctx, &width, &height, &channels, 0);
+		if (!pixels)
+		{
+			throw deserialize_error(stbi_failure_reason());
+		}
+		
+		// Format image and resize image, then copy pixel data
+		image.format(static_cast<unsigned int>(channels), 16u);
+		image.resize({static_cast<unsigned int>(width), static_cast<unsigned int>(height), 1u});
+		std::memcpy(image.data(), pixels, image.size_bytes());
+		
+		// Free loaded image data
+		stbi_image_free(pixels);
 	}
-	
-	// Create image
-	image.format(sizeof(stbi_uc), static_cast<std::uint8_t>(channels));
-	image.resize(static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height));
-	std::memcpy(image.data(), pixels, image.size());
-	
-	// Free loaded image data
-	stbi_image_free(pixels);
+	else
+	{
+		// Load 8-bit image
+		ctx.seek(0);
+		stbi_uc* pixels = stbi_load_from_callbacks(&io_callbacks, &ctx, &width, &height, &channels, 0);
+		if (!pixels)
+		{
+			throw deserialize_error(stbi_failure_reason());
+		}
+		
+		// Format image and resize image, then copy pixel data
+		image.format(static_cast<unsigned int>(channels), 8u);
+		image.resize({static_cast<unsigned int>(width), static_cast<unsigned int>(height), 1u});
+		std::memcpy(image.data(), pixels, image.size_bytes());
+		
+		// Free loaded image data
+		stbi_image_free(pixels);
+	}
 }
 
 /**

@@ -91,12 +91,14 @@ private:
 	
 	// Camera
 	const math::fmat4* view;
+	const math::fmat4* inv_view;
 	const math::fmat4* projection;
 	const math::fmat4* view_projection;
+	math::fvec4 view_translation;
+	math::fmat4 view_rotation;
+	math::fmat4 model_view;
 	const math::fvec3* camera_position;
 	float camera_exposure;
-	math::fvec2 clip_depth;
-	float log_depth_coef;
 	
 	// Light probes
 	const gl::texture_cube* light_probe_luminance_texture{};

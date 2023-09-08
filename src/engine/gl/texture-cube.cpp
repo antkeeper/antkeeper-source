@@ -75,21 +75,21 @@ std::uint16_t texture_cube::infer_cube_map_face_size(cube_map_layout layout, std
 	}
 }
 
-texture_cube::texture_cube(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data):
-	texture(width, height, true, type, format, color_space, data)
+texture_cube::texture_cube(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data):
+	texture(width, height, true, type, format, transfer_function, data)
 {
 	resized();
 }
 
-void texture_cube::resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)
+void texture_cube::resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data)
 {
-	texture::resize(width, height, type, format, color_space, data);
+	texture::resize(width, height, type, format, transfer_function, data);
 	resized();
 }
 
 void texture_cube::resize(std::uint16_t width, std::uint16_t height, const std::byte* data)
 {
-	texture::resize(width, height, get_pixel_type(), get_pixel_format(), get_color_space(), data);
+	texture::resize(width, height, get_pixel_type(), get_pixel_format(), get_transfer_function(), data);
 	resized();
 }
 

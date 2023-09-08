@@ -47,12 +47,12 @@ template <class T>
 {
 	const math::mat3<T> m = 
 	{
-		r[0], r[1], T{1} - (r[0] + r[1]),
-		g[0], g[1], T{1} - (g[0] + g[1]),
-		b[0], b[1], T{1} - (b[0] + b[1])
+		r[0], r[1], T{1} - r[0] - r[1],
+		g[0], g[1], T{1} - g[0] - g[1],
+		b[0], b[1], T{1} - b[0] - b[1]
 	};
 	
-	const math::vec3<T> scale = math::inverse(m) * math::vec3<T>{w[0] / w[1], T{1}, (T{1} - (w[0] + w[1])) / w[1]};
+	const math::vec3<T> scale = math::inverse(m) * math::vec3<T>{w[0] / w[1], T{1}, (T{1} - w[0] - w[1]) / w[1]};
 	
 	return math::mat3<T>
 	{

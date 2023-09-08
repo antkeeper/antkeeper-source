@@ -214,8 +214,8 @@ void text::update_content()
 				positions[i].y() = std::round(positions[i].y());
 				
 				// Normalize UVs
-				uvs[i].x() = uvs[i].x() / static_cast<float>(font_bitmap.width());
-				uvs[i].y() = uvs[i].y() / static_cast<float>(font_bitmap.height());
+				uvs[i].x() = uvs[i].x() / static_cast<float>(font_bitmap.size().x());
+				uvs[i].y() = uvs[i].y() / static_cast<float>(font_bitmap.size().y());
 			}
 			
 			// Add vertex to vertex data buffer

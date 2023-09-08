@@ -44,7 +44,7 @@ struct navmesh_traversal
 /**
  * Moves a point along the surface of a mesh.
  */
-[[nodiscard]] navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face* face, geom::ray<float, 3> ray, float distance);
+[[nodiscard]] navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face* face, const math::fvec3& start, const math::fvec3& end);
 
 } // namespace ai
 

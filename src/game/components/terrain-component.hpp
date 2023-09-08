@@ -20,20 +20,22 @@
 #ifndef ANTKEEPER_GAME_TERRAIN_COMPONENT_HPP
 #define ANTKEEPER_GAME_TERRAIN_COMPONENT_HPP
 
-#include <engine/render/material.hpp>
-#include <functional>
+#include <engine/entity/id.hpp>
+#include <engine/math/vector.hpp>
+#include <vector>
 
-
-struct terrain_component
+/// Grid of terrain cells.
+struct terrain_grid_component
 {
-	/// Function object which returns elevation (in meters) given latitude (radians) and longitude (radians).
-	std::function<double(double, double)> elevation;
-	
-	/// Maximum level of detail (maximum quadtree depth level)
-	std::size_t max_lod;
-	
-	/// Material for terrain patches;
-	render::material* patch_material;
+	math::uvec2 dimensions;
+	std::vector<entity::id> cells;
+};
+
+/// Single cell in a terrain grid.
+struct terrain_cell_component
+{
+	entity::id grid_eid;
+	math::uvec2 coordinates;
 };
 
 

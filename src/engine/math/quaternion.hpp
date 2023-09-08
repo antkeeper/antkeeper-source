@@ -659,7 +659,8 @@ constexpr vec3<T> mul(const quaternion<T>& q, const vec3<T>& v) noexcept
 template <class T>
 inline constexpr vec3<T> mul(const vec3<T>& v, const quaternion<T>& q) noexcept
 {
-	return mul(conjugate(q), v);
+	const auto t = cross(v, q.i) * T{2};
+	return v + q.r * t + cross(t, q.i);
 }
 
 template <class T>

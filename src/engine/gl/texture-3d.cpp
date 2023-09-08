@@ -21,13 +21,13 @@
 
 namespace gl {
 
-texture_3d::texture_3d(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data):
-	texture(width, height, depth, false, type, format, color_space, data)
+texture_3d::texture_3d(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data):
+	texture(width, height, depth, false, type, format, transfer_function, data)
 {}
 
-void texture_3d::resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data)
+void texture_3d::resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data)
 {
-	texture::resize(width, height, depth, type, format, color_space, data);
+	texture::resize(width, height, depth, type, format, transfer_function, data);
 }
 
 void texture_3d::set_wrapping(gl::texture_wrapping wrap_s, texture_wrapping wrap_t, texture_wrapping wrap_r)

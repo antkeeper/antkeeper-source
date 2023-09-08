@@ -84,6 +84,10 @@ rasterizer::rasterizer():
 	
 	// Set clear depth to `0` for reversed depth
 	glClearDepth(0.0f);
+	
+	glDisable(GL_MULTISAMPLE);
+	
+	dummy_vao = std::make_unique<gl::vertex_array>();
 }
 
 rasterizer::~rasterizer()
@@ -159,6 +163,19 @@ void rasterizer::draw_arrays(const vertex_array& vao, drawing_mode mode, std::si
 	glDrawArrays(gl_mode, static_cast<GLint>(offset), static_cast<GLsizei>(count));
 }
 
+void rasterizer::draw_arrays(drawing_mode mode, std::size_t offset, std::size_t count)
+{
+	GLenum gl_mode = drawing_mode_lut[static_cast<std::size_t>(mode)];
+	
+	if (bound_vao != dummy_vao.get())
+	{
+		glBindVertexArray(dummy_vao->gl_array_id);
+		bound_vao = dummy_vao.get();
+	}
+	
+	glDrawArrays(gl_mode, static_cast<GLint>(offset), static_cast<GLsizei>(count));
+}
+
 void rasterizer::draw_arrays_instanced(const vertex_array& vao, drawing_mode mode, std::size_t offset, std::size_t count, std::size_t instance_count)
 {
 	GLenum gl_mode = drawing_mode_lut[static_cast<std::size_t>(mode)];
@@ -183,6 +200,20 @@ void rasterizer::draw_elements(const vertex_array& vao, drawing_mode mode, std::
 		bound_vao = &vao;
 	}
 
+	glDrawElements(gl_mode, static_cast<GLsizei>(count), gl_type, reinterpret_cast<const GLvoid*>(offset));
+}
+
+void rasterizer::draw_elements(drawing_mode mode, std::size_t offset, std::size_t count, element_array_type type)
+{
+	GLenum gl_mode = drawing_mode_lut[static_cast<std::size_t>(mode)];
+	GLenum gl_type = element_array_type_lut[static_cast<std::size_t>(type)];
+	
+	if (bound_vao != dummy_vao.get())
+	{
+		glBindVertexArray(dummy_vao->gl_array_id);
+		bound_vao = dummy_vao.get();
+	}
+	
 	glDrawElements(gl_mode, static_cast<GLsizei>(count), gl_type, reinterpret_cast<const GLvoid*>(offset));
 }
 

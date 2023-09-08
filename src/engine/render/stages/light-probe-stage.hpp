@@ -114,16 +114,15 @@ private:
 	void update_light_probes_illuminance(const std::vector<scene::object_base*>& light_probes);
 	
 	gl::rasterizer* m_rasterizer;
-	std::unique_ptr<gl::vertex_buffer> m_quad_vbo;
-	std::unique_ptr<gl::vertex_array> m_quad_vao;
 	std::shared_ptr<gl::shader_template> m_cubemap_to_sh_shader_template;
 	std::unique_ptr<gl::shader_program> m_cubemap_to_sh_shader_program;
 	const gl::shader_variable* m_cubemap_to_sh_cubemap_var{};
-	std::size_t m_sh_sample_count{1024};
+	std::size_t m_sh_sample_count{512};
 	bool m_reproject_sh{true};
 	
 	std::shared_ptr<gl::shader_template> m_cubemap_downsample_shader_template;
 	std::unique_ptr<gl::shader_program> m_cubemap_downsample_shader_program;
+
 	const gl::shader_variable* m_cubemap_downsample_cubemap_var{};
 	std::vector<std::unique_ptr<gl::framebuffer>> m_cubemap_downsample_framebuffers;
 	std::unique_ptr<gl::texture_cube> m_cubemap_downsample_texture;

@@ -51,9 +51,7 @@ public:
 private:
 	void rebuild_command_buffer();
 	
-	std::unique_ptr<gl::shader_program> shader_program;	
-	std::unique_ptr<gl::vertex_buffer> quad_vbo;
-	std::unique_ptr<gl::vertex_array> quad_vao;
+	std::unique_ptr<gl::shader_program> shader_program;
 	
 	const gl::texture_2d* color_texture;
 	const gl::texture_2d* bloom_texture;

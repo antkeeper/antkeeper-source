@@ -23,8 +23,8 @@
 physfs_deserialize_context::physfs_deserialize_context(const std::filesystem::path& path)
 {
 	// Open file for reading using PhysicsFS
-	file = PHYSFS_openRead(path.string().c_str());
-	if (!file)
+	m_file = PHYSFS_openRead(path.string().c_str());
+	if (!m_file)
 	{
 		throw deserialize_error(PHYSFS_getLastError());
 	}
@@ -33,29 +33,29 @@ physfs_deserialize_context::physfs_deserialize_context(const std::filesystem::pa
 	m_path = path;
 	
 	// Set EOF and error flags if file not open.
-	m_eof = !file;
-	m_error = !file;
+	m_eof = !m_file;
+	m_error = !m_file;
 }
 
 physfs_deserialize_context::~physfs_deserialize_context()
 {
-	if (file)
+	if (m_file)
 	{
-		PHYSFS_close(file);
+		PHYSFS_close(m_file);
 	}
 }
 
 void physfs_deserialize_context::open(const std::filesystem::path& path)
 {
 	// Close file, if open
-	if (file)
+	if (m_file)
 	{
-		PHYSFS_close(file);
+		PHYSFS_close(m_file);
 	}
 	
 	// Open file for reading using PhysicsFS
-	file = PHYSFS_openRead(path.string().c_str());
-	if (!file)
+	m_file = PHYSFS_openRead(path.string().c_str());
+	if (!m_file)
 	{
 		throw deserialize_error(PHYSFS_getLastError());
 	}
@@ -64,16 +64,16 @@ void physfs_deserialize_context::open(const std::filesystem::path& path)
 	m_path = path;
 	
 	// Set EOF and error flags if file not open.
-	m_eof = !file;
-	m_error = !file;
+	m_eof = !m_file;
+	m_error = !m_file;
 }
 
 void physfs_deserialize_context::close() noexcept
 {
-	if (file)
+	if (m_file)
 	{
-		m_error = !PHYSFS_close(file);
-		file = nullptr;
+		m_error = !PHYSFS_close(m_file);
+		m_file = nullptr;
 		m_path.clear();
 		m_eof = true;
 	}
@@ -81,7 +81,7 @@ void physfs_deserialize_context::close() noexcept
 
 bool physfs_deserialize_context::is_open() const noexcept
 {
-	return file;
+	return m_file;
 }
 
 const std::filesystem::path& physfs_deserialize_context::path() const noexcept
@@ -101,7 +101,7 @@ bool physfs_deserialize_context::eof() const noexcept
 
 std::size_t physfs_deserialize_context::size() const noexcept
 {
-	PHYSFS_sint64 length = PHYSFS_fileLength(file);
+	const PHYSFS_sint64 length = PHYSFS_fileLength(m_file);
 	if (length >= 0)
 	{
 		return static_cast<std::size_t>(length);
@@ -112,10 +112,10 @@ std::size_t physfs_deserialize_context::size() const noexcept
 
 std::size_t physfs_deserialize_context::tell() const
 {
-	PHYSFS_sint64 offset = PHYSFS_fileLength(file);
+	const PHYSFS_sint64 offset = PHYSFS_tell(m_file);
 	if (offset < 0)
 	{
-		//m_error = true;
+		// m_error = true;
 		throw deserialize_error(PHYSFS_getLastError());
 	}
 	
@@ -124,22 +124,22 @@ std::size_t physfs_deserialize_context::tell() const
 
 void physfs_deserialize_context::seek(std::size_t offset)
 {
-	if (!PHYSFS_seek(file, static_cast<PHYSFS_uint64>(offset)))
+	if (!PHYSFS_seek(m_file, static_cast<PHYSFS_uint64>(offset)))
 	{
 		m_error = true;
 		throw deserialize_error(PHYSFS_getLastError());
 	}
 	
-	m_eof = (PHYSFS_eof(file) != 0);
+	m_eof = (PHYSFS_eof(m_file) != 0);
 }
 
 std::size_t physfs_deserialize_context::read8(std::byte* data, std::size_t count)
 {
-	const PHYSFS_sint64 status = PHYSFS_readBytes(file, data, count);
+	const PHYSFS_sint64 status = PHYSFS_readBytes(m_file, data, count);
 	
 	if (status != count)
 	{
-		if (status < 0 || !PHYSFS_eof(file))
+		if (status < 0 || !PHYSFS_eof(m_file))
 		{
 			m_error = true;
 			throw deserialize_error(PHYSFS_getLastError());
@@ -161,10 +161,10 @@ std::size_t physfs_deserialize_context::read16_le(std::byte* data, std::size_t c
 	
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		if (!PHYSFS_readULE16(file, data16))
+		if (!PHYSFS_readULE16(m_file, data16))
 		{
 			m_error = true;
-			m_eof = (PHYSFS_eof(file) != 0);
+			m_eof = (PHYSFS_eof(m_file) != 0);
 			throw deserialize_error(PHYSFS_getLastError());
 		}
 		
@@ -180,10 +180,10 @@ std::size_t physfs_deserialize_context::read16_be(std::byte* data, std::size_t c
 	
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		if (!PHYSFS_readUBE16(file, data16))
+		if (!PHYSFS_readUBE16(m_file, data16))
 		{
 			m_error = true;
-			m_eof = (PHYSFS_eof(file) != 0);
+			m_eof = (PHYSFS_eof(m_file) != 0);
 			throw deserialize_error(PHYSFS_getLastError());
 		}
 		
@@ -199,10 +199,10 @@ std::size_t physfs_deserialize_context::read32_le(std::byte* data, std::size_t c
 	
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		if (!PHYSFS_readULE32(file, data32))
+		if (!PHYSFS_readULE32(m_file, data32))
 		{
 			m_error = true;
-			m_eof = (PHYSFS_eof(file) != 0);
+			m_eof = (PHYSFS_eof(m_file) != 0);
 			throw deserialize_error(PHYSFS_getLastError());
 		}
 		
@@ -218,10 +218,10 @@ std::size_t physfs_deserialize_context::read32_be(std::byte* data, std::size_t c
 	
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		if (!PHYSFS_readUBE32(file, data32))
+		if (!PHYSFS_readUBE32(m_file, data32))
 		{
 			m_error = true;
-			m_eof = (PHYSFS_eof(file) != 0);
+			m_eof = (PHYSFS_eof(m_file) != 0);
 			throw deserialize_error(PHYSFS_getLastError());
 		}
 		
@@ -237,10 +237,10 @@ std::size_t physfs_deserialize_context::read64_le(std::byte* data, std::size_t c
 	
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		if (!PHYSFS_readULE64(file, data64))
+		if (!PHYSFS_readULE64(m_file, data64))
 		{
 			m_error = true;
-			m_eof = (PHYSFS_eof(file) != 0);
+			m_eof = (PHYSFS_eof(m_file) != 0);
 			throw deserialize_error(PHYSFS_getLastError());
 		}
 		
@@ -256,10 +256,10 @@ std::size_t physfs_deserialize_context::read64_be(std::byte* data, std::size_t c
 	
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		if (!PHYSFS_readUBE64(file, data64))
+		if (!PHYSFS_readUBE64(m_file, data64))
 		{
 			m_error = true;
-			m_eof = (PHYSFS_eof(file) != 0);
+			m_eof = (PHYSFS_eof(m_file) != 0);
 			throw deserialize_error(PHYSFS_getLastError());
 		}
 		

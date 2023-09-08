@@ -61,6 +61,7 @@
 #include "game/systems/camera-system.hpp"
 #include "game/systems/collision-system.hpp"
 #include "game/systems/physics-system.hpp"
+#include "game/systems/terrain-system.hpp"
 #include "game/world.hpp"
 #include <engine/animation/ease.hpp>
 #include <engine/animation/screen-transition.hpp>
@@ -117,14 +118,17 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	// Create nest exterior
 	{
 		scene_component nest_exterior_scene_component;
-		nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube-nest-200mm-interior.mdl"));
+		nest_exterior_scene_component.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("cube-nest-200mm-exterior.mdl"));
 		nest_exterior_scene_component.layer_mask = 1;
 		
-		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("cube-nest-200mm-interior.msh");
+		auto nest_exterior_mesh = ctx.resource_manager->load<geom::brep_mesh>("cube-nest-200mm-exterior.msh");
 		
 		auto nest_exterior_rigid_body = std::make_unique<physics::rigid_body>();
 		nest_exterior_rigid_body->set_mass(0.0f);
 		nest_exterior_rigid_body->set_collider(std::make_shared<physics::mesh_collider>(std::move(nest_exterior_mesh)));
+		nest_exterior_rigid_body->set_position({10, -20, -5});
+		nest_exterior_rigid_body->set_orientation(math::angle_axis(math::radians(30.0f), math::fvec3{1, 0, 0}));
+		nest_exterior_rigid_body->set_scale({0.5f, 1.0f, 0.75f});
 		
 		auto nest_exterior_eid = ctx.entity_registry->create();
 		ctx.entity_registry->emplace<scene_component>(nest_exterior_eid, std::move(nest_exterior_scene_component));
@@ -148,6 +152,43 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 		auto nest_interior_eid = ctx.entity_registry->create();
 		ctx.entity_registry->emplace<scene_component>(nest_interior_eid, std::move(nest_interior_scene_component));
 		ctx.entity_registry->emplace<rigid_body_component>(nest_interior_eid, std::move(nest_interior_rigid_body));
+	}
+	
+	// Generate terrain
+	{
+		auto heightmap = ctx.resource_manager->load<image>("chiricahua-s.png");
+		auto subdivisions = math::uvec2{0, 0};
+		// auto subdivisions = math::uvec2{3, 3};
+		auto transform = math::transform<float>::identity();
+		transform.scale.x() = 2000.0f;
+		transform.scale.y() = 400.0f;
+		transform.scale.z() = transform.scale.x();
+		// transform.scale *= 0.001f;
+		transform.translation.y() = -transform.scale.y() * 0.5f;
+		// transform.rotation = math::angle_axis(math::radians(45.0f), math::fvec3{0, 0, 1});
+		auto material = ctx.resource_manager->load<render::material>("desert-sand.mtl");
+		ctx.terrain_system->generate(heightmap, subdivisions, transform, material);
+	}
+	
+	// Generate vegetation
+	{
+		auto planet_eid = ctx.entity_registry->create();
+		scene_component scene;
+		scene.object = std::make_shared<scene::static_mesh>(ctx.resource_manager->load<render::model>("yucca-plant-l.mdl"));
+		scene.object->set_translation({0, 0, 0});
+		scene.layer_mask = 1;
+		
+		const auto placement_ray = geom::ray<float, 3>{{50.0f, 0.0f, 70.0f}, {0.0f, -1.0f, 0.0f}};
+		if (auto trace = ctx.physics_system->trace(placement_ray, entt::null, 1u))
+		{
+			const auto hit_distance = std::get<1>(*trace);
+			const auto& hit_normal = std::get<3>(*trace);
+			
+			scene.object->set_translation(placement_ray.extrapolate(hit_distance));
+			scene.object->set_rotation(math::rotation(math::fvec3{0, 1, 0}, hit_normal));
+		}
+		
+		ctx.entity_registry->emplace<scene_component>(planet_eid, std::move(scene));
 	}
 	
 	
@@ -534,6 +575,7 @@ void treadmill_experiment_state::setup_controls()
 						worker_eid,
 						[&](auto& component)
 						{
+							component.navmesh_eid = std::get<0>(*trace);
 							component.mesh = hit_mesh;
 							component.face = hit_face;
 							component.surface_normal = hit_normal;

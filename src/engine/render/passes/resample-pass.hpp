@@ -68,8 +68,6 @@ private:
 	void rebuild_command_buffer();
 	
 	std::unique_ptr<gl::shader_program> shader;
-	std::unique_ptr<gl::vertex_buffer> quad_vbo;
-	std::unique_ptr<gl::vertex_array> quad_vao;
 	
 	const gl::texture_2d* source_texture;
 	

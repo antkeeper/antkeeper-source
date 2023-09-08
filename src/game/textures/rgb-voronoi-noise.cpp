@@ -28,8 +28,9 @@
 
 void generate_rgb_voronoi_noise(std::filesystem::path path)
 {
+	/*
 	image img;
-	img.format(1, 4);
+	img.format(4, 8);
 	img.resize(1024, 1024);
 	
 	auto width = img.width();
@@ -91,4 +92,5 @@ void generate_rgb_voronoi_noise(std::filesystem::path path)
 	
 	stbi_flip_vertically_on_write(1);
 	stbi_write_png(path.string().c_str(), img.width(), img.height(), img.channel_count(), img.data(), img.width() * img.channel_count());
+	*/
 }

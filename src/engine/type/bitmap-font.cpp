@@ -75,8 +75,8 @@ bool bitmap_font::pack(bool resize)
 		std::uint32_t max_glyph_h = 0;
 		for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
 		{
-			max_glyph_w = std::max(max_glyph_w, it->second.bitmap.width());
-			max_glyph_h = std::max(max_glyph_h, it->second.bitmap.height());
+			max_glyph_w = std::max(max_glyph_w, static_cast<std::uint32_t>(it->second.bitmap.size().x()));
+			max_glyph_h = std::max(max_glyph_h, static_cast<std::uint32_t>(it->second.bitmap.size().y()));
 		}
 		
 		// Find minimum power of two dimensions that can accommodate maximum glyph dimensions
@@ -85,8 +85,8 @@ bool bitmap_font::pack(bool resize)
 	}
 	else
 	{
-		bitmap_w = bitmap.width();
-		bitmap_h = bitmap.height();
+		bitmap_w = static_cast<std::uint32_t>(bitmap.size().x());
+		bitmap_h = static_cast<std::uint32_t>(bitmap.size().y());
 	}
 	
 	bool packed = false;
@@ -99,7 +99,7 @@ bool bitmap_font::pack(bool resize)
 		for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
 		{
 			// Attempt to pack glyph bitmap
-			const auto* node = glyph_pack.pack(it->second.bitmap.width(), it->second.bitmap.height());
+			const auto* node = glyph_pack.pack(static_cast<std::uint32_t>(it->second.bitmap.size().x()), static_cast<std::uint32_t>(it->second.bitmap.size().y()));
 			
 			// Abort if packing failed
 			if (!node)
@@ -142,7 +142,7 @@ bool bitmap_font::pack(bool resize)
 	if (packed)
 	{
 		// Resize font bitmap
-		bitmap.resize(bitmap_w, bitmap_h);
+		bitmap.resize({bitmap_w, bitmap_h, 1});
 		
 		// For each glyph
 		for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
@@ -152,14 +152,13 @@ bool bitmap_font::pack(bool resize)
 			
 			// Copy glyph bitmap data into font bitmap
 			image& glyph_bitmap = it->second.bitmap;
-			bitmap.copy(glyph_bitmap, glyph_bitmap.width(), glyph_bitmap.height(), 0, 0, node->bounds.min.x(), node->bounds.min.y());
+			bitmap.copy(glyph_bitmap, {glyph_bitmap.size().x(), glyph_bitmap.size().y()}, {0, 0}, math::uvec2{node->bounds.min.x(), node->bounds.min.y()});
 			
 			// Record coordinates of glyph bitmap within font bitmap
 			it->second.position = {node->bounds.min.x(), node->bounds.min.y()};
 			
 			// Clear glyph bitmap data
-			glyph_bitmap.resize(0, 0);
-			
+			glyph_bitmap.resize({0u, 0u, 0u});
 		}
 	}
 	
@@ -179,23 +178,23 @@ void bitmap_font::unpack(bool resize)
 		// Reformat glyph bitmap if necessary
 		if (!glyph.bitmap.compatible(bitmap))
 		{
-			glyph.bitmap.format(bitmap.component_size(), bitmap.channel_count());
+			glyph.bitmap.format(bitmap.channels(), bitmap.bit_depth());
 		}
 		
 		// Resize glyph bitmap if necessary
-		if (glyph.bitmap.width() != glyph_width || glyph.bitmap.height() != glyph_height)
+		if (static_cast<std::uint32_t>(glyph.bitmap.size().x()) != glyph_width || static_cast<std::uint32_t>(glyph.bitmap.size().y()) != glyph_height)
 		{
-			glyph.bitmap.resize(glyph_width, glyph_height);
+			glyph.bitmap.resize(math::uvec2{glyph_width, glyph_height});
 		}
 		
 		// Copy pixel data from font bitmap to glyph bitmap
-		glyph.bitmap.copy(bitmap, glyph_width, glyph_height, glyph.position.x(), glyph.position.y());
+		glyph.bitmap.copy(bitmap, math::uvec2{glyph_width, glyph_height}, math::uvec2{glyph.position.x(), glyph.position.y()});
 	}
 	
 	// Free font bitmap pixel data
 	if (resize)
 	{
-		bitmap.resize(0, 0);
+		bitmap.resize({0, 0, 0});
 	}
 }
 

@@ -21,6 +21,9 @@
 #define ANTKEEPER_GEOM_BREP_OPERATIONS_HPP
 
 #include <engine/geom/brep/brep-mesh.hpp>
+#include <engine/render/model.hpp>
+#include <engine/render/material.hpp>
+#include <memory>
 
 namespace geom {
 
@@ -49,6 +52,16 @@ void generate_vertex_normals(brep_mesh& mesh);
  * @param mesh Mesh for which to generate barycentric coordinates.
  */
 void generate_loop_barycentric(brep_mesh& mesh);
+
+/**
+ * Generates a model from a B-rep mesh.
+ *
+ * @param mesh Mesh for which to generate a model.
+ * @parma material Material to assign to the model.
+ *
+ * @return Generated model.
+ */
+std::unique_ptr<render::model> generate_model(const brep_mesh& mesh, std::shared_ptr<render::material> material = nullptr);
 
 } // namespace geom
 

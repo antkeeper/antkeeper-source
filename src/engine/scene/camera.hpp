@@ -70,10 +70,10 @@ public:
 	 *
 	 * @param vertical_fov Vertical field of view, in radians.
 	 * @param aspect_ratio Aspect ratio.
-	 * @param clip_near Distance to near clipping plane.
-	 * @param clip_far Distance to far clipping plane.
+	 * @param near Distance to near clipping plane.
+	 * @param far Distance to far clipping plane.
 	 */
-	void set_perspective(float vertical_fov, float aspect_ratio, float clip_near, float clip_far);
+	void set_perspective(float vertical_fov, float aspect_ratio, float near, float far = std::numeric_limits<float>::infinity());
 	
 	/**
 	 * Sets the camera's vertical field of view.
@@ -81,6 +81,13 @@ public:
 	 * @param vertical_fov Vertical field of view, in radians.
 	 */
 	void set_vertical_fov(float vertical_fov);
+	
+	/**
+	 * Sets the camera's aspect ratio.
+	 *
+	 * @param aspect_ratio Aspect ratio.
+	 */
+	void set_aspect_ratio(float aspect_ratio);
 	
 	/**
 	 * Sets the camera's projection matrix using orthographic projection.

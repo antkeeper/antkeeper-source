@@ -112,7 +112,7 @@ void physics_system::interpolate(float alpha)
 std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> physics_system::trace(const geom::ray<float, 3>& ray, entity::id ignore_eid, std::uint32_t layer_mask) const
 {
 	entity::id nearest_entity_id = entt::null;
-	float nearest_hit_distance = std::numeric_limits<float>::infinity();
+	float nearest_hit_sqr_distance = std::numeric_limits<float>::infinity();
 	std::uint32_t nearest_face_index = 0;
 	math::fvec3 nearest_hit_normal;
 	
@@ -142,23 +142,26 @@ std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> physics
 			continue;
 		}
 		
-		// Transform ray into rigid body space
-		const auto inv_transform = math::inverse(rigid_body.get_transform());
-		geom::ray<float, 3> bs_ray;
-		bs_ray.origin = inv_transform * ray.origin;
-		bs_ray.direction = inv_transform.rotation * ray.direction;
-		
 		if (collider->type() == physics::collider_type::mesh)
 		{
+			// Transform ray into rigid body space
+			const auto& transform = rigid_body.get_transform();
+			geom::ray<float, 3> bs_ray;
+			bs_ray.origin = ((ray.origin - transform.translation) * transform.rotation) / transform.scale;
+			bs_ray.direction = math::normalize((ray.direction * transform.rotation) / transform.scale);
+			
 			const auto& mesh = static_cast<const physics::mesh_collider&>(*collider);
 			if (auto intersection = mesh.intersection(bs_ray))
 			{
-				if (std::get<0>(*intersection) < nearest_hit_distance)
+				const auto point = rigid_body.get_transform() * bs_ray.extrapolate(std::get<0>(*intersection));
+				const auto sqr_distance = math::sqr_distance(point, ray.origin);
+				
+				if (sqr_distance < nearest_hit_sqr_distance)
 				{
+					nearest_hit_sqr_distance = sqr_distance;
 					nearest_entity_id = entity_id;
-					
-					/// @TODO: doesn't take into account rigid body scale
-					std::tie(nearest_hit_distance, nearest_face_index, nearest_hit_normal) = *intersection;
+					nearest_face_index = std::get<1>(*intersection);
+					nearest_hit_normal = math::normalize(transform.rotation * (std::get<2>(*intersection) / transform.scale));
 				}
 			}
 		}
@@ -169,7 +172,7 @@ std::optional<std::tuple<entity::id, float, std::uint32_t, math::fvec3>> physics
 		return std::nullopt;
 	}
 	
-	return std::make_tuple(nearest_entity_id, nearest_hit_distance, nearest_face_index, nearest_hit_normal);
+	return std::make_tuple(nearest_entity_id, std::sqrt(nearest_hit_sqr_distance), nearest_face_index, nearest_hit_normal);
 }
 
 void physics_system::integrate(float dt)

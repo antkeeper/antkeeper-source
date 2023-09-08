@@ -20,7 +20,7 @@
 #ifndef ANTKEEPER_GL_TEXTURE_HPP
 #define ANTKEEPER_GL_TEXTURE_HPP
 
-#include <engine/gl/color-space.hpp>
+#include <engine/gl/transfer-function.hpp>
 #include <engine/gl/pixel-format.hpp>
 #include <engine/gl/pixel-type.hpp>
 #include <engine/gl/texture-filter.hpp>
@@ -151,10 +151,10 @@ public:
 		return m_pixel_format;
 	}
 	
-	/// Returns the color space enumeration.
-	[[nodiscard]] inline color_space get_color_space() const noexcept
+	/// Returns the transfer function.
+	[[nodiscard]] inline transfer_function get_transfer_function() const noexcept
 	{
-		return m_color_space;
+		return m_transfer_function;
 	}
 	
 	/// Returns the wrapping modes of the texture.
@@ -202,15 +202,15 @@ protected:
 	 * @param depth Texture depth, in pixels. For 3D textures only.
 	 * @param type Pixel component data type.
 	 * @param format Pixel format.
-	 * @param color_space Color space of the pixel data.
+	 * @param transfer_function Transfer function of the texture data.
 	 * @param data Pointer to pixel data.
 	 *
 	 * @warning If the sRGB color space is specified, pixel data will be stored internally as 8 bits per channel, and automatically converted to linear space before reading.
 	 */
 	/// @{
-	texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth, bool cube = false, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
-	texture(std::uint16_t width, std::uint16_t height, bool cube = false, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
-	explicit texture(std::uint16_t width, bool cube = false, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
+	texture(std::uint16_t width, std::uint16_t height, std::uint16_t depth, bool cube = false, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::transfer_function transfer_function = gl::transfer_function::linear, const std::byte* data = nullptr);
+	texture(std::uint16_t width, std::uint16_t height, bool cube = false, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::transfer_function transfer_function = gl::transfer_function::linear, const std::byte* data = nullptr);
+	explicit texture(std::uint16_t width, bool cube = false, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::transfer_function transfer_function = gl::transfer_function::linear, const std::byte* data = nullptr);
 	/// @}
 	
 	/**
@@ -234,15 +234,15 @@ protected:
 	 * @param depth Texture depth, in pixels. For 3D textures only.
 	 * @param type Pixel component data type.
 	 * @param format Pixel format.
-	 * @param color_space Color space of the pixel data.
+	 * @param transfer_function Transfer_function the pixel data.
 	 * @param data Pointer to pixel data.
 	 *
 	 * @warning If the sRGB color space is specified, pixel data will be stored internally as 8 bits per channel, and automatically converted to linear space before reading.
 	 */
 	/// @{
-	virtual void resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data);
-	virtual void resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data);
-	virtual void resize(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data);
+	virtual void resize(std::uint16_t width, std::uint16_t height, std::uint16_t depth, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data);
+	virtual void resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data);
+	virtual void resize(std::uint16_t width, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data);
 	/// @}
 
 private:
@@ -259,7 +259,7 @@ private:
 	std::array<std::uint16_t, 3> m_dimensions{};
 	gl::pixel_type m_pixel_type{};
 	gl::pixel_format m_pixel_format{};
-	gl::color_space m_color_space{};
+	gl::transfer_function m_transfer_function{gl::transfer_function::linear};
 	std::array<texture_wrapping, 3> m_wrapping{texture_wrapping::repeat, texture_wrapping::repeat, texture_wrapping::repeat};
 	std::tuple<texture_min_filter, texture_mag_filter> m_filters{texture_min_filter::linear_mipmap_linear, texture_mag_filter::linear};
 	std::uint8_t m_base_level{};

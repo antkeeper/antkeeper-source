@@ -269,7 +269,7 @@ template <class T>
 }
 
 /**
- * Constructs a perspective projection matrix which will transform the near and far clipping planes to `[0, 1]`, respectively.
+ * Constructs a perspective projection matrix which will transform the near and far clipping planes to `[0, 1]`, respectively, along with its inverse.
  *
  * @param vertical_fov Vertical field of view angle, in radians.
  * @param aspect_ratio Aspect ratio which determines the horizontal field of view.
@@ -302,6 +302,67 @@ template <class T>
 			{T{0}, T{1} / f, T{0}, T{0}},
 			{T{0}, T{0}, T{0}, T{1} / far - T{1} / near},
 			{T{0}, T{0}, T{-1}, T{1} / near}
+		}}
+	};
+}
+
+/**
+ * Constructs a perspective projection matrix, with an infinite far plane, which will transform the near and far clipping planes to `[1, 0]`, respectively.
+ *
+ * @param vertical_fov Vertical field of view angle, in radians.
+ * @param aspect_ratio Aspect ratio which determines the horizontal field of view.
+ * @param near Distance to the near clipping plane.
+ *
+ * @return Perspective projection matrix.
+ */
+template <class T>
+[[nodiscard]] mat4<T> inf_perspective_half_z_reverse(T vertical_fov, T aspect_ratio, T near)
+{
+	const T half_fov = vertical_fov * T{0.5};
+	const T f = std::cos(half_fov) / std::sin(half_fov);
+	
+	return
+	{{
+		{f / aspect_ratio, T{0}, T{0}, T{0}},
+		{T{0}, f, T{0}, T{0}},
+		{T{0}, T{0}, T{0}, T{-1}},
+		{T{0}, T{0}, near, T{0}}
+	}};
+}
+
+/**
+ * Constructs a perspective projection matrix, with an infinite far plane, which will transform the near and far clipping planes to `[1, 0]`, respectively, along with its inverse.
+ *
+ * @param vertical_fov Vertical field of view angle, in radians.
+ * @param aspect_ratio Aspect ratio which determines the horizontal field of view.
+ * @param near Distance to the near clipping plane.
+ *
+ * @return Tuple containing the perspective projection matrix, followed by its inverse.
+ *
+ * @note Constructing the inverse perspective projection matrix from projection parameters is faster and more precise than inverting matrix.
+ */
+template <class T>
+[[nodiscard]] std::tuple<mat4<T>, mat4<T>> inf_perspective_half_z_reverse_inv(T vertical_fov, T aspect_ratio, T near)
+{
+	const T half_fov = vertical_fov * T{0.5};
+	const T f = std::cos(half_fov) / std::sin(half_fov);
+
+	return
+	{
+		mat4<T>
+		{{
+			{f / aspect_ratio, T{0}, T{0}, T{0}},
+			{T{0}, f, T{0}, T{0}},
+			{T{0}, T{0}, T{0}, T{-1}},
+			{T{0}, T{0}, near, T{0}}
+		}},
+		
+		mat4<T>
+		{{
+			{aspect_ratio / f, T{0}, T{0}, T{0}},
+			{T{0}, T{1} / f, T{0}, T{0}},
+			{T{0}, T{0}, T{0}, T{1} / near},
+			{T{0}, T{0}, T{-1}, T{0}}
 		}}
 	};
 }

@@ -26,9 +26,8 @@ namespace scene {
 geom::ray<float, 3> camera::pick(const math::fvec2& ndc) const
 {
 	const auto near = m_inv_view_projection * math::fvec4{ndc[0], ndc[1], 1.0f, 1.0f};
-	const auto far = m_inv_view_projection * math::fvec4{ndc[0], ndc[1], 0.0f, 1.0f};
 	const auto origin = math::fvec3(near) / near[3];
-	const auto direction = math::normalize(math::fvec3(far) / far[3] - origin);
+	const auto direction = math::normalize(origin - get_translation());
 	
 	return {origin, direction};
 }
@@ -59,7 +58,7 @@ math::fvec3 camera::unproject(const math::fvec3& window, const math::fvec4& view
 	return math::fvec3(result) * (1.0f / result[3]);
 }
 
-void camera::set_perspective(float vertical_fov, float aspect_ratio, float clip_near, float clip_far)
+void camera::set_perspective(float vertical_fov, float aspect_ratio, float near, float far)
 {
 	// Set projection mode to perspective
 	m_orthographic = false;
@@ -67,11 +66,18 @@ void camera::set_perspective(float vertical_fov, float aspect_ratio, float clip_
 	// Update perspective projection parameters
 	m_vertical_fov = vertical_fov;
 	m_aspect_ratio = aspect_ratio;
-	m_clip_near = clip_near;
-	m_clip_far = clip_far;
+	m_clip_near = near;
+	m_clip_far = far;
 	
 	// Recalculate projection matrix (reversed depth) and its inverse
-	std::tie(m_projection, m_inv_projection) = math::perspective_half_z_inv(m_vertical_fov, m_aspect_ratio, m_clip_far, m_clip_near);
+	if (m_clip_far == std::numeric_limits<float>::infinity())
+	{
+		std::tie(m_projection, m_inv_projection) = math::inf_perspective_half_z_reverse_inv(m_vertical_fov, m_aspect_ratio, m_clip_near);
+	}
+	else
+	{
+		std::tie(m_projection, m_inv_projection) = math::perspective_half_z_inv(m_vertical_fov, m_aspect_ratio, m_clip_far, m_clip_near);
+	}
 	
 	// Recalculate view-projection matrix
 	m_view_projection = m_projection * m_view;
@@ -86,6 +92,14 @@ void camera::set_vertical_fov(float vertical_fov)
 	if (!m_orthographic)
 	{
 		set_perspective(vertical_fov, m_aspect_ratio, m_clip_near, m_clip_far);
+	}
+}
+
+void camera::set_aspect_ratio(float aspect_ratio)
+{
+	if (!m_orthographic)
+	{
+		set_perspective(m_vertical_fov, aspect_ratio, m_clip_near, m_clip_far);
 	}
 }
 

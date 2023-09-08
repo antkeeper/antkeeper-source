@@ -70,7 +70,7 @@ void camera_system::interpolate(float alpha)
 			autofocus.focal_distance = autofocus.focal_plane_height * 0.5 / std::tan(autofocus.vfov * 0.5);
 			
 			// Update camera projection matrix
-			camera.set_perspective(static_cast<float>(autofocus.vfov), camera.get_aspect_ratio(), camera.get_clip_near(), camera.get_clip_far());
+			camera.set_vertical_fov(static_cast<float>(autofocus.vfov));
 		}
 	);
 	*/
@@ -150,7 +150,7 @@ void camera_system::interpolate(float alpha)
 			camera_transform.translation += math::fvec3(spring_arm.camera_rotation * math::dvec3{0, center_offset, 0});
 			
 			camera.set_transform(camera_transform);
-			camera.set_perspective(static_cast<float>(spring_arm.vfov), camera.get_aspect_ratio(), camera.get_clip_near(), camera.get_clip_far());
+			camera.set_vertical_fov(static_cast<float>(spring_arm.vfov));
 		}
 	);
 }

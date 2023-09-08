@@ -26,7 +26,7 @@
 
 namespace ai {
 
-navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face* face, geom::ray<float, 3> ray, float distance)
+navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face* face, const math::fvec3& start, const math::fvec3& end)
 {
 	// Get vertex positions and face normals
 	const auto& vertex_positions = mesh.vertices().attributes().at<math::fvec3>("position");
@@ -38,10 +38,9 @@ navmesh_traversal traverse_navmesh(const geom::brep_mesh& mesh, geom::brep_face*
 	
 	geom::triangle_region region;
 	
-	auto target_point = ray.extrapolate(distance);
-	
+	auto target_point = end;
+	auto traversal_direction = math::normalize(end - start);
 	math::fvec3 closest_point;
-	math::fvec3 traversal_direction = ray.direction;
 	
 	geom::brep_edge* previous_closest_edge{};
 	

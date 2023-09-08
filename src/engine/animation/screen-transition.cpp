@@ -32,7 +32,7 @@ screen_transition::screen_transition()
 	
 	// Setup billboard
 	billboard.set_material(material);
-	//billboard.set_active(false);
+	billboard.set_layer_mask(0);
 	
 	// Add single channel to transition animation
 	channel = animation.add_channel(0);
@@ -94,7 +94,7 @@ void screen_transition::transition(float duration, bool reverse, ::animation<flo
 		(
 			[this]()
 			{
-				//this->billboard.set_active(false);
+				this->billboard.set_layer_mask(0);
 				if (this->callback)
 					this->callback();
 			}
@@ -111,4 +111,5 @@ void screen_transition::transition(float duration, bool reverse, ::animation<flo
 	// Reset and play transition animation
 	animation.stop();
 	animation.play();
+	this->billboard.set_layer_mask(1);
 }

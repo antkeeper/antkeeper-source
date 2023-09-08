@@ -233,9 +233,6 @@ private:
 	void rebuild_sky_lut_command_buffer();
 	void rebuild_sky_probe_command_buffer();
 	
-	std::unique_ptr<gl::vertex_buffer> quad_vbo;
-	std::unique_ptr<gl::vertex_array> quad_vao;
-	
 	// Transmittance
 	std::uint16_t m_transmittance_lut_sample_count{40};
 	math::vec2<std::uint16_t> m_transmittance_lut_resolution{256, 64};

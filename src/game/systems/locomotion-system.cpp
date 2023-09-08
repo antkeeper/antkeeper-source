@@ -83,17 +83,29 @@ void locomotion_system::update_legged(float t, float dt)
 			auto& navmesh_agent = legged_group.get<navmesh_agent_component>(entity_id);
 			if (locomotion.speed != 0.0f/* && cos_target_direction >= 0.0f*/ && navmesh_agent.face)
 			{
-				// Get rigid body
-				auto& rigid_body = *legged_group.get<rigid_body_component>(entity_id).body;
-				const auto& rigid_body_transform = rigid_body.get_transform();
+				// Get agent rigid body
+				auto& agent_rigid_body = *legged_group.get<rigid_body_component>(entity_id).body;
+				const auto& agent_transform = agent_rigid_body.get_transform();
 				
-				// Construct ray with origin at agent position and forward-facing direction 
-				geom::ray<float, 3> traversal_ray;
-				traversal_ray.origin = rigid_body_transform.translation;
-				traversal_ray.direction = rigid_body_transform.rotation * math::fvec3{0, 0, 1};
+				// Get navmesh rigid body
+				auto& navmesh_rigid_body = *registry.get<rigid_body_component>(navmesh_agent.navmesh_eid).body;
+				const auto& navmesh_transform = navmesh_rigid_body.get_transform();
 				
-				// Traverse navmesh along ray
-				const auto traversal = ai::traverse_navmesh(*navmesh_agent.mesh, navmesh_agent.face, traversal_ray, locomotion.speed * dt);
+				// Determine start and end points of traversal
+				const auto traversal_direction = agent_transform.rotation * math::fvec3{0, 0, 1};
+				auto traversal_start = agent_transform.translation;
+				auto traversal_end = agent_transform.translation + traversal_direction * (locomotion.speed * dt);
+				
+				// Transform traversal segment from world-space to navmesh-space
+				traversal_start = ((traversal_start - navmesh_transform.translation) * navmesh_transform.rotation) / navmesh_transform.scale;
+				traversal_end = ((traversal_end - navmesh_transform.translation) * navmesh_transform.rotation) / navmesh_transform.scale;
+				
+				// Traverse navmesh
+				// NOTE: if the navmesh has a nonuniform scale, the traversal will be skewed
+				auto traversal = ai::traverse_navmesh(*navmesh_agent.mesh, navmesh_agent.face, traversal_start, traversal_end);
+				
+				// Transform traversal end point from navmesh-space world-space
+				traversal.closest_point = navmesh_transform.translation + (navmesh_transform.rotation * (navmesh_transform.scale * traversal.closest_point));
 				
 				// Update navmesh agent face
 				navmesh_agent.face = traversal.face;
@@ -107,14 +119,17 @@ void locomotion_system::update_legged(float t, float dt)
 				const auto& uvw = traversal.barycentric;
 				navmesh_agent.surface_normal = math::normalize(na * uvw.x() + nb * uvw.y() + nc * uvw.z());
 				
+				// Transform surface normal from navmesh-space to world-space
+				navmesh_agent.surface_normal = math::normalize(navmesh_transform.rotation * (navmesh_agent.surface_normal / navmesh_transform.scale));
+				
 				// const auto& face_normals = navmesh_agent.mesh->faces().attributes().at<math::fvec3>("normal");
 				// navmesh_agent.surface_normal = face_normals[navmesh_agent.face->index()];
 				
-				// Update rigid body
-				rigid_body.set_position(traversal.closest_point);
-				// rigid_body.set_position(traversal_ray.extrapolate(locomotion.speed * dt));
-				// rigid_body.set_orientation(math::normalize(math::rotation(rigid_body_transform.rotation * math::fvec3{0, 1, 0}, navmesh_agent.surface_normal) * rigid_body_transform.rotation));
-				rigid_body.set_orientation(math::normalize(math::rotation(rigid_body_transform.rotation * math::fvec3{0, 1, 0}, navmesh_agent.surface_normal) * rigid_body_transform.rotation));
+				// Update agent rigid body
+				agent_rigid_body.set_position(traversal.closest_point);
+				// agent_rigid_body.set_position(traversal_ray.extrapolate(locomotion.speed * dt));
+				// agent_rigid_body.set_orientation(math::normalize(math::rotation(rigid_body_transform.rotation * math::fvec3{0, 1, 0}, navmesh_agent.surface_normal) * rigid_body_transform.rotation));
+				agent_rigid_body.set_orientation(math::normalize(math::rotation(agent_transform.rotation * math::fvec3{0, 1, 0}, navmesh_agent.surface_normal) * agent_transform.rotation));
 			}
 			
 			// Animate legs

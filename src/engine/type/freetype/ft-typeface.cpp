@@ -111,12 +111,12 @@ bool ft_typeface::get_bitmap(float height, char32_t code, image& bitmap) const
 	}
 	
 	// Format and resize bitmap
-	bitmap.resize(0, 0);
-	bitmap.format(sizeof(FT_Byte), 1);
-	bitmap.resize(face->glyph->bitmap.width, face->glyph->bitmap.rows);
+	bitmap.resize({0, 0, 0});
+	bitmap.format(1, sizeof(FT_Byte) * 8);
+	bitmap.resize({face->glyph->bitmap.width, face->glyph->bitmap.rows, 1});
 	
 	// Copy glyph bitmap data in bitmap
-	std::memcpy(bitmap.data(), face->glyph->bitmap.buffer, bitmap.size());
+	std::memcpy(bitmap.data(), face->glyph->bitmap.buffer, bitmap.size_bytes());
 	
 	return true;
 }

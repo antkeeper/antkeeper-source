@@ -111,6 +111,7 @@ public:
 	 *
 	 */
 	void draw_arrays(const vertex_array& vao, drawing_mode mode, std::size_t offset, std::size_t count);
+	void draw_arrays(drawing_mode mode, std::size_t offset, std::size_t count);
 	
 	void draw_arrays_instanced(const vertex_array& vao, drawing_mode mode, std::size_t offset, std::size_t count, std::size_t instance_count);
 	
@@ -118,6 +119,7 @@ public:
 	 *
 	 */
 	void draw_elements(const vertex_array& vao, drawing_mode mode, std::size_t offset, std::size_t count, element_array_type type);
+	void draw_elements(drawing_mode mode, std::size_t offset, std::size_t count, element_array_type type);
 
 	/**
 	 * Returns the default framebuffer associated with the OpenGL context of a window.
@@ -129,6 +131,7 @@ public:
 
 private:
 	std::unique_ptr<framebuffer> default_framebuffer;
+	std::unique_ptr<vertex_array> dummy_vao;
 	const framebuffer* bound_framebuffer{nullptr};
 	const vertex_array* bound_vao{nullptr};
 	const shader_program* bound_shader_program{nullptr};

@@ -21,74 +21,15 @@
 #define ANTKEEPER_UTILITY_IMAGE_HPP
 
 #include <engine/math/vector.hpp>
-#include <cstdint>
-#include <type_traits>
 #include <vector>
+#include <cstddef>
 
 /**
- * Stores basic image data.
+ * Pixel data buffer.
  */
 class image
 {
 public:
-	/**
-	 * Returns an iterator to the first pixel.
-	 *
-	 * @tparam T Pixel data type.
-	 */
-	/// @{
-	template <class T>
-	[[nodiscard]] inline constexpr T* begin() noexcept
-	{
-		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
-		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
-		return reinterpret_cast<T*>(pixels.data());
-	}
-	template <class T>
-	[[nodiscard]] inline constexpr const T* begin() const noexcept
-	{
-		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
-		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
-		return reinterpret_cast<const T*>(pixels.data());
-	}
-	template <class T>
-	[[nodiscard]] inline constexpr const T* cbegin() const noexcept
-	{
-		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
-		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
-		return reinterpret_cast<const T*>(pixels.data());
-	}
-	/// @}
-	
-	/**
-	 * Returns an iterator to the pixel following the last pixel.
-	 *
-	 * @tparam T Pixel data type.
-	 */
-	/// @{
-	template <class T>
-	[[nodiscard]] inline constexpr T* end() noexcept
-	{
-		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
-		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
-		return reinterpret_cast<T*>(pixels.data() + pixels.size());
-	}
-	template <class T>
-	[[nodiscard]] inline constexpr const T* end() const noexcept
-	{
-		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
-		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
-		return reinterpret_cast<const T*>(pixels.data() + pixels.size());
-	}
-	template <class T>
-	[[nodiscard]] inline constexpr const T* cend() const noexcept
-	{
-		static_assert(std::is_standard_layout<T>::value, "Pixel iterator type is not standard-layout.");
-		static_assert(std::is_trivial<T>::value, "Pixel iterator type is not trivial.");
-		return reinterpret_cast<const T*>(pixels.data() + pixels.size());
-	}
-	/// @}
-	
 	/**
 	 * Checks whether another image has the same number of channels and pixel size as this image.
 	 *
@@ -101,12 +42,9 @@ public:
 	 * Copies pixel data from another image with a compatible format into this image.
 	 *
 	 * @param source Source image from which to copy pixel data.
-	 * @param w Width of the subimage to copy.
-	 * @param h Height of the subimage to copy.
-	 * @param from_x X-coordinate of the first pixel to copy from the source subimage.
-	 * @param from_y Y-coordinate of the first pixel to copy from the source subimage.
-	 * @param to_x X-coordinate of the first pixel in the destination subimage.
-	 * @param to_y Y-coordinate of the first pixel in the destination subimage.
+	 * @param dimensions Dimensions of the subimage to copy.
+	 * @param from Coordinates of the first pixel to copy from the source subimage.
+	 * @param to Coordinates of the first pixel in the destination subimage.
 	 *
 	 * @except std::runtime_error Cannot copy image with mismatched format.
 	 *
@@ -115,85 +53,186 @@ public:
 	void copy
 	(
 		const image& source,
-		std::uint32_t w,
-		std::uint32_t h,
-		std::uint32_t from_x = 0,
-		std::uint32_t from_y = 0,
-		std::uint32_t to_x = 0,
-		std::uint32_t to_y = 0
+		const math::uvec2& dimensions,
+		const math::uvec2& from = {},
+		const math::uvec2& to = {}
 	);
 
 	/**
-	 * Changes the format of the image. Existing pixel data will be erased if the format has changed.
+	 * Changes the format of the image.
 	 *
-	 * @param component_size Size of channel components, in bytes.
-	 * @param channel_count Number of channels in the image.
+	 * @param channels Number of channels in the image.
+	 * @param bit_depth Number of bits per channel.
+	 *
+	 * @warning Pre-existing pixel data will be invalidated.
+	 * @warning Bit depth must be byte-aligned.
+	 *
+	 * @except std::runtime_error Image bit depth must be byte-aligned.
 	 */
-	void format(std::size_t component_size, std::uint8_t channel_count);
-
+	void format(unsigned int channels, unsigned int bit_depth = 8u);
+	
 	/**
-	 * Resizes the image. Existing pixel data will be erased if the size has changed.
+	 * Resizes the image.
 	 *
-	 * @param width New width of the image, in pixels.
-	 * @param height New height of the image, in pixels.
+	 * @param size New dimensions of the image, in pixels.
+	 *
+	 * @warning Pre-existing pixel data will be invalidated.
 	 */
-	void resize(std::uint32_t width, std::uint32_t height);
-
-	/// Returns the width of the image, in pixels.
-	[[nodiscard]] inline std::uint32_t width() const noexcept
+	/// @{
+	inline void resize(unsigned int size)
 	{
-		return m_width;
+		resize(math::uvec3{size, 1u, 1u});
 	}
-
-	/// Returns the height of the image, in pixels.
-	[[nodiscard]] inline std::uint32_t height() const noexcept
+	
+	inline void resize(const math::uvec2& size)
 	{
-		return m_height;
+		resize(math::uvec3{size.x(), size.y(), 1u});
 	}
-
-	/// Returns the number of color channels in the image. 
-	[[nodiscard]] inline std::uint8_t channel_count() const noexcept
-	{
-		return m_channel_count;
-	}
+	
+	void resize(const math::uvec3& size);
+	/// @}
+	
+	/// @name Pixel access
+	/// @{
 	
 	/// Returns a pointer to the pixel data.
 	/// @{
-	[[nodiscard]] inline const std::byte* data() const noexcept
+	[[nodiscard]] inline constexpr const std::byte* data() const noexcept
 	{
-		return pixels.data();
+		return m_data.data();
 	}
-	[[nodiscard]] inline std::byte* data() noexcept
+	[[nodiscard]] inline constexpr std::byte* data() noexcept
 	{
-		return pixels.data();
+		return m_data.data();
 	}
 	/// @}
 	
-	/// Returns the size of channel components, in bytes.
-	[[nodiscard]] inline std::size_t component_size() const noexcept
+	/**
+	 * Returns the value of a pixel.
+	 *
+	 * @tparam T Pixel data type.
+	 *
+	 * @param position Coordinates of a pixel.
+	 *
+	 * @return Pixel value.
+	 */
+	/// @{
+	template <class T>
+	[[nodiscard]] T get(unsigned int position) const
 	{
-		return m_component_size;
+		T value;
+		std::memcpy(&value, data() + static_cast<std::size_t>(position) * m_pixel_stride, sizeof(T));
+		return value;
 	}
 	
-	/// Returns the size of a single pixel, in bytes.
-	[[nodiscard]] inline std::size_t pixel_size() const noexcept
+	template <class T>
+	[[nodiscard]] T get(const math::uvec2& position) const
 	{
-		return m_pixel_size;
+		const auto index = static_cast<std::size_t>(position.y()) * m_size.x() + position.x();
+		T value;
+		std::memcpy(&value, data() + index * m_pixel_stride, sizeof(T));
+		return value;
+	}
+	
+	template <class T>
+	[[nodiscard]] T get(const math::uvec3& position) const
+	{
+		const auto index = (static_cast<std::size_t>(position.z()) * m_size.y() + position.y()) * m_size.x() + position.x();
+		T value;
+		std::memcpy(&value, data() + index * m_pixel_stride, sizeof(T));
+		return value;
+	}
+	/// @}
+	
+	/**
+	 * Sets the value of a pixel.
+	 *
+	 * @tparam T Pixel data type.
+	 *
+	 * @param position Coordinates of a pixel.
+	 * @param value Pixel value.
+	 */
+	/// @{
+	template <class T>
+	[[nodiscard]] void set(unsigned int position, const T& value)
+	{
+		std::memcpy(data() + static_cast<std::size_t>(position) * m_pixel_stride, &value, sizeof(T));
+	}
+	
+	template <class T>
+	[[nodiscard]] void set(const math::uvec2& position, const T& value)
+	{
+		const auto index = static_cast<std::size_t>(position.y()) * m_size.x() + position.x();
+		std::memcpy(data() + index * m_pixel_stride, &value, sizeof(T));
+	}
+	
+	template <class T>
+	[[nodiscard]] void set(const math::uvec3& position, const T& value)
+	{
+		const auto index = (static_cast<std::size_t>(position.z()) * m_size.y() + position.y()) * m_size.x() + position.x();
+		std::memcpy(data() + index * m_pixel_stride, &value, sizeof(T));
+	}
+	/// @}
+	
+	/**
+	 * Samples a texel.
+	 *
+	 * @param position Coordinates of a pixel.
+	 *
+	 * @return RGBA texel, on `[0, 1]`.
+	 */
+	/// @{
+	[[nodiscard]] inline math::fvec4 sample(unsigned int position) const
+	{
+		return sample(static_cast<std::size_t>(position));
+	}
+	
+	[[nodiscard]] inline math::fvec4 sample(const math::uvec2& position) const
+	{
+		return sample(static_cast<std::size_t>(position.y()) * m_size.x() + position.x());
+	}
+	
+	[[nodiscard]] inline math::fvec4 sample(const math::uvec3& position) const
+	{
+		return sample((static_cast<std::size_t>(position.z()) * m_size.y() + position.y()) * m_size.x() + position.x());
+	}
+	/// @}
+	
+	/// @}
+	
+	/// Returns the dimensions of the the image, in pixels.
+	[[nodiscard]] inline constexpr const math::uvec3& size() const noexcept
+	{
+		return m_size;
+	}
+	
+	/// Returns the number of channels in the image. 
+	[[nodiscard]] inline constexpr unsigned int channels() const noexcept
+	{
+		return m_channels;
+	}
+	
+	/// Returns the number of bits per channel in the image. 
+	[[nodiscard]] inline constexpr unsigned int bit_depth() const noexcept
+	{
+		return m_bit_depth;
 	}
 	
 	/// Returns the size of the image, in bytes.
-	[[nodiscard]] inline std::size_t size() const noexcept
+	[[nodiscard]] inline constexpr std::size_t size_bytes() const noexcept
 	{
-		return pixels.size();
+		return m_data.size();
 	}
 	
 private:
-	std::uint32_t m_width{0};
-	std::uint32_t m_height{0};
-	std::uint8_t m_channel_count{0};
-	std::size_t m_component_size{0};
-	std::size_t m_pixel_size{0};
-	std::vector<std::byte> pixels;
+	[[nodiscard]] math::fvec4 sample(std::size_t index) const;
+	
+	math::uvec3 m_size{};
+	unsigned int m_channels{};
+	unsigned int m_bit_depth{};
+	unsigned int m_pixel_stride{};
+	float m_sample_scale{};
+	std::vector<std::byte> m_data;
 };
 
 #endif // ANTKEEPER_UTILITY_IMAGE_HPP

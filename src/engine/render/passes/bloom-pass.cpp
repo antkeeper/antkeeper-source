@@ -64,34 +64,6 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 	
 	// Build upsample shader program
 	upsample_shader = upsample_shader_template->build();
-	
-	const math::fvec2 vertex_positions[] =
-	{
-		{-1.0f,  1.0f},
-		{-1.0f, -1.0f},
-		{ 1.0f,  1.0f},
-		{ 1.0f,  1.0f},
-		{-1.0f, -1.0f},
-		{ 1.0f, -1.0f}
-	};
-	
-	const auto vertex_data = std::as_bytes(std::span{vertex_positions});
-	std::size_t vertex_size = 2;
-	std::size_t vertex_stride = sizeof(float) * vertex_size;
-	
-	quad_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, vertex_data.size(), vertex_data);
-	quad_vao = std::make_unique<gl::vertex_array>();
-	
-	// Define position vertex attribute
-	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = quad_vbo.get();
-	position_attribute.offset = 0;
-	position_attribute.stride = vertex_stride;
-	position_attribute.type = gl::vertex_attribute_type::float_32;
-	position_attribute.components = 2;
-	
-	// Bind vertex attributes to VAO
-	quad_vao->bind(render::vertex_attribute::position, position_attribute);
 }
 
 void bloom_pass::render(render::context& ctx)
@@ -267,7 +239,7 @@ void bloom_pass::rebuild_command_buffer()
 				
 				source_texture_var->update(*source_texture);
 				
-				rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+				rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
 			}
 		);
 	}
@@ -291,7 +263,7 @@ void bloom_pass::rebuild_command_buffer()
 						// Use previous downsample texture as downsample source
 						source_texture_var->update(*textures[i - 1]);
 						
-						rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+						rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
 					}
 				);
 			}
@@ -335,7 +307,7 @@ void bloom_pass::rebuild_command_buffer()
 					
 					source_texture_var->update(*textures[i]);
 					
-					rasterizer->draw_arrays(*quad_vao, gl::drawing_mode::triangles, 0, 6);
+					rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
 				}
 			);
 		}

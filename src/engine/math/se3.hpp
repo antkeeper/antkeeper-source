@@ -55,9 +55,7 @@ public:
 	/// Returns the inverse of this transformation.
 	[[nodiscard]] constexpr se3 inverse() const noexcept
 	{
-		const quaternion_type inverse_r = conjugate(r);
-		const vector_type inverse_t = -(inverse_r * t);
-		return {inverse_t, inverse_r};
+		return {-t * r, conjugate(r)};
 	}
 	
 	/// Returns a matrix representation of this transformation.

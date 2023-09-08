@@ -30,15 +30,15 @@ namespace gl {
 class texture_2d: public texture
 {
 public:
-	texture_2d(std::uint16_t width, std::uint16_t height, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::color_space color_space = gl::color_space::linear, const std::byte* data = nullptr);
+	texture_2d(std::uint16_t width, std::uint16_t height, gl::pixel_type type = gl::pixel_type::uint_8, gl::pixel_format format = gl::pixel_format::rgba, gl::transfer_function transfer_function = gl::transfer_function::linear, const std::byte* data = nullptr);
 	
 	[[nodiscard]] inline constexpr texture_type get_texture_type() const noexcept override
 	{
 		return texture_type::two_dimensional;
 	}
 	
-	/// @copydoc texture::resize(std::uint16_t, std::uint16_t, gl::pixel_type, gl::pixel_format, gl::color_space, const std::byte*)
-	void resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::color_space color_space, const std::byte* data) override;
+	/// @copydoc texture::resize(std::uint16_t, std::uint16_t, gl::pixel_type, gl::pixel_format, gl::transfer_function, const std::byte*)
+	void resize(std::uint16_t width, std::uint16_t height, gl::pixel_type type, gl::pixel_format format, gl::transfer_function transfer_function, const std::byte* data) override;
 	
 	/**
 	 * Resizes the texture.
