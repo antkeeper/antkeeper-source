@@ -21,7 +21,7 @@
 #define ANTKEEPER_GAME_ANT_SCULPTURING_GENE_HPP
 
 #include "game/ant/genes/ant-gene.hpp"
-#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/texture.hpp>
 #include <memory>
 
 /**

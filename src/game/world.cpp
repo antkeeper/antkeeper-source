@@ -35,11 +35,7 @@
 #include "game/systems/orbit-system.hpp"
 #include "game/systems/terrain-system.hpp"
 #include <engine/geom/solid-angle.hpp>
-#include <engine/gl/drawing-mode.hpp>
-#include <engine/gl/texture-filter.hpp>
-#include <engine/gl/texture-wrapping.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/vertex-attribute.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/i18n/string-table.hpp>
 #include <engine/math/hash/hash.hpp>
@@ -56,8 +52,7 @@
 #include <engine/render/material.hpp>
 #include <engine/render/model.hpp>
 #include <engine/render/passes/sky-pass.hpp>
-#include <engine/render/vertex-attribute.hpp>
-#include <engine/utility/image.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/utility/json.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/scene/directional-light.hpp>
@@ -65,7 +60,6 @@
 #include <algorithm>
 #include <execution>
 #include <fstream>
-#include <stb/stb_image_write.h>
 #include <engine/animation/screen-transition.hpp>
 #include <engine/animation/ease.hpp>
 
@@ -91,19 +85,19 @@ static void create_moon(::game& ctx);
 
 void cosmogenesis(::game& ctx)
 {
-	debug::log::trace("Generating cosmos...");
+	debug::log_trace("Generating cosmos...");
 	
 	load_ephemeris(ctx);
 	create_stars(ctx);
 	create_sun(ctx);
 	create_earth_moon_system(ctx);
 	
-	debug::log::trace("Generated cosmos");
+	debug::log_trace("Generated cosmos");
 }
 
 void create_observer(::game& ctx)
 {
-	debug::log::trace("Creating observer...");
+	debug::log_trace("Creating observer...");
 	
 	{
 		// Create observer entity
@@ -134,7 +128,7 @@ void create_observer(::game& ctx)
 		ctx.astronomy_system->set_observer(observer_eid);
 	}
 	
-	debug::log::trace("Created observer");
+	debug::log_trace("Created observer");
 }
 
 void set_location(::game& ctx, double elevation, double latitude, double longitude)
@@ -167,11 +161,11 @@ void set_time(::game& ctx, double t)
 		ctx.astronomy_system->set_time(t);
 		ctx.orbit_system->set_time(t);
 		
-		// debug::log::info("Set time to UT1 {}", t);
+		// debug::log_info("Set time to UT1 {}", t);
 	}
 	catch (const std::exception& e)
 	{
-		debug::log::error("Failed to set time to UT1 {}: {}", t, e.what());
+		debug::log_error("Failed to set time to UT1 {}: {}", t, e.what());
 	}
 }
 
@@ -216,7 +210,7 @@ void load_ephemeris(::game& ctx)
 
 void create_stars(::game& ctx)
 {
-	debug::log::trace("Generating fixed stars...");
+	debug::log_trace("Generating fixed stars...");
 	
 	// Load star catalog
 	auto star_catalog = ctx.resource_manager->load<i18n::string_table>("hipparcos-7.tsv");
@@ -225,9 +219,8 @@ void create_stars(::game& ctx)
 	std::size_t star_count = 0;
 	if (star_catalog->rows.size() > 0)
 		star_count = star_catalog->rows.size() - 1;
-	std::size_t star_vertex_size = 7;
-	std::size_t star_vertex_stride = star_vertex_size * sizeof(float);
-	std::vector<float> star_vertex_data(star_count * star_vertex_size);
+	constexpr std::size_t star_vertex_stride = 7 * sizeof(float);
+	std::vector<float> star_vertex_data(star_count * star_vertex_stride / sizeof(float));
 	float* star_vertex = star_vertex_data.data();
 	
 	// Init starlight illuminance
@@ -252,7 +245,7 @@ void create_stars(::game& ctx)
 		}
 		catch (const std::exception&)
 		{
-			debug::log::warning("Invalid star catalog item on row {}", i);
+			debug::log_warning("Invalid star catalog item on row {}", i);
 			continue;
 		}
 		
@@ -294,49 +287,39 @@ void create_stars(::game& ctx)
 	// Allocate stars model
 	std::shared_ptr<render::model> stars_model = std::make_shared<render::model>();
 	
-	// Get model VBO and VAO
-	auto& vbo = stars_model->get_vertex_buffer();
+	// Construct stars VAO
+	constexpr gl::vertex_input_attribute star_vertex_attributes[] =
+	{
+		{
+			render::vertex_attribute_location::position,
+			0,
+			gl::format::r32g32b32_sfloat,
+			0
+		},
+		{
+			render::vertex_attribute_location::color,
+			0,
+			gl::format::r32g32b32a32_sfloat,
+			3 * sizeof(float)
+		}
+	};
 	auto& vao = stars_model->get_vertex_array();
+	vao = std::make_unique<gl::vertex_array>(star_vertex_attributes);
 	
-	// Resize model VBO and upload vertex data
-	vbo->resize(star_vertex_data.size() * sizeof(float), std::as_bytes(std::span{star_vertex_data}));
+	// Construct stars VBO
+	auto& vbo = stars_model->get_vertex_buffer();
+	vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, std::as_bytes(std::span{star_vertex_data}));
+	stars_model->set_vertex_offset(0);
+	stars_model->set_vertex_stride(star_vertex_stride);
 	
-	std::size_t attribute_offset = 0;
-	
-	// Define position vertex attribute
-	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = vbo.get();
-	position_attribute.offset = attribute_offset;
-	position_attribute.stride = star_vertex_stride;
-	position_attribute.type = gl::vertex_attribute_type::float_32;
-	position_attribute.components = 3;
-	attribute_offset += position_attribute.components * sizeof(float);
-	
-	// Define color vertex attribute
-	gl::vertex_attribute color_attribute;
-	color_attribute.buffer = vbo.get();
-	color_attribute.offset = attribute_offset;
-	color_attribute.stride = star_vertex_stride;
-	color_attribute.type = gl::vertex_attribute_type::float_32;
-	color_attribute.components = 4;
-	//attribute_offset += color_attribute.components * sizeof(float);
-	
-	// Bind vertex attributes to VAO
-	vao->bind(render::vertex_attribute::position, position_attribute);
-	vao->bind(render::vertex_attribute::color, color_attribute);
-	
-	// Load star material
-	std::shared_ptr<render::material> star_material = ctx.resource_manager->load<render::material>("fixed-star.mtl");
-	
-	// Create model group
+	// Construct star model group
 	stars_model->get_groups().resize(1);
 	render::model_group& stars_model_group = stars_model->get_groups().front();
-	
 	stars_model_group.id = "stars";
-	stars_model_group.material = star_material;
-	stars_model_group.drawing_mode = gl::drawing_mode::points;
-	stars_model_group.start_index = 0;
-	stars_model_group.index_count = static_cast<std::uint32_t>(star_count);
+	stars_model_group.material = ctx.resource_manager->load<render::material>("fixed-star.mtl");
+	stars_model_group.primitive_topology = gl::primitive_topology::point_list;
+	stars_model_group.first_vertex = 0;
+	stars_model_group.vertex_count = static_cast<std::uint32_t>(star_count);
 	
 	// Pass stars model to sky pass
 	ctx.sky_pass->set_stars_model(stars_model);
@@ -344,12 +327,12 @@ void create_stars(::game& ctx)
 	// Pass starlight illuminance to astronomy system
 	ctx.astronomy_system->set_starlight_illuminance(starlight_illuminance);
 	
-	debug::log::trace("Generated fixed stars");
+	debug::log_trace("Generated fixed stars");
 }
 
 void create_sun(::game& ctx)
 {
-	debug::log::trace("Generating Sun...");
+	debug::log_trace("Generating Sun...");
 	
 	{
 		// Create sun entity
@@ -374,12 +357,12 @@ void create_sun(::game& ctx)
 		ctx.astronomy_system->set_sun_light(ctx.sun_light.get());
 	}
 	
-	debug::log::trace("Generated Sun");
+	debug::log_trace("Generated Sun");
 }
 
 void create_earth_moon_system(::game& ctx)
 {
-	debug::log::trace("Generating Earth-Moon system...");
+	debug::log_trace("Generating Earth-Moon system...");
 	
 	{
 		// Create Earth-Moon barycenter entity
@@ -394,12 +377,12 @@ void create_earth_moon_system(::game& ctx)
 		create_moon(ctx);
 	}
 	
-	debug::log::trace("Generated Earth-Moon system");
+	debug::log_trace("Generated Earth-Moon system");
 }
 
 void create_earth(::game& ctx)
 {
-	debug::log::trace("Generating Earth...");
+	debug::log_trace("Generating Earth...");
 	
 	{
 		// Create earth entity
@@ -411,12 +394,12 @@ void create_earth(::game& ctx)
 		ctx.entity_registry->get<::orbit_component>(earth_eid).parent = ctx.entities["em_bary"];
 	}
 	
-	debug::log::trace("Generated Earth");
+	debug::log_trace("Generated Earth");
 }
 
 void create_moon(::game& ctx)
 {
-	debug::log::trace("Generating Moon...");
+	debug::log_trace("Generating Moon...");
 	
 	{
 		// Create lunar entity
@@ -440,12 +423,12 @@ void create_moon(::game& ctx)
 		ctx.astronomy_system->set_moon_light(ctx.moon_light.get());
 	}
 	
-	debug::log::trace("Generated Moon");
+	debug::log_trace("Generated Moon");
 }
 
 void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 {	
-	debug::log::trace("Entering ecoregion {}...", ecoregion.name);
+	debug::log_trace("Entering ecoregion {}...", ecoregion.name);
 	{
 		// Set active ecoregion
 		//ctx.active_ecoregion = &ecoregion;
@@ -484,7 +467,7 @@ void enter_ecoregion(::game& ctx, const ecoregion& ecoregion)
 		// );
 	}
 	
-	debug::log::trace("Entered ecoregion {}", ecoregion.name);
+	debug::log_trace("Entered ecoregion {}", ecoregion.name);
 }
 
 void switch_scene(::game& ctx)

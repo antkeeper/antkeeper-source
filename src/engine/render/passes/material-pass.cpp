@@ -20,19 +20,14 @@
 #include <engine/render/passes/material-pass.hpp>
 #include <engine/config.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/vertex-attribute.hpp>
-#include <engine/gl/drawing-mode.hpp>
-#include <engine/gl/texture-2d.hpp>
-#include <engine/gl/texture-wrapping.hpp>
-#include <engine/gl/texture-filter.hpp>
+#include <engine/gl/texture.hpp>
 #include <engine/gl/shader-variable-type.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/render/material-flags.hpp>
 #include <engine/render/model.hpp>
 #include <engine/render/context.hpp>
@@ -46,9 +41,8 @@
 #include <engine/config.hpp>
 #include <engine/math/quaternion.hpp>
 #include <engine/math/projection.hpp>
-#include <engine/utility/hash/combine.hpp>
+#include <engine/utility/hash/hash-combine.hpp>
 #include <cmath>
-#include <glad/glad.h>
 #include <execution>
 
 namespace render {
@@ -123,8 +117,8 @@ bool operation_compare(const render::operation* a, const render::operation* b)
 
 } // namespace
 
-material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
-	pass(rasterizer, framebuffer)
+material_pass::material_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
+	pass(pipeline, framebuffer)
 {
 	// Load LTC LUT textures
 	ltc_lut_1 = resource_manager->load<gl::texture_2d>("ltc-lut-1.tex");
@@ -136,18 +130,23 @@ material_pass::material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* 
 
 void material_pass::render(render::context& ctx)
 {
-	rasterizer->use_framebuffer(*framebuffer);
+	m_pipeline->bind_framebuffer(m_framebuffer);
 	
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_GEQUAL);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glDisable(GL_STENCIL_TEST);
+	m_pipeline->set_color_blend_enabled(false);
+	m_pipeline->set_depth_test_enabled(true);
+	m_pipeline->set_depth_compare_op(gl::compare_op::greater_or_equal);
+	m_pipeline->set_cull_mode(gl::cull_mode::back);
+	m_pipeline->set_stencil_test_enabled(false);
 	
-	auto viewport = framebuffer->get_dimensions();
-	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
+	const auto& viewport_dimensions = (m_framebuffer) ? m_framebuffer->dimensions() : m_pipeline->get_default_framebuffer_dimensions();
+	const gl::viewport viewport[1] =
+	{{
+		0,
+		0,
+		static_cast<float>(viewport_dimensions[0]),
+		static_cast<float>(viewport_dimensions[1])
+	}};
+	m_pipeline->set_viewport(0, viewport);
 	
 	//const gl::shader_program* active_shader_program = nullptr;
 	const render::material* active_material = nullptr;
@@ -204,11 +203,11 @@ void material_pass::render(render::context& ctx)
 				{
 					if (material->is_two_sided())
 					{
-						glDisable(GL_CULL_FACE);
+						m_pipeline->set_cull_mode(gl::cull_mode::none);
 					}
 					else
 					{
-						glEnable(GL_CULL_FACE);
+						m_pipeline->set_cull_mode(gl::cull_mode::back);
 					}
 					
 					active_two_sided = material->is_two_sided();
@@ -219,12 +218,20 @@ void material_pass::render(render::context& ctx)
 				{
 					if (material->get_blend_mode() == material_blend_mode::translucent)
 					{
-						glEnable(GL_BLEND);
-						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+						m_pipeline->set_color_blend_enabled(true);
+						m_pipeline->set_color_blend_equation
+						({
+							gl::blend_factor::src_alpha,
+							gl::blend_factor::one_minus_src_alpha,
+							gl::blend_op::add,
+							gl::blend_factor::src_alpha,
+							gl::blend_factor::one_minus_src_alpha,
+							gl::blend_op::add
+						});
 					}
 					else
 					{
-						glDisable(GL_BLEND);
+						m_pipeline->set_color_blend_enabled(false);
 					}
 					
 					active_blend_mode = material->get_blend_mode();
@@ -234,7 +241,7 @@ void material_pass::render(render::context& ctx)
 			}
 			
 			// Calculate shader cache key
-			std::size_t cache_key = hash::combine(lighting_state_hash, material->get_shader_template()->hash());
+			std::size_t cache_key = hash_combine(lighting_state_hash, material->get_shader_template()->hash());
 			if (active_cache_key != cache_key)
 			{
 				// Lookup shader cache entry
@@ -250,7 +257,7 @@ void material_pass::render(render::context& ctx)
 					build_shader_command_buffer(active_cache_entry->shader_command_buffer, *active_cache_entry->shader_program);
 					build_geometry_command_buffer(active_cache_entry->geometry_command_buffer, *active_cache_entry->shader_program);
 					
-					debug::log::trace("Generated material cache entry {:x}", cache_key);
+					debug::log_trace("Generated material cache entry {:x}", cache_key);
 				}
 				
 				// Bind shader and update shader-specific variables
@@ -273,7 +280,7 @@ void material_pass::render(render::context& ctx)
 				material_command_buffer = &active_cache_entry->material_command_buffers[material];
 				build_material_command_buffer(*material_command_buffer, *active_cache_entry->shader_program, *material);
 				
-				debug::log::trace("Generated material command buffer");
+				debug::log_trace("Generated material command buffer");
 			}
 			
 			// Update material-dependent shader variables
@@ -303,15 +310,10 @@ void material_pass::render(render::context& ctx)
 			command();
 		}
 		
-		// Draw geometry
-		if (operation->instance_count)
-		{
-			rasterizer->draw_arrays_instanced(*operation->vertex_array, operation->drawing_mode, operation->start_index, operation->index_count, operation->instance_count);
-		}
-		else
-		{
-			rasterizer->draw_arrays(*operation->vertex_array, operation->drawing_mode, operation->start_index, operation->index_count);
-		}
+		m_pipeline->set_primitive_topology(operation->primitive_topology);
+		m_pipeline->bind_vertex_array(operation->vertex_array);
+		m_pipeline->bind_vertex_buffers(0, {&operation->vertex_buffer, 1}, {&operation->vertex_offset, 1}, {&operation->vertex_stride, 1});
+		m_pipeline->draw(operation->vertex_count, operation->instance_count, operation->first_vertex, operation->first_instance);
 	}
 	
 	++frame;
@@ -372,7 +374,7 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 		const scene::light& light = static_cast<const scene::light&>(*object);
 		
 		switch (light.get_light_type())
-		{	
+		{
 			// Add directional light
 			case scene::light_type::directional:
 			{
@@ -404,7 +406,7 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 						directional_shadow_matrices.resize(directional_shadow_count);
 					}
 					
-					directional_shadow_maps[index] = static_cast<const gl::texture_2d*>(directional_light.get_shadow_framebuffer()->get_depth_attachment());
+					directional_shadow_maps[index] = directional_light.get_shadow_texture().get();
 					directional_shadow_splits[index] = directional_light.get_shadow_cascade_distances();
 					directional_shadow_fade_ranges[index] = directional_light.get_shadow_fade_range();
 					directional_shadow_matrices[index] = directional_light.get_shadow_cascade_matrices();
@@ -487,11 +489,11 @@ void material_pass::evaluate_lighting(const render::context& ctx, std::uint32_t 
 	
 	// Generate lighting state hash
 	lighting_state_hash = std::hash<std::size_t>{}(light_probe_count);
-	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(directional_light_count));
-	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(directional_shadow_count));
-	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(point_light_count));
-	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(spot_light_count));
-	lighting_state_hash = hash::combine(lighting_state_hash, std::hash<std::size_t>{}(rectangle_light_count));
+	lighting_state_hash = hash_combine(lighting_state_hash, std::hash<std::size_t>{}(directional_light_count));
+	lighting_state_hash = hash_combine(lighting_state_hash, std::hash<std::size_t>{}(directional_shadow_count));
+	lighting_state_hash = hash_combine(lighting_state_hash, std::hash<std::size_t>{}(point_light_count));
+	lighting_state_hash = hash_combine(lighting_state_hash, std::hash<std::size_t>{}(spot_light_count));
+	lighting_state_hash = hash_combine(lighting_state_hash, std::hash<std::size_t>{}(rectangle_light_count));
 }
 
 void material_pass::evaluate_misc(const render::context& ctx)
@@ -500,11 +502,11 @@ void material_pass::evaluate_misc(const render::context& ctx)
 	timestep = ctx.dt;
 	subframe = ctx.alpha;
 	
-	const auto viewport_size = framebuffer->get_dimensions();
+	const auto& viewport_dimensions = (m_framebuffer) ? m_framebuffer->dimensions() : m_pipeline->get_default_framebuffer_dimensions();
 	resolution = 
 	{
-		static_cast<float>(std::get<0>(viewport_size)),
-		static_cast<float>(std::get<1>(viewport_size))
+		static_cast<float>(viewport_dimensions[0]),
+		static_cast<float>(viewport_dimensions[1])
 	};
 	
 	///mouse_position = ...
@@ -514,15 +516,15 @@ std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const
 {
 	std::unordered_map<std::string, std::string> definitions;
 	
-	definitions["VERTEX_POSITION"]    = std::to_string(vertex_attribute::position);
-	definitions["VERTEX_UV"]          = std::to_string(vertex_attribute::uv);
-	definitions["VERTEX_NORMAL"]      = std::to_string(vertex_attribute::normal);
-	definitions["VERTEX_TANGENT"]     = std::to_string(vertex_attribute::tangent);
-	definitions["VERTEX_COLOR"]       = std::to_string(vertex_attribute::color);
-	definitions["VERTEX_BONE_INDEX"]  = std::to_string(vertex_attribute::bone_index);
-	definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute::bone_weight);
-	definitions["VERTEX_BARYCENTRIC"] = std::to_string(vertex_attribute::barycentric);
-	definitions["VERTEX_TARGET"]      = std::to_string(vertex_attribute::target);
+	definitions["VERTEX_POSITION"]    = std::to_string(vertex_attribute_location::position);
+	definitions["VERTEX_UV"]          = std::to_string(vertex_attribute_location::uv);
+	definitions["VERTEX_NORMAL"]      = std::to_string(vertex_attribute_location::normal);
+	definitions["VERTEX_TANGENT"]     = std::to_string(vertex_attribute_location::tangent);
+	definitions["VERTEX_COLOR"]       = std::to_string(vertex_attribute_location::color);
+	definitions["VERTEX_BONE_INDEX"]  = std::to_string(vertex_attribute_location::bone_index);
+	definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute_location::bone_weight);
+	definitions["VERTEX_BARYCENTRIC"] = std::to_string(vertex_attribute_location::barycentric);
+	definitions["VERTEX_TARGET"]      = std::to_string(vertex_attribute_location::target);
 	
 	definitions["FRAGMENT_OUTPUT_COLOR"] = "0";
 	
@@ -542,8 +544,8 @@ std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const
 	
 	if (!shader_program->linked())
 	{
-		debug::log::error("Failed to link material shader program: {}", shader_program->info());
-		debug::log::warning("{}", shader_template.configure(gl::shader_stage::fragment, definitions));
+		debug::log_error("Failed to link material shader program: {}", shader_program->info());
+		debug::log_warning("{}", shader_template.configure(gl::shader_stage::fragment, definitions));
 	}
 	
 	return shader_program;
@@ -552,7 +554,7 @@ std::unique_ptr<gl::shader_program> material_pass::generate_shader_program(const
 void material_pass::build_shader_command_buffer(std::vector<std::function<void()>>& command_buffer, const gl::shader_program& shader_program) const
 {
 	// Bind shader program
-	command_buffer.emplace_back([&](){rasterizer->use_program(shader_program);});
+	command_buffer.emplace_back([&](){m_pipeline->bind_shader_program(&shader_program);});
 	
 	// Update camera variables
 	if (auto view_var = shader_program.variable("view"))
@@ -612,7 +614,7 @@ void material_pass::build_shader_command_buffer(std::vector<std::function<void()
 			(
 				[&, light_probe_luminance_mip_scale_var]()
 				{
-					light_probe_luminance_mip_scale_var->update(std::max<float>(static_cast<float>(light_probe_luminance_texture->get_mip_count()) - 4.0f, 0.0f));
+					light_probe_luminance_mip_scale_var->update(std::max<float>(static_cast<float>(light_probe_luminance_texture->get_image_view()->get_mip_level_count()) - 4.0f, 0.0f));
 				}
 			);
 		}

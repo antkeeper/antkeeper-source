@@ -21,10 +21,10 @@
 
 namespace render {
 
-pass::pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer):
-	rasterizer(rasterizer),
-	framebuffer(framebuffer),
-	enabled(true)
+pass::pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer):
+	m_pipeline(pipeline),
+	m_framebuffer(framebuffer),
+	m_enabled(true)
 {}
 
 pass::~pass()
@@ -32,12 +32,17 @@ pass::~pass()
 
 void pass::set_enabled(bool enabled)
 {
-	this->enabled = enabled;
+	m_enabled = enabled;
 }
 
 void pass::set_framebuffer(const gl::framebuffer* framebuffer)
 {
-	this->framebuffer = framebuffer;
+	m_framebuffer = framebuffer;
+}
+
+void pass::clear()
+{
+	m_pipeline->clear_attachments(m_clear_mask, m_clear_value);
 }
 
 } // namespace render

@@ -84,7 +84,7 @@ public:
 	void set_color(const math::fvec4& color);
 	
 	/// Returns the text material.
-	[[nodiscard]] inline std::shared_ptr<render::material> get_material() const noexcept
+	[[nodiscard]] inline const std::shared_ptr<render::material>& get_material() const noexcept
 	{
 		return m_render_op.material;
 	}
@@ -121,8 +121,7 @@ public:
 private:
 	void update_content();
 	void update_color();
-	
-	virtual void transformed();
+	void transformed() override;
 	
 	mutable render::operation m_render_op;
 	aabb_type m_local_bounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
@@ -132,11 +131,9 @@ private:
 	std::string m_content_u8;
 	std::u32string m_content_u32;
 	math::fvec4 m_color{1.0f, 0.0f, 1.0f, 1.0f};
-	std::size_t m_vertex_stride{0};
-	std::size_t m_vertex_count{0};
 	std::vector<std::byte> m_vertex_data;
-	std::unique_ptr<gl::vertex_array> m_vao;
-	std::unique_ptr<gl::vertex_buffer> m_vbo;
+	std::unique_ptr<gl::vertex_array> m_vertex_array;
+	std::unique_ptr<gl::vertex_buffer> m_vertex_buffer;
 };
 
 } // namespace scene

@@ -26,7 +26,7 @@
 #include <engine/math/vector.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
-#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/texture.hpp>
 #include <functional>
 #include <unordered_map>
 #include <span>
@@ -41,7 +41,7 @@ namespace render {
 class material_pass: public pass
 {
 public:
-	material_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
+	material_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	
 	void render(render::context& ctx) override;
 	

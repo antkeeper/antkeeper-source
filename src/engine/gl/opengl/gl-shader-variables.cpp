@@ -18,10 +18,7 @@
  */
 
 #include <engine/gl/opengl/gl-shader-variables.hpp>
-#include <engine/gl/texture-1d.hpp>
-#include <engine/gl/texture-2d.hpp>
-#include <engine/gl/texture-3d.hpp>
-#include <engine/gl/texture-cube.hpp>
+#include <engine/gl/texture.hpp>
 #include <numeric>
 
 namespace gl {
@@ -450,8 +447,8 @@ gl_shader_texture_1d::gl_shader_texture_1d(std::size_t size, GLint gl_uniform_lo
 void gl_shader_texture_1d::update(const texture_1d& value) const noexcept
 {
 	// Bind texture to texture unit
-	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices.front()));
-	glBindTexture(GL_TEXTURE_1D, value.m_gl_texture_id);
+	glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices.front()), value.get_image_view() ? value.get_image_view()->m_gl_texture_name : 0);
+	glBindSampler(static_cast<GLuint>(gl_texture_unit_indices.front()), value.get_sampler() ? value.get_sampler()->m_gl_named_sampler : 0);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location, gl_texture_unit_indices.front());
@@ -462,8 +459,8 @@ void gl_shader_texture_1d::update(const texture_1d& value, std::size_t index) co
 	const GLint gl_texture_index = gl_texture_unit_indices[index];
 	
 	// Bind texture to texture unit
-	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_index));
-	glBindTexture(GL_TEXTURE_1D, value.m_gl_texture_id);
+	glBindTextureUnit(static_cast<GLuint>(gl_texture_index), value.get_image_view() ? value.get_image_view()->m_gl_texture_name : 0);
+	glBindSampler(static_cast<GLuint>(gl_texture_index), value.get_sampler() ? value.get_sampler()->m_gl_named_sampler : 0);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location + static_cast<GLint>(index), gl_texture_index);
@@ -474,8 +471,8 @@ void gl_shader_texture_1d::update(std::span<const texture_1d* const> values, std
 	// Bind textures
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
-		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_1D, values[i]->m_gl_texture_id);
+		glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_image_view() ? values[i]->get_image_view()->m_gl_texture_name : 0);
+		glBindSampler(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_sampler() ? values[i]->get_sampler()->m_gl_named_sampler : 0);
 	}
 	
 	// Pass texture unit indices to shader
@@ -487,8 +484,8 @@ void gl_shader_texture_1d::update(std::span<const std::shared_ptr<texture_1d>> v
 	// Bind textures
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
-		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_1D, values[i]->m_gl_texture_id);
+		glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_image_view() ? values[i]->get_image_view()->m_gl_texture_name : 0);
+		glBindSampler(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_sampler() ? values[i]->get_sampler()->m_gl_named_sampler : 0);
 	}
 	
 	// Pass texture unit indices to shader
@@ -506,8 +503,8 @@ gl_shader_texture_2d::gl_shader_texture_2d(std::size_t size, GLint gl_uniform_lo
 void gl_shader_texture_2d::update(const texture_2d& value) const noexcept
 {
 	// Bind texture to texture unit
-	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices.front()));
-	glBindTexture(GL_TEXTURE_2D, value.m_gl_texture_id);
+	glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices.front()), value.get_image_view() ? value.get_image_view()->m_gl_texture_name : 0);
+	glBindSampler(static_cast<GLuint>(gl_texture_unit_indices.front()), value.get_sampler() ? value.get_sampler()->m_gl_named_sampler : 0);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location, gl_texture_unit_indices.front());
@@ -518,8 +515,8 @@ void gl_shader_texture_2d::update(const texture_2d& value, std::size_t index) co
 	const GLint gl_texture_index = gl_texture_unit_indices[index];
 	
 	// Bind texture to texture unit
-	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_index));
-	glBindTexture(GL_TEXTURE_2D, value.m_gl_texture_id);
+	glBindTextureUnit(static_cast<GLuint>(gl_texture_index), value.get_image_view() ? value.get_image_view()->m_gl_texture_name : 0);
+	glBindSampler(static_cast<GLuint>(gl_texture_index), value.get_sampler() ? value.get_sampler()->m_gl_named_sampler : 0);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location + static_cast<GLint>(index), gl_texture_index);
@@ -530,8 +527,8 @@ void gl_shader_texture_2d::update(std::span<const texture_2d* const> values, std
 	// Bind textures
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
-		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_2D, values[i]->m_gl_texture_id);
+		glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_image_view() ? values[i]->get_image_view()->m_gl_texture_name : 0);
+		glBindSampler(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_sampler() ? values[i]->get_sampler()->m_gl_named_sampler : 0);
 	}
 	
 	// Pass texture unit indices to shader
@@ -543,8 +540,8 @@ void gl_shader_texture_2d::update(std::span<const std::shared_ptr<texture_2d>> v
 	// Bind textures
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
-		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_2D, values[i]->m_gl_texture_id);
+		glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_image_view() ? values[i]->get_image_view()->m_gl_texture_name : 0);
+		glBindSampler(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_sampler() ? values[i]->get_sampler()->m_gl_named_sampler : 0);
 	}
 	
 	// Pass texture unit indices to shader
@@ -562,8 +559,8 @@ gl_shader_texture_3d::gl_shader_texture_3d(std::size_t size, GLint gl_uniform_lo
 void gl_shader_texture_3d::update(const texture_3d& value) const noexcept
 {
 	// Bind texture to texture unit
-	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices.front()));
-	glBindTexture(GL_TEXTURE_3D, value.m_gl_texture_id);
+	glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices.front()), value.get_image_view() ? value.get_image_view()->m_gl_texture_name : 0);
+	glBindSampler(static_cast<GLuint>(gl_texture_unit_indices.front()), value.get_sampler() ? value.get_sampler()->m_gl_named_sampler : 0);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location, gl_texture_unit_indices.front());
@@ -574,8 +571,8 @@ void gl_shader_texture_3d::update(const texture_3d& value, std::size_t index) co
 	const GLint gl_texture_index = gl_texture_unit_indices[index];
 	
 	// Bind texture to texture unit
-	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_index));
-	glBindTexture(GL_TEXTURE_3D, value.m_gl_texture_id);
+	glBindTextureUnit(static_cast<GLuint>(gl_texture_index), value.get_image_view() ? value.get_image_view()->m_gl_texture_name : 0);
+	glBindSampler(static_cast<GLuint>(gl_texture_index), value.get_sampler() ? value.get_sampler()->m_gl_named_sampler : 0);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location + static_cast<GLint>(index), gl_texture_index);
@@ -586,8 +583,8 @@ void gl_shader_texture_3d::update(std::span<const texture_3d* const> values, std
 	// Bind textures
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
-		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_3D, values[i]->m_gl_texture_id);
+		glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_image_view() ? values[i]->get_image_view()->m_gl_texture_name : 0);
+		glBindSampler(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_sampler() ? values[i]->get_sampler()->m_gl_named_sampler : 0);
 	}
 	
 	// Pass texture unit indices to shader
@@ -599,8 +596,8 @@ void gl_shader_texture_3d::update(std::span<const std::shared_ptr<texture_3d>> v
 	// Bind textures
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
-		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_3D, values[i]->m_gl_texture_id);
+		glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_image_view() ? values[i]->get_image_view()->m_gl_texture_name : 0);
+		glBindSampler(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_sampler() ? values[i]->get_sampler()->m_gl_named_sampler : 0);
 	}
 	
 	// Pass texture unit indices to shader
@@ -618,8 +615,8 @@ gl_shader_texture_cube::gl_shader_texture_cube(std::size_t size, GLint gl_unifor
 void gl_shader_texture_cube::update(const texture_cube& value) const noexcept
 {
 	// Bind texture to texture unit
-	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices.front()));
-	glBindTexture(GL_TEXTURE_CUBE_MAP, value.m_gl_texture_id);
+	glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices.front()), value.get_image_view() ? value.get_image_view()->m_gl_texture_name : 0);
+	glBindSampler(static_cast<GLuint>(gl_texture_unit_indices.front()), value.get_sampler() ? value.get_sampler()->m_gl_named_sampler : 0);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location, gl_texture_unit_indices.front());
@@ -630,8 +627,8 @@ void gl_shader_texture_cube::update(const texture_cube& value, std::size_t index
 	const GLint gl_texture_index = gl_texture_unit_indices[index];
 	
 	// Bind texture to texture unit
-	glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_index));
-	glBindTexture(GL_TEXTURE_CUBE_MAP, value.m_gl_texture_id);
+	glBindTextureUnit(static_cast<GLuint>(gl_texture_index), value.get_image_view() ? value.get_image_view()->m_gl_texture_name : 0);
+	glBindSampler(static_cast<GLuint>(gl_texture_index), value.get_sampler() ? value.get_sampler()->m_gl_named_sampler : 0);
 	
 	// Pass texture unit index to shader
 	glUniform1i(gl_uniform_location + static_cast<GLint>(index), gl_texture_index);
@@ -642,8 +639,8 @@ void gl_shader_texture_cube::update(std::span<const texture_cube* const> values,
 	// Bind textures
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
-		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_CUBE_MAP, values[i]->m_gl_texture_id);
+		glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_image_view() ? values[i]->get_image_view()->m_gl_texture_name : 0);
+		glBindSampler(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_sampler() ? values[i]->get_sampler()->m_gl_named_sampler : 0);
 	}
 	
 	// Pass texture unit indices to shader
@@ -655,8 +652,8 @@ void gl_shader_texture_cube::update(std::span<const std::shared_ptr<texture_cube
 	// Bind textures
 	for (std::size_t i = 0; i < values.size(); ++i)
 	{
-		glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(gl_texture_unit_indices[index + i]));
-		glBindTexture(GL_TEXTURE_CUBE_MAP, values[i]->m_gl_texture_id);
+		glBindTextureUnit(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_image_view() ? values[i]->get_image_view()->m_gl_texture_name : 0);
+		glBindSampler(static_cast<GLuint>(gl_texture_unit_indices[index + i]), values[i]->get_sampler() ? values[i]->get_sampler()->m_gl_named_sampler : 0);
 	}
 	
 	// Pass texture unit indices to shader

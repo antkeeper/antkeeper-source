@@ -20,13 +20,11 @@
 #ifndef ANTKEEPER_GL_VERTEX_BUFFER_HPP
 #define ANTKEEPER_GL_VERTEX_BUFFER_HPP
 
-#include <cstddef>
 #include <engine/gl/buffer-usage.hpp>
+#include <cstddef>
 #include <span>
 
 namespace gl {
-
-class vertex_array;
 
 /**
  * Vertex buffer object (VBO).
@@ -41,22 +39,54 @@ public:
 	 * @param size Buffer size, in bytes.
 	 * @param data Buffer data. If empty, buffer data will not be set.
 	 *
-	 * @except std::out_of_range Vertex buffer creation operation exceeded data bounds.
+	 * @except std::out_of_range Vertex buffer construct operation exceeded data bounds.
 	 */
+	/// @{
 	vertex_buffer(buffer_usage usage, std::size_t size, std::span<const std::byte> data = {});
 	
+	inline explicit vertex_buffer(buffer_usage usage, std::span<const std::byte> data = {}):
+		vertex_buffer(usage, data.size(), data)
+	{}
+	
+	inline vertex_buffer():
+		vertex_buffer(buffer_usage::static_draw, 0)
+	{}
+	/// @}
+	
 	/**
-	 * Constructs an empty vertex buffer.
+	 * Constructs a copy of a vertex buffer.
+	 *
+	 * @param buffer Buffer to copy.
 	 */
-	vertex_buffer();
+	vertex_buffer(const vertex_buffer& buffer);
+	
+	/**
+	 * Move-constructs a vertex buffer.
+	 *
+	 * @param buffer Buffer to move.
+	 */
+	vertex_buffer(vertex_buffer&& buffer);
 	
 	/// Destroys a vertex buffer.
 	~vertex_buffer();
 	
-	vertex_buffer(const vertex_buffer&) = delete;
-	vertex_buffer(vertex_buffer&&) = delete;
-	vertex_buffer& operator=(const vertex_buffer&) = delete;
-	vertex_buffer& operator=(vertex_buffer&&) = delete;
+	/**
+	 * Copies another vertex buffer.
+	 *
+	 * @param buffer Buffer to copy.
+	 *
+	 * @return Reference to this vertex buffer.
+	 */
+	vertex_buffer& operator=(const vertex_buffer& buffer);
+	
+	/**
+	 * Moves another vertex buffer into this buffer.
+	 *
+	 * @param buffer Buffer to move.
+	 *
+	 * @return Reference to this vertex buffer.
+	 */
+	vertex_buffer& operator=(vertex_buffer&& buffer);
 	
 	/**
 	 * Repurposes the vertex buffer, changing its usage hint, size, and updating its data.
@@ -69,7 +99,16 @@ public:
 	 */
 	/// @{
 	void repurpose(buffer_usage usage, std::size_t size, std::span<const std::byte> data = {});
-	void repurpose(buffer_usage usage, std::span<const std::byte> data = {});
+	
+	inline void repurpose(buffer_usage usage, std::span<const std::byte> data)
+	{
+		repurpose(usage, data.size(), data);
+	}
+	
+	inline void repurpose(buffer_usage usage)
+	{
+		repurpose(usage, m_size, {});
+	}
 	/// @}
 	
 	/**
@@ -80,7 +119,17 @@ public:
 	 *
 	 * @except std::out_of_range Vertex buffer resize operation exceeded data bounds.
 	 */
-	void resize(std::size_t size, std::span<const std::byte> data = {});
+	/// @{
+	inline void resize(std::size_t size, std::span<const std::byte> data = {})
+	{
+		repurpose(m_usage, size, data);
+	}
+	
+	inline void resize(std::span<const std::byte> data)
+	{
+		repurpose(m_usage, data.size(), data);
+	}
+	/// @}
 	
 	/**
 	 * Writes data into the vertex buffer.
@@ -90,7 +139,14 @@ public:
 	 *
 	 * @except std::out_of_range Vertex buffer write operation exceeded buffer bounds.
 	 */
-	void write(std::span<const std::byte> data, std::size_t offset = 0);
+	/// @{
+	void write(std::size_t offset, std::span<const std::byte> data);
+	
+	inline void write(std::span<const std::byte> data)
+	{
+		write(0, data);
+	}
+	/// @}
 	
 	/**
 	 * Reads a subset of the buffer's data from the GL and returns it to the application.
@@ -100,7 +156,14 @@ public:
 	 *
 	 * @except std::out_of_range Vertex buffer read operation exceeded buffer bounds.
 	 */
-	void read(std::span<std::byte> data, std::size_t offset = 0) const;
+	/// @{
+	void read(std::size_t offset, std::span<std::byte> data) const;
+	
+	inline void read(std::span<std::byte> data) const
+	{
+		read(0, data);
+	}
+	/// @}
 	
 	/**
 	 * Copies a subset of another vertex buffer's data into this vertex buffer.
@@ -116,21 +179,21 @@ public:
 	void copy(const vertex_buffer& read_buffer, std::size_t copy_size, std::size_t read_offset = 0, std::size_t write_offset = 0);
 	
 	/// Returns the size of the buffer's data, in bytes.
-	[[nodiscard]] inline std::size_t size() const noexcept
+	[[nodiscard]] inline constexpr std::size_t size() const noexcept
 	{
 		return m_size;
 	}
 	
 	/// Return's the buffer's usage hint.
-	[[nodiscard]] inline buffer_usage usage() const noexcept
+	[[nodiscard]] inline constexpr buffer_usage usage() const noexcept
 	{
 		return m_usage;
 	}
 
 private:
-	friend class vertex_array;
+	friend class pipeline;
 	
-	unsigned int gl_buffer_id{0};
+	unsigned int m_gl_named_buffer{0};
 	buffer_usage m_usage{buffer_usage::static_draw};
 	std::size_t m_size{0};
 };

@@ -24,7 +24,7 @@
 #include <engine/gl/shader-template.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
-#include <engine/gl/rasterizer.hpp>
+#include <engine/gl/pipeline.hpp>
 #include <engine/scene/directional-light.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <memory>
@@ -42,10 +42,10 @@ public:
 	/**
 	 * Constructs a cascaded shadow map stage.
 	 *
-	 * @param rasterizer GL rasterizer.
+	 * @param pipeline Graphics pipeline.
 	 * @param resource_manager Resource manager for loading shader templates.
 	 */
-	cascaded_shadow_map_stage(gl::rasterizer& rasterizer, ::resource_manager& resource_manager);
+	cascaded_shadow_map_stage(gl::pipeline& pipeline, ::resource_manager& resource_manager);
 	
 	void execute(render::context& ctx) override;
 	
@@ -84,7 +84,7 @@ private:
 	/// Rebuilds the shader program for skeletal meshes.
 	void rebuild_skeletal_mesh_shader_program();
 	
-	gl::rasterizer* m_rasterizer;
+	gl::pipeline* m_pipeline;
 	
 	std::size_t m_max_bone_count{64};
 	

@@ -21,7 +21,7 @@
 #define ANTKEEPER_GL_GL_SHADER_VARIABLES_HPP
 
 #include <engine/gl/shader-variable.hpp>
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <vector>
 
 namespace gl {

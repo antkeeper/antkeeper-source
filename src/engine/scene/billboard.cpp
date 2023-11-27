@@ -19,71 +19,63 @@
 
 #include <engine/scene/billboard.hpp>
 #include <engine/config.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/geom/projection.hpp>
 #include <engine/scene/camera.hpp>
 
 namespace scene {
 
+namespace {
+	
+	constexpr gl::vertex_input_attribute billboard_vertex_attributes[2] =
+	{
+		{
+			render::vertex_attribute_location::position,
+			0,
+			gl::format::r32g32_sfloat,
+			0
+		},
+		{
+			render::vertex_attribute_location::uv,
+			0,
+			gl::format::r32g32_sfloat,
+			2 * sizeof(float)
+		}
+	};
+	
+	constexpr float billboard_vertex_data[] =
+	{
+		-1.0f,  1.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f, 0.0f, 0.0f,
+		 1.0f,  1.0f, 1.0f, 1.0f,
+		 1.0f, -1.0f, 1.0f, 0.0f
+	};
+	
+	constexpr std::size_t billboard_vertex_stride = 4 * sizeof(float);
+}
+
 billboard::billboard()
 {
-	const float vertex_data[] =
-	{
-		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f
-	};
-
-	const std::size_t vertex_size = 8;
-	const std::size_t vertex_stride = sizeof(float) * vertex_size;
-	const std::size_t vertex_count = 6;
+	// Construct vertex array
+	m_vertex_array = std::make_unique<gl::vertex_array>(billboard_vertex_attributes);
 	
-	m_vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, sizeof(float) * vertex_size * vertex_count, std::as_bytes(std::span{vertex_data}));
-	
-	std::size_t attribute_offset = 0;
-	
-	// Define position vertex attribute
-	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = m_vbo.get();
-	position_attribute.offset = attribute_offset;
-	position_attribute.stride = vertex_stride;
-	position_attribute.type = gl::vertex_attribute_type::float_32;
-	position_attribute.components = 3;
-	attribute_offset += position_attribute.components * sizeof(float);
-	
-	// Define UV vertex attribute
-	gl::vertex_attribute uv_attribute;
-	uv_attribute.buffer = m_vbo.get();
-	uv_attribute.offset = attribute_offset;
-	uv_attribute.stride = vertex_stride;
-	uv_attribute.type = gl::vertex_attribute_type::float_32;
-	uv_attribute.components = 2;
-	attribute_offset += uv_attribute.components * sizeof(float);
-	
-	// Define barycentric vertex attribute
-	gl::vertex_attribute barycentric_attribute;
-	barycentric_attribute.buffer = m_vbo.get();
-	barycentric_attribute.offset = attribute_offset;
-	barycentric_attribute.stride = vertex_stride;
-	barycentric_attribute.type = gl::vertex_attribute_type::float_32;
-	barycentric_attribute.components = 3;
-	//attribute_offset += barycentric_attribute.components * sizeof(float);
-	
-	// Bind vertex attributes to VAO
-	m_vao = std::make_unique<gl::vertex_array>();
-	m_vao->bind(render::vertex_attribute::position, position_attribute);
-	m_vao->bind(render::vertex_attribute::uv, uv_attribute);
-	m_vao->bind(render::vertex_attribute::barycentric, barycentric_attribute);
+	// Construct vertex buffer
+	m_vertex_buffer = std::make_unique<gl::vertex_buffer>
+	(
+		gl::buffer_usage::static_draw,
+		std::as_bytes(std::span{billboard_vertex_data})
+	);
 	
 	// Init render operation
-	m_render_op.vertex_array = m_vao.get();
-	m_render_op.drawing_mode = gl::drawing_mode::triangles;
-	m_render_op.start_index = 0;
-	m_render_op.index_count = 6;
-	m_render_op.transform = math::fmat4::identity();
+	m_render_op.primitive_topology = gl::primitive_topology::triangle_strip;
+	m_render_op.vertex_array = m_vertex_array.get();
+	m_render_op.vertex_buffer = m_vertex_buffer.get();
+	m_render_op.vertex_offset = 0;
+	m_render_op.vertex_stride = billboard_vertex_stride;
+	m_render_op.first_vertex = 0;
+	m_render_op.vertex_count = 4;
+	m_render_op.first_instance = 0;
+	m_render_op.instance_count = 1;
 }
 
 void billboard::render(render::context& ctx) const

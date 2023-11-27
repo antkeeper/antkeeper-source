@@ -21,8 +21,7 @@
 #define ANTKEEPER_SCENE_LIGHT_PROBE_HPP
 
 #include <engine/scene/object.hpp>
-#include <engine/gl/texture-1d.hpp>
-#include <engine/gl/texture-cube.hpp>
+#include <engine/gl/texture.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/math/matrix.hpp>
 #include <memory>

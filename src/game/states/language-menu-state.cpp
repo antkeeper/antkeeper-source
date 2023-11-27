@@ -35,7 +35,7 @@ using namespace hash::literals;
 language_menu_state::language_menu_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering language menu state...");
+	debug::log_trace("Entering language menu state...");
 	
 	// Load language manifest
 	language_manifest = ctx.resource_manager->load<text_file>("languages.txt");
@@ -101,12 +101,12 @@ language_menu_state::language_menu_state(::game& ctx):
 		(*ctx.settings)["language_tag"] = ctx.language_tag;
 		
 		// Log language change
-		debug::log::info("Language tag: {}", ctx.language_tag);
+		debug::log_info("Language tag: {}", ctx.language_tag);
 		
 		// Reload fonts
-		debug::log::trace("Reloading fonts...");
+		debug::log_trace("Reloading fonts...");
 		::load_fonts(ctx);
-		debug::log::trace("Reloaded fonts");
+		debug::log_trace("Reloaded fonts");
 		
 		// Update menus
 		::menu::update_text_font(ctx);
@@ -178,12 +178,12 @@ language_menu_state::language_menu_state(::game& ctx):
 	// Fade in menu
 	::menu::fade_in(ctx, nullptr);
 	
-	debug::log::trace("Entered language menu state");
+	debug::log_trace("Entered language menu state");
 }
 
 language_menu_state::~language_menu_state()
 {
-	debug::log::trace("Exiting language menu state...");
+	debug::log_trace("Exiting language menu state...");
 	
 	// Destruct menu
 	::disable_menu_controls(ctx);
@@ -192,7 +192,7 @@ language_menu_state::~language_menu_state()
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	
-	debug::log::trace("Exited language menu state");
+	debug::log_trace("Exited language menu state");
 }
 
 void language_menu_state::update_text_content()

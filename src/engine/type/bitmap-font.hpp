@@ -22,7 +22,7 @@
 
 #include <engine/type/font.hpp>
 #include <engine/type/bitmap-glyph.hpp>
-#include <engine/utility/image.hpp>
+#include <engine/gl/texture.hpp>
 #include <unordered_map>
 
 namespace type {
@@ -58,9 +58,10 @@ public:
 	 * Inserts a glyph into the font.
 	 *
 	 * @param code UTF-32 character code of the glyph to insert.
-	 * @param glyph Bitmap glyph data.
+	 *
+	 * @return Reference to the inserted glyph.
 	 */
-	void insert(char32_t code, const bitmap_glyph& glyph);
+	bitmap_glyph& insert(char32_t code);
 	
 	/**
 	 * Removes a glyph from the font.
@@ -92,12 +93,6 @@ public:
 	 */
 	void unpack(bool resize = true);
 	
-	/// Returns a reference to the bitmap containing glyph pixel data.
-	const image& get_bitmap() const;
-	
-	/// @copydoc bitmap_font::get_bitmap() const
-	image& get_bitmap();
-	
 	/**
 	 * @copydoc font::get_glyph_metrics(char32_t) const
 	 *
@@ -106,45 +101,30 @@ public:
 	virtual const glyph_metrics& get_glyph_metrics(char32_t code) const;
 	
 	/**
-	 * Returns a reference to the glyph corresponding to a UTF-32 character code.
+	 * Returns a pointer to the glyph corresponding to a UTF-32 character code, or `nullptr` if no such glyph was found.
 	 *
 	 * @param code UTF-32 character code of a glyph.
-	 * @return Reference to the corresponding glyph.
 	 *
-	 * @except std::invalid_argument Cannot get unknown bitmap glyph
+	 * @return Pointer to the corresponding glyph.
 	 */
-	const bitmap_glyph& get_glyph(char32_t code) const;
+	/// @{
+	[[nodiscard]] const bitmap_glyph* get_glyph(char32_t code) const;
+	[[nodiscard]] bitmap_glyph* get_glyph(char32_t code);
+	/// @}
 	
 	/// @copydoc bitmap_font::get_glyph(char32_t) const
-	bitmap_glyph& get_glyph(char32_t code);
 	
-	/**
-	 * Returns a reference to the glyph corresponding to a UTF-32 character code, performing an insertion if such glyph does not already exist.
-	 *
-	 * @param code UTF-32 character code of a glyph.
-	 * @return Reference to the corresponding glyph.
-	 */
-	bitmap_glyph& operator[](char32_t code);
+	/// Returns the bitmap font's bitmap texture.
+	[[nodiscard]] inline const std::shared_ptr<gl::texture_2d>& get_texture() const noexcept
+	{
+		return m_texture;
+	}
 	
 private:
-	std::unordered_map<char32_t, bitmap_glyph> glyphs;
-	image bitmap;
+	std::unordered_map<char32_t, bitmap_glyph> m_glyphs;
+	std::shared_ptr<gl::texture_2d> m_texture;
+	std::shared_ptr<gl::sampler> m_sampler;
 };
-
-inline const image& bitmap_font::get_bitmap() const
-{
-	return bitmap;
-}
-	
-inline image& bitmap_font::get_bitmap()
-{
-	return bitmap;
-}
-
-inline bitmap_glyph& bitmap_font::operator[](char32_t code)
-{
-	return glyphs[code];
-}
 
 } // namespace type
 

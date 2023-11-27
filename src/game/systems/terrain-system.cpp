@@ -29,7 +29,7 @@
 #include <engine/physics/kinematics/collider.hpp>
 #include <engine/physics/kinematics/colliders/mesh-collider.hpp>
 #include <engine/scene/static-mesh.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <algorithm>
 #include <execution>
 #include <stdexcept>
@@ -45,26 +45,27 @@ void terrain_system::update(float t, float dt)
 {
 }
 
-entity::id terrain_system::generate(std::shared_ptr<image> heightmap, const math::uvec2& subdivisions, const math::transform<float>& transform, std::shared_ptr<render::material> material)
+entity::id terrain_system::generate(std::shared_ptr<gl::image_2d> heightmap, const math::uvec2& subdivisions, const math::transform<float>& transform, std::shared_ptr<render::material> material)
 {
 	if (!heightmap)
 	{
-		debug::log::error("Failed to generate terrain from null heightmap");
+		debug::log_error("Failed to generate terrain from null heightmap");
 		throw std::invalid_argument("Failed to generate terrain from null heightmap");
 	}
 	
-	if (heightmap->size().x() < 2 || heightmap->size().y() < 2)
+	const auto& heightmap_dimensions = heightmap->get_dimensions();
+	if (heightmap_dimensions[0] < 2 || heightmap_dimensions[1] < 2)
 	{
-		debug::log::error("Heightmap size less than 2x2");
+		debug::log_error("Heightmap size less than 2x2");
 		throw std::runtime_error("Heightmap size less than 2x2");
 	}
 	
-	if (((heightmap->size().x() - 1) % (subdivisions.x() + 1)) != 0 || 
-		((heightmap->size().y() - 1) % (subdivisions.y() + 1)) != 0)
+	if (((heightmap_dimensions[0] - 1) % (subdivisions.x() + 1)) != 0 || 
+		((heightmap_dimensions[1] - 1) % (subdivisions.y() + 1)) != 0)
 	{
-		debug::log::error("{}x{} heightmap cannot be subdivided {}x{} times",
-			heightmap->size().x(),
-			heightmap->size().y(),
+		debug::log_error("{}x{} heightmap cannot be subdivided {}x{} times",
+			heightmap_dimensions[0],
+			heightmap_dimensions[1],
 			subdivisions.x(),
 			subdivisions.y());
 		throw std::runtime_error("Heightmap subdivision failed");
@@ -86,13 +87,34 @@ entity::id terrain_system::generate(std::shared_ptr<image> heightmap, const math
 	}
 	
 	// Calculate cell dimensions
-	const auto cell_quad_dimensions = math::uvec2{static_cast<unsigned int>(heightmap->size().x() - 1) / grid.dimensions.x(), static_cast<unsigned int>(heightmap->size().y() - 1) / grid.dimensions.y()};
+	const auto cell_quad_dimensions = math::uvec2{static_cast<unsigned int>(heightmap_dimensions[0] - 1) / grid.dimensions.x(), static_cast<unsigned int>(heightmap_dimensions[1] - 1) / grid.dimensions.y()};
 	const auto cell_vert_dimensions = cell_quad_dimensions + 1u;
 	
 	const auto max_scale = math::max(transform.scale);
 	const auto scale_ratio = transform.scale / max_scale;
 	const auto vertex_scale = scale_ratio * math::fvec3{2.0f / static_cast<float>(cell_quad_dimensions.x()), 2.0f, 2.0f / static_cast<float>(cell_quad_dimensions.y())};
 	const auto vertex_translation = -scale_ratio;
+	
+	// Allocate heightmap data buffer and select heightmap sampling function according to image format
+	std::vector<float> heightmap_data(heightmap_dimensions[0] * heightmap_dimensions[1]);
+	std::function<float(const math::uvec2&)> sample = [&](const math::uvec2& p)
+	{
+		return heightmap_data[p.y() * heightmap_dimensions[0] + p.x()];
+	};
+	
+	// Read heightmap pixel data into buffer
+	heightmap->read
+	(
+		0,
+		0,
+		0,
+		0,
+		heightmap_dimensions[0],
+		heightmap_dimensions[1],
+		1,
+		gl::format::r32_sfloat,
+		std::as_writable_bytes(std::span{heightmap_data})
+	);
 	
 	// Generate terrain cell meshes
 	std::for_each
@@ -121,7 +143,7 @@ entity::id terrain_system::generate(std::shared_ptr<image> heightmap, const math
 					auto vertex = mesh->vertices().emplace_back();
 					
 					// Get vertex height from heightmap
-					float height = heightmap->sample(pixel_position).x();
+					float height = sample(pixel_position);
 					
 					// Set vertex position
 					auto& position = vertex_positions[vertex->index()];
@@ -171,11 +193,6 @@ entity::id terrain_system::generate(std::shared_ptr<image> heightmap, const math
 					const auto height_s = vertex_positions[index_s].y();
 					const auto height_n = vertex_positions[index_n].y();
 					
-					// float height_w = heightmap->sample(pixel_w).x();
-					// float height_e = heightmap->sample(pixel_e).x();
-					// float height_s = heightmap->sample(pixel_s).x();
-					// float height_n = heightmap->sample(pixel_n).x();
-					
 					auto& normal_c = vertex_normals[index_c];
 					normal_c = math::normalize(math::fvec3{(height_w - height_e) / vertex_scale.x(), 2.0f, (height_s - height_n) / vertex_scale.z()});
 				}
@@ -212,31 +229,30 @@ std::unique_ptr<render::model> terrain_system::generate_terrain_model(const geom
 	auto& bounds = model->get_bounds();
 	bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
 	
-	// Get model VBO and VAO
-	auto& vbo = model->get_vertex_buffer();
+	// Construct VAO
+	constexpr gl::vertex_input_attribute vertex_attributes[] =
+	{
+		{
+			render::vertex_attribute_location::position,
+			0,
+			gl::format::r16g16b16_snorm,
+			0
+		},
+		{
+			render::vertex_attribute_location::normal,
+			0,
+			gl::format::r32g32b32_sfloat,
+			3 * sizeof(std::int16_t)
+		}
+	};
 	auto& vao = model->get_vertex_array();
-	
-	// Build vertex format
-	const std::size_t vertex_size = 3 * sizeof(std::int16_t) + 3 * sizeof(float);
-	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = vbo.get();
-	position_attribute.offset = 0;
-	position_attribute.stride = vertex_size;
-	position_attribute.type = gl::vertex_attribute_type::int_16;
-	position_attribute.components = 3;
-	position_attribute.normalized = true;
-	gl::vertex_attribute normal_attribute;
-	normal_attribute.buffer = vbo.get();
-	normal_attribute.offset = 3 * sizeof(std::int16_t);
-	normal_attribute.stride = vertex_size;
-	normal_attribute.type = gl::vertex_attribute_type::float_32;
-	normal_attribute.components = 3;
-	
-	const auto vert_dimensions = quad_dimensions + 1u;
+	vao = std::make_unique<gl::vertex_array>(vertex_attributes);
 	
 	// Interleave vertex data
+	const auto vert_dimensions = quad_dimensions + 1u;
 	const std::size_t vertex_count = 2 * (vert_dimensions.x() * quad_dimensions.y() + quad_dimensions.y() - 1);
-	std::vector<std::byte> vertex_data(vertex_count * vertex_size);
+	constexpr std::size_t vertex_stride = 3 * sizeof(std::int16_t) + 3 * sizeof(float);
+	std::vector<std::byte> vertex_data(vertex_count * vertex_stride);
 	std::byte* v = vertex_data.data();
 	
 	auto normalized_int16 = [](const math::fvec3& f) -> math::vec3<std::int16_t>
@@ -293,15 +309,11 @@ std::unique_ptr<render::model> terrain_system::generate_terrain_model(const geom
 		}
 	}
 	
-	// Resize model VBO and upload interleaved vertex data
-	vbo->resize(vertex_data.size(), vertex_data);
-	
-	// Free interleaved vertex data
-	vertex_data.clear();
-	
-	// Bind vertex attributes to VAO
-	vao->bind(render::vertex_attribute::position, position_attribute);
-	vao->bind(render::vertex_attribute::normal, normal_attribute);
+	// Construct VBO
+	auto& vbo = model->get_vertex_buffer();
+	vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, vertex_data);
+	model->set_vertex_offset(0);
+	model->set_vertex_stride(vertex_stride);
 	
 	// Create material group
 	model->get_groups().resize(1);
@@ -309,9 +321,9 @@ std::unique_ptr<render::model> terrain_system::generate_terrain_model(const geom
 	
 	model_group.id = {};
 	model_group.material = material;
-	model_group.drawing_mode = gl::drawing_mode::triangle_strip;
-	model_group.start_index = 0;
-	model_group.index_count = static_cast<std::uint32_t>(vertex_count);
+	model_group.primitive_topology = gl::primitive_topology::triangle_strip;
+	model_group.first_vertex = 0;
+	model_group.vertex_count = static_cast<std::uint32_t>(vertex_count);
 	
 	return model;
 }

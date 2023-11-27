@@ -26,7 +26,7 @@
 #include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/texture.hpp>
 #include <functional>
 #include <memory>
 
@@ -43,11 +43,11 @@ public:
 	/**
 	 * Constructs a resample pass.
 	 *
-	 * @param rasterizer Rasterizer.
+	 * @param pipeline Graphics pipeline.
 	 * @param framebuffer Target framebuffer.
 	 * @param resource_manager Resource manager.
 	 */
-	resample_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
+	resample_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	
 	/**
 	 * Resamples a texture.
@@ -62,16 +62,15 @@ public:
 	 *
 	 * @param texture Texture to resample.
 	 */
-	void set_source_texture(const gl::texture_2d* texture);
+	void set_source_texture(std::shared_ptr<gl::texture_2d> texture);
 
 private:
 	void rebuild_command_buffer();
 	
-	std::unique_ptr<gl::shader_program> shader;
-	
-	const gl::texture_2d* source_texture;
-	
-	std::vector<std::function<void()>> command_buffer;
+	std::unique_ptr<gl::vertex_array> m_vertex_array;
+	std::unique_ptr<gl::shader_program> m_shader_program;
+	std::shared_ptr<gl::texture_2d> m_source_texture;
+	std::vector<std::function<void()>> m_command_buffer;
 };
 
 } // namespace render

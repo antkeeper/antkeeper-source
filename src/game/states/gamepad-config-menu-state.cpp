@@ -36,7 +36,7 @@ gamepad_config_menu_state::gamepad_config_menu_state(::game& ctx):
 	game_state(ctx),
 	action_remapped(false)
 {
-	debug::log::trace("Entering gamepad config menu state...");
+	debug::log_trace("Entering gamepad config menu state...");
 	
 	// Add control menu items
 	add_control_item(ctx.movement_action_map, ctx.move_forward_action, "control_move_forward");
@@ -107,12 +107,12 @@ gamepad_config_menu_state::gamepad_config_menu_state(::game& ctx):
 	// Fade in menu
 	::menu::fade_in(ctx, nullptr);
 	
-	debug::log::trace("Entered gamepad config menu state");
+	debug::log_trace("Entered gamepad config menu state");
 }
 
 gamepad_config_menu_state::~gamepad_config_menu_state()
 {
-	debug::log::trace("Exiting gamepad config menu state...");
+	debug::log_trace("Exiting gamepad config menu state...");
 	
 	// Destruct menu
 	::disable_menu_controls(ctx);
@@ -131,7 +131,7 @@ gamepad_config_menu_state::~gamepad_config_menu_state()
 		ctx.resource_manager->save(*ctx.control_profile, ctx.control_profile_filename);
 	}
 	
-	debug::log::trace("Exited gamepad config menu state");
+	debug::log_trace("Exited gamepad config menu state");
 }
 
 std::string gamepad_config_menu_state::get_mapping_string(const input::action_map& action_map, const input::action& control)

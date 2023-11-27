@@ -77,7 +77,6 @@
 #include <engine/physics/kinematics/colliders/box-collider.hpp>
 #include <engine/physics/kinematics/colliders/capsule-collider.hpp>
 #include <engine/physics/kinematics/colliders/mesh-collider.hpp>
-#include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/material-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/state-machine.hpp>
@@ -96,24 +95,24 @@
 treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering nest view state...");
+	debug::log_trace("Entering nest view state...");
 	
 	ctx.active_scene = ctx.surface_scene.get();
 	
 	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco");
 	::world::enter_ecoregion(ctx, *ctx.active_ecoregion);
 	
-	debug::log::trace("Generating genome...");
+	debug::log_trace("Generating genome...");
 	std::shared_ptr<ant_genome> genome = ant_cladogenesis(ctx.active_ecoregion->gene_pools[0], ctx.rng);
-	debug::log::trace("Generated genome");
+	debug::log_trace("Generated genome");
 	
-	debug::log::trace("Building worker phenome...");
+	debug::log_trace("Building worker phenome...");
 	worker_phenome = std::make_shared<ant_phenome>(*genome, ant_caste_type::worker);
-	debug::log::trace("Built worker phenome...");
+	debug::log_trace("Built worker phenome...");
 	
-	debug::log::trace("Generating worker model...");
+	debug::log_trace("Generating worker model...");
 	std::shared_ptr<render::model> worker_model = ant_morphogenesis(*worker_phenome);
-	debug::log::trace("Generated worker model");
+	debug::log_trace("Generated worker model");
 	
 	// Create nest exterior
 	{
@@ -156,7 +155,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	
 	// Generate terrain
 	{
-		auto heightmap = ctx.resource_manager->load<image>("chiricahua-s.png");
+		auto heightmap = ctx.resource_manager->load<gl::image_2d>("chiricahua-s.png");
 		auto subdivisions = math::uvec2{0, 0};
 		// auto subdivisions = math::uvec2{3, 3};
 		auto transform = math::transform<float>::identity();
@@ -310,9 +309,6 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	color_checker_scene_component.layer_mask = 1;
 	ctx.entity_registry->emplace<scene_component>(color_checker_eid, std::move(color_checker_scene_component));
 	
-	// Disable UI color clear
-	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
-	
 	// Set world time
 	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
 	
@@ -326,7 +322,35 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	ctx.sky_pass->set_enabled(true);
 	
 	sky_probe = std::make_shared<scene::light_probe>();
-	sky_probe->set_luminance_texture(std::make_shared<gl::texture_cube>(512, 384, gl::pixel_type::float_16, gl::pixel_format::rgb));
+	const std::uint32_t sky_probe_face_size = 128;
+	const auto sky_probe_mip_levels = static_cast<std::uint32_t>(std::bit_width(sky_probe_face_size));
+	sky_probe->set_luminance_texture
+	(
+		std::make_shared<gl::texture_cube>
+		(
+			std::make_shared<gl::image_view_cube>
+			(
+				std::make_shared<gl::image_cube>
+				(
+					gl::format::r16g16b16_sfloat,
+					sky_probe_face_size,
+					sky_probe_mip_levels
+				),
+				gl::format::undefined,
+				0,
+				sky_probe_mip_levels
+			),
+			std::make_shared<gl::sampler>
+			(
+				gl::sampler_filter::linear,
+				gl::sampler_filter::linear,
+				gl::sampler_mipmap_mode::linear,
+				gl::sampler_address_mode::clamp_to_edge,
+				gl::sampler_address_mode::clamp_to_edge
+			)
+		)
+	);
+	
 	ctx.sky_pass->set_sky_probe(sky_probe);
 	ctx.surface_scene->add_object(*sky_probe);
 	
@@ -361,12 +385,12 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	// Refresh frame scheduler
 	ctx.frame_scheduler.refresh();
 	
-	debug::log::trace("Entered nest view state");
+	debug::log_trace("Entered nest view state");
 }
 
 treadmill_experiment_state::~treadmill_experiment_state()
 {
-	debug::log::trace("Exiting nest view state...");
+	debug::log_trace("Exiting nest view state...");
 	
 	// Disable game controls
 	::disable_game_controls(ctx);
@@ -377,7 +401,7 @@ treadmill_experiment_state::~treadmill_experiment_state()
 	
 	destroy_third_person_camera_rig();
 	
-	debug::log::trace("Exited nest view state");
+	debug::log_trace("Exited nest view state");
 }
 
 void treadmill_experiment_state::create_third_person_camera_rig()
@@ -546,7 +570,7 @@ void treadmill_experiment_state::setup_controls()
 				
 				if (auto trace = ctx.physics_system->trace(mouse_ray, entt::null, camera_object.get_layer_mask()))
 				{
-					// debug::log::debug("HIT! EID: {}; distance: {}; face: {}", static_cast<int>(std::get<0>(*trace)), std::get<1>(*trace), std::get<2>(*trace));
+					// debug::log_debug("HIT! EID: {}; distance: {}; face: {}", static_cast<int>(std::get<0>(*trace)), std::get<1>(*trace), std::get<2>(*trace));
 					
 					const auto& hit_rigid_body = *ctx.entity_registry->get<rigid_body_component>(std::get<0>(*trace)).body;
 					const auto& hit_collider = *hit_rigid_body.get_collider();

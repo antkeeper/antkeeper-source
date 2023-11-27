@@ -19,90 +19,96 @@
 
 #include <engine/render/passes/resample-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/gl/rasterizer.hpp>
+#include <engine/gl/pipeline.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/vertex-attribute.hpp>
-#include <engine/gl/drawing-mode.hpp>
-#include <engine/gl/texture-2d.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/gl/texture.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/render/context.hpp>
-#include <glad/glad.h>
 
 namespace render {
 
-resample_pass::resample_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
-	pass(rasterizer, framebuffer),
-	source_texture{nullptr}
+resample_pass::resample_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
+	pass(pipeline, framebuffer)
 {
+	// Construct empty vertex array
+	m_vertex_array = std::make_unique<gl::vertex_array>();
+	
 	// Load resample shader template
 	auto shader_template = resource_manager->load<gl::shader_template>("resample.glsl");
 	
 	// Build resample shader program
-	shader = shader_template->build();
-	if (!shader->linked())
+	m_shader_program = shader_template->build();
+	if (!m_shader_program->linked())
 	{
-		debug::log::error("Failed to build resample shader program: {}", shader->info());
-		debug::log::warning("{}", shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build resample shader program: {}", m_shader_program->info());
+		debug::log_warning("{}", shader_template->configure(gl::shader_stage::vertex));
 	}
 }
 
 void resample_pass::render(render::context& ctx)
 {
-	for (const auto& command: command_buffer)
+	for (const auto& command: m_command_buffer)
 	{
 		command();
 	}
 }
 
-void resample_pass::set_source_texture(const gl::texture_2d* texture)
+void resample_pass::set_source_texture(std::shared_ptr<gl::texture_2d> texture)
 {
-	source_texture = texture;
-	
+	m_source_texture = texture;
 	rebuild_command_buffer();
 }
 
 void resample_pass::rebuild_command_buffer()
 {
-	command_buffer.clear();
+	m_command_buffer.clear();
 	
-	if (!source_texture || !shader)
+	if (!m_source_texture || !m_shader_program)
 	{
 		return;
 	}
 	
 	// Setup resample state
-	command_buffer.emplace_back
+	m_command_buffer.emplace_back
 	(
 		[&]()
 		{
-			glDisable(GL_DEPTH_TEST);
-			glDepthMask(GL_FALSE);
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
-			glDisable(GL_BLEND);
+			const auto& viewport_dimensions = (m_framebuffer) ? m_framebuffer->dimensions() : m_pipeline->get_default_framebuffer_dimensions();
+			const gl::viewport viewport[1] =
+			{{
+				0.0f,
+				0.0f,
+				static_cast<float>(viewport_dimensions[0]),
+				static_cast<float>(viewport_dimensions[1])
+			}};
 			
-			rasterizer->use_framebuffer(*framebuffer);
-			rasterizer->set_viewport(0, 0, framebuffer->get_dimensions()[0], framebuffer->get_dimensions()[1]);
-			rasterizer->use_program(*shader);
+			m_pipeline->set_primitive_topology(gl::primitive_topology::triangle_list);
+			m_pipeline->set_viewport(0, viewport);
+			m_pipeline->set_depth_test_enabled(false);
+			m_pipeline->set_cull_mode(gl::cull_mode::back);
+			
+			m_pipeline->bind_framebuffer(m_framebuffer);
+			m_pipeline->bind_shader_program(m_shader_program.get());
+			m_pipeline->bind_vertex_array(m_vertex_array.get());
 		}
 	);
 	
 	// Update shader variables
-	if (auto source_texture_var = shader->variable("source_texture"))
+	if (auto source_texture_var = m_shader_program->variable("source_texture"))
 	{
-		command_buffer.emplace_back([&, source_texture_var](){source_texture_var->update(*source_texture);});
+		m_command_buffer.emplace_back([&, source_texture_var](){source_texture_var->update(*m_source_texture);});
 	}
 	
-	// Draw quad
-	command_buffer.emplace_back
+	m_command_buffer.emplace_back
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
+			// Draw fullscreen triangle
+			m_pipeline->draw(3, 1, 0, 0);
 		}
 	);
 }

@@ -19,7 +19,7 @@
 
 #include <engine/geom/brep/brep-operations.hpp>
 #include <engine/math/vector.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/debug/log.hpp>
 #include <algorithm>
 #include <cmath>
@@ -156,40 +156,36 @@ std::unique_ptr<render::model> generate_model(const brep_mesh& mesh, std::shared
 	auto& bounds = model->get_bounds();
 	bounds = {math::fvec3::infinity(), -math::fvec3::infinity()};
 	
-	// Get model VBO and VAO
-	auto& vbo = model->get_vertex_buffer();
-	auto& vao = model->get_vertex_array();
-	
-	// Build vertex format
-	std::size_t vertex_size = 0;
-	
-	gl::vertex_attribute position_attribute;
+	// Construct model VAO
+	std::size_t vertex_stride = 0;
+	std::vector<gl::vertex_input_attribute> vertex_attributes;
+	gl::vertex_input_attribute position_attribute{};
 	if (vertex_positions)
 	{
-		position_attribute.buffer = vbo.get();
-		position_attribute.offset = vertex_size;
-		position_attribute.type = gl::vertex_attribute_type::float_32;
-		position_attribute.components = 3;
+		position_attribute.location = render::vertex_attribute_location::position;
+		position_attribute.binding = 0;
+		position_attribute.format = gl::format::r32g32b32_sfloat;
+		position_attribute.offset = 0;
+		vertex_attributes.emplace_back(position_attribute);
 		
-		vertex_size += position_attribute.components * sizeof(float);
+		vertex_stride += 3 * sizeof(float);
 	}
-	
-	gl::vertex_attribute normal_attribute;
+	gl::vertex_input_attribute normal_attribute{};
 	if (vertex_normals)
 	{
-		normal_attribute.buffer = vbo.get();
-		normal_attribute.offset = vertex_size;
-		normal_attribute.type = gl::vertex_attribute_type::float_32;
-		normal_attribute.components = 3;
+		normal_attribute.location = render::vertex_attribute_location::normal;
+		normal_attribute.binding = 0;
+		normal_attribute.format = gl::format::r32g32b32_sfloat;
+		normal_attribute.offset = static_cast<std::uint32_t>(vertex_stride);
+		vertex_attributes.emplace_back(normal_attribute);
 		
-		vertex_size += normal_attribute.components * sizeof(float);
+		vertex_stride += 3 * sizeof(float);
 	}
-	
-	position_attribute.stride = vertex_size;
-	normal_attribute.stride = vertex_size;
+	auto& vao = model->get_vertex_array();
+	vao = std::make_unique<gl::vertex_array>(vertex_attributes);
 	
 	// Interleave vertex data
-	std::vector<std::byte> vertex_data(mesh.faces().size() * 3 * vertex_size);
+	std::vector<std::byte> vertex_data(mesh.faces().size() * 3 * vertex_stride);
 	if (vertex_positions)
 	{
 		std::byte* v = vertex_data.data() + position_attribute.offset;
@@ -199,7 +195,7 @@ std::unique_ptr<render::model> generate_model(const brep_mesh& mesh, std::shared
 			{
 				const auto& position = (*vertex_positions)[loop->vertex()->index()];
 				std::memcpy(v, position.data(), sizeof(float) * 3);
-				v += position_attribute.stride;
+				v += vertex_stride;
 				
 				// Extend model bounds
 				bounds.extend(position);
@@ -215,36 +211,26 @@ std::unique_ptr<render::model> generate_model(const brep_mesh& mesh, std::shared
 			{
 				const auto& normal = (*vertex_normals)[loop->vertex()->index()];
 				std::memcpy(v, normal.data(), sizeof(float) * 3);
-				v += normal_attribute.stride;
+				v += vertex_stride;
 			}
 		}
 	}
 	
-	// Resize model VBO and upload interleaved vertex data
-	vbo->resize(vertex_data.size(), vertex_data);
-	
-	// Free interleaved vertex data
-	vertex_data.clear();
-	
-	// Bind vertex attributes to VAO
-	if (vertex_positions)
-	{
-		vao->bind(render::vertex_attribute::position, position_attribute);
-	}
-	if (vertex_normals)
-	{
-		vao->bind(render::vertex_attribute::normal, normal_attribute);
-	}
+	// Construct model VBO
+	auto& vbo = model->get_vertex_buffer();
+	vbo = std::make_unique<gl::vertex_buffer>(gl::buffer_usage::static_draw, vertex_data);
+	model->set_vertex_offset(0);
+	model->set_vertex_stride(vertex_stride);
 	
 	// Create material group
 	model->get_groups().resize(1);
 	render::model_group& model_group = model->get_groups().front();
 	
-	model_group.id = "default";
+	model_group.id = {};
 	model_group.material = material;
-	model_group.drawing_mode = gl::drawing_mode::triangles;
-	model_group.start_index = 0;
-	model_group.index_count = static_cast<std::uint32_t>(mesh.faces().size() * 3);
+	model_group.primitive_topology = gl::primitive_topology::triangle_list;
+	model_group.first_vertex = 0;
+	model_group.vertex_count = static_cast<std::uint32_t>(mesh.faces().size() * 3);
 	
 	return model;
 }

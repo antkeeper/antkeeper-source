@@ -68,7 +68,6 @@
 #include <engine/physics/kinematics/colliders/plane-collider.hpp>
 #include <engine/physics/kinematics/colliders/box-collider.hpp>
 #include <engine/physics/kinematics/colliders/capsule-collider.hpp>
-#include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/material-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/state-machine.hpp>
@@ -86,7 +85,7 @@
 nest_view_state::nest_view_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering nest view state...");	
+	debug::log_trace("Entering nest view state...");	
 	
 	// Create world if not yet created
 	if (ctx.entities.find("earth") == ctx.entities.end())
@@ -101,17 +100,17 @@ nest_view_state::nest_view_state(::game& ctx):
 	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco");
 	::world::enter_ecoregion(ctx, *ctx.active_ecoregion);
 	
-	debug::log::trace("Generating genome...");
+	debug::log_trace("Generating genome...");
 	std::unique_ptr<ant_genome> genome = ant_cladogenesis(ctx.active_ecoregion->gene_pools[0], ctx.rng);
-	debug::log::trace("Generated genome");
+	debug::log_trace("Generated genome");
 	
-	debug::log::trace("Building worker phenome...");
+	debug::log_trace("Building worker phenome...");
 	worker_phenome = ant_phenome(*genome, ant_caste_type::worker);
-	debug::log::trace("Built worker phenome...");
+	debug::log_trace("Built worker phenome...");
 	
-	debug::log::trace("Generating worker model...");
+	debug::log_trace("Generating worker model...");
 	std::shared_ptr<render::model> worker_model = ant_morphogenesis(worker_phenome);
-	debug::log::trace("Generated worker model");
+	debug::log_trace("Generated worker model");
 	
 	// Create directional light
 	// ctx.underground_directional_light = std::make_unique<scene::directional_light>();
@@ -126,8 +125,6 @@ nest_view_state::nest_view_state(::game& ctx):
 	// ctx.underground_directional_light->set_shadow_cascade_distribution(0.8f);
 	// ctx.underground_scene->add_object(*ctx.underground_directional_light);
 	
-	ctx.underground_clear_pass->set_clear_color({0.214f, 0.214f, 0.214f, 1.0f});
-	// ctx.underground_clear_pass->set_clear_color({});
 	light_probe = std::make_shared<scene::light_probe>();
 	light_probe->set_luminance_texture(ctx.resource_manager->load<gl::texture_cube>("grey-furnace.tex"));
 	ctx.underground_scene->add_object(*light_probe);
@@ -229,9 +226,6 @@ nest_view_state::nest_view_state(::game& ctx):
 		// }
 	// );
 	
-	// Disable UI color clear
-	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
-	
 	// Set world time
 	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
 	
@@ -277,23 +271,23 @@ nest_view_state::nest_view_state(::game& ctx):
 	geom::generate_vertex_normals(*navmesh);
 	
 	// Build navmesh BVH
-	debug::log::info("building bvh");
+	debug::log_info("building bvh");
 	navmesh_bvh = std::make_unique<geom::bvh>(*navmesh);
-	debug::log::info("building bvh done");
+	debug::log_info("building bvh done");
 	
-	debug::log::trace("Entered nest view state");
+	debug::log_trace("Entered nest view state");
 }
 
 nest_view_state::~nest_view_state()
 {
-	debug::log::trace("Exiting nest view state...");
+	debug::log_trace("Exiting nest view state...");
 	
 	// Disable game controls
 	::disable_game_controls(ctx);
 	
 	destroy_third_person_camera_rig();
 	
-	debug::log::trace("Exited nest view state");
+	debug::log_trace("Exited nest view state");
 }
 
 void nest_view_state::create_third_person_camera_rig()
@@ -500,7 +494,7 @@ void nest_view_state::setup_controls()
 				const auto& mouse_position = (*ctx.input_manager->get_mice().begin())->get_position();
 				const auto mouse_ray = get_mouse_ray(mouse_position);
 				
-				debug::log::info("pick:");
+				debug::log_info("pick:");
 				float nearest_hit = std::numeric_limits<float>::infinity();
 				bool hit = false;
 				std::uint32_t hit_index;
@@ -538,7 +532,7 @@ void nest_view_state::setup_controls()
 					}
 				);
 				
-				debug::log::info("box tests passed: {}", box_test_passed);
+				debug::log_info("box tests passed: {}", box_test_passed);
 				
 				if (hit)
 				{
@@ -566,11 +560,11 @@ void nest_view_state::setup_controls()
 						}
 					);
 					
-					debug::log::info("hit! test count: {}", test_count);
+					debug::log_info("hit! test count: {}", test_count);
 				}
 				else
 				{
-					debug::log::info("no hit");
+					debug::log_info("no hit");
 				}
 			}
 		)

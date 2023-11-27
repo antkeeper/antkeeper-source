@@ -18,6 +18,8 @@
  */
 
 #include <engine/scene/directional-light.hpp>
+#include <engine/gl/framebuffer.hpp>
+#include <engine/debug/log.hpp>
 
 namespace scene {
 
@@ -40,6 +42,37 @@ void directional_light::set_shadow_caster(bool caster) noexcept
 void directional_light::set_shadow_framebuffer(std::shared_ptr<gl::framebuffer> framebuffer) noexcept
 {
 	m_shadow_framebuffer = std::move(framebuffer);
+	if (m_shadow_framebuffer)
+	{
+		if (!m_shadow_texture)
+		{
+			m_shadow_texture = std::make_shared<gl::texture_2d>
+			(
+				std::static_pointer_cast<gl::image_view_2d>(m_shadow_framebuffer->attachments().front().image_view),
+				std::make_shared<gl::sampler>
+				(
+					gl::sampler_filter::linear,
+					gl::sampler_filter::linear,
+					gl::sampler_mipmap_mode::linear,
+					gl::sampler_address_mode::clamp_to_border,
+					gl::sampler_address_mode::clamp_to_border,
+					gl::sampler_address_mode::clamp_to_border,
+					0.0f,
+					0.0f,
+					true,
+					gl::compare_op::greater
+				)
+			);
+		}
+		else
+		{
+			m_shadow_texture->set_image_view(std::static_pointer_cast<gl::image_view_2d>(m_shadow_framebuffer->attachments().front().image_view));
+		}
+	}
+	else
+	{
+		m_shadow_texture = nullptr;
+	}
 }
 
 void directional_light::set_shadow_bias(float bias) noexcept

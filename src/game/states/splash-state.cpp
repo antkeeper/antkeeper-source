@@ -27,25 +27,22 @@
 #include <engine/debug/log.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/render/material-flags.hpp>
-#include <engine/render/passes/clear-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
+#include <engine/gl/pipeline.hpp>
 
 splash_state::splash_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering splash state...");
+	debug::log_trace("Entering splash state...");
 	
 	const math::fvec2 viewport_size = math::fvec2(ctx.window->get_viewport_size());
 	const math::fvec2 viewport_center = viewport_size * 0.5f;
-	
-	// Enable color buffer clearing in UI pass
-	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
 	
 	// Load splash texture
 	auto splash_texture = ctx.resource_manager->load<gl::texture_2d>("splash.tex");
 	
 	// Get splash texture dimensions
-	auto splash_dimensions = splash_texture->get_dimensions();
+	const auto& splash_dimensions = splash_texture->get_image_view()->get_image()->get_dimensions();
 	
 	// Construct splash billboard material
 	splash_billboard_material = std::make_shared<render::material>();
@@ -58,7 +55,7 @@ splash_state::splash_state(::game& ctx):
 	
 	// Construct splash billboard
 	splash_billboard.set_material(splash_billboard_material);
-	splash_billboard.set_scale({static_cast<float>(std::get<0>(splash_dimensions)) * 0.5f, static_cast<float>(std::get<1>(splash_dimensions)) * 0.5f, 1.0f});
+	splash_billboard.set_scale({static_cast<float>(splash_dimensions[0]) * 0.5f, static_cast<float>(splash_dimensions[1]) * 0.5f, 1.0f});
 	splash_billboard.set_translation({std::round(viewport_center.x()), std::round(viewport_center.y()), 0.0f});
 	
 	// Add splash billboard to UI scene
@@ -142,8 +139,7 @@ splash_state::splash_state(::game& ctx):
 			[&]()
 			{
 				// Black out screen
-				ctx.window->get_rasterizer()->set_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-				ctx.window->get_rasterizer()->clear_framebuffer(true, false, false);
+				ctx.window->get_graphics_pipeline().clear_attachments(gl::color_clear_bit, {{0.0f, 0.0f, 0.0f, 0.0f}});
 				ctx.window->swap_buffers();
 				
 				// Change to main menu state
@@ -185,12 +181,12 @@ splash_state::splash_state(::game& ctx):
 		}
 	);
 	
-	debug::log::trace("Entered splash state");
+	debug::log_trace("Entered splash state");
 }
 
 splash_state::~splash_state()
 {
-	debug::log::trace("Exiting splash state...");
+	debug::log_trace("Exiting splash state...");
 	
 	// Disable splash skippers
 	ctx.input_mapper.disconnect();
@@ -203,8 +199,5 @@ splash_state::~splash_state()
 	// Remove splash billboard from UI scene
 	ctx.ui_scene->remove_object(splash_billboard);
 	
-	// Disable color buffer clearing in UI pass
-	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
-	
-	debug::log::trace("Exited splash state");
+	debug::log_trace("Exited splash state");
 }

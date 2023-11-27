@@ -20,7 +20,7 @@
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-object.hpp>
 #include <engine/gl/opengl/gl-shader-variables.hpp>
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <stdexcept>
 #include <string_view>
 
@@ -68,14 +68,6 @@ void shader_program::attach(const shader_object& object)
 		// Attach the OpenGL shader object to the OpenGL shader program
 		glAttachShader(gl_program_id, object.gl_shader_id);
 		
-		// Handle OpenGL errors
-		switch (glGetError())
-		{
-			case GL_INVALID_OPERATION:
-				throw std::runtime_error("OpenGL shader object is already attached to the shader program.");
-				break;
-		}
-		
 		// Add shader object to set of attached objects
 		attached_objects.insert(&object);
 	}
@@ -101,14 +93,6 @@ void shader_program::detach(const shader_object& object)
 		
 		// Detach the OpenGL shader object from the OpenGL shader program
 		glDetachShader(gl_program_id, object.gl_shader_id);
-		
-		// Handle OpenGL errors
-		switch (glGetError())
-		{
-			case GL_INVALID_OPERATION:
-				throw std::runtime_error("OpenGL shader object is not attached to the shader program.");
-				break;
-		}
 		
 		// Remove shader object from set of attached objects
 		attached_objects.erase(&object);
@@ -137,14 +121,6 @@ bool shader_program::link()
 	
 	// Link OpenGL shader program
 	glLinkProgram(gl_program_id);
-	
-	// Handle OpenGL errors
-	switch (glGetError())
-	{
-		case GL_INVALID_OPERATION:
-			throw std::runtime_error("OpenGL shader program is the currently active program object and transform feedback mode is active.");
-			break;
-	}
 	
 	// Get OpenGL shader program linking status
 	GLint gl_link_status;

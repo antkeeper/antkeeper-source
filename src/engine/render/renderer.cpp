@@ -27,7 +27,6 @@
 #include <engine/scene/light-probe.hpp>
 #include <engine/scene/text.hpp>
 #include <engine/render/model.hpp>
-#include <engine/gl/drawing-mode.hpp>
 #include <engine/math/matrix.hpp>
 #include <engine/geom/projection.hpp>
 #include <engine/config.hpp>
@@ -38,10 +37,10 @@
 
 namespace render {
 
-renderer::renderer(gl::rasterizer& rasterizer, ::resource_manager& resource_manager)
+renderer::renderer(gl::pipeline& pipeline, ::resource_manager& resource_manager)
 {
-	m_light_probe_stage = std::make_unique<render::light_probe_stage>(rasterizer, resource_manager);
-	m_cascaded_shadow_map_stage = std::make_unique<render::cascaded_shadow_map_stage>(rasterizer, resource_manager);
+	m_light_probe_stage = std::make_unique<render::light_probe_stage>(pipeline, resource_manager);
+	m_cascaded_shadow_map_stage = std::make_unique<render::cascaded_shadow_map_stage>(pipeline, resource_manager);
 	m_culling_stage = std::make_unique<render::culling_stage>();
 	m_queue_stage = std::make_unique<render::queue_stage>();
 }

@@ -46,14 +46,14 @@ bool read_or_write_setting(::game& ctx, hash::fnv1a32_t key, T& value)
 		}
 		catch (const std::bad_any_cast&)
 		{
-			debug::log::error("Setting type mismatch ({:x}={})", key.value, value);
+			debug::log_error("Setting type mismatch ({:x}={})", key.value, value);
 			i->second = value;
 			return false;
 		}
 	}
 	else
 	{
-		debug::log::trace("Setting key not found ({:x}={})", key.value, value);
+		debug::log_trace("Setting key not found ({:x}={})", key.value, value);
 		(*ctx.settings)[key] = value;
 		return false;
 	}

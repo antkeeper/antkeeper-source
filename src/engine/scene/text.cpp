@@ -18,65 +18,66 @@
  */
 
 #include <engine/scene/text.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/type/unicode/convert.hpp>
 #include <engine/scene/camera.hpp>
+#include <engine/debug/log.hpp>
 #include <cstddef>
 
 namespace scene {
 
+namespace {
+	
+	/// Text vertex attributes.
+	constexpr gl::vertex_input_attribute text_vertex_attributes[3] =
+	{
+		{
+			render::vertex_attribute_location::position,
+			0,
+			gl::format::r32g32_sfloat,
+			0
+		},
+		{
+			render::vertex_attribute_location::uv,
+			0,
+			gl::format::r32g32_sfloat,
+			2 * sizeof(float)
+		},
+		{
+			render::vertex_attribute_location::color,
+			0,
+			gl::format::r32g32b32a32_sfloat,
+			4 * sizeof(float)
+		}
+	};
+	
+	/// Text vertex stride.
+	constexpr std::size_t text_vertex_stride = (2 + 2 + 4) * sizeof(float);
+}
+
 text::text()
 {
-	// Allocate VBO and VAO
-	m_vbo = std::make_unique<gl::vertex_buffer>();
-	m_vao = std::make_unique<gl::vertex_array>();
+	// Construct vertex array
+	m_vertex_array = std::make_unique<gl::vertex_array>(text_vertex_attributes);
 	
-	// Calculate vertex stride
-	m_vertex_stride = (3 + 2 + 4) * sizeof(float);
-	
-	// Init vertex attribute offset
-	std::size_t attribute_offset = 0;
-	
-	// Define vertex position attribute
-	gl::vertex_attribute position_attribute;
-	position_attribute.buffer = m_vbo.get();
-	position_attribute.offset = attribute_offset;
-	position_attribute.stride = m_vertex_stride;
-	position_attribute.type = gl::vertex_attribute_type::float_32;
-	position_attribute.components = 3;
-	attribute_offset += position_attribute.components * sizeof(float);
-	
-	// Define vertex UV attribute
-	gl::vertex_attribute uv_attribute;
-	uv_attribute.buffer = m_vbo.get();
-	uv_attribute.offset = attribute_offset;
-	uv_attribute.stride = m_vertex_stride;
-	uv_attribute.type = gl::vertex_attribute_type::float_32;
-	uv_attribute.components = 2;
-	attribute_offset += uv_attribute.components * sizeof(float);
-	
-	// Define vertex color attribute
-	gl::vertex_attribute color_attribute;
-	color_attribute.buffer = m_vbo.get();
-	color_attribute.offset = attribute_offset;
-	color_attribute.stride = m_vertex_stride;
-	color_attribute.type = gl::vertex_attribute_type::float_32;
-	color_attribute.components = 4;
-	//attribute_offset += color_attribute.components * sizeof(float);
-	
-	// Bind vertex attributes to VAO
-	m_vao->bind(render::vertex_attribute::position, position_attribute);
-	m_vao->bind(render::vertex_attribute::uv, uv_attribute);
-	m_vao->bind(render::vertex_attribute::color, color_attribute);
+	// Construct empty vertex buffer
+	m_vertex_buffer = std::make_unique<gl::vertex_buffer>();
 	
 	// Init render operation
-	m_render_op.vertex_array = m_vao.get();
-	m_render_op.drawing_mode = gl::drawing_mode::triangles;
+	m_render_op.primitive_topology = gl::primitive_topology::triangle_list;
+	m_render_op.vertex_array = m_vertex_array.get();
+	m_render_op.vertex_buffer = m_vertex_buffer.get();
+	m_render_op.vertex_offset = 0;
+	m_render_op.vertex_stride = text_vertex_stride;
+	m_render_op.first_vertex = 0;
+	m_render_op.vertex_count = 0;
+	m_render_op.first_instance = 0;
+	m_render_op.instance_count = 1;
 }
 
 void text::render(render::context& ctx) const
 {
-	if (m_vertex_count)
+	if (m_render_op.vertex_count)
 	{
 		m_render_op.depth = ctx.camera->get_view_frustum().near().distance(get_translation());
 		m_render_op.layer_mask = get_layer_mask();
@@ -145,26 +146,25 @@ void text::update_content()
 	// If no valid font or no text, clear vertex count
 	if (!m_font || m_content_u32.empty())
 	{
-		m_vertex_count = 0;
-		m_render_op.index_count = 0;
+		m_render_op.vertex_count = 0;
 		m_local_bounds = {{0, 0, 0}, {0, 0, 0}};
 		transformed();
 		return;
 	}
 	
-	// Calculate new vertex count and minimum vertex buffer size
-	std::size_t vertex_count = m_content_u32.length() * 6;
-	std::size_t min_vertex_buffer_size = vertex_count * m_vertex_stride;
-	
-	// Expand vertex data buffer to accommodate vertices
-	if (m_vertex_data.size() < min_vertex_buffer_size)
+	// Reserve vertex data
+	auto vbo_min_size = m_content_u32.length() * text_vertex_stride * 6;
+	if (m_vertex_data.size() < vbo_min_size)
 	{
-		m_vertex_data.resize(min_vertex_buffer_size);
+		m_vertex_data.resize(vbo_min_size);
 	}
 	
-	// Get font metrics and bitmap
+	std::uint32_t visible_character_count = static_cast<std::uint32_t>(m_content_u32.length());
+	
+	// Get font metrics and texture
 	const type::font_metrics& font_metrics = m_font->get_font_metrics();
-	const image& font_bitmap = m_font->get_bitmap();
+	const auto& font_texture = m_font->get_texture();
+	const auto& font_texture_dimensions = font_texture->get_image_view()->get_image()->get_dimensions();
 	
 	// Init pen position
 	math::fvec2 pen_position = {0.0f, 0.0f};
@@ -184,25 +184,24 @@ void text::update_content()
 			pen_position.x() += m_font->get_kerning(previous_code, code).x();
 		}
 		
-		if (m_font->contains(code))
+		// Get glyph
+		const type::bitmap_glyph* glyph = m_font->get_glyph(code);
+		if (glyph)
 		{
-			// Get glyph
-			const type::bitmap_glyph& glyph = m_font->get_glyph(code);
-			
 			// Calculate vertex positions
 			math::fvec2 positions[6];
-			positions[0] = pen_position + glyph.metrics.horizontal_bearing;
-			positions[1] = {positions[0].x(), positions[0].y() - glyph.metrics.height};
-			positions[2] = {positions[0].x() + glyph.metrics.width, positions[1].y()};
+			positions[0] = pen_position + glyph->metrics.horizontal_bearing;
+			positions[1] = {positions[0].x(), positions[0].y() - glyph->metrics.height};
+			positions[2] = {positions[0].x() + glyph->metrics.width, positions[1].y()};
 			positions[3] = {positions[2].x(), positions[0].y()};
 			positions[4] = positions[0];
 			positions[5] = positions[2];
 			
 			// Calculate vertex UVs
 			math::fvec2 uvs[6];
-			uvs[0] = {static_cast<float>(glyph.position.x()), static_cast<float>(glyph.position.y())};
-			uvs[1] = {uvs[0].x(), uvs[0].y() + glyph.metrics.height};
-			uvs[2] = {uvs[0].x() + glyph.metrics.width, uvs[1].y()};
+			uvs[0] = {static_cast<float>(glyph->position.x()), static_cast<float>(glyph->position.y())};
+			uvs[1] = {uvs[0].x(), uvs[0].y() + glyph->metrics.height};
+			uvs[2] = {uvs[0].x() + glyph->metrics.width, uvs[1].y()};
 			uvs[3] = {uvs[2].x(), uvs[0].y()};
 			uvs[4] = uvs[0];
 			uvs[5] = uvs[2];
@@ -214,8 +213,8 @@ void text::update_content()
 				positions[i].y() = std::round(positions[i].y());
 				
 				// Normalize UVs
-				uvs[i].x() = uvs[i].x() / static_cast<float>(font_bitmap.size().x());
-				uvs[i].y() = uvs[i].y() / static_cast<float>(font_bitmap.size().y());
+				uvs[i].x() = uvs[i].x() / static_cast<float>(font_texture_dimensions[0]);
+				uvs[i].y() = uvs[i].y() / static_cast<float>(font_texture_dimensions[1]);
 			}
 			
 			// Add vertex to vertex data buffer
@@ -223,7 +222,6 @@ void text::update_content()
 			{
 				*(v++) = positions[i].x();
 				*(v++) = positions[i].y();
-				*(v++) = 0.0f;
 				*(v++) = uvs[i].x();
 				*(v++) = uvs[i].y();
 				*(v++) = m_color[0];
@@ -233,7 +231,7 @@ void text::update_content()
 			}
 			
 			// Advance pen position
-			pen_position.x() += glyph.metrics.horizontal_advance;
+			pen_position.x() += glyph->metrics.horizontal_advance;
 			
 			// Update local-space bounds
 			for (int i = 0; i < 4; ++i)
@@ -248,15 +246,11 @@ void text::update_content()
 		}
 		else
 		{
-			// Glyph not in font, zero vertex data
-			for (std::size_t i = 0; i < (6 * 9); ++i)
-			{
-				*(v++) = 0.0f;
-			}
+			--visible_character_count;
 		}
 		
 		// Handle newlines
-		if (code == static_cast<char32_t>('\n'))
+		if (code == U'\n')
 		{
 			pen_position.x() = 0.0f;
 			pen_position.y() -= font_metrics.linegap;
@@ -266,19 +260,21 @@ void text::update_content()
 		previous_code = code;
 	}
 	
-	// Resize VBO, if necessary, and upload vertex data
-	if (vertex_count > m_vertex_count)
+	// Adjust min VBO size
+	vbo_min_size = visible_character_count * text_vertex_stride * 6;
+	
+	// Upload vertex data to VBO, growing VBO size if necessary
+	if (vbo_min_size > m_vertex_buffer->size())
 	{
-		m_vbo->resize(min_vertex_buffer_size, m_vertex_data);
+		m_vertex_buffer->resize(vbo_min_size, {m_vertex_data.data(), vbo_min_size});
 	}
 	else
 	{
-		m_vbo->write({m_vertex_data.data(), min_vertex_buffer_size});
+		m_vertex_buffer->write({m_vertex_data.data(), vbo_min_size});
 	}
 	
-	// Update vertex count
-	m_vertex_count = vertex_count;
-	m_render_op.index_count = vertex_count;
+	// Update render op
+	m_render_op.vertex_count = visible_character_count * 6;
 	
 	// Update world-space bounds
 	transformed();
@@ -286,21 +282,21 @@ void text::update_content()
 
 void text::update_color()
 {
-	float* v = reinterpret_cast<float*>(m_vertex_data.data());
-	for (std::size_t i = 0; i < m_vertex_count; ++i)
+	std::byte* v = m_vertex_data.data();
+	
+	// Skip position UV
+	v += (2 + 2) * sizeof(float);
+	
+	for (std::size_t i = 0; i < m_render_op.vertex_count; ++i)
 	{
-		// Skip vertex position (vec3) and vertex UV (vec2)
-		v += (3 + 2);
-		
 		// Update vertex color
-		*(v++) = m_color[0];
-		*(v++) = m_color[1];
-		*(v++) = m_color[2];
-		*(v++) = m_color[3];
+		std::memcpy(v, m_color.data(), sizeof(float) * 4);
+		
+		v += text_vertex_stride;
 	}
 	
 	// Update VBO
-	m_vbo->write({m_vertex_data.data(), m_vertex_count * m_vertex_stride});
+	m_vertex_buffer->write({m_vertex_data.data(), m_render_op.vertex_count * text_vertex_stride});
 }
 
 } // namespace scene

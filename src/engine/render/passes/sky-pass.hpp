@@ -29,8 +29,7 @@
 #include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/texture-2d.hpp>
-#include <engine/gl/drawing-mode.hpp>
+#include <engine/gl/texture.hpp>
 #include <engine/math/se3.hpp>
 #include <engine/scene/object.hpp>
 #include <engine/scene/light-probe.hpp>
@@ -50,7 +49,7 @@ class model;
 class sky_pass: public pass
 {
 public:
-	sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
+	sky_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	virtual ~sky_pass() = default;
 	void render(render::context& ctx) override;
 	
@@ -223,21 +222,27 @@ public:
 	}
 
 private:
+	void rebuild_transmittance_lut_framebuffer();
 	void rebuild_transmittance_lut_shader_program();
 	void rebuild_transmittance_lut_command_buffer();
+	void rebuild_multiscattering_lut_framebuffer();
 	void rebuild_multiscattering_lut_shader_program();
 	void rebuild_multiscattering_lut_command_buffer();
+	void rebuild_luminance_lut_framebuffer();
 	void rebuild_luminance_lut_shader_program();
 	void rebuild_luminance_lut_command_buffer();
 	
 	void rebuild_sky_lut_command_buffer();
 	void rebuild_sky_probe_command_buffer();
 	
+	std::shared_ptr<gl::sampler> m_lut_sampler;
+	std::unique_ptr<gl::vertex_array> m_vertex_array;
+	
 	// Transmittance
 	std::uint16_t m_transmittance_lut_sample_count{40};
 	math::vec2<std::uint16_t> m_transmittance_lut_resolution{256, 64};
-	std::unique_ptr<gl::texture_2d> m_transmittance_lut_texture;
-	std::unique_ptr<gl::framebuffer> m_transmittance_lut_framebuffer;
+	std::shared_ptr<gl::texture_2d> m_transmittance_lut_texture;
+	std::shared_ptr<gl::framebuffer> m_transmittance_lut_framebuffer;
 	std::shared_ptr<gl::shader_template> m_transmittance_lut_shader_template;
 	std::unique_ptr<gl::shader_program> m_transmittance_lut_shader_program;
 	std::vector<std::function<void()>> m_transmittance_lut_command_buffer;
@@ -247,8 +252,8 @@ private:
 	std::uint16_t m_multiscattering_lut_direction_sample_count{64};
 	std::uint16_t m_multiscattering_lut_scatter_sample_count{20};
 	math::vec2<std::uint16_t> m_multiscattering_lut_resolution{32, 32};
-	std::unique_ptr<gl::texture_2d> m_multiscattering_lut_texture;
-	std::unique_ptr<gl::framebuffer> m_multiscattering_lut_framebuffer;
+	std::shared_ptr<gl::texture_2d> m_multiscattering_lut_texture;
+	std::shared_ptr<gl::framebuffer> m_multiscattering_lut_framebuffer;
 	std::shared_ptr<gl::shader_template> m_multiscattering_lut_shader_template;
 	std::unique_ptr<gl::shader_program> m_multiscattering_lut_shader_program;
 	std::vector<std::function<void()>> m_multiscattering_lut_command_buffer;
@@ -257,8 +262,8 @@ private:
 	// Luminance
 	std::uint16_t m_luminance_lut_sample_count{30};
 	math::vec2<std::uint16_t> m_luminance_lut_resolution{200, 100};
-	std::unique_ptr<gl::texture_2d> m_luminance_lut_texture;
-	std::unique_ptr<gl::framebuffer> m_luminance_lut_framebuffer;
+	std::shared_ptr<gl::texture_2d> m_luminance_lut_texture;
+	std::shared_ptr<gl::framebuffer> m_luminance_lut_framebuffer;
 	std::shared_ptr<gl::shader_template> m_luminance_lut_shader_template;
 	std::unique_ptr<gl::shader_program> m_luminance_lut_shader_program;
 	std::vector<std::function<void()>> m_luminance_lut_command_buffer;
@@ -278,6 +283,10 @@ private:
 
 	std::shared_ptr<gl::shader_program> sky_shader_program;
 	const gl::shader_variable* model_view_projection_var;
+	const gl::shader_variable* view_var;
+	const gl::shader_variable* view_projection_var;
+	const gl::shader_variable* inv_view_projection_var;
+	const gl::shader_variable* camera_position_var;
 	const gl::shader_variable* mouse_var;
 	const gl::shader_variable* resolution_var;
 	const gl::shader_variable* light_direction_var;
@@ -308,26 +317,34 @@ private:
 	std::shared_ptr<render::model> sky_model;
 	const material* sky_material;
 	const gl::vertex_array* sky_model_vao;
-	gl::drawing_mode sky_model_drawing_mode;
-	std::size_t sky_model_start_index;
-	std::size_t sky_model_index_count;
+	const gl::vertex_buffer* sky_model_vbo;
+	gl::primitive_topology sky_model_primitive_topology;
+	std::size_t sky_model_vertex_offset{};
+	std::size_t sky_model_vertex_stride{};
+	std::uint32_t sky_model_first_vertex{};
+	std::uint32_t sky_model_vertex_count{};
 	
 	std::shared_ptr<render::model> moon_model;
 	const material* moon_material;
 	const gl::vertex_array* moon_model_vao;
-	gl::drawing_mode moon_model_drawing_mode;
-	std::size_t moon_model_start_index;
-	std::size_t moon_model_index_count;
+	const gl::vertex_buffer* moon_model_vbo;
+	gl::primitive_topology moon_model_primitive_topology;
+	std::size_t moon_model_vertex_offset{};
+	std::size_t moon_model_vertex_stride{};
+	std::uint32_t moon_model_first_vertex{};
+	std::uint32_t moon_model_vertex_count{};
 	std::shared_ptr<gl::texture_2d> m_moon_albedo_map;
 	std::shared_ptr<gl::texture_2d> m_moon_normal_map;
-
 	
 	std::shared_ptr<render::model> stars_model;
 	const material* star_material;
 	const gl::vertex_array* stars_model_vao;
-	gl::drawing_mode stars_model_drawing_mode;
-	std::size_t stars_model_start_index;
-	std::size_t stars_model_index_count;
+	const gl::vertex_buffer* stars_model_vbo;
+	gl::primitive_topology stars_model_primitive_topology;
+	std::size_t stars_model_vertex_offset{};
+	std::size_t stars_model_vertex_stride{};
+	std::uint32_t stars_model_first_vertex{};
+	std::uint32_t stars_model_vertex_count{};
 	std::unique_ptr<gl::shader_program> star_shader_program;
 	const gl::shader_variable* star_model_view_projection_var;
 	const gl::shader_variable* star_exposure_var;

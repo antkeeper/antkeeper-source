@@ -35,7 +35,7 @@ using namespace hash::literals;
 graphics_menu_state::graphics_menu_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering graphics menu state...");
+	debug::log_trace("Entering graphics menu state...");
 	
 	// Construct menu item texts
 	fullscreen_name_text = std::make_unique<scene::text>();
@@ -224,9 +224,9 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		this->update_value_text_content();
 		
 		// Reload fonts
-		debug::log::trace("Reloading fonts...");
+		debug::log_trace("Reloading fonts...");
 		::load_fonts(ctx);
-		debug::log::trace("Reloaded fonts");
+		debug::log_trace("Reloaded fonts");
 		
 		// Refresh and realign text
 		::menu::refresh_text(ctx);
@@ -252,9 +252,9 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		this->update_value_text_content();
 		
 		// Reload fonts
-		debug::log::trace("Reloading fonts...");
+		debug::log_trace("Reloading fonts...");
 		::load_fonts(ctx);
-		debug::log::trace("Reloaded fonts");
+		debug::log_trace("Reloaded fonts");
 		
 		// Refresh and realign text
 		::menu::refresh_text(ctx);
@@ -272,9 +272,9 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 		(*ctx.settings)["dyslexia_font"] = ctx.dyslexia_font;
 		
 		// Reload fonts
-		debug::log::trace("Reloading fonts...");
+		debug::log_trace("Reloading fonts...");
 		::load_fonts(ctx);
-		debug::log::trace("Reloaded fonts");
+		debug::log_trace("Reloaded fonts");
 		
 		// Refresh and realign text
 		::menu::refresh_text(ctx);
@@ -339,12 +339,12 @@ graphics_menu_state::graphics_menu_state(::game& ctx):
 	// Fade in menu
 	::menu::fade_in(ctx, nullptr);
 	
-	debug::log::trace("Entered graphics menu state");
+	debug::log_trace("Entered graphics menu state");
 }
 
 graphics_menu_state::~graphics_menu_state()
 {
-	debug::log::trace("Exiting graphics menu state...");
+	debug::log_trace("Exiting graphics menu state...");
 	
 	// Destruct menu
 	::disable_menu_controls(ctx);
@@ -353,7 +353,7 @@ graphics_menu_state::~graphics_menu_state()
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	
-	debug::log::trace("Exited graphics menu state");
+	debug::log_trace("Exited graphics menu state");
 }
 
 void graphics_menu_state::update_value_text_content()

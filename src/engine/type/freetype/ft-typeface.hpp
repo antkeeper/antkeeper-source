@@ -51,7 +51,7 @@ public:
 	virtual bool has_kerning() const;
 	virtual bool get_metrics(float height, font_metrics& metrics) const;
 	virtual bool get_metrics(float height, char32_t code, glyph_metrics& metrics) const;
-	virtual bool get_bitmap(float height, char32_t code, image& bitmap) const;
+	virtual bool get_bitmap(float height, char32_t code, std::vector<std::byte>& bitmap, std::uint32_t& bitmap_width, std::uint32_t& bitmap_height) const;
 	virtual bool get_kerning(float height, char32_t first, char32_t second, math::fvec2& offset) const;
 	
 private:

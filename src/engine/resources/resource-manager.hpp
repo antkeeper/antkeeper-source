@@ -154,7 +154,7 @@ std::shared_ptr<T> resource_manager::load(const std::filesystem::path& path)
 	
 	try
 	{
-		debug::log::trace("Loading resource \"{}\"...", path_string);
+		debug::log_trace("Loading resource \"{}\"...", path_string);
 		
 		// Open file for reading
 		auto deserialize_ctx = open_read(path);
@@ -163,13 +163,13 @@ std::shared_ptr<T> resource_manager::load(const std::filesystem::path& path)
 		std::shared_ptr<T> resource = resource_loader<T>::load(*this, *deserialize_ctx);
 		resource_cache[path] = resource;
 		
-		debug::log::trace("Loaded resource \"{}\"", path_string);
+		debug::log_trace("Loaded resource \"{}\"", path_string);
 		
 		return resource;
 	}
 	catch (const std::exception& e)
 	{
-		debug::log::error("Failed to load resource \"{}\": {}", path_string, e.what());
+		debug::log_error("Failed to load resource \"{}\": {}", path_string, e.what());
 	}
 	
 	return nullptr;
@@ -182,20 +182,20 @@ bool resource_manager::save(const T& resource, const std::filesystem::path& path
 	
 	try
 	{
-		debug::log::trace("Saving resource to \"{}\"...", path_string);
+		debug::log_trace("Saving resource to \"{}\"...", path_string);
 		
 		// Open file for writing
 		auto serialize_ctx = open_write(path);
 		
 		serializer<T>().serialize(resource, *serialize_ctx);
 		
-		debug::log::trace("Saved resource to \"{}\"", path_string);
+		debug::log_trace("Saved resource to \"{}\"", path_string);
 		
 		return true;
 	}
 	catch (const std::exception& e)
 	{
-		debug::log::error("Failed to save resource to \"{}\": {}", path_string, e.what());
+		debug::log_error("Failed to save resource to \"{}\": {}", path_string, e.what());
 	}
 	
 	return false;

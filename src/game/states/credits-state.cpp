@@ -32,7 +32,7 @@
 credits_state::credits_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering credits state...");
+	debug::log_trace("Entering credits state...");
 	
 	const math::fvec2 viewport_size = math::fvec2(ctx.window->get_viewport_size());
 	const math::fvec2 viewport_center = viewport_size * 0.5f;
@@ -133,12 +133,12 @@ credits_state::credits_state(::game& ctx):
 	
 	ctx.ui_scene->add_object(credits_text);
 	
-	debug::log::trace("Entered credits state");
+	debug::log_trace("Entered credits state");
 }
 
 credits_state::~credits_state()
 {
-	debug::log::trace("Exiting credits state...");
+	debug::log_trace("Exiting credits state...");
 	
 	// Disable credits skippers
 	ctx.input_mapper.disconnect();
@@ -150,5 +150,5 @@ credits_state::~credits_state()
 	// Destruct credits animations
 	ctx.animator->remove_animation(&credits_fade_in_animation);
 	
-	debug::log::trace("Exited credits state");
+	debug::log_trace("Exited credits state");
 }

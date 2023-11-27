@@ -1,6 +1,6 @@
 # Antkeeper Source
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ec1d9f614fdf4d5b8effa6b7b72b3d5e)](https://www.codacy.com/gh/antkeeper/antkeeper-source/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=antkeeper/antkeeper-source&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ec1d9f614fdf4d5b8effa6b7b72b3d5e)](https://app.codacy.com/gh/antkeeper/antkeeper-source/dashboard)
 [![TODOs](https://badgen.net/https/api.tickgit.com/badgen/github.com/antkeeper/antkeeper-source)](https://www.tickgit.com/browse?repo=github.com/antkeeper/antkeeper-source)
 [![Documentation](https://img.shields.io/badge/docs-doxygen-blue)](https://docs.antkeeper.com/latest/index)
 [![Discord](https://img.shields.io/discord/547138509610156036?logo=discord)](https://discord.gg/ptwHV4T)
@@ -11,9 +11,7 @@ Head over to [antkeeper.com](https://antkeeper.com/) if you're interested in fol
 
 ## Building
 
-Download the Antkeeper source code, build system, and all dependencies via the [Antkeeper superbuild](https://github.com/antkeeper/antkeeper-superbuild) repository:
-
-	git clone --recursive https://github.com/antkeeper/antkeeper-superbuild.git
+Download the Antkeeper source code, build system, and all dependencies via the [Antkeeper superbuild](https://github.com/antkeeper/antkeeper-superbuild) repository.
 
 Detailed configuration and build instructions can be found in the [README](https://github.com/antkeeper/antkeeper-superbuild/blob/master/README.md) of the superbuild repository.
 

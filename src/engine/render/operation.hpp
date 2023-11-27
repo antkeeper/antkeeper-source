@@ -22,7 +22,8 @@
 
 #include <engine/math/vector.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/drawing-mode.hpp>
+#include <engine/gl/vertex-buffer.hpp>
+#include <engine/gl/primitive-topology.hpp>
 #include <engine/render/material.hpp>
 #include <cstdint>
 #include <memory>
@@ -35,16 +36,21 @@ namespace render {
  */
 struct operation
 {
+	gl::primitive_topology primitive_topology{gl::primitive_topology::triangle_list};
 	const gl::vertex_array* vertex_array{nullptr};
-	gl::drawing_mode drawing_mode{gl::drawing_mode::triangles};
-	std::size_t start_index{};
-	std::size_t index_count{};
+	const gl::vertex_buffer* vertex_buffer{nullptr};
+	std::size_t vertex_offset{0};
+	std::size_t vertex_stride{0};
+	std::uint32_t first_vertex{0};
+	std::uint32_t vertex_count{0};
+	std::uint32_t first_instance{0};
+	std::uint32_t instance_count{1};
+	
 	std::shared_ptr<render::material> material;
 	
 	math::fmat4 transform{math::fmat4::identity()};
 	float depth{};
 	
-	std::size_t instance_count{};
 	std::span<const math::fmat4> matrix_palette{};
 	
 	std::uint32_t layer_mask{};

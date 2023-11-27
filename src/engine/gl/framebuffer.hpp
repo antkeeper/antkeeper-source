@@ -20,100 +20,73 @@
 #ifndef ANTKEEPER_GL_FRAMEBUFFER_HPP
 #define ANTKEEPER_GL_FRAMEBUFFER_HPP
 
+#include <engine/gl/framebuffer-attachment.hpp>
+#include <engine/gl/framebuffer-usage-bits.hpp>
 #include <array>
 #include <cstdint>
+#include <span>
+#include <vector>
 
 namespace gl {
 
-class rasterizer;
-class texture;
-
-enum class framebuffer_attachment_type: std::uint8_t
-{
-	color,
-	depth,
-	stencil
-};
-
+/**
+ *
+ */
 class framebuffer
 {
 public:
 	/**
-	 * Creates a framebuffer.
+	 * Constructs a framebuffer.
+	 *
+	 * @param attachments Framebuffer attachments.
+	 * @param width Width of the framebuffer.
+	 * @param height Height of the framebuffer.
 	 */
-	framebuffer(int width, int height);
-	framebuffer();
+	framebuffer(std::span<const framebuffer_attachment> attachments, std::uint32_t width, std::uint32_t height);
 	
 	/// Destroys a framebuffer.
 	~framebuffer();
 	
 	/**
-	 * Resizes the framebuffer. Note: This does not resize any attached textures.
+	 * Resizes the framebuffer.
 	 *
 	 * @param width New width of the framebuffer.
 	 * @param height New height of the framebuffer.
-	 */
-	void resize(const std::array<int, 2>& dimensions);
-	
-	/**
-	 * Attaches a color, depth, or stencil texture to the framebuffer.
 	 *
-	 * @param attachment_type Type of attachment.
-	 * @param texture Texture to attach.
-	 * @param level Mip level of the texture to attach.
+	 * @warning Does not resize framebuffer attachments.
 	 */
-	void attach(framebuffer_attachment_type attachment_type, texture* texture, std::uint8_t level = 0);
+	void resize(std::uint32_t width, std::uint32_t height);
 	
-	/// Returns the dimensions of the framebuffer, in pixels.
-	[[nodiscard]] inline const std::array<int, 2>& get_dimensions() const noexcept
+	/// Returns the framebuffer attachments.
+	[[nodiscard]] inline constexpr const std::vector<framebuffer_attachment>& attachments() const noexcept
+	{
+		return m_attachments;
+	}
+	
+	/// Returns the dimensions of the framebuffer.
+	[[nodiscard]] inline constexpr const std::array<std::uint32_t, 2>& dimensions() const noexcept
 	{
 		return m_dimensions;
 	}
 	
-	/// Returns the attached color texture, if any.
-	/// @{
-	[[nodiscard]] inline const texture* get_color_attachment() const noexcept
+	/// Returns the width of the framebuffer.
+	[[nodiscard]] inline constexpr std::uint32_t width() const noexcept
 	{
-		return m_color_attachment;
+		return m_dimensions[0];
 	}
-	[[nodiscard]] inline texture* get_color_attachment() noexcept
-	{
-		return m_color_attachment;
-	}
-	/// @}
 	
-	/// Returns the attached depth texture, if any.
-	/// @{
-	[[nodiscard]] inline const texture* get_depth_attachment() const noexcept
+	/// Returns the height of the framebuffer.
+	[[nodiscard]] inline constexpr std::uint32_t height() const noexcept
 	{
-		return m_depth_attachment;
+		return m_dimensions[1];
 	}
-	[[nodiscard]] inline texture* get_depth_attachment() noexcept
-	{
-		return m_depth_attachment;
-	}
-	/// @}
-	
-	/// Returns the attached stencil texture, if any.
-	/// @{
-	[[nodiscard]] inline const texture* get_stencil_attachment() const noexcept
-	{
-		return m_stencil_attachment;
-	}
-	[[nodiscard]] inline texture* get_stencil_attachment() noexcept
-	{
-		return m_stencil_attachment;
-	}
-	/// @}
 
 private:
-	friend class rasterizer;
+	friend class pipeline;
 	
-	unsigned int m_gl_framebuffer_id{0};
-	std::array<int, 2> m_dimensions{0, 0};
-	texture* m_color_attachment{nullptr};
-	texture* m_depth_attachment{nullptr};
-	texture* m_stencil_attachment{nullptr};
+	std::vector<framebuffer_attachment> m_attachments;
+	std::array<std::uint32_t, 2> m_dimensions{0, 0};
+	unsigned int m_gl_named_framebuffer{0};
 };
 
 } // namespace gl

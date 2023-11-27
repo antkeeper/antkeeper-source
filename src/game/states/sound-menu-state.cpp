@@ -32,7 +32,7 @@ using namespace hash::literals;
 sound_menu_state::sound_menu_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering sound menu state...");
+	debug::log_trace("Entering sound menu state...");
 	
 	// Construct menu item texts
 	master_volume_name_text = std::make_unique<scene::text>();
@@ -215,12 +215,12 @@ sound_menu_state::sound_menu_state(::game& ctx):
 	// Fade in menu
 	::menu::fade_in(ctx, nullptr);
 	
-	debug::log::trace("Entered sound menu state");
+	debug::log_trace("Entered sound menu state");
 }
 
 sound_menu_state::~sound_menu_state()
 {
-	debug::log::trace("Exiting sound menu state...");
+	debug::log_trace("Exiting sound menu state...");
 	
 	// Destruct menu
 	::disable_menu_controls(ctx);
@@ -229,7 +229,7 @@ sound_menu_state::~sound_menu_state()
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	
-	debug::log::trace("Exited sound menu state");
+	debug::log_trace("Exited sound menu state");
 }
 
 void sound_menu_state::update_value_text_content()

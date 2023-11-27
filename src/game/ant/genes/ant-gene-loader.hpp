@@ -42,7 +42,7 @@ void load_ant_gene(ant_gene<T>& gene, resource_manager& resource_manager, deseri
 	std::uint32_t format_identifier{0};
 	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&format_identifier), 1);
 	
-	// Validate file format identifier
+	// Validate file format identifier (U+1F9EC = DNA double helix)
 	if (format_identifier != 0xaca79ff0)
 	{
 		throw deserialize_error("Invalid ant gene file");

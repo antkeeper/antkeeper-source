@@ -19,37 +19,28 @@
 
 #include <engine/render/passes/bloom-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/gl/rasterizer.hpp>
+#include <engine/gl/pipeline.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/vertex-attribute.hpp>
-#include <engine/gl/drawing-mode.hpp>
-#include <engine/gl/texture-2d.hpp>
-#include <engine/gl/texture-wrapping.hpp>
-#include <engine/gl/texture-filter.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/gl/texture.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/render/context.hpp>
 #include <algorithm>
 #include <cmath>
-#include <glad/glad.h>
 
 namespace render {
 
-bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager):
-	pass(rasterizer, nullptr),
-	source_texture(nullptr),
-	mip_chain_length(0),
-	filter_radius(0.005f),
-	corrected_filter_radius{filter_radius, filter_radius}
+bloom_pass::bloom_pass(gl::pipeline* pipeline, resource_manager* resource_manager):
+	pass(pipeline, nullptr)
 {
 	// Load downsample shader template
 	auto downsample_shader_template = resource_manager->load<gl::shader_template>("bloom-downsample.glsl");
 	
 	// Build downsample shader program with Karis averaging
-	downsample_karis_shader = downsample_shader_template->build
+	m_downsample_karis_shader = downsample_shader_template->build
 	(
 		{
 			{"KARIS_AVERAGE", std::string()}
@@ -57,213 +48,201 @@ bloom_pass::bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_ma
 	);
 	
 	// Build downsample shader program without Karis averaging
-	downsample_shader = downsample_shader_template->build();
+	m_downsample_shader = downsample_shader_template->build();
 	
 	// Load upsample shader template
 	auto upsample_shader_template = resource_manager->load<gl::shader_template>("bloom-upsample.glsl");
 	
 	// Build upsample shader program
-	upsample_shader = upsample_shader_template->build();
+	m_upsample_shader = upsample_shader_template->build();
+	
+	// Construct framebuffer texture sampler
+	m_sampler = std::make_shared<gl::sampler>
+	(
+		gl::sampler_filter::linear,
+		gl::sampler_filter::linear,
+		gl::sampler_mipmap_mode::linear,
+		gl::sampler_address_mode::clamp_to_edge,
+		gl::sampler_address_mode::clamp_to_edge
+	);
+	
+	// Allocate empty vertex array
+	m_vertex_array = std::make_unique<gl::vertex_array>();
 }
 
 void bloom_pass::render(render::context& ctx)
 {
 	// Execute command buffer
-	for (const auto& command: command_buffer)
+	for (const auto& command: m_command_buffer)
 	{
 		command();
 	}
 }
 
-void bloom_pass::resize()
+void bloom_pass::set_source_texture(std::shared_ptr<gl::texture_2d> texture)
 {
-	unsigned int source_width = 1;
-	unsigned int source_height = 1;
-	if (source_texture)
+	if (m_source_texture != texture)
 	{
-		// Get source texture dimensions
-		source_width = source_texture->get_width();
-		source_height = source_texture->get_height();
+		m_source_texture = texture;
 		
-		// Correct filter radius according to source texture aspect ratio
-		const float aspect_ratio = static_cast<float>(source_height) / static_cast<float>(source_width);
-		corrected_filter_radius = {filter_radius * aspect_ratio, filter_radius};
-	}
-	
-	// Resize mip chain
-	for (unsigned int i = 0; i < mip_chain_length; ++i)
-	{
-		// Calculate mip dimensions
-		unsigned int mip_width = std::max<unsigned int>(1, source_width >> (i + 1));
-		unsigned int mip_height = std::max<unsigned int>(1, source_height >> (i + 1));
-		
-		// Resize mip texture
-		textures[i]->resize(mip_width, mip_height, nullptr);
-		
-		// Resize mip framebuffer
-		framebuffers[i]->resize({(int)mip_width, (int)mip_height});
-	}
-}
-
-void bloom_pass::set_source_texture(const gl::texture_2d* texture)
-{
-	if (texture != source_texture)
-	{
-		if (texture)
-		{
-			if (source_texture)
-			{
-				if (texture->get_width() != source_texture->get_width() || texture->get_height() != source_texture->get_height())
-				{
-					source_texture = texture;
-					resize();
-				}
-				else
-				{
-					source_texture = texture;
-				}
-			}
-			else
-			{
-				source_texture = texture;
-				resize();
-				rebuild_command_buffer();
-			}
-		}
-		else
-		{
-			source_texture = nullptr;
-			rebuild_command_buffer();
-		}
+		rebuild_mip_chain();
+		correct_filter_radius();
+		rebuild_command_buffer();
 	}
 }
 
 void bloom_pass::set_mip_chain_length(unsigned int length)
-{
-	unsigned int source_width = 1;
-	unsigned int source_height = 1;
-	if (source_texture)
-	{
-		// Get source texture dimensions
-		source_width = source_texture->get_width();
-		source_height = source_texture->get_height();
-	}
-	
-	if (length > mip_chain_length)
-	{
-		// Generate additional framebuffers
-		for (unsigned int i = mip_chain_length; i < length; ++i)
-		{
-			// Calculate mip resolution
-			unsigned int mip_width = std::max<unsigned int>(1, source_width >> (i + 1));
-			unsigned int mip_height = std::max<unsigned int>(1, source_height >> (i + 1));
-			
-			// Generate mip texture
-			auto texture = std::make_unique<gl::texture_2d>(mip_width, mip_height, gl::pixel_type::float_16, gl::pixel_format::rgb);
-			texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-			texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-			texture->set_max_anisotropy(0.0f);
-			
-			// Generate mip framebuffer
-			auto framebuffer = std::make_unique<gl::framebuffer>(mip_width, mip_height);
-			framebuffer->attach(gl::framebuffer_attachment_type::color, texture.get());
-			
-			textures.push_back(std::move(texture));
-			framebuffers.emplace_back(std::move(framebuffer));
-		}
-	}
-	else if (length < mip_chain_length)
-	{
-		framebuffers.resize(length);
-		textures.resize(length);
-	}
-	
-	// Update mip chain length
-	mip_chain_length = length;
-	
-	// Rebuild command buffer
+{	
+	m_mip_chain_length = length;
+	rebuild_mip_chain();
 	rebuild_command_buffer();
 }
 
 void bloom_pass::set_filter_radius(float radius)
 {
-	filter_radius = radius;
-	
-	// Get aspect ratio of source texture
-	float aspect_ratio = 1.0f;
-	if (source_texture)
+	m_filter_radius = radius;
+	correct_filter_radius();
+}
+
+void bloom_pass::rebuild_mip_chain()
+{
+	if (m_source_texture && m_mip_chain_length)
 	{
-		aspect_ratio = static_cast<float>(source_texture->get_height()) / static_cast<float>(source_texture->get_width());
+		// Rebuild target image
+		m_target_image = std::make_shared<gl::image_2d>
+		(
+			gl::format::r16g16b16_sfloat,
+			m_source_texture->get_image_view()->get_image()->get_dimensions()[0],
+			m_source_texture->get_image_view()->get_image()->get_dimensions()[1],
+			m_mip_chain_length
+		);
+		
+		m_target_textures.resize(m_mip_chain_length);
+		m_target_framebuffers.resize(m_mip_chain_length);
+		for (unsigned int i = 0; i < m_mip_chain_length; ++i)
+		{
+			// Rebuild mip texture
+			m_target_textures[i] = std::make_shared<gl::texture_2d>
+			(
+				std::make_shared<gl::image_view_2d>
+				(
+					m_target_image,
+					m_target_image->get_format(),
+					i,
+					1
+				),
+				m_sampler
+			);
+			
+			// Rebuild mip framebuffer
+			const gl::framebuffer_attachment attachments[1] =
+			{{
+				gl::color_attachment_bit,
+				m_target_textures[i]->get_image_view(),
+				0
+			}};
+			m_target_framebuffers[i] = std::make_shared<gl::framebuffer>
+			(
+				attachments,
+				m_target_image->get_dimensions()[0] >> i,
+				m_target_image->get_dimensions()[1] >> i
+			);
+		}
+	}
+	else
+	{
+		m_target_image = nullptr;
+		m_target_textures.clear();
+		m_target_framebuffers.clear();
+	}
+}
+
+void bloom_pass::correct_filter_radius()
+{
+	// Get aspect ratio of target image
+	float aspect_ratio = 1.0f;
+	if (m_target_image)
+	{
+		aspect_ratio = static_cast<float>(m_target_image->get_dimensions()[1]) /
+			static_cast<float>(m_target_image->get_dimensions()[0]);
 	}
 	
-	// Correct filter radius according to source texture aspect ratio
-	corrected_filter_radius = {filter_radius * aspect_ratio, filter_radius};
+	// Correct filter radius according to target image aspect ratio
+	m_corrected_filter_radius = {m_filter_radius * aspect_ratio, m_filter_radius};
 }
 
 void bloom_pass::rebuild_command_buffer()
 {
-	command_buffer.clear();
+	m_command_buffer.clear();
 	
-	if (!source_texture ||
-		!mip_chain_length ||
-		!downsample_karis_shader ||
-		!downsample_shader ||
-		!upsample_shader)
+	if (!m_source_texture ||
+		!m_mip_chain_length ||
+		!m_downsample_karis_shader ||
+		!m_downsample_shader ||
+		!m_upsample_shader)
 	{
 		return;
 	}
 	
 	// Setup downsample state
-	command_buffer.emplace_back
+	m_command_buffer.emplace_back
 	(
-		[]()
+		[&]()
 		{
-			glDisable(GL_DEPTH_TEST);
-			glDepthMask(GL_FALSE);
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
-			glDisable(GL_BLEND);
+			m_pipeline->set_primitive_topology(gl::primitive_topology::triangle_list);
+			m_pipeline->bind_vertex_array(m_vertex_array.get());
+			m_pipeline->set_depth_test_enabled(false);
+			m_pipeline->set_cull_mode(gl::cull_mode::back);
+			m_pipeline->set_color_blend_enabled(false);
 		}
 	);
 	
 	// Downsample first mip with Karis average
-	if (auto source_texture_var = downsample_karis_shader->variable("source_texture"))
+	if (auto source_texture_var = m_downsample_karis_shader->variable("source_texture"))
 	{
-		command_buffer.emplace_back
+		m_command_buffer.emplace_back
 		(
 			[&, source_texture_var]()
 			{
-				rasterizer->use_program(*downsample_karis_shader);
-				rasterizer->use_framebuffer(*framebuffers[0]);
-				rasterizer->set_viewport(0, 0, textures[0]->get_width(), textures[0]->get_height());
+				m_pipeline->bind_shader_program(m_downsample_karis_shader.get());
+				m_pipeline->bind_framebuffer(m_target_framebuffers[0].get());
 				
-				source_texture_var->update(*source_texture);
+				const auto& target_dimensions = m_target_image->get_dimensions();
+				const gl::viewport viewport[1] = {{0.0f, 0.0f, static_cast<float>(target_dimensions[0]), static_cast<float>(target_dimensions[1])}};
+				m_pipeline->set_viewport(0, viewport);
 				
-				rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
+				source_texture_var->update(*m_source_texture);
+				
+				// Draw fullscreen triangle
+				m_pipeline->draw(3, 1, 0, 0);
 			}
 		);
 	}
 	
 	// Downsample remaining mips
-	if (mip_chain_length > 1)
+	if (m_mip_chain_length > 1)
 	{
-		if (auto source_texture_var = downsample_shader->variable("source_texture"))
+		if (auto source_texture_var = m_downsample_shader->variable("source_texture"))
 		{
-			command_buffer.emplace_back([&](){rasterizer->use_program(*downsample_shader);});
+			m_command_buffer.emplace_back([&](){m_pipeline->bind_shader_program(m_downsample_shader.get());});
 			
-			for (int i = 1; i < static_cast<int>(mip_chain_length); ++i)
+			for (int i = 1; i < static_cast<int>(m_mip_chain_length); ++i)
 			{
-				command_buffer.emplace_back
+				m_command_buffer.emplace_back
 				(
 					[&, source_texture_var, i]()
 					{
-						rasterizer->use_framebuffer(*framebuffers[i]);
-						rasterizer->set_viewport(0, 0, textures[i]->get_width(), textures[i]->get_height());
+						m_pipeline->bind_framebuffer(m_target_framebuffers[i].get());
+						
+						const auto& target_dimensions = m_target_image->get_dimensions();
+						const gl::viewport viewport[1] = {{0.0f, 0.0f, static_cast<float>(target_dimensions[0] >> i), static_cast<float>(target_dimensions[1] >> i)}};
+						m_pipeline->set_viewport(0, viewport);
 						
 						// Use previous downsample texture as downsample source
-						source_texture_var->update(*textures[i - 1]);
+						source_texture_var->update(*m_target_textures[i - 1]);
 						
-						rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
+						// Draw fullscreen triangle
+						m_pipeline->draw(3, 1, 0, 0);
 					}
 				);
 			}
@@ -271,43 +250,54 @@ void bloom_pass::rebuild_command_buffer()
 	}
 	
 	// Setup upsample state
-	command_buffer.emplace_back
+	m_command_buffer.emplace_back
 	(
 		[&]()
 		{
 			// Enable additive blending
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_ONE, GL_ONE);
-			glBlendEquation(GL_FUNC_ADD);
+			m_pipeline->set_color_blend_enabled(true);
+			m_pipeline->set_color_blend_equation
+			({
+				gl::blend_factor::one,
+				gl::blend_factor::one,
+				gl::blend_op::add,
+				gl::blend_factor::one,
+				gl::blend_factor::one,
+				gl::blend_op::add
+			});
 			
 			// Bind upsample shader
-			rasterizer->use_program(*upsample_shader);
+			m_pipeline->bind_shader_program(m_upsample_shader.get());
 		}
 	);
 	
 	// Update upsample filter radius
-	if (auto filter_radius_var = upsample_shader->variable("filter_radius"))
+	if (auto filter_radius_var = m_upsample_shader->variable("filter_radius"))
 	{
-		command_buffer.emplace_back([&, filter_radius_var](){filter_radius_var->update(corrected_filter_radius);});
+		m_command_buffer.emplace_back([&, filter_radius_var](){filter_radius_var->update(m_corrected_filter_radius);});
 	}
 	
 	// Upsample
-	if (auto source_texture_var = upsample_shader->variable("source_texture"))
+	if (auto source_texture_var = m_upsample_shader->variable("source_texture"))
 	{
-		for (int i = static_cast<int>(mip_chain_length) - 1; i > 0; --i)
+		for (int i = static_cast<int>(m_mip_chain_length) - 1; i > 0; --i)
 		{
 			const int j = i - 1;
 			
-			command_buffer.emplace_back
+			m_command_buffer.emplace_back
 			(
 				[&, source_texture_var, i, j]()
 				{
-					rasterizer->use_framebuffer(*framebuffers[j]);
-					rasterizer->set_viewport(0, 0, textures[j]->get_width(), textures[j]->get_height());
+					m_pipeline->bind_framebuffer(m_target_framebuffers[j].get());
 					
-					source_texture_var->update(*textures[i]);
+					const auto& target_dimensions = m_target_image->get_dimensions();
+					const gl::viewport viewport[1] = {{0.0f, 0.0f, static_cast<float>(target_dimensions[0] >> j), static_cast<float>(target_dimensions[1] >> j)}};
+					m_pipeline->set_viewport(0, viewport);
 					
-					rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
+					source_texture_var->update(*m_target_textures[i]);
+					
+					// Draw fullscreen triangle
+					m_pipeline->draw(3, 1, 0, 0);
 				}
 			);
 		}

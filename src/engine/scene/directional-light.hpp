@@ -21,7 +21,7 @@
 #define ANTKEEPER_SCENE_DIRECTIONAL_LIGHT_HPP
 
 #include <engine/scene/light.hpp>
-#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/texture.hpp>
 #include <engine/math/vector.hpp>
 #include <memory>
 #include <span>
@@ -167,6 +167,12 @@ public:
 		return m_shadow_framebuffer;
 	}
 	
+	/// Returns the shadow map texture.
+	[[nodiscard]] inline constexpr const std::shared_ptr<gl::texture_2d>& get_shadow_texture() const noexcept
+	{
+		return m_shadow_texture;
+	}
+	
 	/// Returns the shadow bias factor.
 	[[nodiscard]] inline constexpr float get_shadow_bias() const noexcept
 	{
@@ -242,7 +248,8 @@ private:
 	math::fvec3 m_colored_illuminance{};
 	
 	bool m_shadow_caster{false};
-	std::shared_ptr<gl::framebuffer> m_shadow_framebuffer{nullptr};
+	std::shared_ptr<gl::framebuffer> m_shadow_framebuffer;
+	std::shared_ptr<gl::texture_2d> m_shadow_texture;
 	float m_shadow_bias{0.005f};
 	unsigned int m_shadow_cascade_count{4};
 	float m_shadow_max_distance{100.0f};

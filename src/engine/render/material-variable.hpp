@@ -22,10 +22,7 @@
 
 #include <engine/math/vector.hpp>
 #include <engine/math/matrix.hpp>
-#include <engine/gl/texture-1d.hpp>
-#include <engine/gl/texture-2d.hpp>
-#include <engine/gl/texture-3d.hpp>
-#include <engine/gl/texture-cube.hpp>
+#include <engine/gl/texture.hpp>
 #include <engine/render/material-variable-type.hpp>
 #include <memory>
 #include <vector>

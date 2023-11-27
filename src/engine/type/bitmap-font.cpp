@@ -27,28 +27,31 @@ bitmap_font::bitmap_font(const font_metrics& metrics):
 	font(metrics)
 {}
 
-bitmap_font::bitmap_font()
+bitmap_font::bitmap_font():
+	bitmap_font(font_metrics{})
 {}
 
 bool bitmap_font::contains(char32_t code) const
 {
-	return glyphs.count(code) != 0;
+	return m_glyphs.count(code) != 0;
 }
 
-void bitmap_font::insert(char32_t code, const bitmap_glyph& glyph)
+bitmap_glyph& bitmap_font::insert(char32_t code)
 {
-	glyphs[code] = glyph;
+	return std::get<0>(m_glyphs.try_emplace(code))->second;
 }
 
 void bitmap_font::remove(char32_t code)
 {
-	if (auto it = glyphs.find(code); it != glyphs.end())
-		glyphs.erase(it);
+	if (auto it = m_glyphs.find(code); it != m_glyphs.end())
+	{
+		m_glyphs.erase(it);
+	}
 }
 
 void bitmap_font::clear()
 {
-	glyphs.clear();
+	m_glyphs.clear();
 }
 
 bool bitmap_font::pack(bool resize)
@@ -66,27 +69,27 @@ bool bitmap_font::pack(bool resize)
 	};
 	
 	// Calculate initial size of the font bitmap
-	std::uint32_t bitmap_w;
-	std::uint32_t bitmap_h;
+	std::uint32_t bitmap_w = 0;
+	std::uint32_t bitmap_h = 0;
 	if (resize)
 	{
 		// Find the maximum glyph dimensions
 		std::uint32_t max_glyph_w = 0;
 		std::uint32_t max_glyph_h = 0;
-		for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
+		for (auto it = m_glyphs.begin(); it != m_glyphs.end(); ++it)
 		{
-			max_glyph_w = std::max(max_glyph_w, static_cast<std::uint32_t>(it->second.bitmap.size().x()));
-			max_glyph_h = std::max(max_glyph_h, static_cast<std::uint32_t>(it->second.bitmap.size().y()));
+			max_glyph_w = std::max(max_glyph_w, it->second.bitmap_width);
+			max_glyph_h = std::max(max_glyph_h, it->second.bitmap_height);
 		}
 		
 		// Find minimum power of two dimensions that can accommodate maximum glyph dimensions
 		bitmap_w = ceil2(max_glyph_w);
 		bitmap_h = ceil2(max_glyph_h);
 	}
-	else
+	else if (m_texture)
 	{
-		bitmap_w = static_cast<std::uint32_t>(bitmap.size().x());
-		bitmap_h = static_cast<std::uint32_t>(bitmap.size().y());
+		bitmap_w = m_texture->get_image_view()->get_image()->get_dimensions()[0];
+		bitmap_h = m_texture->get_image_view()->get_image()->get_dimensions()[1];
 	}
 	
 	bool packed = false;
@@ -96,10 +99,10 @@ bool bitmap_font::pack(bool resize)
 	while (!packed)
 	{
 		// For each glyph
-		for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
+		for (auto it = m_glyphs.begin(); it != m_glyphs.end(); ++it)
 		{
 			// Attempt to pack glyph bitmap
-			const auto* node = glyph_pack.pack(static_cast<std::uint32_t>(it->second.bitmap.size().x()), static_cast<std::uint32_t>(it->second.bitmap.size().y()));
+			const auto* node = glyph_pack.pack(it->second.bitmap_width, it->second.bitmap_height);
 			
 			// Abort if packing failed
 			if (!node)
@@ -110,7 +113,7 @@ bool bitmap_font::pack(bool resize)
 		}
 		
 		// Check if not all glyphs were packed
-		if (glyph_map.size() != glyphs.size())
+		if (glyph_map.size() != m_glyphs.size())
 		{
 			if (!resize)
 			{
@@ -141,82 +144,103 @@ bool bitmap_font::pack(bool resize)
 	// Copy glyph bitmaps into font bitmap
 	if (packed)
 	{
-		// Resize font bitmap
-		bitmap.resize({bitmap_w, bitmap_h, 1});
+		// Resize bitmap font image
+		if (!m_texture ||
+			bitmap_w != m_texture->get_image_view()->get_image()->get_dimensions()[0] ||
+			bitmap_h != m_texture->get_image_view()->get_image()->get_dimensions()[1])
+		{
+			
+			// Construct font bitmap sampler
+			if (!m_sampler)
+			{
+				m_sampler = std::make_shared<gl::sampler>
+				(
+					gl::sampler_filter::linear,
+					gl::sampler_filter::linear,
+					gl::sampler_mipmap_mode::linear,
+					gl::sampler_address_mode::clamp_to_edge,
+					gl::sampler_address_mode::clamp_to_edge
+				);
+			}
+			
+			const std::uint32_t mip_count = static_cast<std::uint32_t>(std::bit_width(std::max(bitmap_w, bitmap_h)));
+			m_texture = std::make_shared<gl::texture_2d>
+			(
+				std::make_shared<gl::image_view_2d>
+				(
+					std::make_shared<gl::image_2d>
+					(
+						gl::format::r8_unorm,
+						bitmap_w,
+						bitmap_h,
+						mip_count
+					),
+					gl::format::r8_unorm,
+					0,
+					mip_count
+				),
+				m_sampler
+			);
+		}
 		
 		// For each glyph
-		for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
+		for (auto it = m_glyphs.begin(); it != m_glyphs.end(); ++it)
 		{
 			// Find rect pack node corresponding to the glyph
 			const auto* node = glyph_map[it->first];
 			
-			// Copy glyph bitmap data into font bitmap
-			image& glyph_bitmap = it->second.bitmap;
-			bitmap.copy(glyph_bitmap, {glyph_bitmap.size().x(), glyph_bitmap.size().y()}, {0, 0}, math::uvec2{node->bounds.min.x(), node->bounds.min.y()});
+			// Write glyph bitmap data into bitmap font image
+			m_texture->get_image_view()->get_image()->write
+			(
+				0,
+				node->bounds.min.x(),
+				node->bounds.min.y(),
+				0,
+				it->second.bitmap_width,
+				it->second.bitmap_height,
+				1,
+				gl::format::r8_unorm,
+				it->second.bitmap
+			);
 			
 			// Record coordinates of glyph bitmap within font bitmap
 			it->second.position = {node->bounds.min.x(), node->bounds.min.y()};
-			
-			// Clear glyph bitmap data
-			glyph_bitmap.resize({0u, 0u, 0u});
 		}
+		
+		// Regenerate mipmaps
+		m_texture->get_image_view()->get_image()->generate_mipmaps();
 	}
 	
 	return packed;
 }
 
-void bitmap_font::unpack(bool resize)
-{
-	for (auto it = glyphs.begin(); it != glyphs.end(); ++it)
-	{
-		bitmap_glyph& glyph = it->second;
-		
-		// Get glyph dimensions
-		std::uint32_t glyph_width = static_cast<std::uint32_t>(glyph.metrics.width + 0.5f);
-		std::uint32_t glyph_height = static_cast<std::uint32_t>(glyph.metrics.height + 0.5f);
-		
-		// Reformat glyph bitmap if necessary
-		if (!glyph.bitmap.compatible(bitmap))
-		{
-			glyph.bitmap.format(bitmap.channels(), bitmap.bit_depth());
-		}
-		
-		// Resize glyph bitmap if necessary
-		if (static_cast<std::uint32_t>(glyph.bitmap.size().x()) != glyph_width || static_cast<std::uint32_t>(glyph.bitmap.size().y()) != glyph_height)
-		{
-			glyph.bitmap.resize(math::uvec2{glyph_width, glyph_height});
-		}
-		
-		// Copy pixel data from font bitmap to glyph bitmap
-		glyph.bitmap.copy(bitmap, math::uvec2{glyph_width, glyph_height}, math::uvec2{glyph.position.x(), glyph.position.y()});
-	}
-	
-	// Free font bitmap pixel data
-	if (resize)
-	{
-		bitmap.resize({0, 0, 0});
-	}
-}
-
 const glyph_metrics& bitmap_font::get_glyph_metrics(char32_t code) const
 {
-	if (auto it = glyphs.find(code); it != glyphs.end())
+	if (auto it = m_glyphs.find(code); it != m_glyphs.end())
+	{
 		return it->second.metrics;
+	}
 	throw std::invalid_argument("Cannot fetch metrics of unknown bitmap glyph");
 }
 
-const bitmap_glyph& bitmap_font::get_glyph(char32_t code) const
+const bitmap_glyph* bitmap_font::get_glyph(char32_t code) const
 {
-	if (auto it = glyphs.find(code); it != glyphs.end())
-		return it->second;
-	throw std::invalid_argument("Cannot get unknown bitmap glyph");
+	if (auto it = m_glyphs.find(code); it != m_glyphs.end())
+	{
+		return &it->second;
+	}
+	
+	return nullptr;
 }
 
-bitmap_glyph& bitmap_font::get_glyph(char32_t code)
+bitmap_glyph* bitmap_font::get_glyph(char32_t code)
 {
-	if (auto it = glyphs.find(code); it != glyphs.end())
-		return it->second;
-	throw std::invalid_argument("Cannot get unknown bitmap glyph");
+	if (auto it = m_glyphs.find(code); it != m_glyphs.end())
+	{
+		return &it->second;
+	}
+	
+	return nullptr;
 }
 
 } // namespace type

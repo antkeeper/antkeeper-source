@@ -30,15 +30,15 @@ namespace app {
 sdl_input_manager::sdl_input_manager()
 {
 	// Init SDL joystick and controller subsystems
-	debug::log::trace("Initializing SDL joystick and controller subsystems...");
+	debug::log_trace("Initializing SDL joystick and controller subsystems...");
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0)
 	{
-		debug::log::error("Failed to initialize SDL joystick and controller subsytems: {}", SDL_GetError());
+		debug::log_error("Failed to initialize SDL joystick and controller subsytems: {}", SDL_GetError());
 		throw std::runtime_error("Failed to initialize SDL joystick and controller subsytems");
 	}
 	else
 	{
-		debug::log::trace("Initialized SDL joystick and controller subsystems");
+		debug::log_trace("Initialized SDL joystick and controller subsystems");
 	}
 	
 	// Register keyboard and mouse
@@ -53,9 +53,9 @@ sdl_input_manager::sdl_input_manager()
 sdl_input_manager::~sdl_input_manager()
 {
 	// Quit SDL joystick and controller subsystems
-	debug::log::trace("Quitting SDL joystick and controller subsystems...");
+	debug::log_trace("Quitting SDL joystick and controller subsystems...");
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
-	debug::log::trace("Quit SDL joystick and controller subsystems...");
+	debug::log_trace("Quit SDL joystick and controller subsystems...");
 }
 
 void sdl_input_manager::update()
@@ -80,14 +80,14 @@ void sdl_input_manager::update()
 		}
 		else if (status < 0)
 		{
-			debug::log::error("Failed to peep SDL events: {}", SDL_GetError());
+			debug::log_error("Failed to peep SDL events: {}", SDL_GetError());
 			throw std::runtime_error("Failed to peep SDL events");
 		}
 		
 		switch (event.type)
 		{
 			case SDL_QUIT:
-				debug::log::debug("Application quit requested");
+				debug::log_debug("Application quit requested");
 				this->m_event_dispatcher.dispatch<input::application_quit_event>({});
 				break;
 			
@@ -109,7 +109,7 @@ void sdl_input_manager::update()
 		}
 		else if (status < 0)
 		{
-			debug::log::error("Failed to peep SDL events: {}", SDL_GetError());
+			debug::log_error("Failed to peep SDL events: {}", SDL_GetError());
 			throw std::runtime_error("Failed to peep SDL events");
 		}
 		
@@ -254,7 +254,7 @@ void sdl_input_manager::update()
 						if (auto it = m_gamepad_map.find(event.cdevice.which); it != m_gamepad_map.end())
 						{
 							// Gamepad reconnected
-							debug::log::info("Reconnected gamepad {}", event.cdevice.which);
+							debug::log_info("Reconnected gamepad {}", event.cdevice.which);
 							it->second->connect();
 						}
 						else
@@ -267,7 +267,7 @@ void sdl_input_manager::update()
 							::uuid gamepad_uuid;
 							std::memcpy(gamepad_uuid.data.data(), sdl_guid.data, gamepad_uuid.data.size());
 							
-							debug::log::info("Connected gamepad {}; name: \"{}\"; UUID: {}", event.cdevice.which, controller_name, gamepad_uuid.string());
+							debug::log_info("Connected gamepad {}; name: \"{}\"; UUID: {}", event.cdevice.which, controller_name, gamepad_uuid.string());
 							
 							// Allocate gamepad
 							auto& gamepad = m_gamepad_map[event.cdevice.which];
@@ -283,7 +283,7 @@ void sdl_input_manager::update()
 					}
 					else
 					{
-						debug::log::error("Failed to connect gamepad {}: {}", event.cdevice.which, SDL_GetError());
+						debug::log_error("Failed to connect gamepad {}: {}", event.cdevice.which, SDL_GetError());
 						SDL_ClearError();
 					}
 				}
@@ -303,7 +303,7 @@ void sdl_input_manager::update()
 						it->second->disconnect();
 					}
 					
-					debug::log::info("Disconnected gamepad {}", event.cdevice.which);
+					debug::log_info("Disconnected gamepad {}", event.cdevice.which);
 				}
 				
 				break;
@@ -322,7 +322,7 @@ void sdl_input_manager::set_cursor_visible(bool visible)
 {
 	if (SDL_ShowCursor((visible) ? SDL_ENABLE : SDL_DISABLE) < 0)
 	{
-		debug::log::error("Failed to set cursor visibility: \"{}\"", SDL_GetError());
+		debug::log_error("Failed to set cursor visibility: \"{}\"", SDL_GetError());
 		SDL_ClearError();
 	}
 }
@@ -331,7 +331,7 @@ void sdl_input_manager::set_relative_mouse_mode(bool enabled)
 {
 	if (SDL_SetRelativeMouseMode((enabled) ? SDL_TRUE : SDL_FALSE) < 0)
 	{
-		debug::log::error("Failed to set relative mouse mode: \"{}\"", SDL_GetError());
+		debug::log_error("Failed to set relative mouse mode: \"{}\"", SDL_GetError());
 		SDL_ClearError();
 	}
 }

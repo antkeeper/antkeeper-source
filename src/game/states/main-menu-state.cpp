@@ -41,7 +41,6 @@
 #include <engine/math/projection.hpp>
 #include <engine/physics/light/exposure.hpp>
 #include <engine/render/model.hpp>
-#include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/hash/fnv1a.hpp>
@@ -51,9 +50,7 @@
 main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	game_state(ctx)
 {
-	debug::log::trace("Entering main menu state...");
-	
-	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
+	debug::log_trace("Entering main menu state...");
 	
 	const math::fvec2 viewport_size = math::fvec2(ctx.window->get_viewport_size());
 	const math::fvec2 viewport_center = viewport_size * 0.5f;
@@ -270,9 +267,6 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
 	
-	// Enable UI color clear
-	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
-	
 	// Setup window resized callback
 	window_resized_subscription = ctx.window->get_resized_channel().subscribe
 	(
@@ -294,12 +288,12 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	// Enable menu controls
 	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
-	debug::log::trace("Entered main menu state");
+	debug::log_trace("Entered main menu state");
 }
 
 main_menu_state::~main_menu_state()
 {
-	debug::log::trace("Exiting main menu state...");
+	debug::log_trace("Exiting main menu state...");
 	
 	// Destruct menu
 	::disable_menu_controls(ctx);
@@ -317,7 +311,7 @@ main_menu_state::~main_menu_state()
 	// Destruct text
 	ctx.ui_scene->remove_object(*title_text);
 	
-	debug::log::trace("Exited main menu state");
+	debug::log_trace("Exited main menu state");
 }
 
 void main_menu_state::fade_in_title()

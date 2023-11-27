@@ -24,7 +24,7 @@
 #include <engine/gl/shader-template.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
-#include <engine/gl/rasterizer.hpp>
+#include <engine/gl/pipeline.hpp>
 #include <engine/gl/vertex-array.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/resources/resource-manager.hpp>
@@ -43,7 +43,7 @@ public:
 	/**
 	 * Constructs a light probe stage.
 	 *
-	 * @param rasterizer GL rasterizer.
+	 * @param pipeline Graphics pipeline.
 	 * @param resource_manager Resource manager for loading shader templates.
 	 *
 	 * @exception std::runtime_error Failed to build cubemap to spherical harmonics shader program.
@@ -53,7 +53,7 @@ public:
 	 * @exception std::runtime_error Failed to build cubemap filter LUT shader program.
 	 * @exception std::runtime_error Cubemap filter LUT shader program is missing one or more required shader variables.
 	 */
-	light_probe_stage(gl::rasterizer& rasterizer, ::resource_manager& resource_manager);
+	light_probe_stage(gl::pipeline& pipeline, ::resource_manager& resource_manager);
 	
 	void execute(render::context& ctx) override;
 	
@@ -113,7 +113,12 @@ private:
 	void update_light_probes_luminance(const std::vector<scene::object_base*>& light_probes);
 	void update_light_probes_illuminance(const std::vector<scene::object_base*>& light_probes);
 	
-	gl::rasterizer* m_rasterizer;
+	gl::pipeline* m_pipeline;
+	
+	std::vector<std::shared_ptr<gl::sampler>> m_downsample_samplers;
+	std::vector<std::shared_ptr<gl::sampler>> m_filter_samplers;
+	std::unique_ptr<gl::vertex_array> m_vertex_array;
+	
 	std::shared_ptr<gl::shader_template> m_cubemap_to_sh_shader_template;
 	std::unique_ptr<gl::shader_program> m_cubemap_to_sh_shader_program;
 	const gl::shader_variable* m_cubemap_to_sh_cubemap_var{};
@@ -127,7 +132,7 @@ private:
 	std::vector<std::unique_ptr<gl::framebuffer>> m_cubemap_downsample_framebuffers;
 	std::unique_ptr<gl::texture_cube> m_cubemap_downsample_texture;
 	
-	std::unique_ptr<gl::texture_2d> m_cubemap_filter_lut_texture;
+	std::shared_ptr<gl::texture_2d> m_cubemap_filter_lut_texture;
 	std::unique_ptr<gl::framebuffer> m_cubemap_filter_lut_framebuffer;
 	std::shared_ptr<gl::shader_template> m_cubemap_filter_lut_shader_template;
 	std::unique_ptr<gl::shader_program> m_cubemap_filter_lut_shader_program;

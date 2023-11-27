@@ -48,20 +48,25 @@ public:
 	sdl_window& operator=(sdl_window&&) = delete;
 	
 	virtual ~sdl_window();
-	virtual void set_title(const std::string& title);
-	virtual void set_position(const math::ivec2& position);
-	virtual void set_size(const math::ivec2& size);
-	virtual void set_minimum_size(const math::ivec2& size);
-	virtual void set_maximum_size(const math::ivec2& size);
-	virtual void set_maximized(bool maximized);
-	virtual void set_fullscreen(bool fullscreen);
-	virtual void set_v_sync(bool v_sync);
-	virtual void make_current();
-	virtual void swap_buffers();
+	void set_title(const std::string& title) override;
+	void set_position(const math::ivec2& position) override;
+	void set_size(const math::ivec2& size) override;
+	void set_minimum_size(const math::ivec2& size) override;
+	void set_maximum_size(const math::ivec2& size) override;
+	void set_maximized(bool maximized) override;
+	void set_fullscreen(bool fullscreen) override;
+	void set_v_sync(bool v_sync) override;
+	void make_current() override;
+	void swap_buffers() override;
 	
-	[[nodiscard]] inline virtual gl::rasterizer* get_rasterizer() noexcept
+	[[nodiscard]] inline const gl::pipeline& get_graphics_pipeline() const noexcept override
 	{
-		return m_rasterizer.get();
+		return *m_graphics_pipeline;
+	}
+	
+	[[nodiscard]] inline gl::pipeline& get_graphics_pipeline() noexcept override
+	{
+		return *m_graphics_pipeline;
 	}
 	
 private:
@@ -69,7 +74,7 @@ private:
 	
 	SDL_Window* m_internal_window;
 	SDL_GLContext m_internal_context;
-	std::unique_ptr<gl::rasterizer> m_rasterizer;
+	std::unique_ptr<gl::pipeline> m_graphics_pipeline;
 };
 
 } // namespace app

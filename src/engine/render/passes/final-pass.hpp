@@ -26,7 +26,7 @@
 #include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/texture.hpp>
 #include <functional>
 #include <memory>
 
@@ -40,29 +40,30 @@ namespace render {
 class final_pass: public pass
 {
 public:
-	final_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
+	final_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager);
 	void render(render::context& ctx) override;
 	
-	void set_color_texture(const gl::texture_2d* texture);
-	void set_bloom_texture(const gl::texture_2d* texture) noexcept;
+	void set_color_texture(std::shared_ptr<gl::texture_2d> texture);
+	void set_bloom_texture(std::shared_ptr<gl::texture_2d> texture) noexcept;
 	void set_bloom_weight(float weight) noexcept;
 	void set_blue_noise_texture(std::shared_ptr<gl::texture_2d> texture);
 
 private:
 	void rebuild_command_buffer();
 	
-	std::unique_ptr<gl::shader_program> shader_program;
+	std::unique_ptr<gl::vertex_array> m_vertex_array;
+	std::unique_ptr<gl::shader_program> m_shader_program;
 	
-	const gl::texture_2d* color_texture;
-	const gl::texture_2d* bloom_texture;
-	float bloom_weight;
-	std::shared_ptr<gl::texture_2d> blue_noise_texture;
-	float blue_noise_scale;
-	math::fvec2 resolution;
-	float time;
-	int frame{};
+	std::shared_ptr<gl::texture_2d> m_color_texture{};
+	std::shared_ptr<gl::texture_2d> m_bloom_texture{};
+	float m_bloom_weight{0.04f};
+	std::shared_ptr<gl::texture_2d> m_blue_noise_texture;
+	float m_blue_noise_scale{1.0f};
+	math::fvec2 m_resolution{};
+	float m_time{};
+	int m_frame{};
 	
-	std::vector<std::function<void()>> command_buffer;
+	std::vector<std::function<void()>> m_command_buffer;
 };
 
 } // namespace render

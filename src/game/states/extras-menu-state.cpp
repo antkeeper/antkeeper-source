@@ -33,7 +33,7 @@ using namespace hash::literals;
 extras_menu_state::extras_menu_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering extras menu state...");
+	debug::log_trace("Entering extras menu state...");
 	
 	// Construct menu item texts
 	credits_text = std::make_unique<scene::text>();
@@ -123,12 +123,12 @@ extras_menu_state::extras_menu_state(::game& ctx):
 	// Queue enable menu controls
 	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
-	debug::log::trace("Entered extras menu state");
+	debug::log_trace("Entered extras menu state");
 }
 
 extras_menu_state::~extras_menu_state()
 {
-	debug::log::trace("Exiting extras menu state...");
+	debug::log_trace("Exiting extras menu state...");
 	
 	// Destruct menu
 	::disable_menu_controls(ctx);
@@ -137,6 +137,6 @@ extras_menu_state::~extras_menu_state()
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	
-	debug::log::trace("Exited extras menu state");
+	debug::log_trace("Exited extras menu state");
 }
 

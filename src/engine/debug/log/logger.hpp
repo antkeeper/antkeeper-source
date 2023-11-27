@@ -17,17 +17,19 @@
  * along with Antkeeper source code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ANTKEEPER_DEBUG_LOG_LOGGER_HPP
-#define ANTKEEPER_DEBUG_LOG_LOGGER_HPP
+#ifndef ANTKEEPER_DEBUG_LOGGER_HPP
+#define ANTKEEPER_DEBUG_LOGGER_HPP
 
-#include <engine/debug/log/message-severity.hpp>
-#include <engine/debug/log/event.hpp>
+#include <engine/debug/log/log-message-severity.hpp>
+#include <engine/debug/log/log-events.hpp>
 #include <engine/event/publisher.hpp>
 #include <source_location>
 #include <string>
 
 namespace debug {
-namespace log {
+
+/// @name Debug logging
+/// @{
 
 /**
  * Generates an event each time a message logged.
@@ -45,21 +47,22 @@ public:
 	void log
 	(
 		std::string&& message,
-		message_severity severity = message_severity::info,
+		log_message_severity severity = log_message_severity::info,
 		std::source_location&& location = std::source_location::current()
 	);
 	
 	/// Returns the channel through which message logged events are published.
-	[[nodiscard]] inline ::event::channel<event::message_logged>& get_message_logged_channel() noexcept
+	[[nodiscard]] inline ::event::channel<message_logged_event>& get_message_logged_channel() noexcept
 	{
-		return message_logged_publisher.channel();
+		return m_message_logged_publisher.channel();
 	}
 	
 private:
-	::event::publisher<event::message_logged> message_logged_publisher;
+	::event::publisher<message_logged_event> m_message_logged_publisher;
 };
 
-} // namespace log
+/// @}
+
 } // namespace debug
 
-#endif // ANTKEEPER_DEBUG_LOG_LOGGER_HPP
+#endif // ANTKEEPER_DEBUG_LOGGER_HPP

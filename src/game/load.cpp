@@ -28,16 +28,16 @@ void colony(::game& ctx, const std::filesystem::path& path)
 {
 	// const std::string path_string = path.string();
 	
-	// debug::log::trace("Loading colony from \"{}\"...", path_string);
+	// debug::log_trace("Loading colony from \"{}\"...", path_string);
 	// try
 	// {
 		// json* data = ctx.resource_manager->load<json>(path);
 		
-		// debug::log::trace("Loaded colony from \"{}\"", path_string);
+		// debug::log_trace("Loaded colony from \"{}\"", path_string);
 	// }
 	// catch (...)
 	// {
-		// debug::log::error("Failed to load colony from \"{}\"", path_string);
+		// debug::log_error("Failed to load colony from \"{}\"", path_string);
 	// }
 }
 

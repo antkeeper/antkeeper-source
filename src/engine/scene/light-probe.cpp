@@ -24,12 +24,35 @@ namespace scene {
 light_probe::light_probe()
 {
 	// Allocate illuminance texture
-	m_illuminance_texture = std::make_shared<gl::texture_1d>(12, gl::pixel_type::float_32, gl::pixel_format::rgba);
-	m_illuminance_texture->set_filters(gl::texture_min_filter::nearest,  gl::texture_mag_filter::nearest);
+	m_illuminance_texture = std::make_shared<gl::texture_1d>
+	(
+		std::make_shared<gl::image_view_1d>
+		(
+			std::make_shared<gl::image_1d>
+			(
+				gl::format::r32g32b32a32_sfloat,
+				12
+			)
+		),
+		std::make_shared<gl::sampler>
+		(
+			gl::sampler_filter::nearest,
+			gl::sampler_filter::nearest,
+			gl::sampler_mipmap_mode::nearest,
+			gl::sampler_address_mode::clamp_to_edge
+		)
+	);
 	
 	// Allocate and init illuminance framebuffer
-	m_illuminance_framebuffer = std::make_shared<gl::framebuffer>(12, 1);
-	m_illuminance_framebuffer->attach(gl::framebuffer_attachment_type::color, m_illuminance_texture.get());
+	const gl::framebuffer_attachment attachments[1] =
+	{
+		{
+			gl::color_attachment_bit,
+			m_illuminance_texture->get_image_view(),
+			0
+		}
+	};
+	m_illuminance_framebuffer = std::make_shared<gl::framebuffer>(attachments, 12, 1);
 	
 	// Init illuminance matrices
 	m_illuminance_matrices[0] = {};
@@ -39,7 +62,18 @@ light_probe::light_probe()
 
 void light_probe::update_illuminance_matrices()
 {
-	m_illuminance_texture->read(std::as_writable_bytes(std::span{m_illuminance_matrices}), gl::pixel_type::float_32, gl::pixel_format::rgba, 0);
+	m_illuminance_texture->get_image_view()->get_image()->read
+	(
+		0,
+		0,
+		0,
+		0,
+		12,
+		1,
+		1,
+		gl::format::r32g32b32a32_sfloat,
+		std::as_writable_bytes(std::span{m_illuminance_matrices})
+	);
 }
 
 void light_probe::set_luminance_texture(std::shared_ptr<gl::texture_cube> texture)
@@ -51,21 +85,27 @@ void light_probe::set_luminance_texture(std::shared_ptr<gl::texture_cube> textur
 		// Update luminance framebuffers
 		if (m_luminance_texture)
 		{
-			const std::uint8_t mip_count = 1 + static_cast<std::uint8_t>(std::log2(texture->get_face_size()));
-			for (std::uint8_t i = 0; i < mip_count; ++i)
-			{
-				if (i >= m_luminance_framebuffers.size())
-				{
-					m_luminance_framebuffers.emplace_back(std::make_shared<gl::framebuffer>());
-				}
-				
-				m_luminance_framebuffers[i]->attach(gl::framebuffer_attachment_type::color, m_luminance_texture.get(), i);
-			}
+			const auto face_size = texture->get_image_view()->get_image()->get_dimensions()[0];
+			const auto mip_count = static_cast<std::uint32_t>(std::bit_width(face_size));
 			
-			if (m_luminance_framebuffers.size() > mip_count)
+			m_luminance_framebuffers.resize(mip_count);
+			
+			for (std::uint32_t i = 0; i < mip_count; ++i)
 			{
-				m_luminance_framebuffers.resize(mip_count);
+				const gl::framebuffer_attachment attachments[1] =
+				{
+					{
+						gl::color_attachment_bit,
+						m_luminance_texture->get_image_view(),
+						i
+					}
+				};
+				m_luminance_framebuffers[i] = std::make_shared<gl::framebuffer>(attachments, face_size >> i, face_size >> i);
 			}
+		}
+		else
+		{
+			m_luminance_framebuffers.clear();
 		}
 		
 		set_luminance_outdated(true);

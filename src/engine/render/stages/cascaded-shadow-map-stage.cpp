@@ -19,13 +19,12 @@
 
 #include <engine/render/stages/cascaded-shadow-map-stage.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/gl/rasterizer.hpp>
+#include <engine/gl/pipeline.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
-#include <engine/gl/drawing-mode.hpp>
 #include <engine/render/context.hpp>
 #include <engine/render/material.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/scene/camera.hpp>
 #include <engine/scene/collection.hpp>
 #include <engine/scene/light.hpp>
@@ -37,7 +36,6 @@
 #include <engine/math/projection.hpp>
 #include <engine/geom/primitives/view-frustum.hpp>
 #include <cmath>
-#include <glad/glad.h>
 #include <algorithm>
 #include <execution>
 #include <mutex>
@@ -46,18 +44,18 @@ namespace render {
 
 static bool operation_compare(const render::operation* a, const render::operation* b);
 
-cascaded_shadow_map_stage::cascaded_shadow_map_stage(gl::rasterizer& rasterizer, ::resource_manager& resource_manager):
-	m_rasterizer(&rasterizer)
+cascaded_shadow_map_stage::cascaded_shadow_map_stage(gl::pipeline& pipeline, ::resource_manager& resource_manager):
+	m_pipeline(&pipeline)
 {
 	// Init shader template definitions
-	m_shader_template_definitions["VERTEX_POSITION"]    = std::to_string(vertex_attribute::position);
-	m_shader_template_definitions["VERTEX_UV"]          = std::to_string(vertex_attribute::uv);
-	m_shader_template_definitions["VERTEX_NORMAL"]      = std::to_string(vertex_attribute::normal);
-	m_shader_template_definitions["VERTEX_TANGENT"]     = std::to_string(vertex_attribute::tangent);
-	m_shader_template_definitions["VERTEX_COLOR"]       = std::to_string(vertex_attribute::color);
-	m_shader_template_definitions["VERTEX_BONE_INDEX"]  = std::to_string(vertex_attribute::bone_index);
-	m_shader_template_definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute::bone_weight);
-	m_shader_template_definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute::bone_weight);
+	m_shader_template_definitions["VERTEX_POSITION"]    = std::to_string(vertex_attribute_location::position);
+	m_shader_template_definitions["VERTEX_UV"]          = std::to_string(vertex_attribute_location::uv);
+	m_shader_template_definitions["VERTEX_NORMAL"]      = std::to_string(vertex_attribute_location::normal);
+	m_shader_template_definitions["VERTEX_TANGENT"]     = std::to_string(vertex_attribute_location::tangent);
+	m_shader_template_definitions["VERTEX_COLOR"]       = std::to_string(vertex_attribute_location::color);
+	m_shader_template_definitions["VERTEX_BONE_INDEX"]  = std::to_string(vertex_attribute_location::bone_index);
+	m_shader_template_definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute_location::bone_weight);
+	m_shader_template_definitions["VERTEX_BONE_WEIGHT"] = std::to_string(vertex_attribute_location::bone_weight);
 	m_shader_template_definitions["MAX_BONE_COUNT"] = std::to_string(m_max_bone_count);
 	
 	// Static mesh shader
@@ -197,24 +195,23 @@ void cascaded_shadow_map_stage::queue(render::context& ctx, scene::directional_l
 void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene::directional_light& light)
 {
 	// Disable blending
-	glDisable(GL_BLEND);
+	m_pipeline->set_color_blend_enabled(false);
 	
 	// Enable depth testing
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_GREATER);
-	glDepthMask(GL_TRUE);
+	m_pipeline->set_depth_test_enabled(true);
+	m_pipeline->set_depth_write_enabled(true);
+	m_pipeline->set_depth_compare_op(gl::compare_op::greater);
 	
-	// Disable depth clipping (enable "pancaking")
-	glEnable(GL_DEPTH_CLAMP);
+	// Enable depth clamping ("pancaking")
+	m_pipeline->set_depth_clamp_enabled(true);
 	
 	// Enable back-face culling
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	m_pipeline->set_cull_mode(gl::cull_mode::back);
 	bool two_sided = false;
 	
 	// Bind and clear shadow atlas framebuffer
-	m_rasterizer->use_framebuffer(*light.get_shadow_framebuffer());
-	m_rasterizer->clear_framebuffer(false, true, false);
+	m_pipeline->bind_framebuffer(light.get_shadow_framebuffer().get());
+	m_pipeline->clear_attachments(gl::depth_clear_bit, {});
 	
 	// Get camera
 	const scene::camera& camera = *ctx.camera;
@@ -239,7 +236,7 @@ void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene:
 	}
 	
 	// Determine resolution of shadow atlas and cascades
-	const auto atlas_resolution = static_cast<int>(light.get_shadow_framebuffer()->get_depth_attachment()->get_width());
+	const auto atlas_resolution = static_cast<int>(light.get_shadow_framebuffer()->width());
 	const auto cascade_resolution = atlas_resolution >> 1;
 	
 	// Sort render operations
@@ -323,9 +320,14 @@ void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene:
 		}
 		
 		// Set viewport for this cascade
-		const auto viewport_x = static_cast<int>(i % 2) * cascade_resolution;
-		const auto viewport_y = static_cast<int>(i >> 1) * cascade_resolution;
-		m_rasterizer->set_viewport(viewport_x, viewport_y, cascade_resolution, cascade_resolution);
+		const gl::viewport viewport[1] =
+		{{
+			static_cast<float>(static_cast<int>(i % 2) * cascade_resolution),
+			static_cast<float>(static_cast<int>(i >> 1) * cascade_resolution),
+			static_cast<float>(cascade_resolution),
+			static_cast<float>(cascade_resolution)
+		}};
+		m_pipeline->set_viewport(0, viewport);
 		
 		// Render geometry
 		for (const render::operation* operation: ctx.operations)
@@ -343,11 +345,11 @@ void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene:
 				{
 					if (material->is_two_sided())
 					{
-						glDisable(GL_CULL_FACE);
+						m_pipeline->set_cull_mode(gl::cull_mode::none);
 					}
 					else
 					{
-						glEnable(GL_CULL_FACE);
+						m_pipeline->set_cull_mode(gl::cull_mode::back);
 					}
 					
 					two_sided = material->is_two_sided();
@@ -359,7 +361,7 @@ void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene:
 			if (active_shader_program != shader_program)
 			{
 				active_shader_program = shader_program;
-				m_rasterizer->use_program(*active_shader_program);
+				m_pipeline->bind_shader_program(active_shader_program);
 			}
 			
 			// Calculate model-view-projection matrix
@@ -379,14 +381,17 @@ void cascaded_shadow_map_stage::render_shadow_atlas(render::context& ctx, scene:
 				m_skeletal_mesh_model_view_projection_var->update(model_view_projection);
 				m_skeletal_mesh_matrix_palette_var->update(operation->matrix_palette);
 			}
-
+			
 			// Draw geometry
-			m_rasterizer->draw_arrays(*operation->vertex_array, operation->drawing_mode, operation->start_index, operation->index_count);
+			m_pipeline->set_primitive_topology(operation->primitive_topology);
+			m_pipeline->bind_vertex_array(operation->vertex_array);
+			m_pipeline->bind_vertex_buffers(0, {&operation->vertex_buffer, 1}, {&operation->vertex_offset, 1}, {&operation->vertex_stride, 1});
+			m_pipeline->draw(operation->vertex_count, 1, 0, 0);
 		}
 	}
 	
-	// Re-enable depth clipping (disable "pancaking")
-	glDisable(GL_DEPTH_CLAMP);
+	// Disable depth clamping ("pancaking")
+	m_pipeline->set_depth_clamp_enabled(false);
 }
 
 void cascaded_shadow_map_stage::rebuild_static_mesh_shader_program()
@@ -394,8 +399,8 @@ void cascaded_shadow_map_stage::rebuild_static_mesh_shader_program()
 	m_static_mesh_shader_program = m_static_mesh_shader_template->build(m_shader_template_definitions);
 	if (!m_static_mesh_shader_program->linked())
 	{
-		debug::log::error("Failed to build cascaded shadow map shader program for static meshes: {}", m_static_mesh_shader_program->info());
-		debug::log::warning("{}", m_static_mesh_shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build cascaded shadow map shader program for static meshes: {}", m_static_mesh_shader_program->info());
+		debug::log_warning("{}", m_static_mesh_shader_template->configure(gl::shader_stage::vertex));
 		
 		m_static_mesh_model_view_projection_var = nullptr;
 	}
@@ -410,8 +415,8 @@ void cascaded_shadow_map_stage::rebuild_skeletal_mesh_shader_program()
 	m_skeletal_mesh_shader_program = m_skeletal_mesh_shader_template->build(m_shader_template_definitions);
 	if (!m_skeletal_mesh_shader_program->linked())
 	{
-		debug::log::error("Failed to build cascaded shadow map shader program for skeletal meshes: {}", m_skeletal_mesh_shader_program->info());
-		debug::log::warning("{}", m_skeletal_mesh_shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build cascaded shadow map shader program for skeletal meshes: {}", m_skeletal_mesh_shader_program->info());
+		debug::log_warning("{}", m_skeletal_mesh_shader_template->configure(gl::shader_stage::vertex));
 		
 		m_skeletal_mesh_model_view_projection_var = nullptr;
 		m_skeletal_mesh_matrix_palette_var = nullptr;

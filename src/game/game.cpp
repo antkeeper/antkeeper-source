@@ -62,12 +62,8 @@
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/pixel-format.hpp>
 #include <engine/gl/pixel-type.hpp>
-#include <engine/gl/rasterizer.hpp>
-#include <engine/gl/texture-2d.hpp>
-#include <engine/gl/texture-filter.hpp>
-#include <engine/gl/texture-wrapping.hpp>
+#include <engine/gl/texture.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/vertex-attribute.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/input/application-events.hpp>
 #include <engine/input/gamepad.hpp>
@@ -79,15 +75,12 @@
 #include <engine/render/material-flags.hpp>
 #include <engine/render/material-variable.hpp>
 #include <engine/render/passes/bloom-pass.hpp>
-#include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/passes/final-pass.hpp>
-#include <engine/render/passes/fxaa-pass.hpp>
 #include <engine/render/passes/material-pass.hpp>
-#include <engine/render/passes/outline-pass.hpp>
 #include <engine/render/passes/resample-pass.hpp>
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/render/renderer.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/scene/scene.hpp>
 #include <engine/utility/dict.hpp>
@@ -110,7 +103,7 @@ using namespace hash::literals;
 game::game(int argc, const char* const* argv)
 {
 	// Boot process
-	debug::log::trace("Booting up...");
+	debug::log_trace("Booting up...");
 	
 	// Profile boot duration
 	#if !defined(NDEBUG)
@@ -143,17 +136,17 @@ game::game(int argc, const char* const* argv)
 		auto boot_t1 = std::chrono::high_resolution_clock::now();
 	#endif
 	
-	debug::log::trace("Boot up complete");
+	debug::log_trace("Boot up complete");
 	
 	// Print boot duration
 	#if !defined(NDEBUG)
-		debug::log::info("Boot duration: {}", std::chrono::duration_cast<std::chrono::duration<double>>(boot_t1 - boot_t0));
+		debug::log_info("Boot duration: {}", std::chrono::duration_cast<std::chrono::duration<double>>(boot_t1 - boot_t0));
 	#endif
 }
 
 game::~game()
 {
-	debug::log::trace("Booting down...");
+	debug::log_trace("Booting down...");
 	
 	// Exit all active game states
 	while (!state_machine.empty())
@@ -187,7 +180,7 @@ game::~game()
 	// Shut down audio
 	shutdown_audio();
 	
-	debug::log::trace("Boot down complete");
+	debug::log_trace("Boot down complete");
 }
 
 void game::parse_options(int argc, const char* const* argv)
@@ -198,7 +191,7 @@ void game::parse_options(int argc, const char* const* argv)
 		return;
 	}
 	
-	debug::log::trace("Parsing command-line options...");
+	debug::log_trace("Parsing command-line options...");
 	
 	// Parse command-line options with cxxopts
 	try
@@ -263,11 +256,11 @@ void game::parse_options(int argc, const char* const* argv)
 			option_windowed = true;
 		}
 		
-		debug::log::info("Parsed {} command-line options", argc);
+		debug::log_info("Parsed {} command-line options", argc);
 	}
 	catch (const std::exception& e)
 	{
-		debug::log::error("An error occurred while parsing command-line options: {}", e.what());
+		debug::log_error("An error occurred while parsing command-line options: {}", e.what());
 	}
 }
 
@@ -305,10 +298,10 @@ void game::setup_resources()
 	controls_path = shared_config_path / "controls";
 	
 	// Log paths
-	debug::log::info("Data package path: \"{}\"", data_package_path.string());
-	debug::log::info("Local config path: \"{}\"", local_config_path.string());
-	debug::log::info("Shared config path: \"{}\"", shared_config_path.string());
-	debug::log::info("Mods path: \"{}\"", mods_path.string());
+	debug::log_info("Data package path: \"{}\"", data_package_path.string());
+	debug::log_info("Local config path: \"{}\"", local_config_path.string());
+	debug::log_info("Shared config path: \"{}\"", shared_config_path.string());
+	debug::log_info("Mods path: \"{}\"", mods_path.string());
 	
 	// Create nonexistent config directories
 	std::vector<std::filesystem::path> config_paths;
@@ -323,12 +316,12 @@ void game::setup_resources()
 		{
 			if (std::filesystem::create_directories(path))
 			{
-				debug::log::info("Created directory \"{}\"", path.string());
+				debug::log_info("Created directory \"{}\"", path.string());
 			}
 		}
 		catch (const std::filesystem::filesystem_error& e)
 		{
-			debug::log::error("Failed to create directory \"{}\": {}", path.string(), e.what());
+			debug::log_error("Failed to create directory \"{}\": {}", path.string(), e.what());
 		}
 	}
 	
@@ -341,7 +334,7 @@ void game::setup_resources()
 			if (entry.is_directory() || (entry.is_regular_file() && entry.path().extension() == ".zip"))
 			{
 				mod_paths.push_back(entry.path());
-				debug::log::info("Found mod \"{}\"", entry.path().filename().string());
+				debug::log_info("Found mod \"{}\"", entry.path().filename().string());
 			}
 		}
 	}
@@ -371,14 +364,14 @@ void game::load_settings()
 		settings = std::make_shared<dict<hash::fnv1a32_t>>();
 		resource_manager->set_write_path(shared_config_path);
 		resource_manager->save(*settings, "settings.cfg");
-		debug::log::info("Settings reset");
+		debug::log_info("Settings reset");
 	}
 	else
 	{
 		settings = resource_manager->load<dict<hash::fnv1a32_t>>("settings.cfg");
 		if (!settings)
 		{
-			debug::log::info("Settings not found");
+			debug::log_info("Settings not found");
 			settings = std::make_shared<dict<hash::fnv1a32_t>>();
 		}
 	}
@@ -471,7 +464,7 @@ void game::setup_window()
 
 void game::setup_audio()
 {
-	debug::log::trace("Setting up audio...");
+	debug::log_trace("Setting up audio...");
 	
 	// Default audio settings
 	master_volume = 1.0f;
@@ -490,11 +483,11 @@ void game::setup_audio()
 	read_or_write_setting(*this, "captions_size", captions_size);
 	
 	// Open audio device
-	debug::log::trace("Opening audio device...");
+	debug::log_trace("Opening audio device...");
 	alc_device = alcOpenDevice(nullptr);
 	if (!alc_device)
 	{
-		debug::log::error("Failed to open audio device: AL error code {}", alGetError());
+		debug::log_error("Failed to open audio device: AL error code {}", alGetError());
 		return;
 	}
 	else
@@ -511,28 +504,28 @@ void game::setup_audio()
 		}
 		
 		// Log audio device name
-		debug::log::info("Opened audio device \"{}\"", alc_device_name);
+		debug::log_info("Opened audio device \"{}\"", alc_device_name);
 	}
 	
 	// Create audio context
-	debug::log::trace("Creating audio context...");
+	debug::log_trace("Creating audio context...");
 	alc_context = alcCreateContext(alc_device, nullptr);
 	if (!alc_context)
 	{
-		debug::log::error("Failed to create audio context: ALC error code {}", alcGetError(alc_device));
+		debug::log_error("Failed to create audio context: ALC error code {}", alcGetError(alc_device));
 		alcCloseDevice(alc_device);
 		return;
 	}
 	else
 	{
-		debug::log::trace("Created audio context");
+		debug::log_trace("Created audio context");
 	}
 	
 	// Make audio context current
-	debug::log::trace("Making audio context current...");
+	debug::log_trace("Making audio context current...");
 	if (alcMakeContextCurrent(alc_context) == ALC_FALSE)
 	{
-		debug::log::error("Failed to make audio context current: ALC error code {}", alcGetError(alc_device));
+		debug::log_error("Failed to make audio context current: ALC error code {}", alcGetError(alc_device));
 		if (alc_context != nullptr)
 		{
 			alcDestroyContext(alc_context);
@@ -542,10 +535,10 @@ void game::setup_audio()
 	}
 	else
 	{
-		debug::log::trace("Made audio context current");
+		debug::log_trace("Made audio context current");
 	}
 	
-	debug::log::trace("Set up audio");
+	debug::log_trace("Set up audio");
 }
 
 void game::setup_input()
@@ -631,7 +624,7 @@ void game::setup_input()
 
 void game::load_strings()
 {
-	debug::log::trace("Loading strings...");
+	debug::log_trace("Loading strings...");
 	
 	// Default strings settings
 	language_tag = "en";
@@ -656,7 +649,7 @@ void game::load_strings()
 	string_map = resource_manager->load<i18n::string_map>(language_slug + ".str");
 	
 	// Log language info
-	debug::log::info("Language tag: {}", language_tag);
+	debug::log_info("Language tag: {}", language_tag);
 	
 	// Change window title
 	const std::string window_title = get_string(*this, "window_title");
@@ -665,12 +658,12 @@ void game::load_strings()
 	// Update window title setting
 	(*settings)["window_title"] = window_title;
 	
-	debug::log::trace("Loaded strings");
+	debug::log_trace("Loaded strings");
 }
 
 void game::setup_rendering()
 {
-	debug::log::trace("Setting up rendering...");
+	debug::log_trace("Setting up rendering...");
 	
 	// Default rendering settings
 	render_scale = 1.0f;
@@ -691,104 +684,68 @@ void game::setup_rendering()
 	// Setup common render passes
 	{
 		// Construct bloom pass
-		bloom_pass = std::make_unique<render::bloom_pass>(window->get_rasterizer(), resource_manager.get());
-		bloom_pass->set_source_texture(hdr_color_texture.get());
+		bloom_pass = std::make_unique<render::bloom_pass>(&window->get_graphics_pipeline(), resource_manager.get());
+		bloom_pass->set_source_texture(hdr_color_texture);
 		bloom_pass->set_mip_chain_length(5);
-		//bloom_pass->set_mip_chain_length(0);
 		bloom_pass->set_filter_radius(0.005f);
 		
-		common_final_pass = std::make_unique<render::final_pass>(window->get_rasterizer(), ldr_framebuffer_a.get(), resource_manager.get());
-		common_final_pass->set_color_texture(hdr_color_texture.get());
+		common_final_pass = std::make_unique<render::final_pass>(&window->get_graphics_pipeline(), nullptr, resource_manager.get());
+		common_final_pass->set_color_texture(hdr_color_texture);
 		common_final_pass->set_bloom_texture(bloom_pass->get_bloom_texture());
 		common_final_pass->set_bloom_weight(0.04f);
 		//common_final_pass->set_bloom_weight(0.0f);
 		common_final_pass->set_blue_noise_texture(resource_manager->load<gl::texture_2d>("blue-noise.tex"));
 		
-		fxaa_pass = std::make_unique<render::fxaa_pass>(window->get_rasterizer(), &window->get_rasterizer()->get_default_framebuffer(), resource_manager.get());
-		fxaa_pass->set_source_texture(ldr_color_texture_a.get());
-		
-		resample_pass = std::make_unique<render::resample_pass>(window->get_rasterizer(), &window->get_rasterizer()->get_default_framebuffer(), resource_manager.get());
-		resample_pass->set_source_texture(ldr_color_texture_b.get());
+		resample_pass = std::make_unique<render::resample_pass>(&window->get_graphics_pipeline(), nullptr, resource_manager.get());
+		resample_pass->set_source_texture(ldr_color_texture_a);
 		resample_pass->set_enabled(false);
-		
-		// Configure anti-aliasing according to settings
-		graphics::select_anti_aliasing_method(*this, anti_aliasing_method);
-		
-		// Configure render scaling according to settings
-		graphics::change_render_resolution(*this, render_scale);
 	}
 	
 	// Setup UI compositor
 	{
-		ui_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), &window->get_rasterizer()->get_default_framebuffer());
-		ui_clear_pass->set_cleared_buffers(false, true, false);
-		ui_clear_pass->set_clear_depth(0.0f);
-		
-		ui_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), &window->get_rasterizer()->get_default_framebuffer(), resource_manager.get());
+		ui_material_pass = std::make_unique<render::material_pass>(&window->get_graphics_pipeline(), nullptr, resource_manager.get());
 		ui_material_pass->set_fallback_material(fallback_material);
 		
+		ui_material_pass->set_clear_mask(gl::depth_clear_bit);
+		ui_material_pass->set_clear_value({{0.0f, 0.0f, 0.0f, 0.0f}, 0.0f, 0});
+		
 		ui_compositor = std::make_unique<render::compositor>();
-		ui_compositor->add_pass(ui_clear_pass.get());
 		ui_compositor->add_pass(ui_material_pass.get());
 	}
 	
 	// Setup surface compositor
 	{
-		surface_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
-		surface_clear_pass->set_clear_color({0.0f, 0.0f, 0.0f, 1.0f});
-		surface_clear_pass->set_clear_depth(0.0f);
-		surface_clear_pass->set_clear_stencil(0);
-		surface_clear_pass->set_cleared_buffers(true, true, true);
-		
-		sky_pass = std::make_unique<render::sky_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
+		sky_pass = std::make_unique<render::sky_pass>(&window->get_graphics_pipeline(), hdr_framebuffer.get(), resource_manager.get());
+		sky_pass->set_clear_mask(gl::color_clear_bit | gl::depth_clear_bit | gl::stencil_clear_bit);
+		sky_pass->set_clear_value({{0.0f, 0.0f, 0.0f, 0.0f}, 0.0f, 0});
 		// sky_pass->set_magnification(3.0f);
 		
-		surface_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
+		surface_material_pass = std::make_unique<render::material_pass>(&window->get_graphics_pipeline(), hdr_framebuffer.get(), resource_manager.get());
 		surface_material_pass->set_fallback_material(fallback_material);
 		
-		surface_outline_pass = std::make_unique<render::outline_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
-		surface_outline_pass->set_outline_width(0.25f);
-		surface_outline_pass->set_outline_color(math::fvec4{1.0f, 1.0f, 1.0f, 1.0f});
-		
 		surface_compositor = std::make_unique<render::compositor>();
-		surface_compositor->add_pass(surface_clear_pass.get());
 		surface_compositor->add_pass(sky_pass.get());
 		surface_compositor->add_pass(surface_material_pass.get());
-		//surface_compositor->add_pass(surface_outline_pass.get());
 		surface_compositor->add_pass(bloom_pass.get());
 		surface_compositor->add_pass(common_final_pass.get());
-		surface_compositor->add_pass(fxaa_pass.get());
 		surface_compositor->add_pass(resample_pass.get());
 	}
 	
-	// Setup underground compositor
-	{
-		underground_clear_pass = std::make_unique<render::clear_pass>(window->get_rasterizer(), hdr_framebuffer.get());
-		underground_clear_pass->set_cleared_buffers(true, true, false);
-		underground_clear_pass->set_clear_color({0, 0, 0, 1});
-		underground_clear_pass->set_clear_depth(0.0f);
-		
-		underground_material_pass = std::make_unique<render::material_pass>(window->get_rasterizer(), hdr_framebuffer.get(), resource_manager.get());
-		underground_material_pass->set_fallback_material(fallback_material);
-		
-		underground_compositor = std::make_unique<render::compositor>();
-		underground_compositor->add_pass(underground_clear_pass.get());
-		underground_compositor->add_pass(underground_material_pass.get());
-		underground_compositor->add_pass(bloom_pass.get());
-		underground_compositor->add_pass(common_final_pass.get());
-		underground_compositor->add_pass(fxaa_pass.get());
-		underground_compositor->add_pass(resample_pass.get());
-	}
+	// Configure anti-aliasing according to settings
+	graphics::select_anti_aliasing_method(*this, anti_aliasing_method);
+
+	// Configure render scaling according to settings
+	graphics::change_render_resolution(*this, render_scale);
 	
 	// Create renderer
-	renderer = std::make_unique<render::renderer>(*window->get_rasterizer(), *resource_manager);
+	renderer = std::make_unique<render::renderer>(window->get_graphics_pipeline(), *resource_manager);
 	
-	debug::log::trace("Set up rendering");
+	debug::log_trace("Set up rendering");
 }
 
 void game::setup_scenes()
 {
-	debug::log::trace("Setting up scenes...");
+	debug::log_trace("Setting up scenes...");
 	
 	// Ratio of meters to scene units.
 	constexpr float scene_scale = 1.0f / 100.0f;
@@ -814,13 +771,11 @@ void game::setup_scenes()
 	// Allocate and init underground camera
 	underground_camera = std::make_shared<scene::camera>();
 	underground_camera->set_perspective(math::radians<float>(45.0f), viewport_aspect_ratio, 0.5f);
-	underground_camera->set_compositor(underground_compositor.get());
-	underground_camera->set_composite_index(0);
 	
 	// Clear active scene
 	active_scene = nullptr;
 	
-	debug::log::trace("Set up scenes");
+	debug::log_trace("Set up scenes");
 }
 
 void game::setup_animation()
@@ -855,15 +810,15 @@ void game::setup_ui()
 	title_font_material = std::make_shared<render::material>();
 	
 	// Load fonts
-	debug::log::trace("Loading fonts...");
+	debug::log_trace("Loading fonts...");
 	try
 	{
 		::load_fonts(*this);
-		debug::log::trace("Loaded fonts");
+		debug::log_trace("Loaded fonts");
 	}
-	catch (...)
+	catch (const std::exception& e)
 	{
-		debug::log::error("Failed to load fonts");
+		debug::log_error("Failed to load fonts: {}", e.what());
 	}
 	
 	// Get default framebuffer
@@ -1096,19 +1051,19 @@ void game::setup_systems()
 
 void game::setup_controls()
 {
-	debug::log::trace("Setting up controls...");
+	debug::log_trace("Setting up controls...");
 	
 	// Load SDL game controller mappings database
-	// debug::log::trace("Loading SDL game controller mappings...");
+	// debug::log_trace("Loading SDL game controller mappings...");
 	// file_buffer* game_controller_db = resource_manager->load<file_buffer>("gamecontrollerdb.txt");
 	// if (!game_controller_db)
 	// {
-		// debug::log::error("Failed to load SDL game controller mappings");
+		// debug::log_error("Failed to load SDL game controller mappings");
 	// }
 	// else
 	// {
 		// app->add_game_controller_mappings(game_controller_db->data(), game_controller_db->size());
-		// debug::log::trace("Loaded SDL game controller mappings");
+		// debug::log_trace("Loaded SDL game controller mappings");
 		
 		// resource_manager->unload("gamecontrollerdb.txt");
 	// }
@@ -1171,7 +1126,7 @@ void game::setup_controls()
 		enable_debug_controls(*this);
 	#endif
 	
-	debug::log::trace("Set up controls");
+	debug::log_trace("Set up controls");
 }
 
 void game::setup_debugging()
@@ -1219,7 +1174,7 @@ void game::setup_timing()
 
 void game::shutdown_audio()
 {
-	debug::log::trace("Shutting down audio...");
+	debug::log_trace("Shutting down audio...");
 	
 	if (alc_context)
 	{
@@ -1232,7 +1187,7 @@ void game::shutdown_audio()
 		alcCloseDevice(alc_device);
 	}
 	
-	debug::log::trace("Shut down audio");
+	debug::log_trace("Shut down audio");
 }
 
 void game::fixed_update(::frame_scheduler::duration_type fixed_update_time, ::frame_scheduler::duration_type fixed_update_interval)
@@ -1315,7 +1270,7 @@ void game::execute()
 	// Change to initial state
 	state_machine.emplace(std::make_unique<main_menu_state>(*this, true));
 	
-	debug::log::trace("Entered main loop");
+	debug::log_trace("Entered main loop");
 	
 	frame_scheduler.refresh();
 	
@@ -1324,7 +1279,7 @@ void game::execute()
 		frame_scheduler.tick();
 	}
 	
-	debug::log::trace("Exited main loop");
+	debug::log_trace("Exited main loop");
 	
 	// Exit all active game states
 	while (!state_machine.empty())

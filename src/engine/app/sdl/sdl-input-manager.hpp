@@ -41,7 +41,7 @@ public:
 	/**
 	 * Destructs an SDL input manager.
 	 */
-	virtual ~sdl_input_manager();
+	~sdl_input_manager() override;
 	
 	void update() override;
 	void set_cursor_visible(bool visible) override;

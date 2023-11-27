@@ -67,7 +67,6 @@
 #include <engine/physics/kinematics/colliders/plane-collider.hpp>
 #include <engine/physics/kinematics/colliders/box-collider.hpp>
 #include <engine/physics/kinematics/colliders/capsule-collider.hpp>
-#include <engine/render/passes/clear-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/state-machine.hpp>
 #include <engine/scene/static-mesh.hpp>
@@ -78,7 +77,7 @@
 nest_selection_state::nest_selection_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering nest selection state...");	
+	debug::log_trace("Entering nest selection state...");	
 	
 	// Create world if not yet created
 	if (ctx.entities.find("earth") == ctx.entities.end())
@@ -93,17 +92,17 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	ctx.active_ecoregion = ctx.resource_manager->load<::ecoregion>("seedy-scrub.eco");
 	::world::enter_ecoregion(ctx, *ctx.active_ecoregion);
 	
-	debug::log::trace("Generating genome...");
+	debug::log_trace("Generating genome...");
 	std::unique_ptr<ant_genome> genome = ant_cladogenesis(ctx.active_ecoregion->gene_pools[0], ctx.rng);
-	debug::log::trace("Generated genome");
+	debug::log_trace("Generated genome");
 	
-	debug::log::trace("Building worker phenome...");
+	debug::log_trace("Building worker phenome...");
 	ant_phenome worker_phenome = ant_phenome(*genome, ant_caste_type::queen);
-	debug::log::trace("Built worker phenome...");
+	debug::log_trace("Built worker phenome...");
 	
-	debug::log::trace("Generating worker model...");
+	debug::log_trace("Generating worker model...");
 	worker_model = ant_morphogenesis(worker_phenome);
-	debug::log::trace("Generated worker model");
+	debug::log_trace("Generated worker model");
 	
 	// Create floor plane
 	
@@ -201,9 +200,6 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	ctx.entity_registry->emplace<ik_component>(larva_eid, std::move(larva_ik_rig));
 	
 	
-	// Disable UI color clear
-	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
-	
 	// Set world time
 	::world::set_time(ctx, 2022, 6, 21, 12, 0, 0.0);
 	
@@ -294,7 +290,34 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	*/
 	
 	sky_probe = std::make_shared<scene::light_probe>();
-	sky_probe->set_luminance_texture(std::make_shared<gl::texture_cube>(384, 512, gl::pixel_type::float_16, gl::pixel_format::rgb));
+	const std::uint32_t sky_probe_face_size = 128;
+	const auto sky_probe_mip_levels = static_cast<std::uint32_t>(std::bit_width(sky_probe_face_size));
+	sky_probe->set_luminance_texture
+	(
+		std::make_shared<gl::texture_cube>
+		(
+			std::make_shared<gl::image_view_cube>
+			(
+				std::make_shared<gl::image_cube>
+				(
+					gl::format::r16g16b16_sfloat,
+					sky_probe_face_size,
+					sky_probe_mip_levels
+				),
+				gl::format::undefined,
+				0,
+				sky_probe_mip_levels
+			),
+			std::make_shared<gl::sampler>
+			(
+				gl::sampler_filter::linear,
+				gl::sampler_filter::linear,
+				gl::sampler_mipmap_mode::linear,
+				gl::sampler_address_mode::clamp_to_edge,
+				gl::sampler_address_mode::clamp_to_edge
+			)
+		)
+	);
 	ctx.sky_pass->set_sky_probe(sky_probe);
 	ctx.surface_scene->add_object(*sky_probe);
 	
@@ -327,19 +350,19 @@ nest_selection_state::nest_selection_state(::game& ctx):
 	// Refresh frame scheduler
 	ctx.frame_scheduler.refresh();
 	
-	debug::log::trace("Entered nest selection state");
+	debug::log_trace("Entered nest selection state");
 }
 
 nest_selection_state::~nest_selection_state()
 {
-	debug::log::trace("Exiting nest selection state...");
+	debug::log_trace("Exiting nest selection state...");
 	
 	// Disable game controls
 	::disable_game_controls(ctx);
 	
 	destroy_first_person_camera_rig();
 	
-	debug::log::trace("Exited nest selection state");
+	debug::log_trace("Exited nest selection state");
 }
 
 void nest_selection_state::create_first_person_camera_rig()
@@ -462,7 +485,7 @@ void nest_selection_state::setup_controls()
 				for (std::size_t i = 0; i < 3; ++i)
 				{
 					const auto m = matrices[i];
-					debug::log::warning("\nmat4({},{},{},{},\n{},{},{},{},\n{},{},{},{},\n{},{},{},{});", m[0][0], m[0][1], m[0][2], m[0][3], m[1][0], m[1][1], m[1][2], m[1][3], m[2][0], m[2][1], m[2][2], m[2][3], m[3][0], m[3][1], m[3][2], m[3][3]);
+					debug::log_warning("\nmat4({},{},{},{},\n{},{},{},{},\n{},{},{},{},\n{},{},{},{});", m[0][0], m[0][1], m[0][2], m[0][3], m[1][0], m[1][1], m[1][2], m[1][3], m[2][0], m[2][1], m[2][2], m[2][3], m[3][0], m[3][1], m[3][2], m[3][3]);
 				}
 				*/
 			}

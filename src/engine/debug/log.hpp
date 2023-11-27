@@ -21,7 +21,7 @@
 #define ANTKEEPER_DEBUG_LOG_HPP
 
 #include <engine/config.hpp>
-#include <engine/debug/log/message-severity.hpp>
+#include <engine/debug/log/log-message-severity.hpp>
 #include <engine/debug/log/logger.hpp>
 #include <source_location>
 #include <string>
@@ -34,10 +34,8 @@
 
 namespace debug {
 
-/**
- * Debug message logging.
- */
-namespace log {
+/// @name Debug logging
+/// @{
 
 /**
  * Returns the default logger.
@@ -50,8 +48,8 @@ namespace log {
  * @tparam Severity Message severity. A message will not log itself if @p Severity is less than the user-defined macro `ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY`.
  * @tparam Args Types of arguments to be formatted.
  */
-template <message_severity Severity, class... Args>
-struct message
+template <log_message_severity Severity, class... Args>
+struct log_message
 {
 	/**
 	 * Formats and logs a message.
@@ -62,14 +60,14 @@ struct message
 	 * @param args Arguments to be formatted.
 	 * @param location Source location from which the message was sent.
 	 */
-	message
+	log_message
 	(
 		[[maybe_unused]] std::string_view format,
 		[[maybe_unused]] Args&&... args,
 		[[maybe_unused]] std::source_location&& location = std::source_location::current()
 	)
 	{
-		if constexpr (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= static_cast<std::underlying_type_t<message_severity>>(Severity))
+		if constexpr (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= static_cast<std::underlying_type_t<log_message_severity>>(Severity))
 		{
 			default_logger().log(std::vformat(format, std::make_format_args(std::forward<Args>(args)...)), Severity, std::forward<std::source_location>(location));
 		}
@@ -77,8 +75,8 @@ struct message
 };
 
 // Use class template argument deduction (CTAD) to capture source location as a default argument following variadic format arguments.
-template <message_severity Severity, class... Args>
-message(std::string_view, Args&&...) -> message<Severity, Args...>;
+template <log_message_severity Severity, class... Args>
+log_message(std::string_view, Args&&...) -> log_message<Severity, Args...>;
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_TRACE)
 	/**
@@ -87,11 +85,11 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
-	using trace = message<message_severity::trace, Args...>;
+	using log_trace = log_message<log_message_severity::trace, Args...>;
 #else
 	// Disable trace message logging.
 	template <class... Args>
-	inline void trace([[maybe_unused]] Args&&...) noexcept {};
+	inline void log_trace([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_DEBUG)
@@ -101,11 +99,11 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
-	using debug = message<message_severity::debug, Args...>;
+	using log_debug = log_message<log_message_severity::debug, Args...>;
 #else
 	// Disable debug message logging.
 	template <class... Args>
-	inline void debug([[maybe_unused]] Args&&...) noexcept {};
+	inline void log_debug([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_INFO)
@@ -115,11 +113,11 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
-	using info = message<message_severity::info, Args...>;
+	using log_info = log_message<log_message_severity::info, Args...>;
 #else
 	// Disable info message logging.
 	template <class... Args>
-	inline void info([[maybe_unused]] Args&&...) noexcept {};
+	inline void log_info([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_WARNING)
@@ -129,11 +127,11 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
-	using warning = message<message_severity::warning, Args...>;
+	using log_warning = log_message<log_message_severity::warning, Args...>;
 #else
 	// Disable warning message logging.
 	template <class... Args>
-	inline void warning([[maybe_unused]] Args&&...) noexcept {};
+	inline void log_warning([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_ERROR)
@@ -143,11 +141,11 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
-	using error = message<message_severity::error, Args...>;
+	using log_error = log_message<log_message_severity::error, Args...>;
 #else
 	// Disable error message logging.
 	template <class... Args>
-	inline void error([[maybe_unused]] Args&&...) noexcept {};
+	inline void log_error([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
 #if (ANTKEEPER_DEBUG_LOG_MIN_MESSAGE_SEVERITY <= ANTKEEPER_DEBUG_LOG_MESSAGE_SEVERITY_FATAL)
@@ -157,14 +155,15 @@ message(std::string_view, Args&&...) -> message<Severity, Args...>;
 	 * @tparam Args Types of arguments to be formatted.
 	 */
 	template <class... Args>
-	using fatal = message<message_severity::fatal, Args...>;
+	using log_fatal = log_message<log_message_severity::fatal, Args...>;
 #else
 	// Disable fatal error message logging.
 	template <class... Args>
-	inline void fatal([[maybe_unused]] Args&&...) noexcept {};
+	inline void log_fatal([[maybe_unused]] Args&&...) noexcept {};
 #endif
 
-} // namespace log
+/// @}
+
 } // namespace debug
 
 #endif // ANTKEEPER_DEBUG_LOG_HPP

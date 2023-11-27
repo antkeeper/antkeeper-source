@@ -20,9 +20,10 @@
 #ifndef ANTKEEPER_TYPE_BITMAP_GLYPH_HPP
 #define ANTKEEPER_TYPE_BITMAP_GLYPH_HPP
 
-#include <engine/utility/image.hpp>
 #include <engine/type/glyph-metrics.hpp>
 #include <engine/math/vector.hpp>
+#include <vector>
+#include <cstddef>
 
 namespace type {
 
@@ -37,7 +38,13 @@ struct bitmap_glyph
 	glyph_metrics metrics;
 	
 	/// Bitmap representing the glyph.
-	image bitmap;
+	std::vector<std::byte> bitmap;
+	
+	/// Width of the glyph bitmap, in pixels.
+	std::uint32_t bitmap_width{};
+	
+	/// Height of the glyph bitmap, in pixels.
+	std::uint32_t bitmap_height{};
 	
 	/// Position of the packed glyph bitmap within the font bitmap.
 	math::uvec2 position;

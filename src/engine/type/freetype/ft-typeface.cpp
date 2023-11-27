@@ -96,7 +96,7 @@ bool ft_typeface::get_metrics(float height, char32_t code, glyph_metrics& metric
 	return true;
 }
 
-bool ft_typeface::get_bitmap(float height, char32_t code, image& bitmap) const
+bool ft_typeface::get_bitmap(float height, char32_t code, std::vector<std::byte>& bitmap, std::uint32_t& bitmap_width, std::uint32_t& bitmap_height) const
 {
 	// Set font size
 	set_face_pixel_size(height);
@@ -110,13 +110,12 @@ bool ft_typeface::get_bitmap(float height, char32_t code, image& bitmap) const
 		throw std::runtime_error("FreeType failed to load glyph (error code " + std::to_string(error) + ")");
 	}
 	
-	// Format and resize bitmap
-	bitmap.resize({0, 0, 0});
-	bitmap.format(1, sizeof(FT_Byte) * 8);
-	bitmap.resize({face->glyph->bitmap.width, face->glyph->bitmap.rows, 1});
+	// Copy glyph bitmap data into bitmap
+	bitmap.resize(face->glyph->bitmap.width * face->glyph->bitmap.rows);
+	std::memcpy(bitmap.data(), face->glyph->bitmap.buffer, bitmap.size());
 	
-	// Copy glyph bitmap data in bitmap
-	std::memcpy(bitmap.data(), face->glyph->bitmap.buffer, bitmap.size_bytes());
+	bitmap_width = static_cast<std::uint32_t>(face->glyph->bitmap.width);
+	bitmap_height = static_cast<std::uint32_t>(face->glyph->bitmap.rows);
 	
 	return true;
 }

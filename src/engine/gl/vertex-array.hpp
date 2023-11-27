@@ -20,72 +20,49 @@
 #ifndef ANTKEEPER_GL_VERTEX_ARRAY_HPP
 #define ANTKEEPER_GL_VERTEX_ARRAY_HPP
 
-#include <cstdint>
-#include <unordered_map>
-#include <engine/gl/vertex-attribute.hpp>
+#include <engine/gl/vertex-input-attribute.hpp>
+#include <span>
+#include <vector>
 
 namespace gl {
 
-class rasterizer;
-class vertex_buffer;
-
 /**
- * Vertex array object (VAO), which describes how vertex attributes are stored in vertex buffer objects (VBOs).
- *
- * @see gl::vertex_attribute
- * @see gl::vertex_buffer
+ * Vertex arrays describes how vertex input attributes are stored in vertex buffers.
  */
 class vertex_array
 {
 public:
-	/// Vertex attribute binding location type.
-	typedef unsigned int attribute_location_type;
-	
-	/// Maps vertex attribute to binding locations.
-	typedef std::unordered_map<attribute_location_type, vertex_attribute> attribute_map_type;
-	
-	/// Constructs a vertex array.
+	/**
+	 * Constructs a vertex array.
+	 *
+	 * @param attributes Vertex input attributes.
+	 *
+	 * @except std::invalid_argument Vertex input attribute has unsupported format.
+	 */
+	/// @{
+	explicit vertex_array(std::span<const vertex_input_attribute> attributes);
 	vertex_array();
+	/// @}
 	
 	/// Destructs a vertex array.
 	~vertex_array();
-
+	
+	/// Returns the vertex array's vertex input attributes.
+	[[nodiscard]] inline constexpr const std::vector<vertex_input_attribute>& attributes() const noexcept
+	{
+		return m_attributes;
+	}
+	
 	vertex_array(const vertex_array&) = delete;
 	vertex_array(vertex_array&&) = delete;
 	vertex_array& operator=(const vertex_array&) = delete;
 	vertex_array& operator=(vertex_array&&) = delete;
 	
-	/**
-	 * Binds a vertex attribute to the vertex array.
-	 *
-	 * @param location Location to which the vertex attribute should be bound.
-	 * @param attribute Vertex attribute to bind.
-	 *
-	 * @except std::invalid_argument Cannot bind vertex attribute that has a null vertex buffer.
-	 * @except std::invalid_argument Cannot bind vertex attribute that has an unsupported number of components.
-	 */
-	void bind(attribute_location_type location, const vertex_attribute& attribute);
-	
-	/**
-	 * Unbinds a vertex attribute from the vertex array.
-	 *
-	 * @param location Location of the vertex attribute to unbind.
-	 *
-	 * @except std::invalid_argument Non-existent vertex attribute cannot be unbound.
-	 */
-	void unbind(attribute_location_type location);
-	
-	/// Returns a const reference to the map of vertex attributes bound to this vertex array.
-	[[nodiscard]] inline const attribute_map_type& attributes() const noexcept
-	{
-		return m_attributes;
-	}
-	
 private:
-	friend class rasterizer;
+	friend class pipeline;
 	
-	unsigned int gl_array_id{0};
-	attribute_map_type m_attributes;
+	std::vector<vertex_input_attribute> m_attributes;
+	unsigned int m_gl_named_array{0};
 };
 
 } // namespace gl

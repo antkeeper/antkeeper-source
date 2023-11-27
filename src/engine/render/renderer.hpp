@@ -26,7 +26,7 @@
 #include <engine/render/stages/cascaded-shadow-map-stage.hpp>
 #include <engine/render/stages/light-probe-stage.hpp>
 #include <engine/scene/collection.hpp>
-#include <engine/gl/rasterizer.hpp>
+#include <engine/gl/pipeline.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <memory>
 
@@ -41,10 +41,10 @@ public:
 	/**
 	 * Constructs a renderer.
 	 *
-	 * @param rasterizer GL rasterizer.
+	 * @param pipeline Graphics pipeline.
 	 * @param resource_maanger Resource manager for loading shader templates.
 	 */
-	renderer(gl::rasterizer& rasterizer, ::resource_manager& resource_manager);
+	renderer(gl::pipeline& pipeline, ::resource_manager& resource_manager);
 	
 	/**
 	 * Renders a collection of scene objects.

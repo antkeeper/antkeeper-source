@@ -44,12 +44,12 @@ public:
 	/**
 	 * Destructs an SDL window manager.
 	 */
-	virtual ~sdl_window_manager();
+	~sdl_window_manager() override;
 	
-	virtual void update();
+	void update() override;
 	
 	/// @copydoc window::window()
-	[[nodiscard]] virtual std::shared_ptr<window> create_window
+	[[nodiscard]] std::shared_ptr<window> create_window
 	(
 		const std::string& title,
 		const math::ivec2& windowed_position,
@@ -57,10 +57,10 @@ public:
 		bool maximized,
 		bool fullscreen,
 		bool v_sync
-	);
+	) override;
 	
-	[[nodiscard]] virtual std::size_t get_display_count() const;
-	[[nodiscard]] virtual const display& get_display(std::size_t index) const;
+	[[nodiscard]] std::size_t get_display_count() const override;
+	[[nodiscard]] const display& get_display(std::size_t index) const override;
 	
 private:
 	sdl_window* get_window(SDL_Window* internal_window);

@@ -18,19 +18,59 @@
  */
 
 #include <engine/render/stages/light-probe-stage.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/scene/light-probe.hpp>
 #include <engine/scene/collection.hpp>
 #include <algorithm>
 #include <execution>
 #include <stdexcept>
-#include <glad/glad.h>
 
 namespace render {
 
-light_probe_stage::light_probe_stage(gl::rasterizer& rasterizer, ::resource_manager& resource_manager):
-	m_rasterizer(&rasterizer)
+light_probe_stage::light_probe_stage(gl::pipeline& pipeline, ::resource_manager& resource_manager):
+	m_pipeline(&pipeline)
 {
+	// Generate restricted mip range samplers
+	m_downsample_samplers.resize(16);
+	m_filter_samplers.resize(16);
+	for (std::size_t i = 0; i < m_downsample_samplers.size(); ++i)
+	{
+		m_downsample_samplers[i] = std::make_shared<gl::sampler>
+		(
+			gl::sampler_filter::linear,
+			gl::sampler_filter::linear,
+			gl::sampler_mipmap_mode::linear,
+			gl::sampler_address_mode::repeat,
+			gl::sampler_address_mode::repeat,
+			gl::sampler_address_mode::repeat,
+			0.0f,
+			0.0f,
+			false,
+			gl::compare_op::less,
+			static_cast<float>(i),
+			static_cast<float>(i)
+		);
+		
+		m_filter_samplers[i] = std::make_shared<gl::sampler>
+		(
+			gl::sampler_filter::linear,
+			gl::sampler_filter::linear,
+			gl::sampler_mipmap_mode::linear,
+			gl::sampler_address_mode::repeat,
+			gl::sampler_address_mode::repeat,
+			gl::sampler_address_mode::repeat,
+			0.0f,
+			0.0f,
+			false,
+			gl::compare_op::less,
+			static_cast<float>(i),
+			1000.0f
+		);
+	}
+	
+	// Construct empty vertex array
+	m_vertex_array = std::make_unique<gl::vertex_array>();
+	
 	// Load cubemap to spherical harmonics shader template and build shader program
 	m_cubemap_to_sh_shader_template = resource_manager.load<gl::shader_template>("cubemap-to-sh.glsl");
 	rebuild_cubemap_to_sh_shader_program();
@@ -44,11 +84,35 @@ light_probe_stage::light_probe_stage(gl::rasterizer& rasterizer, ::resource_mana
 	rebuild_cubemap_filter_lut_shader_program();
 	
 	// Allocate cubemap filter LUT texture
-	m_cubemap_filter_lut_texture = std::make_unique<gl::texture_2d>(static_cast<std::uint16_t>(m_cubemap_filter_sample_count), static_cast<std::uint16_t>(m_cubemap_filter_mip_count - 1), gl::pixel_type::float_32, gl::pixel_format::rgba);
+	m_cubemap_filter_lut_texture = std::make_shared<gl::texture_2d>
+	(
+		std::make_shared<gl::image_view_2d>
+		(
+			std::make_shared<gl::image_2d>
+			(
+				gl::format::r32g32b32a32_sfloat,
+				static_cast<std::uint32_t>(m_cubemap_filter_sample_count),
+				static_cast<std::uint32_t>(m_cubemap_filter_mip_count - 1)
+			)
+		),
+		std::make_shared<gl::sampler>
+		(
+			gl::sampler_filter::nearest,
+			gl::sampler_filter::nearest,
+			gl::sampler_mipmap_mode::nearest,
+			gl::sampler_address_mode::clamp_to_edge,
+			gl::sampler_address_mode::clamp_to_edge
+		)
+	);
 	
 	// Allocate cubemap filter LUT framebuffer and attach LUT texture
-	m_cubemap_filter_lut_framebuffer = std::make_unique<gl::framebuffer>();
-	m_cubemap_filter_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, m_cubemap_filter_lut_texture.get());
+	const gl::framebuffer_attachment attachments[1] =
+	{{
+		gl::color_attachment_bit,
+		m_cubemap_filter_lut_texture->get_image_view(),
+		0
+	}};
+	m_cubemap_filter_lut_framebuffer = std::make_unique<gl::framebuffer>(attachments, m_cubemap_filter_lut_texture->get_image_view()->get_image()->get_dimensions()[0], m_cubemap_filter_lut_texture->get_image_view()->get_image()->get_dimensions()[1]);
 	
 	// Build cubemap filter LUT texture
 	rebuild_cubemap_filter_lut_texture();
@@ -88,45 +152,55 @@ void light_probe_stage::update_light_probes_luminance(const std::vector<scene::o
 				return;
 			}
 			
+			// Store light probe luminance sampler
+			auto light_probe_luminance_sampler = light_probe.get_luminance_texture()->get_sampler();
+			
 			// Bind state, if unbound
 			if (!state_bound)
 			{
-				glDisable(GL_BLEND);
+				m_pipeline->set_primitive_topology(gl::primitive_topology::point_list);
+				m_pipeline->bind_vertex_array(m_vertex_array.get());
+				m_pipeline->set_color_blend_enabled(false);
 				state_bound = true;
 			}
 			
 			// Bind cubemap downsample shader program
-			m_rasterizer->use_program(*m_cubemap_downsample_shader_program);
-			
-			// Update cubemap shader variable with light probe luminance texture
-			m_cubemap_downsample_cubemap_var->update(*light_probe.get_luminance_texture());
+			m_pipeline->bind_shader_program(m_cubemap_downsample_shader_program.get());
 			
 			// Get resolution of cubemap face for base mip level
-			const std::uint16_t base_mip_face_size = light_probe.get_luminance_texture()->get_face_size();
+			const auto base_mip_face_size = light_probe.get_luminance_texture()->get_image_view()->get_image()->get_dimensions()[0];
 			
 			// Downsample mip chain
 			for (std::size_t i = 1; i < light_probe.get_luminance_framebuffers().size(); ++i)
 			{
 				// Set viewport to resolution of cubemap face size for current mip level
-				const std::uint16_t current_mip_face_size = base_mip_face_size >> i;
-				m_rasterizer->set_viewport(0, 0, current_mip_face_size, current_mip_face_size);
+				const auto current_mip_face_size = base_mip_face_size >> i;
+				const gl::viewport viewport[1] =
+				{{
+					0,
+					0,
+					static_cast<float>(current_mip_face_size),
+					static_cast<float>(current_mip_face_size)
+				}};
+				m_pipeline->set_viewport(0, viewport);
 				
 				// Restrict cubemap mipmap range to parent mip level
-				const std::uint8_t parent_mip_level = static_cast<std::uint8_t>(i - 1);
-				light_probe.get_luminance_texture()->set_mip_range(parent_mip_level, parent_mip_level);
+				light_probe.get_luminance_texture()->set_sampler(m_downsample_samplers[i - 1]);
+				
+				// Update cubemap shader variable with light probe luminance texture
+				m_cubemap_downsample_cubemap_var->update(*light_probe.get_luminance_texture());
 				
 				// Bind framebuffer of current cubemap mip level
-				m_rasterizer->use_framebuffer(*light_probe.get_luminance_framebuffers()[i]);
+				m_pipeline->bind_framebuffer(light_probe.get_luminance_framebuffers()[i].get());
 				
 				// Downsample
-				m_rasterizer->draw_arrays(gl::drawing_mode::points, 0, 1);
+				m_pipeline->draw(1, 1, 0, 0);
 			}
 			
 			// Bind cubemap filter shader program
-			m_rasterizer->use_program(*m_cubemap_filter_shader_program);
+			m_pipeline->bind_shader_program(m_cubemap_filter_shader_program.get());
 			
-			// Pass cubemap and filter lut textures to cubemap filter shader program
-			m_cubemap_filter_cubemap_var->update(*light_probe.get_luminance_texture());
+			// Pass filter lut texture to cubemap filter shader program
 			m_cubemap_filter_filter_lut_var->update(*m_cubemap_filter_lut_texture);
 			
 			// Filter mip chain
@@ -136,21 +210,31 @@ void light_probe_stage::update_light_probes_luminance(const std::vector<scene::o
 				m_cubemap_filter_mip_level_var->update(static_cast<int>(i));
 				
 				// Set viewport to resolution of cubemap face size for current mip level
-				const std::uint16_t current_mip_face_size = base_mip_face_size >> i;
-				m_rasterizer->set_viewport(0, 0, current_mip_face_size, current_mip_face_size);
+				const auto current_mip_face_size = base_mip_face_size >> i;
+				const gl::viewport viewport[1] =
+				{{
+					0,
+					0,
+					static_cast<float>(current_mip_face_size),
+					static_cast<float>(current_mip_face_size)
+				}};
+				m_pipeline->set_viewport(0, viewport);
 				
 				// Restrict cubemap mipmap range to descendent levels
-				light_probe.get_luminance_texture()->set_mip_range(static_cast<std::uint8_t>(i + 1), 255);
+				light_probe.get_luminance_texture()->set_sampler(m_filter_samplers[i + 1]);
+				
+				// Update cubemap shader variable with light probe luminance texture
+				m_cubemap_filter_cubemap_var->update(*light_probe.get_luminance_texture());
 				
 				// Bind framebuffer of current cubemap mip level
-				m_rasterizer->use_framebuffer(*light_probe.get_luminance_framebuffers()[i]);
+				m_pipeline->bind_framebuffer(light_probe.get_luminance_framebuffers()[i].get());
 				
 				// Filter
-				m_rasterizer->draw_arrays(gl::drawing_mode::points, 0, 1);
+				m_pipeline->draw(1, 1, 0, 0);
 			}
 			
-			// Restore cubemap mipmap range
-			light_probe.get_luminance_texture()->set_mip_range(0, 255);
+			// Restore light probe luminance sampler
+			light_probe.get_luminance_texture()->set_sampler(light_probe_luminance_sampler);
 			
 			// Mark light probe luminance as current
 			light_probe.set_luminance_outdated(false);
@@ -179,20 +263,31 @@ void light_probe_stage::update_light_probes_illuminance(const std::vector<scene:
 			// Setup viewport and bind cubemap to spherical harmonics shader program
 			if (!state_bound)
 			{
-				glDisable(GL_BLEND);
-				m_rasterizer->set_viewport(0, 0, 12, 1);
-				m_rasterizer->use_program(*m_cubemap_to_sh_shader_program);
+				m_pipeline->set_primitive_topology(gl::primitive_topology::triangle_list);
+				m_pipeline->bind_vertex_array(m_vertex_array.get());
+				m_pipeline->set_color_blend_enabled(false);
+				
+				const gl::viewport viewport[1] =
+				{{
+					0,
+					0,
+					12,
+					1
+				}};
+				m_pipeline->set_viewport(0, viewport);
+				
+				m_pipeline->bind_shader_program(m_cubemap_to_sh_shader_program.get());
 				state_bound = true;
 			}
 			
 			// Bind light probe illuminance framebuffer
-			m_rasterizer->use_framebuffer(*light_probe.get_illuminance_framebuffer());
+			m_pipeline->bind_framebuffer(light_probe.get_illuminance_framebuffer().get());
 			
 			// Update cubemap to spherical harmonics cubemap variable with light probe luminance texture
 			m_cubemap_to_sh_cubemap_var->update(*light_probe.get_luminance_texture());
 			
-			// Draw quad
-			m_rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
+			// Draw fullscreen triangle
+			m_pipeline->draw(3, 1, 0, 0);
 			
 			// Mark light probe illuminance as current
 			light_probe.set_illuminance_outdated(false);
@@ -234,8 +329,8 @@ void light_probe_stage::rebuild_cubemap_to_sh_shader_program()
 	m_cubemap_to_sh_shader_program = m_cubemap_to_sh_shader_template->build({{"SAMPLE_COUNT", std::to_string(m_sh_sample_count)}});
 	if (!m_cubemap_to_sh_shader_program->linked())
 	{
-		debug::log::error("Failed to build cubemap to spherical harmonics shader program: {}", m_cubemap_to_sh_shader_program->info());
-		debug::log::warning("{}", m_cubemap_to_sh_shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build cubemap to spherical harmonics shader program: {}", m_cubemap_to_sh_shader_program->info());
+		debug::log_warning("{}", m_cubemap_to_sh_shader_template->configure(gl::shader_stage::vertex));
 		m_cubemap_to_sh_cubemap_var = nullptr;
 		
 		throw std::runtime_error("Failed to build cubemap to spherical harmonics shader program.");
@@ -255,8 +350,8 @@ void light_probe_stage::rebuild_cubemap_downsample_shader_program()
 	m_cubemap_downsample_shader_program = m_cubemap_downsample_shader_template->build({});
 	if (!m_cubemap_downsample_shader_program->linked())
 	{
-		debug::log::error("Failed to build cubemap downsample shader program: {}", m_cubemap_downsample_shader_program->info());
-		debug::log::warning("{}", m_cubemap_downsample_shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build cubemap downsample shader program: {}", m_cubemap_downsample_shader_program->info());
+		debug::log_warning("{}", m_cubemap_downsample_shader_template->configure(gl::shader_stage::vertex));
 		m_cubemap_downsample_cubemap_var = nullptr;
 		
 		throw std::runtime_error("Failed to build cubemap downsample shader program.");
@@ -276,8 +371,8 @@ void light_probe_stage::rebuild_cubemap_filter_lut_shader_program()
 	m_cubemap_filter_lut_shader_program = m_cubemap_filter_lut_shader_template->build({});
 	if (!m_cubemap_filter_lut_shader_program->linked())
 	{
-		debug::log::error("Failed to build cubemap filter LUT shader program: {}", m_cubemap_filter_lut_shader_program->info());
-		debug::log::warning("{}", m_cubemap_filter_lut_shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build cubemap filter LUT shader program: {}", m_cubemap_filter_lut_shader_program->info());
+		debug::log_warning("{}", m_cubemap_filter_lut_shader_template->configure(gl::shader_stage::vertex));
 		m_cubemap_filter_lut_resolution_var = nullptr;
 		m_cubemap_filter_lut_face_size_var = nullptr;
 		m_cubemap_filter_lut_mip_bias_var = nullptr;
@@ -298,14 +393,28 @@ void light_probe_stage::rebuild_cubemap_filter_lut_shader_program()
 
 void light_probe_stage::rebuild_cubemap_filter_lut_texture()
 {
-	glDisable(GL_BLEND);
-	m_rasterizer->use_framebuffer(*m_cubemap_filter_lut_framebuffer);
-	m_rasterizer->set_viewport(0, 0, m_cubemap_filter_lut_texture->get_width(), m_cubemap_filter_lut_texture->get_height());
-	m_rasterizer->use_program(*m_cubemap_filter_lut_shader_program);
-	m_cubemap_filter_lut_resolution_var->update(math::fvec2{static_cast<float>(m_cubemap_filter_lut_texture->get_width()), static_cast<float>(m_cubemap_filter_lut_texture->get_height())});
+	m_pipeline->set_color_blend_enabled(false);
+	m_pipeline->bind_framebuffer(m_cubemap_filter_lut_framebuffer.get());
+	
+	const auto& cubemap_filter_lut_dimensions = m_cubemap_filter_lut_texture->get_image_view()->get_image()->get_dimensions();
+	const gl::viewport viewport[1] =
+	{{
+		0,
+		0,
+		static_cast<float>(cubemap_filter_lut_dimensions[0]),
+		static_cast<float>(cubemap_filter_lut_dimensions[1])
+	}};
+	m_pipeline->set_viewport(0, viewport);
+	
+	m_pipeline->bind_shader_program(m_cubemap_filter_lut_shader_program.get());
+	m_cubemap_filter_lut_resolution_var->update(math::fvec2{static_cast<float>(cubemap_filter_lut_dimensions[0]), static_cast<float>(cubemap_filter_lut_dimensions[1])});
 	m_cubemap_filter_lut_face_size_var->update(128.0f);
 	m_cubemap_filter_lut_mip_bias_var->update(m_cubemap_filter_mip_bias);
-	m_rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
+	m_cubemap_filter_lut_framebuffer->resize(cubemap_filter_lut_dimensions[0], cubemap_filter_lut_dimensions[1]);
+	
+	m_pipeline->bind_vertex_array(m_vertex_array.get());
+	m_pipeline->set_primitive_topology(gl::primitive_topology::triangle_list);
+	m_pipeline->draw(3, 1, 0, 0);
 }
 
 void light_probe_stage::rebuild_cubemap_filter_shader_program()
@@ -313,8 +422,8 @@ void light_probe_stage::rebuild_cubemap_filter_shader_program()
 	m_cubemap_filter_shader_program = m_cubemap_filter_shader_template->build({{"SAMPLE_COUNT", std::to_string(m_cubemap_filter_sample_count)}});
 	if (!m_cubemap_filter_shader_program->linked())
 	{
-		debug::log::error("Failed to build cubemap filter shader program: {}", m_cubemap_filter_shader_program->info());
-		debug::log::warning("{}", m_cubemap_filter_shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build cubemap filter shader program: {}", m_cubemap_filter_shader_program->info());
+		debug::log_warning("{}", m_cubemap_filter_shader_template->configure(gl::shader_stage::vertex));
 		m_cubemap_filter_cubemap_var = nullptr;
 		m_cubemap_filter_filter_lut_var = nullptr;
 		m_cubemap_filter_mip_level_var = nullptr;

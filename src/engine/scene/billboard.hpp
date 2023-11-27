@@ -89,8 +89,8 @@ public:
 private:
 	void transformed() override;
 	
-	std::unique_ptr<gl::vertex_buffer> m_vbo;
-	std::unique_ptr<gl::vertex_array> m_vao;
+	std::unique_ptr<gl::vertex_array> m_vertex_array;
+	std::unique_ptr<gl::vertex_buffer> m_vertex_buffer;
 	mutable render::operation m_render_op;
 	aabb_type m_bounds{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}};
 	billboard_type m_billboard_type{billboard_type::flat};

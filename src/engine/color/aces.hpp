@@ -79,11 +79,11 @@ template <class T>
 
 /// ACES AP1 RRT saturation adjustment matrix.
 template <class T>
-constexpr math::mat3<T> aces_ap1_rrt_sat = aces_adjust_saturation(T{0.96}, ap1<T>.to_y);
+constexpr math::mat3<T> aces_ap1_rrt_sat = aces_adjust_saturation(T{0.96}, aces_ap1<T>.to_y);
 
 /// ACES AP1 ODT saturation adjustment matrix.
 template <class T>
-constexpr math::mat3<T> aces_ap1_odt_sat = aces_adjust_saturation(T{0.93}, ap1<T>.to_y);
+constexpr math::mat3<T> aces_ap1_odt_sat = aces_adjust_saturation(T{0.93}, aces_ap1<T>.to_y);
 
 /// @}
 

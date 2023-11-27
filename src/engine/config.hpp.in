@@ -68,10 +68,10 @@ inline constexpr std::size_t debug_log_archive_capacity = 5;
 /// @{
 
 /// OpenGL major version number, used when creating OpenGL contexts.
-inline constexpr int opengl_version_major = 3;
+inline constexpr int opengl_version_major = 4;
 
 /// OpenGL minor version number, used when creating OpenGL contexts.
-inline constexpr int opengl_version_minor = 3;
+inline constexpr int opengl_version_minor = 6;
 
 /// Minimum number of bits in the red channel of the color attachment of the OpenGL default framebuffer.
 inline constexpr int opengl_min_red_size = 8;

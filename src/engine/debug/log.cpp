@@ -20,7 +20,6 @@
 #include <engine/debug/log.hpp>
 
 namespace debug {
-namespace log {
 
 logger& default_logger() noexcept
 {
@@ -28,5 +27,4 @@ logger& default_logger() noexcept
 	return instance;
 }
 
-} // namespace log
 } // namespace debug

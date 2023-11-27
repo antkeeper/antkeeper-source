@@ -19,18 +19,13 @@
 
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/gl/rasterizer.hpp>
 #include <engine/gl/framebuffer.hpp>
 #include <engine/gl/shader-program.hpp>
 #include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/vertex-attribute.hpp>
-#include <engine/gl/drawing-mode.hpp>
-#include <engine/gl/texture-2d.hpp>
-#include <engine/gl/texture-wrapping.hpp>
-#include <engine/gl/texture-filter.hpp>
-#include <engine/render/vertex-attribute.hpp>
+#include <engine/gl/texture.hpp>
+#include <engine/render/vertex-attribute-location.hpp>
 #include <engine/render/context.hpp>
 #include <engine/render/model.hpp>
 #include <engine/render/material.hpp>
@@ -43,12 +38,11 @@
 #include <bit>
 #include <cmath>
 #include <stdexcept>
-#include <glad/glad.h>
 
 namespace render {
 
-sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
-	pass(rasterizer, framebuffer),
+sky_pass::sky_pass(gl::pipeline* pipeline, const gl::framebuffer* framebuffer, resource_manager* resource_manager):
+	pass(pipeline, framebuffer),
 	mouse_position({0.0f, 0.0f}),
 	sky_model(nullptr),
 	sky_material(nullptr),
@@ -77,18 +71,23 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	moon_illuminance_tween(math::fvec3{0.0f, 0.0f, 0.0f}, math::lerp<math::fvec3, float>),
 	magnification(1.0f)
 {
+	// Construct LUT sampler
+	m_lut_sampler = std::make_shared<gl::sampler>
+	(
+		gl::sampler_filter::linear,
+		gl::sampler_filter::linear,
+		gl::sampler_mipmap_mode::linear,
+		gl::sampler_address_mode::clamp_to_edge,
+		gl::sampler_address_mode::clamp_to_edge
+	);
+	
+	// Construct empty vertex array
+	m_vertex_array = std::make_unique<gl::vertex_array>();
 	
 	// Transmittance LUT
 	{
-		// Construct transmittance LUT texture
-		m_transmittance_lut_texture = std::make_unique<gl::texture_2d>(m_transmittance_lut_resolution.x(), m_transmittance_lut_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
-		m_transmittance_lut_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-		m_transmittance_lut_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-		m_transmittance_lut_texture->set_max_anisotropy(0.0f);
-		
-		// Construct transmittance LUT framebuffer and attach texture
-		m_transmittance_lut_framebuffer = std::make_unique<gl::framebuffer>(m_transmittance_lut_resolution.x(), m_transmittance_lut_resolution.y());
-		m_transmittance_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, m_transmittance_lut_texture.get());
+		// Construct transmittance LUT texture and framebuffer
+		rebuild_transmittance_lut_framebuffer();
 		
 		// Load transmittance LUT shader template
 		m_transmittance_lut_shader_template = resource_manager->load<gl::shader_template>("sky-transmittance-lut.glsl");
@@ -102,15 +101,8 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	
 	// Multiscattering LUT
 	{
-		// Construct multiscattering LUT texture
-		m_multiscattering_lut_texture = std::make_unique<gl::texture_2d>(m_multiscattering_lut_resolution.x(), m_multiscattering_lut_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
-		m_multiscattering_lut_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-		m_multiscattering_lut_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-		m_multiscattering_lut_texture->set_max_anisotropy(0.0f);
-		
-		// Construct multiscattering LUT framebuffer and attach texture
-		m_multiscattering_lut_framebuffer = std::make_unique<gl::framebuffer>(m_multiscattering_lut_resolution.x(), m_multiscattering_lut_resolution.y());
-		m_multiscattering_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, m_multiscattering_lut_texture.get());
+		// Construct multiscattering LUT texture and framebuffer
+		rebuild_multiscattering_lut_framebuffer();
 		
 		// Load multiscattering LUT shader template
 		m_multiscattering_lut_shader_template = resource_manager->load<gl::shader_template>("sky-multiscattering-lut.glsl");
@@ -124,15 +116,8 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	
 	// Luminance LUT
 	{
-		// Construct luminance LUT texture
-		m_luminance_lut_texture = std::make_unique<gl::texture_2d>(m_luminance_lut_resolution.x(), m_luminance_lut_resolution.y(), gl::pixel_type::float_32, gl::pixel_format::rgb);
-		m_luminance_lut_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-		m_luminance_lut_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-		m_luminance_lut_texture->set_max_anisotropy(0.0f);
-		
-		// Construct luminance LUT framebuffer and attach texture
-		m_luminance_lut_framebuffer = std::make_unique<gl::framebuffer>(m_luminance_lut_resolution.x(), m_luminance_lut_resolution.y());
-		m_luminance_lut_framebuffer->attach(gl::framebuffer_attachment_type::color, m_luminance_lut_texture.get());
+		// Construct luminance LUT texture and framebuffer
+		rebuild_luminance_lut_framebuffer();
 		
 		// Load luminance LUT shader template
 		m_luminance_lut_shader_template = resource_manager->load<gl::shader_template>("sky-luminance-lut.glsl");
@@ -151,8 +136,8 @@ sky_pass::sky_pass(gl::rasterizer* rasterizer, const gl::framebuffer* framebuffe
 	m_sky_probe_shader_program = m_sky_probe_shader_template->build({});
 	if (!m_sky_probe_shader_program->linked())
 	{
-		debug::log::error("Failed to build sky probe shader program: {}", m_sky_probe_shader_program->info());
-		debug::log::warning("{}", m_sky_probe_shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build sky probe shader program: {}", m_sky_probe_shader_program->info());
+		debug::log_warning("{}", m_sky_probe_shader_template->configure(gl::shader_stage::vertex));
 	}
 	
 	// Load moon textures
@@ -167,11 +152,9 @@ void sky_pass::render(render::context& ctx)
 		return;
 	}
 	
-	glDisable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	m_pipeline->set_color_blend_enabled(false);
+	m_pipeline->set_depth_test_enabled(false);
+	m_pipeline->set_cull_mode(gl::cull_mode::back);
 	
 	// Render transmittance LUT (if parameters have changed)
 	if (m_render_transmittance_lut)
@@ -256,19 +239,58 @@ void sky_pass::render(render::context& ctx)
 		command();
 	}
 	
-	rasterizer->use_framebuffer(*framebuffer);
-	auto viewport = framebuffer->get_dimensions();
-	rasterizer->set_viewport(0, 0, std::get<0>(viewport), std::get<1>(viewport));
-	math::fvec2 resolution = {static_cast<float>(std::get<0>(viewport)), static_cast<float>(std::get<1>(viewport))};
+	m_pipeline->bind_framebuffer(m_framebuffer);
+	m_pipeline->clear_attachments(gl::color_clear_bit | gl::depth_clear_bit | gl::stencil_clear_bit, {});
+	
+	// Check if any corner of the view frustum is looking at or above the horizon
+	bool sky_visible =
+		(camera.pick(math::fvec2{-1,  1}).direction.y() > 0.0f) ||
+		(camera.pick(math::fvec2{-1, -1}).direction.y() > 0.0f) ||
+		(camera.pick(math::fvec2{ 1,  1}).direction.y() > 0.0f) ||
+		(camera.pick(math::fvec2{ 1, -1}).direction.y() > 0.0f);
+	if (!sky_visible)
+	{
+		// Sky not visible, abort
+		return;
+	}
+	
+	const auto& viewport_dimensions = (m_framebuffer) ? m_framebuffer->dimensions() : m_pipeline->get_default_framebuffer_dimensions();
+	const gl::viewport viewport[1] =
+	{{
+		0.0f,
+		0.0f,
+		static_cast<float>(viewport_dimensions[0]),
+		static_cast<float>(viewport_dimensions[1])
+	}};
+	m_pipeline->set_viewport(0, viewport);
+	math::fvec2 resolution = {viewport[0].width, viewport[1].height};
 	
 	// Draw atmosphere
 	if (sky_model && sky_shader_program)
 	{
-		rasterizer->use_program(*sky_shader_program);
-
+		m_pipeline->bind_shader_program(sky_shader_program.get());
+		
 		// Upload shader parameters
 		if (model_view_projection_var)
 			model_view_projection_var->update(model_view_projection);
+		if (view_var)
+		{
+			view_var->update(view);
+		}
+		if (view_projection_var)
+		{
+			view_projection_var->update(view_projection);
+		}
+		if (inv_view_projection_var)
+		{
+			const auto inv_view_projection = math::fmat4(math::fmat3(camera.get_inv_view())) * camera.get_inv_projection();
+			inv_view_projection_var->update(inv_view_projection);
+			// inv_view_projection_var->update(camera.get_inv_view_projection());
+		}
+		if (camera_position_var)
+		{
+			camera_position_var->update(camera.get_translation());
+		}
 		if (mouse_var)
 			mouse_var->update(mouse_position);
 		if (resolution_var)
@@ -292,20 +314,37 @@ void sky_pass::render(render::context& ctx)
 		if (sky_luminance_lut_resolution_var)
 			sky_luminance_lut_resolution_var->update(math::fvec2(m_luminance_lut_resolution));
 		
-		//sky_material->update(ctx.alpha);
-
-		rasterizer->draw_arrays(*sky_model_vao, sky_model_drawing_mode, sky_model_start_index, sky_model_index_count);
+		m_pipeline->set_primitive_topology(sky_model_primitive_topology);
+		m_pipeline->bind_vertex_array(sky_model_vao);
+		m_pipeline->bind_vertex_buffers(0, {&sky_model_vbo, 1}, {&sky_model_vertex_offset, 1}, {&sky_model_vertex_stride, 1});
+		m_pipeline->draw(sky_model_vertex_count, 1, sky_model_first_vertex, 0);
 	}
 	
-	glEnable(GL_BLEND);
-	// glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glBlendFunc(GL_ONE, GL_ONE);
+	// Enable additive blending
+	m_pipeline->set_color_blend_enabled(true);
+	m_pipeline->set_color_blend_equation
+	({
+		gl::blend_factor::one,
+		gl::blend_factor::one,
+		gl::blend_op::add,
+		gl::blend_factor::one,
+		gl::blend_factor::one,
+		gl::blend_op::add
+	});
 	
 	// Flag moon pixels in stencil buffer
-	glEnable(GL_STENCIL_TEST);
-	glStencilMask(0xff);
-	glStencilFunc(GL_ALWAYS, 1, 0xff);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	m_pipeline->set_stencil_test_enabled(true);
+	m_pipeline->set_stencil_write_mask(gl::stencil_face_front_and_back, 0xff);
+	m_pipeline->set_stencil_reference(gl::stencil_face_front_and_back, 1);
+	m_pipeline->set_stencil_compare_mask(gl::stencil_face_front_and_back, 0xff);
+	m_pipeline->set_stencil_op
+	(
+		gl::stencil_face_front_and_back,
+		gl::stencil_op::keep,
+		gl::stencil_op::replace,
+		gl::stencil_op::keep,
+		gl::compare_op::always
+	);
 	
 	// Draw moon model
 	//if (moon_position.y() >= -moon_angular_radius)
@@ -322,7 +361,7 @@ void sky_pass::render(render::context& ctx)
 		model = moon_transform.matrix();		
 		math::fmat3 normal_model = math::transpose(math::inverse(math::fmat3(model)));
 		
-		rasterizer->use_program(*moon_shader_program);
+		m_pipeline->bind_shader_program(moon_shader_program.get());
 		if (moon_model_var)
 			moon_model_var->update(model);
 		if (moon_view_projection_var)
@@ -350,13 +389,22 @@ void sky_pass::render(render::context& ctx)
 		if (moon_atmosphere_radii_var)
 			moon_atmosphere_radii_var->update(atmosphere_radii);
 		
-		//moon_material->update(ctx.alpha);
-		rasterizer->draw_arrays(*moon_model_vao, moon_model_drawing_mode, moon_model_start_index, moon_model_index_count);
+		m_pipeline->set_primitive_topology(moon_model_primitive_topology);
+		m_pipeline->bind_vertex_array(moon_model_vao);
+		m_pipeline->bind_vertex_buffers(0, {&moon_model_vbo, 1}, {&moon_model_vertex_offset, 1}, {&moon_model_vertex_stride, 1});
+		m_pipeline->draw(moon_model_vertex_count, 1, moon_model_first_vertex, 0);
 	}
 	
 	// Prevent stars from being drawn in front of the moon
-	glStencilMask(0x00);
-	glStencilFunc(GL_NOTEQUAL, 1, 0xff);
+	m_pipeline->set_stencil_compare_mask(gl::stencil_face_front_and_back, 0x00);
+	m_pipeline->set_stencil_op
+	(
+		gl::stencil_face_front_and_back,
+		gl::stencil_op::keep,
+		gl::stencil_op::replace,
+		gl::stencil_op::keep,
+		gl::compare_op::not_equal
+	);
 	
 	// Draw stars
 	if (star_shader_program)
@@ -367,7 +415,7 @@ void sky_pass::render(render::context& ctx)
 		
 		model_view_projection = view_projection * model;
 		
-		rasterizer->use_program(*star_shader_program);
+		m_pipeline->bind_shader_program(star_shader_program.get());
 		if (star_model_view_projection_var)
 			star_model_view_projection_var->update(model_view_projection);
 		if (star_exposure_var)
@@ -375,12 +423,13 @@ void sky_pass::render(render::context& ctx)
 		if (star_inv_resolution_var)
 			star_inv_resolution_var->update(1.0f / resolution);
 		
-		//star_material->update(ctx.alpha);
-		
-		rasterizer->draw_arrays(*stars_model_vao, stars_model_drawing_mode, stars_model_start_index, stars_model_index_count);
+		m_pipeline->set_primitive_topology(stars_model_primitive_topology);
+		m_pipeline->bind_vertex_array(stars_model_vao);
+		m_pipeline->bind_vertex_buffers(0, {&stars_model_vbo, 1}, {&stars_model_vertex_offset, 1}, {&stars_model_vertex_stride, 1});
+		m_pipeline->draw(stars_model_vertex_count, 1, stars_model_first_vertex, 0);
 	}
 	
-	glDisable(GL_STENCIL_TEST);
+	m_pipeline->set_stencil_test_enabled(false);
 }
 
 void sky_pass::set_transmittance_lut_sample_count(std::uint16_t count)
@@ -403,8 +452,8 @@ void sky_pass::set_transmittance_lut_resolution(const math::vec2<std::uint16_t>&
 	if (m_transmittance_lut_resolution.x() != resolution.x() || m_transmittance_lut_resolution.y() != resolution.y())
 	{
 		m_transmittance_lut_resolution = resolution;
-		m_transmittance_lut_texture->resize(resolution.x(), resolution.y(), nullptr);
-		m_transmittance_lut_framebuffer->resize({resolution.x(), resolution.y()});
+		
+		rebuild_transmittance_lut_framebuffer();
 		
 		// Trigger rendering of transmittance LUT
 		m_render_transmittance_lut = true;
@@ -446,8 +495,8 @@ void sky_pass::set_multiscattering_lut_resolution(const math::vec2<std::uint16_t
 	if (m_multiscattering_lut_resolution.x() != resolution.x() || m_multiscattering_lut_resolution.y() != resolution.y())
 	{
 		m_multiscattering_lut_resolution = resolution;
-		m_multiscattering_lut_texture->resize(resolution.x(), resolution.y(), nullptr);
-		m_multiscattering_lut_framebuffer->resize({resolution.x(), resolution.y()});
+		
+		rebuild_multiscattering_lut_framebuffer();
 		
 		// Trigger rendering of multiscattering LUT
 		m_render_multiscattering_lut = true;
@@ -474,8 +523,8 @@ void sky_pass::set_luminance_lut_resolution(const math::vec2<std::uint16_t>& res
 	if (m_luminance_lut_resolution.x() != resolution.x() || m_luminance_lut_resolution.y() != resolution.y())
 	{
 		m_luminance_lut_resolution = resolution;
-		m_luminance_lut_texture->resize(resolution.x(), resolution.y(), nullptr);
-		m_luminance_lut_framebuffer->resize({resolution.x(), resolution.y()});
+		
+		rebuild_luminance_lut_framebuffer();
 		
 		// Trigger rendering of luminance LUT
 		m_render_luminance_lut = true;
@@ -490,14 +539,17 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 	if (sky_model)
 	{
 		sky_model_vao = model->get_vertex_array().get();
+		sky_model_vbo = model->get_vertex_buffer().get();
 		
 		for (const auto& group: model->get_groups())
 		{
+			sky_model_primitive_topology = group.primitive_topology;
+			sky_model_first_vertex = group.first_vertex;
+			sky_model_vertex_count = group.vertex_count;
 			sky_material = group.material.get();
-			sky_model_drawing_mode = group.drawing_mode;
-			sky_model_start_index = group.start_index;
-			sky_model_index_count = group.index_count;
 		}
+		sky_model_vertex_offset = sky_model->get_vertex_offset();
+		sky_model_vertex_stride = sky_model->get_vertex_stride();
 		
 		if (sky_material)
 		{
@@ -506,6 +558,10 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 			if (sky_shader_program->linked())
 			{
 				model_view_projection_var = sky_shader_program->variable("model_view_projection");
+				view_var = sky_shader_program->variable("view");
+				view_projection_var = sky_shader_program->variable("view_projection");
+				inv_view_projection_var = sky_shader_program->variable("inv_view_projection");
+				camera_position_var = sky_shader_program->variable("camera_position");
 				mouse_var = sky_shader_program->variable("mouse");
 				resolution_var = sky_shader_program->variable("resolution");
 				light_direction_var = sky_shader_program->variable("light_direction");
@@ -520,8 +576,8 @@ void sky_pass::set_sky_model(std::shared_ptr<render::model> model)
 			}
 			else
 			{
-				debug::log::error("Failed to build sky shader program: {}", sky_shader_program->info());
-				debug::log::warning("{}", sky_material->get_shader_template()->configure(gl::shader_stage::vertex));
+				debug::log_error("Failed to build sky shader program: {}", sky_shader_program->info());
+				debug::log_warning("{}", sky_material->get_shader_template()->configure(gl::shader_stage::vertex));
 			}
 		}
 	}
@@ -539,14 +595,17 @@ void sky_pass::set_moon_model(std::shared_ptr<render::model> model)
 	if (moon_model)
 	{
 		moon_model_vao = model->get_vertex_array().get();
+		moon_model_vbo = model->get_vertex_buffer().get();
 		
 		for (const auto& group: model->get_groups())
 		{
+			moon_model_primitive_topology = group.primitive_topology;
+			moon_model_first_vertex = group.first_vertex;
+			moon_model_vertex_count = group.vertex_count;
 			moon_material = group.material.get();
-			moon_model_drawing_mode = group.drawing_mode;
-			moon_model_start_index = group.start_index;
-			moon_model_index_count = group.index_count;
 		}
+		moon_model_vertex_offset = moon_model->get_vertex_offset();
+		moon_model_vertex_stride = moon_model->get_vertex_stride();
 		
 		if (moon_material)
 		{
@@ -570,8 +629,8 @@ void sky_pass::set_moon_model(std::shared_ptr<render::model> model)
 			}
 			else
 			{
-				debug::log::error("Failed to build moon shader program: {}", moon_shader_program->info());
-				debug::log::warning("{}", moon_material->get_shader_template()->configure(gl::shader_stage::vertex));
+				debug::log_error("Failed to build moon shader program: {}", moon_shader_program->info());
+				debug::log_warning("{}", moon_material->get_shader_template()->configure(gl::shader_stage::vertex));
 			}
 		}
 	}
@@ -589,14 +648,17 @@ void sky_pass::set_stars_model(std::shared_ptr<render::model> model)
 	if (stars_model)
 	{
 		stars_model_vao = model->get_vertex_array().get();
+		stars_model_vbo = model->get_vertex_buffer().get();
 		
 		for (const auto& group: model->get_groups())
 		{
-			stars_model_drawing_mode = group.drawing_mode;
-			stars_model_start_index = group.start_index;
-			stars_model_index_count = group.index_count;
+			stars_model_primitive_topology = group.primitive_topology;
+			stars_model_first_vertex = group.first_vertex;
+			stars_model_vertex_count = group.vertex_count;
 			star_material = group.material.get();
 		}
+		stars_model_vertex_offset = stars_model->get_vertex_offset();
+		stars_model_vertex_stride = stars_model->get_vertex_stride();
 		
 		if (star_material)
 		{
@@ -610,8 +672,8 @@ void sky_pass::set_stars_model(std::shared_ptr<render::model> model)
 			}
 			else
 			{
-				debug::log::error("Failed to build star shader program: {}", star_shader_program->info());
-				debug::log::warning("{}", star_material->get_shader_template()->configure(gl::shader_stage::vertex));
+				debug::log_error("Failed to build star shader program: {}", star_shader_program->info());
+				debug::log_warning("{}", star_material->get_shader_template()->configure(gl::shader_stage::vertex));
 			}
 		}
 	}
@@ -808,17 +870,21 @@ void sky_pass::set_sky_probe(std::shared_ptr<scene::light_probe> probe)
 	
 	if (m_sky_probe && m_sky_probe->get_luminance_texture())
 	{
-		auto& luminance_texture = *m_sky_probe->get_luminance_texture();
+		const auto& luminance_texture = m_sky_probe->get_luminance_texture();
 		
-		std::uint16_t face_size = luminance_texture.get_face_size();
-		const std::uint8_t mip_count = static_cast<std::uint8_t>(std::bit_width(face_size));
+		const auto face_size = luminance_texture->get_image_view()->get_image()->get_dimensions()[0];
+		const auto mip_count = static_cast<std::uint32_t>(std::bit_width(face_size));
 		
 		m_sky_probe_framebuffers.resize(mip_count);
-		for (std::uint8_t i = 0; i < mip_count; ++i)
+		for (std::uint32_t i = 0; i < mip_count; ++i)
 		{
-			m_sky_probe_framebuffers[i] = std::make_unique<gl::framebuffer>(face_size, face_size);
-			m_sky_probe_framebuffers[i]->attach(gl::framebuffer_attachment_type::color, &luminance_texture, i);
-			face_size >>= 1;
+			const gl::framebuffer_attachment attachments[1] =
+			{{
+				gl::color_attachment_bit,
+				luminance_texture->get_image_view(),
+				i
+			}};
+			m_sky_probe_framebuffers[i] = std::make_unique<gl::framebuffer>(attachments, face_size >> i, face_size >> i);
 		}
 	}
 	else
@@ -827,6 +893,33 @@ void sky_pass::set_sky_probe(std::shared_ptr<scene::light_probe> probe)
 	}
 	
 	rebuild_sky_probe_command_buffer();
+}
+
+void sky_pass::rebuild_transmittance_lut_framebuffer()
+{
+	// Rebuild transmittance LUT texture
+	m_transmittance_lut_texture = std::make_shared<gl::texture_2d>
+	(
+		std::make_shared<gl::image_view_2d>
+		(
+			std::make_shared<gl::image_2d>
+			(
+				gl::format::r32g32b32_sfloat,
+				m_transmittance_lut_resolution.x(),
+				m_transmittance_lut_resolution.y()
+			)
+		),
+		m_lut_sampler
+	);
+	
+	// Rebuild transmittance LUT framebuffer
+	const gl::framebuffer_attachment attachments[1] =
+	{{
+		gl::color_attachment_bit,
+		m_transmittance_lut_texture->get_image_view(),
+		0
+	}};
+	m_transmittance_lut_framebuffer = std::make_shared<gl::framebuffer>(attachments, m_transmittance_lut_resolution.x(), m_transmittance_lut_resolution.y());
 }
 
 void sky_pass::rebuild_transmittance_lut_shader_program()
@@ -839,8 +932,8 @@ void sky_pass::rebuild_transmittance_lut_shader_program()
 	);
 	if (!m_transmittance_lut_shader_program->linked())
 	{
-		debug::log::error("Failed to build sky transmittance LUT shader program: {}", m_transmittance_lut_shader_program->info());
-		debug::log::warning("{}", m_transmittance_lut_shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build sky transmittance LUT shader program: {}", m_transmittance_lut_shader_program->info());
+		debug::log_warning("{}", m_transmittance_lut_shader_template->configure(gl::shader_stage::vertex));
 	}
 }
 
@@ -858,9 +951,17 @@ void sky_pass::rebuild_transmittance_lut_command_buffer()
 	(
 		[&]()
 		{
-			rasterizer->set_viewport(0, 0, m_transmittance_lut_resolution.x(), m_transmittance_lut_resolution.y());
-			rasterizer->use_framebuffer(*m_transmittance_lut_framebuffer);
-			rasterizer->use_program(*m_transmittance_lut_shader_program);
+			const gl::viewport viewport[1] =
+			{{
+				0.0f,
+				0.0f,
+				static_cast<float>(m_transmittance_lut_resolution.x()),
+				static_cast<float>(m_transmittance_lut_resolution.y())
+			}};
+			m_pipeline->set_viewport(0, viewport);
+			
+			m_pipeline->bind_framebuffer(m_transmittance_lut_framebuffer.get());
+			m_pipeline->bind_shader_program(m_transmittance_lut_shader_program.get());
 		}
 	);
 	
@@ -890,14 +991,43 @@ void sky_pass::rebuild_transmittance_lut_command_buffer()
 		m_transmittance_lut_command_buffer.emplace_back([&, resolution_var](){resolution_var->update(math::fvec2(m_transmittance_lut_resolution));});
 	}
 	
-	// Draw quad
 	m_transmittance_lut_command_buffer.emplace_back
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
+			// Draw fullscreen triangle
+			m_pipeline->bind_vertex_array(m_vertex_array.get());
+			m_pipeline->set_primitive_topology(gl::primitive_topology::triangle_list);
+			m_pipeline->draw(3, 1, 0, 0);
 		}
 	);
+}
+
+void sky_pass::rebuild_multiscattering_lut_framebuffer()
+{
+	// Rebuild multiscattering LUT texture
+	m_multiscattering_lut_texture = std::make_shared<gl::texture_2d>
+	(
+		std::make_shared<gl::image_view_2d>
+		(
+			std::make_shared<gl::image_2d>
+			(
+				gl::format::r32g32b32_sfloat,
+				m_multiscattering_lut_resolution.x(),
+				m_multiscattering_lut_resolution.y()
+			)
+		),
+		m_lut_sampler
+	);
+	
+	// Rebuild multiscattering LUT framebuffer and attach texture
+	const gl::framebuffer_attachment attachments[1] =
+	{{
+		gl::color_attachment_bit,
+		m_multiscattering_lut_texture->get_image_view(),
+		0
+	}};
+	m_multiscattering_lut_framebuffer = std::make_shared<gl::framebuffer>(attachments, m_multiscattering_lut_resolution.x(), m_multiscattering_lut_resolution.y());
 }
 
 void sky_pass::rebuild_multiscattering_lut_shader_program()
@@ -911,8 +1041,8 @@ void sky_pass::rebuild_multiscattering_lut_shader_program()
 	);
 	if (!m_multiscattering_lut_shader_program->linked())
 	{
-		debug::log::error("Failed to build sky multiscattering LUT shader program: {}", m_multiscattering_lut_shader_program->info());
-		debug::log::warning("{}", m_multiscattering_lut_shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build sky multiscattering LUT shader program: {}", m_multiscattering_lut_shader_program->info());
+		debug::log_warning("{}", m_multiscattering_lut_shader_template->configure(gl::shader_stage::vertex));
 	}
 }
 
@@ -930,9 +1060,17 @@ void sky_pass::rebuild_multiscattering_lut_command_buffer()
 	(
 		[&]()
 		{
-			rasterizer->set_viewport(0, 0, m_multiscattering_lut_resolution.x(), m_multiscattering_lut_resolution.y());
-			rasterizer->use_framebuffer(*m_multiscattering_lut_framebuffer);
-			rasterizer->use_program(*m_multiscattering_lut_shader_program);
+			const gl::viewport viewport[1] =
+			{{
+				0.0f,
+				0.0f,
+				static_cast<float>(m_multiscattering_lut_resolution.x()),
+				static_cast<float>(m_multiscattering_lut_resolution.y())
+			}};
+			m_pipeline->set_viewport(0, viewport);
+			
+			m_pipeline->bind_framebuffer(m_multiscattering_lut_framebuffer.get());
+			m_pipeline->bind_shader_program(m_multiscattering_lut_shader_program.get());
 		}
 	);
 	
@@ -970,14 +1108,43 @@ void sky_pass::rebuild_multiscattering_lut_command_buffer()
 		m_multiscattering_lut_command_buffer.emplace_back([&, transmittance_lut_var](){transmittance_lut_var->update(*m_transmittance_lut_texture);});
 	}
 	
-	// Draw quad
 	m_multiscattering_lut_command_buffer.emplace_back
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
+			// Draw fullscreen triangle
+			m_pipeline->bind_vertex_array(m_vertex_array.get());
+			m_pipeline->set_primitive_topology(gl::primitive_topology::triangle_list);
+			m_pipeline->draw(3, 1, 0, 0);
 		}
 	);
+}
+
+void sky_pass::rebuild_luminance_lut_framebuffer()
+{
+	// Rebuild luminance LUT texture
+	m_luminance_lut_texture = std::make_shared<gl::texture_2d>
+	(
+		std::make_shared<gl::image_view_2d>
+		(
+			std::make_shared<gl::image_2d>
+			(
+				gl::format::r32g32b32_sfloat,
+				m_luminance_lut_resolution.x(),
+				m_luminance_lut_resolution.y()
+			)
+		),
+		m_lut_sampler
+	);
+	
+	// Rebuild luminance LUT framebuffer
+	const gl::framebuffer_attachment attachments[1] =
+	{{
+		gl::color_attachment_bit,
+		m_luminance_lut_texture->get_image_view(),
+		0
+	}};
+	m_luminance_lut_framebuffer = std::make_shared<gl::framebuffer>(attachments, m_luminance_lut_resolution.x(), m_luminance_lut_resolution.y());
 }
 
 void sky_pass::rebuild_luminance_lut_shader_program()
@@ -990,8 +1157,8 @@ void sky_pass::rebuild_luminance_lut_shader_program()
 	);
 	if (!m_luminance_lut_shader_program->linked())
 	{
-		debug::log::error("Failed to build sky luminance LUT shader program: {}", m_luminance_lut_shader_program->info());
-		debug::log::warning("{}", m_luminance_lut_shader_template->configure(gl::shader_stage::vertex));
+		debug::log_error("Failed to build sky luminance LUT shader program: {}", m_luminance_lut_shader_program->info());
+		debug::log_warning("{}", m_luminance_lut_shader_template->configure(gl::shader_stage::vertex));
 	}
 }
 
@@ -1009,9 +1176,17 @@ void sky_pass::rebuild_luminance_lut_command_buffer()
 	(
 		[&]()
 		{
-			rasterizer->set_viewport(0, 0, m_luminance_lut_resolution.x(), m_luminance_lut_resolution.y());
-			rasterizer->use_framebuffer(*m_luminance_lut_framebuffer);
-			rasterizer->use_program(*m_luminance_lut_shader_program);
+			const gl::viewport viewport[1] =
+			{{
+				0.0f,
+				0.0f,
+				static_cast<float>(m_luminance_lut_resolution.x()),
+				static_cast<float>(m_luminance_lut_resolution.y())
+			}};
+			m_pipeline->set_viewport(0, viewport);
+			
+			m_pipeline->bind_framebuffer(m_luminance_lut_framebuffer.get());
+			m_pipeline->bind_shader_program(m_luminance_lut_shader_program.get());
 		}
 	);
 	
@@ -1065,12 +1240,14 @@ void sky_pass::rebuild_luminance_lut_command_buffer()
 		m_luminance_lut_command_buffer.emplace_back([&, multiscattering_lut_var](){multiscattering_lut_var->update(*m_multiscattering_lut_texture);});
 	}
 	
-	// Draw quad
 	m_luminance_lut_command_buffer.emplace_back
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(gl::drawing_mode::triangles, 0, 3);
+			// Draw fullscreen triangle
+			m_pipeline->bind_vertex_array(m_vertex_array.get());
+			m_pipeline->set_primitive_topology(gl::primitive_topology::triangle_list);
+			m_pipeline->draw(3, 1, 0, 0);
 		}
 	);
 }
@@ -1089,10 +1266,19 @@ void sky_pass::rebuild_sky_probe_command_buffer()
 	(
 		[&]()
 		{
-			const auto resolution = m_sky_probe->get_luminance_texture()->get_face_size();
-			rasterizer->set_viewport(0, 0, resolution, resolution);
-			rasterizer->use_framebuffer(*m_sky_probe_framebuffers[0]);
-			rasterizer->use_program(*m_sky_probe_shader_program);
+			const auto resolution = m_sky_probe->get_luminance_texture()->get_image_view()->get_image()->get_dimensions()[0];
+			const gl::viewport viewport[1] =
+			{{
+				0.0f,
+				0.0f,
+				static_cast<float>(resolution),
+				static_cast<float>(resolution)
+			}};
+			m_pipeline->set_viewport(0, viewport);
+			
+			m_pipeline->bind_framebuffer(m_sky_probe_framebuffers[0].get());
+			m_pipeline->bind_shader_program(m_sky_probe_shader_program.get());
+			m_pipeline->bind_vertex_array(m_vertex_array.get());
 		}
 	);
 	
@@ -1126,7 +1312,8 @@ void sky_pass::rebuild_sky_probe_command_buffer()
 	(
 		[&]()
 		{
-			rasterizer->draw_arrays(gl::drawing_mode::points, 0, 1);
+			m_pipeline->set_primitive_topology(gl::primitive_topology::point_list);
+			m_pipeline->draw(1, 1, 0, 0);
 			m_sky_probe->set_luminance_outdated(true);
 			m_sky_probe->set_illuminance_outdated(true);
 		}

@@ -21,6 +21,7 @@
 #include <engine/app/sdl/sdl-window.hpp>
 #include <engine/debug/log.hpp>
 #include <engine/config.hpp>
+#include <engine/gl/pipeline.hpp>
 #include <stdexcept>
 
 namespace app {
@@ -28,25 +29,25 @@ namespace app {
 sdl_window_manager::sdl_window_manager()
 {
 	// Init SDL events and video subsystems
-	debug::log::trace("Initializing SDL events and video subsystems...");
+	debug::log_trace("Initializing SDL events and video subsystems...");
 	if (SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO) != 0)
 	{
-		debug::log::fatal("Failed to initialize SDL events and video subsystems: {}", SDL_GetError());
+		debug::log_fatal("Failed to initialize SDL events and video subsystems: {}", SDL_GetError());
 		throw std::runtime_error("Failed to initialize SDL events and video subsystems");
 	}
-	debug::log::trace("Initialized SDL events and video subsystems");
+	debug::log_trace("Initialized SDL events and video subsystems");
 	
 	// Query displays
 	const int display_count = SDL_GetNumVideoDisplays();
 	if (display_count < 1)
 	{
-		debug::log::warning("No displays detected: {}", SDL_GetError());
+		debug::log_warning("No displays detected: {}", SDL_GetError());
 	}
 	else
 	{
 		// Allocate displays
 		m_displays.resize(display_count);
-		debug::log::info("Display count: {}", display_count);
+		debug::log_info("Display count: {}", display_count);
 		
 		for (int i = 0; i < display_count; ++i)
 		{
@@ -56,25 +57,31 @@ sdl_window_manager::sdl_window_manager()
 			// Log display information
 			display& display = m_displays[i];
 			const auto display_resolution = display.get_bounds().size();
-			debug::log::info("Display {} name: \"{}\"; resolution: {}x{}; refresh rate: {}Hz; DPI: {}", i, display.get_name(), display_resolution.x(), display_resolution.y(), display.get_refresh_rate(), display.get_dpi());
+			debug::log_info("Display {} name: \"{}\"; resolution: {}x{}; refresh rate: {}Hz; DPI: {}", i, display.get_name(), display_resolution.x(), display_resolution.y(), display.get_refresh_rate(), display.get_dpi());
 		}
 	}
 	
 	// Load OpenGL library
-	debug::log::trace("Loading OpenGL library...");
+	debug::log_trace("Loading OpenGL library...");
 	if (SDL_GL_LoadLibrary(nullptr) != 0)
 	{
-		debug::log::fatal("Failed to load OpenGL library: {}", SDL_GetError());
+		debug::log_fatal("Failed to load OpenGL library: {}", SDL_GetError());
 		throw std::runtime_error("Failed to load OpenGL library");
 	}
-	debug::log::trace("Loaded OpenGL library");
+	debug::log_trace("Loaded OpenGL library");
 	
 	// Set OpenGL-related window creation hints
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, config::opengl_version_major);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, config::opengl_version_minor);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+	
+	#if defined(DEBUG)
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG | SDL_GL_CONTEXT_DEBUG_FLAG);
+	#else
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+	#endif
+	
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, config::opengl_min_red_size);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, config::opengl_min_green_size);
@@ -87,9 +94,9 @@ sdl_window_manager::sdl_window_manager()
 sdl_window_manager::~sdl_window_manager()
 {
 	// Quit SDL video subsystem
-	debug::log::trace("Quitting SDL video subsystem...");
+	debug::log_trace("Quitting SDL video subsystem...");
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
-	debug::log::trace("Quit SDL video subsystem");
+	debug::log_trace("Quit SDL video subsystem");
 }
 
 std::shared_ptr<window> sdl_window_manager::create_window
@@ -136,7 +143,7 @@ void sdl_window_manager::update()
 		}
 		else if (status < 0)
 		{
-			debug::log::error("Failed to peep SDL events: {}", SDL_GetError());
+			debug::log_error("Failed to peep SDL events: {}", SDL_GetError());
 			throw std::runtime_error("Failed to peep SDL events");
 		}
 		
@@ -159,10 +166,16 @@ void sdl_window_manager::update()
 						window->m_windowed_size = window->m_size;
 					}
 					SDL_GL_GetDrawableSize(internal_window, &window->m_viewport_size.x(), &window->m_viewport_size.y());
-					window->m_rasterizer->context_resized(window->m_viewport_size.x(), window->m_viewport_size.y());
+					
+					// Change reported dimensions of graphics pipeline default framebuffer
+					window->m_graphics_pipeline->defaut_framebuffer_resized
+					(
+						static_cast<std::uint32_t>(window->m_viewport_size.x()),
+						static_cast<std::uint32_t>(window->m_viewport_size.y())
+					);
 					
 					// Log window resized event
-					debug::log::debug("Window {} resized to {}x{}", event.window.windowID, event.window.data1, event.window.data2);
+					debug::log_debug("Window {} resized to {}x{}", event.window.windowID, event.window.data1, event.window.data2);
 					
 					// Publish window resized event
 					window->m_resized_publisher.publish({window, window->m_size});
@@ -184,7 +197,7 @@ void sdl_window_manager::update()
 					}
 					
 					// Log window moved event
-					debug::log::debug("Window {} moved to ({}, {})", event.window.windowID, event.window.data1, event.window.data2);
+					debug::log_debug("Window {} moved to ({}, {})", event.window.windowID, event.window.data1, event.window.data2);
 					
 					// Publish window moved event
 					window->m_moved_publisher.publish({window, window->m_position});
@@ -198,7 +211,7 @@ void sdl_window_manager::update()
 					app::sdl_window* window = get_window(internal_window);
 					
 					// Log window focus gained event
-					debug::log::debug("Window {} gained focus", event.window.windowID);
+					debug::log_debug("Window {} gained focus", event.window.windowID);
 					
 					// Publish window focus gained event
 					window->m_focus_changed_publisher.publish({window, true});
@@ -212,7 +225,7 @@ void sdl_window_manager::update()
 					app::sdl_window* window = get_window(internal_window);
 					
 					// Log window focus lost event
-					debug::log::debug("Window {} lost focus", event.window.windowID);
+					debug::log_debug("Window {} lost focus", event.window.windowID);
 					
 					// Publish window focus lost event
 					window->m_focus_changed_publisher.publish({window, false});
@@ -229,7 +242,7 @@ void sdl_window_manager::update()
 					window->m_maximized = true;
 					
 					// Log window focus gained event
-					debug::log::debug("Window {} maximized", event.window.windowID);
+					debug::log_debug("Window {} maximized", event.window.windowID);
 					
 					// Publish window maximized event
 					window->m_maximized_publisher.publish({window});
@@ -246,7 +259,7 @@ void sdl_window_manager::update()
 					window->m_maximized = false;
 					
 					// Log window restored event
-					debug::log::debug("Window {} restored", event.window.windowID);
+					debug::log_debug("Window {} restored", event.window.windowID);
 					
 					// Publish window restored event
 					window->m_restored_publisher.publish({window});
@@ -260,7 +273,7 @@ void sdl_window_manager::update()
 					app::sdl_window* window = get_window(internal_window);
 					
 					// Log window focus gained event
-					debug::log::debug("Window {} minimized", event.window.windowID);
+					debug::log_debug("Window {} minimized", event.window.windowID);
 					
 					// Publish window minimized event
 					window->m_minimized_publisher.publish({window});
@@ -274,7 +287,7 @@ void sdl_window_manager::update()
 					app::sdl_window* window = get_window(internal_window);
 					
 					// Log window closed event
-					debug::log::debug("Window {} closed", event.window.windowID);
+					debug::log_debug("Window {} closed", event.window.windowID);
 					
 					// Publish window closed event
 					window->m_closed_publisher.publish({window});
@@ -299,7 +312,7 @@ void sdl_window_manager::update()
 						display.m_connected = true;
 						
 						// Log display (re)connected event
-						debug::log::info("Reconnected display {}", event.display.display);
+						debug::log_info("Reconnected display {}", event.display.display);
 						
 						// Publish display (re)connected event
 						display.m_connected_publisher.publish({&display});
@@ -315,14 +328,14 @@ void sdl_window_manager::update()
 						
 						// Log display info
 						const auto display_resolution = display.get_bounds().size();
-						debug::log::info("Connected display {}; name: \"{}\"; resolution: {}x{}; refresh rate: {}Hz; DPI: {}", event.display.display, display.get_name(), display_resolution.x(), display_resolution.y(), display.get_refresh_rate(), display.get_dpi());
+						debug::log_info("Connected display {}; name: \"{}\"; resolution: {}x{}; refresh rate: {}Hz; DPI: {}", event.display.display, display.get_name(), display_resolution.x(), display_resolution.y(), display.get_refresh_rate(), display.get_dpi());
 						
 						// Publish display connected event
 						display.m_connected_publisher.publish({&display});
 					}
 					else
 					{
-						debug::log::error("Index of connected display ({}) out of range", event.display.display);
+						debug::log_error("Index of connected display ({}) out of range", event.display.display);
 					}
 					break;
 				
@@ -336,14 +349,14 @@ void sdl_window_manager::update()
 						display.m_connected = false;
 						
 						// Log display disconnected event
-						debug::log::info("Disconnected display {}", event.display.display);
+						debug::log_info("Disconnected display {}", event.display.display);
 						
 						// Publish display disconnected event
 						display.m_disconnected_publisher.publish({&display});
 					}
 					else
 					{
-						debug::log::error("Index of disconnected display ({}) out of range", event.display.display);
+						debug::log_error("Index of disconnected display ({}) out of range", event.display.display);
 					}
 					break;
 				
@@ -374,14 +387,14 @@ void sdl_window_manager::update()
 						}
 						
 						// Log display orientation changed event
-						debug::log::info("Display {} orientation changed", event.display.display);
+						debug::log_info("Display {} orientation changed", event.display.display);
 						
 						// Publish display orientation changed event
 						display.m_orientation_changed_publisher.publish({&display, display.get_orientation()});
 					}
 					else
 					{
-						debug::log::error("Index of orientation-changed display ({}) out of range", event.display.display);
+						debug::log_error("Index of orientation-changed display ({}) out of range", event.display.display);
 					}
 					break;
 				
@@ -422,7 +435,7 @@ void sdl_window_manager::update_display(int sdl_display_index)
 	SDL_DisplayMode sdl_display_mode;
 	if (SDL_GetDesktopDisplayMode(sdl_display_index, &sdl_display_mode) != 0)
 	{
-		debug::log::error("Failed to get mode of display {}: {}", sdl_display_index, SDL_GetError());
+		debug::log_error("Failed to get mode of display {}: {}", sdl_display_index, SDL_GetError());
 		SDL_ClearError();
 		sdl_display_mode = {0, 0, 0, 0, nullptr};
 	}
@@ -431,7 +444,7 @@ void sdl_window_manager::update_display(int sdl_display_index)
 	const char* sdl_display_name = SDL_GetDisplayName(sdl_display_index);
 	if (!sdl_display_name)
 	{
-		debug::log::warning("Failed to get name of display {}: {}", sdl_display_index, SDL_GetError());
+		debug::log_warning("Failed to get name of display {}: {}", sdl_display_index, SDL_GetError());
 		SDL_ClearError();
 		sdl_display_name = nullptr;
 	}
@@ -440,7 +453,7 @@ void sdl_window_manager::update_display(int sdl_display_index)
 	SDL_Rect sdl_display_bounds;
 	if (SDL_GetDisplayBounds(sdl_display_index, &sdl_display_bounds) != 0)
 	{
-		debug::log::warning("Failed to get bounds of display {}: {}", sdl_display_index, SDL_GetError());
+		debug::log_warning("Failed to get bounds of display {}: {}", sdl_display_index, SDL_GetError());
 		SDL_ClearError();
 		sdl_display_bounds = {0, 0, sdl_display_mode.w, sdl_display_mode.h};
 	}
@@ -449,7 +462,7 @@ void sdl_window_manager::update_display(int sdl_display_index)
 	SDL_Rect sdl_display_usable_bounds;
 	if (SDL_GetDisplayUsableBounds(sdl_display_index, &sdl_display_usable_bounds) != 0)
 	{
-		debug::log::warning("Failed to get usable bounds of display {}: {}", sdl_display_index, SDL_GetError());
+		debug::log_warning("Failed to get usable bounds of display {}: {}", sdl_display_index, SDL_GetError());
 		SDL_ClearError();
 		sdl_display_usable_bounds = sdl_display_bounds;
 	}
@@ -458,7 +471,7 @@ void sdl_window_manager::update_display(int sdl_display_index)
 	float sdl_display_dpi;
 	if (SDL_GetDisplayDPI(sdl_display_index, &sdl_display_dpi, nullptr, nullptr) != 0)
 	{
-		debug::log::warning("Failed to get DPI of display {}: {}", sdl_display_index, SDL_GetError());
+		debug::log_warning("Failed to get DPI of display {}: {}", sdl_display_index, SDL_GetError());
 		SDL_ClearError();
 		sdl_display_dpi = 0.0f;
 	}

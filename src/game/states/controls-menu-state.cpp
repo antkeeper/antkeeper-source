@@ -33,7 +33,7 @@ using namespace hash::literals;
 controls_menu_state::controls_menu_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering controls menu state...");
+	debug::log_trace("Entering controls menu state...");
 	
 	// Construct menu item texts
 	keyboard_text = std::make_unique<scene::text>();
@@ -151,12 +151,12 @@ controls_menu_state::controls_menu_state(::game& ctx):
 	// Fade in menu
 	::menu::fade_in(ctx, nullptr);
 	
-	debug::log::trace("Entered controls menu state");
+	debug::log_trace("Entered controls menu state");
 }
 
 controls_menu_state::~controls_menu_state()
 {
-	debug::log::trace("Exiting options menu state...");
+	debug::log_trace("Exiting options menu state...");
 	
 	// Destruct menu
 	::disable_menu_controls(ctx);
@@ -165,5 +165,5 @@ controls_menu_state::~controls_menu_state()
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	
-	debug::log::trace("Exited controls menu state");
+	debug::log_trace("Exited controls menu state");
 }

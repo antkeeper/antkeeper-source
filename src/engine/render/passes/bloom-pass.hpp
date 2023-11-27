@@ -26,7 +26,8 @@
 #include <engine/gl/shader-variable.hpp>
 #include <engine/gl/vertex-buffer.hpp>
 #include <engine/gl/vertex-array.hpp>
-#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/texture.hpp>
+#include <engine/gl/sampler.hpp>
 #include <memory>
 #include <functional>
 
@@ -46,10 +47,10 @@ public:
 	/**
 	 * Constructs a bloom pass.
 	 *
-	 * @param rasterizer Rasterizer.
+	 * @param pipeline Graphics pipeline.
 	 * @param resource_manager Resource manager.
 	 */
-	bloom_pass(gl::rasterizer* rasterizer, resource_manager* resource_manager);
+	bloom_pass(gl::pipeline* pipeline, resource_manager* resource_manager);
 	
 	/**
 	 * Renders a bloom texture.
@@ -69,7 +70,7 @@ public:
 	 *
 	 * @param texture Bloom source texture.
 	 */
-	void set_source_texture(const gl::texture_2d* texture);
+	void set_source_texture(std::shared_ptr<gl::texture_2d> texture);
 	
 	/**
 	 * Sets the mip chain length. A length of `1` indicates a single stage bloom.
@@ -88,30 +89,33 @@ public:
 	/**
 	 * Returns the texture containing the bloom result.
 	 */
-	const gl::texture_2d* get_bloom_texture() const;
+	[[nodiscard]] inline std::shared_ptr<gl::texture_2d> get_bloom_texture() const
+	{
+		return m_target_textures.empty() ? nullptr : m_target_textures.front();
+	}
 
 private:
+	void rebuild_mip_chain();
+	void correct_filter_radius();
 	void rebuild_command_buffer();
 	
-	const gl::texture_2d* source_texture;
+	std::shared_ptr<gl::texture_2d> m_source_texture;
+	std::shared_ptr<gl::image_2d> m_target_image;
+	std::vector<std::shared_ptr<gl::texture_2d>> m_target_textures;
+	std::vector<std::shared_ptr<gl::framebuffer>> m_target_framebuffers;
 	
-	std::unique_ptr<gl::shader_program> downsample_karis_shader;
-	std::unique_ptr<gl::shader_program> downsample_shader;
-	std::unique_ptr<gl::shader_program> upsample_shader;
+	std::unique_ptr<gl::shader_program> m_downsample_karis_shader;
+	std::unique_ptr<gl::shader_program> m_downsample_shader;
+	std::unique_ptr<gl::shader_program> m_upsample_shader;
 	
-	unsigned int mip_chain_length;
-	std::vector<std::unique_ptr<gl::framebuffer>> framebuffers;
-	std::vector<std::unique_ptr<gl::texture_2d>> textures;
-	float filter_radius;
-	math::fvec2 corrected_filter_radius;
+	std::shared_ptr<gl::sampler> m_sampler;
+	std::unique_ptr<gl::vertex_array> m_vertex_array;
+	unsigned int m_mip_chain_length{0};
+	float m_filter_radius{0.005f};
+	math::fvec2 m_corrected_filter_radius{0.005f, 0.005f};
 	
-	std::vector<std::function<void()>> command_buffer;
+	std::vector<std::function<void()>> m_command_buffer;
 };
-
-inline const gl::texture_2d* bloom_pass::get_bloom_texture() const
-{
-	return textures.empty() ? nullptr : textures.front().get();
-}
 
 } // namespace render
 

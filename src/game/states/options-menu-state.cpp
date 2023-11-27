@@ -39,7 +39,7 @@ using namespace hash::literals;
 options_menu_state::options_menu_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering options menu state...");
+	debug::log_trace("Entering options menu state...");
 	
 	// Construct menu item texts
 	controls_text = std::make_unique<scene::text>();
@@ -215,12 +215,12 @@ options_menu_state::options_menu_state(::game& ctx):
 	// Queue enable menu controls
 	ctx.function_queue.push(std::bind(::enable_menu_controls, std::ref(ctx)));
 	
-	debug::log::trace("Entered options menu state");
+	debug::log_trace("Entered options menu state");
 }
 
 options_menu_state::~options_menu_state()
 {
-	debug::log::trace("Exiting options menu state...");
+	debug::log_trace("Exiting options menu state...");
 	
 	// Destruct menu
 	::disable_menu_controls(ctx);
@@ -229,5 +229,5 @@ options_menu_state::~options_menu_state()
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	
-	debug::log::trace("Exited options menu state");
+	debug::log_trace("Exited options menu state");
 }

@@ -19,7 +19,6 @@
 
 #include "game/textures/cocoon-silk-sdf.hpp"
 #include <engine/math/noise/noise.hpp>
-#include <engine/utility/image.hpp>
 #include <engine/debug/log.hpp>
 #include <algorithm>
 #include <execution>
@@ -29,7 +28,7 @@
 void generate_cocoon_silk_sdf(std::filesystem::path path)
 {
 	/*
-	debug::log::info("Generating cocoon silk SDF image...");
+	debug::log_info("Generating cocoon silk SDF image...");
 	
 	image img;
 	img.format(4, 8);
@@ -91,13 +90,13 @@ void generate_cocoon_silk_sdf(std::filesystem::path path)
 			// };
 		}
 	);
-	debug::log::info("Generated cocoon silk SDF image");
+	debug::log_info("Generated cocoon silk SDF image");
 	
-	debug::log::info("Saving cocoon silk SDF image to \"{}\"...", path.string());
+	debug::log_info("Saving cocoon silk SDF image to \"{}\"...", path.string());
 	
 	stbi_flip_vertically_on_write(1);
 	stbi_write_png(path.string().c_str(), img.width(), img.height(), img.channel_count(), img.data(), img.width() * img.channel_count());
 	
-	debug::log::info("Saved cocoon silk SDF image to \"{}\"", path.string());
+	debug::log_info("Saved cocoon silk SDF image to \"{}\"", path.string());
 	*/
 }

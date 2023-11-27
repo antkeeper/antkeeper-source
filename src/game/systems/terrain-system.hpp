@@ -23,7 +23,7 @@
 #include "game/systems/updatable-system.hpp"
 #include "game/components/terrain-component.hpp"
 #include <engine/entity/id.hpp>
-#include <engine/utility/image.hpp>
+#include <engine/gl/image.hpp>
 #include <engine/math/transform.hpp>
 #include <engine/math/vector.hpp>
 #include <engine/render/model.hpp>
@@ -56,7 +56,7 @@ public:
 	 * @except std::runtime_error Heightmap size less than 2x2.
 	 * @except std::runtime_error Heightmap subdivision failed.
 	 */
-	entity::id generate(std::shared_ptr<image> heightmap, const math::uvec2& subdivisions, const math::transform<float>& transform, std::shared_ptr<render::material> material);
+	entity::id generate(std::shared_ptr<gl::image_2d> heightmap, const math::uvec2& subdivisions, const math::transform<float>& transform, std::shared_ptr<render::material> material);
 
 private:
 	[[nodiscard]] std::unique_ptr<render::model> generate_terrain_model(const geom::brep_mesh& mesh, std::shared_ptr<render::material> material, const math::uvec2& quad_dimensions) const;

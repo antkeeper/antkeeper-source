@@ -19,22 +19,26 @@
 
 #include <engine/gl/vertex-buffer.hpp>
 #include <stdexcept>
-#include <glad/glad.h>
+#include <glad/gl.h>
+#include <utility>
 
 namespace gl {
 
-static constexpr GLenum buffer_usage_lut[] =
+namespace
 {
-	GL_STREAM_DRAW,
-	GL_STREAM_READ,
-	GL_STREAM_COPY,
-	GL_STATIC_DRAW,
-	GL_STATIC_READ,
-	GL_STATIC_COPY,
-	GL_DYNAMIC_DRAW,
-	GL_DYNAMIC_READ,
-	GL_DYNAMIC_COPY
-};
+	static constexpr GLenum buffer_usage_lut[] =
+	{
+		GL_STREAM_DRAW,
+		GL_STREAM_READ,
+		GL_STREAM_COPY,
+		GL_STATIC_DRAW,
+		GL_STATIC_READ,
+		GL_STATIC_COPY,
+		GL_DYNAMIC_DRAW,
+		GL_DYNAMIC_READ,
+		GL_DYNAMIC_COPY
+	};
+}
 
 vertex_buffer::vertex_buffer(buffer_usage usage, std::size_t size, std::span<const std::byte> data):
 	m_usage{usage},
@@ -45,23 +49,55 @@ vertex_buffer::vertex_buffer(buffer_usage usage, std::size_t size, std::span<con
 		// Bounds check
 		if (data.size() < size)
 		{
-			throw std::out_of_range("Vertex buffer creation operation exceeded data bounds.");
+			throw std::out_of_range("Vertex buffer construct operation exceeded data bounds.");
 		}
 	}
 	
-	const GLenum gl_usage = buffer_usage_lut[static_cast<std::size_t>(m_usage)];
-	glGenBuffers(1, &gl_buffer_id);
-	glBindBuffer(GL_ARRAY_BUFFER, gl_buffer_id);
-	glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_size), data.empty() ? nullptr : data.data(), gl_usage);
+	const GLenum gl_usage = buffer_usage_lut[std::to_underlying(m_usage)];
+	glCreateBuffers(1, &m_gl_named_buffer);
+	glNamedBufferData(m_gl_named_buffer, static_cast<GLsizeiptr>(m_size), data.empty() ? nullptr : data.data(), gl_usage);
 }
 
-vertex_buffer::vertex_buffer():
-	vertex_buffer(buffer_usage::static_draw, 0)
+vertex_buffer::vertex_buffer(const vertex_buffer& buffer):
+	vertex_buffer(buffer.m_usage, buffer.m_size)
+{
+	copy(buffer, m_size);
+}
+
+vertex_buffer::vertex_buffer(vertex_buffer&& buffer):
+	m_gl_named_buffer{std::exchange(buffer.m_gl_named_buffer, 0)},
+	m_usage{std::move(buffer.m_usage)},
+	m_size{std::exchange(buffer.m_size, 0)}
 {}
 
 vertex_buffer::~vertex_buffer()
 {
-	glDeleteBuffers(1, &gl_buffer_id);
+	if (m_gl_named_buffer)
+	{
+		glDeleteBuffers(1, &m_gl_named_buffer);
+	}
+}
+
+vertex_buffer& vertex_buffer::operator=(const vertex_buffer& buffer)
+{
+	repurpose(buffer.m_usage, buffer.m_size);
+	copy(buffer, m_size);
+	
+	return *this;
+}
+
+vertex_buffer& vertex_buffer::operator=(vertex_buffer&& buffer)
+{
+	if (m_gl_named_buffer)
+	{
+		glDeleteBuffers(1, &m_gl_named_buffer);
+	}
+	
+	m_gl_named_buffer = std::exchange(buffer.m_gl_named_buffer, 0);
+	m_usage = std::move(buffer.m_usage);
+	m_size = std::exchange(buffer.m_size, 0);
+	
+	return *this;
 }
 
 void vertex_buffer::repurpose(buffer_usage usage, std::size_t size, std::span<const std::byte> data)
@@ -78,22 +114,11 @@ void vertex_buffer::repurpose(buffer_usage usage, std::size_t size, std::span<co
 	m_usage = usage;
 	m_size = size;
 	
-	const GLenum gl_usage = buffer_usage_lut[static_cast<std::size_t>(m_usage)];
-	glBindBuffer(GL_ARRAY_BUFFER, gl_buffer_id);
-	glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_size), data.empty() ? nullptr : data.data(), gl_usage);
+	const auto gl_usage = buffer_usage_lut[std::to_underlying(m_usage)];
+	glNamedBufferData(m_gl_named_buffer, static_cast<GLsizeiptr>(m_size), data.empty() ? nullptr : data.data(), gl_usage);
 }
 
-void vertex_buffer::repurpose(buffer_usage usage, std::span<const std::byte> data)
-{
-	repurpose(usage, m_size, data);
-}
-
-void vertex_buffer::resize(std::size_t size, std::span<const std::byte> data)
-{
-	repurpose(m_usage, size, data);
-}
-
-void vertex_buffer::write(std::span<const std::byte> data, std::size_t offset)
+void vertex_buffer::write(std::size_t offset, std::span<const std::byte> data)
 {
 	// Ignore empty write operations
 	if (data.empty())
@@ -107,13 +132,12 @@ void vertex_buffer::write(std::span<const std::byte> data, std::size_t offset)
 		throw std::out_of_range("Vertex buffer write operation exceeded buffer bounds.");
 	}
 	
-	glBindBuffer(GL_ARRAY_BUFFER, gl_buffer_id);
-	glBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(data.size()), data.data());
+	glNamedBufferSubData(m_gl_named_buffer, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(data.size()), data.data());
 }
 
-void vertex_buffer::read(std::span<std::byte> data, std::size_t offset) const
+void vertex_buffer::read(std::size_t offset, std::span<std::byte> data) const
 {
-	// Abort empty read operations
+	// Ignore empty read operations
 	if (data.empty())
 	{
 		return;
@@ -125,8 +149,7 @@ void vertex_buffer::read(std::span<std::byte> data, std::size_t offset) const
 		throw std::out_of_range("Vertex buffer read operation exceeded buffer bounds.");
 	}
 	
-	glBindBuffer(GL_ARRAY_BUFFER, gl_buffer_id);
-	glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(data.size()), data.data());
+	glGetNamedBufferSubData(m_gl_named_buffer, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(data.size()), data.data());
 }
 
 void vertex_buffer::copy(const vertex_buffer& read_buffer, std::size_t copy_size, std::size_t read_offset, std::size_t write_offset)
@@ -141,9 +164,7 @@ void vertex_buffer::copy(const vertex_buffer& read_buffer, std::size_t copy_size
 		throw std::out_of_range("Vertex buffer copy operation exceeded write buffer bounds.");
 	}
 	
-	glBindBuffer(GL_COPY_READ_BUFFER, read_buffer.gl_buffer_id);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, gl_buffer_id);
-	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, static_cast<GLintptr>(read_offset), static_cast<GLintptr>(write_offset), static_cast<GLsizeiptr>(copy_size));
+	glCopyNamedBufferSubData(read_buffer.m_gl_named_buffer, m_gl_named_buffer, static_cast<GLintptr>(read_offset), static_cast<GLintptr>(write_offset), static_cast<GLsizeiptr>(copy_size));
 }
 
 } // namespace gl

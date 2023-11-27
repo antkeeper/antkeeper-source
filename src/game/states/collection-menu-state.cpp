@@ -28,17 +28,13 @@
 #include <engine/resources/resource-manager.hpp>
 #include <engine/animation/screen-transition.hpp>
 #include <engine/animation/ease.hpp>
-#include <engine/render/passes/clear-pass.hpp>
 
 using namespace hash::literals;
 
 collection_menu_state::collection_menu_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering collection menu state...");
-	
-	// Enable color buffer clearing in UI pass
-	ctx.ui_clear_pass->set_cleared_buffers(true, true, false);
+	debug::log_trace("Entering collection menu state...");
 	
 	// Construct box material
 	box_material = std::make_shared<render::material>();
@@ -106,7 +102,7 @@ collection_menu_state::collection_menu_state(::game& ctx):
 						}
 					);
 					
-					debug::log::debug("selected colony: ({}, {})", selected_column, selected_row);
+					debug::log_debug("selected colony: ({}, {})", selected_column, selected_row);
 				}
 			}
 		}
@@ -126,17 +122,17 @@ collection_menu_state::collection_menu_state(::game& ctx):
 	// Fade in from black
 	ctx.fade_transition->transition(config::title_fade_in_duration, true, ease<float>::out_cubic);
 	
-	debug::log::trace("Entered collection menu state");
+	debug::log_trace("Entered collection menu state");
 }
 
 collection_menu_state::~collection_menu_state()
 {
-	debug::log::trace("Exiting collection menu state...");
+	debug::log_trace("Exiting collection menu state...");
 	
 	// Destruct menu
 	//::disable_menu_controls(ctx);
 	
-	debug::log::trace("Exited collection menu state");
+	debug::log_trace("Exited collection menu state");
 }
 
 void collection_menu_state::resize_box()

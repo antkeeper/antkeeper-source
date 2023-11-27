@@ -20,7 +20,8 @@
 #include <engine/app/sdl/sdl-window.hpp>
 #include <engine/config.hpp>
 #include <engine/debug/log.hpp>
-#include <glad/glad.h>
+#include <engine/gl/pipeline.hpp>
+#include <glad/gl.h>
 #include <stdexcept>
 
 namespace app {
@@ -47,7 +48,7 @@ sdl_window::sdl_window
 	}
 	
 	// Create SDL window
-	debug::log::trace("Creating SDL window...");
+	debug::log_trace("Creating SDL window...");
 	m_internal_window = SDL_CreateWindow
 	(
 		title.c_str(),
@@ -59,20 +60,20 @@ sdl_window::sdl_window
 	);
 	if (!m_internal_window)
 	{
-		debug::log::fatal("Failed to create SDL window: {}", SDL_GetError());
+		debug::log_fatal("Failed to create SDL window: {}", SDL_GetError());
 		throw std::runtime_error("Failed to create SDL window");
 	}
-	debug::log::trace("Created SDL window");
+	debug::log_trace("Created SDL window");
 	
 	// Create OpenGL context
-	debug::log::trace("Creating OpenGL context...");
+	debug::log_trace("Creating OpenGL context...");
 	m_internal_context = SDL_GL_CreateContext(m_internal_window);
 	if (!m_internal_context)
 	{
-		debug::log::fatal("Failed to create OpenGL context: {}", SDL_GetError());
+		debug::log_fatal("Failed to create OpenGL context: {}", SDL_GetError());
 		throw std::runtime_error("Failed to create OpenGL context");
 	}
-	debug::log::trace("Created OpenGL context");
+	debug::log_trace("Created OpenGL context");
 	
 	// Query OpenGL context info
 	int opengl_context_version_major = -1;
@@ -93,7 +94,7 @@ sdl_window::sdl_window
 	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &opengl_context_stencil_size);
 	
 	// Log OpenGL context info
-	debug::log::info
+	debug::log_info
 	(
 		"OpenGL context version: {}.{}; format: R{}G{}B{}A{}D{}S{}",
 		opengl_context_version_major,
@@ -110,7 +111,7 @@ sdl_window::sdl_window
 	if (opengl_context_version_major != config::opengl_version_major ||
 		opengl_context_version_minor != config::opengl_version_minor)
 	{
-		debug::log::warning("Requested OpenGL context version {}.{} but got version {}.{}", config::opengl_version_major, config::opengl_version_minor, opengl_context_version_major, opengl_context_version_minor);
+		debug::log_warning("Requested OpenGL context version {}.{} but got version {}.{}", config::opengl_version_major, config::opengl_version_minor, opengl_context_version_major, opengl_context_version_minor);
 	}
 	
 	// Compare OpenGL context format with requested format
@@ -121,7 +122,7 @@ sdl_window::sdl_window
 		opengl_context_depth_size < config::opengl_min_depth_size ||
 		opengl_context_stencil_size < config::opengl_min_stencil_size)
 	{
-		debug::log::warning
+		debug::log_warning
 		(
 			"OpenGL context format (R{}G{}B{}A{}D{}S{}) does not meet minimum requested format (R{}G{}B{}A{}D{}S{})",
 			opengl_context_red_size,
@@ -140,16 +141,16 @@ sdl_window::sdl_window
 	}
 	
 	// Load OpenGL functions via GLAD
-	debug::log::trace("Loading OpenGL functions...");
-	if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+	debug::log_trace("Loading OpenGL functions...");
+	if (!gladLoadGL(reinterpret_cast<GLADloadfunc>(SDL_GL_GetProcAddress)))
 	{
-		debug::log::fatal("Failed to load OpenGL functions", SDL_GetError());
+		debug::log_fatal("Failed to load OpenGL functions", SDL_GetError());
 		throw std::runtime_error("Failed to load OpenGL functions");
 	}
-	debug::log::trace("Loaded OpenGL functions");
+	debug::log_trace("Loaded OpenGL functions");
 	
 	// Log OpenGL information
-	debug::log::info
+	debug::log_info
 	(
 		"OpenGL vendor: {}; renderer: {}; version: {}; shading language version: {}",
 		reinterpret_cast<const char*>(glGetString(GL_VENDOR)),
@@ -158,9 +159,11 @@ sdl_window::sdl_window
 		reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION))
 	);
 	
-	// Fill window with color
-	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	// Allocate graphics pipeline
+	m_graphics_pipeline = std::make_unique<gl::pipeline>();
+	
+	// Clear default framebuffer to black
+	m_graphics_pipeline->clear_attachments(gl::color_clear_bit, {{0.0f, 0.0f, 0.0f, 0.0f}});
 	swap_buffers();
 	
 	// Enable or disable v-sync
@@ -177,15 +180,12 @@ sdl_window::sdl_window
 	SDL_GetWindowMinimumSize(m_internal_window, &this->m_minimum_size.x(), &this->m_minimum_size.y());
 	SDL_GetWindowMaximumSize(m_internal_window, &this->m_maximum_size.x(), &this->m_maximum_size.y());
 	SDL_GL_GetDrawableSize(m_internal_window, &this->m_viewport_size.x(), &this->m_viewport_size.y());
-	
-	// Allocate m_rasterizer
-	this->m_rasterizer = std::make_unique<gl::rasterizer>();
 }
 
 sdl_window::~sdl_window()
 {
-	// Deallocate m_rasterizer
-	m_rasterizer.reset();
+	// Deallocate graphics pipeline
+	m_graphics_pipeline.reset();
 	
 	// Destruct the OpenGL context
 	SDL_GL_DeleteContext(m_internal_context);
@@ -246,37 +246,37 @@ void sdl_window::set_v_sync(bool v_sync)
 {
 	if (v_sync)
 	{
-		debug::log::trace("Enabling adaptive v-sync...");
+		debug::log_trace("Enabling adaptive v-sync...");
 		if (SDL_GL_SetSwapInterval(-1) != 0)
 		{
-			debug::log::error("Failed to enable adaptive v-sync: {}", SDL_GetError());
-			debug::log::trace("Enabling synchronized v-sync...");
+			debug::log_error("Failed to enable adaptive v-sync: {}", SDL_GetError());
+			debug::log_trace("Enabling synchronized v-sync...");
 			if (SDL_GL_SetSwapInterval(1) != 0)
 			{
-				debug::log::error("Failed to enable synchronized v-sync: {}", SDL_GetError());
+				debug::log_error("Failed to enable synchronized v-sync: {}", SDL_GetError());
 				v_sync = false;
 			}
 			else
 			{
-				debug::log::debug("Enabled synchronized v-sync");
+				debug::log_debug("Enabled synchronized v-sync");
 			}
 		}
 		else
 		{
-			debug::log::debug("Enabled adaptive v-sync");
+			debug::log_debug("Enabled adaptive v-sync");
 		}
 	}
 	else
 	{
-		debug::log::trace("Disabling v-sync...");
+		debug::log_trace("Disabling v-sync...");
 		if (SDL_GL_SetSwapInterval(0) != 0)
 		{
-			debug::log::error("Failed to disable v-sync: {}", SDL_GetError());
+			debug::log_error("Failed to disable v-sync: {}", SDL_GetError());
 			v_sync = true;
 		}
 		else
 		{
-			debug::log::debug("Disabled v-sync");
+			debug::log_debug("Disabled v-sync");
 		}
 	}
 	

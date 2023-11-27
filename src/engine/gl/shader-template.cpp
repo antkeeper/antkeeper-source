@@ -24,7 +24,7 @@
 #include <engine/resources/resource-loader.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/text-file.hpp>
-#include <engine/utility/hash/combine.hpp>
+#include <engine/utility/hash/hash-combine.hpp>
 #include <sstream>
 #include <unordered_set>
 
@@ -126,7 +126,7 @@ std::unique_ptr<gl::shader_program> shader_template::build(const dictionary_type
 	
 	if (has_geometry_directive())
 	{
-		// Compile fragment shader object and attach to shader program
+		// Compile geometry shader object and attach to shader program
 		geometry_object = compile(gl::shader_stage::geometry, definitions);
 		program->attach(*geometry_object);
 	}
@@ -189,7 +189,7 @@ void shader_template::rehash()
 	m_hash = 0;
 	for (const auto& line: m_template_source.lines)
 	{
-		m_hash = hash::combine(m_hash, std::hash<std::string>{}(line));
+		m_hash = hash_combine(m_hash, std::hash<std::string>{}(line));
 	}
 }
 

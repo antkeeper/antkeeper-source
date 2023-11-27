@@ -22,8 +22,8 @@
 
 #include <engine/type/font-metrics.hpp>
 #include <engine/type/glyph-metrics.hpp>
-#include <engine/utility/image.hpp>
 #include <engine/math/vector.hpp>
+#include <vector>
 #include <unordered_set>
 
 namespace type {
@@ -119,7 +119,7 @@ public:
 	 * @param[out] bitmap Glyph bitmap data.
 	 * @return `true` if glyph bitmap data was returned, `false` otherwise.
 	 */
-	virtual bool get_bitmap(float height, char32_t code, image& bitmap) const = 0;
+	virtual bool get_bitmap(float height, char32_t code, std::vector<std::byte>& bitmap, std::uint32_t& bitmap_width, std::uint32_t& bitmap_height) const = 0;
 	
 	/**
 	 * Gets the kerning offset for a pair of glyphs.

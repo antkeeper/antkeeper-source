@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstring>
 #include <cmath>
 #include <concepts>
 #include <format>
@@ -1787,6 +1788,49 @@ inline constexpr vector<T, N>& operator/=(vector<T, N>& x, T y) noexcept
 	return (x = x / y);
 }
 /// @}
+
+/**
+ * Tests two vector for equality
+ *
+ * @param x First value.
+ * @param y Second value.
+ *
+ * @return `true` if the vectors are identical, `false` otherwise.
+ */
+template <class T, std::size_t N>
+inline constexpr bool operator==(const vector<T, N>& x, const vector<T, N>& y) noexcept
+{
+	// if consteval
+	// {
+		for (std::size_t i = 0; i < N; ++i)
+		{
+			if (x[i] != y[i])
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	// }
+	// else
+	// {
+		// !std::memcmp(x.data(), y.data(), N * sizeof(T));
+	// }
+}
+
+/**
+ * Tests two vector for inequality
+ *
+ * @param x First value.
+ * @param y Second value.
+ *
+ * @return `false` if the vectors are identical, `true` otherwise.
+ */
+template <class T, std::size_t N>
+inline constexpr bool operator!=(const vector<T, N>& x, const vector<T, N>& y) noexcept
+{
+	return !(x == y);
+}
 
 } // namespace operators
 

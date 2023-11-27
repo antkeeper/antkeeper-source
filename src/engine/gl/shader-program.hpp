@@ -30,7 +30,6 @@
 namespace gl {
 
 class shader_object;
-class rasterizer;
 class shader_variable;
 
 /**
@@ -149,7 +148,7 @@ public:
 	}
 
 private:
-	friend class rasterizer;
+	friend class pipeline;
 	
 	void load_variables();
 	

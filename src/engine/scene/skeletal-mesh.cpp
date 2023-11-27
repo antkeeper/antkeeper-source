@@ -39,12 +39,17 @@ void skeletal_mesh::set_model(std::shared_ptr<render::model> model)
 		for (std::size_t i = 0; i < m_operations.size(); ++i)
 		{
 			const auto& group = m_model->get_groups()[i];
-			
 			auto& operation = m_operations[i];
+			
+			operation.primitive_topology = group.primitive_topology;
 			operation.vertex_array = m_model->get_vertex_array().get();
-			operation.drawing_mode = group.drawing_mode;
-			operation.start_index = group.start_index;
-			operation.index_count = group.index_count;
+			operation.vertex_buffer = m_model->get_vertex_buffer().get();
+			operation.vertex_offset = m_model->get_vertex_offset();
+			operation.vertex_stride = m_model->get_vertex_stride();
+			operation.first_vertex = group.first_vertex;
+			operation.vertex_count = group.vertex_count;
+			operation.first_instance = 0;
+			operation.instance_count = 1;
 			operation.material = group.material;
 			operation.matrix_palette = m_pose.get_matrix_palette();
 		}

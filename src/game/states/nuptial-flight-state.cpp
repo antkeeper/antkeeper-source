@@ -54,7 +54,6 @@
 #include <engine/resources/resource-manager.hpp>
 #include "game/world.hpp"
 #include "game/strings.hpp"
-#include <engine/render/passes/clear-pass.hpp>
 #include <engine/utility/state-machine.hpp>
 #include <engine/config.hpp>
 #include <engine/math/interpolation.hpp>
@@ -69,14 +68,11 @@ using namespace hash::literals;
 nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering nuptial flight state...");
+	debug::log_trace("Entering nuptial flight state...");
 	
 	// Init selected picking flag
 	selected_picking_flag = std::uint32_t{1} << (sizeof(std::uint32_t) * 8 - 1);
 	selected_eid = entt::null;
-	
-	// Disable UI color clear
-	ctx.ui_clear_pass->set_cleared_buffers(false, true, false);
 	
 	// Create world if not yet created
 	if (ctx.entities.find("earth") == ctx.entities.end())
@@ -184,12 +180,12 @@ nuptial_flight_state::nuptial_flight_state(::game& ctx):
 	// Refresh frame scheduler
 	ctx.frame_scheduler.refresh();
 	
-	debug::log::trace("Entered nuptial flight state");
+	debug::log_trace("Entered nuptial flight state");
 }
 
 nuptial_flight_state::~nuptial_flight_state()
 {
-	debug::log::trace("Exiting nuptial flight state...");
+	debug::log_trace("Exiting nuptial flight state...");
 	
 	// Disable game controls
 	::disable_game_controls(ctx);
@@ -204,7 +200,7 @@ nuptial_flight_state::~nuptial_flight_state()
 	destroy_camera_rig();
 	destroy_ant_swarm(ctx, swarm_eid);
 	
-	debug::log::trace("Exited nuptial flight state");
+	debug::log_trace("Exited nuptial flight state");
 }
 
 void nuptial_flight_state::create_camera_rig()

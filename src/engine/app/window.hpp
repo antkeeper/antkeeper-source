@@ -23,8 +23,13 @@
 #include <engine/math/vector.hpp>
 #include <engine/event/publisher.hpp>
 #include <engine/app/window-events.hpp>
-#include <engine/gl/rasterizer.hpp>
 #include <string>
+
+namespace gl {
+
+	class pipeline;
+
+}
 
 namespace app {
 
@@ -168,8 +173,11 @@ public:
 		return m_v_sync;
 	}
 	
-	/// Returns the rasterizer associated with this window.
-	[[nodiscard]] virtual gl::rasterizer* get_rasterizer() noexcept = 0;
+	/// Returns the graphics pipeline associated with this window.
+	/// @{
+	[[nodiscard]] virtual const gl::pipeline& get_graphics_pipeline() const noexcept = 0;
+	[[nodiscard]] virtual gl::pipeline& get_graphics_pipeline() noexcept = 0;
+	/// @}
 	
 	/// Returns the channel through which window closed events are published.
 	[[nodiscard]] inline event::channel<window_closed_event>& get_closed_channel() noexcept

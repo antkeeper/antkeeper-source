@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 	debug::console::enable_vt100();
 	
 	// Subscribe log to cout function to message logged events
-	auto log_to_cout_subscription = debug::log::default_logger().get_message_logged_channel().subscribe
+	auto log_to_cout_subscription = debug::default_logger().get_message_logged_channel().subscribe
 	(
 		[&launch_time](const auto& event)
 		{
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 		// Create log archive if it doesn't exist
 		if (std::filesystem::create_directories(log_archive_path))
 		{
-			debug::log::debug("Created log archive \"{}\"", log_archive_path.string());
+			debug::log_debug("Created log archive \"{}\"", log_archive_path.string());
 		}
 		else
 		{
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 					}
 				}
 				
-				debug::log::debug("Detected {} archived log{} at \"{}\"", log_archive.size(), log_archive.size() != 1 ? "s" : "", log_archive_path.string());
+				debug::log_debug("Detected {} archived log{} at \"{}\"", log_archive.size(), log_archive.size() != 1 ? "s" : "", log_archive_path.string());
 				
 				// Delete expired logs
 				if (!log_archive.empty())
@@ -117,14 +117,14 @@ int main(int argc, char* argv[])
 					for (std::size_t i = log_archive.size() + 1; i > config::debug_log_archive_capacity; --i)
 					{
 						std::filesystem::remove(*log_archive.begin());
-						debug::log::debug("Deleted expired log file \"{}\"", log_archive.begin()->string());
+						debug::log_debug("Deleted expired log file \"{}\"", log_archive.begin()->string());
 						log_archive.erase(log_archive.begin());
 					}
 				}
 			}
 			catch (const std::filesystem::filesystem_error& e)
 			{
-				debug::log::error("An error occured while cleaning the log archive \"{}\": {}", log_archive_path.string(), e.what());
+				debug::log_error("An error occured while cleaning the log archive \"{}\": {}", log_archive_path.string(), e.what());
 			}
 		}
 		
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 	}
 	catch (const std::filesystem::filesystem_error& e)
 	{
-		debug::log::error("Failed to create log archive at \"{}\": {}", log_archive_path.string(), e.what());
+		debug::log_error("Failed to create log archive at \"{}\": {}", log_archive_path.string(), e.what());
 	}
 	
 	// Set up logging to file
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
 		
 		if (log_filestream->is_open())
 		{
-			debug::log::debug("Opened log file \"{}\"", log_filepath_string);
+			debug::log_debug("Opened log file \"{}\"", log_filepath_string);
 			
 			// Write log file header
 			(*log_filestream) << "time\tfile\tline\tcolumn\tseverity\tmessage";
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
 			if (log_filestream->good())
 			{
 				// Subscribe log to file function to message logged events
-				log_to_file_subscription = debug::log::default_logger().get_message_logged_channel().subscribe
+				log_to_file_subscription = debug::default_logger().get_message_logged_channel().subscribe
 				(
 					[&launch_time, log_filestream](const auto& event)
 					{
@@ -183,38 +183,39 @@ int main(int argc, char* argv[])
 			}
 			else
 			{
-				debug::log::error("Failed to write to log file \"{}\"", log_filepath_string);
+				debug::log_error("Failed to write to log file \"{}\"", log_filepath_string);
 			}
 		}
 		else
 		{
-			debug::log::error("Failed to open log file \"{}\"", log_filepath_string);
+			debug::log_error("Failed to open log file \"{}\"", log_filepath_string);
 		}
 	}
 	
 	// Log application name and version string, followed by launch time
-	debug::log::info("{0} {1}; {2:%Y%m%d}T{2:%H%M%S}Z", config::application_name, config::application_version_string, std::chrono::floor<std::chrono::milliseconds>(launch_time));
+	debug::log_info("{0} {1}; {2:%Y%m%d}T{2:%H%M%S}Z", config::application_name, config::application_version_string, std::chrono::floor<std::chrono::milliseconds>(launch_time));
 	
 	// Start marker
-	debug::log::debug("Hi! 🐜");
+	debug::log_debug("Hi! 🐜");
 	
+	// #if defined(NDEBUG)
 	try
 	{
 		game(argc, argv).execute();
 	}
 	catch (const std::exception& e)
 	{
-		debug::log::fatal("Unhandled exception: {}", e.what());
-		
-		#if defined(NDEBUG)
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", std::format("Unhandled exception: {}", e.what()).c_str(), nullptr);
-		#endif
+		debug::log_fatal("Unhandled exception: {}", e.what());
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", std::format("Unhandled exception: {}", e.what()).c_str(), nullptr);
 		
 		return EXIT_FAILURE;
 	}
+	// #else
+		// game(argc, argv).execute();
+	// #endif
 	
 	// Clean exit marker
-	debug::log::debug("Bye! 🐜");
+	debug::log_debug("Bye! 🐜");
 	
 	return EXIT_SUCCESS;
 }

@@ -19,7 +19,6 @@
 
 #include "game/textures/rgb-voronoi-noise.hpp"
 #include <engine/math/noise/noise.hpp>
-#include <engine/utility/image.hpp>
 #include <engine/debug/log.hpp>
 #include <algorithm>
 #include <execution>

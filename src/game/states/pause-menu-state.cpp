@@ -38,7 +38,7 @@ using namespace hash::literals;
 pause_menu_state::pause_menu_state(::game& ctx):
 	game_state(ctx)
 {
-	debug::log::trace("Entering pause menu state...");
+	debug::log_trace("Entering pause menu state...");
 	
 	// Construct menu item texts
 	resume_text = std::make_unique<scene::text>();;
@@ -206,12 +206,12 @@ pause_menu_state::pause_menu_state(::game& ctx):
 	// Save colony
 	//::save::colony(ctx);
 	
-	debug::log::trace("Entered pause menu state");
+	debug::log_trace("Entered pause menu state");
 }
 
 pause_menu_state::~pause_menu_state()
 {
-	debug::log::trace("Exiting pause menu state...");
+	debug::log_trace("Exiting pause menu state...");
 	
 	// Destruct menu
 	::disable_menu_controls(ctx);
@@ -220,5 +220,5 @@ pause_menu_state::~pause_menu_state()
 	::menu::remove_text_from_ui(ctx);
 	::menu::delete_text(ctx);
 	
-	debug::log::trace("Exited pause menu state");
+	debug::log_trace("Exited pause menu state");
 }

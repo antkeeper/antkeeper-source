@@ -22,12 +22,11 @@
 #include <utility>
 
 namespace debug {
-namespace log {
 
-void logger::log(std::string&& message, message_severity severity, std::source_location&& location)
+void logger::log(std::string&& message, log_message_severity severity, std::source_location&& location)
 {
 	// Generate message logged event
-	message_logged_publisher.publish
+	m_message_logged_publisher.publish
 	(
 		{
 			this,
@@ -40,5 +39,4 @@ void logger::log(std::string&& message, message_severity severity, std::source_l
 	);
 }
 
-} // namespace log
 } // namespace debug

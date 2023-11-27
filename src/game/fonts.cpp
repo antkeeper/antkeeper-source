@@ -20,8 +20,6 @@
 #include "game/fonts.hpp"
 #include <engine/type/type.hpp>
 #include <engine/resources/resource-manager.hpp>
-#include <engine/gl/texture-wrapping.hpp>
-#include <engine/gl/texture-filter.hpp>
 #include <engine/render/material.hpp>
 #include <engine/render/material-flags.hpp>
 #include <engine/utility/hash/fnv1a.hpp>
@@ -36,10 +34,6 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 		font.set_font_metrics(metrics);
 	}
 	
-	// Format font bitmap
-	image& font_bitmap = font.get_bitmap();
-	font_bitmap.format(1, sizeof(std::byte) * 8);
-	
 	// For each UTF-32 character code in the character set
 	for (char32_t code: charset)
 	{
@@ -50,9 +44,9 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 		}
 		
 		// Add glyph to font
-		type::bitmap_glyph& glyph = font[code];
+		type::bitmap_glyph& glyph = font.insert(code);
 		typeface.get_metrics(size, code, glyph.metrics);
-		typeface.get_bitmap(size, code, glyph.bitmap);
+		typeface.get_bitmap(size, code, glyph.bitmap, glyph.bitmap_width, glyph.bitmap_height);
 	}
 	
 	// Pack glyph bitmaps into the font bitmap
@@ -60,22 +54,10 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	
 	// Create font material
 	material.set_blend_mode(render::material_blend_mode::translucent);
-	if (auto var = material.get_variable("font_bitmap"))
-	{
-		// Update font texture
-		auto texture = std::static_pointer_cast<render::matvar_texture_2d>(var)->get();
-		texture->resize(static_cast<std::uint16_t>(font_bitmap.size().x()), static_cast<std::uint16_t>(font_bitmap.size().y()), font_bitmap.data());
-	}
-	else
-	{
-		// Create font texture from bitmap
-		std::shared_ptr<gl::texture_2d> font_texture = std::make_shared<gl::texture_2d>(static_cast<std::uint16_t>(font_bitmap.size().x()), static_cast<std::uint16_t>(font_bitmap.size().y()), gl::pixel_type::uint_8, gl::pixel_format::r, gl::transfer_function::linear, font_bitmap.data());
-		font_texture->set_wrapping(gl::texture_wrapping::extend, gl::texture_wrapping::extend);
-		font_texture->set_filters(gl::texture_min_filter::linear, gl::texture_mag_filter::linear);
-		
-		// Create font bitmap variable
-		material.set_variable("font_bitmap", std::make_shared<render::matvar_texture_2d>(1, font_texture));
-	}
+	
+	// Create font bitmap variable
+	material.set_variable("font_bitmap", std::make_shared<render::matvar_texture_2d>(1, font.get_texture()));
+	
 	material.set_shader_template(shader_template);
 }
 

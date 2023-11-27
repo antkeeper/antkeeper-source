@@ -31,8 +31,7 @@
 #include <engine/entity/registry.hpp>
 #include <engine/event/subscription.hpp>
 #include <engine/gl/framebuffer.hpp>
-#include <engine/gl/rasterizer.hpp>
-#include <engine/gl/texture-2d.hpp>
+#include <engine/gl/texture.hpp>
 #include <engine/i18n/string-map.hpp>
 #include <engine/input/action-map.hpp>
 #include <engine/input/action.hpp>
@@ -82,14 +81,11 @@ namespace debug
 namespace render
 {
 	class bloom_pass;
-	class clear_pass;
 	class compositor;
 	class final_pass;
-	class fxaa_pass;
 	class resample_pass;
 	class material_pass;
 	class renderer;
-	class outline_pass;
 	class simple_render_pass;
 	class sky_pass;
 }
@@ -307,35 +303,29 @@ public:
 	std::queue<std::function<void()>> function_queue;
 	
 	// Framebuffers
-	std::unique_ptr<gl::texture_2d> hdr_color_texture;
-	std::unique_ptr<gl::texture_2d> hdr_depth_texture;
-	std::unique_ptr<gl::framebuffer> hdr_framebuffer;
-	std::unique_ptr<gl::texture_2d> ldr_color_texture_a;
-	std::unique_ptr<gl::framebuffer> ldr_framebuffer_a;
-	std::unique_ptr<gl::texture_2d> ldr_color_texture_b;
-	std::unique_ptr<gl::framebuffer> ldr_framebuffer_b;
+	std::shared_ptr<gl::texture_2d> hdr_color_texture;
+	std::shared_ptr<gl::texture_2d> hdr_depth_texture;
+	std::shared_ptr<gl::framebuffer> hdr_framebuffer;
+	std::shared_ptr<gl::texture_2d> ldr_color_texture_a;
+	std::shared_ptr<gl::framebuffer> ldr_framebuffer_a;
+	std::shared_ptr<gl::texture_2d> ldr_color_texture_b;
+	std::shared_ptr<gl::framebuffer> ldr_framebuffer_b;
 	std::shared_ptr<gl::texture_2d> shadow_map_depth_texture;
 	std::shared_ptr<gl::framebuffer> shadow_map_framebuffer;
 	
 	// Rendering
-	//gl::rasterizer* rasterizer;
 	math::ivec2 render_resolution;
 	float render_scale;
 	int shadow_map_resolution;
-	std::unique_ptr<render::clear_pass> ui_clear_pass;
 	std::unique_ptr<render::material_pass> ui_material_pass;
 	std::unique_ptr<render::compositor> ui_compositor;
 	std::unique_ptr<render::bloom_pass> bloom_pass;
 	std::unique_ptr<render::final_pass> common_final_pass;
-	std::unique_ptr<render::fxaa_pass> fxaa_pass;
 	std::unique_ptr<render::resample_pass> resample_pass;
-	std::unique_ptr<render::clear_pass> underground_clear_pass;
 	std::unique_ptr<render::material_pass> underground_material_pass;
 	std::unique_ptr<render::compositor> underground_compositor;
-	std::unique_ptr<render::clear_pass> surface_clear_pass;
 	std::unique_ptr<render::sky_pass> sky_pass;
 	std::unique_ptr<render::material_pass> surface_material_pass;
-	std::unique_ptr<render::outline_pass> surface_outline_pass;
 	std::unique_ptr<render::compositor> surface_compositor;
 	std::unique_ptr<render::renderer> renderer;
 	
