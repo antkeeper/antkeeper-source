@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
 
-
 option(APPLICATION_NAME "Application name" "Antkeeper")
 option(APPLICATION_VERSION "Application version string" "0.0.0")
 option(APPLICATION_AUTHOR "Application author" "C. J. Howard")
@@ -37,29 +36,29 @@ set(STATIC_LIBS
 	SDL2::SDL2main
 	OpenAL::OpenAL
 	${physfs}
-	freetype)
+	freetype
+)
 set(SHARED_LIBS
-	${OPENGL_gl_LIBRARY})
+	${OPENGL_gl_LIBRARY}
+)
 
 # Generate configuration header file
 configure_file(${PROJECT_SOURCE_DIR}/src/engine/config.hpp.in ${PROJECT_BINARY_DIR}/src/engine/config.hpp)
 
-# Collect source files
-file(GLOB_RECURSE SOURCE_FILES
-	${PROJECT_SOURCE_DIR}/src/*.cpp)
-
-# Remove platform-specific source files
-set(EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/game/platform/")
-foreach(TMP_PATH ${SOURCE_FILES})
-	string(FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
-	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-		list(REMOVE_ITEM SOURCE_FILES ${TMP_PATH})
-	endif ()
-endforeach(TMP_PATH)
+# Collect platform-independent source files
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
+	${PROJECT_SOURCE_DIR}/src/*.cpp
+	EXCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/game/platform"
+)
 
 if(MSVC)
-	# Add platform-specific source files
-	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/game/platform/windows/high-performance-graphics.cpp")
+	# Collect Windows-specific source files
+	file(GLOB_RECURSE WINDOWS_SOURCE_FILES CONFIGURE_DEPENDS
+		${PROJECT_SOURCE_DIR}/src/game/platform/windows/*.cpp
+	)
+	
+	# Add Windows-specific source files to SOURCE_FILES
+	list(APPEND SOURCE_FILES ${WINDOWS_SOURCE_FILES})
 	
 	# Generate Windows icon resource file
 	set(ICON_FILE "${PROJECT_SOURCE_DIR}/../antkeeper-data/src/icons/antkeeper.ico")
@@ -79,38 +78,46 @@ endif()
 # Add executable target
 set(EXECUTABLE_TARGET ${APPLICATION_SLUG}-executable)
 add_executable(${EXECUTABLE_TARGET} ${SOURCE_FILES})
+
+# Set target properties
 set_target_properties(${EXECUTABLE_TARGET} PROPERTIES
 	OUTPUT_NAME ${APPLICATION_SLUG}
 	COMPILE_WARNING_AS_ERROR ON
 	CXX_STANDARD 23
 	CXX_STANDARD_REQUIRED ON
-	CXX_EXTENSIONS OFF)
+	CXX_EXTENSIONS OFF
+	MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
 
-target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
-if(MSVC)
-	target_compile_options(${EXECUTABLE_TARGET} PRIVATE /W3)
-	set_target_properties(${EXECUTABLE_TARGET} PROPERTIES
-		LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE"
-		LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:\"mainCRTStartup\""
-		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-else()
-	target_compile_options(${EXECUTABLE_TARGET} PRIVATE -Wall -Wextra -Wpedantic)
-endif()
+# Set compile definitions
+target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE
+	$<$<CONFIG:Debug>:DEBUG> $<$<NOT:$<CONFIG:Debug>>:NDEBUG>
+	_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+)
 
-# Add compile definitions
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE DEBUG)
-else()
-	target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE NDEBUG)
-endif()
+# Set compile options
+target_compile_options(${EXECUTABLE_TARGET} PRIVATE
+	$<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -pedantic>
+	$<$<CXX_COMPILER_ID:MSVC>:/W3>
+)
+
+# Set link options
+target_link_options(${EXECUTABLE_TARGET} PRIVATE
+	$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:/SUBSYSTEM:CONSOLE>
+	$<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:MSVC>>:/SUBSYSTEM:WINDOWS /ENTRY:"mainCRTStartup">
+)
 
 # Set include directories
 target_include_directories(${EXECUTABLE_TARGET} PUBLIC
 	${PROJECT_SOURCE_DIR}/src
-	${PROJECT_BINARY_DIR}/src)
+	${PROJECT_BINARY_DIR}/src
+)
 
 # Link to dependencies
-target_link_libraries(${EXECUTABLE_TARGET} ${STATIC_LIBS} ${SHARED_LIBS})
+target_link_libraries(${EXECUTABLE_TARGET}
+	${STATIC_LIBS}
+	${SHARED_LIBS}
+)
 
 # Install executable
 if(PACKAGE_PLATFORM MATCHES "linux")

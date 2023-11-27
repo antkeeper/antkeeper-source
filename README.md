@@ -21,7 +21,9 @@ Documentation for the source code of the latest version of Antkeeper can be foun
 
 Alternatively, the following command generates source code documentation using [Doxygen](https://www.doxygen.nl):
 
-    cd docs && doxygen
+```bash
+cd docs && doxygen
+```
 
 ## License
 
