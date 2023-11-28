@@ -91,20 +91,37 @@ set_target_properties(${EXECUTABLE_TARGET} PROPERTIES
 
 # Set compile definitions
 target_compile_definitions(${EXECUTABLE_TARGET} PRIVATE
-	$<$<CONFIG:Debug>:DEBUG> $<$<NOT:$<CONFIG:Debug>>:NDEBUG>
+	$<$<CONFIG:Debug>:DEBUG>
+	$<$<NOT:$<CONFIG:Debug>>:NDEBUG>
 	_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 )
 
 # Set compile options
 target_compile_options(${EXECUTABLE_TARGET} PRIVATE
 	$<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -pedantic>
-	$<$<CXX_COMPILER_ID:MSVC>:/W3>
+	$<$<CXX_COMPILER_ID:MSVC>:
+		/W3
+		$<$<NOT:$<CONFIG:Debug>>:/GL>
+		$<$<CONFIG:Release>:/O2 /Ob3 /Qfast_transcendentals /GS->
+	>
 )
 
 # Set link options
 target_link_options(${EXECUTABLE_TARGET} PRIVATE
-	$<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:MSVC>>:/SUBSYSTEM:CONSOLE>
-	$<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:MSVC>>:/SUBSYSTEM:WINDOWS /ENTRY:"mainCRTStartup">
+	$<$<PLATFORM_ID:Windows>:
+		$<$<CXX_COMPILER_ID:MSVC>:
+			$<$<CONFIG:Debug>:/SUBSYSTEM:CONSOLE>
+			$<$<NOT:$<CONFIG:Debug>>:/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup /OPT:REF /OPT:ICF /INCREMENTAL:NO /LTCG>
+		>
+		$<$<CXX_COMPILER_ID:GNU,Clang>:
+			$<$<CONFIG:Debug>:-mconsole>
+			$<$<NOT:$<CONFIG:Debug>>:-mwindows --entry=mainCRTStartup>
+		>
+	>
+	$<$<CXX_COMPILER_ID:GNU,Clang>:
+		-static
+		$<$<NOT:$<CONFIG:Debug>>:-flto>
+	>
 )
 
 # Set include directories
@@ -120,8 +137,8 @@ target_link_libraries(${EXECUTABLE_TARGET}
 )
 
 # Install executable
-if(PACKAGE_PLATFORM MATCHES "linux")
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	install(TARGETS ${EXECUTABLE_TARGET} DESTINATION bin)
-elseif(PACKAGE_PLATFORM MATCHES "win")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	install(TARGETS ${EXECUTABLE_TARGET} DESTINATION .)
 endif()
