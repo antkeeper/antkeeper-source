@@ -173,7 +173,7 @@ class image_view_1d: public image_view
 {
 public:
 	/// @copydoc image_view::image_view
-	image_view_1d
+	explicit image_view_1d
 	(
 		std::shared_ptr<gl::image> image,
 		gl::format format = gl::format::undefined,
@@ -190,7 +190,7 @@ class image_view_1d_array: public image_view
 {
 public:
 	/// @copydoc image_view::image_view
-	image_view_1d_array
+	explicit image_view_1d_array
 	(
 		std::shared_ptr<gl::image> image,
 		gl::format format = gl::format::undefined,
@@ -208,7 +208,7 @@ class image_view_2d: public image_view
 {
 public:
 	/// @copydoc image_view::image_view
-	image_view_2d
+	explicit image_view_2d
 	(
 		std::shared_ptr<gl::image> image,
 		gl::format format = gl::format::undefined,
@@ -225,7 +225,7 @@ class image_view_2d_array: public image_view
 {
 public:
 	/// @copydoc image_view::image_view
-	image_view_2d_array
+	explicit image_view_2d_array
 	(
 		std::shared_ptr<gl::image> image,
 		gl::format format = gl::format::undefined,
@@ -243,7 +243,7 @@ class image_view_3d: public image_view
 {
 public:
 	/// @copydoc image_view::image_view
-	image_view_3d
+	explicit image_view_3d
 	(
 		std::shared_ptr<gl::image> image,
 		gl::format format = gl::format::undefined,
@@ -259,7 +259,7 @@ class image_view_cube: public image_view
 {
 public:
 	/// @copydoc image_view::image_view
-	image_view_cube
+	explicit image_view_cube
 	(
 		std::shared_ptr<gl::image> image,
 		gl::format format = gl::format::undefined,
@@ -276,7 +276,7 @@ class image_view_cube_array: public image_view
 {
 public:
 	/// @copydoc image_view::image_view
-	image_view_cube_array
+	explicit image_view_cube_array
 	(
 		std::shared_ptr<gl::image> image,
 		gl::format format = gl::format::undefined,

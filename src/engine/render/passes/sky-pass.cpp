@@ -263,7 +263,7 @@ void sky_pass::render(render::context& ctx)
 		static_cast<float>(viewport_dimensions[1])
 	}};
 	m_pipeline->set_viewport(0, viewport);
-	math::fvec2 resolution = {viewport[0].width, viewport[1].height};
+	math::fvec2 resolution = {viewport[0].width, viewport[0].height};
 	
 	// Draw atmosphere
 	if (sky_model && sky_shader_program)

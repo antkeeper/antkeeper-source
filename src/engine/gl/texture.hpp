@@ -39,7 +39,7 @@ public:
 	 * @param sampler Texture sampler.
 	 */
 	/// @{
-	inline texture(std::shared_ptr<gl::sampler> sampler) noexcept:
+	inline explicit texture(std::shared_ptr<gl::sampler> sampler) noexcept:
 		m_sampler(sampler)
 	{}
 	

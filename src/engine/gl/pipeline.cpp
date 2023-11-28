@@ -202,7 +202,6 @@ namespace {
 				std::format_to(std::back_inserter(formatted_message), "OpenGL {} {} ({}) {}: {}", src_str, type_str, severity_str, id, message);
 				debug::log_fatal("{}", formatted_message);
 				throw std::runtime_error(formatted_message);
-				break;
 			}
 			
 			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
