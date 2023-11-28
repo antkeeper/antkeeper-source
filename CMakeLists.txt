@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.27)
 
 option(APPLICATION_NAME "Application name" "Antkeeper")
 option(APPLICATION_VERSION "Application version string" "0.0.0")
