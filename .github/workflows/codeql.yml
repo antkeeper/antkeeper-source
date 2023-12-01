@@ -25,7 +25,6 @@ jobs:
       fail-fast: false
       matrix:
         language: ['c-cpp']
-        preset: 'win64'
 
     steps:
     - name: Checkout repository
@@ -37,13 +36,13 @@ jobs:
         languages: ${{ matrix.language }}
 
     - name: CMake configure
-      run: cmake --preset ${{matrix.preset}}-release
+      run: cmake --preset win64-release
       
     - name: Install glad requirements
-      run: pip install -r build/${{matrix.preset}}/_deps/glad-src/requirements.txt
+      run: pip install -r build/win64/_deps/glad-src/requirements.txt
       
     - name: CMake build
-      run: cmake --build --preset ${{matrix.preset}}-release
+      run: cmake --build --preset win64-release
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
