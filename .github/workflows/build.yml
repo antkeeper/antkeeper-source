@@ -18,15 +18,18 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            preset: win64-release
-          # - os: ubuntu-latest
-            # preset: linux64-release
+            preset: win64
+          # - os: ubuntu
+            # preset: linux64
     
     steps:
     - uses: actions/checkout@v3
-      
+    
     - name: CMake configure
-      run: cmake --preset ${{matrix.preset}}
-      
+      run: cmake --preset ${{matrix.preset}}-release
+    
+    - name: Install glad requirements
+      run: pip install -r build/${{matrix.preset}}/_deps/glad-src/requirements.txt
+    
     - name: CMake build
-      run: cmake --build --preset ${{matrix.preset}}
+      run: cmake --build --preset ${{matrix.preset}}-release
