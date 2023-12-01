@@ -28,11 +28,11 @@ Head over to [antkeeper.com](https://antkeeper.com/) if you're interested in fol
 
 ## Building
 
-Prerequisites:
+Requirements:
 
 * [Git](https://git-scm.com/downloads)
 * [CMake](https://cmake.org/download/)>=3.27
-* [Build Tools](https://visualstudio.microsoft.com/downloads/) for Visual Studio 2022 or later
+* [Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/)>=2022
 * [Python](https://www.python.org/downloads/)>=3.11.0
 * [Jinja2](https://pypi.org/project/Jinja2/)>=2.7,<4.0
 
