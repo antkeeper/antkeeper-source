@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2023 C. J. Howard
+SPDX-License-Identifier: CC-BY-SA-4.0
+-->
+
 # Contributing to Antkeeper
 
 Thanks for taking the time to make Antkeeper better! ❤🐜
@@ -6,7 +11,7 @@ Thanks for taking the time to make Antkeeper better! ❤🐜
 
 To report a bug, please do one of the following:
 
-* [Open an issue](https://github.com/antkeeper/antkeeper-source/issues) on GitHub
+* [Open an issue](https://github.com/antkeeper/antkeeper/issues) on GitHub
 * [Email us](mailto:contact@antkeeper.com) a description of the bug
 * [Chat with us](https://discord.gg/AQA955HbK3) about the bug on Discord
 
@@ -19,7 +24,7 @@ To suggest changes or new features, please do one of the following:
 
 ## Contributing Code
 
-If you have written code that fixes a bug or provides new functionality, please [open a pull request](https://github.com/antkeeper/antkeeper-source/pulls) on GitHub.
+If you have written code that fixes a bug or provides new functionality, please [open a pull request](https://github.com/antkeeper/antkeeper/pulls) on GitHub.
 
 ### Coding Conventions
 

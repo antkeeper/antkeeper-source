@@ -1,0 +1,97 @@
+{
+	"version": 3,
+	"cmakeMinimumRequired":
+	{
+		"major": 3,
+		"minor": 27,
+		"patch": 0
+	},
+	"configurePresets":
+	[
+		{
+			"name": "win64",
+			"hidden": true,
+			"generator": "Visual Studio 17 2022",
+			"architecture":
+			{
+				"value": "x64",
+				"strategy": "set"
+			},
+			"binaryDir": "${sourceDir}/build/win64"
+		},
+		{
+			"name": "linux64",
+			"hidden": true,
+			"generator": "Unix Makefiles",
+			"architecture":
+			{
+				"value": "x64",
+				"strategy": "set"
+			},
+			"binaryDir": "${sourceDir}/build/linux64"
+		},
+		{
+			"name": "win64-debug",
+			"displayName": "64-bit Windows Debug",
+			"inherits": "win64",
+			"cacheVariables":
+			{
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "win64-release",
+			"displayName": "64-bit Windows Release",
+			"inherits": "win64",
+			"cacheVariables":
+			{
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		},
+		{
+			"name": "linux64-debug",
+			"displayName": "64-bit Linux Debug",
+			"inherits": "linux64",
+			"cacheVariables":
+			{
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "linux64-release",
+			"displayName": "64-bit Linux Release",
+			"inherits": "linux64",
+			"cacheVariables":
+			{
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		}
+	],
+	"buildPresets":
+	[
+		{
+			"name": "win64-debug",
+			"displayName": "64-bit Windows Debug",
+			"configurePreset": "win64-debug",
+			"configuration": "Debug"
+		},
+		{
+			"name": "win64-release",
+			"displayName": "64-bit Windows Release",
+			"configurePreset": "win64-release",
+			"configuration": "Release"
+		},
+		{
+			"name": "linux64-debug",
+			"displayName": "64-bit Linux Debug",
+			"configurePreset": "linux64-debug",
+			"configuration": "Debug"
+		},
+		{
+			"name": "linux64-release",
+			"displayName": "64-bit Linux Release",
+			"configurePreset": "linux64-release",
+			"configuration": "Release"
+		}
+	]
+}

@@ -1,30 +1,60 @@
-# Antkeeper Source
+<!--
+SPDX-FileCopyrightText: 2023 C. J. Howard
+SPDX-License-Identifier: CC-BY-SA-4.0
+-->
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ec1d9f614fdf4d5b8effa6b7b72b3d5e)](https://app.codacy.com/gh/antkeeper/antkeeper-source/dashboard)
-[![TODOs](https://badgen.net/https/api.tickgit.com/badgen/github.com/antkeeper/antkeeper-source)](https://www.tickgit.com/browse?repo=github.com/antkeeper/antkeeper-source)
-[![Documentation](https://img.shields.io/badge/docs-doxygen-blue)](https://docs.antkeeper.com/latest/index)
-[![Discord](https://img.shields.io/discord/547138509610156036?logo=discord)](https://discord.gg/ptwHV4T)
+<div align="center">
 
-Antkeeper is a 3D ant colony simulation game currently in development for Windows, Mac, and Linux. This repository contains all of the source code to Antkeeper.
+# Antkeeper
+
+[![build status](https://github.com/antkeeper/antkeeper/actions/workflows/build.yml/badge.svg)](https://github.com/antkeeper/antkeeper/actions/workflows/build.yml)
+[![code quality](https://app.codacy.com/project/badge/Grade/ec1d9f614fdf4d5b8effa6b7b72b3d5e)](https://app.codacy.com/gh/antkeeper/antkeeper/dashboard)
+[![documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat)](https://antkeeper.github.io/antkeeper/)
+[![chat](https://img.shields.io/discord/547138509610156036?logo=discord)](https://discord.gg/ptwHV4T)
+[![REUSE compliance](https://github.com/antkeeper/antkeeper/actions/workflows/reuse.yml/badge.svg)](https://github.com/antkeeper/antkeeper/actions/workflows/reuse.yml)
+
+</div>
+
+Antkeeper is a 3D ant colony simulation game currently in development for Windows, Mac, and Linux.
 
 Head over to [antkeeper.com](https://antkeeper.com/) if you're interested in following the development of the game or purchasing a copy when it's released. Antkeeper is an indie game with a single developer, so feel free to reach out to me personally with any questions, comments, or feedback you may have.
 
+## Table of Contents
+
+* [Building](#building)
+* [Maintainers](#maintainers)
+* [Contributing](#contributing)
+* [License](#license)
+
 ## Building
 
-Download the Antkeeper source code, build system, and all dependencies via the [Antkeeper superbuild](https://github.com/antkeeper/antkeeper-superbuild) repository.
+Prerequisites:
 
-Detailed configuration and build instructions can be found in the [README](https://github.com/antkeeper/antkeeper-superbuild/blob/master/README.md) of the superbuild repository.
+* [Git](https://git-scm.com/downloads)
+* [CMake](https://cmake.org/download/) 3.27+
+* [Build Tools](https://visualstudio.microsoft.com/downloads/) for Visual Studio 2022 or later
+* [Python](https://www.python.org/downloads/) 3.11.0+
 
-## Documentation
-
-Documentation for the source code of the latest version of Antkeeper can be found at <https://docs.antkeeper.com/latest/>.
-
-Alternatively, the following command generates source code documentation using [Doxygen](https://www.doxygen.nl):
+Configure and build a 64-bit Windows release:
 
 ```bash
-cd docs && doxygen
+git clone https://github.com/antkeeper/antkeeper.git && cd antkeeper
+cmake --preset win64-release
+cmake --build --preset win64-release
 ```
+
+## Maintainers
+
+* [C. J. Howard](https://github.com/cjhoward)
+
+## Contributing
+
+Antkeeper is an open-source project, and contributions are welcome.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## License
 
-Antkeeper source code is licensed under the GNU General Public License, version 3. For more information, see [LICENSE.md](./LICENSE.md).
+* Antkeeper source code is licensed under [GPL-3.0-or-later](./LICENSES/GPL-3.0-or-later.txt).
+* Antkeeper translation texts are licensed under [CC-BY-SA-4.0](./LICENSES/CC-BY-SA-4.0.txt).
+* Antkeeper data package is proprietary.

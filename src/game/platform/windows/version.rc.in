@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 C. J. Howard
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <Winver.h>
 
 #define VER_FILEVERSION @APPLICATION_VERSION_MAJOR@,@APPLICATION_VERSION_MINOR@,@APPLICATION_VERSION_PATCH@,0
