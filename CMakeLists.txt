@@ -25,9 +25,6 @@ set(APPLICATION_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(APPLICATION_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(APPLICATION_AUTHOR "C. J. Howard")
 
-# Options
-option(BLENDER "Path to Blender executable" "")
-
 if(MSVC)
 	# Use static multithreaded runtime on MSVC
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -46,10 +43,98 @@ add_compile_options(
 	$<$<CXX_COMPILER_ID:MSVC>:/MP>
 )
 
-# Find OpenGL
+# Find Python3 interpreter
+find_package(Python3
+	COMPONENTS
+		Interpreter
+	REQUIRED
+)
+
+# Find packages
 find_package(OpenGL REQUIRED)
 
-# Fetch SDL2
+# Fetch dependencies
+FetchContent_Declare(cxxopts
+	GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+	GIT_TAG eb787304d67ec22f7c3a184ee8b4c481d04357fd # v3.1.1
+)
+FetchContent_Declare(dr_libs
+	GIT_REPOSITORY https://github.com/mackron/dr_libs.git
+	GIT_TAG 9eed1be421749ba68a87e5b4c3b10858f8580689 # v0.13.13
+)
+FetchContent_Declare(entt
+	GIT_REPOSITORY https://github.com/skypjack/entt.git
+	GIT_TAG e4ccb878f47245a319704912435d3c89f34ad6be # v3.10.3
+)
+FetchContent_Declare(freetype
+	GIT_REPOSITORY https://github.com/freetype/freetype.git
+	GIT_TAG 920c5502cc3ddda88f6c7d85ee834ac611bb11cc # v2.13.2
+)
+FetchContent_Declare(glad
+	GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+	GIT_TAG d08b1aa01f8fe57498f04d47b5fa8c48725be877 # v2.0.4
+	SOURCE_SUBDIR cmake
+)
+FetchContent_Declare(nlohmann-json
+	GIT_REPOSITORY https://github.com/nlohmann/json.git
+	GIT_TAG 9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03 # v3.11.3
+)
+FetchContent_Declare(openal-soft
+	GIT_REPOSITORY https://github.com/kcat/openal-soft.git
+	GIT_TAG d3875f333fb6abe2f39d82caca329414871ae53b # v1.23.1
+)
+FetchContent_Declare(physfs
+	GIT_REPOSITORY https://github.com/icculus/physfs.git
+	GIT_TAG eb3383b532c5f74bfeb42ec306ba2cf80eed988c # v3.2.0
+)
+FetchContent_Declare(SDL2
+	GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+	GIT_TAG 15ead9a40d09a1eb9972215cceac2bf29c9b77f6 # v2.28.5
+)
+FetchContent_Declare(stb
+	GIT_REPOSITORY https://github.com/nothings/stb.git
+	GIT_TAG 03f50e343d796e492e6579a11143a085429d7f5d # stb_image v2.28, stb_image_write v1.16
+)
+FetchContent_Declare(tinyexr
+	GIT_REPOSITORY https://github.com/syoyo/tinyexr.git
+	GIT_TAG 6e8cac308cdf4d717078f3f37c4aa39bf3b356b4 # v1.0.7
+)
+
+# Configure cxxopts
+set(CXXOPTS_BUILD_EXAMPLES OFF)
+set(CXXOPTS_BUILD_TESTS OFF)
+
+# Configure FreeType
+set(BUILD_SHARED_LIBS "false")
+set(FT_DISABLE_ZLIB ON)
+set(FT_DISABLE_BZIP2 ON)
+set(FT_DISABLE_PNG ON)
+set(FT_DISABLE_HARFBUZZ ON)
+set(FT_DISABLE_BROTLI ON)
+
+# Configure OpenAL Soft
+set(LIBTYPE "STATIC")
+set(FORCE_STATIC_VCRT ON)
+set(ALSOFT_UTILS OFF)
+set(ALSOFT_EXAMPLES OFF)
+
+# Configure PhysicsFS
+set(PHYSFS_ARCHIVE_ZIP ON)
+set(PHYSFS_ARCHIVE_7Z OFF)
+set(PHYSFS_ARCHIVE_GRP OFF)
+set(PHYSFS_ARCHIVE_WAD OFF)
+set(PHYSFS_ARCHIVE_HOG OFF)
+set(PHYSFS_ARCHIVE_MVL OFF)
+set(PHYSFS_ARCHIVE_QPAK OFF)
+set(PHYSFS_ARCHIVE_SLB OFF)
+set(PHYSFS_ARCHIVE_ISO9660 OFF)
+set(PHYSFS_ARCHIVE_VDF OFF)
+set(PHYSFS_BUILD_STATIC ON)
+set(PHYSFS_BUILD_SHARED OFF)
+set(PHYSFS_BUILD_TEST OFF)
+set(PHYSFS_BUILD_DOCS OFF)
+
+# Configure SDL
 set(SDL_ASSERTIONS "disabled")
 set(SDL_ATOMIC OFF)
 set(SDL_AUDIO OFF)
@@ -79,116 +164,28 @@ set(SDL_TIMERS OFF)
 set(SDL_VIDEO ON)
 set(SDL_VULKAN OFF)
 set(SDL_WASAPI OFF)
-FetchContent_Declare(SDL2
-	GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-	GIT_TAG 15ead9a40d09a1eb9972215cceac2bf29c9b77f6 # v2.28.5
-)
 
-# Fetch OpenAL Soft
-set(LIBTYPE "STATIC")
-set(FORCE_STATIC_VCRT ON)
-set(ALSOFT_UTILS OFF)
-set(ALSOFT_EXAMPLES OFF)
-FetchContent_Declare(openal-soft
-	GIT_REPOSITORY https://github.com/kcat/openal-soft.git
-	GIT_TAG d3875f333fb6abe2f39d82caca329414871ae53b # v1.23.1
-)
-
-# Fetch EnTT
-FetchContent_Declare(entt
-	GIT_REPOSITORY https://github.com/skypjack/entt.git
-	GIT_TAG e4ccb878f47245a319704912435d3c89f34ad6be # v3.10.3
-)
-
-# Fetch nlohmann-json
-FetchContent_Declare(nlohmann-json
-	GIT_REPOSITORY https://github.com/nlohmann/json.git
-	GIT_TAG 9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03 # v3.11.3
-)
-
-# Fetch cxxopts
-set(CXXOPTS_BUILD_EXAMPLES OFF)
-set(CXXOPTS_BUILD_TESTS OFF)
-FetchContent_Declare(cxxopts
-	GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
-	GIT_TAG eb787304d67ec22f7c3a184ee8b4c481d04357fd # v3.1.1
-)
-
-# Fetch PhysicsFS
-set(PHYSFS_ARCHIVE_ZIP ON)
-set(PHYSFS_ARCHIVE_7Z OFF)
-set(PHYSFS_ARCHIVE_GRP OFF)
-set(PHYSFS_ARCHIVE_WAD OFF)
-set(PHYSFS_ARCHIVE_HOG OFF)
-set(PHYSFS_ARCHIVE_MVL OFF)
-set(PHYSFS_ARCHIVE_QPAK OFF)
-set(PHYSFS_ARCHIVE_SLB OFF)
-set(PHYSFS_ARCHIVE_ISO9660 OFF)
-set(PHYSFS_ARCHIVE_VDF OFF)
-set(PHYSFS_BUILD_STATIC ON)
-set(PHYSFS_BUILD_SHARED OFF)
-set(PHYSFS_BUILD_TEST OFF)
-set(PHYSFS_BUILD_DOCS OFF)
-FetchContent_Declare(physfs
-	GIT_REPOSITORY https://github.com/icculus/physfs.git
-	GIT_TAG eb3383b532c5f74bfeb42ec306ba2cf80eed988c # v3.2.0
-)
-
-# Fetch FreeType
-set(BUILD_SHARED_LIBS "false")
-set(FT_DISABLE_ZLIB ON)
-set(FT_DISABLE_BZIP2 ON)
-set(FT_DISABLE_PNG ON)
-set(FT_DISABLE_HARFBUZZ ON)
-set(FT_DISABLE_BROTLI ON)
-FetchContent_Declare(freetype
-	GIT_REPOSITORY https://github.com/freetype/freetype.git
-	GIT_TAG 920c5502cc3ddda88f6c7d85ee834ac611bb11cc # v2.13.2
-)
-
-# Fetch dr_libs
-FetchContent_Declare(dr_libs
-	GIT_REPOSITORY https://github.com/mackron/dr_libs.git
-	GIT_TAG 9eed1be421749ba68a87e5b4c3b10858f8580689 # v0.13.13
-)
-
-# Fetch stb
-FetchContent_Declare(stb
-	GIT_REPOSITORY https://github.com/nothings/stb.git
-	GIT_TAG 03f50e343d796e492e6579a11143a085429d7f5d # stb_image v2.28, stb_image_write v1.16
-)
-
-# Fetch TinyEXR
+# Configure TinyEXR
 set(TINYEXR_BUILD_SAMPLE OFF)
 set(TINYEXR_USE_MINIZ OFF)
 add_compile_definitions(
 	TINYEXR_USE_MINIZ=0
 	TINYEXR_USE_STB_ZLIB=1
 )
-FetchContent_Declare(tinyexr
-	GIT_REPOSITORY https://github.com/syoyo/tinyexr.git
-	GIT_TAG 6e8cac308cdf4d717078f3f37c4aa39bf3b356b4 # v1.0.7
-)
 
-# Fetch glad
-FetchContent_Declare(glad
-	GIT_REPOSITORY https://github.com/Dav1dde/glad.git
-	GIT_TAG d08b1aa01f8fe57498f04d47b5fa8c48725be877 # v2.0.4
-	SOURCE_SUBDIR cmake
-)
-
+# Make dependencies available
 FetchContent_MakeAvailable(
-	SDL2
-	openal-soft
-	entt
-	nlohmann-json
+	cxxopts
 	dr_libs
+	entt
+	freetype
+	glad
+	nlohmann-json
+	openal-soft
+	physfs
+	SDL2
 	stb
 	tinyexr
-	glad
-	cxxopts
-	physfs
-	freetype
 )
 
 # Build dr_wav static library
@@ -241,7 +238,8 @@ target_include_directories(stb
 # Generate OpenGL loader with glad
 glad_add_library(glad STATIC
 	API gl:core=4.6
-	EXTENSIONS GL_EXT_texture_filter_anisotropic
+	EXTENSIONS
+		GL_EXT_texture_filter_anisotropic
 )
 
 # Make tinyexr.h available
@@ -375,3 +373,10 @@ target_link_libraries(${PROJECT_NAME}
 		freetype
 		${OPENGL_gl_LIBRARY}
 )
+
+# Determine data output directory
+get_target_property(RUNTIME_OUTPUT_DIRECTORY ${PROJECT_NAME} RUNTIME_OUTPUT_DIRECTORY)
+set(DATA_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIRECTORY}/data")
+
+# Trigger localization CMakeLists
+add_subdirectory(${PROJECT_SOURCE_DIR}/res/localization)

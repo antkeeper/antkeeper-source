@@ -11,25 +11,22 @@ on:
 
 jobs:
   build:
-    runs-on: ${{matrix.os}}
     
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: windows-latest
-            preset: win64
-          # - os: ubuntu-latest
-            # preset: linux64
+        os: [windows]
+    
+    runs-on: ${{matrix.os}}-latest
     
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     
     - name: CMake configure
-      run: cmake --preset ${{matrix.preset}}-release
+      run: cmake --preset ${{matrix.os}}-x64-release
     
     - name: Install glad requirements
-      run: pip install -r build/${{matrix.preset}}/_deps/glad-src/requirements.txt
+      run: pip install -r build/${{matrix.os}}-x64/_deps/glad-src/requirements.txt
     
     - name: CMake build
-      run: cmake --build --preset ${{matrix.preset}}-release
+      run: cmake --build --preset ${{matrix.os}}-x64-release

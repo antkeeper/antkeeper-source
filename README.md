@@ -40,8 +40,8 @@ Configure and build a Windows 64-bit release:
 
 ```bash
 git clone https://github.com/antkeeper/antkeeper.git && cd antkeeper
-cmake --preset win64-release
-cmake --build --preset win64-release
+cmake --preset windows-x64-release
+cmake --build --preset windows-x64-release
 ```
 
 ## Contributing

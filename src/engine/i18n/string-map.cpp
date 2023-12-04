@@ -7,8 +7,10 @@
 #include <engine/resources/deserializer.hpp>
 #include <engine/resources/deserialize-error.hpp>
 #include <engine/resources/resource-loader.hpp>
+#include <engine/utility/hash/fnv1a.hpp>
 #include <algorithm>
 #include <utility>
+#include <nlohmann/json.hpp>
 
 /**
  * Serializes a string map.
@@ -53,31 +55,56 @@ void deserializer<i18n::string_map>::deserialize(i18n::string_map& map, deserial
 {
 	map.clear();
 	
-	// Read number of entries
-	std::uint32_t size = 0;
-	ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&size), 1);
-	
-	// Read entries
-	for (std::uint32_t i = 0; i < size; ++i)
+	if (ctx.path().extension() == ".json")
 	{
-		// Read key
-		hash::fnv1a32_t key;
-		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&key), 1);
+		// Read file into buffer
+		std::string file_buffer(ctx.size(), '\0');
+		ctx.read8(reinterpret_cast<std::byte*>(file_buffer.data()), ctx.size());
 		
-		// Read string length
-		std::uint32_t length = 0;
-		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&length), 1);
+		// Parse JSON from file buffer
+		const auto json = nlohmann::json::parse(file_buffer, nullptr, true, true);
 		
-		// Insert empty string into map
-		auto [iterator, inserted] = map.emplace
-		(
-			std::piecewise_construct,
-			std::forward_as_tuple(key),
-			std::forward_as_tuple(static_cast<std::size_t>(length), '\0')
-		);
+		// Map key hashes to string values
+		for (const auto& element: json.items())
+		{
+			if (!element.value().is_string() || element.value().get_ref<const nlohmann::json::string_t&>().empty())
+			{
+				map[hash::fnv1a32<char>(element.key())] = '$' + element.key();
+			}
+			else
+			{
+				map[hash::fnv1a32<char>(element.key())] = element.value();
+			}
+		}
+	}
+	else
+	{
+		// Read number of entries
+		std::uint32_t size = 0;
+		ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&size), 1);
 		
-		// Read string
-		ctx.read8(reinterpret_cast<std::byte*>(iterator->second.data()), length);
+		// Read entries
+		for (std::uint32_t i = 0; i < size; ++i)
+		{
+			// Read key
+			hash::fnv1a32_t key;
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&key), 1);
+			
+			// Read string length
+			std::uint32_t length = 0;
+			ctx.read32<std::endian::little>(reinterpret_cast<std::byte*>(&length), 1);
+			
+			// Insert empty string into map
+			auto [iterator, inserted] = map.emplace
+			(
+				std::piecewise_construct,
+				std::forward_as_tuple(key),
+				std::forward_as_tuple(static_cast<std::size_t>(length), '\0')
+			);
+			
+			// Read string
+			ctx.read8(reinterpret_cast<std::byte*>(iterator->second.data()), length);
+		}
 	}
 }
 

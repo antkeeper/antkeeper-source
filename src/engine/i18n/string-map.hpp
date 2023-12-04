@@ -13,7 +13,7 @@ namespace i18n {
 /**
  * Maps 32-bit keys to strings.
  */
-typedef std::unordered_map<hash::fnv1a32_t, std::string> string_map;
+using string_map = std::unordered_map<hash::fnv1a32_t, std::string>;
 
 } // namespace i18n
 

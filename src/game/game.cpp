@@ -335,6 +335,7 @@ void game::setup_resources()
 	
 	// Mount data package path
 	resource_manager->mount(data_package_path);
+	resource_manager->mount(data_path / "data");
 	
 	// Mount controls path
 	resource_manager->mount(shared_config_path / "controls");
@@ -630,7 +631,7 @@ void game::load_strings()
 	);
 	
 	// Load string map
-	string_map = resource_manager->load<i18n::string_map>(language_slug + ".str");
+	string_map = resource_manager->load<i18n::string_map>(std::format("localization/{}.json", language_slug));
 	
 	// Log language info
 	debug::log_info("Language tag: {}", language_tag);

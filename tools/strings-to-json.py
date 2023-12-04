@@ -3,22 +3,22 @@
 
 import argparse
 import csv
+import json
 
 if __name__ == "__main__":
     
     # Parse arguments
-    parser = argparse.ArgumentParser(description='Generate a list of language tags in the header of a CSV file.')
+    parser = argparse.ArgumentParser(description='Export JSON strings for a given language.')
     parser.add_argument('input_file', help='Input file')
+    parser.add_argument('language_tag', help='Language tag')
     parser.add_argument('output_file', help='Output file')
     args = parser.parse_args()
     
-    # Read header
+    # Build string dict for the given language
     with open(args.input_file, 'r', encoding='utf-8') as file:
-        header = next(csv.reader(file), None)
+        strings = {row['key']: row[args.language_tag] or None for row in csv.DictReader(file) if row['key']}
     
-    # Collect language tags
-    tags = [tag for tag in header if tag and tag not in ("key", "context")]
-    
-    # Generate manifest
+    # Export string dict as JSON
     with open(args.output_file, 'w', encoding='utf-8') as file:
-        file.write('\n'.join(tags))
+        json.dump(strings, file, indent='\t', ensure_ascii=False)
+    

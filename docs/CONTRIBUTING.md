@@ -7,20 +7,26 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 Thanks for taking the time to make Antkeeper better! ❤🐜
 
+## Table of Contents
+
+-   [Reporting Bugs](#reporting-bugs)
+-   [Suggesting Changes](#suggesting-changes)
+-   [Contributing Code](#contributing-code)
+
 ## Reporting Bugs
 
 To report a bug, please do one of the following:
 
-* [Open an issue](https://github.com/antkeeper/antkeeper/issues) on GitHub
-* [Email us](mailto:contact@antkeeper.com) a description of the bug
-* [Chat with us](https://discord.gg/AQA955HbK3) about the bug on Discord
+-   [Open an issue](https://github.com/antkeeper/antkeeper/issues) on GitHub
+-   [Email us](mailto:contact@antkeeper.com) a description of the bug
+-   [Chat with us](https://discord.gg/AQA955HbK3) about the bug on Discord
 
 ## Suggesting Changes
 
 To suggest changes or new features, please do one of the following:
 
-* [Email us](mailto:contact@antkeeper.com) your suggestion
-* [Chat with us](https://discord.gg/XpjNdXHCJK) about your suggestion on Discord
+-   [Email us](mailto:contact@antkeeper.com) your suggestion
+-   [Chat with us](https://discord.gg/XpjNdXHCJK) about your suggestion on Discord
 
 ## Contributing Code
 
@@ -30,5 +36,5 @@ If you have written code that fixes a bug or provides new functionality, please 
 
 Ensure that all code contributions adhere to the following conventions:
 
-* C++ STL naming conventions
-* Allman indent style with tabs
+-   C++ STL naming conventions
+-   Allman indent style with tabs
