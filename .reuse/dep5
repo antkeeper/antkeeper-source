@@ -1,8 +1,0 @@
-Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Antkeeper
-Upstream-Contact: C. J. Howard
-Source: https://antkeeper.com/
-
-Files: CMakePresets.json
-Copyright: 2023 C. J. Howard
-License: GPL-3.0-or-later

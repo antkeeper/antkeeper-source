@@ -1,0 +1,402 @@
+key,context,en,zh-Hans,zh-Hant
+,,,,
+language_name_english,English name of the language.,English,Chinese (Simplified),Chinese (Traditional)
+language_name_native,Native name of the language.,English,简体中文,繁體中文
+language_tag,IETF language tag of the language.,en,zh-Hans,zh-Hant
+language_direction,"Text direction of the language (“ltr” for left-to-right, or “rtl” for right-to-left).",ltr,ltr,ltr
+,,,,
+font_serif,Filename of a serif font which supports the target language.,castoro-regular.woff,noto-serif-sc-regular.woff,noto-serif-tc-regular.woff
+font_sans_serif,Filename of a sans-serif font which supports the target language.,noto-sans-regular.woff,noto-sans-sc-regular.woff,noto-sans-tc-regular.woff
+font_monospace,Filename of a monospace font which supports the Basic Latin unicode block (U+0000-007f).,iosevka-regular.woff,iosevka-regular.woff,iosevka-regular.woff
+font_dyslexia,Filename of a dyslexia-friendly font which supports the target language (if any).,open-dyslexic-3-regular.woff,,
+,,,,
+window_title,Text displayed in the title of the game window.,Antkeeper,Antkeeper,Antkeeper
+,,,,
+title_antkeeper,Title screen text displaying the title of the game.,Antkeeper,Antkeeper,Antkeeper
+title_press_any_key,Title screen prompt to press any keyboard key.,Press any key,按任意按键,按任意按鍵
+title_press_any_button,Title screen prompt to press any gamepad button.,Press any button,按任意按钮,按任意按鈕
+,,,,
+back,Common menu item which lets the user return to the previous menu.,Back,返回,返回
+ellipsis,Common menu item which displays three dots.,…,…,…
+,,,,
+main_menu_start,Main menu item which allows the user to start their first ant colony.,Play,开始,開始
+main_menu_options,Main menu item which opens the options menu.,Options,设置,設置
+main_menu_extras,Main menu item which opens the extras menu.,Extras,额外内容,額外內容
+main_menu_quit,Main menu item which will quit the game when activated.,Quit,退出,退出
+,,,,
+on,Options menu value indicating that an option is turned on.,On,开,開
+off,Options menu value indicating that an option is turned off.,Off,关,關
+,,,,
+quality_low,Options menu value indicating that an option is set to low quality.,Low,,
+quality_medium,Options menu value indicating that an option is set to medium quality.,Medium,,
+quality_high,Options menu value indicating that an option is set to high quality.,High,,
+,,,,
+change_tool,Control which opens the tool changing menu.,Change tool,更换工具,更換工具
+use_tool,Control which uses the current tool.,Use tool,使用工具,使用工具
+adjust_camera,Control which enables camera adjustment.,Adjust camera,调整视角,調整視角
+reset_to_defaults,Menu item which resets options to their default values.,Reset to defaults,重置为默认值,重置爲默認值
+main_menu,Pause menu item which returns to the main menu.,Main menu,主菜单,主菜單
+credits,Credits text.,Created by C. J. Howard,由 C. J. Howard 创建,由 C. J. Howard 創建
+,,,,
+options_menu_controls,Options menu item which opens the controls menu.,Controls,控制,控制
+options_menu_graphics,Options menu item which opens the graphics menu.,Graphics,视频,視頻
+options_menu_sound,Options menu item which opens the sound menu.,Sound,音频,音頻
+options_menu_language,Options menu item which opens the language menu.,Language,语言,語言
+controls_menu_keyboard,Controls menu item which opens the keyboard/mouse configuration menu.,Keyboard,键盘,鍵盤
+controls_menu_gamepad,Controls menu item which opens the gamepad configuration menu.,Gamepad,游戏手柄,遊戲手柄
+,,,,
+control_unmapped,Menu item indicating a control is not mapped to any input.,(Unset),,
+control_mapping,Menu item indicating a control is currently being mapped.,…,…,…
+,,,,
+graphics_menu_fullscreen,,Fullscreen:,全屏：,全屏：
+graphics_menu_resolution,,Resolution:,分辨率：,分辨率：
+graphics_menu_v_sync,Graphics menu item which indicates whether vertical synchronization is enabled.,V-Sync:,垂直同步：,垂直同步：
+graphics_menu_bloom,Graphics menu item which indicates whether bloom is enabled.,Bloom:,,
+graphics_menu_font_scale,,Font size:,字体大小：,字體大小：
+graphics_menu_dyslexia_font,Graphics menu item which lets the user toggle a dyslexia-friendly font.,Dyslexia font:,阅读障碍字体：,閱讀障礙字體：
+graphics_menu_aa_method,Graphics menu item which indicates the active anti-aliasing method.,Anti-aliasing:,反锯齿：,反鋸齒：
+graphics_menu_aa_method_none,Graphics menu item which indicates no active anti-aliasing method.,None,无,無
+graphics_menu_aa_method_fxaa,Graphics menu item which indicates the anti-aliasing method is set to FXAA.,FXAA,FXAA,FXAA
+,,,,
+sound_menu_master_volume,Sound menu item which adjusts the master volume.,Master volume:,主音量：,主音量：
+sound_menu_ambience_volume,Sound menu item which adjusts the volume of ambient sound.,Ambience volume:,环境量：,環境量：
+sound_menu_effects_volume,Sound menu item which adjusts the volume of sound effects.,Effects volume:,声效音量：,聲效音量：
+sound_menu_mono_audio,Sound menu item which toggles mono audio.,Mono audio:,单声道音频：,單聲道音頻：
+sound_menu_captions,Sound menu item which toggles captions enabled.,Captions:,字幕：,字幕：
+sound_menu_captions_size,Sound menu item which adjusts the size of captions.,Captions size:,字幕大小：,字幕大小：
+language_menu_language,Language menu item which lets the user change the current language.,Language:,语言：,語言：
+,,,,
+extras_menu_credits,Extras menu item which brings the user to the credits roll.,Credits,鸣谢,鳴謝
+,,,,
+pause_menu_resume,Pause menu item which closes the pause menu and resumes gameplay.,Resume,恢复,恢復
+pause_menu_options,Pause menu item which opens the options menu.,Options,设置,設置
+pause_menu_main_menu,Pause menu item which quits the game and returns to the main menu.,Main menu,主菜单,主菜單
+pause_menu_quit,Pause menu item which closes the application.,Quit,退出,退出
+,,,,
+control_move_forward,Name of the control which moves the player forward.,Move forward,向前,向前
+control_move_back,Name of the control which moves the player back.,Move back,向后,向後
+control_move_left,Name of the control which moves the player left.,Move left,向左,向左
+control_move_right,Name of the control which moves the player right.,Move right,向右,向右
+control_move_up,Name of the control which moves the player up.,Move up,向上,向上
+control_move_down,Name of the control which moves the player down.,Move down,向下,向下
+control_pause,Name of the control which pauses the game.,Pause,暂停,暫停
+control_toggle_fullscreen,Name of the control which toggles fullscreen mode.,Toggle fullscreen,切换全屏,切換全屏
+control_screenshot,Name of the control which takes a screenshot,Screenshot,截屏,截屏
+,,,,
+mouse_button_left,Left mouse button label.,Left mouse,鼠标左键,鼠標左鍵
+mouse_button_middle,Middle mouse button label.,Middle mouse,鼠标中键,鼠標中鍵
+mouse_button_right,Right mouse button label.,Right mouse,鼠标右键,鼠標右鍵
+mouse_button_n_format,"Format string for the label of a mouse button other than left, middle or right. Argument 0 is an integer index of a button.",Mouse button {},鼠标{}号键,鼠標{}號鍵
+mouse_scroll_left,Mouse scroll left label.,Scroll left,鼠标滚轮向左,鼠標滾輪向左
+mouse_scroll_right,Mouse scroll right label.,Scroll right,鼠标滚轮向左,鼠標滾輪向左
+mouse_scroll_up,Mouse scroll up label.,Scroll up,鼠标滚轮向上,鼠標滾輪向上
+mouse_scroll_down,Mouse scroll down label.,Scroll down,鼠标滚轮向下,鼠標滾輪向下
+,,,,
+gamepad_left_stick_up,Gamepad left stick up label.,Left stick up,,
+gamepad_left_stick_down,Gamepad left stick down label.,Left stick down,,
+gamepad_left_stick_left,Gamepad left stick left label.,Left stick left,,
+gamepad_left_stick_right,Gamepad left stick right label.,Left stick right,,
+gamepad_right_stick_up,Gamepad right stick up label.,Right stick up,,
+gamepad_right_stick_down,Gamepad right stick down label.,Right stick down,,
+gamepad_right_stick_left,Gamepad right stick left label.,Right stick left,,
+gamepad_right_stick_right,Gamepad right stick right label.,Right stick right,,
+gamepad_left_trigger,Gamepad left trigger label.,Left trigger,,
+gamepad_right_trigger,Gamepad right trigger label.,Right trigger,,
+gamepad_axis_n_format,"Format string for the label of a direction along an numbered gamepad axis. Argument 0 is the integer index of an axis, argument 1 is the sign of the direction along the axis.",Axis {:1}{:0},,
+gamepad_button_a,Gamepad A button label.,A,,
+gamepad_button_b,Gamepad B button label.,B,,
+gamepad_button_x,Gamepad X button label.,X,,
+gamepad_button_y,Gamepad Y button label.,Y,,
+gamepad_button_back,Gamepad back button label.,Back,,
+gamepad_button_guide,Gamepad guide button label.,Guide,,
+gamepad_button_start,Gamepad start button label.,Start,,
+gamepad_button_left_stick,Gamepad left stick button label.,Left stick,,
+gamepad_button_right_stick,Gamepad right button label.,Right stick,,
+gamepad_button_left_shoulder,Gamepad left shoulder button label.,Left shoulder,,
+gamepad_button_right_shoulder,Gamepad right shoulder button label.,Right shoulder,,
+gamepad_button_dpad_up,Gamepad D-pad up button label.,D-pad up,,
+gamepad_button_dpad_down,Gamepad D-pad down button label.,D-pad down,,
+gamepad_button_dpad_left,Gamepad D-pad left button label.,D-pad left,,
+gamepad_button_dpad_right,Gamepad D-pad right button label.,D-pad right,,
+gamepad_button_n_format,Format string for the label of an numbered gamepad button. Argument 0 is the integer index of the button.,Button {},,
+,,,,
+scancode_00,RESERVED,,,
+scancode_01,error_roll_over,,,
+scancode_02,post_fail,,,
+scancode_03,error_undefined,,,
+scancode_04,a,A,A,A
+scancode_05,b,B,B,B
+scancode_06,c,C,C,C
+scancode_07,d,D,D,D
+scancode_08,e,E,E,E
+scancode_09,f,F,F,F
+scancode_0a,g,G,G,G
+scancode_0b,h,H,H,H
+scancode_0c,i,I,I,I
+scancode_0d,j,J,J,J
+scancode_0e,k,K,K,K
+scancode_0f,l,L,L,L
+scancode_10,m,M,M,M
+scancode_11,n,N,N,N
+scancode_12,o,O,O,O
+scancode_13,p,P,P,P
+scancode_14,q,Q,Q,Q
+scancode_15,r,R,R,R
+scancode_16,s,S,S,S
+scancode_17,t,T,T,T
+scancode_18,u,U,U,U
+scancode_19,v,V,V,V
+scancode_1a,w,W,W,W
+scancode_1b,x,X,X,X
+scancode_1c,y,Y,Y,Y
+scancode_1d,z,Z,Z,Z
+scancode_1e,digit_1,1,1,1
+scancode_1f,digit_2,2,2,2
+scancode_20,digit_3,3,3,3
+scancode_21,digit_4,4,4,4
+scancode_22,digit_5,5,5,5
+scancode_23,digit_6,6,6,6
+scancode_24,digit_7,7,7,7
+scancode_25,digit_8,8,8,8
+scancode_26,digit_9,9,9,9
+scancode_27,digit_0,0,0,0
+scancode_28,enter,Enter,Enter,Enter
+scancode_29,escape,Esc,Esc,Esc
+scancode_2a,backspace,Backspace,Backspace,Backspace
+scancode_2b,tab,Tab,Tab,Tab
+scancode_2c,space,Space,Space,Space
+scancode_2d,minus,-,-,-
+scancode_2e,equal,=,=,=
+scancode_2f,left_brace,[,[,[
+scancode_30,right_brace,],],]
+scancode_31,backslash,\,\,\
+scancode_32,non_us_hash,#,#,#
+scancode_33,semicolon,;,;,;
+scancode_34,apostrophe,',','
+scancode_35,grave,`,`,`
+scancode_36,comma,",",",",","
+scancode_37,dot,.,.,.
+scancode_38,slash,/,/,/
+scancode_39,caps_lock,CapsLock,CapsLock,CapsLock
+scancode_3a,f1,F1,F1,F1
+scancode_3b,f2,F2,F2,F2
+scancode_3c,f3,F3,F3,F3
+scancode_3d,f4,F4,F4,F4
+scancode_3e,f5,F5,F5,F5
+scancode_3f,f6,F6,F6,F6
+scancode_40,f7,F7,F7,F7
+scancode_41,f8,F8,F8,F8
+scancode_42,f9,F9,F9,F9
+scancode_43,f10,F10,F10,F10
+scancode_44,f11,F11,F11,F11
+scancode_45,f12,F12,F12,F12
+scancode_46,print_screen,PrtSc,PrtSc,PrtSc
+scancode_47,scroll_lock,ScrLk,ScrLk,ScrLk
+scancode_48,pause,Pause,Pause,Pause
+scancode_49,insert,Ins,Ins,Ins
+scancode_4a,home,Home,Home,Home
+scancode_4b,page_up,PgUp,PgUp,PgUp
+scancode_4c,del,Del,Del,Del
+scancode_4d,end,End,End,End
+scancode_4e,page_down,PgDn,PgDn,PgDn
+scancode_4f,right,Right,Right,Right
+scancode_50,left,Left,Left,Left
+scancode_51,down,Down,Down,Down
+scancode_52,up,Up,Up,Up
+scancode_53,num_lock,Numlock,Numlock,Numlock
+scancode_54,kp_slash,Keypad /,Keypad /,Keypad /
+scancode_55,kp_asterisk,Keypad *,Keypad *,Keypad *
+scancode_56,kp_minus,Keypad -,Keypad -,Keypad -
+scancode_57,kp_plus,Keypad +,Keypad +,Keypad +
+scancode_58,kp_enter,Keypad Enter,Keypad Enter,Keypad Enter
+scancode_59,kp_1,Keypad 1,Keypad 1,Keypad 1
+scancode_5a,kp_2,Keypad 2,Keypad 2,Keypad 2
+scancode_5b,kp_3,Keypad 3,Keypad 3,Keypad 3
+scancode_5c,kp_4,Keypad 4,Keypad 4,Keypad 4
+scancode_5d,kp_5,Keypad 5,Keypad 5,Keypad 5
+scancode_5e,kp_6,Keypad 6,Keypad 6,Keypad 6
+scancode_5f,kp_7,Keypad 7,Keypad 7,Keypad 7
+scancode_60,kp_8,Keypad 8,Keypad 8,Keypad 8
+scancode_61,kp_9,Keypad 9,Keypad 9,Keypad 9
+scancode_62,kp_0,Keypad 0,Keypad 0,Keypad 0
+scancode_63,kp_dot,Keypad .,Keypad .,Keypad .
+scancode_64,non_us_backslash,,,
+scancode_65,application,Application,Application,Application
+scancode_66,power,Power,Power,Power
+scancode_67,kp_equal,Keypad =,Keypad =,Keypad =
+scancode_68,f13,F13,F13,F13
+scancode_69,f14,F14,F14,F14
+scancode_6a,f15,F15,F15,F15
+scancode_6b,f16,F16,F16,F16
+scancode_6c,f17,F17,F17,F17
+scancode_6d,f18,F18,F18,F18
+scancode_6e,f19,F19,F19,F19
+scancode_6f,f20,F20,F20,F20
+scancode_70,f21,F21,F21,F21
+scancode_71,f22,F22,F22,F22
+scancode_72,f23,F23,F23,F23
+scancode_73,f24,F24,F24,F24
+scancode_74,execute,Execute,Execute,Execute
+scancode_75,help,Help,Help,Help
+scancode_76,menu,Menu,Menu,Menu
+scancode_77,select,Select,Select,Select
+scancode_78,stop,Stop,Stop,Stop
+scancode_79,again,Again,Again,Again
+scancode_7a,undo,Undo,Undo,Undo
+scancode_7b,cut,Cut,Cut,Cut
+scancode_7c,copy,Copy,Copy,Copy
+scancode_7d,paste,Paste,Paste,Paste
+scancode_7e,find,Find,Find,Find
+scancode_7f,mute,Mute,Mute,Mute
+scancode_80,volume_up,VolumeUp,VolumeUp,VolumeUp
+scancode_81,volume_down,VolumeDown,VolumeDown,VolumeDown
+scancode_82,locking_caps_lock,,,
+scancode_83,locking_num_lock,,,
+scancode_84,locking_scroll_lock,,,
+scancode_85,kp_comma,"Keypad ,","Keypad ,","Keypad ,"
+scancode_86,kp_equal_as400,Keypad = (AS400),Keypad = (AS400),Keypad = (AS400)
+scancode_87,international_1,,,
+scancode_88,international_2,,,
+scancode_89,international_3,,,
+scancode_8a,international_4,,,
+scancode_8b,international_5,,,
+scancode_8c,international_6,,,
+scancode_8d,international_7,,,
+scancode_8e,international_8,,,
+scancode_8f,international_9,,,
+scancode_90,lang_1,,,
+scancode_91,lang_2,,,
+scancode_92,lang_3,,,
+scancode_93,lang_4,,,
+scancode_94,lang_5,,,
+scancode_95,lang_6,,,
+scancode_96,lang_7,,,
+scancode_97,lang_8,,,
+scancode_98,lang_9,,,
+scancode_99,alt_erase,AltErase,AltErase,AltErase
+scancode_9a,sys_req,SysReq,SysReq,SysReq
+scancode_9b,cancel,Cancel,Cancel,Cancel
+scancode_9c,clear,Clear,Clear,Clear
+scancode_9d,prior,Prior,Prior,Prior
+scancode_9e,return_2,Return,Return,Return
+scancode_9f,separator,Separator,Separator,Separator
+scancode_a0,_out,Out,Out,Out
+scancode_a1,oper,Oper,Oper,Oper
+scancode_a2,clear_again,Clear / Again,Clear / Again,Clear / Again
+scancode_a3,cr_sel,CrSel,CrSel,CrSel
+scancode_a4,ex_sel,ExSel,ExSel,ExSel
+scancode_a5,RESERVED,,,
+scancode_a6,RESERVED,,,
+scancode_a7,RESERVED,,,
+scancode_a8,RESERVED,,,
+scancode_a9,RESERVED,,,
+scancode_aa,RESERVED,,,
+scancode_ab,RESERVED,,,
+scancode_ac,RESERVED,,,
+scancode_ad,RESERVED,,,
+scancode_ae,RESERVED,,,
+scancode_af,RESERVED,,,
+scancode_b0,kp_00,Keypad 00,Keypad 00,Keypad 00
+scancode_b1,kp_000,Keypad 000,Keypad 000,Keypad 000
+scancode_b2,thousands_separator,ThousandsSeparator,ThousandsSeparator,ThousandsSeparator
+scancode_b3,decimal_separator,DecimalSeparator,DecimalSeparator,DecimalSeparator
+scancode_b4,currency_unit,CurrencyUnit,CurrencyUnit,CurrencyUnit
+scancode_b5,currency_sub_unit,CurrencySubUnit,CurrencySubUnit,CurrencySubUnit
+scancode_b6,kp_left_paren,Keypad (,Keypad (,Keypad (
+scancode_b7,kp_right_paren,Keypad ),Keypad ),Keypad )
+scancode_b8,kp_left_brace,Keypad {,Keypad {,Keypad {
+scancode_b9,kp_right_brace,Keypad },Keypad },Keypad }
+scancode_ba,kp_tab,Keypad Tab,Keypad Tab,Keypad Tab
+scancode_bb,kp_backspace,Keypad Backspace,Keypad Backspace,Keypad Backspace
+scancode_bc,kp_a,Keypad A,Keypad A,Keypad A
+scancode_bd,kp_b,Keypad B,Keypad B,Keypad B
+scancode_be,kp_c,Keypad C,Keypad C,Keypad C
+scancode_bf,kp_d,Keypad D,Keypad D,Keypad D
+scancode_c0,kp_e,Keypad E,Keypad E,Keypad E
+scancode_c1,kp_f,Keypad F,Keypad F,Keypad F
+scancode_c2,kp_xor,Keypad XOR,Keypad XOR,Keypad XOR
+scancode_c3,kp_power,Keypad ^,Keypad ^,Keypad ^
+scancode_c4,kp_percent,Keypad %,Keypad %,Keypad %
+scancode_c5,kp_less,Keypad <,Keypad <,Keypad <
+scancode_c6,kp_greater,Keypad >,Keypad >,Keypad >
+scancode_c7,kp_ampersand,Keypad &,Keypad &,Keypad &
+scancode_c8,kp_double_ampersand,Keypad &&,Keypad &&,Keypad &&
+scancode_c9,kp_vertical_bar,Keypad |,Keypad |,Keypad |
+scancode_ca,kp_double_vertical_bar,Keypad ||,Keypad ||,Keypad ||
+scancode_cb,kp_colon,Keypad :,Keypad :,Keypad :
+scancode_cc,kp_hash,Keypad #,Keypad #,Keypad #
+scancode_cd,kp_space,Keypad Space,Keypad Space,Keypad Space
+scancode_ce,kp_at,Keypad @,Keypad @,Keypad @
+scancode_cf,kp_exclam,Keypad !,Keypad !,Keypad !
+scancode_d0,kp_mem_store,Keypad MemStore,Keypad MemStore,Keypad MemStore
+scancode_d1,kp_mem_recall,Keypad MemRecall,Keypad MemRecall,Keypad MemRecall
+scancode_d2,kp_mem_clear,Keypad MemClear,Keypad MemClear,Keypad MemClear
+scancode_d3,kp_mem_add,Keypad MemAdd,Keypad MemAdd,Keypad MemAdd
+scancode_d4,kp_mem_subtract,Keypad MemSubtract,Keypad MemSubtract,Keypad MemSubtract
+scancode_d5,kp_mem_multiply,Keypad MemMultiply,Keypad MemMultiply,Keypad MemMultiply
+scancode_d6,kp_mem_divide,Keypad MemDivide,Keypad MemDivide,Keypad MemDivide
+scancode_d7,kp_plus_minus,Keypad +/-,Keypad +/-,Keypad +/-
+scancode_d8,kp_clear,Keypad Clear,Keypad Clear,Keypad Clear
+scancode_d9,kp_clear_entry,Keypad ClearEntry,Keypad ClearEntry,Keypad ClearEntry
+scancode_da,kp_binary,Keypad Binary,Keypad Binary,Keypad Binary
+scancode_db,kp_octal,Keypad Octal,Keypad Octal,Keypad Octal
+scancode_dc,kp_decimal,Keypad Decimal,Keypad Decimal,Keypad Decimal
+scancode_dd,kp_hexadecimal,Keypad Hexadecimal,Keypad Hexadecimal,Keypad Hexadecimal
+scancode_de,RESERVED,,,
+scancode_df,RESERVED,,,
+scancode_e0,left_ctrl,L Ctrl,L Ctrl,L Ctrl
+scancode_e1,left_shift,L Shift,L Shift,L Shift
+scancode_e2,left_alt,L Alt,L Alt,L Alt
+scancode_e3,left_gui,L GUI,L GUI,L GUI
+scancode_e4,right_ctrl,R Ctrl,R Ctrl,R Ctrl
+scancode_e5,right_shift,R Shift,R Shift,R Shift
+scancode_e6,right_alt,R Alt,R Alt,R Alt
+scancode_e7,right_gui,R GUI,R GUI,R GUI
+,,,,
+queen_caste_name,Name of the queen caste.,Queen,蚁后,蟻后
+soldier_caste_name,Name of the soldier caste.,Soldier,兵蚁,兵蟻
+male_caste_name,Name of the male caste.,Male,雄蚁,雄蟻
+worker_caste_name,Name of the worker caste.,Worker,工蚁,工蟻
+,,,,
+queen_caste_symbol,Symbol for the queen caste.,♀,♀,♀
+worker_caste_symbol,Symbol for the worker caste.,☿,☿,☿
+soldier_caste_symbol,Symbol for the soldier caste.,♃,♃,♃
+male_caste_symbol,Symbol for the male caste.,♂,♂,♂
+,,,,
+named_queen_label_format,Format string for the label of a named queen ant.,Queen “{}”,{} 蚁后 ,{} 蟻后 
+named_worker_label_format,Format string for the label of a named worker ant.,Worker “{}”,{} 工蚁,{} 工蟻
+named_soldier_label_format,Format string for the label of a named major worker ant.,Soldier “{}”,{} 兵蚁,{} 兵蟻
+named_male_label_format,Format string for the label of a named male ant.,Male “{}”,{} 雄蚁 ,{} 雄蟻 
+,,,,
+larva_type_pogonomyrmecoid,Name of the Pogonomyrmecoid larva classification.,Pogonomyrmecoid,,
+larva_type_pheidoloid,Name of the Pheidoloid larva classification.,Pheidoloid,,
+larva_type_dolichoderoid,Name of the Dolichoderoid larva classification.,Dolichoderoid,,
+larva_type_attoid,Name of the Attoid larva classification.,Attoid,,
+larva_type_myrmecioid,Name of the Myrmecioid larva classification.,Myrmecioid,,
+larva_type_crematogastroid,Name of the Crematogastroid larva classification.,Crematogastroid,,
+larva_type_aphaenogastroid,Name of the Aphaenogastroid larva classification.,Aphaenogastroid,,
+larva_type_platythyreoid,Name of the Platythyreoid larva classification.,Platythyreoid,,
+larva_type_leptanilloid,Name of the Leptanilloid larva classification.,Leptanilloid,,
+larva_type_leptomyrmecoid,Name of the Leptomyrmecoid larva classification.,Leptomyrmecoid,,
+larva_type_oecophylloid,Name of the Oecophylloid larva classification.,Oecophylloid,,
+larva_type_rhopalomastigoid,Name of the Rhopalomastigoid larva classification.,Rhopalomastigoid,,
+,,,,
+forewing_type_1,Name of the Type I forewing classification.,Type I,种类一,種類一
+forewing_type_2,Name of the Type II forewing classification.,Type II,种类二,種類二
+forewing_type_3,Name of the Type III forewing classification.,Type III,种类三,種類三
+forewing_type_4,Name of the Type IV forewing classification.,Type IV,种类四,種類四
+,,,,
+hindwing_type_1,Name of the Type I hindwing classification.,Type I,种类一,種類一
+hindwing_type_2,Name of the Type II hindwing classification.,Type II,种类二,種類二
+hindwing_type_3,Name of the Type III hindwing classification.,Type III,种类三,種類三
+,,,,
+sting_absent,Indicates an ant does not have a sting.,Absent,无,無
+sting_present,Indicates an ant has a sting.,Present,有,有
+,,,,
+cocoon_absent,Indicates an ant larva does not build a cocoon.,Absent,无,無
+cocoon_present,Indicates an ant larva builds a cocoon.,Present,有,有
+,,,,
+life_stage_larva,Name of the larval stage of an ant.,Larva,,
+life_stage_pupa,Name of the pupal stage of an ant.,Pupa,,
+life_stage_cocoon,Name of the cocoon stage of an ant.,Cocoon,,
+life_stage_adult,Name of the adult stage of an ant.,Adult,,

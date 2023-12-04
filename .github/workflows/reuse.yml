@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 C. J. Howard
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-name: REUSE
+name: REUSE compliance
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     
-    - name: Compliance check
-      uses: fsfe/reuse-action@v2
+    - name: compliance check
+      uses: fsfe/reuse-action@4f2804894b54004c8ed4b8a62b7c649e54a3aa4b # v2.0.0

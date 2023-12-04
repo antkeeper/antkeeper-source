@@ -283,18 +283,18 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	list(APPEND SOURCE_FILES ${WINDOWS_SOURCE_FILES})
 	
 	# Generate Windows icon resource file
-	set(ICON_FILE "${PROJECT_SOURCE_DIR}/modules/antkeeper-data/src/icons/antkeeper.ico")
+	set(ICON_FILE "${PROJECT_SOURCE_DIR}/res/data/src/icons/antkeeper.ico")
 	if(EXISTS "${ICON_FILE}")
-		configure_file(${PROJECT_SOURCE_DIR}/src/game/platform/windows/icon.rc.in ${PROJECT_BINARY_DIR}/src/game/platform/windows/icon.rc)
-		list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/game/platform/windows/icon.rc")
+		configure_file(${PROJECT_SOURCE_DIR}/res/windows/icon.rc.in ${PROJECT_BINARY_DIR}/res/windows/icon.rc)
+		list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/res/windows/icon.rc")
 	endif()
 	
 	# Generate Windows version-information resource file
-	configure_file(${PROJECT_SOURCE_DIR}/src/game/platform/windows/version.rc.in ${PROJECT_BINARY_DIR}/src/game/platform/windows/version.rc)
-	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/src/game/platform/windows/version.rc")
+	configure_file(${PROJECT_SOURCE_DIR}/res/windows/version.rc.in ${PROJECT_BINARY_DIR}/res/windows/version.rc)
+	list(APPEND SOURCE_FILES "${PROJECT_BINARY_DIR}/res/windows/version.rc")
 	
 	# Make executable DPI-aware on Windows
-	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/game/platform/windows/dpi-aware.manifest")
+	list(APPEND SOURCE_FILES "${PROJECT_SOURCE_DIR}/res/windows/dpi-aware.manifest")
 	
 endif()
 
