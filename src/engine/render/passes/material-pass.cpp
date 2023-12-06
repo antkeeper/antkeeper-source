@@ -115,6 +115,7 @@ material_pass::material_pass(gl::pipeline* pipeline, const gl::framebuffer* fram
 void material_pass::render(render::context& ctx)
 {
 	m_pipeline->bind_framebuffer(m_framebuffer);
+	clear();
 	
 	m_pipeline->set_color_blend_enabled(false);
 	m_pipeline->set_depth_test_enabled(true);

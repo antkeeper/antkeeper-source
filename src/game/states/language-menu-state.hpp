@@ -6,7 +6,7 @@
 
 #include "game/states/game-state.hpp"
 #include <engine/scene/text.hpp>
-#include <engine/utility/text-file.hpp>
+#include <engine/utility/json.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -21,8 +21,8 @@ public:
 private:
 	void update_text_content();
 	
-	std::shared_ptr<text_file> language_manifest;
-	std::size_t language_index;
+	std::shared_ptr<json> language_manifest;
+	json::const_iterator language_it;
 	
 	std::unique_ptr<scene::text> language_name_text;
 	std::unique_ptr<scene::text> language_value_text;

@@ -63,6 +63,7 @@
 #include <engine/render/passes/material-pass.hpp>
 #include <engine/render/passes/resample-pass.hpp>
 #include <engine/render/passes/sky-pass.hpp>
+#include <engine/render/passes/clear-pass.hpp>
 #include <engine/render/renderer.hpp>
 #include <engine/render/vertex-attribute-location.hpp>
 #include <engine/resources/resource-manager.hpp>
@@ -617,21 +618,8 @@ void game::load_strings()
 	// Read strings settings
 	read_or_write_setting(*this, "language_tag", language_tag);
 	
-	// Slugify language tag
-	std::string language_slug = language_tag;
-	std::transform
-	(
-		language_slug.begin(),
-		language_slug.end(),
-		language_slug.begin(),
-		[](unsigned char c)
-		{
-			return std::tolower(c);
-		}
-	);
-	
 	// Load string map
-	string_map = resource_manager->load<i18n::string_map>(std::format("localization/{}.json", language_slug));
+	string_map = resource_manager->load<i18n::string_map>(std::format("localization/strings.{}.json", language_tag));
 	
 	// Log language info
 	debug::log_info("Language tag: {}", language_tag);
@@ -700,15 +688,20 @@ void game::setup_rendering()
 	
 	// Setup surface compositor
 	{
+		clear_pass = std::make_unique<render::clear_pass>(&window->get_graphics_pipeline(), hdr_framebuffer.get());
+		clear_pass->set_clear_mask(gl::color_clear_bit | gl::depth_clear_bit | gl::stencil_clear_bit);
+		clear_pass->set_clear_value({{0.0f, 0.0f, 0.0f, 0.0f}, 0.0f, 0});
+		
 		sky_pass = std::make_unique<render::sky_pass>(&window->get_graphics_pipeline(), hdr_framebuffer.get(), resource_manager.get());
-		sky_pass->set_clear_mask(gl::color_clear_bit | gl::depth_clear_bit | gl::stencil_clear_bit);
-		sky_pass->set_clear_value({{0.0f, 0.0f, 0.0f, 0.0f}, 0.0f, 0});
+		// sky_pass->set_clear_mask(gl::color_clear_bit | gl::depth_clear_bit | gl::stencil_clear_bit);
+		// sky_pass->set_clear_value({{0.0f, 0.0f, 0.0f, 0.0f}, 0.0f, 0});
 		// sky_pass->set_magnification(3.0f);
 		
 		surface_material_pass = std::make_unique<render::material_pass>(&window->get_graphics_pipeline(), hdr_framebuffer.get(), resource_manager.get());
 		surface_material_pass->set_fallback_material(fallback_material);
 		
 		surface_compositor = std::make_unique<render::compositor>();
+		surface_compositor->add_pass(clear_pass.get());
 		surface_compositor->add_pass(sky_pass.get());
 		surface_compositor->add_pass(surface_material_pass.get());
 		surface_compositor->add_pass(bloom_pass.get());

@@ -224,7 +224,7 @@ void sky_pass::render(render::context& ctx)
 	}
 	
 	m_pipeline->bind_framebuffer(m_framebuffer);
-	m_pipeline->clear_attachments(gl::color_clear_bit | gl::depth_clear_bit | gl::stencil_clear_bit, {});
+	clear();
 	
 	// Check if any corner of the view frustum is looking at or above the horizon
 	bool sky_visible =

@@ -22,21 +22,25 @@ language_menu_state::language_menu_state(::game& ctx):
 	debug::log_trace("Entering language menu state...");
 	
 	// Load language manifest
-	language_manifest = ctx.resource_manager->load<text_file>("languages.txt");
+	language_manifest = ctx.resource_manager->load<json>("localization/languages.json");
 	if (!language_manifest)
 	{
 		throw std::runtime_error("Failed to load language manifest");
 	}
 	
 	// Determine index of current language
-	language_index = 0;
-	for (std::size_t i = 0; i < language_manifest->lines.size(); ++i)
+	for (language_it = language_manifest->begin(); language_it != language_manifest->end(); ++language_it)
 	{
-		if (ctx.language_tag == language_manifest->lines[i])
+		if (ctx.language_tag == language_it.key())
 		{
-			language_index = i;
 			break;
 		}
+	}
+	
+	// Check if language was found
+	if (language_it == language_manifest->end())
+	{
+		throw std::runtime_error("Language not found");
 	}
 	
 	// Construct menu item texts
@@ -60,28 +64,15 @@ language_menu_state::language_menu_state(::game& ctx):
 	::menu::add_text_to_ui(ctx);
 	::menu::setup_animations(ctx);
 	
-	auto change_language = [this, &ctx]()
+	auto change_language = [&]()
 	{
-		const std::string& language_tag = this->language_manifest->lines[this->language_index];
-		
-		// Slugify language tag
-		std::string language_slug = language_tag;
-		std::transform
-		(
-			language_slug.begin(),
-			language_slug.end(),
-			language_slug.begin(),
-			[](unsigned char c)
-			{
-				return std::tolower(c);
-			}
-		);
+		// Get language tag from language key
+		ctx.language_tag = language_it.key();
 		
 		// Load language strings
-		ctx.string_map = ctx.resource_manager->load<i18n::string_map>(language_slug + ".str");
+		ctx.string_map = ctx.resource_manager->load<i18n::string_map>(std::format("localization/strings.{}.json", ctx.language_tag));
 		
 		// Update language settings
-		ctx.language_tag = language_tag;
 		(*ctx.settings)["language_tag"] = ctx.language_tag;
 		
 		// Log language change
@@ -94,7 +85,7 @@ language_menu_state::language_menu_state(::game& ctx):
 		
 		// Update menus
 		::menu::update_text_font(ctx);
-		this->update_text_content();
+		update_text_content();
 		::menu::refresh_text(ctx);
 		::menu::align_text(ctx);
 	};
@@ -102,18 +93,23 @@ language_menu_state::language_menu_state(::game& ctx):
 	// Construct menu item callbacks
 	auto next_language_callback = [this, &ctx, change_language]()
 	{
-		this->language_index = (this->language_index + 1) % this->language_manifest->lines.size();
+		if (++language_it; language_it == language_manifest->end())
+		{
+			language_it = language_manifest->begin();
+		}
+		
 		change_language();
 	};
 	auto previous_language_callback = [this, &ctx, change_language]()
 	{
-		if (this->language_index > 0)
+		if (language_it != language_manifest->begin())
 		{
-			--this->language_index;
+			--language_it;
 		}
 		else
 		{
-			this->language_index = this->language_manifest->lines.size() - 1;
+			language_it = language_manifest->end();
+			--language_it;
 		}
 		
 		change_language();

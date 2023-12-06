@@ -72,6 +72,7 @@ namespace render
 	class renderer;
 	class simple_render_pass;
 	class sky_pass;
+	class clear_pass;
 }
 
 
@@ -308,6 +309,7 @@ public:
 	std::unique_ptr<render::resample_pass> resample_pass;
 	std::unique_ptr<render::material_pass> underground_material_pass;
 	std::unique_ptr<render::compositor> underground_compositor;
+	std::unique_ptr<render::clear_pass> clear_pass;
 	std::unique_ptr<render::sky_pass> sky_pass;
 	std::unique_ptr<render::material_pass> surface_material_pass;
 	std::unique_ptr<render::compositor> surface_compositor;

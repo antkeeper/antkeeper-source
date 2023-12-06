@@ -4,6 +4,7 @@
 import argparse
 import csv
 import json
+import sys
 
 if __name__ == "__main__":
     
@@ -16,7 +17,15 @@ if __name__ == "__main__":
     
     # Build string dict for the given language
     with open(args.input_file, 'r', encoding='utf-8') as file:
-        strings = {row['key']: row[args.language_tag] or None for row in csv.DictReader(file) if row['key']}
+    
+        csv_reader = csv.DictReader(file)
+        header = next(csv_reader, None)
+        
+        if not args.language_tag in header:
+            print(f"error: language \"{args.language_tag}\" not found in \"{args.input_file}\"")
+            sys.exit(1)
+        
+        strings = {row['key']: row[args.language_tag] or None for row in csv_reader if row['key']}
     
     # Export string dict as JSON
     with open(args.output_file, 'w', encoding='utf-8') as file:

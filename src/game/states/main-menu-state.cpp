@@ -28,6 +28,7 @@
 #include <engine/render/passes/sky-pass.hpp>
 #include <engine/resources/resource-manager.hpp>
 #include <engine/utility/hash/fnv1a.hpp>
+#include <engine/render/passes/material-pass.hpp>
 #include <format>
 #include <limits>
 
@@ -247,9 +248,9 @@ main_menu_state::main_menu_state(::game& ctx, bool fade_in):
 	const float ev100_sunny16 = physics::light::ev::from_settings(16.0f, 1.0f / 100.0f, 100.0f);
 	ctx.surface_camera->set_exposure_value(ev100_sunny16);
 	
-	
 	// Setup and enable sky and ground passes
-	ctx.sky_pass->set_enabled(true);
+	ctx.sky_pass->set_enabled(false);
+	ctx.ui_material_pass->set_clear_mask(gl::color_clear_bit | gl::depth_clear_bit);
 	
 	// Setup window resized callback
 	window_resized_subscription = ctx.window->get_resized_channel().subscribe

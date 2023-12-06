@@ -304,6 +304,7 @@ treadmill_experiment_state::treadmill_experiment_state(::game& ctx):
 	
 	// Setup and enable sky and ground passes
 	ctx.sky_pass->set_enabled(true);
+	ctx.ui_material_pass->set_clear_mask(gl::depth_clear_bit);
 	
 	sky_probe = std::make_shared<scene::light_probe>();
 	const std::uint32_t sky_probe_face_size = 128;

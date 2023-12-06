@@ -40,7 +40,14 @@ static void build_bitmap_font(const type::typeface& typeface, float size, const 
 	material.set_blend_mode(render::material_blend_mode::translucent);
 	
 	// Create font bitmap variable
-	material.set_variable("font_bitmap", std::make_shared<render::matvar_texture_2d>(1, font.get_texture()));
+	if (auto var = material.get_variable("font_bitmap"); var)
+	{
+		std::static_pointer_cast<render::matvar_texture_2d>(var)->set(font.get_texture());
+	}
+	else
+	{
+		material.set_variable("font_bitmap", std::make_shared<render::matvar_texture_2d>(1, font.get_texture()));
+	}
 	
 	material.set_shader_template(shader_template);
 }
